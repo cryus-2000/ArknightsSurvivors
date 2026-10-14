@@ -1,0 +1,678 @@
+{
+  "source_assets": [
+    {
+      "name": "proj_mother_brood",
+      "prompt": "Game pixel art animation of proj_mother_brood. EXACTLY 4 frames in ONE horizontal row, evenly spaced equal invisible square cells with generous padding, no labels, no separators. True transparent background. Coarse clean square pixel clusters, low resolution aesthetic (each frame about 24 logical pixels), limited 12 colors, flat opaque color patches with selective sparse pixel dithering, NO antialiasing NO blur NO bloom. ENEMY palette violet, muted olive acid-green, bone-white only; no yellow gold, no bright cyan. A tiny curled offspring of the pale spiny creature in the reference; FOUR rotation phases of this same curled bone-white peach sac with short navy spines, tumbling clockwise while flying RIGHT. Tiny 2-3 muted olive acid droplets trailing LEFT. Always consistent volume, compact round body centered. No ground.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-4b30537a-fa99-4eb3-b333-fb02d22e4e7a.png",
+      "frame_rectangles": [
+        [
+          49,
+          184,
+          464,
+          553
+        ],
+        [
+          596,
+          184,
+          997,
+          564
+        ],
+        [
+          1160,
+          184,
+          1551,
+          547
+        ],
+        [
+          1681,
+          223,
+          2116,
+          542
+        ]
+      ],
+      "scale_at_1x": 0.03218390804597701,
+      "source_sha256": "66d2f6a10f4807a6ad2393dc7a423aa9f7bb289de6e9cbdd63da9439fc25d78d"
+    },
+    {
+      "name": "fx_mother_throw",
+      "prompt": "Game pixel art animation of fx_mother_throw. EXACTLY 4 frames in ONE horizontal row, evenly spaced equal invisible square cells with generous padding, no labels, no separators. True transparent background. Coarse clean square pixel clusters, low resolution aesthetic (each frame about 24 logical pixels), limited 12 colors, flat opaque color patches with selective sparse pixel dithering, NO antialiasing NO blur NO bloom. ENEMY palette violet, muted olive acid-green, bone-white only; no yellow gold, no bright cyan. A small pale pink fleshy spawning mouth opening at LEFT-middle and expelling a directional splash of purple and muted acidic green mucus toward RIGHT. Four phases: mouth compresses; opens with mucus gather; strong short forward mucus jet; droplets scatter and opening relaxes. This is ONLY the detachable mouth/splash overlay, no full monster. Pink-white mouth rim matches mother's peach organs.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-6da1ac6d-aa50-45c1-acc2-a6300a1bd873.png",
+      "frame_rectangles": [
+        [
+          176,
+          251,
+          398,
+          490
+        ],
+        [
+          625,
+          238,
+          945,
+          498
+        ],
+        [
+          1060,
+          230,
+          1525,
+          507
+        ],
+        [
+          1620,
+          242,
+          2015,
+          486
+        ]
+      ],
+      "scale_at_1x": 0.047311827956989246,
+      "source_sha256": "fb0a49eda8ac8e15e13cac5370bf749fdd21e12d6346c327008c95331ac2909f"
+    },
+    {
+      "name": "fx_brood_land",
+      "prompt": "Production pixel game sprite strip, fx_brood_land, EXACTLY 6 sequential frames in a SINGLE horizontal row of evenly spaced equal invisible cells. True transparent background, substantial gaps, no labels no border. Coarse crisp pixel cluster art suited to 24-48 logical pixels per frame, flat limited 12 color palette, binary transparency look, sparse dithering allowed. No antialiasing no blur no glow. SIX frames: 0 small olive-green acid impact beneath compact curled ivory spiky brood; 1 stronger small low splash; 2 crown of mucus bursting away from curled pale creature; 3 ivory peach spiny brood begins uncurling, dark little pointed feet unfolding; 4 almost standing; 5 SAME creature as reference, standing alone without droplets. All same logical creature size. Ivory peach round starburst sac with dark spiny short appendages, no eyes or humanoid anatomy. Feet baseline constant; ground splash low ellipse. FINAL frame must match reference's LEFT creature.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-022b31d7-f4b2-46fa-b237-5c32d3d62b2f.png",
+      "frame_rectangles": [
+        [
+          36,
+          287,
+          310,
+          503
+        ],
+        [
+          385,
+          290,
+          721,
+          507
+        ],
+        [
+          753,
+          231,
+          1078,
+          507
+        ],
+        [
+          1143,
+          269,
+          1429,
+          506
+        ],
+        [
+          1521,
+          259,
+          1782,
+          497
+        ],
+        [
+          1898,
+          259,
+          2122,
+          503
+        ]
+      ],
+      "scale_at_1x": 0.06547619047619048,
+      "source_sha256": "ba7ec3dbe8ff410f8a4f3f4423e664fc2661e2d67a8c41472549754cc250390c"
+    },
+    {
+      "name": "proj_skimmer_corrode",
+      "prompt": "Game pixel art animation of proj_skimmer_corrode. EXACTLY 4 frames in ONE horizontal row, evenly spaced equal invisible square cells with generous padding, no labels, no separators. True transparent background. Coarse clean square pixel clusters, low resolution aesthetic (each frame about 24 logical pixels), limited 12 colors, flat opaque color patches with selective sparse pixel dithering, NO antialiasing NO blur NO bloom. ENEMY palette violet, muted olive acid-green, bone-white only; no yellow gold, no bright cyan. FOUR loop phases of a compact horizontal corrosive projectile FACING RIGHT: darkest violet solid core at RIGHT, sharp lavender highlight, a few purple corrosive bubbles forming a short tail at LEFT. Aspect shape about 14 wide by 8 tall. Core size steady, bubbles oscillate between frames. NO star, no magic rings, no flames. Navy physical outer contour.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-bea36c2c-20b6-4c23-af0f-430728ae8413.png",
+      "frame_rectangles": [
+        [
+          59,
+          377,
+          382,
+          506
+        ],
+        [
+          490,
+          372,
+          828,
+          506
+        ],
+        [
+          964,
+          383,
+          1269,
+          506
+        ],
+        [
+          1400,
+          375,
+          1714,
+          510
+        ]
+      ],
+      "scale_at_1x": 0.03550295857988166,
+      "source_sha256": "66cc124285a82bc5f7e6657d2ad22200c7d9fef1aa96be2e63dc10d1f60e0e4f"
+    },
+    {
+      "name": "fx_skimmer_muzzle",
+      "prompt": "Game pixel art animation of fx_skimmer_muzzle. EXACTLY 3 frames in ONE horizontal row, evenly spaced equal invisible square cells with generous padding, no labels, no separators. True transparent background. Coarse clean square pixel clusters, low resolution aesthetic (each frame about 24 logical pixels), limited 12 colors, flat opaque color patches with selective sparse pixel dithering, NO antialiasing NO blur NO bloom. ENEMY palette violet, muted olive acid-green, bone-white only; no yellow gold, no bright cyan. THREE phases of a tiny violet corrosive emission flash facing RIGHT, origin at center-left: compressed small purple bubble -> short jagged pale lavender jet splashing right -> sparse 3-4 fading violet droplets. No gun no monster no circular magic glyph. This is liquid/spark without black outline.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-efc54eb6-4b67-46bc-ad07-6b31bde57677.png",
+      "frame_rectangles": [
+        [
+          212,
+          277,
+          502,
+          474
+        ],
+        [
+          863,
+          218,
+          1345,
+          501
+        ],
+        [
+          1634,
+          248,
+          1966,
+          469
+        ]
+      ],
+      "scale_at_1x": 0.029045643153526972,
+      "source_sha256": "cfe4e78eb34431d32a7d6e903cc92d24d9d3a40661c862a6f3e467ed16ecd046"
+    },
+    {
+      "name": "fx_corrode_hit",
+      "prompt": "Game pixel art animation of fx_corrode_hit. EXACTLY 5 frames in ONE horizontal row, evenly spaced equal invisible square cells with generous padding, no labels, no separators. True transparent background. Coarse clean square pixel clusters, low resolution aesthetic (each frame about 24 logical pixels), limited 12 colors, flat opaque color patches with selective sparse pixel dithering, NO antialiasing NO blur NO bloom. ENEMY palette violet, muted olive acid-green, bone-white only; no yellow gold, no bright cyan. FIVE chronological frames corrosive violet liquid impact: compact central bright pale-lavender impact -> asymmetric upward and outward purple splash crown -> droplets spread wider -> droplets fall downward -> just few remnants near bottom. NOT fire, NOT starburst magic. No black outline. Transparent gaps, dense readable clusters, no gradients. Preserve full temporal expansion, same central impact position.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-8bed9f78-0238-4635-8365-d337cf58e7be.png",
+      "frame_rectangles": [
+        [
+          76,
+          360,
+          349,
+          557
+        ],
+        [
+          481,
+          312,
+          812,
+          557
+        ],
+        [
+          900,
+          225,
+          1271,
+          564
+        ],
+        [
+          1361,
+          254,
+          1688,
+          564
+        ],
+        [
+          1816,
+          379,
+          2083,
+          557
+        ]
+      ],
+      "scale_at_1x": 0.05929919137466307,
+      "source_sha256": "1e65f28e514c2a73dc72a2ed35699fd867aa145e3f0d75ea4580b1a945dedfc5"
+    },
+    {
+      "name": "e_pocket_swell",
+      "prompt": "Production pixel sprite sheet. True transparent background. Single horizontal row of FOUR frames, evenly spaced identical invisible cells, generous transparent gutters, no labels or borders. Pixel clusters with crisp hard square steps, limited 15-color palette, dark navy outer contour, no antialiasing, NO bloom. Target game frame 30x28 at 2x master density. EDIT reference monster into FOUR sequential swelling frames, single horizontal strip, equal cells, entire animation aligned on same foot baseline and same center. Match this EXACT pale blue-gray translucent teardrop sac creature with dark purple interior, pale salmon small elite organs and split root feet. Frame 0 same normal resting sac; 1 modest bladder expansion upward/back toward LEFT; 2 bigger taut bladder; 3 largest inflated shell. Feet fixed. Face RIGHT consistently. Preserve original colors and identity. Not slime blob, not crab. No attack splash. Keep significant visible progressive growth inside fixed cell.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-35ea9ced-1b77-4e73-ab8b-07fed624541a.png",
+      "frame_rectangles": [
+        [
+          59,
+          173,
+          477,
+          636
+        ],
+        [
+          569,
+          155,
+          1021,
+          636
+        ],
+        [
+          1103,
+          164,
+          1567,
+          636
+        ],
+        [
+          1610,
+          110,
+          2152,
+          636
+        ]
+      ],
+      "scale_at_1x": 0.04797047970479705,
+      "source_sha256": "2573fc3fa5bec7792b48e6598403dcb836433e82b721f1f8a5b16ffed4c4f077"
+    },
+    {
+      "name": "fx_pocket_burst_back",
+      "prompt": "Production pixel game sprite strip, fx_pocket_burst_back, EXACTLY 6 sequential frames in a SINGLE horizontal row of evenly spaced equal invisible cells. True transparent background, substantial gaps, no labels no border. Coarse crisp pixel cluster art suited to 24-48 logical pixels per frame, flat limited 12 color palette, binary transparency look, sparse dithering allowed. No antialiasing no blur no glow. SIX animation frames of REAR LAYER of pressurized acid SAC RUPTURE. No monster. Frame0small pressure leaks from lower center; 1 four rear liquid jets rising diagonally up and outward; 2 wide branching splash crown with torn thin dark-violet membrane flakes; 3 jets fragment into droplets; 4 droplets dropping; 5 few falling remnants. Olive acidic green and violet liquid, pale lavender/white tiny highlights. NO fire NO orange NO yellow glow. Center bottom origin stays fixed. Keep bottom central gap for monster. Aspect canvas48wide40tall. The rear splash lies on top half of an elliptical floor plane.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-17dc34e6-b3b6-4c2d-bf18-4fce9f8da948.png",
+      "frame_rectangles": [
+        [
+          31,
+          451,
+          266,
+          580
+        ],
+        [
+          353,
+          274,
+          650,
+          580
+        ],
+        [
+          703,
+          239,
+          1099,
+          580
+        ],
+        [
+          1161,
+          235,
+          1495,
+          580
+        ],
+        [
+          1577,
+          301,
+          1817,
+          580
+        ],
+        [
+          1916,
+          365,
+          2149,
+          580
+        ]
+      ],
+      "scale_at_1x": 0.08115942028985507,
+      "source_sha256": "7ae0f653151b125f5b059089fca1607a32e69dafa2a36ca51c3df8bec09aee33"
+    },
+    {
+      "name": "fx_pocket_burst_front",
+      "prompt": "Create the synchronized FRONT LAYER companion to referenced six-frame acid sac burst sprite strip. EXACTLY SIX equal cells, ONE horizontal row, true transparent background, no monster no words no borders. SAME frame phases: 0 small low leaks; 1 forward acidic liquid jets extending diagonally to lower left/lower right; 2 broad strongest low fan of liquid with a few torn purple membrane fragments; 3 falling droplets; 4 sparse droplets; 5 tiny residual drops. IMPORTANT front layer is LOW and SPARSE, ONLY bottom third of each cell, leave upper center completely transparent so it will not hide monster's face; anchor eruption at common center at 70 percent cell height. Do NOT duplicate rear tall crown. Acid green + purple + pale lavender white highlights, NO orange/yellow flames. Sharp coarse logical pixel clusters 48x40 frame, 12 colors, clean hard edges, no outline for liquid, no blur no fuzzy gradients.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-c7edf3d5-03c7-4326-9859-757be3e0affe.png",
+      "frame_rectangles": [
+        [
+          78,
+          512,
+          256,
+          611
+        ],
+        [
+          368,
+          437,
+          672,
+          611
+        ],
+        [
+          738,
+          405,
+          1079,
+          611
+        ],
+        [
+          1157,
+          370,
+          1425,
+          611
+        ],
+        [
+          1555,
+          394,
+          1756,
+          611
+        ],
+        [
+          1889,
+          461,
+          2062,
+          611
+        ]
+      ],
+      "scale_at_1x": 0.04979253112033195,
+      "source_sha256": "a831f5cb491f5941e0653e874032da297033116af170bfa6f2ba5bb41d131461"
+    },
+    {
+      "name": "fx_pocket_puddle",
+      "prompt": "Production pixel game sprite strip, fx_pocket_puddle, EXACTLY 4 sequential frames in a SINGLE horizontal row of evenly spaced equal invisible cells. True transparent background, substantial gaps, no labels no border. Coarse crisp pixel cluster art suited to 24-48 logical pixels per frame, flat limited 12 color palette, binary transparency look, sparse dithering allowed. No antialiasing no blur no glow. FOUR frames small flattened acidic puddle on ground: 0 compact irregular fresh olive liquid pool; 1 slightly spreading bigger pool with purple foam bubbles; 2 same outline starts breaking into transparent dither holes; 3 very sparse disconnected stains, almost dissipated. Top-down ellipse y compressed to .50, 40wide20tall. Muted acid olive green and violet, no black outline no glowing ring, no flames.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-1535cb51-c287-4d71-ad95-5e1a548320a5.png",
+      "frame_rectangles": [
+        [
+          52,
+          410,
+          375,
+          516
+        ],
+        [
+          476,
+          390,
+          855,
+          529
+        ],
+        [
+          932,
+          408,
+          1300,
+          529
+        ],
+        [
+          1386,
+          423,
+          1717,
+          523
+        ]
+      ],
+      "scale_at_1x": 0.09498680738786279,
+      "source_sha256": "fdaa4560b88b813ff2125b78c2a5a159239a9c8c419347eab08d1cd61d086e3d"
+    },
+    {
+      "name": "e_spitter",
+      "prompt": "Production pixel sprite sheet. True transparent background. Single horizontal row of TWO frames, evenly spaced identical invisible cells, generous transparent gutters, no labels or borders. Pixel clusters with crisp hard square steps, limited 15-color palette, dark navy outer contour, no antialiasing, NO bloom. Target game frame 26x24 at 2x master density. Create TWO idle breathing frames of a NEW small seaborn acid-spitting monster, facing RIGHT in three-quarter side view. The reference is a related creature for rendering style ONLY: design distinct silhouette, squat wide soft armored slug, large forward-facing short tubular mouth on RIGHT, prominent swollen dorsal spray bladder on LEFT back, small hooked legs. Pale blue-gray shell highlights, dark desaturated purple underside, muted acid-green sacs and whitish pale highlights. NO orange elite marks (ordinary enemy). Both frames same scale and foot baseline, second gentle bladder inhale. Short and wide unlike reference's tall conch. No projectile, no shadow.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-05d5fdb6-2848-4611-8e3f-94b283db9b8e.png",
+      "frame_rectangles": [
+        [
+          145,
+          315,
+          839,
+          804
+        ],
+        [
+          1024,
+          272,
+          1762,
+          804
+        ]
+      ],
+      "scale_at_1x": 0.032520325203252036,
+      "source_sha256": "06b72be3f135fca2549a4a72a46fcc54a78a3bdd1e7386d3e5355b8d4ae2f918"
+    },
+    {
+      "name": "e_spitter_move",
+      "prompt": "EDIT reference into a pixel game horizontal animation strip with EXACTLY FOUR evenly spaced equal-size cells on transparent background. Same original monster identity, hues and scale. Crisp large square pixel clusters, 15 colors, navy outline, no blur, no shading gradients, no text or ground shadows. FOUR chronological crawling gait frames. Same short squat wide armored sea slug with olive acid bladder at LEFT rear and forward short tube mouth at RIGHT. Alternate hooked legs contacting ground, low torso bob 1 logical pixel, bladder lags motion. Fully side facing RIGHT. Keep constant volume, mouth shape, armor, same feet baseline, no slime trails or effects. Subtle but visible gait.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-9e8935be-710c-410f-873f-11c13332cfa1.png",
+      "frame_rectangles": [
+        [
+          32,
+          255,
+          537,
+          617
+        ],
+        [
+          591,
+          254,
+          1094,
+          617
+        ],
+        [
+          1111,
+          261,
+          1615,
+          617
+        ],
+        [
+          1649,
+          256,
+          2145,
+          611
+        ]
+      ],
+      "scale_at_1x": 0.047524752475247525,
+      "source_sha256": "e1b701a3116da694ff3bc8b6b2b4d38c66f2d2214fda113d0ea9e4193d2aa10d"
+    },
+    {
+      "name": "e_spitter_attack",
+      "prompt": "EDIT reference into a pixel game horizontal animation strip with EXACTLY FOUR evenly spaced equal-size cells on transparent background. Same original monster identity, hues and scale. Crisp large square pixel clusters, 15 colors, navy outline, no blur, no shading gradients, no text or ground shadows. FOUR chronological attack frames. EXACT same monster: 0 resting; 1 compresses olive bladder and pulls face slightly back; 2 forward short tube mouth at RIGHT thrusts forward WIDEST OPEN, dark large aperture with purple interior, bladder visibly contracts; 3 recovers near resting. Same armor and limbs, do not transform it. No projectile or splashes. Baseline fixed, all facing RIGHT.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-2bd1a17d-91fd-4ba1-9a2f-1410e6b33099.png",
+      "frame_rectangles": [
+        [
+          19,
+          304,
+          523,
+          660
+        ],
+        [
+          604,
+          330,
+          1028,
+          660
+        ],
+        [
+          1117,
+          340,
+          1627,
+          660
+        ],
+        [
+          1652,
+          304,
+          2155,
+          660
+        ]
+      ],
+      "scale_at_1x": 0.047058823529411764,
+      "source_sha256": "5f78863e75f5c8cac8d351ede624ac918d66e4523a35b4ce7309c00e2e4e0521"
+    },
+    {
+      "name": "proj_spitter_acid",
+      "prompt": "Production pixel game sprite strip, proj_spitter_acid, EXACTLY 4 sequential frames in a SINGLE horizontal row of evenly spaced equal invisible cells. True transparent background, substantial gaps, no labels no border. Coarse crisp pixel cluster art suited to 24-48 logical pixels per frame, flat limited 12 color palette, binary transparency look, sparse dithering allowed. No antialiasing no blur no glow. FOUR LOOP frames compact olive acid globule with 2 or 3 tiny gas bubbles, pulsating/rolling with constant size, projectile centered facing RIGHT, 12x12 logical pixel shape. Dark violet green exterior shadow and solid brightest pale almost white highlight, not yellow fire. Dark navy outline. Small and chunky readable.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-0659a872-30fe-4d33-9aaa-2305ef3e9a46.png",
+      "frame_rectangles": [
+        [
+          138,
+          260,
+          394,
+          451
+        ],
+        [
+          666,
+          261,
+          973,
+          451
+        ],
+        [
+          1219,
+          259,
+          1495,
+          459
+        ],
+        [
+          1740,
+          263,
+          2056,
+          451
+        ]
+      ],
+      "scale_at_1x": 0.03164556962025317,
+      "source_sha256": "25fb9d04db3879eb68c8214d1c3c647f3c927dd62c701517f2ddb831e1bcf3b9"
+    },
+    {
+      "name": "fx_spitter_land",
+      "prompt": "Production pixel game sprite strip, fx_spitter_land, EXACTLY 6 sequential frames in a SINGLE horizontal row of evenly spaced equal invisible cells. True transparent background, substantial gaps, no labels no border. Coarse crisp pixel cluster art suited to 24-48 logical pixels per frame, flat limited 12 color palette, binary transparency look, sparse dithering allowed. No antialiasing no blur no glow. SIX frames low ground acid splash and dark purple creeping mire tendrils: 0 small impact crown;1 wide low acid splash upward droplets;2 olive liquid spreads in elliptical ring while dark violet rootlike mire veins extend radially along ground;3 droplets fall ring expands;4 scattered acid spots and thinning veins;5 very sparse fading broken ring, almost transparent. NO persistent full disc, no flames, no monster. Ground ellipse compressed y .55, frame40wide24tall. Muted olive green, purple-white drops, navy-purple mire. No black contour.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-f3e4c064-502b-4305-8112-cc9547255007.png",
+      "frame_rectangles": [
+        [
+          70,
+          349,
+          198,
+          455
+        ],
+        [
+          324,
+          304,
+          560,
+          465
+        ],
+        [
+          635,
+          307,
+          936,
+          507
+        ],
+        [
+          1000,
+          309,
+          1308,
+          514
+        ],
+        [
+          1366,
+          364,
+          1638,
+          511
+        ],
+        [
+          1723,
+          399,
+          1937,
+          485
+        ]
+      ],
+      "scale_at_1x": 0.0975609756097561,
+      "source_sha256": "587d5cd5abdf528552e6b0ec835c6db9495ed861a1c9b37e3025aeaec452b4d2"
+    },
+    {
+      "name": "fx_corrode_hit_acid",
+      "prompt": "Game pixel art animation of fx_corrode_hit. EXACTLY 5 frames in ONE horizontal row, evenly spaced equal invisible square cells with generous padding, no labels, no separators. True transparent background. Coarse clean square pixel clusters, low resolution aesthetic (each frame about 24 logical pixels), limited 12 colors, flat opaque color patches with selective sparse pixel dithering, NO antialiasing NO blur NO bloom. ENEMY palette violet, muted olive acid-green, bone-white only; no yellow gold, no bright cyan. FIVE chronological frames corrosive violet liquid impact: compact central bright pale-lavender impact -> asymmetric upward and outward purple splash crown -> droplets spread wider -> droplets fall downward -> just few remnants near bottom. NOT fire, NOT starburst magic. No black outline. Transparent gaps, dense readable clusters, no gradients. Preserve full temporal expansion, same central impact position.",
+      "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-8bed9f78-0238-4635-8365-d337cf58e7be.png",
+      "variant": "original violet/olive source palette; regular version maps olive to violet",
+      "frame_rectangles": [
+        [
+          76,
+          360,
+          349,
+          557
+        ],
+        [
+          481,
+          312,
+          812,
+          557
+        ],
+        [
+          900,
+          225,
+          1271,
+          564
+        ],
+        [
+          1361,
+          254,
+          1688,
+          564
+        ],
+        [
+          1816,
+          379,
+          2083,
+          557
+        ]
+      ],
+      "scale_at_1x": 0.05929919137466307,
+      "source_sha256": "1e65f28e514c2a73dc72a2ed35699fd867aa145e3f0d75ea4580b1a945dedfc5"
+    }
+  ],
+  "blue_color_key": {
+    "prompt": "COLOR EDIT ONLY of this exact SIX-frame acid sac rupture sprite strip. Keep identical six frame shapes, positions, phase progression, composition, source dimensions, genuine transparent background. Replace all yellow-green/olive acid liquid with DEEP OCEAN BLUE and readable muted ICY BLUE highlights, deep ink-blue liquid shadows, medium steel/periwinkle-blue mids, pale blue-white highlights, keep small violet purple membrane flecks. It must remain viscous poisonous LIQUID with sticky jets and rounded droplets, NOT ice spikes, not ice shards, no snowflakes or freezing. No bright turquoise/cyan, no warm gold, no yellow or green. Coarse clean crisp pixel art, limited color palette, opaque color clusters. Do not add characters or objects or glow.",
+    "path": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-9b3afe8f-326c-4c84-addc-d225a13dda93.png",
+    "sha256": "3d1f1bc5ca80480f34cf49cea1ad7966b72727108c22835612917a2c79b29287",
+    "rgb_palette": [
+      [
+        0,
+        28,
+        84
+      ],
+      [
+        1,
+        55,
+        143
+      ],
+      [
+        5,
+        84,
+        190
+      ],
+      [
+        28,
+        114,
+        228
+      ],
+      [
+        67,
+        141,
+        243
+      ],
+      [
+        130,
+        178,
+        245
+      ],
+      [
+        168,
+        216,
+        252
+      ]
+    ]
+  },
+  "mechanical_export_sha256": "ce956bb139cb48c6615491cc1209255f50982ee91f97d9e0054109fd3f641b7f",
+  "validator_sha256": "0a7f19e431dee7b37e074e76e6ab5592bd69423a33b3e3c3c84b2457e2e4cfd6",
+  "preview_generator_sha256": "c12508e697edc5f2fc11e6f0a512ad2f034084042119fed5f3113af06957a771",
+  "reference_files": [
+    {
+      "file": "e_mother.png",
+      "sha256": "84a1e1d8ffabe96cafc6eea20363623ffbd411ff9f9a49ed1f62e4538ea88f28"
+    },
+    {
+      "file": "e_mother@2x.png",
+      "sha256": "fc5714b46f1b4280ae92c35991474c20b2bcc2c3eb822443891e52d73156cb37"
+    },
+    {
+      "file": "e_mother_attack.png",
+      "sha256": "f9b8aa3597ff12afd45543d809fb8ad530171529df87cf896bdf0e94e0dce8c9"
+    },
+    {
+      "file": "e_mother_attack@2x.png",
+      "sha256": "1141e7aa1407f20f987e18815f98767c15059c84ce900309476ccc3f9ca2d6da"
+    },
+    {
+      "file": "e_skimmer.png",
+      "sha256": "8bddb76ff5e173fe3207a357968d4a12ffd50a3f67ac404b30a25db6e7a5f685"
+    },
+    {
+      "file": "e_skimmer@2x.png",
+      "sha256": "ed19b6d5cb037d6be709a01feb190593be20c783ca153948da23c48b3ea313fe"
+    },
+    {
+      "file": "e_pocket.png",
+      "sha256": "56eb1a321bc3add148e97d08e2b6322970adf889313612a8ec21c1884b99474f"
+    },
+    {
+      "file": "e_pocket@2x.png",
+      "sha256": "2636103ed357f0d10f67c01753421f5c16d768c8d24a79ff52771a95d0780a42"
+    },
+    {
+      "file": "e_pocket_attack.png",
+      "sha256": "bfc14136d433a0220b61ace33f438de6463c85078ca6c176984c532ea540efdd"
+    },
+    {
+      "file": "e_pocket_attack@2x.png",
+      "sha256": "9ad01a83c80be34b48f48971532ee1e92e2727dc147ed408d92e807aedaf7f1d"
+    },
+    {
+      "file": "e_brood.png",
+      "sha256": "da2c3e702e034f56f7b8c91baeecce78fb63133e1fb14b08481ad7c2b3a57744"
+    },
+    {
+      "file": "e_brood@2x.png",
+      "sha256": "e7d9ff4c8c4495ce2274a1ff80b9cafe3e90ee44f2b321bf07d4b139aa6744a0"
+    },
+    {
+      "file": "e_stone.png",
+      "sha256": "34688dd95ba0759ff83a9966027a5e267b5aec9da7940f2d38ef725a68945582"
+    },
+    {
+      "file": "e_stone@2x.png",
+      "sha256": "361589d9a3f015712fddc65529c365af24dd9541d7fa8184e29afdb23f42d2e5"
+    }
+  ]
+}
