@@ -35,13 +35,13 @@
   "size": 48, "foot": [24, 46]
  },
  "extra_sprites": ["float_in", "float", "float_move", "float_attack"],
- "attack": {"mode": "auto", "name": "重力弹", "desc": "每 1.1 秒向射程 320 内敌群最密处射一枚重力弹：落点半径 75 法术伤害，并把半径 100 内的敌人向落点拉拢 40（精英减半、重型 ×0.3、Boss 不受；敌人受到的击退倍率越高拉得越远）"},
+ "attack": {"mode": "auto", "name": "重力弹", "desc": "每 {$cd} 秒向射程 {$range} 内敌群最密处射一枚重力弹：落点半径 {$aoe} 法术伤害，并把半径 {$pull_r} 内的敌人向落点拉拢 {$pull}（精英减半、重型 ×0.3、Boss 不受；敌人受到的击退倍率越高拉得越远）"},
  "skills": [
-  {"name": "秘杖·速充模式", "en": "ARCANE STAFF - QUICK CHARGE MODE", "sp": 7, "desc": "接下来 3 发重力弹：拉拢距离 ×2、落点范围 ×1.4，落点敌人停顿 0.6 秒（精英 0.3 秒）", "icon": "skill_angelina_s1"},
-  {"name": "秘杖·微粒模式", "en": "ARCANE STAFF - PARTICLE MODE", "sp": 15, "permanent": true, "desc": "充能一次后永久生效：队长周围常驻重力场（半径 150），每 0.5 秒把场内敌人推拉向半径 110 的环带，束成一圈；队长移速 +8%", "icon": "skill_angelina_s2"},
-  {"name": "秘杖·反重力模式", "en": "ARCANE STAFF - ANTI-GRAVITY MODE", "sp": 24, "dur": 10.0, "desc": "10 秒：队长周围半径 220 内的敌人悬浮（不能移动和攻击；精英每 2 秒落地 0.5 秒，Boss 只减速）并向场心汇聚；全队攻速 +20%，队长每秒回复 1%、移速 +15%、拾取范围 ×3", "icon": "skill_angelina_s3"}
+  {"name": "秘杖·速充模式", "en": "ARCANE STAFF - QUICK CHARGE MODE", "sp": 7, "desc": "接下来 {$s1_n} 发重力弹：拉拢距离 ×{$s1_pull}、落点范围 ×{$s1_r}，落点敌人停顿 {$s1_pause} 秒（精英减半，Boss 除外）", "icon": "skill_angelina_s1"},
+  {"name": "秘杖·微粒模式", "en": "ARCANE STAFF - PARTICLE MODE", "sp": 15, "permanent": true, "desc": "充能一次后永久生效：队长周围常驻重力场（半径 {$s2_r}），每 {$s2_every} 秒把场内敌人推拉向半径 {$s2_ring} 的环带，束成一圈；队长移速 +{$s2_speed*100}%", "icon": "skill_angelina_s2"},
+  {"name": "秘杖·反重力模式", "en": "ARCANE STAFF - ANTI-GRAVITY MODE", "sp": 24, "dur": 10.0, "desc": "{$s3_dur} 秒：队长周围半径 {$s3_r} 内的敌人悬浮（不能移动和攻击；精英每 {$s3_elite_up+$s3_elite_down} 秒落地 {$s3_elite_down} 秒，Boss 只减速）并向场心汇聚；全队攻速 +{$s3_aspd*100}%，队长每秒回复 {$s3_heal*100}% 最大生命、移速 +{$s3_speed*100}%、拾取范围 ×{$s3_pickup}", "icon": "skill_angelina_s3"}
  ],
- "talent": {"name": "加速力场", "desc": "被她拉动过的敌人 2 秒内失重：受到的击退与拉拽 +30%（斯卡蒂、星熊、塞雷娅的击退都吃）；照亮范围内的敌人被她拉得更远（+20%）"},
+ "talent": {"name": "加速力场", "desc": "被她拉动过的敌人 {$grav_dur} 秒内失重：受到的击退与拉拽 +{$grav_kb*100}%（斯卡蒂、星熊、塞雷娅的击退都吃）；照亮范围内的敌人被她拉得更远（+{$talent_lit*100}%）"},
  "hit_sources": {
   "重力弹": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "法术", "tags": ["projectile", "area", "basic", "control"]},
   "秘杖·速充模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "法术", "tags": ["skill", "area", "control"]},
@@ -50,14 +50,14 @@
   "失重井": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "法术", "tags": ["dot", "area", "control"]}
  },
  "progression": [
-  {"type": "custom", "id": "wide", "name": "引力扩散", "icon": "growth_b_range", "desc": "重力弹的落点范围与拉拢范围 ×1.15"},
-  {"type": "custom", "id": "dense", "name": "致密", "icon": "growth_b_size", "desc": "重力弹伤害 ×1.15"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「秘杖·微粒模式」；解锁天赋「加速力场」：被拉过的敌人失重，更容易被击退，照亮范围内的敌人拉得更远；重力弹落点的敌人停顿 0.25 秒（精英 0.12 秒，Boss 除外）",
-   "attack": {"name": "重力停顿", "desc": "重力弹落点半径 75 内的敌人停顿 0.25 秒（精英 0.12 秒，Boss 除外），脚下一圈紫环收缩"}},
-  {"type": "custom", "id": "pull2", "name": "双重引力", "icon": "growth_b_echo", "desc": "重力弹落地 0.3 秒后在落点再拉一次（拉拢与伤害各 50%）"},
-  {"type": "custom", "id": "lock", "name": "潮汐锁", "icon": "skill_angelina_s2", "desc": "「秘杖·微粒模式」的环带上的敌人每秒受到重力弹 20% 的法术伤害"},
-  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「秘杖·反重力模式」；普攻质变「失重井」：重力弹落地后留下一口失重井 1.2 秒（半径 60），持续把周围的敌人拉向井心，井心的敌人悬浮；井内失重或悬浮的敌人每 0.4 秒受到 15% 法术伤害。最多同时 3 口（Boss 除外）",
-   "attack": {"name": "失重井", "desc": "重力弹落地后留下一口失重井 1.2 秒（半径 60）：每 0.4 秒把周围的敌人拉向井心，井心的敌人悬浮；井内失重或悬浮的敌人每 0.4 秒受到 15% 法术伤害。最多同时 3 口（Boss 除外）"}}
+  {"type": "custom", "id": "wide", "name": "引力扩散", "icon": "growth_b_range", "desc": "重力弹的落点范围与拉拢范围 ×{$n1_area}"},
+  {"type": "custom", "id": "dense", "name": "致密", "icon": "growth_b_size", "desc": "重力弹伤害 ×{$n2_dmg}"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「秘杖·微粒模式」；解锁天赋「加速力场」：被拉过的敌人失重，更容易被击退，照亮范围内的敌人拉得更远；普攻「重力停顿」：重力弹落点的敌人停顿 {$halt} 秒（精英减半，Boss 除外）",
+   "attack": {"name": "重力停顿", "desc": "重力弹落点半径 {$aoe} 内的敌人停顿 {$halt} 秒（精英减半，Boss 除外），脚下一圈紫环收缩"}},
+  {"type": "custom", "id": "pull2", "name": "双重引力", "icon": "growth_b_echo", "desc": "重力弹落地 {$pull2_delay} 秒后在落点再拉一次（拉拢与伤害各 {$pull2_mult*100}%）"},
+  {"type": "custom", "id": "lock", "name": "潮汐锁", "icon": "skill_angelina_s2", "desc": "「秘杖·微粒模式」的环带上的敌人每 {$lock_tick} 秒受到重力弹 {$lock_mult*100}% 的法术伤害"},
+  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「秘杖·反重力模式」；普攻质变「失重井」：重力弹落地后留下一口失重井 {$well_dur} 秒（半径 {$well_r}），持续把周围的敌人拉向井心，井心的敌人悬浮；井内失重或悬浮的敌人每 {$well_every} 秒受到 {$well_mult*100}% 法术伤害（「秘杖·反重力模式」期间减半）。最多同时 {$well_cap} 口（Boss 除外）",
+   "attack": {"name": "失重井", "desc": "重力弹落地后留下一口失重井 {$well_dur} 秒（半径 {$well_r}）：每 {$well_every} 秒把周围的敌人拉向井心，井心的敌人悬浮；井内失重或悬浮的敌人每 {$well_every} 秒受到 {$well_mult*100}% 法术伤害（「秘杖·反重力模式」期间减半）。最多同时 {$well_cap} 口（Boss 除外）"}}
  ],
  "gallery": {"tags": ["远程", "聚怪", "悬浮", "控制"], "desc": "凝滞师：把敌人拉成一圈、再整片托上天，给范围干员喂靶子；拿到「安洁莉娜的创想」拉得更狠"},
  "blocks": {

@@ -1823,7 +1823,8 @@ func _c_growth(e: Dictionary, box: Rect2, ph: bool, am: float, odx: float, motio
 		y += hs[i] + gap
 	if not ph:
 		var a2 := _rowm(nodes.size(), am, odx, motion)
-		UI.text_at(self, font, Vector2(x0, box.end.y - 12), "探索中升级时，成长卡按这个顺序出现；精英化同时解锁新技能。", 10, UI.fa(UI.C_L_SUB, a2))
+		var foot := UI.fit_line(font, "成长卡按此顺序出现；成长节点各带攻击 +%d%%，精英化强化普攻" % int(round(Character.NODE_ATK * 100.0)), 10, box.end.x - x0, 8)
+		UI.text_at(self, font, Vector2(x0, box.end.y - 12), foot[0], foot[1], UI.fa(UI.C_L_SUB, a2))
 
 
 ## 各行高度：桌面每行 = 标题 + 说明（字号 12 → 10，仍放不下就平分剩余高度并截断）；
