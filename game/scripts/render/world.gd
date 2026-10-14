@@ -831,6 +831,9 @@ func _draw_sorted_entities(evr: Rect2) -> void:
 	_afast = atlas != null and not (g.opt_old & Game.OPT_ATLAS) and not _dbg_enemy and not _no_flash and EnemyAtlas.xform_flip
 	_edf = not (g.opt_old & Game.OPT_EDRAW)
 	_am_mode = Look.actor_mod_begin(g) if _edf else 0
+	if _am_mode == 2 and not (g.opt_old & Game.OPT_LIGHT):
+		Look.actor_mod_lut_build()   # 受光封顶整屏统一算一次（docs/50 §15 D2）：逐只只查表
+		_am_mode = 3
 	if not (g.opt_old & Game.OPT_SORT) and _sorted_fast(evr):
 		_am_mode = 0
 		return
@@ -1790,7 +1793,9 @@ var _no_flash: bool = Look.dbg("noflash") != ""
 var _act_mod := Color.WHITE   # 当前这只敌人的受光封顶缩放（Look.actor_mod；_espr 乘在本体 / 白闪上，描边不乘）
 
 func draw_enemy(e: Dictionary) -> void:
-	if _am_mode == 2:
+	if _am_mode == 3:
+		_act_mod = Look.actor_mod_lut(e.pos)
+	elif _am_mode == 2:
 		_act_mod = Look.actor_mod_at(e.pos)
 	elif _am_mode == 1:
 		_act_mod = Color.WHITE
@@ -3855,8 +3860,44 @@ func _zone_btab(nb: int) -> Array:
 
 
 ## 黑潮带的一段连续弧：内沿→中线、中线→外沿两条带，各自画成一个多边形（边线正走、另一边倒走），顶点色和原来逐段画的一致
+## 快速写法（docs/50 §15 D1，OPT_BAND）：三条边线首尾接成一个点数组，按「相邻两列四个点两个三角形」的带状剖分（索引表按点数缓存）
+## 一次提交；原来 draw_polygon 在引擎里当场耳切三角化（O(n²)）。顶点、顶点色相同，只是带内部的三角形划分不同（渐变插值方向略变）
+var _band_idx := {}   # 每条边线点数 m -> [索引 PackedInt32Array, 顶点色 PackedColorArray]
+
 func _zone_strips(pin: PackedVector2Array, pmid: PackedVector2Array, pout: PackedVector2Array, c_in: Color, c_mid: Color, c_out: Color) -> void:
 	var m: int = pin.size()
+	if not (g.opt_old & Game.OPT_BAND):
+		var t = _band_idx.get(m)
+		if t == null:
+			var ix := PackedInt32Array()
+			ix.resize((m - 1) * 12)
+			var k := 0
+			for band in 2:   # 先整条内带（内沿→中线），再整条外带（中线→外沿），同原来两个多边形的先后
+				var a0: int = band * m
+				var b0: int = a0 + m
+				for q in m - 1:
+					ix[k] = a0 + q
+					ix[k + 1] = a0 + q + 1
+					ix[k + 2] = b0 + q + 1
+					ix[k + 3] = a0 + q
+					ix[k + 4] = b0 + q + 1
+					ix[k + 5] = b0 + q
+					k += 6
+			var cs := PackedColorArray()
+			cs.resize(m * 3)
+			for q in m:
+				cs[q] = c_in
+				cs[m + q] = c_mid
+				cs[2 * m + q] = c_out
+			t = [ix, cs]
+			if _band_idx.size() > 64:
+				_band_idx.clear()
+			_band_idx[m] = t
+		var pts := PackedVector2Array(pin)
+		pts.append_array(pmid)
+		pts.append_array(pout)
+		RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), t[0], pts, t[1])
+		return
 	var p1 := PackedVector2Array(pin)
 	var k1 := PackedColorArray()
 	k1.resize(m * 2)

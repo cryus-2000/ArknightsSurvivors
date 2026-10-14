@@ -620,9 +620,22 @@ func _tick_pfx(dt: float) -> void:
 
 
 ## 绘制某一层的粒子；子类可覆盖 _draw_pfx 画自己的 kind（返回 true 表示已画）
+## pfx_skip > 0（docs/50 §15 D3，squad.draw_skill_over 按 render/pfx_cap 设，只在上层）：按加入先后跳过最旧的这么多个「小粒子」不画
+## （PFX_CAP_KINDS：光点 / 火花 / 碎片 / 光团 / 线 / 火舌，和不循环、不走加色层的帧条）；粒子照常走完寿命，列表不动
+var pfx_skip := 0
+const PFX_CAP_KINDS := {"mote": true, "spark": true, "shard": true, "glow": true, "line": true, "flame": true, "strip": true}
+
+static func pfx_cappable(f: Dictionary) -> bool:
+	return PFX_CAP_KINDS.has(f.kind) and not f.get("keep", false) and not f.get("loop", false) and not f.get("add", false)
+
+
 func draw_pfx(floor_layer: bool) -> void:
+	var skip: int = pfx_skip if not floor_layer else 0
 	for f in pfx:
 		if f.get("floor", false) != floor_layer:
+			continue
+		if skip > 0 and pfx_cappable(f):
+			skip -= 1
 			continue
 		# 攻击 / 技能命中的装饰扩散环（render/hit_rings，缺省不画；keep 的升级 / 召唤 / 状态提示环照画）：只跳过绘制，粒子照常走完寿命
 		if f.kind == "ring" and not f.get("keep", false) and not Dc.hit_rings():

@@ -285,6 +285,7 @@ func update(dt: float) -> void:
 				base = g.knight.take_over()
 			g.vfx.show_banner("寒冰重生 —— 最后的骑士")
 		if boss_idx == D.BOSS_TIMES.size():
+			final_at = g.t
 			retreat_mid_bosses()
 			enter_arena(group[0])
 			base = g.combat.arena_clamp(base, 80.0)   # 场地内、离圈边 ≥80 登场
@@ -343,18 +344,21 @@ func update(dt: float) -> void:
 	var mobs_off := stop and not trickling()   # 少量补怪开着时普通怪仍按低倍率 + 低上限补；精英 / 大群仍看 stop
 	if not fading.is_empty():
 		_update_fading()
+	var cap: int = alive_cap()
+	if int(g.t) != _samp_s and g.t >= 420.0 and not Cfg.dev_args().is_empty():
+		_samp_s = int(g.t)
+		q_samp.append(normal_count())   # 测试统计：7 分钟后每秒一次的普通怪存活数（queue_report 给分布）
 	while spawn_acc >= 1.0:
 		spawn_acc -= 1.0
 		if mob_room <= 0 or mobs_off:
 			continue
 		mob_room -= 1
-		if g.enemies.size() < max_alive():
-			var ne := spawn_enemy(pick_type(), edge_pos())
-			# 6 分钟后一部分海嗣直接以进化体出现（数量不变，质量提升）
-			if not ne.elite and ne.ai != "static" and g.rng.randf() < D.THREAT[g.threat].get("evo", 0.0) * (2.0 if g.ending == "deep" else 1.0):
-				g.enemies_sys.evolve(ne)
-			if g.ending == "resolve" and g.t >= 520.0:
-				ne.weak = ""
+		if cap > 0:
+			q_t.append(g.t)   # 存活上限开着：普通刷怪先进队，下面按空位依次放出（没到上限时同一帧就放出，次序与原来相同）
+		elif g.enemies.size() < max_alive():
+			_spawn_mob()
+	if cap > 0:
+		_release_queue(cap, stop, mobs_off)
 	# 精英计时在 Boss 在场时照常走（用户 9/27 撤回 B0 第 8 项的冻结：按时间刷，快慢玩家精英数相同）；
 	# 数值留的旋钮 enemy/elite_during_boss：Boss 在场时精英计时的速度（1 = 照常、0 = 冻结、0.5 = 减半）
 	if boss_alive():
@@ -447,6 +451,118 @@ func update(dt: float) -> void:
 		g.shop_refreshed = false
 		g.vfx.show_banner("商人出现了 —— 去找他交易源石锭")
 		Sfx.play("relic", -4.0)
+
+
+## 普通刷怪的一只（原来刷怪循环里的那段，原样搬出来；推迟出场的也走这里，按出场那一刻的威胁等级抽种类）
+func _spawn_mob() -> void:
+	var ne := spawn_enemy(pick_type(), edge_pos())
+	n_mob += 1
+	# 6 分钟后一部分海嗣直接以进化体出现（数量不变，质量提升）
+	if not ne.elite and ne.ai != "static" and g.rng.randf() < D.THREAT[g.threat].get("evo", 0.0) * (2.0 if g.ending == "deep" else 1.0):
+		g.enemies_sys.evolve(ne)
+	if g.ending == "resolve" and g.t >= 520.0:
+		ne.weak = ""
+
+
+## 同屏普通怪存活上限（docs/50 §15 B，用户 10-14 批准「同屏普通怪存活上限 120」；balance.json enemy/alive_cap，0 = 关 = 原行为）。
+## 计入上限的「普通怪」：活着的非 Boss、非精英、非宝箱 / 祭坛、非友方、非事件怪（normal_count）；大群、威胁上升那一小波、Boss 召唤、
+## 分裂 / 剧本刷怪照算进存活数，但它们自己不排队、照原时机出（包围圈、招式、剧本要完整）。
+## 到上限时不删怪：普通刷怪（刷怪率累积出的每一只）进先进先出队列，有空位（normal_count < 上限）时按先后放出；排满 enemy/alive_cap_wait 秒
+## （缺省 10）的不再等空位、直接出（保底：后期击杀速度跟不上刷怪率时，硬上限的队列会越排越长、永远排不完，见 docs/50 §15）。
+## 种类 / 位置 / 进化在放出那一刻按原来的同一段代码抽，经验 / 掉落随怪本身。没到上限时同一帧进队同一帧放出，随机数次序与原来相同。
+## 原来就会「不刷」的两种情况照旧作废、不排队：Boss 在场的存活杂兵余量（boss_mob_room）用完、全场到 max_alive（计入 drop_room）；
+## 最终 Boss 停刷（final/stop_mobs）时，登场前还在排队的那些按停刷的规则作废（停刷本来就把累积扣掉不刷），计入 drop_final
+var final_at := -1.0
+var q_t := PackedFloat64Array()   # 排队中的普通刷怪：进队时的游戏时间（先进先出）
+var n_mob := 0                    # 普通刷怪实际刷出的只数（含推迟后放出的）
+var q_stat := {"queued": 0, "deferred": 0, "wait_sum": 0.0, "wait_max": 0.0, "q_peak": 0, "drop_final": 0, "drop_room": 0, "forced": 0}
+var q_waits := PackedFloat32Array()   # 每只推迟出场的等待秒数（只在测试参数下记，用于分布）
+var q_samp := PackedInt32Array()
+var _samp_s := -1
+
+
+func alive_cap() -> int:
+	return int(Bal.v("enemy/alive_cap", 0.0))
+
+
+## 排队保底（enemy/alive_cap_wait 秒，0 = 不保底）：排满这么久的普通刷怪不再等空位，直接出（可短暂超过上限）
+func alive_cap_wait() -> float:
+	return Bal.v("enemy/alive_cap_wait", 0.0)
+
+
+func normal_count() -> int:
+	var n := 0
+	for e in g.enemies:
+		if not e.dead and not e.boss and not e.get("elite", false) and not e.get("chest", false) and not e.get("friendly", false) and str(e.get("event", "")) == "":
+			n += 1
+	return n
+
+
+func _release_queue(cap: int, stop: bool, mobs_off: bool) -> void:
+	if q_t.is_empty():
+		return
+	if stop:
+		# 最终 Boss 停刷：登场前排的队作废（少量补怪开着时，登场后新进队的照常按补怪上限放）
+		var k := 0
+		while k < q_t.size() and (mobs_off or q_t[k] < final_at):
+			k += 1
+		if k > 0:
+			q_stat.drop_final += k
+			q_t = q_t.slice(k)
+		if q_t.is_empty():
+			return
+	if q_t.size() > int(q_stat.q_peak):
+		q_stat.q_peak = q_t.size()
+	var nn: int = normal_count()
+	var k2 := 0
+	var rec: bool = not Cfg.dev_args().is_empty()
+	var wmax: float = alive_cap_wait()
+	# 有空位就按先后放；排满 wmax 秒的不再等空位（保底：推迟有上限，不会一直排不进去，刷出总数与经验掉落不丢）
+	# Boss 在场的存活杂兵余量（boss_mob_room）/ 全场 max_alive 挡住的照原规则作废（原来这两种情况就是不刷），只有存活上限是推迟
+	var room: int = boss_mob_room()
+	while k2 < q_t.size() and (nn < cap or (wmax > 0.0 and g.t - q_t[k2] >= wmax)):
+		var w: float = g.t - q_t[k2]
+		k2 += 1
+		if room <= 0 or g.enemies.size() >= max_alive():
+			q_stat.drop_room += 1
+			continue
+		if nn >= cap:
+			q_stat.forced += 1
+		room -= 1
+		nn += 1
+		q_stat.queued += 1
+		if w > 0.0:
+			q_stat.deferred += 1
+			q_stat.wait_sum += w
+			q_stat.wait_max = maxf(float(q_stat.wait_max), w)
+			if rec:
+				q_waits.append(w)
+		_spawn_mob()
+	if k2 > 0:
+		q_t = q_t.slice(k2)
+
+
+## 刷怪队列统计（--balance 结束时 autotest 打 SPAWNQ 行）：放出 / 推迟只数、等待分布、队列峰值、结束时还在排的
+func queue_report() -> Dictionary:
+	var w: Array = Array(q_waits)
+	w.sort()
+	var pc := func(q: float) -> float: return snappedf(float(w[mini(w.size() - 1, int(q * (w.size() - 1) + 0.5))]), 0.01) if not w.is_empty() else 0.0
+	var hist := {"<1s": 0, "1-3s": 0, "3-10s": 0, "10-30s": 0, ">=30s": 0}
+	for x in w:
+		var b: String = "<1s" if x < 1.0 else ("1-3s" if x < 3.0 else ("3-10s" if x < 10.0 else ("10-30s" if x < 30.0 else ">=30s")))
+		hist[b] += 1
+	return {"cap": alive_cap(), "spawned": n_mob, "queued": q_stat.queued, "deferred": q_stat.deferred, "pending_end": q_t.size(),
+		"q_peak": q_stat.q_peak, "drop_final": q_stat.drop_final, "drop_room": q_stat.drop_room, "forced": q_stat.forced, "wait_cap": alive_cap_wait(), "wait_mean": snappedf(float(q_stat.wait_sum) / maxf(1.0, float(q_stat.deferred)), 0.01),
+		"alive_420_med": _pct_i(q_samp, 0.5), "alive_420_p95": _pct_i(q_samp, 0.95), "alive_420_max": _pct_i(q_samp, 1.0),
+		"wait_p50": pc.call(0.5), "wait_p90": pc.call(0.9), "wait_p99": pc.call(0.99), "wait_max": snappedf(float(q_stat.wait_max), 0.01), "hist": hist}
+
+
+func _pct_i(a: PackedInt32Array, q: float) -> int:
+	if a.is_empty():
+		return 0
+	var b: Array = Array(a)
+	b.sort()
+	return int(b[mini(b.size() - 1, int(q * (b.size() - 1) + 0.5))])
 
 
 ## 是不是结局的最终 Boss（偏执泡影 / 最后的骑士 / 伊莎玛拉 / 伊祖米克，按 waves.json 的结局表）；其余 Boss 都是中期 Boss
