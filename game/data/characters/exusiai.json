@@ -38,7 +38,7 @@
   "速射": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "物理", "tags": ["projectile", "basic"]},
   "冲锋模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "物理", "tags": ["skill", "projectile", "pierce"]},
   "过载模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "物理", "tags": ["skill", "projectile"]},
-  "弹夹倾泻": {"emitter": "operator", "origin": "talent", "range": "远程", "kind": "物理", "tags": ["projectile", "pierce", "area"]},
+  "弹匣倾泻": {"emitter": "operator", "origin": "talent", "range": "远程", "kind": "物理", "tags": ["projectile", "pierce", "area"]},
   "跳弹": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "物理", "tags": ["follow_up", "ricochet"]}
  },
  "progression": [
@@ -68,7 +68,7 @@
   "talent": [
    {"trig": "on_kill", "do": [{"verb": "counter", "name": "mag", "label": "弹匣", "own": true, "add": 1, "add_lit": "$mag_lit_bonus", "cap": "$mag_cap"}]},
    {"trig": "on_attack", "counter": "mag", "do": [
-    {"shape": "projectile", "shots": "$mag_shots", "fan": true, "spread_deg": "$mag_spread_deg", "pierce": "$mag_pierce", "mult": "$mag_mult", "src": "弹夹倾泻",
+    {"shape": "projectile", "shots": "$mag_shots", "fan": true, "spread_deg": "$mag_spread_deg", "pierce": "$mag_pierce", "mult": "$mag_mult", "src": "弹匣倾泻",
      "tex": "proj_exusiai_bullet_power", "muzzle_fx": "fx_exusiai_muzzle_gold", "hit_fx": "fx_exusiai_hit_gold"}]}
   ],
   "progression": {
