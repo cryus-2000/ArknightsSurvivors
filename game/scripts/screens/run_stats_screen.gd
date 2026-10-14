@@ -1032,7 +1032,7 @@ func _survival(r: Rect2, t: float) -> void:
 	var lh := 26.0 if not _ph else 20.0
 	_t(Vector2(x0, y), "生存", 16 if not _ph else 14, TUI.TXT)
 	y += lh + 8.0
-	_t(Vector2(x0, y), "受到伤害", fs, TUI.TXT2)
+	_t(Vector2(x0, y), "受到的伤害", fs, TUI.TXT2)
 	_p(Vector2(x1, y), fmt_n(float(ld.get("taken", 0.0))), 2.0, TUI.TXT, 2)
 	y += lh + 6.0
 	_t(Vector2(x0, y), "生命回复", fs, TUI.TXT2)
@@ -1052,7 +1052,7 @@ func _survival(r: Rect2, t: float) -> void:
 	for v in ls:
 		lt += float(v)
 	if lt > 0.0:
-		_t(Vector2(x0, y), "灯火通明", fs, TUI.TXT2)
+		_t(Vector2(x0, y), "通明时长", fs, TUI.TXT2)
 		_p(Vector2(x1, y), "%d%%" % int(round(float(ls[0]) / lt * 100.0)), 2.0, TUI.TXT, 2)
 		y += lh + 6.0
 	var fu: Dictionary = model.get("fuse", {})

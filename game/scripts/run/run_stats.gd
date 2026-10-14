@@ -11,7 +11,7 @@ const OTHER := "_other"
 const ORIGIN_NAME := {"core": "普攻", "skill": "技能", "talent": "天赋", "route": "分支", "support": "支援", "relic": "藏品"}
 ## 承伤来源键（combat.lose_hp 的 src / g.dmg_src）里不是敌人类型的那些
 const TAKEN_NAME := {"bullet": "敌方弹幕", "nerve": "神经损伤", "corrode": "侵蚀", "zone": "黑潮", "mire": "溟痕",
-	"relic": "藏品代价", "hunt_ring": "围猎", "shock": "冲击环", "wound": "侵蚀创口", "dark": "寂灭（灯火熄灭）"}
+	"relic": "藏品代价", "hunt_ring": "围猎", "shock": "冲击环", "wound": "侵蚀创口", "dark": "寂灭（灯火归零）"}
 const TAKEN_PREFIX := ["boss_", "atk_", "blast_", "contact_", "shock_"]
 const LAMP_NAMES := ["通明", "摇曳", "暗淡", "寂灭"]
 
@@ -138,7 +138,7 @@ static func taken_name(k: String) -> String:
 ## 环境击倒者的名字（docs/76 术语）
 const ENV_NAME := {"zone": "黑潮", "mire": "溟痕", "dark": "寂灭", "hunt_ring": "围猎", "relic": "藏品代价", "bullet": "敌方弹幕",
 	"corrode": "侵蚀", "wound": "侵蚀创口", "nerve": "神经损伤"}
-const ENV_SUB := {"zone": "安全区外", "mire": "站在溟痕里", "dark": "灯火熄灭后的持续伤害", "hunt_ring": "围猎圈", "relic": "藏品的代价"}
+const ENV_SUB := {"zone": "安全区外", "mire": "站在溟痕里", "dark": "灯火寂灭后的持续伤害", "hunt_ring": "围猎圈", "relic": "藏品的代价"}
 
 
 ## telemetry.killer() 的结果 → {type（敌人类型）, env（环境）, name, cause}
@@ -301,7 +301,7 @@ static func model(raw: Dictionary) -> Dictionary:
 		{"label": "Boss 击破", "v": float(killed), "fmt": "n"},
 		{"label": "造成伤害", "v": total, "fmt": "n", "sub": "每秒 %d" % int(total / t_end)},
 		{"label": "最高单次伤害", "v": float(best.get("v", 0.0)), "fmt": "n", "sub": str(best.get("src", "")) + ("（%s）" % best_op if best_op != "" else "")},
-		{"label": "受到伤害", "v": _sum(taken), "fmt": "n"},
+		{"label": "受到的伤害", "v": _sum(taken), "fmt": "n"},
 		{"label": "生命回复", "v": _sum(heal), "fmt": "n"},
 		{"label": "获得经验", "v": float(raw.get("xp", 0.0)), "fmt": "n", "sub": "Lv.%d" % int(raw.get("level", 1))},
 		{"label": "获得源石锭", "v": float(raw.get("ingots_got", 0)), "fmt": "n", "sub": "花费 %d" % int(raw.get("ingots_spent", 0))},
@@ -310,7 +310,7 @@ static func model(raw: Dictionary) -> Dictionary:
 		stats.append({"label": "海嗣祭坛", "v": float(raw.altars), "fmt": "n"})
 	if int(bc[0]) > 0 or int(bc[1]) > 0:
 		stats.append({"label": "点亮引航灯标", "v": float(bc[0]), "fmt": "n"})   # 只写点燃数：熄灭消散的灯标会从 g.beacons 移除，「出现数」不可靠
-	stats.append({"label": "灯火通明", "v": (float(ls[0]) / lt * 100.0) if lt > 0.0 else 0.0, "fmt": "pct"})
+	stats.append({"label": "通明时长", "v": (float(ls[0]) / lt * 100.0) if lt > 0.0 else 0.0, "fmt": "pct"})
 	stats.append({"label": "冲刺", "v": float(raw.get("dashes", 0)), "fmt": "n"})
 	stats.append({"label": "技能发动", "v": float(casts_all), "fmt": "n"})
 	stats.append({"label": "藏品", "v": float(relic_list.size()), "fmt": "n"})
