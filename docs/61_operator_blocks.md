@@ -431,6 +431,8 @@ data_operator.gd 重写这些基类钩子，把事件分发给积木（「游戏
 
 ### 等价测试（`python tools/check.py --only blocks_eq`，快检全量里也跑）
 
+> **10-15 起改为「数据版 vs 金样」（docs/36 §1.3）**：手写参照（`tests/data_ops/*_legacy.gd`、`eqtest_hand.gd`）录完金样后下线，git 历史可追（最后一版 main fd9ce553，证据快照 `game/tests/golden/fd9ce553/`）。下面各节里「数据版 ↔ 手写参照」的描述是迁移时的做法，保留作记录。
+
 `game/tests/data_ops/eqtest.json`（测试专用干员，不在 `data/characters/`，不进名单 / 招募池 / 图鉴）用 §3–§5 里实现的大部分积木；
 `game/tests/data_ops/eqtest_hand.gd` 是同一份数值的**手写参照**（按 13 人的写法：`base()` 取数、`update` 里自己计时）。
 `--opscript=eqtest=res://tests/data_ops/eqtest_hand.gd` 让同一个 id 改用手写脚本加载。两种加载各跑 2 局，要求 `TRACE` 行与 `BALANCE`（去掉 `prof` 与画面峰值）逐字节相同：

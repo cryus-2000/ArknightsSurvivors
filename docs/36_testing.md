@@ -54,7 +54,18 @@
 - **手动失效**：删 `build/check_cache/` 即可（只是缓存，删了下次重跑重建）。
 - **已知盲区**：键只看 `game/` 与 `art/incoming`；如果某项测试读了这两处以外的文件（例如 `tools/` 下的数据），改那个文件不会让缓存失效——新增这种测试时要把输入加进 `check.scope_hashes`。
 
-**§1.3 积木等价只跑 seed1（2026-10-15 协调人定）**：全量快检里「积木等价（数据版 = 手写参照）」每组只跑第一条用例（eqtest seed1、其余各组 seed1 精零 + 技力常满），28 个进程；第二条（eqtest seed2 自然流程、各组 seed3 当队友 + 全藏品）改由云端每日例行任务跑（§7.6）。本机要跑全部用例加 `--eq-all`。
+**§1.3 积木等价：数据版 vs 金样（2026-10-15）**
+
+- **只跑 seed1**（协调人定）：全量快检里每组只跑第一条用例（eqtest seed1、其余各组 seed1 精零 + 技力常满），14 个进程；第二条（eqtest seed2 自然流程、各组 seed3 当队友）由云端每日例行任务跑（§7.6）。本机要跑全部用例加 `--eq-all`。
+- **手写参照已下线**（用户 10-15 批 docs/101 §8 第 4 项）：`game/tests/data_ops/*_legacy.gd` 与 `eqtest_hand.gd`（共 7538 行）删除，git 历史可追（删除前最后一版在 main fd9ce553）。下线前 14 组 × 2 用例的数据版与手写参照逐字节相同，数据版输出录成**证据快照** `game/tests/golden/fd9ce553/<组>__<seed>.json`（TRACE + BALANCE 去 prof / 画面峰值 + 两个哈希，`hand_equal: true`）。
+- **现在怎么判**：只跑数据版，与金样比。金样记两个哈希：
+  - **本干员侧**：这名干员的 `data/characters/<id>.json`（eqtest 是 `tests/data_ops/eqtest.json`）、脚本（若有）、`art/incoming/op_<id>_*` 的帧条尺寸，加积木公共文件 `op_blocks.gd / data_operator.gd / character.gd / op_api.gd`；
+  - **别处**：其余全部玩法输入（同 §1.2 logic 档，不含 `game/tests/`）。
+  - 别处没变、输出变了 → **FAIL**：只可能是本干员或积木改出来的。真是有意改行为，就跑 `python tools/check.py --only blocks_eq --eq-all --update-golden` 重录。
+  - 别处变了 → **金样过期**，跳过、不算失败（汇总里列出哪些组过期）。
+- **重录**：`tools/ship.py` 在快检通过后自动跑上面那条，把数据版输出录到主仓库 `build/golden_cache/`（不进 git），之后优先用它；证据快照只在没有重录时兜底。重录失败不挡发版，只提示。
+- **局限**：金样过期期间这一项不判；只有「别处没变」的分支（只改干员 / 积木的分支）才真正比。「别处」含其他干员的数据（招募会把别人拉进局里），所以一个分支同时改了积木和某名干员的数据时，只有那名干员这组真比，其余组过期。积木改动最好单独成分支。
+- **验证（10-15）**：录制时 14 组 × 2 用例数据版与手写参照 28 / 28 逐字节相同；删掉手写参照后 `--eq-all` 28 组与金样相同；把斯卡蒂 `atk` 改 ×1.3 → 斯卡蒂组 FAIL（TRACE 第 34 行起不同），其余 13 组判过期；`--update-golden` 重录 28 份后再比 14 / 14 相同。
 
 快检（全量）包含五项：
 
@@ -335,6 +346,7 @@ AB=<提交> bash tools/cloud/run_cloud.sh  # A/B（check.py --ab）
   ```
 
 - **读结果**：`git fetch origin cloud-results/eq-daily-<日期>`，看 `build/eq_daily/env.txt` 的 RC 与 `check.log`。RC ≠ 0 时，按 check.log 里第一处 TRACE 不同的组 / 行找当天合入的相关提交，派给对应干员的会话。
+- **注意（10-15 起与金样比，§1.3）**：云端没有本机的 `build/golden_cache/`，只能比 git 里的证据快照 `game/tests/golden/fd9ce553/`。main 上别处的玩法一变，快照就「过期跳过」，这时每日任务主要是看 seed2 / seed3 有没有报错、能不能跑完；真正的金样比对在本机快检和 ship 重录里做。
 - 结果分支保留 7 天后可删。
 
 ## 8. 基线登记

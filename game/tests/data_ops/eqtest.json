@@ -1,5 +1,5 @@
 {
- "_doc": "积木等价测试专用干员（docs/61 §测试）：不在 data/characters/，不进名单 / 招募池 / 图鉴。数据版用 data_operator.gd 执行 blocks；手写参照 tests/data_ops/eqtest_hand.gd 读同一份 base（--opscript=eqtest=res://tests/data_ops/eqtest_hand.gd）。两边同 seed 的 TRACE / BALANCE 必须逐字节相同（tools/check.py blocks_eq）。",
+ "_doc": "积木等价测试专用干员（docs/61 §测试）：不在 data/characters/，不进名单 / 招募池 / 图鉴。数据版用 data_operator.gd 执行 blocks。原手写参照 eqtest_hand.gd 已于 10-15 录金样后下线（git 历史可追）；现在 tools/check.py blocks_eq 拿数据版与金样 game/tests/golden/ 比（docs/36 §1.3）。",
  "id": "eqtest",
  "name": "积木等价测试",
  "en": "BLOCK EQUIVALENCE TEST",

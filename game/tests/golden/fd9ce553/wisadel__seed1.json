@@ -1,0 +1,295 @@
+{
+"gid": "wisadel",
+"case": "seed1 精零 + 技力常满",
+"args": [
+"--balance",
+"--seed=1",
+"--op=wisadel",
+"--bot=expert",
+"--maxt=45",
+"--trace=1",
+"--sptest"
+],
+"own": "ea92f7c479b11c2fcbc1a815eec3c13192d8768ee45004109a87519e4970dbf8",
+"other": "ba261da53f1b3ba52eb09d6c8965cf7a5efd3afc9b8f749803d06076b79687ab",
+"commit": "fd9ce553",
+"time": "2026-10-15 01:37:42",
+"trace": [
+"TRACE t=0.00 lv=1 k=0 hp=110.00 n=0 rng=-7722681714327978727 pos=0.00,0.00 h=0.000",
+"TRACE t=1.06 lv=1 k=0 hp=110.00 n=0 rng=-7722681714327978727 pos=158.40,0.00 h=0.000",
+"TRACE t=2.05 lv=1 k=0 hp=110.00 n=1 rng=-6770124085828356322 pos=306.90,0.00 h=-224.642",
+"TRACE t=3.04 lv=1 k=0 hp=110.00 n=2 rng=-1869679294319279097 pos=455.40,0.00 h=-327.648",
+"TRACE t=4.03 lv=1 k=0 hp=110.00 n=3 rng=-3586379379941937244 pos=603.90,0.00 h=137.751",
+"TRACE t=5.02 lv=1 k=0 hp=110.00 n=4 rng=-5207867171622888955 pos=752.40,0.00 h=633.723",
+"TRACE t=6.01 lv=1 k=1 hp=110.00 n=4 rng=1723398781454008784 pos=888.43,-39.94 h=707.532",
+"TRACE t=7.06 lv=1 k=1 hp=110.00 n=5 rng=-6152135686892286559 pos=1017.61,-126.26 h=1139.478",
+"TRACE t=8.05 lv=1 k=2 hp=110.00 n=5 rng=4351482174629313340 pos=1122.61,-231.26 h=1202.351",
+"TRACE t=9.04 lv=1 k=2 hp=110.00 n=6 rng=8861850193195784573 pos=1224.41,-338.41 h=1562.326",
+"TRACE t=10.03 lv=1 k=3 hp=110.00 n=6 rng=-7850140221073651736 pos=1242.20,-480.36 h=1493.262",
+"TRACE t=11.02 lv=1 k=4 hp=110.00 n=6 rng=-341406786383520905 pos=1272.29,-576.94 h=1509.919",
+"TRACE t=12.01 lv=2 k=4 hp=110.00 n=7 rng=6862317799182437850 pos=1409.48,-633.77 h=2146.291",
+"TRACE t=13.00 lv=2 k=4 hp=110.00 n=8 rng=-8282640407235710921 pos=1546.68,-690.60 h=2581.081",
+"TRACE t=14.06 lv=2 k=4 hp=110.00 n=9 rng=-1934119548394639740 pos=1693.02,-751.21 h=4129.464",
+"TRACE t=15.05 lv=2 k=4 hp=110.00 n=10 rng=8904341643185519527 pos=1830.21,-808.04 h=4495.137",
+"TRACE t=16.04 lv=2 k=4 hp=110.00 n=12 rng=-2044025209966064247 pos=1800.01,-905.25 h=5681.942",
+"TRACE t=17.03 lv=2 k=5 hp=110.00 n=12 rng=3353223872531275454 pos=1692.86,-1007.04 h=5883.006",
+"TRACE t=18.02 lv=2 k=7 hp=110.00 n=11 rng=2124401517047506501 pos=1587.85,-1112.05 h=5343.521",
+"TRACE t=19.01 lv=2 k=7 hp=110.00 n=12 rng=5849563453957585956 pos=1449.90,-1059.01 h=5772.306",
+"TRACE t=20.06 lv=2 k=8 hp=110.00 n=13 rng=-272186259364913193 pos=1304.72,-1059.58 h=5738.572",
+"TRACE t=21.05 lv=2 k=8 hp=110.00 n=13 rng=-9086190421148181473 pos=1228.62,-1151.61 h=5584.943",
+"TRACE t=22.04 lv=2 k=8 hp=110.00 n=14 rng=3772434157235131414 pos=1205.89,-1204.12 h=5954.046",
+"TRACE t=23.03 lv=2 k=9 hp=110.00 n=14 rng=3206421684405390735 pos=1101.67,-1277.24 h=6069.983",
+"TRACE t=24.02 lv=2 k=10 hp=110.00 n=14 rng=8091246930259352764 pos=1040.14,-1377.89 h=6130.937",
+"TRACE t=25.01 lv=2 k=10 hp=110.00 n=16 rng=-8969232677938104570 pos=952.91,-1349.37 h=6771.029",
+"TRACE t=26.00 lv=2 k=11 hp=110.00 n=16 rng=719770175204476137 pos=990.79,-1487.32 h=6330.521",
+"TRACE t=27.06 lv=2 k=11 hp=110.00 n=17 rng=1589966003898225546 pos=1051.41,-1633.66 h=6567.503",
+"TRACE t=28.05 lv=2 k=12 hp=110.00 n=17 rng=-1353981166355060973 pos=1172.53,-1706.56 h=6338.362",
+"TRACE t=29.04 lv=2 k=12 hp=110.00 n=18 rng=6937553775585240946 pos=1321.03,-1706.56 h=6486.050",
+"TRACE t=30.03 lv=2 k=13 hp=110.00 n=19 rng=5906765920665082086 pos=1445.46,-1653.77 h=6676.635",
+"TRACE t=31.02 lv=2 k=13 hp=110.00 n=20 rng=7665489392738266295 pos=1552.62,-1551.97 h=6898.186",
+"TRACE t=32.01 lv=2 k=14 hp=110.00 n=20 rng=5226596072677346322 pos=1590.25,-1429.05 h=6678.636",
+"TRACE t=33.07 lv=2 k=15 hp=110.00 n=20 rng=-846844488937232109 pos=1658.11,-1341.83 h=7275.782",
+"TRACE t=34.06 lv=2 k=18 hp=110.00 n=19 rng=-4224234149419774195 pos=1556.75,-1340.12 h=6970.004",
+"TRACE t=35.05 lv=2 k=26 hp=110.00 n=12 rng=2213510806719875752 pos=1466.77,-1314.90 h=4421.498",
+"TRACE t=36.04 lv=3 k=27 hp=110.00 n=12 rng=7987830088163254721 pos=1401.13,-1256.05 h=4514.091",
+"TRACE t=37.03 lv=3 k=27 hp=110.00 n=13 rng=8677871956397760932 pos=1474.36,-1169.64 h=4704.087",
+"TRACE t=38.02 lv=3 k=29 hp=110.00 n=13 rng=516188685713064038 pos=1353.58,-1132.90 h=4766.241",
+"TRACE t=39.01 lv=3 k=31 hp=110.00 n=12 rng=-940489384238291545 pos=1283.77,-1213.13 h=4420.379",
+"TRACE t=40.06 lv=3 k=31 hp=110.00 n=13 rng=-337832620484133924 pos=1202.41,-1272.69 h=4440.173",
+"TRACE t=41.05 lv=3 k=33 hp=110.00 n=13 rng=7556009045422503698 pos=1234.27,-1220.67 h=4525.922",
+"TRACE t=42.04 lv=3 k=35 hp=110.00 n=12 rng=-6894975562470269525 pos=1298.40,-1134.73 h=4419.148",
+"TRACE t=43.03 lv=3 k=35 hp=110.00 n=13 rng=-5240974585236345368 pos=1299.32,-1032.57 h=5024.389",
+"TRACE t=44.02 lv=3 k=37 hp=110.00 n=13 rng=7577363655573853112 pos=1201.87,-1121.51 h=4996.098",
+"TRACE t=45.01 lv=3 k=39 hp=110.00 n=12 rng=7444009040884979469 pos=1256.04,-1216.19 h=4343.937"
+],
+"balance": {
+"allies": 0,
+"armor_cf": {},
+"boss_hp": -1.0,
+"bosses": [],
+"bot": {
+"bosses": [],
+"curve": [
+{
+"boss": 0,
+"dsrc": {},
+"enemies": 0,
+"hp": 100,
+"hsrc": {},
+"kills": 0,
+"lamp": 100,
+"lv": 1,
+"mhp": 110,
+"squad": 1,
+"t": 0,
+"taken": 0,
+"zone": 0
+},
+{
+"boss": 0,
+"dsrc": {},
+"enemies": 19,
+"hp": 100,
+"hsrc": {},
+"kills": 13,
+"lamp": 100,
+"lv": 2,
+"mhp": 110,
+"squad": 1,
+"t": 30,
+"taken": 0,
+"zone": 0
+}
+],
+"curve_tail": {
+"dsrc": {},
+"hsrc": {},
+"mhp": 110,
+"t": 45,
+"t0": 30,
+"taken": 0
+},
+"dark_dmg": 0,
+"dark_s": 0,
+"death_src": "",
+"elite_t": {},
+"end": {
+"boss": false,
+"hp": 110,
+"last15": {
+"corrode_out": 0.0,
+"corrode_peak": 0.0,
+"dark_s": 0.0,
+"ebullets_peak": 0,
+"enemies_peak": 21,
+"hits": [],
+"mire_s": 0.0,
+"nerve_bursts": 0,
+"t": 45.0
+},
+"src": "",
+"t": 45,
+"zone_out": false,
+"zone_phase": -1,
+"zone_state": 0
+},
+"floors": [],
+"hits": 0,
+"hits_pm": 0.0,
+"low_hp_s": 0,
+"moved_pm": 8834,
+"profile": "expert",
+"reaper_drain_deaths": 0,
+"recruit_t": [],
+"still_pct": 0,
+"taken": 0,
+"taken_pm": 0
+},
+"ctrl": {
+"aslow_slow": 0,
+"aslow_t": 0.0,
+"boss_t": 0.0,
+"floor": 0.7,
+"move_min": 1.0,
+"slow_min": 1.0,
+"stun_slow": 0,
+"stun_t": 0.0
+},
+"ctrl_src": {
+"boss": {
+"dash_break_n": 0,
+"freeze_n": 0,
+"freeze_t": 0.0,
+"slow_t": 0.0
+},
+"founder": {
+"dash_break_n": 0,
+"freeze_n": 0,
+"freeze_t": 0.0,
+"slow_t": 0.0
+},
+"other": {
+"dash_break_n": 0,
+"freeze_n": 0,
+"freeze_t": 0.0,
+"slow_t": 0.0
+},
+"skimmer": {
+"dash_break_n": 0,
+"freeze_n": 0,
+"freeze_t": 0.0,
+"slow_t": 0.0
+},
+"slow_any_t": 0.0
+},
+"dashes": 0,
+"dmg": {},
+"drone": 0,
+"elite_stage": 0,
+"elites": 0,
+"ending": "standard",
+"final_out": {
+"余震": 141.658990696318,
+"炮击": 619.87176938096
+},
+"floor_hits": 0,
+"floor_times": [],
+"fuse": {
+"left": 0,
+"pct": 0.0,
+"pool": 0,
+"t": -1
+},
+"growth": {},
+"heal": {
+"自身回复": 0.0
+},
+"heal_offer": 2,
+"heal_offer_low": 0,
+"heal_pick": 0,
+"hordes": [],
+"ingots": 4,
+"items": {
+"heal_elite": 0,
+"heal_low": 0,
+"heal_mob": 0,
+"heal_pick": 0,
+"magnet_elite": 0,
+"magnet_mob": 0,
+"magnet_pick": 0,
+"mob_capped": 0,
+"mob_rolled": 39
+},
+"kills": 39,
+"lamp": 100,
+"low_levelups": 0,
+"lv": 3,
+"lv_times": [
+11,
+35
+],
+"marks": {},
+"maxhp": 110.0,
+"ops": [
+{
+"elite": 0,
+"id": "wisadel",
+"prog": 2
+}
+],
+"out": {
+"余震": 141.658990696318,
+"炮击": 619.87176938096
+},
+"out_tag": {
+"aftershock": 141.658990696318,
+"area": 761.530760077278,
+"projectile": 619.87176938096
+},
+"out_type": {
+"物理": 761.530760077278
+},
+"prog_offer": {
+"wisadel": 2
+},
+"prog_pick": {
+"wisadel": 2
+},
+"recall_backstop": 0,
+"recall_n": 0,
+"rej": {},
+"relic_offer": [],
+"relic_out": 0.0,
+"relic_take": [],
+"relics": 0,
+"squad": [
+"wisadel"
+],
+"sus": {},
+"swaps": [],
+"t": 45,
+"terrain": {
+"bul": 0,
+"dash": 0,
+"ebul": 0
+},
+"win": false,
+"xp_backstop": 0.0,
+"xp_dropped": 100.0,
+"xp_ground": 17.5,
+"xp_magnet": 0.0,
+"xp_magnet_min": [],
+"xp_recall": 0.0,
+"xp_recall_min": [],
+"xp_total": 82.5,
+"xp_total_min": [
+82.5
+],
+"xp_walk": 82.5,
+"xp_walk_min": [
+82.5
+]
+},
+"hand_equal": true,
+"hand_arg": "--opscript=wisadel=res://tests/data_ops/wisadel_legacy.gd"
+}
