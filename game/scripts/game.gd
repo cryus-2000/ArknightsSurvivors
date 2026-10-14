@@ -325,6 +325,7 @@ var sprite: Sprite2D
 var lamp_light: PointLight2D
 var actor_mat: ShaderMaterial = null   # 白色保护（render/look_white_lift > 0，scripts/render/look.gd）：挂在本节点上，只作用于干员本体
 var merchant_light: PointLight2D
+var knight_light: PointLight2D   # 骑士入潮点临时暖光（纯画面）
 var hud: Control
 var panel: Control
 var panel_box: HBoxContainer
@@ -730,6 +731,16 @@ func _ready() -> void:
 	merchant_light.texture_scale = 2.2
 	merchant_light.visible = false
 	add_child(merchant_light)
+
+	# 骑士入潮点的临时暖光（制作人 10-14）：圈心离灯火远、一片黑，入潮演出期间照亮沉入处，随进度淡出；纯画面（render/world.update_visuals 摆位），不进模拟、不碰 lamp 数值
+	knight_light = PointLight2D.new()
+	knight_light.texture = tex.light
+	knight_light.color = Color(1.0, 0.86, 0.62)
+	knight_light.energy = 1.0
+	knight_light.height = 80.0
+	knight_light.texture_scale = 2.5   # 半径约 160（贴图半径 64）
+	knight_light.visible = false
+	add_child(knight_light)
 
 	lamp_light = PointLight2D.new()
 	lamp_light.texture = tex.light

@@ -148,6 +148,14 @@ func update_visuals(dt: float) -> void:
 	g.lamp_light.position = g.ppos + Vector2(0, -20)
 	g.lamp_light.texture_scale = radius / 64.0 * flicker
 	g.lamp_light.color = Color(1.0, 0.86, 0.62) if g.lamp >= 30.0 else Color(1.0, 0.6, 0.5)
+	# 骑士入潮点临时暖光：入潮演出期间亮在沉入处，随进度淡出（纯画面；10:00 重生不用）
+	if g.knight_light != null:
+		var sinking: bool = g.knight != null and g.knight.alive and g.knight.state == "sink"
+		g.knight_light.visible = sinking
+		if sinking:
+			var k: float = clampf(g.knight.st / g.knight.SINK_T, 0.0, 1.0)
+			g.knight_light.position = g.knight.vanish_pos + Vector2(0, -16)
+			g.knight_light.energy = 1.1 * (1.0 - k * k)
 	Look.update_actor_mat(g)
 	update_beacon_lights()
 	g.vfx.watch_lamp(rd)        # docs/54 ③ 灯火暗淡 / 寂灭的一压 + 余烬
