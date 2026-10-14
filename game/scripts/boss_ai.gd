@@ -132,8 +132,9 @@ var _bosses := {}   # type -> 脚本实例
 
 
 func boss(type: String):
-	if _bosses.has(type):
-		return _bosses[type]
+	var c = _bosses.get(type, false)   # 缓存里非 Boss 种类存 null；false = 还没查过
+	if not (c is bool):
+		return c
 	var h = null
 	if SCRIPTS.has(type):
 		h = load("res://scripts/enemies/bosses/%s.gd" % SCRIPTS[type]).new(g)

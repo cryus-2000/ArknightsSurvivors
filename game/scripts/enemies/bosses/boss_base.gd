@@ -40,6 +40,48 @@ func force_move(_e: Dictionary, _name: String, _dir: Vector2, _dist: float) -> b
 	return false
 
 
+## ---- 受击钩子（docs/101 B1c，10-15：原来 combat.gd 里按 type 写死的 Boss 特例搬到各自脚本；combat 在原位置调用，结算顺序不变）
+## combat.damage 最前面（灯光增伤之前）：返回 true = 这一下整个不算（伊莎玛拉变身保护）
+func block_damage(_e: Dictionary) -> bool:
+	return false
+
+
+## combat.damage 灯光增伤之后、卡点无敌之前：返回 true = 伤害由 Boss 自己吃掉、不再往下结算（偏执泡影的茧壳）
+func absorb_damage(_e: Dictionary, _dmg: float) -> bool:
+	return false
+
+
+## combat.damage 扣血、飘伤害数字之后：dmg = 扣完潮盾的伤害，eff = 实际掉的血（最后的骑士寒冷滑窗、圣徒装填打断）
+func on_damaged(_e: Dictionary, _dmg: float, _eff: float) -> void:
+	pass
+
+
+## combat.damage 血量归零时：返回 true = 这次不死（结茧 / 重生 / 假死），combat 不再走击杀。覆写的 Boss 自己的情况不成立时调 super。
+## 基类 = 接潮假死（D.ENEMIES pair：主教 / 执政官 / 不朽者）：每具最多复苏 boss/pair_revives（2）次，之后直接倒下（docs/38 §8.4）
+func on_lethal(e: Dictionary) -> bool:
+	if D.ENEMIES.get(e.type, {}).get("pair", false) and e.get("partner") != null and not e.partner.dead and int(e.get("revives", 0)) < int(Bal.v("boss/pair_revives", 2.0)):
+		e.hp = 1.0
+		e.coma = true
+		e.invuln = true
+		e.stun = 0.0
+		e.coma_t = 0.0
+		e.count_end = g.t + Bal.v("boss/pair_race", 8.0)   # 倒计时环（界面与美术读 count_end / count_max）
+		e.count_max = Bal.v("boss/pair_race", 8.0)
+		g.vfx.add_text(e.pos + Vector2(0, -50), "假死 · %d 秒内击倒另一体" % int(e.count_max), Color(0.6, 1.0, 0.9), 16)
+		return true
+	return false
+
+
+## combat.kill 里（干员击杀回调之后、部件吸取之前）
+func on_kill(_e: Dictionary) -> void:
+	pass
+
+
+## combat.gate_pass 过卡点后（卡点无敌、清预警之后，最终 Boss 掉落之前）
+func on_gate(_e: Dictionary) -> void:
+	pass
+
+
 ## D 招（二阶段变化招）第一次出现前副标题先亮招式名 0.6 秒再出预警（docs/95 §0.2）：
 ## 第一次调用只点亮副标题并占住 0.6 秒出招窗口，返回 false；0.6 秒后再调用返回 true（之后每次都直接 true）
 func _first_tell(e: Dictionary, key: String, name: String) -> bool:

@@ -169,3 +169,9 @@ func transform_ishar(e: Dictionary) -> void:
 ## 伊莎玛拉强度上调（docs/38 §8.6）：过了卡点后轮换恢复时间 ×boss/ishar_gate_haste（0.8）
 func _ishar_haste(e: Dictionary) -> float:
 	return Bal.v("boss/ishar_gate_haste", 0.8) if int(e.get("gates_passed", 0)) >= 1 else 1.0
+
+
+## ---- 受击钩子（docs/101 B1c，10-15 从 combat.gd 搬来）
+## 变身动画保护（transform_until，0.9 秒）：独立计时，结束后无需清理永久无敌标记
+func block_damage(e: Dictionary) -> bool:
+	return g.t < float(e.get("transform_until", 0.0))

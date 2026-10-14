@@ -962,11 +962,9 @@ func gate_pass(e: Dictionary) -> void:
 	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e) or w.done)
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.2, "life": 0.5, "max": 0.5, "col": UI.GOLD})
 	Sfx.play("roar", -4.0, 1.1, 0.0)
-	# 偏执泡影：过最后一道卡点就落地进二阶段（近战、移速 70、凝视 3 道），茧仍在归零时结；原来一阶段悬浮远程一直拖到归零，
-	# 最后一幕 = 33% + 茧 8 秒 + 复活 40% 全在够不着的状态下打（数值 close5 am40：泡影 12 局超时全卡在最后一幕）。boss/paranoia_p2_at_gate 0 = 旧行为
-	if e.type == "paranoia" and e.gates.is_empty() and e.phase == 1 and Bal.v("boss/paranoia_p2_at_gate", 1.0) > 0.0:
-		g.bai._paranoia_p2(e)
-		g.vfx.add_text(e.pos + Vector2(0, -70), "坠落", Color(0.9, 0.4, 1.0), 20)
+	var bh = g.bai.boss(e.type)   # Boss 过卡点钩子（偏执泡影坠落进二阶段，docs/101 B1c）
+	if bh != null:
+		bh.on_gate(e)
 	if e.gate_final:
 		# 最终 Boss 每过一道卡点：回复道具与灯油各一个（boss/gate_drop_*，小数部分按概率）
 		for kd in [["heal", "boss/gate_drop_heal", 1.0], ["oil", "boss/gate_drop_oil", 15.0]]:
@@ -979,24 +977,15 @@ func gate_pass(e: Dictionary) -> void:
 func damage(e: Dictionary, dmg: float) -> void:
 	if e.dead or e.get("friendly", false):
 		return
-	if e.type == "ishar" and g.t < float(e.get("transform_until", 0.0)):
-		return   # 变身动画保护独立计时，结束后无需清理永久无敌标记。
+	var bh = g.bai.boss(e.type)   # Boss 行为脚本（受击钩子 block_damage / absorb_damage / on_damaged / on_lethal，docs/101 B1c）；不是 Boss 为 null
+	if bh != null and bh.block_damage(e):
+		return
 	# 灯火照亮：光中的敌人受到的伤害 +25%（流明光弹的「照亮」e.lit 同样视为在灯光内）
 	if e.pos.distance_squared_to(g.ppos) < g.lamp_r() * g.lamp_r() or e.get("lit", 0.0) > 0.0:
 		if g.bot != null and e.get("lit", 0.0) > 0.0 and e.pos.distance_squared_to(g.ppos) >= g.lamp_r() * g.lamp_r():
 			g.telemetry.sus_seg().lit += dmg * 0.25   # docs/88 遥测：只因「照亮」多打的伤害（只在 --balance 下记）
 		dmg *= 1.25
-	# 偏执泡影的茧：本体无敌，伤害打在外壳上（docs/38 §8.5）
-	if e.get("cocoon_t", 0.0) > 0.0 and e.get("shell_hp", 0.0) > 0.0:
-		# 外壳受伤有速度上限（协调人 9/29：外壳要成为真分支）：每秒最多掉 shell_max / boss/paranoia_shell_min 秒，
-		# 再强的编队也要约 4 秒才能打破（换 5 秒破绽），输出低的可能 8 秒内打不破（凝视永久 +1）
-		var room: float = e.get("shell_room", 0.0)
-		dmg = minf(dmg, room)
-		e.shell_room = room - dmg
-		e.shell_hp -= dmg
-		e.flash = 0.08
-		if e.shell_hp <= 0.0:
-			g.bai.paranoia_hatch(e, true)
+	if bh != null and bh.absorb_damage(e, dmg):
 		return
 	# 过卡点后的 0.8 秒无敌 / 阶段护盾：伤害全部挡掉，不飘「无效」（docs/38 §1.3）
 	if e.boss and (e.get("gate_inv", 0.0) > 0.0 or e.get("gate_hold", false)):
@@ -1070,13 +1059,6 @@ func damage(e: Dictionary, dmg: float) -> void:
 	if e.boss and tough_on(e):
 		add_tough(e, minf(dmg, maxf(e.hp + dmg, 0.0)) / e.maxhp * 100.0)
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
-	# 最后的骑士「寒冷」受击滑窗（docs/95 §4.2 C，原作「受到伤害时给伤害来源附加寒冷」）：boss/knight_frost_win（8）秒窗口内累计受到的伤害占最大生命比例，
-	# knight_boss.gd 在 step 里判 ≥ knight_frost_pct（6%）且主控在 r180 内才放寒冷；窗口到期归零重计
-	if e.type == "knight_boss":
-		if g.t - float(e.get("frost_win_t", -99.0)) > Bal.v("boss/knight_frost_win", 8.0):
-			e.frost_win_t = g.t
-			e.frost_taken = 0.0
-		e.frost_taken = float(e.get("frost_taken", 0.0)) + eff
 	g.dmg_out[g.hit.src] = g.dmg_out.get(g.hit.src, 0.0) + eff
 	g.telemetry.on_dmg(e, eff, dmg)   # 作战记录：按干员拆的输出、时间线、最高单次（docs/77）
 	if g.hit.origin == "relic":
@@ -1091,11 +1073,9 @@ func damage(e: Dictionary, dmg: float) -> void:
 	if g.crit_hit:
 		Sfx.play("crit_tick", -6.8, 1.0, 0.05)   # 暴击：清脆的「叮」叠在命中声上
 	g.vfx.dmg_number(e, dmg, g.crit_hit, weak_hit)   # 对 Boss 0.3 秒合并、Boss 战期间普通怪只飘暴击（docs/38 §1.15，显示逻辑在 vfx）
-	# 圣徒装填：读条中累计伤害达到 5% 最大生命才打断（原来挨一下就打断、僵直 6 秒；docs/38 §8.2）
-	if e.get("channel", 0.0) > 0.0 and e.has("ammo"):
-		e.reload_dmg = e.get("reload_dmg", 0.0) + dmg
-		if e.reload_dmg >= e.maxhp * Bal.v("boss/saint_break_dmg", 0.05):
-			g.bai.saint_interrupt(e)
+	# Boss 受击后（最后的骑士寒冷滑窗、圣徒装填打断）：dmg = 扣完潮盾的伤害，eff = 实际掉的血
+	if bh != null:
+		bh.on_damaged(e, dmg, eff)
 	# "偏执泡影"：首次被控制后失去悬浮，进入第二形态
 	# 掠海漂移体被控制后落地，改为近战
 	if e.get("hover_lost", false) == false and not e.boss and D.ENEMIES.has(e.type) and D.ENEMIES[e.type].get("hover", false) and e.stun > 0.3:
@@ -1104,39 +1084,8 @@ func damage(e: Dictionary, dmg: float) -> void:
 		e.spd = 70.0
 		g.vfx.add_text(e.pos + Vector2(0, -30), "坠落", Color(0.6, 0.9, 1.0), 16)
 	if e.hp <= 0.0:
-		# 偏执泡影：第一次归零结茧（docs/38 §8.5，取代原来「被控 0.3 秒进二阶段」）
-		if e.type == "paranoia" and not e.get("cocoon_done", false):
-			g.bai.paranoia_cocoon(e)
-			return
-		# 最后的骑士：第一次归零不死，寒冰重生（二阶段）
-		if e.type == "knight_boss" and e.phase == 1:
-			Sfx.play_cue("phase", e.type, "start")
-			e.phase = 2
-			e.hp = e.maxhp * 0.5
-			e.spd *= 1.2
-			e.invuln = true
-			e.channel = 1.5
-			e.stun = 0.0
-			e.kb = Vector2.ZERO
-			e.frost_taken = 0.0
-			e["tint2"] = Color(0.82, 0.92, 1.25)   # 二阶段常驻冰蓝着色（docs/95 §4.2；render/world 乘色，不改帧条）
-			g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))   # 重生清预警（§4.3 节奏表）
-			if not g.vfx.fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), g.PX * 1.4, 0.0):
-				g.fx.append({"kind": "ring", "pos": e.pos, "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.9, 1.4)})
-			g.vfx.show_banner("寒冰重生 —— 最后的骑士 第二阶段")
-			Sfx.play("roar", 0.0, 0.9, 0.0)
-			g.vfx.shake_screen(1.2)
-			return
-		# 接潮假死：每具最多复苏 boss/pair_revives（2）次，之后直接倒下（docs/38 §8.4）
-		if D.ENEMIES.get(e.type, {}).get("pair", false) and e.get("partner") != null and not e.partner.dead and int(e.get("revives", 0)) < int(Bal.v("boss/pair_revives", 2.0)):
-			e.hp = 1.0
-			e.coma = true
-			e.invuln = true
-			e.stun = 0.0
-			e.coma_t = 0.0
-			e.count_end = g.t + Bal.v("boss/pair_race", 8.0)   # 倒计时环（界面与美术读 count_end / count_max）
-			e.count_max = Bal.v("boss/pair_race", 8.0)
-			g.vfx.add_text(e.pos + Vector2(0, -50), "假死 · %d 秒内击倒另一体" % int(e.count_max), Color(0.6, 1.0, 0.9), 16)
+		# Boss 不死的归零（偏执泡影结茧、最后的骑士寒冰重生、接潮假死）：钩子返回 true 就不走击杀
+		if bh != null and bh.on_lethal(e):
 			return
 		g.telemetry.on_kill_credit(e)   # 作战记录：参与击杀（死前 3 秒内命中过的干员各记一次，docs/77）
 		kill(e)
@@ -1200,9 +1149,9 @@ func kill(e: Dictionary) -> void:
 		g.vfx.shake_screen(1.0)
 		g.vfx.sparks(e.pos, Vector2.ZERO, UI.GOLD, 24, 320.0)
 	g.squad.on_kill(e)
-	if e.type == "paranoia":
-		g.stats.remove_source("paranoia_aura")
-		g.sync_stats()
+	var bh = g.bai.boss(e.type)   # Boss 击杀钩子（偏执泡影撤认知负担光环，docs/101 B1c）
+	if bh != null:
+		bh.on_kill(e)
 	# 部件可以靠击杀周围小怪间接削（docs/49d）：普通敌人死在部件 boss/part_chip_r 内，部件掉 part_chip 比例的血（茧掉壳）
 	# 怪物密度（spawner._dens_apply，docs/50 §16）：按密度缩放过的普通怪 dk = 1/density，掉率 / 掉量 / 削血按 dk 放大，总期望不变；其余敌人 dk = 1
 	var dk: float = float(e.get("dk", 1.0))

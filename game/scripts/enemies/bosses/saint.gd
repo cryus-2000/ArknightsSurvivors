@@ -227,3 +227,12 @@ func saint_interrupt(e: Dictionary) -> void:
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.4, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.85, 0.4), "enemy": true})
 	g.vfx.add_text(e.pos + Vector2(0, -60), "装填被打断！", Color(1.0, 0.85, 0.4), 20)
 	Sfx.play("boom", -6.0, 1.2, 0.0)
+
+
+## ---- 受击钩子（docs/101 B1c，10-15 从 combat.gd 搬来）
+## 装填读条中累计伤害达到 boss/saint_break_dmg（5%）最大生命才打断（原来挨一下就打断、僵直 6 秒；docs/38 §8.2）
+func on_damaged(e: Dictionary, dmg: float, _eff: float) -> void:
+	if e.get("channel", 0.0) > 0.0 and e.has("ammo"):
+		e.reload_dmg = e.get("reload_dmg", 0.0) + dmg
+		if e.reload_dmg >= e.maxhp * Bal.v("boss/saint_break_dmg", 0.05):
+			saint_interrupt(e)

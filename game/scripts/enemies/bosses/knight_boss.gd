@@ -186,3 +186,36 @@ func _knight_stakes(e: Dictionary, dt: float) -> void:
 				g.vfx.add_text(e.pos + Vector2(0, -70), "长枪脱手！", Color(1.0, 0.85, 0.4), 22)
 				Sfx.play("boom", -4.0, 1.2, 0.0)
 				break
+
+
+## ---- 受击钩子（docs/101 B1c，10-15 从 combat.gd 搬来）
+## 「寒冷」受击滑窗（docs/95 §4.2 C，原作「受到伤害时给伤害来源附加寒冷」）：boss/knight_frost_win（8）秒窗口内累计实际掉血 eff，
+## _frost_due 判 ≥ knight_frost_pct（6%）且主控在 r180 内才放寒冷；窗口到期归零重计
+func on_damaged(e: Dictionary, _dmg: float, eff: float) -> void:
+	if g.t - float(e.get("frost_win_t", -99.0)) > Bal.v("boss/knight_frost_win", 8.0):
+		e.frost_win_t = g.t
+		e.frost_taken = 0.0
+	e.frost_taken = float(e.get("frost_taken", 0.0)) + eff
+
+
+## 第一次归零不死，寒冰重生（二阶段）
+func on_lethal(e: Dictionary) -> bool:
+	if e.phase != 1:
+		return super.on_lethal(e)
+	Sfx.play_cue("phase", e.type, "start")
+	e.phase = 2
+	e.hp = e.maxhp * 0.5
+	e.spd *= 1.2
+	e.invuln = true
+	e.channel = 1.5
+	e.stun = 0.0
+	e.kb = Vector2.ZERO
+	e.frost_taken = 0.0
+	e["tint2"] = Color(0.82, 0.92, 1.25)   # 二阶段常驻冰蓝着色（docs/95 §4.2；render/world 乘色，不改帧条）
+	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))   # 重生清预警（§4.3 节奏表）
+	if not g.vfx.fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), g.PX * 1.4, 0.0):
+		g.fx.append({"kind": "ring", "pos": e.pos, "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.9, 1.4)})
+	g.vfx.show_banner("寒冰重生 —— 最后的骑士 第二阶段")
+	Sfx.play("roar", 0.0, 0.9, 0.0)
+	g.vfx.shake_screen(1.2)
+	return true

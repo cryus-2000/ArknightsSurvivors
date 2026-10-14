@@ -159,3 +159,41 @@ func paranoia_hatch(e: Dictionary, broken: bool) -> void:
 		e.gaze_bonus = int(e.get("gaze_bonus", 0)) + 1
 		g.vfx.add_text(e.pos + Vector2(0, -70), "蜕变 —— 凝视 +1", Color(0.9, 0.4, 1.0), 20)
 	Sfx.play("shell_break" if broken else "cocoon_revive", 2.0 if broken else -5.2, 1.0, 0.0)   # 破茧 / 超时蜕变
+
+
+## ---- 受击钩子（docs/101 B1c，10-15 从 combat.gd 搬来）
+## 茧：本体无敌，伤害打在外壳上（docs/38 §8.5）。外壳受伤有速度上限（协调人 9/29：外壳要成为真分支）：每秒最多掉 shell_max / boss/paranoia_shell_min 秒，
+## 再强的编队也要约 4 秒才能打破（换 5 秒破绽），输出低的可能 8 秒内打不破（凝视永久 +1）
+func absorb_damage(e: Dictionary, dmg: float) -> bool:
+	if not (e.get("cocoon_t", 0.0) > 0.0 and e.get("shell_hp", 0.0) > 0.0):
+		return false
+	var room: float = e.get("shell_room", 0.0)
+	dmg = minf(dmg, room)
+	e.shell_room = room - dmg
+	e.shell_hp -= dmg
+	e.flash = 0.08
+	if e.shell_hp <= 0.0:
+		paranoia_hatch(e, true)
+	return true
+
+
+## 第一次归零结茧（docs/38 §8.5，取代原来「被控 0.3 秒进二阶段」）
+func on_lethal(e: Dictionary) -> bool:
+	if not e.get("cocoon_done", false):
+		paranoia_cocoon(e)
+		return true
+	return super.on_lethal(e)
+
+
+## 认知负担光环随本体撤掉
+func on_kill(_e: Dictionary) -> void:
+	g.stats.remove_source("paranoia_aura")
+	g.sync_stats()
+
+
+## 过最后一道卡点就落地进二阶段（近战、移速 70、凝视 3 道），茧仍在归零时结；原来一阶段悬浮远程一直拖到归零，
+## 最后一幕 = 33% + 茧 8 秒 + 复活 40% 全在够不着的状态下打（数值 close5 am40：泡影 12 局超时全卡在最后一幕）。boss/paranoia_p2_at_gate 0 = 旧行为
+func on_gate(e: Dictionary) -> void:
+	if e.gates.is_empty() and e.phase == 1 and Bal.v("boss/paranoia_p2_at_gate", 1.0) > 0.0:
+		_paranoia_p2(e)
+		g.vfx.add_text(e.pos + Vector2(0, -70), "坠落", Color(0.9, 0.4, 1.0), 20)
