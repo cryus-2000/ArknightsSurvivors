@@ -3,7 +3,7 @@ extends Node
 ## 把 game.tscn 当子节点跑起来，第 5 帧冻结主场景，直接调积木执行器逐条检查：校验正反例、子弹数（op_shots）、弹体命中、
 ## 次数型 S1（dur.ammo + attack_patch）、弹匣（verb.counter + trig.on_attack）、精英二改上限（verb.counter_cap）、
 ## S2 结束过热（end + verb.attack_lock）、S3 连射（burst + last_on_hit 的 st.pause）、跳弹节点、没有跳弹时不碰 g.rng、老数据干员不受影响、
-## 各模式的弹药颜色（tex / muzzle_fx / hit_fx，docs/25 §6.1）与帧条登记。
+## 各模式的弹药颜色（tex / muzzle_fx / hit_fx，docs/25 §6.1）与帧条登记、藏品 #169 扼喉之手处决。
 ## 全部通过时打印 "EXUSIAI BLOCKS failures=0"。
 
 const OB = preload("res://scripts/characters/op_blocks.gd")
@@ -270,6 +270,37 @@ func test_runtime(o) -> void:
 			break
 	# 跳出的子弹可能当帧就落地：改看伤害统计里有没有跳弹
 	ok(found or float(game.dmg_out.get("跳弹", 0.0)) > 0.0, "跳弹出现（12 次射击内）")
+	st.bul.clear()
+	test_execute(o, a)
+
+
+## 藏品 #169 扼喉之手（10-15 补漏接）：能天使（狙击）的弹体命中后，生命低于 20% 的非 Boss 敌人直接处决；没有这件藏品时不处决
+func test_execute(o, a: Dictionary) -> void:
+	var st: Dictionary = OB.exu_st(o)
+	var had: bool = game.relics.has("169")
+	game.relics.erase("169")
+	for k in 3:
+		clear_enemies()
+		st.bul.clear()
+		var e := spawn(o.pos + Vector2(140, 0))
+		e.maxhp = 100000.0
+		e.hp = 15000.0 if k != 2 else 50000.0   # 第 3 局：生命 50% 不处决
+		if k >= 1 and not game.relics.has("169"):
+			game.relics.append("169")
+		OB.exu_fire(o, a)
+		run_bullets(o)
+		match k:
+			0:
+				ok(not e.dead and e.hp > 0.0, "没有扼喉之手：生命 15%% 的敌人只掉血不处决（剩 %.0f）" % e.hp)
+			1:
+				ok(e.dead, "扼喉之手：子弹打中生命 < 20% 的敌人直接处决")
+				ok(float(game.dmg_out.get("真实", 0.0)) > 0.0, "处决伤害记在「真实」")
+			2:
+				ok(not e.dead, "扼喉之手：生命 50% 的敌人不处决")
+	game.relics.erase("169")
+	if had:
+		game.relics.append("169")
+	clear_enemies()
 	st.bul.clear()
 
 

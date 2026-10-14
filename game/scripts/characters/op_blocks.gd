@@ -3522,6 +3522,9 @@ static func _exu_bullets(o, dt: float) -> void:
 			var sk: Array = el_stack_hit(o, e, str(bu.src))   # 精英化段（st.stack）：[伤害倍率, 满层命中火花（"" = 照旧）]
 			o.log_hit(bu.src, bu.tags)
 			o.deal_damage(e, bu.dmg * (ve if e.elite or e.boss else 1.0) * float(sk[0]))
+			if not e.dead and g.rfx.sniper_execute(e, g.hit):   # 藏品 #169 扼喉之手：狙击攻击直接处决低血敌人（同维什戴尔 _h4_explode 的门槛与写法；10-15 补漏接）
+				o.log_hit("真实")
+				o.deal_damage(e, e.hp + 1.0)
 			if float(bu.get("kb", 0.0)) > 0.0 and not e.dead and not e.boss:
 				e.kb += bu.v.normalized() * float(bu.kb) * (0.3 if e.elite else 1.0)   # 同 melee_hit：精英 ×0.3、Boss 不受
 			for s in bu.on_hit:
