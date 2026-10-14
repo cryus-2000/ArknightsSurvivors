@@ -25,7 +25,7 @@ const PASSIVES := {
 	"dash_charge": {"name": "连冲", "desc": "冲刺可储存 2 次，冷却逐次恢复", "max": 1, "cat": "mobility"},
 	"sp": {"name": "协同·技", "desc": "全队技力回复 +15%", "max": 4, "cat": "squad"},
 	"squad_atk": {"name": "协同·攻", "desc": "全队干员攻击 +8%", "max": 5, "cat": "squad"},
-	"squad_aspd": {"name": "协同·迅", "desc": "全队干员攻速 +6%", "max": 5, "cat": "squad"},
+	"squad_aspd": {"name": "协同·迅", "desc": "全队干员攻击速度 +6%", "max": 5, "cat": "squad"},
 	"squad_range": {"name": "协同·广", "desc": "全队干员攻击范围 +8%", "max": 4, "cat": "squad"},
 	"squad_crit": {"name": "协同·专", "desc": "全队干员技能强度 +10%", "max": 4, "cat": "squad"},
 }
@@ -172,7 +172,7 @@ func attack_held() -> bool:
 		return true
 	if _touching():
 		return false   # 触屏会模拟鼠标左键，不能当攻击
-	if (Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not _over_hud_btn()) or Input.is_key_pressed(KEY_J):
+	if (Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and not _over_hud_btn()) or Pad.key_down(KEY_J):
 		return true
 	for dev in Input.get_connected_joypads():
 		if Input.get_joy_axis(dev, JOY_AXIS_TRIGGER_RIGHT) > 0.5 or Input.is_joy_button_pressed(dev, JOY_BUTTON_X):
@@ -266,7 +266,7 @@ func _touching() -> bool:
 
 
 func _skill_key_held() -> bool:
-	if Input.is_key_pressed(KEY_Q) or Input.is_key_pressed(KEY_E) or (not manual_attack and Input.is_key_pressed(KEY_J)):
+	if Pad.key_down(KEY_Q) or Pad.key_down(KEY_E) or (not manual_attack and Pad.key_down(KEY_J)):
 		return true
 	for dev in Input.get_connected_joypads():
 		if Input.is_joy_button_pressed(dev, JOY_BUTTON_A) or Input.is_joy_button_pressed(dev, JOY_BUTTON_Y) \
@@ -305,7 +305,7 @@ func apply_rejection() -> String:
 		g.stats.add(&"max_hp", "flat", -20.0, "rejection")
 		g.sync_stats()
 		g.hp = minf(g.hp, g.max_hp)
-		what = "生命上限 -20"
+		what = "队长最大生命 -20"
 	rej_log.append(what)
 	return what
 

@@ -1129,7 +1129,7 @@ func _input(event: InputEvent) -> void:
 	if state != S.INTRO:
 		return
 	if event is InputEventKey and event.pressed and not event.echo:
-		match event.keycode:
+		match Pad.kc(event):
 			KEY_ESCAPE:
 				intro_screen.close()
 			KEY_LEFT, KEY_A, KEY_PAGEUP, KEY_BACKSPACE:
@@ -1179,7 +1179,7 @@ func _motion_skip(event: InputEvent) -> bool:
 	if state == S.CHOICE and panel_ui.motion.running():
 		panel_ui.motion.skip()
 	elif (state == S.PAUSE or state == S.DEAD) and result_screen.motion_running():
-		if event is InputEventKey and not (event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]):
+		if event is InputEventKey and not (Pad.kc(event) in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]):
 			return false
 		ui_skip = true
 	else:
@@ -1217,7 +1217,7 @@ func _unhandled_input(event: InputEvent) -> void:
 				run_stats.wheel(1)
 			get_viewport().set_input_as_handled()
 		elif event is InputEventKey and event.pressed and not event.echo:
-			if run_stats.key(event.keycode) and is_inside_tree():
+			if run_stats.key(Pad.kc(event)) and is_inside_tree():
 				get_viewport().set_input_as_handled()
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -1245,7 +1245,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return  # 指南的输入在 _input() 里处理（先于 GUI，不会被任何控件吞掉）
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
-	var k: int = event.keycode
+	var k: int = Pad.kc(event)
 	if _nav_key(k):
 		if is_inside_tree():   # 重新开始 / 回到标题已经换了场景：本节点离开场景树，get_viewport() 为 null
 			get_viewport().set_input_as_handled()
@@ -1423,8 +1423,8 @@ func _update(dt: float) -> void:
 		telemetry.tick(dt)   # 真实玩家局的整局指标；机器人局由 autotest 按原节奏驱动
 	sync_stats()
 	var mv := Vector2(
-		float(Input.is_key_pressed(KEY_D) or Input.is_key_pressed(KEY_RIGHT)) - float(Input.is_key_pressed(KEY_A) or Input.is_key_pressed(KEY_LEFT)),
-		float(Input.is_key_pressed(KEY_S) or Input.is_key_pressed(KEY_DOWN)) - float(Input.is_key_pressed(KEY_W) or Input.is_key_pressed(KEY_UP)))
+		float(Pad.key_down(KEY_D) or Pad.key_down(KEY_RIGHT)) - float(Pad.key_down(KEY_A) or Pad.key_down(KEY_LEFT)),
+		float(Pad.key_down(KEY_S) or Pad.key_down(KEY_DOWN)) - float(Pad.key_down(KEY_W) or Pad.key_down(KEY_UP)))
 	if demo_op != "":
 		mv = demo_sys.wander()
 	elif mode == Mode.BALANCE:
@@ -1764,6 +1764,8 @@ const V6_FRAMES := {
 	# 第 2 批（docs/95 §5.4 / §6.4 / §7.4；帧条 e_path_slam / e_saint_dark_lob / e_carmen_spin 由 world.boss_strip_animation 按帧数取，不在这里登记）
 	"fx_path_fractal_rise": [5, 12.0], "fx_path_correct_ring": [4, 12.0], "fx_path_reflow": [3, 12.0],
 	"proj_saint_shell": [2, 8.0], "fx_saint_scatter": [3, 16.0], "fx_saint_clear_ring": [4, 12.0], "fx_carmen_smash": [4, 14.0],
+	# 第 3 批（docs/95 §8.4 / §9.4 / §10.4；帧条 e_bishop_attack / e_archon_attack / e_immortal_attack 在 world.boss_strip_animation）
+	"fx_bishop_wave": [6, 12.0], "fx_tide_link_tile": [4, 12.0], "fx_archon_breath": [5, 14.0], "fx_immortal_burst": [5, 16.0],
 	# 第三方开放许可素材魔改（tools/fx_import.py，docs/25 §3）：圣光 / 治疗 / 火 / 爪 / 斩 / 碎石 / 弹道
 	"fx_holy_pillar": [16, 14.0], "fx_holy_pillar_amber": [16, 14.0], "fx_holy_impact": [7, 16.0],
 	"fx_heal_aura_green": [5, 10.0], "fx_heal_aura_amber": [5, 10.0], "fx_circle_gold": [4, 8.0], "fx_circle_amber": [4, 8.0], "fx_shield_amber": [6, 12.0],
@@ -1896,6 +1898,7 @@ const INTRO_PAGES := [
 		"精英与 Boss 掉落源石锭、补给箱（打开得藏品）与磁铁 / 回复药剂。同一件藏品再次拿到会升级。",
 		"伪装成补给箱的箱形恐鱼会现形扑来，击败后掉落大量源石锭。"], "more": [
 		"补给箱也会定期出现在地图上，屏幕边缘有指示。",
+		"经验结晶离开视野 6 秒后会自动回收入账。",
 		"藏品分基础 / 稀有 / 核心 / 升华；商店里偶尔有「遭诅古物」：效果强，带代价。"]},
 	{"title": "商人只停留 60 秒", "en": "MERCHANT", "icon": "merchant", "lines": [
 		"商人在 2:00、5:00、8:00 出现，只停留 60 秒，屏幕边缘的金色箭头指向他。",

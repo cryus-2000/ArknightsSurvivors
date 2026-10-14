@@ -29,7 +29,7 @@
  },
  "attack": {"mode": "auto", "name": "速射", "desc": "每 {$cd} 秒向最近的敌人（精英优先）射出 {$shots} 发物理弹（射程 {$range}，穿透 {$pierce} 名敌人，轻微击退）；每次射击的子弹数可以成长，多发时各自瞄准不同的敌人，最近的是 Boss 时全部打 Boss"},
  "skills": [
-  {"name": "冲锋模式", "en": "CHARGING MODE", "sp": 6, "desc": "装填 {$s1_ammo} 发强力弹：之后的子弹每发伤害 ×{$s1_mult}、穿透 {$s1_pierce} 名敌人，打完为止（子弹数越多耗得越快）", "icon": "skill_exusiai_s1"},
+  {"name": "冲锋模式", "en": "CHARGING MODE", "sp": 6, "desc": "装填 {$s1_ammo} 发强力弹：之后的子弹每发伤害 ×{$s1_mult}、穿透 {$s1_pierce} 名敌人，打完为止（每次射击按子弹数消耗强力弹）", "icon": "skill_exusiai_s1"},
   {"name": "扫射模式", "en": "SHOOTING MODE", "sp": 14, "dur": 8.0, "desc": "{$s2_dur} 秒：射击间隔 {$cd} → {$s2_cd} 秒，每发伤害 ×{$s2_mult}；结束时枪管过热，{$s2_overheat} 秒不能射击", "icon": "skill_exusiai_s2"},
   {"name": "过载模式", "en": "OVERLOADING MODE", "sp": 22, "dur": 10.0, "desc": "{$s3_dur} 秒：每次射击改为 {$s3_burst} 连射（每发伤害 ×{$s3_mult}），射程 +{$s3_range*100}%，优先瞄准精英与 Boss；连射与子弹数相乘；每轮最后一发让非精英停顿 {$s3_pause} 秒", "icon": "skill_exusiai_s3"}
  ],
@@ -38,7 +38,7 @@
   "速射": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "物理", "tags": ["projectile", "basic"]},
   "冲锋模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "物理", "tags": ["skill", "projectile", "pierce"]},
   "过载模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "物理", "tags": ["skill", "projectile"]},
-  "弹夹倾泻": {"emitter": "operator", "origin": "talent", "range": "远程", "kind": "物理", "tags": ["projectile", "pierce", "area"]},
+  "弹匣倾泻": {"emitter": "operator", "origin": "talent", "range": "远程", "kind": "物理", "tags": ["projectile", "pierce", "area"]},
   "跳弹": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "物理", "tags": ["follow_up", "ricochet"]}
  },
  "progression": [
@@ -68,7 +68,7 @@
   "talent": [
    {"trig": "on_kill", "do": [{"verb": "counter", "name": "mag", "label": "弹匣", "own": true, "add": 1, "add_lit": "$mag_lit_bonus", "cap": "$mag_cap"}]},
    {"trig": "on_attack", "counter": "mag", "do": [
-    {"shape": "projectile", "shots": "$mag_shots", "fan": true, "spread_deg": "$mag_spread_deg", "pierce": "$mag_pierce", "mult": "$mag_mult", "src": "弹夹倾泻",
+    {"shape": "projectile", "shots": "$mag_shots", "fan": true, "spread_deg": "$mag_spread_deg", "pierce": "$mag_pierce", "mult": "$mag_mult", "src": "弹匣倾泻",
      "tex": "proj_exusiai_bullet_power", "muzzle_fx": "fx_exusiai_muzzle_gold", "hit_fx": "fx_exusiai_hit_gold"}]}
   ],
   "progression": {

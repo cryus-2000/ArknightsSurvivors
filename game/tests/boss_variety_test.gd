@@ -99,7 +99,7 @@ func _ready() -> void:
 			for repeat in 10:
 				g.bai._warn_resolve(w)
 		check(g.ebullets.size() <= 240, "total live projectile cap")
-	# A distant melee Boss selects its ranged blade move rather than stalling.
+	# A distant melee Boss closes in instead of stalling（docs/95 §9：蔑死体的裂潮刃波删了，远距离由跃击贴上来）.
 	var melee: Dictionary = g.spawner.new_enemy("archon", Vector2.ZERO)
 	melee.age = 20.0
 	melee.pattern_next = g.t
@@ -107,12 +107,22 @@ func _ready() -> void:
 	g.ebullets.clear()
 	g.ppos = Vector2(500, 0)
 	g.bai._boss_ai(melee, 0.01, Vector2.RIGHT, 500.0)
-	check(g.warns.any(func(w): return w.get("act", "") == "pattern_fan"), "far melee uses blade volley")
+	check(g.warns.any(func(w): return w.get("act", "") == "leap"), "far melee closes in with a leap")
+	# Blade volley（斥亡体第二幕掠海飞刃，docs/95 §10.2 D）has actual distinct blade projectiles.
+	var blader: Dictionary = g.spawner.new_enemy("immortal", Vector2.ZERO)
+	blader.age = 20.0
+	blader.gates_passed = 1
+	g.warns.clear()
+	g.ebullets.clear()
+	g.ppos = Vector2(300, 0)
+	blader.pattern_force = "掠海飞刃"
+	g.bai.patterns.try_attack(blader, Vector2.RIGHT, 300.0)
+	check(g.warns.any(func(w): return w.get("act", "") == "pattern_fan"), "blade volley is scheduled")
 	if not g.warns.is_empty():
 		g.bai._warn_resolve(g.warns[0])
-		check(g.ebullets.size() == 5 and g.ebullets[0].kind == "boss_blade", "blade volley has actual distinct projectiles")
+		check(g.ebullets.size() == 7 and g.ebullets[0].kind == "boss_blade", "blade volley has actual distinct projectiles")
 	# Every grouped laser / column uses one common resolve time, including legacy attacks.
-	for spec in [["bishop", "pillar", 0], ["bishop", "pattern_rain", 1], ["izumik", "pattern_rain", 0], ["ishar", "ishar_line", 1], ["ishar", "ishar_strike", 0]]:   # 泡影爆裂已删（docs/95 §1）；伊祖米克潮汐坠落改为第 0 条
+	for spec in [["bishop", "pillar", 0], ["izumik", "pattern_rain", 0], ["ishar", "ishar_line", 1], ["ishar", "ishar_strike", 0]]:   # 泡影爆裂已删（docs/95 §1）；伊祖米克潮汐坠落改为第 0 条
 		var caster: Dictionary = g.spawner.new_enemy(spec[0], Vector2.ZERO)
 		caster.age = 20.0
 		if caster.type == "paranoia":
@@ -244,6 +254,33 @@ func _ready() -> void:
 		check(anim.get("name", "") == st[2] and int(anim.get("frame", -1)) == int(st[3]), "%s 结算后播 %s 出手帧 f%d（得 %s）" % [st[1], st[2], int(st[3]), str(anim)])
 		b.dead = true
 		g.warns.clear()
+	# docs/95 §8.2 C「统一」：两体之间的直线；幽灵线段终点跟随搭档、锁定后冻结并让两体停步、搭档死了作废
+	g.enemies.clear()
+	g.warns.clear()
+	g.invuln = 100.0
+	var bi: Dictionary = g.spawner.new_enemy("bishop", Vector2.ZERO)
+	var ar: Dictionary = g.spawner.new_enemy("archon", Vector2(300, 0))
+	bi.age = 20.0
+	ar.age = 20.0
+	bi.partner = ar
+	ar.partner = bi
+	g.enemies.append(bi)
+	g.enemies.append(ar)
+	var uw: Dictionary = g.bai.unite(bi, ar)
+	check(uw.shape == "line" and is_same(uw.get("b_owner"), ar) and uw.name == "统一", "统一 是主教到搭档的直线")
+	ar.pos = Vector2(300, 120)
+	g.bai._update_warns(0.5)
+	check(absf(float(uw.len) - bi.pos.distance_to(ar.pos)) < 0.5, "统一 幽灵线段终点跟着搭档走")
+	g.bai._update_warns(0.5)
+	var locked_len: float = uw.len
+	ar.pos = Vector2(500, 400)
+	g.bai._update_warns(0.1)
+	check(is_equal_approx(float(uw.len), locked_len) and ar.wind > 0.0 and bi.wind > 0.0, "统一 锁定后线冻结、两体停步")
+	ar.dead = true
+	var n_fx: int = g.fx.size()
+	g.bai._warn_resolve(uw)
+	check(g.fx.size() == n_fx, "统一 搭档死了不结算")
+	g.warns.clear()
 	if DisplayServer.get_name() != "headless" and Cfg.dev_args().has("--capture-ui"):
 		await capture_patterns()
 	print("BOSS VARIETY failures=", failures)

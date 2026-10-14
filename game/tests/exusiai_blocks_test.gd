@@ -187,7 +187,7 @@ func test_runtime(o) -> void:
 	st.cnt["mag"] = 8.0
 	OB.exu_fire(o, a)
 	ok(st.bul.size() == 8, "弹匣满：倾泻 8 发（实际 %d）" % st.bul.size())
-	ok(st.bul.all(func(b): return str(b.src) == "弹夹倾泻" and int(b.pierce) == 1), "倾泻：来源弹夹倾泻、穿透 1，不再另射普攻")
+	ok(st.bul.all(func(b): return str(b.src) == "弹匣倾泻" and int(b.pierce) == 1), "倾泻：来源弹匣倾泻、穿透 1，不再另射普攻")
 	ok(st.bul.all(func(b): return str(b.tex) == "proj_exusiai_bullet_power" and str(b.hfx) == "fx_exusiai_hit_gold") and last_fx() == "fx_exusiai_muzzle_gold", "倾泻：金弹体 / 金命中 / 金枪口焰")
 	near(float(st.cnt.get("mag", -1.0)), 0.0, "倾泻后弹匣清空")
 	if st.bul.size() == 8:

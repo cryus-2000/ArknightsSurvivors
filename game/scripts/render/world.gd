@@ -1874,6 +1874,12 @@ func boss_strip_animation(e: Dictionary) -> Dictionary:
 				for w in g.warns:
 					if w.act == "dash" and not w.done and is_same(w.owner, e):
 						return {"name": "e_path_charge", "frames": 4, "frame": 0 if float(w.t) < float(w.dur) * 0.5 else 1}
+		"bishop", "archon", "immortal":
+			# 接潮三体（docs/95 §8.4 / §9.4 / §10.4，Codex 第 3 批）：出招帧条随预警进度 f0 → f1、结算 f2 / f3；缺图沿用原帧条
+			var tacts: Array = {"bishop": ["pillar", "pattern_ring", "pattern_fan", "tide_link"], "archon": ["sweep", "breath"], "immortal": ["stab", "erupt"]}[e.type]
+			var ta := _boss_warn_strip(e, tacts, "e_%s_attack" % e.type, 4)
+			if not ta.is_empty():
+				return ta
 		"paranoia":
 			# Codex 第 1 批（docs/95 §1.4）：一阶段凝视 / 叠影蓄力 e_paranoia_gaze（f0 睁眼 → f1 前倾，f2 出手在结算后 0.2 秒、f3 收势）；
 			# 二阶段呼号 e_paranoia_phase2_howl（f0 张口 → f1 吸气，f2 出手、f3 收口）。缺图沿用原帧条

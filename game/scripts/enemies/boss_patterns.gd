@@ -15,6 +15,8 @@ extends RefCounted
 ##   min_dist / max_dist  主控距离在这个范围内才进轮转（散射 <220、环射 120–320）
 ##   dur / track  预警总时长 / 追踪段（覆盖缺省 0.9 + 0.6 × 波序）；warn_r：fan 扇形预警半径（缺省 140）
 ##   ring_r    ring 预警与出弹的起始半径（缺省 88）；gap_face：缺口之一朝主控（缺省缺口在主控方向的侧面）
+##   gap_jitter  ring 每波缺口的左右错开（缺省 0.12；交错潮环 0 = 两波缺口同向，docs/95 §8.2 B）
+##   cone_dmg  fan 结算时扇形本身再判定一次，伤害 = e.dmg × cone_dmg（接潮扇浪 0.9）
 ##   bullet    非刃弹的弹体种类（缺省 nova；圣徒的散射 / 清膛 / 环射用 orb = 普通实弹，不画成紫色新星弹）
 ##   life      弹体寿命秒（缺省 2.8）；fx：结算时在出弹点放的特效帧条名（缺图不放）；fx_col：给 fx 乘色（卡门借伊比利亚的清膛环换金色）
 const D = preload("res://scripts/data.gd")
@@ -108,7 +110,8 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 				shape = "circle"
 				data.act = "pattern_ring"
 				data.r = float(move.get("ring_r", 88.0))
-				data.gap_ang = dir.angle() + (0.0 if move.get("gap_face", false) else PI * 0.5 + (0.12 if k % 2 else -0.12))
+				var gj: float = float(move.get("gap_jitter", 0.12))
+				data.gap_ang = dir.angle() + (0.0 if move.get("gap_face", false) else PI * 0.5 + (gj if k % 2 else -gj))
 				data.gap_half = float(move.gap)
 				var ng: int = int(move.get("gaps", 1))
 				if ng > 1:
@@ -179,6 +182,10 @@ func resolve(w: Dictionary) -> void:
 		e.ammo -= cost
 		if e.ammo <= 0:
 			e.ai = "melee"
+	if w.act == "pattern_fan" and float(move.get("cone_dmg", 0.0)) > 0.0:
+		var cw: Dictionary = w.duplicate()
+		cw.dmg = e.dmg * float(move.cone_dmg)
+		g.bai._warn_damage(cw)   # 扇形本身一次（接潮扇浪的浪头），弹幕另算
 	var count: int = int(move.count) + (4 if w.enhanced and not move.get("blade", false) else 0)
 	var own := 0
 	var total := 0

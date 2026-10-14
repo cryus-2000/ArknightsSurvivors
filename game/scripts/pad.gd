@@ -218,6 +218,28 @@ func rumble(weak: float, strong: float, dur: float) -> void:
 	Input.start_joy_vibration(device, clampf(weak, 0.0, 1.0), clampf(strong, 0.0, 1.0), dur)
 
 
+## 按键事件的键（10-14，「ESC 不起作用、键盘输入有问题」）：中文输入法开着时，网页（浏览器把 key 报成 "Process"）
+## 和部分系统发来的按键 keycode = 0、只有物理键码——原来各界面 match event.keycode 一律对不上，Esc / 方向键全无反应。
+## keycode 为 0 时按物理键码换算成当前键盘布局的键；同时记下「见过这种事件」，之后轮询（key_down）也认物理键。
+var phys_keys := false
+
+
+func kc(event: InputEventKey) -> int:
+	if event.keycode != KEY_NONE:
+		return event.keycode
+	if event.physical_keycode == KEY_NONE:
+		return KEY_NONE
+	phys_keys = true
+	var k: int = DisplayServer.keyboard_get_keycode_from_physical(event.physical_keycode)
+	return k if k != KEY_NONE else event.physical_keycode
+
+
+## 轮询按键（移动 / 冲刺 / 手动技能）：平时只认逻辑键；见过 keycode = 0 的事件后再认物理键
+## （只在那之后才认，免得 AZERTY 等布局下物理键位和逻辑键打架）
+func key_down(k: int) -> bool:
+	return Input.is_key_pressed(k) or (phys_keys and Input.is_physical_key_pressed(k))
+
+
 ## 提示文字：用手柄时返回 pad_text；触屏（没在用手柄）且给了 touch_text 时返回它；否则 key_text
 func hint(key_text: String, pad_text: String, touch_text: Variant = null) -> String:
 	if using:

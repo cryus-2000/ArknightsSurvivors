@@ -48,9 +48,9 @@
  "progression": [
   {"type": "custom", "id": "reach", "name": "阔斩", "icon": "growth_b_range", "desc": "盾斧斩与技能范围 +{$n_reach*100}%"},
   {"type": "custom", "id": "heavy", "name": "重刃", "icon": "growth_b_size", "desc": "星熊造成的伤害 ×{$n_heavy}"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「荆棘」；解锁天赋「战术装甲」：队长受到攻击时有概率完全格挡，挡下的不掉灯火；普攻「反击架势」：格挡后 {$stance_dur} 秒内盾斧斩伤害 +{$stance_dmg*100}%",
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「荆棘」；解锁天赋「战术装甲」：队长受到攻击时有 {$block_chance*100}% 概率完全格挡，挡下的不掉灯火；普攻「反击架势」：格挡后 {$stance_dur} 秒内盾斧斩伤害 +{$stance_dmg*100}%",
    "attack": {"name": "反击架势", "desc": "「战术装甲」格挡成功后 {$stance_dur} 秒内，盾斧斩伤害 +{$stance_dmg*100}%，刀光转为暗红，盾沿亮起红光（不叠加，再次格挡刷新时间）"}},
-  {"type": "custom", "id": "wall", "name": "盾墙", "icon": "growth_armor", "desc": "每次格挡时，队长身边半径 {$block_kb_r} 内的敌人眩晕 {$wall_stun} 秒（精英减半，Boss 不受）"},
+  {"type": "custom", "id": "wall", "name": "盾墙", "icon": "growth_armor", "desc": "每次格挡时，队长身边半径 {$block_kb_r} 内的敌人眩晕 {$wall_stun} 秒（精英减半，Boss 免疫）"},
   {"type": "custom", "id": "ember", "name": "热砂·余烬", "icon": "growth_t_field", "desc": "「荆棘」的每处热砂同时留下 {$ember_dur} 秒余烬：踩进的敌人每秒另受 {$ember_mult*100}% 攻击力的伤害"},
   {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「力之锯」；普攻质变「般若回旋」：每第 {$saw_every} 次盾斧斩改为掷出盾牌，沿直线飞出 {$saw_len} 后飞回，去程造成 ×{$saw_out} 伤害并击退，回程造成 ×{$saw_back} 伤害",
    "attack": {"name": "般若回旋", "desc": "每第 {$saw_every} 次盾斧斩改为把盾「般若」横转着掷出：沿直线飞出 {$saw_len} 再飞回手里，去程 ×{$saw_out} 并击退，回程 ×{$saw_back}；盾在外面时不出盾斧斩"}}

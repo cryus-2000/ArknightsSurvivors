@@ -6,6 +6,8 @@
 
 ## 0. 通用规格
 
+**Codex 只交素材 + 方案，不改 `game/`（2026-10-14 协调人定）**：帧条、特效、manifest、handoff、预览，以及行为改动的方案文字都放 `art/incoming/`；需要改游戏代码 / 数据的，在 handoff 里写清楚，由 Claude 的角色会话接入（起因：d82239ff 钵海收割者受击狂奔直接改了 enemy_ai / world / enemies.json，且新测试没登记进快检）。
+
 沿用 docs/87 §1 中敌人适用的条款，以及下面的补充：
 
 | 项 | 要求 |
