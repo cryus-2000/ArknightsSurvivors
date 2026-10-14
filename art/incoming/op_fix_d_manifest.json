@@ -1,0 +1,292 @@
+{
+  "spec": "docs/98 + docs/97 D",
+  "notes": "@2x frame geometry is authoritative. Corresponding 1x regenerated with majority alpha and exact outline; palette <=24 for re-exported strips. Logos pair repaired in A. Kaltsit body unchanged here; only Mon3tr skill pair repaired.",
+  "actions": {
+    "op_eyjafjalla_idle": {
+      "tex": "op_eyjafjalla_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        24,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_eyjafjalla_run": {
+      "tex": "op_eyjafjalla_run",
+      "frames": 6,
+      "fps": 10,
+      "foot": [
+        24,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_eyjafjalla_attack": {
+      "tex": "op_eyjafjalla_attack",
+      "frames": 4,
+      "fps": 14,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 2,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_eyjafjalla_skill": {
+      "tex": "op_eyjafjalla_skill",
+      "frames": 8,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 4,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_wisadel_idle": {
+      "tex": "op_wisadel_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        24,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_wisadel_run": {
+      "tex": "op_wisadel_run",
+      "frames": 6,
+      "fps": 10,
+      "foot": [
+        25,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_wisadel_attack": {
+      "tex": "op_wisadel_attack",
+      "frames": 5,
+      "fps": 14,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 2,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_wisadel_skill": {
+      "tex": "op_wisadel_skill",
+      "frames": 7,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 4,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_mon3tr_skill": {
+      "tex": "op_mon3tr_skill",
+      "frames": 6,
+      "fps": 12,
+      "foot": [
+        32,
+        60
+      ],
+      "fire": 2,
+      "frame_size": [
+        64,
+        64
+      ]
+    }
+  },
+  "files": [
+    {
+      "name": "op_eyjafjalla_attack.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 23,
+      "sha256": "9d737a1ff5cb2b6455f06999bbbef175e2c4e1c4b19849b6018c312ff2cd9cff"
+    },
+    {
+      "name": "op_eyjafjalla_attack@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 23,
+      "sha256": "180645d9659fdec3496e5a77207b4d312b11584b49f6b3e2b836470ddc26ad04"
+    },
+    {
+      "name": "op_eyjafjalla_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 21,
+      "sha256": "c3c18947aaa005c5c0a55a4f910f18c33577be771a82c326bd3d9f63cd79fa48"
+    },
+    {
+      "name": "op_eyjafjalla_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 21,
+      "sha256": "5e71bac23bca6232f70e6a28d83594147f5e1743aaa78b219830ded7ee39b368"
+    },
+    {
+      "name": "op_eyjafjalla_run.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 21,
+      "sha256": "2780a050d70425b7357bb380511e24662b1227b2061716cb795a2c0931a340a4"
+    },
+    {
+      "name": "op_eyjafjalla_run@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 21,
+      "sha256": "971604524e2ba18651b512f70c9ae229a16272dda07c93b53adaef560c11bc87"
+    },
+    {
+      "name": "op_eyjafjalla_skill.png",
+      "size": [
+        384,
+        48
+      ],
+      "colors": 23,
+      "sha256": "7ba2cbca3e4a23b5830d8f58d4c3469959b34bf56512538d0de20ac489352fa1"
+    },
+    {
+      "name": "op_eyjafjalla_skill@2x.png",
+      "size": [
+        768,
+        96
+      ],
+      "colors": 23,
+      "sha256": "33e2f46c8799cd6c486e1d5b6dd7f6a0be7f068f77f7da0e22883a72e8af45a1"
+    },
+    {
+      "name": "op_mon3tr_skill.png",
+      "size": [
+        384,
+        64
+      ],
+      "colors": 24,
+      "sha256": "7bd30cf6525bf3e9d9b9b9a973293ae6dce7453e486d4e72673c5ce76bcb9b69"
+    },
+    {
+      "name": "op_mon3tr_skill@2x.png",
+      "size": [
+        768,
+        128
+      ],
+      "colors": 24,
+      "sha256": "60abc65975bd9aad695db41218f79b496dfcfed182b77052389f61ddf9ff1823"
+    },
+    {
+      "name": "op_wisadel_attack.png",
+      "size": [
+        240,
+        48
+      ],
+      "colors": 23,
+      "sha256": "c34bc3078f8c602f848a913cad871008896f8f7556d9f86a8bdb8dd4cff8cb75"
+    },
+    {
+      "name": "op_wisadel_attack@2x.png",
+      "size": [
+        480,
+        96
+      ],
+      "colors": 23,
+      "sha256": "8230cb9434fd60f80a1ab32945bb4f8e2b15b80a3d29b4b45465c3cd4e78016a"
+    },
+    {
+      "name": "op_wisadel_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 21,
+      "sha256": "49fadd12af803338dcc8d4b10d1c8e4f5bf85366945b69c46b3754ab703a1313"
+    },
+    {
+      "name": "op_wisadel_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 21,
+      "sha256": "1dba381e2e2ed70214a3e96449d50edf6aee33242a5e74b8545f43c70f18886d"
+    },
+    {
+      "name": "op_wisadel_run.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 19,
+      "sha256": "559bba250896b14a6bc3a56337a3338a4dfb840bb3b07385cebbf0b4d578d30d"
+    },
+    {
+      "name": "op_wisadel_run@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 20,
+      "sha256": "b55f101cbcd4b57446ab2f5977bb895a95699b180b5ab45208da5cab7b5614cb"
+    },
+    {
+      "name": "op_wisadel_skill.png",
+      "size": [
+        336,
+        48
+      ],
+      "colors": 21,
+      "sha256": "d61ad3ffdfe73b27b1db73da820f6c303f2f08075488f74ffc638d675ca8eb1f"
+    },
+    {
+      "name": "op_wisadel_skill@2x.png",
+      "size": [
+        672,
+        96
+      ],
+      "colors": 21,
+      "sha256": "986d0169467b170649ca32a26cfa11cf5fcc0a4a0b746d0dae036dea2ec798c4"
+    }
+  ]
+}

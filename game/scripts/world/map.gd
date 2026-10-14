@@ -105,7 +105,7 @@ func _prop_def(n: String) -> Dictionary:
 ## 地砖 + 地纹 + 小道具；需要 2.5D 排序的道具进 sort_props，其余直接画在地上
 func draw_ground(vs: Vector2) -> void:
 	var T := tile_size
-	var ppos: Vector2 = g.view_center()   # 镜头看着的位置（图鉴演示里镜头不跟博士）
+	var ppos: Vector2 = g.cam_center()   # 镜头看着的位置（图鉴演示里镜头不跟博士；镜头一瞥时跟着镜头铺满）
 	var x0 := floori((ppos.x - vs.x / 2.0) / T) - 1
 	var y0 := floori((ppos.y - vs.y / 2.0) / T) - 1
 	var nx := int(vs.x / T) + 3
@@ -256,7 +256,7 @@ func _draw_patches(vs: Vector2) -> void:
 	var cl_n: float = float(pd.get("cluster", 3))
 	var skip_mod: int = int(pd.get("skip_cluster_mod", 3))
 	var density: int = int(pd.get("density", 78))
-	var ppos: Vector2 = g.view_center()   # 镜头看着的位置（图鉴演示里镜头不跟博士）
+	var ppos: Vector2 = g.cam_center()   # 镜头看着的位置（图鉴演示里镜头不跟博士；镜头一瞥时跟着镜头铺满）
 	var x0 := floori((ppos.x - vs.x / 2.0) / PATCH) - 1
 	var y0 := floori((ppos.y - vs.y / 2.0) / PATCH) - 1
 	for cx in range(x0, x0 + int(vs.x / PATCH) + 3):
@@ -345,7 +345,7 @@ func collect_big_props(vs: Vector2) -> void:
 	if bd.get("list", []).is_empty():
 		return
 	var cell: float = float(bd.get("cell", 560))
-	var ppos: Vector2 = g.view_center()   # 镜头看着的位置（图鉴演示里镜头不跟博士）
+	var ppos: Vector2 = g.cam_center()   # 镜头看着的位置（图鉴演示里镜头不跟博士；镜头一瞥时跟着镜头铺满）
 	var x0 := floori((ppos.x - vs.x / 2.0 - 260.0) / cell)
 	var y0 := floori((ppos.y - vs.y / 2.0 - 60.0) / cell)
 	for cx in range(x0, x0 + int(vs.x / cell) + 3):

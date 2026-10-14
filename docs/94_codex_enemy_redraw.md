@@ -93,3 +93,5 @@
 - **锚点（协调人 10-14 定 A）**：先试过「按 `高度 / hires >= 32` 判断」（700a3ce6，12 种小怪回到居中、帧位置与 64aa8cbe 一致），但新图按本单「脚底贴画布底边」，本体在帧里比旧图低，居中画时本体比改前低 0–13 世界像素（bone +11、floater +13、mimic +9）。改为**显式配置**：enemies.json 写 `"anchor": "foot"` 的敌人（本单 17 种 + 共用 e_stone 的 spitter）一律脚底锚点（game.gd `_wants_foot`）；其余（Boss、骑士、事件 / 宝箱）仍按「美术交付 + 美术像素高度 ≥ 32」。本体质心相对判定圈中心的偏差：改前 −1.4…+7.4，脚底锚点 −7.9…+4.2，相对改前平均差 3.7（居中 5.1），表见 build/enemy_fix/anchor_offsets.txt。以后新怪按本单规格交图的，在 enemies.json 加 `anchor` 即可。
 - **攻击帧条**：skimmer、mimic 加 `atk_anim`（只改画面：蓄力 f0–f1、出手 f2、收势 f3，判定 / 时序不变）；图鉴普通怪一律列移动 / 攻击页，brood / fractal / tear 有了「移动」页。
 - **mother move 偏右约 2 像素、skimmer move 每帧水平晃约 3 像素**：实测 1x 质心 mother move 平均比基础帧偏右 2.1；skimmer move 四帧质心 17.2 / 17.0 / 19.4 / 16.2。上面补单已请 Codex 修，程序不加偏移（避免新图交来后双重校正）。
+
+> 10-14 起：角色与怪物的统一立绘标准见 **docs/98**（本文 §0 的敌人条款仍有效，与 docs/98 冲突时以 docs/98 为准）。

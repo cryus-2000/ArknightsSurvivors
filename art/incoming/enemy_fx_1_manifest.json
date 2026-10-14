@@ -1,0 +1,974 @@
+{
+  "spec": "docs/96 sections 1.1-1.4; docs/93 section 0; docs/94 section 0",
+  "assets": [
+    {
+      "file": "proj_mother_brood.png",
+      "character": "proj_mother_brood",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 4,
+      "fps": 12,
+      "anchor": [
+        8,
+        8
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "density": 1,
+      "loop": true,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 12,
+      "sha256": "499ac7b0b4e79eb0cecdb80072e23a199d2194018374b141055308c5677c3a4f",
+      "purpose": "curled brood in flight"
+    },
+    {
+      "file": "proj_mother_brood@2x.png",
+      "character": "proj_mother_brood",
+      "frame_width": 32,
+      "frame_height": 32,
+      "frame_count": 4,
+      "fps": 12,
+      "anchor": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "density": 2,
+      "loop": true,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 14,
+      "sha256": "2fc38d4f9f3cfb0d9655fa5d1097467324b695fa725734c7846f52cd7a017088",
+      "purpose": "curled brood in flight"
+    },
+    {
+      "file": "fx_mother_throw.png",
+      "character": "fx_mother_throw",
+      "frame_width": 24,
+      "frame_height": 24,
+      "frame_count": 4,
+      "fps": 16,
+      "anchor": [
+        6,
+        12
+      ],
+      "origin_1x": [
+        6,
+        12
+      ],
+      "origin_2x": [
+        12,
+        24
+      ],
+      "layer": "front",
+      "density": 1,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 14,
+      "sha256": "6fd8c69e0308d6ae9622b2f437aa74dcf3a017e354bd874e59788ef4663bd3b7",
+      "purpose": "mother f2 mouth and mucus overlay"
+    },
+    {
+      "file": "fx_mother_throw@2x.png",
+      "character": "fx_mother_throw",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 16,
+      "anchor": [
+        12,
+        24
+      ],
+      "origin_1x": [
+        6,
+        12
+      ],
+      "origin_2x": [
+        12,
+        24
+      ],
+      "layer": "front",
+      "density": 2,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 14,
+      "sha256": "bd34be2d53a3a89eeaa3fa3e55276fa959bf0469ba2f3c46c09d202dd34392d1",
+      "purpose": "mother f2 mouth and mucus overlay"
+    },
+    {
+      "file": "fx_brood_land.png",
+      "character": "fx_brood_land",
+      "frame_width": 24,
+      "frame_height": 24,
+      "frame_count": 6,
+      "fps": 14,
+      "anchor": [
+        12,
+        24
+      ],
+      "origin_1x": [
+        12,
+        24
+      ],
+      "origin_2x": [
+        24,
+        48
+      ],
+      "layer": "ground/front",
+      "density": 1,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 15,
+      "sha256": "cb88a90fa8702735bc1017e00fa8d857fedc7b52b2f7e9b6eafd9c5b89c62a51",
+      "purpose": "liquid breaks then unfolds into e_brood f0",
+      "frame_layers": [
+        "ground",
+        "ground",
+        "ground",
+        "front",
+        "front",
+        "front"
+      ],
+      "join": {
+        "target": "e_brood.png",
+        "frame": 0,
+        "target_paste_offset": [
+          3,
+          4
+        ],
+        "exact_pixels": true
+      }
+    },
+    {
+      "file": "fx_brood_land@2x.png",
+      "character": "fx_brood_land",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 14,
+      "anchor": [
+        24,
+        48
+      ],
+      "origin_1x": [
+        12,
+        24
+      ],
+      "origin_2x": [
+        24,
+        48
+      ],
+      "layer": "ground/front",
+      "density": 2,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 15,
+      "sha256": "9b28694b9fb5ff2ef71f46bcf46002679656c36feb46fc6544c3b08a73101175",
+      "purpose": "liquid breaks then unfolds into e_brood f0",
+      "frame_layers": [
+        "ground",
+        "ground",
+        "ground",
+        "front",
+        "front",
+        "front"
+      ],
+      "join": {
+        "target": "e_brood@2x.png",
+        "frame": 0,
+        "target_paste_offset": [
+          6,
+          8
+        ],
+        "exact_pixels": true
+      }
+    },
+    {
+      "file": "proj_skimmer_corrode.png",
+      "character": "proj_skimmer_corrode",
+      "frame_width": 14,
+      "frame_height": 8,
+      "frame_count": 4,
+      "fps": 16,
+      "anchor": [
+        7,
+        4
+      ],
+      "origin_1x": [
+        7,
+        4
+      ],
+      "origin_2x": [
+        14,
+        8
+      ],
+      "layer": "front",
+      "density": 1,
+      "loop": true,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 10,
+      "sha256": "5f173d3d9bc7765d08c169de822789a86202cc1b61dad82558442d78e497c575",
+      "purpose": "directional corrosion bubble"
+    },
+    {
+      "file": "proj_skimmer_corrode@2x.png",
+      "character": "proj_skimmer_corrode",
+      "frame_width": 28,
+      "frame_height": 16,
+      "frame_count": 4,
+      "fps": 16,
+      "anchor": [
+        14,
+        8
+      ],
+      "origin_1x": [
+        7,
+        4
+      ],
+      "origin_2x": [
+        14,
+        8
+      ],
+      "layer": "front",
+      "density": 2,
+      "loop": true,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 12,
+      "sha256": "7a65947fee17af06dd39b35b4726b3f554a521ab768a743e76008e45ba9b59d3",
+      "purpose": "directional corrosion bubble"
+    },
+    {
+      "file": "fx_skimmer_muzzle.png",
+      "character": "fx_skimmer_muzzle",
+      "frame_width": 16,
+      "frame_height": 16,
+      "frame_count": 3,
+      "fps": 20,
+      "anchor": [
+        8,
+        8
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "density": 1,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 12,
+      "sha256": "6c7190deca951f0c28b6a655926f876e11833adf7f9ea4b0ceff93560243dc5d",
+      "purpose": "skimmer f2 emission"
+    },
+    {
+      "file": "fx_skimmer_muzzle@2x.png",
+      "character": "fx_skimmer_muzzle",
+      "frame_width": 32,
+      "frame_height": 32,
+      "frame_count": 3,
+      "fps": 20,
+      "anchor": [
+        16,
+        16
+      ],
+      "origin_1x": [
+        8,
+        8
+      ],
+      "origin_2x": [
+        16,
+        16
+      ],
+      "layer": "front",
+      "density": 2,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 16,
+      "sha256": "51b5f13fb2a8d5924dc7812f173bccec67d0fe3e032248dbdae07c531164daad",
+      "purpose": "skimmer f2 emission"
+    },
+    {
+      "file": "fx_corrode_hit.png",
+      "character": "fx_corrode_hit",
+      "frame_width": 24,
+      "frame_height": 24,
+      "frame_count": 5,
+      "fps": 18,
+      "anchor": [
+        12,
+        19
+      ],
+      "origin_1x": [
+        12,
+        19
+      ],
+      "origin_2x": [
+        24,
+        38
+      ],
+      "layer": "front",
+      "density": 1,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 14,
+      "sha256": "f2cae0e72f41dc36388af13a2c67f4775c529d8aa473a0fc367684dd14a6d56e",
+      "purpose": "blue corrosion impact"
+    },
+    {
+      "file": "fx_corrode_hit@2x.png",
+      "character": "fx_corrode_hit",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 5,
+      "fps": 18,
+      "anchor": [
+        24,
+        38
+      ],
+      "origin_1x": [
+        12,
+        19
+      ],
+      "origin_2x": [
+        24,
+        38
+      ],
+      "layer": "front",
+      "density": 2,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 16,
+      "sha256": "cdbb6796e9595df684cb37aea1b963adfc50575d1cbec32c7cf63f15bde3d755",
+      "purpose": "blue corrosion impact"
+    },
+    {
+      "file": "fx_corrode_hit_acid.png",
+      "character": "fx_corrode_hit_acid",
+      "frame_width": 24,
+      "frame_height": 24,
+      "frame_count": 5,
+      "fps": 18,
+      "anchor": [
+        12,
+        19
+      ],
+      "origin_1x": [
+        12,
+        19
+      ],
+      "origin_2x": [
+        24,
+        38
+      ],
+      "layer": "front",
+      "density": 1,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 14,
+      "sha256": "bff3ba99c5e726eccfbffef03132bdac99f9d72c19b1aeafec5c748bd228f617",
+      "purpose": "blue/violet acid impact alternative"
+    },
+    {
+      "file": "fx_corrode_hit_acid@2x.png",
+      "character": "fx_corrode_hit_acid",
+      "frame_width": 48,
+      "frame_height": 48,
+      "frame_count": 5,
+      "fps": 18,
+      "anchor": [
+        24,
+        38
+      ],
+      "origin_1x": [
+        12,
+        19
+      ],
+      "origin_2x": [
+        24,
+        38
+      ],
+      "layer": "front",
+      "density": 2,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 16,
+      "sha256": "daa85f8c4643c2c01e7a7a4ef87960e3df79486ea9aa412d5219e872b3aa0273",
+      "purpose": "blue/violet acid impact alternative"
+    },
+    {
+      "file": "e_pocket_swell.png",
+      "character": "pocket",
+      "frame_width": 30,
+      "frame_height": 28,
+      "frame_count": 4,
+      "fps": 10,
+      "anchor": [
+        15,
+        28
+      ],
+      "origin_1x": [
+        15,
+        28
+      ],
+      "origin_2x": [
+        30,
+        56
+      ],
+      "layer": "body",
+      "density": 1,
+      "loop": false,
+      "hold_last_frame": true,
+      "event_frame_zero_based": null,
+      "palette_count": 15,
+      "sha256": "cdf48a8cf41a61d38d9a4c8fd6fdd92a68c89fb6cd04fbe5cd9a392f646974eb",
+      "purpose": "sac inflates upward/back; hold f3 to actual warning end",
+      "hold_until_gameplay_seconds": 0.8
+    },
+    {
+      "file": "e_pocket_swell@2x.png",
+      "character": "pocket",
+      "frame_width": 60,
+      "frame_height": 56,
+      "frame_count": 4,
+      "fps": 10,
+      "anchor": [
+        30,
+        56
+      ],
+      "origin_1x": [
+        15,
+        28
+      ],
+      "origin_2x": [
+        30,
+        56
+      ],
+      "layer": "body",
+      "density": 2,
+      "loop": false,
+      "hold_last_frame": true,
+      "event_frame_zero_based": null,
+      "palette_count": 15,
+      "sha256": "38a0b9997bace50c2966e0d1f19875bf091c1f8478ef2174ca2aa41865d8030a",
+      "purpose": "sac inflates upward/back; hold f3 to actual warning end",
+      "hold_until_gameplay_seconds": 0.8
+    },
+    {
+      "file": "fx_pocket_burst_back.png",
+      "character": "fx_pocket_burst_back",
+      "frame_width": 48,
+      "frame_height": 40,
+      "frame_count": 6,
+      "fps": 16,
+      "anchor": [
+        24,
+        28
+      ],
+      "origin_1x": [
+        24,
+        28
+      ],
+      "origin_2x": [
+        48,
+        56
+      ],
+      "layer": "back",
+      "density": 1,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 12,
+      "sha256": "38482a35c357f19b314da552a9663f153bf7d088ec209fc2baa5ee5daddf9e7b",
+      "purpose": "rear liquid jets",
+      "sync_group": "pocket_burst",
+      "shared_origin_1x": [
+        24,
+        28
+      ]
+    },
+    {
+      "file": "fx_pocket_burst_back@2x.png",
+      "character": "fx_pocket_burst_back",
+      "frame_width": 96,
+      "frame_height": 80,
+      "frame_count": 6,
+      "fps": 16,
+      "anchor": [
+        48,
+        56
+      ],
+      "origin_1x": [
+        24,
+        28
+      ],
+      "origin_2x": [
+        48,
+        56
+      ],
+      "layer": "back",
+      "density": 2,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 16,
+      "sha256": "aae55f95603ee74081a72fdff50101c8816f1835345bded67fb99f81cb454fee",
+      "purpose": "rear liquid jets",
+      "sync_group": "pocket_burst",
+      "shared_origin_1x": [
+        24,
+        28
+      ]
+    },
+    {
+      "file": "fx_pocket_burst_front.png",
+      "character": "fx_pocket_burst_front",
+      "frame_width": 48,
+      "frame_height": 40,
+      "frame_count": 6,
+      "fps": 16,
+      "anchor": [
+        24,
+        28
+      ],
+      "origin_1x": [
+        24,
+        28
+      ],
+      "origin_2x": [
+        48,
+        56
+      ],
+      "layer": "front",
+      "density": 1,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 13,
+      "sha256": "5ba0c73ddc5ee83bab2d878f28eb3ea2faa25814ef77cea930b6c64db589c2b9",
+      "purpose": "low foreground liquid jets",
+      "sync_group": "pocket_burst",
+      "shared_origin_1x": [
+        24,
+        28
+      ]
+    },
+    {
+      "file": "fx_pocket_burst_front@2x.png",
+      "character": "fx_pocket_burst_front",
+      "frame_width": 96,
+      "frame_height": 80,
+      "frame_count": 6,
+      "fps": 16,
+      "anchor": [
+        48,
+        56
+      ],
+      "origin_1x": [
+        24,
+        28
+      ],
+      "origin_2x": [
+        48,
+        56
+      ],
+      "layer": "front",
+      "density": 2,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 16,
+      "sha256": "dc0a323a12fb762592a1c18ee65ef05b952a0c4eaa2a266f3015b72b65030fe7",
+      "purpose": "low foreground liquid jets",
+      "sync_group": "pocket_burst",
+      "shared_origin_1x": [
+        24,
+        28
+      ]
+    },
+    {
+      "file": "fx_pocket_puddle.png",
+      "character": "fx_pocket_puddle",
+      "frame_width": 40,
+      "frame_height": 20,
+      "frame_count": 4,
+      "fps": 8,
+      "anchor": [
+        20,
+        10
+      ],
+      "origin_1x": [
+        20,
+        10
+      ],
+      "origin_2x": [
+        40,
+        20
+      ],
+      "layer": "ground",
+      "density": 1,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 13,
+      "sha256": "85eb23c6cbe88d42104dbf3c62bdb8db7ae49e358405d40564ac7cde760bdf4f",
+      "purpose": "brief residue appearance to dissolve"
+    },
+    {
+      "file": "fx_pocket_puddle@2x.png",
+      "character": "fx_pocket_puddle",
+      "frame_width": 80,
+      "frame_height": 40,
+      "frame_count": 4,
+      "fps": 8,
+      "anchor": [
+        40,
+        20
+      ],
+      "origin_1x": [
+        20,
+        10
+      ],
+      "origin_2x": [
+        40,
+        20
+      ],
+      "layer": "ground",
+      "density": 2,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 16,
+      "sha256": "a3d6615d5a1401e5a896e3cacd12c940054568faf3ea39d73795e927e6b1bc0d",
+      "purpose": "brief residue appearance to dissolve"
+    },
+    {
+      "file": "e_spitter.png",
+      "character": "spitter",
+      "frame_width": 26,
+      "frame_height": 24,
+      "frame_count": 2,
+      "fps": 3,
+      "anchor": [
+        13,
+        24
+      ],
+      "origin_1x": [
+        13,
+        24
+      ],
+      "origin_2x": [
+        26,
+        48
+      ],
+      "layer": "body",
+      "density": 1,
+      "loop": true,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 11,
+      "sha256": "8761701ec62f82943fe962a31696d3614ee5c5a5df2239edf944bc58f9d451d3",
+      "purpose": "distinct spitter body idle"
+    },
+    {
+      "file": "e_spitter@2x.png",
+      "character": "spitter",
+      "frame_width": 52,
+      "frame_height": 48,
+      "frame_count": 2,
+      "fps": 3,
+      "anchor": [
+        26,
+        48
+      ],
+      "origin_1x": [
+        13,
+        24
+      ],
+      "origin_2x": [
+        26,
+        48
+      ],
+      "layer": "body",
+      "density": 2,
+      "loop": true,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 11,
+      "sha256": "e9c333831ba990f4bef44284f2bd61906c1b629276264cbb89604f4a3c2f13e8",
+      "purpose": "distinct spitter body idle"
+    },
+    {
+      "file": "e_spitter_move.png",
+      "character": "spitter",
+      "frame_width": 26,
+      "frame_height": 24,
+      "frame_count": 4,
+      "fps": 5,
+      "anchor": [
+        13,
+        24
+      ],
+      "origin_1x": [
+        13,
+        24
+      ],
+      "origin_2x": [
+        26,
+        48
+      ],
+      "layer": "body",
+      "density": 1,
+      "loop": true,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 11,
+      "sha256": "ea795b713c22ead1cb5f46cbed963c085fa2f8fa472e041fe5802837aec2263a",
+      "purpose": "spitter crawling"
+    },
+    {
+      "file": "e_spitter_move@2x.png",
+      "character": "spitter",
+      "frame_width": 52,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 5,
+      "anchor": [
+        26,
+        48
+      ],
+      "origin_1x": [
+        13,
+        24
+      ],
+      "origin_2x": [
+        26,
+        48
+      ],
+      "layer": "body",
+      "density": 2,
+      "loop": true,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 11,
+      "sha256": "c000958b65f2063a9db731281fcdb626834909e5e70cbb4e0f3f094bf8e99818",
+      "purpose": "spitter crawling"
+    },
+    {
+      "file": "e_spitter_attack.png",
+      "character": "spitter",
+      "frame_width": 26,
+      "frame_height": 24,
+      "frame_count": 4,
+      "fps": 10,
+      "anchor": [
+        13,
+        24
+      ],
+      "origin_1x": [
+        13,
+        24
+      ],
+      "origin_2x": [
+        26,
+        48
+      ],
+      "layer": "body",
+      "density": 1,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": 2,
+      "palette_count": 11,
+      "sha256": "fd65e4efc4e0de3dfe299040103ff1d176624685ede9c61c057c26f5b4744af7",
+      "purpose": "spitter mouth widest at f2"
+    },
+    {
+      "file": "e_spitter_attack@2x.png",
+      "character": "spitter",
+      "frame_width": 52,
+      "frame_height": 48,
+      "frame_count": 4,
+      "fps": 10,
+      "anchor": [
+        26,
+        48
+      ],
+      "origin_1x": [
+        13,
+        24
+      ],
+      "origin_2x": [
+        26,
+        48
+      ],
+      "layer": "body",
+      "density": 2,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": 2,
+      "palette_count": 11,
+      "sha256": "f5d411a7e57e117d152462aa042b0dcf797d45d315dbc42ef41c5d6e679e859c",
+      "purpose": "spitter mouth widest at f2"
+    },
+    {
+      "file": "proj_spitter_acid.png",
+      "character": "proj_spitter_acid",
+      "frame_width": 12,
+      "frame_height": 12,
+      "frame_count": 4,
+      "fps": 12,
+      "anchor": [
+        6,
+        6
+      ],
+      "origin_1x": [
+        6,
+        6
+      ],
+      "origin_2x": [
+        12,
+        12
+      ],
+      "layer": "front",
+      "density": 1,
+      "loop": true,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 7,
+      "sha256": "d04034d67f3202e8b482b331e1bd8b614d85f5c9eadd0562b1c70b0825d4ca36",
+      "purpose": "blue acid globule along lob trajectory"
+    },
+    {
+      "file": "proj_spitter_acid@2x.png",
+      "character": "proj_spitter_acid",
+      "frame_width": 24,
+      "frame_height": 24,
+      "frame_count": 4,
+      "fps": 12,
+      "anchor": [
+        12,
+        12
+      ],
+      "origin_1x": [
+        6,
+        6
+      ],
+      "origin_2x": [
+        12,
+        12
+      ],
+      "layer": "front",
+      "density": 2,
+      "loop": true,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 9,
+      "sha256": "a1a58625fc195002c3dfe12a77d5c8df32ba20dc29ec97d8396a699b0ba7db8d",
+      "purpose": "blue acid globule along lob trajectory"
+    },
+    {
+      "file": "fx_spitter_land.png",
+      "character": "fx_spitter_land",
+      "frame_width": 40,
+      "frame_height": 24,
+      "frame_count": 6,
+      "fps": 14,
+      "anchor": [
+        20,
+        17
+      ],
+      "origin_1x": [
+        20,
+        17
+      ],
+      "origin_2x": [
+        40,
+        34
+      ],
+      "layer": "ground",
+      "density": 1,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 15,
+      "sha256": "0d3b7675239f22ae8a7b736155f75befb229f51359efba7a14b19be668a936aa",
+      "purpose": "transient acid splash and mire spread"
+    },
+    {
+      "file": "fx_spitter_land@2x.png",
+      "character": "fx_spitter_land",
+      "frame_width": 80,
+      "frame_height": 48,
+      "frame_count": 6,
+      "fps": 14,
+      "anchor": [
+        40,
+        34
+      ],
+      "origin_1x": [
+        20,
+        17
+      ],
+      "origin_2x": [
+        40,
+        34
+      ],
+      "layer": "ground",
+      "density": 2,
+      "loop": false,
+      "hold_last_frame": false,
+      "event_frame_zero_based": null,
+      "palette_count": 16,
+      "sha256": "8530482ef2299ec1a460104c5aa8477b2d38d13e7725fb816e4e2bba56e2d2fd",
+      "purpose": "transient acid splash and mire spread"
+    }
+  ],
+  "batch": 1,
+  "sections": [
+    "1.1",
+    "1.2",
+    "1.3",
+    "1.4"
+  ],
+  "art_commit_base": "c73b9d9611bca236384da330dac29977a80dfcf5",
+  "color_override": "User 2026-10-14: blue dominant acid, blue-white reflections, minority violet corrosion flecks; no new ice mechanic",
+  "palette_key": "enemy_fx_1_sources.json",
+  "engine_integrated": false,
+  "origin_convention": "top-left; body/landing foot origin is lower canvas edge (half-open coordinate), 2x is exactly doubled",
+  "preview_files": [
+    "enemy_fx_1_preview.gif",
+    "enemy_fx_1_atlas_preview.gif",
+    "enemy_fx_1_lineup.png"
+  ]
+}

@@ -115,8 +115,9 @@ func update_visuals(dt: float) -> void:
 		g.sprite.modulate = Color(1, 1, 1, 0.6)
 	else:
 		g.sprite.modulate = Color.WHITE
-	g.cam.position = g.view_center().round()
 	var rd := g.get_process_delta_time()
+	g._glance_step(rd)   # 镜头一瞥（game.camera_glance：骑士入潮 / 寒冰重生时看一眼黑潮中心；只动镜头）
+	g.cam.position = g.cam_center().round()
 	g.shake = move_toward(g.shake, 0.0, rd * 2.5)
 	cam_kick = cam_kick.move_toward(Vector2.ZERO, rd * 60.0)
 	g.hurt_vignette = move_toward(g.hurt_vignette, 0.0, rd * 1.5)
@@ -147,6 +148,14 @@ func update_visuals(dt: float) -> void:
 	g.lamp_light.position = g.ppos + Vector2(0, -20)
 	g.lamp_light.texture_scale = radius / 64.0 * flicker
 	g.lamp_light.color = Color(1.0, 0.86, 0.62) if g.lamp >= 30.0 else Color(1.0, 0.6, 0.5)
+	# 骑士入潮点临时暖光：入潮演出期间亮在沉入处，随进度淡出（纯画面；10:00 重生不用）
+	if g.knight_light != null:
+		var sinking: bool = g.knight != null and g.knight.alive and g.knight.state == "sink"
+		g.knight_light.visible = sinking
+		if sinking:
+			var k: float = clampf(g.knight.st / g.knight.SINK_T, 0.0, 1.0)
+			g.knight_light.position = g.knight.vanish_pos + Vector2(0, -16)
+			g.knight_light.energy = 1.5 * (1.0 - k * k)
 	Look.update_actor_mat(g)
 	update_beacon_lights()
 	g.vfx.watch_lamp(rd)        # docs/54 ③ 灯火暗淡 / 寂灭的一压 + 余烬
@@ -344,6 +353,19 @@ func _draw_mires() -> void:
 	tb_flush()
 	if not _dbg_mire:
 		_draw_mire_bubbles(bubbles)
+	_draw_ground_sprites()
+
+
+## 地面层帧条特效（vfx.fx_sprite ground=true，kind "gsprite"）：溟痕之上、预警 / 实体之下——喷吐者酸团落点溅射、囊海爬行者爆后残留（docs/96 第 1 批）。
+## 敌方特效不降噪（docs/48 ③），按已播时间取帧，同 _draw_fx 的 "sprite"
+func _draw_ground_sprites() -> void:
+	g.draw_off = Vector2.ZERO
+	for f in g.fx:
+		if f.kind != "gsprite":
+			continue
+		var spec: Array = Game.V6_FRAMES[f.name]
+		var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
+		g.vfx.spr_rot(f.name, fr, f.pos, f.ang, f.scale, f.get("col", Color.WHITE), f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
 
 
 ## 预警分类 → Boss 招式预警（boss_ai）→ 巢涌者光环 → 灯标 → 藏品特效 → 商人
@@ -1479,6 +1501,8 @@ func _draw_ebullets_lobs_shocks() -> void:
 			continue
 		# 2.5D：子弹在离地约 16px 的高度飞行，影子落在判定位置（椭圆直接算顶点，不切画布变换）
 		tb_circle(b.pos + Vector2(0, 2), b.r + 1.0, Color(0, 0, 0, 0.4), 0.45, 10)
+		if _bullet_tex(b) != "":
+			continue   # 专属弹体帧条（docs/96：漂移体侵蚀弹）自带 #080E18 描边，不垫底圈、不描洋红边
 		var bp: Vector2 = b.pos + Vector2(0, -16)
 		# 敌方弹幕高对比：深色外圈垫底，画完再描一圈亮洋红边，压在友方特效上也一眼看得出
 		tb_circle(bp, b.r + 3.0, Color(0.02, 0.0, 0.05, 0.85))
@@ -1495,7 +1519,12 @@ func _draw_ebullets_lobs_shocks() -> void:
 	for b in g.ebullets:
 		var kd: String = b.get("kind", "orb")
 		var bp: Vector2 = b.pos + Vector2(0, -16)
-		if kd == "nerve" and g.tex.get("proj_floater_nerve") != null:
+		var btex: String = _bullet_tex(b)
+		if btex != "":
+			# 小怪专属弹体（enemies.json shot_tex，docs/96 第 1 批：漂移体 proj_skimmer_corrode）：朝右绘制、按速度方向旋转，帧率按 V6_FRAMES
+			var bspec: Array = Game.V6_FRAMES[btex]
+			g.vfx.spr_rot(btex, int(g.t * float(bspec[1]) + b.pos.x * 0.01) % int(bspec[0]), bp, b.vel.angle(), Game.PX)
+		elif kd == "nerve" and g.tex.get("proj_floater_nerve") != null:
 			# 浮海飘航者神经弹（V8 proj_floater_nerve，朝右绘制按速度方向旋转）
 			g.vfx.spr_rot("proj_floater_nerve", int(g.t * 12.0 + b.pos.x * 0.01) % 4, bp, b.vel.angle(), Game.PX)
 		elif kd == "acid" and g.tex.get("proj_acid") != null:
@@ -1506,7 +1535,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 			g.vfx.spr("ebullet", 1, 0, bp, Game.PX * b.r / 5.0)
 	for b in g.ebullets:
 		var kd: String = b.get("kind", "orb")
-		if kd == "boss_blade":
+		if kd == "boss_blade" or _bullet_tex(b) != "":
 			continue
 		var bp: Vector2 = b.pos + Vector2(0, -16)
 		match kd:
@@ -1540,6 +1569,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 		g.draw_circle(Vector2.ZERO, 6.0, Color(0, 0, 0, 0.35))
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var rp := gp + Vector2(0, -hgt - 8.0)
+		var ltex: String = str(l.get("tex", ""))
 		if brood:
 			var spin: float = k * TAU * 1.5 * (1.0 if l.to.x >= l.from.x else -1.0)   # 顺着飞行方向翻滚一圈半
 			if g.tex.get("proj_mother_brood") != null:
@@ -1555,6 +1585,10 @@ func _draw_ebullets_lobs_shocks() -> void:
 					g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				else:
 					g.draw_circle(rp, 6.0, Color(0.85, 0.55, 0.75))
+		elif ltex != "" and g.tex.get(ltex) != null:
+			# 专属抛射物（enemies.json lob_tex，docs/96 第 1 批：喷吐者酸团 proj_spitter_acid 4 帧循环），沿同一条 lob 轨迹
+			var lspec: Array = Game.V6_FRAMES[ltex]
+			g.vfx.spr(ltex, int(lspec[0]), int(g.t * float(lspec[1])) % int(lspec[0]), rp, _hpx(ltex))
 		elif g.tex.get("proj_rock_shard") != null:
 			g.vfx.spr("proj_rock_shard", 4, int(g.t * 12.0) % 4, rp, _hpx("proj_rock_shard"))   # Codex v14 碎石（翻滚画在帧里）
 		else:
@@ -1739,6 +1773,14 @@ func _hpx(name: String) -> float:
 	return Game.PX / A.hires_of(g.tex.get(name))
 
 
+## 敌方直线弹的专属弹体帧条名（enemy_ai.shoot 按 enemies.json 的 shot_tex 写进 b.tex）；没有或缺图返回 ""（走原程序画法）
+func _bullet_tex(b: Dictionary) -> String:
+	var tn: String = str(b.get("tex", ""))
+	if tn == "" or g.tex.get(tn) == null:
+		return ""
+	return tn
+
+
 func boss_strip_animation(e: Dictionary) -> Dictionary:
 	var pk: float = float(e.get("pose", 0.0)) / maxf(0.01, float(e.get("pose_max", 1.0)))
 	var winding: bool = e.get("wind", 0.0) > 0.0
@@ -1785,6 +1827,27 @@ func knight_animation(e: Dictionary) -> Dictionary:
 	if la is Dictionary and str(la.get("act", "")) == "frost" and g.t - float(la.get("t", -1.0)) < 0.45:
 		return {"name": "e_knight_plant", "frames": 4, "frame": 3}
 	return {}
+
+
+## 囊海爬行者破膜帧条（enemies.json burst_fx = "fx_pocket_burst" → _back / _front，6 帧 16fps）：当前帧号，没在播 / 缺图 / 没配返回 -1。
+## 时间从 enemies.gd 爆发那一刻写的 burst_fx_t 算（纯画面字段）；同一帧号给两层
+const BURST_FX_FRAMES := 6
+const BURST_FX_FPS := 16.0
+
+func _burst_fx_frame(e: Dictionary) -> int:
+	var t0: float = float(e.get("burst_fx_t", -9.0))
+	if t0 < 0.0 or g.t - t0 >= BURST_FX_FRAMES / BURST_FX_FPS:
+		return -1
+	var bn: String = str(D.ENEMIES.get(e.type, _NO_DEF).get("burst_fx", ""))
+	if bn == "" or g.tex.get(bn + "_back") == null or g.tex.get(bn + "_front") == null:
+		return -1
+	return clampi(int((g.t - t0) * BURST_FX_FPS), 0, BURST_FX_FRAMES - 1)
+
+
+## 破膜的一层：48×40、原点 (24,28)（归一化 (0.5, 0.7)）对齐脚底 bpos，按本体缩放（不含 @2x 密度）、随本体翻转
+func _burst_fx_layer(e: Dictionary, layer: String, frame: int, bpos: Vector2, flip: bool) -> void:
+	var bn: String = str(D.ENEMIES.get(e.type, _NO_DEF).get("burst_fx", "")) + layer
+	g.vfx.spr(bn, BURST_FX_FRAMES, frame, bpos, enemy_scale(e) / A.hires_of(g.tex.get(bn)), flip, Color.WHITE, Vector2(0.5, 0.7))
 
 
 func enemy_scale(e: Dictionary) -> float:
@@ -1859,6 +1922,8 @@ func _dc_ok_fast(e: Dictionary) -> bool:
 		return false
 	if e.tex_attack and (g.t < e.atk_until or e.get("attack_preparing", false) or float(e.get("shot_wind_until", 0.0)) > g.t):
 		return false
+	if g.t - float(e.get("burst_fx_t", -9.0)) < BURST_FX_FRAMES / BURST_FX_FPS:
+		return false   # 囊海爬行者破膜帧条在播（docs/96 §1.3）：本体前后各一层，走原路径
 	return true
 
 
@@ -1878,6 +1943,8 @@ func _dc_ok(e: Dictionary) -> bool:
 	# 攻击帧条（atk_anim）：出手后窗口、远处举肢、射击蓄力时帧号跟着计时器走，交给原路径
 	if e.tex_attack and (g.t < e.atk_until or e.get("attack_preparing", false) or float(e.get("shot_wind_until", 0.0)) > g.t):
 		return false
+	if g.t - float(e.get("burst_fx_t", -9.0)) < BURST_FX_FRAMES / BURST_FX_FPS:
+		return false   # 囊海爬行者破膜帧条在播（docs/96 §1.3）：本体前后各一层，走原路径
 	return true
 
 
@@ -2004,7 +2071,7 @@ func build_enemy_atlas() -> void:
 		if str(d.get("role", "")) == "boss" or d.get("boss", false) or d.tex == "e_knight" or k in DC_SKIP_TYPES:
 			continue
 		var base: String = d.tex
-		for sfx in ["", "_feign", "_dormant", "_awaken", "_enraged"] + Game.ENEMY_SUFFIXES:
+		for sfx in ["", "_feign", "_dormant", "_awaken", "_enraged", "_swell"] + Game.ENEMY_SUFFIXES:   # _swell：囊海爬行者鼓胀帧条（docs/96 §1.3）
 			if sfx == "_death" or names.has(base + sfx):
 				continue
 			if g.tex.get(base + sfx) != null:
@@ -2188,10 +2255,17 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		col = col.lerp(Color(2.4, 1.1, 1.6), xk * 0.7)
 		e.squash = maxf(e.squash, 0.14 * xk * (0.6 + 0.4 * sin(g.t * 40.0)))
 	if e.get("burst_w", 0.0) > 0.0:
-		# 囊海爬行者鼓胀：爆发范围预警圈从小到大，本体变亮
-		var bk: float = 1.0 - e.burst_w / 0.4
-		# 范围圈改在覆盖层画（draw_enemy_tells），这里只留本体变亮
-		col = col.lerp(Color(2.2, 1.4, 2.6), bk * 0.7)
+		if g.tex.get(e.tex + "_swell") != null:
+			# 囊海爬行者鼓胀（Codex docs/96 §1.3 e_pocket_swell）：10fps 不循环，播到 f3 后停住直到 0.8 秒蓄压结束；
+			# 首帧 = 本体 f0，鼓胀画在帧里，不再程序放大 / 提亮本体；范围圈仍在覆盖层画（draw_enemy_tells）
+			name = e.tex + "_swell"
+			frames = 4
+			frame = clampi(int((float(e.get("burst_dur", 0.8)) - e.burst_w) * 10.0), 0, 3)
+		else:
+			# 囊海爬行者鼓胀：爆发范围预警圈从小到大，本体变亮
+			var bk: float = 1.0 - e.burst_w / 0.4
+			# 范围圈改在覆盖层画（draw_enemy_tells），这里只留本体变亮
+			col = col.lerp(Color(2.2, 1.4, 2.6), bk * 0.7)
 	g.draw_off = _eoff(e)
 	var flip: bool = e.fx < 0.0
 	var anc := Vector2(0.5, 0.5)
@@ -2269,6 +2343,11 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		if not e.elite and not e.boss:
 			oc.a *= ol_mul   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1；下限 render/declutter ol_floor，缺省 0.4）；精英 / Boss 不变
 		_espr_outline(name, frames, frame, bpos, sc, flip, oc, anc, sq)
+	# 囊海爬行者破膜（Codex docs/96 §1.3）：back（本体后）→ 本体 → front（本体前），两层同原点 (24,28)、同起播时间与帧号；
+	# 原点对齐脚底 bpos，按本体缩放；只有 enemies.gd 写了 burst_fx_t（爆发那一刻）的 0.375 秒内画，缺图就不画（判定不变）
+	var bfx: int = _burst_fx_frame(e)
+	if bfx >= 0 and _rec == null:
+		_burst_fx_layer(e, "_back", bfx, bpos, flip)
 	_espr(name, frames, frame, bpos, sc, flip, col, anc, sq)
 	if e.flash > 0.0:
 		# 受击白闪：普通怪随 ecrowd 降到 declutter flash_a（缺省 0.9 = 不变）；精英 / Boss 照旧
@@ -2278,6 +2357,8 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		var sk: float = g.boss_intro.silhouette_k(e)
 		if sk > 0.0:
 			_espr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.95 * sk), anc, sq)
+	if bfx >= 0 and _rec == null:
+		_burst_fx_layer(e, "_front", bfx, bpos, flip)
 	if _rec == null and e.get("affix", "") != "":
 		_affix_fx(e, bpos, _enemy_top(e))
 	var wk: String = e.get("weak", "")

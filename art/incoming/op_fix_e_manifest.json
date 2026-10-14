@@ -1,0 +1,794 @@
+{
+  "spec": "docs/98 + docs/97 E",
+  "notes": "Mizuki handled in B; five remaining characters palette/tone convergence. Suzuran idle slight right head turn generated from existing approved idle; last skill matched. No independent forward-head shift. Kaltsit correction: restore original pale skin and white hair; only shade lower neutral white coat fabric. Tone WARN retained rather than darkening skin/hair to meet aggregate brightness.",
+  "actions": {
+    "op_angelina_idle": {
+      "tex": "op_angelina_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        24,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_angelina_run": {
+      "tex": "op_angelina_run",
+      "frames": 6,
+      "fps": 10,
+      "foot": [
+        24,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_angelina_attack": {
+      "tex": "op_angelina_attack",
+      "frames": 5,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 2,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_angelina_skill": {
+      "tex": "op_angelina_skill",
+      "frames": 7,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 3,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_angelina_float_in": {
+      "tex": "op_angelina_float_in",
+      "frames": 4,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "_body": true,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_angelina_float": {
+      "tex": "op_angelina_float",
+      "frames": 6,
+      "fps": 8,
+      "foot": [
+        24,
+        46
+      ],
+      "_body": true,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_angelina_float_move": {
+      "tex": "op_angelina_float_move",
+      "frames": 6,
+      "fps": 10,
+      "foot": [
+        24,
+        46
+      ],
+      "_body": true,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_angelina_float_attack": {
+      "tex": "op_angelina_float_attack",
+      "frames": 5,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 2,
+      "_body": true,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_irene_idle": {
+      "tex": "op_irene_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        24,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_irene_run": {
+      "tex": "op_irene_run",
+      "frames": 6,
+      "fps": 10,
+      "foot": [
+        22,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_irene_attack": {
+      "tex": "op_irene_attack",
+      "frames": 5,
+      "fps": 12,
+      "foot": [
+        22,
+        46
+      ],
+      "fire": 1,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_irene_skill": {
+      "tex": "op_irene_skill",
+      "frames": 7,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 3,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_kaltsit_idle": {
+      "tex": "op_kaltsit_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        24,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_kaltsit_run": {
+      "tex": "op_kaltsit_run",
+      "frames": 6,
+      "fps": 10,
+      "foot": [
+        28,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_kaltsit_attack": {
+      "tex": "op_kaltsit_attack",
+      "frames": 4,
+      "fps": 14,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 2,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_kaltsit_skill": {
+      "tex": "op_kaltsit_skill",
+      "frames": 6,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 3,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_siege_idle": {
+      "tex": "op_siege_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        24,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_siege_run": {
+      "tex": "op_siege_run",
+      "frames": 6,
+      "fps": 10,
+      "foot": [
+        22,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_siege_attack": {
+      "tex": "op_siege_attack",
+      "frames": 4,
+      "fps": 14,
+      "foot": [
+        26,
+        46
+      ],
+      "fire": 2,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_siege_skill": {
+      "tex": "op_siege_skill",
+      "frames": 6,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 3,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_suzuran_idle": {
+      "tex": "op_suzuran_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        24,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_suzuran_run": {
+      "tex": "op_suzuran_run",
+      "frames": 6,
+      "fps": 10,
+      "foot": [
+        22,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_suzuran_attack": {
+      "tex": "op_suzuran_attack",
+      "frames": 4,
+      "fps": 14,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 2,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_suzuran_skill": {
+      "tex": "op_suzuran_skill",
+      "frames": 6,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 3,
+      "frame_size": [
+        48,
+        48
+      ]
+    }
+  },
+  "files": [
+    {
+      "name": "op_angelina_attack.png",
+      "size": [
+        240,
+        48
+      ],
+      "colors": 23,
+      "sha256": "68cc9faf5ef1d2121a57ff77409e5e70c4e0e55a1a1bdc96cd4df30e8c31319c"
+    },
+    {
+      "name": "op_angelina_attack@2x.png",
+      "size": [
+        480,
+        96
+      ],
+      "colors": 23,
+      "sha256": "5bc78b6db25b5249c4d0b27c269b2f17603a67efb292affcec9ccc6e1c7490ae"
+    },
+    {
+      "name": "op_angelina_float.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 22,
+      "sha256": "10dba33e25c15b15eba2c063b04ff40fe9fb224ebc66aadcf15dff4c9c78c8aa"
+    },
+    {
+      "name": "op_angelina_float@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 22,
+      "sha256": "317742bedea7cdb34ea4101968f58d7a032d3aaf8b116f945329d17c9c6c0e0d"
+    },
+    {
+      "name": "op_angelina_float_attack.png",
+      "size": [
+        240,
+        48
+      ],
+      "colors": 23,
+      "sha256": "10c69b941675624c2f34ccc5138ac74e44134fccc52033e484b368ceb23c00eb"
+    },
+    {
+      "name": "op_angelina_float_attack@2x.png",
+      "size": [
+        480,
+        96
+      ],
+      "colors": 23,
+      "sha256": "34a8fdeb3ace02b96221028ec7dbb22d9148d12d6107d8dc048f8443ea6c01f2"
+    },
+    {
+      "name": "op_angelina_float_in.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 22,
+      "sha256": "965706b78fa806571aabbac71164b982c1c36d3a18040cf898a63404f21e5c6c"
+    },
+    {
+      "name": "op_angelina_float_in@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 22,
+      "sha256": "68e7356d90e717f964941ca313d0eb7b1fcbcc9feda0110ff61eaa715ffe42a3"
+    },
+    {
+      "name": "op_angelina_float_move.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 22,
+      "sha256": "38fe4b9dabc6cc48f6a69b2464a748fe00d47f08c56467cc0b6e6e62083829e5"
+    },
+    {
+      "name": "op_angelina_float_move@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 22,
+      "sha256": "23857e9e72fe7024be772811b28b6b5e8c3167b74c2a8d8ac439c66896431b2a"
+    },
+    {
+      "name": "op_angelina_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 22,
+      "sha256": "16ba50bb3b2610016464a2acf219e3c60b43351f3943e592b7776edba37d82cb"
+    },
+    {
+      "name": "op_angelina_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 22,
+      "sha256": "2a3ec6f7906680a2c18c21355441baed5fb650676104665ff3f3ff77089b9408"
+    },
+    {
+      "name": "op_angelina_run.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 21,
+      "sha256": "11e4c856d61a7076471687d3792f54efcf78c9bbc703f779dbe1696b5d22aa14"
+    },
+    {
+      "name": "op_angelina_run@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 21,
+      "sha256": "5898ba17b55e3bfb887128949b6993901b6c20f5562fd8e9ca6f0ee03172408b"
+    },
+    {
+      "name": "op_angelina_skill.png",
+      "size": [
+        336,
+        48
+      ],
+      "colors": 23,
+      "sha256": "dc0641464c550bda121b48a1b6fb3b2a782ee0aba8b6c8aa14c9657e5fc51d0b"
+    },
+    {
+      "name": "op_angelina_skill@2x.png",
+      "size": [
+        672,
+        96
+      ],
+      "colors": 23,
+      "sha256": "a94003ed94e5406766cfd199d2eacb458e3e9cf91b339a41d2973a41fd04846c"
+    },
+    {
+      "name": "op_irene_attack.png",
+      "size": [
+        240,
+        48
+      ],
+      "colors": 21,
+      "sha256": "86a2901c1e3a22158b696336e740ab39cf51b7560697e5d903e7f1d802b28ef3"
+    },
+    {
+      "name": "op_irene_attack@2x.png",
+      "size": [
+        480,
+        96
+      ],
+      "colors": 21,
+      "sha256": "c509a08ab575891cfc11a3900baa0305563212d65fae7f40a2c1d4c281c035e1"
+    },
+    {
+      "name": "op_irene_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 20,
+      "sha256": "291e818c12158562c38921a23ff813dd3f0ab022a46305d83de4b4dfe2fd9e97"
+    },
+    {
+      "name": "op_irene_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 20,
+      "sha256": "28d0f8d5ae71540f935520a2a5ac23ecfb90a1709a457a7a74475cfc5101dc50"
+    },
+    {
+      "name": "op_irene_run.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 18,
+      "sha256": "69aac1c47019f267cc5cd4f79b27d03956f23e0626979cf23fb5ce8076c81892"
+    },
+    {
+      "name": "op_irene_run@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 19,
+      "sha256": "9abf446e7e9e37e83a938f8db5f57273e438c61619ff8d6c4bea94ce646ed677"
+    },
+    {
+      "name": "op_irene_skill.png",
+      "size": [
+        336,
+        48
+      ],
+      "colors": 20,
+      "sha256": "fd5f92d72df9e35ab7838507c230999f6a4c28f127b74c811414ec452318f0fc"
+    },
+    {
+      "name": "op_irene_skill@2x.png",
+      "size": [
+        672,
+        96
+      ],
+      "colors": 20,
+      "sha256": "cf29de3c7a53661390775885e479b52dda74aa3887c2caab13ec0548a9d0639a"
+    },
+    {
+      "name": "op_kaltsit_attack.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 20,
+      "sha256": "f90c355438e7e6eaf74c14df3ffacfc8ca670960c8417f96584a796bfd201c3e"
+    },
+    {
+      "name": "op_kaltsit_attack@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 20,
+      "sha256": "5f8abeaab1040a5801c7ec7c59f7383be2e15f578ab42325c83e6cd69c4feb08"
+    },
+    {
+      "name": "op_kaltsit_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 14,
+      "sha256": "69d1cac483ea202843ec2774ff627de6740b74593db670c80bffd927d37a561a"
+    },
+    {
+      "name": "op_kaltsit_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 14,
+      "sha256": "17842e0ff944095380eb880b6c78e03dc2d53c64325c6f2c9b107e4d81e051e4"
+    },
+    {
+      "name": "op_kaltsit_run.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 17,
+      "sha256": "b5cc468c746a529b3fc79e6ceb9840c04a507795b30125942b5732a04c5e5b8c"
+    },
+    {
+      "name": "op_kaltsit_run@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 17,
+      "sha256": "72ce897a6ba869269d96d0991d9204797f13d1df2ed3f64e82219e3025acd79d"
+    },
+    {
+      "name": "op_kaltsit_skill.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 16,
+      "sha256": "87ee5901822d11b4cbdaa00e2f345158c8de7cbf288ae00208919a3df18a392d"
+    },
+    {
+      "name": "op_kaltsit_skill@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 16,
+      "sha256": "52ccb7b7314e0b4dd5b9176aaa4e58989b63e4a5ec62e40f3288e47383f43363"
+    },
+    {
+      "name": "op_siege_attack.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 21,
+      "sha256": "ea5765e73503dcb377ef86f60134ba1120966f775cae1ee71cd149e71c9c7155"
+    },
+    {
+      "name": "op_siege_attack@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 21,
+      "sha256": "75fdfc21880ebe82f8182f993f80294ed13f99e6ef4f398a8e97f4b46486e704"
+    },
+    {
+      "name": "op_siege_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 20,
+      "sha256": "279b45df514750fa607a94d77d77dc41ce5d108eb3bb020104908b1669ff5463"
+    },
+    {
+      "name": "op_siege_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 20,
+      "sha256": "321f2b893274bf4ea7854fc732b94223eeca70fe1673605f6c88e76150dd7bff"
+    },
+    {
+      "name": "op_siege_run.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 20,
+      "sha256": "04403b024d5da2a14d3e90a2cc30f6f97ab2cbc840534405e6cbaa1da618abe0"
+    },
+    {
+      "name": "op_siege_run@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 20,
+      "sha256": "3672b5c24093c71fab5871337f85d359bfeffa714e4c9b8df095f4c4edb0fcc0"
+    },
+    {
+      "name": "op_siege_skill.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 21,
+      "sha256": "f6171c462146a96185642443bd5eeb5aa02eeb901603cfc07ead74aeacd78c76"
+    },
+    {
+      "name": "op_siege_skill@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 21,
+      "sha256": "29f1284a12da19e7bfd1ff530f9942b62910cc981259f5b4c06891c3f7388940"
+    },
+    {
+      "name": "op_suzuran_attack.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 18,
+      "sha256": "f8b983a5354def3c8d6e5e9b63e42ddcf72387b0258748496d76c228a9d9e528"
+    },
+    {
+      "name": "op_suzuran_attack@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 18,
+      "sha256": "882a7765b70b9b9c5b4c66ce813a9a1bacdfd68789ec369183797919370cb492"
+    },
+    {
+      "name": "op_suzuran_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 22,
+      "sha256": "0cbd1114217a51875fee269e4d962796646c4311e1654eda7f27f48b588b0aa5"
+    },
+    {
+      "name": "op_suzuran_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 23,
+      "sha256": "68cd7063c91e599dea22b79032ef5b13515b6b38a88d0dc1e87b3cda85f85150"
+    },
+    {
+      "name": "op_suzuran_run.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 17,
+      "sha256": "62e7ac2134eb7948c3358f825097c56fa38de17100d3609f0b8a9aced80efc15"
+    },
+    {
+      "name": "op_suzuran_run@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 17,
+      "sha256": "17a22f4035d4556d9dae14e335637553cdd96e58ba0764f2249c1f087d67596d"
+    },
+    {
+      "name": "op_suzuran_skill.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 22,
+      "sha256": "136ae744bf0d0e250000581559ef507ded11aa875955059e2b844f86ab5cd343"
+    },
+    {
+      "name": "op_suzuran_skill@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 23,
+      "sha256": "c7fb81200975f13279b589c64a8226d3d61a3c65872bc17e74d124cb97b99113"
+    }
+  ],
+  "measurements": {
+    "angelina": {
+      "standing_height_1x": 36.0,
+      "idle_foot_x_1x": 23.5,
+      "all_delivered_colors": 23
+    },
+    "irene": {
+      "standing_height_1x": 31.5,
+      "idle_foot_x_1x": 25.25,
+      "all_delivered_colors": 23
+    },
+    "kaltsit": {
+      "standing_height_1x": 35.0,
+      "idle_foot_x_1x": 25.25,
+      "all_delivered_colors": 23
+    },
+    "siege": {
+      "standing_height_1x": 38.5,
+      "idle_foot_x_1x": 23.75,
+      "all_delivered_colors": 23
+    },
+    "suzuran": {
+      "standing_height_1x": 33.5,
+      "idle_foot_x_1x": 23.75,
+      "all_delivered_colors": 23
+    }
+  }
+}

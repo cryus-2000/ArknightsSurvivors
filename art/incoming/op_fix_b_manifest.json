@@ -1,0 +1,139 @@
+{
+  "spec": "docs/98 + docs/97 B",
+  "notes": {
+    "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-61faeccd-6809-489c-8fa2-a205667baa00.png",
+    "source_sha256": "155f8004ea4f2262b2e1eed6d7a5a6dadd582ddbb55014dd9a084d6871624322",
+    "new_skill_fire": 3,
+    "original_idle_run_attack_frames_and_timing_preserved": true,
+    "skill_last_exact_idle": true,
+    "runtime_skill_not_in_roster": "game changes not permitted; independently validated all 8 frames"
+  },
+  "actions": {
+    "player_idle": {
+      "frames": 4,
+      "fps": 6,
+      "frame_size": [
+        48,
+        48
+      ],
+      "foot": [
+        24,
+        46
+      ],
+      "fire": null
+    },
+    "player_run": {
+      "frames": 6,
+      "fps": 12,
+      "frame_size": [
+        48,
+        48
+      ],
+      "foot": [
+        24,
+        46
+      ],
+      "fire": null
+    },
+    "player_attack_48": {
+      "frames": 4,
+      "fps": 12,
+      "frame_size": [
+        48,
+        48
+      ],
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 2
+    },
+    "player_skill": {
+      "frames": 8,
+      "fps": 12,
+      "frame_size": [
+        48,
+        48
+      ],
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 3
+    }
+  },
+  "files": [
+    {
+      "name": "player_attack_48.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 16,
+      "sha256": "7d4da8c93ea27864282482fa55f3cd0dc81705b723b7134b24f6bf217e77a432"
+    },
+    {
+      "name": "player_attack_48@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 16,
+      "sha256": "2a7509bddb173288f9e3c3bbffd57bacee039f1291b4f4bc568743ff86d28857"
+    },
+    {
+      "name": "player_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 14,
+      "sha256": "eb2ad6d4a456ae506c3f989244d5aa7363add53b063531f5f109fc362d319126"
+    },
+    {
+      "name": "player_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 14,
+      "sha256": "688ec01215cf58ea380da767df772728fa28424f04046835097b1f9b11f58ebe"
+    },
+    {
+      "name": "player_run.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 15,
+      "sha256": "546e378bd2f2c5c17e1c62f9ee0115a2b20d7d211e2a719ac865b3a92a8b21b5"
+    },
+    {
+      "name": "player_run@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 15,
+      "sha256": "bcc25ec59df648b21af2e3b4fa4fdf48a8e215519c338d2db6ed179e675df8ae"
+    },
+    {
+      "name": "player_skill.png",
+      "size": [
+        384,
+        48
+      ],
+      "colors": 23,
+      "sha256": "5282b2417a0fb09fd0de71cff82254ab3d4803906340ecd27d575afb92e152b5"
+    },
+    {
+      "name": "player_skill@2x.png",
+      "size": [
+        768,
+        96
+      ],
+      "colors": 23,
+      "sha256": "e1c874bc0feb8be003c308703089f7f73d82cebe3f537591d1421c0c1650a652"
+    }
+  ]
+}
