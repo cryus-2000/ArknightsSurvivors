@@ -3552,6 +3552,14 @@ static func _exu_next(o, from_e: Dictionary, r: float):
 	return best
 
 
+## 怪物密度的击杀权重（docs/50 §16.5）：enemy/density_kill_comp > 0 时，密度缩放过的普通怪按 e.dk（= 1/k）计，
+## 让「按击杀次数」的积木期望总触发量不变；= 0 时一律 1（原行为）
+static func kill_weight(g, e: Dictionary) -> float:
+	if MfBal.v("enemy/density_kill_comp", 0.0) <= 0.0:
+		return 1.0
+	return float(e.get("dk", 1.0))
+
+
 ## 瞬时积木（data_operator._exec_list 的缺省分支）：shape.projectile / verb.counter / verb.attack_lock
 static func exu_exec(o, b: Dictionary, at: Vector2) -> void:
 	match str(b.get("_tag", "")):
@@ -3570,6 +3578,7 @@ static func exu_exec(o, b: Dictionary, at: Vector2) -> void:
 			var add: float = float(b.get("add", 1.0))
 			if b.has("add_lit") and at != Vector2.INF and at.distance_to(o.g.ppos) <= o.lamp_radius():
 				add = float(b.add_lit)
+			add *= float(o.kill_w)   # 击杀触发时按击杀权重（密度 0.4 下一只算 2.5 只）；非击杀触发时 kill_w = 1
 			st.cnt[cn] = minf(cap, float(st.cnt.get(cn, 0.0)) + add)
 		"verb.attack_lock":
 			var st2 := exu_st(o)
@@ -8108,7 +8117,7 @@ static func hw_execute(o, b: Dictionary) -> bool:
 	var e: Dictionary = h.get("hit_e", {})
 	if e.is_empty() or e.dead or e.elite or e.boss:
 		return false
-	if not (e.hp < hw_atk(o) * float(b.get("thr", 1.5))):
+	if not (e.hp < hw_atk(o) * float(b.get("thr", 1.5)) * kill_weight(g, e)):   # 密度缩放过的普通怪血量 × 1/k，阈值同比（docs/50 §16.5）
 		return false
 	var dmg: float = float(h.hit_dmg)
 	var over: float = maxf(0.0, dmg - e.hp)
@@ -12544,7 +12553,7 @@ static func h3_cast_push(o, b: Dictionary) -> void:
 static func h3_kill_heal(o, b: Dictionary) -> void:
 	var g = o.g
 	var mz := _h3mz(o)
-	var got: float = min(float(b.get("pct", 0.01)), float(mz.budget))
+	var got: float = min(float(b.get("pct", 0.01)) * float(o.kill_w), float(mz.budget))   # 按击杀权重（docs/50 §16.5），仍受每秒预算约束
 	mz.budget = float(mz.budget) - got
 	o.heal_leader(g.max_hp * got, o.display_name())
 
