@@ -82,6 +82,12 @@
 | `fx_tracer_thrust_enraged` | 72×20 | 4 帧 24fps | front | 狂暴版：触须发红光、更粗 |
 | `fx_nest_sweep` | 72×48 | 5 帧 16fps | front | 巢涌者触须横扫：三四条触须从身后甩到身前，原点身体中心 |
 
+**接入点已预留（2026-10-15，Boss与怪物，素材未到）**：上面 6 个文件名已登记 `V6_FRAMES`（帧数 / fps 按本表），缺图时 `fx_sprite` 返回 false、程序刀光照旧。
+- 浮海飘航者：`enemies.json` floater `hit_fx: fx_nerve_hit`、`hit_fx_origin: [10, 10]`（弹体命中帧条的原点改成可配，第 1 批的 `fx_corrode_hit` 仍是缺省 (12, 19)）；`proj_floater_nerve` 已在画，补 `@2x` 后自动换高清。
+- 收割者 / 引痕者 / 巢涌者：`enemies.json` 的 `atk_fx`（引痕者另有 `atk_fx_enraged`）+ `atk_fx_origin`，`enemy_ai` 出招时写进预警，`boss_ai._atk_fx` 在结算时从本体中心偏上 0.6 r 放出，朝左出手镜像。原点先按本表描述填（收割者 (4, 20) 肩部、引痕者 (0, 10) 身体右侧、巢涌者 (36, 24) 中心），**manifest 到了按 `origin_1x` 改 `enemies.json`**。
+- 巢涌者的触须横扫在代码里是以自身为心的圆（`burst`，r105），不是扇形；帧条按「从身后甩到身前、原点身体中心」画即可，不旋转。
+- `reaper_rush_test` 用第 1 批的 `fx_corrode_hit` 代替还没交的帧条验证挂点（结算出帧条、朝左镜像）。
+
 ## 3. 第 3 批（后续）
 - 固海凿石者：`fx_rock_hit`（碎石命中队长时的石屑，20×20，4 帧）；现有 `proj_rock_shard` / `fx_rock_burst` 保留。
 - 箱形恐鱼：`fx_mimic_bite`（咬合：上下颚闭合的齿影 + 木屑 / 碎屑，40×32，4 帧 20fps）。

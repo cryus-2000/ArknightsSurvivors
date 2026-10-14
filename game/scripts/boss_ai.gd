@@ -437,6 +437,8 @@ func _warn_resolve(w: Dictionary) -> void:
 		return
 	if e.get("boss", false):
 		g.vfx.boss_signature(w)
+	if str(w.get("atk_fx", "")) != "":
+		_atk_fx(e, w, dv)
 	match w.act:
 		"frost_track":
 			g.fx.append({"kind": "frost_track", "a": w.pos, "b": w.pos + dv * w.len,
@@ -680,6 +682,17 @@ func _warn_resolve(w: Dictionary) -> void:
 			Sfx.play("swing", -6.0, 0.9)
 			_warn_damage(w)
 
+
+
+## 小怪器官攻击的出手特效（docs/96 §2.2，Codex 第 2 批：收割者镰肢 fx_reaper_scythe、引痕者触须刺击 fx_tracer_thrust（狂暴 _enraged）、巢涌者触须横扫 fx_nest_sweep）：
+## 帧条朝右，朝左出手时镜像（spr_rot 先镜像再转，角度减 π）；原点 = enemies.json atk_fx_origin（1x 美术像素，manifest 的 origin_1x，缺省帧中心），
+## 画在本体中心偏上 0.6 r；按本体缩放（world.enemy_scale）。缺图 fx_sprite 返回 false，程序刀光照旧。纯画面，不碰随机数
+func _atk_fx(e: Dictionary, w: Dictionary, dv: Vector2) -> void:
+	var left: bool = dv.x < 0.0 and w.shape != "circle"
+	var ang: float = 0.0 if w.shape == "circle" else (w.ang - PI if left else w.ang)
+	var o: Array = w.get("atk_fx_origin", [-1, -1])
+	if g.vfx.fx_sprite(str(w.atk_fx), e.pos + Vector2(0, -e.r * 0.6), g.world.enemy_scale(e), ang, left, false, Color.WHITE, false, Vector2(float(o[0]), float(o[1]))):
+		g.fx[g.fx.size() - 1]["enemy"] = true
 
 
 ## sweep 结算后的召唤（分形塑路，docs/95 §5.2 C）：不管命没命中，扇形轴线 spawn_r 处长出一只 spawn_after；本体所属的同类 ≥ spawn_cap 时不长。

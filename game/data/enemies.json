@@ -161,6 +161,8 @@
    "desc": "贴地疾跑的小个体，冲到身边后鼓胀 0.8 秒自爆（范围伤害，自身消失）。鼓胀时击杀可阻止爆炸；自爆的个体不掉经验。"
   },
   "floater": {
+   "hit_fx": "fx_nerve_hit",
+   "hit_fx_origin": [10, 10],
    "shot_mire": true,
    "shot_mire_r": 30.0,
    "shot_mire_life": 5.0,
@@ -195,6 +197,8 @@
    }
   },
   "reaper": {
+   "atk_fx": "fx_reaper_scythe",
+   "atk_fx_origin": [4, 20],
    "reap_mult": 1.0,
    "wound_hit": 1,
    "name": "钵海收割者",
@@ -271,6 +275,9 @@
    }
   },
   "tracer": {
+   "atk_fx": "fx_tracer_thrust",
+   "atk_fx_enraged": "fx_tracer_thrust_enraged",
+   "atk_fx_origin": [0, 10],
    "wound_hit": 1,
    "name": "深溟引痕者",
    "hp": 204.0,
@@ -308,6 +315,8 @@
    }
   },
   "nest": {
+   "atk_fx": "fx_nest_sweep",
+   "atk_fx_origin": [36, 24],
    "root_hit": 0.8,
    "name": "深溟巢涌者",
    "hp": 255.0,

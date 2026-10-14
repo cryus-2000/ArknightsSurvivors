@@ -76,6 +76,18 @@ func run_checks() -> void:
 	dr.hp = dr.maxhp * 0.01
 	g.eai.pattern(dr, Vector2.RIGHT, 400.0, 1.0, dr.spd)
 	check(dr.dead and g.telemetry.reaper_drain_deaths == n0 + 1, "drained reaper dies and is counted")
+	# docs/96 §2.2 出手特效挂点：warn 带 atk_fx 时结算放帧条（这里借第 1 批已有的 fx_corrode_hit 代替还没交的 fx_reaper_scythe），朝左出手镜像
+	var fx_e: Dictionary = g.spawner.new_enemy("reaper", Vector2.ZERO)
+	g.enemies.append(fx_e)
+	g.invuln = 100.0
+	for side in [1.0, -1.0]:
+		g.fx.clear()
+		var fw: Dictionary = g.bai._warn(fx_e, "cone", 0.8, {"ang": 0.0 if side > 0.0 else PI, "half": 0.9, "r": 145.0, "act": "bite", "dmg": 1.0, "atk_fx": "fx_corrode_hit", "atk_fx_origin": [12, 19]})
+		g.bai._warn_resolve(fw)
+		var spr: Array = g.fx.filter(func(f): return f.get("kind", "") == "sprite" and f.get("name", "") == "fx_corrode_hit")
+		check(spr.size() == 1 and spr[0].get("enemy", false) and bool(spr[0].get("flip", false)) == (side < 0.0), "atk_fx plays on resolve, mirrored when facing left (side %d)" % int(side))
+	g.warns.clear()
+	g.fx.clear()
 	if failures == 0:
 		print("PASS: reaper rush")
 	get_tree().quit(1 if failures else 0)

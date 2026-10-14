@@ -207,7 +207,8 @@ func _reap(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 		# 扇形斩前摇 enemy/reaper_windup（0.8 秒），醒来后第一下再加 reaper_first_extra（0.2 秒）：数值 9/29「先让它可躲」；倍率读 reap_mult
 		var wu: float = Bal.v("enemy/reaper_windup", 0.8) + (Bal.v("enemy/reaper_first_extra", 0.2) if not e.get("reaped", false) else 0.0)
 		e.reaped = true
-		g.bai._warn(e, "cone", wu, {"ang": dir.angle(), "half": 0.9, "r": rr + 10.0, "track": 0.2, "act": "bite", "name": "镰肢劈砍", "col": Color(0.35, 0.72, 1.0), "dmg": e.dmg * float(d.get("reap_mult", 1.2))})
+		g.bai._warn(e, "cone", wu, {"ang": dir.angle(), "half": 0.9, "r": rr + 10.0, "track": 0.2, "act": "bite", "name": "镰肢劈砍", "col": Color(0.35, 0.72, 1.0), "dmg": e.dmg * float(d.get("reap_mult", 1.2)),
+			"atk_fx": str(d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})
 	return Vector2.INF
 
 
@@ -230,7 +231,8 @@ func _thrust(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float)
 		if _stag(e):
 			return Vector2.INF
 		Sfx.enemy("bite", dist)
-		g.bai._warn(e, "line", 0.55, {"ang": dir.angle(), "len": tr + 20.0, "wid": 12.0, "track": 0.25, "act": "stab", "spd": 700.0, "col": Color(1.0, 0.35, 0.45), "dmg": e.dmg * float(d.get("thrust_mult", 1.2))})
+		g.bai._warn(e, "line", 0.55, {"ang": dir.angle(), "len": tr + 20.0, "wid": 12.0, "track": 0.25, "act": "stab", "spd": 700.0, "col": Color(1.0, 0.35, 0.45), "dmg": e.dmg * float(d.get("thrust_mult", 1.2)),
+			"atk_fx": str(d.get("atk_fx_enraged", d.get("atk_fx", "")) if e.enraged else d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})
 	return Vector2.INF
 
 
@@ -247,7 +249,8 @@ func _nest(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 		if _stag(e):
 			return Vector2.INF
 		Sfx.enemy("screech", dist)
-		g.bai._warn(e, "circle", 0.7, {"follow": true, "r": float(d.get("lash_r", 105)), "act": "burst", "col": Color(0.75, 0.45, 1.0), "dmg": e.dmg * 1.3})
+		g.bai._warn(e, "circle", 0.7, {"follow": true, "r": float(d.get("lash_r", 105)), "act": "burst", "col": Color(0.75, 0.45, 1.0), "dmg": e.dmg * 1.3,
+			"atk_fx": str(d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})
 	return Vector2.INF
 
 
@@ -375,7 +378,7 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 			"slow": e.type == "paranoia", "r": 7.0 if e.boss else 5.0, "life": 2.0 if not home else 3.5,
 			"corrode": e.corrode, "frost": e.get("frost", 0.0), "nerve": float(d.get("shot_nerve", 0.0)), "true": e.type == "ishar" and e.phase == 2, "kind": kind, "home": home, "atk": d.get("atk", "法术"),
 			"mire": (e.type == "paranoia" and e.phase == 2) or d.get("shot_mire", false), "mire_r": float(d.get("shot_mire_r", 52.0)), "mire_life": float(d.get("shot_mire_life", 10.0)), "boss": e.boss, "hit_cap": e.get("hit_cap", 0.0), "src_type": e.type,
-			"tex": str(d.get("shot_tex", "")), "hit_fx": str(d.get("hit_fx", ""))})   # 专属弹体 / 命中帧条（docs/96，纯画面；缺图回退程序画法）
+			"tex": str(d.get("shot_tex", "")), "hit_fx": str(d.get("hit_fx", "")), "hit_org": d.get("hit_fx_origin", [12, 19])})   # 专属弹体 / 命中帧条（docs/96，纯画面；缺图回退程序画法）
 	if e.boss:
 		e.pose = 0.4
 		e.pose_max = 0.4

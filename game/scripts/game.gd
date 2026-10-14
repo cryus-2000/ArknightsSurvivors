@@ -1860,6 +1860,8 @@ const V6_FRAMES := {
 	"proj_skimmer_corrode": [4, 16.0], "fx_skimmer_muzzle": [3, 20.0], "fx_corrode_hit": [5, 18.0], "fx_corrode_hit_acid": [5, 18.0],
 	"e_pocket_swell": [4, 10.0], "fx_pocket_burst_back": [6, 16.0], "fx_pocket_burst_front": [6, 16.0], "fx_pocket_puddle": [4, 8.0],
 	"proj_spitter_acid": [4, 12.0], "fx_spitter_land": [6, 14.0],
+	# 第 2 批（docs/96 §2，Codex 未交，先登记）：飘航者神经弹命中；收割者镰肢 / 引痕者触须刺击（含狂暴版）/ 巢涌者触须横扫（enemies.json atk_fx，boss_ai._atk_fx 挂点）
+	"fx_nerve_hit": [4, 18.0], "fx_reaper_scythe": [4, 18.0], "fx_tracer_thrust": [4, 20.0], "fx_tracer_thrust_enraged": [4, 24.0], "fx_nest_sweep": [5, 16.0],
 }
 
 
