@@ -2,8 +2,8 @@ extends SceneTree
 ## P0 核心模块自测：godot --headless --path game -s res://tests/test_core.gd
 ## 全部通过时打印 "CORE TESTS PASSED" 并以 0 退出。
 
-const Core = preload("res://scripts/core/combat_core.gd")
-const E = preload("res://scripts/core/events.gd")
+const Core = preload("res://tests/core_p0/combat_core.gd")
+const E = preload("res://tests/core_p0/events.gd")
 const SB = preload("res://scripts/core/stat_block.gd")
 
 var fails := 0

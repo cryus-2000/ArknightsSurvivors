@@ -5,11 +5,11 @@ extends RefCounted
 ## 在 game.gd / relic_fx.gd 新增藏品动作时，记得把动作名登记进 GAME_ACTIONS，否则核心测试会报「未知动作」。
 ## 设计见 docs/09_p0_architecture.md。
 
-const E = preload("res://scripts/core/events.gd")
+const E = preload("res://tests/core_p0/events.gd")
 const SB = preload("res://scripts/core/stat_block.gd")
-const Bus = preload("res://scripts/core/event_bus.gd")
-const Mods = preload("res://scripts/core/modifier_system.gd")
-const Profile = preload("res://scripts/core/build_profile.gd")
+const Bus = preload("res://tests/core_p0/event_bus.gd")
+const Mods = preload("res://tests/core_p0/modifier_system.gd")
+const Profile = preload("res://tests/core_p0/build_profile.gd")
 const DB = preload("res://scripts/core/relic_db.gd")
 const Defs = preload("res://scripts/core/stat_defs.gd")
 

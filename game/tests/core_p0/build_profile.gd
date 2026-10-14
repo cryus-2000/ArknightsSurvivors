@@ -4,7 +4,7 @@ extends RefCounted
 ##   2) 统计：伤害来源占比、Tag 权重、流派得分、灯火均值、死亡原因
 ## 通过 attach(bus) 自动监听事件；藏品 / 分支 / 援护变化由游戏调用 add_source()。
 
-const E = preload("res://scripts/core/events.gd")
+const E = preload("res://tests/core_p0/events.gd")
 
 ## 八条流派：由 Tag 权重算流派得分（框架第 7、8 节；docs/35 藏品流派重做）
 const LANES := {
