@@ -226,7 +226,7 @@ func draw_boss_bars(vs: Vector2) -> void:
 			sub = mv_name   # 招式名进副标题行，不再头顶浮字（§1.15）
 			sub_col = Color(1, 0.82, 0.88)
 		elif shown.type == "izumik":
-			sub = "学习阶段 · 无敌（击杀子代阻止它成长）" if shown.phase == 1 else "解读阶段"
+			sub = "学习阶段 · 无敌（击杀子代阻止它成长）" if shown.phase == 1 else "阐释阶段"   # 原作技能名「阐释」（docs/95 §14 第 1 条）
 		elif shown.type == "ishar":
 			sub = "转化中" if shown.phase == 1 else "已完成转化 · 敌对"
 		elif shown.has("ammo"):
@@ -336,7 +336,9 @@ func draw_status_bar(vs: Vector2) -> void:
 		items.append(["%s · 冲刺挣脱" % g.world.root_label(), Color(0.6, 0.88, 1.0) if g.world.leader_frozen() else Color(0.8, 0.5, 1.0), clampf(g.root_t / maxf(0.05, g.world.root_max), 0.0, 1.0)])
 	for bb in g.bosses:
 		if not bb.dead and bb.get("burden_in", false):
-			items.append(["认知负担 · 攻速 −%d%%" % roundi(Game.Bal.v("boss/paranoia_aura_aspd", 0.10) * 100.0), Color(0.85, 0.55, 1.0), -1.0])
+			# 二阶段光环更强（docs/95 §1.2：paranoia_aura_aspd2 0.15，合计上限 −15%）
+			var ak: float = minf(0.15, Game.Bal.v("boss/paranoia_aura_aspd2", 0.15) if bb.get("phase", 1) == 2 else Game.Bal.v("boss/paranoia_aura_aspd", 0.10))
+			items.append(["认知负担 · 攻速 −%d%%" % roundi(ak * 100.0), Color(0.85, 0.55, 1.0), -1.0])
 			break
 	var apop_t: float = float(g.get("apop_t")) if g.get("apop_t") != null else 0.0
 	var apop: float = float(g.get("apop")) if g.get("apop") != null else 0.0

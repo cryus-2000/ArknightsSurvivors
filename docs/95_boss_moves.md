@@ -383,7 +383,7 @@
 - 伤害：`e.dmg × 1.3`，附寒冷 2 秒。
 - 视觉：本体 `e_knight_spin`（§4.4）；环刀光 `fx_slash_heavy_steel` 复用（按环切 8 段排布）；无残留。
 
-**二阶段的其它变化**：重生后本体常驻冰蓝着色 + 身上冰晶（程序叠 `fx_knight_rebirth` 末帧）；冲锋三连；寒冷 4 秒；冰枪桩机制不变。**冰线 / 寒冷追击**：建议删除（5 条直线减到 1 条）——它是用户 9/28 加的，列入 §14 待定；保留方案是把它并入 A：二阶段每组三连的第一冲沿冰线走。
+**二阶段的其它变化**：重生后本体常驻冰蓝着色（`e.tint2`）；冲锋三连；寒冷 4 秒；冰枪桩机制不变。**冰线 / 寒冷追击**（用户 10-14 定保留）：并入 A 作冲锋变体——冲锋冷却到了、且 `hunt` 冷却（18 秒）到了、主控在 120–600 时，这一次冲锋改为「冰线」（细线预警 → 冰脊）→ 0.25 秒后沿线「寒冷追击」；二阶段追击就是三连的第一冲。这样任一时刻场上只有一条骑士直线（冲锋 / 冰线 / 追击 / 再冲锋互斥），冰枪双轨已删，读图预算不超。
 
 **删除**：寒锋刃雨、冰枪双轨（patterns）、定时寒冰领域。
 
@@ -391,10 +391,10 @@
 
 | 幕 | 循环 | 每幕最短 |
 |---|---|---|
-| 第一幕（100 → 66%） | 冲锋 → （近身）连刺 → 冲锋 → 寒冷（受击触发，插队）… | 13 秒 |
-| 第二幕（66 → 33%，冰枪桩） | 冲锋（可引撞桩）→ 连刺 → 冲锋 → 寒冷 … | 13 秒 |
+| 第一幕（100 → 66%） | 冲锋 → （近身）连刺 → 冰线 → 寒冷追击 → 冲锋 → 寒冷（受击触发，插队）… | 13 秒 |
+| 第二幕（66 → 33%，冰枪桩） | 冲锋（可引撞桩）→ 连刺 → 冰线 → 追击 → 寒冷 … | 13 秒 |
 | 重生（5 秒，回 30%） | 清预警，不出招 | — |
-| 第三幕（冲锋形态） | 三连冲锋 → 喘气 2.5 秒（破绽）→ 回旋 → 连刺 → 三连冲锋 … | 13 秒 |
+| 第三幕（冲锋形态） | 三连冲锋（每 18 秒第一冲改冰线 → 追击）→ 喘气 2.5 秒（破绽）→ 回旋 → 连刺 → 三连冲锋 … | 13 秒 |
 
 ### 4.4 Codex 素材单
 
@@ -1045,6 +1045,50 @@
 7. **接潮「统一」连结线常亮**（第二幕）会占 1 条持续地形额度（§1.10 溟痕带 ≤3），7:00 杂兵多时读图负担请试玩定。
 8. **二阶段本体着色**（`e.tint`）与 Codex 帧条的关系：着色是程序叠加，不改帧条；若用户希望二阶段换帧条（像泡影 phase2），要另下单。
 9. **验收样本**：每只 Boss 云端 A/B ≥112 局同 seed（§8.12 口径），三批合计约 10 轮；是否按 §11 批次合并跑。
+
+**用户审定（2026-10-14）**：
+
+| # | 决定 | 落实 |
+|---|---|---|
+| 1 | 有原作名的用原作名：手炮、分形塑路、分享、震撼、阐释、抗争之泪 | 第 1 批已改：「全场地波」→「震撼」（izumik.gd 预警名、hud_banners 屏幕提示）、「解读阶段」→「阐释阶段」（hud_bars 副标题、横幅、图鉴）；第 2 批改手炮 / 分形塑路；抗争之泪（泪横幅 / 图鉴行）随第 2 批一起改 |
+| 2 | 骑士「冰线 / 寒冷追击」**保留**（丰富招式），与新 4 招并存、不超读图预算 | 并入 A 冲锋作变体：冲锋冷却到了且 `hunt` 冷却（18 秒）到了、主控在 120–600 时改放冰线 → 0.25 秒后沿线「寒冷追击」；二阶段追击就是三连的第一冲（之后两次 70% 长）。任一时刻骑士只有一条直线在场（§4.3 节奏表已改） |
+| 3 | 「寒冷」改受击触发，接受近战 / 远程不对称；§1.11 近战公平仍按 1.5 倍验收 | 已做（combat.damage 8 秒滑窗 + knight_boss.gd `_frost_due`） |
+| 4 | 伊莎玛拉只整理变身后攻击招（删换皮、加大群之歌、撕咬合并），人形 / 泪 / 压制 / 变身不动 | 已做 |
+| 5 | 伊祖米克「分享」在学习期出招 | 已做（吸收即放小扇；`boss/izumik_share_small` 0 = 关） |
+| 6 | 圣徒原创招可接受 | 第 2 批 |
+| 7 | 接潮「统一」连结线常亮：先做出来试玩再定 | 第 3 批（`b_owner` 双端跟随底座已有） |
+| 8 | 二阶段先用程序着色（`e.tint2` 乘色），不换帧条 | 已做（四只各一色，§15） |
+| 9 | 验收按批合并跑云端 A/B（协调人负责云端；实现会话做本地验收） | 本地验收见 §15 |
+
+## 15. 实现记录（第 1 批，2026-10-14）
+
+分支 `worktree-agent-a55a79da038036f7b`，提交见汇报。改动文件：`scripts/boss_ai.gd`（底座 + 预警样式 + 新 act）、`scripts/enemies/boss_patterns.gd`（stack / 弧形 rain / 多缺口 / 字段）、`scripts/enemies/bosses/{boss_base,paranoia,ishar,izumik,knight_boss}.gd`、`data/enemies.json`（四只的 patterns）、`run/combat.gd`（骑士受击滑窗、重生着色、izu_burn 持续伤害口径）、`run/enemies.gd`（冲击环 spd / gaps / 真伤 3 行）、`render/world.gd`（冲击环缺口画法、多缺口出口、tint2、Codex 帧条挂点）、`run/autotest.gd`（`--bossmoves=`）、`game.gd`（V6_FRAMES 登记）、`screens/hud_banners.gd` / `hud_bars.gd` / `gallery.gd`（文案）、测试 4 个。
+
+### 15.1 底座（§12）落地清单
+
+| 名称 | 落点 | 说明 |
+|---|---|---|
+| `stack` | boss_patterns 新模式 | 字段 waves / waves_p2 / radius / track / lock / mult / corrode；每圈 `track_pos: "leader"` + `seq_no`，结算 burst |
+| `track_pos` | `_warn` / `_update_warns` | `"leader"` / `"self"`，circle 在 track 秒内跟随、之后冻结（场地内钳制） |
+| `seq_no` | `_warn` 字段，`_draw_warns` 画 | 圈心上方 / 线起点的小圆序号 |
+| `phase_min` / `cd` / `cd_p2` / `p2_every` / `mult` / `corrode` / `waves_p2` / `arc` / `arc_r` / `gaps` | patterns 条目字段 | boss_patterns 文件头有逐条说明 |
+| `no_ammo` / `ammo_cost` / `on_reload` / `e.pattern_force` | boss_patterns | 圣徒弹药联动底座（第 2 批接线）；`pattern_force` 已被回流 → 订正、验收开关使用 |
+| `song_ring` | 新 act | 进 `g.shocks`，shocks 新字段 `spd` / `gaps` / `gap_half` / `true` / `col`；判定在 enemies.update、画法在 world |
+| `spin_ring` | 新 act | 静止缺口环一次性判定（`_warn_hit` circle 分支排除缺口弧）；8 段 `fx_slash_heavy_steel` |
+| `lob` | 新 act | 固定落点结算 + 1.5 秒火光（环）；弹体画面（`lob_shell`）留给第 2 批 |
+| `slow_t` / `slow_mult` / `slow_kind` / `chill` | `_warn_damage` | 命中后减速 / 寒冷（寒冷走 `frost_leader`，受 Boss 战移速下限 0.7） |
+| 受击滑窗 `frost_taken` / `frost_win_t` | combat.damage | 只对 knight_boss；旋钮 `boss/knight_frost_win`（8 秒）、`boss/knight_frost_pct`（6%） |
+| `on_revive(e)` | boss_base 回调 | 公共段假死复苏时调用 |
+| `b_owner` | `_update_warns` | 直线两端分别跟随本体与另一具 |
+| `e.tint2` | render/world 本体乘色 | 泡影淡紫 (0.92, 0.82, 1.12)、伊莎玛拉濒死红 (1.18, 0.86, 0.9)、伊祖米克 33% 青绿 (0.82, 1.1, 1.0)、骑士重生冰蓝 (0.82, 0.92, 1.25) |
+| `_first_tell` | boss_base | D 招第一次出现前副标题先亮招式名 0.6 秒 |
+| 填充样式 ① – ④ / 0 | `boss_ai._draw_warns` | 按 w.style：实填 / 斜条纹流向终点 / 暗填 + 亮边 / 空心 / 低亮度 |
+| `--bossmoves=<type>[2]` | autotest | 每招 force_move → 预警 60% 截 `shot_bossmove_<type>_<招>.png` → 结算后 8 帧截 `_hit.png`；各 Boss 脚本 `demo_moves` / `force_move` |
+| Codex 素材挂点 | V6_FRAMES + 各 act / 帧条挂点 | 13 条特效已登记（缺图 `fx_sprite` 返回 false 走程序版）；帧条 `e_paranoia_gaze` / `e_paranoia_phase2_howl` / `e_ishar_t_sing` / `e_izumik_share` / `e_knight_spin` / `e_knight_thrust` 由 `world._boss_warn_strip` / `knight_animation` 按预警进度播、缺图沿用原帧条。`fx_knight_frost_floor` / `fx_paranoia_aura_rune` / `fx_ishar_song_ring` / `fx_izumik_wave_rim` / `fx_izumik_lamp_safe` 是循环地面件，程序版仍在用，接入等素材到了再做 |
+
+### 15.2 每只 Boss 的招式实现
+
+（验收数据与截图路径见汇报；本节随云端 A/B 结果补）
 
 ---
 

@@ -542,27 +542,20 @@
    "act_min": 10.0,
    "patterns": [
     {
+     "name": "潮汐坠落",
+     "mode": "rain",
+     "waves": 5,
+     "radius": 56,
+     "arc": true,
+     "arc_r": 108
+    },
+    {
      "name": "解读旋涡",
      "mode": "ring",
      "count": 36,
-     "waves": 3,
+     "waves": 2,
      "speed": 345,
      "gap": 0.38
-    },
-    {
-     "name": "潮汐坠落",
-     "mode": "rain",
-     "waves": 6,
-     "radius": 56
-    },
-    {
-     "name": "子代扇潮",
-     "mode": "fan",
-     "count": 9,
-     "waves": 2,
-     "spread": 1.25,
-     "speed": 345,
-     "blade": false
     }
    ]
   },
@@ -788,27 +781,27 @@
    "arena_r": 580.0,
    "patterns": [
     {
-     "name": "偏执涡流",
+     "name": "叠影",
+     "mode": "stack",
+     "waves": 3,
+     "waves_p2": 5,
+     "radius": 45,
+     "track": 0.5,
+     "lock": 0.65,
+     "mult": 0.8,
+     "corrode": 0.6,
+     "cd": 4.0
+    },
+    {
+     "name": "泡影环",
      "mode": "ring",
      "count": 32,
-     "waves": 3,
+     "waves": 1,
      "speed": 330,
-     "gap": 0.38
-    },
-    {
-     "name": "泡影弹幕",
-     "mode": "fan",
-     "count": 13,
-     "waves": 3,
-     "spread": 1.8,
-     "speed": 410,
-     "blade": false
-    },
-    {
-     "name": "泡影坠落",
-     "mode": "rain",
-     "waves": 5,
-     "radius": 54
+     "gap": 0.38,
+     "mult": 0.6,
+     "cd": 4.0,
+     "p2_every": 2
     }
    ]
   },
@@ -842,34 +835,11 @@
     "volley_warn": 0.8,
     "bite_range": 190.0,
     "maw_warn": 0.85,
+    "bite_warn": 1.1,
     "maw_mult": 0.9,
     "recovery": 1.25
    },
-   "patterns": [
-    {
-     "name": "腐潮旋流",
-     "mode": "ring",
-     "count": 36,
-     "waves": 3,
-     "speed": 360,
-     "gap": 0.38
-    },
-    {
-     "name": "棘鳍刃潮",
-     "mode": "fan",
-     "count": 9,
-     "waves": 3,
-     "spread": 1.9,
-     "speed": 450,
-     "blade": true
-    },
-    {
-     "name": "棘潮落柱",
-     "mode": "rain",
-     "waves": 5,
-     "radius": 54
-    }
-   ]
+   "patterns": []
   },
   "knight": {
    "cold_hit": 1,
@@ -920,32 +890,7 @@
    "move_fps": 8,
    "phases": 2,
    "draw_scale": 0.7,
-   "patterns": [
-    {
-     "name": "寒锋刃雨",
-     "mode": "fan",
-     "count": 7,
-     "waves": 3,
-     "spread": 1.65,
-     "speed": 440,
-     "blade": true
-    },
-    {
-     "name": "长枪回旋",
-     "mode": "cleave",
-     "radius": 270,
-     "half": 1.35,
-     "waves": 2,
-     "texture": "fx_slash_heavy_steel"
-    },
-    {
-     "name": "冰枪双轨",
-     "mode": "line",
-     "waves": 2,
-     "length": 610,
-     "width": 14
-    }
-   ],
+   "patterns": [],
    "frost": 2.0,
    "desc": "骑士攻击命中附加 2 秒冰霜减速；寒冰领域持续施加减速。冰霜不造成硬冻结，Boss 战仍保留移速下限。"
   }
