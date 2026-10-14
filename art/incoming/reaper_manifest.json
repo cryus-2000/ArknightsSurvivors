@@ -1,0 +1,77 @@
+[
+  {
+    "name": "e_reaper",
+    "frames": 2,
+    "frame_size": [
+      40,
+      38
+    ],
+    "fps": 3,
+    "anchor": [
+      20,
+      37
+    ],
+    "hit_frame": null,
+    "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-7a714e5e-5401-407c-ac21-0daaface9c62.png"
+  },
+  {
+    "name": "e_reaper_move",
+    "frames": 4,
+    "frame_size": [
+      40,
+      38
+    ],
+    "fps": 12,
+    "anchor": [
+      20,
+      37
+    ],
+    "hit_frame": null,
+    "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-7a714e5e-5401-407c-ac21-0daaface9c62.png"
+  },
+  {
+    "name": "e_reaper_attack",
+    "frames": 4,
+    "frame_size": [
+      40,
+      38
+    ],
+    "fps": 16,
+    "anchor": [
+      20,
+      37
+    ],
+    "hit_frame": 2,
+    "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-5d3198a2-da9c-48c5-a680-12a34746a566.png"
+  },
+  {
+    "name": "e_reaper_awaken",
+    "frames": 4,
+    "frame_size": [
+      40,
+      38
+    ],
+    "fps": 10,
+    "anchor": [
+      20,
+      37
+    ],
+    "hit_frame": null,
+    "source": "previous awaken frames 0-2 plus new idle frame 0"
+  },
+  {
+    "name": "e_reaper_dormant",
+    "frames": 2,
+    "frame_size": [
+      40,
+      38
+    ],
+    "fps": 3,
+    "anchor": [
+      20,
+      37
+    ],
+    "hit_frame": null,
+    "source": "previous dormant, shared palette"
+  }
+]

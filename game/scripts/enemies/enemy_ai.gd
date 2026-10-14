@@ -27,6 +27,8 @@ func def_of(e: Dictionary) -> Dictionary:
 func pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) -> Vector2:
 	var d := def_of(e)
 	_prepare_pose(e, d, dist)
+	if d.get("pattern", "") == "reap" and e.hp < e.maxhp and not e.enraged:
+		return _reap(e, d, dir, dist, dt)   # 受伤形态切换先于额外招式，避免同帧被直刺抢走
 	if _secondary(e, d, dir, dist):
 		return Vector2.ZERO
 	match d.get("pattern", ""):
@@ -153,18 +155,36 @@ func _blast(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 	return Vector2.INF
 
 
-## 钵海收割者（V8）：休眠（不动、不接触）直到主控进入 wake_r 或受到伤害；唤醒 0.4 秒后追击，近身扇形斩
+## 钵海收割者：受伤后展开一对镰肢并狂奔；近身高举后劈砍，周围产生神经波纹。
 func _reap(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -> Vector2:
+	if e.hp < e.maxhp and not e.enraged:
+		e.enraged = true
+		e.dormant = false
+		e.wake_t = 0.4
+		e.spd *= float(d.get("rush_speed_mult", 1.45))
+		e.aura_t = 0.0
+		g.vfx.sparks(e.pos, Vector2.UP, Color(0.35, 0.75, 1.0), 8, 160.0)
+		Sfx.enemy("screech", dist)
 	if e.dormant:
-		if dist < float(d.get("wake_r", 160)) or e.hp < e.maxhp:
+		if dist < float(d.get("wake_r", 160)):
 			e.dormant = false
 			e.wake_t = 0.4
-			g.vfx.sparks(e.pos, Vector2.UP, Color(1.2, 0.5, 0.5), 10, 200.0)
+			g.vfx.sparks(e.pos, Vector2.UP, Color(0.35, 0.75, 1.0), 8, 160.0)
 			Sfx.enemy("screech", dist)
 		return Vector2.ZERO
 	if e.wake_t > 0.0:
 		e.wake_t -= dt
 		return Vector2.ZERO
+	if e.enraged:
+		var ar: float = float(d.get("nerve_aura_r", 90.0))
+		e.aura_t -= dt
+		if e.aura_t <= 0.0:
+			e.aura_t = float(d.get("nerve_pulse_cd", 0.9))
+			if dist < 460.0:
+				g.fx.append({"kind": "ring", "pos": e.pos, "r": ar, "life": 0.45, "max": 0.45, "col": Color(0.35, 0.72, 1.0), "enemy": true})
+		if dist < ar and g.invuln <= 0.0:
+			g.telemetry.aura_type = str(e.type)
+			g.nerve_aura_t = 0.6
 	var rr := float(d.get("reap_range", 88))
 	if dist < rr and e.wind <= 0.0 and g.bai._cd(e, "reap", float(d.get("reap_cd", 2.2))):
 		if _stag(e):
@@ -173,7 +193,7 @@ func _reap(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 		# 扇形斩前摇 enemy/reaper_windup（0.8 秒），醒来后第一下再加 reaper_first_extra（0.2 秒）：数值 9/29「先让它可躲」；倍率读 reap_mult
 		var wu: float = Bal.v("enemy/reaper_windup", 0.8) + (Bal.v("enemy/reaper_first_extra", 0.2) if not e.get("reaped", false) else 0.0)
 		e.reaped = true
-		g.bai._warn(e, "cone", wu, {"ang": dir.angle(), "half": 0.9, "r": rr + 10.0, "track": 0.2, "act": "bite", "col": Color(1.0, 0.35, 0.35), "dmg": e.dmg * float(d.get("reap_mult", 1.2))})
+		g.bai._warn(e, "cone", wu, {"ang": dir.angle(), "half": 0.9, "r": rr + 10.0, "track": 0.2, "act": "bite", "name": "镰肢劈砍", "col": Color(0.35, 0.72, 1.0), "dmg": e.dmg * float(d.get("reap_mult", 1.2))})
 	return Vector2.INF
 
 
