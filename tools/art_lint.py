@@ -23,7 +23,7 @@
     pair     1x 与 @2x 逐帧对应（@2x 缩到 1x 后剪影差 / 帧序）
     alpha    二值透明（只有 0 / 255）
     outline  外描边：与透明区四邻接的像素全部是 #080E18；@2x 第二圈也是（2px）
-    colors   每人全部帧条合计色数 ≤ 24（1x、@2x 各算）
+    colors   每人全部帧条合计色数 ≤ 24（1x、@2x 各算）；超出只报 WARN（docs/87 §4.3：色数让位于设定色，保瞳色 / 标志色可到 28，handoff 写明）
     magenta  洋红抠图残留 = 0
     skill_end  skill 末帧 = idle f0（逐像素，1x 与 @2x）
     facing   待机与动作同向（朝右）：idle f0 头部与「本该同一张图」的 skill 末帧 / 动作帧比对，原样 vs 镜像
@@ -65,7 +65,7 @@ NAMES = {"angelina": "安洁莉娜", "exusiai": "能天使", "eyjafjalla": "艾�
 # ---------------------------------------------------------------- 阈值（docs/87，改这里先改文档）
 T = {
     "pair_sil_warn": 0.10, "pair_sil_fail": 0.20,        # @2x 缩到 1x 后与 1x 的剪影异或 / 并集（逐帧最大）
-    "colors_max": 24,
+    "colors_max": 24, "colors_soft": 28,                 # > 24 只 WARN（docs/87 §4.3）；> 28 在说明里另标「超出放宽上限」
     "facing_fail": 0.0, "facing_warn": 1.5,              # 头部比对：镜像距离 − 原样距离（正 = 同向）
     "frontal_fail": 0.76, "frontal_warn": 0.82,          # 待机头部对称差 / 跑步头部对称差（越小越对称）
     "idle_bob": (1.0, 3.0), "idle_sil": 0.03, "idle_static_pairs": 1, "static_eps": 0.005,
@@ -531,11 +531,12 @@ def lint_op(op, acts, art=ART, prev=None):
     lvl = "FAIL" if r1 < 0.99 else ("WARN" if r1 < 1.0 or r2 < 0.98 else "PASS")
     add("outline", lvl, round(r1, 4), "外圈 #080E18 占比 %.4f；@2x 第二圈 %.3f" % (r1, r2))
     nc = max(len(cols[False]), len(cols[True]))
-    if nc <= T["colors_max"]:
-        lvl = "PASS"
-    else:
-        lvl = "WARN" if op in LEGACY else "FAIL"
-    add("colors", lvl, nc, "1x %d 色 / @2x %d 色%s" % (len(cols[False]), len(cols[True]), "（存量，不卡）" if lvl == "WARN" else ""))
+    lvl = "PASS" if nc <= T["colors_max"] else "WARN"   # 10-15 协调人：色数一律只 WARN（docs/87 §4.3 色数让位于设定色）
+    note = ""
+    if lvl == "WARN":
+        note = "（存量，重画时收敛）" if op in LEGACY else (
+            "（超过 %d：设定色放宽到 ≤ %d 时 handoff 需写明多出的颜色）" % (T["colors_max"], T["colors_soft"]) if nc <= T["colors_soft"] else "（超过设定色放宽上限 %d）" % T["colors_soft"])
+    add("colors", lvl, nc, "1x %d 色 / @2x %d 色%s" % (len(cols[False]), len(cols[True]), note))
     add("magenta", ("WARN" if op in LEGACY else "FAIL") if mag else "PASS", mag, "洋红残留 %d 像素" % mag)
 
     idle = strips.get("idle")
