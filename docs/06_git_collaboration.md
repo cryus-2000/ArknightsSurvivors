@@ -4,7 +4,7 @@
 
 | 角色 | 目录 | 分支 | 主要范围 |
 |---|---|---|---|
-| Claude | E:\ArknightsSurvivors | main | game/、接入、测试、构建；以及人物 / 怪物以外的全部美术（特效、弹道、预警、图标、地形、道具、UI） |
+| Claude | 各会话在 `E:\ArknightsSurvivors\.claude\worktrees\<名字>` 的工作树里改；主工作区（main）只由协调人合入与发版（2026-10-14 按实际更新，见 docs/41 §3） | 各自的工作分支 → main | game/、接入、测试、构建；以及人物 / 怪物以外的全部美术（特效、弹道、预警、图标、地形、道具、UI） |
 | Codex | E:\ArknightsSurvivors\.worktrees\codex-art | codex/art | art/incoming/ 中的人物与怪物形象（玩家、援护、NPC、敌人、Boss 的待机 / 移动 / 攻击 / 假死帧条与头像）及其交接说明 |
 
 ## 美术分工（2026-09-24 更新）
@@ -19,11 +19,12 @@
 ## 交接步骤
 
 1. Codex 在自己的 worktree 内制作、检查美术，只暂存本次相关素材和交接文档，提交后提供提交编号与文件清单。
-2. Claude 在原目录先检查 git status，提交或妥善保存自己的未提交修改，再查看待接收提交：
+2. 协调人在主工作区先确认 git status 干净，再看待接收的提交，然后**合入整个 codex/art 分支**（2026-10-14 按实际做法更新，例：c34abbb2 `Merge branch 'codex/art'`；原写法是逐个 cherry-pick）：
 
 ```powershell
+git -C E:\ArknightsSurvivors log --oneline main..codex/art
 git -C E:\ArknightsSurvivors show --stat <提交编号>
-git -C E:\ArknightsSurvivors cherry-pick <提交编号>
+git -C E:\ArknightsSurvivors merge --no-edit codex/art
 ```
 
 3. Claude 按交接文档检查切帧、尺寸、动画和运行效果，完成接入后提交代码。
@@ -44,4 +45,4 @@ git -C E:\ArknightsSurvivors log --oneline --all --graph -12
 初始提交是现有文件快照，包含已交付的怪物 V2、美术文档及当前游戏源码，不代表代码已经通过测试。
 第三方工具 tools/godot-mcp/、Godot 缓存、node_modules、build/ 和 art/backup_*/ 保留在本机但不纳入 Git。游戏实际使用的 game/addons/ 仍纳入版本控制。
 
-当前没有远程仓库，不会上传文件，也不会自动启动 Claude 或传递聊天消息。用户可以将提交编号和交接说明转给另一方。若未来需要跨电脑协作，再单独配置远程仓库。
+远程仓库：2026-09-26 起已配置 origin（GitHub `cryus-2000/ArknightsSurvivors`），推送与发版规则见 docs/41 §3、docs/33 §一键发版（原文「当前没有远程仓库」已过时）。Git 本身不会自动启动 Claude 或传递聊天消息；用户可以将提交编号和交接说明转给另一方。

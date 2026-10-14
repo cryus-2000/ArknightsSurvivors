@@ -45,6 +45,13 @@
 | `characters/op_api.gd` | 干员 → 主场景的接口层（索敌、伤害、治疗、特效、飘字、绘制） | 干员基类的父类 |
 | 已有的独立模块 | `boss_ai.gd`、`enemies/enemy_ai.gd`、`relic_fx.gd`、`endings.gd`、`world/map.gd`、`allies/knight.gd`、`characters/*`、`core/*` | — |
 
+### 1.1 2026-10-14 补记（§1 表之后的变化，以代码为准）
+
+- `game.gd` 现约 1920 行（9-26 拆分后约 1250 行，之后新功能陆续回流）；继续外移的计划见 docs/55 §6。
+- **Boss AI 按只拆分**（docs/55 §6，a783bb11）：`boss_ai.gd` 只做调度与注册表，每只 Boss 一个 `enemies/bosses/<type>.gd`（`archon`、`bishop`、`immortal`、`ishar`、`izumik`、`knight_boss`、`paranoia`、`path`、`saint`），共用 `boss_base.gd`；新 Boss = 新文件 + 注册表一行（docs/38 §1.17）。
+- **运行模式**：`g.autotest` / `g.balance` 两个布尔改成 `enum Mode { PLAY, AUTOTEST, BALANCE }` 的 `g.mode`，旧名留作只读 getter。
+- **新增脚本**：`cloud_save.gd` + `core/cloud_pack.gd`（B站 Toy 云存档，docs/89）；`touch_layout.gd`（触屏按键布局，touch.gd 与编辑页共用，docs/22）；`render/enemy_atlas.gd`、`render/tri_batch.gd`、`render/look.gd`、`render/declutter.gd`、`render/ground_crack.gd`；`screens/` 新增 `run_stats_screen.gd`（作战记录，docs/77）、`touch_editor.gd`、`tide_ui.gd` / `title_tiles.gd`（标题页 T5s，docs/67 §12）、`hud_icons.gd`、`hud_textq.gd`、`hud_tris.gd`、`card_motion.gd`（docs/62）、`initial_stats.gd`、`boss_trial_menu.gd`、`scene_transition.gd` 等。
+
 ## 2. 模块写法
 
 - 每个模块 `extends RefCounted`，持有带类型的 `g: Game`（`const Game = preload("res://scripts/game.gd")`）。带类型意味着 `var x := g.ppos` 能推断类型、成员名拼错在加载时就报错。
