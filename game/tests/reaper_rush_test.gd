@@ -52,6 +52,30 @@ func run_checks() -> void:
 	g.ppos = Vector2(200, 0)
 	var sv: Vector2 = g.eai.pattern(e, Vector2.RIGHT, 200.0, 0.016, e.spd)
 	check(sv == Vector2.ZERO and g.warns.any(func(w): return w.get("secondary", false)), "enraged reaper still uses its secondary pierce")
+	# docs/95 §18 临战自身流失：enemy/reaper_rush_drain（缺省 0.04 = 原作每秒 4%），展开镰肢期间不掉，耗尽算死亡并计数
+	var Bal = load("res://scripts/core/balance.gd")
+	Bal._load()
+	if not (Bal._data.get("enemy") is Dictionary):
+		Bal._data["enemy"] = {}
+	var dr: Dictionary = g.spawner.new_enemy("reaper", Vector2.ZERO)
+	dr.hp -= 1.0
+	g.ppos = Vector2(400, 0)
+	g.eai.pattern(dr, Vector2.RIGHT, 400.0, 0.016, dr.spd)
+	var hp_wake: float = dr.hp
+	g.eai.pattern(dr, Vector2.RIGHT, 400.0, 0.2, dr.spd)
+	check(is_equal_approx(dr.hp, hp_wake), "no drain while scythes unfold")
+	dr.wake_t = 0.0
+	Bal._data["enemy"]["reaper_rush_drain"] = 0.0
+	var hp0: float = dr.hp
+	g.eai.pattern(dr, Vector2.RIGHT, 400.0, 1.0, dr.spd)
+	check(is_equal_approx(dr.hp, hp0), "drain 0 keeps old behaviour")
+	Bal._data["enemy"].erase("reaper_rush_drain")
+	g.eai.pattern(dr, Vector2.RIGHT, 400.0, 1.0, dr.spd)
+	check(absf((hp0 - dr.hp) - dr.maxhp * 0.04) < 0.01, "default drain is 4%% max hp per second (%.2f)" % (hp0 - dr.hp))
+	var n0: int = g.telemetry.reaper_drain_deaths
+	dr.hp = dr.maxhp * 0.01
+	g.eai.pattern(dr, Vector2.RIGHT, 400.0, 1.0, dr.spd)
+	check(dr.dead and g.telemetry.reaper_drain_deaths == n0 + 1, "drained reaper dies and is counted")
 	if failures == 0:
 		print("PASS: reaper rush")
 	get_tree().quit(1 if failures else 0)

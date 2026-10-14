@@ -68,6 +68,7 @@ var dashes := 0                 # 冲刺次数
 var blocks := 0                 # 护盾抵挡次数
 var chests := 0                 # 打开补给箱
 var altars := 0                 # 打开海嗣祭坛
+var reaper_drain_deaths := 0    # 钵海收割者临战自身流失耗死的只数（docs/95 §18，和被打死的分开）
 var ingots_got := 0             # 获得源石锭（gain_ingots，含熔铸后进池的）
 var ingots_spent := 0           # 商店花掉的源石锭（购买 + 刷新）
 # 击倒者归属（docs/77 §2.1）：每次扣血记成 [时刻, 归属键, 死因, 量]，归属键 = "e:<敌人类型>" 或 "env:<zone|mire|dark|…>"；
@@ -511,7 +512,7 @@ func metrics(profile: String) -> Dictionary:
 		"taken_pm": int(taken_last / t * 60.0), "low_hp_s": int(low_hp_s), "dark_s": int(dark_s), "dark_dmg": int(dark_dmg), "death_src": last_src,
 		"moved_pm": int(dist_moved / t * 60.0), "still_pct": int(100.0 * still_s / t),
 		"bosses": boss_seen.values(), "elite_t": elite_t, "recruit_t": recruit_t, "curve": curve, "curve_tail": curve_tail(),
-		"peak": peak, "peak_min": peak_min, "end": end_ctx(), "floors": floor_snaps}
+		"peak": peak, "peak_min": peak_min, "end": end_ctx(), "floors": floor_snaps, "reaper_drain_deaths": reaper_drain_deaths}
 
 
 ## 整局记录（平衡测试打印的 BALANCE 同一份；字段改名 / 删除要同步 tools/balance_run.py 与 SCHEMA）

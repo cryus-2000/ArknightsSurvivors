@@ -185,6 +185,20 @@ func _reap(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 		if dist < ar and g.invuln <= 0.0:
 			g.telemetry.aura_type = str(e.type)
 			g.nerve_aura_t = 0.6
+		# 临战自身流失（docs/95 §18；PRTS 临战天赋「每秒流失相当于自身最大生命值 4% 的生命值」）：
+		# 狂奔后（展开镰肢的 wake_t 之后）每秒掉 enemy/reaper_rush_drain × 最大生命，耗尽算死亡、照常掉经验（A 方案）；0 = 关
+		var drain: float = Bal.v("enemy/reaper_rush_drain", 0.04)
+		if drain > 0.0:
+			e.hp -= e.maxhp * drain * dt
+			e["drip_t"] = float(e.get("drip_t", 0.0)) - dt
+			if e.drip_t <= 0.0:
+				e.drip_t = 0.5
+				g.vfx.sparks(e.pos + Vector2(0, -8), Vector2.DOWN, Color(0.35, 0.72, 1.0), 2, 60.0)   # 冷蓝体液滴：看得出它在自己掉血
+			if e.hp <= 0.0:
+				e.hp = 0.0
+				g.telemetry.reaper_drain_deaths += 1
+				g.combat.kill(e)
+				return Vector2.ZERO
 	var rr := float(d.get("reap_range", 88))
 	if dist < rr and e.wind <= 0.0 and g.bai._cd(e, "reap", float(d.get("reap_cd", 2.2))):
 		if _stag(e):
