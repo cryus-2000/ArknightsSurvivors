@@ -183,8 +183,11 @@ func _refill() -> void:
 		horde_k += 1
 		var p: Vector2 = game.ppos + Vector2.from_angle(hrng.randf() * TAU) * hrng.randf_range(180.0, 240.0)
 		var e: Dictionary = game.spawner.spawn_enemy(ty, p)
-		e.hp = HORDE_HP / dk
-		e.maxhp = HORDE_HP / dk
+		var hpm: float = pow(1.0 / dk, Bal.v("enemy/density_hp_exp", 1.0))   # 同 spawner._dens_apply：单只生命 × (1/k)^density_hp_exp
+		e.hp = HORDE_HP * hpm
+		e.maxhp = HORDE_HP * hpm
+		if dk != 1.0:
+			e["dk"] = 1.0 / dk   # 击杀权重同 spawner（按击杀次数的积木补偿，docs/50 §16.8）
 		if esc != 1.0:
 			e.r *= esc
 			e["sc"] = esc
