@@ -15,8 +15,6 @@ const ECOL := {"bone": Color(0.85, 0.9, 0.85), "slider": Color(0.45, 0.7, 1.0), 
 	"mimic": Color(1.0, 0.75, 0.4), "path": Color(0.6, 0.7, 1.0), "fractal": Color(0.6, 0.7, 1.0), "izumik": Color(0.5, 1.0, 0.7),
 	"ishar": Color(0.75, 0.55, 1.0), "tear": Color(0.75, 0.55, 1.0), "iberia": Color(1.0, 0.6, 0.5), "carmen": Color(0.7, 0.7, 1.0),
 	"spitter": Color(0.6, 1.0, 0.65), "bishop": Color(0.7, 1.0, 0.9), "archon": Color(0.5, 0.9, 0.9), "immortal": Color(0.6, 0.8, 1.0), "paranoia": Color(0.8, 0.6, 1.0)}
-var flesh_heal := false
-var ember := false
 var zone_from_c := Vector2.ZERO
 var zone_from_r := 99999.0
 var zone_phase := 0
@@ -1222,10 +1220,6 @@ func kill(e: Dictionary) -> void:
 	var dmire := float(D.ENEMIES.get(e.type, {}).get("death_mire", 0.0))
 	if dmire > 0.0 and g.mires.size() < 32:
 		g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 10.0, "maxr": dmire, "life": 12.0, "seed": g.rng.randf() * 100.0, "boss": false})
-	if flesh_heal and e.evo:
-		heal(g.max_hp * 0.03, "藏品")
-	if ember and e.elite:
-		g.lamp = min(g.lamp_cap, g.lamp + 20.0)
 	if e.xp > 0.0:
 		g.pickups.drop(e.pos, "xp", e.xp * g.xp_mult)
 	if g.rng.randf() < Bal.v("lamp/oil_kill_chance", 0.006) * float(g.dmod.oil_drop):

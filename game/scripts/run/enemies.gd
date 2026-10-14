@@ -8,9 +8,8 @@ const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数�
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
 const CELL := 48.0
-var evo_age := 35.0
-var evo_xp := 2.0
-var seed_heal := false
+const EVO_AGE := 35.0   # 进化：存活这么久的普通怪变精英（随时间缩短，见 update）
+const EVO_XP := 2.0     # 进化后经验倍率
 var mire_tick := 0.0
 
 
@@ -131,7 +130,7 @@ func update(dt: float) -> void:
 				e.pos = g.spawner.edge_pos()
 			continue
 
-		if not e.evo and not e.elite and not e.boss and e.ai != "static" and e.age > evo_age * maxf(0.55, 1.0 - g.t / 900.0):
+		if not e.evo and not e.elite and not e.boss and e.ai != "static" and e.age > EVO_AGE * maxf(0.55, 1.0 - g.t / 900.0):
 			evolve(e)
 
 		# 注亡拟嗣：生命持续流失
@@ -318,8 +317,6 @@ func _devour(e: Dictionary, o: Dictionary) -> void:
 	e.xp += o.xp
 	o.dead = true
 	g.vfx.add_text(e.pos, "吞噬", Color(1.0, 0.4, 0.5))
-	if seed_heal:
-		g.combat.heal(g.max_hp * 0.05, "藏品")
 
 
 ## 分离 + 吞噬的旧写法（先 query 再遍历；--optab / --optold 同局对照用，docs/50 §11）
@@ -529,7 +526,7 @@ func evolve(e: Dictionary) -> void:
 	e.r *= 1.3
 	e.spd *= 1.15
 	e.dmg *= 1.5
-	e.xp *= evo_xp
+	e.xp *= EVO_XP
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.0, "life": 0.3, "max": 0.3, "col": Color(1.0, 0.3, 0.4)})
 
 

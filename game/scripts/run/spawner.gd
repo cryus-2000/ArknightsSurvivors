@@ -9,8 +9,6 @@ const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数�
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
 const MAX_ENEMIES := 450
-var horde_mult := 1.0
-var horde_chest := false
 var next_id := 0
 var spawn_acc := 0.0
 var next_elite: float = Bal.v("enemy/first_elite", 45.0)   # 首只精英出现时间（balance.json）
@@ -425,12 +423,10 @@ func update(dt: float) -> void:
 		g.fx.append({"kind": "horde_ring", "pos": g.ppos, "r": 640.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
 		Sfx.play("roar", 2.0, 0.8, 0.0)
 		# 数量：32 → 88（10 分钟），× 难度修正 horde；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
-		var n := int((Bal.v("enemy/horde_base", 24.0) + int(g.t / Bal.v("enemy/horde_div", 9.0))) * horde_mult * float(g.dmod.horde))
+		var n := int((Bal.v("enemy/horde_base", 24.0) + int(g.t / Bal.v("enemy/horde_div", 9.0))) * float(g.dmod.horde))
 		n = dens_count(n, "horde")   # 怪物密度：只数 × density（累计余数取整；在 Boss 余量裁剪之前）
 		# Boss 在场时（Ⅷ horde_in_boss 让大群不顺延）超出存活杂兵上限的部分裁掉（协调人 9/30）；没有 Boss 时余量 = 同屏上限 max_alive()，不裁
 		n = mini(n, maxi(0, boss_mob_room()))
-		if horde_chest:
-			g.pickups.drop(g.ppos + Vector2(70, 0), "chest", 1.0)
 		var gap_half := deg_to_rad(35.0)
 		var span: float = TAU - gap_half * 2.0
 		var mix := horde_mix()

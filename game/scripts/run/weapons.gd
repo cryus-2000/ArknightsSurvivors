@@ -1,6 +1,7 @@
 extends RefCounted
 ## 子弹与支援装置：医疗无人机（可选支援，升级时选到才有，docs/23 §17）、玩家侧子弹的飞行与命中结算、狙击选目标。
-## 干员自己的投射物在各干员脚本里；敌方子弹在 game.gd _update_ebullets。2026-09-26 从 game.gd 拆出。
+## 干员自己的投射物大多在 op_blocks 各段里推进（docs/101 §3.2 ②）；进 g.bullets 的只有艾雅法拉熔岩弹（fire）与铃兰狐火（arcane）。
+## 敌方子弹在 run/enemies.gd update_ebullets。2026-09-26 从 game.gd 拆出；10-15 删掉没有生产者的箭矢 / 导弹 / 穿透分支（docs/101 S1）。
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -60,28 +61,17 @@ func update_bullets(dt: float) -> void:
 	for b in g.bullets:
 		if b.life <= 0.0:
 			continue
-		# 追踪：导弹 / 紫色法术
+		# 追踪：紫色法术（铃兰狐火）
 		var hm = b.get("home")
 		if hm != null:
 			if hm.dead or hm.get("friendly", false):
-				if b.has("accel"):
-					# 导弹：目标没了就改追导弹附近最近的敌人
-					var best = null
-					var bd := 460.0
-					for j in g.enemies_sys.query(b.pos, 460.0):
-						var q: Dictionary = g.enemies[j]
-						if not q.dead and not q.chest and q.pos.distance_to(b.pos) < bd:
-							bd = q.pos.distance_to(b.pos)
-							best = q
-					b.home = best
-				else:
-					# 法术追踪弹：从弹体附近重新找目标（原来从主控身边找，常常找不到就直线飞走）
-					var nt := g.enemies_sys.nearest(1, 360.0, b.pos)
-					b.home = nt[0] if nt.size() > 0 else null
+				# 法术追踪弹：从弹体附近重新找目标（原来从主控身边找，常常找不到就直线飞走）
+				var nt := g.enemies_sys.nearest(1, 360.0, b.pos)
+				b.home = nt[0] if nt.size() > 0 else null
 			else:
 				# 匀速转向（2026-09-25）：原来 vel.lerp(want) 转弯时向量变短 → 越绕越慢、显得疲软。
 				# 现在速度大小恒定、只转方向；转向角速度随飞行时间增大，保证一定追上、不会绕圈；目标还在就不会中途消失
-				var spd: float = b.vel.length() if b.has("accel") else b.get("spd", b.vel.length())
+				var spd: float = b.get("spd", b.vel.length())
 				b["spd"] = spd
 				b["age"] = b.get("age", 0.0) + dt
 				var turn: float = b.get("turn", 6.0) * (1.0 + b.age * 2.5)
@@ -89,14 +79,10 @@ func update_bullets(dt: float) -> void:
 				var a1: float = rotate_toward(a0, (hm.pos - b.pos).angle(), turn * dt)
 				b.vel = Vector2.from_angle(a1) * spd
 				b.life = maxf(b.life, 0.2)
-		# 导弹：持续加速到最高速并保持（没有目标时直线飞行，不会减速）
-		if b.has("accel"):
-			var sp: float = minf(b.vel.length() + b.accel * dt, b.vmax)
-			b.vel = b.vel.normalized() * sp
 		b.pos += b.vel * dt
 		b.life -= dt
-		# 地形阻挡：直线弹（艾雅法拉熔岩弹等）撞景物底座即消失；追踪弹（home / 导弹）不挡
-		if g.map.tb_bul and not b.has("home") and not b.has("accel") and g.map.bullet_blocked(b, b.pos):
+		# 地形阻挡：直线弹（艾雅法拉熔岩弹等）撞景物底座即消失；追踪弹（home）不挡
+		if g.map.tb_bul and not b.has("home") and g.map.bullet_blocked(b, b.pos):
 			b.life = 0.0
 			continue
 		if b.kind == "fire" and not b.get("hidden", false):
@@ -108,8 +94,6 @@ func update_bullets(dt: float) -> void:
 		for j in g.enemies_sys.query(b.pos, 40.0):
 			var e: Dictionary = g.enemies[j]
 			if e.dead or b.pos.distance_to(e.pos) > e.r + b.r:
-				continue
-			if b.get("hit", {}).has(e.id):
 				continue
 			bullet_hit(b, e)
 			break
@@ -124,27 +108,6 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 	else:
 		g.combat.hit("法术援护" if b.kind in ["fire", "arcane"] else "援护")
 	match b.kind:
-		"arrow":
-			# 狙击：命中流血；扼喉之手处决
-			g.combat.damage(e, b.dmg)
-			if g.rfx.sniper_execute(e, g.hit):
-				g.vfx.add_text(e.pos + Vector2(0, -e.r - 12), "处决", Color(1.0, 0.4, 0.4), 15)
-				g.combat.hit("真实")
-				g.combat.damage(e, e.hp + 1.0)
-			if not e.dead:
-				e["bleed"] = 3.0
-				e["bleed_dps"] = b.dmg * 0.2
-			for k in 7:
-				g.fx.append({"kind": "spark", "pos": e.pos, "vel": b.vel.normalized().rotated(randf_range(-0.7, 0.7)) * randf_range(80, 220),
-					"sz": 3.0, "life": 0.4, "max": 0.4, "col": Color(0.85, 0.08, 0.12)})
-			g.fx.append({"kind": "blood", "pos": e.pos + Vector2(0, e.r * 0.6), "life": 2.5, "max": 2.5, "seed": randf() * 10.0})
-			g.vfx.fx_sprite("fx_arrow_hit", e.pos, g.PX, b.vel.angle())
-			if b.get("pierce", false):
-				if not b.has("hit_ids"):
-					b["hit_ids"] = {}
-				b.hit_ids[e.id] = true
-			else:
-				b.life = 0.0
 		"fire":
 			# 法术团：爆炸
 			for k in g.enemies_sys.query(b.pos, b.aoe + 20.0):
