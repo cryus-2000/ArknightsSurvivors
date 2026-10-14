@@ -12287,6 +12287,7 @@ static func _h3_free_skill(o, i: int) -> void:
 	o._exec_list(sb.get("do", []))
 	if sb.has("fx"):
 		fx_play(o, sb.fx, o.pos, 30.0)
+	o.play_vis_anim(o.skill_anim(i))   # 技能帧条只是画面（docs/97 B：player_skill 8 帧 12fps，末帧 = 待机）：逻辑已在上面即时生效
 
 
 ## 伞击

@@ -22,7 +22,7 @@
  },
  "sprites": {
   "idle": {"tex": "op_exusiai_idle", "frames": 4, "fps": 4, "foot": [24, 46]},
-  "run": {"tex": "op_exusiai_run", "frames": 6, "fps": 10, "foot": [24, 46]},
+  "run": {"tex": "op_exusiai_run", "frames": 6, "fps": 10, "foot": [27, 46]},
   "attack": {"tex": "op_exusiai_attack", "frames": 4, "fps": 16, "foot": [24, 46], "fire": 1},
   "skill": {"tex": "op_exusiai_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 3},
   "size": 48, "foot": [24, 46]

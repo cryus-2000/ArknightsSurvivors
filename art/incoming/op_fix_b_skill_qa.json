@@ -1,0 +1,168 @@
+[
+  {
+    "op": "mizuki",
+    "check": "files",
+    "level": "PASS",
+    "value": 4,
+    "detail": "4 组 × 1x/@2x",
+    "waiver": null,
+    "stale_waiver": false
+  },
+  {
+    "op": "mizuki",
+    "check": "size",
+    "level": "PASS",
+    "value": null,
+    "detail": "尺寸 / 帧数与 json 一致",
+    "waiver": null,
+    "stale_waiver": false
+  },
+  {
+    "op": "mizuki",
+    "check": "pair",
+    "level": "PASS",
+    "value": 0.0,
+    "detail": "@2x 缩到 1x 剪影差最大 0.000",
+    "waiver": null,
+    "stale_waiver": false
+  },
+  {
+    "op": "mizuki",
+    "check": "alpha",
+    "level": "PASS",
+    "value": 0,
+    "detail": "半透明像素 0",
+    "waiver": null,
+    "stale_waiver": false
+  },
+  {
+    "op": "mizuki",
+    "check": "outline",
+    "level": "PASS",
+    "value": 1.0,
+    "detail": "外圈 #080E18 占比 1.0000；@2x 第二圈 1.000",
+    "waiver": null,
+    "stale_waiver": false
+  },
+  {
+    "op": "mizuki",
+    "check": "colors",
+    "level": "PASS",
+    "value": 23,
+    "detail": "1x 23 色 / @2x 23 色",
+    "waiver": null,
+    "stale_waiver": false
+  },
+  {
+    "op": "mizuki",
+    "check": "magenta",
+    "level": "PASS",
+    "value": 0,
+    "detail": "洋红残留 0 像素",
+    "waiver": null,
+    "stale_waiver": false
+  },
+  {
+    "op": "mizuki",
+    "check": "skill_end",
+    "level": "PASS",
+    "value": 0.0,
+    "detail": "skill 末帧 = idle f0（1x 与 @2x）",
+    "waiver": null,
+    "stale_waiver": false
+  },
+  {
+    "op": "mizuki",
+    "check": "facing",
+    "level": "PASS",
+    "value": 10.23,
+    "detail": "头部同向分 +10.23（依据 attack + run 帧中位数（skill 末帧 = idle f0）；< 0 = 待机与动作朝向相反）",
+    "waiver": null,
+    "stale_waiver": false
+  },
+  {
+    "op": "mizuki",
+    "check": "frontal",
+    "level": "PASS",
+    "value": 0.892,
+    "detail": "待机 / 跑步头部对称差比 0.892（< 0.76 = 正面朝前）",
+    "waiver": null,
+    "stale_waiver": false
+  },
+  {
+    "op": "mizuki",
+    "check": "idle",
+    "level": "PASS",
+    "value": {
+      "bob": 2.0,
+      "sil": 0.0978494808248842,
+      "static_pairs": 0
+    },
+    "detail": "起伏 2.0px 剪影变化 0.098 停顿对 0",
+    "waiver": null,
+    "stale_waiver": false
+  },
+  {
+    "op": "mizuki",
+    "check": "run",
+    "level": "PASS",
+    "value": {
+      "move": 0.1014,
+      "leg_move": 0.3028,
+      "upper_move": 0.0316,
+      "head_bob": 1.3526,
+      "lean": 8.6988,
+      "foot_dx": 8.25,
+      "static_pairs": 0
+    },
+    "detail": "剪影 0.101 腿 0.303 上身 0.032 头起伏 1.4px 前倾 +9° 停顿 0",
+    "waiver": null,
+    "stale_waiver": false
+  },
+  {
+    "op": "mizuki",
+    "check": "ground",
+    "level": "PASS",
+    "value": {
+      "idle": "6666",
+      "run": "654664",
+      "attack": "6665",
+      "skill": "66666666"
+    },
+    "detail": "脚底贴第 46 行（每帧最低行 − 40：idle 6666 run 654664 attack 6665 skill 66666666）",
+    "waiver": null,
+    "stale_waiver": false
+  },
+  {
+    "op": "mizuki",
+    "check": "foot",
+    "level": "PASS",
+    "value": {
+      "idle": [
+        24.2,
+        46.0
+      ],
+      "run": [
+        24.2,
+        46.0
+      ]
+    },
+    "detail": "脚底中心与 json 偏差 ≤ 2px",
+    "waiver": null,
+    "stale_waiver": false
+  },
+  {
+    "op": "mizuki",
+    "check": "tone",
+    "level": "WARN",
+    "value": {
+      "hsl": 0.483,
+      "dark": 0.247,
+      "bright": 0.272,
+      "gain": 0.176
+    },
+    "detail": "超出通用范围：受光变亮 18%；HSL 0.483 近黑 25% 亮部 27% 受光变亮 18%",
+    "waiver": null,
+    "stale_waiver": false
+  }
+]

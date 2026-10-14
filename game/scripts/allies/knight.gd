@@ -21,7 +21,7 @@ const STAB_HIT_T := 0.2      # 第 3 帧（零基 2）命中
 const FROST_T := 1.2
 const WALK_AT := 540.0       # 终局：9:00 起走向黑潮中心（2026-10-14 用户定，原 9:45）
 const WALK_SPD := 110.0
-const SINK_T := 0.6          # 入潮演出时长：寒冰重生环（缩小）+ 沉入淡出
+const SINK_T := 1.0          # 入潮演出时长：寒冰重生环（缩小）+ 沉入淡出（制作人 10-14：0.6 → 1.0，镜头一瞥 0.35 秒到位后还能看到沉入主体段）
 ## 画面缩放（2026-09-27 用户反馈：骑士帧 96×80 按 2 倍画约 192×160，是主控的两倍，挡视线）：画到 0.7 倍
 const DRAW_K := 0.7
 const ICE := Color(0.7, 0.9, 1.4)
@@ -135,6 +135,7 @@ func _arrive() -> void:
 	state = "sink"
 	st = 0.0
 	vanish_pos = pos
+	g.camera_glance(pos)   # 镜头一瞥黑潮中心（用户 10-14：圈心通常在屏幕外，让玩家看见入潮；只动镜头）
 	# 寒冰重生环缩小、淡蓝；没有帧条就画一圈冰环。粒子向下沉
 	if not g.vfx.fx_sprite("fx_knight_rebirth", pos + Vector2(0, -12), g.PX * 0.8, 0.0, false, false, Color(0.75, 0.9, 1.2, 0.8)):
 		g.fx.append({"kind": "ring", "pos": pos, "r": 50.0, "life": SINK_T, "max": SINK_T, "col": Color(0.6, 0.9, 1.4)})

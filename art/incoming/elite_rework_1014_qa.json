@@ -1,0 +1,1132 @@
+[
+  {
+    "id": "pocket",
+    "palette_counts": {
+      "1": 15,
+      "2": 15
+    },
+    "alignment": {},
+    "files": [
+      {
+        "file": "e_pocket@2x.png",
+        "size": [
+          120,
+          56
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            10,
+            10,
+            50,
+            56
+          ],
+          [
+            8,
+            10,
+            50,
+            56
+          ]
+        ],
+        "centroids_x": [
+          28.73489932885906,
+          28.35209003215434
+        ],
+        "warm_orange_pixels": [
+          199,
+          202
+        ],
+        "sha256": "cbca99efe1644442ad01b7c06f3ba1b79c4378fd04d48cd0ca377702ddcd243e"
+      },
+      {
+        "file": "e_pocket.png",
+        "size": [
+          60,
+          28
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            5,
+            5,
+            25,
+            28
+          ],
+          [
+            4,
+            5,
+            25,
+            28
+          ]
+        ],
+        "centroids_x": [
+          14.11744966442953,
+          13.92604501607717
+        ],
+        "warm_orange_pixels": [
+          49,
+          46
+        ],
+        "sha256": "89d5d5f2eb8faeafb5180ae4544125c641afff500261fc7623dcbe325c95eeac"
+      },
+      {
+        "file": "e_pocket_move@2x.png",
+        "size": [
+          240,
+          56
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            8,
+            12,
+            50,
+            56
+          ],
+          [
+            10,
+            10,
+            50,
+            56
+          ],
+          [
+            10,
+            10,
+            50,
+            56
+          ],
+          [
+            10,
+            10,
+            48,
+            56
+          ]
+        ],
+        "centroids_x": [
+          28.665079365079364,
+          30.152173913043477,
+          29.113003095975234,
+          28.927244582043343
+        ],
+        "warm_orange_pixels": [
+          212,
+          215,
+          199,
+          224
+        ],
+        "sha256": "c9891bbaf4db38028f954cd0d4cc65a9fb2a97db6e02c77a1df7690bec9ad7e5"
+      },
+      {
+        "file": "e_pocket_move.png",
+        "size": [
+          120,
+          28
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            4,
+            6,
+            25,
+            28
+          ],
+          [
+            5,
+            5,
+            25,
+            28
+          ],
+          [
+            5,
+            5,
+            25,
+            28
+          ],
+          [
+            5,
+            5,
+            24,
+            28
+          ]
+        ],
+        "centroids_x": [
+          14.082539682539682,
+          14.826086956521738,
+          14.306501547987617,
+          14.213622291021672
+        ],
+        "warm_orange_pixels": [
+          54,
+          51,
+          50,
+          53
+        ],
+        "sha256": "866b328a60f2c828e84a087140705fa6bb578fef4b05224a73cea98db7abd307"
+      },
+      {
+        "file": "e_pocket_attack@2x.png",
+        "size": [
+          240,
+          56
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            10,
+            10,
+            50,
+            56
+          ],
+          [
+            8,
+            4,
+            52,
+            56
+          ],
+          [
+            4,
+            2,
+            54,
+            56
+          ],
+          [
+            10,
+            10,
+            50,
+            56
+          ]
+        ],
+        "centroids_x": [
+          28.704620462046204,
+          29.407692307692308,
+          29.786919831223628,
+          28.73489932885906
+        ],
+        "warm_orange_pixels": [
+          205,
+          237,
+          279,
+          199
+        ],
+        "sha256": "1fb6e5b3d821f677e329e0aaaf8605dfc9713bb608f811ea3e0ea998915c9399"
+      },
+      {
+        "file": "e_pocket_attack.png",
+        "size": [
+          120,
+          28
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            5,
+            5,
+            25,
+            28
+          ],
+          [
+            4,
+            2,
+            26,
+            28
+          ],
+          [
+            2,
+            1,
+            27,
+            28
+          ],
+          [
+            5,
+            5,
+            25,
+            28
+          ]
+        ],
+        "centroids_x": [
+          14.102310231023102,
+          14.453846153846154,
+          14.643459915611814,
+          14.11744966442953
+        ],
+        "warm_orange_pixels": [
+          50,
+          55,
+          69,
+          49
+        ],
+        "sha256": "66c2afc445fb5bc03fec7e927dde8abd6ceb1bfbef33eacdd049ba7809360891"
+      }
+    ]
+  },
+  {
+    "id": "skimmer",
+    "palette_counts": {
+      "1": 15,
+      "2": 15
+    },
+    "alignment": {
+      "1": {
+        "target": 17.323654786862335,
+        "move_minus_idle": [
+          -0.07650649788894981,
+          -0.3202534263181178,
+          -0.23422389255339127,
+          -0.07992718829602552
+        ],
+        "range": 0.243746928429168
+      },
+      "2": {
+        "target": 35.14730957372467,
+        "move_minus_idle": [
+          -0.15301299577789962,
+          -0.6405068526362356,
+          0.008245981830889093,
+          -0.15985437659205104
+        ],
+        "range": 0.6487528344671247
+      }
+    },
+    "files": [
+      {
+        "file": "e_skimmer@2x.png",
+        "size": [
+          136,
+          56
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            4,
+            18,
+            64,
+            56
+          ],
+          [
+            4,
+            16,
+            64,
+            56
+          ]
+        ],
+        "centroids_x": [
+          34.80943396226415,
+          35.48518518518519
+        ],
+        "warm_orange_pixels": [
+          219,
+          215
+        ],
+        "sha256": "978881ee0c22fc48a028d15b293fe9590f809d8d4a5ea2ea248271257d00fbcb"
+      },
+      {
+        "file": "e_skimmer.png",
+        "size": [
+          68,
+          28
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            2,
+            9,
+            32,
+            28
+          ],
+          [
+            2,
+            8,
+            32,
+            28
+          ]
+        ],
+        "centroids_x": [
+          17.154716981132076,
+          17.492592592592594
+        ],
+        "warm_orange_pixels": [
+          55,
+          56
+        ],
+        "sha256": "8e7c39eb080fe83d3307e47d5062e40ce77b96b2569879c70db5f8696c52a350"
+      },
+      {
+        "file": "e_skimmer_move@2x.png",
+        "size": [
+          272,
+          56
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": false,
+        "bboxes": [
+          [
+            4,
+            20,
+            64,
+            56
+          ],
+          [
+            4,
+            10,
+            62,
+            56
+          ],
+          [
+            0,
+            22,
+            60,
+            56
+          ],
+          [
+            8,
+            14,
+            62,
+            56
+          ]
+        ],
+        "centroids_x": [
+          34.99429657794677,
+          34.506802721088434,
+          35.15555555555556,
+          34.98745519713262
+        ],
+        "warm_orange_pixels": [
+          225,
+          218,
+          225,
+          255
+        ],
+        "sha256": "c158696d51653ff82daff9c3fafa98d96a5bef1f8d42ea5bb6a75adac5f90b92"
+      },
+      {
+        "file": "e_skimmer_move.png",
+        "size": [
+          136,
+          28
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": false,
+        "bboxes": [
+          [
+            2,
+            10,
+            32,
+            28
+          ],
+          [
+            2,
+            5,
+            31,
+            28
+          ],
+          [
+            0,
+            11,
+            30,
+            28
+          ],
+          [
+            4,
+            7,
+            31,
+            28
+          ]
+        ],
+        "centroids_x": [
+          17.247148288973385,
+          17.003401360544217,
+          17.089430894308943,
+          17.24372759856631
+        ],
+        "warm_orange_pixels": [
+          57,
+          52,
+          53,
+          65
+        ],
+        "sha256": "ee5e339cff2c9413357cebc5cbc2b363ab153427ffcfa22586055d62f17f912b"
+      },
+      {
+        "file": "e_skimmer_attack@2x.png",
+        "size": [
+          272,
+          56
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            12,
+            24,
+            56,
+            56
+          ],
+          [
+            6,
+            20,
+            62,
+            56
+          ],
+          [
+            6,
+            16,
+            62,
+            56
+          ],
+          [
+            4,
+            18,
+            64,
+            56
+          ]
+        ],
+        "centroids_x": [
+          32.80769230769231,
+          35.5996015936255,
+          34.77652733118971,
+          34.80943396226415
+        ],
+        "warm_orange_pixels": [
+          191,
+          186,
+          238,
+          219
+        ],
+        "sha256": "f48fcab08b4d9b76c7692a12bdab6c502e42db6db195abbf2a0b00010621f652"
+      },
+      {
+        "file": "e_skimmer_attack.png",
+        "size": [
+          136,
+          28
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            6,
+            12,
+            28,
+            28
+          ],
+          [
+            3,
+            10,
+            31,
+            28
+          ],
+          [
+            3,
+            8,
+            31,
+            28
+          ],
+          [
+            2,
+            9,
+            32,
+            28
+          ]
+        ],
+        "centroids_x": [
+          16.153846153846153,
+          17.54980079681275,
+          17.138263665594856,
+          17.154716981132076
+        ],
+        "warm_orange_pixels": [
+          44,
+          47,
+          59,
+          55
+        ],
+        "sha256": "0d726c423ea418fa8eb6d18a9272056d106c43a1754f8817386d76e9d379feb5"
+      }
+    ]
+  },
+  {
+    "id": "mother",
+    "palette_counts": {
+      "1": 15,
+      "2": 15
+    },
+    "alignment": {
+      "1": {
+        "target": 17.219763292225686,
+        "move_minus_idle": [
+          -0.2997632922256841,
+          -0.27341136089521356,
+          0.22056592588130997,
+          -0.23378198381447035
+        ],
+        "range": 0.5203292181069941
+      },
+      "2": {
+        "target": 34.93952658445137,
+        "move_minus_idle": [
+          0.08608459133442636,
+          -0.5468227217904271,
+          0.44113185176261993,
+          -0.06585480168867974
+        ],
+        "range": 0.987954573553047
+      }
+    },
+    "files": [
+      {
+        "file": "e_mother@2x.png",
+        "size": [
+          136,
+          64
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            4,
+            6,
+            64,
+            64
+          ],
+          [
+            4,
+            6,
+            64,
+            64
+          ]
+        ],
+        "centroids_x": [
+          35.34501061571125,
+          34.53404255319149
+        ],
+        "warm_orange_pixels": [
+          263,
+          251
+        ],
+        "sha256": "336fa28d88d7b93402921bd69bf7e3f9902e4fcf73d0b29b9f642cd578c24509"
+      },
+      {
+        "file": "e_mother.png",
+        "size": [
+          68,
+          32
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            2,
+            3,
+            32,
+            32
+          ],
+          [
+            2,
+            3,
+            32,
+            32
+          ]
+        ],
+        "centroids_x": [
+          17.422505307855626,
+          17.017021276595745
+        ],
+        "warm_orange_pixels": [
+          68,
+          63
+        ],
+        "sha256": "bc8f2276bcac12c3104d8b75fbf7752e58cfcdbfedf87efc53b0ab2f808e03d9"
+      },
+      {
+        "file": "e_mother_move@2x.png",
+        "size": [
+          272,
+          64
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": false,
+        "bboxes": [
+          [
+            0,
+            8,
+            57,
+            64
+          ],
+          [
+            0,
+            10,
+            60,
+            64
+          ],
+          [
+            2,
+            8,
+            62,
+            64
+          ],
+          [
+            0,
+            8,
+            58,
+            64
+          ]
+        ],
+        "centroids_x": [
+          35.0256111757858,
+          34.392703862660944,
+          35.38065843621399,
+          34.87367178276269
+        ],
+        "warm_orange_pixels": [
+          229,
+          215,
+          281,
+          203
+        ],
+        "sha256": "df5a9f25843e3a6ff0cc8af8a978021929c13a04bab99e818c1baf64703b44f9"
+      },
+      {
+        "file": "e_mother_move.png",
+        "size": [
+          136,
+          32
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": false,
+        "bboxes": [
+          [
+            0,
+            4,
+            28,
+            32
+          ],
+          [
+            0,
+            5,
+            30,
+            32
+          ],
+          [
+            1,
+            4,
+            31,
+            32
+          ],
+          [
+            0,
+            4,
+            29,
+            32
+          ]
+        ],
+        "centroids_x": [
+          16.92,
+          16.946351931330472,
+          17.440329218106996,
+          16.985981308411215
+        ],
+        "warm_orange_pixels": [
+          56,
+          54,
+          72,
+          55
+        ],
+        "sha256": "707c63264b44eaaa66f8f6ab2e835127c3747796245195bb1f183cbe79b9de39"
+      },
+      {
+        "file": "e_mother_attack@2x.png",
+        "size": [
+          272,
+          64
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            2,
+            4,
+            66,
+            64
+          ],
+          [
+            2,
+            10,
+            64,
+            64
+          ],
+          [
+            2,
+            4,
+            64,
+            64
+          ],
+          [
+            4,
+            6,
+            64,
+            64
+          ]
+        ],
+        "centroids_x": [
+          34.04526315789474,
+          35.30168776371308,
+          30.37426326129666,
+          35.34501061571125
+        ],
+        "warm_orange_pixels": [
+          291,
+          277,
+          331,
+          263
+        ],
+        "sha256": "b9830a2eb06be76b860cd77c6b4b3366ea03f62554e8bd80572e055bce0a9a87"
+      },
+      {
+        "file": "e_mother_attack.png",
+        "size": [
+          136,
+          32
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            1,
+            2,
+            33,
+            32
+          ],
+          [
+            1,
+            5,
+            32,
+            32
+          ],
+          [
+            1,
+            2,
+            32,
+            32
+          ],
+          [
+            2,
+            3,
+            32,
+            32
+          ]
+        ],
+        "centroids_x": [
+          16.77263157894737,
+          17.40084388185654,
+          14.93713163064833,
+          17.422505307855626
+        ],
+        "warm_orange_pixels": [
+          76,
+          69,
+          85,
+          68
+        ],
+        "sha256": "bf5feb1575d256642525851146eb26f102882a58c68e282a221195daf8b0f207"
+      }
+    ]
+  },
+  {
+    "id": "mimic",
+    "palette_counts": {
+      "1": 15,
+      "2": 15
+    },
+    "alignment": {},
+    "files": [
+      {
+        "file": "e_mimic@2x.png",
+        "size": [
+          120,
+          56
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            4,
+            24,
+            56,
+            56
+          ],
+          [
+            4,
+            16,
+            56,
+            56
+          ]
+        ],
+        "centroids_x": [
+          29.839130434782607,
+          28.692307692307693
+        ],
+        "warm_orange_pixels": [
+          239,
+          251
+        ],
+        "sha256": "9a0cb69bea76689e438ce399024eafd415b1b58688c526d36f5da3ce0ce03d52"
+      },
+      {
+        "file": "e_mimic.png",
+        "size": [
+          60,
+          28
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            2,
+            12,
+            28,
+            28
+          ],
+          [
+            2,
+            8,
+            28,
+            28
+          ]
+        ],
+        "centroids_x": [
+          14.669565217391304,
+          14.096153846153847
+        ],
+        "warm_orange_pixels": [
+          59,
+          61
+        ],
+        "sha256": "cd79b995786554298602960d1b7e39f3ed78ca09e44fb6a0e460f1fe194c6684"
+      },
+      {
+        "file": "e_mimic_move@2x.png",
+        "size": [
+          240,
+          56
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            4,
+            12,
+            56,
+            56
+          ],
+          [
+            4,
+            6,
+            56,
+            56
+          ],
+          [
+            4,
+            8,
+            56,
+            56
+          ],
+          [
+            4,
+            12,
+            54,
+            56
+          ]
+        ],
+        "centroids_x": [
+          27.91951219512195,
+          29.69178082191781,
+          30.70525059665871,
+          30.452879581151834
+        ],
+        "warm_orange_pixels": [
+          232,
+          249,
+          237,
+          211
+        ],
+        "sha256": "a6c48cdd46a31ee709ce8e35b373ad80e47530ec103df0e5e1baea6a6c4843f9"
+      },
+      {
+        "file": "e_mimic_move.png",
+        "size": [
+          120,
+          28
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            2,
+            6,
+            28,
+            28
+          ],
+          [
+            2,
+            3,
+            28,
+            28
+          ],
+          [
+            2,
+            4,
+            28,
+            28
+          ],
+          [
+            2,
+            6,
+            27,
+            28
+          ]
+        ],
+        "centroids_x": [
+          13.709756097560975,
+          14.595890410958905,
+          15.102625298329356,
+          14.976439790575917
+        ],
+        "warm_orange_pixels": [
+          54,
+          60,
+          60,
+          49
+        ],
+        "sha256": "517f4d7e8db71c1146ab09006913965798caf309d6399f26e87f0adb3019cc23"
+      },
+      {
+        "file": "e_mimic_attack@2x.png",
+        "size": [
+          240,
+          56
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            4,
+            8,
+            56,
+            56
+          ],
+          [
+            4,
+            6,
+            56,
+            56
+          ],
+          [
+            2,
+            2,
+            56,
+            56
+          ],
+          [
+            4,
+            12,
+            56,
+            56
+          ]
+        ],
+        "centroids_x": [
+          29.669082125603865,
+          29.556603773584907,
+          29.23308270676692,
+          27.91951219512195
+        ],
+        "warm_orange_pixels": [
+          235,
+          243,
+          265,
+          232
+        ],
+        "sha256": "4d78a342905c429cf7fe65c70fa3d60af84aed45054738cdb25578aa04d4a939"
+      },
+      {
+        "file": "e_mimic_attack.png",
+        "size": [
+          120,
+          28
+        ],
+        "binary_alpha": true,
+        "closed_outline": true,
+        "alpha_unchanged": true,
+        "bboxes": [
+          [
+            2,
+            4,
+            28,
+            28
+          ],
+          [
+            2,
+            3,
+            28,
+            28
+          ],
+          [
+            1,
+            1,
+            28,
+            28
+          ],
+          [
+            2,
+            6,
+            28,
+            28
+          ]
+        ],
+        "centroids_x": [
+          14.584541062801932,
+          14.528301886792454,
+          14.36654135338346,
+          13.709756097560975
+        ],
+        "warm_orange_pixels": [
+          58,
+          59,
+          64,
+          54
+        ],
+        "sha256": "6a9b91a593c647cb78f48cd85e7f2ce5c0e63e54ee77e3351f072e60943ef371"
+      }
+    ]
+  }
+]

@@ -229,30 +229,38 @@ func _bot_pick_inner() -> int:
 
 
 ## --knightshots（结局二终局验收，10-14；配 --balance --relics=222）：骑士开始走向黑潮中心后 24 帧截 shot_knight_walk.png，
-## 入潮演出中截 shot_knight_sink.png，消失后 12 帧截 shot_knight_hud.png（HUD 灰格），最终 Boss 出现后 30 帧截 shot_knight_boss.png 并退出。
-## 无头不截（只走流程）。
-var _ks := {"walk": -1, "sink": false, "hud": -1, "boss": -1}
+## 入潮演出中截 shot_knight_sink.png，消失后 12 帧截 shot_knight_hud.png（HUD 灰格），最终 Boss 出现后 30 帧截 shot_knight_boss.png，
+## 150 帧截 shot_knight_boss2.png 并退出。无头不截（只走流程）。
+## 镜头一瞥开着时（缺省，game.camera_glance）：不用 view_override，截图按一瞥的节奏（--fixed-fps 60：0.35 秒去 + 0.6 秒停 + 0.35 秒回 = 78 帧）——
+## sink（入潮 +24 帧，镜头停在圈心）、hud（+48 帧，仍在圈心）、sink_back（+90 帧，镜头已回到队长）、boss（+30 帧，圈心）、boss_back（+90 帧，队长）。
+## 关着时（--bal=render/camera_glance=0）照旧用 view_override 把镜头指过去。
+var _ks := {"walk": -1, "sink": -1, "hud": -1, "boss": -1}
 func _knight_shots() -> void:
 	var shot := func(name: String) -> void:
 		if DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_knight_%s.png" % name)
 		var kp: Vector2 = g.knight.pos - g.ppos
 		var bp: Vector2 = (g.final_boss.pos - g.ppos) if g.final_boss != null else Vector2.INF
-		print("KNIGHTSHOT %s t=%.1f knight_off=%s boss_off=%s zone_off=%s" % [name, g.t, kp.round(), bp.round(), (g.zone_c - g.ppos).round()])
+		print("KNIGHTSHOT %s t=%.1f knight_off=%s boss_off=%s zone_off=%s cam_off=%s" % [name, g.t, kp.round(), bp.round(), (g.zone_c - g.ppos).round(), (g.cam.position - g.ppos).round()])
 	var k = g.knight
-	# 黑潮中心通常在屏幕外（离队长 400–600）：入潮演出到灰格截图期间、Boss 登场后，镜头临时看向那里（只动镜头）
+	var glance: bool = Bal.vi("render/camera_glance", 1) > 0 and not g.headless_batch
+	# 黑潮中心通常在屏幕外（离队长 400–600）：一瞥关着时，入潮演出到灰格截图期间、Boss 登场后，镜头临时看向那里（只动镜头）
 	g.view_override = Vector2.INF
-	if (k.alive and k.state == "sink") or (k.submerged and _ks.hud >= 0 and g.at_frames <= _ks.hud + 12):
-		g.view_override = k.vanish_pos
-	elif _ks.boss >= 0 and g.final_boss != null:
-		g.view_override = g.final_boss.pos
+	if not glance:
+		if (k.alive and k.state == "sink") or (k.submerged and _ks.hud >= 0 and g.at_frames <= _ks.hud + 12):
+			g.view_override = k.vanish_pos
+		elif _ks.boss >= 0 and g.final_boss != null:
+			g.view_override = g.final_boss.pos
 	if _ks.walk < 0 and k.alive and k.state == "walk":
 		_ks.walk = g.at_frames
 	if _ks.walk >= 0 and g.at_frames == _ks.walk + 24:
 		shot.call("walk")
-	if not _ks.sink and k.alive and k.state == "sink" and k.st >= 0.12:
-		_ks.sink = true
+	if _ks.sink < 0 and k.alive and k.state == "sink":
+		_ks.sink = g.at_frames
+	if _ks.sink >= 0 and g.at_frames == _ks.sink + (24 if glance else 7):
 		shot.call("sink")
+	if glance and _ks.sink >= 0 and g.at_frames == _ks.sink + 90:
+		shot.call("sink_back")
 	if _ks.hud < 0 and k.submerged:
 		_ks.hud = g.at_frames
 	if _ks.hud >= 0 and g.at_frames == _ks.hud + 12:
@@ -261,6 +269,8 @@ func _knight_shots() -> void:
 		_ks.boss = g.at_frames
 	if _ks.boss >= 0 and g.at_frames == _ks.boss + 30:
 		shot.call("boss")
+	if glance and _ks.boss >= 0 and g.at_frames == _ks.boss + 90:
+		shot.call("boss_back")
 	if _ks.boss >= 0 and g.at_frames == _ks.boss + 150:
 		shot.call("boss2")   # Boss 登场演出过后，看得见 Boss 本体与场地
 		g.get_tree().quit()
