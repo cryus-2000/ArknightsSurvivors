@@ -463,6 +463,21 @@ game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCo
 - **金样**（docs/36 §1.3）：`tools/check.py` 的本干员侧加 `blocks/ob_*.gd`（公共）与 `blocks/seg_<id>.gd`（本人，`specter_unchained` → `seg_specter`）。纯搬家会动到所有 seg，每组的「别处」都含别人的 seg，所以拆分分支上金样一律判「过期」；对照改用两个新环境变量：在改前提交的临时工作树里 `ARK_GOLDEN_DIR=<临时目录> check.py --only blocks_eq --eq-all --update-golden` 录一份，分支上 `ARK_EQ_FORCE=1 ARK_GOLDEN_DIR=<同一目录>` 过期也照比。
 - **验证**：积木等价 28 / 28 与改前金样逐字相同；星熊 / 能天使 / 浊心斯卡蒂 / 维什戴尔 `--maxprog --sptest` 240 秒 TRACE 对改前逐行相同；`check --auto` 见提交说明。
 
+### 7.4 B7 实施方案（架构，10-15 起草；换基线，开工前协调人安排云端新基线）
+
+B7 是唯一一次「同 seed 会变」的步骤：用户 10-15 已同意换基线。做法是**一条分支上按下面次序逐项做，每项本地 TRACE 只看「变了、没报错、局能打完」，全部做完后一次性上云跑新基线**，与旧基线比胜率 / 用时 / 掉落等汇总指标（docs/50 口径，差 <10 点不下结论），通过后把新基线登记进 docs/36 §8。
+
+| 序 | 内容 | 涉及 | 说明 |
+|---|---|---|---|
+| ① | **随机流拆分**：g.rng 之外按用途派生独立流（局种子 + 固定盐）：`rng_spawn`（刷怪 / 远距回收落点 edge_pos）、`rng_enemy`（敌人 AI 计时、冲刺 / 新星、吞噬判定）、`rng_drop`（掉落）、`rng_op`（干员积木）；g.rng 留给其余玩法 | spawner、enemy_ai、enemies、pickups、op_blocks（干员） | 原生段里不能抽随机数（§4.5）；拆开后一处多抽 / 少抽不再带歪整局序列，以后改动的同 seed 影响面也小 |
+| ② | **§3.4 修正**：① 冲刺 / 新星计时缺省值每帧白抽（先 has 再抽）；③④ 画面用了玩法流（改 vrng）；⑦ 我方弹体查询半径（b.r + 最大 e.r）；⑨ 敌弹字段统一（src_type / boss）；⑥ 失重击退统一走 apply_kb（干员 B6 ⑤ 的 ob_geom 一起做） | enemy_ai、enemies、weapons、squad / characters、op_blocks（干员） | 都是 bug，修了才符合设计 |
+| ③ | **敌人更新拆三段**：A 决策段（计时、持续伤害、Boss 步、eai.pattern / shoot、远距回收、进化）→ B 运动段（移动、分离、积分、场地约束、push_out，产出接触 / 吞噬候选，不抽随机数、不回调）→ C 结算段（接触伤害、吞噬掷骰用 rng_enemy、形变 morph）；网格在 A 之后、B 之前建（顺带修 ⑧） | enemies.gd、enemy_ai | B 段就是将来的 EnemyCore.step；三段之间敌人先后次序与原来的「一只走完再下一只」不同，这是换基线的主要来源 |
+| ④ | **敌方投射物池**：ebullets / lobs / shocks 合进一个 SoA 池（kind = 直线 / 追踪 / 抛物 / 环），推进顺序固定；绘制改读池 | enemies.gd、world 绘制约 30 处、敌弹 6 个生产点（Boss与怪物） | 将来的 EnemyShotPool.step |
+| ⑤ | **g.hit 显式传参**（B1 推迟项）：combat.damage(e, dmg, hit)；op_api 门面 log_hit / deal_damage 保持接口，内部不再依赖全局 | combat、op_api、relic_fx、weapons | 嵌套结算不再靠存 / 恢复 |
+| ⑥ | **我方投射物池**（g.bullets + relic_fx 地雷 / 炸弹 / 桩 + 干员私有表）| weapons、relic_fx、op_blocks（干员） | 量最大，可以拆到 B7 之后、B8 之前单独做，不影响 EnemyCore |
+
+建议 ①–⑤ 一次换基线；⑥ 视干员 B6 进度另排（也会变，届时再跑一次云端基线）。每项单独提交，提交说明写「会变」的来源；本地另跑 `--bosstimes` 三局确认 9 个 Boss 都能打完。
+
 ## 8. 需要用户定的事项
 
 > **2026-10-15 用户全部批准（协调人转达），按建议执行**：
