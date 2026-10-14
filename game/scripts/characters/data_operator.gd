@@ -617,10 +617,7 @@ func on_mate_attack(m) -> void:
 func demo_hurt() -> void:
 	if g.demo_op == "" or g.combat == null:
 		return
-	var keep: Dictionary = g.combat.cur_src
-	g.combat.cur_src = {}
-	dmg_taken_mult()
-	g.combat.cur_src = keep
+	dmg_taken_mult({}, 0.0)
 
 
 func _release_skill() -> void:
@@ -1010,9 +1007,9 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 				neg_armed[cur_skill] = b
 
 
-## 主控受击询问（combat.gd enemy_hit）：先用待命的 negate_next，再按固定顺序过 trig.on_hurt；格挡了返回 0，否则返回 verb.dr 的乘积
-func dmg_taken_mult() -> float:
-	var src: Dictionary = g.combat.cur_src
+## 主控受击询问（combat.gd enemy_hit）：先用待命的 negate_next，再按固定顺序过 trig.on_hurt；格挡了返回 0，否则返回 verb.dr 的乘积。
+## src = 这一下的来源（读 boss），dmg = 这一下（已乘前面干员减伤）的伤害（护盾按它算吸收量）
+func dmg_taken_mult(src: Dictionary, dmg: float) -> float:
 	var boss: bool = src.get("boss", false)
 	var negated := false
 	if not neg_armed.is_empty():
@@ -1044,7 +1041,7 @@ func dmg_taken_mult() -> float:
 		_defer(t.get("do", []))
 	if not negated:
 		var dr0: float = OB.h4_live_dr(self) if not hw.is_empty() and OB.h4_on(self) else ext_dr   # 手写迁移段第 4 批：verb.dr 当刻现算（精英化当帧生效，同手写）
-		return OB.shield_mult(self, OB.mf_guard_mult(self, dr0))   # 召唤物扩展段 verb.guard 的限时减伤；召唤 / 封印段：verb.shield 在减伤之后吸收（没有护盾时原样返回）
+		return OB.shield_mult(self, OB.mf_guard_mult(self, dr0), dmg)   # 召唤物扩展段 verb.guard 的限时减伤；召唤 / 封印段：verb.shield 在减伤之后吸收（没有护盾时原样返回）
 	negate_n += 1
 	for t in _trigs():
 		if str(t.get("_tag", "")) == "trig.on_negate" and OB.cond_true(self, t.get("cond", _ED)):

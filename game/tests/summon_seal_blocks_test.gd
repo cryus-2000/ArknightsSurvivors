@@ -378,13 +378,11 @@ func test_shield_heal(o) -> void:
 	near(float(o.sm.shield), mh * 0.2, "S3 护盾 = 20% 最大生命")
 	o._release_skill()
 	near(float(o.sm.shield), mh * 0.3, "叠加封顶 cap 30%")
-	game.combat.cur_dmg = 10.0
-	near(o.dmg_taken_mult(), 0.0, "护盾全吸收：倍率 0（combat 按作废处理）")
+	near(o.dmg_taken_mult({}, 10.0), 0.0, "护盾全吸收：倍率 0（combat 按作废处理）")
 	near(float(o.sm.shield), mh * 0.3 - 10.0, "吸收量从护盾里扣")
 	o.sm.shield = 3.0
-	near(o.dmg_taken_mult(), 0.7, "护盾只剩 3：吸收 3，倍率 0.7")
+	near(o.dmg_taken_mult({}, 10.0), 0.7, "护盾只剩 3：吸收 3，倍率 0.7")
 	near(float(o.sm.shield), 0.0, "护盾打空")
-	game.combat.cur_dmg = 0.0
 	# 经 combat.enemy_hit 走一遍：护盾吸收整下 → 不扣血
 	o._release_skill()
 	var hp0: float = game.hp
@@ -392,7 +390,7 @@ func test_shield_heal(o) -> void:
 	game.in_type = ["近战", "物理"]
 	game.combat.enemy_hit(20.0, {}, false, true)
 	ok(game.hp == hp0, "enemy_hit：护盾吸收整下，主控不掉血（%.1f → %.1f）" % [hp0, game.hp])
-	ok(float(o.sm.shield) < mh * 0.3, "enemy_hit 扣了护盾（combat.cur_dmg 接上了）")
+	ok(float(o.sm.shield) < mh * 0.3, "enemy_hit 扣了护盾（受击询问传了这一下的伤害）")
 	var sh: float = o.sm.shield
 	OB.sm_tick(o, 1.0)
 	near(float(o.sm.shield), sh * (1.0 - 0.05), "每秒按当前量衰减 5%", 0.01)
@@ -435,4 +433,4 @@ func test_old_data_op() -> void:
 	if sk != null:
 		OB.sm_tick(sk, 0.1)
 		ok(sk.sm.is_empty() and sk.extra_bodies().is_empty() and OB.sm_status_items(sk).is_empty(), "老数据干员用不到召唤 / 封印段")
-		near(OB.shield_mult(sk, 0.8), 0.8, "没有护盾时受击倍率原样返回")
+		near(OB.shield_mult(sk, 0.8, 10.0), 0.8, "没有护盾时受击倍率原样返回")

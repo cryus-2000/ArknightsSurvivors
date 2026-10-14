@@ -687,7 +687,7 @@ python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot mas
 
 受击询问里触发的 `do`（反击、推开、震退）推迟到本干员下一次 `update` 开头执行（延迟队列 t = 0）：`enemy_hit` 常在敌人遍历中途被调用，不在那里造成伤害 / 击杀。
 
-**combat.gd 1 处**（docs/59 §6 预计的「0–1 处」，通用挂点，任何干员都能用）：`enemy_hit` 询问 `dmg_taken_mult` 期间把来源放进 `combat.cur_src`（读 `boss`）；任一干员返回 ≤ 0 即**整下作废**——不扣血、不掉灯火、不吃控制 / 侵蚀、不算「受伤」（同闪避，给 0.3 秒无敌）。
+**combat.gd 1 处**（docs/59 §6 预计的「0–1 处」，通用挂点，任何干员都能用）：`enemy_hit` 询问 `dmg_taken_mult(src, dmg)`（来源 `src` 读 `boss`；10-15 起显式传参，原 `combat.cur_src`，docs/101 B1）；任一干员返回 ≤ 0 即**整下作废**——不扣血、不掉灯火、不吃控制 / 侵蚀、不算「受伤」（同闪避，给 0.3 秒无敌）。
 需要这一处是因为 `hurt()` 对物理伤害有 `max(1, dmg − armor)` 的底、灯火流失有 `hit_base 4` 的底，乘 0 仍会掉 1 血和 4 灯火。现有干员的 `dmg_taken_mult` 都 > 0，行为不变。
 
 ### 积木写法
@@ -1134,14 +1134,14 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 `_exec_list` 缺省分支调 `sm_exec`、`dmg_taken_mult` 末尾调 `shield_mult`、`extra_bodies / draw_extra / draw_extra_shadows / _draw_skill_over / status_items / on_leave`。
 运行时状态在干员的 `sm` 字典（**不放 `ext`**：`ext` 非空会被能天使段当成「用得到」）；`sm` 为空时这些转发一律直接返回。
 
-游戏侧挂点（敌人一侧，封印读 `e.seal_t`，护盾读 `combat.cur_dmg`）：
+游戏侧挂点（敌人一侧，封印读 `e.seal_t`，护盾读受击询问的参数 `dmg`）：
 
 | 文件 | 处 | 做什么 |
 |---|---|---|
 | `run/enemies.gd` | 2 | 非 Boss 被封印时不调 `enemy_ai.pattern`（`enemy_ai.busy(e)` = 已经起手的冲刺 / 蓄力 / 环弹 / 自爆照常走完）；远程开火条件加 `not sealed` |
 | `enemies/enemy_ai.gd` | 1 | 新函数 `busy(e)` |
 | `boss_ai.gd` | 1 | Boss 被封印时 `ready = false`（不起新招，冷却照走） |
-| `run/combat.gd` | 3 | 封印时甲壳词条的防御倍率还原、潮盾不挡；`enemy_hit` 询问 `dmg_taken_mult` 前把这一下的伤害放进 `combat.cur_dmg` |
+| `run/combat.gd` | 3 | 封印时甲壳词条的防御倍率还原、潮盾不挡；`enemy_hit` 询问 `dmg_taken_mult(src, dmg)` 时传这一下的伤害（10-15 前是 `combat.cur_dmg`） |
 
 没有封印 / 护盾时这些分支都不走：**老干员同 seed `TRACE` / `BALANCE` 逐字节不变**（§15.7）。
 

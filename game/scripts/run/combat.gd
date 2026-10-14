@@ -41,8 +41,6 @@ var high_t := -INF           # 最近一次「扣血前生命 ≥ fullhp_guard_a
 var guard_end := -INF        # 满血保护触发后兜底到的时刻（这一轮连击结束：high_t + fullhp_guard_combo）
 var guard_ready := 0.0       # 满血保护下次可用的时刻（g.t）
 var enemy_stun_next := 0.0   # 普通怪短僵直的全局间隔，避免多只怪连续控住主控
-var cur_dmg := 0.0   # 同上期间 = 这一下的伤害（干员护盾 verb.shield 读，docs/61 §15）
-var cur_src: Dictionary = {}   # enemy_hit 询问干员 dmg_taken_mult 期间 = 这一下的来源（数据干员 trig.on_hurt 读 boss，docs/61「星熊」节）
 
 
 func _init(game: Game) -> void:
@@ -69,17 +67,16 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	if g.shield > 0:
 		shield_block()
 		return
-	cur_src = src
 	var negated := false
 	for o in g.squad.ops:
 		if o.has_method("dmg_taken_mult"):
-			cur_dmg = dmg   # 这一下（已乘前面干员的减伤）的伤害：干员护盾（docs/61 §15 verb.shield）按它算吸收量
-			var m: float = o.dmg_taken_mult()
+			# 受击询问（docs/101 B1：显式传参）：src = 这一下的来源（数据干员 trig.on_hurt 读 boss，docs/61「星熊」节）；
+			# dmg = 这一下（已乘前面干员的减伤）的伤害，干员护盾（docs/61 §15 verb.shield）按它算吸收量
+			var m: float = o.dmg_taken_mult(src, dmg)
 			negated = negated or m <= 0.0
 			if g.bot != null and m < 1.0:
 				g.telemetry.note_dr(str(o.id), dmg * (1.0 - maxf(0.0, m)))   # docs/88 遥测：只在 --balance 下记
 			dmg *= m
-	cur_src = {}
 	# 干员格挡（dmg_taken_mult 返回 0，docs/59 §3 星熊「战术装甲」）：这一下整个作废——不扣血、不掉灯火、不吃控制 / 侵蚀，同闪避给 0.3 秒无敌
 	if negated:
 		g.invuln = maxf(g.invuln, 0.3)

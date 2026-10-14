@@ -7,7 +7,7 @@ extends "res://scripts/characters/blocks/ob_vortex.gd"
 # validate 认 blocks.summons 段、_block 里 SM_TAGS 命中时转给 _sm_block、apply_status 的 st.seal 绕开「Boss 缺省不受」（Boss 有自己的规则）。
 # data_operator.gd 对应的转发都标了「召唤 / 封印段」；运行时状态在干员的 sm 字典（不放 ext：ext 非空会被能天使段当成用得到）。
 # 游戏侧挂点（敌人一侧，封印读 e.seal_t）：run/enemies.gd 2 处（特殊招式 pattern、远程开火）、boss_ai.gd 1 处（Boss 出招 ready）、
-# run/combat.gd 2 处（甲壳 / 潮盾词条失效）+ 1 处（受击询问时把这一下的伤害放进 combat.cur_dmg，护盾用）。没有封印 / 护盾时这些分支都不走，老干员逐字节不变。
+# run/combat.gd 2 处（甲壳 / 潮盾词条失效）+ 1 处（受击询问 dmg_taken_mult(src, dmg) 传这一下的伤害，护盾用）。没有封印 / 护盾时这些分支都不走，老干员逐字节不变。
 #
 #  verb.summon  瞬时：召唤 n 个 kind（写在 blocks.summons.<kind>）的召唤物。at：self（缺省）/ leader / target / zone；spread 散开半径；life 可覆盖种类的 life
 #  st.seal      命中状态（on_hit / 力场 tick）：封印 dur 秒——非 Boss 敌人不起新的特殊招式（enemy_ai 的 pattern：冲刺 / 吐酸 / 环弹 / 神经光环 / 额外招式……）、
@@ -622,12 +622,11 @@ static func shield_add(o, b: Dictionary) -> void:
 		fx_play(o, b.fx, g.ppos, 30.0)
 
 
-## 受击询问（data_operator.dmg_taken_mult 末尾）：m = 其余减伤的乘积；护盾吸收 combat.cur_dmg × m 里能吸的部分，返回新的倍率
+## 受击询问（data_operator.dmg_taken_mult 末尾）：m = 其余减伤的乘积，raw = 这一下的伤害；护盾吸收 raw × m 里能吸的部分，返回新的倍率
 ## （全吸收 = 0，combat 按「这一下作废」处理：不扣血、不掉灯火，给 0.3 秒无敌）
-static func shield_mult(o, m: float) -> float:
+static func shield_mult(o, m: float, raw: float) -> float:
 	if o.sm.is_empty() or float(o.sm.shield) <= 0.0:
 		return m
-	var raw: float = float(o.g.combat.cur_dmg)
 	var d: float = raw * m
 	if raw <= 0.0 or d <= 0.0:
 		return m

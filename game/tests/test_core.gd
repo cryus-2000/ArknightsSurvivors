@@ -692,7 +692,7 @@ func test_blocks_summon_seal() -> void:
 	ok(not ("summon" in OB.PLANNED.verb) and not ("shield" in OB.PLANNED.verb) and not ("heal" in OB.PLANNED.aura), "verb.summon / verb.shield / aura.heal 不再是「已登记未实现」")
 	# 封印时长
 	var o := FakeOp.new()
-	o.g = {"t": 5.0, "ppos": Vector2.ZERO, "combat": {"cur_dmg": 0.0}}
+	o.g = {"t": 5.0, "ppos": Vector2.ZERO}
 	var ids := [0]
 	var mk := func(elite: bool, boss: bool) -> Dictionary:
 		ids[0] += 1
@@ -726,11 +726,10 @@ func test_blocks_summon_seal() -> void:
 	ok(o.sm.seal.size() == 4, "施加者记下被封印的敌人（画标记用）")
 	# 护盾吸收倍率：m = 其余减伤；全吸收 0，部分吸收按比例
 	o.sm.shield = 6.0
-	o.g.combat.cur_dmg = 10.0
-	near(OB.shield_mult(o, 0.5), 0.0, "护盾 6 吸收 10 × 0.5 = 5：倍率 0")
+	near(OB.shield_mult(o, 0.5, 10.0), 0.0, "护盾 6 吸收 10 × 0.5 = 5：倍率 0")
 	near(float(o.sm.shield), 1.0, "护盾剩 1")
-	near(OB.shield_mult(o, 1.0), 0.9, "护盾 1 吸收 1：倍率 0.9")
-	near(OB.shield_mult(o, 0.7), 0.7, "护盾空了：倍率原样")
+	near(OB.shield_mult(o, 1.0, 10.0), 0.9, "护盾 1 吸收 1：倍率 0.9")
+	near(OB.shield_mult(o, 0.7, 10.0), 0.7, "护盾空了：倍率原样")
 	# 召唤物攻击距离（× op_range，FakeOp 1.5）
 	near(OB.sm_reach(o, {"shape": "circle", "r": 20}), 30.0, "以自身为心的圆：半径 × op_range")
 	near(OB.sm_reach(o, {"shape": "circle", "r": 20, "center": "target"}), 60.0, "以目标为心的圆：40 × op_range")
