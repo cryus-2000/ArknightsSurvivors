@@ -1,0 +1,752 @@
+{
+  "spec": "docs/95 batch1 + 13.1 / docs98",
+  "scope": "6 body strips in 1x/@2x and 22 existing body strips @2x; no fx/projectiles/game changes",
+  "animations": [
+    {
+      "name": "e_paranoia",
+      "frame_size": [
+        72,
+        72
+      ],
+      "count": 2,
+      "sha256_1x": "462976df7b5844ec70dcfa5be089a7cee39a9bf0b851a86b706954b5f1e45226",
+      "boss": "paranoia",
+      "kind": "existing_hires",
+      "source": "29cfbb87-1ae8-4827-979c-540be0af2ea1"
+    },
+    {
+      "name": "e_paranoia_move",
+      "frame_size": [
+        72,
+        72
+      ],
+      "count": 4,
+      "sha256_1x": "24a631187c86b3e3b354d95f8d816416bd568f966673b12da1c8389ad5d334ca",
+      "boss": "paranoia",
+      "kind": "existing_hires",
+      "source": "29cfbb87-1ae8-4827-979c-540be0af2ea1"
+    },
+    {
+      "name": "e_paranoia_phase2",
+      "frame_size": [
+        72,
+        72
+      ],
+      "count": 2,
+      "sha256_1x": "ef166f6f15398306109a77f1c9469d3a8d550054cc78d7484941b29bb2d9f353",
+      "boss": "paranoia",
+      "kind": "existing_hires",
+      "source": "29cfbb87-1ae8-4827-979c-540be0af2ea1"
+    },
+    {
+      "name": "e_paranoia_phase2_move",
+      "frame_size": [
+        72,
+        72
+      ],
+      "count": 4,
+      "sha256_1x": "a5227593196beea08e751042f10c09df58a56cc102b51951422ae1af9452c4f7",
+      "boss": "paranoia",
+      "kind": "existing_hires",
+      "source": "29cfbb87-1ae8-4827-979c-540be0af2ea1"
+    },
+    {
+      "name": "e_ishar",
+      "frame_size": [
+        80,
+        80
+      ],
+      "count": 2,
+      "sha256_1x": "bda9e0c60701a0338ea01ce718b892ae1022806237c3d5439b305628b306742f",
+      "boss": "ishar",
+      "kind": "existing_hires",
+      "source": "a74bf956-f53a-46db-91b3-de41181403c1"
+    },
+    {
+      "name": "e_ishar_attack",
+      "frame_size": [
+        80,
+        80
+      ],
+      "count": 4,
+      "sha256_1x": "44c5a817032f42fb8c3e49c2fe9c3f0c12572d869d72af33db946f571e6935cb",
+      "boss": "ishar",
+      "kind": "existing_hires",
+      "source": "a74bf956-f53a-46db-91b3-de41181403c1"
+    },
+    {
+      "name": "e_ishar_move",
+      "frame_size": [
+        80,
+        80
+      ],
+      "count": 4,
+      "sha256_1x": "8aaa22b27086b27f9d405c8079857a8faaa44ba806d33a97cc33c4fb248993fc",
+      "boss": "ishar",
+      "kind": "existing_hires",
+      "source": "a74bf956-f53a-46db-91b3-de41181403c1"
+    },
+    {
+      "name": "e_ishar_t",
+      "frame_size": [
+        112,
+        96
+      ],
+      "count": 2,
+      "sha256_1x": "96b04ceeaac66415f2486a66adffcfc3afdd2e9dd596e453ff813eedcf664e14",
+      "boss": "ishar",
+      "kind": "existing_hires",
+      "source": "a74bf956-f53a-46db-91b3-de41181403c1"
+    },
+    {
+      "name": "e_ishar_t_attack",
+      "frame_size": [
+        112,
+        96
+      ],
+      "count": 4,
+      "sha256_1x": "fa946fd1ade27f83fdb508c49ed12875d507723b6e174cf3c9477c49b25a2861",
+      "boss": "ishar",
+      "kind": "existing_hires",
+      "source": "a74bf956-f53a-46db-91b3-de41181403c1"
+    },
+    {
+      "name": "e_ishar_t_move",
+      "frame_size": [
+        112,
+        96
+      ],
+      "count": 4,
+      "sha256_1x": "667dce957a6d7bc95b20a0e61a4958f7769f9417a62fc917be7cd83ff0b76016",
+      "boss": "ishar",
+      "kind": "existing_hires",
+      "source": "a74bf956-f53a-46db-91b3-de41181403c1"
+    },
+    {
+      "name": "e_ishar_transform",
+      "frame_size": [
+        112,
+        96
+      ],
+      "count": 6,
+      "sha256_1x": "be4dd2e3e9a8ae33eabdc979ddc3c3ef14f9c92819b2c5656155aadf30c7ff19",
+      "boss": "ishar",
+      "kind": "existing_hires",
+      "source": "a74bf956-f53a-46db-91b3-de41181403c1"
+    },
+    {
+      "name": "e_izumik",
+      "frame_size": [
+        72,
+        72
+      ],
+      "count": 2,
+      "sha256_1x": "5d48d8f82ee6549cfee682a928d0b5abc4419afd89690ab2ca368f08964fd5b5",
+      "boss": "izumik",
+      "kind": "existing_hires",
+      "source": "d319565c-8028-4f41-b722-5b81e5b5feda"
+    },
+    {
+      "name": "e_izumik_attack",
+      "frame_size": [
+        72,
+        72
+      ],
+      "count": 4,
+      "sha256_1x": "b7118a6203427c331592e60bdde4bd884fc422b1f91d7460f7f8f0d4b9b154c5",
+      "boss": "izumik",
+      "kind": "existing_hires",
+      "source": "d319565c-8028-4f41-b722-5b81e5b5feda"
+    },
+    {
+      "name": "e_izumik_move",
+      "frame_size": [
+        72,
+        72
+      ],
+      "count": 4,
+      "sha256_1x": "f752347b5c9a974daff4f2a362ab23b2506ba876d98dc51b412ecf2600430ceb",
+      "boss": "izumik",
+      "kind": "existing_hires",
+      "source": "d319565c-8028-4f41-b722-5b81e5b5feda"
+    },
+    {
+      "name": "e_izumik_rooting",
+      "frame_size": [
+        72,
+        72
+      ],
+      "count": 4,
+      "sha256_1x": "031c456479b2d5328f4e577acfc9779524e9314cc5ab0930986a1c4027c4c20c",
+      "boss": "izumik",
+      "kind": "existing_hires",
+      "source": "d319565c-8028-4f41-b722-5b81e5b5feda"
+    },
+    {
+      "name": "e_knight",
+      "frame_size": [
+        96,
+        80
+      ],
+      "count": 2,
+      "sha256_1x": "7896c805a8f1fc15dd10551f3899364d4469f72493cc1e158c24200c8b53f890",
+      "boss": "knight",
+      "kind": "existing_hires",
+      "source": "133272c5-8c11-459b-bb0d-340e135a56ea"
+    },
+    {
+      "name": "e_knight_attack",
+      "frame_size": [
+        96,
+        80
+      ],
+      "count": 4,
+      "sha256_1x": "8d4489bfae6f0b148dd8d8ef62113d84934c1f5f685f8faaac5ff096fbfd8d0c",
+      "boss": "knight",
+      "kind": "existing_hires",
+      "source": "133272c5-8c11-459b-bb0d-340e135a56ea"
+    },
+    {
+      "name": "e_knight_charge",
+      "frame_size": [
+        96,
+        80
+      ],
+      "count": 4,
+      "sha256_1x": "02aafd9b174a0e002e69e368dfb07d813d3524b81ea9bfacaa02db7ed1f863d5",
+      "boss": "knight",
+      "kind": "existing_hires",
+      "source": "133272c5-8c11-459b-bb0d-340e135a56ea"
+    },
+    {
+      "name": "e_knight_charge_form",
+      "frame_size": [
+        96,
+        80
+      ],
+      "count": 4,
+      "sha256_1x": "597b6545167b9fc195fcf50e47497ec019d4ca8940d7d9be6297ef171e044098",
+      "boss": "knight",
+      "kind": "existing_hires",
+      "source": "133272c5-8c11-459b-bb0d-340e135a56ea"
+    },
+    {
+      "name": "e_knight_death",
+      "frame_size": [
+        96,
+        80
+      ],
+      "count": 4,
+      "sha256_1x": "dbe0116dc4aabc99c4d9f9342d559c76dd10e7f161f7f0e20714ebbcee9f08c6",
+      "boss": "knight",
+      "kind": "existing_hires",
+      "source": "133272c5-8c11-459b-bb0d-340e135a56ea"
+    },
+    {
+      "name": "e_knight_move",
+      "frame_size": [
+        96,
+        80
+      ],
+      "count": 4,
+      "sha256_1x": "42045384d43625d830db916cba40e3c0195afd186e2e3ecd840c1798899882c6",
+      "boss": "knight",
+      "kind": "existing_hires",
+      "source": "133272c5-8c11-459b-bb0d-340e135a56ea"
+    },
+    {
+      "name": "e_knight_plant",
+      "frame_size": [
+        96,
+        80
+      ],
+      "count": 4,
+      "sha256_1x": "262f3fea4367d3e4caceeaa38fa2e4717040aa73b83efca246988f0f4cf7fcbb",
+      "boss": "knight",
+      "kind": "existing_hires",
+      "source": "133272c5-8c11-459b-bb0d-340e135a56ea"
+    },
+    {
+      "name": "e_paranoia_gaze",
+      "frame_size": [
+        72,
+        72
+      ],
+      "frames": 4,
+      "fps": 10,
+      "foot": [
+        36,
+        69
+      ],
+      "fire": [
+        2
+      ],
+      "loop": false,
+      "densities": [
+        1,
+        2
+      ],
+      "boss": "paranoia",
+      "kind": "new",
+      "source": "b2e854b1-83f5-4976-a642-f5bd3262be36",
+      "uniform_scale": 0.3032967032967033
+    },
+    {
+      "name": "e_paranoia_phase2_howl",
+      "frame_size": [
+        72,
+        72
+      ],
+      "frames": 4,
+      "fps": 10,
+      "foot": [
+        36,
+        69
+      ],
+      "fire": [
+        2
+      ],
+      "loop": false,
+      "densities": [
+        1,
+        2
+      ],
+      "boss": "paranoia",
+      "kind": "new",
+      "source": "234cb52f-edd3-44c3-b6c0-b6629f5a006f",
+      "uniform_scale": 0.2980561555075594
+    },
+    {
+      "name": "e_ishar_t_sing",
+      "frame_size": [
+        112,
+        96
+      ],
+      "frames": 4,
+      "fps": 8,
+      "foot": [
+        56,
+        93
+      ],
+      "fire": [
+        2
+      ],
+      "loop": false,
+      "densities": [
+        1,
+        2
+      ],
+      "boss": "ishar",
+      "kind": "new",
+      "source": "7fd2fc6d-2c67-4991-9eb4-035034fb6998",
+      "uniform_scale": 0.4168260038240918
+    },
+    {
+      "name": "e_izumik_share",
+      "frame_size": [
+        72,
+        72
+      ],
+      "frames": 4,
+      "fps": 10,
+      "foot": [
+        36,
+        69
+      ],
+      "fire": [
+        2
+      ],
+      "loop": false,
+      "densities": [
+        1,
+        2
+      ],
+      "boss": "izumik",
+      "kind": "new",
+      "source": "39f25ba6-5cb6-448e-b2cf-066cd0ef8525",
+      "uniform_scale": 0.2782258064516129
+    },
+    {
+      "name": "e_knight_spin",
+      "frame_size": [
+        96,
+        80
+      ],
+      "frames": 6,
+      "fps": 12,
+      "foot": [
+        48,
+        77
+      ],
+      "fire": [
+        2,
+        3,
+        4
+      ],
+      "loop": false,
+      "densities": [
+        1,
+        2
+      ],
+      "boss": "knight",
+      "kind": "new",
+      "source": "8f66a8cc-d012-4a3b-a108-dcdc70a50940",
+      "uniform_scale": 0.6133333333333333
+    },
+    {
+      "name": "e_knight_thrust",
+      "frame_size": [
+        96,
+        80
+      ],
+      "frames": 3,
+      "fps": 14,
+      "foot": [
+        48,
+        77
+      ],
+      "fire": [
+        1
+      ],
+      "loop": false,
+      "densities": [
+        1,
+        2
+      ],
+      "boss": "knight",
+      "kind": "new",
+      "source": "6febb500-3c7a-4e7a-8665-efee139ac5d2",
+      "uniform_scale": 0.33695652173913043
+    }
+  ],
+  "files": [
+    {
+      "name": "e_paranoia@2x.png",
+      "size": [
+        288,
+        144
+      ],
+      "sha256": "d8b3ab1ea541b33993207d12df5cc29f0a7190fd042014f5d151fab7977d76e9",
+      "colors": 31
+    },
+    {
+      "name": "e_paranoia_move@2x.png",
+      "size": [
+        576,
+        144
+      ],
+      "sha256": "7730462d2ee082529f761000a90520f549af464bcb4f46ea907a596a6a4b49a7",
+      "colors": 31
+    },
+    {
+      "name": "e_paranoia_phase2@2x.png",
+      "size": [
+        288,
+        144
+      ],
+      "sha256": "b1e174276094c2e811da38620c1f6bd346c756e97212a37ec114ed8f1e43e064",
+      "colors": 30
+    },
+    {
+      "name": "e_paranoia_phase2_move@2x.png",
+      "size": [
+        576,
+        144
+      ],
+      "sha256": "ebc3972f1d4cf8f9cb9f73b2b3702a111be3b80b307caa54029f79287755d230",
+      "colors": 30
+    },
+    {
+      "name": "e_ishar@2x.png",
+      "size": [
+        320,
+        160
+      ],
+      "sha256": "f0cecf5d4f8a4dc22a9d619051c3c9d886069b80889c13fb1837e410987ee0bf",
+      "colors": 31
+    },
+    {
+      "name": "e_ishar_attack@2x.png",
+      "size": [
+        640,
+        160
+      ],
+      "sha256": "b89cfd0a456834f70fa38c2ff69f4495476ef3a04a84224b9c629ecba1cbdf14",
+      "colors": 30
+    },
+    {
+      "name": "e_ishar_move@2x.png",
+      "size": [
+        640,
+        160
+      ],
+      "sha256": "1cec4f19731cd04cf499ee2a97cfd96d75fa34f6f49b57d88e45a1497cce7307",
+      "colors": 31
+    },
+    {
+      "name": "e_ishar_t@2x.png",
+      "size": [
+        448,
+        192
+      ],
+      "sha256": "ca3ca3e24153c8909109643d4e3f400bd2ae9995322311f62e3e2300203239d7",
+      "colors": 31
+    },
+    {
+      "name": "e_ishar_t_attack@2x.png",
+      "size": [
+        896,
+        192
+      ],
+      "sha256": "5fab7acb6a3fd7252efda95ead12a7f5112eb795931b1fa1125265c4a415f38f",
+      "colors": 30
+    },
+    {
+      "name": "e_ishar_t_move@2x.png",
+      "size": [
+        896,
+        192
+      ],
+      "sha256": "29d9eb5bc0e86a4657d6bab69a765b8bdbbf42df92fbb54a9533701db3e35aac",
+      "colors": 31
+    },
+    {
+      "name": "e_ishar_transform@2x.png",
+      "size": [
+        1344,
+        192
+      ],
+      "sha256": "009b8f85b63dab0d8b6e34918463e884cf8f78e8c45ea6c31d72ef712e8cf327",
+      "colors": 31
+    },
+    {
+      "name": "e_izumik@2x.png",
+      "size": [
+        288,
+        144
+      ],
+      "sha256": "10df7133a8fb3fcfe0aaff1051e78381cf376777ae425b450d8ef8fdd5e16f77",
+      "colors": 31
+    },
+    {
+      "name": "e_izumik_attack@2x.png",
+      "size": [
+        576,
+        144
+      ],
+      "sha256": "d5f6a4a67857af147427befbefd6d046e9bc6d1e11f477c61ac98fd293c098cf",
+      "colors": 31
+    },
+    {
+      "name": "e_izumik_move@2x.png",
+      "size": [
+        576,
+        144
+      ],
+      "sha256": "995ca5393955c4e2e6463a75f5c56c508e100994ea49d0024a9b22b4b1e87ca4",
+      "colors": 31
+    },
+    {
+      "name": "e_izumik_rooting@2x.png",
+      "size": [
+        576,
+        144
+      ],
+      "sha256": "d8a046a20dc199d7c3865276408961a45dd803c28c75b587ca41d3aa76f47ef5",
+      "colors": 31
+    },
+    {
+      "name": "e_knight@2x.png",
+      "size": [
+        384,
+        160
+      ],
+      "sha256": "df8a01219b2f24c26f252f4686ab867c4b55f4a701ef1b4596d5d708a14b9276",
+      "colors": 31
+    },
+    {
+      "name": "e_knight_attack@2x.png",
+      "size": [
+        768,
+        160
+      ],
+      "sha256": "be07fb480f4c21502a7e0a8b8aa8737bc3409d81ec6ddd9dffa35c63b1944c0a",
+      "colors": 31
+    },
+    {
+      "name": "e_knight_charge@2x.png",
+      "size": [
+        768,
+        160
+      ],
+      "sha256": "0736639943b524c18bf9194a5fd7fbf3f325a1f5a16ededb1fdefa52debfc641",
+      "colors": 31
+    },
+    {
+      "name": "e_knight_charge_form@2x.png",
+      "size": [
+        768,
+        160
+      ],
+      "sha256": "5c15645e0ca4f00038a503ce3aaa92443ed25310acc2e9267e956f8baaecca59",
+      "colors": 31
+    },
+    {
+      "name": "e_knight_death@2x.png",
+      "size": [
+        768,
+        160
+      ],
+      "sha256": "649e5282e725dfe67e44d9837b8ee5046073629920e6866ffa61d3b0d0bae15f",
+      "colors": 31
+    },
+    {
+      "name": "e_knight_move@2x.png",
+      "size": [
+        768,
+        160
+      ],
+      "sha256": "e52df572f76a524d60cd5de69789569c400183279b637e8727e33747cbfc5168",
+      "colors": 31
+    },
+    {
+      "name": "e_knight_plant@2x.png",
+      "size": [
+        768,
+        160
+      ],
+      "sha256": "3af4c562a4bdcf55f4132273aa35d014fb6ed6a2fcc98ea9824fd648080354e9",
+      "colors": 31
+    },
+    {
+      "name": "e_paranoia_gaze.png",
+      "size": [
+        288,
+        72
+      ],
+      "sha256": "59343838287655d29dd2536218e04e3dd0023a9ec3faab156cc161cd82fe5264",
+      "colors": 29
+    },
+    {
+      "name": "e_paranoia_gaze@2x.png",
+      "size": [
+        576,
+        144
+      ],
+      "sha256": "c56a7107e24249cbf34018199392b06c7c1e62645d92b339e08d84ea8968637d",
+      "colors": 29
+    },
+    {
+      "name": "e_paranoia_phase2_howl.png",
+      "size": [
+        288,
+        72
+      ],
+      "sha256": "46623aca47cd8f8e475901d9013a67e1fe716dbcb4ff61e8ef7717982789831d",
+      "colors": 31
+    },
+    {
+      "name": "e_paranoia_phase2_howl@2x.png",
+      "size": [
+        576,
+        144
+      ],
+      "sha256": "7713bdb84720bb5a4174fa2eea377fe0943dcdeb677eb1ea4917c806e16676fd",
+      "colors": 31
+    },
+    {
+      "name": "e_ishar_t_sing.png",
+      "size": [
+        448,
+        96
+      ],
+      "sha256": "3bafcfcf6ac437a1df9fb3ba2771c3b6d5d84007d3435c3ed82fa0006fb306e0",
+      "colors": 31
+    },
+    {
+      "name": "e_ishar_t_sing@2x.png",
+      "size": [
+        896,
+        192
+      ],
+      "sha256": "bfb042e46736df88699a14a9b96f72b4f001b920e38b0ed82892e7e5fda8d4f0",
+      "colors": 31
+    },
+    {
+      "name": "e_izumik_share.png",
+      "size": [
+        288,
+        72
+      ],
+      "sha256": "091b4bcd0f340a5180267e049c223feb3496d7fac1883817872187905a298e44",
+      "colors": 30
+    },
+    {
+      "name": "e_izumik_share@2x.png",
+      "size": [
+        576,
+        144
+      ],
+      "sha256": "a903f7dd06fd964671ea287c374ad4d7d439767343547f059fc6e5969a2c270b",
+      "colors": 31
+    },
+    {
+      "name": "e_knight_spin.png",
+      "size": [
+        576,
+        80
+      ],
+      "sha256": "ad11e321a1b580812b39e3d07b26331e3998ae68994874ad8af4bda66e01945d",
+      "colors": 31
+    },
+    {
+      "name": "e_knight_spin@2x.png",
+      "size": [
+        1152,
+        160
+      ],
+      "sha256": "54906c92a05dce9101f3a648f1b8a6a8f880dd0f701b5410f54a9a76493957d2",
+      "colors": 31
+    },
+    {
+      "name": "e_knight_thrust.png",
+      "size": [
+        288,
+        80
+      ],
+      "sha256": "63d558fc9ffade1898155892094d3ec8428d84ba413e421cddce684b1382bec7",
+      "colors": 31
+    },
+    {
+      "name": "e_knight_thrust@2x.png",
+      "size": [
+        576,
+        160
+      ],
+      "sha256": "2ce9b0f5298efe62b3d3b5cc5e2c515282d65663e211a4660412d29b71801773",
+      "colors": 31
+    }
+  ],
+  "source_ids": {
+    "paranoia": "29cfbb87-1ae8-4827-979c-540be0af2ea1",
+    "ishar": "a74bf956-f53a-46db-91b3-de41181403c1",
+    "izumik": "d319565c-8028-4f41-b722-5b81e5b5feda",
+    "knight": "133272c5-8c11-459b-bb0d-340e135a56ea",
+    "e_paranoia_gaze": "b2e854b1-83f5-4976-a642-f5bd3262be36",
+    "e_paranoia_phase2_howl": "234cb52f-edd3-44c3-b6c0-b6629f5a006f",
+    "e_ishar_t_sing": "7fd2fc6d-2c67-4991-9eb4-035034fb6998",
+    "e_izumik_share": "39f25ba6-5cb6-448e-b2cf-066cd0ef8525",
+    "e_knight_spin": "8f66a8cc-d012-4a3b-a108-dcdc70a50940",
+    "e_knight_thrust": "6febb500-3c7a-4e7a-8665-efee139ac5d2"
+  },
+  "export_script_sha256": "caf9c570a91fdf6848f6f448307435d2fff1faa5e9589b1cbf0ccec4c7ce526d",
+  "notes": [
+    "Existing alpha silhouettes locked to original 1x for zero geometry drift; generated interior detail registered to original bounds.",
+    "Palettes are derived from existing boss sources.",
+    "New strips share a single scale per animation; no independent per-frame stretch.",
+    "Izumik rejected nozzle candidate; natural jellyfish contraction only. Project directional share attack differs from original global damage mechanic.",
+    "Ishar cyan mouth preserved; original palette, no generated effect baked.",
+    "Knight thrust recovery reuses windup to prevent generated final rider turning left.",
+    "13.1 table width typos: use actual paranoia72 / ishar80 / ishar_t112."
+  ]
+}
