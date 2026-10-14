@@ -671,6 +671,10 @@ func _ready() -> void:
 				var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
 				if not tex.has(tn):
 					tex[tn] = A.tex(tn)
+		var nsa = csp.get("noshield", {}).get("art", {}) if csp.get("noshield", {}) is Dictionary else {}
+		for kind in nsa:   # 无盾帧条（星熊，docs/97 H 批）：缺图时为 null，走程序回退
+			if not tex.has(nsa[kind]):
+				tex[nsa[kind]] = A.tex(str(nsa[kind]))
 	A.mark("tex_chars")
 	# 美术 V6：投射物 / 命中 / 爆炸 / 激光三段（docs/10_art_v6_spec.md）
 	for n in V6_FRAMES:

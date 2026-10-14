@@ -28,6 +28,11 @@ var ext := {}                          # 积木扩展段的运行时状态（能
 var sm := {}                           # 召唤 / 封印段（op_blocks.gd 末尾，docs/61 §15）：召唤物、封印标记、护盾、治疗光环计时；空 = 用不到
 var mf := {}                           # 召唤物扩展段（docs/61 §15.9）：限时减伤、召唤物倍率表、已执行的 on_deploy；空 = 用不到
 var el := {}                           # 精英化段（docs/91 第 1 批，op_blocks.gd 末尾）：限时增益、叠层、往返弹体、状态冷却；空 = 用不到
+
+
+## 往返弹体（shape.boomerang，星熊「般若回旋」）还在外面：本体画无盾（character._noshield）
+func prop_out() -> bool:
+	return not el.is_empty() and not el.get("boom", []).is_empty()
 var hw := {}                           # 手写迁移段（docs/91 第 2 批，op_blocks.gd 末尾）：basis、连斩、浪墙、弹体、锚……；空 = 用不到
 var atk_live := false                  # 正在结算普攻的那一下（局部倍率 atk 只乘这时的伤害）
 var e5 := {}                           # 精英化第 5 批段（op_blocks.gd 末尾）：ah = 上一次普攻命中的敌人 id 表（shape.circle among: attack）；空 = 用不到

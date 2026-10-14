@@ -21,12 +21,15 @@
   "max_hp": 120, "armor": 2.5, "arts_res": 0.1, "regen": 1.0
  },
  "sprites": {
-  "_doc": "Codex 第五批正式帧条（art/incoming/squad_batch5_hoshiguma_manifest.json，docs/64 验收）：盾沿最远点 attack f3 @2x (+45, -42)",
-  "idle": {"tex": "op_hoshiguma_idle", "frames": 4, "fps": 4, "foot": [24, 46]},
-  "run": {"tex": "op_hoshiguma_run", "frames": 6, "fps": 10, "foot": [24, 46]},
-  "attack": {"tex": "op_hoshiguma_attack", "frames": 5, "fps": 12, "foot": [24, 46], "fire": 3},
-  "skill": {"tex": "op_hoshiguma_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 2},
-  "throw": {"_doc": "Codex 精英化第 1 批（elite_art_1_manifest）：掷盾，出手帧 2 盾离手（盾由 proj_hoshiguma_sawshield 表现），末帧接 idle", "tex": "op_hoshiguma_throw", "frames": 6, "fps": 14, "foot": [24, 46], "fire": 2},
+  "_doc": "Codex 第五批正式帧条（art/incoming/squad_batch5_hoshiguma_manifest.json，docs/64 验收）：盾沿最远点 attack f3 @2x (+45, -42)；各动作 shield = 每帧盾心（1x 帧内像素，同 foot 口径，null = 盾已离手；10-15 量，格挡闪光 / 反击架势红光锚这里：fx 的 on_sprite）",
+  "idle": {"tex": "op_hoshiguma_idle", "frames": 4, "fps": 4, "foot": [24, 46], "shield": [[32, 33], [32, 33], [32, 34], [32, 33]]},
+  "run": {"tex": "op_hoshiguma_run", "frames": 6, "fps": 10, "foot": [24, 46], "shield": [[34, 30], [34, 30], [35, 28], [34, 30], [34, 30], [34, 28]]},
+  "attack": {"tex": "op_hoshiguma_attack", "frames": 5, "fps": 12, "foot": [24, 46], "fire": 3, "shield": [[31.5, 32], [35, 31], [33, 26], [37, 31], [31.5, 32]]},
+  "skill": {"tex": "op_hoshiguma_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 2, "shield": [[33, 33], [31, 23], [32, 36], [33, 37], [33, 36], [32, 36], [32, 33]]},
+  "throw": {"_doc": "Codex 精英化第 1 批（elite_art_1_manifest）：掷盾，出手帧 2 盾离手（盾由 proj_hoshiguma_sawshield 表现），末帧接 idle", "tex": "op_hoshiguma_throw", "frames": 6, "fps": 14, "foot": [24, 46], "fire": 2, "shield": [[32, 33], [13, 26], null, null, [34, 27], [32, 33]]},
+  "noshield": {"_doc": "10-15 掷盾后本体手上不该有盾：盾在外面（般若回旋）时换无盾画面。art = Codex 无盾帧条（docs/97 H 批，有图就用）；没图时 fallback 播 throw 的 f2 / f3（盾已离手的两帧），站着停在 f3、跑动时两帧轮换；throw 的 f2 / f3 本来就没盾，keep 不换",
+   "art": {"idle": "op_hoshiguma_idle_noshield", "run": "op_hoshiguma_run_noshield", "attack": "op_hoshiguma_attack_noshield", "throw": "op_hoshiguma_throw_noshield"},
+   "keep": {"throw": [2, 3]}, "fallback": {"anim": "throw", "frames": [2, 3], "fps": 8}},
   "size": 48,
   "foot": [24, 46]
  },
@@ -68,7 +71,7 @@
   ],
   "skills": [
    {"dur": "$s1_window", "do": [
-    {"verb": "negate_next", "fx": [{"strip": "fx_hoshiguma_block", "off": [0, -26], "scale": 1.4}], "text": "战意",
+    {"verb": "negate_next", "fx": [{"strip": "fx_hoshiguma_block", "on_sprite": "shield", "off": [0, -26], "scale": 1.4}], "text": "战意",
      "on_block": [{"shape": "circle", "center": "leader", "r": "$s1_r", "mult": "$s1_mult", "kb": "$s1_kb", "src": "举盾反击", "tags": ["skill"], "power": true}],
      "on_miss": [{"shape": "cone", "r": "$reach", "half_deg": "$half_deg", "mult": "$s1_miss_mult", "kb": "$kb", "src": "举盾反击", "tags": ["skill"], "power": true}]}]},
    {"dur": "$s2_dur", "do": [
@@ -81,7 +84,7 @@
     {"verb": "swap_attack", "attack": {"shape": "line", "len": "$s3_len", "width": "$s3_w", "mult": 1.0, "kb": "$kb*$s3_kb", "src": "力之锯", "tags": ["skill"], "fx": [{"strip": "fx_hoshiguma_demon_slash", "fit": 32, "rot": true, "off": [0, -30]}]}}]}
   ],
   "talent": [
-   {"trig": "on_hurt", "chance": "$block_chance", "boss_chance": "$block_chance_boss", "max_chance": "$block_max", "negate": true, "fx": [{"strip": "fx_hoshiguma_block", "off": [0, -26], "scale": 1.4}], "text": "战术装甲", "do": [
+   {"trig": "on_hurt", "chance": "$block_chance", "boss_chance": "$block_chance_boss", "max_chance": "$block_max", "negate": true, "fx": [{"strip": "fx_hoshiguma_block", "on_sprite": "shield", "off": [0, -26], "scale": 1.4}], "text": "战术装甲", "do": [
     {"verb": "displace", "center": "leader", "r": "$block_kb_r", "kb": "$block_kb"}]},
    {"trig": "passive", "cond": "beacon_charging", "do": [
     {"verb": "negate_chance", "add": "$beacon_bonus"}]}
@@ -96,7 +99,7 @@
      {"shape": "circle", "center": "target", "r": "$sand_r", "mult": "$ember_mult*$sand_tick", "src": "热砂", "tags": ["skill", "dot"], "power": true}]}]},
    "elite1": {"trig": "on_negate", "_doc": "反击架势（docs/91 §4）：格挡后 stance_dur 秒内只乘普攻的局部倍率 atk +stance_dmg（同 key 刷新不叠），盾沿红光", "do": [
     {"verb": "buff_timed", "key": "stance", "stat": "atk", "value": "$stance_dmg", "dur": "$stance_dur", "text": "反击架势",
-     "fx": [{"strip": "fx_hoshiguma_guard_glow", "layer": "front", "off": [12, -28], "face_x": true, "fade": [0.1, 0.3]}]}]},
+     "fx": [{"strip": "fx_hoshiguma_guard_glow", "layer": "front", "on_sprite": "shield", "scale": 0.6, "fade": [0.1, 0.3]}]}]},
    "elite2": [
     {"trig": "every_n", "n": "$saw_every", "replace": true, "anim": "throw", "cond": "!skill_active:2", "_doc": "般若回旋（docs/91 §4）：每第 3 次盾斧斩改为掷出盾牌往返", "do": [
      {"shape": "boomerang", "len": "$saw_len", "w": "$saw_w", "t_out": "$saw_t_out", "hold": "$saw_hold", "t_back": "$saw_t_back", "mult_out": "$saw_out", "mult_back": "$saw_back",

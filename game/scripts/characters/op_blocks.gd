@@ -897,7 +897,7 @@ static func _src(b: Dictionary, p: String, ctx: Dictionary, required: bool) -> v
 
 const FX_KEYS := ["strip", "vortex", "cond", "at", "layer", "fit", "scale", "max_scale", "n", "spread", "rise", "life", "every", "tint", "anchor", "off", "ang", "rot",
 	"hold", "fade", "if_tex", "ease", "grow", "grow0", "grow_to", "wake", "xfade",
-	"delay", "stay", "once", "face_x", "flash", "along", "play"]   # play：精英化第 5 批段（扩散缓动的帧号按 fps 播）；精英化段（docs/91 第 1 批）：延迟起播、末帧停留、区域里不循环、偏移随朝向、开火时提亮
+	"delay", "stay", "once", "face_x", "flash", "along", "play", "on_sprite"]   # on_sprite（10-15）：锚到本干员当前帧的定位点（character.sprite_point，星熊盾心），这一帧没有就退回原锚点 / 贴身层不画；play：精英化第 5 批段（扩散缓动的帧号按 fps 播）；精英化段（docs/91 第 1 批）：延迟起播、末帧停留、区域里不循环、偏移随朝向、开火时提亮
 ## ground：紧贴地砖（溟痕 / Boss 地面预警 / 掉落之下），只给常驻跟随帧条（hold）用，大片地面特效不盖住危险提示（10-12 加）
 const FX_LAYERS := ["floor", "over", "add", "behind", "front", "ground"]
 ## 常驻跟随帧条（hold: true，10-12 加）：积木生效期间循环、跟着区域中心 / 半径走，缺省淡入淡出秒数（条目 fade 可改）
@@ -1010,6 +1010,11 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 		off = Vector2(float(ov[0]), float(ov[1]))
 	if f.get("face_x", false):
 		off.x *= float(o.face)
+	if f.has("on_sprite") and o.has_method("sprite_point"):   # 10-15：锚到帧条定位点（星熊格挡闪光对准盾心），这一帧没有就照旧
+		var spp: Vector2 = o.sprite_point(str(f.on_sprite))
+		if spp != Vector2.INF:
+			pts = [spp]
+			off = Vector2.ZERO   # off 只是找不到定位点时的旧偏移
 	if f.has("along"):   # 精英化段：沿出手方向往外放 along × 半径（锥形斩的刀光放在身前）
 		off += Vector2.from_angle(ang) * r * float(f.along)
 	var dly: float = float(f.get("delay", 0.0))   # 精英化段：delay 秒后才起播（画面计时，不进玩法）
@@ -1702,9 +1707,14 @@ static func fx_body(ci, o, e: Dictionary, front: bool) -> void:
 		var off: Vector2 = Vector2(float(ov[0]), float(ov[1])) if ov is Array and ov.size() == 2 else Vector2.ZERO
 		if f.get("face_x", false):   # 精英化段：偏移随朝向（星熊盾在身前）
 			off.x *= float(o.face)
+		var base: Vector2 = o.pos
+		if f.has("on_sprite"):   # 10-15：跟着帧条里的定位点走（星熊反击架势红光对准盾心）；这一帧没有（盾离手）就不画
+			base = o.sprite_point(str(f.on_sprite)) if o.has_method("sprite_point") else Vector2.INF
+			if base == Vector2.INF:
+				continue
 		var av = f.get("anchor", [])
 		var anc: Vector2 = Vector2(float(av[0]), float(av[1])) if av is Array and av.size() == 2 else Vector2(-1, -1)
-		fx_frame(ci, g, name, frames, int(floor(el * float(spec[1]))) % frames, o.pos + off, float(f.get("scale", 1.0)) * g.PX, col, anc, deg_to_rad(float(f.get("ang", 0.0))))
+		fx_frame(ci, g, name, frames, int(floor(el * float(spec[1]))) % frames, base + off, float(f.get("scale", 1.0)) * g.PX, col, anc, deg_to_rad(float(f.get("ang", 0.0))))
 
 
 ## shape.orbit 上 at = orbit 的条目：每个判定点画一个循环帧条（代替缺省的小菱形）。返回是否画了（缺图时 false，调用方画菱形）
