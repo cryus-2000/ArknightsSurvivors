@@ -19,6 +19,16 @@ var shop_visits := 0
 var lv_marks := {}
 var bosstest := false
 var bossintro_kill_at := -1   # --bossintro：登场演完后击杀 Boss 的帧号（之后 90 帧退出）
+# --bossmoves=<type>[2]（docs/95 §12 验收开关）：在主控旁刷出该 Boss（后缀 2 = 二阶段），按 bosses/<type>.gd demo_moves 的顺序
+# 逐招 force_move，预警进度 60% 截 shot_bossmove_<type>_<招>.png、结算后 8 帧截 _hit.png；全部放完退出
+var bm_boss: Dictionary = {}
+var bm_list: Array = []
+var bm_i := 0
+var bm_state := "idle"
+var bm_shot := false
+var bm_hit_at := 0
+var bm_next_t := 0.0
+var bm_tag := ""
 var choice_wait := 0
 var choice_shot := false
 var choice_n := 0   # --choiceshots：每个选卡画面都截一张（shot_choice_<n>.png，干员文字验收）
@@ -468,6 +478,9 @@ func step() -> void:
 					g.bosses[1].partner = g.bosses[0]
 			if g.at_frames > 20 and g.at_frames % 30 == 0 and g.at_frames <= 600 and DisplayServer.get_name() != "headless":
 				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_boss_%s_%03d.png" % [a.substr(11).replace(",", "_"), g.at_frames])
+		if a.begins_with("--bossmoves="):
+			bosstest = true
+			_bossmoves_step(a.substr(12))
 		if a.begins_with("--bossintro="):
 			# Boss 登场演出测试（docs/36 §5）：第 20 帧在主控旁刷出指定 Boss（逗号分隔 = 同组登场）并走一遍登场，
 			# 登场进行到 0.35 / 0.6 / 0.85 / 1.1 秒各截一张；演完后把 Boss 击杀，击破一拍 0.12 / 0.35 秒再各截一张，然后退出
@@ -746,11 +759,92 @@ func step() -> void:
 			o.fill_sp()
 	if g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_%d.png" % g.at_frames)
-	if bosstest and g.at_frames > 610:
+	if bosstest and g.at_frames > 610 and bm_boss.is_empty():   # --bossmoves 自己数招、放完才退
 		g.get_tree().quit()
 	if (g.state == g.S.WIN and not winshot) or g.at_frames > 14000:
 		print("AUTOTEST END state=%d t=%d" % [g.state, g.t])
 		g.get_tree().quit()
+
+
+## --bossmoves=<type>[2]：逐招验收（docs/95 §12）。主控不动（autotest 模式没有移动输入），每招：force_move → 预警 60% 截图 → 结算后 8 帧截图
+func _bossmoves_step(spec: String) -> void:
+	var headless: bool = DisplayServer.get_name() == "headless"
+	if g.at_frames == 20:
+		bm_tag = spec
+		var type: String = spec.trim_suffix("2")
+		g.ppos = Vector2(1500, 900)
+		g.max_hp = 900.0
+		g.hp = 900.0
+		g.t = 150.0
+		var b := g.spawner.spawn_enemy(type, g.ppos + Vector2(230, -40))
+		b.age = 5.0
+		if spec.ends_with("2"):
+			g.bai.setup_preview_phase2(b)
+			b.invuln = false
+			b.channel = 0.0
+		g.bosses.append(b)
+		g.boss = b
+		if g.final_boss == null and g.spawner.is_final_boss_type(b.type):
+			g.final_boss = b
+		bm_boss = b
+		var h = g.bai.boss(type)
+		bm_list = h.demo_moves(b) if h != null else []
+		bm_next_t = g.t + 1.0
+		print("BOSSMOVES %s moves=%s" % [spec, str(bm_list)])
+		return
+	if g.at_frames < 20 or bm_boss.is_empty():
+		return
+	var e: Dictionary = bm_boss
+	e.hp = e.maxhp if e.phase == 1 or e.type != "knight_boss" else e.maxhp * 0.5   # 别让它死；骑士二阶段保持重生血量
+	var mine: Array = g.warns.filter(func(w): return is_same(w.owner, e))
+	match bm_state:
+		"idle":
+			if bm_i >= bm_list.size():
+				if g.at_frames % 10 == 0:
+					print("BOSSMOVES END %s shots=%d" % [bm_tag, bm_i])
+					g.get_tree().quit()
+				return
+			if g.t < bm_next_t or not mine.is_empty():
+				return
+			e.wind = 0.0
+			e.cdt = 0.0
+			e.stun = 0.0
+			e.break_t = 0.0
+			e.dash_t = 0.0
+			e.kb = Vector2.ZERO
+			e.kb_self = false
+			e.pos = g.ppos + Vector2(230, -40)   # 每招都从主控右上 230 处放，截图里本体和预警都在画面内（冲锋 / 迫近会把它带远）
+			var name: String = str(bm_list[bm_i])
+			var dir: Vector2 = (g.ppos - e.pos).normalized()
+			if g.bai.boss(e.type).force_move(e, name, dir, e.pos.distance_to(g.ppos)):
+				bm_state = "warn"
+				bm_shot = false
+				print("BOSSMOVES fire %s" % name)
+			else:
+				print("BOSSMOVES skip %s" % name)
+				bm_i += 1
+		"warn":
+			var prog := 0.0
+			var any_done := false
+			for w in mine:
+				prog = maxf(prog, w.t / w.dur)
+				any_done = any_done or w.done
+			if mine.is_empty():
+				any_done = true
+			if prog >= 0.6 and not bm_shot and not any_done:
+				bm_shot = true
+				if not headless:
+					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_bossmove_%s_%s.png" % [bm_tag, str(bm_list[bm_i])])
+			if any_done:
+				bm_state = "hit"
+				bm_hit_at = g.at_frames + 8
+		"hit":
+			if g.at_frames >= bm_hit_at:
+				if not headless:
+					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_bossmove_%s_%s_hit.png" % [bm_tag, str(bm_list[bm_i])])
+				bm_i += 1
+				bm_state = "idle"
+				bm_next_t = g.t + 2.5   # 等连发 / 冲刺 / 冲击环都收完再放下一招
 
 
 ## 平衡测试用的简单 AI：躲开贴身的敌人、保持在挥伞距离、捡掉落物

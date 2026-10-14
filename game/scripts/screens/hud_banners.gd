@@ -216,7 +216,7 @@ func draw_field_wave(vs: Vector2) -> void:
 		h.edge_glow(vs, Color(1.0, 0.35, 0.75, 0.35 + 0.45 * k * pk), 90.0 + 90.0 * k)
 		var left: float = maxf(0.0, w.dur - w.t)
 		var y: float = vs.y * 0.3
-		UI.text(g.hud, g.font, Vector2(0, y), "全场地波  %.1f" % left, 22, Color(1, 1, 1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 5)
+		UI.text(g.hud, g.font, Vector2(0, y), "震撼  %.1f" % left, 22, Color(1, 1, 1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 5)   # 原作技能名（docs/95 §14 第 1 条，用户 10-14 定）
 		UI.text(g.hud, g.font, Vector2(0, y + 26), "躲进点亮的灯柱光圈，或者冲刺", 15, Color(1.0, 0.85, 0.55), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
 		var ic := Vector2(vs.x / 2.0, y - 34)
 		for q in 3:

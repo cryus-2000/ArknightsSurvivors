@@ -1057,7 +1057,7 @@ func test_ishar_close() -> void:
 	var n0: int = game.warns.size()
 	game.bai._ishar_phase2(e, Vector2.LEFT, 500.0)
 	var w: Dictionary = game.warns.back() if game.warns.size() > n0 else {}
-	ok(w.get("name", "") == "潮涌迫近" and int(w.get("style", -1)) == 2, "离主控 500：放潮涌迫近（直线预警）")
+	ok(w.get("name", "") == "潮涌迫近" and int(w.get("style", -1)) == 0 and float(w.get("dmg", 1.0)) <= 0.0, "离主控 500：放潮涌迫近（预告样式 0、无伤害，docs/95 §2.5）")
 	ok(w.get("len", 0.0) > 300.0 and w.get("len", 0.0) < 420.0, "冲到主控前约 140（线长 %.0f）" % w.get("len", 0.0))
 	game.warns.erase(w)
 	w.done = true
@@ -1099,7 +1099,7 @@ func test_close_panic() -> void:
 	game.bosses = [e]
 	var d1: float = game.bai._close_in(e, Vector2.LEFT, 500.0, "paranoia", "泡影漂近", Color.WHITE)
 	var w: Dictionary = game.warns.back() if not game.warns.is_empty() else {}
-	ok(d1 >= 0.0 and w.get("name", "") == "泡影漂近" and w.get("act", "") == "dash" and int(w.get("style", -1)) == 2, "泡影离主控 500：放泡影漂近（直线预警、冲刺）")
+	ok(d1 >= 0.0 and w.get("name", "") == "泡影漂近" and w.get("act", "") == "dash" and int(w.get("style", -1)) == 0, "泡影离主控 500：放泡影漂近（预告样式 0、冲刺，docs/95 §2.5）")
 	ok(game.bai._close_in(e, Vector2.LEFT, 500.0, "paranoia", "泡影漂近", Color.WHITE) < 0.0, "冷却内不再放")
 	e.cds = {}
 	ok(game.bai._close_in(e, Vector2.LEFT, 250.0, "paranoia", "泡影漂近", Color.WHITE) < 0.0, "离主控 250（< close_min）不放")
@@ -1529,7 +1529,7 @@ func test_warn_style() -> void:
 		["circle", {"follow": true, "act": "bite"}, 1],
 		["circle", {"follow": true, "act": "frost"}, 1],
 		["circle", {"act": "slam"}, 1],
-		["circle", {"follow": true, "act": "bring"}, 4],
+		["circle", {"follow": true, "act": "spin_ring", "gap_ang": 0.0, "gap_half": 0.7}, 4],   # 长枪回旋（docs/95 §4.2 D）；旧「泡影 bring」已删
 		["circle", {"gap_ang": 0.0, "act": "pattern_ring"}, 4],
 		["circle", {"follow": true, "must_dash": true, "act": "izu_wave"}, 5],
 		["circle", {"act": "spawn", "dmg": 0.0, "lock": false}, 0],

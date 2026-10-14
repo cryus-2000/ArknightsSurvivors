@@ -34,10 +34,12 @@ func _ready() -> void:
 			g.invuln = 100.0
 			g.bai._boss_ai(e, 0.1, Vector2.RIGHT, 220.0)
 			for w in g.warns:
-				if w.has("pattern_id"):
-					seen[w.pattern_id] = true
-					pending = w.duplicate()
-					check(w.dur >= 0.6 and w.dur - w.track >= 0.399, kind + " readable warning")
+				if w.has("pattern_id") or (w.name != "" and w.t == 0.0):
+					# docs/95（10-14）：4 招 = 数据招式 + 手写招式，按招式名 / pattern_id 数「不同的招」
+					seen[w.get("pattern_id", w.name)] = true
+					if w.has("pattern_id"):
+						pending = w.duplicate()
+					check(w.dur >= 0.6 and w.dur - w.track >= 0.399, kind + " readable warning " + str(w.name))
 			g.bai._update_warns(0.1)
 			g.enemies_sys.update_ebullets(0.1)
 			g.ebullets = g.ebullets.filter(func(b): return b.life > 0.0)
@@ -63,7 +65,15 @@ func _ready() -> void:
 	g.ebullets.clear()
 	g.bai._boss_ai(ring_boss, 0.01, Vector2.RIGHT, 400.0)
 	var rings: Array = g.warns.filter(func(w): return w.get("act", "") == "pattern_ring")
-	check(rings.size() == 3, "final boss uses three offset ring waves")
+	if rings.is_empty():
+		# docs/95 §1：轮转第 1 位是叠影、泡影环二阶段每两轮一次（p2_every 2）；点名放一次
+		ring_boss.pattern_force = "泡影环"
+		ring_boss.wind = 0.0
+		ring_boss.cdt = 0.0
+		g.warns.clear()
+		g.bai._boss_ai(ring_boss, 0.01, Vector2.RIGHT, 400.0)
+		rings = g.warns.filter(func(w): return w.get("act", "") == "pattern_ring")
+	check(rings.size() == 1, "final boss ring is one wave (docs/95 §1.2 B)")
 	if not rings.is_empty():
 		var w: Dictionary = rings[0]
 		g.bai._warn_resolve(w)
@@ -102,7 +112,7 @@ func _ready() -> void:
 		g.bai._warn_resolve(g.warns[0])
 		check(g.ebullets.size() == 5 and g.ebullets[0].kind == "boss_blade", "blade volley has actual distinct projectiles")
 	# Every grouped laser / column uses one common resolve time, including legacy attacks.
-	for spec in [["paranoia", "burst", 0], ["bishop", "pillar", 0], ["bishop", "pattern_rain", 1], ["izumik", "pattern_rain", 1], ["ishar", "ishar_line", 1], ["ishar", "ishar_strike", 0]]:
+	for spec in [["bishop", "pillar", 0], ["bishop", "pattern_rain", 1], ["izumik", "pattern_rain", 0], ["ishar", "ishar_line", 1], ["ishar", "ishar_strike", 0]]:   # 泡影爆裂已删（docs/95 §1）；伊祖米克潮汐坠落改为第 0 条
 		var caster: Dictionary = g.spawner.new_enemy(spec[0], Vector2.ZERO)
 		caster.age = 20.0
 		if caster.type == "paranoia":
@@ -195,6 +205,45 @@ func _ready() -> void:
 		g.fx.clear()
 		g.bai._warn_resolve(echoes[0])
 		check(g.fx.any(func(f): return f.kind == "tide_link"), "tear resonance draws linked wave")
+	# Codex 第 1 批帧条挂点（docs/95 §13、art/incoming/boss_moves_1_handoff.md）：预警中播蓄力帧 f0 / f1，结算后 0.2 秒内播出手帧 f2（回旋 f2–f4、前刺 f1）
+	g.t = 600.0
+	g.warns.clear()
+	# [type, 招, 帧条, 结算后出手帧, 是否二阶段]
+	var strips := [
+		["knight_boss", "长枪回旋", "e_knight_spin", 2, true],
+		["knight_boss", "长枪连刺", "e_knight_thrust", 1, false],
+		["paranoia", "凝视", "e_paranoia_gaze", 2, false],
+		["paranoia", "呼号", "e_paranoia_phase2_howl", 2, true],
+		["izumik", "分享", "e_izumik_share", 2, true],
+		["ishar", "大群之歌", "e_ishar_t_sing", 2, true],
+	]
+	for st in strips:
+		var b: Dictionary = g.spawner.new_enemy(st[0], Vector2(-130, 0))
+		b.age = 20.0
+		if st[4]:
+			g.bai.setup_preview_phase2(b)
+			b.invuln = false
+			b.channel = 0.0
+		g.t += 1.0   # 过了伊莎玛拉的变身帧 / 骑士重生无敌
+		g.ppos = Vector2(60, 0)
+		g.warns.clear()
+		check(g.bai.boss(st[0]).force_move(b, st[1], Vector2.RIGHT, 190.0), "%s force_move %s" % [st[0], st[1]])
+		var mine: Array = g.warns.filter(func(w): return is_same(w.owner, b))
+		if mine.is_empty():
+			continue
+		for w in mine:
+			w.t = w.dur * 0.7   # 预警后段（前刺第 3 段过 60% 才换帧）
+		var anim: Dictionary = g.world.knight_animation(b) if st[0] == "knight_boss" else (g.world.ishar_animation(b) if st[0] == "ishar" else g.world.boss_strip_animation(b))
+		check(anim.get("name", "") == st[2] and int(anim.get("frame", -1)) <= 1, "%s 预警中播 %s 蓄力帧（得 %s）" % [st[1], st[2], str(anim)])
+		for w in mine:
+			w.t = w.dur
+		g.invuln = 100.0
+		g.bai._update_warns(0.0)
+		g.t += 0.05
+		anim = g.world.knight_animation(b) if st[0] == "knight_boss" else (g.world.ishar_animation(b) if st[0] == "ishar" else g.world.boss_strip_animation(b))
+		check(anim.get("name", "") == st[2] and int(anim.get("frame", -1)) == int(st[3]), "%s 结算后播 %s 出手帧 f%d（得 %s）" % [st[1], st[2], int(st[3]), str(anim)])
+		b.dead = true
+		g.warns.clear()
 	if DisplayServer.get_name() != "headless" and Cfg.dev_args().has("--capture-ui"):
 		await capture_patterns()
 	print("BOSS VARIETY failures=", failures)

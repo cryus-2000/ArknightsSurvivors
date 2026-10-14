@@ -4,6 +4,7 @@ extends RefCounted
 
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const UI = preload("res://scripts/ui.gd")
 
 # 只缩短招式之间的等待；预警、锁定、连段间隔与伤害保持原约定。
 const SKILL_COOLDOWN_SCALE := 0.70
@@ -63,21 +64,16 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			e.revives = int(e.get("revives", 0)) + 1
 			g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.4, "life": 0.5, "max": 0.5, "col": Color(0.4, 1.0, 0.9), "enemy": true})
 			g.vfx.add_text(e.pos + Vector2(0, -50), "复苏（%d / %d）" % [e.revives, int(Bal.v("boss/pair_revives", 2.0))], Color(0.6, 1.0, 0.9), 18)
+			# 复苏回调（docs/95 §12 on_revive：斥亡体「迸发」等在这里起手）
+			var hr = boss(e.type)
+			if hr != null:
+				hr.on_revive(e)
 		return
 	var ready: bool = e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and e.get("channel", 0.0) <= 0.0 and e.get("dash_t", 0.0) <= 0.0 and e.age > 2.0 and e.get("break_t", 0.0) <= 0.0   # break_t：Boss 自己的破绽硬直（§1.5）
 	# 封印（docs/61 §15 st.seal）：Boss 只是推迟出招——封印期间（已按 boss_mult / boss_max 缩到 ≤1.5 秒）不起新招，冷却照走；之后 boss_immune 秒免疫
 	if ready and float(e.get("seal_t", 0.0)) > g.t:
 		ready = false
-	# 原作机制转译：冰线后的骑士冲锋、接潮双体的假死反击。均走正式预警管线。
-	if ready and e.type == "knight_boss" and g.t >= float(e.get("hunt_follow_at", INF)):
-		e.hunt_follow_at = INF
-		_warn(e, "line", 0.7, {"ang": float(e.get("hunt_angle", dir.angle())), "len": 520.0, "wid": 32.0,
-			"fit_len": true, "act": "dash", "name": "寒冷追击", "col": Color(0.65, 0.95, 1.4), "dmg": e.dmg * 1.35})
-		ready = false
-	if ready and e.type == "knight_boss" and dist >= 120.0 and dist <= 600.0 and _cd(e, "hunt", 12.0):
-		_warn(e, "line", 0.85, {"ang": dir.angle(), "len": minf(560.0, dist + 60.0), "wid": 18.0,
-			"track": 0.25, "act": "frost_track", "name": "冰线", "col": Color(0.65, 0.95, 1.4), "dmg": e.dmg * 0.4})
-		ready = false
+	# 原作机制转译：接潮双体的假死反击走正式预警管线（骑士的冰线 / 寒冷追击 10-14 起搬进 bosses/knight_boss.gd，作为冲锋的变体，docs/95 §4）
 	var mate = e.get("partner")
 	if mate != null and not mate.dead and mate.get("coma", false) and e.type in ["bishop", "archon", "immortal"]:
 		if g.t >= float(e.get("link_visual_at", 0.0)):
@@ -100,14 +96,15 @@ func _boss_ai(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 		h.step(e, dt, dir, dist, ready, mate)
 
 
-## 远程 Boss 的迫近（协调人 9/30）：离主控超过 boss/<key>_close_min（300，0 = 关）时，每 <key>_close_cd（6）秒带直线预警（②）冲到主控前约 140 处，
-## 穿过杂兵墙进干员射程；冲刺本身无接触伤害，落地给 <key>_close_break（1）秒破绽。放了返回预警时长，没放返回 -1。伊莎玛拉二阶段、偏执泡影一阶段共用
+## 远程 Boss 的迫近（协调人 9/30）：离主控超过 boss/<key>_close_min（300，0 = 关）时，每 <key>_close_cd（6）秒带直线预警冲到主控前约 140 处，
+## 穿过杂兵墙进干员射程；冲刺本身无接触伤害，落地给 <key>_close_break（1）秒破绽。放了返回预警时长，没放返回 -1。伊莎玛拉二阶段、偏执泡影一阶段共用。
+## 10-14（docs/95 §2.5）：它是机制不是招，dmg 0 → 预告样式 0（低亮度），和「无接触伤害」口径一致，不再和三线扫射 / 凝视抢直线
 func _close_in(e: Dictionary, dir: Vector2, dist: float, key: String, title: String, col: Color) -> float:
 	var cmin: float = Bal.v("boss/%s_close_min" % key, 300.0)
 	if cmin <= 0.0 or dist <= cmin or not _cd(e, key + "_close", Bal.v("boss/%s_close_cd" % key, 6.0)):
 		return -1.0
 	var cw := _warn(e, "line", 0.7, {"ang": dir.angle(), "len": clampf(dist - 140.0, 80.0, 700.0), "wid": 30.0, "track": 0.3, "act": "dash", "fit_len": true,
-		"name": title, "col": col, "dmg": e.dmg, "close_break": Bal.v("boss/%s_close_break" % key, 1.0)})
+		"name": title, "col": col, "dmg": 0.0, "close_break": Bal.v("boss/%s_close_break" % key, 1.0)})
 	return cw.dur
 
 
@@ -206,9 +203,9 @@ func cue_cat(w: Dictionary) -> String:
 			return "charge"
 		"shot", "beam", "pattern_line", "ishar_line", "frost_track", "tide_link", "ishar_echo":
 			return "beam"
-		"bite", "sweep", "pattern_fan", "pattern_cleave":
+		"bite", "sweep", "pattern_fan", "pattern_cleave", "spin_ring":
 			return "melee"
-	return "land"
+	return "land"   # 落地圈、缺口环、大群之歌（song_ring：全场类的轻量版，不进全场警报）、轰击（lob）都算落地类
 
 
 ## Boss 招式冷却：到时返回 true 并重置
@@ -223,12 +220,18 @@ func _cd(e: Dictionary, key: String, dur: float) -> bool:
 
 
 ## Boss 招式预警：shape = circle / line / cone；dur 秒后结算 act
+## 可选字段（docs/95 §12 底座，10-14）：
+##   track_pos  "leader" / "self"：circle 在 track 秒内跟随主控 / 本体，之后冻结（叠影、寒冷）；line / cone 的 track 仍是转向追踪
+##   seq_no     连发序号（1 / 2 / 3），画在预警起点 / 圈上（凝视、叠影）
+##   gaps       缺口角度数组（与 gap_ang / gap_half 并存；多缺口环：大群之歌、环射）；circle 的 _warn_hit 排除缺口弧
+##   slow_t / slow_mult / slow_kind  命中后移速减速（秒 / 倍率，缺省 0.7；呼号）；chill  命中后寒冷秒数（走 frost_leader，骑士）
+##   b_owner    直线另一端跟随的敌人（接潮「统一」双端跟随）
 func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary:
 	var w := {"shape": shape, "t": 0.0, "dur": dur, "owner": e, "pos": e.pos, "ang": 0.0, "r": 60.0, "len": 300.0, "wid": 14.0,
 		"half": 0.8, "col": Color(1.0, 0.3, 0.35), "act": "", "dmg": e.dmg, "name": "", "corrode": 0.0, "done": false, "follow": false, "track": 0.0, "lock": true}
 	w.merge(d, true)
 	# 预警样式（docs/38 §8.11）：界面按 style 画，不再从 follow / gap_ang 猜。0 预告（无伤害，低亮度）；① 落点圈 ② 直线 ③ 扇形 ④ 缺口环 ⑤ 必须冲刺。
-	# follow 只表示「圈跟着施法者走」，钻地咬击、踏地、触须爆发、寒冰领域都是 ① —— 走出圈即可
+	# follow 只表示「圈跟着施法者走」，钻地咬击、踏地、触须爆发都是 ① —— 走出圈即可
 	if not w.has("style"):
 		if w.get("must_dash", false):
 			w.style = 5
@@ -238,10 +241,14 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 			w.style = 2
 		elif shape == "cone":
 			w.style = 3
-		elif w.has("gap_ang") or w.act == "bring":
+		elif w.has("gap_ang") or w.has("gaps") or w.act in ["song_ring", "spin_ring"]:
 			w.style = 4
 		else:
 			w.style = 1
+	if w.has("gaps") and not w.has("gap_ang"):
+		w.gap_ang = float(w.gaps[0])   # 画面 / 判定都先看 gap_ang；多缺口再看 gaps
+	if w.get("track_pos", "") != "" and w.track > 0.0:
+		w.pos = g.combat.arena_clamp(e.pos if str(w.track_pos) == "self" else g.ppos, 90.0)
 	# 时序下限（§1.9、docs/48 P0-2）：Boss 预警总时长 ≥0.6 秒；锁定（追踪结束 → 结算）≥0.4 秒，不够时缩短追踪段
 	if e.boss:
 		w.dur = maxf(w.dur, 0.6)
@@ -296,9 +303,19 @@ func _update_warns(dt: float) -> void:
 		var e: Dictionary = w.owner
 		if w.follow and not e.dead:
 			w.pos = e.pos
-		if w.track > 0.0 and w.t < w.track and w.shape != "circle":
-			var want: float = (g.ppos + Vector2(0, -14) - w.pos).angle()
-			w.ang = lerp_angle(w.ang, want, minf(1.0, dt * 10.0))
+		var bo = w.get("b_owner")
+		if bo is Dictionary and not bo.dead and not e.dead:
+			# 双端跟随（接潮「统一」）：起点跟本体、终点跟另一具
+			w.pos = e.pos
+			w.ang = (bo.pos - e.pos).angle()
+			w.len = e.pos.distance_to(bo.pos)
+		if w.track > 0.0 and w.t < w.track:
+			if w.shape != "circle":
+				var want: float = (g.ppos + Vector2(0, -14) - w.pos).angle()
+				w.ang = lerp_angle(w.ang, want, minf(1.0, dt * 10.0))
+			elif w.get("track_pos", "") != "":
+				# 落点圈追踪（叠影跟主控、寒冷跟本体）：track 秒内跟着走，之后冻结在锁定时刻的位置
+				w.pos = g.combat.arena_clamp(e.pos if str(w.track_pos) == "self" else g.ppos, 90.0)
 		if w.t >= w.dur and not w.done:
 			w.done = true
 			if not e.dead or (w.shape == "circle" and not w.get("cancel_dead", false)):
@@ -311,13 +328,27 @@ func _warn_hit(w: Dictionary) -> bool:
 	var pp: Vector2 = g.ppos + Vector2(0, -14)
 	match w.shape:
 		"circle":
-			return g.combat.ground_d(g.ppos, w.pos) < w.r   # 画即判：主控脚底落在画出的椭圆里才算中（§1.9）
+			if g.combat.ground_d(g.ppos, w.pos) >= w.r:   # 画即判：主控脚底落在画出的椭圆里才算中（§1.9）
+				return false
+			return not in_gap(w, (g.ppos - w.pos).angle())   # 缺口环（长枪回旋等一次性判定）：站在缺口弧里不算中
 		"line":
 			var b: Vector2 = w.pos + Vector2.from_angle(w.ang) * w.len
 			return Geometry2D.get_closest_point_to_segment(pp, w.pos, b).distance_to(pp) < w.wid + 12.0
 		"cone":
 			var dv: Vector2 = pp - w.pos
 			return dv.length() < w.r + 10.0 and absf(angle_difference(dv.angle(), w.ang)) < w.half + 0.12
+	return false
+
+
+
+## 角度 a 是否落在预警 / 冲击环的缺口弧里（gap_ang + gap_half，或 gaps 数组里任一缺口）
+func in_gap(w: Dictionary, a: float) -> bool:
+	var gh: float = float(w.get("gap_half", 0.0))
+	if gh <= 0.0:
+		return false
+	for ga in w.get("gaps", [w.get("gap_ang", INF)]):
+		if absf(angle_difference(a, float(ga))) < gh:
+			return true
 	return false
 
 
@@ -329,7 +360,9 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	# 伤害来源名：Boss 的招式记 boss_<类型>，普通怪 / 精英借用预警系统的招式记 atk_<类型>（引痕者前刺、钻地咬击、踏地等；
 	# 原来一律记 boss_，统计里被误算成 Boss。Boss 保护看的是 enemy_hit 的 boss 标记 = e.boss，不看这个名字）
 	g.dmg_src = ("boss_" if e.boss else "atk_") + e.type
-	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "bring", "pattern_rain", "tide_link"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
+	g.in_type = ["远程", "法术"] if w.act in ["pillar", "burst", "beam", "pattern_rain", "tide_link"] else (["远程", "物理"] if w.act == "shot" else ["近战", "物理"])
+	if w.get("arts", false):
+		g.in_type = ["近战", "法术"]   # 伊祖米克「分享」：近战法术溅射（PRTS）
 	var true_damage: bool = w.get("true", false)
 	if true_damage:
 		g.in_type = ["远程" if w.act in ["ishar_strike", "ishar_line", "ishar_volley", "ishar_echo"] else "近战", "真实"]
@@ -345,6 +378,13 @@ func _warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 			g.pstun = maxf(g.pstun, stun_t)
 		if slow and not g.combat.atk_slow_as_slow(3.0, e.boss):   # Boss 来源不写 atk_slow，改成移速减速（docs/38 §1.11）
 			g.atk_slow = 3.0
+		if g.hp < hp_before:
+			# 招式自带的命中附加（docs/95 §12）：移速减速 slow_t 秒（呼号 1.5 秒 −30%）/ 寒冷 chill 秒（骑士；走冰霜，受 Boss 战移速下限 0.7）
+			if float(w.get("slow_t", 0.0)) > 0.0:
+				g.combat.slow_leader(str(w.get("slow_kind", "boss_move")), float(w.slow_t), float(w.get("slow_mult", 0.7)))
+			if float(w.get("chill", 0.0)) > 0.0:
+				g.combat.frost_leader(float(w.chill), "boss")
+				g.vfx.add_text(g.ppos + Vector2(0, -96), "寒冷", Color(0.65, 0.9, 1.3), 14)
 
 
 
@@ -358,7 +398,8 @@ func _warn_resolve(w: Dictionary) -> void:
 		e.pose = 0.35
 		e.pose_max = 0.35
 	# 出手事件（给画面层画攻击特效用，界面与美术读）：动作、形状、位置、朝向、范围、时刻
-	e.last_act = {"act": w.act, "shape": w.shape, "pos": w.pos, "ang": w.ang, "r": w.r, "len": w.len, "wid": w.wid, "half": w.half, "t": g.t}
+	e.last_act = {"act": w.act, "shape": w.shape, "pos": w.pos, "ang": w.ang, "r": w.r, "len": w.len, "wid": w.wid, "half": w.half, "t": g.t,
+		"thrust": w.get("thrust", false), "name": w.name}
 	if w.get("secondary", false):
 		e.atk_until = g.t + 0.35
 	var dv := Vector2.from_angle(w.ang)
@@ -417,12 +458,44 @@ func _warn_resolve(w: Dictionary) -> void:
 			_warn_damage(w)
 		"ishar_line":
 			g.fx.append({"kind": "bbeam", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.28, "max": 0.28, "col": c, "wid": w.wid})
+			if g.vfx.fx_sprite("fx_ishar_line_muzzle", w.pos + dv * 30.0, g.PX * 1.2, w.ang):
+				g.fx[g.fx.size() - 1]["enemy"] = true   # 每条线起点的棘鳍闪光（Codex fx_ishar_line_muzzle；缺图只有光束）
 			Sfx.enemy("spit", e.pos.distance_to(g.ppos))
 			g.vfx.shake_screen(0.25)
 			_warn_damage(w)
-		"ishar_volley":
-			g.eai.shoot(e, dv)
-			e.cdt = maxf(e.cdt, e.cd * 0.82)
+		"song_ring":
+			# 大群之歌（docs/95 §2.2 C）：以本体为心的扩散环进 g.shocks，带缺口（gaps）、扩散 ≤220px/s、真实伤害命中一次；缺口判定在 enemies.update 的冲击环循环
+			g.shocks.append({"pos": w.pos, "r": w.r, "maxr": float(w.get("maxr", 600.0)), "dmg": w.dmg, "hit": false, "boss": e.boss, "src_type": e.type,
+				"spd": float(w.get("spd", 220.0)), "gaps": w.get("gaps", [w.get("gap_ang", INF)]), "gap_half": float(w.get("gap_half", 0.0)),
+				"true": w.get("true", false), "col": c, "owner": e})
+			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c, "enemy": true})
+			g.vfx.sparks(w.pos, Vector2.UP, Color(0.6, 1.4, 1.5), 12, 240.0)
+			Sfx.play("tentacle", -6.0, 0.8)
+			g.vfx.shake_screen(0.3)
+		"spin_ring":
+			# 长枪回旋（docs/95 §4.2 D）：静止缺口环一次性判定——主控在 r 内且不在缺口弧里才中（_warn_hit 的 circle 分支排除缺口）；
+			# 环刀光按环切 8 段排布，缺口段不画
+			for k in 8:
+				var ka: float = w.ang + TAU * k / 8.0
+				if in_gap(w, ka):
+					continue
+				var kp: Vector2 = w.pos + Vector2(cos(ka), sin(ka) * g.combat.GROUND_Y) * w.r * 0.8
+				if not g.vfx.fx_sprite("fx_slash_heavy_steel", kp, g.PX * 1.2, ka + PI * 0.5):
+					g.fx.append({"kind": "bslash", "pos": w.pos, "ang": ka, "half": 0.35, "r": w.r, "life": 0.3, "max": 0.3, "col": c})
+				g.fx[g.fx.size() - 1]["enemy"] = true
+			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.35, "max": 0.35, "col": c, "enemy": true})
+			Sfx.play("swing", 0.0, 0.5)
+			g.vfx.shake_screen(0.6)
+			_warn_damage(w)
+		"lob":
+			# 轰击（docs/95 §6.2 C，第 2 批用）：固定落点圈结算 + 1.5 秒火光（纯画面）；耗弹由放招方按 ammo_cost 处理
+			if not g.vfx.fx_sprite("fx_saint_shell_burst", w.pos, g.PX * 1.5, 0.0):
+				g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
+			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r * 0.8, "life": 1.5, "max": 1.5, "col": Color(c.r * 1.2, c.g * 0.8, c.b * 0.5), "enemy": true})
+			g.vfx.sparks(w.pos, Vector2.UP, Color(1.6, 1.0, 0.5), 16, 280.0)
+			Sfx.play("boom", -2.0, 0.9, 0.0)
+			g.vfx.shake_screen(0.8)
+			_warn_damage(w)
 		"pillar":
 			g.fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.55, "max": 0.55, "col": c})
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.35, "max": 0.35, "col": c})
@@ -431,10 +504,13 @@ func _warn_resolve(w: Dictionary) -> void:
 			g.vfx.shake_screen(0.3)
 			_warn_damage(w, 0.4)
 		"frost":
+			# 寒冷（骑士，docs/95 §4.2 C）：结算圈 + 留 6 秒冰面（r = w.r，只减速；knight_boss.gd step）；Codex fx_knight_frost_burst 到了优先，缺图走程序冰晶
 			e.frost_pos = w.pos
 			e.frost_t = 6.0
 			g.fx.append({"kind": "frost", "pos": w.pos, "r": w.r, "life": 6.0, "max": 6.0, "col": c})
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
+			if g.vfx.fx_sprite("fx_knight_frost_burst", w.pos, g.PX * 1.6, 0.0):
+				g.fx[g.fx.size() - 1]["enemy"] = true
 			g.vfx.sparks(w.pos, Vector2.UP, Color(0.7, 1.0, 1.5), 16, 240.0)
 			Sfx.play("skill", -4.0, 0.7)
 			_warn_damage(w)
@@ -452,9 +528,12 @@ func _warn_resolve(w: Dictionary) -> void:
 			g.vfx.shake_screen(1.2)
 			g.vfx.stop(0.05, "boss_slam")
 		"burst":
-			g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": Color(0.7, 0.35, 1.0)})
+			# 叠影每圈结算（docs/95 §1.2 C）：Codex fx_paranoia_stack（泡影从地面涌起破裂）优先，缺图走程序爆点；每圈一声「啵」按序号逐次升调
+			if not (e.type == "paranoia" and g.vfx.fx_sprite("fx_paranoia_stack", w.pos, g.PX * 1.4, 0.0)):
+				g.fx.append({"kind": "explode", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": Color(0.7, 0.35, 1.0)})
+			g.fx[g.fx.size() - 1]["enemy"] = true
 			g.vfx.sparks(w.pos, Vector2.ZERO, Color(1.2, 0.6, 1.8), 12, 240.0)
-			Sfx.play("boom", -8.0, 1.2, 0.0)
+			Sfx.play("boom", -8.0, 1.2 + 0.12 * float(w.get("seq_no", 1) - 1), 0.0)
 			_warn_damage(w)
 		"shot":
 			var b: Vector2 = w.pos + dv * w.len
@@ -466,11 +545,20 @@ func _warn_resolve(w: Dictionary) -> void:
 		"beam":
 			var b2: Vector2 = w.pos + dv * w.len
 			g.fx.append({"kind": "bbeam", "a": w.pos + Vector2(0, -20), "b": b2, "life": 0.5, "max": 0.5, "col": c, "wid": w.wid})
+			if e.type == "paranoia":
+				# 凝视命中端的紫白爆点（Codex fx_paranoia_gaze_hit；缺图只有光束）：画在主控被打到的位置，没打到画在线端
+				var hp: Vector2 = Geometry2D.get_closest_point_to_segment(g.ppos + Vector2(0, -14), w.pos, b2) if _warn_hit(w) else b2
+				if g.vfx.fx_sprite("fx_paranoia_gaze_hit", hp, g.PX * 1.3, 0.0):
+					g.fx[g.fx.size() - 1]["enemy"] = true
 			Sfx.play("skill", -2.0, 0.5)
 			g.vfx.shake_screen(0.7)
 			_warn_damage(w, 0.0, true)
 		"sweep":
 			g.fx.append({"kind": "bslash", "pos": w.pos, "ang": w.ang, "half": w.half, "r": w.r, "life": 0.3, "max": 0.3, "col": c})
+			# 扇形内的喷涌特效（Codex 第 1 批：泡影呼号 fx_paranoia_howl、伊祖米克分享 fx_izumik_share；左中原点朝右，程序按扇形旋转、按 r 缩放；缺图只有刀光）
+			var cone_fx: String = "fx_paranoia_howl" if w.get("howl", false) else ("fx_izumik_share" if w.get("arts", false) else "")
+			if cone_fx != "" and g.vfx.fx_sprite(cone_fx, w.pos + dv * w.r * 0.5, g.PX * clampf(w.r / 160.0, 0.8, 2.2), w.ang):
+				g.fx[g.fx.size() - 1]["enemy"] = true
 			g.vfx.sparks(w.pos + dv * w.r * 0.6, dv, Color(0.8, 1.4, 1.4), 12, 260.0)
 			Sfx.play("swing", -2.0, 0.55)
 			g.vfx.shake_screen(0.5)
@@ -507,8 +595,11 @@ func _warn_resolve(w: Dictionary) -> void:
 			Sfx.play("swing", -6.0, 0.7)
 			_warn_damage(w)
 		"izu_wave":
-			# 全场地波：没有缺口、覆盖全场；冲刺无敌或站在点亮的灯柱光圈里才躲得开。伤害 ≤ 最大生命 25%，减速 1.5 秒，不僵直
+			# 震撼（原全场地波）：没有缺口、覆盖全场；冲刺无敌或站在点亮的灯柱光圈里才躲得开。伤害 ≤ 最大生命 25%，减速 1.5 秒，不僵直；
+			# 33% 后（w.burn > 0）命中者 4 秒持续法伤（izumik.gd _burn_step），地波环改双层
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": 900.0, "life": 0.7, "max": 0.7, "col": c, "enemy": true})
+			if float(w.get("burn", 0.0)) > 0.0:
+				g.fx.append({"kind": "ring", "pos": w.pos, "r": 760.0, "life": 0.9, "max": 0.9, "col": Color(c.r * 0.8, c.g * 1.1, c.b * 1.2), "enemy": true})
 			g.fx.append({"kind": "gcrack", "pos": e.pos, "r": 170.0, "life": 0.9, "max": 0.9, "col": Color(0.9, 0.4, 1.15), "enemy": true, "opts": {"n": 12}})   # 地波源头：伊祖米克脚下大地裂（纯画面，界面与美术 10-01）
 			Sfx.play("boom", -2.0, 0.5, 0.0)
 			if g.invuln <= 0.0 and not izumik_safe(e):
@@ -516,26 +607,30 @@ func _warn_resolve(w: Dictionary) -> void:
 				g.in_type = ["远程", "法术"]
 				g.combat.enemy_hit(w.dmg, {"boss": true, "src_type": e.type}, false, true)
 				g.combat.slow_leader("wave", 1.5, 0.6)
+				if float(w.get("burn", 0.0)) > 0.0:
+					e.burn_t = 4.0
+					e.burn_dps = float(w.burn)
+					e.burn_acc = 0.0
 		"spawn":
 			# 预告后生成（投嗣育母的注亡拟嗣，docs/48 P0-7）
 			g.spawner.spawn_enemy(w.spawn, w.pos)
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.3, "max": 0.3, "col": c})
 		"bite":
 			g.fx.append({"kind": "bslash", "pos": w.pos, "ang": w.ang, "half": w.half, "r": w.r, "life": 0.25, "max": 0.25, "col": c})
+			if w.get("thrust", false) and g.vfx.fx_sprite("fx_knight_thrust", w.pos + dv * w.r * 0.55, g.PX * 1.3, w.ang):
+				g.fx[g.fx.size() - 1]["enemy"] = true   # 连刺第 3 段前刺的枪尖寒光（Codex fx_knight_thrust；缺图只有刀光）
+			if w.get("mirror", false) and g.vfx.fx_sprite("fx_ishar_maw_red", w.pos + dv * w.r * 0.5, g.PX * 1.2, w.ang):
+				g.fx[g.fx.size() - 1]["enemy"] = true   # 伊莎玛拉濒死强化第 2 段的红色牙光（Codex fx_ishar_maw_red）
 			g.vfx.sparks(w.pos + dv * w.r * 0.65, dv, c, 6, 150.0)
 			Sfx.play("swing", -6.0, 0.9)
 			_warn_damage(w)
-		"bring":
-			for k in 14:
-				var d2 := Vector2.from_angle(TAU * k / 14.0 + w.t)
-				g.ebullets.append({"pos": w.pos, "vel": d2 * 252.0, "dmg": w.dmg, "slow": true, "r": 7.0, "life": 3.0,
-					"corrode": 0.5, "nerve": 0.0, "true": false, "kind": "ebullet", "home": false, "boss": e.boss, "no_rock": true})
-			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.4, "max": 0.4, "col": c})
-			Sfx.play("tentacle", -8.0, 1.3)
 
 
 
-## 预警绘制：外框 + 随时间填满的内圈；结算瞬间闪白
+## 预警绘制（地面填充层；轮廓 / 出口 / 端盖在 world.draw_warn_outlines）：结算瞬间闪白。
+## 填充样式按 docs/95 §0.2 全局固定，玩家看形状就知道躲法、看颜色就知道是谁放的：
+## ① 落点圈 实填（主色 100%）；② 直线 斜条纹（主色 70%，条纹随结算进度流向终点）；③ 扇形 暗填 + 亮边（45% 填充、外弧 130% 亮）；
+## ④ 缺口环 空心（只画线、无填充）；0 预告 低亮度（25%，不发光）；⑤ 必须冲刺 同 ①（屏幕级提示在 HUD）
 func _draw_warns() -> void:
 	for w in g.warns:
 		if w.get("dim", false):
@@ -545,6 +640,7 @@ func _draw_warns() -> void:
 		var pulse: float = 0.5 + 0.5 * sin(g.t * 14.0)
 		var fa := 0.10 + 0.14 * k
 		var oa := 0.55 + 0.35 * pulse * k
+		var st: int = int(w.get("style", 1))
 		if w.done:
 			var f: float = clampf(1.0 - (w.t - w.dur) / 0.25, 0.0, 1.0)
 			c = Color(2.0, 2.0, 2.0)
@@ -552,24 +648,43 @@ func _draw_warns() -> void:
 			oa = 0.9 * f
 			k = 1.0
 		# 颜色不再乘 1.7–2.0：乘完在灯光里褪成白色 / 粉彩，色相丢失（docs/48 全局 ④）；亮度靠 alpha 和白芯（world.draw_warn_outlines）
-		if w.get("style", 1) == 0:
-			# 预告（如注亡拟嗣生成点）：没有伤害，压低亮度，别和伤害圈抢眼
-			fa *= 0.4
+		if st == 0:
+			# 预告（如注亡拟嗣生成点、迫近）：没有伤害，压低亮度，别和伤害圈抢眼
+			fa *= 0.25
 			oa *= 0.45
+		elif st == 2:
+			fa *= 0.7
+		elif st == 3:
+			fa *= 0.45
 		fa *= g.world.tell_fill   # 后期降噪（render/declutter tell_fill_k，缺省 1）：填充减淡、轮廓（world.draw_warn_outlines）加粗
 		var fill := Color(c.r, c.g, c.b, fa * 1.3)
 		var line := Color(c.r, c.g, c.b, oa)
+		var bright := Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, oa)
 		match w.shape:
 			"circle":
 				g.draw_set_transform(w.pos, 0.0, Vector2(1.0, g.combat.GROUND_Y))
-				g.draw_circle(Vector2.ZERO, w.r, fill)
-				g.draw_circle(Vector2.ZERO, w.r * k, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
-				g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 40, line, 2.5)
+				if st == 4 and not w.done:
+					# ④ 空心环：只画线；进度用一圈从内向外长的细环表示
+					g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 48, line, 2.5)
+					g.draw_arc(Vector2.ZERO, maxf(2.0, w.r * k), 0.0, TAU, 40, Color(c.r, c.g, c.b, oa * 0.5), 1.5)
+				else:
+					g.draw_circle(Vector2.ZERO, w.r, fill)
+					g.draw_circle(Vector2.ZERO, w.r * k, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
+					g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 40, line, 2.5)
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			"line":
 				g.draw_set_transform(w.pos, w.ang, Vector2.ONE)
 				g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), fill)
-				g.draw_rect(Rect2(0.0, -w.wid * k, w.len, w.wid * 2.0 * k), Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
+				if st == 2 and not w.done:
+					# ② 斜条纹：间距 28，随结算进度向终点流动；总数按线长封顶（820 长约 30 条）
+					var sc := Color(c.r, c.g, c.b, fa * 1.4)
+					var off: float = fmod(k * 140.0 + g.t * 40.0, 28.0)
+					var x: float = off - w.wid
+					while x < w.len:
+						g.draw_line(Vector2(x, -w.wid), Vector2(x + w.wid, w.wid), sc, 3.0)
+						x += 28.0
+				else:
+					g.draw_rect(Rect2(0.0, -w.wid * k, w.len, w.wid * 2.0 * k), Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
 				g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), line, false, 2.0)
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			"cone":
@@ -582,6 +697,15 @@ func _draw_warns() -> void:
 					pts2.append(w.pos + dv * w.r * k)
 				g.draw_colored_polygon(pts, fill)
 				if k > 0.05:
-					g.draw_colored_polygon(pts2, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
+					g.draw_colored_polygon(pts2, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * (1.0 if st == 3 else 1.6)))
 				pts.append(w.pos)
 				g.draw_polyline(pts, line, 2.5)
+				if st == 3 and not w.done:
+					g.draw_arc(w.pos, w.r, w.ang - w.half, w.ang + w.half, 20, bright, 3.5)   # ③ 亮边：外弧 130% 亮
+		# 连发序号（凝视 1 / 2 / 3、叠影圈号）：circle 画在圈心上方，line / cone 画在起点
+		var sq: int = int(w.get("seq_no", 0))
+		if sq > 0 and not w.done:
+			var sp: Vector2 = w.pos + (Vector2(0, -w.r * g.combat.GROUND_Y - 18.0) if w.shape == "circle" else Vector2.from_angle(w.ang) * 26.0 + Vector2(0, -22.0))
+			g.draw_circle(sp, 9.0, Color(0.02, 0.02, 0.05, 0.8))
+			g.draw_arc(sp, 9.0, 0.0, TAU, 16, Color(1, 1, 1, 0.9), 1.5)
+			UI.text(g, g.font, sp + Vector2(-9.0, 5.0), str(sq), 12, Color(1, 1, 1, 0.95), HORIZONTAL_ALIGNMENT_CENTER, 18.0)

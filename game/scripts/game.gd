@@ -1755,6 +1755,12 @@ const V6_FRAMES := {
 	"fx_hit_flesh": [4, 20.0], "fx_hit_shell": [4, 20.0], "fx_hit_spirit": [4, 20.0], "fx_death_dissolve": [6, 14.0],
 	# 美术 V9：最后的骑士
 	"e_knight_death": [4, 6.0], "fx_knight_impact": [4, 12.0], "fx_knight_rebirth": [4, 10.0],
+	# Boss 招式改版第 1 批特效（docs/95 §13，Codex 单；缺图时 fx_sprite 返回 false、各处走程序版回退）
+	"fx_paranoia_gaze_hit": [4, 16.0], "fx_paranoia_stack": [6, 14.0], "fx_paranoia_howl": [6, 12.0], "fx_paranoia_aura_rune": [2, 2.0],
+	"fx_ishar_song_ring": [4, 12.0], "fx_ishar_maw_red": [4, 14.0], "fx_ishar_line_muzzle": [3, 16.0],
+	"fx_izumik_share": [6, 12.0], "fx_izumik_wave_rim": [4, 12.0], "fx_izumik_lamp_safe": [2, 4.0],
+	"fx_knight_frost_burst": [5, 14.0], "fx_knight_frost_floor": [2, 2.0], "fx_knight_thrust": [3, 16.0],
+	"fx_saint_shell_burst": [6, 14.0],
 	# 第三方开放许可素材魔改（tools/fx_import.py，docs/25 §3）：圣光 / 治疗 / 火 / 爪 / 斩 / 碎石 / 弹道
 	"fx_holy_pillar": [16, 14.0], "fx_holy_pillar_amber": [16, 14.0], "fx_holy_impact": [7, 16.0],
 	"fx_heal_aura_green": [5, 10.0], "fx_heal_aura_amber": [5, 10.0], "fx_circle_gold": [4, 8.0], "fx_circle_amber": [4, 8.0], "fx_shield_amber": [6, 12.0],
