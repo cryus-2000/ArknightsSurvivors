@@ -1022,6 +1022,26 @@
 
 核心分形的发光由程序绘制，不单独出图。不再需要：卡门弹壳、孢子区、路痕。
 
+**实物核对（2026-10-14，docs 整理 D10，Boss与怪物）**：按 `art/incoming` 里的实物帧条量（基础帧条 2 帧、`_move` 4 帧，帧宽 = 图宽 ÷ 帧数，并逐帧检查没有切到别的帧）。上表括号里的本体单帧尺寸**全部与实物一致**；docs/95 §13.1 原写的偏执泡影 48×72、伊莎玛拉 40×80、变身形态 56×96 是按错帧数除出来的（48 / 40 / 56 宽切出来的每帧都贴着边、切断了身体），已改为 72×72 / 80×80 / 112×96。上表「帧条」一列是 9/26 的下单计划，实物文件名以下表为准：
+
+| Boss | 本体单帧（实物） | 实物帧条（帧数） | @2x |
+|---|---|---|---|
+| 最后的骑士 | 96×80 | `e_knight` 2；`_move` / `_attack` / `_charge` / `_charge_form` / `_plant` / `_death` 4；`_spin` 6；`_thrust` 3 | 全有 |
+| 偏执泡影 | 72×72 | `e_paranoia` 2；`_move` / `_gaze` 4；`_phase2` 2；`_phase2_move` / `_phase2_howl` 4 | 全有 |
+| 伊莎玛拉（人形） | 80×80 | `e_ishar` 2；`_move` / `_attack` 4 | 全有 |
+| 伊莎玛拉（变身形态） | 112×96 | `e_ishar_t` 2；`_t_move` / `_t_attack` / `_t_sing` 4；`e_ishar_transform` 6 | 全有 |
+| 伊祖米克 | 72×72 | `e_izumik` 2；`_move` / `_attack` / `_rooting`（上表的 `_root` 扎根）/ `_share` 4 | 全有 |
+| 塑路者 | 56×56 | `e_path` 2；`_move` / `_charge` 4 | 只有 `_charge` 有 |
+| 塑路者分形 | 18×18 | `e_fractal` 2；`_move` 4 | 全有 |
+| 圣徒卡门 / 伊比利亚 | 40×48 | V15 统一造型 `e_saint` / `e_saint_dark` 2；`_move` / `_attack` / `_reload` / `_melee`（炮身近战，取代上表的 `_slash`）4 | 全有 |
+| 接潮主教 | 40×48 | `e_bishop` 2；`_move` 4；`_feign` 2 | 无 |
+| 接潮蔑死体 | 44×44 | `e_archon` 2；`_move` 4；`_feign` 2 | 无 |
+| 接潮斥亡体 | 42×40 | `e_immortal` 2；`_move` 4；`_feign` 2 | 无 |
+| 伊莎玛拉之泪 | 26×24 | `e_tear` 2；`_move` 4 | 全有 |
+
+- 旧的 `e_carmen*` / `e_iberia*`（含 `e_carmen_slash`、`e_iberia_attack` / `_reload`）还在 `art/incoming`，V15 起代码不再引用。
+- 还没交的：Boss 招式改版三批的新帧条（docs/95 §13）、塑路者与接潮三体的 @2x（docs/95 §13.1）；`_death` / `_stun` / `_kneel` / `_learn` 仍按上表「自做」走程序效果，没有单独出图。
+
 ### 6.3 Claude（特效、道具、UI，程序绘制为主，全部不震屏）
 
 > **素材优先（2026-09-26 用户通用要求，协调人转达）**：特效优先用已购买的第三方素材（`art/third_party/`，目录见 `_catalog.json` / README）。预警、冰墙、声波环、溶解等每一项动手前先查素材库，能直接用或稍加改色就用；找不到合适的，再程序绘制。

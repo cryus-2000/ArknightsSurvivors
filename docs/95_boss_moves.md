@@ -1230,10 +1230,12 @@ PRTS 页面 2026-10-14 经 `https://prts.wiki/api.php?action=parse&page=<名称>
 
 规则：**尺寸、帧数、脚底行、出手帧全部不变**，只交同名 `@2x`（每帧 2 倍，重画细节，不要简单放大）；造型配色不改；二值透明、外描边 2px；与 1x 逐帧剪影一致。接入不改代码（`_lazy_tex` 自动优先 @2x）。
 
+单帧尺寸 10-14 按实物核对过（docs/38 §6.2「实物核对」）：偏执泡影 72×72、伊莎玛拉 80×80、变身形态 112×96（原写 48×72 / 40×80 / 56×96 是按错帧数除的）。
+
 | 批 | Boss | 现有帧条（单帧 1x） |
 |---|---|---|
-| 1 | 偏执泡影 | `e_paranoia`（48×72）、`e_paranoia_move`、`e_paranoia_phase2`、`e_paranoia_phase2_move` 及其余 `e_paranoia_*` |
-| 1 | 伊莎玛拉 | `e_ishar` / `_move` / `_attack`（40×80）、`e_ishar_t` / `_t_move` / `_t_attack`（56×96）、`e_ishar_transform` |
+| 1 | 偏执泡影 | `e_paranoia`（72×72）、`e_paranoia_move`、`e_paranoia_phase2`、`e_paranoia_phase2_move` 及其余 `e_paranoia_*` |
+| 1 | 伊莎玛拉 | `e_ishar` / `_move` / `_attack`（80×80）、`e_ishar_t` / `_t_move` / `_t_attack`（112×96）、`e_ishar_transform` |
 | 1 | 伊祖米克 | `e_izumik` / `_move` / `_attack` / `_rooting` 等（72×72） |
 | 1 | 最后的骑士 | `e_knight` / `_move` / `_attack` / `_charge` / `_charge_form` / `_plant` / `_death`（96×80） |
 | 2 | 塑路者 | `e_path` / `_move` / `_attack`（56×56） |
