@@ -1,0 +1,724 @@
+{
+  "brief": "docs/93 10-14 supplement",
+  "base_commit": "61d7c03d",
+  "supersedes": "The files/hashes in this revision supersede the earlier batch manifests for these 32 PNGs only. Unlisted files remain unchanged.",
+  "units": [
+    {
+      "id": "skalter",
+      "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-9006480b-246e-4d88-bb0b-e1011fe4f0a9.png",
+      "files": [
+        {
+          "file": "op_skalter_ishar_idle@2x.png",
+          "frames": 4,
+          "frame_size": [
+            96,
+            96
+          ],
+          "density": 2,
+          "sha256": "614348b29549b107e885e8b8f9bd7862738f910c547201298cfa8b13478769c3",
+          "source_metadata": {
+            "file": "op_skalter_ishar_idle@2x.png",
+            "frame_size": [
+              96,
+              96
+            ],
+            "frames": 4,
+            "fps": 4,
+            "origin": [
+              48,
+              92
+            ],
+            "origin_1x": [
+              24,
+              46
+            ],
+            "origin_2x": [
+              48,
+              92
+            ],
+            "layer": "body",
+            "loop": true,
+            "colors": 24,
+            "density": 2,
+            "fire": null,
+            "sha256": "87c6844189d1efdbc47d5e36e82629802b073cde8b8888b52cb3b0132cc60a45",
+            "reference": "user codex-clipboard-bdb4cc43-0cf1-4e56-bd40-0b451fbd5940.png",
+            "identity_override": "compact dark navy curled seaborn from Skalter standing art, NOT humanoid ishar and NOT white-shell/gold-fin Boss",
+            "source": "exec-e75c03b5-1f01-432f-862f-f64a232b7d74.png",
+            "ally_rim": "#31979f sparse upper-right interior edge, inside #080E18 outline",
+            "palette_shared": true,
+            "floating": true,
+            "palette": [
+              "#080e18",
+              "#091525",
+              "#0d1f34",
+              "#122743",
+              "#154955",
+              "#18304d",
+              "#1b6773",
+              "#1d3754",
+              "#223f61",
+              "#248b93",
+              "#2c4b6f",
+              "#31979f",
+              "#35384f",
+              "#35b5bc",
+              "#424361",
+              "#48d3d8",
+              "#4f506f",
+              "#5ce7e8",
+              "#5d5f80",
+              "#707294",
+              "#7ef3ef",
+              "#8488a5",
+              "#a3a8bb",
+              "#b1f9f4"
+            ]
+          }
+        },
+        {
+          "file": "op_skalter_ishar_idle.png",
+          "frames": 4,
+          "frame_size": [
+            48,
+            48
+          ],
+          "density": 1,
+          "sha256": "f2eae0080d40452d2662fbfaf2127f7ca7771eda99bb52458c3ce02a7e7397a6",
+          "source_metadata": {
+            "file": "op_skalter_ishar_idle@2x.png",
+            "frame_size": [
+              96,
+              96
+            ],
+            "frames": 4,
+            "fps": 4,
+            "origin": [
+              48,
+              92
+            ],
+            "origin_1x": [
+              24,
+              46
+            ],
+            "origin_2x": [
+              48,
+              92
+            ],
+            "layer": "body",
+            "loop": true,
+            "colors": 24,
+            "density": 2,
+            "fire": null,
+            "sha256": "87c6844189d1efdbc47d5e36e82629802b073cde8b8888b52cb3b0132cc60a45",
+            "reference": "user codex-clipboard-bdb4cc43-0cf1-4e56-bd40-0b451fbd5940.png",
+            "identity_override": "compact dark navy curled seaborn from Skalter standing art, NOT humanoid ishar and NOT white-shell/gold-fin Boss",
+            "source": "exec-e75c03b5-1f01-432f-862f-f64a232b7d74.png",
+            "ally_rim": "#31979f sparse upper-right interior edge, inside #080E18 outline",
+            "palette_shared": true,
+            "floating": true,
+            "palette": [
+              "#080e18",
+              "#091525",
+              "#0d1f34",
+              "#122743",
+              "#154955",
+              "#18304d",
+              "#1b6773",
+              "#1d3754",
+              "#223f61",
+              "#248b93",
+              "#2c4b6f",
+              "#31979f",
+              "#35384f",
+              "#35b5bc",
+              "#424361",
+              "#48d3d8",
+              "#4f506f",
+              "#5ce7e8",
+              "#5d5f80",
+              "#707294",
+              "#7ef3ef",
+              "#8488a5",
+              "#a3a8bb",
+              "#b1f9f4"
+            ]
+          }
+        },
+        {
+          "file": "op_skalter_ishar_move@2x.png",
+          "frames": 6,
+          "frame_size": [
+            96,
+            96
+          ],
+          "density": 2,
+          "sha256": "af07673704fe0bf4df94008fca17427cbb6023ac2bf806c7a30e677b12ee67f9",
+          "source_metadata": {
+            "file": "op_skalter_ishar_move@2x.png",
+            "frame_size": [
+              96,
+              96
+            ],
+            "frames": 6,
+            "fps": 10,
+            "origin": [
+              48,
+              92
+            ],
+            "origin_1x": [
+              24,
+              46
+            ],
+            "origin_2x": [
+              48,
+              92
+            ],
+            "layer": "body",
+            "loop": true,
+            "colors": 24,
+            "density": 2,
+            "fire": null,
+            "sha256": "e14f2c6647964e9414ccc52aa45e35bdb322fd54ba6024a2524650673f4c595f",
+            "reference": "user codex-clipboard-bdb4cc43-0cf1-4e56-bd40-0b451fbd5940.png",
+            "identity_override": "compact dark navy curled seaborn from Skalter standing art, NOT humanoid ishar and NOT white-shell/gold-fin Boss",
+            "source": "exec-5d15a03a-d200-4a59-afc3-f769172fe313.png",
+            "ally_rim": "#31979f sparse upper-right interior edge, inside #080E18 outline",
+            "palette_shared": true,
+            "floating": true,
+            "palette": [
+              "#080e18",
+              "#091525",
+              "#0d1f34",
+              "#122743",
+              "#154955",
+              "#18304d",
+              "#1b6773",
+              "#1d3754",
+              "#223f61",
+              "#248b93",
+              "#2c4b6f",
+              "#31979f",
+              "#35384f",
+              "#35b5bc",
+              "#424361",
+              "#48d3d8",
+              "#4f506f",
+              "#5ce7e8",
+              "#5d5f80",
+              "#707294",
+              "#7ef3ef",
+              "#8488a5",
+              "#a3a8bb",
+              "#b1f9f4"
+            ]
+          }
+        },
+        {
+          "file": "op_skalter_ishar_move.png",
+          "frames": 6,
+          "frame_size": [
+            48,
+            48
+          ],
+          "density": 1,
+          "sha256": "1d068eabde6c8716d22b14a1d28a7ff4c55776f7213de92c8c3f021968e5ef39",
+          "source_metadata": {
+            "file": "op_skalter_ishar_move@2x.png",
+            "frame_size": [
+              96,
+              96
+            ],
+            "frames": 6,
+            "fps": 10,
+            "origin": [
+              48,
+              92
+            ],
+            "origin_1x": [
+              24,
+              46
+            ],
+            "origin_2x": [
+              48,
+              92
+            ],
+            "layer": "body",
+            "loop": true,
+            "colors": 24,
+            "density": 2,
+            "fire": null,
+            "sha256": "e14f2c6647964e9414ccc52aa45e35bdb322fd54ba6024a2524650673f4c595f",
+            "reference": "user codex-clipboard-bdb4cc43-0cf1-4e56-bd40-0b451fbd5940.png",
+            "identity_override": "compact dark navy curled seaborn from Skalter standing art, NOT humanoid ishar and NOT white-shell/gold-fin Boss",
+            "source": "exec-5d15a03a-d200-4a59-afc3-f769172fe313.png",
+            "ally_rim": "#31979f sparse upper-right interior edge, inside #080E18 outline",
+            "palette_shared": true,
+            "floating": true,
+            "palette": [
+              "#080e18",
+              "#091525",
+              "#0d1f34",
+              "#122743",
+              "#154955",
+              "#18304d",
+              "#1b6773",
+              "#1d3754",
+              "#223f61",
+              "#248b93",
+              "#2c4b6f",
+              "#31979f",
+              "#35384f",
+              "#35b5bc",
+              "#424361",
+              "#48d3d8",
+              "#4f506f",
+              "#5ce7e8",
+              "#5d5f80",
+              "#707294",
+              "#7ef3ef",
+              "#8488a5",
+              "#a3a8bb",
+              "#b1f9f4"
+            ]
+          }
+        },
+        {
+          "file": "op_skalter_ishar_attack@2x.png",
+          "frames": 4,
+          "frame_size": [
+            96,
+            96
+          ],
+          "density": 2,
+          "sha256": "3afe16793b5f1a04536b0ebd8642ad37e9eb57944e1e08f3e95e14d409ec4f07",
+          "source_metadata": {
+            "file": "op_skalter_ishar_attack@2x.png",
+            "frame_size": [
+              96,
+              96
+            ],
+            "frames": 4,
+            "fps": 10,
+            "origin": [
+              48,
+              92
+            ],
+            "origin_1x": [
+              24,
+              46
+            ],
+            "origin_2x": [
+              48,
+              92
+            ],
+            "layer": "body",
+            "loop": false,
+            "colors": 24,
+            "density": 2,
+            "fire": 2,
+            "sha256": "81b13cac137081e43d5368f73b1e7cdd09dcda3d37d33c5be3c4733131444017",
+            "reference": "user codex-clipboard-bdb4cc43-0cf1-4e56-bd40-0b451fbd5940.png",
+            "identity_override": "compact dark navy curled seaborn from Skalter standing art, NOT humanoid ishar and NOT white-shell/gold-fin Boss",
+            "source": "exec-97debcf7-4704-49fa-a187-d214f36679bf.png",
+            "ally_rim": "#31979f sparse upper-right interior edge, inside #080E18 outline",
+            "palette_shared": true,
+            "floating": true,
+            "palette": [
+              "#080e18",
+              "#091525",
+              "#0d1f34",
+              "#122743",
+              "#154955",
+              "#18304d",
+              "#1b6773",
+              "#1d3754",
+              "#223f61",
+              "#248b93",
+              "#2c4b6f",
+              "#31979f",
+              "#35384f",
+              "#35b5bc",
+              "#424361",
+              "#48d3d8",
+              "#4f506f",
+              "#5ce7e8",
+              "#5d5f80",
+              "#707294",
+              "#7ef3ef",
+              "#8488a5",
+              "#a3a8bb",
+              "#b1f9f4"
+            ]
+          }
+        },
+        {
+          "file": "op_skalter_ishar_attack.png",
+          "frames": 4,
+          "frame_size": [
+            48,
+            48
+          ],
+          "density": 1,
+          "sha256": "55ac07a38a822f2e7e1176d399c7710cbef606391fca2c22bf12e9d63729a5b6",
+          "source_metadata": {
+            "file": "op_skalter_ishar_attack@2x.png",
+            "frame_size": [
+              96,
+              96
+            ],
+            "frames": 4,
+            "fps": 10,
+            "origin": [
+              48,
+              92
+            ],
+            "origin_1x": [
+              24,
+              46
+            ],
+            "origin_2x": [
+              48,
+              92
+            ],
+            "layer": "body",
+            "loop": false,
+            "colors": 24,
+            "density": 2,
+            "fire": 2,
+            "sha256": "81b13cac137081e43d5368f73b1e7cdd09dcda3d37d33c5be3c4733131444017",
+            "reference": "user codex-clipboard-bdb4cc43-0cf1-4e56-bd40-0b451fbd5940.png",
+            "identity_override": "compact dark navy curled seaborn from Skalter standing art, NOT humanoid ishar and NOT white-shell/gold-fin Boss",
+            "source": "exec-97debcf7-4704-49fa-a187-d214f36679bf.png",
+            "ally_rim": "#31979f sparse upper-right interior edge, inside #080E18 outline",
+            "palette_shared": true,
+            "floating": true,
+            "palette": [
+              "#080e18",
+              "#091525",
+              "#0d1f34",
+              "#122743",
+              "#154955",
+              "#18304d",
+              "#1b6773",
+              "#1d3754",
+              "#223f61",
+              "#248b93",
+              "#2c4b6f",
+              "#31979f",
+              "#35384f",
+              "#35b5bc",
+              "#424361",
+              "#48d3d8",
+              "#4f506f",
+              "#5ce7e8",
+              "#5d5f80",
+              "#707294",
+              "#7ef3ef",
+              "#8488a5",
+              "#a3a8bb",
+              "#b1f9f4"
+            ]
+          }
+        },
+        {
+          "file": "op_skalter_ishar_summon@2x.png",
+          "frames": 6,
+          "frame_size": [
+            96,
+            96
+          ],
+          "density": 2,
+          "sha256": "821e5ca243df5bec11b674d70e51679a2b9818d79285238c4dfe8f591c416e41",
+          "source_metadata": {
+            "file": "op_skalter_ishar_summon@2x.png",
+            "frame_size": [
+              96,
+              96
+            ],
+            "frames": 6,
+            "fps": 12,
+            "origin": [
+              48,
+              92
+            ],
+            "origin_1x": [
+              24,
+              46
+            ],
+            "origin_2x": [
+              48,
+              92
+            ],
+            "layer": "body",
+            "loop": false,
+            "colors": 24,
+            "density": 2,
+            "fire": null,
+            "sha256": "7bf986646a5083f70e2bf69147759755ebd50b4e877a292b1a2481cc0e3427e0",
+            "reference": "same approved dark navy seaborn idle",
+            "production": "mechanical vertical reveal of new idle frames, final frame exact idle0",
+            "floating": true,
+            "palette_shared": true,
+            "palette": [
+              "#080e18",
+              "#091525",
+              "#0d1f34",
+              "#122743",
+              "#154955",
+              "#18304d",
+              "#1b6773",
+              "#1d3754",
+              "#223f61",
+              "#248b93",
+              "#2c4b6f",
+              "#31979f",
+              "#35384f",
+              "#35b5bc",
+              "#424361",
+              "#48d3d8",
+              "#4f506f",
+              "#5ce7e8",
+              "#5d5f80",
+              "#707294",
+              "#7ef3ef",
+              "#8488a5",
+              "#a3a8bb",
+              "#b1f9f4"
+            ]
+          }
+        },
+        {
+          "file": "op_skalter_ishar_summon.png",
+          "frames": 6,
+          "frame_size": [
+            48,
+            48
+          ],
+          "density": 1,
+          "sha256": "2908ab9ad96333465f6fc390a278c70193343e09bb30a129c6062f3aff6dad10",
+          "source_metadata": {
+            "file": "op_skalter_ishar_summon@2x.png",
+            "frame_size": [
+              96,
+              96
+            ],
+            "frames": 6,
+            "fps": 12,
+            "origin": [
+              48,
+              92
+            ],
+            "origin_1x": [
+              24,
+              46
+            ],
+            "origin_2x": [
+              48,
+              92
+            ],
+            "layer": "body",
+            "loop": false,
+            "colors": 24,
+            "density": 2,
+            "fire": null,
+            "sha256": "7bf986646a5083f70e2bf69147759755ebd50b4e877a292b1a2481cc0e3427e0",
+            "reference": "same approved dark navy seaborn idle",
+            "production": "mechanical vertical reveal of new idle frames, final frame exact idle0",
+            "floating": true,
+            "palette_shared": true,
+            "palette": [
+              "#080e18",
+              "#091525",
+              "#0d1f34",
+              "#122743",
+              "#154955",
+              "#18304d",
+              "#1b6773",
+              "#1d3754",
+              "#223f61",
+              "#248b93",
+              "#2c4b6f",
+              "#31979f",
+              "#35384f",
+              "#35b5bc",
+              "#424361",
+              "#48d3d8",
+              "#4f506f",
+              "#5ce7e8",
+              "#5d5f80",
+              "#707294",
+              "#7ef3ef",
+              "#8488a5",
+              "#a3a8bb",
+              "#b1f9f4"
+            ]
+          }
+        }
+      ],
+      "frames": [
+        {
+          "file": "op_skalter_ishar_idle@2x.png",
+          "frame": 0,
+          "organ_pixels_master_before_alignment": 433,
+          "rim_pixels_master_before_alignment": 414,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_idle@2x.png",
+          "frame": 1,
+          "organ_pixels_master_before_alignment": 425,
+          "rim_pixels_master_before_alignment": 438,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_idle@2x.png",
+          "frame": 2,
+          "organ_pixels_master_before_alignment": 414,
+          "rim_pixels_master_before_alignment": 367,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_idle@2x.png",
+          "frame": 3,
+          "organ_pixels_master_before_alignment": 424,
+          "rim_pixels_master_before_alignment": 417,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_move@2x.png",
+          "frame": 0,
+          "organ_pixels_master_before_alignment": 457,
+          "rim_pixels_master_before_alignment": 383,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_move@2x.png",
+          "frame": 1,
+          "organ_pixels_master_before_alignment": 440,
+          "rim_pixels_master_before_alignment": 432,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_move@2x.png",
+          "frame": 2,
+          "organ_pixels_master_before_alignment": 398,
+          "rim_pixels_master_before_alignment": 350,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_move@2x.png",
+          "frame": 3,
+          "organ_pixels_master_before_alignment": 424,
+          "rim_pixels_master_before_alignment": 360,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_move@2x.png",
+          "frame": 4,
+          "organ_pixels_master_before_alignment": 425,
+          "rim_pixels_master_before_alignment": 378,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_move@2x.png",
+          "frame": 5,
+          "organ_pixels_master_before_alignment": 440,
+          "rim_pixels_master_before_alignment": 360,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_attack@2x.png",
+          "frame": 0,
+          "organ_pixels_master_before_alignment": 419,
+          "rim_pixels_master_before_alignment": 414,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_attack@2x.png",
+          "frame": 1,
+          "organ_pixels_master_before_alignment": 418,
+          "rim_pixels_master_before_alignment": 381,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_attack@2x.png",
+          "frame": 2,
+          "organ_pixels_master_before_alignment": 456,
+          "rim_pixels_master_before_alignment": 373,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_attack@2x.png",
+          "frame": 3,
+          "organ_pixels_master_before_alignment": 415,
+          "rim_pixels_master_before_alignment": 414,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_summon@2x.png",
+          "frame": 0,
+          "organ_pixels_master_before_alignment": 21,
+          "rim_pixels_master_before_alignment": 44,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_summon@2x.png",
+          "frame": 1,
+          "organ_pixels_master_before_alignment": 155,
+          "rim_pixels_master_before_alignment": 225,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_summon@2x.png",
+          "frame": 2,
+          "organ_pixels_master_before_alignment": 262,
+          "rim_pixels_master_before_alignment": 257,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_summon@2x.png",
+          "frame": 3,
+          "organ_pixels_master_before_alignment": 437,
+          "rim_pixels_master_before_alignment": 362,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_summon@2x.png",
+          "frame": 4,
+          "organ_pixels_master_before_alignment": 410,
+          "rim_pixels_master_before_alignment": 391,
+          "alignment": null,
+          "alpha_unchanged": true
+        },
+        {
+          "file": "op_skalter_ishar_summon@2x.png",
+          "frame": 5,
+          "organ_pixels_master_before_alignment": 414,
+          "rim_pixels_master_before_alignment": 414,
+          "alignment": null,
+          "alpha_unchanged": true
+        }
+      ]
+    }
+  ],
+  "mechanical_processing": "Use imagegen color edit as registered color mask; preserve original alpha/poses; fixed black outline, inner rim and palette; align mother/skimmer move to idle centroid with integer shifts and minimal horizontal fit only when needed to avoid clipping."
+}
