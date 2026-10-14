@@ -15769,7 +15769,7 @@ static func _h4_pillars_tick(o, sa: Dictionary, dt: float) -> void:
 		_h4_pillars_break(o, cr)
 		sa.crystals = {}
 		return
-	if float(cr.t) < float(pc.get("arm", 0.08)) or g.perf_alt:   # 拔起 arm 秒后才挡；--perfab 同局轮换的 /b 桶不挡（量净成本用，正常游戏恒为 false）
+	if float(cr.t) < float(pc.get("arm", 0.08)):   # 拔起 arm 秒后才挡（10-15 起 --perfab 的 /b 桶也照常挡：量帧开关只许影响绘制，docs/101 S4）
 		return
 	if _h4_pperf == null:
 		_h4_pperf = [0, 0, 0, 0] if OS.is_debug_build() and OS.get_cmdline_user_args().has("--pillarperf") else []

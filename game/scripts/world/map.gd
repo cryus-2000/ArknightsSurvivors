@@ -432,11 +432,11 @@ func push_out(pos: Vector2, r: float) -> Vector2:
 	return pos
 
 
-## 本局有没有会挡东西的景物（无景物主题 = false）；g.perf_alt：--perfab 同局轮换时 /b 桶整体关掉阻挡（量净成本用，正常游戏恒为 false）
+## 本局有没有会挡东西的景物（无景物主题 = false）。量帧开关 g.perf_alt 不再关阻挡：测量工具只许影响绘制，不改玩法（docs/101 S4，10-15）
 func blocks() -> bool:
 	if _po_reach < 0.0:
 		_po_setup()
-	return _po_reach > 0.0 and not g.perf_alt
+	return _po_reach > 0.0
 
 
 ## 邻格粗筛：景物中心 x ∈ [cx·cell + 90, + 469]，底座中心再上移 0.6·ry；[x0, x1] × [y0, y1] 够得着的格子范围
