@@ -54,6 +54,8 @@
 - **手动失效**：删 `build/check_cache/` 即可（只是缓存，删了下次重跑重建）。
 - **已知盲区**：键只看 `game/` 与 `art/incoming`；如果某项测试读了这两处以外的文件（例如 `tools/` 下的数据），改那个文件不会让缓存失效——新增这种测试时要把输入加进 `check.scope_hashes`。
 
+**§1.3 积木等价只跑 seed1（2026-10-15 协调人定）**：全量快检里「积木等价（数据版 = 手写参照）」每组只跑第一条用例（eqtest seed1、其余各组 seed1 精零 + 技力常满），28 个进程；第二条（eqtest seed2 自然流程、各组 seed3 当队友 + 全藏品）改由云端每日例行任务跑（§7.6）。本机要跑全部用例加 `--eq-all`。
+
 快检（全量）包含五项：
 
 1. **核心契约测试**（`tests/test_core.gd`）：干员结构、成长线、藏品数据、属性分层。
@@ -314,6 +316,26 @@ AB=<提交> bash tools/cloud/run_cloud.sh  # A/B（check.py --ab）
 本机不再跑 56 局级别的平衡批跑；本机只做 ≤ 6 局的冒烟级确认。
 
 **等价性 A/B**（重构、换读法等预期逐局完全相同的改动，2026-09-27）：两边必须在**同一台**云端机器上依次跑，同一批局，tag 分别以 `_base` / `_new` 结尾；局数多时按难度 / 开局拆份，每份仍是两边同机。读回后用 `python tools/cloud/eq_compare.py <结果分支前缀>` 逐局逐字段比较整局记录；有一局不同就是 bug，把那一局的开局、seed、档位、难度和第一个不同的字段发给请求方。另外抽查各份的胜局数确实随难度变化，确认参数真的生效（首次用于玩法系统的难度修正表，5 档 × 56 局，280 对全部相同）。
+
+### 7.6 例行任务：积木等价全用例每日一跑（2026-10-15，交协调人建）
+
+本机全量快检的积木等价只跑 seed1（§1.3），全部用例（含 seed2 / seed3）每天在云端跑一次，守住数据化干员与手写参照逐行相同。
+
+- **建法**：RemoteTrigger，`cron` 每天一次（建议 UTC 18:00 = 本地凌晨，避开白天发版高峰），环境 Default，仓库 cryus-2000/ArknightsSurvivors，模型 claude-sonnet-5。
+- **提示词**（照抄）：
+
+  ```
+  在仓库 cryus-2000/ArknightsSurvivors 里做积木等价每日全用例检查（docs/36 §7.6），不要改任何代码：
+  1. git fetch origin && git checkout --detach origin/main；记下 SHA=$(git rev-parse --short HEAD)
+  2. bash tools/cloud/setup_linux.sh；source tools/cloud/env.sh；export PYTHONIOENCODING=utf-8
+  3. mkdir -p build/eq_daily；python3 tools/check.py --only blocks_eq --eq-all --nocache --jobs $GODOT_MAX_PROCS 2>&1 | tee build/eq_daily/check.log；记下退出码 RC
+  4. 把 build/check/quick_* 最新一个目录整个拷进 build/eq_daily/，写 build/eq_daily/env.txt（SHA、RC、日期、$GODOT --version）
+  5. git checkout -B cloud-results/eq-daily-$(date -u +%Y%m%d) && git add -f build/eq_daily && git commit -m "eq-daily $SHA rc=$RC" && git push -f origin HEAD
+  6. 回复一句话：SHA、RC、失败时 check.log 里「失败 积木等价」那一行和它下面的错误行
+  ```
+
+- **读结果**：`git fetch origin cloud-results/eq-daily-<日期>`，看 `build/eq_daily/env.txt` 的 RC 与 `check.log`。RC ≠ 0 时，按 check.log 里第一处 TRACE 不同的组 / 行找当天合入的相关提交，派给对应干员的会话。
+- 结果分支保留 7 天后可删。
 
 ## 8. 基线登记
 

@@ -645,8 +645,11 @@ def _balance_core(d, drop_tags=()):
     return d
 
 
+EQ_ALL = False   # --eq-all：每组跑全部用例；缺省每组只跑第一条（seed1），第二条（seed2 / seed3 当队友）改到云端每日一跑（docs/36 §7.6，10-15）
+
+
 def check_blocks_eq(godot):
-    jobs = [(gid, hand_arg, name, extra, hand) for gid, hand_arg, cases, _ in EQ_GROUPS for name, extra in cases for hand in (False, True)]
+    jobs = [(gid, hand_arg, name, extra, hand) for gid, hand_arg, cases, _ in EQ_GROUPS for name, extra in (cases if EQ_ALL else cases[:1]) for hand in (False, True)]
 
     def one(j):
         gid, hand_arg, name, extra, hand = j
@@ -665,7 +668,7 @@ def check_blocks_eq(godot):
             continue
         by[(gid, name, hand)] = ([l for l in out.splitlines() if l.startswith("TRACE ")], _balance_core(d, ("summon",) if gid == "kaltsit" else ()), d)
     for gid, _h, cases, srcs in EQ_GROUPS:
-        for name, _ in cases:
+        for name, _ in (cases if EQ_ALL else cases[:1]):
             if (gid, name, False) not in by or (gid, name, True) not in by:
                 continue
             (ta, ba, da), (tb, bb, db) = by[(gid, name, False)], by[(gid, name, True)]
@@ -841,6 +844,7 @@ def main():
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
                     help="透传给每个 Godot 进程的旋钮覆盖（--bal=enemy/density=1，可重复）；查测试在非缺省旋钮下是否仍过")
+    ap.add_argument("--eq-all", action="store_true", help="积木等价每组跑全部用例（缺省只跑 seed1；全部用例由云端每日例行任务跑，docs/36 §7.6）")
     ap.add_argument("--nocache", action="store_true", help="不读也不写结果缓存（build/check_cache，docs/36 §1.2）")
     ap.add_argument("--auto", action="store_true",
                     help="按相对 main 改了哪些文件只跑相关项目（改的过程中用；合入 main 前仍跑全量）")
@@ -898,7 +902,8 @@ def main():
         for key in SCENE_REGRESSIONS:
             if a.only in (None, "regressions", key):
                 jobs.append(lambda key=key: check_scene(godot, key))
-    global GATE, NOCACHE
+    global GATE, NOCACHE, EQ_ALL
+    EQ_ALL = a.eq_all
     GATE = Gate(JOBS, _last_durations())
     NOCACHE = a.nocache
     if not NOCACHE:
