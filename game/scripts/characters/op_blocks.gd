@@ -7334,6 +7334,7 @@ static func hw_status(o, e: Dictionary, s: Dictionary) -> bool:
 			_hw2(o).burns.append({"e": e, "t": float(s.dur), "dps": dps, "ft": 0.0, "s": s})
 			return true
 		"st.requiem":   # 逻各斯段：安魂（直接覆盖剩余时间，同手写）
+			e["requiem_v"] = float(o.base("requiem_bonus", 0.15))   # 安魂增伤读 base.requiem_bonus（10-14 起不再写死 15%）
 			if o.hw.has("rq") and hw_requiem_stack(o, e, s):   # 精英化第 2 批段：叠层安魂（剜魂）
 				return true
 			e["requiem"] = float(s.dur)

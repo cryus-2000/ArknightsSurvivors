@@ -1026,9 +1026,9 @@ func damage(e: Dictionary, dmg: float) -> void:
 		if is_followup(g.hit):
 			dmg *= g.followup_mult * g.rfx.followup_extra()
 		dmg *= g.rfx.hit_mult(g.hit, e)
-		# Logos「安魂」：受到的法术伤害 +15%；精一「剜魂」叠层时每层 +6%（e.requiem_k，docs/91 §7）
+		# Logos「安魂」：受到的法术伤害 +base.requiem_bonus（缺省 15%，e.requiem_v）；精一「剜魂」叠层时每层 +6%（e.requiem_k，docs/91 §7）
 		if ty[1] == "法术" and e.get("requiem", 0.0) > 0.0:
-			dmg *= 1.15 if not e.has("requiem_k") else 1.0 + float(e.requiem_k)
+			dmg *= (1.0 + float(e.get("requiem_v", 0.15))) if not e.has("requiem_k") else 1.0 + float(e.requiem_k)
 		# 艾雅法拉精一「熔蚀」：melt_t 之前受到的法术伤害 + melt_v（docs/91 §3）
 		if ty[1] == "法术" and float(e.get("melt_t", 0.0)) > g.t:
 			dmg *= 1.0 + float(e.melt_v)
