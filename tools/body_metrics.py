@@ -9,10 +9,11 @@
 定义（全部按 1x 像素报；@2x 读数 ÷ 2）：
     站立高 H     = 脚底行 − 最高不透明行 + 1（含帽 / 耳 / 角；脚底按 sprites.foot y）
     头高         = 下巴行 − 最高不透明行（头饰算进头）
+    头高         = 下巴 − 发顶 / 额头（不含帽 / 角 / 耳 / 光环，见 HAIR_TOP）；头饰高 = 发顶 − 最高不透明行
     头身比       = 头高 / 站立高
     头宽         = 眼高那一行主体段的宽（含两侧头发；不含武器 / 尾巴：取这一行最长的连续段）
     眼距         = 两瞳中心 x 差
-    眼高         = (眼心 y − 顶行) / 头高（越大眼越靠下）
+    眼高         = (眼心 y − 发顶) / 头高（越大眼越靠下）
     下巴宽       = 下巴行往上 1 像素（1x）处脸部宽度；下巴形 = 人工标（圆 / 尖 / 方）
     肩宽         = 下巴往下 1–4 像素（1x）里不透明行宽的最大值
     腿长占比     = (脚底 − 两腿分开的最高行) / 站立高（下半身里从脚往上找连续的「行内 ≥ 2 段、间隔 ≥ 2 像素 @2x」；
@@ -52,6 +53,17 @@ ANNOT = {
     "wisadel": (49.5, 57.5, 50.5, 56, 9, "尖", "2×2", ""),
     "doctor": (None, None, None, None, None, "—", "—", "兜帽，无脸"),
 }
+
+
+# 发顶 / 额头行（1x，人工读整身网格 build/body_metrics/grid_*.png；不含帽 / 角 / 耳 / 光环 / 头饰，±1 像素）。
+# 头高（口径 10-15 协调人定）= 下巴 − 发顶；头饰高 = 发顶 − 最高不透明行
+HAIR_TOP = {"angelina": 16, "exusiai": 15, "eyjafjalla": 15, "hoshiguma": 17, "irene": 18, "kaltsit": 16, "logos": 17,
+            "lumen": 18, "mizuki": 17, "saria": 11, "siege": 10, "skadi": 21, "skalter": 20, "specter_unchained": 19,
+            "suzuran": 17, "texas": 17, "ulpianus": 22, "wisadel": 16}
+# 帽子盖住头顶的四人（斯卡蒂、浊心斯卡蒂、水月、乌尔比安）：看得见的发顶在帽檐下，量出来头只有 4–8 像素，不可用。
+# 改按「眼心 − 8.75」推头顶（8.75 = 其余 13 人眼心到发顶的中位）；乌尔比安面罩遮眼，按「下巴 − 12」（其余人头高中位）推
+HAIR_TOP.update({"skadi": 15.0, "skalter": 16.75, "mizuki": 14.5, "ulpianus": 14.5})
+HAT_EST = {"skadi", "skalter", "mizuki", "ulpianus"}
 
 
 def char_json(cid):
@@ -105,8 +117,10 @@ def measure(cid):
 
     res = {"id": cid, "name": NAMES[cid], "stand": stand}
     if chin is not None:
-        head_h = (chin - top) / 2.0
+        ht = HAIR_TOP.get(cid)
+        head_h = (chin / 2.0 - ht) if ht is not None else (chin - top) / 2.0
         res["head_h"] = head_h
+        res["headwear_h"] = (ht - top / 2.0) if ht is not None else None
         res["head_ratio"] = round(head_h / stand, 3)
         wy = int(round(ey)) if ey is not None else (top + chin) // 2
         res["head_w"] = width(wy) / 2.0   # 眼高那一行的主体宽（含两侧头发；尾巴 / 披发在这一行以下不算）
@@ -118,7 +132,8 @@ def measure(cid):
     if lx is not None and rx is not None:
         res["eye_d"] = (rx - lx) / 2.0
     if ey is not None and chin is not None:
-        res["eye_pos"] = round((ey - top) / (chin - top), 2)
+        ht2 = HAIR_TOP.get(cid, top / 2.0)
+        res["eye_pos"] = round((ey / 2.0 - ht2) / (chin / 2.0 - ht2), 2)   # 0 = 发顶，1 = 下巴
     res["eye_size"] = eye_sz
     # 腿：从脚往上，行内主体有 ≥ 2 段且间隔 ≥ 2
     split, miss = None, 0
@@ -135,13 +150,13 @@ def measure(cid):
     res["leg_ratio"] = round((foot_y - split) / 2.0 / stand, 2) if split else None
     xs = [x for y in range(max(top, bot - 2), bot + 1) for x in range(W) if A[y][x]]
     res["foot_x"] = round(sum(xs) / len(xs) / 2.0, 1)
-    res["note"] = note
+    res["note"] = (note + "；" if note else "") + "头顶按眼高推（帽遮）" if cid in HAT_EST else note
     return res
 
 
 ORDER = ["angelina", "exusiai", "eyjafjalla", "hoshiguma", "irene", "kaltsit", "logos", "lumen", "mizuki", "saria",
          "siege", "skadi", "skalter", "specter_unchained", "suzuran", "texas", "ulpianus", "wisadel", "doctor"]
-COLS = [("stand", "站立高"), ("head_h", "头高"), ("head_w", "头宽"), ("head_ratio", "头身比"), ("eye_d", "眼距"), ("eye_pos", "眼高"), ("eye_chin", "眼到下巴"),
+COLS = [("stand", "站立高"), ("head_h", "头高"), ("headwear_h", "头饰高"), ("head_w", "头宽"), ("head_ratio", "头身比"), ("eye_d", "眼距"), ("eye_pos", "眼高"), ("eye_chin", "眼到下巴"),
         ("eye_size", "眼(@2x)"), ("chin_w", "下巴宽"), ("chin_shape", "下巴形"), ("shoulder_w", "肩宽"), ("leg_ratio", "腿长占比"), ("foot_x", "脚底x"), ("note", "备注")]
 
 
