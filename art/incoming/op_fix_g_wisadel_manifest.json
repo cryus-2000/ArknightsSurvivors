@@ -1,0 +1,579 @@
+{
+  "operator": "wisadel",
+  "status": "art_reviewed_engine_integration_pending",
+  "spec": "docs/97 G + docs/98 + docs/87",
+  "actions": {
+    "idle": {
+      "tex": "op_wisadel_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        24,
+        46
+      ]
+    },
+    "run": {
+      "tex": "op_wisadel_run",
+      "frames": 6,
+      "fps": 10,
+      "foot": [
+        28,
+        46
+      ]
+    },
+    "attack": {
+      "tex": "op_wisadel_attack",
+      "frames": 5,
+      "fps": 14,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 2
+    },
+    "skill": {
+      "tex": "op_wisadel_skill",
+      "frames": 7,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 4
+    }
+  },
+  "frame_size": [
+    48,
+    48
+  ],
+  "hires_frame_size": [
+    96,
+    96
+  ],
+  "pixel_anchor": [
+    24,
+    46
+  ],
+  "reference": "E:\\水月\\op_fixes97_g\\canonical\\wisadel.png",
+  "official_sd": "unavailable; standing art authorized",
+  "detail_constraints": "Orange-amber irises strengthened per user; silver hair/red-black horns; red jacket, dark shorts and boots; silver flat angular launcher.",
+  "export": {
+    "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-057548ed-4e54-4e37-8fbb-95fe11c421e0.png",
+    "height": 72,
+    "scale": 0.43373493975903615,
+    "row_cuts": [
+      0,
+      222,
+      444,
+      665,
+      887
+    ],
+    "transforms": {
+      "idle": [
+        {
+          "source": [
+            39,
+            48,
+            218,
+            214
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            15,
+            21
+          ]
+        },
+        {
+          "source": [
+            258,
+            48,
+            436,
+            215
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            15,
+            21
+          ]
+        },
+        {
+          "source": [
+            482,
+            48,
+            659,
+            215
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            15,
+            21
+          ]
+        },
+        {
+          "source": [
+            702,
+            48,
+            880,
+            215
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            14,
+            21
+          ]
+        }
+      ],
+      "run": [
+        {
+          "source": [
+            26,
+            258,
+            333,
+            535
+          ],
+          "scale": 0.2630594580488017,
+          "paste": [
+            11,
+            20
+          ]
+        },
+        {
+          "source": [
+            394,
+            242,
+            708,
+            535
+          ],
+          "scale": 0.2630594580488017,
+          "paste": [
+            12,
+            16
+          ]
+        },
+        {
+          "source": [
+            753,
+            225,
+            1061,
+            517
+          ],
+          "scale": 0.2630594580488017,
+          "paste": [
+            1,
+            16
+          ]
+        },
+        {
+          "source": [
+            1107,
+            259,
+            1415,
+            535
+          ],
+          "scale": 0.2630594580488017,
+          "paste": [
+            9,
+            20
+          ]
+        },
+        {
+          "source": [
+            1460,
+            233,
+            1774,
+            535
+          ],
+          "scale": 0.2630594580488017,
+          "paste": [
+            12,
+            14
+          ]
+        },
+        {
+          "source": [
+            1834,
+            228,
+            2144,
+            517
+          ],
+          "scale": 0.2630594580488017,
+          "paste": [
+            1,
+            17
+          ]
+        }
+      ],
+      "attack": [
+        {
+          "source": [
+            28,
+            493,
+            219,
+            656
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            12,
+            22
+          ]
+        },
+        {
+          "source": [
+            235,
+            490,
+            420,
+            656
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            7,
+            21
+          ]
+        },
+        {
+          "source": [
+            471,
+            492,
+            660,
+            656
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            12,
+            22
+          ]
+        },
+        {
+          "source": [
+            691,
+            494,
+            877,
+            656
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            11,
+            23
+          ]
+        },
+        {
+          "source": [
+            914,
+            495,
+            1108,
+            656
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            10,
+            23
+          ]
+        }
+      ],
+      "skill": [
+        {
+          "source": [
+            35,
+            688,
+            208,
+            874
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            14,
+            12
+          ]
+        },
+        {
+          "source": [
+            251,
+            683,
+            393,
+            877
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            11,
+            9
+          ]
+        },
+        {
+          "source": [
+            456,
+            709,
+            657,
+            877
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            1,
+            20
+          ]
+        },
+        {
+          "source": [
+            691,
+            686,
+            866,
+            877
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            11,
+            10
+          ]
+        },
+        {
+          "source": [
+            911,
+            708,
+            1108,
+            876
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            9,
+            20
+          ]
+        },
+        {
+          "source": [
+            1133,
+            704,
+            1332,
+            875
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            9,
+            19
+          ]
+        },
+        {
+          "source": [
+            1369,
+            711,
+            1547,
+            878
+          ],
+          "scale": 0.43373493975903615,
+          "paste": [
+            15,
+            21
+          ]
+        }
+      ]
+    },
+    "palette": [
+      [
+        251,
+        247,
+        245
+      ],
+      [
+        245,
+        237,
+        236
+      ],
+      [
+        239,
+        228,
+        224
+      ],
+      [
+        227,
+        215,
+        212
+      ],
+      [
+        229,
+        199,
+        191
+      ],
+      [
+        200,
+        190,
+        189
+      ],
+      [
+        194,
+        155,
+        148
+      ],
+      [
+        144,
+        131,
+        131
+      ],
+      [
+        133,
+        90,
+        87
+      ],
+      [
+        79,
+        68,
+        68
+      ],
+      [
+        216,
+        12,
+        13
+      ],
+      [
+        209,
+        1,
+        2
+      ],
+      [
+        135,
+        10,
+        11
+      ],
+      [
+        57,
+        44,
+        44
+      ],
+      [
+        66,
+        11,
+        10
+      ],
+      [
+        37,
+        33,
+        33
+      ],
+      [
+        30,
+        26,
+        26
+      ],
+      [
+        23,
+        19,
+        19
+      ],
+      [
+        22,
+        7,
+        8
+      ],
+      [
+        5,
+        3,
+        4
+      ],
+      [
+        8,
+        14,
+        24
+      ],
+      [
+        235,
+        169,
+        88
+      ],
+      [
+        169,
+        72,
+        49
+      ],
+      [
+        201,
+        67,
+        67
+      ],
+      [
+        220,
+        224,
+        231
+      ],
+      [
+        240,
+        213,
+        199
+      ],
+      [
+        156,
+        171,
+        188
+      ],
+      [
+        49,
+        50,
+        61
+      ]
+    ]
+  },
+  "action_repairs": {
+    "run": "C:\\Users\\colafax\\.codex\\generated_images\\01a08159-bde5-7d50-b7e0-571e2eeb3a31\\exec-84fcee40-8ca5-44c8-b4f8-0c876bf1e788.png"
+  },
+  "files": [
+    {
+      "name": "op_wisadel_idle.png",
+      "sha256": "a7aeabeda53acbabf93d4e62ec425bc8fa997730d9ecf93acc1fd67402da2c11",
+      "size": [
+        192,
+        48
+      ]
+    },
+    {
+      "name": "op_wisadel_idle@2x.png",
+      "sha256": "1dc9f2469a9f3aa055e384fd307cabfe0e861b95bc3f3fc186856058c706f6c2",
+      "size": [
+        384,
+        96
+      ]
+    },
+    {
+      "name": "op_wisadel_run.png",
+      "sha256": "76172193ccc2ebf9f254aae52d3853a0923ce9bfb8cad70b64a8513c6e26108f",
+      "size": [
+        288,
+        48
+      ]
+    },
+    {
+      "name": "op_wisadel_run@2x.png",
+      "sha256": "69bfff8e346c28f806007c84fdb5928eb72bc1f18f3506c16656ae1b60b59582",
+      "size": [
+        576,
+        96
+      ]
+    },
+    {
+      "name": "op_wisadel_attack.png",
+      "sha256": "fed295deec82fd01d611e9e4f996d25615e54c0667c9e207965f1092d34af3ba",
+      "size": [
+        240,
+        48
+      ]
+    },
+    {
+      "name": "op_wisadel_attack@2x.png",
+      "sha256": "82c87e4e75a0b583f5f84b9bd720b7ebfde7cf1c3829e69e8eeabbc6eeee9c09",
+      "size": [
+        480,
+        96
+      ]
+    },
+    {
+      "name": "op_wisadel_skill.png",
+      "sha256": "f317c16c8b44b3829095710251660e93040853eb8595a2aebdc602d3ad6eb418",
+      "size": [
+        336,
+        48
+      ]
+    },
+    {
+      "name": "op_wisadel_skill@2x.png",
+      "sha256": "fe6b731cd224f9776baeadb6c9ffc8776034ceba7ef2d92a2bb0ddfddbf12b2b",
+      "size": [
+        672,
+        96
+      ]
+    }
+  ]
+}
