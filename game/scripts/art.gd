@@ -83,7 +83,7 @@ const NO_NORMAL_PREFIX := ["tiles", "terrain_", "fx_", "proj_", "relic_", "growt
 ##   render/enemy_pop        0 = 关，1 = 开（缺省 1）
 ##   render/enemy_pop_black  黑位（缺省 0.10）     render/enemy_pop_contrast  对比（缺省 1.35）     render/enemy_pop_sat  饱和度增量（缺省 0.3）
 ##   档位对照（build/enemy_pop/levels_*.png）：轻 0.06/1.2/0.2 差别太轻；中 0.10/1.35/0.30（缺省）明显去雾、最暗一阶 luma≈12 仍与描边分得开；
-##   强 0.14/1.5/0.4 最暗一阶压到 luma≈2 和描边合成一团（塑路者碎片 / 奠基者成黑块）
+##   强 0.14/1.5/0.4 最暗一阶压到 luma≈2 和描边合成一团（塑路者分形 / 奠基者成黑块）
 const POP_SUFFIXES := ["", "_feign", "_dormant", "_awaken", "_enraged", "_swell", "_move", "_attack", "_charge", "_death", "_slash", "_reload", "_rooting", "_melee"]
 static var _pop_ready := false
 static var _pop_names: Dictionary = {}

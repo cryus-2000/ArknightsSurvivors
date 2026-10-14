@@ -490,9 +490,9 @@
   "camera_glance_near": 0.6,
   "_enemy_pop_doc": "普通 / 精英怪祛雾（用户 10-14「别的几个怪物可以祛雾拉高一点，不要显得雾蒙蒙的」；art.gd pop_image）：Codex 重画的 18 种普通 / 精英怪色板最暗一阶都在 luma 46–59/255、近黑 0%、饱和 0.13–0.49，没有暗部锚点，在暗地面和图鉴暗卡上发闷；图鉴格子是原图直贴（只乘后期亮度 1.05），不是渲染层压暗。载入贴图时把帧条漫反射像素烘一遍：黑位下压 enemy_pop_black（减掉再拉伸）→ 以中灰为轴拉对比 enemy_pop_contrast → 饱和度增量 enemy_pop_sat；图鉴格子 / 展示台 / 局内（图集、原路径）同一份像素，逐帧零开销。白闪、法线、描边 #080E18、精英暖橙标识不受影响；Boss / 骑士 / 干员 / 召唤物不在名单。enemy_pop 0 = 关（对照：--bal=render/enemy_pop=0），1 = 开（缺省）；子键可单独覆盖，例如 --bal=render/enemy_pop_contrast=1.3。对照图 build/enemy_pop/",
   "enemy_pop": 1,
-  "enemy_pop_black": 0.10,
-  "enemy_pop_contrast": 1.35,
-  "enemy_pop_sat": 0.3
+  "enemy_pop_black": 0.08,
+  "enemy_pop_contrast": 1.28,
+  "enemy_pop_sat": 0.25
  },
  "ui": {
   "_doc": "界面（用户 10-13「手机版的字可以放大一点」）：phone_font_mult 手机横屏（Cfg.phone_ui）局内正文字号倍率，< 24 号的字乘它并封顶 24（ui.gd UI.fs），大标题与英文小标签不变；桌面 / 平板 / 标题页不受影响。1 = 关",
