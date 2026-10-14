@@ -15,6 +15,26 @@ var effect_category_names := {}  # 实装效果主分类；独立于构筑流派
 var lane_names := {}  # 流派代号 -> 名称（relics.json 顶层 lanes，docs/35）
 
 
+## 藏品说明里的数值占位（docs/61 §1.4 同一套写法，复用 character.gd 的 fill_line）：
+## 「随时间成长」的说明写成 {$键} 表达式，按 balance.json 现值填，曲线改了文字自动跟着变（docs/76 §6）。
+## 可用的键：pm = 8:00 前每分钟增加的倍数（60 / hp_div）；m10 = 10:00 时的倍数；
+## 以及藏品伤害旋钮 mine_dmg / wrath_dmg / dust_dmg / scavenge_mult（balance.json relic 段）。例：伤害 {$mine_dmg}，每分钟 +{$mine_dmg*$pm:0}（10:00 约 {$mine_dmg*$m10:0}）
+static func text_base() -> Dictionary:
+	var Bal = preload("res://scripts/core/balance.gd")
+	var knee: float = Bal.v("enemy/hp_knee", 480.0)
+	var div: float = maxf(1.0, Bal.v("enemy/hp_div", 120.0))
+	var late: float = maxf(1.0, Bal.v("enemy/hp_late_div", 300.0))
+	return {"pm": 60.0 / div, "m10": 1.0 + minf(600.0, knee) / div + maxf(600.0 - knee, 0.0) / late,
+		"mine_dmg": Bal.v("relic/mine_dmg", 42.0), "wrath_dmg": Bal.v("relic/wrath_dmg", 30.0),
+		"dust_dmg": Bal.v("relic/dust_dmg", 10.0), "scavenge_mult": Bal.v("relic/scavenge_mult", 8.0)}
+
+
+static func fill_desc(s: String) -> String:
+	if not s.contains("{$") and not s.contains("$"):
+		return s
+	return preload("res://scripts/characters/character.gd").fill_line(s, text_base())
+
+
 func load_files(meta_path: String = "res://data/relics.json", fx_path: String = "res://data/relic_effects.json") -> int:
 	items.clear()
 	effect_category_names.clear()
@@ -31,7 +51,7 @@ func load_files(meta_path: String = "res://data/relics.json", fx_path: String = 
 		var e: Dictionary = effects.get(id, {})
 		var rarity: String = str(e.get("rarity", r.rarity))
 		items[id] = {
-			"id": id, "name": r.name, "cat": r.get("cat", ""), "desc": e.get("desc", r.adapt), "rarity": rarity,
+			"id": id, "name": r.name, "cat": r.get("cat", ""), "desc": fill_desc(str(e.get("desc", r.adapt))), "rarity": rarity,
 			"effect_category": e.get("effect_category", ""),
 			"tags": e.get("tags", r.tags), "lanes": e.get("lanes", r.lanes), "tier": r.tier,
 			"source": e.get("source", "boss" if r.get("boss_only", false) else "any"),
