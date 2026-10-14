@@ -220,3 +220,13 @@
 **没删的理由一览**：`attack_gate`（docs/26 列为 API）、`snapshot / breakdown`（docs/09 预留）、`Bal.reload`（探针）、`GLYPH`（工具用）；`tools/` 与 `art/incoming` 的候选要先问对口会话（→ 用户 10-10 批准后 10-11 已删，见 §3 / §5 的「已删 10-11」）；数据键除 `spawn_cap` 外归各自会话。
 
 **下一步建议顺序**（按收益 / 风险）：§2.1 合并助手（低风险）→ §3 删旧生成器（问一声即可）→ §6 `game.gd` 三项搬家（低风险）→ §6 `world.gd` / `hud.gd` 拆分（中，要像素对照）→ §2.4 删回退分支（要先做加载保证）。
+
+---
+
+## 8. 待清理清单（各会话顺手发现，派架构审计一起看）
+
+| 发现 | 位置 | 现状 | 建议 | 来源 |
+|---|---|---|---|---|
+| 藏品 252 的击杀计数含非战斗目标 | `relic_fx.on_kill`（`perm_dmg += 0.001 × dk`），由 `combat.kill` 对所有敌人调用 | `combat.kill` 第一行就调 `rfx.on_kill`，在补给箱 / 海嗣祭坛（`e.chest`）/ 裂隙（`tear`）分支和 `e.dead` 去重之前：打碎箱子、开祭坛也给 252 叠伤害，同一只被 kill 两次叠两次 | 在 on_kill 里按 role / 类型排除，或只认普通 / 精英 / Boss；改前确认 252 的设计口径（数值） | 数值 10-14（docs/50 §16.8） |
+| 三个死开关 | `combat.gd` 的 `flesh_heal`（进化体死亡回 3% 生命）、`ember`（精英死亡回 20 灯火）；`enemies.gd` 的 `seed_heal` | 有读取处，全仓库没有任何地方设为 true（藏品 / 事件早已换成数据驱动），分支永远不走 | 确认没有存档 / 旧事件引用后删掉变量和分支；`enemy_demo.gd` 的 `_seed_heal_targets` 是演示场景自用，另看 | 数值 10-14 |
+| `ENEMY_KILLED` 事件没有发出点 | `core/events.gd` 定义；`core/build_profile.gd` 订阅（`_on_killed`）；只有 `tests/test_core.gd` 手动 emit | 游戏里从不 emit，build_profile 的击杀统计永远为空；藏品的 "EnemyKilled" 触发走 `relic_fx.on_kill` 直接调用，不经事件总线 | 二选一：在 `combat.kill` 里 emit（注意每局几千次的开销），或删掉订阅与 build_profile 的击杀部分 | 数值 10-14 |
