@@ -125,7 +125,7 @@ func update_visuals(dt: float) -> void:
 	else:
 		g.sprite.modulate = Color.WHITE
 	var rd := g.get_process_delta_time()
-	g._glance_step(rd)   # 镜头一瞥（game.camera_glance：骑士入潮 / 寒冰重生时看一眼黑潮中心；只动镜头）
+	g.glance_step(rd)   # 镜头一瞥（game.camera_glance：骑士入潮 / 寒冰重生时看一眼黑潮中心；只动镜头）
 	g.cam.position = g.cam_center().round()
 	g.shake = move_toward(g.shake, 0.0, rd * 2.5)
 	cam_kick = cam_kick.move_toward(Vector2.ZERO, rd * 60.0)
@@ -384,7 +384,7 @@ func _draw_ground_sprites() -> void:
 func _draw_warns_auras() -> void:
 	classify_tells()   # 先判哪些预警会打到主控（可读性 1.1.1）：地面填充 / 轮廓 / 冲刺线都读这个结果
 	if not _dbg_foe:
-		g.bai._draw_warns()
+		g.bai.draw_warns()
 	draw_nest_auras()
 	draw_beacons()
 	draw_hunt_ring()
@@ -1670,8 +1670,7 @@ func _draw_tells_outlines() -> void:
 	if not _dbg_foe:
 		draw_warn_outlines()
 	# 主控标记（职业色细环 / 冲刺冷却弧 / 朝向）画在所有敌方预警之上：几十条预警叠在身上时也看得见自己在哪（协调人 1.1.1，干员拆出 draw_leader_mark）
-	if g.squad.has_method("draw_leader_mark"):
-		g.squad.draw_leader_mark()   # 内含手动普攻方向指示（draw_attack_dir，同一批）
+	g.squad.draw_leader_mark()   # 内含手动普攻方向指示（draw_attack_dir，同一批）
 
 
 ## 主角帧动画（美术交付 player_*.png 后自动启用；帧为正方形，帧数 = 宽 / 高）
@@ -2798,7 +2797,7 @@ func draw_leader_ailments() -> void:
 		g.draw_arc(Vector2.ZERO, 36.0, 0.0, TAU, 40, Color(0, 0, 0, 0.5), 6.0)
 		g.draw_arc(Vector2.ZERO, 36.0, -PI / 2.0, -PI / 2.0 + TAU * k, 40, rc, 4.0)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	var nmax: float = g.combat.nerve_max() if g.combat.has_method("nerve_max") else 100.0
+	var nmax: float = g.combat.nerve_max()
 	var nk: float = clampf(g.nerve / nmax, 0.0, 1.0)
 	if nk > 0.05 and g.root_t <= 0.0:
 		# 神经损伤累积：头部周围一圈洋红细电弧，量越高越多越快

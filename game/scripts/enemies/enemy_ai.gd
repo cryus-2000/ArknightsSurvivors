@@ -99,7 +99,7 @@ func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool
 			data.merge({"act": "extra_volley", "half": float(a.spread) * 0.5, "r": reach}, true)
 		_:
 			return false
-	g.bai._warn(e, shape, dur, data)
+	g.bai.warn(e, shape, dur, data)
 	if g.t >= 280.0:
 		next_secondary_at = g.t + 0.9
 	e.extra_next = g.t + float(a.cd)
@@ -116,11 +116,11 @@ func _stag(e: Dictionary) -> bool:
 ## 箱形恐鱼现形后张口蓄势再啃咬，用现有预警/命中机制；不再无动作地接触扣血。
 func _bite(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> Vector2:
 	var reach := float(d.get("bite_range", 76.0))
-	if dist < reach and e.wind <= 0.0 and g.bai._cd(e, "bite", float(d.get("bite_cd", 2.6))):
+	if dist < reach and e.wind <= 0.0 and g.bai.cd_ready(e, "bite", float(d.get("bite_cd", 2.6))):
 		if _stag(e):
 			return Vector2.INF
 		Sfx.enemy("screech", dist)
-		g.bai._warn(e, "cone", 0.6, {"ang": dir.angle(), "half": 0.9, "r": reach, "track": 0.2, "act": "bite", "dmg": e.dmg})
+		g.bai.warn(e, "cone", 0.6, {"ang": dir.angle(), "half": 0.9, "r": reach, "track": 0.2, "act": "bite", "dmg": e.dmg})
 	return Vector2.INF
 
 
@@ -200,14 +200,14 @@ func _reap(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 				g.combat.kill(e)
 				return Vector2.ZERO
 	var rr := float(d.get("reap_range", 88))
-	if dist < rr and e.wind <= 0.0 and g.bai._cd(e, "reap", float(d.get("reap_cd", 2.2))):
+	if dist < rr and e.wind <= 0.0 and g.bai.cd_ready(e, "reap", float(d.get("reap_cd", 2.2))):
 		if _stag(e):
 			return Vector2.INF   # 灯边硬直：醒来第一下的额外前摇（reaped）留给下一次真出手
 		Sfx.enemy("bite", dist)
 		# 扇形斩前摇 enemy/reaper_windup（0.8 秒），醒来后第一下再加 reaper_first_extra（0.2 秒）：数值 9/29「先让它可躲」；倍率读 reap_mult
 		var wu: float = Bal.v("enemy/reaper_windup", 0.8) + (Bal.v("enemy/reaper_first_extra", 0.2) if not e.get("reaped", false) else 0.0)
 		e.reaped = true
-		g.bai._warn(e, "cone", wu, {"ang": dir.angle(), "half": 0.9, "r": rr + 10.0, "track": 0.2, "act": "bite", "name": "镰肢劈砍", "col": Color(0.35, 0.72, 1.0), "dmg": e.dmg * float(d.get("reap_mult", 1.2)),
+		g.bai.warn(e, "cone", wu, {"ang": dir.angle(), "half": 0.9, "r": rr + 10.0, "track": 0.2, "act": "bite", "name": "镰肢劈砍", "col": Color(0.35, 0.72, 1.0), "dmg": e.dmg * float(d.get("reap_mult", 1.2)),
 			"atk_fx": str(d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})
 	return Vector2.INF
 
@@ -227,11 +227,11 @@ func _thrust(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float)
 			e.trail_t = 0.7
 			g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 8.0, "maxr": 30.0, "life": 5.0, "seed": g.rng.randf() * 100.0, "boss": false})
 	var tr := float(d.get("thrust_range", 170))
-	if dist < tr and dist > 30.0 and e.wind <= 0.0 and g.bai._cd(e, "thrust", float(d.get("thrust_cd", 3.2))):
+	if dist < tr and dist > 30.0 and e.wind <= 0.0 and g.bai.cd_ready(e, "thrust", float(d.get("thrust_cd", 3.2))):
 		if _stag(e):
 			return Vector2.INF
 		Sfx.enemy("bite", dist)
-		g.bai._warn(e, "line", 0.55, {"ang": dir.angle(), "len": tr + 20.0, "wid": 12.0, "track": 0.25, "act": "stab", "spd": 700.0, "col": Color(1.0, 0.35, 0.45), "dmg": e.dmg * float(d.get("thrust_mult", 1.2)),
+		g.bai.warn(e, "line", 0.55, {"ang": dir.angle(), "len": tr + 20.0, "wid": 12.0, "track": 0.25, "act": "stab", "spd": 700.0, "col": Color(1.0, 0.35, 0.45), "dmg": e.dmg * float(d.get("thrust_mult", 1.2)),
 			"atk_fx": str(d.get("atk_fx_enraged", d.get("atk_fx", "")) if e.enraged else d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})
 	return Vector2.INF
 
@@ -245,11 +245,11 @@ func _nest(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 			if g.invuln <= 0.0:
 				g.telemetry.aura_type = str(e.type)   # 作战记录：神经损伤记给放光环的敌人
 				g.nerve_aura_t = 0.6   # 神经光环按「站在溟痕里」累积神经损伤（combat.update_nerve）
-	if dist < float(d.get("lash_range", 120)) and e.wind <= 0.0 and g.bai._cd(e, "lash", float(d.get("lash_cd", 5.0))):
+	if dist < float(d.get("lash_range", 120)) and e.wind <= 0.0 and g.bai.cd_ready(e, "lash", float(d.get("lash_cd", 5.0))):
 		if _stag(e):
 			return Vector2.INF
 		Sfx.enemy("screech", dist)
-		g.bai._warn(e, "circle", 0.7, {"follow": true, "r": float(d.get("lash_r", 105)), "act": "burst", "col": Color(0.75, 0.45, 1.0), "dmg": e.dmg * 1.3,
+		g.bai.warn(e, "circle", 0.7, {"follow": true, "r": float(d.get("lash_r", 105)), "act": "burst", "col": Color(0.75, 0.45, 1.0), "dmg": e.dmg * 1.3,
 			"atk_fx": str(d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})
 	return Vector2.INF
 
@@ -266,7 +266,7 @@ func _burrow(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float,
 			if _stag(e):
 				return Vector2.ZERO   # 灯边硬直：照常破土露头，但这一口不咬
 			Sfx.enemy("bite", dist)
-			g.bai._warn(e, "circle", 0.6, {"follow": true, "r": 50.0, "act": "bite", "col": Color(0.8, 0.5, 1.0), "dmg": e.dmg * 1.3})
+			g.bai.warn(e, "circle", 0.6, {"follow": true, "r": 50.0, "act": "bite", "col": Color(0.8, 0.5, 1.0), "dmg": e.dmg * 1.3})
 			g.vfx.sparks(e.pos, Vector2.UP, Color(0.5, 0.4, 0.7), 10, 200.0)
 			return Vector2.ZERO
 		return dir * spd
@@ -279,11 +279,11 @@ func _burrow(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float,
 
 ## 近身时踏地震荡
 func _stomp(e: Dictionary, d: Dictionary, dist: float) -> Vector2:
-	if dist < float(d.get("stomp_range", 170)) and e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and g.bai._cd(e, "stomp", float(d.get("stomp_cd", 6.0))):
+	if dist < float(d.get("stomp_range", 170)) and e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and g.bai.cd_ready(e, "stomp", float(d.get("stomp_cd", 6.0))):
 		if _stag(e):
 			return Vector2.INF
 		Sfx.enemy("screech", dist)
-		g.bai._warn(e, "circle", 0.9, {"follow": true, "r": float(d.get("stomp_r", 135)), "act": "slam", "col": Color(1.0, 0.8, 0.5), "dmg": e.dmg * 1.2})
+		g.bai.warn(e, "circle", 0.9, {"follow": true, "r": float(d.get("stomp_r", 135)), "act": "slam", "col": Color(1.0, 0.8, 0.5), "dmg": e.dmg * 1.2})
 	return Vector2.INF
 
 

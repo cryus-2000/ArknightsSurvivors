@@ -75,12 +75,12 @@ const SKILL_COOLDOWN_SCALE: float = preload("res://scripts/boss_ai.gd").SKILL_CO
 
 
 func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary:
-	return g.bai._warn(e, shape, dur, d)
+	return g.bai.warn(e, shape, dur, d)
 
 
 func _cd(e: Dictionary, key: String, dur: float) -> bool:
-	return g.bai._cd(e, key, dur)
+	return g.bai.cd_ready(e, key, dur)
 
 
 func _close_in(e: Dictionary, dir: Vector2, dist: float, key: String, title: String, col: Color) -> float:
-	return g.bai._close_in(e, dir, dist, key, title, col)
+	return g.bai.close_in(e, dir, dist, key, title, col)

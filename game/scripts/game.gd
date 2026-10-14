@@ -997,7 +997,7 @@ func camera_glance(pos: Vector2, hold: float = 0.6, ease_t: float = 0.35) -> voi
 
 
 ## 每渲染帧（render/world.update_visuals）：rd 为真实帧间隔；只在 PLAY / DEAD / WIN 推进，暂停 / 选卡 / 面板时镜头停在原处
-func _glance_step(rd: float) -> void:
+func glance_step(rd: float) -> void:
 	if glance_pos == Vector2.INF:
 		return
 	if state != S.PLAY and state != S.DEAD and state != S.WIN:
@@ -1526,7 +1526,7 @@ func _update(dt: float) -> void:
 	_pm("bullets")
 	var nfx1: int = fx.size()
 	enemies_sys.update_ebullets(dt)
-	bai._update_warns(dt)
+	bai.update_warns(dt)
 	vfx.mark_enemy_fx(nfx1)
 	_pm("ebullets")
 	enemies_sys.update_status(dt)
@@ -1568,10 +1568,10 @@ func _update(dt: float) -> void:
 	if trial.won() or (not trial.active and final_boss != null and final_boss.dead):
 		victory.begin()
 		return
-	_check_pending()
+	check_pending()
 
 
-func _check_pending() -> void:
+func check_pending() -> void:
 	if state != S.PLAY or demo_op != "" or trial.active:
 		return
 	if not show_queue.is_empty():
@@ -1627,7 +1627,7 @@ func sync_stats() -> void:
 
 
 ## 灯火：灯光照亮范围（游戏判定用）
-func _lamp_r() -> float:
+func lamp_r() -> float:
 	return lerpf(110.0, 360.0, lamp / 100.0) * squad.light_radius_mult()
 
 
@@ -1636,7 +1636,7 @@ func _lamp_sp() -> float:
 
 
 ## 用对局随机数洗牌。Array.shuffle() 走全局随机流，全局流也被纯视觉效果按真实帧率消耗，会让同 seed 的局跑出不同结果
-func _shuffle(a: Array) -> void:
+func shuffle(a: Array) -> void:
 	for i in range(a.size() - 1, 0, -1):
 		var j := rng.randi_range(0, i)
 		var tmp = a[i]
@@ -1924,3 +1924,15 @@ const INTRO_PAGES := [
 var dash_used := false
 
 
+## 旧名转发（docs/101 S6，2026-10-15 改公开名）：tests/ 与未合入的分支还在调旧名，各分支合完后删
+func _lamp_r() -> float:
+	return lamp_r()
+
+func _shuffle(a: Array) -> void:
+	shuffle(a)
+
+func _check_pending() -> void:
+	check_pending()
+
+func _glance_step(rd: float) -> void:
+	glance_step(rd)

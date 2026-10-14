@@ -296,7 +296,7 @@ func apply_rejection() -> String:
 		if o.has_method("apply_rejection"):
 			cands.append(o)
 	var what := ""
-	g._shuffle(cands)   # 对局随机数（同 seed 可复现，docs/36）
+	g.shuffle(cands)   # 对局随机数（同 seed 可复现，docs/36）
 	for c in cands:
 		what = c.apply_rejection()
 		if what != "":
