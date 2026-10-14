@@ -142,9 +142,10 @@ def check_static():
 
 def check_art_lint():
     """不开 Godot：tools/art_lint.py 查 art/incoming 的干员帧条（docs/87）。只有未豁免的 FAIL 算失败；
-    豁免表 art_lint.WAIVERS（已开返修单未交付的项，交付合入后删条目）；WARN 不算失败"""
+    豁免表 art_lint.WAIVERS（已开返修单未交付的项，交付合入后删条目）；WARN 不算失败。
+    色调 hue 项只比本分支相对 main 分叉点改过的帧条（--changed；在 main 上全部跳过）"""
     import art_lint
-    ids, res = art_lint.run(images=False, quiet=True)
+    ids, res = art_lint.run(images=False, quiet=True, changed=True)
     by, fails, waived, warns, stale = art_lint.summarize(ids, res)
     name = lambda r: "%s · %s" % (art_lint.NAMES.get(r["op"], r["op"]), art_lint.CN[r["check"]])
     detail = "%d 人：未豁免 FAIL %d、已豁免 %d、WARN %d" % (len(ids), len(fails), len(waived), len(warns))

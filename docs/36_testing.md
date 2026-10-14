@@ -34,7 +34,7 @@
 | 云端 | 平衡批跑、A/B、胜率、木桩矩阵、等价性 A/B | 截图、帧时（云端无显示、与本机帧时不可比） |
 
 - **发版合批**：协调人不是每合一个分支就发一版——攒一批（约 2 小时或用户要看时），一次全量、一次三包、一次 itch。纯美术 / 文档的合入可以 `ship.py --skip-check`（发布检查仍跑）。
-- **基线 TRACE 缓存**：同种子对照的基线按 `build/trace_cache/<main 提交>_<seed>_<队长>_<时长>.txt` 存，其他会话同一提交直接用，不再各自建临时工作树重跑；没有的才跑一次并存下。
+- **基线 TRACE 缓存**：同种子对照的基线按 `build/trace_cache/<main 提交>_<seed>_<队长>_<时长>.txt` 存，其他会话同一提交直接用，不再各自建临时工作树重跑；没有的才跑一次并存下。工具 `tools/trace_base.py`，用法见 §3.2。
 - **本机并发**：所有会话合计 ≤ `GODOT_MAX_PROCS`；单个会话 `--jobs ≤ 3`；帧时测量时别人暂停批跑（协调人协调）。
 
 快检（全量）包含五项：
@@ -100,6 +100,23 @@
 - 需要真实用户目录时，设环境变量 `ARK_REAL_USERDIR=1`。
 - 经 `godot_runner` 起的开窗口测试局在 Windows 上**不抢焦点、不出现在屏幕上**（用户 10-06：别让弹窗打扰）：runner 临时写 `game/override.cfg`（`window/size/no_focus=true`，跑完无其他 Godot 时删，不入库）、设环境变量 `ARK_NO_FOCUS=1`（settings.gd 不居中窗口、`unfocusable`），并用 Win32 把整个进程树的窗口挪到屏幕外、压到 Z 序最底（Godot 会把 `--position` 夹回屏幕内，所以从外面挪）。**不能最小化**：最小化后画布不渲染、截图全黑。要肉眼看局时设 `ARK_SHOW_WINDOW=1`。自己起 Godot 的驱动脚本要照同一套做。
 - 开窗口的实时测量脚本（docs/50）自己指定 APPDATA，不受影响。
+
+### 3.2 基线 TRACE 缓存：`tools/trace_base.py`（2026-10-14）
+
+同种子对照（「只改画面 / 重构，玩法应逐行不变」）的基线不再各自建临时工作树重跑，统一取缓存：
+
+```
+python tools/trace_base.py <seed> <队长> <时长秒>                    # 打印基线文件路径；没有就先跑一次再存
+python tools/trace_base.py 1 mizuki 240 --here                        # 另在当前工作树跑同一局，逐行比 TRACE
+python tools/trace_base.py 3 wisadel 60 --extra "--squad=mizuki,suzuran --sptest"   # 附加参数（进缓存名）
+python tools/trace_base.py 1 mizuki 240 --ref <提交>                  # 基线换成别的提交（缺省 main）
+```
+
+- **缓存位置**：主仓库（不是工作树）的 `build/trace_cache/<提交前 8 位>_<seed>_<队长>_<时长>[_<附加参数哈希 6 位>].txt`，所有工作树共用；文件头两行 `#` 写提交和完整参数，后面是每秒一行 `TRACE` 和结束时的 `BALANCE` 一行。
+- **没有缓存时**：在主仓库 `.claude/worktrees/trace-<提交>-<pid>` 建临时工作树（拷主仓库的导入缓存，免得从头导入），跑 `--headless --balance --seed=S --op=队长 --bot=expert --maxt=时长 --trace=1 [附加参数]`，存好就删工作树；写文件是原子替换，两个会话同时建同一份也不会读到半截。
+- **为什么是 `--balance`**：`TRACE` 只在 `--balance` 模式下打印（`autotest.gd`），`--autotest` 不出。要换机器人档位 / 难度就在 `--extra` 里写 `--bot=` / `--tier=`。
+- **`--here`**：在当前工作树跑同一局，TRACE 逐行比，报第一处不同的那一行；`BALANCE` 行只提示不判定（画面峰值 / prof 字段本来就可能不同，需要时自己比）。退出码 0 = 逐行相同。
+- main 前进后缓存自然换名（提交号变了），旧文件可随手删；`--refresh` 强制重跑当前这份。
 
 ## 4. 速度
 
