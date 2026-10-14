@@ -156,8 +156,8 @@
    "icon": "skill_skadi_s1"
   },
   {
-   "name": "重斩",
-   "en": "HEAVY CLEAVE",
+   "name": "跃浪击",
+   "en": "WAVEBREAKER",
    "sp": 10,
    "desc": "高举大剑下劈：前方 220° 半径 150 内 3 倍伤害并击退",
    "icon": "skill_skadi_s2"
@@ -197,7 +197,7 @@
     "area"
    ]
   },
-  "重斩": {
+  "跃浪击": {
    "emitter": "operator",
    "origin": "skill",
    "range": "近战",
@@ -239,7 +239,7 @@
     "aftershock"
    ]
   },
-  "跃浪击": {
+  "破浪下劈": {
    "emitter": "operator",
    "origin": "core",
    "range": "近战",
@@ -280,9 +280,9 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「重斩」；解锁天赋「深海掠食者」：每第 3 次横扫追加一次反手斩（70%）；每第 6 次横扫改为跃起下劈：前方扇形 ×1.4 伤害并击退",
+   "desc": "解锁二技能「跃浪击」；解锁天赋「深海掠食者」：每第 3 次横扫追加一次反手斩（70%）；每第 6 次横扫改为跃起下劈：前方扇形 ×1.4 伤害并击退",
    "attack": {
-    "name": "跃浪击",
+    "name": "破浪下劈",
     "desc": "每第 6 次横扫改为跃起下劈：前方 120° 扇形（半径 130）×1.4 伤害，落点溅起水花，击退更远（「涌潮悲歌」期间不换）"
    }
   },
@@ -291,7 +291,7 @@
    "id": "leap_wave",
    "name": "跃浪",
    "icon": "skill_skadi_s2",
-   "desc": "「重斩」落点掀起一道向前推进约 200 的海浪墙，击退并伤害沿途敌人（重斩 80% 伤害，每名敌人一次）"
+   "desc": "「跃浪击」落点掀起一道向前推进约 200 的海浪墙，击退并伤害沿途敌人（跃浪击 80% 伤害，每名敌人一次）"
   },
   {
    "type": "custom",
@@ -973,7 +973,7 @@
       ],
       "aim_pad": "$aim_pad",
       "ring": false,
-      "src": "重斩",
+      "src": "跃浪击",
       "cond": "!skill_active:2",
       "r": "$s2_r",
       "aim_r": "$reach",
@@ -1150,7 +1150,7 @@
       ],
       "aim_pad": "$aim_pad",
       "ring": false,
-      "src": "重斩",
+      "src": "跃浪击",
       "cond": "skill_active:2",
       "r": "$s2_r",
       "aim_r": "$reach",
@@ -1827,7 +1827,7 @@
     "replace": true,
     "anim": "leap_strike",
     "cond": "!skill_active:2",
-    "_doc": "精一跃浪击：每第 6 次横扫改为跃起下劈（前方 120° 扇形 × leap_mult，击退 × 1.3）；涌潮悲歌期间不换",
+    "_doc": "精一破浪下劈：每第 6 次横扫改为跃起下劈（前方 120° 扇形 × leap_mult，击退 × 1.3）；涌潮悲歌期间不换",
     "do": [
      {
       "shape": "cone",
@@ -1835,7 +1835,7 @@
       "half": "$leap_half",
       "mult": "$leap_mult",
       "kb": "$leap_kb",
-      "src": "跃浪击",
+      "src": "破浪下劈",
       "origin_off": [
        0,
        -10

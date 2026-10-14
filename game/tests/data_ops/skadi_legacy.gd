@@ -308,7 +308,7 @@ func skill_active_dur(i: int) -> float:
 func _heavy(ang: float) -> void:
 	var r: float = base("s2_r", 150.0) * stat(&"op_range")
 	var hdmg: float = base("atk", 40.0) * base("s2_mult", 3.0) * _dmg_bonus() * skill_power()
-	melee_hit("重斩", pos + Vector2(0, -10), ang, 1.92, r, hdmg, 240.0)
+	melee_hit("跃浪击", pos + Vector2(0, -10), ang, 1.92, r, hdmg, 240.0)
 	_slash(ang, 1.92, r, Color(0.25, 0.4, 0.85), FOAM, 0.32)
 	var c: Vector2 = pos + Vector2.from_angle(ang) * r * 0.45
 	fx({"kind": "crack", "pos": c, "r": r * 0.6, "life": 0.45, "col": BLUE, "floor": true, "n": 9, "ang": ang})
