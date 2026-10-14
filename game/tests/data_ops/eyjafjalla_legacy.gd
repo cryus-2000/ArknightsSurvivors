@@ -5,6 +5,7 @@
 ## ⚠ 测试参照（10-14 起）：艾雅法拉已迁成数据干员（data/characters/eyjafjalla.json 的 blocks，docs/61 §17），这是原手写脚本，
 ## 只给积木等价测试用（tools/check.py blocks_eq，--opscript=eyjafjalla=res://tests/data_ops/eyjafjalla_legacy.gd）。相对原脚本只改了：
 ## ① 画面粒子（熔岩球火星尾 / 爆炸熔岩飞溅 / 喷发熔岩珠 / 抛射火团尾迹与落地飞溅 / 熔岩池冒泡 / 点燃火舌）的随机数从 g.rng 换成 g.vrng；玩法随机（喷发落点抖动、火星补位方向、熔岩天降打乱、星火燎原起始角）照旧用 g.rng。
+## ② 10-14 二改（用户「熔岩块大一点、数量少一点」）：火星 / 熔岩团 / 熔岩天降的个数改读 base 的 ember_n / blob_n / meteor_n（缺省仍是 2 / 4 / 2），与数据版同步。
 ## 玩法逻辑其余逐行未动。
 extends "res://scripts/characters/character.gd"
 
@@ -206,9 +207,9 @@ func bullet_exploded(b: Dictionary) -> void:
 	if embers_on and b.get("src", "") == "熔岩弹":
 		var near: Array = []
 		for e in nearest_enemies(6, base("ember_reach", 200.0), b.pos):
-			if e.pos.distance_to(b.pos) > b.aoe * 0.6 and near.size() < 2:
+			if e.pos.distance_to(b.pos) > b.aoe * 0.6 and near.size() < int(base("ember_n", 2.0)):
 				near.append(e.pos)
-		while near.size() < 2:
+		while near.size() < int(base("ember_n", 2.0)):
 			near.append(b.pos + Vector2.from_angle(g.rng.randf() * TAU) * b.aoe * 1.5)
 		for p in near:
 			_lob(b.pos, p, b.dmg * base("ember_mult", 0.3), base("ember_r", 30.0), "火星", 30.0, 0.7)
@@ -216,13 +217,14 @@ func bullet_exploded(b: Dictionary) -> void:
 	if meteor_on and b.get("src", "") == "熔岩弹" and b.get("burn", false):
 		var mc: Array = nearest_enemies(10, base("meteor_reach", 320.0), b.pos)
 		shuffle_rng(mc)
-		for k in mini(2, mc.size()):
+		for k in mini(int(base("meteor_n", 2.0)), mc.size()):
 			_lob(b.pos + Vector2(0, -20), mc[k].pos, b.dmg * base("meteor_mult", 0.3), base("meteor_r", 45.0), "熔岩天降", 120.0, 1.2)
 	# N4「星火燎原」：点燃的重弹炸开后向四周溅出 4 团熔岩，各自落地再炸
 	if ignite_blobs and b.get("src", "") == "点燃弹":
 		var a0: float = g.rng.randf() * TAU
-		for k in 4:
-			var to: Vector2 = b.pos + Vector2.from_angle(a0 + k * TAU / 4.0) * b.aoe * 1.4
+		var nb: int = int(base("blob_n", 4.0))
+		for k in nb:
+			var to: Vector2 = b.pos + Vector2.from_angle(a0 + k * TAU / float(nb)) * b.aoe * 1.4
 			_lob(b.pos, to, base("atk", 22.0) * base("blob_mult", 0.5) * _dmg_bonus() * skill_power(), base("blob_r", 40.0), "熔岩团", 44.0, 1.0)
 	if b.get("burn", false) or b.get("weak", 0.0) > 0.0:
 		for e in arc_targets(b.pos, 0.0, PI, b.aoe):
@@ -242,7 +244,7 @@ func _erupt(c: Vector2) -> void:
 	if meteor_on:
 		var cands: Array = nearest_enemies(10, base("meteor_reach", 320.0), c)
 		shuffle_rng(cands)   # 对局随机数（同 seed 可复现，docs/36）
-		for k in mini(2, cands.size()):
+		for k in mini(int(base("meteor_n", 2.0)), cands.size()):
 			_lob(c + Vector2(0, -30), cands[k].pos, edmg * base("meteor_mult", 0.3), base("meteor_r", 45.0), "熔岩天降", 120.0, 1.2)
 	fx({"kind": "lava_pillar", "pos": c, "r": r, "life": 0.5, "col": ORANGE})
 	spawn_fx_sprite("fx_flam_hit", c + Vector2(0, -20), g.PX * 1.7)

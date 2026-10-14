@@ -7305,12 +7305,28 @@ static func hw_lob(o, b: Dictionary, at: Vector2) -> void:
 			for k in n:
 				tos.append(at + Vector2.from_angle(a0 + k * TAU / float(n)) * aoe * float(b.get("ring_k", 1.4)))
 	var hh: float = float(b.get("h", 30.0))
+	var lk = b.get("look", null)
+	if lk is Dictionary and lk.get("burst", false) and not tos.is_empty():
+		_hw_lob_burst(o, from, float(b.get("sz", 1.0)))
 	for p in tos:
 		if h.lobs.size() >= HW_LOB_MAX:
 			break
 		var dur: float = clampf(from.distance_to(p) / 420.0, 0.25, 0.6) + (0.2 if hh > 80.0 else 0.0)
 		h.lobs.append({"b": b, "from": from, "to": p, "t": 0.0, "dur": dur, "dmg": dmg, "r": float(b.get("r", 30.0)), "src": str(b.get("src", "")), "h": hh,
 			"sz": float(b.get("sz", 1.0)), "trail": 0.0, "spin": signf(p.x - from.x) if absf(p.x - from.x) > 1.0 else 1.0})
+
+
+## 熔岩块喷起的原点（10-14 用户「火山喷发的感觉」，纯画面，g.vrng）：白热闪光 + 一束向上猛喷的火星 + 几缕黑烟
+static func _hw_lob_burst(o, at: Vector2, sz: float) -> void:
+	var g = o.g
+	o.fx({"kind": "glow", "pos": at + Vector2(0, -6), "r": 16.0 * sz, "life": 0.14, "col": Color(2.4, 1.4, 0.5), "alpha": 0.85})
+	o.fx({"kind": "lava_spout", "pos": at, "r": 9.0 * sz, "h": 54.0 * sz, "life": 0.22})
+	for k in 7:
+		o.fx({"kind": "spark", "pos": at + Vector2(g.vrng.randf_range(-4, 4), -4), "vel": Vector2(g.vrng.randf_range(-55, 55), g.vrng.randf_range(-330, -200)),
+			"life": g.vrng.randf_range(0.22, 0.34), "col": HW_ORANGE if k % 2 == 0 else Color(2.2, 1.5, 0.6), "sz": 2.5})
+	for k in 3:
+		o.fx({"kind": "mote", "pos": at + Vector2(g.vrng.randf_range(-6, 6), -8), "vel": Vector2(g.vrng.randf_range(-12, 12), g.vrng.randf_range(-70, -45)),
+			"life": 0.5, "col": Color(0.16, 0.1, 0.09), "sz": 4.0})
 
 
 static func hw_affect(o, b: Dictionary, at: Vector2) -> void:
@@ -7467,7 +7483,14 @@ static func _hw2_tick(o, dt: float) -> bool:
 					var ln: String = str(lk.get("land", ""))
 					if ln != "":
 						o.spawn_fx_sprite(ln, l.to + Vector2(0, -4), g.PX * float(lk.get("land_scale", 0.55)) * maxf(0.7, l.sz), 0.0, l.spin < 0.0)
-					o.fx({"kind": "glow", "pos": l.to + Vector2(0, -3), "r": 14.0 * l.sz, "life": 0.1, "col": Color(2.4, 1.5, 0.6), "alpha": 0.85})
+					o.fx({"kind": "glow", "pos": l.to + Vector2(0, -3), "r": 14.0 * l.sz * float(lk.get("heavy", 1.0)), "life": 0.1, "col": Color(2.4, 1.5, 0.6), "alpha": 0.85})
+					if float(lk.get("spot", 0.0)) > 0.0:   # 落点：地面一小块发红、0.3–0.5 秒褪去
+						o.fx({"kind": "lava_spot", "pos": l.to, "r": l.r * 0.5, "life": float(lk.spot), "floor": true})
+					if float(lk.get("heavy", 1.0)) > 1.0:   # 重落地：碎块四溅 + 贴地冲击环
+						o.fx({"kind": "ring", "pos": l.to, "r": l.r * 0.9, "r0": l.r * 0.25, "life": 0.22, "col": Color(1.6, 0.6, 0.15), "floor": true, "w": 3.0})
+						for q in 6:
+							o.fx({"kind": "mote", "pos": l.to + Vector2(0, -4), "vel": Vector2(g.vrng.randf_range(-130, 130), g.vrng.randf_range(-190, -90)), "life": 0.42,
+								"col": HW_LAVA if q % 2 == 0 else HW_ORANGE, "sz": 3.0, "grav": 520.0})
 				o.fx({"kind": "ring", "pos": l.to, "r": l.r, "r0": l.r * 0.3, "life": 0.28, "col": HW_LAVA, "floor": true, "w": 2.0})
 				o.fx({"kind": "glow", "pos": l.to, "r": l.r * 0.6, "life": 0.18, "col": Color(1.6, 0.8, 0.3), "alpha": 0.6})
 				for k in (6 if l.sz >= 1.0 else 3):
@@ -7523,6 +7546,8 @@ static func _hw_lob_pos_at(l: Dictionary, t: float) -> Vector2:
 	var k: float = clampf(t / l.dur, 0.0, 1.0)
 	var lk = l.b.get("look", null)
 	if lk is Dictionary:
+		if lk.has("arc_pow"):
+			return l.from.lerp(l.to, k) + Vector2(0, -pow(sin(k * PI), float(lk.arc_pow)) * l.h * float(lk.get("apex_k", 1.0)))
 		return l.from.lerp(l.to, k) + Vector2(0, -sin(pow(k, 0.8) * PI) * l.h * float(lk.get("apex_k", 1.0)))
 	return l.from.lerp(l.to, k) + Vector2(0, -sin(k * PI) * l.h)
 
@@ -7674,6 +7699,20 @@ static func hw_draw_pfx(o, f: Dictionary, a: float) -> bool:
 			var grow: float = minf(1.0, (1.0 - a) / 0.3)
 			_hw_draw_tiled(o, "fx_logos_s1_link", f.pos, f.pos.lerp(f.to, grow), o.g.PX * 0.8, 0.0)
 			return true
+		"lava_spout":   # 熔岩块喷起的一小股喷射（10-14）：底宽上尖的火柱，很快缩回
+			var hk: float = sin(a * PI * 0.5)
+			var hs: float = float(f.h) * hk
+			var ws: float = float(f.r)
+			var ps: Vector2 = f.pos
+			cv.draw_colored_polygon(PackedVector2Array([ps + Vector2(-ws, 0), ps + Vector2(-ws * 0.2, -hs), ps + Vector2(ws * 0.2, -hs), ps + Vector2(ws, 0)]), Color(HW_LAVA.r, HW_LAVA.g, HW_LAVA.b, 0.75 * a))
+			cv.draw_colored_polygon(PackedVector2Array([ps + Vector2(-ws * 0.4, 0), ps + Vector2(0, -hs * 0.85), ps + Vector2(ws * 0.4, 0)]), Color(2.4, 1.7, 0.8, 0.85 * a))
+			return true
+		"lava_spot":   # 熔岩块落点（10-14）：地面一小块发红，从白热褪到暗红
+			cv.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.5))
+			cv.draw_circle(Vector2.ZERO, float(f.r), Color(1.2, 0.25, 0.05, 0.45 * a))
+			cv.draw_circle(Vector2.ZERO, float(f.r) * 0.55, Color(2.2, 0.9, 0.25, 0.55 * a * a))
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			return true
 		"lava_pillar":
 			var k: float = sin(a * PI)
 			var hh: float = (60.0 + f.r * 0.5) * k
@@ -7778,7 +7817,7 @@ static func _hw2_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 				errs.append(p + ".basis 只能是 attack / prev / hit / atk")
 			if b.has("look"):
 				if not (b.look is Dictionary) or not str(b.look.get("tex", "")).begins_with("proj_"):
-					errs.append(p + ".look 必须是 {tex: proj_* 帧条名, scale, spin, apex_k, land, land_scale}")
+					errs.append(p + ".look 必须是 {tex: proj_* 帧条名, scale, spin, apex_k, arc_pow, burst, heavy, spot, land, land_scale, mod}")
 				elif b.look.has("land") and not str(b.look.land).begins_with("fx_"):
 					errs.append(p + ".look.land 必须是 fx_* 帧条名")
 			_src(b, p, ctx, true)
