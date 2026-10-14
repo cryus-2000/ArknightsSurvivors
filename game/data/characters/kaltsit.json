@@ -88,7 +88,7 @@
    "name": "指令：战术协同",
    "en": "COMMAND: TACTICAL COORDINATION",
    "sp": 15,
-   "desc": "充能一次后永久生效：Mon3tr 攻速 +{$s2_aspd*100-100}%、爪击范围 +{$s2_reach*100-100}%，凯尔希的治疗频率 +{$s2_heal*100-100}%",
+   "desc": "充能一次后永久生效：Mon3tr 攻击速度 +{$s2_aspd*100-100}%、爪击范围 +{$s2_reach*100-100}%，凯尔希的治疗频率 +{$s2_heal*100-100}%",
    "permanent": true,
    "icon": "skill_kaltsit_s2",
    "anim": "command"

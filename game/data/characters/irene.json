@@ -138,7 +138,7 @@
    "name": "裂潮",
    "en": "SHATTERTIDE",
    "sp": 11,
-   "desc": "向前方锥形斩击，最多 {$s2_n} 名敌人 ×{$s2_mult}，浮空 {$s2_lift} 秒（精英减半，Boss 不浮空）",
+   "desc": "向前方锥形斩击，最多 {$s2_n} 名敌人 ×{$s2_mult}，浮空 {$s2_lift} 秒（精英减半，Boss 除外）",
    "icon": "skill_irene_s2"
   },
   {

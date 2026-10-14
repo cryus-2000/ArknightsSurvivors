@@ -36,7 +36,7 @@ const DIFFICULTY := [
 ## 段里没写的键按 level（上表的累计档位）拼出来，所以不填 = 与旧累计难度逐局相同。批跑 --diff=N 也按累计档位拼表。
 const DIFFICULTY_TIERS := [
 	{"name": "波涛迭起", "en": "RISING TIDE", "desc": "基准难度。", "key": "standard", "level": 0},
-	{"name": "波涛迭起·Ⅳ", "en": "RISING TIDE Ⅳ", "desc": "敌人生命与攻击 +20%，受击损失的灯火 +30%，灯油掉落减少。", "key": "hard", "level": 4},
+	{"name": "波涛迭起·Ⅳ", "en": "RISING TIDE Ⅳ", "desc": "敌人生命与攻击 +20%，受击损失的灯火 +30%，灯油掉落 -30%。", "key": "hard", "level": 4},
 	{"name": "波涛迭起·Ⅷ", "en": "RISING TIDE Ⅷ", "desc": "敌人生命 +70%、攻击 +25%；溟痕不再消散，Boss 战中仍有大群来袭。", "key": "extreme", "level": 8},
 ]
 ## 难度修正表：倍率（1.0 = 不变）与开关（0 / 1）
@@ -148,10 +148,10 @@ static func tier_of_level(level: int) -> int:
 const WEAPONS := {
 	"drone": {"tags": ["support", "summon", "heal"], "name": "医疗无人机", "en": "MEDIC DRONE", "glyph": "机", "col": Color(0.55, 1.0, 0.7), "lv": [
 		"加入支援：跟随队长，每 6 秒回复 2% 最大生命",
-		"回复 3%",
-		"队长生命低于 40% 时立即急救 6%（冷却 25 秒）",
-		"增派第二架无人机（各回复 2%）",
-		"两架各回复 2.5%、间隔 5 秒，治疗时清除神经损伤",
+		"每次回复 3% 最大生命",
+		"队长生命低于 40% 时立即急救，回复 6% 最大生命（冷却 25 秒）",
+		"增派第二架无人机（各回复 2% 最大生命）",
+		"两架各回复 2.5% 最大生命、间隔 5 秒，治疗时清除神经损伤",
 	]},
 }
 

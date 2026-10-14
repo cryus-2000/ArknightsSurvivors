@@ -317,7 +317,7 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		if not low_hp and not zone_out:
 			edge_glow(vs, Color(0.45, 0.1, 0.7, 0.8 * g.in_mire), 130.0)
 		if g.in_mire > 0.5 and g.state == Game.S.PLAY:
-			UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 + 84), "陷入溟痕：减速、侵蚀", 16, Color(0.85, 0.55, 1.0, g.in_mire), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
+			UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 + 84), "陷入溟痕：减速、持续受伤、累积神经损伤", 16, Color(0.85, 0.55, 1.0, g.in_mire), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
 	# Boss 换幕 / 倒下的全屏闪（world.watch_bosses）
 	if g.world.scr_flash > 0.0:
 		var fk: float = g.world.scr_flash / g.world.scr_flash_max

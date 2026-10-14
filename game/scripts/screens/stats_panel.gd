@@ -185,7 +185,7 @@ func draw(vs: Vector2) -> void:
 		_draw_footer(vs, r)   # 触屏第一 / 二页没有编队栏
 		return
 	var b2: Rect2 = boxes[2]
-	UI.text(g.hud, g.font, b2.position + Vector2(16, 26), "队伍与成长", 16, UI.CYAN)
+	UI.text(g.hud, g.font, b2.position + Vector2(16, 26), "编队与成长", 16, UI.CYAN)
 	UI.en(g.hud, g.font, b2.position + Vector2(110, 25), "BUILD", 10, UI.CYAN_DIM, 3.0)
 	y = b2.position.y + 44
 	UI.text(g.hud, g.font, Vector2(b2.position.x + 16, y + 12), "编队 %d/%d" % [g.squad.size(), g.squad.cap()], fs_sub, UI.SUB)
@@ -569,7 +569,7 @@ func skill_rows_data() -> Array:
 		if on and g.ch.perm[i]:
 			extra = "（已永久生效）"
 		elif on and need > 0.0:
-			extra = "（充能 %d · %d%%）" % [int(need), int(100.0 * g.ch.sp[i] / need)]
+			extra = "（所需技力 %d · %d%%）" % [int(need), int(100.0 * g.ch.sp[i] / need)]
 		elif not on:
 			extra = "（%s解锁）" % ["招募", "精英一", "精英二"][i]
 		rows.append(["%d" % (i + 1), sd.get("name", "技能 %d" % (i + 1)) + extra, sd.get("desc", ""), on, g.ch.rej.has(i), sd.get("icon", "")])
