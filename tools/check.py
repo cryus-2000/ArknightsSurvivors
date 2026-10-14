@@ -173,9 +173,14 @@ JOBS = GR.MAX_PROCS   # 本次快检的并行数（main 里按 --jobs 设置）
 LOG_DIR = None   # 本次快检的日志目录（main 里设置）；每次启动 Godot 的完整输出都写进去，失败时报告里给路径
 
 
+BAL_ARGS = []   # --bal 透传（见 main）
+
+
 def _run(args, timeout, tag):
     """启动一次 Godot（经 godot_runner 的全机并发上限），把 stdout / stderr 写进 LOG_DIR/<tag>.log，返回 (out, err, 超时, 日志路径)"""
     t0 = time.time()
+    if BAL_ARGS and "--" in args:
+        args = list(args) + BAL_ARGS   # --bal=段/键=值 透传给每个 Godot 进程（balance.gd 测试探针）
     out, err, to = GR.run_godot(args, timeout)
     path = None
     if LOG_DIR:
@@ -644,11 +649,14 @@ def main():
     ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "blocks_eq", "regressions", "art_lint", "slim", "op_text"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
+    ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
+                    help="透传给每个 Godot 进程的旋钮覆盖（--bal=enemy/density=1，可重复）；查测试在非缺省旋钮下是否仍过")
     ap.add_argument("--auto", action="store_true",
                     help="按相对 main 改了哪些文件只跑相关项目（改的过程中用；合入 main 前仍跑全量）")
     a = ap.parse_args()
-    global JOBS, LOG_DIR
+    global JOBS, LOG_DIR, BAL_ARGS
     JOBS = max(1, a.jobs)
+    BAL_ARGS = ["--bal=" + b for b in a.bal]
     godot = GR.find_godot()
     GR.ensure_imported(GAME)
     if a.ab:

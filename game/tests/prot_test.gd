@@ -668,6 +668,9 @@ func test_v8() -> void:
 	var re: Dictionary = sp.spawn_enemy("reaper", game.ppos + Vector2(1500, 0))
 	var rd: float = re.pos.distance_to(game.ppos)
 	ok(re.dormant and rd >= 300.0 and rd <= 520.0, "收割者休眠伏在主控附近（%.0f）" % rd)
+	# 伏击位 330–480 与 wake_r（enemies.json，380）重叠，随机落点可能已在唤醒半径内（rng 流随刷怪数变就换落点）：显式放到半径外再测
+	rd = float(preload("res://scripts/data.gd").ENEMIES["reaper"].get("wake_r", 160)) + 40.0
+	re.pos = game.ppos + Vector2(rd, 0)
 	ai.pattern(re, Vector2.LEFT, rd, dt, re.spd)
 	ok(re.dormant, "主控在唤醒半径外：继续休眠")
 	re.hp -= 1.0
@@ -821,10 +824,11 @@ func test_final_mob_cap() -> void:
 	game.final_boss = fb
 	var keep_fin = Bal._data.get("final", null)
 	Bal._data["final"] = {"stop_mobs": 0.0}   # 旧行为：final_mob_cap；少量补怪的 trickle_cap 见 test_final_stop_mobs
-	var cap := int(Bal.v("boss/final_mob_cap", 120.0))
-	ok(sp.boss_mob_room() == cap - 5, "最终 Boss 在场：余量 = 上限 − 存活杂兵（%d）" % sp.boss_mob_room())
+	# 上限按怪物密度 enemy/density 同比缩（spawner.dens_cap，docs/50 §16）：期望值读真实旋钮算
+	var cap: int = sp.dens_cap(int(Bal.v("boss/final_mob_cap", 120.0)))
+	ok(sp.boss_mob_room() == cap - 5, "最终 Boss 在场：余量 = 上限（按密度 %d）− 存活杂兵（%d）" % [cap, sp.boss_mob_room()])
 	Bal._data["final"] = {"stop_mobs": 1.0, "trickle_mult": 0.35, "trickle_cap": 40.0}
-	ok(sp.boss_mob_room() == 35, "少量补怪开：余量 = trickle_cap 40 − 存活杂兵（%d）" % sp.boss_mob_room())
+	ok(sp.boss_mob_room() == sp.dens_cap(40) - 5, "少量补怪开：余量 = trickle_cap 40（按密度 %d）− 存活杂兵（%d）" % [sp.dens_cap(40), sp.boss_mob_room()])
 	if keep_fin == null:
 		Bal._data.erase("final")
 	else:
@@ -836,8 +840,8 @@ func test_final_mob_cap() -> void:
 	game.enemies.append(mb)
 	game.bosses = [mb]
 	game.final_boss = null
-	var mcap := int(Bal.v("boss/mid_mob_cap", 160.0))
-	ok(sp.boss_mob_room() == mcap - 5, "中期 Boss 在场：余量 = mid_mob_cap − 存活杂兵（%d）" % sp.boss_mob_room())
+	var mcap: int = sp.dens_cap(int(Bal.v("boss/mid_mob_cap", 160.0)))
+	ok(sp.boss_mob_room() == mcap - 5, "中期 Boss 在场：余量 = mid_mob_cap（按密度 %d）− 存活杂兵（%d）" % [mcap, sp.boss_mob_room()])
 	mb.dead = true
 	ok(sp.boss_mob_room() == sp.max_alive(), "中期 Boss 倒下后恢复不限")
 	game.bosses = keep_b
@@ -912,7 +916,8 @@ func test_final_stop_mobs() -> void:
 	ok(not sp.mobs_stopped() and step.call() >= 3, "difficulty final_stop_mobs 0 覆盖：按档照常刷")
 	game.dmod = keep_d
 	# 少量补怪（10-12）：stop_mobs 1 + trickle_mult 0.35 + trickle_cap 5，场上已有 3 只杂兵；攒 10 只的累积、精英到点、大群到点、威胁待升
-	Bal._data["final"] = {"stop_mobs": 1.0, "clear_mobs_s": 0.0, "trickle_mult": 0.35, "trickle_cap": 5.0, "trickle_fresh_w": 0.5}
+	# trickle_cap 经 dens_cap 按密度缩：填 5 / k，缩后仍是 5（k = 1 时就是 5）
+	Bal._data["final"] = {"stop_mobs": 1.0, "clear_mobs_s": 0.0, "trickle_mult": 0.35, "trickle_cap": 5.0 / sp.density(), "trickle_fresh_w": 0.5}
 	game.enemies = [fb]
 	game.bosses = [fb]
 	for k in 3:
@@ -940,7 +945,8 @@ func test_final_stop_mobs() -> void:
 	sp.update(0.1)
 	var knee: float = Bal.v("enemy/spawn_knee", 1.0e9)
 	var base: float = Bal.v("enemy/spawn_base", 1.6) + minf(game.t, knee) / Bal.v("enemy/spawn_div", 30.0) + maxf(game.t - knee, 0.0) / Bal.v("enemy/spawn_late_div", Bal.v("enemy/spawn_div", 30.0))
-	ok(absf(sp.spawn_acc - base * 0.35 * 0.1) < 0.001, "少量补怪：累积 = 正常刷怪率 × 0.35（%.4f / %.4f）" % [sp.spawn_acc, base * 0.35 * 0.1])
+	var want_acc: float = base * 0.35 * 0.1 * sp.density()   # 普通刷怪率另 × 怪物密度 k（docs/50 §16）
+	ok(absf(sp.spawn_acc - want_acc) < 0.001, "少量补怪：累积 = 正常刷怪率 × 0.35 × 密度（%.4f / %.4f）" % [sp.spawn_acc, want_acc])
 	game.lamp = keep_lamp
 	# 新种类（本级威胁池里上一级没有的）抽取权重 × trickle_fresh_w
 	var keep_rs: int = game.rng.state
