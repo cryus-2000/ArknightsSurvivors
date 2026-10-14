@@ -2065,7 +2065,7 @@ func build_enemy_atlas() -> void:
 		atlas = null
 		return
 	if Cfg.dev_args().has("--atlasinfo"):
-		print("ENEMY_ATLAS strips=%d/%d size=%s px=%d ms=%.1f" % [atlas.n_strips, names.size(), str(atlas.tex_body.get_size()), atlas.px_used, (Time.get_ticks_usec() - t0) / 1000.0])
+		print("ENEMY_ATLAS strips=%d/%d size=%s px=%d ms=%.1f pop_strips=%d pop_ms=%.1f" % [atlas.n_strips, names.size(), str(atlas.tex_body.get_size()), atlas.px_used, (Time.get_ticks_usec() - t0) / 1000.0, A.pop_n, A.pop_ms])
 
 
 func _espr_outline(name: String, frames: int, frame: int, pos: Vector2, sc: float, flip: bool, col: Color, anc: Vector2, sq: Vector2) -> void:
