@@ -249,6 +249,46 @@ SpriteBatch.build(view: Rect2, render_cols, light_lut) -> {verts, uvs, cols, seg
 
 出处：godot-build-scripts `build-web/build.sh`；godotengine/build-containers 各分支 `Dockerfile.web`；Godot 文档「Exporting for the Web」「Compiling for the Web」「Optimizing for size」「What is GDExtension」「Compiling with script encryption key」；emscripten「Dynamic Linking」；W3C 2023 年 Godot 团队发言（alessandrelli-godot）；Godot 4.3 网页导出进展文章；Godot 论坛「How to build a GDExtension C++ library for web」「Why is there such a massive overhead in calling a function」；godot-cpp-template；PR #70838 评论；franziskusz/gdext-evaluation；popcar「How to minify Godot's build size」；issue #90168（iOS 导出回归）。本地：godot-source `platform/web/export/export_plugin.h`、`platform/web/detect.py`、`platform/web/SCsub`、`platform/web/js/engine/features.js`、`editor/export/editor_export_platform_pc.cpp`、`core/templates/cowdata.h`。
 
+### 4.7 GDExtension 桌面原型：最小工程方案（10-15 协调人派；只写方案，不建工程）
+
+**目标**：在 Windows 上用官方 4.7.2 编辑器加载一个原生类，`--optab` 同局轮换量出 `EnemyCore` 的真实收益；不影响任何发布包（原型阶段 `.gdextension` 不进导出）。
+
+**目录**
+
+```
+native/                              # 新目录，与 game/ 平级（不进 Godot 工程，不进 pck）
+  core/                              # 纯 C++ 内核：不 include 任何 Godot 头，只收指针 + 长度
+    enemy_core.h / enemy_core.cpp    #   struct EnemyCols { float* px; float* py; … int n; }; void enemy_step(EnemyCols&, const LeaderSnap&, const Props&, double dt, Events& out);
+  gdext/                             # godot-cpp 薄绑定（桌面 / 云端）
+    register_types.cpp               #   注册 EnemyCore（RefCounted）
+    enemy_core_bind.h / .cpp         #   step(dt, cols: Dictionary of Packed*, leader: Dictionary, props: PackedFloat32Array) -> PackedInt32Array
+  module/                            # 以后编进网页模板时用的引擎模块绑定（阶段 1 网页时再建；同一个 core/）
+  godot-cpp/                         # 不入库；构建脚本按固定提交拉取（见下）
+  SConstruct                         # 参照 godot-cpp-template
+  build_native.py                    # 一条命令：拉 godot-cpp → 导出 API → scons → 复制到 game/bin/
+game/bin/ark_native.gdextension      # entry_symbol / compatibility_minimum = "4.7" / libraries（windows.debug.x86_64、windows.release.x86_64；以后 linux.*）
+game/bin/ark_native.windows.*.dll    # 构建产物，不入库（.gitignore）
+game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCore") 才实例化，否则返回 null → 调用方走 GDScript 路径
+```
+
+**godot-cpp 与 4.7.2 对齐**：用我们自己的编辑器导出接口描述，避免分支 / 标签对不准——
+`godot --headless --dump-extension-api --dump-gdextension-interface` 生成 `extension_api.json` 与 `gdextension_interface.h`，scons 时传 `custom_api_file=<路径>`（godot-cpp 支持）；godot-cpp 本身固定到某个提交，记进 `native/VERSION`（同 `template.json` 的做法记 sha256）。
+
+**Windows 构建步骤**（原型）：
+1. `pip install scons`（工具链用现有的 llvm-mingw-20260922）。
+2. `python native/build_native.py`：拉 godot-cpp 指定提交 → 导出 API → 分别 `scons platform=windows arch=x86_64 target=template_debug` 与 `target=template_release`，`use_mingw=yes use_llvm=yes mingw_prefix=<llvm-mingw 路径>`。
+3. 已知坑（§4.6 ④）：godot-cpp 的 `tools/windows.py` 在 llvm 下会追加 `-lstdc++`，而本机工具链只有 libc++——构建脚本里给 godot-cpp 打一行补丁（`-lstdc++` → `-lc++`，静态链接 `-static`），失败再退 MSVC Build Tools（C ABI 兼容，mingw 编的引擎能加载 MSVC 编的 dll）。
+4. 编译选项：`-O2`，**不开 `-ffast-math`**，加 `-ffp-contract=off`（不让编译器把乘加合成 FMA）；MSVC 用 `/fp:precise`。标量用 `double`、`Vector2` 分量用 `float`，与 GDScript 的混合精度一致（§4.5）。
+5. 编辑器打开工程能看到 `EnemyCore` 类即成功；`.gdextension` 原型期加进 Windows / Web 导出预设的 exclude_filter，发布包不受影响。
+
+**开关与对照**：
+- 新位 `OPT_CPP := 65536`（game.gd 现有位到 32768）。`g.opt_old & OPT_CPP` 为真时走 GDScript 旧路径。
+- `--optab=60 --optmask=65536`：每 60 帧在原生 / GDScript 之间轮换，量 7–10 分钟段帧时；`--optold=65536` 整局走 GDScript。
+- 同 seed：原生路径对 B7 新基线的 TRACE 逐行相同才算过；check.py 加一项 `native_eq`（只在 dll 存在时跑：同一局 `--optold=65536` 与缺省各一次，TRACE 逐行比）。
+- 没有 dll（网页、云端暂未编、别人的机器）时 `native.gd` 返回 null，自动走 GDScript，游戏行为不变。
+
+**原型通过后的去向**：dll 进 Windows 发布包（`export_build.py` 复制到 `game/`、`verify_encrypted_game.py` 的逐文件一致检查算上 dll）；云端 `setup_linux.sh` 多编一个 `.so`；网页按 §4.6 建议把同一个 `core/` 编进自编 nothreads 模板（`module/` 绑定），网页包硬线 ≤ 48 MB（§8）。
+
 ## 5. 分阶段路线
 
 | 阶段 | 内容 | 预期收益（桌面 / 网页，粗估） | 风险 | 需要谁定 |
@@ -302,6 +342,16 @@ SpriteBatch.build(view: Rect2, render_cols, light_lut) -> {verts, uvs, cols, seg
 | B8 | 热字段平行数组（段首读入、段尾写回）+ `OPT_CPP` 对照位 | 不变（相对 B7 基线） | B7 |
 
 ## 8. 需要用户定的事项
+
+> **2026-10-15 用户全部批准（协调人转达），按建议执行**：
+> 1. B7 换基线：**接受**（拆随机流、敌人更新拆三段、修 §3.4 ⑥⑦⑨ 三个 bug；开始前先告诉协调人，由协调人安排云端新基线）。
+> 2. 原生代码形式：**纯 C++ 内核 + 桌面 / 云端 GDExtension + 网页把同一内核编进自编的 nothreads 模板**（§4.6、§4.7）。
+> 3. 网页包体：**硬线 ≤ 48 MB**（B 站 Toy 50 MB 留余量）。
+> 4. legacy 干员测试：**录金样 TRACE 后下线**。
+> 5. 排期：**0a 立即派**；0a 完成后按 §7.2 顺序做 B1 → B6（同 seed 不变），B7 前通知协调人。每项合入前量一次 7–10 分钟段帧时（同局轮换）写进提交说明。
+>
+> 下面是原来的问题，保留作记录。
+
 
 1. **B7 换基线**：敌人更新拆三段、随机流拆分、修 3 个 bug（失重对部分击退无效、我方弹体查询半径偏小、部分敌弹不带来源）会让同 seed 结果整体变一次、胜率可能小幅漂移。是否接受？（不接受也能做原生化，但原生段就必须逐表达式复刻现在的回调与随机次序，工作量和风险都大得多。）
 2. **原生代码的形式**：建议纯 C++ 内核 + 桌面 / 云端用 GDExtension、网页把同一内核编进自编的 nothreads 模板（§4.6）。这意味着网页包从此用自编模板（和 Windows 一样记版本与 sha256），并多维护一套 emscripten 工具链；或者选全平台 GDExtension（网页用官方 dlink 模板，包体与启动开销未知，要先量）。
