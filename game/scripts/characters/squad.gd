@@ -8,7 +8,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 
 const REGULAR_MAX := 3
 ## 编队位相对主控的偏移（主控朝右时；朝左镜像 x）。0 号位是主控本人（不用），跟随者从 1 号位起，拉开到能分清谁是谁；
-## 博士挂件在主控左下后方（game.gd DOC_BEHIND），这里避开那个位置
+## 博士挂件在主控左下后方（characters/doctor.gd DOC_BEHIND），这里避开那个位置
 const SLOTS := [Vector2.ZERO, Vector2(-74, -26), Vector2(70, -20), Vector2(4, -72), Vector2(-80, 44)]
 const DEMO_SLOT := Vector2(44, -6)
 

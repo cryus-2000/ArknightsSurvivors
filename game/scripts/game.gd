@@ -69,18 +69,13 @@ const HIT_BASE := {
 	"净尘": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["area", "dot"]},
 	"食腐": {"emitter": "relic", "origin": "relic", "range": "远程", "kind": "法术", "tags": ["area"]},
 }
-## 开局固定预载的贴图（_ready；标题页预热法线图也按这份名单 + preload_tex_names）
-const BASE_TEX := ["drifter", "dart", "crawler", "shell", "boss", "tiles", "seaweed", "coral", "shell_prop", "rock",
-			"gem_small", "gem_big", "oil", "chest", "slash", "tentacle", "jelly", "light", "shadow", "player",
-			"ally_sniper", "ally_caster", "ally_medic", "ally_support", "orb", "doctor",
-			"e_bone", "e_slider", "e_stone", "e_offspring", "e_brood", "e_pocket", "e_skimmer", "e_mother", "e_chest", "e_mimic", "e_event",
-			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2", "e_bishop_feign", "e_archon_feign", "e_immortal_feign", "ebullet", "ingot", "merchant", "pickup_magnet", "pickup_heal", "drone", "drone_laser",
-			"terrain_patches", "prop_pillar", "prop_wall", "prop_wreck", "terrain_ridge", "terrain_peak", "terrain_mire"]
-## 敌人贴图的附加帧条后缀（_ready 按 data/enemies.json 逐个尝试；_slash / _reload / _rooting：Codex V13（卡门 / 伊比利亚 / 伊祖米克））
-const ENEMY_SUFFIXES := ["_move", "_attack", "_charge", "_death", "_slash", "_reload", "_rooting", "_melee"]
-## 美术交付的特效帧数（见 docs/05_art_handoff.md）
-const FXF := {"fx_s1_burst": 6, "fx_s1_slash": 4, "fx_s2_aura": 4, "fx_s2_bind": 4, "fx_s3_aura": 6,
-	"fx_s3_slash": 4, "fx_cast": 8, "fx_stun": 4, "fx_hit": 4, "fx_death": 5}
+
+## 贴图名单 / 特效帧数 / V6 帧条表在 art.gd（纯数据；10-15 从这里搬去，docs/101 S5、docs/55 §6 ①）。
+## 这里留同名别名，g.V6_FRAMES / Game.FXF / Game.BASE_TEX 等引用照旧
+const BASE_TEX = A.BASE_TEX
+const ENEMY_SUFFIXES = A.ENEMY_SUFFIXES
+const FXF = A.FXF
+const V6_FRAMES = A.V6_FRAMES
 
 enum S { PLAY, CHOICE, PAUSE, DEAD, WIN, SHOP, SHOW, STATS, INTRO, OPENING }
 
@@ -1675,15 +1670,11 @@ func _cleanup() -> void:
 
 
 # =====================================================================
-# 博士挂件跟随、引擎回调（_exit_tree / _draw 转发）与数据表（V6_FRAMES 帧条登记、开局指南文本）
+# 博士挂件状态、引擎回调（_exit_tree / _draw 转发）；跟随逻辑在 characters/doctor.gd update_follow，开局指南文本在 data/guide.json（docs/101 S5）
 # =====================================================================
-## 博士挂件（docs/23 v0.7）：不受击、不攻击，慢慢跑着跟在主控身后；离太远（传送 / 开局）才直接归位
-const DOC_SPEED := 175.0        # 略快于主控基础移速 150，追得上但不会贴身
-const DOC_BEHIND := Vector2(-40, 30)
+## 博士挂件（docs/23 v0.7）的位置 / 跑停 / 朝向：绘制与排序要读，留在这里；每帧由 doctor.update_follow 更新
 var doc_pos := Vector2.INF
 var doc_moving := false
-var doc_still_t := 0.0           # 博士连续「几乎没动」的时间：超过 DOC_STOP_T 才切站立（走停滞后，免得跑 / 站帧条一闪一闪）
-const DOC_STOP_T := 0.15
 var doc_face := 1.0
 
 
@@ -1717,206 +1708,8 @@ func _draw() -> void:
 	prof["draw_world"] = int(prof.get("draw_world", 0)) + Time.get_ticks_usec() - t0   # --prof：世界绘制单独计（它也算在下一帧的 engine 里）
 
 
-func _update_doc_follow(dt: float) -> void:
-	var want: Vector2 = ppos + Vector2(DOC_BEHIND.x * facing, DOC_BEHIND.y)
-	if doc_pos == Vector2.INF or doc_pos.distance_to(want) > 600.0:
-		doc_pos = want
-	var d: Vector2 = want - doc_pos
-	var step: float = minf(d.length(), DOC_SPEED * dt * clampf(d.length() / 60.0, 0.35, 1.0))
-	var mv: Vector2 = d.normalized() * step if d.length() > 1.0 else Vector2.ZERO
-	doc_pos += mv
-	# 走停滞后：起步要够快（> 30 像素 / 秒）；停下要连续慢（< 20）DOC_STOP_T 秒
-	var spd: float = mv.length() / maxf(dt, 0.0001)
-	if doc_moving:
-		doc_still_t = doc_still_t + dt if spd < 20.0 else 0.0
-		doc_moving = doc_still_t < DOC_STOP_T
-	else:
-		doc_moving = spd > 30.0
-		doc_still_t = 0.0
-	if absf(mv.x) > 6.0 * dt:
-		doc_face = signf(mv.x)
-	elif not doc_moving:
-		doc_face = facing
 
 
-## 美术 V6 帧条：名称 -> [帧数, fps]
-const V6_FRAMES := {
-	"fx_wisadel_cannon": [4, 12.0],
-	"fx_mon3tr_claw": [4, 16.0], "fx_mon3tr_melt_slash": [4, 16.0],
-	"proj_arrow": [1, 0.0], "proj_fireball": [4, 12.0], "proj_arcane": [4, 12.0], "proj_drone_bullet": [1, 0.0],
-	"proj_missile": [2, 16.0],
-	"fx_fire_explode": [6, 15.0], "fx_missile_explode": [6, 15.0], "fx_arrow_hit": [4, 20.0], "fx_bullet_hit": [3, 24.0],
-	"fx_arcane_hit": [4, 20.0], "fx_heal_cross": [4, 10.0],
-	"fx_laser_start": [4, 20.0], "fx_laser_mid": [4, 20.0], "fx_laser_end": [4, 20.0],
-	# 美术 V7（docs/13_art_v7_spec.md）：触手 / 水刃 / 触手桩 / 巨触 / 受击 / 击杀
-	"fx_tentacle_strike": [6, 16.0], "fx_tentacle_grab": [4, 20.0],
-	"proj_tide_blade": [4, 12.0], "proj_tide_blade_moon": [4, 12.0], "proj_tide_blade_abyss": [4, 12.0], "fx_tide_blade_hit": [4, 20.0],
-	"fx_tendril_stake": [4, 8.0], "fx_tendril_stake_whip": [4, 16.0], "fx_kraken_rise": [6, 12.0],
-	"fx_hit_flesh": [4, 20.0], "fx_hit_shell": [4, 20.0], "fx_hit_spirit": [4, 20.0], "fx_death_dissolve": [6, 14.0],
-	# 美术 V9：最后的骑士
-	"e_knight_death": [4, 6.0], "fx_knight_impact": [4, 12.0], "fx_knight_rebirth": [4, 10.0],
-	# Boss 招式改版第 1 批特效（docs/95 §13，Codex 单；缺图时 fx_sprite 返回 false、各处走程序版回退）
-	"fx_paranoia_gaze_hit": [4, 16.0], "fx_paranoia_stack": [6, 14.0], "fx_paranoia_howl": [6, 12.0], "fx_paranoia_aura_rune": [2, 2.0],
-	"fx_ishar_song_ring": [4, 12.0], "fx_ishar_maw_red": [4, 14.0], "fx_ishar_line_muzzle": [3, 16.0],
-	"fx_izumik_share": [6, 12.0], "fx_izumik_wave_rim": [4, 12.0], "fx_izumik_lamp_safe": [2, 4.0],
-	"fx_knight_frost_burst": [5, 14.0], "fx_knight_frost_floor": [2, 2.0], "fx_knight_thrust": [3, 16.0],
-	"fx_saint_shell_burst": [6, 14.0],
-	# 第 2 批（docs/95 §5.4 / §6.4 / §7.4；帧条 e_path_slam / e_saint_dark_lob / e_carmen_spin 由 world.boss_strip_animation 按帧数取，不在这里登记）
-	"fx_path_fractal_rise": [5, 12.0], "fx_path_correct_ring": [4, 12.0], "fx_path_reflow": [3, 12.0],
-	"proj_saint_shell": [2, 8.0], "fx_saint_scatter": [3, 16.0], "fx_saint_clear_ring": [4, 12.0], "fx_carmen_smash": [4, 14.0],
-	# 第 3 批（docs/95 §8.4 / §9.4 / §10.4；帧条 e_bishop_attack / e_archon_attack / e_immortal_attack 在 world.boss_strip_animation）
-	"fx_bishop_wave": [6, 12.0], "fx_tide_link_tile": [4, 12.0], "fx_archon_breath": [5, 14.0], "fx_immortal_burst": [5, 16.0],
-	# 第三方开放许可素材魔改（tools/fx_import.py，docs/25 §3）：圣光 / 治疗 / 火 / 爪 / 斩 / 碎石 / 弹道
-	"fx_holy_pillar": [16, 14.0], "fx_holy_pillar_amber": [16, 14.0], "fx_holy_impact": [7, 16.0],
-	"fx_heal_aura_green": [5, 10.0], "fx_heal_aura_amber": [5, 10.0], "fx_circle_gold": [4, 8.0], "fx_circle_amber": [4, 8.0], "fx_shield_amber": [6, 12.0],
-	"fx_flam_hit": [8, 14.0], "fx_sunburst": [16, 16.0], "proj_lavaball": [6, 12.0],
-	"fx_claw_green": [4, 16.0], "fx_claw_double_green": [5, 16.0], "fx_felspell": [17, 16.0], "fx_logos_s2": [17, 16.0],
-	"fx_slash_arc_deep": [6, 18.0], "fx_slash_heavy_deep": [5, 16.0], "fx_slash_circle_deep": [6, 16.0], "fx_water_splash": [11, 14.0],
-	"fx_rock_burst": [14, 14.0], "fx_rock_spike": [10, 14.0], "proj_foxfire": [6, 12.0],
-	# 第二批干员的重调色变体（tools/fx_recolor.py，帧数 / fps 与源相同）
-	"fx_slash_arc_rose": [6, 18.0], "fx_slash_heavy_rose": [5, 16.0], "fx_slash_circle_rose": [6, 16.0],
-	"fx_slash_heavy_steel": [5, 16.0], "fx_circle_steel": [4, 8.0],
-	"fx_slash_circle_ghost": [6, 16.0], "fx_slash_circle_blood": [6, 16.0], "fx_circle_ghost": [4, 8.0],
-	"fx_ink_hit": [8, 14.0], "fx_holy_pillar_ink": [16, 14.0], "fx_circle_ink": [4, 8.0],
-	"proj_lumen_bolt": [6, 12.0], "fx_holy_impact_lantern": [7, 16.0],
-	# ansimuz 爆炸与魔法合集（tools/fx_import.py 'dir' 模式，2026-09-26）
-	# docs/54 §6 事件特效帧条（tools/gen_fx_strips.py，程序生成；有图用图、没图走原程序画法）
-	"fx_beacon_ignite": [8, 16.0], "fx_ember": [4, 8.0], "fx_mire_dissolve": [6, 8.0], "fx_levelup_pillar": [6, 12.0], "fx_elite_spawn": [6, 6.7],
-	"fx_merchant_lantern": [4, 0.0],   # 商人灯笼覆盖帧（tools/gen_merchant_lantern.py）：[商人帧 × 2 + 亮]，手动选帧
-	"fx_flames": [7, 12.0], "fx_fire_aura": [13, 18.0], "fx_splash_blue": [9, 18.0],
-	"fx_thrust_hit_rose": [5, 20.0], "fx_star_hit_rose": [7, 20.0], "fx_cannon_burst": [10, 20.0], "fx_muzzle_flash": [7, 28.0],
-	# Codex fx30（docs/30，双密度 @2x）：帧数 / fps 按 art/incoming/fx30_handoff.md；钙质晶体放慢到 10fps 以延长停留
-	"proj_ulpianus_anchor": [2, 10.0], "fx_irene_thrust": [5, 25.0], "fx_specter_saw": [6, 24.0], "fx_specter_saw_blood": [6, 24.0],
-	"fx_mizuki_tentacle": [6, 15.0], "fx_mizuki_tentacle_mass": [6, 15.0], "fx_suzuran_foxfire_gather": [6, 24.0],
-	"fx_logos_glyph": [6, 18.0], "fx_logos_script": [4, 12.0], "fx_saria_shield_bash": [5, 20.0], "fx_saria_calcite": [8, 10.0],
-	# Codex 逻各斯实机参考特效（art/incoming/logos_fx_handoff.md）
-	"fx_logos_s3_orbit": [6, 10.0], "fx_logos_s3_back": [6, 10.0], "fx_logos_s3_front": [6, 10.0],
-	"fx_logos_s1_link": [4, 12.0], "proj_logos_ink": [4, 12.0],
-	# 艾雅法拉 S2 点燃：彗星火球 + 大团熔岩爆炸（ansimuz，fx_import）
-	"proj_eyja_ignite": [5, 14.0], "fx_eyja_ignite_boom": [11, 18.0],
-	# 第三批干员（docs/59）弹体 / 特效帧条（tools/gen_fx_batch3.py，程序生成 + @2x；锚点见 docs/25 §6）。暂未接玩法，数据干员实现时取用
-	"proj_exusiai_bullet": [2, 20.0], "proj_exusiai_bullet_power": [2, 20.0], "fx_exusiai_muzzle": [3, 30.0], "fx_exusiai_muzzle_gold": [3, 30.0], "fx_exusiai_hit": [3, 24.0],
-	# 能天使技能弹药换色（docs/25 §6.1，gen_fx_batch3.py EXU_VARIANTS）：S1 冰青 / S2 琥珀橙 / S3 过热白；倾泻补金色命中
-	"proj_exusiai_bullet_s1": [2, 20.0], "proj_exusiai_bullet_s2": [2, 20.0], "proj_exusiai_bullet_s3": [2, 20.0],
-	"fx_exusiai_muzzle_s1": [3, 30.0], "fx_exusiai_muzzle_s2": [3, 30.0], "fx_exusiai_muzzle_s3": [3, 30.0],
-	"fx_exusiai_hit_s1": [3, 24.0], "fx_exusiai_hit_s2": [3, 24.0], "fx_exusiai_hit_s3": [3, 24.0], "fx_exusiai_hit_gold": [3, 24.0],
-	"proj_angelina_orb": [4, 12.0], "fx_angelina_pull": [6, 15.0], "fx_angelina_levitate": [6, 10.0],
-	"fx_skalter_wave": [6, 12.0], "fx_skalter_wave_dim": [6, 12.0], "fx_skalter_note": [4, 8.0],
-	# 预留：Codex 原尺寸大声浪（docs/61 §5.6 扩散缓动、§10 第 17 条；还没交图，缺图时 skalter.json 回退到上面的小帧条 + 程序余波环）：
-	# 8 帧 12fps（≈ 扩散 0.65 秒），1x 帧 208×120、圈心 = 帧中心，末帧外圈半径约 95（= 歌域 190 / 2 世界像素）；明 / 暗两套共用规格
-	"fx_skalter_wave_big": [8, 12.0], "fx_skalter_wave_big_dim": [8, 12.0],
-	# Codex 浊心斯卡蒂 S3 重绘（art/incoming/skalter_s3_handoff.md，ec06672e）：贴身绕行潮流，back / front 分层夹住本体，原点脚下 (48, 84)；orbit 是不分层预览 / 回退，不接
-	"fx_skalter_s3_back": [6, 12.0], "fx_skalter_s3_front": [6, 12.0], "fx_skalter_s3_orbit": [6, 12.0],
-	# Codex 浊心斯卡蒂 S3 地面大漩涡（docs/66，art/incoming/skalter_vortex_handoff.md，b49d0047）：320×176 × 8 帧 10fps 循环，原点 (160, 88) = 帧中心；
-	# 1x 像素 = 歌域外半径 / 160（fit 160），地面 ground 层、整体透明度 0.5、进出 0.45 秒淡入淡出（skalter.json S3 verb.mode 的 hold 条目）
-	"fx_skalter_vortex_floor": [8, 10.0],
-	"fx_hoshiguma_block": [5, 20.0], "fx_hoshiguma_sand": [4, 8.0], "fx_hoshiguma_demon_slash": [5, 20.0],
-	"fx_texas_dash": [4, 20.0],
-	# 德克萨斯剑雨（10-12 重做，docs/70，verb.fx_rain docs/61 §13.5）：剑 16×40（0–1 下落循环 / 2–5 插地按停留时间铺开，锚 (8, 38)）、冲击 32×24（锚 (16, 20)）、地面标记 24×12（0–2 预兆 / 3–5 焦痕，锚帧中心）
-	"fx_texas_blade": [6, 20.0], "fx_texas_rain_hit": [5, 24.0], "fx_texas_rain_mark": [6, 12.0],
-	# Codex 精英化第 1 批（docs/93 §1，art/incoming/elite_art_1_manifest.json；接入见 docs/91 第 1 批）：帧数 / fps 按 manifest，原点写在各干员 JSON 的 anchor。
-	# fx_hoshiguma_slash_rose / fx_exusiai_pierce_gold 是 Codex 这批交来时覆盖了已有的 fx_slash_heavy_rose（艾丽妮用）/ fx_exusiai_hit_gold（倾泻用），
-	# 规格不同（4 帧 35×34 / 5 帧 24×24），改名成本批专用，原文件恢复原样
-	"fx_angelina_halt": [5, 14.0], "fx_angelina_well_back": [8, 10.0], "fx_angelina_well_front": [8, 10.0], "fx_angelina_well_open": [5, 14.0],
-	"fx_angelina_well_close": [5, 14.0], "fx_angelina_float_dust": [4, 8.0],
-	"proj_exusiai_bullet_t1": [2, 20.0], "proj_exusiai_bullet_t2": [2, 20.0], "proj_exusiai_bullet_t3": [2, 20.0], "fx_exusiai_pierce_gold": [5, 20.0],
-	"fx_exusiai_halo": [8, 10.0], "fx_exusiai_blessed_flash": [4, 20.0],
-	"fx_hoshiguma_slash_rose": [4, 20.0], "fx_hoshiguma_guard_glow": [6, 10.0], "proj_hoshiguma_sawshield": [8, 24.0], "fx_hoshiguma_saw_spark": [4, 20.0],
-	"fx_mon3tr_slam_ring": [6, 16.0], "fx_mon3tr_afterimage": [1, 1.0],
-	"fx_texas_pin_sword": [4, 12.0], "fx_texas_pin_shatter": [5, 18.0], "fx_texas_sword_drop": [5, 20.0], "fx_texas_sword_impact": [5, 18.0],
-	# 手写干员迁积木（docs/61 §17）：斯卡蒂成长线帧条原来由 skadi.gd 自己按帧切，积木的 fx 条目要登记在这里（帧数 / fps 同原脚本）
-	"fx_skadi_surge": [6, 14.0], "fx_skadi_wave": [6, 14.0],
-	# Codex 精英化第 2 批（docs/93 §2，art/incoming/elite_art_2_manifest.json；接入见 docs/91 §24）：帧数 / fps 按 manifest，原点写在各干员 JSON 的 anchor（缺省帧中心）。
-	# 人物帧条 op_skadi_leap_strike / op_ulpianus_throw 登记在各干员 JSON 的 sprites（leap_strike / throw）
-	"fx_logos_soul_rune_1": [4, 8.0], "fx_logos_soul_rune_2": [4, 8.0], "fx_logos_soul_rune_3": [4, 8.0],
-	"fx_logos_chain_tile": [6, 12.0], "fx_logos_chain_pulse": [4, 20.0], "fx_logos_chain_anchor": [6, 12.0],
-	"fx_eyja_melt_crack": [6, 8.0], "proj_eyja_lava_lob": [4, 16.0], "fx_eyja_lava_pool": [8, 10.0], "fx_eyja_lava_splash": [6, 18.0],
-	"fx_skadi_leap_splash": [6, 18.0], "proj_skadi_surge_blade": [4, 16.0], "fx_skadi_surge_hit": [5, 18.0], "fx_skadi_surge_release": [4, 18.0],
-	"fx_ulpianus_chain_tile": [2, 12.0], "fx_ulpianus_pull_ring": [6, 14.0], "fx_ulpianus_anchor_impact_back": [6, 16.0], "fx_ulpianus_anchor_impact_front": [6, 16.0],
-	"fx_ulpianus_drag_dust": [4, 14.0],
-	# Codex 精英化第 3 批（docs/93 §3，art/incoming/elite_art_3_manifest.json；接入见 docs/91 §25）：帧数 / fps 按 manifest。
-	# 人物帧条 op_specter_unchained_doll_spin / op_irene_finisher 登记在各干员 JSON 的 sprites（doll_spin / finisher）
-	"fx_specter_inward_ripple": [6, 18.0], "fx_specter_doll_appear": [5, 18.0], "fx_specter_doll_burst": [6, 18.0],
-	"fx_specter_saw_cold_back": [6, 24.0], "fx_specter_saw_cold_front": [6, 24.0],
-	"fx_mizuki_tentacle_curl": [4, 14.0], "fx_mizuki_jelly_dart": [6, 14.0], "fx_mizuki_jelly_sting": [5, 18.0], "fx_mizuki_bind_ring": [6, 10.0],
-	"fx_irene_lift_arc": [4, 20.0], "fx_irene_crescent_wide": [5, 20.0], "fx_irene_gun_burst": [3, 24.0],
-	"fx_lumen_refract_hit": [4, 20.0], "fx_lumen_beam": [4, 20.0], "fx_lumen_beam_flare": [5, 20.0], "fx_lumen_beam_hit": [4, 20.0],
-	# Codex 精英化第 4 批（docs/93 §4，art/incoming/elite_art_4_manifest.json；接入见 docs/91 §26）：帧数 / fps 按 manifest。
-	# 重画的 fx_wisadel_soul / fx_wisadel_mark（9140fe7b，尺寸帧数同原文件）照原规格切帧，不在这里登记
-	"fx_siege_pebbles": [6, 16.0], "fx_siege_rock_spike": [7, 18.0], "fx_siege_fissure_tile": [4, 12.0],
-	"fx_suzuran_seal": [6, 10.0], "fx_suzuran_bigfox_trail": [5, 12.0],
-	"fx_wisadel_gift_mark": [6, 10.0], "fx_wisadel_soul_fire": [5, 16.0], "proj_wisadel_soul_shell": [2, 20.0],
-	"fx_saria_amber_spot": [4, 8.0], "fx_saria_pillar_rise": [5, 20.0], "fx_saria_pillar_idle": [4, 6.0], "fx_saria_pillar_break": [6, 18.0],
-	# Codex 精英化第 5 批（docs/93 §5，art/incoming/elite_art_5_manifest.json；接入见 docs/91 §27）：浊心斯卡蒂余音回声环、海嗣小歌域。
-	# 海嗣本体帧条 op_skalter_ishar_* 是人物帧条，登记在 skalter.json sprites（extra_sprites）
-	"fx_skalter_echo_ring": [5, 14.0], "fx_skalter_seaborn_zone": [8, 10.0],
-	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条
-	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "proj_knight_spear": [2, 12.0], "prop_ice_stake": [2, 4.0], "prop_ice_stake_break": [4, 12.0], "prop_lamp_post": [3, 4.0], "proj_rock_shard": [4, 12.0], "proj_acid": [2, 8.0], "proj_nova": [4, 10.0], "fx_acid_splash": [4, 12.0], "fx_nest_aura": [4, 10.0],
-	# Codex 怪物攻击特效第 1 批（docs/96 §1.1）投嗣育母：投出的拟嗣弹体（缺图时用 e_brood 帧缩小旋转）/ 出手（缺图时无）/ 落地孵化（缺图时 fx_acid_splash + 拟嗣直接出现）
-	"proj_mother_brood": [4, 12.0], "fx_mother_throw": [4, 16.0], "fx_brood_land": [6, 14.0],
-	# Codex 怪物攻击特效第 1 批（docs/96 §1.2–1.4，art/incoming/enemy_fx_1_manifest.json）：帧数 / fps 按 manifest；
-	# 漂移体侵蚀弹 + 发射口 + 命中（蓝）/ 侵蚀变体（紫蓝，喷吐者酸弹命中用）；囊海爬行者鼓胀帧条（10fps 不循环、停末帧）+ 破膜 back / front（同原点 (24,28)）+ 地面残留；
-	# 喷吐者酸团（沿 lob 轨迹）+ 落点溅射（地面层）。enemies.json 的 shot_tex / muzzle_fx / hit_fx / lob_tex / land_fx 引用；缺图回退原程序画法
-	"proj_skimmer_corrode": [4, 16.0], "fx_skimmer_muzzle": [3, 20.0], "fx_corrode_hit": [5, 18.0], "fx_corrode_hit_acid": [5, 18.0],
-	"e_pocket_swell": [4, 10.0], "fx_pocket_burst_back": [6, 16.0], "fx_pocket_burst_front": [6, 16.0], "fx_pocket_puddle": [4, 8.0],
-	"proj_spitter_acid": [4, 12.0], "fx_spitter_land": [6, 14.0],
-	# 第 2 批（docs/96 §2，Codex 未交，先登记）：飘航者神经弹命中；收割者镰肢 / 引痕者触须刺击（含狂暴版）/ 巢涌者触须横扫（enemies.json atk_fx，boss_ai._atk_fx 挂点）
-	"fx_nerve_hit": [4, 18.0], "fx_reaper_scythe": [4, 18.0], "fx_tracer_thrust": [4, 20.0], "fx_tracer_thrust_enraged": [4, 24.0], "fx_nest_sweep": [5, 16.0],
-}
-
-
-## ---- 开局指南：9 页图文介绍（首次进入自动显示，暂停菜单按 G 可再看）
-## 用户 10-13「开局指南的字可以少一点」：每页 lines 只留开局要知道的 1–2 句（首次自动打开时只显示这些）；
-## more 是细节，只在暂停菜单的「指南」（完整版）里接在 lines 后面显示。数值写占位，intro.gd fill_numbers 从 balance.json 填
-const INTRO_PAGES := [
-	{"title": "欢迎来到深海", "en": "WELCOME", "icon": "mizuki", "lines": [
-		"你是博士。行动目标：带领小队撑过 10 分钟，击倒 10:00 出现的最终 Boss。",
-		"队长是唯一会受伤的干员。技能大多自动释放，你负责走位（WASD）与冲刺（空格，冲刺中无敌）。"], "more": [
-		"3:30 与 7:00 各有一名中期 Boss。首次通关后，深海中会出现海嗣祭坛。",
-		"想自己出手，可在设置 · 游戏里把普通攻击改为手动。",
-		"岩石、残柱与沉船残骸会挡路：冲刺撞上即停，敌我直线飞行的子弹会被挡下。"]},
-	{"title": "生命与灯火", "en": "HP & LAMPLIGHT", "icon": "bars", "lines": [
-		"生命（绿条）归零即探索失败。编队每多一名干员，队长最大生命 +{hp_per_member}%、生命回复 +{regen_per_member} / 秒。",
-		"灯火（金条）只在受击时损失，拾取灯油补充。≥ 70 通明：技力回复 +30%；< 30 暗淡：受到的伤害 +{dark_taken}%，海嗣移速与接触伤害 +{dark_enemy}%；0 寂灭：每秒失去 3 点生命。"], "more": [
-		"每次受击损失 {lamp_hit} 点灯火，一次伤害每占最大生命 10% 再多损失 {lamp_hit_10} 点；在黑潮里也会持续流失。",
-		"照亮范围随灯火从 110 扩大到 360，范围内的敌人受到的伤害 +25%。通明时拾取范围 +20%；暗淡时拾取范围 -30%、海嗣刷新 +{dark_spawn}%。",
-		"队长生命低于 70% 时，小怪掉落回复药剂的概率翻倍。"]},
-	{"title": "威胁等级与大群", "en": "THREAT & HORDE", "icon": "threat", "lines": [
-		"计时器下方的进度条是威胁等级 Ⅰ→Ⅵ，每升一级出现新的海嗣种类。",
-		"「大群来袭」前 3 秒有紫色预警。包围圈总留一个缺口，没有箭头的那一侧就是突围方向。"], "more": [
-		"浅滩 → 暗流（1:15）→ 深潜（2:50）→ 裂隙（4:40）→ 深渊（6:40）→ 深蓝之树（8:40）。大群在浅滩每 90 秒一次，逐级缩短到每 60 秒一次。",
-		"精英海嗣带金色光环与血条，击败掉落 3–5 枚源石锭，30% 概率掉落补给箱。敌人头顶的菱形是弱点：物理 / 法术对应类型伤害 +50%。"]},
-	{"title": "溟痕与黑潮", "en": "MIRE & BLACK TIDE", "icon": "mire", "lines": [
-		"紫黑色的溟痕会减速、持续掉血，并累积神经损伤；神经损伤满时失去 12% 最大生命并眩晕 1.2 秒。",
-		"2:30 起安全区分 4 轮收缩，圈外的黑潮持续掉血。看到「黑潮将至」就往白色虚线圈里走。"], "more": [
-		"站进熄灭的引航灯标的光圈约 2.5 秒即可点燃：驱散周围的溟痕、清空神经损伤、灯火 +5，这片地方 30 秒内不再长出溟痕。",
-		"神经损伤的眩晕可以用冲刺挣脱；流明「灯火不灭」的灯塔光圈内不累积。刚出圈的 2 秒不掉血，Boss 在场时暂停缩圈。"]},
-	{"title": "成长路线", "en": "GROWTH", "icon": "cards", "lines": [
-		"升级时三选一：干员深度卡（数值 / 精英化）、生存、机动、协同或医疗无人机，升级途中会出现招募卡。",
-		"精英一解锁二技能与天赋，精英二解锁三技能；两次精英化都会强化普攻。编队最多 3 名干员，按 Tab 查看属性、编队与藏品。"], "more": [
-		"医疗无人机选到即加入，之后可继续升级（最高 Lv.5）；编队没有医疗干员时用它补回复。乌尔比安的三技能要按 Q / E，并自己选落点。",
-		"技能说明里的半径、射程与照亮范围用同一单位（灯火 100 时照亮范围为 360）。"]},
-	{"title": "资源与宝箱", "en": "LOOT", "icon": "loot", "lines": [
-		"精英与 Boss 掉落源石锭、补给箱（打开得藏品）与磁铁 / 回复药剂。同一件藏品再次拿到会升级。",
-		"伪装成补给箱的箱形恐鱼会现形扑来，击败后掉落 10 枚源石锭。"], "more": [
-		"补给箱也会定期出现在地图上，屏幕边缘有指示。",
-		"经验结晶离开视野 6 秒后会自动回收入账。",
-		"藏品分基础 / 稀有 / 核心 / 升华四档；商店里偶尔有【遭诅】藏品，效果附带一条负面代价。"]},
-	{"title": "商人只停留 60 秒", "en": "MERCHANT", "icon": "merchant", "lines": [
-		"商人在 2:00、5:00、8:00 出现，只停留 60 秒，屏幕边缘的金色箭头指向他。",
-		"靠近即可用源石锭购买藏品、急救包与灯油。"], "more": [
-		"最后 15 秒有横幅提醒，倒计时变红。每次到访可以花钱刷新一次货架（按 F）。",
-		"最后一位商人离开后，剩下的和之后获得的源石锭自动熔铸为全队伤害（每 15 枚 +1%，上限 +20%）。"]},
-	{"title": "海嗣祭坛与结局", "en": "ALTAR & ENDINGS", "icon": "altar", "lines": [
-		"首次通关后，深海里会出现海嗣祭坛。靠近祭坛进行抉择，结局取决于祭坛上的抉择。"], "more": [
-		"每个祭坛在固定时间段内必定出现，选项给出藏品、灯火或代价；后选的覆盖先选的。",
-		"当前走向显示在右上角藏品栏下方与 Tab 面板，9:00 有终局预告。四个结局各有不同的最终 Boss，达成后收录进图鉴「结局」分页。"]},
-	{"title": "操作", "en": "CONTROLS", "icon": "keys", "lines": [
-		"WASD / 方向键：移动　　空格：冲刺　　Q / E：手动技能",
-		"Tab / C：属性　　Esc：暂停　　升级 / 宝箱 / 商人 / 祭坛：按数字键或点击选择"], "more": [
-		"普通攻击设为手动时（设置 · 游戏）：鼠标左键 / J 攻击，朝光标方向出手。M：开关音乐　　R：重来",
-		"手柄：左摇杆移动 · Ⓑ / RB 冲刺 · Ⓐ / Ⓨ 手动技能 · Ⓧ / RT 手动攻击 · 右摇杆瞄准 · START 暂停 · SELECT 属性面板 · 菜单里 Ⓐ 确认、Ⓑ 返回 · LB / RB 翻页"]},
-]
 
 
 ## 冲刺提示（用户要求：不提示就不知道有冲刺）：

@@ -107,7 +107,7 @@ func _eoff(e: Dictionary) -> Vector2:
 
 
 func update_visuals(dt: float) -> void:
-	g._update_doc_follow(dt)
+	g.doctor.update_follow(dt)
 	# 不再叠代码起伏：博士跑步帧条自带步频；旧 2 帧待机条兜底时由 update_doctor_anim 按 anim_t 自己颠
 	# （原来按主控的 walk_t 起伏：步频对不上帧条，主控停下后博士还在追时 walk_t 不走，会卡在半空）
 	g.sprite.position = (g.doc_pos + Vector2(0, 6)).round()
