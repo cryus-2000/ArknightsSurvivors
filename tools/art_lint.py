@@ -7,6 +7,8 @@
     python tools/art_lint.py --json qa.json        # 另外写一份机器可读结果（Codex 交付时写进 qa.json）
     python tools/art_lint.py --no-images           # 不出对照图（快检用）
     python tools/art_lint.py --art <目录>          # 查别的目录里的帧条（例如 Codex 工作树的 art/incoming）
+    python tools/art_lint.py --base <提交>         # hue 项改与这个提交里的同名帧条比（缺省：每个文件的上一个提交版本）
+    python tools/art_lint.py --changed             # hue 项只比相对 main 分叉点改过的帧条（快检 check.py 用这个）
 
 输出：终端表格；build/art_lint/report.md；build/art_lint/compare_<id>.png（本人四动作 + 参考干员待机并排）。
 退出码：有未豁免的 FAIL = 1，否则 0（WARN 不影响退出码）。
@@ -31,8 +33,16 @@
     ground   脚底贴第 46 行（@2x 92）：待机每帧贴地，其他动作至少一帧贴地（FAIL）；跑步某帧离地 > 3px（WARN）
     foot     脚底中心 x（最低 2 行）与 json foot 偏差 > 2px 报 WARN
     tone     明度：非描边 HSL 明度均值、近黑 / 亮部占比、L4 受光变亮占比（只报 WARN）
+    hue      与上一版比色调（docs/87 §4.3，只报 WARN）：本人身体的每组动作（1x、@2x 各算）与「上一版」逐像素比，
+             在两版都不透明、都不是描边的像素上取平均：色相差（度，按两版彩度 max−min 的较小者加权，彩度 < 0.08 的
+             灰 / 近黑像素不算——它们的色相是噪声）、HSL 饱和差、HSL 明度差（逐像素绝对差）；任一项超线
+             （5° / 0.05 / 0.03）报 WARN 并打印数值，同时给出带符号的平均偏移（看是整体变灰 / 变暗还是局部换色）。
+             上一版 = git 里这个文件上一个提交的版本（工作区有未提交改动时 = HEAD 版本），或 --base <提交>；
+             --changed（快检用）= 只比相对 main 分叉点改过的帧条、上一版取分叉点。没有上一版就跳过（列里显示 —）。
+             两版重合像素 < 60% 时改比整条帧条的统计量（彩度加权平均色相、平均饱和、平均明度），注明「统计」；
+             亮度对得上的像素（|ΔY| < 40）不到 70% 时注明「像是重画了姿势」——这时逐像素差不代表调色，要看对照图
 """
-import argparse, glob, json, math, os, sys
+import argparse, glob, io, json, math, os, subprocess, sys
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -63,6 +73,8 @@ T = {
     "run_lean": (0.0, 25.0), "run_lean_slack": 5.0,       # 前倾（度，正 = 朝右前倾）；超出区间 WARN，再超 5° FAIL
     "foot_tol": 2.0,
     "tone_hsl": (0.30, 0.50), "tone_dark_min": 0.10, "tone_bright": (0.08, 0.35), "tone_gain_max": 0.12,
+    "hue_deg": 5.0, "hue_sat": 0.05, "hue_light": 0.03,   # docs/87 §4.3：与上一版比，超线 WARN
+    "hue_min_chroma": 0.08, "hue_overlap": 0.60, "hue_redraw": 0.70,   # 色相只算彩度 ≥ 0.08 的像素；重合 < 60% 改统计口径；亮度对上 < 70% 注明像重画
 }
 # 逐人覆盖（docs/69 A/B、docs/87 §4.3）
 TONE_OVERRIDE = {
@@ -307,6 +319,125 @@ def tone_metrics(frs):
     return {"hsl": float(hsl.mean()), "dark": float((y < 40).mean()), "bright": float((y >= 160).mean()), "gain": float(gain)}
 
 
+# ---------------------------------------------------------------- 色调与上一版比（hue，docs/87 §4.3）
+
+def _git(args, cwd):
+    try:
+        r = subprocess.run(["git"] + args, cwd=cwd, capture_output=True)
+    except OSError:
+        return None
+    return r.stdout if r.returncode == 0 else None
+
+
+class PrevVersions:
+    """按文件名给出「上一版」帧条：base 给了就取 <base>:<路径>；否则取该文件上一个提交的版本
+    （工作区有未提交改动时取 HEAD 版本）。art 目录不在 git 里时，按本仓库的 art/incoming/ 路径解析（只在给了 base 时有用）"""
+
+    def __init__(self, art, base=None, changed=False):
+        self.base = base
+        self.only = None    # --changed：只比这些文件名
+        self.cache = {}
+        art = os.path.abspath(art)
+        top = _git(["rev-parse", "--show-toplevel"], art) if os.path.isdir(art) else None
+        if top:
+            self.repo = top.decode().strip()
+            self.prefix = (_git(["rev-parse", "--show-prefix"], art) or b"").decode().strip()
+            self.in_git = True
+        else:
+            self.repo, self.prefix, self.in_git = ROOT, "art/incoming/", False
+        self.prev = {}      # 文件名 -> 上一版的取法（<提交>:<路径>）
+        self.label = {}     # 文件名 -> 说明（哪个提交）
+        if changed:
+            mb = _git(["merge-base", "HEAD", "main"], self.repo) if self.in_git else None
+            self.only = set()
+            if mb:
+                self.base = mb.decode().strip()
+                names = (_git(["diff", "--name-only", self.base, "--", self.prefix or "."], self.repo) or b"").decode("utf-8", "replace").split()
+                self.only = {n[len(self.prefix):] if n.startswith(self.prefix) else n for n in names}
+            return
+        if base:
+            return
+        if not self.in_git:
+            return
+        dirty = set((_git(["diff", "--name-only", "HEAD", "--", self.prefix or "."], self.repo) or b"").decode("utf-8", "replace").split())
+        log = (_git(["log", "--format=>%H", "--name-only", "--", self.prefix or "."], self.repo) or b"").decode("utf-8", "replace")
+        hist, cur = {}, None
+        for line in log.splitlines():
+            if line.startswith(">"):
+                cur = line[1:]
+            elif line.strip() and cur:
+                hist.setdefault(line.strip(), []).append(cur)
+        for path, commits in hist.items():
+            fn = path[len(self.prefix):] if path.startswith(self.prefix) else path
+            if path in dirty:
+                self.prev[fn] = "HEAD:" + path
+                self.label[fn] = "HEAD"
+            elif len(commits) >= 2:
+                self.prev[fn] = commits[1] + ":" + path
+                self.label[fn] = commits[1][:8]
+
+    def get(self, fname):
+        """返回 (RGBA 数组, 说明) 或 (None, 原因)"""
+        if self.only is not None and fname not in self.only:
+            return None, "相对 main 未改动"
+        if self.base:
+            spec, lab = "%s:%s%s" % (self.base, self.prefix, fname), self.base[:8]
+        else:
+            if fname not in self.prev:
+                return None, "没有上一版"
+            spec, lab = self.prev[fname], self.label[fname]
+        if spec not in self.cache:
+            blob = _git(["cat-file", "-p", spec], self.repo)
+            self.cache[spec] = np.array(Image.open(io.BytesIO(blob)).convert("RGBA")) if blob else None
+        a = self.cache[spec]
+        return (a, lab) if a is not None else (None, "%s 里没有这个文件" % lab)
+
+
+def _hsl(rgb):
+    c = rgb.astype(np.float32) / 255.0
+    mx, mn = c.max(-1), c.min(-1)
+    l = (mx + mn) / 2
+    d = mx - mn
+    s = np.where(d == 0, 0.0, d / np.maximum(1e-6, 1 - np.abs(2 * l - 1)))
+    r, g, b = c[..., 0], c[..., 1], c[..., 2]
+    h = np.where(mx == r, ((g - b) / np.maximum(d, 1e-6)) % 6, np.where(mx == g, (b - r) / np.maximum(d, 1e-6) + 2, (r - g) / np.maximum(d, 1e-6) + 4)) * 60.0
+    return h, np.clip(s, 0, 1), l, d
+
+
+def hue_shift(new, old):
+    """new / old：同一条帧条的两版 RGBA。返回 {mode, n, overlap, match, dh, ds, dl, ds_mean, dl_mean} 或 None（高度对不上）。
+    逐像素口径：dh = 彩度加权的平均色相差（度），ds / dl = 饱和 / 明度逐像素绝对差的平均，ds_mean / dl_mean = 带符号平均（新 − 旧）"""
+    if new.shape[0] != old.shape[0]:
+        return None
+    w = min(new.shape[1], old.shape[1])
+    a, b = new[:, :w], old[:, :w]
+    ma = (a[..., 3] > 0) & ~_is_outline(a)
+    mb = (b[..., 3] > 0) & ~_is_outline(b)
+    both = ma & mb
+    overlap = both.sum() / max(1, max(ma.sum(), mb.sum()))
+    if overlap >= T["hue_overlap"]:
+        pa, pb = a[both][:, :3], b[both][:, :3]
+        h1, s1, l1, c1 = _hsl(pa)
+        h0, s0, l0, c0 = _hsl(pb)
+        wch = np.minimum(c1, c0) * ((c1 >= T["hue_min_chroma"]) & (c0 >= T["hue_min_chroma"]))
+        dh = np.abs((h1 - h0 + 180.0) % 360.0 - 180.0)
+        match = float((np.abs(_luma(pa.astype(np.float32)) - _luma(pb.astype(np.float32))) < 40).mean())
+        return {"mode": "逐像素", "n": int(both.sum()), "overlap": float(overlap), "match": match,
+                "dh": float((dh * wch).sum() / wch.sum()) if wch.sum() > 0 else 0.0,
+                "ds": float(np.abs(s1 - s0).mean()), "dl": float(np.abs(l1 - l0).mean()),
+                "ds_mean": float((s1 - s0).mean()), "dl_mean": float((l1 - l0).mean())}
+
+    def stat(x, m):   # 姿势重画：整条帧条的统计量
+        h, s_, l, c = _hsl(x[m][:, :3])
+        wgt = c * (c >= T["hue_min_chroma"])
+        ang = np.deg2rad(h)
+        mh = math.degrees(math.atan2((np.sin(ang) * wgt).sum(), (np.cos(ang) * wgt).sum())) if wgt.sum() > 0 else 0.0
+        return mh, float(s_.mean()), float(l.mean())
+    (h1, s1, l1), (h0, s0, l0) = stat(a, ma), stat(b, mb)
+    return {"mode": "统计", "n": int(ma.sum()), "overlap": float(overlap), "match": None,
+            "dh": abs((h1 - h0 + 180.0) % 360.0 - 180.0), "ds": abs(s1 - s0), "dl": abs(l1 - l0), "ds_mean": s1 - s0, "dl_mean": l1 - l0}
+
+
 # ---------------------------------------------------------------- 主检查
 
 def _lead(probs, warns):
@@ -319,7 +450,7 @@ def _body(act, cfg):
     return act in MAIN_ACTS or bool(cfg.get("_body"))
 
 
-def lint_op(op, acts, art=ART):
+def lint_op(op, acts, art=ART, prev=None):
     R = []
 
     def add(check, level, value, detail, waiver=None):
@@ -546,6 +677,45 @@ def lint_op(op, acts, art=ART):
     add("tone", "WARN" if tw else "PASS", {k: round(v, 3) for k, v in tm.items()},
         ("超出通用范围：" + "、".join(tw) + "；") * bool(tw) +
         "HSL %.3f 近黑 %.0f%% 亮部 %.0f%% 受光变亮 %.0f%%" % (tm["hsl"], tm["dark"] * 100, tm["bright"] * 100, tm["gain"] * 100))
+
+    # hue：与上一版比色调（docs/87 §4.3）；只查本人身体的帧条（四组动作 + 技能动作组）
+    if prev is not None:
+        hv, hw, skipped, labs = {}, [], 0, set()
+        for act, (lo, hi) in strips.items():
+            if not _body(act, acts[act]):
+                continue
+            for arr, suf in ((lo, ""), (hi, "@2x")):
+                old, lab = prev.get(acts[act]["tex"] + suf + ".png")
+                if old is None:
+                    skipped += 1
+                    continue
+                m = hue_shift(arr, old)
+                if m is None:
+                    hw.append("%s%s 尺寸与上一版（%s）不同，未比" % (act, suf, lab))
+                    continue
+                labs.add(lab)
+                key = act + suf
+                hv[key] = {k: (round(v, 3) if isinstance(v, float) else v) for k, v in m.items()}
+                over = []
+                if m["dh"] > T["hue_deg"]:
+                    over.append("色相 %.1f°" % m["dh"])
+                if m["ds"] > T["hue_sat"]:
+                    over.append("饱和 %.3f（平均 %+.3f）" % (m["ds"], m["ds_mean"]))
+                if m["dl"] > T["hue_light"]:
+                    over.append("明度 %.3f（平均 %+.3f）" % (m["dl"], m["dl_mean"]))
+                if over:
+                    how = "统计，重合 %.0f%%" % (m["overlap"] * 100) if m["mode"] == "统计" else (
+                        "逐像素" + ("，亮度对上仅 %.0f%%，像是重画了姿势" % (m["match"] * 100) if m["match"] < T["hue_redraw"] else ""))
+                    hw.append("%s（%s）%s" % (key, how, " ".join(over)))
+        if not hv and not hw:
+            add("hue", "SKIP", None, "没有上一版，跳过")
+        else:
+            worst = max(hv.values(), key=lambda m: max(m["dh"] / T["hue_deg"], m["ds"] / T["hue_sat"], m["dl"] / T["hue_light"])) if hv else None
+            base = "与 %s 比" % "、".join(sorted(labs)) if labs else ""
+            summ = ("最大：色相 %.1f° 饱和 %.3f 明度 %.3f（%s）" % (worst["dh"], worst["ds"], worst["dl"], worst["mode"])) if worst else ""
+            add("hue", "WARN" if hw else "PASS", hv,
+                ("色调偏移超线（色相 > %.0f° / 饱和 > %.2f / 明度 > %.2f）：" % (T["hue_deg"], T["hue_sat"], T["hue_light"]) + "；".join(hw) + "。") * bool(hw) +
+                base + ("，" if base and summ else "") + summ + ("（%d 条帧条没有上一版，未比）" % skipped if skipped else ""))
     return R
 
 
@@ -614,28 +784,29 @@ def compare_image(op, acts, art, path, sc=2):
 
 # ---------------------------------------------------------------- 输出
 
-ORDER = ["files", "size", "pair", "alpha", "outline", "colors", "magenta", "skill_end", "facing", "frontal", "idle", "run", "ground", "foot", "tone"]
+ORDER = ["files", "size", "pair", "alpha", "outline", "colors", "magenta", "skill_end", "facing", "frontal", "idle", "run", "ground", "foot", "tone", "hue"]
 CN = {"files": "齐全", "size": "尺寸帧数", "pair": "1x/@2x", "alpha": "透明", "outline": "描边", "colors": "色数", "magenta": "洋红",
-      "skill_end": "技末=待机", "facing": "朝向", "frontal": "非正面", "idle": "待机呼吸", "run": "跑步", "ground": "贴地", "foot": "脚底x", "tone": "明度"}
+      "skill_end": "技末=待机", "facing": "朝向", "frontal": "非正面", "idle": "待机呼吸", "run": "跑步", "ground": "贴地", "foot": "脚底x", "tone": "明度", "hue": "色调"}
 
 
 def _mark(r):
-    if r is None:
+    if r is None or r["level"] == "SKIP":
         return "—"
     if r["level"] == "FAIL" and r["waiver"]:
         return "FAIL*"
     return r["level"]
 
 
-def run(ops=None, art=ART, images=True, quiet=False):
+def run(ops=None, art=ART, images=True, quiet=False, base=None, hue=True, changed=False):
     ro = roster()
     ids = ops or list(ro)
     res = []
+    prev = PrevVersions(art, base, changed) if hue else None
     for op in ids:
         if op not in ro:
             res.append({"op": op, "check": "files", "level": "FAIL", "value": None, "detail": "名单里没有这个 id", "waiver": None, "stale_waiver": False})
             continue
-        res += lint_op(op, ro[op], art)
+        res += lint_op(op, ro[op], art, prev)
     if images:
         os.makedirs(OUT, exist_ok=True)
         for op in ids:
@@ -699,8 +870,10 @@ def main():
     ap.add_argument("--art", default=ART, help="帧条目录（缺省 art/incoming）")
     ap.add_argument("--json", help="另写一份 JSON 结果到这个路径")
     ap.add_argument("--no-images", action="store_true", help="不出对照图")
+    ap.add_argument("--base", help="hue 项与这个提交里的同名帧条比（缺省：每个文件在 git 里的上一个版本）")
+    ap.add_argument("--changed", action="store_true", help="hue 项只比相对 main 分叉点改过的帧条（上一版取分叉点）")
     a = ap.parse_args()
-    ids, res = run(a.ops.split(",") if a.ops else None, a.art, not a.no_images)
+    ids, res = run(a.ops.split(",") if a.ops else None, a.art, not a.no_images, base=a.base, changed=a.changed)
     by, fails, waived, warns, stale = summarize(ids, res)
     print(table(ids, by))
     print()

@@ -1261,6 +1261,19 @@ func _draw_fx() -> void:
 				g.draw_line(f.pos + Vector2(0, -L), f.pos + Vector2(0, L), Color(2.0, 2.0, 2.0, a), 3.0)
 				g.draw_line(f.pos + Vector2(-L * 0.4, 0), f.pos + Vector2(L * 0.4, 0), Color(2.0, 2.0, 2.0, a), 2.0)
 				g.draw_circle(f.pos, 6.0 * a, Color(2.0, 2.0, 2.0, a))
+			"lob_shell":
+				# 轰击炮弹（圣徒伊比利亚，docs/95 §6.2 C）：纯画面，从本体沿抛物线飞向落点圈心，地面画随高度缩放的阴影；Codex proj_saint_shell 缺图走程序圆弹
+				var u: float = 1.0 - a
+				var gp: Vector2 = f.a.lerp(f.b, u)
+				var hgt: float = sin(u * PI) * clampf(f.a.distance_to(f.b) * 0.4, 60.0, 150.0)   # 弧高按射程：近处低抛，别钻到顶部 HUD 下面
+				g.draw_circle(gp, 4.0 + 5.0 * u, Color(0.0, 0.0, 0.0, 0.25 + 0.3 * u))
+				var sp: Vector2 = gp + Vector2(0, -hgt)
+				var vang: float = (f.b - f.a).angle() - cos(u * PI) * 1.1 * signf((f.b - f.a).x + 0.001)
+				if g.tex.get("proj_saint_shell") != null:
+					g.vfx.spr_rot("proj_saint_shell", int(g.t * 8.0) % 2, sp, vang, Game.PX)
+				else:
+					g.draw_circle(sp, 10.0, Color(0.06, 0.04, 0.03))
+					g.draw_circle(sp, 7.5, Color(1.7, 0.95, 0.45))
 			"reflow":
 				# 碎片回流（塑路者核心超时）：一串碎石沿弧线从碎片位置冲回本体，尾迹变红，末端在本体上炸一圈
 				var k := 1.0 - a
@@ -1817,6 +1830,18 @@ func boss_strip_animation(e: Dictionary) -> Dictionary:
 		"carmen", "iberia":
 			# 圣徒两档共用一套挂点（V15：卡门 e_saint*、伊比利亚 e_saint_dark*，按 e.tex 取）：
 			# 炮身近战（sword_t）出招：蓄力 f0 → f1，挥击 f2、收回 f3；装弹读条（channel）循环；射击：蓄力 f0 → f1，开火 f2、复位 f3
+			if e.type == "iberia":
+				var lb := _boss_warn_strip(e, ["lob"], "e_saint_dark_lob", 4)   # 轰击（docs/95 §6.4）：f0 抬炮口 → f1 后坐蓄力，结算 f2 出手、f3 放下
+				if not lb.is_empty():
+					return lb
+			elif _lazy_tex("e_carmen_spin") != null:
+				# 环射（docs/95 §7.4）：预警段 f0 平举；结算后 0.42 秒内 f1–f5（f1 / f3 / f5 三个出手帧，身体依次转向）
+				for w in g.warns:
+					if w.act == "pattern_ring" and not w.done and is_same(w.owner, e):
+						return {"name": "e_carmen_spin", "frames": 6, "frame": 0}
+				var sla = e.get("last_act")
+				if sla is Dictionary and str(sla.get("act", "")) == "pattern_ring" and g.t - float(sla.get("t", -1.0)) < 0.42:
+					return {"name": "e_carmen_spin", "frames": 6, "frame": clampi(1 + int((g.t - float(sla.t)) / 0.084), 1, 5)}
 			var seg: int = (0 if pk > 0.5 else 1) if winding else (2 if e.pose > 0.17 else 3)
 			if e.get("sword_t", 0.0) > 0.0 and posing:
 				return {"name": e.tex + "_melee", "frames": 4, "frame": seg}
@@ -1840,6 +1865,10 @@ func boss_strip_animation(e: Dictionary) -> Dictionary:
 			if posing and not winding:
 				return {"name": "e_izumik_attack", "frames": 4, "frame": 3}
 		"path":
+			# 震地 / 分形塑路共用 e_path_slam（docs/95 §5.4：f0 刃肢高举 → f1 压低随预警进度，结算 f2 劈地、f3 回弹）；缺图沿用原帧条
+			var ps := _boss_warn_strip(e, ["slam", "sweep"], "e_path_slam", 4)
+			if not ps.is_empty():
+				return ps
 			# 冲撞预警段播 f0 → f1（冲出后的 f2 / f3 走现成的 _charge 挂点）
 			if e.get("dash_t", 0.0) <= 0.0:
 				for w in g.warns:

@@ -1113,6 +1113,49 @@ Codex 第 1 批帧条（5bb3f3e9）已接：`e_paranoia_gaze`（凝视 / 叠影�
 
 正式胜率 / 用时 / 承伤按 §14 第 9 条走云端 A/B（四只 × 标准 expert / Ⅷ master × ≥8 seed，骑士另分近战 / 远程编队）；Ⅷ 不跌破 50（难度目标 v2）。
 
+
+## 16. 实现记录（第 2 批，2026-10-14，Boss与怪物）
+
+分支 `boss/moves-b2`（从 main 0ed04d63 起）。改动文件：`scripts/enemies/bosses/{path,saint}.gd`（4 招 + `demo_moves` / `force_move` / `setup_preview_phase2`）、`scripts/enemies/boss_patterns.gd`（字段）、`scripts/boss_ai.gd`（`sweep` 的 `spawn_after` / `cone_fx`、新 act `smash`）、`data/enemies.json`（三只的 patterns）、`render/world.gd`（`lob_shell` 炮弹画法、三条新帧条挂点）、`game.gd`（V6_FRAMES 登记）、`gallery.gd` / `run/ishar_encounter.gd`（文案）。
+
+### 16.1 底座补的字段
+
+| 名称 | 落点 | 说明 |
+|---|---|---|
+| `manual` | patterns 条目 | 不进轮转，只由 Boss 脚本经 `pattern_force` 点名（订正：第一次先亮招式名，回流时必放） |
+| `min_dist` / `max_dist` | patterns 条目 | 主控距离范围才进轮转（散射 <220、环射 120–320） |
+| `dur` / `track` / `warn_r` / `ring_r` / `gap_face` / `life` / `bullet` / `fx` / `fx_col` | patterns 条目 | 预警时长与追踪、扇形半径、环起始半径、缺口朝主控、弹体寿命、弹体种类（圣徒用 `orb` 实弹，不画紫色新星弹）、出招特效帧条及乘色 |
+| `spawn_after` / `spawn_r` / `spawn_cap` / `spawn_life` | `sweep` 字段 | 扇形结算后在轴线 r 处长出敌人（分形塑路；本体所属 <8；`expire_at` 20 秒自灭，path.gd `_expire_shaped`） |
+| `cone_fx` | `sweep` 字段 | 扇形里放的特效帧条（分形塑路 `fx_slash_heavy_steel`） |
+| `smash` | 新 act | 落点圈结算 + 金色地裂 + `fx_carmen_smash`，命中减速走 `slow_t`（卡门炮身砸击） |
+| `lob_shell` | `g.fx` kind | 轰击炮弹：纯画面，沿抛物线（弧高 = 射程 × 0.4，60–150px）飞向圈心、地面阴影随高度缩放；`proj_saint_shell` 缺图走程序圆弹 |
+
+### 16.2 每只 Boss 的招式实现
+
+| Boss | A | B | C | D | 二阶段 |
+|---|---|---|---|---|---|
+| 塑路者 | 冲撞：不变 | 震地：预警 1.0 → 1.1 秒 | 分形塑路：`sweep` r220 半角 0.9，追踪 0.3 总 1.1，×1.1；结算长出 1 只分形（轴线 r140，<8，20 秒自灭）；`shape` 8 秒，第二幕 5 秒 | 订正：patterns `ring` r90、缺口朝主控（半角 0.45）、12 刃弹 380px/s 寿命 2.2、×0.8，总 1.0；第二幕 `correct` 10 秒、第一次先亮名；回流时 `pattern_force` 必放 | 钢蓝着色 (0.86, 0.95, 1.16)；冲撞 2 连、猎核不变；删甲刃重劈 / 碎壳刃波 / 碎甲落刺 |
+| 圣徒伊比利亚 | 手炮（原裁决）：980 × 16，追踪 0.55 总 1.1，×2.6，耗 1 发，站定 1.5 秒；装填完毕「手炮·三连」 | 散射：patterns `fan` 13 发 410px/s、扇形 r240 半角 1.0、追踪 0.3 总 1.4、×0.8、不耗弹、主控 <220、cd 7 | 轰击：`lob` 主控位置 r80 固定落点 1.1 秒，×2.2，耗 1 发，主控 160–520、`lob` 13 秒、与手炮共用弹药；`lob_shell` 炮弹 + 1.5 秒火光 | 清膛：patterns `ring` r70、缺口朝主控（半角 0.6）、18 发 360px/s 寿命 1.8、×0.6，总 0.9；第二幕装填完毕先清膛（第一次先亮名）再三连（三连整体后移 1.0 秒） | 橙红着色 (1.14, 0.9, 0.84)；删裁决齐射 / 双翼弹幕 / 双线裁决 |
+| 圣徒卡门 | 狙击：不变，不耗弹；装填完毕「狙击·三连」 | 炮身横扫：两幕都有，r110 半角 0.9，追踪 0.2 总 0.8，×1.4；主控 <110、`sweep` 5 秒（弹药空 / 炮身近战段 1.6 秒） | 环射：patterns `ring` r60、3 缺口（半角 0.28 = 32°）、缺口之一朝主控、29 个出弹位去掉缺口后约 21 发 460px/s、×0.9、总 1.0；耗 3 发、主控 120–320、cd 12；出环 `fx_saint_clear_ring` 乘金色 | 炮身砸击（取代炮身突进）：第二幕炮身近战段主控 100–240、`smash` 1.6 秒，主控位置 r70 落点圈 0.9 秒，起手冲到圈边（kb_self），×1.3、命中减速 0.5 秒；第一次先亮名 | 金色着色 (1.12, 1.04, 0.86)；狙击 6 秒；删交错速射 / 压制散射 / 锁定狙击 / 炮身突进 |
+
+**和设计稿不一样的地方（实现时定的）**：
+
+1. **订正缺口 0.42 → 0.45**：§5.5 写 gap 0.42，r90 处缺口弧长只有 76px，不满足 §0.2「缺口弧长 ≥80px」；改 0.45（81px）。清膛设计稿没给缺口，按同一条取 0.6（r70 处 84px）。
+2. **伊比利亚手炮耗 1 发**：原「裁决」不耗弹，耗弹靠三条数据招；三条删掉后没有东西把她打空，就永远不进近战 / 装填。手炮按 §6.2「有弹药时」改为耗 1 发；打空即转近战、站定结束就装填（与原来数据招打空同口径，不额外加 `saint_melee` 追击段）。卡门的狙击仍不耗弹（三发留给环射，§7.3 节奏「狙击 ×2 → 环射」）。
+3. **分形塑路「第二幕 2 次」**：按冷却实现（8 → 5 秒），不做一次出招劈两刀。
+4. **长出来的分形 20 秒自灭**：docs/38 §2.1 写了 20 秒自灭但代码里没有；只给分形塑路长出的分形加（`expire_at`），碎裂 / 猎核吐出的照旧；当上核心就不再自灭。
+5. **圣徒的弹幕改 `orb` 实弹**：原来三条数据招沿用泡影的紫色新星弹画法；散射 / 清膛 / 环射是物理弹，改用普通敌弹。
+6. **抗争之泪**（§14 决定 1）：伊莎玛拉人形阶段的开场横幅改「伊莎玛拉治疗海嗣 —— 靠近「抗争之泪」可延缓转化」，图鉴泪滴行改称「抗争之泪」；敌人名（`enemies.json` tear「伊莎玛拉之泪」）这次没动，要不要一起改名请协调人定。
+
+**Codex 第 2 批素材**（未交）：帧条 `e_path_slam`（震地 / 分形塑路的预警蓄力 f0 → f1、结算 f2 / f3，`world._boss_warn_strip`）、`e_saint_dark_lob`（轰击，同上）、`e_carmen_spin`（环射：预警 f0，结算后 0.42 秒内 f1–f5）已挂好，缺图沿用原帧条；特效 `fx_path_fractal_rise` / `fx_path_correct_ring` / `fx_path_reflow` / `proj_saint_shell` / `fx_saint_scatter` / `fx_saint_clear_ring` / `fx_carmen_smash` 已在 V6_FRAMES 登记，缺图时 `fx_sprite` 返回 false 走程序版（`fx_path_reflow` 循环拖尾等素材到了再接，程序 `reflow` 线仍在用）。图鉴演示行（EXTRA_FORMS）等帧条到货再加。
+
+### 16.3 本地验收（2026-10-14）
+
+- 截图：`--bossmoves=path / path2 / iberia / iberia2 / carmen / carmen2` 每招预警 60% + 结算后各一张，D 招只在二阶段（一阶段 skip），`build/bossmoves/shots/shot_bossmove_<type>_<招>[_hit].png`；零脚本错误。轰击炮弹在 60% 进度时飞到顶部附近，另截了 30% 一张确认弹体在画（临时改阈值，未提交）。
+- 快检：`check.py --auto --jobs 3` + `--only boss_variety / boss_pressure / boss_boundary / boss_trial` 全过（rc 进文件）。
+- 同种子 TRACE（`--squad mizuki,saria,suzuran`、expert、seed 11–13、240 秒、每秒一行）：对 merge-base 0ed04d63 在 3:30 中期 Boss 出场前 210 行逐行一致，第一处不同在 215–216 秒（Boss 出场后）；基线存 `build/trace_cache/0ed04d63_<seed>_mizuki_240_squad3.txt`。
+- 云端 A/B：见协调人汇报（`cloud-results/bm2-t0` / `bm2-t2`）。
+
 ---
 
 ## 附录 A · 原作出处

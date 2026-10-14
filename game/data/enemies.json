@@ -513,27 +513,22 @@
    "role": "boss",
    "patterns": [
     {
-     "name": "甲刃重劈",
-     "mode": "cleave",
-     "radius": 260,
-     "half": 1.1,
-     "waves": 2,
-     "texture": "fx_slash_heavy_steel"
-    },
-    {
-     "name": "碎壳刃波",
-     "mode": "fan",
-     "count": 5,
-     "waves": 2,
-     "spread": 1.25,
-     "speed": 370,
-     "blade": true
-    },
-    {
-     "name": "碎甲落刺",
-     "mode": "rain",
-     "waves": 3,
-     "radius": 52
+     "name": "订正",
+     "mode": "ring",
+     "count": 12,
+     "waves": 1,
+     "speed": 380,
+     "gap": 0.45,
+     "blade": true,
+     "phase_min": 1,
+     "manual": true,
+     "ring_r": 90,
+     "gap_face": true,
+     "dur": 1.0,
+     "life": 2.2,
+     "mult": 0.8,
+     "cd": 10,
+     "fx": "fx_path_correct_ring"
     }
    ]
   },
@@ -586,29 +581,40 @@
    "atk": "物理",
    "patterns": [
     {
-     "name": "裁决齐射",
-     "mode": "fan",
-     "count": 9,
-     "waves": 3,
-     "spread": 1.25,
-     "speed": 440,
-     "blade": false
-    },
-    {
-     "name": "双翼弹幕",
+     "name": "散射",
+     "bullet": "orb",
      "mode": "fan",
      "count": 13,
-     "waves": 2,
-     "spread": 2,
+     "waves": 1,
+     "spread": 2.0,
      "speed": 410,
-     "blade": false
+     "blade": false,
+     "no_ammo": true,
+     "max_dist": 220,
+     "warn_r": 240,
+     "dur": 1.4,
+     "track": 0.3,
+     "mult": 0.8,
+     "cd": 7,
+     "fx": "fx_saint_scatter"
     },
     {
-     "name": "双线裁决",
-     "mode": "line",
-     "waves": 2,
-     "length": 680,
-     "width": 10
+     "name": "清膛",
+     "bullet": "orb",
+     "mode": "ring",
+     "count": 18,
+     "waves": 1,
+     "speed": 360,
+     "gap": 0.6,
+     "blade": false,
+     "no_ammo": true,
+     "on_reload": true,
+     "ring_r": 70,
+     "gap_face": true,
+     "dur": 0.9,
+     "life": 1.8,
+     "mult": 0.6,
+     "fx": "fx_saint_clear_ring"
     }
    ]
   },
@@ -628,29 +634,29 @@
    "atk": "物理",
    "patterns": [
     {
-     "name": "交错速射",
-     "mode": "fan",
-     "count": 7,
-     "waves": 3,
-     "spread": 0.8,
-     "speed": 460,
-     "blade": false
-    },
-    {
-     "name": "压制散射",
-     "mode": "fan",
-     "count": 11,
-     "waves": 2,
-     "spread": 1.6,
-     "speed": 430,
-     "blade": false
-    },
-    {
-     "name": "锁定狙击",
-     "mode": "line",
+     "name": "环射",
+     "bullet": "orb",
+     "mode": "ring",
+     "count": 29,
      "waves": 1,
-     "length": 850,
-     "width": 9
+     "speed": 460,
+     "gap": 0.28,
+     "gaps": 3,
+     "blade": false,
+     "ammo_cost": 3,
+     "min_dist": 120,
+     "max_dist": 320,
+     "ring_r": 60,
+     "gap_face": true,
+     "dur": 1.0,
+     "mult": 0.9,
+     "cd": 12,
+     "fx": "fx_saint_clear_ring",
+     "fx_col": [
+      1.25,
+      1.05,
+      0.55
+     ]
     }
    ]
   },
