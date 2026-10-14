@@ -132,8 +132,9 @@ render 审计**没有找到绘制改变同 seed 玩法结果的路径**（TRACE 
 | core/combat_core + event_bus + modifier_system + build_profile + events ✔ | 约 580 行，只有 tests/test_core.gd 引用；docs/55 §6 建议的改名没做 | 挪进 tests/ 或删 | 不变 |
 | tests/data_ops/*_legacy.gd | 13 个、7538 行，仍跑 blocks_eq（只比精零）；继承 character.gd，基类 / op_api 一改名就要改 13 份 | 录一次金样 TRACE 后下线，或明确冻结这套 API | 不变（测试） |
 | weapons.gd 127–147、67–76 / 93–95、191–195 | 箭矢 / 导弹加速 / 缺省分支没有生产者；112 读 `b.hit`、145 写 `b.hit_ids`，穿透去重本来就不生效 | 删约 40 行 | 不变 |
-| combat 18–19、enemies 11–13、spawner 12–13（含 432 分支） | `flesh_heal / ember / seed_heal / evo_age / evo_xp / horde_mult / horde_chest` 从未被赋值（旧藏品残留） | 删或改常量 | 不变 |
-| enemy_ai 370–383 `spawn_on_shot`、boss_ai 669–672 `"spawn"` 招式、game.gd 1604 `_sync_stats`、title 2672 `_wrap_text`、sfx 784 `loop_pitch`、op_blocks `custom` 积木 | 0 使用 | 删 | 不变 |
+| combat 18–19、enemies 11–13、spawner 12–13（含 432 分支） | `flesh_heal / ember / seed_heal / horde_chest` 从未被赋值（旧藏品残留）；**`evo_age / evo_xp / horde_mult` 核实为在用的常数**（35 秒进化、经验 ×2、×1.0），不是开关 | 前四个删；后三个改 const / 去掉 ×1.0，值不变（S1 已做） | 不变 |
+| enemy_ai 370–383 `spawn_on_shot`、boss_ai 669–672 `"spawn"` 招式、game.gd 1604 `_sync_stats`、title 2672 `_wrap_text` | 0 使用 | 删（S1 已做） | 不变 |
+| sfx 784 `loop_pitch`、op_blocks `custom` 积木 | **核实为在用的接口，不删**：`loop_pitch` 与 `loop_start / loop_stop` 是同一组循环音效接口；`custom` 是 docs/61 §6 写明的积木扩展口（每名干员至多 2 个），现在没有干员用到 | 保留 | — |
 | boss_ai.gd 154–209 | 14 个转发函数，8 个下划线名只有测试和 combat 964 在调 | 调用方改 `g.bai.boss(type)` | 不变 |
 | docs/55 未做项 | §1.2 的 4 个 0 引用符号；§2.5 `V6_FRAMES` 改名（76 处）；§6 game.gd 三项搬家（帧条 / 贴图表 → art.gd、INTRO_PAGES → lore.json、`_update_doc_follow` → doctor.gd）；§3 截图开关合并（10 个） | 按 §7 派 | 不变 |
 | 缺图退回程序画 | `if not …fx_sprite(` 30 处（10-10 时 22 处）；world 另有 38 处贴图 null 判断、约 11 段程序画兜底 | 先做「贴图加载保证」再删（docs/55 §2.4） | 像素可能变 |
@@ -318,7 +319,7 @@ game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCo
 
 | 编号 | 内容 | 建议会话 |
 |---|---|---|
-| S1 | 删 §3.5 的死代码：weapons 无生产者分支、从未赋值的开关、`spawn_on_shot` / `"spawn"`、`_sync_stats`、`_wrap_text`、`loop_pitch`、`custom` 积木 | 架构（weapons / enemy_ai / boss_ai 先【协调】Boss与怪物；op_blocks 先【协调】干员） |
+| S1 | 删 §3.5 的死代码：weapons 无生产者分支、从未赋值的开关、`spawn_on_shot` / `"spawn"`、`_sync_stats`、`_wrap_text`（`loop_pitch`、`custom` 积木核实为在用，保留） | 架构（weapons / enemy_ai / boss_ai 先【协调】Boss与怪物；op_blocks 先【协调】干员） |
 | S2 | 删已定案 `opt_old` 位的旧实现（OPT_ENEMY / GEM / CLEANUP / GEMDRAW / DRAW / CV / ZONE / SORT / EDRAW），保留开关框架 | 架构 |
 | S3 | core/ 只给测试用的 5 个文件挪进 tests/ | 架构 |
 | S4 | `g.perf_alt` 只许影响绘制（map 439、op_blocks 15747） | 架构 |

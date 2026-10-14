@@ -668,10 +668,6 @@ func _warn_resolve(w: Dictionary) -> void:
 					e.burn_t = 4.0
 					e.burn_dps = float(w.burn)
 					e.burn_acc = 0.0
-		"spawn":
-			# 预告后生成（投嗣育母的注亡拟嗣，docs/48 P0-7）
-			g.spawner.spawn_enemy(w.spawn, w.pos)
-			g.fx.append({"kind": "ring", "pos": w.pos, "r": w.r, "life": 0.3, "max": 0.3, "col": c})
 		"bite":
 			g.fx.append({"kind": "bslash", "pos": w.pos, "ang": w.ang, "half": w.half, "r": w.r, "life": 0.25, "max": 0.25, "col": c})
 			if w.get("thrust", false) and g.vfx.fx_sprite("fx_knight_thrust", w.pos + dv * w.r * 0.55, g.PX * 1.3, w.ang):

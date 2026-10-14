@@ -2668,21 +2668,6 @@ func _op_is_melee(d: Dictionary) -> bool:
 	return d.get("class", "") in Character.MELEE_CLASSES
 
 
-## 按像素宽度折行绘制，返回占用高度
-func _wrap_text(pos: Vector2, s: String, size: int, col: Color, width: float, max_lines: int = 99) -> float:
-	# 折行走 UI.wrap_lines（避头尾：「；」「%」不落行首，末行不只剩一两个字）
-	var lines: Array = Array(UI.wrap_lines(font, s, size, width))
-	if max_lines <= 0:
-		return 0.0
-	if lines.size() > max_lines:
-		lines = lines.slice(0, max_lines)
-		lines[max_lines - 1] = lines[max_lines - 1].substr(0, maxi(0, lines[max_lines - 1].length() - 1)) + "…"
-	var lh := size + 6.0
-	for i in lines.size():
-		UI.text(self, font, pos + Vector2(0, i * lh), lines[i], size, col)
-	return lines.size() * lh
-
-
 ## --opmotion：按时间表驱动选人页并逐帧存图（--fixed-fps 30 时每帧 1/30 秒，录出来是真实节奏）
 const OP_MOTION_SCRIPT := [[0.9, "step"], [1.9, "step"], [2.9, "tab_status"], [3.7, "tab_skill"], [4.4, "skill_row"], [5.3, "filter"], [6.2, "all"], [6.9, "go"]]
 var op_motion_frame := 0

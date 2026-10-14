@@ -1604,11 +1604,6 @@ const STAT_SYNC := {
 }
 
 
-## 旧名（2026-09-29 改公开为 sync_stats）：未合入的分支还在调 g._sync_stats()，各分支合完后删
-func _sync_stats() -> void:
-	sync_stats()
-
-
 ## 属性同步：StatBlock（stats）有变化时，按 STAT_SYNC 回填缓存变量并调 ch.sync_stats()；模块 / 干员改了 stats 后直接调它（没变化时立即返回）
 func sync_stats() -> void:
 	if stats == null or stats.version == _stats_ver:

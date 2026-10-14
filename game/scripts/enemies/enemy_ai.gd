@@ -1,7 +1,7 @@
 ## 小怪行为（从 game.gd 拆出）：按 data/enemies.json 的字段分派，不再按 type 名硬编码。
 ##   pattern: burrow 潜行破土咬击 / stomp 踏地震荡 / dash 蓄力冲刺 / acid 站桩吐酸 / nova 蓄力环形弹幕
 ##   V8：blast 冲到身边自爆 / reap 休眠唤醒后扇形斩 / thrust 直线前刺 + 半血狂暴铺痕 / nest 神经光环 + 触须爆发
-##   远程：shot_n 弹数、shot_kind 弹种、shot_home 追踪、shot_spd 弹速、spit / lob 抛射（落点预警；lob_kind brood = 投嗣育母投出拟嗣、落地孵化）、spawn_on_shot 射击时召唤
+##   远程：shot_n 弹数、shot_kind 弹种、shot_home 追踪、shot_spd 弹速、spit / lob 抛射（落点预警；lob_kind brood = 投嗣育母投出拟嗣、落地孵化）
 ## 状态仍在 game.gd 的敌人字典里，本文件通过 g 访问；Boss 招式见 boss_ai.gd。
 extends RefCounted
 
@@ -384,20 +384,6 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 		e.pose_max = 0.4
 	e.atk_until = g.t + 0.2   # 小怪攻击帧条（atk_anim）：出手后播第 3、4 帧
 	_muzzle_fx(e, d)
-	# 射击时召唤（通用字段，现无敌人使用：投嗣育母 10-14 起改为 lob_kind brood，拟嗣在投嗣弹落点孵化）
-	var so: String = d.get("spawn_on_shot", "")
-	if so != "":
-		var nb := 0
-		for o in g.enemies:
-			if o.type == so and not o.dead:
-				nb += 1
-		if nb < int(d.get("spawn_max", 12)):
-			var sp_pos: Vector2 = g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(45.0, 75.0)
-			# 先在落点画 0.6 秒预告圈，结算时才刷出（docs/48 P0-7；boss_ai._warn_resolve 的 "spawn"），育母被打死也照常刷出
-			g.bai._warn(e, "circle", 0.6, {"pos": sp_pos, "r": 22.0, "act": "spawn", "spawn": so, "lock": false, "col": Color(1.0, 0.3, 0.72), "dmg": 0.0})
-			# 出生特效（docs/48 P0-7）：地面裂隙 + 洋红火花，看得出「这里冒出来一只」
-			g.fx.append({"kind": "rift", "pos": sp_pos, "r": 22.0, "life": 0.5, "max": 0.5})
-			g.vfx.sparks(sp_pos, Vector2.ZERO, Color(1.8, 0.6, 1.4), 8, 140.0)
 
 
 ## 出手帧的发射口特效（enemies.json muzzle_fx / muzzle_off，docs/96 §1.2 漂移体 fx_skimmer_muzzle）：纯画面，缺图不画。
