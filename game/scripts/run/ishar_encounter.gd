@@ -22,7 +22,7 @@ func step_ally(e: Dictionary, dt: float) -> void:
 		e.ally_charge_need = snappedf(Bal.v("boss/ishar_ally_charge", 30.0) * Bal.v("boss/ishar_p1_scale", 0.6), 0.1)
 		e.ally_attack_cd = 0.8
 		e.ally_tear_cd = 5.0
-		g.vfx.show_banner("伊莎玛拉治疗海嗣 · 靠近泪滴可延缓转化")
+		g.vfx.show_banner("伊莎玛拉治疗海嗣 —— 靠近「抗争之泪」可延缓转化")
 	var tear_bonus := 0.0
 	for o in g.enemies:
 		if not o.dead and o.type == "tear" and is_same(o.get("owner"), e) and not tear_blocked(o):
