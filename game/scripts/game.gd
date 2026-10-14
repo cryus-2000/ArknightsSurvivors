@@ -1780,6 +1780,12 @@ const V6_FRAMES := {
 	"fx_skalter_echo_ring": [5, 14.0], "fx_skalter_seaborn_zone": [8, 10.0],
 	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条
 	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "proj_knight_spear": [2, 12.0], "prop_ice_stake": [2, 4.0], "prop_ice_stake_break": [4, 12.0], "prop_lamp_post": [3, 4.0], "proj_rock_shard": [4, 12.0], "proj_acid": [2, 8.0], "proj_nova": [4, 10.0], "fx_acid_splash": [4, 12.0], "fx_nest_aura": [4, 10.0],
+	# Codex 怪物攻击特效第 1 批（docs/96 §1.2–1.4，art/incoming/enemy_fx_1_manifest.json）：帧数 / fps 按 manifest；
+	# 漂移体侵蚀弹 + 发射口 + 命中（蓝）/ 侵蚀变体（紫蓝，喷吐者酸弹命中用）；囊海爬行者鼓胀帧条（10fps 不循环、停末帧）+ 破膜 back / front（同原点 (24,28)）+ 地面残留；
+	# 喷吐者酸团（沿 lob 轨迹）+ 落点溅射（地面层）。enemies.json 的 shot_tex / muzzle_fx / hit_fx / lob_tex / land_fx 引用；缺图回退原程序画法
+	"proj_skimmer_corrode": [4, 16.0], "fx_skimmer_muzzle": [3, 20.0], "fx_corrode_hit": [5, 18.0], "fx_corrode_hit_acid": [5, 18.0],
+	"e_pocket_swell": [4, 10.0], "fx_pocket_burst_back": [6, 16.0], "fx_pocket_burst_front": [6, 16.0], "fx_pocket_puddle": [4, 8.0],
+	"proj_spitter_acid": [4, 12.0], "fx_spitter_land": [6, 14.0],
 }
 
 
