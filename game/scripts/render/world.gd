@@ -1524,9 +1524,10 @@ func _draw_ebullets_lobs_shocks() -> void:
 	tb_flush()
 	for b in blades:
 		g.vfx.boss_blade(b, b.pos + Vector2(0, -16))
-	# 抛射碎石：落点预警 + 空中石块
+	# 抛射碎石 / 投嗣弹：落点预警 + 空中石块（投嗣育母投出的拟嗣：低弧，弹体 proj_mother_brood，缺图时 e_brood 基础帧缩小旋转）
 	for l in g.lobs:
 		var k: float = l.t / l.dur
+		var brood: bool = l.get("kind", "") == "brood"
 		# 抛石落点：地面椭圆（与判定一致）+ 深色描边 + 敌方洋红，不再乘亮度（docs/48 ①④）
 		g.draw_set_transform(l.to, 0.0, Vector2(1.0, ground_y()))
 		g.draw_circle(Vector2.ZERO, l.r * k, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.22 * tell_fill))
@@ -1534,12 +1535,27 @@ func _draw_ebullets_lobs_shocks() -> void:
 		g.draw_arc(Vector2.ZERO, l.r, 0.0, TAU, 32, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.6 + 0.35 * sin(g.t * 20.0)), 2.0)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var gp: Vector2 = l.from.lerp(l.to, k)
-		var hgt := sin(k * PI) * 120.0
+		var hgt := sin(k * PI) * (80.0 if brood else 120.0)
 		g.draw_set_transform(gp, 0.0, Vector2(1.0, 0.45))
 		g.draw_circle(Vector2.ZERO, 6.0, Color(0, 0, 0, 0.35))
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var rp := gp + Vector2(0, -hgt - 8.0)
-		if g.tex.get("proj_rock_shard") != null:
+		if brood:
+			var spin: float = k * TAU * 1.5 * (1.0 if l.to.x >= l.from.x else -1.0)   # 顺着飞行方向翻滚一圈半
+			if g.tex.get("proj_mother_brood") != null:
+				g.vfx.spr_rot("proj_mother_brood", int(g.t * 12.0 + l.from.x * 0.01) % 4, rp, spin, _hpx("proj_mother_brood"))
+			else:
+				var bt: Texture2D = g.tex.get("e_brood")
+				if bt != null:
+					var bw: float = bt.get_width() / 2.0
+					var bh: float = float(bt.get_height())
+					var bs: float = _hpx("e_brood") * 0.8
+					g.draw_set_transform(rp + g.draw_off, spin, Vector2(bs, bs))
+					g.draw_texture_rect_region(bt, Rect2(-Vector2(bw, bh) / 2.0, Vector2(bw, bh)), Rect2(0, 0, bw, bh), Color(1.15, 1.15, 1.15))
+					g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				else:
+					g.draw_circle(rp, 6.0, Color(0.85, 0.55, 0.75))
+		elif g.tex.get("proj_rock_shard") != null:
 			g.vfx.spr("proj_rock_shard", 4, int(g.t * 12.0) % 4, rp, _hpx("proj_rock_shard"))   # Codex v14 碎石（翻滚画在帧里）
 		else:
 			g.draw_circle(rp, 7.0, Color(0.45, 0.42, 0.4))
@@ -1839,7 +1855,7 @@ func _dc_ok_fast(e: Dictionary) -> bool:
 		return false
 	if e.get("part", false) or e.get("under", false) or e.get("gate_hold", false) or e.get("sword_t", 0.0) > 0.0 or e.get("break_t", 0.0) > 0.0:
 		return false
-	if e.get("bstag", 0.0) > 0.0:
+	if e.get("bstag", 0.0) > 0.0 or float(e.get("hatch_until", 0.0)) > g.t:
 		return false
 	if e.tex_attack and (g.t < e.atk_until or e.get("attack_preparing", false) or float(e.get("shot_wind_until", 0.0)) > g.t):
 		return false
@@ -1855,6 +1871,8 @@ func _dc_ok(e: Dictionary) -> bool:
 		return false
 	if e.get("bstag", 0.0) > 0.0:
 		return false   # 灯边硬直（docs/56 §10）：和眩晕同样的偏蓝、停帧，走原路径画（缓存签名只认 e.stun）
+	if float(e.get("hatch_until", 0.0)) > g.t:
+		return false   # 拟嗣落地展开中不画本体（_draw_enemy_full 开头）
 	if e.tex == "e_knight" or e.type in DC_SKIP_TYPES:
 		return false
 	# 攻击帧条（atk_anim）：出手后窗口、远处举肢、射击蓄力时帧号跟着计时器走，交给原路径
@@ -2037,6 +2055,8 @@ func _dc_verify(e: Dictionary, c: Array) -> void:
 
 
 func _draw_enemy_full(e: Dictionary) -> void:
+	if float(e.get("hatch_until", 0.0)) > g.t:
+		return   # 注亡拟嗣落地展开中（run/enemies._brood_land）：本体由 fx_brood_land 帧条代画
 	var name: String = e.tex
 	# 形态切换：偏执泡影二阶段 / 接潮三件套昏迷时的假死造型
 	if e.type == "paranoia" and e.phase == 2 and g.tex.get("e_paranoia2") != null:

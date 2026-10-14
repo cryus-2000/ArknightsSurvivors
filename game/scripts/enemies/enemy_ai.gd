@@ -1,7 +1,7 @@
 ## 小怪行为（从 game.gd 拆出）：按 data/enemies.json 的字段分派，不再按 type 名硬编码。
 ##   pattern: burrow 潜行破土咬击 / stomp 踏地震荡 / dash 蓄力冲刺 / acid 站桩吐酸 / nova 蓄力环形弹幕
 ##   V8：blast 冲到身边自爆 / reap 休眠唤醒后扇形斩 / thrust 直线前刺 + 半血狂暴铺痕 / nest 神经光环 + 触须爆发
-##   远程：shot_n 弹数、shot_kind 弹种、shot_home 追踪、shot_spd 弹速、spit 抛射（落点预警）、spawn_on_shot 射击时召唤
+##   远程：shot_n 弹数、shot_kind 弹种、shot_home 追踪、shot_spd 弹速、spit / lob 抛射（落点预警；lob_kind brood = 投嗣育母投出拟嗣、落地孵化）、spawn_on_shot 射击时召唤
 ## 状态仍在 game.gd 的敌人字典里，本文件通过 g 访问；Boss 招式见 boss_ai.gd。
 extends RefCounted
 
@@ -345,7 +345,7 @@ func shoot(e: Dictionary, dir: Vector2) -> void:
 		e.pose = 0.4
 		e.pose_max = 0.4
 	e.atk_until = g.t + 0.2   # 小怪攻击帧条（atk_anim）：出手后播第 3、4 帧
-	# 射击时召唤（投嗣育母：在水月附近放下注亡拟嗣，场上上限 spawn_max）
+	# 射击时召唤（通用字段，现无敌人使用：投嗣育母 10-14 起改为 lob_kind brood，拟嗣在投嗣弹落点孵化）
 	var so: String = d.get("spawn_on_shot", "")
 	if so != "":
 		var nb := 0
@@ -376,9 +376,22 @@ func shot_sfx(e: Dictionary, d: Dictionary) -> String:
 
 
 ## 抛射碎石：落点预警，落地范围伤害（spit 的落点留下溟痕）
+## lob_kind "brood"（投嗣育母，用户 10-14 定）：投出的是一只注亡拟嗣——低弧抛射 lob_dur 秒、落点预警圈半径 lob_r、
+## 散布 ±lob_spread；落地造成原酸弹的接触伤害 + 侵蚀，并在落点孵化一只拟嗣（场上上限 spawner.type_cap，到上限只伤不孵；run/enemies.update_lobs）
 func lob(e: Dictionary) -> void:
-	Sfx.enemy(shot_sfx(e, def_of(e)), e.pos.distance_to(g.ppos))
+	var d := def_of(e)
+	Sfx.enemy(shot_sfx(e, d), e.pos.distance_to(g.ppos))
 	e.atk_until = g.t + 0.3
+	var kind: String = str(d.get("lob_kind", "rock"))
+	if kind == "brood":
+		var sp: float = float(d.get("lob_spread", 40.0))
+		var to: Vector2 = g.ppos + Vector2(g.rng.randf_range(-sp, sp), g.rng.randf_range(-sp, sp)) + g.pvel * 0.5
+		g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": float(d.get("lob_dur", 0.8)), "r": float(d.get("lob_r", 30.0)), "dmg": e.dmg * 0.45,
+			"mire": false, "kind": "brood", "spawn": "brood", "hit_cap": e.get("hit_cap", 0.0), "corrode": e.corrode, "frost": 0.0, "boss": e.boss, "src_type": e.type})
+		# 出手特效 fx_mother_throw（docs/96 §1.1，Codex 交付后自动启用；缺图时无）：画在育母身前，朝队长一侧
+		var face: float = 1.0 if g.ppos.x >= e.pos.x else -1.0
+		g.vfx.fx_sprite("fx_mother_throw", e.pos + Vector2(face * 10.0, -14.0), g.PX, 0.0, face < 0.0)
+		return
 	var to: Vector2 = g.ppos + Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-30, 30)) + g.pvel * 0.6   # 落点散布是玩法：用对局随机数
-	g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 0.85, "r": 46.0, "dmg": e.dmg * 0.6, "mire": def_of(e).get("spit", false), "hit_cap": e.get("hit_cap", 0.0),
+	g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 0.85, "r": 46.0, "dmg": e.dmg * 0.6, "mire": d.get("spit", false), "hit_cap": e.get("hit_cap", 0.0),
 		"corrode": e.corrode, "frost": e.get("frost", 0.0), "boss": e.boss, "src_type": e.type})

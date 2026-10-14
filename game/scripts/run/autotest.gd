@@ -378,6 +378,20 @@ func step() -> void:
 			if g.at_frames == f and DisplayServer.get_name() != "headless":
 				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_fx_%d.png" % f)
 	for a in Cfg.dev_args():
+		if a.begins_with("--spawntest="):
+			# 小怪 / 精英招式截图（docs/36 §5）：第 20 帧把逗号分隔的敌人刷在主控右侧（跳过登场保护），时间照常走（--bosstest 的 g.t 不动，
+			# 远程蓄力 shot_wind_until 永远到不了），之后每 6 帧截一张 shot_spawn_<id>_<帧>.png 到第 320 帧，第 330 帧退出
+			if g.at_frames == 20:
+				g.ppos = Vector2(1500, 900)
+				g.max_hp = 900.0
+				g.hp = 900.0
+				for st in a.substr(12).split(","):
+					var se: Dictionary = g.spawner.spawn_enemy(st, g.ppos + Vector2(230, -40))
+					se.age = 5.0
+			if g.at_frames > 20 and g.at_frames % 6 == 0 and g.at_frames <= 320 and DisplayServer.get_name() != "headless":
+				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_spawn_%s_%03d.png" % [a.substr(12).replace(",", "_"), g.at_frames])
+			if g.at_frames > 330:
+				g.get_tree().quit()
 		if a.begins_with("--bosstest="):
 			# Boss 招式测试：在水月旁刷出指定 Boss，定时截图
 			bosstest = true

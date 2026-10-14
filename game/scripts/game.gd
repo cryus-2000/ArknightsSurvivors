@@ -1778,6 +1778,8 @@ const V6_FRAMES := {
 	"fx_skalter_echo_ring": [5, 14.0], "fx_skalter_seaborn_zone": [8, 10.0],
 	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条
 	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "proj_knight_spear": [2, 12.0], "prop_ice_stake": [2, 4.0], "prop_ice_stake_break": [4, 12.0], "prop_lamp_post": [3, 4.0], "proj_rock_shard": [4, 12.0], "proj_acid": [2, 8.0], "proj_nova": [4, 10.0], "fx_acid_splash": [4, 12.0], "fx_nest_aura": [4, 10.0],
+	# Codex 怪物攻击特效第 1 批（docs/96 §1.1）投嗣育母：投出的拟嗣弹体（缺图时用 e_brood 帧缩小旋转）/ 出手（缺图时无）/ 落地孵化（缺图时 fx_acid_splash + 拟嗣直接出现）
+	"proj_mother_brood": [4, 12.0], "fx_mother_throw": [4, 16.0], "fx_brood_land": [6, 14.0],
 }
 
 
