@@ -473,7 +473,7 @@ func update_status(dt: float) -> void:
 		s.r += float(s.get("spd", 320.0)) * dt   # spd：缺口环（大群之歌）扩散 ≤220px/s（docs/38 §1.9），普通冲击环 320
 		# 冲击环：环带宽 22，按地面椭圆算，且不超过最大半径（= 预警圈，docs/38 B0 第 5 项、docs/48 P0-1）
 		var sd: float = g.combat.ground_d(g.ppos, s.pos)
-		if not s.hit and absf(sd - s.r) < 22.0 and sd <= s.maxr and not g.bai.in_gap(s, (g.ppos - s.pos).angle()):   # 缺口环：站在缺口弧里不算中（docs/95 §12 song_ring）
+		if not s.hit and absf(sd - s.r) < 22.0 and sd <= s.maxr and not g.tele.in_gap(s, (g.ppos - s.pos).angle()):   # 缺口环：站在缺口弧里不算中（docs/95 §12 song_ring）
 			s.hit = true
 			if g.invuln <= 0.0:
 				if not g.combat.stun_as_slow(s.get("boss", false)):   # Boss 战里僵直改成减速（docs/38 §1.11）

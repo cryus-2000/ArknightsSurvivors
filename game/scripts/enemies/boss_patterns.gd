@@ -157,7 +157,7 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 				dur = data.track + float(move.get("lock", 0.65))
 		if move.has("track"):
 			data.track = float(move.track)
-		var w: Dictionary = g.bai.warn(e, shape, dur, data)
+		var w: Dictionary = g.tele.warn(e, shape, dur, data)
 		end = maxf(end, w.dur)
 	e.pattern_cycle = (index + 1) % moves.size()
 	var cd_key: String = "cd_p2" if (enhanced and move.has("cd_p2")) else "cd"
@@ -172,7 +172,7 @@ func resolve(w: Dictionary) -> void:
 		return
 	var move: Dictionary = w.pattern
 	if w.act in ["pattern_cleave", "pattern_rain", "pattern_line"]:
-		g.bai.warn_damage(w)
+		g.tele.warn_damage(w)
 		g.vfx.boss_pattern(w)
 		return
 	if e.has("ammo") and not move.get("no_ammo", false):
@@ -185,7 +185,7 @@ func resolve(w: Dictionary) -> void:
 	if w.act == "pattern_fan" and float(move.get("cone_dmg", 0.0)) > 0.0:
 		var cw: Dictionary = w.duplicate()
 		cw.dmg = e.dmg * float(move.cone_dmg)
-		g.bai.warn_damage(cw)   # 扇形本身一次（接潮扇浪的浪头），弹幕另算
+		g.tele.warn_damage(cw)   # 扇形本身一次（接潮扇浪的浪头），弹幕另算
 	var count: int = int(move.count) + (4 if w.enhanced and not move.get("blade", false) else 0)
 	var own := 0
 	var total := 0
@@ -200,7 +200,7 @@ func resolve(w: Dictionary) -> void:
 		var angle: float
 		if w.act == "pattern_ring":
 			angle = w.ang + TAU * float(i) / count + float(w.wave) * PI / count
-			if g.bai.in_gap(w, angle):
+			if g.tele.in_gap(w, angle):
 				continue
 		else:
 			angle = w.ang + lerpf(-float(move.spread) * 0.5, float(move.spread) * 0.5, float(i) / maxf(count - 1, 1))

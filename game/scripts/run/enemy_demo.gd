@@ -116,7 +116,7 @@ func step(dt: float) -> void:
 	g.enemies_sys.build_grid()
 	g.enemies_sys.update(dt)
 	g.enemies_sys.update_ebullets(dt)
-	g.bai.update_warns(dt)
+	g.tele.update_warns(dt)
 	g.enemies_sys.update_status(dt)
 	g.vfx.update(dt)
 	g.hp = g.max_hp

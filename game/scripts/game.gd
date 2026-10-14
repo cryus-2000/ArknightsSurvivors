@@ -8,6 +8,7 @@ const UI = preload("res://scripts/ui.gd")
 const UM = preload("res://scripts/ui_motion.gd")   # 界面动效时钟与缓动（docs/62 §2.7）
 const A = preload("res://scripts/art.gd")
 const BossAI = preload("res://scripts/boss_ai.gd")
+const Telegraph = preload("res://scripts/enemies/telegraph.gd")
 const RelicFx = preload("res://scripts/relic_fx.gd")
 const Endings = preload("res://scripts/endings.gd")
 const Knight = preload("res://scripts/allies/knight.gd")
@@ -266,7 +267,8 @@ var atk_slow := 0.0
 var ebullets: Array = []
 var shocks: Array = []
 var warns: Array = []
-var bai: RefCounted = null      # Boss AI / 招式预警（scripts/boss_ai.gd）            # Boss 招式预警 {shape, pos, ang, r, len, wid, half, t, dur, act, owner, dmg}
+var tele: RefCounted = null     # 预警服务：g.warns 登记 / 推进 / 判定 / 结算（scripts/enemies/telegraph.gd，docs/101 B2）
+var bai: RefCounted = null      # Boss AI（scripts/boss_ai.gd；预警经 tele）            # Boss 招式预警 {shape, pos, ang, r, len, wid, half, t, dur, act, owner, dmg}
 var mires: Array = []
 var beacons: Array = []          # 引航灯标（run/beacon.gd）：{pos, lit, prog, need, lit_t, count_end, count_max, dead}
 var in_mire := 0.0               # 站在溟痕里的程度（0..1，平滑过渡，用于减速与屏幕变暗）
@@ -581,6 +583,7 @@ func _ready() -> void:
 	if demo_op == "":
 		Sfx.voice_reset()   # 上一局没播完的部署语音不带进新一局
 	bai = BossAI.new(self)
+	tele = Telegraph.new(self)
 	eai = EnemyAI.new(self)
 	map = Map.new(self, Cfg.map_id)
 	stats = StatBlock.new()
@@ -1524,7 +1527,7 @@ func _update(dt: float) -> void:
 	_pm("bullets")
 	var nfx1: int = fx.size()
 	enemies_sys.update_ebullets(dt)
-	bai.update_warns(dt)
+	tele.update_warns(dt)
 	vfx.mark_enemy_fx(nfx1)
 	_pm("ebullets")
 	enemies_sys.update_status(dt)

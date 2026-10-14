@@ -1,7 +1,7 @@
 ## Boss 行为脚本基类（docs/55 §6，10-10）：每只 Boss 一个 scripts/enemies/bosses/<type>.gd，继承本类、覆写 step()；
 ## 多个 type 共用一份脚本时在 boss_ai.gd 的 SCRIPTS 注册表里指到同一个文件（圣徒 iberia / carmen → saint.gd）。
 ## 状态全部还在敌人字典 e 上（docs/39：敌人用字典），脚本本身无状态，所以同一只 Boss 的多个实例共用一个脚本对象。
-## 预警管线（_warn / _update_warns / _warn_resolve）、招式冷却 _cd、远程迫近 _close_in、招式令牌都留在 boss_ai.gd，这里只转发。
+## 预警管线在 enemies/telegraph.gd（g.tele，docs/101 B2）；招式冷却 _cd、远程迫近 _close_in、招式令牌都留在 boss_ai.gd，这里只转发。
 extends RefCounted
 
 const D = preload("res://scripts/data.gd")
@@ -117,7 +117,7 @@ const SKILL_COOLDOWN_SCALE: float = preload("res://scripts/boss_ai.gd").SKILL_CO
 
 
 func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary:
-	return g.bai.warn(e, shape, dur, d)
+	return g.tele.warn(e, shape, dur, d)
 
 
 func _cd(e: Dictionary, key: String, dur: float) -> bool:
