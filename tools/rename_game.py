@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""游戏改名草案（界面与美术 10-15，协调人派；预案见 docs/101_rename_plan.md）。缺省只打印计划，不改文件。
+"""游戏改名草案（界面与美术 10-15，协调人派；预案见 docs/102_rename_plan.md）。缺省只打印计划，不改文件。
 
     python tools/rename_game.py 灯火深潜 "Lamplight Dive"                 # 只列计划（每条规则：文件、命中次数、改前 → 改后）
     python tools/rename_game.py 灯火深潜 "Lamplight Dive" --split 2       # 标题文字版拆分：前 2 字大号、其余小号（缺省 2）
@@ -15,7 +15,7 @@ exe / pck 文件名 `ArknightsSurvivors.exe`、itch 目标 slug、Toy slug、贴
   packaging  打包与发布：包文件夹 / zip 前缀（export_build / release_all / deploy_itch 三处必须一致）、包内说明.txt、runs_report 缺省名
   promo      宣传工具里的标题常量（promo_cover / promo_xhs）：改后要重出封面 / 小红书图
   copy       对外文案 Markdown（itch / Toy / 小红书 / 商店文案 docs/100）：全文替换中英文名
-不在本脚本里、要人工做的（见 docs/101 §3）：新像素 Logo（Codex 单）、itch 页面标题、B站 Toy 标题（toy update）、Codex 有字封面重出。
+不在本脚本里、要人工做的（见 docs/102 §3）：新像素 Logo（Codex 单）、itch 页面标题、B站 Toy 标题（toy update）、Codex 有字封面重出。
 """
 import argparse, os, re, sys
 
@@ -41,8 +41,8 @@ def rules(cn, en, split):
         ("game", "game/scripts/title.gd", 'UI.text(self, font, Vector2(tx, 182 + ly), "方舟", 96', 'UI.text(self, font, Vector2(tx, 182 + ly), "%s", 96' % a, 1),
         ("game", "game/scripts/title.gd", 'UI.text(self, font, Vector2(tx + 210, 180 + ly), "幸存者", 40',
          'UI.text(self, font, Vector2(tx + %d, 180 + ly), "%s", 40' % (105 * len(a), b), 1),
-        # 旧像素 Logo 画的是旧名：停用，退回上面的文字版标题，等新 Logo（docs/101 §3.1）
-        ("game", "game/scripts/title.gd", '	tex_logo = A.tex("logo")', '	tex_logo = null   # 改名（tools/rename_game.py）：旧像素 Logo 画的是旧名，停用到新 Logo 到货（docs/101 §3.1）', 1),
+        # 旧像素 Logo 画的是旧名：停用，退回上面的文字版标题，等新 Logo（docs/102 §3.1）
+        ("game", "game/scripts/title.gd", '	tex_logo = A.tex("logo")', '	tex_logo = null   # 改名（tools/rename_game.py）：旧像素 Logo 画的是旧名，停用到新 Logo 到货（docs/102 §3.1）', 1),
         ("game", "game/scripts/title.gd", '「%s」Logo' % OLD_CN, '「%s」Logo' % cn, 1),
         ("game", "game/scripts/game.gd", "## %s ——" % OLD_CN, "## %s ——" % cn, 1),
         ("game", "game/data/credits.json", "《%s》" % OLD_CN, "《%s》" % cn, 1),
@@ -119,7 +119,7 @@ def main():
             s = open(p, encoding="utf-8").read()
             open(p, "w", encoding="utf-8", newline="").write(s.replace(old, new))
         print("已改：%s（%d 条）" % (g, len(items)))
-    print("剩下人工步骤见 docs/101 §3（新 Logo、itch / Toy 页面标题、有字封面重出）")
+    print("剩下人工步骤见 docs/102 §3（新 Logo、itch / Toy 页面标题、有字封面重出）")
 
 
 if __name__ == "__main__":
