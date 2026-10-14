@@ -31,7 +31,8 @@ func _ready() -> void:
 		g.fx.clear()
 		g.hitstop = 0.0
 		g.vfx.contact(oid, e, g.ppos)
-		check(g.fx.size() >= 2, oid + " contact visible")
+		# 10-14 普通命中火花默认关（fx/contact_sparks 0）：命中不再产生火花粒子
+		check(g.fx.size() == 0, oid + " contact sparks off by default")
 		var count: int = g.fx.size()
 		for i in 30:
 			g.vfx.contact(oid, e, g.ppos)

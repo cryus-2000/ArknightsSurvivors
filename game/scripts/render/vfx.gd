@@ -83,7 +83,9 @@ func contact(oid: String, e: Dictionary, origin: Vector2, source := "") -> void:
 	var melee: bool = oid in ["mizuki", "skadi", "specter_unchained", "irene"]
 	var color := Color(0.72, 0.84, 0.92) if heavy or melee else Color(0.55, 0.65, 0.92)
 	var direction: Vector2 = (e.pos - origin).normalized()
-	sparks(e.pos + Vector2(0, -e.r * 0.6), direction, color, 3 if heavy else 2, 120.0 if heavy else 75.0)
+	# 普通命中火花：用户 10-14 定去掉（受击白闪 + 伤害数字 + 击退已够；满屏淡紫小点和弱点火花混淆）。fx/contact_sparks 1 = 恢复
+	if Bal.vi("fx/contact_sparks", 0) > 0:
+		sparks(e.pos + Vector2(0, -e.r * 0.6), direction, color, 3 if heavy else 2, 120.0 if heavy else 75.0)
 	# Continuous fields and secondary damage retain sparks without a global pause.
 	if source in ["替身", "血色潮痕", "余震", "殉爆", "钙晶", "碎晶", "急救针剂", "技能·法术", "触手"]:
 		return
