@@ -205,6 +205,45 @@ func _ready() -> void:
 		g.fx.clear()
 		g.bai._warn_resolve(echoes[0])
 		check(g.fx.any(func(f): return f.kind == "tide_link"), "tear resonance draws linked wave")
+	# Codex 第 1 批帧条挂点（docs/95 §13、art/incoming/boss_moves_1_handoff.md）：预警中播蓄力帧 f0 / f1，结算后 0.2 秒内播出手帧 f2（回旋 f2–f4、前刺 f1）
+	g.t = 600.0
+	g.warns.clear()
+	# [type, 招, 帧条, 结算后出手帧, 是否二阶段]
+	var strips := [
+		["knight_boss", "长枪回旋", "e_knight_spin", 2, true],
+		["knight_boss", "长枪连刺", "e_knight_thrust", 1, false],
+		["paranoia", "凝视", "e_paranoia_gaze", 2, false],
+		["paranoia", "呼号", "e_paranoia_phase2_howl", 2, true],
+		["izumik", "分享", "e_izumik_share", 2, true],
+		["ishar", "大群之歌", "e_ishar_t_sing", 2, true],
+	]
+	for st in strips:
+		var b: Dictionary = g.spawner.new_enemy(st[0], Vector2(-130, 0))
+		b.age = 20.0
+		if st[4]:
+			g.bai.setup_preview_phase2(b)
+			b.invuln = false
+			b.channel = 0.0
+		g.t += 1.0   # 过了伊莎玛拉的变身帧 / 骑士重生无敌
+		g.ppos = Vector2(60, 0)
+		g.warns.clear()
+		check(g.bai.boss(st[0]).force_move(b, st[1], Vector2.RIGHT, 190.0), "%s force_move %s" % [st[0], st[1]])
+		var mine: Array = g.warns.filter(func(w): return is_same(w.owner, b))
+		if mine.is_empty():
+			continue
+		for w in mine:
+			w.t = w.dur * 0.7   # 预警后段（前刺第 3 段过 60% 才换帧）
+		var anim: Dictionary = g.world.knight_animation(b) if st[0] == "knight_boss" else (g.world.ishar_animation(b) if st[0] == "ishar" else g.world.boss_strip_animation(b))
+		check(anim.get("name", "") == st[2] and int(anim.get("frame", -1)) <= 1, "%s 预警中播 %s 蓄力帧（得 %s）" % [st[1], st[2], str(anim)])
+		for w in mine:
+			w.t = w.dur
+		g.invuln = 100.0
+		g.bai._update_warns(0.0)
+		g.t += 0.05
+		anim = g.world.knight_animation(b) if st[0] == "knight_boss" else (g.world.ishar_animation(b) if st[0] == "ishar" else g.world.boss_strip_animation(b))
+		check(anim.get("name", "") == st[2] and int(anim.get("frame", -1)) == int(st[3]), "%s 结算后播 %s 出手帧 f%d（得 %s）" % [st[1], st[2], int(st[3]), str(anim)])
+		b.dead = true
+		g.warns.clear()
 	if DisplayServer.get_name() != "headless" and Cfg.dev_args().has("--capture-ui"):
 		await capture_patterns()
 	print("BOSS VARIETY failures=", failures)

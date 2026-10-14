@@ -1814,6 +1814,10 @@ func boss_strip_animation(e: Dictionary) -> Dictionary:
 				var el: float = float(e.get("count_max", 20.0)) - float(e.learn_t)
 				var f3: int = mini(int(el * 6.0), 1) if el < 0.34 else 2 + int(g.t * 3.0) % 2
 				return {"name": "e_izumik_rooting", "frames": 4, "frame": f3}
+			# 分享 e_izumik_share（docs/95 §3.4，Codex 第 1 批：水母收缩 / 舒展）：预警 f0 收缩 → f1 鼓起，结算 f2 喷涌、f3 回落；学习期的小分享也用它
+			var za := _boss_warn_strip(e, ["sweep"], "e_izumik_share", 4)
+			if not za.is_empty():
+				return za
 			for w in g.warns:
 				if w.act == "izu_wave" and not w.done and is_same(w.owner, e):
 					return {"name": "e_izumik_attack", "frames": 4, "frame": clampi(int(float(w.t) / maxf(0.01, float(w.dur)) * 3.0), 0, 2)}
@@ -1831,11 +1835,6 @@ func boss_strip_animation(e: Dictionary) -> Dictionary:
 			var pa := _boss_warn_strip(e, ["beam", "burst"], "e_paranoia_gaze", 4) if e.phase == 1 else _boss_warn_strip(e, ["sweep"], "e_paranoia_phase2_howl", 4)
 			if not pa.is_empty():
 				return pa
-		"izumik":
-			# 分享 e_izumik_share（docs/95 §3.4）：预警 f0 收缩 → f1 鼓起，结算 f2 喷涌、f3 回落
-			var za := _boss_warn_strip(e, ["sweep"], "e_izumik_share", 4)
-			if not za.is_empty():
-				return za
 	return {}
 
 
