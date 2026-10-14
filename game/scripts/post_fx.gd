@@ -47,3 +47,6 @@ func _process(delta: float) -> void:
 	mat.set_shader_parameter("desat", desat)
 	# 全关时整层隐藏，省一次全屏采样
 	rect.visible = ((Cfg.bloom or Cfg.water_filter) and not crisp) or absf(br - 1.0) > 0.01 or hurt > 0.001 or desat > 0.001 or _curve
+	# 图鉴开着时，手机网页 / 苹果 WebKit 不叠后期（不读屏，亮度不乘）：iOS 上这一层会把整屏盖成图鉴中途拷屏时的画面（Cfg.screen_copy_ok）
+	if crisp and not Cfg.screen_copy_ok():
+		rect.visible = false

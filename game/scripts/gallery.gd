@@ -97,7 +97,7 @@ func _ready() -> void:
 	font = load("res://fonts/ui.ttf")
 	# 画面分三层：背后层（舞台）→ 背缓冲拷贝 → 玻璃层（面板底磨砂）→ 本节点（顶栏 / 名册 / 面板正文）
 	back_ci = Control.new()
-	var bbc := BackBufferCopy.new()
+	bbc = BackBufferCopy.new()
 	bbc.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
 	glass_ci = Control.new()
 	for c in [back_ci, bbc, glass_ci]:
@@ -113,8 +113,9 @@ func _ready() -> void:
 		glass_mat = ShaderMaterial.new()
 		glass_mat.shader = sh
 		glass_mat.set_shader_parameter("tint", Color(UI.C_L_BG.r, UI.C_L_BG.g, UI.C_L_BG.b, 0.70))
-	if Cfg.dev_args().has("--noglassfx"):
-		glass_fx = false
+	if Cfg.dev_args().has("--noglassfx") or not Cfg.screen_copy_ok():
+		glass_fx = false   # 手机网页 / 苹果 WebKit 不中途拷屏（Cfg.screen_copy_ok，10-14 iPhone 图鉴只剩舞台）：平涂 UI.C_L_GLASS
+	bbc.visible = glass_on()
 	var gr := Gradient.new()
 	gr.set_color(0, Color(1, 1, 1, 1))
 	gr.set_color(1, Color(1, 1, 1, 0))
@@ -228,6 +229,7 @@ func _process(delta: float) -> void:
 		var cur: float = hover.get(i, 0.0)
 		if cur != target:
 			hover[i] = target if UIMo.rm() else move_toward(cur, target, delta / 0.12)
+	bbc.visible = glass_on()
 	queue_redraw()
 	back_ci.queue_redraw()
 	glass_ci.queue_redraw()
@@ -519,6 +521,7 @@ const GLASS_R := 8.0               # 模糊半径（设计像素，按 dk 与界
 var glass_mat: ShaderMaterial
 var glow_tex: Texture2D
 var back_ci: Control               # 背后层（舞台）
+var bbc: BackBufferCopy            # 玻璃层之前的整屏拷贝：只在磨砂开着时可见（关掉时不再每帧白拷一次屏）
 var glass_ci: Control              # 玻璃层（面板底 + ARCHIVE 块）
 var demo_hits: Array = []          # 演示按钮命中区（背后层画的）
 const SPEC_TICKS := false          # 非干员页舞台四角的黄色小角标：10-11 去掉底框后对照过，没有框时角标像悬空的残框，关掉，只留 SPECIMEN 代码
@@ -1300,7 +1303,7 @@ func _draw_glass() -> void:
 
 
 func glass_on() -> bool:
-	return glass_fx and glass_mat != null and not UIMo.skip_all()
+	return glass_fx and glass_mat != null and not UIMo.skip_all() and Cfg.screen_copy_ok()
 
 
 func _draw_panel_edge(ph: bool, vr: Rect2) -> void:
