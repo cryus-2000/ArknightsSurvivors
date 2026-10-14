@@ -29,13 +29,13 @@
   "skill": {"tex": "op_texas_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 3},
   "size": 48, "foot": [24, 46]
  },
- "attack": {"mode": "auto", "name": "疾行斩", "desc": "每 1.1 秒朝最近敌人方向冲刺 140（宽 44，穿透），沿途全部敌人受物理伤害；穿过敌人时全队技力 +0.6 秒（即 0.6 秒的自然回复量）"},
+ "attack": {"mode": "auto", "name": "疾行斩", "desc": "每 {$cd} 秒朝最近敌人方向冲刺 {$dash_len}（宽 {$dash_w}，穿透），沿途全部敌人受物理伤害；穿过敌人时全队技力 +{$hit_sp} 秒（即 {$hit_sp} 秒的自然回复量）"},
  "skills": [
-  {"name": "剑雨", "en": "SWORD RAIN", "sp": 6, "desc": "以自身为中心半径 130 落下剑雨，×1.6 并眩晕 0.5 秒（精英 0.25 秒，Boss 不晕），全队技力 +10%", "icon": "skill_texas_s1"},
-  {"name": "可靠伙伴", "en": "RELIABLE PARTNER", "sp": 14, "permanent": true, "desc": "充能一次后永久生效：冲刺距离 +40%、伤害 ×1.3；「战术快递」自动冲刺的间隔 -20%（2.5 → 2.0 秒）", "icon": "skill_texas_s2"},
-  {"name": "剑雨滂沱", "en": "TORRENTIAL SWORD RAIN", "sp": 20, "dur": 8.0, "desc": "8 秒内每 0.5 秒向敌群最密处冲刺一次（×0.9），穿过的敌人眩晕 0.3 秒、全队技力 +0.4 秒；结束时在最后的落点落下剑雨 ×1.6", "icon": "skill_texas_s3"}
+  {"name": "剑雨", "en": "SWORD RAIN", "sp": 6, "desc": "以自身为中心半径 {$s1_r} 落下剑雨，×{$s1_mult} 并眩晕 {$s1_stun} 秒（精英减半，Boss 不晕），全队技力 +{$s1_sp*100}%", "icon": "skill_texas_s1"},
+  {"name": "可靠伙伴", "en": "RELIABLE PARTNER", "sp": 14, "permanent": true, "desc": "充能一次后永久生效：冲刺距离 +{$s2_len*100}%、伤害 ×{$s2_mult}；「战术快递」自动冲刺的间隔 -{(1-$s2_cd_mult)*100}%（{$talent_cd} → {$talent_cd*$s2_cd_mult} 秒）", "icon": "skill_texas_s2"},
+  {"name": "剑雨滂沱", "en": "TORRENTIAL SWORD RAIN", "sp": 20, "dur": 8.0, "desc": "{$s3_dur} 秒内每 {$s3_every} 秒向敌群最密处冲刺一次（×{$s3_mult}），穿过的敌人眩晕 {$s3_stun} 秒、全队技力 +{$s3_sp} 秒；结束时在最后的落点落下剑雨 ×{$s3_end_mult}", "icon": "skill_texas_s3"}
  ],
- "talent": {"name": "战术快递", "desc": "每 2.5 秒自动朝附近敌群最密处冲刺一次（她自己冲；她当队长时带着队长冲，你的冲刺键照旧），穿过敌人时全队技力 +0.8 秒；一次冲刺穿过 3 名以上敌人时额外 +0.3 秒"},
+ "talent": {"name": "战术快递", "desc": "每 {$talent_cd} 秒自动朝附近敌群最密处冲刺一次（她自己冲；她当队长时带着队长冲，你的冲刺键照旧），穿过敌人时全队技力 +{$talent_sp} 秒；一次冲刺穿过 {$talent_many} 名以上敌人时额外 +{$talent_many_sp} 秒"},
  "hit_sources": {
   "疾行斩": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["pierce", "basic"]},
   "剑雨": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "area", "stun"]},
@@ -46,14 +46,14 @@
   "余像·剑雨": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "area", "stun"]}
  },
  "progression": [
-  {"type": "custom", "id": "wide", "name": "阔剑", "icon": "growth_b_range", "desc": "冲刺宽度 +30%"},
-  {"type": "custom", "id": "sharp", "name": "利刃", "icon": "growth_b_size", "desc": "伤害 ×1.15"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「可靠伙伴」；解锁天赋「战术快递」：每 2.5 秒自动冲进敌群并为全队回技力；冲刺穿过的第一名敌人停顿 0.4 秒（精英减半，Boss 除外）",
-   "attack": {"name": "钉剑", "desc": "每次冲刺穿过的第一名敌人身上插一柄源石剑，停顿 0.4 秒（精英减半，Boss 除外）"}},
-  {"type": "custom", "id": "back", "name": "回马剑", "icon": "growth_b_echo", "desc": "疾行斩冲到头 0.2 秒后原路反冲一次（50% 伤害）"},
-  {"type": "custom", "id": "rain2", "name": "剑雨·连", "icon": "skill_texas_s1", "desc": "「剑雨」0.3 秒后在她脚下再落一次（60% 伤害）"},
-  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「剑雨滂沱」；普攻质变「余像」：每次冲刺的路径上留下 0.6 秒剑气残像，踩进的敌人受 15% 伤害并减速；残像消散时沿路径每 40 落下一柄剑（25% 伤害，眩晕 0.2 秒，精英减半，Boss 除外）",
-   "attack": {"name": "余像·剑雨", "desc": "冲刺路径上留下 0.6 秒剑气残像（15% 伤害并减速）；残像消散时沿路径每 40 落下一柄源石剑：25% 伤害，眩晕 0.2 秒（精英减半，Boss 除外）。「剑雨滂沱」期间每柄 20%"}}
+  {"type": "custom", "id": "wide", "name": "阔剑", "icon": "growth_b_range", "desc": "冲刺宽度 +{$n1_w*100-100}%"},
+  {"type": "custom", "id": "sharp", "name": "利刃", "icon": "growth_b_size", "desc": "伤害 ×{$n2_mult}"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「可靠伙伴」；解锁天赋「战术快递」：每 {$talent_cd} 秒自动冲进敌群并为全队回技力；普攻「钉剑」：冲刺穿过的第一名敌人停顿 {$pin_dur} 秒（精英减半，Boss 除外）",
+   "attack": {"name": "钉剑", "desc": "每次冲刺穿过的第一名敌人身上插一柄源石剑，停顿 {$pin_dur} 秒（精英减半，Boss 除外）"}},
+  {"type": "custom", "id": "back", "name": "回马剑", "icon": "growth_b_echo", "desc": "疾行斩冲到头 {$back_delay} 秒后原路反冲一次（{$back_mult*100}% 伤害）"},
+  {"type": "custom", "id": "rain2", "name": "剑雨·连", "icon": "skill_texas_s1", "desc": "「剑雨」{$rain2_delay} 秒后在她脚下再落一次（{$rain2_mult*100}% 伤害）"},
+  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「剑雨滂沱」；普攻质变「余像」：每次冲刺的路径上留下 {$trail_life} 秒剑气残像，踩进的敌人受 {$trail_mult*100}% 伤害并减速；残像消散时沿路径每 {$rain_step} 落下一柄剑（{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒，精英减半，Boss 除外）",
+   "attack": {"name": "余像·剑雨", "desc": "冲刺路径上留下 {$trail_life} 秒剑气残像（{$trail_mult*100}% 伤害并减速）；残像消散时沿路径每 {$rain_step} 落下一柄源石剑：{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒（精英减半，Boss 除外）。「剑雨滂沱」期间每柄 {$rain_mult_s3*100}%"}}
  ],
  "gallery": {"tags": ["近战", "位移", "穿透", "技力"], "desc": "冲刺穿过敌阵为全队回技力；不用你按，她每隔几秒自己冲进敌群"},
  "blocks": {

@@ -80,7 +80,151 @@ static func load_def(cid: String) -> Dictionary:
 	if not ob.is_empty() and d.get("base") is Dictionary:
 		for k in ob:
 			d.base[k] = ob[k]
+	fill_text(d, d.get("base", {}) if d.get("base") is Dictionary else {})
 	return d
+
+
+## 玩家可见文字里的数值占位（docs/61 §1.4）：desc / banner 里的「{表达式}」按 base 求值后填进去。
+## 表达式至少引用一个 $键，支持数字、+ - * / 与括号，例如 {$s1_mult}、{$e1_per*100}%、{$n2_mult*100-100}%、{(1-$slow)*100}%；末尾 :N 指定小数位（{$a*$b:0}）；
+## 结果按 text_fmt 去掉多余的小数（最多 3 位）。填在 load_def 里：选人 / 图鉴 / 升级卡 / 精英化演出 / 属性面板读到的都是填好的文字，
+## 改 base 数值（含 --bal=opbase）文字自动跟着变。求不出值的占位原样留下并报错（tools/op_text_check.py 同规则静态检查）
+const TEXT_FILL_KEYS := ["desc", "banner"]
+
+
+static func fill_text(n, base: Dictionary) -> void:
+	if n is Dictionary:
+		for k in n:
+			if k == "base" or k == "_doc":
+				continue
+			var v = n[k]
+			if v is String and k in TEXT_FILL_KEYS and v.contains("{"):
+				n[k] = fill_line(v, base)
+			elif v is Dictionary or v is Array:
+				fill_text(v, base)
+	elif n is Array:
+		for v in n:
+			if v is Dictionary or v is Array:
+				fill_text(v, base)
+
+
+## 一行文字里的全部 {…$键…} 占位换成数值
+static func fill_line(s: String, base: Dictionary) -> String:
+	var out := ""
+	var i := 0
+	while i < s.length():
+		var a := s.find("{", i)
+		if a < 0:
+			break
+		var b := s.find("}", a + 1)
+		if b < 0:
+			break
+		var expr := s.substr(a + 1, b - a - 1)
+		out += s.substr(i, a - i)
+		if expr.contains("$"):
+			var nd := 3
+			var ci := expr.rfind(":")
+			if ci > 0 and expr.substr(ci + 1).is_valid_int():   # {表达式:N}：四舍五入到 N 位小数（150.15 → {…:0} → 150）
+				nd = clampi(expr.substr(ci + 1).to_int(), 0, 3)
+				expr = expr.substr(0, ci)
+			var r := text_eval(expr, base)
+			if r[0]:
+				out += text_fmt(r[1], nd)
+			else:
+				push_error("干员文字占位「{%s}」求值失败：%s" % [expr, r[2]])
+				out += s.substr(a, b - a + 1)
+		else:
+			out += "{" + expr + "}"
+		i = b + 1
+	return out + s.substr(i)
+
+
+## 去掉多余的小数：最多保留 nd 位（缺省 3：0.15 → 0.15，1.50 → 1.5，15.0 → 15，1.275 → 1.275）
+static func text_fmt(v: float, nd := 3) -> String:
+	var k := pow(10.0, nd)
+	var r := floorf(v * k + 0.5) / k   # 与 tools/op_text_check.py 同算法（.5 进位）
+	if absf(r - roundf(r)) < 0.0001:
+		return str(int(roundf(r)))
+	var t := ("%." + str(nd) + "f") % r
+	while t.ends_with("0"):
+		t = t.left(-1)
+	return t
+
+
+## 文字占位的表达式求值：[ok, 值, 错误说明]；递归下降（加减 < 乘除 < 负号 / 括号）
+static func text_eval(expr: String, base: Dictionary) -> Array:
+	var toks: Array = []
+	var s := expr.replace(" ", "")
+	var i := 0
+	while i < s.length():
+		var c := s[i]
+		if c in "+-*/()":
+			toks.append(c)
+			i += 1
+		elif c == "$" or c.is_valid_int() or c == ".":
+			var j := i + 1
+			while j < s.length() and not (s[j] in "+-*/()"):
+				j += 1
+			toks.append(s.substr(i, j - i))
+			i = j
+		else:
+			return [false, 0.0, "看不懂的字符「%s」" % c]
+	var st := {"t": toks, "i": 0, "err": ""}
+	var v := _te_sum(st, base)
+	if st.err == "" and int(st.i) != toks.size():
+		st.err = "多余的「%s」" % str(toks[st.i])
+	return [st.err == "", v, st.err]
+
+
+static func _te_sum(st: Dictionary, base: Dictionary) -> float:
+	var v := _te_prod(st, base)
+	while st.err == "" and int(st.i) < st.t.size() and st.t[st.i] in ["+", "-"]:
+		var op: String = st.t[st.i]
+		st.i += 1
+		var r := _te_prod(st, base)
+		v = v + r if op == "+" else v - r
+	return v
+
+
+static func _te_prod(st: Dictionary, base: Dictionary) -> float:
+	var v := _te_atom(st, base)
+	while st.err == "" and int(st.i) < st.t.size() and st.t[st.i] in ["*", "/"]:
+		var op: String = st.t[st.i]
+		st.i += 1
+		var r := _te_atom(st, base)
+		if op == "*":
+			v *= r
+		elif r == 0.0:
+			st.err = "除以 0"
+		else:
+			v /= r
+	return v
+
+
+static func _te_atom(st: Dictionary, base: Dictionary) -> float:
+	if int(st.i) >= st.t.size():
+		st.err = "表达式不完整"
+		return 0.0
+	var t: String = st.t[st.i]
+	st.i += 1
+	if t == "-":
+		return -_te_atom(st, base)
+	if t == "(":
+		var v := _te_sum(st, base)
+		if int(st.i) >= st.t.size() or st.t[st.i] != ")":
+			st.err = "缺「)」"
+			return 0.0
+		st.i += 1
+		return v
+	if t.begins_with("$"):
+		var k := t.substr(1)
+		if not base.has(k) or not (base[k] is int or base[k] is float):
+			st.err = "base 里没有数字「%s」" % k
+			return 0.0
+		return float(base[k])
+	if t.is_valid_float():
+		return t.to_float()
+	st.err = "看不懂的「%s」" % t
+	return 0.0
 
 
 ## 测试专用干员（docs/61 §测试）：不在 data/characters/ 里（不进名单 / 招募池 / 图鉴），只能用 --op=<id> 指名加载
@@ -858,8 +1002,10 @@ func deep_cards() -> Array:
 					"desc": cd.get("desc", n.get("desc", "")), "icon": cd.get("icon", n.get("icon", "")), "col": cd.get("col", null), "avail": avail, "req": node_requires_text(n), "elite": n.level})
 		else:
 			var req_txt := node_requires_text(n)
+			# 普通节点另带统一的攻击 +6%（NODE_ATK，advance()）：写在卡面说明末尾，免得这部分成长看不见
+			var node_atk: String = ("；攻击 +%d%%" % int(round(NODE_ATK * 100.0))) if n.get("type", "") != "elite" else ""
 			out.append({"kind": "prog", "op": id, "choice": "", "name": "%s · %s" % [display_name(), n.get("name", "成长 " + stage_txt)],
-				"desc": n.get("desc", "") + (("\n条件：%s（已满足）" % req_txt) if req_txt != "" and avail else ""), "icon": n.get("icon", ""), "avail": avail, "req": req_txt, "elite": n.get("level", 0)})
+				"desc": n.get("desc", "") + node_atk + (("\n条件：%s（已满足）" % req_txt) if req_txt != "" and avail else ""), "icon": n.get("icon", ""), "avail": avail, "req": req_txt, "elite": n.get("level", 0)})
 	out.append_array(extra_cards())
 	return out
 

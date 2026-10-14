@@ -81,14 +81,14 @@
   "m_leap": {"_doc": "Codex 精英化第 1 批：Mon3tr 跃回，第 4 帧展开刃爪落地", "tex": "op_kaltsit_m_leap", "frames": 6, "fps": 12, "foot": [32, 60]}
  },
  "extra_sprites": ["m_idle", "m_run", "m_attack", "command", "m_skill", "m_attack_melt", "m_lunge", "m_leap"],
- "attack": {"mode": "auto", "name": "治疗", "desc": "每 3.5 秒为队长回复 1.5% 最大生命；随行的 Mon3tr 自动撕咬队长身边的敌人（物理）", "heal": true},
+ "attack": {"mode": "auto", "name": "治疗", "desc": "每 {$heal_cd} 秒为队长回复 {$heal_pct*100}% 最大生命；随行的 Mon3tr 自动撕咬队长身边的敌人（物理）", "heal": true},
  "skills": [
-  {"name": "指令：结构加固", "en": "COMMAND: STRUCTURAL FORTIFICATION", "sp": 7, "desc": "立即为队长回复 2.6% 最大生命并清除神经损伤", "heal": true, "cleanse": ["神经损伤"], "icon": "skill_kaltsit_s1"},
+  {"name": "指令：结构加固", "en": "COMMAND: STRUCTURAL FORTIFICATION", "sp": 7, "desc": "立即为队长回复 {$s1_heal*100}% 最大生命并清除神经损伤", "heal": true, "cleanse": ["神经损伤"], "icon": "skill_kaltsit_s1"},
   {
    "name": "指令：战术协同",
    "en": "COMMAND: TACTICAL COORDINATION",
    "sp": 15,
-   "desc": "充能一次后永久生效：Mon3tr 攻速 +40%、爪击范围 +30%，凯尔希的治疗频率 +30%",
+   "desc": "充能一次后永久生效：Mon3tr 攻速 +{$s2_aspd*100-100}%、爪击范围 +{$s2_reach*100-100}%，凯尔希的治疗频率 +{$s2_heal*100-100}%",
    "permanent": true,
    "icon": "skill_kaltsit_s2",
    "anim": "command"
@@ -97,13 +97,13 @@
    "name": "指令：熔毁",
    "en": "COMMAND: MELTDOWN",
    "sp": 24,
-   "desc": "Mon3tr 8 秒内爪击改为真实伤害且伤害 ×1.6；结束时熔毁：周围 130 内造成 5 倍真实伤害",
+   "desc": "Mon3tr {$s3_dur} 秒内爪击改为真实伤害且伤害 ×{$s3_mult}；结束时熔毁：周围 {$melt_r} 内造成 {$melt_mult} 倍真实伤害",
    "dur": 8.0,
    "icon": "skill_kaltsit_s3",
    "anim": "command"
   }
  ],
- "talent": {"name": "指挥", "desc": "治疗量 +10%（精英二 +50%）；Mon3tr 伤害 +30%，爪击范围 +20%"},
+ "talent": {"name": "指挥", "desc": "治疗量 +{$e1_heal*100-100}%（精英二 +{$e2_heal*100-100}%）；Mon3tr 伤害 +{$e1_dmg*100-100}%，爪击范围 +{$e1_reach*100-100}%"},
  "hit_sources": {
   "Mon3tr": {"emitter": "summon", "origin": "core", "range": "近战", "kind": "物理", "tags": ["entity", "basic"]},
   "Mon3tr · 熔毁": {"emitter": "summon", "origin": "skill", "range": "近战", "kind": "真实", "tags": ["entity", "skill", "area"]},
@@ -111,24 +111,24 @@
   "Mon3tr · 回防": {"emitter": "summon", "origin": "core", "range": "近战", "kind": "物理", "tags": ["entity", "area"]}
  },
  "progression": [
-  {"type": "custom", "id": "twin_claw", "name": "骨爪增生", "icon": "growth_t_count", "desc": "Mon3tr 每次爪击挥出两爪：0.08 秒后第二爪交叉划过（60% 伤害）"},
-  {"type": "custom", "id": "wide_arc", "name": "清创", "icon": "growth_u_area", "desc": "Mon3tr 爪击的扇面扩大 40%，一爪扫到更多敌人"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「指令：战术协同」；解锁天赋「指挥」：治疗量 +10%；Mon3tr 伤害 +30%，爪击范围 +20%；Mon3tr 的目标在 80 外时先扑过去，落地造成 30% 伤害（每 1.5 秒至多一次）",
-   "attack": {"name": "扑击", "desc": "Mon3tr 盯上的目标在 80 外时先扑过去，落地对半径 40 内的敌人造成 30% 伤害，再出爪（每 1.5 秒至多一次）"}},
-  {"type": "custom", "id": "s1_shell", "name": "结构加固", "icon": "skill_kaltsit_s1", "desc": "「指令：结构加固」同时给队长罩上 3 秒绿色护壳：受到的伤害 -35%"},
+  {"type": "custom", "id": "twin_claw", "name": "骨爪增生", "icon": "growth_t_count", "desc": "Mon3tr 每次爪击挥出两爪：{$claw2_delay} 秒后第二爪交叉划过（{$claw2_mult*100}% 伤害）"},
+  {"type": "custom", "id": "wide_arc", "name": "清创", "icon": "growth_u_area", "desc": "Mon3tr 爪击的扇面扩大 {$m_arc_wide*100-100}%，一爪扫到更多敌人"},
+  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「指令：战术协同」；解锁天赋「指挥」：治疗量 +{$e1_heal*100-100}%；Mon3tr 伤害 +{$e1_dmg*100-100}%，爪击范围 +{$e1_reach*100-100}%；普攻「扑击」：Mon3tr 的目标在爪击范围外（且远于 {$lunge_min}）时先扑过去，落地造成 {$lunge_mult*100}% 伤害（每 {$lunge_cd} 秒至多一次）",
+   "attack": {"name": "扑击", "desc": "Mon3tr 盯上的目标在爪击范围外（且远于 {$lunge_min}）时先扑过去，落地对半径 {$lunge_r} 内的敌人造成 {$lunge_mult*100}% 伤害，再出爪（每 {$lunge_cd} 秒至多一次）"}},
+  {"type": "custom", "id": "s1_shell", "name": "结构加固", "icon": "skill_kaltsit_s1", "desc": "「指令：结构加固」同时给队长罩上 {$shell_dur} 秒绿色护壳：受到的伤害 -{$shell_red*100}%"},
   {
    "type": "custom",
    "id": "melt_triple",
    "name": "不毁重构",
    "icon": "skill_kaltsit_s3",
-   "desc": "「指令：结构加固」施放时 Mon3tr 就地重构外壳：三连爆（半径逐次扩大，Mon3tr 攻击 120% / 60% / 60% 真实伤害）并眩晕 0.8 秒；精英二后「指令：熔毁」收尾同样三连爆（间隔 0.2 秒、后 2 次 50% 伤害）并眩晕 1.5 秒（精英减半，Boss 免疫）"
+   "desc": "「指令：结构加固」施放时 Mon3tr 就地重构外壳：三连爆（半径逐次扩大，Mon3tr 攻击 {$rebuild_mult*100}% / {$rebuild_mult*50}% / {$rebuild_mult*50}% 真实伤害）并眩晕 {$rebuild_stun} 秒；精英二后「指令：熔毁」收尾同样三连爆（间隔 {$melt_echo_gap} 秒、后 2 次 {$melt_echo_mult*100}% 伤害）并眩晕 {$melt_stun} 秒（精英减半，Boss 免疫）"
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "天赋「指挥」治疗量提升至 +50%；解锁三技能「指令：熔毁」：Mon3tr 8 秒内爪击改为真实伤害且伤害 ×1.6；结束时熔毁：周围 130 内造成 5 倍真实伤害；普攻质变「八面展开」：Mon3tr 前后同时出爪（身后一爪 70%）；「回防」：队长受到攻击时，Mon3tr 跃回队长身边，对周围半径 100 内的敌人造成 ×1.2 伤害并击退（每 3 秒至多一次）",
-   "attack": {"name": "回防", "desc": "队长受到攻击时，Mon3tr 跃回队长身边，落地对周围半径 100 内的敌人造成 ×1.2 伤害并击退（每 3 秒至多一次）；「八面展开」前后同时出爪照旧（身后一爪 70%）"}
+   "desc": "天赋「指挥」治疗量提升至 +{$e2_heal*100-100}%；解锁三技能「指令：熔毁」：Mon3tr {$s3_dur} 秒内爪击改为真实伤害且伤害 ×{$s3_mult}；结束时熔毁：周围 {$melt_r} 内造成 {$melt_mult} 倍真实伤害；普攻质变「八面展开」：Mon3tr 前后同时出爪（身后一爪 {$m_back_mult*100}%）；「回防」：队长受到攻击时，Mon3tr 跃回队长身边，对周围半径 {$leap_r} 内的敌人造成 ×{$leap_mult} 伤害并击退（每 {$guard_cd} 秒至多一次）",
+   "attack": {"name": "回防", "desc": "队长受到攻击时，Mon3tr 跃回队长身边，落地对周围半径 {$leap_r} 内的敌人造成 ×{$leap_mult} 伤害并击退（每 {$guard_cd} 秒至多一次）；「八面展开」前后同时出爪照旧（身后一爪 {$m_back_mult*100}%）"}
   }
  ],
  "gallery": {"tags": ["治疗", "护队长", "召唤", "近战"], "desc": "持续治疗队长，Mon3tr 在身边撕碎靠近的敌人"},

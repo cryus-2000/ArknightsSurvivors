@@ -330,7 +330,7 @@ func _draw_footer(vs: Vector2, r: Rect2) -> void:
 			continue
 		if cellinfo[1] == "skill":
 			var srow: Array = cellinfo[2]
-			g.hud_view.draw_tooltip(vs, cr2, srow[1], "天赋" if srow[0] == "赋" else "技能 %s" % srow[0], srow[2], "", g.ch.col())
+			g.hud_view.draw_tooltip(vs, cr2, srow[1], "天赋" if srow[0] == "赋" else ("普攻" if srow[0] == "攻" else "技能 %s" % srow[0]), srow[2], "", g.ch.col())
 		elif cellinfo[1] == "relic":
 			var rd2: Dictionary = g.RL[cellinfo[2]]
 			g.hud_view.draw_tooltip(vs, cr2, rd2.name + ((" Lv.%d/%d" % [g.rfx.lv.get(cellinfo[2], 1), g.rfx.max_lv(cellinfo[2])]) if g.rfx.max_lv(cellinfo[2]) > 1 else ""), "%s · %s" % [rd2.cat, rd2.rarity], rd2.desc, "relic_" + cellinfo[2], UI.CAT_COL.get(rd2.cat, UI.GOLD))
@@ -558,7 +558,7 @@ func _phone_relics(b2: Rect2) -> void:
 		g.stats_cells.append([cr, "relic", g.relics[i]])
 
 
-## Tab 面板攻击栏下半：开局干员的三个技能（招募 / 精一 / 精二解锁）+ 天赋
+## Tab 面板攻击栏下半：开局干员的三个技能（招募 / 精一 / 精二解锁）+ 天赋 + 已获得的普攻形态
 func skill_rows_data() -> Array:
 	var rows: Array = []
 	for i in 3:
@@ -576,6 +576,10 @@ func skill_rows_data() -> Array:
 	var td: Dictionary = g.ch.talent_def()
 	if not td.is_empty():
 		rows.append(["赋", td.get("name", "天赋") + ("" if g.ch.elite >= 1 else "（精英一解锁）"), td.get("desc", ""), g.ch.elite >= 1, false, ""])
+	# 普攻形态（docs/91 §0.5）：已达成的精英化节点写了 attack {name, desc} 的，接在天赋后面（除精英化演出外，局内只有这里看得到）
+	for n in g.ch.progression():
+		if n is Dictionary and n.get("type", "") == "elite" and n.get("attack", null) is Dictionary and g.ch.elite >= int(n.get("level", 0)):
+			rows.append(["攻", "%s（精英%s）" % [str(n.attack.get("name", "普攻")), ["", "一", "二"][clampi(int(n.get("level", 1)), 0, 2)]], str(n.attack.get("desc", "")), true, false, ""])
 	return rows
 
 
