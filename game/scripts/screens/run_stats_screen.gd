@@ -587,8 +587,7 @@ func _enemy_frame(ty: String) -> Array:
 	if tx == null:
 		return []
 	var fh: int = tx.get_height()
-	var nf: int = maxi(1, tx.get_width() / maxi(1, fh))
-	var fw: int = tx.get_width() / nf
+	var fw: int = tx.get_width() / 2   # 敌人常态帧条固定 2 帧（同 world 画敌人；帧不是正方形，不能按宽高比推帧数）
 	return [tx, Rect2(0, 0, fw, fh)]
 
 
@@ -695,7 +694,7 @@ func _leader_card(r: Rect2) -> void:
 		var tx0: Texture2D = fr[0]
 		var src: Rect2 = fr[1]
 		var bb := _bbox(tx0, int(src.size.x), int(src.size.y), 1) if str(kd.get("env", "")) == "" else Rect2(Vector2.ZERO, src.size)
-		_fit(tx0, src, bb, 1.0, ab, 3.0)
+		_fit(tx0, src, bb, A.hires_of(tx0), ab, 3.0)   # 按美术像素取整数倍：@2x 敌人帧条（docs/94）和 1x 同尺寸
 	var lx := ab.end.x + 10.0
 	var cy := ab.get_center().y
 	var two: bool = side >= 40.0

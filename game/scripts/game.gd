@@ -488,7 +488,7 @@ func _load_enemy_tex(n: String) -> void:
 		tex[n] = A.tex(n)
 		if tex[n] != null:
 			tex[n + "_white"] = A.white_of(tex[n])
-	if tex.get(n) != null and A.has_override(n) and tex[n].get_height() >= 32:
+	if tex.get(n) != null and A.has_override(n) and tex[n].get_height() / A.hires_of(tex[n]) >= 32:   # 按美术像素高度判断：@2x 不改锚点（docs/94）
 		foot_anchor[n] = true
 	for suffix in ENEMY_SUFFIXES:
 		var mn: String = n + suffix
@@ -614,7 +614,7 @@ func _ready() -> void:
 	font = load("res://fonts/ui.ttf")
 	for n in BASE_TEX:
 		tex[n] = A.tex(n)
-		if n.begins_with("e_") and A.has_override(n) and tex[n] != null and tex[n].get_height() >= 32:
+		if n.begins_with("e_") and A.has_override(n) and tex[n] != null and tex[n].get_height() / A.hires_of(tex[n]) >= 32:   # 美术像素高度（@2x 除以倍率）
 			foot_anchor[n] = true
 		if n.begins_with("e_") and tex[n] != null:
 			tex[n + "_white"] = A.white_of(tex[n]) if A.has_override(n) else A.tex(n + "_white")
