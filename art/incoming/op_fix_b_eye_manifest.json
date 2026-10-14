@@ -1,0 +1,168 @@
+{
+  "spec": "docs/98 + docs/97 B_EYE",
+  "notes": {
+    "correction": "User specifies PALE PINK iris, not blue/red/magenta. Local color remap only, original geometry/order/anchors retained. Pink is reserved after palette quantization.",
+    "source_review": "exec-2755d97c-e89e-4403-b393-507377cd938d.png used as pale pink edit reference; generated pose geometry not adopted",
+    "iris_pixels_per_frame": {
+      "player_idle": [
+        11,
+        8,
+        9,
+        0
+      ],
+      "player_run": [
+        10,
+        8,
+        8,
+        4,
+        5,
+        5
+      ],
+      "player_attack_48": [
+        12,
+        4,
+        11,
+        10
+      ],
+      "player_skill": [
+        11,
+        6,
+        5,
+        6,
+        8,
+        6,
+        8,
+        11
+      ]
+    },
+    "reference": "user provided official standing art codex-clipboard-8e0b1af3-eba2-4138-ba98-f1a3a99fb8bb.png"
+  },
+  "actions": {
+    "player_idle": {
+      "frames": 4,
+      "fps": 6,
+      "frame_size": [
+        48,
+        48
+      ],
+      "foot": [
+        24,
+        46
+      ],
+      "fire": null
+    },
+    "player_run": {
+      "frames": 6,
+      "fps": 12,
+      "frame_size": [
+        48,
+        48
+      ],
+      "foot": [
+        24,
+        46
+      ],
+      "fire": null
+    },
+    "player_attack_48": {
+      "frames": 4,
+      "fps": 12,
+      "frame_size": [
+        48,
+        48
+      ],
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 2
+    },
+    "player_skill": {
+      "frames": 8,
+      "fps": 12,
+      "frame_size": [
+        48,
+        48
+      ],
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 3
+    }
+  },
+  "files": [
+    {
+      "name": "player_attack_48.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 17,
+      "sha256": "29d281d7411e5b8c60220fd793fae5d8eb972e740da5b030d9adaee8489058b8"
+    },
+    {
+      "name": "player_attack_48@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 17,
+      "sha256": "c74700c35166a2aff03f88d5435d35fd18c93ee5b262437814efd169e5c2d3b0"
+    },
+    {
+      "name": "player_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 15,
+      "sha256": "1d0d8c75c250510e5405ae450154e5fd1f1999a468d05460b5f6d27a224828b2"
+    },
+    {
+      "name": "player_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 15,
+      "sha256": "b957a771c246043190ce8d5e2b4b8523e02b9197ad5609fb3f8deec70d61929e"
+    },
+    {
+      "name": "player_run.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 16,
+      "sha256": "142795b529bd85560758816f1cd3b62e7a938bb34df63407d7668d90250e2b55"
+    },
+    {
+      "name": "player_run@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 16,
+      "sha256": "d4b18ca35e154a9b8ef0b2d550e9535742a378f14255787d26fb4e4379c00009"
+    },
+    {
+      "name": "player_skill.png",
+      "size": [
+        384,
+        48
+      ],
+      "colors": 24,
+      "sha256": "1567ae7b6a62c06d37779a96451d78015ffc3698edd0394b63f40d4ff2c3510c"
+    },
+    {
+      "name": "player_skill@2x.png",
+      "size": [
+        768,
+        96
+      ],
+      "colors": 24,
+      "sha256": "8044b587ae7eb110ad18d385a54d97a15d58f42bf35d2d3ec1de652a98d516bf"
+    }
+  ]
+}

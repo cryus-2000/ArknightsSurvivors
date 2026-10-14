@@ -1,0 +1,493 @@
+{
+  "spec": "docs/98 + docs/97 C",
+  "notes": "User approved palette convergence of BOTH idle and skill, shared <=24 colors per operator for these actions. Other action assets unchanged. Only color remap outside final skill frame; final skill copied exactly from idle f0.",
+  "actions": {
+    "op_irene_idle": {
+      "tex": "op_irene_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        24,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_irene_skill": {
+      "tex": "op_irene_skill",
+      "frames": 7,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 3,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_kaltsit_idle": {
+      "tex": "op_kaltsit_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        24,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_kaltsit_skill": {
+      "tex": "op_kaltsit_skill",
+      "frames": 6,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 3,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_saria_idle": {
+      "tex": "op_saria_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        24,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_saria_skill": {
+      "tex": "op_saria_skill",
+      "frames": 6,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 3,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_skadi_idle": {
+      "tex": "op_skadi_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        22,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_skadi_skill": {
+      "tex": "op_skadi_skill",
+      "frames": 7,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 4,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_wisadel_idle": {
+      "tex": "op_wisadel_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        24,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_wisadel_skill": {
+      "tex": "op_wisadel_skill",
+      "frames": 7,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 4,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_angelina_idle": {
+      "tex": "op_angelina_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        24,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_angelina_skill": {
+      "tex": "op_angelina_skill",
+      "frames": 7,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 3,
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_hoshiguma_idle": {
+      "tex": "op_hoshiguma_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        24,
+        46
+      ],
+      "frame_size": [
+        48,
+        48
+      ]
+    },
+    "op_hoshiguma_skill": {
+      "tex": "op_hoshiguma_skill",
+      "frames": 7,
+      "fps": 12,
+      "foot": [
+        24,
+        46
+      ],
+      "fire": 2,
+      "frame_size": [
+        48,
+        48
+      ]
+    }
+  },
+  "files": [
+    {
+      "name": "op_angelina_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 22,
+      "sha256": "3cb9184d8b6a652afaf15ff6bfe2fbd4222974105624b54b3f070e76fa35ee96"
+    },
+    {
+      "name": "op_angelina_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 22,
+      "sha256": "14834d090e45a4b2aa5900ad60b53dfd93b63c787c7adbc95625e0be0d7910a3"
+    },
+    {
+      "name": "op_angelina_skill.png",
+      "size": [
+        336,
+        48
+      ],
+      "colors": 22,
+      "sha256": "149155025bd2ec7db890618c8c2fa662b40f0084e82fa8f14e84a79845eb4890"
+    },
+    {
+      "name": "op_angelina_skill@2x.png",
+      "size": [
+        672,
+        96
+      ],
+      "colors": 23,
+      "sha256": "670cc2546126598b3bb4e668025c54b874e210abe586012f0eacb6a1e996cda6"
+    },
+    {
+      "name": "op_hoshiguma_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 24,
+      "sha256": "895f571efcaf166ce4590414ef7ad58db881701f6d301f571e57ce5123e8b8ea"
+    },
+    {
+      "name": "op_hoshiguma_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 24,
+      "sha256": "1a7973e0e0798682915caaf029a3da7e94fd2ee1ddd8c7a4cba305fca3361973"
+    },
+    {
+      "name": "op_hoshiguma_skill.png",
+      "size": [
+        336,
+        48
+      ],
+      "colors": 24,
+      "sha256": "fd8354f6cd031b74d05c2b0c85c6ec984761786734db3ebfa58513fc5ed15a79"
+    },
+    {
+      "name": "op_hoshiguma_skill@2x.png",
+      "size": [
+        672,
+        96
+      ],
+      "colors": 24,
+      "sha256": "59087a21fab63d5c6d912c2a037ae19f84819a7ebc085306d82b4e40fc47c5ae"
+    },
+    {
+      "name": "op_irene_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 23,
+      "sha256": "71a6b18966be4fd547b56c7e4f6f5ae1ffd96e0b7e4333bb8f406b9237b893cc"
+    },
+    {
+      "name": "op_irene_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 23,
+      "sha256": "bd720c138f9cc178e9c442be8a8d625a59e43e88a61d9310bed19ba35f88aea3"
+    },
+    {
+      "name": "op_irene_skill.png",
+      "size": [
+        336,
+        48
+      ],
+      "colors": 23,
+      "sha256": "0a762e59fcc63d647a65a3729761e03319535bfb9c52aa0acedce83be2eb39df"
+    },
+    {
+      "name": "op_irene_skill@2x.png",
+      "size": [
+        672,
+        96
+      ],
+      "colors": 23,
+      "sha256": "048f7152371859ba83e92a9aae05b0a85e48e9e57a19abb1c8adb5c4594532a0"
+    },
+    {
+      "name": "op_kaltsit_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 17,
+      "sha256": "06ae73cc585bcc839009a36b5a815c223a5c367268ac81e518b1cebad8248dd2"
+    },
+    {
+      "name": "op_kaltsit_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 17,
+      "sha256": "a47fac4ee5ad36000d2fb6c41380a2e553c682fb25709885694921e0d62ca2de"
+    },
+    {
+      "name": "op_kaltsit_skill.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 22,
+      "sha256": "2824e95aaf5777e016ea511c62eda29f47a7f6e09fef0434c188052ba1a1f292"
+    },
+    {
+      "name": "op_kaltsit_skill@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 22,
+      "sha256": "2019fdf58deb6813611a3872bf29ddfb765bf2376b66774642be210b285093af"
+    },
+    {
+      "name": "op_saria_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 21,
+      "sha256": "a976e156e91e70cf5ba65468e4f0458389032a850e7c03b75a15944af1773f1c"
+    },
+    {
+      "name": "op_saria_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 21,
+      "sha256": "704ed3c92f2740c520b7ece30b25aaaa4b487155efed38cb2775046021f296bd"
+    },
+    {
+      "name": "op_saria_skill.png",
+      "size": [
+        288,
+        48
+      ],
+      "colors": 23,
+      "sha256": "e0635fae72b480059c45dddc2c6462e97f51927c9c37620e56a96b5260071b0a"
+    },
+    {
+      "name": "op_saria_skill@2x.png",
+      "size": [
+        576,
+        96
+      ],
+      "colors": 23,
+      "sha256": "6a675577439869179c50c516969b40fb9dce46f08ba4b9da47dc2c707f80e0a7"
+    },
+    {
+      "name": "op_skadi_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 22,
+      "sha256": "3b370b3d146be4d0c378830cef50f346c23cb5270035cedae79f00da35ab58cd"
+    },
+    {
+      "name": "op_skadi_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 22,
+      "sha256": "9e498b636a44b4f9c655884f427cf2d0f119073ba52f7b2e3fc44b7b9e429142"
+    },
+    {
+      "name": "op_skadi_skill.png",
+      "size": [
+        336,
+        48
+      ],
+      "colors": 23,
+      "sha256": "f7422c0dfbcb65dc7bdc3ccb904acb9b6dec02ee659ede2b9766a6f5d8b116ac"
+    },
+    {
+      "name": "op_skadi_skill@2x.png",
+      "size": [
+        672,
+        96
+      ],
+      "colors": 23,
+      "sha256": "4bc8c83fb159417f9df5a13d06a177f09be35a3da539dd254eed1cc1a8b67baf"
+    },
+    {
+      "name": "op_wisadel_idle.png",
+      "size": [
+        192,
+        48
+      ],
+      "colors": 22,
+      "sha256": "c1ed91dd2d9c698f48929ab13ac4cb21f96b43db8d1d044e7dd14695fc097d33"
+    },
+    {
+      "name": "op_wisadel_idle@2x.png",
+      "size": [
+        384,
+        96
+      ],
+      "colors": 22,
+      "sha256": "ce65e06ca5e91b2f50e30e7ea417327044c9fc3b05fe044c2fd7a589ceb3691d"
+    },
+    {
+      "name": "op_wisadel_skill.png",
+      "size": [
+        336,
+        48
+      ],
+      "colors": 22,
+      "sha256": "ceff98571637bb7403ee71c645b5c86cb491901e033ac2cb4ea6f0f78e538731"
+    },
+    {
+      "name": "op_wisadel_skill@2x.png",
+      "size": [
+        672,
+        96
+      ],
+      "colors": 22,
+      "sha256": "f144cbb72cf35dd65df7f9ca003e546878f7d2e68e3c28141eef8665cc7a8238"
+    }
+  ],
+  "measurements": {
+    "irene": {
+      "height_1x": 31.5,
+      "foot_x_1x": 25.25,
+      "idle_skill_colors": 23,
+      "skill_last_exact_idle": true
+    },
+    "kaltsit": {
+      "height_1x": 35.0,
+      "foot_x_1x": 25.25,
+      "idle_skill_colors": 22,
+      "skill_last_exact_idle": true
+    },
+    "saria": {
+      "height_1x": 37.0,
+      "foot_x_1x": 24.5,
+      "idle_skill_colors": 23,
+      "skill_last_exact_idle": true
+    },
+    "skadi": {
+      "height_1x": 32.5,
+      "foot_x_1x": 26.25,
+      "idle_skill_colors": 23,
+      "skill_last_exact_idle": true
+    },
+    "wisadel": {
+      "height_1x": 36.5,
+      "foot_x_1x": 24.25,
+      "idle_skill_colors": 22,
+      "skill_last_exact_idle": true
+    },
+    "angelina": {
+      "height_1x": 36.0,
+      "foot_x_1x": 23.5,
+      "idle_skill_colors": 23,
+      "skill_last_exact_idle": true
+    },
+    "hoshiguma": {
+      "height_1x": 32.0,
+      "foot_x_1x": 24.75,
+      "idle_skill_colors": 24,
+      "skill_last_exact_idle": true
+    }
+  }
+}
