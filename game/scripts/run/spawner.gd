@@ -736,7 +736,7 @@ func dens_cap(c: int) -> int:
 
 func _dens_apply(e: Dictionary) -> void:
 	var inv := 1.0 / density()
-	# 单只生命 × (1/k)^density_hp_exp（缺省 1 = 总血量池不变；< 1 = 单只更薄、总血量池 × k^(1−exp)，用户 10-14「普通小怪 1–2 下打死」，docs/50 §16.6）
+	# 单只生命 × (1/k)^density_hp_exp（缺省 1 = 总血量池不变；< 1 = 单只更薄、总血量池 × k^(1−exp)，用户 10-14「普通小怪 1–2 下打死」，docs/50 §16.9）
 	var hpm: float = pow(inv, Bal.v("enemy/density_hp_exp", 1.0))
 	e.hp *= hpm
 	e.maxhp *= hpm

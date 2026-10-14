@@ -1329,7 +1329,7 @@ func on_kill(e: Dictionary) -> void:
 	for t in _triggers("EnemyKilled"):
 		var a: Dictionary = t[1].get("args", {})
 		if str(t[1].get("do", "")) == "sp" and a.has("class") and g.hit.get("class", "") == str(a.class):
-			_budget_sp(t[0], str(g.hit.get("op", "")), float(a.get("pct", 0.03)) * (float(e.get("dk", 1.0)) if Bal.v("enemy/density_kill_comp", 0.0) > 0.0 else 1.0), float(a.get("cap", 0.09)))   # 按击杀权重（docs/50 §16.5），每秒上限不变
+			_budget_sp(t[0], str(g.hit.get("op", "")), float(a.get("pct", 0.03)) * (float(e.get("dk", 1.0)) if Bal.v("enemy/density_kill_comp", 0.0) > 0.0 else 1.0), float(a.get("cap", 0.09)))   # 按击杀权重（docs/50 §16.8），每秒上限不变
 	# docs/57 P16：击败 Boss 时（赤金的远征 / 立体艺术装置 / 判官经文布 / 国王的水晶）
 	if e.get("boss", false):
 		for t in _triggers("BossKilled"):

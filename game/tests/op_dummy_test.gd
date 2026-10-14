@@ -187,7 +187,7 @@ func _refill() -> void:
 		e.hp = HORDE_HP * hpm
 		e.maxhp = HORDE_HP * hpm
 		if dk != 1.0:
-			e["dk"] = 1.0 / dk   # 击杀权重同 spawner（按击杀次数的积木补偿，docs/50 §16.5）
+			e["dk"] = 1.0 / dk   # 击杀权重同 spawner（按击杀次数的积木补偿，docs/50 §16.8）
 		if esc != 1.0:
 			e.r *= esc
 			e["sc"] = esc

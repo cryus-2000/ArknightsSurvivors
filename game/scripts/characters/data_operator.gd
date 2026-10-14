@@ -25,7 +25,7 @@ var _fxt: Dictionary = {}              # 画面帧条（docs/61 §5.6）：常�
 var _fxb: Dictionary = {}              # 贴身层（behind / front）：_uid → {b, el, fade}；fade < 0 = 生效中，≥ 0 = 退出后淡出剩余秒数
 var tx: Dictionary = {}                # 德克萨斯段（op_blocks.gd 末尾）：冲刺 / 残像 / 延迟队列等状态
 var ext := {}                          # 积木扩展段的运行时状态（能天使：弹体 / 计数器 / 次数型技能，op_blocks.gd 末尾）
-var kill_w := 1.0                      # trig.on_kill 执行期间这次击杀的权重：怪物密度缩放过的普通怪 = e.dk（1/k），其余 1（docs/50 §16.5）
+var kill_w := 1.0                      # trig.on_kill 执行期间这次击杀的权重：怪物密度缩放过的普通怪 = e.dk（1/k），其余 1（docs/50 §16.8）
 var sm := {}                           # 召唤 / 封印段（op_blocks.gd 末尾，docs/61 §15）：召唤物、封印标记、护盾、治疗光环计时；空 = 用不到
 var mf := {}                           # 召唤物扩展段（docs/61 §15.9）：限时减伤、召唤物倍率表、已执行的 on_deploy；空 = 用不到
 var el := {}                           # 精英化段（docs/91 第 1 批，op_blocks.gd 末尾）：限时增益、叠层、往返弹体、状态冷却；空 = 用不到
