@@ -258,8 +258,15 @@ static func create(game, cid: String) -> RefCounted:
 		push_error("character script missing: " + path)
 		return null
 	var inst = scr.new(game, d)
-	validate_operator(cid, d)
+	if validate_on():
+		validate_operator(cid, d)
 	return inst
+
+
+## 招募时的干员 / 积木校验（约 2500 行，只读、只报错）：只在 debug 构建（编辑器、快检、批跑）跑，发布版每次招募不再跑（docs/101 S8）。
+## --novalidate：debug 下也跳过，用来对照校验没有副作用（同 seed TRACE 逐行相同）。JSON 的正确性由快检 core / 各积木测试保证
+static func validate_on() -> bool:
+	return OS.is_debug_build() and not OS.get_cmdline_user_args().has("--novalidate")
 
 
 ## 干员契约 v2.1（docs/23 §4.2）：attack（普攻）+ 恰好 3 个自动技能 skills[0..2]（招募 / 精一 / 精二解锁）；talent 可选（精一）；
