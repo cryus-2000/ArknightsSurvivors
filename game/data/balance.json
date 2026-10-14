@@ -131,6 +131,10 @@
   "spawn_boss_mult": 0.8,
   "spawn_boss_mult_mid": 1.0,
   "spawn_dark_mult": 1.15,
+  "alive_cap": 0,
+  "alive_cap_wait": 10,
+  "_alive_cap_wait": "排队保底秒数（docs/50 §15 B）：普通刷怪排满这么久不再等空位、直接出（可短暂超过 alive_cap），保证推迟有上限、刷出总数与经验掉落不丢。0 = 硬上限（只等空位；实测后期击杀速度跟不上刷怪率，队列越排越长，最终 Boss 登场时作废的那批会让后期刷出总数少 12–20%）",
+  "_alive_cap": "同屏普通怪存活上限（docs/50 §15 B，用户 10-14 批准，性能：稳定 60 帧）：活着的普通怪（非 Boss / 精英 / 宝箱 / 友方 / 事件怪）到上限时，普通刷怪进先进先出队列推迟出场、有空位再放，不删怪、经验掉落不丢；大群 / 威胁上升一小波 / Boss 召唤 / 剧本刷怪照原时机出但计入存活数。0 = 关（原行为）。spawner.gd alive_cap / _release_queue",
   "corrode_pool_cap": 0.3,
   "dmg_early_until": 240,
   "wound_dot": 0.0025,
@@ -471,7 +475,9 @@
   "_hit_rings_doc": "干员攻击 / 技能命中的装饰圆圈（用户 10-13「艾雅法拉的攻击特效的圆圈可以不用加，保留火焰特效就可以；其余干员也是」，scripts/render/declutter.gd hit_rings）：0 不画（缺省），1 照旧画（回退）。只在绘制时跳过，主体特效（火焰 / 斩击 / 光弹 / 帧条）、持续区域边界、敌方预警、拾取 / 灯标范围不受影响；对照截图用 --bal=render/hit_rings=1",
   "hit_rings": 0,
   "_hit_spokes_doc": "干员命中 / 技能发动的放射线（用户 10-13 追加「向四周发散的直线一样的特效也删除」，scripts/render/declutter.gd hit_spokes）：0 不画（缺省），1 照旧画（回退）。只在绘制时跳过；连线、锁定线、预警射线、激光 / 光束不受影响。10-13 起 hit_rings 也管通用击杀 / 破绽小圆环。对照截图用 --bal=render/hit_spokes=1",
-  "hit_spokes": 0
+  "hit_spokes": 0,
+  "_pfx_cap": "干员粒子上层数量上限（docs/50 §15 D3，用户 10-14 批准，性能：稳定 60 帧）：全队上层的小粒子（光点 / 火花 / 碎片 / 光团 / 线 / 火舌、不循环的帧条）合计超过这个数时，按各干员的多少分摊、每人最旧的几个不画（快消失、最淡的那批）；只改绘制、粒子寿命不变。0 = 不封顶。characters/squad.gd _pfx_cap_plan",
+  "pfx_cap": 30
  },
  "ui": {
   "_doc": "界面（用户 10-13「手机版的字可以放大一点」）：phone_font_mult 手机横屏（Cfg.phone_ui）局内正文字号倍率，< 24 号的字乘它并封顶 24（ui.gd UI.fs），大标题与英文小标签不变；桌面 / 平板 / 标题页不受影响。1 = 关",

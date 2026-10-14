@@ -470,14 +470,45 @@ func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 func draw_skill_over() -> void:
 	cv.begin()
 	var d0: float = g.world.fx_dim
+	_pfx_cap_plan()
 	for o in ops:
 		_op_dim(o, d0)
 		o._draw_skill_over()
 		o.draw_pfx(false)
+		o.pfx_skip = 0
 	g.world.fx_dim = d0
 	cv.mute = false
 	cv.amul = 1.0
 	cv.end()
+
+
+## 干员粒子上层数量上限（docs/50 §15 D3，用户 10-14 批准；OPT_PCAP）：全队上层「可封顶的小粒子」（character.pfx_cappable）合计超过
+## render/pfx_cap 时，超出的部分按各干员这类粒子的多少分摊，每人跳过自己最旧的那几个不画（最旧 = 寿命快到、透明度已降到最低的那批）。
+## 常驻 / 循环帧条、加色层、keep 的提示环、剑雨等技能编排不计也不跳。只改绘制，粒子列表与寿命不变；0 = 不封顶
+var _pcap := -1
+
+func _pfx_cap_plan() -> void:
+	if _pcap < 0:
+		_pcap = int(Bal.v("render/pfx_cap", 0.0))
+	if _pcap <= 0 or g.opt_old & g.OPT_PCAP:
+		return
+	var ns: Array = []
+	var tot := 0
+	for o in ops:
+		var n := 0
+		for f in o.pfx:
+			if not f.get("floor", false) and Character.pfx_cappable(f):
+				n += 1
+		ns.append(n)
+		tot += n
+	if tot <= _pcap:
+		return
+	var over: int = tot - _pcap
+	var left: int = over
+	for i in ops.size():
+		var k: int = mini(left, ceili(float(over) * float(ns[i]) / float(tot)))
+		ops[i].pfx_skip = k
+		left -= k
 
 
 ## 后期降噪（render/declutter mate_k / lead_k）：画某名干员的特效阶段时，合批画布 cv 的每次绘制乘上队友 / 主控系数（cv.amul）；

@@ -529,6 +529,34 @@
        "face": true,
        "fx": [
         {
+         "blade": {
+          "strip": "fx_slash_circle_deep",
+          "fit": 66,
+          "k": 1.6,
+          "along": 0.0,
+          "rot": false,
+          "col": [
+           0.8,
+           0.95,
+           1.0
+          ],
+          "edge": [
+           1.2,
+           1.5,
+           1.7
+          ],
+          "life": 0.24,
+          "half": 3.1416,
+          "tint": [
+           0.95,
+           1.05,
+           1.2,
+           0.45
+          ],
+          "mirror": "face"
+         }
+        },
+        {
          "pfx": {
           "kind": "mote",
           "life": 0.35,
