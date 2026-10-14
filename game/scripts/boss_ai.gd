@@ -226,6 +226,8 @@ func _cd(e: Dictionary, key: String, dur: float) -> bool:
 ##   gaps       缺口角度数组（与 gap_ang / gap_half 并存；多缺口环：大群之歌、环射）；circle 的 _warn_hit 排除缺口弧
 ##   slow_t / slow_mult / slow_kind  命中后移速减速（秒 / 倍率，缺省 0.7；呼号）；chill  命中后寒冷秒数（走 frost_leader，骑士）
 ##   b_owner    直线另一端跟随的敌人（接潮「统一」双端跟随）
+##   spawn_after / spawn_r / spawn_cap / spawn_life  sweep 结算后在扇形轴线 spawn_r 处生成该敌人（分形塑路：fractal、r140、本体所属 <8、20 秒自灭；docs/95 §5.2 C）
+##   cone_fx    sweep 结算时扇形里放的特效帧条（缺图只有刀光）
 func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary:
 	var w := {"shape": shape, "t": 0.0, "dur": dur, "owner": e, "pos": e.pos, "ang": 0.0, "r": 60.0, "len": 300.0, "wid": 14.0,
 		"half": 0.8, "col": Color(1.0, 0.3, 0.35), "act": "", "dmg": e.dmg, "name": "", "corrode": 0.0, "done": false, "follow": false, "track": 0.0, "lock": true}
@@ -556,13 +558,24 @@ func _warn_resolve(w: Dictionary) -> void:
 		"sweep":
 			g.fx.append({"kind": "bslash", "pos": w.pos, "ang": w.ang, "half": w.half, "r": w.r, "life": 0.3, "max": 0.3, "col": c})
 			# 扇形内的喷涌特效（Codex 第 1 批：泡影呼号 fx_paranoia_howl、伊祖米克分享 fx_izumik_share；左中原点朝右，程序按扇形旋转、按 r 缩放；缺图只有刀光）
-			var cone_fx: String = "fx_paranoia_howl" if w.get("howl", false) else ("fx_izumik_share" if w.get("arts", false) else "")
+			var cone_fx: String = str(w.get("cone_fx", "fx_paranoia_howl" if w.get("howl", false) else ("fx_izumik_share" if w.get("arts", false) else "")))
 			if cone_fx != "" and g.vfx.fx_sprite(cone_fx, w.pos + dv * w.r * 0.5, g.PX * clampf(w.r / 160.0, 0.8, 2.2), w.ang):
 				g.fx[g.fx.size() - 1]["enemy"] = true
 			g.vfx.sparks(w.pos + dv * w.r * 0.6, dv, Color(0.8, 1.4, 1.4), 12, 260.0)
 			Sfx.play("swing", -2.0, 0.55)
 			g.vfx.shake_screen(0.5)
 			_warn_damage(w, 0.25)
+			if str(w.get("spawn_after", "")) != "" and not e.dead:
+				_spawn_after(e, w, dv)
+		"smash":
+			# 炮身砸击（卡门第二幕，docs/95 §7.2 D）：落点圈结算（她在起手时已冲到圈边，saint.gd）；金色地裂 + Codex fx_carmen_smash（缺图只有地裂与尘土）
+			g.fx.append({"kind": "gcrack", "pos": w.pos, "r": w.r, "life": 0.6, "max": 0.6, "col": Color(1.0, 0.8, 0.35), "enemy": true, "opts": {"n": 8}})
+			if g.vfx.fx_sprite("fx_carmen_smash", w.pos, g.PX * 1.4, 0.0, false, false, Color.WHITE, true):
+				g.fx[g.fx.size() - 1]["enemy"] = true
+			g.vfx.sparks(w.pos, Vector2.UP, Color(1.4, 1.1, 0.6), 14, 240.0)
+			Sfx.play("boom", -4.0, 1.1, 0.0)
+			g.vfx.shake_screen(0.6)
+			_warn_damage(w)
 		"leap":
 			e.pos = w.pos
 			e.air = 0.0
@@ -625,6 +638,29 @@ func _warn_resolve(w: Dictionary) -> void:
 			Sfx.play("swing", -6.0, 0.9)
 			_warn_damage(w)
 
+
+
+## sweep 结算后的召唤（分形塑路，docs/95 §5.2 C）：不管命没命中，扇形轴线 spawn_r 处长出一只 spawn_after；本体所属的同类 ≥ spawn_cap 时不长。
+## 长出来的记进 e.spawned_after（Boss 脚本按 expire_at 让它自灭）；Codex fx_path_fractal_rise（从劈痕里长出）缺图走程序光环
+func _spawn_after(e: Dictionary, w: Dictionary, dv: Vector2) -> void:
+	var kind: String = str(w.spawn_after)
+	var n := 0
+	for o in g.enemies:
+		if o.type == kind and not o.dead and is_same(o.get("owner"), e):
+			n += 1
+	if n >= int(w.get("spawn_cap", 8)):
+		return
+	var at: Vector2 = g.combat.arena_clamp(w.pos + dv * float(w.get("spawn_r", 140.0)), 60.0)
+	var o: Dictionary = g.spawner.spawn_enemy(kind, at)
+	o.owner = e
+	o.expire_at = g.t + float(w.get("spawn_life", 20.0))
+	var lst: Array = e.get("spawned_after", [])
+	lst.append(o)
+	e["spawned_after"] = lst
+	if g.vfx.fx_sprite("fx_path_fractal_rise", at, g.PX, 0.0, false, true):
+		g.fx[g.fx.size() - 1]["enemy"] = true
+	else:
+		g.fx.append({"kind": "ring", "pos": at, "r": 26.0, "life": 0.35, "max": 0.35, "col": w.col, "enemy": true})
 
 
 ## 预警绘制（地面填充层；轮廓 / 出口 / 端盖在 world.draw_warn_outlines）：结算瞬间闪白。

@@ -1761,6 +1761,9 @@ const V6_FRAMES := {
 	"fx_izumik_share": [6, 12.0], "fx_izumik_wave_rim": [4, 12.0], "fx_izumik_lamp_safe": [2, 4.0],
 	"fx_knight_frost_burst": [5, 14.0], "fx_knight_frost_floor": [2, 2.0], "fx_knight_thrust": [3, 16.0],
 	"fx_saint_shell_burst": [6, 14.0],
+	# 第 2 批（docs/95 §5.4 / §6.4 / §7.4；帧条 e_path_slam / e_saint_dark_lob / e_carmen_spin 由 world.boss_strip_animation 按帧数取，不在这里登记）
+	"fx_path_fractal_rise": [5, 12.0], "fx_path_correct_ring": [4, 12.0], "fx_path_reflow": [3, 12.0],
+	"proj_saint_shell": [2, 8.0], "fx_saint_scatter": [3, 16.0], "fx_saint_clear_ring": [4, 12.0], "fx_carmen_smash": [4, 14.0],
 	# 第三方开放许可素材魔改（tools/fx_import.py，docs/25 §3）：圣光 / 治疗 / 火 / 爪 / 斩 / 碎石 / 弹道
 	"fx_holy_pillar": [16, 14.0], "fx_holy_pillar_amber": [16, 14.0], "fx_holy_impact": [7, 16.0],
 	"fx_heal_aura_green": [5, 10.0], "fx_heal_aura_amber": [5, 10.0], "fx_circle_gold": [4, 8.0], "fx_circle_amber": [4, 8.0], "fx_shield_amber": [6, 12.0],

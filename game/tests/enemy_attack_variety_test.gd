@@ -150,6 +150,9 @@ func run_checks() -> void:
 		e.pattern_cycle = last
 		e.pattern_next = g.t
 		e.gates_passed = 9   # phase_min 条目也要走得到
+		var lm: Dictionary = pats[last]
+		if lm.get("manual", false) or lm.get("on_reload", false):
+			e.pattern_force = str(lm.name)   # docs/95 §12 / §16：manual（订正）/ on_reload（清膛）不进轮转，只由 Boss 脚本点名；这里查点名路径走得到
 		check(g.bai.patterns.try_attack(e, Vector2.RIGHT, 280.0), kind + " schedules new move")
 		check(g.warns.any(func(w): return w.get("pattern_id", "") == kind + ":" + str(last)), kind + " last warning visible")
 		if str(pats[last].mode) == "line" and not g.warns.is_empty():

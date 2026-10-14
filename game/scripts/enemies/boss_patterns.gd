@@ -10,6 +10,13 @@ extends RefCounted
 ##   phase_min 过了几道卡点（gates_passed）才进轮转（订正、接潮扇浪）
 ##   no_ammo   带弹药的 Boss 也不耗弹、近战段也放（散射）；ammo_cost：耗弹数（缺省 1）；on_reload：不进轮转，只由 e.pattern_force 点名（清膛）
 ##   e.pattern_force = 招式名：下一次 try_attack 无视轮转和 pattern_next 直接放它（回流→订正、装填完毕→清膛、验收 --bossmoves）
+## 第 2 批加的字段（docs/95 §5–§7，都可选，缺省 = 原行为）：
+##   manual    不进轮转，只由 Boss 脚本经 pattern_force 点名（订正：二阶段由 path.gd 按 correct 冷却点名，第一次先亮招式名）
+##   min_dist / max_dist  主控距离在这个范围内才进轮转（散射 <220、环射 120–320）
+##   dur / track  预警总时长 / 追踪段（覆盖缺省 0.9 + 0.6 × 波序）；warn_r：fan 扇形预警半径（缺省 140）
+##   ring_r    ring 预警与出弹的起始半径（缺省 88）；gap_face：缺口之一朝主控（缺省缺口在主控方向的侧面）
+##   bullet    非刃弹的弹体种类（缺省 nova；圣徒的散射 / 清膛 / 环射用 orb = 普通实弹，不画成紫色新星弹）
+##   life      弹体寿命秒（缺省 2.8）；fx：结算时在出弹点放的特效帧条名（缺图不放）；fx_col：给 fx 乘色（卡门借伊比利亚的清膛环换金色）
 const D = preload("res://scripts/data.gd")
 const Game = preload("res://scripts/game.gd")
 const FINAL_TYPES := ["paranoia", "knight_boss", "ishar", "izumik"]
@@ -24,7 +31,9 @@ func _init(game: Game) -> void:
 func allowed(e: Dictionary, move: Dictionary, dist: float) -> bool:
 	if int(e.get("gates_passed", 0)) < int(move.get("phase_min", 0)):
 		return false
-	if move.get("on_reload", false):
+	if move.get("on_reload", false) or move.get("manual", false):
+		return false
+	if dist < float(move.get("min_dist", 0.0)) or dist > float(move.get("max_dist", INF)):
 		return false
 	if move.mode == "cleave" and dist > float(move.radius) + 20.0:
 		return false
@@ -89,17 +98,17 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 			"dmg": e.dmg * base_mult, "corrode": float(move.get("corrode", 0.0)),
 			"true": e.type == "ishar", "track": 0.0, "lock": k == 0}
 		var shape := "cone"
-		var dur: float = 0.9 + 0.6 * k
+		var dur: float = float(move.get("dur", 0.9)) + 0.6 * k
 		match str(move.mode):
 			"fan":
 				data.act = "pattern_fan"
 				data.half = float(move.spread) * 0.5
-				data.r = 140.0
+				data.r = float(move.get("warn_r", 140.0))
 			"ring":
 				shape = "circle"
 				data.act = "pattern_ring"
-				data.r = 88.0
-				data.gap_ang = dir.angle() + PI * 0.5 + (0.12 if k % 2 else -0.12)
+				data.r = float(move.get("ring_r", 88.0))
+				data.gap_ang = dir.angle() + (0.0 if move.get("gap_face", false) else PI * 0.5 + (0.12 if k % 2 else -0.12))
 				data.gap_half = float(move.gap)
 				var ng: int = int(move.get("gaps", 1))
 				if ng > 1:
@@ -143,6 +152,8 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 				data.seq_no = k + 1
 				data.pos = g.ppos
 				dur = data.track + float(move.get("lock", 0.65))
+		if move.has("track"):
+			data.track = float(move.track)
 		var w: Dictionary = g.bai._warn(e, shape, dur, data)
 		end = maxf(end, w.dur)
 	e.pattern_cycle = (index + 1) % moves.size()
@@ -188,11 +199,17 @@ func resolve(w: Dictionary) -> void:
 			angle = w.ang + lerpf(-float(move.spread) * 0.5, float(move.spread) * 0.5, float(i) / maxf(count - 1, 1))
 		var blade: bool = move.get("blade", false)
 		g.ebullets.append({"pos": w.pos, "vel": Vector2.from_angle(angle) * float(move.speed),
-			"dmg": w.dmg, "r": 12.0 if blade else 7.0, "life": 2.8,
+			"dmg": w.dmg, "r": 12.0 if blade else 7.0, "life": float(move.get("life", 2.8)),
 			"slow": false, "frost": e.get("frost", 0.0), "corrode": 0.15, "nerve": 0.0, "true": w.get("true", false),
-			"kind": "boss_blade" if blade else "nova", "home": false, "boss": true,
+			"kind": "boss_blade" if blade else str(move.get("bullet", "nova")), "home": false, "boss": true,
 			"atk": "物理" if e.has("ammo") or blade else "法术", "hit_cap": e.get("hit_cap", 0.0),
 			"source_id": e.id, "col": w.col, "source_type": e.type})
 		own += 1
 		total += 1
+	if move.has("fx"):
+		# 出招特效帧条（散射炮口火舌 fx_saint_scatter、清膛 / 环射出环 fx_saint_clear_ring、订正出环 fx_path_correct_ring）：缺图只走 boss_pattern 的程序画面
+		var col: Color = Color(move.fx_col[0], move.fx_col[1], move.fx_col[2]) if move.has("fx_col") else Color.WHITE
+		var at: Vector2 = w.pos + (Vector2.from_angle(w.ang) * 36.0 if w.act == "pattern_fan" else Vector2.ZERO)
+		if g.vfx.fx_sprite(str(move.fx), at, g.PX * float(move.get("fx_scale", 1.4)), w.ang if w.act == "pattern_fan" else 0.0, false, false, col, w.act == "pattern_ring"):
+			g.fx[g.fx.size() - 1]["enemy"] = true
 	g.vfx.boss_pattern(w)
