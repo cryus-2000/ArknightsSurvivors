@@ -43,6 +43,15 @@ func run_checks() -> void:
 	g.ppos = Vector2(160, 0)
 	g.eai.pattern(e, Vector2.RIGHT, 160.0, 0.5, e.spd)
 	check(g.nerve_aura_t == 0.0, "ripple does not damage outside radius")
+	# pattern() 开头的受伤分支只在转狂奔那一帧提前 return：狂奔之后「镰肢直刺」（_secondary）照常走得到
+	e.wake_t = 0.0
+	e.wind = 0.0
+	e.age = 5.0
+	e.extra_next = 0.0
+	g.warns.clear()
+	g.ppos = Vector2(200, 0)
+	var sv: Vector2 = g.eai.pattern(e, Vector2.RIGHT, 200.0, 0.016, e.spd)
+	check(sv == Vector2.ZERO and g.warns.any(func(w): return w.get("secondary", false)), "enraged reaper still uses its secondary pierce")
 	if failures == 0:
 		print("PASS: reaper rush")
 	get_tree().quit(1 if failures else 0)
