@@ -118,7 +118,7 @@ func buy(i: int) -> void:
 	# 库存可能在事件中变满；确认可拿到藏品再收费，避免空买。
 	if it.kind == "relic" and not g.progression.can_gain_relic(it.id):
 		Sfx.play("ui_move", -2.0, 0.6)
-		g.vfx.show_banner("藏品空间已预留给旅途事件；可以升级已有藏品")
+		g.vfx.show_banner("藏品空间已为结局事件预留；可以升级已有藏品")
 		return
 	g.ingots -= it.price
 	g.telemetry.ingots_spent += it.price   # 作战记录（docs/77）

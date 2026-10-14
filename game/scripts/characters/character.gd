@@ -521,7 +521,7 @@ func press_manual(i: int, dir: Vector2 = Vector2.ZERO, pt: Vector2 = Vector2.INF
 	if has_method("away") and call("away"):
 		return "暂时离场"
 	if sp[i] < sp_need(i):
-		return "充能中"
+		return "技力不足"
 	var why := manual_block_reason(i, dir)
 	if why == "":
 		manual_buf = MANUAL_BUF

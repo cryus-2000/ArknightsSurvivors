@@ -473,7 +473,7 @@ func _silver_seal() -> void:
 			while o.elite < 1 and not o.next_node().is_empty() and guard < 8:
 				o.advance("")
 				guard += 1
-			g.vfx.show_banner("博士银印：「%s」以精英一阶段加入编队" % o.display_name())
+			g.vfx.show_banner("博士银印：「%s」以精英一加入编队" % o.display_name())
 			return
 	for o in g.squad.ops:
 		var n: Dictionary = o.next_node()

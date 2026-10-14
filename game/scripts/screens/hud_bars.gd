@@ -105,9 +105,9 @@ func draw_lamp_strip(vs: Vector2) -> void:
 		st_en = "DARK"
 		st_col = Color(1, 0.5, 0.5)
 	elif g.lamp >= 70.0:
-		st_txt = "灯火通明 · 技力 +30% · 拾取 +20%"
+		st_txt = "灯火通明 · 技力回复 +30% · 拾取 +20%"
 	else:
-		st_txt = "灯火摇曳 · 光中敌人受伤 +25%"
+		st_txt = "灯火摇曳 · 照亮范围内敌人受伤 +25%"
 		st_en = "LIT"
 		st_col = Color(1.0, 0.85, 0.6)
 	if h.panel_over_top():

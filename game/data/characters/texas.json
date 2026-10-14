@@ -31,7 +31,7 @@
  },
  "attack": {"mode": "auto", "name": "疾行斩", "desc": "每 {$cd} 秒朝最近敌人方向冲刺 {$dash_len}（宽 {$dash_w}，穿透），沿途全部敌人受物理伤害；穿过敌人时全队技力 +{$hit_sp} 秒（即 {$hit_sp} 秒的自然回复量）"},
  "skills": [
-  {"name": "剑雨", "en": "SWORD RAIN", "sp": 6, "desc": "以自身为中心半径 {$s1_r} 落下剑雨，×{$s1_mult} 并眩晕 {$s1_stun} 秒（精英减半，Boss 不晕），全队技力 +{$s1_sp*100}%", "icon": "skill_texas_s1"},
+  {"name": "剑雨", "en": "SWORD RAIN", "sp": 6, "desc": "以自身为中心半径 {$s1_r} 落下剑雨，×{$s1_mult} 并眩晕 {$s1_stun} 秒（精英减半，Boss 除外），全队技力 +{$s1_sp*100}%", "icon": "skill_texas_s1"},
   {"name": "可靠伙伴", "en": "RELIABLE PARTNER", "sp": 14, "permanent": true, "desc": "充能一次后永久生效：冲刺距离 +{$s2_len*100}%、伤害 ×{$s2_mult}；「战术快递」自动冲刺的间隔 -{(1-$s2_cd_mult)*100}%（{$talent_cd} → {$talent_cd*$s2_cd_mult} 秒）", "icon": "skill_texas_s2"},
   {"name": "剑雨滂沱", "en": "TORRENTIAL SWORD RAIN", "sp": 20, "dur": 8.0, "desc": "{$s3_dur} 秒内每 {$s3_every} 秒向敌群最密处冲刺一次（×{$s3_mult}），穿过的敌人眩晕 {$s3_stun} 秒、全队技力 +{$s3_sp} 秒；结束时在最后的落点落下剑雨 ×{$s3_end_mult}", "icon": "skill_texas_s3"}
  ],
