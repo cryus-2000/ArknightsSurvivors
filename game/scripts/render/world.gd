@@ -2220,6 +2220,8 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			name += "_move"
 			frames = 4
 			var fps: float = float(D.ENEMIES.get(e.type, _NO_DEF).get("move_fps", 6.0))
+			if e.type == "reaper" and e.enraged:
+				fps *= 1.45
 			if e.type == "immortal":
 				fps = 8.0
 			elif e.type in ["paranoia", "izumik", "ishar"]:
@@ -2263,7 +2265,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		name = e.tex + "_enraged"
 		frames = 2
 		frame = int(g.t * 5.0 + e.id * 0.37) % 2
-	var rage_fx: bool = e.get("enraged", false)   # 狂暴：除了待机帧换图，移动 / 攻击帧也染红、脚下红光（docs/48 P1：原来只在待机帧生效）
+	var rage_fx: bool = e.get("enraged", false) and e.type != "reaper"   # 收割者的狂奔保持冷蓝本色；波纹另画。
 	# 巢涌者神经光环改到地面层画（draw_nest_auras），不再按 4.6 倍放大帧条盖在实体上
 	# 染色复用贴图的敌人（巨海、撕裂者、潜地者、吐酸者）按自身半径放大：enemies.json 的 draw_scale（docs/48 §1 第 7 项）
 	var sc: float = enemy_scale(e)

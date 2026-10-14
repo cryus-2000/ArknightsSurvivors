@@ -1,0 +1,149 @@
+{
+  "pass": true,
+  "checks": [
+    {
+      "file": "e_reaper.png",
+      "size": [
+        80,
+        38
+      ],
+      "expected": [
+        80,
+        38
+      ],
+      "binary_alpha": true,
+      "colors": 13,
+      "sha256": "3b9d565da8345e3d57e8515459d83261bc51aa03fabb207d7cdc8d8b5eeec9bf"
+    },
+    {
+      "file": "e_reaper@2x.png",
+      "size": [
+        160,
+        76
+      ],
+      "expected": [
+        160,
+        76
+      ],
+      "binary_alpha": true,
+      "colors": 15,
+      "sha256": "d5c5dd44c88f78d018ffcd0acb978e203a2f32ac6c77a41baf8f726f2d1c5a78"
+    },
+    {
+      "file": "e_reaper_dormant.png",
+      "size": [
+        80,
+        38
+      ],
+      "expected": [
+        80,
+        38
+      ],
+      "binary_alpha": true,
+      "colors": 7,
+      "sha256": "7647d3a0481685c41e6c149d8f1185119bbe4c8dc41c95e2cef4595162624154"
+    },
+    {
+      "file": "e_reaper_dormant@2x.png",
+      "size": [
+        160,
+        76
+      ],
+      "expected": [
+        160,
+        76
+      ],
+      "binary_alpha": true,
+      "colors": 7,
+      "sha256": "3b1024c4f336d6a4a9e42c7388eaaf89b22607c196932b959bdb7b2306a4ca85"
+    },
+    {
+      "file": "e_reaper_awaken.png",
+      "size": [
+        160,
+        38
+      ],
+      "expected": [
+        160,
+        38
+      ],
+      "binary_alpha": true,
+      "colors": 14,
+      "sha256": "4916e882a22eca6bf63f2f6cbfc8f4501202b52540e69f8136bfd6e45f80be80"
+    },
+    {
+      "file": "e_reaper_awaken@2x.png",
+      "size": [
+        320,
+        76
+      ],
+      "expected": [
+        320,
+        76
+      ],
+      "binary_alpha": true,
+      "colors": 15,
+      "sha256": "235bdd9e27e0943ad032f73ea6e53211afe30b7ca2d369ee1b81f9f669d06a8e"
+    },
+    {
+      "file": "e_reaper_move.png",
+      "size": [
+        160,
+        38
+      ],
+      "expected": [
+        160,
+        38
+      ],
+      "binary_alpha": true,
+      "colors": 13,
+      "sha256": "c04262c36ab7cccb6d6e5c653f320eab17d6411d23b9e79f54cb9afe37eb037b"
+    },
+    {
+      "file": "e_reaper_move@2x.png",
+      "size": [
+        320,
+        76
+      ],
+      "expected": [
+        320,
+        76
+      ],
+      "binary_alpha": true,
+      "colors": 15,
+      "sha256": "2611052ee95ef55611d4b57ca8fe3d3b73bc3791c9483f4b722685fcd65d4100"
+    },
+    {
+      "file": "e_reaper_attack.png",
+      "size": [
+        160,
+        38
+      ],
+      "expected": [
+        160,
+        38
+      ],
+      "binary_alpha": true,
+      "colors": 14,
+      "sha256": "c3ae71d54fb173c7873186116cd9bd43064ffea0703112866c41c717388ca256"
+    },
+    {
+      "file": "e_reaper_attack@2x.png",
+      "size": [
+        320,
+        76
+      ],
+      "expected": [
+        320,
+        76
+      ],
+      "binary_alpha": true,
+      "colors": 15,
+      "sha256": "701a05da8c667f7ed8753fce63c06f78ec5be41fb67e35be6c1b921e7671749a"
+    }
+  ],
+  "idle_attack_awaken_last_match": true,
+  "combined_palette_1x": 15,
+  "combined_palette_2x": 15,
+  "note": "One pair of scythes verified visually; screenshot-based animation review required in game."
+}

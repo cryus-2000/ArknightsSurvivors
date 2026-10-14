@@ -290,7 +290,7 @@ func update(dt: float) -> void:
 
 		# ---- 接触伤害
 		# 休眠中的收割者、自爆的狂奔者（V8）没有接触伤害；Boss 登场 2 秒内不造成接触伤害（docs/38 B0 第 6 项：边缘刷出贴脸）
-		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false) and not e.get("dormant", false) and not D.ENEMIES[e.type].get("no_contact", false) and not (e.boss and e.age < 2.0) and e.get("air", 0.0) <= 0.0 and not e.get("under", false) and float(e.get("hatch_until", 0.0)) <= g.t:   # hatch_until：拟嗣落地展开中不接触
+		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false) and not e.get("dormant", false) and not (e.type == "reaper" and e.get("wake_t", 0.0) > 0.0) and not D.ENEMIES[e.type].get("no_contact", false) and not (e.boss and e.age < 2.0) and e.get("air", 0.0) <= 0.0 and not e.get("under", false) and float(e.get("hatch_until", 0.0)) <= g.t:
 			if D.ENEMIES[e.type].get("morph", false):
 				morph(e)
 				continue

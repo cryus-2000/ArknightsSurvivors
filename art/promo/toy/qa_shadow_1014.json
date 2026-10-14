@@ -1,0 +1,49 @@
+{
+  "ok": true,
+  "files": [
+    {
+      "name": "toy_poster_shadow_1014_4x3.png",
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 1281385,
+      "sha256": "eb960f5c3793efa9d9c368c395dee0e8302907c3d2added0f6609be968b13ef6"
+    },
+    {
+      "name": "toy_poster_shadow_1014_4x3_notext.png",
+      "size": [
+        1200,
+        900
+      ],
+      "bytes": 1249471,
+      "sha256": "0bc02fd23105482e51d73a75f72664ebf1531c8a0b147d3a07366c8240e46ca6"
+    },
+    {
+      "name": "toy_poster_shadow_1014_preview.png",
+      "size": [
+        400,
+        300
+      ],
+      "bytes": 224456,
+      "sha256": "4aa7464206dfb7affad16ab6dfdd49eac22a6e07b456d5f25787f728b1109aeb"
+    },
+    {
+      "name": "toy_poster_shadow_1014_preview_notext.png",
+      "size": [
+        400,
+        300
+      ],
+      "bytes": 217568,
+      "sha256": "dd8a17de01e0d2f65c99b43575173784120f071b569de5be2e5ec53b4ce7d79e"
+    }
+  ],
+  "outside_title_pixel_differences": 0,
+  "changed_bbox": [
+    33,
+    91,
+    613,
+    240
+  ],
+  "method": "Imagegen removes title; generated title rectangle composited over original to preserve every other pixel. Nearest-neighbor size export."
+}
