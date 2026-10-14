@@ -1,0 +1,66 @@
+# blocks_eq_mizuki_seed1
+# 参数：--headless --path /home/user/ArknightsSurvivors/game -- --balance --seed=1 --op=mizuki --bot=expert --maxt=45 --trace=1 --sptest
+# 用时 7 秒；结束时全机 Godot 4 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+TRACE t=0.00 lv=1 k=0 hp=110.00 n=0 rng=-7722681714327978727 pos=0.00,0.00 h=0.000
+TRACE t=1.06 lv=1 k=0 hp=110.00 n=0 rng=-7722681714327978727 pos=158.40,0.00 h=0.000
+TRACE t=2.05 lv=1 k=0 hp=110.00 n=1 rng=-6770124085828356322 pos=306.90,0.00 h=-224.642
+TRACE t=3.04 lv=1 k=0 hp=110.00 n=2 rng=-1869679294319279097 pos=455.40,0.00 h=-327.648
+TRACE t=4.03 lv=1 k=0 hp=110.00 n=3 rng=-3586379379941937244 pos=603.90,0.00 h=137.751
+TRACE t=5.02 lv=1 k=0 hp=110.00 n=4 rng=-5207867171622888955 pos=750.89,-7.58 h=633.704
+TRACE t=6.01 lv=1 k=1 hp=110.00 n=4 rng=1723398781454008784 pos=890.35,-53.04 h=703.004
+TRACE t=7.06 lv=1 k=1 hp=110.00 n=5 rng=-6152135686892286559 pos=1021.67,-136.14 h=1135.139
+TRACE t=8.05 lv=1 k=1 hp=110.00 n=6 rng=-332793269608262074 pos=1123.46,-243.29 h=1619.835
+TRACE t=9.04 lv=1 k=2 hp=110.00 n=6 rng=8861850193195784573 pos=1218.83,-354.73 h=1559.140
+TRACE t=10.03 lv=1 k=2 hp=110.00 n=7 rng=6154100810537605094 pos=1313.14,-465.11 h=3032.677
+TRACE t=11.02 lv=1 k=3 hp=110.00 n=7 rng=-8797564559416825355 pos=1258.96,-533.74 h=3181.726
+TRACE t=12.01 lv=2 k=4 hp=110.00 n=7 rng=-2973237213152791658 pos=1361.71,-600.20 h=2854.387
+TRACE t=13.00 lv=2 k=4 hp=110.00 n=8 rng=-1530680042633523301 pos=1495.48,-651.51 h=3336.270
+TRACE t=14.06 lv=2 k=6 hp=110.00 n=7 rng=-613183042791747662 pos=1652.38,-659.09 h=2862.919
+TRACE t=15.05 lv=2 k=6 hp=110.00 n=8 rng=-3525414794275524365 pos=1742.32,-607.24 h=3234.906
+TRACE t=16.04 lv=2 k=6 hp=110.00 n=10 rng=-8741794025775514285 pos=1742.32,-755.74 h=4446.982
+TRACE t=17.03 lv=2 k=8 hp=110.00 n=9 rng=-3603073446158799922 pos=1734.74,-899.72 h=4099.810
+TRACE t=18.02 lv=2 k=8 hp=110.00 n=10 rng=846131316951765207 pos=1766.55,-972.39 h=4571.944
+TRACE t=19.01 lv=2 k=8 hp=110.00 n=11 rng=2542114027785890842 pos=1909.02,-1002.70 h=5307.272
+TRACE t=20.06 lv=2 k=8 hp=110.00 n=13 rng=6271514344979970101 pos=2053.22,-1066.53 h=7482.878
+TRACE t=21.05 lv=2 k=9 hp=110.00 n=12 rng=1384650740103199547 pos=2148.15,-1114.05 h=6567.695
+TRACE t=22.04 lv=2 k=9 hp=110.00 n=13 rng=-1308816025840999088 pos=2105.57,-1133.32 h=7577.149
+TRACE t=23.03 lv=2 k=9 hp=110.00 n=14 rng=-4802662154226564991 pos=2240.62,-1193.36 h=8222.185
+TRACE t=24.02 lv=2 k=9 hp=110.00 n=15 rng=7416872600877116200 pos=2211.05,-1286.60 h=9158.753
+TRACE t=25.01 lv=2 k=11 hp=110.00 n=15 rng=-3076451438965224914 pos=2257.22,-1369.46 h=9184.322
+TRACE t=26.00 lv=2 k=11 hp=110.00 n=16 rng=5861228008988093927 pos=2362.23,-1474.47 h=9696.858
+TRACE t=27.06 lv=2 k=13 hp=110.00 n=15 rng=-4864392274620328664 pos=2421.46,-1602.18 h=9229.203
+TRACE t=28.05 lv=2 k=13 hp=110.00 n=16 rng=-980233728656110279 pos=2527.34,-1624.91 h=10246.911
+TRACE t=29.04 lv=2 k=13 hp=110.00 n=17 rng=2091533969234559188 pos=2378.84,-1624.91 h=11280.718
+TRACE t=30.03 lv=2 k=13 hp=110.00 n=19 rng=-2788848826175218720 pos=2234.11,-1643.86 h=12183.040
+TRACE t=31.02 lv=2 k=16 hp=110.00 n=17 rng=-5018831529014072757 pos=2224.69,-1551.02 h=11340.354
+TRACE t=32.01 lv=2 k=16 hp=110.00 n=18 rng=5959789713023266032 pos=2080.71,-1528.29 h=11963.018
+TRACE t=33.07 lv=2 k=18 hp=110.00 n=17 rng=-7056459870495748743 pos=1965.80,-1633.30 h=11119.936
+TRACE t=34.06 lv=2 k=18 hp=110.00 n=19 rng=1333397692623902517 pos=1884.88,-1641.78 h=12496.008
+TRACE t=35.05 lv=2 k=18 hp=110.00 n=20 rng=-8478339428888354016 pos=1791.93,-1606.11 h=12907.267
+TRACE t=36.04 lv=2 k=18 hp=110.00 n=21 rng=-1897866680590743191 pos=1919.26,-1644.32 h=12815.922
+TRACE t=37.03 lv=3 k=24 hp=110.00 n=16 rng=-6895807523945080786 pos=1940.77,-1534.51 h=9874.499
+TRACE t=38.02 lv=3 k=24 hp=110.00 n=18 rng=-5226736195269573122 pos=1874.11,-1511.53 h=11014.855
+TRACE t=39.01 lv=3 k=24 hp=110.00 n=19 rng=-7610452255854523583 pos=1930.93,-1648.73 h=11505.815
+TRACE t=40.06 lv=3 k=25 hp=110.00 n=19 rng=7558451782883023590 pos=1991.55,-1795.07 h=11429.145
+TRACE t=41.05 lv=3 k=27 hp=110.00 n=19 rng=-5091997315809156852 pos=2098.39,-1698.13 h=11215.430
+TRACE t=42.04 lv=3 k=34 hp=110.00 n=13 rng=923421041822704709 pos=1996.27,-1627.45 h=7620.166
+TRACE t=43.03 lv=3 k=36 hp=110.00 n=12 rng=8470197901153588890 pos=2060.85,-1547.34 h=6923.115
+TRACE t=44.02 lv=3 k=37 hp=110.00 n=13 rng=7981370045198144842 pos=2124.52,-1557.68 h=7632.754
+TRACE t=45.01 lv=3 k=41 hp=110.00 n=10 rng=5233051364026215245 pos=2163.50,-1672.83 h=5783.913
+BALANCE {"allies":0,"armor_cf":{},"boss_hp":-1.0,"bosses":[],"bot":{"bosses":[],"curve":[{"boss":0,"dsrc":{},"enemies":0,"hp":100,"hsrc":{},"kills":0,"lamp":100,"lv":1,"mhp":110,"squad":1,"t":0,"taken":0,"zone":0},{"boss":0,"dsrc":{},"enemies":19,"hp":100,"hsrc":{},"kills":13,"lamp":100,"lv":2,"mhp":110,"squad":1,"t":30,"taken":0,"zone":0}],"curve_tail":{"dsrc":{},"hsrc":{},"mhp":110,"t":45,"t0":30,"taken":0},"dark_dmg":0,"dark_s":0,"death_src":"","elite_t":{},"end":{"boss":false,"hp":110,"last15":{"corrode_out":0.0,"corrode_peak":0.0,"dark_s":0.0,"ebullets_peak":0,"enemies_peak":21,"hits":[],"mire_s":0.0,"nerve_bursts":0,"t":45.0},"src":"","t":45,"zone_out":false,"zone_phase":-1,"zone_state":0},"floors":[],"hits":0,"hits_pm":0.0,"low_hp_s":0,"moved_pm":8986,"peak":[21,0,0,181,8],"peak_min":[[21,0,0,181,8]],"profile":"expert","reaper_drain_deaths":0,"recruit_t":[],"still_pct":0,"taken":0,"taken_pm":0},"ctrl":{"aslow_slow":0,"aslow_t":0.0,"boss_t":0.0,"floor":0.7,"move_min":1.0,"slow_min":1.0,"stun_slow":0,"stun_t":0.0},"ctrl_src":{"boss":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"founder":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"other":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"skimmer":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"slow_any_t":0.0},"dashes":0,"dmg":{},"drone":0,"elite_stage":0,"elites":0,"ending":"standard","final_out":{"伞击":482.14472433233,"触手":367.870083785611},"floor_hits":0,"floor_times":[],"fuse":{"left":0,"pct":0.0,"pool":0,"t":-1},"growth":{},"heal":{"自身回复":0.0},"heal_offer":1,"heal_offer_low":0,"heal_pick":0,"hordes":[],"ingots":6,"items":{"heal_elite":0,"heal_low":0,"heal_mob":0,"heal_pick":0,"magnet_elite":0,"magnet_mob":0,"magnet_pick":0,"mob_capped":0,"mob_rolled":41},"kills":41,"lamp":100,"low_levelups":0,"lv":3,"lv_times":[11,36],"marks":{},"maxhp":110.0,"ops":[{"elite":0,"id":"mizuki","prog":2}],"out":{"伞击":482.14472433233,"触手":367.870083785611},"out_tag":{"basic":482.14472433233,"empowered":381.774467132655,"follow_up":367.870083785611},"out_type":{"法术":367.870083785611,"物理":482.14472433233},"prof":{},"prog_offer":{"mizuki":2},"prog_pick":{"mizuki":2},"recall_backstop":0,"recall_n":0,"rej":{},"relic_offer":[],"relic_out":0.0,"relic_take":[],"relics":0,"squad":["mizuki"],"sus":{},"swaps":[],"t":45,"terrain":{"bul":0,"dash":0,"ebul":0},"win":false,"xp_backstop":0.0,"xp_dropped":110.0,"xp_ground":12.5,"xp_magnet":0.0,"xp_magnet_min":[],"xp_recall":0.0,"xp_recall_min":[],"xp_total":97.5,"xp_total_min":[97.5],"xp_walk":97.5,"xp_walk_min":[97.5]}
+SPAWNQ {"alive_420_max":0,"alive_420_med":0,"alive_420_p95":0,"alive_710_max":0,"alive_710_med":0,"alive_710_p95":0,"cap":0,"deferred":0,"density":0.4,"drop_final":0,"drop_room":0,"forced":0,"hist":{"1-3s":0,"10-30s":0,"3-10s":0,"<1s":0,">=30s":0},"pending_end":0,"q_peak":0,"queued":0,"spawned":51,"wait_cap":10.0,"wait_max":0.0,"wait_mean":0.0,"wait_p50":0.0,"wait_p90":0.0,"wait_p99":0.0}
+ERROR: 1 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+WARNING: 24 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 9 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+

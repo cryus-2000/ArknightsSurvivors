@@ -1,0 +1,66 @@
+# blocks_eq_kaltsit_seed1
+# 参数：--headless --path /home/user/ArknightsSurvivors/game -- --balance --seed=1 --op=kaltsit --bot=expert --maxt=45 --trace=1 --sptest
+# 用时 9 秒；结束时全机 Godot 3 个
+
+## stdout
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+TRACE t=0.00 lv=1 k=0 hp=120.00 n=0 rng=-7722681714327978727 pos=0.00,0.00 h=0.000
+TRACE t=1.06 lv=1 k=0 hp=120.00 n=0 rng=-7722681714327978727 pos=158.40,0.00 h=0.000
+TRACE t=2.05 lv=1 k=0 hp=120.00 n=1 rng=-6770124085828356322 pos=306.90,0.00 h=-224.642
+TRACE t=3.04 lv=1 k=0 hp=120.00 n=2 rng=-1869679294319279097 pos=455.40,0.00 h=-327.648
+TRACE t=4.03 lv=1 k=0 hp=120.00 n=3 rng=-3586379379941937244 pos=603.90,0.00 h=137.751
+TRACE t=5.02 lv=1 k=0 hp=120.00 n=4 rng=-5207867171622888955 pos=752.40,0.00 h=633.723
+TRACE t=6.01 lv=1 k=0 hp=120.00 n=5 rng=-5228846795448423302 pos=867.00,-61.38 h=1085.620
+TRACE t=7.06 lv=1 k=1 hp=120.00 n=5 rng=-6152135686892286559 pos=971.32,-115.48 h=784.871
+TRACE t=8.05 lv=1 k=1 hp=120.00 n=6 rng=-332793269608262074 pos=1069.90,-224.78 h=1273.723
+TRACE t=9.04 lv=1 k=2 hp=120.00 n=6 rng=8861850193195784573 pos=1111.84,-338.95 h=996.404
+TRACE t=10.03 lv=1 k=2 hp=120.00 n=7 rng=-8658104101837382318 pos=1232.74,-409.53 h=1731.211
+TRACE t=11.02 lv=1 k=3 hp=120.00 n=7 rng=8143206250595928733 pos=1367.57,-438.38 h=2428.739
+TRACE t=12.01 lv=1 k=3 hp=120.00 n=8 rng=-7047088398165396694 pos=1285.05,-558.40 h=2718.066
+TRACE t=13.00 lv=1 k=3 hp=120.00 n=9 rng=-5867099982150165143 pos=1180.04,-663.41 h=3269.652
+TRACE t=14.06 lv=1 k=3 hp=120.00 n=10 rng=7689416648816827214 pos=1060.85,-746.84 h=3823.046
+TRACE t=15.05 lv=1 k=3 hp=120.00 n=11 rng=-8811524987448135619 pos=919.57,-679.31 h=3954.727
+TRACE t=16.04 lv=1 k=4 hp=120.00 n=12 rng=-5438142075195796011 pos=832.94,-591.63 h=4319.179
+TRACE t=17.03 lv=2 k=4 hp=120.00 n=13 rng=1732930605446144586 pos=803.21,-509.95 h=4146.428
+TRACE t=18.02 lv=2 k=5 hp=120.00 n=13 rng=-8533435956323673243 pos=849.69,-404.88 h=3780.348
+TRACE t=19.01 lv=2 k=5 hp=120.00 n=14 rng=-2041640936819297290 pos=838.33,-258.64 h=3812.202
+TRACE t=20.06 lv=2 k=7 hp=120.00 n=14 rng=-1078131065439465355 pos=725.11,-284.04 h=3540.392
+TRACE t=21.05 lv=2 k=9 hp=120.00 n=13 rng=-3603073446158799922 pos=663.66,-404.20 h=3256.889
+TRACE t=22.04 lv=2 k=10 hp=120.00 n=13 rng=-2718014741990220377 pos=802.48,-445.30 h=3471.290
+TRACE t=23.03 lv=2 k=10 hp=120.00 n=13 rng=2844799958626850769 pos=944.95,-475.61 h=3694.385
+TRACE t=24.02 lv=2 k=12 hp=120.00 n=12 rng=7028118761975978652 pos=866.56,-464.89 h=3513.872
+TRACE t=25.01 lv=2 k=13 hp=120.00 n=13 rng=6894002915521188642 pos=902.72,-328.10 h=3511.032
+TRACE t=26.00 lv=2 k=14 hp=120.00 n=13 rng=4618820874220526357 pos=946.27,-322.03 h=3885.092
+TRACE t=27.06 lv=2 k=15 hp=120.00 n=13 rng=-930933840438163876 pos=858.47,-336.36 h=4096.659
+TRACE t=28.05 lv=2 k=16 hp=120.00 n=13 rng=6729914523647010599 pos=825.61,-298.15 h=3772.290
+TRACE t=29.04 lv=2 k=19 hp=120.00 n=11 rng=-4297530056006723568 pos=825.11,-398.88 h=3090.569
+TRACE t=30.03 lv=2 k=20 hp=120.00 n=12 rng=-5325624447358919308 pos=784.73,-375.73 h=3453.757
+TRACE t=31.02 lv=2 k=21 hp=120.00 n=12 rng=-2982441853051707201 pos=831.08,-421.52 h=3244.721
+TRACE t=32.08 lv=3 k=23 hp=120.00 n=11 rng=-4919927567840228062 pos=944.58,-382.67 h=3283.890
+TRACE t=33.07 lv=3 k=24 hp=120.00 n=11 rng=3832033134324118771 pos=948.58,-280.55 h=3392.690
+TRACE t=34.06 lv=3 k=25 hp=120.00 n=12 rng=6756405097935990471 pos=933.40,-307.07 h=3975.380
+TRACE t=35.05 lv=3 k=26 hp=120.00 n=12 rng=-513311344812545118 pos=837.45,-230.69 h=4215.909
+TRACE t=36.04 lv=3 k=27 hp=120.00 n=12 rng=-1588812832072541823 pos=907.72,-151.90 h=4062.723
+TRACE t=37.03 lv=3 k=28 hp=120.00 n=12 rng=-1342754461304316578 pos=980.61,-177.19 h=3802.498
+TRACE t=38.02 lv=3 k=29 hp=120.00 n=13 rng=3069200468721063480 pos=929.55,-152.92 h=3992.460
+TRACE t=39.01 lv=3 k=29 hp=120.00 n=14 rng=-440973794555069917 pos=818.10,-57.55 h=4078.219
+TRACE t=40.06 lv=3 k=29 hp=120.00 n=15 rng=2213510806719875752 pos=671.76,3.07 h=4040.287
+TRACE t=41.05 lv=3 k=30 hp=120.00 n=16 rng=3965507819749817816 pos=678.51,48.86 h=4748.007
+TRACE t=42.04 lv=3 k=31 hp=120.00 n=16 rng=-40404148124510803 pos=778.40,59.31 h=4487.928
+TRACE t=43.03 lv=3 k=31 hp=120.00 n=17 rng=-4519995046946499880 pos=740.19,-65.01 h=4949.611
+TRACE t=44.02 lv=3 k=33 hp=120.00 n=17 rng=6076438761711700878 pos=840.34,19.88 h=4542.558
+TRACE t=45.01 lv=3 k=34 hp=120.00 n=17 rng=4119029266419078831 pos=831.61,-90.30 h=4337.410
+BALANCE {"allies":0,"armor_cf":{},"boss_hp":-1.0,"bosses":[],"bot":{"bosses":[],"curve":[{"boss":0,"dsrc":{},"enemies":0,"hp":100,"hsrc":{},"kills":0,"lamp":100,"lv":1,"mhp":120,"squad":1,"t":0,"taken":0,"zone":0},{"boss":0,"dsrc":{},"enemies":12,"hp":100,"hsrc":{},"kills":20,"lamp":100,"lv":2,"mhp":120,"squad":1,"t":30,"taken":0,"zone":0}],"curve_tail":{"dsrc":{},"hsrc":{},"mhp":120,"t":45,"t0":30,"taken":0},"dark_dmg":0,"dark_s":0,"death_src":"","elite_t":{},"end":{"boss":false,"hp":120,"last15":{"corrode_out":0.0,"corrode_peak":0.0,"dark_s":0.0,"ebullets_peak":0,"enemies_peak":17,"hits":[],"mire_s":0.0,"nerve_bursts":0,"t":45.0},"src":"","t":45,"zone_out":false,"zone_phase":-1,"zone_state":0},"floors":[],"hits":0,"hits_pm":0.0,"low_hp_s":0,"moved_pm":8945,"peak":[17,0,0,65,4],"peak_min":[[17,0,0,65,4]],"profile":"expert","reaper_drain_deaths":0,"recruit_t":[],"still_pct":0,"taken":0,"taken_pm":0},"ctrl":{"aslow_slow":0,"aslow_t":0.0,"boss_t":0.0,"floor":0.7,"move_min":1.0,"slow_min":1.0,"stun_slow":0,"stun_t":0.0},"ctrl_src":{"boss":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"founder":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"other":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"skimmer":{"dash_break_n":0,"freeze_n":0,"freeze_t":0.0,"slow_t":0.0},"slow_any_t":0.0},"dashes":0,"dmg":{},"drone":0,"elite_stage":0,"elites":0,"ending":"standard","final_out":{"Mon3tr":617.447426738762},"floor_hits":0,"floor_times":[],"fuse":{"left":0,"pct":0.0,"pool":0,"t":-1},"growth":{},"heal":{"凯尔希":0.0,"拾取":0.0,"自身回复":0.0},"heal_offer":2,"heal_offer_low":0,"heal_pick":0,"hordes":[],"ingots":4,"items":{"heal_elite":0,"heal_low":0,"heal_mob":1,"heal_pick":1,"magnet_elite":0,"magnet_mob":0,"magnet_pick":0,"mob_capped":0,"mob_rolled":34},"kills":34,"lamp":100,"low_levelups":0,"lv":3,"lv_times":[16,31],"marks":{},"maxhp":120.0,"ops":[{"elite":0,"id":"kaltsit","prog":2}],"out":{"Mon3tr":617.447426738762},"out_tag":{"basic":617.447426738762,"entity":617.447426738762,"summon":617.447426738762},"out_type":{"物理":617.447426738762},"prof":{},"prog_offer":{"kaltsit":2},"prog_pick":{"kaltsit":2},"recall_backstop":0,"recall_n":0,"rej":{},"relic_offer":[],"relic_out":0.0,"relic_take":[],"relics":0,"squad":["kaltsit"],"sus":{"m0":{"clean":{},"dr":{},"heal":{"凯尔希·技能":[0.0,52.54236],"拾取":[0.0,36.0]},"lit":0.0}},"swaps":[],"t":45,"terrain":{"bul":0,"dash":0,"ebul":0},"win":false,"xp_backstop":0.0,"xp_dropped":85.0,"xp_ground":2.5,"xp_magnet":0.0,"xp_magnet_min":[],"xp_recall":0.0,"xp_recall_min":[],"xp_total":82.5,"xp_total_min":[82.5],"xp_walk":82.5,"xp_walk_min":[82.5]}
+SPAWNQ {"alive_420_max":0,"alive_420_med":0,"alive_420_p95":0,"alive_710_max":0,"alive_710_med":0,"alive_710_p95":0,"cap":0,"deferred":0,"density":0.4,"drop_final":0,"drop_room":0,"forced":0,"hist":{"1-3s":0,"10-30s":0,"3-10s":0,"<1s":0,">=30s":0},"pending_end":0,"q_peak":0,"queued":0,"spawned":51,"wait_cap":10.0,"wait_max":0.0,"wait_mean":0.0,"wait_p50":0.0,"wait_p90":0.0,"wait_p99":0.0}
+ERROR: 1 RID allocations of type 'PN13RendererDummy14TextureStorage12DummyTextureE' were leaked at exit.
+
+
+## stderr
+WARNING: 24 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 9 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: Pages in use exist at exit in PagedAllocator: N12VariantPools11BucketSmallE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+
