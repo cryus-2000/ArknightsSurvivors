@@ -102,7 +102,7 @@
 第 1 批 25 条（含 10-13 色板复核版）全部接上，帧数 / fps / 原点按 manifest，登记在 game.gd `V6_FRAMES`，人物帧条登记在各干员 `sprites`（`throw`、`m_lunge`、`m_leap`），@2x 自动加载；用法见 docs/61 §16、docs/91 §23。
 - **两处覆盖已有文件，规格不同，改名为本批专用、原文件恢复原样**：
   - `fx_slash_heavy_rose`：Codex 版是 4 帧 × 35×34（暗红抖动刀光，色板复核版同规格）；原文件是 5 帧 × 28×34（玫红刀光，艾丽妮 irene.gd 在用，V6_FRAMES 按 5 帧切）。总尺寸同为 140×34，但按 5 帧切 Codex 版会切坏 → Codex 版改名 `fx_hoshiguma_slash_rose`（+ @2x，星熊反击架势用），`fx_slash_heavy_rose.png` 恢复为交付前的版本（原本没有 @2x，Codex 带来的 @2x 也随改名移走，否则会被自动加载盖住原图）。
-  - `fx_exusiai_hit_gold`：Codex 版是 5 帧 × 24×24；原文件是 3 帧 × 12×12（能天使天赋「弹夹倾泻」命中火花，与 hit_s1 / s2 / s3 同一套）→ Codex 版改名 `fx_exusiai_pierce_gold`（+ @2x，穿甲连射叠满火花），原文件与 @2x 恢复。
+  - `fx_exusiai_hit_gold`：Codex 版是 5 帧 × 24×24；原文件是 3 帧 × 12×12（能天使天赋「弹匣倾泻」命中火花，与 hit_s1 / s2 / s3 同一套）→ Codex 版改名 `fx_exusiai_pierce_gold`（+ @2x，穿甲连射叠满火花），原文件与 @2x 恢复。
   - manifest 里这两条仍是原文件名，以本节为准。
 - `fx_texas_pin_sword` / `fx_texas_sword_drop` 朝下画（manifest 写明的朝向例外），按落剑用法接，不旋转。
 - 缺图回退：钉剑 → `fx_texas_rain_mark`；剑雨 → 旧剑雨帧条；失重井 → `proj_angelina_orb` + `fx_angelina_pull`；回防落地环 → `fx_circle_steel` 染绿；残影 → 当前帧染绿；扑击 / 跃回帧条 → `m_run`；盾锯 → 程序圆盾；祝福金光 → 程序光点。
