@@ -342,6 +342,88 @@ game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCo
 | B7（换基线） | 敌人更新拆三段；随机流拆分；修失重击退 / 弹体查询半径 / 敌弹字段；敌方投射物池、我方投射物池合一 | **会变（一次性）** | B1、B2、B5；用户同意 |
 | B8 | 热字段平行数组（段首读入、段尾写回）+ `OPT_CPP` 对照位 | 不变（相对 B7 基线） | B7 |
 
+### 7.3 B6 准备：op_blocks 拆分方案与 `ob_geom` 清单（干员会话 10-15，只出方案、未改代码；依据 main f00e6f34）
+
+**现状**（f00e6f34）：`op_blocks.gd` 16840 行，79 个小节、13 个大段（`# ====` 分隔）；数据干员实际用到 117 个积木 tag，其中 91 个只有 1 名干员用（与 §3.6 一致）。外部入口集中：`data_operator.gd` 169 处 `OB.*` 调用（`cond_true` 11、`fx_play` 6，其余几乎都是各段的 tick / sustain / exec / draw 钩子各 1 处），另有 `character.gd`、tests 直接调。
+
+#### 7.3.1 拆成哪些文件
+
+按「段」而不是按「批次」拆：现在的大段是按合入批次排的（手写迁移第 2 / 3 / 4 批、精英化第 1 / 2 / 3 / 5 批），一个批次混着 3–4 名干员；按 tag 表核对后的归属如下。
+
+| 新文件（`scripts/characters/blocks/`） | 来自 op_blocks（行号 = f00e6f34） | 内容 | 用到的干员 |
+|---|---|---|---|
+| `ob_core.gd` | 1–895、2372–2508（共用积木） | 表达式 / 条件、瞬时 / 常驻执行器、`compile`、tag 表、注册表、`SHARED_TAGS`（displace / field / buff_leader） | 全部 |
+| `ob_fx.gd` | 896–1440 | 通用 fx 字段：`fx_play / fx_tick / fx_body / fx_frame`、扩散缓动、余波环 | 全部 |
+| `ob_vortex.gd` | 1441–1924 | 程序漩涡（纯画面；§3.7 的预分配改造放这里做） | 浊心斯卡蒂等 |
+| `ob_geom.gd`（新） | 见 7.3.3 | 线段 / 胶囊 / 中心框 / 扇形 / 圆形判定的纯函数（原生接缝） | 全部 |
+| `ob_check.gd` | 511–895 的校验主体 + 各段「本段的校验」小节 | `validate` 与各段校验（S8 后只在 debug 跑，拆出去不进发布包热路径） | — |
+| `seg_hoshiguma.gd` | 1925–2104 | 格挡 / 反击、`shape.line` 的星熊用法 | 星熊 |
+| `seg_angelina.gd` | 2105–2371 | `ANGELINA_TAGS` | 安洁莉娜 |
+| `seg_texas.gd` | 2509–3241 | `TX_IMPL` | 德克萨斯 |
+| `seg_exusiai.gd` | 3242–3799、5958–6002（st.stack） | `EXU_IMPL`、穿甲连射叠层 | 能天使 |
+| `ob_summon.gd` | 3800–5825 | 召唤 / 封印 / 护盾 / 治疗光环（`SM_TAGS`）+ 召唤物扩展（`MF_TAGS`，Mon3tr） | 凯尔希、浊心斯卡蒂（通用积木，不按人拆） |
+| `ob_elite.gd` | 5826–6467 | 精英化第 1 批的通用积木：`buff_timed`、`shape.boomerang`、`summon_cmd`、`on_mate_attack` | 星熊、能天使、凯尔希、浊心斯卡蒂 |
+| `seg_skadi.gd` | 6468–7152（`HW_TAGS`） | 跃浪、连斩 | 斯卡蒂 |
+| `seg_eyjafjalla.gd` | 7153–7901（`HW2_TAGS`） | 法术弹 / 抛射 / 熔池（`shape.shell` 逻各斯也用 1 处，见下） | 艾雅法拉 |
+| `seg_logos.gd` | 7902–8616（`HW3_TAGS`）+ 9535–9857 中 `verb.link / requiem_stack` | 咒文弹、处决、咒域 | 逻各斯 |
+| `seg_ulpianus.gd` | 8617–9534（`HW4_TAGS`）+ 9858–10033（`shape.hookshot`） | 掷锚、锚击中心、手动技能 | 乌尔比安 |
+| `seg_irene.gd` | 10157–10655 中 thrust / cleave / barrage / launch，12908–12980 | 刺击、浮空、挑刺 | 艾丽妮 |
+| `seg_specter.gd` | 11049–11522、12805–12907（`SP_TAGS`、`E3_TAGS`） | 环斩、替身、不倒、替身闪现 | 归溟幽灵鲨 |
+| `seg_lumen.gd` | 11523–12172、12981–13078（`LM_TAGS`） | 荧光、灯塔、光束 | 流明 |
+| `seg_mizuki.gd` | 12173–12804、13079–13255（`MZ_TAGS`） | 伞击、触手、拖拽 | 水月 |
+| `seg_siege.gd` | 13514–14039（`SG_TAGS`） | 锤击、跃空锤、号令波 | 推进之王 |
+| `seg_suzuran.gd` | 14040–14662（`SZ_TAGS`） | 狐火、光域 | 铃兰 |
+| `seg_wisadel.gd` | 14663–15509（`WD_TAGS`） | 炮击、余震、殉爆（`_h4_explode` 里有扼喉之手） | 维什戴尔 |
+| `seg_saria.gd` | 15510–16234（`SA_TAGS`） | 拳击、晶柱、钙质化 | 塞雷娅 |
+| `seg_skalter.gd` | 16516–16840（精英化第 5 批） | 余音 / 远洋 | 浊心斯卡蒂 |
+| 手写迁移公共层 `ob_hw.gd` | 6468–6490、10086–10156、13284–13513、16235–16351 的分发 / 共用部分（`hw_tick / hw_draw_* / h3_* / h4_*` 入口、`H3_ATTACKS / H4_ATTACKS`） | 手写迁移段的帧调度与共用工具（第 3 / 4 批 `H3_TAGS`、`H4_TAGS` 是几名干员的并集，拆时按人分回各 seg，只留调度） | 13 名手写迁移干员 |
+
+- 两处跨人共用要先定归属：`shape.shell`（艾雅法拉 6 处、逻各斯 1 处）→ 放 `seg_eyjafjalla`，逻各斯通过注册表调用；`verb.displace`（4 人）、`shape.circle`（8 人）等通用积木留在 `ob_core`。
+- **`op_blocks.gd` 先保留为门面**：只剩 `const` 转发与同名静态函数转发到新文件，外部 169 + tests 的调用点一处不改；第二步再把 `data_operator` 的调用改成直连新文件、门面删掉。每一步单独一个分支，同 seed 逐行不变。
+- **依赖方向单向**：`seg_*` → `ob_core / ob_fx / ob_geom / ob_hw`；`ob_core` 不 preload 任何 `seg_*`（避免 GDScript 静态脚本的循环 preload），注册表在第一次 `compile` 时用 `load()` 按清单装载。
+
+#### 7.3.2 注册表单播
+
+- 每个 `seg_*.gd` 导出 `const TAGS := [...]`，可选 `static func exec(o, b, at)`、`tick(o, dt)`、`sustain(o, act)`、`draw_over(o)` / `draw_floor(o)` / `draw_auras(o)`、`check(ctx, b, path)`。
+- `ob_core` 维护一张**有序**段清单（就是现在 `data_operator` 里调用的先后），`compile` 时建 `tag → 段`（`_tag` 解析成段下标存进积木 `_seg`），并按干员算出「用得到的段」列表存在 `data_operator` 上。
+- 分派：
+  - `_exec_list` 的缺省分支现在**广播给 7 个执行器**（`_ext_exec → tx → exu → sm → mf → el → hw`，`hw` 再转 `h3 / h4`）。静态核对（f00e6f34）：这 9 个函数的 `match` 分支 tag 两两**没有重叠**（各 3 / 5 / 3 / 2 / 2 / 3 / 16 / 15 / 7 个），改成按 `b._seg` 单播不改变结果。拆分前要补一个工具（`tools/ob_tag_audit.py`）把这一核对做成快检项，防止以后有人往两个段加同一个 tag。
+  - 每帧 tick（`hw_tick → mf_tick → _tick_pending → _sustain → _tick_shots → exu → sm → el → tx_update`）现在**每名干员无条件调 5–6 个段**，各段开头自己判空返回。改成只调本干员「用得到的段」，**顺序照抄现在的清单**，所以同 seed 不变；也省掉每帧几次空调用（量级同 S9，约 0.05 毫秒，不是目的）。
+  - `_sustain` 末尾的 `_ext_sustain / hw_sustain / sm_sustain / mf_sustain / el_sustain_collect / tx_sustain` 同理。
+- 参数钩子（`exec_shape` 看到 `basis / only / band` 等字段就转到某段）改成在 `compile` 时把这些积木的 `_seg` 直接指向那一段，`exec_shape` 只做通用形状。
+- 风险：某些段在 `tick` 里处理的是「别的干员的积木挂在这名干员身上的状态」（例：`el_tick` 推进往返弹体，`sm_tick` 推进召唤物）——「用得到的段」要按**状态是否非空**补上，不能只看本干员 JSON。拆分第一步保留「全段都调、按清单顺序」，第二步再按 JSON + 状态裁剪，各自同 seed 对照。
+
+#### 7.3.3 对积木等价 / 金样哈希的影响（docs/36 §1.3）
+
+- `tools/check.py` 的 `EQ_COMMON`（本干员侧哈希里的公共文件）现在是 `op_blocks.gd / data_operator.gd / character.gd / op_api.gd`。拆分后**必须同步**：
+  - `blocks/ob_*.gd` 全部进 `EQ_COMMON`；
+  - `blocks/seg_<id>.gd` 归到对应干员的「本干员侧」（`eq_hashes` 里按文件名前缀匹配，同 `art/incoming/op_<id>_`），`seg_specter.gd` 对应 `specter_unchained`；
+  - 不改的话新文件会被算进「别处」，拆分分支上 14 组金样全部判「过期」跳过，等于这一项没比。
+- 拆分本身改了公共文件，所以拆分分支上金样的「本干员侧」全部变化、「别处」不变 → 14 组都会**真比**（这正是要的：纯搬家应 14 / 14 相同）。合入 main 后 `ship.py` 重录金样，`build/golden_cache/` 换成新哈希。
+- 每一步（门面拆分 → 直连 → 单播 → 段裁剪 → `ob_geom` 零差合并）各自跑 `--only blocks_eq --eq-all` 与 4 名干员（星熊 / 能天使 / 浊心斯卡蒂 / 维什戴尔）`--maxprog --sptest` 240 秒 TRACE。
+
+#### 7.3.4 `ob_geom` 清单：几何判定的几份实现
+
+逐处读过代码（行号 = f00e6f34 的 op_blocks.gd，另注明的除外）。审计说的「6 份线段判定」实际是 **4 种几何**：
+
+| # | 位置 | 判定 | 与标准线段（A）的差别 | 合并到 | 结果 |
+|---|---|---|---|---|---|
+| A | `line_contains` 1959（被 `exec_line` 1988、`sm_strike` 4208、`_el_boom_sweep` 6132、`_hw5_hook_drag_start` 9954 调用） | 有向矩形：沿线 `[-r, L+r]`、横向 `≤ W/2 + r` | 标准 | `seg_rect(o, d, L, half_w, p, r)` | — |
+| B | `_h3_thrust` 10299（艾丽妮刺击） | 内联，与 A 逐字相同，另按 `along` 排序 | 无 | `seg_rect` + 调用方排序 | **零差** |
+| C | `_e3_beam_fire` 13041（流明折光 / 灯塔光柱） | 内联，与 A 逐字相同，另按 `along` 排序 | 无 | `seg_rect` | **零差** |
+| D | `_hw_open_rift` 9097（乌尔比安掷锚 / 锚击沿线留下的裂隙 `rift`） | 内联有向矩形，但横向用 `≤ w + r`（`w` 当**半宽**，其余各处是全宽） | 宽度口径不同 | `seg_rect(..., half_w = w, ...)` 照传 | **零差**（只换调用写法；要不要统一成全宽是玩法改动，会让裂隙窄一半、**浮空目标变少**，另议） |
+| E | `_tx_sweep` 2784（德克萨斯冲刺斩） | 胶囊：线段最近点 `t = clamp(dot / L², 0, 1)`，距离 `≤ w/2 + r` | 两端是半圆、不是方头 | `seg_capsule(a, b, half_w, p, r)` | 算式照抄 E 时**零差** |
+| F | `_h4_breach` 13650（推进之王破阵地裂） | 胶囊：`t = clamp(dot(dir) / L, 0, 1)`、点 `a + dir·L·t` | 与 E 同几何，但**算式顺序不同**（先除 L 再乘 L） | `seg_capsule` | 换成 E 的算式会有末位浮点差：边界上的敌人可能进出一只，**不保证零差**；保守做法是 `seg_capsule` 留 `form` 参数各用各的式子，或接受一次 TRACE 变化 |
+| G | `_h3_beam_tick` 11952（流明光束） | 胶囊：`Geometry2D.get_closest_point_to_segment`，距离 `≤ r + 14`（固定 14 像素宽，不随参数） | 引擎函数 + 固定宽 | `seg_capsule(a, b, 14, p, r)` | 引擎函数与 E 的式子数值不同，同 F：**不保证零差** |
+| H | `_hw_waves` 6834 / 6876 / 6886（斯卡蒂跃浪） | 以浪头为中心的对称矩形 `|along| ≤ depth + r`、`|perp| ≤ w/2 + r` | 中心框，不是从起点出发 | `box_centered(c, d, half_len, half_w, p, r)` | **零差** |
+| — | `enemies.gd arc_hit` 553（`op_api.arc_targets` → `character.melee_hit`、op_blocks 9 处） | 扇形：距离 `≤ R + r`、角差 `≤ half + 0.15` | — | `ob_geom.arc` 只做纯判定，查询仍走 enemies_sys | 零差 |
+| — | op_blocks 内「`distance_to(...) ≤ R + e.r`」圆形判定 26 处 | 圆 | — | `circle(c, R, p, r)`（内联即可，收益在可读性） | 零差 |
+| — | 塞雷娅晶柱墙 15826（`_h4_pillars_tick`） | 点到线段距离，算**推开向量** | 碰撞求解，不是命中判定 | 不并进 `ob_geom` 的命中函数；可共用 `closest_on_segment` | 零差 |
+
+- **零差可并**：A–D、H、扇形、圆形（D 照传半宽）。这一步同 seed 必须逐行不变。
+- **会变**：F、G 若统一到一个胶囊算式（边界上末位浮点差）；D 若把宽度口径改成全宽（裂隙命中范围减半）。F 是推进之王破阵（不浮空）；G 是流明光束（命中挂「照亮」）；D 是乌尔比安的裂隙（命中**浮空** `_hw_launch`）。「浮空 / 链跳会变」指的就是 D、G 两处：D 改宽度会改浮空目标集合；跳弹 / 链跳（能天使跳弹、逻各斯连缀）的目标选择不走线段判定，`ob_geom` 合并**不影响**它们。
+- 建议顺序：先只建 `ob_geom` 并迁 A–C、H 与扇形 / 圆形（零差，单独分支）；E / F / G 的胶囊合一单独一个分支，先做「各用各的式子」的零差版，要不要统一算式交给数值 / 用户定（附变化前后 56 局对照）。
+
 ## 8. 需要用户定的事项
 
 > **2026-10-15 用户全部批准（协调人转达），按建议执行**：
