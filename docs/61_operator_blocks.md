@@ -691,6 +691,7 @@ python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot mas
 ### 积木写法
 
 - 画面：格挡 / 热砂 / 鬼面·力之锯 三条帧条都走通用 `fx` 字段（§5.6）。合入 main 前分支上的专用字段 `fx_strip / fx_r / fx_y` 已撤掉：格挡 `{strip: fx_hoshiguma_block, off: [0, -26], scale: 1.4}`（中心 = 主控）、热砂 `{layer: floor, fit: 23}`（余烬 fit 30）、直线斩 `{fit: 32, rot: true, off: [0, -30]}`。
+- **盾心锚点与无盾画面**（10-15，用户：盾「变红」不在盾上、掷盾后手上还有盾）：`sprites.<动作>.shield` = 每帧盾心（1x 帧内像素，null = 盾离手）；fx 条目新字段 `on_sprite: shield` 把格挡闪光（一次性帧条）/ 反击架势红光（贴身层，scale 0.6 与盾同大）锚到当前帧的盾心（`character.sprite_point`：朝左镜像、@2x 按 foot 口径自然折算；这一帧没有就退回原锚点 / 贴身层不画）。`sprites.noshield`：往返弹体在外面（`data_operator.prop_out`）时本体换无盾画面——有 Codex 无盾帧条（docs/97 H 批，`art`）就用，否则播 throw 的 f2 / f3（`fallback`）。纯画面：同 seed `--maxprog --sptest` 240 秒 TRACE 逐行相同。
 - 普攻 `shape.cone`（r 110、半角 70、kb 220，`slash: true` 画刀光）。
 - S1 战意（3 秒）：`verb.negate_next`，on_block = 主控周围 r120 ×2.0 kb 360「举盾反击」；on_miss = 前方扇形 ×1.5。
 - S2 荆棘（8 秒）：`buff_self op_atk +0.4`、`verb.dr 0.2`、`verb.negate_chance ×2`；热砂 = 特性里 `trig.every_n n 1 cond skill_active:1` → `verb.field center last_hit`（r80、2 秒、每 0.5 秒 ×0.15 = 每秒 ×0.3）。

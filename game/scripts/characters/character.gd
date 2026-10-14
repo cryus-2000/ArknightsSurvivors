@@ -1445,8 +1445,12 @@ func anim_hframes(tx: Texture2D, kind: String = "") -> int:
 	return max(1, tx.get_width() / tx.get_height())
 
 
-## 当前帧（贴图 / 帧序号 / 帧数），残影 / 分身等复用
+## 当前帧（贴图 / 帧序号 / 帧数），残影 / 分身等复用。道具离手（prop_out）时换成无盾画面（_noshield）
 func anim_state() -> Dictionary:
+	return _noshield(_anim_state_raw())
+
+
+func _anim_state_raw() -> Dictionary:
 	var tx: Texture2D = anim_tex(anim_kind)
 	if tx == null:
 		tx = anim_tex("idle")
@@ -1482,6 +1486,66 @@ func anim_state() -> Dictionary:
 		_:
 			fr = int(anim_t * float(sprite_spec(kind).get("fps", ANIM_FPS.get(kind, 4.0)))) % n
 	return {"tex": tx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
+
+
+## ---- 帧条里的定位点（10-15，星熊「盾心」）：def.sprites.<动作>.<key> = 每帧一个 [x, y]（1x 美术像素，帧内坐标，同 foot 的口径；
+## null = 这一帧没有，比如盾已离手）。返回当前帧这个点的世界坐标（朝左镜像、@2x 按倍率折算都由 foot 口径自然消掉；含屏幕抖动 draw_off，
+## 与本体画在同一处）；这一帧 / 这个动作没有标、或道具离手（prop_out）时返回 Vector2.INF
+func sprite_point(key: String) -> Vector2:
+	if pos == Vector2.INF or (key == "shield" and prop_out()):
+		return Vector2.INF
+	var st := anim_state()
+	if st.is_empty():
+		return Vector2.INF
+	var kind: String = str(st.get("kind", ""))
+	var spec := sprite_spec(kind)
+	var pts = spec.get(key, null)
+	if not (pts is Array) or pts.is_empty():
+		return Vector2.INF
+	var p = pts[int(st.get("frame", 0)) % pts.size()]
+	if not (p is Array) or p.size() < 2:
+		return Vector2.INF
+	var ft = spec.get("foot", def.get("sprites", {}).get("foot", [24, 46]))
+	var sgn: float = -1.0 if st.get("flip", false) else 1.0
+	return pos + g.draw_off + Vector2(sgn * (float(p[0]) - float(ft[0])), float(p[1]) - float(ft[1])) * g.PX
+
+
+## 道具离手（星熊「般若回旋」盾在外面）：本体换无盾画面、盾心定位点失效。数据干员按积木状态重写（data_operator）
+func prop_out() -> bool:
+	return false
+
+
+## 无盾画面（10-15，星熊掷盾后手上还画着盾）：def.sprites.noshield =
+##   {"art": {动作: 帧条名}（Codex 无盾帧条，docs/97 H 批；帧数 / 脚底与该动作相同，有图就用），
+##    "keep": {动作: [帧号…]}（这些帧本来就没盾，不换），"fallback": {"anim", "frames", "fps"}（没图时改播这个动作里的无盾帧：走动时按 fps 轮换，站着停在最后一帧）}
+## 纯画面：只换贴图，不碰玩法状态
+func _noshield(st: Dictionary) -> Dictionary:
+	if st.is_empty() or not prop_out():
+		return st
+	var ns = def.get("sprites", {}).get("noshield", null)
+	if not (ns is Dictionary):
+		return st
+	var kind: String = str(st.get("kind", ""))
+	var keep = ns.get("keep", {}).get(kind, [])
+	if keep is Array and keep.has(int(st.get("frame", -1))):
+		return st
+	var an: String = str(ns.get("art", {}).get(kind, ""))
+	if an != "" and g.tex.get(an) != null:
+		var out := st.duplicate()
+		out["tex"] = g.tex[an]
+		return out
+	var fb = ns.get("fallback", {})
+	if not (fb is Dictionary):
+		return st
+	var fk: String = str(fb.get("anim", ""))
+	var ftx: Texture2D = anim_tex(fk)
+	var frs = fb.get("frames", [])
+	if ftx == null or not (frs is Array) or frs.is_empty():
+		return st
+	var i: int = frs.size() - 1
+	if kind == "run":
+		i = int(g.t * float(fb.get("fps", 8.0))) % frs.size()
+	return {"tex": ftx, "frame": int(frs[i]), "hf": anim_hframes(ftx, fk), "flip": (face < 0.0) != sprite_mirror(fk), "kind": fk}
 
 
 ## ---- 技能期间换动作组（docs/92，2026-10-13；首例安洁莉娜 S3 浮空）：def.sprites.skill_pose =
