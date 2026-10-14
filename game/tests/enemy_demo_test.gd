@@ -137,7 +137,7 @@ func _ready() -> void:
 				for f in entry.forms:
 					if f.get("label", "") == "二阶段":
 						check(f.get("tint", Color.WHITE) == Color.WHITE, "paranoia phase 2 gallery form is not tinted (V13 art is magenta)")
-	for detail in [["knight_boss", "寒冷追击"], ["bishop", "接潮共鸣"], ["ishar", "泪滴共鸣"]]:
+	for detail in [["knight_boss", "寒冷追击"], ["bishop", "统一"], ["ishar", "泪滴共鸣"]]:
 		gal.tab = 3
 		gal._build()
 		check(gal.entries.any(func(entry): return entry.id == detail[0] and detail[1] in entry.desc), "gallery explains original-mechanic attack " + detail[0])

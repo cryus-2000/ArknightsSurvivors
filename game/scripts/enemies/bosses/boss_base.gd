@@ -14,7 +14,7 @@ func _init(game) -> void:
 	g = game
 
 
-## 每帧：boss_ai._boss_ai 跑完公共段（卡点、冲刺计时、假死、骑士追击、接潮共鸣、令牌、招式轮换）后调用。
+## 每帧：boss_ai._boss_ai 跑完公共段（卡点、冲刺计时、假死、骑士追击、接潮统一、令牌、招式轮换）后调用。
 ## ready = 本帧可以出招；mate = 接潮搭档（没有则 null）
 func step(_e: Dictionary, _dt: float, _dir: Vector2, _dist: float, _ready: bool, _mate) -> void:
 	pass
@@ -61,6 +61,12 @@ func _first_tell(e: Dictionary, key: String, name: String) -> bool:
 ## 二阶段常驻着色（docs/95 §0.2「阶段切换一眼可见」②）：低幅度乘色，render/world 画本体时乘上；不改帧条
 func _tint2(e: Dictionary, col: Color) -> void:
 	e["tint2"] = col
+
+
+## 接潮组的「第二幕」（docs/95 §8–§10「合计 50% 卡点后」）：两具各有自己的 50% 卡点，任一具过了就算整组进第二幕
+func _pair_p2(e: Dictionary) -> bool:
+	var m = e.get("partner")
+	return int(e.get("gates_passed", 0)) >= 1 or (m != null and not m.dead and int(m.get("gates_passed", 0)) >= 1)
 
 
 ## ---- 转发到 boss_ai.gd（docs/38 §1.17：包装方法放基类，各 Boss 脚本只调基类）
