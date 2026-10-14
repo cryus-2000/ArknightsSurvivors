@@ -23,8 +23,8 @@
   "max_hp": 130, "armor": 3.0, "arts_res": 0.0, "regen": 1.6
  },
  "sprites": {
-  "idle": {"tex": "op_texas_idle", "frames": 4, "fps": 4, "foot": [24, 46]},
-  "run": {"tex": "op_texas_run", "frames": 6, "fps": 10, "foot": [24, 46]},
+  "idle": {"tex": "op_texas_idle", "frames": 4, "fps": 4, "foot": [28, 46]},
+  "run": {"tex": "op_texas_run", "frames": 6, "fps": 10, "foot": [20, 46]},
   "attack": {"tex": "op_texas_attack", "frames": 5, "fps": 14, "foot": [24, 46], "fire": 1},
   "skill": {"tex": "op_texas_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 3},
   "size": 48, "foot": [24, 46]
