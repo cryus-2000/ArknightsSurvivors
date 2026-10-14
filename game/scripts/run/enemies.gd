@@ -313,7 +313,8 @@ func update(dt: float) -> void:
 func _devour(e: Dictionary, o: Dictionary) -> void:
 	e.hp += o.hp
 	e.maxhp += o.maxhp
-	e.r = min(e.r + 1.5, 32.0)
+	var esc: float = float(e.get("sc", 1.0))   # 怪物体型（spawner.escale）：增量与上限同比放大
+	e.r = min(e.r + 1.5 * esc, 32.0 * esc)
 	e.xp += o.xp
 	o.dead = true
 	g.vfx.add_text(e.pos, "吞噬", Color(1.0, 0.4, 0.5))

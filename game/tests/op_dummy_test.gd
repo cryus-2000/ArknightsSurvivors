@@ -6,6 +6,7 @@ extends Node
 ## 场地：g.sandbox = true（不刷怪、不走事件 / 围猎 / 灯标 / 商人 / 拾取，game.gd），主控站桩（--bot=afk）。
 ##   single：主控右侧 50 像素一只不动、不攻击、打不死的木桩（骨海漂流体外形，生命恒满）。
 ##   horde ：主控周围 180–240 像素持续补满 HORDE_N 只普通近战怪（固定种类轮换、固定生命 HORDE_HP、照常移动与攻击）。
+##           怪物密度 enemy/density = k（docs/50 §16）时补满 round(HORDE_N × k) 只、每只 HORDE_HP / k（总血量池不变）；怪物体型 enemy/scale 时判定半径同乘。缺省 1 = 原样
 ## 每帧：主控生命压在 60%（治疗全部有效）、灯火 100、不升级不开箱；基准主控（队友身份时）技力压 0、不放技能；
 ##   被测干员的手动技能就绪即放（机器人缺省是保命型时机，这里取上限）。
 ## 先热身 dummy_warm 秒（技力从 0 开始充），再统计 dummy_secs 秒。结束打印一行 DUMMY {json}。
@@ -13,6 +14,7 @@ extends Node
 
 const HORDE_N := 30
 const HORDE_HP := 400.0
+const Bal = preload("res://scripts/core/balance.gd")
 const HORDE_TYPES := ["bone", "slider", "runner", "offspring"]
 const DUMMY_DX := 50.0
 const HP_PIN := 0.6
@@ -173,13 +175,19 @@ func _refill() -> void:
 	if measuring:
 		alive_sum += alive   # 补怪前的在场数：接近 HORDE_N = 没打空；明显偏低 = 补怪速度成了上限
 		alive_n += 1
-	while alive < HORDE_N:
+	var dk: float = Bal.v("enemy/density", 1.0)
+	var esc: float = Bal.v("enemy/scale", 1.0)
+	var n_full: int = HORDE_N if dk == 1.0 else maxi(1, roundi(HORDE_N * dk))
+	while alive < n_full:
 		var ty: String = HORDE_TYPES[horde_k % HORDE_TYPES.size()]
 		horde_k += 1
 		var p: Vector2 = game.ppos + Vector2.from_angle(hrng.randf() * TAU) * hrng.randf_range(180.0, 240.0)
 		var e: Dictionary = game.spawner.spawn_enemy(ty, p)
-		e.hp = HORDE_HP
-		e.maxhp = HORDE_HP
+		e.hp = HORDE_HP / dk
+		e.maxhp = HORDE_HP / dk
+		if esc != 1.0:
+			e.r *= esc
+			e["sc"] = esc
 		e.xp = 0.0
 		alive += 1
 
