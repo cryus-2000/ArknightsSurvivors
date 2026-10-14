@@ -2,6 +2,8 @@
 
 Read docs/06_git_collaboration.md before making changes.
 
+Docs index: docs/00_index.md lists every document by topic with its status (current spec / implemented record / in progress), a one-line summary and who references it; archived documents live in docs/archive/ with a one-line pointer left at the old path. Read first, all sessions: docs/00_index.md, 06, 41 §1–§3, 36 §1–§3 (including §1.1) and §7.5.1, 39, 76. The index's 「新会话先读」 table adds the per-role list (operators, Boss & enemies, balance / relics, UI & art, audio, deploy, copy).
+
 Multi-session coordination (Claude sessions): docs/41_agent_team.md. The user normally talks to one coordinator session, which relays tasks; worker sessions report 【收到】/【完成】/【卡住】 to the coordinator and CC it (【抄送】) when the user gives them tasks directly.
 
 Original-game reference (Arknights 集成战略 / battle mechanics / boss originals, sourced from PRTS and unpacked game data): docs/49_原作参考.md (sub-files 49a / 49b / 49c). Check it before designing mechanics, numbers or names that borrow from the original.
@@ -15,7 +17,7 @@ Language style (binding, user 2026-10-12): all player-facing text (UI, guide, ba
 - Commit only explicitly selected files belonging to your work; never sweep another agent's changes into a commit.
 - Do not discard changes, force-push, reset --hard, or clean the other agent's work.
 - Deliver art with a commit hash and affected paths. Claude reviews then cherry-picks the art commit into main from a clean working tree. If conflicts occur, resolve deliberately; do not overwrite either side wholesale.
-- Art under incoming is authoritative delivery. Refer to docs/05_art_handoff.md for filenames, dimensions and import rules.
+- Art under incoming is authoritative delivery. Refer to docs/05_art_handoff.md for file locations, naming and import rules; sprite dimensions and specs: docs/98_sprite_standard.md (all characters and monsters) and docs/87_art_spec.md (operator strips).
 - Do not commit .godot/, build outputs, node_modules, credentials or local art backups.
 - Automated runs must be silent: any launch with a `--xxx` user argument (autotest, balance, screenshots, gallery shots) mutes the Master bus in sfx.gd. Never remove that mute, and never add a test mode that bypasses it — the user works while tests run. Prefer `--headless` for anything that does not need a screenshot.
 - Testing standard: docs/36_testing.md. Before committing game code or data, run `python tools/check.py` (quick check, about a minute: core contracts, a smoke run per operator, same-seed reproducibility) and do not commit if anything fails. Any SCRIPT ERROR or Parse Error counts as a failure.
