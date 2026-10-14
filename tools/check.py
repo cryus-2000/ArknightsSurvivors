@@ -10,6 +10,7 @@
     python tools/check.py --auto       按相对 main 的改动只跑相关项目：只改文档 → 不开 Godot；只改说明字段 → +核心契约；
                                        只改某几名干员 → +这些干员的冒烟 / 成长节点 + 复现；其余 → 全量。合入 main 前仍跑全量
 
+每个 Godot 进程的输出按输入内容哈希缓存在主仓库 build/check_cache/（docs/36 §1.2），同样的输入不再重跑；--nocache 关掉。
 每次快检把每局的完整输出写到 build/check/quick_<时间>/，失败时报告末尾列出失败项、原因和日志路径。
 新工作树没有导入缓存时会先自动导入（docs/36 §2.1）。
 
@@ -23,7 +24,7 @@
 美术帧条：tools/art_lint.py 按 docs/87 查 art/incoming 的干员帧条，未豁免的 FAIL 算失败（豁免表在 art_lint.WAIVERS）。
 发行包瘦身：tools/release_slim.py 查审阅图排除规则不误伤运行时贴图、导出预设与规则一致、扫描到的文字都在子集字体里（docs/33 §包体瘦身）。
 """
-import argparse, datetime, glob, heapq, itertools, json, os, re, shutil, statistics, subprocess, sys, tempfile, threading, time
+import argparse, datetime, glob, hashlib, heapq, itertools, json, os, re, shutil, statistics, subprocess, sys, tempfile, threading, time
 from concurrent.futures import ThreadPoolExecutor
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -208,6 +209,118 @@ class Gate:
 
 GATE = None   # main 里按 --jobs 建
 
+# ---------------------------------------------------------------- 结果缓存（docs/36 §1.2，10-15）
+# 每个 Godot 进程的 (stdout, stderr) 按「它读到的输入的内容哈希 + 参数」缓存，判定逻辑每次照常跑（改了 check.py 的判定不用清缓存）。
+# 输入范围两档：
+#   logic：game/ 下除图片 / 音频 / 字体 / .import 以外的全部文件（脚本、数据、场景、着色器、测试、项目设置），
+#          加上 art/incoming 的图按「文件名 + 尺寸」、json 按内容、音频按文件名（游戏运行时读这个目录，帧宽 = 图宽 / 帧数）；
+#          冒烟 / 自然流程 / 成长节点 / 主控保护 / 复现 / 积木等价用这档——这些看的是玩法与报错，不看颜色；
+#   full ：game/ 与 art/incoming 下全部文件按内容，核心契约和界面类场景回归用这档。
+# 键还含 Godot 可执行文件（路径 + 修改时间）和去掉 --path 的完整参数；超时的结果不缓存。*.uid 不计入（生成的随机 id）。
+CACHE_DIR = os.path.join(GR.common_root(), "build", "check_cache")
+NOCACHE = False
+SCOPES = {}            # {"logic": 哈希, "full": 哈希}，main 里算一次
+CACHE_STAT = {"hit": 0, "miss": 0}
+ASSET_EXT = (".png", ".jpg", ".jpeg", ".webp", ".svg", ".ogg", ".wav", ".mp3", ".ttf", ".otf", ".woff", ".woff2", ".fnt", ".import")
+LOGIC_TAGS = ("冒烟", "自然流程", "nodes_", "prot", "复现", "blocks_eq_")
+
+
+def _blobs(rel):
+    """rel 目录下所有文件的 git blob 号：已跟踪且未改动的用索引里的，改过 / 未跟踪的现算 sha1（与 git 同一算法）"""
+    def run(*a):
+        r = subprocess.run(["git"] + list(a), cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
+        return r.stdout if r.returncode == 0 else ""
+    blobs = {}
+    for line in run("ls-files", "-s", "--", rel).splitlines():
+        meta, path = line.split("\t", 1)
+        blobs[path] = meta.split()[1]
+    dirty = set(run("diff", "--name-only", "--", rel).split("\n")) | set(run("ls-files", "--others", "--exclude-standard", "--", rel).split("\n"))
+    for path in dirty:
+        if not path:
+            continue
+        fp = os.path.join(ROOT, path)
+        if os.path.isfile(fp):
+            data = open(fp, "rb").read()
+            blobs[path] = hashlib.sha1(b"blob %d\0" % len(data) + data).hexdigest()
+        else:
+            blobs.pop(path, None)   # 工作区删掉了
+    return {p: b for p, b in blobs.items() if not p.endswith(".uid") and "/.godot/" not in p}
+
+
+def _png_size(path):
+    try:
+        with open(os.path.join(ROOT, path), "rb") as f:
+            h = f.read(24)
+        return "%dx%d" % (int.from_bytes(h[16:20], "big"), int.from_bytes(h[20:24], "big")) if h[:8] == b"\x89PNG\r\n\x1a\n" else "?"
+    except OSError:
+        return "?"
+
+
+def scope_hashes(game=GAME):
+    """两档输入的内容哈希（见上）。art/incoming 也算输入：游戏运行时优先读项目外的 art/incoming（scripts/art.gd），
+    帧条的帧宽按图宽 / 帧数算——所以 logic 档里 art/incoming 的图按「文件名 + 尺寸」计（改色不失效，改尺寸 / 帧数失效），
+    json 按内容计，音频只计文件名（存在与否），md / gif / html 不计；full 档全部按内容计"""
+    rel = os.path.relpath(game, ROOT).replace(os.sep, "/")
+    g = _blobs(rel)
+    art = _blobs("art/incoming")
+    out = {}
+    h = hashlib.sha256()
+    for path in sorted(g):
+        if not path.lower().endswith(ASSET_EXT):
+            h.update(("%s %s\n" % (path[len(rel):], g[path])).encode("utf-8"))
+    for path in sorted(art):
+        low = path.lower()
+        if low.endswith(".png"):
+            h.update(("%s %s\n" % (path, _png_size(path))).encode("utf-8"))
+        elif low.endswith((".json", ".txt", ".cfg")):
+            h.update(("%s %s\n" % (path, art[path])).encode("utf-8"))
+        elif low.endswith((".wav", ".ogg", ".mp3")):
+            h.update(("%s\n" % path).encode("utf-8"))
+    out["logic"] = h.hexdigest()
+    h = hashlib.sha256()
+    for path in sorted(g):
+        h.update(("%s %s\n" % (path[len(rel):], g[path])).encode("utf-8"))
+    for path in sorted(art):
+        h.update(("%s %s\n" % (path, art[path])).encode("utf-8"))
+    out["full"] = h.hexdigest()
+    return out
+
+
+def _cache_key(args, tag):
+    if NOCACHE or not SCOPES:
+        return None
+    scope = "logic" if tag.startswith(LOGIC_TAGS) else "full"
+    a = list(args)
+    if "--path" in a:
+        i = a.index("--path")
+        a = a[:i] + a[i + 2:]   # 去掉工作树路径：不同工作树同一份内容可以共用
+    exe = a[0] if a else ""
+    try:
+        exe_id = "%s %d" % (exe, os.path.getmtime(exe))
+    except OSError:
+        exe_id = exe
+    return hashlib.sha256(json.dumps([scope, SCOPES[scope], exe_id, a[1:]], ensure_ascii=False).encode("utf-8")).hexdigest()
+
+
+def _cache_get(key):
+    if not key:
+        return None
+    try:
+        d = json.load(open(os.path.join(CACHE_DIR, key[:2], key + ".json"), encoding="utf-8"))
+        return d["out"], d["err"]
+    except (OSError, ValueError, KeyError):
+        return None
+
+
+def _cache_put(key, out, err, tag):
+    if not key:
+        return
+    d = os.path.join(CACHE_DIR, key[:2])
+    os.makedirs(d, exist_ok=True)
+    tmp = os.path.join(d, "%s.%d.tmp" % (key, os.getpid()))
+    json.dump({"tag": tag, "time": time.strftime("%Y-%m-%d %H:%M:%S"), "out": out, "err": err}, open(tmp, "w", encoding="utf-8"), ensure_ascii=False)
+    os.replace(tmp, os.path.join(d, key + ".json"))
+
 
 def _last_durations():
     """上一次快检（OUT_DIR 下最新的 quick_*）各日志的「用时 N 秒」，按日志首行的 tag 取：{tag: 秒}"""
@@ -226,7 +339,7 @@ def _last_durations():
             except OSError:
                 continue
             m = re.match(r"# (.*)\n# .*\n# 用时 (\d+) 秒", head)
-            if m:
+            if m and "缓存命中" not in head:   # 命中缓存的「用时 0 秒」不代表真跑要多久
                 est.setdefault(m.group(1), float(m.group(2)))
         if len(est) > 30:
             break
@@ -238,14 +351,23 @@ def _run(args, timeout, tag):
     if BAL_ARGS and "--" in args:
         args = list(args) + BAL_ARGS   # --bal=段/键=值 透传给每个 Godot 进程（balance.gd 测试探针）
     box = {}
+    key = _cache_key(args, tag)
+    hit = _cache_get(key)
 
     def go():
         box["t0"] = time.time()   # 用时从拿到名额算起（排队时间不算）
         box["r"] = GR.run_godot(args, timeout)
-    if GATE is not None:
-        GATE.run(tag, go)
+    if hit is not None:
+        box["t0"], box["r"] = time.time(), (hit[0], hit[1], False)
+        CACHE_STAT["hit"] += 1
     else:
-        go()
+        if GATE is not None:
+            GATE.run(tag, go)
+        else:
+            go()
+        CACHE_STAT["miss"] += 1
+        if not box["r"][2]:
+            _cache_put(key, box["r"][0], box["r"][1], tag)   # 超时的不存（多半是负载，不是结果）
     t0 = box["t0"]
     out, err, to = box["r"]
     path = None
@@ -257,8 +379,8 @@ def _run(args, timeout, tag):
             path = os.path.join(LOG_DIR, "%s_%d.log" % (safe, n))
             n += 1
         with open(path, "w", encoding="utf-8") as fh:
-            fh.write("# %s\n# 参数：%s\n# 用时 %.0f 秒%s；结束时全机 Godot %d 个\n\n## stdout\n%s\n\n## stderr\n%s\n" % (
-                tag, " ".join(args[1:]), time.time() - t0, "（超时）" if to else "", GR.count_godot(), out, err))
+            fh.write("# %s\n# 参数：%s\n# 用时 %.0f 秒%s；结束时全机 Godot %d 个%s\n\n## stdout\n%s\n\n## stderr\n%s\n" % (
+                tag, " ".join(args[1:]), time.time() - t0, "（超时）" if to else "", GR.count_godot(), "；缓存命中 " + key[:12] if hit is not None else "", out, err))
     return out, err, to, path
 
 
@@ -719,6 +841,7 @@ def main():
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
                     help="透传给每个 Godot 进程的旋钮覆盖（--bal=enemy/density=1，可重复）；查测试在非缺省旋钮下是否仍过")
+    ap.add_argument("--nocache", action="store_true", help="不读也不写结果缓存（build/check_cache，docs/36 §1.2）")
     ap.add_argument("--auto", action="store_true",
                     help="按相对 main 改了哪些文件只跑相关项目（改的过程中用；合入 main 前仍跑全量）")
     a = ap.parse_args()
@@ -775,8 +898,11 @@ def main():
         for key in SCENE_REGRESSIONS:
             if a.only in (None, "regressions", key):
                 jobs.append(lambda key=key: check_scene(godot, key))
-    global GATE
+    global GATE, NOCACHE
     GATE = Gate(JOBS, _last_durations())
+    NOCACHE = a.nocache
+    if not NOCACHE:
+        SCOPES.update(scope_hashes())
     with ThreadPoolExecutor(max(1, len(jobs))) as ex:   # 各项一起开始，Godot 在 GATE 排队（最久的先开）；不开 Godot 的静态项不占名额
         results = list(ex.map(lambda f: f(), jobs))
     bad = [r for r in results if not r["ok"]]
@@ -785,8 +911,9 @@ def main():
         lines.append("%s %s  %s" % ("通过" if r["ok"] else "失败", r["name"], r["detail"]))
         for e in r.get("errors", []):
             lines.append("      " + e[:220])
-    summary = "\n".join(lines) + "\n\n%s：%d 项，失败 %d 项，耗时 %.0f 秒（开始时全机 %d 个 Godot，结束时 %d 个）" % (
-        "快检通过" if not bad else "快检失败", len(results), len(bad), time.time() - t0, load0, GR.count_godot())
+    summary = "\n".join(lines) + "\n\n%s：%d 项，失败 %d 项，耗时 %.0f 秒（开始时全机 %d 个 Godot，结束时 %d 个）%s" % (
+        "快检通过" if not bad else "快检失败", len(results), len(bad), time.time() - t0, load0, GR.count_godot(),
+        "；Godot 结果缓存命中 %d / %d（不用缓存加 --nocache）" % (CACHE_STAT["hit"], CACHE_STAT["hit"] + CACHE_STAT["miss"]) if not NOCACHE else "；未用缓存")
     if bad:
         # 失败项单独再列一遍：名字、原因、完整日志路径（负载高时偶发失败，事后要能查到是哪项、为什么）
         summary += "\n\n失败项：\n" + "\n".join("  · %s — %s\n    日志：%s" % (r["name"], r["detail"], r.get("log") or "（无）") for r in bad)
