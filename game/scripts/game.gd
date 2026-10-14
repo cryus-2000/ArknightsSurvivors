@@ -411,6 +411,8 @@ var realtime := false            # --realtime（仅测试，配合 --balance --p
 var playclock_test := false     # --playclock（仅测试，配合 --balance --realtime）：开垂直同步、按玩家局的 PlayClock 分步推进，测玩家实际帧时间（docs/50 §10）
 var upd_n := 0                  # _update 调用次数（--perfdump 逐帧记模拟步数）
 var perf_alt := false           # --perfab=N（仅测试）：autotest 每 N 帧轮换，同局对照两种实现（docs/50 §10）
+## 2026-10-15（docs/101 S2）：下面 1–32768 这些位的旧实现都已删掉，只有 OPT_HUDB（128）的旧写法还在 HUD 里（归界面与美术）；
+## 编号保留不复用，--optab / --optmask / --optold 框架照旧，给以后的对照位（如原生代码 OPT_CPP = 131072，docs/101 §4.7）用。
 ## 性能优化同局对照（docs/50 §11，仅测试）：--optab=N 每 N 帧在「新实现」与「旧实现」之间轮换；opt_old 是当前走旧实现的优化位（OPT_*），
 ## --optmask=<位> 只轮换其中几项（缺省全部）；--optold=<位> 整局固定走旧实现。正常游戏恒为 0（全走新实现）。各项新旧实现逐帧结果相同
 var opt_old := 0
@@ -1665,7 +1667,7 @@ func facing_angle() -> float:
 func _cleanup() -> void:
 	enemies = enemies.filter(func(e): return not e.dead)
 	# 掉落物只在 pickups.gd 里被标记 dead（拾取 / 回收，计数 dead_n）：这一帧没有就不重建（满地几百颗时逐帧 filter 是常驻开销，docs/50 §11）
-	if pickups.dead_n > 0 or opt_old & OPT_CLEANUP:
+	if pickups.dead_n > 0:
 		gems = gems.filter(func(g): return not g.dead)
 		pickups.dead_n = 0
 	bullets = bullets.filter(func(b): return b.life > 0.0)

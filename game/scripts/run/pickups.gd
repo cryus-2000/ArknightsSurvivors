@@ -140,13 +140,10 @@ func _pick_r() -> float:
 	return g.pickup * (1.2 if g.lamp >= 70.0 else (0.7 if g.lamp < 30.0 else 1.0))
 
 
-## 逐帧：落地物理、吸附、拾取。和 _update_old 逐帧结果相同（性能，docs/50 §11）：字段一律直接读（掉落物只由 drop() 生成，
+## 逐帧：落地物理、吸附、拾取（性能 docs/50 §11 的写法；10-15 删掉逐帧结果相同的旧写法 _update_old，docs/101 S2）：字段一律直接读（掉落物只由 drop() 生成，
 ## 字段齐全）；拾取半径循环外算一次、发生拾取后重算；离主控够远、没被吸起的掉落物只累计 age 就跳过（旧写法照样什么都不做）
 func update(dt: float) -> void:
 	_recall_tick(dt)
-	if g.opt_old & Game.OPT_GEM:
-		_update_old(dt)
-		return
 	var pr: float = _pick_r()
 	var pp: Vector2 = g.ppos
 	for g_item in g.gems:
@@ -197,7 +194,7 @@ func _land(g_item: Dictionary) -> void:
 		g_item.vel = Vector2.ZERO
 
 
-## 拾取结算（和 _update_old 里 d < 20 那一段相同）
+## 拾取结算
 func _collect(g_item: Dictionary) -> void:
 	g_item.dead = true
 	dead_n += 1
@@ -239,86 +236,6 @@ func _collect(g_item: Dictionary) -> void:
 			g.vfx.sparks(g.ppos + Vector2(0, -20), Vector2.ZERO, Color(0.5, 1.0, 0.65), 16, 200.0)
 			g.vfx.add_text(g.ppos + Vector2(0, -90), "+%d 生命" % int(hv), Color(0.5, 1.0, 0.65), 18)
 			Sfx.play("relic", -4.0, 1.5, 0.0)
-
-
-## 旧写法（--optab / --optold 同局对照用，docs/50 §11）
-func _update_old(dt: float) -> void:
-	for g_item in g.gems:
-		if g_item.dead:
-			continue
-		if g_item.has("vz") and (g_item.z > 0.0 or g_item.vz != 0.0):
-			g_item.vz -= 700.0 * dt
-			g_item.z += g_item.vz * dt
-			g_item.pos += g_item.vel * dt
-			if g_item.z <= 0.0:
-				g_item.z = 0.0
-				g_item.vel *= 0.4
-				if g_item.special and not g_item.landed:
-					g_item.landed = true
-					var lc := item_col(g_item.kind)
-					g.fx.append({"kind": "ring", "pos": g_item.pos, "r": 34.0, "life": 0.4, "max": 0.4, "col": lc})
-					g.vfx.sparks(g_item.pos, Vector2.ZERO, lc, 10, 160.0)
-					if g_item.kind != "chest":
-						g.vfx.add_text(g_item.pos + Vector2(0, -34), item_name(g_item.kind), lc, 15)
-					Sfx.play("pickup", -8.0, 0.7, 0.0)
-				g_item.vz = -g_item.vz * 0.35 if g_item.vz < -60.0 else 0.0
-				if g_item.vz == 0.0:
-					g_item.vel = Vector2.ZERO
-		g_item.age = g_item.get("age", 0.0) + dt
-		if stress:
-			continue
-		var d: float = g_item.pos.distance_to(g.ppos)
-		if g_item.get("special", false) and g_item.kind != "chest" and d > 40.0 and not g_item.mag:
-			continue
-		# 掉落先弹出落地、停留一瞬（让玩家看见），再被吸向水月：越吸越快
-		var settled: bool = g_item.get("z", 0.0) <= 0.0 and g_item.age > 0.4
-		if g_item.mag or (settled and d < g.pickup * (1.2 if g.lamp >= 70.0 else (0.7 if g.lamp < 30.0 else 1.0))):
-			g_item.mag = true
-			g_item["mag_t"] = g_item.get("mag_t", 0.0) + dt
-			g_item.z = 0.0
-			g_item.pos = g_item.pos.move_toward(g.ppos + Vector2(0, -12), (240.0 + 1300.0 * g_item.mag_t) * dt)
-			d = g_item.pos.distance_to(g.ppos + Vector2(0, -12))
-		if d < 20.0:
-			g_item.dead = true
-			dead_n += 1
-			if g_item.kind != "xp":
-				g.vfx.pickup_burst(g_item.kind, UI.GOLD if g_item.kind == "oil" else item_col(g_item.kind))   # docs/54 ⑦（fx/pickup_burst）
-			match g_item.kind:
-				"xp":
-					_count_xp("magnet" if g_item.get("by_magnet", false) else "walk", g_item.val)
-					gain_xp(g_item.val)
-					g.xp_flash = 0.3
-					g.vfx.sparks(g.ppos + Vector2(0, -22), Vector2.ZERO, UI.CYAN if g_item.val < 5.0 else Color(0.85, 0.6, 1.0), 3 if g_item.val < 5.0 else 7, 150.0)
-					Sfx.play("pickup", -14.0, 1.0 + min(g.xp / g.xp_need, 1.0) * 0.4, 0.03)
-				"oil":
-					var add: float = g_item.val * g.oil_mult
-					g.lamp = min(g.lamp_cap, g.lamp + add)
-					Sfx.play("oil", -4.0)
-					g.vfx.add_text(g.ppos + Vector2(0, -90), "灯火 +%d" % int(add), UI.GOLD, 16)
-				"chest":
-					g.pending_chests += 1
-				"ingot":
-					g.rfx.gain_ingots(int(g_item.val), "-")   # 最后一位商人离开后进熔铸池（docs/74）
-					Sfx.play("pickup", -10.0, 1.6, 0.05)
-				"magnet":
-					# 磁铁：吸取全场的经验、灯油和源石锭
-					item_log.magnet_pick += 1
-					for o in g.gems:
-						if not o.dead and (o.kind == "xp" or o.kind == "oil" or o.kind == "ingot"):
-							if not o.mag:
-								o["by_magnet"] = true   # 经验分来源：磁铁吸回（已经在吸的不改）
-							o.mag = true
-					g.fx.append({"kind": "ring", "pos": g.ppos, "r": 420.0, "life": 0.6, "max": 0.6, "col": Color(1.0, 0.45, 0.5)})
-					g.vfx.add_text(g.ppos + Vector2(0, -90), "磁铁：吸取全场掉落", Color(1.0, 0.55, 0.6), 17)
-					Sfx.play("relic", -4.0, 1.2, 0.0)
-				"heal":
-					item_log.heal_pick += 1
-					var hv := g.max_hp * 0.3
-					g.combat.heal(hv, "拾取")
-					g.fx.append({"kind": "ring", "pos": g.ppos, "r": 90.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.65)})
-					g.vfx.sparks(g.ppos + Vector2(0, -20), Vector2.ZERO, Color(0.5, 1.0, 0.65), 16, 200.0)
-					g.vfx.add_text(g.ppos + Vector2(0, -90), "+%d 生命" % int(hv), Color(0.5, 1.0, 0.65), 18)
-					Sfx.play("relic", -4.0, 1.5, 0.0)
 
 
 func item_col(kind: String) -> Color:

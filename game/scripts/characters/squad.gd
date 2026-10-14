@@ -490,7 +490,7 @@ var _pcap := -1
 func _pfx_cap_plan() -> void:
 	if _pcap < 0:
 		_pcap = int(Bal.v("render/pfx_cap", 0.0))
-	if _pcap <= 0 or g.opt_old & g.OPT_PCAP:
+	if _pcap <= 0:
 		return
 	var ns: Array = []
 	var tot := 0

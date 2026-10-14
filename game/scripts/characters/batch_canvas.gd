@@ -11,14 +11,12 @@ var xf := Transform2D.IDENTITY    # 当前 draw_set_transform（合批时只记�
 var _gxf := Transform2D.IDENTITY  # 已经下发给 g 的变换
 var _pts := PackedVector2Array()
 var _cols := PackedColorArray()
-var _idx := PackedInt32Array()
 var _off := -1
 var mute := false   # --clutterdbg=nofriend 量测：干员特效阶段的绘制全部丢掉（代码照跑、随机数照抽），squad 设
 var amul := 1.0     # 后期降噪（render/declutter mate_k / lead_k）：squad 在干员特效阶段按「队友 / 主控」设的透明度系数，乘在每次绘制的颜色上；1 = 不变
-## 快速写法（性能 docs/50 §14，g.opt_old 位 OPT_CV = 512 走旧写法）：批里改成无索引三角形列表，圆 / 弧的顶点用单位方向表
+## 合批写法（性能 docs/50 §14 OPT_CV；10-15 删掉逐点 _add 的旧写法，docs/101 S2）：批里是无索引三角形列表，圆 / 弧的顶点用单位方向表
 ## × Transform2D 整组生成（引擎原生运算，算式与逐点 _add 相同：c + d × r 再乘 xf，浮点结果逐位一致），不再每个顶点一次函数调用、
 ## 每个三角形一个临时数组。三角形与顶点色和旧写法相同、同序，只是不共用顶点
-var _nf := false
 static var _fans := {}     # 段数 -> 单位扇形三角形表（圆心 + 第 q、q+1 个圆周点，角度算式同 draw_circle）
 static var _adirs := {}    # 点数 -> 整圈弧（0 → TAU）的单位方向（算式同 _arc）
 static var _rings := {}    # Vector3(点数, 内半径, 外半径) -> 整圈弧以原点为心的三角形表（c + 表 = 旧写法的 c + d × r）
@@ -33,7 +31,6 @@ func begin() -> void:
 	if _off < 0:
 		_off = 1 if Cfg.dev_args().has("--nobatch") else 0   # 对照测量：--nobatch 关掉合批，逐条画（与改动前相同）
 	active = _off == 0
-	_nf = active and not (int(g.opt_old) & 512)
 	xf = Transform2D.IDENTITY
 	_gxf = Transform2D.IDENTITY
 
@@ -49,25 +46,14 @@ func end() -> void:
 
 ## 把攒下的三角形提交（提交时画布变换回到单位矩阵：顶点已是世界坐标）
 func flush() -> void:
-	if _nf:
-		if _pts.is_empty():
-			return
-		if _gxf != Transform2D.IDENTITY:
-			g.draw_set_transform_matrix(Transform2D.IDENTITY)
-			_gxf = Transform2D.IDENTITY
-		RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), PackedInt32Array(), _pts, _cols)
-		_pts = PackedVector2Array()
-		_cols = PackedColorArray()
-		return
-	if _idx.is_empty():
+	if _pts.is_empty():
 		return
 	if _gxf != Transform2D.IDENTITY:
 		g.draw_set_transform_matrix(Transform2D.IDENTITY)
 		_gxf = Transform2D.IDENTITY
-	RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), _idx, _pts, _cols)
+	RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), PackedInt32Array(), _pts, _cols)
 	_pts = PackedVector2Array()
 	_cols = PackedColorArray()
-	_idx = PackedInt32Array()
 
 
 ## 现成的顶点色三角形（程序漩涡 op_blocks.fx_vortex 等）：pts 按当前 draw_set_transform 换算后并进批；不在合批阶段时直接提交给 g
@@ -87,32 +73,25 @@ func add_tris(pts: PackedVector2Array, cols: PackedColorArray, idx: PackedInt32A
 			_gxf = Transform2D.IDENTITY
 		RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), idx, pts, cols)
 		return
-	if _nf:
-		var n: int = idx.size()
-		if n > 96:
-			# 大块现成网格（程序漩涡等）逐个索引展开反而更慢：先交前面攒的，再把它原样单独提交（同序，画面相同，多一两次绘制调用）
-			flush()
-			if _gxf != Transform2D.IDENTITY:
-				g.draw_set_transform_matrix(Transform2D.IDENTITY)
-				_gxf = Transform2D.IDENTITY
-			RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), idx, pts, cols)
-			return
-		var q := PackedVector2Array()
-		var qc := PackedColorArray()
-		q.resize(n)
-		qc.resize(n)
-		for k in n:
-			var i: int = idx[k]
-			q[k] = pts[i]
-			qc[k] = cols[i]
-		_pts.append_array(q)
-		_cols.append_array(qc)
+	var n: int = idx.size()
+	if n > 96:
+		# 大块现成网格（程序漩涡等）逐个索引展开反而更慢：先交前面攒的，再把它原样单独提交（同序，画面相同，多一两次绘制调用）
+		flush()
+		if _gxf != Transform2D.IDENTITY:
+			g.draw_set_transform_matrix(Transform2D.IDENTITY)
+			_gxf = Transform2D.IDENTITY
+		RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), idx, pts, cols)
 		return
-	var base: int = _pts.size()
-	_pts.append_array(pts)
-	_cols.append_array(cols)
-	for i in idx:
-		_idx.append(base + i)
+	var q := PackedVector2Array()
+	var qc := PackedColorArray()
+	q.resize(n)
+	qc.resize(n)
+	for k in n:
+		var i: int = idx[k]
+		q[k] = pts[i]
+		qc[k] = cols[i]
+	_pts.append_array(q)
+	_cols.append_array(qc)
 
 
 ## 直接往 g 上画之前：先提交几何，再把当前变换下发给 g（批外的贴图 / UI 画法与原来同样处在这个变换下）
@@ -161,21 +140,12 @@ func draw_circle(p: Vector2, r: float, col: Color, filled := true, width := -1.0
 	if not filled:
 		_arc(p, r, 0.0, TAU, seg + 1, col, width)
 		return
-	if _nf:
-		var fan = _fans.get(seg)
-		if fan == null:
-			fan = _fan_table(seg)
-		var loc: PackedVector2Array = Transform2D(Vector2(r, 0.0), Vector2(0.0, r), p) * fan
-		_pts.append_array(loc if xf == Transform2D.IDENTITY else xf * loc)
-		_fill(seg * 3, col)
-		return
-	var base: int = _pts.size()
-	_add(p, col)
-	for q in seg:
-		var a: float = q * TAU / seg
-		_add(p + Vector2(cos(a), sin(a)) * r, col)
-	for q in seg:
-		_idx.append_array([base, base + 1 + q, base + 1 + (q + 1) % seg])
+	var fan = _fans.get(seg)
+	if fan == null:
+		fan = _fan_table(seg)
+	var loc: PackedVector2Array = Transform2D(Vector2(r, 0.0), Vector2(0.0, r), p) * fan
+	_pts.append_array(loc if xf == Transform2D.IDENTITY else xf * loc)
+	_fill(seg * 3, col)
 
 
 func draw_arc(c: Vector2, r: float, a0: float, a1: float, n: int, col: Color, width := -1.0, aa := false) -> void:
@@ -230,19 +200,12 @@ func draw_colored_polygon(points: PackedVector2Array, col: Color, uvs := PackedV
 	var tri: PackedInt32Array = Geometry2D.triangulate_polygon(points)
 	if tri.is_empty():
 		return
-	if _nf:
-		var q := PackedVector2Array()
-		q.resize(tri.size())
-		for k in tri.size():
-			q[k] = points[tri[k]]
-		_pts.append_array(q if xf == Transform2D.IDENTITY else xf * q)
-		_fill(q.size(), col)
-		return
-	var base: int = _pts.size()
-	for p in points:
-		_add(p, col)
-	for t in tri:
-		_idx.append(base + t)
+	var q := PackedVector2Array()
+	q.resize(tri.size())
+	for k in tri.size():
+		q[k] = points[tri[k]]
+	_pts.append_array(q if xf == Transform2D.IDENTITY else xf * q)
+	_fill(q.size(), col)
 
 
 func draw_rect(rect: Rect2, col: Color, filled := true, width := -1.0, aa := false) -> void:
@@ -258,15 +221,7 @@ func draw_rect(rect: Rect2, col: Color, filled := true, width := -1.0, aa := fal
 	var p2 := rect.end
 	var p3 := rect.position + Vector2(0.0, rect.size.y)
 	if filled:
-		if _nf:
-			_quad(p0, p1, p2, p3, col)
-			return
-		var base: int = _pts.size()
-		_add(p0, col)
-		_add(p1, col)
-		_add(p2, col)
-		_add(p3, col)
-		_idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
+		_quad(p0, p1, p2, p3, col)
 	elif width > 2.0 or col.a < 1.0:
 		sync()
 		g.draw_rect(rect, col, false, width, aa)
@@ -282,11 +237,6 @@ func _seg(r: float) -> int:
 	return clampi(int(s * 0.5) + 8, 10, 48)
 
 
-func _add(local: Vector2, col: Color) -> void:
-	_pts.append(xf * local)
-	_cols.append(col)
-
-
 ## 局部坐标里一段有宽度的线（宽度也在局部坐标里量，和 draw_line 在变换下的表现一致）
 func _seg_quad(a: Vector2, b: Vector2, col: Color, width: float) -> void:
 	var d: Vector2 = b - a
@@ -294,15 +244,7 @@ func _seg_quad(a: Vector2, b: Vector2, col: Color, width: float) -> void:
 		return
 	var w: float = width if width > 0.0 else 1.0
 	var n: Vector2 = d.orthogonal().normalized() * w * 0.5
-	if _nf:
-		_quad(a + n, b + n, b - n, a - n, col)
-		return
-	var base: int = _pts.size()
-	_add(a + n, col)
-	_add(b + n, col)
-	_add(b - n, col)
-	_add(a - n, col)
-	_idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
+	_quad(a + n, b + n, b - n, a - n, col)
 
 
 ## 折线：连续三角带，折点处斜接（原来逐段一个矩形：折点内侧重叠、半透明叠两次变亮，外侧缺楔形，测试与验收 9/30 查出）。
@@ -320,10 +262,8 @@ func _strip(points: PackedVector2Array, col: Color, width: float) -> void:
 		pts.remove_at(n - 1)
 		n -= 1
 	var hw: float = (width if width > 0.0 else 1.0) * 0.5
-	var base: int = _pts.size()
-	var vv := PackedVector2Array()   # 快速写法：两侧顶点先收齐（局部坐标），最后整组乘 xf、展开成三角形
-	if _nf:
-		vv.resize(n * 2)
+	var vv := PackedVector2Array()   # 两侧顶点先收齐（局部坐标），最后整组乘 xf、展开成三角形
+	vv.resize(n * 2)
 	for i in n:
 		var has_prev: bool = closed or i > 0
 		var has_next: bool = closed or i < n - 1
@@ -342,35 +282,25 @@ func _strip(points: PackedVector2Array, col: Color, width: float) -> void:
 				ml = minf(hw / maxf(nrm.dot(n1), 0.0001), hw * 4.0)
 		else:
 			nrm = (d_out if has_next else d_in).orthogonal()
-		if _nf:
-			vv[i * 2] = pts[i] + nrm * ml
-			vv[i * 2 + 1] = pts[i] - nrm * ml
-			continue
-		_add(pts[i] + nrm * ml, col)
-		_add(pts[i] - nrm * ml, col)
+		vv[i * 2] = pts[i] + nrm * ml
+		vv[i * 2 + 1] = pts[i] - nrm * ml
 	var segs: int = n if closed else n - 1
-	if _nf:
-		if xf != Transform2D.IDENTITY:
-			vv = xf * vv
-		var out := PackedVector2Array()
-		out.resize(segs * 6)
-		for q in segs:
-			var a0: int = q * 2
-			var a1: int = ((q + 1) % n) * 2
-			var o: int = q * 6
-			out[o] = vv[a0]
-			out[o + 1] = vv[a0 + 1]
-			out[o + 2] = vv[a1 + 1]
-			out[o + 3] = vv[a0]
-			out[o + 4] = vv[a1 + 1]
-			out[o + 5] = vv[a1]
-		_pts.append_array(out)
-		_fill(out.size(), col)
-		return
+	if xf != Transform2D.IDENTITY:
+		vv = xf * vv
+	var out := PackedVector2Array()
+	out.resize(segs * 6)
 	for q in segs:
-		var a0: int = base + q * 2
-		var a1: int = base + ((q + 1) % n) * 2
-		_idx.append_array([a0, a0 + 1, a1 + 1, a0, a1 + 1, a1])
+		var a0: int = q * 2
+		var a1: int = ((q + 1) % n) * 2
+		var o: int = q * 6
+		out[o] = vv[a0]
+		out[o + 1] = vv[a0 + 1]
+		out[o + 2] = vv[a1 + 1]
+		out[o + 3] = vv[a0]
+		out[o + 4] = vv[a1 + 1]
+		out[o + 5] = vv[a1]
+	_pts.append_array(out)
+	_fill(out.size(), col)
 
 
 ## 弧：n 个点（n - 1 段），宽度 width（≤ 0 = 1 像素）
@@ -379,21 +309,10 @@ func _arc(c: Vector2, r: float, a0: float, a1: float, n: int, col: Color, width:
 	var w: float = width if width > 0.0 else 1.0
 	var ri: float = maxf(0.0, r - w * 0.5)
 	var ro: float = r + w * 0.5
-	if _nf:
-		_arc_fast(c, ri, ro, a0, a1, n, col)
-		return
-	var base: int = _pts.size()
-	for q in n:
-		var a: float = lerpf(a0, a1, float(q) / float(n - 1))
-		var d := Vector2(cos(a), sin(a))
-		_add(c + d * ri, col)
-		_add(c + d * ro, col)
-	for q in n - 1:
-		var i0: int = base + q * 2
-		_idx.append_array([i0, i0 + 1, i0 + 3, i0, i0 + 3, i0 + 2])
+	_arc_fast(c, ri, ro, a0, a1, n, col)
 
 
-# ---------------------------------------------------------------- 快速写法（OPT_CV，docs/50 §14）
+# ---------------------------------------------------------------- 合批几何（docs/50 §14 OPT_CV）
 
 func _fill(n: int, col: Color) -> void:
 	var c: PackedColorArray = _cbuf.get(n, PackedColorArray())

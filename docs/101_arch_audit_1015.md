@@ -283,9 +283,9 @@ game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCo
 5. 编辑器打开工程能看到 `EnemyCore` 类即成功；`.gdextension` 原型期加进 Windows / Web 导出预设的 exclude_filter，发布包不受影响。
 
 **开关与对照**：
-- 新位 `OPT_CPP := 65536`（game.gd 现有位到 32768）。`g.opt_old & OPT_CPP` 为真时走 GDScript 旧路径。
-- `--optab=60 --optmask=65536`：每 60 帧在原生 / GDScript 之间轮换，量 7–10 分钟段帧时；`--optold=65536` 整局走 GDScript。
-- 同 seed：原生路径对 B7 新基线的 TRACE 逐行相同才算过；check.py 加一项 `native_eq`（只在 dll 存在时跑：同一局 `--optold=65536` 与缺省各一次，TRACE 逐行比）。
+- 新位 `OPT_CPP := 131072`（game.gd 现有位到 65536：S9 的 `OPT_OPS` 先占了 65536）。`g.opt_old & OPT_CPP` 为真时走 GDScript 旧路径。
+- `--optab=60 --optmask=131072`：每 60 帧在原生 / GDScript 之间轮换，量 7–10 分钟段帧时；`--optold=131072` 整局走 GDScript。
+- 同 seed：原生路径对 B7 新基线的 TRACE 逐行相同才算过；check.py 加一项 `native_eq`（只在 dll 存在时跑：同一局 `--optold=131072` 与缺省各一次，TRACE 逐行比）。
 - 没有 dll（网页、云端暂未编、别人的机器）时 `native.gd` 返回 null，自动走 GDScript，游戏行为不变。
 
 **原型通过后的去向**：dll 进 Windows 发布包（`export_build.py` 复制到 `game/`、`verify_encrypted_game.py` 的逐文件一致检查算上 dll）；云端 `setup_linux.sh` 多编一个 `.so`；网页按 §4.6 建议把同一个 `core/` 编进自编 nothreads 模板（`module/` 绑定），网页包硬线 ≤ 48 MB（§8）。

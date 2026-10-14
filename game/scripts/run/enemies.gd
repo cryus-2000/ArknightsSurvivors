@@ -203,11 +203,7 @@ func update(dt: float) -> void:
 			e.kb_self = false
 
 		# ---- 分离 + 吞噬
-		if e.ai != "static" and g.opt_old & Game.OPT_ENEMY:
-			_separate_old(e, i)
-			if e.dead:
-				continue
-		elif e.ai != "static":
+		if e.ai != "static":
 			# 分离：query() 内联（性能，docs/50 §11）——同样的格子顺序、同样的越界与阵营判断，不建中间数组；
 			# 查询范围按进循环前的位置定（和先 query 再遍历相同）
 			var qr: float = e.r + 20.0
@@ -317,30 +313,6 @@ func _devour(e: Dictionary, o: Dictionary) -> void:
 	e.xp += o.xp
 	o.dead = true
 	g.vfx.add_text(e.pos, "吞噬", Color(1.0, 0.4, 0.5))
-
-
-## 分离 + 吞噬的旧写法（先 query 再遍历；--optab / --optold 同局对照用，docs/50 §11）
-func _separate_old(e: Dictionary, i: int) -> void:
-	for j in query(e.pos, e.r + 20.0):
-		if j == i:
-			continue
-		var o: Dictionary = g.enemies[j]
-		if o.dead:
-			continue
-		var diff: Vector2 = e.pos - o.pos
-		var d := diff.length()
-		var min_d: float = e.r + o.r
-		if d < min_d and d > 0.01:
-			if e.evo and not o.evo and not o.elite and not o.boss and not o.chest and o.ai != "static" and d < e.r and g.rng.randf() < 0.015:
-				_devour(e, o)
-				continue
-			# 伊祖米克的子代被 Boss 吸收
-			if e.feed and o.type == "izumik" and o.phase == 1:
-				e.dead = true
-				g.bai.izumik_absorb(o)   # 吸收子代：强化层数（不再回血，docs/38 §8.7）
-				break
-			if not e.boss:
-				e.pos += diff / d * (min_d - d) * 0.3
 
 
 func final_target_valid(e: Dictionary) -> bool:
