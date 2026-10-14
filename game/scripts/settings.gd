@@ -101,6 +101,23 @@ func touch_device() -> bool:
 	return _touch == 1
 
 
+## 界面里能否在一帧中途读屏幕（BackBufferCopy / hint_screen_texture 之后还要接着画东西）。图鉴磨砂玻璃（gallery.gd）与它打开时的
+## 后期层（post_fx.gd）都问这里。10-14 用户报：iPhone 上 itch 网页版图鉴只剩左侧舞台，右侧终端面板、名册、顶栏全不见——
+## 画面正好是图鉴 BackBufferCopy 那一刻的内容：中途拷屏之后画的东西（玻璃面板、正文、再一次拷屏的后期层）在 iOS WebKit 上丢了。
+## 网页版的触屏设备（iOS / Android / iPad）与苹果 WebKit（iOS 上所有浏览器、macOS Safari）一律不中途读屏，桌面版与桌面 Chrome 网页版照旧。
+## --noscreencopy：桌面上强制走这条路（截图验收用）
+var _scr_copy := -1
+
+
+func screen_copy_ok() -> bool:
+	if _scr_copy < 0:
+		var ok := not dev_args().has("--noscreencopy")
+		if ok and OS.has_feature("web"):
+			ok = not touch_device() and not bool(JavaScriptBridge.eval("(function(){var u=navigator.userAgent;return /AppleWebKit/.test(u)&&!/Chrome|Chromium|Edg|OPR|Android/.test(u);})()", true))
+		_scr_copy = 1 if ok else 0
+	return _scr_copy == 1
+
+
 ## 触屏界面层放大倍数（手机端 UI 优化 r2，10-06）：在 1.15 全局缩放之上只放大 HUD / 面板 / 标题页，世界（相机）不动。
 ## 按逻辑宽度算：手机 19.5:9（逻辑 1357 宽）→ 1.3（UI 逻辑约 1044×481）、16:9（1113）→ 1.11、平板 4:3 → 1。
 ## game.gd / title.gd 启动时算好存进 ui_k；各界面的 vs（g.hud.size / 标题页 size）就是 UI 逻辑尺寸。桌面恒为 1，排版不变
