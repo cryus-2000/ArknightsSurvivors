@@ -70,9 +70,9 @@ python tools/export_build.py
 1. **名字**：`project.godot` 的 `config/name` =「方舟幸存者」（窗口标题、网页 `<title>`）；Windows 预设 `application/product_name` = Arknights Survivors；压缩包 / 文件夹 / 说明.txt 首行 =「方舟幸存者」（`export_build.py` 的 `NAME` / `README`）。
 2. **存档目录固定**：`project.godot` 开 `config/use_custom_user_dir=true`、`config/custom_user_dir_name="ArknightsSurvivors"`，与显示名解耦，以后改名不再换目录。Windows 存档在 `%APPDATA%\ArknightsSurvivors`（实测 `OS.get_user_data_dir()`）；网页版存 IndexedDB（按网站域名隔离，与目录名无关）。发布说明写一句：此前版本的设置 / 存档在旧目录，更新后会恢复默认一次。
 3. **初始状态**：发布版必须是图鉴未解锁、难度重置。用 release 模板导出；`tools/check_release.py`（玩法系统；`export_build.py` / `export_web.py` 导出前自动对打包源码跑，不过就中止）；用全新的浏览器配置 / 全新的 Windows 用户目录实测首次打开是未解锁状态。
-4. **无数据上传 / 导出入口**（EA 小范围试玩阶段，用户 2026-09-26 定）：发布版里不得有任何网络上报，也不得有数据导出按钮。
+4. **无数据上传 / 导出入口**（EA 小范围试玩阶段，用户 2026-09-26 定）：发布版里不得有任何网络上报，也不得有数据导出按钮。**例外（2026-10-13，docs/89）**：B站 Toy 环境里的云存档同步（把本地进度存到平台云存储，非数据上报），只在 Toy 环境启用。
 5. **包体**：两个包都不带审阅用拼图、测试与工具脚本，字体按实际用字子集化（见下「包体瘦身」）；网页包由 `tools/export_web.py` 分片，脚本检查单文件 ≤25 MB（docs/22）。
-6. **不擅自发布**：上传 / 发链接前由用户确认。
+6. **不擅自发布**：~~上传 / 发链接前由用户确认~~ → 2026-10-10 起按下文「一键发版」：合入 main、快检与本清单通过后由协调人跑 `tools/ship.py` 发 itch，不再逐次问；其他新渠道（首次上架、改商店页、对外发链接）仍先问用户。
 
 
 ## 双版本发布约定（2026-09-27，用户确认）
@@ -157,7 +157,7 @@ python tools/deploy_itch.py --ref <提交> --apply --confirm <提交>  # 真推�
 - **itch 网页 zip**：`final_<提交>/方舟幸存者_itch_html5_<提交>.zip`，把 `web/` 的内容直接放在 zip 根目录（`index.html` 在根、没有外层文件夹）。脚本会检查 itch 的限制：最多 1000 个文件、单文件 ≤ 200 MB。gz 分片按「存储」放进 zip，不再二次压缩。
 - **不需要 SharedArrayBuffer**：Web 导出预设是单线程模板（`variant/thread_support=false`、`ensure_cross_origin_isolation_headers=false`），不依赖 SharedArrayBuffer，也不需要 COOP / COEP 头。所以 itch 页面的「SharedArrayBuffer support」**不用勾**；勾了也能运行。2026-10-01 用 48ce675c 实测：把 itch zip 解压后，用 `tools/serve_web.py` 在内置浏览器里打开，普通托管和 `--coi`（带 COOP / COEP，`crossOriginIsolated = true`）两种都能进到主菜单（对外版：没有 Boss 演练，没有测试版角标），控制台无错误。
 - **itch 页面设置**：见下面「itch 页面设置清单」（2026-10-01 用户定：itch 版必须支持移动端，「Mobile friendly」要勾）。
-- **配置**：`BUTLER_API_KEY`（itch → Settings → API keys）和 `ITCH_TARGET`（`<用户名>/<游戏名>`）只放环境变量或仓库根目录的 `.deploy.env`（不进 git，模板见 `.deploy.env.example`）。密钥只传给 butler 进程，不打印。缺 butler / 密钥 / 目标时只能 dry-run；`--apply` 必须带 `--confirm <提交>`，并且要先经用户确认发布。
+- **配置**：`BUTLER_API_KEY`（itch → Settings → API keys）和 `ITCH_TARGET`（`<用户名>/<游戏名>`）只放环境变量或仓库根目录的 `.deploy.env`（不进 git，模板见 `.deploy.env.example`）。密钥只传给 butler 进程，不打印。缺 butler / 密钥 / 目标时只能 dry-run；`--apply` 必须带 `--confirm <提交>`；2026-10-10 起日常发版由 `tools/ship.py` 自动调用（见「一键发版」），不再逐次问用户。
 - **本地验证网页包**：`python tools/serve_web.py --dir <网页包目录> [--port 8794] [--coi]`，只监听 127.0.0.1。
 
 ### itch 页面设置清单（上传前逐项勾）
