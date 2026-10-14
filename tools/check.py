@@ -48,7 +48,8 @@ LEVELS = ["none", "text", "ops", "full"]
 
 
 def _git(*args):
-    r = subprocess.run(["git"] + list(args), cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
+    # core.quotepath=off：中文等非 ASCII 文件名原样输出（默认会转义成 "docs/49g_\347…" 带引号，分级认不出 docs/ 而误判成 full）
+    r = subprocess.run(["git", "-c", "core.quotepath=off"] + list(args), cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
     return r.stdout if r.returncode == 0 else ""
 
 
@@ -57,9 +58,9 @@ def changed_files():
     base = _git("merge-base", "HEAD", "main").strip()
     files = set()
     if base and base != _git("rev-parse", "HEAD").strip():
-        files |= set(_git("diff", "--name-only", base, "HEAD").split())
-    files |= set(_git("diff", "--name-only", "HEAD").split())
-    files |= set(_git("ls-files", "--others", "--exclude-standard").split())
+        files |= set(_git("diff", "--name-only", base, "HEAD").splitlines())
+    files |= set(_git("diff", "--name-only", "HEAD").splitlines())
+    files |= set(_git("ls-files", "--others", "--exclude-standard").splitlines())
     return sorted(f.replace("\\", "/") for f in files if f), base
 
 
