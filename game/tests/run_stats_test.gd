@@ -109,11 +109,11 @@ func test_fake_details() -> void:
 	ok(int(sv["技能发动"].v) == 60, "统计表：技能发动 = 各干员合计（%d）" % int(sv["技能发动"].v))
 	ok(int(sv["藏品"].v) == 5 and int(sv["Boss 击破"].v) == 3 and int(sv["打开补给箱"].v) == 6, "统计表：藏品 / Boss 击破 / 补给箱")
 	ok(sv.has("源石锭熔铸") and sv.has("海嗣祭坛") and int(sv["点亮引航灯标"].v) == 4, "统计表：熔铸、祭坛、灯标")
-	near(float(sv["受到伤害"].v), float(m.leader.taken), "统计表：受到伤害 = 主控承伤", 0.0001)
+	near(float(sv["受到的伤害"].v), float(m.leader.taken), "统计表：受到伤害 = 主控承伤", 0.0001)
 	# 受到伤害与生命回复是两份独立记录（dmg_log / heal_log）：假记录里两者不同，统计表也必须不同
 	near(float(sv["生命回复"].v), 6680.0, "统计表：生命回复 = heal 记录合计", 0.0001)
-	near(float(sv["受到伤害"].v), 4659.0, "统计表：受到伤害 = dmg_log 合计 + 熄灯持续掉血", 0.0001)
-	ok(absf(float(sv["受到伤害"].v) - float(sv["生命回复"].v)) > 1.0, "统计表：受到伤害与生命回复不是同一个数")
+	near(float(sv["受到的伤害"].v), 4659.0, "统计表：受到伤害 = dmg_log 合计 + 熄灯持续掉血", 0.0001)
+	ok(absf(float(sv["受到的伤害"].v) - float(sv["生命回复"].v)) > 1.0, "统计表：受到伤害与生命回复不是同一个数")
 	ok(m.final_boss.name == "偏执泡影" and m.relic_list.size() == 5, "胜利：最终 Boss 与藏品列表")
 	var top: Array = game.run_stats.top_sources(m.rows[0].sources, 3)
 	var tv := 0.0
@@ -172,7 +172,7 @@ func test_real() -> void:
 	var hl := 0.0
 	for k2 in game.heal_log:
 		hl += float(game.heal_log[k2])
-	near(float(sv["受到伤害"].v), dl + (float(tm.dark_dmg) if float(tm.dark_dmg) > 0.5 else 0.0), "真实局：受到伤害 = dmg_log 合计（+ 熄灯掉血）", 0.001)
+	near(float(sv["受到的伤害"].v), dl + (float(tm.dark_dmg) if float(tm.dark_dmg) > 0.5 else 0.0), "真实局：受到伤害 = dmg_log 合计（+ 熄灯掉血）", 0.001)
 	near(float(sv["生命回复"].v), hl, "真实局：生命回复 = heal_log 合计", 0.001)
 	ok(m.relic_list.size() == game.relics.size(), "真实局：藏品列表按拾取顺序全部列出")
 	near(float(m.total), out, "真实局：模型全队伤害 = dmg_out 合计", 0.0001)
