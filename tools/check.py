@@ -17,7 +17,7 @@
 退出码 0 = 全部通过；1 = 有失败。任何 SCRIPT ERROR / Parse Error 都算失败。
 
 冒烟：每名干员各当一次主控，带两名队友（按名单轮换，每人也都当过队友），开局拿全部藏品、直接推到成长线末端、
-技力常满，Boss 提前到 0:30 / 1:00 / 1:30（中期 Boss 按局轮换），跑 2 分钟游戏时间；另有两局不作弊的自然流程
+技力常满，Boss 提前到 0:20 / 0:45 / 1:10（中期 Boss 按局轮换），跑 90 秒游戏时间（10-15 由 120 秒缩短，每个 Boss 仍有 ≥ 20 秒战斗）；另有两局不作弊的自然流程
 （高手 / 普通机器人，跑过第一个商人）。看的是「有没有报错、能不能跑完」，不看数值。
 主控保护：Boss 来源的扣血截断（单发 / 2 秒合计 / 满血保护 / 持续伤害上限，docs/38 §1.11）的脚本测试。
 复现：同一组参数跑两次，BALANCE 结果必须逐字段相同（docs/36 §3）。
@@ -417,7 +417,7 @@ def smoke_cases():
     for k, op in enumerate(ids):
         mates = [ids[(k + 1) % n], ids[(k + 5) % n]]
         cases.append(("冒烟 · " + op, ["--balance", "--seed=1", "--op=" + op, "--squad=" + ",".join(mates), "--bot=expert",
-                                      "--maxt=120", "--relics=all", "--maxprog", "--sptest", "--bosstimes=30,60,90", "--forceboss=%d" % (k % 5), "--dccheck"]))
+                                      "--maxt=90", "--relics=all", "--maxprog", "--sptest", "--bosstimes=20,45,70", "--forceboss=%d" % (k % 5), "--dccheck"]))
     cases.append(("自然流程 · 高手", ["--balance", "--seed=2", "--op=" + ids[0], "--bot=expert", "--maxt=150", "--dccheck"]))
     cases.append(("自然流程 · 普通", ["--balance", "--seed=3", "--op=" + ids[-1], "--bot=normal", "--maxt=150", "--dccheck"]))
     return cases
