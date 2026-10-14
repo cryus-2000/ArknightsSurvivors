@@ -1096,6 +1096,7 @@ func _process(delta: float) -> void:
 		fg.queue_redraw()
 		dof_layer.visible = Cfg.dof
 		hud.queue_redraw()
+	world.present_step()   # 表现事件步骤（Boss 换幕 / 倒下演出；docs/101 B3）：每帧一次，在本帧绘制之前，无头也走
 	_pm("tail")
 
 
@@ -1546,6 +1547,7 @@ func _update(dt: float) -> void:
 		trial.maintain()
 	_pm("misc")
 	vfx.update(dt)
+	lvup_delay -= dt   # 升级演出延迟（模拟：决定选卡面板何时弹出；docs/101 B3 从 vfx.update 移来，顺序不变）
 	_pm("fx")
 	_cleanup()
 	_pm("cleanup")

@@ -57,6 +57,7 @@ func step(delta: float) -> float:
 	elapsed += dt
 	g.t += dt
 	g.vfx.update(dt)
+	g.lvup_delay -= dt   # 原在 vfx.update 里（docs/101 B3），顺序不变
 	if (real >= FIN_DUR) if finale else (elapsed >= DURATION):
 		finish()
 	return dt

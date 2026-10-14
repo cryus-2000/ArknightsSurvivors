@@ -104,7 +104,10 @@ func update_visuals(dt: float) -> void:
 	g.sprite.position = (g.doc_pos + Vector2(0, 6)).round()
 	g.sprite.flip_h = g.doc_face < 0.0
 	update_player_anim(g.get_process_delta_time() if g.state in [Game.S.DEAD, Game.S.WIN] else dt)
-	update_player_feel(g.get_process_delta_time())
+	var real_dt: float = g.get_process_delta_time()
+	if g.state == Game.S.OPENING and real_dt > 0.0:
+		g.intro_screen.update_opening(real_dt)   # 开场状态机（落地 → 点灯 → end_opening 切到 PLAY；docs/101 B3 从 update_player_feel 里提出来，时机不变）
+	update_player_feel(real_dt)
 	if g.state == Game.S.DEAD:
 		g.sprite.modulate = Color(0.5, 0.5, 0.6, 0.6)
 	elif g.hurt_flash > 0.12:
@@ -196,8 +199,14 @@ func update_visuals(dt: float) -> void:
 		g.post.bloom_cut = Dc.p("bloom_cut")
 
 
+## 表现事件步骤（docs/101 B3，10-15）：game._process 末尾每帧调一次（有头时在本帧绘制之前），无头批跑也照常走。
+## 只放画面 / 演出，不改模拟、不碰 g.rng（特效只用 vrng）。原来 watch_bosses 在 draw_world 开头，无头时从不执行
+func present_step() -> void:
+	watch_bosses()
+
+
 ## Boss 换幕 / 倒下演出（docs/48 P1：换幕只有横幅，死亡特效和精英同一套、比本体还小）。
-## 只在画面里观察 g.bosses 的 phase / dead 变化来放特效，不改战斗逻辑；平衡模式不绘制，不影响对局随机数（特效只用 vrng）
+## 只观察 g.bosses 的 phase / dead 变化来放特效，不改战斗逻辑，不影响对局随机数（特效只用 vrng）；由 present_step 每帧调
 func watch_bosses() -> void:
 	boss_seen = boss_seen.filter(func(s): return g.bosses.any(func(b): return is_same(b, s[0])))
 	for b in g.bosses:
@@ -282,7 +291,6 @@ func _pk(k: String) -> void:
 
 func draw_world() -> void:
 	_pk("")
-	watch_bosses()
 	scr_flash = maxf(0.0, scr_flash - g.get_process_delta_time())
 	if _dbg_ground:
 		g.draw_rect(view_rect(0.0), Color(0.16, 0.17, 0.2))   # --clutterdbg=noground（量测）：地面 / 地形道具换成平涂底色
@@ -3947,8 +3955,7 @@ func update_player_feel(dt: float) -> void:
 	var target_lean := 0.0
 	var alive: bool = g.state != Game.S.DEAD
 	if g.state == Game.S.OPENING:
-		g.intro_screen.update_opening(dt)
-		return
+		return   # 开场演出期间的角色姿态由 intro.update_opening 摆（update_visuals 里先调）
 	# 转身
 	if g.facing != p_last_facing:
 		p_turn = 1.0

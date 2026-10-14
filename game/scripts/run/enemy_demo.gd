@@ -119,6 +119,7 @@ func step(dt: float) -> void:
 	g.tele.update_warns(dt)
 	g.enemies_sys.update_status(dt)
 	g.vfx.update(dt)
+	g.lvup_delay -= dt   # 原在 vfx.update 里（docs/101 B3），顺序不变
 	g.hp = g.max_hp
 	g.gems.clear()
 	g.texts = g.texts.filter(func(tx): return tx.life > 0.0)

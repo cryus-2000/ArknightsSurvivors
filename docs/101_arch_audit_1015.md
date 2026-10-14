@@ -342,6 +342,11 @@ game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCo
 | B7（换基线） | 敌人更新拆三段；随机流拆分；修失重击退 / 弹体查询半径 / 敌弹字段；敌方投射物池、我方投射物池合一 | **会变（一次性）** | B1、B2、B5；用户同意 |
 | B8 | 热字段平行数组（段首读入、段尾写回）+ `OPT_CPP` 对照位 | 不变（相对 B7 基线） | B7 |
 
+**执行中的调整（架构，10-15）**：
+- **B1**：`g.in_type / g.dmg_src`（敌人打队长）与 `combat.cur_src / cur_dmg`（队长受击询问）已改显式传参；Boss 特例进 `boss_base` 六个钩子（block_damage / absorb_damage / on_damaged / on_lethal / on_kill / on_gate）。**`g.hit` 不在 B1 改**：干员经 op_api 门面 `log_hit → deal_damage` 用它（约 56 处），嵌套结算靠存 / 恢复；改成显式参数会改变「没恢复描述符」那些路径上的伤害归属（dmg_out / 遥测，可能连带藏品倍率），同 seed 保不住。挪到 **B7 换基线**时与干员注册表一起改。
+- **B2**：预警管线搬到 `enemies/telegraph.gd`（`g.tele`），填充绘制搬到 `render/telegraph_draw.gd`。§3.2 ① 的「8 处结算合一个入口」不再另做：B1 之后这 8 处各自只剩一句带显式参数的 `enemy_hit`，几何判定本来就各不相同（地面椭圆圈 / 弹体中心距 / 环带），包一层入口没有收益。
+- **B3 拆两段**：B3a 表现事件步骤（`watch_bosses` 从 draw_world 挪到 `_process` 末尾的 `world.present_step()`、开场状态机显式调、`lvup_delay` 回到模拟步）先做；B3b「画面字段挪渲染侧」挪到 **B5 之后**——按 `e.id` 放字典会让敌人绘制热路径每只多一次字典读，B5 有了槽位后按槽位下标放数组更省。
+
 ### 7.3 B6 准备：op_blocks 拆分方案与 `ob_geom` 清单（干员会话 10-15，只出方案、未改代码；依据 main f00e6f34）
 
 **现状**（f00e6f34）：`op_blocks.gd` 16840 行，79 个小节、13 个大段（`# ====` 分隔）；数据干员实际用到 117 个积木 tag，其中 91 个只有 1 名干员用（与 §3.6 一致）。外部入口集中：`data_operator.gd` 169 处 `OB.*` 调用（`cond_true` 11、`fx_play` 6，其余几乎都是各段的 tick / sustain / exec / draw 钩子各 1 处），另有 `character.gd`、tests 直接调。

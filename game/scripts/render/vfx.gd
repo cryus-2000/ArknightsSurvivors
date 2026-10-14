@@ -408,7 +408,6 @@ func update(dt: float) -> void:
 	g.horde_warn = maxf(0.0, g.horde_warn - dt)
 	g.tab_hint = maxf(0.0, g.tab_hint - dt)
 	g.horde_hit = maxf(0.0, g.horde_hit - dt)
-	g.lvup_delay -= dt
 	g.lvup_show -= dt
 	g.hud_lv_flash = max(0.0, g.hud_lv_flash - dt * 1.5)
 	g.xp_flash = maxf(0.0, g.xp_flash - dt * 3.0)
