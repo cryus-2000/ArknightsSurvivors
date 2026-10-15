@@ -1,0 +1,22 @@
+#!/usr/bin/env python
+# ark_native（docs/101 §4.7）：GDExtension 构建脚本，由 native/build_native.py 调用（环境变量 GODOT_CPP_DIR 指向固定提交的 godot-cpp）。
+# 纯 C++ 内核在 core/（不含 Godot 头），godot-cpp 薄绑定在 gdext/；产物写到 game/bin/（不入库）。
+import os
+
+env = SConscript(os.path.join(os.environ["GODOT_CPP_DIR"], "SConstruct"))
+
+# llvm-mingw 只带 libc++：godot-cpp 的 tools/windows.py 在 use_llvm 时追加 -lstdc++，这里换成 -lc++（docs/101 §4.6 ④），不改 godot-cpp 本身
+if env["platform"] == "windows" and env.get("use_mingw", False) and env.get("use_llvm", False):
+    env["LINKFLAGS"] = [f for f in env["LINKFLAGS"] if str(f) != "-lstdc++"]
+    env.Append(LINKFLAGS=["-lc++"])
+
+env.Append(CPPPATH=["core/", "gdext/"])
+# 浮点与引擎 / GDScript 逐位一致（docs/101 §4.5）：不开 fast-math、不把乘加合成 FMA
+if env.get("is_msvc", False):
+    env.Append(CCFLAGS=["/fp:precise"])
+else:
+    env.Append(CCFLAGS=["-ffp-contract=off", "-fno-fast-math"])
+
+sources = Glob("core/*.cpp") + Glob("gdext/*.cpp")
+library = env.SharedLibrary("#../game/bin/ark_native{}{}".format(env["suffix"], env["SHLIBSUFFIX"]), source=sources)
+Default(library)

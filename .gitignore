@@ -45,3 +45,9 @@ __pycache__/
 /.claude/launch.json
 tools/butler/
 game/override.cfg
+
+# ark_native 原型（docs/101 §4.7）：构建产物不入库
+game/bin/
+native/**/*.o
+native/**/*.os
+native/.sconsign*.dblite

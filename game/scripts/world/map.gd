@@ -392,6 +392,32 @@ func _po_setup() -> void:
 	tb_dash_px = Bal.v("terrain/dash_stop_px", 3.0)
 
 
+## 原生核心（docs/101 §4.7）要的景物推出参数：[有没有会挡的景物, 格子边长, 最大半轴 rx, ry]
+func push_params() -> Array:
+	if _po_reach < 0.0:
+		_po_setup()
+	return [_po_reach != 0.0, _po_cell, _po_rx, _po_ry]
+
+
+## 原生核心要的景物底座表：格子范围 [x0..x1] × [y0..y1] 里有景物的格。
+## 返回 [格子坐标 PackedInt32Array（cx, cy 交替）, 中心 PackedVector2Array（= bp[1] + Vector2(0, -bp[4] * 0.6)，与 push_out 同一算式）, 半轴 PackedFloat64Array（rx, ry 交替）]
+func push_table(x0: int, x1: int, y0: int, y1: int) -> Array:
+	var cells := PackedInt32Array()
+	var cs := PackedVector2Array()
+	var rs := PackedFloat64Array()
+	for cx in range(x0, x1 + 1):
+		for cy in range(y0, y1 + 1):
+			var bp := _big_prop(cx, cy)
+			if bp.is_empty():
+				continue
+			cells.append(cx)
+			cells.append(cy)
+			cs.append(bp[1] + Vector2(0, -bp[4] * 0.6))
+			rs.append(bp[3])
+			rs.append(bp[4])
+	return [cells, cs, rs]
+
+
 ## 把圆形实体推出景物底座（椭圆）
 func push_out(pos: Vector2, r: float) -> Vector2:
 	if _po_reach < 0.0:

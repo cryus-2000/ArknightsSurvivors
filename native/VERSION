@@ -1,0 +1,9 @@
+# ark_native 构建依赖（docs/101 §4.7）。build_native.py 只认这里写的版本，缺了报错、不自动下载。
+# llvm-mingw：GitHub mstorsjo/llvm-mingw 官方发布，与 tools/prepare_encrypted_template.py 同一个固定版本
+llvm_mingw = llvm-mingw-20260922-ucrt-x86_64
+llvm_mingw_sha256 = e3ad77d117a4bea19a7a3b333341824d79a5a371004a10e25b8504e7b3047666
+# godot-cpp：GitHub godotengine/godot-cpp master 固定提交（10-12 合并 #2058）；接口描述用本机 Godot 导出（gdextension_dir）
+godot_cpp = b8530af7546a3fcae80cef2477526569fd42ffc2
+godot = 4.7.2
+# scons：pip --target <toolchains>/scons，固定 4.9.1
+scons = 4.9.1

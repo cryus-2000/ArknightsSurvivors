@@ -5,7 +5,8 @@ extends RefCounted
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 
-const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
+const Game = preload("res://scripts/game.gd")
+const Native = preload("res://scripts/native/native.gd")   # 原生模块薄封装（docs/101 §4.7）   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
 const CELL := 48.0
 const EVO_AGE := 35.0   # 进化：存活这么久的普通怪变精英（随时间缩短，见 update）
@@ -20,16 +21,25 @@ func _init(game: Game) -> void:
 var max_r := 0.0   # 本帧网格里最大的敌人半径（build_grid 记；我方子弹命中查询半径 = b.r + max_r，docs/101 §3.4 ⑦）
 
 
+var _gcell := PackedInt32Array()   # 每个下标 3 个 int：所在格 gx、gy、在不在格里（原生核心照这张表重建同一张网格，docs/101 §4.7）
+
+
 func build_grid() -> void:
 	g.grid.clear()
 	var mr := 0.0
-	for i in g.enemies.size():
+	var ne: int = g.enemies.size()
+	_gcell.resize(ne * 3)
+	for i in ne:
 		var e: Dictionary = g.enemies[i]
+		_gcell[i * 3 + 2] = 0
 		if e.dead or e.get("friendly", false):
 			continue
 		if e.r > mr:
 			mr = e.r
 		var k := Vector2i(floori(e.pos.x / CELL), floori(e.pos.y / CELL))
+		_gcell[i * 3] = k.x
+		_gcell[i * 3 + 1] = k.y
+		_gcell[i * 3 + 2] = 1
 		if g.grid.has(k):
 			g.grid[k].append(i)
 		else:
@@ -116,6 +126,66 @@ func _hot_scatter(n: int) -> void:
 	for i in n:
 		if _seg_on[i] != 0:
 			g.enemies[i].pos = _hp[i]
+
+
+## 原生运动核心（ark_native EnemyCore，docs/101 §4.7）：OPT_CPP 置位、没有扩展、或原生报错（景物预查越界）时返回 false，走 GDScript 核心。
+## 输入输出与 _motion_core 相同：读写 _hp / _seg_on，登记 _dv_* / _ab_*；景物底座由 map.push_table 按敌人所在范围 ±3 格预先查好
+func _motion_native(n: int, dt: float) -> bool:
+	if g.opt_old & Game.OPT_CPP:
+		return false
+	var core = Native.enemy_core()
+	if core == null or n == 0:
+		return false
+	if _gcell.size() < n * 3:
+		return false   # 网格表比本帧敌人少（不该发生：网格在本帧 A 段之前按全表建）
+	var grid: PackedInt32Array = _gcell if _gcell.size() == n * 3 else _gcell.slice(0, n * 3)
+	var pp: Array = g.map.push_params()   # [on, cell, rx, ry]
+	var x0 := 0
+	var x1 := -1
+	var y0 := 0
+	var y1 := -1
+	var pt: Array = [PackedInt32Array(), PackedVector2Array(), PackedFloat64Array()]
+	if pp[0]:
+		var pc: float = pp[1]
+		var first := true
+		for i in n:
+			if _seg_on[i] == 0:
+				continue
+			var cx := floori(_hp[i].x / pc)
+			var cy := floori(_hp[i].y / pc)
+			if first:
+				x0 = cx
+				x1 = cx
+				y0 = cy
+				y1 = cy
+				first = false
+			else:
+				x0 = mini(x0, cx)
+				x1 = maxi(x1, cx)
+				y0 = mini(y0, cy)
+				y1 = maxi(y1, cy)
+		if not first:
+			x0 -= 3
+			x1 += 3
+			y0 -= 3
+			y1 += 3
+			pt = g.map.push_table(x0, x1, y0, y1)
+	var params := PackedFloat64Array([dt, CELL, 1.0 if g.zone_state != 0 else 0.0, g.zone_r, g.zone_c.x, g.zone_c.y, float(g.frame_n),
+		1.0 if pp[0] else 0.0, pp[1], pp[2], pp[3], x0, x1, y0, y1])
+	var res: Array = core.step(_hp, _hr, _hz, _hf, _seg_on, _seg_v, grid, params, pt[0], pt[1], pt[2])
+	if int(res[4]) != 0:
+		return false
+	_hp = res[0]
+	_seg_on = res[1]
+	var dv: PackedInt32Array = res[2]
+	for k in range(0, dv.size(), 2):
+		_dv_e.append(dv[k])
+		_dv_o.append(dv[k + 1])
+	var ab: PackedInt32Array = res[3]
+	for k in range(0, ab.size(), 2):
+		_ab_e.append(ab[k])
+		_ab_o.append(ab[k + 1])
+	return true
 
 
 ## 运动核心（将来的 EnemyCore.step；只读写上面的列 + _seg_on / _seg_v，登记吞噬候选 _dv_* 与吸收 _ab_*；不抽随机数、不碰字典）。
@@ -370,7 +440,8 @@ func update(dt: float) -> void:
 
 	# ---- B 运动段（docs/101 B8：段首把热字段读进平行数组，核心只读写数组，段尾写回字典；核心将来换原生 EnemyCore.step，OPT_CPP 对照）
 	_hot_gather(n)
-	_motion_core(n, dt)
+	if not _motion_native(n, dt):
+		_motion_core(n, dt)
 	_hot_scatter(n)
 
 	# ---- C 结算段
