@@ -269,7 +269,7 @@ func warn_resolve(w: Dictionary) -> void:
 				g.ebullets.append({"pos": w.pos, "vel": Vector2.from_angle(angle) * speed, "dmg": w.dmg,
 					"r": 5.0, "life": 2.4, "slow": false, "frost": maxf(float(e.get("frost", 0.0)), float(w.get("frost", 0.0))), "corrode": e.corrode,
 					"nerve": float(w.get("nerve", 0.0)), "true": false, "kind": kind, "home": false,
-					"atk": D.ENEMIES[e.type].get("atk", "法术"), "boss": false, "source_id": e.id, "no_rock": true})   # no_rock：预警类攻击不受地形阻挡
+					"atk": D.ENEMIES[e.type].get("atk", "法术"), "boss": e.boss, "src_type": e.type, "source_id": e.id, "no_rock": true})   # no_rock：预警类攻击不受地形阻挡
 			g.fx.append({"kind": "rays", "pos": w.pos, "life": 0.25, "max": 0.25, "col": c, "enemy": true})
 			Sfx.enemy("spit", e.pos.distance_to(g.ppos))
 		"ishar_strike":

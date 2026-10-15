@@ -91,7 +91,7 @@ func update_bullets(dt: float) -> void:
 				b.trail = 0.03
 				g.fx.append({"kind": "spark", "pos": b.pos - b.vel.normalized() * 6.0, "vel": -b.vel * 0.1 + Vector2(randf_range(-20, 20), randf_range(-20, 20)),
 					"sz": 3.0, "life": 0.3, "max": 0.3, "col": Color(0.75, 0.35, 1.0)})
-		for j in g.enemies_sys.query(b.pos, 40.0):
+		for j in g.enemies_sys.query(b.pos, maxf(40.0, b.r + g.enemies_sys.max_r)):   # 查询半径覆盖大体型敌人（docs/101 §3.4 ⑦）
 			var e: Dictionary = g.enemies[j]
 			if e.dead or b.pos.distance_to(e.pos) > e.r + b.r:
 				continue

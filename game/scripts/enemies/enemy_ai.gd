@@ -228,7 +228,7 @@ func _thrust(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float)
 		e.trail_t -= dt
 		if e.trail_t <= 0.0 and g.mires.size() < 32:
 			e.trail_t = 0.7
-			g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 8.0, "maxr": 30.0, "life": 5.0, "seed": g.rng.randf() * 100.0, "boss": false})
+			g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 8.0, "maxr": 30.0, "life": 5.0, "seed": g.vrng.randf() * 100.0, "boss": false})
 	var tr := float(d.get("thrust_range", 170))
 	if dist < tr and dist > 30.0 and e.wind <= 0.0 and g.bai.cd_ready(e, "thrust", float(d.get("thrust_cd", 3.2))):
 		if _stag(e):
@@ -292,7 +292,9 @@ func _stomp(e: Dictionary, d: Dictionary, dist: float) -> Vector2:
 
 ## 蓄力 dash_wind 秒后高速冲刺
 func _dash(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) -> Vector2:
-	e["dash_cd"] = e.get("dash_cd", g.rng_enemy.randf_range(1.5, 3.5)) - dt
+	if not e.has("dash_cd"):
+		e["dash_cd"] = g.rng_enemy.randf_range(1.5, 3.5)   # 首次才抽（原来缺省值参数每帧都求值，白抽一次；docs/101 §3.4 ①）
+	e.dash_cd -= dt
 	if e.get("dash_w", 0.0) > 0.0:
 		e.dash_w -= dt
 		if e.dash_w <= 0.0:
@@ -338,7 +340,9 @@ func _acid(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 
 ## 发光蓄力后环形弹幕
 func _nova(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
-	e["nova_cd"] = e.get("nova_cd", g.rng_enemy.randf_range(2.0, 4.0)) - dt
+	if not e.has("nova_cd"):
+		e["nova_cd"] = g.rng_enemy.randf_range(2.0, 4.0)   # 同上（§3.4 ①）
+	e.nova_cd -= dt
 	if e.get("nova_w", 0.0) > 0.0:
 		e.nova_w -= dt
 		if e.nova_w <= 0.0:

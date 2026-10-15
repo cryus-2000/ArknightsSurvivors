@@ -547,7 +547,7 @@ func hit_fx(e: Dictionary, dir := Vector2.ZERO) -> void:
 	elif HIT_SPIRIT.has(e.type) or e.get("hover", false):
 		n = "fx_hit_spirit"
 	var sc: float = Game.PX * clampf(e.r / 12.0, 0.9, 2.2)
-	if not fx_sprite(n, e.pos + Vector2(0, -e.r * 0.5), sc, dir.angle() if dir != Vector2.ZERO else g.rng.randf() * TAU):
+	if not fx_sprite(n, e.pos + Vector2(0, -e.r * 0.5), sc, dir.angle() if dir != Vector2.ZERO else g.vrng.randf() * TAU):
 		anim("fx_hit", e.pos, 0.16)
 
 
@@ -696,7 +696,7 @@ func boss_pattern(w: Dictionary) -> void:
 # 用户确认复用水月旧版深渊月牙帧条，运行时换色，原始素材保持不变。
 var blade_palettes: Dictionary = {}
 func boss_blade(b: Dictionary, pos: Vector2) -> void:
-	var type: String = b.get("source_type", "paranoia")
+	var type: String = b.get("src_type", "paranoia")
 	if not blade_palettes.has(type):
 		var original: Texture2D = g.tex.get("proj_tide_blade_abyss")
 		if original == null:

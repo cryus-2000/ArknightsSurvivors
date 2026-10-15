@@ -1171,7 +1171,7 @@ func kill(e: Dictionary) -> void:
 	# 深溟奠基者（V8）：死亡时留下一片溟痕（death_mire = 最大半径）
 	var dmire := float(D.ENEMIES.get(e.type, {}).get("death_mire", 0.0))
 	if dmire > 0.0 and g.mires.size() < 32:
-		g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 10.0, "maxr": dmire, "life": 12.0, "seed": g.rng.randf() * 100.0, "boss": false})
+		g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 10.0, "maxr": dmire, "life": 12.0, "seed": g.vrng.randf() * 100.0, "boss": false})
 	if e.xp > 0.0:
 		g.pickups.drop(e.pos, "xp", e.xp * g.xp_mult)
 	if g.rng_drop.randf() < Bal.v("lamp/oil_kill_chance", 0.006) * float(g.dmod.oil_drop):

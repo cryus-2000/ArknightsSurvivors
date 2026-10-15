@@ -17,17 +17,24 @@ func _init(game: Game) -> void:
 	g = game
 
 
+var max_r := 0.0   # 本帧网格里最大的敌人半径（build_grid 记；我方子弹命中查询半径 = b.r + max_r，docs/101 §3.4 ⑦）
+
+
 func build_grid() -> void:
 	g.grid.clear()
+	var mr := 0.0
 	for i in g.enemies.size():
 		var e: Dictionary = g.enemies[i]
 		if e.dead or e.get("friendly", false):
 			continue
+		if e.r > mr:
+			mr = e.r
 		var k := Vector2i(floori(e.pos.x / CELL), floori(e.pos.y / CELL))
 		if g.grid.has(k):
 			g.grid[k].append(i)
 		else:
 			g.grid[k] = [i]
+	max_r = mr
 
 
 func query(pos: Vector2, radius: float) -> Array:
@@ -344,7 +351,7 @@ func update_lobs(dt: float) -> void:
 				if not landed:
 					g.fx.append({"kind": "explode", "pos": l.to, "r": l.r, "life": 0.35, "max": 0.35, "col": Color(0.5, 0.9, 0.5) if l.get("mire", false) else Color(0.8, 0.7, 0.55)})
 				if l.get("mire", false) and g.mires.size() < 32:
-					g.mires.append({"pos": l.to, "r": 12.0, "maxr": 44.0, "life": 7.0, "seed": g.rng.randf() * 100.0})
+					g.mires.append({"pos": l.to, "r": 12.0, "maxr": 44.0, "life": 7.0, "seed": g.vrng.randf() * 100.0})
 				if not landed:
 					g.vfx.sparks(l.to, Vector2.ZERO, Color(0.75, 0.7, 0.6), 8, 200.0)
 				Sfx.play("boom", -14.0, 1.6, 0.1)
@@ -406,7 +413,7 @@ func update_ebullets(dt: float) -> void:
 			var bm: bool = b.get("boss", false)
 			# Boss 溟痕（docs/38 §1.7）：每块最多 6 秒（原来 10 秒）
 			# 小怪子弹留的溟痕按来源定大小 / 时长（浮海飘航者的神经弹：半径 30、5 秒，协调人 9/29 定 A；站进去累积神经损伤）
-			g.mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": float(b.get("mire_r", 52.0)), "life": 6.0 if bm else float(b.get("mire_life", 10.0)), "seed": g.rng.randf() * 100.0, "boss": bm})
+			g.mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": float(b.get("mire_r", 52.0)), "life": 6.0 if bm else float(b.get("mire_life", 10.0)), "seed": g.vrng.randf() * 100.0, "boss": bm})
 			if not bm and b.has("mire_r"):
 				Sfx.play("mire_splat", -10.0, 1.0, 0.1)   # 神经弹落地留溟痕
 		if hitp:
