@@ -351,7 +351,7 @@ func update_lobs(dt: float) -> void:
 			if g.combat.ground_d(g.ppos, l.to) < l.r and g.invuln <= 0.0:   # 画即判（§1.9）
 				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), l, false, false, ["远程", "法术"], "bullet")
 				if str(l.get("hit_fx", "")) != "":
-					g.vfx.fx_sprite(l.hit_fx, g.ppos + Vector2(0, -8), Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(12, 19))   # 队长中酸：侵蚀命中帧条（紫蓝变体）
+					g.vfx.fx_sprite(l.hit_fx, g.ppos + Vector2(0, -8), Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(float(l.get("hit_org", [12, 19])[0]), float(l.get("hit_org", [12, 19])[1])))   # 队长中酸：侵蚀命中帧条（紫蓝变体）
 	g.lobs = g.lobs.filter(func(l): return l.t < l.dur)
 
 

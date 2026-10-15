@@ -16,6 +16,7 @@
    "extra": {"name": "骨刺扫击", "mode": "swipe", "range": 78, "cd": 15.0, "damage_mult": 0.2, "min_time": 400.0}
   },
   "slider": {
+   "dash_fx": "fx_slider_dash",
    "name": "底海滑动者",
    "hp": 12.0,
    "spd": 72.0,
@@ -34,6 +35,8 @@
    "extra": {"name": "滑行侧撞", "mode": "swipe", "range": 115, "cd": 15.0, "damage_mult": 0.2, "min_time": 400.0}
   },
   "stone": {
+   "hit_fx": "fx_rock_hit",
+   "hit_fx_origin": [10, 10],
    "name": "固海凿石者",
    "hp": 26.0,
    "spd": 46.0,
@@ -59,6 +62,7 @@
    "desc": "另会使用「凿石贯射」进行预警攻击。"
   },
   "offspring": {
+   "shot_tex": "proj_offspring_spore",
    "apop_hit": 20.0,
    "name": "伊祖米克的子代",
    "hp": 70.0,
@@ -137,6 +141,7 @@
    "shot_kind": "acid"
   },
   "runner": {
+   "blast_fx": "fx_runner_blast",
    "name": "壳海狂奔者",
    "hp": 9.0,
    "spd": 108.0,
@@ -483,6 +488,8 @@
    }
   },
   "mimic": {
+   "atk_fx": "fx_mimic_bite",
+   "atk_fx_origin": [8, 16],
    "name": "箱形恐鱼",
    "hp": 45.0,
    "spd": 88.0,
