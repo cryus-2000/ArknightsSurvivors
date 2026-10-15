@@ -85,7 +85,7 @@ static func _h3_spin(o, a: Dictionary, dmg: float, kind: int) -> void:
 		o.log_hit(src, a.get("tags", []))
 		o.deal_damage(e, d)
 		if not e.dead and not e.boss and kind == 0:
-			e.kb += (e.pos - o.pos).normalized() * kb
+			o.apply_kb(e, (e.pos - o.pos).normalized() * kb)
 		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 9.0, "life": 0.15, "col": H3_RED if heavy else H3_GHOST, "alpha": 0.5})
 	var rev: bool = (o.face < 0.0) != (kind == 1)
 	if kind == 2:

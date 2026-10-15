@@ -23,7 +23,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		if e.bt > 4.0 * SKILL_COOLDOWN_SCALE:
 			e.bt = 0.0
 			for k in 2:
-				var o: Dictionary = g.spawner.spawn_enemy("offspring", g.combat.arena_clamp(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 140.0))
+				var o: Dictionary = g.spawner.spawn_enemy("offspring", g.combat.arena_clamp(e.pos + Vector2.from_angle(g.rng_enemy.randf() * TAU) * 140.0))
 				o.feed = true
 				o.feed_to_id = e.id   # 喂食目标存 id 句柄（docs/101 B5：原生端只认 id）
 				o.spd = 45.0
@@ -147,9 +147,9 @@ func izumik_absorb(e: Dictionary) -> void:
 func _izumik_lamps(e: Dictionary) -> void:
 	e.lamp_r = Bal.v("boss/izumik_lamp_r", 120.0)
 	e.lamps = []
-	var a0: float = g.rng.randf() * TAU
+	var a0: float = g.rng_enemy.randf() * TAU
 	for k in 3:
-		var p: Vector2 = g.combat.arena_clamp(e.pos + Vector2.from_angle(a0 + TAU * k / 3.0) * g.rng.randf_range(220.0, 300.0), 90.0)
+		var p: Vector2 = g.combat.arena_clamp(e.pos + Vector2.from_angle(a0 + TAU * k / 3.0) * g.rng_enemy.randf_range(220.0, 300.0), 90.0)
 		e.lamps.append({"pos": p, "lit": false, "prog": 0.0})
 
 

@@ -92,7 +92,7 @@ static func hw_bolt_fire(o, b: Dictionary, is_atk: bool) -> bool:
 			for q in int(b.get("count", 1)):
 				if pool.is_empty():
 					break
-				var e2: Dictionary = pool.pop_at(g.rng.randi() % pool.size())
+				var e2: Dictionary = pool.pop_at(g.rng_op.randi() % pool.size())
 				_hw_word(o, e2, hw_mul(hw_atk(o), b.get("mult", 1.0)), src, b)
 				if b.has("slow"):
 					e2.slow = maxf(e2.slow, float(b.slow))
@@ -127,7 +127,7 @@ static func _hw3_bolts(o, dt: float) -> void:
 						hw_bolt_hit(o, e, q.dmg, q.src, q.b)
 					else:
 						h.bolts.append({"pos": hand, "e": e, "dmg": q.dmg, "src": q.src, "b": q.b, "hist": [hand], "life": float(q.b.get("life", 1.3)), "age": 0.0,
-							"ph": g.rng.randf() * TAU, "rune": g.vrng.randi(), "to": e.pos + Vector2(0, -e.r * 0.5)})
+							"ph": g.vrng.randf() * TAU, "rune": g.vrng.randi(), "to": e.pos + Vector2(0, -e.r * 0.5)})
 						o.fx({"kind": "glow", "pos": hand, "r": 7.0, "life": 0.1, "col": HW_PALE, "alpha": 0.7})
 		h.word_q = h.word_q.filter(func(q): return q.t > 0.0)
 	if h.bolts.is_empty():
@@ -234,7 +234,7 @@ static func hw_execute(o, b: Dictionary) -> bool:
 		var pool: Array = o.nearest_enemies(int(b.get("pool", 6)), hw_range(o), o.pos)
 		pool = pool.filter(func(q): return not is_same(q, e) and not q.dead)
 		if not pool.is_empty():
-			var q2: Dictionary = pool[g.rng.randi() % pool.size()]
+			var q2: Dictionary = pool[g.rng_op.randi() % pool.size()]
 			o.log_hit(str(b.get("over_src", b.get("src", ""))), [])
 			o.deal_damage(q2, over)
 			for s in b.get("over_on_hit", _EA):

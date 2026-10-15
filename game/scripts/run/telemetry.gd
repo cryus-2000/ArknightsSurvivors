@@ -278,8 +278,9 @@ static func lamp_tier(v: float) -> int:
 
 ## ---- 作战记录计数（combat / squad / character / game 调用；docs/77）
 ## 一次有效伤害：eff = 实际扣掉的生命（同 dmg_out），raw = 这一下算出来的伤害（不封顶到剩余生命，「最高单次」用）
-func on_dmg(e: Dictionary, eff: float, raw: float) -> void:
-	var op: String = str(g.hit.get("op", ""))
+func on_dmg(e: Dictionary, eff: float, raw: float, hd: Dictionary = {}) -> void:
+	var h: Dictionary = hd if not hd.is_empty() else g.hit   # combat.damage 显式传（docs/101 B7 ⑤）
+	var op: String = str(h.get("op", ""))
 	if op == "":
 		op = "_other"
 	# 参与击杀：敌人身上记「谁最近一次命中我」（只是记账字段，不参与任何玩法判定）
@@ -288,7 +289,7 @@ func on_dmg(e: Dictionary, eff: float, raw: float) -> void:
 		hb = {}
 		e["_hb"] = hb
 	hb[op] = g.t
-	var src: String = str(g.hit.get("src", "?"))
+	var src: String = str(h.get("src", "?"))
 	var d: Dictionary = op_out.get(op, {})
 	if d.is_empty():
 		op_out[op] = d

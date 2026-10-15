@@ -144,7 +144,7 @@ func test_summon(o) -> void:
 	var hp0: float = e1.hp
 	var out0: float = float(game.dmg_out.get("狼首", 0.0))
 	var tag0: float = float(game.dmg_tag_out.get("summon", 0.0))
-	var rng0 = game.rng.state
+	var rng0 = game.rng_states()
 	ticks(o, 2.0)
 	ok(e1.hp < hp0, "狼首追上去咬到（%.0f → %.0f）" % [hp0, e1.hp])
 	ok(float(game.dmg_out.get("狼首", 0.0)) > out0, "伤害记在「狼首」（本干员 hit_sources）名下")
@@ -152,7 +152,7 @@ func test_summon(o) -> void:
 	ok(float(game.dmg_tag_out.get("summon", 0.0)) > tag0, "召唤物伤害自动带 summon 标签")
 	ok(OB.sealed(e1, game.t) and str(e1.get("seal_by", "")) == "sstest" and o.sm.seal.has(int(e1.id)), "狼首命中附带封印")
 	ok(kinds(o, "wolf").all(func(s): return s.pos.distance_to(e1.pos) < 70.0), "两只狼首都贴到目标身边")
-	ok(game.rng.state == rng0, "召唤物移动 / 出手 / 封印不碰 g.rng")
+	ok(game.rng_states() == rng0, "召唤物移动 / 出手 / 封印不碰 g.rng")
 	# 3. 伤害 / 攻速 / 技能强度跟着本干员走
 	var a: Dictionary = o.B.summons.wolf.attack
 	var d0: float = OB.sm_dmg(o, a)

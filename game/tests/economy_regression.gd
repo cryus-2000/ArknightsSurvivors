@@ -82,14 +82,14 @@ func _process(_dt: float) -> void:
 			check(e.pos.distance_to(game.zone_c) <= 110.01, "altar follows shrinking tide")
 			e.dead = true
 	game.zone_state = 0
-	# Elite chance is nontrivial and repeatable; the combat drop function uses g.rng.
+	# Elite chance is nontrivial and repeatable; the combat drop function uses g.rng_drop (docs/101 B7).
 	var outcomes: Array = []
-	game.rng.seed = 1717
+	game.rng_drop.seed = 1717
 	for i in 1000:
 		outcomes.append(game.combat.elite_drops_relic())
 	var count: int = outcomes.count(true)
 	check(count > 240 and count < 360, "elite relic drops near 30%, never guaranteed")
-	game.rng.seed = 1717
+	game.rng_drop.seed = 1717
 	for i in 1000:
 		check(game.combat.elite_drops_relic() == outcomes[i], "elite chance repeats by seed")
 	# Front curve unchanged; later costs grow smoothly instead of a hard time gate.

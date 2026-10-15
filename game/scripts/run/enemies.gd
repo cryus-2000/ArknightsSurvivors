@@ -17,17 +17,24 @@ func _init(game: Game) -> void:
 	g = game
 
 
+var max_r := 0.0   # 本帧网格里最大的敌人半径（build_grid 记；我方子弹命中查询半径 = b.r + max_r，docs/101 §3.4 ⑦）
+
+
 func build_grid() -> void:
 	g.grid.clear()
+	var mr := 0.0
 	for i in g.enemies.size():
 		var e: Dictionary = g.enemies[i]
 		if e.dead or e.get("friendly", false):
 			continue
+		if e.r > mr:
+			mr = e.r
 		var k := Vector2i(floori(e.pos.x / CELL), floori(e.pos.y / CELL))
 		if g.grid.has(k):
 			g.grid[k].append(i)
 		else:
 			g.grid[k] = [i]
+	max_r = mr
 
 
 func query(pos: Vector2, radius: float) -> Array:
@@ -50,9 +57,168 @@ func query(pos: Vector2, radius: float) -> Array:
 	return out
 
 
+## ---- 热字段平行数组（docs/101 B8、§4.3）：B 运动段只读写这几列。按本帧 g.enemies 下标（0..n-1）排，段首 _hot_gather 读入、段尾
+## _hot_scatter 写回；位置 PackedVector2Array（与字典里的 Vector2 同为 float32），半径 / 场地留边 PackedFloat64Array（与 GDScript float 同为 float64），
+## 算式与类型照搬原来的字典版，所以结果逐位相同。标志位见 HF_*
+const HF_DEAD := 1
+const HF_FRIENDLY := 2
+const HF_STATIC := 4
+const HF_BOSS := 8
+const HF_EVO := 16
+const HF_ELITE := 32
+const HF_CHEST := 64
+const HF_FEED := 128
+const HF_IZUMIK1 := 256   # 一阶段伊祖米克（子代碰到就被吸收）
+var _hp := PackedVector2Array()
+var _hr := PackedFloat64Array()
+var _hz := PackedFloat64Array()   # Boss 的场地留边（骑士按整个画幅顶角算，其余 = r）
+var _hf := PackedInt32Array()
+
+
+func _hot_gather(n: int) -> void:
+	_hp.resize(n)
+	_hr.resize(n)
+	_hz.resize(n)
+	_hf.resize(n)
+	for i in n:
+		var e: Dictionary = g.enemies[i]
+		_hp[i] = e.pos
+		_hr[i] = e.r
+		var f := 0
+		if e.dead:
+			f |= HF_DEAD
+		if e.get("friendly", false):
+			f |= HF_FRIENDLY
+		if e.ai == "static":
+			f |= HF_STATIC
+		if e.boss:
+			f |= HF_BOSS
+			var margin := float(e.r)
+			if e.type == "knight_boss":
+				# 骑士按整个画幅的最远顶角留边：含受击横向拉伸30%、上浮14与描边。
+				var draw_scale: float = Game.PX * float(D.ENEMIES[e.type].get("draw_scale", 1.0))
+				margin = maxf(margin, Vector2(48.0 * draw_scale * 1.3 + 2.0, 80.0 * draw_scale + 16.0).length())
+			_hz[i] = margin
+		if e.evo:
+			f |= HF_EVO
+		if e.elite:
+			f |= HF_ELITE
+		if e.chest:
+			f |= HF_CHEST
+		if e.feed:
+			f |= HF_FEED
+		if e.type == "izumik" and e.phase == 1:
+			f |= HF_IZUMIK1
+		_hf[i] = f
+
+
+func _hot_scatter(n: int) -> void:
+	for i in n:
+		if _seg_on[i] != 0:
+			g.enemies[i].pos = _hp[i]
+
+
+## 运动核心（将来的 EnemyCore.step；只读写上面的列 + _seg_on / _seg_v，登记吞噬候选 _dv_* 与吸收 _ab_*；不抽随机数、不碰字典）。
+## 景物推出 g.map.push_out 仍在循环里按原次序调（原生版要把景物烘成数据，docs/101 §4.2 ①）
+func _motion_core(n: int, dt: float) -> void:
+	var zone_on: bool = g.zone_state != 0
+	var zr: float = g.zone_r
+	var zc: Vector2 = g.zone_c
+	var fn: int = g.frame_n
+	var grid: Dictionary = g.grid
+	for i in n:
+		if _seg_on[i] == 0:
+			continue
+		var fi: int = _hf[i]
+		if fi & HF_DEAD:   # A 段里被别的单位打死（Boss 招式、持续伤害外的结算）
+			_seg_on[i] = 0
+			continue
+		var p: Vector2 = _hp[i]
+		var ri: float = _hr[i]
+		var absorbed := false
+		# ---- 分离 + 吞噬
+		if not (fi & HF_STATIC):
+			# 分离：同样的格子顺序、同样的越界与阵营判断；查询范围按进循环前的位置定
+			var qr: float = ri + 20.0
+			var qp: Vector2 = p
+			var x0 := floori((qp.x - qr) / CELL)
+			var x1 := floori((qp.x + qr) / CELL)
+			var y0 := floori((qp.y - qr) / CELL)
+			var y1 := floori((qp.y + qr) / CELL)
+			var stop := false
+			for cx in range(x0, x1 + 1):
+				if stop:
+					break
+				for cy in range(y0, y1 + 1):
+					if stop:
+						break
+					var cell = grid.get(Vector2i(cx, cy))
+					if cell == null:
+						continue
+					for j in cell:
+						if j < 0 or j >= n or j == i:
+							continue
+						var fj: int = _hf[j]
+						if fj & (HF_FRIENDLY | HF_DEAD):
+							continue
+						var diff: Vector2 = p - _hp[j]
+						var d := diff.length()
+						var min_d: float = ri + _hr[j]
+						if d < min_d and d > 0.01:
+							# 吞噬只登记候选（B 段不抽随机数），掷骰在 C 段按这里的次序做；候选照常被推开
+							if (fi & HF_EVO) and not (fj & (HF_EVO | HF_ELITE | HF_BOSS | HF_CHEST | HF_STATIC)) and d < ri:
+								_dv_e.append(i)
+								_dv_o.append(j)
+							# 伊祖米克的子代被 Boss 吸收（在 C 段结算；这只本帧不再移动）
+							if (fi & HF_FEED) and (fj & HF_IZUMIK1):
+								_ab_e.append(i)
+								_ab_o.append(j)
+								absorbed = true
+								stop = true
+								break
+							if not (fi & HF_BOSS):
+								p += diff / d * (min_d - d) * 0.3
+			if absorbed:
+				_hp[i] = p
+				continue
+		p += _seg_v[i] * dt
+		# 包含普通移动、外来击退和自主冲锋；约束当前可见圈，避免冻结场地圆心过渡时越界。
+		if (fi & HF_BOSS) and zone_on:
+			var limit := maxf(0.0, zr - _hz[i])
+			var offset: Vector2 = p - zc
+			if offset.length_squared() > limit * limit:
+				p = zc + offset.normalized() * limit
+		if not (fi & HF_BOSS) and not (fi & HF_STATIC) and (i + fn) % 2 == 0:
+			p = g.map.push_out(p, ri * 0.8)
+		_hp[i] = p
+
+
+## 三段更新的逐帧暂存（docs/101 B7 ③）：A 段算出的本帧速度、是否进入 B / C；B 段登记的吞噬候选（捕食者 i、猎物 j）与伊祖米克吸收（子代 i、Boss j）
+var _seg_v := PackedVector2Array()
+var _seg_on := PackedByteArray()
+var _dv_e := PackedInt32Array()
+var _dv_o := PackedInt32Array()
+var _ab_e := PackedInt32Array()
+var _ab_o := PackedInt32Array()
+
+
 func update(dt: float) -> void:
 	var dark_mod: float = Bal.v("lamp/dark_enemy", 1.2) if g.lamp < 30.0 else 1.0   # 灯火暗淡时敌人移速 / 接触伤害倍率（docs/88 旋钮，缺省 1.2 不变）
-	for i in g.enemies.size():
+	# 敌人更新分三段（docs/101 B7 ③，10-15 起换基线）：
+	#   A 决策（逐只：计时、持续伤害、远距回收、进化、Boss 步、AI 意图 → 本帧速度 v）
+	#   B 运动（逐只：分离、积分、场地约束、景物推出；不抽随机数、不回调——将来的原生 EnemyCore.step）
+	#   C 结算（逐只：吞噬掷骰、伊祖米克吸收、囊海爬行者爆发、接触伤害 / 形变、泪的持续伤害；距离按移动后的位置）
+	# 原来一只敌人走完全部再下一只；分段后先后次序不同，同 seed 结果随之改变。本帧新刷出的敌人（A 里 Boss 召唤等）三段都不处理，与原来一致
+	var n: int = g.enemies.size()
+	_seg_v.resize(n)
+	_seg_on.resize(n)
+	_dv_e.clear()
+	_dv_o.clear()
+	_ab_e.clear()
+	_ab_o.clear()
+	# ---- A 决策段
+	for i in n:
+		_seg_on[i] = 0
 		var e: Dictionary = g.enemies[i]
 		if e.dead:
 			continue
@@ -93,8 +259,7 @@ func update(dt: float) -> void:
 			e["bleed_t"] = e.get("bleed_t", 0.0) + dt
 			if e.bleed_t >= 0.5:
 				e.bleed_t = 0.0
-				g.combat.hit("援护")
-				g.combat.damage(e, e.bleed_dps * 0.5)
+				g.combat.damage(e, e.bleed_dps * 0.5, g.combat.make_hit("援护"))
 				g.fx.append({"kind": "spark", "pos": e.pos + Vector2(randf_range(-6, 6), -4), "vel": Vector2(0, 60), "sz": 2.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.05, 0.1)})
 				if e.dead:
 					continue
@@ -104,8 +269,7 @@ func update(dt: float) -> void:
 			e["corr_tick"] = e.get("corr_tick", 0.0) + dt
 			if e.corr_tick >= 0.5:
 				e.corr_tick = 0.0
-				g.combat.hit("触手", ["corrode"])
-				g.combat.damage(e, e.corr_dmg)
+				g.combat.damage(e, e.corr_dmg, g.combat.make_hit("触手", ["corrode"]))
 				g.fx.append({"kind": "spark", "pos": e.pos + Vector2(randf_range(-8, 8), -6), "vel": Vector2(0, -40), "sz": 2.5, "life": 0.45, "max": 0.45, "col": Color(1.2, 0.6, 1.6)})
 				if e.dead:
 					continue
@@ -201,66 +365,40 @@ func update(dt: float) -> void:
 		e.kb = e.kb.move_toward(Vector2.ZERO, 900.0 * dt)
 		if e.get("kb_self", false) and e.kb == Vector2.ZERO:
 			e.kb_self = false
+		_seg_v[i] = v
+		_seg_on[i] = 1
 
-		# ---- 分离 + 吞噬
-		if e.ai != "static":
-			# 分离：query() 内联（性能，docs/50 §11）——同样的格子顺序、同样的越界与阵营判断，不建中间数组；
-			# 查询范围按进循环前的位置定（和先 query 再遍历相同）
-			var qr: float = e.r + 20.0
-			var qp: Vector2 = e.pos
-			var x0 := floori((qp.x - qr) / CELL)
-			var x1 := floori((qp.x + qr) / CELL)
-			var y0 := floori((qp.y - qr) / CELL)
-			var y1 := floori((qp.y + qr) / CELL)
-			var nq: int = g.enemies.size()
-			var stop := false
-			for cx in range(x0, x1 + 1):
-				if stop:
-					break
-				for cy in range(y0, y1 + 1):
-					if stop:
-						break
-					var cell = g.grid.get(Vector2i(cx, cy))
-					if cell == null:
-						continue
-					for j in cell:
-						if j < 0 or j >= nq or j == i:
-							continue
-						var o: Dictionary = g.enemies[j]
-						if o.get("friendly", false) or o.dead:
-							continue
-						var diff: Vector2 = e.pos - o.pos
-						var d := diff.length()
-						var min_d: float = e.r + o.r
-						if d < min_d and d > 0.01:
-							if e.evo and not o.evo and not o.elite and not o.boss and not o.chest and o.ai != "static" and d < e.r and g.rng.randf() < 0.015:
-								_devour(e, o)
-								continue
-							# 伊祖米克的子代被 Boss 吸收
-							if e.feed and o.type == "izumik" and o.phase == 1:
-								e.dead = true
-								g.bai.izumik_absorb(o)   # 吸收子代：强化层数（不再回血，docs/38 §8.7）
-								stop = true
-								break
-							if not e.boss:
-								e.pos += diff / d * (min_d - d) * 0.3
-			if e.dead:
-				continue
-		e.pos += v * dt
-		# 包含普通移动、外来击退和自主冲锋；约束当前可见圈，避免冻结场地圆心过渡时越界。
-		if e.boss and g.zone_state != 0:
-			# 骑士按整个画幅的最远顶角留边：含受击横向拉伸30%、上浮14与描边。
-			var margin := float(e.r)
-			if e.type == "knight_boss":
-				var draw_scale: float = Game.PX * float(D.ENEMIES[e.type].get("draw_scale", 1.0))
-				margin = maxf(margin, Vector2(48.0 * draw_scale * 1.3 + 2.0, 80.0 * draw_scale + 16.0).length())
-			var limit := maxf(0.0, g.zone_r - margin)
-			var offset: Vector2 = e.pos - g.zone_c
-			if offset.length_squared() > limit * limit:
-				e.pos = g.zone_c + offset.normalized() * limit
-		if not e.boss and e.ai != "static" and (i + g.frame_n) % 2 == 0:
-			e.pos = g.map.push_out(e.pos, e.r * 0.8)
+	# ---- B 运动段（docs/101 B8：段首把热字段读进平行数组，核心只读写数组，段尾写回字典；核心将来换原生 EnemyCore.step，OPT_CPP 对照）
+	_hot_gather(n)
+	_motion_core(n, dt)
+	_hot_scatter(n)
 
+	# ---- C 结算段
+	var dv := 0
+	var ab := 0
+	var ndv: int = _dv_e.size()
+	var nab: int = _ab_e.size()
+	for i in n:
+		if _seg_on[i] == 0:
+			continue
+		var e: Dictionary = g.enemies[i]
+		# 吞噬：B 段登记的候选按分离次序掷骰（rng_enemy，1.5%）
+		while dv < ndv and _dv_e[dv] == i:
+			var prey: Dictionary = g.enemies[_dv_o[dv]]
+			dv += 1
+			if not e.dead and not prey.dead and g.rng_enemy.randf() < 0.015:
+				_devour(e, prey)
+		# 伊祖米克吸收子代：强化层数（不再回血，docs/38 §8.7）
+		if ab < nab and _ab_e[ab] == i:
+			var iz: Dictionary = g.enemies[_ab_o[ab]]
+			ab += 1
+			if not e.dead:
+				e.dead = true
+				g.bai.izumik_absorb(iz)
+			continue
+		if e.dead:
+			continue
+		var dist: float = (g.ppos - e.pos).length()   # 接触 / 泪按移动后的位置判
 		# ---- 囊海爬行者：每失去 15% 生命爆发一次。有 0.8 秒鼓胀预警（docs/48 P0-6：原 0.4 秒低于 0.6 下限），爆发之间至少隔 1.2 秒（高输出下不会连爆秒人）
 		if e.has("burst_at"):
 			e.burst_cd = maxf(0.0, e.get("burst_cd", 0.0) - dt)
@@ -281,7 +419,6 @@ func update(dt: float) -> void:
 				e.burst_w = 0.8
 				e.burst_dur = 0.8   # 画面按 burst_w / burst_dur 算鼓胀进度（界面与美术）
 				e.burst_cd = 1.2
-
 		# ---- 接触伤害
 		# 休眠中的收割者、自爆的狂奔者（V8）没有接触伤害；Boss 登场 2 秒内不造成接触伤害（docs/38 B0 第 6 项：边缘刷出贴脸）
 		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false) and not e.get("dormant", false) and not (e.type == "reaper" and e.get("wake_t", 0.0) > 0.0) and not D.ENEMIES[e.type].get("no_contact", false) and not (e.boss and e.age < 2.0) and e.get("air", 0.0) <= 0.0 and not e.get("under", false) and float(e.get("hatch_until", 0.0)) <= g.t:
@@ -299,6 +436,8 @@ func update(dt: float) -> void:
 		if e.type == "tear" and dist < e.r + 14.0:
 			g.combat.lose_hp(6.0 * dt, "tear", true)
 			g.hurt_flash = max(g.hurt_flash, 0.05)
+
+	build_grid()   # 移动后重建网格：之后的干员索敌 / 子弹 / 敌弹查询用本帧新位置（docs/101 §3.4 ⑧）
 
 
 ## 吞噬：进化体吞掉身边的普通怪（分离循环里按 1.5% 概率触发）
@@ -326,110 +465,18 @@ func morph(e: Dictionary) -> void:
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": Color(0.6, 1.0, 0.6)})
 	g.vfx.add_text(e.pos + Vector2(0, -24), "蜕变", Color(0.6, 1.0, 0.6), 16)
 	for k in 2:
-		g.spawner.spawn_enemy(["bone", "slider", "stone"][g.rng.randi() % 3], e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 20.0)
+		g.spawner.spawn_enemy(["bone", "slider", "stone"][g.rng_enemy.randi() % 3], e.pos + Vector2.from_angle(g.rng_enemy.randf() * TAU) * 20.0)
+
+
+## 敌方投射物推进已搬到 enemies/shot_pool.gd（g.shots.step，docs/101 B7 ④）；这里留旧含义的转发（测试与旧调用）：
+## update_ebullets = 抛物 + 敌弹（不含冲击环，冲击环见 g.shots.update_shocks）
+func update_ebullets(dt: float) -> void:
+	g.shots.update_lobs(dt)
+	g.shots.update_ebullets(dt)
 
 
 func update_lobs(dt: float) -> void:
-	for l in g.lobs:
-		l.t += dt
-		if l.t >= l.dur and g.beacon_sys.bullet_eaten(l.to):
-			g.beacon_sys.eat_fx(l.to)   # 圈内安全：落进读条光圈的抛石被灯光吞掉，不伤人、不留溟痕（docs/49g）
-			continue
-		if l.t >= l.dur:
-			if l.get("kind", "") == "brood":
-				_brood_land(l)
-			else:
-				# 落点帧条（enemies.json land_fx，docs/96 §1.4 喷吐者 fx_spitter_land，地面层、原点 (20,17)）：有图就不画程序爆圈 / 石屑火花；溟痕照旧由下面接管
-				var landed: bool = str(l.get("land_fx", "")) != "" and g.vfx.fx_sprite(l.land_fx, l.to, Game.PX, 0.0, false, false, Color.WHITE, true, Vector2(20, 17))
-				if not landed:
-					g.fx.append({"kind": "explode", "pos": l.to, "r": l.r, "life": 0.35, "max": 0.35, "col": Color(0.5, 0.9, 0.5) if l.get("mire", false) else Color(0.8, 0.7, 0.55)})
-				if l.get("mire", false) and g.mires.size() < 32:
-					g.mires.append({"pos": l.to, "r": 12.0, "maxr": 44.0, "life": 7.0, "seed": g.rng.randf() * 100.0})
-				if not landed:
-					g.vfx.sparks(l.to, Vector2.ZERO, Color(0.75, 0.7, 0.6), 8, 200.0)
-				Sfx.play("boom", -14.0, 1.6, 0.1)
-			if g.combat.ground_d(g.ppos, l.to) < l.r and g.invuln <= 0.0:   # 画即判（§1.9）
-				g.combat.enemy_hit(l.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), l, false, false, ["远程", "法术"], "bullet")
-				if str(l.get("hit_fx", "")) != "":
-					g.vfx.fx_sprite(l.hit_fx, g.ppos + Vector2(0, -8), Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(float(l.get("hit_org", [12, 19])[0]), float(l.get("hit_org", [12, 19])[1])))   # 队长中酸：侵蚀命中帧条（紫蓝变体）
-	g.lobs = g.lobs.filter(func(l): return l.t < l.dur)
-
-
-## 投嗣弹落地（投嗣育母，用户 10-14 定；enemy_ai.lob 的 lob_kind brood）：酸液砸开 + 在落点孵化一只注亡拟嗣。
-## 画面：fx_brood_land（docs/96 §1.1，粘液破开 → 拟嗣展开；播完前拟嗣本体不画、不接触、不吐酸：e.hatch_until）；
-## 缺图时 fx_acid_splash + 拟嗣直接出现。场上拟嗣到 spawner.type_cap 只造成伤害不孵化（伤害在 update_lobs 统一结算）
-func _brood_land(l: Dictionary) -> void:
-	var kind: String = str(l.get("spawn", "brood"))
-	var cap: int = g.spawner.type_cap(kind)
-	var can_hatch: bool = cap <= 0 or g.spawner.type_n(kind) < cap
-	var hp: Vector2 = g.map.push_out(l.to, 10.0) if can_hatch else l.to   # 孵化点（避开景物），落地帧条对齐到它
-	var hatch := 0.0
-	# Codex enemy_fx_1：fx_brood_land 24×24，末帧含 e_brood f0（1x 嵌入偏移 (3,4)）→ 原点 (12,24) 正好是拟嗣脚底锚点，播完移交本体
-	if g.vfx.fx_sprite("fx_brood_land", hp, Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(12, 24)):
-		var spec: Array = Game.V6_FRAMES["fx_brood_land"]
-		hatch = float(spec[0]) / float(spec[1])
-	else:
-		g.vfx.fx_sprite("fx_acid_splash", l.to + Vector2(0, 6), Game.PX, 0.0, false, true)
-	g.fx.append({"kind": "ring", "pos": l.to, "r": l.r, "life": 0.3, "max": 0.3, "col": Color(1.0, 0.3, 0.72)})   # 敌方洋红（docs/48）
-	g.vfx.sparks(l.to, Vector2.ZERO, Color(0.9, 1.6, 0.5), 8, 160.0)   # 酸绿粘液
-	Sfx.play("mire_splat", -10.0, 1.1, 0.1)
-	if not can_hatch:
-		return
-	var nb: Dictionary = g.spawner.spawn_enemy(kind, hp)
-	if hatch > 0.0:
-		nb["hatch_until"] = g.t + hatch
-		nb.cdt = maxf(nb.cdt, hatch)   # 展开期间不吐酸
-
-
-func update_ebullets(dt: float) -> void:
-	update_lobs(dt)
-	for b in g.ebullets:
-		if b.life <= 0.0:
-			continue
-		if b.get("home", false):
-			var want: Vector2 = (g.ppos + Vector2(0, -14) - b.pos).normalized() * b.vel.length()
-			b.vel = b.vel.lerp(want, clampf(dt * 1.6, 0.0, 1.0))
-		b.pos += b.vel * dt
-		b.life -= dt
-		if not b.get("boss", false) and g.beacon_sys.bullet_eaten(b.pos):
-			b.life = 0.0   # 圈内安全：非 Boss 子弹进入读条光圈即消散（docs/49g）
-			g.beacon_sys.eat_fx(b.pos)
-			continue
-		# 地形阻挡：敌方直线弹撞景物底座即消失（酸弹溅开 / 神经弹留溟痕照常走 life <= 0 分支）；追踪弹与预警类弹幕（no_rock）不挡，Boss 弹看 terrain/block_boss_bullets
-		var rock: bool = g.map.tb_ebul and not b.get("home", false) and (g.map.tb_boss or not b.get("boss", false)) and not b.has("no_rock") and g.map.bullet_blocked(b, b.pos, true)
-		if rock:
-			b.life = 0.0
-		var hitp: bool = not rock and b.pos.distance_to(g.ppos + Vector2(0, -14)) < b.r + 12.0
-		if b.get("kind", "") == "acid" and (hitp or b.life <= 0.0):
-			g.vfx.fx_sprite("fx_acid_splash", b.pos + Vector2(0, 6), Game.PX, 0.0, false, true)   # Codex v14 酸团落地 / 命中溅开
-		if b.get("mire", false) and (hitp or b.life <= 0.0) and g.mires.size() < 32 and _boss_mire_ok(b):
-			var bm: bool = b.get("boss", false)
-			# Boss 溟痕（docs/38 §1.7）：每块最多 6 秒（原来 10 秒）
-			# 小怪子弹留的溟痕按来源定大小 / 时长（浮海飘航者的神经弹：半径 30、5 秒，协调人 9/29 定 A；站进去累积神经损伤）
-			g.mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": float(b.get("mire_r", 52.0)), "life": 6.0 if bm else float(b.get("mire_life", 10.0)), "seed": g.rng.randf() * 100.0, "boss": bm})
-			if not bm and b.has("mire_r"):
-				Sfx.play("mire_splat", -10.0, 1.0, 0.1)   # 神经弹落地留溟痕
-		if hitp:
-			b.life = 0.0
-			if str(b.get("hit_fx", "")) != "":
-				g.vfx.fx_sprite(b.hit_fx, b.pos + Vector2(0, -10), Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(float(b.get("hit_org", [12, 19])[0]), float(b.get("hit_org", [12, 19])[1])))   # 专属命中帧条（docs/96 §1.2 漂移体 fx_corrode_hit，原点 (12,19)，纯画面）
-			if b.get("slow", false) and not g.combat.atk_slow_as_slow(3.0, b.get("boss", false)):   # Boss 来源不写 atk_slow（docs/38 §1.11）
-				g.atk_slow = 3.0
-			if g.invuln <= 0.0:
-				g.combat.enemy_hit(b.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), b, b["true"], false, ["远程", "真实" if b["true"] else b.get("atk", "法术")], "bullet")
-
-
-## Boss 溟痕上限（docs/38 §1.7）：同时最多 12 块；场地冻结后不生成在离圈边 120 以内
-func _boss_mire_ok(b: Dictionary) -> bool:
-	if not b.get("boss", false):
-		return true
-	var n := 0
-	for m in g.mires:
-		if m.get("boss", false):
-			n += 1
-	if n >= int(Bal.v("boss/mire_max", 12.0)):
-		return false
-	return not g.zone_frozen or b.pos.distance_to(g.zone_next_c) < g.zone_next_r - 120.0
+	g.shots.update_lobs(dt)
 
 
 ## 玩家身上的持续状态：侵蚀掉血、神经损伤衰减、溟痕
@@ -473,19 +520,6 @@ func update_status(dt: float) -> void:
 	else:
 		mire_tick = 0.0
 	g.mires = g.mires.filter(func(m): return m.life > 0.0)
-	for s in g.shocks:
-		s.r += float(s.get("spd", 320.0)) * dt   # spd：缺口环（大群之歌）扩散 ≤220px/s（docs/38 §1.9），普通冲击环 320
-		# 冲击环：环带宽 22，按地面椭圆算，且不超过最大半径（= 预警圈，docs/38 B0 第 5 项、docs/48 P0-1）
-		var sd: float = g.combat.ground_d(g.ppos, s.pos)
-		if not s.hit and absf(sd - s.r) < 22.0 and sd <= s.maxr and not g.tele.in_gap(s, (g.ppos - s.pos).angle()):   # 缺口环：站在缺口弧里不算中（docs/95 §12 song_ring）
-			s.hit = true
-			if g.invuln <= 0.0:
-				if not g.combat.stun_as_slow(s.get("boss", false)):   # Boss 战里僵直改成减速（docs/38 §1.11）
-					g.pstun = max(g.pstun, 0.5)
-				# 来源名：遥测分得出是谁的冲击环；src_type 不进受击字典，免得奠基者踏地额外带上寒霜
-				g.combat.enemy_hit(s.dmg, {"boss": s.get("boss", false)}, true, true, ["近战", "真实"] if s.get("true", false) else ["近战", "物理"],
-					"shock_" + str(s.src_type) if s.has("src_type") else "shock")   # 冲击环的 boss 标记由放招的敌人决定（boss_ai.gd）
-	g.shocks = g.shocks.filter(func(s): return s.r < s.maxr)
 
 
 func evolve(e: Dictionary) -> void:
@@ -548,6 +582,17 @@ func densest_point(radius: float, origin: Vector2 = Vector2.INF) -> Vector2:
 			bn = n
 			best = c.pos
 	return best
+
+
+## ---- 击退统一入口（docs/101 B7 ②⑥）：所有对敌人的击退冲量都经 apply_kb。失重（安洁莉娜 st.weightless，e.wl_t / e.wl_kb）倍率在这里乘
+## （原来 19 处直接写 e.kb、只有 4 处乘了）；精英 ×0.3 这类按招式定的系数仍由调用方乘进 v；重型 / 藏品击退倍率在 A 段算速度时统一乘。
+## wl = false：调用方已经按失重算过（安洁莉娜按位移距离反算冲量，失重折进距离），不再乘
+static func kb_taken(e: Dictionary, t: float) -> float:
+	return float(e.wl_kb) if e.has("wl_t") and float(e.wl_t) > t else 1.0
+
+
+func apply_kb(e: Dictionary, v: Vector2, wl := true) -> void:
+	e.kb += v * kb_taken(e, g.t) if wl else v
 
 
 # ---- 出生口 / 槽位 / id 表（docs/101 B5，§4.3）：所有敌人经 admit 进 g.enemies（spawner.spawn_enemy / spawn_chest 两处），

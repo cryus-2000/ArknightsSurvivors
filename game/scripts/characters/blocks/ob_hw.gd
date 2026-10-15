@@ -459,7 +459,7 @@ static func _hw5_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 #                   原点 = 脚底 + origin_off；aim: nearest + aim_r（世界像素）朝最近敌人（face 转身），没有 aim = 朝 ang（弧度）；
 #                   order: near = 按离脚底远近、max_n 个；伤害 = atk × mult[] × 加成 [× 技能强度] × post[]
 #  verb.barrage     手炮连射：n 发，第 i 发在 t0 + i × gap 秒；每发优先打本段浮空表里离发动点 r（× op_range）内的敌人，没有就打身边 r × near_k 内最近 near_n 个，
-#                   g.rng 随机挑一个（同手写），转身开火，执行 cannon {mult[], power, r, src}
+#                   g.rng_op 随机挑一个（同手写），转身开火，执行 cannon {mult[], power, r, src}
 #  verb.followup    delay 秒后再执行 do：那一刻正在出手就直接执行，否则先起一个技能动作（不扣技力），出手帧执行
 #  verb.ctrl_bonus  常驻（天赋）：写了 ctrl 的形状对浮空 / 眩晕 / 束缚中的敌人伤害 × (1 + value)
 #  verb.lift_around 瞬时：以 target 为心、r 内（查询多给 pad）的敌人（不含刚才那个首中目标）浮空 dur 秒、高 h

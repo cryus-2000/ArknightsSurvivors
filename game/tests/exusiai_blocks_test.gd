@@ -151,12 +151,12 @@ func test_runtime(o) -> void:
 	var hp0: float = e1.hp
 	st.bul.clear()
 	OB.exu_fire(o, a)
-	var rng0 = game.rng.state
+	var rng0 = game.rng_states()
 	run_bullets(o)
 	ok(e1.hp < hp0, "子弹命中掉血（%.1f → %.1f）" % [hp0, e1.hp])
 	ok(float(e1.kb.x) > 0.0, "子弹沿弹道方向轻微击退（kb.x = %.1f）" % float(e1.kb.x))
 	ok(st.bul.is_empty(), "子弹打完穿透次数或飞完射程后消失")
-	ok(game.rng.state == rng0, "没有跳弹节点时弹体结算不碰 g.rng")
+	ok(game.rng_states() == rng0, "没有跳弹节点时弹体结算不碰 g.rng")
 	# 3. S1 次数型：装填 6 发，每发 ×1.8 × 技能强度、穿透 1，打完为止
 	o.cur_skill = 0
 	o._release_skill()

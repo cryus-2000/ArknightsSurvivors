@@ -238,10 +238,9 @@ func update(dt: float) -> void:
 				if e.dead or e.chest or dash_hit.has(e.id) or e.pos.distance_to(pos) > e.r + R + 6.0:
 					continue
 				dash_hit[e.id] = true
-				g.combat.hit("骑士", ["ally", "charge"])
-				g.combat.damage(e, 45.0 * lvm * g.dmg_mult)
+				g.combat.damage(e, 45.0 * lvm * g.dmg_mult, g.combat.make_hit("骑士", ["ally", "charge"]))
 				if not e.dead:
-					e.kb += dash_dir * 260.0
+					g.enemies_sys.apply_kb(e, dash_dir * 260.0)
 				g.vfx.sparks(e.pos, dash_dir, ICE, 5, 160.0)
 				g.vfx.fx_sprite("fx_knight_impact", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.8, dash_dir.angle())   # 冲锋撞到的每个敌人都有冲击
 			# 冲锋残影（每 0.05 秒一个，0.25 秒淡出）+ 脚下冰霜拖尾
@@ -276,8 +275,7 @@ func update(dt: float) -> void:
 				for e in g.enemies_sys.arc_hit(pos, ang, 0.9, 92.0):
 					if e.chest:
 						continue
-					g.combat.hit("骑士", ["ally", "stab"])
-					g.combat.damage(e, 60.0 * lvm * g.dmg_mult)
+					g.combat.damage(e, 60.0 * lvm * g.dmg_mult, g.combat.make_hit("骑士", ["ally", "stab"]))
 					if not e.dead:
 						e.slow = maxf(e.slow, FROST_T)
 				Sfx.play("swing", -4.0, 0.9)

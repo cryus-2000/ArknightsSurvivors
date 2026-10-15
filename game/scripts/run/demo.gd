@@ -125,7 +125,7 @@ func _contact_cycle() -> void:
 			continue
 		e["demo_bite"] = g.t + DEMO_BITE_CD
 		e.atk_until = g.t + 0.25
-		e.kb += (off / d if d > 0.5 else Vector2.RIGHT) * DEMO_BITE_KB
+		g.enemies_sys.apply_kb(e, (off / d if d > 0.5 else Vector2.RIGHT) * DEMO_BITE_KB)
 
 
 ## 演示走位（2026-09-26 用户定的简单方案，替代「走走停停 + 后退 + 保持间距」：那几条规则互相打架，主控来回抽）：

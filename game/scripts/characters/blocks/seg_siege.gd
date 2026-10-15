@@ -57,7 +57,7 @@ static func _h4_hammer_release(o, a: Dictionary) -> void:
 	if heavy:
 		var ch: float = float(hv.get("stun_chance", 0.5))
 		for e in hits:
-			if not e.dead and not e.boss and g.rng.randf() < ch:
+			if not e.dead and not e.boss and g.rng_op.randf() < ch:
 				e.stun = maxf(e.stun, float(hv.get("stun", 0.8)) * (0.5 if e.elite else 1.0))
 	o.slash_fx(o.pos + Vector2(0, -14), ang, 1.0, reach, H4_GOLD if not heavy else Color(1.0, 0.6, 0.3))
 	var land: Vector2 = o.pos + Vector2(0, -6) + Vector2.from_angle(ang) * reach * 0.7
@@ -306,7 +306,7 @@ static func _h4sg_tick(o, sg: Dictionary, dt: float) -> bool:
 				o.log_hit(str(b.get("src", "")))
 				o.deal_damage(e, w.dmg)
 				if not e.dead and not e.boss and not e.elite:
-					e.kb += (e.pos - w.pos).normalized() * float(b.get("kb", 380.0))
+					o.apply_kb(e, (e.pos - w.pos).normalized() * float(b.get("kb", 380.0)))
 				_h3_vsparks(o, e.pos, H4_GOLD, 2, 140.0, 0.3, 2.0)
 		sg.waves = sg.waves.filter(func(w): return w.t < float(w.b.get("dur", 0.4)) + 0.25)
 	for fs in sg.fissures:

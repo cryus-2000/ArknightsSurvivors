@@ -402,7 +402,7 @@ static func _h3_strikes_tick(o, ir: Dictionary, dt: float) -> void:
 				pool = o.nearest_enemies(int(b.get("near_n", 6)), r3 * float(b.get("near_k", 1.6)), o.pos)
 			if pool.is_empty():
 				continue
-			var e: Dictionary = pool[g.rng.randi() % pool.size()]
+			var e: Dictionary = pool[g.rng_op.randi() % pool.size()]
 			var c: Vector2 = e.pos
 			var prev_face: float = o.face
 			o.face_to((c - o.pos).angle())

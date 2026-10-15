@@ -154,7 +154,7 @@ func _path_core(e: Dictionary) -> void:
 		if o.type == "fractal" and not o.dead and is_same(o.get("owner"), e):
 			owned.append(o)
 	while owned.size() < 3:
-		var fr: Dictionary = g.spawner.spawn_enemy("fractal", g.combat.arena_clamp(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(120.0, 200.0)))
+		var fr: Dictionary = g.spawner.spawn_enemy("fractal", g.combat.arena_clamp(e.pos + Vector2.from_angle(g.rng_enemy.randf() * TAU) * g.rng_enemy.randf_range(120.0, 200.0)))
 		fr.owner = e
 		owned.append(fr)
 	var oldest: Dictionary = owned[0]

@@ -670,7 +670,7 @@ func shield_block() -> void:
 			if not e.dead and e.pos.distance_to(g.ppos) < 140.0:
 				damage(e, 60.0 * g.dmg_mult * enemy_hp_time_mult())
 				if not e.boss:
-					e.kb += (e.pos - g.ppos).normalized() * 420.0
+					g.enemies_sys.apply_kb(e, (e.pos - g.ppos).normalized() * 420.0)
 		g.fx.append({"kind": "explode", "pos": g.ppos, "r": 140.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 0.85, 1.0)})
 		g.vfx.shake_screen(0.6)
 
@@ -705,11 +705,16 @@ func regen_per_sec(add_flat := 0.0, add_pct := 0.0, max_hp := -1.0) -> float:
 	return (g.regen + add_flat + (g.regen_pct + add_pct) * mh) * g.heal_mult * regen_time_mult()
 
 
-## 设置当前伤害描述符（extra_tags 追加本次特有标签，如 empowered）
-func hit(src: String, extra_tags: Array = []) -> void:
+## 构造伤害描述符（extra_tags 追加本次特有标签，如 empowered）；不写全局，直接传给 damage(e, dmg, h)（docs/101 B7 ⑤）
+func make_hit(src: String, extra_tags: Array = []) -> Dictionary:
 	var base: Dictionary = g.hit_src.get(src, {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": []})
-	g.hit = {"src": src, "emitter": base.emitter, "origin": base.origin, "range": base.range, "kind": base.kind, "tags": base.tags + extra_tags,
+	return {"src": src, "emitter": base.emitter, "origin": base.origin, "range": base.range, "kind": base.kind, "tags": base.tags + extra_tags,
 		"class": base.get("class", ""), "op": base.get("op", "")}
+
+
+## 设置「当前」伤害描述符 g.hit：干员门面 op_api.log_hit → deal_damage 用（deal_damage 把 g.hit 显式传给 damage）
+func hit(src: String, extra_tags: Array = []) -> void:
+	g.hit = make_hit(src, extra_tags)
 
 
 ## 可按难度档覆盖的 enemy 段旋钮（ctrl_start / frost_max / affix_start / affix_max）：本档 dmod 里 ≥ 0 就用它，否则读 balance.json enemy/<key>
@@ -966,14 +971,16 @@ func gate_pass(e: Dictionary) -> void:
 		# 最终 Boss 每过一道卡点：回复道具与灯油各一个（boss/gate_drop_*，小数部分按概率）
 		for kd in [["heal", "boss/gate_drop_heal", 1.0], ["oil", "boss/gate_drop_oil", 15.0]]:
 			var n: float = Bal.v(kd[1], 1.0)
-			var cnt := int(n) + (1 if g.rng.randf() < n - floorf(n) else 0)
+			var cnt := int(n) + (1 if g.rng_drop.randf() < n - floorf(n) else 0)
 			for k in cnt:
-				g.pickups.drop(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 40.0, kd[0], kd[2])
+				g.pickups.drop(e.pos + Vector2.from_angle(g.rng_drop.randf() * TAU) * 40.0, kd[0], kd[2])
 
 
-func damage(e: Dictionary, dmg: float) -> void:
+func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	if e.dead or e.get("friendly", false):
 		return
+	if h.is_empty():
+		h = g.hit   # 没传描述符：沿用当前的（旧调用方式）；之后全程只读局部 h（docs/101 B7 ⑤）
 	var bh = g.bai.boss(e.type)   # Boss 行为脚本（受击钩子 block_damage / absorb_damage / on_damaged / on_lethal，docs/101 B1c）；不是 Boss 为 null
 	if bh != null and bh.block_damage(e):
 		return
@@ -994,7 +1001,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 		e.hidden = false
 		g.spawner.reveal_mimic(e)
 		return
-	var ty: Array = [g.hit.range, g.hit.kind]
+	var ty: Array = [h.range, h.kind]
 	var weak_hit := false
 	if ty[1] != "真实":
 		# 养育者基因种（docs/57 P6）：无视敌人一部分防御（e.def < 1 的部分按比例折回）
@@ -1018,9 +1025,9 @@ func damage(e: Dictionary, dmg: float) -> void:
 		if float(e.get("frag_t", 0.0)) > g.t:   # 铃兰精一「狐火灼印」：frag_t 之前受到的伤害 + frag_v（docs/91 §15；同名取最高）
 			dmg *= 1.0 + float(e.frag_v)
 		dmg *= g.arts_mult if ty[1] == "法术" else g.phys_mult
-		if is_followup(g.hit):
+		if is_followup(h):
 			dmg *= g.followup_mult * g.rfx.followup_extra()
-		dmg *= g.rfx.hit_mult(g.hit, e)
+		dmg *= g.rfx.hit_mult(h, e)
 		# Logos「安魂」：受到的法术伤害 +base.requiem_bonus（缺省 15%，e.requiem_v）；精一「剜魂」叠层时每层 +6%（e.requiem_k，docs/91 §7）
 		if ty[1] == "法术" and e.get("requiem", 0.0) > 0.0:
 			dmg *= (1.0 + float(e.get("requiem_v", 0.15))) if not e.has("requiem_k") else 1.0 + float(e.requiem_k)
@@ -1049,22 +1056,22 @@ func damage(e: Dictionary, dmg: float) -> void:
 		var ab: float = minf(e.shield_hp, dmg)
 		e.shield_hp -= ab
 		dmg -= ab
-	g.rfx.on_hit(e, g.hit, dmg)
+	g.rfx.on_hit(e, h, dmg)
 	e.hp -= dmg
 	if e.get("panic", false):
 		e.panic_dmg = float(e.get("panic_dmg", 0.0)) + minf(dmg, e.hp + dmg)   # 遥测 panic_hit：主教慌乱期间掉的血（boss_ai 主教慌乱）
 	if e.boss and tough_on(e):
 		add_tough(e, minf(dmg, maxf(e.hp + dmg, 0.0)) / e.maxhp * 100.0)
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
-	g.dmg_out[g.hit.src] = g.dmg_out.get(g.hit.src, 0.0) + eff
-	g.telemetry.on_dmg(e, eff, dmg)   # 作战记录：按干员拆的输出、时间线、最高单次（docs/77）
-	if g.hit.origin == "relic":
+	g.dmg_out[h.src] = g.dmg_out.get(h.src, 0.0) + eff
+	g.telemetry.on_dmg(e, eff, dmg, h)   # 作战记录：按干员拆的输出、时间线、最高单次（docs/77）
+	if h.origin == "relic":
 		g.relic_out += eff
 	g.dmg_type_out[ty[1]] = g.dmg_type_out.get(ty[1], 0.0) + eff
-	for tg in g.hit.tags:
+	for tg in h.tags:
 		g.dmg_tag_out[tg] = g.dmg_tag_out.get(tg, 0.0) + eff
 	e.hits += 1
-	g.vfx.hit_react(e, g.crit_hit, weak_hit)   # 白闪 / 形变 / 命中粒子按普攻、技能、暴击、弱点、破绽分档（纯画面，界面与美术；参数 balance.json fx 段）
+	g.vfx.hit_react(e, g.crit_hit, weak_hit, h)   # 白闪 / 形变 / 命中粒子按普攻、技能、暴击、弱点、破绽分档（纯画面，界面与美术；参数 balance.json fx 段）
 	# 伤害数字的位置抖动是纯画面，用 g.vrng：飘字数量取决于画面随机数（上面的「无效」），设置里还能关掉伤害数字，
 	# 用 g.rng 会让机器负载 / 玩家设置改变对局随机数（docs/36 §3）
 	if g.crit_hit:
@@ -1085,7 +1092,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 		if bh != null and bh.on_lethal(e):
 			return
 		g.telemetry.on_kill_credit(e)   # 作战记录：参与击杀（死前 3 秒内命中过的干员各记一次，docs/77）
-		kill(e)
+		kill(e, h)
 
 
 func heal(v: float, src: String = "其他", sub: String = "") -> void:
@@ -1099,7 +1106,10 @@ func heal(v: float, src: String = "其他", sub: String = "") -> void:
 	g.hp = min(g.max_hp, g.hp + v)
 
 
-func kill(e: Dictionary) -> void:
+## h：致命一击的描述符（damage 传来）；给了就设成当前 g.hit——击杀回调（藏品 on_kill、干员 on_kill）里读 g.hit 的旧代码看到的是这一下
+func kill(e: Dictionary, h: Dictionary = {}) -> void:
+	if not h.is_empty():
+		g.hit = h
 	g.rfx.on_kill(e)
 	if e.dead:
 		return
@@ -1117,9 +1127,9 @@ func kill(e: Dictionary) -> void:
 		g.telemetry.chests += 1   # 作战记录（docs/77）
 		Sfx.play("relic", -6.0, 1.3)
 		g.vfx.sparks(e.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 12, 220.0)
-		for k in g.rng.randi_range(3, 6):
-			g.pickups.drop(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(4.0, 18.0), "ingot", 1.0)
-		if g.rng.randf() < 0.3:
+		for k in g.rng_drop.randi_range(3, 6):
+			g.pickups.drop(e.pos + Vector2.from_angle(g.rng_drop.randf() * TAU) * g.rng_drop.randf_range(4.0, 18.0), "ingot", 1.0)
+		if g.rng_drop.randf() < 0.3:
 			g.pickups.drop(e.pos + Vector2(10, 6), "oil", 15.0)
 		return
 	if e.type != "tear":
@@ -1171,21 +1181,21 @@ func kill(e: Dictionary) -> void:
 	# 深溟奠基者（V8）：死亡时留下一片溟痕（death_mire = 最大半径）
 	var dmire := float(D.ENEMIES.get(e.type, {}).get("death_mire", 0.0))
 	if dmire > 0.0 and g.mires.size() < 32:
-		g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 10.0, "maxr": dmire, "life": 12.0, "seed": g.rng.randf() * 100.0, "boss": false})
+		g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 10.0, "maxr": dmire, "life": 12.0, "seed": g.vrng.randf() * 100.0, "boss": false})
 	if e.xp > 0.0:
 		g.pickups.drop(e.pos, "xp", e.xp * g.xp_mult)
-	if g.rng.randf() < Bal.v("lamp/oil_kill_chance", 0.006) * float(g.dmod.oil_drop):
+	if g.rng_drop.randf() < Bal.v("lamp/oil_kill_chance", 0.006) * float(g.dmod.oil_drop):
 		g.pickups.drop(e.pos + Vector2(8, 0), "oil", 15.0 * dk)
 	# 特殊道具：磁铁 / 回复（小怪低概率，精英与 Boss 必掉其一）；旋钮在 balance.json pickup 段
 	if e.elite or e.boss:
-		var mag: bool = g.rng.randf() < Bal.v("pickup/elite_magnet_share", 0.5)
+		var mag: bool = g.rng_drop.randf() < Bal.v("pickup/elite_magnet_share", 0.5)
 		g.pickups.drop(e.pos + Vector2(-16, 8), "magnet" if mag else "heal", 1.0)
 		g.pickups.item_log["magnet_elite" if mag else "heal_elite"] += 1
 	elif int(Bal.v("pickup/magnet_cap", 0.0)) > 0:
 		# 磁铁单独上限（协调人 9/30）：小怪掉磁铁只看场上磁铁数 < magnet_cap，不再被回复药剂占位；回复药剂仍按「道具合计 < item_cap」
 		if g.pickups.count_items("magnet") < int(Bal.v("pickup/magnet_cap", 0.0)):
 			g.pickups.item_log.mob_rolled += 1
-			if g.rng.randf() < Bal.v("pickup/magnet_kill_chance", 0.0025) * dk:
+			if g.rng_drop.randf() < Bal.v("pickup/magnet_kill_chance", 0.0025) * dk:
 				g.pickups.drop(e.pos, "magnet", 1.0)
 				g.pickups.item_log.magnet_mob += 1
 		else:
@@ -1197,7 +1207,7 @@ func kill(e: Dictionary) -> void:
 		if low_hp and not heal_room:
 			heal_room = g.pickups.count_items("heal") < int(Bal.v("pickup/heal_low_cap", 0.0))
 		var hc: float = Bal.v("pickup/heal_kill_chance", 0.0035) * (Bal.v("pickup/heal_low_mult", 1.0) if low_hp else 1.0) * dk
-		if heal_room and g.rng.randf() < hc:
+		if heal_room and g.rng_drop.randf() < hc:
 			g.pickups.drop(e.pos, "heal", 1.0)
 			g.pickups.item_log.heal_mob += 1
 			if low_hp:
@@ -1206,7 +1216,7 @@ func kill(e: Dictionary) -> void:
 		g.pickups.item_log.mob_capped += 1   # 场上道具已满，这次小怪击杀不掷骰（magnet_cap = 0 时的原行为，不耗随机数）
 	else:
 		g.pickups.item_log.mob_rolled += 1
-		var r := g.rng.randf()
+		var r := g.rng_drop.randf()
 		var pm: float = Bal.v("pickup/magnet_kill_chance", 0.0025) * dk
 		if r < pm:
 			g.pickups.drop(e.pos, "magnet", 1.0)
@@ -1216,10 +1226,10 @@ func kill(e: Dictionary) -> void:
 			g.pickups.item_log.heal_mob += 1
 	var ing: int = D.ENEMIES.get(e.type, {}).get("ingots", 0)
 	if e.elite:
-		ing = max(ing, g.rng.randi_range(3, 5))
+		ing = max(ing, g.rng_drop.randi_range(3, 5))
 		if elite_drops_relic():
 			g.pickups.drop(e.pos, "chest", 1.0)
-		if g.rng.randf() < Bal.v("lamp/elite_oil_chance", 0.65):
+		if g.rng_drop.randf() < Bal.v("lamp/elite_oil_chance", 0.65):
 			g.pickups.drop(e.pos + Vector2(20, 10), "oil", Bal.v("lamp/elite_oil_amount", 25.0))
 	if e.boss:
 		ing = 20
@@ -1236,11 +1246,11 @@ func kill(e: Dictionary) -> void:
 		g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
 		g.next_horde = maxf(g.next_horde, g.t + 12.0)
 	if float(g.dmod.ingot) != 1.0 and ing > 0:
-		ing = int(floor(ing * float(g.dmod.ingot) + g.rng.randf()))
+		ing = int(floor(ing * float(g.dmod.ingot) + g.rng_drop.randf()))
 	for k in ing:
-		g.pickups.drop(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(6.0, 26.0), "ingot", 1.0)
+		g.pickups.drop(e.pos + Vector2.from_angle(g.rng_drop.randf() * TAU) * g.rng_drop.randf_range(6.0, 26.0), "ingot", 1.0)
 
 
 ## 精英不再必掉藏品；共用对局随机数，种子可复现。Boss 奖励仍按原结算。
 func elite_drops_relic() -> bool:
-	return g.rng.randf() < Bal.v("relic/elite_drop_chance", 0.3)
+	return g.rng_drop.randf() < Bal.v("relic/elite_drop_chance", 0.3)

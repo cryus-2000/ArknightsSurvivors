@@ -51,13 +51,13 @@ static func hurt_chance(t: Dictionary, boss: bool, add: float, mul: float) -> fl
 	return clampf(p, 0.0, float(t.get("max_chance", 1.0)))
 
 
-## 概率判定：0 / 1 不取随机数（确定性：概率为常数 1 的触发器不改变 g.rng 序列）
+## 概率判定：0 / 1 不取随机数（确定性：概率为常数 1 的触发器不改变 g.rng_op 序列）
 static func roll(g, p: float) -> bool:
 	if p >= 1.0:
 		return true
 	if p <= 0.0:
 		return false
-	return g.rng.randf() < p
+	return g.rng_op.randf() < p
 
 
 ## shape.line：返回命中列表。伤害口径同 exec_shape（base[atk_key] × mult × 局部 dmg × _dmg_bonus [× skill_power]，精英 / Boss × vs_elite）；
@@ -92,7 +92,7 @@ static func exec_line(o, b: Dictionary) -> Array:
 		if e.dead or e.boss:
 			continue
 		if kb > 0.0:
-			e.kb += d * kb * (0.3 if e.elite else 1.0)
+			o.apply_kb(e, d * kb * (0.3 if e.elite else 1.0))
 		if stun > 0.0:
 			e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
 	for e in hits:

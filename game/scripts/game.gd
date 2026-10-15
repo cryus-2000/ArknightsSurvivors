@@ -9,6 +9,7 @@ const UM = preload("res://scripts/ui_motion.gd")   # 界面动效时钟与缓动
 const A = preload("res://scripts/art.gd")
 const BossAI = preload("res://scripts/boss_ai.gd")
 const Telegraph = preload("res://scripts/enemies/telegraph.gd")
+const ShotPool = preload("res://scripts/enemies/shot_pool.gd")
 const RelicFx = preload("res://scripts/relic_fx.gd")
 const Endings = preload("res://scripts/endings.gd")
 const Knight = preload("res://scripts/allies/knight.gd")
@@ -267,6 +268,7 @@ var atk_slow := 0.0
 var ebullets: Array = []
 var shocks: Array = []
 var warns: Array = []
+var shots: RefCounted = null    # 敌方投射物池：抛物 / 敌弹 / 冲击环的推进（scripts/enemies/shot_pool.gd，docs/101 B7 ④）
 var tele: RefCounted = null     # 预警服务：g.warns 登记 / 推进 / 判定 / 结算（scripts/enemies/telegraph.gd，docs/101 B2）
 var bai: RefCounted = null      # Boss AI（scripts/boss_ai.gd；预警经 tele）            # Boss 招式预警 {shape, pos, ang, r, len, wid, half, t, dur, act, owner, dmg}
 var mires: Array = []
@@ -433,6 +435,7 @@ const OPT_BAND := 8192    # 黑潮溟痕带：带状三角剖分（缓存索引�
 const OPT_LIGHT := 16384  # 敌人受光封顶：每帧按「到灯的距离」建一张表（整屏统一算一次），逐只只查表插值，不再逐只算衰减 / 软膝
 const OPT_PCAP := 32768   # 干员粒子 / 帧条上层数量上限（render/pfx_cap）：同屏超过上限时最旧的不画（粒子照常走完寿命，不改列表）
 const OPT_OPS := 65536    # 干员每帧分配（docs/101 S9）：stat 作用域键缓存、_trigs 按精英化 / 节点数缓存、_sustain 复用缓冲；玩法、画面不变
+const OPT_CPP := 131072   # 原生代码对照位（docs/101 §4.7 / B8）：置位时走 GDScript 核心（enemies._motion_core 等）；原生库还没接入，现在恒走 GDScript
 var rt_from := -1.0              # --rtfrom=<秒>（仅测试，配合 --realtime）：游戏时间到这一秒前按批跑步长快进，之后切成真实步长（量后期帧时间时省掉前面几分钟）
 var prof_on := false             # --prof：模拟步分段计时，结果随 BALANCE 行输出（docs/36）
 var prof := {}                   # 段名 -> 累计微秒
@@ -441,6 +444,18 @@ var trace_every := 0.0           # --trace=<秒>：每隔几秒打印一行状�
 ## 视觉随机数：火花、飘字抖动等纯表现用它。对局随机数 rng 只给玩法用——表现层按真实帧率运行，
 ## 如果它们共用 rng，同一个 seed 在机器忙闲不同时就会跑出不同的局（2026-09-26 查明）
 var vrng := RandomNumberGenerator.new()
+## 按用途派生的玩法随机流（docs/101 B7 ①，10-15；rng_op 积木）：局种子 + 名字 hash 派生，同 seed 可复现；一处多抽 / 少抽只影响自己那条流，
+## 原生段（EnemyCore）也不会碰到别处的序列。rng_spawn 刷怪；rng_enemy 敌人 AI、Boss 脚本、吞噬、形变；rng_drop 击杀 / 卡点 / 宝箱掉落。
+## 其余玩法（暴击、闪避、藏品、选卡、变动区、地图）仍走 rng
+var rng_spawn := RandomNumberGenerator.new()
+var rng_enemy := RandomNumberGenerator.new()
+var rng_drop := RandomNumberGenerator.new()
+var rng_op := RandomNumberGenerator.new()   # 干员积木的玩法随机（docs/101 B7，干员 10-15 同意）
+
+
+## 全部玩法随机流的状态（测试断言「某段代码不掷随机数」用）
+func rng_states() -> Array:
+	return [rng.state, rng_spawn.state, rng_enemy.state, rng_drop.state, rng_op.state]
 var headless_batch := false      # --balance 且无界面：跳过所有重绘
 var demo_elite := 0            # 演示时把干员直接推到这个精英化阶段（精英化演出用）
 var demo_stage := -1           # 三联对照（--compareshot）：0 = 精一前（N1 N2）/ 1 = 精二前（到 N5）/ 2 = 全部；-1 不用
@@ -580,10 +595,15 @@ func _ready() -> void:
 	if not seeded:
 		rng.randomize()
 		vrng.randomize()
+	rng_spawn.seed = hash([rng.seed, "spawn"])
+	rng_enemy.seed = hash([rng.seed, "enemy"])
+	rng_drop.seed = hash([rng.seed, "drop"])
+	rng_op.seed = hash([rng.seed, "op"])
 	if demo_op == "":
 		Sfx.voice_reset()   # 上一局没播完的部署语音不带进新一局
 	bai = BossAI.new(self)
 	tele = Telegraph.new(self)
+	shots = ShotPool.new(self)
 	eai = EnemyAI.new(self)
 	map = Map.new(self, Cfg.map_id)
 	stats = StatBlock.new()
@@ -1527,7 +1547,7 @@ func _update(dt: float) -> void:
 	weapons_sys.update_bullets(dt)
 	_pm("bullets")
 	var nfx1: int = fx.size()
-	enemies_sys.update_ebullets(dt)
+	shots.step(dt)   # 抛物 → 敌弹 → 冲击环（docs/101 B7 ④）
 	tele.update_warns(dt)
 	vfx.mark_enemy_fx(nfx1)
 	_pm("ebullets")

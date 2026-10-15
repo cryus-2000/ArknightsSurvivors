@@ -106,8 +106,8 @@ func contact(oid: String, e: Dictionary, origin: Vector2, source := "") -> void:
 const WEAK_SPARK := {"物理": Color(1.0, 0.75, 0.3), "法术": Color(0.7, 0.55, 1.0)}
 var _break_fx_at := {}
 
-func hit_react(e: Dictionary, crit: bool, weak: bool) -> void:
-	var h: Dictionary = g.hit
+func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}) -> void:
+	var h: Dictionary = hd if not hd.is_empty() else g.hit   # combat.damage 显式传这一下的描述符（docs/101 B7 ⑤）
 	var dot: bool = "dot" in h.get("tags", [])
 	var skill: bool = h.get("origin", "") == "skill" and not dot
 	var brk: bool = e.get("boss", false) and float(e.get("break_t", 0.0)) > 0.0
@@ -547,7 +547,7 @@ func hit_fx(e: Dictionary, dir := Vector2.ZERO) -> void:
 	elif HIT_SPIRIT.has(e.type) or e.get("hover", false):
 		n = "fx_hit_spirit"
 	var sc: float = Game.PX * clampf(e.r / 12.0, 0.9, 2.2)
-	if not fx_sprite(n, e.pos + Vector2(0, -e.r * 0.5), sc, dir.angle() if dir != Vector2.ZERO else g.rng.randf() * TAU):
+	if not fx_sprite(n, e.pos + Vector2(0, -e.r * 0.5), sc, dir.angle() if dir != Vector2.ZERO else g.vrng.randf() * TAU):
 		anim("fx_hit", e.pos, 0.16)
 
 
@@ -696,7 +696,7 @@ func boss_pattern(w: Dictionary) -> void:
 # 用户确认复用水月旧版深渊月牙帧条，运行时换色，原始素材保持不变。
 var blade_palettes: Dictionary = {}
 func boss_blade(b: Dictionary, pos: Vector2) -> void:
-	var type: String = b.get("source_type", "paranoia")
+	var type: String = b.get("src_type", "paranoia")
 	if not blade_palettes.has(type):
 		var original: Texture2D = g.tex.get("proj_tide_blade_abyss")
 		if original == null:

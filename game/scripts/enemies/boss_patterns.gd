@@ -210,7 +210,7 @@ func resolve(w: Dictionary) -> void:
 			"slow": false, "frost": e.get("frost", 0.0), "corrode": 0.15, "nerve": 0.0, "true": w.get("true", false),
 			"kind": "boss_blade" if blade else str(move.get("bullet", "nova")), "home": false, "boss": true,
 			"atk": "物理" if e.has("ammo") or blade else "法术", "hit_cap": e.get("hit_cap", 0.0),
-			"source_id": e.id, "col": w.col, "source_type": e.type})
+			"source_id": e.id, "col": w.col, "src_type": e.type})
 		own += 1
 		total += 1
 	if move.has("fx"):

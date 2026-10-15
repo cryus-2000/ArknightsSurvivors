@@ -431,7 +431,7 @@ static func sm_strike(o, s: Dictionary, a: Dictionary, tg: Dictionary) -> Array:
 				o.log_hit(src, tags)
 				o.deal_damage(e, dmg * (ve if e.elite or e.boss else 1.0))
 				if not e.dead and not e.boss and kb > 0.0:
-					e.kb += d * kb * (0.3 if e.elite else 1.0)
+					o.apply_kb(e, d * kb * (0.3 if e.elite else 1.0))
 				if not e.dead and not e.boss and stun > 0.0:
 					e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
 			c = s.pos + d * L * 0.5

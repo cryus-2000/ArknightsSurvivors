@@ -521,7 +521,7 @@ static func orbit_tick(o, b: Dictionary, st: Dictionary, dt: float) -> void:
 					continue
 			if kb > 0.0:
 				var d: Vector2 = e.pos - c
-				e.kb += (d.normalized() if d.length() > 0.5 else Vector2.RIGHT) * kb * (0.3 if e.elite else 1.0)
+				o.apply_kb(e, (d.normalized() if d.length() > 0.5 else Vector2.RIGHT) * kb * (0.3 if e.elite else 1.0))
 	if hit.size() > 64:
 		for k in hit.keys():
 			if float(hit[k]) <= g.t:
@@ -605,7 +605,7 @@ static func displace_at(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 			_F().displace_one(o, e, c, b, sc)
 		elif kb != 0.0 and _F()._movable(e):
 			var dv: Vector2 = e.pos - c
-			e.kb += (dv.normalized() if dv.length() > 0.5 else Vector2.RIGHT) * kb * (0.3 if e.elite else 1.0) * _F().kb_taken(e, g.t)
+			o.apply_kb(e, (dv.normalized() if dv.length() > 0.5 else Vector2.RIGHT) * kb * (0.3 if e.elite else 1.0))
 	for s in b.get("on_hit", _EA):
 		for e in hits:
 			apply_status(o, e, s, c)
@@ -753,7 +753,7 @@ const HW2_TAGS := ["shape.shell", "verb.lob", "verb.affect", "st.burn", "st.frag
 # 攻击值 basis atk = base(atk) × 加成 × attack.atk_mults（cond 成立的依次乘，例：湮灭期间 ×1.5）；mult 可写数组 = 依次乘（同手写的 a × b × c）。
 # 攻击距离 = attack.range × op_range × attack.range_mults（同上）。
 # shape.bolt   飘飞咒文弹（普攻或触发 do）：pick aim（普攻：aim_targets，扇形咒域生效时多要 6 个再只留域内的；extra = 追加目标）/ random（射程内最近 pool 个里
-#              用 g.rng 随机抽 count 个，chance = 先用 g.rng 掷一次概率；slow = 被选中时立即减速）。每枚排进出手队列（第 k 枚晚 gap × 队列长度 秒），
+#              用 g.rng_op 随机抽 count 个，chance = 先用 g.rng_op 掷一次概率；slow = 被选中时立即减速）。每枚排进出手队列（第 k 枚晚 gap × 队列长度 秒），
 #              到点从 tip 飘出（同时 ≤ 12 枚，满了直接命中），追着目标飞（speed，左右摆动；相位 g.rng，同手写），飞到执行 then（target = 命中的敌人，
 #              basis hit = 这一枚的伤害；then_of: attack = 用普攻那块的 then）；目标半路死了改打落点 60 内最近的
 # shape.hit    瞬时：对 then 的命中敌人造成 basis × mult（src 缺省 = 这一枚的来源），on_hit 状态；splash {r, mult} = 周围 r 内其他敌人各吃 basis × mult × splash.mult

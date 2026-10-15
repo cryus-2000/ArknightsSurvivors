@@ -24,7 +24,7 @@ func _ready() -> void:
 	g.vfx.impact_pause(0.018)
 	g.vfx.impact_pause(0.07)
 	check(is_equal_approx(g.hitstop, 0.07), "same-frame heavy hit upgrades but never adds")
-	var state_before: int = g.rng.state
+	var state_before: Array = g.rng_states()
 	var e := {"pos": g.ppos + Vector2(30, 0), "r": 12.0}
 	for oid in ["mizuki", "skadi", "siege", "saria", "suzuran", "eyjafjalla", "kaltsit", "wisadel", "irene", "logos", "lumen", "specter_unchained", "ulpianus"]:
 		g.t += 1.0
@@ -44,7 +44,7 @@ func _ready() -> void:
 	g.vfx.contact("specter_unchained", e, g.ppos, "替身")
 	check(g.hitstop == 0.0, "doll damage never freezes control")
 	g.vfx.ground_dust(g.ppos)
-	check(g.rng.state == state_before, "feedback does not consume gameplay RNG")
+	check(g.rng_states() == state_before, "feedback does not consume gameplay RNG")
 	print("FEEDBACK TESTS PASSED" if failures == 0 else "FEEDBACK TESTS FAILED: %d" % failures)
 	g.queue_free()
 	g = null

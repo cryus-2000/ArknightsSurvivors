@@ -757,7 +757,7 @@ func _tick_pfx(dt: float) -> void:
 			aura_t = 0.5 / float(power)
 			var c: Color = col().lerp(Color.WHITE, 0.25)
 			var br: float = 1.0 + 0.12 * power
-			fx({"kind": "mote", "pos": pos + Vector2(g.rng.randf_range(-14, 14), g.rng.randf_range(-40, -6)), "vel": Vector2(g.rng.randf_range(-6, 6), -30.0 - 3.0 * power),
+			fx({"kind": "mote", "pos": pos + Vector2(g.vrng.randf_range(-14, 14), g.vrng.randf_range(-40, -6)), "vel": Vector2(g.vrng.randf_range(-6, 6), -30.0 - 3.0 * power),
 				"life": 0.6 + 0.05 * power, "col": Color(c.r * br, c.g * br, c.b * br), "sz": 1.6 + 0.15 * power})
 	if pfx.is_empty():
 		return
@@ -861,7 +861,7 @@ func _draw_pfx(_f: Dictionary, _a: float) -> bool:
 func fx_sparks(p: Vector2, c: Color, n: int, spd: float, life := 0.4, sz := 3.0, grav := 0.0, floor_layer := false) -> void:
 	n = int(round(n * (1.0 + 0.2 * node_lv)))   # 节点越多火花越多（每节点 +20%）
 	for k in n:
-		fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(spd * 0.4, spd), "life": life * g.rng.randf_range(0.7, 1.2),
+		fx({"kind": "spark", "pos": p, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(spd * 0.4, spd), "life": life * g.vrng.randf_range(0.7, 1.2),
 			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": floor_layer})
 
 
@@ -1360,7 +1360,7 @@ func melee_hit(src: String, origin: Vector2, ang: float, half: float, radius: fl
 		if e.dead or e.boss:
 			continue
 		if kb > 0.0:
-			e.kb += (e.pos - origin).normalized() * kb * (0.3 if e.elite else 1.0) * SegAngelina.kb_taken(e, g.t)   # 失重（st.weightless，安洁莉娜天赋）：受到的击退更远；没失重乘 1.0
+			apply_kb(e, (e.pos - origin).normalized() * kb * (0.3 if e.elite else 1.0))   # 失重（st.weightless，安洁莉娜天赋）：受到的击退更远；没失重乘 1.0
 		if stun > 0.0:
 			e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
 	for e in hits:

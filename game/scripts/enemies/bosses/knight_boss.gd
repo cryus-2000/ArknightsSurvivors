@@ -162,7 +162,7 @@ func _knight_stakes(e: Dictionary, dt: float) -> void:
 		var tries := 0
 		while e.stakes.size() < want and tries < 20:
 			tries += 1
-			var p: Vector2 = g.combat.arena_clamp(g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(160.0, 320.0), 100.0)
+			var p: Vector2 = g.combat.arena_clamp(g.ppos + Vector2.from_angle(g.rng_enemy.randf() * TAU) * g.rng_enemy.randf_range(160.0, 320.0), 100.0)
 			if p.distance_to(g.ppos) < 120.0:
 				continue
 			e.stakes.append({"pos": p, "until": g.t + Bal.v("boss/knight_stake_life", 12.0)})

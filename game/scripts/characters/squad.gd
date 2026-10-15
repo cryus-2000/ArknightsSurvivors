@@ -66,7 +66,7 @@ func add(cid: String, recruit_event := true):
 	op.is_leader = ops.is_empty()   # 开局干员 = 主控
 	if op.is_leader:
 		_apply_leader_regen(op)
-	op.voice_t = g.rng.randf_range(20.0, 40.0)
+	op.voice_t = g.vrng.randf_range(20.0, 40.0)   # 语音计时只影响声音（docs/101 §3.4 ④）
 	# 部署语音：排队播，多名干员不会同帧抢话（图鉴演示不播）
 	var sfx0: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 	if sfx0 != null and g.demo_op == "":
@@ -295,12 +295,12 @@ func _battle_voice(o, dt: float) -> void:
 	o.voice_t -= dt
 	if o.voice_t > 0.0:
 		return
-	o.voice_t = g.rng.randf_range(30.0, 55.0)
+	o.voice_t = g.vrng.randf_range(30.0, 55.0)
 	if g.demo_op != "" or g.enemies_sys.nearest(1, 300.0, o.pos).is_empty():
 		return
 	var sfx: Node = g.get_node_or_null("/root/Sfx")
 	if sfx != null:
-		sfx.voice(o.id, "w_laugh" if o.id == "wisadel" and g.rng.randf() < 0.4 else "battle")
+		sfx.voice(o.id, "w_laugh" if o.id == "wisadel" and g.vrng.randf() < 0.4 else "battle")
 
 
 ## 主控干员（docs/23 v0.7：玩家操控的干员，唯一受击体）

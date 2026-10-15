@@ -426,10 +426,10 @@ func test_hoshiguma_blocks() -> void:
 	near(OB.hurt_chance(t, false, 0.15, 2.0), 0.7, "格挡概率：灯标 +0.15、荆棘 ×2")
 	near(OB.hurt_chance(t, false, 0.5, 2.0), 0.8, "格挡概率：封顶 max_chance")
 	near(OB.hurt_chance({}, false, 0.5, 2.0), 1.0, "非 negate 触发器：概率恒为 1，不吃加成")
-	# 随机数：概率 0 / 1 不取数（不改变 g.rng 序列），(0, 1) 取一次
+	# 随机数：概率 0 / 1 不取数（不改变 g.rng_op 序列），(0, 1) 取一次
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 7
-	var fake := {"rng": rng}
+	var fake := {"rng_op": rng}   # 积木随机走 rng_op（docs/101 B7）
 	var st0: int = rng.state
 	ok(OB.roll(fake, 1.0) and not OB.roll(fake, 0.0) and rng.state == st0, "roll：概率 0 / 1 不取随机数")
 	OB.roll(fake, 0.5)
