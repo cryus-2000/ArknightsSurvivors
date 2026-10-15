@@ -47,14 +47,17 @@ ANNOT = {
     "irene":      (410, 478, 485, 565, 600, 645, 410, 600, 440, 590, 680, 760, 820, 922, ""),
     "specter_unchained": (371, None, 508, 572, 568, 608, 445, 610, 450, 600, 630, 700, 760, 826, "帽遮发顶"),
     "lumen":      (268, 268, 497, 577, 425, 482, 375, 610, 380, 560, 510, 650, 740, 898, "呆毛不计"),
+    "wisadel":    (295, 330, 495, 578, 485, 525, 450, 605, 430, 560, 600, 690, 760, 927, "光环 / 背后武器不计"),
+    "ulpianus":   (430, None, 500, 567, 588, 630, 445, 605, 440, 620, 660, 740, 800, 917, "帽遮发顶、面罩遮下巴（按面罩下沿）；长外套盖腿"),
+    "logos":      (190, 305, 455, 550, 452, 503, 395, 610, 420, 590, 545, 680, 760, 916, "角饰算头部最高点；长外套盖腿"),
 }
 NAME = {"mizuki": "水月", "suzuran": "铃兰", "siege": "推进之王", "skadi": "斯卡蒂", "saria": "塞雷娅", "eyjafjalla": "艾雅法拉",
         "kaltsit": "凯尔希", "skalter": "浊心斯卡蒂", "texas": "德克萨斯", "hoshiguma": "星熊", "exusiai": "能天使",
-        "angelina": "安洁莉娜", "irene": "艾丽妮", "specter_unchained": "归溟幽灵鲨", "lumen": "流明"}
+        "angelina": "安洁莉娜", "irene": "艾丽妮", "specter_unchained": "归溟幽灵鲨", "lumen": "流明", "wisadel": "维什戴尔", "ulpianus": "乌尔比安", "logos": "逻各斯"}
 # docs/103 §3 的分卡（10-15 协调人定）
-CARD = {"成女": ["saria", "skalter", "hoshiguma", "texas", "siege", "specter_unchained"],
+CARD = {"成女": ["saria", "skalter", "hoshiguma", "texas", "siege", "specter_unchained", "wisadel"],
         "少": ["exusiai", "eyjafjalla", "irene", "angelina", "kaltsit", "skadi", "mizuki"],
-        "幼": ["suzuran"], "成男": ["lumen"]}
+        "幼": ["suzuran"], "成男": ["lumen", "logos", "ulpianus"]}
 
 
 # 现版像素小人（docs/103 §2，1x）：站立高、头高、头饰高、眼距、眼高、眼到下巴；卡同 docs/103 §3
