@@ -82,10 +82,10 @@ static func lift(o, e: Dictionary, dur: float, h: float, s: Dictionary = {}) -> 
 	for a in o.air_list:
 		if is_same(a.e, e):
 			a.dur = maxf(a.dur, a.t + dur)
-			e.stun = maxf(e.stun, a.dur - a.t)
+			o.add_cc(e, a.dur - a.t)
 			return
 	o.air_list.append({"e": e, "t": 0.0, "dur": dur, "h": h})
-	e.stun = maxf(e.stun, dur)
+	o.add_cc(e, dur)
 
 
 static func air_height(a: Dictionary) -> float:
@@ -99,13 +99,13 @@ static func airborne_tick(o, dt: float) -> void:
 	for a in o.air_list:
 		a.t += dt
 		var e: Dictionary = a.e
-		e.air = 0.0 if e.dead or a.t >= a.dur else air_height(a)
+		o.set_air(e, 0.0 if e.dead or a.t >= a.dur else air_height(a))   # 托举不清击退（原样）
 	o.air_list = o.air_list.filter(func(a): return a.t < a.dur and not a.e.dead)
 
 
 static func airborne_clear(o) -> void:
 	for a in o.air_list:
-		a.e.air = 0.0
+		o.set_air(a.e, 0.0)
 	o.air_list = []
 
 

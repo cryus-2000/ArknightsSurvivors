@@ -619,7 +619,7 @@ func aim_land(reach: float) -> Dictionary:
 	var BalS = preload("res://scripts/core/balance.gd")
 	var c: float = cos(deg_to_rad(BalS.v("manual/aim_cone_deg", 45.0))) - 0.0001
 	var dist: float = reach * BalS.v("manual/land_empty", 0.8)
-	for e in g.enemies_sys.nearest(48, reach, pos):
+	for e in nearest_raw(48, reach, pos):
 		var off: Vector2 = e.pos - pos
 		if off.length() >= 1.0 and off.normalized().dot(atk_aim) >= c:
 			dist = off.length()
@@ -651,7 +651,7 @@ func aim_targets(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Arra
 		return nearest_enemies(n, max_dist, origin)
 	var BalS = preload("res://scripts/core/balance.gd")
 	var o: Vector2 = g.ppos if origin == Vector2.INF else origin
-	var pool: Array = g.enemies_sys.nearest(maxi(n * 4, 48), max_dist, origin)
+	var pool: Array = nearest_raw(maxi(n * 4, 48), max_dist, origin)
 	for deg in [BalS.v("manual/aim_cone_deg", 45.0), BalS.v("manual/aim_fallback_deg", 90.0)]:
 		var c: float = cos(deg_to_rad(deg)) - 0.0001
 		var out: Array = []
@@ -1362,7 +1362,7 @@ func melee_hit(src: String, origin: Vector2, ang: float, half: float, radius: fl
 		if kb > 0.0:
 			apply_kb(e, (e.pos - origin).normalized() * kb * (0.3 if e.elite else 1.0))   # 失重（st.weightless，安洁莉娜天赋）：受到的击退更远；没失重乘 1.0
 		if stun > 0.0:
-			e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
+			add_cc(e, stun * (0.5 if e.elite else 1.0))
 	for e in hits:
 		_hit_fx(e, origin)
 	return hits

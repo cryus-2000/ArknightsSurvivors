@@ -95,7 +95,7 @@ static func hw_bolt_fire(o, b: Dictionary, is_atk: bool) -> bool:
 				var e2: Dictionary = pool.pop_at(g.rng_op.randi() % pool.size())
 				_hw_word(o, e2, hw_mul(hw_atk(o), b.get("mult", 1.0)), src, b)
 				if b.has("slow"):
-					e2.slow = maxf(e2.slow, float(b.slow))
+					o.add_cc(e2, -INF, float(b.slow))
 	return true
 
 
@@ -298,7 +298,7 @@ static func _hw3_lock(o, dt: float) -> void:
 		if not o.acting():
 			o.face_to((lk.e.pos - o.pos).angle())
 		o.deal_damage(lk.e, hw_atk(o) * float(b.get("mult", 0.5)) * ramp * o.skill_power())
-		lk.e.slow = maxf(lk.e.slow, float(b.get("slow", 0.6)) * ramp)
+		o.add_cc(lk.e, -INF, float(b.get("slow", 0.6)) * ramp)
 		var tip: Vector2 = _hw_bolt_tip(o, o.B.get("attack", {}))
 		o.fx({"kind": "line", "pos": tip, "to": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "life": 0.12, "col": HW_INK, "w": 1.5 + ramp})
 		o.fx({"kind": "glow", "pos": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "r": 8.0 + 6.0 * ramp, "life": 0.2, "col": HW_PALE, "alpha": 0.5})
@@ -423,20 +423,13 @@ static func _hw3_fan(o, dt: float) -> void:
 				shown += 1
 				o.spawn_fx_sprite("fx_logos_glyph", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7, 0.0, g.vrng.randf() < 0.5)
 	var f: float = float(b.get("bullet_slow", 0.2))
-	for bl in g.ebullets:
-		if bl.life <= 0.0 or not hw_in_fan(o, bl.pos):
-			continue
-		if not bl.get("acuity", false):
-			bl["acuity"] = true
-			bl.vel *= f
-			bl.life = bl.life / f
+	var in_fan := func(p: Vector2) -> bool: return hw_in_fan(o, p)
+	g.shots.slow_in(in_fan, f, "acuity")   # 敌弹池接口（docs/101 §7.3.10）
 	if float(fn.t) <= 0.0:
-		var n := 0
-		for bl in g.ebullets:
-			if bl.life > 0.0 and hw_in_fan(o, bl.pos):
-				bl.life = 0.0
-				n += 1
-				o.fx({"kind": "glow", "pos": bl.pos, "r": 8.0, "life": 0.25, "col": HW_INK, "alpha": 0.6})
+		var gone: PackedVector2Array = g.shots.cancel_in(in_fan)
+		var n: int = gone.size()
+		for bp in gone:
+			o.fx({"kind": "glow", "pos": bp, "r": 8.0, "life": 0.25, "col": HW_INK, "alpha": 0.6})
 		if n > 0:
 			o.float_text(o.pos + Vector2(0, -70), "消除弹幕 ×%d" % n, HW_INK, 15)
 		o.fx({"kind": "glow", "pos": o.pos + Vector2.from_angle(float(h.fan_ang)) * r * 0.5, "r": 40.0, "life": 0.4, "col": HW_INK, "alpha": 0.4})

@@ -524,7 +524,7 @@ static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src:
 				killed.append(e.pos)
 		else:
 			if stun > 0.0 and not e.boss:
-				e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
+				o.add_cc(e, stun * (0.5 if e.elite else 1.0))
 			if mark_hit:   # 亡者回响：凋零处刑炸到的敌人全部挂上残影标记
 				_h4_mark(o, a, e)
 	var sh: Dictionary = a.get("shade", {})

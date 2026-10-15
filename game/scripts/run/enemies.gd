@@ -595,6 +595,41 @@ func apply_kb(e: Dictionary, v: Vector2, wl := true) -> void:
 	e.kb += v * kb_taken(e, g.t) if wl else v
 
 
+# ---- 干员 / 藏品改敌人控制状态的统一入口（docs/101 §7.3.10，10-15）：写法统一，语义照旧（同 seed 逐位不变）。
+# 字典仍是权威数据；原生 B 段只写 pos，这些字段由 A 段（GDScript）读。
+
+## 眩晕 / 减速取大合并；-INF = 这一项不动。精英 / Boss 系数各干员不同，由调用方乘好再传
+func add_cc(e: Dictionary, stun := -INF, slow := -INF) -> void:
+	if stun > -INF:
+		e.stun = maxf(e.stun, stun)
+	if slow > -INF:
+		e.slow = maxf(e.slow, slow)
+
+
+## 浮空高度（画面抬高、C 段接触判定读）；hold_kb = 本帧同时清掉击退（被掀飞 / 抛起期间不吃击退）。
+## 安洁莉娜的托举原本不清击退，所以清不清由调用方定，不在这里强行统一（统一会变基线）
+func set_air(e: Dictionary, h: float, hold_kb := false) -> void:
+	e.air = h
+	if hold_kb:
+		e.kb = Vector2.ZERO
+
+
+## 强制位移：本帧把敌人放到 p 并清击退（锚 / 钩拖拽）
+func hold_at(e: Dictionary, p: Vector2) -> void:
+	e.pos = p
+	e.kb = Vector2.ZERO
+
+
+## 位移增量（常驻拖慢、晶柱推开）
+func nudge(e: Dictionary, delta: Vector2) -> void:
+	e.pos += delta
+
+
+## 嘲讽：下一帧朝 p 走（A 段读后清回 INF）
+func set_aggro(e: Dictionary, p: Vector2) -> void:
+	e.aggro = p
+
+
 # ---- 出生口 / 槽位 / id 表（docs/101 B5，§4.3）：所有敌人经 admit 进 g.enemies（spawner.spawn_enemy / spawn_chest 两处），
 # 分配槽位 e.slot（原生端热字段平行数组的下标；空闲槽位后进先出复用）并登记 id 表；sweep_dead（game._cleanup / enemy_demo 每步）
 # 去掉已死的、回收槽位。测试里直接改 g.enemies 的敌人不经这里，不影响槽位表

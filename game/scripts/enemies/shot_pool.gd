@@ -72,6 +72,27 @@ func _brood_land(l: Dictionary) -> void:
 		nb.cdt = maxf(nb.cdt, hatch)   # 展开期间不吐酸
 
 
+## 干员接口（docs/101 §7.3.10）：pred(pos) 为真的活敌弹减速 f 倍、寿命同比延长；每颗只减一次（tag 记在弹上）
+func slow_in(pred: Callable, f: float, tag: String) -> void:
+	for bl in g.ebullets:
+		if bl.life <= 0.0 or not pred.call(bl.pos):
+			continue
+		if not bl.get(tag, false):
+			bl[tag] = true
+			bl.vel *= f
+			bl.life = bl.life / f
+
+
+## 干员接口：pred(pos) 为真的活敌弹立即消除；返回被消除的位置（调用方按位置播画面，个数 = size()）
+func cancel_in(pred: Callable) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for bl in g.ebullets:
+		if bl.life > 0.0 and pred.call(bl.pos):
+			bl.life = 0.0
+			out.append(bl.pos)
+	return out
+
+
 func update_ebullets(dt: float) -> void:
 	for b in g.ebullets:
 		if b.life <= 0.0:

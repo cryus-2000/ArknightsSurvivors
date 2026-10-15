@@ -58,7 +58,7 @@ static func _h4_hammer_release(o, a: Dictionary) -> void:
 		var ch: float = float(hv.get("stun_chance", 0.5))
 		for e in hits:
 			if not e.dead and not e.boss and g.rng_op.randf() < ch:
-				e.stun = maxf(e.stun, float(hv.get("stun", 0.8)) * (0.5 if e.elite else 1.0))
+				o.add_cc(e, float(hv.get("stun", 0.8)) * (0.5 if e.elite else 1.0))
 	o.slash_fx(o.pos + Vector2(0, -14), ang, 1.0, reach, H4_GOLD if not heavy else Color(1.0, 0.6, 0.3))
 	var land: Vector2 = o.pos + Vector2(0, -6) + Vector2.from_angle(ang) * reach * 0.7
 	if heavy:
