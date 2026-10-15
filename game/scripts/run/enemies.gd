@@ -57,6 +57,142 @@ func query(pos: Vector2, radius: float) -> Array:
 	return out
 
 
+## ---- 热字段平行数组（docs/101 B8、§4.3）：B 运动段只读写这几列。按本帧 g.enemies 下标（0..n-1）排，段首 _hot_gather 读入、段尾
+## _hot_scatter 写回；位置 PackedVector2Array（与字典里的 Vector2 同为 float32），半径 / 场地留边 PackedFloat64Array（与 GDScript float 同为 float64），
+## 算式与类型照搬原来的字典版，所以结果逐位相同。标志位见 HF_*
+const HF_DEAD := 1
+const HF_FRIENDLY := 2
+const HF_STATIC := 4
+const HF_BOSS := 8
+const HF_EVO := 16
+const HF_ELITE := 32
+const HF_CHEST := 64
+const HF_FEED := 128
+const HF_IZUMIK1 := 256   # 一阶段伊祖米克（子代碰到就被吸收）
+var _hp := PackedVector2Array()
+var _hr := PackedFloat64Array()
+var _hz := PackedFloat64Array()   # Boss 的场地留边（骑士按整个画幅顶角算，其余 = r）
+var _hf := PackedInt32Array()
+
+
+func _hot_gather(n: int) -> void:
+	_hp.resize(n)
+	_hr.resize(n)
+	_hz.resize(n)
+	_hf.resize(n)
+	for i in n:
+		var e: Dictionary = g.enemies[i]
+		_hp[i] = e.pos
+		_hr[i] = e.r
+		var f := 0
+		if e.dead:
+			f |= HF_DEAD
+		if e.get("friendly", false):
+			f |= HF_FRIENDLY
+		if e.ai == "static":
+			f |= HF_STATIC
+		if e.boss:
+			f |= HF_BOSS
+			var margin := float(e.r)
+			if e.type == "knight_boss":
+				# 骑士按整个画幅的最远顶角留边：含受击横向拉伸30%、上浮14与描边。
+				var draw_scale: float = Game.PX * float(D.ENEMIES[e.type].get("draw_scale", 1.0))
+				margin = maxf(margin, Vector2(48.0 * draw_scale * 1.3 + 2.0, 80.0 * draw_scale + 16.0).length())
+			_hz[i] = margin
+		if e.evo:
+			f |= HF_EVO
+		if e.elite:
+			f |= HF_ELITE
+		if e.chest:
+			f |= HF_CHEST
+		if e.feed:
+			f |= HF_FEED
+		if e.type == "izumik" and e.phase == 1:
+			f |= HF_IZUMIK1
+		_hf[i] = f
+
+
+func _hot_scatter(n: int) -> void:
+	for i in n:
+		if _seg_on[i] != 0:
+			g.enemies[i].pos = _hp[i]
+
+
+## 运动核心（将来的 EnemyCore.step；只读写上面的列 + _seg_on / _seg_v，登记吞噬候选 _dv_* 与吸收 _ab_*；不抽随机数、不碰字典）。
+## 景物推出 g.map.push_out 仍在循环里按原次序调（原生版要把景物烘成数据，docs/101 §4.2 ①）
+func _motion_core(n: int, dt: float) -> void:
+	var zone_on: bool = g.zone_state != 0
+	var zr: float = g.zone_r
+	var zc: Vector2 = g.zone_c
+	var fn: int = g.frame_n
+	var grid: Dictionary = g.grid
+	for i in n:
+		if _seg_on[i] == 0:
+			continue
+		var fi: int = _hf[i]
+		if fi & HF_DEAD:   # A 段里被别的单位打死（Boss 招式、持续伤害外的结算）
+			_seg_on[i] = 0
+			continue
+		var p: Vector2 = _hp[i]
+		var ri: float = _hr[i]
+		var absorbed := false
+		# ---- 分离 + 吞噬
+		if not (fi & HF_STATIC):
+			# 分离：同样的格子顺序、同样的越界与阵营判断；查询范围按进循环前的位置定
+			var qr: float = ri + 20.0
+			var qp: Vector2 = p
+			var x0 := floori((qp.x - qr) / CELL)
+			var x1 := floori((qp.x + qr) / CELL)
+			var y0 := floori((qp.y - qr) / CELL)
+			var y1 := floori((qp.y + qr) / CELL)
+			var stop := false
+			for cx in range(x0, x1 + 1):
+				if stop:
+					break
+				for cy in range(y0, y1 + 1):
+					if stop:
+						break
+					var cell = grid.get(Vector2i(cx, cy))
+					if cell == null:
+						continue
+					for j in cell:
+						if j < 0 or j >= n or j == i:
+							continue
+						var fj: int = _hf[j]
+						if fj & (HF_FRIENDLY | HF_DEAD):
+							continue
+						var diff: Vector2 = p - _hp[j]
+						var d := diff.length()
+						var min_d: float = ri + _hr[j]
+						if d < min_d and d > 0.01:
+							# 吞噬只登记候选（B 段不抽随机数），掷骰在 C 段按这里的次序做；候选照常被推开
+							if (fi & HF_EVO) and not (fj & (HF_EVO | HF_ELITE | HF_BOSS | HF_CHEST | HF_STATIC)) and d < ri:
+								_dv_e.append(i)
+								_dv_o.append(j)
+							# 伊祖米克的子代被 Boss 吸收（在 C 段结算；这只本帧不再移动）
+							if (fi & HF_FEED) and (fj & HF_IZUMIK1):
+								_ab_e.append(i)
+								_ab_o.append(j)
+								absorbed = true
+								stop = true
+								break
+							if not (fi & HF_BOSS):
+								p += diff / d * (min_d - d) * 0.3
+			if absorbed:
+				_hp[i] = p
+				continue
+		p += _seg_v[i] * dt
+		# 包含普通移动、外来击退和自主冲锋；约束当前可见圈，避免冻结场地圆心过渡时越界。
+		if (fi & HF_BOSS) and zone_on:
+			var limit := maxf(0.0, zr - _hz[i])
+			var offset: Vector2 = p - zc
+			if offset.length_squared() > limit * limit:
+				p = zc + offset.normalized() * limit
+		if not (fi & HF_BOSS) and not (fi & HF_STATIC) and (i + fn) % 2 == 0:
+			p = g.map.push_out(p, ri * 0.8)
+		_hp[i] = p
+
+
 ## 三段更新的逐帧暂存（docs/101 B7 ③）：A 段算出的本帧速度、是否进入 B / C；B 段登记的吞噬候选（捕食者 i、猎物 j）与伊祖米克吸收（子代 i、Boss j）
 var _seg_v := PackedVector2Array()
 var _seg_on := PackedByteArray()
@@ -232,76 +368,10 @@ func update(dt: float) -> void:
 		_seg_v[i] = v
 		_seg_on[i] = 1
 
-	# ---- B 运动段
-	for i in n:
-		if _seg_on[i] == 0:
-			continue
-		var e: Dictionary = g.enemies[i]
-		if e.dead:   # A 段里被别的单位打死（Boss 招式、持续伤害外的结算）
-			_seg_on[i] = 0
-			continue
-		var v: Vector2 = _seg_v[i]
-		var absorbed := false
-		# ---- 分离 + 吞噬
-		if e.ai != "static":
-			# 分离：query() 内联（性能，docs/50 §11）——同样的格子顺序、同样的越界与阵营判断，不建中间数组；
-			# 查询范围按进循环前的位置定（和先 query 再遍历相同）
-			var qr: float = e.r + 20.0
-			var qp: Vector2 = e.pos
-			var x0 := floori((qp.x - qr) / CELL)
-			var x1 := floori((qp.x + qr) / CELL)
-			var y0 := floori((qp.y - qr) / CELL)
-			var y1 := floori((qp.y + qr) / CELL)
-			var nq: int = g.enemies.size()
-			var stop := false
-			for cx in range(x0, x1 + 1):
-				if stop:
-					break
-				for cy in range(y0, y1 + 1):
-					if stop:
-						break
-					var cell = g.grid.get(Vector2i(cx, cy))
-					if cell == null:
-						continue
-					for j in cell:
-						if j < 0 or j >= nq or j == i:
-							continue
-						var o: Dictionary = g.enemies[j]
-						if o.get("friendly", false) or o.dead:
-							continue
-						var diff: Vector2 = e.pos - o.pos
-						var d := diff.length()
-						var min_d: float = e.r + o.r
-						if d < min_d and d > 0.01:
-							# 吞噬只登记候选（B 段不抽随机数），掷骰在 C 段按这里的次序做；候选照常被推开（原来掷骰失败时也推）
-							if e.evo and not o.evo and not o.elite and not o.boss and not o.chest and o.ai != "static" and d < e.r:
-								_dv_e.append(i)
-								_dv_o.append(j)
-							# 伊祖米克的子代被 Boss 吸收
-							if e.feed and o.type == "izumik" and o.phase == 1:
-								_ab_e.append(i)   # 吸收在 C 段结算（g.bai.izumik_absorb 是回调）；这只本帧不再移动
-								_ab_o.append(j)
-								absorbed = true
-								stop = true
-								break
-							if not e.boss:
-								e.pos += diff / d * (min_d - d) * 0.3
-			if absorbed:
-				continue
-		e.pos += v * dt
-		# 包含普通移动、外来击退和自主冲锋；约束当前可见圈，避免冻结场地圆心过渡时越界。
-		if e.boss and g.zone_state != 0:
-			# 骑士按整个画幅的最远顶角留边：含受击横向拉伸30%、上浮14与描边。
-			var margin := float(e.r)
-			if e.type == "knight_boss":
-				var draw_scale: float = Game.PX * float(D.ENEMIES[e.type].get("draw_scale", 1.0))
-				margin = maxf(margin, Vector2(48.0 * draw_scale * 1.3 + 2.0, 80.0 * draw_scale + 16.0).length())
-			var limit := maxf(0.0, g.zone_r - margin)
-			var offset: Vector2 = e.pos - g.zone_c
-			if offset.length_squared() > limit * limit:
-				e.pos = g.zone_c + offset.normalized() * limit
-		if not e.boss and e.ai != "static" and (i + g.frame_n) % 2 == 0:
-			e.pos = g.map.push_out(e.pos, e.r * 0.8)
+	# ---- B 运动段（docs/101 B8：段首把热字段读进平行数组，核心只读写数组，段尾写回字典；核心将来换原生 EnemyCore.step，OPT_CPP 对照）
+	_hot_gather(n)
+	_motion_core(n, dt)
+	_hot_scatter(n)
 
 	# ---- C 结算段
 	var dv := 0
