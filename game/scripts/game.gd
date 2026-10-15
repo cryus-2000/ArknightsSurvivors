@@ -435,6 +435,7 @@ const OPT_BAND := 8192    # 黑潮溟痕带：带状三角剖分（缓存索引�
 const OPT_LIGHT := 16384  # 敌人受光封顶：每帧按「到灯的距离」建一张表（整屏统一算一次），逐只只查表插值，不再逐只算衰减 / 软膝
 const OPT_PCAP := 32768   # 干员粒子 / 帧条上层数量上限（render/pfx_cap）：同屏超过上限时最旧的不画（粒子照常走完寿命，不改列表）
 const OPT_OPS := 65536    # 干员每帧分配（docs/101 S9）：stat 作用域键缓存、_trigs 按精英化 / 节点数缓存、_sustain 复用缓冲；玩法、画面不变
+const OPT_VIS := 262144   # 世界层视野表（docs/101 B4 ①）：draw_world 开头剔除一次、影子 / 排序 / 精英登场 / 敌人预警共用；置位时各层照旧自己扫全表。画面相同
 const OPT_CPP := 131072   # 原生代码对照位（docs/101 §4.7 / B8）：置位时走 GDScript 核心（enemies._motion_core 等）；原生库还没接入，现在恒走 GDScript
 var bal_dt := 0.066             # --dt=<秒>（仅 --balance）：批跑每帧步长，缺省 0.066（9/30 起所有难度校准 / 云端基线的口径）；按位移判定的改动可用 --dt=0.016667 抽查（docs/36 §8.2）
 var placebo_n := 0              # --placebo=N（仅测试）：开局多抽 N 次主 rng——机制不变、换一份随机实现，判「改动」还是「这组 seed 的运气」（docs/36 §8.2）
