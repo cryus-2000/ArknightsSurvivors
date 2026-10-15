@@ -50,8 +50,7 @@ static func _hw_waves(o, dt: float) -> void:
 			var e: Dictionary = g.enemies[j]
 			if e.dead or w.hit.has(e.id):
 				continue
-			var rel: Vector2 = e.pos - w.pos
-			if absf(rel.dot(w.dir)) > depth + e.r or absf(rel.dot(nrm)) > w.w * 0.5 + e.r:
+			if not box_centered(w.pos, w.dir, depth, w.w * 0.5, e.pos, e.r):   # B6 ⑤：ob_geom
 				continue
 			w.hit[e.id] = true
 			o.log_hit(str(b.get("src", "")), b.get("tags", []))

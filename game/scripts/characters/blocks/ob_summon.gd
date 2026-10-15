@@ -422,7 +422,7 @@ static func sm_strike(o, s: Dictionary, a: Dictionary, tg: Dictionary) -> Array:
 			var d := Vector2.from_angle(ang)
 			for j in o.query_ids(s.pos + d * L * 0.5, L * 0.5 + W + 40.0):
 				var e: Dictionary = g.enemies[j]
-				if not e.dead and _F().line_contains(s.pos, d, L, W, e.pos, float(e.r)):
+				if not e.dead and line_contains(s.pos, d, L, W, e.pos, float(e.r)):
 					hits.append(e)
 			if max_n > 0 and hits.size() > max_n:
 				hits = o.cap_targets(hits, s.pos, max_n)

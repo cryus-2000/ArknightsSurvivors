@@ -32,15 +32,6 @@ static func ext_cond_true(o, k: String) -> bool:
 	return false
 
 
-## 线段判定（纯几何，测试可直接调）：敌人圆心 + 半径与「origin 起、方向 d、长 L、宽 W」的矩形相交
-static func line_contains(origin: Vector2, d: Vector2, L: float, W: float, p: Vector2, er: float) -> bool:
-	var rel: Vector2 = p - origin
-	var along: float = rel.dot(d)
-	if along < -er or along > L + er:
-		return false
-	return absf(rel.cross(d)) <= W * 0.5 + er
-
-
 ## trig.on_hurt 的生效概率：Boss 来源有 boss_chance 时用它；negate 触发器再吃 verb.negate_chance 的 add / mult；夹到 [0, max_chance]
 static func hurt_chance(t: Dictionary, boss: bool, add: float, mul: float) -> float:
 	var p: float = float(t.get("chance", 1.0))

@@ -463,17 +463,15 @@ static func _hw_open_rift(o, rf: Dictionary, a: Vector2, b: Vector2) -> void:
 	if a.distance_to(b) < 8.0:
 		return
 	var dmg: float = o.base(str(rf.get("atk_key", "atk")), 0.0) * o._dmg_bonus() * float(rf.get("mult", 0.8)) * o.skill_power()
-	var w: float = float(rf.get("w", 26.0))
+	var w: float = float(rf.get("w", 52.0))   # 全宽（B6 ⑤ 改对：原来当半宽用、数据写 26，现数据 rift_w 52，判定逐位不变）
 	var d: Vector2 = (b - a).normalized()
 	var L: float = a.distance_to(b)
 	var src: String = str(rf.get("src", ""))
-	for j in o.query_ids((a + b) * 0.5, L * 0.5 + w + 30.0):
+	for j in o.query_ids((a + b) * 0.5, L * 0.5 + w * 0.5 + 30.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead:
 			continue
-		var rel: Vector2 = e.pos - a
-		var along: float = rel.dot(d)
-		if along < -e.r or along > L + e.r or absf(rel.cross(d)) > w + e.r:
+		if not seg_rect(a, d, L, w * 0.5, e.pos, e.r):   # B6 ⑤：ob_geom
 			continue
 		o.log_hit(src)
 		o.deal_damage(e, dmg)

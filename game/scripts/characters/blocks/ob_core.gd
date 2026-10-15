@@ -3,7 +3,7 @@
 ## 只走 op_api / character.gd 的公开方法与 g 的公共状态，不碰 game.gd 内部（下划线函数）、enemies.gd、combat.gd。
 ## 确定性（docs/36 §3）：本文件不用任何随机数；画面只往干员自己的 pfx 里加粒子（不碰 g.rng）。
 ## 本文件也被 -s 测试脚本（tests/test_core.gd，经 character.gd 的 validate_operator）加载：不许引用 Sfx 等自动加载。
-extends RefCounted
+extends "res://scripts/characters/blocks/ob_geom.gd"   # B6 ⑤：几何判定在链的最底层
 
 ## 门面（op_blocks.gd = 链尾）：链上早的文件调用晚的文件里的函数时经 _F() 运行时转发（B6 ② 直连 / ③ 单播后去掉）
 static var _facade = null

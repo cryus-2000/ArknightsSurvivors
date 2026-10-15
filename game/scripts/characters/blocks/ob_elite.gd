@@ -265,7 +265,7 @@ static func _el_boom_sweep(o, bm: Dictionary, a: float, c: float, leg: int) -> v
 	var got: Array = []
 	for j in o.query_ids(p0 + dir * (hi - lo) * 0.5, (hi - lo) * 0.5 + w + 40.0):
 		var e: Dictionary = g.enemies[j]
-		if e.dead or hit.has(e.id) or not _F().line_contains(p0, dir, hi - lo, w, e.pos, float(e.r)):
+		if e.dead or hit.has(e.id) or not line_contains(p0, dir, hi - lo, w, e.pos, float(e.r)):
 			continue
 		hit[e.id] = true
 		got.append(e)

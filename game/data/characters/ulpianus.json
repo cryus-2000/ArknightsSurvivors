@@ -44,7 +44,7 @@
   "drag_r": 200,
   "drag_mult": 0.6,
   "rift_mult": 0.8,
-  "rift_w": 26,
+  "rift_w": 52,
   "rift_air": 0.8,
   "first_cd": 0.5,
   "idle_cd": 0.1,

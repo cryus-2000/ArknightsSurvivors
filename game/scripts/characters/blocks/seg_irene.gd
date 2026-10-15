@@ -143,11 +143,8 @@ static func _h3_thrust(o, a: Dictionary, ang: float, mult: float, patch: Diction
 		var e: Dictionary = g.enemies[j]
 		if e.dead:
 			continue
-		var rel: Vector2 = e.pos - org
-		var along: float = rel.dot(d)
-		if along < -e.r or along > L + e.r:
-			continue
-		if absf(rel.cross(d)) > W * 0.5 + e.r:
+		var along: float = seg_rect_along(org, d, L, W * 0.5, e.pos, e.r)   # B6 ⑤：ob_geom
+		if along == -INF:
 			continue
 		hits.append([along, e])
 	hits.sort_custom(func(x, y): return x[0] < y[0])
