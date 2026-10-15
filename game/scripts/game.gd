@@ -436,6 +436,8 @@ const OPT_LIGHT := 16384  # 敌人受光封顶：每帧按「到灯的距离」�
 const OPT_PCAP := 32768   # 干员粒子 / 帧条上层数量上限（render/pfx_cap）：同屏超过上限时最旧的不画（粒子照常走完寿命，不改列表）
 const OPT_OPS := 65536    # 干员每帧分配（docs/101 S9）：stat 作用域键缓存、_trigs 按精英化 / 节点数缓存、_sustain 复用缓冲；玩法、画面不变
 const OPT_CPP := 131072   # 原生代码对照位（docs/101 §4.7 / B8）：置位时走 GDScript 核心（enemies._motion_core 等）；原生库还没接入，现在恒走 GDScript
+var bal_dt := 0.066             # --dt=<秒>（仅 --balance）：批跑每帧步长，缺省 0.066（9/30 起所有难度校准 / 云端基线的口径）；按位移判定的改动可用 --dt=0.016667 抽查（docs/36 §8.2）
+var placebo_n := 0              # --placebo=N（仅测试）：开局多抽 N 次主 rng——机制不变、换一份随机实现，判「改动」还是「这组 seed 的运气」（docs/36 §8.2）
 var rt_from := -1.0              # --rtfrom=<秒>（仅测试，配合 --realtime）：游戏时间到这一秒前按批跑步长快进，之后切成真实步长（量后期帧时间时省掉前面几分钟）
 var prof_on := false             # --prof：模拟步分段计时，结果随 BALANCE 行输出（docs/36）
 var prof := {}                   # 段名 -> 累计微秒
@@ -592,6 +594,8 @@ func _ready() -> void:
 			vrng.seed = int(a.substr(7)) + 7919
 			seed(int(a.substr(7)))
 			seeded = true
+		elif a.begins_with("--placebo="):
+			placebo_n = maxi(0, int(a.substr(10)))
 	if not seeded:
 		rng.randomize()
 		vrng.randomize()
@@ -599,6 +603,8 @@ func _ready() -> void:
 	rng_enemy.seed = hash([rng.seed, "enemy"])
 	rng_drop.seed = hash([rng.seed, "drop"])
 	rng_op.seed = hash([rng.seed, "op"])
+	for _pk in placebo_n:
+		rng.randf()   # 安慰剂实现：只推进主流，派生流已按种子定好；局面从第一次用主流起分叉
 	if demo_op == "":
 		Sfx.voice_reset()   # 上一局没播完的部署语音不带进新一局
 	bai = BossAI.new(self)
@@ -901,6 +907,9 @@ func _ready() -> void:
 			if a.begins_with("--maxt="):
 				bal_maxt = float(a.substr(7))
 		prof_on = Cfg.dev_args().has("--prof")
+		for a in Cfg.dev_args():
+			if a.begins_with("--dt="):
+				bal_dt = clampf(float(a.substr(5)), 0.004, 0.1)
 		realtime = Cfg.dev_args().has("--realtime")
 		for a in Cfg.dev_args():
 			if a.begins_with("--rtfrom=") and realtime:
@@ -1068,7 +1077,7 @@ func _process(delta: float) -> void:
 		_pm("")
 		autotest_sys.step()
 		_pm("autotest")
-		dt = (minf(delta, 0.05) if realtime else 0.066) if mode == Mode.BALANCE else 0.05
+		dt = (minf(delta, 0.05) if realtime else bal_dt) if mode == Mode.BALANCE else 0.05
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	if victory.active and state == S.PLAY:
 		simulated_dt = victory.step(minf(delta, 0.05))   # 最终 Boss 击破演出按慢动作缩放画面步长（run/victory_flow.gd）

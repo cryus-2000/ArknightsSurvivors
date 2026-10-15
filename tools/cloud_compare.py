@@ -32,7 +32,7 @@ import argparse, glob, json, math, os, random, statistics, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 Z = 1.959964
-KEY_FIELDS = ["squad", "seed", "bot", "diff", "tier", "lane"]
+KEY_FIELDS = ["squad", "seed", "bot", "diff", "tier", "lane", "placebo"]
 SPLIT_FIELDS = ["squad", "bot", "diff", "tier", "lane"]
 PHASE_NAMES = ["Boss1", "Boss2", "终局Boss"]
 
@@ -69,6 +69,7 @@ def _ingest(doc, origin, env=""):
     for r in doc.get("records", []):
         r = dict(r)
         r["_tier"] = tier
+        r.setdefault("placebo", int(ex.get("placebo", 0) or 0))   # 安慰剂实现（docs/36 §8.2）；旧记录没有这一项按 0
         r["_maxt"] = maxt
         r["_src"] = origin
         r["_env"] = env
@@ -147,7 +148,7 @@ def load_source(spec):
 
 def rec_key(r, drop=()):
     v = {"squad": ",".join(r.get("squad", [])), "seed": r.get("seed"), "bot": r.get("bot", "normal"), "diff": r.get("diff", 0),
-         "tier": r.get("_tier", ""), "lane": r.get("lane", "none")}
+         "tier": r.get("_tier", ""), "lane": r.get("lane", "none"), "placebo": r.get("placebo", 0)}
     return tuple(v[k] for k in KEY_FIELDS if k not in drop)
 
 
