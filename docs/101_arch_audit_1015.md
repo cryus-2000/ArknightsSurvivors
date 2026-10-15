@@ -355,6 +355,7 @@ game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCo
 - **B2**：预警管线搬到 `enemies/telegraph.gd`（`g.tele`），填充绘制搬到 `render/telegraph_draw.gd`。§3.2 ① 的「8 处结算合一个入口」不再另做：B1 之后这 8 处各自只剩一句带显式参数的 `enemy_hit`，几何判定本来就各不相同（地面椭圆圈 / 弹体中心距 / 环带），包一层入口没有收益。
 - **B3 拆两段**：B3a 表现事件步骤（`watch_bosses` 从 draw_world 挪到 `_process` 末尾的 `world.present_step()`、开场状态机显式调、`lvup_delay` 回到模拟步）先做；B3b「画面字段挪渲染侧」挪到 **B5 之后**——按 `e.id` 放字典会让敌人绘制热路径每只多一次字典读，B5 有了槽位后按槽位下标放数组更省。
 - **B5 收窄**：B5a 出生口 `enemies_sys.admit`（spawner 两处）+ 槽位 `e.slot`（空闲槽位后进先出复用）+ id 表 `by_id`，清理改走 `sweep_dead` 回收槽位；B5b 只把原生 EnemyCore 范围（enemies.update 移动段）里唯一的敌人→敌人引用 `feed_to` 改成 `feed_to_id`。partner、分形 / 泪的 owner、spawned_after、塑路者 `e.core`、预警的 owner / b_owner 只在 GDScript 的 Boss 逻辑里读，原生端不碰，保持字典引用（Boss与怪物 10-15 逐处核过：其中 `e.core` 被清理后下一帧还要读 dead / pos，改 id 反而要额外抄字段）。§4.3「is_same 60 处改 id」以此为准。
+- **B4 ①（剔除一次）**：`world._build_vis` 在 draw_world 开头扫一遍敌人建 `_vis_ent`（ENTITY_MARGIN）/ `_vis_tell`（TELL_MARGIN 或 Boss）两张表，影子、排序实体、精英登场、敌人预警改读表（各层仍按自己的范围再判，次序不变）；OPT_VIS = 262144 对照位。像素：旧写法 vs 新写法 13 张截图 0 差（--fixed-fps 60，seed 3 Ⅷ 维什戴尔）；同局轮换 3 局 7–10 分钟段帧时 18.73 vs 18.80 毫秒（差 0.07，噪声内）——收益在结构，不在帧时。巢涌光环 / 冲刺预警分类 / 骑士出手特效仍扫全表（要写敌人状态或画屏外伸进来的大圈）。
 
 ### 7.3 B6 准备：op_blocks 拆分方案与 `ob_geom` 清单（干员会话 10-15，只出方案、未改代码；依据 main f00e6f34）
 

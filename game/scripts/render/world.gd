@@ -315,6 +315,7 @@ func draw_world() -> void:
 		_draw_pickups()
 	_pk("gems")
 	var evr: Rect2 = view_rect(ENTITY_MARGIN)   # 屏幕外的敌人不画影子、不进排序（性能，协调人 9/30；绘制只改画面，不影响模拟）
+	_build_vis(evr)
 	_draw_shadows(evr)
 	_pk("shadows")
 	_draw_sorted_entities(evr)
@@ -696,8 +697,9 @@ func _draw_shadows(evr: Rect2) -> void:
 	g.vfx.spr("shadow", 1, 0, g.doc_pos + Vector2(0, 6), Game.PX * 1.3)
 	g.squad.draw_auras()
 	var stx: Texture2D = g.tex.get("shadow")
+	var ens: Array = _vis_ent if _vis_on else g.enemies
 	if stx == null:
-		for e in g.enemies:
+		for e in ens:
 			if not evr.has_point(e.pos):
 				continue
 			var sc: float = Game.PX * e.r / 10.0
@@ -710,7 +712,7 @@ func _draw_shadows(evr: Rect2) -> void:
 		var src := Rect2(0, 0, stx.get_width(), stx.get_height())
 		var scol := Color(1, 1, 1, 0.0 if _dbg_enemy else 1.0)
 		var doff: Vector2 = g.draw_off
-		for e in g.enemies:
+		for e in ens:
 			var ep: Vector2 = e.pos
 			if not evr.has_point(ep):
 				continue
@@ -753,7 +755,7 @@ func _sorted_fast(evr: Rect2) -> bool:
 	kind.clear()
 	ka.clear()
 	at.clear()
-	for e in g.enemies:
+	for e in (_vis_ent if _vis_on and not dc_check else g.enemies):
 		var ep: Vector2 = e.pos
 		if evr.has_point(ep) or dc_check:
 			ka.append(ep.y + e.r * 0.8)
@@ -1490,7 +1492,7 @@ func _draw_tells_outlines() -> void:
 	# docs/54 ④ 精英登场（按 e.age 画 0.9 秒；fx/first_sight 时改按首次入画起算；无贴图批，一次提交）
 	if g.vfx.on("elite_entrance"):
 		var elr: Rect2 = view_rect(120.0)
-		for e in g.enemies:
+		for e in (_vis_ent if _vis_on else g.enemies):
 			if e.elite and not e.boss and elr.has_point(e.pos) and g.vfx.elite_entrance_due(e):
 				g.vfx.elite_entrance(e)
 		tb_flush()
@@ -2396,7 +2398,7 @@ const TELL_BURST := Color(0.78, 0.42, 1.0)      # 囊海爬行者爆裂：紫
 
 func draw_enemy_tells() -> void:
 	var tvr: Rect2 = view_rect(TELL_MARGIN)   # 冲刺线 / 危险圈能伸进屏幕，外扩大一些
-	for e in g.enemies:
+	for e in (_vis_tell if _vis_on else g.enemies):
 		if e.dead or (not e.boss and not tvr.has_point(e.pos)):
 			continue
 		if e.get("blast_w", 0.0) > 0.0:
@@ -3048,6 +3050,32 @@ func _draw_mire_bubbles(bubbles: Array) -> void:
 	for b in bubbles:
 		var p: Vector2 = b[0]
 		g.draw_texture_rect_region(bt, Rect2(p - Vector2(sz.x / 2.0, sz.y), sz), Rect2(fw * int(b[1]), 0, fw, fh), Color(1, 1, 1, 0.85 * float(b[2])))
+
+
+## 世界层视野表（docs/101 B4 ①，§3.2 ⑥）：draw_world 开头扫一遍敌人，按原顺序分两张表——
+## _vis_ent：ENTITY_MARGIN 外扩内（影子 / 排序实体 / 精英登场）；_vis_tell：TELL_MARGIN 外扩内或 Boss（敌人预警）。
+## 两张表都是各层原来那次全表遍历的超集、次序不变，各层仍按自己的范围 / 条件再判一次，所以画面逐像素相同。
+## 只在 draw_world 这一帧内有效（之后敌人表会变）；OPT_VIS 置位或没建表时各层照旧扫 g.enemies
+var _vis_ent: Array = []
+var _vis_tell: Array = []
+var _vis_on := false
+
+
+func _build_vis(evr: Rect2) -> void:
+	_vis_ent.clear()
+	_vis_tell.clear()
+	_vis_on = not (g.opt_old & Game.OPT_VIS)
+	if not _vis_on:
+		return
+	var tvr: Rect2 = view_rect(TELL_MARGIN)   # ⊃ evr（ENTITY_MARGIN < TELL_MARGIN）
+	for e in g.enemies:
+		var ep: Vector2 = e.pos
+		if tvr.has_point(ep):
+			_vis_tell.append(e)
+			if evr.has_point(ep):
+				_vis_ent.append(e)
+		elif e.boss:
+			_vis_tell.append(e)
 
 
 func view_rect(margin: float) -> Rect2:
