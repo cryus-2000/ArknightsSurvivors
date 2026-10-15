@@ -116,7 +116,33 @@ def extra_tier(extra):
 find_godot = GR.find_godot
 
 
+def placebo_table(records, placebos):
+    """每份安慰剂实现的胜率 + 组间均值 / 标准差（docs/36 §8.2：单份 112 局的组间波动约 ±6 点，结论看均值）"""
+    L = ["### 按实现（安慰剂）汇总", "", "| 实现 | 局数 | 胜率 | 平均用时 |", "|---|---|---|---|"]
+    rates = []
+    for p in placebos:
+        ok = [r["data"] for r in records if r.get("placebo", 0) == p and "data" in r]
+        if not ok:
+            continue
+        w = sum(1 for d in ok if d.get("win")) / len(ok)
+        rates.append(w)
+        L.append("| %d | %d | %.1f%% | %.0f |" % (p, len(ok), w * 100, statistics.mean(d["t"] for d in ok)))
+    if len(rates) > 1:
+        L.append("")
+        L.append("组间：均值 %.1f%%，标准差 %.1f 点（%d 份实现）" % (statistics.mean(rates) * 100, statistics.stdev(rates) * 100, len(rates)))
+    return "\n".join(L)
+
+
 KEEP = []   # --keep=HUNT,EVT：把 stdout 里以这些前缀开头的行存进记录的 lines（事件 / 机制日志，2026-09-27 围猎 A/B）
+
+
+def extra_placebo(extra):
+    """透传参数里的 --placebo=N（缺省 0 = 原样实现）"""
+    for x in extra:
+        m = re.match(r"--placebo=(\d+)$", x)
+        if m:
+            return int(m.group(1))
+    return 0
 
 
 def run_one(godot, squad, seed, diff, extra, timeout, bot=None, game=None, tkey=None):
@@ -134,11 +160,12 @@ def run_one(godot, squad, seed, diff, extra, timeout, bot=None, game=None, tkey=
         if hit is not None:
             hit["cached"] = True
             hit["tier"] = extra_tier(extra)   # 旧缓存没有这一项
+            hit["placebo"] = extra_placebo(extra)
             return hit
     t0 = time.time()
     out, err, _ = GR.run_godot(args, timeout)
     m = re.search(r"^BALANCE (\{.*\})\s*$", out, re.M)
-    rec = {"squad": squad, "seed": seed, "diff": diff, "bot": bot or "normal", "tier": extra_tier(extra), "wall": round(time.time() - t0, 1)}
+    rec = {"squad": squad, "seed": seed, "diff": diff, "bot": bot or "normal", "tier": extra_tier(extra), "placebo": extra_placebo(extra), "wall": round(time.time() - t0, 1)}
     # 脚本错误不会让模拟停下，但可能让某段逻辑整段失效（例如 Boss 没刷出来）→ 计数并在报告顶部警告
     # Godot 把脚本错误写到 stderr（2026-09-26 前只查 stdout，漏掉了水月每次出手报错的整批数据）
     errs = GR.script_errors(out, err)
@@ -653,6 +680,8 @@ def main():
     ap.add_argument("--game", default=None, help="要测的 game/ 目录（缺省为本仓库的 game/；A/B 对比时指向临时工作树）")
     ap.add_argument("--keep", default="", help="逗号分隔的 stdout 行前缀，匹配的行存进每局记录的 lines（例如 HUNT）")
     ap.add_argument("--nocache", action="store_true", help="不读也不写结果缓存")
+    ap.add_argument("--placebos", default="0", help="逗号分隔的安慰剂实现编号（开局多抽 N 次主 rng，机制不变），例如 0,1,2：每份实现各跑一遍，报告给组间均值 / 标准差（docs/36 §8.2）")
+    ap.add_argument("--dt", type=float, default=None, help="批跑每帧步长（缺省 0.066；按位移判定的改动用 0.016667 抽查，docs/36 §8.2）")
     ap.add_argument("--out", default=None, help="报告输出目录（缺省 build/balance）")
     a = ap.parse_args()
     KEEP[:] = [k for k in a.keep.split(",") if k]
@@ -663,19 +692,22 @@ def main():
     else:
         squads = PRESETS[a.preset or "solo"]
     extra = a.extra.split() if a.extra else []
+    if a.dt:
+        extra.append("--dt=%g" % a.dt)
+    placebos = [int(x) for x in a.placebos.split(",") if x.strip() != ""] or [0]
     godot = find_godot()
     bots = a.bots.split(",") if a.bots else [a.bot]
     game = os.path.abspath(a.game) if a.game else GAME
     GR.ensure_imported(game)   # 新工作树没有导入缓存时先导入（docs/36 §2.1）
     tkey = None if a.nocache else GR.tree_key(game)
     lanes = a.lanes.split(",") if a.lanes else ["none"]
-    jobs = [(s, a.seed0 + i, b, ln) for ln in lanes for b in bots for s in squads for i in range(a.seeds)]
-    print("跑 %d 局（%d 流派 × %d 机器人 × %d 编队 × %d seed），并行 %d（全机上限 %d）%s" % (len(jobs), len(lanes), len(bots), len(squads), a.seeds, a.jobs, GR.MAX_PROCS,
+    jobs = [(s, a.seed0 + i, b, ln, pl) for pl in placebos for ln in lanes for b in bots for s in squads for i in range(a.seeds)]
+    print("跑 %d 局（%d 份实现 × %d 流派 × %d 机器人 × %d 编队 × %d seed），并行 %d（全机上限 %d）%s" % (len(jobs), len(placebos), len(lanes), len(bots), len(squads), a.seeds, a.jobs, GR.MAX_PROCS,
           "，源文件摘要 " + tkey if tkey else "，不用缓存"), flush=True)
     t0 = time.time()
 
     def one(j):
-        ex2 = extra + (["--lane=" + j[3]] if j[3] != "none" else [])
+        ex2 = extra + (["--lane=" + j[3]] if j[3] != "none" else []) + (["--placebo=%d" % j[4]] if j[4] else [])
         rec = run_one(godot, j[0], j[1], a.diff, ex2, a.timeout, j[2], game, tkey)
         if a.lanes:
             rec["lane"] = j[3]
@@ -692,6 +724,8 @@ def main():
         warn = "> ⚠ %d 局出现脚本错误，结果可能无效。首条：`%s`\n\n" % (len(bad), bad[0]["first_error"])
         print(warn)
     md = warn + table(rows) + "\n\n### 机器人指标（docs/29）\n\n" + bot_table(rows)
+    if len(placebos) > 1:
+        md = placebo_table(records, placebos) + "\n\n" + md
     rt = relic_table(records)
     if rt:
         md += "\n\n### 藏品（docs/35）\n\n" + rt

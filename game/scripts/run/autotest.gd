@@ -634,7 +634,7 @@ func step() -> void:
 			print("TRACE t=%.2f lv=%d k=%d hp=%.2f n=%d rng=%d/%d/%d/%d/%d pos=%.2f,%.2f h=%.3f" % [g.t, g.level, g.kills, g.hp, g.enemies.size(), g.rng.state,
 				g.rng_spawn.state, g.rng_enemy.state, g.rng_drop.state, g.rng_op.state, g.ppos.x, g.ppos.y, hsum])   # 五条玩法流：主 / 刷怪 / 敌人 / 掉落 / 积木（docs/101 B7）
 		if g.bot != null and g.state == g.S.PLAY:
-			g.telemetry.tick(0.066)   # 整局指标（原 bot.tick，挪到 run/telemetry.gd）
+			g.telemetry.tick(g.bal_dt)   # 整局指标（原 bot.tick，挪到 run/telemetry.gd）；步长同批跑 --dt
 		if false:
 			print("dbg t=%d state=%d lv=%d hp=%d en=%d" % [g.t, g.state, g.level, g.hp, g.enemies.size()])
 		if g.state == g.S.CHOICE:
