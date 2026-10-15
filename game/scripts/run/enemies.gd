@@ -265,6 +265,7 @@ func _motion_core(n: int, dt: float) -> void:
 ## 三段更新的逐帧暂存（docs/101 B7 ③）：A 段算出的本帧速度、是否进入 B / C；B 段登记的吞噬候选（捕食者 i、猎物 j）与伊祖米克吸收（子代 i、Boss j）
 var _seg_v := PackedVector2Array()
 var _seg_on := PackedByteArray()
+var _seg_d := PackedFloat64Array()   # A 段算的本只到队长的距离（移动前）：C 段接触 / 泪照原来的语义用它
 var _dv_e := PackedInt32Array()
 var _dv_o := PackedInt32Array()
 var _ab_e := PackedInt32Array()
@@ -281,6 +282,7 @@ func update(dt: float) -> void:
 	var n: int = g.enemies.size()
 	_seg_v.resize(n)
 	_seg_on.resize(n)
+	_seg_d.resize(n)
 	_dv_e.clear()
 	_dv_o.clear()
 	_ab_e.clear()
@@ -436,6 +438,7 @@ func update(dt: float) -> void:
 			e.kb_self = false
 		_seg_v[i] = v
 		_seg_on[i] = 1
+		_seg_d[i] = dist
 
 	# ---- B 运动段（docs/101 B8：段首把热字段读进平行数组，核心只读写数组，段尾写回字典；核心将来换原生 EnemyCore.step，OPT_CPP 对照）
 	_hot_gather(n)
@@ -468,7 +471,7 @@ func update(dt: float) -> void:
 			continue
 		if e.dead:
 			continue
-		var dist: float = (g.ppos - e.pos).length()   # 接触 / 泪按移动后的位置判
+		var dist: float = _seg_d[i]   # 接触 / 泪按本只移动前的距离判（与原来「一只走完再下一只」相同；B7 ③ 一度改成移动后，Ⅷ 熟练胜率 −20 点，10-15 改回）
 		# ---- 囊海爬行者：每失去 15% 生命爆发一次。有 0.8 秒鼓胀预警（docs/48 P0-6：原 0.4 秒低于 0.6 下限），爆发之间至少隔 1.2 秒（高输出下不会连爆秒人）
 		if e.has("burst_at"):
 			e.burst_cd = maxf(0.0, e.get("burst_cd", 0.0) - dt)
