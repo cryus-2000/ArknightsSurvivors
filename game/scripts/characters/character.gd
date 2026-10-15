@@ -8,8 +8,13 @@ extends "res://scripts/characters/op_api.gd"
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")   # 地裂共用画法
 const A = preload("res://scripts/art.gd")
 ## B6 ②（docs/101 §7.3.6）：积木按定义所在的 blocks 文件直连（原 const OpBlocks = preload(op_blocks.gd) 门面）
-const ObCheck = preload("res://scripts/characters/blocks/ob_check.gd")
+## 发版排查（10-16，bisect 到 dada5e32）：blocks 24 个文件是一条单继承链（ob_geom → ob_core → ob_check → … → seg_angelina → … → seg_skalter），
+## 链上任一文件都transitively 带出它之前的全部文件；这里原来对 ob_check.gd / seg_angelina.gd 各开一次 preload，两条路径在
+## character.gd 自己的编译期同时解析同一条链（seg_angelina 更靠后，ob_check 是它的祖先），Godot 退出时报 resources still in use
+## （verbose 下指向 enemy_db / balance / data / art / look 这些被 blocks 间接 preload 的文件；--quit 复测确认改这里能稳定消除）。
+## 只真正 preload 链上最靠后的那个（SegAngelina 已经包含 ObCheck 的 validate），ObCheck 改成别名，不再单开一条路径
 const SegAngelina = preload("res://scripts/characters/blocks/seg_angelina.gd")
+const ObCheck = SegAngelina
 const Dc = preload("res://scripts/render/declutter.gd")   # render/hit_rings：攻击 / 技能命中的装饰圆圈开关
 
 var def: Dictionary = {}   # 角色定义（JSON）

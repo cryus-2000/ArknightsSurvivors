@@ -4,26 +4,31 @@
 extends "res://scripts/characters/character.gd"
 
 ## B6 ②（docs/101 §7.3.6）：积木按定义所在的 blocks 文件直连（原 const OB = preload(op_blocks.gd) 门面）；ObCheck、SegAngelina 已在父类 character.gd 声明，这里不重复（GDScript 不许子类重名）
-const ObCore = preload("res://scripts/characters/blocks/ob_core.gd")
-const ObElite = preload("res://scripts/characters/blocks/ob_elite.gd")
-const ObFx = preload("res://scripts/characters/blocks/ob_fx.gd")
-const ObHw = preload("res://scripts/characters/blocks/ob_hw.gd")
-const ObSummon = preload("res://scripts/characters/blocks/ob_summon.gd")
-const ObVortex = preload("res://scripts/characters/blocks/ob_vortex.gd")
-const SegExusiai = preload("res://scripts/characters/blocks/seg_exusiai.gd")
-const SegEyjafjalla = preload("res://scripts/characters/blocks/seg_eyjafjalla.gd")
-const SegHoshiguma = preload("res://scripts/characters/blocks/seg_hoshiguma.gd")
-const SegIrene = preload("res://scripts/characters/blocks/seg_irene.gd")
-const SegLogos = preload("res://scripts/characters/blocks/seg_logos.gd")
-const SegLumen = preload("res://scripts/characters/blocks/seg_lumen.gd")
-const SegMizuki = preload("res://scripts/characters/blocks/seg_mizuki.gd")
-const SegSaria = preload("res://scripts/characters/blocks/seg_saria.gd")
-const SegSiege = preload("res://scripts/characters/blocks/seg_siege.gd")
-const SegSkadi = preload("res://scripts/characters/blocks/seg_skadi.gd")
+## 发版排查（10-16，bisect 到 dada5e32）：这 20 个名字原来各自单开一次 preload，其实全在同一条单继承链上
+## （ob_core → ob_elite → … → seg_ulpianus → … → seg_skalter，见 character.gd 顶部注释）；链上最靠后的 SegSkalter
+## 早就 transitively 带出其余全部 19 个，21 条并行路径（含 character.gd 的 2 条）同时解析同一条链，是 Godot 退出报
+## resources still in use 的根（verbose 指向 enemy_db / balance / data / art / look）。真正 preload 只留 SegSkalter 一个，
+## 其余全改成别名（GDScript 继承链上不加前缀就能互相访问，和原来逐个 preload 时的调用结果完全一样，不是功能改动）
 const SegSkalter = preload("res://scripts/characters/blocks/seg_skalter.gd")
-const SegSpecter = preload("res://scripts/characters/blocks/seg_specter.gd")
-const SegTexas = preload("res://scripts/characters/blocks/seg_texas.gd")
-const SegUlpianus = preload("res://scripts/characters/blocks/seg_ulpianus.gd")
+const ObCore = SegSkalter
+const ObElite = SegSkalter
+const ObFx = SegSkalter
+const ObHw = SegSkalter
+const ObSummon = SegSkalter
+const ObVortex = SegSkalter
+const SegExusiai = SegSkalter
+const SegEyjafjalla = SegSkalter
+const SegHoshiguma = SegSkalter
+const SegIrene = SegSkalter
+const SegLogos = SegSkalter
+const SegLumen = SegSkalter
+const SegMizuki = SegSkalter
+const SegSaria = SegSkalter
+const SegSiege = SegSkalter
+const SegSkadi = SegSkalter
+const SegSpecter = SegSkalter
+const SegTexas = SegSkalter
+const SegUlpianus = SegSkalter
 
 var B: Dictionary = {}                 # 编译后的 blocks（$ 已解析成数字、cond 已解析）
 var tags_all: Dictionary = {}          # B 里出现过的全部 tag（B6 ④：常驻段没有对应 tag 时跳过逐块匹配）
