@@ -1524,3 +1524,33 @@ B7 把「A 决策 → B 运动 → C 结算」从「一只敌人跑完三段再�
 Boss 没有这类风险：Boss 招式的冷却走 `boss_ai.cd_ready`（`e.cds[key] = g.t + dur`，写的是绝对时间戳，不是「`.get(key, 随机)` 再自减」），结构上就不会触发这条 bug。
 
 **结论**：此项作废，不再派旋钮方案。Ⅷ 档 −17 点的真正来源另案排查——架构正在查同一批换基线提交里的其余几项（`62cc648e`「击退统一入口 `apply_kb`」等 `§3.4` 修正，详见 §19.6 列的 B7 时序改动之外，`62cc648e` 本身也在架构的排查范围内）。
+
+
+## 21. Ⅷ 档校准：只动不给奖励的旋钮（暂停，等局外成长；2026-10-15，Boss与怪物）
+
+**暂停**：用户定——局外成长还没做，更高难度现在没有奖励，这时候校准没意义。本地粗调已停（候选 B 还没跑完就叫停，没有结果；没有候选交云端复核）。下面只留方案，等局外成长做完再捡起来。
+
+**起因**：B7 收口（接触判定改回移动前）后的新基线，Ⅷ 熟练三份独立实现均值只有 38.4%（33.0 / 42.9 / 39.3，组间 sd 5.0；docs/36 §8.0），目标 50–70%（docs/36 §8.2：≥3 份独立实现取均值）。标准档（tier 0）不受影响，不在校准范围。
+
+**旋钮范围核对**：`balance.json` 的 `difficulty/extreme` 段（Ⅷ）按档覆盖，读取走 `data.gd dmod_for_tier(2)`；只有 `DMOD_DEFAULT`（`data.gd:43-63`）登记的键才能按档覆盖。**怪物密度（`enemy/density`）、体型（`enemy/scale`）、冲刺 / 新星冷却（`dash_cd` / `nova_cd`，`enemy_ai.gd` 硬编码）都是全局的，现在没有按档覆盖的旋钮**——要按 Ⅷ 单独调这两类，得先在 `data.gd` / `enemy_ai.gd` 加对应的 `DMOD_DEFAULT` 键（代码改动），不是只改 `balance.json` 能做到的。以后要按档调这两项，先开旋钮再回来做这节。
+
+现行 `difficulty/extreme`：`enemy_hp` 1.7、`boss_hp` 1.35、`enemy_dmg` 1.25、`boss_dmg` 1.15、`horde` 1.6、`horde_in_boss` 1、`mire_permanent` 1、`max_hp` 0.9、`beacon_every` 0.6、`lamp_hit` 1.3（`oil_drop` 0.6、`ingot` 0.75 是掉落，不在候选范围）。
+
+**候选方案**（留档；没有跑出结果，数字只是设计阶段的起点，重新捡起时建议先按新基线复核一次 38.4% 还成不成立，再决定要不要照这两档继续）：
+
+| 候选 | enemy_hp | enemy_dmg | boss_hp | boss_dmg | horde | max_hp | mire_dmg（新开） | nerve_rate（新开） |
+|---|---|---|---|---|---|---|---|---|
+| B（中） | 1.7→1.4 | 1.25→1.1 | 1.35→1.2 | 1.15→1.05 | 1.6→1.3 | 0.9→1.0 | — | — |
+| C（重） | 1.7→1.25 | 1.25→1.0 | 1.35→1.1 | 1.15→1.0 | 1.6→1.15 | 0.9→1.0 | 1.0→0.8 | 1.0→0.85 |
+
+跳过了最轻的一档（38.4% 离目标下限还差 12 点，轻微调整大概率不够）。两档都不动 `oil_drop`、`ingot`、经验相关参数；`horde_in_boss` / `mire_permanent` 保留 Ⅷ 的标志性机制不变（Boss 战中仍有大群来袭、溟痕不消散）。
+
+**本地粗调做法**（留档，供以后重跑）：`--bal=段/键=值` 运行时覆盖（`balance.gd` 自带的调参探针，debug 构建才生效），不改 `balance.json` 文件本身，等选中候选再落地：
+
+```
+python tools/balance_run.py --preset starts --seeds 8 --bot master --jobs 2 --placebos 0,1,2 \
+  --tag ea_cB --extra "--tier=2 --bal=difficulty/extreme/enemy_hp=1.4 --bal=difficulty/extreme/enemy_dmg=1.1 \
+  --bal=difficulty/extreme/boss_hp=1.2 --bal=difficulty/extreme/boss_dmg=1.05 --bal=difficulty/extreme/horde=1.3 \
+  --bal=difficulty/extreme/max_hp=1.0"
+```
+候选 C 同理，另加 `mire_dmg` / `nerve_rate` 两条 `--bal=`。每档 starts 7 开局 × 8 seed × 3 份实现 = 168 局，本地 `--jobs 2`。冒烟测试（1 seed、候选 B 的 `--bal` 覆盖）已跑通，确认覆盖机制生效、不影响脚本正常运行。
