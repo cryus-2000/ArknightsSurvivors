@@ -251,7 +251,7 @@ static func h3_launch(o, e: Dictionary, dur: float, h: float) -> void:
 			a.t = 0.0
 			return
 	ir.air.append({"e": e, "t": 0.0, "dur": dur, "h": h})
-	e.stun = maxf(e.stun, dur)
+	o.add_cc(e, dur)
 
 
 static func _h3_is_air(o, e: Dictionary) -> bool:
@@ -270,14 +270,11 @@ static func _h3_air_tick(o, ir: Dictionary, dt: float) -> void:
 		a.t += dt
 		var e: Dictionary = a.e
 		if e.dead:
-			e.air = 0.0
+			o.set_air(e, 0.0)
 			a.t = a.dur + 1.0
 			continue
 		var k: float = clampf(a.t / a.dur, 0.0, 1.0)
-		e.air = sin(k * PI) * a.h
-		e.kb = Vector2.ZERO
-		if k >= 1.0:
-			e.air = 0.0
+		o.set_air(e, sin(k * PI) * a.h if k < 1.0 else 0.0, true)   # 浮空期间不吃击退
 	ir.air = ir.air.filter(func(a): return a.t < a.dur)
 
 

@@ -369,7 +369,7 @@ static func _sm_decoy(o, s: Dictionary, kd: Dictionary) -> void:
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.chest or e.boss or e.ai != "melee" or e.pos.distance_to(s.pos) > dr:
 			continue
-		e.aggro = s.pos
+		o.set_aggro(e, s.pos)
 	if s.inv:
 		return
 	var hm: float = float(kd.get("hurt_mult", 0.4))
@@ -433,7 +433,7 @@ static func sm_strike(o, s: Dictionary, a: Dictionary, tg: Dictionary) -> Array:
 				if not e.dead and not e.boss and kb > 0.0:
 					o.apply_kb(e, d * kb * (0.3 if e.elite else 1.0))
 				if not e.dead and not e.boss and stun > 0.0:
-					e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
+					o.add_cc(e, stun * (0.5 if e.elite else 1.0))
 			c = s.pos + d * L * 0.5
 			r = L * 0.5
 		_:

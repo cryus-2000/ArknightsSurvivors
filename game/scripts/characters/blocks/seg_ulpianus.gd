@@ -256,7 +256,7 @@ static func _hw4_anchor(o, dt: float) -> void:
 					continue
 				e.pos = (hk.from as Vector2).lerp(hk.to, kr)
 				e.kb = Vector2.ZERO
-				e.stun = maxf(e.stun, 0.2)
+				o.add_cc(e, 0.2)
 			an.trail.push_front(an.head)
 			if an.trail.size() > 5:
 				an.trail.pop_back()
@@ -355,7 +355,7 @@ static func _hw_reel_arrive(o) -> void:
 		var e: Dictionary = hk.e
 		if e.dead:
 			continue
-		e.stun = maxf(e.stun, float(b.get("stun", 0.6)) * (0.5 if e.elite else 1.0) + 0.25)
+		o.add_cc(e, float(b.get("stun", 0.6)) * (0.5 if e.elite else 1.0) + 0.25)
 		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.6), "r": 10.0, "life": 0.25, "col": Color(1.3, 1.5, 2.0), "alpha": 0.6})
 	o.impact_pause(0.05)
 	o.fx({"kind": "ring", "pos": c, "r": 34.0, "r0": 4.0, "life": 0.2, "col": HW_CHAIN, "floor": true, "w": 2.0})
@@ -386,7 +386,7 @@ static func _hw_reel_slam(o) -> void:
 		o.log_hit(src)
 		o.deal_damage(e, dmg * (float(b.get("elite_mult", 1.0)) if is_same(e, first) and e.elite else 1.0))
 		if not e.dead:
-			e.stun = maxf(e.stun, float(b.get("stun", 0.6)) * (0.5 if e.elite or e.boss else 1.0))
+			o.add_cc(e, float(b.get("stun", 0.6)) * (0.5 if e.elite or e.boss else 1.0))
 			if not e.boss:
 				o.apply_kb(e, (e.pos - o.pos).normalized() * float(b.get("slam_kb", 70.0)))
 	o.spawn_fx_sprite("fx_slash_heavy_steel", o.pos + Vector2(0, -16) + dir * reach * 0.45, reach * 1.5 / 28.0, dir.angle())
@@ -415,7 +415,7 @@ static func _hw_zip_land(o) -> void:
 		o.log_hit(src)
 		o.deal_damage(e, dmg)
 		if not e.dead:
-			e.stun = maxf(e.stun, float(b.get("stun", 0.6)) * (sb if e.boss else (se if e.elite else 1.0)))
+			o.add_cc(e, float(b.get("stun", 0.6)) * (sb if e.boss else (se if e.elite else 1.0)))
 			if kb_boss or not e.boss:
 				o.apply_kb(e, (e.pos - c).normalized() * float(b.get("land_kb", 50.0)))
 	var big: bool = b.get("big", false)
@@ -455,7 +455,7 @@ static func _hw_drag_in(o, dg: Dictionary, c: Vector2, dmg: float) -> void:
 		var dist: float = maxf(0.0, e.pos.distance_to(c) - 24.0)
 		var v: float = minf(sqrt(1800.0 * dist), 620.0) * (0.5 if e.elite else 1.0)
 		o.apply_kb(e, (c - e.pos).normalized() * v)
-		e.stun = maxf(e.stun, 0.3)
+		o.add_cc(e, 0.3)
 
 
 static func _hw_open_rift(o, rf: Dictionary, a: Vector2, b: Vector2) -> void:
@@ -488,7 +488,7 @@ static func _hw_launch(o, e: Dictionary, dur: float, hh: float) -> void:
 		return
 	if e.elite:
 		dur *= 0.5
-	e.stun = maxf(e.stun, dur)
+	o.add_cc(e, dur)
 	for l in o.hw.launched:
 		if is_same(l.e, e):
 			l.t = 0.0
@@ -503,9 +503,7 @@ static func _hw4_launched(o, dt: float) -> void:
 		l.t += dt
 		var e: Dictionary = l.e
 		var k: float = clampf(l.t / l.dur, 0.0, 1.0)
-		e.air = 0.0 if e.dead or k >= 1.0 else sin(k * PI) * l.h
-		if not e.dead:
-			e.kb = Vector2.ZERO
+		o.set_air(e, 0.0 if e.dead or k >= 1.0 else sin(k * PI) * l.h, not e.dead)   # 掀飞期间不吃击退
 	h.launched = h.launched.filter(func(l): return l.t < l.dur and not l.e.dead)
 
 
@@ -964,7 +962,7 @@ static func _hw5_hooks(o, dt: float) -> void:
 						continue
 					e.pos = (dg.from as Vector2).lerp(dg.spot, kr)
 					e.kb = Vector2.ZERO
-					e.stun = maxf(e.stun, 0.15)
+					o.add_cc(e, 0.15)
 					dg.dust = float(dg.get("dust", 0.0)) - dt
 					if float(dg.dust) <= 0.0 and b.has("dust_fx"):
 						dg.dust = 0.07

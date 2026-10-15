@@ -408,9 +408,9 @@ static func apply_status(o, e: Dictionary, s: Dictionary, c := Vector2.INF, ring
 	var k: float = 0.25 if e.boss else (0.5 if e.elite else 1.0)
 	match "st." + str(s.get("st", "")):
 		"st.stun":
-			e.stun = maxf(e.stun, float(s.dur) * k)
+			o.add_cc(e, float(s.dur) * k)
 		"st.slow":
-			e.slow = maxf(e.slow, float(s.dur) * (1.0 if e.boss else k))
+			o.add_cc(e, -INF, float(s.dur) * (1.0 if e.boss else k))
 		"st.airborne":
 			_F().lift(o, e, float(s.dur), float(s.get("h", 26.0)), s)
 		"st.weightless":
@@ -423,7 +423,7 @@ static func apply_status(o, e: Dictionary, s: Dictionary, c := Vector2.INF, ring
 			o.deal_damage(e, o.base(str(s.get("atk_key", "atk")), 0.0) * float(s.get("mult", 0.0)) * float(o.loc.dmg) * o._dmg_bonus() * (o.vs_elite() if e.elite or e.boss else 1.0))
 		"st.pause":   # 能天使段：短停顿只对非精英（Boss 缺省同样不受）
 			if not e.elite:
-				e.stun = maxf(e.stun, float(s.dur) * k)
+				o.add_cc(e, float(s.dur) * k)
 		"st.launch":   # 手写迁移段第 3 批：浮空（艾丽妮式：精英减半在里面算）
 			_F().h3_launch(o, e, float(s.dur), float(s.get("h", 26.0)))
 

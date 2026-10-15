@@ -85,7 +85,7 @@ static func exec_line(o, b: Dictionary) -> Array:
 		if kb > 0.0:
 			o.apply_kb(e, d * kb * (0.3 if e.elite else 1.0))
 		if stun > 0.0:
-			e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
+			o.add_cc(e, stun * (0.5 if e.elite else 1.0))
 	for e in hits:
 		o._hit_fx(e, o.pos)
 	for s in b.get("on_hit", _EA):

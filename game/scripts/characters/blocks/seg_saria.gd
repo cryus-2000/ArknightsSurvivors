@@ -169,7 +169,7 @@ static func _h4sa_tick(o, sa: Dictionary, dt: float) -> void:
 				if off.length() > r + e.r:
 					continue
 				o.apply_kb(e, off.normalized() * (float(gr.get("kb_elite", 80.0)) if e.elite else float(gr.get("kb", 200.0))))
-				e.slow = maxf(e.slow, float(gr.get("slow", 0.5)))
+				o.add_cc(e, -INF, float(gr.get("slow", 0.5)))
 				if shown < 4:
 					shown += 1
 					o.fx({"kind": "glow", "pos": e.pos, "r": 9.0, "life": 0.18, "col": H4_AMBER, "alpha": 0.5, "floor": true})
@@ -208,7 +208,7 @@ static func _h4sa_tick(o, sa: Dictionary, dt: float) -> void:
 			var e2: Dictionary = g.enemies[j]
 			if e2.dead or e2.pos.distance_to(g.ppos) > R:
 				continue
-			e2.slow = maxf(e2.slow, float(cb.get("slow", 0.5)))
+			o.add_cc(e2, -INF, float(cb.get("slow", 0.5)))
 			e2["aura_weak"] = maxf(float(e2.get("aura_weak", 0.0)), float(cb.get("weak", 0.2)))
 		sa.shard_t = float(sa.shard_t) - dt
 		if float(sa.shard_t) <= 0.0:
@@ -462,7 +462,7 @@ static func _h4_shots_tick(o, sa: Dictionary, dt: float) -> void:
 			o.deal_damage(e, s.dmg)
 			if s.kind == "syringe":
 				if not e.dead:
-					e.slow = maxf(e.slow, float(s.slow))
+					o.add_cc(e, -INF, float(s.slow))
 				o.fx({"kind": "glow", "pos": s.pos, "r": 7.0, "life": 0.18, "col": Color(0.7, 1.2, 0.9), "alpha": 0.6})
 			else:
 				o.fx({"kind": "glow", "pos": s.pos, "r": 8.0, "life": 0.16, "col": H4_AMBER, "alpha": 0.6})

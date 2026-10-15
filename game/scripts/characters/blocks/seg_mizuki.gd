@@ -188,7 +188,7 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 		if not e.boss:
 			o.apply_kb(e, (e.pos - o.pos).normalized() * (float(emp.get("kb", 360.0)) if empowered else float(a.get("kb", 240.0))))
 		if stun > 0.0 and not e.dead:
-			e.stun = maxf(e.stun, stun)
+			o.add_cc(e, stun)
 	g.crit_hit = false
 	if empowered:
 		var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
@@ -270,7 +270,7 @@ static func _h3_tentacle(o, a: Dictionary, target: Dictionary, dmg: float, stun:
 	o.log_hit(str(tb.get("src", "")))
 	o.deal_damage(target, dmg)
 	if not target.dead:
-		target.stun = max(target.stun, stun if stun > 0.0 else float(tb.get("stun_min", 0.25)))
+		o.add_cc(target, stun if stun > 0.0 else float(tb.get("stun_min", 0.25)))
 		var dr = tb.get("drag", null)
 		if dr is Dictionary and cond_true(o, dr.get("cond", _ED)) and not target.boss:
 			o.apply_kb(target, (o.pos - target.pos).normalized() * (float(dr.get("kb_elite", 160.0)) if target.elite else float(dr.get("kb", 320.0))))
@@ -360,7 +360,7 @@ static func _h3_run_delayed(o, a: Dictionary, dl: Dictionary) -> void:
 					o.log_hit(str(ec.get("src", "")), ec.get("tags", []))
 					o.deal_damage(e, dl.dmg)
 					if not e.dead:
-						e.stun = maxf(e.stun, float(ec.get("stun", 0.3)))
+						o.add_cc(e, float(ec.get("stun", 0.3)))
 				o.slash_fx(mp, d, dl.half, dl.radius, Color(1.0, 0.9, 1.2, 0.8) if mt.begins_with("fx_") else Color(0.9, 0.6, 1.6, 0.8), mt, 0.3)
 			mz.mirror_face = -1.0 if cos(ma) < 0.0 else 1.0
 			_h3_sfx(o, "atk", 0.0, 0.8)
@@ -706,7 +706,7 @@ static func _e3_sting(o, jb: Dictionary, e: Dictionary) -> void:
 	o.deal_damage(e, dmg * float(jb.get("mult", 0.4)))
 	if not e.dead and not e.boss:
 		var sd: float = float(jb.get("stun", 0.3)) * (0.5 if e.elite else 1.0)
-		e.stun = maxf(e.stun, sd)
+		o.add_cc(e, sd)
 		mz.binds.append({"e": e, "t": sd})
 	if not o.spawn_fx_sprite(str(jb.get("sting_fx", "fx_mizuki_jelly_sting")), e.pos + Vector2(0, -e.r * 0.5), g.PX):
 		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 10.0, "life": 0.2, "col": Color(0.9, 0.6, 1.6), "alpha": 0.6})

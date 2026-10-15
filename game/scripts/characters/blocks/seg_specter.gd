@@ -252,7 +252,7 @@ static func _h3_doll_tick(o, sp: Dictionary, dt: float) -> void:
 				var d: float = e.pos.distance_to(dp2)
 				if d > sr:
 					continue
-				e.slow = maxf(e.slow, float(au.get("slow", 1.0)))
+				o.add_cc(e, -INF, float(au.get("slow", 1.0)))
 				if d > r:
 					continue
 				o.log_hit(str(au.get("src", "")), au.get("tags", []))

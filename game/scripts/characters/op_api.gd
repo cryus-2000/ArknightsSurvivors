@@ -97,6 +97,11 @@ func _focus_bosses() -> Array:
 	return _fb_list
 
 
+## 最近的 n 个敌人，不带 Boss 优先（nearest_enemies 会把 Boss 提前；手动瞄准 / 落点要纯按距离）
+func nearest_raw(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
+	return g.enemies_sys.nearest(n, max_dist, origin)
+
+
 ## 空间网格查询：排除友方，返回 pos 周围 radius 内的敌人下标（g.enemies[i]，可能包含已死亡的，调用方自己判断 e.dead）
 func query_ids(pos: Vector2, radius: float) -> Array:
 	return g.enemies_sys.query(pos, radius)
@@ -122,6 +127,27 @@ func log_hit(src: String, extra_tags: Array = []) -> void:
 ## 给敌人击退冲量（docs/101 B7：统一入口 enemies_sys.apply_kb，失重倍率在那里乘）；wl = false：调用方已按失重算过
 func apply_kb(e: Dictionary, v: Vector2, wl := true) -> void:
 	g.enemies_sys.apply_kb(e, v, wl)
+
+
+## 控制状态统一入口（docs/101 §7.3.10）：转发 enemies_sys，语义见 run/enemies.gd
+func add_cc(e: Dictionary, stun := -INF, slow := -INF) -> void:
+	g.enemies_sys.add_cc(e, stun, slow)
+
+
+func set_air(e: Dictionary, h: float, hold_kb := false) -> void:
+	g.enemies_sys.set_air(e, h, hold_kb)
+
+
+func hold_at(e: Dictionary, p: Vector2) -> void:
+	g.enemies_sys.hold_at(e, p)
+
+
+func nudge(e: Dictionary, delta: Vector2) -> void:
+	g.enemies_sys.nudge(e, delta)
+
+
+func set_aggro(e: Dictionary, p: Vector2) -> void:
+	g.enemies_sys.set_aggro(e, p)
 
 
 ## 对敌人造成伤害（走护甲、易伤、藏品倍率、击杀结算）
