@@ -488,7 +488,7 @@ B7 是唯一一次「同 seed 会变」的步骤：用户 10-15 已同意换基�
 | ① | **随机流拆分**：g.rng 之外按用途派生独立流（局种子 + 固定盐）：`rng_spawn`（刷怪 / 远距回收落点 edge_pos）、`rng_enemy`（敌人 AI 计时、冲刺 / 新星、吞噬判定）、`rng_drop`（掉落）、`rng_op`（干员积木）；g.rng 留给其余玩法 | spawner、enemy_ai、enemies、pickups、op_blocks（干员） | 原生段里不能抽随机数（§4.5）；拆开后一处多抽 / 少抽不再带歪整局序列，以后改动的同 seed 影响面也小 |
 | ② | **§3.4 修正**：① 冲刺 / 新星计时缺省值每帧白抽（先 has 再抽）；③④ 画面用了玩法流（改 vrng）；⑦ 我方弹体查询半径（b.r + 最大 e.r）；⑨ 敌弹字段统一（src_type / boss）；⑥ 失重击退统一走 apply_kb（干员 B6 ⑤ 的 ob_geom 一起做） | enemy_ai、enemies、weapons、squad / characters、op_blocks（干员） | 都是 bug，修了才符合设计 |
 | ③ | **敌人更新拆三段**：A 决策段（计时、持续伤害、Boss 步、eai.pattern / shoot、远距回收、进化）→ B 运动段（移动、分离、积分、场地约束、push_out，产出接触 / 吞噬候选，不抽随机数、不回调）→ C 结算段（接触伤害、吞噬掷骰用 rng_enemy、形变 morph）；网格在 A 之后、B 之前建（顺带修 ⑧） | enemies.gd、enemy_ai | B 段就是将来的 EnemyCore.step；三段之间敌人先后次序与原来的「一只走完再下一只」不同，这是换基线的主要来源 |
-| ④ | **敌方投射物池**：ebullets / lobs / shocks 合进一个 SoA 池（kind = 直线 / 追踪 / 抛物 / 环），推进顺序固定；绘制改读池 | enemies.gd、world 绘制约 30 处、敌弹 6 个生产点（Boss与怪物） | 将来的 EnemyShotPool.step |
+| ④ | **敌方投射物池**：ebullets / lobs / shocks 的推进合进 enemies/shot_pool.gd（g.shots），一个 step 按「抛物 → 敌弹 → 冲击环」固定次序推进；三张表仍挂在 g 上，生产点与绘制不动（执行时收窄：SoA 列存放到 B8 热字段一起做） | enemies.gd、game.gd | 将来的 EnemyShotPool.step 替换函数体 |
 | ⑤ | **g.hit 显式传参**（B1 推迟项）：combat.damage(e, dmg, hit)；op_api 门面 log_hit / deal_damage 保持接口，内部不再依赖全局 | combat、op_api、relic_fx、weapons | 嵌套结算不再靠存 / 恢复 |
 | ⑥ | **我方投射物池**（g.bullets + relic_fx 地雷 / 炸弹 / 桩 + 干员私有表）| weapons、relic_fx、op_blocks（干员） | 量最大，可以拆到 B7 之后、B8 之前单独做，不影响 EnemyCore |
 
