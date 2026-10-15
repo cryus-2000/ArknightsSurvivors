@@ -8,6 +8,7 @@ extends RefCounted
 
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
+const A = preload("res://scripts/art.gd")
 
 const R := 17.0            # 2026-09-27 画面缩到 0.7 后判定跟着缩一点（22 → 17，Boss与怪物建议 0.75–0.8）；冲锋命中半径按 R 算，同比变小
 const FOLLOW_SPD := 6.0
@@ -391,13 +392,16 @@ func draw() -> void:
 		return
 	var anc := Vector2(0.5, 77.0 / 80.0)
 	var sc: float = g.PX * DRAW_K
+	# @2x 高清帧条按密度减半画（同 world.gd draw_enemy / character._fx_strip 的口径）：敌对骑士已经这样处理，
+	# 这里漏了（Boss与怪物 10-15 发现）——e_knight@2x 交付后同伴骑士被画成 2 倍大，死亡帧另走 vfx.fx_sprite（已按密度画，不受影响）
+	var tsc: float = sc / A.hires_of(g.tex.get(name))
 	var bpos: Vector2 = pos + Vector2(0, R * 0.8 + 3.0 * sc)
 	var flip: bool = face < 0.0
 	# 入潮演出：向下沉入 + 淡出，脚下一圈冰环收拢；不画描边 / 血条
 	if state == "sink":
 		var k: float = clampf(st / SINK_T, 0.0, 1.0)
 		var sink_col := Color(0.7, 0.85, 1.1, 1.0 - k)
-		g.vfx.spr(name, frames, frame, bpos + Vector2(0, 26.0 * k), sc, flip, sink_col, anc)
+		g.vfx.spr(name, frames, frame, bpos + Vector2(0, 26.0 * k), tsc, flip, sink_col, anc)
 		g.draw_arc(pos + Vector2(0, R * 0.6), 26.0 * (1.0 - 0.6 * k), 0.0, TAU, 24, Color(0.6, 0.9, 1.4, 0.7 * (1.0 - k)), 2.0)
 		return
 	# 冲锋预警线（友方冰蓝，不伤水月）：蓄力时从骑士往外长出，冲锋终点一个小冰晶
@@ -411,17 +415,19 @@ func draw() -> void:
 		g.vfx.sparks(pos, -dash_dir, Color(0.8, 0.9, 1.4), 2, 110.0)
 	# 冲锋残影：冲锋帧条的白色剪影，冰蓝色、渐隐
 	if g.tex.has("e_knight_charge_white"):
+		var trail_sc: float = sc / A.hires_of(g.tex.get("e_knight_charge_white"))
 		for tr in trail:
-			g.vfx.spr("e_knight_charge_white", 4, tr[1], tr[0] + Vector2(0, R * 0.8 + 3.0 * sc), sc, flip, Color(0.55, 0.85, 1.4, tr[2] / 0.25 * 0.45), anc)
+			g.vfx.spr("e_knight_charge_white", 4, tr[1], tr[0] + Vector2(0, R * 0.8 + 3.0 * sc), trail_sc, flip, Color(0.55, 0.85, 1.4, tr[2] / 0.25 * 0.45), anc)
 	if Cfg.outline and g.tex.has(name + "_white"):
+		var ol_sc: float = sc / A.hires_of(g.tex.get(name + "_white"))
 		for d in [Vector2(g.PX, 0), Vector2(-g.PX, 0), Vector2(0, g.PX), Vector2(0, -g.PX)]:
-			g.vfx.spr(name + "_white", frames, frame, bpos + d * DRAW_K, sc, flip, Color(1.2, 2.2, 3.2, 0.5), anc)
+			g.vfx.spr(name + "_white", frames, frame, bpos + d * DRAW_K, ol_sc, flip, Color(1.2, 2.2, 3.2, 0.5), anc)
 	var col := Color.WHITE
 	if state == "retreat":
 		col = Color(0.8, 0.85, 0.95, 0.85)
-	g.vfx.spr(name, frames, frame, bpos, sc, flip, col, anc)
+	g.vfx.spr(name, frames, frame, bpos, tsc, flip, col, anc)
 	if flash > 0.0 and g.tex.has(name + "_white"):
-		g.vfx.spr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9), anc)
+		g.vfx.spr(name + "_white", frames, frame, bpos, sc / A.hires_of(g.tex.get(name + "_white")), flip, Color(1, 1, 1, 0.9), anc)
 	# 血条
 	var w := 48.0
 	var top: Vector2 = pos + Vector2(-w / 2.0, -80.0 * sc + 16.0)
