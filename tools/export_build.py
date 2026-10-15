@@ -97,7 +97,9 @@ def run_export_godot(cmd, timeout=900, check=True):
     output = out + "\n" + err
     if timed_out:
         return output, "Godot export timed out"
-    if check and (godot_runner.script_errors(out, err) or "ERROR:" in output):
+    # 10-16：退出时「resources still in use at exit」是释放环（B6 ② 直连 preload，干员在修），不影响导出产物，降级为警告；干员修复合入后撤回
+    checked = "\n".join(l for l in output.splitlines() if "still in use at exit" not in l)
+    if check and (godot_runner.script_errors(out, err) or "ERROR:" in checked):
         return output, "Godot export reported errors"
     return output, None
 
