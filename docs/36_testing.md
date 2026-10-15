@@ -417,3 +417,7 @@ python tools/prts_spine.py mizuki --flip     # 镜像（PRTS 战斗正面本来�
   艾丽妮 / 归溟幽灵鲨 / 流明的页面路径在静态站 404，但标准路径 `spine38/char/<角色 id>/<角色 id>/<角色 id>` 有，脚本 `DIRECT` 表直接走这条（不再查页面）。
   维什戴尔 / 乌尔比安 / 逻各斯：PRTS 没有 `<名>/spine` 页面，静态站也没有；素材在 PRTS 的另一个资源站 **torappu**：`torappu.prts.wiki/assets/char_spine/<角色 id>/defaultskin/front/<角色 id>.{skel,atlas,png}`（Spine 3.8），脚本 `TORAPPU` 表直接走这条。角色 id 以游戏数据 character_table 为准（char_1035_wisdel / char_4145_ulpia / char_4133_logos）。维什戴尔的普攻动画叫 `Attack_A`（已加进 `PICK`）。
 - **局限**：只画图，不叠 slot 颜色 / 混合模式（加法发光件按普通混合画）；三角形拼接处偶有极细的缝。当参照够用，不当素材用。
+
+## 10. 本地存储清理（2026-10-15）
+
+`python tools/clean_local.py`（不带参数只报告）：工作树清「孤儿文件夹 + 已合入且干净的 `agent-*`」，`--named` 连命名工作树一起按同一标准清；旧包只留最近 3 个 `final_<sha>` + `KEEP_SHAS`（itch 线上、EA 冻结）。`--apply` 真删；ship.py 出包后自动跑 `--release --apply`。分支都保留，删错了 `git worktree add` 再检出。规则见 docs/41 §3「本地存储规则」。

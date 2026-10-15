@@ -64,6 +64,7 @@ def main():
     steps.append(("推 origin/main", ["git", "push", "origin", "main"]))
     for kind in ("public", "web", "internal"):
         steps.append(("出包 " + kind, [sys.executable, TOOLS / "release_all.py", "--ref", short, "--only", kind]))
+    steps.append(("清旧包", [sys.executable, TOOLS / "clean_local.py", "--release", "--apply"]))  # docs/36 §10：只留最近 3 个 + KEEP_SHAS
     if not a.no_itch:
         steps.append(("itch dry-run", [sys.executable, TOOLS / "deploy_itch.py", "--ref", short]))
         steps.append(("itch 真推", [sys.executable, TOOLS / "deploy_itch.py", "--ref", short, "--apply", "--confirm", short]))
