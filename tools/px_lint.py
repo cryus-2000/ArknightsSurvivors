@@ -18,6 +18,7 @@
 
     python tools/px_lint.py <1x.png> <@2x.png> --foot 33 60 [--out build/px_lint/<名>] [--thr 48] [--hl 16] [--metrics logos]
     python tools/px_lint.py --samples          # 跑仓库登记的样本（SAMPLES），供 check.py --only px_lint
+    python tools/px_lint.py <@2x.png> --only2x --foot 33 60   # 只交 @2x（10-16 用户定）：只查 @2x，1x 项与块对应不查
 
 输出 <out>/report.json 与 <out>/marked.png（两层各放大 6 倍并排；红圈 = 颜色孤点，黄圈 = 单点高光，品红格 = ③ 对不上的块）。
 """
@@ -243,13 +244,37 @@ def metrics(cid, p2, foot1):
         return {"error": str(e)[:200]}
 
 
-def run(p1, p2, foot1, foot2=None, out=None, thr=48, cid=None, name=None, hl=None):
+def derive_1x(p2, dst):
+    """只交 @2x 时推一张 1x（2×2 块：不透明 ≥ 2 判不透明，块内均值吸附 @2x 色板），只为让报告结构不变；problems 不查它"""
+    from PIL import Image
+    im = Image.open(p2).convert("RGBA")
+    W, H = im.size
+    px = im.load()
+    pal = sorted({px[x, y][:3] for y in range(H) for x in range(W) if px[x, y][3]})
+    out = Image.new("RGBA", (W // 2, H // 2), (0, 0, 0, 0))
+    for y in range(H // 2):
+        for x in range(W // 2):
+            q = [px[2 * x + dx, 2 * y + dy] for dx in (0, 1) for dy in (0, 1)]
+            op = [c for c in q if c[3]]
+            if len(op) < 2:
+                continue
+            avg = [sum(c[i] for c in op) / len(op) for i in range(3)]
+            out.putpixel((x, y), min(pal, key=lambda c: sum((c[i] - avg[i]) ** 2 for i in range(3))) + (255,))
+    out.save(dst)
+    return dst
+
+
+def run(p1, p2, foot1, foot2=None, out=None, thr=48, cid=None, name=None, hl=None, only2x=False):
     foot2 = foot2 or (foot1[0] * 2, foot1[1] * 2)
+    if only2x:
+        import tempfile
+        p1 = derive_1x(p2, os.path.join(tempfile.gettempdir(), "px_lint_derived_1x.png"))
+        name = name or os.path.splitext(os.path.basename(p2))[0].replace("@2x", "")
     L1, L2 = Layer(p1), Layer(p2)
     r1 = analyze(L1, foot1, 1, hl)
     r2 = analyze(L2, foot2, 2, hl)
     cmp = compare(L1, L2, foot1, foot2, thr)
-    rep = {"name": name or os.path.splitext(os.path.basename(p1))[0], "1x": dict(r1, path=p1), "2x": dict(r2, path=p2), "match": cmp}
+    rep = {"name": name or os.path.splitext(os.path.basename(p1))[0], "1x": dict(r1, path=p1), "2x": dict(r2, path=p2), "match": cmp, "only2x": bool(only2x)}
     if cid:
         rep["metrics"] = metrics(cid, p2, foot1)
     out = out or os.path.join(_common_root(), "build", "px_lint", rep["name"])
@@ -267,6 +292,8 @@ def summary(rep):
             tag, r["size"][0], r["size"][1], r["colors"], r["components"], "" if r["alpha_binary"] else "（半透明 %d）" % r["alpha_partial"],
             len(r["isolated"]), len(r["single_highlight"]), len(r["isolated_loose"]), len(r["highlight_loose"]), r["outline_bad"], r["outline_px"], r.get("margin"), r.get("lowest_row"),
             "" if r["foot_row_ok"] else "（脚底 %d）" % r["foot"][1])
+    if rep.get("only2x"):
+        return "%s（只交 @2x）\n  %s\n  → %s" % (rep["name"], one(b, "@2x"), rep["out"])
     return "%s\n  %s\n  %s\n  1x↔@2x 块对不上 %d / %d（%.1f%%，阈值 %d）\n  → %s" % (
         rep["name"], one(a, "1x"), one(b, "@2x"), m["mismatch"], m["blocks"], m["ratio"] * 100, m["thr"], rep["out"])
 
@@ -274,7 +301,7 @@ def summary(rep):
 def problems(rep):
     """硬规则（check.py 用）：二值透明、单连通体、@2x 单点高光 0、描边全对、脚底行对"""
     errs = []
-    for k in ("1x", "2x"):
+    for k in (("2x",) if rep.get("only2x") else ("1x", "2x")):
         r = rep[k]
         if not r["alpha_binary"]:
             errs.append("%s %s 有半透明 %d 像素" % (rep["name"], k, r["alpha_partial"]))
@@ -334,6 +361,7 @@ def main():
     ap.add_argument("--hl", type=float, default=HL, help="② 单点高光：比底色亮多少明度才算")
     ap.add_argument("--metrics", help="干员 id：顺带跑 body_metrics 量表")
     ap.add_argument("--samples", action="store_true")
+    ap.add_argument("--only2x", action="store_true", help="只交 @2x：只给一张 @2x 图，1x 项不查")
     a = ap.parse_args()
     if a.samples:
         _, errs, miss = run_samples()
@@ -342,9 +370,12 @@ def main():
         if miss:
             print("找不到样本：" + "、".join(miss))
         return 1 if errs else 0
-    if not (a.one and a.two and a.foot):
-        ap.error("给 1x、@2x 两张图与 --foot x y，或 --samples")
-    rep = run(a.one, a.two, tuple(a.foot), tuple(a.foot2) if a.foot2 else None, a.out, a.thr, a.metrics, hl=a.hl)
+    if a.only2x and a.one and a.foot:
+        rep = run(None, a.one, tuple(a.foot), tuple(a.foot2) if a.foot2 else None, a.out, a.thr, a.metrics, hl=a.hl, only2x=True)
+    elif not (a.one and a.two and a.foot):
+        ap.error("给 1x、@2x 两张图与 --foot x y；或只给 @2x 加 --only2x；或 --samples")
+    else:
+        rep = run(a.one, a.two, tuple(a.foot), tuple(a.foot2) if a.foot2 else None, a.out, a.thr, a.metrics, hl=a.hl)
     print(summary(rep))
     if "metrics" in rep:
         print("  量表：" + json.dumps(rep["metrics"], ensure_ascii=False))

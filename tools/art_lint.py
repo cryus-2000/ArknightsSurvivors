@@ -18,7 +18,7 @@
 已豁免的 FAIL 显示为 FAIL*，不计入退出码；豁免项如果已经通过，会提示「豁免可删」。
 
 检查项（id → 说明）：
-    files    帧条齐全（1x 与 @2x 都在）
+    files    帧条齐全（@2x 必须在；1x 可缺——10-16 用户定干员只交 @2x，缺 1x 时按 derive_1x 由 @2x 推一份只供本工具比对）
     size     单帧 48×48 / 96×96，宽 = 帧数 × 高，帧数与角色 json sprites 一致，出手帧在范围内
     pair     1x 与 @2x 逐帧对应（@2x 缩到 1x 后剪影差 / 帧序）
     alpha    二值透明（只有 0 / 255）
@@ -142,6 +142,24 @@ def load_strip(art, tex, hi):
         return None
     a = np.array(Image.open(p).convert("RGBA"))
     return a
+
+
+def derive_1x(hi):
+    """只交 @2x 的帧条（10-16 起）：推一张 1x 供 size / colors / skill_end 等检查用（游戏本来就只读 @2x）。
+    2×2 块：不透明 ≥ 2 才算不透明，颜色取块内不透明像素均值再吸附到 @2x 色板（同 docs/103 §5 的自动缩口径）"""
+    h, w = hi.shape[0] // 2, hi.shape[1] // 2
+    b = hi[:h * 2, :w * 2].reshape(h, 2, w, 2, 4).astype(np.int32)
+    op = b[..., 3] > 0
+    cnt = op.sum((1, 3))
+    rgb = (b[..., :3] * op[..., None]).sum((1, 3)) / np.maximum(cnt, 1)[..., None]
+    pal = np.unique(hi[hi[..., 3] > 0][:, :3].reshape(-1, 3), axis=0).astype(np.int32)
+    out = np.zeros((h, w, 4), np.uint8)
+    m = cnt >= 2
+    if m.any() and len(pal):
+        d = ((rgb[m][:, None, :] - pal[None, :, :]) ** 2).sum(-1)
+        out[m, :3] = pal[d.argmin(1)]
+        out[m, 3] = 255
+    return out
 
 
 def split(a):
@@ -460,13 +478,18 @@ def lint_op(op, acts, art=ART, prev=None):
 
     strips = {}
     missing = []
+    derived = set()   # 只交了 @2x 的动作（1x 由 derive_1x 推出，只供比对）
     for act, cfg in acts.items():
         lo, hi = load_strip(art, cfg["tex"], False), load_strip(art, cfg["tex"], True)
-        if lo is None or hi is None:
-            missing.append(cfg["tex"] + ("" if lo is not None else ".png ") + ("" if hi is not None else "@2x.png"))
+        if hi is None:
+            missing.append(cfg["tex"] + "@2x.png")
             continue
+        if lo is None:
+            lo = derive_1x(hi)
+            derived.add(act)
         strips[act] = (lo, hi)
-    add("files", "FAIL" if missing else "PASS", len(strips), "缺：" + "、".join(missing) if missing else "%d 组 × 1x/@2x" % len(strips))
+    note2x = ("（其中 %d 组只有 @2x：%s）" % (len(derived), "、".join(sorted(derived)))) if derived else ""
+    add("files", "FAIL" if missing else "PASS", len(strips), ("缺：" + "、".join(missing)) if missing else "%d 组%s" % (len(strips), note2x))
 
     # size / frames
     bad = []
@@ -474,8 +497,8 @@ def lint_op(op, acts, art=ART, prev=None):
         cfg = acts[act]
         h1, h2 = lo.shape[0], hi.shape[0]
         n1, n2 = lo.shape[1] / h1, hi.shape[1] / h2
-        if _body(act, cfg) and (h1, h2) != (48, 96):
-            bad.append("%s 单帧高 %d/%d（应 48/96）" % (act, h1, h2))
+        if _body(act, cfg) and (h1, h2) not in ((48, 96), (64, 128)):
+            bad.append("%s 单帧高 %d/%d（应 48/96 或 64/128）" % (act, h1, h2))
         if h2 != 2 * h1 or n1 != int(n1) or n2 != n1:
             bad.append("%s 尺寸 %dx%d / %dx%d 不成帧条" % (act, lo.shape[1], h1, hi.shape[1], h2))
         if cfg.get("frames") and cfg["frames"] != n1:
@@ -487,6 +510,8 @@ def lint_op(op, acts, art=ART, prev=None):
     # pair 1x / @2x
     worst, order_bad = 0.0, []
     for act, (lo, hi) in strips.items():
+        if act in derived:   # 1x 由 @2x 推出，不比
+            continue
         f1, f2 = split(lo), split(hi)
         if len(f1) != len(f2):
             continue
@@ -509,6 +534,8 @@ def lint_op(op, acts, art=ART, prev=None):
         if not _body(act, acts[act]):   # 召唤物 / 道具帧条（Mon3tr、人偶等）不算进本人的色数与描边
             continue
         for hi, a in zip((False, True), pair):
+            if not hi and act in derived:   # 推出来的 1x 不查描边 / 色数（游戏不读它）
+                continue
             al = a[..., 3]
             semi += int(((al > 0) & (al < 255)).sum())
             m = al > 0
@@ -548,6 +575,8 @@ def lint_op(op, acts, art=ART, prev=None):
     if "skill" in strips:
         s1, s2 = split(strips["skill"][0])[-1], split(strips["skill"][1])[-1]
         e1, e2 = np.array_equal(s1, idle1[0]), np.array_equal(s2, idle2[0])
+        if "skill" in derived or "idle" in derived:
+            e1 = e2   # 只有 @2x：以 @2x 为准
         d2 = float(np.any(s2 != idle2[0], -1).mean())
         if e1 and e2:
             lvl, det = "PASS", "skill 末帧 = idle f0（1x 与 @2x）"
@@ -685,7 +714,7 @@ def lint_op(op, acts, art=ART, prev=None):
         for act, (lo, hi) in strips.items():
             if not _body(act, acts[act]):
                 continue
-            for arr, suf in ((lo, ""), (hi, "@2x")):
+            for arr, suf in (((hi, "@2x"),) if act in derived else ((lo, ""), (hi, "@2x"))):
                 old, lab = prev.get(acts[act]["tex"] + suf + ".png")
                 if old is None:
                     skipped += 1
