@@ -20,6 +20,12 @@
                    裙 / 长外套盖住腿时只量到裙摆，偏小，看备注）
     眼到下巴     = 下巴行 − 眼心 y（脸下半的长度，不受帽子 / 角 / 耳影响，比头身比更能比脸型）
     脚底 x       = 最低 3 行（@2x）不透明像素的 x 均值 ÷ 2
+    姿势（不驼背，10-15 用户定，docs/103 §5）：
+    前倾         = 头部中心 x − 骨盆中心 x（1x，朝右为正），|前倾| ≤ 1 合格
+    脖子         = 肩线 y − 下巴 y（1x），≥ 2 合格
+    这三个点人工标（POSTURE 表）：自动取中点会被长发、尾巴、武器、披风带偏（10-15 试过，偏差到 ±8 像素），
+    剪影上也分不出肩线。头部中心 = 颅顶到下巴那块头（不含马尾 / 耳 / 角 / 帽檐）的左右中点；骨盆中心 = 胯部
+    左右中点（裙 / 外套盖住时按两腿内侧中点）；肩线 = 肩膀最高点所在行。新画 / 返修交付必须补这一行
 
 用法：python tools/body_metrics.py [--json out.json]  → 终端表 + build/body_metrics/report.md
 """
@@ -64,6 +70,10 @@ HAIR_TOP = {"angelina": 16, "exusiai": 15, "eyjafjalla": 15, "hoshiguma": 17, "i
 # 改按「眼心 − 8.75」推头顶（8.75 = 其余 13 人眼心到发顶的中位）；乌尔比安面罩遮眼，按「下巴 − 12」（其余人头高中位）推
 HAIR_TOP.update({"skadi": 15.0, "skalter": 16.75, "mizuki": 14.5, "ulpianus": 14.5})
 HAT_EST = {"skadi", "skalter", "mizuki", "ulpianus"}
+
+# 姿势人工标（1x，待机 f0，在 build/body_metrics/grid_*.png 上读）：头部中心 x、骨盆中心 x、肩线 y。定义见文件头
+# 现有干员不按新卡返修（docs/103 §3.1），这里只标新画 / 返修的交付
+POSTURE = {}
 
 
 def char_json(cid):
@@ -127,6 +137,11 @@ def measure(cid):
         if ey is not None:
             res["eye_chin"] = (chin - ey) / 2.0
         res["shoulder_w"] = max(width(y) for y in range(chin + 2, min(H, chin + 9))) / 2.0
+        if cid in POSTURE:
+            hcx, pcx, shy = POSTURE[cid]
+            res["lean"] = round(hcx - pcx, 1)
+            res["neck"] = round(shy - chin / 2.0, 1)
+            res["posture_ok"] = "✓" if abs(res["lean"]) <= 1 and res["neck"] >= 2 else "✗"
         res["chin_w"] = chin_w / 2.0 if chin_w else None
     res["chin_shape"] = chin_shape
     if lx is not None and rx is not None:
@@ -157,7 +172,7 @@ def measure(cid):
 ORDER = ["angelina", "exusiai", "eyjafjalla", "hoshiguma", "irene", "kaltsit", "logos", "lumen", "mizuki", "saria",
          "siege", "skadi", "skalter", "specter_unchained", "suzuran", "texas", "ulpianus", "wisadel", "doctor"]
 COLS = [("stand", "站立高"), ("head_h", "头高"), ("headwear_h", "头饰高"), ("head_w", "头宽"), ("head_ratio", "头身比"), ("eye_d", "眼距"), ("eye_pos", "眼高"), ("eye_chin", "眼到下巴"),
-        ("eye_size", "眼(@2x)"), ("chin_w", "下巴宽"), ("chin_shape", "下巴形"), ("shoulder_w", "肩宽"), ("leg_ratio", "腿长占比"), ("foot_x", "脚底x"), ("note", "备注")]
+        ("eye_size", "眼(@2x)"), ("chin_w", "下巴宽"), ("chin_shape", "下巴形"), ("shoulder_w", "肩宽"), ("leg_ratio", "腿长占比"), ("lean", "前倾"), ("neck", "脖子"), ("posture_ok", "姿势"), ("foot_x", "脚底x"), ("note", "备注")]
 
 
 def main():
