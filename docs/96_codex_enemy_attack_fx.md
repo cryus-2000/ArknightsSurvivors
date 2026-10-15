@@ -123,7 +123,7 @@
 | 偏执泡影 paranoia（含二阶段） | 20 | 20 | 0 | 41.5 万 | **@2x 文件齐全但二阶段读不到**：运行时名字是 `e_paranoia2(_move)`，经 `art.gd` 的 ALIAS 转成 `e_paranoia_phase2(_move).png`，但 `_incoming_path` 查的是 `"e_paranoia2@2x"` 这个键，ALIAS 里没有，实际画的是 1x（6 帧白做了）。`e_paranoia_phase2_howl` 用的是直接名，@2x 正常生效 |
 | 伊莎玛拉 ishar（含变身 `e_ishar_t*`） | 30 | 30 | 0 | 111.6 万 | 齐全；但 `draw_scale` 0.68（变身后 1.0），每个 @2x 像素只占 0.68 个屏幕像素，细节基本看不出来（§5.4②） |
 | 伊祖米克 izumik | 18 | 18 | 0 | 37.3 万 | 齐全 |
-| 最后的骑士 knight_boss（+ 精英 `knight` + 同伴骑士，共用 `e_knight*`） | 35 | 35 | 0 | 107.5 万 | 齐全；但 `draw_scale` 0.7，同上问题。**另发现一处现存代码 bug**：同伴骑士（`allies/knight.gd:393/418/422`）走 `g.vfx.spr` 画本体 / 残影，没有像 `_draw_enemy_full` 那样除 `A.hires_of` 密度，`e_knight@2x` 10-14 交付后，同伴骑士会被画成 **2 倍大**（敌对骑士和死亡帧条不受影响，走的是别的绘制路径）。这是个独立的美术接入 bug，和 @2x 预案无关，建议另开一条尽快修 |
+| 最后的骑士 knight_boss（+ 精英 `knight` + 同伴骑士，共用 `e_knight*`） | 35 | 35 | 0 | 107.5 万 | 齐全；但 `draw_scale` 0.7，同上问题。~~另发现一处现存代码 bug：同伴骑士（`allies/knight.gd:393/418/422`）走 `g.vfx.spr` 画本体 / 残影，没有除 `A.hires_of` 密度，`e_knight@2x` 交付后会被画成 2 倍大~~——**已修**（干员会话，分支 `claude/knight-2x-fix`，提交 3f58e6ea，10-15）：本体 / 冲锋残影 / 描边 / 受击闪白四处分别按实际纹理除密度，位置相关的偏移量不动 |
 | 塑路者 path | 10 | 4 | 6 | 5.0 万 | `e_path_charge`（预警冲出帧）已有 @2x；`e_path` / `e_path_move` 只有 1x；计划中的 `e_path_slam`（4 帧，第 2 批未交）要直接交 @2x |
 | 圣徒卡门 carmen（`e_saint*`） | 18 | 18 | 0 | 13.8 万 | 本体齐全；计划中的 `e_carmen_spin`（6 帧，第 2 批未交）要直接交 @2x |
 | 圣徒伊比利亚 iberia（`e_saint_dark*`） | 18 | 18 | 0 | 13.8 万 | 同上；`e_saint_dark_lob`（4 帧）未交 |
