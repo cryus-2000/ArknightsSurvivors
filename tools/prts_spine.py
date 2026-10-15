@@ -42,9 +42,11 @@ OPS = {
 }
 # 页面缺失 / 页面给的路径在静态站 404 的干员：直接按静态站标准路径 spine38/char/<角色 id>/<角色 id>/<角色 id> 取（10-15 逐个试出来的）
 DIRECT = {"irene": "char_4009_irene", "specter_unchained": "char_1023_ghost2", "lumen": "char_4042_lumen"}
+# PRTS 没有 <名>/spine 页面的新干员：素材在 PRTS 的另一个资源站 torappu（assets/char_spine/<角色 id>/defaultskin/front/<角色 id>，Spine 3.8；10-15 试出）
+TORAPPU = {"wisadel": "char_1035_wisdel", "ulpianus": "char_4145_ulpia", "logos": "char_4133_logos"}
 PICK = {
     "idle": ["Idle"],
-    "attack": ["Attack", "Attack_Loop", "Combat", "Attack_1"],
+    "attack": ["Attack", "Attack_Loop", "Combat", "Attack_1", "Attack_A"],
     "skill": ["Skill", "Skill_Loop", "Skill_1", "Skill_2", "Skill_2_Loop", "Skill_3", "Skill_3_Loop", "Skill_Begin", "Skill_2_Begin", "Skill_3_Begin"],
 }
 
@@ -91,6 +93,9 @@ def download(oid, name, refresh):
     meta = os.path.join(d, "meta.json")
     if os.path.exists(meta) and not refresh:
         m = json.load(open(meta, encoding="utf-8"))
+    elif oid in TORAPPU:
+        c = TORAPPU[oid]
+        m = {"name": name, "prefix": "https://torappu.prts.wiki/assets/char_spine/", "file": "%s/defaultskin/front/%s" % (c, c)}
     elif oid in DIRECT:
         c = DIRECT[oid]
         m = {"name": name, "prefix": "https://static.prts.wiki/spine38/", "file": "char/%s/%s/%s" % (c, c, c)}
