@@ -679,7 +679,9 @@ func test_v8() -> void:
 	re.dead = true
 	# 深溟奠基者：厚甲（def = armor）
 	var fo: Dictionary = sp.spawn_enemy("founder", game.ppos + Vector2(900, 0))
-	ok(absf(fo.def - 0.7) < EPS, "奠基者厚甲 def 0.7（%.2f）" % fo.def)
+	# 刷出时可能随机带「甲壳」词条（def 再 × enemy/affix_armor）：按词条折回，只验数据里的厚甲（刷怪随机流一变就可能掷到，docs/101 B7）
+	var fo_def: float = fo.def / (Bal.v("enemy/affix_armor", 0.75) if fo.get("affix", "") == "armor" else 1.0)
+	ok(absf(fo_def - 0.7) < EPS, "奠基者厚甲 def 0.7（%.2f，词条 %s）" % [fo_def, fo.get("affix", "")])
 	fo.dead = true
 	# 浮海飘航者：神经弹带神经损伤
 	var fl: Dictionary = sp.spawn_enemy("floater", game.ppos + Vector2(200, 0))
