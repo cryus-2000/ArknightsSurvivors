@@ -457,6 +457,12 @@ game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCo
 - **金样**（docs/36 §1.3）：`tools/check.py` 的本干员侧加 `blocks/ob_*.gd`（公共）与 `blocks/seg_<id>.gd`（本人，`specter_unchained` → `seg_specter`）。纯搬家会动到所有 seg，每组的「别处」都含别人的 seg，所以拆分分支上金样一律判「过期」；对照改用两个新环境变量：在改前提交的临时工作树里 `ARK_GOLDEN_DIR=<临时目录> check.py --only blocks_eq --eq-all --update-golden` 录一份，分支上 `ARK_EQ_FORCE=1 ARK_GOLDEN_DIR=<同一目录>` 过期也照比。
 - **验证**：积木等价 28 / 28 与改前金样逐字相同；星熊 / 能天使 / 浊心斯卡蒂 / 维什戴尔 `--maxprog --sptest` 240 秒 TRACE 对改前逐行相同；`check --auto` 见提交说明。
 
+#### 7.3.6 ② 直连（干员会话 10-15，分支 claude/b6-direct）
+
+- 生产代码不再经门面：`data_operator.gd` 的 178 处 `OB.<名>`、`character.gd` 的 2 处 `OpBlocks.<名>`（`validate` / `kb_taken`）按定义所在文件改成直连，文件头的 `const OB = preload(op_blocks.gd)` 换成按文件的 preload（`ObCore / ObFx / ObHw / … / SegLogos …`，data_operator 用到 21 个、character 2 个）。工具 `tools/b6_direct_ob.py`。
+- `op_blocks.gd` 门面暂时保留，只剩两类用途：blocks 内部的 255 处反向调用 `_F()`（③ 单播改注册表后消失），以及 tests（`exusiai_blocks / mon3tr_fx / summon_seal_blocks / test_core / prot_test / friendly_target / wisadel_cannon`，测试照旧经门面拿全集，不改）。③ 之后门面只给测试用。
+- 金样：只改了积木公共文件（data_operator / character），「别处」不变，积木等价直接与 ship 重录的金样真比。
+
 ## 8. 需要用户定的事项
 
 > **2026-10-15 用户全部批准（协调人转达），按建议执行**：
