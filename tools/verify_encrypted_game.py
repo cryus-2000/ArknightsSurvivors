@@ -126,12 +126,9 @@ def save_log(kind,commit,out,err):
 def real_errors(text):
     # This exact two-resource engine shutdown diagnostic predates these probes.
     # No script, import, decryption, or other ERROR is permitted by this exception.
-    # 10-16：B6 ② 直连 preload 形成释放环后，退出时「N resources still in use」与 Dummy 贴图 RID 泄漏条数会变，
-    # 都只是引擎关闭时的释放诊断，不影响运行；只豁免这两种，干员修好释放环后再收紧。
-    def _exit_leak(line):
-        s=line.strip()
-        return ('resources still in use at exit' in s) or ('were leaked at exit' in s and 'RID allocations' in s)
-    return [line for line in text.splitlines() if ('ERROR:' in line or 'Parse Error:' in line) and not _exit_leak(line)]
+    # 退出时「N resources still in use at exit」是引擎关闭的释放诊断（偶发 title.ogg 音频线程时序，预先就有），不判失败；
+    # 10-16 B6 ② 的脚本释放环已由 a05f1563 修掉，其余 ERROR（含 RID 泄漏）照判。
+    return [line for line in text.splitlines() if ('ERROR:' in line or 'Parse Error:' in line) and 'resources still in use at exit' not in line]
 
 def isolated_run(arguments,timeout,seed=None,inspect=None):
     # Windows Godot get_config_path/get_cache_path honor these process env variables.
