@@ -3,7 +3,27 @@
 ## 每帧顺序（docs/61 §7）：技能计时 → 延迟队列 → 常驻积木（局部倍率 → 属性重建 → 治疗 / 灯火 / tick / 软减速 / 绕行体）→ 技能起手 → 普攻起手。
 extends "res://scripts/characters/character.gd"
 
-const OB = preload("res://scripts/characters/op_blocks.gd")
+## B6 ②（docs/101 §7.3.6）：积木按定义所在的 blocks 文件直连（原 const OB = preload(op_blocks.gd) 门面）；ObCheck、SegAngelina 已在父类 character.gd 声明，这里不重复（GDScript 不许子类重名）
+const ObCore = preload("res://scripts/characters/blocks/ob_core.gd")
+const ObElite = preload("res://scripts/characters/blocks/ob_elite.gd")
+const ObFx = preload("res://scripts/characters/blocks/ob_fx.gd")
+const ObHw = preload("res://scripts/characters/blocks/ob_hw.gd")
+const ObSummon = preload("res://scripts/characters/blocks/ob_summon.gd")
+const ObVortex = preload("res://scripts/characters/blocks/ob_vortex.gd")
+const SegExusiai = preload("res://scripts/characters/blocks/seg_exusiai.gd")
+const SegEyjafjalla = preload("res://scripts/characters/blocks/seg_eyjafjalla.gd")
+const SegHoshiguma = preload("res://scripts/characters/blocks/seg_hoshiguma.gd")
+const SegIrene = preload("res://scripts/characters/blocks/seg_irene.gd")
+const SegLogos = preload("res://scripts/characters/blocks/seg_logos.gd")
+const SegLumen = preload("res://scripts/characters/blocks/seg_lumen.gd")
+const SegMizuki = preload("res://scripts/characters/blocks/seg_mizuki.gd")
+const SegSaria = preload("res://scripts/characters/blocks/seg_saria.gd")
+const SegSiege = preload("res://scripts/characters/blocks/seg_siege.gd")
+const SegSkadi = preload("res://scripts/characters/blocks/seg_skadi.gd")
+const SegSkalter = preload("res://scripts/characters/blocks/seg_skalter.gd")
+const SegSpecter = preload("res://scripts/characters/blocks/seg_specter.gd")
+const SegTexas = preload("res://scripts/characters/blocks/seg_texas.gd")
+const SegUlpianus = preload("res://scripts/characters/blocks/seg_ulpianus.gd")
 
 var B: Dictionary = {}                 # 编译后的 blocks（$ 已解析成数字、cond 已解析）
 var cd := 0.5                          # 普攻冷却
@@ -42,16 +62,16 @@ var zmode := 1.0                       # 本帧 verb.mode 的 zone_mult 乘积�
 
 func _init(game, def_: Dictionary) -> void:
 	super(game, def_)
-	B = OB.compile(def)
+	B = ObCore.compile(def)
 	# 召唤物扩展段（§15.9）：普攻 shape.support 的 when 条件、首拍；有没有 trig.on_deploy（每帧只在有时才查）
 	var a: Dictionary = B.get("attack", {})
 	if str(a.get("shape", "")) == "support":
 		if a.get("when", null) is String:
-			a.when = OB.parse_cond(str(a.when), def.get("base", {}))
+			a.when = ObCore.parse_cond(str(a.when), def.get("base", {}))
 		cd = float(a.get("first", cd))
 	elif a.has("first"):   # 手写迁移段：首击冷却（手写干员各自的 var cd 初值）
 		cd = float(a.first)
-	OB.hw_init(self)
+	ObHw.hw_init(self)
 	var dep := false
 	var mate := false
 	for sec in ["trait", "talent"]:
@@ -65,7 +85,7 @@ func _init(game, def_: Dictionary) -> void:
 	B["_mf_deploy"] = dep
 	B["_el_mate"] = mate   # 精英化段：有没有 trig.on_mate_attack（队友出手时才查）
 	B["_free"] = str(a.get("flow", "")) == "free"   # 手写迁移段第 3 批：不等动作的干员（水月）
-	B["_e5_among"] = OB.e5_scan(B)   # 精英化第 5 批段：有 among 的积木才记普攻命中表
+	B["_e5_among"] = SegSkalter.e5_scan(B)   # 精英化第 5 批段：有 among 的积木才记普攻命中表
 
 
 ## 成长节点的积木：一块，或数组（§15.9）
@@ -99,19 +119,19 @@ func in_zone(p: Vector2) -> bool:
 	var c := zone_c()
 	if c != Vector2.INF and p != Vector2.INF and p.distance_to(c) <= zr:
 		return true
-	return not sm.is_empty() and p != Vector2.INF and OB.e5_in_zone(self, p)   # 精英化第 5 批段：召唤物自带的区域（并集，不叠加）
+	return not sm.is_empty() and p != Vector2.INF and SegSkalter.e5_in_zone(self, p)   # 精英化第 5 批段：召唤物自带的区域（并集，不叠加）
 
 
 func skill_on(i: int) -> bool:
-	return s_t[i] > 0.0 or perm_on[i] or ammo[i] > 0 or (not hw.is_empty() and OB.hw_active_left(self, i) > 0.0)
+	return s_t[i] > 0.0 or perm_on[i] or ammo[i] > 0 or (not hw.is_empty() and SegEyjafjalla.hw_active_left(self, i) > 0.0)
 
 
 func skill_active_left(i: int) -> float:
 	if not hw.is_empty():
-		var hl: float = OB.hw_active_left(self, i)   # 手写迁移段：连续喷发 / 锁定 / 咒域按自己的计时
+		var hl: float = SegEyjafjalla.hw_active_left(self, i)   # 手写迁移段：连续喷发 / 锁定 / 咒域按自己的计时
 		if hl >= 0.0:
 			return hl
-	return maxf(s_t[i], OB.exu_ammo_left(self, i))   # 次数型（dur.ammo）返回剩余发数
+	return maxf(s_t[i], SegExusiai.exu_ammo_left(self, i))   # 次数型（dur.ammo）返回剩余发数
 
 
 func skill_active_dur(i: int) -> float:
@@ -120,7 +140,7 @@ func skill_active_dur(i: int) -> float:
 
 func _swing_radius() -> float:
 	var a: Dictionary = B.get("attack", {})
-	return OB.shape_radius(self, a) if a.has("shape") and str(a.shape) != "support" else 90.0
+	return ObCore.shape_radius(self, a) if a.has("shape") and str(a.shape) != "support" else 90.0
 
 
 # ---------------------------------------------------------------- 成长
@@ -131,9 +151,9 @@ func on_custom_node(nid: String, _choice: String = "") -> void:
 
 
 func on_leave() -> void:
-	OB.airborne_clear(self)
-	OB.sm_clear(self)   # 召唤 / 封印段
-	OB.h4_leave(self)   # 手写迁移段第 4 批：撤掉给队友的攻击加成
+	SegAngelina.airborne_clear(self)
+	ObSummon.sm_clear(self)   # 召唤 / 封印段
+	ObHw.h4_leave(self)   # 手写迁移段第 4 批：撤掉给队友的攻击加成
 	g.stats.remove_source(_src_tag())
 	_mods = []
 	refresh_stats()
@@ -183,70 +203,70 @@ func update(dt: float) -> void:
 		if s_t[i] > 0.0:
 			s_t[i] = maxf(0.0, s_t[i] - dt)
 	if B.get("_free", false):   # 手写迁移段第 3 批：attack.flow = free（不等动作：技能充满即发、普攻直接出手；水月），整帧交给本段
-		OB.h3_free_update(self, dt)
+		SegMizuki.h3_free_update(self, dt)
 		return
-	var hw_busy: bool = OB.hw_tick(self, dt) if not hw.is_empty() else false   # 手写迁移段：浪墙 / 弹体 / 地面 / 锚（按手写干员 update 的先后）；true = 本帧不起手
-	OB.mf_tick(self, dt, prev_s)   # 召唤物扩展段（§15.9）：限时减伤计时、trig.on_deploy、带 at 的 trig.on_skill_end
+	var hw_busy: bool = ObHw.hw_tick(self, dt) if not hw.is_empty() else false   # 手写迁移段：浪墙 / 弹体 / 地面 / 锚（按手写干员 update 的先后）；true = 本帧不起手
+	ObSummon.mf_tick(self, dt, prev_s)   # 召唤物扩展段（§15.9）：限时减伤计时、trig.on_deploy、带 at 的 trig.on_skill_end
 	_tick_pending(dt)
 	_sustain(dt)
 	_tick_shots(dt)
-	OB.exu_tick(self, dt)   # 能天使段：技能 end、普攻锁、连射队列、弹体
-	OB.sm_tick(self, dt)    # 召唤 / 封印段：召唤物、护盾计时、封印标记（sm 为空时直接返回）
-	OB.el_tick(self, dt)    # 精英化段：往返弹体（el 为空时直接返回）
-	if OB.tx_update(self, dt):   # 德克萨斯段：冲刺中不起手
+	SegExusiai.exu_tick(self, dt)   # 能天使段：技能 end、普攻锁、连射队列、弹体
+	ObSummon.sm_tick(self, dt)    # 召唤 / 封印段：召唤物、护盾计时、封印标记（sm 为空时直接返回）
+	ObElite.el_tick(self, dt)    # 精英化段：往返弹体（el 为空时直接返回）
+	if SegTexas.tx_update(self, dt):   # 德克萨斯段：冲刺中不起手
 		return
-	if hw_busy or (not hw.is_empty() and OB.hw_busy(self)):   # 手写迁移段：喷发序列 / 锚在外面时不起手（同手写的 return）
+	if hw_busy or (not hw.is_empty() and ObHw.hw_busy(self)):   # 手写迁移段：喷发序列 / 锚在外面时不起手（同手写的 return）
 		return
 	if acting():
 		return
 	var ready := charge_skills(dt)
 	if ready >= 0:
-		if not hw.is_empty() and OB.hw_instant(self, ready):   # 手写迁移段：cast: instant（充满当帧生效、不播技能动作）
+		if not hw.is_empty() and SegEyjafjalla.hw_instant(self, ready):   # 手写迁移段：cast: instant（充满当帧生效、不播技能动作）
 			return
-		start_skill(OB.mf_skill_aim(self, ready), ready)   # blocks.skills[i].aim（§15.9）；没写 = INF 不转身
+		start_skill(ObSummon.mf_skill_aim(self, ready), ready)   # blocks.skills[i].aim（§15.9）；没写 = INF 不转身
 		return
-	if str(cur_attack().get("shape", "")) in OB.H3_ATTACKS:   # 手写迁移段第 3 批：刺击 / 环斩 / 荧光的起手（荧光要先累计治疗计时）
-		OB.h3_attack_start(self, cur_attack(), dt)
+	if str(cur_attack().get("shape", "")) in ObHw.H3_ATTACKS:   # 手写迁移段第 3 批：刺击 / 环斩 / 荧光的起手（荧光要先累计治疗计时）
+		SegIrene.h3_attack_start(self, cur_attack(), dt)
 		return
-	if str(cur_attack().get("shape", "")) in OB.H4_ATTACKS:   # 手写迁移段第 4 批：锤击 / 狐火 / 炮击 / 拳击的起手
-		OB.h4_attack_start(self, cur_attack(), dt)
+	if str(cur_attack().get("shape", "")) in ObHw.H4_ATTACKS:   # 手写迁移段第 4 批：锤击 / 狐火 / 炮击 / 拳击的起手
+		ObHw.h4_attack_start(self, cur_attack(), dt)
 		return
-	if no_attack or cd > 0.0 or OB.el_attack_locked(self) or (not hw.is_empty() and OB.hw_attack_locked(self)):   # 精英化段：往返弹体 / 掷锚（lock）在外面时不普攻
+	if no_attack or cd > 0.0 or ObElite.el_attack_locked(self) or (not hw.is_empty() and SegUlpianus.hw_attack_locked(self)):   # 精英化段：往返弹体 / 掷锚（lock）在外面时不普攻
 		return
 	var a: Dictionary = cur_attack()
 	var at := Vector2.INF
 	match str(a.get("shape", "")):
 		"support":   # 召唤物扩展段（§15.9）：不造成伤害的普攻，every 一拍，when 成立才朝主控起手（手动普攻不管它）
 			cd = float(a.get("every", 1.0)) / stat(&"op_aspd") * float(loc.interval)
-			if OB.cond_true(self, a.get("when", {})):
+			if ObCore.cond_true(self, a.get("when", {})):
 				start_attack(g.ppos)
 			return
 		"circle":
 			if str(a.get("center", "")) == "front":   # 手写迁移段：锚击砸在身前（手动普攻 A 类）
-				at = OB.hw_front_aim(self, a)
+				at = SegUlpianus.hw_front_aim(self, a)
 			else:
-				var c: Vector2 = OB.shape_center(self, a)
-				var r: float = float(a.get("range", 0.0)) * stat(&"op_range") if a.has("range") else OB.shape_radius(self, a)
+				var c: Vector2 = ObCore.shape_center(self, a)
+				var r: float = float(a.get("range", 0.0)) * stat(&"op_range") if a.has("range") else ObCore.shape_radius(self, a)
 				if c != Vector2.INF:
 					at = atk_point(nearest_enemies(1, r, c), r)   # 手动普攻（v2.5）：不分方向，只受闸门
 		"cone":
-			var r2: float = OB.shape_radius(self, a)
+			var r2: float = ObCore.shape_radius(self, a)
 			at = atk_point(nearest_enemies(1, r2 + 30.0, pos), r2)   # 手动普攻 A 类
 		"line":
 			var rl: float = float(a.get("len", 0.0)) * stat(&"op_range")
 			at = atk_point(nearest_enemies(1, rl, pos), rl)   # 手动普攻 A 类
 		"point_aoe":
-			var tp: Vector2 = OB.point_aoe_target(self, a)
+			var tp: Vector2 = SegAngelina.point_aoe_target(self, a)
 			atk_to = tp
 			at = atk_point([{"pos": tp}] if tp != Vector2.INF else [], float(a.get("range", 300.0)) * stat(&"op_range"))   # 手动普攻 A 类（落点 aim_land）
 		"dash_line":
-			at = OB.tx_attack_point(self, a)   # 德克萨斯段
+			at = SegTexas.tx_attack_point(self, a)   # 德克萨斯段
 		"projectile":   # 能天使段：手动普攻 B 类
-			at = OB.exu_aim(self, a)
+			at = SegExusiai.exu_aim(self, a)
 		"shell":   # 手写迁移段：法术弹（手动普攻 A 类，落点 aim_land）
-			at = OB.hw_shell_aim(self, a)
+			at = SegEyjafjalla.hw_shell_aim(self, a)
 		"bolt":   # 手写迁移段：飘飞咒文弹（手动普攻 B 类）
-			at = OB.hw_bolt_aim(self, a)
+			at = SegLogos.hw_bolt_aim(self, a)
 	if at == Vector2.INF:
 		cd = idle_cd(float(B.get("attack", _ED).get("idle", 0.2)))   # 手写迁移段：attack.idle（缺省 0.2）
 	else:
@@ -268,7 +288,7 @@ func _tick_pending(dt: float) -> void:
 			due.append(p)
 	pending = pending.filter(func(p): return p.t > 0.0)
 	for p in due:
-		var keep: Dictionary = OB.hw_push(self, p.get("bs", {}))   # 手写迁移段：延迟执行带着排队时的 basis
+		var keep: Dictionary = ObHw.hw_push(self, p.get("bs", {}))   # 手写迁移段：延迟执行带着排队时的 basis
 		var ah = e5.get("ah", {})
 		if p.has("ah"):   # 精英化第 5 批段：延迟执行用排队那一刻的普攻命中表
 			e5["ah"] = p.ah
@@ -276,8 +296,8 @@ func _tick_pending(dt: float) -> void:
 		if p.has("ah"):
 			e5["ah"] = ah
 		if p.has("combo"):
-			OB.hw_combo_next(self, int(p.combo))
-		OB.hw_pop(self, keep)
+			ObHw.hw_combo_next(self, int(p.combo))
+		ObHw.hw_pop(self, keep)
 
 
 ## 手写迁移段：常驻积木的局部倍率与属性立刻重算（层数变了、永久技能出手当下，同手写的 refresh_stats；不跑治疗 / 计时等副作用）
@@ -294,7 +314,7 @@ func _sustain(dt: float, stats_only := false) -> void:
 	for i in mini(3, sk.size()):
 		if skill_on(i):
 			for b in sk[i].get("do", _EA):
-				if OB.cond_true(self, b.get("cond", _ED)):
+				if ObCore.cond_true(self, b.get("cond", _ED)):
 					act.append(b)
 	if elite >= 1:
 		for t in B.get("talent", _EA):
@@ -308,7 +328,7 @@ func _sustain(dt: float, stats_only := false) -> void:
 		if elite >= k[1] and pg.has(k[0]):
 			for t in _node_list(pg[k[0]]):
 				_collect_trig(t, act)
-	OB.el_sustain_collect(self, act)   # 精英化段：生效中的限时增益（verb.buff_timed）排在最后；记下 st.stack
+	ObElite.el_sustain_collect(self, act)   # 精英化段：生效中的限时增益（verb.buff_timed）排在最后；记下 st.stack
 	# 一：局部倍率
 	var add := {}
 	var mul := {}
@@ -361,13 +381,13 @@ func _sustain(dt: float, stats_only := false) -> void:
 				if b.get("power", false):
 					v *= skill_power()
 				if b.has("per"):
-					v *= float(mini(OB.count_others(self, str(b.per)), int(b.get("cap", 99))))
+					v *= float(mini(ObCore.count_others(self, str(b.per)), int(b.get("cap", 99))))
 				if v != 0.0:
-					for m in OB.aura_members(self, str(b.scope)):
+					for m in ObCore.aura_members(self, str(b.scope)):
 						if b.get("exclude_self", false) and m == self:
 							continue
-						want.append([OB.AURA_STAT[str(b.aura)], "add", v, m.op_key])
-	OB.tx_sustain(self, act, want)   # 德克萨斯段：冲刺长度 / 宽度、主控属性
+						want.append([ObCore.AURA_STAT[str(b.aura)], "add", v, m.op_key])
+	SegTexas.tx_sustain(self, act, want)   # 德克萨斯段：冲刺长度 / 宽度、主控属性
 	if want != _mods:
 		g.stats.remove_source(_src_tag())
 		for m in want:
@@ -405,19 +425,19 @@ func _sustain(dt: float, stats_only := false) -> void:
 					_exec_list(b.get("do", []))
 			"st.slow_soft":
 				seen[u] = true
-				_state[u] = OB.slow_soft(self, b, _state.get(u, {}))
+				_state[u] = ObCore.slow_soft(self, b, _state.get(u, {}))
 			"shape.orbit":
 				seen[u] = true
 				if not _state.has(u):
 					_state[u] = {"ang": 0.0, "hit": {}}
-				OB.orbit_tick(self, b, _state[u], dt)
+				ObCore.orbit_tick(self, b, _state[u], dt)
 			"verb.field":
 				if not b.has("tick"):   # 瞬时留场（星熊）不是常驻的，在 _exec_list 里生成
 					continue
 				seen[u] = true
 				if not _state.has(u):
 					_state[u] = {}
-				OB.field_tick(self, b, _state[u], dt)
+				SegAngelina.field_tick(self, b, _state[u], dt)
 	# 这一帧没生效的累计器 / 状态清零（技能结束、条件不成立时重新计时）
 	for u in _acc.keys():
 		if not seen.has(u):
@@ -427,19 +447,19 @@ func _sustain(dt: float, stats_only := false) -> void:
 			_state.erase(u)
 	_ext_sustain(act, dt)
 	if not hw.is_empty():
-		OB.hw_sustain(self, act)   # 精英化第 2 批段：叠层安魂
-	OB.sm_sustain(self, act, dt)   # 召唤 / 封印段：aura.heal
-	OB.mf_sustain(self, act)       # 召唤物扩展段：verb.summon_mod 的倍率表
+		ObHw.hw_sustain(self, act)   # 精英化第 2 批段：叠层安魂
+	ObSummon.sm_sustain(self, act, dt)   # 召唤 / 封印段：aura.heal
+	ObSummon.mf_sustain(self, act)       # 召唤物扩展段：verb.summon_mod 的倍率表
 	# 四：画面帧条（docs/61 §5.6）：常驻积木上带 every 的 fx 条目定时播；只动 pfx / g.vrng，不影响玩法
 	var fseen := {}
 	for b in act:
 		if b.has("fx"):
 			var u: int = int(b.get("_uid", 0))
 			fseen[u] = true
-			_fxt[u] = OB.fx_tick(self, b.fx, zone_c(), zr, _fxt.get(u, []), dt)
-			if OB.fx_has_body(b.fx):
+			_fxt[u] = ObFx.fx_tick(self, b.fx, zone_c(), zr, _fxt.get(u, []), dt)
+			if ObFx.fx_has_body(b.fx):
 				if not _fxb.has(u) or float(_fxb[u].fade) >= 0.0:
-					_fxb[u] = {"b": b, "el": 0.0, "fade": -1.0, "fl": OB.fx_hold_out(b.fx)}
+					_fxb[u] = {"b": b, "el": 0.0, "fade": -1.0, "fl": ObFx.fx_hold_out(b.fx)}
 				else:
 					_fxb[u].el += dt
 	for u in _fxt.keys():
@@ -456,12 +476,12 @@ func _sustain(dt: float, stats_only := false) -> void:
 
 ## 触发积木进本帧列表：passive → 它的 do（各自再看 cond）；tick → 它本身；裸效果积木（成长节点）→ 它本身
 func _collect_trig(t: Dictionary, act: Array) -> void:
-	if not OB.cond_true(self, t.get("cond", _ED)):
+	if not ObCore.cond_true(self, t.get("cond", _ED)):
 		return
 	match str(t.get("_tag", "")):
 		"trig.passive":
 			for b in t.get("do", _EA):
-				if OB.cond_true(self, b.get("cond", _ED)):
+				if ObCore.cond_true(self, b.get("cond", _ED)):
 					act.append(b)
 		"trig.tick":
 			act.append(t)
@@ -492,17 +512,17 @@ func _heal(b: Dictionary) -> void:
 	if b.has("text"):
 		float_text(g.ppos + Vector2(0, -90), "+%d" % int(h), col(), int(b.text))
 	if b.has("fx"):
-		OB.fx_play(self, b.fx, g.ppos, 30.0)
+		ObFx.fx_play(self, b.fx, g.ppos, 30.0)
 
 
 ## 瞬时积木列表（技能出手、触发器触发、延迟到点）
 func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 	for b in arr:
-		if not OB.cond_true(self, b.get("cond", _ED)):
+		if not ObCore.cond_true(self, b.get("cond", _ED)):
 			continue
 		match str(b.get("_tag", "")):
 			"shape.circle", "shape.cone":
-				OB.exec_shape(self, b, at)
+				ObCore.exec_shape(self, b, at)
 			"verb.heal":
 				if not b.has("every"):
 					_heal(b)
@@ -512,9 +532,9 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 			"verb.sp_team":
 				g.squad.gain_sp(float(b.pct) * (skill_power() if b.get("power", false) else 1.0), self if b.get("exclude_self", true) else null)   # power：第 4 批（× 技能强度）
 				if b.has("motes"):
-					OB.h4_sp_motes(self, int(b.motes))   # 第 4 批：金色技力粒子飞向每名队友（画面）
+					SegSiege.h4_sp_motes(self, int(b.motes))   # 第 4 批：金色技力粒子飞向每名队友（画面）
 			"verb.displace":
-				OB.displace_at(self, b, at)
+				ObCore.displace_at(self, b, at)
 			"custom":
 				var fn: String = str(b.custom)
 				if has_method(fn):
@@ -524,15 +544,15 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 					push_warning("数据干员 %s：custom 函数「%s」不存在，已忽略" % [id, fn])
 			_:
 				_ext_exec(b, at)       # 星熊段
-				OB.tx_exec(self, b, at)   # 德克萨斯段
-				OB.exu_exec(self, b, at)  # 能天使段：shape.projectile / verb.counter / verb.attack_lock
-				OB.sm_exec(self, b, at)   # 召唤 / 封印段：verb.summon / verb.shield
-				OB.mf_exec(self, b, at)   # 召唤物扩展段：verb.guard / verb.cleanse
-				OB.el_exec(self, b, at)   # 精英化段：verb.buff_timed / shape.boomerang / verb.summon_cmd
+				SegTexas.tx_exec(self, b, at)   # 德克萨斯段
+				SegExusiai.exu_exec(self, b, at)  # 能天使段：shape.projectile / verb.counter / verb.attack_lock
+				ObSummon.sm_exec(self, b, at)   # 召唤 / 封印段：verb.summon / verb.shield
+				ObSummon.mf_exec(self, b, at)   # 召唤物扩展段：verb.guard / verb.cleanse
+				ObElite.el_exec(self, b, at)   # 精英化段：verb.buff_timed / shape.boomerang / verb.summon_cmd
 				if not hw.is_empty():
-					OB.hw_exec(self, b, at)   # 手写迁移段
-		if b.has("fx") and not str(b.get("_tag", "")) in OB.FX_SELF_PLAY:   # 伤害形状 / 位移 / 区域等的 fx 由执行器按自己的位置播
-			OB.fx_play(self, b.fx, zone_c(), zr)
+					ObHw.hw_exec(self, b, at)   # 手写迁移段
+		if b.has("fx") and not str(b.get("_tag", "")) in ObFx.FX_SELF_PLAY:   # 伤害形状 / 位移 / 区域等的 fx 由执行器按自己的位置播
+			ObFx.fx_play(self, b.fx, zone_c(), zr)
 
 
 # ---------------------------------------------------------------- 出手
@@ -542,35 +562,35 @@ func _release() -> void:
 	if str(a.get("shape", "")) == "support":   # 召唤物扩展段（§15.9）：出手帧执行 do（音效由 do 里的积木自己播）
 		_exec_list(a.get("do", []), g.ppos)
 		return
-	if not hw.is_empty() and OB.hw_armed_release(self, a):   # 手写迁移段：蓄势（attack.armed）的这一下整个换掉，不计普攻次数、不走 every_n
+	if not hw.is_empty() and SegUlpianus.hw_armed_release(self, a):   # 手写迁移段：蓄势（attack.armed）的这一下整个换掉，不计普攻次数、不走 every_n
 		_sfx_op("atk")
 		return
 	var rp := _replace_trig(atk_n + 1)   # 精英化段：trig.every_n replace = 这一次普攻整个换成它的 do
 	atk_live = true
 	if not el.is_empty() or not rp.is_empty():
-		OB.el_st(self).fire_t = g.t
+		ObElite.el_st(self).fire_t = g.t
 	if not rp.is_empty():
 		_exec_list(rp.get("do", []))   # last_hit_pos 沿用上一次普攻的（热砂这类 last_hit 区域照常落在那里）
 	elif str(a.get("shape", "")) == "point_aoe":
 		_fire_point_aoe(a)
 	elif str(a.get("shape", "")) == "shell":   # 手写迁移段：法术弹
-		OB.hw_shell_fire(self, a, true)
+		SegEyjafjalla.hw_shell_fire(self, a, true)
 	elif str(a.get("shape", "")) == "bolt":   # 手写迁移段：飘飞咒文弹；没有目标 = 这一下没出手（不算次数、不走 every_n，同手写的 return）
-		if not OB.hw_bolt_fire(self, a, true):
+		if not SegLogos.hw_bolt_fire(self, a, true):
 			atk_live = false
 			return
-	elif str(a.get("shape", "")) in OB.H3_ATTACKS:   # 手写迁移段第 3 批：刺击……
-		OB.h3_attack_fire(self, a)
-	elif str(a.get("shape", "")) in OB.H4_ATTACKS:   # 手写迁移段第 4 批：锤击 / 狐火 / 炮击 / 拳击（音效由形状自己播）
-		OB.h4_attack_fire(self, a)
+	elif str(a.get("shape", "")) in ObHw.H3_ATTACKS:   # 手写迁移段第 3 批：刺击……
+		SegIrene.h3_attack_fire(self, a)
+	elif str(a.get("shape", "")) in ObHw.H4_ATTACKS:   # 手写迁移段第 4 批：锤击 / 狐火 / 炮击 / 拳击（音效由形状自己播）
+		ObHw.h4_attack_fire(self, a)
 	else:
 		exec_any_shape(a, Vector2.INF, true)
 	atk_live = false
-	if not str(a.get("shape", "")) in OB.H4_ATTACKS:
+	if not str(a.get("shape", "")) in ObHw.H4_ATTACKS:
 		_sfx_op("atk")
 	atk_n += 1
 	for t in _trigs():
-		if str(t.get("_tag", "")) == "trig.every_n" and not t.get("replace", false) and OB.cond_true(self, t.get("cond", _ED)):
+		if str(t.get("_tag", "")) == "trig.every_n" and not t.get("replace", false) and ObCore.cond_true(self, t.get("cond", _ED)):
 			if t.get("skip_replaced", false) and not rp.is_empty():
 				continue   # 精英化第 2 批段：这一下被 replace 换掉了（掷锚）——跟着锚击中心走的追加（定点爆破 / 收链……）不走
 			var n: int = maxi(1, int(t.n))
@@ -580,11 +600,11 @@ func _release() -> void:
 					if hw.is_empty():
 						pending.append({"t": dl, "do": t.get("do", [])} if not B.get("_e5_among", false) else {"t": dl, "do": t.get("do", []), "ah": e5.get("ah", {})})
 					else:   # 手写迁移段：带上 basis 快照；at: attack = 落在这一次普攻的判定中心
-						pending.append({"t": dl, "do": t.get("do", []), "bs": OB.hw_snap(self), "at": hw.atk_c if str(t.get("at", "")) == "attack" else Vector2.INF})
+						pending.append({"t": dl, "do": t.get("do", []), "bs": ObHw.hw_snap(self), "at": hw.atk_c if str(t.get("at", "")) == "attack" else Vector2.INF})
 				else:
 					_exec_list(t.get("do", []), hw.atk_c if not hw.is_empty() and str(t.get("at", "")) == "attack" else Vector2.INF)
 	if not hw.is_empty():
-		OB.hw_combo_start(self)   # 手写迁移段：attack.combo 连斩 / trig.on_combo_end
+		ObHw.hw_combo_start(self)   # 手写迁移段：attack.combo 连斩 / trig.on_combo_end
 
 
 ## 精英化段：第 n 次普攻是否被 trig.every_n replace 换掉（第一块成立的；没有 = {}）
@@ -601,7 +621,7 @@ func _replace_trig(n: int) -> Dictionary:
 	if not B._el_rep:
 		return {}
 	for t in _trigs():
-		if str(t.get("_tag", "")) == "trig.every_n" and t.get("replace", false) and n % maxi(1, int(t.n)) == 0 and OB.cond_true(self, t.get("cond", _ED)):
+		if str(t.get("_tag", "")) == "trig.every_n" and t.get("replace", false) and n % maxi(1, int(t.n)) == 0 and ObCore.cond_true(self, t.get("cond", _ED)):
 			return t
 	return {}
 
@@ -609,7 +629,7 @@ func _replace_trig(n: int) -> Dictionary:
 ## 精英化段：队友 m 普攻出手（character.gd 广播）→ trig.on_mate_attack 的画面
 func on_mate_attack(m) -> void:
 	if B.get("_el_mate", false):
-		OB.el_mate_attack(self, m)
+		ObElite.el_mate_attack(self, m)
 
 
 ## 图鉴演示（run/demo.gd 每 3 秒把队长生命压到 70% 时调）：演示里怪不伤人，模拟一次「队长受到攻击」的询问，
@@ -621,9 +641,9 @@ func demo_hurt() -> void:
 
 
 func _release_skill() -> void:
-	if not hw.is_empty() and OB.h3_release_skill(self):   # 手写迁移段第 3 批：verb.followup 起的那一下（不走技能本体）
+	if not hw.is_empty() and SegIrene.h3_release_skill(self):   # 手写迁移段第 3 批：verb.followup 起的那一下（不走技能本体）
 		return
-	if not hw.is_empty() and OB.h4_release_skill(self):   # 手写迁移段第 4 批：碎颅期间用技能动作起手的那一锤
+	if not hw.is_empty() and ObHw.h4_release_skill(self):   # 手写迁移段第 4 批：碎颅期间用技能动作起手的那一锤
 		return
 	var i := cur_skill
 	var sk: Array = B.get("skills", [])
@@ -634,30 +654,30 @@ func _release_skill() -> void:
 	if dv is String and dv == "permanent":
 		perm_on[i] = true
 	elif dv is Dictionary and dv.has("ammo"):   # 能天使段：dur.ammo（N 发子弹）
-		OB.exu_skill_shell(self, i, dv)
+		SegExusiai.exu_skill_shell(self, i, dv)
 	elif dv is Dictionary and dv.has("pulses"):   # 手写迁移段：连续喷发（dur.pulses）
-		OB.hw_pulse_start(self, i, sb)
+		SegEyjafjalla.hw_pulse_start(self, i, sb)
 	elif dv is Dictionary:
 		ammo[i] = int(dv.get("next_attacks", 0))   # 安洁莉娜段：dur.next_n，接下来 N 次普攻带 attack_patch
 	elif float(dv) > 0.0:
 		s_t[i] = float(dv)
 		s_dur[i] = float(dv)
 	_exec_list(sb.get("do", []))
-	OB.tx_skill_start(self, i)   # 德克萨斯段：trig.on_skill_start
+	SegTexas.tx_skill_start(self, i)   # 德克萨斯段：trig.on_skill_start
 	if not hw.is_empty() and perm_on[i]:
 		_restat()   # 手写迁移段：永久技能出手当下就改属性（同手写，不等下一帧）
 	fx({"kind": "ring", "pos": pos, "r": 70.0, "r0": 10.0, "life": 0.5, "col": col(), "floor": true})
 	if sb.has("fx"):
-		OB.fx_play(self, sb.fx, zone_c(), _zone_r_now())
+		ObFx.fx_play(self, sb.fx, zone_c(), _zone_r_now())
 
 
 func on_kill(e: Dictionary) -> void:
 	if not hw.is_empty():
 		hw["kill_e"] = e   # 手写迁移段：verb.stack 看是不是 Boss
-		OB.h4_on_kill(self, e)   # 手写迁移段第 4 批：残影标记殉爆
-	kill_w = OB.kill_weight(g, e)
+		ObHw.h4_on_kill(self, e)   # 手写迁移段第 4 批：残影标记殉爆
+	kill_w = SegExusiai.kill_weight(g, e)
 	for t in _trigs():
-		if str(t.get("_tag", "")) != "trig.on_kill" or not OB.cond_true(self, t.get("cond", _ED)):
+		if str(t.get("_tag", "")) != "trig.on_kill" or not ObCore.cond_true(self, t.get("cond", _ED)):
 			continue
 		var f: String = str(t.get("filter", "any"))
 		if f == "any" or (f == "elite" and (e.elite or e.boss)) or (f == "boss" and e.boss):
@@ -676,7 +696,7 @@ func _sfx_op(kind: String) -> void:
 ## 手写迁移段：近战前压（blocks.follow {leash, gap}）；没写 = 编队位
 func follow_target(slot_pos: Vector2) -> Vector2:
 	var fw: Dictionary = B.get("follow", {})
-	if fw.is_empty() or (not hw.is_empty() and OB.h3_away(self)):   # 手写迁移段第 3 批：本体离场（替身在场）时回编队位
+	if fw.is_empty() or (not hw.is_empty() and SegSpecter.h3_away(self)):   # 手写迁移段第 3 批：本体离场（替身在场）时回编队位
 		return slot_pos
 	if fw.has("side"):   # 手写迁移段第 4 批：护卫站位（队长朝向一侧的固定偏移，不前压）
 		return g.ppos + Vector2(float(fw.side[0]) * g.facing, float(fw.side[1]))
@@ -687,15 +707,15 @@ func follow_target(slot_pos: Vector2) -> Vector2:
 ## 手写迁移段：每打中一名敌人的画面（blocks.hit_fx）
 func _hit_fx(e: Dictionary, origin: Vector2) -> void:
 	if B.has("hit_fx"):
-		OB.fx_play(self, B.hit_fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e], (e.pos - origin).angle())
+		ObFx.fx_play(self, B.hit_fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e], (e.pos - origin).angle())
 
 
 ## 区域：地面椭圆，灯火充盈 / 昏暗 / 其他三种色；shape.orbit 的判定点画成小菱形
 func draw_auras() -> void:
 	_draw_fields()
 	if not hw.is_empty():
-		OB.hw_draw_rings(self)   # 手写迁移段：常驻程序圈（aura_ring）、喷发热浪环……
-		OB.hw_draw_auras(self)
+		SegSkadi.hw_draw_rings(self)   # 手写迁移段：常驻程序圈（aura_ring）、喷发热浪环……
+		ObHw.hw_draw_auras(self)
 	if pos == Vector2.INF or not B.has("zone"):
 		return
 	var c := zone_c()
@@ -707,7 +727,7 @@ func draw_auras() -> void:
 	var on := skill_active()
 	var rm := 1.0   # 程序漩涡（§5.6 vortex.ring）可把区域硬边压淡
 	for u in _fxb:
-		rm = minf(rm, OB.vortex_ring_mul(self, _fxb[u]))
+		rm = minf(rm, ObVortex.vortex_ring_mul(self, _fxb[u]))
 	cv.draw_set_transform(c + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
 	cv.draw_circle(Vector2.ZERO, zr, Color(cc.r, cc.g, cc.b, (0.08 if on else 0.045) * rm))
 	var zring: float = float(B.zone.get("ring", 1.0))   # blocks.zone.ring：区域边线透明度倍率（0 = 不画边线；10-14 浊心斯卡蒂去掉歌域外圈红线，纯画面）
@@ -715,15 +735,15 @@ func draw_auras() -> void:
 		cv.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 48, Color(cc.r, cc.g, cc.b, ((0.45 if on else 0.28) + 0.06 * sin(g.t * 3.0)) * rm * zring), 2.0)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if not sm.is_empty():
-		OB.e5_draw_zones(self, cc, on)   # 精英化第 5 批段：召唤物自带的区域椭圆
+		SegSkalter.e5_draw_zones(self, cc, on)   # 精英化第 5 批段：召唤物自带的区域椭圆
 	_draw_hold_strips(cv, "floor")
 	_draw_vortex(cv, "floor")
 	for u in _state:
 		var st = _state[u]
 		if st is Dictionary and st.has("ang"):
 			var b := _find_uid(u)
-			var pts: Array = OB.orbit_points(self, b, st.ang)
-			if b.has("fx") and OB.fx_orbit(cv, self, b, pts, g.world.fx_dim):   # 帧条代替菱形（docs/61 §5.6 at = orbit）
+			var pts: Array = ObCore.orbit_points(self, b, st.ang)
+			if b.has("fx") and ObVortex.fx_orbit(cv, self, b, pts, g.world.fx_dim):   # 帧条代替菱形（docs/61 §5.6 at = orbit）
 				continue
 			for p in pts:
 				draw_diamond(p + Vector2(0, -6), 5.0, Color(cc.r * 1.4, cc.g * 1.4, cc.b * 1.4, 0.85), Color(0.05, 0.05, 0.1, 0.7))
@@ -731,22 +751,22 @@ func draw_auras() -> void:
 
 ## 贴身层（docs/61 §5.6 layer = behind / front）：本体前后各画一遍
 func draw_body() -> void:
-	if not hw.is_empty() and OB.h3_away(self):   # 手写迁移段第 3 批：本体离场（替身在场）不画
+	if not hw.is_empty() and SegSpecter.h3_away(self):   # 手写迁移段第 3 批：本体离场（替身在场）不画
 		return
-	if not hw.is_empty() and OB.h4_draw_body(self):   # 手写迁移段第 4 批：跃空锤在空中（翻转的本体 + 扫光）
+	if not hw.is_empty() and SegSiege.h4_draw_body(self):   # 手写迁移段第 4 批：跃空锤在空中（翻转的本体 + 扫光）
 		return
 	_draw_body_fx(false)
 	if not hw.is_empty():
-		OB.hw_draw_body(self, false)   # 手写迁移段：咒域绕身符咒（后层）、血脉轮廓光……
+		ObHw.hw_draw_body(self, false)   # 手写迁移段：咒域绕身符咒（后层）、血脉轮廓光……
 	super()
 	if not hw.is_empty():
-		OB.hw_draw_body(self, true)
+		ObHw.hw_draw_body(self, true)
 	_draw_body_fx(true)
 
 
 func _draw_body_fx(front: bool) -> void:
 	for u in _fxb:
-		OB.fx_body(cv, self, _fxb[u], front)
+		ObVortex.fx_body(cv, self, _fxb[u], front)
 
 
 ## 程序漩涡（docs/61 §5.6 vortex）：floor 层在 draw_auras（人物下面）、add 层在 draw_fx_add；进出淡入淡出按条目 fade（缺省 0.5 秒淡入、FX_VORTEX_FADE 秒淡出）
@@ -755,9 +775,9 @@ func _draw_vortex(sink, layer: String) -> void:
 		return
 	for u in _fxb:
 		var e: Dictionary = _fxb[u]
-		if not OB.fx_has_vortex(e.b.fx):
+		if not ObFx.fx_has_vortex(e.b.fx):
 			continue
-		OB.fx_vortex(sink, self, e, layer, 1.0, zone_c(), zr)
+		ObVortex.fx_vortex(sink, self, e, layer, 1.0, zone_c(), zr)
 
 
 ## 常驻跟随帧条（docs/61 §5.6 hold: true，10-12 加）：ground 层在 draw_ground_fx（地砖之上、溟痕 / 地面预警之下）、floor 层在 draw_auras、add 层在 draw_fx_add
@@ -765,43 +785,43 @@ func _draw_hold_strips(ci, layer: String) -> void:
 	if pos == Vector2.INF:
 		return
 	for u in _fxb:
-		OB.fx_hold_strips(ci, self, _fxb[u], layer, zone_c(), zr)
+		ObFx.fx_hold_strips(ci, self, _fxb[u], layer, zone_c(), zr)
 
 
 ## squad.draw_ground_fx → 这里（world.draw_world 画完地砖紧接着调；没有 ground 层条目时什么都不画）
 func draw_ground_fx() -> void:
 	_draw_hold_strips(cv, "ground")
 	if not sm.is_empty():
-		OB.e5_draw_zone_ground(self)   # 精英化第 5 批段：召唤物区域的地面帧条
+		SegSkalter.e5_draw_zone_ground(self)   # 精英化第 5 批段：召唤物区域的地面帧条
 
 
 ## 画面帧条粒子（docs/61 §5.6）：地面 / 上层在这里画，加色层（add）留给 draw_fx_add
-## 德克萨斯段的冲刺剑光 / 旧剑雨（kind = tx_strip：横向拉伸、延迟起播）交给 OB.tx_draw_pfx；剑雨编排（kind = tx_rain，verb.fx_rain）交给 OB.tx_rain_draw
+## 德克萨斯段的冲刺剑光 / 旧剑雨（kind = tx_strip：横向拉伸、延迟起播）交给 SegTexas.tx_draw_pfx；剑雨编排（kind = tx_rain，verb.fx_rain）交给 SegTexas.tx_rain_draw
 func _draw_pfx(f: Dictionary, a: float) -> bool:
 	if str(f.kind) == "tx_strip":
-		return OB.tx_draw_pfx(self, f, a)
+		return SegTexas.tx_draw_pfx(self, f, a)
 	if str(f.kind) == "tx_rain":   # verb.fx_rain（docs/61 §13.5）：加色层的在 draw_fx_add 画
 		if not f.get("add", false):
-			OB.tx_rain_draw(cv, self, f)
+			SegTexas.tx_rain_draw(cv, self, f)
 		return true
 	if str(f.kind) != "strip":
-		return OB.mf_draw_pfx(self, f, a) or OB.hw_draw_pfx(self, f, a)   # 召唤物扩展段的程序粒子（crescent / impact / core / qshard / beamray）；手写迁移段（熔岩柱……）
+		return ObSummon.mf_draw_pfx(self, f, a) or SegEyjafjalla.hw_draw_pfx(self, f, a)   # 召唤物扩展段的程序粒子（crescent / impact / core / qshard / beamray）；手写迁移段（熔岩柱……）
 	if not f.get("add", false):
-		OB.fx_draw(cv, g, f, g.world.fx_dim)
+		ObFx.fx_draw(cv, g, f, g.world.fx_dim)
 	return true
 
 
 func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 	super(ci, loop)
 	if not hw.is_empty():
-		OB.h3_draw_add_all(self, ci, loop)   # 手写迁移段第 3 批：提灯光 / 灯塔光 / 光束、技能光环帧条
+		ObHw.h3_draw_add_all(self, ci, loop)   # 手写迁移段第 3 批：提灯光 / 灯塔光 / 光束、技能光环帧条
 	_draw_hold_strips(ci, "add")
 	_draw_vortex(ci, "add")
 	for f in pfx:
 		if str(f.kind) == "strip" and f.get("add", false):
-			OB.fx_draw(ci, g, f, g.world.fx_dim)
+			ObFx.fx_draw(ci, g, f, g.world.fx_dim)
 		elif str(f.kind) == "tx_rain" and f.get("add", false):
-			OB.tx_rain_draw(ci, self, f)
+			SegTexas.tx_rain_draw(ci, self, f)
 
 
 func _find_uid(u: int) -> Dictionary:
@@ -816,7 +836,7 @@ func _find_uid(u: int) -> Dictionary:
 
 func stats_rows() -> Array:
 	if not hw.is_empty():
-		return OB.hw_stats_rows(self)   # 手写迁移段：没有区域的干员不显示区域半径
+		return SegUlpianus.hw_stats_rows(self)   # 手写迁移段：没有区域的干员不显示区域半径
 	var rows: Array = [["区域半径", "%d" % int(zr)]] if zr > 0.0 else []   # 没有区域的干员（凯尔希、能天使等）不显示「区域半径 0」
 	rows.append(["伤害倍率", "×%.2f" % float(loc.dmg)])
 	return rows
@@ -825,19 +845,19 @@ func stats_rows() -> Array:
 # ---------------------------------------------------------------- 手写迁移段：手动技能（掷锚落点）、动作停帧
 
 func manual_ready(i: int, dir: Vector2 = Vector2.ZERO) -> bool:
-	return super(i, dir) and (hw.is_empty() or OB.hw_manual_ready(self, i, dir))
+	return super(i, dir) and (hw.is_empty() or SegUlpianus.hw_manual_ready(self, i, dir))
 
 
 func manual_block_reason(i: int, dir: Vector2 = Vector2.ZERO) -> String:
-	return OB.hw_manual_block_reason(self, i, dir) if not hw.is_empty() else ""
+	return SegUlpianus.hw_manual_block_reason(self, i, dir) if not hw.is_empty() else ""
 
 
 func manual_aim_point(i: int, dir: Vector2 = Vector2.ZERO) -> Vector2:
-	return OB.hw_manual_aim_point(self, i, dir) if not hw.is_empty() else Vector2.INF
+	return SegUlpianus.hw_manual_aim_point(self, i, dir) if not hw.is_empty() else Vector2.INF
 
 
 func bot_wants_manual(i: int) -> bool:
-	if not hw.is_empty() and not OB.hw_tether_of(self, i).is_empty():
+	if not hw.is_empty() and not SegUlpianus.hw_tether_of(self, i).is_empty():
 		return true   # 进攻型手动技能：就绪即放（同手写乌尔比安）
 	return super(i)
 
@@ -845,37 +865,37 @@ func bot_wants_manual(i: int) -> bool:
 func anim_state() -> Dictionary:
 	var st := super()
 	if not hw.is_empty() and hw.has("sp"):
-		st = OB.h3_anim_state(self, st)   # 手写迁移段第 3 批：倒下帧条
+		st = SegSpecter.h3_anim_state(self, st)   # 手写迁移段第 3 批：倒下帧条
 	if not hw.is_empty() and hw.has("ir"):
-		st = OB.e3_ir_anim(self, st)   # 精英化第 3 批：收尾斩的帧条
-	return OB.hw_anim_state(self, st) if not hw.is_empty() else st
+		st = SegIrene.e3_ir_anim(self, st)   # 精英化第 3 批：收尾斩的帧条
+	return SegUlpianus.hw_anim_state(self, st) if not hw.is_empty() else st
 
 
 # ---------------------------------------------------------------- 手写迁移段第 3 批：干员侧询问（squad / game 按 has_method 询问；没用到的数据干员返回中性值）
 
 ## 本体离场（替身在场）：不出手、不放技能、不画本体
 func away() -> bool:
-	return not hw.is_empty() and OB.h3_away(self)
+	return not hw.is_empty() and SegSpecter.h3_away(self)
 
 
 ## 主控本该倒下时阻止（verb.undying 所在技能生效中）
 func prevent_death() -> bool:
-	return not hw.is_empty() and OB.h3_prevent_death(self)
+	return not hw.is_empty() and SegSpecter.h3_prevent_death(self)
 
 
 ## 圣域 {pos, r}（verb.tower 灯塔在场）
 func sanctuary() -> Dictionary:
-	return OB.h3_sanctuary(self) if not hw.is_empty() else {}
+	return SegLumen.h3_sanctuary(self) if not hw.is_empty() else {}
 
 
 ## 主控照亮半径倍率（verb.lamp radius_mult）
 func light_radius_mult() -> float:
-	return OB.h3_light_mult(self) if not hw.is_empty() else 1.0
+	return SegLumen.h3_light_mult(self) if not hw.is_empty() else 1.0
 
 
 ## 触手颜色（world.gd 巨型触手破土）
 func tentacle_col(bright := 1.0) -> Color:
-	return OB.h3_tentacle_col(self, bright) if not hw.is_empty() else Color(1.3, 1.1, 1.6)
+	return SegMizuki.h3_tentacle_col(self, bright) if not hw.is_empty() else Color(1.3, 1.1, 1.6)
 
 
 ## 专属属性定义（JSON stat_defs：{属性名: {base, min, max, name}}）
@@ -891,13 +911,13 @@ func stat_defs() -> Dictionary:
 
 func sync_stats(st) -> void:
 	if not hw.is_empty():
-		OB.h3_sync_stats(self, st)
+		SegMizuki.h3_sync_stats(self, st)
 
 
 ## 伤害加成：写了 blocks.dmg_bonus 时按它算（水月：不吃同伴倍率、附近有半血敌人时 ×1.22），否则同 character.gd
 func _dmg_bonus() -> float:
 	if B.has("dmg_bonus"):
-		return OB.h3_dmg_bonus(self)
+		return SegMizuki.h3_dmg_bonus(self)
 	return super()
 
 
@@ -926,13 +946,13 @@ func cur_attack() -> Dictionary:
 
 ## 执行一个伤害形状（circle / cone 走 op_blocks.exec_shape，line 走 exec_line）；is_attack = 普攻出手，记下第一个命中点
 func exec_any_shape(b: Dictionary, at: Vector2 = Vector2.INF, is_attack := false) -> Array:
-	var hits: Array = OB.exec_line(self, b) if str(b.get("shape", "")) == "line" else OB.exec_shape(self, b, at)
+	var hits: Array = SegHoshiguma.exec_line(self, b) if str(b.get("shape", "")) == "line" else ObCore.exec_shape(self, b, at)
 	if is_attack:
 		last_hit_pos = hits[0].pos if not hits.is_empty() else Vector2.INF
 		if B.get("_e5_among", false):   # 精英化第 5 批段：记下这一次普攻命中的敌人（shape.circle among: attack）
-			e5["ah"] = OB.e5_ids(hits)
+			e5["ah"] = SegSkalter.e5_ids(hits)
 		if b.get("slash", false) and not hits.is_empty() and str(b.get("shape", "")) == "cone":
-			slash_fx(pos, (hits[0].pos - pos).angle(), deg_to_rad(float(b.get("half_deg", 45.0))), OB.shape_radius(self, b), col())
+			slash_fx(pos, (hits[0].pos - pos).angle(), deg_to_rad(float(b.get("half_deg", 45.0))), ObCore.shape_radius(self, b), col())
 	return hits
 
 
@@ -979,11 +999,11 @@ func _ext_sustain(act: Array, dt: float) -> void:
 func _ext_exec(b: Dictionary, at: Vector2) -> void:
 	match str(b.get("_tag", "")):
 		"shape.line":
-			OB.exec_line(self, b)
+			SegHoshiguma.exec_line(self, b)
 		"verb.field":
 			if b.has("tick"):   # 常驻力场（安洁莉娜）在 _sustain 里，这里只管瞬时留场
 				return
-			var c: Vector2 = OB.field_center(self, b, at)
+			var c: Vector2 = SegHoshiguma.field_center(self, b, at)
 			if c == Vector2.INF:
 				return
 			var ev: float = float(b.every)
@@ -1001,7 +1021,7 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 				var fl: Array = []
 				for f in b.fx:
 					fl.append(f if not (f is Dictionary) or f.has("life") or f.get("once", false) else f.merged({"life": float(b.dur)}))
-				OB.fx_play(self, fl, c, fr)
+				ObFx.fx_play(self, fl, c, fr)
 		"verb.negate_next":
 			if cur_skill >= 0:
 				neg_armed[cur_skill] = b
@@ -1023,7 +1043,7 @@ func dmg_taken_mult(src: Dictionary, dmg: float) -> float:
 		_negate_fx(nb)
 		_defer(nb.get("on_block", []))
 	for t in _trigs():
-		if str(t.get("_tag", "")) != "trig.on_hurt" or not OB.cond_true(self, t.get("cond", _ED)):
+		if str(t.get("_tag", "")) != "trig.on_hurt" or not ObCore.cond_true(self, t.get("cond", _ED)):
 			continue
 		var neg: bool = t.get("negate", false)
 		if neg and negated:
@@ -1031,7 +1051,7 @@ func dmg_taken_mult(src: Dictionary, dmg: float) -> float:
 		var u: int = int(t.get("_uid", 0))
 		if float(_hurt_cd.get(u, -INF)) > g.t:
 			continue
-		if not OB.roll(g, OB.hurt_chance(t, boss, neg_add, neg_mul)):
+		if not SegHoshiguma.roll(g, SegHoshiguma.hurt_chance(t, boss, neg_add, neg_mul)):
 			continue
 		if t.has("cd"):
 			_hurt_cd[u] = g.t + float(t.cd)
@@ -1040,11 +1060,11 @@ func dmg_taken_mult(src: Dictionary, dmg: float) -> float:
 			_negate_fx(t)
 		_defer(t.get("do", []))
 	if not negated:
-		var dr0: float = OB.h4_live_dr(self) if not hw.is_empty() and OB.h4_on(self) else ext_dr   # 手写迁移段第 4 批：verb.dr 当刻现算（精英化当帧生效，同手写）
-		return OB.shield_mult(self, OB.mf_guard_mult(self, dr0), dmg)   # 召唤物扩展段 verb.guard 的限时减伤；召唤 / 封印段：verb.shield 在减伤之后吸收（没有护盾时原样返回）
+		var dr0: float = ObHw.h4_live_dr(self) if not hw.is_empty() and ObHw.h4_on(self) else ext_dr   # 手写迁移段第 4 批：verb.dr 当刻现算（精英化当帧生效，同手写）
+		return ObSummon.shield_mult(self, ObSummon.mf_guard_mult(self, dr0), dmg)   # 召唤物扩展段 verb.guard 的限时减伤；召唤 / 封印段：verb.shield 在减伤之后吸收（没有护盾时原样返回）
 	negate_n += 1
 	for t in _trigs():
-		if str(t.get("_tag", "")) == "trig.on_negate" and OB.cond_true(self, t.get("cond", _ED)):
+		if str(t.get("_tag", "")) == "trig.on_negate" and ObCore.cond_true(self, t.get("cond", _ED)):
 			_defer(t.get("do", []))
 	return 0.0
 
@@ -1059,7 +1079,7 @@ func _defer(arr: Array) -> void:
 ## 格挡的画面 / 声音（不碰 g.rng）：通用 fx（§5.6，中心 = 主控）、text = 飘字（缺省「格挡」）
 func _negate_fx(b: Dictionary) -> void:
 	if b.has("fx"):
-		OB.fx_play(self, b.fx, g.ppos, 30.0)
+		ObFx.fx_play(self, b.fx, g.ppos, 30.0)
 	float_text(g.ppos + Vector2(0, -88), str(b.get("text", "格挡")), Color(1.0, 0.85, 0.4), 16)
 	_sfx_op("big")
 
@@ -1067,9 +1087,9 @@ func _negate_fx(b: Dictionary) -> void:
 ## 地面层：区域帧条由通用 fx 在生成时播（pfx，循环到区域结束）；没写 fx / 缺图时画程序椭圆；negate_next 待命时主控脚下一圈金色盾环
 func draw_entities_floor() -> void:
 	if not hw.is_empty():
-		OB.hw_draw_floor(self)   # 手写迁移段：浪墙 / 熔岩池 / 咒文……
+		ObHw.hw_draw_floor(self)   # 手写迁移段：浪墙 / 熔岩池 / 咒文……
 	for f in fields:
-		if OB.fx_any_tex(self, f.fx):
+		if ObFx.fx_any_tex(self, f.fx):
 			continue
 		var a: float = clampf((f.n * f.every - f.t) / 0.4, 0.0, 1.0) * clampf(f.t / 0.15, 0.0, 1.0)
 		var cc: Color = col()
@@ -1103,7 +1123,7 @@ func _fire_point_aoe(a: Dictionary) -> void:
 	if not lp.is_empty():
 		to = lp.pos
 	else:
-		to = OB.point_aoe_target(self, a)
+		to = SegAngelina.point_aoe_target(self, a)
 	if to == Vector2.INF:
 		to = atk_to
 	if to == Vector2.INF:
@@ -1116,11 +1136,11 @@ func _fire_point_aoe(a: Dictionary) -> void:
 			ammo[i] -= 1
 			patch = sk[i].get("attack_patch", {})
 			break
-	OB.point_aoe_fire(self, a, to, patch)
+	SegAngelina.point_aoe_fire(self, a, to, patch)
 
 
 func _tick_shots(dt: float) -> void:
-	OB.airborne_tick(self, dt)
+	SegAngelina.airborne_tick(self, dt)
 	if shots.is_empty():
 		return
 	var a: Dictionary = B.get("attack", {})
@@ -1131,7 +1151,7 @@ func _tick_shots(dt: float) -> void:
 			landed.append(s)
 	shots = shots.filter(func(s): return s.t < s.dur)
 	for s in landed:
-		OB.point_aoe_land(self, a, s)
+		SegAngelina.point_aoe_land(self, a, s)
 		_sfx_op("hit")
 		fx({"kind": "ring", "pos": s.p1, "r": float(a.get("r", 60.0)) * float(loc.area), "r0": 6.0, "life": 0.3, "col": GRAV, "floor": true, "w": 2.0, "alpha": 0.7})
 
@@ -1139,7 +1159,7 @@ func _tick_shots(dt: float) -> void:
 ## 落点触发（trig.on_impact）：c = 落点；delay > 0 进延迟队列（带落点）
 func impact(c: Vector2) -> void:
 	for t in _trigs():
-		if str(t.get("_tag", "")) != "trig.on_impact" or not OB.cond_true(self, t.get("cond", _ED)):
+		if str(t.get("_tag", "")) != "trig.on_impact" or not ObCore.cond_true(self, t.get("cond", _ED)):
 			continue
 		var dl: float = float(t.get("delay", 0.0))
 		if dl > 0.0:
@@ -1224,48 +1244,48 @@ func _draw_shots() -> void:
 
 func _draw_skill_over() -> void:
 	_draw_shots()      # 安洁莉娜段：重力弹
-	OB.exu_draw(self)  # 能天使段：弹体
-	OB.sm_draw_over(self)   # 召唤 / 封印段：封印标记、护盾
-	OB.mf_draw_guards(self)  # 召唤物扩展段：限时减伤护壳
-	OB.el_draw_over(self)    # 精英化段：往返弹体
+	SegExusiai.exu_draw(self)  # 能天使段：弹体
+	ObSummon.sm_draw_over(self)   # 召唤 / 封印段：封印标记、护盾
+	ObSummon.mf_draw_guards(self)  # 召唤物扩展段：限时减伤护壳
+	ObElite.el_draw_over(self)    # 精英化段：往返弹体
 	if not hw.is_empty():
-		OB.hw_draw_over(self)   # 手写迁移段：法术弹 / 抛射火团 / 咒文 / 锚……（第 3 批：浮空影环、锯弧、光弹、水母……）
+		ObHw.hw_draw_over(self)   # 手写迁移段：法术弹 / 抛射火团 / 咒文 / 锚……（第 3 批：浮空影环、锯弧、光弹、水母……）
 	_draw_hold_strips(cv, "over")   # 常驻跟随帧条的 over 层（精英化段：能天使祝福光环挂在队友头顶）
 
 
 func status_items() -> Array:
-	return OB.mf_status_items(self) + OB.exu_status_items(self) + OB.sm_status_items(self) + (OB.hw_status_items(self) if not hw.is_empty() else [])
+	return ObSummon.mf_status_items(self) + SegExusiai.exu_status_items(self) + ObSummon.sm_status_items(self) + (SegEyjafjalla.hw_status_items(self) if not hw.is_empty() else [])
 
 
 ## 手写迁移段：自己的法术弹（shape.shell，game 的 fire 子弹）爆炸后由 weapons.gd 回调
 func bullet_exploded(b: Dictionary) -> void:
-	OB.hw_shell_boom(self, b)
+	SegEyjafjalla.hw_shell_boom(self, b)
 
 
 ## 精英化第 2 批段：本干员造成伤害之后（咒文链上的传递）
 func deal_damage(e: Dictionary, dmg: float) -> void:
 	super(e, dmg)
 	if not hw.is_empty():
-		OB.hw_dealt(self, e, dmg)
+		SegLogos.hw_dealt(self, e, dmg)
 
 
 # ---------------------------------------------------------------- 召唤 / 封印段（docs/61 §15）：召唤物参与 2.5D 排序（同凯尔希 Mon3tr 的 extra_bodies）
 
 func extra_bodies() -> Array:
-	return OB.sm_bodies(self) + (OB.h3_extra_bodies(self) + OB.h4_extra_bodies(self) if not hw.is_empty() else [])   # 手写迁移段第 3 批：替身 / 灯塔；第 4 批：晶柱
+	return ObSummon.sm_bodies(self) + (ObHw.h3_extra_bodies(self) + SegSaria.h4_extra_bodies(self) if not hw.is_empty() else [])   # 手写迁移段第 3 批：替身 / 灯塔；第 4 批：晶柱
 
 
 func draw_extra(it: Dictionary) -> void:
 	if it.has("h4"):   # 手写迁移段第 4 批：晶柱
-		OB.h4_draw_extra(self, it)
+		SegSaria.h4_draw_extra(self, it)
 		return
 	if it.has("h3"):
-		OB.h3_draw_body_extra(self, it)
+		ObHw.h3_draw_body_extra(self, it)
 		return
-	OB.sm_draw(self, it.s)
+	ObSummon.sm_draw(self, it.s)
 
 
 func draw_extra_shadows() -> void:
-	OB.sm_shadows(self)
+	ObSummon.sm_shadows(self)
 	if not hw.is_empty():
-		OB.h3_shadows(self)
+		ObHw.h3_shadows(self)
