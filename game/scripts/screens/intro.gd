@@ -286,7 +286,10 @@ func draw_icon(kind: String, c: Vector2) -> void:
 			if tx != null:
 				var fh0 := tx.get_height()
 				var fr := int(g.intro_t * 8.0) % maxi(1, tx.get_width() / fh0)
-				g.hud.draw_texture_rect_region(tx, Rect2(c - Vector2(96, 150), Vector2(192, 192)), Rect2(fh0 * fr, 0, fh0, fh0))
+				# 1 美术像素 = 4 屏幕像素，脚底落在 c + (0, 34)；画布 48 / 64 都按 json foot 对齐（48 画布 = 原来的 c − (96, 150)、192 见方）
+				var fs1: float = fh0 / A.hires_of(tx)
+				var ft0: Array = g.ch.sprite_spec("attack").get("foot", g.ch.def.get("sprites", {}).get("foot", [fs1 / 2.0, fs1 - 2.0]))
+				g.hud.draw_texture_rect_region(tx, Rect2(c + Vector2(0, 34) - Vector2(float(ft0[0]), float(ft0[1])) * 4.0, Vector2(fs1, fs1) * 4.0), Rect2(fh0 * fr, 0, fh0, fh0))
 			for k in 3:
 				var et: Texture2D = g.tex.get(["e_bone", "e_slider", "e_stone"][k])
 				if et != null:

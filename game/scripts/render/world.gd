@@ -73,8 +73,9 @@ const DIM_KINDS := ["explode", "burst", "rays", "ring", "impact", "bslash", "sla
 const FOE_KINDS := ["boss_phase", "boss_down", "spear_fly", "frost_track", "frost_step", "reflow", "glint", "drain"]   # 没打 enemy 标记的敌方 / Boss 特效（量测分层用）
 const AMB_KINDS := ["mote", "horde_ring", "beacon_burst", "mire_recoil"]   # 系统 / 环境（光尘、大群波、灯标）：量测单独一层
 const PROJ_TEX := {"arrow": "proj_arrow", "fire": "proj_fireball", "arcane": "proj_arcane"}
-## 水月 48px 动画（Codex 交付：idle 4 帧 4fps、run 6 帧 10fps、hurt 2 帧 10fps 单次、
-## death 4 帧 6fps 停末帧、attack 用 player_attack_48 4 帧）。脚底锚点 (24,46)。
+## 水月旧主角动画（Codex 交付：idle 4 帧 4fps、run 6 帧 10fps、hurt 2 帧 10fps 单次、
+## death 4 帧 6fps 停末帧、attack 用 player_attack_48 4 帧）。帧为正方形，画布 48 或 64（docs/103 §5），
+## 脚底锚点读 mizuki.json sprites.foot（48 画布 (24,46)、64 画布 (32,60)）。
 ## 若只有攻击条而没有 48px 的其他动作，则用攻击第 1 帧 + 代码起伏兜底。
 const P48 := {"idle": [4.0, true], "run": [10.0, true], "hurt": [10.0, false], "death": [6.0, false]}
 
@@ -1561,7 +1562,7 @@ func update_doctor_anim(dt: float) -> void:
 		g.sprite.hframes = max(1, tx.get_width() / tx.get_height())
 		# 脚底锚点：data/doctor.json 的 sprites.foot（旧 2 帧待机条为 45，编队美术第一批为 46）
 		var foot_y: float = float(sp.get("foot", [24, 45])[1])
-		g.sprite.offset = Vector2(0, -tx.get_height() / 2.0 + (48.0 - foot_y) * A.hires_of(tx))
+		g.sprite.offset = Vector2(0, -tx.get_height() / 2.0 + (tx.get_height() / A.hires_of(tx) - foot_y) * A.hires_of(tx))   # 帧高按贴图算（48 / 64 画布）
 	anim_t += dt
 	var n := g.sprite.hframes
 	g.sprite.rotation = 0.0
@@ -1585,7 +1586,7 @@ func p48_tex(kind: String) -> Texture2D:
 	if kind == "attack":
 		return g.tex.get("player_attack_48")
 	var tx: Texture2D = g.tex.get("player_" + kind)
-	if tx != null and tx.get_height() == int(48.0 * A.hires_of(tx)):
+	if tx != null and tx.get_height() >= int(48.0 * A.hires_of(tx)):   # 48 / 64 画布都收；更小的是早期 32px 条
 		return tx
 	return null
 
@@ -1610,7 +1611,9 @@ func update_player_anim48(dt: float) -> void:
 		anim_t = 0.0
 		g.sprite.texture = tx
 		g.sprite.hframes = max(1, tx.get_width() / tx.get_height())
-		g.sprite.offset = Vector2(0, -tx.get_height() / 2.0 + 2.0 * A.hires_of(tx))
+		var hi48 := A.hires_of(tx)
+		var fy48: float = float(g.ch.def.get("sprites", {}).get("foot", [0, tx.get_height() / hi48 - 2.0])[1]) if g.ch != null else tx.get_height() / hi48 - 2.0
+		g.sprite.offset = Vector2(0, -tx.get_height() / 2.0 + (tx.get_height() / hi48 - fy48) * hi48)   # 脚底读 json（48 画布 = 帧底上 2 像素，同旧版）
 	anim_t += dt
 	var n := g.sprite.hframes
 	g.sprite.rotation = 0.0

@@ -1002,7 +1002,9 @@ func _art_fit(e: Dictionary, ph: bool) -> Array:
 	var sr := Rect2(146, 34, 320, 264) if ph else Rect2(436, 56, 444, 388)
 	var bb: Rect2 = od.bb
 	var hi: float = float(od.get("hires", 1.0))
-	return UI.art_fit(bb.size.x * 2.0 / hi, bb.size.y * 2.0 / hi, sr, ART_K * (0.6 if ph else 1.0), 380.0 if ph else 680.0, sr.end.y - 8.0)
+	var tx: Texture2D = od.get("tex")
+	var fh: float = UI.fit_h(bb, float(tx.get_height()), hi) if e.has("op") and tx != null else bb.size.y   # 干员 64 画布：角 / 武器超出身体不触发降倍
+	return UI.art_fit(bb.size.x * 2.0 / hi, fh * 2.0 / hi, sr, ART_K * (0.6 if ph else 1.0), 380.0 if ph else 680.0, sr.end.y - 8.0)
 
 
 func _band_col(e: Dictionary) -> Color:

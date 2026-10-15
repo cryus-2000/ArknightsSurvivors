@@ -1053,7 +1053,7 @@ static func roster_card(ci: CanvasItem, font: Font, r: Rect2, od: Dictionary, li
 		var bb: Rect2 = od.get("bb", Rect2(0, 0, fw, tx.get_height()))
 		# 整数倍（@2x 像素 1 / 2 / 3 倍；放不下高度时退到 0.5 = 原始像素 1:1），整身放进卡里：脚底尽量站在名字条上方，
 		# 卡矮时脚往下沉到名字条后面（离底边 5）；左右超出的几像素裁掉，任何干员都不出框
-		var h2: float = bb.size.y * 2.0 / hi
+		var h2: float = fit_h(bb, tx.get_height(), hi) * 2.0 / hi   # 64 画布：角 / 武器超出身体不触发降倍
 		var kk: float = clampf(floorf((r.size.y - 46.0) / h2), 1.0, 3.0)
 		if h2 * kk > r.size.y - 10.0:
 			kk = 0.5
@@ -1330,6 +1330,15 @@ static func art_fit(w2: float, h2: float, stage: Rect2, kmax: float, cx: float, 
 	var half: float = w2 * k / 2.0
 	cx = clampf(cx, stage.position.x + m + half, stage.end.x - m - half)
 	return [k, Vector2(cx, foot_y)]
+
+
+## 干员立绘判倍率用的高度（贴图像素）：64 画布起（帧高 / hires > 48，docs/103 §5），角 / 帽 / 武器超出「身体」的部分不触发降倍——
+## 按 STAND_FIT 美术像素封顶（docs/103 §3 站立高上限 36 + 1）；48 画布原样用并集区高度（现有帧条结果不变）。只给干员用（Boss 帧条也可能 > 48）
+const STAND_FIT := 37.0
+static func fit_h(bb: Rect2, fh: float, hi: float) -> float:
+	if fh / hi <= 48.0:
+		return bb.size.y
+	return minf(bb.size.y, STAND_FIT * hi)
 
 
 ## 待机帧并集区（各帧非透明区的并集，立绘按它对齐、不抖）；读不到图（无头）就用整帧

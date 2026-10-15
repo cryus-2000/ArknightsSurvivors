@@ -414,7 +414,7 @@ func _portrait(id: String, box: Rect2, kmax: float, by_height := false) -> Rect2
 	var nfr: int = maxi(1, tx.get_width() / maxi(1, fw))
 	var fr := 0 if (UM.rm() or UM.skip_all()) else int(UM.now() * 4.0) % nfr
 	var bb := _bbox(tx, fw, fh, nfr)
-	return _fit(tx, Rect2(fr * fw, 0, fw, fh), bb, 2.0 if fh > 64 else 1.0, box, kmax, 1.0, by_height)
+	return _fit(tx, Rect2(fr * fw, 0, fw, fh), bb, A.hires_of(tx), box, kmax, 1.0, by_height)   # 原来按 fh > 64 猜 @2x，64 画布 1x 正好卡边界
 
 
 ## 环境击倒者的图：溟痕用地面溟痕贴图，其余（黑潮 / 寂灭 / 围猎……）用生成的像素图
