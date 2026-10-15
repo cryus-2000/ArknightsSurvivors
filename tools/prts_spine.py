@@ -40,6 +40,8 @@ OPS = {
     "kaltsit": "凯尔希", "suzuran": "铃兰", "ulpianus": "乌尔比安", "irene": "艾丽妮", "specter_unchained": "归溟幽灵鲨", "logos": "逻各斯",
     "lumen": "流明", "skalter": "浊心斯卡蒂", "texas": "德克萨斯", "hoshiguma": "星熊", "exusiai": "能天使", "angelina": "安洁莉娜",
 }
+# 页面缺失 / 页面给的路径在静态站 404 的干员：直接按静态站标准路径 spine38/char/<角色 id>/<角色 id>/<角色 id> 取（10-15 逐个试出来的）
+DIRECT = {"irene": "char_4009_irene", "specter_unchained": "char_1023_ghost2", "lumen": "char_4042_lumen"}
 PICK = {
     "idle": ["Idle"],
     "attack": ["Attack", "Attack_Loop", "Combat", "Attack_1"],
@@ -89,6 +91,9 @@ def download(oid, name, refresh):
     meta = os.path.join(d, "meta.json")
     if os.path.exists(meta) and not refresh:
         m = json.load(open(meta, encoding="utf-8"))
+    elif oid in DIRECT:
+        c = DIRECT[oid]
+        m = {"name": name, "prefix": "https://static.prts.wiki/spine38/", "file": "char/%s/%s/%s" % (c, c, c)}
     else:
         prefix, f = spine_file(name)
         m = {"name": name, "prefix": prefix, "file": f}
