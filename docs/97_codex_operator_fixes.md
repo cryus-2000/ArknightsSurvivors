@@ -533,3 +533,60 @@ C 批（7 人 idle / skill 压到 24 色）与 E 批（明度 5 人）把 **艾�
 ### 量产时顺手改（不单开一轮）
 
 - 逻各斯 B-HD 两条小修：@2x 肩宽每侧加 2–3 像素（肩宽 / 头宽到 ≥ 0.79）；腰线上提 2–4 像素（腰位回到 ≤ 0.63）。
+
+## J 批：18 人 + 博士量产单（骨架，**待 I 批第 2 轮通过后启用**；10-16 界面与美术起草）
+
+> 前提：逻各斯 B-HD（试验 3）已放行作定稿样张；水月、铃兰（I 批第 2 轮）通过、用户确认后本单才启用。启用前不派、不画。规格全按试验 3 / I 批第 2 轮：B 尺度、@2x 原生 128 画布、1x 自动缩 + `tools/px_lint.py`、Q 版头身、docs/103 §5 七条约束 + 两条纪律、头饰 / 武器 / 尾巴画全。只交素材，不改 `game/`。
+
+### 通用
+
+- **原点换算**：各动作的 foot（`game/data/characters/<id>.json`）1x 一律 **+ (8, 14)** 落到 64 画布，@2x 再 × 2；下表只列待机的原点，其余动作照 json 里各自的 foot 换算。
+- **设定色**：表里「待核」的一律在写到该人前对 PRTS 立绘 + 小人核过再填（docs/87 §4.3、docs/76 §4），不凭印象写；已填的是 G 批 / 试验 3 已核过的。
+- **标志饰件**：取自 PRTS 小人待机帧观察（`build/prts_ref/<id>/idle_f00`），写到该人时对立绘复核；按 docs/103 §7（草案）作为「认人三要素」第 ③ 项。
+- **参照**：每人 PRTS 小人待机 / 攻击 / 技能帧，入库到 `art/reference/prts/<id>/`（逻各斯、水月、铃兰已入库，其余开工前从主仓库 `build/prts_ref/<id>/` 复制）；立绘 `https://prts.wiki/w/<中文名>`；main 现版帧条作对照。
+
+### 名单（按簇；站立高 / 头高 1x，见 docs/103 §3）
+
+肩宽 / 头宽：幼 0.70、少女 0.70 / 少年 0.62、成女 0.81、成男 0.89（±0.05）。
+
+| 干员 | 簇 | 站立高 | 头高 | 待机原点 1x / @2x | 设定色 | 标志饰件 | 参照 | 动作集（现帧数） |
+|---|---|---|---|---|---|---|---|---|
+| 铃兰 | 幼 | 32 ± 1 / 发顶到脚底 28 | 12.5–13 | (32, 60) / (64, 120) | 瞳绿；暖金发；蓝发箍；薰衣草紫裙 + 深蓝条纹披风内衬；杖深金属 + 金 | 狐耳、多条狐尾、蓝发箍、法杖 | `art/reference/prts/suzuran/`（缺的从 `build/prts_ref/suzuran/` 复制入库） | idle 4、run 6、attack 4、skill 6（20 帧） |
+| 能天使 | 少 | 34 ± 1 / 发顶到脚底 30 | 13 | (32, 60) / (64, 120) | 待核 | 头顶光环、红色短发、步枪 | `art/reference/prts/exusiai/`（缺的从 `build/prts_ref/exusiai/` 复制入库） | idle 4、run 6、attack 4、skill 7（21 帧） |
+| 艾雅法拉 | 少 | 34 ± 1 / 发顶到脚底 30 | 13 | (32, 60) / (64, 120) | 瞳粉；棕卷发；白羊角；红飘带；深灰黑长袜 | 羊角、棕色卷发、细法杖 | `art/reference/prts/eyjafjalla/`（缺的从 `build/prts_ref/eyjafjalla/` 复制入库） | idle 4、run 6、attack 4、skill 8（22 帧） |
+| 艾丽妮 | 少 | 34 ± 1 / 发顶到脚底 30 | 13 | (32, 60) / (64, 120) | 瞳灰白带淡粉；象牙白 / 中性灰发；粉色飘带、粉白格纹裙、粉红灯芯 | 黑色角饰、灰白长发、细剑 + 提灯 | `art/reference/prts/irene/`（缺的从 `build/prts_ref/irene/` 复制入库） | idle 4、run 6、attack 5、skill 7、finisher 7（29 帧） |
+| 安洁莉娜 | 少 | 34 ± 1 / 发顶到脚底 30 | 13 | (32, 60) / (64, 120) | 待核 | 红色发箍 + 狐耳、双马尾、长法杖 | `art/reference/prts/angelina/`（缺的从 `build/prts_ref/angelina/` 复制入库） | idle 4、run 6、attack 5、skill 7、float_in 4、float 6、float_move 6、float_attack 5（43 帧） |
+| 凯尔希 | 少 | 34 ± 1 / 发顶到脚底 30 | 13 | (32, 60) / (64, 120) | 待核 | 猫耳、白发、Mon3tr（召唤物另条） | `art/reference/prts/kaltsit/`（缺的从 `build/prts_ref/kaltsit/` 复制入库） | idle 4、run 6、attack 4、skill 6、m_idle 4、m_run 6、m_attack 4、command 6、m_skill 6、m_attack_melt 4、m_lunge 6、m_leap 6（62 帧） |
+| 斯卡蒂 | 少 | 34 ± 1 / 发顶到脚底 30 | 13 | (34, 60) / (68, 120) | 瞳红；银发；黑帽冠 + 蓝帽檐内衬；胸前蓝饰带 | 宽檐帽、银发、大剑 | `art/reference/prts/skadi/`（缺的从 `build/prts_ref/skadi/` 复制入库） | idle 4、run 6、attack 5、skill 7、attack_spin 6、leap_strike 7（35 帧） |
+| 水月 | 少 | 34 ± 1 / 发顶到脚底 30 | 13 | (32, 60) / (64, 120) | 瞳淡粉（粉紫）；浅蓝白发；黄绿高领；全黑袜 | 深蓝帽（四瓣帽徽）、浅蓝白发、伞 | `art/reference/prts/mizuki/`（缺的从 `build/prts_ref/mizuki/` 复制入库） | idle 4、run 6、attack 4、skill 8、hurt 2、death 4（28 帧） |
+| 塞雷娅 | 成女 | 35 ± 1 / 发顶到脚底 31 | 13.5 | (32, 60) / (64, 120) | 待核 | 角、白发、方格大盾 | `art/reference/prts/saria/`（缺的从 `build/prts_ref/saria/` 复制入库） | idle 4、run 6、attack 4、skill 6、skill_heal 6（26 帧） |
+| 浊心斯卡蒂 | 成女 | 35 ± 1 / 发顶到脚底 31 | 13.5 | (29, 60) / (58, 120) | 待核 | 宽檐帽（青黑）、银发、红衣、法杖 | `art/reference/prts/skalter/`（缺的从 `build/prts_ref/skalter/` 复制入库） | idle 4、run 6、attack 5、skill 7、ishar_idle 4、ishar_move 6、ishar_attack 4、ishar_summon 6（42 帧） |
+| 维什戴尔 | 成女 | 35 ± 1 / 发顶到脚底 31 | 13.5 | (32, 60) / (64, 120) | 待核 | 红黑角饰 / 光环、银发、背后武器群 | `art/reference/prts/wisadel/`（缺的从 `build/prts_ref/wisadel/` 复制入库） | idle 4、run 6、attack 5、skill 7（22 帧） |
+| 星熊 | 成女 | 35 ± 1 / 发顶到脚底 31 | 13.5 | (32, 60) / (64, 120) | 待核 | 单角、绿色长发、大盾 | `art/reference/prts/hoshiguma/`（缺的从 `build/prts_ref/hoshiguma/` 复制入库） | idle 4、run 6、attack 5、skill 7、throw 6（28 帧） |
+| 德克萨斯 | 成女 | 35 ± 1 / 发顶到脚底 31 | 13.5 | (36, 60) / (72, 120) | 待核 | 狼耳、黑色长发、剑 | `art/reference/prts/texas/`（缺的从 `build/prts_ref/texas/` 复制入库） | idle 4、run 6、attack 5、skill 7（22 帧） |
+| 推进之王 | 成女 | 35 ± 1 / 发顶到脚底 31 | 13.5 | (32, 60) / (64, 120) | 待核 | 狮耳、棕发、战锤 | `art/reference/prts/siege/`（缺的从 `build/prts_ref/siege/` 复制入库） | idle 4、run 6、attack 4、skill 6、command 6（26 帧） |
+| 归溟幽灵鲨 | 成女 | 35 ± 1 / 发顶到脚底 31 | 13.5 | (32, 60) / (64, 120) | 待核 | 宽檐帽、银发、锯齿圆轮 | `art/reference/prts/specter_unchained/`（缺的从 `build/prts_ref/specter_unchained/` 复制入库） | idle 4、run 6、attack 5、skill 7、doll 4、fall 5、doll_spin 6（37 帧） |
+| 逻各斯 | 成男 | 36 ± 1 / 发顶到脚底 32 | 14 | (33, 60) / (66, 120) | 瞳 #E24C23；灰蓝发 #9CB7CD；黑衣 + 亮蓝内衬 #2C61BE；青领缘 #36C3E7 | 黑色分叉双角、灰蓝乱发 + 长刘海、左拖黑蓝长外套、胸前骨笔 | `art/reference/prts/logos/`（缺的从 `build/prts_ref/logos/` 复制入库） | idle 4、run 6、attack 4、skill 8（22 帧） |
+| 乌尔比安 | 成男 | 36 ± 1 / 发顶到脚底 32 | 14 | (33, 60) / (66, 120) | 瞳红；银发；帽上红羽 / 红纹 | 帽 + 红羽、面罩、锚 + 铜轮 | `art/reference/prts/ulpianus/`（缺的从 `build/prts_ref/ulpianus/` 复制入库） | idle 4、run 6、attack 5、skill 7、throw 8（30 帧） |
+| 流明 | 成男 | 36 ± 1 / 发顶到脚底 32 | 14 | (32, 60) / (64, 120) | 待核 | 长呆毛、深蓝乱发、眼镜、背包 / 提灯 | `art/reference/prts/lumen/`（缺的从 `build/prts_ref/lumen/` 复制入库） | idle 4、run 6、attack 4、skill 6、lighthouse 2（22 帧） |
+| 博士 | 另列 | 33（兜帽无脸，不分发顶） | — | (32, 60) / (64, 120) | 待核 | 兜帽、无脸 | 编队美术第一批现版 | idle 4、run 6、hurt 2、death 4（16 帧） |
+
+- 合计约 **553 帧**（每帧 1x + @2x 两级）。凯尔希的 Mon3tr 召唤物条（m_*）已经是 64 画布（foot (32, 60)），只按 HD 补细节、不改尺寸；流明的灯塔道具条（lighthouse）同理。
+- 目前只有水月、博士有受击 / 死亡条；其余干员用代码兜底，这一批**不新增**受击 / 死亡（要加另开单）。
+- 逻各斯量产时顺手改两条小修（I 批第 2 轮末尾）。
+
+### 交付顺序（建议）
+
+1. **阶段 1：全员 f0 核量**。18 人 + 博士各交待机 f0（1x + @2x）。按簇分 4 包：成男 → 成女 → 少 → 幼 + 博士。每包交完界面与美术统一复量；全员通过再进阶段 2，避免整条画完才发现比例跑偏。
+2. **阶段 2：待机整条**（4 帧），呼吸起伏和 f0 一致。
+3. **阶段 3：跑 / 攻击 / 技能**。姿势取 PRTS 对应动画帧；技能末帧 = 待机 f0（docs/87）。
+4. **阶段 4：专属帧条**（finisher、throw、float_*、doll_*、ishar_*、command、skill_heal 等）。
+
+每个阶段一人一个提交，交付目录 `art/incoming/j_<阶段>_<簇>/`。
+
+### 验收（界面与美术）
+
+- 每帧过 `tools/px_lint.py`（孤点 / 单点高光 = 0、描边、色数、1x↔@2x 对块）。
+- `tools/body_metrics.py` 复量 + 人工量项（肩宽 / 头宽、腰位、腿长、前倾、脖子）。阶段 1 逐人，之后按帧抽查。
+- 同屏：每包装进游戏，和已过的干员、普通怪 + 精英 + Boss 同 seed 同帧截图，另附编队卡 / 选人页 / 图鉴。
+- 任一项超出 docs/103 §3 区间或七条约束整张退；退修只改被点名的地方。
