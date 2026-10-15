@@ -479,6 +479,16 @@ game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCo
 - **这一步没动的**：每帧 tick / `_sustain` 末尾仍是「全段都调、按清单顺序」（§7.3.2 的第一步本来就这样定），按 JSON + 状态裁剪是 ④；blocks 内部经 `_F()` 的反向调用也还在（它们是段之间的普通调用，不属于分派，等 ④ 段裁剪时按依赖整理）。
 - 金样：只改了 `data_operator.gd`（公共），「别处」不变，积木等价与 ship 重录的金样真比。
 
+#### 7.3.8 ④ 常驻段裁剪（干员会话 10-15，分支 claude/b6-trim）
+
+- 逐个读了每帧调用的段（tick 与 `_sustain` 末尾）。**tick 本来就各自判空**：`hw_tick` 在调用处按 `hw` 非空、`exu_tick` 按 `_exu_used`、`sm_tick` 按 `sm` 非空、`el_tick` 按往返弹体非空、`mf_tick` 按 `guards` / `_mf_deploy` 提前返回；`tx_update` 只在主控冲刺上升沿才查触发。这些判断已经是「按状态裁剪」，再在调用处重复一遍没有收益，不动。
+- **真正每帧白做的是常驻段的逐块匹配**：`_ext_sustain`、`tx_sustain`、`sm_sustain`、`mf_sustain`、`el_sustain_collect` 每帧都把本帧生效的积木（`act`）从头到尾按 tag 比一遍，绝大多数干员一个都匹配不上。
+  做法：载入时 `ObCore.tag_set(B)` 深扫编译后的积木，记下出现过的全部 tag（`data_operator.tags_all`）；上面 5 处在本干员**根本没有**对应 tag（`verb.dr / negate_chance / swap_attack`、`verb.dash_mod`、`aura.heal`、`verb.summon_mod`、`st.stack`）时跳过逐块匹配，循环之后的写回（倍率回 1、清空映射等）照旧执行。
+- **为什么零差**：`act` 里的积木全部出自本干员的 `B`（特性 / 技能 / 天赋 / 成长节点 / 精英化，加上 `el.timed` 里存的也是 `B` 里的 `verb.buff_timed` 块），`B` 编译后不再增删积木（运行时只写 `_mf_deploy` 这类标记），所以 `B` 里没出现的 tag 每帧一定匹配不上，跳过等于原来什么都没匹配到。
+  测试里直接拿假对象调这些函数（`test_core` 的 `tx_sustain` / `mf_sustain`）：没有 `tags_all` 的对象由 `ObCore.has_tag` 一律当「有」，照旧逐块匹配。
+- **没做的**：blocks 内部经 `_F()` 的反向调用（链上早的文件调晚的文件，约 255 处）保留。它们是段之间的普通调用，`_F()` 有缓存，开销只是一次多余的函数调用；要去掉得把调度函数挪到链尾或改成注册表回调，是纯结构调整、没有性能收益，放到以后有人要动这些段时顺手做。
+- 金样：改了 `ob_core` / `ob_elite` / `ob_summon`（公共）与 `seg_texas`（德克萨斯本人），德克萨斯组「别处」不变照比，其余各组本干员侧变化、「别处」不变，都真比。
+
 ### 7.4 B7 实施方案（架构，10-15 起草；换基线，开工前协调人安排云端新基线）
 
 B7 是唯一一次「同 seed 会变」的步骤：用户 10-15 已同意换基线。做法是**一条分支上按下面次序逐项做，每项本地 TRACE 只看「变了、没报错、局能打完」，全部做完后一次性上云跑新基线**，与旧基线比胜率 / 用时 / 掉落等汇总指标（docs/50 口径，差 <10 点不下结论），通过后把新基线登记进 docs/36 §8。

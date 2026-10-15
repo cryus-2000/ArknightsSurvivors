@@ -639,7 +639,7 @@ static func shield_mult(o, m: float, raw: float) -> float:
 ## 常驻部分（data_operator._sustain 末尾）：aura.heal 每秒回复（各积木独立计时，没生效的计时清零）
 static func sm_sustain(o, act: Array, dt: float) -> void:
 	var seen := {}
-	for b in act:
+	for b in (act if has_tag(o, "aura.heal") else _EA):   # B6 ④
 		if str(b.get("_tag", "")) != "aura.heal":
 			continue
 		var st := sm_st(o)
@@ -985,7 +985,7 @@ static func mf_exec(o, b: Dictionary, _at: Vector2) -> void:
 ## 常驻（data_operator._sustain 转来）：verb.summon_mod 按本帧生效顺序整理成每种召唤物的倍率表
 static func mf_sustain(o, act: Array) -> void:
 	var mods := {}
-	for b in act:
+	for b in (act if has_tag(o, "verb.summon_mod") else _EA):   # B6 ④
 		if str(b.get("_tag", "")) != "verb.summon_mod":
 			continue
 		var k: String = str(b.get("kind", ""))

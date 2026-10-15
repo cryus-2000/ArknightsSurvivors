@@ -140,8 +140,9 @@ static func el_path_circles(o, b: Dictionary) -> void:
 ## 本帧生效的限时增益积木（按 key 首次触发的顺序，确定性）追加进常驻列表；同时记下本帧的 st.stack
 static func el_sustain_collect(o, act: Array) -> void:
 	var el = o.get("el")
+	var has_sk: bool = has_tag(o, "st.stack")   # B6 ④：没有 st.stack 的干员不逐块找
 	if not (el is Dictionary) or el.is_empty():
-		for b in act:
+		for b in (act if has_sk else _EA):
 			if str(b.get("_tag", "")) == "st.stack":
 				el_st(o)
 				break
@@ -155,7 +156,7 @@ static func el_sustain_collect(o, act: Array) -> void:
 		else:
 			o.el.timed.erase(k)
 	var sk: Array = []
-	for b in act:
+	for b in (act if has_sk else _EA):
 		if str(b.get("_tag", "")) == "st.stack":
 			sk.append(b)
 	o.el["stack_on"] = sk

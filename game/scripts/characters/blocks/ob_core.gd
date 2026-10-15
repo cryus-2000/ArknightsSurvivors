@@ -183,6 +183,25 @@ static func compile(def: Dictionary) -> Dictionary:
 	return out if out is Dictionary else {}
 
 
+## B6 ④（docs/101 §7.3.8）：编译后积木里出现过的全部 tag（深扫；常驻积木都出自本干员 B，所以没出现的 tag 每帧一定匹配不到）
+static func tag_set(n, out: Dictionary) -> Dictionary:
+	if n is Dictionary:
+		if n.has("_tag"):
+			out[n._tag] = true
+		for k in n:
+			tag_set(n[k], out)
+	elif n is Array:
+		for x in n:
+			tag_set(x, out)
+	return out
+
+
+## o 的积木里有没有出现过 tag t；没有 tags_all 的对象（测试里的假干员）一律当「有」，照旧逐块匹配
+static func has_tag(o, t: String) -> bool:
+	var ta = o.get("tags_all")
+	return not (ta is Dictionary) or ta.has(t)
+
+
 static func _compile_node(n, base: Dictionary, counter: Array):
 	if n is Dictionary:
 		var o := {}
