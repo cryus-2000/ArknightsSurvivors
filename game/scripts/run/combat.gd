@@ -705,11 +705,16 @@ func regen_per_sec(add_flat := 0.0, add_pct := 0.0, max_hp := -1.0) -> float:
 	return (g.regen + add_flat + (g.regen_pct + add_pct) * mh) * g.heal_mult * regen_time_mult()
 
 
-## 设置当前伤害描述符（extra_tags 追加本次特有标签，如 empowered）
-func hit(src: String, extra_tags: Array = []) -> void:
+## 构造伤害描述符（extra_tags 追加本次特有标签，如 empowered）；不写全局，直接传给 damage(e, dmg, h)（docs/101 B7 ⑤）
+func make_hit(src: String, extra_tags: Array = []) -> Dictionary:
 	var base: Dictionary = g.hit_src.get(src, {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": []})
-	g.hit = {"src": src, "emitter": base.emitter, "origin": base.origin, "range": base.range, "kind": base.kind, "tags": base.tags + extra_tags,
+	return {"src": src, "emitter": base.emitter, "origin": base.origin, "range": base.range, "kind": base.kind, "tags": base.tags + extra_tags,
 		"class": base.get("class", ""), "op": base.get("op", "")}
+
+
+## 设置「当前」伤害描述符 g.hit：干员门面 op_api.log_hit → deal_damage 用（deal_damage 把 g.hit 显式传给 damage）
+func hit(src: String, extra_tags: Array = []) -> void:
+	g.hit = make_hit(src, extra_tags)
 
 
 ## 可按难度档覆盖的 enemy 段旋钮（ctrl_start / frost_max / affix_start / affix_max）：本档 dmod 里 ≥ 0 就用它，否则读 balance.json enemy/<key>
@@ -971,9 +976,11 @@ func gate_pass(e: Dictionary) -> void:
 				g.pickups.drop(e.pos + Vector2.from_angle(g.rng_drop.randf() * TAU) * 40.0, kd[0], kd[2])
 
 
-func damage(e: Dictionary, dmg: float) -> void:
+func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	if e.dead or e.get("friendly", false):
 		return
+	if h.is_empty():
+		h = g.hit   # 没传描述符：沿用当前的（旧调用方式）；之后全程只读局部 h（docs/101 B7 ⑤）
 	var bh = g.bai.boss(e.type)   # Boss 行为脚本（受击钩子 block_damage / absorb_damage / on_damaged / on_lethal，docs/101 B1c）；不是 Boss 为 null
 	if bh != null and bh.block_damage(e):
 		return
@@ -994,7 +1001,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 		e.hidden = false
 		g.spawner.reveal_mimic(e)
 		return
-	var ty: Array = [g.hit.range, g.hit.kind]
+	var ty: Array = [h.range, h.kind]
 	var weak_hit := false
 	if ty[1] != "真实":
 		# 养育者基因种（docs/57 P6）：无视敌人一部分防御（e.def < 1 的部分按比例折回）
@@ -1018,9 +1025,9 @@ func damage(e: Dictionary, dmg: float) -> void:
 		if float(e.get("frag_t", 0.0)) > g.t:   # 铃兰精一「狐火灼印」：frag_t 之前受到的伤害 + frag_v（docs/91 §15；同名取最高）
 			dmg *= 1.0 + float(e.frag_v)
 		dmg *= g.arts_mult if ty[1] == "法术" else g.phys_mult
-		if is_followup(g.hit):
+		if is_followup(h):
 			dmg *= g.followup_mult * g.rfx.followup_extra()
-		dmg *= g.rfx.hit_mult(g.hit, e)
+		dmg *= g.rfx.hit_mult(h, e)
 		# Logos「安魂」：受到的法术伤害 +base.requiem_bonus（缺省 15%，e.requiem_v）；精一「剜魂」叠层时每层 +6%（e.requiem_k，docs/91 §7）
 		if ty[1] == "法术" and e.get("requiem", 0.0) > 0.0:
 			dmg *= (1.0 + float(e.get("requiem_v", 0.15))) if not e.has("requiem_k") else 1.0 + float(e.requiem_k)
@@ -1049,22 +1056,22 @@ func damage(e: Dictionary, dmg: float) -> void:
 		var ab: float = minf(e.shield_hp, dmg)
 		e.shield_hp -= ab
 		dmg -= ab
-	g.rfx.on_hit(e, g.hit, dmg)
+	g.rfx.on_hit(e, h, dmg)
 	e.hp -= dmg
 	if e.get("panic", false):
 		e.panic_dmg = float(e.get("panic_dmg", 0.0)) + minf(dmg, e.hp + dmg)   # 遥测 panic_hit：主教慌乱期间掉的血（boss_ai 主教慌乱）
 	if e.boss and tough_on(e):
 		add_tough(e, minf(dmg, maxf(e.hp + dmg, 0.0)) / e.maxhp * 100.0)
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
-	g.dmg_out[g.hit.src] = g.dmg_out.get(g.hit.src, 0.0) + eff
-	g.telemetry.on_dmg(e, eff, dmg)   # 作战记录：按干员拆的输出、时间线、最高单次（docs/77）
-	if g.hit.origin == "relic":
+	g.dmg_out[h.src] = g.dmg_out.get(h.src, 0.0) + eff
+	g.telemetry.on_dmg(e, eff, dmg, h)   # 作战记录：按干员拆的输出、时间线、最高单次（docs/77）
+	if h.origin == "relic":
 		g.relic_out += eff
 	g.dmg_type_out[ty[1]] = g.dmg_type_out.get(ty[1], 0.0) + eff
-	for tg in g.hit.tags:
+	for tg in h.tags:
 		g.dmg_tag_out[tg] = g.dmg_tag_out.get(tg, 0.0) + eff
 	e.hits += 1
-	g.vfx.hit_react(e, g.crit_hit, weak_hit)   # 白闪 / 形变 / 命中粒子按普攻、技能、暴击、弱点、破绽分档（纯画面，界面与美术；参数 balance.json fx 段）
+	g.vfx.hit_react(e, g.crit_hit, weak_hit, h)   # 白闪 / 形变 / 命中粒子按普攻、技能、暴击、弱点、破绽分档（纯画面，界面与美术；参数 balance.json fx 段）
 	# 伤害数字的位置抖动是纯画面，用 g.vrng：飘字数量取决于画面随机数（上面的「无效」），设置里还能关掉伤害数字，
 	# 用 g.rng 会让机器负载 / 玩家设置改变对局随机数（docs/36 §3）
 	if g.crit_hit:
@@ -1085,7 +1092,7 @@ func damage(e: Dictionary, dmg: float) -> void:
 		if bh != null and bh.on_lethal(e):
 			return
 		g.telemetry.on_kill_credit(e)   # 作战记录：参与击杀（死前 3 秒内命中过的干员各记一次，docs/77）
-		kill(e)
+		kill(e, h)
 
 
 func heal(v: float, src: String = "其他", sub: String = "") -> void:
@@ -1099,7 +1106,10 @@ func heal(v: float, src: String = "其他", sub: String = "") -> void:
 	g.hp = min(g.max_hp, g.hp + v)
 
 
-func kill(e: Dictionary) -> void:
+## h：致命一击的描述符（damage 传来）；给了就设成当前 g.hit——击杀回调（藏品 on_kill、干员 on_kill）里读 g.hit 的旧代码看到的是这一下
+func kill(e: Dictionary, h: Dictionary = {}) -> void:
+	if not h.is_empty():
+		g.hit = h
 	g.rfx.on_kill(e)
 	if e.dead:
 		return

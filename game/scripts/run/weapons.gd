@@ -103,17 +103,14 @@ func update_bullets(dt: float) -> void:
 func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 	if e.get("friendly", false):
 		return   # 友方不拦弹、不消耗穿透/弹跳，也不触发附带控制。
-	if b.has("src"):
-		g.combat.hit(b.src, b.get("tags", []))
-	else:
-		g.combat.hit("法术援护" if b.kind in ["fire", "arcane"] else "援护")
+	var h: Dictionary = g.combat.make_hit(b.src, b.get("tags", [])) if b.has("src") else g.combat.make_hit("法术援护" if b.kind in ["fire", "arcane"] else "援护")
 	match b.kind:
 		"fire":
 			# 法术团：爆炸
 			for k in g.enemies_sys.query(b.pos, b.aoe + 20.0):
 				var o: Dictionary = g.enemies[k]
 				if not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
-					g.combat.damage(o, b.dmg)
+					g.combat.damage(o, b.dmg, h)
 					if b.get("slow", false):
 						o.slow = maxf(o.slow, 1.2)
 			# 术师法术团：紫色（对应重绘后的 fx_fire_explode）；导弹：暖黄
@@ -136,7 +133,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 			if b.get("on_hit") != null:
 				b.on_hit.bullet_exploded(b)
 		"arcane":
-			g.combat.damage(e, b.dmg)
+			g.combat.damage(e, b.dmg, h)
 			if not e.dead:
 				e.slow = maxf(e.slow, 1.0)
 			# 溅射（铃兰狐火 base.aoe）：主目标之外、半径内的其他敌人吃同样伤害
@@ -144,7 +141,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 				for k in g.enemies_sys.query(b.pos, b.aoe + 20.0):
 					var o: Dictionary = g.enemies[k]
 					if o.id != e.id and not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
-						g.combat.damage(o, b.dmg)
+						g.combat.damage(o, b.dmg, h)
 			if b.has("fx_col") or not g.vfx.fx_sprite("fx_arcane_hit", e.pos):
 				g.fx.append({"kind": "ring", "pos": e.pos, "r": 22.0, "life": 0.25, "max": 0.25, "col": b.get("fx_col", Color(0.8, 0.45, 1.0))})
 			g.vfx.sparks(e.pos, b.vel, b.get("fx_col", Color(0.85, 0.5, 1.0)), 3, 160.0)
@@ -152,7 +149,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 				Sfx.op(b.op, "hit")   # 铃兰狐火
 			b.life = 0.0
 		_:
-			g.combat.damage(e, b.dmg)
+			g.combat.damage(e, b.dmg, h)
 			if not g.vfx.fx_sprite("fx_bullet_hit", b.pos, g.PX, b.vel.angle()):
 				g.vfx.sparks(b.pos, b.vel, Color(0.7, 1.0, 1.0), 3, 200.0)
 			b.life = 0.0

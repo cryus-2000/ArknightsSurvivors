@@ -123,8 +123,7 @@ func update(dt: float) -> void:
 			e["bleed_t"] = e.get("bleed_t", 0.0) + dt
 			if e.bleed_t >= 0.5:
 				e.bleed_t = 0.0
-				g.combat.hit("援护")
-				g.combat.damage(e, e.bleed_dps * 0.5)
+				g.combat.damage(e, e.bleed_dps * 0.5, g.combat.make_hit("援护"))
 				g.fx.append({"kind": "spark", "pos": e.pos + Vector2(randf_range(-6, 6), -4), "vel": Vector2(0, 60), "sz": 2.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.05, 0.1)})
 				if e.dead:
 					continue
@@ -134,8 +133,7 @@ func update(dt: float) -> void:
 			e["corr_tick"] = e.get("corr_tick", 0.0) + dt
 			if e.corr_tick >= 0.5:
 				e.corr_tick = 0.0
-				g.combat.hit("触手", ["corrode"])
-				g.combat.damage(e, e.corr_dmg)
+				g.combat.damage(e, e.corr_dmg, g.combat.make_hit("触手", ["corrode"]))
 				g.fx.append({"kind": "spark", "pos": e.pos + Vector2(randf_range(-8, 8), -6), "vel": Vector2(0, -40), "sz": 2.5, "life": 0.45, "max": 0.45, "col": Color(1.2, 0.6, 1.6)})
 				if e.dead:
 					continue

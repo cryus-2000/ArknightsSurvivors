@@ -761,10 +761,10 @@ func tick(dt: float) -> void:
 			dot_tick = 0.5
 			# 按敌人生命的时间倍率缩放（与岁怒 / 净尘一致）：固定 18 到 8:00 只剩开局的 1/5，而童趣玩偶 7:00 后才出现
 			var per: float = 18.0 * (g.ch.u_dmg_mult if "u_dmg_mult" in g.ch else 1.0) * g.dmg_mult * dot_mult * 0.5 * g.combat.enemy_hp_time_mult()
-			g.combat.hit("藏品")
+			var hd: Dictionary = g.combat.make_hit("藏品")
 			for e in g.enemies:
 				if not e.dead and not e.chest and (e.stun > 0.0 or e.slow > 0.0) and e.pos.distance_squared_to(g.ppos) < 700.0 * 700.0:
-					g.combat.damage(e, per)
+					g.combat.damage(e, per, hd)
 
 
 ## 支援地雷组：朝主控身边最密的敌群抛出 MINE_N 枚，落在前方 150–250（原来放在脚下，主控一直在跑，地雷留在身后，
@@ -800,11 +800,11 @@ func _throw_mines() -> void:
 func _explode_mine(mn: Dictionary) -> void:
 	mn.life = 0.0
 	var r := 110.0
-	g.combat.hit("地雷")
+	var hd: Dictionary = g.combat.make_hit("地雷")
 	for j in g.enemies_sys.query(mn.pos, r + 20.0):
 		var e: Dictionary = g.enemies[j]
 		if not e.dead and e.pos.distance_to(mn.pos) < r + e.r:
-			g.combat.damage(e, Bal.v("relic/mine_dmg", 42.0) * g.dmg_mult * g.combat.enemy_hp_time_mult())
+			g.combat.damage(e, Bal.v("relic/mine_dmg", 42.0) * g.dmg_mult * g.combat.enemy_hp_time_mult(), hd)
 			if not e.boss:
 				g.enemies_sys.apply_kb(e, (e.pos - mn.pos).normalized() * 360.0)
 	g.fx.append({"kind": "explode", "pos": mn.pos, "r": r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.6, 0.3)})
@@ -813,15 +813,13 @@ func _explode_mine(mn: Dictionary) -> void:
 	Sfx.play("boom", -6.0, 1.0, 0.05)
 
 
-## 藏品直接伤害的范围结算（岁怒 / 净尘 / 食腐）：不打宝箱，结算后恢复原描述符
+## 藏品直接伤害的范围结算（岁怒 / 净尘 / 食腐）：不打宝箱；描述符显式传，不碰 g.hit（docs/101 B7 ⑤）
 func _area(src: String, p: Vector2, r: float, dmg: float) -> void:
-	var keep: Dictionary = g.hit
-	g.combat.hit(src)
+	var hd: Dictionary = g.combat.make_hit(src)
 	for j in g.enemies_sys.query(p, r + 24.0):
 		var e: Dictionary = g.enemies[j]
 		if not e.dead and not e.chest and e.pos.distance_to(p) < r + e.r:
-			g.combat.damage(e, dmg)
-	g.hit = keep
+			g.combat.damage(e, dmg, hd)
 
 
 ## 岁怒：追击命中处引爆一次大范围法术伤害（按敌人生命的时间倍率缩放）
@@ -1245,13 +1243,11 @@ func on_hurt(src_corrode: bool, amount := 0.0) -> void:
 					continue
 				hurt_cd[id] = g.t + float(a.get("cd", 30.0))
 				var dmg: float = float(a.get("dmg", 120.0)) * g.combat.enemy_hp_time_mult()
-				var keep: Dictionary = g.hit
-				g.combat.hit("真实")
+				var hd: Dictionary = g.combat.make_hit("真实")
 				for e in g.enemies:
 					if e.dead or e.chest or e.get("friendly", false):
 						continue
-					g.combat.damage(e, minf(dmg, e.maxhp * float(a.get("boss_pct", 0.03))) if e.boss else dmg)
-				g.hit = keep
+					g.combat.damage(e, minf(dmg, e.maxhp * float(a.get("boss_pct", 0.03))) if e.boss else dmg, hd)
 				g.fx.append({"kind": "rays", "pos": g.ppos, "life": 0.8, "max": 0.8, "col": Color(1.0, 0.95, 0.8)})
 				g.vfx.show_banner("%s：全场真实伤害" % db.get_relic(id).name)
 				Sfx.play("boom", -4.0, 0.9, 0.05)
@@ -1387,10 +1383,7 @@ func on_hit(e: Dictionary, h: Dictionary, amount := 0.0) -> void:
 	if g.relics.has("170") and not e.dead and g.t >= float(e.get("claw_t", 0.0)):
 		var a: Dictionary = _targs("170")
 		e["claw_t"] = g.t + float(a.get("icd", 0.5))
-		var keep: Dictionary = g.hit
-		g.combat.hit("真实")
-		g.combat.damage(e, e.hp * (float(a.get("boss_pct", 0.005)) if e.boss else float(a.get("pct", 0.03))))
-		g.hit = keep
+		g.combat.damage(e, e.hp * (float(a.get("boss_pct", 0.005)) if e.boss else float(a.get("pct", 0.03))), g.combat.make_hit("真实"))
 	# 炸裂之手：造成这次追击的干员回技力（每秒最多 2.5%）
 	if g.relics.has("171"):
 		_budget_sp("171", h.get("op", ""), 0.005, 0.025)

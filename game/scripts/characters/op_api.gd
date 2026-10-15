@@ -128,7 +128,7 @@ func apply_kb(e: Dictionary, v: Vector2, wl := true) -> void:
 func deal_damage(e: Dictionary, dmg: float) -> void:
 	var hp_before: float = e.hp
 	var feedback_source: String = g.hit.get("src", "")
-	g.combat.damage(e, dmg)
+	g.combat.damage(e, dmg, g.hit)   # 门面：log_hit 设好的当前描述符显式传进去（docs/101 B7 ⑤）
 	if float(e.hp) < hp_before:
 		g.vfx.contact(str(get("id")), e, get("pos"), feedback_source)
 

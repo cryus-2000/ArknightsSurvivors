@@ -106,8 +106,8 @@ func contact(oid: String, e: Dictionary, origin: Vector2, source := "") -> void:
 const WEAK_SPARK := {"物理": Color(1.0, 0.75, 0.3), "法术": Color(0.7, 0.55, 1.0)}
 var _break_fx_at := {}
 
-func hit_react(e: Dictionary, crit: bool, weak: bool) -> void:
-	var h: Dictionary = g.hit
+func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}) -> void:
+	var h: Dictionary = hd if not hd.is_empty() else g.hit   # combat.damage 显式传这一下的描述符（docs/101 B7 ⑤）
 	var dot: bool = "dot" in h.get("tags", [])
 	var skill: bool = h.get("origin", "") == "skill" and not dot
 	var brk: bool = e.get("boss", false) and float(e.get("break_t", 0.0)) > 0.0
