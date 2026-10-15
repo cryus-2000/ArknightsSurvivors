@@ -1,7 +1,8 @@
-// PRTS Spine 3.8 参照帧渲染（tools/prts_spine.py 调用，docs/36 §9.1）：官方 spine-ts 3.8 运行时（spine-canvas.js，SkeletonBinary 读二进制 .skel）
+// PRTS Spine 参照帧渲染（tools/prts_spine.py 调用，docs/36 §9.1）：官方 spine-ts 运行时（spine-canvas.js）——3.8 用 SkeletonBinary 读二进制 .skel，
+// 3.5 用 3.5.51 运行时的 SkeletonJson 读 tools/prts_spine35.py 转出的 JSON（job.json）
 // + @napi-rs/canvas 无头 Canvas，三角形渲染（网格附件也画）。只渲染、不下载：素材由 Python 侧下好放在 _raw/<id>/。
-// 用法：node prts_spine_render.js <spine-canvas-3.8.js> <job.json>
-//   job = {skel, atlas, out_dir, size: 1000, flip: false, frames: [{name, anim, t}]}（t：秒）
+// 用法：node prts_spine_render.js <spine-canvas-3.8.js 或 3.5.51 版> <job.json>
+//   job = {skel, json?, atlas, out_dir, size: 1000, flip: false, frames: [{name, anim, t}]}（t：秒）
 // 输出 <out_dir>/<name>.png（size × size 透明底），并在标准输出打印 JSON：动画清单、各动画时长与事件时刻、实际出的帧
 "use strict";
 const fs = require("fs");
@@ -29,9 +30,11 @@ async function main() {
     if (t.endsWith(".png") && !t.includes(":")) pages[t] = await loadImage(fs.readFileSync(path.join(atlasDir, t)));
   }
   const atlas = new spine.TextureAtlas(atlasText, (p) => new spine.canvas.CanvasTexture(pages[p]));
-  const binary = new spine.SkeletonBinary(new spine.AtlasAttachmentLoader(atlas));
-  binary.scale = 1;
-  const data = binary.readSkeletonData(new Uint8Array(fs.readFileSync(job.skel)));
+  // Spine 3.5（job.json：tools/prts_spine35.py 从二进制转出的 3.5 JSON）走 spine-ts 3.5.51 的 SkeletonJson；3.8 直接读二进制
+  const loader = new spine.AtlasAttachmentLoader(atlas);
+  const data = job.json
+    ? new spine.SkeletonJson(loader).readSkeletonData(fs.readFileSync(job.json, "utf8"))
+    : new spine.SkeletonBinary(loader).readSkeletonData(new Uint8Array(fs.readFileSync(job.skel)));
 
   const anims = {};
   for (const a of data.animations) {
@@ -49,7 +52,8 @@ async function main() {
     sk.setToSetupPose();
     if (anim) {
       const a = data.findAnimation(anim);
-      a.apply(sk, 0, t, false, null, 1, spine.MixBlend.setup, spine.MixDirection.mixIn);
+      if (spine.MixBlend) a.apply(sk, 0, t, false, null, 1, spine.MixBlend.setup, spine.MixDirection.mixIn);
+      else a.apply(sk, 0, t, false, null, 1, true, false);   // 3.5：(…, alpha, setupPose, mixingOut)
     }
     sk.updateWorldTransform();
     return sk;
@@ -61,7 +65,7 @@ async function main() {
   const off = new spine.Vector2(), sz = new spine.Vector2();
   for (const f of frames) {
     const sk = pose(f.anim, f.t);
-    sk.getBounds(off, sz, []);
+    sk.getBounds(off, sz, []);   // 3.5 只收两个参数，多给的忽略
     minX = Math.min(minX, off.x); minY = Math.min(minY, off.y);
     maxX = Math.max(maxX, off.x + sz.x); maxY = Math.max(maxY, off.y + sz.y);
   }

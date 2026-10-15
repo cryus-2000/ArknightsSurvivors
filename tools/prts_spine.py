@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """PRTS 干员 Spine 参照帧（docs/36 §9.1，10-15 用户定；给 Codex 当干员美术参照，内部用，不进 git、不进包）。
 
-从 PRTS 拉干员「默认皮肤 · 战斗正面」的 Spine 3.8 资源（.skel / .atlas / .png），本地渲染待机 / 攻击 / 技能参照帧。不开浏览器、不用 Godot。
+从 PRTS 拉干员「默认皮肤 · 战斗正面」的 Spine 资源（3.8，或较早干员的 3.5.51；3.5 先经 prts_spine35.py 转 JSON）（.skel / .atlas / .png），本地渲染待机 / 攻击 / 技能参照帧。不开浏览器、不用 Godot。
 
     python tools/prts_spine.py mizuki                # 一名
     python tools/prts_spine.py --all                 # 18 名（OPS 表）
@@ -21,12 +21,16 @@ import argparse, json, os, subprocess, sys, time, urllib.parse, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, "tools"))
+import prts_spine35
 import godot_runner as _GR   # 只用 common_root：输出放主仓库的 build/（各工作树共用，不进 git）
 OUT = os.path.join(_GR.common_root(), "build", "prts_ref")
 RAW = os.path.join(OUT, "_raw")
 NODE_DIR = os.path.join(OUT, "_node")
 RUNTIME = os.path.join(NODE_DIR, "spine-canvas-3.8.js")
 RUNTIME_URL = "https://raw.githubusercontent.com/EsotericSoftware/spine-runtimes/3.8/spine-ts/build/spine-canvas.js"
+# Spine 3.5 用 3.5.51 标签版（3.5 分支头上已混入 3.6 格式）；3.5 运行时没有二进制读取器，先用 prts_spine35.py 转 JSON
+RUNTIME35 = os.path.join(NODE_DIR, "spine-canvas-3.5.51.js")
+RUNTIME35_URL = "https://raw.githubusercontent.com/EsotericSoftware/spine-runtimes/3.5.51/spine-ts/build/spine-canvas.js"
 RENDER_JS = os.path.join(ROOT, "tools", "prts_spine_render.js")
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36"
 
@@ -66,6 +70,8 @@ def ensure_renderer():
     os.makedirs(NODE_DIR, exist_ok=True)
     if not os.path.exists(RUNTIME):
         fetch(RUNTIME_URL, RUNTIME)
+    if not os.path.exists(RUNTIME35):
+        fetch(RUNTIME35_URL, RUNTIME35)
     if not os.path.isdir(os.path.join(NODE_DIR, "node_modules", "@napi-rs", "canvas")):
         if not os.path.exists(os.path.join(NODE_DIR, "package.json")):
             open(os.path.join(NODE_DIR, "package.json"), "w").write('{"name": "prts-spine-render", "private": true}\n')
@@ -103,11 +109,11 @@ def download(oid, name, refresh):
     return skel, atlas
 
 
-def run_render(job):
+def run_render(job, runtime=RUNTIME):
     jp = os.path.join(OUT, "_job_%d.json" % os.getpid())
     json.dump(job, open(jp, "w", encoding="utf-8"), ensure_ascii=False)
     env = dict(os.environ, NODE_PATH=os.path.join(NODE_DIR, "node_modules"))
-    r = subprocess.run(["node", RENDER_JS, RUNTIME, jp], capture_output=True, text=True, encoding="utf-8", env=env)
+    r = subprocess.run(["node", RENDER_JS, runtime, jp], capture_output=True, text=True, encoding="utf-8", env=env)
     os.remove(jp)
     if r.returncode != 0:
         raise RuntimeError("渲染失败：" + (r.stderr or r.stdout)[-1500:])
@@ -155,7 +161,14 @@ def do_one(oid, a):
     name = OPS.get(oid, oid)
     skel, atlas = download(oid, name, a.refresh)
     out_dir = os.path.join(OUT, oid)
-    probe = run_render({"skel": skel, "atlas": atlas, "out_dir": out_dir, "size": a.size, "flip": a.flip, "frames": []})
+    base = {"skel": skel, "atlas": atlas, "out_dir": out_dir, "size": a.size, "flip": a.flip}
+    runtime = RUNTIME
+    raw = open(skel, "rb").read()
+    if b"3.5." in raw[:64]:   # 头部版本串：3.5.x 走转换 + 3.5 运行时
+        js = skel[:-5] + ".35.json"
+        json.dump(prts_spine35.convert(raw), open(js, "w", encoding="utf-8"), ensure_ascii=False)
+        base["json"], runtime = js, RUNTIME35
+    probe = run_render(dict(base, frames=[]), runtime)
     anims = probe["anims"]
     frames = []
     ia = pick(anims, "idle")
@@ -166,7 +179,7 @@ def do_one(oid, a):
         an = pick(anims, kind)
         if an:
             frames += [{"name": "%s_f%02d" % (kind, k), "anim": an, "t": t} for k, t in enumerate(three(anims[an]))]
-    res = run_render({"skel": skel, "atlas": atlas, "out_dir": out_dir, "size": a.size, "flip": a.flip, "frames": frames})
+    res = run_render(dict(base, frames=frames), runtime)
     sp = sheet(oid, res["frames"], out_dir)
     json.dump({"id": oid, "name": name, "anims": anims, "frames": res["frames"], "scale": res["scale"]},
               open(os.path.join(out_dir, "%s_info.json" % oid), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
