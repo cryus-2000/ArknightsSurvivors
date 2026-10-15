@@ -26,6 +26,7 @@ const SegTexas = preload("res://scripts/characters/blocks/seg_texas.gd")
 const SegUlpianus = preload("res://scripts/characters/blocks/seg_ulpianus.gd")
 
 var B: Dictionary = {}                 # 编译后的 blocks（$ 已解析成数字、cond 已解析）
+var tags_all: Dictionary = {}          # B 里出现过的全部 tag（B6 ④：常驻段没有对应 tag 时跳过逐块匹配）
 var cd := 0.5                          # 普攻冷却
 var s_t: Array = [0.0, 0.0, 0.0]       # 持续型技能剩余秒数
 var s_dur: Array = [0.0, 0.0, 0.0]     # 持续型技能总时长（HUD）
@@ -63,6 +64,7 @@ var zmode := 1.0                       # 本帧 verb.mode 的 zone_mult 乘积�
 func _init(game, def_: Dictionary) -> void:
 	super(game, def_)
 	B = ObCore.compile(def)
+	tags_all = ObCore.tag_set(B, {})
 	# 召唤物扩展段（§15.9）：普攻 shape.support 的 when 条件、首拍；有没有 trig.on_deploy（每帧只在有时才查）
 	var a: Dictionary = B.get("attack", {})
 	if str(a.get("shape", "")) == "support":
@@ -1039,7 +1041,7 @@ func _ext_sustain(act: Array, dt: float) -> void:
 	var add := 0.0
 	var mul := 1.0
 	var sw: Dictionary = {}
-	for b in act:
+	for b in (act if tags_all.has("verb.dr") or tags_all.has("verb.negate_chance") or tags_all.has("verb.swap_attack") else _EA):   # B6 ④
 		match str(b.get("_tag", "")):
 			"verb.dr":
 				dr *= 1.0 - float(b.value)

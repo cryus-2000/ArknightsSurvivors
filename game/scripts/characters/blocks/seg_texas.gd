@@ -361,7 +361,7 @@ static func tx_sustain(o, act: Array, want: Array) -> void:
 	var wa := 0.0
 	var wm := 1.0
 	var oh: Array = []
-	for b in act:
+	for b in (act if has_tag(o, "verb.dash_mod") else _EA):   # B6 ④：没有 dash_mod 的干员不逐块匹配（下面的写回照旧）
 		match str(b.get("_tag", "")):
 			"verb.dash_mod":
 				la += float(b.get("len_add", 0.0))
