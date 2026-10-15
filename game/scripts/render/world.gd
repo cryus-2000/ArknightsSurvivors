@@ -436,8 +436,7 @@ func _draw_pickups() -> void:
 ## - 循环外先取好主控位置、拥挤判定与常量色，离主控 170 的判定用距离平方
 var _gt_fan14 := PackedVector2Array()   # tb_circle(seg 14) 的单位扇形三角形表
 var _gt_fan10 := PackedVector2Array()   # tb_circle(seg 10)
-var _gt_pts := PackedVector2Array()
-var _gt_cols := PackedColorArray()
+var _gtb := TriBatch.new()   # 表驱动快路径（docs/101 B4 ③：存储 / 提交走 TriBatch）
 var _gt_c42 := PackedColorArray()
 var _gt_c30 := PackedColorArray()
 
@@ -454,23 +453,17 @@ func _gt_tables() -> void:
 
 
 func _gt_circle(c: Vector2, r: float, col: Color, fan: PackedVector2Array, cols: PackedColorArray) -> void:
-	_gt_pts.append_array(Transform2D(Vector2(r, 0.0), Vector2(0.0, r), c) * fan)
 	cols.fill(col)
-	_gt_cols.append_array(cols)
+	_gtb.tris(Transform2D(Vector2(r, 0.0), Vector2(0.0, r), c) * fan, cols)
 
 
 func _gt_line(a: Vector2, b: Vector2, col: Color, w: float) -> void:
 	var n: Vector2 = (b - a).orthogonal().normalized() * w * 0.5
-	_gt_pts.append_array([a + n, b + n, b - n, a + n, b - n, a - n])
-	_gt_cols.append_array([col, col, col, col, col, col])
+	_gtb.tris(PackedVector2Array([a + n, b + n, b - n, a + n, b - n, a - n]), PackedColorArray([col, col, col, col, col, col]))
 
 
 func _gt_flush() -> void:
-	if _gt_pts.is_empty():
-		return
-	RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), PackedInt32Array(), _gt_pts, _gt_cols)
-	_gt_pts = PackedVector2Array()
-	_gt_cols = PackedColorArray()
+	_gtb.flush(g)
 
 
 func _draw_pickups_fast() -> void:
@@ -2614,13 +2607,12 @@ func draw_leader_ailments() -> void:
 ## 小怪词条外观（spawner.roll_affix）：甲壳 armor = 身前三块灰钢甲片；潮盾 shield = 青白泡壳 + 脚下细条（剩余护盾）
 ## 全部进无贴图批（性能 docs/50 §9.7：原来甲壳每只 9 次、潮盾 5 次绘制调用，夹在敌人贴图之间还打断贴图合批）；
 ## 排序循环画完后和弱点菱形一起提交，所以词条画在所有敌人之上（和弱点菱形一样）
-## 词条特效（docs/50 §9.12，2026-10-01 模板化）：甲壳 / 潮盾的三角形进单独的「无索引」批（_afx_pts / _afx_cols，按排序循环里敌人的先后追加，
+## 词条特效（docs/50 §9.12，2026-10-01 模板化）：甲壳 / 潮盾的三角形进单独的「无索引」批（_afx：TriBatch 的 pts / cols，按排序循环里敌人的先后追加，
 ## 排序段画完后、弱点菱形之前一次提交，和原来在通用批里的前后顺序相同）。开销大头原来是每只每帧几十个临时数组：
 ## - 甲壳：3 块甲片（多边形 + 5 条边 + 1 条高光）的三角形在局部坐标里开局算一次成模板（_afx_armor，135 个顶点），每帧 Transform2D 平移整组（引擎原生）；
 ## - 潮盾：底圆用单位扇形模板按半径缩放 + 平移（原生）；两段弧每段算一次内外顶点再按三角形追加；血条 4 个三角形。
 ## 顶点算式与旧写法相同，只是甲壳先在局部坐标算、再整体平移（浮点结合顺序不同，个别边缘像素可能差最低位；协调人同意的口径见 docs/50 §9.12）
-var _afx_pts := PackedVector2Array()
-var _afx_cols := PackedColorArray()
+var _afx := TriBatch.new()   # 无索引词条批（docs/101 B4 ③：存储 / 提交走 TriBatch，表驱动算式不变）
 var _afx_tab_ready := false
 var _afx_armor := PackedVector2Array()
 var _afx_armor_cols := PackedColorArray()
@@ -2666,18 +2658,18 @@ func _affix_fx(e: Dictionary, bpos: Vector2, top: Vector2) -> void:
 		_afx_tables()
 	if af == "armor":
 		var c: Vector2 = (bpos + top) / 2.0 if g.foot_anchor.has(e.tex) else e.pos
-		_afx_pts.append_array(Transform2D(0.0, c) * _afx_armor)
-		_afx_cols.append_array(_afx_armor_cols)
+		_afx.pts.append_array(Transform2D(0.0, c) * _afx_armor)
+		_afx.cols.append_array(_afx_armor_cols)
 		return
 	var c2: Vector2 = (bpos + top) / 2.0 if g.foot_anchor.has(e.tex) else e.pos
 	var rr: float = maxf(e.r + 6.0, (bpos.y - top.y) * 0.55)
 	var wob: float = 1.0 + 0.04 * sin(g.t * 5.0 + e.id)
 	var r: float = rr * wob
 	# 底圆（tb_circle 24 段）：单位扇形按半径缩放 + 平移
-	_afx_pts.append_array(Transform2D(0.0, Vector2(r, r), 0.0, c2) * _afx_fan24)
+	_afx.pts.append_array(Transform2D(0.0, Vector2(r, r), 0.0, c2) * _afx_fan24)
 	var fc := Color(0.5, 1.2, 1.4, 0.13)
 	for q in 72:
-		_afx_cols.append(fc)
+		_afx.cols.append(fc)
 	_afx_arc(c2, r, 1.5, Color(0.7, 1.5, 1.6, 0.7), _afx_d32)
 	_afx_arc(c2, r * 0.8, 2.0, Color(1.6, 2.0, 2.0, 0.8), _afx_d8)
 	var mx: float = e.maxhp * Game.Bal.v("enemy/affix_shield", 0.30)
@@ -2689,10 +2681,10 @@ func _affix_fx(e: Dictionary, bpos: Vector2, top: Vector2) -> void:
 	var b3: Vector2 = by + Vector2(0, 3)
 	var f1: Vector2 = by + Vector2(fw2, 0)
 	var f2: Vector2 = by + Vector2(fw2, 3)
-	_afx_pts.append_array([by, b1, b2, by, b2, b3, by, f1, f2, by, f2, b3])
+	_afx.pts.append_array([by, b1, b2, by, b2, b3, by, f1, f2, by, f2, b3])
 	var k0 := Color(0, 0, 0, 0.6)
 	var k1 := Color(0.7, 1.5, 1.6, 0.95)
-	_afx_cols.append_array([k0, k0, k0, k0, k0, k0, k1, k1, k1, k1, k1, k1])
+	_afx.cols.append_array([k0, k0, k0, k0, k0, k0, k1, k1, k1, k1, k1, k1])
 
 
 ## tb_arc 的三角形展开（sy = 1）：每段 (内 q, 外 q, 外 q+1)、(内 q, 外 q+1, 内 q+1)，和 tb_arc 的索引顺序一致
@@ -2707,20 +2699,16 @@ func _afx_arc(c: Vector2, r: float, w: float, col: Color, dirs: PackedVector2Arr
 		var d: Vector2 = dirs[q + 1]
 		var ni := c + Vector2(d.x * ri, d.y * ri * 1.0)
 		var no := c + Vector2(d.x * ro, d.y * ro * 1.0)
-		_afx_pts.append_array([pi, po, no, pi, no, ni])
+		_afx.pts.append_array([pi, po, no, pi, no, ni])
 		pi = ni
 		po = no
 	for q in seg * 6:
-		_afx_cols.append(col)
+		_afx.cols.append(col)
 
 
 ## 词条批提交（排序段画完、弱点菱形之前；无索引：每 3 个顶点一个三角形）
 func _afx_flush() -> void:
-	if _afx_pts.is_empty():
-		return
-	RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), PackedInt32Array(), _afx_pts, _afx_cols)
-	_afx_pts = PackedVector2Array()
-	_afx_cols = PackedColorArray()
+	_afx.flush(g)
 
 
 ## 部件心跳：约 1.3 拍 / 秒，倒计时最后 3 秒加快到 2.6 拍；返回 0–1 的尖峰
@@ -3147,105 +3135,40 @@ func _tide_trail(b: Dictionary) -> void:
 ## ---- 无贴图图形合批（性能 9/30：Godot 4 只合批贴图矩形，draw_circle / draw_arc / draw_polygon 每次都是一次绘制调用）：
 ## 先把圆、椭圆、圆环收集成三角形，最后一次 canvas_item_add_triangle_array 提交。提交前画布变换必须是单位矩阵
 var weak_marks: Array = []      # 本帧敌人弱点菱形 [位置, 颜色]
-var _tb_pts := PackedVector2Array()
-var _tb_cols := PackedColorArray()
-var _tb_idx := PackedInt32Array()
+var _tbb := TriBatch.new()   # 无贴图图形批（docs/101 B4 ③：几何与次序照旧，存储 / 提交统一走 TriBatch）
 
 func tb_circle(c: Vector2, r: float, col: Color, sy := 1.0, seg := 14) -> void:
-	var base: int = _tb_pts.size()
-	_tb_pts.append(c)
-	_tb_cols.append(col)
-	for q in seg:
-		var aq: float = q * TAU / seg
-		_tb_pts.append(c + Vector2(cos(aq) * r, sin(aq) * r * sy))
-		_tb_cols.append(col)
-	for q in seg:
-		_tb_idx.append(base)
-		_tb_idx.append(base + 1 + q)
-		_tb_idx.append(base + 1 + (q + 1) % seg)
+	_tbb.circle_n(c, r, col, sy, seg)
 
-
-var _ring_dirs := {}   # seg -> 单位方向表（Vector2.from_angle(q * TAU / seg)，同一算式只算一次）
 
 func tb_ring(c: Vector2, r: float, w: float, col: Color, seg := 16) -> void:
-	var base: int = _tb_pts.size()
-	var dirs = _ring_dirs.get(seg)
-	if dirs == null:
-		var nd := PackedVector2Array()
-		for q in seg:
-			nd.append(Vector2.from_angle(q * TAU / seg))
-		_ring_dirs[seg] = nd
-		dirs = nd
-	for q in seg:
-		var d: Vector2 = dirs[q]
-		_tb_pts.append(c + d * (r - w * 0.5))
-		_tb_pts.append(c + d * (r + w * 0.5))
-		_tb_cols.append(col)
-		_tb_cols.append(col)
-	for q in seg:
-		var a0: int = base + q * 2
-		var a1: int = base + ((q + 1) % seg) * 2
-		_tb_idx.append_array([a0, a0 + 1, a1 + 1, a0, a1 + 1, a1])
+	_tbb.ring_n(c, r, w, col, seg)
 
 
 ## 径向渐变圆环：内圈半径 r0 颜色 c0 → 外圈半径 r1 颜色 c1（顶点色插值；围猎圈内外的地面调子）
 func tb_ring2(c: Vector2, r0: float, r1: float, c0: Color, c1: Color, seg := 48) -> void:
-	var base: int = _tb_pts.size()
-	for q in seg:
-		var d := Vector2.from_angle(q * TAU / seg)
-		_tb_pts.append(c + d * r0)
-		_tb_pts.append(c + d * r1)
-		_tb_cols.append(c0)
-		_tb_cols.append(c1)
-	for q in seg:
-		var a0: int = base + q * 2
-		var a1: int = base + ((q + 1) % seg) * 2
-		_tb_idx.append_array([a0, a0 + 1, a1 + 1, a0, a1 + 1, a1])
+	_tbb.ring2(c, r0, r1, c0, c1, seg)
 
 
 func tb_quad(p0: Vector2, p1: Vector2, p2: Vector2, p3: Vector2, col: Color) -> void:
-	var base: int = _tb_pts.size()
-	_tb_pts.append_array([p0, p1, p2, p3])
-	_tb_cols.append_array([col, col, col, col])
-	_tb_idx.append_array([base, base + 1, base + 2, base, base + 2, base + 3])
+	_tbb.quad(p0, p1, p2, p3, col)
 
 
 func tb_line(a: Vector2, b: Vector2, col: Color, w := 1.0) -> void:
-	var n: Vector2 = (b - a).orthogonal().normalized() * w * 0.5
-	tb_quad(a + n, b + n, b - n, a - n, col)
+	_tbb.line_q(a, b, col, w)
 
 
 func tb_arc(c: Vector2, r: float, a0: float, a1: float, w: float, col: Color, seg := 8, sy := 1.0) -> void:
-	var base: int = _tb_pts.size()
-	for q in seg + 1:
-		var aq: float = lerpf(a0, a1, float(q) / seg)
-		var d := Vector2(cos(aq), sin(aq))
-		_tb_pts.append(c + Vector2(d.x * (r - w * 0.5), d.y * (r - w * 0.5) * sy))
-		_tb_pts.append(c + Vector2(d.x * (r + w * 0.5), d.y * (r + w * 0.5) * sy))
-		_tb_cols.append(col)
-		_tb_cols.append(col)
-	for q in seg:
-		var i0: int = base + q * 2
-		_tb_idx.append_array([i0, i0 + 1, i0 + 3, i0, i0 + 3, i0 + 2])
+	_tbb.arc_q(c, r, a0, a1, w, col, seg, sy)
 
 
 ## 凸多边形（扇形三角化）
 func tb_poly(pts: PackedVector2Array, col: Color) -> void:
-	var base: int = _tb_pts.size()
-	for v in pts:
-		_tb_pts.append(v)
-		_tb_cols.append(col)
-	for q in range(1, pts.size() - 1):
-		_tb_idx.append_array([base, base + q, base + q + 1])
+	_tbb.fan(pts, col)
 
 
 func tb_flush(ci: CanvasItem = null) -> void:   # ci：提交到哪个画布（缺省世界；HUD 传 g.hud）
-	if _tb_idx.is_empty():
-		return
-	RenderingServer.canvas_item_add_triangle_array((ci if ci != null else g).get_canvas_item(), _tb_idx, _tb_pts, _tb_cols)
-	_tb_pts = PackedVector2Array()
-	_tb_cols = PackedColorArray()
-	_tb_idx = PackedInt32Array()
+	_tbb.flush(ci if ci != null else g)
 
 
 ## 按需加载的敌人贴图（不在 game.gd 预载表里的新帧条）：连同白色剪影一起放进 g.tex
