@@ -5,7 +5,7 @@
     python tools/check.py              快检（提交前必跑，约 1 分钟）：核心契约测试 + 每名干员冒烟 + 同 seed 复现
     python tools/check.py --bots       快检 + 机器人标准矩阵（starts × 高手 / 普通 × 4 seed，结果缓存）
     python tools/check.py --ab REF     A/B：临时工作树跑 REF，与当前工作区同 seed 对比机器人标准矩阵
-    python tools/check.py --only smoke 只跑某一项（core / smoke / nodes / prot / repro / blocks_eq / regressions / art_lint / slim，或单项回归名）
+    python tools/check.py --only smoke 只跑某一项（core / smoke / nodes / prot / repro / blocks_eq / regressions / art_lint / slim / op_text / ob_tag，或单项回归名）
     python tools/check.py --jobs 4     本次最多同时开 4 个 Godot（全机总数另受 GODOT_MAX_PROCS 限制）
     python tools/check.py --auto       按相对 main 的改动只跑相关项目：只改文档 → 不开 Godot；只改说明字段 → +核心契约；
                                        只改某几名干员 → +这些干员的冒烟 / 成长节点 + 复现；其余 → 全量。合入 main 前仍跑全量
@@ -170,6 +170,13 @@ def check_op_text():
     import op_text_check
     errs, detail = op_text_check.check()
     return {"name": "干员文字数值 op_text_check", "ok": not errs, "detail": detail, "errors": errs[:8]}
+
+
+def check_ob_tag():
+    """不开 Godot（约 1 秒）：积木瞬时执行器 tag 两两不重叠、data_operator 的单播表 EXEC_SEG 与各执行器分支一致（tools/ob_tag_audit.py，docs/101 §7.3.7）"""
+    import ob_tag_audit
+    errs, detail = ob_tag_audit.check()
+    return {"name": "积木单播表 ob_tag", "ok": not errs, "detail": detail, "errors": errs[:8]}
 
 
 JOBS = GR.MAX_PROCS   # 本次快检的并行数（main 里按 --jobs 设置）
@@ -937,7 +944,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "blocks_eq", "regressions", "art_lint", "slim", "op_text"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -968,6 +975,8 @@ def main():
         jobs.append(check_release_slim)   # 不开 Godot，约 5 秒；--auto 也跑（改文案 / 美术 / 预设都可能碰到）
     if a.only in (None, "op_text"):
         jobs.append(check_op_text)   # 不开 Godot，约 1 秒；--auto 也跑（改干员数值或文字都要对一遍）
+    if a.only in (None, "ob_tag"):
+        jobs.append(check_ob_tag)   # 不开 Godot，约 1 秒；--auto 也跑（加积木 tag 时防两个执行器认同一个 tag、单播表漏登记）
     if a.auto and not a.only:
         level, ops, why = plan_auto()
         print("按改动分级（--auto）：%s%s" % (level, "（干员：%s）" % "、".join(sorted(ops)) if ops else ""), flush=True)

@@ -469,6 +469,16 @@ game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCo
 - `op_blocks.gd` 门面暂时保留，只剩两类用途：blocks 内部的 255 处反向调用 `_F()`（③ 单播改注册表后消失），以及 tests（`exusiai_blocks / mon3tr_fx / summon_seal_blocks / test_core / prot_test / friendly_target / wisadel_cannon`，测试照旧经门面拿全集，不改）。③ 之后门面只给测试用。
 - 金样：只改了积木公共文件（data_operator / character），「别处」不变，积木等价直接与 ship 重录的金样真比。
 
+#### 7.3.7 ③ 瞬时积木单播 + `ob_tag` 快检（干员会话 10-15，分支 claude/b6-unicast）
+
+- `data_operator._exec_list` 的缺省分支从「依次广播给 9 个执行器」改成查 `const EXEC_SEG`（tag → 执行器下标，56 个 tag）只调一个：0 `_ext_exec`、1 `tx`、2 `exu`、3 `sm`、4 `mf`、5 `el`、6 `hw`、7 `h3`、8 `h4`（下标 = 原广播顺序）。
+  h3 / h4 原来经 `hw_exec` 的 `_:` 分支转，单播后直接调，门槛照抄：6 / 7 要 `hw` 非空，8 另要 `h4_on`。
+- **为什么零差**：每个执行器的函数体只有一条 `match str(b.get("_tag", ""))`，没命中的 tag 什么都不做；各执行器的 tag 两两不重叠（3 / 5 / 3 / 2 / 2 / 3 / 16 / 15 / 7）。所以广播时一个 tag 本来就只有一个执行器有动作，单播只是省掉其余的空调用。
+- **`tools/ob_tag_audit.py`（快检项 `ob_tag`，不开 Godot，约 1 秒，`--auto` 也跑）** 核对这三条前提：函数体只有那条 match（match 外有语句、分支不是纯字符串、非 hw 的执行器出现 `_:` 都报错）；tag 两两不重叠；`EXEC_SEG` 与各执行器的分支一一对应（不多、不少、下标对）。`hw_exec` 的 `_:` 必须仍是「转 h3、`h4_on` 时转 h4」。
+  以后给某段加瞬时 tag：在该执行器的 match 里加分支，再 `python tools/ob_tag_audit.py --table` 重出表抄进 `data_operator.gd`；忘了抄快检会报「EXEC_SEG 缺」。
+- **这一步没动的**：每帧 tick / `_sustain` 末尾仍是「全段都调、按清单顺序」（§7.3.2 的第一步本来就这样定），按 JSON + 状态裁剪是 ④；blocks 内部经 `_F()` 的反向调用也还在（它们是段之间的普通调用，不属于分派，等 ④ 段裁剪时按依赖整理）。
+- 金样：只改了 `data_operator.gd`（公共），「别处」不变，积木等价与 ship 重录的金样真比。
+
 ### 7.4 B7 实施方案（架构，10-15 起草；换基线，开工前协调人安排云端新基线）
 
 B7 是唯一一次「同 seed 会变」的步骤：用户 10-15 已同意换基线。做法是**一条分支上按下面次序逐项做，每项本地 TRACE 只看「变了、没报错、局能打完」，全部做完后一次性上云跑新基线**，与旧基线比胜率 / 用时 / 掉落等汇总指标（docs/50 口径，差 <10 点不下结论），通过后把新基线登记进 docs/36 §8。

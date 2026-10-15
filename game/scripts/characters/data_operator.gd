@@ -516,6 +516,69 @@ func _heal(b: Dictionary) -> void:
 
 
 ## 瞬时积木列表（技能出手、触发器触发、延迟到点）
+## B6 ③（docs/101 §7.3.7）：缺省分支按 tag 单播给一个瞬时执行器（原来依次广播给全部 9 个，各执行器只认自己 match 里的 tag、没命中什么都不做）。
+## 下标 = 原广播顺序：0 _ext_exec、1 tx、2 exu、3 sm、4 mf、5 el、6 hw、7 h3（原经 hw_exec 的 _: 转）、8 h4（同上，且 h4_on）。
+## 表与各执行器的分支由快检 ob_tag（tools/ob_tag_audit.py）核对：tag 两两不重叠、表不多不少；加 tag 后用 --table 重出。
+const EXEC_SEG := {
+	"shape.line": 0,   # _ext_exec
+	"verb.field": 0,   # _ext_exec
+	"verb.negate_next": 0,   # _ext_exec
+	"shape.dash_line": 1,   # tx_exec
+	"verb.fx_rain": 1,   # tx_exec
+	"verb.fx_scatter": 1,   # tx_exec
+	"verb.sp_secs": 1,   # tx_exec
+	"verb.trail": 1,   # tx_exec
+	"shape.projectile": 2,   # exu_exec
+	"verb.attack_lock": 2,   # exu_exec
+	"verb.counter": 2,   # exu_exec
+	"verb.shield": 3,   # sm_exec
+	"verb.summon": 3,   # sm_exec
+	"verb.cleanse": 4,   # mf_exec
+	"verb.guard": 4,   # mf_exec
+	"shape.boomerang": 5,   # el_exec
+	"verb.buff_timed": 5,   # el_exec
+	"verb.summon_cmd": 5,   # el_exec
+	"shape.bolt": 6,   # hw_exec
+	"shape.hit": 6,   # hw_exec
+	"shape.hookshot": 6,   # hw_exec
+	"shape.pool": 6,   # hw_exec
+	"shape.shell": 6,   # hw_exec
+	"shape.wave": 6,   # hw_exec
+	"verb.affect": 6,   # hw_exec
+	"verb.arm": 6,   # hw_exec
+	"verb.execute": 6,   # hw_exec
+	"verb.fan": 6,   # hw_exec
+	"verb.link": 6,   # hw_exec
+	"verb.lob": 6,   # hw_exec
+	"verb.lock": 6,   # hw_exec
+	"verb.stack": 6,   # hw_exec
+	"verb.tether": 6,   # hw_exec
+	"verb.timer": 6,   # hw_exec
+	"shape.cleave": 7,   # h3_exec
+	"shape.thrust": 7,   # h3_exec
+	"verb.barrage": 7,   # h3_exec
+	"verb.beam_window": 7,   # h3_exec
+	"verb.cast_push": 7,   # h3_exec
+	"verb.doll_flash": 7,   # h3_exec
+	"verb.followup": 7,   # h3_exec
+	"verb.heal_lamp": 7,   # h3_exec
+	"verb.kill_heal": 7,   # h3_exec
+	"verb.lift_around": 7,   # h3_exec
+	"verb.light_rain": 7,   # h3_exec
+	"verb.mend": 7,   # h3_exec
+	"verb.mirror": 7,   # h3_exec
+	"verb.purge": 7,   # h3_exec
+	"verb.tower": 7,   # h3_exec
+	"verb.calc_field": 8,   # h4_exec
+	"verb.cannon_exec": 8,   # h4_exec
+	"verb.cannon_load": 8,   # h4_exec
+	"verb.cmd_wave": 8,   # h4_exec
+	"verb.fox_cast": 8,   # h4_exec
+	"verb.leap_slam": 8,   # h4_exec
+	"verb.saria_heal": 8,   # h4_exec
+}
+
+
 func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 	for b in arr:
 		if not ObCore.cond_true(self, b.get("cond", _ED)):
@@ -542,15 +605,29 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 				elif not _warned.has(fn):
 					_warned[fn] = true
 					push_warning("数据干员 %s：custom 函数「%s」不存在，已忽略" % [id, fn])
-			_:
-				_ext_exec(b, at)       # 星熊段
-				SegTexas.tx_exec(self, b, at)   # 德克萨斯段
-				SegExusiai.exu_exec(self, b, at)  # 能天使段：shape.projectile / verb.counter / verb.attack_lock
-				ObSummon.sm_exec(self, b, at)   # 召唤 / 封印段：verb.summon / verb.shield
-				ObSummon.mf_exec(self, b, at)   # 召唤物扩展段：verb.guard / verb.cleanse
-				ObElite.el_exec(self, b, at)   # 精英化段：verb.buff_timed / shape.boomerang / verb.summon_cmd
-				if not hw.is_empty():
-					ObHw.hw_exec(self, b, at)   # 手写迁移段
+			var tg:
+				match int(EXEC_SEG.get(tg, -1)):
+					0:
+						_ext_exec(b, at)       # 星熊段
+					1:
+						SegTexas.tx_exec(self, b, at)   # 德克萨斯段
+					2:
+						SegExusiai.exu_exec(self, b, at)  # 能天使段
+					3:
+						ObSummon.sm_exec(self, b, at)   # 召唤 / 封印段
+					4:
+						ObSummon.mf_exec(self, b, at)   # 召唤物扩展段
+					5:
+						ObElite.el_exec(self, b, at)   # 精英化段
+					6:
+						if not hw.is_empty():
+							ObHw.hw_exec(self, b, at)   # 手写迁移段
+					7:
+						if not hw.is_empty():
+							ObHw.h3_exec(self, b, at)   # 手写迁移段第 3 批
+					8:
+						if not hw.is_empty() and ObHw.h4_on(self):
+							ObHw.h4_exec(self, b, at)   # 手写迁移段第 4 批
 		if b.has("fx") and not str(b.get("_tag", "")) in ObFx.FX_SELF_PLAY:   # 伤害形状 / 位移 / 区域等的 fx 由执行器按自己的位置播
 			ObFx.fx_play(self, b.fx, zone_c(), zr)
 
