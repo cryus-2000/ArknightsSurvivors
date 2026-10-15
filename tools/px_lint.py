@@ -4,8 +4,10 @@
 输入一对 PNG（1x + @2x）与 1x 脚底原点（@2x 原点 = 2 × 1x 原点，可用 --foot2 另给），逐层检查：
   ① 透明：alpha 只有 0 / 255；不透明像素的四邻域连通体个数（应为 1）；alpha 孤点（四邻都透明的不透明像素）
   ② 颜色孤点（主口径，10-15 用三份逻各斯样本对界面手数校过）：不是描边色、八邻里没有同色、八邻里同一种底色占 ≥ 6
-     ——「嵌在一片色块里的单点」，就是看图时会跳出来的那种；「单点高光」= 这样的孤点且明度比底色高 ≥ hl（缺省 16，--hl 可调；暗部里只亮一点点的杂色不算）。@2x 要求 0：高光至少 2 像素成组。
-     口径校准（10-15，逻各斯三份样本 vs 界面手数）：1x 孤点 B 11 / C 10 / C-HD 12（手数 7 / 11 / 17）；C-HD @2x 单点高光 hl 16 时 21（手数 23）。
+     ——「嵌在一片色块里的单点」，就是看图时会跳出来的那种；「单点高光」= 这样的孤点且明度比底色高 ≥ hl（缺省 16，--hl 可调；暗部里只亮一点点的杂色不算）；
+     并上「暗底亮点」：四邻无同色（对角相连不算连块）、不是描边色、8 邻里 ≥ 6 个比它暗 ≥ 240（RGB 和）——暗部多档暗色混排里的碎亮点
+     （界面 10-15 核对 C-HD 胸前领口后加；它也计入孤点）。@2x 要求 0：高光至少 2 像素成组。
+     口径校准见 docs/36 §9.2（10-15 加暗底亮点后：界面点名的 C-HD @2x 胸前 15 点 + 另 7 点全部计入单点高光）。
      宽口径一并报（只作参考）：与四邻都不同色的像素（isolated_loose）、其中比所有不透明四邻都亮的（highlight_loose）——
      在 27 色量化稿里这会数进大量正常的细节交界，数字偏大
   ③ 1x ↔ @2x 对应：@2x 按 2×2 块取主色（众数；透明也算一色），与 1x 对应像素比较——
@@ -75,7 +77,9 @@ class Layer:
         return self.at(x, y)[3] > 0
 
 
-HL = 16.0   # 单点高光：比底色亮多少明度（0.299R + 0.587G + 0.114B）才算
+HL = 16.0   # 单点高光 ①：比底色亮多少明度（0.299R + 0.587G + 0.114B）才算
+DARK = 240   # 单点高光 ②「暗底亮点」：8 邻里 ≥ DARK_N 个比本像素暗这么多（RGB 和之差）
+DARK_N = 6
 
 
 def analyze(L, foot, outline_w, hl=None):
@@ -120,12 +124,20 @@ def analyze(L, foot, outline_w, hl=None):
             if c[:3] == OUTLINE:
                 continue
             n8 = [L.at(x + dx, y + dy) for dx, dy in N8]
-            if any(n[3] > 0 and n[:3] == c[:3] for n in n8):
-                continue
-            base = Counter(n[:3] for n in n8 if n[3] > 0).most_common(1)
-            if base and base[0][1] >= 6:
+            # ② 暗底亮点（界面 10-15 核对后加）：四邻无同色（对角相连不算连块）、8 邻里 ≥ 6 个比它暗 ≥ 240（RGB 和）
+            #    ——暗部常是几档近黑 / 深蓝混排，「同一底色占 ≥ 6」会漏掉其中的碎亮点（逻各斯 C-HD 胸前领口）
+            sc = c[0] + c[1] + c[2]
+            dark_base = not any(n[3] > 0 and n[:3] == c[:3] for n in n4) and                 sum(1 for n in n8 if n[3] > 0 and sc - (n[0] + n[1] + n[2]) >= DARK) >= DARK_N
+            # ① 色块里的单点：八邻无同色、同一底色占 ≥ 6；比底色亮 ≥ hl 算高光
+            flat = False
+            if not any(n[3] > 0 and n[:3] == c[:3] for n in n8):
+                base = Counter(n[:3] for n in n8 if n[3] > 0).most_common(1)
+                if base and base[0][1] >= 6:
+                    flat = True
+                    bright = lum(c) - lum(base[0][0]) >= hl
+            if flat or dark_base:
                 iso.append([x, y])
-                if lum(c) - lum(base[0][0]) >= hl:
+                if dark_base or bright:
                     hi.append([x, y])
     r["isolated"] = iso
     r["single_highlight"] = hi
@@ -293,7 +305,7 @@ def run_samples(verbose=True):
 
 
 # 样本的校准值（10-15）：工具改口径后这些数变了要先说明再改表
-EXPECT = {"logos_B": (11, 0, 0), "logos_C": (10, 0, 0), "logos_C_HD": (12, 21, 195)}   # 1x 孤点、@2x 单点高光、块对不上
+EXPECT = {"logos_B": (26, 0, 0), "logos_C": (35, 0, 0), "logos_C_HD": (44, 75, 195)}   # 1x 孤点、@2x 单点高光、块对不上
 
 
 def check():
