@@ -464,6 +464,56 @@ python tools/check.py --only px_lint                         # 可选快检项�
 
 `python tools/clean_local.py`（不带参数只报告）：工作树清「孤儿文件夹 + 已合入且干净的 `agent-*`」，`--named` 连命名工作树一起按同一标准清；旧包只留最近 3 个 `final_<sha>` + `KEEP_SHAS`（itch 线上、EA 冻结）。`--apply` 真删；ship.py 出包后自动跑 `--release --apply`。分支都保留，删错了 `git worktree add` 再检出。规则见 docs/41 §3「本地存储规则」。
 
+### 10.1 远程分支清点（2026-10-16，测试与验收；main 87c1d815；只读，未删任何分支）
+
+GitHub 远端除 `main` 和 `cloud-results/*` 外还有 58 个分支（`git branch -r | grep -v cloud-results`，9/26–10/13 的探针 / A-B 侧分支 / 工具草稿），`git merge-base --is-ancestor origin/<分支> main` 全部为假——**这是预期的工作方式，不是遗漏**：这些分支按 docs/41 的流程跑云端 / 本地 A-B，数值或代码结论确认后由人手改写进 `main` 的独立提交（或写进对应 docs），分支本身不 `git merge`，只作过程记录。逐个核对的办法：按分支提交信息里的旋钮名 / 特征字符串去 `main` 的 `game/` 和 `docs/` 里反查，命中说明结论已落地；查不到的进一步看是被后续设计推翻，还是单纯从未采纳。
+
+**结论先说**：58 个分支的结论或代码**全部已经落地或被后续方案取代**，没有发现「有价值但还没合入」的代码。可以放心删（建议先问协调人一句，删除按协调人之前的流程走，本次只读未删）。
+
+| 分支 | 用途 | 结果记录在哪 | 未落地代码 | 判断 |
+|---|---|---|---|---|
+| `antispike` | 探针（`--bal=` 覆盖旋钮）+ 编队人数加主控生命特性 | main `squad.gd` 注释仍引「2026-09-27 用户定每人 +15%」，公式后由 docs/83（10-13）重做成入队台阶系统，概念延续 | 无 | 可删 |
+| `b0-base-probe` | 普通机器人回圈（贴圈边外推只留侧向分量 + 冲刺回圈）A/B 修订版 | `bot.gd` 已有出圈冲刺判定；具体「只留侧向分量」实现较老，难逐行比对 | 未逐行确认，但同系列后续轮次（v11-botfix2 等）内容相同，已按该系列整体判断 | 可删 |
+| `b0-revert-probe` | 撤回 7 条 Boss B0 系列改动（预警压缩、接触延迟、死亡清预警、精英冻结等） | 撤回后main确实没有「Boss 在场冻结精英计时」等功能，即撤回已经是最终状态 | 无 | 可删 |
+| `b1-cal` | 测试探针（`--norelics` / `--relicmax=N`、`--bal=`） | 纯命令行开关，无业务结论 | 无 | 可删 |
+| `b1-horde-probe` | 大群顺延上限 `boss/horde_defer_max`、Boss 刷怪倍率拆分 `spawn_boss_mult_mid/_final` | main `spawner.gd`/`balance.json` 均有 `spawn_boss_mult_mid`、`horde_defer_max` | 无 | 可删 |
+| `boss/b1-arena` | B1 场地：Boss 登场冻结场地、位置约束、Boss 溟痕上限 | main `combat.gd` `arena_clamp()` 注释「docs/38 §1.7」，已落地 | 无 | 可删 |
+| `boss/b1-feel` | 实机手感：冲刺怪真冲到人、骑士/塑路者冲锋到位、`dash_len` | main `enemy_ai.gd` `dash_len` 字段注释原样引「用户实机反馈 9/27」 | 无 | 可删 |
+| `boss/b1-horde` | 同 `b1-horde-probe`（`spawn_boss_mult_mid/_final`） | 同上 | 无 | 可删 |
+| `boss/b1-sched` | 撤回「Boss 在场冻结精英计时」；最终 Boss 登场时中期 Boss 撤场不给奖励 | main 无冻结精英功能（即撤回状态） | 无 | 可删 |
+| `boss/b1-vfx` | 同 `boss/b1-feel`（画面侧：冲击波走 `_warn`、撕裂者 `atk_anim`） | 同上，`enemy_ai.gd`/`world.gd` 已是对应实现 | 无 | 可删 |
+| `boss/saint-pace` | 伊比利亚/卡门节奏微调（`saint_stand`、`carmen_hop_cd/spd`） | 这几个旋钮名在当前 `balance.json` 查不到；10-14「Boss 招式改版」（memory `boss-moves-redesign`）整体重写了 Boss 招式，判断被取代而非丢失 | 具体数值已过时（旧 Boss 实现已重写） | 可删 |
+| `close1` | 收口轮 1（防暴毙包、围猎机制、骑士队友调整、回复卡加权等，含多个 merge） | 围猎 (`hunt.gd` 等 11 文件)、`heal_weight`、骑士 600 固定血 + 低血撤退、藏品集齐补源石锭均在 main | 无 | 可删 |
+| `close2`、`close3`、`close4`、`close4b`、`close5`、`close6`、`close6b`、`close7` | 收口轮 2–7：三档数值表逐轮校准（先云端再合，`close5` 额外带 `boss_focus`） | 具体数值早被之后多轮校准覆盖（close8/9、docs/38 §8.12 等），表格本身已过时，但「先云端再合」流程与探针写法沿用至今；`close5` 的 `boss_focus` 见上方 `probe/close5-master` 一行 | 无（纯 `balance.json` 数值，旧值无保留意义） | 可删 |
+| `cloud` | 云端批跑基础设施初始化（`tools/cloud/`） | `tools/cloud/` 现存且本 session 全程使用（`setup_linux.sh`/`run_cloud.sh` 等） | 无 | 可删 |
+| `diff-cal-probe` / `diff-cal-probe2` | 普通机器人回圈 + 同屏峰值遥测 + `balance_run` 终局 Boss 分型 | `telemetry.gd` `peak` 数组、`balance_run.py` `final_boss_summary()` 均在 main，docs/36 §6 已记 | 回圈具体实现未逐行比对（同上），工具部分已确认落地 | 可删 |
+| `early-hp` / `early-hp2` / `early-hp3` | 前期接触强度试验（v3：浅滩/暗流移速、暗流刷怪池） | 探针为主；v3 方案是否采纳未逐项核对，但属早期前 3 分钟强度试验，已被后续多轮 EA 数值表覆盖 | 可能有未采纳的具体数值，但年代久远、已被整体数值表取代 | 可删 |
+| `gameplay/b1b2` | 事件选项不吞升级、宝箱补源石锭、回复药剂来源分类 | `game.gd` `pending_levelups` 队列、`progression.gd` 宝箱补锭均在 main | 无 | 可删 |
+| `gameplay/healw` | 回复类升级卡加权（`heal_weight`/`heal_low_hp_mult`） | main `progression.gd` 有 `heal_weight` | 无 | 可删 |
+| `gameplay/intro2` | 开场指南文案一处小改 | 10-12 语言风格统一改版（docs/76）后文案大概率已重写，原句未必保留 | 1 行文案，无独立价值 | 可删 |
+| `gameplay/tidewall` / `gameplay/tidewall2` | 「围猎」强制交战机制首版 | `hunt.gd` 等 11 个文件在 main，机制仍在 | 无 | 可删 |
+| `gameplay/v11` | 1.1 难度三档改版（标准/困难/极难）、Boss 在场缩圈暂停、EA 1.1 刷怪拐点 | 三档框架已被后续 `difficulty/standard\|hard\|extreme` 更完整的体系（docs/27）取代；`zone_out_t`、`spawn_knee` 等具体旋钮仍在 main | 无（概念被取代，不是丢失） | 可删 |
+| `healw-base-probe` | `gameplay/healw` 的 A/B 基准版（权重设回 1） | 纯基准探针，无独立结论 | 无 | 可删 |
+| `hunt-probe-base` / `hunt-probe-new` | `balance_run --keep=` 前缀功能 + 围猎机制验证 | `balance_run.py` 现有 `--keep` 参数 | 无 | 可删 |
+| `integ` | 三档数值整合复核（困难攻击倍率等） | 具体数值（困难攻击 1.15）已被后续校准覆盖（现 `difficulty.hard.enemy_dmg` = 1.2，经过 close1–close9 等多轮重算，不可直接比较） | 无（数值早已过时） | 可删 |
+| `late-dmg` | 后期敌人伤害轻微上调方案 a | docs/51 已记（分支本身也改了 docs/51），`enemy/dmg_late_*` 系列旋钮 | 需要时可在 docs/51 查，不在本分支本身 | 可删 |
+| `logos-rework-r1-pin` | 逻各斯技能重设计首版（咒文弹、扇形咒域） | main `logos.json`（docs/61 §17.5 数据化迁移版）文案仍是「咒文弹...扇形咒域」，设计概念延续，但实现已被 10-14 积木迁移整体重写 | 无（旧手写实现已废弃） | 可删 |
+| `numbers-probe` | 数值采样探针（`--norelics`/`--relicmax`，30 秒采样输出/藏品/治疗/生命，docs/42 §1） | docs/42 §1 | 无 | 可删 |
+| `probe/b3-base` / `probe/b3-new` | `--forceending=`/`--forceboss2=` 测试开关 | `spawner.gd` 现有这两个开关，注释措辞基本一致 | 无 | 可删 |
+| `probe/close5-master` | 熟练（master）机器人档位首版 + `boss_focus` | `bot.gd` `PROFILES` 含 `master`；`op_api.gd` `boss_focus` 注释原样引「2026-09-29 协调人」 | 无（首版实现已被之后多轮 master bot 迭代重写，详见 docs/38 §8.5 等） | 可删 |
+| `probe/pt-base` / `probe/pt-new` | Boss 在场遥测（`en_alive`/`en_near`/`on_boss`）+ 双体共用招式令牌 + `final_mob_cap` | `telemetry.gd` 有对应字段；`final_mob_cap` 在 `balance.json`（现被 `trickle_cap` 系统替代/扩展，`_doc` 写明沿革） | 无 | 可删 |
+| `probe/warn-track` | 熟练机器人追踪段预警轻扣（docs/38 §8.5 泡影超时候选修复） | **本 session 自己做的**：同 seed 对照后判定无改善，不合入（docs/41 当时的交接记录）；main 无 `warn_track` 字样（0 命中），即未落地是正确的最终状态 | 无（已验证过不该落地） | 可删 |
+| `test/bot-master` | 同 `probe/close5-master`（master 档 + `tools/balance_run.py`） | 同上 | 无 | 可删 |
+| `tiers-cal` | 三档难度修正表初稿 | 同 `integ`，早被多轮数值校准覆盖 | 无 | 可删 |
+| `tools/ab-difficulty` | 回圈改进 + 大群分行统计 + 同屏峰值 + 终局 Boss 分型（工具集合分支） | `balance_run.py` 大群/终局分型、`telemetry.gd` peak 均在 main | 回圈具体实现同上未逐行比对 | 可删 |
+| `tools/final-boss-split` | `balance_run` 终局 Boss 按类型分行 | `balance_run.py` `final_boss_summary()`，docs/36 §6 已记 | 无 | 可删 |
+| `v11-ab` / `v11-ab-probe-base` / `v11-ab-probe-new` | 1.1 三档难度 A/B（含同屏峰值/终局分型工具） | 同 `gameplay/v11`：框架被后续体系取代，工具部分已落地 | 无 | 可删 |
+| `v11-botfix-base` / `v11-botfix-new` / `v11-botfix2-base` / `v11-botfix2-new` | 普通机器人回圈修复 + 1.1 三档 A/B（多轮迭代） | 同上两类结论的组合 | 回圈具体实现未逐行比对 | 可删 |
+| `wip/ftr-analysis` | 最终 Boss 少量补怪云端对照（trickle 上限 40 vs 25） | **main `balance.json` `trickle_cap: 25`，`_doc` 原文引用「云端 ftr 配对：上限 40 时 Ⅷ 62.5→50.0%（压线），25 时 57.1%，10-12 定 25」**，逐字匹配 | 无（docs/81 本身已不存在，结论改写进了 balance.json 的 `_doc`） | 可删 |
+| `wip/medic-m20` | 医疗常驻治疗 −20% 试验（流明/凯尔希 `heal_pct`） | main 当前 `heal_pct`（流明 0.017、凯尔希 0.015）是这次试验的**基准值**而非试验值，说明 −20% 没被采纳；10-13 之后「入队回复台阶」（docs/82 §3.1 已声明被 docs/83 取代）整体重做了回复系统，这个百分比试验已经过时 | 试验值本身没进 main，但设计思路已被整体重做取代，不是遗漏 | 可删 |
+
+**没有逐行比对的几处**（标了「未逐行比对」的回圈改动系列）：如果以后要精确复核普通机器人「贴圈边 / 溟痕绕行」这段具体代码是否与这几个分支完全一致，可以用 `git diff origin/v11-botfix2-new -- game/scripts/core/bot.gd game/scripts/run/combat.gd` 对 main 看；本次审计用的是「关键字 + 行为现状」反查，没有发现需要因此保留分支的理由。
+
 ## 11. 64 画布回归（canvas64，2026-10-16；测试与验收，main ed0a764f）
 
 main 6aa19849 起干员帧改按帧条自身尺寸 / json 里的 `foot` 读（不再假定固定 48 画布），为以后 §4.3 「干员 @2x 原生细节」铺路。确认现有 48 条帧条零变化，并验证引擎能正确读一条临时的 64×64 帧条。
