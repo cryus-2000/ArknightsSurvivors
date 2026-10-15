@@ -1335,6 +1335,15 @@ static func art_fit(w2: float, h2: float, stage: Rect2, kmax: float, cx: float, 
 ## 干员立绘判倍率用的高度（贴图像素）：64 画布起（帧高 / hires > 48，docs/103 §5），角 / 帽 / 武器超出「身体」的部分不触发降倍——
 ## 按 STAND_FIT 美术像素封顶（docs/103 §3 站立高上限 36 + 1）；48 画布原样用并集区高度（现有帧条结果不变）。只给干员用（Boss 帧条也可能 > 48）
 const STAND_FIT := 37.0
+## 干员小图标的取景窗（帧内贴图像素）：按固定框缩放的小图标（招募 / 升级卡、属性面板、开场说明）原来按整帧高缩放，
+## 64 画布（docs/103 §5）会让人物缩到 3/4。64 画布起取「以脚底为准的旧 48 画布范围」：foot − (24, 46) 起 48 × 48 美术像素，
+## 版式与 48 画布逐像素相同（站立高 + 头饰 ≤ 46 都在窗内）；48 画布返回整帧（结果不变）
+static func op_win(fw: float, fh: float, hi: float, foot) -> Rect2:
+	if fh / hi <= 48.0 or not (foot is Array) or foot.size() < 2:
+		return Rect2(0, 0, fw, fh)
+	var x0: float = clampf((float(foot[0]) - 24.0) * hi, 0.0, fw - 48.0 * hi)
+	var y0: float = clampf((float(foot[1]) - 46.0) * hi, 0.0, fh - 48.0 * hi)
+	return Rect2(x0, y0, 48.0 * hi, 48.0 * hi)
 static func fit_h(bb: Rect2, fh: float, hi: float) -> float:
 	if fh / hi <= 48.0:
 		return bb.size.y

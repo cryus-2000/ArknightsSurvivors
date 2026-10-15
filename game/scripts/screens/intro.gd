@@ -330,9 +330,10 @@ func draw_icon(kind: String, c: Vector2) -> void:
 				if k < 2:
 					var idl: Dictionary = g.panel_ui.op_idle(g.ch.id if k == 0 else other_id)
 					if not idl.is_empty():
-						var ks: float = 1.5 if idl.fh <= 48 else 72.0 / idl.fh
-						var asz := Vector2(idl.fw, idl.fh) * ks
-						g.hud.draw_texture_rect_region(idl.tex, Rect2(cc0 - asz / 2.0 + Vector2(0, 4), asz), Rect2(0, 0, idl.fw, idl.fh))
+						var wn: Rect2 = idl.win   # 64 画布取脚底为准的 48 范围（UI.op_win）
+						var ks: float = 1.5 if wn.size.y <= 48 else 72.0 / wn.size.y
+						var asz := wn.size * ks
+						g.hud.draw_texture_rect_region(idl.tex, Rect2(cc0 - asz / 2.0 + Vector2(0, 4), asz), wn)
 				else:
 					var gt: Texture2D = g.tex.get("growth_hp")
 					if gt != null:

@@ -654,15 +654,16 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var opid: String = o.id if o.kind == "recruit" else o.get("op", "")
 	var idle: Dictionary = op_idle(opid) if ic == null and opid != "" else {}
 	if not idle.is_empty():
-		var ks: float = ((1.0 if compact else 2.0) if idle.fh <= 48 else (64.0 if compact else 96.0) / idle.fh)
-		var asz := Vector2(idle.fw, idle.fh) * ks
+		var wn: Rect2 = idle.win   # 64 画布取脚底为准的 48 范围（UI.op_win），版式同 48 画布
+		var ks: float = ((1.0 if compact else 2.0) if wn.size.y <= 48 else (64.0 if compact else 96.0) / wn.size.y)
+		var asz := wn.size * ks
 		# 招募卡的部署落地（card_motion）：脚底画部署格 / 落地环，待机帧按 icon_off 从上方落下、落地按 icon_scale 压扁（以脚底为基点）
 		var feet := c + Vector2(0, asz.y / 2.0 + bob + 4)
 		if o.kind == "recruit":
 			motion.draw_deploy(card, i, feet.round())
 		if motion.icon_a > 0.0:
 			var isz := asz * motion.icon_scale
-			card.draw_texture_rect_region(idle.tex, Rect2(feet - Vector2(isz.x / 2.0, isz.y) + motion.icon_off, isz), Rect2(0, 0, idle.fw, idle.fh))
+			card.draw_texture_rect_region(idle.tex, Rect2(feet - Vector2(isz.x / 2.0, isz.y) + motion.icon_off, isz), wn)
 	elif o.kind == "swap_keep":
 		UI.icon(card, "exit", c + Vector2(0, bob), 40.0 if compact else 56.0, Color(0.8, 0.83, 0.86))   # 不替换：返回
 	elif ic != null:
@@ -799,7 +800,11 @@ func op_idle(cid: String) -> Dictionary:
 		frames = maxi(1, tx.get_width() / tx.get_height())
 	if Character.strip_mirror(cdef, "idle"):
 		tx = A.mirror_strip(tx, frames)   # 待机条画反了（docs/84）：用镜像副本
-	return {"tex": tx, "fw": tx.get_width() / frames, "fh": tx.get_height()}
+	var fw0: int = tx.get_width() / frames
+	var ft = (sp.get("foot") if sp is Dictionary else null)
+	if ft == null:
+		ft = cdef.get("sprites", {}).get("foot", null)
+	return {"tex": tx, "fw": fw0, "fh": tx.get_height(), "win": UI.op_win(fw0, tx.get_height(), A.hires_of(tx), ft)}
 
 
 ## 干员贴图集（运行中招募 / 测试编入时补加载）

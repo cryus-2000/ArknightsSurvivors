@@ -65,8 +65,9 @@ func draw(vs: Vector2) -> void:
 		var fw: int = idle.fw
 		var fh: int = idle.fh
 		var fr := int(g.t * 2.0) % maxi(1, pt.get_width() / fw)
-		var k: float = 72.0 / float(fh) if fh > 0 else 1.0
-		g.hud.draw_texture_rect_region(pt, Rect2(r.position + Vector2(26, 6), Vector2(fw, fh) * k), Rect2(fr * fw, 0, fw, fh))
+		var wn: Rect2 = idle.win   # 64 画布取脚底为准的 48 范围（UI.op_win）
+		var k: float = 72.0 / wn.size.y if wn.size.y > 0 else 1.0
+		g.hud.draw_texture_rect_region(pt, Rect2(r.position + Vector2(26, 6), wn.size * k), Rect2(fr * fw + wn.position.x, wn.position.y, wn.size.x, wn.size.y))
 	var ln: String = ld.display_name()
 	UI.text(g.hud, g.font, r.position + Vector2(108, 50), ln, 28, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
 	var dn_w := g.font.get_string_size(ln, HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x
@@ -196,9 +197,10 @@ func draw(vs: Vector2) -> void:
 		var at: Texture2D = g.tex.get(opt.tex)
 		if at != null:
 			var fw := at.get_width() / int(opt.frames)
-			var ks := (26.0 if not touch else 32.0) / at.get_height()
-			g.hud.draw_texture_rect_region(at, Rect2(Vector2(ax2, y - 6), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
-			ax2 += fw * ks + 6
+			var wn := UI.op_win(fw, at.get_height(), A.hires_of(at), o.sprite_spec("idle").get("foot", o.def.get("sprites", {}).get("foot", null)))
+			var ks := (26.0 if not touch else 32.0) / wn.size.y
+			g.hud.draw_texture_rect_region(at, Rect2(Vector2(ax2, y - 6), wn.size * ks), wn)
+			ax2 += wn.size.x * ks + 6
 		UI.text(g.hud, g.font, Vector2(ax2, y + 12), "%s · %s" % [o.display_name(), o.cls], fs_sub, UI.TEXT)
 		ax2 += 116 if not touch else 150
 		ax2 += UI.chip(g.hud, g.font, Vector2(ax2, y), ["精零", "精一", "精二"][o.elite], UI.GOLD if o.elite > 0 else UI.SUB, fs_tag) + 6
@@ -354,8 +356,9 @@ func draw_phone(vs: Vector2) -> void:
 		var fw: int = idle.fw
 		var fh: int = idle.fh
 		var fr := int(g.t * 2.0) % maxi(1, pt.get_width() / fw)
-		var k: float = 60.0 / float(fh) if fh > 0 else 1.0
-		g.hud.draw_texture_rect_region(pt, Rect2(r.position + Vector2(22, 8), Vector2(fw, fh) * k), Rect2(fr * fw, 0, fw, fh))
+		var wn: Rect2 = idle.win   # 64 画布取脚底为准的 48 范围（UI.op_win）
+		var k: float = 60.0 / wn.size.y if wn.size.y > 0 else 1.0
+		g.hud.draw_texture_rect_region(pt, Rect2(r.position + Vector2(22, 8), wn.size * k), Rect2(fr * fw + wn.position.x, wn.position.y, wn.size.x, wn.size.y))
 	var ln: String = ld.display_name()
 	UI.text(g.hud, g.font, r.position + Vector2(96, 46), ln, 26, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 3)
 	var dn_w := g.font.get_string_size(ln, HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x
@@ -451,9 +454,10 @@ func _phone_squad(b2: Rect2) -> void:
 		var at: Texture2D = g.tex.get(opt.tex)
 		if at != null:
 			var fw := at.get_width() / int(opt.frames)
-			var ks := 34.0 / at.get_height()
-			g.hud.draw_texture_rect_region(at, Rect2(Vector2(ax2, y - 8), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()))
-			ax2 += fw * ks + 8
+			var wn := UI.op_win(fw, at.get_height(), A.hires_of(at), o.sprite_spec("idle").get("foot", o.def.get("sprites", {}).get("foot", null)))
+			var ks := 34.0 / wn.size.y
+			g.hud.draw_texture_rect_region(at, Rect2(Vector2(ax2, y - 8), wn.size * ks), wn)
+			ax2 += wn.size.x * ks + 8
 		UI.text(g.hud, g.font, Vector2(ax2, y + 12), "%s · %s" % [o.display_name(), o.cls], 19, UI.TEXT)
 		ax2 += 170
 		ax2 += UI.chip(g.hud, g.font, Vector2(ax2, y - 2), ["精零", "精一", "精二"][o.elite], UI.GOLD if o.elite > 0 else UI.SUB, 13) + 8
