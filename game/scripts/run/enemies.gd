@@ -57,9 +57,32 @@ func query(pos: Vector2, radius: float) -> Array:
 	return out
 
 
+## 三段更新的逐帧暂存（docs/101 B7 ③）：A 段算出的本帧速度、是否进入 B / C；B 段登记的吞噬候选（捕食者 i、猎物 j）与伊祖米克吸收（子代 i、Boss j）
+var _seg_v := PackedVector2Array()
+var _seg_on := PackedByteArray()
+var _dv_e := PackedInt32Array()
+var _dv_o := PackedInt32Array()
+var _ab_e := PackedInt32Array()
+var _ab_o := PackedInt32Array()
+
+
 func update(dt: float) -> void:
 	var dark_mod: float = Bal.v("lamp/dark_enemy", 1.2) if g.lamp < 30.0 else 1.0   # 灯火暗淡时敌人移速 / 接触伤害倍率（docs/88 旋钮，缺省 1.2 不变）
-	for i in g.enemies.size():
+	# 敌人更新分三段（docs/101 B7 ③，10-15 起换基线）：
+	#   A 决策（逐只：计时、持续伤害、远距回收、进化、Boss 步、AI 意图 → 本帧速度 v）
+	#   B 运动（逐只：分离、积分、场地约束、景物推出；不抽随机数、不回调——将来的原生 EnemyCore.step）
+	#   C 结算（逐只：吞噬掷骰、伊祖米克吸收、囊海爬行者爆发、接触伤害 / 形变、泪的持续伤害；距离按移动后的位置）
+	# 原来一只敌人走完全部再下一只；分段后先后次序不同，同 seed 结果随之改变。本帧新刷出的敌人（A 里 Boss 召唤等）三段都不处理，与原来一致
+	var n: int = g.enemies.size()
+	_seg_v.resize(n)
+	_seg_on.resize(n)
+	_dv_e.clear()
+	_dv_o.clear()
+	_ab_e.clear()
+	_ab_o.clear()
+	# ---- A 决策段
+	for i in n:
+		_seg_on[i] = 0
 		var e: Dictionary = g.enemies[i]
 		if e.dead:
 			continue
@@ -208,7 +231,19 @@ func update(dt: float) -> void:
 		e.kb = e.kb.move_toward(Vector2.ZERO, 900.0 * dt)
 		if e.get("kb_self", false) and e.kb == Vector2.ZERO:
 			e.kb_self = false
+		_seg_v[i] = v
+		_seg_on[i] = 1
 
+	# ---- B 运动段
+	for i in n:
+		if _seg_on[i] == 0:
+			continue
+		var e: Dictionary = g.enemies[i]
+		if e.dead:   # A 段里被别的单位打死（Boss 招式、持续伤害外的结算）
+			_seg_on[i] = 0
+			continue
+		var v: Vector2 = _seg_v[i]
+		var absorbed := false
 		# ---- 分离 + 吞噬
 		if e.ai != "static":
 			# 分离：query() 内联（性能，docs/50 §11）——同样的格子顺序、同样的越界与阵营判断，不建中间数组；
@@ -240,18 +275,20 @@ func update(dt: float) -> void:
 						var d := diff.length()
 						var min_d: float = e.r + o.r
 						if d < min_d and d > 0.01:
-							if e.evo and not o.evo and not o.elite and not o.boss and not o.chest and o.ai != "static" and d < e.r and g.rng_enemy.randf() < 0.015:
-								_devour(e, o)
-								continue
+							# 吞噬只登记候选（B 段不抽随机数），掷骰在 C 段按这里的次序做；候选照常被推开（原来掷骰失败时也推）
+							if e.evo and not o.evo and not o.elite and not o.boss and not o.chest and o.ai != "static" and d < e.r:
+								_dv_e.append(i)
+								_dv_o.append(j)
 							# 伊祖米克的子代被 Boss 吸收
 							if e.feed and o.type == "izumik" and o.phase == 1:
-								e.dead = true
-								g.bai.izumik_absorb(o)   # 吸收子代：强化层数（不再回血，docs/38 §8.7）
+								_ab_e.append(i)   # 吸收在 C 段结算（g.bai.izumik_absorb 是回调）；这只本帧不再移动
+								_ab_o.append(j)
+								absorbed = true
 								stop = true
 								break
 							if not e.boss:
 								e.pos += diff / d * (min_d - d) * 0.3
-			if e.dead:
+			if absorbed:
 				continue
 		e.pos += v * dt
 		# 包含普通移动、外来击退和自主冲锋；约束当前可见圈，避免冻结场地圆心过渡时越界。
@@ -268,6 +305,32 @@ func update(dt: float) -> void:
 		if not e.boss and e.ai != "static" and (i + g.frame_n) % 2 == 0:
 			e.pos = g.map.push_out(e.pos, e.r * 0.8)
 
+	# ---- C 结算段
+	var dv := 0
+	var ab := 0
+	var ndv: int = _dv_e.size()
+	var nab: int = _ab_e.size()
+	for i in n:
+		if _seg_on[i] == 0:
+			continue
+		var e: Dictionary = g.enemies[i]
+		# 吞噬：B 段登记的候选按分离次序掷骰（rng_enemy，1.5%）
+		while dv < ndv and _dv_e[dv] == i:
+			var prey: Dictionary = g.enemies[_dv_o[dv]]
+			dv += 1
+			if not e.dead and not prey.dead and g.rng_enemy.randf() < 0.015:
+				_devour(e, prey)
+		# 伊祖米克吸收子代：强化层数（不再回血，docs/38 §8.7）
+		if ab < nab and _ab_e[ab] == i:
+			var iz: Dictionary = g.enemies[_ab_o[ab]]
+			ab += 1
+			if not e.dead:
+				e.dead = true
+				g.bai.izumik_absorb(iz)
+			continue
+		if e.dead:
+			continue
+		var dist: float = (g.ppos - e.pos).length()   # 接触 / 泪按移动后的位置判
 		# ---- 囊海爬行者：每失去 15% 生命爆发一次。有 0.8 秒鼓胀预警（docs/48 P0-6：原 0.4 秒低于 0.6 下限），爆发之间至少隔 1.2 秒（高输出下不会连爆秒人）
 		if e.has("burst_at"):
 			e.burst_cd = maxf(0.0, e.get("burst_cd", 0.0) - dt)
@@ -288,7 +351,6 @@ func update(dt: float) -> void:
 				e.burst_w = 0.8
 				e.burst_dur = 0.8   # 画面按 burst_w / burst_dur 算鼓胀进度（界面与美术）
 				e.burst_cd = 1.2
-
 		# ---- 接触伤害
 		# 休眠中的收割者、自爆的狂奔者（V8）没有接触伤害；Boss 登场 2 秒内不造成接触伤害（docs/38 B0 第 6 项：边缘刷出贴脸）
 		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false) and not e.get("dormant", false) and not (e.type == "reaper" and e.get("wake_t", 0.0) > 0.0) and not D.ENEMIES[e.type].get("no_contact", false) and not (e.boss and e.age < 2.0) and e.get("air", 0.0) <= 0.0 and not e.get("under", false) and float(e.get("hatch_until", 0.0)) <= g.t:
@@ -306,6 +368,8 @@ func update(dt: float) -> void:
 		if e.type == "tear" and dist < e.r + 14.0:
 			g.combat.lose_hp(6.0 * dt, "tear", true)
 			g.hurt_flash = max(g.hurt_flash, 0.05)
+
+	build_grid()   # 移动后重建网格：之后的干员索敌 / 子弹 / 敌弹查询用本帧新位置（docs/101 §3.4 ⑧）
 
 
 ## 吞噬：进化体吞掉身边的普通怪（分离循环里按 1.5% 概率触发）
