@@ -130,6 +130,13 @@ func _hot_scatter(n: int) -> void:
 
 ## 原生运动核心（ark_native EnemyCore，docs/101 §4.7）：OPT_CPP 置位、没有扩展、或原生报错（景物预查越界）时返回 false，走 GDScript 核心。
 ## 输入输出与 _motion_core 相同：读写 _hp / _seg_on，登记 _dv_* / _ab_*；景物底座由 map.push_table 按敌人所在范围 ±3 格预先查好
+var _pt_empty: Array = [PackedInt32Array(), PackedVector2Array(), PackedFloat64Array()]
+var _pt: Array = _pt_empty   # 景物预查表缓存（push_table 的结果）及其键：队长所在格、地图实例
+var _pt_cx := 1 << 40
+var _pt_cy := 1 << 40
+var _pt_map := 0
+
+
 func _motion_native(n: int, dt: float) -> bool:
 	if g.opt_old & Game.OPT_CPP:
 		return false
@@ -144,32 +151,24 @@ func _motion_native(n: int, dt: float) -> bool:
 	var x1 := -1
 	var y0 := 0
 	var y1 := -1
-	var pt: Array = [PackedInt32Array(), PackedVector2Array(), PackedFloat64Array()]
+	var pt: Array = _pt_empty
 	if pp[0]:
+		# 预查范围：队长所在格 ±4（会被推出景物的是非 Boss 普通怪：离队长 > 1300 的在 A 段已回收、刷怪落点 720–820，加上 push_out 自身 ±1 格）；
+		# 景物是静态的，表按（队长格、地图）缓存，跨格才重建
 		var pc: float = pp[1]
-		var first := true
-		for i in n:
-			if _seg_on[i] == 0:
-				continue
-			var cx := floori(_hp[i].x / pc)
-			var cy := floori(_hp[i].y / pc)
-			if first:
-				x0 = cx
-				x1 = cx
-				y0 = cy
-				y1 = cy
-				first = false
-			else:
-				x0 = mini(x0, cx)
-				x1 = maxi(x1, cx)
-				y0 = mini(y0, cy)
-				y1 = maxi(y1, cy)
-		if not first:
-			x0 -= 3
-			x1 += 3
-			y0 -= 3
-			y1 += 3
-			pt = g.map.push_table(x0, x1, y0, y1)
+		var pcx := floori(g.ppos.x / pc)
+		var pcy := floori(g.ppos.y / pc)
+		x0 = pcx - 4
+		x1 = pcx + 4
+		y0 = pcy - 4
+		y1 = pcy + 4
+		var mid: int = g.map.get_instance_id()
+		if pcx != _pt_cx or pcy != _pt_cy or mid != _pt_map:
+			_pt_cx = pcx
+			_pt_cy = pcy
+			_pt_map = mid
+			_pt = g.map.push_table(x0, x1, y0, y1)
+		pt = _pt
 	var params := PackedFloat64Array([dt, CELL, 1.0 if g.zone_state != 0 else 0.0, g.zone_r, g.zone_c.x, g.zone_c.y, float(g.frame_n),
 		1.0 if pp[0] else 0.0, pp[1], pp[2], pp[3], x0, x1, y0, y1])
 	var res: Array = core.step(_hp, _hr, _hz, _hf, _seg_on, _seg_v, grid, params, pt[0], pt[1], pt[2])

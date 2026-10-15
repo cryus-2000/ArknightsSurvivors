@@ -288,6 +288,14 @@ game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCo
 - 同 seed：原生路径对 B7 新基线的 TRACE 逐行相同才算过；check.py 加一项 `native_eq`（只在 dll 存在时跑：同一局 `--optold=131072` 与缺省各一次，TRACE 逐行比）。
 - 没有 dll（网页、云端暂未编、别人的机器）时 `native.gd` 返回 null，自动走 GDScript，游戏行为不变。
 
+**实际搭建记录（架构，10-15，分支 arch/native-proto）**：用户 10-15 批准装 **llvm-mingw 便携版、先只做桌面**（网页工具链等桌面收益确认后再问）。
+
+- 工具链在 `E:/toolchains/`，版本全记在 `native/VERSION`：`llvm-mingw-20260922-ucrt-x86_64`（GitHub 官方发布 zip，sha256 与 tools/prepare_encrypted_template.py 同一个）、`scons/`（pip --target，4.9.1）、`godot-cpp-b8530af7/`（master 10-12 的提交，`api_version` 已支持 4.7）、`godot-api-4.7.2/`（本机编辑器导出）。
+- 与上面方案的出入：① godot-cpp master 要的是 **`gdextension_interface.json`**，导出时要加 `--dump-gdextension-interface-json`（只导 .h 不够），scons 传 `gdextension_dir=` 而不是 `custom_api_file=`；② `-lstdc++` 不改 godot-cpp，在我们自己的 `native/SConstruct` 里把它换成 `-lc++`；③ **编辑器版 Godot 加载的是 `windows.debug` 那个 dll**（测试 / 快检都用编辑器版跑），所以 debug、release 两个都要编；④ `build_native.py` 写完 `game/bin/ark_native.gdextension` 后跑一次 `--import`，引擎才登记进 `.godot/extension_list.cfg`。
+- 一条命令：`python native/build_native.py`（缺工具只报错、不自动下载）。产物 `game/bin/` 不入库，`export_presets` 两个预设都加了 `bin/*` 排除，发版包不受影响；没编过的机器 `scripts/native/native.gd` 返回 null，自动走 GDScript 核心。
+- 运动核心 `native/core/enemy_core.cpp` 逐表达式照搬 `_motion_core` 与 `map.push_out`（每个表达式旁注了对应的 GDScript）：Vector2 运算全用 float、标量用 double、double 进 Vector2 运算前先转 float，`-ffp-contract=off`。网格用 `build_grid` 顺带记下的每个下标所在格（与 GDScript 同一张网格、同一次序）；景物底座由 `map.push_table` 按敌人所在范围 ±3 格每帧预查（不在原生端调 Godot 的 hash），越出预查范围就整帧回退 GDScript。
+- 同 seed：原生与 GDScript 核心 6 局 TRACE 逐行相同（mizuki 300 秒、skalter 600 秒、`--bosstimes` 四个结局，TRACE 每秒带全体敌人位置哈希）；`check.py` 加了 `native_eq`（本机有 dll 才跑，同一局缺省 / `--optold=131072` 各一次逐行比，dll 大小 / 修改时间进结果缓存键）。
+
 **原型通过后的去向**：dll 进 Windows 发布包（`export_build.py` 复制到 `game/`、`verify_encrypted_game.py` 的逐文件一致检查算上 dll）；云端 `setup_linux.sh` 多编一个 `.so`；网页按 §4.6 建议把同一个 `core/` 编进自编 nothreads 模板（`module/` 绑定），网页包硬线 ≤ 48 MB（§8）。
 
 ## 5. 分阶段路线

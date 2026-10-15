@@ -535,6 +535,40 @@ def check_prot(godot):
     return {"name": "主控保护", "ok": ok, "detail": "超时" if to else (m.group(0) if m else "没有输出结果"), "errors": (errs + fails)[:5], "log": log}
 
 
+def check_native_eq(godot):
+    """原生核心对照（docs/101 §4.7）：本机编过 ark_native（game/bin 有 dll）时，同一局缺省（走原生 EnemyCore）与 --optold=131072
+    （OPT_CPP，走 GDScript 核心）各跑一次，TRACE 逐行比（TRACE 每秒带全体敌人位置哈希）；没有 dll 跳过"""
+    import glob as _glob
+    name = "原生核心对照"
+    dlls = sorted(_glob.glob(os.path.join(GAME, "bin", "ark_native.windows.template_*.x86_64.dll")))
+    if not dlls:
+        return {"name": name, "ok": True, "detail": "跳过（本机没编 ark_native）"}
+    # 结果缓存的键只含被跟踪的文件，dll 不在里面：把 dll 的大小 / 修改时间做成一个游戏会忽略的参数放进键里，重编 dll 后不会命中旧结果
+    tag = "--nativetag=" + "_".join("%d-%d" % (os.path.getsize(f), int(os.path.getmtime(f))) for f in dlls)
+    base = ["--balance", "--seed=13", "--op=skalter", "--squad=texas,exusiai", "--bot=expert", "--maxt=180", "--trace=1", tag]
+
+    def one(k):
+        extra = base + (["--optold=131072"] if k == "gd" else [])
+        out, err, to, log = _run(godot_args(godot, extra), 300, "native_eq_" + k)
+        return k, out, err, to, log
+    with ThreadPoolExecutor(2) as ex:
+        res = dict((k, (o, e, to, lg)) for k, o, e, to, lg in ex.map(one, ["native", "gd"]))
+    logs = "、".join(r[3] for r in res.values() if r[3])
+    tr = {}
+    for k, (out, err, to, _lg) in res.items():
+        se = GR.script_errors(out, err)
+        if to or se:
+            return {"name": name, "ok": False, "detail": "%s 局 %s" % (k, "超时" if to else se[0][:160]), "errors": se[:3], "log": logs}
+        tr[k] = [l for l in out.splitlines() if l.startswith("TRACE ")]
+    a, b = tr["native"], tr["gd"]
+    if len(a) < 3 or len(a) != len(b):
+        return {"name": name, "ok": False, "detail": "TRACE 行数不同（原生 %d / GDScript %d）" % (len(a), len(b)), "errors": [], "log": logs}
+    for i, (x, y) in enumerate(zip(a, b)):
+        if x != y:
+            return {"name": name, "ok": False, "detail": "TRACE 第 %d 行不同：原生「%s」 / GDScript「%s」" % (i + 1, x[:120], y[:120]), "errors": [], "log": logs}
+    return {"name": name, "ok": True, "detail": "seed 13 三分钟 TRACE %d 行原生与 GDScript 逐行相同" % len(a), "errors": [], "log": logs}
+
+
 def check_repro(godot):
     extra = ["--balance", "--seed=7", "--op=wisadel", "--squad=suzuran", "--bot=expert", "--maxt=240"]
     with ThreadPoolExecutor(2) as ex:
@@ -951,7 +985,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1014,6 +1048,8 @@ def main():
             jobs.append(lambda: check_prot(godot))
         if a.only in (None, "repro"):
             jobs.append(lambda: check_repro(godot))
+        if a.only in (None, "native_eq"):
+            jobs.append(lambda: check_native_eq(godot))
         if a.only in (None, "blocks_eq"):
             jobs.append(lambda: check_blocks_eq(godot))
         for key in SCENE_REGRESSIONS:
