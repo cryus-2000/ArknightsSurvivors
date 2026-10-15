@@ -2170,7 +2170,7 @@ func _op_draw_desk(od: Dictionary) -> void:
 	_op_hline(54.5, W)
 	UI.rbox(self, Rect2(16, 12, 150, 30), 3, UI.VIOLET)
 	UI.en(self, font, Vector2(26, 19 + UI.cond(font, true).get_ascent(11)), "OPERATOR SELECT", 11, Color.WHITE, 2.0, true)
-	UI.diamond(self, Vector2(16, 27), 5.0, UI.GOLD)
+	UI.diamond(self, Vector2(16, 27), 5.0, UI.B_ACC)
 	var tw := UI.text_at(self, font, Vector2(182, 27), "更换封面干员" if cover_pick else "选择开局干员", 20, UI.TEXT, "lm")
 	var sx := 182.0 + tw + 20.0
 	if cover_pick:
@@ -2475,12 +2475,12 @@ func _op_status(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: b
 			var r: Dictionary = InitialStats.row(sh, key)
 			var val: float = v[key]
 			var shown := val * (2.0 - cnt) if key == "cd" else val * cnt
-			var lw := UI.btab(ci, font, Vector2(box.position.x, y), r.label, UI.TAB_LAMP if key == "hp" else UI.TAB_HP, 9)
+			var lw := UI.btab(ci, font, Vector2(box.position.x, y), r.label, UI.STEEL if key == "hp" else UI.TAB_HP, 9)
 			UI.code(ci, font, Vector2(box.position.x + lw + 8, y + 2), r.en, 8)
 			var vw := UI.text_at(ci, font, Vector2(box.end.x, y - 4), _op_fmt(shown, key, val), 22, UI.TEXT, "ra", true)
 			if str(r.sub) != "":
 				UI.text_at(ci, font, Vector2(box.end.x - vw - 6, y + 4), r.sub, 10, UI.B_SUB, "ra")
-			UI.gauge(ci, Rect2(box.position.x, y + 25, box.size.x - 110.0, 8), val / float(op_max[key]) * cnt, UI.GOLD if key == "hp" else UI.CYAN)
+			UI.gauge(ci, Rect2(box.position.x, y + 25, box.size.x - 110.0, 8), val / float(op_max[key]) * cnt, UI.TEXT if key == "hp" else UI.CYAN)
 			y += step
 		for r in sh.rows:
 			if not r.key in ["atk", "dps", "cd", "reach", "hp"]:
@@ -2536,7 +2536,7 @@ func _op_skills(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: b
 		var cw := box.size.x / 4.0
 		for i in stats.size():
 			var sx := box.position.x + 2 + i * cw
-			UI.btab(ci, font, Vector2(sx, y), stats[i][0], UI.TAB_HP if i < 3 else UI.TAB_LAMP, 9)
+			UI.btab(ci, font, Vector2(sx, y), stats[i][0], UI.TAB_HP if i < 3 else UI.STEEL, 9)
 			var fl := UI.fit_line(font, stats[i][1], 15, cw - 4.0, 11)
 			UI.text_at(ci, font, Vector2(sx, y + 18), fl[0], fl[1], UI.TEXT)
 		y += 46.0
@@ -2588,7 +2588,7 @@ func _op_skill_row(ci: CanvasItem, r: Rect2, od: Dictionary, i: int, compact: bo
 	while esz > 6 and UI.en_width(font, es, esz, 1.0) > rx - 24.0 - 64.0 - tx:
 		esz -= 1
 	UI.en(ci, font, Vector2(tx + 2, r.position.y + (24 if compact else 28) + UI.cond(font, true).get_ascent(esz)), es, esz, UI.fa(UI.B_SUB, a), 1.0, true)
-	UI.sp_ring(ci, font, Vector2(rx, r.position.y + h / 2.0 - 2.0), 13.0, 0.72, UI.CYAN if manual else UI.GOLD, "%d" % int(sk.get("sp", 0)), a)
+	UI.sp_ring(ci, font, Vector2(rx, r.position.y + h / 2.0 - 2.0), 13.0, 0.72, UI.CYAN if manual else UI.TEXT, "%d" % int(sk.get("sp", 0)), a)
 	if manual:
 		UI.pill(ci, font, Vector2(tag_x, r.position.y + 6), Pad.hint("手动 Q", "手动 Ⓐ", "手动"), UI.CYAN, 10, true, a)
 		UI.text_at(ci, font, Vector2(rx - 24, r.end.y - 16), "队友时自动", 9, UI.fa(UI.B_SUB, a), "ra")

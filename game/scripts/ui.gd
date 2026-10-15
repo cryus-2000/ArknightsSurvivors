@@ -847,12 +847,13 @@ static func _fit_line(font: Font, s: String, size: int, max_w: float, min_size: 
 
 
 # ---------------------------------------------------------------- B+（干员选择，docs/58 §11；图鉴 C4' 也复用其中的斜带 / 描边英文名 / 名册卡结构）
-## 水月 / 集成战略式：无切角圆角面板、紫色细边 + 顶角金菱形饰角（docs/37 §1 旁注：饰角不是像素角括）、圆角标签片、青色出击。
+## 水月 / 集成战略式：无切角圆角面板、紫色细边 + 顶角青菱形饰角（docs/37 §1 旁注：饰角不是像素角括）、圆角标签片、青色出击。
 ## 只加组件，不改上面的常量。动效参数（t 0–1）由调用方按真实时间算，这里只按进度画；不碰任何随机数。
 const B_FILL := Color(0.039, 0.063, 0.11, 0.80)       # 面板底 (10,16,28,205)
 const B_FILL_SEL := Color(0.086, 0.102, 0.204, 0.90)  # 选中底 (22,26,52,230)
 const B_LINE := Color(0.66, 0.52, 1.0, 0.31)          # 紫色细边 (168,133,255,80)
 const B_SUB := Color(0.627, 0.659, 0.745)             # B 的次要字 (160,168,190)
+const B_ACC := Color(0.235, 0.784, 0.894)             # B 的点缀青 #3CC8E4（饰角菱形 / 细线 / 出击框；10-15 用户定选人页去黄，docs/37 §8）
 const CLASS_GLYPH := {"先锋": "flag", "近卫": "blade", "重装": "shield", "狙击": "cross", "术师": "orb", "医疗": "plus", "辅助": "wave", "特种": "diamond"}
 static var _rbox_cache := {}
 
@@ -935,11 +936,11 @@ static func bpanel(ci: CanvasItem, r: Rect2, accent := false, sel := false, a :=
 		rbox(ci, r.grow(-3.0), 3, Color(0, 0, 0, 0), Color(1, 1, 1, 0.063 * a))
 	ci.draw_line(Vector2(r.position.x + 6, r.position.y + 1.5), Vector2(r.end.x - 6, r.position.y + 1.5), Color(1, 1, 1, 0.12 * a), 1.0)
 	if accent or sel:
-		diamond(ci, r.position + Vector2(1, 1), 4.0, fa(GOLD, a))
-		diamond(ci, Vector2(r.end.x - 1, r.position.y + 1), 4.0, fa(GOLD, a))
+		diamond(ci, r.position + Vector2(1, 1), 4.0, fa(B_ACC, a))
+		diamond(ci, Vector2(r.end.x - 1, r.position.y + 1), 4.0, fa(B_ACC, a))
 		if r.size.x > 120.0:
-			ci.draw_line(r.position + Vector2(10, 0.5), r.position + Vector2(40, 0.5), fa(GOLD, a), 1.0)
-			ci.draw_line(Vector2(r.end.x - 40, r.position.y + 0.5), Vector2(r.end.x - 10, r.position.y + 0.5), fa(GOLD, a), 1.0)
+			ci.draw_line(r.position + Vector2(10, 0.5), r.position + Vector2(40, 0.5), fa(B_ACC, a), 1.0)
+			ci.draw_line(Vector2(r.end.x - 40, r.position.y + 0.5), Vector2(r.end.x - 10, r.position.y + 0.5), fa(B_ACC, a), 1.0)
 
 
 ## B 圆角标签片：solid = 实色底深字，否则暗底 + 彩色细边；返回占位宽度（含 6 像素间距）
@@ -1006,7 +1007,7 @@ static func class_band(ci: CanvasItem, h: float, ox: float, sc: float, col: Colo
 	var dx := -900.0 * (1.0 - e)
 	_band_poly(ci, h, ox, sc, dx, Color(col.r, col.g, col.b, alpha * a))
 	if lines:
-		ci.draw_line(Vector2(ox + (806 + dx) * sc, h), Vector2(ox + (1016 + dx) * sc, 0), fa(Color(GOLD.r, GOLD.g, GOLD.b, 0.67), a), 2.0, true)
+		ci.draw_line(Vector2(ox + (806 + dx) * sc, h), Vector2(ox + (1016 + dx) * sc, 0), fa(Color(B_ACC.r, B_ACC.g, B_ACC.b, 0.67), a), 2.0, true)
 		ci.draw_line(Vector2(ox + (548 + dx) * sc, h), Vector2(ox + (758 + dx) * sc, 0), fa(Color(PURPLE.r, PURPLE.g, PURPLE.b, 0.47), a), 1.0, true)
 
 
@@ -1066,13 +1067,13 @@ static func roster_card(ci: CanvasItem, font: Font, r: Rect2, od: Dictionary, li
 	var fl := fit_line(font, str(od.get("name", "")), name_size, r.size.x - 8.0, 9)
 	text_at(ci, font, Vector2(r.get_center().x, r.end.y - 12), fl[0], fl[1], fa(TEXT, a), "mm")
 	for i in elite:
-		diamond(ci, Vector2(r.end.x - 6 - elite * 9 + i * 9 + 3, r.position.y + 13), 3.0, fa(GOLD, a))
+		diamond(ci, Vector2(r.end.x - 6 - elite * 9 + i * 9 + 3, r.position.y + 13), 3.0, fa(B_ACC, a))
 	var hl := maxf(lift, hover * 0.6)
 	if hl > 0.01:
 		var w := maxf(4.0, (r.size.x - 12.0) * ease_out(minf(hl, 1.0)))
 		rbox(ci, Rect2(r.position.x + 6, r.end.y + 4, w, 3), 1, fa(CYAN, a))
 	if selv:
-		diamond(ci, Vector2(r.get_center().x, r.position.y), 5.0, fa(GOLD, a))
+		diamond(ci, Vector2(r.get_center().x, r.position.y), 5.0, fa(B_ACC, a))
 
 
 ## 技能充能 SP 环：灰轨 + 彩色进度弧（12 点起顺时针），中间 SP 数，下方「SP」
@@ -1106,7 +1107,7 @@ static func btabs(ci: CanvasItem, font: Font, r: Rect2, names: Array, pos: float
 	ci.draw_line(Vector2(r.position.x, r.end.y), r.end, fa(B_LINE, a), 1.0)
 	var ux := r.position.x + pos * tw
 	rbox(ci, Rect2(ux + 10, r.end.y - 2, tw - 20, 2), 1, fa(VIOLET, a))
-	diamond(ci, Vector2(ux + tw / 2.0, r.end.y - 1), 3.0, fa(GOLD, a))
+	diamond(ci, Vector2(ux + tw / 2.0, r.end.y - 1), 3.0, fa(B_ACC, a))
 	return out
 
 
@@ -1115,11 +1116,11 @@ static func deploy_button(ci: CanvasItem, font: Font, r: Rect2, s: String, sub: 
 	if press > 0.0 and press < 1.0:
 		r.position.y += roundf(sink_px * sin(PI * press))
 	rbox(ci, r.grow(7.0), 12, Color(0, 0, 0, 0), Color(CYAN.r, CYAN.g, CYAN.b, (0.16 + 0.24 * breathe) * a), 2)
-	rbox(ci, r.grow(4.0), 9, Color(0, 0, 0, 0), fa(GOLD, a), 1)
+	rbox(ci, r.grow(4.0), 9, Color(0, 0, 0, 0), fa(B_ACC, a), 1)
 	rbox(ci, r, 6, fa(CYAN, a))
 	ci.draw_line(r.position + Vector2(8, 2.5), Vector2(r.end.x - 8, r.position.y + 2.5), Color(0.78, 1.0, 0.99, a), 1.0)
-	diamond(ci, Vector2(r.position.x - 4, r.get_center().y), 5.0, fa(GOLD, a))
-	diamond(ci, Vector2(r.end.x + 4, r.get_center().y), 5.0, fa(GOLD, a))
+	diamond(ci, Vector2(r.position.x - 4, r.get_center().y), 5.0, fa(B_ACC, a))
+	diamond(ci, Vector2(r.end.x + 4, r.get_center().y), 5.0, fa(B_ACC, a))
 	var ink := Color(0.03, 0.08, 0.094, a)
 	var cy := r.get_center().y - (7.0 if sub != "" else 0.0)
 	text_at(ci, font, Vector2(r.get_center().x, cy), s, size, ink, "mm", true)
