@@ -1,91 +1,92 @@
 # docs/101 附表 A：干员侧对敌人数据的直接访问（逐处清单）
 
-由 docs/101 §7.3.10 引用。扫描基于 main f239070b 的 `game/scripts/characters/blocks/*.gd`、`data_operator.gd`、`character.gd`（`op_api.gd` 本身是接口层，不算）。
+由 docs/101 §7.3.10 引用。行号是 main f239070b 的快照；「现状 / 接口」列是 10-15 落地（claude/op-cc-api 8af32b80）后的实际接口名。
+扫描基于 main f239070b 的 `game/scripts/characters/blocks/*.gd`、`data_operator.gd`、`character.gd`（`op_api.gd` 本身是接口层，不算）。
 扫描办法：按函数认出「敌人变量」（取自 `g.enemies[…]` / `query_ids` / `nearest_enemies` / `arc_targets` / `los_targets` 的循环变量，或函数里读过 `.dead / .boss / .elite / .maxhp` 的标识符），收集它们的字段读写；写的部分逐条人工核对过（剔除特效记录、锚状态等同名字典 6 个函数，补上经 `a.e` / `lk.e` 间接写的 2 处）。读的部分按函数汇总。
 
 ## A.1 写位置 / 击退（9 处）
 
-| 文件:行 | 函数 | 写法 | 建议接口 |
+| 文件:行 | 函数 | 写法 | 现状 / 接口 |
 |---|---|---|---|
-| `ob_core.gd:499` | `slow_soft` | `e.pos -= (e.pos - last) * pct` | `enemies_sys.nudge(e, delta)`（拖慢 / 推开的位移增量） |
-| `seg_irene.gd:278` | `_h3_air_tick` | `e.kb = Vector2.ZERO` | 并进 `enemies_sys.set_air(e, h)`（浮空期间不吃击退，由接口内部清） |
-| `seg_saria.gd:246` | `_h4sa_tick_e` | `e.pos -= d * pct` | `enemies_sys.nudge(e, delta)`（拖慢 / 推开的位移增量） |
-| `seg_saria.gd:331` | `_h4_pillars_tick` | `e.pos = ep + push` | `enemies_sys.nudge(e, delta)`（推开，碰撞求解后） |
-| `seg_ulpianus.gd:257` | `_hw4_anchor` | `e.pos = (hk.from as Vector2).lerp(hk.to, kr)` | `enemies_sys.hold_at(e, p)`（强制位移，同帧清击退） |
-| `seg_ulpianus.gd:258` | `_hw4_anchor` | `e.kb = Vector2.ZERO` | 并进 `enemies_sys.hold_at(e, p)`（强制位移：写位置 + 清击退） |
-| `seg_ulpianus.gd:508` | `_hw4_launched` | `e.kb = Vector2.ZERO` | 并进 `enemies_sys.set_air(e, h)`（浮空期间不吃击退，由接口内部清） |
-| `seg_ulpianus.gd:965` | `_hw5_hooks` | `e.pos = (dg.from as Vector2).lerp(dg.spot, kr)` | `enemies_sys.hold_at(e, p)`（强制位移，同帧清击退） |
-| `seg_ulpianus.gd:966` | `_hw5_hooks` | `e.kb = Vector2.ZERO` | 并进 `enemies_sys.hold_at(e, p)`（强制位移：写位置 + 清击退） |
+| `ob_core.gd:499` | `slow_soft` | `e.pos -= (e.pos - last) * pct` | 留（位置可直写；可选 `o.nudge(e, delta)`） |
+| `seg_irene.gd:278` | `_h3_air_tick` | `e.kb = Vector2.ZERO` | 已改：并进 `o.set_air(e, h, true)` |
+| `seg_saria.gd:246` | `_h4sa_tick_e` | `e.pos -= d * pct` | 留（位置可直写；可选 `o.nudge(e, delta)`） |
+| `seg_saria.gd:331` | `_h4_pillars_tick` | `e.pos = ep + push` | 留（位置可直写；可选 `o.nudge(e, delta)`） |
+| `seg_ulpianus.gd:257` | `_hw4_anchor` | `e.pos = (hk.from as Vector2).lerp(hk.to, kr)` | 留（位置可直写；可选 `o.hold_at(e, p)`） |
+| `seg_ulpianus.gd:258` | `_hw4_anchor` | `e.kb = Vector2.ZERO` | 留（清零可直写；可选 `o.hold_at(e, p)`） |
+| `seg_ulpianus.gd:508` | `_hw4_launched` | `e.kb = Vector2.ZERO` | 已改：并进 `o.set_air(e, h, true)` |
+| `seg_ulpianus.gd:965` | `_hw5_hooks` | `e.pos = (dg.from as Vector2).lerp(dg.spot, kr)` | 留（位置可直写；可选 `o.hold_at(e, p)`） |
+| `seg_ulpianus.gd:966` | `_hw5_hooks` | `e.kb = Vector2.ZERO` | 留（清零可直写；可选 `o.hold_at(e, p)`） |
 
 ## A.2 写 hp / 状态（61 处；hp 本身 0 处直写，全部经 `deal_damage` → `combat.damage`）
 
-| 文件:行 | 函数 | 字段 | 写法 | 建议接口 |
+| 文件:行 | 函数 | 字段 | 写法 | 现状 / 接口 |
 |---|---|---|---|---|
-| `ob_core.gd:411` | `apply_status` | `stun` | `e.stun = maxf(e.stun, float(s.dur) * k)` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `ob_core.gd:413` | `apply_status` | `slow` | `e.slow = maxf(e.slow, float(s.dur) * (1.0 if e.boss else k))` | `enemies_sys.add_cc(e, slow = …)`（同上） |
-| `ob_core.gd:419` | `apply_status` | `wl_t` | `e["wl_t"] = maxf(float(e.get("wl_t", 0.0)), g.t + float(s.dur))` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `ob_core.gd:420` | `apply_status` | `wl_kb` | `e["wl_kb"] = maxf(was, float(s.kb_mult))` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `ob_core.gd:426` | `apply_status` | `stun` | `e.stun = maxf(e.stun, float(s.dur) * k)` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `ob_hw.gd:373` | `hw_requiem_stack` | `requiem_n` | `e["requiem_n"] = n` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `ob_hw.gd:374` | `hw_requiem_stack` | `requiem_k` | `e["requiem_k"] = float(rq.get("per", 0.06)) * n` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `ob_hw.gd:375` | `hw_requiem_stack` | `requiem` | `e["requiem"] = float(s.dur)` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `ob_summon.gd:372` | `_sm_decoy` | `aggro` | `e.aggro = s.pos` | `enemies_sys.set_aggro(e, p)`（A 段读，留 GDScript 可不改） |
-| `ob_summon.gd:436` | `sm_strike` | `stun` | `e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `ob_summon.gd:549` | `seal_apply` | `seal_txt` | `e["seal_txt"] = g.t + 1.5` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `ob_summon.gd:555` | `seal_apply` | `seal_imm` | `e["seal_imm"] = g.t + dur + float(s.get("boss_immune", 10.0))` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `ob_summon.gd:561` | `seal_apply` | `seal_t` | `e["seal_t"] = maxf(float(e.get("seal_t", 0.0)), g.t + dur)` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `ob_summon.gd:562` | `seal_apply` | `seal_by` | `e["seal_by"] = o.id` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `seg_angelina.gd:85` | `lift` | `stun` | `e.stun = maxf(e.stun, a.dur - a.t)` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_angelina.gd:88` | `lift` | `stun` | `e.stun = maxf(e.stun, dur)` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_angelina.gd:102` | `airborne_tick` | `air` | `e.air = 0.0 if e.dead or a.t >= a.dur else air_height(a)` | `enemies_sys.set_air(e, h)`（C 段接触判定读；若 C 段留 GDScript 可不改） |
-| `seg_angelina.gd:108` | `airborne_tick` | `air` | `a.e.air = 0.0` | `enemies_sys.set_air(e, h)`（C 段接触判定读；若 C 段留 GDScript 可不改） |
-| `seg_eyjafjalla.gd:213` | `hw_status` | `requiem_v` | `e["requiem_v"] = float(o.base("requiem_bonus", 0.15))` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `seg_eyjafjalla.gd:216` | `hw_status` | `requiem` | `e["requiem"] = float(s.dur)` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `seg_eyjafjalla.gd:222` | `hw_status` | `melt_t` | `e["melt_t"] = maxf(float(e.get("melt_t", 0.0)), float(g.t) + float(s.dur))` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `seg_eyjafjalla.gd:223` | `hw_status` | `melt_v` | `e["melt_v"] = maxf(mv, float(s.get("value", 0.08)))` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `seg_eyjafjalla.gd:229` | `hw_status` | `aura_weak` | `e["aura_weak"] = maxf(float(e.get("aura_weak", 0.0)), float(s.dur))` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `seg_hoshiguma.gd:88` | `exec_line` | `stun` | `e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_irene.gd:254` | `h3_launch` | `stun` | `e.stun = maxf(e.stun, dur)` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_irene.gd:273` | `_h3_air_tick` | `air` | `e.air = 0.0` | `enemies_sys.set_air(e, h)`（C 段接触判定读；若 C 段留 GDScript 可不改） |
-| `seg_irene.gd:277` | `_h3_air_tick` | `air` | `e.air = sin(k * PI) * a.h` | `enemies_sys.set_air(e, h)`（C 段接触判定读；若 C 段留 GDScript 可不改） |
-| `seg_irene.gd:280` | `_h3_air_tick` | `air` | `e.air = 0.0` | `enemies_sys.set_air(e, h)`（C 段接触判定读；若 C 段留 GDScript 可不改） |
-| `seg_logos.gd:301` | `hw_link_tick 一带` | `slow` | `lk.e.slow = maxf(lk.e.slow, float(b.get("slow", 0.6)) * ramp)` | `enemies_sys.add_cc(e, slow = …)`（同上） |
-| `seg_lumen.gd:144` | `_h3_bolts_tick` | `lit` | `e["lit"] = float(bt.get("lit", 3.0))` | 留 GDScript 状态侧（combat 读、A 段计时；B 段不读） |
-| `seg_lumen.gd:367` | `_h3_rain_tick` | `lit` | `e["lit"] = maxf(e.get("lit", 0.0), 1.0)` | 留 GDScript 状态侧（combat 读、A 段计时；B 段不读） |
-| `seg_lumen.gd:424` | `_h3_beam_tick` | `lit` | `e["lit"] = 3.0` | 留 GDScript 状态侧（combat 读、A 段计时；B 段不读） |
-| `seg_lumen.gd:711` | `_e3_beam_fire` | `lit` | `e["lit"] = 3.0` | 留 GDScript 状态侧（combat 读、A 段计时；B 段不读） |
-| `seg_mizuki.gd:191` | `_h3_umbrella` | `stun` | `e.stun = maxf(e.stun, stun)` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_mizuki.gd:273` | `_h3_tentacle` | `stun` | `target.stun = max(target.stun, stun if stun > 0.0 else float(tb.get("stun_min", ` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_mizuki.gd:363` | `_h3_run_delayed` | `stun` | `e.stun = maxf(e.stun, float(ec.get("stun", 0.3)))` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_mizuki.gd:709` | `_e3_sting` | `stun` | `e.stun = maxf(e.stun, sd)` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_saria.gd:172` | `_h4sa_tick` | `slow` | `e.slow = maxf(e.slow, float(gr.get("slow", 0.5)))` | `enemies_sys.add_cc(e, slow = …)`（同上） |
-| `seg_saria.gd:211` | `_h4sa_tick` | `slow` | `e2.slow = maxf(e2.slow, float(cb.get("slow", 0.5)))` | `enemies_sys.add_cc(e, slow = …)`（同上） |
-| `seg_saria.gd:212` | `_h4sa_tick` | `aura_weak` | `e2["aura_weak"] = maxf(float(e2.get("aura_weak", 0.0)), float(cb.get("weak", 0.2` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `seg_saria.gd:465` | `_h4_shots_tick` | `slow` | `e.slow = maxf(e.slow, float(s.slow))` | `enemies_sys.add_cc(e, slow = …)`（同上） |
-| `seg_siege.gd:61` | `_h4_hammer_release` | `stun` | `e.stun = maxf(e.stun, float(hv.get("stun", 0.8)) * (0.5 if e.elite else 1.0))` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_specter.gd:255` | `_h3_doll_tick` | `slow` | `e.slow = maxf(e.slow, float(au.get("slow", 1.0)))` | `enemies_sys.add_cc(e, slow = …)`（同上） |
-| `seg_suzuran.gd:175` | `_h4_brand_apply` | `frag_v` | `e["frag_v"] = maxf(float(e.get("frag_v", 0.0)), v)` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `seg_suzuran.gd:177` | `_h4_brand_apply` | `frag_v` | `e["frag_v"] = v` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `seg_suzuran.gd:178` | `_h4_brand_apply` | `frag_t` | `e["frag_t"] = maxf(float(e.get("frag_t", 0.0)), g.t + dur)` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `seg_suzuran.gd:261` | `_h4sz_tick` | `slow` | `e.slow = maxf(e.slow, slow)` | `enemies_sys.add_cc(e, slow = …)`（同上） |
-| `seg_suzuran.gd:263` | `_h4sz_tick` | `aura_weak` | `e["aura_weak"] = maxf(float(e.get("aura_weak", 0.0)), wv)` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `seg_suzuran.gd:290` | `_h4_bigfox_tick` | `slow` | `e.slow = maxf(e.slow, 1.0)` | `enemies_sys.add_cc(e, slow = …)`（同上） |
-| `seg_suzuran.gd:393` | `_h4_seals_tick` | `stun` | `best.stun = maxf(best.stun, st)` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_ulpianus.gd:259` | `_hw4_anchor` | `stun` | `e.stun = maxf(e.stun, 0.2)` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_ulpianus.gd:358` | `_hw_reel_arrive` | `stun` | `e.stun = maxf(e.stun, float(b.get("stun", 0.6)) * (0.5 if e.elite else 1.0) + 0.` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_ulpianus.gd:389` | `_hw_reel_slam` | `stun` | `e.stun = maxf(e.stun, float(b.get("stun", 0.6)) * (0.5 if e.elite or e.boss else` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_ulpianus.gd:418` | `_hw_zip_land` | `stun` | `e.stun = maxf(e.stun, float(b.get("stun", 0.6)) * (sb if e.boss else (se if e.el` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_ulpianus.gd:458` | `_hw_drag_in` | `stun` | `e.stun = maxf(e.stun, 0.3)` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_ulpianus.gd:491` | `_hw_launch` | `stun` | `e.stun = maxf(e.stun, dur)` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_ulpianus.gd:506` | `_hw4_launched` | `air` | `e.air = 0.0 if e.dead or k >= 1.0 else sin(k * PI) * l.h` | `enemies_sys.set_air(e, h)`（C 段接触判定读；若 C 段留 GDScript 可不改） |
-| `seg_ulpianus.gd:967` | `_hw5_hooks` | `stun` | `e.stun = maxf(e.stun, 0.15)` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `seg_wisadel.gd:309` | `_h4wd_on_kill` | `wis_det` | `e["wis_det"] = true` | 留 GDScript 状态侧（只给 combat / 画面读；B 段不读） |
-| `seg_wisadel.gd:527` | `_h4_explode` | `stun` | `e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
-| `character.gd:1365` | `melee_hit` | `stun` | `e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))` | `enemies_sys.add_cc(e, stun = …)`（取大合并；原生 B 段要读） |
+| `ob_core.gd:411` | `apply_status` | `stun` | `e.stun = maxf(e.stun, float(s.dur) * k)` | 已改：`o.add_cc(e, stun)` |
+| `ob_core.gd:413` | `apply_status` | `slow` | `e.slow = maxf(e.slow, float(s.dur) * (1.0 if e.boss else k))` | 已改：`o.add_cc(e, -INF, slow)` |
+| `ob_core.gd:419` | `apply_status` | `wl_t` | `e["wl_t"] = maxf(float(e.get("wl_t", 0.0)), g.t + float(s.dur))` | 不改（各干员标记，字典直写） |
+| `ob_core.gd:420` | `apply_status` | `wl_kb` | `e["wl_kb"] = maxf(was, float(s.kb_mult))` | 不改（各干员标记，字典直写） |
+| `ob_core.gd:426` | `apply_status` | `stun` | `e.stun = maxf(e.stun, float(s.dur) * k)` | 已改：`o.add_cc(e, stun)` |
+| `ob_hw.gd:373` | `hw_requiem_stack` | `requiem_n` | `e["requiem_n"] = n` | 不改（各干员标记，字典直写） |
+| `ob_hw.gd:374` | `hw_requiem_stack` | `requiem_k` | `e["requiem_k"] = float(rq.get("per", 0.06)) * n` | 不改（各干员标记，字典直写） |
+| `ob_hw.gd:375` | `hw_requiem_stack` | `requiem` | `e["requiem"] = float(s.dur)` | 不改（各干员标记，字典直写） |
+| `ob_summon.gd:372` | `_sm_decoy` | `aggro` | `e.aggro = s.pos` | 已改：`o.set_aggro(e, p)` |
+| `ob_summon.gd:436` | `sm_strike` | `stun` | `e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))` | 已改：`o.add_cc(e, stun)` |
+| `ob_summon.gd:549` | `seal_apply` | `seal_txt` | `e["seal_txt"] = g.t + 1.5` | 不改（各干员标记，字典直写） |
+| `ob_summon.gd:555` | `seal_apply` | `seal_imm` | `e["seal_imm"] = g.t + dur + float(s.get("boss_immune", 10.0))` | 不改（各干员标记，字典直写） |
+| `ob_summon.gd:561` | `seal_apply` | `seal_t` | `e["seal_t"] = maxf(float(e.get("seal_t", 0.0)), g.t + dur)` | 不改（各干员标记，字典直写） |
+| `ob_summon.gd:562` | `seal_apply` | `seal_by` | `e["seal_by"] = o.id` | 不改（各干员标记，字典直写） |
+| `seg_angelina.gd:85` | `lift` | `stun` | `e.stun = maxf(e.stun, a.dur - a.t)` | 已改：`o.add_cc(e, stun)` |
+| `seg_angelina.gd:88` | `lift` | `stun` | `e.stun = maxf(e.stun, dur)` | 已改：`o.add_cc(e, stun)` |
+| `seg_angelina.gd:102` | `airborne_tick` | `air` | `e.air = 0.0 if e.dead or a.t >= a.dur else air_height(a)` | 已改：`o.set_air(e, h, hold_kb)`（清不清击退照原样由调用方传） |
+| `seg_angelina.gd:108` | `airborne_tick` | `air` | `a.e.air = 0.0` | 已改：`o.set_air(e, h, hold_kb)`（清不清击退照原样由调用方传） |
+| `seg_eyjafjalla.gd:213` | `hw_status` | `requiem_v` | `e["requiem_v"] = float(o.base("requiem_bonus", 0.15))` | 不改（各干员标记，字典直写） |
+| `seg_eyjafjalla.gd:216` | `hw_status` | `requiem` | `e["requiem"] = float(s.dur)` | 不改（各干员标记，字典直写） |
+| `seg_eyjafjalla.gd:222` | `hw_status` | `melt_t` | `e["melt_t"] = maxf(float(e.get("melt_t", 0.0)), float(g.t) + float(s.dur))` | 不改（各干员标记，字典直写） |
+| `seg_eyjafjalla.gd:223` | `hw_status` | `melt_v` | `e["melt_v"] = maxf(mv, float(s.get("value", 0.08)))` | 不改（各干员标记，字典直写） |
+| `seg_eyjafjalla.gd:229` | `hw_status` | `aura_weak` | `e["aura_weak"] = maxf(float(e.get("aura_weak", 0.0)), float(s.dur))` | 不改（各干员标记，字典直写） |
+| `seg_hoshiguma.gd:88` | `exec_line` | `stun` | `e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))` | 已改：`o.add_cc(e, stun)` |
+| `seg_irene.gd:254` | `h3_launch` | `stun` | `e.stun = maxf(e.stun, dur)` | 已改：`o.add_cc(e, stun)` |
+| `seg_irene.gd:273` | `_h3_air_tick` | `air` | `e.air = 0.0` | 已改：`o.set_air(e, h, hold_kb)`（清不清击退照原样由调用方传） |
+| `seg_irene.gd:277` | `_h3_air_tick` | `air` | `e.air = sin(k * PI) * a.h` | 已改：`o.set_air(e, h, hold_kb)`（清不清击退照原样由调用方传） |
+| `seg_irene.gd:280` | `_h3_air_tick` | `air` | `e.air = 0.0` | 已改：`o.set_air(e, h, hold_kb)`（清不清击退照原样由调用方传） |
+| `seg_logos.gd:301` | `hw_link_tick 一带` | `slow` | `lk.e.slow = maxf(lk.e.slow, float(b.get("slow", 0.6)) * ramp)` | 已改：`o.add_cc(e, -INF, slow)` |
+| `seg_lumen.gd:144` | `_h3_bolts_tick` | `lit` | `e["lit"] = float(bt.get("lit", 3.0))` | 不改（各干员标记，字典直写） |
+| `seg_lumen.gd:367` | `_h3_rain_tick` | `lit` | `e["lit"] = maxf(e.get("lit", 0.0), 1.0)` | 不改（各干员标记，字典直写） |
+| `seg_lumen.gd:424` | `_h3_beam_tick` | `lit` | `e["lit"] = 3.0` | 不改（各干员标记，字典直写） |
+| `seg_lumen.gd:711` | `_e3_beam_fire` | `lit` | `e["lit"] = 3.0` | 不改（各干员标记，字典直写） |
+| `seg_mizuki.gd:191` | `_h3_umbrella` | `stun` | `e.stun = maxf(e.stun, stun)` | 已改：`o.add_cc(e, stun)` |
+| `seg_mizuki.gd:273` | `_h3_tentacle` | `stun` | `target.stun = max(target.stun, stun if stun > 0.0 else float(tb.get("stun_min", ` | 已改：`o.add_cc(e, stun)` |
+| `seg_mizuki.gd:363` | `_h3_run_delayed` | `stun` | `e.stun = maxf(e.stun, float(ec.get("stun", 0.3)))` | 已改：`o.add_cc(e, stun)` |
+| `seg_mizuki.gd:709` | `_e3_sting` | `stun` | `e.stun = maxf(e.stun, sd)` | 已改：`o.add_cc(e, stun)` |
+| `seg_saria.gd:172` | `_h4sa_tick` | `slow` | `e.slow = maxf(e.slow, float(gr.get("slow", 0.5)))` | 已改：`o.add_cc(e, -INF, slow)` |
+| `seg_saria.gd:211` | `_h4sa_tick` | `slow` | `e2.slow = maxf(e2.slow, float(cb.get("slow", 0.5)))` | 已改：`o.add_cc(e, -INF, slow)` |
+| `seg_saria.gd:212` | `_h4sa_tick` | `aura_weak` | `e2["aura_weak"] = maxf(float(e2.get("aura_weak", 0.0)), float(cb.get("weak", 0.2` | 不改（各干员标记，字典直写） |
+| `seg_saria.gd:465` | `_h4_shots_tick` | `slow` | `e.slow = maxf(e.slow, float(s.slow))` | 已改：`o.add_cc(e, -INF, slow)` |
+| `seg_siege.gd:61` | `_h4_hammer_release` | `stun` | `e.stun = maxf(e.stun, float(hv.get("stun", 0.8)) * (0.5 if e.elite else 1.0))` | 已改：`o.add_cc(e, stun)` |
+| `seg_specter.gd:255` | `_h3_doll_tick` | `slow` | `e.slow = maxf(e.slow, float(au.get("slow", 1.0)))` | 已改：`o.add_cc(e, -INF, slow)` |
+| `seg_suzuran.gd:175` | `_h4_brand_apply` | `frag_v` | `e["frag_v"] = maxf(float(e.get("frag_v", 0.0)), v)` | 不改（各干员标记，字典直写） |
+| `seg_suzuran.gd:177` | `_h4_brand_apply` | `frag_v` | `e["frag_v"] = v` | 不改（各干员标记，字典直写） |
+| `seg_suzuran.gd:178` | `_h4_brand_apply` | `frag_t` | `e["frag_t"] = maxf(float(e.get("frag_t", 0.0)), g.t + dur)` | 不改（各干员标记，字典直写） |
+| `seg_suzuran.gd:261` | `_h4sz_tick` | `slow` | `e.slow = maxf(e.slow, slow)` | 已改：`o.add_cc(e, -INF, slow)` |
+| `seg_suzuran.gd:263` | `_h4sz_tick` | `aura_weak` | `e["aura_weak"] = maxf(float(e.get("aura_weak", 0.0)), wv)` | 不改（各干员标记，字典直写） |
+| `seg_suzuran.gd:290` | `_h4_bigfox_tick` | `slow` | `e.slow = maxf(e.slow, 1.0)` | 已改：`o.add_cc(e, -INF, slow)` |
+| `seg_suzuran.gd:393` | `_h4_seals_tick` | `stun` | `best.stun = maxf(best.stun, st)` | 已改：`o.add_cc(e, stun)` |
+| `seg_ulpianus.gd:259` | `_hw4_anchor` | `stun` | `e.stun = maxf(e.stun, 0.2)` | 已改：`o.add_cc(e, stun)` |
+| `seg_ulpianus.gd:358` | `_hw_reel_arrive` | `stun` | `e.stun = maxf(e.stun, float(b.get("stun", 0.6)) * (0.5 if e.elite else 1.0) + 0.` | 已改：`o.add_cc(e, stun)` |
+| `seg_ulpianus.gd:389` | `_hw_reel_slam` | `stun` | `e.stun = maxf(e.stun, float(b.get("stun", 0.6)) * (0.5 if e.elite or e.boss else` | 已改：`o.add_cc(e, stun)` |
+| `seg_ulpianus.gd:418` | `_hw_zip_land` | `stun` | `e.stun = maxf(e.stun, float(b.get("stun", 0.6)) * (sb if e.boss else (se if e.el` | 已改：`o.add_cc(e, stun)` |
+| `seg_ulpianus.gd:458` | `_hw_drag_in` | `stun` | `e.stun = maxf(e.stun, 0.3)` | 已改：`o.add_cc(e, stun)` |
+| `seg_ulpianus.gd:491` | `_hw_launch` | `stun` | `e.stun = maxf(e.stun, dur)` | 已改：`o.add_cc(e, stun)` |
+| `seg_ulpianus.gd:506` | `_hw4_launched` | `air` | `e.air = 0.0 if e.dead or k >= 1.0 else sin(k * PI) * l.h` | 已改：`o.set_air(e, h, hold_kb)`（清不清击退照原样由调用方传） |
+| `seg_ulpianus.gd:967` | `_hw5_hooks` | `stun` | `e.stun = maxf(e.stun, 0.15)` | 已改：`o.add_cc(e, stun)` |
+| `seg_wisadel.gd:309` | `_h4wd_on_kill` | `wis_det` | `e["wis_det"] = true` | 不改（各干员标记，字典直写） |
+| `seg_wisadel.gd:527` | `_h4_explode` | `stun` | `e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))` | 已改：`o.add_cc(e, stun)` |
+| `character.gd:1365` | `melee_hit` | `stun` | `e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))` | 已改：`o.add_cc(e, stun)` |
 
 ## A.3 查询网格 / 敌人数组 / 敌弹池（161 处）
 
-| 文件:行 | 函数 | 访问 | 建议接口 |
+| 文件:行 | 函数 | 访问 | 现状 / 接口 |
 |---|---|---|---|
 | `ob_core.gd:493` | `slow_soft` | `query_ids` | `op_api.query_ids` → `enemies_sys.query`（已是接口；原生后换底层网格，调用点不动） |
 | `ob_core.gd:494` | `slow_soft` | `g.enemies` | `g.enemies[j]` 按查询结果下标取字典——原生后要保证下标 ↔ 字典映射稳定（或改 `enemies_sys.get(id)`） |
@@ -138,8 +139,8 @@
 | `seg_logos.gd:356` | `_hw_fan_best` | `g.enemies` | `g.enemies[j]` 按查询结果下标取字典——原生后要保证下标 ↔ 字典映射稳定（或改 `enemies_sys.get(id)`） |
 | `seg_logos.gd:413` | `_hw3_fan` | `query_ids` | `op_api.query_ids` → `enemies_sys.query`（已是接口；原生后换底层网格，调用点不动） |
 | `seg_logos.gd:414` | `_hw3_fan` | `g.enemies` | `g.enemies[j]` 按查询结果下标取字典——原生后要保证下标 ↔ 字典映射稳定（或改 `enemies_sys.get(id)`） |
-| `seg_logos.gd:426` | `_hw3_fan` | `g.ebullets` | **直接改敌弹**：改走 `shot_pool` 新增 `slow_in(pred, f)` / `cancel_in(pred) -> int` |
-| `seg_logos.gd:435` | `_hw3_fan` | `g.ebullets` | **直接改敌弹**：改走 `shot_pool` 新增 `slow_in(pred, f)` / `cancel_in(pred) -> int` |
+| `seg_logos.gd:426` | `_hw3_fan` | `g.ebullets` | 已改：`g.shots.slow_in(pred, f, tag)` / `g.shots.cancel_in(pred) -> PackedVector2Array` |
+| `seg_logos.gd:435` | `_hw3_fan` | `g.ebullets` | 已改：`g.shots.slow_in(pred, f, tag)` / `g.shots.cancel_in(pred) -> PackedVector2Array` |
 | `seg_logos.gd:714` | `hw_link` | `nearest_enemies` | `op_api.nearest_enemies`（已是接口） |
 | `seg_lumen.gd:136` | `_h3_bolts_tick` | `query_ids` | `op_api.query_ids` → `enemies_sys.query`（已是接口；原生后换底层网格，调用点不动） |
 | `seg_lumen.gd:137` | `_h3_bolts_tick` | `g.enemies` | `g.enemies[j]` 按查询结果下标取字典——原生后要保证下标 ↔ 字典映射稳定（或改 `enemies_sys.get(id)`） |
@@ -242,10 +243,10 @@
 | `seg_wisadel.gd:423` | `_h4_soul_cannon_target` | `nearest_enemies` | `op_api.nearest_enemies`（已是接口） |
 | `seg_wisadel.gd:478` | `_h4_souls_sync` | `nearest_enemies` | `op_api.nearest_enemies`（已是接口） |
 | `seg_wisadel.gd:516` | `_h4_explode` | `arc_targets` | `op_api.arc_targets` → `enemies_sys.arc_hit`（已是接口） |
-| `character.gd:622` | `aim_land` | `g.enemies_sys.nearest` | **绕过 op_api**：改走 `op_api` 新增 `nearest_raw(n, d, origin)`（不带 Boss 优先） |
+| `character.gd:622` | `aim_land` | `g.enemies_sys.nearest` | 已改：`nearest_raw(n, d, origin)`（op_api，不带 Boss 优先） |
 | `character.gd:648` | `aim_targets` | `nearest_enemies` | `op_api.nearest_enemies`（已是接口） |
 | `character.gd:651` | `aim_targets` | `nearest_enemies` | `op_api.nearest_enemies`（已是接口） |
-| `character.gd:654` | `aim_targets` | `g.enemies_sys.nearest` | **绕过 op_api**：改走 `op_api` 新增 `nearest_raw(n, d, origin)`（不带 Boss 优先） |
+| `character.gd:654` | `aim_targets` | `g.enemies_sys.nearest` | 已改：`nearest_raw(n, d, origin)`（op_api，不带 Boss 优先） |
 | `character.gd:1317` | `melee_spot` | `nearest_enemies` | `op_api.nearest_enemies`（已是接口） |
 | `character.gd:1353` | `melee_hit` | `arc_targets` | `op_api.arc_targets` → `enemies_sys.arc_hit`（已是接口） |
 
