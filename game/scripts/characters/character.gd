@@ -1527,8 +1527,10 @@ func sprite_point(key: String) -> Vector2:
 	if not (p is Array) or p.size() < 2:
 		return Vector2.INF
 	var ft = spec.get("foot", def.get("sprites", {}).get("foot", [24, 46]))
+	# pt_foot：这些点量的时候用的脚底（换画布时只改 foot、不重标点：48 → 64 画布把旧 foot 写进 pt_foot 即可，docs/103 §5）；缺省 = foot
+	var pf = spec.get("pt_foot", ft)
 	var sgn: float = -1.0 if st.get("flip", false) else 1.0
-	return pos + g.draw_off + Vector2(sgn * (float(p[0]) - float(ft[0])), float(p[1]) - float(ft[1])) * g.PX
+	return pos + g.draw_off + Vector2(sgn * (float(p[0]) - float(pf[0])), float(p[1]) - float(pf[1])) * g.PX
 
 
 ## 道具离手（星熊「般若回旋」盾在外面）：本体换无盾画面、盾心定位点失效。数据干员按积木状态重写（data_operator）

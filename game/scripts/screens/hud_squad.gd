@@ -95,9 +95,15 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 		if at != null and S:
 			var fw := float(at.get_width()) / int(pt.frames)
 			var fh := float(at.get_height())
-			var ks: float = 2.0 / A.hires_of(at)
-			var dst_h := minf(fh * ks - 8.0, cr.size.y - 8.0)
-			var src := Rect2(maxf(0.0, (fw * ks - cr.size.x) / 2.0) / ks, 8.0 / ks, minf(cr.size.x / ks, fw), dst_h / ks)
+			var hi: float = A.hires_of(at)
+			var ks: float = 2.0 / hi
+			# 窗口底 = 脚底下 2 美术像素（48 画布就是帧底，同旧版）；64 画布（docs/103 §5）按脚底对齐，不会只剩上半身
+			var bot: float = fh
+			if fh / hi > 48.0:
+				var ft = o.sprite_spec("idle").get("foot", o.def.get("sprites", {}).get("foot", [0, fh / hi - 2.0]))
+				bot = minf(fh, (float(ft[1]) + 2.0) * hi)
+			var dst_h := minf(bot * ks - 8.0, cr.size.y - 8.0)
+			var src := Rect2(maxf(0.0, (fw * ks - cr.size.x) / 2.0) / ks, bot - dst_h / ks, minf(cr.size.x / ks, fw), dst_h / ks)
 			var dst := Rect2(cr.position, Vector2(minf(cr.size.x, fw * ks), dst_h))
 			texq.append([at, dst, src, Color.WHITE])
 		var clear := Color(0, 0, 0, 0)
