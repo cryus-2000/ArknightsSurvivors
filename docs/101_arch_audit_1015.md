@@ -476,6 +476,9 @@ game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCo
 - 生产代码不再经门面：`data_operator.gd` 的 178 处 `OB.<名>`、`character.gd` 的 2 处 `OpBlocks.<名>`（`validate` / `kb_taken`）按定义所在文件改成直连，文件头的 `const OB = preload(op_blocks.gd)` 换成按文件的 preload（`ObCore / ObFx / ObHw / … / SegLogos …`，data_operator 用到 21 个、character 2 个）。工具 `tools/b6_direct_ob.py`。
 - `op_blocks.gd` 门面暂时保留，只剩两类用途：blocks 内部的 255 处反向调用 `_F()`（③ 单播改注册表后消失），以及 tests（`exusiai_blocks / mon3tr_fx / summon_seal_blocks / test_core / prot_test / friendly_target / wisadel_cannon`，测试照旧经门面拿全集，不改）。③ 之后门面只给测试用。
 - 金样：只改了积木公共文件（data_operator / character），「别处」不变，积木等价直接与 ship 重录的金样真比。
+- **发版排查补记（10-16，bisect 到本提交 dada5e32）**：按文件各开一次 `const X = preload(…)` 在这条**单继承链**（ob_geom → ob_core → … → seg_angelina → … → seg_skalter，见 character.gd / data_operator.gd 顶部注释）上会出事——链上任一文件早就 transitively 带出它之前的全部文件，`character.gd` 的 2 条 + `data_operator.gd` 的 19 条预加载请求全部落在同一条链上、在各自脚本编译期几乎同时解析，Godot `--quit` 退出时报 `resources still in use`（verbose 指向 `enemy_db.gd / balance.gd / data.gd / art.gd / look.gd` 这几个被 blocks 间接 preload 的文件，是征兆不是病灶）。
+  修法：每个文件只真正 `preload` 链上**最靠后**的那一个（`character.gd` 留 `SegAngelina`，`data_operator.gd` 留 `SegSkalter`），其余名字改成**同文件内的 const 别名**（`const ObCheck = SegAngelina`、`const ObCore = SegSkalter` …）——GDScript 继承链上不加前缀就能互相访问，别名和原来逐个 preload 调用结果完全一样，178 处调用点不用改。踩过的坑：改成运行时 `load()`（仿 `_F()`）能消掉 leak，但 `load()` 可能返回与 `extends` 链解析出的不是同一个 Script 实例，`seg_angelina.gd` 有 `static var _D`，两份实例各自一份存储，积木等价 eqtest 会跟着漂——**别名**没有这个风险（就是同一个 const 值）。
+  `godot --headless --audio-driver Dummy --path game --quit --verbose 2>&1 | grep "still in use"` 复跑 10+ 次无输出；仅有的偶发 `title.ogg` 资源仍在用是预先就有的音频线程关闭时序问题（main 在 dada5e32 之前的提交上同样会偶发），与这里无关，不在本次修复范围。
 
 #### 7.3.7 ③ 瞬时积木单播 + `ob_tag` 快检（干员会话 10-15，分支 claude/b6-unicast）
 
