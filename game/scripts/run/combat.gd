@@ -966,9 +966,9 @@ func gate_pass(e: Dictionary) -> void:
 		# 最终 Boss 每过一道卡点：回复道具与灯油各一个（boss/gate_drop_*，小数部分按概率）
 		for kd in [["heal", "boss/gate_drop_heal", 1.0], ["oil", "boss/gate_drop_oil", 15.0]]:
 			var n: float = Bal.v(kd[1], 1.0)
-			var cnt := int(n) + (1 if g.rng.randf() < n - floorf(n) else 0)
+			var cnt := int(n) + (1 if g.rng_drop.randf() < n - floorf(n) else 0)
 			for k in cnt:
-				g.pickups.drop(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 40.0, kd[0], kd[2])
+				g.pickups.drop(e.pos + Vector2.from_angle(g.rng_drop.randf() * TAU) * 40.0, kd[0], kd[2])
 
 
 func damage(e: Dictionary, dmg: float) -> void:
@@ -1117,9 +1117,9 @@ func kill(e: Dictionary) -> void:
 		g.telemetry.chests += 1   # 作战记录（docs/77）
 		Sfx.play("relic", -6.0, 1.3)
 		g.vfx.sparks(e.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 12, 220.0)
-		for k in g.rng.randi_range(3, 6):
-			g.pickups.drop(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(4.0, 18.0), "ingot", 1.0)
-		if g.rng.randf() < 0.3:
+		for k in g.rng_drop.randi_range(3, 6):
+			g.pickups.drop(e.pos + Vector2.from_angle(g.rng_drop.randf() * TAU) * g.rng_drop.randf_range(4.0, 18.0), "ingot", 1.0)
+		if g.rng_drop.randf() < 0.3:
 			g.pickups.drop(e.pos + Vector2(10, 6), "oil", 15.0)
 		return
 	if e.type != "tear":
@@ -1174,18 +1174,18 @@ func kill(e: Dictionary) -> void:
 		g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 10.0, "maxr": dmire, "life": 12.0, "seed": g.rng.randf() * 100.0, "boss": false})
 	if e.xp > 0.0:
 		g.pickups.drop(e.pos, "xp", e.xp * g.xp_mult)
-	if g.rng.randf() < Bal.v("lamp/oil_kill_chance", 0.006) * float(g.dmod.oil_drop):
+	if g.rng_drop.randf() < Bal.v("lamp/oil_kill_chance", 0.006) * float(g.dmod.oil_drop):
 		g.pickups.drop(e.pos + Vector2(8, 0), "oil", 15.0 * dk)
 	# 特殊道具：磁铁 / 回复（小怪低概率，精英与 Boss 必掉其一）；旋钮在 balance.json pickup 段
 	if e.elite or e.boss:
-		var mag: bool = g.rng.randf() < Bal.v("pickup/elite_magnet_share", 0.5)
+		var mag: bool = g.rng_drop.randf() < Bal.v("pickup/elite_magnet_share", 0.5)
 		g.pickups.drop(e.pos + Vector2(-16, 8), "magnet" if mag else "heal", 1.0)
 		g.pickups.item_log["magnet_elite" if mag else "heal_elite"] += 1
 	elif int(Bal.v("pickup/magnet_cap", 0.0)) > 0:
 		# 磁铁单独上限（协调人 9/30）：小怪掉磁铁只看场上磁铁数 < magnet_cap，不再被回复药剂占位；回复药剂仍按「道具合计 < item_cap」
 		if g.pickups.count_items("magnet") < int(Bal.v("pickup/magnet_cap", 0.0)):
 			g.pickups.item_log.mob_rolled += 1
-			if g.rng.randf() < Bal.v("pickup/magnet_kill_chance", 0.0025) * dk:
+			if g.rng_drop.randf() < Bal.v("pickup/magnet_kill_chance", 0.0025) * dk:
 				g.pickups.drop(e.pos, "magnet", 1.0)
 				g.pickups.item_log.magnet_mob += 1
 		else:
@@ -1197,7 +1197,7 @@ func kill(e: Dictionary) -> void:
 		if low_hp and not heal_room:
 			heal_room = g.pickups.count_items("heal") < int(Bal.v("pickup/heal_low_cap", 0.0))
 		var hc: float = Bal.v("pickup/heal_kill_chance", 0.0035) * (Bal.v("pickup/heal_low_mult", 1.0) if low_hp else 1.0) * dk
-		if heal_room and g.rng.randf() < hc:
+		if heal_room and g.rng_drop.randf() < hc:
 			g.pickups.drop(e.pos, "heal", 1.0)
 			g.pickups.item_log.heal_mob += 1
 			if low_hp:
@@ -1206,7 +1206,7 @@ func kill(e: Dictionary) -> void:
 		g.pickups.item_log.mob_capped += 1   # 场上道具已满，这次小怪击杀不掷骰（magnet_cap = 0 时的原行为，不耗随机数）
 	else:
 		g.pickups.item_log.mob_rolled += 1
-		var r := g.rng.randf()
+		var r := g.rng_drop.randf()
 		var pm: float = Bal.v("pickup/magnet_kill_chance", 0.0025) * dk
 		if r < pm:
 			g.pickups.drop(e.pos, "magnet", 1.0)
@@ -1216,10 +1216,10 @@ func kill(e: Dictionary) -> void:
 			g.pickups.item_log.heal_mob += 1
 	var ing: int = D.ENEMIES.get(e.type, {}).get("ingots", 0)
 	if e.elite:
-		ing = max(ing, g.rng.randi_range(3, 5))
+		ing = max(ing, g.rng_drop.randi_range(3, 5))
 		if elite_drops_relic():
 			g.pickups.drop(e.pos, "chest", 1.0)
-		if g.rng.randf() < Bal.v("lamp/elite_oil_chance", 0.65):
+		if g.rng_drop.randf() < Bal.v("lamp/elite_oil_chance", 0.65):
 			g.pickups.drop(e.pos + Vector2(20, 10), "oil", Bal.v("lamp/elite_oil_amount", 25.0))
 	if e.boss:
 		ing = 20
@@ -1236,11 +1236,11 @@ func kill(e: Dictionary) -> void:
 		g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
 		g.next_horde = maxf(g.next_horde, g.t + 12.0)
 	if float(g.dmod.ingot) != 1.0 and ing > 0:
-		ing = int(floor(ing * float(g.dmod.ingot) + g.rng.randf()))
+		ing = int(floor(ing * float(g.dmod.ingot) + g.rng_drop.randf()))
 	for k in ing:
-		g.pickups.drop(e.pos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(6.0, 26.0), "ingot", 1.0)
+		g.pickups.drop(e.pos + Vector2.from_angle(g.rng_drop.randf() * TAU) * g.rng_drop.randf_range(6.0, 26.0), "ingot", 1.0)
 
 
 ## 精英不再必掉藏品；共用对局随机数，种子可复现。Boss 奖励仍按原结算。
 func elite_drops_relic() -> bool:
-	return g.rng.randf() < Bal.v("relic/elite_drop_chance", 0.3)
+	return g.rng_drop.randf() < Bal.v("relic/elite_drop_chance", 0.3)

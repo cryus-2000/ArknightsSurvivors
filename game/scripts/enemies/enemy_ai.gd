@@ -292,7 +292,7 @@ func _stomp(e: Dictionary, d: Dictionary, dist: float) -> Vector2:
 
 ## 蓄力 dash_wind 秒后高速冲刺
 func _dash(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) -> Vector2:
-	e["dash_cd"] = e.get("dash_cd", g.rng.randf_range(1.5, 3.5)) - dt
+	e["dash_cd"] = e.get("dash_cd", g.rng_enemy.randf_range(1.5, 3.5)) - dt
 	if e.get("dash_w", 0.0) > 0.0:
 		e.dash_w -= dt
 		if e.dash_w <= 0.0:
@@ -312,7 +312,7 @@ func _dash(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float, s
 					g.fx[g.fx.size() - 1]["enemy"] = true
 		return e.dash_dir * spd * float(d.get("dash_speed", 3.8))
 	if e.dash_cd <= 0.0 and dist < float(d.get("dash_range", 240)) and dist > 40.0 and g.beacon_sys.slow_mult(e) >= 1.0:   # safe_slow 对照组：读条光圈附近不起冲刺
-		e.dash_cd = g.rng.randf_range(3.0, 4.5)
+		e.dash_cd = g.rng_enemy.randf_range(3.0, 4.5)
 		e["dash_w"] = float(d.get("dash_wind", 0.5))
 		e["dash_dir"] = dir
 		# 冲刺时长按起冲时的距离算，保证能冲到主控身上再多 30（原来固定 0.35 秒，滑动者只冲 96、骑士精英 135，起冲距离却是 240 / 300，
@@ -338,7 +338,7 @@ func _acid(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 
 ## 发光蓄力后环形弹幕
 func _nova(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
-	e["nova_cd"] = e.get("nova_cd", g.rng.randf_range(2.0, 4.0)) - dt
+	e["nova_cd"] = e.get("nova_cd", g.rng_enemy.randf_range(2.0, 4.0)) - dt
 	if e.get("nova_w", 0.0) > 0.0:
 		e.nova_w -= dt
 		if e.nova_w <= 0.0:
@@ -350,7 +350,7 @@ func _nova(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 			Sfx.play("tentacle", -12.0, 0.7, 0.05)
 		return Vector2.ZERO
 	if e.nova_cd <= 0.0 and dist < float(d.get("nova_range", 320)):
-		e.nova_cd = g.rng.randf_range(4.0, 5.5)
+		e.nova_cd = g.rng_enemy.randf_range(4.0, 5.5)
 		e["nova_w"] = 0.6
 		return Vector2.ZERO
 	return Vector2.INF
@@ -435,7 +435,7 @@ func lob(e: Dictionary) -> void:
 	var kind: String = str(d.get("lob_kind", "rock"))
 	if kind == "brood":
 		var sp: float = float(d.get("lob_spread", 40.0))
-		var to: Vector2 = g.ppos + Vector2(g.rng.randf_range(-sp, sp), g.rng.randf_range(-sp, sp)) + g.pvel * 0.5
+		var to: Vector2 = g.ppos + Vector2(g.rng_enemy.randf_range(-sp, sp), g.rng_enemy.randf_range(-sp, sp)) + g.pvel * 0.5
 		g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": float(d.get("lob_dur", 0.8)), "r": float(d.get("lob_r", 30.0)), "dmg": e.dmg * 0.45,
 			"mire": false, "kind": "brood", "spawn": "brood", "hit_cap": e.get("hit_cap", 0.0), "corrode": e.corrode, "frost": 0.0, "boss": e.boss, "src_type": e.type})
 		# 出手特效 fx_mother_throw（docs/96 §1.1，Codex enemy_fx_1：原点 (6,12) 对齐口器，装在 e_mother_attack 的 (29,12)，
@@ -443,7 +443,7 @@ func lob(e: Dictionary) -> void:
 		var face: float = 1.0 if g.ppos.x >= e.pos.x else -1.0
 		g.vfx.fx_sprite("fx_mother_throw", e.pos + Vector2(face * 12.0, -20.0) * g.PX, g.PX, 0.0, face < 0.0, false, Color.WHITE, false, Vector2(6, 12))
 		return
-	var to: Vector2 = g.ppos + Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-30, 30)) + g.pvel * 0.6   # 落点散布是玩法：用对局随机数
+	var to: Vector2 = g.ppos + Vector2(g.rng_enemy.randf_range(-30, 30), g.rng_enemy.randf_range(-30, 30)) + g.pvel * 0.6   # 落点散布是玩法：用对局随机数
 	g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 0.85, "r": 46.0, "dmg": e.dmg * 0.6, "mire": d.get("spit", false), "hit_cap": e.get("hit_cap", 0.0),
 		"corrode": e.corrode, "frost": e.get("frost", 0.0), "boss": e.boss, "src_type": e.type,
 		"tex": str(d.get("lob_tex", "")), "land_fx": str(d.get("land_fx", "")), "hit_fx": str(d.get("hit_fx", "")), "hit_org": d.get("hit_fx_origin", [12, 19])})   # 专属抛射物 / 落点 / 命中帧条（docs/96 §1.4 喷吐者，纯画面）

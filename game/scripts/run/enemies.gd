@@ -233,7 +233,7 @@ func update(dt: float) -> void:
 						var d := diff.length()
 						var min_d: float = e.r + o.r
 						if d < min_d and d > 0.01:
-							if e.evo and not o.evo and not o.elite and not o.boss and not o.chest and o.ai != "static" and d < e.r and g.rng.randf() < 0.015:
+							if e.evo and not o.evo and not o.elite and not o.boss and not o.chest and o.ai != "static" and d < e.r and g.rng_enemy.randf() < 0.015:
 								_devour(e, o)
 								continue
 							# 伊祖米克的子代被 Boss 吸收
@@ -326,7 +326,7 @@ func morph(e: Dictionary) -> void:
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": Color(0.6, 1.0, 0.6)})
 	g.vfx.add_text(e.pos + Vector2(0, -24), "蜕变", Color(0.6, 1.0, 0.6), 16)
 	for k in 2:
-		g.spawner.spawn_enemy(["bone", "slider", "stone"][g.rng.randi() % 3], e.pos + Vector2.from_angle(g.rng.randf() * TAU) * 20.0)
+		g.spawner.spawn_enemy(["bone", "slider", "stone"][g.rng_enemy.randi() % 3], e.pos + Vector2.from_angle(g.rng_enemy.randf() * TAU) * 20.0)
 
 
 func update_lobs(dt: float) -> void:

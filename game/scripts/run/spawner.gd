@@ -26,8 +26,8 @@ func _init(game: Game) -> void:
 
 
 func edge_pos() -> Vector2:
-	var ang: float = g.rng.randf() * TAU
-	var dist: float = g.rng.randf_range(720.0, 820.0)
+	var ang: float = g.rng_spawn.randf() * TAU
+	var dist: float = g.rng_spawn.randf_range(720.0, 820.0)
 	# 背光刷怪（docs/56 候选 e，beacon/shade_deg > 0 开）：朝向未点燃灯标 ±shade_deg 的扇区不刷杂兵。
 	# 不重掷：把 [0, TAU) 的随机角均匀映射到扇区以外的那段弧上，随机数调用次数与旋钮无关，同 seed 同旋钮可复现
 	var sh: Array = g.beacon_sys.shade_sector()
@@ -49,8 +49,8 @@ func safe_event_pos(p: Vector2, margin := 100.0) -> Vector2:
 
 ## 在有效圈内挑离玩家足够远的候选；极小圈不可能满足距离时选最远的可达点。
 func event_pos(min_distance: float, max_distance: float, margin := 100.0) -> Vector2:
-	var start: float = g.rng.randf() * TAU
-	var radius: float = g.rng.randf_range(min_distance, max_distance)
+	var start: float = g.rng_spawn.randf() * TAU
+	var radius: float = g.rng_spawn.randf_range(min_distance, max_distance)
 	var best := safe_event_pos(g.ppos, margin)
 	var best_d := -1.0
 	for i in 16:
@@ -77,7 +77,7 @@ func pick_type() -> String:
 			var w := maxf(0.0, fw) if not prev.has(x) else 1.0
 			ws.append(w)
 			tot += w
-		var r := g.rng.randf() * tot
+		var r := g.rng_spawn.randf() * tot
 		pick = pool[pool.size() - 1]
 		for k in pool.size():
 			r -= float(ws[k])
@@ -85,7 +85,7 @@ func pick_type() -> String:
 				pick = pool[k]
 				break
 	else:
-		pick = pool[g.rng.randi() % pool.size()]
+		pick = pool[g.rng_spawn.randi() % pool.size()]
 	if type_cap(pick) > 0 and type_n(pick) >= dens_cap(type_cap(pick)):   # 同种上限按怪物密度同比缩（density 1 = 原值）
 		pick = "slider" if g.threat >= 3 else "bone"
 	return pick
@@ -118,7 +118,7 @@ func pick_elite() -> String:
 			pool.append(k)
 	if pool.is_empty():
 		return "pocket"
-	return pool[g.rng.randi() % pool.size()]
+	return pool[g.rng_spawn.randi() % pool.size()]
 
 
 ## 最终 Boss 登场时，还没打死的中期 Boss 撤场、不给奖励（用户 9/27，docs/38 B1 ②）：直接移除，不走 kill()（不掉落、不计击杀），
@@ -163,9 +163,9 @@ func roll_affix(e: Dictionary) -> void:
 	if g.t < st or e.elite or e.boss or e.chest or e.ai == "static":
 		return
 	var p: float = g.combat.enemy_knob("affix_max", 0.35) * clampf((g.t - st) / maxf(1.0, Bal.v("enemy/affix_ramp", 180.0)), 0.0, 1.0)
-	if g.rng.randf() >= p:
+	if g.rng_spawn.randf() >= p:
 		return
-	if g.rng.randf() < 0.5:
+	if g.rng_spawn.randf() < 0.5:
 		e.affix = "armor"
 		e.def *= Bal.v("enemy/affix_armor", 0.75)
 	else:
@@ -276,7 +276,7 @@ func update(dt: float) -> void:
 			for i in D.MID_POOL.size():
 				if not mid_used.has(i) and (boss_idx != 1 or D.MID_FIRST.is_empty() or D.MID_FIRST.has(i)) and not person_used(i):
 					pool.append(i)
-			var pick: int = pool[g.rng.randi() % pool.size()]
+			var pick: int = pool[g.rng_spawn.randi() % pool.size()]
 			if g.force_boss >= 0 and not mid_used.has(g.force_boss):
 				pick = g.force_boss
 			# 测试开关（仅开发版）：--forceboss2=<MID_POOL 下标> 指定第二个（7:00）中期 Boss，例如 3 = 主教 + 蔑视体、4 = 主教 + 斥亡者
@@ -410,7 +410,7 @@ func update(dt: float) -> void:
 	if g.t >= due - 3.0 and horde_warned != due and horde_ok:
 		horde_warned = due
 		g.horde_warn = 3.0
-		g.horde_gap = g.rng.randf() * TAU
+		g.horde_gap = g.rng_spawn.randf() * TAU
 		Sfx.play("roar", -2.0, 0.55, 0.0)
 	if g.t >= due and horde_ok:
 		g.next_horde += D.THREAT[g.threat].get("horde_every", 120.0)
@@ -438,7 +438,7 @@ func update(dt: float) -> void:
 			if g.enemies.size() >= max_alive() + 60:
 				break
 			var ang: float = g.horde_gap + gap_half + span * float(s.u)
-			var p := g.ppos + Vector2.from_angle(ang) * (g.rng.randf_range(560.0, 640.0) + float(s.dr))
+			var p := g.ppos + Vector2.from_angle(ang) * (g.rng_spawn.randf_range(560.0, 640.0) + float(s.dr))
 			var he := spawn_enemy(s.id, p)
 			he["horde"] = g.horde_log.size() - 1
 			he.dormant = false
@@ -448,21 +448,21 @@ func update(dt: float) -> void:
 		_norm = false
 	# 补给箱
 	if g.t >= next_chest:
-		next_chest = g.t + g.rng.randf_range(35.0, 50.0)
+		next_chest = g.t + g.rng_spawn.randf_range(35.0, 50.0)
 		var nch := 0
 		for e in g.enemies:
 			if e.chest and e.get("event", "") == "":
 				nch += 1
 		if nch < 3:
-			spawn_chest(g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(260.0, 420.0))
+			spawn_chest(g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(260.0, 420.0))
 	# 溟痕（最终 Boss 场地冻结后停刷自然溟痕，docs/38 §1.7）
 	if g.t >= g.next_mire and not g.zone_frozen:
 		# 溟痕随时间越来越多、越来越大；缩圈后多出现在圈边
 		g.next_mire = g.t + g.map.mire_next_interval(g.t)
-		var mp := g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(160.0, 380.0)
-		if g.zone_state != 0 and g.rng.randf() < 0.6:
-			var ang := (g.ppos - g.zone_c).angle() + g.rng.randf_range(-0.8, 0.8)
-			mp = g.zone_c + Vector2.from_angle(ang) * (g.zone_r - g.rng.randf_range(20.0, 120.0))
+		var mp := g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(160.0, 380.0)
+		if g.zone_state != 0 and g.rng_spawn.randf() < 0.6:
+			var ang := (g.ppos - g.zone_c).angle() + g.rng_spawn.randf_range(-0.8, 0.8)
+			mp = g.zone_c + Vector2.from_angle(ang) * (g.zone_r - g.rng_spawn.randf_range(20.0, 120.0))
 		if g.mires.size() < int(g.map.mire_cfg().get("max_count", 24)):
 			g.mires.append(g.map.mire_new(mp, g.t, int(g.dmod.mire_permanent) > 0))
 	# 商人
@@ -482,7 +482,7 @@ func _spawn_mob() -> void:
 	_norm = false
 	n_mob += 1
 	# 6 分钟后一部分海嗣直接以进化体出现（数量不变，质量提升）
-	if not ne.elite and ne.ai != "static" and g.rng.randf() < D.THREAT[g.threat].get("evo", 0.0) * (2.0 if g.ending == "deep" else 1.0):
+	if not ne.elite and ne.ai != "static" and g.rng_spawn.randf() < D.THREAT[g.threat].get("evo", 0.0) * (2.0 if g.ending == "deep" else 1.0):
 		g.enemies_sys.evolve(ne)
 	if g.ending == "resolve" and g.t >= 520.0:
 		ne.weak = ""
@@ -626,11 +626,11 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 	var e := {
 		"id": next_id, "type": type, "name": d.name, "tex": d.tex, "pos": pos,
 		"hp": d.hp * hpm * g.enemy_hp_mult, "maxhp": d.hp * hpm * g.enemy_hp_mult,
-		"spd": d.spd * g.rng.randf_range(0.9, 1.1) * D.THREAT[g.threat].get("spd", 1.0), "dmg": d.dmg * dmg_t * dmm * g.enemy_dmg_mult,
+		"spd": d.spd * g.rng_spawn.randf_range(0.9, 1.1) * D.THREAT[g.threat].get("spd", 1.0), "dmg": d.dmg * dmg_t * dmm * g.enemy_dmg_mult,
 		"r": d.r, "r0": d.r, "xp": d.xp, "age": 0.0,
 		"evo": false, "elite": role == "elite", "boss": role == "boss", "stun": 0.0,
 		"kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
-		"ai": d.ai, "range": d.get("range", 0.0), "cd": d.get("cd", 0.0) * g.enemy_cd_mult, "cdt": g.rng.randf() * d.get("cd", 1.0),
+		"ai": d.ai, "range": d.get("range", 0.0), "cd": d.get("cd", 0.0) * g.enemy_cd_mult, "cdt": g.rng_spawn.randf() * d.get("cd", 1.0),
 		"frost": d.get("frost", 0.0), "corrode": d.get("corrode", 0.0), "nerve": d.get("nerve", 0.0), "def": float(d.get("armor", 1.0)), "set_t": 0.0, "set_done": false,
 		"chest": false, "hidden": false, "invuln": false, "friendly": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 		# 状态字段统一在此初始化（Boss 招式 / 假死 / 冲刺 / 流血），避免各处 get() 默认值不一致
@@ -747,7 +747,7 @@ func horde_mix() -> Dictionary:
 	var mixes: Array = tr.get("horde_mix", [])
 	if mixes.is_empty():
 		return {"name": "", "body": tr.horde, "extra": []}
-	var i := g.rng.randi() % mixes.size()
+	var i := g.rng_spawn.randi() % mixes.size()
 	if mixes.size() > 1 and not g.horde_log.is_empty() and str(g.horde_log[g.horde_log.size() - 1].get("mix", "")) == str(mixes[i].name):
 		i = (i + 1) % mixes.size()
 	return mixes[i]
@@ -770,7 +770,7 @@ func horde_plan(mix: Dictionary, n: int) -> Array:
 		var dr := {"back": 90.0, "front": -70.0}.get(at, 0.0) as float
 		# 不同特种错开一点角度，免得和上一种叠在同一个方位
 		var off := 0.37 * ei
-		var pc := g.rng.randf_range(0.15, 0.85) if at == "pack" else 0.0
+		var pc := g.rng_spawn.randf_range(0.15, 0.85) if at == "pack" else 0.0
 		for j in k:
 			var u: float
 			if at == "pack":
@@ -789,7 +789,7 @@ func spawn_enemy(type: String, pos: Vector2) -> Dictionary:
 	var e := new_enemy(type, pos)
 	# 休眠的敌人（钵海收割者）从屏幕外刷出来就看不到了：改放到主控周围 330–480 的海床上当伏兵；大群里的会在刷出后唤醒
 	if e.dormant and pos.distance_to(g.ppos) > 700.0:
-		e.pos = g.map.push_out(g.ppos + Vector2.from_angle(g.rng.randf() * TAU) * g.rng.randf_range(330.0, 480.0), e.r)
+		e.pos = g.map.push_out(g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(330.0, 480.0), e.r)
 	g.enemies_sys.admit(e)   # 唯一出生口（docs/101 B5）：槽位 + id 表
 	check_enemy(e, type)
 	return e
@@ -833,7 +833,7 @@ func spawn_chest(pos: Vector2, event_id := "") -> void:
 func _mimic_roll(event_id: String) -> bool:
 	if event_id != "":
 		return false
-	var roll: bool = g.rng.randf() < 0.15
+	var roll: bool = g.rng_spawn.randf() < 0.15
 	return roll and g.rfx.rule("chest_keys") <= 0
 
 

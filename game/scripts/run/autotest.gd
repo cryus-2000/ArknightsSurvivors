@@ -631,7 +631,8 @@ func step() -> void:
 			var hsum := 0.0
 			for e in g.enemies:
 				hsum += e.pos.x * 0.37 + e.pos.y * 0.11 + e.hp * 0.01
-			print("TRACE t=%.2f lv=%d k=%d hp=%.2f n=%d rng=%d pos=%.2f,%.2f h=%.3f" % [g.t, g.level, g.kills, g.hp, g.enemies.size(), g.rng.state, g.ppos.x, g.ppos.y, hsum])
+			print("TRACE t=%.2f lv=%d k=%d hp=%.2f n=%d rng=%d/%d/%d/%d pos=%.2f,%.2f h=%.3f" % [g.t, g.level, g.kills, g.hp, g.enemies.size(), g.rng.state,
+				g.rng_spawn.state, g.rng_enemy.state, g.rng_drop.state, g.ppos.x, g.ppos.y, hsum])   # 四条玩法流（docs/101 B7 ①）
 		if g.bot != null and g.state == g.S.PLAY:
 			g.telemetry.tick(0.066)   # 整局指标（原 bot.tick，挪到 run/telemetry.gd）
 		if false:
