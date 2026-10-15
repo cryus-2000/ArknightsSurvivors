@@ -115,7 +115,7 @@ func step(dt: float) -> void:
 		_seed_heal_targets()
 	g.enemies_sys.build_grid()
 	g.enemies_sys.update(dt)
-	g.enemies_sys.update_ebullets(dt)
+	g.shots.step(dt)
 	g.tele.update_warns(dt)
 	g.enemies_sys.update_status(dt)
 	g.vfx.update(dt)

@@ -9,6 +9,7 @@ const UM = preload("res://scripts/ui_motion.gd")   # 界面动效时钟与缓动
 const A = preload("res://scripts/art.gd")
 const BossAI = preload("res://scripts/boss_ai.gd")
 const Telegraph = preload("res://scripts/enemies/telegraph.gd")
+const ShotPool = preload("res://scripts/enemies/shot_pool.gd")
 const RelicFx = preload("res://scripts/relic_fx.gd")
 const Endings = preload("res://scripts/endings.gd")
 const Knight = preload("res://scripts/allies/knight.gd")
@@ -267,6 +268,7 @@ var atk_slow := 0.0
 var ebullets: Array = []
 var shocks: Array = []
 var warns: Array = []
+var shots: RefCounted = null    # 敌方投射物池：抛物 / 敌弹 / 冲击环的推进（scripts/enemies/shot_pool.gd，docs/101 B7 ④）
 var tele: RefCounted = null     # 预警服务：g.warns 登记 / 推进 / 判定 / 结算（scripts/enemies/telegraph.gd，docs/101 B2）
 var bai: RefCounted = null      # Boss AI（scripts/boss_ai.gd；预警经 tele）            # Boss 招式预警 {shape, pos, ang, r, len, wid, half, t, dur, act, owner, dmg}
 var mires: Array = []
@@ -600,6 +602,7 @@ func _ready() -> void:
 		Sfx.voice_reset()   # 上一局没播完的部署语音不带进新一局
 	bai = BossAI.new(self)
 	tele = Telegraph.new(self)
+	shots = ShotPool.new(self)
 	eai = EnemyAI.new(self)
 	map = Map.new(self, Cfg.map_id)
 	stats = StatBlock.new()
@@ -1543,7 +1546,7 @@ func _update(dt: float) -> void:
 	weapons_sys.update_bullets(dt)
 	_pm("bullets")
 	var nfx1: int = fx.size()
-	enemies_sys.update_ebullets(dt)
+	shots.step(dt)   # 抛物 → 敌弹 → 冲击环（docs/101 B7 ④）
 	tele.update_warns(dt)
 	vfx.mark_enemy_fx(nfx1)
 	_pm("ebullets")

@@ -2057,7 +2057,7 @@ func _dc_verify(e: Dictionary, c: Array) -> void:
 
 func _draw_enemy_full(e: Dictionary) -> void:
 	if float(e.get("hatch_until", 0.0)) > g.t:
-		return   # 注亡拟嗣落地展开中（run/enemies._brood_land）：本体由 fx_brood_land 帧条代画
+		return   # 注亡拟嗣落地展开中（enemies/shot_pool._brood_land）：本体由 fx_brood_land 帧条代画
 	var name: String = e.tex
 	# 形态切换：偏执泡影二阶段 / 接潮三件套昏迷时的假死造型
 	if e.type == "paranoia" and e.phase == 2 and g.tex.get("e_paranoia2") != null:

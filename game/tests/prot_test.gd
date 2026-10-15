@@ -441,7 +441,7 @@ func test_non_boss() -> void:
 		game.invuln = 0.0
 		game.shocks.append({"pos": game.ppos, "r": 0.0, "maxr": 200.0, "dmg": game.max_hp * 0.8, "hit": false, "boss": is_boss})
 		hp0 = game.hp
-		game.enemies_sys.update_status(dt)
+		game.shots.update_shocks(dt)   # 冲击环在敌方投射物池里推进（docs/101 B7 ④）
 		var ls: float = hp0 - game.hp
 		ok(ls > 0.0 and (ls <= 0.4 * game.max_hp + EPS) == is_boss, "冲击环扣血（放招的%s Boss）扣 %s" % ["是" if is_boss else "不是", pct(ls)])
 	reset()
@@ -484,7 +484,7 @@ func test_no_hard_cc() -> void:
 		reset()
 		game.invuln = 0.0
 		game.shocks.append({"pos": game.ppos, "r": 0.0, "maxr": 200.0, "dmg": 1.0, "hit": false, "boss": alive})
-		game.enemies_sys.update_status(1.0 / 60.0)
+		game.shots.update_shocks(1.0 / 60.0)
 		if alive:
 			ok(game.pstun <= 0.0 and c.slows.has("stun"), "%s：冲击环换成减速（僵直 %.2f）" % [tag, game.pstun])
 		else:
@@ -511,7 +511,7 @@ func test_no_hard_cc() -> void:
 	reset()
 	game.invuln = 0.0
 	game.shocks.append({"pos": game.ppos, "r": 0.0, "maxr": 200.0, "dmg": 1.0, "hit": false, "boss": true})
-	game.enemies_sys.update_status(1.0 / 60.0)
+	game.shots.update_shocks(1.0 / 60.0)
 	ok(game.pstun <= 0.0 and c.slows.has("stun"), "Boss 刚死时它的冲击环也只减速（僵直 %.2f）" % game.pstun)
 	# Boss 出现前残留的僵直：Boss 一出现就换成减速，不算违规；Boss 战中有地方直接写 g.pstun：换掉并记违规
 	reset()
