@@ -241,7 +241,7 @@ func update(dt: float) -> void:
 				g.combat.hit("骑士", ["ally", "charge"])
 				g.combat.damage(e, 45.0 * lvm * g.dmg_mult)
 				if not e.dead:
-					e.kb += dash_dir * 260.0
+					g.enemies_sys.apply_kb(e, dash_dir * 260.0)
 				g.vfx.sparks(e.pos, dash_dir, ICE, 5, 160.0)
 				g.vfx.fx_sprite("fx_knight_impact", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.8, dash_dir.angle())   # 冲锋撞到的每个敌人都有冲击
 			# 冲锋残影（每 0.05 秒一个，0.25 秒淡出）+ 脚下冰霜拖尾

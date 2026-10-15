@@ -17,6 +17,7 @@ static func _heavy(e: Dictionary) -> bool:
 
 
 ## 失重（st.weightless）期间受到的击退倍率；没有失重 = 1.0（character.gd melee_hit 的击退乘它，老干员乘 1.0 逐字节不变）
+## 与 run/enemies.gd 的 kb_taken 同一算式（击退统一入口 apply_kb 在那边乘失重；这里只给本段按距离反算冲量用，docs/101 B7）
 static func kb_taken(e: Dictionary, t: float) -> float:
 	return float(e.wl_kb) if e.has("wl_t") and float(e.wl_t) > t else 1.0
 
@@ -61,7 +62,7 @@ static func displace_one(o, e: Dictionary, c: Vector2, b: Dictionary, sc := 1.0,
 			dist = minf(dist, absf(gap))
 	if dist < 0.5:
 		return false
-	e.kb += dir * kb_for(dist, m)
+	o.apply_kb(e, dir * kb_for(dist, m), false)
 	return true
 
 

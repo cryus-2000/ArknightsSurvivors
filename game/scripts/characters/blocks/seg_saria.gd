@@ -168,7 +168,7 @@ static func _h4sa_tick(o, sa: Dictionary, dt: float) -> void:
 				var off: Vector2 = e.pos - g.ppos
 				if off.length() > r + e.r:
 					continue
-				e.kb += off.normalized() * (float(gr.get("kb_elite", 80.0)) if e.elite else float(gr.get("kb", 200.0)))
+				o.apply_kb(e, off.normalized() * (float(gr.get("kb_elite", 80.0)) if e.elite else float(gr.get("kb", 200.0))))
 				e.slow = maxf(e.slow, float(gr.get("slow", 0.5)))
 				if shown < 4:
 					shown += 1
@@ -213,8 +213,8 @@ static func _h4sa_tick(o, sa: Dictionary, dt: float) -> void:
 		sa.shard_t = float(sa.shard_t) - dt
 		if float(sa.shard_t) <= 0.0:
 			sa.shard_t = float(cb.get("shard_every", 0.35))
-			var an: float = g.rng.randf() * TAU   # 晶柱落点吃 g.rng（碎晶从晶柱处射出，影响玩法；同手写）
-			var rr: float = g.rng.randf_range(R * 0.3, R * 0.95)
+			var an: float = g.rng_op.randf() * TAU   # 晶柱落点吃 g.rng（碎晶从晶柱处射出，影响玩法；同手写）
+			var rr: float = g.rng_op.randf_range(R * 0.3, R * 0.95)
 			_h4_calcite(o, g.ppos + Vector2(cos(an) * rr, sin(an) * rr * 0.55 + 4.0), g.vrng.randf_range(0.6, 0.85), g.vrng.randf_range(12, 24), 1.2)
 		# 碎晶：每 every 秒亲手击碎一根晶柱，碎片飞向区域内的敌人
 		var cs: Dictionary = _h4_sub(o, cb.get("shatter", null))
@@ -497,7 +497,7 @@ static func _h4_shatter(o, sa: Dictionary, cb: Dictionary, cs: Dictionary) -> bo
 	sa.pillars = sa.pillars.filter(func(pl): return pl.ref.get("life", 0.0) > 0.25)
 	if sa.pillars.is_empty():
 		return false
-	var pl: Dictionary = sa.pillars[g.rng.randi() % sa.pillars.size()]
+	var pl: Dictionary = sa.pillars[g.rng_op.randi() % sa.pillars.size()]
 	var p: Vector2 = pl.pos
 	var R: float = float(cb.get("r", 180.0))
 	var ts: Array = o.nearest_enemies(8, R * 2.0, p).filter(func(e): return e.pos.distance_to(g.ppos) <= R + e.r)

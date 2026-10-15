@@ -441,12 +441,18 @@ var trace_every := 0.0           # --trace=<秒>：每隔几秒打印一行状�
 ## 视觉随机数：火花、飘字抖动等纯表现用它。对局随机数 rng 只给玩法用——表现层按真实帧率运行，
 ## 如果它们共用 rng，同一个 seed 在机器忙闲不同时就会跑出不同的局（2026-09-26 查明）
 var vrng := RandomNumberGenerator.new()
-## 按用途派生的玩法随机流（docs/101 B7 ①，10-15）：局种子 + 名字 hash 派生，同 seed 可复现；一处多抽 / 少抽只影响自己那条流，
+## 按用途派生的玩法随机流（docs/101 B7 ①，10-15；rng_op 积木）：局种子 + 名字 hash 派生，同 seed 可复现；一处多抽 / 少抽只影响自己那条流，
 ## 原生段（EnemyCore）也不会碰到别处的序列。rng_spawn 刷怪；rng_enemy 敌人 AI、Boss 脚本、吞噬、形变；rng_drop 击杀 / 卡点 / 宝箱掉落。
 ## 其余玩法（暴击、闪避、藏品、选卡、变动区、地图）仍走 rng
 var rng_spawn := RandomNumberGenerator.new()
 var rng_enemy := RandomNumberGenerator.new()
 var rng_drop := RandomNumberGenerator.new()
+var rng_op := RandomNumberGenerator.new()   # 干员积木的玩法随机（docs/101 B7，干员 10-15 同意）
+
+
+## 全部玩法随机流的状态（测试断言「某段代码不掷随机数」用）
+func rng_states() -> Array:
+	return [rng.state, rng_spawn.state, rng_enemy.state, rng_drop.state, rng_op.state]
 var headless_batch := false      # --balance 且无界面：跳过所有重绘
 var demo_elite := 0            # 演示时把干员直接推到这个精英化阶段（精英化演出用）
 var demo_stage := -1           # 三联对照（--compareshot）：0 = 精一前（N1 N2）/ 1 = 精二前（到 N5）/ 2 = 全部；-1 不用
@@ -589,6 +595,7 @@ func _ready() -> void:
 	rng_spawn.seed = hash([rng.seed, "spawn"])
 	rng_enemy.seed = hash([rng.seed, "enemy"])
 	rng_drop.seed = hash([rng.seed, "drop"])
+	rng_op.seed = hash([rng.seed, "op"])
 	if demo_op == "":
 		Sfx.voice_reset()   # 上一局没播完的部署语音不带进新一局
 	bai = BossAI.new(self)

@@ -119,6 +119,11 @@ func log_hit(src: String, extra_tags: Array = []) -> void:
 	g.combat.hit(src, extra_tags)
 
 
+## 给敌人击退冲量（docs/101 B7：统一入口 enemies_sys.apply_kb，失重倍率在那里乘）；wl = false：调用方已按失重算过
+func apply_kb(e: Dictionary, v: Vector2, wl := true) -> void:
+	g.enemies_sys.apply_kb(e, v, wl)
+
+
 ## 对敌人造成伤害（走护甲、易伤、藏品倍率、击杀结算）
 func deal_damage(e: Dictionary, dmg: float) -> void:
 	var hp_before: float = e.hp

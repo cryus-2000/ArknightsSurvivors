@@ -670,7 +670,7 @@ func shield_block() -> void:
 			if not e.dead and e.pos.distance_to(g.ppos) < 140.0:
 				damage(e, 60.0 * g.dmg_mult * enemy_hp_time_mult())
 				if not e.boss:
-					e.kb += (e.pos - g.ppos).normalized() * 420.0
+					g.enemies_sys.apply_kb(e, (e.pos - g.ppos).normalized() * 420.0)
 		g.fx.append({"kind": "explode", "pos": g.ppos, "r": 140.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 0.85, 1.0)})
 		g.vfx.shake_screen(0.6)
 

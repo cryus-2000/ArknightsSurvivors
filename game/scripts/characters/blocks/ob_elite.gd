@@ -272,7 +272,7 @@ static func _el_boom_sweep(o, bm: Dictionary, a: float, c: float, leg: int) -> v
 		o.log_hit(src, tags)
 		o.deal_damage(e, float(bm.dmg) * mult * (ve if e.elite or e.boss else 1.0))
 		if not e.dead and not e.boss and kb > 0.0:
-			e.kb += dir * kb * (0.3 if e.elite else 1.0) * _F().kb_taken(e, g.t)
+			o.apply_kb(e, dir * kb * (0.3 if e.elite else 1.0))
 		o._hit_fx(e, o.pos)
 		if b.has("fx"):
 			fx_play(o, b.fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e], dir.angle())

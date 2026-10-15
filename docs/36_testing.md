@@ -110,7 +110,12 @@
 
 | 用途 | 用什么 |
 | --- | --- |
-| 玩法（伤害、目标、刷怪、掉落、选卡、AI） | `g.rng`；洗牌用 `g._shuffle(arr)` |
+| 玩法：刷怪（spawner、远距回收落点） | `g.rng_spawn`（10-15 起，docs/101 B7：按用途派生的独立流，局种子 + 名字 hash） |
+| 玩法：敌人 AI、Boss 脚本、吞噬、形变 | `g.rng_enemy` |
+| 玩法：击杀 / 卡点 / 宝箱掉落 | `g.rng_drop`（掉落物弹出另有 pickups 的派生流） |
+| 玩法：干员积木 | `g.rng_op` |
+| 其余玩法（伤害、闪避、暴击、目标、藏品、选卡、变动区、地图） | `g.rng`；洗牌用 `g.shuffle(arr)` |
+| 测试断言「不掷随机数」 | 比 `g.rng_states()`（五条玩法流的 state） |
 | 纯画面（火花、粒子、飘字抖动、闪烁） | `g.vrng` 或全局 `randf()` |
 | 禁止用在玩法里 | `Array.shuffle()`、`pick_random()`、全局 `randf()` / `randi()` |
 

@@ -154,14 +154,14 @@ static func hw_lob(o, b: Dictionary, at: Vector2) -> void:
 				if e.pos.distance_to(at) > aoe * float(b.get("out_k", 0.6)) and tos.size() < n:
 					tos.append(e.pos)
 			while tos.size() < n:
-				tos.append(at + Vector2.from_angle(g.rng.randf() * TAU) * aoe * float(b.get("pad_k", 1.5)))
+				tos.append(at + Vector2.from_angle(g.rng_op.randf() * TAU) * aoe * float(b.get("pad_k", 1.5)))
 		"shuffle":
 			var mc: Array = o.nearest_enemies(int(b.get("cand", 10)), float(b.get("reach", 320.0)), at)
 			o.shuffle_rng(mc)
 			for k in mini(n, mc.size()):
 				tos.append(mc[k].pos)
 		"ring":
-			var a0: float = g.rng.randf() * TAU
+			var a0: float = g.rng_op.randf() * TAU
 			for k in n:
 				tos.append(at + Vector2.from_angle(a0 + k * TAU / float(n)) * aoe * float(b.get("ring_k", 1.4)))
 	var hh: float = float(b.get("h", 30.0))
@@ -390,7 +390,7 @@ static func _hw2_tick(o, dt: float) -> bool:
 					return true
 				c = ts[0].pos
 			var jv = sp.get("jit", [0, 0])
-			var at: Vector2 = c + Vector2(g.rng.randf_range(-float(jv[0]), float(jv[0])), g.rng.randf_range(-float(jv[1]), float(jv[1])))
+			var at: Vector2 = c + Vector2(g.rng_op.randf_range(-float(jv[0]), float(jv[0])), g.rng_op.randf_range(-float(jv[1]), float(jv[1])))
 			h.erupts.append({"pos": at, "t": float(sp.get("delay", 0.12)), "do": sp.get("do", [])})
 			if sp.has("fx"):
 				fx_play(o, sp.fx, at, 40.0, [], at.x * 0.02)

@@ -54,7 +54,7 @@ func _ready() -> void:
 	var g = load("res://game.tscn").instantiate()
 	add_child(g)
 	g.set_process(false)
-	var st: int = g.rng.state
+	var st: Array = g.rng_states()
 	g.lamp_light.position = Vector2(100, 100)
 	g.lamp_light.texture_scale = 520.0 / 64.0
 	var near: Color = Look.actor_mod(g, Vector2(100, 136))
@@ -76,6 +76,6 @@ func _ready() -> void:
 	check(far == Color.WHITE, "远离灯火应不缩放")
 	if Look.p("actor_cap") <= 0.0:
 		check(near == Color.WHITE, "L0 不缩放")
-	check(g.rng.state == st, "Look.actor_mod 碰了 g.rng")
+	check(g.rng_states() == st, "Look.actor_mod 碰了 g.rng")
 	print("LOOK TEST failures=%d (look=%d)" % [failures, Look.level()])
 	get_tree().quit(1 if failures > 0 else 0)

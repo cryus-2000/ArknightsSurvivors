@@ -186,7 +186,7 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 		o.log_hit(src, ["empowered"] if empowered else [])
 		o.deal_damage(e, dmg)
 		if not e.boss:
-			e.kb += (e.pos - o.pos).normalized() * (float(emp.get("kb", 360.0)) if empowered else float(a.get("kb", 240.0)))
+			o.apply_kb(e, (e.pos - o.pos).normalized() * (float(emp.get("kb", 360.0)) if empowered else float(a.get("kb", 240.0))))
 		if stun > 0.0 and not e.dead:
 			e.stun = maxf(e.stun, stun)
 	g.crit_hit = false
@@ -273,7 +273,7 @@ static func _h3_tentacle(o, a: Dictionary, target: Dictionary, dmg: float, stun:
 		target.stun = max(target.stun, stun if stun > 0.0 else float(tb.get("stun_min", 0.25)))
 		var dr = tb.get("drag", null)
 		if dr is Dictionary and cond_true(o, dr.get("cond", _ED)) and not target.boss:
-			target.kb += (o.pos - target.pos).normalized() * (float(dr.get("kb_elite", 160.0)) if target.elite else float(dr.get("kb", 320.0)))
+			o.apply_kb(target, (o.pos - target.pos).normalized() * (float(dr.get("kb_elite", 160.0)) if target.elite else float(dr.get("kb", 320.0))))
 		_e3_pull(o, a, target)   # 精英化第 3 批：拖拽
 		_e3_mark(o, target)   # 精英化第 3 批：深蓝之籽优先打被触手打过的
 	var sk = tb.get("stake", null)
@@ -329,7 +329,7 @@ static func _h3_run_delayed(o, a: Dictionary, dl: Dictionary) -> void:
 					o.log_hit(str(bu.get("src", "")))
 					o.deal_damage(e, dl.dmg)
 					if not e.boss:
-						e.kb += (e.pos - dl.pos).normalized() * float(bu.get("kb", 200.0))
+						o.apply_kb(e, (e.pos - dl.pos).normalized() * float(bu.get("kb", 200.0)))
 			g.fx.append({"kind": "burst", "pos": dl.pos, "r": dl.r, "life": 0.4, "max": 0.4, "col": H3_GOLD, "op_spoke": true})
 			o.sparks(dl.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 10, 280.0)
 			var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
@@ -382,7 +382,7 @@ static func h3_cast_push(o, b: Dictionary) -> void:
 	for j in o.query_ids(o.pos, r):
 		var e: Dictionary = g.enemies[j]
 		if not e.dead and not e.boss and not e.chest:
-			e.kb += (e.pos - o.pos).normalized() * float(b.get("kb", 420.0))
+			o.apply_kb(e, (e.pos - o.pos).normalized() * float(b.get("kb", 420.0)))
 
 
 static func h3_kill_heal(o, b: Dictionary) -> void:

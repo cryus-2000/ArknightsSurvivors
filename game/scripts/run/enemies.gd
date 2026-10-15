@@ -557,6 +557,17 @@ func densest_point(radius: float, origin: Vector2 = Vector2.INF) -> Vector2:
 	return best
 
 
+## ---- 击退统一入口（docs/101 B7 ②⑥）：所有对敌人的击退冲量都经 apply_kb。失重（安洁莉娜 st.weightless，e.wl_t / e.wl_kb）倍率在这里乘
+## （原来 19 处直接写 e.kb、只有 4 处乘了）；精英 ×0.3 这类按招式定的系数仍由调用方乘进 v；重型 / 藏品击退倍率在 A 段算速度时统一乘。
+## wl = false：调用方已经按失重算过（安洁莉娜按位移距离反算冲量，失重折进距离），不再乘
+static func kb_taken(e: Dictionary, t: float) -> float:
+	return float(e.wl_kb) if e.has("wl_t") and float(e.wl_t) > t else 1.0
+
+
+func apply_kb(e: Dictionary, v: Vector2, wl := true) -> void:
+	e.kb += v * kb_taken(e, g.t) if wl else v
+
+
 # ---- 出生口 / 槽位 / id 表（docs/101 B5，§4.3）：所有敌人经 admit 进 g.enemies（spawner.spawn_enemy / spawn_chest 两处），
 # 分配槽位 e.slot（原生端热字段平行数组的下标；空闲槽位后进先出复用）并登记 id 表；sweep_dead（game._cleanup / enemy_demo 每步）
 # 去掉已死的、回收槽位。测试里直接改 g.enemies 的敌人不经这里，不影响槽位表

@@ -57,7 +57,7 @@ static func _hw_waves(o, dt: float) -> void:
 			o.log_hit(str(b.get("src", "")), b.get("tags", []))
 			o.deal_damage(e, w.dmg)
 			if not e.dead and not e.boss:
-				e.kb += w.dir * float(b.get("kb", 0.0)) * (0.3 if e.elite else 1.0)
+				o.apply_kb(e, w.dir * float(b.get("kb", 0.0)) * (0.3 if e.elite else 1.0))
 			if b.has("hit_fx"):   # 精英化第 2 批段：潮刃命中的浪花
 				fx_play(o, b.hit_fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e], w.dir.angle())
 		w.drop -= dt

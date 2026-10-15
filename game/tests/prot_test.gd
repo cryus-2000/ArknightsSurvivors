@@ -903,12 +903,12 @@ func test_final_stop_mobs() -> void:
 	sp.horde_warned = -1.0
 	game.horde_warn = 0.0
 	var nh: int = game.horde_log.size()
-	var s0: int = game.rng.state
+	var s0: Array = game.rng_states()
 	var n1: int = step.call()
 	ok(sp.mobs_stopped() and n1 == 0, "stop_mobs 1 + 最终 Boss 在场：不刷普通怪 / 精英 / 威胁新种类（%d 只）" % n1)
 	ok(sp.spawn_acc < 1.0 and sp.next_elite > game.t, "停刷时累积照常扣掉、精英计时照走（Boss 倒下后不会补刷一大波）")
 	ok(game.horde_log.size() == nh and game.horde_warn <= 0.0 and game.threat == D.THREAT.size() - 1, "停刷时大群不来、不出预警；威胁等级照常升")
-	ok(game.rng.state == s0, "停刷那一帧 spawner.update 不掷随机数")
+	ok(game.rng_states() == s0, "停刷那一帧 spawner.update 不掷随机数")
 	game.next_horde = 1.0e9
 	# 难度表覆盖：final_stop_mobs 0 按档关
 	game.dmod = keep_d.duplicate()
@@ -949,7 +949,7 @@ func test_final_stop_mobs() -> void:
 	ok(absf(sp.spawn_acc - want_acc) < 0.001, "少量补怪：累积 = 正常刷怪率 × 0.35 × 密度（%.4f / %.4f）" % [sp.spawn_acc, want_acc])
 	game.lamp = keep_lamp
 	# 新种类（本级威胁池里上一级没有的）抽取权重 × trickle_fresh_w
-	var keep_rs: int = game.rng.state
+	var keep_rs: int = game.rng_spawn.state   # pick_type 走刷怪流（docs/101 B7）
 	var pool: Array = D.THREAT[game.threat].pool
 	var prev: Array = D.THREAT[game.threat - 1].pool
 	var fresh: Array = pool.filter(func(x): return not prev.has(x))
@@ -970,7 +970,7 @@ func test_final_stop_mobs() -> void:
 	var nf := float(fresh.size())
 	var want: float = 0.5 * nf / (float(pool.size()) - nf + 0.5 * nf)
 	ok(fresh.is_empty() or (c0 == 0 and absf(float(c5) / 4000.0 - want) < 0.03), "少量补怪：新种类 %s 权重 × 0.5（占比 %.3f，期望 %.3f；权重 0 时 %d 次）" % [str(fresh), float(c5) / 4000.0, want, c0])
-	game.rng.state = keep_rs
+	game.rng_spawn.state = keep_rs
 	# 难度表覆盖：final_trickle_mult 0 按档回到全停
 	game.dmod = keep_d.duplicate()
 	game.dmod["final_trickle_mult"] = 0.0
@@ -1015,7 +1015,7 @@ func test_final_stop_mobs() -> void:
 	var x0: float = game.pickups.xp_dropped
 	sp.queue_clear(sp.final_knob("clear_mobs_s"))
 	var late: Dictionary = sp.spawn_enemy("offspring", game.ppos + Vector2(150, 0))   # 登场之后才出现的召唤物
-	var s2: int = game.rng.state
+	var s2: Array = game.rng_states()
 	game.t += 1.5
 	sp.spawn_acc = 0.0
 	sp.next_elite = 1.0e9
@@ -1026,7 +1026,7 @@ func test_final_stop_mobs() -> void:
 	ok(m1.dead and m2.dead and m3.dead and sp.fading.is_empty(), "4 秒内三只全部消散")
 	ok(not fr.dead and not ch.dead and not late.dead and not fb.dead, "友方 / 宝箱 / 登场后的召唤物 / Boss 不消散")
 	ok(game.kills == k0 and absf(game.pickups.xp_dropped - x0) < 0.001, "消散不计击杀、不掉经验")
-	ok(game.rng.state == s2, "消散不掷随机数")
+	ok(game.rng_states() == s2, "消散不掷随机数")
 	late.dead = true
 	fr.dead = true
 	ch.dead = true
@@ -1241,15 +1241,15 @@ func test_beacon_guide() -> void:
 	# 背光刷怪：shade_deg 0 不改 edge_pos；开 50（§7 起的缺省）时 edge_pos 的角度不落在朝灯标 ±50° 内，且随机数调用次数一样
 	game.beacons = [bc]
 	ok(bs.shade_sector().is_empty(), "shade_deg 0：没有要避的扇区")
-	var s0: int = game.rng.state
+	var s0: int = game.rng_spawn.state   # edge_pos 走刷怪流（docs/101 B7）
 	game.spawner.edge_pos()
-	var s1: int = game.rng.state
-	game.rng.state = s0
+	var s1: int = game.rng_spawn.state
+	game.rng_spawn.state = s0
 	nb["shade_deg"] = 50.0
 	var bad := 0
 	for i in 40:
 		var p: Vector2 = game.spawner.edge_pos()
-		if i == 0 and game.rng.state != s1:
+		if i == 0 and game.rng_spawn.state != s1:
 			bad += 100   # 随机数调用次数变了
 		var a: float = absf(angle_difference((p - game.ppos).angle(), (bc.pos - game.ppos).angle()))
 		if a < deg_to_rad(50.0) - 0.001:
@@ -1299,7 +1299,7 @@ func test_beacon_relay() -> void:
 	Bal._data["beacon"] = nb
 	# 关：主控在 100 px（圈外）→ 照旧每秒退 20%
 	var b0: Dictionary = mk.call(Vector2(100, 0), 1.25)
-	var s0: int = game.rng.state
+	var s0: Array = game.rng_states()
 	step.call(1.0)
 	ok(absf(b0.prog - 0.75) < 0.02 and not b0.get("band", false), "relay_r 0：圈外 100 px 离开 1 秒进度 1.25 → 0.75（旧行为）")
 	# 光圈内 1 秒的进度作为对照速度（同一帧的低灯 / 流明倍率）
@@ -1343,7 +1343,7 @@ func test_beacon_relay() -> void:
 	step.call(1.0)
 	ok(absf(b5.prog - 0.75) < 0.02, "difficulty beacon_relay_r 0 覆盖：按档关掉接力环")
 	game.dmod = keep_d
-	ok(game.rng.state == s0, "接力环全程不掷随机数（g.rng 状态不变）")
+	ok(game.rng_states() == s0, "接力环全程不掷随机数（全部玩法流状态不变）")
 	Bal._data["beacon"] = keep_b
 	game.beacons = keep_beacons
 	bs.next_at = keep_next
@@ -1385,13 +1385,13 @@ func test_beacon_stagger() -> void:
 	nb["stagger_s"] = 0.6
 	nb["stagger_cd"] = 5.0
 	Bal._data["beacon"] = nb
-	# 刷怪本身掷随机数（移速 / 冷却散布），先刷好再记 g.rng 状态
+	# 刷怪本身掷随机数（移速 / 冷却散布），先刷好再记各玩法流状态
 	var t0: Dictionary = sp.spawn_enemy("tracer", game.ppos + Vector2(100, 0))
 	var t1: Dictionary = sp.spawn_enemy("tracer", game.ppos + Vector2(100, 0))
 	var t2: Dictionary = sp.spawn_enemy("tracer", game.ppos + Vector2(100, 0))
 	var t3: Dictionary = sp.spawn_enemy("tracer", game.ppos + Vector2(100, 0))
 	var f2: Dictionary = sp.spawn_enemy("founder", game.ppos + Vector2(200, 0))
-	var s0: int = game.rng.state
+	var s0: Array = game.rng_states()
 	# 引痕者前刺（直线预警）：起手函数直接调，dist 100 在 thrust_range 内
 	var thrust := func(e: Dictionary) -> int:
 		var n0: int = game.warns.size()
@@ -1448,7 +1448,7 @@ func test_beacon_stagger() -> void:
 	bs.update(1.0 / 60.0)
 	ok(bs.stagger == null, "difficulty beacon_stagger_r 0 覆盖：按档关掉")
 	game.dmod = keep_d
-	ok(game.rng.state == s0, "硬直全程不掷随机数（g.rng 状态不变）")
+	ok(game.rng_states() == s0, "硬直全程不掷随机数（全部玩法流状态不变）")
 	for e in [t0, t1, t2, f2, t3]:
 		e.dead = true
 	game.warns.clear()

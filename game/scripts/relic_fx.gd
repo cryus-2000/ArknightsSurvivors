@@ -806,7 +806,7 @@ func _explode_mine(mn: Dictionary) -> void:
 		if not e.dead and e.pos.distance_to(mn.pos) < r + e.r:
 			g.combat.damage(e, Bal.v("relic/mine_dmg", 42.0) * g.dmg_mult * g.combat.enemy_hp_time_mult())
 			if not e.boss:
-				e.kb += (e.pos - mn.pos).normalized() * 360.0
+				g.enemies_sys.apply_kb(e, (e.pos - mn.pos).normalized() * 360.0)
 	g.fx.append({"kind": "explode", "pos": mn.pos, "r": r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.6, 0.3)})
 	g.vfx.sparks(mn.pos, Vector2.ZERO, Color(1.0, 0.7, 0.4), 14, 260.0)
 	g.vfx.shake_screen(0.5)
@@ -911,7 +911,7 @@ func _tick_bombs(dt: float) -> void:
 			for j in g.enemies_sys.query(b.pos, b.r + 20.0):
 				var e2: Dictionary = g.enemies[j]
 				if not e2.dead and not e2.boss and e2.pos.distance_to(b.pos) < b.r + e2.r:
-					e2.kb += (e2.pos - b.pos).normalized() * 300.0
+					g.enemies_sys.apply_kb(e2, (e2.pos - b.pos).normalized() * 300.0)
 			g.fx.append({"kind": "explode", "pos": b.pos, "r": b.r, "life": 0.4, "max": 0.4, "col": Color(1.0, 0.6, 0.3)})
 			g.vfx.sparks(b.pos, Vector2.ZERO, Color(1.0, 0.7, 0.4), 14, 260.0)
 			g.vfx.shake_screen(0.5)
@@ -931,7 +931,7 @@ func _tick_stakes(dt: float) -> void:
 				continue
 			if e.pos.distance_to(s.pos) < s.r + e.r:
 				e.slow = maxf(e.slow, 0.3)
-				e.kb += (e.pos - s.pos).normalized() * 140.0 * dt * 10.0
+				g.enemies_sys.apply_kb(e, (e.pos - s.pos).normalized() * 140.0 * dt * 10.0)
 	stakes = stakes.filter(func(x): return x.life > 0.0)
 
 

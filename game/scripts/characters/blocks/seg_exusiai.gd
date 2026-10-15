@@ -297,12 +297,12 @@ static func _exu_bullets(o, dt: float) -> void:
 				o.log_hit("真实")
 				o.deal_damage(e, e.hp + 1.0)
 			if float(bu.get("kb", 0.0)) > 0.0 and not e.dead and not e.boss:
-				e.kb += bu.v.normalized() * float(bu.kb) * (0.3 if e.elite else 1.0)   # 同 melee_hit：精英 ×0.3、Boss 不受
+				o.apply_kb(e, bu.v.normalized() * float(bu.kb) * (0.3 if e.elite else 1.0))   # 同 melee_hit：精英 ×0.3、Boss 不受
 			for s in bu.on_hit:
 				apply_status(o, e, s)
 			o._sfx_op("hit")
 			o.spawn_fx_sprite(str(sk[1]) if str(sk[1]) != "" else str(bu.get("hfx", "fx_exusiai_hit")), e.pos + Vector2(0, EXU_AIM_Y), g.PX * 0.8)
-			if bu.ric and not ric.is_empty() and g.rng.randf() < float(ric.get("chance", 0.0)):
+			if bu.ric and not ric.is_empty() and g.rng_op.randf() < float(ric.get("chance", 0.0)):
 				var nx = _exu_next(o, e, float(ric.get("r", 120.0)))
 				if nx != null:
 					var from: Vector2 = e.pos + Vector2(0, EXU_AIM_Y)

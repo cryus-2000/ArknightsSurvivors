@@ -1360,7 +1360,7 @@ func melee_hit(src: String, origin: Vector2, ang: float, half: float, radius: fl
 		if e.dead or e.boss:
 			continue
 		if kb > 0.0:
-			e.kb += (e.pos - origin).normalized() * kb * (0.3 if e.elite else 1.0) * SegAngelina.kb_taken(e, g.t)   # 失重（st.weightless，安洁莉娜天赋）：受到的击退更远；没失重乘 1.0
+			apply_kb(e, (e.pos - origin).normalized() * kb * (0.3 if e.elite else 1.0))   # 失重（st.weightless，安洁莉娜天赋）：受到的击退更远；没失重乘 1.0
 		if stun > 0.0:
 			e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
 	for e in hits:

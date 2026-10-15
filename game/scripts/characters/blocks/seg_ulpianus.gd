@@ -388,7 +388,7 @@ static func _hw_reel_slam(o) -> void:
 		if not e.dead:
 			e.stun = maxf(e.stun, float(b.get("stun", 0.6)) * (0.5 if e.elite or e.boss else 1.0))
 			if not e.boss:
-				e.kb += (e.pos - o.pos).normalized() * float(b.get("slam_kb", 70.0))
+				o.apply_kb(e, (e.pos - o.pos).normalized() * float(b.get("slam_kb", 70.0)))
 	o.spawn_fx_sprite("fx_slash_heavy_steel", o.pos + Vector2(0, -16) + dir * reach * 0.45, reach * 1.5 / 28.0, dir.angle())
 	_hw_slam_fx(o, c, r, 1.2)
 	o.impact_pause(0.07)
@@ -417,7 +417,7 @@ static func _hw_zip_land(o) -> void:
 		if not e.dead:
 			e.stun = maxf(e.stun, float(b.get("stun", 0.6)) * (sb if e.boss else (se if e.elite else 1.0)))
 			if kb_boss or not e.boss:
-				e.kb += (e.pos - c).normalized() * float(b.get("land_kb", 50.0))
+				o.apply_kb(e, (e.pos - c).normalized() * float(b.get("land_kb", 50.0)))
 	var big: bool = b.get("big", false)
 	_hw_slam_fx(o, c, r, 1.6 if big else 1.0)
 	if big:
@@ -454,7 +454,7 @@ static func _hw_drag_in(o, dg: Dictionary, c: Vector2, dmg: float) -> void:
 			continue
 		var dist: float = maxf(0.0, e.pos.distance_to(c) - 24.0)
 		var v: float = minf(sqrt(1800.0 * dist), 620.0) * (0.5 if e.elite else 1.0)
-		e.kb += (c - e.pos).normalized() * v
+		o.apply_kb(e, (c - e.pos).normalized() * v)
 		e.stun = maxf(e.stun, 0.3)
 
 
