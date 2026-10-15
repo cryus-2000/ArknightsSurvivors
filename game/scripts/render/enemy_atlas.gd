@@ -1,4 +1,5 @@
 extends RefCounted
+const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落点（docs/101 B4 ②）
 ## 普通怪 / 精英帧条图集（性能 docs/50 §12，用户 10-13「稳定 60 帧」）：
 ## 每只敌人原来各用自己的帧条贴图（本体是带法线的 CanvasTexture，受击白闪是另一张白剪影），y 排序后几乎每次绘制都换贴图、不能合批。
 ## 开局把普通怪 / 精英（Boss、骑士除外）的全部帧条拼进一张图集：
@@ -122,17 +123,12 @@ static func spr(ci: CanvasItem, r: Array, frames: int, frame: int, pos: Vector2,
 	var o: Vector2i = r[1]
 	var fw: int = r[2] / frames
 	var fh: int = r[3]
-	var src := Rect2(o.x + fw * (frame % frames), o.y, fw, fh)
+	var src := FD.src(fw, fh, frames, frame, o)
 	var size := Vector2(fw, fh) * scale * sq
-	if flip:
-		if xform_flip:
-			ci.draw_set_transform(pos.round(), 0.0, Vector2(-1, 1))
-			ci.draw_texture_rect_region(r[0], Rect2(-size * anchor, size), src, col)
-			ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-			return
+	if flip and not xform_flip:
 		# 负宽矩形 = 引擎记水平翻转（UV 与法线一起翻），省掉成对的 draw_set_transform；
 		# 落点与「在 pos.round() 处 scale(-1, 1) 画 Rect2(-size × anchor, size)」相同：右边界 = round(pos).x + size.x × anchor.x
 		var rp: Vector2 = pos.round()
 		ci.draw_texture_rect_region(r[0], Rect2(rp.x + size.x * anchor.x, rp.y - size.y * anchor.y, -size.x, size.y), src, col)
 	else:
-		ci.draw_texture_rect_region(r[0], Rect2((pos - size * anchor).round(), size), src, col)
+		FD.blit(ci, r[0], src, pos, size, anchor, flip, col)

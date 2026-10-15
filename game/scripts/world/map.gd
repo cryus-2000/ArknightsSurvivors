@@ -6,6 +6,7 @@ const A = preload("res://scripts/art.gd")
 const Look = preload("res://scripts/render/look.gd")
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
 const Bal = preload("res://scripts/core/balance.gd")
+const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落点（docs/101 B4 ②）
 
 var g                              # Game (Node2D)
 var id := ""
@@ -300,15 +301,7 @@ func _spr(name: String, frames: int, frame: int, pos: Vector2, flip: bool, col: 
 		return
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
-	var size := Vector2(fw, fh) * px
-	var srcr := Rect2(fw * (frame % frames), 0, fw, fh)
-	pos += g.draw_off
-	if flip:
-		g.draw_set_transform(pos.round(), 0.0, Vector2(-1, 1))
-		g.draw_texture_rect_region(tx, Rect2(-size * Vector2(0.5, 1.0), size), srcr, col)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	else:
-		g.draw_texture_rect_region(tx, Rect2((pos - size * Vector2(0.5, 1.0)).round(), size), srcr, col)
+	FD.blit(g, tx, FD.src(fw, fh, frames, frame), pos + g.draw_off, Vector2(fw, fh) * px, Vector2(0.5, 1.0), flip, col)   # 脚底锚点
 
 
 # ------------------------------------------------------------------ 大型景物与碰撞

@@ -356,6 +356,7 @@ game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCo
 - **B3 拆两段**：B3a 表现事件步骤（`watch_bosses` 从 draw_world 挪到 `_process` 末尾的 `world.present_step()`、开场状态机显式调、`lvup_delay` 回到模拟步）先做；B3b「画面字段挪渲染侧」挪到 **B5 之后**——按 `e.id` 放字典会让敌人绘制热路径每只多一次字典读，B5 有了槽位后按槽位下标放数组更省。
 - **B5 收窄**：B5a 出生口 `enemies_sys.admit`（spawner 两处）+ 槽位 `e.slot`（空闲槽位后进先出复用）+ id 表 `by_id`，清理改走 `sweep_dead` 回收槽位；B5b 只把原生 EnemyCore 范围（enemies.update 移动段）里唯一的敌人→敌人引用 `feed_to` 改成 `feed_to_id`。partner、分形 / 泪的 owner、spawned_after、塑路者 `e.core`、预警的 owner / b_owner 只在 GDScript 的 Boss 逻辑里读，原生端不碰，保持字典引用（Boss与怪物 10-15 逐处核过：其中 `e.core` 被清理后下一帧还要读 dead / pos，改 id 反而要额外抄字段）。§4.3「is_same 60 处改 id」以此为准。
 - **B4 ①（剔除一次）**：`world._build_vis` 在 draw_world 开头扫一遍敌人建 `_vis_ent`（ENTITY_MARGIN）/ `_vis_tell`（TELL_MARGIN 或 Boss）两张表，影子、排序实体、精英登场、敌人预警改读表（各层仍按自己的范围再判，次序不变）；OPT_VIS = 262144 对照位。像素：旧写法 vs 新写法 13 张截图 0 差（--fixed-fps 60，seed 3 Ⅷ 维什戴尔）；同局轮换 3 局 7–10 分钟段帧时 18.73 vs 18.80 毫秒（差 0.07，噪声内）——收益在结构，不在帧时。巢涌光环 / 冲刺预警分类 / 骑士出手特效仍扫全表（要写敌人状态或画屏外伸进来的大圈）。
+- **B4 ②（frame_dst）**：新建纯静态 `render/frame_dst.gd`（`FD.src` 取帧源矩形 / `FD.dst` 锚点落点取整 / `FD.blit` 含以锚点为轴翻转，不 preload 别的脚本，不形成 preload 环）；vfx.spr / spr_on、EnemyAtlas.spr（负宽翻转那支保留）、map._spr、world._pq_sprite 改调它；影子与经验结晶两处热循环按同一算式内联（docs/50 §11），spr_rot / draw_sprite_at 是「变换 + 贴图像素矩形」另一种画法，不并。干员侧帧条助手归干员（docs/101a）。像素：与 B4 ① 两树对照 13 张，世界层 0 差（唯一差异在小地图声呐扫描线，按真实时间转，同树重跑也会变）。
 
 ### 7.3 B6 准备：op_blocks 拆分方案与 `ob_geom` 清单（干员会话 10-15，只出方案、未改代码；依据 main f00e6f34）
 

@@ -9,6 +9,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const Look = preload("res://scripts/render/look.gd")
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
 const UM = preload("res://scripts/ui_motion.gd")
+const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落点（docs/101 B4 ②）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -599,18 +600,9 @@ func spr(name: String, frames: int, frame: int, pos: Vector2, scale := Game.PX, 
 	var tx: Texture2D = g.tex.get(name)
 	if tx == null:
 		return
-	pos += g.draw_off
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
-	var src := Rect2(fw * (frame % frames), 0, fw, fh)
-	var size := Vector2(fw, fh) * scale * sq
-	if flip:
-		# 以锚点为中心水平镜像
-		g.draw_set_transform(pos.round(), 0.0, Vector2(-1, 1))
-		g.draw_texture_rect_region(tx, Rect2(-size * anchor, size), src, col)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	else:
-		g.draw_texture_rect_region(tx, Rect2((pos - size * anchor).round(), size), src, col)
+	FD.blit(g, tx, FD.src(fw, fh, frames, frame), pos + g.draw_off, Vector2(fw, fh) * scale * sq, anchor, flip, col)   # flip：以锚点为轴水平镜像
 
 
 func draw_add_layer() -> void:
@@ -634,8 +626,7 @@ func spr_on(ci: CanvasItem, name: String, frames: int, frame: int, pos: Vector2,
 	var tx: Texture2D = g.tex[name]
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
-	var size := Vector2(fw, fh) * scale
-	ci.draw_texture_rect_region(tx, Rect2((pos - size / 2.0).round(), size), Rect2(fw * (frame % frames), 0, fw, fh))
+	FD.blit(ci, tx, FD.src(fw, fh, frames, frame), pos, Vector2(fw, fh) * scale, Vector2(0.5, 0.5), false, Color.WHITE)
 
 
 ## Boss 扩展招式只负责外观；伤害和弹幕由 BossPatterns 结算。

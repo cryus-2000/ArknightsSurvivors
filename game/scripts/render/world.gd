@@ -8,6 +8,7 @@ const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const Look = preload("res://scripts/render/look.gd")   # 观感预设：角色本体受光封顶（render/look ≥ 1）
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
+const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落点（docs/101 B4 ②）
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 const EnemyAtlas = preload("res://scripts/render/enemy_atlas.gd")
 const TeleDraw = preload("res://scripts/render/telegraph_draw.gd")   # 预警填充层（docs/101 B2，原 boss_ai.draw_warns）
@@ -637,7 +638,7 @@ func _pq_sprite(name: String, pos: Vector2) -> void:
 	var fw: int = tx.get_width()
 	var fh: int = tx.get_height()
 	var size := Vector2(fw, fh) * Game.PX
-	var dst := Rect2((pos - size * Vector2(0.5, 0.5)).round(), size)
+	var dst := FD.dst(pos, size, Vector2(0.5, 0.5))
 	_pq_guard(dst)
 	_pq_spr.append([tx, dst, Rect2(0, 0, fw, fh)])
 	_pq_rects.append(dst)
@@ -675,7 +676,7 @@ func _pq_item(g_item: Dictionary, pos: Vector2, gz: float, kind: String, t: floa
 	g.draw_off = Vector2.ZERO
 
 
-## 同一张结晶贴图连续画（vfx.spr 的同一套算式：单帧、锚点居中、取整）
+## 同一张结晶贴图连续画（FrameDst.dst 的同一套算式：单帧、锚点居中、取整；热循环内联，docs/50 §11）
 func _gem_sprites(name: String, sc: float, ps: PackedVector2Array, cs: PackedColorArray) -> void:
 	if ps.is_empty():
 		return
@@ -706,7 +707,7 @@ func _draw_shadows(evr: Rect2) -> void:
 			var hop: float = minf(e.kb.length() * 0.03, 14.0)
 			g.vfx.spr("shadow", 1, 0, e.pos + Vector2(0, e.r * 0.8), sc * (1.0 - hop / 40.0), false, Color(1, 1, 1, 0.0 if _dbg_enemy else 1.0))
 	else:
-		# 同上，vfx.spr 内联（性能，docs/50 §11：每只敌人省一次函数调用和贴图查表；算式与 vfx.spr 相同）
+		# 同上，vfx.spr 内联（性能，docs/50 §11：每只敌人省一次函数调用和贴图查表；算式与 FrameDst.dst 相同）
 		var sw := float(stx.get_width())
 		var sh := float(stx.get_height())
 		var src := Rect2(0, 0, stx.get_width(), stx.get_height())
