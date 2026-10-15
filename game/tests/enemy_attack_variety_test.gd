@@ -179,6 +179,45 @@ func run_checks() -> void:
 	fallen.dead = true
 	g.bai._update_warns(2.0)
 	check(is_equal_approx(g.hp, hp_before) and g.ebullets.is_empty(), "dead secondary owner cannot deal damage")
+	# docs/96 第 3 批挂点（Codex 未交）：帧条名经 enemies.json 传到出招 / 弹体 / 抛射物；有图时自爆与冲刺水痕放帧条
+	# （借第 1 批已有的 fx_corrode_hit 代替还没交的 fx_runner_blast / fx_slider_dash，测完还原数据）
+	g.invuln = 100.0
+	var keep_blast = D.ENEMIES["runner"].get("blast_fx")
+	D.ENEMIES["runner"]["blast_fx"] = "fx_corrode_hit"
+	var ru: Dictionary = g.spawner.new_enemy("runner", Vector2.ZERO)
+	ru.blast_w = 0.01
+	g.fx.clear()
+	g.eai.pattern(ru, Vector2.RIGHT, 300.0, 0.05, ru.spd)
+	check(ru.dead and g.fx.any(func(f): return f.get("name", "") == "fx_corrode_hit") and not g.fx.any(func(f): return f.kind == "explode"), "runner blast_fx replaces the program explosion")
+	D.ENEMIES["runner"]["blast_fx"] = keep_blast
+	var keep_dash = D.ENEMIES["slider"].get("dash_fx")
+	D.ENEMIES["slider"]["dash_fx"] = "fx_corrode_hit"
+	var sl: Dictionary = g.spawner.new_enemy("slider", Vector2.ZERO)
+	sl.dash_t = 0.3
+	sl.dash_dir = Vector2.LEFT
+	g.fx.clear()
+	g.eai.pattern(sl, Vector2.RIGHT, 300.0, 0.05, sl.spd)
+	check(g.fx.any(func(f): return f.kind == "gsprite" and f.get("name", "") == "fx_corrode_hit"), "slider dash leaves a ground-layer dash_fx trail")
+	D.ENEMIES["slider"]["dash_fx"] = keep_dash
+	var os_e: Dictionary = g.spawner.new_enemy("offspring", Vector2.ZERO)
+	os_e.nova_w = 0.01
+	g.ebullets.clear()
+	g.eai.pattern(os_e, Vector2.RIGHT, 300.0, 0.05, os_e.spd)
+	check(not g.ebullets.is_empty() and g.ebullets.all(func(b): return str(b.get("tex", "")) == "proj_offspring_spore"), "offspring nova carries shot_tex")
+	g.ebullets.clear()
+	var mi: Dictionary = g.spawner.new_enemy("mimic", Vector2.ZERO)
+	mi.age = 5.0
+	mi.dormant = false
+	g.warns.clear()
+	g.ppos = Vector2(40, 0)
+	g.eai.pattern(mi, Vector2.RIGHT, 40.0, 0.05, mi.spd)
+	check(g.warns.any(func(w): return w.get("act", "") == "bite" and str(w.get("atk_fx", "")) == "fx_mimic_bite"), "mimic bite carries atk_fx")
+	g.warns.clear()
+	var st_e: Dictionary = g.spawner.new_enemy("stone", Vector2.ZERO)
+	g.lobs.clear()
+	g.eai.lob(st_e)
+	check(not g.lobs.is_empty() and str(g.lobs[g.lobs.size() - 1].get("hit_fx", "")) == "fx_rock_hit" and float(g.lobs[g.lobs.size() - 1].get("hit_org", [0, 0])[0]) == 10.0 and float(g.lobs[g.lobs.size() - 1].get("hit_org", [0, 0])[1]) == 10.0, "stone lob carries hit_fx and its origin")
+	g.lobs.clear()
 	print("ENEMY ATTACK VARIETY failures=", failures)
 	g.warns.clear()
 	g.enemies.clear()

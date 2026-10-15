@@ -7,7 +7,9 @@ extends "res://scripts/characters/op_api.gd"
 
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")   # 地裂共用画法
 const A = preload("res://scripts/art.gd")
-const OpBlocks = preload("res://scripts/characters/op_blocks.gd")   # 数据干员的积木校验（docs/61）
+## B6 ②（docs/101 §7.3.6）：积木按定义所在的 blocks 文件直连（原 const OpBlocks = preload(op_blocks.gd) 门面）
+const ObCheck = preload("res://scripts/characters/blocks/ob_check.gd")
+const SegAngelina = preload("res://scripts/characters/blocks/seg_angelina.gd")
 const Dc = preload("res://scripts/render/declutter.gd")   # render/hit_rings：攻击 / 技能命中的装饰圆圈开关
 
 var def: Dictionary = {}   # 角色定义（JSON）
@@ -330,7 +332,7 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 		push_error("干员 %s 的 faction 必须是字符串数组" % cid)
 		ok = false
 	# 数据干员（docs/61 §8）：积木名、参数、$ 引用、伤害来源、节点对应
-	if d.has("blocks") and not OpBlocks.validate(cid, d):
+	if d.has("blocks") and not ObCheck.validate(cid, d):
 		ok = false
 	return ok
 
@@ -1358,7 +1360,7 @@ func melee_hit(src: String, origin: Vector2, ang: float, half: float, radius: fl
 		if e.dead or e.boss:
 			continue
 		if kb > 0.0:
-			e.kb += (e.pos - origin).normalized() * kb * (0.3 if e.elite else 1.0) * OpBlocks.kb_taken(e, g.t)   # 失重（st.weightless，安洁莉娜天赋）：受到的击退更远；没失重乘 1.0
+			e.kb += (e.pos - origin).normalized() * kb * (0.3 if e.elite else 1.0) * SegAngelina.kb_taken(e, g.t)   # 失重（st.weightless，安洁莉娜天赋）：受到的击退更远；没失重乘 1.0
 		if stun > 0.0:
 			e.stun = maxf(e.stun, stun * (0.5 if e.elite else 1.0))
 	for e in hits:

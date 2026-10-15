@@ -120,7 +120,8 @@ func _bite(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> Vector2:
 		if _stag(e):
 			return Vector2.INF
 		Sfx.enemy("screech", dist)
-		g.tele.warn(e, "cone", 0.6, {"ang": dir.angle(), "half": 0.9, "r": reach, "track": 0.2, "act": "bite", "dmg": e.dmg})
+		g.tele.warn(e, "cone", 0.6, {"ang": dir.angle(), "half": 0.9, "r": reach, "track": 0.2, "act": "bite", "dmg": e.dmg,
+			"atk_fx": str(d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})   # 出手帧条（docs/96 §3 箱形恐鱼 fx_mimic_bite，缺图只有刀光）
 	return Vector2.INF
 
 
@@ -139,9 +140,13 @@ func _blast(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 		e.blast_w -= dt
 		if e.blast_w <= 0.0:
 			var r := float(d.get("blast_r", 62))
-			# 敌方洋红爆炸（docs/48 P0-8：原来和艾雅法拉的火焰爆炸同色同形，大群里认不出）
-			g.fx.append({"kind": "explode", "pos": e.pos, "r": r, "life": 0.35, "max": 0.35, "col": Color(1.0, 0.3, 0.72)})
-			g.vfx.sparks(e.pos, Vector2.ZERO, Color(1.8, 0.6, 1.4), 12, 260.0)
+			# 敌方洋红爆炸（docs/48 P0-8：原来和艾雅法拉的火焰爆炸同色同形，大群里认不出）；Codex fx_runner_blast（docs/96 §3，enemies.json blast_fx）到了就用帧条
+			var bfx: String = str(d.get("blast_fx", ""))
+			if bfx == "" or not g.vfx.fx_sprite(bfx, e.pos, g.PX, 0.0):
+				g.fx.append({"kind": "explode", "pos": e.pos, "r": r, "life": 0.35, "max": 0.35, "col": Color(1.0, 0.3, 0.72)})
+				g.vfx.sparks(e.pos, Vector2.ZERO, Color(1.8, 0.6, 1.4), 12, 260.0)
+			else:
+				g.fx[g.fx.size() - 1]["enemy"] = true
 			Sfx.play("boom", -8.0, 1.3, 0.0)
 			if g.combat.ground_d(g.ppos, e.pos) < r and g.invuln <= 0.0:   # 画即判（§1.9）
 				g.combat.enemy_hit(e.dmg, {"corrode": 0.0, "nerve": 0.0}, false, false, ["近战", "法术"], "blast_" + e.type)
@@ -297,6 +302,14 @@ func _dash(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float, s
 		return Vector2.ZERO
 	if e.get("dash_t", 0.0) > 0.0:
 		e.dash_t -= dt
+		var dfx: String = str(d.get("dash_fx", ""))
+		if dfx != "":
+			# 冲刺拖出的扁平水痕（docs/96 §3 滑动者 fx_slider_dash，地面层；缺图不画）：纯画面计时，不碰随机数
+			e["dfx_t"] = float(e.get("dfx_t", 0.0)) - dt
+			if e.dfx_t <= 0.0:
+				e.dfx_t = 0.08
+				if g.vfx.fx_sprite(dfx, e.pos, g.PX, e.dash_dir.angle(), false, false, Color.WHITE, true):
+					g.fx[g.fx.size() - 1]["enemy"] = true
 		return e.dash_dir * spd * float(d.get("dash_speed", 3.8))
 	if e.dash_cd <= 0.0 and dist < float(d.get("dash_range", 240)) and dist > 40.0 and g.beacon_sys.slow_mult(e) >= 1.0:   # safe_slow 对照组：读条光圈附近不起冲刺
 		e.dash_cd = g.rng.randf_range(3.0, 4.5)
@@ -332,7 +345,8 @@ func _nova(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 			var n: int = int(d.get("nova_n", 6)) + (2 if e.evo else 0)
 			for k in n:
 				g.ebullets.append({"pos": e.pos, "vel": Vector2.from_angle(TAU * k / n + e.id) * 180.0, "dmg": e.dmg * 0.3, "slow": false,
-					"r": 5.0, "life": 2.6, "corrode": e.corrode, "nerve": 0.0, "true": false, "kind": "nova", "home": false, "src_type": e.type})
+					"r": 5.0, "life": 2.6, "corrode": e.corrode, "nerve": 0.0, "true": false, "kind": "nova", "home": false, "src_type": e.type,
+					"tex": str(d.get("shot_tex", ""))})   # 专属弹体（docs/96 §3 子代 proj_offspring_spore）
 			Sfx.play("tentacle", -12.0, 0.7, 0.05)
 		return Vector2.ZERO
 	if e.nova_cd <= 0.0 and dist < float(d.get("nova_range", 320)):
@@ -432,4 +446,4 @@ func lob(e: Dictionary) -> void:
 	var to: Vector2 = g.ppos + Vector2(g.rng.randf_range(-30, 30), g.rng.randf_range(-30, 30)) + g.pvel * 0.6   # 落点散布是玩法：用对局随机数
 	g.lobs.append({"from": e.pos, "to": to, "t": 0.0, "dur": 0.85, "r": 46.0, "dmg": e.dmg * 0.6, "mire": d.get("spit", false), "hit_cap": e.get("hit_cap", 0.0),
 		"corrode": e.corrode, "frost": e.get("frost", 0.0), "boss": e.boss, "src_type": e.type,
-		"tex": str(d.get("lob_tex", "")), "land_fx": str(d.get("land_fx", "")), "hit_fx": str(d.get("hit_fx", ""))})   # 专属抛射物 / 落点 / 命中帧条（docs/96 §1.4 喷吐者，纯画面）
+		"tex": str(d.get("lob_tex", "")), "land_fx": str(d.get("land_fx", "")), "hit_fx": str(d.get("hit_fx", "")), "hit_org": d.get("hit_fx_origin", [12, 19])})   # 专属抛射物 / 落点 / 命中帧条（docs/96 §1.4 喷吐者，纯画面）

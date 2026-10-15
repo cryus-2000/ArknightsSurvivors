@@ -772,4 +772,6 @@ const V6_FRAMES := {
 	"proj_spitter_acid": [4, 12.0], "fx_spitter_land": [6, 14.0],
 	# 第 2 批（docs/96 §2，Codex 未交，先登记）：飘航者神经弹命中；收割者镰肢 / 引痕者触须刺击（含狂暴版）/ 巢涌者触须横扫（enemies.json atk_fx，boss_ai._atk_fx 挂点）
 	"fx_nerve_hit": [4, 18.0], "fx_reaper_scythe": [4, 18.0], "fx_tracer_thrust": [4, 20.0], "fx_tracer_thrust_enraged": [4, 24.0], "fx_nest_sweep": [5, 16.0],
+	# 第 3 批（docs/96 §3，Codex 未交，先登记；fps 本单没写的按同类取）：凿石者碎石命中、箱形恐鱼咬合（enemies.json atk_fx，telegraph._atk_fx）、子代孢子弹（shot_tex）、狂奔者自爆（blast_fx）、滑动者冲刺水痕（dash_fx，地面层）
+	"fx_rock_hit": [4, 16.0], "fx_mimic_bite": [4, 20.0], "proj_offspring_spore": [4, 12.0], "fx_runner_blast": [6, 16.0], "fx_slider_dash": [4, 12.0],
 }
