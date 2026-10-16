@@ -864,6 +864,7 @@ SCENE_REGRESSIONS = {
     "friendly_target": ("中立单位索敌与治疗", "friendly_target_regression", r"FRIENDLY TARGET REGRESSION: 0 failures", []),
     "ishar_p2": ("伊莎玛拉敌对二阶段", "ishar_p2_test", r"ISHAR P2 failures=0", ["--balance", "--bosstest=ishar2"]),
     "enemy_demo": ("图鉴敌人攻击演示", "enemy_demo_test", r"ENEMY DEMO failures=0", []),
+    "gallery_demo": ("图鉴敌人演示：近战主体贴身循环不定住 / 敌弹与特效命中后回收", "gallery_demo_test", r"GALLERY DEMO failures=0", []),
     "play_clock": ("倍速模拟时钟", "play_clock_test", r"Play clock regression: 0 failures", []),
     "boss_trial_ui": ("Boss 演练小窗口与入口", "boss_trial_ui_test", r"Boss trial UI regression: 0 failures", []),
     "ishar_human_ui": ("伊莎玛拉人形治疗演练入口", "boss_trial_ui_test", r"Boss trial UI regression: 0 failures", ["--ishar-human"]),
