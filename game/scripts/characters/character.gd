@@ -320,6 +320,46 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 			if not d.sprites.has(str(k)) or not str(k) in d.get("extra_sprites", []):
 				push_error("干员 %s 的 skill_pose 帧条「%s」不在 sprites 或没列进 extra_sprites" % [cid, k])
 				ok = false
+	# 多条技能帧条（sprites.skills，docs/87 §3.5）：键 s1–s3，引用的帧条要在 sprites 里，非主动作的要列进 extra_sprites
+	var sq_ = d.get("sprites", {}).get("skills", null)
+	if sq_ != null:
+		if not (sq_ is Dictionary):
+			push_error("干员 %s 的 sprites.skills 须是字典" % cid)
+			ok = false
+		else:
+			for sk_ in sq_:
+				if str(sk_).begins_with("_"):
+					continue   # _doc
+				var q = sq_[sk_]
+				if not str(sk_) in ["s1", "s2", "s3"] or not (q is Dictionary):
+					push_error("干员 %s 的 sprites.skills 键「%s」须是 s1 / s2 / s3 且值为字典" % [cid, sk_])
+					ok = false
+					continue
+				if not (q.has("anim") or q.has("hold") or q.has("start")):
+					push_error("干员 %s 的 sprites.skills.%s 要有 anim、hold 或 start" % [cid, sk_])
+					ok = false
+				if q.has("hold") and not q.has("intro"):
+					push_error("干员 %s 的 sprites.skills.%s 有 hold 就要有 intro" % [cid, sk_])
+					ok = false
+				if q.has("hold") and q.has("start"):
+					push_error("干员 %s 的 sprites.skills.%s 不能同时写 hold 与 start" % [cid, sk_])
+					ok = false
+				for part in ["anim", "intro", "hold", "start", "loop", "end"]:
+					if not q.has(part):
+						continue
+					var seg = q[part]
+					var k := seq_anim(seg)
+					if k == "" or not d.sprites.has(k) or not (d.sprites[k] is Dictionary) or not d.sprites[k].has("tex"):
+						push_error("干员 %s 的 sprites.skills.%s.%s 帧条「%s」不在 sprites（须是带 tex 的槽）" % [cid, sk_, part, k])
+						ok = false
+					elif not k in ["idle", "run", "attack", "skill", "hurt", "death"] and not k in d.get("extra_sprites", []):
+						push_error("干员 %s 的 sprites.skills.%s.%s 帧条「%s」没列进 extra_sprites" % [cid, sk_, part, k])
+						ok = false
+					elif seg is Dictionary and seg.has("frames"):
+						var nf = d.sprites[k].get("frames", null)
+						if not (seg.frames is Array) or seg.frames.is_empty() or seg.frames.any(func(x): return not (x is float or x is int) or int(x) < 0 or (nf != null and int(x) >= int(nf))):
+							push_error("干员 %s 的 sprites.skills.%s.%s.frames 须是帧条范围内的帧号数组" % [cid, sk_, part])
+							ok = false
 	var prog = d.get("progression", [])
 	if not (prog is Array):
 		push_error("干员 %s 的 progression 必须是数组" % cid)
@@ -1189,12 +1229,16 @@ func follow(dt: float, target: Vector2) -> void:
 				_release()
 				_notify_attack()
 	mt += dt
+	_tick_sq(dt)
 	# 动画状态
 	var want := "idle"
+	var sqk := _sq_kind()   # 多条技能帧条当前阶段的帧条（"" = 不在序列里）
 	if vis_anim != "" and anim_tex(vis_anim) != null:
 		want = vis_anim   # 纯画面动作（play_vis_anim）：播完前压过普攻 / 跑步，不占出手窗口
-	elif attack_t > 0.0 and anim_tex(act_anim) != null:
-		want = act_anim
+	elif attack_t > 0.0 and not sq_own and anim_tex(act_anim) != null:
+		want = act_anim   # 序列之外的动作（循环期间起手的普攻 / 另一技能）压过序列，播完接着循环
+	elif sqk != "":
+		want = sqk   # 序列自己的起手 / 定格 / 循环 / 收势（起手段同时也是出手窗口；序列结束后 sq_own 的窗口余下部分回待机）
 	elif mv > (RUN_EXIT if anim_kind == "run" else RUN_ENTER) and anim_tex("run") != null:
 		want = "run"   # 跑 / 停加滞回：起跑 RUN_ENTER、停下 RUN_EXIT，不在两者间来回闪
 	if want != anim_kind:
@@ -1224,6 +1268,8 @@ func start_skill(aim: Vector2, idx: int = -1, dur: float = 0.6, fire_at: float =
 	if idx >= 0:
 		cur_skill = idx
 		spend_sp(idx)
+	if anim == "" and _start_skill_seq(aim, cur_skill):
+		return   # 多条技能帧条（sprites.skills，见下）
 	_start_action("skill", aim, dur, fire_at, anim if anim != "" else skill_anim(cur_skill))
 
 
@@ -1257,6 +1303,7 @@ func vis_dur() -> float:
 func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim := "") -> void:
 	if aim != Vector2.INF and absf(aim.x - pos.x) > FACE_DEAD:
 		_set_face(signf(aim.x - pos.x))
+	_sq_interrupt()
 	act_kind = kind
 	act_anim = anim if anim != "" and anim_tex(anim) != null else kind
 	if anim_tex(act_anim) == null:
@@ -1501,6 +1548,8 @@ func _anim_state_raw() -> Dictionary:
 			return {"tex": ptx, "frame": pf, "hf": pn, "flip": (face < 0.0) != sprite_mirror(pk), "kind": pk}
 	var n: int = anim_hframes(tx, kind)
 	var fr := 0
+	if sq_ph != 0 and kind == _sq_kind():
+		return {"tex": tx, "frame": _sq_frame(n), "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
 	if vis_anim != "" and kind == vis_anim:
 		fr = clampi(int(anim_t * float(sprite_spec(kind).get("fps", 12.0))), 0, n - 1)   # 纯画面动作：按帧条 fps 播一遍，停在末帧
 		return {"tex": tx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
@@ -1574,6 +1623,171 @@ func _noshield(st: Dictionary) -> Dictionary:
 	if kind == "run":
 		i = int(g.t * float(fb.get("fps", 8.0))) % frs.size()
 	return {"tex": ftx, "frame": int(frs[i]), "hf": anim_hframes(ftx, fk), "flip": (face < 0.0) != sprite_mirror(fk), "kind": fk}
+
+
+## ---- 多条技能帧条 + 循环状态（10-16，docs/87 §3.5；首例铃兰）：def.sprites.skills = {"s1": …, "s2": …, "s3": …}（键 = 技能序号 + 1），
+## 没写的技能照旧走 skill_anim()（缺省 sprites.skill 单条，其他干员不变）。每个值是下面三种之一：
+##   {"anim": 帧条}                                      单条：同 skills[i].anim（出手帧按该条 fire）
+##   {"intro": 帧条, "hold": 帧条, "hold_ms": 250}        起手（intro 条第 0 帧，按其 fps 播一帧）→ 定格 hold 条 hold_ms 毫秒 → 待机；出手 = 定格开始
+##   {"start": 段, "loop": 帧条, "end": 段}               起手播 start（出手帧按 start 条的 fire）→ 技能生效期间（skill_active_left(i) > 0）loop 循环
+##                                                        → 收势播 end → 待机；技能不计时（永久 / 次数型）就跳过 loop 直接收势。end 可省
+## 「段」= 帧条名，或 {"anim": 帧条, "frames": [帧号…]}（只播这条里的这几帧，顺序随写）。帧条名是 sprites 的槽名；不是 idle / run / attack / skill 的要列进 extra_sprites（加载）。
+## 逻辑窗口（attack_t / fire_t）只由起手段决定（时长 = 起手段帧数 / fps，出手 = fire 帧中点），hold / loop / end 纯画面：技能效果、acting()、
+## 充能暂停与原单条口径一致。循环期间起手的别的动作（普攻 / 另一技能）压过循环，播完接着循环；起手 / 收势途中被别的动作打断则序列作废
+var sq: Dictionary = {}   # 当前序列定义（空 = 不在序列里）
+var sq_i := -1            # 序列属于哪个技能
+var sq_ph := 0            # 0 无 / 1 起手 / 2 定格或循环 / 3 收势
+var sq_t := 0.0           # 当前阶段已播秒数
+var sq_own := false       # 当前出手窗口（attack_t）是序列自己的起手段
+
+
+func skill_seq(i: int) -> Dictionary:
+	var v = def.get("sprites", {}).get("skills", {}).get("s%d" % (i + 1), null) if i >= 0 else null
+	return v if v is Dictionary else {}
+
+
+## 「段」的帧条名
+static func seq_anim(seg) -> String:
+	if seg is Dictionary:
+		return str(seg.get("anim", ""))
+	return str(seg) if seg != null else ""
+
+
+## 「段」播的帧号表（没写 frames = 整条）
+func _seq_frames(seg, kind: String) -> Array:
+	if seg is Dictionary and seg.get("frames") is Array and not seg.frames.is_empty():
+		return seg.frames
+	var tx := anim_tex(kind)
+	return range(anim_hframes(tx, kind)) if tx != null else []
+
+
+## 「段」的时长（秒）
+func _seq_len(seg) -> float:
+	var k := seq_anim(seg)
+	if k == "" or anim_tex(k) == null:
+		return 0.0
+	return float(_seq_frames(seg, k).size()) / float(sprite_spec(k).get("fps", 12.0))
+
+
+## 起手：按 skills.sN 的类型设出手窗口并进入序列；没定义 / 缺图返回 false（走单条）
+func _start_skill_seq(aim: Vector2, i: int) -> bool:
+	var q := skill_seq(i)
+	if q.is_empty():
+		return false
+	var hold: bool = q.has("hold")
+	var head = q.get("intro" if hold else "start", q.get("anim", null))
+	var hk := seq_anim(head)
+	if hk == "" or anim_tex(hk) == null:
+		return false
+	if not hold and not q.has("start"):
+		return false   # 只写 anim 的走单条（skill_anim 同义）
+	if aim != Vector2.INF and absf(aim.x - pos.x) > FACE_DEAD:
+		_set_face(signf(aim.x - pos.x))
+	var spec := sprite_spec(hk)
+	var fps := float(spec.get("fps", 12.0))
+	var frs: Array = [0] if (hold and not (head is Dictionary)) else _seq_frames(head, hk)
+	var dur := float(frs.size()) / fps
+	var fire_at := dur
+	if hold:
+		dur += float(q.get("hold_ms", 250)) / 1000.0   # 出手 = 定格开始
+	else:
+		var fi: int = frs.find(int(spec.get("fire", 0)))
+		fire_at = (float(fi if fi >= 0 else frs.size() - 1) + 0.5) / fps
+	sq = q
+	sq_i = i
+	sq_ph = 1
+	sq_t = 0.0
+	sq_own = true
+	act_kind = "skill"
+	act_anim = hk
+	attack_dur = dur
+	attack_t = dur
+	fire_t = fire_at
+	anim_kind = hk
+	anim_t = 0.0
+	return true
+
+
+## 当前阶段的「段」
+func _sq_seg():
+	match sq_ph:
+		1:
+			return sq.get("intro" if sq.has("hold") else "start", null)
+		2:
+			return sq.get("hold" if sq.has("hold") else "loop", null)
+		3:
+			return sq.get("end", null)
+	return null
+
+
+func _sq_kind() -> String:
+	if sq_ph == 0:
+		return ""
+	var k := seq_anim(_sq_seg())
+	return k if anim_tex(k) != null else ""
+
+
+## 当前阶段的帧号：起手 / 收势按帧表播一遍停末帧，定格 / 循环按 fps 循环
+func _sq_frame(n: int) -> int:
+	var seg = _sq_seg()
+	var k := seq_anim(seg)
+	var fps := float(sprite_spec(k).get("fps", 12.0))
+	if sq_ph == 2:
+		return int(sq_t * fps) % maxi(1, n)
+	var frs: Array = [0] if (sq_ph == 1 and sq.has("hold") and not (seg is Dictionary)) else _seq_frames(seg, k)
+	if frs.is_empty():
+		return 0
+	return clampi(int(frs[clampi(int(sq_t * fps), 0, frs.size() - 1)]), 0, n - 1)
+
+
+## 别的动作起手（_start_action）：起手 / 收势途中作废序列；循环 / 定格期间只是暂时被压过
+func _sq_interrupt() -> void:
+	if sq_ph == 1 or sq_ph == 3:
+		_sq_clear()
+	sq_own = false
+
+
+func _sq_clear() -> void:
+	sq = {}
+	sq_i = -1
+	sq_ph = 0
+	sq_t = 0.0
+	sq_own = false
+
+
+## follow() 每帧：推进序列阶段（纯画面）
+func _tick_sq(dt: float) -> void:
+	if sq_ph == 0:
+		return
+	var hold: bool = sq.has("hold")
+	sq_t += dt
+	match sq_ph:
+		1:
+			var head = sq.get("intro" if hold else "start")
+			var n1: float = (1.0 / float(sprite_spec(seq_anim(head)).get("fps", 12.0))) if (hold and not (head is Dictionary)) else _seq_len(head)
+			if sq_t >= n1:
+				sq_t = 0.0
+				if hold or skill_active_left(sq_i) > 0.0:
+					sq_ph = 2
+				else:
+					_sq_end()
+		2:
+			if hold:
+				if sq_t >= float(sq.get("hold_ms", 250)) / 1000.0:
+					_sq_clear()
+			elif skill_active_left(sq_i) <= 0.0:
+				sq_t = 0.0
+				_sq_end()
+		3:
+			if sq_t >= _seq_len(sq.get("end")):
+				_sq_clear()
+
+
+func _sq_end() -> void:
+	if _seq_len(sq.get("end")) > 0.0:
+		sq_ph = 3
+	else:
+		_sq_clear()
 
 
 ## ---- 技能期间换动作组（docs/92，2026-10-13；首例安洁莉娜 S3 浮空）：def.sprites.skill_pose =

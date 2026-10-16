@@ -80,6 +80,37 @@
 - 蓄力 → 出手帧 → 保持 → 收回；**末帧 = idle f0 逐像素相同（1x 与 @2x）**。所以改 idle f0 时必须同步改 skill 末帧。
 - 机检 `skill_end`：@2x 不同 → FAIL；只有 1x 备用版不同 → WARN。存量 12 人 + 博士（这条规则定之前交付的）只 WARN，重画 idle 或 skill 时必须对齐。
 
+### 3.5 多条技能帧条 + 循环状态：json `sprites.skills`（10-16，首例铃兰）
+
+一名干员三个技能各一套动作（docs/97 J 批附表：S1 发力条、S2 定格、S3 持续循环）时，帧条按动作各登记一个 `sprites` 槽（和 `skill` 一样写 `{tex, frames, fps, foot, fire}`），再用 `sprites.skills` 把技能序号接到槽上；非 `idle / run / attack / skill` 的槽要列进 `extra_sprites`（否则不加载）。没写 `skills` 的技能照旧走单条 `skill`（`skills[i].anim` 可换条），其他干员不用改。
+
+```json
+"sprites": {
+  "skill":         {"tex": "op_suzuran_skill_s1", "frames": 3, "fps": 8, "foot": [32, 60], "fire": 1},
+  "skill_s2_hold": {"tex": "op_suzuran_skill_s2_hold", "frames": 1, "fps": 4, "foot": [32, 60]},
+  "skill_s3":      {"tex": "op_suzuran_skill_s3", "frames": 3, "fps": 8, "foot": [32, 60], "fire": 1},
+  "skill_s3_loop": {"tex": "op_suzuran_skill_s3_loop", "frames": 2, "fps": 4, "foot": [32, 60]},
+  "skills": {
+    "s1": {"anim": "skill"},
+    "s2": {"intro": "attack", "hold": "skill_s2_hold", "hold_ms": 250},
+    "s3": {"start": {"anim": "skill_s3", "frames": [0, 1]}, "loop": "skill_s3_loop", "end": {"anim": "skill_s3", "frames": [0, 2]}}
+  }
+},
+"extra_sprites": ["skill_s2_hold", "skill_s3", "skill_s3_loop"]
+```
+
+| 写法 | 播法 | 出手窗口（attack_t / fire_t，决定技能效果与 acting()） |
+|---|---|---|
+| `{"anim": 槽}` | 单条播一遍（同 `skills[i].anim`） | 时长 = 帧数 / fps，出手 = `fire` 帧中点（与原单条口径一致） |
+| `{"intro": 槽, "hold": 槽, "hold_ms": N}` | intro 条第 0 帧按其 fps 播一帧 → hold 条定格 N 毫秒 → 待机 | 时长 = 1 / intro fps + N / 1000，**出手 = 定格开始** |
+| `{"start": 段, "loop": 槽, "end": 段}` | start 播一遍 → 技能生效期间（`skill_active_left(i) > 0`）loop 按 fps 循环 → end 播一遍 → 待机；技能不计时（永久 / 次数型）就跳过 loop 直接收势；`end` 可省 | 时长 = start 段帧数 / fps，出手 = start 条 `fire` 帧中点；loop / end 纯画面 |
+
+- 「段」= 槽名，或 `{"anim": 槽, "frames": [帧号…]}`（只播这条里的这几帧，顺序随写）。铃兰 S3 一条 3 帧（f0 起手 / f1 发力 / f2 收势）拆成起手 [0, 1] 与收势 [0, 2]。
+- 出手帧语义不变：`fire` 到点调 `_release_skill()`，技能特效 / 积木在那一刻生效；hold / loop / end 期间不再有出手。循环期间起手的别的动作（普攻 / 另一技能）压过循环，播完接着循环；起手 / 收势途中被别的动作打断则序列作废回待机。
+- 校验（`validate_operator`）：键只能 s1–s3；有 `hold` 必有 `intro`，`hold` 与 `start` 不能同写；引用的槽要在 `sprites` 且带 `tex`，非主动作要列进 `extra_sprites`；`frames` 要在该条帧数内。
+- 机检：`art_lint.roster` 把 `skills` 引用的槽当本人身体（描边 / 色数 / 贴地同主动作）；循环帧属造型离地的按单条帧条豁免 `(op, "ground", 槽)` 登记（铃兰 `skill_s3_loop` 微浮 2px）。
+- 同 seed：hold / loop / end 只改画面；出手窗口随起手段的帧数 / fps 变，改接线等于改出手时机，TRACE 对照要说明（铃兰接入记录见 docs/97）。
+
 ## 4. 配色与明度
 
 ### 4.1 观感背景

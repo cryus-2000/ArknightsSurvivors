@@ -86,13 +86,74 @@
       ],
       "fire": 1
     },
+    "skill_s2_hold": {
+      "tex": "op_suzuran_skill_s2_hold",
+      "frames": 1,
+      "fps": 4,
+      "foot": [
+        32,
+        60
+      ]
+    },
+    "skill_s3": {
+      "tex": "op_suzuran_skill_s3",
+      "frames": 3,
+      "fps": 8,
+      "foot": [
+        32,
+        60
+      ],
+      "fire": 1
+    },
+    "skill_s3_loop": {
+      "tex": "op_suzuran_skill_s3_loop",
+      "frames": 2,
+      "fps": 4,
+      "foot": [
+        32,
+        60
+      ]
+    },
+    "skills": {
+      "_doc": "多条技能帧条（docs/87 §3.5，10-16）：S1 单条 skill（s1 条 3/8 fire 1）；S2 attack f0 起手 → s2_hold 定格 250 ms → 待机（出手 = 定格开始）；S3 s3 f0 → f1 发力（fire）→ 迷雾期间 s3_loop 循环 → f0 回收 → f2 收势",
+      "s1": {
+        "anim": "skill"
+      },
+      "s2": {
+        "intro": "attack",
+        "hold": "skill_s2_hold",
+        "hold_ms": 250
+      },
+      "s3": {
+        "start": {
+          "anim": "skill_s3",
+          "frames": [
+            0,
+            1
+          ]
+        },
+        "loop": "skill_s3_loop",
+        "end": {
+          "anim": "skill_s3",
+          "frames": [
+            0,
+            2
+          ]
+        }
+      }
+    },
     "size": 64,
     "foot": [
       32,
       60
     ],
-    "_note_1016": "64 画布只交 @2x（codex/art 0827a990）；skill 暂用 s1 条；s2_hold / s3 / s3_loop 条已入库待接线（docs/97 J 批）"
+    "_note_1016": "64 画布只交 @2x（codex/art 0827a990）；skill 槽 = s1 条（图鉴 / 选人预览用）；s2_hold / s3 / s3_loop 由 sprites.skills 接线（10-16，docs/97 J 批）"
   },
+  "extra_sprites": [
+    "skill_s2_hold",
+    "skill_s3",
+    "skill_s3_loop"
+  ],
   "attack": {
     "mode": "auto",
     "name": "狐火",

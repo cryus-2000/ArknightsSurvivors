@@ -102,6 +102,7 @@ WAIVERS = {
     ("angelina", "ground", "float"): "设计例外（docs/92）：S3 浮空待机，最低行 38±1 离地属造型",
     ("angelina", "ground", "float_move"): "设计例外（docs/92）：S3 浮空移动，离地属造型",
     ("angelina", "ground", "float_attack"): "设计例外（docs/92）：S3 浮空普攻，离地属造型",
+    ("suzuran", "ground", "skill_s3_loop"): "设计例外（docs/97 J 批附表「狐火渺然：身体微浮」，codex/art 0827a990）：S3 循环两帧离地 2px 属造型",
 }
 
 
@@ -121,6 +122,16 @@ def roster(data=DATA):
         for k in [pz.get("in"), pz.get("out")] + list((pz.get("map") or {}).values()):
             if k in acts:
                 acts[k]["_body"] = True
+        # 多条技能帧条（sprites.skills，docs/87 §3.5）引用的帧条同样是本人身体
+        sq = sp.get("skills") if isinstance(sp.get("skills"), dict) else {}
+        for q in sq.values():
+            if not isinstance(q, dict):
+                continue
+            for part in ("anim", "intro", "hold", "start", "loop", "end"):
+                seg = q.get(part)
+                k = seg.get("anim") if isinstance(seg, dict) else seg
+                if k in acts:
+                    acts[k]["_body"] = True
         if cid == "mizuki":   # idle / run / attack 仍是字符串槽（world.gd 缺省帧条）；skill 自 docs/97 B 起是带 fps / fire 的字典槽，两者合并
             for k, v in {"idle": {"tex": "player_idle", "frames": 4, "fps": 6, "foot": foot},
                          "run": {"tex": "player_run", "frames": 6, "fps": 12, "foot": foot},
