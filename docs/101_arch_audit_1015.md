@@ -298,6 +298,8 @@ game/scripts/native/native.gd        # 薄封装：ClassDB.class_exists("EnemyCo
 
 **原型通过后的去向**：dll 进 Windows 发布包（`export_build.py` 复制到 `game/`、`verify_encrypted_game.py` 的逐文件一致检查算上 dll）；云端 `setup_linux.sh` 多编一个 `.so`；网页按 §4.6 建议把同一个 `core/` 编进自编 nothreads 模板（`module/` 绑定），网页包硬线 ≤ 48 MB（§8）。
 
+**10-17 实测补充（Codex）**：见 [docs/50 §18](50_performance.md#18-enemycore-桌面原型实测与-claude-交接10-17codex)。`6b697796` 标准场景同局轮换，7–10 分钟整帧平均 14.81 → 14.66 毫秒，敌人更新 0.925 → 0.870 毫秒；仅一局有效负载记录，不证明尾部稳定提升。当前运动段原型的收益远小于下表对更大原生范围的估算，后续优先定位世界绘制 / HUD。`native_eq` 现先实际加载并调用扩展，加载探针不读缓存，避免 DLL 存在但扩展未登记时误报通过。
+
 ## 5. 分阶段路线
 
 | 阶段 | 内容 | 预期收益（桌面 / 网页，粗估） | 风险 | 需要谁定 |

@@ -109,7 +109,7 @@
 | [27_balance_framework](27_balance_framework.md) | 数值平衡框架 | 现行规范 | §2 分层、§3 档位与预算、§9 新干员流程在用；§1 目标看 38 §8.12，§6 口径看 80，§4 以 balance.json 为准 | data/balance.json |
 | [29_bot_testing](29_bot_testing.md) | 分档机器人 | 现行规范 | 机器人档位与指标；§3 难度目标已作废（见 38 §8.12），第五档 master 见 36 | 27、36、38、41、79、归档46 等 7 篇；tools/balance_run.py、game.gd、data.gd 等 6 个文件 |
 | [33_release_build](33_release_build.md) | 打包发布 | 现行规范 | 双版本三包、itch、瘦身、ship.py 一键发版 | 41、55、99、归档ea_boss_variety_20260927；tools/export_build.py、tools/export_web.py、tools/release_all.py 等 11 个文件 |
-| [50_performance](50_performance.md) | 性能测量 | 进行中 | 帧时测量方法与各轮优化记录，持续追加 | 21、35、36、38、39、41 等 15 篇；render/world.gd、game.gd、data/balance.json 等 34 个文件 |
+| [50_performance](50_performance.md) | 性能测量 | 进行中 | 帧时测量方法与各轮优化记录；§18 原生运动核心实测与 Claude 后续定位建议 | 21、35、36、38、39、41 等 15 篇；render/world.gd、game.gd、data/balance.json 等 34 个文件 |
 | [55_code_audit](55_code_audit.md) | 代码冗余审计 | 进行中 | 大部分清理已做；§6 剩余项未做 | 35、39、41、56、57、归档14；boss_ai.gd、game.gd、relic_fx.gd 等 21 个文件 |
 | [101_arch_audit_1015](101_arch_audit_1015.md) | 代码框架审计与 C++ 预留 | 进行中 | 10-15 框架问题 / 冗余清单、原生代码切入面与构建约束、阶段 0 / 1 / 2 路线；§7 派活清单、§8 待用户定 | — |
 | [104_pixel_pipeline](104_pixel_pipeline.md) | 干员像素素材流程规范 | 现行规范 | 10-16 定：Codex 静态 f0 / 动画（分层合成）两条线、三层验收、f0 并行 + 人内串行；口径只在 103 改 | 97、103；tools/px_lint.py |

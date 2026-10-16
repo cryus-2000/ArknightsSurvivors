@@ -367,12 +367,12 @@ def _last_durations():
     return est
 
 
-def _run(args, timeout, tag):
+def _run(args, timeout, tag, *, cache=True):
     """启动一次 Godot（经本次快检的闸门 GATE + godot_runner 的全机并发上限），把 stdout / stderr 写进 LOG_DIR/<tag>.log，返回 (out, err, 超时, 日志路径)"""
     if BAL_ARGS and "--" in args:
         args = list(args) + BAL_ARGS   # --bal=段/键=值 透传给每个 Godot 进程（balance.gd 测试探针）
     box = {}
-    key = _cache_key(args, tag)
+    key = _cache_key(args, tag) if cache else None
     hit = _cache_get(key)
 
     def go():
@@ -552,6 +552,11 @@ def check_native_eq(godot):
         return {"name": name, "ok": True, "detail": "跳过（本机没编 ark_native）"}
     # 结果缓存的键只含被跟踪的文件，dll 不在里面：把 dll 的大小 / 修改时间做成一个游戏会忽略的参数放进键里，重编 dll 后不会命中旧结果
     tag = "--nativetag=" + "_".join("%d-%d" % (os.path.getsize(f), int(os.path.getmtime(f))) for f in dlls)
+    # DLL 存在不等于扩展加载成功，否则两局都回退到 GDScript 也会误报通过。
+    out, err, to, log = _run([godot, "--headless", "--audio-driver", "Dummy", "--path", GAME,
+                             "--script", "res://tests/native_core_test.gd", "--", tag], 60, "native_load", cache=False)
+    if to or GR.script_errors(out, err) or "NATIVE CORE TEST PASSED" not in out:
+        return {"name": name, "ok": False, "detail": "EnemyCore 加载 / 调用失败", "errors": GR.script_errors(out, err)[:3], "log": log}
     base = ["--balance", "--seed=13", "--op=skalter", "--squad=texas,exusiai", "--bot=expert", "--maxt=180", "--trace=1", tag]
 
     def one(k):

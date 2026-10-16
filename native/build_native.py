@@ -7,6 +7,7 @@ game/bin/ 不入库、不进导出包（export_presets 的 exclude_filter 已排
 用法：python native/build_native.py [--toolchains E:/toolchains] [--target debug|release|both] [--jobs N]
 """
 import argparse
+from contextlib import chdir
 import os
 import subprocess
 import sys
@@ -40,6 +41,12 @@ windows.release.x86_64 = "res://bin/ark_native.windows.template_release.x86_64.d
 """
 
 
+def run_engine(args, timeout):
+    out, err, timed_out = GR.run_godot([GR.find_godot(), "--headless", "--audio-driver", "Dummy"] + args, timeout)
+    if timed_out or "ERROR:" in out or "ERROR:" in err:
+        raise SystemExit("Godot 构建步骤失败%s\n%s\n%s" % ("（超时）" if timed_out else "", out, err))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--toolchains", default="E:/toolchains")
@@ -60,8 +67,8 @@ def main():
     api = tc / ("godot-api-" + v["godot"])
     api.mkdir(parents=True, exist_ok=True)
     if not (api / "extension_api.json").exists() or not (api / "gdextension_interface.json").exists():
-        subprocess.run([GR.find_godot(), "--headless", "--dump-extension-api", "--dump-gdextension-interface", "--dump-gdextension-interface-json"], cwd=str(api), check=True,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=300)
+        with chdir(api):
+            run_engine(["--dump-extension-api", "--dump-gdextension-interface", "--dump-gdextension-interface-json"], 300)
     env = dict(os.environ)
     env["GODOT_CPP_DIR"] = str(gcpp)
     env["PYTHONPATH"] = str(scons_dir) + os.pathsep + env.get("PYTHONPATH", "")
@@ -76,7 +83,7 @@ def main():
     (GAME / "bin").mkdir(exist_ok=True)
     (GAME / "bin" / "ark_native.gdextension").write_text(GDEXT, encoding="utf-8")
     print("import（登记扩展）", flush=True)
-    subprocess.run([GR.find_godot(), "--headless", "--path", str(GAME), "--import"], check=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=900)
+    run_engine(["--path", str(GAME), "--import"], 900)
     print("OK", [p.name for p in (GAME / "bin").iterdir()])
 
 
