@@ -18,7 +18,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 WT = os.path.join(ROOT, ".claude", "worktrees")
 REL = os.path.join(ROOT, "build", "release")
 KEEP_NEWEST = 3
-KEEP_SHAS = {"b673d2e5", "e97b4a2"}  # itch 线上（10-16 b673d2e5）、EA 冻结（docs/41）；换线上版时改这里
+KEEP_SHAS = {"672c4272", "e97b4a2"}  # itch 线上（10-16 672c4272）、EA 冻结（docs/41）；换线上版时改这里
 
 
 def git(*a, cwd=ROOT):
