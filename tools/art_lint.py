@@ -90,6 +90,11 @@ LEGACY = {"eyjafjalla", "irene", "kaltsit", "logos", "lumen", "mizuki", "saria",
 WAIVERS = {
     ("suzuran", "outline"): "10-16 新规格（docs/103 §5 / 104）：64 画布 @2x 原生细节不画硬黑外描边（codex/art 0827a990 接入）；art_lint 描边项待按新规格改口径",
     ("suzuran", "run"): "10-16 用户看过 all_actions.gif 批准的六帧屈膝小跑（codex/art 0827a990）；机检剪影 / 上身变化阈值按旧 48 帧条定，待改口径",
+    ("mizuki", "outline"): "10-16 新规格（docs/103 §5 / 104）：64 画布 @2x 暗色收边、无硬黑外描边（codex/art 1206366c）；描边项待改口径",
+    ("mizuki", "idle"): "10-16 用户批准的整套（codex/art 1206366c）：呼吸 0.5px 属新规格的轻微呼吸，阈值待改口径",
+    ("mizuki", "run"): "10-16 用户批准的整套（codex/art 1206366c）：上半身变化阈值按旧 48 帧条定，待改口径",
+    ("mizuki", "ground", "skill_s2"): "设计例外（codex/art 1206366c）：S2 张伞触手承托坐姿，离地 1–2px 属造型",
+    ("mizuki", "ground", "skill_s2_loop"): "设计例外（codex/art 1206366c）：S2 坐姿循环，离地 1px 属造型",
     ("skadi", "run"): "docs/85 交付 928b8a35 后腿部 / 前倾已达标，仅剩停顿帧 2 对（线为 ≤ 1），协调人 10-13 接受",
     # 以下为 docs/87 附录 B 基线新发现，待协调人 / 用户定是否开返修单（开单后把说明改成返修单号）
     ("skalter", "run"): "设计例外（用户 10-13 定）：浊心斯卡蒂跑步是悬浮飘行，腿不交替属造型，长期豁免",
