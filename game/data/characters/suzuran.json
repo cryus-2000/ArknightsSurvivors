@@ -1,456 +1,457 @@
 {
- "id": "suzuran",
- "name": "铃兰",
- "en": "SUZURAN",
- "class": "辅助",
- "col": [
-  1.0,
-  0.82,
-  0.45
- ],
- "script": "res://scripts/characters/data_operator.gd",
- "base": {
-  "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
-  "atk": 29,
-  "vs_elite": 2.5,
-  "cd": 1.0,
-  "range": 350,
-  "shots": 2,
-  "aoe": 26,
-  "aura": 85,
-  "s1_shots": 5,
-  "s1_mult": 1.2,
-  "s2_buff": 0.15,
-  "s3_buff": 0.2,
-  "n1_shots": 1,
-  "merge_every": 3,
-  "merge_mult": 2.5,
-  "merge_spd": 340,
-  "merge_life": 1.3,
-  "merge_r": 14,
-  "seal_stun": 0.5,
-  "seal_stun_elite": 0.25,
-  "hearth_n": 6,
-  "hearth_mult": 0.3,
-  "hearth_cd": 0.5,
-  "s3_dur": 10.0,
-  "brand_value": 0.08,
-  "brand_dur": 2.0,
-  "trail_life": 1.0,
-  "trail_every": 0.3,
-  "trail_mult": 0.15
- },
- "leader": {
-  "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1480 / 防御 128 / 法抗 25%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
-  "max_hp": 105,
-  "armor": 1.0,
-  "arts_res": 0.25,
-  "regen": 1.1
- },
- "sprites": {
-  "idle": {
-   "tex": "op_suzuran_idle",
-   "frames": 4,
-   "fps": 4,
-   "foot": [
-    24,
-    46
-   ]
+  "id": "suzuran",
+  "name": "铃兰",
+  "en": "SUZURAN",
+  "class": "辅助",
+  "col": [
+    1.0,
+    0.82,
+    0.45
+  ],
+  "script": "res://scripts/characters/data_operator.gd",
+  "base": {
+    "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
+    "atk": 29,
+    "vs_elite": 2.5,
+    "cd": 1.0,
+    "range": 350,
+    "shots": 2,
+    "aoe": 26,
+    "aura": 85,
+    "s1_shots": 5,
+    "s1_mult": 1.2,
+    "s2_buff": 0.15,
+    "s3_buff": 0.2,
+    "n1_shots": 1,
+    "merge_every": 3,
+    "merge_mult": 2.5,
+    "merge_spd": 340,
+    "merge_life": 1.3,
+    "merge_r": 14,
+    "seal_stun": 0.5,
+    "seal_stun_elite": 0.25,
+    "hearth_n": 6,
+    "hearth_mult": 0.3,
+    "hearth_cd": 0.5,
+    "s3_dur": 10.0,
+    "brand_value": 0.08,
+    "brand_dur": 2.0,
+    "trail_life": 1.0,
+    "trail_every": 0.3,
+    "trail_mult": 0.15
   },
-  "run": {
-   "tex": "op_suzuran_run",
-   "frames": 6,
-   "fps": 10,
-   "foot": [
-    22,
-    46
-   ]
+  "leader": {
+    "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1480 / 防御 128 / 法抗 25%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
+    "max_hp": 105,
+    "armor": 1.0,
+    "arts_res": 0.25,
+    "regen": 1.1
+  },
+  "sprites": {
+    "idle": {
+      "tex": "op_suzuran_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        32,
+        60
+      ]
+    },
+    "run": {
+      "tex": "op_suzuran_run",
+      "frames": 6,
+      "fps": 10,
+      "foot": [
+        32,
+        60
+      ]
+    },
+    "attack": {
+      "tex": "op_suzuran_attack",
+      "frames": 4,
+      "fps": 14,
+      "foot": [
+        32,
+        60
+      ],
+      "fire": 2
+    },
+    "skill": {
+      "tex": "op_suzuran_skill_s1",
+      "frames": 3,
+      "fps": 8,
+      "foot": [
+        32,
+        60
+      ],
+      "fire": 1
+    },
+    "size": 64,
+    "foot": [
+      32,
+      60
+    ],
+    "_note_1016": "64 画布只交 @2x（codex/art 0827a990）；skill 暂用 s1 条；s2_hold / s3 / s3_loop 条已入库待接线（docs/97 J 批）"
   },
   "attack": {
-   "tex": "op_suzuran_attack",
-   "frames": 4,
-   "fps": 14,
-   "foot": [
-    24,
-    46
-   ],
-   "fire": 2
+    "mode": "auto",
+    "name": "狐火",
+    "desc": "减速光域：光域内敌人移速 -35%；每 {$cd} 秒向 2 名敌人发射 {$shots} 团追踪狐火，命中时小范围溅射（法术）"
   },
-  "skill": {
-   "tex": "op_suzuran_skill",
-   "frames": 6,
-   "fps": 12,
-   "foot": [
-    24,
-    46
-   ],
-   "fire": 3
-  },
-  "size": 48,
-  "foot": [
-   24,
-   46
-  ]
- },
- "attack": {
-  "mode": "auto",
-  "name": "狐火",
-  "desc": "减速光域：光域内敌人移速 -35%；每 {$cd} 秒向 2 名敌人发射 {$shots} 团追踪狐火，命中时小范围溅射（法术）"
- },
- "skills": [
-  {
-   "name": "全力以赴",
-   "en": "I'LL DO MY BEST",
-   "sp": 7,
-   "desc": "下一次普攻改为射出 {$s1_shots} 发狐火（伤害 ×{$s1_mult}）",
-   "icon": "skill_suzuran_s1"
-  },
-  {
-   "name": "儿时的舞乐",
-   "en": "CHILDHOOD FROLIC",
-   "sp": 15,
-   "desc": "充能一次后永久生效：光域范围 +60%，其他干员攻击 +{$s2_buff*100}%，队长每秒回复 0.5% 最大生命",
-   "heal": true,
-   "permanent": true,
-   "icon": "skill_suzuran_s2"
-  },
-  {
-   "name": "狐火渺然",
-   "en": "FOXFIRE HAZE",
-   "sp": 20,
-   "desc": "展开 {$s3_dur} 秒大光域（范围 ×2.2），光域内敌人减速、受到的伤害 +10%，其他干员攻击 +{$s3_buff*100}%，队长每秒回复 1% 最大生命；期间铃兰不再普攻",
-   "heal": true,
-   "dur": 10.0,
-   "icon": "skill_suzuran_s3"
-  }
- ],
- "talent": {
-  "name": "祈愿",
-  "desc": "光域内的敌人受到的伤害 +10%；狐火 +1 发"
- },
- "hit_sources": {
-  "狐火": {
-   "emitter": "operator",
-   "origin": "core",
-   "range": "远程",
-   "kind": "法术",
-   "tags": [
-    "projectile",
-    "area",
-    "control"
-   ]
-  },
-  "围炉": {
-   "emitter": "operator",
-   "origin": "skill",
-   "range": "远程",
-   "kind": "法术",
-   "tags": [
-    "skill",
-    "entity",
-    "area"
-   ]
-  },
-  "狐火拖尾": {
-   "emitter": "operator",
-   "origin": "core",
-   "range": "远程",
-   "kind": "法术",
-   "tags": [
-    "area",
-    "entity"
-   ]
-  }
- },
- "progression": [
-  {
-   "type": "custom",
-   "id": "fox_plus",
-   "name": "狐火点点",
-   "icon": "growth_b_count",
-   "desc": "每次普攻狐火 +{$n1_shots}；身边常驻的小狐火数 = 每次普攻的狐火数"
-  },
-  {
-   "type": "custom",
-   "id": "fox_merge",
-   "name": "三火归一",
-   "icon": "growth_b_size",
-   "desc": "每第 {$merge_every} 次普攻，三团狐火在身前汇成一团大狐火射出：贯穿沿途敌人，伤害为一团狐火的 {$merge_mult} 倍"
-  },
-  {
-   "type": "elite",
-   "level": 1,
-   "name": "精英一",
-   "desc": "解锁二技能「儿时的舞乐」；解锁天赋「祈愿」：光域内的敌人受到的伤害 +10%；狐火 +1 发；普攻「狐火灼印」：狐火命中的敌人 {$brand_dur} 秒内受到的伤害 +{$brand_value*100}%",
-   "attack": {
-    "name": "狐火灼印",
-    "desc": "狐火命中的敌人 {$brand_dur} 秒内受到的伤害 +{$brand_value*100}%，脚下浮现一枚金色小印"
-   }
-  },
-  {
-   "type": "custom",
-   "id": "fox_seal",
-   "name": "画地为牢",
-   "icon": "skill_suzuran_s1",
-   "desc": "「全力以赴」命中的敌人被定身 {$seal_stun} 秒（精英 {$seal_stun_elite} 秒，Boss 免疫），脚下浮现金色封印"
-  },
-  {
-   "type": "custom",
-   "id": "fox_hearth",
-   "name": "围炉",
-   "icon": "skill_suzuran_s2",
-   "desc": "「儿时的舞乐」生效后，光域边缘的 {$hearth_n} 团狐火会灼伤碰到的敌人（狐火 {$hearth_mult*100}% 伤害，每名敌人 {$hearth_cd} 秒一次）"
-  },
-  {
-   "type": "elite",
-   "level": 2,
-   "name": "精英二",
-   "desc": "解锁三技能「狐火渺然」：展开 {$s3_dur} 秒大光域（范围 ×2.2），光域内敌人减速、受到的伤害 +10%，其他干员攻击 +{$s3_buff*100}%，队长每秒回复 1% 最大生命；期间铃兰不再普攻；普攻质变「九尾祈愿」：身后浮现九尾虚影，每一次普攻都三火归一；大狐火飞过的路径留下狐火 {$trail_life} 秒，每 {$trail_every} 秒灼伤踏入的敌人（狐火 {$trail_mult*100}% 伤害）",
-   "attack": {
-    "name": "九尾祈愿",
-    "desc": "身后浮现九尾虚影，每一次普攻都三团狐火合成一团大狐火贯穿；大狐火飞过的路径留下狐火 {$trail_life} 秒，每 {$trail_every} 秒灼伤踏入的敌人（狐火 {$trail_mult*100}% 伤害）"
-   }
-  }
- ],
- "gallery": {
-  "tags": [
-   "控制",
-   "减速",
-   "增益"
-  ],
-  "desc": "减速光域 + 追踪狐火，技能为全队加攻"
- },
- "blocks": {
-  "_doc": "铃兰（docs/61 §21）：减速光域（以她为心，儿时的舞乐 ×1.6、迷雾 ×2.2）+ 追踪狐火（三火归一大狐火、全力以赴定身金印、围炉）；S1 下一次普攻 5 发；S2 儿时的舞乐（永久）；S3 狐火渺然 10 秒（期间不普攻）。原手写脚本留作 tests/data_ops/suzuran_legacy.gd",
-  "attack": {
-   "shape": "foxfire",
-   "src": "狐火",
-   "range": "$range",
-   "aim_pad": 20,
-   "aim_n": 2,
-   "every": "$cd",
-   "first": 0.5,
-   "idle": 0.2,
-   "shots": "$shots",
-   "shot_adds": [
-    {
-     "cond": "node:fox_plus",
-     "n": "$n1_shots"
-    },
-    {
-     "cond": "elite >= 1",
-     "n": 1,
-     "_doc": "天赋「祈愿」：狐火 +1"
-    }
-   ],
-   "speed": 330,
-   "life": 1.6,
-   "bullet_r": 7,
-   "turn": 7,
-   "aoe": "$aoe",
-   "tip": [
-    34,
-    -42
-   ],
-   "proj_max": 12,
-   "merge": {
-    "cond": "node:fox_merge",
-    "every": "$merge_every",
-    "all": {
-     "cond": "elite >= 2"
-    },
-    "mult": "$merge_mult",
-    "spd": "$merge_spd",
-    "life": "$merge_life",
-    "r": "$merge_r",
-    "trail": {
-     "cond": "elite >= 2",
-     "life": "$trail_life",
-     "every": "$trail_every",
-     "mult": "$trail_mult",
-     "r": 16,
-     "step": 22,
-     "cap": 4,
-     "src": "狐火拖尾",
-     "tex": "fx_suzuran_bigfox_trail",
-     "_doc": "精二「九尾祈愿」补强：大狐火飞过的路径留狐火 1 秒，每 0.3 秒灼伤后来踏入路径的敌人（狐火 15%；这团大狐火已贯穿的不再烧）"
-    }
-   },
-   "seal": {
-    "cond": "node:fox_seal",
-    "stun": "$seal_stun",
-    "stun_elite": "$seal_stun_elite",
-    "max": 6
-   },
-   "tails": {
-    "cond": "elite >= 2",
-    "tex": "fx_suzuran_ninetails",
-    "alpha": 0.45
-   },
-   "brand": {
-    "cond": "elite >= 1",
-    "value": "$brand_value",
-    "dur": "$brand_dur",
-    "max": 24,
-    "tex": "fx_suzuran_seal",
-    "_doc": "精一「狐火灼印」：狐火（含大狐火）命中的敌人 2 秒内受到的伤害 +8%（同名取最高），脚下金色小印"
-   }
-  },
-  "trait": [
-   {
-    "trig": "passive",
-    "do": [
-     {
-      "verb": "foxlight",
-      "r": "$aura",
-      "r_elite": 15,
-      "warm": {
-       "cond": "skill_active:1"
-      },
-      "warm_mult": 1.6,
-      "haze_mult": 2.2,
-      "slow": [
-       0.2,
-       0.4,
-       0.6
-      ],
-      "weak": {
-       "cond": "elite >= 1",
-       "value": 0.2
-      },
-      "heal": [
-       0.005,
-       0.01
-      ],
-      "warm_buff": "$s2_buff",
-      "src": "铃兰",
-      "hearth": {
-       "cond": "node:fox_hearth",
-       "n": "$hearth_n",
-       "mult": "$hearth_mult",
-       "cd": "$hearth_cd",
-       "src": "围炉"
-      }
-     }
-    ]
-   }
-  ],
   "skills": [
-   {
-    "cast": "instant",
-    "dur": {
-     "next_attacks": 1
+    {
+      "name": "全力以赴",
+      "en": "I'LL DO MY BEST",
+      "sp": 7,
+      "desc": "下一次普攻改为射出 {$s1_shots} 发狐火（伤害 ×{$s1_mult}）",
+      "icon": "skill_suzuran_s1"
     },
-    "attack_patch": {
-     "shots": "$s1_shots",
-     "mult": "$s1_mult",
-     "power": true
+    {
+      "name": "儿时的舞乐",
+      "en": "CHILDHOOD FROLIC",
+      "sp": 15,
+      "desc": "充能一次后永久生效：光域范围 +60%，其他干员攻击 +{$s2_buff*100}%，队长每秒回复 0.5% 最大生命",
+      "heal": true,
+      "permanent": true,
+      "icon": "skill_suzuran_s2"
     },
-    "status": "全力以赴",
-    "status_col": [
-     1.0,
-     0.82,
-     0.45
-    ],
-    "fx": [
-     {
-      "pfx": {
-       "kind": "glow",
-       "r": 18.0,
-       "life": 0.3,
-       "col": [
-        1.0,
-        0.82,
-        0.45
-       ],
-       "alpha": 0.5
-      },
-      "at": "self",
-      "off": [
-       0,
-       -30
-      ]
-     },
-     {
-      "sprite": {
-       "name": "fx_circle_gold",
-       "scale": 1.6
-      },
-      "at": "self",
-      "off": [
-       0,
-       4
-      ]
-     }
-    ],
-    "do": []
-   },
-   {
-    "dur": "permanent",
-    "do": [
-     {
-      "verb": "fox_cast",
-      "buff": "$s2_buff",
-      "banner": "儿时的舞乐：光域永久扩大"
-     }
-    ]
-   },
-   {
-    "dur": 0,
-    "status": "狐火渺然",
-    "status_col": [
-     1.0,
-     0.82,
-     0.45
-    ],
-    "do": [
-     {
-      "verb": "fox_cast",
-      "haze": "$s3_dur",
-      "buff": "$s3_buff",
-      "banner": "狐火渺然"
-     }
-    ]
-   }
+    {
+      "name": "狐火渺然",
+      "en": "FOXFIRE HAZE",
+      "sp": 20,
+      "desc": "展开 {$s3_dur} 秒大光域（范围 ×2.2），光域内敌人减速、受到的伤害 +10%，其他干员攻击 +{$s3_buff*100}%，队长每秒回复 1% 最大生命；期间铃兰不再普攻",
+      "heal": true,
+      "dur": 10.0,
+      "icon": "skill_suzuran_s3"
+    }
   ],
-  "talent": [
-   {
-    "trig": "passive",
-    "do": [],
-    "_doc": "祈愿：写在 verb.foxlight 的 weak / r_elite 与 attack.shot_adds（cond elite >= 1）"
-   }
+  "talent": {
+    "name": "祈愿",
+    "desc": "光域内的敌人受到的伤害 +10%；狐火 +1 发"
+  },
+  "hit_sources": {
+    "狐火": {
+      "emitter": "operator",
+      "origin": "core",
+      "range": "远程",
+      "kind": "法术",
+      "tags": [
+        "projectile",
+        "area",
+        "control"
+      ]
+    },
+    "围炉": {
+      "emitter": "operator",
+      "origin": "skill",
+      "range": "远程",
+      "kind": "法术",
+      "tags": [
+        "skill",
+        "entity",
+        "area"
+      ]
+    },
+    "狐火拖尾": {
+      "emitter": "operator",
+      "origin": "core",
+      "range": "远程",
+      "kind": "法术",
+      "tags": [
+        "area",
+        "entity"
+      ]
+    }
+  },
+  "progression": [
+    {
+      "type": "custom",
+      "id": "fox_plus",
+      "name": "狐火点点",
+      "icon": "growth_b_count",
+      "desc": "每次普攻狐火 +{$n1_shots}；身边常驻的小狐火数 = 每次普攻的狐火数"
+    },
+    {
+      "type": "custom",
+      "id": "fox_merge",
+      "name": "三火归一",
+      "icon": "growth_b_size",
+      "desc": "每第 {$merge_every} 次普攻，三团狐火在身前汇成一团大狐火射出：贯穿沿途敌人，伤害为一团狐火的 {$merge_mult} 倍"
+    },
+    {
+      "type": "elite",
+      "level": 1,
+      "name": "精英一",
+      "desc": "解锁二技能「儿时的舞乐」；解锁天赋「祈愿」：光域内的敌人受到的伤害 +10%；狐火 +1 发；普攻「狐火灼印」：狐火命中的敌人 {$brand_dur} 秒内受到的伤害 +{$brand_value*100}%",
+      "attack": {
+        "name": "狐火灼印",
+        "desc": "狐火命中的敌人 {$brand_dur} 秒内受到的伤害 +{$brand_value*100}%，脚下浮现一枚金色小印"
+      }
+    },
+    {
+      "type": "custom",
+      "id": "fox_seal",
+      "name": "画地为牢",
+      "icon": "skill_suzuran_s1",
+      "desc": "「全力以赴」命中的敌人被定身 {$seal_stun} 秒（精英 {$seal_stun_elite} 秒，Boss 免疫），脚下浮现金色封印"
+    },
+    {
+      "type": "custom",
+      "id": "fox_hearth",
+      "name": "围炉",
+      "icon": "skill_suzuran_s2",
+      "desc": "「儿时的舞乐」生效后，光域边缘的 {$hearth_n} 团狐火会灼伤碰到的敌人（狐火 {$hearth_mult*100}% 伤害，每名敌人 {$hearth_cd} 秒一次）"
+    },
+    {
+      "type": "elite",
+      "level": 2,
+      "name": "精英二",
+      "desc": "解锁三技能「狐火渺然」：展开 {$s3_dur} 秒大光域（范围 ×2.2），光域内敌人减速、受到的伤害 +10%，其他干员攻击 +{$s3_buff*100}%，队长每秒回复 1% 最大生命；期间铃兰不再普攻；普攻质变「九尾祈愿」：身后浮现九尾虚影，每一次普攻都三火归一；大狐火飞过的路径留下狐火 {$trail_life} 秒，每 {$trail_every} 秒灼伤踏入的敌人（狐火 {$trail_mult*100}% 伤害）",
+      "attack": {
+        "name": "九尾祈愿",
+        "desc": "身后浮现九尾虚影，每一次普攻都三团狐火合成一团大狐火贯穿；大狐火飞过的路径留下狐火 {$trail_life} 秒，每 {$trail_every} 秒灼伤踏入的敌人（狐火 {$trail_mult*100}% 伤害）"
+      }
+    }
   ],
-  "progression": {
-   "fox_plus": {
-    "trig": "passive",
-    "do": [],
-    "_doc": "狐火点点：写在 attack.shot_adds（cond node:fox_plus）"
-   },
-   "fox_merge": {
-    "trig": "passive",
-    "do": [],
-    "_doc": "三火归一：写在 attack.merge（cond node:fox_merge）"
-   },
-   "fox_seal": {
-    "trig": "passive",
-    "do": [],
-    "_doc": "画地为牢：写在 attack.seal（cond node:fox_seal）"
-   },
-   "fox_hearth": {
-    "trig": "passive",
-    "do": [],
-    "_doc": "围炉：写在 verb.foxlight.hearth（cond node:fox_hearth）"
-   },
-   "elite2": {
-    "trig": "passive",
-    "do": [],
-    "_doc": "九尾祈愿：写在 attack.merge.all 与 attack.tails；狐火拖尾写在 attack.merge.trail（cond elite >= 2）"
-   },
-   "elite1": {
-    "trig": "passive",
-    "do": [],
-    "_doc": "狐火灼印：写在 attack.brand（cond elite >= 1）"
-   }
+  "gallery": {
+    "tags": [
+      "控制",
+      "减速",
+      "增益"
+    ],
+    "desc": "减速光域 + 追踪狐火，技能为全队加攻"
+  },
+  "blocks": {
+    "_doc": "铃兰（docs/61 §21）：减速光域（以她为心，儿时的舞乐 ×1.6、迷雾 ×2.2）+ 追踪狐火（三火归一大狐火、全力以赴定身金印、围炉）；S1 下一次普攻 5 发；S2 儿时的舞乐（永久）；S3 狐火渺然 10 秒（期间不普攻）。原手写脚本留作 tests/data_ops/suzuran_legacy.gd",
+    "attack": {
+      "shape": "foxfire",
+      "src": "狐火",
+      "range": "$range",
+      "aim_pad": 20,
+      "aim_n": 2,
+      "every": "$cd",
+      "first": 0.5,
+      "idle": 0.2,
+      "shots": "$shots",
+      "shot_adds": [
+        {
+          "cond": "node:fox_plus",
+          "n": "$n1_shots"
+        },
+        {
+          "cond": "elite >= 1",
+          "n": 1,
+          "_doc": "天赋「祈愿」：狐火 +1"
+        }
+      ],
+      "speed": 330,
+      "life": 1.6,
+      "bullet_r": 7,
+      "turn": 7,
+      "aoe": "$aoe",
+      "tip": [
+        34,
+        -42
+      ],
+      "proj_max": 12,
+      "merge": {
+        "cond": "node:fox_merge",
+        "every": "$merge_every",
+        "all": {
+          "cond": "elite >= 2"
+        },
+        "mult": "$merge_mult",
+        "spd": "$merge_spd",
+        "life": "$merge_life",
+        "r": "$merge_r",
+        "trail": {
+          "cond": "elite >= 2",
+          "life": "$trail_life",
+          "every": "$trail_every",
+          "mult": "$trail_mult",
+          "r": 16,
+          "step": 22,
+          "cap": 4,
+          "src": "狐火拖尾",
+          "tex": "fx_suzuran_bigfox_trail",
+          "_doc": "精二「九尾祈愿」补强：大狐火飞过的路径留狐火 1 秒，每 0.3 秒灼伤后来踏入路径的敌人（狐火 15%；这团大狐火已贯穿的不再烧）"
+        }
+      },
+      "seal": {
+        "cond": "node:fox_seal",
+        "stun": "$seal_stun",
+        "stun_elite": "$seal_stun_elite",
+        "max": 6
+      },
+      "tails": {
+        "cond": "elite >= 2",
+        "tex": "fx_suzuran_ninetails",
+        "alpha": 0.45
+      },
+      "brand": {
+        "cond": "elite >= 1",
+        "value": "$brand_value",
+        "dur": "$brand_dur",
+        "max": 24,
+        "tex": "fx_suzuran_seal",
+        "_doc": "精一「狐火灼印」：狐火（含大狐火）命中的敌人 2 秒内受到的伤害 +8%（同名取最高），脚下金色小印"
+      }
+    },
+    "trait": [
+      {
+        "trig": "passive",
+        "do": [
+          {
+            "verb": "foxlight",
+            "r": "$aura",
+            "r_elite": 15,
+            "warm": {
+              "cond": "skill_active:1"
+            },
+            "warm_mult": 1.6,
+            "haze_mult": 2.2,
+            "slow": [
+              0.2,
+              0.4,
+              0.6
+            ],
+            "weak": {
+              "cond": "elite >= 1",
+              "value": 0.2
+            },
+            "heal": [
+              0.005,
+              0.01
+            ],
+            "warm_buff": "$s2_buff",
+            "src": "铃兰",
+            "hearth": {
+              "cond": "node:fox_hearth",
+              "n": "$hearth_n",
+              "mult": "$hearth_mult",
+              "cd": "$hearth_cd",
+              "src": "围炉"
+            }
+          }
+        ]
+      }
+    ],
+    "skills": [
+      {
+        "cast": "instant",
+        "dur": {
+          "next_attacks": 1
+        },
+        "attack_patch": {
+          "shots": "$s1_shots",
+          "mult": "$s1_mult",
+          "power": true
+        },
+        "status": "全力以赴",
+        "status_col": [
+          1.0,
+          0.82,
+          0.45
+        ],
+        "fx": [
+          {
+            "pfx": {
+              "kind": "glow",
+              "r": 18.0,
+              "life": 0.3,
+              "col": [
+                1.0,
+                0.82,
+                0.45
+              ],
+              "alpha": 0.5
+            },
+            "at": "self",
+            "off": [
+              0,
+              -30
+            ]
+          },
+          {
+            "sprite": {
+              "name": "fx_circle_gold",
+              "scale": 1.6
+            },
+            "at": "self",
+            "off": [
+              0,
+              4
+            ]
+          }
+        ],
+        "do": []
+      },
+      {
+        "dur": "permanent",
+        "do": [
+          {
+            "verb": "fox_cast",
+            "buff": "$s2_buff",
+            "banner": "儿时的舞乐：光域永久扩大"
+          }
+        ]
+      },
+      {
+        "dur": 0,
+        "status": "狐火渺然",
+        "status_col": [
+          1.0,
+          0.82,
+          0.45
+        ],
+        "do": [
+          {
+            "verb": "fox_cast",
+            "haze": "$s3_dur",
+            "buff": "$s3_buff",
+            "banner": "狐火渺然"
+          }
+        ]
+      }
+    ],
+    "talent": [
+      {
+        "trig": "passive",
+        "do": [],
+        "_doc": "祈愿：写在 verb.foxlight 的 weak / r_elite 与 attack.shot_adds（cond elite >= 1）"
+      }
+    ],
+    "progression": {
+      "fox_plus": {
+        "trig": "passive",
+        "do": [],
+        "_doc": "狐火点点：写在 attack.shot_adds（cond node:fox_plus）"
+      },
+      "fox_merge": {
+        "trig": "passive",
+        "do": [],
+        "_doc": "三火归一：写在 attack.merge（cond node:fox_merge）"
+      },
+      "fox_seal": {
+        "trig": "passive",
+        "do": [],
+        "_doc": "画地为牢：写在 attack.seal（cond node:fox_seal）"
+      },
+      "fox_hearth": {
+        "trig": "passive",
+        "do": [],
+        "_doc": "围炉：写在 verb.foxlight.hearth（cond node:fox_hearth）"
+      },
+      "elite2": {
+        "trig": "passive",
+        "do": [],
+        "_doc": "九尾祈愿：写在 attack.merge.all 与 attack.tails；狐火拖尾写在 attack.merge.trail（cond elite >= 2）"
+      },
+      "elite1": {
+        "trig": "passive",
+        "do": [],
+        "_doc": "狐火灼印：写在 attack.brand（cond elite >= 1）"
+      }
+    }
   }
- }
 }
