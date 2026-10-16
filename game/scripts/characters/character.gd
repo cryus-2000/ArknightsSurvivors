@@ -344,10 +344,17 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 				if q.has("hold") and q.has("start"):
 					push_error("干员 %s 的 sprites.skills.%s 不能同时写 hold 与 start" % [cid, sk_])
 					ok = false
-				for part in ["anim", "intro", "hold", "start", "loop", "end"]:
+				if q.has("attack") and not q.has("loop"):
+					push_error("干员 %s 的 sprites.skills.%s 的 attack 槽只在 start / loop / end 序列里有意义（要有 loop）" % [cid, sk_])
+					ok = false
+				for part in ["anim", "intro", "hold", "start", "loop", "end", "attack"]:
 					if not q.has(part):
 						continue
 					var seg = q[part]
+					if part == "attack" and seg is Dictionary:
+						push_error("干员 %s 的 sprites.skills.%s.attack 须是帧条名（出手帧按该条 fire）" % [cid, sk_])
+						ok = false
+						continue
 					var k := seq_anim(seg)
 					if k == "" or not d.sprites.has(k) or not (d.sprites[k] is Dictionary) or not d.sprites[k].has("tex"):
 						push_error("干员 %s 的 sprites.skills.%s.%s 帧条「%s」不在 sprites（须是带 tex 的槽）" % [cid, sk_, part, k])
@@ -1235,6 +1242,8 @@ func follow(dt: float, target: Vector2) -> void:
 	var sqk := _sq_kind()   # 多条技能帧条当前阶段的帧条（"" = 不在序列里）
 	if vis_anim != "" and anim_tex(vis_anim) != null:
 		want = vis_anim   # 纯画面动作（play_vis_anim）：播完前压过普攻 / 跑步，不占出手窗口
+	elif sq_atk != "" and anim_tex(sq_atk) != null:
+		want = sq_atk   # 循环期间的普攻变体（sprites.skills.sN.attack）：按其 fire 帧对齐出手，播完回循环（_tick_sq_atk）
 	elif attack_t > 0.0 and not sq_own and anim_tex(act_anim) != null:
 		want = act_anim   # 序列之外的动作（循环期间起手的普攻 / 另一技能）压过序列，播完接着循环
 	elif sqk != "":
@@ -1558,6 +1567,8 @@ func _anim_state_raw() -> Dictionary:
 			return {"tex": ptx, "frame": pf, "hf": pn, "flip": (face < 0.0) != sprite_mirror(pk), "kind": pk}
 	var n: int = anim_hframes(tx, kind)
 	var fr := 0
+	if sq_atk != "" and kind == sq_atk:
+		return {"tex": tx, "frame": _sq_atk_frame(n), "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
 	if sq_ph != 0 and kind == _sq_kind():
 		return {"tex": tx, "frame": _sq_frame(n), "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
 	if vis_anim != "" and kind == vis_anim:
@@ -1644,11 +1655,16 @@ func _noshield(st: Dictionary) -> Dictionary:
 ## 「段」= 帧条名，或 {"anim": 帧条, "frames": [帧号…]}（只播这条里的这几帧，顺序随写）。帧条名是 sprites 的槽名；不是 idle / run / attack / skill 的要列进 extra_sprites（加载）。
 ## 逻辑窗口（attack_t / fire_t）只由起手段决定（时长 = 起手段帧数 / fps，出手 = fire 帧中点），hold / loop / end 纯画面：技能效果、acting()、
 ## 充能暂停与原单条口径一致。循环期间起手的别的动作（普攻 / 另一技能）压过循环，播完接着循环；起手 / 收势途中被别的动作打断则序列作废
+##   "attack": 帧条（可选，10-16 水月 S2 伞击）：循环期间的普攻画面改播这条（技能期间攻击变体），按它的 fire 帧对齐普攻条的出手时刻
+##   （attack_t / fire_t / 朝向等模拟量不动，同 seed 不变），播完回循环；比出手窗口长的部分照播（下一次普攻起手则从头对齐）。
+##   没写 attack 槽的照旧用普通 attack 条压过循环。只管 act_anim = "attack" 的普攻；start_attack 指定了别的帧条（anim 参数）的不换
 var sq: Dictionary = {}   # 当前序列定义（空 = 不在序列里）
 var sq_i := -1            # 序列属于哪个技能
 var sq_ph := 0            # 0 无 / 1 起手 / 2 定格或循环 / 3 收势
 var sq_t := 0.0           # 当前阶段已播秒数
 var sq_own := false       # 当前出手窗口（attack_t）是序列自己的起手段
+var sq_atk := ""          # 循环期间正在播的普攻变体帧条（"" = 没有）
+var sq_atk_t := -1.0      # 变体从这次普攻起手算起已播秒数（attack_t 归零后继续走；播完清 sq_atk 但保留计时免得同一次普攻再触发；-1 = 下一次普攻从头对齐）
 
 
 func skill_seq(i: int) -> Dictionary:
@@ -1708,6 +1724,8 @@ func _start_skill_seq(aim: Vector2, i: int) -> bool:
 	sq_ph = 1
 	sq_t = 0.0
 	sq_own = true
+	sq_atk = ""
+	sq_atk_t = -1.0
 	act_kind = "skill"
 	act_anim = hk
 	attack_dur = dur
@@ -1734,6 +1752,8 @@ func _start_vis_seq(i: int) -> bool:
 	sq_ph = 1
 	sq_t = 0.0
 	sq_own = true
+	sq_atk = ""
+	sq_atk_t = -1.0
 	vis_anim = ""
 	anim_kind = hk
 	anim_t = 0.0
@@ -1777,6 +1797,8 @@ func _sq_interrupt() -> void:
 	if sq_ph == 1 or sq_ph == 3:
 		_sq_clear()
 	sq_own = false
+	sq_atk = ""   # 新动作起手：变体作废（普攻会在 follow 里按新的出手窗口重新对齐）
+	sq_atk_t = -1.0
 
 
 func _sq_clear() -> void:
@@ -1785,6 +1807,8 @@ func _sq_clear() -> void:
 	sq_ph = 0
 	sq_t = 0.0
 	sq_own = false
+	sq_atk = ""
+	sq_atk_t = -1.0
 
 
 ## follow() 每帧：推进序列阶段（纯画面）
@@ -1815,6 +1839,52 @@ func _tick_sq(dt: float) -> void:
 		3:
 			if sq_t >= _seq_len(sq.get("end")):
 				_sq_clear()
+	_tick_sq_atk(dt)
+
+
+## 循环期间的普攻变体（sq.attack）：普攻出手窗口开着（act_anim = "attack"）就从这次起手对齐，attack_t 归零后继续播到末帧再清掉
+func _tick_sq_atk(dt: float) -> void:
+	var k := _sq_atk_kind()
+	if k == "":
+		sq_atk = ""
+		sq_atk_t = -1.0
+		return
+	if attack_t > 0.0 and act_kind == "attack" and act_anim == "attack" and not sq_own:
+		var el: float = attack_dur - attack_t   # 这次普攻已播秒数（free 流的 attack_t 直接置 attack_dur，同样成立）
+		if sq_atk_t < 0.0 or el < sq_atk_t - 0.0001:
+			sq_atk = k   # 新一次普攻：从头对齐（变体比出手窗口短时播完清掉，同一次普攻不再触发）
+		sq_atk_t = el
+	elif sq_atk != "":
+		sq_atk_t += dt
+	else:
+		return
+	var spec := sprite_spec(sq_atk)
+	var n := float(spec.get("frames", anim_hframes(anim_tex(sq_atk), sq_atk)))
+	if sq_atk_t + _sq_atk_off() >= n / float(spec.get("fps", 12.0)):
+		sq_atk = ""   # 播完回循环
+
+
+## 当前序列循环阶段可用的普攻变体帧条（"" = 没写 / 缺图 / 不在循环阶段）
+func _sq_atk_kind() -> String:
+	if sq_ph != 2 or sq.has("hold"):
+		return ""
+	var k := seq_anim(sq.get("attack", null))
+	return k if k != "" and anim_tex(k) != null else ""
+
+
+## 变体时间轴相对普攻起手的偏移：变体 fire 帧中点对齐普攻条（attack 槽）的出手时刻；变体时间 = sq_atk_t + 偏移
+func _sq_atk_off() -> float:
+	var vs := sprite_spec(sq_atk)
+	var vfps := float(vs.get("fps", 12.0))
+	var v_fire := (float(vs.get("fire", 0)) + 0.5) / vfps
+	var a := sprite_spec("attack")
+	var a_fire: float = (float(a.get("fire", 0)) + 0.5) / float(a.get("fps", 12.0)) if (a.has("fps") and a.has("fire")) else attack_dur * 0.5
+	return v_fire - a_fire
+
+
+func _sq_atk_frame(n: int) -> int:
+	var fps := float(sprite_spec(sq_atk).get("fps", 12.0))
+	return clampi(int(maxf(0.0, sq_atk_t + _sq_atk_off()) * fps), 0, n - 1)
 
 
 func _sq_end() -> void:

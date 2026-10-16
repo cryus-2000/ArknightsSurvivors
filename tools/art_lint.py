@@ -95,6 +95,7 @@ WAIVERS = {
     ("mizuki", "run"): "10-16 用户批准的整套（codex/art 1206366c）：上半身变化阈值按旧 48 帧条定，待改口径",
     ("mizuki", "ground", "skill_s2"): "设计例外（codex/art 1206366c）：S2 张伞触手承托坐姿，离地 1–2px 属造型",
     ("mizuki", "ground", "skill_s2_loop"): "设计例外（codex/art 1206366c）：S2 坐姿循环，离地 1px 属造型",
+    ("mizuki", "ground", "skill_s2_attack"): "设计例外（codex/art 1206366c）：S2 坐姿伞击变体，离地 1px 属造型（10-16 接 attack 槽后纳入机检）",
     ("wisadel", "outline"): "10-16 新规格（docs/103 §5 / 104）：64 画布 @2x 暗色收边、无硬黑外描边（codex/art 01392fc7）",
     ("wisadel", "facing"): "10-16 用户批准整套（codex/art 01392fc7）：扛炮 / 蹲射构图让头部同向分偏，机检口径按旧 48 帧条定",
     ("wisadel", "frontal"): "10-16 用户批准整套（codex/art 01392fc7）：待机 / 跑步偏正面是定稿构图，待改口径",
@@ -137,7 +138,7 @@ def roster(data=DATA):
         for q in sq.values():
             if not isinstance(q, dict):
                 continue
-            for part in ("anim", "intro", "hold", "start", "loop", "end"):
+            for part in ("anim", "intro", "hold", "start", "loop", "end", "attack"):
                 seg = q.get(part)
                 k = seg.get("anim") if isinstance(seg, dict) else seg
                 if k in acts:

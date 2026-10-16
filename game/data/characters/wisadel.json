@@ -132,10 +132,11 @@
       "foot": [
         32,
         60
-      ]
+      ],
+      "fire": 1
     },
     "skills": {
-      "_doc": "10-16 codex/art 01392fc7：S1 扛炮瞄准单条；S2 抬炮重射单条；S3 skill_s3 f0–f1 起手（fire f1）→ 巨炮装填期间 skill_s3_loop 蹲射循环 → f2 收势",
+      "_doc": "10-16 codex/art 01392fc7：S1 扛炮瞄准单条；S2 抬炮重射单条；S3 skill_s3 f0–f1 起手（fire f1）→ 巨炮装填期间 skill_s3_loop 蹲射循环 → f2 收势。装填期间每次炮击 attack 槽用 loop 本身对齐 fire f1（manifest contract）播一遍再回循环，不再用普通 attack 条压过蹲姿（docs/87 §3.5）",
       "s1": {
         "anim": "skill"
       },
@@ -151,6 +152,7 @@
           ]
         },
         "loop": "skill_s3_loop",
+        "attack": "skill_s3_loop",
         "end": {
           "anim": "skill_s3",
           "frames": [
