@@ -4,6 +4,7 @@ extends Node
 ## ① 近战主体（骨海漂流体）走到演示靶脚下不再定住：贴身循环「扑上来 → 弹开 → 再上来」（enemy_demo._contact_cycle），
 ##    10 秒内至少扑 3 次，贴着靶（< e.r + 12）连续不超过 1 秒，弹开后离靶 ≥ e.r + 20；
 ## ② 远程主体（浮海飘航者）的敌弹命中 / 到期后回收：任一帧没有 life ≤ 0 的敌弹留在表里；特效同理。
+## ③ Boss 主体（最后的骑士）20 秒内冲锋 / 追击都留在舞台视口里（正式局 520 的冲锋在图鉴里冲出画面）；冲击帧条到期后不残留。
 ## 全部通过时打印 "GALLERY DEMO failures=0"。
 const D = preload("res://scripts/data.gd")
 var g
@@ -29,6 +30,10 @@ func _ready() -> void:
 	g.demo_enemy = "floater"
 	g.enemy_demo.reset()
 	test_ranged()
+	g.demo_enemy = "knight_boss"
+	g.enemy_demo.stage_half = Vector2(444.0, 388.0) / 0.8 * 0.5   # 桌面图鉴舞台（gallery._stage）/ 演示 zoom 0.8
+	g.enemy_demo.reset()
+	test_knight()
 	print("GALLERY DEMO failures=%d" % failures)
 	get_tree().quit(1 if failures > 0 else 0)
 
@@ -87,3 +92,31 @@ func test_ranged() -> void:
 	check(dead_eb == 0, "no spent enemy bullets linger in g.ebullets (frames with leftovers: %d)" % dead_eb)
 	check(dead_fx == 0, "no expired fx linger in g.fx (%d)" % dead_fx)
 	check(peak <= 12, "enemy bullet table stays bounded (peak %d)" % peak)
+
+
+func test_knight() -> void:
+	var e: Dictionary = g.enemy_demo.subject
+	check(e.type == "knight_boss" and e.boss, "knight boss subject spawned")
+	var dt := 1.0 / 60.0
+	var half: Vector2 = g.enemy_demo.stage_half
+	var out_frames := 0
+	var far := 0.0
+	var dashed := false
+	var dead_fx := 0
+	for frame in 1200:
+		g.t += dt
+		g.enemy_demo.step(dt)
+		if g.enemy_demo.subject != e:
+			break
+		var off: Vector2 = (e.pos - g.demo_origin).abs()
+		far = maxf(far, maxf(off.x - half.x, off.y - half.y))
+		if off.x > half.x or off.y > half.y:
+			out_frames += 1
+		if e.get("dash_t", 0.0) > 0.0 or e.kb.length() > 300.0:
+			dashed = true
+		for f in g.fx:
+			if f.life <= 0.0:
+				dead_fx += 1
+	check(dashed, "knight actually charges in the demo")
+	check(out_frames == 0, "knight never leaves the stage viewport (frames outside %d, max overshoot %.0f)" % [out_frames, far])
+	check(dead_fx == 0, "no expired fx linger during the knight demo (%d)" % dead_fx)

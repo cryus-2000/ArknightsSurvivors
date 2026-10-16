@@ -937,6 +937,8 @@ func _draw_fx() -> void:
 		var foe: bool = f.get("enemy", false) or FOE_KINDS.has(f.kind)
 		if (_dbg_foe and foe) or (_dbg_friend and not foe and not AMB_KINDS.has(f.kind)) or (_dbg_amb and AMB_KINDS.has(f.kind)):
 			continue   # --clutterdbg 量测：这一层不画
+		if f.life <= 0.0:
+			continue   # 到期还没被回收的特效不画（正式局 _cleanup 每帧回收；"sprite" 类按已播时间取帧会夹在末帧一直画，图鉴曾因此留下骑士冲击的冰晶）
 		var fdim: float = 1.0 if f.get("enemy", false) else fx_dim   # 敌方特效不降噪（docs/48 ③）
 		if fdim < 1.0 and DIM_KINDS.has(f.kind):
 			a *= fdim

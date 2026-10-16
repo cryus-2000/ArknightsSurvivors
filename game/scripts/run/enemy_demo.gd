@@ -12,6 +12,7 @@ var subject: Dictionary = {}
 var started := false
 const BITE_OUT := 36.0      # 贴身循环：扑一口后弹到离接触半径外这么远（再按原速走回来）；冲量按主体自己的移速反算，见 _contact_cycle
 const BITE_CD := 1.2        # 同一只至少隔这么久再扑
+var stage_half := Vector2.INF   # 舞台世界半宽高（_keep_on_stage）；INF = 按本演示视口（gallery 的 SubViewport）/ zoom 算。测试可指定
 
 
 func _init(game: Game) -> void:
@@ -117,6 +118,22 @@ func _contact_cycle() -> void:
 		g.enemies_sys.apply_kb(e, (off / d if d > 0.5 else Vector2.LEFT) * kb)
 
 
+## 主体留在舞台里（用户 10-16：图鉴里骑士「刚开始没有出现」）：正式局的 Boss 冲锋按设计线长真冲到位（骑士冰线 → 寒冷追击 520、
+## 冲锋 520），图鉴舞台世界范围只有约 ±277 × ±242（444 × 388 设计像素 / zoom 0.8），开场一冲就冲出画面，之后几秒只看得到预警。
+## 正式局靠黑潮圈（B 段 HF_BOSS 按 zone 夹位置）兜住，演示没有黑潮，这里按舞台视口（留 48 像素画幅边）夹主体位置；
+## 冲锋本身照常起手 / 结算，只是位移到边就停。只在图鉴里调用
+func _keep_on_stage() -> void:
+	if subject.is_empty() or subject.dead or g.cam == null or g.demo_origin == Vector2.INF:
+		return
+	var half: Vector2 = (stage_half if stage_half != Vector2.INF else g.get_viewport_rect().size / g.cam.zoom * 0.5) - Vector2(48.0, 48.0)
+	if half.x <= 0.0 or half.y <= 0.0:
+		return
+	var p: Vector2 = subject.pos
+	var q := Vector2(clampf(p.x, g.demo_origin.x - half.x, g.demo_origin.x + half.x), clampf(p.y, g.demo_origin.y - half.y, g.demo_origin.y + half.y))
+	if q != p:
+		subject.pos = q
+
+
 func cycle_period() -> float:
 	if subject.get("type", "") == "ishar":
 		return 50.0 if phase_mode == 0 else (10.0 if phase_mode == 1 else 35.0)
@@ -141,6 +158,7 @@ func step(dt: float) -> void:
 	_contact_cycle()
 	g.enemies_sys.build_grid()
 	g.enemies_sys.update(dt)
+	_keep_on_stage()
 	g.shots.step(dt)
 	g.tele.update_warns(dt)
 	g.enemies_sys.update_status(dt)
