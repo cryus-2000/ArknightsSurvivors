@@ -22,6 +22,7 @@ func near(a: float, b: float, what: String) -> void:
 
 
 func _init() -> void:
+	test_condensed_fonts()
 	test_stat_order()
 	test_bus()
 	test_modifiers()
@@ -46,6 +47,22 @@ func _init() -> void:
 	if fails == 0:
 		print("CORE TESTS PASSED")
 	quit(1 if fails > 0 else 0)
+
+
+func test_condensed_fonts() -> void:
+	var ui = preload("res://scripts/ui.gd")
+	var a := FontFile.new()
+	var b := FontFile.new()
+	var regular: FontVariation = ui.cond(a)
+	var italic: FontVariation = ui.cond(a, true)
+	ok(ui.cond(a) == regular and ui.cond(a, true) == italic, "压缩字体重复取用同一资源")
+	ok(regular != italic and ui.cond(b) != regular and ui.cond(b, true) != italic, "字体与斜体缓存互不串用")
+	ok(regular.base_font == a and italic.base_font == a and ui.cond(b).base_font == b, "压缩字体保留对应基字体")
+	ok(regular.variation_transform == Transform2D(Vector2(0.82, 0), Vector2(0, 1), Vector2.ZERO), "压缩字体变换不变")
+	ok(italic.variation_transform == Transform2D(Vector2(0.82, 0.2), Vector2(0, 1), Vector2.ZERO), "斜体变换不变")
+	ok(is_equal_approx(regular.variation_embolden, 0.35) and is_equal_approx(italic.variation_embolden, 0.35), "压缩字体加粗不变")
+	ui._cond.clear()
+	ui._cond_italic.clear()
 
 
 func test_stat_order() -> void:

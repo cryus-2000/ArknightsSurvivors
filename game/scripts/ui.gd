@@ -48,6 +48,7 @@ const GLOW := CYAN
 ## 英文压缩字：原作英文小标签是窄体粗字（Bender / Novecento 一类）。本作不额外带字体文件，
 ## 用 FontVariation 把 UI 字体横向压到 0.82 倍、略加粗；italic 再斜一点（节点标签条用）。
 static var _cond := {}
+static var _cond_italic := {}
 ## HUD 合批段（性能，协调人 9/30；hud.gd batch_begin / batch_end）：sink 非空时下面这些助手的色块 / 圆 / 弧 / 线写进
 ## 三角形批（hud.gd 的 Tris），tq 非空时文字延后（追加成 Callable，批提交后再画，保证字压在色块上）。平时都是 null，行为不变
 static var sink = null
@@ -75,15 +76,16 @@ static func _ks(ci: CanvasItem, size: int) -> int:
 
 
 static func cond(base: Font, italic := false) -> Font:
-	var key := "%d:%s" % [base.get_instance_id(), italic]
-	if _cond.has(key):
-		return _cond[key]
+	var cache: Dictionary = _cond_italic if italic else _cond
+	var cached = cache.get(base)
+	if cached != null:
+		return cached
 	var fv := FontVariation.new()
 	fv.base_font = base
 	# 这个变换按 FreeType 矩阵解释（x' = xx·x + xy·y），所以斜体的切变量放在 x_axis.y
 	fv.variation_transform = Transform2D(Vector2(0.82, 0.2 if italic else 0.0), Vector2(0.0, 1.0), Vector2.ZERO)
 	fv.variation_embolden = 0.35
-	_cond[key] = fv
+	cache[base] = fv
 	return fv
 
 

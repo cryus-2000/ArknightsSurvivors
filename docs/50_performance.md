@@ -1171,3 +1171,37 @@ web_nothreads_release 测量副本（试验代码快照导出；`Cfg.dev_args`�
 构建脚本现已通过统一 runner 导出 API / 导入扩展，使用 Dummy 音频，超时或 Godot 报错会终止；`native/tests/test_build_native.py` 覆盖 runner、失败处理及加载探针禁用缓存。合入交给协调人，不推送或发布。
 
 验证：`python -m unittest discover -s native/tests -v` 3 项通过；手动移除本工作树扩展登记的负例确实报错并已恢复；`python tools/check.py --auto --jobs 3` 73 项、0 失败（`build/check/quick_1017_015244`，2 / 100 Godot 结果命中缓存，14 份旧金样过期跳过）。原生 / GDScript 的三分钟 TRACE 181 行一致；另加 `--nodeath --maxt=660 --trace=1` 长局，653 秒胜利结束，654 行 TRACE 完全一致（`build/native_perf/trace660_native.log`、`trace660_gd.log`）。
+
+## 19. HUD 压缩字体缓存（10-17，Codex）
+
+沿 §18 的 HUD 方向继续，分支 `codex/hud-font-cache`（承接 `codex/native-perf` 的验证工具与记录）。范围只到 `UI.cond()`：原来每次把 Font 实例 ID 与 italic 格式化成字符串再查表；现在 normal / italic 各用一张以 Font 对象为键的表，一次 `get` 取资源。FontVariation 的 base_font、变换、加粗、所有调用方与绘制顺序不变。原先缓存值已持有基字体，新键不改变基字体的有效生命周期。
+
+这是减少重复查询开销的小改动。没有做字形布局缓存、绘制降频、减特效或改变玩法；不把它作为稳定 60 FPS 的解决方案。
+
+### 19.1 隔离对照
+
+基线游戏内容 `6b697796`，参数、分辨率、画质沿用 §18（`--maxt=600`），原生运动核心在两桶均启用。临时探针用未占用的 `--optab=60 --optmask=524288`，只切换字体缓存；两侧使用对称函数调用。运行中全机 Godot 计数始终为 1。探针结束后恢复源码，**不进入交付**。
+
+| 7–10 分钟指标 | 原字符串键 | Font 对象键 |
+|---|---:|---:|
+| 样本数 | 5,387 | 5,377 |
+| HUD 平均毫秒 | 1.332 | 1.308 |
+| 整帧平均毫秒 | 12.643 | 12.596 |
+| 整帧 P95 毫秒 | 15.60 | 15.68 |
+| 整帧 P99 毫秒 | 17.32 | 17.76 |
+
+HUD 平均减少 **0.024 毫秒（1.8%）**；8–10 分钟 HUD 1.355 → 1.334 毫秒（−0.021）。整帧平均在 7–10 分钟少 0.047 毫秒、8–10 分钟却多 0.062 毫秒，P95 / P99 也未改善，**没有证据证明整帧或尾部帧时稳定提速**。保留的是减少分配与查询成本的小优化，整体目标仍须继续定位更大的绘制热点。不可拿这次约 12.6 毫秒与 §18 的约 14.7 毫秒跨局相减计算收益。
+
+证据位于本工作树 `build/hud_font_isolated/`：`native_toggle.csv`、`native_toggle.json`、`summary.json`、`processes.json`；汇总文件沿用原生测量脚本的字段名，`native` 表示新字体缓存、`gd` 表示旧字体缓存，两桶都用原生运动核心。启动探针 `build/run_hud_font_isolated.py` 留在本地 build 目录供复测，不入库。
+
+**无效测量已排除**：最初用了 `--perfab=60`。源码核查发现它还会改变剑雨 / 浊心斯卡蒂 / 漩涡等绘制、顿帧和 PlayClock 测试分支，不能作为字体优化的隔离开关。该局以及随后中止的同类局全部不作为收益证据。以后评估独立优化应先搜索开关的所有使用处，再分配独立 `optmask`。
+
+### 19.2 回归与交接
+
+核心契约新增 6 项检查：重复取用同一资源、字体与斜体隔离、基字体引用、两种变换和加粗保持原值；2,875 项核心检查通过。代码审阅未发现资源生命周期或缓存串用问题。正式交付仅含字体查询改动、上述回归及文档，没有临时性能开关。
+
+独立微基准（无游戏自动加载、只量查找）：10 万次 normal / italic 交替查找，原方式 89.946 毫秒、新方式 44.920 毫秒；不包含文字绘制，不能换算为 FPS。脚本 `build/font_bench_clean.gd`、日志 `build/hud_font_isolated/micro.log`。
+
+同 seed 回归：与 `6b697796` 保存的原生路径基线对比，`--seed=13 --op=skalter --squad=texas,exusiai --bot=expert --nodeath --maxt=660 --trace=1` 在 653 秒胜利结束，654 行 TRACE 完全一致（`build/hud_font_isolated/trace.log`）。
+
+完整快检：`python tools/check.py --auto --jobs 3`，73 项、0 失败、Godot 缓存命中 0 / 100（`build/check/quick_1017_022541`）；14 份过期金样仍按现有规则跳过。未做网页测量或截图逐像素对照；字体配置回归通过不等于完成全平台视觉验收。协调人合入分支前保留以上限制。
