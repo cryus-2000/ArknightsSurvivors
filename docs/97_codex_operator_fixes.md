@@ -717,3 +717,49 @@ C 批（7 人 idle / skill 压到 24 色）与 E 批（明度 5 人）把 **艾�
 | 出手时机变化 | S1 不变（0.1875 s，窗口 0.375 s）。S2 原借 s1 条：出手 0.1875 s / 窗口 0.375 s → 现出手 0.071 s（attack 条一帧后）/ 窗口 0.321 s。S3 原借 s1 条：出手 0.1875 s 不变，窗口 0.375 s → 0.25 s（起手只播 f0 / f1）。所以同 seed 的 TRACE 在第一次 S2 / S3 释放之后不再逐行相同。对照（`tools/trace_base.py 1 suzuran 240 --here`，基线 main eeaff3b8）：全接 → 第 1–75 行相同、t=75.04 起不同（k 79 → 80，第一次 S2 之后）；只接 S3（S2 走旧单条）→ 第 1–208 行相同、t=208.03 起只有 pos 不同（第一次 S3 之后）；去掉 `sprites.skills` 只留代码 → 241 行逐行相同（代码本身不改玩法） |
 | 图鉴 / 选人预览 | 仍读 `skill` 槽（s1 条），多条序列只在局内播 |
 
+
+## 阶段 ④：专属帧条（逐人逐条；64 画布 @2x，10-16 界面与美术写单）
+
+> 口径：docs/103（尺度 / 原点）+ docs/104（按部件重排、分层合成）。帧条一律 **128 画布 @2x、只交 @2x**，原点 = 旧 foot + (8, 14) 再 × 2（旧 foot (24, 46) → (32, 60)，@2x (64, 120)）；与对应基础动作（阶段 ②③ 的待机 / 跑 / 攻击）逐帧对齐。帧数 / fps / 出手帧沿用现版（来自各干员 json），要改的在备注写。**人物帧条要重画；弹体 / 特效 / 道具条（proj_ / fx_ / prop_）已是 @2x，沿用不重画**，只在阶段 ④ 验收时目视核对与新体型的相对大小，不对再另开单。博士不画。
+
+### 人物专属帧条（要重画）
+
+| 干员 | 槽名（json `sprites.<槽>`） | 帧数 / fps / 出手帧 | 触发时机 | 接入点 / 备注 |
+|---|---|---|---|---|
+| 星熊 | `throw` | 6 / 14 / f2 | 精英化「般若回旋」掷盾：f2 盾离手（盾由 `proj_hoshiguma_sawshield` 表现） | `sprites.throw`、`extra_sprites`；每帧 `shield` 盾心点（帧内像素，64 画布按 foot 重标，null = 盾已离手） |
+| 星熊 | `idle_noshield` | 4 / 4 / — | 盾在外面（般若回旋，盾离手到收回约 0.68 秒）时的待机；逐帧同 `idle` 姿势、只去盾（docs/97 H 批） | `sprites.noshield.art`（名字 `op_hoshiguma_idle_noshield`，有图自动换，缺图走 `fallback`） |
+| 星熊 | `run_noshield` | 6 / 10 / — | 同上的跑步，与 `run` 逐帧同步 | `noshield.art` |
+| 星熊 | `attack_noshield` | 5 / 12 / f3 | 同上被技能 / 受击打断时播到的普攻：空手前推 | `noshield.art` |
+| 星熊 | `throw_noshield` | 6 / 14 / f2 | 连续掷盾、上一面还没回来：全程空手，不画接回的盾 | `noshield.art` |
+| 安洁莉娜 | `float_in` | 4 / 12 / — | S3 秘杖·反重力模式：施法动作播完后播一遍起飞；结束时**倒放**落地（`out_rev`） | `sprites.skill_pose`（`in` / `out` 同一条）、`extra_sprites` |
+| 安洁莉娜 | `float` | 6 / 8 / — | S3 期间的待机（浮空） | `skill_pose.map.idle` |
+| 安洁莉娜 | `float_move` | 6 / 10 / — | S3 期间的移动 | `skill_pose.map.run` |
+| 安洁莉娜 | `float_attack` | 5 / 12 / f2 | S3 期间的普攻（出手时刻仍按地面 attack 条，只换画面） | `skill_pose.map.attack`；影子缩 70%、变淡由代码做 |
+| 凯尔希 | `command` | 6 / 12 / f2 | 凯尔希本人「指令」施法（S1–S3 的指令动作） | `sprites.command`、`skills[i].anim` |
+| Mon3tr | `m_idle` | 4 / 4 / — | 召唤物待机 | `sprites.m_idle`，foot (32, 60) 已是 64 画布，**只补 @2x 原生细节 / 核对**，不改尺寸 |
+| Mon3tr | `m_run` | 6 / 10 / — | 召唤物移动 | `sprites.m_run` |
+| Mon3tr | `m_attack` | 4 / 14 / f2 | 召唤物普攻 | `sprites.m_attack` |
+| Mon3tr | `m_skill` | 6 / 12 / f2 | 召唤物技能动作 | `sprites.m_skill` |
+| Mon3tr | `m_attack_melt` | 4 / 14 / f2 | S3 熔毁期间的爪击（真实伤害 ×1.6） | `sprites.m_attack_melt` |
+| Mon3tr | `m_lunge` | 6 / 14 / f3 | 精英化前扑，f3 落爪 | `sprites.m_lunge` |
+| Mon3tr | `m_leap` | 6 / 12 / — | 精英化跃回，第 4 帧展开刃爪落地 | `sprites.m_leap` |
+| 乌尔比安 | `throw` | 8 / 14 / f3 | 掷锚：f3 锚离手，f6 回拉，首末帧接 idle | `sprites.throw`、`extra_sprites` |
+| 水月 | `skill_s2` / `skill_s2_loop` / `skill_s2_attack` / `skill_s3` | 3 / 8 / f1；4 / 4；8 / 6 / f3；3 / 8 / f1 | S2 进入 → 高速期间坐姿循环 → 出手；S3 起手 | **已交已接**（codex/art 1206366c，`player_skill_*`，foot (32, 60)），本阶段不再要 |
+| 铃兰 | `skill_s1` / `skill_s2_hold` / `skill_s3` / `skill_s3_loop` | 3 / 8 / f1；1；3 / 8 / f1；2 | S1；S2 hold 250 ms；S3 起手 / 循环 | **已齐**（codex/art 0827a990；S2 / S3 待接线，见「铃兰技能动画接线方案」） |
+
+### 弹体 / 特效 / 道具条（沿用，不重画，只目视核对相对大小）
+
+| 干员 | 条 | 帧数 / fps | 触发时机 | 接入点 |
+|---|---|---|---|---|
+| 星熊 | `proj_hoshiguma_sawshield` | 见 `art.gd` 帧表 | 掷盾（般若回旋）盾体飞行 | `art.gd` 帧表 |
+| 流明 | `prop_lighthouse` | 2 / 4（foot (24, 60)，256 × 128 @2x） | 放置灯塔（技能道具） | `sprites.lighthouse`（`prop`，`anim: lighthouse`） |
+| 乌尔比安 | `proj_ulpianus_anchor` | 2 / 10 | 掷锚弹体 | `art.gd:699`；`seg_ulpianus.gd:656` |
+| 乌尔比安 | `fx_ulpianus_chain_tile` | 2 / 12 | 锁链（平铺，json `chain`） | `ulpianus.json` `chain` 字段 |
+| 乌尔比安 | `fx_ulpianus_anchor_impact_back` / `_front` / `pull_ring` / `drag_dust` | 6 / 16；6 / 14 | 锚落地冲击（前后两层）、回拉环、拖拽灰尘 | `art.gd:745`；`ulpianus.json` fx |
+| 维什戴尔 | `fx_wisadel_cannon` | 4 / 12（768 × 192） | 巨炮炮击落地 | `seg_wisadel.gd:573` / `:592`；维什戴尔没有人物专属帧条 |
+| 维什戴尔 | `proj_wisadel_soul_shell` | 2 / 20 | 魂炮小炮弹 | `art.gd:758`；`seg_wisadel.gd:736` |
+
+### 交付与验收
+
+- 交付：`art/incoming/j_extra_1016/<id>/op_<id>_<槽>@2x.png` + 逐帧 PNG + GIF + 位移表 + 8 倍自检（docs/104 §3 第 6 条），**本地候选先给用户看**；一人一个提交；节奏与基础动作同（人内串行：基础动作过了再做专属条）。
+- 验收：docs/104 §4 三层；②层加「与对应基础动作逐帧对齐（脚底 / 握点 / 脸）」；③层加触发场景实机（星熊放般若回旋看盾外 / 盾回、安洁莉娜 S3 起飞落地、乌尔比安掷锚回拉）。
