@@ -1555,6 +1555,7 @@ func update_doctor_anim(dt: float) -> void:
 		anim_name = key
 		anim_t = 0.0
 		g.sprite.texture = tx
+		g.sprite.scale = Vector2(g.PX, g.PX) * float(g.ch.def.get("sprites", {}).get("draw_scale", 1.0)) if g.ch != null else Vector2(g.PX, g.PX)   # 干员整体缩放（docs/103：水月 0.9 试验，10-16）
 		g.sprite.hframes = max(1, tx.get_width() / tx.get_height())
 		# 脚底锚点：data/doctor.json 的 sprites.foot（旧 2 帧待机条为 45，编队美术第一批为 46）
 		var foot_y: float = float(sp.get("foot", [24, 45])[1])
@@ -1606,6 +1607,7 @@ func update_player_anim48(dt: float) -> void:
 		anim_name = key
 		anim_t = 0.0
 		g.sprite.texture = tx
+		g.sprite.scale = Vector2(g.PX, g.PX) * float(g.ch.def.get("sprites", {}).get("draw_scale", 1.0)) if g.ch != null else Vector2(g.PX, g.PX)   # 干员整体缩放（docs/103：水月 0.9 试验，10-16）
 		g.sprite.hframes = max(1, tx.get_width() / tx.get_height())
 		var hi48 := A.hires_of(tx)
 		var fy48: float = float(g.ch.def.get("sprites", {}).get("foot", [0, tx.get_height() / hi48 - 2.0])[1]) if g.ch != null else tx.get_height() / hi48 - 2.0

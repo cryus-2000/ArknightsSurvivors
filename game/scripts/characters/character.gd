@@ -1978,7 +1978,7 @@ func _strip(tx: Texture2D, frames: int, fr: int, p: Vector2, sc: float, anchor_p
 	var hi: float = A.hires_of(tx)
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
-	var k: float = sc / hi
+	var k: float = sc / hi * float(def.get("sprites", {}).get("draw_scale", 1.0))   # 干员整体缩放（docs/103：水月 0.9 试验，10-16）
 	cv.draw_set_transform(p.round(), 0.0, Vector2(-k if flip else k, k))
 	cv.draw_texture_rect_region(tx, Rect2(-anchor_px * hi, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

@@ -91,7 +91,8 @@
         "anim": "skill_s3"
       }
     },
-    "_note_1016": "64 画布只交 @2x（codex/art 1206366c，仍用 player_* 槽名，world.gd p48_tex 按帧尺寸读）：idle 4/4、run 6/10、attack 4/14 fire 2、hurt 2/10、death 4/6"
+    "_note_1016": "64 画布只交 @2x（codex/art 1206366c，仍用 player_* 槽名，world.gd p48_tex 按帧尺寸读）：idle 4/4、run 6/10、attack 4/14 fire 2、hurt 2/10、death 4/6",
+    "draw_scale": 0.9
   },
   "base": {
     "umbrella_dmg": 15,
