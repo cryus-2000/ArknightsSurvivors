@@ -22,6 +22,7 @@ func near(a: float, b: float, what: String) -> void:
 
 
 func _init() -> void:
+	test_hud_arc_geometry()
 	test_condensed_fonts()
 	test_stat_order()
 	test_bus()
@@ -47,6 +48,40 @@ func _init() -> void:
 	if fails == 0:
 		print("CORE TESTS PASSED")
 	quit(1 if fails > 0 else 0)
+
+
+func test_hud_arc_geometry() -> void:
+	var tris = preload("res://scripts/screens/hud_tris.gd")
+	for seg in [1, 16, 48, 64]:
+		for center in [Vector2.ZERO, Vector2(102, 618), Vector2(-13.21, 711.37)]:
+			for radius in [0.0, 0.2, 24.5, 100.1234567]:
+				var batch = tris.new()
+				var points := PackedVector2Array()
+				var colors := PackedColorArray()
+				var indices := PackedInt32Array()
+				for pass_i in 3:
+					var color := Color(0.34, 0.78, 1.12, 0.3 * pass_i)
+					var end := TAU if pass_i < 2 else 1.3
+					var base := points.size()
+					for q in seg + 1:
+						var d := Vector2.from_angle(lerpf(0.0, end, float(q) / seg))
+						points.append(center + d * (radius - 0.75))
+						points.append(center + d * (radius + 0.75))
+						colors.append(color)
+						colors.append(color)
+					for q in seg:
+						var i: int = base + q * 2
+						indices.append_array([i, i + 1, i + 3, i, i + 3, i + 2])
+					batch.arc(center, radius, 0.0, end, 1.5, color, seg)
+				ok(batch.pts == points and batch.cols == colors and batch.idx == indices,
+					"HUD 圆环缓存：位置、颜色、连续追加及进度弧几何不变")
+	for i in 300:
+		var batch = tris.new()
+		batch.pts.resize(i)
+		batch.arc(Vector2.ZERO, i + 1.0, 0.0, TAU, 1.0, Color.WHITE, 2)
+	ok(tris._full_arcs.size() <= 128 and tris._arc_indices.size() <= 256, "HUD 圆环缓存有界")
+	tris._full_arcs.clear()
+	tris._arc_indices.clear()
 
 
 func test_condensed_fonts() -> void:

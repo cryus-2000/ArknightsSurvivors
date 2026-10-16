@@ -8,6 +8,9 @@ var pts := PackedVector2Array()
 var cols := PackedColorArray()
 var idx := PackedInt32Array()
 
+static var _full_arcs := {}
+static var _arc_indices := {}
+
 func quad4(p: Array, c: Array) -> void:
 	var b: int = pts.size()
 	for q in 4:
@@ -58,6 +61,36 @@ func circle(c: Vector2, r: float, col: Color, seg := 12) -> void:
 
 func arc(c: Vector2, r: float, a0: float, a1: float, w: float, col: Color, seg := 24) -> void:
 	var b: int = pts.size()
+	if a0 == 0.0 and a1 == TAU:
+		# 整环只变位置和颜色；保留原顶点顺序，复用圆心为零的几何。
+		var key := [r, w, seg]
+		var shape = _full_arcs.get(key)
+		if shape == null:
+			if _full_arcs.size() >= 128:
+				_full_arcs.clear()
+			shape = PackedVector2Array()
+			for q in seg + 1:
+				var d := Vector2.from_angle(lerpf(a0, a1, float(q) / seg))
+				shape.append(d * (r - w * 0.5))
+				shape.append(d * (r + w * 0.5))
+			_full_arcs[key] = shape
+		pts.append_array(Transform2D(0.0, c) * shape)
+		var colors := PackedColorArray()
+		colors.resize(shape.size())
+		colors.fill(col)
+		cols.append_array(colors)
+		var ik := Vector2i(b, seg)
+		var indices = _arc_indices.get(ik)
+		if indices == null:
+			if _arc_indices.size() >= 256:
+				_arc_indices.clear()
+			indices = PackedInt32Array()
+			for q in seg:
+				var i0: int = b + q * 2
+				indices.append_array([i0, i0 + 1, i0 + 3, i0, i0 + 3, i0 + 2])
+			_arc_indices[ik] = indices
+		idx.append_array(indices)
+		return
 	for q in seg + 1:
 		var d := Vector2.from_angle(lerpf(a0, a1, float(q) / seg))
 		pts.append(c + d * (r - w * 0.5))
