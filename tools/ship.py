@@ -40,6 +40,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--skip-check", action="store_true")
     ap.add_argument("--no-itch", action="store_true")
+    ap.add_argument("--internal", action="store_true", help="同时出对内包（缺省只出 public + web；用户 10-16 定）")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
 
@@ -62,7 +63,7 @@ def main():
         steps.append(("金样重录", [sys.executable, TOOLS / "check.py", "--only", "blocks_eq", "--eq-all", "--update-golden", "--jobs", "4"]))
     steps.append(("发布检查", [sys.executable, TOOLS / "check_release.py"]))
     steps.append(("推 origin/main", ["git", "push", "origin", "main"]))
-    for kind in ("public", "web", "internal"):
+    for kind in (("public", "web", "internal") if a.internal else ("public", "web")):
         steps.append(("出包 " + kind, [sys.executable, TOOLS / "release_all.py", "--ref", short, "--only", kind]))
     steps.append(("清旧包", [sys.executable, TOOLS / "clean_local.py", "--release", "--apply"]))  # docs/36 §10：只留最近 3 个 + KEEP_SHAS
     if not a.no_itch:
