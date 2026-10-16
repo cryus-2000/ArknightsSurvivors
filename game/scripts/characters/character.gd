@@ -1276,7 +1276,9 @@ func start_skill(aim: Vector2, idx: int = -1, dur: float = 0.6, fire_at: float =
 ## 技能 i 播放的帧条（2026-09-26）：缺省读干员 JSON skills[i].anim（例如 "attack" = 放技能时播普攻动作），没写就是 "skill"。
 ## 干员脚本也可以重写这个函数按状态决定。出手时机按实际播放的那套帧条的 fps / fire 算。
 func skill_anim(i: int) -> String:
-	return str(skill_def(i).get("anim", "skill")) if i >= 0 else "skill"
+	if i < 0:
+		return "skill"
+	return str(skill_def(i).get("anim", skill_seq(i).get("anim", "skill")))   # sprites.skills.sN 只写 anim 的单条同 skills[i].anim（docs/87 §3.5）
 
 
 ## 纯画面动作（2026-10-14，docs/97 B 水月技能帧条）：attack.flow = free 的干员技能充满即发（op_blocks h3_free），
@@ -1290,6 +1292,14 @@ func play_vis_anim(kind: String) -> void:
 	vis_anim = kind
 	anim_kind = kind
 	anim_t = 0.0
+
+
+## 充满即发干员的技能画面（10-16 水月 S2）：写了 sprites.skills.sN 序列（start / loop / end 或 intro / hold）就按序列播（纯画面：
+## 不占出手窗口，attack_t / fire_t / 朝向都不动，同 seed 模拟不变；loop 跟着 skill_active_left(i) 走，结束播 end），否则单条 play_vis_anim
+func play_vis_skill(i: int) -> void:
+	if _start_vis_seq(i):
+		return
+	play_vis_anim(skill_anim(i))
 
 
 ## 纯画面动作的时长：帧数 / fps（没写 fps 按 12）
@@ -1708,6 +1718,28 @@ func _start_skill_seq(aim: Vector2, i: int) -> bool:
 	return true
 
 
+## 纯画面版起手（play_vis_skill）：同 _start_skill_seq 的序列状态，但不设出手窗口（attack_t / fire_t / act_* 不动）。
+## 起手段仍 sq_own（压过同帧起手的普攻画面，与出手窗口版一致），起手播完 _tick_sq 清掉 sq_own，之后普攻画面压过循环、播完接着循环
+func _start_vis_seq(i: int) -> bool:
+	var q := skill_seq(i)
+	if q.is_empty():
+		return false
+	var hold: bool = q.has("hold")
+	var head = q.get("intro" if hold else "start", null)
+	var hk := seq_anim(head)
+	if hk == "" or anim_tex(hk) == null:
+		return false
+	sq = q
+	sq_i = i
+	sq_ph = 1
+	sq_t = 0.0
+	sq_own = true
+	vis_anim = ""
+	anim_kind = hk
+	anim_t = 0.0
+	return true
+
+
 ## 当前阶段的「段」
 func _sq_seg():
 	match sq_ph:
@@ -1767,6 +1799,8 @@ func _tick_sq(dt: float) -> void:
 			var n1: float = (1.0 / float(sprite_spec(seq_anim(head)).get("fps", 12.0))) if (hold and not (head is Dictionary)) else _seq_len(head)
 			if sq_t >= n1:
 				sq_t = 0.0
+				if not hold:
+					sq_own = false   # start 段结束：出手窗口版此时 attack_t 也正好到 0；纯画面版（play_vis_skill）之后让普攻画面压过循环。hold 的出手窗口覆盖整个定格，保留
 				if hold or skill_active_left(sq_i) > 0.0:
 					sq_ph = 2
 				else:
