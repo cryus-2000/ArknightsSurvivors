@@ -112,6 +112,25 @@
 - 机检：`art_lint.roster` 把 `skills` 引用的槽当本人身体（描边 / 色数 / 贴地同主动作）；循环帧属造型离地的按单条帧条豁免 `(op, "ground", 槽)` 登记（铃兰 `skill_s3_loop` 微浮 2px）。
 - 同 seed：hold / loop / end 只改画面；出手窗口随起手段的帧数 / fps 变，改接线等于改出手时机，TRACE 对照要说明（铃兰接入记录见 docs/97）。
 
+#### 统一技能姿态（docs/105，2026-10-17）
+
+`sprites.skill_pose` 已删除，出现即校验失败。持续技能统一写进 `sprites.skills.sN`：
+
+```json
+"s3": {"start": "skill", "enter": "float_in", "loop": "float",
+       "run": "float_move", "attack": "float_attack",
+       "end": {"anim": "float_in", "reverse": true},
+       "shadow": 0.7, "shadow_a": 0.55}
+```
+
+- `start` 仍独自决定出手窗口和出手帧。用户确认保留安洁莉娜原 `skill` 的 7 / 12 秒窗口、3.5 / 12 秒出手；不得直接换成 `float_in` 改变玩法时序。
+- `enter` 为可选的施法后纯画面段：start 结束且技能仍生效时播放，再进 loop。其他动作可暂时遮住 enter，期间暂停 enter，播完继续；不延长 `attack_t`、不修改 `fire_t`。技能提前结束时转 end。省略或缺图则直接进 loop。
+- `run` 为持续期移动条，缺省或缺图回 loop；按该条 fps 循环，跑停沿用 40 / 20 的速度滞回。`attack` 沿用上文出手对齐规则。三者只用于有 start / loop 的序列，不用于 hold。
+- 段可写 `reverse: true`，倒放整条或指定的 frames 子段，不修改原帧表；loop / run 也按其帧表循环。
+- `shadow` / `shadow_a` 分别为影子大小 / 不透明度系数（0–1，缺省各为 1），进入和退出以 0.25 秒缓动。带 enter 时施法阶段保持地面影子，enter / loop 期间缩淡，end / 序列作废后恢复。
+- 所有引用槽（含 enter / run）都校验加载清单与子段边界；`art_lint` 统一识别为本人身体。未写技能契约的干员保持原单条逻辑。
+- 回归：`angelina_skill_anim_test` 检查原施法窗口、enter 被普攻遮住后的续播、移动与攻击变体、倒放、影子、玩法 RNG 与非法契约；铃兰 / 水月回归继续保留。
+
 ## 4. 配色与明度
 
 ### 4.1 观感背景

@@ -128,17 +128,12 @@ def roster(data=DATA):
         sp = d.get("sprites") or {}
         foot = sp.get("foot", [24, 46])
         acts = {k: dict(v) for k, v in sp.items() if isinstance(v, dict) and "tex" in v}
-        # 技能期间换动作组（sprites.skill_pose，docs/92）引用的帧条是本人身体：和 MAIN_ACTS 一样查描边 / 色数 / 贴地
-        pz = sp.get("skill_pose") if isinstance(sp.get("skill_pose"), dict) else {}
-        for k in [pz.get("in"), pz.get("out")] + list((pz.get("map") or {}).values()):
-            if k in acts:
-                acts[k]["_body"] = True
         # 多条技能帧条（sprites.skills，docs/87 §3.5）引用的帧条同样是本人身体
         sq = sp.get("skills") if isinstance(sp.get("skills"), dict) else {}
         for q in sq.values():
             if not isinstance(q, dict):
                 continue
-            for part in ("anim", "intro", "hold", "start", "loop", "end", "attack"):
+            for part in ("anim", "intro", "hold", "start", "enter", "loop", "run", "end", "attack"):
                 seg = q.get(part)
                 k = seg.get("anim") if isinstance(seg, dict) else seg
                 if k in acts:

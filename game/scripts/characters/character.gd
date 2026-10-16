@@ -303,23 +303,9 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 		if sk.filter(func(x): return x is Dictionary and x.get("mode", "auto") == "manual").size() > 1:
 			push_error("干员 %s 最多只能有 1 个手动技能" % cid)
 			ok = false
-	# 技能期间换动作组（sprites.skill_pose，docs/92）：引用的帧条要在 sprites 里，并列进 extra_sprites（否则不加载）
-	var pz = d.get("sprites", {}).get("skill_pose", null)
-	if pz != null:
-		var pn: Array = []
-		if not (pz is Dictionary) or not int(pz.get("skill", -1)) in [0, 1, 2]:
-			push_error("干员 %s 的 sprites.skill_pose 须是字典且 skill ∈ 0–2" % cid)
-			ok = false
-		else:
-			pn = [pz.get("in", ""), pz.get("out", "")]
-			if pz.get("map", {}) is Dictionary:
-				pn.append_array(pz.get("map", {}).values())
-		for k in pn:
-			if str(k) == "":
-				continue
-			if not d.sprites.has(str(k)) or not str(k) in d.get("extra_sprites", []):
-				push_error("干员 %s 的 skill_pose 帧条「%s」不在 sprites 或没列进 extra_sprites" % [cid, k])
-				ok = false
+	if d.get("sprites", {}).has("skill_pose"):
+		push_error("干员 %s 的 sprites.skill_pose 已移除，请按 docs/105 §4 迁移到 sprites.skills" % cid)
+		ok = false
 	# 多条技能帧条（sprites.skills，docs/87 §3.5）：键 s1–s3，引用的帧条要在 sprites 里，非主动作的要列进 extra_sprites
 	var sq_ = d.get("sprites", {}).get("skills", null)
 	if sq_ != null:
@@ -344,10 +330,14 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 				if q.has("hold") and q.has("start"):
 					push_error("干员 %s 的 sprites.skills.%s 不能同时写 hold 与 start" % [cid, sk_])
 					ok = false
-				if q.has("attack") and not q.has("loop"):
-					push_error("干员 %s 的 sprites.skills.%s 的 attack 槽只在 start / loop / end 序列里有意义（要有 loop）" % [cid, sk_])
+				if (q.has("attack") or q.has("run") or q.has("enter")) and (not q.has("loop") or not q.has("start") or q.has("hold")):
+					push_error("干员 %s 的 sprites.skills.%s 的 attack / run / enter 槽需要 start 与 loop，不能用于 hold" % [cid, sk_])
 					ok = false
-				for part in ["anim", "intro", "hold", "start", "loop", "end", "attack"]:
+				for key in ["shadow", "shadow_a"]:
+					if q.has(key) and (not (q[key] is float or q[key] is int) or not is_finite(float(q[key])) or float(q[key]) < 0.0 or float(q[key]) > 1.0):
+						push_error("干员 %s 的 sprites.skills.%s.%s 须为 0–1 的数值" % [cid, sk_, key])
+						ok = false
+				for part in ["anim", "intro", "hold", "start", "enter", "loop", "run", "end", "attack"]:
 					if not q.has(part):
 						continue
 					var seg = q[part]
@@ -355,6 +345,9 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 						push_error("干员 %s 的 sprites.skills.%s.attack 须是帧条名（出手帧按该条 fire）" % [cid, sk_])
 						ok = false
 						continue
+					if seg is Dictionary and seg.has("reverse") and not (seg.reverse is bool):
+						push_error("干员 %s 的 sprites.skills.%s.%s.reverse 须是布尔值" % [cid, sk_, part])
+						ok = false
 					var k := seq_anim(seg)
 					if k == "" or not d.sprites.has(k) or not (d.sprites[k] is Dictionary) or not d.sprites[k].has("tex"):
 						push_error("干员 %s 的 sprites.skills.%s.%s 帧条「%s」不在 sprites（须是带 tex 的槽）" % [cid, sk_, part, k])
@@ -364,7 +357,7 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 						ok = false
 					elif seg is Dictionary and seg.has("frames"):
 						var nf = d.sprites[k].get("frames", null)
-						if not (seg.frames is Array) or seg.frames.is_empty() or seg.frames.any(func(x): return not (x is float or x is int) or int(x) < 0 or (nf != null and int(x) >= int(nf))):
+						if not (seg.frames is Array) or seg.frames.is_empty() or seg.frames.any(func(x): return not (x is float or x is int) or float(x) != float(int(x)) or int(x) < 0 or (nf != null and int(x) >= int(nf))):
 							push_error("干员 %s 的 sprites.skills.%s.%s.frames 须是帧条范围内的帧号数组" % [cid, sk_, part])
 							ok = false
 	var prog = d.get("progression", [])
@@ -1258,7 +1251,7 @@ func follow(dt: float, target: Vector2) -> void:
 	anim_t += dt
 	if vis_anim != "" and anim_kind == vis_anim and anim_t >= vis_dur():
 		vis_anim = ""   # 播完回待机（末帧 = 待机 f0，收招不跳）
-	_tick_pose(dt)
+	_tick_sq_shadow(dt)
 	# 跑步帧率按实际移动速度缩放（原固定 fps：快速前压的近战队友脚步打滑 3 倍以上）；帧条按主控基础移速 RUN_REF 画
 	if anim_kind == "run":
 		run_ph += dt * float(sprite_spec("run").get("fps", ANIM_FPS.get("run", 10.0))) * clampf(mv / RUN_REF, RUN_K_MIN, RUN_K_MAX)
@@ -1549,22 +1542,6 @@ func _anim_state_raw() -> Dictionary:
 	if tx == null:
 		return {}
 	var kind: String = anim_kind if anim_tex(anim_kind) != null else "idle"
-	if pose_ph != 0:
-		var pk := _pose_kind(kind)
-		if pk != kind:
-			var ptx: Texture2D = anim_tex(pk)
-			var pn: int = anim_hframes(ptx, pk)
-			var pf := 0
-			if pose_ph != 2 and (kind == "idle" or kind == "run"):
-				# 起飞 / 落地：按 pose_t 播一遍（落地倒放），不循环
-				pf = clampi(int(pose_t * float(sprite_spec(pk).get("fps", 12.0))), 0, pn - 1)
-				if pose_ph == 3 and bool(_pose_c().get("out_rev", false)):
-					pf = pn - 1 - pf
-			elif kind == "attack" or kind == "skill":
-				pf = clampi(int(anim_t / attack_dur * pn), 0, pn - 1)   # 时长 / 出手时刻仍按原帧条（判定不变），只换画面
-			else:
-				pf = int(anim_t * float(sprite_spec(pk).get("fps", ANIM_FPS.get(kind, 4.0)))) % pn
-			return {"tex": ptx, "frame": pf, "hf": pn, "flip": (face < 0.0) != sprite_mirror(pk), "kind": pk}
 	var n: int = anim_hframes(tx, kind)
 	var fr := 0
 	if sq_atk != "" and kind == sq_atk:
@@ -1660,7 +1637,7 @@ func _noshield(st: Dictionary) -> Dictionary:
 ##   没写 attack 槽的照旧用普通 attack 条压过循环。只管 act_anim = "attack" 的普攻；start_attack 指定了别的帧条（anim 参数）的不换
 var sq: Dictionary = {}   # 当前序列定义（空 = 不在序列里）
 var sq_i := -1            # 序列属于哪个技能
-var sq_ph := 0            # 0 无 / 1 起手 / 2 定格或循环 / 3 收势
+var sq_ph := 0            # 0 无 / 1 起手 / 2 定格或循环 / 3 收势 / 4 纯画面进入
 var sq_t := 0.0           # 当前阶段已播秒数
 var sq_own := false       # 当前出手窗口（attack_t）是序列自己的起手段
 var sq_atk := ""          # 循环期间正在播的普攻变体帧条（"" = 没有）
@@ -1681,10 +1658,14 @@ static func seq_anim(seg) -> String:
 
 ## 「段」播的帧号表（没写 frames = 整条）
 func _seq_frames(seg, kind: String) -> Array:
-	if seg is Dictionary and seg.get("frames") is Array and not seg.frames.is_empty():
-		return seg.frames
 	var tx := anim_tex(kind)
-	return range(anim_hframes(tx, kind)) if tx != null else []
+	var frs: Array = range(anim_hframes(tx, kind)) if tx != null else []
+	if seg is Dictionary:
+		if seg.get("frames") is Array and not seg.frames.is_empty():
+			frs = seg.frames.duplicate()
+		if bool(seg.get("reverse", false)):
+			frs.reverse()
+	return frs
 
 
 ## 「段」的时长（秒）
@@ -1766,9 +1747,15 @@ func _sq_seg():
 		1:
 			return sq.get("intro" if sq.has("hold") else "start", null)
 		2:
+			if not sq.has("hold") and sq.has("run"):
+				var running: bool = mv > (RUN_EXIT if anim_kind == seq_anim(sq.run) else RUN_ENTER)
+				if running and anim_tex(seq_anim(sq.run)) != null:
+					return sq.run
 			return sq.get("hold" if sq.has("hold") else "loop", null)
 		3:
 			return sq.get("end", null)
+		4:
+			return sq.get("enter", null)
 	return null
 
 
@@ -1784,12 +1771,12 @@ func _sq_frame(n: int) -> int:
 	var seg = _sq_seg()
 	var k := seq_anim(seg)
 	var fps := float(sprite_spec(k).get("fps", 12.0))
-	if sq_ph == 2:
-		return int(sq_t * fps) % maxi(1, n)
 	var frs: Array = [0] if (sq_ph == 1 and sq.has("hold") and not (seg is Dictionary)) else _seq_frames(seg, k)
 	if frs.is_empty():
 		return 0
-	return clampi(int(frs[clampi(int(sq_t * fps), 0, frs.size() - 1)]), 0, n - 1)
+	var idx := int(sq_t * fps)
+	idx = idx % frs.size() if sq_ph == 2 else clampi(idx, 0, frs.size() - 1)
+	return clampi(int(frs[idx]), 0, n - 1)
 
 
 ## 别的动作起手（_start_action）：起手 / 收势途中作废序列；循环 / 定格期间只是暂时被压过
@@ -1816,7 +1803,9 @@ func _tick_sq(dt: float) -> void:
 	if sq_ph == 0:
 		return
 	var hold: bool = sq.has("hold")
-	sq_t += dt
+	# 施法后的进入段被其他动作遮住时暂停，不改变那些动作的逻辑窗口。
+	if sq_ph != 4 or (attack_t <= 0.0 and vis_anim == ""):
+		sq_t += dt
 	match sq_ph:
 		1:
 			var head = sq.get("intro" if hold else "start")
@@ -1826,7 +1815,7 @@ func _tick_sq(dt: float) -> void:
 				if not hold:
 					sq_own = false   # start 段结束：出手窗口版此时 attack_t 也正好到 0；纯画面版（play_vis_skill）之后让普攻画面压过循环。hold 的出手窗口覆盖整个定格，保留
 				if hold or skill_active_left(sq_i) > 0.0:
-					sq_ph = 2
+					sq_ph = 4 if not hold and _seq_len(sq.get("enter")) > 0.0 else 2
 				else:
 					_sq_end()
 		2:
@@ -1836,6 +1825,13 @@ func _tick_sq(dt: float) -> void:
 			elif skill_active_left(sq_i) <= 0.0:
 				sq_t = 0.0
 				_sq_end()
+		4:
+			if skill_active_left(sq_i) <= 0.0:
+				sq_t = 0.0
+				_sq_end()
+			elif sq_t >= _seq_len(sq.get("enter")):
+				sq_t = 0.0
+				sq_ph = 2
 		3:
 			if sq_t >= _seq_len(sq.get("end")):
 				_sq_clear()
@@ -1894,99 +1890,18 @@ func _sq_end() -> void:
 		_sq_clear()
 
 
-## ---- 技能期间换动作组（docs/92，2026-10-13；首例安洁莉娜 S3 浮空）：def.sprites.skill_pose =
-##   {"skill": 技能序号 0–2, "in": 进入帧条, "out": 退出帧条, "out_rev": 退出是否倒放,
-##    "map": {"idle": 帧条, "run": 帧条, "attack": 帧条, …}, "shadow": 影子缩放, "shadow_a": 影子不透明度, "ease": 影子进出秒数}
-## 该技能生效（skill_active_left > 0）且施法动作播完后：播一遍 in，之后按 map 换动作（缺的动作照旧）；技能结束播 out 回到地面动作。
-## 纯画面：动作时长 / 出手时刻仍按原帧条（anim_kind / act_anim 不变），判定、站位一律按地面位置。用到的帧条须列进 extra_sprites（加载）
-var pose_ph := 0       # 0 地面 / 1 进入 / 2 保持 / 3 退出
-var pose_t := 0.0      # 进入 / 退出已播秒数
-var pose_air := 0.0    # 影子过渡 0–1（线性推进，取用时缓动）
-var _pose_cache = null
+## 统一序列的影子 [缩放, 不透明度]；序列结束后仍完成回地面的渐变。
+var sq_air := 0.0
+var sq_shadow := Vector2.ONE
 
+func _tick_sq_shadow(dt: float) -> void:
+	if sq_ph != 0:
+		sq_shadow = Vector2(float(sq.get("shadow", 1.0)), float(sq.get("shadow_a", 1.0)))
+	var up: bool = sq_ph == 2 or sq_ph == 4 or (sq_ph == 1 and not sq.has("enter"))
+	sq_air = move_toward(sq_air, 1.0 if up else 0.0, dt / 0.25)
 
-func _pose_c() -> Dictionary:
-	if _pose_cache == null:
-		var v = def.get("sprites", {}).get("skill_pose", {})
-		_pose_cache = v if v is Dictionary else {}
-	return _pose_cache
-
-
-func _pose_len(k: String) -> float:
-	var spec := sprite_spec(k)
-	if spec.is_empty() or anim_tex(k) == null:
-		return 0.0
-	return float(spec.get("frames", anim_hframes(anim_tex(k), k))) / float(spec.get("fps", 12.0))
-
-
-## 进入 / 退出途中是否已离地（进入播过一半、退出还没过半）
-func _pose_up() -> bool:
-	if pose_ph == 1:
-		return pose_t >= _pose_len(str(_pose_c().get("in", ""))) * 0.5
-	if pose_ph == 3:
-		return pose_t < _pose_len(str(_pose_c().get("out", ""))) * 0.5
-	return pose_ph == 2
-
-
-## 当前阶段把动作 kind 换成哪条帧条（缺图时不换）。进入 / 退出途中出手：已离地用换后的动作、否则用原动作，
-## 出手期间进入 / 退出暂停，出手结束接着播
-func _pose_kind(kind: String) -> String:
-	var pc := _pose_c()
-	var k := kind
-	var act: bool = kind == "attack" or kind == "skill"
-	if pose_ph == 2 or (act and _pose_up()):
-		var m = pc.get("map")
-		if m is Dictionary:
-			k = str(m.get(kind, kind))
-	elif not act and (kind == "idle" or kind == "run"):
-		k = str(pc.get("in" if pose_ph == 1 else "out", kind))
-	return k if anim_tex(k) != null else kind
-
-
-## follow() 每帧调用：推进换动作组的阶段（纯画面）
-func _tick_pose(dt: float) -> void:
-	var pc := _pose_c()
-	if pc.is_empty():
-		return
-	var on: bool = pos != Vector2.INF and skill_active_left(int(pc.get("skill", 2))) > 0.0
-	var casting: bool = attack_t > 0.0 and act_kind == "skill"
-	var hold: bool = attack_t > 0.0 and anim_kind == act_anim   # 出手中：进入 / 退出暂停
-	match pose_ph:
-		0:
-			if on and not casting:
-				pose_ph = 1
-				pose_t = 0.0
-		1:
-			if not hold:
-				pose_t += dt
-			if not on:
-				pose_ph = 3
-				pose_t = maxf(0.0, _pose_len(str(pc.get("out", ""))) - pose_t)
-			elif pose_t >= _pose_len(str(pc.get("in", ""))):
-				pose_ph = 2
-		2:
-			if not on:
-				pose_ph = 3
-				pose_t = 0.0
-		3:
-			if not hold:
-				pose_t += dt
-			if on and not casting:
-				pose_ph = 1
-				pose_t = maxf(0.0, _pose_len(str(pc.get("in", ""))) - pose_t)
-			elif pose_t >= _pose_len(str(pc.get("out", ""))):
-				pose_ph = 0
-	var want: float = 1.0 if (pose_ph == 2 or (pose_ph == 1 and (pose_t > 0.0 or not hold)) or (pose_ph == 3 and _pose_up())) else 0.0
-	pose_air = move_toward(pose_air, want, dt / maxf(0.01, float(pc.get("ease", 0.25))))
-
-
-## 影子 [缩放, 不透明度]（squad.draw_shadows）：换动作组离地时缩小变淡，0.25 秒缓动
 func shadow_k() -> Vector2:
-	if pose_air <= 0.0:
-		return Vector2.ONE
-	var pc := _pose_c()
-	var e: float = smoothstep(0.0, 1.0, pose_air)
-	return Vector2(lerpf(1.0, float(pc.get("shadow", 0.7)), e), lerpf(1.0, float(pc.get("shadow_a", 0.55)), e))
+	return Vector2.ONE.lerp(sq_shadow, smoothstep(0.0, 1.0, sq_air))
 
 
 ## 跑步帧率缩放（2026-09-27）：帧条按 RUN_REF 移速画，实际速度按比例加快 / 放慢

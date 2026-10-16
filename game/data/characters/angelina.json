@@ -29,9 +29,8 @@
   "float": {"tex": "op_angelina_float", "frames": 6, "fps": 8, "foot": [24, 46]},
   "float_move": {"tex": "op_angelina_float_move", "frames": 6, "fps": 10, "foot": [24, 46]},
   "float_attack": {"tex": "op_angelina_float_attack", "frames": 5, "fps": 12, "foot": [24, 46], "fire": 2},
-  "skill_pose": {"_doc": "S3 秘杖·反重力模式期间浮空（docs/92）：施法后播 float_in 起飞，待机 / 移动 / 普攻换浮空帧条，结束倒放 float_in 落地；影子缩到 70%、变淡。纯画面，判定按地面位置",
-   "skill": 2, "in": "float_in", "out": "float_in", "out_rev": true,
-   "map": {"idle": "float", "run": "float_move", "attack": "float_attack"}, "shadow": 0.7, "shadow_a": 0.55, "ease": 0.25},
+  "skills": {"s3": {"start": "skill", "enter": "float_in", "loop": "float", "run": "float_move", "attack": "float_attack",
+   "end": {"anim": "float_in", "reverse": true}, "shadow": 0.7, "shadow_a": 0.55}},
   "size": 48, "foot": [24, 46]
  },
  "extra_sprites": ["float_in", "float", "float_move", "float_attack"],
