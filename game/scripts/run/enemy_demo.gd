@@ -149,6 +149,11 @@ func step(dt: float) -> void:
 	g.hp = g.max_hp
 	g.gems.clear()
 	g.texts = g.texts.filter(func(tx): return tx.life > 0.0)
+	# 图鉴不走 game._cleanup：敌弹 / 抛物命中或到期只是 life 置 0（enemies/shot_pool.gd），回收在 _cleanup 里——这里不回收就一直留在原地画
+	# （用户 10-16：图鉴里子弹命中后不消失）。我方子弹 / 特效同理
+	g.ebullets = g.ebullets.filter(func(b): return b.life > 0.0)
+	g.bullets = g.bullets.filter(func(b): return b.life > 0.0)
+	g.fx = g.fx.filter(func(f): return f.life > 0.0)
 	g.enemies = g.enemies_sys.sweep_dead(g.enemies)
 	# 看完一整轮再重置位置。死亡型 / 蜕变型有 2 秒收尾，Boss 留 35 秒展示三组招式。
 	var period := cycle_period()
