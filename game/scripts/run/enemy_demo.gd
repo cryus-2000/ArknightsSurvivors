@@ -10,6 +10,8 @@ var phase_mode := 0             # 0 自动轮播，1 / 2 固定形态
 var cycle := 0
 var subject: Dictionary = {}
 var started := false
+const BITE_OUT := 36.0      # 贴身循环：扑一口后弹到离接触半径外这么远（再按原速走回来）；冲量按主体自己的移速反算，见 _contact_cycle
+const BITE_CD := 1.2        # 同一只至少隔这么久再扑
 
 
 func _init(game: Game) -> void:
@@ -92,6 +94,29 @@ func _seed_heal_targets() -> void:
 		target.hp = target.maxhp * 0.35
 
 
+## 贴身循环（用户 10-16：图鉴里怪物卡在干员模型边缘停住不动；同 run/demo.gd _contact_cycle 的口径）：
+## 演示靶不会死也不会走开，近战主体一路走到靶脚下之后就只剩每帧的接触判定（原地播攻击帧），再看不出「移动 → 蓄势 → 攻击」。
+## 按正式局同一接触半径（e.r + 12）判「扑上来」：播攻击帧条（atk_until）、沿离靶方向弹开（走正式击退入口 apply_kb，重型怪补回 A 段的 ×0.3），
+## 再以原速走回来，每只至少隔 BITE_CD 秒——「扑上来 → 弹开 → 再上来」。Boss / 远程 / 中立 / 正在放招（eai.busy）的不弹；只在图鉴里调用。
+## 冲量按主体移速反算：击退 kb 按 900/s 衰减、同时它还在以 spd 往回走，净弹开 ≈ kb² / 1800 − spd·kb / 900；要弹到 e.r + BITE_OUT 外
+## （正式移速的骨海漂流体 240 的固定冲量只弹开 15，没出接触半径就又贴上了）
+func _contact_cycle() -> void:
+	for e in g.enemies:
+		if e.dead or e.boss or e.ai != "melee" or e.get("friendly", false) or g.t < float(e.get("demo_bite", 0.0)) or g.eai.busy(e):
+			continue
+		var off: Vector2 = e.pos - g.ppos
+		var d: float = off.length()
+		if d >= e.r + 12.0:
+			continue
+		e["demo_bite"] = g.t + BITE_CD
+		e.atk_until = g.t + 0.25
+		var want: float = e.r + BITE_OUT
+		var kb: float = e.spd + sqrt(e.spd * e.spd + 1800.0 * want)
+		if D.ENEMIES[e.type].get("heavy", false):
+			kb /= 0.3
+		g.enemies_sys.apply_kb(e, (off / d if d > 0.5 else Vector2.LEFT) * kb)
+
+
 func cycle_period() -> float:
 	if subject.get("type", "") == "ishar":
 		return 50.0 if phase_mode == 0 else (10.0 if phase_mode == 1 else 35.0)
@@ -113,6 +138,7 @@ func step(dt: float) -> void:
 	g.frame_n += 1
 	if subject.type == "ishar" and subject.get("friendly", false) and not g.enemies.any(func(e): return e.get("heal_demo_target", false) and not e.dead):
 		_seed_heal_targets()
+	_contact_cycle()
 	g.enemies_sys.build_grid()
 	g.enemies_sys.update(dt)
 	g.shots.step(dt)
@@ -123,6 +149,11 @@ func step(dt: float) -> void:
 	g.hp = g.max_hp
 	g.gems.clear()
 	g.texts = g.texts.filter(func(tx): return tx.life > 0.0)
+	# 图鉴不走 game._cleanup：敌弹 / 抛物命中或到期只是 life 置 0（enemies/shot_pool.gd），回收在 _cleanup 里——这里不回收就一直留在原地画
+	# （用户 10-16：图鉴里子弹命中后不消失）。我方子弹 / 特效同理
+	g.ebullets = g.ebullets.filter(func(b): return b.life > 0.0)
+	g.bullets = g.bullets.filter(func(b): return b.life > 0.0)
+	g.fx = g.fx.filter(func(f): return f.life > 0.0)
 	g.enemies = g.enemies_sys.sweep_dead(g.enemies)
 	# 看完一整轮再重置位置。死亡型 / 蜕变型有 2 秒收尾，Boss 留 35 秒展示三组招式。
 	var period := cycle_period()
