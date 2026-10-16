@@ -1,473 +1,551 @@
 {
- "id": "wisadel",
- "name": "维什戴尔",
- "en": "WIS'ADEL",
- "class": "狙击",
- "col": [
-  0.95,
-  0.22,
-  0.2
- ],
- "script": "res://scripts/characters/data_operator.gd",
- "base": {
-  "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
-  "atk": 30,
-  "cd": 1.4,
-  "range": 340,
-  "aoe": 52,
-  "s1_mult": 1.5,
-  "s2_mult": 3.0,
-  "s2_size": 1.6,
-  "s3_mult": 1.6,
-  "s3_ammo": 8,
-  "s3_size": 2.0,
-  "s3_cd": 0.6,
-  "quake": 0.4,
-  "quake_e1": 0.6,
-  "shade": 0.4,
-  "quake2_delay": 0.3,
-  "quake2_size": 1.25,
-  "quake2_mult": 1.0,
-  "twin_mult": 0.6,
-  "ash_stun": 0.8,
-  "mark_dur": 4.0,
-  "mark_mult": 0.45,
-  "gift_mult": 0.4,
-  "soul_fire_mult": 0.1,
-  "soul_spread": 120
- },
- "leader": {
-  "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1888 / 防御 256 / 法抗 15%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
-  "max_hp": 110,
-  "armor": 1.5,
-  "arts_res": 0.15,
-  "regen": 1.1
- },
- "sprites": {
-  "idle": {
-   "tex": "op_wisadel_idle",
-   "frames": 4,
-   "fps": 4,
-   "foot": [
-    24,
-    46
-   ]
-  },
-  "run": {
-   "tex": "op_wisadel_run",
-   "frames": 6,
-   "fps": 10,
-   "foot": [
-    28,
-    46
-   ]
-  },
-  "attack": {
-   "tex": "op_wisadel_attack",
-   "frames": 5,
-   "fps": 14,
-   "foot": [
-    24,
-    46
-   ],
-   "fire": 2
-  },
-  "skill": {
-   "tex": "op_wisadel_skill",
-   "frames": 7,
-   "fps": 12,
-   "foot": [
-    24,
-    46
-   ],
-   "fire": 4
-  },
-  "size": 48,
-  "foot": [
-   24,
-   46
-  ]
- },
- "attack": {
-  "mode": "auto",
-  "name": "炮击",
-  "desc": "每 {$cd} 秒向离队长最近的敌人发射炮弹（最近几个距离相仿时挑敌人最密的落点）：落点半径 {$aoe} 爆炸（物理），0.45 秒后原地余震再炸一次（炮击 {$quake*100}% 伤害）"
- },
- "skills": [
-  {
-   "name": "定点清算",
-   "en": "LOCALIZED LIQUIDATION",
-   "sp": 7,
-   "desc": "接下来 3 发炮击伤害 ×{$s1_mult}，落点必定余震",
-   "icon": "skill_wisadel_s1"
-  },
-  {
-   "name": "饱和复仇",
-   "en": "SATURATED VENGEANCE",
-   "sp": 12,
-   "desc": "向精英 / Boss（没有则最近的敌人）发射一发重炮：伤害 ×{$s2_mult}、爆炸范围 ×{$s2_size}，命中眩晕 0.8 秒并留下余震",
-   "icon": "skill_wisadel_s2"
-  },
-  {
-   "name": "爆裂黎明",
-   "en": "EXPLOSIVE DAWN",
-   "sp": 22,
-   "desc": "装填 {$s3_ammo} 发巨型炮弹，之后的炮击换成高速巨炮（伤害 ×{$s3_mult}、爆炸范围 ×{$s3_size}、必定余震，射击间隔 ×{$s3_cd}），打完 {$s3_ammo} 发为止",
-   "icon": "skill_wisadel_s3"
-  }
- ],
- "talent": {
-  "name": "好礼",
-  "desc": "被炮击或余震击杀的敌人留下残影，0.25 秒后爆炸（{$shade*100}% 伤害）并眩晕 0.6 秒；炮击爆炸范围 +15%，余震伤害 {$quake*100}% → {$quake_e1*100}%"
- },
- "hit_sources": {
-  "炮击": {
-   "emitter": "operator",
-   "origin": "core",
-   "range": "远程",
-   "kind": "物理",
-   "tags": [
-    "projectile",
-    "area"
-   ]
-  },
-  "余震": {
-   "emitter": "operator",
-   "origin": "core",
-   "range": "远程",
-   "kind": "物理",
-   "tags": [
-    "aftershock",
-    "area"
-   ]
-  },
-  "殉爆": {
-   "emitter": "operator",
-   "origin": "talent",
-   "range": "远程",
-   "kind": "物理",
-   "tags": [
-    "detonation",
-    "area"
-   ]
-  },
-  "爆裂黎明": {
-   "emitter": "operator",
-   "origin": "skill",
-   "range": "远程",
-   "kind": "物理",
-   "tags": [
-    "skill",
-    "projectile",
-    "area"
-   ]
-  },
-  "饱和复仇": {
-   "emitter": "operator",
-   "origin": "skill",
-   "range": "远程",
-   "kind": "物理",
-   "tags": [
-    "skill",
-    "projectile",
-    "area",
-    "control"
-   ]
-  },
-  "魂灵之影": {
-   "emitter": "summon",
-   "origin": "core",
-   "range": "远程",
-   "kind": "物理",
-   "tags": [
-    "projectile",
-    "area"
-   ]
-  }
- },
- "progression": [
-  {
-   "type": "custom",
-   "id": "echo_quake",
-   "name": "余响",
-   "icon": "growth_b_echo",
-   "desc": "每发炮击的余震再来一次：第一次余震后 {$quake2_delay} 秒，同一处再震一次（范围 ×{$quake2_size}）"
-  },
-  {
-   "type": "custom",
-   "id": "twin_shot",
-   "name": "礼尚往来",
-   "icon": "growth_b_count",
-   "desc": "每次炮击同时向第二个目标再打一发炮弹（{$twin_mult*100}% 伤害，同样余震）"
-  },
-  {
-   "type": "elite",
-   "level": 1,
-   "name": "精英一",
-   "desc": "解锁二技能「饱和复仇」；解锁天赋「好礼」：被炮击或余震击杀的敌人留下残影，0.25 秒后爆炸（{$shade*100}% 伤害）并眩晕 0.6 秒；炮击爆炸范围 +15%，余震伤害 {$quake*100}% → {$quake_e1*100}%；普攻「好礼」：炮击的主目标挂上残影标记 {$mark_dur} 秒，标记期间倒下必定引爆残影",
-   "attack": {
-    "name": "好礼",
-    "desc": "炮击的主目标直接挂上残影标记 {$mark_dur} 秒，标记期间倒下必定引爆残影（{$gift_mult*100}% 伤害）"
-   }
-  },
-  {
-   "type": "custom",
-   "id": "ash_rings",
-   "name": "余烬未冷",
-   "icon": "skill_wisadel_s1",
-   "desc": "「定点清算」强化的 3 发炮击，余震变为 3 圈并眩晕 {$ash_stun} 秒（精英减半，Boss 免疫）"
-  },
-  {
-   "type": "custom",
-   "id": "exec_mark",
-   "name": "亡者回响",
-   "icon": "skill_wisadel_s2",
-   "desc": "「饱和复仇」爆炸波及的敌人全部挂上残影标记（{$mark_dur} 秒）：被标记的敌人死亡时必定引爆残影（{$mark_mult*100}% 伤害）"
-  },
-  {
-   "type": "elite",
-   "level": 2,
-   "name": "精英二",
-   "desc": "解锁三技能「爆裂黎明」：装填 {$s3_ammo} 发巨型炮弹，之后的炮击换成高速巨炮（伤害 ×{$s3_mult}、爆炸范围 ×{$s3_size}、必定余震，射击间隔 ×{$s3_cd}），打完 {$s3_ammo} 发为止；普攻质变「死魂灵的余息」：2 个魂灵之影悬在维什戴尔身侧，每发炮击时各自朝目标附近的敌人开一炮（{$soul_fire_mult*100}% 伤害，同样余震），命中的敌人挂上残影标记 {$mark_dur} 秒",
-   "attack": {
-    "name": "死魂灵的余息",
-    "desc": "2 个魂灵之影悬在身侧，每发炮击时各自朝目标附近的敌人开一炮（炮击 {$soul_fire_mult*100}% 伤害，同样余震），优先打没有标记的敌人；命中的敌人挂上残影标记 {$mark_dur} 秒，标记期间倒下必定引爆残影（{$mark_mult*100}% 伤害）"
-   }
-  }
- ],
- "gallery": {
-  "tags": [
-   "远程",
-   "爆炸",
-   "精英克制",
-   "连锁"
+  "id": "wisadel",
+  "name": "维什戴尔",
+  "en": "WIS'ADEL",
+  "class": "狙击",
+  "col": [
+    0.95,
+    0.22,
+    0.2
   ],
-  "desc": "炮击 → 余震 → 残影：一发炮弹在敌群里炸三次"
- },
- "blocks": {
-  "_doc": "维什戴尔（docs/61 §21）：炮击（离队长最近、相仿挑最密）→ 余震 → 残影殉爆；S1 接下来 3 发 ×1.5；S2 饱和复仇（精英优先重炮）；S3 爆裂黎明（装填 8 发巨炮）；精二魂灵之影随炮击同步开炮、魂炮挂残影标记。原手写脚本留作 tests/data_ops/wisadel_legacy.gd",
-  "attack": {
-   "shape": "cannon",
-   "src": "炮击",
-   "every": "$cd",
-   "first": 0.6,
-   "idle": 0.2,
-   "range": "$range",
-   "ref": 480,
-   "aim_r": 480,
-   "fire_r": 520,
-   "slack": 40,
-   "tip": [
-    14,
-    -34
-   ],
-   "aoe": "$aoe",
-   "aoe_mults": [
-    {
-     "cond": "elite >= 1",
-     "mult": 1.15
-    }
-   ],
-   "quake": "$quake",
-   "quakes": [
-    {
-     "cond": "elite >= 1",
-     "value": "$quake_e1"
-    }
-   ],
-   "quake_r": 1.2,
-   "quake_t": 0.45,
-   "quake_src": "余震",
-   "echo": {
-    "cond": "node:echo_quake",
-    "delay": "$quake2_delay",
-    "mult": "$quake2_mult",
-    "size": "$quake2_size"
-   },
-   "ash": {
-    "size": 1.1,
-    "rings": {
-     "cond": "node:ash_rings"
+  "script": "res://scripts/characters/data_operator.gd",
+  "base": {
+    "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
+    "atk": 30,
+    "cd": 1.4,
+    "range": 340,
+    "aoe": 52,
+    "s1_mult": 1.5,
+    "s2_mult": 3.0,
+    "s2_size": 1.6,
+    "s3_mult": 1.6,
+    "s3_ammo": 8,
+    "s3_size": 2.0,
+    "s3_cd": 0.6,
+    "quake": 0.4,
+    "quake_e1": 0.6,
+    "shade": 0.4,
+    "quake2_delay": 0.3,
+    "quake2_size": 1.25,
+    "quake2_mult": 1.0,
+    "twin_mult": 0.6,
+    "ash_stun": 0.8,
+    "mark_dur": 4.0,
+    "mark_mult": 0.45,
+    "gift_mult": 0.4,
+    "soul_fire_mult": 0.1,
+    "soul_spread": 120
+  },
+  "leader": {
+    "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1888 / 防御 256 / 法抗 15%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
+    "max_hp": 110,
+    "armor": 1.5,
+    "arts_res": 0.15,
+    "regen": 1.1
+  },
+  "sprites": {
+    "idle": {
+      "tex": "op_wisadel_idle",
+      "frames": 4,
+      "fps": 4,
+      "foot": [
+        32,
+        60
+      ]
     },
-    "stun": "$ash_stun"
-   },
-   "twin": {
-    "cond": "node:twin_shot",
-    "mult": "$twin_mult",
-    "size": 0.85
-   },
-   "shade": {
-    "cond": "elite >= 1",
-    "mult": "$shade",
-    "r": 0.8,
-    "stun": 0.6,
-    "max": 12,
-    "src": "殉爆",
-    "_doc": "天赋「好礼」"
-   },
-   "mark": {
-    "dur": "$mark_dur",
-    "mult": "$mark_mult",
-    "r": 0.9,
-    "max": 12
-   },
-   "giant": {
-    "mult": "$s3_mult",
-    "size": "$s3_size",
-    "cd": "$s3_cd",
-    "src": "爆裂黎明"
-   },
-   "gift": {
-    "cond": "elite >= 1",
-    "mult": "$gift_mult",
-    "_doc": "精一「好礼」：炮击的主目标直接挂上残影标记 4 秒，标记期间倒下必定引爆残影（40%）"
-   }
+    "run": {
+      "tex": "op_wisadel_run",
+      "frames": 6,
+      "fps": 10,
+      "foot": [
+        32,
+        60
+      ]
+    },
+    "attack": {
+      "tex": "op_wisadel_attack",
+      "frames": 5,
+      "fps": 12,
+      "foot": [
+        32,
+        60
+      ],
+      "fire": 2
+    },
+    "skill": {
+      "tex": "op_wisadel_skill_s1",
+      "frames": 3,
+      "fps": 8,
+      "foot": [
+        32,
+        60
+      ],
+      "fire": 1
+    },
+    "size": 64,
+    "foot": [
+      32,
+      60
+    ],
+    "hurt": {
+      "tex": "op_wisadel_hurt",
+      "frames": 2,
+      "fps": 10,
+      "foot": [
+        32,
+        60
+      ]
+    },
+    "death": {
+      "tex": "op_wisadel_death",
+      "frames": 6,
+      "fps": 6,
+      "foot": [
+        32,
+        60
+      ]
+    },
+    "skill_s2": {
+      "tex": "op_wisadel_skill_s2",
+      "frames": 4,
+      "fps": 8,
+      "foot": [
+        32,
+        60
+      ],
+      "fire": 2
+    },
+    "skill_s3": {
+      "tex": "op_wisadel_skill_s3",
+      "frames": 3,
+      "fps": 8,
+      "foot": [
+        32,
+        60
+      ],
+      "fire": 1
+    },
+    "skill_s3_loop": {
+      "tex": "op_wisadel_skill_s3_loop",
+      "frames": 4,
+      "fps": 6,
+      "foot": [
+        32,
+        60
+      ]
+    },
+    "skills": {
+      "_doc": "10-16 codex/art 01392fc7：S1 扛炮瞄准单条；S2 抬炮重射单条；S3 skill_s3 f0–f1 起手（fire f1）→ 巨炮装填期间 skill_s3_loop 蹲射循环 → f2 收势",
+      "s1": {
+        "anim": "skill"
+      },
+      "s2": {
+        "anim": "skill_s2"
+      },
+      "s3": {
+        "start": {
+          "anim": "skill_s3",
+          "frames": [
+            0,
+            1
+          ]
+        },
+        "loop": "skill_s3_loop",
+        "end": {
+          "anim": "skill_s3",
+          "frames": [
+            2
+          ]
+        }
+      }
+    },
+    "_note_1016": "64 画布只交 @2x（codex/art 01392fc7）；删旧 48 帧条与 1x"
+  },
+  "attack": {
+    "mode": "auto",
+    "name": "炮击",
+    "desc": "每 {$cd} 秒向离队长最近的敌人发射炮弹（最近几个距离相仿时挑敌人最密的落点）：落点半径 {$aoe} 爆炸（物理），0.45 秒后原地余震再炸一次（炮击 {$quake*100}% 伤害）"
   },
   "skills": [
-   {
-    "cast": "instant",
-    "dur": {
-     "next_attacks": 3
+    {
+      "name": "定点清算",
+      "en": "LOCALIZED LIQUIDATION",
+      "sp": 7,
+      "desc": "接下来 3 发炮击伤害 ×{$s1_mult}，落点必定余震",
+      "icon": "skill_wisadel_s1"
     },
-    "attack_patch": {
-     "mult": "$s1_mult",
-     "power": true
+    {
+      "name": "饱和复仇",
+      "en": "SATURATED VENGEANCE",
+      "sp": 12,
+      "desc": "向精英 / Boss（没有则最近的敌人）发射一发重炮：伤害 ×{$s2_mult}、爆炸范围 ×{$s2_size}，命中眩晕 0.8 秒并留下余震",
+      "icon": "skill_wisadel_s2"
     },
-    "status": "定点清算 ×%d",
-    "status_col": [
-     0.95,
-     0.22,
-     0.2
-    ],
-    "fx": [
-     {
-      "pfx": {
-       "kind": "glow",
-       "r": 16.0,
-       "life": 0.3,
-       "col": [
-        0.95,
-        0.22,
-        0.2
-       ],
-       "alpha": 0.5
-      },
-      "at": "self",
-      "off": [
-       14,
-       -34
-      ],
-      "face_x": true
-     },
-     {
-      "text": {
-       "s": "定点清算",
-       "col": [
-        0.95,
-        0.22,
-        0.2
-       ],
-       "size": 14
-      },
-      "at": "self",
-      "off": [
-       0,
-       -80
+    {
+      "name": "爆裂黎明",
+      "en": "EXPLOSIVE DAWN",
+      "sp": 22,
+      "desc": "装填 {$s3_ammo} 发巨型炮弹，之后的炮击换成高速巨炮（伤害 ×{$s3_mult}、爆炸范围 ×{$s3_size}、必定余震，射击间隔 ×{$s3_cd}），打完 {$s3_ammo} 发为止",
+      "icon": "skill_wisadel_s3"
+    }
+  ],
+  "talent": {
+    "name": "好礼",
+    "desc": "被炮击或余震击杀的敌人留下残影，0.25 秒后爆炸（{$shade*100}% 伤害）并眩晕 0.6 秒；炮击爆炸范围 +15%，余震伤害 {$quake*100}% → {$quake_e1*100}%"
+  },
+  "hit_sources": {
+    "炮击": {
+      "emitter": "operator",
+      "origin": "core",
+      "range": "远程",
+      "kind": "物理",
+      "tags": [
+        "projectile",
+        "area"
       ]
-     }
+    },
+    "余震": {
+      "emitter": "operator",
+      "origin": "core",
+      "range": "远程",
+      "kind": "物理",
+      "tags": [
+        "aftershock",
+        "area"
+      ]
+    },
+    "殉爆": {
+      "emitter": "operator",
+      "origin": "talent",
+      "range": "远程",
+      "kind": "物理",
+      "tags": [
+        "detonation",
+        "area"
+      ]
+    },
+    "爆裂黎明": {
+      "emitter": "operator",
+      "origin": "skill",
+      "range": "远程",
+      "kind": "物理",
+      "tags": [
+        "skill",
+        "projectile",
+        "area"
+      ]
+    },
+    "饱和复仇": {
+      "emitter": "operator",
+      "origin": "skill",
+      "range": "远程",
+      "kind": "物理",
+      "tags": [
+        "skill",
+        "projectile",
+        "area",
+        "control"
+      ]
+    },
+    "魂灵之影": {
+      "emitter": "summon",
+      "origin": "core",
+      "range": "远程",
+      "kind": "物理",
+      "tags": [
+        "projectile",
+        "area"
+      ]
+    }
+  },
+  "progression": [
+    {
+      "type": "custom",
+      "id": "echo_quake",
+      "name": "余响",
+      "icon": "growth_b_echo",
+      "desc": "每发炮击的余震再来一次：第一次余震后 {$quake2_delay} 秒，同一处再震一次（范围 ×{$quake2_size}）"
+    },
+    {
+      "type": "custom",
+      "id": "twin_shot",
+      "name": "礼尚往来",
+      "icon": "growth_b_count",
+      "desc": "每次炮击同时向第二个目标再打一发炮弹（{$twin_mult*100}% 伤害，同样余震）"
+    },
+    {
+      "type": "elite",
+      "level": 1,
+      "name": "精英一",
+      "desc": "解锁二技能「饱和复仇」；解锁天赋「好礼」：被炮击或余震击杀的敌人留下残影，0.25 秒后爆炸（{$shade*100}% 伤害）并眩晕 0.6 秒；炮击爆炸范围 +15%，余震伤害 {$quake*100}% → {$quake_e1*100}%；普攻「好礼」：炮击的主目标挂上残影标记 {$mark_dur} 秒，标记期间倒下必定引爆残影",
+      "attack": {
+        "name": "好礼",
+        "desc": "炮击的主目标直接挂上残影标记 {$mark_dur} 秒，标记期间倒下必定引爆残影（{$gift_mult*100}% 伤害）"
+      }
+    },
+    {
+      "type": "custom",
+      "id": "ash_rings",
+      "name": "余烬未冷",
+      "icon": "skill_wisadel_s1",
+      "desc": "「定点清算」强化的 3 发炮击，余震变为 3 圈并眩晕 {$ash_stun} 秒（精英减半，Boss 免疫）"
+    },
+    {
+      "type": "custom",
+      "id": "exec_mark",
+      "name": "亡者回响",
+      "icon": "skill_wisadel_s2",
+      "desc": "「饱和复仇」爆炸波及的敌人全部挂上残影标记（{$mark_dur} 秒）：被标记的敌人死亡时必定引爆残影（{$mark_mult*100}% 伤害）"
+    },
+    {
+      "type": "elite",
+      "level": 2,
+      "name": "精英二",
+      "desc": "解锁三技能「爆裂黎明」：装填 {$s3_ammo} 发巨型炮弹，之后的炮击换成高速巨炮（伤害 ×{$s3_mult}、爆炸范围 ×{$s3_size}、必定余震，射击间隔 ×{$s3_cd}），打完 {$s3_ammo} 发为止；普攻质变「死魂灵的余息」：2 个魂灵之影悬在维什戴尔身侧，每发炮击时各自朝目标附近的敌人开一炮（{$soul_fire_mult*100}% 伤害，同样余震），命中的敌人挂上残影标记 {$mark_dur} 秒",
+      "attack": {
+        "name": "死魂灵的余息",
+        "desc": "2 个魂灵之影悬在身侧，每发炮击时各自朝目标附近的敌人开一炮（炮击 {$soul_fire_mult*100}% 伤害，同样余震），优先打没有标记的敌人；命中的敌人挂上残影标记 {$mark_dur} 秒，标记期间倒下必定引爆残影（{$mark_mult*100}% 伤害）"
+      }
+    }
+  ],
+  "gallery": {
+    "tags": [
+      "远程",
+      "爆炸",
+      "精英克制",
+      "连锁"
     ],
-    "do": []
-   },
-   {
-    "dur": 0,
-    "aim": "elite",
-    "aim_r": 540,
-    "do": [
-     {
-      "verb": "cannon_exec",
-      "aim_r": 540,
-      "mult": "$s2_mult",
-      "size": "$s2_size",
-      "stun": 0.8,
-      "src": "饱和复仇",
+    "desc": "炮击 → 余震 → 残影：一发炮弹在敌群里炸三次"
+  },
+  "blocks": {
+    "_doc": "维什戴尔（docs/61 §21）：炮击（离队长最近、相仿挑最密）→ 余震 → 残影殉爆；S1 接下来 3 发 ×1.5；S2 饱和复仇（精英优先重炮）；S3 爆裂黎明（装填 8 发巨炮）；精二魂灵之影随炮击同步开炮、魂炮挂残影标记。原手写脚本留作 tests/data_ops/wisadel_legacy.gd",
+    "attack": {
+      "shape": "cannon",
+      "src": "炮击",
+      "every": "$cd",
+      "first": 0.6,
+      "idle": 0.2,
+      "range": "$range",
+      "ref": 480,
+      "aim_r": 480,
+      "fire_r": 520,
+      "slack": 40,
+      "tip": [
+        14,
+        -34
+      ],
+      "aoe": "$aoe",
+      "aoe_mults": [
+        {
+          "cond": "elite >= 1",
+          "mult": 1.15
+        }
+      ],
+      "quake": "$quake",
+      "quakes": [
+        {
+          "cond": "elite >= 1",
+          "value": "$quake_e1"
+        }
+      ],
+      "quake_r": 1.2,
+      "quake_t": 0.45,
+      "quake_src": "余震",
+      "echo": {
+        "cond": "node:echo_quake",
+        "delay": "$quake2_delay",
+        "mult": "$quake2_mult",
+        "size": "$quake2_size"
+      },
+      "ash": {
+        "size": 1.1,
+        "rings": {
+          "cond": "node:ash_rings"
+        },
+        "stun": "$ash_stun"
+      },
+      "twin": {
+        "cond": "node:twin_shot",
+        "mult": "$twin_mult",
+        "size": 0.85
+      },
+      "shade": {
+        "cond": "elite >= 1",
+        "mult": "$shade",
+        "r": 0.8,
+        "stun": 0.6,
+        "max": 12,
+        "src": "殉爆",
+        "_doc": "天赋「好礼」"
+      },
       "mark": {
-       "cond": "node:exec_mark"
+        "dur": "$mark_dur",
+        "mult": "$mark_mult",
+        "r": 0.9,
+        "max": 12
+      },
+      "giant": {
+        "mult": "$s3_mult",
+        "size": "$s3_size",
+        "cd": "$s3_cd",
+        "src": "爆裂黎明"
+      },
+      "gift": {
+        "cond": "elite >= 1",
+        "mult": "$gift_mult",
+        "_doc": "精一「好礼」：炮击的主目标直接挂上残影标记 4 秒，标记期间倒下必定引爆残影（40%）"
       }
-     }
-    ]
-   },
-   {
-    "dur": 0,
-    "aim": "cluster",
-    "aim_r": 520,
-    "do": [
-     {
-      "verb": "cannon_load",
-      "n": "$s3_ammo",
-      "aim_r": 540,
-      "banner": "爆裂黎明：巨炮装填 ×%d",
-      "status": "巨炮 ×%d"
-     }
-    ]
-   }
-  ],
-  "talent": [
-   {
-    "trig": "passive",
-    "do": [],
-    "_doc": "好礼：写在 attack.shade（cond elite >= 1）；余震 60%、爆炸范围 ×1.15 写在 attack.quakes / aoe_mults"
-   }
-  ],
-  "progression": {
-   "echo_quake": {
-    "trig": "passive",
-    "do": [],
-    "_doc": "余响：写在 attack.echo（cond node:echo_quake）"
-   },
-   "twin_shot": {
-    "trig": "passive",
-    "do": [],
-    "_doc": "礼尚往来：写在 attack.twin（cond node:twin_shot）"
-   },
-   "ash_rings": {
-    "trig": "passive",
-    "do": [],
-    "_doc": "余烬未冷：写在 attack.ash.rings（cond node:ash_rings）"
-   },
-   "exec_mark": {
-    "trig": "passive",
-    "do": [],
-    "_doc": "亡者回响：写在 S2 的 verb.cannon_exec.mark（cond node:exec_mark）"
-   },
-   "elite2": {
-    "trig": "passive",
-    "_doc": "死魂灵的余息（10-14 改）：2 个魂灵之影始终悬在维什戴尔肩后，她每打出一发炮击，影子依次朝主目标附近（优先未标记）的敌人各开一炮；魂炮命中挂残影标记。写在 verb.souls（follow）",
-    "do": [
-     {
-      "verb": "souls",
-      "n": 2,
-      "follow": true,
-      "fire": {
-       "cond": "elite >= 2",
-       "mult": "$soul_fire_mult",
-       "delay": 0.06,
-       "gap": 0.08,
-       "fire_at": 0.16,
-       "anim": 0.32,
-       "spread": "$soul_spread",
-       "size": 1.0,
-       "mark": true,
-       "src": "魂灵之影",
-       "_doc": "魂炮：随维什戴尔每发炮击同步开火（攻击 × soul_fire_mult，同样余震），命中时给目标挂残影标记（4 秒，死亡必定殉爆）"
+    },
+    "skills": [
+      {
+        "cast": "instant",
+        "dur": {
+          "next_attacks": 3
+        },
+        "attack_patch": {
+          "mult": "$s1_mult",
+          "power": true
+        },
+        "status": "定点清算 ×%d",
+        "status_col": [
+          0.95,
+          0.22,
+          0.2
+        ],
+        "fx": [
+          {
+            "pfx": {
+              "kind": "glow",
+              "r": 16.0,
+              "life": 0.3,
+              "col": [
+                0.95,
+                0.22,
+                0.2
+              ],
+              "alpha": 0.5
+            },
+            "at": "self",
+            "off": [
+              14,
+              -34
+            ],
+            "face_x": true
+          },
+          {
+            "text": {
+              "s": "定点清算",
+              "col": [
+                0.95,
+                0.22,
+                0.2
+              ],
+              "size": 14
+            },
+            "at": "self",
+            "off": [
+              0,
+              -80
+            ]
+          }
+        ],
+        "do": []
+      },
+      {
+        "dur": 0,
+        "aim": "elite",
+        "aim_r": 540,
+        "do": [
+          {
+            "verb": "cannon_exec",
+            "aim_r": 540,
+            "mult": "$s2_mult",
+            "size": "$s2_size",
+            "stun": 0.8,
+            "src": "饱和复仇",
+            "mark": {
+              "cond": "node:exec_mark"
+            }
+          }
+        ]
+      },
+      {
+        "dur": 0,
+        "aim": "cluster",
+        "aim_r": 520,
+        "do": [
+          {
+            "verb": "cannon_load",
+            "n": "$s3_ammo",
+            "aim_r": 540,
+            "banner": "爆裂黎明：巨炮装填 ×%d",
+            "status": "巨炮 ×%d"
+          }
+        ]
       }
-     }
-    ]
-   },
-   "elite1": {
-    "trig": "passive",
-    "do": [],
-    "_doc": "好礼：写在 attack.gift（cond elite >= 1）"
-   }
-  }
- }
+    ],
+    "talent": [
+      {
+        "trig": "passive",
+        "do": [],
+        "_doc": "好礼：写在 attack.shade（cond elite >= 1）；余震 60%、爆炸范围 ×1.15 写在 attack.quakes / aoe_mults"
+      }
+    ],
+    "progression": {
+      "echo_quake": {
+        "trig": "passive",
+        "do": [],
+        "_doc": "余响：写在 attack.echo（cond node:echo_quake）"
+      },
+      "twin_shot": {
+        "trig": "passive",
+        "do": [],
+        "_doc": "礼尚往来：写在 attack.twin（cond node:twin_shot）"
+      },
+      "ash_rings": {
+        "trig": "passive",
+        "do": [],
+        "_doc": "余烬未冷：写在 attack.ash.rings（cond node:ash_rings）"
+      },
+      "exec_mark": {
+        "trig": "passive",
+        "do": [],
+        "_doc": "亡者回响：写在 S2 的 verb.cannon_exec.mark（cond node:exec_mark）"
+      },
+      "elite2": {
+        "trig": "passive",
+        "_doc": "死魂灵的余息（10-14 改）：2 个魂灵之影始终悬在维什戴尔肩后，她每打出一发炮击，影子依次朝主目标附近（优先未标记）的敌人各开一炮；魂炮命中挂残影标记。写在 verb.souls（follow）",
+        "do": [
+          {
+            "verb": "souls",
+            "n": 2,
+            "follow": true,
+            "fire": {
+              "cond": "elite >= 2",
+              "mult": "$soul_fire_mult",
+              "delay": 0.06,
+              "gap": 0.08,
+              "fire_at": 0.16,
+              "anim": 0.32,
+              "spread": "$soul_spread",
+              "size": 1.0,
+              "mark": true,
+              "src": "魂灵之影",
+              "_doc": "魂炮：随维什戴尔每发炮击同步开火（攻击 × soul_fire_mult，同样余震），命中时给目标挂残影标记（4 秒，死亡必定殉爆）"
+            }
+          }
+        ]
+      },
+      "elite1": {
+        "trig": "passive",
+        "do": [],
+        "_doc": "好礼：写在 attack.gift（cond elite >= 1）"
+      }
+    }
+  },
+  "extra_sprites": [
+    "skill_s2",
+    "skill_s3",
+    "skill_s3_loop"
+  ]
 }
