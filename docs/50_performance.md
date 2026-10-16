@@ -1209,6 +1209,8 @@ HUD 平均减少 **0.024 毫秒（1.8%）**；8–10 分钟 HUD 1.355 → 1.334 
 
 ## 20. 双端 60 帧迭代（2026-10-17，进行中，Codex）
 
+**测量环境更正（05:22）**：发现本节网页测试脚本仅关闭启动器 PID，未检查 taskkill 结果，实际 Edge 主进程已换 PID，累计残留 15 个本实验专用 profile。已按绝对 user-data-dir 与进程身份逐个核对关闭，确认本实验 Edge 进程为 0，可用内存约 1.6 → 14.1 GiB。此前各局绝对帧时受残留进程 / 内存压力影响，桌面过线与网页未过线结论均须在修正环境中复核，不能据此认定最终基线；同局交替结果仅作候选线索，几何与 TRACE 一致性检查不受此结论替代。修正后的脚本使用 finally、按专用 profile 查找实际进程并清理、开始前拒绝残留、结束后断言残留为零；短程验证通过。审计 `build/fps_web/orphan_cleanup_audit.json`、`webres/control_cleanup_smoke_k-_s-_browser_cleanup.json`。
+
 用户要求桌面与网页都达到 60 帧基线，且不扰乱主代码架构。本轮以 §18 / §19 同一标准场景、1280×720、高画质、7–10 分钟段为起点；目标 P95 ≤ 16.7 毫秒，同时列 P99。仅一局过线不作为稳定达标证明。分支 `codex/fps-baseline`，基底 `386b4e47`；不改主工作区、不合入、不发布。
 
 ### 20.1 固定版本复测与测量边界
@@ -1301,3 +1303,42 @@ HUD 平均减少 **0.024 毫秒（1.8%）**；8–10 分钟 HUD 1.355 → 1.334 
 
 
 桌面可见窗口第二轮：7–8 分钟平均 10.00 / P95 12.45 / P99 13.94 ms；8–10 分钟平均 10.63 / P95 13.26 / P99 15.18 ms，>16.7 ms 为 0.3%，绘制调用中位 260、GPU 中位 1.14 ms。两轮 601 行 TRACE 完全一致，均完整渲染；证据 `build/fps_desktop_release_3/`。这里只确认桌面发布模板固定场景的重复计算预算，正常 PlayClock 呈现仍在补测，网页目标仍未达成。
+
+
+桌面正常调度（原 `--playclock`，无 `--fixed-fps` / `--prof`，可见窗口、高画质）：7–8 分钟平均 10.04 / P95 12.86 / P99 15.90 ms；8–10 分钟平均 10.38 / P95 13.22 / P99 17.63 ms，>16.7 ms 为 1.3%。绘制调用中位 253、GPU 中位 1.21 ms；无 SCRIPT ERROR / Parse Error / 三角化错误，退出仍有纹理资源泄漏日志。结合两次固定场景复测，本机桌面标准场景满足本轮 P95 ≤16.7 ms 的预算；不代表所有角色、分辨率或机器。证据 `build/fps_desktop_present/`。
+
+下一项网页隔离实验使用 `lto=thin extra_suffix=speed_thin linkflags=-Wl,--thinlto-jobs=1`，保留速度优化并把 ThinLTO 后端并发限制为 1，日志 `build/web_speed/build_thin.log`。构建期间若运行多边形探针，只作为错误复现，不采用其性能数字。
+
+
+多边形诊断：两次 420 秒短程和一次 600 秒完整正常 RAF 复跑均未重现引擎错误；完整诊断覆盖 101 处多边形调用，记录到的 k=0 预警并未使 Geometry2D 三角化返回空数组。第三局与编译并行，只能作为错误复现，性能数据全部排除。暂不据此修改生产逻辑，保留 `webres/poly_all_raf_diag_full_1_k-_s-.json` 供后续定位。
+
+额外等价候选仅在测量副本：`TriBatch.circle_n / ring_n` 按尺寸复用原点三角形模板，颜色与平移照旧，每种缓存最多 128 项。独立 1,500 组几何 / 颜色检查包含连续追加、缓存命中和清空后重建，全部通过；2 万次圆形加圆环微基准在当前构建负载下约 361–378 ms → 87–89 ms，不能当作整帧收益。准备同局独占 `optmask=4194304` 对照，未改正式代码。证据 `build/circle_ring_probe/`。
+
+
+### 20.12 清理残留后的复测（10-17，当前有效口径）
+
+以下各局开始前检查本任务测试 Edge 残留为零，结束在 finally 中查找实际浏览器 PID 并关闭，清理审计均为 remaining_owned=0；测试时无引擎编译任务。高画质、1280×720、seed 13、浊心斯卡蒂 + 德克萨斯 / 能天使、expert、nodeath；固定步长只比较计算吞吐，正常 PlayClock / RAF 单列，10+ 的结束帧不计验收。
+
+| 运行 | 8–10 分钟平均 / P95 / P99（ms） | >16.7 ms | 结论 |
+|---|---|---|---|
+| 网页原模板，固定步长 | 16.59 / 20.40 / 24.80 | 41.4% | 未达 60 帧预算 |
+| 网页 ThinLTO 速度模板，固定步长 | 16.38 / 20.00 / 23.70 | 36.9% | 首轮差异小，仍未达标，不改正式模板 |
+| 网页正常 RAF / PlayClock | 18.43 / 25.30 / 30.70 | 63.7% | 未达标；另重现一次多边形三角化错误 |
+| 桌面发布模板，正常 PlayClock、可见窗口 | 10.80 / 13.02 / 16.22 | 0.9% | 本机该场景满足 P95 ≤16.7 ms 预算 |
+
+网页原模板 / ThinLTO 的 601 行 TRACE 完全一致，无浏览器 ERROR，均为 RTX 4060 ANGLE D3D11。ThinLTO 构建退出码 0、耗时 1,967 秒；Wasm 39,514,754 → 55,311,034 字节，PCK 字节相同；参数与 SHA256 见 `build/web_speed/result_thin.json`。差异不足以支持更换正式模板，也不把未重复的 0.40 ms 当成确定收益。
+
+圆形 / 圆环模板缓存同局独占 optmask=4194304：8–10 分钟旧 / 新平均 16.58 / 16.55，P95 20.10 / 20.60，P99 24.80 / 25.80；601 行 TRACE 与原模板一致。固定尺寸微基准变快不能推出整帧收益，动态尺寸缓存重建有额外成本，**不纳入正式代码**。
+
+桌面绘制调用中位 263、GPU 中位 1.27 ms、渲染 CPU 中位 1.12 ms，确认实际绘制；无 SCRIPT ERROR / Parse Error，但退出有纹理 RID、ObjectDB、resources still in use 等日志，不能称完全无错误。供电检查为接电、电量 100%、平衡电源计划；未修改系统设置。
+
+证据：`webres/control_clean_1_k-_s-.json`、`thin_clean_1_k-_s-.json`、`geometry_clean_ab_1_k-_s-.json`、`control_raf_clean_1_k-_s-.json` 及对应 `_browser_cleanup.json`；桌面 `build/fps_desktop_present_clean/`。
+
+三角化定位仍未完成。旧诊断副本残留未采纳的 arc_q 方向表，已重新从交付代码生成仅带 103 处调用定位的副本；完整正常 RAF 运行 `poly_clean_raf_clean_diag_1` 没有 ERROR / BADPOLY，但这不证明原错误已修复。诊断开销会影响正常调度，不采用其帧时作优化证据。新候选仅在测量副本给 op_api.gd / squad.gd 的 Game、BatchCanvas 和 update 的 Character 循环加类型，已通过导出编译，待整帧与 TRACE 对照。
+
+
+类型标注隔离实验结束，未纳入：小范围（op_api.gd 的 Game；squad.gd 的 Game / BatchCanvas / update 循环 Character）8–10 分钟平均 / P95 / P99 = 16.20 / 19.90 / 24.60 ms；同导出方式原版首轮 17.64 / 22.20 / 27.00，原版复测 16.53 / 20.30 / 25.50。首轮原版的世界绘制 / HUD / 编队均同步变慢，不能把全部差值归因于标注。再扩到 23 个干员积木文件的 228 个局部 Game 变量后为 16.23 / 20.00 / 24.00，没有额外收益。小差异尚不足以支持本轮新增 preload 依赖和扩大改动，保留原代码；并非宣称类型标注绝无收益。
+
+`control_clean_1`、`thin_clean_1`、`geometry_clean_ab_1`、`typed_clean_1`、`typed_control_clean_1`、`typed_blocks_clean_1`、`typed_control_clean_2` 共 7 局固定步长的 601 行 TRACE 完全一致，均无浏览器 ERROR，逐局清理审计均为零残留。类型候选与对应原版都用 --export-pack；核对本版本 main.cpp，export_debug 初值为 false，--export-pack 不启用 debug 导出。类型副本证据 `build/fps_web/typed_candidate.patch`、`webres/typed*_k-_s-.json`。正式代码仍是既有字体查表 / HUD 圆环缓存等提交，本轮只补性能记录。
+
+当前结论：本机桌面发布模板标准场景的正常调度预算通过；网页正常呈现仍未通过，三角化错误仍未定位。未合入 main，未发版，未改正式模板、画质或刷新频率。继续压缩网页慢帧需要新的可验证热点方案；本节不宣称双端 60 FPS 已完成。
