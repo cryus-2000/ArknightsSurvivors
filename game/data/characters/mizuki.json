@@ -67,7 +67,7 @@
       "fire": 1
     },
     "skills": {
-      "_doc": "10-16 codex/art 1206366c：S1 单条；S2 skill_s2 f0–f1 进入（fire f1）→ 高速期间 skill_s2_loop 坐姿循环 → f2 返回；S3 单条。skill_s2_attack（技能期间攻击变体）动画系统暂不支持，先用普通 attack，待接",
+      "_doc": "10-16 codex/art 1206366c：S1 单条；S2 skill_s2 f0–f1 进入（fire f1）→ 高速期间 skill_s2_loop 坐姿循环 → f2 返回；S3 单条。10-16 接 attack 槽：高速期间伞击改播 skill_s2_attack（8 帧 6fps fire 3，按 fire 对齐出手，播完回坐姿循环；docs/87 §3.5）",
       "s1": {
         "anim": "skill"
       },
@@ -80,6 +80,7 @@
           ]
         },
         "loop": "skill_s2_loop",
+        "attack": "skill_s2_attack",
         "end": {
           "anim": "skill_s2",
           "frames": [

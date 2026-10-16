@@ -107,6 +107,7 @@
 
 - 「段」= 槽名，或 `{"anim": 槽, "frames": [帧号…]}`（只播这条里的这几帧，顺序随写）。铃兰 S3 一条 3 帧（f0 起手 / f1 发力 / f2 收势）拆成起手 [0, 1] 与收势 [0, 2]。
 - 出手帧语义不变：`fire` 到点调 `_release_skill()`，技能特效 / 积木在那一刻生效；hold / loop / end 期间不再有出手。循环期间起手的别的动作（普攻 / 另一技能）压过循环，播完接着循环；起手 / 收势途中被别的动作打断则序列作废回待机。
+- **`attack` 槽（可选，10-16，首例水月 S2）**：`{"start": …, "loop": …, "end": …, "attack": 槽}`——技能持续期（loop 阶段）内的普攻画面改播这条「技能期间攻击变体」，播完回 loop。对齐口径：变体的 `fire` 帧中点对齐普攻条的出手时刻（普攻条带 `fps / fire` 就是 `(fire + 0.5) / fps`，字符串槽 / 没写的按 `attack_dur / 2`），所以变体 `fire` 之前的帧在出手时刻之前播、之后的帧在之后播，比普攻窗口长的部分照播完（下一次普攻起手则从头重新对齐）。**只换画面**：`attack_t / fire_t / 朝向` 等模拟量不动，同 seed TRACE 不变。没写 `attack` 槽的照旧用普通 `attack` 条压过循环；`start_attack` 显式指定了别的帧条（`anim` 参数）的普攻不换；hold 型序列没有这个槽。水月 S2 写 `"attack": "skill_s2_attack"`（8 帧 6fps fire 3，`player_skill_s2_attack@2x`）；维什戴尔 S3 装填巨炮期间的炮击直接写 `"attack": "skill_s3_loop"`，`sprites.skill_s3_loop` 补 `fire: 1`（manifest contract）——蹲射循环条自己从 f0 起对齐 f1 出膛播一遍再回循环，不再用站姿 `attack` 条压过蹲姿。校验：`attack` 须是帧条名（不能写 `frames` 段）、要有 `loop`、槽要在 `sprites` 且列进 `extra_sprites`；`art_lint` 把它当本人身体。
 - 校验（`validate_operator`）：键只能 s1–s3；有 `hold` 必有 `intro`，`hold` 与 `start` 不能同写；引用的槽要在 `sprites` 且带 `tex`，非主动作要列进 `extra_sprites`；`frames` 要在该条帧数内。
 - 机检：`art_lint.roster` 把 `skills` 引用的槽当本人身体（描边 / 色数 / 贴地同主动作）；循环帧属造型离地的按单条帧条豁免 `(op, "ground", 槽)` 登记（铃兰 `skill_s3_loop` 微浮 2px）。
 - 同 seed：hold / loop / end 只改画面；出手窗口随起手段的帧数 / fps 变，改接线等于改出手时机，TRACE 对照要说明（铃兰接入记录见 docs/97）。
