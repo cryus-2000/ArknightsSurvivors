@@ -186,6 +186,12 @@ def check_cc_lint():
     return {"name": "敌人控制直写 cc_lint", "ok": not errs, "detail": detail, "errors": errs[:8]}
 
 
+def check_enemy_art():
+    import enemy_art_check
+    errs, detail = enemy_art_check.check()
+    return {"name": "Enemy art delivery", "ok": not errs, "detail": detail, "errors": errs[:8]}
+
+
 def check_px_lint():
     """不开 Godot（约 5 秒）：像素稿验收工具 tools/px_lint.py 在登记样本上跑通、数字等于校准值（干员美术路 1）；只在 --only px_lint 时跑"""
     import px_lint
@@ -864,6 +870,8 @@ SCENE_REGRESSIONS = {
     "friendly_target": ("中立单位索敌与治疗", "friendly_target_regression", r"FRIENDLY TARGET REGRESSION: 0 failures", []),
     "ishar_p2": ("伊莎玛拉敌对二阶段", "ishar_p2_test", r"ISHAR P2 failures=0", ["--balance", "--bosstest=ishar2"]),
     "enemy_demo": ("图鉴敌人攻击演示", "enemy_demo_test", r"ENEMY DEMO failures=0", []),
+    "knight_pixel_split": ("队友步行与Boss骑乘资源分离", "knight_pixel_split", r"KNIGHT_PIXEL_SPLIT_OK", []),
+    "enemy_pixels": ("怪物像素帧条与锚点", "enemy_pixel_contract", r"ENEMY PIXEL CONTRACT: .*failures=0", []),
     "gallery_demo": ("图鉴敌人演示：近战主体贴身循环不定住 / 敌弹与特效命中后回收", "gallery_demo_test", r"GALLERY DEMO failures=0", []),
     "play_clock": ("倍速模拟时钟", "play_clock_test", r"Play clock regression: 0 failures", []),
     "boss_trial_ui": ("Boss 演练小窗口与入口", "boss_trial_ui_test", r"Boss trial UI regression: 0 failures", []),
@@ -996,7 +1004,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "px_lint"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "px_lint", "enemy_art"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1029,6 +1037,8 @@ def main():
         jobs.append(check_op_text)   # 不开 Godot，约 1 秒；--auto 也跑（改干员数值或文字都要对一遍）
     if a.only in (None, "ob_tag"):
         jobs.append(check_ob_tag)   # 不开 Godot，约 1 秒；--auto 也跑（加积木 tag 时防两个执行器认同一个 tag、单播表漏登记）
+    if a.only in (None, "enemy_art"):
+        jobs.append(check_enemy_art)
     if a.only == "px_lint":
         jobs.append(check_px_lint)   # 不开 Godot；只在 --only px_lint 时跑（不进 --auto / 全量：样本在 codex-art 工作树，别人机器上可能没有）
     if a.only in (None, "cc_lint"):

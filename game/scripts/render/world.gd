@@ -1907,6 +1907,8 @@ func _dc_compute(e: Dictionary, moving: bool) -> Array:
 	var hr: float = A.hires_of(g.tex.get(name)) if g.tex.get(name) != null else 1.0
 	if hr > 1.0:
 		sc /= hr
+	anc = A.enemy_pixel_anchor(name, anc)
+	sc *= A.enemy_pixel_scale(name)
 	var ol: bool = g.tex.has(name + "_white") and _rim_on(e)
 	var ra = atlas.reg.get(name) if atlas != null else null   # [17] / [18]：图集里的本体 / 白剪影区域（docs/50 §12 B），不在图集里为 null
 	var rw = atlas.reg.get(name + "_white") if atlas != null else null
@@ -2261,6 +2263,8 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	var hr: float = A.hires_of(g.tex.get(name)) if g.tex.get(name) != null else 1.0
 	if hr > 1.0:
 		sc /= hr
+	anc = A.enemy_pixel_anchor(name, anc)
+	sc *= A.enemy_pixel_scale(name)
 	if e.has("ammo") and e.get("break_t", 0.0) > 0.0:
 		sq *= Vector2(1.1, 0.78)   # 装填被打断：跪地（没有跪地帧条，压低代替）
 		col = col * Color(0.8, 0.8, 0.9)
@@ -2463,10 +2467,16 @@ func _ground_ring(p: Vector2, r: float, k: float, c: Color) -> void:
 func _enemy_top(e: Dictionary) -> Vector2:
 	var name: String = ishar_animation(e).name if e.type == "ishar" else e.tex
 	var tx: Texture2D = _lazy_tex(name)
-	if tx == null or not g.foot_anchor.has(e.tex):
+	if tx == null:
 		return e.pos + Vector2(0, -e.r - 8.0)
+	var foot: bool = g.foot_anchor.has(e.tex)
+	var offset: float = (31.0 if e.type == "ishar" else e.r) * 0.8 + 3.0 * Game.PX if foot else 0.0
 	var sc: float = enemy_scale(e) / A.hires_of(tx)
-	return e.pos + Vector2(0, (31.0 if e.type == "ishar" else e.r) * 0.8 + 3.0 * Game.PX - tx.get_height() * sc)
+	if not A.enemy_pixel_spec(name).is_empty():
+		return e.pos + Vector2(0, offset - A.enemy_pixel_top(name, tx) * sc * A.enemy_pixel_scale(name))
+	if not foot:
+		return e.pos + Vector2(0, -e.r - 8.0)
+	return e.pos + Vector2(0, offset - tx.get_height() * sc)
 
 
 const _NO_DEF := {}   # 只读缺省（.get(k, {}) 每次都会新建一个空字典）
