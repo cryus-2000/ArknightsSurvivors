@@ -55,12 +55,21 @@ static func h3_umb_radius(o, a: Dictionary) -> float:
 	return _h3_mults(o, float(a.get("r", 142.0)) * _h3_st(o, "area", 1.0), a.get("r_mults", []))
 
 
-## 一帧（data_operator.update 转来，attack.flow = free）：手写水月 update 的先后——击杀回复预算 → 触手桩 → 镜像 / 残影 → 技能 → 延时攻击 → 挥伞
-static func h3_free_update(o, dt: float) -> void:
+## 常驻效果每帧推进一次；起手和命中由公共动作时钟驱动。
+static func h3_tick_effects(o, dt: float) -> void:
 	var g = o.g
 	var mz := _h3mz(o)
 	var a: Dictionary = o.B.get("attack", {})
-	o._sustain(dt)   # 常驻积木（成长节点的专属属性 buff_self 等）先落地，同手写节点当场 refresh_stats
+	# 重叠技能的前台收势结束后，恢复仍有效的另一条循环，不重放起手。
+	if o.sq_ph == 0 and not o.acting():
+		for i in range(2, -1, -1):
+			var sequence: Dictionary = o.skill_seq(i)
+			if o.s_t[i] > 0.0 and sequence.has("loop"):
+				o.sq = sequence
+				o.sq_i = i
+				o.sq_ph = 2
+				o.sq_t = 0.0
+				break
 	var kh := _h3_talent_any(o, "verb.kill_heal")
 	if not kh.is_empty():
 		mz.budget = min(float(mz.budget) + dt * float(kh.get("regen", 0.05)), float(kh.get("cap", 0.05)))
@@ -82,28 +91,58 @@ static func h3_free_update(o, dt: float) -> void:
 				mz.afterimg.pop_back()
 	else:
 		mz.afterimg.clear()
-	var ready: int = o.charge_skills(dt)
-	if ready >= 0:
-		_h3_free_skill(o, ready)
-		mz.last_s[ready] = float(o.s_t[ready])
 	for i in range(mz.delayed.size() - 1, -1, -1):
 		var dl: Dictionary = mz.delayed[i]
 		dl.at -= dt
 		if dl.at <= 0.0:
 			mz.delayed.remove_at(i)
 			_h3_run_delayed(o, a, dl)
-	if o.cd <= 0.0:
-		var radius: float = h3_umb_radius(o, a)
-		var at: Vector2 = o.atk_point(o.nearest_enemies(1, radius + float(a.get("aim_pad", 60.0)), o.pos), radius)
-		if at != Vector2.INF:
-			var interval: float = float(a.get("every", 0.9)) * _h3_st(o, "interval", 1.0) / o.stat(&"op_aspd") * (float(a.get("slow_mult", 1.5)) if g.atk_slow > 0.0 else 1.0)
-			for m in a.get("interval_mults", _EA):
-				if cond_true(o, m.get("cond", _ED)):
-					interval *= float(m.get("mult", 1.0))
-			o.cd = max(float(a.get("min_cd", 0.18)), interval)
-			_h3_umbrella(o, a, at)
-		else:
-			o.cd = o.idle_cd(float(a.get("idle", 0.1)))
+
+
+static func h3_umbrella_start(o, a: Dictionary) -> void:
+	if o.no_attack or o.cd > 0.0 or o.sq_ph == 3:
+		return
+	var radius := h3_umb_radius(o, a)
+	var at: Vector2 = o.atk_point(o.nearest_enemies(1, radius + float(a.get("aim_pad", 60.0)), o.pos), radius)
+	if at == Vector2.INF:
+		o.cd = o.idle_cd(float(a.get("idle", 0.1)))
+		return
+	o.cd = h3_umbrella_interval(o, a)
+	var anim := ""
+	for i in mini(3, o.B.skills.size()):
+		if o.ammo[i] > 0:
+			anim = str(o.B.skills[i].get("attack_patch", {}).get("anim", ""))
+			break
+	o.start_attack(at, 0.5, 0.25, anim, o.cd)
+
+
+static func h3_umbrella_interval(o, a: Dictionary) -> float:
+	var interval: float = float(a.get("every", 0.9)) * _h3_st(o, "interval", 1.0) / o.stat(&"op_aspd")
+	if o.g.atk_slow > 0.0:
+		interval *= float(a.get("slow_mult", 1.5))
+	return maxf(float(a.get("min_cd", 0.18)), _h3_mults(o, interval, a.get("interval_mults", [])))
+
+
+static func h3_umbrella_release(o, a: Dictionary) -> bool:
+	var radius := h3_umb_radius(o, a)
+	var targets: Array = o.nearest_enemies(1, radius + float(a.get("aim_pad", 60.0)), o.pos)
+	if targets.is_empty():
+		return false
+	var angle: float = o.atk_angle((targets[0].pos - o.pos).angle())
+	_h3_umbrella(o, a, o.pos + Vector2.from_angle(angle) * radius)
+	return true
+
+
+static func h3_cancel(o) -> void:
+	var mz: Dictionary = o.hw.mz
+	for key in ["stakes", "delayed", "afterimg", "jel", "binds"]:
+		if mz.has(key):
+			mz[key].clear()
+	mz["marks"] = {}
+	mz.last_s = [0.0, 0.0, 0.0]
+	mz.mirror_pos = o.pos
+	mz.afterimg_t = 0.0
+	mz.budget = 0.0
 
 
 static func _h3_talent_any(o, tag: String) -> Dictionary:
@@ -115,25 +154,6 @@ static func _h3_talent_any(o, tag: String) -> Dictionary:
 	return {}
 
 
-## 技能充满即发：扣技力（发动音 / 藏品事件），次数型叠到 stack_max，持续型开计时，再执行 do（不停手）
-static func _h3_free_skill(o, i: int) -> void:
-	var sk: Array = o.B.get("skills", [])
-	o.spend_sp(i)
-	if i >= sk.size():
-		return
-	var sb: Dictionary = sk[i]
-	var dv = sb.get("dur", 0)
-	if dv is Dictionary and dv.has("next_attacks"):
-		o.ammo[i] = mini(int(sb.get("stack_max", 1)), o.ammo[i] + int(dv.next_attacks))
-	elif not (dv is Dictionary) and float(dv) > 0.0:
-		o.s_t[i] = float(dv)
-		o.s_dur[i] = float(dv)
-	o._exec_list(sb.get("do", []))
-	if sb.has("fx"):
-		fx_play(o, sb.fx, o.pos, 30.0)
-	o.play_vis_skill(i)   # 技能帧条只是画面（docs/97 B）：逻辑已在上面即时生效；写了 sprites.skills.sN 序列（水月 S2 起手 → 高速期间坐姿循环 → 收势）就按序列播，否则单条
-
-
 ## 伞击
 static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 	var g = o.g
@@ -142,7 +162,6 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 	var half: float = deg_to_rad(min(180.0, float(a.get("half_deg", 75.0)) + _h3_st(o, "arc", 0.0)))
 	var ang: float = (at - o.pos).angle()
 	o.face_to(ang)
-	o.attack_t = o.attack_dur
 	var dmg: float = o.base(str(a.get("atk_key", "atk")), 0.0) * _h3_st(o, "dmg", 1.0) * o._dmg_bonus()
 	for m in a.get("dmg_mults", _EA):
 		if cond_true(o, m.get("cond", _ED)):
@@ -574,7 +593,8 @@ static func _h3mz_status(o) -> Array:
 
 static func _h3mz_rows(o) -> Array:
 	var a: Dictionary = o.B.get("attack", {})
-	var interval: float = float(a.get("every", 0.9)) * _h3_st(o, "interval", 1.0) / o.stat(&"op_aspd")
+	var timing: Dictionary = o.sprite_spec("attack").get("attack_timing", {})
+	var interval: float = maxf(h3_umbrella_interval(o, a), float(timing.get("min_duration", 0.0)) + float(timing.get("min_rest", 0.0)))
 	var half: float = minf(180.0, float(a.get("half_deg", 75.0)) + _h3_st(o, "arc", 0.0))
 	return [
 		["伞击伤害", "%d" % int(o.base(str(a.get("atk_key", "atk")), 0.0) * _h3_st(o, "dmg", 1.0) * o.g.dmg_mult)], ["全局伤害", "×%.2f" % o.g.dmg_mult], ["挥伞间隔", "%.2f 秒" % max(float(a.get("min_cd", 0.18)), interval)],

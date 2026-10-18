@@ -1578,7 +1578,7 @@ JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测�
 代码在 `op_blocks.gd` 末尾「手写迁移段（第 3 批）」（`H3_TAGS`，前缀 `h3_`，只往后加）；运行时状态仍在 `o.hw`（§17 同一套挂钩），各人一个子字典：`ir` / `sp` / `lm` / `mz`。
 核心部分只插了标「第 3 批」的转发：`apply_status`（`st.launch`）、`ATTACK_SHAPES`、`hw_init` / `_hw_uses` / `hw_tick`（返回「本帧不起手」）/ `hw_exec` / `hw_draw_*` / `hw_draw_pfx` / `hw_status_items` / `hw_stats_rows` / `_hw_block`、
 `verb.lamp` 的两个新参数、`verb.buff_self` 认干员 JSON `stat_defs` 里的专属属性（`op: flat`）、`attack_patch` 的新字段。
-`data_operator.gd` 的挂钩：起手（第 3 批的普攻形状 `H3_ATTACKS` 由本段接管：`h3_attack_start` / `h3_attack_fire`）、`attack.flow: free` 整帧交给 `h3_free_update`、`_release_skill` 开头（后续斩）、
+`data_operator.gd` 的挂钩：起手（第 3 批的普攻形状 `H3_ATTACKS` 由本段接管：`h3_attack_start` / `h3_attack_fire`）、水月常驻效果由 `h3_tick_effects` 每帧推进，伞击走公共起手 / 出手 / 收势、`_release_skill` 开头（后续斩）、
 `follow_target` / `draw_body`（本体离场）、`anim_state`（倒下帧条）、`extra_bodies` / `draw_extra` / `draw_extra_shadows`（替身 / 灯塔）、`draw_fx_add`、`_sustain`（`verb.lamp decay_mult`），
 以及几个按 `has_method` 被询问的接口：`away` / `prevent_death` / `sanctuary` / `light_radius_mult` / `tentacle_col` / `stat_defs` / `sync_stats` / `_dmg_bonus`（没写对应积木的数据干员返回中性值，同 seed 逐行不变）。
 
@@ -1603,7 +1603,7 @@ JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测�
 | `verb.beam` | 常驻（节点） | 灯塔在场或光束窗口内的旋转光束（扫到的敌人受伤、照亮，同一敌人 cd 秒一次） |
 | `verb.heal_lamp` | 常驻（天赋）/ 瞬时 | 每次回复 / 驱散灯火 + add；灯火 ≥ lamp 时自身技力额外 + rate；放在技能 do 里 = 这一下按天赋加灯火 |
 | `verb.lamp` 的 `decay_mult` / `radius_mult` | 常驻 | 受击灯火损失倍率（`light_decay`）/ 队长照亮半径倍率 |
-| `attack.flow: free` | 普攻 | 不等动作：技能充满即发（不起技能动作、发完不停手；次数型可叠 `stack_max` 次），普攻不起手直接出手，每帧不看「正在出手」（水月） |
+| `shape.umbrella` 出手时序 | 普攻 | 由公共动作时钟驱动，出手时消耗强化次数；旧 `attack.flow: free` 入口已移除。 |
 | `shape.umbrella` | 普攻 | 伞击：扇形 half = min(180°, half_deg + 角度加成)，半径 / 伤害 / 间隔按专属属性 `stats` 与 cond 倍率；`dirs` 三方向；`tentacle` 触手追击（n = 追击数属性 + n_add，不够打附近的；`drag`、`stake`）；`echo` 镜像分身延时同步挥伞；次数型补丁 `kb` / `burst`（创伤扩散）/ `swarm` |
 | `verb.kill_heal` / `verb.cast_push` / `verb.mirror` | 瞬时 | 击杀回复（每秒预算）/ 发动光环推开身边小怪 / 镜像分身出现 |
 | `blocks.dmg_bonus` | 顶层 | 本干员的伤害加成（`ally: false` 不吃同伴倍率；`mults` 带 `near_low_hp`）|
@@ -1839,3 +1839,17 @@ o.SkillLifecycle.bind(o, "capability", o.effect_skill, state, "remaining",
 已接入适配：`cannon_load`（次数独占）、`saria_heal.hot`（后台限时）、`calc_field`（限时领域）、`fox_cast.haze`（限时增益）、`fox_cast` 暖光（永久增益）。自然结束的治疗尾拍、钙晶更新、暖光恢复仍在原适配器位置，未另加计时器。
 
 新增干员：先复用现有 JSON 积木、技能槽与动画映射；只有全新效果才新增适配器。适配器至少提供绑定、自然结束及取消规则，检查状态单位、槽迁移、刷新、退出与再部署。完整对应和验证边界见 [三干员能力审计](plans/2026-10-18-three-operator-capability-audit.md)。
+
+
+## 26. 水月公共时序接入（2026-10-18）
+
+水月伞击由 `h3_umbrella_start → start_attack → _release → h3_umbrella_release` 调度，命中帧前不结算伤害或消耗 S1。起手前无目标、起手后目标全部死亡均保留强化次数。触手、镜像、冲击与成长仍使用原效果执行器；它们不会重新起人物动作。
+
+- S1 沿用 `cast: instant` 装填；`load_skill_attacks` 有 `stack_max` 时累加至上限，缺省仍为覆盖。`attack_patch.anim` 指向已定义帧条，强化伞击优先于持续技能的普通攻击变体。
+- S2 / S3 移除 `cast: instant`，在技能起手的 fire 事件设置原有 12 / 14 秒计时，绑定同一 `s_t` 到 `SkillLifecycle`，不增加第二个计时器。当前动作完成后播收势，收势期间不发新动作；重叠技能的前台收势完成后恢复仍生效的另一循环。
+- `attack_timing.min_duration` / `min_rest` 是可选正数；前者不得大于 duration。水月 .72 秒动作、.36 秒最短完整动作、.09 秒最短停顿；请求周期 .9 / .45 / .225 秒时实际周期为 .9 / .45 / .45 秒。S2 请求周期再减半，仍受相同下限约束。未配置边界的其他干员保持原时序。
+- 已声明帧数的动作以数据计时，不因贴图缺失改为即时伤害；序列同样从帧数据取得起手时长，渲染可回退。
+- `on_leave` 清空未出手事件、手动缓存、已绑定次数 / 持续状态，以及水月自己的触手桩、未结算冲击 / 镜像队列、水母、绑缚画面与残影；不清除全局其他角色弹体。
+- 删除 `h3_free_update`、`_h3_free_skill`、`B._free` 与旧数据 `flow`。保留 `_h3_umbrella`、触手 / 水母 / 成长执行器及其他展示仍使用的 `play_vis_skill`。不宣称与旧 free 流伤害时间逐字节等价；起手与高攻速上限属于明确修正。
+
+验收入口：`mizuki_runtime_test`（真实技能入口、1/2/4 倍攻速、主控 / 队友、手动 / 自动、目标死亡、取消 / 重新部署、重叠恢复、成长与缺图），`mizuki_skill_anim_test`（完整八帧、fire 对齐、持续循环 / 收势、S1 优先级与无变体回退）。三干员既有 lifecycle / phases / timing / Wisadel 回归保留。

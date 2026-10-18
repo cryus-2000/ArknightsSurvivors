@@ -5,95 +5,213 @@
   "class": "特种",
   "script": "res://scripts/characters/data_operator.gd",
   "sprites": {
-    "base": "player",
-    "idle": "player_idle",
-    "run": "player_run",
-    "attack": "player_attack_48",
-    "skill": {
-      "tex": "player_skill",
-      "frames": 3,
-      "fps": 8,
-      "foot": [
-        32,
-        60
-      ],
-      "fire": 1,
-      "_doc": "S1 条（codex/art 1206366c）；图鉴 / 选人预览用"
-    },
-    "hurt": "player_hurt",
-    "death": "player_death",
-    "size": 64,
+    "base": "mizuki_runtime_idle",
+    "size": 96,
     "foot": [
-      32,
-      60
+      48,
+      75.50702040908614
     ],
-    "skill_s2": {
-      "tex": "player_skill_s2",
-      "frames": 3,
-      "fps": 8,
+    "draw_scale": 0.9,
+    "idle": {
+      "tex": "mizuki_runtime_idle",
+      "frames": 8,
+      "fps": 0.6,
       "foot": [
-        32,
-        60
-      ],
-      "fire": 1
-    },
-    "skill_s2_loop": {
-      "tex": "player_skill_s2_loop",
-      "frames": 4,
-      "fps": 4,
-      "foot": [
-        32,
-        60
+        48,
+        75.50702040908614
       ]
     },
-    "skill_s2_attack": {
-      "tex": "player_skill_s2_attack",
+    "run": {
+      "tex": "mizuki_runtime_run",
       "frames": 8,
-      "fps": 6,
+      "fps": 10,
       "foot": [
-        32,
-        60
+        48,
+        75.50702040908614
+      ]
+    },
+    "attack": {
+      "tex": "mizuki_runtime_attack",
+      "frames": 8,
+      "fps": 11.11111111111111,
+      "foot": [
+        48,
+        75.50702040908614
+      ],
+      "fire": 3,
+      "attack_timing": {
+        "duration": 0.72,
+        "fire_time": 0.27,
+        "active_ratio": 0.8,
+        "windup_ratio": 0.375,
+        "min_duration": 0.36,
+        "min_rest": 0.09
+      }
+    },
+    "hurt": {
+      "tex": "mizuki_runtime_hurt",
+      "frames": 4,
+      "fps": 10,
+      "foot": [
+        48,
+        75.50702040908614
+      ]
+    },
+    "death": {
+      "tex": "mizuki_runtime_death",
+      "frames": 8,
+      "fps": 8,
+      "foot": [
+        48,
+        75.50702040908614
+      ]
+    },
+    "skill": {
+      "tex": "mizuki_runtime_s1_attack",
+      "frames": 8,
+      "fps": 11.11111111111111,
+      "foot": [
+        48,
+        75.50702040908614
+      ],
+      "fire": 3,
+      "attack_timing": {
+        "duration": 0.72,
+        "fire_time": 0.27,
+        "active_ratio": 0.8,
+        "windup_ratio": 0.375,
+        "min_duration": 0.36,
+        "min_rest": 0.09
+      }
+    },
+    "skill_s1_attack": {
+      "tex": "mizuki_runtime_s1_attack",
+      "frames": 8,
+      "fps": 11.11111111111111,
+      "foot": [
+        48,
+        75.50702040908614
+      ],
+      "fire": 3,
+      "attack_timing": {
+        "duration": 0.72,
+        "fire_time": 0.27,
+        "active_ratio": 0.8,
+        "windup_ratio": 0.375,
+        "min_duration": 0.36,
+        "min_rest": 0.09
+      }
+    },
+    "skill_s2": {
+      "tex": "mizuki_runtime_skill_start",
+      "frames": 8,
+      "fps": 16,
+      "foot": [
+        48,
+        75.50702040908614
       ],
       "fire": 3
     },
-    "skill_s3": {
-      "tex": "player_skill_s3",
-      "frames": 3,
+    "skill_s2_loop": {
+      "tex": "mizuki_runtime_skill_loop",
+      "frames": 8,
       "fps": 8,
       "foot": [
-        32,
-        60
+        48,
+        75.50702040908614
+      ]
+    },
+    "skill_s2_attack": {
+      "tex": "mizuki_runtime_skill_attack",
+      "frames": 8,
+      "fps": 11.11111111111111,
+      "foot": [
+        48,
+        75.50702040908614
       ],
-      "fire": 1
+      "fire": 3,
+      "attack_timing": {
+        "duration": 0.72,
+        "fire_time": 0.27,
+        "active_ratio": 0.8,
+        "windup_ratio": 0.375,
+        "min_duration": 0.36,
+        "min_rest": 0.09
+      }
+    },
+    "skill_s2_end": {
+      "tex": "mizuki_runtime_skill_end",
+      "frames": 8,
+      "fps": 16,
+      "foot": [
+        48,
+        75.50702040908614
+      ]
+    },
+    "skill_s3": {
+      "tex": "mizuki_runtime_skill_start",
+      "frames": 8,
+      "fps": 16,
+      "foot": [
+        48,
+        75.50702040908614
+      ],
+      "fire": 3
+    },
+    "skill_s3_loop": {
+      "tex": "mizuki_runtime_skill_loop",
+      "frames": 8,
+      "fps": 8,
+      "foot": [
+        48,
+        75.50702040908614
+      ]
+    },
+    "skill_s3_attack": {
+      "tex": "mizuki_runtime_skill_attack",
+      "frames": 8,
+      "fps": 11.11111111111111,
+      "foot": [
+        48,
+        75.50702040908614
+      ],
+      "fire": 3,
+      "attack_timing": {
+        "duration": 0.72,
+        "fire_time": 0.27,
+        "active_ratio": 0.8,
+        "windup_ratio": 0.375,
+        "min_duration": 0.36,
+        "min_rest": 0.09
+      }
+    },
+    "skill_s3_end": {
+      "tex": "mizuki_runtime_skill_end",
+      "frames": 8,
+      "fps": 16,
+      "foot": [
+        48,
+        75.50702040908614
+      ]
     },
     "skills": {
-      "_doc": "10-16 codex/art 1206366c：S1 单条；S2 skill_s2 f0–f1 进入（fire f1）→ 高速期间 skill_s2_loop 坐姿循环 → f2 返回；S3 单条。10-16 接 attack 槽：高速期间伞击改播 skill_s2_attack（8 帧 6fps fire 3，按 fire 对齐出手，播完回坐姿循环；docs/87 §3.5）",
       "s1": {
         "anim": "skill"
       },
       "s2": {
-        "start": {
-          "anim": "skill_s2",
-          "frames": [
-            0,
-            1
-          ]
-        },
+        "start": "skill_s2",
         "loop": "skill_s2_loop",
         "attack": "skill_s2_attack",
-        "end": {
-          "anim": "skill_s2",
-          "frames": [
-            2
-          ]
-        }
+        "end": "skill_s2_end"
       },
       "s3": {
-        "anim": "skill_s3"
+        "start": "skill_s3",
+        "loop": "skill_s3_loop",
+        "attack": "skill_s3_attack",
+        "end": "skill_s3_end"
       }
     },
-    "_note_1016": "64 画布只交 @2x（codex/art 1206366c，仍用 player_* 槽名，world.gd p48_tex 按帧尺寸读）：idle 4/4、run 6/10、attack 4/14 fire 2、hurt 2/10、death 4/6",
-    "draw_scale": 0.9
+    "_doc": "Native Spine pixels:192 @2x, logical96, common foot; source durations recorded in mizuki_runtime_manifest.json. Runtime attack uses full anticipation/fire/recovery with readable floor; S2/S3 share documented reference family."
   },
   "base": {
     "umbrella_dmg": 15,
@@ -373,7 +491,7 @@
     }
   },
   "blocks": {
-    "_doc": "水月（docs/61 §19）：不等动作（flow free）；普攻伞击 + 触手追击；S1 唤醒（下一次伞击强化，可叠 3 次）；S2 囚徒困境（挥伞加速、束缚）；S3 镜花水月（三方向 + 镜像）；天赋反移情。原手写脚本留作 tests/data_ops/mizuki_legacy.gd",
+    "_doc": "水月：公共起手→命中→收势；伞击、触手追击及镜像保留各自效果；S1最多叠3次，S2/S3原数值持续状态绑定公共生命周期。",
     "dmg_bonus": {
       "ally": false,
       "mults": [
@@ -390,7 +508,6 @@
     },
     "attack": {
       "shape": "umbrella",
-      "flow": "free",
       "src": "伞击",
       "atk_key": "umbrella_dmg",
       "r": "$swing_radius",
@@ -556,7 +673,8 @@
             "n": 2,
             "r_mult": 1.6,
             "stun": 0.4
-          }
+          },
+          "anim": "skill_s1_attack"
         },
         "fx": [
           {
@@ -578,7 +696,6 @@
         ]
       },
       {
-        "cast": "instant",
         "dur": "$s2_dur",
         "do": [
           {
@@ -594,7 +711,6 @@
         ]
       },
       {
-        "cast": "instant",
         "dur": "$s3_dur",
         "do": [
           {
@@ -669,6 +785,11 @@
     "skill_s2",
     "skill_s2_attack",
     "skill_s2_loop",
-    "skill_s3"
+    "skill_s3",
+    "skill_s1_attack",
+    "skill_s2_end",
+    "skill_s3_loop",
+    "skill_s3_attack",
+    "skill_s3_end"
   ]
 }

@@ -1279,6 +1279,11 @@ static func valid_attack_timing(spec: Dictionary) -> bool:
 	for key in ["duration", "fire_time", "active_ratio", "windup_ratio"]:
 		if not typeof(t.get(key)) in [TYPE_INT, TYPE_FLOAT] or not is_finite(float(t[key])) or float(t[key]) <= 0.0:
 			return false
+	for key in ["min_duration", "min_rest"]:
+		if t.has(key) and (not typeof(t[key]) in [TYPE_INT, TYPE_FLOAT] or not is_finite(float(t[key])) or float(t[key]) <= 0.0):
+			return false
+	if float(t.get("min_duration", 0.0)) > float(t.duration):
+		return false
 	return float(t.fire_time) < float(t.duration) and float(t.active_ratio) < 1.0 and float(t.windup_ratio) < 1.0 and int(spec.get("fire", 0)) > 0 and int(spec.get("fire", 0)) < int(spec.get("frames", 0))
 
 
@@ -1344,9 +1349,7 @@ func skill_anim(i: int) -> String:
 	return str(skill_def(i).get("anim", skill_seq(i).get("anim", "skill")))   # sprites.skills.sN 只写 anim 的单条同 skills[i].anim（docs/87 §3.5）
 
 
-## 纯画面动作（2026-10-14，docs/97 B 水月技能帧条）：attack.flow = free 的干员技能充满即发（op_blocks h3_free），
-## 逻辑不等动作，所以不走 _start_action（attack_t / fire_t / 朝向都不动，同 seed 模拟不变），只把这条帧条按 fps 播一遍
-## 再回待机；期间压过普攻 / 跑步动作。帧条来自 skill_anim(i)（缺省 sprites.skill，skills[i].anim 可换）；缺图不播
+## 独立视觉叠层，不调度伤害；保留给既有展示和视觉技能调用。
 var vis_anim := ""
 
 func play_vis_anim(kind: String) -> void:
@@ -1378,8 +1381,8 @@ func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim 
 		_set_face(signf(aim.x - pos.x))
 	_sq_interrupt()
 	act_kind = kind
-	act_anim = anim if anim != "" and anim_tex(anim) != null else kind
-	if anim_tex(act_anim) == null:
+	act_anim = anim if anim != "" and (anim_tex(anim) != null or sprite_spec(anim).has("frames")) else kind
+	if anim_tex(act_anim) == null and not sprite_spec(act_anim).has("frames"):
 		if kind == "skill":
 			_release_skill()
 		else:
@@ -1399,7 +1402,7 @@ func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim 
 		var timing: Dictionary = spec.attack_timing
 		dur = float(timing.duration)
 		if interval > 0.0:
-			dur = minf(dur, interval * float(timing.active_ratio))
+			dur = maxf(float(timing.get("min_duration", 0.0)), minf(dur, interval * float(timing.active_ratio)))
 		fire_at = minf(float(timing.fire_time), dur * float(timing.windup_ratio))
 	attack_fire_at = fire_at
 	attack_dur = dur
@@ -1744,7 +1747,7 @@ static func seq_anim(seg) -> String:
 ## 「段」播的帧号表（没写 frames = 整条）
 func _seq_frames(seg, kind: String) -> Array:
 	var tx := anim_tex(kind)
-	var frs: Array = range(anim_hframes(tx, kind)) if tx != null else []
+	var frs: Array = range(int(sprite_spec(kind).get("frames", anim_hframes(tx, kind) if tx != null else 0)))
 	if seg is Dictionary:
 		if seg.get("frames") is Array and not seg.frames.is_empty():
 			frs = seg.frames.duplicate()
@@ -1756,7 +1759,7 @@ func _seq_frames(seg, kind: String) -> Array:
 ## 「段」的时长（秒）
 func _seq_len(seg) -> float:
 	var k := seq_anim(seg)
-	if k == "" or anim_tex(k) == null:
+	if k == "" or (anim_tex(k) == null and not sprite_spec(k).has("frames")):
 		return 0.0
 	return frames_seconds(k, _seq_frames(seg, k))
 
@@ -1769,7 +1772,7 @@ func _start_skill_seq(aim: Vector2, i: int) -> bool:
 	var hold: bool = q.has("hold")
 	var head = q.get("intro" if hold else "start", q.get("anim", null))
 	var hk := seq_anim(head)
-	if hk == "" or anim_tex(hk) == null:
+	if hk == "" or (anim_tex(hk) == null and not sprite_spec(hk).has("frames")):
 		return false
 	if not hold and not q.has("start"):
 		return false   # 只写 anim 的走单条（skill_anim 同义）
@@ -1930,7 +1933,7 @@ func _tick_sq_atk(dt: float) -> void:
 		sq_atk_t = -1.0
 		return
 	if attack_t > 0.0 and act_kind == "attack" and act_anim == "attack" and not sq_own:
-		var el: float = attack_dur - attack_t   # 这次普攻已播秒数（free 流的 attack_t 直接置 attack_dur，同样成立）
+		var el: float = attack_dur - attack_t   # 这次普攻已播秒数
 		if sq_atk_t < 0.0 or el < sq_atk_t - 0.0001:
 			sq_atk = k   # 新一次普攻：从头对齐（变体比出手窗口短时播完清掉，同一次普攻不再触发）
 		sq_atk_t = el

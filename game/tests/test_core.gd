@@ -1060,7 +1060,7 @@ func test_blocks_hw3() -> void:
 	for t in ["shape.thrust", "shape.cleave", "shape.saw", "shape.lantern", "shape.umbrella", "st.launch", "verb.substitute", "verb.tower"]:
 		ok(OB.H3_TAGS.has(t), "第 3 批积木已登记：%s" % t)
 	ok(OB.ATTACK_SHAPES.has("thrust") and OB.ATTACK_SHAPES.has("umbrella"), "第 3 批普攻形状已登记")
-	ok(str(defs["mizuki"].blocks.attack.get("flow", "")) == "free", "水月：不等动作（flow free）")
+	ok(not defs["mizuki"].blocks.attack.has("flow"), "水月：公共起手和命中时钟")
 	ok(OB.E3_TAGS.has("trig.on_windup") and OB.E3_TAGS.has("verb.doll_flash"), "精英化第 3 批积木已登记")
 	for id in ["specter_unchained", "mizuki", "irene", "lumen"]:
 		var pg: Dictionary = defs[id].blocks.progression

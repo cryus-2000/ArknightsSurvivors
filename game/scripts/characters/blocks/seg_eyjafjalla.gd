@@ -444,7 +444,7 @@ static func hw_instant(o, i: int) -> bool:
 	o.spend_sp(i)
 	var dv = sb.get("dur", 0)
 	if dv is Dictionary and dv.has("next_attacks"):
-		o.ammo[i] = int(dv.next_attacks)
+		o.load_skill_attacks(i, int(dv.next_attacks))
 	if sb.has("fx"):
 		fx_play(o, sb.fx, o.pos, 30.0)
 	o.effect_skill = i

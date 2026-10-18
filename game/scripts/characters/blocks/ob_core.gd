@@ -835,7 +835,6 @@ const LM_TAGS := ["shape.lantern", "verb.mend", "verb.purge", "verb.light_rain",
 
 
 # ---------------------------------------------------------------- 水月段（第 3 批续，MZ_TAGS）
-#  attack.flow: free  不等动作的干员：技能充满即发（不起技能动作、发完不停手），普攻不起手直接出手（播一下攻击帧），每帧不看「正在出手」
 #  shape.umbrella   伞击（普攻）：扇形 half = min(180°, half_deg + 角度加成)，半径 r × 范围倍率 × r_mults；伤害 = atk × 伤害倍率 × 加成 × dmg_mults；
 #                   dirs [{cond, n}]（镜花水月三方向）；kb / stun [{cond, dur}]；empower（次数型技能的补丁：mult × 技能强度、r_mult、kb、burst 创伤扩散、
 #                   swarm 额外触手）；tentacle：命中里生命最低的 n 个（n = 追击数属性 + n_add）触手追击 × t_mult，不够打附近的；

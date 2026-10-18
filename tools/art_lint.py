@@ -88,6 +88,7 @@ LEGACY = {"eyjafjalla", "irene", "kaltsit", "logos", "lumen", "mizuki", "saria",
 
 # ---------------------------------------------------------------- 豁免：已开返修单、未交付的 FAIL（交付合入后删条目）
 WAIVERS = {
+    ("mizuki", "ground", "idle"): "10-18 原生 Idle f6 转伞，伞尖到逻辑 y83，双脚仍在 y75.5；最低透明边缘不是脚底。见 mizuki_runtime_manifest.json 与 build/mizuki_idle_anchor.png",
     ("saria", "outline"): "10-18 三人全动画接入：按原生附件暗色收边，不使用旧版纯 #080E18 外壳（docs/plans/2026-10-18-three-attack-timing.md）",
     ("saria", "run"): "10-18 用户要求接入现有全动画：沿用已确认 saria_latest_all 八帧持盾前冲；上身稳定的自动指标未过，保留视觉复核项（同交付记录）",
     ("suzuran", "frontal"): "10-18 原生 Idle 的正面头部与已确认小跑组合，保持原作朝向；旧版正面比例阈值不用于改造原生脸型（同交付记录）",
@@ -96,12 +97,8 @@ WAIVERS = {
     ("doctor", "run"): "10-18 用户批准先接测试版：头部起伏 0.696px 不达标、前倾 26.46 度 WARN，保留返修（doctor_run_handoff.md）",
     ("suzuran", "outline"): "10-16 新规格（docs/103 §5 / 104）：64 画布 @2x 原生细节不画硬黑外描边（codex/art 0827a990 接入）；art_lint 描边项待按新规格改口径",
     ("suzuran", "run"): "10-16 用户看过 all_actions.gif 批准的六帧屈膝小跑（codex/art 0827a990）；机检剪影 / 上身变化阈值按旧 48 帧条定，待改口径",
-    ("mizuki", "outline"): "10-16 新规格（docs/103 §5 / 104）：64 画布 @2x 暗色收边、无硬黑外描边（codex/art 1206366c）；描边项待改口径",
-    ("mizuki", "idle"): "10-16 用户批准的整套（codex/art 1206366c）：呼吸 0.5px 属新规格的轻微呼吸，阈值待改口径",
-    ("mizuki", "run"): "10-16 用户批准的整套（codex/art 1206366c）：上半身变化阈值按旧 48 帧条定，待改口径",
-    ("mizuki", "ground", "skill_s2"): "设计例外（codex/art 1206366c）：S2 张伞触手承托坐姿，离地 1–2px 属造型",
-    ("mizuki", "ground", "skill_s2_loop"): "设计例外（codex/art 1206366c）：S2 坐姿循环，离地 1px 属造型",
-    ("mizuki", "ground", "skill_s2_attack"): "设计例外（codex/art 1206366c）：S2 坐姿伞击变体，离地 1px 属造型（10-16 接 attack 槽后纳入机检）",
+    ("mizuki", "outline"): "10-18 原生附件像素重组：96 逻辑画布 @2x 暗色收边；旧纯黑外壳阈值不适用（mizuki_runtime_manifest.json）",
+    ("mizuki", "run"): "10-18 接入既有 cf 原生骨架跑步：上身稳定、腿部变化0.120，保留视觉复核；旧48画布上身阈值未过（mizuki_runtime_manifest.json）",
     ("wisadel", "outline"): "10-16 新规格（docs/103 §5 / 104）：64 画布 @2x 暗色收边、无硬黑外描边（codex/art 01392fc7）",
     ("wisadel", "facing"): "10-16 用户批准整套（codex/art 01392fc7）：扛炮 / 蹲射构图让头部同向分偏，机检口径按旧 48 帧条定",
     ("wisadel", "frontal"): "10-16 用户批准整套（codex/art 01392fc7）：待机 / 跑步偏正面是定稿构图，待改口径",
@@ -144,11 +141,6 @@ def roster(data=DATA):
                 k = seg.get("anim") if isinstance(seg, dict) else seg
                 if k in acts:
                     acts[k]["_body"] = True
-        if cid == "mizuki":   # idle / run / attack 仍是字符串槽（world.gd 缺省帧条）；skill 自 docs/97 B 起是带 fps / fire 的字典槽，两者合并
-            for k, v in {"idle": {"tex": "player_idle", "frames": 4, "fps": 6, "foot": foot},
-                         "run": {"tex": "player_run", "frames": 6, "fps": 12, "foot": foot},
-                         "attack": {"tex": "player_attack_48", "frames": 4, "fps": 12, "foot": foot}}.items():
-                acts.setdefault(k, v)
         for v in acts.values():
             v.setdefault("foot", foot)
         out[cid] = acts
@@ -328,7 +320,7 @@ def run_metrics(art, tex_run, tex_idle):
     """复用 tools/run_cycle_review.py 的 metrics（同一口径）。它按 strip_path(op) 找跑步条，
     待机条用 strip_path(op).replace("_run@2x", "_idle@2x")，所以只要换掉 strip_path 即可（待机条名 = 跑步条名把 run 换成 idle）"""
     import run_cycle_review as rcr
-    assert tex_idle == tex_run.replace("_run", "_idle"), (tex_run, tex_idle)
+    assert tex_idle == tex_run.removesuffix("_run") + "_idle", (tex_run, tex_idle)
     rcr.ART = art
     rcr.strip_path = lambda op, hi=True: os.path.join(art, tex_run + ("@2x" if hi else "") + ".png")
     m = rcr.metrics("__run__")
@@ -691,7 +683,10 @@ def lint_op(op, acts, art=ART, prev=None):
         bots = [int(np.nonzero((f[..., 3] > 0).any(axis=1))[0].max()) // 2 for f in split(hi)]
         gv[act] = "".join(str(b - 40) if 0 <= b - 40 <= 9 else "?" for b in bots)
         if act == "idle" and any(b != jy for b in bots):
-            gf.append("idle 最低行 %s（应每帧 = %d）" % (bots, jy))
+            if sw:
+                gwv.append(act)
+            else:
+                gf.append("idle 最低行 %s（应每帧 = %d）" % (bots, jy))
         elif jy not in bots:
             if sw:
                 gwv.append(act)
