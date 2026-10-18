@@ -192,7 +192,7 @@ static func tx_update(o, dt: float) -> bool:
 	# 技能持续结束
 	var prev: Array = tx.get("prev_s", [0.0, 0.0, 0.0])
 	for i in 3:
-		if prev[i] > 0.0 and o.s_t[i] <= 0.0:
+		if prev[i] > 0.0 and o.s_t[i] <= 0.0 and not o.B.get("skills", [{}, {}, {}])[i].has("attack_phases"):
 			for t in o._trigs():
 				if str(t.get("_tag", "")) == "trig.on_skill_end" and not t.has("at") and int(t.get("skill", -1)) == i and cond_true(o, t.get("cond", _ED)):   # 带 at 的在 mf_tick（帧开头）
 					o._exec_list(t.get("do", []), tx.get("last_to", o.pos))

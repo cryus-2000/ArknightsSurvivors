@@ -45,9 +45,10 @@ func _ready() -> void:
 		g.stats.add(&"op_aspd", "override", rate, "s2_test", "op:wisadel")
 		o.refresh_stats()
 		o.s_t[1] = 2.0
-		wd.s2_over = true
-		wd.s2_transition = 0.0
-		wd.s2_queue = []
+		o.phases.index = 1
+		o.set_attack_phase(o.skill_seq(1).phases[1], false)
+		o.phases.transition = 0.0
+		o.phases.queue = []
 		wd.shells = []
 		o.attack_t = 0.0
 		o.cd = 0.0
@@ -55,13 +56,13 @@ func _ready() -> void:
 		ok(o.anim_state().kind==str(o.sq.attack),"no ordinary attack flash on S2 start")
 		ok(absf(o.cd - 1.4*.8/rate) < .0001, "S2 attack interval follows ASPD")
 		o.attack_t = o.attack_dur-o.attack_fire_at
-		OB._h4_cannon_release(o, a)
-		ok(wd.shells.size() == 1 and wd.s2_queue.size() == 3, "only first of four shells fires at release")
+		o._release()
+		ok(wd.shells.size() == 1 and o.phases.queue.size() == 3, "only first of four shells fires at release")
 		for k in range(1,4):
 			o.attack_t = o.attack_dur - (o.attack_fire_at+(o.attack_dur-o.attack_fire_at)*k/5.0 + .00001)
-			OB._h4_s2_tick(o,a,wd,0.0)
+			o.AttackPhases.tick(o,0.0)
 			ok(wd.shells.size()==k+1, "one shell per recovery pose")
-		ok(wd.s2_queue.is_empty() and o.acting(), "four shots complete before recovery unlock")
+		ok(o.phases.get("queue", []).is_empty() and o.acting(), "four shots complete before recovery unlock")
 		var origins := {}
 		for shell in wd.shells:
 			origins[str(shell.from)] = true
@@ -72,9 +73,11 @@ func _ready() -> void:
 		ok(o.skill_active_left(1)>0.0, "last round completes before visual end")
 	# One normal shell damages more than three enemies in its blast.
 	wd.shells=[]
-	wd.s2_attack_over=false
+	o.phases.round = o.phases.config[0].duplicate(true)
+	o.phases.round["attack"] = a
+	o.phases.round["anim"] = "s2_attack"
 	o.atk_aim=Vector2.ZERO
-	OB._h4_s2_shot(o,a,wd,0)
+	o.phase_shot(o.phases.round,0)
 	ok(wd.shells.size()==1, "normal phase emits one area shell")
 	OB._h4wd_tick(o,wd,.4)
 	ok(enemies.all(func(e):return e.hp<1000000.0), "all six enemies in blast are damaged")
@@ -84,7 +87,7 @@ func _ready() -> void:
 	o._sq_clear()
 	o.attack_t=0.0
 	o.fire_t=-1.0
-	wd.s2_queue=[]
+	o.AttackPhases.cancel(o)
 	wd.ammo=0
 	o.ammo[0]=3
 	o.start_skill(Vector2.INF,1)
@@ -98,7 +101,7 @@ func _ready() -> void:
 	for kind in ["s2_start","s2_attack","s2_over_start","s2_over_attack","s2_over_end"]:
 		ok(seen.has(kind),"live sequence includes "+kind)
 	ok(o.skill_active_left(1)<=0.0 and o.sq_ph==0,"S2 ends and unlocks")
-	ok(wd.s2_queue.is_empty(),"no queued shots after ending")
+	ok(o.phases.get("queue", []).is_empty(),"no queued shots after ending")
 	# S3 last shot still owns its end animation before a ready S2 may deploy.
 	o.hw.wd.ammo = 0
 	o.sq_i = 2
@@ -114,6 +117,6 @@ func _ready() -> void:
 	o.start_skill(Vector2.INF,1)
 	for k in 600:
 		o.follow(1.0/60,o.pos);o.update(1.0/60)
-	ok(o.skill_active_left(1)<=0.0 and wd.s2_queue.is_empty(),"empty field completes safely")
+	ok(o.skill_active_left(1)<=0.0 and o.phases.get("queue", []).is_empty(),"empty field completes safely")
 	print("WISADEL S2 checks=%d failures=%d" % [checks,failures])
 	get_tree().quit(1 if failures else 0)

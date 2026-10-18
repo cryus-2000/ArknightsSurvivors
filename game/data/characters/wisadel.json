@@ -189,7 +189,20 @@
         "attack": "s2_attack",
         "end": {
           "anim": "s2_end"
-        }
+        },
+        "phases": [
+          {
+            "loop": "s2_idle",
+            "attack": "s2_attack",
+            "end": "s2_end"
+          },
+          {
+            "transition": "s2_over_start",
+            "loop": "s2_over_idle",
+            "attack": "s2_over_attack",
+            "end": "s2_over_end"
+          }
+        ]
       },
       "s3": {
         "start": {
@@ -905,20 +918,38 @@
         "dur": "$s2_dur",
         "aim": "cluster",
         "aim_r": 540,
-        "do": [
+        "do": [],
+        "attack_effect": {
+          "aim_r": 540,
+          "size": "$s2_size",
+          "src": "饱和复仇",
+          "mark": {
+            "cond": "node:exec_mark"
+          }
+        },
+        "attack_phases": [
           {
-            "verb": "cannon_exec",
-            "aim_r": 540,
-            "mult": "$s2_mult",
-            "size": "$s2_size",
-            "src": "饱和复仇",
-            "mark": {
-              "cond": "node:exec_mark"
-            },
-            "sustain": true,
-            "interval": "$s2_interval",
-            "over_mult": "$s2_over_mult",
-            "burst": "$s2_burst"
+            "at": 0,
+            "interval_mult": "$s2_interval",
+            "damage_mult": "$s2_mult",
+            "target": "inherit",
+            "burst": 1,
+            "shot_offsets": [
+              0
+            ]
+          },
+          {
+            "at": 0.5,
+            "interval_mult": "$s2_interval",
+            "damage_mult": "$s2_mult*$s2_over_mult",
+            "target": "random",
+            "burst": "$s2_burst",
+            "shot_offsets": [
+              0,
+              0.2,
+              0.4,
+              0.6
+            ]
           }
         ]
       },

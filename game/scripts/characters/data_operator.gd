@@ -9,6 +9,9 @@ extends "res://scripts/characters/character.gd"
 ## 早就 transitively 带出其余全部 19 个，21 条并行路径（含 character.gd 的 2 条）同时解析同一条链，是 Godot 退出报
 ## resources still in use 的根（verbose 指向 enemy_db / balance / data / art / look）。真正 preload 只留 SegSkalter 一个，
 ## 其余全改成别名（GDScript 继承链上不加前缀就能互相访问，和原来逐个 preload 时的调用结果完全一样，不是功能改动）
+const AttackPhases = preload("res://scripts/characters/blocks/attack_phases.gd")
+var phases: Dictionary = {}
+
 const SegSkalter = preload("res://scripts/characters/blocks/seg_skalter.gd")
 const ObCore = SegSkalter
 const ObElite = SegSkalter
@@ -134,6 +137,9 @@ func skill_on(i: int) -> bool:
 
 
 func skill_active_left(i: int) -> float:
+	var left := AttackPhases.active_left(self, i)
+	if left >= 0.0:
+		return left
 	if not hw.is_empty():
 		var hl: float = SegEyjafjalla.hw_active_left(self, i)   # 手写迁移段：连续喷发 / 锁定 / 咒域按自己的计时
 		if hl >= 0.0:
@@ -158,6 +164,7 @@ func on_custom_node(nid: String, _choice: String = "") -> void:
 
 
 func on_leave() -> void:
+	AttackPhases.cancel(self)
 	SegAngelina.airborne_clear(self)
 	ObSummon.sm_clear(self)   # 召唤 / 封印段
 	ObHw.h4_leave(self)   # 手写迁移段第 4 批：撤掉给队友的攻击加成
@@ -212,6 +219,7 @@ func update(dt: float) -> void:
 	if B.get("_free", false):   # 手写迁移段第 3 批：attack.flow = free（不等动作：技能充满即发、普攻直接出手；水月），整帧交给本段
 		SegMizuki.h3_free_update(self, dt)
 		return
+	AttackPhases.tick(self, dt)
 	var hw_busy: bool = ObHw.hw_tick(self, dt) if not hw.is_empty() else false   # 手写迁移段：浪墙 / 弹体 / 地面 / 锚（按手写干员 update 的先后）；true = 本帧不起手
 	ObSummon.mf_tick(self, dt, prev_s)   # 召唤物扩展段（§15.9）：限时减伤计时、trig.on_deploy、带 at 的 trig.on_skill_end
 	_tick_pending(dt)
@@ -231,6 +239,8 @@ func update(dt: float) -> void:
 		if not hw.is_empty() and SegEyjafjalla.hw_instant(self, ready):   # 手写迁移段：cast: instant（充满当帧生效、不播技能动作）
 			return
 		start_skill(ObSummon.mf_skill_aim(self, ready), ready)   # blocks.skills[i].aim（§15.9）；没写 = INF 不转身
+		return
+	if AttackPhases.attack_locked(self):
 		return
 	if str(cur_attack().get("shape", "")) in ObHw.H3_ATTACKS:   # 手写迁移段第 3 批：刺击 / 环斩 / 荧光的起手（荧光要先累计治疗计时）
 		SegIrene.h3_attack_start(self, cur_attack(), dt)
@@ -253,6 +263,8 @@ func update(dt: float) -> void:
 				at = SegUlpianus.hw_front_aim(self, a)
 			else:
 				var c: Vector2 = ObCore.shape_center(self, a)
+				if not phases.is_empty() and str(a.get("center", "")) == "target":
+					c = pos
 				var r: float = float(a.get("range", 0.0)) * stat(&"op_range") if a.has("range") else ObCore.shape_radius(self, a)
 				if c != Vector2.INF:
 					at = atk_point(nearest_enemies(1, r, c), r)   # 手动普攻（v2.5）：不分方向，只受闸门
@@ -654,7 +666,11 @@ func _release() -> void:
 	if not el.is_empty() or not rp.is_empty():
 		ObElite.el_st(self).fire_t = g.t
 	if not rp.is_empty():
+		if not phases.is_empty():
+			phases.queue = []
 		_exec_list(rp.get("do", []))   # last_hit_pos 沿用上一次普攻的（热砂这类 last_hit 区域照常落在那里）
+	elif not phases.is_empty() and not phases.round.is_empty():
+		AttackPhases.release(self)
 	elif str(a.get("shape", "")) == "point_aoe":
 		_fire_point_aoe(a)
 	elif str(a.get("shape", "")) == "shell":   # 手写迁移段：法术弹
@@ -746,6 +762,8 @@ func _release_skill() -> void:
 	elif float(dv) > 0.0:
 		s_t[i] = float(dv)
 		s_dur[i] = float(dv)
+	if sb.has("attack_phases"):
+		AttackPhases.start(self, i)
 	_exec_list(sb.get("do", []))
 	SegTexas.tx_skill_start(self, i)   # 德克萨斯段：trig.on_skill_start
 	if not hw.is_empty() and perm_on[i]:
@@ -929,7 +947,7 @@ func stats_rows() -> Array:
 # ---------------------------------------------------------------- 手写迁移段：手动技能（掷锚落点）、动作停帧
 
 func manual_ready(i: int, dir: Vector2 = Vector2.ZERO) -> bool:
-	return super(i, dir) and (hw.is_empty() or SegUlpianus.hw_manual_ready(self, i, dir))
+	return not skills_occupied() and super(i, dir) and (hw.is_empty() or SegUlpianus.hw_manual_ready(self, i, dir))
 
 
 func manual_block_reason(i: int, dir: Vector2 = Vector2.ZERO) -> String:
@@ -1375,8 +1393,57 @@ func draw_extra_shadows() -> void:
 		ObHw.h3_shadows(self)
 
 
-## 维什戴尔限时齐射与巨炮装填互斥；其他技能继续充能，收枪后按原优先级释放。
+## Shared occupancy covers automatic, manual and buffered casts; charging stays independent.
+func skills_occupied() -> bool:
+	return AttackPhases.locked(self) or SegSkalter.h4_cannon_occupied(self)
+
 func charge_skills(dt: float) -> int:
-	if SegSkalter.h4_s2_skill_locked(self):
-		return -1
-	return super(dt)
+	return -1 if skills_occupied() else super(dt)
+
+func start_skill(aim: Vector2, idx: int = -1, dur: float = 0.6, fire_at: float = 0.3, anim := "") -> void:
+	if not skills_occupied():
+		super(aim, idx, dur, fire_at, anim)
+
+func start_attack(aim: Vector2, dur: float = 0.5, fire_at: float = 0.25, anim := "", interval := 0.0) -> void:
+	if AttackPhases.attack_locked(self):
+		return
+	AttackPhases.begin_round(self)
+	super(aim, dur, fire_at, "" if not phases.is_empty() else anim, cd if not phases.is_empty() else interval)
+
+func phase_shot(round_: Dictionary, shot: int) -> void:
+	var a: Dictionary = round_.attack
+	if str(a.shape) == "cannon":
+		SegSkalter.h4_phase_shot(self, a, round_, shot)
+		return
+	var at := Vector2.INF
+	if round_.target == "random" or str(a.get("center", "")) == "target":
+		var radius: float = float(a.get("range", ObCore.shape_radius(self, a))) * (stat(&"op_range") if a.has("range") else 1.0)
+		if round_.target == "inherit" and atk_aim != Vector2.ZERO:
+			var target := aim_land(radius)
+			if target.is_empty():
+				return
+			at = target.pos
+		else:
+			var candidates := nearest_enemies(g.enemies.size(), radius, pos)
+			if candidates.is_empty():
+				return
+			at = candidates[g.rng.randi_range(0, candidates.size() - 1) if round_.target == "random" else 0].pos
+	var previous_aim := atk_aim
+	if str(a.shape) == "cone" and at != Vector2.INF:
+		atk_aim = (at - pos).normalized()
+	var previous: float = loc.atk
+	var was_live := atk_live
+	atk_live = true
+	loc.atk *= float(round_.damage_mult)
+	exec_any_shape(a, at, true)
+	loc.atk = previous
+	atk_aim = previous_aim
+	atk_live = was_live
+
+func phase_skill_end(i: int) -> void:
+	for t in _trigs():
+		if str(t.get("_tag", "")) == "trig.on_skill_end" and int(t.get("skill", -1)) == i and ObCore.cond_true(self, t.get("cond", _ED)):
+			if t.has("at"):
+				ObSummon.mf_fire_at(self, t, ObSummon.mf_at_point(self, str(t.at)))
+			else:
+				_exec_list(t.get("do", []), tx.get("last_to", pos))

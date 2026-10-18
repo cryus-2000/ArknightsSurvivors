@@ -1,0 +1,259 @@
+{
+  "id": "phase_fixture",
+  "name": "Phase fixture",
+  "base": {
+    "atk": 20
+  },
+  "sprites": {
+    "idle": {
+      "tex": "op_wisadel_idle",
+      "frames": 8,
+      "fps": 8.0,
+      "foot": [
+        32.25,
+        59.860724059636865
+      ]
+    },
+    "run": {
+      "tex": "op_wisadel_run",
+      "frames": 8,
+      "fps": 13.333333333333334,
+      "foot": [
+        32,
+        60
+      ]
+    },
+    "attack": {
+      "tex": "op_wisadel_attack",
+      "frames": 8,
+      "fps": 8.421052631578947,
+      "foot": [
+        32.25,
+        59.860724059636865
+      ],
+      "fire": 3,
+      "attack_timing": {
+        "duration": 0.95,
+        "fire_time": 0.20833333333333334,
+        "active_ratio": 0.9,
+        "windup_ratio": 0.45
+      }
+    },
+    "skill": {
+      "tex": "op_wisadel_skill_s1",
+      "frames": 8,
+      "fps": 21.333333333333332,
+      "foot": [
+        32.25,
+        59.860724059636865
+      ],
+      "fire": 3,
+      "fire_time": 0.1875,
+      "frame_durations": [
+        0.0625,
+        0.0625,
+        0.0625,
+        0.037500000000000006,
+        0.037500000000000006,
+        0.03749999999999998,
+        0.03750000000000003,
+        0.03749999999999998
+      ]
+    },
+    "skills": {
+      "s1": {
+        "start": {
+          "anim": "s2_start"
+        },
+        "loop": "s2_idle",
+        "attack": "s2_attack",
+        "end": {
+          "anim": "s2_end"
+        },
+        "phases": [
+          {
+            "loop": "s2_idle",
+            "attack": "s2_attack",
+            "end": "s2_end"
+          },
+          {
+            "transition": "s2_over_start",
+            "loop": "s2_over_idle",
+            "attack": "s2_over_attack",
+            "end": "s2_over_end"
+          }
+        ]
+      }
+    },
+    "s2_start": {
+      "tex": "op_wisadel_s2_start",
+      "frames": 8,
+      "fps": 23.52941176470588,
+      "foot": [
+        48.25,
+        75.86072405963687
+      ],
+      "fire": 7,
+      "fire_time": 0.3,
+      "frame_durations": [
+        0.04285714285714286,
+        0.04285714285714286,
+        0.04285714285714286,
+        0.04285714285714286,
+        0.04285714285714286,
+        0.04285714285714286,
+        0.04285714285714286,
+        0.04
+      ]
+    },
+    "s2_idle": {
+      "tex": "op_wisadel_s2_idle",
+      "frames": 8,
+      "fps": 6.666666666666667,
+      "foot": [
+        48.25,
+        75.86072405963687
+      ]
+    },
+    "s2_attack": {
+      "tex": "op_wisadel_s2_attack",
+      "frames": 8,
+      "fps": 8.421052631578947,
+      "foot": [
+        48.25,
+        75.86072405963687
+      ],
+      "fire": 3
+    },
+    "s2_over_start": {
+      "tex": "op_wisadel_s2_over_start",
+      "frames": 8,
+      "fps": 44.44444444444444,
+      "foot": [
+        48.25,
+        75.86072405963687
+      ]
+    },
+    "s2_over_idle": {
+      "tex": "op_wisadel_s2_over_idle",
+      "frames": 8,
+      "fps": 6.666666666666667,
+      "foot": [
+        48.25,
+        75.86072405963687
+      ]
+    },
+    "s2_over_attack": {
+      "tex": "op_wisadel_s2_over_attack",
+      "frames": 8,
+      "fps": 8.421052631578947,
+      "foot": [
+        48.25,
+        75.86072405963687
+      ],
+      "fire": 3
+    },
+    "s2_end": {
+      "tex": "op_wisadel_s2_end",
+      "frames": 8,
+      "fps": 40.0,
+      "foot": [
+        48.25,
+        75.86072405963687
+      ]
+    },
+    "s2_over_end": {
+      "tex": "op_wisadel_s2_over_end",
+      "frames": 8,
+      "fps": 16.0,
+      "foot": [
+        48.25,
+        75.86072405963687
+      ]
+    }
+  },
+  "skills": [
+    {
+      "name": "fixture",
+      "sp": 1
+    },
+    {
+      "name": "other",
+      "sp": 1
+    },
+    {
+      "name": "other",
+      "sp": 1
+    }
+  ],
+  "hit_sources": {
+    "fixture": {
+      "name": "fixture"
+    }
+  },
+  "extra_sprites": [
+    "s2_start",
+    "s2_idle",
+    "s2_attack",
+    "s2_end",
+    "s2_over_start",
+    "s2_over_idle",
+    "s2_over_attack",
+    "s2_over_end"
+  ],
+  "blocks": {
+    "zone": {
+      "center": "self",
+      "r": 220
+    },
+    "attack": {
+      "shape": "circle",
+      "center": "target",
+      "r": 20,
+      "range": 220,
+      "every": 1.4,
+      "src": "fixture"
+    },
+    "skills": [
+      {
+        "dur": 2.0,
+        "do": [],
+        "attack_phases": [
+          {
+            "at": 0,
+            "interval_mult": 0.8,
+            "damage_mult": 2.0,
+            "burst": 1,
+            "target": "inherit",
+            "shot_offsets": [
+              0
+            ]
+          },
+          {
+            "at": 0.3,
+            "interval_mult": 0.8,
+            "damage_mult": 0.75,
+            "burst": 3,
+            "target": "random",
+            "shot_offsets": [
+              0,
+              0.25,
+              0.7
+            ]
+          }
+        ]
+      },
+      {
+        "dur": 0,
+        "do": []
+      },
+      {
+        "dur": 0,
+        "do": []
+      }
+    ],
+    "trait": [],
+    "talent": [],
+    "progression": {}
+  }
+}

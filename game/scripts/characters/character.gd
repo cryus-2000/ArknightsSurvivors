@@ -2108,3 +2108,15 @@ func _fx_strip(name: String, frames: int, frame: int, p: Vector2, anchor := Vect
 	cv.draw_texture_rect_region(tx, Rect2(-Vector2(fw, fh) * anchor, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	return true
+
+
+## Switch sustained-stage slots only between rounds, retaining the native sequence lifecycle.
+func set_attack_phase(stage: Dictionary, transition: bool) -> float:
+	sq = sq.duplicate(true)
+	for key in ["loop", "attack", "end"]:
+		sq[key] = stage[key]
+	if not transition:
+		return 0.0
+	sq_t = 0.0
+	play_vis_anim(str(stage.get("transition", "")))
+	return vis_dur() if vis_anim != "" else 0.0

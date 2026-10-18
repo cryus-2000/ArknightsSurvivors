@@ -1791,6 +1791,27 @@ JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测�
 - 积木等价 `blocks_eq` 里没有浊心斯卡蒂组（她一直是数据干员），不用改。
 - 其他干员同 seed 不变、木桩表、画面、开销见 docs/91 §27。
 
-### 2026-10-18 维什戴尔 S2 两阶段试做
+### 24. 持续攻击阶段（2026-10-18）
 
-`verb.cannon_exec` 可选 `sustain: true`：由外壳 `dur` 启动限时齐射，`mult / size / interval / over_mult / burst` 读 base；此模式要求四连发（burst=4），前半段一发范围炮击不设受击人数上限，后半段随机四连发。每轮一次魂灵跟随，不消耗 S1 次数；S2 与 S3 的攻击形态串行。实现和验收见 [两阶段方案](plans/2026-10-18-wisadel-s2-two-phase.md)。
+用于持续期间改变普攻节奏/形态的技能。由 `blocks.skills[i].attack_phases` 启用，技能槽不限 S2；持续时间仍由 `dur` 提供。运行状态在数据干员的独立阶段状态中，控制器 `attack_phases.gd` 不引用具体干员或炮弹。
+
+```json
+"attack_phases": [
+  {"at": 0, "interval_mult": 0.8, "damage_mult": 1.35,
+   "target": "inherit", "burst": 1, "shot_offsets": [0]},
+  {"at": 0.5, "interval_mult": 0.8, "damage_mult": 1.08,
+   "target": "random", "burst": 4, "shot_offsets": [0, 0.2, 0.4, 0.6]}
+]
+```
+
+- `at`：已用时长比例；首段必须 0，后续严格递增且小于 1。实际切换等待本轮收势。
+- `interval_mult`：攻击间隔倍率；仍受现有攻速与收势约束。`damage_mult`：该阶段每发的倍率。
+- `target`：`inherit` 沿用攻击瞄准，`random` 每发重新从范围内选择目标，使用玩法随机源。无目标消耗本次事件，不补发。
+- `burst` 与 `shot_offsets` 一一对应；offset 是出手到收势结束这段时间的比例，首发 0，后续严格递增且小于 1。不得把四连发或 50% 切换写死在模块。
+- `sprites.skills.sN.phases` 同序配置 `loop / attack / end` 槽名；后续阶段另配 `transition`。首阶段仍用已有 `start`。
+- 每轮起手冻结阶段配置。跨阶段、持续时间归零均不截断已起手的轮次；后续发射在同一轮恢复段依次执行，再收势。队列不依赖画面 FPS。
+- 每轮只计算一次普攻计数/队友广播，每发独立结算命中；不能把四连发解释成四次普攻被动。特殊替换攻击必须有明确适配，否则拒绝配置。
+- 自动技能、手动及缓冲释放共用互斥；充能继续。一般持续增益依原始 `dur` 到期，阶段内已开始的轮次保留快照。阶段技能结束事件等末轮排空且攻击收势完成后触发一次，不在原始计时归零时提前发；其后的纯视觉收枪继续阻止新技能起手。
+- 首批支持 `circle / cone` 及 `cannon` 适配；拒绝 `free`、`armed/combo` 和 `swap_attack` 组合。随机 circle 必须 `center:target`；inherit circle 可沿用既有 center，包括已存在召唤物的位置，但不接管召唤物的独立攻击或生命周期。新增弹道/召唤/近战特殊形状需要实现其攻击适配，不能仅把形状名加入白名单。
+
+**维什戴尔迁移：**前半段无受击人数上限的范围炮击；后半段四连发；8 秒与现有倍率保持。`attack_effect` 保存炮击的 `aim_r / size / src / mark`，炮口属于动画帧条；炮弹、余震和每轮魂灵同步仍在角色适配层。原 `verb.cannon_exec sustain` 试做协议由本协议取代，不再作为新增干员用法。历史试做见 [原方案](plans/2026-10-18-wisadel-s2-two-phase.md)，本次边界与验收见 [模块设计](plans/2026-10-18-sustained-attack-module-design.md)。

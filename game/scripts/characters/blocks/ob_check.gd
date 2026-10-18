@@ -71,12 +71,17 @@ static func validate(cid: String, d: Dictionary) -> bool:
 				elif ev[1] < 0.0:
 					errs.append("%s.dur 不能为负" % p)
 			for k in sb:
-				if not k in ["dur", "do", "fx", "aim", "status", "status_col"] + EXU_SKILL_KEYS + HW_SKILL_KEYS:
+				if not k in ["dur", "do", "fx", "aim", "status", "status_col", "attack_phases", "attack_effect"] + EXU_SKILL_KEYS + HW_SKILL_KEYS:
 					errs.append("%s.%s：技能积木只有 dur / do / fx / aim / aim_r / status / status_col / attack_patch / end 这几个字段" % [p, k])
 				elif k == "aim" and not (str(sb.aim) in ["leader", "nearest", "los", "range", "tether", "elite", "cluster"] or (str(sb.aim).begins_with("summon:") and ctx.summons is Dictionary and ctx.summons.has(str(sb.aim).substr(7)))):
 					errs.append("%s.aim 只能是 leader / nearest / summon:<blocks.summons 里的种类>" % p)
 				elif k == "attack_patch" and atk_shape == "point_aoe" and not (dv is Dictionary and dv.has("next_attacks")):
 					errs.append("%s.attack_patch：落点弹普攻（shape.point_aoe）的 attack_patch 只能配 dur.next_n（{\"next_attacks\": N}）" % p)
+			if sb.has("attack_phases"):
+				preload("res://scripts/characters/blocks/attack_phases.gd").validate(sb, p, ctx, atk, i, eval_expr)
+				_F().h4_phase_validate(sb, p, ctx, atk, i)
+				if preload("res://scripts/characters/blocks/attack_phases.gd").has_swap(blocks):
+					errs.append(p + ".attack_phases cannot combine swap_attack")
 			_num(sb, "aim_r", p, ctx, false, 1.0, 2000.0)
 			if sb.has("fx"):
 				_F()._fx(sb.fx, p + ".fx", ctx, "cast")

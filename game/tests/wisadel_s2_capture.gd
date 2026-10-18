@@ -43,7 +43,7 @@ func _ready() -> void:
 		if image.save_png(output.path_join("s2_%03d.png" % frame)) != OK:
 			get_tree().quit(1)
 			return
-		evidence.append({"frame":frame,"kind":o.anim_state().kind,"pose":o.anim_state().frame,"remaining":o.skill_active_left(1),"phase":o.sq_ph,"overload":o.hw.wd.get("s2_over",false)})
+		evidence.append({"frame":frame,"kind":o.anim_state().kind,"pose":o.anim_state().frame,"remaining":o.skill_active_left(1),"phase":o.sq_ph,"overload":o.phases.get("index",0)>0})
 	var file := FileAccess.open(output.path_join("evidence.json"),FileAccess.WRITE)
 	file.store_string(JSON.stringify(evidence));file.close()
 	print("WISADEL S2 CAPTURE: 210 frames")

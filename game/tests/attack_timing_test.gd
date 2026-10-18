@@ -102,6 +102,10 @@ func _process(_dt: float) -> void:
 				skill_probe.follow(1.0/60, skill_probe.pos)
 			ok(skill_probe.releases == 1 and skill_probe.release_frames == [int(spec.fire)], id + " skill release pose " + slot)
 		for idx in range(3):
+			# Each case probes a different skill; cancel the prior sustained owner explicitly.
+			if not o.phases.is_empty():
+				ok(o.skills_occupied(), id + " prior sustained skill retains ownership")
+				o.AttackPhases.cancel(o)
 			o._sq_clear()
 			o.attack_t = 0.0
 			o.start_skill(Vector2.INF, idx)

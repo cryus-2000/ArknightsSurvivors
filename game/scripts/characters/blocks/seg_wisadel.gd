@@ -84,7 +84,7 @@ static func _h4_muzzle(o, a: Dictionary) -> Vector2:
 
 
 static func _h4_cannon_start(o, a: Dictionary) -> void:
-	if o.cd > 0.0 or float(_h4wd(o).get("s2_transition", 0.0)) > 0.0 or (o.sq_i == 1 and o.sq_ph == 3):
+	if o.cd > 0.0 or o.AttackPhases.attack_locked(o):
 		return
 	var reach: float = _h4_wd_reach(o, a, float(a.get("aim_r", 480.0)))
 	var tgt: Dictionary = _h4_wd_target(o, a, reach)
@@ -94,19 +94,11 @@ static func _h4_cannon_start(o, a: Dictionary) -> void:
 	else:
 		var gi: Dictionary = a.get("giant", {})
 		o.cd = float(a.get("every", 1.4)) / o.stat(&"op_aspd") * (float(gi.get("cd", 0.6)) if int(_h4wd(o).ammo) > 0 else 1.0)
-		var wd := _h4wd(o)
-		wd["s2_attack"] = o.s_t[1] > 0.0 and wd.has("s2")
-		if wd.s2_attack:
-			o.cd *= float(wd.s2.interval)
-			wd["s2_attack_over"] = bool(wd.get("s2_over", false))
 		o.start_attack(at, 0.5, 0.25, "", o.cd)
 
 
 static func _h4_cannon_release(o, a: Dictionary) -> void:
 	var wd := _h4wd(o)
-	if wd.get("s2_attack", false):
-		_h4_s2_release(o, a, wd)
-		return
 	var tgt: Dictionary = _h4_wd_target(o, a, _h4_wd_reach(o, a, float(a.get("fire_r", 520.0)))) if o.atk_aim == Vector2.ZERO else o.aim_land(_h4_wd_reach(o, a, float(a.get("aim_r", 480.0))))
 	if tgt.is_empty():
 		return
@@ -201,14 +193,6 @@ static func _h4_shell_at(s: Dictionary, k: float) -> Vector2:
 
 ## 凋零处刑：一发重炮，眩晕 + 余震
 static func h4_cannon_exec(o, b: Dictionary) -> void:
-	if b.get("sustain", false):
-		var wd := _h4wd(o)
-		wd["s2"] = b.duplicate(true)
-		wd["s2_over"] = false
-		wd["s2_queue"] = []
-		wd["s2_transition"] = 0.0
-		o.cd = 0.0
-		return
 	var a: Dictionary = o.B.get("attack", {})
 	var tgt: Dictionary = _h4_exec_target(o, a, _h4_wd_reach(o, a, float(b.get("aim_r", 540.0))))
 	if tgt.is_empty():
@@ -243,7 +227,6 @@ static func h4_cannon_load(o, b: Dictionary) -> void:
 static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
 	var g = o.g
 	var a: Dictionary = o.B.get("attack", {})
-	_h4_s2_tick(o, a, wd, dt)
 	# 炮弹
 	for s in wd.shells:
 		s.t += dt
@@ -866,28 +849,23 @@ static func _h4_comet(pts: Array, hw: float) -> PackedVector2Array:
 	return out
 
 
-## S2 共用炮弹 / 余震结算；四连发只由出手事件排入，按这一轮恢复段发完。
-static func h4_s2_skill_locked(o) -> bool:
-	if not o.hw.has("wd") or not o.B.get("skills", [])[1].get("do", [{}])[0].get("sustain", false):
+## Cannon-only occupancy: stored patch ammunition does not own the skill channel.
+static func h4_cannon_occupied(o) -> bool:
+	if not o.hw.has("wd"):
 		return false
-	return o.s_t[1] > 0.0 or int(o.hw.wd.ammo) > 0 or (o.sq_i in [1, 2] and o.sq_ph != 0)
+	for i in o.B.get("skills", []).size():
+		for effect in o.B.skills[i].get("do", []):
+			if str(effect.get("_tag", "")) == "verb.cannon_load":
+				if int(o.hw.wd.ammo) > 0 or (o.sq_i == i and o.sq_ph != 0):
+					return true
+	return false
 
 
-static func _h4_s2_release(o, a: Dictionary, wd: Dictionary) -> void:
-	wd["s2_queue"] = []
-	var count: int = int(wd.s2.burst) if wd.s2_attack_over else 1
-	for k in count:
-		var due: float = o.attack_fire_at + (o.attack_dur - o.attack_fire_at) * k / 5.0
-		if k == 0:
-			_h4_s2_shot(o, a, wd, k)
-		else:
-			wd.s2_queue.append({"at": due, "muzzle": k})
-
-
-static func _h4_s2_shot(o, a: Dictionary, wd: Dictionary, muzzle: int) -> void:
-	var reach: float = _h4_wd_reach(o, a, float(wd.s2.get("aim_r", 540.0)))
+static func h4_phase_shot(o, a: Dictionary, round_: Dictionary, muzzle: int) -> void:
+	var effect: Dictionary = o.B.skills[o.phases.skill].attack_effect
+	var reach: float = _h4_wd_reach(o, a, float(effect.get("aim_r", 540.0)))
 	var target: Dictionary = {}
-	if wd.s2_attack_over:
+	if round_.target == "random":
 		var candidates: Array = o.nearest_enemies(o.g.enemies.size(), reach, o.pos)
 		if not candidates.is_empty():
 			target = candidates[o.g.rng.randi_range(0, candidates.size() - 1)]
@@ -895,14 +873,14 @@ static func _h4_s2_shot(o, a: Dictionary, wd: Dictionary, muzzle: int) -> void:
 		target = _h4_wd_target(o, a, reach) if o.atk_aim == Vector2.ZERO else o.aim_land(reach)
 	if target.is_empty():
 		return
-	var mult: float = float(wd.s2.mult) * (float(wd.s2.over_mult) if wd.s2_attack_over else 1.0)
-	var slot: String = "s2_over_attack" if wd.s2_attack_over else "s2_attack"
+	var mult: float = float(round_.damage_mult)
+	var slot: String = str(round_.anim)
 	var spec: Dictionary = o.sprite_spec(slot)
-	var frame: int = o.attack_phase_frame(8, 3, o.attack_dur - o.attack_t)
-	var point: Array = spec.muzzles[frame][muzzle % 4]
+	var frame: int = o.attack_phase_frame(int(spec.frames), int(spec.fire), o.attack_dur - o.attack_t)
+	var point: Array = spec.muzzles[frame][muzzle]
 	var foot: Array = spec.foot
 	var origin: Vector2 = o.pos + Vector2((float(point[0])-float(foot[0]))*o.face, float(point[1])-float(foot[1])) * o.g.PX
-	_h4_fire(o, a, target.pos, o.base(str(a.get("atk_key", "atk")), 0.0) * mult * o.skill_power(), str(wd.s2.src), float(wd.s2.size), true, 0.0, false, false, "exec", wd.s2.get("mark", null), origin)
+	_h4_fire(o, a, target.pos, o.base(str(a.get("atk_key", "atk")), 0.0) * mult * o.skill_power(), str(effect.src), float(effect.size), true, 0.0, false, false, "exec", effect.get("mark", null), origin)
 	o.fx({"kind": "h4_muzzle", "pos": origin, "dir": (target.pos-origin).normalized(), "life": 0.07, "col": H4_RED, "sz": 18.0})
 	_h3_sfx(o, "atk", 2.0)
 	_h4_cannon_after(o, a, target)
@@ -910,24 +888,45 @@ static func _h4_s2_shot(o, a: Dictionary, wd: Dictionary, muzzle: int) -> void:
 		_h4_souls_sync(o, a, target)
 
 
-static func _h4_s2_tick(o, a: Dictionary, wd: Dictionary, dt: float) -> void:
-	if not wd.has("s2"):
+
+static func h4_phase_validate(sb: Dictionary, p: String, ctx: Dictionary, attack, i: int) -> void:
+	if not attack is Dictionary:
 		return
-	if not o.acting() and wd.s2_queue.is_empty():
-		wd["s2_attack"] = false
-	wd.s2_transition = maxf(0.0, float(wd.s2_transition) - dt)
-	var elapsed: float = o.attack_dur - o.attack_t
-	while not wd.s2_queue.is_empty() and elapsed + 0.00001 >= float(wd.s2_queue[0].at):
-		var shot: Dictionary = wd.s2_queue.pop_front()
-		_h4_s2_shot(o, a, wd, int(shot.muzzle))
-	# 阶段切换等本轮收势结束，避免换枪姿势截断一轮连射。
-	if o.s_t[1] > 0.0 and o.s_t[1] <= o.s_dur[1] * 0.5 and not wd.s2_over and not o.acting():
-		wd.s2_over = true
-		o.sq = o.sq.duplicate(true)
-		o.sq["loop"] = "s2_over_idle"
-		o.sq["attack"] = "s2_over_attack"
-		o.sq["end"] = {"anim": "s2_over_end"}
-		o.sq_t = 0.0
-		o.play_vis_anim("s2_over_start")
-		wd.s2_transition = o.vis_dur()
-		o.cd = maxf(o.cd, float(wd.s2_transition))
+	if str(attack.get("shape", "")) != "cannon":
+		if sb.has("attack_effect"):
+			ctx.errs.append(p + ".attack_effect requires cannon")
+		return
+	var effect = sb.get("attack_effect")
+	if not effect is Dictionary:
+		ctx.errs.append(p + ".attack_effect must configure the cannon adapter")
+		return
+	_src(effect, p + ".attack_effect", ctx, true)
+	_num(effect, "size", p + ".attack_effect", ctx, true, 0.01, 20.0)
+	_num(effect, "aim_r", p + ".attack_effect", ctx, true, 1.0, 2000.0)
+	var stages = sb.attack_phases
+	var sequences = ctx.sprites.get("skills", {})
+	var sequence = sequences.get("s%d" % (i + 1), {}) if sequences is Dictionary else null
+	if not sequence is Dictionary:
+		return
+	var animations = sequence.get("phases", [])
+	if not stages is Array or not animations is Array or stages.size() != animations.size():
+		return
+	for j in stages.size():
+		if not stages[j] is Dictionary or not animations[j] is Dictionary:
+			continue
+		var count := eval_expr(stages[j].get("burst", 0), ctx.base)
+		var spec = ctx.sprites.get(animations[j].get("attack", ""), {})
+		if not spec is Dictionary:
+			ctx.errs.append(p + ".attack_phases cannon strip must be an object")
+			continue
+		var muzzles = spec.get("muzzles", [])
+		if not spec.get("foot") is Array or spec.get("foot", []).size() != 2 or not spec.has("fire") or not preload("res://scripts/characters/blocks/attack_phases.gd").positive_number(spec.get("frames")) or not muzzles is Array or muzzles.size() != int(spec.get("frames", 0)):
+			ctx.errs.append(p + ".attack_phases cannon strip requires foot/fire and per-frame muzzles")
+			continue
+		for frame in muzzles:
+			if not frame is Array or frame.size() < int(count[1]):
+				ctx.errs.append(p + ".attack_phases cannon muzzle count is smaller than burst")
+				continue
+			for point in frame:
+				if not point is Array or point.size() != 2 or not (point[0] is float or point[0] is int) or not (point[1] is float or point[1] is int) or not is_finite(float(point[0])) or not is_finite(float(point[1])):
+					ctx.errs.append(p + ".attack_phases cannon muzzle must be [x,y]")

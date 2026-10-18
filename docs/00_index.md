@@ -82,8 +82,8 @@
 | [25_operator_fx](25_operator_fx.md) | 干员特效 | 现行规范 | 成长「看得见」规则、帧条锚点、能天使弹药色；§5.2 精二列被 91 取代 | 23、53、61、归档34、归档66、归档70；characters/character.gd、game.gd、characters/op_blocks.gd 等 23 个文件 |
 | [28_operator_sfx](28_operator_sfx.md) | 干员专属音效 | 已实施记录 | 13 人 op_* 音色与 OP_SFX 约定；「加新干员」一节作废（新干员走 OP_ALT，见 61） | — |
 | [31_arknights_reference](31_arknights_reference.md) | 原作技能对照（13 人） | 已实施记录 | 原作技能与档案摘录；总览差距表已过时 | 25、60、归档30；v17_codex_logos_glyphs.md |
-
-| [维什戴尔 S2 两阶段试做](plans/2026-10-18-wisadel-s2-two-phase.md) | S2 群攻与过载四连发 | 进行中 | 8 秒试做、无三人上限、原生八轨动作与炮口事件；等待本地验收 | wisadel.json、seg_wisadel.gd |
+| [维什戴尔 S2 两阶段试做](plans/2026-10-18-wisadel-s2-two-phase.md) | S2 群攻与过载四连发 | 已实施记录 | 8 秒试做、无三人上限、原生八轨动作与炮口事件；已交本地测试包 | wisadel.json、seg_wisadel.gd |
+| [持续攻击阶段模块](plans/2026-10-18-sustained-attack-module-design.md) | 通用阶段、连发与收势 | 已实施记录 | 维什戴尔已迁移；独立夹具 66 项、完整快检 80 项通过 | data_operator、attack_phases、docs/61 |
 
 ## 敌人与 Boss
 
