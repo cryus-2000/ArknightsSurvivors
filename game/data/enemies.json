@@ -2,6 +2,7 @@
  "_doc": "敌人表（由 data.gd 的 ENEMIES 迁出）。tint 为 [r,g,b]；ai: melee/ranged/static；pattern: burrow/stomp/dash/acid/nova（见 scripts/enemies/enemy_ai.gd）；新增敌人 = 加一条 + 贴图。",
  "enemies": {
   "bone": {
+   "draw_scale": 1.25,
    "name": "骨海漂流体",
    "hp": 7.0,
    "spd": 64.0,
@@ -17,6 +18,7 @@
   },
   "slider": {
    "dash_fx": "fx_slider_dash",
+   "draw_scale": 1.25,
    "name": "底海滑动者",
    "hp": 12.0,
    "spd": 72.0,
@@ -37,6 +39,7 @@
   "stone": {
    "hit_fx": "fx_rock_hit",
    "hit_fx_origin": [10, 10],
+   "draw_scale": 1.2,
    "name": "固海凿石者",
    "hp": 26.0,
    "spd": 46.0,
@@ -64,6 +67,7 @@
   "offspring": {
    "shot_tex": "proj_offspring_spore",
    "apop_hit": 20.0,
+   "draw_scale": 1.2,
    "name": "伊祖米克的子代",
    "hp": 70.0,
    "spd": 28.0,
@@ -89,6 +93,7 @@
    }
   },
   "brood": {
+   "draw_scale": 1.25,
    "name": "注亡拟嗣",
    "hp": 16.0,
    "spd": 0.0,
@@ -122,7 +127,7 @@
    "cd": 3.2,
    "spit": true,
    "corrode": 0.45,
-   "draw_scale": 1.17,
+   "draw_scale": 1.3455,
    "atk_anim": true,
    "lob_tex": "proj_spitter_acid",
    "land_fx": "fx_spitter_land",
@@ -142,6 +147,7 @@
   },
   "runner": {
    "blast_fx": "fx_runner_blast",
+   "draw_scale": 1.25,
    "name": "壳海狂奔者",
    "hp": 9.0,
    "spd": 108.0,
@@ -171,6 +177,7 @@
    "shot_mire": true,
    "shot_mire_r": 30.0,
    "shot_mire_life": 5.0,
+   "draw_scale": 1.2,
    "name": "浮海飘航者",
    "hp": 24.0,
    "spd": 58.0,
@@ -206,6 +213,7 @@
    "atk_fx_origin": [4, 20],
    "reap_mult": 1.0,
    "wound_hit": 1,
+   "draw_scale": 1.15,
    "name": "钵海收割者",
    "hp": 144.0,
    "spd": 94.0,
@@ -244,6 +252,7 @@
   },
   "founder": {
    "cold_hit": 1,
+   "draw_scale": 1.12,
    "name": "深溟奠基者",
    "hp": 384.0,
    "spd": 30.0,
@@ -284,6 +293,7 @@
    "atk_fx_enraged": "fx_tracer_thrust_enraged",
    "atk_fx_origin": [0, 10],
    "wound_hit": 1,
+   "draw_scale": 1.12,
    "name": "深溟引痕者",
    "hp": 204.0,
    "spd": 50.0,
@@ -323,6 +333,7 @@
    "atk_fx": "fx_nest_sweep",
    "atk_fx_origin": [36, 24],
    "root_hit": 0.8,
+   "draw_scale": 1.12,
    "name": "深溟巢涌者",
    "hp": 255.0,
    "spd": 26.0,
@@ -361,6 +372,7 @@
    "shot_nerve": 8.0
   },
   "fractal": {
+   "draw_scale": 1.2,
    "name": "塑路者分形",
    "hp": 18.0,
    "spd": 95.0,
@@ -373,6 +385,7 @@
    "extra": {"name": "分形前刺", "mode": "pierce", "range": 105, "cd": 14.0, "damage_mult": 0.2, "min_time": 400.0}
   },
   "tear": {
+   "draw_scale": 1.2,
    "name": "伊莎玛拉之泪",
    "hp": 60.0,
    "spd": 0.0,
@@ -385,6 +398,7 @@
    "tear": true
   },
   "pocket": {
+   "draw_scale": 1.2,
    "name": "囊海爬行者",
    "hp": 38.0,
    "weak": "法术",
@@ -413,6 +427,7 @@
   },
   "skimmer": {
    "cold_hit": 1,
+   "draw_scale": 1.2,
    "name": "掠海漂移体",
    "hp": 30.0,
    "weak": "物理",
@@ -451,6 +466,7 @@
   },
   "mother": {
    "wound_hit": 1,
+   "draw_scale": 1.15,
    "name": "投嗣育母",
    "hp": 36.0,
    "weak": "物理",
@@ -490,6 +506,7 @@
   "mimic": {
    "atk_fx": "fx_mimic_bite",
    "atk_fx_origin": [8, 16],
+   "draw_scale": 1.2,
    "name": "箱形恐鱼",
    "hp": 45.0,
    "spd": 88.0,
@@ -517,6 +534,7 @@
    "desc": "另会使用「箱舌突刺」进行预警攻击。"
   },
   "path": {
+   "draw_scale": 1.15,
    "name": "塑路者",
    "hp": 3200.0,
    "weak": "法术",
@@ -550,6 +568,7 @@
   },
   "izumik": {
    "apop_hit": 15.0,
+   "draw_scale": 1.12,
    "name": "伊祖米克，生态泉源",
    "hp": 5200.0,
    "spd": 30.0,
@@ -794,6 +813,7 @@
    ]
   },
   "paranoia": {
+   "draw_scale": 1.15,
    "name": "\"偏执泡影\"",
    "hp": 7400.0,
    "spd": 34.0,
@@ -892,7 +912,7 @@
    "dash_speed": 5.2,
    "ingots": 6,
    "no_spawn": true,
-   "draw_scale": 0.7,
+   "draw_scale": 0.945,
    "frost": 1.5,
    "desc": "蓄力冲刺；攻击命中附加 1.5 秒冰霜减速。另会使用「冰枪点刺」进行预警攻击。",
    "extra": {
@@ -918,7 +938,7 @@
    "atk": "物理",
    "move_fps": 8,
    "phases": 2,
-   "draw_scale": 0.7,
+   "draw_scale": 0.98,
    "patterns": [],
    "frost": 2.0,
    "desc": "骑士攻击命中附加 2 秒冰霜减速；寒冰领域持续施加减速。冰霜不造成硬冻结，Boss 战仍保留移速下限。"
