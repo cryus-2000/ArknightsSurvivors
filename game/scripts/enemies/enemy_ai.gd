@@ -29,6 +29,8 @@ func pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) ->
 	_prepare_pose(e, d, dist)
 	if d.get("pattern", "") == "reap" and e.hp < e.maxhp and not e.enraged:
 		return _reap(e, d, dir, dist, dt)   # 受伤形态切换先于额外招式，避免同帧被直刺抢走
+	if d.get("pattern", "") == "thrust" and not e.enraged and e.hp <= e.maxhp * float(d.get("enrage_at", 0.5)):
+		return _thrust(e, d, dir, dist, dt)
 	if _secondary(e, d, dir, dist):
 		return Vector2.ZERO
 	match d.get("pattern", ""):

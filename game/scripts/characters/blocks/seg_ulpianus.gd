@@ -488,7 +488,7 @@ static func _hw_launch(o, e: Dictionary, dur: float, hh: float) -> void:
 		return
 	if e.elite:
 		dur *= 0.5
-	o.add_cc(e, dur)
+	o.add_cc(e, dur, -INF, "airborne")
 	for l in o.hw.launched:
 		if is_same(l.e, e):
 			l.t = 0.0

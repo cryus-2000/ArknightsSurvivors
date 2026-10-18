@@ -877,7 +877,7 @@ func _crane(a: Dictionary) -> void:
 			best = e
 	if best.is_empty():
 		return
-	best.stun = maxf(best.stun, float(a.get("dur", 3.0)) * g.control_mult)
+	g.enemies_sys.add_cc(best, float(a.get("dur", 3.0)) * g.control_mult)
 	best.kb = Vector2.ZERO
 	g.fx.append({"kind": "ring", "pos": best.pos, "r": best.r + 18.0, "life": 0.6, "max": 0.6, "col": Color(1.0, 0.85, 0.4)})
 	g.vfx.add_text(best.pos + Vector2(0, -best.r - 20.0), "吊起", Color(1.0, 0.85, 0.4), 16)
@@ -928,7 +928,7 @@ func _tick_stakes(dt: float) -> void:
 			if e.dead or e.chest or e.boss or e.get("friendly", false):
 				continue
 			if e.pos.distance_to(s.pos) < s.r + e.r:
-				e.slow = maxf(e.slow, 0.3)
+				g.enemies_sys.add_cc(e, -INF, 0.3)
 				g.enemies_sys.apply_kb(e, (e.pos - s.pos).normalized() * 140.0 * dt * 10.0)
 	stakes = stakes.filter(func(x): return x.life > 0.0)
 
@@ -1258,7 +1258,7 @@ func on_hurt(src_corrode: bool, amount := 0.0) -> void:
 				for j in g.enemies_sys.query(g.ppos, r + 24.0):
 					var e2: Dictionary = g.enemies[j]
 					if not e2.dead and not e2.chest and not e2.boss and e2.pos.distance_to(g.ppos) < r + e2.r:
-						e2.stun = maxf(e2.stun, float(a.get("dur", 3.0)) * g.control_mult)
+						g.enemies_sys.add_cc(e2, float(a.get("dur", 3.0)) * g.control_mult)
 				g.fx.append({"kind": "ring", "pos": g.ppos, "r": r, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.9, 0.6)})
 				g.vfx.add_text(g.ppos + Vector2(0, -96), "荣耀套餐 · 周围眩晕", Color(1.0, 0.9, 0.6), 15)
 	# 盘蛇之匣：受伤回技力 pct，神经损伤来源再加 corrode_extra（数据 relic_effects.json #94）
@@ -1276,7 +1276,7 @@ func on_hurt(src_corrode: bool, amount := 0.0) -> void:
 		stun_all_cd = 30.0
 		for e in g.enemies:
 			if not e.dead and not e.chest and not e.boss:
-				e.stun = maxf(e.stun, 3.0)
+				g.enemies_sys.add_cc(e, 3.0)
 		g.fx.append({"kind": "rays", "pos": g.ppos, "life": 0.7, "max": 0.7, "col": Color(1.0, 0.9, 0.6)})
 		g.vfx.show_banner("小格兰法洛：全场眩晕")
 		Sfx.play("skill", -2.0, 0.7)

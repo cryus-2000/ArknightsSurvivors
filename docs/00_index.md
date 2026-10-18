@@ -162,3 +162,5 @@
 |---|---|
 | [archive/](archive/README.md) | 归档文档（10-13 第一轮 40 篇 + 10-14 第二轮 25 篇），README 有第一轮逐篇说明 |
 | [reference/](reference/README.md) | 用户提供的参考资料：262 件藏品原作表、全局设计框架 v1.0、藏品图标参考 |
+
+- [2026-10-18 怪物原作机制补齐](plans/2026-10-18-enemy-identity.md)：已实施记录；四类普通怪/精英的防御、光环和控制身份补齐与回归清单；引用：docs/95、enemy_identity_test。

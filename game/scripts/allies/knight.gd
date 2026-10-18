@@ -278,7 +278,7 @@ func update(dt: float) -> void:
 						continue
 					g.combat.damage(e, 60.0 * lvm * g.dmg_mult, g.combat.make_hit("骑士", ["ally", "stab"]))
 					if not e.dead:
-						e.slow = maxf(e.slow, FROST_T)
+						g.enemies_sys.add_cc(e, -INF, FROST_T, "cold")
 				Sfx.play("swing", -4.0, 0.9)
 			if st >= STAB_T:
 				state = "idle"

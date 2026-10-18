@@ -538,7 +538,7 @@ static func sm_draw(o, s: Dictionary) -> void:
 ## e.seal_t = 封印结束的 g.t；e.seal_imm = Boss 免疫结束的 g.t；e.seal_by = 施加者 id（画标记用）
 static func seal_apply(o, e: Dictionary, s: Dictionary) -> void:
 	var g = o.g
-	if e.dead or e.chest or e.get("friendly", false):
+	if e.dead or e.chest or e.get("friendly", false) or preload("res://scripts/data.gd").ENEMIES.get(e.get("type", ""), {}).get("seal_immune", false):
 		return
 	var dur: float = float(s.get("dur", 0.0))
 	if e.boss:

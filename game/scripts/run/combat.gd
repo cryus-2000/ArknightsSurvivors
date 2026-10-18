@@ -1006,6 +1006,13 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	if ty[1] != "真实":
 		# 养育者基因种（docs/57 P6）：无视敌人一部分防御（e.def < 1 的部分按比例折回）
 		var edef: float = e.def
+		# 原作的防御只折算物理承伤；不改变法术与真实伤害。
+		if ty[1] == "物理":
+			var ed: Dictionary = D.ENEMIES.get(e.type, {})
+			if float(e.get("set_t", 0.0)) > 0.0:
+				edef *= float(ed.get("entrench_phys_taken", 1.0))
+			if e.enraged:
+				edef *= float(ed.get("enrage_phys_taken", 1.0))
 		if float(e.get("seal_t", 0.0)) > g.t and e.get("affix", "") == "armor":
 			edef /= Bal.v("enemy/affix_armor", 0.75)   # 封印（docs/61 §15 st.seal）：甲壳词条失效
 		var pierce: int = g.rfx.rule("def_pierce")

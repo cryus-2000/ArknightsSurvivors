@@ -112,7 +112,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 				if not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
 					g.combat.damage(o, b.dmg, h)
 					if b.get("slow", false):
-						o.slow = maxf(o.slow, 1.2)
+						g.enemies_sys.add_cc(o, -INF, 1.2)
 			# 术师法术团：紫色（对应重绘后的 fx_fire_explode）；导弹：暖黄
 			var fc: Color = b.get("fx_col", Color(0.7, 0.3, 1.0) if b.kind == "fire" else Color(1.0, 0.8, 0.4))
 			# 美术 V6：爆炸帧条按伤害半径缩放（半径 / 26，限制 1.5–3.0），首帧叠判定圈；干员配色（fx_col）走程序爆炸
@@ -135,7 +135,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 		"arcane":
 			g.combat.damage(e, b.dmg, h)
 			if not e.dead:
-				e.slow = maxf(e.slow, 1.0)
+				g.enemies_sys.add_cc(e, -INF, 1.0)
 			# 溅射（铃兰狐火 base.aoe）：主目标之外、半径内的其他敌人吃同样伤害
 			if b.get("aoe", 0.0) > 0.0:
 				for k in g.enemies_sys.query(b.pos, b.aoe + 20.0):

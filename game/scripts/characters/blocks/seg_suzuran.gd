@@ -258,7 +258,7 @@ static func _h4sz_tick(o, sz: Dictionary, dt: float) -> void:
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.pos.distance_to(o.pos) > rad:
 			continue
-		o.add_cc(e, -INF, slow)
+		o.add_cc(e, -INF, slow, "stop")
 		if weak:
 			e["aura_weak"] = maxf(float(e.get("aura_weak", 0.0)), wv)
 
@@ -287,7 +287,7 @@ static func _h4_bigfox_tick(o, sz: Dictionary, a: Dictionary, dt: float) -> void
 			o.log_hit(src, ["pierce"])
 			o.deal_damage(e, f.dmg * (o.vs_elite() if e.elite or e.boss else 1.0))
 			if not e.dead:
-				o.add_cc(e, -INF, 1.0)
+				o.add_cc(e, -INF, 1.0, "stop")
 			o.fx({"kind": "ring", "pos": e.pos, "r": 26.0, "r0": 6.0, "life": 0.22, "col": H4_FOX, "w": 2.5})
 			_h3_vsparks(o, e.pos, H4_FOX, 4, 180.0, 0.3, 2.5)
 			_h4_fox_hit(o, a, e)   # 精英化第 4 批（狐火灼印）的挂点
