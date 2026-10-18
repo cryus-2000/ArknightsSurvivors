@@ -873,6 +873,7 @@ SCENE_REGRESSIONS = {
     "enemy_demo": ("图鉴敌人攻击演示", "enemy_demo_test", r"ENEMY DEMO failures=0", []),
     "knight_pixel_split": ("队友步行与Boss骑乘资源分离", "knight_pixel_split", r"KNIGHT_PIXEL_SPLIT_OK", []),
     "enemy_pixels": ("怪物像素帧条与锚点", "enemy_pixel_contract", r"ENEMY PIXEL CONTRACT: .*failures=0", []),
+    "wisadel_s2": ("维什戴尔两阶段群攻与四连发", "wisadel_s2_test", r"WISADEL S2 checks=.*failures=0", ["--balance", "--seed=1", "--op=wisadel"]),
     "attack_timing": ("三人完整攻击与攻速时序", "attack_timing_test", r"ATTACK TIMING checks=.*failures=0", ["--balance", "--seed=1", "--op=wisadel", "--squad=saria,suzuran"]),
     "gallery_demo": ("图鉴敌人演示：近战主体贴身循环不定住 / 敌弹与特效命中后回收", "gallery_demo_test", r"GALLERY DEMO failures=0", []),
     "play_clock": ("倍速模拟时钟", "play_clock_test", r"Play clock regression: 0 failures", []),

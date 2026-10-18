@@ -1373,3 +1373,10 @@ func draw_extra_shadows() -> void:
 	ObSummon.sm_shadows(self)
 	if not hw.is_empty():
 		ObHw.h3_shadows(self)
+
+
+## 维什戴尔限时齐射与巨炮装填互斥；其他技能继续充能，收枪后按原优先级释放。
+func charge_skills(dt: float) -> int:
+	if SegSkalter.h4_s2_skill_locked(self):
+		return -1
+	return super(dt)

@@ -1790,3 +1790,7 @@ JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测�
   among 扫描；区域半径（吃一半扩张、S3 不传、mode: true、没写 zone）；区域并集（半径内外、召唤物消失）；band / among 筛选（外圈且被打中、精英 × vs_elite、没有命中表不打、只写 band、max_n）。
 - 积木等价 `blocks_eq` 里没有浊心斯卡蒂组（她一直是数据干员），不用改。
 - 其他干员同 seed 不变、木桩表、画面、开销见 docs/91 §27。
+
+### 2026-10-18 维什戴尔 S2 两阶段试做
+
+`verb.cannon_exec` 可选 `sustain: true`：由外壳 `dur` 启动限时齐射，`mult / size / interval / over_mult / burst` 读 base；此模式要求四连发（burst=4），前半段一发范围炮击不设受击人数上限，后半段随机四连发。每轮一次魂灵跟随，不消耗 S1 次数；S2 与 S3 的攻击形态串行。实现和验收见 [两阶段方案](plans/2026-10-18-wisadel-s2-two-phase.md)。

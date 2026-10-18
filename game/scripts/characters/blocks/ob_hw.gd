@@ -1215,6 +1215,8 @@ static func h4_exec(o, b: Dictionary, _at: Vector2) -> void:
 ## 技能剩余（hw_active_left 转来）：铃兰狐火迷雾 / 维什戴尔巨炮发数 / 塞雷娅钙质化按本段的计时；-1 = 本段不管
 static func h4_active_left(o, i: int) -> float:
 	var h: Dictionary = o.hw
+	if i == 1 and h.has("wd") and h.wd.has("s2"):
+		return maxf(float(o.s_t[1]), o.attack_t if h.wd.get("s2_attack", false) else 0.0)
 	if i != 2:
 		return -1.0
 	if h.has("sz"):
@@ -1468,6 +1470,10 @@ static func _h4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 				_src(b.giant, p + ".giant", ctx, true)
 			_h4e_check(b, p, ctx, tag)
 		"verb.cannon_exec":
+			if b.get("sustain", false):
+				_num(b, "interval", p, ctx, true, 0.01, 10.0)
+				_num(b, "over_mult", p, ctx, true, 0.0, 20.0)
+				_num(b, "burst", p, ctx, true, 4.0, 4.0)
 			_num(b, "mult", p, ctx, true, 0.0, 20.0)
 			_src(b, p, ctx, true)
 		"verb.cannon_load":

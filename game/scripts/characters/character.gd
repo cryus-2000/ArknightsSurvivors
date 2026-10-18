@@ -1407,6 +1407,10 @@ func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim 
 	fire_t = fire_at
 	anim_kind = act_anim   # 直接切到出手帧条（原来置空，同帧 anim_state 退回待机，每次起手闪一帧）
 	anim_t = 0.0
+	# 持续技能攻击变体在起手当帧就接管，避免露出一帧普通攻击。
+	_tick_sq_atk(0.0)
+	if sq_atk != "":
+		anim_kind = sq_atk
 
 
 ## 出手（到出手帧时调用；重新找目标，动作期间原目标可能已死）

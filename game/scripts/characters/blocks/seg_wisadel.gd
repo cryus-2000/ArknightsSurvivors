@@ -84,7 +84,7 @@ static func _h4_muzzle(o, a: Dictionary) -> Vector2:
 
 
 static func _h4_cannon_start(o, a: Dictionary) -> void:
-	if o.cd > 0.0:
+	if o.cd > 0.0 or float(_h4wd(o).get("s2_transition", 0.0)) > 0.0 or (o.sq_i == 1 and o.sq_ph == 3):
 		return
 	var reach: float = _h4_wd_reach(o, a, float(a.get("aim_r", 480.0)))
 	var tgt: Dictionary = _h4_wd_target(o, a, reach)
@@ -94,11 +94,19 @@ static func _h4_cannon_start(o, a: Dictionary) -> void:
 	else:
 		var gi: Dictionary = a.get("giant", {})
 		o.cd = float(a.get("every", 1.4)) / o.stat(&"op_aspd") * (float(gi.get("cd", 0.6)) if int(_h4wd(o).ammo) > 0 else 1.0)
+		var wd := _h4wd(o)
+		wd["s2_attack"] = o.s_t[1] > 0.0 and wd.has("s2")
+		if wd.s2_attack:
+			o.cd *= float(wd.s2.interval)
+			wd["s2_attack_over"] = bool(wd.get("s2_over", false))
 		o.start_attack(at, 0.5, 0.25, "", o.cd)
 
 
 static func _h4_cannon_release(o, a: Dictionary) -> void:
 	var wd := _h4wd(o)
+	if wd.get("s2_attack", false):
+		_h4_s2_release(o, a, wd)
+		return
 	var tgt: Dictionary = _h4_wd_target(o, a, _h4_wd_reach(o, a, float(a.get("fire_r", 520.0)))) if o.atk_aim == Vector2.ZERO else o.aim_land(_h4_wd_reach(o, a, float(a.get("aim_r", 480.0))))
 	if tgt.is_empty():
 		return
@@ -193,6 +201,14 @@ static func _h4_shell_at(s: Dictionary, k: float) -> Vector2:
 
 ## 凋零处刑：一发重炮，眩晕 + 余震
 static func h4_cannon_exec(o, b: Dictionary) -> void:
+	if b.get("sustain", false):
+		var wd := _h4wd(o)
+		wd["s2"] = b.duplicate(true)
+		wd["s2_over"] = false
+		wd["s2_queue"] = []
+		wd["s2_transition"] = 0.0
+		o.cd = 0.0
+		return
 	var a: Dictionary = o.B.get("attack", {})
 	var tgt: Dictionary = _h4_exec_target(o, a, _h4_wd_reach(o, a, float(b.get("aim_r", 540.0))))
 	if tgt.is_empty():
@@ -227,6 +243,7 @@ static func h4_cannon_load(o, b: Dictionary) -> void:
 static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
 	var g = o.g
 	var a: Dictionary = o.B.get("attack", {})
+	_h4_s2_tick(o, a, wd, dt)
 	# 炮弹
 	for s in wd.shells:
 		s.t += dt
@@ -847,3 +864,70 @@ static func _h4_comet(pts: Array, hw: float) -> PackedVector2Array:
 	R.reverse()
 	out.append_array(R)
 	return out
+
+
+## S2 共用炮弹 / 余震结算；四连发只由出手事件排入，按这一轮恢复段发完。
+static func h4_s2_skill_locked(o) -> bool:
+	if not o.hw.has("wd") or not o.B.get("skills", [])[1].get("do", [{}])[0].get("sustain", false):
+		return false
+	return o.s_t[1] > 0.0 or int(o.hw.wd.ammo) > 0 or (o.sq_i in [1, 2] and o.sq_ph != 0)
+
+
+static func _h4_s2_release(o, a: Dictionary, wd: Dictionary) -> void:
+	wd["s2_queue"] = []
+	var count: int = int(wd.s2.burst) if wd.s2_attack_over else 1
+	for k in count:
+		var due: float = o.attack_fire_at + (o.attack_dur - o.attack_fire_at) * k / 5.0
+		if k == 0:
+			_h4_s2_shot(o, a, wd, k)
+		else:
+			wd.s2_queue.append({"at": due, "muzzle": k})
+
+
+static func _h4_s2_shot(o, a: Dictionary, wd: Dictionary, muzzle: int) -> void:
+	var reach: float = _h4_wd_reach(o, a, float(wd.s2.get("aim_r", 540.0)))
+	var target: Dictionary = {}
+	if wd.s2_attack_over:
+		var candidates: Array = o.nearest_enemies(o.g.enemies.size(), reach, o.pos)
+		if not candidates.is_empty():
+			target = candidates[o.g.rng.randi_range(0, candidates.size() - 1)]
+	else:
+		target = _h4_wd_target(o, a, reach) if o.atk_aim == Vector2.ZERO else o.aim_land(reach)
+	if target.is_empty():
+		return
+	var mult: float = float(wd.s2.mult) * (float(wd.s2.over_mult) if wd.s2_attack_over else 1.0)
+	var slot: String = "s2_over_attack" if wd.s2_attack_over else "s2_attack"
+	var spec: Dictionary = o.sprite_spec(slot)
+	var frame: int = o.attack_phase_frame(8, 3, o.attack_dur - o.attack_t)
+	var point: Array = spec.muzzles[frame][muzzle % 4]
+	var foot: Array = spec.foot
+	var origin: Vector2 = o.pos + Vector2((float(point[0])-float(foot[0]))*o.face, float(point[1])-float(foot[1])) * o.g.PX
+	_h4_fire(o, a, target.pos, o.base(str(a.get("atk_key", "atk")), 0.0) * mult * o.skill_power(), str(wd.s2.src), float(wd.s2.size), true, 0.0, false, false, "exec", wd.s2.get("mark", null), origin)
+	o.fx({"kind": "h4_muzzle", "pos": origin, "dir": (target.pos-origin).normalized(), "life": 0.07, "col": H4_RED, "sz": 18.0})
+	_h3_sfx(o, "atk", 2.0)
+	_h4_cannon_after(o, a, target)
+	if muzzle == 0:
+		_h4_souls_sync(o, a, target)
+
+
+static func _h4_s2_tick(o, a: Dictionary, wd: Dictionary, dt: float) -> void:
+	if not wd.has("s2"):
+		return
+	if not o.acting() and wd.s2_queue.is_empty():
+		wd["s2_attack"] = false
+	wd.s2_transition = maxf(0.0, float(wd.s2_transition) - dt)
+	var elapsed: float = o.attack_dur - o.attack_t
+	while not wd.s2_queue.is_empty() and elapsed + 0.00001 >= float(wd.s2_queue[0].at):
+		var shot: Dictionary = wd.s2_queue.pop_front()
+		_h4_s2_shot(o, a, wd, int(shot.muzzle))
+	# 阶段切换等本轮收势结束，避免换枪姿势截断一轮连射。
+	if o.s_t[1] > 0.0 and o.s_t[1] <= o.s_dur[1] * 0.5 and not wd.s2_over and not o.acting():
+		wd.s2_over = true
+		o.sq = o.sq.duplicate(true)
+		o.sq["loop"] = "s2_over_idle"
+		o.sq["attack"] = "s2_over_attack"
+		o.sq["end"] = {"anim": "s2_over_end"}
+		o.sq_t = 0.0
+		o.play_vis_anim("s2_over_start")
+		wd.s2_transition = o.vis_dur()
+		o.cd = maxf(o.cd, float(wd.s2_transition))
