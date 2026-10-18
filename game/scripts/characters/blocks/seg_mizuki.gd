@@ -1,14 +1,15 @@
 ## 干员积木 · seg_mizuki（docs/101 §7.3 B6 ①，10-15：由 op_blocks.gd 按段拆出，内容与注释照搬；继承链与门面见 op_blocks.gd）
 extends "res://scripts/characters/blocks/seg_lumen.gd"
 
+const MizukiS3Fx = preload("res://scripts/characters/mizuki_s3_fx.gd")
+
 const H3_GOLD := Color(0.957, 0.753, 0.306)   # 同 ui.gd GOLD（灯火金：唤醒）
 
 
 static func _h3mz(o) -> Dictionary:
 	var h := hw_st(o)
 	if not h.has("mz"):
-		h["mz"] = {"budget": 0.0, "stakes": [], "delayed": [], "afterimg": [], "afterimg_t": 0.0, "mirror_pos": Vector2.ZERO, "mirror_face": 1.0,
-			"last_s": [0.0, 0.0, 0.0], "st": {}}
+		h["mz"] = {"budget": 0.0, "stakes": [], "delayed": [], "s3_fx": 0.0, "s3_fx_radius": 0.0, "st": {}}
 	return h.mz
 
 
@@ -75,28 +76,13 @@ static func h3_tick_effects(o, dt: float) -> void:
 		mz.budget = min(float(mz.budget) + dt * float(kh.get("regen", 0.05)), float(kh.get("cap", 0.05)))
 	_h3_stakes_tick(o, mz, dt)
 	_e3_jelly_tick(o, mz, dt)   # 精英化第 3 批：深蓝之籽
-	var s3i: int = int(a.get("mirror_skill", 2))
-	var was3: float = float(mz.last_s[s3i])
-	for i in 3:
-		mz.last_s[i] = float(o.s_t[i])
-	if was3 > 0.0:
-		mz.mirror_pos = (mz.mirror_pos as Vector2).lerp(o.pos + Vector2(-o.face * 80.0, -10.0), minf(1.0, dt * 8.0))
-		mz.afterimg_t = float(mz.afterimg_t) - dt
-		if float(mz.afterimg_t) <= 0.0:
-			mz.afterimg_t = 0.06
-			var ast: Dictionary = o.anim_state()
-			if not ast.is_empty():
-				mz.afterimg.push_front({"pos": o.pos, "frame": ast.frame, "tex": ast.tex, "hf": ast.hf, "flip": ast.flip})
-			if mz.afterimg.size() > 5:
-				mz.afterimg.pop_back()
-	else:
-		mz.afterimg.clear()
+	mz.s3_fx = maxf(0.0, float(mz.s3_fx) - dt)
 	for i in range(mz.delayed.size() - 1, -1, -1):
 		var dl: Dictionary = mz.delayed[i]
 		dl.at -= dt
 		if dl.at <= 0.0:
 			mz.delayed.remove_at(i)
-			_h3_run_delayed(o, a, dl)
+			_h3_run_delayed(o, dl)
 
 
 static func h3_umbrella_start(o, a: Dictionary) -> void:
@@ -135,13 +121,12 @@ static func h3_umbrella_release(o, a: Dictionary) -> bool:
 
 static func h3_cancel(o) -> void:
 	var mz: Dictionary = o.hw.mz
-	for key in ["stakes", "delayed", "afterimg", "jel", "binds"]:
+	for key in ["stakes", "delayed", "jel", "binds"]:
 		if mz.has(key):
 			mz[key].clear()
 	mz["marks"] = {}
-	mz.last_s = [0.0, 0.0, 0.0]
-	mz.mirror_pos = o.pos
-	mz.afterimg_t = 0.0
+	mz.s3_fx = 0.0
+	mz.s3_fx_radius = 0.0
 	mz.budget = 0.0
 
 
@@ -152,6 +137,10 @@ static func _h3_talent_any(o, tag: String) -> Dictionary:
 				if str(b.get("_tag", "")) == tag:
 					return b
 	return {}
+
+
+static func h3_full_circle(o, a: Dictionary) -> bool:
+	return a.has("full_circle") and cond_true(o, a.full_circle.get("cond", _ED))
 
 
 ## 伞击
@@ -177,37 +166,21 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 	if empowered:
 		dmg *= float(emp.get("mult", 1.0)) * o.skill_power()
 		radius *= float(emp.get("r_mult", 1.0))
-	var dirs: Array = [ang]
-	for dv in a.get("dirs", _EA):
-		if cond_true(o, dv.get("cond", _ED)):
-			dirs = [ang, ang + TAU / 3.0, ang - TAU / 3.0]
-			break
-	var seen := {}
-	var hit: Array = []
-	for d in dirs:
-		for e in o.arc_targets(o.pos, d, half, radius):
-			if not seen.has(e.id):
-				seen[e.id] = true
-				hit.append(e)
-	var lk: Dictionary = a.get("look", {})
-	var s3: bool = dirs.size() > 1
+	var s3 := h3_full_circle(o, a)
 	if s3:
-		o.spawn_fx_sprite(str(lk.get("mass", "fx_mizuki_tentacle_mass")), o.pos + Vector2.from_angle(ang) * radius * 0.55 + Vector2(0, 12), g.PX * 0.9, 0.0, cos(ang) < 0.0, true, h3_deep_col(o))
+		half = PI
+	var hit: Array = o.arc_targets(o.pos, ang, half, radius)
+	if s3:
+		mz.s3_fx = 0.3
+		mz.s3_fx_radius = radius
 	g.crit_hit = empowered
 	dmg *= g.rfx.single_hit_mult(hit.size())
-	var stun := 0.0
-	for sv in a.get("stun", _EA):
-		if cond_true(o, sv.get("cond", _ED)):
-			stun = float(sv.get("dur", 0.0))
-			break
 	var src: String = str(a.get("src", ""))
 	for e in hit:
 		o.log_hit(src, ["empowered"] if empowered else [])
 		o.deal_damage(e, dmg)
 		if not e.boss:
 			o.apply_kb(e, (e.pos - o.pos).normalized() * (float(emp.get("kb", 360.0)) if empowered else float(a.get("kb", 240.0))))
-		if stun > 0.0 and not e.dead:
-			o.add_cc(e, stun)
 	g.crit_hit = false
 	if empowered:
 		var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
@@ -237,7 +210,7 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 			break
 	for i in min(n, alive.size()):
 		_h3_tentacle(o, a, alive[i], tdmg, tstun)
-	if hit.size() > 0 and alive.size() < n:
+	if not s3 and hit.size() > 0 and alive.size() < n:
 		var more: Array = o.nearest_enemies(n + 4, radius * float(tb.get("more_r", 1.6)), o.pos).filter(func(e): return not e.dead and not alive.has(e))
 		for i in mini(n - alive.size(), more.size()):
 			_h3_tentacle(o, a, more[i], tdmg, tstun)
@@ -256,10 +229,6 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 		g.flash = maxf(g.flash, 0.12)
 		for k in mini(hit.size(), int(bu.get("n", 3))):
 			mz.delayed.append({"at": float(bu.get("gap", 0.06)) * k, "kind": "burst", "pos": hit[k].pos, "dmg": dmg * float(bu.get("mult", 0.6)), "r": float(bu.get("r", 80.0)), "b": bu})
-	# 镜花水月：镜像分身同步挥伞
-	var ec = a.get("echo", null)
-	if ec is Dictionary and cond_true(o, ec.get("cond", _ED)):
-		mz.delayed.append({"at": float(ec.get("delay", 0.12)), "kind": "echo", "ang": ang, "dmg": dmg * float(ec.get("mult", 0.6)) * o.skill_power(), "half": half, "radius": radius, "dirs": dirs.size(), "b": ec})
 	# 斩击表现
 	var slash_col := Color.WHITE
 	if empowered:
@@ -275,9 +244,9 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 		o.play_anim_fx("fx_s1_burst", alive[0].pos, 0.35)
 	for k in min(hit.size(), 3):
 		o.enemy_hit_fx(hit[k], hit[k].pos - o.pos)
-	for d in dirs:
-		o.slash_fx(o.pos, d, half, radius, slash_col, slash_tex, 0.26 if empowered else 0.22)
-	if empowered and not slash_tex.begins_with("fx_umbrella_slash"):
+	if not s3:
+		o.slash_fx(o.pos, ang, half, radius, slash_col, slash_tex, 0.26 if empowered else 0.22)
+	if empowered and not s3 and not slash_tex.begins_with("fx_umbrella_slash"):
 		o.slash_fx(o.pos, ang, half * 0.9, radius * 1.25, Color(2.0, 1.5, 0.6, 0.8), "slash", 0.3)
 
 
@@ -300,6 +269,8 @@ static func _h3_tentacle(o, a: Dictionary, target: Dictionary, dmg: float, stun:
 		if mz.stakes.size() >= int(sk.get("max", 6)):
 			mz.stakes.pop_front()
 		mz.stakes.append({"pos": p, "t": float(sk.get("life", 1.5)), "tick": float(sk.get("every", 0.5)), "dmg": dmg * float(sk.get("mult", 0.4)), "flip": g.vrng.randf() < 0.5, "b": sk})
+	if h3_full_circle(o, a):
+		return   # S3 的触手从整片范围同时出现，命中效果不重复逐敌生成。
 	g.fx.append({"kind": "rift", "pos": p, "r": 26.0, "life": 0.25, "max": 0.25})
 	if not o.spawn_fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX, 0.0, g.vrng.randf() < 0.5, true, h3_deep_col(o)):
 		var tl: float = 0.4 if g.tex.get("fx_tentacle_strike") != null else 0.6
@@ -336,9 +307,8 @@ static func _h3_stakes_tick(o, mz: Dictionary, dt: float) -> void:
 	mz.stakes = mz.stakes.filter(func(s): return s.t > 0.0)
 
 
-static func _h3_run_delayed(o, a: Dictionary, dl: Dictionary) -> void:
+static func _h3_run_delayed(o, dl: Dictionary) -> void:
 	var g = o.g
-	var mz: Dictionary = o.hw.mz
 	match str(dl.kind):
 		"burst":
 			var bu: Dictionary = dl.b
@@ -354,35 +324,6 @@ static func _h3_run_delayed(o, a: Dictionary, dl: Dictionary) -> void:
 			var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 			if sfx != null:
 				sfx.play("boom", -10.0, 1.4, 0.1)
-		"echo":
-			var ec: Dictionary = dl.b
-			var mp: Vector2 = mz.mirror_pos
-			var ma: float = dl.ang
-			var near_d: float = dl.radius * float(ec.get("near", 1.4))
-			for e in g.enemies:
-				if e.dead or e.get("friendly", false):
-					continue
-				var dd: float = mp.distance_to(e.pos)
-				if dd < near_d:
-					near_d = dd
-					ma = (e.pos - mp).angle()
-			var dirs: Array = [ma]
-			if dl.dirs > 1:
-				dirs = [ma, ma + TAU / 3.0, ma - TAU / 3.0]
-			var seen := {}
-			var mt: String = o.slash_tex_name("mirage")
-			for d in dirs:
-				for e in o.arc_targets(mp, d, dl.half, dl.radius):
-					if seen.has(e.id):
-						continue
-					seen[e.id] = true
-					o.log_hit(str(ec.get("src", "")), ec.get("tags", []))
-					o.deal_damage(e, dl.dmg)
-					if not e.dead:
-						o.add_cc(e, float(ec.get("stun", 0.3)))
-				o.slash_fx(mp, d, dl.half, dl.radius, Color(1.0, 0.9, 1.2, 0.8) if mt.begins_with("fx_") else Color(0.9, 0.6, 1.6, 0.8), mt, 0.3)
-			mz.mirror_face = -1.0 if cos(ma) < 0.0 else 1.0
-			_h3_sfx(o, "atk", 0.0, 0.8)
 
 
 ## 技能发动光环 + 推开身边小怪（同手写 _skill_cast）
@@ -393,10 +334,11 @@ static func h3_cast_push(o, b: Dictionary) -> void:
 	o.screen_shake(0.8 if big else 0.5)
 	g.flash = maxf(g.flash, 0.25)
 	var c: Color = _mf_col(b.get("col", []), Color(0.45, 0.8, 1.0))
-	g.fx.append({"kind": "ring", "pos": o.pos, "r": 160.0, "life": 0.5, "max": 0.5, "col": c, "op_hit": true})
-	g.fx.append({"kind": "ring", "pos": o.pos, "r": 260.0, "life": 0.7, "max": 0.7, "col": c, "op_hit": true})
-	g.fx.append({"kind": "rays", "pos": o.pos, "life": 0.6, "max": 0.6, "col": c, "op_spoke": true})
-	o.sparks(o.pos + Vector2(0, -20), Vector2.ZERO, c, 24, 360.0)
+	if not big:
+		g.fx.append({"kind": "ring", "pos": o.pos, "r": 160.0, "life": 0.5, "max": 0.5, "col": c, "op_hit": true})
+		g.fx.append({"kind": "ring", "pos": o.pos, "r": 260.0, "life": 0.7, "max": 0.7, "col": c, "op_hit": true})
+		g.fx.append({"kind": "rays", "pos": o.pos, "life": 0.6, "max": 0.6, "col": c, "op_spoke": true})
+		o.sparks(o.pos + Vector2(0, -20), Vector2.ZERO, c, 24, 360.0)
 	var r: float = float(b.get("r", 140.0))
 	for j in o.query_ids(o.pos, r):
 		var e: Dictionary = g.enemies[j]
@@ -451,19 +393,7 @@ static func _h3mz_draw_floor(o) -> void:
 		if q % 2 == 0:
 			cv.draw_arc(Vector2.ZERO, lr, TAU * q / 32.0 + g.t * 0.1, TAU * (q + 1) / 32.0 + g.t * 0.1, 3, Color(1.6, 1.3, 0.8, 0.22), 1.5)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if o.s_t[2] > 0.0:
-		var r: float = 110.0
-		var fade := clampf(o.s_t[2] / 1.0, 0.0, 1.0) * clampf((o.s_dur[2] - o.s_t[2]) / 0.4, 0.0, 1.0)
-		cv.draw_set_transform(bp, 0.0, Vector2(1.0, 0.45))
-		cv.draw_circle(Vector2.ZERO, r, Color(0.5, 0.35, 1.0, 0.13 * fade))
-		for q in 3:
-			var rp := fmod(g.t * 0.6 + q / 3.0, 1.0)
-			cv.draw_arc(Vector2.ZERO, r * rp, 0.0, TAU, 48, Color(1.4, 1.0, 2.2, (1.0 - rp) * 0.55 * fade), 2.0)
-		cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 64, Color(1.2, 0.9, 2.0, 0.7 * fade), 2.5)
-		for q in 12:
-			var dv := Vector2.from_angle(q * TAU / 12.0 - g.t * 0.4)
-			cv.draw_line(dv * (r - 10.0), dv * r, Color(1.4, 1.1, 2.2, 0.8 * fade), 2.0)
-		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	MizukiS3Fx.draw(o, false)
 	if o.s_t[1] > 0.0:
 		var fade2 := clampf(o.s_t[1] / 1.0, 0.0, 1.0)
 		cv.draw_set_transform(bp, 0.0, Vector2(1.0, 0.45))
@@ -474,13 +404,6 @@ static func _h3mz_draw_floor(o) -> void:
 		cv.draw_set_transform(bp, 0.0, Vector2(1.0, 0.45))
 		cv.draw_arc(Vector2.ZERO, 34.0 + 3.0 * sin(g.t * 8.0), 0.0, TAU, 32, Color(2.0, 1.5, 0.6, 0.7), 2.0)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	for i in range(mz.afterimg.size() - 1, -1, -1):
-		var ai: Dictionary = mz.afterimg[i]
-		var aa: float = 0.45 * (1.0 - float(i) / mz.afterimg.size())
-		o.draw_body_at(ai.pos, ai.flip, Color(0.9, 0.55, 1.8, aa), {"tex": ai.tex, "frame": ai.frame, "hf": ai.hf, "flip": ai.flip})
-	if o.s_t[2] > 0.0:
-		var ma: float = minf(1.0, o.s_t[2] * 3.0) * (0.62 + 0.08 * sin(g.t * 6.0))
-		o.draw_body_at(mz.mirror_pos, float(mz.mirror_face) < 0.0, Color(0.85, 0.6, 1.9, ma))
 
 
 static func _h3_draw_tentacle(o, f: Dictionary) -> void:
@@ -547,13 +470,7 @@ static func _h3mz_draw_over(o) -> void:
 			for q in 3:
 				var an2: float = g.t * 4.0 + q * TAU / 3.0 + e.id
 				o.draw_diamond(e.pos + Vector2(cos(an2) * (e.r + 6.0), sin(an2) * (e.r + 6.0) * 0.4 - 4.0), 3.0, Color(0.02, 0.05, 0.08, 0.9), Color(0.6, 1.2, 2.0, 0.9))
-	if o.s_t[2] > 0.0:
-		for q in 6:
-			var an = -g.t * 1.4 + q * TAU / 6.0
-			var p = o.pos + Vector2(cos(an) * 64.0, sin(an) * 26.0 - 30.0 + sin(g.t * 3.0 + q) * 4.0)
-			var w := 5.0 + 3.0 * absf(cos(g.t * 2.0 + q))
-			cv.draw_colored_polygon(PackedVector2Array([p + Vector2(0, -12), p + Vector2(w, 0), p + Vector2(0, 12), p + Vector2(-w, 0)]), Color(1.3, 1.0, 2.2, 0.75))
-			cv.draw_line(p + Vector2(0, -12), p + Vector2(0, 12), Color(2.5, 2.2, 3.0, 0.9), 1.0)
+	MizukiS3Fx.draw(o, true)
 
 
 static func _h3mz_draw_auras(o) -> void:
@@ -561,17 +478,12 @@ static func _h3mz_draw_auras(o) -> void:
 	var cv = o.cv
 	if o.s_t[1] > 0.0 and g.tex.get("fx_s2_aura") == null:
 		cv.draw_arc(o.pos + Vector2(0, -10), 30.0 + sin(g.t * 6.0) * 2.0, 0.0, TAU, 20, Color(0.5, 0.8, 1.0, 0.6), 2.0)
-	if o.s_t[2] > 0.0 and g.tex.get("fx_s3_aura") == null:
-		cv.draw_arc(o.pos + Vector2(0, -10), 40.0 + sin(g.t * 4.0) * 3.0, 0.0, TAU, 24, Color(0.8, 0.55, 1.0, 0.7), 3.0)
-		cv.draw_circle(o.pos + Vector2(0, -10), 36.0, Color(0.6, 0.4, 1.0, 0.08))
 
 
 static func _h3mz_draw_add(o, ci, loop: int) -> void:
 	var g = o.g
 	if o.s_t[1] > 0.0 and g.tex.get("fx_s2_aura") != null:
 		o.draw_spr_on(ci, "fx_s2_aura", g.FXF.fx_s2_aura, loop, o.pos + Vector2(0, 4))
-	if o.s_t[2] > 0.0 and g.tex.get("fx_s3_aura") != null:
-		o.draw_spr_on(ci, "fx_s3_aura", g.FXF.fx_s3_aura, loop, o.pos + Vector2(0, 4))
 	var mark := "fx_s2_bind" if o.s_t[1] > 0.0 else "fx_stun"
 	if g.tex.get(mark) != null:
 		for e in g.enemies:

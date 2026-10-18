@@ -12,6 +12,7 @@ CASES=[(-1,1,120),(-1,4,120),(1,1,280),(1,4,280),(2,1,320),(2,4,320)]
 def capture(case):
     slot,rate,count=case; key=f's{slot+1}_x{rate}'; folder=OUT/key;folder.mkdir(parents=True,exist_ok=True)
     cmd=[gr.find_godot(),'--path',str(ROOT/'game'),'res://tests/mizuki_runtime_capture.tscn','--','--regression','--balance','--seed=1','--op=mizuki',f'--capture-skill={slot}',f'--capture-rate={rate}',f'--capture-frames={count}']
+    if OUT.name=="mizuki_s3_fx_capture": cmd.append("--s3-fx")
     out,err,to=gr.run_godot(cmd,240);(folder/'run.log').write_text(out+'\n'+err,encoding='utf8')
     assert not to and not gr.script_errors(out,err) and 'MIZUKI RUNTIME CAPTURE' in out,(key,out[-1000:],err[-1000:])
     print(key,'captured',flush=True)
@@ -37,11 +38,14 @@ def package():
         report.append(row);title=('普通攻击' if slot<0 else f'S{slot+1}')+f' · {rate}倍攻速'
         cards.append(f'<section><h2>{title}</h2><p>配置间隔 {row["requested_interval"]:.3f}s；动作与停顿合计下限 0.45s。整段实测起手间隔中位数 {observed}s（受目标移动、击退及技能结束影响，不等于理论攻速）。命中事件 {row["releases"]} 次。</p><img src="{key}.gif"><details><summary>阶段截图</summary><img src="{key}_contact.png"></details><a href="{key}/evidence.json">逐步记录</a></section>')
     (OUT/'summary.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf8')
-    (OUT/'review.html').write_text('<!doctype html><meta charset="utf-8"><title>水月实机时序</title><style>body{background:#202a36;color:#eee;font:17px system-ui;margin:24px}main{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}img{width:100%;image-rendering:pixelated}section{background:#2d3745;padding:16px}a{color:skyblue}</style><h1>水月 · 实机攻击与技能</h1><p>固定60Hz游戏模拟，每50ms截帧；GIF为常速。完整动作后再起手；倍率提升仍受可读性下限约束。</p><p><a href="../mizuki_runtime_review/review.html">全部原帧条与逐帧图</a></p><main>'+''.join(cards)+'</main>',encoding='utf8')
+    intro='<p>S3 整范围触手试版：14 秒，伤害 ×1.8、范围 ×1.45；群攻不限目标，低生命额外目标眩晕 0.6 秒。不扣血，无倒影追加伤害。整片触手由实际攻击触发，6 帧 / 0.3 秒。</p>' if OUT.name=='mizuki_s3_fx_capture' else ''
+    (OUT/'review.html').write_text('<!doctype html><meta charset="utf-8"><title>水月实机时序</title><style>body{background:#202a36;color:#eee;font:17px system-ui;margin:24px}main{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}img{width:100%;image-rendering:pixelated}section{background:#2d3745;padding:16px}a{color:skyblue}</style><h1>水月 · 实机攻击与技能</h1><p>固定60Hz游戏模拟，每50ms截帧；GIF为常速。完整动作后再起手；倍率提升仍受可读性下限约束。</p><p><a href="../mizuki_runtime_review/review.html">全部原帧条与逐帧图</a></p><main>'+''.join(cards)+'</main>'+intro,encoding='utf8')
     print(OUT/'review.html')
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('--package-only',action='store_true');a=p.parse_args()
+    global OUT, CASES
+    p=argparse.ArgumentParser();p.add_argument('--package-only',action='store_true');p.add_argument('--s3-only',action='store_true');a=p.parse_args()
+    if a.s3_only: OUT=ROOT/'build/mizuki_s3_fx_capture';CASES=[(2,1,320),(2,4,320)]
     temp=ROOT/'build/tmp';temp.mkdir(parents=True,exist_ok=True);os.environ['TEMP']=os.environ['TMP']=str(temp)
     if not a.package_only:
         with ThreadPoolExecutor(max_workers=2) as pool:list(pool.map(capture,CASES))

@@ -1,0 +1,28 @@
+{
+  "frames": 6,
+  "fps": 20,
+  "duration": 0.3,
+  "frame_size": [
+    128,
+    128
+  ],
+  "hires_frame_size": [
+    256,
+    256
+  ],
+  "anchor": [
+    0.5,
+    0.75
+  ],
+  "footprint_width_2x": 228,
+  "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a14384-3345-7860-b2ba-854f96fec33d\\exec-40e48eff-c3d0-47a3-a0c4-aa94901a4e3d.png",
+  "source_sha256": "51f47f5b0f43a29f662600bddf88cf782267b527d9ab9e32104670b39429d9fe",
+  "construction": "Generated synchronized field; common-grid cell export, 32 colors, binary alpha; no enemy-relative placement",
+  "files": {
+    "fx_mizuki_s3_field.png": "b693b6a0a3fe1c7ecebdf1ea9a98b806a88df155def8c4c6bff0a3789746927d",
+    "fx_mizuki_s3_field@2x.png": "2cfa7ad2447187a51098265a3ac3401312218127305905746b5ff52ead4a3440"
+  },
+  "export_cleanup": {
+    "transparent_rgb": "zeroed to prevent edge bleed"
+  }
+}

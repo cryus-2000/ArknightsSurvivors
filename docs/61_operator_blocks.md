@@ -1604,8 +1604,8 @@ JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测�
 | `verb.heal_lamp` | 常驻（天赋）/ 瞬时 | 每次回复 / 驱散灯火 + add；灯火 ≥ lamp 时自身技力额外 + rate；放在技能 do 里 = 这一下按天赋加灯火 |
 | `verb.lamp` 的 `decay_mult` / `radius_mult` | 常驻 | 受击灯火损失倍率（`light_decay`）/ 队长照亮半径倍率 |
 | `shape.umbrella` 出手时序 | 普攻 | 由公共动作时钟驱动，出手时消耗强化次数；旧 `attack.flow: free` 入口已移除。 |
-| `shape.umbrella` | 普攻 | 伞击：扇形 half = min(180°, half_deg + 角度加成)，半径 / 伤害 / 间隔按专属属性 `stats` 与 cond 倍率；`dirs` 三方向；`tentacle` 触手追击（n = 追击数属性 + n_add，不够打附近的；`drag`、`stake`）；`echo` 镜像分身延时同步挥伞；次数型补丁 `kb` / `burst`（创伤扩散）/ `swarm` |
-| `verb.kill_heal` / `verb.cast_push` / `verb.mirror` | 瞬时 | 击杀回复（每秒预算）/ 发动光环推开身边小怪 / 镜像分身出现 |
+| `shape.umbrella` | 普攻 | 伞击：扇形 half = min(180°, half_deg + 角度加成)，半径 / 伤害 / 间隔按专属属性 `stats` 与 cond 倍率；`full_circle.cond` 满足时改为全周范围攻击；`tentacle` 追击按最低当前生命选取（n = 追击数属性 + n_add，支持 `drag`、`stake`；S3 仅限本次攻击半径内，见 §26）；次数型补丁 `kb` / `burst`（创伤扩散）/ `swarm` |
+| `verb.kill_heal` / `verb.cast_push` | 瞬时 | 击杀回复（每秒预算）/ 发动光环推开身边小怪 |
 | `blocks.dmg_bonus` | 顶层 | 本干员的伤害加成（`ally: false` 不吃同伴倍率；`mults` 带 `near_low_hp`）|
 | JSON `stat_defs` | 干员 JSON 顶层 | 专属属性定义（同原 `stat_defs()`）；`attack.stats` 把它们映射进普攻 |
 
@@ -1833,7 +1833,7 @@ o.SkillLifecycle.bind(o, "capability", o.effect_skill, state, "remaining",
 - 同能力键再次绑定表示刷新/替换，不触发旧效果结束。换槽时归属转移；控制器不保留旧槽的悬空状态。独立可并存的能力使用不同键。
 - 计数/计时自然归零只派发一次既有 `on_skill_end`；独占效果等其技能动作与收势完成才派发。取消不派发自然结束，清空权威字段并执行清理回调；离队通过同一入口取消，同时 `cancel_skill_action` 清理尚未出手的动作、缓冲与序列，已经发出的弹体不撤销。
 - 普通 `s_t` 限时效果保留原 `mf_tick / tx_update` 的结束派发位置；持续攻击阶段保留 §24 的队列排空规则。不能为了统一接口移动其他干员的每帧结算顺序。
-- 通用 `next_attacks` 与永久效果在正常出手及 `cast:instant` 两条入口登记；纯瞬发效果沿用既有执行链。`free` 干员仍走自身调度，本次不迁移其结束时序。
+- 通用 `next_attacks` 与永久效果在正常出手及 `cast:instant` 两条入口登记；纯瞬发效果沿用既有执行链。水月已按 §26 接入公共时序，旧 `free` 调度入口已移除。
 - 任意技能的起手动作已占用出手窗口；即使效果尚未注册，也不能用直接 `start_skill` 抢断。阶段攻击和独占次数的后续占用由各自通用控制器负责。
 
 已接入适配：`cannon_load`（次数独占）、`saria_heal.hot`（后台限时）、`calc_field`（限时领域）、`fox_cast.haze`（限时增益）、`fox_cast` 暖光（永久增益）。自然结束的治疗尾拍、钙晶更新、暖光恢复仍在原适配器位置，未另加计时器。
@@ -1843,13 +1843,21 @@ o.SkillLifecycle.bind(o, "capability", o.effect_skill, state, "remaining",
 
 ## 26. 水月公共时序接入（2026-10-18）
 
-水月伞击由 `h3_umbrella_start → start_attack → _release → h3_umbrella_release` 调度，命中帧前不结算伤害或消耗 S1。起手前无目标、起手后目标全部死亡均保留强化次数。触手、镜像、冲击与成长仍使用原效果执行器；它们不会重新起人物动作。
+水月伞击由 `h3_umbrella_start → start_attack → _release → h3_umbrella_release` 调度，命中帧前不结算伤害或消耗 S1。起手前无目标、起手后目标全部死亡均保留强化次数。触手、冲击与成长保留各自效果执行器；它们不会重新起人物动作。S3 当前范围攻击与控制规则见下文。
 
 - S1 沿用 `cast: instant` 装填；`load_skill_attacks` 有 `stack_max` 时累加至上限，缺省仍为覆盖。`attack_patch.anim` 指向已定义帧条，强化伞击优先于持续技能的普通攻击变体。
 - S2 / S3 移除 `cast: instant`，在技能起手的 fire 事件设置原有 12 / 14 秒计时，绑定同一 `s_t` 到 `SkillLifecycle`，不增加第二个计时器。当前动作完成后播收势，收势期间不发新动作；重叠技能的前台收势完成后恢复仍生效的另一循环。
 - `attack_timing.min_duration` / `min_rest` 是可选正数；前者不得大于 duration。水月 .72 秒动作、.36 秒最短完整动作、.09 秒最短停顿；请求周期 .9 / .45 / .225 秒时实际周期为 .9 / .45 / .45 秒。S2 请求周期再减半，仍受相同下限约束。未配置边界的其他干员保持原时序。
 - 已声明帧数的动作以数据计时，不因贴图缺失改为即时伤害；序列同样从帧数据取得起手时长，渲染可回退。
-- `on_leave` 清空未出手事件、手动缓存、已绑定次数 / 持续状态，以及水月自己的触手桩、未结算冲击 / 镜像队列、水母、绑缚画面与残影；不清除全局其他角色弹体。
+- `on_leave` 清空未出手事件、手动缓存、已绑定次数 / 持续状态，以及水月自己的触手桩、未结算冲击、水母、绑缚画面与 S3 范围特效状态；不清除全局其他角色弹体。
 - 删除 `h3_free_update`、`_h3_free_skill`、`B._free` 与旧数据 `flow`。保留 `_h3_umbrella`、触手 / 水母 / 成长执行器及其他展示仍使用的 `play_vis_skill`。不宣称与旧 free 流伤害时间逐字节等价；起手与高攻速上限属于明确修正。
 
-验收入口：`mizuki_runtime_test`（真实技能入口、1/2/4 倍攻速、主控 / 队友、手动 / 自动、目标死亡、取消 / 重新部署、重叠恢复、成长与缺图），`mizuki_skill_anim_test`（完整八帧、fire 对齐、持续循环 / 收势、S1 优先级与无变体回退）。三干员既有 lifecycle / phases / timing / Wisadel 回归保留。
+S3 当前契约（2026-10-18）：参考原作的全周范围攻击与追加目标控制，保留本项目 14 秒持续、1.8 倍攻击伤害、1.45 倍攻击半径及追加目标 0.6 秒眩晕；不引入低目标数时扣除自身生命的机制。
+
+- `full_circle.cond: skill_active:2` 生效时，主攻击命中实际半径内全部有效敌方目标，不限制为三方向或三名敌人。实际半径包含同时生效的 S1 半径修正。
+- 触手追加目标数在基础数上增加 2，默认最多 3 个，按最低当前生命选取；仅这些追加目标获得眩晕。追加目标必须位于本次攻击半径内，不使用半径外补选。S2 同时生效时保留绑缚，追加目标数不叠成额外 +3；成长提供的基础追击数仍保留。
+- 独立 S1 `swarm` 沿用既有选敌与范围，可能命中 S3 半径外目标；该独立效果不属于 S3 追加目标补选。
+- 移除 S3 镜像、延迟 60% 回声伤害、对应 `verb.mirror` 与过时配置。S3 不再绘制三方向斩击、偏移触手团或逐目标触手图像。
+- 实际出手时设置 `s3_fx` 与 `s3_fx_radius`，整片攻击范围内的触手同步出现。特效只表现已结算的攻击，不额外触发伤害或控制；离队时清空。完整表现约定见 [水月 S3 范围攻击与特效方案](plans/2026-10-18-mizuki-s3-fx.md)。
+
+验收入口：`mizuki_runtime_test`（真实技能入口、1/2/4 倍攻速、主控 / 队友、手动 / 自动、目标死亡、取消 / 重新部署、重叠恢复、成长与缺图，以及 S3 全周群攻、追加目标控制、半径边界、无回声与无生命消耗），`mizuki_skill_anim_test`（完整八帧、fire 对齐、持续循环 / 收势、S1 优先级与无变体回退）。三干员既有 lifecycle / phases / timing / Wisadel 回归保留。

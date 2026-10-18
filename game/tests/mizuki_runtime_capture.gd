@@ -5,11 +5,13 @@ func _ready() -> void:
 	var slot := -1
 	var rate := 1.0
 	var frames := 120
+	var label := "mizuki_runtime_capture"
 	for arg in OS.get_cmdline_user_args():
+		if arg == "--s3-fx": label = "mizuki_s3_fx_capture"
 		if arg.begins_with("--capture-rate="): rate = float(arg.get_slice("=", 1))
 		if arg.begins_with("--capture-skill="): slot = int(arg.get_slice("=", 1))
 		if arg.begins_with("--capture-frames="): frames = int(arg.get_slice("=", 1))
-	var output := ProjectSettings.globalize_path("res://../build/mizuki_runtime_capture/s%d_x%d" % [slot+1, int(rate)])
+	var output := ProjectSettings.globalize_path("res://../build/%s/s%d_x%d" % [label, slot+1, int(rate)])
 	DirAccess.make_dir_recursive_absolute(output)
 	var g = load("res://game.tscn").instantiate()
 	add_child(g)

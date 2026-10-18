@@ -623,7 +623,6 @@ const EXEC_SEG := {
 	"verb.lift_around": 7,   # h3_exec
 	"verb.light_rain": 7,   # h3_exec
 	"verb.mend": 7,   # h3_exec
-	"verb.mirror": 7,   # h3_exec
 	"verb.purge": 7,   # h3_exec
 	"verb.tower": 7,   # h3_exec
 	"verb.calc_field": 8,   # h4_exec

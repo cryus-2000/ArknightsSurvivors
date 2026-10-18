@@ -233,9 +233,6 @@
     "s3_radius": 1.45,
     "s3_mult": 1.8,
     "s3_stun": 0.6,
-    "s3_echo_mult": 0.6,
-    "s3_echo_stun": 0.3,
-    "s3_bind": 1.0,
     "half_base": 75,
     "aim_pad": 60,
     "min_cd": 0.18,
@@ -288,7 +285,7 @@
       "name": "镜花水月",
       "en": "MOON IN THE WATER",
       "sp": 30,
-      "desc": "{$s3_dur} 秒内伞击范围 ×{$s3_radius}、伤害 ×{$s3_mult}、同时斩向 3 个方向并眩晕 {$s3_stun} 秒，触手追击目标 +1 并附带 {$s3_bind} 秒束缚；身后浮现镜像分身同步挥伞（{$s3_echo_mult*100}%）",
+      "desc": "{$s3_dur} 秒内攻击覆盖自身周围全范围，范围 ×{$s3_radius}、伤害 ×{$s3_mult}；触手额外攻击目标 +2，优先命中生命最低的敌人，并眩晕 {$s3_stun} 秒",
       "dur": 14.0,
       "icon": "skill_s3"
     }
@@ -441,7 +438,7 @@
       "type": "elite",
       "level": 2,
       "name": "精英二",
-      "desc": "解锁三技能「镜花水月」：{$s3_dur} 秒内伞击范围 ×{$s3_radius}、伤害 ×{$s3_mult}、同时斩向 3 个方向并眩晕 {$s3_stun} 秒；身后浮现镜像分身同步挥伞（{$s3_echo_mult*100}%）；普攻质变「深蓝之籽」：身后的小水母（数量同触手追击数）每 {$jelly_every} 秒各自飞向附近一名敌人，造成伞击 {$jelly_mult*100}% 的法术伤害并束缚 {$jelly_bind} 秒（精英减半，Boss 除外）；「镜花水月」期间间隔减半",
+      "desc": "解锁三技能「镜花水月」：{$s3_dur} 秒内攻击覆盖自身周围全范围，范围 ×{$s3_radius}、伤害 ×{$s3_mult}；触手额外攻击目标 +2，优先命中生命最低的敌人，并眩晕 {$s3_stun} 秒；普攻质变「深蓝之籽」：身后的小水母（数量同触手追击数）每 {$jelly_every} 秒各自飞向附近一名敌人，造成伞击 {$jelly_mult*100}% 的法术伤害并束缚 {$jelly_bind} 秒（精英减半，Boss 除外）；「镜花水月」期间间隔减半",
       "attack": {
         "name": "深蓝之籽",
         "desc": "身后的小水母（数量同触手追击数）离身游猎：每 {$jelly_every} 秒各自飞向 {$jelly_r} 内一名敌人（优先被触手打过的），造成伞击 {$jelly_mult*100}% 的法术伤害并束缚 {$jelly_bind} 秒（精英减半，Boss 除外），再飘回身后；「镜花水月」期间间隔减半"
@@ -491,7 +488,7 @@
     }
   },
   "blocks": {
-    "_doc": "水月：公共起手→命中→收势；伞击、触手追击及镜像保留各自效果；S1最多叠3次，S2/S3原数值持续状态绑定公共生命周期。",
+    "_doc": "水月：公共起手→命中→收势；S1最多叠3次，S2高速束缚，S3自身周围全范围攻击、额外触手目标+2并眩晕；持续状态绑定公共生命周期，不消耗自身生命。",
     "dmg_bonus": {
       "ally": false,
       "mults": [
@@ -545,35 +542,22 @@
           "mult": "$s2_interval"
         }
       ],
-      "dirs": [
-        {
-          "cond": "skill_active:2",
-          "n": 3
-        }
-      ],
-      "stun": [
-        {
-          "cond": "skill_active:2",
-          "dur": "$s3_stun"
-        }
-      ],
-      "mirror_skill": 2,
       "tentacle": {
         "src": "触手",
         "n_add": [
           {
-            "cond": "skill_active:1",
+            "cond": "skill_active:1 && !skill_active:2",
             "n": 1
           },
           {
             "cond": "skill_active:2",
-            "n": 1
+            "n": 2
           }
         ],
         "stun": [
           {
             "cond": "skill_active:2",
-            "dur": "$s3_bind"
+            "dur": "$s3_stun"
           },
           {
             "cond": "skill_active:1",
@@ -594,17 +578,6 @@
           "elite_mult": 0.5,
           "_doc": "精一拖拽：触手命中后把目标拖向水月 40（精英减半、重型 ×0.3、Boss 不动）"
         }
-      },
-      "echo": {
-        "cond": "skill_active:2",
-        "delay": 0.12,
-        "mult": "$s3_echo_mult",
-        "stun": "$s3_echo_stun",
-        "near": 1.4,
-        "src": "技能",
-        "tags": [
-          "echo"
-        ]
       },
       "look": {
         "deep": [
@@ -647,6 +620,9 @@
         "stun": "$jelly_bind",
         "src": "深蓝之籽",
         "_doc": "精二深蓝之籽（取代固着）：身后的小水母（数量同触手追击数）每 1.2 秒各自飞向 200 内一名敌人（优先被触手打过的），伞击 40% 法伤 + 束缚 0.3 秒，再飘回；镜花水月期间间隔减半"
+      },
+      "full_circle": {
+        "cond": "skill_active:2"
       }
     },
     "skills": [
@@ -713,9 +689,6 @@
       {
         "dur": "$s3_dur",
         "do": [
-          {
-            "verb": "mirror"
-          },
           {
             "verb": "cast_push",
             "r": 140,

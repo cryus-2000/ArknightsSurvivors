@@ -101,13 +101,14 @@ func _process(_dt: float) -> void:
 			game.stats.define_all(op.stat_defs())
 			op.update(0.01)   # 数据干员（docs/61 §15.9）：第一帧 trig.on_deploy 放出 Mon3tr，随行召唤物当帧选目标
 			check(not op.sm.is_empty() and op.sm.list.size() == 1 and is_same(op.sm.list[0].tgt, hostile), "Mon3tr autonomous targeting excludes ally")
-		if cid == "mizuki":   # 水月已迁成数据干员（docs/61 §19）：镜像分身的状态在 hw.mz，延时同步挥伞走 op_blocks._h3_run_delayed
+		if cid == "mizuki":
 			var OBm = preload("res://scripts/characters/op_blocks.gd")
-			OBm._h3mz(op).mirror_pos = Vector2.ZERO
-			ally.pos = Vector2(-12, 0)
-			OBm._h3_run_delayed(op, op.B.attack, {"kind": "echo", "ang": 0.0, "radius": 120.0, "half": 0.5, "dirs": 1, "dmg": 1.0, "b": op.B.attack.echo})
-			check(float(op.hw.mz.mirror_face) == 1.0, "Mizuki mirror aims at enemy instead of nearer ally")
-			ally.pos = Vector2(12, 0)
+			op.s_t[2] = 14.0
+			var ally_hp: float = ally.hp
+			var enemy_hp: float = hostile.hp
+			OBm.h3_umbrella_release(op, op.B.attack)
+			check(ally.hp == ally_hp and hostile.hp < enemy_hp, "Mizuki S3 area and extra targets exclude friendly units")
+
 	# Friendly immunity must not depend on the ordinary invulnerability flag.
 	ally.invuln = false
 	var hp: float = ally.hp

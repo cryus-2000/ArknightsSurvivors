@@ -40,6 +40,8 @@ func _ready() -> void:
  add_child(g)
  await get_tree().process_frame
  g.set_process(false)
+ test_s3_original()
+ test_s3_fx()
  test_attacks()
  test_matrix()
  test_without_textures()
@@ -129,15 +131,15 @@ func test_matrix() -> void:
       o.cd=1000.0
       step(o,30)
       ok(o.sq_ph==0,"end returns to normal")
-     # Queued tentacles, mirror and growing entities are owned, not global projectiles.
+     # Queued tentacles and growing entities are owned, not global projectiles.
      o.hw.mz.delayed.append({"at":100.0})
      o.hw.mz.stakes.append({"t":100.0})
-     o.hw.mz.afterimg.append({})
+     o.hw.mz.s3_fx=0.3
      o.manual_buf=1.0
      o.on_leave()
      ok(o.fire_t<0.0 and not o.acting() and o.manual_buf==0.0,"leave clears pending fire and buffered skill")
      ok(o.ammo[0]==0 and o.s_t[slot]==0.0 and o.lifecycle.is_empty(),"leave cancels owned counters")
-     ok(o.hw.mz.delayed.is_empty() and o.hw.mz.stakes.is_empty() and o.hw.mz.afterimg.is_empty(),"leave clears dependent effects")
+     ok(o.hw.mz.delayed.is_empty() and o.hw.mz.stakes.is_empty() and o.hw.mz.s3_fx==0.0,"leave clears dependent effects")
      o.sp[slot]=o.sp_need(slot)
      o.start_skill(Vector2.INF,slot)
      o.on_leave()
@@ -205,4 +207,84 @@ func test_without_textures() -> void:
  o.cd=1000.0
  o.start_skill(Vector2.INF,1)
  ok(o.sq_ph==1 and o.fire_t>0.0 and o.s_t[1]==0.0,"missing texture retains sequence release timing")
+ o.on_leave()
+
+func test_s3_fx() -> void:
+ var fx=load("res://scripts/characters/mizuki_s3_fx.gd")
+ ok(fx.state(14.0,14.0,0.0).fade==0.0,"S3 visual enters at actual activation")
+ ok(fx.state(13.5,14.0,0.0).fade==1.0,"S3 visual follows duration")
+ ok(fx.state(0.0,14.0,0.0).fade==0.0,"S3 visual stops at expiry")
+ ok(fx.state(5.0,14.0,0.0).pulse==0.0,"S3 quiet tips do not fake hits")
+ ok(fx.state(5.0,14.0,0.3).frame==0,"S3 attack begins first frame")
+ ok(fx.state(5.0,14.0,0.15).frame==3,"S3 attack follows elapsed event time")
+ var o=fresh()
+ var e=target(o)
+ o.start_skill(Vector2.INF,2)
+ step(o,20)
+ o.cd=0.0
+ var seen := false
+ for i in 120:
+  step(o,1)
+  if float(o.hw.mz.s3_fx)>0.0:
+   seen=true
+   ok(e.hp<1000000.0,"S3 area visual follows real combat event")
+   break
+ ok(seen,"S3 area attack generates visual pulse")
+ o.on_leave()
+ ok(float(o.hw.mz.s3_fx)==0.0,"leave clears S3 visual pulse")
+
+func test_s3_original() -> void:
+ var o=fresh()
+ o.s_t[2]=14.0
+ var enemies := []
+ for i in 8:
+  var e: Dictionary=g.spawner.spawn_enemy("runner",o.pos+Vector2.from_angle(TAU*i/8.0)*100.0)
+  e.hp=10000.0+i*100.0
+  e.maxhp=e.hp
+  e.stun=0.0
+  enemies.append(e)
+ g.enemies_sys.build_grid()
+ var hp: float=g.hp
+ g.fx=[]
+ o.SegMizuki.h3_umbrella_release(o,o.B.attack)
+ for i in enemies.size():
+  ok(enemies[i].hp<enemies[i].maxhp,"S3 full centered area hits direction %d"%i)
+  ok((enemies[i].stun>0.0)==(i<3),"S3 only lowest three receive extra-hit control %d"%i)
+ ok(enemies[0].maxhp-enemies[0].hp>enemies[7].maxhp-enemies[7].hp,"lowest targets receive additional talent damage")
+ ok(absf(enemies[0].stun-0.6)<0.001,"S3 selected-target stun is 0.6 seconds")
+ ok(g.fx.all(func(f):return not str(f.kind) in ["tentacle","rift","tendril"]),"S3 does not spawn per-target tentacle visuals")
+ o.s_t[1]=12.0
+ for e in enemies:
+  e.hp=e.maxhp
+  e.stun=0.0
+ o.SegMizuki.h3_umbrella_release(o,o.B.attack)
+ ok(enemies.filter(func(e):return e.stun>0.0).size()==3,"S2 overlap does not add a fourth S3 extra target")
+ o.hw.mz.st.t_n=2.0
+ for e in enemies:
+  e.hp=e.maxhp
+  e.stun=0.0
+ o.SegMizuki.h3_umbrella_release(o,o.B.attack)
+ ok(enemies.filter(func(e):return e.stun>0.0).size()==4,"growth base-count increase remains active in S3")
+ o.hw.mz.st.t_n=1.0
+ o.s_t[2]=0.0
+ for e in enemies:
+  e.hp=e.maxhp
+  e.stun=0.0
+ o.SegMizuki.h3_umbrella_release(o,o.B.attack)
+ ok(enemies.any(func(e):return e.stun>=float(o.base("s2_bind",0.0))),"S2 binding duration is preserved")
+ o.s_t[2]=14.0
+ ok(o.hw.mz.delayed.is_empty(),"S3 no longer queues echo damage")
+ ok(g.hp==hp,"S3 does not charge HP")
+ for e in enemies:e.dead=true
+ g.enemies_sys.build_grid()
+ o.SegMizuki.h3_umbrella_release(o,o.B.attack)
+ ok(g.hp==hp,"S3 zero targets does not charge HP")
+ var inside=target(o)
+ var outside: Dictionary=g.spawner.spawn_enemy("runner",o.pos+Vector2(260,0))
+ outside.hp=1000000.0
+ outside.maxhp=outside.hp
+ g.enemies_sys.build_grid()
+ o.SegMizuki.h3_umbrella_release(o,o.B.attack)
+ ok(inside.hp<1000000.0 and outside.hp==1000000.0,"S3 extra hits stay inside actual area")
+ ok(absf(o.hw.mz.s3_fx_radius-o.SegMizuki.h3_umb_radius(o,o.B.attack))<0.001,"area FX receives actual radius")
  o.on_leave()

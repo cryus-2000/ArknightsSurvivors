@@ -468,7 +468,7 @@ static func _hw5_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 const H3_TAGS := ["shape.thrust", "shape.cleave", "verb.barrage", "verb.followup", "verb.ctrl_bonus", "verb.lift_around", "st.launch",
 	"shape.saw", "verb.undying", "verb.substitute",
 	"shape.lantern", "verb.mend", "verb.purge", "verb.light_rain", "verb.beam_window", "verb.tower", "verb.beam", "verb.heal_lamp",
-	"shape.umbrella", "verb.kill_heal", "verb.cast_push", "verb.mirror"]
+	"shape.umbrella", "verb.kill_heal", "verb.cast_push"]
 
 const H3_ATTACKS := ["thrust", "saw", "lantern", "umbrella"]   # 第 3 批的普攻形状（起手 / 出手由本段接管）
 
@@ -564,8 +564,6 @@ static func h3_exec(o, b: Dictionary, at: Vector2) -> void:
 			_F().h3_tower_start(o, b)
 		"verb.cast_push":
 			_F().h3_cast_push(o, b)
-		"verb.mirror":
-			_F()._h3mz(o).mirror_pos = o.pos
 		"verb.kill_heal":
 			_F().h3_kill_heal(o, b)
 		"verb.heal_lamp":
@@ -783,7 +781,6 @@ static func _h3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 		"shape.umbrella": ["attack"],
 		"verb.kill_heal": ["instant"],
 		"verb.cast_push": ["skill", "instant"],
-		"verb.mirror": ["skill", "instant"],
 	}
 	if not kind in where_ok[tag]:
 		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok[tag])])
@@ -933,8 +930,10 @@ static func _h3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 				errs.append(p + ".tentacle 必须是对象")
 			else:
 				_src(b.tentacle, p + ".tentacle", ctx, true)
-			if b.get("echo", null) is Dictionary:
-				_src(b.echo, p + ".echo", ctx, true)
+			if b.has("full_circle"):
+				var area = b.full_circle
+				if not area is Dictionary or not area.get("cond") is String or parse_cond(area.cond, ctx.base).has("err"):
+					errs.append(p + ".full_circle 必须有合法 cond 条件")
 			if b.has("jelly"):   # 精英化第 3 批：深蓝之籽
 				if not (b.jelly is Dictionary):
 					errs.append(p + ".jelly 必须是对象")
