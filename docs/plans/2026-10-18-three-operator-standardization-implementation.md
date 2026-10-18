@@ -21,7 +21,7 @@ Tech: GDScript, JSON, Python validation with tools/godot_runner.py.
 - [x] Quality review checks lifecycle identity/end timing, no duplicate countdown, skill overlap, cancellation and assertions. Resolve issues.
 - [x] Root compares before/after event traces and cached gameplay TRACE; explain any bug fixes separately. Run python tools/check.py --auto --jobs 3. Any SCRIPT ERROR/Parse Error fails. The full check includes all 18 operator smoke tests, required for shared-interface changes. No local balance A/B batches.
 - [x] Record same-seed, targeted and full checks, update docs/00 index, design status and completion checklist. Explicit file selection only; unrelated untracked uid files untouched.
-- [ ] Commit on current codex branch; export local diagnostic EA via tools/export_build.py, verify committed source, sprite hashes and silent startup. Provide branch/hash/launcher; no main merge or public release.
+- [x] Commit on current codex branch; export local diagnostic EA via tools/export_build.py, verify committed source, sprite hashes and silent startup. Provide branch/hash/launcher; no main merge or public release.
 
 ## Final acceptance (2026-10-18)
 - Spec and independent quality reviews approved; no remaining blockers.
@@ -32,3 +32,5 @@ Tech: GDScript, JSON, Python validation with tools/godot_runner.py.
 - Intentional fix: leaving before startup release now cancels pending actions and manual input. Regression first failed six assertions, then passed.
 - Limits: native core comparison skipped (not built); 14 old golden comparisons skipped (stale). Existing art lint warnings/waivers and test exit resource warnings remain. Other 15 operators were smoke-tested but not individually migrated.
 - Delivery: commit this source first, then export and verify local package. Package verification.json records its exact commit and startup/hash checks. No main merge or public release.
+
+- Delivered source commit: `5d59e236`. Local package: `build/release/ThreeOperators_Standardized_5d59e236`; silent packaged startup passed, 16 Wisadel manifest hashes matched, exported skill_lifecycle module verified. `verification.json` records the exact source commit. Initial verifier launch hit sandbox temp permissions before startup; rerun with workspace TEMP/TMP passed.
