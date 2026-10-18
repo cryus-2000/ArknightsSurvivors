@@ -77,7 +77,7 @@ func test_validate() -> void:
 		"键不是 s1–s3": func(x): x.sprites.skills["s4"] = {"anim": "skill"},
 		"帧条不在 sprites": func(x): x.sprites.skills.s3.loop = "skill_nope",
 		"帧条没列进 extra_sprites": func(x): x.extra_sprites = ["skill_s2_hold", "skill_s3"],
-		"frames 越界": func(x): x.sprites.skills.s3.end.frames = [0, 3],
+		"frames 越界": func(x): x.sprites.skills.s3.end["frames"] = [0, 8],
 		"三种写法都没有": func(x): x.sprites.skills.s1 = {"fps": 8},
 	}
 	for name in bads:
@@ -106,9 +106,9 @@ func test_s2(o) -> void:
 	ok(o.sq_ph == 1 and o.sq_own and o.act_kind == "skill", "S2 进序列起手段")
 	near(o.attack_t, 1.0 / 14.0 + 0.25, "S2 窗口 = attack 一帧 + 250 ms")
 	near(o.fire_t, 1.0 / 14.0, "S2 出手 = 定格开始")
-	ok(kind(o) == "attack" and frame(o) == 0, "S2 起手画 attack f0")
+	ok(kind(o) == "skill_s2_intro" and frame(o) == 0, "S2 起手画专用起手条 f0")
 	step(o, 0.05)
-	ok(kind(o) == "attack" and frame(o) == 0 and not o.perm_on[1], "S2 0.05 s：仍是 attack f0，还没出手")
+	ok(kind(o) == "skill_s2_intro" and frame(o) > 0 and not o.perm_on[1], "S2 0.05 s：仍是 attack f0，还没出手")
 	step(o, 0.05)
 	ok(o.sq_ph == 2 and kind(o) == "skill_s2_hold" and frame(o) == 0, "S2 0.10 s：定格 s2_hold")
 	ok(o.perm_on[1], "S2 已出手（永久生效）")
@@ -127,7 +127,7 @@ func test_s3(o) -> void:
 	near(o.fire_t, 0.1875, "S3 出手 = f1 中点（与原单条相同）")
 	ok(kind(o) == "skill_s3" and frame(o) == 0, "S3 起手画 s3 f0")
 	step(o, 0.15)
-	ok(kind(o) == "skill_s3" and frame(o) == 1, "S3 0.15 s：发力帧 f1")
+	ok(kind(o) == "skill_s3" and frame(o) == 4, "S3 0.15 s：发力帧 f1")
 	ok(o.skill_active_left(2) <= 0.0, "S3 0.15 s：还没出手（迷雾未起）")
 	step(o, 0.05)
 	ok(o.skill_active_left(2) > 0.0, "S3 0.20 s：已出手，迷雾计时在走")
@@ -141,14 +141,14 @@ func test_s3(o) -> void:
 	# 循环期间起手的别的动作压过循环，播完接着循环
 	o.start_attack(Vector2.INF)
 	ok(o.sq_ph == 2 and not o.sq_own and kind(o) == "attack", "S3 循环中普攻：画 attack，序列保留")
-	step(o, 0.4)
+	step(o, 0.8)
 	ok(o.attack_t <= 0.0 and kind(o) == "skill_s3_loop", "普攻播完接着循环")
 	# 迷雾结束 → 收势 [0, 2] → 待机
 	o.hw.sz.haze_t = 0.0
 	o.follow(DT, o.pos)
-	ok(o.sq_ph == 3 and kind(o) == "skill_s3" and frame(o) == 0, "迷雾结束：收势先回 f0")
+	ok(o.sq_ph == 3 and kind(o) == "skill_s3_end" and frame(o) == 0, "迷雾结束：收势先回 f0")
 	step(o, 0.15)
-	ok(kind(o) == "skill_s3" and frame(o) == 2, "收势 0.15 s：f2")
+	ok(kind(o) == "skill_s3_end" and frame(o) == 4, "收势 0.15 s：f2")
 	step(o, 0.15)
 	ok(o.sq_ph == 0 and kind(o) == "idle", "收势播完回待机")
 	# 起手途中被别的动作打断：序列作废

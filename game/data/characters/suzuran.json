@@ -50,17 +50,17 @@
   "sprites": {
     "idle": {
       "tex": "op_suzuran_idle",
-      "frames": 4,
-      "fps": 4,
+      "frames": 8,
+      "fps": 8.0,
       "foot": [
-        32,
-        60
+        32.0,
+        59.53074616425449
       ]
     },
     "run": {
       "tex": "op_suzuran_run",
-      "frames": 6,
-      "fps": 10,
+      "frames": 8,
+      "fps": 13.333333333333334,
       "foot": [
         32,
         60
@@ -68,90 +68,140 @@
     },
     "attack": {
       "tex": "op_suzuran_attack",
-      "frames": 4,
+      "frames": 8,
       "fps": 14,
       "foot": [
-        32,
-        60
+        32.0,
+        59.53074616425449
       ],
-      "fire": 2
+      "fire": 3,
+      "attack_timing": {
+        "duration": 0.72,
+        "fire_time": 0.17857142857142858,
+        "active_ratio": 0.9,
+        "windup_ratio": 0.45
+      }
     },
     "skill": {
       "tex": "op_suzuran_skill_s1",
-      "frames": 3,
-      "fps": 8,
+      "frames": 8,
+      "fps": 21.333333333333332,
       "foot": [
-        32,
-        60
+        32.0,
+        59.53074616425449
       ],
-      "fire": 1
+      "fire": 3,
+      "fire_time": 0.1875,
+      "frame_durations": [
+        0.0625,
+        0.0625,
+        0.0625,
+        0.037500000000000006,
+        0.037500000000000006,
+        0.03749999999999998,
+        0.03750000000000003,
+        0.03749999999999998
+      ]
     },
     "skill_s2_hold": {
       "tex": "op_suzuran_skill_s2_hold",
       "frames": 1,
-      "fps": 4,
+      "fps": 4.0,
       "foot": [
-        32,
-        60
+        32.0,
+        59.53074616425449
       ]
     },
     "skill_s3": {
       "tex": "op_suzuran_skill_s3",
-      "frames": 3,
-      "fps": 8,
+      "frames": 8,
+      "fps": 32.0,
       "foot": [
-        32,
-        60
+        32.0,
+        59.53074616425449
       ],
-      "fire": 1
+      "fire": 6,
+      "fire_time": 0.1875,
+      "frame_durations": [
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125
+      ]
     },
     "skill_s3_loop": {
       "tex": "op_suzuran_skill_s3_loop",
-      "frames": 2,
-      "fps": 4,
+      "frames": 8,
+      "fps": 16.0,
       "foot": [
-        32,
-        60
+        32.0,
+        59.53074616425449
       ]
     },
     "skills": {
-      "_doc": "多条技能帧条（docs/87 §3.5，10-16）：S1 单条 skill（s1 条 3/8 fire 1）；S2 attack f0 起手 → s2_hold 定格 250 ms → 待机（出手 = 定格开始）；S3 s3 f0 → f1 发力（fire）→ 迷雾期间 s3_loop 循环 → f0 回收 → f2 收势",
       "s1": {
         "anim": "skill"
       },
       "s2": {
-        "intro": "attack",
+        "intro": {
+          "anim": "skill_s2_intro"
+        },
         "hold": "skill_s2_hold",
         "hold_ms": 250
       },
       "s3": {
         "start": {
-          "anim": "skill_s3",
-          "frames": [
-            0,
-            1
-          ]
+          "anim": "skill_s3"
         },
         "loop": "skill_s3_loop",
         "end": {
-          "anim": "skill_s3",
-          "frames": [
-            0,
-            2
-          ]
+          "anim": "skill_s3_end"
         }
       }
     },
     "size": 64,
     "foot": [
-      32,
-      60
+      32.0,
+      59.53074616425449
     ],
-    "_note_1016": "64 画布只交 @2x（codex/art 0827a990）；skill 槽 = s1 条（图鉴 / 选人预览用）；s2_hold / s3 / s3_loop 由 sprites.skills 接线（10-16，docs/97 J 批）"
+    "skill_s2_intro": {
+      "tex": "op_suzuran_skill_s2_intro",
+      "frames": 8,
+      "fps": 112.0,
+      "foot": [
+        32.0,
+        59.53074616425449
+      ]
+    },
+    "skill_s3_end": {
+      "tex": "op_suzuran_skill_s3_end",
+      "frames": 8,
+      "fps": 32.0,
+      "foot": [
+        32.0,
+        59.53074616425449
+      ]
+    },
+    "death": {
+      "tex": "op_suzuran_death",
+      "frames": 8,
+      "fps": 8.27586230710061,
+      "foot": [
+        48.0,
+        75.53074616425448
+      ]
+    }
   },
   "extra_sprites": [
+    "death",
     "skill_s2_hold",
+    "skill_s2_intro",
     "skill_s3",
+    "skill_s3_end",
     "skill_s3_loop"
   ],
   "attack": {

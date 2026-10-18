@@ -52,7 +52,7 @@ static func _h4_bash_start(o, a: Dictionary) -> void:
 		o.cd = o.idle_cd(float(a.get("idle", 0.1)))
 	else:
 		o.cd = float(a.get("every", 0.9)) / o.stat(&"op_aspd")
-		o.start_attack(at)
+		o.start_attack(at, 0.5, 0.25, "", o.cd)
 
 
 static func _h4_bash_release(o, a: Dictionary) -> void:

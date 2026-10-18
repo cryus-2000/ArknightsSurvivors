@@ -102,7 +102,7 @@ static func _h4_fox_start(o, a: Dictionary) -> void:
 		return
 	o.cd = float(a.get("every", 1.0)) / o.stat(&"op_aspd")
 	sz.merging = _h4_next_merge(o, a) and not _h4_patch_pending(o)
-	o.start_attack(ts[0].pos)
+	o.start_attack(ts[0].pos, 0.5, 0.25, "", o.cd)
 	if sz.merging:
 		o.spawn_fx_sprite("fx_suzuran_foxfire_gather", _h4_tip(o, a), o.g.PX * 0.9)   # 三团狐火汇聚（原作：三团狐火合而为一再射出）
 

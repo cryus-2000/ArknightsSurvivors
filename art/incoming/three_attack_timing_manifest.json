@@ -1,0 +1,612 @@
+[
+  {
+    "operator": "wisadel",
+    "action": "idle",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\wisadel\\idle\\runtime128@2x.png",
+    "file": "op_wisadel_idle@2x.png",
+    "sha256": "6f9c6a5f0be319754815ad8a0c0894f27f3a363cc6d0031c3ad804203a97fbaf",
+    "spec": {
+      "tex": "op_wisadel_idle",
+      "frames": 8,
+      "fps": 8.0,
+      "foot": [
+        32.25,
+        59.860724059636865
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "wisadel",
+    "action": "attack",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\wisadel\\attack\\runtime128@2x.png",
+    "file": "op_wisadel_attack@2x.png",
+    "sha256": "6cbe17ac35272f507d53d4314a26d7f24bf120f4f26596cb82860ef69637de66",
+    "spec": {
+      "tex": "op_wisadel_attack",
+      "frames": 8,
+      "fps": 8.421052631578947,
+      "foot": [
+        32.25,
+        59.860724059636865
+      ],
+      "fire": 3,
+      "attack_timing": {
+        "duration": 0.95,
+        "fire_time": 0.20833333333333334,
+        "active_ratio": 0.9,
+        "windup_ratio": 0.45
+      }
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "wisadel",
+    "action": "skill",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\wisadel\\s1\\runtime128@2x.png",
+    "file": "op_wisadel_skill_s1@2x.png",
+    "sha256": "6e3e373c84258cb9ea392f5d1bd6da4db19d640c4e951cdb6243ac89866169d1",
+    "spec": {
+      "tex": "op_wisadel_skill_s1",
+      "frames": 8,
+      "fps": 21.333333333333332,
+      "foot": [
+        32.25,
+        59.860724059636865
+      ],
+      "fire": 3,
+      "fire_time": 0.1875,
+      "frame_durations": [
+        0.0625,
+        0.0625,
+        0.0625,
+        0.037500000000000006,
+        0.037500000000000006,
+        0.03749999999999998,
+        0.03750000000000003,
+        0.03749999999999998
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "wisadel",
+    "action": "skill_s2",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\wisadel\\s2\\runtime128@2x.png",
+    "file": "op_wisadel_skill_s2@2x.png",
+    "sha256": "801d0a818d071e65c8aee5fb03fb1421ae6f77a815d028bd28d9e11a10fea184",
+    "spec": {
+      "tex": "op_wisadel_skill_s2",
+      "frames": 8,
+      "fps": 16.0,
+      "foot": [
+        32.25,
+        59.860724059636865
+      ],
+      "fire": 3,
+      "fire_time": 0.3125,
+      "frame_durations": [
+        0.10416666666666667,
+        0.10416666666666667,
+        0.10416666666666666,
+        0.03749999999999998,
+        0.03750000000000003,
+        0.03749999999999998,
+        0.03750000000000003,
+        0.03749999999999998
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "wisadel",
+    "action": "skill_s3",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\wisadel\\s3_start\\strip@2x.png",
+    "file": "op_wisadel_skill_s3@2x.png",
+    "sha256": "78614a2564aa94e36cca275462e857cbc11022be148ad6de3df934eb69b3781f",
+    "spec": {
+      "tex": "op_wisadel_skill_s3",
+      "frames": 8,
+      "fps": 32.0,
+      "foot": [
+        48.25,
+        75.86072405963687
+      ],
+      "fire": 6,
+      "fire_time": 0.1875,
+      "frame_durations": [
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125
+      ]
+    },
+    "canvas": 192
+  },
+  {
+    "operator": "wisadel",
+    "action": "skill_s3_attack",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\wisadel\\s3_attack\\strip@2x.png",
+    "file": "op_wisadel_skill_s3_attack@2x.png",
+    "sha256": "218da56d0e2e276fe4a8a51728316b50d21f3591b8c6849fdfb3073c87ad627a",
+    "spec": {
+      "tex": "op_wisadel_skill_s3_attack",
+      "frames": 8,
+      "fps": 19.2,
+      "foot": [
+        48.25,
+        75.86072405963687
+      ],
+      "fire": 3,
+      "fire_time": 0.20833333333333334,
+      "frame_durations": [
+        0.06944444444444445,
+        0.06944444444444445,
+        0.06944444444444445,
+        0.04166666666666666,
+        0.041666666666666685,
+        0.041666666666666685,
+        0.04166666666666663,
+        0.041666666666666685
+      ]
+    },
+    "canvas": 192
+  },
+  {
+    "operator": "wisadel",
+    "action": "skill_s3_loop",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\wisadel\\s3_idle\\runtime128@2x.png",
+    "file": "op_wisadel_skill_s3_loop@2x.png",
+    "sha256": "908b8df126ab13bfdbef7ae6d28321191c859d04c48753396a7c1db42046afec",
+    "spec": {
+      "tex": "op_wisadel_skill_s3_loop",
+      "frames": 8,
+      "fps": 12.0,
+      "foot": [
+        32.25,
+        59.860724059636865
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "wisadel",
+    "action": "skill_s3_end",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\wisadel\\s3_end\\strip@2x.png",
+    "file": "op_wisadel_skill_s3_end@2x.png",
+    "sha256": "8316b583d3597c246481d453a9ed378b5a32b9d256db319dc5139b8bbfd827d0",
+    "spec": {
+      "tex": "op_wisadel_skill_s3_end",
+      "frames": 8,
+      "fps": 64.0,
+      "foot": [
+        48.25,
+        75.86072405963687
+      ]
+    },
+    "canvas": 192
+  },
+  {
+    "operator": "wisadel",
+    "action": "run",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\bv_four_operator_8frames_1017\\wisadel\\strips\\op_wisadel_run@2x.png",
+    "file": "op_wisadel_run@2x.png",
+    "sha256": "6e5d2c13b686790e2f957af96ff42e7fa436690b7129cb1aa700819173dde93e",
+    "spec": {
+      "tex": "op_wisadel_run",
+      "frames": 8,
+      "fps": 13.333333333333334,
+      "foot": [
+        32,
+        60
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "wisadel",
+    "action": "death",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\wisadel\\Die\\strip@2x.png",
+    "file": "op_wisadel_death@2x.png",
+    "sha256": "20a908723849af713388dcb03aa020ced455f02193deec81c5f3d1cd5c6accf5",
+    "spec": {
+      "tex": "op_wisadel_death",
+      "frames": 8,
+      "fps": 8.0,
+      "foot": [
+        48.25,
+        75.86072405963687
+      ]
+    },
+    "canvas": 192
+  },
+  {
+    "operator": "wisadel",
+    "action": "hurt",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\wisadel\\Stun\\strip@2x.png",
+    "file": "op_wisadel_hurt@2x.png",
+    "sha256": "55f825c17ef68f7173807e42a68827f40bb55fdf3c4c9077ed88aa3a5adeed28",
+    "spec": {
+      "tex": "op_wisadel_hurt",
+      "frames": 8,
+      "fps": 8.0,
+      "foot": [
+        48.25,
+        75.86072405963687
+      ]
+    },
+    "canvas": 192
+  },
+  {
+    "operator": "saria",
+    "action": "idle",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\saria\\idle\\runtime128@2x.png",
+    "file": "op_saria_idle@2x.png",
+    "sha256": "6ff6982235e7d0e81a8525343159ca19b5b5c5ea5357fc7c46cb8bc6e21d5901",
+    "spec": {
+      "tex": "op_saria_idle",
+      "frames": 8,
+      "fps": 8.0,
+      "foot": [
+        31.75,
+        59.57669522183914
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "saria",
+    "action": "attack",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\saria\\attack\\runtime128@2x.png",
+    "file": "op_saria_attack@2x.png",
+    "sha256": "c7abec50fb64ddef042cc852dd23043f30d37888fbf793dfffda97d5ac721ae3",
+    "spec": {
+      "tex": "op_saria_attack",
+      "frames": 8,
+      "fps": 12.307692307692307,
+      "foot": [
+        31.75,
+        59.57669522183914
+      ],
+      "fire": 3,
+      "attack_timing": {
+        "duration": 0.65,
+        "fire_time": 0.17857142857142858,
+        "active_ratio": 0.9,
+        "windup_ratio": 0.45
+      }
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "saria",
+    "action": "skill_heal",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\saria\\heal\\runtime128@2x.png",
+    "file": "op_saria_skill_heal@2x.png",
+    "sha256": "a5a61a4d0c7fe5df8d68ec2dbe3b56f77a057262904192f8e0f4071b42a771dd",
+    "spec": {
+      "tex": "op_saria_skill_heal",
+      "frames": 8,
+      "fps": 16.0,
+      "foot": [
+        31.75,
+        59.57669522183914
+      ],
+      "fire": 3,
+      "fire_time": 0.20833333333333334,
+      "frame_durations": [
+        0.06944444444444445,
+        0.06944444444444445,
+        0.06944444444444445,
+        0.05833333333333332,
+        0.05833333333333335,
+        0.05833333333333329,
+        0.05833333333333335,
+        0.05833333333333335
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "saria",
+    "action": "skill",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\saria\\s3_start\\runtime128@2x.png",
+    "file": "op_saria_skill@2x.png",
+    "sha256": "8f52259ca3a17cf629aa20a4c57ead100b869e3de479a171474b7d484c3f677f",
+    "spec": {
+      "tex": "op_saria_skill",
+      "frames": 8,
+      "fps": 16.0,
+      "foot": [
+        31.75,
+        59.57669522183914
+      ],
+      "fire": 4,
+      "fire_time": 0.2916666666666667,
+      "frame_durations": [
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "saria",
+    "action": "skill_s3_loop",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\saria\\s3_loop\\runtime128@2x.png",
+    "file": "op_saria_skill_s3_loop@2x.png",
+    "sha256": "aebf4df79456f911d6615979eca9a43ba278585559a27b65ed96f06d6f90ffe4",
+    "spec": {
+      "tex": "op_saria_skill_s3_loop",
+      "frames": 8,
+      "fps": 20.0,
+      "foot": [
+        31.75,
+        59.57669522183914
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "saria",
+    "action": "skill_s3_end",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\saria\\s3_end\\runtime128@2x.png",
+    "file": "op_saria_skill_s3_end@2x.png",
+    "sha256": "d9ee1ed33bdbea650f1c4ccfecddc3a7ad251934fce701d79f0c9ff17036a2fe",
+    "spec": {
+      "tex": "op_saria_skill_s3_end",
+      "frames": 8,
+      "fps": 16.0,
+      "foot": [
+        31.75,
+        59.57669522183914
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "saria",
+    "action": "run",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\bu_saria_texas_actions_1017\\saria_latest_all\\op_saria_run@2x.png",
+    "file": "op_saria_run@2x.png",
+    "sha256": "82cd361464262db13d7fa400aa359ed359598907b52db149a23d61dc62f970b8",
+    "spec": {
+      "tex": "op_saria_run",
+      "frames": 8,
+      "fps": 13.333333333333334,
+      "foot": [
+        32,
+        60
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "saria",
+    "action": "death",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\saria\\Die\\strip@2x.png",
+    "file": "op_saria_death@2x.png",
+    "sha256": "00f69735d348afee9e4ff570717ad0e7e836071bfd0bfe38fed1e182c6811b1e",
+    "spec": {
+      "tex": "op_saria_death",
+      "frames": 8,
+      "fps": 8.0,
+      "foot": [
+        47.75,
+        75.57669522183915
+      ]
+    },
+    "canvas": 192
+  },
+  {
+    "operator": "suzuran",
+    "action": "idle",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\suzuran\\idle\\runtime128@2x.png",
+    "file": "op_suzuran_idle@2x.png",
+    "sha256": "d48a23c82c21eb6c4cff444aa6fe44cf7bbd451a5091f275e5570dcb749b5e58",
+    "spec": {
+      "tex": "op_suzuran_idle",
+      "frames": 8,
+      "fps": 8.0,
+      "foot": [
+        32.0,
+        59.53074616425449
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "suzuran",
+    "action": "attack",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\suzuran\\attack\\runtime128@2x.png",
+    "file": "op_suzuran_attack@2x.png",
+    "sha256": "886db24d226b5513a6bf02a4e7389a2c847e51779f92eb607a6fb43ea78cdac9",
+    "spec": {
+      "tex": "op_suzuran_attack",
+      "frames": 8,
+      "fps": 14,
+      "foot": [
+        32.0,
+        59.53074616425449
+      ],
+      "fire": 3,
+      "attack_timing": {
+        "duration": 0.72,
+        "fire_time": 0.17857142857142858,
+        "active_ratio": 0.9,
+        "windup_ratio": 0.45
+      }
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "suzuran",
+    "action": "skill",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\suzuran\\s1\\runtime128@2x.png",
+    "file": "op_suzuran_skill_s1@2x.png",
+    "sha256": "886db24d226b5513a6bf02a4e7389a2c847e51779f92eb607a6fb43ea78cdac9",
+    "spec": {
+      "tex": "op_suzuran_skill_s1",
+      "frames": 8,
+      "fps": 21.333333333333332,
+      "foot": [
+        32.0,
+        59.53074616425449
+      ],
+      "fire": 3,
+      "fire_time": 0.1875,
+      "frame_durations": [
+        0.0625,
+        0.0625,
+        0.0625,
+        0.037500000000000006,
+        0.037500000000000006,
+        0.03749999999999998,
+        0.03750000000000003,
+        0.03749999999999998
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "suzuran",
+    "action": "skill_s2_intro",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\suzuran\\s2_intro\\runtime128@2x.png",
+    "file": "op_suzuran_skill_s2_intro@2x.png",
+    "sha256": "dd7aae0f8b6e56c63c3a4a0187978c824445b3029b888325991e52397d0b10aa",
+    "spec": {
+      "tex": "op_suzuran_skill_s2_intro",
+      "frames": 8,
+      "fps": 112.0,
+      "foot": [
+        32.0,
+        59.53074616425449
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "suzuran",
+    "action": "skill_s2_hold",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\suzuran\\s2_hold\\runtime128@2x.png",
+    "file": "op_suzuran_skill_s2_hold@2x.png",
+    "sha256": "bcfc7606d3cd9db1f6d9fee1242c8917588d6533be1aed3b83dc5cb23113b677",
+    "spec": {
+      "tex": "op_suzuran_skill_s2_hold",
+      "frames": 1,
+      "fps": 4.0,
+      "foot": [
+        32.0,
+        59.53074616425449
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "suzuran",
+    "action": "skill_s3",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\suzuran\\s3_start\\runtime128@2x.png",
+    "file": "op_suzuran_skill_s3@2x.png",
+    "sha256": "94ef93059399c331278870467b4a1fcaa677b25d44e71afd2536f81440059fb5",
+    "spec": {
+      "tex": "op_suzuran_skill_s3",
+      "frames": 8,
+      "fps": 32.0,
+      "foot": [
+        32.0,
+        59.53074616425449
+      ],
+      "fire": 6,
+      "fire_time": 0.1875,
+      "frame_durations": [
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "suzuran",
+    "action": "skill_s3_loop",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\suzuran\\s3_loop\\runtime128@2x.png",
+    "file": "op_suzuran_skill_s3_loop@2x.png",
+    "sha256": "31a98d3cef792799cce5a5e2f3a4c768e519d422ee436215cec3224f78cbc8d0",
+    "spec": {
+      "tex": "op_suzuran_skill_s3_loop",
+      "frames": 8,
+      "fps": 16.0,
+      "foot": [
+        32.0,
+        59.53074616425449
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "suzuran",
+    "action": "skill_s3_end",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\co_three_runtime_actions_1018\\suzuran\\s3_end\\runtime128@2x.png",
+    "file": "op_suzuran_skill_s3_end@2x.png",
+    "sha256": "6d530f2dc782aab556bcd4458acad47cd0ce068f2df8d670e80babc40432b440",
+    "spec": {
+      "tex": "op_suzuran_skill_s3_end",
+      "frames": 8,
+      "fps": 32.0,
+      "foot": [
+        32.0,
+        59.53074616425449
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "suzuran",
+    "action": "run",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\bv_four_operator_8frames_1017\\suzuran\\op_suzuran_run@2x.png",
+    "file": "op_suzuran_run@2x.png",
+    "sha256": "90e2b2257c960802642996a99716907d6cca94a392fb4e259c6095738910adcc",
+    "spec": {
+      "tex": "op_suzuran_run",
+      "frames": 8,
+      "fps": 13.333333333333334,
+      "foot": [
+        32,
+        60
+      ]
+    },
+    "canvas": 128
+  },
+  {
+    "operator": "suzuran",
+    "action": "death",
+    "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\suzuran\\Die\\strip@2x.png",
+    "file": "op_suzuran_death@2x.png",
+    "sha256": "105e454a52d6246a2a865a544e886ec3a2bd6928e82e3935506c583aac42a624",
+    "spec": {
+      "tex": "op_suzuran_death",
+      "frames": 8,
+      "fps": 8.27586230710061,
+      "foot": [
+        48.0,
+        75.53074616425448
+      ]
+    },
+    "canvas": 192
+  }
+]

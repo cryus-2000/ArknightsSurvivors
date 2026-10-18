@@ -94,7 +94,7 @@ static func _h4_cannon_start(o, a: Dictionary) -> void:
 	else:
 		var gi: Dictionary = a.get("giant", {})
 		o.cd = float(a.get("every", 1.4)) / o.stat(&"op_aspd") * (float(gi.get("cd", 0.6)) if int(_h4wd(o).ammo) > 0 else 1.0)
-		o.start_attack(at)
+		o.start_attack(at, 0.5, 0.25, "", o.cd)
 
 
 static func _h4_cannon_release(o, a: Dictionary) -> void:

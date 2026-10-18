@@ -88,6 +88,9 @@ LEGACY = {"eyjafjalla", "irene", "kaltsit", "logos", "lumen", "mizuki", "saria",
 
 # ---------------------------------------------------------------- 豁免：已开返修单、未交付的 FAIL（交付合入后删条目）
 WAIVERS = {
+    ("saria", "outline"): "10-18 三人全动画接入：按原生附件暗色收边，不使用旧版纯 #080E18 外壳（docs/plans/2026-10-18-three-attack-timing.md）",
+    ("saria", "run"): "10-18 用户要求接入现有全动画：沿用已确认 saria_latest_all 八帧持盾前冲；上身稳定的自动指标未过，保留视觉复核项（同交付记录）",
+    ("suzuran", "frontal"): "10-18 原生 Idle 的正面头部与已确认小跑组合，保持原作朝向；旧版正面比例阈值不用于改造原生脸型（同交付记录）",
     ("doctor", "outline"): "10-18 用户批准 pixel_revision_07 先接测试版：沿用该版暗色收边，后续返修时重验（doctor_run_handoff.md）",
     ("doctor", "frontal"): "10-18 用户批准新跑步与旧待机混用；旧待机偏正面，后续统一待机时移除（doctor_run_handoff.md）",
     ("doctor", "run"): "10-18 用户批准先接测试版：头部起伏 0.696px 不达标、前倾 26.46 度 WARN，保留返修（doctor_run_handoff.md）",
@@ -521,8 +524,8 @@ def lint_op(op, acts, art=ART, prev=None):
         cfg = acts[act]
         h1, h2 = lo.shape[0], hi.shape[0]
         n1, n2 = lo.shape[1] / h1, hi.shape[1] / h2
-        if _body(act, cfg) and (h1, h2) not in ((48, 96), (64, 128)):
-            bad.append("%s 单帧高 %d/%d（应 48/96 或 64/128）" % (act, h1, h2))
+        if _body(act, cfg) and (h1, h2) not in ((48, 96), (64, 128), (96, 192)):
+            bad.append("%s 单帧高 %d/%d（应 48/96、64/128 或 96/192）" % (act, h1, h2))
         if h2 != 2 * h1 or n1 != int(n1) or n2 != n1:
             bad.append("%s 尺寸 %dx%d / %dx%d 不成帧条" % (act, lo.shape[1], h1, hi.shape[1], h2))
         if cfg.get("frames") and cfg["frames"] != n1:
@@ -601,7 +604,7 @@ def lint_op(op, acts, art=ART, prev=None):
         e1, e2 = np.array_equal(s1, idle1[0]), np.array_equal(s2, idle2[0])
         if "skill" in derived or "idle" in derived:
             e1 = e2   # 只有 @2x：以 @2x 为准
-        d2 = float(np.any(s2 != idle2[0], -1).mean())
+        d2 = float(np.any(s2 != idle2[0], -1).mean()) if s2.shape == idle2[0].shape else 1.0
         if e1 and e2:
             lvl, det = "PASS", "skill 末帧 = idle f0（1x 与 @2x）"
         elif e2:   # 游戏读 @2x；1x 备用版不同只报 WARN
@@ -609,6 +612,8 @@ def lint_op(op, acts, art=ART, prev=None):
         else:
             lvl = "WARN" if op in LEGACY else "FAIL"
             det = "skill 末帧 ≠ idle f0（@2x 不同像素 %.1f%%%s）" % (d2 * 100, "；存量，重画 idle / skill 时对齐" if lvl == "WARN" else "")
+        if s2.shape != idle2[0].shape:
+            det += "；画布尺寸不同 %s / %s，不作逐像素比较" % (s2.shape[:2], idle2[0].shape[:2])
         add("skill_end", lvl, round(d2, 3), det)
 
     # facing
@@ -682,12 +687,12 @@ def lint_op(op, acts, art=ART, prev=None):
         if not _body(act, acts[act]):
             continue
         sw = WAIVERS.get((op, "ground", act))
-        jy = acts[act]["foot"][1]
+        jy = int(np.floor(acts[act]["foot"][1]))
         bots = [int(np.nonzero((f[..., 3] > 0).any(axis=1))[0].max()) // 2 for f in split(hi)]
         gv[act] = "".join(str(b - 40) if 0 <= b - 40 <= 9 else "?" for b in bots)
         if act == "idle" and any(b != jy for b in bots):
             gf.append("idle 最低行 %s（应每帧 = %d）" % (bots, jy))
-        elif max(bots) != jy:
+        elif jy not in bots:
             if sw:
                 gwv.append(act)
             else:

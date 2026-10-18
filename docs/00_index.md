@@ -162,3 +162,5 @@
 |---|---|
 | [archive/](archive/README.md) | 归档文档（10-13 第一轮 40 篇 + 10-14 第二轮 25 篇），README 有第一轮逐篇说明 |
 | [reference/](reference/README.md) | 用户提供的参考资料：262 件藏品原作表、全局设计框架 v1.0、藏品图标参考 |
+
+| [三人全动画接入](plans/2026-10-18-three-attack-timing.md) | 29 条动画、原生像素与分段时序 | 实施记录 | 三人完整动作、攻速适配及测试包；试验分支，未合入 main | docs/87、character.gd、attack_timing_test |

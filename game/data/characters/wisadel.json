@@ -46,17 +46,17 @@
   "sprites": {
     "idle": {
       "tex": "op_wisadel_idle",
-      "frames": 4,
-      "fps": 4,
+      "frames": 8,
+      "fps": 8.0,
       "foot": [
-        32,
-        60
+        32.25,
+        59.860724059636865
       ]
     },
     "run": {
       "tex": "op_wisadel_run",
-      "frames": 6,
-      "fps": 10,
+      "frames": 8,
+      "fps": 13.333333333333334,
       "foot": [
         32,
         60
@@ -64,79 +64,116 @@
     },
     "attack": {
       "tex": "op_wisadel_attack",
-      "frames": 5,
-      "fps": 12,
+      "frames": 8,
+      "fps": 8.421052631578947,
       "foot": [
-        32,
-        60
+        32.25,
+        59.860724059636865
       ],
-      "fire": 2
+      "fire": 3,
+      "attack_timing": {
+        "duration": 0.95,
+        "fire_time": 0.20833333333333334,
+        "active_ratio": 0.9,
+        "windup_ratio": 0.45
+      }
     },
     "skill": {
       "tex": "op_wisadel_skill_s1",
-      "frames": 3,
-      "fps": 8,
+      "frames": 8,
+      "fps": 21.333333333333332,
       "foot": [
-        32,
-        60
+        32.25,
+        59.860724059636865
       ],
-      "fire": 1
+      "fire": 3,
+      "fire_time": 0.1875,
+      "frame_durations": [
+        0.0625,
+        0.0625,
+        0.0625,
+        0.037500000000000006,
+        0.037500000000000006,
+        0.03749999999999998,
+        0.03750000000000003,
+        0.03749999999999998
+      ]
     },
     "size": 64,
     "foot": [
-      32,
-      60
+      32.25,
+      59.860724059636865
     ],
     "hurt": {
       "tex": "op_wisadel_hurt",
-      "frames": 2,
-      "fps": 10,
+      "frames": 8,
+      "fps": 8.0,
       "foot": [
-        32,
-        60
+        48.25,
+        75.86072405963687
       ]
     },
     "death": {
       "tex": "op_wisadel_death",
-      "frames": 6,
-      "fps": 6,
+      "frames": 8,
+      "fps": 8.0,
       "foot": [
-        32,
-        60
+        48.25,
+        75.86072405963687
       ]
     },
     "skill_s2": {
       "tex": "op_wisadel_skill_s2",
-      "frames": 4,
-      "fps": 8,
+      "frames": 8,
+      "fps": 16.0,
       "foot": [
-        32,
-        60
+        32.25,
+        59.860724059636865
       ],
-      "fire": 2
+      "fire": 3,
+      "fire_time": 0.3125,
+      "frame_durations": [
+        0.10416666666666667,
+        0.10416666666666667,
+        0.10416666666666666,
+        0.03749999999999998,
+        0.03750000000000003,
+        0.03749999999999998,
+        0.03750000000000003,
+        0.03749999999999998
+      ]
     },
     "skill_s3": {
       "tex": "op_wisadel_skill_s3",
-      "frames": 3,
-      "fps": 8,
+      "frames": 8,
+      "fps": 32.0,
       "foot": [
-        32,
-        60
+        48.25,
+        75.86072405963687
       ],
-      "fire": 1
+      "fire": 6,
+      "fire_time": 0.1875,
+      "frame_durations": [
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125,
+        0.03125
+      ]
     },
     "skill_s3_loop": {
       "tex": "op_wisadel_skill_s3_loop",
-      "frames": 4,
-      "fps": 6,
+      "frames": 8,
+      "fps": 12.0,
       "foot": [
-        32,
-        60
-      ],
-      "fire": 1
+        32.25,
+        59.860724059636865
+      ]
     },
     "skills": {
-      "_doc": "10-16 codex/art 01392fc7：S1 扛炮瞄准单条；S2 抬炮重射单条；S3 skill_s3 f0–f1 起手（fire f1）→ 巨炮装填期间 skill_s3_loop 蹲射循环 → f2 收势。装填期间每次炮击 attack 槽用 loop 本身对齐 fire f1（manifest contract）播一遍再回循环，不再用普通 attack 条压过蹲姿（docs/87 §3.5）",
       "s1": {
         "anim": "skill"
       },
@@ -145,23 +182,45 @@
       },
       "s3": {
         "start": {
-          "anim": "skill_s3",
-          "frames": [
-            0,
-            1
-          ]
+          "anim": "skill_s3"
         },
         "loop": "skill_s3_loop",
-        "attack": "skill_s3_loop",
+        "attack": "skill_s3_attack",
         "end": {
-          "anim": "skill_s3",
-          "frames": [
-            2
-          ]
+          "anim": "skill_s3_end"
         }
       }
     },
-    "_note_1016": "64 画布只交 @2x（codex/art 01392fc7）；删旧 48 帧条与 1x"
+    "skill_s3_attack": {
+      "tex": "op_wisadel_skill_s3_attack",
+      "frames": 8,
+      "fps": 19.2,
+      "foot": [
+        48.25,
+        75.86072405963687
+      ],
+      "fire": 3,
+      "fire_time": 0.20833333333333334,
+      "frame_durations": [
+        0.06944444444444445,
+        0.06944444444444445,
+        0.06944444444444445,
+        0.04166666666666666,
+        0.041666666666666685,
+        0.041666666666666685,
+        0.04166666666666663,
+        0.041666666666666685
+      ]
+    },
+    "skill_s3_end": {
+      "tex": "op_wisadel_skill_s3_end",
+      "frames": 8,
+      "fps": 64.0,
+      "foot": [
+        48.25,
+        75.86072405963687
+      ]
+    }
   },
   "attack": {
     "mode": "auto",
@@ -546,8 +605,12 @@
     }
   },
   "extra_sprites": [
+    "death",
+    "hurt",
     "skill_s2",
     "skill_s3",
+    "skill_s3_attack",
+    "skill_s3_end",
     "skill_s3_loop"
   ]
 }
