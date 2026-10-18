@@ -84,6 +84,7 @@
 | [31_arknights_reference](31_arknights_reference.md) | 原作技能对照（13 人） | 已实施记录 | 原作技能与档案摘录；总览差距表已过时 | 25、60、归档30；v17_codex_logos_glyphs.md |
 | [维什戴尔 S2 两阶段试做](plans/2026-10-18-wisadel-s2-two-phase.md) | S2 群攻与过载四连发 | 已实施记录 | 8 秒试做、无三人上限、原生八轨动作与炮口事件；已交本地测试包 | wisadel.json、seg_wisadel.gd |
 | [持续攻击阶段模块](plans/2026-10-18-sustained-attack-module-design.md) | 通用阶段、连发与收势 | 已实施记录 | 维什戴尔已迁移；独立夹具 66 项、完整快检 80 项通过 | data_operator、attack_phases、docs/61 |
+| [三干员完整标准化](plans/2026-10-18-three-operator-standardization-design.md) | 维什戴尔、塞雷娅、铃兰生命周期 | 已实现记录 | 九技能统一查询、归属、结束与取消；81 项检查通过，保留角色效果 | data_operator、skill_lifecycle、docs/61 |
 
 ## 敌人与 Boss
 

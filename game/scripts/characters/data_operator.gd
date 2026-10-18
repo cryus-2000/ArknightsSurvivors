@@ -11,6 +11,9 @@ extends "res://scripts/characters/character.gd"
 ## 其余全改成别名（GDScript 继承链上不加前缀就能互相访问，和原来逐个 preload 时的调用结果完全一样，不是功能改动）
 const AttackPhases = preload("res://scripts/characters/blocks/attack_phases.gd")
 var phases: Dictionary = {}
+const SkillLifecycle = preload("res://scripts/characters/blocks/skill_lifecycle.gd")
+var lifecycle: Dictionary = {}
+var effect_skill := -1  # Only skill do execution may bind skill-owned effects.
 
 const SegSkalter = preload("res://scripts/characters/blocks/seg_skalter.gd")
 const ObCore = SegSkalter
@@ -133,10 +136,13 @@ func in_zone(p: Vector2) -> bool:
 
 
 func skill_on(i: int) -> bool:
-	return s_t[i] > 0.0 or perm_on[i] or ammo[i] > 0 or (not hw.is_empty() and SegEyjafjalla.hw_active_left(self, i) > 0.0)
+	return s_t[i] > 0.0 or perm_on[i] or ammo[i] > 0 or SkillLifecycle.left(self, i) > 0.0 or (not hw.is_empty() and SegEyjafjalla.hw_active_left(self, i) > 0.0)
 
 
 func skill_active_left(i: int) -> float:
+	var effect_left := SkillLifecycle.left(self, i)
+	if effect_left >= 0.0:
+		return effect_left
 	var left := AttackPhases.active_left(self, i)
 	if left >= 0.0:
 		return left
@@ -147,8 +153,20 @@ func skill_active_left(i: int) -> float:
 	return maxf(s_t[i], SegExusiai.exu_ammo_left(self, i))   # 次数型（dur.ammo）返回剩余发数
 
 
+func skill_effect_status(i: int) -> Array:
+	var out := SkillLifecycle.status(self, i)
+	if not phases.is_empty() and phases.skill == i:
+		out.append({"effect": "attack_phases", "active": AttackPhases.active_left(self, i) > 0.0,
+			"background": false, "remaining": AttackPhases.active_left(self, i), "total": s_dur[i], "unit": "seconds"})
+	if out.is_empty() and s_t[i] > 0.0:
+		out.append({"effect": "duration", "active": true, "background": false, "remaining": s_t[i], "total": s_dur[i], "unit": "seconds"})
+	if out.is_empty():
+		out.append({"effect": "instant", "active": false, "background": false, "remaining": 0.0, "total": 0.0, "unit": "instant"})
+	return out
+
+
 func skill_active_dur(i: int) -> float:
-	return s_dur[i] if s_dur[i] > 0.0 else 1.0
+	return maxf(SkillLifecycle.duration(self, i), s_dur[i]) if s_dur[i] > 0.0 or SkillLifecycle.duration(self, i) > 0.0 else 1.0
 
 
 func _swing_radius() -> float:
@@ -163,11 +181,30 @@ func on_custom_node(nid: String, _choice: String = "") -> void:
 	nodes_taken = ",".join(taken)
 
 
+func cancel_skill_action() -> void:
+	attack_t = 0.0
+	fire_t = -1.0
+	vis_anim = ""
+	manual_buf = 0.0
+	manual_buf_dir = Vector2.ZERO
+	manual_buf_pt = Vector2.INF
+	manual_dir = Vector2.ZERO
+	manual_pt = Vector2.INF
+	atk_aim = Vector2.ZERO
+	act_kind = "attack"
+	act_anim = "attack"
+	_sq_clear()
+
+
 func on_leave() -> void:
 	AttackPhases.cancel(self)
+	cancel_skill_action()
+	for i in 3:
+		if SkillLifecycle.owns(self, i):
+			perm[i] = false
+	SkillLifecycle.cancel(self)
 	SegAngelina.airborne_clear(self)
 	ObSummon.sm_clear(self)   # 召唤 / 封印段
-	ObHw.h4_leave(self)   # 手写迁移段第 4 批：撤掉给队友的攻击加成
 	g.stats.remove_source(_src_tag())
 	_mods = []
 	refresh_stats()
@@ -221,6 +258,7 @@ func update(dt: float) -> void:
 		return
 	AttackPhases.tick(self, dt)
 	var hw_busy: bool = ObHw.hw_tick(self, dt) if not hw.is_empty() else false   # 手写迁移段：浪墙 / 弹体 / 地面 / 锚（按手写干员 update 的先后）；true = 本帧不起手
+	SkillLifecycle.tick(self)
 	ObSummon.mf_tick(self, dt, prev_s)   # 召唤物扩展段（§15.9）：限时减伤计时、trig.on_deploy、带 at 的 trig.on_skill_end
 	_tick_pending(dt)
 	_sustain(dt)
@@ -764,13 +802,25 @@ func _release_skill() -> void:
 		s_dur[i] = float(dv)
 	if sb.has("attack_phases"):
 		AttackPhases.start(self, i)
+	effect_skill = i
 	_exec_list(sb.get("do", []))
+	effect_skill = -1
+	bind_skill_duration(i)
 	SegTexas.tx_skill_start(self, i)   # 德克萨斯段：trig.on_skill_start
 	if not hw.is_empty() and perm_on[i]:
 		_restat()   # 手写迁移段：永久技能出手当下就改属性（同手写，不等下一帧）
 	fx({"kind": "ring", "pos": pos, "r": 70.0, "r0": 10.0, "life": 0.5, "col": col(), "floor": true})
 	if sb.has("fx"):
 		ObFx.fx_play(self, sb.fx, zone_c(), _zone_r_now())
+
+
+func bind_skill_duration(i: int) -> void:
+	var sb: Dictionary = B.skills[i]
+	if not SkillLifecycle.owns(self, i, "skill:%d" % i) and not sb.has("attack_phases"):
+		if perm_on[i]:
+			SkillLifecycle.bind(self, "skill:%d" % i, i, perm_on, i, false, false, Callable(), "permanent")
+		elif ammo[i] > 0:
+			SkillLifecycle.bind(self, "skill:%d" % i, i, ammo, i, false, false, Callable(), "attacks")
 
 
 func on_kill(e: Dictionary) -> void:
@@ -1395,7 +1445,7 @@ func draw_extra_shadows() -> void:
 
 ## Shared occupancy covers automatic, manual and buffered casts; charging stays independent.
 func skills_occupied() -> bool:
-	return AttackPhases.locked(self) or SegSkalter.h4_cannon_occupied(self)
+	return (acting() and act_kind == "skill") or AttackPhases.locked(self) or SkillLifecycle.occupied(self)
 
 func charge_skills(dt: float) -> int:
 	return -1 if skills_occupied() else super(dt)

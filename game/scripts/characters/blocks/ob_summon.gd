@@ -1028,7 +1028,7 @@ static func mf_tick(o, dt: float, prev: Array) -> void:
 				st.deployed[int(t._uid)] = true
 				o._exec_list(t.get("do", []))
 	for i in 3:
-		if prev[i] > 0.0 and o.s_t[i] <= 0.0 and not o.B.get("skills", [{}, {}, {}])[i].has("attack_phases"):
+		if prev[i] > 0.0 and o.s_t[i] <= 0.0 and not o.B.get("skills", [{}, {}, {}])[i].has("attack_phases") and not o.SkillLifecycle.owns(o, i):
 			for t in o._trigs():
 				if str(t.get("_tag", "")) == "trig.on_skill_end" and t.has("at") and int(t.get("skill", -1)) == i and cond_true(o, t.get("cond", _ED)):
 					mf_fire_at(o, t, mf_at_point(o, str(t.at)))

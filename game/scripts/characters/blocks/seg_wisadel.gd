@@ -208,6 +208,7 @@ static func h4_cannon_load(o, b: Dictionary) -> void:
 	var wd := _h4wd(o)
 	var a: Dictionary = o.B.get("attack", {})
 	wd.ammo = int(b.get("n", 8))
+	o.SkillLifecycle.bind(o, "cannon_load", o.effect_skill, wd, "ammo", true, true, Callable(), "attacks")
 	wd["status"] = str(b.get("status", "×%d"))
 	if o.cur_skill >= 0:
 		o.s_dur[o.cur_skill] = float(int(b.get("n", 8)))
@@ -847,18 +848,6 @@ static func _h4_comet(pts: Array, hw: float) -> PackedVector2Array:
 	R.reverse()
 	out.append_array(R)
 	return out
-
-
-## Cannon-only occupancy: stored patch ammunition does not own the skill channel.
-static func h4_cannon_occupied(o) -> bool:
-	if not o.hw.has("wd"):
-		return false
-	for i in o.B.get("skills", []).size():
-		for effect in o.B.skills[i].get("do", []):
-			if str(effect.get("_tag", "")) == "verb.cannon_load":
-				if int(o.hw.wd.ammo) > 0 or (o.sq_i == i and o.sq_ph != 0):
-					return true
-	return false
 
 
 static func h4_phase_shot(o, a: Dictionary, round_: Dictionary, muzzle: int) -> void:

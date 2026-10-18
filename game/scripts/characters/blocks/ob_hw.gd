@@ -1212,20 +1212,6 @@ static func h4_exec(o, b: Dictionary, _at: Vector2) -> void:
 			_F().h4_calc_start(o, b)
 
 
-## 技能剩余（hw_active_left 转来）：铃兰狐火迷雾 / 维什戴尔巨炮发数 / 塞雷娅钙质化按本段的计时；-1 = 本段不管
-static func h4_active_left(o, i: int) -> float:
-	var h: Dictionary = o.hw
-	if i != 2:
-		return -1.0
-	if h.has("sz"):
-		return float(h.sz.haze_t)
-	if h.has("wd"):
-		return float(h.wd.ammo)
-	if h.has("sa"):
-		return float(h.sa.calc)
-	return -1.0
-
-
 ## 起手朝向（mf_skill_aim 转来）：elite = 精英 / Boss 优先（血最多）；cluster = 离队长最近、相仿时挑落点最密
 static func h4_skill_aim(o, i: int, aim: String) -> Vector2:
 	var sk: Array = o.B.get("skills", [])
@@ -1251,12 +1237,6 @@ static func h4_live_dr(o) -> float:
 			if str(b.get("_tag", "")) == "verb.dr" and cond_true(o, b.get("cond", _ED)):
 				dr *= 1.0 - float(b.value)
 	return dr
-
-
-## 离队：铃兰给队友的攻击加成一并撤掉（手写版不撤，这里顺手修）
-static func h4_leave(o) -> void:
-	if hw_on(o) and o.hw.has("sz"):
-		o.g.stats.remove_source(_F()._h4_field_src(o))
 
 
 ## 状态条（hw_status_items 转来）

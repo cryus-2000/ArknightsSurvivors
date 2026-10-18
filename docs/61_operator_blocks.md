@@ -1815,3 +1815,27 @@ JSON 的 `script` 改为 `data_operator.gd`、写 `blocks`；原脚本留作测�
 - 首批支持 `circle / cone` 及 `cannon` 适配；拒绝 `free`、`armed/combo` 和 `swap_attack` 组合。随机 circle 必须 `center:target`；inherit circle 可沿用既有 center，包括已存在召唤物的位置，但不接管召唤物的独立攻击或生命周期。新增弹道/召唤/近战特殊形状需要实现其攻击适配，不能仅把形状名加入白名单。
 
 **维什戴尔迁移：**前半段无受击人数上限的范围炮击；后半段四连发；8 秒与现有倍率保持。`attack_effect` 保存炮击的 `aim_r / size / src / mark`，炮口属于动画帧条；炮弹、余震和每轮魂灵同步仍在角色适配层。原 `verb.cannon_exec sustain` 试做协议由本协议取代，不再作为新增干员用法。历史试做见 [原方案](plans/2026-10-18-wisadel-s2-two-phase.md)，本次边界与验收见 [模块设计](plans/2026-10-18-sustained-attack-module-design.md)。
+
+
+### 25. 技能效果生命周期（2026-10-18）
+
+`skill_lifecycle.gd` 给已有积木补充同源查询与清理；不推进计时、不执行伤害、不取随机数。效果适配器在 `skill do` 真正出手时绑定自己的权威计数器：
+
+```gdscript
+o.SkillLifecycle.bind(o, "capability", o.effect_skill, state, "remaining",
+    true, false, cleanup, "seconds")
+```
+
+- `effect_skill` 只在技能效果列表执行期间有效；适配器不能读可能滞留的 `cur_skill` 来注册。被动或触发器调用同一效果时不注册技能生命周期。
+- `source / field` 指向现有字典字段或数组元素，不复制计时。绑定期间不得替换整个源容器；原地更新字段即可。三人的状态都遵守此约束。
+- `foreground` 决定是否接管 `skill_active_left`，`exclusive` 决定是否锁住新技能。后台治疗保持可刷新、可充能；永久光域保持可普攻、可释放其他技能。
+- `unit` 为 `seconds / attacks / permanent`。`skill_effect_status(i)` 返回 `active / background / remaining / total / unit`，不要把次数当成秒数。该接口报告已经建立的运行时效果；首次激活前或没有已记录效果时返回 inactive `instant`，不能用于推断技能配置类型。
+- 同能力键再次绑定表示刷新/替换，不触发旧效果结束。换槽时归属转移；控制器不保留旧槽的悬空状态。独立可并存的能力使用不同键。
+- 计数/计时自然归零只派发一次既有 `on_skill_end`；独占效果等其技能动作与收势完成才派发。取消不派发自然结束，清空权威字段并执行清理回调；离队通过同一入口取消，同时 `cancel_skill_action` 清理尚未出手的动作、缓冲与序列，已经发出的弹体不撤销。
+- 普通 `s_t` 限时效果保留原 `mf_tick / tx_update` 的结束派发位置；持续攻击阶段保留 §24 的队列排空规则。不能为了统一接口移动其他干员的每帧结算顺序。
+- 通用 `next_attacks` 与永久效果在正常出手及 `cast:instant` 两条入口登记；纯瞬发效果沿用既有执行链。`free` 干员仍走自身调度，本次不迁移其结束时序。
+- 任意技能的起手动作已占用出手窗口；即使效果尚未注册，也不能用直接 `start_skill` 抢断。阶段攻击和独占次数的后续占用由各自通用控制器负责。
+
+已接入适配：`cannon_load`（次数独占）、`saria_heal.hot`（后台限时）、`calc_field`（限时领域）、`fox_cast.haze`（限时增益）、`fox_cast` 暖光（永久增益）。自然结束的治疗尾拍、钙晶更新、暖光恢复仍在原适配器位置，未另加计时器。
+
+新增干员：先复用现有 JSON 积木、技能槽与动画映射；只有全新效果才新增适配器。适配器至少提供绑定、自然结束及取消规则，检查状态单位、槽迁移、刷新、退出与再部署。完整对应和验证边界见 [三干员能力审计](plans/2026-10-18-three-operator-capability-audit.md)。

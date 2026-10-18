@@ -1,7 +1,14 @@
 extends Node
 
 func _ready() -> void:
-	var output := ProjectSettings.globalize_path("res://../build/wisadel_s2_capture")
+	var id := "wisadel"
+	var slot := 1
+	var frames := 210
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--capture-op="): id = arg.get_slice("=", 1)
+		if arg.begins_with("--capture-skill="): slot = int(arg.get_slice("=", 1))
+		if arg.begins_with("--capture-frames="): frames = int(arg.get_slice("=", 1))
+	var output := ProjectSettings.globalize_path("res://../build/wisadel_s2_capture" if id == "wisadel" and slot == 1 else "res://../build/three_lifecycle_capture/%s_s%d" % [id, slot + 1])
 	DirAccess.make_dir_recursive_absolute(output)
 	var g = load("res://game.tscn").instantiate()
 	add_child(g)
@@ -13,10 +20,10 @@ func _ready() -> void:
 	g.xp_need = 1000000000.0
 	var center: Vector2 = g.ppos
 	var evidence := []
-	var o = g.squad.get_op("wisadel")
+	var o = g.squad.get_op(id)
 	o.pos = center
 	o.is_leader = true
-	o.elite = 1
+	o.elite = 2
 	o.refresh_stats()
 	o.sp = [-10000.0, -10000.0, -10000.0]
 	o.cd = 0.0
@@ -27,8 +34,8 @@ func _ready() -> void:
 		enemy.hp = 1000000.0
 		enemy.max_hp = 1000000.0
 	g.enemies_sys.build_grid()
-	o.start_skill(Vector2.INF,1)
-	for frame in 210:
+	o.start_skill(Vector2.INF,slot)
+	for frame in frames:
 		for step in 3:
 			g._update(1.0/60)
 			g.world.update_visuals(1.0/60)
@@ -43,10 +50,10 @@ func _ready() -> void:
 		if image.save_png(output.path_join("s2_%03d.png" % frame)) != OK:
 			get_tree().quit(1)
 			return
-		evidence.append({"frame":frame,"kind":o.anim_state().kind,"pose":o.anim_state().frame,"remaining":o.skill_active_left(1),"phase":o.sq_ph,"overload":o.phases.get("index",0)>0})
+		evidence.append({"frame":frame,"kind":o.anim_state().kind,"pose":o.anim_state().frame,"remaining":o.skill_active_left(slot),"phase":o.sq_ph,"overload":o.phases.get("index",0)>0})
 	var file := FileAccess.open(output.path_join("evidence.json"),FileAccess.WRITE)
 	file.store_string(JSON.stringify(evidence));file.close()
-	print("WISADEL S2 CAPTURE: 210 frames")
+	print("LIFECYCLE CAPTURE: %s S%d %d frames" % [id, slot + 1, frames])
 	for enemy in g.enemies:
 		for key in ["partner", "owner", "spawned_after", "core"]:
 			enemy.erase(key)

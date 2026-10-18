@@ -79,11 +79,7 @@ static func cancel(o) -> void:
 		return
 	o.s_t[o.phases.skill] = 0.0
 	o.phases = {}
-	o.attack_t = 0.0
-	o.fire_t = -1.0
-	o.vis_anim = ""
-	o.manual_buf = 0.0
-	o._sq_clear()
+	o.cancel_skill_action()
 
 static func validate(sb: Dictionary, p: String, ctx: Dictionary, attack, i: int, evaluate: Callable) -> void:
 	if not attack is Dictionary:
