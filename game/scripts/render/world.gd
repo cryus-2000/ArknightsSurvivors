@@ -1561,8 +1561,8 @@ func update_doctor_anim(dt: float) -> void:
 		g.sprite.texture = tx
 		g.sprite.scale = Vector2(g.PX, g.PX)
 		g.sprite.hframes = max(1, tx.get_width() / tx.get_height())
-		# 新跑步为 128 画布，旧待机 / 倒下为 96；各动作独立脚底锚点。
-		var foot_y: float = float(sp.get(want + "_foot", sp.get("foot", [24, 45]))[1])
+		# 各动作从数据取脚底；缺图回退始终使用旧 doctor 的原点。
+		var foot_y: float = 45.0 if fallback else float(sp.get(want + "_foot", sp.get("foot", [24, 45]))[1])
 		g.sprite.offset = Vector2(0, -tx.get_height() / 2.0 + (tx.get_height() / A.hires_of(tx) - foot_y) * A.hires_of(tx))   # 帧高按贴图算（48 / 64 画布）
 	anim_t += dt
 	var n := g.sprite.hframes

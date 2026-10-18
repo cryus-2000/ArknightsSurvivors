@@ -7,14 +7,14 @@
   "run": "doctor_run",
   "hurt": "doctor_hurt",
   "death": "doctor_death",
-  "size": 48,
+  "size": 64,
   "foot": [
-   24,
-   46
-  ],
-  "run_foot": [
    32,
    60
+  ],
+  "hurt_foot": [
+   24,
+   46
   ]
  },
  "stats": {
