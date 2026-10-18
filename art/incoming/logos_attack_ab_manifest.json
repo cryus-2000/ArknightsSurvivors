@@ -98,7 +98,7 @@
   ],
   "shimmer_loop_seconds": 0.3333333333333333,
   "base_attack_interval_seconds_reference": 1.4,
-  "projectile_speed_reference": 260,
+  "projectile_speed_reference": 600,
   "projectile_lifetime_seconds_reference": 1.3,
   "engine_integrated": true,
   "source_art_manifest": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cq_logos_attack_fx_ab_1019\\manifest.json",
@@ -121,6 +121,16 @@
       0.13,
       -0.075
     ],
-    "max_lift": 36
+    "max_lift": 36,
+    "trail_alpha": 0.55
+  },
+  "speed_revision": {
+    "previous": 260,
+    "current": 600,
+    "multiplier": 2.3076923076923075,
+    "rejected_intermediate": 312,
+    "basic_attack_interval_seconds": 1.4,
+    "hit_timing": "earlier with actual flight; unchanged damage per attack",
+    "trail_alpha": 0.55
   }
 }

@@ -571,9 +571,10 @@ static func hw_draw_logos_over(o) -> void:
 		var pose := hw_bolt_pose(bo)
 		var draw_pos: Vector2 = pose[0]
 		var name: String = str(bo.b.flight_visual.variants[int(visual.variant)]) if not visual.is_empty() else ""
+		var trail_alpha: float = float(bo.b.flight_visual.get("trail_alpha", 0.28)) if not visual.is_empty() else 0.28
 		for i in range(1, hh.size()):
 			var k: float = float(i) / float(hh.size())
-			cv.draw_line(hh[i - 1], hh[i], Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.08 + 0.2 * k), 1.0 + 2.5 * k)
+			cv.draw_line(hh[i - 1], hh[i], Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.08 + (trail_alpha - 0.08) * k), 1.0 + 2.5 * k)
 		var rtx: Texture2D = ArtS.tex("fx_logos_glyphs")
 		if name != "" and g.tex.get(name) != null:
 			o.draw_spr_rot(name, int(bo.age * float(bo.b.flight_visual.fps)) % 4, draw_pos, pose[1], g.PX)
