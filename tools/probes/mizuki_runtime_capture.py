@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'tools'))
 import godot_runner as gr
 OUT=ROOT/'build/mizuki_runtime_capture'
-CASES=[(-1,1,120),(-1,4,120),(1,1,280),(1,4,280),(2,1,320),(2,4,320)]
+CASES=[(-1,1,120),(-1,4,120),(0,1,120),(1,1,280),(1,4,280),(2,1,320),(2,4,320)]
 
 def capture(case):
     slot,rate,count=case; key=f's{slot+1}_x{rate}'; folder=OUT/key;folder.mkdir(parents=True,exist_ok=True)

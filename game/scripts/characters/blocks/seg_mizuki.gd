@@ -272,10 +272,9 @@ static func _h3_tentacle(o, a: Dictionary, target: Dictionary, dmg: float, stun:
 	if h3_full_circle(o, a):
 		return   # S3 的触手从整片范围同时出现，命中效果不重复逐敌生成。
 	g.fx.append({"kind": "rift", "pos": p, "r": 26.0, "life": 0.25, "max": 0.25})
-	if not o.spawn_fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX, 0.0, g.vrng.randf() < 0.5, true, h3_deep_col(o)):
+	if not o.spawn_fx_sprite("fx_mizuki_tentacle", p + Vector2(0, 10), g.PX * 0.8, 0.0, g.vrng.randf() < 0.5, true, Color(1,1,1,0.8)):
 		var tl: float = 0.4 if g.tex.get("fx_tentacle_strike") != null else 0.6
 		g.fx.append({"kind": "tentacle", "pos": p, "life": tl, "max": tl, "flip": g.vrng.randf() < 0.5})
-	o.spawn_fx_sprite("fx_tentacle_grab", p + Vector2(0, -target.r * 0.6), g.PX * clampf(target.r / 12.0, 1.0, 2.0), g.vrng.randf() * TAU, false, false, h3_deep_col(o, 1.4))
 	g.fx.append({"kind": "tendril", "a": o.pos + Vector2(0, 6), "b": p + Vector2(0, 6), "life": 0.32, "max": 0.32, "seed": g.vrng.randf() * 10.0})
 	g.fx.append({"kind": "ring", "pos": p + Vector2(0, 4), "r": 34.0, "life": 0.3, "max": 0.3, "col": h3_deep_col(o, 1.6), "op_hit": true})
 	var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
@@ -302,7 +301,7 @@ static func _h3_stakes_tick(o, mz: Dictionary, dt: float) -> void:
 				o.log_hit(str(o.B.get("attack", _ED).get("tentacle", {}).get("src", "")))
 				o.deal_damage(e, s.dmg)
 			if any:
-				o.spawn_fx_sprite("fx_mizuki_tentacle", s.pos + Vector2(0, 10), g.PX * 0.85, 0.0, s.flip, true, h3_deep_col(o))
+				o.spawn_fx_sprite("fx_mizuki_tentacle", s.pos + Vector2(0, 10), g.PX * 0.85 * 0.8, 0.0, s.flip, true, Color(1,1,1,0.8))
 				s.flip = not s.flip
 	mz.stakes = mz.stakes.filter(func(s): return s.t > 0.0)
 
@@ -522,7 +521,7 @@ static func _e3_pull(o, a: Dictionary, target: Dictionary) -> void:
 	if not (pl is Dictionary) or target.dead or not cond_true(o, pl.get("cond", _ED)):
 		return
 	if displace_one(o, target, o.pos, pl):
-		o.spawn_fx_sprite(str(pl.get("fx", "fx_mizuki_tentacle_curl")), target.pos + Vector2(0, -target.r * 0.5), o.g.PX, 0.0, target.pos.x > o.pos.x)
+		o.spawn_fx_sprite(str(pl.get("fx", "fx_mizuki_tentacle_curl")), target.pos + Vector2(0, -target.r * 0.5), o.g.PX * 0.8, 0.0, target.pos.x > o.pos.x)
 
 
 ## 第 k 只水母在身后的位置（同常驻画法）
