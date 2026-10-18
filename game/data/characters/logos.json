@@ -297,6 +297,12 @@
   "_doc": "逻各斯（docs/61 §17.5）：「言」飘飞咒文弹（安魂 + 溅射）、提喻锁定、殁亡（永久 + 处决）、延异视阈扇形咒域、语汇演化 / 众声喧哗；原手写脚本作参照 tests/data_ops/logos_legacy.gd",
   "attack": {
    "shape": "bolt",
+   "flight_visual": {
+    "variants": ["proj_logos_ink_a", "proj_logos_ink_b"],
+    "fps": 12,
+    "arc_lift": [0.13, -0.075],
+    "max_lift": 36
+   },
    "pick": "aim",
    "range": "$range",
    "every": "$cd",

@@ -80,11 +80,15 @@ static func hw_bolt_fire(o, b: Dictionary, is_atk: bool) -> bool:
 				ts = ts.filter(func(e): return hw_in_fan(o, e.pos)).slice(0, n + ex.size())
 			if ts.is_empty():
 				return false
+			var variant := -1
+			if is_atk and b.has("flight_visual"):
+				variant = int(h.get("bolt_variant", 0))
+				h.bolt_variant = 1 - variant
 			var a: float = hw_atk(o)
 			for k in ts.size():
 				var d: float = hw_mul(a, b.get("mult", 1.0))
 				d = hw_mul(d, ex[k - n].get("mult", 1.0)) if k >= n else d * 1.0
-				_hw_word(o, ts[k], d, src, b)
+				_hw_word(o, ts[k], d, src, b, variant)
 		"random":
 			if b.has("chance") and not roll(g, float(b.chance)):
 				return false
@@ -99,9 +103,9 @@ static func hw_bolt_fire(o, b: Dictionary, is_atk: bool) -> bool:
 	return true
 
 
-static func _hw_word(o, e: Dictionary, dmg: float, src: String, b: Dictionary) -> void:
+static func _hw_word(o, e: Dictionary, dmg: float, src: String, b: Dictionary, variant := -1) -> void:
 	var h: Dictionary = o.hw
-	h.word_q.append({"t": float(b.get("gap", 0.12)) * h.word_q.size(), "e": e, "dmg": dmg, "src": src, "b": b})
+	h.word_q.append({"t": float(b.get("gap", 0.12)) * h.word_q.size(), "e": e, "dmg": dmg, "src": src, "b": b, "variant": variant})
 
 
 static func _hw_bolt_tip(o, b: Dictionary) -> Vector2:
@@ -126,8 +130,11 @@ static func _hw3_bolts(o, dt: float) -> void:
 					if h.bolts.size() >= HW_BOLT_MAX:
 						hw_bolt_hit(o, e, q.dmg, q.src, q.b)
 					else:
-						h.bolts.append({"pos": hand, "e": e, "dmg": q.dmg, "src": q.src, "b": q.b, "hist": [hand], "life": float(q.b.get("life", 1.3)), "age": 0.0,
-							"ph": g.vrng.randf() * TAU, "rune": g.vrng.randi(), "to": e.pos + Vector2(0, -e.r * 0.5)})
+						var bolt := {"pos": hand, "e": e, "dmg": q.dmg, "src": q.src, "b": q.b, "hist": [hand], "life": float(q.b.get("life", 1.3)), "age": 0.0,
+							"ph": g.vrng.randf() * TAU, "rune": g.vrng.randi(), "to": e.pos + Vector2(0, -e.r * 0.5)}
+						if int(q.get("variant", -1)) >= 0:
+							bolt.visual = {"variant": q.variant, "start": hand, "span": maxf(1.0, hand.distance_to(bolt.to)), "u": 0.0, "hist": [hand]}
+						h.bolts.append(bolt)
 						o.fx({"kind": "glow", "pos": hand, "r": 7.0, "life": 0.1, "col": HW_PALE, "alpha": 0.7})
 		h.word_q = h.word_q.filter(func(q): return q.t > 0.0)
 	if h.bolts.is_empty():
@@ -158,7 +165,28 @@ static func _hw3_bolts(o, dt: float) -> void:
 		bo.hist.append(bo.pos)
 		if bo.hist.size() > 6:
 			bo.hist.pop_front()
+		if bo.has("visual"):
+			var v: Dictionary = bo.visual
+			v.u = maxf(v.u, clampf(1.0 - bo.pos.distance_to(bo.to) / v.span, 0.0, 1.0))
+			v.hist.append(hw_bolt_pose(bo)[0])
+			if v.hist.size() > 6:
+				v.hist.pop_front()
 	h.bolts = h.bolts.filter(func(bo): return bo.life > 0.0)
+
+
+## 弧线只用于显示；逻辑弹位与命中时刻继续走原追踪，画面进度不倒退。
+static func hw_bolt_pose(bo: Dictionary) -> Array:
+	if not bo.has("visual"):
+		var hist: Array = bo.hist
+		return [bo.pos, (bo.pos - hist[-2]).angle() if hist.size() >= 2 else 0.0]
+	var v: Dictionary = bo.visual
+	var cfg: Dictionary = bo.b.flight_visual
+	var delta: Vector2 = bo.to - v.start
+	var axis: Vector2 = delta.normalized()
+	var normal := Vector2(axis.y, -axis.x)
+	var lift := clampf(delta.length() * float(cfg.arc_lift[int(v.variant)]), -float(cfg.max_lift), float(cfg.max_lift))
+	var u: float = v.u
+	return [v.start.lerp(bo.to, u) + normal * (4.0 * lift * u * (1.0 - u)), (delta + normal * (4.0 * lift * (1.0 - 2.0 * u))).angle()]
 
 
 ## 命中：then（target = 这名敌人，basis hit = 这一枚的伤害）；verb.execute 处决成功且 halt 时停下
@@ -538,26 +566,32 @@ static func hw_draw_logos_over(o) -> void:
 	var cv = o.cv
 	var h: Dictionary = o.hw
 	for bo in h.bolts:
-		var hh: Array = bo.hist
+		var visual: Dictionary = bo.get("visual", {})
+		var hh: Array = visual.get("hist", bo.hist)
+		var pose := hw_bolt_pose(bo)
+		var draw_pos: Vector2 = pose[0]
+		var name: String = str(bo.b.flight_visual.variants[int(visual.variant)]) if not visual.is_empty() else ""
 		for i in range(1, hh.size()):
 			var k: float = float(i) / float(hh.size())
 			cv.draw_line(hh[i - 1], hh[i], Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.08 + 0.2 * k), 1.0 + 2.5 * k)
 		var rtx: Texture2D = ArtS.tex("fx_logos_glyphs")
-		if rtx != null:
+		if name != "" and g.tex.get(name) != null:
+			o.draw_spr_rot(name, int(bo.age * float(bo.b.flight_visual.fps)) % 4, draw_pos, pose[1], g.PX)
+		elif rtx != null:
 			var fh: int = rtx.get_height()
 			var rn: int = maxi(1, rtx.get_width() / maxi(1, fh))
 			var sc: float = g.PX * 13.0 / float(fh)
-			cv.draw_set_transform(bo.pos + g.draw_off, sin(bo.age * 5.0 + bo.ph) * 0.35, Vector2(sc, sc))
+			cv.draw_set_transform(draw_pos + g.draw_off, sin(bo.age * 5.0 + bo.ph) * 0.35, Vector2(sc, sc))
 			cv.draw_texture_rect_region(rtx, Rect2(-Vector2(fh, fh) / 2.0, Vector2(fh, fh)), Rect2(fh * (int(bo.rune) % rn), 0, fh, fh), Color(1, 1, 1, clampf(bo.life / 0.25, 0.0, 1.0)))
 			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		elif g.tex.get("fx_logos_glyph") != null:
-			o.draw_spr_rot("fx_logos_glyph", 5, bo.pos, sin(bo.age * 5.0 + bo.ph) * 0.35, g.PX * 13.0 / 24.0, Color(1, 1, 1, clampf(bo.life / 0.25, 0.0, 1.0)))
+			o.draw_spr_rot("fx_logos_glyph", 5, draw_pos, sin(bo.age * 5.0 + bo.ph) * 0.35, g.PX * 13.0 / 24.0, Color(1, 1, 1, clampf(bo.life / 0.25, 0.0, 1.0)))
 		elif g.tex.get("proj_logos_ink") != null and hh.size() >= 2:
-			o.draw_spr_rot("proj_logos_ink", int(g.t * 12.0) % 4, bo.pos, (bo.pos - hh[hh.size() - 2]).angle(), g.PX)
+			o.draw_spr_rot("proj_logos_ink", int(g.t * 12.0) % 4, draw_pos, pose[1], g.PX)
 		else:
-			cv.draw_circle(bo.pos, 10.0, Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.35))
-			cv.draw_circle(bo.pos, 5.5, Color(HW_INK.r * 1.4, HW_INK.g * 1.4, HW_INK.b * 1.6))
-			cv.draw_circle(bo.pos, 2.5, Color(1.8, 1.9, 2.2))
+			cv.draw_circle(draw_pos, 10.0, Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.35))
+			cv.draw_circle(draw_pos, 5.5, Color(HW_INK.r * 1.4, HW_INK.g * 1.4, HW_INK.b * 1.6))
+			cv.draw_circle(draw_pos, 2.5, Color(1.8, 1.9, 2.2))
 	if h.has("pools"):
 		for l in h.pools:
 			if str(l.b.get("look", "")) != "rune":

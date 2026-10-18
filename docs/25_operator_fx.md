@@ -165,3 +165,11 @@
 对照图 `build/exu_ammo/`：`compare_strips.png`（五套帧条 4 倍放大，海床底色上）、`shot_normal / s1 / s2 / s3 / mag.png`（实机 1280×720）、`zoom_*.png`（主控周围 2 倍放大）、`exu_ammo_modes.mp4`（依次循环五种模式）。
 
 未做（需要时再补）：德克萨斯冲刺**人物残影**依赖 Codex 的人物帧（建议实现时用当前帧半透明叠 2–3 份，同乌尔比安弹射残影写法）；安洁莉娜 S2 常驻重力场环带与浊心斯卡蒂歌域地面纹理按 docs/59 走程序绘制，不出帧条。
+
+### 6.2 逻各斯普攻双飞弹候选（2026-10-19）
+
+用户指定两种原作飞弹交替：`proj_logos_ink_a` 为蓝紫螺旋，`proj_logos_ink_b` 为白紫咒文与橙金符文。每套 4 帧 / 12 fps，单帧 32×12，@2x 64×24，中心锚点；分别沿较高上弧和较浅下弧飞行。`blocks.attack.flight_visual` 提供 `variants`、`fps`、`arc_lift`（跨度比例，当前 0.13 / −0.075）及 `max_lift`（36 世界像素）。
+
+仅成功发出的普攻切换变体，同轮追加目标沿用队列里的快照；技能单独生成的飞弹保留原有表现。`seg_logos.hw_bolt_pose` 根据起点、当前目标和单调显示进度生成弧线位置与切线朝向，`hw_draw_logos_over` 优先画新帧条，缺图时仍回退旧符文。螺旋按弹龄循环，与攻击间隔分开。逻辑弹位、追踪、弹速、生命期、伤害及命中时刻保持原流程；显示弧线不参与碰撞。
+
+实机验收场景为 `tests/logos_projectile_capture.tscn`：真实游戏场景及 HUD、静止高生命靶、原普攻时序。输出 `build/logos_projectile_capture/`；纯逻辑回归为 `tests/logos_projectile_test.tscn`。此段记录独立测试分支的接入候选，不代表已合入主线或发版。

@@ -702,6 +702,7 @@ const V6_FRAMES := {
 	# Codex 逻各斯实机参考特效（art/incoming/logos_fx_handoff.md）
 	"fx_logos_s3_orbit": [6, 10.0], "fx_logos_s3_back": [6, 10.0], "fx_logos_s3_front": [6, 10.0],
 	"fx_logos_s1_link": [4, 12.0], "proj_logos_ink": [4, 12.0],
+	"proj_logos_ink_a": [4, 12.0], "proj_logos_ink_b": [4, 12.0],
 	# 艾雅法拉 S2 点燃：彗星火球 + 大团熔岩爆炸（ansimuz，fx_import）
 	"proj_eyja_ignite": [5, 14.0], "fx_eyja_ignite_boom": [11, 18.0],
 	# 第三批干员（docs/59）弹体 / 特效帧条（tools/gen_fx_batch3.py，程序生成 + @2x；锚点见 docs/25 §6）。暂未接玩法，数据干员实现时取用
