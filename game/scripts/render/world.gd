@@ -1540,7 +1540,7 @@ func update_player_anim(dt: float) -> void:
 			g.sprite.frame = int(anim_t * (12.0 if anim_name == "player_run" else 6.0)) % n
 
 
-## 博士动画：data/doctor.json 的 sprites（编队美术第一批：idle 4 / run 6 / hurt 2 / death 4 帧，脚底 46）；
+## 博士动画：data/doctor.json 的 sprites（idle 4 / run 8 / hurt 2 / death 4 帧）；
 ## 某个动作没有贴图时退回旧 2 帧待机条（doctor）：跑步 = 加快切帧 + 颠簸，倒下 = 侧倒
 func update_doctor_anim(dt: float) -> void:
 	# 博士是挂件：不受击，只有待机 / 跑步；主控倒下时一起倒下
@@ -1559,10 +1559,10 @@ func update_doctor_anim(dt: float) -> void:
 		anim_name = key
 		anim_t = 0.0
 		g.sprite.texture = tx
-		g.sprite.scale = Vector2(g.PX, g.PX) * float(g.ch.def.get("sprites", {}).get("draw_scale", 1.0)) if g.ch != null else Vector2(g.PX, g.PX)   # 干员整体缩放（docs/103：水月 0.9 试验，10-16）
+		g.sprite.scale = Vector2(g.PX, g.PX)
 		g.sprite.hframes = max(1, tx.get_width() / tx.get_height())
-		# 脚底锚点：data/doctor.json 的 sprites.foot（旧 2 帧待机条为 45，编队美术第一批为 46）
-		var foot_y: float = float(sp.get("foot", [24, 45])[1])
+		# 新跑步为 128 画布，旧待机 / 倒下为 96；各动作独立脚底锚点。
+		var foot_y: float = float(sp.get(want + "_foot", sp.get("foot", [24, 45]))[1])
 		g.sprite.offset = Vector2(0, -tx.get_height() / 2.0 + (tx.get_height() / A.hires_of(tx) - foot_y) * A.hires_of(tx))   # 帧高按贴图算（48 / 64 画布）
 	anim_t += dt
 	var n := g.sprite.hframes

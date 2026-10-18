@@ -851,6 +851,7 @@ def check_blocks_eq(godot):
 
 # 场景专项回归：默认快检执行全部；--only <key> 可单独复查，仍使用公共日志和错误扫描。
 SCENE_REGRESSIONS = {
+    "doctor_run": ("博士八帧跑步与混合画布切换", "doctor_run_test", r"DOCTOR RUN failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
     "relic_reclassification": ("藏品效果分类与稀有度", "relic_reclassification", r"RELIC_RECLASSIFICATION_OK", []),
     "enemy_status": ("敌人寒冷与侵蚀", "enemy_status_test", r"ENEMY STATUS TEST: 0 failures", []),
     "enemy_attack_variety": ("普通怪精英二招与Boss三招", "enemy_attack_variety_test", r"ENEMY ATTACK VARIETY failures=0", []),

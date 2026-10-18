@@ -88,6 +88,9 @@ LEGACY = {"eyjafjalla", "irene", "kaltsit", "logos", "lumen", "mizuki", "saria",
 
 # ---------------------------------------------------------------- 豁免：已开返修单、未交付的 FAIL（交付合入后删条目）
 WAIVERS = {
+    ("doctor", "outline"): "10-18 用户批准 pixel_revision_07 先接测试版：沿用该版暗色收边，后续返修时重验（doctor_run_handoff.md）",
+    ("doctor", "frontal"): "10-18 用户批准新跑步与旧待机混用；旧待机偏正面，后续统一待机时移除（doctor_run_handoff.md）",
+    ("doctor", "run"): "10-18 用户批准先接测试版：头部起伏 0.696px 不达标、前倾 26.46 度 WARN，保留返修（doctor_run_handoff.md）",
     ("suzuran", "outline"): "10-16 新规格（docs/103 §5 / 104）：64 画布 @2x 原生细节不画硬黑外描边（codex/art 0827a990 接入）；art_lint 描边项待按新规格改口径",
     ("suzuran", "run"): "10-16 用户看过 all_actions.gif 批准的六帧屈膝小跑（codex/art 0827a990）；机检剪影 / 上身变化阈值按旧 48 帧条定，待改口径",
     ("mizuki", "outline"): "10-16 新规格（docs/103 §5 / 104）：64 画布 @2x 暗色收边、无硬黑外描边（codex/art 1206366c）；描边项待改口径",
@@ -150,7 +153,7 @@ def roster(data=DATA):
     if os.path.exists(dp):
         sp = json.load(open(dp, encoding="utf-8")).get("sprites", {})
         foot = sp.get("foot", [24, 46])
-        out["doctor"] = {k: {"tex": sp[k], "frames": None, "foot": foot} for k in ("idle", "run") if isinstance(sp.get(k), str)}
+        out["doctor"] = {k: {"tex": sp[k], "frames": None, "foot": sp.get(k + "_foot", foot)} for k in ("idle", "run") if isinstance(sp.get(k), str)}
     return out
 
 
@@ -252,6 +255,9 @@ def _best_dist(A, cxa, rr, mr, k):
 
 def facing_margin(idle0, ref, k=2):
     """idle f0 头部（外框顶往下 30%）与参考帧头部的距离：镜像参考 − 原样参考（对齐搜索 ±6×±3 px@1x）。正 = 同向"""
+    width = max(idle0.shape[1], ref.shape[1])
+    idle0 = np.pad(idle0, ((0, 0), (0, width - idle0.shape[1]), (0, 0)))
+    ref = np.pad(ref, ((0, 0), (0, width - ref.shape[1]), (0, 0)))
     i0, m0 = _prep(idle0, k)
     t0, b0 = _headrows(m0)
     A = i0[t0:b0]
