@@ -16,6 +16,8 @@ func _ready() -> void:
 	add_child(g)
 	await get_tree().process_frame
 	g.set_process(false)
+	# Capture battle directly, independent of first-run opening/guide settings.
+	g.state = g.S.PLAY
 	g.t = 180.0
 	g.invuln = 999.0
 	var center: Vector2 = g.ppos
