@@ -1,0 +1,511 @@
+{
+  "status": "user_approved_integrated_runtime_test_passed",
+  "actions": {
+    "idle": {
+      "frames": 4,
+      "fps": 4,
+      "duration": 1.0,
+      "loop": true,
+      "hold_last": false,
+      "frame_size_2x": [
+        128,
+        128
+      ],
+      "anchor_2x": [
+        64,
+        120
+      ],
+      "source": "exec-1eccd12b-6323-4ec0-8311-6ad1fc837338.png",
+      "source_sha256": "788101907980ddd55cd936a82830acdb28fce3e1003bfd175aeb133636687ffa",
+      "source_rects": [
+        [
+          0,
+          0,
+          543,
+          724
+        ],
+        [
+          543,
+          0,
+          1086,
+          724
+        ],
+        [
+          1086,
+          0,
+          1629,
+          724
+        ],
+        [
+          1629,
+          0,
+          2172,
+          724
+        ]
+      ],
+      "source_origins": [
+        [
+          285,
+          710
+        ],
+        [
+          285,
+          710
+        ],
+        [
+          285,
+          710
+        ],
+        [
+          285,
+          710
+        ]
+      ],
+      "scale": 0.12213740458015267,
+      "bboxes": [
+        [
+          39,
+          42,
+          87,
+          121
+        ],
+        [
+          40,
+          41,
+          87,
+          121
+        ],
+        [
+          40,
+          40,
+          88,
+          121
+        ],
+        [
+          40,
+          42,
+          87,
+          121
+        ]
+      ],
+      "palette_colors": 22,
+      "sha256": "b0de0efff733fad5e141928cca42d1972fe5e1fb81582a59178ad95da30b272f"
+    },
+    "run": {
+      "frames": 8,
+      "fps": 10,
+      "duration": 0.8,
+      "loop": true,
+      "hold_last": false,
+      "frame_size_2x": [
+        128,
+        128
+      ],
+      "anchor_2x": [
+        64,
+        120
+      ],
+      "source": "exec-8218d537-7ea0-44f4-8fc6-4e0d11d7382d.png",
+      "source_sha256": "6ed318f19ac05a08455354e8a6d9f93b85dd368786615ced83db20066c275a1a",
+      "source_rects": [
+        [
+          0,
+          0,
+          444,
+          444
+        ],
+        [
+          444,
+          0,
+          887,
+          444
+        ],
+        [
+          887,
+          0,
+          1330,
+          444
+        ],
+        [
+          1330,
+          0,
+          1774,
+          444
+        ],
+        [
+          0,
+          444,
+          444,
+          887
+        ],
+        [
+          444,
+          444,
+          887,
+          887
+        ],
+        [
+          887,
+          444,
+          1330,
+          887
+        ],
+        [
+          1330,
+          444,
+          1774,
+          887
+        ]
+      ],
+      "source_origins": [
+        [
+          230,
+          436
+        ],
+        [
+          230,
+          436
+        ],
+        [
+          230,
+          436
+        ],
+        [
+          230,
+          436
+        ],
+        [
+          230,
+          436
+        ],
+        [
+          230,
+          436
+        ],
+        [
+          230,
+          436
+        ],
+        [
+          230,
+          436
+        ]
+      ],
+      "scale": 0.182,
+      "bboxes": [
+        [
+          33,
+          45,
+          95,
+          121
+        ],
+        [
+          32,
+          44,
+          95,
+          121
+        ],
+        [
+          32,
+          42,
+          94,
+          119
+        ],
+        [
+          34,
+          42,
+          94,
+          116
+        ],
+        [
+          35,
+          46,
+          95,
+          121
+        ],
+        [
+          37,
+          46,
+          95,
+          121
+        ],
+        [
+          34,
+          43,
+          95,
+          118
+        ],
+        [
+          35,
+          42,
+          94,
+          117
+        ]
+      ],
+      "palette_colors": 23,
+      "sha256": "c161714f0077819074e36683e5b4d2ea5a0dccb75bfea34ffa6ab66182ef91ee"
+    },
+    "death": {
+      "frames": 4,
+      "fps": 6,
+      "duration": 0.6666666666666666,
+      "loop": false,
+      "hold_last": true,
+      "frame_size_2x": [
+        128,
+        128
+      ],
+      "anchor_2x": [
+        64,
+        120
+      ],
+      "source": "exec-ce0313b1-7e13-4f18-aab5-e386d25750b8.png",
+      "source_sha256": "9b3cee14e5e838235a90385c733225c4adc7e171b2c59c5ae9e73f35dcb77e67",
+      "source_rects": [
+        [
+          0,
+          0,
+          627,
+          740
+        ],
+        [
+          627,
+          0,
+          1254,
+          740
+        ],
+        [
+          0,
+          740,
+          627,
+          1254
+        ],
+        [
+          627,
+          740,
+          1254,
+          1254
+        ]
+      ],
+      "source_origins": [
+        [
+          340,
+          686
+        ],
+        [
+          340,
+          686
+        ],
+        [
+          340,
+          455
+        ],
+        [
+          340,
+          455
+        ]
+      ],
+      "scale": 0.1282051282051282,
+      "bboxes": [
+        [
+          39,
+          42,
+          87,
+          121
+        ],
+        [
+          33,
+          58,
+          88,
+          120
+        ],
+        [
+          26,
+          72,
+          97,
+          120
+        ],
+        [
+          22,
+          89,
+          96,
+          120
+        ]
+      ],
+      "palette_colors": 22,
+      "sha256": "b82f3a9680cf143da1e3286f2590676e6b775569f4bedf72978a55a8b67de196"
+    }
+  },
+  "assets": [
+    {
+      "file": "doctor_idle.png",
+      "character": "doctor",
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        32,
+        60
+      ],
+      "loop": true,
+      "event_frame_zero_based": null,
+      "sha256": "2b8f9b64ddfa7380e77c87ee8c85c81bd5ddd166e66923a49dc3e74a941657e2"
+    },
+    {
+      "file": "doctor_idle@2x.png",
+      "character": "doctor",
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 4,
+      "fps": 4,
+      "anchor": [
+        64,
+        120
+      ],
+      "loop": true,
+      "event_frame_zero_based": null,
+      "sha256": "b0de0efff733fad5e141928cca42d1972fe5e1fb81582a59178ad95da30b272f"
+    },
+    {
+      "file": "doctor_run.png",
+      "character": "doctor",
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 8,
+      "fps": 10,
+      "anchor": [
+        32,
+        60
+      ],
+      "loop": true,
+      "event_frame_zero_based": null,
+      "sha256": "ee3b23234df42ad926633ec1ce47f01fc3a9127065cd63f2a4a7a92126c572b2"
+    },
+    {
+      "file": "doctor_run@2x.png",
+      "character": "doctor",
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 8,
+      "fps": 10,
+      "anchor": [
+        64,
+        120
+      ],
+      "loop": true,
+      "event_frame_zero_based": null,
+      "sha256": "c161714f0077819074e36683e5b4d2ea5a0dccb75bfea34ffa6ab66182ef91ee"
+    },
+    {
+      "file": "doctor_death.png",
+      "character": "doctor",
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 4,
+      "fps": 6,
+      "anchor": [
+        32,
+        60
+      ],
+      "loop": false,
+      "event_frame_zero_based": null,
+      "sha256": "8fc082d6e5b364c00394dad16a8baad206cd886390e99ad55d2ddc9fc5b9a8d4"
+    },
+    {
+      "file": "doctor_death@2x.png",
+      "character": "doctor",
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 4,
+      "fps": 6,
+      "anchor": [
+        64,
+        120
+      ],
+      "loop": false,
+      "event_frame_zero_based": null,
+      "sha256": "b82f3a9680cf143da1e3286f2590676e6b775569f4bedf72978a55a8b67de196"
+    }
+  ],
+  "palette": [
+    "080e18",
+    "171b29",
+    "24283a",
+    "32374c",
+    "43495f",
+    "565c72",
+    "6b7286",
+    "858b99",
+    "a0a4ae",
+    "c0bfbb",
+    "d8d4cb",
+    "eee8db",
+    "fff6e7",
+    "242026",
+    "393038",
+    "53424a",
+    "123e4e",
+    "16657a",
+    "2194a6",
+    "24bccc",
+    "60d7dc",
+    "815227",
+    "c87828",
+    "f4a12f"
+  ],
+  "total_colors": 23,
+  "workflow": "Approved references -> imagegen pixel-art pose masters -> explicit common-grid sampling, shared palette and closed contour -> local animation review",
+  "technical_validation": "binary alpha, palette <=24, equal 128-square cells, no edge clipping, idle/death first frame identical",
+  "engine_acceptance": true,
+  "user_acceptance": true,
+  "runtime_replaced": true,
+  "files": [
+    {
+      "file": "doctor_idle.png",
+      "sha256": "2b8f9b64ddfa7380e77c87ee8c85c81bd5ddd166e66923a49dc3e74a941657e2"
+    },
+    {
+      "file": "doctor_idle@2x.png",
+      "sha256": "b0de0efff733fad5e141928cca42d1972fe5e1fb81582a59178ad95da30b272f"
+    },
+    {
+      "file": "doctor_run.png",
+      "sha256": "ee3b23234df42ad926633ec1ce47f01fc3a9127065cd63f2a4a7a92126c572b2"
+    },
+    {
+      "file": "doctor_run@2x.png",
+      "sha256": "c161714f0077819074e36683e5b4d2ea5a0dccb75bfea34ffa6ab66182ef91ee"
+    },
+    {
+      "file": "doctor_death.png",
+      "sha256": "8fc082d6e5b364c00394dad16a8baad206cd886390e99ad55d2ddc9fc5b9a8d4"
+    },
+    {
+      "file": "doctor_death@2x.png",
+      "sha256": "b82f3a9680cf143da1e3286f2590676e6b775569f4bedf72978a55a8b67de196"
+    }
+  ],
+  "user_approval": "User: 可以接入游戏",
+  "runtime_checks": [
+    "idle two cycles at 4 fps",
+    "run two cycles at 10 fps",
+    "common anchor across states",
+    "death 6 fps and last-frame hold",
+    "exact idle/death start image",
+    "legacy fallback anchor",
+    "cover anchor"
+  ],
+  "full_check": {
+    "passed": 82,
+    "failed": 0,
+    "log": "build/doctor_style_fullcheck.log"
+  },
+  "trace_compare": {
+    "baseline": "72ee6e90",
+    "seed": 1,
+    "operator": "mizuki",
+    "seconds": 45,
+    "identical_lines": 46
+  }
+}
