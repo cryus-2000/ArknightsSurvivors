@@ -120,31 +120,41 @@ func _ready() -> void:
 	var end: Vector2 = (curved.back().points[1] + curved.back().points[2]) * 0.5
 	check(start.distance_to(Vector2.ZERO) < 0.001 and end.distance_to(Vector2(230, 0)) < 0.001, "curved rune stream remains attached to both endpoints")
 	var middle: Vector2 = (curved[curved.size() / 2].points[0] + curved[curved.size() / 2].points[3]) * 0.5
-	check(middle.y < -10.0 and middle.y >= -12.01, "rune stream follows a shallow curve")
+	check(middle.y < -10.0 and middle.y >= -13.51, "rune stream follows a shallow curve")
+	var curve_difference := 0.0
+	for i in curved.size():
+		var point: Vector2 = (curved[i].points[0] + curved[i].points[3]) * 0.5
+		var t: float = point.x / 230.0
+		curve_difference = maxf(curve_difference, absf(point.y + 48.0 * t * (1.0 - t)))
+		if i > 0:
+			check(curved[i - 1].points[1].distance_to(curved[i].points[0]) < 0.001, "slightly different rune curves remain joined at their edges")
+	check(curve_difference > 0.35 and curve_difference <= 1.51, "adjacent runes vary gently within one and a half world pixels of the shared curve")
 	tile.cv.draws.clear()
 	OB._hw_draw_tiled(tile, "fx_logos_s1_chain", Vector2.ZERO, Vector2(230, 0), 2.0, 17.0)
 	for draw in tile.cv.draws:
 		check(draw.col == Color.WHITE, "existing tile callers retain uniform color")
-	var pulse := {"t": 5.0, "tick": 0.01, "b": {"tick": 0.25}}
-	check(OB.hw_s1_packet_pose(pulse, Vector2.ZERO, Vector2(230, 0)).is_empty(), "S1 leaves a gap between short rune attacks")
-	pulse.tick = 0.05
-	check(not OB.hw_s1_packet_pose(pulse, Vector2.ZERO, Vector2(230, 0)).is_empty(), "longer flight starts early enough to retain the damage schedule")
-	pulse.tick = 0.1
-	var first_point: Vector2 = OB.hw_s1_packet_pose(pulse, Vector2.ZERO, Vector2(230, 0))[1]
-	pulse.tick = 0.15
-	var next_point: Vector2 = OB.hw_s1_packet_pose(pulse, Vector2.ZERO, Vector2(230, 0))[1]
-	check(next_point.x - first_point.x > 52.0 and next_point.x - first_point.x < 57.0, "S1 rune flight is slightly slower over the same fifty milliseconds")
-	pulse.tick = 0.125
-	var early: Array = OB.hw_s1_packet_pose(pulse, Vector2.ZERO, Vector2(230, 0))
-	check(early.size() == 3 and early[0].distance_to(early[1]) <= 61.0, "S1 packet stays short rather than spanning caster to target")
-	pulse.tick = 0.2
-	var late: Array = OB.hw_s1_packet_pose(pulse, Vector2.ZERO, Vector2(230, 0))
-	check(late[0].distance_to(late[1]) > 59.0 and late[0].distance_to(late[1]) < 61.0, "S1 rune packet grows modestly to about sixty world pixels")
-	check(late[1].x > early[1].x and late[1].y < 0.0, "independent S1 packet travels along the shallow arc")
-	pulse.tick = 0.25
-	check(OB.hw_s1_packet_pose(pulse, Vector2.ZERO, Vector2(230, 0))[1] == Vector2(230, 0), "packet reaches the target at its damage tick")
+	var pulse := {"t": 5.0, "n": 0, "tick": 0.125, "b": {"tick": 0.25}}
+	var early: Array = OB.hw_s1_train_pose(pulse, Vector2.ZERO, Vector2(230, 0))
+	check(early[0] == Vector2.ZERO and absf(early[1].x - 115.0) < 0.001, "S1 fills from the hand towards its first damage tick")
+	for tick in 20:
+		pulse.n = tick + 1
+		for phase in [0.0, 0.01, 0.125, 0.249]:
+			pulse.tick = phase
+			var train: Array = OB.hw_s1_train_pose(pulse, Vector2.ZERO, Vector2(230, 0))
+			check(not train.is_empty() and train[0] == Vector2.ZERO and train[1] == Vector2(230, 0), "successive S1 attacks stay connected across every damage boundary")
+			check(train.size() == 4, "S1 returns an independent moving rune offset")
+	pulse.n = 1
+	pulse.tick = 0.0
+	var first_train: Array = OB.hw_s1_train_pose(pulse, Vector2.ZERO, Vector2(230, 0))
+	pulse.n = 2
+	var next_train: Array = OB.hw_s1_train_pose(pulse, Vector2.ZERO, Vector2(230, 0))
+	if first_train.size() == 4 and next_train.size() == 4:
+		check(absf(next_train[3] - first_train[3] + 60.0) < 0.001, "runes advance sixty pixels towards the target every quarter-second")
+	tile.cv.draws.clear()
+	OB._hw_draw_tiled(tile, "fx_logos_s1_chain", Vector2.ZERO, Vector2(230, 0), 2.0, -17.0)
+	check(tile.cv.draws[0].dst.position.x == 0.0 and absf(tile.cv.draws.back().dst.end.x - 230.0) < 0.001, "forward scrolling never leaves a gap at either endpoint")
 	pulse.t = 0.0
-	check(OB.hw_s1_packet_pose(pulse, Vector2.ZERO, Vector2(230, 0)).is_empty(), "expired S1 leaves no persistent rune stream")
+	check(OB.hw_s1_train_pose(pulse, Vector2.ZERO, Vector2(230, 0)).is_empty(), "expired S1 leaves no persistent rune stream")
 	e.dead = false
 	g.enemies_sys.build_grid()
 	o.cur_skill = 0

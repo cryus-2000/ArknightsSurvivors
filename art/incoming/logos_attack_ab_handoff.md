@@ -32,3 +32,5 @@
 普攻仍为 168 帧 / 8.4 秒，六次发射间隔均 1.4 秒；S1 实机为 144 帧 / 7.2 秒，活动期间 20 束短符文、20 次伤害，20 个采样帧为空档。最新合并预览及验收记录在 `build/logos_projectile_capture/speed_revision_03/`，S1 原始录制在 `s1_bursts/`。GIF 通过解码核对时长与等比尺寸。S1 源素材提交 `codex/art@397bcfd3c37fee58b1f92c9d9f293c951d8ae72e`。
 
 后续 S1 微调：当前每束约 60 世界像素、飞行 0.2125 秒，束内符文紧贴，具体见 `logos_s1_chain_handoff.md`。普攻参数不变。最新 S1 实机在 `s1_bursts_revision_02/`；针对性回归通过，项目检查 73 项、0 失败、294 秒（`build/check/quick_1019_113902/`），61 行 TRACE 与缓存基线一致。源素材为 `codex/art@adb9d41f4201429309e42b6a51117b0b49bd54d1`。
+
+最新 S1 澄清：前后两束也首尾相接。现为连续向前滚动的符文列，无连接线，5 秒内 20 次独立伤害不改；最新实机在 `s1_rune_train/`，详见 `logos_s1_chain_handoff.md`。普攻保持原参数。

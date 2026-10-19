@@ -197,8 +197,8 @@
     }
   },
   "layout": "remove shared empty columns and fit nearest-neighbor to the original width; glyph height unchanged",
-  "playback": "twenty short rune attacks, one per 0.25s; no connecting line or persistent beam; shallow curve; each packet head bright and tail dim",
-  "runtime_contract": "RUNTIME_REVISION_05.json",
+  "playback": "end-to-end moving rune train; twenty independent damage ticks at 0.25s; no connecting line; shallow curve; target head bright and caster tail dim",
+  "runtime_contract": "RUNTIME_REVISION_06.json",
   "assets": [
     {
       "file": "fx_logos_s1_chain.png",
@@ -310,21 +310,34 @@
     }
   ],
   "source_art_manifest": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cr_logos_s1_rune_chain_1019\\manifest.json",
-  "source_art_manifest_sha256": "4adf7491c78c202a5d98ef6923db7933f3bf2a39d0fa3804903868246e9e217e",
   "source_art_packet": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cr_logos_s1_rune_chain_1019",
-  "source_art_commit": "adb9d41f4201429309e42b6a51117b0b49bd54d1",
   "main_integrated": false,
+  "source_art_manifest_sha256": "fad6c969377c7395c9839c844ac7dfec5dfae29de0c39f65fde5071eb743f46b",
+  "source_art_commit": "204b6e5f3aa862fdd9d5929fc65bdc5d09f6e700",
   "integration_validation": {
-    "focused_regression": "failures=0 after observing old-version failures",
     "project_auto_passed": 73,
     "project_auto_failed": 0,
-    "project_auto_seconds": 294,
-    "project_auto_logs": "build/check/quick_1019_113902",
-    "same_seed_trace_lines_identical": 61,
-    "captured_short_attacks": 20,
+    "project_auto_seconds": 240,
+    "project_auto_logs": "build/check/quick_1019_120612",
+    "script_or_parse_errors": [],
+    "focused_regression": "failures=0; observed old geometry and temporal gaps fail targeted checks before repair",
+    "capture_frames": 144,
+    "capture_duration_s": 7.2,
     "captured_damage_events": 20,
+    "captured_active_frames": 100,
+    "captured_blank_active_frames": 0,
+    "same_seed_trace_lines_identical": 61,
+    "local_curve_variation_world_px_max": 1.5,
     "glyph_gap_columns_all_frames": 0,
-    "palette_unchanged": true,
-    "gameplay_timing_changed": false
+    "bitmap_palette_and_hashes_unchanged": true,
+    "gameplay_timing_changed": false,
+    "art_contract_commit": "204b6e5f3aa862fdd9d5929fc65bdc5d09f6e700",
+    "branch": "codex/logos-projectiles",
+    "main_integrated": false,
+    "skipped": [
+      "ark_native not compiled on this machine",
+      "14 expired golden comparisons"
+    ],
+    "production_script_sha256": "78cd312b9f564b32e1dcfd0a41ee3f6288db0032024c8a2c4373000c13904b06"
   }
 }

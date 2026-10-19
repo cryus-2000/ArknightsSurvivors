@@ -614,9 +614,9 @@ static func hw_draw_logos_over(o) -> void:
 		var tip: Vector2 = _hw_bolt_tip(o, o.B.get("attack", {}))
 		var to: Vector2 = lk.e.pos + Vector2(0, -lk.e.r * 0.5)
 		if g.tex.get("fx_logos_s1_chain") != null:
-			var packet := hw_s1_packet_pose(lk, tip, to)
-			if not packet.is_empty():
-				_hw_draw_tiled(o, "fx_logos_s1_chain", packet[0], packet[1], g.PX, 0.0, 0, Color.WHITE, -1, true, packet[2])
+			var train := hw_s1_train_pose(lk, tip, to)
+			if not train.is_empty():
+				_hw_draw_tiled(o, "fx_logos_s1_chain", train[0], train[1], g.PX, train[3], 0, Color.WHITE, -1, true, train[2])
 		elif g.tex.get("fx_logos_script") != null:
 			_hw_draw_tiled(o, "fx_logos_script", tip, to, g.PX * 0.8, fmod(g.t * 210.0, 64.0 * g.PX * 0.8))
 		var p: Vector2 = lk.e.pos + Vector2(0, -lk.e.r - 14)
@@ -630,21 +630,34 @@ static func hw_draw_logos_over(o) -> void:
 		cv.draw_circle(q, 3.0 + sin(g.t * 12.0), Color(HW_INK.r * 1.6, HW_INK.g * 1.6, HW_INK.b * 1.4, 0.8))
 
 
-## 每次伤害前飞入一束短符文；前 15% 周期留空，末端在伤害 tick 到达目标。
-static func hw_s1_packet_pose(lk: Dictionary, a: Vector2, b: Vector2) -> Array:
+## 首轮抵达后符文首尾衔接；滚动只影响画面，伤害仍由 lock 的 tick 独立结算。
+static func hw_s1_train_pose(lk: Dictionary, a: Vector2, b: Vector2) -> Array:
 	if lk.is_empty() or float(lk.get("t", 0.0)) <= 0.0:
 		return []
-	var phase: float = float(lk.get("tick", 0.0)) / maxf(0.001, float(lk.b.get("tick", 0.25)))
+	var period: float = maxf(0.001, float(lk.b.get("tick", 0.25)))
+	var elapsed: float = float(lk.get("n", 0)) * period + float(lk.get("tick", 0.0))
 	var length: float = a.distance_to(b)
-	if phase <= 0.15 or phase > 1.0 or length < 2.0:
+	if elapsed <= 0.0 or length < 2.0:
 		return []
-	var head_t: float = (phase - 0.15) / 0.85
-	var tail_t: float = maxf(0.0, head_t - 60.0 / length)
+	var head_t: float = minf(1.0, elapsed / period)
 	var bend: float = minf(12.0, length * 0.05)
 	var normal := Vector2(-(b - a).y, (b - a).x) / length
-	var tail := a.lerp(b, tail_t) - normal * 4.0 * bend * tail_t * (1.0 - tail_t)
 	var head := a.lerp(b, head_t) - normal * 4.0 * bend * head_t * (1.0 - head_t)
-	return [tail, head, bend * pow(head_t - tail_t, 2.0)]
+	return [a, head, bend * head_t * head_t, -elapsed * 60.0 / period]
+
+
+static func _hw_tile_curve(x: float, length: float, bend: float, offset: float, variation: float) -> Vector2:
+	var t: float = x / length
+	var curve := Vector2(-4.0 * bend * t * (1.0 - t), -4.0 * bend * (1.0 - 2.0 * t) / length)
+	if variation > 0.0:
+		# 局部曲线随符文前进，两端衰减为零以固定手部和命中点。
+		var phase: float = (x + offset) * TAU / 64.0
+		var wave: float = 0.75 * sin(phase) + 0.25 * sin(phase * 0.73 + 1.2)
+		var slope: float = (0.75 * cos(phase) + 0.1825 * cos(phase * 0.73 + 1.2)) * TAU / 64.0
+		var envelope: float = 4.0 * t * (1.0 - t)
+		curve.x += variation * envelope * wave
+		curve.y += variation * (4.0 * (1.0 - 2.0 * t) * wave / length + envelope * slope)
+	return curve
 
 
 ## 沿 a→b 平铺一张横向帧条（每段一帧宽），offset 为沿方向的滚动位移；最后一段按端点裁剪
@@ -664,8 +677,9 @@ static func _hw_draw_tiled(o, tn: String, a: Vector2, b: Vector2, sc: float, off
 	if L < 2.0:
 		return
 	var fr: int = (int(g.t * float(g.V6_FRAMES[tn][1])) + frame_off) % frames if fixed < 0 else fixed % frames   # fixed：停在这一帧（锁链松 / 绷直）
+	var variation: float = 1.5 if tn == "fx_logos_s1_chain" and bend != 0.0 else 0.0
 	cv.draw_set_transform(a + g.draw_off, (b - a).angle(), Vector2(k, k))
-	var x: float = -fmod(offset, seg)
+	var x: float = -fposmod(offset, seg)
 	while x < L:
 		var x0: float = maxf(x, 0.0)
 		var x1: float = minf(x + seg, L)
@@ -674,16 +688,18 @@ static func _hw_draw_tiled(o, tn: String, a: Vector2, b: Vector2, sc: float, off
 			var u1: float = (x1 - x) / k
 			if fade_to_target or bend != 0.0:
 				# 小段沿同一浅弧线排布，明暗按整条法术进度计算。
-				var parts: int = maxi(1, ceili((x1 - x0) / 8.0))
+				var parts: int = maxi(1, ceili((x1 - x0) / (4.0 if variation > 0.0 else 8.0)))
 				for j in parts:
 					var lo: float = lerpf(x0, x1, float(j) / parts)
 					var hi: float = lerpf(x0, x1, float(j + 1) / parts)
 					var t0: float = lo / L
 					var t1: float = hi / L
-					var p0 := Vector2(lo, -4.0 * bend * t0 * (1.0 - t0)) / k
-					var p1 := Vector2(hi, -4.0 * bend * t1 * (1.0 - t1)) / k
-					var n0 := Vector2(4.0 * bend * (1.0 - 2.0 * t0) / L, 1).normalized() * fh / 2.0
-					var n1 := Vector2(4.0 * bend * (1.0 - 2.0 * t1) / L, 1).normalized() * fh / 2.0
+					var c0 := _hw_tile_curve(lo, L, bend, offset, variation)
+					var c1 := _hw_tile_curve(hi, L, bend, offset, variation)
+					var p0 := Vector2(lo, c0.x) / k
+					var p1 := Vector2(hi, c1.x) / k
+					var n0 := Vector2(-c0.y, 1).normalized() * fh / 2.0
+					var n1 := Vector2(-c1.y, 1).normalized() * fh / 2.0
 					var tint: Color = col
 					if fade_to_target:
 						tint *= Color(0.55, 0.55, 0.55, 0.55).lerp(Color(1.15, 1.15, 1.15, 1.0), smoothstep(0.0, 1.0, (t0 + t1) * 0.5))
