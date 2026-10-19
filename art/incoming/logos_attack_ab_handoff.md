@@ -27,6 +27,8 @@
 
 上一轮 600 弹速的验收：针对性回归通过；`check.py --auto --jobs 3` 共 73 项、0 失败、244 秒（`build/check/quick_1019_103349`，原生核心与过期金样的跳过范围同初版）。同版两次 seed 1 / logos / 60 秒运行，61 行 TRACE 逐行一致。它是本轮纯视觉修改的 TRACE 基线，没有声称与 260 弹速等价。
 
-本轮最终验收（速度感修订 + S1 高频短符文）：`logos_projectile_test.tscn` 通过；`check.py --auto --jobs 3` 共 73 项、0 失败、280 秒，日志 `build/check/quick_1019_111911/`。本机未编译的原生核心和 14 份过期金样仍按项目规则跳过，没有脚本或解析错误。seed 1 / logos / 60 秒与上一轮已缓存的 600 弹速基线逐行对照，61 行 TRACE 相同。
+上一版验收（98c75b35：速度感修订 + S1 高频短符文）：`logos_projectile_test.tscn` 通过；`check.py --auto --jobs 3` 共 73 项、0 失败、280 秒，日志 `build/check/quick_1019_111911/`。本机未编译的原生核心和 14 份过期金样仍按项目规则跳过，没有脚本或解析错误。seed 1 / logos / 60 秒与上一轮已缓存的 600 弹速基线逐行对照，61 行 TRACE 相同。
 
 普攻仍为 168 帧 / 8.4 秒，六次发射间隔均 1.4 秒；S1 实机为 144 帧 / 7.2 秒，活动期间 20 束短符文、20 次伤害，20 个采样帧为空档。最新合并预览及验收记录在 `build/logos_projectile_capture/speed_revision_03/`，S1 原始录制在 `s1_bursts/`。GIF 通过解码核对时长与等比尺寸。S1 源素材提交 `codex/art@397bcfd3c37fee58b1f92c9d9f293c951d8ae72e`。
+
+后续 S1 微调：当前每束约 60 世界像素、飞行 0.2125 秒，束内符文紧贴，具体见 `logos_s1_chain_handoff.md`。普攻参数不变。最新 S1 实机在 `s1_bursts_revision_02/`；针对性回归通过，项目检查 73 项、0 失败、294 秒（`build/check/quick_1019_113902/`），61 行 TRACE 与缓存基线一致。源素材为 `codex/art@adb9d41f4201429309e42b6a51117b0b49bd54d1`。

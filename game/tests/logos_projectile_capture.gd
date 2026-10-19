@@ -5,7 +5,7 @@ func _ready() -> void:
 	var s1 := OS.get_cmdline_user_args().has("--logos-s1")
 	var output := ProjectSettings.globalize_path("res://../build/logos_projectile_capture")
 	if s1:
-		output = output.path_join("s1_bursts")
+		output = output.path_join("s1_bursts_revision_02")
 	DirAccess.make_dir_recursive_absolute(output)
 	var g = load("res://game.tscn").instantiate()
 	add_child(g)

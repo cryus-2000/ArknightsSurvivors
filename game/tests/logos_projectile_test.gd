@@ -93,6 +93,16 @@ func _ready() -> void:
 	g.enemies_sys.build_grid()
 	check(not OB.hw_bolt_fire(o, b, true) and h.bolt_variant == next, "no-target retry does not advance A/B")
 	check(Art.V6_FRAMES.has("fx_logos_s1_chain") and g.tex.get("fx_logos_s1_chain") != null, "S1 rune chain is registered and loaded")
+	var rune_image: Image = g.tex.fx_logos_s1_chain.get_image()
+	var no_empty_columns := true
+	for x in rune_image.get_width():
+		var visible_column := false
+		for y in rune_image.get_height():
+			visible_column = visible_column or rune_image.get_pixel(x, y).a > 0.0
+		if not visible_column:
+			no_empty_columns = false
+			break
+	check(no_empty_columns, "adjacent rune glyphs leave no transparent column, including frame seams")
 	check(o.cv.has_method("draw_colored_polygon"), "real render adapter supports textured rune geometry")
 	var tile := TileOperator.new()
 	tile.g = {"tex": g.tex, "V6_FRAMES": Art.V6_FRAMES, "draw_off": Vector2.ZERO, "t": 0.0}
@@ -117,11 +127,19 @@ func _ready() -> void:
 		check(draw.col == Color.WHITE, "existing tile callers retain uniform color")
 	var pulse := {"t": 5.0, "tick": 0.01, "b": {"tick": 0.25}}
 	check(OB.hw_s1_packet_pose(pulse, Vector2.ZERO, Vector2(230, 0)).is_empty(), "S1 leaves a gap between short rune attacks")
+	pulse.tick = 0.05
+	check(not OB.hw_s1_packet_pose(pulse, Vector2.ZERO, Vector2(230, 0)).is_empty(), "longer flight starts early enough to retain the damage schedule")
+	pulse.tick = 0.1
+	var first_point: Vector2 = OB.hw_s1_packet_pose(pulse, Vector2.ZERO, Vector2(230, 0))[1]
+	pulse.tick = 0.15
+	var next_point: Vector2 = OB.hw_s1_packet_pose(pulse, Vector2.ZERO, Vector2(230, 0))[1]
+	check(next_point.x - first_point.x > 52.0 and next_point.x - first_point.x < 57.0, "S1 rune flight is slightly slower over the same fifty milliseconds")
 	pulse.tick = 0.125
 	var early: Array = OB.hw_s1_packet_pose(pulse, Vector2.ZERO, Vector2(230, 0))
-	check(early.size() == 3 and early[0].distance_to(early[1]) <= 49.0, "S1 packet is short rather than spanning caster to target")
+	check(early.size() == 3 and early[0].distance_to(early[1]) <= 61.0, "S1 packet stays short rather than spanning caster to target")
 	pulse.tick = 0.2
 	var late: Array = OB.hw_s1_packet_pose(pulse, Vector2.ZERO, Vector2(230, 0))
+	check(late[0].distance_to(late[1]) > 59.0 and late[0].distance_to(late[1]) < 61.0, "S1 rune packet grows modestly to about sixty world pixels")
 	check(late[1].x > early[1].x and late[1].y < 0.0, "independent S1 packet travels along the shallow arc")
 	pulse.tick = 0.25
 	check(OB.hw_s1_packet_pose(pulse, Vector2.ZERO, Vector2(230, 0))[1] == Vector2(230, 0), "packet reaches the target at its damage tick")

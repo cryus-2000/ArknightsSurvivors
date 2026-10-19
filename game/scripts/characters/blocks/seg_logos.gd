@@ -630,16 +630,16 @@ static func hw_draw_logos_over(o) -> void:
 		cv.draw_circle(q, 3.0 + sin(g.t * 12.0), Color(HW_INK.r * 1.6, HW_INK.g * 1.6, HW_INK.b * 1.4, 0.8))
 
 
-## 每次伤害前飞入一束短符文；前 1/4 周期留空，末端在伤害 tick 到达目标。
+## 每次伤害前飞入一束短符文；前 15% 周期留空，末端在伤害 tick 到达目标。
 static func hw_s1_packet_pose(lk: Dictionary, a: Vector2, b: Vector2) -> Array:
 	if lk.is_empty() or float(lk.get("t", 0.0)) <= 0.0:
 		return []
 	var phase: float = float(lk.get("tick", 0.0)) / maxf(0.001, float(lk.b.get("tick", 0.25)))
 	var length: float = a.distance_to(b)
-	if phase <= 0.25 or phase > 1.0 or length < 2.0:
+	if phase <= 0.15 or phase > 1.0 or length < 2.0:
 		return []
-	var head_t: float = (phase - 0.25) / 0.75
-	var tail_t: float = maxf(0.0, head_t - 48.0 / length)
+	var head_t: float = (phase - 0.15) / 0.85
+	var tail_t: float = maxf(0.0, head_t - 60.0 / length)
 	var bend: float = minf(12.0, length * 0.05)
 	var normal := Vector2(-(b - a).y, (b - a).x) / length
 	var tail := a.lerp(b, tail_t) - normal * 4.0 * bend * tail_t * (1.0 - tail_t)
