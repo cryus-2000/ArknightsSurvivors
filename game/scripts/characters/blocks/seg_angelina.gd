@@ -242,13 +242,16 @@ static func _v_next_n(sb: Dictionary, p: String, perm_json: bool, ctx: Dictionar
 		if k != "next_attacks":
 			errs.append("%s.dur.%s：dur 对象只支持 next_attacks" % [p, k])
 	_num(dv, "next_attacks", p + ".dur", ctx, true, 1.0, 20.0)
+	_num(sb, "stack_max", p, ctx, false, 1.0, 20.0)
 	var ap = sb.get("attack_patch", {})
 	if not (ap is Dictionary):
 		errs.append(p + ".attack_patch 必须是对象")
 		return
 	for k in ap:
-		if not k in ["mult", "r_mult", "force_mult", "src", "on_hit", "power", "aoe_mult", "on_explode", "on_first", "first_fx", "then_first", "kb", "burst", "swarm", "shots", "_doc"]:   # shots：第 4 批（狐火连珠）；power / aoe_mult / on_explode：手写迁移段（法术弹普攻）；on_first / first_fx / then_first：第 3 批（刺击普攻）；kb / burst / swarm：第 3 批（伞击）
+		if not k in ["mult", "r_mult", "force_mult", "src", "on_hit", "power", "aoe_mult", "on_explode", "on_first", "first_fx", "then_first", "kb", "burst", "swarm", "shots", "anim", "_doc"]:   # shots：第 4 批（狐火连珠）；power / aoe_mult / on_explode：手写迁移段（法术弹普攻）；on_first / first_fx / then_first：第 3 批（刺击普攻）；kb / burst / swarm：第 3 批（伞击）
 			errs.append("%s.attack_patch.%s：只支持 mult / r_mult / force_mult / src / on_hit / power / aoe_mult / on_explode / on_first / first_fx / then_first / kb / burst / swarm" % [p, k])
+	if ap.has("anim") and (not ap.anim is String or not ctx.sprites.get(ap.anim) is Dictionary):
+		errs.append(p + ".attack_patch.anim 必须指向已定义的帧条")
 	_list(ap.get("on_first", []), p + ".attack_patch.on_first", "on_hit", ctx)
 	_list(ap.get("then_first", []), p + ".attack_patch.then_first", "instant", ctx)
 	if ap.has("first_fx"):

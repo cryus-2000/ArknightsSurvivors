@@ -252,7 +252,16 @@ func _anim_n(label: String, name: String, frames: int, fps: float, loop := true)
 func _sprite_form(label: String, v, fps: float, loop: bool) -> Dictionary:
 	if v is String:
 		return _anim(label, v, fps, loop)
-	return _anim_n(label, v.tex, int(v.get("frames", 2)), float(v.get("fps", fps)), loop)
+	var result := _anim_n(label, v.tex, int(v.get("frames", 2)), float(v.get("fps", fps)), loop)
+	if v.has("frame_durations"):
+		result["frame_durations"] = v.frame_durations
+	elif v.has("attack_timing"):
+		var t: Dictionary = v.attack_timing
+		var ds := []
+		for i in int(v.frames):
+			ds.append(float(t.fire_time) / int(v.fire) if i < int(v.fire) else (float(t.duration) - float(t.fire_time)) / (int(v.frames) - int(v.fire)))
+		result["frame_durations"] = ds
+	return result
 
 
 ## 博士动画预览：data/doctor.json 的 sprites（没有就用旧 2 帧待机条）
@@ -975,6 +984,16 @@ func _white_of(tx: Texture2D) -> Texture2D:
 
 
 func _form_frame(f: Dictionary) -> int:
+	if f.has("frame_durations"):
+		var total := 0.0
+		for dt in f.frame_durations:
+			total += float(dt)
+		var age := fposmod(form_t, total) if f.loop else form_t
+		for i in f.frame_durations.size():
+			age -= float(f.frame_durations[i])
+			if age < 0.0:
+				return i
+		return int(f.frames) - 1
 	var fr := int(form_t * f.fps)
 	return fr % f.frames if f.loop else mini(fr, f.frames - 1)
 

@@ -425,10 +425,6 @@ static func hw_pulse_start(o, i: int, sb: Dictionary) -> void:
 static func hw_active_left(o, i: int) -> float:
 	if not hw_on(o):
 		return -1.0
-	if h4_on(o):   # 手写迁移段第 4 批：狐火迷雾 / 巨炮发数 / 钙质化
-		var v4: float = h4_active_left(o, i)
-		if v4 >= 0.0:
-			return v4
 	var pu = o.hw.get("pulse", {})
 	if pu is Dictionary and not pu.is_empty() and int(pu.i) == i:
 		return float(int(pu.n)) * float(pu.every)
@@ -448,10 +444,13 @@ static func hw_instant(o, i: int) -> bool:
 	o.spend_sp(i)
 	var dv = sb.get("dur", 0)
 	if dv is Dictionary and dv.has("next_attacks"):
-		o.ammo[i] = int(dv.next_attacks)
+		o.load_skill_attacks(i, int(dv.next_attacks))
 	if sb.has("fx"):
 		fx_play(o, sb.fx, o.pos, 30.0)
+	o.effect_skill = i
 	o._exec_list(sb.get("do", []))
+	o.effect_skill = -1
+	o.bind_skill_duration(i)
 	return true
 
 

@@ -1,0 +1,230 @@
+{
+  "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cp_wisadel_s2_two_phase_1018\\wisadel",
+  "source_job_sha256": "d0f3e7645270344a493f6d795d1d06ee6266de787b2d7f6ca8ffb168aaddb216",
+  "method": "Native attachment world grid, per-pose mesh and draw order; no old f0 pixels",
+  "actions": [
+    {
+      "action": "s2_start",
+      "source_tracks": [
+        "Skill_2_Begin"
+      ],
+      "sample_times": [
+        0.0,
+        0.0416666679084301,
+        0.0833333358168602,
+        0.1250000037252903,
+        0.1666666716337204,
+        0.2083333395421505,
+        0.2500000074505806,
+        0.2916666753590107
+      ],
+      "canvas": [
+        192,
+        192
+      ],
+      "anchor": [
+        96.5,
+        151.72144811927373
+      ]
+    },
+    {
+      "action": "s2_idle",
+      "source_tracks": [
+        "Skill_2_Idle"
+      ],
+      "sample_times": [
+        0.0,
+        0.5,
+        1.0,
+        1.5,
+        2.0,
+        2.5,
+        3.0,
+        3.5
+      ],
+      "canvas": [
+        192,
+        192
+      ],
+      "anchor": [
+        96.5,
+        151.72144811927373
+      ]
+    },
+    {
+      "action": "s2_attack",
+      "source_tracks": [
+        "Skill_2_Loop"
+      ],
+      "sample_times": [
+        0.0,
+        0.08888889352480571,
+        0.17777778704961142,
+        0.2666666805744171,
+        0.5500000044703484,
+        0.8333333283662796,
+        1.1166666522622108,
+        1.399989976158142
+      ],
+      "canvas": [
+        192,
+        192
+      ],
+      "anchor": [
+        96.5,
+        151.72144811927373
+      ]
+    },
+    {
+      "action": "s2_over_start",
+      "source_tracks": [
+        "Skill_2_Overload_Begin"
+      ],
+      "sample_times": [
+        0.0,
+        0.02083333395421505,
+        0.0416666679084301,
+        0.06250000186264515,
+        0.0833333358168602,
+        0.10416666977107525,
+        0.1250000037252903,
+        0.14583333767950535
+      ],
+      "canvas": [
+        192,
+        192
+      ],
+      "anchor": [
+        96.5,
+        151.72144811927373
+      ]
+    },
+    {
+      "action": "s2_over_idle",
+      "source_tracks": [
+        "Skill_2_Overload_Idle"
+      ],
+      "sample_times": [
+        0.0,
+        0.5,
+        1.0,
+        1.5,
+        2.0,
+        2.5,
+        3.0,
+        3.5
+      ],
+      "canvas": [
+        192,
+        192
+      ],
+      "anchor": [
+        96.5,
+        151.72144811927373
+      ]
+    },
+    {
+      "action": "s2_over_attack",
+      "source_tracks": [
+        "Skill_2_Overload_Loop"
+      ],
+      "sample_times": [
+        0.0,
+        0.08888889352480571,
+        0.17777778704961142,
+        0.2666666805744171,
+        0.5500000044703484,
+        0.8333333283662796,
+        1.1166666522622108,
+        1.399989976158142
+      ],
+      "canvas": [
+        192,
+        192
+      ],
+      "anchor": [
+        96.5,
+        151.72144811927373
+      ]
+    },
+    {
+      "action": "s2_end",
+      "source_tracks": [
+        "Skill_2_End"
+      ],
+      "sample_times": [
+        0.0,
+        0.012500000186264515,
+        0.02500000037252903,
+        0.037500000558793545,
+        0.05000000074505806,
+        0.06250000093132257,
+        0.07500000111758709,
+        0.0875000013038516
+      ],
+      "canvas": [
+        192,
+        192
+      ],
+      "anchor": [
+        96.5,
+        151.72144811927373
+      ]
+    },
+    {
+      "action": "s2_over_end",
+      "source_tracks": [
+        "Skill_2_Overload_End"
+      ],
+      "sample_times": [
+        0.0,
+        0.0625,
+        0.125,
+        0.1875,
+        0.25,
+        0.3125,
+        0.375,
+        0.4375
+      ],
+      "canvas": [
+        192,
+        192
+      ],
+      "anchor": [
+        96.5,
+        151.72144811927373
+      ]
+    }
+  ],
+  "files": {
+    "op_wisadel_s2_attack.png": "e3260551ac046ecb4afcdce9d2fd18775413d68c108998d4ff0f3e1fc1faa393",
+    "op_wisadel_s2_attack@2x.png": "fa856864bb33cb0d6aef6c4a3adfef4fedb406a9b20498ad85333c9b8cf9de1f",
+    "op_wisadel_s2_end.png": "ca02af914b8e5f40cdb3824ae2c66bd63b8ec440c8ecf90ef0ce85f3233d8b37",
+    "op_wisadel_s2_end@2x.png": "47636303fe53d779e7963bff405c33cc224a6a5111526b75d31c5494ef238425",
+    "op_wisadel_s2_idle.png": "f3e41d66ee01968f2d5c5a05702b1b4cb43b220ff76190c1eaefd716f33c0643",
+    "op_wisadel_s2_idle@2x.png": "892255d3cf2af48b3c1b7c4d8d463d2a8634b1f05752a6749e883e952035d3c4",
+    "op_wisadel_s2_over_attack.png": "c4a38e1450c6d8a329b72c503a1d3fe87e5ca966934d6f1c05e7d481e717cb48",
+    "op_wisadel_s2_over_attack@2x.png": "53de83adbd1c4af7ff017346df715dbb7e266b30dac1ac93729bf18841fd9836",
+    "op_wisadel_s2_over_end.png": "224994129d46778e92dedbe75959b4ac548c54f920796d8378304c28eeb074c7",
+    "op_wisadel_s2_over_end@2x.png": "f7bc3840b9690b26a66ba68be3bbbb4dcc48c864109c753d2a3c486e90066ba2",
+    "op_wisadel_s2_over_idle.png": "a507a60d53a45aba10aaef13a277aeef0d1a5eb29b3f3ea4f22f48f57220dd58",
+    "op_wisadel_s2_over_idle@2x.png": "62736e104754f525a96af63bea182d498b7ff953526836410dc7d31f8dd39cba",
+    "op_wisadel_s2_over_start.png": "0cfd0523f08317d6842a713bc98346355bf985ae68ffb2ab7402a6f84ddec9b0",
+    "op_wisadel_s2_over_start@2x.png": "ed7848728b48c7d996c670be6ab41f1da80f9b07c9684ee01f9cf7f591dfadfa",
+    "op_wisadel_s2_start.png": "8f32de67e894763e2907061289011da9bb39a9edfda643552d2e0b33646b04a2",
+    "op_wisadel_s2_start@2x.png": "e49f950127603a7c07ffbda030bf624b65986faea24d533e22366179c23cbf69"
+  },
+  "source_files": {
+    "skel": {
+      "path": "E:\\ArknightsSurvivors\\build\\prts_ref\\_raw\\wisadel\\char_1035_wisdel.skel",
+      "sha256": "3d80d908389551703f7422f63c950cea8eaf199372d201ea238bcf879901aec0"
+    },
+    "atlas": {
+      "path": "E:\\ArknightsSurvivors\\build\\prts_ref\\_raw\\wisadel\\char_1035_wisdel.atlas",
+      "sha256": "a52a4de8bd1834e5a5703906e3b0d9645dbba4383bd872306e59d9b65c7a0a64"
+    }
+  },
+  "runtime_preview": "build/wisadel_s2_capture/review.html",
+  "engine_verification": "Final check quick_1018_161726: 79 items passed; 534 S2 checks; 178 attack timing checks; same-seed reproducibility passed.",
+  "user_visual_approval": false
+}

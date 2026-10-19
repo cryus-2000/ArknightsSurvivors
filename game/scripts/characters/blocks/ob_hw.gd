@@ -468,7 +468,7 @@ static func _hw5_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 const H3_TAGS := ["shape.thrust", "shape.cleave", "verb.barrage", "verb.followup", "verb.ctrl_bonus", "verb.lift_around", "st.launch",
 	"shape.saw", "verb.undying", "verb.substitute",
 	"shape.lantern", "verb.mend", "verb.purge", "verb.light_rain", "verb.beam_window", "verb.tower", "verb.beam", "verb.heal_lamp",
-	"shape.umbrella", "verb.kill_heal", "verb.cast_push", "verb.mirror"]
+	"shape.umbrella", "verb.kill_heal", "verb.cast_push"]
 
 const H3_ATTACKS := ["thrust", "saw", "lantern", "umbrella"]   # 第 3 批的普攻形状（起手 / 出手由本段接管）
 
@@ -564,8 +564,6 @@ static func h3_exec(o, b: Dictionary, at: Vector2) -> void:
 			_F().h3_tower_start(o, b)
 		"verb.cast_push":
 			_F().h3_cast_push(o, b)
-		"verb.mirror":
-			_F()._h3mz(o).mirror_pos = o.pos
 		"verb.kill_heal":
 			_F().h3_kill_heal(o, b)
 		"verb.heal_lamp":
@@ -783,7 +781,6 @@ static func _h3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 		"shape.umbrella": ["attack"],
 		"verb.kill_heal": ["instant"],
 		"verb.cast_push": ["skill", "instant"],
-		"verb.mirror": ["skill", "instant"],
 	}
 	if not kind in where_ok[tag]:
 		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok[tag])])
@@ -933,8 +930,10 @@ static func _h3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 				errs.append(p + ".tentacle 必须是对象")
 			else:
 				_src(b.tentacle, p + ".tentacle", ctx, true)
-			if b.get("echo", null) is Dictionary:
-				_src(b.echo, p + ".echo", ctx, true)
+			if b.has("full_circle"):
+				var area = b.full_circle
+				if not area is Dictionary or not area.get("cond") is String or parse_cond(area.cond, ctx.base).has("err"):
+					errs.append(p + ".full_circle 必须有合法 cond 条件")
 			if b.has("jelly"):   # 精英化第 3 批：深蓝之籽
 				if not (b.jelly is Dictionary):
 					errs.append(p + ".jelly 必须是对象")
@@ -1212,20 +1211,6 @@ static func h4_exec(o, b: Dictionary, _at: Vector2) -> void:
 			_F().h4_calc_start(o, b)
 
 
-## 技能剩余（hw_active_left 转来）：铃兰狐火迷雾 / 维什戴尔巨炮发数 / 塞雷娅钙质化按本段的计时；-1 = 本段不管
-static func h4_active_left(o, i: int) -> float:
-	var h: Dictionary = o.hw
-	if i != 2:
-		return -1.0
-	if h.has("sz"):
-		return float(h.sz.haze_t)
-	if h.has("wd"):
-		return float(h.wd.ammo)
-	if h.has("sa"):
-		return float(h.sa.calc)
-	return -1.0
-
-
 ## 起手朝向（mf_skill_aim 转来）：elite = 精英 / Boss 优先（血最多）；cluster = 离队长最近、相仿时挑落点最密
 static func h4_skill_aim(o, i: int, aim: String) -> Vector2:
 	var sk: Array = o.B.get("skills", [])
@@ -1251,12 +1236,6 @@ static func h4_live_dr(o) -> float:
 			if str(b.get("_tag", "")) == "verb.dr" and cond_true(o, b.get("cond", _ED)):
 				dr *= 1.0 - float(b.value)
 	return dr
-
-
-## 离队：铃兰给队友的攻击加成一并撤掉（手写版不撤，这里顺手修）
-static func h4_leave(o) -> void:
-	if hw_on(o) and o.hw.has("sz"):
-		o.g.stats.remove_source(_F()._h4_field_src(o))
 
 
 ## 状态条（hw_status_items 转来）

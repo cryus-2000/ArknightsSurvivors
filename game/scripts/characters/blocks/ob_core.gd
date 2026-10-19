@@ -835,17 +835,15 @@ const LM_TAGS := ["shape.lantern", "verb.mend", "verb.purge", "verb.light_rain",
 
 
 # ---------------------------------------------------------------- 水月段（第 3 批续，MZ_TAGS）
-#  attack.flow: free  不等动作的干员：技能充满即发（不起技能动作、发完不停手），普攻不起手直接出手（播一下攻击帧），每帧不看「正在出手」
 #  shape.umbrella   伞击（普攻）：扇形 half = min(180°, half_deg + 角度加成)，半径 r × 范围倍率 × r_mults；伤害 = atk × 伤害倍率 × 加成 × dmg_mults；
-#                   dirs [{cond, n}]（镜花水月三方向）；kb / stun [{cond, dur}]；empower（次数型技能的补丁：mult × 技能强度、r_mult、kb、burst 创伤扩散、
+#                   full_circle {cond}（自身周围全范围）；kb；empower（次数型技能的补丁：mult × 技能强度、r_mult、kb、burst 创伤扩散、
 #                   swarm 额外触手）；tentacle：命中里生命最低的 n 个（n = 追击数属性 + n_add）触手追击 × t_mult，不够打附近的；
-#                   drag 束缚时拖向自己；stake 触手桩（旧精二「固着」）；echo 镜像分身延时同步挥伞。stats：专属属性（attack.stats 映射 → 属性名）
+#                   drag 束缚时拖向自己；stake 触手桩（旧精二「固着」）。stats：专属属性（attack.stats 映射 → 属性名）
 #  verb.kill_heal   天赋（on_kill do）：击杀时为队长回复 pct × 最大生命（每秒预算 regen、上限 cap）
 #  verb.cast_push   瞬时：发动时推开身边 r 内的非 Boss 敌人（技能发动光环）
-#  verb.mirror      瞬时：镜像分身出现在自己身边（之后平滑跟在身后，镜花水月）
 #  blocks.dmg_bonus {ally: false, mults [{cond, near_low_hp {r, below}, mult}]}：本干员的伤害加成（不吃同伴倍率；附近有半血敌人时 ×）
 
-const MZ_TAGS := ["shape.umbrella", "verb.kill_heal", "verb.cast_push", "verb.mirror"]
+const MZ_TAGS := ["shape.umbrella", "verb.kill_heal", "verb.cast_push"]
 
 
 # ================================================================ 精英化第 5 批（docs/91 §13 / §27：浊心斯卡蒂「余音」/「远古血亲」，10-14；docs/61 §23；只往后加）

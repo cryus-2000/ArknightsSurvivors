@@ -108,6 +108,9 @@ func run() -> void:
 	check(gal.entries[0].id == "mizuki", "cover operator first")
 	check(gal.entries[gal.entries.size() - 1].id == "doctor", "doctor last")
 	check(gal.INFO_TABS == ["档案", "属性", "技能", "成长"], "info tabs are 档案 / 属性 / 技能 / 成长 only")
+	var ui = load("res://scripts/ui.gd")
+	check(ui.fit_h(Rect2(0, 0, 90, 96), 192.0, 2.0) == 96.0, "native canvas fits full visible height")
+	check(ui.fit_h(Rect2(0, 0, 90, 96), 128.0, 2.0) == 74.0, "legacy 64 canvas retains body cap")
 	# 立绘适配：每名干员（桌面 / 手机）待机帧并集区按整数倍放进舞台框（四边至少留 2），倍数不超过选人页上限
 	for ph in [false, true]:
 		Cfg._touch = 1 if ph else 0

@@ -1,0 +1,128 @@
+{
+  "operator": "mizuki",
+  "authorization": "User 2026-10-18 requested all four integration steps; source pose and native Spine workflow previously approved. Historical candidate flags unchanged.",
+  "canvas_2x": [
+    192,
+    192
+  ],
+  "logical_size": 96,
+  "foot": [
+    48,
+    75.50702040908614
+  ],
+  "draw_scale": 0.9,
+  "construction": "Unchanged native attachment pixel recomposition strips; no cropping or pose generation.",
+  "source_skill_mapping": "S2/S3 share observed Skill_2 reference family as documented in cf; original engine S3 binding not verified.",
+  "tentacle": "Native C_Tentacle_1 silhouette with existing six-frame effect envelope, not native mesh deformation.",
+  "files": [
+    {
+      "key": "mizuki_runtime_run",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cf_mizuki_latest_all_1018\\mizuki\\run\\strip@2x.png",
+      "sha256": "c16507aaf19ef9d668102eacbff731fbba973e167fe62487cb9a08b5b717aa7f",
+      "frames": 8,
+      "source_duration": 0.8,
+      "file": "mizuki_runtime_run@2x.png"
+    },
+    {
+      "key": "mizuki_runtime_hurt",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cf_mizuki_latest_all_1018\\mizuki\\hurt\\strip@2x.png",
+      "sha256": "57b83c9f39386ffd4f62370bbb07f1c385d841e45ab4918310ba6835307ce7f0",
+      "frames": 4,
+      "source_duration": 0.4,
+      "file": "mizuki_runtime_hurt@2x.png"
+    },
+    {
+      "key": "mizuki_runtime_idle",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\mizuki\\Idle\\strip@2x.png",
+      "sha256": "fba66a86a42b109d11b8ac678a1597a7d5467d7530b0ed8baed2534b70520b5c",
+      "frames": 8,
+      "source_duration": 13.333333015441895,
+      "file": "mizuki_runtime_idle@2x.png"
+    },
+    {
+      "key": "mizuki_runtime_attack",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\mizuki\\Attack\\strip@2x.png",
+      "sha256": "b5a41b4c2118332a59398984db45a6cdd633c495a0c2b322575e1f359a23da26",
+      "frames": 8,
+      "source_duration": 1.4333332777023315,
+      "file": "mizuki_runtime_attack@2x.png"
+    },
+    {
+      "key": "mizuki_runtime_s1_attack",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\mizuki\\Skill_1\\strip@2x.png",
+      "sha256": "3e38de383fac8fe7da65a981084f57467f2310921d7b7275519bc8984895a52b",
+      "frames": 8,
+      "source_duration": 1.5,
+      "file": "mizuki_runtime_s1_attack@2x.png"
+    },
+    {
+      "key": "mizuki_runtime_skill_start",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\mizuki\\Skill_2_Start\\strip@2x.png",
+      "sha256": "a6eabeb132be1fe523b097f2d7bff060ffaebcb3c4753567cab02b46b8ffa96c",
+      "frames": 8,
+      "source_duration": 1,
+      "file": "mizuki_runtime_skill_start@2x.png"
+    },
+    {
+      "key": "mizuki_runtime_skill_loop",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\mizuki\\Skill_2_Idle\\strip@2x.png",
+      "sha256": "6f5b04ba66cd644d8adf90a1b84483bcb44fb020d8fce1d9fb383088970d216e",
+      "frames": 8,
+      "source_duration": 1,
+      "file": "mizuki_runtime_skill_loop@2x.png"
+    },
+    {
+      "key": "mizuki_runtime_skill_attack",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\mizuki\\Skill_2_Loop\\strip@2x.png",
+      "sha256": "5388214affba75c5bb957a15fd77ae3fca19869af240cc9a1d7809eb3ac62331",
+      "frames": 8,
+      "source_duration": 1.3333333730697632,
+      "file": "mizuki_runtime_skill_attack@2x.png"
+    },
+    {
+      "key": "mizuki_runtime_skill_end",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\mizuki\\Skill_2_End\\strip@2x.png",
+      "sha256": "3acdc77f358c5f0c9dddaf84ee272f7e2d12a3af30a011010f3796b613c50140",
+      "frames": 8,
+      "source_duration": 1,
+      "file": "mizuki_runtime_skill_end@2x.png"
+    },
+    {
+      "key": "mizuki_runtime_death",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\mizuki\\Die\\strip@2x.png",
+      "sha256": "fab02ef45862f1de23cdda8f8ce95524cbc4cb6c87a2e780bb204c6d52014af0",
+      "frames": 8,
+      "source_duration": 1,
+      "file": "mizuki_runtime_death@2x.png"
+    },
+    {
+      "key": "fx_mizuki_tentacle",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\fx_mizuki_tentacle.png",
+      "file": "fx_mizuki_tentacle.png",
+      "sha256": "b2d794ed17dc86a04d074e7a25d871b4f6ddc2e1496cd795ad16358269ffce63"
+    },
+    {
+      "key": "fx_mizuki_tentacle",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\fx_mizuki_tentacle@2x.png",
+      "file": "fx_mizuki_tentacle@2x.png",
+      "sha256": "2a667cc2939ffecc23bee2c23ec0463109001372d7a4186b1f8f1fa10203f119"
+    },
+    {
+      "key": "fx_mizuki_tentacle_mass",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\fx_mizuki_tentacle_mass.png",
+      "file": "fx_mizuki_tentacle_mass.png",
+      "sha256": "7950f79ed010d5f3baf6e6db461d64d5244ed9059a93f22d68221d17189b8283"
+    },
+    {
+      "key": "fx_mizuki_tentacle_mass",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\fx_mizuki_tentacle_mass@2x.png",
+      "file": "fx_mizuki_tentacle_mass@2x.png",
+      "sha256": "8631b7ad37092e24c59168127db4ffb0c1b1c4b620633c5226411ad288c082d1"
+    }
+  ],
+  "body_render_scale": {
+    "world_pixels_per_source_pixel": 1.0,
+    "head_to_foot_approx_world_px": 80,
+    "note": "Generic body renderer uses PX=2 / @2x density=2. Retained sprites.draw_scale=.9 affects legacy _strip helper, not draw_body; no shared renderer scale change in this task."
+  }
+}

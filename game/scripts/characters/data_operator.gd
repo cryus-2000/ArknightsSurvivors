@@ -9,6 +9,12 @@ extends "res://scripts/characters/character.gd"
 ## 早就 transitively 带出其余全部 19 个，21 条并行路径（含 character.gd 的 2 条）同时解析同一条链，是 Godot 退出报
 ## resources still in use 的根（verbose 指向 enemy_db / balance / data / art / look）。真正 preload 只留 SegSkalter 一个，
 ## 其余全改成别名（GDScript 继承链上不加前缀就能互相访问，和原来逐个 preload 时的调用结果完全一样，不是功能改动）
+const AttackPhases = preload("res://scripts/characters/blocks/attack_phases.gd")
+var phases: Dictionary = {}
+const SkillLifecycle = preload("res://scripts/characters/blocks/skill_lifecycle.gd")
+var lifecycle: Dictionary = {}
+var effect_skill := -1  # Only skill do execution may bind skill-owned effects.
+
 const SegSkalter = preload("res://scripts/characters/blocks/seg_skalter.gd")
 const ObCore = SegSkalter
 const ObElite = SegSkalter
@@ -91,7 +97,6 @@ func _init(game, def_: Dictionary) -> void:
 			mate = mate or str(t.get("_tag", "")) == "trig.on_mate_attack"
 	B["_mf_deploy"] = dep
 	B["_el_mate"] = mate   # 精英化段：有没有 trig.on_mate_attack（队友出手时才查）
-	B["_free"] = str(a.get("flow", "")) == "free"   # 手写迁移段第 3 批：不等动作的干员（水月）
 	B["_e5_among"] = SegSkalter.e5_scan(B)   # 精英化第 5 批段：有 among 的积木才记普攻命中表
 
 
@@ -130,10 +135,16 @@ func in_zone(p: Vector2) -> bool:
 
 
 func skill_on(i: int) -> bool:
-	return s_t[i] > 0.0 or perm_on[i] or ammo[i] > 0 or (not hw.is_empty() and SegEyjafjalla.hw_active_left(self, i) > 0.0)
+	return s_t[i] > 0.0 or perm_on[i] or ammo[i] > 0 or SkillLifecycle.left(self, i) > 0.0 or (not hw.is_empty() and SegEyjafjalla.hw_active_left(self, i) > 0.0)
 
 
 func skill_active_left(i: int) -> float:
+	var effect_left := SkillLifecycle.left(self, i)
+	if effect_left >= 0.0:
+		return maxf(effect_left, attack_t) if hw.has("mz") and sq_i == i and act_kind == "attack" else effect_left
+	var left := AttackPhases.active_left(self, i)
+	if left >= 0.0:
+		return left
 	if not hw.is_empty():
 		var hl: float = SegEyjafjalla.hw_active_left(self, i)   # 手写迁移段：连续喷发 / 锁定 / 咒域按自己的计时
 		if hl >= 0.0:
@@ -141,8 +152,20 @@ func skill_active_left(i: int) -> float:
 	return maxf(s_t[i], SegExusiai.exu_ammo_left(self, i))   # 次数型（dur.ammo）返回剩余发数
 
 
+func skill_effect_status(i: int) -> Array:
+	var out := SkillLifecycle.status(self, i)
+	if not phases.is_empty() and phases.skill == i:
+		out.append({"effect": "attack_phases", "active": AttackPhases.active_left(self, i) > 0.0,
+			"background": false, "remaining": AttackPhases.active_left(self, i), "total": s_dur[i], "unit": "seconds"})
+	if out.is_empty() and s_t[i] > 0.0:
+		out.append({"effect": "duration", "active": true, "background": false, "remaining": s_t[i], "total": s_dur[i], "unit": "seconds"})
+	if out.is_empty():
+		out.append({"effect": "instant", "active": false, "background": false, "remaining": 0.0, "total": 0.0, "unit": "instant"})
+	return out
+
+
 func skill_active_dur(i: int) -> float:
-	return s_dur[i] if s_dur[i] > 0.0 else 1.0
+	return maxf(SkillLifecycle.duration(self, i), s_dur[i]) if s_dur[i] > 0.0 or SkillLifecycle.duration(self, i) > 0.0 else 1.0
 
 
 func _swing_radius() -> float:
@@ -157,10 +180,32 @@ func on_custom_node(nid: String, _choice: String = "") -> void:
 	nodes_taken = ",".join(taken)
 
 
+func cancel_skill_action() -> void:
+	attack_t = 0.0
+	fire_t = -1.0
+	vis_anim = ""
+	manual_buf = 0.0
+	manual_buf_dir = Vector2.ZERO
+	manual_buf_pt = Vector2.INF
+	manual_dir = Vector2.ZERO
+	manual_pt = Vector2.INF
+	atk_aim = Vector2.ZERO
+	act_kind = "attack"
+	act_anim = "attack"
+	_sq_clear()
+
+
 func on_leave() -> void:
+	AttackPhases.cancel(self)
+	cancel_skill_action()
+	for i in 3:
+		if SkillLifecycle.owns(self, i):
+			perm[i] = false
+	SkillLifecycle.cancel(self)
+	if hw.has("mz"):
+		SegMizuki.h3_cancel(self)
 	SegAngelina.airborne_clear(self)
 	ObSummon.sm_clear(self)   # 召唤 / 封印段
-	ObHw.h4_leave(self)   # 手写迁移段第 4 批：撤掉给队友的攻击加成
 	g.stats.remove_source(_src_tag())
 	_mods = []
 	refresh_stats()
@@ -209,13 +254,14 @@ func update(dt: float) -> void:
 	for i in 3:
 		if s_t[i] > 0.0:
 			s_t[i] = maxf(0.0, s_t[i] - dt)
-	if B.get("_free", false):   # 手写迁移段第 3 批：attack.flow = free（不等动作：技能充满即发、普攻直接出手；水月），整帧交给本段
-		SegMizuki.h3_free_update(self, dt)
-		return
+	AttackPhases.tick(self, dt)
 	var hw_busy: bool = ObHw.hw_tick(self, dt) if not hw.is_empty() else false   # 手写迁移段：浪墙 / 弹体 / 地面 / 锚（按手写干员 update 的先后）；true = 本帧不起手
+	SkillLifecycle.tick(self)
 	ObSummon.mf_tick(self, dt, prev_s)   # 召唤物扩展段（§15.9）：限时减伤计时、trig.on_deploy、带 at 的 trig.on_skill_end
 	_tick_pending(dt)
 	_sustain(dt)
+	if hw.has("mz"):
+		SegMizuki.h3_tick_effects(self, dt)
 	_tick_shots(dt)
 	SegExusiai.exu_tick(self, dt)   # 能天使段：技能 end、普攻锁、连射队列、弹体
 	ObSummon.sm_tick(self, dt)    # 召唤 / 封印段：召唤物、护盾计时、封印标记（sm 为空时直接返回）
@@ -231,6 +277,8 @@ func update(dt: float) -> void:
 		if not hw.is_empty() and SegEyjafjalla.hw_instant(self, ready):   # 手写迁移段：cast: instant（充满当帧生效、不播技能动作）
 			return
 		start_skill(ObSummon.mf_skill_aim(self, ready), ready)   # blocks.skills[i].aim（§15.9）；没写 = INF 不转身
+		return
+	if AttackPhases.attack_locked(self):
 		return
 	if str(cur_attack().get("shape", "")) in ObHw.H3_ATTACKS:   # 手写迁移段第 3 批：刺击 / 环斩 / 荧光的起手（荧光要先累计治疗计时）
 		SegIrene.h3_attack_start(self, cur_attack(), dt)
@@ -253,6 +301,8 @@ func update(dt: float) -> void:
 				at = SegUlpianus.hw_front_aim(self, a)
 			else:
 				var c: Vector2 = ObCore.shape_center(self, a)
+				if not phases.is_empty() and str(a.get("center", "")) == "target":
+					c = pos
 				var r: float = float(a.get("range", 0.0)) * stat(&"op_range") if a.has("range") else ObCore.shape_radius(self, a)
 				if c != Vector2.INF:
 					at = atk_point(nearest_enemies(1, r, c), r)   # 手动普攻（v2.5）：不分方向，只受闸门
@@ -573,7 +623,6 @@ const EXEC_SEG := {
 	"verb.lift_around": 7,   # h3_exec
 	"verb.light_rain": 7,   # h3_exec
 	"verb.mend": 7,   # h3_exec
-	"verb.mirror": 7,   # h3_exec
 	"verb.purge": 7,   # h3_exec
 	"verb.tower": 7,   # h3_exec
 	"verb.calc_field": 8,   # h4_exec
@@ -654,13 +703,21 @@ func _release() -> void:
 	if not el.is_empty() or not rp.is_empty():
 		ObElite.el_st(self).fire_t = g.t
 	if not rp.is_empty():
+		if not phases.is_empty():
+			phases.queue = []
 		_exec_list(rp.get("do", []))   # last_hit_pos 沿用上一次普攻的（热砂这类 last_hit 区域照常落在那里）
+	elif not phases.is_empty() and not phases.round.is_empty():
+		AttackPhases.release(self)
 	elif str(a.get("shape", "")) == "point_aoe":
 		_fire_point_aoe(a)
 	elif str(a.get("shape", "")) == "shell":   # 手写迁移段：法术弹
 		SegEyjafjalla.hw_shell_fire(self, a, true)
 	elif str(a.get("shape", "")) == "bolt":   # 手写迁移段：飘飞咒文弹；没有目标 = 这一下没出手（不算次数、不走 every_n，同手写的 return）
 		if not SegLogos.hw_bolt_fire(self, a, true):
+			atk_live = false
+			return
+	elif str(a.get("shape", "")) == "umbrella":
+		if not SegMizuki.h3_umbrella_release(self, a):
 			atk_live = false
 			return
 	elif str(a.get("shape", "")) in ObHw.H3_ATTACKS:   # 手写迁移段第 3 批：刺击……
@@ -670,7 +727,7 @@ func _release() -> void:
 	else:
 		exec_any_shape(a, Vector2.INF, true)
 	atk_live = false
-	if not str(a.get("shape", "")) in ObHw.H4_ATTACKS:
+	if not str(a.get("shape", "")) in ObHw.H4_ATTACKS + ["umbrella"]:
 		_sfx_op("atk")
 	atk_n += 1
 	for t in _trigs():
@@ -742,17 +799,38 @@ func _release_skill() -> void:
 	elif dv is Dictionary and dv.has("pulses"):   # 手写迁移段：连续喷发（dur.pulses）
 		SegEyjafjalla.hw_pulse_start(self, i, sb)
 	elif dv is Dictionary:
-		ammo[i] = int(dv.get("next_attacks", 0))   # 安洁莉娜段：dur.next_n，接下来 N 次普攻带 attack_patch
+		load_skill_attacks(i, int(dv.get("next_attacks", 0)))   # 安洁莉娜段：dur.next_n，接下来 N 次普攻带 attack_patch
 	elif float(dv) > 0.0:
 		s_t[i] = float(dv)
 		s_dur[i] = float(dv)
+	if sb.has("attack_phases"):
+		AttackPhases.start(self, i)
+	effect_skill = i
 	_exec_list(sb.get("do", []))
+	effect_skill = -1
+	bind_skill_duration(i)
 	SegTexas.tx_skill_start(self, i)   # 德克萨斯段：trig.on_skill_start
 	if not hw.is_empty() and perm_on[i]:
 		_restat()   # 手写迁移段：永久技能出手当下就改属性（同手写，不等下一帧）
 	fx({"kind": "ring", "pos": pos, "r": 70.0, "r0": 10.0, "life": 0.5, "col": col(), "floor": true})
 	if sb.has("fx"):
 		ObFx.fx_play(self, sb.fx, zone_c(), _zone_r_now())
+
+
+func load_skill_attacks(i: int, amount: int) -> void:
+	var sb: Dictionary = B.skills[i]
+	ammo[i] = mini(int(sb.stack_max), ammo[i] + amount) if sb.has("stack_max") else amount
+
+
+func bind_skill_duration(i: int) -> void:
+	var sb: Dictionary = B.skills[i]
+	if hw.has("mz") and s_t[i] > 0.0:
+		SkillLifecycle.bind(self, "skill:%d" % i, i, s_t, i, true, false)
+	if not SkillLifecycle.owns(self, i, "skill:%d" % i) and not sb.has("attack_phases"):
+		if perm_on[i]:
+			SkillLifecycle.bind(self, "skill:%d" % i, i, perm_on, i, false, false, Callable(), "permanent")
+		elif ammo[i] > 0:
+			SkillLifecycle.bind(self, "skill:%d" % i, i, ammo, i, false, false, Callable(), "attacks")
 
 
 func on_kill(e: Dictionary) -> void:
@@ -929,7 +1007,7 @@ func stats_rows() -> Array:
 # ---------------------------------------------------------------- 手写迁移段：手动技能（掷锚落点）、动作停帧
 
 func manual_ready(i: int, dir: Vector2 = Vector2.ZERO) -> bool:
-	return super(i, dir) and (hw.is_empty() or SegUlpianus.hw_manual_ready(self, i, dir))
+	return not skills_occupied() and super(i, dir) and (hw.is_empty() or SegUlpianus.hw_manual_ready(self, i, dir))
 
 
 func manual_block_reason(i: int, dir: Vector2 = Vector2.ZERO) -> String:
@@ -1373,3 +1451,62 @@ func draw_extra_shadows() -> void:
 	ObSummon.sm_shadows(self)
 	if not hw.is_empty():
 		ObHw.h3_shadows(self)
+
+
+## Shared occupancy covers automatic, manual and buffered casts; charging stays independent.
+func skills_occupied() -> bool:
+	return (acting() and act_kind == "skill") or (hw.has("mz") and sq_ph == 3) or AttackPhases.locked(self) or SkillLifecycle.occupied(self)
+
+func charge_skills(dt: float) -> int:
+	return -1 if skills_occupied() else super(dt)
+
+func start_skill(aim: Vector2, idx: int = -1, dur: float = 0.6, fire_at: float = 0.3, anim := "") -> void:
+	if not skills_occupied():
+		super(aim, idx, dur, fire_at, anim)
+
+func start_attack(aim: Vector2, dur: float = 0.5, fire_at: float = 0.25, anim := "", interval := 0.0) -> void:
+	if AttackPhases.attack_locked(self):
+		return
+	AttackPhases.begin_round(self)
+	super(aim, dur, fire_at, "" if not phases.is_empty() else anim, cd if not phases.is_empty() else interval)
+	var timing: Dictionary = sprite_spec(act_anim).get("attack_timing", {})
+	if timing.has("min_rest"):
+		cd = maxf(cd, attack_dur + float(timing.min_rest))
+
+func phase_shot(round_: Dictionary, shot: int) -> void:
+	var a: Dictionary = round_.attack
+	if str(a.shape) == "cannon":
+		SegSkalter.h4_phase_shot(self, a, round_, shot)
+		return
+	var at := Vector2.INF
+	if round_.target == "random" or str(a.get("center", "")) == "target":
+		var radius: float = float(a.get("range", ObCore.shape_radius(self, a))) * (stat(&"op_range") if a.has("range") else 1.0)
+		if round_.target == "inherit" and atk_aim != Vector2.ZERO:
+			var target := aim_land(radius)
+			if target.is_empty():
+				return
+			at = target.pos
+		else:
+			var candidates := nearest_enemies(g.enemies.size(), radius, pos)
+			if candidates.is_empty():
+				return
+			at = candidates[g.rng.randi_range(0, candidates.size() - 1) if round_.target == "random" else 0].pos
+	var previous_aim := atk_aim
+	if str(a.shape) == "cone" and at != Vector2.INF:
+		atk_aim = (at - pos).normalized()
+	var previous: float = loc.atk
+	var was_live := atk_live
+	atk_live = true
+	loc.atk *= float(round_.damage_mult)
+	exec_any_shape(a, at, true)
+	loc.atk = previous
+	atk_aim = previous_aim
+	atk_live = was_live
+
+func phase_skill_end(i: int) -> void:
+	for t in _trigs():
+		if str(t.get("_tag", "")) == "trig.on_skill_end" and int(t.get("skill", -1)) == i and ObCore.cond_true(self, t.get("cond", _ED)):
+			if t.has("at"):
+				ObSummon.mf_fire_at(self, t, ObSummon.mf_at_point(self, str(t.at)))
+			else:
+				_exec_list(t.get("do", []), tx.get("last_to", pos))

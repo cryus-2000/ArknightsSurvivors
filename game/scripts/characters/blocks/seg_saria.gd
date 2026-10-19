@@ -52,7 +52,7 @@ static func _h4_bash_start(o, a: Dictionary) -> void:
 		o.cd = o.idle_cd(float(a.get("idle", 0.1)))
 	else:
 		o.cd = float(a.get("every", 0.9)) / o.stat(&"op_aspd")
-		o.start_attack(at)
+		o.start_attack(at, 0.5, 0.25, "", o.cd)
 
 
 static func _h4_bash_release(o, a: Dictionary) -> void:
@@ -579,6 +579,7 @@ static func h4_saria_heal(o, b: Dictionary) -> void:
 	var hot = b.get("hot", null)
 	if hot is Dictionary:
 		sa.hot_t = float(hot.get("dur", 5.0))
+		o.SkillLifecycle.bind(o, "heal_over_time", o.effect_skill, sa, "hot_t", false, false)
 		sa.hot_acc = 0.0
 		sa.hot_pct = float(hot.get("pct", 0.0085))
 		sa.hot_name = str(hot.get("name", ""))
@@ -594,6 +595,7 @@ static func h4_calc_start(o, b: Dictionary) -> void:
 	var sa := _h4sa(o)
 	sa.calc_b = b
 	sa.calc = float(b.get("dur", 8.0))
+	o.SkillLifecycle.bind(o, "calc_field", o.effect_skill, sa, "calc", true, false, func(): sa.pillars.clear())
 	sa.calc_acc = 0.0
 	sa.calc_name = str(b.get("name", ""))
 	if o.cur_skill >= 0:

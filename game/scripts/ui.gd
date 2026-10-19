@@ -1332,8 +1332,8 @@ static func art_fit(w2: float, h2: float, stage: Rect2, kmax: float, cx: float, 
 	return [k, Vector2(cx, foot_y)]
 
 
-## 干员立绘判倍率用的高度（贴图像素）：64 画布起（帧高 / hires > 48，docs/103 §5），角 / 帽 / 武器超出「身体」的部分不触发降倍——
-## 按 STAND_FIT 美术像素封顶（docs/103 §3 站立高上限 36 + 1）；48 画布原样用并集区高度（现有帧条结果不变）。只给干员用（Boss 帧条也可能 > 48）
+## 干员立绘判倍率用的高度（贴图像素）：旧 64 画布（48 < 帧高 / hires ≤ 64，docs/103 §5），角 / 帽 / 武器超出「身体」的部分不触发降倍——
+## 按 STAND_FIT 美术像素封顶（docs/103 §3 站立高上限 36 + 1）；48 及大于 64 的原生画布使用完整并集高度。只给干员用。
 const STAND_FIT := 37.0
 ## 干员小图标的取景窗（帧内贴图像素）：按固定框缩放的小图标（招募 / 升级卡、属性面板、开场说明）原来按整帧高缩放，
 ## 64 画布（docs/103 §5）会让人物缩到 3/4。64 画布起取「以脚底为准的旧 48 画布范围」：foot − (24, 46) 起 48 × 48 美术像素，
@@ -1345,7 +1345,8 @@ static func op_win(fw: float, fh: float, hi: float, foot) -> Rect2:
 	var y0: float = clampf((float(foot[1]) - 46.0) * hi, 0.0, fh - 48.0 * hi)
 	return Rect2(x0, y0, 48.0 * hi, 48.0 * hi)
 static func fit_h(bb: Rect2, fh: float, hi: float) -> float:
-	if fh / hi <= 48.0:
+	# 旧 64 画布身体高度封顶不适用于完整原生 Spine 画布。
+	if fh / hi <= 48.0 or fh / hi > 64.0:
 		return bb.size.y
 	return minf(bb.size.y, STAND_FIT * hi)
 

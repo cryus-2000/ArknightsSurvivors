@@ -61,60 +61,135 @@
  "sprites": {
   "idle": {
    "tex": "op_saria_idle",
-   "frames": 4,
-   "fps": 4,
+   "frames": 8,
+   "fps": 8.0,
    "foot": [
-    24,
-    46
+    31.75,
+    59.57669522183914
    ]
   },
   "run": {
    "tex": "op_saria_run",
-   "frames": 6,
-   "fps": 10,
+   "frames": 8,
+   "fps": 13.333333333333334,
    "foot": [
-    23,
-    46
+    32,
+    60
    ]
   },
   "attack": {
    "tex": "op_saria_attack",
-   "frames": 4,
-   "fps": 14,
+   "frames": 8,
+   "fps": 12.307692307692307,
    "foot": [
-    24,
-    46
+    31.75,
+    59.57669522183914
    ],
-   "fire": 2
+   "fire": 3,
+   "attack_timing": {
+    "duration": 0.65,
+    "fire_time": 0.17857142857142858,
+    "active_ratio": 0.9,
+    "windup_ratio": 0.45
+   }
   },
   "skill": {
    "tex": "op_saria_skill",
-   "frames": 6,
-   "fps": 12,
+   "frames": 8,
+   "fps": 16.0,
    "foot": [
-    24,
-    46
+    31.75,
+    59.57669522183914
    ],
-   "fire": 3
+   "fire": 4,
+   "fire_time": 0.2916666666666667,
+   "frame_durations": [
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625
+   ]
   },
-  "size": 48,
+  "size": 64,
   "foot": [
-   24,
-   46
+   31.75,
+   59.57669522183914
   ],
   "skill_heal": {
    "tex": "op_saria_skill_heal",
-   "frames": 6,
-   "fps": 12,
+   "frames": 8,
+   "fps": 16.0,
    "foot": [
-    24,
-    46
+    31.75,
+    59.57669522183914
    ],
-   "fire": 2
+   "fire": 3,
+   "fire_time": 0.20833333333333334,
+   "frame_durations": [
+    0.06944444444444445,
+    0.06944444444444445,
+    0.06944444444444445,
+    0.05833333333333332,
+    0.05833333333333335,
+    0.05833333333333329,
+    0.05833333333333335,
+    0.05833333333333335
+   ]
+  },
+  "skill_s3_loop": {
+   "tex": "op_saria_skill_s3_loop",
+   "frames": 8,
+   "fps": 20.0,
+   "foot": [
+    31.75,
+    59.57669522183914
+   ]
+  },
+  "skill_s3_end": {
+   "tex": "op_saria_skill_s3_end",
+   "frames": 8,
+   "fps": 16.0,
+   "foot": [
+    31.75,
+    59.57669522183914
+   ]
+  },
+  "death": {
+   "tex": "op_saria_death",
+   "frames": 8,
+   "fps": 8.0,
+   "foot": [
+    47.75,
+    75.57669522183915
+   ]
+  },
+  "skills": {
+   "s1": {
+    "anim": "skill_heal"
+   },
+   "s2": {
+    "anim": "skill_heal"
+   },
+   "s3": {
+    "start": {
+     "anim": "skill"
+    },
+    "loop": "skill_s3_loop",
+    "end": {
+     "anim": "skill_s3_end"
+    }
+   }
   }
  },
  "extra_sprites": [
-  "skill_heal"
+  "death",
+  "skill_heal",
+  "skill_s3_end",
+  "skill_s3_loop"
  ],
  "attack": {
   "mode": "auto",
