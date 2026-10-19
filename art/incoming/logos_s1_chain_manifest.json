@@ -1,0 +1,149 @@
+{
+  "asset": "Logos S1 rune chain",
+  "generator": "built-in imagegen",
+  "source": "generation/master_runes.png",
+  "source_sha256": "d1874e17acde798dd127f313affc02015ca62374db72b9293b025ef0eedbe972",
+  "source_centers_y": [
+    166.0,
+    363.5,
+    560.5,
+    752.0
+  ],
+  "source_x_bounds": [
+    32,
+    1742
+  ],
+  "uniform_scale": true,
+  "alpha_cutoff_source": 200,
+  "alpha_cutoff_sample": 128,
+  "palette_max": 16,
+  "dither": false,
+  "density_sampling": "independent source sampling at 1x and 2x",
+  "playback": "twenty short rune attacks, one per 0.25s; no connecting line or persistent beam; shallow curve; each packet head bright and tail dim",
+  "runtime_contract": "RUNTIME_REVISION_04.json",
+  "assets": [
+    {
+      "file": "fx_logos_s1_chain.png",
+      "frame_width": 64,
+      "frame_height": 12,
+      "frame_count": 4,
+      "fps": 12,
+      "origin": [
+        0,
+        6
+      ],
+      "density": 1,
+      "sha256": "981410009036d1680a694896fd9723d6a4d22401711dce783372e47dfc4a443a"
+    },
+    {
+      "file": "fx_logos_s1_chain@2x.png",
+      "frame_width": 128,
+      "frame_height": 24,
+      "frame_count": 4,
+      "fps": 12,
+      "origin": [
+        0,
+        12
+      ],
+      "density": 2,
+      "sha256": "b1e04bf0c4c0d5a560ca45c1c34ec28ffd46daeba8294165c58ba79a601c6453"
+    }
+  ],
+  "qa": [
+    {
+      "density": 1,
+      "frame": 0,
+      "occupied_columns": 54,
+      "total_columns": 64,
+      "edge_overlap": false,
+      "colors": 12,
+      "max_gap_columns_including_seam": 2,
+      "max_solid_horizontal_span": 9
+    },
+    {
+      "density": 1,
+      "frame": 1,
+      "occupied_columns": 55,
+      "total_columns": 64,
+      "edge_overlap": false,
+      "colors": 13,
+      "max_gap_columns_including_seam": 2,
+      "max_solid_horizontal_span": 9
+    },
+    {
+      "density": 1,
+      "frame": 2,
+      "occupied_columns": 56,
+      "total_columns": 64,
+      "edge_overlap": false,
+      "colors": 13,
+      "max_gap_columns_including_seam": 2,
+      "max_solid_horizontal_span": 9
+    },
+    {
+      "density": 1,
+      "frame": 3,
+      "occupied_columns": 56,
+      "total_columns": 64,
+      "edge_overlap": false,
+      "colors": 13,
+      "max_gap_columns_including_seam": 2,
+      "max_solid_horizontal_span": 9
+    },
+    {
+      "density": 2,
+      "frame": 0,
+      "occupied_columns": 109,
+      "total_columns": 128,
+      "edge_overlap": false,
+      "colors": 16,
+      "max_gap_columns_including_seam": 4,
+      "max_solid_horizontal_span": 13
+    },
+    {
+      "density": 2,
+      "frame": 1,
+      "occupied_columns": 110,
+      "total_columns": 128,
+      "edge_overlap": false,
+      "colors": 16,
+      "max_gap_columns_including_seam": 4,
+      "max_solid_horizontal_span": 14
+    },
+    {
+      "density": 2,
+      "frame": 2,
+      "occupied_columns": 110,
+      "total_columns": 128,
+      "edge_overlap": false,
+      "colors": 16,
+      "max_gap_columns_including_seam": 4,
+      "max_solid_horizontal_span": 14
+    },
+    {
+      "density": 2,
+      "frame": 3,
+      "occupied_columns": 110,
+      "total_columns": 128,
+      "edge_overlap": false,
+      "colors": 16,
+      "max_gap_columns_including_seam": 4,
+      "max_solid_horizontal_span": 14
+    }
+  ],
+  "source_art_manifest": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cr_logos_s1_rune_chain_1019\\manifest.json",
+  "source_art_manifest_sha256": "b96e740b2a7d53e85178fc6cdfe2f0190269df244b2592bb38633fc26124909e",
+  "source_art_packet": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cr_logos_s1_rune_chain_1019",
+  "main_integrated": false,
+  "source_art_commit": "397bcfd3c37fee58b1f92c9d9f293c951d8ae72e",
+  "integration_validation": {
+    "focused_regression": "failures=0",
+    "project_auto_passed": 73,
+    "project_auto_failed": 0,
+    "project_auto_logs": "build/check/quick_1019_111911",
+    "same_seed_trace_lines_identical": 61,
+    "captured_short_attacks": 20,
+    "captured_damage_events": 20,
+    "gameplay_timing_changed": false
+  }
+}

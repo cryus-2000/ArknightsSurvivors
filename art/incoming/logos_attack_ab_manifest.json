@@ -7,7 +7,7 @@
       "frame_width": 32,
       "frame_height": 12,
       "frame_count": 4,
-      "fps": 12,
+      "fps": 16,
       "anchor": [
         16,
         6
@@ -21,7 +21,8 @@
       "source_sha256": "51c373c9a624fd3f4091de412a8c0d7f6869ac2a563b56d2080b613ed8e8a794",
       "outline_contract": "emissive multicolor contour; no mandatory character outline",
       "baseline_contract": "flying effect; center origin",
-      "runtime_file": "art/incoming/proj_logos_ink_a.png"
+      "runtime_file": "art/incoming/proj_logos_ink_a.png",
+      "source_fps": 12
     },
     {
       "file": "proj_logos_ink_a@2x.png",
@@ -29,7 +30,7 @@
       "frame_width": 64,
       "frame_height": 24,
       "frame_count": 4,
-      "fps": 12,
+      "fps": 16,
       "anchor": [
         32,
         12
@@ -43,7 +44,8 @@
       "source_sha256": "51c373c9a624fd3f4091de412a8c0d7f6869ac2a563b56d2080b613ed8e8a794",
       "outline_contract": "emissive multicolor contour; no mandatory character outline",
       "baseline_contract": "flying effect; center origin",
-      "runtime_file": "art/incoming/proj_logos_ink_a@2x.png"
+      "runtime_file": "art/incoming/proj_logos_ink_a@2x.png",
+      "source_fps": 12
     },
     {
       "file": "proj_logos_ink_b.png",
@@ -51,7 +53,7 @@
       "frame_width": 32,
       "frame_height": 12,
       "frame_count": 4,
-      "fps": 12,
+      "fps": 16,
       "anchor": [
         16,
         6
@@ -65,7 +67,8 @@
       "source_sha256": "afd227469db1249831d2c28a70d2061b09f72094acddddf19ede082b272545a4",
       "outline_contract": "emissive multicolor contour; no mandatory character outline",
       "baseline_contract": "flying effect; center origin",
-      "runtime_file": "art/incoming/proj_logos_ink_b.png"
+      "runtime_file": "art/incoming/proj_logos_ink_b.png",
+      "source_fps": 12
     },
     {
       "file": "proj_logos_ink_b@2x.png",
@@ -73,7 +76,7 @@
       "frame_width": 64,
       "frame_height": 24,
       "frame_count": 4,
-      "fps": 12,
+      "fps": 16,
       "anchor": [
         32,
         12
@@ -87,7 +90,8 @@
       "source_sha256": "afd227469db1249831d2c28a70d2061b09f72094acddddf19ede082b272545a4",
       "outline_contract": "emissive multicolor contour; no mandatory character outline",
       "baseline_contract": "flying effect; center origin",
-      "runtime_file": "art/incoming/proj_logos_ink_b@2x.png"
+      "runtime_file": "art/incoming/proj_logos_ink_b@2x.png",
+      "source_fps": 12
     }
   ],
   "variant_order": [
@@ -96,7 +100,7 @@
     "a",
     "b"
   ],
-  "shimmer_loop_seconds": 0.3333333333333333,
+  "shimmer_loop_seconds": 0.25,
   "base_attack_interval_seconds_reference": 1.4,
   "projectile_speed_reference": 600,
   "projectile_lifetime_seconds_reference": 1.3,
@@ -116,13 +120,14 @@
       "proj_logos_ink_a",
       "proj_logos_ink_b"
     ],
-    "fps": 12,
+    "fps": 16,
     "arc_lift": [
-      0.13,
-      -0.075
+      0.09,
+      -0.05
     ],
-    "max_lift": 36,
-    "trail_alpha": 0.55
+    "max_lift": 26,
+    "trail_alpha": 0.72,
+    "trail_width": 2
   },
   "speed_revision": {
     "previous": 260,
@@ -131,6 +136,18 @@
     "rejected_intermediate": 312,
     "basic_attack_interval_seconds": 1.4,
     "hit_timing": "earlier with actual flight; unchanged damage per attack",
-    "trail_alpha": 0.55
+    "trail_alpha": 0.72
+  },
+  "motion_revision": {
+    "speed": 600,
+    "fps": 16,
+    "arc_lift": [
+      0.09,
+      -0.05
+    ],
+    "max_lift": 26,
+    "trail_alpha": 0.72,
+    "trail_width": 2,
+    "gameplay_timing_changed": false
   }
 }

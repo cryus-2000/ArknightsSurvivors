@@ -299,10 +299,11 @@
    "shape": "bolt",
    "flight_visual": {
     "variants": ["proj_logos_ink_a", "proj_logos_ink_b"],
-    "fps": 12,
-    "arc_lift": [0.13, -0.075],
-    "max_lift": 36,
-    "trail_alpha": 0.55
+    "fps": 16,
+    "arc_lift": [0.09, -0.05],
+    "max_lift": 26,
+    "trail_alpha": 0.72,
+    "trail_width": 2
    },
    "pick": "aim",
    "range": "$range",

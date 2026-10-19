@@ -328,7 +328,8 @@ static func _hw3_lock(o, dt: float) -> void:
 		o.deal_damage(lk.e, hw_atk(o) * float(b.get("mult", 0.5)) * ramp * o.skill_power())
 		o.add_cc(lk.e, -INF, float(b.get("slow", 0.6)) * ramp)
 		var tip: Vector2 = _hw_bolt_tip(o, o.B.get("attack", {}))
-		o.fx({"kind": "line", "pos": tip, "to": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "life": 0.12, "col": HW_INK, "w": 1.5 + ramp})
+		if g.tex.get("fx_logos_s1_chain") == null:
+			o.fx({"kind": "line", "pos": tip, "to": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "life": 0.12, "col": HW_INK, "w": 1.5 + ramp})
 		o.fx({"kind": "glow", "pos": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "r": 8.0 + 6.0 * ramp, "life": 0.2, "col": HW_PALE, "alpha": 0.5})
 
 
@@ -572,9 +573,10 @@ static func hw_draw_logos_over(o) -> void:
 		var draw_pos: Vector2 = pose[0]
 		var name: String = str(bo.b.flight_visual.variants[int(visual.variant)]) if not visual.is_empty() else ""
 		var trail_alpha: float = float(bo.b.flight_visual.get("trail_alpha", 0.28)) if not visual.is_empty() else 0.28
+		var trail_width: float = float(bo.b.flight_visual.get("trail_width", 3.5)) if not visual.is_empty() else 3.5
 		for i in range(1, hh.size()):
 			var k: float = float(i) / float(hh.size())
-			cv.draw_line(hh[i - 1], hh[i], Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.08 + (trail_alpha - 0.08) * k), 1.0 + 2.5 * k)
+			cv.draw_line(hh[i - 1], hh[i], Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.08 + (trail_alpha - 0.08) * k), 1.0 + (trail_width - 1.0) * k)
 		var rtx: Texture2D = ArtS.tex("fx_logos_glyphs")
 		if name != "" and g.tex.get(name) != null:
 			o.draw_spr_rot(name, int(bo.age * float(bo.b.flight_visual.fps)) % 4, draw_pos, pose[1], g.PX)
@@ -611,7 +613,11 @@ static func hw_draw_logos_over(o) -> void:
 	if lk is Dictionary and not lk.is_empty() and float(lk.t) > 0.0 and lk.e != null and not lk.e.dead:
 		var tip: Vector2 = _hw_bolt_tip(o, o.B.get("attack", {}))
 		var to: Vector2 = lk.e.pos + Vector2(0, -lk.e.r * 0.5)
-		if g.tex.get("fx_logos_script") != null:
+		if g.tex.get("fx_logos_s1_chain") != null:
+			var packet := hw_s1_packet_pose(lk, tip, to)
+			if not packet.is_empty():
+				_hw_draw_tiled(o, "fx_logos_s1_chain", packet[0], packet[1], g.PX, 0.0, 0, Color.WHITE, -1, true, packet[2])
+		elif g.tex.get("fx_logos_script") != null:
 			_hw_draw_tiled(o, "fx_logos_script", tip, to, g.PX * 0.8, fmod(g.t * 210.0, 64.0 * g.PX * 0.8))
 		var p: Vector2 = lk.e.pos + Vector2(0, -lk.e.r - 14)
 		var kk: float = 0.5 + 0.5 * sin(g.t * 8.0)
@@ -624,8 +630,25 @@ static func hw_draw_logos_over(o) -> void:
 		cv.draw_circle(q, 3.0 + sin(g.t * 12.0), Color(HW_INK.r * 1.6, HW_INK.g * 1.6, HW_INK.b * 1.4, 0.8))
 
 
+## 每次伤害前飞入一束短符文；前 1/4 周期留空，末端在伤害 tick 到达目标。
+static func hw_s1_packet_pose(lk: Dictionary, a: Vector2, b: Vector2) -> Array:
+	if lk.is_empty() or float(lk.get("t", 0.0)) <= 0.0:
+		return []
+	var phase: float = float(lk.get("tick", 0.0)) / maxf(0.001, float(lk.b.get("tick", 0.25)))
+	var length: float = a.distance_to(b)
+	if phase <= 0.25 or phase > 1.0 or length < 2.0:
+		return []
+	var head_t: float = (phase - 0.25) / 0.75
+	var tail_t: float = maxf(0.0, head_t - 48.0 / length)
+	var bend: float = minf(12.0, length * 0.05)
+	var normal := Vector2(-(b - a).y, (b - a).x) / length
+	var tail := a.lerp(b, tail_t) - normal * 4.0 * bend * tail_t * (1.0 - tail_t)
+	var head := a.lerp(b, head_t) - normal * 4.0 * bend * head_t * (1.0 - head_t)
+	return [tail, head, bend * pow(head_t - tail_t, 2.0)]
+
+
 ## 沿 a→b 平铺一张横向帧条（每段一帧宽），offset 为沿方向的滚动位移；最后一段按端点裁剪
-static func _hw_draw_tiled(o, tn: String, a: Vector2, b: Vector2, sc: float, offset: float, frame_off: int = 0, col := Color.WHITE, fixed := -1) -> void:
+static func _hw_draw_tiled(o, tn: String, a: Vector2, b: Vector2, sc: float, offset: float, frame_off: int = 0, col := Color.WHITE, fixed := -1, fade_to_target := false, bend := 0.0) -> void:
 	var g = o.g
 	var tx: Texture2D = g.tex.get(tn)
 	if tx == null or not g.V6_FRAMES.has(tn):
@@ -649,7 +672,27 @@ static func _hw_draw_tiled(o, tn: String, a: Vector2, b: Vector2, sc: float, off
 		if x1 > x0:
 			var u0: float = (x0 - x) / k
 			var u1: float = (x1 - x) / k
-			cv.draw_texture_rect_region(tx, Rect2(Vector2(x0 / k, -fh / 2.0), Vector2(u1 - u0, fh)), Rect2(fw * fr + u0, 0, u1 - u0, fh), col)
+			if fade_to_target or bend != 0.0:
+				# 小段沿同一浅弧线排布，明暗按整条法术进度计算。
+				var parts: int = maxi(1, ceili((x1 - x0) / 8.0))
+				for j in parts:
+					var lo: float = lerpf(x0, x1, float(j) / parts)
+					var hi: float = lerpf(x0, x1, float(j + 1) / parts)
+					var t0: float = lo / L
+					var t1: float = hi / L
+					var p0 := Vector2(lo, -4.0 * bend * t0 * (1.0 - t0)) / k
+					var p1 := Vector2(hi, -4.0 * bend * t1 * (1.0 - t1)) / k
+					var n0 := Vector2(4.0 * bend * (1.0 - 2.0 * t0) / L, 1).normalized() * fh / 2.0
+					var n1 := Vector2(4.0 * bend * (1.0 - 2.0 * t1) / L, 1).normalized() * fh / 2.0
+					var tint: Color = col
+					if fade_to_target:
+						tint *= Color(0.55, 0.55, 0.55, 0.55).lerp(Color(1.15, 1.15, 1.15, 1.0), smoothstep(0.0, 1.0, (t0 + t1) * 0.5))
+					var uv0: float = (fw * fr + (lo - x) / k) / tx.get_width()
+					var uv1: float = (fw * fr + (hi - x) / k) / tx.get_width()
+					cv.draw_colored_polygon(PackedVector2Array([p0 - n0, p1 - n1, p1 + n1, p0 + n0]), tint,
+						PackedVector2Array([Vector2(uv0, 0), Vector2(uv1, 0), Vector2(uv1, 1), Vector2(uv0, 1)]), tx)
+			else:
+				cv.draw_texture_rect_region(tx, Rect2(Vector2(x0 / k, -fh / 2.0), Vector2(u1 - u0, fh)), Rect2(fw * fr + u0, 0, u1 - u0, fh), col)
 		x += seg
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
