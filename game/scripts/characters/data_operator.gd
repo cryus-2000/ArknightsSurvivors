@@ -1026,6 +1026,8 @@ func bot_wants_manual(i: int) -> bool:
 
 func anim_state() -> Dictionary:
 	var st := super()
+	if hw.has("bolts"):
+		st = SegLogos.hw_native_body_state(self, st)
 	if not hw.is_empty() and hw.has("sp"):
 		st = SegSpecter.h3_anim_state(self, st)   # 手写迁移段第 3 批：倒下帧条
 	if not hw.is_empty() and hw.has("ir"):
@@ -1467,6 +1469,8 @@ func start_skill(aim: Vector2, idx: int = -1, dur: float = 0.6, fire_at: float =
 func start_attack(aim: Vector2, dur: float = 0.5, fire_at: float = 0.25, anim := "", interval := 0.0) -> void:
 	if AttackPhases.attack_locked(self):
 		return
+	if hw.has("bolts"):
+		hw.body_variant = int(hw.get("bolt_variant", 0))
 	AttackPhases.begin_round(self)
 	super(aim, dur, fire_at, "" if not phases.is_empty() else anim, cd if not phases.is_empty() else interval)
 	var timing: Dictionary = sprite_spec(act_anim).get("attack_timing", {})

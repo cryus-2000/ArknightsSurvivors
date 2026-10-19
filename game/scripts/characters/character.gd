@@ -1312,6 +1312,12 @@ func frames_seconds(kind: String, frames: Array) -> float:
 	var total := 0.0
 	for frame in frames:
 		total += frame_seconds(kind, int(frame))
+	var spec := sprite_spec(kind)
+	if spec.has("frame_durations") and spec.has("fps") and frames.size() == int(spec.get("frames", 0)):
+		var nominal := frames.size() / float(spec.fps)
+		# 完整帧条的求和舍入不能改变原有动作占用的物理帧数。
+		if absf(total - nominal) < 0.000000000001:
+			return nominal
 	return total
 
 
@@ -1638,7 +1644,7 @@ func _anim_state_raw() -> Dictionary:
 		"run":
 			fr = int(run_ph) % n
 		_:
-			fr = int(anim_t * float(sprite_spec(kind).get("fps", ANIM_FPS.get(kind, 4.0)))) % n
+			fr = timed_frame(kind, range(n), anim_t, true) if sprite_spec(kind).has("frame_durations") else int(anim_t * float(sprite_spec(kind).get("fps", ANIM_FPS.get(kind, 4.0)))) % n
 	return {"tex": tx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
 
 
@@ -1941,9 +1947,11 @@ func _tick_sq_atk(dt: float) -> void:
 		sq_atk_t += dt
 	else:
 		return
+	if sq_atk == "":
+		return
 	var spec := sprite_spec(sq_atk)
 	var n := float(spec.get("frames", anim_hframes(anim_tex(sq_atk), sq_atk)))
-	if (sq_atk_t >= attack_dur) if attack_phased else (sq_atk_t + _sq_atk_off() >= n / float(spec.get("fps", 12.0))):
+	if (sq_atk_t >= attack_dur) if attack_phased else (sq_atk_t + _sq_atk_off() >= frames_seconds(sq_atk, range(int(n)))):
 		sq_atk = ""   # 播完回循环
 
 
@@ -1959,15 +1967,17 @@ func _sq_atk_kind() -> String:
 func _sq_atk_off() -> float:
 	var vs := sprite_spec(sq_atk)
 	var vfps := float(vs.get("fps", 12.0))
-	var v_fire := (float(vs.get("fire", 0)) + 0.5) / vfps
+	var v_fire: float = float(vs.get("fire_time", (float(vs.get("fire", 0)) + 0.5) / vfps))
 	var a := sprite_spec("attack")
-	var a_fire: float = (float(a.get("fire", 0)) + 0.5) / float(a.get("fps", 12.0)) if (a.has("fps") and a.has("fire")) else attack_dur * 0.5
+	var a_fire: float = float(a.get("fire_time", (float(a.get("fire", 0)) + 0.5) / float(a.get("fps", 12.0)))) if a.has("fire") else attack_dur * 0.5
 	return v_fire - a_fire
 
 
 func _sq_atk_frame(n: int) -> int:
 	if attack_phased:
 		return attack_phase_frame(n, int(sprite_spec(sq_atk).get("fire", 0)), sq_atk_t)
+	if sprite_spec(sq_atk).has("frame_durations"):
+		return timed_frame(sq_atk, range(n), maxf(0.0, sq_atk_t + _sq_atk_off()))
 	var fps := float(sprite_spec(sq_atk).get("fps", 12.0))
 	return clampi(int(maxf(0.0, sq_atk_t + _sq_atk_off()) * fps), 0, n - 1)
 

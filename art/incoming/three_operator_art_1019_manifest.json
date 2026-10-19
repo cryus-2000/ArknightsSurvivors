@@ -1,0 +1,2525 @@
+{
+  "source_catalog": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cp_three_operator_run_references_1018\\three_latest_all_03\\manifest.json",
+  "source_catalog_sha256": "3b19b96130b7f1fefae3ee9258e0dd11f97130ac779e9ca7a75edc6612768a0c",
+  "assets": [
+    {
+      "operator": "exusiai",
+      "slot": "idle",
+      "native_track": "Idle",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\exusiai\\Idle\\strip@2x.png",
+      "source_sha256": "42a2603b415fc0374b711b5df0108815351288f5e0b5b11cbfd5fc093a36b7e3",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        95.5,
+        151.20499426251683
+      ],
+      "translation_px": [
+        -32,
+        -31
+      ],
+      "anchor_rounding_error_px": [
+        -0.5,
+        0.20499426251683417
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_exusiai_idle",
+        "frames": 8,
+        "fps": 2.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.5700000000000001,
+          0.5700000000000001,
+          0.5700000000000001,
+          0.5700000000000001,
+          0.5700000000000003,
+          0.5699999999999998,
+          0.5699999999999994,
+          0.010000000000000231
+        ]
+      },
+      "file": "op_exusiai_idle@2x.png",
+      "sha256": "9890d7a097319e82334f54408af35cfce6d702b8c458237c6ec5ed9e0f5e1258",
+      "pixels_preserved": true,
+      "duration_s": 4.0,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "exusiai",
+      "slot": "run",
+      "native_track": "Run",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cp_three_operator_run_references_1018\\exusiai_arm_revision_03\\exusiai\\run@2x.png",
+      "source_sha256": "947345b8568321c5a8d58323b47b77695850ff09552bc477fca22aaadc52079a",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        63.5,
+        119.20499426251682
+      ],
+      "translation_px": [
+        0,
+        1
+      ],
+      "anchor_rounding_error_px": [
+        -0.5,
+        0.20499426251681996
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_exusiai_run",
+        "frames": 8,
+        "fps": 13.333333333333334,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075
+        ]
+      },
+      "file": "op_exusiai_run@2x.png",
+      "sha256": "b9663a881ca4199101a37add3646b260fd4432df4251c5069032bd24639c8161",
+      "pixels_preserved": true,
+      "duration_s": 0.6,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "exusiai",
+      "slot": "attack",
+      "native_track": "Attack",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\exusiai\\Attack\\strip@2x.png",
+      "source_sha256": "26b9aa0ed94a91c0def3416b876be516835ec90b797285c78bd9d4e9c2b7e27e",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        95.5,
+        151.20499426251683
+      ],
+      "translation_px": [
+        -32,
+        -31
+      ],
+      "anchor_rounding_error_px": [
+        -0.5,
+        0.20499426251683417
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_exusiai_attack",
+        "frames": 8,
+        "fps": 32.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.046875,
+          0.046875,
+          0.026041666666666668,
+          0.026041666666666668,
+          0.026041666666666668,
+          0.026041666666666668,
+          0.026041666666666668,
+          0.026041666666666657
+        ],
+        "fire": 2,
+        "fire_time": 0.09375
+      },
+      "file": "op_exusiai_attack@2x.png",
+      "sha256": "b525fdcba0a843dc09f4b41ae350a0e81bdaa3b2e7559f94ecad981ff290a392",
+      "pixels_preserved": true,
+      "duration_s": 0.25,
+      "runtime_fire_s": 0.09375,
+      "source_event_frame": 2,
+      "rescaled": false
+    },
+    {
+      "operator": "exusiai",
+      "slot": "skill",
+      "native_track": "Attack",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\exusiai\\Attack\\strip@2x.png",
+      "source_sha256": "26b9aa0ed94a91c0def3416b876be516835ec90b797285c78bd9d4e9c2b7e27e",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        95.5,
+        151.20499426251683
+      ],
+      "translation_px": [
+        -32,
+        -31
+      ],
+      "anchor_rounding_error_px": [
+        -0.5,
+        0.20499426251683417
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_exusiai_skill",
+        "frames": 8,
+        "fps": 13.714285714285714,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.14583333333333334,
+          0.14583333333333334,
+          0.04861111111111111,
+          0.04861111111111111,
+          0.04861111111111111,
+          0.04861111111111111,
+          0.04861111111111111,
+          0.04861111111111116
+        ],
+        "fire": 2,
+        "fire_time": 0.2916666666666667
+      },
+      "file": "op_exusiai_skill@2x.png",
+      "sha256": "b525fdcba0a843dc09f4b41ae350a0e81bdaa3b2e7559f94ecad981ff290a392",
+      "pixels_preserved": true,
+      "duration_s": 0.5833333333333334,
+      "runtime_fire_s": 0.2916666666666667,
+      "source_event_frame": 2,
+      "rescaled": false
+    },
+    {
+      "operator": "exusiai",
+      "slot": "death",
+      "native_track": "Die",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\exusiai\\Die\\strip@2x.png",
+      "source_sha256": "0e9204480beb5567e57df86a172daa4e69cde4d2b311df0049acdd447d6292cd",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        95.5,
+        151.20499426251683
+      ],
+      "translation_px": [
+        -32,
+        -31
+      ],
+      "anchor_rounding_error_px": [
+        -0.5,
+        0.20499426251683417
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_exusiai_death",
+        "frames": 8,
+        "fps": 8.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.14142857142857143,
+          0.14142857142857143,
+          0.1414285714285714,
+          0.14142857142857146,
+          0.14142857142857146,
+          0.14142857142857135,
+          0.14142857142857146,
+          0.010000000000000009
+        ]
+      },
+      "file": "op_exusiai_death@2x.png",
+      "sha256": "072787a5502a3b89c96253596903c9f87cec5a5f0812de856c01d427e42fde46",
+      "pixels_preserved": true,
+      "duration_s": 1.0,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "exusiai",
+      "slot": "hurt",
+      "native_track": "Die",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\exusiai\\Die\\strip@2x.png",
+      "source_sha256": "0e9204480beb5567e57df86a172daa4e69cde4d2b311df0049acdd447d6292cd",
+      "source_frames": [
+        0,
+        1
+      ],
+      "source_anchor": [
+        95.5,
+        151.20499426251683
+      ],
+      "translation_px": [
+        -32,
+        -31
+      ],
+      "anchor_rounding_error_px": [
+        -0.5,
+        0.20499426251683417
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_exusiai_hurt",
+        "frames": 2,
+        "fps": 10.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.1,
+          0.1
+        ]
+      },
+      "file": "op_exusiai_hurt@2x.png",
+      "sha256": "3e7996b70070fc9a16dd1036d7d94c8100d0abfafc8d5f871f3c21c8c9ab3187",
+      "pixels_preserved": true,
+      "duration_s": 0.2,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "eyjafjalla",
+      "slot": "idle",
+      "native_track": "Idle",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\eyjafjalla\\Idle\\strip@2x.png",
+      "source_sha256": "572b35b58c34ca9dd4904d7d964d70428fa2309141019e1782dd38a6baf198ae",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        95.5,
+        151.8797502252752
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        -0.5,
+        -0.12024977472481169
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_eyjafjalla_idle",
+        "frames": 8,
+        "fps": 2.6666666666666665,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.42714285714285716,
+          0.42714285714285716,
+          0.42714285714285727,
+          0.42714285714285705,
+          0.42714285714285705,
+          0.4271428571428575,
+          0.4271428571428566,
+          0.010000000000000231
+        ]
+      },
+      "file": "op_eyjafjalla_idle@2x.png",
+      "sha256": "6ab35edb5c0b6fa94d28a50871a85d455aa90bfc418c1d902af6c909688596b3",
+      "pixels_preserved": true,
+      "duration_s": 3.0,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "eyjafjalla",
+      "slot": "run",
+      "native_track": "Run",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cp_three_operator_run_references_1018\\eyjafjalla_arm_revision_04\\eyjafjalla\\run@2x.png",
+      "source_sha256": "8c3bc2a0fbb66910b00e755d98f016325d024db76a8e54a8df717e4cef908558",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        63.5,
+        119.87975022527519
+      ],
+      "translation_px": [
+        0,
+        0
+      ],
+      "anchor_rounding_error_px": [
+        -0.5,
+        -0.12024977472481169
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_eyjafjalla_run",
+        "frames": 8,
+        "fps": 13.333333333333334,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075
+        ]
+      },
+      "file": "op_eyjafjalla_run@2x.png",
+      "sha256": "8c3bc2a0fbb66910b00e755d98f016325d024db76a8e54a8df717e4cef908558",
+      "pixels_preserved": true,
+      "duration_s": 0.6,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "eyjafjalla",
+      "slot": "attack",
+      "native_track": "Attack",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\eyjafjalla\\Attack\\strip@2x.png",
+      "source_sha256": "67538e7871a476fbe1d23da3c46f29f137bd3590d356ef50985d8fa9638e7990",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        95.5,
+        151.8797502252752
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        -0.5,
+        -0.12024977472481169
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_eyjafjalla_attack",
+        "frames": 8,
+        "fps": 28.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.044642857142857144,
+          0.044642857142857144,
+          0.044642857142857144,
+          0.044642857142857144,
+          0.02678571428571428,
+          0.02678571428571428,
+          0.02678571428571428,
+          0.0267857142857143
+        ],
+        "fire": 4,
+        "fire_time": 0.17857142857142858
+      },
+      "file": "op_eyjafjalla_attack@2x.png",
+      "sha256": "0f6c36867dbfba064edad312bc09b46cf26ee9a66ecf8a63dcb07d45a3de9773",
+      "pixels_preserved": true,
+      "duration_s": 0.2857142857142857,
+      "runtime_fire_s": 0.17857142857142858,
+      "source_event_frame": 4,
+      "rescaled": false
+    },
+    {
+      "operator": "eyjafjalla",
+      "slot": "skill",
+      "native_track": "Attack",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\eyjafjalla\\Attack\\strip@2x.png",
+      "source_sha256": "67538e7871a476fbe1d23da3c46f29f137bd3590d356ef50985d8fa9638e7990",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        95.5,
+        151.8797502252752
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        -0.5,
+        -0.12024977472481169
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_eyjafjalla_skill",
+        "frames": 8,
+        "fps": 12.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.09375,
+          0.09375,
+          0.09375,
+          0.09375,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666663
+        ],
+        "fire": 4,
+        "fire_time": 0.375
+      },
+      "file": "op_eyjafjalla_skill@2x.png",
+      "sha256": "0f6c36867dbfba064edad312bc09b46cf26ee9a66ecf8a63dcb07d45a3de9773",
+      "pixels_preserved": true,
+      "duration_s": 0.6666666666666666,
+      "runtime_fire_s": 0.375,
+      "source_event_frame": 4,
+      "rescaled": false
+    },
+    {
+      "operator": "eyjafjalla",
+      "slot": "death",
+      "native_track": "Die",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\eyjafjalla\\Die\\strip@2x.png",
+      "source_sha256": "e847a4a2d572fc1c1b2ac5cd0ae13ae18491d0c48f8bfdcb86371e8184c60cb6",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        95.5,
+        151.8797502252752
+      ],
+      "translation_px": [
+        0,
+        0
+      ],
+      "anchor_rounding_error_px": [
+        -0.5,
+        -0.12024977472481169
+      ],
+      "density": 2,
+      "canvas": [
+        96.0,
+        96.0
+      ],
+      "spec": {
+        "tex": "op_eyjafjalla_death",
+        "frames": 8,
+        "fps": 6.666666401757145,
+        "foot": [
+          48.0,
+          76.0
+        ],
+        "frame_durations": [
+          0.1700000068119594,
+          0.1700000068119594,
+          0.17000000681195943,
+          0.17000000681195937,
+          0.17000000681195948,
+          0.17000000681195937,
+          0.17000000681195937,
+          0.010000000000000009
+        ]
+      },
+      "file": "op_eyjafjalla_death@2x.png",
+      "sha256": "e847a4a2d572fc1c1b2ac5cd0ae13ae18491d0c48f8bfdcb86371e8184c60cb6",
+      "pixels_preserved": true,
+      "duration_s": 1.2000000476837158,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "eyjafjalla",
+      "slot": "hurt",
+      "native_track": "Die",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\eyjafjalla\\Die\\strip@2x.png",
+      "source_sha256": "e847a4a2d572fc1c1b2ac5cd0ae13ae18491d0c48f8bfdcb86371e8184c60cb6",
+      "source_frames": [
+        0,
+        1
+      ],
+      "source_anchor": [
+        95.5,
+        151.8797502252752
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        -0.5,
+        -0.12024977472481169
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_eyjafjalla_hurt",
+        "frames": 2,
+        "fps": 10.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.1,
+          0.1
+        ]
+      },
+      "file": "op_eyjafjalla_hurt@2x.png",
+      "sha256": "3e40bb99c3691a713dde6fbf3a56f7f5430e0a907d280e031c46ebf57f1f622c",
+      "pixels_preserved": true,
+      "duration_s": 0.2,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "eyjafjalla",
+      "slot": "skill_s3",
+      "native_track": "Skill_Start",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\eyjafjalla\\Skill_Start\\strip@2x.png",
+      "source_sha256": "346083dc2095734fa877b4b758a83a512408202d1eb90010983dcd1edfa357f4",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        95.5,
+        151.8797502252752
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        -0.5,
+        -0.12024977472481169
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_eyjafjalla_skill_s3",
+        "frames": 8,
+        "fps": 12.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.09375,
+          0.09375,
+          0.09375,
+          0.09375,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666663
+        ],
+        "fire": 4,
+        "fire_time": 0.375
+      },
+      "file": "op_eyjafjalla_skill_s3@2x.png",
+      "sha256": "bb8e267bbd0676001f1f77a515830c78390fdca2f8d527e4a02f8380f0312055",
+      "pixels_preserved": true,
+      "duration_s": 0.6666666666666666,
+      "runtime_fire_s": 0.375,
+      "source_event_frame": 4,
+      "rescaled": false
+    },
+    {
+      "operator": "eyjafjalla",
+      "slot": "skill_s3_loop",
+      "native_track": "Skill_Loop",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\eyjafjalla\\Skill_Loop\\strip@2x.png",
+      "source_sha256": "bb9e541f7f8e8ff176a7a29e6ca692e4f6fb76e1df8da97778cefc0fe9620816",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        95.5,
+        151.8797502252752
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        -0.5,
+        -0.12024977472481169
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_eyjafjalla_skill_s3_loop",
+        "frames": 8,
+        "fps": 6.666666401757145,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.1700000068119594,
+          0.1700000068119594,
+          0.17000000681195943,
+          0.17000000681195937,
+          0.17000000681195948,
+          0.17000000681195937,
+          0.17000000681195937,
+          0.010000000000000009
+        ]
+      },
+      "file": "op_eyjafjalla_skill_s3_loop@2x.png",
+      "sha256": "3d8fc05513c8165e5c14481e055e7f369e5225e4bd57f9463f83ac78ec559add",
+      "pixels_preserved": true,
+      "duration_s": 1.2000000476837158,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "eyjafjalla",
+      "slot": "skill_s3_end",
+      "native_track": "Skill_End",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\eyjafjalla\\Skill_End\\strip@2x.png",
+      "source_sha256": "f9fe5d2a348121de135ba2d2308a2a9dda620886c287d8773b7149a360cef20c",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        95.5,
+        151.8797502252752
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        -0.5,
+        -0.12024977472481169
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_eyjafjalla_skill_s3_end",
+        "frames": 8,
+        "fps": 4.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.2842857142857143,
+          0.2842857142857143,
+          0.28428571428571425,
+          0.28428571428571436,
+          0.28428571428571403,
+          0.2842857142857145,
+          0.28428571428571425,
+          0.010000000000000009
+        ]
+      },
+      "file": "op_eyjafjalla_skill_s3_end@2x.png",
+      "sha256": "0b38d9c0e15bd8599ab7b00cf627fd3d520453c2276c873e82d19dd6c00407de",
+      "pixels_preserved": true,
+      "duration_s": 2.0,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "idle",
+      "native_track": "Idle",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\logos\\Idle\\strip@2x.png",
+      "source_sha256": "b204db1e45a518aa40a200b06e82f49a70e6fcac4124cb9d70866c3d81259c01",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        96.5,
+        152.10229790110228
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_idle",
+        "frames": 8,
+        "fps": 1.6,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.7128571428571429,
+          0.7128571428571429,
+          0.7128571428571431,
+          0.7128571428571426,
+          0.7128571428571431,
+          0.7128571428571431,
+          0.7128571428571426,
+          0.009999999999999787
+        ]
+      },
+      "file": "op_logos_idle@2x.png",
+      "sha256": "6fdb9a295afca17b2bbd25277978e7269774a102b6b31ed81251c16290160d02",
+      "pixels_preserved": true,
+      "duration_s": 5.0,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "run",
+      "native_track": "Run",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cp_three_operator_run_references_1018\\logos_leg_revision_04\\logos\\run@2x.png",
+      "source_sha256": "3f67b5ea2631f94dbba9b012c707504901f853b677aa24209d1fa32a7af3fce1",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        64.5,
+        120.10229790110228
+      ],
+      "translation_px": [
+        0,
+        0
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_run",
+        "frames": 8,
+        "fps": 13.333333333333334,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075
+        ]
+      },
+      "file": "op_logos_run@2x.png",
+      "sha256": "3f67b5ea2631f94dbba9b012c707504901f853b677aa24209d1fa32a7af3fce1",
+      "pixels_preserved": true,
+      "duration_s": 0.6,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "attack",
+      "native_track": "Attack_1",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\logos\\Attack_1\\strip@2x.png",
+      "source_sha256": "78639fac286cfdcdc2072bb07b6a70e96122599cf801624bfae956f0740d52b9",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        96.5,
+        152.10229790110228
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_attack",
+        "frames": 8,
+        "fps": 24.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.10416666666666667,
+          0.10416666666666667,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.020833333333333315
+        ],
+        "fire": 2,
+        "fire_time": 0.20833333333333334
+      },
+      "file": "op_logos_attack@2x.png",
+      "sha256": "a40c7054aacddf4fb2f96ddfd4c9344dc13f4aa1fecddaea744615f6616e56bc",
+      "pixels_preserved": true,
+      "duration_s": 0.3333333333333333,
+      "runtime_fire_s": 0.20833333333333334,
+      "source_event_frame": 2,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "skill",
+      "native_track": "Skill_2_Begin",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\logos\\Skill_2_Begin\\strip@2x.png",
+      "source_sha256": "080a83b4c5e51fb2d2c47094b67079b0821702b462baa91b3720c4066b975c3b",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        96.5,
+        152.10229790110228
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_skill",
+        "frames": 8,
+        "fps": 12.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.09375,
+          0.09375,
+          0.09375,
+          0.09375,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666663
+        ],
+        "fire": 4,
+        "fire_time": 0.375
+      },
+      "file": "op_logos_skill@2x.png",
+      "sha256": "15ae630ca7150e30c10c7e4562b43aa2ee5af7f170c34f9321273c3733361a4e",
+      "pixels_preserved": true,
+      "duration_s": 0.6666666666666666,
+      "runtime_fire_s": 0.375,
+      "source_event_frame": 4,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "death",
+      "native_track": "Die",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\logos\\Die\\strip@2x.png",
+      "source_sha256": "8c2490259ab66ece9734d70e4d104bfaf3d7adef8361f4165fc2f55821782019",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        96.5,
+        152.10229790110228
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_death",
+        "frames": 8,
+        "fps": 8.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.14142857142857143,
+          0.14142857142857143,
+          0.1414285714285714,
+          0.14142857142857146,
+          0.14142857142857146,
+          0.14142857142857135,
+          0.14142857142857146,
+          0.010000000000000009
+        ]
+      },
+      "file": "op_logos_death@2x.png",
+      "sha256": "8af6721566540b3c1215993c786b74b1d20261bd5d09a9cef69ebc9e92af9591",
+      "pixels_preserved": true,
+      "duration_s": 1.0,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "hurt",
+      "native_track": "Die",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\logos\\Die\\strip@2x.png",
+      "source_sha256": "8c2490259ab66ece9734d70e4d104bfaf3d7adef8361f4165fc2f55821782019",
+      "source_frames": [
+        0,
+        1
+      ],
+      "source_anchor": [
+        96.5,
+        152.10229790110228
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_hurt",
+        "frames": 2,
+        "fps": 10.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.1,
+          0.1
+        ]
+      },
+      "file": "op_logos_hurt@2x.png",
+      "sha256": "65c6b5b81d0da0c891b040dc42a69dfba1d88ed9d95cd223cf7b9a9a9797e55c",
+      "pixels_preserved": true,
+      "duration_s": 0.2,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "attack_b",
+      "native_track": "Attack_2",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\logos\\Attack_2\\strip@2x.png",
+      "source_sha256": "211e1a9aba3d9cea2e68624a96c5d5050f778fabb9b6c7199e318fbda315afd0",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        96.5,
+        152.10229790110228
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_attack_b",
+        "frames": 8,
+        "fps": 24.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.10416666666666667,
+          0.10416666666666667,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.020833333333333315
+        ],
+        "fire": 2,
+        "fire_time": 0.20833333333333334
+      },
+      "file": "op_logos_attack_b@2x.png",
+      "sha256": "9f2683ce3a4c4b56fd6c48d764db4b3dce2ebb250f335ca49c340d2f771fcb1c",
+      "pixels_preserved": true,
+      "duration_s": 0.3333333333333333,
+      "runtime_fire_s": 0.20833333333333334,
+      "source_event_frame": 2,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "attack_s2",
+      "native_track": "Skill_1_Attack",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\logos\\Skill_1_Attack\\strip@2x.png",
+      "source_sha256": "cc55cc40695973e9c4501228b0401dd2316fd30f79a76ebcc5d0b1aff6156839",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        96.5,
+        152.10229790110228
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_attack_s2",
+        "frames": 8,
+        "fps": 24.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.10416666666666667,
+          0.10416666666666667,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.020833333333333315
+        ],
+        "fire": 2,
+        "fire_time": 0.20833333333333334
+      },
+      "file": "op_logos_attack_s2@2x.png",
+      "sha256": "2b88849d5e5b42251091188e1b48651987c9fd9ae6b0325dc53ff657c5fc6fa9",
+      "pixels_preserved": true,
+      "duration_s": 0.3333333333333333,
+      "runtime_fire_s": 0.20833333333333334,
+      "source_event_frame": 2,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "idle_s2",
+      "native_track": "Skill_1_Idle",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\logos\\Skill_1_Idle\\strip@2x.png",
+      "source_sha256": "11b74101f2c2defbeb0af05253d5b1227787ef49ae460729c84d4825edbac287",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        96.5,
+        152.10229790110228
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_idle_s2",
+        "frames": 8,
+        "fps": 1.2000000286102301,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.9509523582458497,
+          0.9509523582458497,
+          0.9509523582458494,
+          0.9509523582458499,
+          0.9509523582458499,
+          0.950952358245849,
+          0.9509523582458499,
+          0.009999999999999787
+        ]
+      },
+      "file": "op_logos_idle_s2@2x.png",
+      "sha256": "670a41a41c1f9184d299d91bba92621cfc0ad013aa536f987ea814ce431f3358",
+      "pixels_preserved": true,
+      "duration_s": 6.666666507720947,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "skill_s2",
+      "native_track": "Skill_1_Begin",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\logos\\Skill_1_Begin\\strip@2x.png",
+      "source_sha256": "a819ec89c5414928af1919c9371cfa03082bf992d1cf3ea8767ac002d43dce66",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        96.5,
+        152.10229790110228
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_skill_s2",
+        "frames": 8,
+        "fps": 12.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.09375,
+          0.09375,
+          0.09375,
+          0.09375,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666663
+        ],
+        "fire": 4,
+        "fire_time": 0.375
+      },
+      "file": "op_logos_skill_s2@2x.png",
+      "sha256": "db3cb3b5dd6e6abbf4e3fe089d9763b16bab6c1a34f7b23f626b2245979d671d",
+      "pixels_preserved": true,
+      "duration_s": 0.6666666666666666,
+      "runtime_fire_s": 0.375,
+      "source_event_frame": 4,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "skill_s1_loop",
+      "native_track": "Skill_2_Loop",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\logos\\Skill_2_Loop\\strip@2x.png",
+      "source_sha256": "9d28e375f39a2d5e3c9fc5866edac4ac7992c7f5d6004b155b30551e930e8a8b",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        96.5,
+        152.10229790110228
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_skill_s1_loop",
+        "frames": 8,
+        "fps": 8.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.14142857142857143,
+          0.14142857142857143,
+          0.1414285714285714,
+          0.14142857142857146,
+          0.14142857142857146,
+          0.14142857142857135,
+          0.14142857142857146,
+          0.010000000000000009
+        ]
+      },
+      "file": "op_logos_skill_s1_loop@2x.png",
+      "sha256": "d5cf8859278a32e3efee92f3be9c15d08677fb0f03ee6e802c609e3cbb932b83",
+      "pixels_preserved": true,
+      "duration_s": 1.0,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "skill_s1_end",
+      "native_track": "Skill_2_End",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\logos\\Skill_2_End\\strip@2x.png",
+      "source_sha256": "908ac6da1c7385e9a1df65fa00f13a4f7281a216ebb86398c7563a5b2179109a",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        96.5,
+        152.10229790110228
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_skill_s1_end",
+        "frames": 8,
+        "fps": 29.999998435378156,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.03666666865348816,
+          0.03666666865348816,
+          0.03666666865348815,
+          0.036666668653488166,
+          0.036666668653488166,
+          0.03666666865348814,
+          0.036666668653488166,
+          0.010000000000000009
+        ]
+      },
+      "file": "op_logos_skill_s1_end@2x.png",
+      "sha256": "67ba78aa3979e9dc85ed1e1480ddad9dd8004a95b603bfe4778c8d1a5b0afb2a",
+      "pixels_preserved": true,
+      "duration_s": 0.2666666805744171,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "skill_s3",
+      "native_track": "Skill_3_Begin",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\logos\\Skill_3_Begin\\strip@2x.png",
+      "source_sha256": "f9b015367d6c3b429421ac78b93e5a49023170a945f07a4012157979339221cc",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        96.5,
+        152.10229790110228
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_skill_s3",
+        "frames": 8,
+        "fps": 12.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.09375,
+          0.09375,
+          0.09375,
+          0.09375,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666663
+        ],
+        "fire": 4,
+        "fire_time": 0.375
+      },
+      "file": "op_logos_skill_s3@2x.png",
+      "sha256": "967387baf6495014982195ba98d74a9da83c133afc3b923a2f45e9b62d9d1856",
+      "pixels_preserved": true,
+      "duration_s": 0.6666666666666666,
+      "runtime_fire_s": 0.375,
+      "source_event_frame": 4,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "skill_s3_loop",
+      "native_track": "Skill_3_Idle",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\logos\\Skill_3_Idle\\strip@2x.png",
+      "source_sha256": "8aff484f7332a7c485961c6f6097c25a57ea6d0ee9e3db2cab631f0dbe62ca30",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        96.5,
+        152.10229790110228
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_skill_s3_loop",
+        "frames": 8,
+        "fps": 5.333333333333333,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.21285714285714286,
+          0.21285714285714286,
+          0.21285714285714286,
+          0.21285714285714286,
+          0.21285714285714286,
+          0.21285714285714286,
+          0.21285714285714286,
+          0.010000000000000009
+        ]
+      },
+      "file": "op_logos_skill_s3_loop@2x.png",
+      "sha256": "de7bb1f966065c54e8feb8b46140ddc65397904e794317a27dca82f427cab9a8",
+      "pixels_preserved": true,
+      "duration_s": 1.5,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "skill_s3_attack",
+      "native_track": "Skill_3_Attack",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\logos\\Skill_3_Attack\\strip@2x.png",
+      "source_sha256": "588c563b71130ff3dd68e3f7908f8bdc2145fc045b2667be1ac1984effa30903",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        96.5,
+        152.10229790110228
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_skill_s3_attack",
+        "frames": 8,
+        "fps": 24.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.06944444444444445,
+          0.06944444444444445,
+          0.06944444444444445,
+          0.024999999999999994,
+          0.024999999999999994,
+          0.024999999999999994,
+          0.024999999999999994,
+          0.024999999999999967
+        ],
+        "fire": 3,
+        "fire_time": 0.20833333333333334
+      },
+      "file": "op_logos_skill_s3_attack@2x.png",
+      "sha256": "8ad34b2bb3ec0e35c16ba87046ff4248572639abe7e19a56e2a0e38db5380c36",
+      "pixels_preserved": true,
+      "duration_s": 0.3333333333333333,
+      "runtime_fire_s": 0.20833333333333334,
+      "source_event_frame": 3,
+      "rescaled": false
+    },
+    {
+      "operator": "logos",
+      "slot": "skill_s3_end",
+      "native_track": "Skill_3_End",
+      "source_strip": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\cb_18_prts_native_actions_1017\\logos\\Skill_3_End\\strip@2x.png",
+      "source_sha256": "177d0193fb10df2ef9364a4ef03d58b7f9359eae55466a7036933d8994c0e222",
+      "source_frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "source_anchor": [
+        96.5,
+        152.10229790110228
+      ],
+      "translation_px": [
+        -32,
+        -32
+      ],
+      "anchor_rounding_error_px": [
+        0.5,
+        0.10229790110227555
+      ],
+      "density": 2,
+      "canvas": [
+        64.0,
+        64.0
+      ],
+      "spec": {
+        "tex": "op_logos_skill_s3_end",
+        "frames": 8,
+        "fps": 6.857143090695759,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.1652380895614624,
+          0.1680952537059784,
+          0.16238092541694638,
+          0.16523808956146246,
+          0.16523808956146235,
+          0.16523808956146235,
+          0.16523808956146246,
+          0.010000000000000009
+        ]
+      },
+      "file": "op_logos_skill_s3_end@2x.png",
+      "sha256": "28d637fdd91a52aa77deed930e5c606dcf5560aecc979e774c80265b06d5f23e",
+      "pixels_preserved": true,
+      "duration_s": 1.1666666269302368,
+      "runtime_fire_s": null,
+      "source_event_frame": null,
+      "rescaled": false
+    }
+  ],
+  "sprites": {
+    "exusiai": {
+      "idle": {
+        "tex": "op_exusiai_idle",
+        "frames": 8,
+        "fps": 2.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.5700000000000001,
+          0.5700000000000001,
+          0.5700000000000001,
+          0.5700000000000001,
+          0.5700000000000003,
+          0.5699999999999998,
+          0.5699999999999994,
+          0.010000000000000231
+        ]
+      },
+      "run": {
+        "tex": "op_exusiai_run",
+        "frames": 8,
+        "fps": 13.333333333333334,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075
+        ]
+      },
+      "attack": {
+        "tex": "op_exusiai_attack",
+        "frames": 8,
+        "fps": 32.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.046875,
+          0.046875,
+          0.026041666666666668,
+          0.026041666666666668,
+          0.026041666666666668,
+          0.026041666666666668,
+          0.026041666666666668,
+          0.026041666666666657
+        ],
+        "fire": 2,
+        "fire_time": 0.09375
+      },
+      "skill": {
+        "tex": "op_exusiai_skill",
+        "frames": 8,
+        "fps": 13.714285714285714,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.14583333333333334,
+          0.14583333333333334,
+          0.04861111111111111,
+          0.04861111111111111,
+          0.04861111111111111,
+          0.04861111111111111,
+          0.04861111111111111,
+          0.04861111111111116
+        ],
+        "fire": 2,
+        "fire_time": 0.2916666666666667
+      },
+      "death": {
+        "tex": "op_exusiai_death",
+        "frames": 8,
+        "fps": 8.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.14142857142857143,
+          0.14142857142857143,
+          0.1414285714285714,
+          0.14142857142857146,
+          0.14142857142857146,
+          0.14142857142857135,
+          0.14142857142857146,
+          0.010000000000000009
+        ]
+      },
+      "hurt": {
+        "tex": "op_exusiai_hurt",
+        "frames": 2,
+        "fps": 10.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.1,
+          0.1
+        ]
+      },
+      "size": 64,
+      "foot": [
+        32,
+        60
+      ],
+      "skills": {
+        "s1": {
+          "anim": "skill"
+        },
+        "s2": {
+          "anim": "skill"
+        },
+        "s3": {
+          "anim": "skill"
+        }
+      }
+    },
+    "eyjafjalla": {
+      "idle": {
+        "tex": "op_eyjafjalla_idle",
+        "frames": 8,
+        "fps": 2.6666666666666665,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.42714285714285716,
+          0.42714285714285716,
+          0.42714285714285727,
+          0.42714285714285705,
+          0.42714285714285705,
+          0.4271428571428575,
+          0.4271428571428566,
+          0.010000000000000231
+        ]
+      },
+      "run": {
+        "tex": "op_eyjafjalla_run",
+        "frames": 8,
+        "fps": 13.333333333333334,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075
+        ]
+      },
+      "attack": {
+        "tex": "op_eyjafjalla_attack",
+        "frames": 8,
+        "fps": 28.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.044642857142857144,
+          0.044642857142857144,
+          0.044642857142857144,
+          0.044642857142857144,
+          0.02678571428571428,
+          0.02678571428571428,
+          0.02678571428571428,
+          0.0267857142857143
+        ],
+        "fire": 4,
+        "fire_time": 0.17857142857142858
+      },
+      "skill": {
+        "tex": "op_eyjafjalla_skill",
+        "frames": 8,
+        "fps": 12.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.09375,
+          0.09375,
+          0.09375,
+          0.09375,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666663
+        ],
+        "fire": 4,
+        "fire_time": 0.375
+      },
+      "death": {
+        "tex": "op_eyjafjalla_death",
+        "frames": 8,
+        "fps": 6.666666401757145,
+        "foot": [
+          48.0,
+          76.0
+        ],
+        "frame_durations": [
+          0.1700000068119594,
+          0.1700000068119594,
+          0.17000000681195943,
+          0.17000000681195937,
+          0.17000000681195948,
+          0.17000000681195937,
+          0.17000000681195937,
+          0.010000000000000009
+        ]
+      },
+      "hurt": {
+        "tex": "op_eyjafjalla_hurt",
+        "frames": 2,
+        "fps": 10.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.1,
+          0.1
+        ]
+      },
+      "size": 64,
+      "foot": [
+        32,
+        60
+      ],
+      "skill_s3": {
+        "tex": "op_eyjafjalla_skill_s3",
+        "frames": 8,
+        "fps": 12.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.09375,
+          0.09375,
+          0.09375,
+          0.09375,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666663
+        ],
+        "fire": 4,
+        "fire_time": 0.375
+      },
+      "skill_s3_loop": {
+        "tex": "op_eyjafjalla_skill_s3_loop",
+        "frames": 8,
+        "fps": 6.666666401757145,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.1700000068119594,
+          0.1700000068119594,
+          0.17000000681195943,
+          0.17000000681195937,
+          0.17000000681195948,
+          0.17000000681195937,
+          0.17000000681195937,
+          0.010000000000000009
+        ]
+      },
+      "skill_s3_end": {
+        "tex": "op_eyjafjalla_skill_s3_end",
+        "frames": 8,
+        "fps": 4.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.2842857142857143,
+          0.2842857142857143,
+          0.28428571428571425,
+          0.28428571428571436,
+          0.28428571428571403,
+          0.2842857142857145,
+          0.28428571428571425,
+          0.010000000000000009
+        ]
+      },
+      "skills": {
+        "s1": {
+          "anim": "skill"
+        },
+        "s2": {
+          "anim": "skill"
+        },
+        "s3": {
+          "start": "skill_s3",
+          "loop": "skill_s3_loop",
+          "run": "run",
+          "end": "skill_s3_end"
+        }
+      }
+    },
+    "logos": {
+      "idle": {
+        "tex": "op_logos_idle",
+        "frames": 8,
+        "fps": 1.6,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.7128571428571429,
+          0.7128571428571429,
+          0.7128571428571431,
+          0.7128571428571426,
+          0.7128571428571431,
+          0.7128571428571431,
+          0.7128571428571426,
+          0.009999999999999787
+        ]
+      },
+      "run": {
+        "tex": "op_logos_run",
+        "frames": 8,
+        "fps": 13.333333333333334,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075,
+          0.075
+        ]
+      },
+      "attack": {
+        "tex": "op_logos_attack",
+        "frames": 8,
+        "fps": 24.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.10416666666666667,
+          0.10416666666666667,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.020833333333333315
+        ],
+        "fire": 2,
+        "fire_time": 0.20833333333333334
+      },
+      "skill": {
+        "tex": "op_logos_skill",
+        "frames": 8,
+        "fps": 12.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.09375,
+          0.09375,
+          0.09375,
+          0.09375,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666663
+        ],
+        "fire": 4,
+        "fire_time": 0.375
+      },
+      "death": {
+        "tex": "op_logos_death",
+        "frames": 8,
+        "fps": 8.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.14142857142857143,
+          0.14142857142857143,
+          0.1414285714285714,
+          0.14142857142857146,
+          0.14142857142857146,
+          0.14142857142857135,
+          0.14142857142857146,
+          0.010000000000000009
+        ]
+      },
+      "hurt": {
+        "tex": "op_logos_hurt",
+        "frames": 2,
+        "fps": 10.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.1,
+          0.1
+        ]
+      },
+      "size": 64,
+      "foot": [
+        32,
+        60
+      ],
+      "attack_b": {
+        "tex": "op_logos_attack_b",
+        "frames": 8,
+        "fps": 24.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.10416666666666667,
+          0.10416666666666667,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.020833333333333315
+        ],
+        "fire": 2,
+        "fire_time": 0.20833333333333334
+      },
+      "attack_s2": {
+        "tex": "op_logos_attack_s2",
+        "frames": 8,
+        "fps": 24.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.10416666666666667,
+          0.10416666666666667,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.02083333333333333,
+          0.020833333333333315
+        ],
+        "fire": 2,
+        "fire_time": 0.20833333333333334
+      },
+      "idle_s2": {
+        "tex": "op_logos_idle_s2",
+        "frames": 8,
+        "fps": 1.2000000286102301,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.9509523582458497,
+          0.9509523582458497,
+          0.9509523582458494,
+          0.9509523582458499,
+          0.9509523582458499,
+          0.950952358245849,
+          0.9509523582458499,
+          0.009999999999999787
+        ]
+      },
+      "skill_s2": {
+        "tex": "op_logos_skill_s2",
+        "frames": 8,
+        "fps": 12.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.09375,
+          0.09375,
+          0.09375,
+          0.09375,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666663
+        ],
+        "fire": 4,
+        "fire_time": 0.375
+      },
+      "skill_s1_loop": {
+        "tex": "op_logos_skill_s1_loop",
+        "frames": 8,
+        "fps": 8.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.14142857142857143,
+          0.14142857142857143,
+          0.1414285714285714,
+          0.14142857142857146,
+          0.14142857142857146,
+          0.14142857142857135,
+          0.14142857142857146,
+          0.010000000000000009
+        ]
+      },
+      "skill_s1_end": {
+        "tex": "op_logos_skill_s1_end",
+        "frames": 8,
+        "fps": 29.999998435378156,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.03666666865348816,
+          0.03666666865348816,
+          0.03666666865348815,
+          0.036666668653488166,
+          0.036666668653488166,
+          0.03666666865348814,
+          0.036666668653488166,
+          0.010000000000000009
+        ]
+      },
+      "skill_s3": {
+        "tex": "op_logos_skill_s3",
+        "frames": 8,
+        "fps": 12.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.09375,
+          0.09375,
+          0.09375,
+          0.09375,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666666,
+          0.07291666666666663
+        ],
+        "fire": 4,
+        "fire_time": 0.375
+      },
+      "skill_s3_loop": {
+        "tex": "op_logos_skill_s3_loop",
+        "frames": 8,
+        "fps": 5.333333333333333,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.21285714285714286,
+          0.21285714285714286,
+          0.21285714285714286,
+          0.21285714285714286,
+          0.21285714285714286,
+          0.21285714285714286,
+          0.21285714285714286,
+          0.010000000000000009
+        ]
+      },
+      "skill_s3_attack": {
+        "tex": "op_logos_skill_s3_attack",
+        "frames": 8,
+        "fps": 24.0,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.06944444444444445,
+          0.06944444444444445,
+          0.06944444444444445,
+          0.024999999999999994,
+          0.024999999999999994,
+          0.024999999999999994,
+          0.024999999999999994,
+          0.024999999999999967
+        ],
+        "fire": 3,
+        "fire_time": 0.20833333333333334
+      },
+      "skill_s3_end": {
+        "tex": "op_logos_skill_s3_end",
+        "frames": 8,
+        "fps": 6.857143090695759,
+        "foot": [
+          32.0,
+          60.0
+        ],
+        "frame_durations": [
+          0.1652380895614624,
+          0.1680952537059784,
+          0.16238092541694638,
+          0.16523808956146246,
+          0.16523808956146235,
+          0.16523808956146235,
+          0.16523808956146246,
+          0.010000000000000009
+        ]
+      },
+      "skills": {
+        "s1": {
+          "start": "skill",
+          "loop": "skill_s1_loop",
+          "end": "skill_s1_end"
+        },
+        "s2": {
+          "anim": "skill_s2"
+        },
+        "s3": {
+          "start": "skill_s3",
+          "loop": "skill_s3_loop",
+          "run": "run",
+          "attack": "skill_s3_attack",
+          "end": "skill_s3_end"
+        }
+      }
+    }
+  },
+  "technical_verified": true,
+  "engine_verified": true,
+  "user_authorized_integration": true,
+  "new_visual_approval_claimed": false,
+  "unbound_reference_tracks": [
+    "Default setup poses",
+    "Start entry root motion (no deployed-entry runtime state)",
+    "Logos Skill_Down_2 alternatives"
+  ],
+  "hurt_note": "No native Hurt track; use first two Die poses, without drawing new anatomy.",
+  "validation": "qa.json"
+}

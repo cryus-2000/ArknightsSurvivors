@@ -646,6 +646,28 @@ static func hw_s1_train_pose(lk: Dictionary, a: Vector2, b: Vector2) -> Array:
 	return [a, head, bend * head_t * head_t, -elapsed * 60.0 / period]
 
 
+static func hw_native_body_state(o, st: Dictionary) -> Dictionary:
+	if st.is_empty():
+		return st
+	var kind: String = str(st.kind)
+	if kind == "idle" and o.perm[1]:
+		kind = "idle_s2"
+	elif kind == "attack":
+		# 起手固定身体变体，命中或丢失目标都不在收势中换姿势。
+		var variant: int = int(o.hw.get("body_variant", o.hw.get("bolt_variant", 0)))
+		kind = "attack_s2" if o.perm[1] else ("attack_b" if variant == 1 else "attack")
+	var tx: Texture2D = o.anim_tex(kind)
+	if kind == st.kind or tx == null:
+		return st
+	var n: int = o.anim_hframes(tx, kind)
+	st.tex = tx
+	st.hf = n
+	st.frame = o.timed_frame(kind, range(n), o.anim_t, true) if kind == "idle_s2" else mini(int(st.frame), n - 1)
+	st.kind = kind
+	st.flip = (o.face < 0.0) != o.sprite_mirror(kind)
+	return st
+
+
 static func _hw_tile_curve(x: float, length: float, bend: float, offset: float, variation: float) -> Vector2:
 	var t: float = x / length
 	var curve := Vector2(-4.0 * bend * t * (1.0 - t), -4.0 * bend * (1.0 - 2.0 * t) / length)
