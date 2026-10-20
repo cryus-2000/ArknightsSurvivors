@@ -6,7 +6,9 @@ import io
 import json
 import math
 import mimetypes
+import re
 import secrets
+import struct
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -89,8 +91,9 @@ def export_frames(output, project, patch, encoded):
 
 
 # 运行库只在主工作区 build/prts_ref/_node（不进 git）；工作树里向上找到主工作区为止
-RUNTIME_DIR = next((p / 'build/prts_ref/_node' for p in HERE.parents if (p / 'build/prts_ref/_node').is_dir()),
-                   HERE.parent.parent / 'build/prts_ref/_node')
+MAIN_ROOT = next((p for p in HERE.parents if (p / 'build/prts_ref/_node').is_dir()), HERE.parent.parent)
+RUNTIME_DIR = MAIN_ROOT / 'build/prts_ref/_node'
+ART_INCOMING = MAIN_ROOT / '.worktrees/codex-art/art/incoming'
 RUNTIMES = {'3.5': 'spine-canvas-3.5.51.js', '3.8': 'spine-canvas-3.8.js'}
 
 
@@ -157,6 +160,166 @@ def load_pack(source, runtime_dir, runtime=None):
                    scale=pack['scale'], palette=pack['palette'], labels=pack.get('labels', {}),
                    default_bone=pack.get('default_bone'), format=fmt, spine=version, character=pack.get('character'))
     assets = {'/native.' + fmt:native, '/native.atlas':atlas, '/texture.png':texture, '/runtime.js':runtime}
+    return project, assets
+
+
+class _Reader:
+    """Spine 3.8 二进制读取（只读到骨骼与槽为止）：大端 float / int32，变长整数，字符串表。"""
+    def __init__(self, data):
+        self.data, self.pos, self.strings = data, 0, []
+
+    def varint(self):
+        value, shift = 0, 0
+        while True:
+            byte = self.data[self.pos];self.pos += 1
+            value |= (byte & 0x7F) << shift;shift += 7
+            if not byte & 0x80:
+                return value
+
+    def string(self):
+        value, self.pos = _read_string(self.data, self.pos)
+        return value
+
+    def skip(self, n):
+        self.pos += n
+
+    def float(self):
+        value = struct.unpack_from('>f', self.data, self.pos)[0];self.pos += 4
+        return value
+
+
+def skeleton_names_38(path):
+    """3.8 .skel → 骨骼 [(名, 父名, 长度)] 与槽名（层序同 setup 姿势）。"""
+    r = _Reader(Path(path).read_bytes())
+    r.string()
+    version = r.string()
+    if not version or not version.startswith('3.8'):
+        raise ValueError(f'不是 Spine 3.8 二进制：{Path(path).name}')
+    r.skip(16)
+    nonessential = r.data[r.pos] != 0;r.skip(1)
+    if nonessential:
+        r.skip(4);r.string();r.string()
+    r.strings = [r.string() for _ in range(r.varint())]
+    bones = []
+    for i in range(r.varint()):
+        name = r.string()
+        parent = bones[r.varint()][0] if i else None
+        r.skip(28);length = r.float()
+        r.varint();r.skip(1)
+        if nonessential:
+            r.skip(4)
+        bones.append((name, parent, length))
+    slots, slot_bones = [], set()
+    for _ in range(r.varint()):
+        slots.append(r.string())
+        slot_bones.add(bones[r.varint()][0]);r.skip(8);r.varint();r.varint()
+    return bones, slots, slot_bones
+
+
+ROLE = {'leg': (r'Leg|Thigh', r'Calf|Shin|Knee', r'Foot|Ankle|Shoe'),
+        'arm': (r'Arm(?!our|_?B)', r'Fore_?arm|Elbow|Shoulder|Arm_?B', r'Hand|Wrist|Palm')}
+WEAPON = re.compile(r'Weapon|Umbrella|Sword|Staff|Gun|Lance|Hammer|Blade|Spear|Knife|Axe|Shield', re.I)
+SKIP = re.compile(r'IK|[Aa]rmou?r')
+
+
+def detect_rig(bones, slot_bones=()):
+    """按 PRTS 骨骼命名找双节链（大臂 / 前臂 / 手，大腿 / 小腿 / 脚）、躯干和握持武器。"""
+    parent = {n: p for n, p, _ in bones};length = {n: l for n, _, l in bones}
+    depth = {}
+    for n, p, _ in bones:
+        depth[n] = depth[p] + 1 if p else 0
+    match = lambda side, pattern, name: name and not SKIP.search(name) and re.match(rf'^F_{side}_({pattern})', name, re.I)
+    chains, labels, equipment, alternates = {}, {}, {}, {}
+    for side in 'LR':
+        for kind, (upper, middle, end) in ROLE.items():
+            found = []
+            for n, p, _ in bones:
+                gp = parent.get(p)
+                if match(side, end, n) and match(side, middle, p) and match(side, upper, gp):
+                    held = any(q == n and WEAPON.search(m) for m, q, _ in bones)
+                    found.append(((length[gp] > 0) + (length[p] > 0), n in slot_bones, held, length[n] > 0, -depth[n],
+                                  length[gp] + length[p], length[n], n))
+            # 同名多套（换形态的第二套骨骼）都可解算；标签先给首选，浏览器按底稿可见附件改用可见的那套（alternates）
+            ends = [f[-1] for f in sorted(found, reverse=True)[:5]]
+            for rank, c in enumerate(ends):
+                b = parent[c];a = parent[b];chains[c] = [a, b, c]
+                own = alternates.setdefault(ends[0], {}).setdefault(c, {})
+                part = '腿' if kind == 'leg' else '手'
+                for word, n in zip(('髋', '膝', '脚踝') if kind == 'leg' else ('肩', '肘', '手腕'), (a, b, c)):
+                    own[n] = f'{side} 侧{part} · {word}'
+                if kind == 'arm':
+                    held = [n for n, p, _ in bones if p == c and WEAPON.search(n)]
+                    if held:
+                        equipment[c] = held[:1];own[held[0]] = '武器'
+                if rank == 0:
+                    labels.update(own)
+    for key, word in (('Hip', '髋部'), ('Waist', '腰部'), ('Chest', '胸部'), ('Head', '头部')):
+        cands = [n for n, _, _ in bones if re.match(rf'^F_{key}', n, re.I) and not SKIP.search(n)]
+        if cands:
+            labels[min(cands, key=lambda n: (depth[n], -length[n]))] = word
+    return chains, labels, equipment, alternates
+
+
+OPERATOR_HINT = '可用 --source 指定数据包，或检查 build/prts_ref/_raw 与 codex-art 工作树'
+
+
+def find_operator_pack(op_id, root=MAIN_ROOT):
+    """tools/spine_run_trial 生成的数据包：主工作区或任一 .claude 工作树的 build/spine_run_trial/<id>/editor_pack，取最新。"""
+    cands = [root / 'build/spine_run_trial' / op_id / 'editor_pack' / 'pack.json']
+    cands += (root / '.claude/worktrees').glob(f'*/build/spine_run_trial/{op_id}/editor_pack/pack.json')
+    cands = [p for p in cands if p.is_file()]
+    return max(cands, key=lambda p: p.stat().st_mtime).parent if cands else None
+
+
+def load_operator(op_id, runtime_dir, anim='Idle', spread=False, root=MAIN_ROOT, art=None):
+    """按干员 id 直接读原生骨架：骨架 / 图集 build/prts_ref/_raw/<id>；比例与调色板来自 Codex 部件包 bz_18 / bt_18。
+    八帧底稿由浏览器用运行库算（anim 的 t=0，或 spread 时八等分时长），地面平移到 y=0。"""
+    if not re.fullmatch(r'[a-z0-9_]+', op_id):
+        raise ValueError('干员 id 只能含小写字母、数字、下划线')
+    art = Path(art) if art else root / '.worktrees/codex-art/art/incoming'
+    raw = root / 'build/prts_ref/_raw' / op_id
+    parts = art / 'bz_18_native_spine_parts_1017' / op_id
+    catalog = art / 'bt_18_complete_parts_1017' / op_id / 'source/catalog.json'
+    skels = sorted(raw.glob('*.skel'));atlases = sorted(raw.glob('*.atlas'))
+    if len(skels) != 1 or len(atlases) != 1:
+        raise ValueError(f'{raw} 下需要正好一个 .skel 与 .atlas；{OPERATOR_HINT}')
+    for p in (parts / 'manifest.json', catalog):
+        if not p.is_file():
+            raise ValueError(f'缺少 {p}；{OPERATOR_HINT}')
+    native, atlas = skels[0], atlases[0]
+    version = spine_version(native)
+    if not version.startswith('3.8'):
+        raise ValueError(f'{op_id} 是 Spine {version}：3.5 骨架需先转 JSON，请用 tools/spine_run_trial 生成数据包再 --source')
+    runtime = pick_runtime(version, runtime_dir)
+    textures = [line.strip() for line in atlas.read_text().splitlines() if line.strip().endswith('.png')]
+    if len(textures) != 1 or '/' in textures[0] or '\\' in textures[0]:
+        raise ValueError('要求单张本地纹理图集')
+    texture = atlas.parent / textures[0]
+    manifest = json.loads((parts / 'manifest.json').read_text(encoding='utf-8'))
+    scale = manifest['global_transform']['scale'] * float(json.loads(catalog.read_text(encoding='utf-8'))['scale'])
+    # 调色板与 run_trial 一致：部件包 parts/*.png 中出现过的全部不透明颜色
+    part_files = sorted((parts / 'parts').glob('*.png'))
+    colors = set()
+    for p in part_files:
+        im = Image.open(p).convert('RGBA')
+        colors.update(px[:3] for _, px in im.getcolors(im.width * im.height) if px[3] > 0)
+    if not colors:
+        raise ValueError(f'{parts}/parts 中没有可用调色板')
+    bones, slots, slot_bones = skeleton_names_38(native)
+    chains, labels, equipment, alternates = detect_rig(bones, slot_bones)
+    digest = hashlib.sha256(json.dumps([op_id, anim, spread]).encode())
+    for p in [native, atlas, texture, runtime, parts / 'manifest.json', catalog, *part_files]:
+        digest.update(p.read_bytes())
+    rows = [dict(name=f'{anim}_{i:02d}', anim=anim, t=None if spread else 0, phase=i / 8, bones=None, order=None, hidden=[])
+            for i in range(8)]
+    arms = [c for c in chains if re.search(ROLE['arm'][2], c, re.I)]
+    title = f'{op_id} · {anim}' + (' 八等分' if spread else ' 首帧 ×8')
+    project = dict(id=digest.hexdigest(), title=title, frames=rows, bones=[b[0] for b in bones], slots=slots,
+                   chains=chains, equipment=equipment, fps=40 / 3, scale=scale, palette=sorted(colors), labels=labels,
+                   default_bone=next(iter(equipment), arms[0] if arms else None), format='skel', spine=version,
+                   character=op_id, base='native', anim=anim, spread=spread, alternates=alternates,
+                   origin_shift=manifest['global_transform']['mapped_root'][0] - 64)
+    assets = {'/native.skel': native, '/native.atlas': atlas, '/texture.png': texture, '/runtime.js': runtime}
     return project, assets
 
 
@@ -262,19 +425,44 @@ def make_handler(project, assets, output, token):
     return Handler
 
 
+def resolve_source(args):
+    """--source 显式目录，或 --operator <id>：数据包（若有且 --base 允许）否则原生骨架。返回 project, assets, 默认输出子目录。"""
+    if args.source:
+        source = args.source.resolve()
+        return (*load_project(source, args.runtime.resolve() if args.runtime else None, args.runtime_dir), source, None)
+    op = args.operator
+    if op == 'siege':
+        source = ART_INCOMING / 'cy_siege_all_actions_1020'
+        return (*load_project(source, args.runtime.resolve() if args.runtime else None, args.runtime_dir), source, op)
+    pack = find_operator_pack(op) if args.base in ('auto', 'pack') else None
+    if args.base == 'pack' and not pack:
+        raise ValueError(f'找不到 {op} 的数据包（build/spine_run_trial/{op}/editor_pack）')
+    if pack:
+        print(f'Pack: {pack}', flush=True)
+        return (*load_pack(pack, args.runtime_dir, args.runtime), pack, op)
+    project, assets = load_operator(op, args.runtime_dir, args.anim, args.spread)
+    return project, assets, assets['/native.skel'].parent, op
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--source',type=Path,required=True)
+    src=p.add_mutually_exclusive_group(required=True)
+    src.add_argument('--source',type=Path,help='推进之王 Codex 动作包或 spine_run_trial 数据包目录')
+    src.add_argument('--operator',help='干员 id（如 mizuki）；自动定位骨架、部件包和数据包')
+    p.add_argument('--base',choices=('auto','pack','native'),default='auto',
+                   help='--operator 底稿：auto 有数据包用数据包，否则原生；native 直接用原生动画')
+    p.add_argument('--anim',default='Idle',help='原生底稿使用的动画（默认 Idle）')
+    p.add_argument('--spread',action='store_true',help='原生底稿按动画时长八等分取样；默认八帧都取 t=0')
     p.add_argument('--runtime',type=Path,help='显式运行库；省略时按骨架文件头版本从 --runtime-dir 选 3.5 / 3.8')
     p.add_argument('--runtime-dir',type=Path,default=RUNTIME_DIR)
-    p.add_argument('--output',type=Path,default=HERE.parent.parent/'build/spine_editor')
+    p.add_argument('--output',type=Path,help='默认 build/spine_editor（--operator 时为 build/spine_editor/<id>）')
     p.add_argument('--port',type=int,default=8876)
     args=p.parse_args()
-    source=args.source.resolve();output=args.output.resolve()
+    project,assets,source,op=resolve_source(args)
+    output=(args.output or HERE.parent.parent/'build/spine_editor'/(op or '')).resolve()
     if output.is_relative_to(source):raise ValueError('输出目录不能位于原始美术包中')
-    project,assets=load_project(source,args.runtime.resolve() if args.runtime else None,args.runtime_dir)
     server=ThreadingHTTPServer(('127.0.0.1',args.port),make_handler(project,assets,output,secrets.token_urlsafe(24)))
-    print(f'Spine editor: http://127.0.0.1:{server.server_port}/',flush=True)
+    print(f'Spine editor: http://127.0.0.1:{server.server_port}/ · {project["title"]} · Spine {project.get("spine")}',flush=True)
     print(f'Saved edits: {output}',flush=True)
     try:server.serve_forever()
     except KeyboardInterrupt:pass

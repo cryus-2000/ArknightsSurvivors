@@ -6,13 +6,46 @@
     const get=async url=>{const r=await fetch(url);if(!r.ok)throw Error(`读取失败 ${url}`);return r;};
     const project=await (await get('/project.json')).json();
     const atlasText=await (await get('/native.atlas')).text();
-    const image=new Image();image.src='/texture.png';await image.decode();
+    const image=new Image();await new Promise((ok,fail)=>{image.onload=ok;image.onerror=()=>fail(Error('读取失败 /texture.png'));image.src='/texture.png';});
     const atlas=new spine.TextureAtlas(atlasText,()=>new spine.canvas.CanvasTexture(image));
     const loader=new spine.AtlasAttachmentLoader(atlas);
     // 3.5 用转出的 JSON，3.8 直接读二进制 .skel（服务端按文件头版本选运行库）
     const data=project.format==='skel'
       ?new spine.SkeletonBinary(loader).readSkeletonData(new Uint8Array(await (await get('/native.skel')).arrayBuffer()))
       :new spine.SkeletonJson(loader).readSkeletonData(await (await get('/native.json')).json());
+    if(project.base==='native')nativeBase();
+    // --operator 原生底稿：八帧骨骼由运行库算出（动画 t=0 或八等分），地面（脚部附件最低点）平移到 y=0。
+    function nativeBase() {
+      const anim=data.findAnimation(project.anim);
+      if(!anim)throw Error(`骨架没有动画 ${project.anim}；可用：${data.animations.map(a=>a.name).join(' ')}`);
+      const pose=t=>{const s=new spine.Skeleton(data);s.setToSetupPose();P.applyAnimation(spine,anim,s,t);s.updateWorldTransform();return s;};
+      const names=data.bones.map(b=>b.name);
+      if(names.join('\n')!==project.bones.join('\n'))throw Error('服务端读出的骨骼表与运行库不一致');
+      const first=pose(0),visible=new Set(first.slots.filter(s=>s.getAttachment()).map(s=>s.bone.data.name));
+      // 同名多套骨骼：换成底稿里有可见附件的那套，标签随之移过去
+      for(const [primary,cands] of Object.entries(project.alternates||{})){
+        const pick=Object.keys(cands).find(c=>project.chains[c].some(n=>visible.has(n)))||primary;
+        if(pick===primary)continue;
+        for(const n of Object.keys(cands[primary]))delete project.labels[n];
+        Object.assign(project.labels,cands[pick]);
+      }
+      const ends=Object.keys(project.chains).filter(c=>project.labels[c]);
+      if(!project.labels[project.default_bone])project.default_bone=ends.find(c=>project.equipment[c])||ends[0];
+      const feet=new Set(ends.filter(c=>project.labels[c].includes('腿')).flatMap(c=>{const out=[];for(const b of first.bones)for(let p=b;p;p=p.parent)if(p.data.name===c){out.push(b.data.name);break;}return out;}));
+      let ground=Infinity,any=Infinity;
+      for(const slot of first.slots){
+        const att=slot.getAttachment();if(!(att instanceof spine.MeshAttachment||att instanceof spine.RegionAttachment))continue;
+        const v=P.worldVertices(spine,slot,att);
+        for(let n=1;n<v.length;n+=2){any=Math.min(any,v[n]);if(feet.has(slot.bone.data.name))ground=Math.min(ground,v[n]);}
+      }
+      if(!Number.isFinite(ground))ground=any;
+      const dx=(project.origin_shift||0)/project.scale;
+      project.frames.forEach((row,i)=>{
+        row.t=row.t??row.phase*anim.duration;const s=pose(row.t);
+        row.bones=s.bones.map(b=>({name:b.data.name,parent:b.parent?b.parent.data.name:undefined,world:[b.worldX+dx,b.worldY-ground],matrix:[b.a,b.b,b.c,b.d]}));
+        row.order=s.drawOrder.map(slot=>slot.data.name);
+      });
+    }
     const base=()=>({version:1,source:project.id,frames:project.frames.map(()=>({ops:[],order:null}))});
     let patch=base(),frame=0,playing=false,lastTick=0,drag=null,model=null,sk=null;
     let history=[],future=[],dirty=false,renderPending=false,hidden=null;

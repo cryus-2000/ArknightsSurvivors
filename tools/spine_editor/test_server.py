@@ -8,7 +8,9 @@ import http.client
 from http.server import ThreadingHTTPServer
 from pathlib import Path
 from PIL import Image
-from server import validate_patch, export_frames, make_handler, spine_version, pick_runtime, load_project
+import struct
+from server import (validate_patch, export_frames, make_handler, spine_version, pick_runtime, load_project,
+                    skeleton_names_38, detect_rig, find_operator_pack, load_operator, MAIN_ROOT, RUNTIME_DIR)
 
 
 class EditorTests(unittest.TestCase):
@@ -132,6 +134,86 @@ class VersionAndPackTests(unittest.TestCase):
             strip=Image.open(out/'strip@2x.png')
             self.assertEqual(strip.size,(1024,128))
             self.assertEqual(strip.getpixel((36+128*5,90)),(0,255,0,255))  # 场景 (128,180) → 帧原点 (64,120)
+
+
+def _varint(n):
+    out=bytearray()
+    while True:
+        b=n&0x7F;n>>=7;out.append(b|(0x80 if n else 0))
+        if not n:return bytes(out)
+
+
+def fake_skel_38(bones, slots, nonessential=False):
+    """最小 3.8 二进制：头 + 字符串表 + 骨骼 + 槽（足够 skeleton_names_38 读取）。"""
+    out=_spine_string('hash')+_spine_string('3.8.99')+struct.pack('>4f',0,0,10,10)+bytes([nonessential])
+    if nonessential:out+=struct.pack('>f',30)+_spine_string('img')+_spine_string('')
+    out+=_varint(1)+_spine_string('ref')+_varint(len(bones))
+    names=[b[0] for b in bones]
+    for i,(name,parent,length) in enumerate(bones):
+        out+=_spine_string(name)+(_varint(names.index(parent)) if i else b'')+struct.pack('>8f',0,0,0,1,1,0,0,length)+_varint(0)+b'\x00'
+        if nonessential:out+=b'\xff\xff\xff\xff'
+    out+=_varint(len(slots))
+    for name,bone in slots:
+        out+=_spine_string(name)+_varint(names.index(bone))+b'\xff\xff\xff\xff'+b'\xff\xff\xff\xff'+_varint(1)+_varint(0)
+    return out+b'\x00'*8
+
+
+RIG=[('root',None,0),('F_Hip','root',40),('F_Chest','F_Hip',30),('F_Head','F_Chest',20),
+     ('F_L_Arm','F_Chest',30),('F_L_Forearm','F_L_Arm',25),('F_L_Hand','F_L_Forearm',10),('F_Weapon','F_L_Hand',80),
+     ('F_R_Arm','F_Chest',30),('F_R_Forearm','F_R_Arm',25),('F_R_Hand','F_R_Forearm',10),
+     ('F_L_Leg','F_Hip',50),('F_L_Calf','F_L_Leg',50),('F_L_Foot','F_L_Calf',15),('F_L_Foot_b','F_L_Calf',0),
+     ('F_R_Leg_IK','root',0),('F_R_thigh','F_Hip',50),('F_R_shin','F_R_thigh',50),('F_R_shoes','F_R_shin',15),
+     ('F_R_thigh2','F_Hip',50),('F_R_shin2','F_R_thigh2',50),('F_R_shoes2','F_R_shin2',15),('F_L_Armour','F_Chest',30)]
+
+
+class Spine38Tests(unittest.TestCase):
+    def scratch(self):
+        root=Path(__file__).resolve().parents[2]/'build/spine_editor_tests';root.mkdir(parents=True,exist_ok=True)
+        return tempfile.TemporaryDirectory(dir=root)
+
+    def test_binary_bones_and_slots(self):
+        with self.scratch() as d:
+            for ness in (False,True):
+                p=Path(d)/f'a{ness}.skel';p.write_bytes(fake_skel_38(RIG,[('body','F_Hip'),('hand','F_L_Hand')],ness))
+                bones,slots,slot_bones=skeleton_names_38(p)
+                self.assertEqual(bones,[(n,par,float(l)) for n,par,l in RIG])
+                self.assertEqual((slots,slot_bones),(['body','hand'],{'F_Hip','F_L_Hand'}))
+            p=Path(d)/'old.skel';p.write_bytes(_spine_string('h')+_spine_string('3.5.51'))
+            with self.assertRaises(ValueError):skeleton_names_38(p)
+
+    def test_rig_detection(self):
+        chains,labels,equipment,alternates=detect_rig(RIG,{'F_L_Foot','F_R_shoes','F_R_shoes2','F_L_Hand'})
+        self.assertEqual(chains['F_L_Hand'],['F_L_Arm','F_L_Forearm','F_L_Hand'])
+        self.assertEqual(chains['F_L_Foot'],['F_L_Leg','F_L_Calf','F_L_Foot'])   # 有长度的脚踝优先于 _b
+        self.assertEqual(equipment,{'F_L_Hand':['F_Weapon']})
+        self.assertEqual(labels['F_Weapon'],'武器');self.assertEqual(labels['F_Head'],'头部')
+        self.assertIn('F_R_shoes',chains);self.assertIn('F_R_shoes2',chains)   # 小写 thigh / shin / shoes，两套都可解算
+        group=next(k for k in alternates if 'shoes' in k);self.assertEqual(sorted(alternates[group]),['F_R_shoes','F_R_shoes2'])
+        self.assertFalse(any('Armour' in n or 'IK' in n for c in chains.values() for n in c))
+
+    def test_find_operator_pack(self):
+        with self.scratch() as d:
+            root=Path(d)
+            self.assertIsNone(find_operator_pack('op',root))
+            p=root/'.claude/worktrees/w1/build/spine_run_trial/op/editor_pack';p.mkdir(parents=True);(p/'pack.json').write_text('{}')
+            self.assertEqual(find_operator_pack('op',root),p)
+
+    def test_operator_rejects_bad_id(self):
+        for bad in ('../x','Mizuki','a/b'):
+            with self.assertRaises(ValueError):load_operator(bad,RUNTIME_DIR)
+
+    @unittest.skipUnless((MAIN_ROOT/'build/prts_ref/_raw/mizuki').is_dir(),'本机无 PRTS 参照')
+    def test_real_operators(self):
+        expect={'mizuki':'F_L_Hand_Close','suzuran':'F_R_Hand_b','wisadel':'F_L_Hand'}
+        for op,hand in expect.items():
+            project,assets=load_operator(op,RUNTIME_DIR)
+            self.assertEqual((project['format'],project['spine'][:3],project['base']),('skel','3.8','native'))
+            self.assertEqual(assets['/runtime.js'].name,'spine-canvas-3.8.js')
+            self.assertEqual(project['default_bone'],hand)
+            self.assertTrue(all(len(c)==3 and all(n in project['bones'] for n in c) for c in project['chains'].values()))
+            self.assertGreater(len(project['palette']),50);self.assertTrue(0.1<project['scale']<0.3)
+            self.assertNotEqual(load_operator(op,RUNTIME_DIR,spread=True)[0]['id'],project['id'])  # 底稿参数进指纹
+            validate_patch(dict(version=1,source=project['id'],frames=[dict(ops=[dict(type='ik',bone=hand,target=[1,2])],order=None)]*8),project)
 
 
 if __name__=='__main__':unittest.main()
