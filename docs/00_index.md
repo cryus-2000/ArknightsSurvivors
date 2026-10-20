@@ -61,7 +61,8 @@
 | [57_relics_impl](57_relics_impl.md) | 129 件藏品实装 | 已实施记录 | 逐件读法与新池难度；§2 部分数值以 65 / relic_effects.json 为准 | 35、41、60、归档59、归档65；relic_fx.gd、core/stat_defs.gd、run/combat.gd 等 18 个文件 |
 | [58_operator_ui_concept](58_operator_ui_concept.md) | 选人 / 图鉴界面 | 已实施记录 | §11 是 B+ / C4′ 定稿细则（代码引用）；其余为概念稿 | 37、41、62、67；title.gd、tools/concept_operator_ui.py、gallery.gd 等 9 个文件 |
 | [67_title_redesign_concept](67_title_redesign_concept.md) | 标题页改版 | 已实施记录 | §12 T5s 已实装（规则进 37 §8）；§1–§11 为概念；设置 / 致谢二期未做 | 37、62、71、归档68；title.gd、title_menu_input_test.gd、screens/title_tiles.gd 等 14 个文件 |
-| [71_is3_levels](71_is3_levels.md) | 潮位阶梯 | 进行中 | 16 级逐级难度方案；用户 10-12 定暂缓，等局外成长一起做 | 归档68；tools/concept_is3_levels.py |
+| [71_is3_levels](71_is3_levels.md) | 潮位阶梯 | 进行中 | 16 级逐级难度方案；用户 10-12 定暂缓，等局外成长一起做 | 109、归档68；tools/concept_is3_levels.py |
+| [109_meta_progression](109_meta_progression.md) | 局外成长 | 进行中 | 调研（吸血鬼幸存者 / 土豆兄弟 / 哈迪斯 / 雨中冒险 2 / 集成战略）+ 两套候选：A 探索评分 × 潮位系数 → 深蓝之树 20 级 → 分队解锁，B 再加认知塑造 / 投资；推荐 A 与 71 P1 同做，待用户定 | 71 |
 | [74_relic_late_value_and_lifesteal](74_relic_late_value_and_lifesteal.md) | 藏品后期价值 + 吸血 | 已实施记录 | 熔铸规则与「藏品不设上限」的唯一成文处；§7 第 3 条、L3 未做 | 50、57；relic_fx.gd、run/pickups.gd、tests/relic_impl_test.gd 等 11 个文件 |
 | [77_run_stats](77_run_stats.md) | 作战记录 | 现行规范 | 局终统计界面与计数口径 | 37、62、79；run/combat.gd、game.gd、run/telemetry.gd 等 15 个文件 |
 | [82_sustain_gap](82_sustain_gap.md) | 无医疗编队暴毙诊断 | 已实施记录 | §1 遥测字段（dsrc / hsrc / curve_tail）说明；§3.1 已作废，见 83 | 83、88；data/balance.json、run/telemetry.gd、run/combat.gd 等 4 个文件 |
