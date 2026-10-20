@@ -1,0 +1,59 @@
+{
+ "id": "exusiai",
+ "src": "exusiai.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "能天使",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "hold": "R",
+ "weapon": "F_R_Weapon",
+ "params": {
+  "lean": 10
+ },
+ "secondary": [
+  {
+   "match": "^F_Wing_[A-F]$",
+   "amp": 5,
+   "drag": 4,
+   "lag": 1.0
+  },
+  {
+   "match": "^bone(6|9|1[0-3])$",
+   "amp": 3,
+   "drag": 4
+  },
+  {
+   "match": "^bone2[67]$",
+   "amp": 3,
+   "drag": 4
+  }
+ ]
+}

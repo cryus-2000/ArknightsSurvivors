@@ -10,7 +10,7 @@ const cfgPath = process.argv[2];
 const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
 const src = JSON.parse(fs.readFileSync(path.join(path.dirname(cfgPath), cfg.src), 'utf8'));
 const arg = k => { const i = process.argv.indexOf(k); return i > 0 ? process.argv[i + 1] : null; };
-const OUT = path.resolve(arg('--out') || `build/spine_run_trial/${cfg.id}/frames`);
+const OUT = path.resolve(arg('--out') || `build/spine_run_trial/${cfg.id}/${cfg.action ? cfg.action + '/' : ''}frames`);
 const BZ = 'E:/ArknightsSurvivors/.worktrees/codex-art/art/incoming/bz_18_native_spine_parts_1017';
 const BT = 'E:/ArknightsSurvivors/.worktrees/codex-art/art/incoming/bt_18_complete_parts_1017';
 const D = 180 / Math.PI;
@@ -19,8 +19,9 @@ const D = 180 / Math.PI;
 const manifest = JSON.parse(fs.readFileSync(`${BZ}/${cfg.id}/manifest.json`, 'utf8'));
 const catalog = JSON.parse(fs.readFileSync(`${BT}/${cfg.id}/source/catalog.json`, 'utf8'));
 const SCALE = manifest.global_transform.scale * Number(catalog.scale);
-const ANCHOR = manifest.global_transform.mapped_root;
-const SIZE = 128, CUT = manifest.alpha_cutoff || 96;
+const ANCHOR = manifest.global_transform.mapped_root.slice();
+// 画布：跑步 128；动作可加大（cfg.canvas），原点随之平移到中心，保持 (64,120) 相对位置
+const SIZE = cfg.canvas || 128, PAD = (SIZE - 128) / 2, CUT = manifest.alpha_cutoff || 96;
 
 const P = Object.assign({ lean: 9, chestLean: 3, headKeep: 0.6, stride: 1, lift: 1, bob: 1, armAmp: 38, elbow: 75, elbowAmp: 25,
   holdAmp: 8, holdElbowAmp: 6, weaponSway: 3, weaponLean: 0.5, hairDrag: 5, hairAmp: 3, facing: 1 }, cfg.params || {});
@@ -30,6 +31,8 @@ const P = Object.assign({ lean: 9, chestLean: 3, headKeep: 0.6, stride: 1, lift:
 const GAIT = [[0.30, 0, 8], [0.10, 0, 0], [-0.12, 0, 0], [-0.32, 0, -22], [-0.38, 0.20, -40], [-0.14, 0.36, -30], [0.18, 0.30, -8], [0.33, 0.11, 4]];
 // 身体起伏（腿长单位）：触地中位、下压最低、后蹬腾空最高
 const BOB = [-0.05, -0.10, -0.06, 0.01, -0.05, -0.10, -0.06, 0.01];
+// 摆动腿离地高度（@2x 像素，按相位 4–7）：10-20 用户按推进之王旧 run 条定的口径，后踢 13、回收 8、前摆 3、前伸 2
+const LIFT_PX = [null, null, null, null, 13, 8, 3, 2];
 
 function verts(sp, slot, att) {
   if (att.updateWorldVertices) {                         // 3.5：步长 8
@@ -44,7 +47,7 @@ function verts(sp, slot, att) {
 }
 
 async function main() {
-  const { sp, pose } = await load(src);
+  const { sp, pose, data } = await load(src);
   const branch = (sk, b) => sk.bones.filter(x => { for (let p = x; p; p = p.parent) if (p === b) return true; return false; });
   function rotate(sk, b, deg, pivot) {
     const t = deg / D, c = Math.cos(t), s = Math.sin(t), [x, y] = pivot || [b.worldX, b.worldY];
@@ -86,6 +89,9 @@ async function main() {
     return y;
   };
   const ground = Math.min(bottom(base, 'L'), bottom(base, 'R'));
+  // 鞋底贴原点：地面映射到 y=120（最后一行 119），与游戏原点 (64,120) 和旧 run 条一致。
+  // bz_18 的 mapped_root 按整身包围盒放置，推进之王因锤头垂到脚下会让鞋底悬空约 4 像素。
+  ANCHOR[0] += PAD; ANCHOR[1] = 120 + PAD + ground * SCALE;
   const legInfo = {};
   for (const side of ['L', 'R']) {
     const [a, b, c] = cfg.legs[side].map(n => get(base, n));
@@ -97,8 +103,13 @@ async function main() {
   console.log(cfg.id, 'scale', SCALE.toFixed(4), 'leg L', L.toFixed(1), 'ground', ground.toFixed(1), 'px leg', (L * SCALE).toFixed(1));
 
   function frame(i) {
+    if (cfg.keys?.[i]?.view === 'B') return backFrame(i, cfg.keys[i]);
+    // sample：直接按时间采样现成的 Spine 动画（如 Codex 交来的候选动画），只做像素化
+    if (cfg.sample) return finish(pose(cfg.sample.anim, cfg.sample.times[i]), [{ t: cfg.sample.times[i] }]);
     const sk = pose('Idle', 0), f = P.facing, phi = i / 8 * 2 * Math.PI;
     const hip = get(sk, cfg.body.hip);
+    if (cfg.mode === 'float') return floatFrame(sk, i, phi);
+    if (cfg.keys) return keyedFrame(sk, i, cfg.keys[i], phi);
     // 1) 躯干：前倾 + 起伏；胸再前倾一点，头部回正一部分（保持脸可读）
     move(sk, hip, 0, BOB[i] * L * P.bob);
     rotate(sk, hip, -f * P.lean);
@@ -111,22 +122,134 @@ async function main() {
       const [a, b, c] = cfg.legs[side].map(n => get(sk, n)), info = legInfo[side];
       const tx = a.worldX + f * g[0] * L * P.stride;
       const setFoot = () => rotate(sk, c, info.foot + f * g[2] - ang(c));
-      let ty = ground + info.ankleAbove + g[1] * L * P.lift;
+      // gaitLiftPx：按像素指定各相位离地高度（对齐已批准的旧条），否则用步态表 × lift
+      const liftPx = (cfg.gaitLiftPx === undefined ? LIFT_PX : cfg.gaitLiftPx || [])[k];
+      let ty = ground + info.ankleAbove + (liftPx != null ? liftPx / SCALE : g[1] * L * P.lift);
       ik(sk, a, b, c, [tx, ty], f); setFoot();
       const stance = k <= 3;
       for (let n = 0; n < 6; n++) {
         const err = bottom(sk, side) - ground;
-        if (stance ? Math.abs(err) < 0.05 : err >= -0.05) break;
+        const want = !stance && liftPx != null ? liftPx / SCALE : 0;
+        if (stance || liftPx != null ? Math.abs(err - want) < 0.05 : err >= -0.05) break;
+        if (liftPx != null && !stance) { ty -= err - want; ik(sk, a, b, c, [tx, ty], f); setFoot(); continue; }
         ty -= err; ik(sk, a, b, c, [tx, ty], f); setFoot();
       }
       contacts.push({ side, phase: k, support: stance, gap: +(bottom(sk, side) - ground).toFixed(2) });
     }
+    arms(sk, i, phi);
+    secondary(sk, phi);
+    return finish(sk, contacts);
+  }
+
+  // 关键帧动作（跳劈等）：每帧给髋位移、前倾、两脚（着地 = 贴地放脚；空中 = 相对髋的脚踝位置）、两臂绝对角、武器角
+  // 位移单位：腿长 L；角度：世界角（度），朝向 +x 时 0 = 向前、90 = 向上、-90 = 向下
+  function keyedFrame(sk, i, k, phi) {
+    const f = P.facing, hip = get(sk, cfg.body.hip);
+    move(sk, hip, f * (k.hipX || 0) * L, (k.hipY || 0) * L);
+    rotate(sk, hip, -f * (k.lean || 0));
+    if (cfg.body.chest && k.chest) rotate(sk, get(sk, cfg.body.chest), -f * k.chest);
+    if (cfg.body.head) rotate(sk, get(sk, cfg.body.head), f * (k.lean || 0) * (k.headKeep ?? P.headKeep) + (k.head || 0));
+    const contacts = [];
+    for (const side of ['L', 'R']) {
+      const [a, b, c] = cfg.legs[side].map(n => get(sk, n)), info = legInfo[side], leg = k.legs[side];
+      const setFoot = () => rotate(sk, c, info.foot + f * (leg.foot || 0) - ang(c));
+      if (leg.ground) {
+        const tx = a.worldX + f * leg.x * L; let ty = ground + info.ankleAbove;
+        ik(sk, a, b, c, [tx, ty], f); setFoot();
+        for (let n = 0; n < 6; n++) { const err = bottom(sk, side) - ground; if (Math.abs(err) < 0.05) break; ty -= err; ik(sk, a, b, c, [tx, ty], f); setFoot(); }
+      } else { ik(sk, a, b, c, [a.worldX + f * leg.x * L, a.worldY + leg.y * L], f); setFoot(); }
+      contacts.push({ side, ground: !!leg.ground, gap: +(bottom(sk, side) - ground).toFixed(2) });
+    }
+    for (const side of ['L', 'R']) {
+      const [a, b, c] = cfg.arms[side].map(n => get(sk, n)), arm = k.arms[side];
+      const up = f > 0 ? arm[0] : 180 - arm[0], fore = f > 0 ? arm[1] : 180 - arm[1];
+      aim(sk, a, b, up); aim(sk, b, c, fore);
+    }
+    if (cfg.weapon && hold) {
+      const w = get(sk, cfg.weapon), grip = get(sk, cfg.arms[hold][2]), wa = f > 0 ? k.weapon : 180 - k.weapon;
+      rotate(sk, w, wa - ang(w), [grip.worldX, grip.worldY]);
+      const g = cfg.grip || cfg.holdPose?.grip;
+      if (g) move(sk, w, grip.worldX - (w.worldX + w.a * g[0] + w.b * g[1]), grip.worldY - (w.worldY + w.c * g[0] + w.d * g[1]));
+      foreshorten(sk, w, grip, k.weaponScale);
+    }
+    secondary(sk, phi);
+    // front：武器挥到身前时改到持武器手之前绘制（手指仍压在握把上）
+    if (k.front && cfg.weaponSlot) {
+      const ws = sk.findSlot(cfg.weaponSlot), hs = sk.findSlot(cfg.handSlot);
+      sk.drawOrder = sk.drawOrder.filter(x => x !== ws); sk.drawOrder.splice(sk.drawOrder.indexOf(hs), 0, ws);
+    }
+    // top：这些槽按给定顺序移到最前（持剑手靠近大头时，原层序会被头 / 帽子挡住）
+    for (const n of k.top || []) { const t = sk.findSlot(n); sk.drawOrder = sk.drawOrder.filter(x => x !== t); sk.drawOrder.push(t); }
+    return finish(sk, contacts);
+  }
+
+  // 背面视角（原作骨架自带 B_* 背面部件，Idle 里隐藏）：用 setup 姿势，只显示 B_ 槽，鞋底贴地；可转持剑臂与剑
+  function backFrame(i, k) {
+    const sk = new sp.Skeleton(data); sk.setToSetupPose(); sk.updateWorldTransform();
+    for (const s of sk.slots) if (!s.data.name.startsWith('B_')) s.attachment = null;
+    const bk = cfg.back, hip = get(sk, bk.hip);
+    const bBottom = () => { let y = Infinity; for (const s of sk.slots) { const a = s.getAttachment(); if (!a || !bk.feet.includes(s.data.name)) continue; const v = verts(sp, s, a); for (let n = 1; n < v.length; n += 2) y = Math.min(y, v[n]); } return y; };
+    move(sk, hip, (k.hipX || 0) * L, ground - bBottom() + (k.hipY || 0) * L);
+    if (k.lean) rotate(sk, hip, k.lean);
+    if (k.arm) { const [a, b, c] = bk.arm.map(n => get(sk, n)); aim(sk, a, b, k.arm[0]); aim(sk, b, c, k.arm[1]); }
+    if (k.weapon != null) { const w = get(sk, bk.weapon), h = get(sk, bk.arm[2]); rotate(sk, w, k.weapon + (bk.bladeFlip ? 180 : 0) - ang(w), [h.worldX, h.worldY]); foreshorten(sk, w, h, k.weaponScale); }
+    for (const n of k.top || []) { const t = sk.findSlot(n); sk.drawOrder = sk.drawOrder.filter(x => x !== t); sk.drawOrder.push(t); }
+    return { sk, contacts: [{ view: 'B' }] };
+  }
+
+  // 透视缩短：把武器骨（及子骨）沿剑身方向的轴按比例压短，绕握点；表现剑指向镜头 / 远离镜头
+  function foreshorten(sk, w, grip, sc) {
+    if (sc == null || sc === 1) return;
+    const ux = w.a, uy = w.c, n = Math.hypot(ux, uy), ex = ux / n, ey = uy / n, [gx, gy] = [grip.worldX, grip.worldY];
+    // 世界空间沿剑轴的缩放矩阵 S = I + (sc-1)·e·eᵀ，作用在位置（相对握点）和骨骼基向量上
+    const S = (x, y) => { const d = (x * ex + y * ey) * (sc - 1); return [x + d * ex, y + d * ey]; };
+    for (const b of branch(sk, w)) {
+      const [px, py] = S(b.worldX - gx, b.worldY - gy); b.worldX = gx + px; b.worldY = gy + py;
+      const [a, c] = S(b.a, b.c), [bb, d] = S(b.b, b.d); b.a = a; b.c = c; b.b = bb; b.d = d;
+    }
+  }
+
+  // 刀光示意：剑贴图离手最远的顶点当剑尖（像素坐标），供预览叠一道拖影，不进帧条
+  function swordLine(sk, i) {
+    const k = cfg.keys?.[i] || {}, back = k.view === 'B';
+    const slot = sk.findSlot(back ? cfg.back.weaponSlot : cfg.weaponSlot), att = slot?.getAttachment();
+    if (!att) return null;
+    const hand = get(sk, back ? cfg.back.arm[2] : cfg.arms[hold][2]), v = verts(sp, slot, att);
+    let best = null, far = -1;
+    for (let n = 0; n < v.length; n += 2) { const d = Math.hypot(v[n] - hand.worldX, v[n + 1] - hand.worldY); if (d > far) { far = d; best = [v[n], v[n + 1]]; } }
+    const px = p => [ANCHOR[0] + p[0] * SCALE, ANCHOR[1] - p[1] * SCALE];
+    let h = px([hand.worldX, hand.worldY]), t = px(best);
+    if (k.flip) { h = [SIZE - h[0], h[1]]; t = [SIZE - t[0], t[1]]; }
+    return { hand: h, tip: t };
+  }
+
+  // 悬浮飘行（浊心斯卡蒂）：不踩地；身体缓慢上下浮动并前倾，两腿向后拖、交替轻摆，衣摆和头发大幅向后飘
+  function floatFrame(sk, i, phi) {
+    const f = P.facing, hip = get(sk, cfg.body.hip);
+    move(sk, hip, 0, (P.floatBob ?? 2) / SCALE * Math.sin(phi));
+    rotate(sk, hip, -f * P.lean);
+    if (cfg.body.head) rotate(sk, get(sk, cfg.body.head), f * P.lean * P.headKeep + 1.2 * Math.sin(phi - 0.8));
+    for (const side of ['L', 'R']) {
+      const [a, b] = cfg.legs[side].map(n => get(sk, n)), off = side === cfg.leadLeg ? 0 : Math.PI;
+      rotate(sk, a, -f * (P.floatTrail ?? 14) + f * (P.floatKick ?? 6) * Math.sin(phi + off));
+      rotate(sk, b, -f * (P.floatKnee ?? 10) * (0.6 + 0.4 * Math.sin(phi + off - 0.9)));
+    }
+    arms(sk, i, phi);
+    secondary(sk, phi);
+    return finish(sk, [{ mode: 'float', bob_px: +((P.floatBob ?? 2) * Math.sin(phi)).toFixed(2) }]);
+  }
+
+  function arms(sk, i, phi) {
+    const f = P.facing;
     // 3) 手臂：与同侧腿反向摆；持武器手只小幅摆动，武器绕握点保持角度
     for (const side of ['L', 'R']) {
       const [a, b, c] = cfg.arms[side].map(n => get(sk, n));
       const k = (i + (side === cfg.leadLeg ? 0 : 4)) % 8;
       const fwd = -Math.cos(k / 8 * 2 * Math.PI);           // 同侧腿在前时手在后
-      if (side === hold && cfg.holdPose) {
+      if ((cfg.relativeArms || []).includes(side)) {
+        // 原姿势就握着东西（挂在髋上的武器 / 盾）：只在原姿势上小幅摆，不改握持关系
+        rotate(sk, a, f * (P.relAmp ?? 6) * fwd); rotate(sk, b, f * (P.relElbowAmp ?? 3) * fwd);
+      } else if (side === hold && cfg.holdPose) {
         // 扛 / 端武器：上臂、前臂给绝对角，再小幅随步摆动
         const hp = cfg.holdPose, up = hp.upper + f * P.holdAmp * fwd;
         aim(sk, a, b, up); aim(sk, b, c, up + hp.fore + f * P.holdElbowAmp * fwd);
@@ -142,7 +265,14 @@ async function main() {
     if (cfg.weapon && hold) {
       const w = get(sk, cfg.weapon), grip = get(sk, cfg.arms[hold][2]);
       rotate(sk, w, (cfg.holdPose?.weapon ?? weaponBase) - f * P.lean * P.weaponLean + P.weaponSway * Math.sin(2 * phi - 1.0) - ang(w), [grip.worldX, grip.worldY]);
+      // grip：武器局部坐标里的握把点；原姿势手不在握把上时（斯卡蒂大剑立在身后），把握把点移到手上
+      const g = cfg.holdPose?.grip;
+      if (g) move(sk, w, grip.worldX - (w.worldX + w.a * g[0] + w.b * g[1]), grip.worldY - (w.worldY + w.c * g[0] + w.d * g[1]));
     }
+  }
+
+  function secondary(sk, phi) {
+    const f = P.facing;
     // 4) 次级：头发 / 尾 / 衣摆 / 绳带按链深度滞后摆动，整体向后拖
     for (const rule of cfg.secondary || []) {
       const re = new RegExp(rule.match);
@@ -151,10 +281,15 @@ async function main() {
         let depth = 0; for (let p = b.parent; p; p = p.parent) if (re.test(p.data.name)) depth++;
         const down = Math.sin(ang(b) / D) < 0 ? -1 : 1;           // 朝下的骨向后拖需顺时针
         const drag = depth === 0 ? (rule.drag ?? P.hairDrag) : 0;
+        // gravity：链根抵消身体前倾的比例（0–1），让衣摆仍大致朝下垂，不随前倾翘成水平
+        const hang = depth === 0 ? f * P.lean * (rule.gravity ?? 0) : 0;
         const wave = (rule.amp ?? P.hairAmp) * Math.sin((rule.freq ?? 2) * phi - (rule.lag ?? 0.9) - 0.7 * depth);
-        rotate(sk, b, down * f * drag + wave);
+        rotate(sk, b, down * f * drag + wave + hang);
       }
     }
+  }
+
+  function finish(sk, contacts) {
     for (const n of cfg.hide || []) { const s = sk.findSlot(n); if (s) s.attachment = null; }
     if (cfg.order) for (const [slot, before] of cfg.order) {
       const s = sk.findSlot(slot); sk.drawOrder = sk.drawOrder.filter(x => x !== s);
@@ -220,17 +355,88 @@ async function main() {
   fs.mkdirSync(OUT, { recursive: true });
   const report = [];
   const frames = [];
-  for (let i = 0; i < 8; i++) {
-    const { sk, contacts } = frame(i), { canvas, clipped } = pixelize(sk);
+  const N = cfg.keys?.length || cfg.sample?.times.length || 8, lines = [];
+  for (let i = 0; i < N; i++) {
+    const { sk, contacts } = frame(i), { canvas: px, clipped } = pixelize(sk);
+    // flip：回旋类动作转到背面的帧整帧水平镜像（原点在画布中线，镜像后脚下位置不变）
+    let canvas = px;
+    if (cfg.keys?.[i]?.flip) { canvas = createCanvas(SIZE, SIZE); const m = canvas.getContext('2d'); m.translate(SIZE, 0); m.scale(-1, 1); m.drawImage(px, 0, 0); }
     fs.writeFileSync(path.join(OUT, `f${String(i).padStart(2, '0')}.png`), canvas.toBuffer('image/png'));
     frames.push(sk);
+    if (cfg.keys) { lines.push(swordLine(sk, i)); if (process.env.SWORD_DEBUG) console.log(i, JSON.stringify(lines[i])); }
     report.push({ frame: i, contacts, clipped_near_edge: clipped });
   }
   const idle = pixelize(base).canvas;
   fs.writeFileSync(path.join(OUT, 'idle_t0.png'), idle.toBuffer('image/png'));
   fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify({ id: cfg.id, scale: SCALE, anchor: ANCHOR, params: P, gait: GAIT, bob: BOB, frames: report }, null, 1));
   if (arg('--editor-ops')) writeEditorOps(frames, arg('--editor-ops'));
+  if (N === 8) writePack(frames); else console.log('帧数', N, '≠ 8：不写编辑台数据包');
+  // 透视缩短：把武器骨（及子骨）沿剑身方向的轴按比例压短，绕握点；表现剑指向镜头 / 远离镜头
+  function foreshorten(sk, w, grip, sc) {
+    if (sc == null || sc === 1) return;
+    const ux = w.a, uy = w.c, n = Math.hypot(ux, uy), ex = ux / n, ey = uy / n, [gx, gy] = [grip.worldX, grip.worldY];
+    // 世界空间沿剑轴的缩放矩阵 S = I + (sc-1)·e·eᵀ，作用在位置（相对握点）和骨骼基向量上
+    const S = (x, y) => { const d = (x * ex + y * ey) * (sc - 1); return [x + d * ex, y + d * ey]; };
+    for (const b of branch(sk, w)) {
+      const [px, py] = S(b.worldX - gx, b.worldY - gy); b.worldX = gx + px; b.worldY = gy + py;
+      const [a, c] = S(b.a, b.c), [bb, d] = S(b.b, b.d); b.a = a; b.c = c; b.b = bb; b.d = d;
+    }
+  }
+
+  // 刀光示意帧：smear 帧在角色身后填一道上一帧剑身到这一帧剑身之间的浅色扇面
+  if (cfg.keys && cfg.keys.some(k => k.smear)) {
+    const fxDir = path.join(path.dirname(OUT), 'fx_preview'); fs.mkdirSync(fxDir, { recursive: true });
+    const { loadImage } = require('@napi-rs/canvas');
+    for (let i = 0; i < N; i++) {
+      const cv = createCanvas(SIZE, SIZE), c = cv.getContext('2d'), a = lines[i], b = lines[(i + N - 1) % N];
+      if (cfg.keys[i].smear && a && b) {
+        c.fillStyle = 'rgb(214,236,246)'; c.beginPath();
+        // 上一帧剑身到这一帧剑身之间的带状拖影（四边形）
+        const r = q => [Math.round(q[0]), Math.round(q[1])];
+        c.moveTo(...r(b.hand)); c.lineTo(...r(b.tip)); c.lineTo(...r(a.tip)); c.lineTo(...r(a.hand)); c.closePath(); c.fill();
+      }
+      c.drawImage(await loadImage(fs.readFileSync(path.join(OUT, `f${String(i).padStart(2, '0')}.png`))), 0, 0);
+      fs.writeFileSync(path.join(fxDir, `f${String(i).padStart(2, '0')}.png`), cv.toBuffer('image/png'));
+    }
+  }
+  // --hires：原生网格 4 倍直出（不像素化），用来检查部件接缝和遮挡
+  if (process.argv.includes('--hires')) for (let i = 0; i < N; i++) {
+    const cv = createCanvas(SIZE * 4, SIZE * 4), c = cv.getContext('2d');
+    c.translate(ANCHOR[0] * 4, ANCHOR[1] * 4); c.scale(SCALE * 4, -SCALE * 4);
+    const r = new sp.canvas.SkeletonRenderer(c); r.triangleRendering = true; r.draw(frames[i]);
+    fs.writeFileSync(path.join(OUT, `hires_f${String(i).padStart(2, '0')}.png`), cv.toBuffer('image/png'));
+  }
   console.log('ok', OUT, report.map(r => r.contacts.map(c => c.side + c.phase + ':' + c.gap).join(',')).join(' | '));
+
+  // 编辑台通用数据包：八帧世界骨骼（地面平移到 y=0，对齐编辑台地线）+ 层序 + 链 / 武器 / 标签 + 调色板
+  function writePack(sks) {
+    const dir = path.join(path.dirname(OUT), 'editor_pack');
+    const chains = {}, labels = {};
+    const sideName = { L: cfg.nearSide === 'L' ? '近侧' : '远侧', R: cfg.nearSide === 'L' ? '远侧' : '近侧' };
+    for (const side of ['L', 'R']) {
+      const leg = cfg.legs[side], arm = cfg.arms[side];
+      chains[leg[2]] = leg; chains[arm[2]] = arm;
+      const who = side === hold ? '持武器侧' : sideName[side];
+      [['髋', leg[0]], ['膝', leg[1]], ['脚踝', leg[2]]].forEach(([t, n]) => labels[n] = `${sideName[side]}腿 · ${t}`);
+      [['肩', arm[0]], ['肘', arm[1]], ['手腕', arm[2]]].forEach(([t, n]) => labels[n] = `${who}手 · ${t}`);
+    }
+    labels[cfg.body.hip] = '髋部 / 整体';
+    if (cfg.body.chest) labels[cfg.body.chest] = '胸部';
+    if (cfg.body.head) labels[cfg.body.head] = '头部';
+    if (cfg.weapon) labels[cfg.weapon] = '武器';
+    const frames = [];
+    for (let i = 0; i < 8; i++) {
+      const name = `Run_0${i}`; fs.mkdirSync(path.join(dir, 'frames', name), { recursive: true });
+      fs.writeFileSync(path.join(dir, 'frames', name, 'bones.json'), JSON.stringify(sks[i].bones.map(b => ({
+        name: b.data.name, parent: b.parent ? b.parent.data.name : undefined, world: [b.worldX, b.worldY - ground], matrix: [b.a, b.b, b.c, b.d] }))));
+      frames.push({ name, anim: 'Idle', t: 0, order: sks[i].drawOrder.map(s => s.data.name), hidden: (cfg.hide || []).filter(n => sks[i].findSlot(n)) });
+    }
+    fs.writeFileSync(path.join(dir, 'pack.json'), JSON.stringify({ version: 1, character: cfg.id, title: `${cfg.name || cfg.id} · 跑步（步态脚本底稿）`,
+      skeleton: src.json || src.skel, atlas: src.atlas, fps: cfg.fps || 40 / 3, scale: SCALE, palette,
+      bones: sks[0].bones.map(b => b.data.name), slots: sks[0].slots.map(s => s.data.name), chains,
+      equipment: hold && cfg.weapon ? { [cfg.arms[hold][2]]: [cfg.weapon] } : {}, labels,
+      default_bone: hold ? cfg.arms[hold][2] : cfg.legs.L[2], frames, generator: { cfg: path.basename(cfgPath), params: P } }, null, 1));
+  }
 
   // 推进之王：把本脚本的世界姿势换算成编辑台的修正操作（相对 Codex Run 已烘焙骨骼），可在编辑台继续手调
   function writeEditorOps(sks, rawDir) {

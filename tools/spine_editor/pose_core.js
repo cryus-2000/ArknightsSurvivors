@@ -60,6 +60,16 @@
       else solveIK(bones,chains[op.bone],op.target,equipment[op.bone]||[]);
     }
   }
-  const api={makeBones,rotate,translate,solveIK,validatePatch,apply};
+  // Spine 3.5 / 3.8 运行库差异：动画混合参数与世界顶点接口不同。返回平铺 [x0,y0,x1,y1,…]。
+  function applyAnimation(spine,anim,skeleton,t) {
+    if(spine.MixBlend)anim.apply(skeleton,0,t,false,null,1,spine.MixBlend.setup,spine.MixDirection.mixIn);
+    else anim.apply(skeleton,0,t,false,null,1,true,false);
+  }
+  function worldVertices(spine,slot,att) {
+    if(att.updateWorldVertices){const v=att.updateWorldVertices(slot,false),out=[];for(let i=0;i<v.length;i+=8)out.push(v[i],v[i+1]);return out;}
+    if(spine.RegionAttachment&&att instanceof spine.RegionAttachment){const out=new Array(8);att.computeWorldVertices(slot.bone,out,0,2);return out;}
+    const out=new Array(att.worldVerticesLength);att.computeWorldVertices(slot,0,att.worldVerticesLength,out,0,2);return out;
+  }
+  const api={makeBones,rotate,translate,solveIK,validatePatch,apply,applyAnimation,worldVertices};
   if(typeof module!=='undefined')module.exports=api;else root.PoseCore=api;
 })(globalThis);

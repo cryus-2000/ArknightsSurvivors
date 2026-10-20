@@ -1,0 +1,85 @@
+{
+ "id": "skadi",
+ "src": "skadi.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "斯卡蒂",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "hold": "R",
+ "weapon": "F_L_Weapon",
+ "params": {
+  "lean": 20,
+  "holdAmp": 6,
+  "holdElbowAmp": 4,
+  "weaponSway": 3,
+  "chestLean": 5,
+  "headKeep": 0.25
+ },
+ "secondary": [
+  {
+   "match": "^F_(Back_Hair(_[23]|_3_B)?|Front_Hair_[ABC](_[23])?)$",
+   "amp": 2.5,
+   "drag": 4
+  },
+  {
+   "match": "^F_[LR]_Dress(_[23])?$",
+   "amp": 3,
+   "drag": 2,
+   "lag": 1.3,
+   "gravity": 0.8
+  },
+  {
+   "match": "^F_[LR]_Cape$",
+   "amp": 4,
+   "drag": 3,
+   "gravity": 0.5
+  },
+  {
+   "match": "^F_(Hat_[ABC]|Hat_Top)$",
+   "amp": 3,
+   "drag": 3
+  },
+  {
+   "match": "^F_(Tie|R_Shirt)$",
+   "amp": 3,
+   "drag": 4
+  }
+ ],
+ "holdPose": {
+  "upper": -110,
+  "fore": -25,
+  "weapon": -150,
+  "grip": [
+   43,
+   -4
+  ]
+ }
+}

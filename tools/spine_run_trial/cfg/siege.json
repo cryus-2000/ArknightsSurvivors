@@ -72,5 +72,15 @@
  "editorShift": [
   0,
   3.1
+ ],
+ "gaitLiftPx": [
+  null,
+  null,
+  null,
+  null,
+  13,
+  8,
+  3,
+  2
  ]
 }

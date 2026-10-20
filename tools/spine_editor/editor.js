@@ -5,17 +5,21 @@
   try {
     const get=async url=>{const r=await fetch(url);if(!r.ok)throw Error(`读取失败 ${url}`);return r;};
     const project=await (await get('/project.json')).json();
-    const raw=await (await get('/native.json')).json(),atlasText=await (await get('/native.atlas')).text();
+    const atlasText=await (await get('/native.atlas')).text();
     const image=new Image();image.src='/texture.png';await image.decode();
     const atlas=new spine.TextureAtlas(atlasText,()=>new spine.canvas.CanvasTexture(image));
-    const data=new spine.SkeletonJson(new spine.AtlasAttachmentLoader(atlas)).readSkeletonData(raw);
+    const loader=new spine.AtlasAttachmentLoader(atlas);
+    // 3.5 用转出的 JSON，3.8 直接读二进制 .skel（服务端按文件头版本选运行库）
+    const data=project.format==='skel'
+      ?new spine.SkeletonBinary(loader).readSkeletonData(new Uint8Array(await (await get('/native.skel')).arrayBuffer()))
+      :new spine.SkeletonJson(loader).readSkeletonData(await (await get('/native.json')).json());
     const base=()=>({version:1,source:project.id,frames:project.frames.map(()=>({ops:[],order:null}))});
     let patch=base(),frame=0,playing=false,lastTick=0,drag=null,model=null,sk=null;
     let history=[],future=[],dirty=false,renderPending=false,hidden=null;
     const cache=new Map(),native=$('native'),pixel=$('pixel'),ctx=native.getContext('2d');
     const span=160,left=48,top=64,k=native.width/span;
     pixel.width=span;pixel.height=span;
-    const labels={F_Hip:'髋部 / 整体',F_Waist:'腰部',F_Chest:'胸部',F_Head:'头部',F_Weapon:'锤子',
+    const labels=Object.keys(project.labels||{}).length?project.labels:{F_Hip:'髋部 / 整体',F_Waist:'腰部',F_Chest:'胸部',F_Head:'头部',F_Weapon:'锤子',
       F_R_Arm:'持锤侧 · 肩',F_R_Shoulder:'持锤侧 · 肘',F_R_Hand:'持锤手 · 手腕',
       F_L_Arm:'摆臂侧 · 肩',F_L_Shoulder:'摆臂侧 · 肘',F_L_Hand:'摆臂手 · 手腕',
       F_R_Leg:'近侧 · 髋',F_R_Calf:'近侧 · 膝',F_R_Foot:'近侧 · 脚踝',
@@ -23,16 +27,16 @@
     const major=Object.keys(labels).filter(n=>project.bones.includes(n));
     const names=[...major,...project.bones.filter(n=>!major.includes(n))];
     for(const name of names){const o=document.createElement('option');o.value=name;o.textContent=labels[name]||name;$('bone').append(o);}
-    $('bone').value='F_R_Hand';
+    $('bone').value=project.default_bone||major[0];
     function worldToView(b){return [(128+b.worldX*project.scale-left)*k,(180-b.worldY*project.scale-top)*k];}
     function eventWorld(e){const r=native.getBoundingClientRect();return [((e.clientX-r.left)/r.width*span+left-128)/project.scale,(180-((e.clientY-r.top)/r.height*span+top))/project.scale];}
     function skeleton(i,fp) {
       const source=project.frames[i],s=new spine.Skeleton(data);s.setToSetupPose();
-      data.findAnimation(source.anim).apply(s,0,source.t,false,null,1,true,false);s.updateWorldTransform();
+      P.applyAnimation(spine,data.findAnimation(source.anim),s,source.t);s.updateWorldTransform();
       const b=P.makeBones(source.bones);P.apply(b,fp.ops,project.chains,project.equipment);
       for(const node of s.bones){const v=b[node.data.name];for(const key of ['worldX','worldY','a','b','c','d'])node[key]=v[key];}
       s.drawOrder=(fp.order||source.order).map(n=>s.findSlot(n));
-      for(const name of source.hidden)s.findSlot(name).attachment=null;
+      for(const name of source.hidden){const slot=s.findSlot(name);if(slot)slot.attachment=null;}
       return {s,b};
     }
     function drawNative(s,opacity=1) {
@@ -45,22 +49,26 @@
     // Pixelize each attachment before composing. Never downscale the flattened character.
     function pixels(s,inspectHidden=null,enforceBounds=false) {
       const out=document.createElement('canvas');out.width=out.height=256;const oc=out.getContext('2d');
-      const saved=s.drawOrder.map(slot=>slot.getAttachment());
+      const saved=s.drawOrder.map(slot=>slot.getAttachment());let clip=null;
       const high=document.createElement('canvas'),low=document.createElement('canvas');
       try {
         for(let i=0;i<saved.length;i++) {
           const att=saved[i],slot=s.drawOrder[i];
-          if(!att||slot.data.name===inspectHidden)continue;
-          if(!(att instanceof spine.MeshAttachment)&&!(att instanceof spine.RegionAttachment))throw Error('首版暂不支持此附件类型');
+          if(!att)continue;
+          // 3.8 剪裁附件：记录多边形，按层序裁到 endSlot
+          if(spine.ClippingAttachment&&att instanceof spine.ClippingAttachment){clip={end:att.endSlot&&att.endSlot.name,v:P.worldVertices(spine,slot,att)};continue;}
+          if(slot.data.name===inspectHidden||!(att instanceof spine.MeshAttachment||att instanceof spine.RegionAttachment)){if(clip&&clip.end===slot.data.name)clip=null;continue;}
           for(let j=0;j<saved.length;j++)s.drawOrder[j].attachment=j===i?saved[j]:null;
-          const vertices=att.updateWorldVertices(slot,false),xs=[],ys=[];
-          for(let n=0;n<vertices.length;n+=8){xs.push(128+vertices[n]*project.scale);ys.push(180-vertices[n+1]*project.scale);}
+          const vertices=P.worldVertices(spine,slot,att),xs=[],ys=[];
+          for(let n=0;n<vertices.length;n+=2){xs.push(128+vertices[n]*project.scale);ys.push(180-vertices[n+1]*project.scale);}
           const x=Math.floor(Math.min(...xs))-1,y=Math.floor(Math.min(...ys))-1;
           const w=Math.ceil(Math.max(...xs))-x+1,h=Math.ceil(Math.max(...ys))-y+1;
           if(!Number.isFinite(w)||w<=0||w>1024||h<=0||h>1024)throw Error('部件超出编辑范围');
           high.width=w*4;high.height=h*4;const hc=high.getContext('2d');
-          hc.translate((128-x)*4,(180-y)*4);hc.scale(project.scale*4,-project.scale*4);
-          const renderer=new spine.canvas.SkeletonRenderer(hc);renderer.triangleRendering=true;renderer.draw(s);
+          hc.save();hc.translate((128-x)*4,(180-y)*4);hc.scale(project.scale*4,-project.scale*4);
+          if(clip){hc.beginPath();for(let n=0;n<clip.v.length;n+=2)hc[n?'lineTo':'moveTo'](clip.v[n],clip.v[n+1]);hc.closePath();hc.clip();}
+          const renderer=new spine.canvas.SkeletonRenderer(hc);renderer.triangleRendering=true;renderer.draw(s);hc.restore();
+          if(clip&&clip.end===slot.data.name)clip=null;
           low.width=w;low.height=h;const lc=low.getContext('2d',{willReadFrequently:true});lc.drawImage(high,0,0,w,h);
           const id=lc.getImageData(0,0,w,h),a=id.data;let max=0;
           for(let n=3;n<a.length;n+=4)max=Math.max(max,a[n]);
@@ -82,7 +90,7 @@
     function refreshLayers() {
       const value=$('layers').value,order=patch.frames[frame].order||project.frames[frame].order;
       $('layers').replaceChildren();for(const n of [...order].reverse()){const o=document.createElement('option');o.value=n;o.textContent=n;$('layers').append(o);}
-      $('layers').value=order.includes(value)?value:'F_R_Hand';
+      $('layers').value=order.includes(value)?value:order[order.length-1];
     }
     function render(fp=patch.frames[frame]) {
       ({s:sk,b:model}=skeleton(frame,fp));ctx.clearRect(0,0,native.width,native.height);
@@ -147,7 +155,7 @@
     $('redo').onclick=()=>{if(!future.length)return;stop();history.push(structuredClone(patch));patch=future.pop();changed();};
     async function post(url,body){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','X-Editor-Token':project.token},body:JSON.stringify(body)});const data=await r.json();if(!r.ok)throw Error(data.error);return data;}
     $('save').onclick=async()=>{stop();const snapshot=structuredClone(patch);try{const result=await post('/save',{patch:snapshot});dirty=JSON.stringify(patch)!==JSON.stringify(snapshot);message(`已保存：${result.path}`);}catch(e){message(e.message,true);}};
-    $('download').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(patch,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='siege_run_pose.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+    $('download').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(patch,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download=(project.character||'operator')+'_run_pose.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
     $('import').onchange=async()=>{stop();try{const f=$('import').files[0];if(!f)return;if(f.size>1_000_000)throw Error('姿势文件过大');const p=JSON.parse(await f.text());P.validatePatch(p,project);remember();patch=p;changed();message('姿势已载入。原生骨架来源指纹匹配。');}catch(e){message(e.message,true);}finally{$('import').value='';}};
     $('export').onclick=async()=>{
       stop();const snapshot=structuredClone(patch);$('export').disabled=true;
@@ -160,8 +168,8 @@
     const draft=await (await get('/draft.json')).json();let draftWarning='';
     if(draft){try{P.validatePatch(draft,project);patch=draft;}catch(e){draftWarning='旧草稿来源已变化，未自动应用；旧文件仍保留。';}}
     document.querySelectorAll('button,select,input').forEach(el=>el.disabled=false);
-    $('source').textContent=`${project.title} · 八帧 · ${(8/project.fps).toFixed(3)} 秒 · 原始素材只读`;
+    $('source').textContent=`${project.title} · Spine ${project.spine||''} · 八帧 · ${(8/project.fps).toFixed(3)} 秒 · 原始素材只读`;
     refreshLayers();render();requestAnimationFrame(tick);
-    message(draftWarning||'已就绪。选中持锤手，拖动圆点或点击方向键微调；修改只作用于当前帧。');
+    message(draftWarning||'已就绪。选中持武器手或脚踝，拖动圆点或点击方向键微调；修改只作用于当前帧。');
   } catch(e) {message(`载入失败：${e.message}`,true);console.error(e);}
 })();

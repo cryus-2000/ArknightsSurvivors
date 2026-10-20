@@ -1,0 +1,476 @@
+{
+ "id": "skadi",
+ "src": "skadi.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "斯卡蒂 · 全向回旋",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "hold": "R",
+ "weapon": "F_L_Weapon",
+ "params": {
+  "lean": 20,
+  "holdAmp": 6,
+  "holdElbowAmp": 4,
+  "weaponSway": 3,
+  "chestLean": 5,
+  "headKeep": 0.25
+ },
+ "secondary": [
+  {
+   "match": "^F_(Back_Hair(_[23]|_3_B)?|Front_Hair_[ABC](_[23])?)$",
+   "amp": 2.5,
+   "drag": 4
+  },
+  {
+   "match": "^F_[LR]_Dress(_[23])?$",
+   "amp": 3,
+   "drag": 2,
+   "lag": 1.3,
+   "gravity": 0.8
+  },
+  {
+   "match": "^F_[LR]_Cape$",
+   "amp": 4,
+   "drag": 3,
+   "gravity": 0.5
+  },
+  {
+   "match": "^F_(Hat_[ABC]|Hat_Top)$",
+   "amp": 3,
+   "drag": 3
+  },
+  {
+   "match": "^F_(Tie|R_Shirt)$",
+   "amp": 3,
+   "drag": 4
+  }
+ ],
+ "action": "spin",
+ "canvas": 224,
+ "fps": 10.4,
+ "grip": [
+  43,
+  -4
+ ],
+ "ms": [
+  100,
+  50,
+  50,
+  60,
+  50,
+  50,
+  50,
+  60,
+  50,
+  50,
+  60,
+  100
+ ],
+ "keys": [
+  {
+   "hipY": -0.18,
+   "hipX": 0,
+   "lean": 14,
+   "chest": 0,
+   "headKeep": 0.6,
+   "legs": {
+    "L": {
+     "ground": true,
+     "x": 0.3,
+     "foot": 0
+    },
+    "R": {
+     "ground": true,
+     "x": -0.25,
+     "foot": -10
+    }
+   },
+   "arms": {
+    "R": [
+     -150,
+     -170
+    ],
+    "L": [
+     -40,
+     10
+    ]
+   },
+   "weapon": -172,
+   "weaponScale": 1
+  },
+  {
+   "hipY": -0.2,
+   "hipX": 0,
+   "lean": 6,
+   "chest": 0,
+   "headKeep": 0.6,
+   "legs": {
+    "L": {
+     "ground": true,
+     "x": 0.3,
+     "foot": 0
+    },
+    "R": {
+     "ground": true,
+     "x": -0.25,
+     "foot": -10
+    }
+   },
+   "arms": {
+    "R": [
+     -110,
+     -100
+    ],
+    "L": [
+     -140,
+     -150
+    ]
+   },
+   "weapon": -160,
+   "weaponScale": 0.35,
+   "top": [
+    "F_R_Arm",
+    "F_R_Forearm",
+    "F_Weapon",
+    "F_R_Hand"
+   ]
+  },
+  {
+   "hipY": -0.2,
+   "hipX": 0,
+   "lean": 6,
+   "chest": 0,
+   "headKeep": 0.6,
+   "legs": {
+    "L": {
+     "ground": true,
+     "x": 0.3,
+     "foot": 0
+    },
+    "R": {
+     "ground": true,
+     "x": -0.25,
+     "foot": -10
+    }
+   },
+   "arms": {
+    "R": [
+     -75,
+     -50
+    ],
+    "L": [
+     -140,
+     -150
+    ]
+   },
+   "weapon": -4,
+   "weaponScale": 0.7,
+   "top": [
+    "F_R_Arm",
+    "F_R_Forearm",
+    "F_Weapon",
+    "F_R_Hand"
+   ],
+   "smear": true
+  },
+  {
+   "hipY": -0.2,
+   "hipX": 0,
+   "lean": 6,
+   "chest": 0,
+   "headKeep": 0.6,
+   "legs": {
+    "L": {
+     "ground": true,
+     "x": 0.3,
+     "foot": 0
+    },
+    "R": {
+     "ground": true,
+     "x": -0.25,
+     "foot": -10
+    }
+   },
+   "arms": {
+    "R": [
+     -55,
+     -40
+    ],
+    "L": [
+     -140,
+     -150
+    ]
+   },
+   "weapon": 0,
+   "weaponScale": 1,
+   "top": [
+    "F_R_Arm",
+    "F_R_Forearm",
+    "F_Weapon",
+    "F_R_Hand"
+   ],
+   "smear": true
+  },
+  {
+   "view": "B",
+   "weapon": -4,
+   "weaponScale": 1,
+   "hipY": -0.1,
+   "smear": true
+  },
+  {
+   "view": "B",
+   "weapon": -30,
+   "weaponScale": 0.35,
+   "hipY": -0.1,
+   "top": [
+    "B_L_Arm",
+    "B_L_Forearm",
+    "B_L_Hand",
+    "B_L_Fingers_2",
+    "B_Coat_Back",
+    "B_L_Calf",
+    "B_L_Foot",
+    "B_L_Leg",
+    "B_R_Calf",
+    "B_R_Foot",
+    "B_R_Leg",
+    "B_L_Waist",
+    "B_Head",
+    "B_Coat",
+    "B_R_Arm",
+    "B_R_Hand",
+    "B_R_Forearm",
+    "B_Cape",
+    "B_Back_Hair",
+    "B_Hat_C",
+    "B_Hat_B",
+    "B_Hat_A"
+   ]
+  },
+  {
+   "hipY": -0.2,
+   "hipX": 0,
+   "lean": 6,
+   "chest": 0,
+   "headKeep": 0.6,
+   "legs": {
+    "L": {
+     "ground": true,
+     "x": 0.3,
+     "foot": 0
+    },
+    "R": {
+     "ground": true,
+     "x": -0.25,
+     "foot": -10
+    }
+   },
+   "arms": {
+    "R": [
+     -75,
+     -50
+    ],
+    "L": [
+     -140,
+     -150
+    ]
+   },
+   "weapon": -4,
+   "weaponScale": 0.7,
+   "top": [
+    "F_R_Arm",
+    "F_R_Forearm",
+    "F_Weapon",
+    "F_R_Hand"
+   ],
+   "flip": true,
+   "smear": true
+  },
+  {
+   "hipY": -0.2,
+   "hipX": 0,
+   "lean": 6,
+   "chest": 0,
+   "headKeep": 0.6,
+   "legs": {
+    "L": {
+     "ground": true,
+     "x": 0.3,
+     "foot": 0
+    },
+    "R": {
+     "ground": true,
+     "x": -0.25,
+     "foot": -10
+    }
+   },
+   "arms": {
+    "R": [
+     -55,
+     -40
+    ],
+    "L": [
+     -140,
+     -150
+    ]
+   },
+   "weapon": 0,
+   "weaponScale": 1,
+   "top": [
+    "F_R_Arm",
+    "F_R_Forearm",
+    "F_Weapon",
+    "F_R_Hand"
+   ],
+   "flip": true,
+   "smear": true
+  },
+  {
+   "view": "B",
+   "weapon": -4,
+   "weaponScale": 1,
+   "hipY": -0.1,
+   "flip": true,
+   "smear": true
+  },
+  {
+   "view": "B",
+   "weapon": -30,
+   "weaponScale": 0.35,
+   "hipY": -0.1,
+   "flip": true,
+   "top": [
+    "B_L_Arm",
+    "B_L_Forearm",
+    "B_L_Hand",
+    "B_L_Fingers_2",
+    "B_Coat_Back",
+    "B_L_Calf",
+    "B_L_Foot",
+    "B_L_Leg",
+    "B_R_Calf",
+    "B_R_Foot",
+    "B_R_Leg",
+    "B_L_Waist",
+    "B_Head",
+    "B_Coat",
+    "B_R_Arm",
+    "B_R_Hand",
+    "B_R_Forearm",
+    "B_Cape",
+    "B_Back_Hair",
+    "B_Hat_C",
+    "B_Hat_B",
+    "B_Hat_A"
+   ]
+  },
+  {
+   "hipY": -0.2,
+   "hipX": 0,
+   "lean": 6,
+   "chest": 0,
+   "headKeep": 0.6,
+   "legs": {
+    "L": {
+     "ground": true,
+     "x": 0.3,
+     "foot": 0
+    },
+    "R": {
+     "ground": true,
+     "x": -0.25,
+     "foot": -10
+    }
+   },
+   "arms": {
+    "R": [
+     -150,
+     -170
+    ],
+    "L": [
+     -40,
+     10
+    ]
+   },
+   "weapon": -172,
+   "weaponScale": 1
+  },
+  {
+   "hipY": -0.08,
+   "hipX": 0,
+   "lean": 12,
+   "chest": 0,
+   "headKeep": 0.6,
+   "legs": {
+    "L": {
+     "ground": true,
+     "x": 0.25,
+     "foot": 0
+    },
+    "R": {
+     "ground": true,
+     "x": -0.18,
+     "foot": 0
+    }
+   },
+   "arms": {
+    "R": [
+     -110,
+     -135
+    ],
+    "L": [
+     -110,
+     -80
+    ]
+   },
+   "weapon": -150,
+   "weaponScale": 1
+  }
+ ],
+ "weaponSlot": "F_Weapon",
+ "handSlot": "F_R_Hand",
+ "back": {
+  "hip": "B_Hip",
+  "arm": [
+   "B_R_Arm",
+   "B_R_Forearm",
+   "B_R_Hand"
+  ],
+  "weapon": "B_R_Weapon",
+  "weaponSlot": "B_Weapon",
+  "feet": [
+   "B_L_Foot",
+   "B_R_Foot"
+  ],
+  "bladeFlip": true
+ }
+}

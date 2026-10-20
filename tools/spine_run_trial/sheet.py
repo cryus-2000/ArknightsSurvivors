@@ -12,12 +12,16 @@ ap.add_argument('frames'); ap.add_argument('prefix')
 ap.add_argument('--old'); ap.add_argument('--old-size', type=int, default=128)
 ap.add_argument('--old-origin', type=int, nargs=2, default=None, help='现有条每帧原点；与新帧 (64,120) 对齐')
 ap.add_argument('--ms', type=int, default=75)
+ap.add_argument('--ms-list', type=int, nargs='+', help='逐帧时长（动作用）')
+ap.add_argument('--size', type=int, default=128, help='帧画布边长（动作可大于 128，原点居中平移）')
 a = ap.parse_args()
 F = Path(a.frames); pre = Path(a.prefix); pre.parent.mkdir(parents=True, exist_ok=True)
-frames = [Image.open(F / f'f{i:02d}.png').convert('RGBA') for i in range(8)]
+frames = [Image.open(p).convert('RGBA') for p in sorted(F.glob('f[0-9][0-9].png'))]
+S = a.size; PAD = (S - 128) // 2; GROUND = 120 + PAD
+MS = a.ms_list or [a.ms] * len(frames)
 
-strip = Image.new('RGBA', (128 * 8, 128))
-for i, im in enumerate(frames): strip.paste(im, (128 * i, 0))
+strip = Image.new('RGBA', (S * len(frames), S))
+for i, im in enumerate(frames): strip.paste(im, (S * i, 0))
 strip.save(f'{pre}_strip@2x.png')
 
 # 统一裁剪框：8 帧并集外扩 4
@@ -25,29 +29,30 @@ box = None
 for im in frames:
     b = im.getchannel('A').getbbox()
     box = b if box is None else (min(box[0], b[0]), min(box[1], b[1]), max(box[2], b[2]), max(box[3], b[3]))
-box = (max(0, box[0] - 4), max(0, box[1] - 4), min(128, box[2] + 4), min(128, box[3] + 4))
+box = (max(0, box[0] - 4), max(0, box[1] - 4), min(S, box[2] + 4), min(S, box[3] + 4))
 
 
 def on_bg(im, scale, crop=box, ground=True):
     c = im.crop(crop); bg = Image.new('RGBA', c.size, BG)
     if ground:
-        d = ImageDraw.Draw(bg); y = 120 - crop[1]
+        d = ImageDraw.Draw(bg); y = GROUND - crop[1]
         d.line([(0, y), (c.width, y)], fill=(88, 104, 122, 255))
     bg.alpha_composite(c)
     return bg.resize((c.width * scale, c.height * scale), Image.Resampling.NEAREST)
 
 
-for name, ms in (('run', a.ms), ('run_slow', a.ms * 4)):
+for name, k in (('run', 1), ('run_slow', 4)):
     seq = [on_bg(im, 4).convert('RGB') for im in frames]
-    seq[0].save(f'{pre}_{name}.gif', save_all=True, append_images=seq[1:], duration=ms, loop=0, disposal=2)
+    seq[0].save(f'{pre}_{name}.gif', save_all=True, append_images=seq[1:], duration=[m * k for m in MS], loop=0, disposal=2)
 
 # 8 倍逐帧：两行四列，每帧标号 + 地面线 + 像素网格
 tiles = [on_bg(im, 8) for im in frames]
 tw, th = tiles[0].size
-sheet = Image.new('RGBA', (tw * 4 + 5 * 8, th * 2 + 3 * 8 + 32), (30, 36, 44, 255))
+COLS = 4 if len(tiles) <= 8 else 6; ROWS = -(-len(tiles) // COLS)
+sheet = Image.new('RGBA', (tw * COLS + (COLS + 1) * 8, th * ROWS + (ROWS + 1) * 8 + 16 * ROWS), (30, 36, 44, 255))
 d = ImageDraw.Draw(sheet)
 for i, t in enumerate(tiles):
-    x = 8 + (i % 4) * (tw + 8); y = 24 + (i // 4) * (th + 8 + 12)
+    x = 8 + (i % COLS) * (tw + 8); y = 24 + (i // COLS) * (th + 8 + 12)
     g = ImageDraw.Draw(t)
     for gx in range(0, tw, 8): g.line([(gx, 0), (gx, th)], fill=(0, 0, 0, 28))
     for gy in range(0, th, 8): g.line([(0, gy), (tw, gy)], fill=(0, 0, 0, 28))
@@ -77,7 +82,7 @@ if a.old:
         for i, im in enumerate(seq): cmp.alpha_composite(on_bg(im, s, ob), (4 + i * (tw + 4), y))
     cmp.convert('RGB').save(f'{pre}_vs_old.png')
     seq = []
-    for i in range(8):
+    for i in range(len(frames)):
         o = on_bg(olds[i % len(olds)], 4, ob); nn = on_bg(frames[i], 4, ob)
         both = Image.new('RGBA', (o.width * 2 + 8, o.height), (30, 36, 44, 255)); both.alpha_composite(o, (0, 0)); both.alpha_composite(nn, (o.width + 8, 0))
         seq.append(both.convert('RGB'))
