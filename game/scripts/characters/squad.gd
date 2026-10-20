@@ -23,6 +23,10 @@ const STANCE_NAMES := ["随行", "突击", "归队"]
 var stance := GUARD
 var recall_t := 0.0
 var gather_t := -1.0          # 归队：全员到位后站定的剩余秒数（-1 = 还在往回跑）
+## 突击耐力（10-21 用户定）：全队共用 0–1。突击时按时间消耗（满 command/stamina_secs 秒），耗尽自动归队并进冷却；
+## 不突击时慢慢回满（command/regen_secs 秒从空到满）；低于 command/min_start 不能发起突击。只按时间，不受敌人影响
+var stamina := 1.0
+var exhausted := false         # 耗尽后的冷却：回到 min_start 以上才解除（HUD 灰显）
 var stance_log: Array = []     # [[g.t, 新站位], …]：玩家切换记录（同 seed 复现 / 机器人对照）
 
 
@@ -288,6 +292,7 @@ func update(dt: float) -> void:
 		o.follow(dt, g.ppos if o.is_leader else g.ppos + _slot_offset(o.slot))
 	if stance == RECALL:
 		_tick_recall(dt)
+	_tick_stamina(dt)
 	for o in ops:
 		o.tick_sp(dt)
 		_battle_voice(o, dt)
@@ -309,8 +314,30 @@ static func cmd_on() -> bool:
 func cycle_stance() -> bool:
 	if not cmd_on():
 		return false
+	if stance != ROAM and not can_roam():
+		return false   # 耐力不足（game.toggle_command 提示）
 	set_stance(ROAM if stance != ROAM else RECALL)
 	return true
+
+
+func can_roam() -> bool:
+	return stamina >= Bal.v("command/min_start", 0.3) and not exhausted
+
+
+## 耐力：突击扣、其余回；耗尽 → 自动归队（走集合那套）+ 冷却。机器人突击常开（command/bot_roam）时随行中耐力够了就再突击
+func _tick_stamina(dt: float) -> void:
+	if stance == ROAM:
+		stamina -= dt / maxf(0.1, Bal.v("command/stamina_secs", 15.0))
+		if stamina <= 0.0:
+			stamina = 0.0
+			exhausted = true
+			set_stance(RECALL)
+		return
+	stamina = minf(1.0, stamina + dt / maxf(0.1, Bal.v("command/regen_secs", 30.0)))
+	if exhausted and stamina >= Bal.v("command/min_start", 0.3):
+		exhausted = false
+	if stance == GUARD and g.get("bot") != null and Bal.v("command/bot_roam", 0.0) > 0.0 and cmd_on() and can_roam():
+		set_stance(ROAM)
 
 
 func set_stance(s: int) -> void:

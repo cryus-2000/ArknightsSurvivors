@@ -923,7 +923,7 @@ func _ready() -> void:
 				bot_seed = int(a.substr(7))
 		bot = Bot.new(self, bot_p, bot_seed)
 		if Bal.v("command/bot_roam", 0.0) > 0.0 and Squad.cmd_on():
-			squad.set_stance(squad.ROAM)   # 指挥模式对照（docs/114）：机器人局常开突击；缺省 0 = 随行，同 seed 不变
+			squad.set_stance(squad.ROAM)   # 之后耐力耗尽归队、回到 min_start 再突击（squad._tick_stamina）   # 指挥模式对照（docs/114）：机器人局常开突击；缺省 0 = 随行，同 seed 不变
 	for arg in Cfg.dev_args():
 		if arg.begins_with("--shotdir="):
 			shot_dir = arg.substr(10)
@@ -1468,8 +1468,12 @@ func dash_frac() -> float:
 ## 冲刺任何时候都能按（docs/38 §1.11「永不硬控」）：只看冷却、是否正在冲刺、是否在局内；僵直时也能冲，方向取按住的方向
 ## 指挥键（键盘 / 手柄 / 触屏共用）
 func toggle_command() -> void:
-	if state == S.PLAY and squad.cycle_stance():
+	if state != S.PLAY:
+		return
+	if squad.cycle_stance():
 		Sfx.play("ui_ok", -8.0)
+	elif Squad.cmd_on():
+		vfx.add_text(ppos + Vector2(0, -70), "耐力不足", UI.SUB, 14)   # 突击耐力没回到 command/min_start
 
 
 func _try_dash() -> void:

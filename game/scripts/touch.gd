@@ -342,6 +342,12 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 		var lit: bool = flash.get("cmd", 0.0) > 0.0 or st != 0
 		hud.draw_circle(cc, cr, Color(0.05, 0.12, 0.16, 0.75 if lit else 0.55))
 		hud.draw_arc(cc, cr, 0.0, TAU, 32, Color(scol.r, scol.g, scol.b, 0.95 if lit else 0.6), 2.0 if st == 0 else 3.0)
+		# 突击耐力：键外一圈（从正上方顺时针，突击中金色、耗尽冷却灰色）
+		var sq = g.squad
+		var fc: Color = UI.GOLD if st == sq.ROAM else (Color(0.5, 0.52, 0.55) if sq.exhausted else UI.CYAN)
+		hud.draw_arc(cc, cr + 5.0, 0.0, TAU, 32, Color(0.02, 0.03, 0.04, 0.6), 3.0)
+		if sq.stamina > 0.0:
+			hud.draw_arc(cc, cr + 5.0, -PI / 2.0, -PI / 2.0 + TAU * clampf(sq.stamina, 0.0, 1.0), 32, fc, 3.0)
 		var cfs: int = int(round(14.0 * clampf(float(ce.s), 0.8, 1.3)))
 		UI.text(hud, font, cc + Vector2(-30, cfs * 0.38), g.squad.STANCE_NAMES[st], cfs, Color(scol.r, scol.g, scol.b, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 60)
 		UI.text(hud, font, cc + Vector2(-30, cr + 15), "指挥", 13 if ph else 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 60)
