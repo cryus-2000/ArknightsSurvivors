@@ -172,7 +172,7 @@ func _izumik_lamp_step(e: Dictionary, dt: float) -> void:
 		for j in g.enemies_sys.query(l.pos, e.lamp_r):
 			var o: Dictionary = g.enemies[j]
 			if o.type == "offspring" and not o.dead:
-				o.slow = maxf(o.slow, 0.2)
+				g.enemies_sys.add_cc(o, -INF, 0.2)
 
 
 func izumik_safe(e: Dictionary) -> bool:

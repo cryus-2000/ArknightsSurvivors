@@ -130,8 +130,8 @@ func apply_kb(e: Dictionary, v: Vector2, wl := true) -> void:
 
 
 ## 控制状态统一入口（docs/101 §7.3.10）：转发 enemies_sys，语义见 run/enemies.gd
-func add_cc(e: Dictionary, stun := -INF, slow := -INF) -> void:
-	g.enemies_sys.add_cc(e, stun, slow)
+func add_cc(e: Dictionary, stun := -INF, slow := -INF, kind := "") -> void:
+	g.enemies_sys.add_cc(e, stun, slow, kind)
 
 
 func set_air(e: Dictionary, h: float, hold_kb := false) -> void:

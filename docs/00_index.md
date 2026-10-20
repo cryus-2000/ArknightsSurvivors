@@ -174,3 +174,4 @@
 | [水月 S3 整范围触手](plans/2026-10-18-mizuki-s3-fx.md) | 原作群攻与控制方向、新触手范围表现 | 试验实现 | 保留本作数值、不扣血，移除镜像 | seg_mizuki、mizuki_s3_fx、mizuki_runtime_test |
 
 | [博士统一画风接入](plans/2026-10-18-doctor-style-integration.md) | 待机、跑步、倒下统一及 64/128 原点 | 测试版接入 | 用户批准新画风；保留既有四干员测试基线 | doctor.json、world、title_bg、doctor_run_test |
+- [2026-10-18 怪物原作机制补齐](plans/2026-10-18-enemy-identity.md)：已实施记录；四类普通怪/精英的防御、光环和控制身份补齐与回归清单；引用：docs/95、enemy_identity_test。

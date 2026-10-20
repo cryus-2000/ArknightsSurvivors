@@ -82,10 +82,10 @@ static func lift(o, e: Dictionary, dur: float, h: float, s: Dictionary = {}) -> 
 	for a in o.air_list:
 		if is_same(a.e, e):
 			a.dur = maxf(a.dur, a.t + dur)
-			o.add_cc(e, a.dur - a.t)
+			o.add_cc(e, a.dur - a.t, -INF, "airborne")
 			return
 	o.air_list.append({"e": e, "t": 0.0, "dur": dur, "h": h})
-	o.add_cc(e, dur)
+	o.add_cc(e, dur, -INF, "airborne")
 
 
 static func air_height(a: Dictionary) -> float:

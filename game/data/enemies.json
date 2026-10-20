@@ -35,6 +35,7 @@
    "extra": {"name": "滑行侧撞", "mode": "swipe", "range": 115, "cd": 15.0, "damage_mult": 0.2, "min_time": 400.0}
   },
   "stone": {
+   "entrench_phys_taken": 0.55,
    "hit_fx": "fx_rock_hit",
    "hit_fx_origin": [10, 10],
    "name": "固海凿石者",
@@ -280,6 +281,7 @@
    }
   },
   "tracer": {
+   "enrage_phys_taken": 0.65,
    "atk_fx": "fx_tracer_thrust",
    "atk_fx_enraged": "fx_tracer_thrust_enraged",
    "atk_fx_origin": [0, 10],
@@ -320,6 +322,10 @@
    }
   },
   "nest": {
+   "cc_duration_mult": 0.5,
+   "stop_immune": true,
+   "aura_arts_mult": 0.2,
+   "aura_tick": 0.5,
    "atk_fx": "fx_nest_sweep",
    "atk_fx_origin": [36, 24],
    "root_hit": 0.8,
@@ -488,6 +494,9 @@
    }
   },
   "mimic": {
+   "stun_immune": true,
+   "cold_immune": true,
+   "seal_immune": true,
    "atk_fx": "fx_mimic_bite",
    "atk_fx_origin": [8, 16],
    "name": "箱形恐鱼",

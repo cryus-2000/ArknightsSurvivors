@@ -12,6 +12,7 @@ const CELL := 48.0
 const EVO_AGE := 35.0   # 进化：存活这么久的普通怪变精英（随时间缩短，见 update）
 const EVO_XP := 2.0     # 进化后经验倍率
 var mire_tick := 0.0
+var nest_tick := 0.0
 
 
 func _init(game: Game) -> void:
@@ -294,6 +295,11 @@ func update(dt: float) -> void:
 		if e.dead:
 			continue
 		e.age += dt
+		if float(e.get("set_t", 0.0)) > 0.0:
+			e.set_t = maxf(0.0, e.set_t - dt)
+			if e.set_t == 0.0:
+				e.weak = D.ENEMIES[e.type].get("weak", "")
+				g.vfx.add_text(e.pos + Vector2(0, -24), "架起结束", Color(0.75, 0.8, 0.9), 13)
 		e.flash -= dt
 		e.jhit -= dt
 		e.stun -= dt / g.control_mult
@@ -411,7 +417,6 @@ func update(dt: float) -> void:
 				"melee":
 					v += move_dir * spd
 				"ranged":
-					e.set_t -= dt
 					if e.get("hover", false) == false and D.ENEMIES[e.type].get("entrench", false) and not e.set_done and dist < e.range:
 						# 固海凿石者：首次接敌时原地架起，大幅提高防御
 						e.set_done = true
@@ -574,6 +579,7 @@ func update_status(dt: float) -> void:
 				mire_nat = true
 	# 溟痕：减速 + 屏幕变暗 + 持续掉血；神经损伤在溟痕里累积（combat，Boss与怪物 419c84d）
 	g.in_mire = move_toward(g.in_mire, 1.0 if mired else 0.0, dt * (4.0 if mired else 2.5))
+	update_nest_aura(dt, sanct)
 	g.combat.update_nerve(dt, mired, sanct)   # 神经损伤：站在溟痕里累积（combat.gd）
 	if mired:
 		# 溟痕侵蚀：每 0.5 秒结算一次（3 + 1.5% 最大生命），带飘字与轻微红闪
@@ -672,11 +678,17 @@ func apply_kb(e: Dictionary, v: Vector2, wl := true) -> void:
 # 字典仍是权威数据；原生 B 段只写 pos，这些字段由 A 段（GDScript）读。
 
 ## 眩晕 / 减速取大合并；-INF = 这一项不动。精英 / Boss 系数各干员不同，由调用方乘好再传
-func add_cc(e: Dictionary, stun := -INF, slow := -INF) -> void:
-	if stun > -INF:
-		e.stun = maxf(e.stun, stun)
+func add_cc(e: Dictionary, stun := -INF, slow := -INF, kind := "") -> void:
+	var d: Dictionary = D.ENEMIES.get(e.type, {})
+	var mult: float = float(d.get("cc_duration_mult", 1.0))
+	if kind == "stop" and d.get("stop_immune", false):
+		return
+	if kind == "cold" and d.get("cold_immune", false):
+		return
+	if stun > -INF and (kind == "airborne" or not d.get("stun_immune", false)):
+		e.stun = maxf(e.stun, stun * (1.0 if kind == "airborne" else mult))
 	if slow > -INF:
-		e.slow = maxf(e.slow, slow)
+		e.slow = maxf(e.slow, slow * (mult if kind == "cold" else 1.0))
 
 
 ## 浮空高度（画面抬高、C 段接触判定读）；hold_kb = 本帧同时清掉击退（被掀飞 / 抛起期间不吃击退）。
@@ -793,3 +805,32 @@ func type_alive(kind: String) -> int:
 		if not e.dead:
 			n += 1
 	return n
+
+
+## 重叠巢涌光环只取最强一只；离圈不积攒下一次伤害。
+func update_nest_aura(dt: float, sanct: bool) -> void:
+	var source: Dictionary = {}
+	var dps := 0.0
+	if not sanct:
+		for e in g.enemies:
+			var d: Dictionary = D.ENEMIES.get(e.type, {})
+			if not d.has("aura_arts_mult") or e.dead or e.stun > 0.0 or float(e.get("seal_t", 0.0)) > g.t:
+				continue
+			if g.ppos.distance_to(e.pos) >= float(d.aura_r):
+				continue
+			var rate: float = e.dmg * float(d.aura_arts_mult)
+			if rate > dps:
+				dps = rate
+				source = e
+	if source.is_empty():
+		nest_tick = 0.0
+		return
+	var period: float = D.ENEMIES[source.type].aura_tick
+	nest_tick += dt
+	if nest_tick < period:
+		return
+	nest_tick = fmod(nest_tick, period)
+	if g.invuln > 0.0:
+		return
+	source["aura_pulse_t"] = g.t
+	g.combat.enemy_hit(dps * period, {"type": source.type, "elite": source.elite, "boss": false}, false, true, ["远程", "法术"], "nest")

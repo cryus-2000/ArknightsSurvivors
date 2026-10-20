@@ -254,7 +254,7 @@ static func h3_launch(o, e: Dictionary, dur: float, h: float) -> void:
 			a.t = 0.0
 			return
 	ir.air.append({"e": e, "t": 0.0, "dur": dur, "h": h})
-	o.add_cc(e, dur)
+	o.add_cc(e, dur, -INF, "airborne")
 
 
 static func _h3_is_air(o, e: Dictionary) -> bool:

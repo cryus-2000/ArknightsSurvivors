@@ -2432,6 +2432,13 @@ func draw_enemy_tells() -> void:
 		var stk = e.get("stakes")   # 不给每只敌人新建默认空数组（docs/50 §14）
 		if stk is Array and not stk.is_empty():
 			_draw_stakes(e)
+		var armor_def: Dictionary = D.ENEMIES.get(e.type, _NO_DEF)
+		if (float(e.get("set_t", 0.0)) > 0.0 and armor_def.has("entrench_phys_taken")) or (e.enraged and armor_def.has("enrage_phys_taken")):
+			# 常亮像素盾标，直接读取真实硬化状态，结束时自然消失。
+			var ap: Vector2 = (_enemy_top(e) + Vector2(0, -28)).round()
+			g.draw_rect(Rect2(ap + Vector2(-5, -4), Vector2(10, 6)), Color(0.65, 0.8, 1.0))
+			g.draw_rect(Rect2(ap + Vector2(-3, 2), Vector2(6, 2)), Color(0.65, 0.8, 1.0))
+			g.draw_rect(Rect2(ap + Vector2(-1, 4), Vector2(2, 2)), Color(0.65, 0.8, 1.0))
 		if e.type == "tear":
 			_tear_zone(e)
 		elif e.boss:
@@ -2495,6 +2502,8 @@ func draw_nest_auras() -> void:
 		if lm is Array and not lm.is_empty():
 			_izu_lamps(e)
 		var ed: Dictionary = D.ENEMIES.get(e.type, _NO_DEF)
+		if ed.has("aura_arts_mult") and (float(e.get("seal_t", 0.0)) > g.t or e.stun > 0.0):
+			continue
 		if not ed.has("aura_r"):
 			continue
 		var ar: float = ed.aura_r
@@ -2504,7 +2513,7 @@ func draw_nest_auras() -> void:
 		if aura_tex != null:
 			var fw: float = aura_tex.get_width() / 4.0
 			var frame := int(g.t * 10.0) % 4
-			g.draw_texture_rect_region(aura_tex, Rect2(e.pos - Vector2.ONE * ar, Vector2.ONE * ar * 2.0), Rect2(frame * fw, 0, fw, aura_tex.get_height()), Color(1, 1, 1, 0.35))
+			g.draw_texture_rect_region(aura_tex, Rect2(e.pos - Vector2.ONE * ar, Vector2.ONE * ar * 2.0), Rect2(frame * fw, 0, fw, aura_tex.get_height()), Color(1, 1, 1, 0.5 if g.t - float(e.get("aura_pulse_t", -1.0)) < 0.15 else 0.35))
 		# 柔光底 / 内收涟漪 / 转动虚线外圈都进无贴图批，函数末尾一次提交（原来每只约 24 次绘制调用）
 		var ac := Color(0.9, 0.5, 1.6)
 		for q in 4:

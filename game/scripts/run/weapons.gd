@@ -112,7 +112,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 				if not o.dead and o.pos.distance_to(b.pos) < b.aoe + o.r:
 					g.combat.damage(o, b.dmg, h)
 					if b.get("slow", false):
-						o.slow = maxf(o.slow, 1.2)
+						g.enemies_sys.add_cc(o, -INF, 1.2)
 			# Weighted magma supplies its own landing effect through bullet_exploded.
 			if not b.get("hw_b", {}).get("look", {}).get("weighted", false):
 				var fc: Color = b.get("fx_col", Color(0.7, 0.3, 1.0) if b.kind == "fire" else Color(1.0, 0.8, 0.4))
@@ -135,7 +135,7 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 		"arcane":
 			g.combat.damage(e, b.dmg, h)
 			if not e.dead:
-				e.slow = maxf(e.slow, 1.0)
+				g.enemies_sys.add_cc(e, -INF, 1.0)
 			# 溅射（铃兰狐火 base.aoe）：主目标之外、半径内的其他敌人吃同样伤害
 			if b.get("aoe", 0.0) > 0.0:
 				for k in g.enemies_sys.query(b.pos, b.aoe + 20.0):
