@@ -624,20 +624,20 @@ func test_blocks_texas() -> void:
 func test_fx_hold() -> void:
 	var Ch = preload("res://scripts/characters/character.gd")
 	var OB = preload("res://scripts/characters/op_blocks.gd")
-	var sk: Dictionary = Ch.load_def("skalter")
+	var sk: Dictionary = Ch.load_def("skalter")   # S3 do[0].fx：[0] 地面漩涡 hold 帧条、[1] 程序漩涡（10-21 删了贴身两条后的下标）
 	ok(sk.has("blocks") and Ch.validate_operator("skalter", sk), "浊心斯卡蒂（含 S3 地面漩涡 hold 帧条）通过校验")
 	var bads := {
 		"hold 帧条挂在技能发动上（瞬时）": func(d): d.blocks.skills[2].fx.append({"strip": "fx_skalter_vortex_floor", "hold": true, "layer": "ground"}),
-		"ground 层不是 hold 帧条": func(d): d.blocks.skills[2].do[0].fx[2].erase("hold"),
-		"hold 帧条写 every": func(d): d.blocks.skills[2].do[0].fx[2]["every"] = 1.0,
-		"hold 帧条放贴身层": func(d): d.blocks.skills[2].do[0].fx[2]["layer"] = "behind",
-		"hold 帧条 at = hits": func(d): d.blocks.skills[2].do[0].fx[2]["at"] = "hits",
-		"hold 不是布尔": func(d): d.blocks.skills[2].do[0].fx[2]["hold"] = 1,
-		"fade 超出范围": func(d): d.blocks.skills[2].do[0].fx[2]["fade"] = 9,
-		"fade 写成三个数": func(d): d.blocks.skills[2].do[0].fx[2]["fade"] = [0.1, 0.2, 0.3],
+		"ground 层不是 hold 帧条": func(d): d.blocks.skills[2].do[0].fx[0].erase("hold"),
+		"hold 帧条写 every": func(d): d.blocks.skills[2].do[0].fx[0]["every"] = 1.0,
+		"hold 帧条放贴身层": func(d): d.blocks.skills[2].do[0].fx[0]["layer"] = "behind",
+		"hold 帧条 at = hits": func(d): d.blocks.skills[2].do[0].fx[0]["at"] = "hits",
+		"hold 不是布尔": func(d): d.blocks.skills[2].do[0].fx[0]["hold"] = 1,
+		"fade 超出范围": func(d): d.blocks.skills[2].do[0].fx[0]["fade"] = 9,
+		"fade 写成三个数": func(d): d.blocks.skills[2].do[0].fx[0]["fade"] = [0.1, 0.2, 0.3],
 		"fade 写在一次性条目上": func(d): d.blocks.skills[2].fx[0]["fade"] = 0.3,
-		"if_tex 不是帧条名": func(d): d.blocks.skills[2].do[0].fx[3]["if_tex"] = "!skalter",
-		"vortex 写 hold": func(d): d.blocks.skills[2].do[0].fx[3]["hold"] = true,
+		"if_tex 不是帧条名": func(d): d.blocks.skills[2].do[0].fx[1]["if_tex"] = "!skalter",
+		"vortex 写 hold": func(d): d.blocks.skills[2].do[0].fx[1]["hold"] = true,
 	}
 	for why in bads:
 		var d2: Dictionary = sk.duplicate(true)
@@ -667,7 +667,7 @@ func test_fx_hold() -> void:
 		"wake 参数不认识": func(d): d.blocks.attack.fx[2].wake["glow"] = 1,
 		"wake.n 超出范围": func(d): d.blocks.attack.fx[2].wake["n"] = 9,
 		"xfade 没配 cond": func(d): d.blocks.attack.fx[2].erase("cond"),
-		"ease 配 hold": func(d): d.blocks.skills[2].do[0].fx[2]["ease"] = "out",
+		"ease 配 hold": func(d): d.blocks.skills[2].do[0].fx[0]["ease"] = "out",
 	}
 	for why in bad2:
 		var d3: Dictionary = sk.duplicate(true)
