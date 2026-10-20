@@ -123,6 +123,9 @@ func test_validation() -> void:
 		"reverse 类型": func(x): x.sprites.skills.s3.end.reverse = "yes",
 		"run 无 loop": func(x): x.sprites.skills.s3.erase("loop"),
 		"shadow 类型": func(x): x.sprites.skills.s3.shadow = "small",
+		"单条混循环": func(x): x.sprites.skills.s3 = {"anim": "skill", "loop": "float", "end": "float_in"},
+		"起手无循环": func(x): x.sprites.skills.s3 = {"start": "skill", "end": "float_in"},
+		"单条混起手": func(x): x.sprites.skills.s3 = {"anim": "skill", "start": "skill", "loop": "float"},
 	}
 	for label in bads:
 		var d: Dictionary = Ch.load_def("angelina").duplicate(true)

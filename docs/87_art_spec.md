@@ -129,6 +129,7 @@
 - 段可写 `reverse: true`，倒放整条或指定的 frames 子段，不修改原帧表；loop / run 也按其帧表循环。
 - `shadow` / `shadow_a` 分别为影子大小 / 不透明度系数（0–1，缺省各为 1），进入和退出以 0.25 秒缓动。带 enter 时施法阶段保持地面影子，enter / loop 期间缩淡，end / 序列作废后恢复。
 - 所有引用槽（含 enter / run）都校验加载清单与子段边界；`art_lint` 统一识别为本人身体。未写技能契约的干员保持原单条逻辑。
+- 单条 `anim` 不得混写 intro / hold / start / enter / loop / run / attack / end；start 型必须有 loop。持续循环或 enter 被另一技能序列遮住时保留阶段与进度，后者结束后恢复；原技能已结束则只播 end（没有 end 则跳过），不恢复技能效果或逻辑出手窗口。
 - 回归：`angelina_skill_anim_test` 检查原施法窗口、enter 被普攻遮住后的续播、移动与攻击变体、倒放、影子、玩法 RNG 与非法契约；铃兰 / 水月回归继续保留。
 
 ## 4. 配色与明度
