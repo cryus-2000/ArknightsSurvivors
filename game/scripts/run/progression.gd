@@ -181,6 +181,7 @@ func deep_cards() -> Array:
 ## 可选藏品：已实装、未拥有、满足前置与职业门槛；按稀有度加权排序（基础 60 / 稀有 26 / 核心 12 / 升华 3，升华 7:00 后才出）
 ## docs/35：流派加权（已拿过该流派 n 件 → ×1.3^n，封顶 ×2；守护·续航不参与，否则拿了生存卡就只剩生存卡）；
 ## 守护·续航（H）随时间变多（3:00 前 ×0.7 → 9:00 后 ×1.0；它件数最多，×1.0 已经是最常见的流派）
+## 护盾保底：还没有护盾层数时，给层数的藏品 ×relic/shield_weight（缺省 4，docs/35 §护盾保底）
 func relic_pool_ids(for_shop := false) -> Array:
 	# docs/57：relic/new_pool = 0 时第二批实装的藏品不进池（同 seed 结果与之前一致，供云端 A/B）
 	var new_ok: bool = Bal.vi("relic/new_pool", 1) != 0
@@ -212,6 +213,10 @@ func relic_pool_ids(for_shop := false) -> Array:
 		# 犹疑 (240)：稀有 / 核心 权重 +30%
 		if g.rfx.rule("rare_weight") > 0 and r.rarity in ["稀有", "核心"]:
 			w *= 1.3
+		# 护盾保底（10-21 用户：护盾常刷不到）：队长还没有护盾层数时，给层数的藏品（7 件）权重 ×relic/shield_weight；
+		# 一拿到层数就恢复原权重。权重只改排序、不改随机数抽取次数
+		if r.get("shield_layer", false) and g.shield_max <= 0:
+			w *= Bal.v("relic/shield_weight", 4.0)
 		# 已拥有的藏品升级：出现率减半
 		if g.relics.has(r.id):
 			w *= 0.5
