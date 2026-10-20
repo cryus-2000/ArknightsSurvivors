@@ -166,7 +166,7 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | 能天使 | 64 | frame_durations（全槽） | s1–s3 单条 | 次数型 lifecycle 默认绑定 | |
 | 推进之王 | 64 | frame_durations | 无（`skills[].anim`） | native_motion（数据驱动） | 取消号令 |
 | 乌尔比安 | 64 + 128 | frame_durations、`hand` | 无（elite2 `anim: throw`） | native_motion（数据驱动） | 锚 / 锁链从 `hand` 连出 |
-| 安洁莉娜 | 48（新序列、旧画布） | fire | s3 start/enter/loop/run/attack/end | — | 帧条待重画 |
+| 安洁莉娜 | 64 + 96（attack） | frame_durations、fire_time（出手时刻同旧条） | s3 start/enter/loop/run/attack/end | 次数 / 永久默认绑定 | 10-20 原作条 + dl 步态跑步；浮空离地 9 像素烘进帧条（`tools/probes/package_angelina.py`） |
 
 其余 8 人（星熊、艾丽妮、凯尔希、流明、斯卡蒂、浊心斯卡蒂、归溟幽灵鲨、德克萨斯）仍是 48 旧口径，见 §9。
 

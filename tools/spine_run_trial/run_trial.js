@@ -102,11 +102,74 @@ async function main() {
   const weaponBase = cfg.weapon ? ang(get(base, cfg.weapon)) : 0;
   console.log(cfg.id, 'scale', SCALE.toFixed(4), 'leg L', L.toFixed(1), 'ground', ground.toFixed(1), 'px leg', (L * SCALE).toFixed(1));
 
+  // sample.flatten = k（0–1）：把采样动画的髋部起伏压到 k 倍（绕全部采样帧的平均高度），脚踝 IK 回原位、脚掌角不变。
+  // 安洁莉娜 dl 跑步借乌尔比安步态，髋部起伏约 3 个 1x 像素且带腾空，像素尺度下读成一跳一跳（10-20 用户）。
+  const hipMean = cfg.sample?.flatten != null
+    ? cfg.sample.times.reduce((m, t) => m + get(pose(cfg.sample.anim, t), cfg.body.hip).worldY, 0) / cfg.sample.times.length : 0;
+  function flatten(sk) {
+    const hip = get(sk, cfg.body.hip), keep = {};
+    for (const side of ['L', 'R']) { const c = get(sk, cfg.legs[side][2]); keep[side] = [c.worldX, c.worldY, ang(c)]; }
+    move(sk, hip, 0, (hipMean - hip.worldY) * (1 - cfg.sample.flatten));
+    for (const side of ['L', 'R']) {
+      const [a, b, c] = cfg.legs[side].map(n => get(sk, n)), [x, y, r] = keep[side];
+      ik(sk, a, b, c, [x, y], P.facing); move(sk, c, x - c.worldX, y - c.worldY); rotate(sk, c, r - ang(c));
+    }
+  }
+
+  // sample.carry：在采样动画上重摆双臂与武器（安洁莉娜跑步，10-20 用户「按最自然的办法」）。
+  //   side / upper / fore / weapon：持杖臂上臂、前臂与杖的世界角（度，朝右）；swing：持杖臂随步小摆幅度。
+  //   grip: 'native' → 握点、手与杖的相对角取原生 Idle t=0（原作握法），否则只让杖跟手平移。
+  //   slide：沿杖身平移（调握在杖的哪一段）；front：把杖的槽挪到该槽之下（近侧手持杖时杖在身前）。
+  //   free {amp, elbow, elbowAmp}：另一只手按双脚前后自然摆（同侧腿在前时手在后）。
+  // 摆动相位取自本帧双脚前后差，不假设采样动画的起步腿。
+  const under = (x, anc) => { for (let p = x; p; p = p.parent) if (p === anc) return true; return false; };
+  let nativeGrip = null;
+  function carry(sk, i) {
+    const c = cfg.sample.carry, f = P.facing;
+    const fl = get(sk, cfg.legs.L[2]), fr = get(sk, cfg.legs.R[2]), legLen = (L * 0.6) || 1;
+    const stride = Math.max(-1, Math.min(1, (fl.worldX - fr.worldX) * f / legLen));     // +1 = 左脚在前
+    const fwd = side => (side === 'L' ? -stride : stride);                                // 手与同侧腿反向
+    const [a, b, h] = cfg.arms[c.side].map(n => get(sk, n)), w = get(sk, cfg.weapon), h0 = [h.worldX, h.worldY];
+    const sw = (c.swing || 0) * fwd(c.side);
+    aim(sk, a, b, c.upper + f * sw); aim(sk, b, h, c.fore + f * sw);
+    if (c.grip === 'native') {
+      if (!nativeGrip) {
+        const n = pose('Idle', 0), nh = get(n, cfg.arms[c.side][2]), nw = get(n, cfg.weapon);
+        const det = nw.a * nw.d - nw.b * nw.c, dx = nh.worldX - nw.worldX, dy = nh.worldY - nw.worldY;
+        nativeGrip = { local: [(nw.d * dx - nw.b * dy) / det, (-nw.c * dx + nw.a * dy) / det], rel: ang(nw) - ang(nh) };
+      }
+      rotate(sk, h, c.weapon - nativeGrip.rel - ang(h));
+      rotate(sk, w, c.weapon - ang(w));
+      const g = nativeGrip.local;
+      move(sk, w, h.worldX - (w.worldX + w.a * g[0] + w.b * g[1]), h.worldY - (w.worldY + w.c * g[0] + w.d * g[1]));
+    } else {
+      if (!under(w, a)) move(sk, w, h.worldX - h0[0], h.worldY - h0[1]);
+      rotate(sk, w, c.weapon - ang(w), [h.worldX, h.worldY]);
+    }
+    if (c.slide) move(sk, w, Math.cos(c.weapon / D) * c.slide, Math.sin(c.weapon / D) * c.slide);
+    if (c.front) {
+      const ws = sk.drawOrder.filter(x => under(x.bone, w));
+      sk.drawOrder = sk.drawOrder.filter(x => !ws.includes(x));
+      sk.drawOrder.splice(sk.drawOrder.findIndex(x => x.data.name === c.front), 0, ...ws);
+    }
+    if (c.free) {
+      const side = c.side === 'L' ? 'R' : 'L', [fa, fb, fc] = cfg.arms[side].map(n => get(sk, n)), k = fwd(side);
+      const upper = -90 + f * (c.free.base ?? 0) + f * c.free.amp * k;
+      aim(sk, fa, fb, upper); aim(sk, fb, fc, upper + f * (c.free.elbow + (c.free.elbowAmp || 0) * Math.max(0, k)));
+    }
+  }
+
   function frame(i) {
     if (cfg.keys?.[i]?.view === 'B') return backFrame(i, cfg.keys[i]);
     // sample：直接按时间采样现成的 Spine 动画（如 Codex 交来的候选动画），只做像素化
-    if (cfg.sample) return finish(pose(cfg.sample.anim, cfg.sample.times[i]), [{ t: cfg.sample.times[i] }]);
-    const sk = pose('Idle', 0), f = P.facing, phi = i / 8 * 2 * Math.PI;
+    if (cfg.sample) {
+      const sk = pose(cfg.sample.anim, cfg.sample.times[i]);
+      if (cfg.sample.flatten != null) flatten(sk);
+      if (cfg.sample.carry) carry(sk, i);
+      return finish(sk, [{ t: cfg.sample.times[i] }]);
+    }
+    // base：起始姿势（缺省原生 Idle t=0；如安洁莉娜浮空移动用 Skill2_Loop 举杖姿势）
+    const sk = pose(cfg.base?.anim || 'Idle', cfg.base?.t || 0), f = P.facing, phi = i / 8 * 2 * Math.PI;
     const hip = get(sk, cfg.body.hip);
     if (cfg.mode === 'float') return floatFrame(sk, i, phi);
     if (cfg.keys) return keyedFrame(sk, i, cfg.keys[i], phi);
