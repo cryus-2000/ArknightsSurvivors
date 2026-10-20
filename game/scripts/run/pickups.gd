@@ -90,7 +90,7 @@ func _recall_tick(dt: float) -> void:
 		return
 	var step := recall_acc
 	recall_acc = 0.0
-	var half := Vector2(float(ProjectSettings.get_setting("display/window/size/viewport_width", 1280)), float(ProjectSettings.get_setting("display/window/size/viewport_height", 720))) * 0.5 * Bal.v("view/logic_k", 1.0)   # 逻辑视野（docs/112）
+	var half := Vector2(float(ProjectSettings.get_setting("display/window/size/viewport_width", 1280)), float(ProjectSettings.get_setting("display/window/size/viewport_height", 720))) * 0.5 * Bal.v("view/recall_k", Bal.v("view/logic_k", 1.0))   # 逻辑视野（docs/112）
 	var view := Rect2(g.view_center() - half, half * 2.0).grow(Bal.v("pickup/recall_margin", 96.0))
 	var got := 0.0
 	for g_item in g.gems:

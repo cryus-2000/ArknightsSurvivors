@@ -275,6 +275,11 @@ var _ab_o := PackedInt32Array()
 
 func update(dt: float) -> void:
 	var dark_mod: float = Bal.v("lamp/dark_enemy", 1.2) if g.lamp < 30.0 else 1.0   # 灯火暗淡时敌人移速 / 接触伤害倍率（docs/88 旋钮，缺省 1.2 不变）
+	# 逻辑视野外追赶（docs/112，镜头 2/3 试玩）：刷怪环随 view/logic_k 外移后，普通怪在逻辑视野矩形（640×360 × k，外扩 40）之外
+	# 移速 × view/catch_mult，把多走的路补回来，接敌节奏接近拉远前；进入视野后照常。只看常量，不读实际视口
+	var vk: float = Bal.v("view/logic_k", 1.0)
+	var catch_k: float = Bal.v("view/catch_mult", 1.0) if vk > 1.0 else 1.0
+	var catch_h := Vector2(640.0 * vk + 40.0, 360.0 * vk + 40.0)
 	# 敌人更新分三段（docs/101 B7 ③，10-15 起换基线）：
 	#   A 决策（逐只：计时、持续伤害、远距回收、进化、Boss 步、AI 意图 → 本帧速度 v）
 	#   B 运动（逐只：分离、积分、场地约束、景物推出；不抽随机数、不回调——将来的原生 EnemyCore.step）
@@ -364,7 +369,7 @@ func update(dt: float) -> void:
 				else:
 					e.dead = true
 			continue
-		if dist > 1300.0 * Bal.v("view/logic_k", 1.0) and not e.boss:   # 掉队拉回门槛随逻辑视野（docs/112）
+		if dist > 1300.0 * Bal.v("view/leash_k", Bal.v("view/logic_k", 1.0)) and not e.boss:   # 掉队拉回门槛随逻辑视野（docs/112）
 			if e.ai == "static" or e.get("dormant", false):
 				e.dead = true
 			else:
@@ -398,6 +403,8 @@ func update(dt: float) -> void:
 			spd = 0.0
 		if e.get("haste", 0.0) > 0.0:
 			spd *= 1.4
+		if catch_k != 1.0 and not e.boss and not e.elite and (absf(to.x) > catch_h.x or absf(to.y) > catch_h.y):
+			spd *= catch_k
 		var move_dir := dir
 		if e.feed and final_target_valid(e):
 			move_dir = (by_id(e.feed_to_id).pos - e.pos).normalized()

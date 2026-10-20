@@ -28,7 +28,7 @@ func _init(game: Game) -> void:
 func edge_pos() -> Vector2:
 	var ang: float = g.rng_spawn.randf() * TAU
 	# 刷怪环按「逻辑视野」放大（view/logic_k，docs/112：镜头拉远后不在画面里凭空冒出）；不读实际视口与玩家设置，同 seed 各机器一致
-	var vk: float = Bal.v("view/logic_k", 1.0)
+	var vk: float = Bal.v("view/edge_k", Bal.v("view/logic_k", 1.0))
 	var dist: float = g.rng_spawn.randf_range(720.0 * vk, 820.0 * vk)
 	# 背光刷怪（docs/56 候选 e，beacon/shade_deg > 0 开）：朝向未点燃灯标 ±shade_deg 的扇区不刷杂兵。
 	# 不重掷：把 [0, TAU) 的随机角均匀映射到扇区以外的那段弧上，随机数调用次数与旋钮无关，同 seed 同旋钮可复现
@@ -37,6 +37,14 @@ func edge_pos() -> Vector2:
 		var half: float = sh[1]
 		var u: float = fposmod(ang - (sh[0] + half), TAU)   # 从扇区末端起量的角度 [0, TAU)
 		ang = sh[0] + half + u * (TAU - 2.0 * half) / TAU
+	# 矩形刷怪（view/edge_rect > 0 且 logic_k > 1）：沿该方向刚出逻辑视野矩形（640×360 × k）外 edge_rect 处 + 0–100，
+	# 上下方向比圆环近、左右方向远，接敌距离与拉远前的圆环接近；随机数调用次数不变
+	var er: float = Bal.v("view/edge_rect", 0.0)
+	if er > 0.0 and vk > 1.0:
+		var c := absf(cos(ang))
+		var s := absf(sin(ang))
+		var to_edge: float = minf((640.0 * vk) / maxf(c, 0.001), (360.0 * vk) / maxf(s, 0.001))
+		dist = to_edge + er + (dist - 720.0 * vk) / vk
 	return g.ppos + Vector2.from_angle(ang) * dist
 
 
@@ -445,7 +453,7 @@ func update(dt: float) -> void:
 			if g.enemies.size() >= max_alive() + 60:
 				break
 			var ang: float = g.horde_gap + gap_half + span * float(s.u)
-			var vk: float = Bal.v("view/logic_k", 1.0)   # 大群环同样按逻辑视野放大（docs/112）
+			var vk: float = Bal.v("view/horde_k", Bal.v("view/logic_k", 1.0))   # 大群环同样按逻辑视野放大（docs/112；horde_k 可单独覆盖）
 			var p := g.ppos + Vector2.from_angle(ang) * (g.rng_spawn.randf_range(560.0 * vk, 640.0 * vk) + float(s.dr) * vk)
 			var he := spawn_enemy(s.id, p)
 			he["horde"] = g.horde_log.size() - 1
