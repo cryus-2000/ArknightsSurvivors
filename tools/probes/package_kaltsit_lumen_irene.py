@@ -22,6 +22,12 @@ INC = ROOT / 'art/incoming'
 CROP = {'kaltsit': (32, 33), 'lumen': (32, 28), 'irene': (32, 32)}
 
 # 旧时序（不改出手时刻）：(总时长, 出手时刻)；旧条 frames/fps，出手 (fire+0.5)/fps
+# 旧条 [帧数, fps, 出手帧] → json logic（逻辑窗口按旧算式逐位相同，docs/108 §4）
+LOGIC = {
+    ('kaltsit', 'attack'): [4, 14, 2], ('kaltsit', 'skill'): [6, 12, 3], ('kaltsit', 'command'): [6, 12, 2],
+    ('lumen', 'attack'): [4, 12, 2], ('lumen', 'attack_beam'): [4, 12, 2], ('lumen', 'skill'): [6, 12, 3], ('lumen', 'skill_s2'): [6, 12, 3], ('lumen', 'skill_s3_start'): [6, 12, 3],
+    ('irene', 'attack'): [5, 12, 1], ('irene', 'skill'): [7, 12, 3], ('irene', 'skill_s2'): [7, 12, 3], ('irene', 'skill_s3_start'): [7, 12, 3],
+}
 OLD = {
     ('kaltsit', 'attack'): (4 / 14, 2.5 / 14), ('kaltsit', 'skill'): (6 / 12, 3.5 / 12), ('kaltsit', 'command'): (6 / 12, 2.5 / 12),
     ('lumen', 'attack'): (4 / 12, 2.5 / 12), ('lumen', 'skill'): (6 / 12, 3.5 / 12),
@@ -207,6 +213,7 @@ def apply(op, res):
         spec = {'tex': tex, 'frames': v['frames'], 'foot': FOOT[v['size']]}
         for k in ('fps', 'fire', 'fire_time', 'frame_durations'):
             if k in v: spec[k] = v[k]
+        if (op, slot) in LOGIC: spec['logic'] = LOGIC[(op, slot)]
         if 'clip' in v and not slot.startswith('skill_s3'): clips[slot] = v['clip']   # 序列起手不经 _start_action，不用 clip
         if slot == 'run': spec['frame_durations'] = [0.075] * 8
         sp[slot] = spec
@@ -219,6 +226,7 @@ def apply(op, res):
         if slot not in ex: ex.append(slot)
     if op == 'lumen':
         sp['skills'] = {'s2': {'anim': 'skill_s2'}, 's3': {'start': 'skill_s3_start', 'loop': 'skill_s3_loop', 'run': 'run', 'end': 'skill_s3_end'}}
+        sp['lighthouse']['foot_exempt'] = '灯塔道具（S3 随行），不是本体帧条；原 64 画布脚底 (24, 60) 沿用'
         data['blocks']['attack']['hand'] = [20, -37]   # 10-20 用户定：光弹出生点挪到举起的提灯灯心（原 [31, -42]）
     if op == 'irene':
         sp.pop('second', None)

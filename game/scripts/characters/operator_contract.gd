@@ -28,6 +28,15 @@ static func errors(d: Dictionary) -> Array:
 		var p := "sprites.%s" % key
 		if v.has("attack_timing") and not valid_attack_timing(v):
 			out.append("V1 %s.attack_timing 无效（duration / fire_time / active_ratio / windup_ratio 为正、fire_time < duration、0 < fire < frames）" % p)
+		if v.has("logic"):   # docs/108 §4：[旧帧数, 旧 fps, 旧出手帧]，与画面的 frame_durations / fire_time 对得上（1e-6 内）
+			var lg = v.logic
+			if not (lg is Array) or lg.size() != 3 or not lg.all(func(x): return _num(x)) or float(lg[0]) <= 0.0 or float(lg[1]) <= 0.0 or float(lg[2]) < 0.0 or float(lg[2]) >= float(lg[0]):
+				out.append("V7 %s.logic 须是 [旧帧数, 旧 fps, 旧出手帧]" % p)
+			elif v.has("frame_durations") and v.frame_durations is Array:
+				var tot := 0.0
+				for x in v.frame_durations: tot += float(x)
+				if absf(tot - float(lg[0]) / float(lg[1])) > 0.000001 or (v.has("fire_time") and absf(float(v.fire_time) - (float(lg[2]) + 0.5) / float(lg[1])) > 0.000001):
+					out.append("V7 %s.logic 与 frame_durations 总长 / fire_time 不一致" % p)
 		if v.has("frame_durations") and not valid_frame_durations(v):
 			out.append("V7 %s.frame_durations 无效（长度 = frames、每帧正秒数、fire_time 在总时长内）" % p)
 		elif v.has("frame_durations") and v.has("fire_time") and v.has("fire"):

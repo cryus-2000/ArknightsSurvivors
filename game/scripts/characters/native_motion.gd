@@ -90,7 +90,7 @@ static func state(o, st: Dictionary) -> Dictionary:
 	var duration: float = float(n.get("tail", .16)) if start > 0 else float(_nm(o).get("clips", {}).get(slot, 0.0))
 	if float(n.get("t", 0.0)) >= duration: return st
 	var hf: int = int(o.sprite_spec(slot).get("frames", 8))
-	if start == 0 and o.sprite_spec(slot).has("frame_durations"):
-		return pose(o, slot, o.timed_frame(slot, range(hf), float(n.t)), st)   # 逐帧时长（艾丽妮三段刺：刺出帧对准各段命中）
+	if start == 0 and o.sprite_spec(slot).has("frame_durations") and absf(o.frames_seconds(slot, range(hf)) - duration) < 0.000001:
+		return pose(o, slot, o.timed_frame(slot, range(hf), float(n.t)), st)   # clip 秒数 = 逐帧时长总和时按逐帧播（艾丽妮三段刺：刺出帧对准各段命中）；否则均匀播
 	var fr: int = start + int(float(n.t) / maxf(duration, .001) * (hf - start))
 	return pose(o, slot, fr, st)

@@ -1284,6 +1284,14 @@ static func valid_frame_durations(spec: Dictionary) -> bool:
 	return OperatorContract.valid_frame_durations(spec)
 
 
+## 逻辑窗口（docs/108 §4 sprites.<槽>.logic = [旧帧数, 旧 fps, 旧出手帧]）：换新帧条后按旧条的同一算式求总时长与出手时刻，
+## 与旧 frames / fps、(fire + 0.5) / fps 逐位相同。frame_durations / fire_time 这时只管画面——Godot 解析 json 长小数不逐位精确
+## （0.20833333333333334 读成 …37），用它们定逻辑会让同 seed 偶尔差一帧。
+static func logic_window(spec: Dictionary) -> Array:
+	var lg: Array = spec.logic
+	return [float(lg[0]) / float(lg[1]), (float(lg[2]) + 0.5) / float(lg[1])]   # 不用 Vector2（单精度）
+
+
 func frame_seconds(kind: String, frame: int) -> float:
 	var spec := sprite_spec(kind)
 	return float(spec.frame_durations[frame]) if spec.has("frame_durations") else 1.0 / float(spec.get("fps", 12.0))
@@ -1384,6 +1392,10 @@ func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim 
 	if spec.has("frame_durations"):
 		dur = frames_seconds(act_anim, range(int(spec.frames)))
 		fire_at = float(spec.get("fire_time", fire_at))
+	if spec.has("logic"):
+		var lw := logic_window(spec)
+		dur = lw[0]
+		fire_at = lw[1]
 	attack_phased = kind == "attack" and spec.has("attack_timing")
 	if attack_phased:
 		var timing: Dictionary = spec.attack_timing
@@ -1789,6 +1801,10 @@ func _start_skill_seq(aim: Vector2, i: int) -> bool:
 	else:
 		var fi: int = frs.find(int(spec.get("fire", 0)))
 		fire_at = float(spec.get("fire_time", (float(fi if fi >= 0 else frs.size() - 1) + 0.5) / fps))
+		if spec.has("logic") and frs.size() == int(spec.get("frames", 0)):
+			var lw := logic_window(spec)
+			dur = lw[0]
+			fire_at = lw[1]
 	_sq_pause(i)
 	sq = q
 	sq_i = i

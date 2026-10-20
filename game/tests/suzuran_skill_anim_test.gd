@@ -166,7 +166,7 @@ func test_s3(o) -> void:
 func test_mate() -> void:
 	var m = null
 	for x in game.squad.ops:
-		if x.id != "suzuran":
+		if x.id != "suzuran" and x.skill_seq(0).is_empty() and x.skill_seq(2).is_empty():   # 找一个没写 sprites.skills 的队友（流明 10-20 起有序列）
 			m = x
 			break
 	ok(m != null, "有队友")

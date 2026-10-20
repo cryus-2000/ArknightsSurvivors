@@ -106,7 +106,7 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 }
 ```
 
-帧数一律取槽的 `frames`（不再写死 8）；clip 槽写了 `frame_durations` 时按逐帧时长播（clips 的秒数写总和）。校验见 V4 / V8。新人若有 Spine 原生姿势：手写段加一个 `*_native_signals`（只读自己的状态、写进 out），其余全填 json。
+帧数一律取槽的 `frames`（不再写死 8）；clip 秒数等于该槽 `frame_durations` 总和时按逐帧时长播，否则均匀播。校验见 V4 / V8。新人若有 Spine 原生姿势：手写段加一个 `*_native_signals`（只读自己的状态、写进 out），其余全填 json。
 
 ## 4. json 字段表（现行）
 
@@ -117,6 +117,7 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | `S.<slot>.{tex,frames,fps,foot,fire}` | 帧条槽；`fire` 零基出手帧 | validate_operator / art_lint | 全员 |
 | `S.<slot>.frame_durations[]` | 每帧秒数，长度 = frames；完整条求和与 frames/fps 相等时按名义值（不改物理帧数） | `valid_frame_durations` | exusiai eyja logos saria siege suzuran ulpianus wisadel |
 | `S.<slot>.fire_time` | 出手 / 事件时刻，替代 `(fire+0.5)/fps` | 同上（< 总时长） | 同上 + mizuki |
+| `S.<slot>.logic` = [旧帧数, 旧 fps, 旧出手帧] | 换新条但不改玩法时：逻辑窗口 = 旧帧数 / 旧 fps、出手 = (旧出手帧 + 0.5) / 旧 fps，与旧条逐位相同；此时 frame_durations / fire_time 只管画面。**原因**：Godot 解析 json 长小数不逐位精确（0.20833333333333334 → …37），用它们定逻辑会让同 seed 偶尔差一帧（10-20 艾丽妮 seed 2 第 91 秒分叉） | V7（与 frame_durations 总长 / fire_time 差 ≤ 1e-6） | kaltsit lumen irene |
 | `S.attack.attack_timing{duration,fire_time,active_ratio,windup_ratio[,min_duration,min_rest]}` | 普攻随攻速压缩的完整动作（§3.1） | `valid_attack_timing`（**只查 `attack` 槽**） | mizuki saria suzuran wisadel |
 | `S.<slot>.muzzles[帧][发]` | 逐帧炮口 [x,y]，随 face 镜像 | `h4_phase_validate`（只炮击） | wisadel s2_attack / s2_over_attack |
 | `S.<slot>.<点名>[帧]`、`pt_foot` | 逐帧定位点（盾心 `shield`、手 `hand`、炮口 `muzzles`）；一律经 `sprite_point_at(槽, 点名, 帧, 组内序号)` 换世界坐标（含 pt_foot、flip / mirror、draw_scale；画面点加 draw_off，玩法点不加） | V5 / V6 / V9 | hoshiguma、ulpianus、wisadel |
