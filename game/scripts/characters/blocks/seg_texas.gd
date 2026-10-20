@@ -63,6 +63,9 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 		"verb.trail":
 			_num(b, "life", p, ctx, true, 0.05, 5.0)
 			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_num(b, "line_w", p, ctx, false, 0.0, 1.0)
+			if b.has("line_col") and not (b.line_col is Array and b.line_col.size() in [3, 4]):
+				errs.append(p + ".line_col 要写 [r, g, b] 或 [r, g, b, a]")
 			_src(b, p, ctx, true)
 			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
 			if b.has("on_expire"):   # 精英化段：残像消散时执行（do 里的 center: path 沿这道残像）
@@ -354,7 +357,12 @@ static func tx_exec(o, b: Dictionary, at: Vector2) -> void:
 				var trails: Array = o.tx.get("trails", [])
 				trails.append(tr)
 				o.tx["trails"] = trails
-				o.fx({"kind": "line", "pos": c.from, "to": c.to, "w": float(c.w) * 0.35, "life": float(b.life), "col": o.col(), "floor": true})
+				# 地面残像光带（纯画面）：line_w = 宽度占冲刺宽的比例（0 = 不画），line_col = [r, g, b, a]（缺省干员色）
+				var lw: float = float(b.get("line_w", 0.35))
+				if lw > 0.0:
+					var lc = b.get("line_col", null)
+					o.fx({"kind": "line", "pos": c.from, "to": c.to, "w": float(c.w) * lw, "life": float(b.life),
+						"col": Color(float(lc[0]), float(lc[1]), float(lc[2]), float(lc[3]) if lc.size() > 3 else 1.0) if lc is Array and lc.size() >= 3 else o.col(), "floor": true})
 		"verb.fx_scatter":
 			var cc: Vector2 = o.pos if str(b.get("center", "self")) == "self" or at == Vector2.INF else at
 			var n: int = int(b.n)

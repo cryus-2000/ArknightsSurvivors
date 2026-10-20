@@ -866,19 +866,15 @@
          38
         ],
         "fall_frames": 4,
-        "hit": "fx_texas_sword_impact",
-        "hit_anchor": [
-         16,
-         8
-        ],
         "stagger": "$rain_gap",
         "fall": 70,
         "fall_t": "$rain_fall",
-        "stick": 0.3,
+        "stick": 0.2,
         "scorch": 0.0,
         "streak": 1,
-        "scale": 0.9,
-        "tilt": 3
+        "scale": 0.6,
+        "tilt": 3,
+        "_doc": "10-21 用户：剑太大显廉价 → 0.9 倍改 0.6 倍、去落地火花（hit）；残像地面光带 line_w 0 关掉（纯画面）"
        },
        {
         "verb": "fx_rain",
@@ -899,7 +895,8 @@
         "scale": 0.6,
         "tilt": 3
        }
-      ]
+      ],
+      "line_w": 0.0
      }
     ]
    }
