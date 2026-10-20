@@ -698,8 +698,10 @@ func _process(delta: float) -> void:
 		group_vol[tname] = gv
 		if gv <= 0.0 and MENU_TRACKS.has(tname) and MENU_TRACKS.has(cur_track) and not groups[tname].is_empty() 				and (groups[tname][0] as AudioStreamPlayer).playing:
 			menu_pos[tname] = track_pos(tname)   # 局外曲目淡完：记住位置，回到这个界面时接着放
+		var gdb: float = linear_to_db(maxf(gv, 0.0001)) + vol_target
 		for pl in groups[tname]:
-			pl.volume_db = linear_to_db(maxf(gv, 0.0001)) + vol_target
+			if absf(pl.volume_db - gdb) > 0.0001:   # 只在变了时设（性能 docs/50 §21：网页样本播放每设一次就是一次 JS 调用，稳态时每帧十几次）；属性按 32 位存，留一点容差
+				pl.volume_db = gdb
 			if gv <= 0.0 and pl.playing:
 				pl.stop()
 	for tname in seq:
@@ -715,11 +717,14 @@ func _process(delta: float) -> void:
 			for i in deck.size():
 				var pl: AudioStreamPlayer = deck[i]
 				if pl.playing:
-					pl.volume_db = linear_to_db(maxf(gv * sv[i], 0.0001)) + vol_target
+					var sdb: float = linear_to_db(maxf(gv * sv[i], 0.0001)) + vol_target
+					if absf(pl.volume_db - sdb) > 0.0001:   # 同上
+						pl.volume_db = sdb
 					if gv <= 0.0:
 						pl.stop()
 	if stinger.playing:
-		stinger.volume_db = vol_target + 4.0
+		if absf(stinger.volume_db - (vol_target + 4.0)) > 0.0001:
+			stinger.volume_db = vol_target + 4.0
 	elif after_stinger != "":
 		# 结算短乐句播完：接续对应的循环（胜利变奏 / 沉底氛围）
 		var nxt := after_stinger
