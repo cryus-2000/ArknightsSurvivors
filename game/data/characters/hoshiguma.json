@@ -3,110 +3,1226 @@
  "name": "星熊",
  "en": "HOSHIGUMA",
  "class": "重装",
- "faction": ["龙门近卫局"],
- "col": [0.95, 0.75, 0.3],
+ "faction": [
+  "龙门近卫局"
+ ],
+ "col": [
+  0.95,
+  0.75,
+  0.3
+ ],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值（docs/59 §3 / §8.3；数据干员，行为在 blocks 段，docs/61「星熊」节）。保护位：不治疗，靠格挡（战术装甲概率完全免伤、挡下的不掉灯火）+ 击退。精英化形态（docs/91 §4）：stance_* 精一「反击架势」（+25% 按预算改 +20%），saw_* 精二「般若回旋」（取代「鬼面」；docs/91 的回程 ×0.6 配合下调按木桩表放宽到 ×0.75：×0.6 时 E2 木桩比改前 −15%，×0.9 时木桩 −1%、怪群 +10–23%）",
-  "atk": 32, "cd": 1.1, "reach": 110, "half_deg": 70, "kb": 220,
-  "block_chance": 0.25, "block_chance_boss": 0.10, "block_max": 0.8, "block_kb_r": 90, "block_kb": 200, "beacon_bonus": 0.15,
-  "s1_window": 3.0, "s1_mult": 2.0, "s1_r": 120, "s1_kb": 360, "s1_miss_mult": 1.5,
-  "s2_dur": 8.0, "s2_atk": 0.4, "s2_dr": 0.2, "s2_block_x": 2.0, "sand_dur": 2.0, "sand_r": 80, "sand_mult": 0.3, "sand_tick": 0.5,
-  "s3_dur": 10.0, "s3_atk": 0.6, "s3_len": 220, "s3_w": 50, "s3_kb": 1.5, "s3_dr": 0.3, "s3_quake_r": 120, "s3_quake_kb": 300,
-  "n_reach": 0.15, "n_heavy": 1.15, "wall_stun": 0.4, "ember_dur": 4.0, "ember_mult": 0.2,
-  "stance_dmg": 0.2, "stance_dur": 5.0, "saw_every": 3, "saw_len": 220, "saw_w": 56, "saw_t_out": 0.28, "saw_hold": 0.1, "saw_t_back": 0.3, "saw_out": 0.9, "saw_back": 0.75
+  "atk": 32,
+  "cd": 1.1,
+  "reach": 110,
+  "half_deg": 70,
+  "kb": 220,
+  "block_chance": 0.25,
+  "block_chance_boss": 0.1,
+  "block_max": 0.8,
+  "block_kb_r": 90,
+  "block_kb": 200,
+  "beacon_bonus": 0.15,
+  "s1_window": 3.0,
+  "s1_mult": 2.0,
+  "s1_r": 120,
+  "s1_kb": 360,
+  "s1_miss_mult": 1.5,
+  "s2_dur": 8.0,
+  "s2_atk": 0.4,
+  "s2_dr": 0.2,
+  "s2_block_x": 2.0,
+  "sand_dur": 2.0,
+  "sand_r": 80,
+  "sand_mult": 0.3,
+  "sand_tick": 0.5,
+  "s3_dur": 10.0,
+  "s3_atk": 0.6,
+  "s3_len": 220,
+  "s3_w": 50,
+  "s3_kb": 1.5,
+  "s3_dr": 0.3,
+  "s3_quake_r": 120,
+  "s3_quake_kb": 300,
+  "n_reach": 0.15,
+  "n_heavy": 1.15,
+  "wall_stun": 0.4,
+  "ember_dur": 4.0,
+  "ember_mult": 0.2,
+  "stance_dmg": 0.2,
+  "stance_dur": 5.0,
+  "saw_every": 3,
+  "saw_len": 220,
+  "saw_w": 56,
+  "saw_t_out": 0.28,
+  "saw_hold": 0.1,
+  "saw_t_back": 0.3,
+  "saw_out": 0.9,
+  "saw_back": 0.75
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 3446 / 防御 625 / 法抗 10%，近战主控有效生命 ×1.06",
-  "max_hp": 120, "armor": 2.5, "arts_res": 0.1, "regen": 1.0
+  "max_hp": 120,
+  "armor": 2.5,
+  "arts_res": 0.1,
+  "regen": 1.0
  },
  "sprites": {
-  "_doc": "Codex 第五批正式帧条（art/incoming/squad_batch5_hoshiguma_manifest.json，docs/64 验收）：盾沿最远点 attack f3 @2x (+45, -42)；各动作 shield = 每帧盾心（1x 帧内像素，同 foot 口径，null = 盾已离手；10-15 量，格挡闪光 / 反击架势红光锚这里：fx 的 on_sprite）",
-  "idle": {"tex": "op_hoshiguma_idle", "frames": 4, "fps": 4, "foot": [24, 46], "shield": [[32, 33], [32, 33], [32, 34], [32, 33]]},
-  "run": {"tex": "op_hoshiguma_run", "frames": 6, "fps": 10, "foot": [24, 46], "shield": [[34, 30], [34, 30], [35, 28], [34, 30], [34, 30], [34, 28]]},
-  "attack": {"tex": "op_hoshiguma_attack", "frames": 5, "fps": 12, "foot": [24, 46], "fire": 3, "shield": [[31.5, 32], [35, 31], [33, 26], [37, 31], [31.5, 32]]},
-  "skill": {"tex": "op_hoshiguma_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 2, "shield": [[33, 33], [31, 23], [32, 36], [33, 37], [33, 36], [32, 36], [32, 33]]},
-  "throw": {"_doc": "Codex 精英化第 1 批（elite_art_1_manifest）：掷盾，出手帧 2 盾离手（盾由 proj_hoshiguma_sawshield 表现），末帧接 idle", "tex": "op_hoshiguma_throw", "frames": 6, "fps": 14, "foot": [24, 46], "fire": 2, "shield": [[32, 33], [13, 26], null, null, [34, 27], [32, 33]]},
-  "noshield": {"_doc": "10-15 掷盾后本体手上不该有盾：盾在外面（般若回旋）时换无盾画面。art = Codex 无盾帧条（docs/97 H 批，有图就用）；没图时 fallback 播 throw 的 f2 / f3（盾已离手的两帧），站着停在 f3、跑动时两帧轮换；throw 的 f2 / f3 本来就没盾，keep 不换",
-   "art": {"idle": "op_hoshiguma_idle_noshield", "run": "op_hoshiguma_run_noshield", "attack": "op_hoshiguma_attack_noshield", "throw": "op_hoshiguma_throw_noshield"},
-   "keep": {"throw": [2, 3]}, "fallback": {"anim": "throw", "frames": [2, 3], "fps": 8}},
-  "size": 48,
-  "foot": [24, 46]
+  "_doc": "10-20 换 64 画布 @2x（docs/108 §5）：待机 / 普攻 / S3 / 死亡取原作动作条（cb_18），跑步 / S1 / 掷盾 / 接盾在原生骨架上出（tools/spine_run_trial），打包脚本 tools/probes/package_texas_hoshiguma.py。shield = 每帧盾心（1x 帧内像素，同 foot 口径，null = 盾已离手），格挡闪光 / 反击架势红光锚在这里（fx 的 on_sprite）",
+  "idle": {
+   "tex": "op_hoshiguma_idle",
+   "frames": 7,
+   "fps": 2.333333,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.42857142857142855,
+    0.42857142857142855,
+    0.42857142857142855,
+    0.42857142857142855,
+    0.42857142857142855,
+    0.42857142857142855,
+    0.42857142857142855
+   ],
+   "shield": [
+    [
+     23.5,
+     42.2
+    ],
+    [
+     23.5,
+     42.8
+    ],
+    [
+     23.5,
+     42.2
+    ],
+    [
+     23.8,
+     42.8
+    ],
+    [
+     23.2,
+     42.5
+    ],
+    [
+     23.5,
+     42.2
+    ],
+    [
+     23.5,
+     43.0
+    ]
+   ]
+  },
+  "run": {
+   "tex": "op_hoshiguma_run",
+   "frames": 8,
+   "fps": 13.333333,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075
+   ],
+   "shield": [
+    [
+     24.2,
+     41.8
+    ],
+    [
+     24.8,
+     43.0
+    ],
+    [
+     26.0,
+     42.0
+    ],
+    [
+     24.5,
+     39.5
+    ],
+    [
+     25.8,
+     40.0
+    ],
+    [
+     24.0,
+     41.5
+    ],
+    [
+     26.0,
+     42.0
+    ],
+    [
+     25.0,
+     41.0
+    ]
+   ]
+  },
+  "attack": {
+   "tex": "op_hoshiguma_attack",
+   "frames": 8,
+   "fps": 19.2,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.14,
+    0.15166666666666667,
+    0.03,
+    0.025,
+    0.025,
+    0.02,
+    0.0125,
+    0.012499999999999997
+   ],
+   "fire": 2,
+   "fire_time": 0.2916666666666667,
+   "shield": [
+    [
+     39.5,
+     58.2
+    ],
+    [
+     34.0,
+     53.5
+    ],
+    [
+     60.8,
+     59.2
+    ],
+    [
+     62.2,
+     56.5
+    ],
+    [
+     65.5,
+     53.0
+    ],
+    [
+     65.2,
+     61.0
+    ],
+    [
+     45.8,
+     65.5
+    ],
+    [
+     39.8,
+     58.8
+    ]
+   ]
+  },
+  "skill": {
+   "tex": "op_hoshiguma_skill",
+   "frames": 8,
+   "fps": 13.714286,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.10416666666666667,
+    0.10416666666666667,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625
+   ],
+   "fire": 2,
+   "fire_time": 0.20833333333333334,
+   "shield": [
+    [
+     39.5,
+     58.2
+    ],
+    [
+     34.0,
+     53.5
+    ],
+    [
+     60.8,
+     59.2
+    ],
+    [
+     62.2,
+     56.5
+    ],
+    [
+     65.5,
+     53.0
+    ],
+    [
+     65.2,
+     61.0
+    ],
+    [
+     45.8,
+     65.5
+    ],
+    [
+     39.8,
+     58.8
+    ]
+   ]
+  },
+  "throw": {
+   "tex": "op_hoshiguma_throw",
+   "frames": 8,
+   "fps": 18.666667,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.06,
+    0.06,
+    0.05857142857142858,
+    0.049999999999999996,
+    0.049999999999999996,
+    0.049999999999999996,
+    0.049999999999999996,
+    0.049999999999999996
+   ],
+   "fire": 3,
+   "fire_time": 0.17857142857142858,
+   "shield": [
+    [
+     23.5,
+     42.2
+    ],
+    [
+     18.5,
+     38.2
+    ],
+    [
+     27.2,
+     47.5
+    ],
+    null,
+    null,
+    null,
+    null,
+    null
+   ],
+   "_doc": "精英二「般若回旋」掷盾：第 3 帧起盾离手（盾由 proj_hoshiguma_sawshield 表现）；盾在外面时本体换无盾画面（noshield），盾回来播 catch（native_motion exits）"
+  },
+  "noshield": {
+   "_doc": "盾在外面（般若回旋）时本体换无盾帧条（art，与有盾条同帧数 / 同画布，原作条去盾部件重组 / 原生骨架隐藏盾牌出图）；fallback 只在缺图时用",
+   "art": {
+    "idle": "op_hoshiguma_idle_noshield",
+    "run": "op_hoshiguma_run_noshield",
+    "attack": "op_hoshiguma_attack_noshield",
+    "throw": "op_hoshiguma_throw_noshield"
+   },
+   "fallback": {
+    "anim": "throw",
+    "frames": [
+     2,
+     3
+    ],
+    "fps": 8
+   }
+  },
+  "size": 64,
+  "foot": [
+   32,
+   60
+  ],
+  "s1": {
+   "tex": "op_hoshiguma_s1",
+   "frames": 2,
+   "fps": 3.428571,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.20833333333333334,
+    0.375
+   ],
+   "fire": 1,
+   "fire_time": 0.20833333333333334,
+   "shield": [
+    [
+     45.2,
+     40.5
+    ],
+    [
+     47.8,
+     42.0
+    ]
+   ]
+  },
+  "s1_guard": {
+   "tex": "op_hoshiguma_s1_guard",
+   "frames": 1,
+   "fps": 2.0,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.5
+   ],
+   "shield": [
+    [
+     47.8,
+     42.0
+    ]
+   ]
+  },
+  "s1_counter": {
+   "tex": "op_hoshiguma_s1_counter",
+   "frames": 6,
+   "fps": 13.043478,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.09,
+    0.08,
+    0.07,
+    0.06,
+    0.07,
+    0.09
+   ],
+   "shield": [
+    [
+     61.2,
+     54.2
+    ],
+    [
+     38.8,
+     58.0
+    ],
+    [
+     47.5,
+     68.2
+    ],
+    [
+     62.2,
+     65.0
+    ],
+    [
+     64.5,
+     63.5
+    ],
+    [
+     66.8,
+     60.2
+    ]
+   ]
+  },
+  "s3_start": {
+   "tex": "op_hoshiguma_s3_start",
+   "frames": 8,
+   "fps": 13.714286,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.06944444444444445,
+    0.06944444444444445,
+    0.06944444444444445,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075
+   ],
+   "fire": 3,
+   "fire_time": 0.20833333333333334,
+   "shield": [
+    [
+     39.5,
+     58.2
+    ],
+    [
+     35.8,
+     56.0
+    ],
+    [
+     42.5,
+     70.5
+    ],
+    [
+     61.2,
+     56.2
+    ],
+    [
+     63.2,
+     58.2
+    ],
+    [
+     65.0,
+     60.2
+    ],
+    [
+     66.2,
+     61.0
+    ],
+    [
+     66.0,
+     60.8
+    ]
+   ]
+  },
+  "s3_loop": {
+   "tex": "op_hoshiguma_s3_loop",
+   "frames": 7,
+   "fps": 21.0,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.047619047619047616,
+    0.047619047619047616,
+    0.047619047619047616,
+    0.047619047619047616,
+    0.047619047619047616,
+    0.047619047619047616,
+    0.047619047619047616
+   ],
+   "shield": [
+    [
+     64.5,
+     59.5
+    ],
+    [
+     66.2,
+     52.5
+    ],
+    [
+     68.5,
+     59.0
+    ],
+    [
+     62.0,
+     57.0
+    ],
+    [
+     68.8,
+     55.0
+    ],
+    [
+     64.0,
+     59.2
+    ],
+    [
+     67.5,
+     53.8
+    ]
+   ]
+  },
+  "s3_end": {
+   "tex": "op_hoshiguma_s3_end",
+   "frames": 8,
+   "fps": 20.0,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.05
+   ],
+   "shield": [
+    [
+     69.2,
+     58.2
+    ],
+    [
+     62.8,
+     54.5
+    ],
+    [
+     64.2,
+     61.8
+    ],
+    [
+     56.2,
+     65.0
+    ],
+    [
+     48.8,
+     65.8
+    ],
+    [
+     43.2,
+     63.2
+    ],
+    [
+     39.8,
+     59.8
+    ],
+    [
+     39.8,
+     58.8
+    ]
+   ]
+  },
+  "catch": {
+   "tex": "op_hoshiguma_catch",
+   "frames": 8,
+   "fps": 18.604651,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.05,
+    0.06,
+    0.06,
+    0.05,
+    0.05,
+    0.05,
+    0.05,
+    0.06
+   ],
+   "shield": [
+    null,
+    [
+     66.5,
+     56.0
+    ],
+    [
+     62.8,
+     51.2
+    ],
+    [
+     63.8,
+     61.0
+    ],
+    [
+     56.2,
+     65.0
+    ],
+    [
+     48.8,
+     65.8
+    ],
+    [
+     43.0,
+     63.2
+    ],
+    [
+     40.5,
+     58.8
+    ]
+   ]
+  },
+  "death": {
+   "tex": "op_hoshiguma_death",
+   "frames": 8,
+   "fps": 6.974717,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.141,
+    0.141,
+    0.141,
+    0.141,
+    0.141,
+    0.141,
+    0.141,
+    0.16
+   ]
+  },
+  "skills": {
+   "_doc": "S1 举盾 → 窗口内定格 → 格挡（技能随即结束）或窗口到点都收势播反手重斩；S2 盾斧斩落；S3 原作起手 / 持盾切割循环 / 收势",
+   "s1": {
+    "start": "s1",
+    "loop": "s1_guard",
+    "end": "s1_counter"
+   },
+   "s2": {
+    "anim": "skill"
+   },
+   "s3": {
+    "start": "s3_start",
+    "loop": "s3_loop",
+    "end": "s3_end"
+   }
+  }
  },
- "extra_sprites": ["throw"],
- "attack": {"mode": "auto", "name": "盾斧斩", "desc": "每 {$cd} 秒用盾「般若」的锋利盾沿向前横扫 {$half_deg*2}°（半径 {$reach}），命中击退"},
- "skills": [
-  {"name": "战意", "en": "WARPATH", "sp": 6, "dur": 3.0, "desc": "{$s1_window} 秒内队长下一次受到的攻击被完全格挡（不掉血、不掉灯火），格挡瞬间在队长身边反手重斩（半径 {$s1_r}，×{$s1_mult}）并击退；{$s1_window} 秒内没挨打则向前补一记 ×{$s1_miss_mult}", "icon": "skill_hoshiguma_s1"},
-  {"name": "荆棘", "en": "THORNS", "sp": 14, "dur": 8.0, "desc": "{$s2_dur} 秒：攻击 +{$s2_atk*100}%，队长受到的伤害 -{$s2_dr*100}%，「战术装甲」格挡概率 ×{$s2_block_x}；盾斧斩落点留下 {$sand_dur} 秒热砂（半径 {$sand_r}），踩进的敌人每秒受到 {$sand_mult*100}% 攻击力的伤害", "icon": "skill_hoshiguma_s2"},
-  {"name": "力之锯", "en": "SAW OF STRENGTH", "sp": 22, "dur": 10.0, "desc": "{$s3_dur} 秒：攻击 +{$s3_atk*100}%，盾斧斩改为直线斩（长 {$s3_len}、宽 {$s3_w}，命中沿线全部，击退 ×{$s3_kb}）；队长受到的伤害 -{$s3_dr*100}%，每次受击（含被格挡的）震退队长身边半径 {$s3_quake_r} 内的敌人", "icon": "skill_hoshiguma_s3"}
+ "extra_sprites": [
+  "death",
+  "s1",
+  "s1_guard",
+  "s1_counter",
+  "s3_start",
+  "s3_loop",
+  "s3_end",
+  "throw",
+  "catch"
  ],
- "talent": {"name": "战术装甲", "desc": "队长每次受到攻击有 {$block_chance*100}% 概率完全格挡（Boss 的攻击 {$block_chance_boss*100}%）：不掉血、不掉灯火，并推开队长身边半径 {$block_kb_r} 内的敌人；队长给灯标读条期间概率 +{$beacon_bonus*100}%"},
+ "attack": {
+  "mode": "auto",
+  "name": "盾斧斩",
+  "desc": "每 {$cd} 秒用盾「般若」的锋利盾沿向前横扫 {$half_deg*2}°（半径 {$reach}），命中击退"
+ },
+ "skills": [
+  {
+   "name": "战意",
+   "en": "WARPATH",
+   "sp": 6,
+   "dur": 3.0,
+   "desc": "{$s1_window} 秒内队长下一次受到的攻击被完全格挡（不掉血、不掉灯火），格挡瞬间在队长身边反手重斩（半径 {$s1_r}，×{$s1_mult}）并击退；{$s1_window} 秒内没挨打则向前补一记 ×{$s1_miss_mult}",
+   "icon": "skill_hoshiguma_s1"
+  },
+  {
+   "name": "荆棘",
+   "en": "THORNS",
+   "sp": 14,
+   "dur": 8.0,
+   "desc": "{$s2_dur} 秒：攻击 +{$s2_atk*100}%，队长受到的伤害 -{$s2_dr*100}%，「战术装甲」格挡概率 ×{$s2_block_x}；盾斧斩落点留下 {$sand_dur} 秒热砂（半径 {$sand_r}），踩进的敌人每秒受到 {$sand_mult*100}% 攻击力的伤害",
+   "icon": "skill_hoshiguma_s2"
+  },
+  {
+   "name": "力之锯",
+   "en": "SAW OF STRENGTH",
+   "sp": 22,
+   "dur": 10.0,
+   "desc": "{$s3_dur} 秒：攻击 +{$s3_atk*100}%，盾斧斩改为直线斩（长 {$s3_len}、宽 {$s3_w}，命中沿线全部，击退 ×{$s3_kb}）；队长受到的伤害 -{$s3_dr*100}%，每次受击（含被格挡的）震退队长身边半径 {$s3_quake_r} 内的敌人",
+   "icon": "skill_hoshiguma_s3"
+  }
+ ],
+ "talent": {
+  "name": "战术装甲",
+  "desc": "队长每次受到攻击有 {$block_chance*100}% 概率完全格挡（Boss 的攻击 {$block_chance_boss*100}%）：不掉血、不掉灯火，并推开队长身边半径 {$block_kb_r} 内的敌人；队长给灯标读条期间概率 +{$beacon_bonus*100}%"
+ },
  "hit_sources": {
-  "盾斧斩": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["area", "basic"]},
-  "举盾反击": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "area"]},
-  "热砂": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "area", "dot"]},
-  "力之锯": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "pierce", "area"]},
-  "般若回旋": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "pierce", "area"]}
+  "盾斧斩": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "area",
+    "basic"
+   ]
+  },
+  "举盾反击": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area"
+   ]
+  },
+  "热砂": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area",
+    "dot"
+   ]
+  },
+  "力之锯": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "pierce",
+    "area"
+   ]
+  },
+  "般若回旋": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "pierce",
+    "area"
+   ]
+  }
  },
  "progression": [
-  {"type": "custom", "id": "reach", "name": "阔斩", "icon": "growth_b_range", "desc": "盾斧斩与技能范围 +{$n_reach*100}%"},
-  {"type": "custom", "id": "heavy", "name": "重刃", "icon": "growth_b_size", "desc": "星熊造成的伤害 ×{$n_heavy}"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「荆棘」；解锁天赋「战术装甲」：队长受到攻击时有 {$block_chance*100}% 概率完全格挡，挡下的不掉灯火；普攻「反击架势」：格挡后 {$stance_dur} 秒内盾斧斩伤害 +{$stance_dmg*100}%",
-   "attack": {"name": "反击架势", "desc": "「战术装甲」格挡成功后 {$stance_dur} 秒内，盾斧斩伤害 +{$stance_dmg*100}%，刀光转为暗红，盾沿亮起红光（不叠加，再次格挡刷新时间）"}},
-  {"type": "custom", "id": "wall", "name": "盾墙", "icon": "growth_armor", "desc": "每次格挡时，队长身边半径 {$block_kb_r} 内的敌人眩晕 {$wall_stun} 秒（精英减半，Boss 免疫）"},
-  {"type": "custom", "id": "ember", "name": "热砂·余烬", "icon": "growth_t_field", "desc": "「荆棘」的每处热砂同时留下 {$ember_dur} 秒余烬：踩进的敌人每秒另受 {$ember_mult*100}% 攻击力的伤害"},
-  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「力之锯」；普攻质变「般若回旋」：每第 {$saw_every} 次盾斧斩改为掷出盾牌，沿直线飞出 {$saw_len} 后飞回，去程造成 ×{$saw_out} 伤害并击退，回程造成 ×{$saw_back} 伤害",
-   "attack": {"name": "般若回旋", "desc": "每第 {$saw_every} 次盾斧斩改为把盾「般若」横转着掷出：沿直线飞出 {$saw_len} 再飞回手里，去程 ×{$saw_out} 并击退，回程 ×{$saw_back}；盾在外面时不出盾斧斩"}}
+  {
+   "type": "custom",
+   "id": "reach",
+   "name": "阔斩",
+   "icon": "growth_b_range",
+   "desc": "盾斧斩与技能范围 +{$n_reach*100}%"
+  },
+  {
+   "type": "custom",
+   "id": "heavy",
+   "name": "重刃",
+   "icon": "growth_b_size",
+   "desc": "星熊造成的伤害 ×{$n_heavy}"
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英一",
+   "desc": "解锁二技能「荆棘」；解锁天赋「战术装甲」：队长受到攻击时有 {$block_chance*100}% 概率完全格挡，挡下的不掉灯火；普攻「反击架势」：格挡后 {$stance_dur} 秒内盾斧斩伤害 +{$stance_dmg*100}%",
+   "attack": {
+    "name": "反击架势",
+    "desc": "「战术装甲」格挡成功后 {$stance_dur} 秒内，盾斧斩伤害 +{$stance_dmg*100}%，刀光转为暗红，盾沿亮起红光（不叠加，再次格挡刷新时间）"
+   }
+  },
+  {
+   "type": "custom",
+   "id": "wall",
+   "name": "盾墙",
+   "icon": "growth_armor",
+   "desc": "每次格挡时，队长身边半径 {$block_kb_r} 内的敌人眩晕 {$wall_stun} 秒（精英减半，Boss 免疫）"
+  },
+  {
+   "type": "custom",
+   "id": "ember",
+   "name": "热砂·余烬",
+   "icon": "growth_t_field",
+   "desc": "「荆棘」的每处热砂同时留下 {$ember_dur} 秒余烬：踩进的敌人每秒另受 {$ember_mult*100}% 攻击力的伤害"
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英二",
+   "desc": "解锁三技能「力之锯」；普攻质变「般若回旋」：每第 {$saw_every} 次盾斧斩改为掷出盾牌，沿直线飞出 {$saw_len} 后飞回，去程造成 ×{$saw_out} 伤害并击退，回程造成 ×{$saw_back} 伤害",
+   "attack": {
+    "name": "般若回旋",
+    "desc": "每第 {$saw_every} 次盾斧斩改为把盾「般若」横转着掷出：沿直线飞出 {$saw_len} 再飞回手里，去程 ×{$saw_out} 并击退，回程 ×{$saw_back}；盾在外面时不出盾斧斩"
+   }
+  }
  ],
- "gallery": {"tags": ["近战", "格挡", "击退", "护卫"], "desc": "不治疗的重装：队长挨打时概率完全挡下（不掉灯火），挡下就推开；力之锯一斩穿一整列"},
+ "gallery": {
+  "tags": [
+   "近战",
+   "格挡",
+   "击退",
+   "护卫"
+  ],
+  "desc": "不治疗的重装：队长挨打时概率完全挡下（不掉灯火），挡下就推开；力之锯一斩穿一整列"
+ },
  "blocks": {
-  "attack": {"shape": "cone", "r": "$reach", "half_deg": "$half_deg", "kb": "$kb", "every": "$cd", "mult": 1.0, "src": "盾斧斩", "tags": ["basic"], "slash": true,
-   "fx": [{"strip": "fx_hoshiguma_slash_rose", "cond": "buff:stance", "rot": true, "along": 0.5, "fit": 34, "off": [0, -18]}]},
+  "attack": {
+   "shape": "cone",
+   "r": "$reach",
+   "half_deg": "$half_deg",
+   "kb": "$kb",
+   "every": "$cd",
+   "mult": 1.0,
+   "src": "盾斧斩",
+   "tags": [
+    "basic"
+   ],
+   "slash": true,
+   "fx": [
+    {
+     "strip": "fx_hoshiguma_slash_rose",
+     "cond": "buff:stance",
+     "rot": true,
+     "along": 0.5,
+     "fit": 34,
+     "off": [
+      0,
+      -18
+     ]
+    }
+   ]
+  },
   "trait": [
-   {"trig": "on_hurt", "cond": "skill_active:2", "do": [
-    {"verb": "displace", "center": "leader", "r": "$s3_quake_r", "kb": "$s3_quake_kb"}]},
-   {"trig": "every_n", "n": 1, "cond": "skill_active:1", "do": [
-    {"verb": "field", "center": "last_hit", "r": "$sand_r", "dur": "$sand_dur", "every": "$sand_tick", "fx": [{"strip": "fx_hoshiguma_sand", "layer": "floor", "fit": 23, "max_scale": 4}], "do": [
-     {"shape": "circle", "center": "target", "r": "$sand_r", "mult": "$sand_mult*$sand_tick", "src": "热砂", "tags": ["skill", "dot"], "power": true}]}]}
+   {
+    "trig": "on_hurt",
+    "cond": "skill_active:2",
+    "do": [
+     {
+      "verb": "displace",
+      "center": "leader",
+      "r": "$s3_quake_r",
+      "kb": "$s3_quake_kb"
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "skill_active:1",
+    "do": [
+     {
+      "verb": "field",
+      "center": "last_hit",
+      "r": "$sand_r",
+      "dur": "$sand_dur",
+      "every": "$sand_tick",
+      "fx": [
+       {
+        "strip": "fx_hoshiguma_sand",
+        "layer": "floor",
+        "fit": 23,
+        "max_scale": 4
+       }
+      ],
+      "do": [
+       {
+        "shape": "circle",
+        "center": "target",
+        "r": "$sand_r",
+        "mult": "$sand_mult*$sand_tick",
+        "src": "热砂",
+        "tags": [
+         "skill",
+         "dot"
+        ],
+        "power": true
+       }
+      ]
+     }
+    ]
+   }
   ],
   "skills": [
-   {"dur": "$s1_window", "do": [
-    {"verb": "negate_next", "fx": [{"strip": "fx_hoshiguma_block", "on_sprite": "shield", "off": [0, -26], "scale": 1.4}], "text": "战意",
-     "on_block": [{"shape": "circle", "center": "leader", "r": "$s1_r", "mult": "$s1_mult", "kb": "$s1_kb", "src": "举盾反击", "tags": ["skill"], "power": true}],
-     "on_miss": [{"shape": "cone", "r": "$reach", "half_deg": "$half_deg", "mult": "$s1_miss_mult", "kb": "$kb", "src": "举盾反击", "tags": ["skill"], "power": true}]}]},
-   {"dur": "$s2_dur", "do": [
-    {"verb": "buff_self", "stat": "op_atk", "op": "add", "value": "$s2_atk", "power": true},
-    {"verb": "dr", "value": "$s2_dr"},
-    {"verb": "negate_chance", "mult": "$s2_block_x"}]},
-   {"dur": "$s3_dur", "do": [
-    {"verb": "buff_self", "stat": "op_atk", "op": "add", "value": "$s3_atk", "power": true},
-    {"verb": "dr", "value": "$s3_dr"},
-    {"verb": "swap_attack", "attack": {"shape": "line", "len": "$s3_len", "width": "$s3_w", "mult": 1.0, "kb": "$kb*$s3_kb", "src": "力之锯", "tags": ["skill"], "fx": [{"strip": "fx_hoshiguma_demon_slash", "fit": 32, "rot": true, "off": [0, -30]}]}}]}
+   {
+    "dur": "$s1_window",
+    "do": [
+     {
+      "verb": "negate_next",
+      "fx": [
+       {
+        "strip": "fx_hoshiguma_block",
+        "on_sprite": "shield",
+        "off": [
+         0,
+         -26
+        ],
+        "scale": 1.4
+       }
+      ],
+      "text": "战意",
+      "on_block": [
+       {
+        "shape": "circle",
+        "center": "leader",
+        "r": "$s1_r",
+        "mult": "$s1_mult",
+        "kb": "$s1_kb",
+        "src": "举盾反击",
+        "tags": [
+         "skill"
+        ],
+        "power": true
+       }
+      ],
+      "on_miss": [
+       {
+        "shape": "cone",
+        "r": "$reach",
+        "half_deg": "$half_deg",
+        "mult": "$s1_miss_mult",
+        "kb": "$kb",
+        "src": "举盾反击",
+        "tags": [
+         "skill"
+        ],
+        "power": true
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "dur": "$s2_dur",
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "op_atk",
+      "op": "add",
+      "value": "$s2_atk",
+      "power": true
+     },
+     {
+      "verb": "dr",
+      "value": "$s2_dr"
+     },
+     {
+      "verb": "negate_chance",
+      "mult": "$s2_block_x"
+     }
+    ]
+   },
+   {
+    "dur": "$s3_dur",
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "op_atk",
+      "op": "add",
+      "value": "$s3_atk",
+      "power": true
+     },
+     {
+      "verb": "dr",
+      "value": "$s3_dr"
+     },
+     {
+      "verb": "swap_attack",
+      "attack": {
+       "shape": "line",
+       "len": "$s3_len",
+       "width": "$s3_w",
+       "mult": 1.0,
+       "kb": "$kb*$s3_kb",
+       "src": "力之锯",
+       "tags": [
+        "skill"
+       ],
+       "fx": [
+        {
+         "strip": "fx_hoshiguma_demon_slash",
+         "fit": 32,
+         "rot": true,
+         "off": [
+          0,
+          -30
+         ]
+        }
+       ]
+      }
+     }
+    ]
+   }
   ],
   "talent": [
-   {"trig": "on_hurt", "chance": "$block_chance", "boss_chance": "$block_chance_boss", "max_chance": "$block_max", "negate": true, "fx": [{"strip": "fx_hoshiguma_block", "on_sprite": "shield", "off": [0, -26], "scale": 1.4}], "text": "战术装甲", "do": [
-    {"verb": "displace", "center": "leader", "r": "$block_kb_r", "kb": "$block_kb"}]},
-   {"trig": "passive", "cond": "beacon_charging", "do": [
-    {"verb": "negate_chance", "add": "$beacon_bonus"}]}
+   {
+    "trig": "on_hurt",
+    "chance": "$block_chance",
+    "boss_chance": "$block_chance_boss",
+    "max_chance": "$block_max",
+    "negate": true,
+    "fx": [
+     {
+      "strip": "fx_hoshiguma_block",
+      "on_sprite": "shield",
+      "off": [
+       0,
+       -26
+      ],
+      "scale": 1.4
+     }
+    ],
+    "text": "战术装甲",
+    "do": [
+     {
+      "verb": "displace",
+      "center": "leader",
+      "r": "$block_kb_r",
+      "kb": "$block_kb"
+     }
+    ]
+   },
+   {
+    "trig": "passive",
+    "cond": "beacon_charging",
+    "do": [
+     {
+      "verb": "negate_chance",
+      "add": "$beacon_bonus"
+     }
+    ]
+   }
   ],
   "progression": {
-   "reach": {"verb": "buff_self", "stat": "op_range", "op": "add", "value": "$n_reach"},
-   "heavy": {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$n_heavy"},
-   "wall": {"trig": "on_negate", "do": [
-    {"verb": "displace", "center": "leader", "r": "$block_kb_r", "kb": 0, "on_hit": [{"st": "stun", "dur": "$wall_stun"}]}]},
-   "ember": {"trig": "every_n", "n": 1, "cond": "skill_active:1", "do": [
-    {"verb": "field", "center": "last_hit", "r": "$sand_r", "dur": "$ember_dur", "every": "$sand_tick", "fx": [{"strip": "fx_hoshiguma_sand", "layer": "floor", "fit": 30}], "do": [
-     {"shape": "circle", "center": "target", "r": "$sand_r", "mult": "$ember_mult*$sand_tick", "src": "热砂", "tags": ["skill", "dot"], "power": true}]}]},
-   "elite1": {"trig": "on_negate", "_doc": "反击架势（docs/91 §4）：格挡后 stance_dur 秒内只乘普攻的局部倍率 atk +stance_dmg（同 key 刷新不叠），盾沿红光", "do": [
-    {"verb": "buff_timed", "key": "stance", "stat": "atk", "value": "$stance_dmg", "dur": "$stance_dur", "text": "反击架势",
-     "fx": [{"strip": "fx_hoshiguma_guard_glow", "layer": "front", "on_sprite": "shield", "scale": 0.6, "fade": [0.1, 0.3]}]}]},
+   "reach": {
+    "verb": "buff_self",
+    "stat": "op_range",
+    "op": "add",
+    "value": "$n_reach"
+   },
+   "heavy": {
+    "verb": "buff_self",
+    "stat": "dmg",
+    "op": "mult",
+    "value": "$n_heavy"
+   },
+   "wall": {
+    "trig": "on_negate",
+    "do": [
+     {
+      "verb": "displace",
+      "center": "leader",
+      "r": "$block_kb_r",
+      "kb": 0,
+      "on_hit": [
+       {
+        "st": "stun",
+        "dur": "$wall_stun"
+       }
+      ]
+     }
+    ]
+   },
+   "ember": {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "skill_active:1",
+    "do": [
+     {
+      "verb": "field",
+      "center": "last_hit",
+      "r": "$sand_r",
+      "dur": "$ember_dur",
+      "every": "$sand_tick",
+      "fx": [
+       {
+        "strip": "fx_hoshiguma_sand",
+        "layer": "floor",
+        "fit": 30
+       }
+      ],
+      "do": [
+       {
+        "shape": "circle",
+        "center": "target",
+        "r": "$sand_r",
+        "mult": "$ember_mult*$sand_tick",
+        "src": "热砂",
+        "tags": [
+         "skill",
+         "dot"
+        ],
+        "power": true
+       }
+      ]
+     }
+    ]
+   },
+   "elite1": {
+    "trig": "on_negate",
+    "_doc": "反击架势（docs/91 §4）：格挡后 stance_dur 秒内只乘普攻的局部倍率 atk +stance_dmg（同 key 刷新不叠），盾沿红光",
+    "do": [
+     {
+      "verb": "buff_timed",
+      "key": "stance",
+      "stat": "atk",
+      "value": "$stance_dmg",
+      "dur": "$stance_dur",
+      "text": "反击架势",
+      "fx": [
+       {
+        "strip": "fx_hoshiguma_guard_glow",
+        "layer": "front",
+        "on_sprite": "shield",
+        "scale": 0.6,
+        "fade": [
+         0.1,
+         0.3
+        ]
+       }
+      ]
+     }
+    ]
+   },
    "elite2": [
-    {"trig": "every_n", "n": "$saw_every", "replace": true, "anim": "throw", "cond": "!skill_active:2", "_doc": "般若回旋（docs/91 §4）：每第 3 次盾斧斩改为掷出盾牌往返", "do": [
-     {"shape": "boomerang", "len": "$saw_len", "w": "$saw_w", "t_out": "$saw_t_out", "hold": "$saw_hold", "t_back": "$saw_t_back", "mult_out": "$saw_out", "mult_back": "$saw_back",
-      "kb_out": "$kb", "lock": true, "src": "般若回旋", "tags": ["basic"], "tex": "proj_hoshiguma_sawshield", "spark": "fx_hoshiguma_saw_spark"}]},
-    {"trig": "every_n", "n": "$saw_every", "replace": true, "anim": "throw", "cond": "skill_active:2", "_doc": "力之锯期间盾锯宽度同直线斩", "do": [
-     {"shape": "boomerang", "len": "$saw_len", "w": "$s3_w", "t_out": "$saw_t_out", "hold": "$saw_hold", "t_back": "$saw_t_back", "mult_out": "$saw_out", "mult_back": "$saw_back",
-      "kb_out": "$kb", "lock": true, "src": "般若回旋", "tags": ["basic"], "tex": "proj_hoshiguma_sawshield", "spark": "fx_hoshiguma_saw_spark"}]}]
+    {
+     "trig": "every_n",
+     "n": "$saw_every",
+     "replace": true,
+     "anim": "throw",
+     "cond": "!skill_active:2",
+     "_doc": "般若回旋（docs/91 §4）：每第 3 次盾斧斩改为掷出盾牌往返",
+     "do": [
+      {
+       "shape": "boomerang",
+       "len": "$saw_len",
+       "w": "$saw_w",
+       "t_out": "$saw_t_out",
+       "hold": "$saw_hold",
+       "t_back": "$saw_t_back",
+       "mult_out": "$saw_out",
+       "mult_back": "$saw_back",
+       "kb_out": "$kb",
+       "lock": true,
+       "src": "般若回旋",
+       "tags": [
+        "basic"
+       ],
+       "tex": "proj_hoshiguma_sawshield",
+       "spark": "fx_hoshiguma_saw_spark"
+      }
+     ]
+    },
+    {
+     "trig": "every_n",
+     "n": "$saw_every",
+     "replace": true,
+     "anim": "throw",
+     "cond": "skill_active:2",
+     "_doc": "力之锯期间盾锯宽度同直线斩",
+     "do": [
+      {
+       "shape": "boomerang",
+       "len": "$saw_len",
+       "w": "$s3_w",
+       "t_out": "$saw_t_out",
+       "hold": "$saw_hold",
+       "t_back": "$saw_t_back",
+       "mult_out": "$saw_out",
+       "mult_back": "$saw_back",
+       "kb_out": "$kb",
+       "lock": true,
+       "src": "般若回旋",
+       "tags": [
+        "basic"
+       ],
+       "tex": "proj_hoshiguma_sawshield",
+       "spark": "fx_hoshiguma_saw_spark"
+      }
+     ]
+    }
+   ]
   }
+ },
+ "native_motion": {
+  "_doc": "原生动作覆盖层（docs/108 §3.5）：盾回手（信号 prop 结束）时播接盾",
+  "clips": {
+   "catch": 0.43
+  },
+  "exits": [
+   {
+    "on": "prop",
+    "slot": "catch",
+    "from": 0,
+    "tail": 0.43
+   }
+  ]
  }
 }

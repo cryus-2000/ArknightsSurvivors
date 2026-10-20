@@ -1,7 +1,8 @@
 extends Node
 ## 新契约「只填 json」试点（docs/108 §9.1，德克萨斯）：帧条不变，只在 json 写 sprites.skills / extra_sprites。
 ##   godot --headless --path game res://tests/texas_contract_test.tscn -- --regression --balance --seed=1 --op=texas
-## 校验：数据契约零错误；S1 / S2 单条与原来相同；S3 起手播 skill → 持续期站立播 idle、移动播 run → 结束回普通状态；
+## 校验：数据契约零错误；S1 / S2 单条与原来相同；S3 起手播 s3_start → 持续期站立播 idle、移动播 run → 结束播剑雨收势 → 回普通状态；
+## 冲刺按进度换播（native_motion：普攻 attack 2–7、技能 s3_dash、回马剑等待 / 反冲 back_native）；
 ## S2 永久技能由生命周期默认绑定（后台、permanent）。全部通过时打印 "TEXAS CONTRACT failures=0"。
 
 const Ch = preload("res://scripts/characters/character.gd")
@@ -33,6 +34,7 @@ func _process(_d: float) -> void:
 		test_s1(o)
 		test_s3(o)
 		test_s2(o)
+		test_dash(o)
 	print("%d checks, %d failed" % [n, fails])
 	print("TEXAS CONTRACT failures=%d" % fails)
 	get_tree().quit(1 if fails > 0 else 0)
@@ -69,7 +71,7 @@ func test_s1(o) -> void:
 
 func test_s3(o) -> void:
 	o.start_skill(Vector2.INF, 2)
-	ok(o.sq_ph == 1 and o.act_anim == "skill" and kind(o) == "skill", "S3 进序列起手段，播 skill")
+	ok(o.sq_ph == 1 and o.act_anim == "s3_start" and kind(o) == "s3_start", "S3 进序列起手段，播 s3_start（10-20 换 64 画布）")
 	ok(absf(o.attack_t - 7.0 / 12.0) < 0.002 and absf(o.fire_t - 3.5 / 12.0) < 0.002, "S3 起手窗口与原单条相同")
 	step(o, 0.7)
 	ok(o.skill_active_left(2) > 0.0 and o.sq_ph == 2 and kind(o) == "idle", "S3 持续期站立：循环播 idle")
@@ -77,8 +79,10 @@ func test_s3(o) -> void:
 	ok(o.sq_ph == 2 and kind(o) == "run", "S3 持续期移动：播 run")
 	step(o, 0.5)
 	o.s_t[2] = 0.0
-	step(o, 0.1)
-	ok(o.sq_ph == 0, "S3 结束：没写 end，序列直接退出")
+	step(o, 0.05)
+	ok(o.sq_ph == 3 and kind(o) == "skill", "S3 结束：收势播剑雨（skill 后 6 帧）")
+	step(o, 0.6)
+	ok(o.sq_ph == 0, "S3 收势播完，序列退出")
 	ok(kind(o) in ["idle", "run"], "S3 结束回普通待机 / 跑步")
 
 
@@ -88,3 +92,22 @@ func test_s2(o) -> void:
 	var st: Array = o.skill_effect_status(1)
 	ok(o.perm_on[1] and not st.is_empty() and st[0].unit == "permanent" and st[0].background, "S2 永久：生命周期默认绑定为后台 permanent")
 	ok(not o.skills_occupied(), "S2 永久不占用技能通道")
+
+
+## 冲刺换播（10-20，docs/108 §3.5）：伪造一次冲刺 / 回马剑等待，只看画面槽与帧，不推进玩法
+func test_dash(o) -> void:
+	var tags := {"basic": ["basic"], "skill": ["skill"], "reverse": ["follow_up"]}
+	var want := {"basic": ["attack", 2, 7], "skill": ["s3_dash", 0, 7], "reverse": ["back_native", 3, 7]}
+	for k in tags:
+		var b := {"aim": "reverse" if k == "reverse" else "nearest", "tags": tags[k]}
+		for t in [0.0, 0.43]:
+			o.tx["dash"] = {"b": b, "t": t, "dur": 0.24, "hold": 0.2}
+			var st: Dictionary = o.anim_state()
+			var w: Array = want[k]
+			var fr: int = int(w[1]) if t == 0.0 else int(w[2])
+			ok(str(st.get("kind", "")) == w[0] and int(st.get("frame", -1)) == fr, "冲刺 %s 进度 %.2f：播 %s 第 %d 帧（实得 %s %d）" % [k, t, w[0], fr, st.get("kind", ""), st.get("frame", -1)])
+		o.tx.erase("dash")
+	o.tx["queue"] = [{"t": 0.3, "t0": 0.3, "do": [{"_tag": "shape.dash_line", "aim": "reverse"}], "ctx": {}}]
+	var sw: Dictionary = o.anim_state()
+	ok(str(sw.get("kind", "")) == "back_native" and int(sw.get("frame", -1)) == 0, "回马剑等待开始：back_native 第 0 帧")
+	o.tx["queue"] = []

@@ -1030,6 +1030,10 @@ func bot_wants_manual(i: int) -> bool:
 ## 手写段给原生动作覆盖层的信号（native_motion.gd；名 → 进度 0–1，按优先级先后写入）
 func native_signals() -> Dictionary:
 	var out := {}
+	if prop_out():
+		out["prop"] = 1.0   # 往返弹体（星熊盾）在外面；结束 = 盾回手（json native_motion.exits 播接盾）
+	if not tx.is_empty():
+		SegTexas.tx_native_signals(self, out)   # 德克萨斯段：冲刺 / 回马剑等待
 	if not hw.is_empty():
 		SegSiege.h4_native_signals(self, out)
 		SegUlpianus.hw_native_signals(self, out)

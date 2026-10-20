@@ -1,0 +1,220 @@
+{
+ "id": "texas",
+ "src": "texas.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "德克萨斯 · s3start",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "hold": "L",
+ "relativeArms": [
+  "R"
+ ],
+ "params": {
+  "lean": 10,
+  "bob": 0.7
+ },
+ "secondary": [
+  {
+   "match": "^(F_[BFLR]_Hair(_B)?|bone([3-7]|9|1[0-9]|20))$",
+   "amp": 2.5,
+   "drag": 4
+  },
+  {
+   "match": "^(F_Tail|bone3[2-4])$",
+   "amp": 6,
+   "drag": 8,
+   "lag": 1.4
+  },
+  {
+   "match": "^(F_[LR]_Ear|bone2[1-3])$",
+   "amp": 4,
+   "drag": 2
+  },
+  {
+   "match": "^(F_Cape|bone2[4-7]|F_IDcard)$",
+   "amp": 3,
+   "drag": 4
+  },
+  {
+   "match": "^(F_Bag|bone(29|3[01]))$",
+   "amp": 3,
+   "drag": 3,
+   "lag": 1.5
+  }
+ ],
+ "attach": {
+  "F_Weapon": "bone8"
+ },
+ "weapon": "F_Weapon",
+ "map": [
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  null
+ ],
+ "keys": [
+  {
+   "from": [
+    "Attack_Loop",
+    0.0
+   ],
+   "plant": true
+  },
+  {
+   "from": [
+    "Attack_Loop",
+    0.1
+   ],
+   "plant": true
+  },
+  {
+   "from": [
+    "Attack_Loop",
+    0.141
+   ],
+   "hipY": -0.02,
+   "plant": true
+  },
+  {
+   "from": [
+    "Attack_Loop",
+    0.141
+   ],
+   "hipY": -0.05,
+   "lean": 4,
+   "plant": true,
+   "legs": {
+    "L": {
+     "x": 0.25,
+     "ground": true
+    },
+    "R": {
+     "x": -0.3,
+     "ground": true
+    }
+   }
+  },
+  {
+   "from": [
+    "Attack_Loop",
+    0.566
+   ],
+   "hipX": -0.3,
+   "hipY": -0.09,
+   "lean": 5,
+   "head": -2,
+   "weapon": 205,
+   "legs": {
+    "L": {
+     "x": 0.32,
+     "ground": true
+    },
+    "R": {
+     "x": -0.42,
+     "ground": true,
+     "foot": -18
+    }
+   }
+  },
+  {
+   "from": [
+    "Attack_Loop",
+    0.566
+   ],
+   "hipX": -0.3,
+   "hipY": -0.09,
+   "lean": 5,
+   "head": -2,
+   "weapon": 205,
+   "legs": {
+    "L": {
+     "x": 0.32,
+     "ground": true
+    },
+    "R": {
+     "x": -0.42,
+     "ground": true,
+     "foot": -18
+    }
+   }
+  },
+  {
+   "from": [
+    "Attack_Loop",
+    0.566
+   ],
+   "hipX": -0.3,
+   "hipY": -0.09,
+   "lean": 5,
+   "head": -2,
+   "weapon": 205,
+   "legs": {
+    "L": {
+     "x": 0.32,
+     "ground": true
+    },
+    "R": {
+     "x": -0.42,
+     "ground": true,
+     "foot": -18
+    }
+   }
+  },
+  {
+   "from": [
+    "Attack_Loop",
+    0.566
+   ],
+   "hipX": -0.3,
+   "hipY": -0.09,
+   "lean": 5,
+   "head": -2,
+   "weapon": 205,
+   "legs": {
+    "L": {
+     "x": 0.32,
+     "ground": true
+    },
+    "R": {
+     "x": -0.42,
+     "ground": true,
+     "foot": -18
+    }
+   }
+  }
+ ],
+ "action": "s3start",
+ "canvas": 128
+}

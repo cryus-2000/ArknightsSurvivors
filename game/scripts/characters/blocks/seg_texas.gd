@@ -287,11 +287,33 @@ static func _tx_dash_end(o) -> void:
 		var dl: float = float(t.get("delay", 0.0))
 		if dl > 0.0:
 			var q: Array = tx.get("queue", [])
-			q.append({"t": dl, "do": t.get("do", []), "ctx": ctx})
+			q.append({"t": dl, "t0": dl, "do": t.get("do", []), "ctx": ctx})
 			tx["queue"] = q
 		else:
 			tx["ctx"] = ctx
 			o._exec_list(t.get("do", []), ctx.to)
+
+
+## 原生动作覆盖层的信号（native_motion.gd，docs/108 §3.5；只读本段状态）：
+##   dash.<种类>  正在冲刺，进度 = 已冲时间 /（冲刺 + 停顿）；种类 reverse = 原路反冲（回马剑），skill = 技能冲刺（tags 含 skill），其余 basic
+##   wait.reverse 冲完到反冲之间的延迟（on_dash_end 的 delay），进度 0–1
+static func tx_native_signals(o, out: Dictionary) -> void:
+	var tx: Dictionary = o.tx
+	if tx.has("dash"):
+		var d: Dictionary = tx.dash
+		var b: Dictionary = d.b
+		var kind := "basic"
+		if str(b.get("aim", "")) == "reverse":
+			kind = "reverse"
+		elif (b.get("tags", _EA) as Array).has("skill"):
+			kind = "skill"
+		out["dash." + kind] = clampf(float(d.t) / maxf(0.01, float(d.dur) + float(d.hold)), 0.0, 1.0)
+		return
+	for it in tx.get("queue", _EA):
+		for blk in it.do:
+			if blk is Dictionary and str(blk.get("_tag", "")) == "shape.dash_line" and str(blk.get("aim", "")) == "reverse":
+				out["wait.reverse"] = clampf(1.0 - float(it.t) / maxf(0.01, float(it.get("t0", it.t))), 0.0, 1.0)
+				return
 
 
 ## 技能出手（data_operator._release_skill 转来）：trig.on_skill_start

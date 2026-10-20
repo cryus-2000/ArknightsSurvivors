@@ -84,10 +84,19 @@ TONE_OVERRIDE = {
 # 存量（第三批 docs/63 之前交付的 12 名干员（含水月）+ 博士）：色数 > 24、skill 末帧 ≠ idle f0 只报 WARN（这两条是第三批起才定的硬规格）；
 # 重画哪条帧条，哪条就按 docs/87 全部达标
 LEGACY = {"eyjafjalla", "irene", "kaltsit", "logos", "lumen", "mizuki", "saria", "siege", "skadi", "suzuran",
-                 "ulpianus", "wisadel", "doctor"}
+                 "ulpianus", "wisadel", "doctor", "hoshiguma", "texas"}
 
 # ---------------------------------------------------------------- 豁免：已开返修单、未交付的 FAIL（交付合入后删条目）
 WAIVERS = {
+    # 10-20 德克萨斯 / 星熊：原作动作条（cb_18）+ 原生骨架出图（spine_run_trial），同推进之王 / 乌尔比安口径（package_texas_hoshiguma.py）
+    ('texas', 'outline'): "10-20 原生附件暗色收边，不重描旧 #080E18 黑壳；来源像素哈希见 texas_hoshiguma_native_sources.json",
+    ('texas', 'run'): "10-20 原生骨架跑步（抬腿口径同推进之王、头顶起伏 ±1 按协调人口径），腿部变化指标偏低；用户 10-20 看过候选",
+    **{('texas', 'ground', a): "10-20 原生根骨：鞋底最低像素行 119（@2x），与逻辑脚底边界 120 差 1，不逐帧挪图（同推进之王 / 乌尔比安）"
+       for a in ['idle', 'run', 'attack', 'skill', 'back_native', 's3_start', 's3_dash', 'death']},
+    ('hoshiguma', 'outline'): "10-20 原生附件暗色收边，不重描旧 #080E18 黑壳；来源像素哈希见 texas_hoshiguma_native_sources.json",
+    ('hoshiguma', 'run'): "10-20 原生骨架跑步（抬腿口径同推进之王），三角大盾挡住上身与大半剪影，上身 / 剪影变化指标偏低；用户 10-20 看过候选「没什么问题」",
+    **{('hoshiguma', 'ground', a): "10-20 原生根骨：鞋底最低像素行 119（@2x），与逻辑脚底边界 120 差 1，不逐帧挪图（同推进之王 / 乌尔比安）"
+       for a in ['idle', 'run', 'attack', 'skill', 's1', 's1_guard', 's1_counter', 's3_start', 's3_loop', 's3_end', 'throw', 'catch']},
     # 10-20 用户要求接入既有原生部件像素；保留原始指标，例外不代表视觉验收通过。
     ('siege', 'outline'): "10-20 原生附件暗色收边，不重描旧 #080E18 黑壳；来源像素哈希见 siege_ulpianus_native_sources.json",
     ('ulpianus', 'outline'): "10-20 原生附件暗色收边，不重描旧 #080E18 黑壳；同原生接入交接",
@@ -129,7 +138,6 @@ WAIVERS = {
     ("skalter", "run"): "设计例外（用户 10-13 定）：浊心斯卡蒂跑步是悬浮飘行，腿不交替属造型，长期豁免",
     ("skalter", "ground"): "设计例外（用户 10-13 定）：浊心斯卡蒂悬浮飘行，离地 4–6px 属造型，长期豁免",
     ("exusiai", "run"): "10-19 用户指定接入 exusiai_arm_revision_03；保留原步态，旧上身/起伏指标报警待实机视觉复核（three_operator_art_1019_handoff.md）",
-    ("texas", "run"): "用户 10-13 认可现版（1a761c8e 连续性修复后）；机检头部起伏 0.5px 仍低于线，暂不返修",
     ("specter_unchained", "run"): "用户 10-13 认可现版：归溟幽灵鲨跑步前倾 35°、停顿帧 2 对，不返修",
     # 单条帧条豁免（op, check, 动作）：只豁免这条帧条的这一项，同一干员其他帧条照常检查
     ("angelina", "ground", "float_in"): "设计例外（docs/92）：S3 起飞，f2–f3 离地属造型",
