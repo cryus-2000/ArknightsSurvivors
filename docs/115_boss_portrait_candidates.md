@@ -1,59 +1,65 @@
-# 115 · Boss 登场名片头像 — 现状与改版候选（2026-10-21）
+# 115 · Boss 登场名片头像 — 现状、候选与候选 A 实现（2026-10-21）
 
-> 背景：用户反馈 Boss 登场名片上的头像还是「旧画像」，要求查清楚现状并出两个候选方案。
+> 背景：用户反馈 Boss 登场名片上的头像还是「旧画像」，要求查清楚现状并出两个候选方案；用户选 A，已在
+> `claude/boss-portrait` 分支实现（提交见 git log，分支不合 main）。
 
-## 1. 现状：根本没有专门画的头像
+## 1. 现状（10-21 更正）
 
-`scripts/screens/boss_intro.gd` 的 `CARDS` 表里，每只 Boss 都写了 `portrait: "portraits/boss_<id>"`，理论上应加载
-`art/incoming/portraits/boss_<id>.png`（88×88 手摆头肩像，docs/38 §6.2 当时的设想，`tools/boss_portraits_hand.py`）。
+**更正**：本文档最初调查时漏看了一层目录，误以为 `art/incoming/portraits/` 一张图都没有。实际上 **10 只 Boss 都有一版
+10-11 交付的专画头像**（`art/incoming/portraits/boss_<id>.png` 88×88 + `@2x`，`scripts/screens/boss_intro.gd` 正常
+加载、`card.portrait.begins_with("portraits/")` 命中，走的是「整张头像」分支，不是缺图回退）。
 
-但 `art/incoming/portraits/` 目录里**一张都没有**——没人画过。`_portrait_name()`（boss_intro.gd:131-137）发现贴图缺失就回退成
-`main.tex`（这只 Boss 战斗用的像素本体帧条），登场名片里画的其实是**战斗帧条第 0 帧（idle 第一帧）整体缩小塞进 88×88 的框**
-（boss_intro.gd:311-320，`fw = ptx.get_width()/2` 取 2 帧条的第 0 帧，`sc` 按 84/宽高 等比缩小）。
+真正的问题不是「没有头像」，是**这版头像画得太简），基本就是一块深色半身剪影 + 一对发光的眼睛（见
+`build/boss_portrait_shots/knight_portrait_check.png`，未入库），辨识度低，用户说的「旧画像」指的是它。
 
-用户说的「旧画像」就是这个：不是专门画的头像，是把已经偏小的全身战斗像素图整体缩小，大多数 Boss 缩完糊成一团剪影，只有
-圣徒伊比利亚 / 圣徒卡门因为战斗帧条本身头部占比大、正面朝前，缩小后碰巧还能看出人脸。
+10 只 Boss 当前头像来源：
 
-10 只 Boss 当前头像来源（均为缺图回退，无一张是专门画的头像）：
-
-| Boss id | 名字 | 回退用的 tex | 现状观感 |
+| Boss id | 名字 | 专画头像文件 | 观感 |
 |---|---|---|---|
-| path | 塑路者 | `e_path` | 糊成剪影 |
-| iberia | 圣徒伊比利亚 | `e_saint_dark` | 勉强能看（帧条本身是正面半身） |
-| carmen | 圣徒卡门 | `e_saint` | 勉强能看（同上） |
-| bishop | 接潮主教 | `e_bishop` | 糊成剪影 |
-| archon | 接潮蔑死体 | `e_archon` | 糊成剪影 |
-| immortal | 接潮斥亡体 | `e_immortal` | 糊成剪影 |
-| paranoia | "偏执泡影" | `e_paranoia` | 糊成剪影 |
-| ishar | 伊莎玛拉，腐化之心 | `e_ishar` | 糊成剪影 |
-| izumik | 伊祖米克，生态泉源 | `e_izumik` | 糊成剪影 |
-| knight_boss | 最后的骑士 | `e_knight` | 糊成剪影 |
+| path | 塑路者 | `portraits/boss_path.png` | 深色半身剪影 |
+| iberia | 圣徒伊比利亚 | `portraits/boss_iberia.png` | 勉强能看（半身正面） |
+| carmen | 圣徒卡门 | `portraits/boss_carmen.png` | 勉强能看（同上） |
+| bishop | 接潮主教 | `portraits/boss_bishop.png` | 深色半身剪影 |
+| archon | 接潮蔑死体 | `portraits/boss_archon.png` | 深色半身剪影 |
+| immortal | 接潮斥亡体 | `portraits/boss_immortal.png` | 深色半身剪影 |
+| paranoia | "偏执泡影" | `portraits/boss_paranoia.png` | 深色半身剪影 |
+| ishar | 伊莎玛拉，腐化之心 | `portraits/boss_ishar.png` | 深色半身剪影 |
+| izumik | 伊祖米克，生态泉源 | `portraits/boss_izumik.png` | 深色半身剪影 |
+| knight_boss | 最后的骑士 | `portraits/boss_knight_boss.png` | 深色半身剪影 |
 
-对比截图（`--bossintro=<id>` 第 1.1 秒名片截图裁出的头像框，10 只拼一张网格图）：`build/boss_portrait_shots/baseline_grid.png`
-（未入库，build/ 不进包；已随本报告发给用户看）。
+## 2. 两个候选（已报用户，用户选 A）
 
-## 2. 两个候选
+**候选 A · 局内像素本体裁切放大（低成本，不需要新画，已实现）**
+不用这版专画头像，改成从战斗帧条（`e.tex` idle 第 0 帧）裁一块头部 / 标志特征的小方块，逐只手动对齐，按整数倍最近邻放大。
+优点：今天就能做、不占 Codex 产能，细节比专画头像的全身缩小版多；缺点：终究是战斗姿态裁出来的，不是专门构图的头像。
 
-**候选 A · 局内像素本体裁切放大（低成本，不需要新画）**
-不再整张缩小战斗帧条，改成按 Boss 类型裁一个固定的头肩区域（多数 Boss 战斗帧条画布比 88×88 大得多，头部细节本来就在），
-再按整数倍放大到接近 88×88（保持像素风格不糊）。纯代码改动：boss_intro.gd 改 `_portrait_name` 旁的取图逻辑，
-给每只 Boss 的 CARDS 表加一个裁切框（`portrait_crop: Rect2`），缺省仍退回现在的整体缩小。
-优点：今天就能做、不占 Codex 产能；缺点：裁出来的终究是战斗姿态（低头 / 侧身 / 武器挡脸的 Boss 效果有限，比如骑士头盔本来就全黑一片，
-裁出来还是看不清五官）。
+**候选 B · 按原作立绘口径重新画（需要新素材，暂不做）**
+参照 PRTS 对应海嗣 / 敌人的官方立绘或原设定，重新画一版 88×88（+@2x）头肩像，按 docs/104 走「Claude 写单、Codex 交素材」。
+10-21 用户定：先不做，A 够用了再说。
 
-**候选 B · 按原作立绘口径重新画（需要新素材）**
-参照 PRTS 对应海嗣 / 敌人的官方立绘或原设定（docs/87 §4.3 口径：色调 / 瞳色 / 装束细节须与官方一致；PRTS 等原作素材已获用户
-10-15 授权可下载作内部参照，放 build/ 不进 git / 包），专门画一张 88×88（+@2x）的头肩像，表情更有辨识度、不受战斗姿态限制。
-10 只全新画完整的量不小，按 docs/104 像素流程走「Claude 写单、Codex 交素材」（docs/41，10-11 用户定的重点特效派单模式同理用在这里）。
-优点：观感最好、和用户要求的「不是旧画像」最贴；缺点：要等 Codex 产能，且部分 Boss（主教 / 蔑死体 / 斥亡体 / 塑路者等）是本作
-原创海嗣形象，PRTS 没有对应立绘可参照，需要先定稿设计图再画（走 docs/87 §4.3 同款「收货先看三列对照」）。
+## 3. 候选 A 实现记录（10-21，`claude/boss-portrait`）
 
-**建议**：A 先垫上作为近期可见的改善（代码今天能出，裁切框需要美术/用户对着当前帧条挑一个姿态看得清的时刻），B 作为后续正式
-头像，列进 Codex 派单队列（docs/41）。两者不冲突，A 的裁切框将来也能被 B 的新图直接替换掉（`portrait` 字段指回
-`portraits/boss_<id>` 即可，代码已经支持「有图优先、无图退回」）。
+**改法**：`scripts/screens/boss_intro.gd`
+- `PORTRAIT_CROP`：新增 const，10 只 Boss 各一个 `Rect2(x, y, w, h)`，坐标是 idle 帧条第 0 帧（帧条左半张）的 1x 像素坐标，
+  逐只对着 `art/incoming/e_<name>.png` 肉眼挑的头部 / 标志特征（骑士头盔 + 寒冷目镜、偏执泡影的红瞳、主教兜帽双眼……）。
+- `card_for()`：`PORTRAIT_CROP` 里登记过的 Boss 不再读 `CARDS.portrait`（10-11 那版专画头像暂时弃用，文件不删，留给以后候选
+  B 用），改调 `_portrait_source()` 走裁切逻辑。
+- `_portrait_tex_1x_key()`：**绕开 @2x**，强制直接读 1x 原图。原因：10-21 排查发现 `e_knight@2x.png` 实际尺寸
+  586×293，不是 `e_knight.png`（192×80）干净的 2 倍——`A.tex()` 按文件名优先取 `@2x`、再按固定密度 2.0 换算绘制坐标，
+  PORTRAIT_CROP 的裁切框会在错的区域取样（最先这样实现时骑士那张整个糊掉，debug 截图对照才查出来）。
+  这个 @2x 尺寸异常本身是另一个美术资产问题，不在本次范围内，没有改 `art/incoming` 下的文件，只是头像裁切这条路径
+  不碰它、改读 1x 原图；战斗时的本体绘制不受影响（那条路径走的是另一套密度换算，没有这个 bug 的症状——实机骑士本体
+  比例看着是对的，只有我这版新写的裁切代码直接信了 hires_of() 才会取错）。
+- `draw_texture_rect_region` 的最近邻：项目 `textures/canvas_textures/default_texture_filter` 本来就是 0（Nearest），
+  不用额外设置。
 
-## 3. 下一步（待用户选）
+**验证**：`--bossintro=<id>`（10 只逐一跑）+ `--fixed-fps 30` 截图对照，`build/boss_portrait_shots/final_grid.png`
+（未入库，已发用户）；`tools/check.py --auto` 本分支改动范围内跑结果见 commit message。只改名片取图/显示，不碰战斗绘制、
+不进模拟字段，同 seed 不变。
 
-- 选 A：我（Boss与怪物）在 `claude/boss-portrait` 分支上给 10 只 Boss 各定一个裁切框，出前后对比图再合。
-- 选 B：我写素材单（文件名 / 尺寸 / 姿态 / 参照来源）进 docs，转 Codex 排期；同时可以先上 A 过渡。
-- 都要：都只改名片头像的取图/显示，不碰战斗帧条、不碰同种子模拟字段。
+## 4. 待办
+
+- 10-11 那版专画头像文件（`art/incoming/portraits/boss_*.png`）暂时没人用了，先留着（代码架构支持以后候选 B 直接复用这个
+  路径，`portrait` 字段指回 `portraits/boss_<id>` 即可）。
+- `e_knight@2x.png` 尺寸异常（586×293 对不上 192×80 的整数倍）是个独立的美术资产问题，建议回 Boss与怪物 / 干员美术那条线
+  核实一下交付记录，看是不是哪次 Codex 批次把别的东西错打包进去了；本次没有改它。

@@ -21,8 +21,10 @@ const BAR_T := 0.25       # 黑边滑入 / 滑出用时
 ## 名片数据（每只 Boss 一条；缺的字段按缺省）：
 ##   cn 名字行（缺省 enemies.json 的 name）、en 英文副标、sub 一句标题（小标签右段）、col 强调色（缺省 vfx.BOSS_STYLE 的招式色）、
 ##   sfx 登场音（缺省 boss_<id>，Sfx.CUE_VOL 里有电平；没有文件就静默）、line 一句台词（lore.json 口径）、
-##   portrait 头像（10-11：art/incoming/portraits/boss_<id>.png 88×88 手摆头肩像 + @2x，tools/boss_portraits_hand.py；
-##   名字带 portraits/ 前缀的按整张头像画，缺图退回 e.tex 待机条第 0 帧）
+##   portrait 头像：10-11 交付过一版专门画的 art/incoming/portraits/boss_<id>.png（88×88 手摆头肩像 + @2x），
+##   但整只缩成 88×88 的半身像细节少、辨识度不够；10-21 用户选候选 A，card_for() 对 PORTRAIT_CROP 里有裁切框的
+##   Boss 改用战斗帧条（e.tex）裁一块头部 / 标志特征再放大（见下方 PORTRAIT_CROP），不读这里的 `portrait` 字段了；
+##   没有裁切框的 Boss 仍走旧路径：读这里的 `portrait`（缺图退回 e.tex 待机条第 0 帧整体缩小，见 _portrait_name）
 const CARDS := {
 	"path": {"en": "PATHSHAPER", "sub": "替大群探路的海嗣", "portrait": "portraits/boss_path", "line": "它把自己的碎片撒向每一条岔路，让它们先去走那些错的路。"},
 	"iberia": {"en": "SAINT OF IBERIA", "sub": "老猎人的枪 · 强化", "portrait": "portraits/boss_iberia", "line": "斗篷破了，他不再说话。手炮只装一发，打空就贴身追来。"},
@@ -34,6 +36,24 @@ const CARDS := {
 	"ishar": {"en": "ISHAR-MLA, CORRUPTED HEART", "sub": "最终 · 替大群发声", "portrait": "portraits/boss_ishar", "line": "转化完成后，她才会攻击队长。"},
 	"izumik": {"en": "IZUMIK, FOUNT OF LIFE", "sub": "最终 · 人之光辉", "portrait": "portraits/boss_izumik", "line": "海嗣的母体之一。子代从它身上涌出，回到它身上就被吸收。"},
 	"knight_boss": {"en": "THE LAST KNIGHT", "sub": "最终 · 堂吉诃德", "portrait": "portraits/boss_knight_boss", "line": "曾经护送旅人穿越海嗣领地的猎潮骑士，如今站到了海嗣那一边。"},
+}
+
+## 候选 A（docs/115 §2，10-21 用户选定）：10-11 交付的专画头像把整只战斗本体整体缩小进 88×88，细节少、大多看着像一团剪影；
+## 改成从战斗帧条（e.tex）idle 第 0 帧里裁一块头部 / 标志特征的小方块，逐只手动对齐，按整数倍最近邻放大。单位是帧条原始
+## （1x）像素，坐标系原点在该 Boss 本体帧条左上角（取的是 idle 第 0 帧，即帧条左半张）。card_for() 里，只要这里登记了
+## 裁切框就不再读 CARDS 的 `portrait` 字段（art/incoming/portraits/boss_<id>.png 那版专画头像暂时弃用，文件不删，
+## 留给以后候选 B 用）。没有登记裁切框的 Boss（目前没有）仍走旧路径。只改这张名片怎么取图，不碰战斗绘制、不进模拟字段（同 seed 不变）
+const PORTRAIT_CROP := {
+	"path": Rect2(24, 4, 32, 32),        # 塑路者：苍白面具 + 蓝色眼窝，偏右
+	"iberia": Rect2(4, 0, 32, 32),       # 圣徒伊比利亚：礼帽 + 胡须，顶部居中
+	"carmen": Rect2(4, 0, 32, 32),       # 圣徒卡门：同款礼帽半身
+	"bishop": Rect2(5, 0, 32, 32),       # 接潮主教：兜帽下的双眼幽光
+	"archon": Rect2(12, 2, 30, 30),      # 接潮蔑死体：白色裂纹面具
+	"immortal": Rect2(14, 0, 28, 28),    # 接潮斥亡体：尖喙面甲
+	"paranoia": Rect2(14, 4, 44, 44),    # "偏执泡影"：一对红瞳，标志性特征
+	"ishar": Rect2(16, 8, 48, 48),       # 伊莎玛拉：荆冠 + 赤瞳
+	"izumik": Rect2(8, 0, 54, 54),       # 伊祖米克：虹彩伞冠顶部（无五官，取最有辨识度的部位）
+	"knight_boss": Rect2(24, 0, 40, 40), # 最后的骑士：头盔 + 寒冷蓝色目镜
 }
 
 ## 最终 Boss 击破演出（docs/38 §1.8，10-11）：run/victory_flow.gd 把画面步长压到慢动作（真实 2 秒），这里只画覆盖层：
@@ -125,10 +145,32 @@ func card_for(bosses: Array) -> Dictionary:
 		en += " & " + str(cd2.get("en", b2.type.to_upper()))
 	var col: Color = cd.get("col", g.vfx.boss_color(main.type))
 	return {"cn": cn, "en": en, "sub": str(cd.get("sub", "")), "col": col, "line": str(cd.get("line", "")),
-		"sfx": str(cd.get("sfx", "boss_" + main.type)), "portrait": _portrait_name(str(cd.get("portrait", "")), str(main.tex)), "type": main.type}
+		"sfx": str(cd.get("sfx", "boss_" + main.type)), "portrait": _portrait_source(main, str(cd.get("portrait", ""))), "type": main.type}
 
 
-## 头像贴图名：CARDS 指定的头像按需加载进 g.tex（不在开局预载表里）；没指定或缺图就用待机帧条
+## 头像贴图名：PORTRAIT_CROP 登记过的 Boss 直接用战斗帧条（e.tex，候选 A）裁一块；否则走旧路径——CARDS 指定的专画头像
+## 按需加载进 g.tex（不在开局预载表里），没指定或缺图就用待机帧条。登场名片在 Boss 刚刷出的那一帧就画，这时世界层可能还
+## 没画过它（_lazy_tex 懒加载没触发过），两条路径都要保证贴图已经进了 g.tex 缓存，不强制加载会拿到 null
+func _portrait_source(main: Dictionary, cd_portrait: String) -> String:
+	if PORTRAIT_CROP.has(main.type):
+		return _portrait_tex_1x_key(str(main.tex))
+	return _portrait_name(cd_portrait, str(main.tex))
+
+
+## 候选 A 的裁切框（PORTRAIT_CROP）是照着 art/incoming/<name>.png 这张 1x 原图量的；<name>@2x.png 不保证是干净的
+## 整数倍（10-21 发现 e_knight@2x 实际 586×293，不是 192×80 的 2 倍），A.tex() 按文件名优先取 @2x、再按固定密度 2
+## 换算，会在错的区域取样。这里绕开 @2x，强制直接读 1x 原图，裁切框坐标就不用再乘密度，缓存键另起一个避免和
+## 世界层已经按 @2x 缓存的 g.tex[name] 冲突
+func _portrait_tex_1x_key(name: String) -> String:
+	var key: String = name + "@1x_portrait"
+	if g.tex.has(key):
+		return key
+	var p: String = A.incoming_dir().path_join(name + ".png")
+	var img: Image = Image.load_from_file(p) if FileAccess.file_exists(p) else null
+	g.tex[key] = ImageTexture.create_from_image(img) if img != null and not img.is_empty() else null
+	return key
+
+
 func _portrait_name(name: String, fallback: String) -> String:
 	if name == "":
 		return fallback
@@ -310,15 +352,31 @@ func _draw_top() -> void:
 	# 退回待机帧条时取第 0 帧放大到 80 高。左侧细边与强调色底
 	if ptx != null:
 		var is_portrait: bool = card.portrait.begins_with("portraits/")
-		var fw: int = ptx.get_width() if is_portrait else ptx.get_width() / 2
-		var fh: int = ptx.get_height()
+		var crop: Rect2 = PORTRAIT_CROP.get(card.type, Rect2())
+		var fw: int
+		var fh: int
+		var src: Rect2
+		if is_portrait:
+			fw = ptx.get_width()
+			fh = ptx.get_height()
+			src = Rect2(0, 0, fw, fh)
+		elif crop.size != Vector2.ZERO:
+			# 候选 A（docs/115）：裁头部 / 标志特征小方块；ptx 这里固定是 _portrait_tex_1x_key 强制读的 1x 原图，
+			# 不走 @2x，PORTRAIT_CROP 的坐标就是源图像素坐标，不用再乘密度
+			fw = int(crop.size.x)
+			fh = int(crop.size.y)
+			src = Rect2(crop.position, crop.size)
+		else:
+			fw = ptx.get_width() / 2
+			fh = ptx.get_height()
+			src = Rect2(0, 0, fw, fh)
 		var sc: float = 1.0 / A.hires_of(ptx) if is_portrait else minf(84.0 / float(fh), 84.0 / float(fw))
 		sc = floorf(sc) if sc >= 1.0 else sc
 		var sz := Vector2(fw, fh) * sc
 		var pc := Vector2(x0 + 42.0, y0 - 2.0)
 		ci.draw_rect(Rect2(pc - Vector2(44, 44), Vector2(88, 88)), Color(col.r * 0.25, col.g * 0.25, col.b * 0.25, 0.8 * a))
 		ci.draw_rect(Rect2(pc - Vector2(44, 44), Vector2(88, 88)), Color(col.r, col.g, col.b, 0.9 * a), false, 1.0)
-		ci.draw_texture_rect_region(ptx, Rect2((pc - sz * 0.5).round(), sz), Rect2(0, 0, fw, fh), Color(1, 1, 1, a))
+		ci.draw_texture_rect_region(ptx, Rect2((pc - sz * 0.5).round(), sz), src, Color(1, 1, 1, a))
 		x0 += pw
 	# 左侧强调色竖条 + 小标签「BOSS · 标题」
 	ci.draw_rect(Rect2(x0 - 14.0, y0 - 40.0, 4.0, 78.0), Color(col.r, col.g, col.b, a))
