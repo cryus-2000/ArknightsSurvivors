@@ -194,8 +194,10 @@ async function main() {
         let depth = 0; for (let p = b.parent; p; p = p.parent) if (re.test(p.data.name)) depth++;
         const down = Math.sin(ang(b) / D) < 0 ? -1 : 1;           // 朝下的骨向后拖需顺时针
         const drag = depth === 0 ? (rule.drag ?? P.hairDrag) : 0;
+        // gravity：链根抵消身体前倾的比例（0–1），让衣摆仍大致朝下垂，不随前倾翘成水平
+        const hang = depth === 0 ? f * P.lean * (rule.gravity ?? 0) : 0;
         const wave = (rule.amp ?? P.hairAmp) * Math.sin((rule.freq ?? 2) * phi - (rule.lag ?? 0.9) - 0.7 * depth);
-        rotate(sk, b, down * f * drag + wave);
+        rotate(sk, b, down * f * drag + wave + hang);
       }
     }
   }
@@ -277,6 +279,13 @@ async function main() {
   fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify({ id: cfg.id, scale: SCALE, anchor: ANCHOR, params: P, gait: GAIT, bob: BOB, frames: report }, null, 1));
   if (arg('--editor-ops')) writeEditorOps(frames, arg('--editor-ops'));
   writePack(frames);
+  // --hires：原生网格 4 倍直出（不像素化），用来检查部件接缝和遮挡
+  if (process.argv.includes('--hires')) for (let i = 0; i < 8; i++) {
+    const cv = createCanvas(SIZE * 4, SIZE * 4), c = cv.getContext('2d');
+    c.translate(ANCHOR[0] * 4, ANCHOR[1] * 4); c.scale(SCALE * 4, -SCALE * 4);
+    const r = new sp.canvas.SkeletonRenderer(c); r.triangleRendering = true; r.draw(frames[i]);
+    fs.writeFileSync(path.join(OUT, `hires_f${String(i).padStart(2, '0')}.png`), cv.toBuffer('image/png'));
+  }
   console.log('ok', OUT, report.map(r => r.contacts.map(c => c.side + c.phase + ':' + c.gap).join(',')).join(' | '));
 
   // 编辑台通用数据包：八帧世界骨骼（地面平移到 y=0，对齐编辑台地线）+ 层序 + 链 / 武器 / 标签 + 调色板
