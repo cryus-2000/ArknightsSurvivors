@@ -260,7 +260,9 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | 浊心斯卡蒂 | idle（原作 Idle 8.77 秒按 36 帧加密，用户要求补帧）、S1/S2/S3 起手（Skill_N_Begin 重排，关键姿势在出手帧 2）、death | run（悬浮飘行，离地 6 px）、attack（用户定不做出手姿势，只原地漂浮） | `sprites.skills` 三条单 anim；海嗣四槽不动（已走 `visual`） |
 | 归溟幽灵鲨 | idle、S1 skill / S3 `skill_s3`（关键姿势在出手帧）、`idle_s3`（Skill_3_Idle）、fall / death（Die）；替身 `doll_appear`（Start_B）/ `doll_vanish`（Die_B） | run、attack（12 帧 360° 环斩：前摇 3 帧到伤害时刻，0.28 秒转完一圈与锯环同步）、`attack_s3`（重锯环斩，帧号同 attack）、`doll_spin`（张袍姿势 + 镜像旋身，原作无此动作） | 纯显示代码：`seg_specter.h3_anim_state` 改在 native_motion 之后调用，S3 期间 idle / attack 换 `idle_s3` / `attack_s3`；双重回转反向圈出手后按 attack 出手段镜像重播（`sp.spin2_vis`，玩法不读）；闪现现身 / 消散段叠画替身本体 |
 
-S3 数值与机制保持本作设计（用户 10-20 定，不与原作同步）；S3 收势不接（技能序列会改技能占用、同 seed 不再相同）。同 seed：两人 seed 1 180 秒、seed 2 240 秒 `--sptest` 对 98cc869c 逐行相同。回归 `skalter_specter_anim`。图鉴 / 选人立绘：`UI.art_fit` 加完整并集高度参数，角 / 武器不计入降倍但整幅仍须在舞台内（浊心待机举杖）。
+S3 数值与机制保持本作设计（用户 10-20 定，不与原作同步）；S3 收势不接（技能序列会改技能占用、同 seed 不再相同）。同 seed：两人 seed 1 180 秒、seed 2 240 秒 `--sptest` 对 98cc869c 逐行相同。回归 `skalter_specter_anim`。
+
+10-21 修（分支 claude/fix-specter-gallery）：替身待机 `native_doll_idle` 改 6 fps 60 帧采样（原 4 fps 把 Idle_B 中段约 0.62 秒的摇摆采成正反交替，读成抽搐）；`doll_spin` 改为整个连斩段播一遍（原每圈一遍、0.15 秒内两次镜像）。名册卡 / 图鉴格子 / 封面干员的小人统一走 `UI.card_place`：按 `CARD_REF`（全员待机并集最大宽高）取同一档倍数（含 0.75），脚底对齐卡中线与名字条上方同一底线；图鉴 / 选人舞台立绘按同一参考取倍数。图鉴 / 选人立绘：`UI.art_fit` 加完整并集高度参数，角 / 武器不计入降倍但整幅仍须在舞台内（浊心待机举杖）。
 
 ## 10. 「新人接入只填 json」检查表（10-20 已全部实现：`operator_contract.gd`，test_core 坏样例逐条覆盖）
 

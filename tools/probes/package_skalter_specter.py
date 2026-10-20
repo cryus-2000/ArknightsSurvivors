@@ -218,7 +218,9 @@ def build():
     res[(op, 'doll_appear')] = (ap, {'frames': 8, 'fps': 32, 'frame_durations': [0.25 / 8] * 8})
     sp_, _ = doll_frames('Start_B', [4, 5, 6, 5])
     flipx = lambda im: im.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
-    res[(op, 'doll_spin')] = ([sp_[0], sp_[1], flipx(sp_[2]), flipx(sp_[1]), sp_[0], sp_[1], flipx(sp_[2]), flipx(sp_[3])], {'frames': 8, 'fps': 16, 'fire': 2})
+    # 整个连斩段（spin 秒）只播一遍（10-21 原每圈一遍、0.15 秒内两次镜像读成抽搐）：三斩 hit_at + k × gap 落在帧 1 / 4 / 6，
+    # 张袍姿势正 → 反 → 正与锯环转向交替一致，全程只转两次身
+    res[(op, 'doll_spin')] = ([sp_[0], sp_[1], sp_[2], flipx(sp_[1]), flipx(sp_[0]), flipx(sp_[2]), sp_[0], sp_[3]], {'frames': 8, 'fps': 8 / 0.45, 'fire': 1})
     va, _ = doll_frames('Die_B', [0, 1, 3, 5, 7, 8, 10, 11])
     res[(op, 'doll_vanish')] = (va, {'frames': 8, 'fps': 8 / 0.3, 'frame_durations': [0.3 / 8] * 8})
 
@@ -243,7 +245,7 @@ DOC = {
     'specter_unchained.idle_s3': 'S3 期间待机画面（h3_anim_state 换条）：原作 Skill_3_Idle',
     'specter_unchained.doll_appear': '替身闪现的现身段（_e3_flash_draw，按 appear 秒数整条播）：原作 Start_B',
     'specter_unchained.doll_vanish': '替身闪现的消散段（_e3_flash_draw，按 burst 秒数整条播）：原作 Die_B',
-    'specter_unchained.doll_spin': '替身连斩旋身（原作无此动作）：Start_B 张袍姿势 + 镜像交替；每圈整条播一遍，张袍帧 4 对齐 hit_at',
+    'specter_unchained.doll_spin': '替身连斩旋身（原作无此动作）：Start_B 张袍姿势 + 镜像；整个连斩段播一遍，三斩落在帧 1 / 4 / 6（正 / 反 / 正，与锯环转向一致）',
 }
 
 

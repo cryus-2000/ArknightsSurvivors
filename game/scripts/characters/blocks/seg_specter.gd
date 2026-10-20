@@ -591,7 +591,7 @@ static func _e3_flash_draw(o) -> void:
 		return
 	if t < ap + sw:
 		var spins: int = maxi(1, int(b.get("spins", 1)))
-		var ksp: float = fmod((t - ap) / sw * spins, 1.0)   # 旋身帧条每圈播一遍
+		var ksp: float = clampf((t - ap) / sw, 0.0, 0.999) if o.anim_tex(str(b.get("anim", "doll_spin"))) != null else fmod((t - ap) / sw * spins, 1.0)   # 新旋身条整个连斩段播一遍（10-21：每圈一遍读成抽搐）；无图的程序替身仍每圈一遍
 		var tx: Texture2D = o.anim_tex(str(b.get("anim", "doll_spin")))
 		if tx != null:
 			var n: int = o.anim_hframes(tx, str(b.get("anim", "doll_spin")))
