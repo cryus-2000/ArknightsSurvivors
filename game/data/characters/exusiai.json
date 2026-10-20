@@ -174,7 +174,7 @@
   {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「过载模式」；普攻质变「天使的祝福」：编队中另外两名干员头顶浮现光环，攻击速度 +{$e2_aspd*100}%；弹匣上限 {$mag_cap} → {$e2_mag_cap}",
    "attack": {"name": "天使的祝福", "desc": "编队中另外两名干员头顶浮现金色光环：攻击速度 +{$e2_aspd*100}%，每次攻击带一道金色闪光；她开火时光环随之一亮。弹匣上限 {$mag_cap} → {$e2_mag_cap}"}}
  ],
- "gallery": {"demo_mate": {"op": "texas", "elite": 2}, "tags": ["远程", "连射", "子弹数", "弹匣"], "desc": "一秒三发的速射手：每次射击的子弹数随成长增加，击杀攒满弹匣后倾泻一轮；照亮范围内击杀弹匣 +2（范围外 +1）"},
+ "gallery": {"demo_mate": {"op": "texas", "elite": 2}, "tags": ["远程", "连射", "子弹数", "弹匣"], "desc": "狙击干员，持双枪连射，每秒可达三发。每次射击的子弹数随成长增加；弹匣随击杀增长（每次 +1，照亮范围内击杀 +{$mag_lit_bonus}），攒满后倾泻一轮扇形射击"},
  "blocks": {
   "attack": {"shape": "projectile", "every": "$cd", "range": "$range", "speed": "$bullet_speed", "shots": "$shots", "spread_deg": "$spread_deg", "elite_prio": "$elite_prio", "focus_boss": true, "pierce": "$pierce", "kb": "$kb",
              "mult": 1.0, "src": "速射", "tex": "proj_exusiai_bullet", "muzzle": [30, -35]},
