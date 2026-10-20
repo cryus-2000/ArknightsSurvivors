@@ -1,0 +1,9131 @@
+{
+ "args": {
+  "preset": null,
+  "op": null,
+  "squad": "ulpianus,exusiai,skalter",
+  "seeds": 3,
+  "seed0": 1,
+  "diff": 0,
+  "jobs": 4,
+  "timeout": 900,
+  "tag": "curve-1021-s5",
+  "extra": "--tier=0 ",
+  "bot": "expert",
+  "bots": null,
+  "lanes": null,
+  "game": "game",
+  "keep": "",
+  "nocache": true,
+  "placebos": "0",
+  "dt": null,
+  "out": "build/cloud/curve-1021/s5"
+ },
+ "records": [
+  {
+   "squad": [
+    "ulpianus",
+    "exusiai",
+    "skalter"
+   ],
+   "seed": 1,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 0,
+   "wall": 66.8,
+   "data": {
+    "allies": 2,
+    "armor_cf": {
+     "m0": {
+      "a2": 125.436466931273,
+      "a4": 111.436466931273,
+      "a8": 83.4364669312734,
+      "all": 144.034403583969,
+      "armor": 0.0,
+      "n": 8,
+      "phys": 139.436466931273,
+      "phys_n": 7,
+      "phys_pre": 139.436466931273
+     },
+     "m4": {
+      "a2": 239.70419623363,
+      "a4": 217.70419623363,
+      "a8": 173.70419623363,
+      "all": 415.894931183164,
+      "armor": 0.0,
+      "n": 22,
+      "phys": 261.70419623363,
+      "phys_n": 11,
+      "phys_pre": 261.70419623363
+     },
+     "m8": {
+      "a2": 353.532941365634,
+      "a4": 339.532941365634,
+      "a8": 311.532941365634,
+      "all": 545.511358831663,
+      "armor": 0.0,
+      "n": 15,
+      "phys": 367.532941365634,
+      "phys_n": 7,
+      "phys_pre": 367.532941365634
+     }
+    },
+    "boss_hp": -0.0016089985553047,
+    "bosses": [
+     "carmen:dead",
+     "path:dead"
+    ],
+    "bot": {
+     "bosses": [
+      {
+       "en_alive": 31,
+       "en_alive_pk": 38,
+       "en_near": 7,
+       "en_near_pk": 13,
+       "gates": 1,
+       "on_boss": 0.66,
+       "shield": 0.0,
+       "t0": 210,
+       "t1": 228,
+       "tv": 210,
+       "type": "carmen"
+      },
+      {
+       "en_alive": 52,
+       "en_alive_pk": 63,
+       "en_near": 15,
+       "en_near_pk": 22,
+       "gates": 1,
+       "on_boss": 0.23,
+       "shield": 3.1,
+       "t0": 420,
+       "t1": 433,
+       "tv": 420,
+       "type": "path"
+      }
+     ],
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.0,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lv": 1,
+       "mhp": 182,
+       "outc": 0,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 9,
+       "hp": 100,
+       "hpm": 1.27,
+       "hsrc": {},
+       "kills": 23,
+       "lamp": 100,
+       "lv": 3,
+       "mhp": 182,
+       "outc": 403,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 30,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 13,
+       "hp": 100,
+       "hpm": 1.55,
+       "hsrc": {},
+       "kills": 61,
+       "lamp": 100,
+       "lv": 4,
+       "mhp": 182,
+       "outc": 1167,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 60,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 49,
+       "hp": 100,
+       "hpm": 1.82,
+       "hsrc": {},
+       "kills": 117,
+       "lamp": 100,
+       "lv": 6,
+       "mhp": 182,
+       "outc": 3200,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 90,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_slider": 27
+       },
+       "enemies": 18,
+       "hp": 100,
+       "hpm": 2.09,
+       "hsrc": {
+        "浊心斯卡蒂": 6,
+        "自身回复": 20
+       },
+       "kills": 213,
+       "lamp": 100,
+       "lv": 7,
+       "mhp": 182,
+       "outc": 9460,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 120,
+       "taken": 27,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 22,
+       "hp": 100,
+       "hpm": 2.36,
+       "hsrc": {},
+       "kills": 278,
+       "lamp": 100,
+       "lv": 9,
+       "mhp": 182,
+       "outc": 12040,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 150,
+       "taken": 0,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 25,
+       "hp": 100,
+       "hpm": 2.64,
+       "hsrc": {},
+       "kills": 367,
+       "lamp": 100,
+       "lv": 10,
+       "mhp": 182,
+       "outc": 17209,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 180,
+       "taken": 0,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "bullet": 4
+       },
+       "enemies": 22,
+       "hp": 100,
+       "hpm": 2.91,
+       "hsrc": {
+        "自身回复": 4
+       },
+       "kills": 453,
+       "lamp": 97,
+       "lv": 12,
+       "mhp": 182,
+       "outc": 22497,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 210,
+       "taken": 4,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "boss_carmen": 64,
+        "contact_carmen": 48
+       },
+       "enemies": 28,
+       "hp": 100,
+       "hpm": 3.18,
+       "hsrc": {
+        "拾取": 34,
+        "浊心斯卡蒂": 17,
+        "自身回复": 59
+       },
+       "kills": 541,
+       "lamp": 100,
+       "lv": 14,
+       "mhp": 182,
+       "outc": 35074,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 240,
+       "taken": 112,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 7
+       },
+       "enemies": 33,
+       "hp": 100,
+       "hpm": 3.45,
+       "hsrc": {
+        "自身回复": 7
+       },
+       "kills": 651,
+       "lamp": 100,
+       "lv": 15,
+       "mhp": 182,
+       "outc": 43164,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 270,
+       "taken": 7,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "nest": 2
+       },
+       "enemies": 41,
+       "hp": 100,
+       "hpm": 3.73,
+       "hsrc": {
+        "自身回复": 2
+       },
+       "kills": 759,
+       "lamp": 97,
+       "lv": 16,
+       "mhp": 182,
+       "outc": 61826,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 300,
+       "taken": 2,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 11,
+        "contact_slider": 16,
+        "contact_tracer": 25,
+        "corrode": 5,
+        "mire": 5
+       },
+       "enemies": 43,
+       "hp": 100,
+       "hpm": 4.0,
+       "hsrc": {
+        "拾取": 11,
+        "浊心斯卡蒂": 22,
+        "自身回复": 29
+       },
+       "kills": 878,
+       "lamp": 94,
+       "lv": 17,
+       "mhp": 182,
+       "outc": 104195,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 330,
+       "taken": 63,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 12,
+        "contact_slider": 15,
+        "corrode": 1,
+        "mire": 5
+       },
+       "enemies": 40,
+       "hp": 100,
+       "hpm": 4.27,
+       "hsrc": {
+        "浊心斯卡蒂": 13,
+        "自身回复": 21
+       },
+       "kills": 1029,
+       "lamp": 66,
+       "lv": 18,
+       "mhp": 182,
+       "outc": 155733,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 360,
+       "taken": 35,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 25,
+        "mire": 16
+       },
+       "enemies": 46,
+       "hp": 100,
+       "hpm": 4.55,
+       "hsrc": {
+        "浊心斯卡蒂": 11,
+        "自身回复": 31
+       },
+       "kills": 1169,
+       "lamp": 58,
+       "lv": 19,
+       "mhp": 169,
+       "outc": 200192,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 390,
+       "taken": 42,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "bullet": 31,
+        "corrode": 14,
+        "mire": 5
+       },
+       "enemies": 44,
+       "hp": 100,
+       "hpm": 4.82,
+       "hsrc": {
+        "拾取": 10,
+        "浊心斯卡蒂": 13,
+        "自身回复": 26
+       },
+       "kills": 1322,
+       "lamp": 64,
+       "lv": 21,
+       "mhp": 169,
+       "outc": 256418,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 420,
+       "taken": 51,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 5,
+        "contact_path": 18,
+        "contact_slider": 12,
+        "contact_tracer": 108,
+        "mire": 22,
+        "shock_founder": 65,
+        "wound": 9
+       },
+       "enemies": 66,
+       "hp": 50,
+       "hpm": 5.09,
+       "hsrc": {
+        "拾取": 50,
+        "浊心斯卡蒂": 43,
+        "自身回复": 63
+       },
+       "kills": 1498,
+       "lamp": 57,
+       "lv": 21,
+       "mhp": 169,
+       "outc": 329524,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 450,
+       "taken": 241,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 17,
+        "contact_slider": 27,
+        "corrode": 1,
+        "mire": 5
+       },
+       "enemies": 45,
+       "hp": 100,
+       "hpm": 5.36,
+       "hsrc": {
+        "拾取": 35,
+        "浊心斯卡蒂": 38,
+        "自身回复": 62
+       },
+       "kills": 1689,
+       "lamp": 46,
+       "lv": 23,
+       "mhp": 182,
+       "outc": 403554,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 480,
+       "taken": 52,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 45,
+        "contact_tracer": 32,
+        "corrode": 6,
+        "mire": 3,
+        "shock_founder": 101,
+        "wound": 7
+       },
+       "enemies": 52,
+       "hp": 94,
+       "hpm": 5.61,
+       "hsrc": {
+        "拾取": 43,
+        "浊心斯卡蒂": 59,
+        "自身回复": 82
+       },
+       "kills": 1860,
+       "lamp": 70,
+       "lv": 23,
+       "mhp": 182,
+       "outc": 469986,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 510,
+       "taken": 196,
+       "zone": 3
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {
+       "bullet": 26,
+       "contact_founder": 158,
+       "contact_tracer": 65,
+       "corrode": 8,
+       "mire": 5,
+       "nest": 4,
+       "wound": 8
+      },
+      "hsrc": {
+       "浊心斯卡蒂": 56,
+       "自身回复": 78
+      },
+      "mhp": 182,
+      "t": 538,
+      "t0": 510,
+      "taken": 277
+     },
+     "dark_dmg": 0,
+     "dark_s": 0,
+     "death_src": "contact_founder",
+     "elite_t": {
+      "exusiai:1": 142,
+      "exusiai:2": 234,
+      "skalter:1": 294,
+      "skalter:2": 303,
+      "ulpianus:1": 50,
+      "ulpianus:2": 261
+     },
+     "end": {
+      "boss": false,
+      "hp": 0,
+      "last15": {
+       "corrode_out": 1.8,
+       "corrode_peak": 1.6,
+       "dark_s": 0.0,
+       "ebullets_peak": 17,
+       "enemies_peak": 58,
+       "hits": [
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 154,
+         "src": "wound",
+         "t": 523.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 154,
+         "src": "wound",
+         "t": 523.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 155,
+         "src": "wound",
+         "t": 523.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 155,
+         "src": "wound",
+         "t": 523.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 161,
+         "src": "wound",
+         "t": 523.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 161,
+         "src": "wound",
+         "t": 523.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 161,
+         "src": "wound",
+         "t": 523.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 161,
+         "src": "wound",
+         "t": 523.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 161,
+         "src": "wound",
+         "t": 523.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 162,
+         "src": "wound",
+         "t": 523.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 162,
+         "src": "wound",
+         "t": 523.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 162,
+         "src": "wound",
+         "t": 523.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 162,
+         "src": "wound",
+         "t": 524.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 162,
+         "src": "wound",
+         "t": 524.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 163,
+         "src": "wound",
+         "t": 524.1,
+         "zone_out": false
+        },
+        {
+         "amt": 5.7,
+         "boss": false,
+         "hp_after": 157,
+         "src": "mire",
+         "t": 524.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 157,
+         "src": "wound",
+         "t": 524.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 157,
+         "src": "wound",
+         "t": 524.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 158,
+         "src": "wound",
+         "t": 524.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 158,
+         "src": "wound",
+         "t": 524.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 160,
+         "src": "wound",
+         "t": 524.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 164,
+         "src": "wound",
+         "t": 524.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 164,
+         "src": "wound",
+         "t": 524.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 164,
+         "src": "wound",
+         "t": 524.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 164,
+         "src": "wound",
+         "t": 524.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 165,
+         "src": "wound",
+         "t": 524.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 165,
+         "src": "wound",
+         "t": 524.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 165,
+         "src": "wound",
+         "t": 524.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 165,
+         "src": "wound",
+         "t": 525.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 166,
+         "src": "wound",
+         "t": 525.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 166,
+         "src": "wound",
+         "t": 525.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 166,
+         "src": "wound",
+         "t": 525.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 167,
+         "src": "wound",
+         "t": 525.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 167,
+         "src": "wound",
+         "t": 525.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 167,
+         "src": "wound",
+         "t": 525.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 169,
+         "src": "wound",
+         "t": 525.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 173,
+         "src": "wound",
+         "t": 525.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 173,
+         "src": "wound",
+         "t": 525.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 173,
+         "src": "wound",
+         "t": 525.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 174,
+         "src": "wound",
+         "t": 525.7,
+         "zone_out": false
+        },
+        {
+         "amt": 11.2,
+         "boss": false,
+         "hp_after": 170,
+         "src": "bullet",
+         "t": 529.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 170,
+         "src": "corrode",
+         "t": 529.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 170,
+         "src": "corrode",
+         "t": 529.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 170,
+         "src": "corrode",
+         "t": 529.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 171,
+         "src": "corrode",
+         "t": 529.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 171,
+         "src": "corrode",
+         "t": 529.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 171,
+         "src": "corrode",
+         "t": 530.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 171,
+         "src": "corrode",
+         "t": 530.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 171,
+         "src": "corrode",
+         "t": 530.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 171,
+         "src": "corrode",
+         "t": 530.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 172,
+         "src": "corrode",
+         "t": 530.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 172,
+         "src": "corrode",
+         "t": 530.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 172,
+         "src": "corrode",
+         "t": 530.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 172,
+         "src": "corrode",
+         "t": 530.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 172,
+         "src": "corrode",
+         "t": 530.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 172,
+         "src": "corrode",
+         "t": 530.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 173,
+         "src": "corrode",
+         "t": 530.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 173,
+         "src": "corrode",
+         "t": 530.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 173,
+         "src": "corrode",
+         "t": 530.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 173,
+         "src": "corrode",
+         "t": 530.8,
+         "zone_out": false
+        },
+        {
+         "amt": 62.5,
+         "boss": false,
+         "hp_after": 119,
+         "src": "contact_founder",
+         "t": 536.8,
+         "zone_out": false
+        },
+        {
+         "amt": 52.5,
+         "boss": false,
+         "hp_after": 69,
+         "src": "contact_founder",
+         "t": 537.3,
+         "zone_out": false
+        },
+        {
+         "amt": 43.3,
+         "boss": false,
+         "hp_after": 27,
+         "src": "contact_founder",
+         "t": 537.8,
+         "zone_out": false
+        }
+       ],
+       "mire_s": 0.0,
+       "nerve_bursts": 0,
+       "t": 538.2
+      },
+      "src": "contact_founder",
+      "t": 538,
+      "zone_out": false,
+      "zone_phase": 3,
+      "zone_state": 3
+     },
+     "floors": [],
+     "hits": 698,
+     "hits_pm": 77.8,
+     "low_hp_s": 0,
+     "moved_pm": 9306,
+     "peak": [
+      82,
+      29,
+      0,
+      304,
+      29
+     ],
+     "peak_min": [
+      [
+       16,
+       0,
+       0,
+       59,
+       5
+      ],
+      [
+       49,
+       0,
+       0,
+       83,
+       24
+      ],
+      [
+       52,
+       1,
+       0,
+       181,
+       23
+      ],
+      [
+       40,
+       6,
+       0,
+       239,
+       11
+      ],
+      [
+       50,
+       9,
+       0,
+       197,
+       24
+      ],
+      [
+       58,
+       15,
+       0,
+       158,
+       29
+      ],
+      [
+       54,
+       14,
+       0,
+       264,
+       28
+      ],
+      [
+       73,
+       27,
+       0,
+       301,
+       29
+      ],
+      [
+       82,
+       29,
+       0,
+       304,
+       29
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 5,
+     "recruit_t": [],
+     "still_pct": 5,
+     "taken": 1115,
+     "taken_pm": 124
+    },
+    "ctrl": {
+     "aslow_slow": 0,
+     "aslow_t": 0.0,
+     "boss_t": 31.75,
+     "floor": 0.7,
+     "move_min": 0.7,
+     "slow_min": 0.55,
+     "stun_slow": 0,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 1,
+      "freeze_t": 0.53,
+      "slow_t": 1.45
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "slow_any_t": 1.45
+    },
+    "dashes": 0,
+    "dmg": {
+     "atk_tracer": 25.7092865449607,
+     "boss_carmen": 64.0,
+     "bullet": 162.399384169213,
+     "contact_carmen": 48.0,
+     "contact_founder": 201.67906967915,
+     "contact_path": 18.6,
+     "contact_slider": 100.229522514331,
+     "contact_tracer": 231.713333099344,
+     "corrode": 37.0642767354169,
+     "mire": 71.028,
+     "nest": 6.70846429414971,
+     "shock_founder": 166.693262916578,
+     "wound": 25.247508
+    },
+    "drone": 0,
+    "elite_stage": 2,
+    "elites": 17,
+    "ending": "deep",
+    "final_out": {
+     "不容挣脱": 1372.25806741652,
+     "余音": 841.873557923226,
+     "冲锋模式": 32106.3151981888,
+     "回拉": 3344.25797276185,
+     "声浪": 62317.6278035628,
+     "定点爆破": 12025.0937767331,
+     "弹匣倾泻": 59529.5462624124,
+     "必须开辟的通路": 16274.5995559616,
+     "抛锚": 25388.1260714137,
+     "掷锚": 39812.1436387621,
+     "海嗣": 7214.76814419649,
+     "深海的回响": 7481.9084101387,
+     "潮汐和声": 13139.774007353,
+     "跳弹": 25592.554916794,
+     "过载模式": 89913.6299619109,
+     "通路洞开": 22668.3171165617,
+     "速射": 45040.5246028768,
+     "锁链回旋": 8189.14100958295,
+     "锚击": 44690.706063152,
+     "食腐": 32611.461721934,
+     "骑士": 8249.6242531224
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 0,
+     "pct": 0.0,
+     "pool": 0,
+     "t": -1
+    },
+    "growth": {
+     "sp": 2,
+     "squad_aspd": 2,
+     "squad_atk": 1,
+     "squad_crit": 3
+    },
+    "heal": {
+     "事件": 0.0,
+     "商店": 0.0,
+     "拾取": 186.998085533075,
+     "浊心斯卡蒂": 284.34203072205,
+     "自身回复": 491.865722018895
+    },
+    "heal_offer": 5,
+    "heal_offer_low": 0,
+    "heal_pick": 0,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 5,
+       "slider": 5
+      },
+      "hp": 317,
+      "hp0": 182,
+      "minhp": 182,
+      "mix": "滑行群",
+      "n": 10,
+      "t": 75,
+      "t80": 7
+     },
+     {
+      "comp": {
+       "bone": 8,
+       "slider": 2,
+       "stone": 3
+      },
+      "hp": 785,
+      "hp0": 182,
+      "minhp": 182,
+      "mix": "凿石阵",
+      "n": 13,
+      "t": 165,
+      "t80": 8
+     },
+     {
+      "comp": {
+       "bone": 8,
+       "floater": 2,
+       "runner": 3,
+       "slider": 4
+      },
+      "hp": 1180,
+      "hp0": 182,
+      "minhp": 182,
+      "mix": "狂奔潮",
+      "n": 17,
+      "t": 255,
+      "t80": 9
+     },
+     {
+      "comp": {
+       "bone": 6,
+       "slider": 13
+      },
+      "hp": 1610,
+      "hp0": 182,
+      "minhp": 166,
+      "mix": "潜袭",
+      "n": 19,
+      "t": 340,
+      "t80": 9
+     },
+     {
+      "comp": {
+       "slider": 21,
+       "spitter": 2
+      },
+      "hp": 3655,
+      "hp0": 79,
+      "minhp": 78,
+      "mix": "深海潮",
+      "n": 23,
+      "t": 445,
+      "t80": 7
+     },
+     {
+      "comp": {
+       "bone": 7,
+       "floater": 3,
+       "founder": 2,
+       "nest": 1,
+       "runner": 3,
+       "slider": 8
+      },
+      "hp": 14258,
+      "hp0": 128,
+      "minhp": 128,
+      "mix": "深溟重甲",
+      "n": 24,
+      "t": 515,
+      "t80": 8
+     }
+    ],
+    "ingots": 101,
+    "items": {
+     "heal_elite": 6,
+     "heal_low": 4,
+     "heal_mob": 12,
+     "heal_pick": 16,
+     "magnet_elite": 13,
+     "magnet_mob": 7,
+     "magnet_pick": 16,
+     "mob_capped": 1198,
+     "mob_rolled": 840
+    },
+    "kills": 2057,
+    "lamp": 7,
+    "low_levelups": 0,
+    "lv": 24,
+    "lv_times": [
+     11,
+     29,
+     49,
+     74,
+     84,
+     103,
+     124,
+     142,
+     171,
+     184,
+     206,
+     228,
+     234,
+     261,
+     293,
+     320,
+     332,
+     377,
+     408,
+     417,
+     453,
+     478,
+     528
+    ],
+    "marks": {
+     "120": 7,
+     "300": 16,
+     "480": 23
+    },
+    "maxhp": 182.0,
+    "ops": [
+     {
+      "elite": 2,
+      "id": "ulpianus",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "exusiai",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "skalter",
+      "prog": 6
+     }
+    ],
+    "out": {
+     "不容挣脱": 1372.25806741652,
+     "余音": 841.873557923226,
+     "冲锋模式": 32106.3151981888,
+     "回拉": 3344.25797276185,
+     "声浪": 62317.6278035628,
+     "定点爆破": 12025.0937767331,
+     "弹匣倾泻": 59529.5462624124,
+     "必须开辟的通路": 16274.5995559616,
+     "抛锚": 25388.1260714137,
+     "掷锚": 39812.1436387621,
+     "海嗣": 7214.76814419649,
+     "深海的回响": 7481.9084101387,
+     "潮汐和声": 13139.774007353,
+     "跳弹": 25592.554916794,
+     "过载模式": 89913.6299619109,
+     "通路洞开": 22668.3171165617,
+     "速射": 45040.5246028768,
+     "锁链回旋": 8189.14100958295,
+     "锚击": 44690.706063152,
+     "食腐": 32611.461721934,
+     "骑士": 8249.6242531224
+    },
+    "out_tag": {
+     "aftershock": 12025.0937767331,
+     "ally": 8249.6242531224,
+     "area": 352185.087139684,
+     "basic": 263313.105103639,
+     "charge": 4530.52756951484,
+     "control": 27384.83315674,
+     "dot": 14963.8168202775,
+     "entity": 7214.76814419649,
+     "follow_up": 53555.8500473468,
+     "pierce": 91635.8614606014,
+     "projectile": 226590.016025389,
+     "ricochet": 25592.554916794,
+     "skill": 217111.080359075,
+     "stab": 3719.09668360756,
+     "stun": 16274.5995559616,
+     "summon": 7214.76814419649
+    },
+    "out_type": {
+     "法术": 123607.413645107,
+     "物理": 434196.838467651
+    },
+    "prof": {},
+    "prog_offer": {
+     "exusiai": 6,
+     "skalter": 10,
+     "ulpianus": 6
+    },
+    "prog_pick": {
+     "exusiai": 6,
+     "skalter": 6,
+     "ulpianus": 6
+    },
+    "recall_backstop": 0,
+    "recall_n": 61,
+    "rej": {
+     "0": true
+    },
+    "relic_offer": [
+     [
+      119,
+      "choice",
+      [
+       "89",
+       "88",
+       "27"
+      ]
+     ],
+     [
+      121,
+      "shop",
+      [
+       "55",
+       "28",
+       "12"
+      ]
+     ],
+     [
+      171,
+      "choice",
+      [
+       "102",
+       "27",
+       "77"
+      ]
+     ],
+     [
+      228,
+      "choice",
+      [
+       "148",
+       "3",
+       "31"
+      ]
+     ],
+     [
+      234,
+      "choice",
+      [
+       "63",
+       "167",
+       "195"
+      ]
+     ],
+     [
+      303,
+      "shop",
+      [
+       "41",
+       "179",
+       "66"
+      ]
+     ],
+     [
+      381,
+      "choice",
+      [
+       "120",
+       "166",
+       "236"
+      ]
+     ],
+     [
+      417,
+      "choice",
+      [
+       "91",
+       "101",
+       "5"
+      ]
+     ],
+     [
+      433,
+      "choice",
+      [
+       "4",
+       "206",
+       "113"
+      ]
+     ],
+     [
+      452,
+      "choice",
+      [
+       "130",
+       "17",
+       "76"
+      ]
+     ]
+    ],
+    "relic_out": 32611.461721934,
+    "relic_take": [
+     [
+      119,
+      "89",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      121,
+      "55",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      121,
+      "28",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      121,
+      "12",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      152,
+      "222",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      171,
+      "102",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      228,
+      "148",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      234,
+      "167",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      243,
+      "240",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      303,
+      "41",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      303,
+      "179",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      370,
+      "221",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      370,
+      "223",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      381,
+      "120",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      417,
+      "101",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      433,
+      "113",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      452,
+      "17",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ]
+    ],
+    "relics": 17,
+    "squad": [
+     "ulpianus",
+     "exusiai",
+     "skalter"
+    ],
+    "sus": {
+     "m0": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "事件": [
+        0.0,
+        36.4
+       ],
+       "拾取": [
+        0.0,
+        218.4
+       ],
+       "浊心斯卡蒂·常驻": [
+        1.092,
+        1.092
+       ],
+       "浊心斯卡蒂·技能": [
+        5.5692,
+        5.5692
+       ]
+      },
+      "lit": 0.0
+     },
+     "m3": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "商店": [
+        0.0,
+        72.8
+       ],
+       "拾取": [
+        46.6728568389846,
+        327.6
+       ],
+       "浊心斯卡蒂·常驻": [
+        7.644,
+        7.644
+       ],
+       "浊心斯卡蒂·技能": [
+        46.9224,
+        48.2664
+       ]
+      },
+      "lit": 0.0
+     },
+     "m6": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "拾取": [
+        140.32522869409,
+        301.08
+       ],
+       "浊心斯卡蒂·常驻": [
+        16.6686,
+        16.6686
+       ],
+       "浊心斯卡蒂·技能": [
+        206.44583072205,
+        212.85017
+       ]
+      },
+      "lit": 0.0
+     }
+    },
+    "swaps": [],
+    "t": 538,
+    "terrain": {
+     "bul": 370,
+     "dash": 0,
+     "ebul": 46
+    },
+    "win": false,
+    "xp_backstop": 0.0,
+    "xp_dropped": 9261.3,
+    "xp_ground": 1287.5,
+    "xp_magnet": 2642.3,
+    "xp_magnet_min": [
+     0.0,
+     15.0,
+     97.5,
+     468.8,
+     281.3,
+     506.3,
+     660.0,
+     613.5
+    ],
+    "xp_recall": 455.5,
+    "xp_recall_min": [
+     2.5,
+     5.0,
+     68.0,
+     40.0,
+     27.5,
+     45.0,
+     132.5,
+     50.0,
+     85.0
+    ],
+    "xp_total": 7973.8,
+    "xp_total_min": [
+     145.0,
+     318.5,
+     477.5,
+     848.8,
+     696.3,
+     1088.8,
+     1690.0,
+     1697.0,
+     1012.0
+    ],
+    "xp_walk": 4876.0,
+    "xp_walk_min": [
+     142.5,
+     298.5,
+     312.0,
+     340.0,
+     387.5,
+     537.5,
+     897.5,
+     1033.5,
+     927.0
+    ]
+   }
+  },
+  {
+   "squad": [
+    "ulpianus",
+    "exusiai",
+    "skalter"
+   ],
+   "seed": 2,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 0,
+   "wall": 84.9,
+   "data": {
+    "allies": 2,
+    "armor_cf": {
+     "m0": {
+      "a2": 15.9860201766692,
+      "a4": 11.9860201766692,
+      "a8": 6.6,
+      "all": 32.7124000748766,
+      "armor": 0.0,
+      "n": 5,
+      "phys": 19.9860201766692,
+      "phys_n": 2,
+      "phys_pre": 19.9860201766692
+     },
+     "m4": {
+      "a2": 673.92275606846,
+      "a4": 615.92275606846,
+      "a8": 505.442763446471,
+      "all": 976.658489768923,
+      "armor": 0.0,
+      "n": 45,
+      "phys": 731.92275606846,
+      "phys_n": 29,
+      "phys_pre": 731.92275606846
+     },
+     "m8": {
+      "a2": 820.252717549767,
+      "a4": 756.252717549767,
+      "a8": 628.252717549767,
+      "all": 1091.02138156758,
+      "armor": 60.0,
+      "n": 57,
+      "phys": 884.252717549767,
+      "phys_n": 32,
+      "phys_pre": 944.252717549767
+     }
+    },
+    "boss_hp": -0.0001083986594289,
+    "bosses": [
+     "carmen:dead",
+     "bishop:dead",
+     "archon:dead",
+     "paranoia:dead"
+    ],
+    "bot": {
+     "bosses": [
+      {
+       "en_alive": 35,
+       "en_alive_pk": 47,
+       "en_near": 5,
+       "en_near_pk": 15,
+       "gates": 1,
+       "on_boss": 0.56,
+       "shield": 0.0,
+       "t0": 210,
+       "t1": 233,
+       "tv": 210,
+       "type": "carmen"
+      },
+      {
+       "en_alive": 54,
+       "en_alive_pk": 59,
+       "en_near": 14,
+       "en_near_pk": 23,
+       "gates": 1,
+       "on_boss": 0.08,
+       "panic_hit": 0.61,
+       "panic_n": 1,
+       "shield": 1.5,
+       "t0": 420,
+       "t1": 444,
+       "tv": 420,
+       "type": "bishop"
+      },
+      {
+       "en_alive": 54,
+       "en_alive_pk": 59,
+       "en_near": 14,
+       "en_near_pk": 25,
+       "gates": 1,
+       "on_boss": 0.17,
+       "shield": 3.1,
+       "t0": 420,
+       "t1": 444,
+       "tv": 420,
+       "type": "archon"
+      },
+      {
+       "en_alive": 15,
+       "en_alive_pk": 63,
+       "en_near": 5,
+       "en_near_pk": 28,
+       "gates": 2,
+       "on_boss": 0.5,
+       "shield": 9.6,
+       "t0": 600,
+       "t1": -1,
+       "tv": 600,
+       "type": "paranoia"
+      }
+     ],
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.0,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lv": 1,
+       "mhp": 182,
+       "outc": 0,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 8,
+       "hp": 100,
+       "hpm": 1.27,
+       "hsrc": {},
+       "kills": 24,
+       "lamp": 100,
+       "lv": 2,
+       "mhp": 182,
+       "outc": 449,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 30,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 13,
+       "hp": 100,
+       "hpm": 1.55,
+       "hsrc": {},
+       "kills": 61,
+       "lamp": 100,
+       "lv": 4,
+       "mhp": 182,
+       "outc": 1138,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 60,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 50,
+       "hp": 100,
+       "hpm": 1.82,
+       "hsrc": {},
+       "kills": 116,
+       "lamp": 100,
+       "lv": 6,
+       "mhp": 182,
+       "outc": 3264,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 90,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 22,
+       "hp": 100,
+       "hpm": 2.09,
+       "hsrc": {},
+       "kills": 207,
+       "lamp": 100,
+       "lv": 8,
+       "mhp": 182,
+       "outc": 9665,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 120,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 23,
+       "hp": 100,
+       "hpm": 2.36,
+       "hsrc": {},
+       "kills": 275,
+       "lamp": 100,
+       "lv": 9,
+       "mhp": 209,
+       "outc": 12302,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 150,
+       "taken": 0,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_stone": 6
+       },
+       "enemies": 28,
+       "hp": 100,
+       "hpm": 2.64,
+       "hsrc": {
+        "浊心斯卡蒂": 2,
+        "自身回复": 4
+       },
+       "kills": 362,
+       "lamp": 100,
+       "lv": 10,
+       "mhp": 209,
+       "outc": 17185,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 180,
+       "taken": 6,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "bullet": 12,
+        "mire": 6
+       },
+       "enemies": 25,
+       "hp": 100,
+       "hpm": 2.91,
+       "hsrc": {
+        "浊心斯卡蒂": 8,
+        "自身回复": 10
+       },
+       "kills": 448,
+       "lamp": 95,
+       "lv": 12,
+       "mhp": 209,
+       "outc": 22123,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 210,
+       "taken": 18,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_carmen": 13
+       },
+       "enemies": 28,
+       "hp": 100,
+       "hpm": 3.18,
+       "hsrc": {
+        "浊心斯卡蒂": 5,
+        "自身回复": 8
+       },
+       "kills": 538,
+       "lamp": 100,
+       "lv": 14,
+       "mhp": 209,
+       "outc": 34844,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 240,
+       "taken": 13,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_stone": 6,
+        "bullet": 6
+       },
+       "enemies": 29,
+       "hp": 99,
+       "hpm": 3.45,
+       "hsrc": {
+        "浊心斯卡蒂": 6,
+        "自身回复": 5
+       },
+       "kills": 653,
+       "lamp": 73,
+       "lv": 15,
+       "mhp": 209,
+       "outc": 43130,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 270,
+       "taken": 12,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 14,
+        "corrode": 8
+       },
+       "enemies": 40,
+       "hp": 100,
+       "hpm": 3.73,
+       "hsrc": {
+        "浊心斯卡蒂": 3,
+        "自身回复": 21
+       },
+       "kills": 755,
+       "lamp": 46,
+       "lv": 15,
+       "mhp": 209,
+       "outc": 62029,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 300,
+       "taken": 23,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_offspring": 9,
+        "atk_tracer": 8,
+        "contact_founder": 115,
+        "contact_tracer": 47,
+        "corrode": 1,
+        "mire": 6,
+        "shock_founder": 36
+       },
+       "enemies": 52,
+       "hp": 97,
+       "hpm": 4.0,
+       "hsrc": {
+        "商店": 28,
+        "拾取": 62,
+        "浊心斯卡蒂": 54,
+        "自身回复": 74
+       },
+       "kills": 868,
+       "lamp": 29,
+       "lv": 16,
+       "mhp": 209,
+       "outc": 100810,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 330,
+       "taken": 224,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 10,
+        "contact_slider": 28,
+        "corrode": 4,
+        "mire": 6
+       },
+       "enemies": 41,
+       "hp": 98,
+       "hpm": 4.27,
+       "hsrc": {
+        "拾取": 15,
+        "浊心斯卡蒂": 13,
+        "自身回复": 21
+       },
+       "kills": 1038,
+       "lamp": 40,
+       "lv": 18,
+       "mhp": 209,
+       "outc": 146769,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 360,
+       "taken": 49,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_stone": 6,
+        "atk_tracer": 19,
+        "bullet": 9,
+        "contact_founder": 94,
+        "contact_slider": 19,
+        "corrode": 5,
+        "shock_founder": 66
+       },
+       "enemies": 47,
+       "hp": 100,
+       "hpm": 4.55,
+       "hsrc": {
+        "拾取": 62,
+        "浊心斯卡蒂": 68,
+        "自身回复": 72,
+        "藏品": 21
+       },
+       "kills": 1167,
+       "lamp": 74,
+       "lv": 19,
+       "mhp": 209,
+       "outc": 191917,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 390,
+       "taken": 221,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "contact_tracer": 33,
+        "wound": 3
+       },
+       "enemies": 52,
+       "hp": 100,
+       "hpm": 4.82,
+       "hsrc": {
+        "浊心斯卡蒂": 8,
+        "自身回复": 27
+       },
+       "kills": 1312,
+       "lamp": 69,
+       "lv": 20,
+       "mhp": 209,
+       "outc": 236705,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 420,
+       "taken": 36,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 24,
+        "bullet": 38,
+        "contact_archon": 25,
+        "contact_founder": 88,
+        "contact_slider": 13,
+        "contact_tracer": 75,
+        "corrode": 26,
+        "wound": 16
+       },
+       "enemies": 51,
+       "hp": 35,
+       "hpm": 5.09,
+       "hsrc": {
+        "浊心斯卡蒂": 50,
+        "自身回复": 104
+       },
+       "kills": 1483,
+       "lamp": 63,
+       "lv": 21,
+       "mhp": 239,
+       "outc": 303413,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 450,
+       "taken": 309,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_stone": 8,
+        "bullet": 16,
+        "contact_founder": 47,
+        "contact_nest": 26,
+        "contact_slider": 32,
+        "corrode": 11,
+        "mire": 39,
+        "shock_founder": 40,
+        "wound": 3
+       },
+       "enemies": 62,
+       "hp": 46,
+       "hpm": 5.36,
+       "hsrc": {
+        "拾取": 64,
+        "浊心斯卡蒂": 74,
+        "自身回复": 113
+       },
+       "kills": 1677,
+       "lamp": 29,
+       "lv": 22,
+       "mhp": 239,
+       "outc": 362683,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 480,
+       "taken": 226,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 38,
+        "contact_founder": 103,
+        "contact_nest": 31,
+        "contact_slider": 39,
+        "corrode": 24,
+        "mire": 15,
+        "nest": 5,
+        "wound": 10
+       },
+       "enemies": 59,
+       "hp": 99,
+       "hpm": 6.18,
+       "hsrc": {
+        "拾取": 148,
+        "浊心斯卡蒂": 149,
+        "自身回复": 98
+       },
+       "kills": 1859,
+       "lamp": 70,
+       "lv": 23,
+       "mhp": 310,
+       "outc": 430307,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 510,
+       "taken": 268,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 16,
+        "contact_founder": 171,
+        "contact_nest": 35,
+        "contact_slider": 30,
+        "corrode": 1,
+        "mire": 7,
+        "nest": 3,
+        "shock_founder": 60,
+        "wound": 7
+       },
+       "enemies": 60,
+       "hp": 98,
+       "hpm": 6.45,
+       "hsrc": {
+        "拾取": 83,
+        "浊心斯卡蒂": 135,
+        "自身回复": 111
+       },
+       "kills": 2070,
+       "lamp": 62,
+       "lv": 24,
+       "mhp": 310,
+       "outc": 522680,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 540,
+       "taken": 335,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 34,
+        "bullet": 12,
+        "contact_founder": 75,
+        "contact_slider": 23,
+        "contact_tracer": 26,
+        "corrode": 7,
+        "mire": 22,
+        "wound": 15
+       },
+       "enemies": 58,
+       "hp": 66,
+       "hpm": 6.73,
+       "hsrc": {
+        "拾取": 24,
+        "浊心斯卡蒂": 48,
+        "自身回复": 44
+       },
+       "kills": 2269,
+       "lamp": 65,
+       "lv": 25,
+       "mhp": 310,
+       "outc": 612291,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 570,
+       "taken": 218,
+       "zone": 1
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_reaper": 9,
+        "atk_tracer": 17,
+        "contact_reaper": 45,
+        "contact_slider": 26,
+        "contact_tracer": 60,
+        "mire": 30,
+        "nest": 2,
+        "wound": 33
+       },
+       "enemies": 66,
+       "hp": 100,
+       "hpm": 7.0,
+       "hsrc": {
+        "拾取": 136,
+        "浊心斯卡蒂": 89,
+        "自身回复": 104
+       },
+       "kills": 2472,
+       "lamp": 44,
+       "lv": 26,
+       "mhp": 310,
+       "outc": 702273,
+       "rg": 4.4,
+       "squad": 3,
+       "t": 600,
+       "taken": 227,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_tracer": 25,
+        "bullet": 64,
+        "corrode": 32,
+        "mire": 15,
+        "wound": 4
+       },
+       "enemies": 10,
+       "hp": 100,
+       "hpm": 7.28,
+       "hsrc": {
+        "拾取": 7,
+        "浊心斯卡蒂": 56,
+        "自身回复": 79
+       },
+       "kills": 2543,
+       "lamp": 73,
+       "lv": 26,
+       "mhp": 310,
+       "outc": 802129,
+       "rg": 4.4,
+       "squad": 3,
+       "t": 630,
+       "taken": 142,
+       "zone": 3
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {
+       "bullet": 6,
+       "contact_paranoia": 68,
+       "contact_tracer": 42,
+       "corrode": 60,
+       "nest": 12,
+       "wound": 4
+      },
+      "hsrc": {
+       "拾取": 1,
+       "浊心斯卡蒂": 111,
+       "自身回复": 80
+      },
+      "mhp": 310,
+      "t": 655,
+      "t0": 630,
+      "taken": 193
+     },
+     "dark_dmg": 0,
+     "dark_s": 0,
+     "death_src": "corrode",
+     "elite_t": {
+      "exusiai:1": 305,
+      "exusiai:2": 380,
+      "skalter:1": 166,
+      "skalter:2": 239,
+      "ulpianus:1": 51,
+      "ulpianus:2": 102
+     },
+     "end": {
+      "boss": false,
+      "hp": 310,
+      "last15": {
+       "corrode_out": 59.8,
+       "corrode_peak": 19.8,
+       "dark_s": 0.0,
+       "ebullets_peak": 45,
+       "enemies_peak": 11,
+       "hits": [
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 299,
+         "src": "corrode",
+         "t": 642.7,
+         "zone_out": false
+        },
+        {
+         "amt": 11.4,
+         "boss": true,
+         "hp_after": 299,
+         "src": "contact_paranoia",
+         "t": 642.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 299,
+         "src": "corrode",
+         "t": 642.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 299,
+         "src": "corrode",
+         "t": 642.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 308,
+         "src": "corrode",
+         "t": 642.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 308,
+         "src": "corrode",
+         "t": 643.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 308,
+         "src": "corrode",
+         "t": 643.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 308,
+         "src": "corrode",
+         "t": 643.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 308,
+         "src": "corrode",
+         "t": 643.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 308,
+         "src": "corrode",
+         "t": 643.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 308,
+         "src": "corrode",
+         "t": 643.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 643.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 643.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 643.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 643.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 643.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 643.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 643.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 643.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 643.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 644.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 644.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 644.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 644.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 644.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 644.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 644.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 644.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 644.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 644.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 644.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 644.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 644.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 644.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 644.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 645.0,
+         "zone_out": false
+        },
+        {
+         "amt": 6.0,
+         "boss": false,
+         "hp_after": 304,
+         "src": "bullet",
+         "t": 645.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 304,
+         "src": "corrode",
+         "t": 645.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 304,
+         "src": "corrode",
+         "t": 645.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 645.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 645.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 645.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 645.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 645.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 645.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 645.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 645.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 645.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 645.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 645.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 645.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 645.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 646.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 646.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 646.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 299,
+         "src": "corrode",
+         "t": 646.2,
+         "zone_out": false
+        },
+        {
+         "amt": 11.4,
+         "boss": true,
+         "hp_after": 299,
+         "src": "contact_paranoia",
+         "t": 646.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 299,
+         "src": "corrode",
+         "t": 646.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 646.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 646.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 646.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 646.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 646.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 646.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 304,
+         "src": "corrode",
+         "t": 646.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 304,
+         "src": "corrode",
+         "t": 646.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 304,
+         "src": "corrode",
+         "t": 646.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 646.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 647.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 647.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 647.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 647.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 647.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 647.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 647.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 647.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 647.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 647.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 299,
+         "src": "corrode",
+         "t": 647.7,
+         "zone_out": false
+        },
+        {
+         "amt": 11.4,
+         "boss": true,
+         "hp_after": 299,
+         "src": "contact_paranoia",
+         "t": 647.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 298,
+         "src": "corrode",
+         "t": 647.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 298,
+         "src": "corrode",
+         "t": 647.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 298,
+         "src": "corrode",
+         "t": 647.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 303,
+         "src": "corrode",
+         "t": 647.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 302,
+         "src": "corrode",
+         "t": 648.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 304,
+         "src": "corrode",
+         "t": 648.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.7,
+         "boss": false,
+         "hp_after": 292,
+         "src": "corrode",
+         "t": 648.1,
+         "zone_out": false
+        },
+        {
+         "amt": 11.4,
+         "boss": true,
+         "hp_after": 292,
+         "src": "contact_paranoia",
+         "t": 648.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.7,
+         "boss": false,
+         "hp_after": 292,
+         "src": "corrode",
+         "t": 648.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.7,
+         "boss": false,
+         "hp_after": 291,
+         "src": "corrode",
+         "t": 648.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.7,
+         "boss": false,
+         "hp_after": 291,
+         "src": "corrode",
+         "t": 648.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 291,
+         "src": "corrode",
+         "t": 648.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 290,
+         "src": "corrode",
+         "t": 648.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 290,
+         "src": "corrode",
+         "t": 648.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 290,
+         "src": "corrode",
+         "t": 648.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 290,
+         "src": "corrode",
+         "t": 648.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 289,
+         "src": "corrode",
+         "t": 648.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 289,
+         "src": "corrode",
+         "t": 648.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 289,
+         "src": "corrode",
+         "t": 648.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 298,
+         "src": "corrode",
+         "t": 648.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 298,
+         "src": "corrode",
+         "t": 649.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 298,
+         "src": "corrode",
+         "t": 649.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 298,
+         "src": "corrode",
+         "t": 649.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 297,
+         "src": "corrode",
+         "t": 649.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 297,
+         "src": "corrode",
+         "t": 649.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 297,
+         "src": "corrode",
+         "t": 649.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 297,
+         "src": "corrode",
+         "t": 649.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 297,
+         "src": "corrode",
+         "t": 649.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 297,
+         "src": "corrode",
+         "t": 649.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 297,
+         "src": "corrode",
+         "t": 649.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 297,
+         "src": "corrode",
+         "t": 649.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 297,
+         "src": "corrode",
+         "t": 649.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 297,
+         "src": "corrode",
+         "t": 649.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 285,
+         "src": "corrode",
+         "t": 649.8,
+         "zone_out": false
+        },
+        {
+         "amt": 11.4,
+         "boss": true,
+         "hp_after": 285,
+         "src": "contact_paranoia",
+         "t": 649.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 294,
+         "src": "corrode",
+         "t": 649.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 294,
+         "src": "corrode",
+         "t": 650.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 294,
+         "src": "corrode",
+         "t": 650.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 293,
+         "src": "corrode",
+         "t": 650.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 293,
+         "src": "corrode",
+         "t": 650.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 293,
+         "src": "corrode",
+         "t": 650.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 293,
+         "src": "corrode",
+         "t": 650.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 292,
+         "src": "corrode",
+         "t": 650.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 292,
+         "src": "corrode",
+         "t": 650.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 292,
+         "src": "corrode",
+         "t": 650.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 292,
+         "src": "corrode",
+         "t": 650.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 292,
+         "src": "corrode",
+         "t": 650.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 292,
+         "src": "corrode",
+         "t": 650.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 292,
+         "src": "corrode",
+         "t": 650.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 292,
+         "src": "corrode",
+         "t": 650.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 301,
+         "src": "corrode",
+         "t": 650.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 301,
+         "src": "corrode",
+         "t": 651.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 303,
+         "src": "corrode",
+         "t": 651.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 303,
+         "src": "corrode",
+         "t": 651.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 303,
+         "src": "corrode",
+         "t": 651.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 303,
+         "src": "corrode",
+         "t": 651.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 303,
+         "src": "corrode",
+         "t": 651.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 303,
+         "src": "corrode",
+         "t": 651.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 303,
+         "src": "corrode",
+         "t": 651.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 303,
+         "src": "corrode",
+         "t": 651.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 303,
+         "src": "corrode",
+         "t": 651.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 303,
+         "src": "corrode",
+         "t": 651.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 303,
+         "src": "corrode",
+         "t": 651.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 303,
+         "src": "corrode",
+         "t": 651.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.6,
+         "boss": false,
+         "hp_after": 291,
+         "src": "corrode",
+         "t": 651.8,
+         "zone_out": false
+        },
+        {
+         "amt": 11.4,
+         "boss": true,
+         "hp_after": 291,
+         "src": "contact_paranoia",
+         "t": 651.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 291,
+         "src": "corrode",
+         "t": 651.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 291,
+         "src": "corrode",
+         "t": 651.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 290,
+         "src": "corrode",
+         "t": 652.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 290,
+         "src": "corrode",
+         "t": 652.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 290,
+         "src": "corrode",
+         "t": 652.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 290,
+         "src": "corrode",
+         "t": 652.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 290,
+         "src": "corrode",
+         "t": 652.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 290,
+         "src": "corrode",
+         "t": 652.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 289,
+         "src": "corrode",
+         "t": 652.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 289,
+         "src": "corrode",
+         "t": 652.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 289,
+         "src": "corrode",
+         "t": 652.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 289,
+         "src": "corrode",
+         "t": 652.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 289,
+         "src": "corrode",
+         "t": 652.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 289,
+         "src": "corrode",
+         "t": 652.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 289,
+         "src": "corrode",
+         "t": 652.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 289,
+         "src": "corrode",
+         "t": 652.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 289,
+         "src": "corrode",
+         "t": 652.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 295,
+         "src": "corrode",
+         "t": 653.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 295,
+         "src": "corrode",
+         "t": 653.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 295,
+         "src": "corrode",
+         "t": 653.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 295,
+         "src": "corrode",
+         "t": 653.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 295,
+         "src": "corrode",
+         "t": 653.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 295,
+         "src": "corrode",
+         "t": 653.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 295,
+         "src": "corrode",
+         "t": 653.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 295,
+         "src": "corrode",
+         "t": 653.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 295,
+         "src": "corrode",
+         "t": 653.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 296,
+         "src": "corrode",
+         "t": 653.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 296,
+         "src": "corrode",
+         "t": 653.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 296,
+         "src": "corrode",
+         "t": 653.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 296,
+         "src": "corrode",
+         "t": 653.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 296,
+         "src": "corrode",
+         "t": 653.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 296,
+         "src": "corrode",
+         "t": 653.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 302,
+         "src": "corrode",
+         "t": 654.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 304,
+         "src": "corrode",
+         "t": 654.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 654.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 654.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 654.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 654.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 654.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 654.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 654.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 305,
+         "src": "corrode",
+         "t": 654.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 306,
+         "src": "corrode",
+         "t": 654.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 306,
+         "src": "corrode",
+         "t": 654.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 306,
+         "src": "corrode",
+         "t": 654.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 306,
+         "src": "corrode",
+         "t": 654.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 306,
+         "src": "corrode",
+         "t": 654.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 655.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 655.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 655.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 655.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 655.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 655.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 655.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 655.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 655.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 310,
+         "src": "corrode",
+         "t": 655.6,
+         "zone_out": false
+        }
+       ],
+       "mire_s": 0.0,
+       "nerve_bursts": 0,
+       "t": 655.6
+      },
+      "src": "corrode",
+      "t": 655,
+      "zone_out": false,
+      "zone_phase": 4,
+      "zone_state": 3
+     },
+     "floors": [],
+     "hits": 2204,
+     "hits_pm": 201.7,
+     "low_hp_s": 6,
+     "moved_pm": 8247,
+     "peak": [
+      82,
+      46,
+      0,
+      374,
+      32
+     ],
+     "peak_min": [
+      [
+       15,
+       0,
+       0,
+       70,
+       6
+      ],
+      [
+       50,
+       1,
+       0,
+       163,
+       22
+      ],
+      [
+       39,
+       3,
+       0,
+       91,
+       21
+      ],
+      [
+       47,
+       7,
+       0,
+       240,
+       25
+      ],
+      [
+       45,
+       14,
+       0,
+       120,
+       29
+      ],
+      [
+       73,
+       27,
+       0,
+       168,
+       30
+      ],
+      [
+       52,
+       12,
+       0,
+       202,
+       30
+      ],
+      [
+       77,
+       46,
+       0,
+       368,
+       29
+      ],
+      [
+       80,
+       20,
+       0,
+       295,
+       30
+      ],
+      [
+       82,
+       17,
+       0,
+       357,
+       32
+      ],
+      [
+       66,
+       45,
+       0,
+       374,
+       16
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 0,
+     "recruit_t": [],
+     "still_pct": 8,
+     "taken": 2529,
+     "taken_pm": 231
+    },
+    "ctrl": {
+     "aslow_slow": 11,
+     "aslow_t": 0.0,
+     "boss_t": 104.15,
+     "floor": 0.7,
+     "move_min": 0.7,
+     "slow_min": 0.55,
+     "stun_slow": 0,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 19.07
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 22.18
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 3.04
+     },
+     "slow_any_t": 44.29
+    },
+    "dashes": 0,
+    "dmg": {
+     "atk_offspring": 9.03377239851083,
+     "atk_reaper": 9.40675310206399,
+     "atk_stone": 27.9057012169902,
+     "atk_tracer": 147.483591095279,
+     "bullet": 231.492858025174,
+     "contact_archon": 25.992,
+     "contact_carmen": 13.6,
+     "contact_founder": 695.893791824824,
+     "contact_nest": 94.0482666782401,
+     "contact_paranoia": 68.1306,
+     "contact_reaper": 45.336009184065,
+     "contact_slider": 213.499288123033,
+     "contact_tracer": 285.820511071277,
+     "corrode": 185.648157475475,
+     "mire": 149.9193,
+     "nest": 24.2502870962494,
+     "shock_founder": 203.305749922983,
+     "wound": 98.7854439000018
+    },
+    "drone": 0,
+    "elite_stage": 2,
+    "elites": 22,
+    "ending": "standard",
+    "final_out": {
+     "不容挣脱": 6490.36643400186,
+     "余音": 1592.90461102805,
+     "冲锋模式": 48769.1693655285,
+     "回拉": 8177.70678470739,
+     "声浪": 96471.9308549208,
+     "定点爆破": 35060.3518000709,
+     "弹匣倾泻": 90587.3551221237,
+     "必须开辟的通路": 30272.1567364203,
+     "抛锚": 54254.8943049005,
+     "掷锚": 56588.9604344582,
+     "海嗣": 13453.7842659681,
+     "深海的回响": 10615.9269410419,
+     "潮汐和声": 21448.2721484478,
+     "跳弹": 35452.7979051095,
+     "过载模式": 133798.012543636,
+     "通路洞开": 31243.9598292626,
+     "速射": 65965.826430939,
+     "锁链回旋": 30790.2623034763,
+     "锚击": 114587.066102665
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 120,
+     "pct": 0.103,
+     "pool": 154,
+     "t": 540
+    },
+    "growth": {
+     "dodge": 2,
+     "hp": 1,
+     "regen": 1,
+     "sp": 1,
+     "squad_aspd": 1,
+     "squad_atk": 1
+    },
+    "heal": {
+     "商店": 28.2394170726882,
+     "拾取": 608.245483135237,
+     "浊心斯卡蒂": 888.592218929552,
+     "自身回复": 983.000087513539,
+     "藏品": 21.474874463187
+    },
+    "heal_offer": 14,
+    "heal_offer_low": 1,
+    "heal_pick": 2,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 6,
+       "slider": 1,
+       "stone": 3
+      },
+      "hp": 441,
+      "hp0": 182,
+      "minhp": 182,
+      "mix": "凿石阵",
+      "n": 10,
+      "t": 75,
+      "t80": 13
+     },
+     {
+      "comp": {
+       "bone": 7,
+       "slider": 6
+      },
+      "hp": 601,
+      "hp0": 209,
+      "minhp": 209,
+      "mix": "滑行群",
+      "n": 13,
+      "t": 165,
+      "t80": 8
+     },
+     {
+      "comp": {
+       "bone": 8,
+       "floater": 2,
+       "runner": 3,
+       "slider": 4
+      },
+      "hp": 1180,
+      "hp0": 209,
+      "minhp": 202,
+      "mix": "狂奔潮",
+      "n": 17,
+      "t": 255,
+      "t80": 9
+     },
+     {
+      "comp": {
+       "bone": 5,
+       "offspring": 2,
+       "slider": 9,
+       "spitter": 3
+      },
+      "hp": 3668,
+      "hp0": 209,
+      "minhp": 192,
+      "mix": "酸雨围城",
+      "n": 19,
+      "t": 340,
+      "t80": 12
+     },
+     {
+      "comp": {
+       "slider": 21,
+       "spitter": 2
+      },
+      "hp": 3728,
+      "hp0": 128,
+      "minhp": 70,
+      "mix": "深海潮",
+      "n": 23,
+      "t": 456,
+      "t80": 7
+     },
+     {
+      "comp": {
+       "slider": 22,
+       "spitter": 3
+      },
+      "hp": 5434,
+      "hp0": 257,
+      "minhp": 176,
+      "mix": "深海集群",
+      "n": 25,
+      "t": 526,
+      "t80": 6
+     }
+    ],
+    "ingots": 0,
+    "items": {
+     "heal_elite": 16,
+     "heal_low": 0,
+     "heal_mob": 10,
+     "heal_pick": 25,
+     "magnet_elite": 10,
+     "magnet_mob": 9,
+     "magnet_pick": 15,
+     "mob_capped": 1579,
+     "mob_rolled": 962
+    },
+    "kills": 2567,
+    "lamp": 71,
+    "low_levelups": 2,
+    "lv": 26,
+    "lv_times": [
+     14,
+     32,
+     50,
+     70,
+     84,
+     101,
+     113,
+     140,
+     165,
+     189,
+     208,
+     234,
+     239,
+     261,
+     304,
+     337,
+     355,
+     380,
+     408,
+     444,
+     455,
+     481,
+     514,
+     551,
+     599
+    ],
+    "marks": {
+     "120": 8,
+     "300": 15,
+     "480": 22
+    },
+    "maxhp": 310.96,
+    "ops": [
+     {
+      "elite": 2,
+      "id": "ulpianus",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "exusiai",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "skalter",
+      "prog": 6
+     }
+    ],
+    "out": {
+     "不容挣脱": 6490.36643400186,
+     "余音": 1592.90461102805,
+     "冲锋模式": 48769.1693655285,
+     "回拉": 8177.70678470739,
+     "声浪": 96471.9308549208,
+     "定点爆破": 35060.3518000709,
+     "弹匣倾泻": 90587.3551221237,
+     "必须开辟的通路": 30272.1567364203,
+     "抛锚": 54254.8943049005,
+     "掷锚": 56588.9604344582,
+     "海嗣": 13453.7842659681,
+     "深海的回响": 10615.9269410419,
+     "潮汐和声": 21448.2721484478,
+     "跳弹": 35452.7979051095,
+     "过载模式": 133798.012543636,
+     "通路洞开": 31243.9598292626,
+     "速射": 65965.826430939,
+     "锁链回旋": 30790.2623034763,
+     "锚击": 114587.066102665
+    },
+    "out_tag": {
+     "aftershock": 35060.3518000709,
+     "area": 586967.825454784,
+     "basic": 501779.969436616,
+     "control": 45912.0330479719,
+     "dot": 21231.8538820838,
+     "entity": 13453.7842659681,
+     "follow_up": 81535.1514240604,
+     "pierce": 139356.524487653,
+     "projectile": 339120.36346223,
+     "ricochet": 35452.7979051095,
+     "skill": 328394.479225396,
+     "stun": 30272.1567364203,
+     "summon": 13453.7842659681
+    },
+    "out_type": {
+     "法术": 143582.818821407,
+     "物理": 742038.886097303
+    },
+    "prof": {},
+    "prog_offer": {
+     "exusiai": 11,
+     "skalter": 6,
+     "ulpianus": 6
+    },
+    "prog_pick": {
+     "exusiai": 6,
+     "skalter": 6,
+     "ulpianus": 6
+    },
+    "recall_backstop": 0,
+    "recall_n": 83,
+    "rej": {},
+    "relic_offer": [
+     [
+      123,
+      "shop",
+      [
+       "63",
+       "235",
+       "2"
+      ]
+     ],
+     [
+      154,
+      "choice",
+      [
+       "224",
+       "28",
+       "24"
+      ]
+     ],
+     [
+      233,
+      "choice",
+      [
+       "126",
+       "131",
+       "264"
+      ]
+     ],
+     [
+      323,
+      "shop",
+      [
+       "180",
+       "45",
+       "179"
+      ]
+     ],
+     [
+      375,
+      "choice",
+      [
+       "41",
+       "206",
+       "191",
+       "5"
+      ]
+     ],
+     [
+      447,
+      "choice",
+      [
+       "85",
+       "183",
+       "31",
+       "20"
+      ]
+     ],
+     [
+      455,
+      "choice",
+      [
+       "88",
+       "9",
+       "46",
+       "55"
+      ]
+     ],
+     [
+      493,
+      "choice",
+      [
+       "166",
+       "56",
+       "123",
+       "118"
+      ]
+     ],
+     [
+      631,
+      "choice",
+      [
+       "209",
+       "113",
+       "183",
+       "64"
+      ]
+     ],
+     [
+      642,
+      "choice",
+      [
+       "81",
+       "46",
+       "14",
+       "158"
+      ]
+     ]
+    ],
+    "relic_out": 0.0,
+    "relic_take": [
+     [
+      123,
+      "63",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      123,
+      "235",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      154,
+      "24",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      233,
+      "126",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      257,
+      "239",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      323,
+      "180",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      323,
+      "45",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      375,
+      "191",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      447,
+      "85",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      455,
+      "55",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      485,
+      "240",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      486,
+      "238",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      493,
+      "123",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      631,
+      "209",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      642,
+      "81",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ]
+    ],
+    "relics": 15,
+    "squad": [
+     "ulpianus",
+     "exusiai",
+     "skalter"
+    ],
+    "sus": {
+     "m0": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "拾取": [
+        0.0,
+        226.59
+       ],
+       "浊心斯卡蒂·常驻": [
+        0.238360176669261,
+        0.6279
+       ],
+       "浊心斯卡蒂·技能": [
+        2.13486,
+        2.13486
+       ]
+      },
+      "lit": 0.0
+     },
+     "m3": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "商店": [
+        28.2394170726882,
+        83.72
+       ],
+       "拾取": [
+        78.2306596909466,
+        502.32
+       ],
+       "浊心斯卡蒂·常驻": [
+        10.6743,
+        10.6743
+       ],
+       "浊心斯卡蒂·技能": [
+        80.3479178092825,
+        87.52926
+       ]
+      },
+      "lit": 0.0
+     },
+     "m6": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "拾取": [
+        359.462114247703,
+        451.0116
+       ],
+       "浊心斯卡蒂·常驻": [
+        40.976754,
+        40.976754
+       ],
+       "浊心斯卡蒂·技能": [
+        447.372712843133,
+        456.4757652
+       ],
+       "藏品": [
+        21.474874463187,
+        83.72
+       ]
+      },
+      "lit": 0.0
+     },
+     "m9": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "拾取": [
+        170.552709196587,
+        606.372
+       ],
+       "浊心斯卡蒂·常驻": [
+        29.85216,
+        29.85216
+       ],
+       "浊心斯卡蒂·技能": [
+        276.995154100468,
+        327.9632928
+       ]
+      },
+      "lit": 0.0
+     }
+    },
+    "swaps": [],
+    "t": 655,
+    "terrain": {
+     "bul": 218,
+     "dash": 0,
+     "ebul": 36
+    },
+    "win": true,
+    "xp_backstop": 0.0,
+    "xp_dropped": 11916.5,
+    "xp_ground": 330.0,
+    "xp_magnet": 3731.8,
+    "xp_magnet_min": [
+     0.0,
+     54.0,
+     62.5,
+     243.8,
+     222.5,
+     0.0,
+     222.5,
+     1109.0,
+     622.5,
+     567.5,
+     627.5
+    ],
+    "xp_recall": 1516.8,
+    "xp_recall_min": [
+     2.5,
+     0.0,
+     70.0,
+     30.0,
+     52.5,
+     505.5,
+     288.8,
+     232.5,
+     127.5,
+     102.5,
+     105.0
+    ],
+    "xp_total": 11586.5,
+    "xp_total_min": [
+     140.0,
+     379.5,
+     372.5,
+     886.3,
+     552.5,
+     1168.0,
+     1113.8,
+     2174.0,
+     1750.0,
+     1737.5,
+     1312.5
+    ],
+    "xp_walk": 6338.0,
+    "xp_walk_min": [
+     137.5,
+     325.5,
+     240.0,
+     612.5,
+     277.5,
+     662.5,
+     602.5,
+     832.5,
+     1000.0,
+     1067.5,
+     580.0
+    ]
+   }
+  },
+  {
+   "squad": [
+    "ulpianus",
+    "exusiai",
+    "skalter"
+   ],
+   "seed": 3,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 0,
+   "wall": 80.2,
+   "data": {
+    "allies": 2,
+    "armor_cf": {
+     "m0": {
+      "a2": 36.0,
+      "a4": 32.0,
+      "a8": 24.0,
+      "all": 40.0,
+      "armor": 0.0,
+      "n": 2,
+      "phys": 40.0,
+      "phys_n": 2,
+      "phys_pre": 40.0
+     },
+     "m4": {
+      "a2": 312.384524572641,
+      "a4": 284.384524572641,
+      "a8": 232.17339981672,
+      "all": 706.809979341762,
+      "armor": 0.0,
+      "n": 29,
+      "phys": 340.384524572641,
+      "phys_n": 14,
+      "phys_pre": 340.384524572641
+     },
+     "m8": {
+      "a2": 602.680223444697,
+      "a4": 566.680223444697,
+      "a8": 494.680223444697,
+      "all": 910.278741515862,
+      "armor": 36.0,
+      "n": 28,
+      "phys": 638.680223444697,
+      "phys_n": 18,
+      "phys_pre": 674.680223444697
+     }
+    },
+    "boss_hp": -0.000533398869074247,
+    "bosses": [
+     "path:dead",
+     "bishop:dead",
+     "immortal:dead",
+     "paranoia:dead"
+    ],
+    "bot": {
+     "bosses": [
+      {
+       "en_alive": 32,
+       "en_alive_pk": 40,
+       "en_near": 6,
+       "en_near_pk": 14,
+       "gates": 1,
+       "on_boss": 0.68,
+       "shield": 0.0,
+       "t0": 210,
+       "t1": 229,
+       "tv": 210,
+       "type": "path"
+      },
+      {
+       "en_alive": 49,
+       "en_alive_pk": 55,
+       "en_near": 10,
+       "en_near_pk": 19,
+       "gates": 1,
+       "on_boss": 0.21,
+       "shield": 0.4,
+       "t0": 420,
+       "t1": 433,
+       "tv": 420,
+       "type": "bishop"
+      },
+      {
+       "en_alive": 49,
+       "en_alive_pk": 55,
+       "en_near": 12,
+       "en_near_pk": 22,
+       "gates": 1,
+       "on_boss": 0.13,
+       "shield": 3.9,
+       "t0": 420,
+       "t1": 433,
+       "tv": 420,
+       "type": "immortal"
+      },
+      {
+       "en_alive": 15,
+       "en_alive_pk": 48,
+       "en_near": 3,
+       "en_near_pk": 8,
+       "gates": 2,
+       "on_boss": 0.46,
+       "shield": 22.8,
+       "t0": 600,
+       "t1": -1,
+       "tv": 600,
+       "type": "paranoia"
+      }
+     ],
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.0,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lv": 1,
+       "mhp": 182,
+       "outc": 0,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 10,
+       "hp": 100,
+       "hpm": 1.27,
+       "hsrc": {},
+       "kills": 22,
+       "lamp": 100,
+       "lv": 2,
+       "mhp": 182,
+       "outc": 399,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 30,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 15,
+       "hp": 100,
+       "hpm": 1.55,
+       "hsrc": {},
+       "kills": 59,
+       "lamp": 100,
+       "lv": 4,
+       "mhp": 182,
+       "outc": 1153,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 60,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 50,
+       "hp": 100,
+       "hpm": 1.82,
+       "hsrc": {},
+       "kills": 116,
+       "lamp": 100,
+       "lv": 6,
+       "mhp": 182,
+       "outc": 3165,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 90,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 18,
+       "hp": 100,
+       "hpm": 2.09,
+       "hsrc": {},
+       "kills": 211,
+       "lamp": 100,
+       "lv": 8,
+       "mhp": 182,
+       "outc": 8899,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 120,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 24,
+       "hp": 100,
+       "hpm": 2.36,
+       "hsrc": {},
+       "kills": 274,
+       "lamp": 100,
+       "lv": 9,
+       "mhp": 182,
+       "outc": 11664,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 150,
+       "taken": 0,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "mire": 17
+       },
+       "enemies": 24,
+       "hp": 100,
+       "hpm": 2.64,
+       "hsrc": {
+        "浊心斯卡蒂": 6,
+        "自身回复": 11
+       },
+       "kills": 366,
+       "lamp": 100,
+       "lv": 11,
+       "mhp": 218,
+       "outc": 16751,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 180,
+       "taken": 17,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {},
+       "enemies": 24,
+       "hp": 100,
+       "hpm": 2.91,
+       "hsrc": {},
+       "kills": 448,
+       "lamp": 100,
+       "lv": 12,
+       "mhp": 218,
+       "outc": 22306,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 210,
+       "taken": 0,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_path": 40
+       },
+       "enemies": 32,
+       "hp": 100,
+       "hpm": 3.18,
+       "hsrc": {
+        "浊心斯卡蒂": 11,
+        "自身回复": 28
+       },
+       "kills": 553,
+       "lamp": 100,
+       "lv": 14,
+       "mhp": 218,
+       "outc": 38550,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 240,
+       "taken": 40,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_stone": 5
+       },
+       "enemies": 29,
+       "hp": 100,
+       "hpm": 3.45,
+       "hsrc": {
+        "自身回复": 5
+       },
+       "kills": 674,
+       "lamp": 97,
+       "lv": 15,
+       "mhp": 218,
+       "outc": 47151,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 270,
+       "taken": 5,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "mire": 6
+       },
+       "enemies": 35,
+       "hp": 99,
+       "hpm": 3.73,
+       "hsrc": {
+        "浊心斯卡蒂": 1,
+        "自身回复": 4
+       },
+       "kills": 781,
+       "lamp": 100,
+       "lv": 16,
+       "mhp": 218,
+       "outc": 68099,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 300,
+       "taken": 6,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 27,
+        "contact_founder": 50,
+        "corrode": 6,
+        "mire": 31,
+        "nest": 3
+       },
+       "enemies": 39,
+       "hp": 100,
+       "hpm": 4.0,
+       "hsrc": {
+        "拾取": 54,
+        "浊心斯卡蒂": 21,
+        "自身回复": 44
+       },
+       "kills": 896,
+       "lamp": 93,
+       "lv": 17,
+       "mhp": 218,
+       "outc": 101022,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 330,
+       "taken": 119,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 31,
+        "contact_tracer": 30,
+        "corrode": 1,
+        "mire": 18,
+        "nest": 4
+       },
+       "enemies": 39,
+       "hp": 88,
+       "hpm": 4.27,
+       "hsrc": {
+        "拾取": 2,
+        "浊心斯卡蒂": 14,
+        "自身回复": 43
+       },
+       "kills": 1041,
+       "lamp": 93,
+       "lv": 18,
+       "mhp": 218,
+       "outc": 152954,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 360,
+       "taken": 85,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_reaper": 52,
+        "contact_tracer": 31,
+        "mire": 12,
+        "nest": 4
+       },
+       "enemies": 39,
+       "hp": 100,
+       "hpm": 4.55,
+       "hsrc": {
+        "浊心斯卡蒂": 48,
+        "自身回复": 78
+       },
+       "kills": 1176,
+       "lamp": 82,
+       "lv": 19,
+       "mhp": 218,
+       "outc": 205842,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 390,
+       "taken": 101,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "atk_tracer": 29,
+        "contact_tracer": 33,
+        "mire": 6,
+        "shock_founder": 105,
+        "wound": 6
+       },
+       "enemies": 42,
+       "hp": 65,
+       "hpm": 4.82,
+       "hsrc": {
+        "拾取": 54,
+        "浊心斯卡蒂": 22,
+        "自身回复": 28
+       },
+       "kills": 1324,
+       "lamp": 59,
+       "lv": 20,
+       "mhp": 218,
+       "outc": 261028,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 420,
+       "taken": 181,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 10,
+        "bullet": 36,
+        "contact_immortal": 13,
+        "contact_slider": 61,
+        "corrode": 12,
+        "wound": 11
+       },
+       "enemies": 61,
+       "hp": 100,
+       "hpm": 5.09,
+       "hsrc": {
+        "拾取": 65,
+        "浊心斯卡蒂": 52,
+        "自身回复": 104
+       },
+       "kills": 1494,
+       "lamp": 29,
+       "lv": 22,
+       "mhp": 249,
+       "outc": 323179,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 450,
+       "taken": 146,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "bullet": 38,
+        "contact_slider": 21,
+        "corrode": 3,
+        "shock_founder": 114,
+        "wound": 3
+       },
+       "enemies": 43,
+       "hp": 100,
+       "hpm": 5.36,
+       "hsrc": {
+        "拾取": 115,
+        "浊心斯卡蒂": 14,
+        "自身回复": 52
+       },
+       "kills": 1698,
+       "lamp": 53,
+       "lv": 23,
+       "mhp": 249,
+       "outc": 396800,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 480,
+       "taken": 182,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_tracer": 45,
+        "contact_slider": 19,
+        "contact_tracer": 84,
+        "shock_founder": 75,
+        "wound": 15
+       },
+       "enemies": 48,
+       "hp": 100,
+       "hpm": 5.61,
+       "hsrc": {
+        "拾取": 45,
+        "浊心斯卡蒂": 119,
+        "自身回复": 74
+       },
+       "kills": 1870,
+       "lamp": 94,
+       "lv": 24,
+       "mhp": 249,
+       "outc": 458731,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 510,
+       "taken": 240,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_reaper": 12,
+        "atk_tracer": 46,
+        "bullet": 16,
+        "contact_tracer": 51,
+        "corrode": 4,
+        "mire": 6,
+        "wound": 17
+       },
+       "enemies": 50,
+       "hp": 100,
+       "hpm": 5.86,
+       "hsrc": {
+        "浊心斯卡蒂": 80,
+        "自身回复": 73
+       },
+       "kills": 2081,
+       "lamp": 99,
+       "lv": 25,
+       "mhp": 249,
+       "outc": 540534,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 540,
+       "taken": 154,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 50,
+       "hp": 100,
+       "hpm": 6.11,
+       "hsrc": {},
+       "kills": 2278,
+       "lamp": 75,
+       "lv": 25,
+       "mhp": 249,
+       "outc": 632374,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 570,
+       "taken": 0,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "contact_founder": 171,
+        "contact_slider": 20,
+        "contact_tracer": 70,
+        "mire": 24,
+        "wound": 7
+       },
+       "enemies": 50,
+       "hp": 100,
+       "hpm": 6.36,
+       "hsrc": {
+        "无人机": 33,
+        "浊心斯卡蒂": 165,
+        "自身回复": 94
+       },
+       "kills": 2483,
+       "lamp": 98,
+       "lv": 26,
+       "mhp": 249,
+       "outc": 736991,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 600,
+       "taken": 292,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "bullet": 81,
+        "corrode": 19,
+        "mire": 6,
+        "shock_founder": 80,
+        "wound": 7
+       },
+       "enemies": 11,
+       "hp": 100,
+       "hpm": 6.61,
+       "hsrc": {
+        "拾取": 23,
+        "无人机": 16,
+        "浊心斯卡蒂": 101,
+        "自身回复": 54
+       },
+       "kills": 2539,
+       "lamp": 86,
+       "lv": 26,
+       "mhp": 249,
+       "outc": 849344,
+       "rg": 3.8,
+       "squad": 3,
+       "t": 630,
+       "taken": 196,
+       "zone": 3
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {
+       "bullet": 17,
+       "contact_paranoia": 94,
+       "corrode": 33,
+       "wound": 3
+      },
+      "hsrc": {
+       "拾取": 3,
+       "无人机": 14,
+       "浊心斯卡蒂": 78,
+       "自身回复": 51
+      },
+      "mhp": 249,
+      "t": 646,
+      "t0": 630,
+      "taken": 148
+     },
+     "dark_dmg": 0,
+     "dark_s": 0,
+     "death_src": "corrode",
+     "elite_t": {
+      "exusiai:1": 229,
+      "exusiai:2": 290,
+      "skalter:1": 179,
+      "skalter:2": 380,
+      "ulpianus:1": 48,
+      "ulpianus:2": 131
+     },
+     "end": {
+      "boss": false,
+      "hp": 249,
+      "last15": {
+       "corrode_out": 29.8,
+       "corrode_peak": 4.9,
+       "dark_s": 0.0,
+       "ebullets_peak": 19,
+       "enemies_peak": 11,
+       "hits": [
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 631.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 631.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 632.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 632.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 632.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 632.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 632.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 632.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 632.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 632.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 632.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 632.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 632.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 632.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 233,
+         "src": "corrode",
+         "t": 632.8,
+         "zone_out": false
+        },
+        {
+         "amt": 16.2,
+         "boss": true,
+         "hp_after": 233,
+         "src": "contact_paranoia",
+         "t": 632.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 239,
+         "src": "corrode",
+         "t": 632.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 239,
+         "src": "corrode",
+         "t": 632.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 240,
+         "src": "corrode",
+         "t": 633.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 240,
+         "src": "corrode",
+         "t": 633.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 240,
+         "src": "corrode",
+         "t": 633.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 240,
+         "src": "corrode",
+         "t": 633.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 241,
+         "src": "corrode",
+         "t": 633.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 241,
+         "src": "corrode",
+         "t": 633.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 241,
+         "src": "corrode",
+         "t": 633.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 241,
+         "src": "corrode",
+         "t": 633.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 241,
+         "src": "corrode",
+         "t": 633.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 241,
+         "src": "corrode",
+         "t": 633.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 241,
+         "src": "corrode",
+         "t": 633.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 241,
+         "src": "corrode",
+         "t": 633.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 241,
+         "src": "corrode",
+         "t": 633.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 241,
+         "src": "corrode",
+         "t": 633.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 633.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 634.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 634.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 634.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 634.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 634.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 634.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 634.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 634.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 634.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 634.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 634.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 634.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 634.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 244,
+         "src": "corrode",
+         "t": 634.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 244,
+         "src": "corrode",
+         "t": 634.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 635.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 635.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 635.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 635.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 233,
+         "src": "corrode",
+         "t": 635.2,
+         "zone_out": false
+        },
+        {
+         "amt": 16.2,
+         "boss": true,
+         "hp_after": 233,
+         "src": "contact_paranoia",
+         "t": 635.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 233,
+         "src": "corrode",
+         "t": 635.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 233,
+         "src": "corrode",
+         "t": 635.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 233,
+         "src": "corrode",
+         "t": 635.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 233,
+         "src": "corrode",
+         "t": 635.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 233,
+         "src": "corrode",
+         "t": 635.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 233,
+         "src": "corrode",
+         "t": 635.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 233,
+         "src": "corrode",
+         "t": 635.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 233,
+         "src": "corrode",
+         "t": 635.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 233,
+         "src": "corrode",
+         "t": 635.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 233,
+         "src": "corrode",
+         "t": 635.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 233,
+         "src": "corrode",
+         "t": 636.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 235,
+         "src": "corrode",
+         "t": 636.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 235,
+         "src": "corrode",
+         "t": 636.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 235,
+         "src": "corrode",
+         "t": 636.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 235,
+         "src": "corrode",
+         "t": 636.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 235,
+         "src": "corrode",
+         "t": 636.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 235,
+         "src": "corrode",
+         "t": 636.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 236,
+         "src": "corrode",
+         "t": 636.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 236,
+         "src": "corrode",
+         "t": 636.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 236,
+         "src": "corrode",
+         "t": 636.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 236,
+         "src": "corrode",
+         "t": 636.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 236,
+         "src": "corrode",
+         "t": 636.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 236,
+         "src": "corrode",
+         "t": 636.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 236,
+         "src": "corrode",
+         "t": 636.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 237,
+         "src": "corrode",
+         "t": 636.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 237,
+         "src": "corrode",
+         "t": 637.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 237,
+         "src": "corrode",
+         "t": 637.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 237,
+         "src": "corrode",
+         "t": 637.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 237,
+         "src": "corrode",
+         "t": 637.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 237,
+         "src": "corrode",
+         "t": 637.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 237,
+         "src": "corrode",
+         "t": 637.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 238,
+         "src": "corrode",
+         "t": 637.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 238,
+         "src": "corrode",
+         "t": 637.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 238,
+         "src": "corrode",
+         "t": 637.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 238,
+         "src": "corrode",
+         "t": 637.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 238,
+         "src": "corrode",
+         "t": 637.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 239,
+         "src": "corrode",
+         "t": 637.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 229,
+         "src": "corrode",
+         "t": 637.9,
+         "zone_out": false
+        },
+        {
+         "amt": 16.2,
+         "boss": true,
+         "hp_after": 229,
+         "src": "contact_paranoia",
+         "t": 637.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 229,
+         "src": "corrode",
+         "t": 638.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 229,
+         "src": "corrode",
+         "t": 638.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 229,
+         "src": "corrode",
+         "t": 638.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 638.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 638.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 638.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 638.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 638.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 638.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 235,
+         "src": "corrode",
+         "t": 638.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 235,
+         "src": "corrode",
+         "t": 638.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 235,
+         "src": "corrode",
+         "t": 638.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 235,
+         "src": "corrode",
+         "t": 638.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 235,
+         "src": "corrode",
+         "t": 638.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 241,
+         "src": "corrode",
+         "t": 638.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 241,
+         "src": "corrode",
+         "t": 638.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 639.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 639.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 639.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 639.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 639.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 639.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 244,
+         "src": "corrode",
+         "t": 639.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 244,
+         "src": "corrode",
+         "t": 639.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 244,
+         "src": "corrode",
+         "t": 639.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 244,
+         "src": "corrode",
+         "t": 639.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 244,
+         "src": "corrode",
+         "t": 639.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 244,
+         "src": "corrode",
+         "t": 639.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 245,
+         "src": "corrode",
+         "t": 639.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 639.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 639.9,
+         "zone_out": false
+        },
+        {
+         "amt": 17.1,
+         "boss": false,
+         "hp_after": 232,
+         "src": "bullet",
+         "t": 640.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 232,
+         "src": "corrode",
+         "t": 640.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 232,
+         "src": "wound",
+         "t": 640.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 232,
+         "src": "corrode",
+         "t": 640.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 232,
+         "src": "wound",
+         "t": 640.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 232,
+         "src": "corrode",
+         "t": 640.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 232,
+         "src": "wound",
+         "t": 640.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 232,
+         "src": "corrode",
+         "t": 640.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 232,
+         "src": "wound",
+         "t": 640.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 232,
+         "src": "corrode",
+         "t": 640.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 232,
+         "src": "wound",
+         "t": 640.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 232,
+         "src": "corrode",
+         "t": 640.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 232,
+         "src": "wound",
+         "t": 640.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 232,
+         "src": "corrode",
+         "t": 640.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 232,
+         "src": "wound",
+         "t": 640.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 232,
+         "src": "corrode",
+         "t": 640.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 232,
+         "src": "wound",
+         "t": 640.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 232,
+         "src": "corrode",
+         "t": 640.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 232,
+         "src": "wound",
+         "t": 640.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 232,
+         "src": "corrode",
+         "t": 640.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 232,
+         "src": "wound",
+         "t": 640.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 232,
+         "src": "corrode",
+         "t": 640.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 232,
+         "src": "wound",
+         "t": 640.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 232,
+         "src": "corrode",
+         "t": 640.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 232,
+         "src": "wound",
+         "t": 640.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 238,
+         "src": "corrode",
+         "t": 640.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 238,
+         "src": "wound",
+         "t": 640.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 238,
+         "src": "corrode",
+         "t": 640.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 238,
+         "src": "wound",
+         "t": 640.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 238,
+         "src": "corrode",
+         "t": 641.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 238,
+         "src": "wound",
+         "t": 641.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 238,
+         "src": "corrode",
+         "t": 641.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 238,
+         "src": "wound",
+         "t": 641.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 641.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 641.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 641.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 641.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 641.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 641.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 641.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 641.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 641.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 641.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 641.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 641.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 641.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 641.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 641.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 641.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 641.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 641.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 641.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 641.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 641.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 641.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 641.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 641.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 641.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 641.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 642.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 642.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 642.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 642.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 642.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 642.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 642.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 642.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 642.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 642.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 642.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 642.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 642.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 642.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 642.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 642.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 642.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 642.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 642.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 642.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 642.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 234,
+         "src": "wound",
+         "t": 642.9,
+         "zone_out": false
+        },
+        {
+         "amt": 14.8,
+         "boss": true,
+         "hp_after": 234,
+         "src": "contact_paranoia",
+         "t": 642.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 643.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 234,
+         "src": "wound",
+         "t": 643.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 643.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 234,
+         "src": "wound",
+         "t": 643.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 643.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 242,
+         "src": "wound",
+         "t": 643.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 643.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 242,
+         "src": "wound",
+         "t": 643.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 643.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 242,
+         "src": "wound",
+         "t": 643.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 643.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 242,
+         "src": "wound",
+         "t": 643.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 643.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 242,
+         "src": "wound",
+         "t": 643.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 643.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 242,
+         "src": "wound",
+         "t": 643.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 643.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 242,
+         "src": "wound",
+         "t": 643.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 643.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 242,
+         "src": "wound",
+         "t": 643.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 242,
+         "src": "corrode",
+         "t": 643.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 242,
+         "src": "wound",
+         "t": 643.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 643.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 243,
+         "src": "wound",
+         "t": 643.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 643.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 243,
+         "src": "wound",
+         "t": 643.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 643.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 243,
+         "src": "wound",
+         "t": 643.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 643.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 243,
+         "src": "wound",
+         "t": 643.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 644.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 243,
+         "src": "wound",
+         "t": 644.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 243,
+         "src": "corrode",
+         "t": 644.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 243,
+         "src": "wound",
+         "t": 644.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 644.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 644.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 644.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 644.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 644.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 644.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 644.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 644.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 644.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 644.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 644.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 644.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 644.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 644.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 644.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 644.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 644.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 644.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 644.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 644.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 644.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 644.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 644.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 644.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 644.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 644.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 645.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 645.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 645.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 645.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 645.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 645.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 645.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 645.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 645.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 249,
+         "src": "wound",
+         "t": 645.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 645.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 234,
+         "src": "wound",
+         "t": 645.3,
+         "zone_out": false
+        },
+        {
+         "amt": 14.8,
+         "boss": true,
+         "hp_after": 234,
+         "src": "contact_paranoia",
+         "t": 645.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 645.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 234,
+         "src": "wound",
+         "t": 645.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 645.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 234,
+         "src": "wound",
+         "t": 645.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 645.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 234,
+         "src": "wound",
+         "t": 645.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 645.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 234,
+         "src": "wound",
+         "t": 645.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 645.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 234,
+         "src": "wound",
+         "t": 645.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 234,
+         "src": "corrode",
+         "t": 645.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 234,
+         "src": "wound",
+         "t": 645.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 240,
+         "src": "corrode",
+         "t": 645.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 240,
+         "src": "wound",
+         "t": 645.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 240,
+         "src": "corrode",
+         "t": 645.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 240,
+         "src": "wound",
+         "t": 645.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 240,
+         "src": "corrode",
+         "t": 645.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 240,
+         "src": "wound",
+         "t": 645.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 240,
+         "src": "corrode",
+         "t": 645.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 240,
+         "src": "wound",
+         "t": 645.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 240,
+         "src": "corrode",
+         "t": 646.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 646.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 646.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 646.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 646.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 646.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 646.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 646.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 646.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 646.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 646.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 646.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 646.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 249,
+         "src": "corrode",
+         "t": 646.9,
+         "zone_out": false
+        }
+       ],
+       "mire_s": 0.0,
+       "nerve_bursts": 0,
+       "t": 646.9
+      },
+      "src": "corrode",
+      "t": 646,
+      "zone_out": false,
+      "zone_phase": 4,
+      "zone_state": 3
+     },
+     "floors": [],
+     "hits": 1563,
+     "hits_pm": 145.0,
+     "low_hp_s": 2,
+     "moved_pm": 9295,
+     "peak": [
+      87,
+      46,
+      0,
+      401,
+      34
+     ],
+     "peak_min": [
+      [
+       17,
+       0,
+       0,
+       58,
+       6
+      ],
+      [
+       50,
+       2,
+       0,
+       140,
+       20
+      ],
+      [
+       43,
+       3,
+       0,
+       94,
+       13
+      ],
+      [
+       40,
+       14,
+       0,
+       336,
+       18
+      ],
+      [
+       50,
+       6,
+       0,
+       128,
+       21
+      ],
+      [
+       64,
+       22,
+       0,
+       146,
+       30
+      ],
+      [
+       51,
+       16,
+       0,
+       188,
+       30
+      ],
+      [
+       77,
+       46,
+       0,
+       367,
+       34
+      ],
+      [
+       87,
+       27,
+       0,
+       401,
+       31
+      ],
+      [
+       58,
+       27,
+       0,
+       390,
+       30
+      ],
+      [
+       50,
+       37,
+       0,
+       107,
+       20
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 1,
+     "recruit_t": [],
+     "still_pct": 4,
+     "taken": 1918,
+     "taken_pm": 177
+    },
+    "ctrl": {
+     "aslow_slow": 13,
+     "aslow_t": 0.0,
+     "boss_t": 79.73,
+     "floor": 0.7,
+     "move_min": 0.7,
+     "slow_min": 0.43,
+     "stun_slow": 1,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 19.67
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 3.89
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "slow_any_t": 23.56
+    },
+    "dashes": 0,
+    "dmg": {
+     "atk_reaper": 64.9051671206362,
+     "atk_stone": 5.21112475592126,
+     "atk_tracer": 131.592103172106,
+     "bullet": 248.972243786947,
+     "contact_founder": 221.963131354799,
+     "contact_immortal": 13.9035,
+     "contact_paranoia": 94.560144,
+     "contact_path": 40.0,
+     "contact_slider": 122.791520691917,
+     "contact_tracer": 300.748316275453,
+     "corrode": 81.5164645093243,
+     "mire": 130.2684,
+     "nest": 11.9854543137099,
+     "shock_founder": 377.066274739628,
+     "wound": 73.4022432000011
+    },
+    "drone": 1,
+    "elite_stage": 2,
+    "elites": 21,
+    "ending": "standard",
+    "final_out": {
+     "不容挣脱": 10040.0254902867,
+     "余音": 2234.18253674486,
+     "冲锋模式": 51936.5701113414,
+     "回拉": 7104.25700274413,
+     "声浪": 130321.753199302,
+     "定点爆破": 29903.4073436936,
+     "弹匣倾泻": 72856.5393681296,
+     "必须开辟的通路": 17081.9075108337,
+     "抛锚": 60834.4062431745,
+     "掷锚": 83905.8012844851,
+     "海嗣": 11000.2332060781,
+     "深海的回响": 16620.3399086148,
+     "潮汐和声": 26392.6084479978,
+     "跳弹": 28131.384956056,
+     "过载模式": 115468.582240893,
+     "通路洞开": 56836.7850907954,
+     "速射": 56973.7009325819,
+     "锁链回旋": 23117.05165275,
+     "锚击": 94871.3822263122
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 35,
+     "pct": 0.059,
+     "pool": 88,
+     "t": 482
+    },
+    "growth": {
+     "armor": 1,
+     "hp": 1,
+     "sp": 1,
+     "squad_atk": 2,
+     "squad_crit": 2
+    },
+    "heal": {
+     "事件": 0.0,
+     "商店": 0.0,
+     "拾取": 363.85995357337,
+     "无人机": 64.7514999977104,
+     "浊心斯卡蒂": 738.74372102206,
+     "自身回复": 751.429368392976
+    },
+    "heal_offer": 10,
+    "heal_offer_low": 1,
+    "heal_pick": 2,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 6,
+       "slider": 1,
+       "stone": 3
+      },
+      "hp": 441,
+      "hp0": 182,
+      "minhp": 182,
+      "mix": "凿石阵",
+      "n": 10,
+      "t": 75,
+      "t80": 10
+     },
+     {
+      "comp": {
+       "bone": 7,
+       "slider": 6
+      },
+      "hp": 601,
+      "hp0": 172,
+      "minhp": 172,
+      "mix": "滑行群",
+      "n": 13,
+      "t": 165,
+      "t80": 9
+     },
+     {
+      "comp": {
+       "bone": 10,
+       "slider": 5,
+       "stone": 2
+      },
+      "hp": 1200,
+      "hp0": 218,
+      "minhp": 213,
+      "mix": "海嗣先锋",
+      "n": 17,
+      "t": 255,
+      "t80": 9
+     },
+     {
+      "comp": {
+       "bone": 4,
+       "floater": 2,
+       "runner": 3,
+       "slider": 8,
+       "tracer": 2
+      },
+      "hp": 4937,
+      "hp0": 189,
+      "minhp": 189,
+      "mix": "引痕突击",
+      "n": 19,
+      "t": 340,
+      "t80": 7
+     },
+     {
+      "comp": {
+       "bone": 7,
+       "floater": 3,
+       "founder": 2,
+       "nest": 1,
+       "runner": 3,
+       "slider": 7
+      },
+      "hp": 12603,
+      "hp0": 218,
+      "minhp": 121,
+      "mix": "深溟重甲",
+      "n": 23,
+      "t": 445,
+      "t80": 17
+     },
+     {
+      "comp": {
+       "slider": 22,
+       "spitter": 2
+      },
+      "hp": 4231,
+      "hp0": 164,
+      "minhp": 164,
+      "mix": "深海潮",
+      "n": 24,
+      "t": 515,
+      "t80": 6
+     }
+    ],
+    "ingots": 0,
+    "items": {
+     "heal_elite": 13,
+     "heal_low": 1,
+     "heal_mob": 17,
+     "heal_pick": 28,
+     "magnet_elite": 12,
+     "magnet_mob": 11,
+     "magnet_pick": 20,
+     "mob_capped": 1336,
+     "mob_rolled": 1193
+    },
+    "kills": 2554,
+    "lamp": 83,
+    "low_levelups": 1,
+    "lv": 27,
+    "lv_times": [
+     16,
+     32,
+     47,
+     66,
+     83,
+     102,
+     113,
+     131,
+     163,
+     178,
+     208,
+     229,
+     230,
+     267,
+     289,
+     316,
+     350,
+     380,
+     393,
+     434,
+     436,
+     478,
+     506,
+     534,
+     579,
+     640
+    ],
+    "marks": {
+     "120": 8,
+     "300": 16,
+     "480": 23
+    },
+    "maxhp": 249.6,
+    "ops": [
+     {
+      "elite": 2,
+      "id": "ulpianus",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "exusiai",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "skalter",
+      "prog": 6
+     }
+    ],
+    "out": {
+     "不容挣脱": 10040.0254902867,
+     "余音": 2234.18253674486,
+     "冲锋模式": 51936.5701113414,
+     "回拉": 7104.25700274413,
+     "声浪": 130321.753199302,
+     "定点爆破": 29903.4073436936,
+     "弹匣倾泻": 72856.5393681296,
+     "必须开辟的通路": 17081.9075108337,
+     "抛锚": 60834.4062431745,
+     "掷锚": 83905.8012844851,
+     "海嗣": 11000.2332060781,
+     "深海的回响": 16620.3399086148,
+     "潮汐和声": 26392.6084479978,
+     "跳弹": 28131.384956056,
+     "过载模式": 115468.582240893,
+     "通路洞开": 56836.7850907954,
+     "速射": 56973.7009325819,
+     "锁链回旋": 23117.05165275,
+     "锚击": 94871.3822263122
+    },
+    "out_tag": {
+     "aftershock": 29903.4073436936,
+     "area": 625976.398018903,
+     "basic": 533447.711799845,
+     "control": 73981.0675838263,
+     "dot": 33240.6798172291,
+     "entity": 11000.2332060781,
+     "follow_up": 85384.9669255413,
+     "pierce": 124793.109479471,
+     "projectile": 297235.392652947,
+     "ricochet": 28131.384956056,
+     "skill": 368510.351545865,
+     "stun": 17081.9075108337,
+     "summon": 11000.2332060781
+    },
+    "out_type": {
+     "法术": 186569.117298737,
+     "物理": 709061.801454079
+    },
+    "prof": {},
+    "prog_offer": {
+     "exusiai": 9,
+     "skalter": 10,
+     "ulpianus": 6
+    },
+    "prog_pick": {
+     "exusiai": 6,
+     "skalter": 6,
+     "ulpianus": 6
+    },
+    "recall_backstop": 0,
+    "recall_n": 76,
+    "rej": {},
+    "relic_offer": [
+     [
+      66,
+      "choice",
+      [
+       "249",
+       "31",
+       "101"
+      ]
+     ],
+     [
+      121,
+      "shop",
+      [
+       "2",
+       "48",
+       "210"
+      ]
+     ],
+     [
+      153,
+      "choice",
+      [
+       "192",
+       "235",
+       "138"
+      ]
+     ],
+     [
+      169,
+      "choice",
+      [
+       "182",
+       "137",
+       "14"
+      ]
+     ],
+     [
+      229,
+      "choice",
+      [
+       "14",
+       "46",
+       "41"
+      ]
+     ],
+     [
+      301,
+      "shop",
+      [
+       "141",
+       "131",
+       "122"
+      ]
+     ],
+     [
+      349,
+      "choice",
+      [
+       "90",
+       "54",
+       "167"
+      ]
+     ],
+     [
+      378,
+      "choice",
+      [
+       "66",
+       "140",
+       "76"
+      ]
+     ],
+     [
+      384,
+      "choice",
+      [
+       "64",
+       "140",
+       "249"
+      ]
+     ],
+     [
+      434,
+      "choice",
+      [
+       "264",
+       "150",
+       "79"
+      ]
+     ],
+     [
+      437,
+      "choice",
+      [
+       "56",
+       "206",
+       "5"
+      ]
+     ],
+     [
+      458,
+      "choice",
+      [
+       "250",
+       "26",
+       "6"
+      ]
+     ],
+     [
+      465,
+      "choice",
+      [
+       "138",
+       "211",
+       "67"
+      ]
+     ],
+     [
+      482,
+      "shop",
+      [
+       "195",
+       "196",
+       "51"
+      ]
+     ],
+     [
+      537,
+      "choice",
+      [
+       "24",
+       "106",
+       "137",
+       "67"
+      ]
+     ],
+     [
+      579,
+      "choice",
+      [
+       "113",
+       "54",
+       "45",
+       "89"
+      ]
+     ],
+     [
+      593,
+      "choice",
+      [
+       "54",
+       "209",
+       "52",
+       "75"
+      ]
+     ]
+    ],
+    "relic_out": 0.0,
+    "relic_take": [
+     [
+      66,
+      "101",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      121,
+      "2",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      153,
+      "138",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      169,
+      "137",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      229,
+      "41",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      244,
+      "240",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      301,
+      "141",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      301,
+      "131",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      349,
+      "90",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      378,
+      "66",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      384,
+      "64",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      434,
+      "79",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      437,
+      "56",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      458,
+      "26",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      465,
+      "67",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      482,
+      "195",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      482,
+      "196",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      482,
+      "51",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      486,
+      "239",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      537,
+      "67",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      579,
+      "89",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ],
+     [
+      593,
+      "209",
+      [
+       "近卫",
+       "狙击",
+       "辅助"
+      ]
+     ]
+    ],
+    "relics": 21,
+    "squad": [
+     "ulpianus",
+     "exusiai",
+     "skalter"
+    ],
+    "sus": {
+     "m0": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "事件": [
+        0.0,
+        36.4
+       ],
+       "商店": [
+        0.0,
+        72.8
+       ],
+       "拾取": [
+        0.0,
+        458.64
+       ],
+       "浊心斯卡蒂·常驻": [
+        0.546,
+        0.546
+       ],
+       "浊心斯卡蒂·技能": [
+        5.5692,
+        5.5692
+       ]
+      },
+      "lit": 0.0
+     },
+     "m3": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "拾取": [
+        56.5584815345944,
+        524.16
+       ],
+       "浊心斯卡蒂·常驻": [
+        10.4832,
+        10.4832
+       ],
+       "浊心斯卡蒂·技能": [
+        37.627521434434,
+        40.09824
+       ]
+      },
+      "lit": 0.0
+     },
+     "m6": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "拾取": [
+        280.425493522815,
+        550.368
+       ],
+       "浊心斯卡蒂·常驻": [
+        35.30592,
+        35.30592
+       ],
+       "浊心斯卡蒂·技能": [
+        304.06297043065,
+        308.198592
+       ]
+      },
+      "lit": 0.0
+     },
+     "m9": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "拾取": [
+        26.8759785159598,
+        277.056
+       ],
+       "无人机": [
+        64.7514999977104,
+        67.8912
+       ],
+       "浊心斯卡蒂·常驻": [
+        21.3586324642654,
+        21.64032
+       ],
+       "浊心斯卡蒂·技能": [
+        323.79027669271,
+        347.295936
+       ]
+      },
+      "lit": 0.0
+     }
+    },
+    "swaps": [],
+    "t": 646,
+    "terrain": {
+     "bul": 230,
+     "dash": 0,
+     "ebul": 37
+    },
+    "win": true,
+    "xp_backstop": 0.0,
+    "xp_dropped": 12348.3,
+    "xp_ground": 567.5,
+    "xp_magnet": 4449.0,
+    "xp_magnet_min": [
+     5.0,
+     117.5,
+     105.0,
+     414.3,
+     273.8,
+     182.5,
+     410.0,
+     1181.0,
+     945.0,
+     815.0
+    ],
+    "xp_recall": 1466.3,
+    "xp_recall_min": [
+     0.0,
+     0.0,
+     7.5,
+     57.5,
+     81.3,
+     127.5,
+     177.5,
+     110.0,
+     497.5,
+     112.5,
+     295.0
+    ],
+    "xp_total": 11780.8,
+    "xp_total_min": [
+     140.0,
+     406.0,
+     430.0,
+     775.8,
+     767.5,
+     1132.5,
+     1242.5,
+     2034.0,
+     2347.5,
+     1800.0,
+     705.0
+    ],
+    "xp_walk": 5865.5,
+    "xp_walk_min": [
+     135.0,
+     288.5,
+     317.5,
+     304.0,
+     412.5,
+     822.5,
+     655.0,
+     743.0,
+     905.0,
+     872.5,
+     410.0
+    ]
+   }
+  }
+ ]
+}
