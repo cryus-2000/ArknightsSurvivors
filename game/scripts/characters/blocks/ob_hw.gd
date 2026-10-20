@@ -275,6 +275,8 @@ static func hw_draw_floor(o) -> void:
 static func hw_draw_body(o, front: bool) -> void:
 	if not front:
 		_F().hw_draw_look(o, "body")
+		if o.hw.has("wd") and h4_on(o):
+			_F().h4wd_draw_back(o)   # 维什戴尔：魂灵之影在本体身后
 	if o.hw.has("fan"):
 		_F().hw_draw_fan_body(o, front)
 

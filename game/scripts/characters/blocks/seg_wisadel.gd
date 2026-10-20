@@ -709,7 +709,7 @@ static func _h4wd_draw_floor(o) -> void:
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-## 技能上层：彗星弹体（一整条连续轮廓）、残影标记、魂灵之影
+## 技能上层：彗星弹体（一整条连续轮廓）、残影标记（魂灵之影改在本体后层，见 h4wd_draw_back）
 static func _h4wd_draw_over(o) -> void:
 	var cv = o.cv
 	var wd: Dictionary = o.hw.wd
@@ -731,7 +731,7 @@ static func _h4wd_draw_over(o) -> void:
 		cv.draw_colored_polygon(_h4_comet(pts, 7.5 * wk), Color(0.34, 0.03, 0.06, 0.95))
 		cv.draw_colored_polygon(_h4_comet(pts, 4.0 * wk), Color(0.1, 0.01, 0.03, 1.0))
 	_h4wd_draw_marks(o)
-	_h4wd_draw_souls(o)
+	# 魂灵之影不在这里画：10-20 用户要求放在干员身后，改由本体后层 ObHw.hw_draw_body(front=false) 画
 
 
 ## 魂炮的小炮弹（Codex proj_wisadel_soul_shell，沿飞行方向转）；缺图画小一号的彗星
@@ -772,6 +772,12 @@ static func _h4_draw_gift(o, mk: Dictionary, p: Vector2) -> bool:
 		return false
 	var g = o.g
 	return o._fx_strip("fx_wisadel_gift_mark", 6, int(g.t * 10.0 + float(mk.e.id) * 0.5), p)
+
+
+## 本体后层（ObHw.hw_draw_body front=false）：魂灵之影画在维什戴尔身后（10-20 用户：「魂灵之影的图层要在干员的后面」）；
+## 与本体一起按 y 排序，纯画面
+static func h4wd_draw_back(o) -> void:
+	_h4wd_draw_souls(o)
 
 
 static func _h4wd_draw_souls(o) -> void:
