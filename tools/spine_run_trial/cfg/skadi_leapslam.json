@@ -213,8 +213,8 @@
   {
    "hipY": 0.4,
    "hipX": 0.4,
-   "lean": 25,
-   "chest": 8,
+   "lean": 10,
+   "chest": 0,
    "legs": {
     "L": {
      "x": 0.3,
@@ -229,48 +229,86 @@
    },
    "arms": {
     "R": [
-     -100,
-     -45
+     -48,
+     -38
     ],
     "L": [
      -130,
      -150
     ]
    },
-   "weapon": 15,
+   "weapon": 30,
    "front": false,
    "top": [
     "F_R_Arm",
     "F_R_Forearm",
     "F_Weapon",
     "F_R_Hand"
-   ]
+   ],
+   "headKeep": 0.6
   },
   {
-   "hipY": -0.22,
+   "hipY": -0.28,
    "hipX": 0.45,
-   "lean": 30,
-   "chest": 8,
+   "lean": 8,
+   "chest": 0,
    "legs": {
     "L": {
      "ground": true,
-     "x": 0.33,
+     "x": 0.45,
      "foot": 5
     },
     "R": {
      "ground": true,
-     "x": -0.22,
+     "x": -0.32,
      "foot": -20
     }
    },
    "arms": {
     "R": [
-     -105,
-     -65
+     -50,
+     -45
     ],
     "L": [
      -150,
      -170
+    ]
+   },
+   "weapon": -18,
+   "front": false,
+   "top": [
+    "F_R_Arm",
+    "F_R_Forearm",
+    "F_Weapon",
+    "F_R_Hand"
+   ],
+   "headKeep": 0.6
+  },
+  {
+   "hipY": -0.28,
+   "hipX": 0.45,
+   "lean": 8,
+   "chest": 0,
+   "legs": {
+    "L": {
+     "ground": true,
+     "x": 0.45,
+     "foot": 5
+    },
+    "R": {
+     "ground": true,
+     "x": -0.32,
+     "foot": -20
+    }
+   },
+   "arms": {
+    "R": [
+     -52,
+     -48
+    ],
+    "L": [
+     -145,
+     -165
     ]
    },
    "weapon": -20,
@@ -280,43 +318,8 @@
     "F_R_Forearm",
     "F_Weapon",
     "F_R_Hand"
-   ]
-  },
-  {
-   "hipY": -0.25,
-   "hipX": 0.45,
-   "lean": 32,
-   "chest": 8,
-   "legs": {
-    "L": {
-     "ground": true,
-     "x": 0.33,
-     "foot": 5
-    },
-    "R": {
-     "ground": true,
-     "x": -0.22,
-     "foot": -20
-    }
-   },
-   "arms": {
-    "R": [
-     -108,
-     -70
-    ],
-    "L": [
-     -145,
-     -165
-    ]
-   },
-   "weapon": -22,
-   "front": false,
-   "top": [
-    "F_R_Arm",
-    "F_R_Forearm",
-    "F_Weapon",
-    "F_R_Hand"
-   ]
+   ],
+   "headKeep": 0.6
   },
   {
    "hipY": -0.08,
