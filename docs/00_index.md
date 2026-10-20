@@ -113,7 +113,7 @@
 | [55_code_audit](55_code_audit.md) | 代码冗余审计 | 进行中 | 大部分清理已做；§6 剩余项未做 | 35、39、41、56、57、归档14；boss_ai.gd、game.gd、relic_fx.gd 等 21 个文件 |
 | [101_arch_audit_1015](101_arch_audit_1015.md) | 代码框架审计与 C++ 预留 | 进行中 | 10-15 框架问题 / 冗余清单、原生代码切入面与构建约束、阶段 0 / 1 / 2 路线；§7 派活清单、§8 待用户定 | — |
 | [104_pixel_pipeline](104_pixel_pipeline.md) | 干员像素素材流程规范 | 现行规范 | 10-16 定：Codex 静态 f0 / 动画（分层合成）两条线、三层验收、f0 并行 + 人内串行；口径只在 103 改 | 97、103；tools/px_lint.py |
-| [105_op_anim_arch_for_codex](105_op_anim_arch_for_codex.md) | 干员动画接口：现状与 Codex 改造说明 | 进行中 | 10-17：skills.sN 与 skill_pose 合并成一个契约（start / loop / run / attack / end / shadow），交 Codex 改代码；验收同 seed + 逐帧回归 | 87、92、101 |
+| [105_op_anim_arch_for_codex](105_op_anim_arch_for_codex.md) | 干员动画接口：现状与 Codex 改造说明 | 已实施记录 | 核心迁移已在 6b697796 完成；现行契约见 87 §3.5，补齐序列恢复与互斥校验；截图验收仍由界面与美术负责 | 87、92、101 |
 | [106_codebase_overview_for_codex](106_codebase_overview_for_codex.md) | 代码架构总览（给 Codex 改代码） | 现行规范 | 10-17：目录职责、每帧次序、干员数据与动画接口、测试工具、Codex 改代码规则 §6 | 41、36、101、105 |
 | [99_bilibili_toy_faq](99_bilibili_toy_faq.md) | B站 Toy 官方 FAQ | 现行规范 | 官方答疑帖存档（外部参考）+ 本作对照；§0 的数字已过时 | — |
 | [encrypted_release_20260928](encrypted_release_20260928.md) | Windows 加密发行 | 已实施记录 | 换机重建加密模板步骤的唯一出处（33「一次性准备」链到这里） | — |

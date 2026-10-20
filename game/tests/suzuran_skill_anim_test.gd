@@ -33,6 +33,7 @@ func _process(_d: float) -> void:
 		test_s1(o)
 		test_s2(o)
 		test_s3(o)
+		test_sequence_overlap(o)
 		test_mate()
 	print("%d checks, %d failed" % [n, fails])
 	print("SUZURAN SKILL ANIM failures=%d" % fails)
@@ -176,3 +177,23 @@ func test_mate() -> void:
 	ok(m.sq_ph == 0 and m.act_kind == "skill", "队友技能照旧走单条")
 	step(m, 1.0)
 	ok(m.sq_ph == 0, "队友始终不进序列")
+
+
+func test_sequence_overlap(o) -> void:
+	for expires in [false, true]:
+		o.start_skill(Vector2.INF, 2)
+		step(o, 0.3)
+		ok(o.sq_ph == 2, "重叠测试从 S3 循环开始")
+		o.start_skill(Vector2.INF, 1)
+		near(o.attack_t, 1.0 / 14.0 + 0.25, "重叠不改变 S2 出手窗口")
+		near(o.fire_t, 1.0 / 14.0, "重叠不改变 S2 出手时刻")
+		if expires:
+			o.hw.sz.haze_t = 0.0
+		step(o, 0.35)
+		if expires:
+			ok(o.sq_ph == 3 and kind(o) == "skill_s3", "被遮住时结束的 S3 只恢复收势")
+		else:
+			ok(o.sq_ph == 2 and kind(o) == "skill_s3_loop", "S2 序列结束恢复仍生效的 S3 循环")
+			o.hw.sz.haze_t = 0.0
+		step(o, 0.5)
+		ok(o.sq_ph == 0 and kind(o) == "idle", "重叠序列最终回到待机")

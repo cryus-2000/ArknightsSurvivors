@@ -330,6 +330,12 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 				if q.has("hold") and q.has("start"):
 					push_error("干员 %s 的 sprites.skills.%s 不能同时写 hold 与 start" % [cid, sk_])
 					ok = false
+				if q.has("anim") and ["intro", "hold", "start", "enter", "loop", "run", "attack", "end"].any(func(key): return q.has(key)):
+					push_error("干员 %s 的 sprites.skills.%s 单条 anim 不能混写序列字段" % [cid, sk_])
+					ok = false
+				if q.has("start") and not q.has("loop"):
+					push_error("干员 %s 的 sprites.skills.%s 有 start 就要有 loop" % [cid, sk_])
+					ok = false
 				if (q.has("attack") or q.has("run") or q.has("enter")) and (not q.has("loop") or not q.has("start") or q.has("hold")):
 					push_error("干员 %s 的 sprites.skills.%s 的 attack / run / enter 槽需要 start 与 loop，不能用于 hold" % [cid, sk_])
 					ok = false
@@ -1639,6 +1645,7 @@ var sq: Dictionary = {}   # 当前序列定义（空 = 不在序列里）
 var sq_i := -1            # 序列属于哪个技能
 var sq_ph := 0            # 0 无 / 1 起手 / 2 定格或循环 / 3 收势 / 4 纯画面进入
 var sq_t := 0.0           # 当前阶段已播秒数
+var sq_paused: Array[Dictionary] = []   # 被其他技能序列暂时遮住的持续动作（每个技能至多一份）
 var sq_own := false       # 当前出手窗口（attack_t）是序列自己的起手段
 var sq_atk := ""          # 循环期间正在播的普攻变体帧条（"" = 没有）
 var sq_atk_t := -1.0      # 变体从这次普攻起手算起已播秒数（attack_t 归零后继续走；播完清 sq_atk 但保留计时免得同一次普攻再触发；-1 = 下一次普攻从头对齐）
@@ -1700,6 +1707,7 @@ func _start_skill_seq(aim: Vector2, i: int) -> bool:
 	else:
 		var fi: int = frs.find(int(spec.get("fire", 0)))
 		fire_at = (float(fi if fi >= 0 else frs.size() - 1) + 0.5) / fps
+	_sq_pause(i)
 	sq = q
 	sq_i = i
 	sq_ph = 1
@@ -1728,6 +1736,7 @@ func _start_vis_seq(i: int) -> bool:
 	var hk := seq_anim(head)
 	if hk == "" or anim_tex(hk) == null:
 		return false
+	_sq_pause(i)
 	sq = q
 	sq_i = i
 	sq_ph = 1
@@ -1788,6 +1797,14 @@ func _sq_interrupt() -> void:
 	sq_atk_t = -1.0
 
 
+func _sq_pause(i: int) -> void:
+	for n in range(sq_paused.size() - 1, -1, -1):
+		if sq_paused[n].i == i:
+			sq_paused.remove_at(n)
+	if sq_i != i and sq_ph in [2, 4] and not sq.has("hold"):
+		sq_paused.append({"q": sq, "i": sq_i, "ph": sq_ph, "t": sq_t})
+
+
 func _sq_clear() -> void:
 	sq = {}
 	sq_i = -1
@@ -1796,6 +1813,19 @@ func _sq_clear() -> void:
 	sq_own = false
 	sq_atk = ""
 	sq_atk_t = -1.0
+	while not sq_paused.is_empty():
+		var saved: Dictionary = sq_paused.pop_back()
+		sq = saved.q
+		sq_i = int(saved.i)
+		if skill_active_left(sq_i) > 0.0:
+			sq_ph = int(saved.ph)
+			sq_t = float(saved.t)
+			return
+		if _seq_len(sq.get("end")) > 0.0:
+			sq_ph = 3
+			return
+		sq = {}
+		sq_i = -1
 
 
 ## follow() 每帧：推进序列阶段（纯画面）
