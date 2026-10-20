@@ -1,5 +1,5 @@
 ## Mon3tr 爪击特效与熔毁帧条（10-12 起凯尔希是数据干员，Mon3tr 是 blocks.summons.mon3tr 随行召唤物，docs/61 §15.9）：
-## 普通 / 战术协同 / 熔毁 × 朝右 / 朝左各挥一爪，查对应的 vfx 帧条（爪痕 / 猩红月牙）出现且朝左时翻转；熔毁期间攻击帧条换 op_mon3tr_attack_melt。
+## 普通 / 战术协同 / 熔毁 × 朝右 / 朝左各挥一爪；熔毁也必须使用新原生身体，不能回到旧虫形帧条。
 ## --capture-fx 时把每种情况截图到 build/mon3tr_fx_<模式>_<朝向>.png
 extends Node
 const OB = preload("res://scripts/characters/op_blocks.gd")
@@ -63,13 +63,121 @@ func _process(_dt: float) -> void:
 	op.s_t[2] = 1.0
 	OB._mf_patch_tick(op, s, kd, 0.0)
 	var attack_frame: Array = OB._mf_frame(op, s, kd, "attack", 2.0 / 14.0)
-	if attack_frame.is_empty() or attack_frame[0] != load("res://scripts/art.gd").tex("op_mon3tr_attack_melt"):
+	if attack_frame.is_empty() or attack_frame[0] != load("res://scripts/art.gd").tex("op_mon3tr_native_s3"):
 		failures += 1
-		print("MISSING meltdown attack body animation")
+		print("MISSING native meltdown attack body animation")
 	var idle_frame: Array = OB._mf_frame(op, s, kd, "idle", 0.0)
-	if idle_frame.is_empty() or idle_frame[0] != load("res://scripts/art.gd").tex("op_mon3tr_skill"):
+	if idle_frame.is_empty() or idle_frame[0] != load("res://scripts/art.gd").tex("op_mon3tr_native_idle"):
 		failures += 1
-		print("MISSING meltdown idle strip (m_skill)")
+		print("MISSING native meltdown idle strip")
+	if not s.pcur.has("tint") or float(s.pcur.tint[0]) <= float(s.pcur.tint[1]):
+		failures += 1
+		print("MISSING crimson treatment on native meltdown body")
+	op.s_t[2] = 0.0
+	OB._mf_patch_tick(op, s, kd, 0.0)
+	var out_frame: Array = OB._mf_frame(op, s, kd, "idle", 0.0)
+	if out_frame.is_empty() or out_frame[0] != load("res://scripts/art.gd").tex("op_mon3tr_native_idle"):
+		failures += 1
+		print("MISSING native body during meltdown exit recovery")
+	op.perm_on[1] = true
+	OB._mf_patch_tick(op, s, kd, 0.0)
+	var s2_frame: Array = OB._mf_frame(op, s, kd, "attack", 2.0 / 14.0)
+	if s2_frame.is_empty() or s2_frame[0] != load("res://scripts/art.gd").tex("op_mon3tr_native_s2"):
+		failures += 1
+		print("MISSING original Skill mapped to S2")
+	for skill in [1, 2]:
+		op.perm_on[1] = skill == 1
+		op.s_t[2] = 5.0 if skill == 2 else 0.0
+		s.act = 0.0
+		s.cd = 0.0
+		s.lunge_cd = INF
+		s.tgt = {"pos": s.pos + Vector2(20, 0), "dead": false, "r": 5.0}
+		var test_kind: Dictionary = kd.duplicate(true)
+		test_kind.erase("manual")
+		OB.mf_step(op, s, test_kind, 0.0)
+		var visual_slot := "native_m_attack_s2" if skill == 1 else "native_m_attack_melt"
+		if not s.has("visual") or str(s.visual.meta.anim) != visual_slot:
+			failures += 1
+			print("MISSING selected skill timeline S", skill + 1)
+		if not is_equal_approx(float(s.act), 4.0 / 14.0) or not is_equal_approx(float(s.fire), 2.5 / 14.0):
+			failures += 1
+			print("CHANGED gameplay windup for S", skill + 1)
+		g.t += 0.19
+		OB.mf_step(op, s, test_kind, 0.19)
+		var fr: Array = OB._mf_frame(op, s, kd, "attack", float(s.at))
+		var release: int = 5 if skill == 1 else 9
+		if fr.is_empty() or fr[1] != release or not is_equal_approx(float(s.visual.hit), g.t):
+			failures += 1
+			print("MISSING exact native release at actual hit S", skill + 1)
+		if skill == 1:
+			g.t += 0.2
+			OB.mf_step(op, s, test_kind, 0.2)
+			for state in ["idle", "run"]:
+				var recovery: Array = OB._mf_frame(op, s, kd, state, 0.0)
+				if recovery.is_empty() or recovery[0] != load("res://scripts/art.gd").tex("op_mon3tr_native_s2"):
+					failures += 1
+					print("MISSING S2 native recovery in ", state)
+			g.t += 2.0
+			for state in ["idle", "run"]:
+				var resting: Array = OB._mf_frame(op, s, kd, state, 0.0)
+				if resting.is_empty() or resting[0] != load("res://scripts/art.gd").tex("op_mon3tr_native_idle"):
+					failures += 1
+					print("MISSING S2 native rest in ", state)
+	op.s_t[2] = 0.0
+	op.perm_on[1] = false
+	OB._mf_patch_tick(op, s, kd, 0.0)
+	var elite = load("res://scripts/characters/blocks/ob_elite.gd")
+	var data: Dictionary = {"blocks": op.B}
+	for action in ["lunge", "leap"]:
+		var start: Vector2 = g.ppos
+		var finish: Vector2 = start + Vector2(70, 0)
+		s.pos = start
+		op.pfx.clear()
+		var land: Dictionary = {"kind": "lunge", "b": {"r": 40.0, "mult": 0.3, "fx": data.blocks.progression.elite1.lunge.fx}}
+		if action == "leap":
+			land = {"kind": "leap", "then": data.blocks.progression.elite2[1].do[0].then}
+		var duration: float = 0.18 if action == "lunge" else 0.2
+		var landing: float = 0.25 if action == "lunge" else 4.0 / 12.0
+		var rate: float = 14.0 if action == "lunge" else 12.0
+		elite._el_dash_start(op, s, kd, action, finish, duration, 12.0, land)
+		if not is_equal_approx(float(s.dash.t0), landing - duration) or not is_equal_approx(float(s.dash.end), landing + 1.0 / rate):
+			failures += 1
+			print("CHANGED dash start/end timing ", action)
+		for tick in range(3):
+			elite.el_dash_step(op, s, kd, OB.mf_mods(op, "mon3tr"), 0.03)
+		var flight: Array = OB._mf_frame(op, s, kd, action, float(s.at))
+		if flight.is_empty() or flight[0] != load("res://scripts/art.gd").tex("op_mon3tr_native_" + action):
+			failures += 1
+			print("MISSING native dash body ", action)
+		var record: Array = s.dash.hist.back()
+		if record.size() < 5 or not (record[3] is Array) or record[3].is_empty():
+			failures += 1
+			print("MISSING frozen native trail frame ", action)
+		var frozen_index: int = int(record[3][1]) if record.size() > 3 and not record[3].is_empty() else -1
+		var phase: float = clampf((float(s.dash.t) - float(s.dash.t0)) / duration, 0.0, 1.0)
+		var expected: Vector2 = start.lerp(finish, 1.0 - (1.0 - phase) * (1.0 - phase) if action == "lunge" else phase)
+		if not s.pos.is_equal_approx(expected) or not is_equal_approx(float(s.dash.h_now), 12.0 * sin(phase * PI)):
+			failures += 1
+			print("CHANGED dash trajectory ", action)
+		elite.el_dash_step(op, s, kd, OB.mf_mods(op, "mon3tr"), landing + 0.001 - float(s.dash.t))
+		elite.el_dash_step(op, s, kd, OB.mf_mods(op, "mon3tr"), 0.001)
+		if frozen_index < 0 or int(record[3][1]) != frozen_index:
+			failures += 1
+			print("CHANGED historical trail frame after landing ", action)
+		var rings := 0
+		for f in op.pfx:
+			if f.get("name", "") == "fx_mon3tr_slam_ring":
+				rings += 1
+				if not f.pos.is_equal_approx(finish) or not f.get("floor", false):
+					failures += 1
+					print("MOVED landing ring from ground contact ", action, " got=", f.pos, " expected=", finish, " floor=", f.get("floor", false))
+		if rings != 1:
+			failures += 1
+			print("MISSING unique native landing ring ", action)
+		elite.el_dash_step(op, s, kd, OB.mf_mods(op, "mon3tr"), float(s.dash.end) - float(s.dash.t) + 0.001)
+		if s.has("dash") or not s.pos.is_equal_approx(finish) or s.ak != "idle":
+			failures += 1
+			print("CHANGED dash release contract ", action)
 	print("MON3TR FX failures=", failures)
 	op = null
 	g.queue_free()

@@ -328,6 +328,12 @@ static func h3_draw_extra(o, it: Dictionary) -> void:
 			return
 		var n: int = o.anim_hframes(tx, an)
 		var fr: int = int(float(sp.doll_at) * 4.0) % n
+		var native := mf_visual_frame(o, {}, an, float(sp.doll_at))
+		if not native.is_empty():
+			tx = native[0]
+			fr = native[1]
+			n = native[2]
+			an = native[3]
 		var sway: float = sin(float(sp.doll_at) * 2.0) * 1.0
 		o.draw_sprite_at(dp + Vector2(sway, 0), o.face < 0.0, Color(0.95, 0.95, 1.0), fr, tx, n, o.foot_off(tx, an))
 

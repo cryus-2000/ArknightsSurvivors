@@ -790,7 +790,11 @@ static func _h4wd_draw_souls(o) -> void:
 				var fl: bool = tg != null and not tg.dead and tg.pos.x < p.x
 				o._fx_strip("fx_wisadel_soul", 6, 4 + mini(1, int((g.t - float(s.get("gt", g.t))) * 12.0)), p, Vector2(0.5, 0.5), 0.0, Color.WHITE, fl)
 			else:
-				o._fx_strip("fx_wisadel_soul", 6, (int(g.t * 8.0) + i * 2) % 4, p)
+				var native := mf_visual_frame(o, {}, "soul_idle", g.t + i * 0.25)
+				if native.is_empty():
+					o._fx_strip("fx_wisadel_soul", 6, (int(g.t * 8.0) + i * 2) % 4, p)
+				else:
+					o.draw_sprite_at(p, false, Color.WHITE, native[1], native[0], native[2], o.foot_off(native[0], native[3]))
 			continue
 		var tail := PackedVector2Array()
 		for q in 5:

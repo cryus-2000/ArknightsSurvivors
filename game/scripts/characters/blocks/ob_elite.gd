@@ -333,11 +333,11 @@ static func el_dash_step(o, s: Dictionary, kd: Dictionary, mods: Dictionary, dt:
 	s.pos = (d.from as Vector2).lerp(d.to, 1.0 - (1.0 - k) * (1.0 - k) if d.k == "lunge" else k)
 	d.h_now = float(d.h) * sin(k * PI)
 	var hist: Array = d.hist
-	hist.append([float(d.t), s.pos, float(d.h_now)])
+	hist.append([float(d.t), s.pos, float(d.h_now), _mf_frame(o, s, kd, str(d.k), float(d.t)), float(s.face), _mf_col(s.pcur.get("tint", []), EL_GREEN)])
 	if hist.size() > 12:
 		hist.pop_front()
 	if d.k == "leap" and k > 0.0 and k < 1.0 and s.pos.distance_to(prev) > 0.5:   # 跃回：空中拉一道绿色弧形拖尾（逐段淡出）
-		o.fx({"kind": "line", "pos": prev + Vector2(0, -ph - 26.0), "to": s.pos + Vector2(0, -float(d.h_now) - 26.0), "w": 4.0, "life": 0.3, "col": Color(EL_GREEN.r * 1.4, EL_GREEN.g * 1.4, EL_GREEN.b * 1.4)})
+		o.fx({"kind": "line", "pos": prev + Vector2(0, -ph - 52.0), "to": s.pos + Vector2(0, -float(d.h_now) - 52.0), "w": 2.0, "life": 0.18, "col": Color(EL_GREEN.r, EL_GREEN.g, EL_GREEN.b, 0.45)})
 	if not d.done and float(d.t) >= float(d.t0) + float(d.dur):
 		d.done = true
 		_el_land(o, s, kd, mods, d)
@@ -417,15 +417,12 @@ static func el_summon_cmd(o, b: Dictionary, _at: Vector2) -> void:
 		_el_dash_start(o, s, kd, "leap", to, float(b.get("t", 0.25)), float(b.get("h", 46.0)), {"kind": "leap", "then": b.get("then", []), "b": b})
 
 
-## 扑击 / 跃回的残影：前 0.04 / 0.08 / 0.12 秒的位置各画一份绿色剪影（fx_mon3tr_afterimage；缺图时用当前帧染绿）
+## 扑击 / 跃回的残影：前0.04/0.08/0.12秒的真实身体帧、面向与颜色快照，不再加载旧固定剪影。
 static func el_draw_afterimages(o, s: Dictionary, kd: Dictionary, fr: Array, hov: float) -> void:
-	var g = o.g
 	var d: Dictionary = s.dash
 	var hist: Array = d.hist
 	if hist.size() < 2 or float(d.t) < float(d.t0) or float(d.t) > float(d.t0) + float(d.dur) + 0.15:
 		return
-	var tx: Texture2D = g.tex.get("fx_mon3tr_afterimage")
-	var flip: bool = float(s.face) < 0.0
 	var base_h: float = hov + float(d.h_now)
 	for q in [3, 2, 1]:
 		var tq: float = float(d.t) - 0.04 * q
@@ -436,16 +433,13 @@ static func el_draw_afterimages(o, s: Dictionary, kd: Dictionary, fr: Array, hov
 		var p: Vector2 = it[1]
 		if p.distance_to(s.pos) < 4.0:
 			continue
-		var al: float = 0.35 * (1.0 - 0.22 * (q - 1))
+		var al: float = 0.2 * (1.0 - 0.22 * (q - 1))
 		var py: Vector2 = p + Vector2(0, base_h - float(it[2]))
-		if tx != null:
-			var hi: float = ArtS.hires_of(tx)
-			var k: float = g.PX / hi
-			o.cv.draw_set_transform(py.round(), 0.0, Vector2(-k if flip else k, k))
-			o.cv.draw_texture_rect_region(tx, Rect2(-Vector2(32, 60) * hi, Vector2(tx.get_width(), tx.get_height())), Rect2(0, 0, tx.get_width(), tx.get_height()), Color(EL_GREEN.r, EL_GREEN.g, EL_GREEN.b, al))
-			o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		elif not fr.is_empty():
-			o.draw_sprite_at(py, flip != o.sprite_mirror(str(fr[3])), Color(EL_GREEN.r, EL_GREEN.g * 1.2, EL_GREEN.b, al), fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]))
+		var frozen: Array = it[3] if it.size() > 3 else fr
+		var flip: bool = float(it[4]) < 0.0 if it.size() > 4 else float(s.face) < 0.0
+		var shade: Color = it[5] if it.size() > 5 else EL_GREEN
+		if not frozen.is_empty():
+			o.draw_sprite_at(py, flip != o.sprite_mirror(str(frozen[3])), Color(shade.r, shade.g, shade.b, al), frozen[1], frozen[0], frozen[2], o.foot_off(frozen[0], frozen[3]))
 
 
 # ---------------------------------------------------------------- 画面（data_operator._draw_skill_over 转来）

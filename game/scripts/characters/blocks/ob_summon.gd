@@ -1,6 +1,8 @@
 ## 干员积木 · ob_summon（docs/101 §7.3 B6 ①，10-15：由 op_blocks.gd 按段拆出，内容与注释照搬；继承链与门面见 op_blocks.gd）
 extends "res://scripts/characters/blocks/ob_vortex.gd"
 
+const SummonVisual = preload("res://scripts/characters/summon_visual.gd")
+
 
 # ================================================================ 召唤 / 封印 / 护盾 / 治疗光环（docs/61 §15，10-12 通用积木，下一批干员备用）
 # 通用积木，现在还没有正式干员用（测试专用干员 tests/data_ops/sstest.json 演示全部写法）。核心部分只加了几处转发：
@@ -152,6 +154,7 @@ static func _sm_col(o, kd: Dictionary) -> Color:
 static func _sm_end(o, s: Dictionary, why: String) -> void:
 	if s.gone:
 		return
+	SummonVisual.cancel(s)
 	s.gone = true
 	o.sm.list.erase(s)
 	var kd := sm_kind(o, str(s.kind))
@@ -1230,6 +1233,7 @@ static func _mf_patch_tick(o, s: Dictionary, kd: Dictionary, dt: float) -> Dicti
 			idx = i
 			break
 	if idx != int(s.pidx):
+		SummonVisual.cancel(s)
 		var old: int = int(s.pidx)
 		if old >= 0 and old < pl.size() and pl[old].has("seq"):
 			s.pout = float(pl[old].seq.get("out", 0.0))
@@ -1255,7 +1259,7 @@ static func _mf_fx_tick(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
 				continue
 			gh = true
 			if s.ghost.is_empty() or float(s.ghost.t) <= 0.0:
-				s.ghost = {"pos": s.pos, "face": s.face, "ak": s.ak, "at": s.at, "t": float(f.ghost.get("every", 0.12))}
+				s.ghost = {"pos": s.pos, "face": s.face, "ak": s.ak, "at": s.at, "t": float(f.ghost.get("every", 0.12)), "frame": _mf_frame(o, s, kd, str(s.ak), float(s.at))}
 			else:
 				s.ghost.t = float(s.ghost.t) - dt
 			continue
@@ -1287,6 +1291,7 @@ static func mf_step(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
 	var pt := _mf_patch_tick(o, s, kd, dt)
 	_mf_fx_tick(o, s, kd, dt)
 	if s.has("dash"):   # 精英化段：扑击 / 回防跃回中（位移、落地结算、帧条都在 el_dash_step）
+		SummonVisual.cancel(s)
 		_F().el_dash_step(o, s, kd, mods, dt)
 		return
 	var leash: float = float(mv.get("leash", 240.0))
@@ -1311,6 +1316,7 @@ static func mf_step(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
 		tg = ts[0] if not ts.is_empty() else null
 		s.tgt = tg
 	if tg != null and float(s.act) <= 0.0 and not mods.get("lunge", {}).is_empty() and _F().el_lunge_try(o, s, kd, tg, mods.lunge):   # 精英化段：扑击
+		SummonVisual.cancel(s)
 		return
 	var want: Vector2 = rest
 	if tg != null:
@@ -1356,12 +1362,15 @@ static func mf_step(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
 		var fps: float = float(spec.get("fps", 14))
 		s.act = float(spec.get("frames", 4)) / fps
 		s.fire = (float(spec.get("fire", 2)) + 0.5) / fps
+		var visual_key: String = str(s.pcur.get("anim", {}).get("attack", kd.get("anim", _ED).get("attack", "")))
+		SummonVisual.start(s, o.sprite_spec(visual_key).get("visual", {}), g.t, float(s.fire))
 		_mf_set_anim(s, "attack")
 	_mf_set_anim(s, "attack" if float(s.act) > 0.0 else ("run" if float(s.mv) > 30.0 else "idle"))
 	s.at = float(s.at) + dt
 
 
 static func _mf_strike(o, s: Dictionary, kd: Dictionary) -> void:
+	SummonVisual.hit(s, o.g.t)
 	s.swing = -float(s.swing)
 	_mf_claw(o, s, kd, 1.0, false)
 	var th: Dictionary = mf_mods(o, str(s.kind)).then
@@ -1448,6 +1457,10 @@ static func _mf_frame(o, s: Dictionary, kd: Dictionary, ak: String, at: float) -
 		sq = pl[int(s.pold)].get("seq", {})
 	if not sq.is_empty() and not ak in ["attack", "lunge", "leap"]:   # lunge / leap：精英化段（扑击 / 跃回）照播自己的帧条
 		var key: String = str(sq.get("strip", ""))
+		if o.sprite_spec(key).has("visual"):
+			var native := mf_visual_frame(o, s, key, float(s.pt))
+			if not native.is_empty():
+				return native
 		var tx: Texture2D = o.anim_tex(key)
 		if tx != null:
 			var n: int = o.anim_hframes(tx, key)
@@ -1463,12 +1476,17 @@ static func _mf_frame(o, s: Dictionary, kd: Dictionary, ak: String, at: float) -
 				var ln: int = maxi(1, int(lp[1]) - l0 + 1)
 				fr = int(el * fps) if el < intro else l0 + int((el - intro) * fps) % ln
 			return [tx, clampi(fr, 0, n - 1), n, key]
+	var pa: Dictionary = pt.get("anim", {})
+	var visual_key: String = str(pa.get(ak, an.get(ak, an.get("idle", ""))))
+	if not ak in ["lunge", "leap"] and (not pa.has(ak) or o.sprite_spec(visual_key).has("visual")):
+		var native := mf_visual_frame(o, s, visual_key, at, ak != "attack")
+		if not native.is_empty():
+			return native
 	var base_key: String = str(an.get(ak, an.get("idle", "")))
 	var dash: bool = ak in ["lunge", "leap"]
 	if dash and o.anim_tex(base_key) == null:   # 精英化段：扑击 / 跃回帧条缺图时用 run 代替（位移与残影照旧）
 		base_key = str(an.get("run", an.get("idle", "")))
 		dash = false
-	var pa: Dictionary = pt.get("anim", {})
 	var tx2: Texture2D = o.anim_tex(str(pa.get(ak, base_key)))
 	if tx2 == null:
 		tx2 = o.anim_tex(base_key)
@@ -1481,6 +1499,27 @@ static func _mf_frame(o, s: Dictionary, kd: Dictionary, ak: String, at: float) -
 	else:
 		fr2 = int(at * float(o.sprite_spec(base_key).get("fps", 4))) % n2
 	return [tx2, fr2, n2, base_key]
+
+
+## Opt-in native body; attack recovery is independent of the controller's act/ak.
+static func mf_visual_frame(o, s: Dictionary, key: String, elapsed: float, loop: bool = true) -> Array:
+	var meta: Dictionary = o.sprite_spec(key).get("visual", {})
+	if s.has("visual"):
+		var source_time: float = SummonVisual.time(s, o.g.t)
+		var active: Dictionary = s.visual.meta
+		if source_time < float(active.duration):
+			meta = active
+			elapsed = source_time
+			loop = false
+		else:
+			SummonVisual.cancel(s)
+	if meta.is_empty():
+		return []
+	var native_key: String = str(meta.anim)
+	var tx: Texture2D = o.anim_tex(native_key)
+	if tx == null:
+		return []
+	return [tx, SummonVisual.frame(meta, elapsed, loop), o.anim_hframes(tx, native_key), native_key]
 
 
 ## 画一个随行召唤物（sm_draw 转来）：残影 → 身后红雾 → 本体（按状态帧条、悬浮起伏、patch 染色）→ 两侧爪刃
@@ -1498,7 +1537,7 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 		if not (f is Dictionary) or not fx_on(o, f):
 			continue
 		if f.has("ghost") and not s.ghost.is_empty() and s.ghost.pos.distance_to(s.pos) > 3.0:
-			var gf := _mf_frame(o, s, kd, str(s.ghost.ak), float(s.ghost.at))
+			var gf: Array = s.ghost.get("frame", [])
 			if not gf.is_empty():
 				o.draw_sprite_at(s.ghost.pos + Vector2(0, hov), (float(s.ghost.face) < 0.0) != o.sprite_mirror(str(gf[3])), _mf_col(f.ghost.get("tint", []), Color(1, 1, 1, 0.35)), gf[1], gf[0], gf[2], o.foot_off(gf[0], gf[3]))
 		elif f.has("mist"):

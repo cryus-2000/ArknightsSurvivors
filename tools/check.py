@@ -903,6 +903,7 @@ SCENE_REGRESSIONS = {
     "mizuki_runtime": ("水月完整出手、持续状态、退出与成长", "mizuki_runtime_test", r"MIZUKI RUNTIME .* 0 failed", ["--balance", "--seed=1", "--op=mizuki", "--squad=skadi"]),
     "mizuki_skill_anim": ("水月原生像素起手、命中、收势和持续变体", "mizuki_skill_anim_test", r"MIZUKI SKILL ANIM failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
     "run_stats": ("作战记录：统计守恒（占比合计 100%、来源相加、按干员拆 = dmg_out）+ 界面打开 / 导航 / 桌面与手机排版", "run_stats_test", r"RUN STATS failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
+    "summon_visual": ("Summon visual clock and native source timeline", "summon_visual_test", r"SUMMON VISUAL failures=0", []),
     "summon_seal_blocks": ("召唤 / 封印 / 护盾 / 治疗光环积木（docs/61 §15，测试专用干员 sstest）", "summon_seal_blocks_test", r"SUMMON SEAL BLOCKS failures=0", ["--balance", "--op=sstest"]),
     "op_dummy": ("干员木桩表场景（docs/79）：队友身份 + 怪群 5 秒自检", "op_dummy_test", r"OP DUMMY failures=0",
                  ["--balance", "--bot=afk", "--nodeath", "--op=hoshiguma", "--squad=wisadel", "--dummy_op=wisadel", "--dummy_role=mate",

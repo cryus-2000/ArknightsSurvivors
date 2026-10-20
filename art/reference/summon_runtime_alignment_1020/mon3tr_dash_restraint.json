@@ -1,0 +1,154 @@
+{
+  "combat_data_identical_after_visual_normalization": "b40d98d1",
+  "dash_assets": [
+    {
+      "action": "lunge",
+      "frames": 6,
+      "fps": 14,
+      "landing_time": 0.25,
+      "boxes": [
+        [
+          80,
+          73,
+          174,
+          171
+        ],
+        [
+          73,
+          73,
+          177,
+          179
+        ],
+        [
+          49,
+          69,
+          207,
+          177
+        ],
+        [
+          72,
+          72,
+          191,
+          169
+        ],
+        [
+          81,
+          73,
+          191,
+          164
+        ],
+        [
+          80,
+          73,
+          174,
+          171
+        ]
+      ],
+      "sha256": "930e0ac903ae509d7c533f63c3b3816b0bc7b0804c019ebb56f82717ef35f8a9"
+    },
+    {
+      "action": "leap",
+      "frames": 6,
+      "fps": 12,
+      "landing_time": 0.3333333333333333,
+      "boxes": [
+        [
+          80,
+          73,
+          174,
+          171
+        ],
+        [
+          71,
+          58,
+          190,
+          183
+        ],
+        [
+          75,
+          62,
+          187,
+          179
+        ],
+        [
+          72,
+          60,
+          184,
+          173
+        ],
+        [
+          99,
+          69,
+          187,
+          171
+        ],
+        [
+          80,
+          73,
+          174,
+          171
+        ]
+      ],
+      "sha256": "6aaa81ef1c9fef64c7dba84b6f876e7ded70fbb14df63f6c6b201e0047bc2c24"
+    }
+  ],
+  "original_part_recomposition_checks": 273,
+  "melt": {
+    "source": "C:\\Users\\colafax\\.codex\\generated_images\\01a14d70-7b78-7fb2-9f0d-db01439113f0\\exec-99928a85-10ee-4ccf-bd94-739d5b270e70.png",
+    "source_sha256": "ba99f1b473a3fa54f0c833815867ce505faf1cfb66482da3b2c063f3f3a6d0d2",
+    "cells": "four uniform columns; common square padding, no independent fitting",
+    "frames": 4,
+    "fps": 16,
+    "frame_size": [
+      96,
+      96
+    ],
+    "origin": [
+      48,
+      48
+    ],
+    "palette": [
+      [
+        61,
+        9,
+        12
+      ],
+      [
+        108,
+        13,
+        17
+      ],
+      [
+        151,
+        21,
+        25
+      ],
+      [
+        187,
+        33,
+        35
+      ],
+      [
+        222,
+        68,
+        54
+      ]
+    ],
+    "opaque_pixels_per_frame": [
+      20,
+      96,
+      173,
+      11
+    ],
+    "old_peak_pixels": 3546,
+    "new_peak_ratio": 0.048787366046249295,
+    "runtime_alpha": 0.65
+  },
+  "acceptance": {
+    "technical": true,
+    "key_pose_review": true,
+    "engine_key_frames": true,
+    "continuous_normal_slow_user_review": "pending",
+    "user_visual_approval": false
+  }
+}
