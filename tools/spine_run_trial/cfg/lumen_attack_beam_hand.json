@@ -1,0 +1,296 @@
+{
+ "id": "lumen",
+ "src": "lumen.src.json",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "action": "attack_beam_hand",
+ "poses": [
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 0,
+    "F_R_Forearm": 0,
+    "F_R_Hand": 0,
+    "F_Chest": 0,
+    "F_Head": 0,
+    "F_Hip": 0,
+    "F_R_Shawl4": 0
+   },
+   "mark": [
+    "C_Light"
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 30,
+    "F_R_Forearm": 30,
+    "F_R_Hand": 0,
+    "F_Chest": 1,
+    "F_Head": 0,
+    "F_Hip": 0,
+    "F_R_Shawl4": -30
+   },
+   "mark": [
+    "C_Light"
+   ],
+   "carry": {
+    "C_Light": [
+     "F_R_Hand",
+     0,
+     -6
+    ],
+    "F_Weapon": [
+     "F_L_Hand",
+     4,
+     30,
+     -105
+    ]
+   },
+   "carryAngle": 2,
+   "top": [
+    "C_Light",
+    "F_R_Hand",
+    "F_R_Finger"
+   ],
+   "hide": [
+    "C_Kasa_Annex2"
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 140,
+    "F_R_Forearm": 10,
+    "F_R_Hand": 0,
+    "F_Chest": 6,
+    "F_Head": -3,
+    "F_Hip": 3,
+    "F_R_Shawl4": -140
+   },
+   "mark": [
+    "C_Light"
+   ],
+   "carry": {
+    "C_Light": [
+     "F_R_Hand",
+     0,
+     -6
+    ],
+    "F_Weapon": [
+     "F_L_Hand",
+     4,
+     30,
+     -105
+    ]
+   },
+   "carryAngle": 2,
+   "top": [
+    "C_Light",
+    "F_R_Hand",
+    "F_R_Finger"
+   ],
+   "hide": [
+    "C_Kasa_Annex2"
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 105,
+    "F_R_Forearm": 0,
+    "F_R_Hand": 0,
+    "F_Chest": -6,
+    "F_Head": 4,
+    "F_Hip": -9,
+    "F_R_Shawl4": -105
+   },
+   "mark": [
+    "C_Light"
+   ],
+   "carry": {
+    "C_Light": [
+     "F_R_Hand",
+     0,
+     -6
+    ],
+    "F_Weapon": [
+     "F_L_Hand",
+     4,
+     30,
+     -105
+    ]
+   },
+   "carryAngle": 2,
+   "top": [
+    "C_Light",
+    "F_R_Hand",
+    "F_R_Finger"
+   ],
+   "hide": [
+    "C_Kasa_Annex2"
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 100,
+    "F_R_Forearm": 4,
+    "F_R_Hand": 0,
+    "F_Chest": -2,
+    "F_Head": -1,
+    "F_Hip": -6,
+    "F_R_Shawl4": -100
+   },
+   "mark": [
+    "C_Light"
+   ],
+   "carry": {
+    "C_Light": [
+     "F_R_Hand",
+     0,
+     -6
+    ],
+    "F_Weapon": [
+     "F_L_Hand",
+     4,
+     30,
+     -105
+    ]
+   },
+   "carryAngle": 2,
+   "top": [
+    "C_Light",
+    "F_R_Hand",
+    "F_R_Finger"
+   ],
+   "hide": [
+    "C_Kasa_Annex2"
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 108,
+    "F_R_Forearm": 0,
+    "F_R_Hand": 0,
+    "F_Chest": 2,
+    "F_Head": -1,
+    "F_Hip": -5,
+    "F_R_Shawl4": -108
+   },
+   "mark": [
+    "C_Light"
+   ],
+   "carry": {
+    "C_Light": [
+     "F_R_Hand",
+     0,
+     -6
+    ],
+    "F_Weapon": [
+     "F_L_Hand",
+     4,
+     30,
+     -105
+    ]
+   },
+   "carryAngle": 2,
+   "top": [
+    "C_Light",
+    "F_R_Hand",
+    "F_R_Finger"
+   ],
+   "hide": [
+    "C_Kasa_Annex2"
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 50,
+    "F_R_Forearm": 20,
+    "F_R_Hand": 0,
+    "F_Chest": 0,
+    "F_Head": 0,
+    "F_Hip": 0,
+    "F_R_Shawl4": -50
+   },
+   "mark": [
+    "C_Light"
+   ],
+   "carry": {
+    "C_Light": [
+     "F_R_Hand",
+     0,
+     -6
+    ],
+    "F_Weapon": [
+     "F_L_Hand",
+     4,
+     30,
+     -105
+    ]
+   },
+   "carryAngle": 2,
+   "top": [
+    "C_Light",
+    "F_R_Hand",
+    "F_R_Finger"
+   ],
+   "hide": [
+    "C_Kasa_Annex2"
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 0,
+    "F_R_Forearm": 0,
+    "F_R_Hand": 0,
+    "F_Chest": 0,
+    "F_Head": 0,
+    "F_Hip": 0,
+    "F_R_Shawl4": 0
+   },
+   "mark": [
+    "C_Light"
+   ]
+  }
+ ]
+}

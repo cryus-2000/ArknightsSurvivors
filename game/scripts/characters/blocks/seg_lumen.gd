@@ -75,9 +75,17 @@ static func _h3_lantern_start(o, a: Dictionary, dt: float) -> void:
 	var every: float = float(a.get("every", 1.0)) / o.stat(&"op_aspd")
 	if not ts.is_empty() or float(lm.heal_t) >= float(hb.get("every", 3.0)):
 		o.cd = every
-		o.start_attack(ts[0].pos if not ts.is_empty() else o.g.ppos)
+		o.start_attack(ts[0].pos if not ts.is_empty() else o.g.ppos, 0.5, 0.25, _h3_lantern_anim(o, lm, ts))
 	else:
 		o.cd = o.idle_cd(every)
+
+
+## 这一发若是精二灯塔光柱（已充满、有目标），起手播光柱帧条（与 attack 同时长、同出手时刻，纯画面）
+static func _h3_lantern_anim(o, lm: Dictionary, ts: Array) -> String:
+	var bm = o.B.get("attack", _ED).get("beam", null)
+	if ts.is_empty() or not (bm is Dictionary) or int(lm.get("empowered", 0)) <= 0 or not cond_true(o, bm.get("cond", _ED)):
+		return ""
+	return "attack_beam" if o.sprite_spec("attack_beam").has("frames") else ""
 
 
 static func _h3_lantern_release(o, a: Dictionary) -> void:

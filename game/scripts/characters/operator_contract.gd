@@ -28,6 +28,15 @@ static func errors(d: Dictionary) -> Array:
 		var p := "sprites.%s" % key
 		if v.has("attack_timing") and not valid_attack_timing(v):
 			out.append("V1 %s.attack_timing 无效（duration / fire_time / active_ratio / windup_ratio 为正、fire_time < duration、0 < fire < frames）" % p)
+		if v.has("logic"):   # docs/108 §4：[旧帧数, 旧 fps, 旧出手帧]，与画面的 frame_durations / fire_time 对得上（1e-6 内）
+			var lg = v.logic
+			if not (lg is Array) or lg.size() != 3 or not lg.all(func(x): return _num(x)) or float(lg[0]) <= 0.0 or float(lg[1]) <= 0.0 or float(lg[2]) < 0.0 or float(lg[2]) >= float(lg[0]):
+				out.append("V7 %s.logic 须是 [旧帧数, 旧 fps, 旧出手帧]" % p)
+			elif v.has("frame_durations") and v.frame_durations is Array:
+				var tot := 0.0
+				for x in v.frame_durations: tot += float(x)
+				if absf(tot - float(lg[0]) / float(lg[1])) > 0.000001 or (v.has("fire_time") and absf(float(v.fire_time) - (float(lg[2]) + 0.5) / float(lg[1])) > 0.000001):
+					out.append("V7 %s.logic 与 frame_durations 总长 / fire_time 不一致" % p)
 		if v.has("frame_durations") and not valid_frame_durations(v):
 			out.append("V7 %s.frame_durations 无效（长度 = frames、每帧正秒数、fire_time 在总时长内）" % p)
 		elif v.has("frame_durations") and v.has("fire_time") and v.has("fire"):
@@ -137,8 +146,11 @@ static func _native(d: Dictionary, sp: Dictionary, _extras: Array, out: Array) -
 		out.append("V4 native_motion 须是字典")
 		return
 	for k in nm:
-		if not str(k) in ["_doc", "clips", "variants", "states", "exits"]:
-			out.append("V4 native_motion.%s 不认识（只有 clips / variants / states / exits）" % k)
+		if not str(k) in ["_doc", "clips", "variants", "states", "exits", "yield"]:
+			out.append("V4 native_motion.%s 不认识（只有 clips / variants / states / exits / yield）" % k)
+	var yl = nm.get("yield", [])
+	if not (yl is Array) or not yl.all(func(x): return x is String):
+		out.append("V4 native_motion.yield 须是帧条名数组")
 	var clips = nm.get("clips", {})
 	if not (clips is Dictionary):
 		out.append("V4 native_motion.clips 须是 {槽: 秒}")
@@ -147,8 +159,10 @@ static func _native(d: Dictionary, sp: Dictionary, _extras: Array, out: Array) -
 			if not _num(clips[slot]) or float(clips[slot]) <= 0.0:
 				out.append("V4 native_motion.clips.%s 须是正秒数" % slot)
 	for v in nm.get("variants", []):
-		if not (v is Dictionary) or not v.get("slot") is String or not v.get("use") is String or not (v.get("perm") is int or v.get("perm") is float) or int(v.perm) < 0 or int(v.perm) > 2:
-			out.append("V4 native_motion.variants 每条须是 {slot, perm: 0–2, use}")
+		var by_perm: bool = v is Dictionary and (v.get("perm") is int or v.get("perm") is float) and int(v.perm) >= 0 and int(v.perm) <= 2
+		var by_node: bool = v is Dictionary and v.get("node") is String and str(v.node) != ""
+		if not (v is Dictionary) or not v.get("slot") is String or not v.get("use") is String or by_perm == by_node:
+			out.append("V4 native_motion.variants 每条须是 {slot, use} 加 perm: 0–2 或 node: 成长节点 id（二选一）")
 	for r in nm.get("states", []):
 		if not (r is Dictionary) or not r.get("on") is String or str(r.get("on", "")) == "" or not r.get("slot") is String:
 			out.append("V4 native_motion.states 每条须有 on 与 slot")

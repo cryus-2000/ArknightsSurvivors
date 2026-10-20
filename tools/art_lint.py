@@ -97,6 +97,16 @@ WAIVERS = {
     ('hoshiguma', 'run'): "10-20 原生骨架跑步（抬腿口径同推进之王），三角大盾挡住上身与大半剪影，上身 / 剪影变化指标偏低；用户 10-20 看过候选「没什么问题」",
     **{('hoshiguma', 'ground', a): "10-20 原生根骨：鞋底最低像素行 119（@2x），与逻辑脚底边界 120 差 1，不逐帧挪图（同推进之王 / 乌尔比安）"
        for a in ['idle', 'run', 'attack', 'skill', 's1', 's1_guard', 's1_counter', 's3_start', 's3_loop', 's3_end', 'throw', 'catch']},
+    # 10-20 凯尔希本体 / 流明 / 艾丽妮：原作 cb_18 条 + Spine 部件新做条（用户逐条看过候选，tools/probes/package_kaltsit_lumen_irene.py）
+    ('kaltsit', 'outline'): "10-20 原生附件暗色收边，不重描旧 #080E18 黑壳（package_kaltsit_lumen_irene.py）",
+    ('lumen', 'outline'): "10-20 原生附件暗色收边，不重描旧 #080E18 黑壳（同上）",
+    ('irene', 'outline'): "10-20 原生附件暗色收边，不重描旧 #080E18 黑壳（同上）",
+    ('kaltsit', 'run'): "10-20 Spine 步态脚本跑步，头顶起伏 ±1 @2x（docs/plans/2026-10-20-spine-run-trial.md 口径）；旧 48 区域指标的起伏阈值不适用",
+    ('lumen', 'run'): "10-20 同上；提包与白色前襟遮住大半腿部，腿部变化指标偏低属造型（用户看过候选）",
+    ('irene', 'run'): "10-20 同上；披风后拖，前倾按步态脚本",
+    ('kaltsit', 'ground'): "10-20 鞋底贴原点：最低像素行 59（@2x 第 119 行）、脚底边界 60，同推进之王 / 能天使原生口径",
+    ('lumen', 'ground'): "10-20 同上；待机 / S3 提包与灯垂到脚底下 1–2 像素属原作姿势",
+    ('irene', 'ground'): "10-20 同上；S3 起手跃起与空中连射本就离地",
     # 10-20 用户要求接入既有原生部件像素；保留原始指标，例外不代表视觉验收通过。
     ('siege', 'outline'): "10-20 原生附件暗色收边，不重描旧 #080E18 黑壳；来源像素哈希见 siege_ulpianus_native_sources.json",
     ('ulpianus', 'outline'): "10-20 原生附件暗色收边，不重描旧 #080E18 黑壳；同原生接入交接",
@@ -570,8 +580,8 @@ def lint_op(op, acts, art=ART, prev=None):
         n1, n2 = lo.shape[1] / w1, hi.shape[1] / (w1 * 2)
         if _body(act, cfg) and cfg.get("_canvas") and w1 == h1 and h1 not in (cfg["_canvas"], cfg["_canvas"] + 32, cfg["_canvas"] + 64):
             bad.append("%s 单帧 %d 与 json sprites.size %d 不符（应为 size 或 size + 32 / 64 透明加边，docs/108 V3）" % (act, h1, cfg["_canvas"]))
-        if _body(act, cfg) and (h1, h2) not in ((48, 96), (64, 128), (96, 192)):
-            bad.append("%s 单帧高 %d/%d（应 48/96、64/128 或 96/192）" % (act, h1, h2))
+        if _body(act, cfg) and (h1, h2) not in ((48, 96), (64, 128), (96, 192), (128, 256)):
+            bad.append("%s 单帧高 %d/%d（应 48/96、64/128、96/192 或 128/256，docs/108 §5）" % (act, h1, h2))
         if h2 != 2 * h1 or n1 != int(n1) or n2 != n1:
             bad.append("%s 尺寸 %dx%d / %dx%d 不成帧条" % (act, lo.shape[1], h1, hi.shape[1], h2))
         if cfg.get("frames") and cfg["frames"] != n1:

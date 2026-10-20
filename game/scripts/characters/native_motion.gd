@@ -1,7 +1,8 @@
 ## Native body presentation reads gameplay phases; it never schedules hits or movement.
 ## 数据驱动（docs/108 §3.5）：json 顶层 native_motion 声明
 ##   clips    {槽: 秒}            起手（_start_action）后按秒数整条播一遍的原生动作
-##   variants [{slot, perm, use}] 起手槽 slot 在技能 perm（零基）永久生效时换播 use
+##   variants [{slot, perm | node, use}] 起手槽 slot 在技能 perm（零基）永久生效、或已选成长节点 node 时换播 use
+##   yield    [槽]              这些帧条（手写段的收尾动作等）正在播时不覆盖
 ##   states   [{on, slot, from, to, rate | loop}]  按顺序取第一条命中的：
 ##              on = "act:<槽>"：该动作窗口内；否则匹配手写段 native_signals() 的信号名（等于 on 或以 on + "." 开头）
 ##              帧 = from + min(to - from, int(k × rate))，k 为信号进度 0–1；loop = true 按该槽帧时长循环播
@@ -20,7 +21,8 @@ static func started(o) -> void:
 	var slot: String = o.act_anim
 	if o.act_kind == "attack":
 		for v in _nm(o).get("variants", []):
-			if str(v.slot) == slot and o.perm[int(v.perm)]:
+			var tk = o.get("taken")
+			if str(v.slot) == slot and (o.perm[int(v.perm)] if v.has("perm") else (tk is Array and str(v.node) in tk)):
 				slot = str(v.use)
 				break
 	o.native_motion["clip"] = slot if _nm(o).get("clips", {}).has(slot) else ""
@@ -65,7 +67,7 @@ static func _signal_k(signals: Dictionary, on: String) -> float:
 	return 0.0
 
 static func state(o, st: Dictionary) -> Dictionary:
-	if not enabled(o) or st.is_empty() or st.kind in ["death", "hurt"]: return st
+	if not enabled(o) or st.is_empty() or st.kind in ["death", "hurt"] or st.kind in _nm(o).get("yield", []): return st
 	var signals: Dictionary = o.native_signals()
 	for r in _nm(o).get("states", []):
 		var on: String = str(r.on)
@@ -83,10 +85,12 @@ static func state(o, st: Dictionary) -> Dictionary:
 		return pose(o, slot, from + mini(to - from, int(_signal_k(signals, on) * float(r.get("rate", 0.0)))), st)
 	var n: Dictionary = o.native_motion
 	var slot: String = str(n.get("clip", ""))
-	if slot == "": return st
+	if slot == "" or int(o.get("sq_ph")) != 0: return st   # 技能序列（不经 _start_action 起手）期间不让上一个 clip 盖住
 	var start: int = int(n.get("from", 0))
 	var duration: float = float(n.get("tail", .16)) if start > 0 else float(_nm(o).get("clips", {}).get(slot, 0.0))
 	if float(n.get("t", 0.0)) >= duration: return st
 	var hf: int = int(o.sprite_spec(slot).get("frames", 8))
+	if start == 0 and o.sprite_spec(slot).has("frame_durations") and absf(o.frames_seconds(slot, range(hf)) - duration) < 0.000001:
+		return pose(o, slot, o.timed_frame(slot, range(hf), float(n.t)), st)   # clip 秒数 = 逐帧时长总和时按逐帧播（艾丽妮三段刺：刺出帧对准各段命中）；否则均匀播
 	var fr: int = start + int(float(n.t) / maxf(duration, .001) * (hf - start))
 	return pose(o, slot, fr, st)

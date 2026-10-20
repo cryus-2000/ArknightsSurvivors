@@ -1,0 +1,181 @@
+{
+ "id": "kaltsit",
+ "src": "kaltsit.src.json",
+ "action": "command",
+ "name": "凯尔希",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_Thigh_L",
+   "F_Calf_L",
+   "F_Foot_L"
+  ],
+  "R": [
+   "F_Thigh_R",
+   "F_Calf_R",
+   "F_Foot_R"
+  ]
+ },
+ "footExtra": {
+  "L": [
+   "F_Foot_L2",
+   "F_Foot_L3"
+  ],
+  "R": [
+   "F_Foot_R2",
+   "F_Foot_R3"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_Arm_L",
+   "F_Forearmn_L",
+   "F_Hand_L"
+  ],
+  "R": [
+   "F_Arm_R",
+   "F_Forearm_R",
+   "F_Hand_R_III"
+  ]
+ },
+ "poses": [
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_Arm_L": 0,
+    "F_Forearmn_L": 0,
+    "F_Hand_L": 0,
+    "F_Chest": 0,
+    "F_Head": 0,
+    "F_Arm_R": 0,
+    "F_Forearm_R": 0
+   }
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_Arm_L": 50,
+    "F_Forearmn_L": 70,
+    "F_Hand_L": 10,
+    "F_Chest": 4,
+    "F_Head": -3,
+    "F_Arm_R": -3,
+    "F_Forearm_R": 3
+   },
+   "top": [
+    "F_Arm_L",
+    "F_Forearmn_L",
+    "F_Hand_L"
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_Arm_L": 95,
+    "F_Forearmn_L": 30,
+    "F_Hand_L": 0,
+    "F_Chest": 0,
+    "F_Head": 0,
+    "F_Arm_R": -5,
+    "F_Forearm_R": 5
+   },
+   "top": [
+    "F_Arm_L",
+    "F_Forearmn_L",
+    "F_Hand_L"
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_Arm_L": 122,
+    "F_Forearmn_L": -12,
+    "F_Hand_L": -5,
+    "F_Chest": -6,
+    "F_Head": 4,
+    "F_Arm_R": -7,
+    "F_Forearm_R": 7
+   },
+   "top": [
+    "F_Arm_L",
+    "F_Forearmn_L",
+    "F_Hand_L"
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_Arm_L": 126,
+    "F_Forearmn_L": -14,
+    "F_Hand_L": -8,
+    "F_Chest": -7,
+    "F_Head": 5,
+    "F_Arm_R": -7,
+    "F_Forearm_R": 7
+   },
+   "top": [
+    "F_Arm_L",
+    "F_Forearmn_L",
+    "F_Hand_L"
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_Arm_L": 124,
+    "F_Forearmn_L": -12,
+    "F_Hand_L": -6,
+    "F_Chest": -6,
+    "F_Head": 4,
+    "F_Arm_R": -6,
+    "F_Forearm_R": 6
+   },
+   "top": [
+    "F_Arm_L",
+    "F_Forearmn_L",
+    "F_Hand_L"
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_Arm_L": 80,
+    "F_Forearmn_L": 25,
+    "F_Hand_L": 0,
+    "F_Chest": -2,
+    "F_Head": 2,
+    "F_Arm_R": -3,
+    "F_Forearm_R": 3
+   },
+   "top": [
+    "F_Arm_L",
+    "F_Forearmn_L",
+    "F_Hand_L"
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_Arm_L": 25,
+    "F_Forearmn_L": 10,
+    "F_Hand_L": 0,
+    "F_Chest": 0,
+    "F_Head": 0,
+    "F_Arm_R": 0,
+    "F_Forearm_R": 0
+   }
+  }
+ ]
+}

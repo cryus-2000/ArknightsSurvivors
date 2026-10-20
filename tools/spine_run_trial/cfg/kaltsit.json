@@ -37,7 +37,8 @@
  "params": {
   "lean": 8,
   "armAmp": 28,
-  "elbow": 55
+  "elbow": 55,
+  "bob": 0.65
  },
  "footExtra": {
   "L": [

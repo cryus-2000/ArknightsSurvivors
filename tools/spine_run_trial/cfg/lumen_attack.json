@@ -1,0 +1,278 @@
+{
+ "id": "lumen",
+ "src": "lumen.src.json",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "action": "attack",
+ "poses": [
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 0,
+    "F_R_Forearm": 0,
+    "F_Chest": 0,
+    "F_Head": 0
+   },
+   "mark": [
+    "C_Light"
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 0,
+    "F_R_Forearm": 0,
+    "F_Chest": 0,
+    "F_Head": 0
+   },
+   "mark": [
+    "C_Light"
+   ],
+   "take": {
+    "anim": "Attack",
+    "t": 0.05,
+    "bones": [
+     "F_R_Arm"
+    ]
+   },
+   "tip": {
+    "C_Light": [
+     "C_Kasa2",
+     "F_R_Hand",
+     -30,
+     0
+    ]
+   },
+   "carryAngle": 2,
+   "top": [
+    "C_Light"
+   ],
+   "tipDir": [
+    1,
+    0.4
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 50,
+    "F_R_Forearm": 0,
+    "F_Chest": 3,
+    "F_Head": -2
+   },
+   "mark": [
+    "C_Light"
+   ],
+   "take": {
+    "anim": "Attack",
+    "t": 0.1,
+    "bones": [
+     "F_R_Arm"
+    ]
+   },
+   "tip": {
+    "C_Light": [
+     "C_Kasa2",
+     "F_R_Hand",
+     -30,
+     0
+    ]
+   },
+   "carryAngle": 2,
+   "top": [
+    "C_Light"
+   ],
+   "tipDir": [
+    1,
+    0.4
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 38,
+    "F_R_Forearm": 0,
+    "F_Chest": -3,
+    "F_Head": 2
+   },
+   "mark": [
+    "C_Light"
+   ],
+   "take": {
+    "anim": "Attack",
+    "t": 0.1,
+    "bones": [
+     "F_R_Arm"
+    ]
+   },
+   "tip": {
+    "C_Light": [
+     "C_Kasa2",
+     "F_R_Hand",
+     -30,
+     0
+    ]
+   },
+   "carryAngle": 2,
+   "top": [
+    "C_Light"
+   ],
+   "tipDir": [
+    1,
+    0.4
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 38,
+    "F_R_Forearm": -2,
+    "F_Chest": -4,
+    "F_Head": 3
+   },
+   "mark": [
+    "C_Light"
+   ],
+   "take": {
+    "anim": "Attack",
+    "t": 0.1,
+    "bones": [
+     "F_R_Arm"
+    ]
+   },
+   "tip": {
+    "C_Light": [
+     "C_Kasa2",
+     "F_R_Hand",
+     -30,
+     0
+    ]
+   },
+   "carryAngle": 2,
+   "top": [
+    "C_Light"
+   ],
+   "tipDir": [
+    1,
+    0.4
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 36,
+    "F_R_Forearm": 0,
+    "F_Chest": 1,
+    "F_Head": -1
+   },
+   "mark": [
+    "C_Light"
+   ],
+   "take": {
+    "anim": "Attack",
+    "t": 0.1,
+    "bones": [
+     "F_R_Arm"
+    ]
+   },
+   "tip": {
+    "C_Light": [
+     "C_Kasa2",
+     "F_R_Hand",
+     -30,
+     0
+    ]
+   },
+   "carryAngle": 2,
+   "top": [
+    "C_Light"
+   ],
+   "tipDir": [
+    1,
+    0.4
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 20,
+    "F_R_Forearm": 0,
+    "F_Chest": 1,
+    "F_Head": 0
+   },
+   "mark": [
+    "C_Light"
+   ],
+   "take": {
+    "anim": "Attack",
+    "t": 0.06,
+    "bones": [
+     "F_R_Arm"
+    ]
+   },
+   "tip": {
+    "C_Light": [
+     "C_Kasa2",
+     "F_R_Hand",
+     -30,
+     0
+    ]
+   },
+   "carryAngle": 2,
+   "top": [
+    "C_Light"
+   ],
+   "tipDir": [
+    1,
+    0.4
+   ]
+  },
+  {
+   "anim": "Idle",
+   "t": 0,
+   "rot": {
+    "F_R_Arm": 0,
+    "F_R_Forearm": 0,
+    "F_Chest": 0,
+    "F_Head": 0
+   },
+   "mark": [
+    "C_Light"
+   ]
+  }
+ ]
+}

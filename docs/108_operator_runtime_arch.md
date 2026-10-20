@@ -95,7 +95,8 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 ```json
 "native_motion": {
   "clips":    {"attack": 0.667, "attack_s2": 0.667},          // 起手（_start_action）后整条播的秒数
-  "variants": [{"slot": "attack", "perm": 1, "use": "attack_s2"}],  // 普攻时技能 perm 永久生效 → 换播 use
+  "variants": [{"slot": "attack", "perm": 1, "use": "attack_s2"}],  // 普攻时技能 perm 永久生效 → 换播 use；或 {"node": "<成长节点 id>"}（已选该节点）
+  "yield":    ["finisher"],                                       // 这些帧条正在播时不覆盖（手写段收尾动作）
   "states": [                                                 // 按序取第一条命中的
     {"on": "tether.reel", "slot": "tether_native", "from": 3, "to": 4, "rate": 2},  // 帧 = from + min(to-from, int(k×rate))
     {"on": "tether",      "slot": "tether_native", "from": 1, "to": 2, "rate": 2},  // on 匹配信号名或其「族.」前缀
@@ -105,7 +106,7 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 }
 ```
 
-帧数一律取槽的 `frames`（不再写死 8）。校验见 V4 / V8。新人若有 Spine 原生姿势：手写段加一个 `*_native_signals`（只读自己的状态、写进 out），其余全填 json。
+帧数一律取槽的 `frames`（不再写死 8）；clip 秒数等于该槽 `frame_durations` 总和时按逐帧时长播，否则均匀播。校验见 V4 / V8。新人若有 Spine 原生姿势：手写段加一个 `*_native_signals`（只读自己的状态、写进 out），其余全填 json。
 
 ## 4. json 字段表（现行）
 
@@ -116,6 +117,7 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | `S.<slot>.{tex,frames,fps,foot,fire}` | 帧条槽；`fire` 零基出手帧 | validate_operator / art_lint | 全员 |
 | `S.<slot>.frame_durations[]` | 每帧秒数，长度 = frames；完整条求和与 frames/fps 相等时按名义值（不改物理帧数） | `valid_frame_durations` | exusiai eyja logos saria siege suzuran ulpianus wisadel |
 | `S.<slot>.fire_time` | 出手 / 事件时刻，替代 `(fire+0.5)/fps` | 同上（< 总时长） | 同上 + mizuki |
+| `S.<slot>.logic` = [旧帧数, 旧 fps, 旧出手帧] | 换新条但不改玩法时：逻辑窗口 = 旧帧数 / 旧 fps、出手 = (旧出手帧 + 0.5) / 旧 fps，与旧条逐位相同；此时 frame_durations / fire_time 只管画面。**原因**：Godot 解析 json 长小数不逐位精确（0.20833333333333334 → …37），用它们定逻辑会让同 seed 偶尔差一帧（10-20 艾丽妮 seed 2 第 91 秒分叉） | V7（与 frame_durations 总长 / fire_time 差 ≤ 1e-6） | kaltsit lumen irene |
 | `S.attack.attack_timing{duration,fire_time,active_ratio,windup_ratio[,min_duration,min_rest]}` | 普攻随攻速压缩的完整动作（§3.1） | `valid_attack_timing`（**只查 `attack` 槽**） | mizuki saria suzuran wisadel |
 | `S.<slot>.muzzles[帧][发]` | 逐帧炮口 [x,y]，随 face 镜像 | `h4_phase_validate`（只炮击） | wisadel s2_attack / s2_over_attack |
 | `S.<slot>.<点名>[帧]`、`pt_foot` | 逐帧定位点（盾心 `shield`、手 `hand`、炮口 `muzzles`）；一律经 `sprite_point_at(槽, 点名, 帧, 组内序号)` 换世界坐标（含 pt_foot、flip / mirror、draw_scale；画面点加 draw_off，玩法点不加） | V5 / V6 / V9 | hoshiguma、ulpianus、wisadel |
@@ -173,8 +175,11 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | 斯卡蒂（10-20 claude/skadi-integrate） | 64 + 96 | frame_durations + fire_time（窗口沿用旧条，同 seed 不变） | 无（S3 `swap_attack` 用 attack_spin；S2 skill 槽借 leap_strike 帧条） | talent `vis_anim: backslash` | Codex cz 原生 idle / attack / death + Claude Spine 脚本 run / leap_strike / attack_spin / backslash |
 | 安洁莉娜 | 48（新序列、旧画布） | fire | s3 start/enter/loop/run/attack/end | — | 帧条待重画 |
 | 安洁莉娜 | 64 + 96（attack） | frame_durations、fire_time（出手时刻同旧条） | s3 start/enter/loop/run/attack/end | 次数 / 永久默认绑定 | 10-20 原作条 + dl 步态跑步；浮空离地 9 像素烘进帧条（`tools/probes/package_angelina.py`） |
+| 凯尔希（本体） | 64 | frame_durations + fire_time（时长 / 出手同旧条） | 无（S2 / S3 `command`） | — | S1 复用 attack 条；Mon3tr 不动（10-20） |
+| 流明 | 64 | frame_durations + fire_time | s2 单条、s3 start/loop/run/end | — | 普攻 / 精二光柱手提灯举向敌人；光弹出生点 `hand` 改 [20, -37]（灯心，用户 10-20 定，会改同 seed）；光柱一发起手播 `attack_beam`（seg_lumen） |
+| 艾丽妮 | 64 + 96 + 128 | frame_durations + fire_time；attack 保留 fps 12 / fire 3 / second 5（段间隔 2/12 不变） | s2 单条、s3 start/loop/end | native_motion：variants `node: retrial` → 12 帧三段刺 `attack_retrial`；`yield: [finisher]` | 裂潮余波 finisher 9 帧 16 fps、fire 1 |
 
-其余 8 人（星熊、艾丽妮、凯尔希、流明、斯卡蒂、浊心斯卡蒂、归溟幽灵鲨、德克萨斯）仍是 48 旧口径，见 §9。
+其余（星熊、斯卡蒂、浊心斯卡蒂、归溟幽灵鲨、德克萨斯）仍是 48 旧口径，见 §9；凯尔希 / 流明 / 艾丽妮 10-20 已换（上表）。
 
 ## 7. 旧口径 ↔ 新口径冲突清单
 

@@ -885,6 +885,7 @@ SCENE_REGRESSIONS = {
     "wisadel_s2": ("维什戴尔两阶段群攻与四连发", "wisadel_s2_test", r"WISADEL S2 checks=.*failures=0", ["--balance", "--seed=1", "--op=wisadel"]),
     "texas_contract": ("新契约只填 json 试点（德克萨斯）", "texas_contract_test", r"TEXAS CONTRACT failures=0", ["--balance", "--seed=1", "--op=texas"]),
     "wisadel_soul": ("维什戴尔魂灵之影原生身体时间线", "wisadel_soul_test", r"WISADEL SOUL failures=0", ["--balance", "--seed=1", "--op=wisadel"]),
+    "klc_contract": ("凯尔希本体 / 流明 / 艾丽妮新条：出手时刻逐位同旧条、三段刺 / 光柱换条", "klc_contract_test", r"KLC CONTRACT failures=0", ["--balance", "--seed=1", "--op=irene"]),
     "logos_projectiles": ("逻各斯交替弹体与 S1 符文", "logos_projectile_test", r"LOGOS PROJECTILES failures=0", ["--balance", "--seed=1", "--op=logos"]),
     "three_operator_art": ("能天使 / 艾雅法拉 / 逻各斯原生帧条接线", "three_operator_art_test", r"THREE OPERATOR ART failures=0", ["--balance", "--seed=1", "--op=exusiai", "--squad=eyjafjalla,logos"]),
     "attack_timing": ("三人完整攻击与攻速时序", "attack_timing_test", r"ATTACK TIMING checks=.*failures=0", ["--balance", "--seed=1", "--op=wisadel", "--squad=saria,suzuran"]),
