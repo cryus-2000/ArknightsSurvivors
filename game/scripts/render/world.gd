@@ -116,7 +116,7 @@ func update_visuals(dt: float) -> void:
 		g.sprite.modulate = Color(3.0, 3.0, 3.0)
 	elif g.hurt_flash > 0.0:
 		g.sprite.modulate = Color(1.0, 0.4, 0.4)
-	elif g.invuln > 0.0 and int(g.invuln * 20.0) % 2 == 0:
+	elif g.invuln > maxf(0.0, g.invuln_move_until - g.t) + 0.001 and int(g.invuln * 20.0) % 2 == 0:   # 技能位移的短暂无敌不闪（闪烁 0.6 透明在空中翻转时读成虚化）
 		g.sprite.modulate = Color(1, 1, 1, 0.6)
 	else:
 		g.sprite.modulate = Color.WHITE

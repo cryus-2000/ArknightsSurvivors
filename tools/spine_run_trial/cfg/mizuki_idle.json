@@ -1,0 +1,132 @@
+{
+ "id": "mizuki",
+ "src": "mizuki.src.json",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand_Close"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand_Close"
+  ]
+ },
+ "leadLeg": "L",
+ "hold": "L",
+ "weapon": "F_Umbrella_Close",
+ "params": {
+  "lean": 10,
+  "headKeep": 0.5,
+  "stride": 1.3,
+  "lift": 1.25,
+  "bob": 1.0,
+  "holdAmp": 10
+ },
+ "secondary": [
+  {
+   "match": "^F_B_Hair_([1-9]|1[0-7])$",
+   "amp": 3,
+   "drag": 4
+  },
+  {
+   "match": "^F_[LR]_Hair_(Long|Short)[0-9_]*$",
+   "amp": 2.5,
+   "drag": 3
+  },
+  {
+   "match": "^F_M_Hair[0-9]*$",
+   "amp": 2,
+   "drag": 2
+  },
+  {
+   "match": "^F_B_Coat[0-9]*$",
+   "amp": 4,
+   "drag": 7,
+   "lag": 1.2
+  },
+  {
+   "match": "^F_F_L_Coat[0-9]*$",
+   "amp": 3,
+   "drag": 4
+  },
+  {
+   "match": "^F_Hat_String(_?[0-9])*$",
+   "amp": 5,
+   "drag": 8,
+   "lag": 1.3
+  },
+  {
+   "match": "^F_[LR]_Tie[0-9]*$",
+   "amp": 4,
+   "drag": 6
+  },
+  {
+   "match": "^F_Chest_String[0-9]*$",
+   "amp": 3,
+   "drag": 4
+  }
+ ],
+ "sample": {
+  "anim": "Idle",
+  "times": [
+   0.0,
+   0.166667,
+   0.333333,
+   0.5,
+   0.666667,
+   0.833333,
+   1.0,
+   1.166667,
+   1.333333,
+   1.5,
+   1.666667,
+   1.833333,
+   2.0,
+   2.166667,
+   2.333333,
+   2.5,
+   10.666666,
+   10.8,
+   10.933333,
+   11.066666,
+   11.2,
+   11.333333,
+   11.466666,
+   11.6,
+   11.733333,
+   11.866666,
+   12.0,
+   12.133333,
+   12.266666,
+   12.4,
+   12.533333,
+   12.666666,
+   12.8,
+   12.933333,
+   13.066666,
+   13.2
+  ]
+ },
+ "canvas": 192,
+ "action": "idle_resample",
+ "name": "水月 · 原生 Idle 重采样（两轮呼吸 + 末段转伞，10-21）"
+}
