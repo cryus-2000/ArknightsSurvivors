@@ -1012,6 +1012,7 @@ func _sfx_win() -> void:
 			d[n] = [k, int(Sfx.sfx_by[n][1]) - int(pr[1])]
 		sfx_win_prev[n] = [int(Sfx.sfx_by[n][0]), int(Sfx.sfx_by[n][1])]
 	print("SFXWIN t=%d %s" % [int(sfx_win_t), JSON.stringify(d)])
+	print("SFXOP t=%d %s" % [int(sfx_win_t), JSON.stringify(Sfx.sfx_op)])   # 累计：干员动作 -> 实际文件 / 音量 / 音高
 
 
 func _perf_sample() -> void:
