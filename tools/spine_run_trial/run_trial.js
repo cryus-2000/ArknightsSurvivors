@@ -178,6 +178,9 @@ async function main() {
     if (cfg.weapon && hold) {
       const w = get(sk, cfg.weapon), grip = get(sk, cfg.arms[hold][2]);
       rotate(sk, w, (cfg.holdPose?.weapon ?? weaponBase) - f * P.lean * P.weaponLean + P.weaponSway * Math.sin(2 * phi - 1.0) - ang(w), [grip.worldX, grip.worldY]);
+      // grip：武器局部坐标里的握把点；原姿势手不在握把上时（斯卡蒂大剑立在身后），把握把点移到手上
+      const g = cfg.holdPose?.grip;
+      if (g) move(sk, w, grip.worldX - (w.worldX + w.a * g[0] + w.b * g[1]), grip.worldY - (w.worldY + w.c * g[0] + w.d * g[1]));
     }
   }
 

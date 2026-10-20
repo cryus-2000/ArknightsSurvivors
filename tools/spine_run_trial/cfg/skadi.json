@@ -70,8 +70,12 @@
   }
  ],
  "holdPose": {
-  "upper": -112,
-  "fore": 5,
-  "weapon": -148
+  "upper": -110,
+  "fore": -25,
+  "weapon": -150,
+  "grip": [
+   -40,
+   0
+  ]
  }
 }
