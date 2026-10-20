@@ -1,0 +1,98 @@
+{
+  "mapping_approved_by_user": "2026-10-20: original Skill = S2; original Skill_2 = S3",
+  "construction": "existing native attachment-only exports; no image generation or silhouette editing",
+  "idle_and_exit": "native Idle; S3 multiplies RGB by [2.0,0.33,0.23] at runtime",
+  "gameplay_release": 0.17857142857142858,
+  "gameplay_action": 0.2857142857142857,
+  "assets": [
+    {
+      "skill": 2,
+      "source_action": "Skill",
+      "file": "op_mon3tr_native_s2@2x.png",
+      "frames": 13,
+      "times": [
+        0.0,
+        0.08333333333333333,
+        0.16666666666666666,
+        0.25,
+        0.3333333333333333,
+        0.36666667461395264,
+        0.4166666666666667,
+        0.5,
+        0.5833333333333334,
+        0.6666666666666666,
+        0.75,
+        0.8333333333333334,
+        0.9166666666666666
+      ],
+      "duration": 1,
+      "event": 0.36666667461395264,
+      "event_frame": 5,
+      "frame_size": [
+        256,
+        256
+      ],
+      "origin": [
+        128,
+        184
+      ],
+      "foot_1x": [
+        64,
+        92
+      ],
+      "sha256": "179dfebee4e67563d3af64987cae33fcea271e9439472d31943454d0e2c657a7",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\de_summon_style_alignment_1020\\mon3tr\\Skill\\full_motion_strip.png",
+      "source_unchanged": true
+    },
+    {
+      "skill": 3,
+      "source_action": "Skill_2",
+      "file": "op_mon3tr_native_s3@2x.png",
+      "frames": 17,
+      "times": [
+        0.0,
+        0.07916666567325592,
+        0.15833333134651184,
+        0.23749999701976776,
+        0.3166666626930237,
+        0.3958333283662796,
+        0.4749999940395355,
+        0.5541666597127914,
+        0.6333333253860474,
+        0.6666666865348816,
+        0.7124999910593033,
+        0.7916666567325592,
+        0.8708333224058151,
+        0.949999988079071,
+        1.029166653752327,
+        1.1083333194255829,
+        1.1874999850988388
+      ],
+      "duration": 1.2666666507720947,
+      "event": 0.6666666865348816,
+      "event_frame": 9,
+      "frame_size": [
+        256,
+        256
+      ],
+      "origin": [
+        128,
+        184
+      ],
+      "foot_1x": [
+        64,
+        92
+      ],
+      "sha256": "590686b355b393701e7cc94bc32d32b09066f62ddd08c542e446f56b10605c5b",
+      "source": "E:\\ArknightsSurvivors\\.worktrees\\codex-art\\art\\incoming\\de_summon_style_alignment_1020\\mon3tr\\Skill_2\\full_motion_strip.png",
+      "source_unchanged": true
+    }
+  ],
+  "qa": {
+    "native_sources_identical": true,
+    "binary_alpha": true,
+    "unclipped_256_frames": true,
+    "normalized_json_identical_to": "315dd1a6",
+    "user_visual_acceptance": "pending"
+  }
+}

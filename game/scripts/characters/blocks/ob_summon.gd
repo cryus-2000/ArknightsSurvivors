@@ -1362,7 +1362,8 @@ static func mf_step(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
 		var fps: float = float(spec.get("fps", 14))
 		s.act = float(spec.get("frames", 4)) / fps
 		s.fire = (float(spec.get("fire", 2)) + 0.5) / fps
-		SummonVisual.start(s, spec.get("visual", {}), g.t, float(s.fire))
+		var visual_key: String = str(s.pcur.get("anim", {}).get("attack", kd.get("anim", _ED).get("attack", "")))
+		SummonVisual.start(s, o.sprite_spec(visual_key).get("visual", {}), g.t, float(s.fire))
 		_mf_set_anim(s, "attack")
 	_mf_set_anim(s, "attack" if float(s.act) > 0.0 else ("run" if float(s.mv) > 30.0 else "idle"))
 	s.at = float(s.at) + dt
@@ -1456,6 +1457,10 @@ static func _mf_frame(o, s: Dictionary, kd: Dictionary, ak: String, at: float) -
 		sq = pl[int(s.pold)].get("seq", {})
 	if not sq.is_empty() and not ak in ["attack", "lunge", "leap"]:   # lunge / leap：精英化段（扑击 / 跃回）照播自己的帧条
 		var key: String = str(sq.get("strip", ""))
+		if o.sprite_spec(key).has("visual"):
+			var native := mf_visual_frame(o, s, key, float(s.pt))
+			if not native.is_empty():
+				return native
 		var tx: Texture2D = o.anim_tex(key)
 		if tx != null:
 			var n: int = o.anim_hframes(tx, key)
@@ -1471,8 +1476,10 @@ static func _mf_frame(o, s: Dictionary, kd: Dictionary, ak: String, at: float) -
 				var ln: int = maxi(1, int(lp[1]) - l0 + 1)
 				fr = int(el * fps) if el < intro else l0 + int((el - intro) * fps) % ln
 			return [tx, clampi(fr, 0, n - 1), n, key]
-	if not ak in ["lunge", "leap"] and pt.get("anim", {}).is_empty():
-		var native := mf_visual_frame(o, s, str(an.get(ak, an.get("idle", ""))), at, ak != "attack")
+	var pa: Dictionary = pt.get("anim", {})
+	var visual_key: String = str(pa.get(ak, an.get(ak, an.get("idle", ""))))
+	if not ak in ["lunge", "leap"] and (not pa.has(ak) or o.sprite_spec(visual_key).has("visual")):
+		var native := mf_visual_frame(o, s, visual_key, at, ak != "attack")
 		if not native.is_empty():
 			return native
 	var base_key: String = str(an.get(ak, an.get("idle", "")))
@@ -1480,7 +1487,6 @@ static func _mf_frame(o, s: Dictionary, kd: Dictionary, ak: String, at: float) -
 	if dash and o.anim_tex(base_key) == null:   # 精英化段：扑击 / 跃回帧条缺图时用 run 代替（位移与残影照旧）
 		base_key = str(an.get("run", an.get("idle", "")))
 		dash = false
-	var pa: Dictionary = pt.get("anim", {})
 	var tx2: Texture2D = o.anim_tex(str(pa.get(ak, base_key)))
 	if tx2 == null:
 		tx2 = o.anim_tex(base_key)
