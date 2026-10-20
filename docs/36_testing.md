@@ -574,3 +574,14 @@ main 6aa19849 起干员帧改按帧条自身尺寸 / json 里的 `foot` 读（�
 
 如实记录：这一节不是真实测试过程中途断电的进度存档，而是会话一开始就被要求中断，所以没有可汇报的测试结果。下一位接手者请从 `docs/41` 交接队列重新确认任务范围再开始。
 
+### 12.1 后续接手（同一分支 `claude/test-newart`，第二次中断，2026-10-20）
+
+接手后已确认任务范围（9 人新美术局内实测 + 15 人同 seed 基线刷新，docs/108 §6/§9/§11），着手执行，但再次收到「电脑马上断电」的中断指令，如实记录实际进度：
+
+- **任务 1（9 人新美术截图）**：写了临时通用截图脚本 `game/tests/_tmp_newart_capture.gd`（+ `.tscn`）覆盖 wisadel/saria/suzuran/mizuki/logos/eyjafjalla/exusiai 七人，`siege`/`ulpianus` 计划复用现成的 `siege_ulpianus_art_capture.gd`；配套一次性跑批脚本 `tools/_tmp_newart_runner.py`。实际只跑了一次，且传参写错（误传 `--capture-op=all` 而不是让脚本内置的默认 7 人列表生效），脚本报 `op not found all`、**没有产出任何截图**——`build/newart_1020/` 下只有一个空的 `all/` 目录，没有任何 PNG。**9 人全部未测**，0 张截图，0 条问题记录（因为还没有看到任何画面）。
+- **任务 2（15 人同 seed 基线刷新）**：未开始，`build/trace_cache/` 未清理，未跑过任何一次 `tools/trace_base.py`。
+- 当前工作树 / build 状态：`game/tests/_tmp_newart_capture.gd(.tscn)`、`tools/_tmp_newart_runner.py` 为未跟踪文件，保留在工作树里供下一位接手直接用（已知的参数 bug：跑全部 7 人时**不要**传 `--capture-op=`，直接不带这个参数跑 `tools/_tmp_newart_runner.py capture <随便一个占位值，脚本内部会忽略并用默认 7 人列表>`，或者改好 runner 让它不强制传 `--capture-op`）；`build/newart_1020/all/`（空目录）可以删掉重来。跑的时候看到两个本机已有的 Godot 进程（PID 57364 / 37056），**不是本会话启动的**，中断时没有去动它们（遵守「不按进程名杀 Godot，只杀自己的 PID」的规则）。
+- 本次中断前没有执行任何 `git add` / `git commit`（文档改动只到这一节为止），没有 push，没有合并 main。
+
+下一位接手请：① 先修好 `_tmp_newart_capture.gd` / `_tmp_newart_runner.py` 的调用参数再重跑 9 人截图；② 完成后再做任务 2 的基线刷新；③ 两项都完成后才整理 §13（新美术问题记录）与 §8 基线登记行；④ 过程文件（临时脚本、`build/newart_1020/`、`build/trace_cache/` 的变化）按任务要求不进 git，只提交 `docs/36_testing.md`。
+
