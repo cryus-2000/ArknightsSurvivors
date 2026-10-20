@@ -62,6 +62,7 @@ func _ready() -> void:
 			o.perm[1] = true
 			o.start_attack(o.pos + Vector2(120, 0))
 			check(o.anim_state().kind == "attack_s2", "permanent S2 uses its native strike")
+			check_impact(o)
 	print("SIEGE ULPIANUS ART failures=", fails)
 	for o in g.squad.ops:
 		o.hw.clear()
@@ -83,3 +84,38 @@ func _ready() -> void:
 			player.queue_free()
 	await get_tree().create_timer(0.1).timeout
 	get_tree().quit(1 if fails else 0)
+
+func check_impact(o) -> void:
+	var rules = load("res://scripts/characters/op_blocks.gd")
+	var before: Array = o.g.rng_states()
+	o.pfx.clear()
+	o.g.fx.clear()
+	rules._hw_slam_fx(o, o.pos + Vector2(80, 0), 180.0, 1.6)
+	var waves := 0
+	var water := 0
+	for f in o.pfx + o.g.fx:
+		check(str(f.kind) != "ring" and str(f.kind) != "crack", "impact avoids full generic rings and heavy global cracks")
+		if str(f.kind) == "ulp_wave":
+			waves += 1
+			check(bool(f.get("floor", false)), "shock stays on ground layer")
+		if str(f.get("name", "")) == "fx_splash_blue":
+			water += 1
+			check(not bool(f.get("floor", false)), "water has separate foreground lifetime")
+	check(waves == 1 and water == 1, "one restrained wave and one splash per impact")
+	check(before == o.g.rng_states(), "impact consumes no gameplay RNG")
+	var seen_wave := false
+	var inspect_entries: Array = [o.B]
+	while not inspect_entries.is_empty():
+		var obj = inspect_entries.pop_back()
+		if obj is Dictionary:
+			check(str(obj.get("strip", "")) != "fx_ulpianus_pull_ring", "pull avoids sixfold bitmap enlargement")
+			if obj.has("sprite") and obj.sprite is Dictionary:
+				check(str(obj.sprite.get("name", "")) != "fx_circle_steel", "Ulpianus no longer enlarges low-resolution rings")
+			if obj.has("pfx") and obj.pfx is Dictionary:
+				check(str(obj.pfx.get("kind", "")) != "ring", "Ulpianus authored effects use broken arcs")
+				seen_wave = seen_wave or str(obj.pfx.get("kind", "")) == "ulp_wave"
+			for v in obj.values():
+				if v is Dictionary or v is Array: inspect_entries.append(v)
+		elif obj is Array:
+			inspect_entries.append_array(obj)
+	check(seen_wave, "follow-up shock uses same visual family")

@@ -65,6 +65,11 @@ func _ready() -> void:
 			"anchor_phase": o.hw.get("anchor", {}).get("phase", ""),
 			"leap": o.hw.get("sg", {}).get("leap_t", -1.0), "fire_left": o.fire_t,
 			"position": [o.pos.x, o.pos.y], "target_hp": target.get("hp", 0.0)})
+		if id == "ulpianus" and frame in [48, 168, 332, 333, 338, 339]:
+			var fx := []
+			for f in g.fx + o.pfx:
+				fx.append({"kind": f.kind, "name": f.get("name", ""), "scale": f.get("scale", f.get("sc", 0)), "r": f.get("r", 0), "life": f.life})
+			samples[-1]["fx"] = fx
 		var selected := frame < 100 or (frame >= 155 and frame < 190) or (frame >= 235 and frame < 275) or (frame >= 315 and frame < 370) or frame >= 480
 		if not selected: continue
 		g.queue_redraw()
@@ -82,6 +87,8 @@ func _ready() -> void:
 	var file := FileAccess.open(output.path_join("evidence.json"), FileAccess.WRITE)
 	file.store_string(JSON.stringify({"operator": id, "fps": 20, "frames": 540, "kinds": kinds.keys(), "samples": samples, "missing": missing}))
 	file.close()
+	if id == "ulpianus":
+		await capture_doctor(g, output)
 	print("NATIVE ART CAPTURE ", id, " kinds=", kinds.keys(), " missing=", missing, " failures=", missing.size())
 	for enemy in g.enemies:
 		for key in ["partner", "owner", "spawned_after", "core"]: enemy.erase(key)
@@ -106,3 +113,23 @@ func _ready() -> void:
 			player.queue_free()
 	await get_tree().create_timer(0.1).timeout
 	get_tree().quit(0 if missing.is_empty() else 1)
+
+func capture_doctor(g, output: String) -> void:
+	var samples := []
+	for action in ["idle", "run", "death"]:
+		g.state = g.S.DEAD if action == "death" else g.S.PLAY
+		g.doc_moving = action == "run"
+		g.world.anim_name = ""
+		for i in (20 if action == "idle" else 16):
+			g.world.update_doctor_anim(0.05)
+			g.queue_redraw()
+			g.fx_add.queue_redraw()
+			g.fg.queue_redraw()
+			await get_tree().process_frame
+			await RenderingServer.frame_post_draw
+			var im := get_viewport().get_texture().get_image()
+			assert(im.save_png(output.path_join("doctor_%s_%02d.png" % [action, i])) == OK)
+			samples.append({"action": action, "i": i, "frame": g.sprite.frame, "height": g.sprite.texture.get_height(), "offset": [g.sprite.offset.x, g.sprite.offset.y]})
+	var file := FileAccess.open(output.path_join("doctor_evidence.json"), FileAccess.WRITE)
+	file.store_string(JSON.stringify({"fps": 20, "scope": "Paused scene sampling of the real Doctor renderer", "samples": samples}))
+	file.close()
