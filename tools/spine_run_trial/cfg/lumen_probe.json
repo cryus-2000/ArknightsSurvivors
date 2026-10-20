@@ -1,0 +1,68 @@
+{
+ "id": "lumen",
+ "src": "lumen.src.json",
+ "action": "probe",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "poses": [
+  {
+   "anim": "Attack",
+   "t": 0
+  },
+  {
+   "anim": "Attack",
+   "t": 0.19
+  },
+  {
+   "anim": "Attack",
+   "t": 0.3
+  },
+  {
+   "anim": "Attack",
+   "t": 0.4
+  },
+  {
+   "anim": "Attack",
+   "t": 0.57
+  },
+  {
+   "anim": "Attack",
+   "t": 0.76
+  },
+  {
+   "anim": "Skill_3_Idle",
+   "t": 0
+  },
+  {
+   "anim": "Skill_2",
+   "t": 0.8
+  }
+ ]
+}

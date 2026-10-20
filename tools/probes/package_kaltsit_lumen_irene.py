@@ -164,6 +164,8 @@ def build(op):
         else:
             sub, _, act = name.partition('|')
             frames = spine_frames(op, sub)
+            if kind == 'run':   # 跑步：衣摆 / 绳带垂到地面以下的像素裁掉（地面 = 128 画布第 120 行，舞台第 184 行）
+                for f in frames: f.paste((0, 0, 0, 0), (0, 184, 256, 256))
             if act: _, nd, ntot = native_frames(op, act)   # 时长沿用原作采样
         size, cut = fit_canvas(frames)
         spec = {'frames': len(cut), 'size': size, '_nd': nd}
