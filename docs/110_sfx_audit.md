@@ -167,3 +167,30 @@
 1. 能天使枪击：`exusiai_atk_A`（清脆）还是 `_B`（厚一点）；命中 `exusiai_hit_A`。
 2. 乌尔比安锁链：`ulpianus_s1_A`（粗链）还是 `_B`（更沉）；普攻 `ulpianus_atk_A`。
 3. 本分支已调的：维什戴尔连续开炮时余震是否还嫌糊、艾雅法拉 / 凯尔希重击降 2–3 dB 后是否太轻、安洁莉娜三技能降调后是否还尖。
+4. §7 网上 CC0 素材：勾选要下载的条目（枪击、锁链优先），再与 §5 的合成候选对比。
+
+## 7. 网上公开素材候选（10-21 用户追加，未下载，待用户确认）
+
+要求：许可明确、可商用；风格贴明日方舟——偏冷、干脆的科幻 + 冷兵器质感。下表只列 CC0（公有领域，可商用、不必署名）或写明可商用的来源，许可证与大小都是 10-21 在原页面核对的，下载前再看一眼页面（许可可能改）。
+
+**大小口径**：游戏里只截一小段用。项目音效导入用 QOA 压缩（`compress/mode=2`，单声道 44.1 kHz 约 17.6 KB/秒），「截取后」一列按截取时长 × 17.6 KB 估。网页包体 39.3 / 48 MiB、音频占 73%：下表全部按建议采用也只多约 50 KB（0.05 MiB），而且大多是替换现有合成文件，净增更少。
+
+| 用途 | 素材（作者） | 链接 | 许可证 | 原文件 | 截取后（估） | 合不合风格 |
+|---|---|---|---|---|---|---|
+| 能天使枪击（单发） | M9_noisegate（DarkShroom） | https://freesound.org/people/DarkShroom/sounds/645317/ | CC0 | WAV 0.27 s，46.5 KB，立体声 | 约 0.2 s → 4 KB | 实录手枪、已降噪、很干，最接近「干脆」；可升调 + 加一点金属「咔」更像拉特兰制式枪 |
+| 能天使枪击（连射质感） | gun I: SMG 1（insaind） | https://freesound.org/people/insaind/sounds/558210/ | CC0 | WAV 6.6 s，1.1 MB，立体声，全自动连射 + 换弹 | 截单发约 0.15 s → 3 KB | 金属门撞击做的「游戏冲锋枪」，偏轻偏脆；截一发当底，连发不糊 |
+| 能天使 / 维什戴尔技能（科幻狙击） | scifi_sniper_rifle（Invisible_inks） | https://freesound.org/people/Invisible_inks/sounds/517058/ | CC0 | WAV 3.5 s，914 KB，含上膛 | 截一发 0.4 s → 7 KB；上膛 0.3 s → 5 KB | 合成器做的科幻狙击，冷、带电子尾；适合技能发动 / 弹匣倾泻，不适合每秒 2 次的普攻 |
+| 科幻枪击（备选） | Sci-fi gun shot x6（humanoide9000） | https://freesound.org/people/humanoide9000/sounds/330293/ | CC0 | WAV 9.8 s，2.7 MB，6 发 | 截一发约 0.3 s → 5 KB | 用海绵、纸板等实录做的气流感枪声，偏软；只作备选 |
+| 乌尔比安锁链（掷锚 / 回旋） | chain（nettimato） | https://freesound.org/people/nettimato/sounds/387240/ | CC0 | WAV 19.4 s，1.6 MB，单声道 | 截 0.6 s → 11 KB | 为「拿链钩的怪物」录的游戏用锁链，粗、沉，最贴乌尔比安 |
+| 乌尔比安锁链（哗啦） | ChainsRattling（klakmart） | https://freesound.org/people/klakmart/sounds/108265/ | CC0 | AIFF 35 s，4.9 MB，24-bit 单声道 | 截 0.5 s → 9 KB | 两条链互相碰撞、枪式话筒近录，细节多，可能偏亮，要低通 |
+| 乌尔比安锁链（拖地） | Chain Rattling（Kp69606） | https://freesound.org/people/Kp69606/sounds/448917/ | CC0 | WAV 13 s，4.8 MB，立体声 | 截 0.6 s → 11 KB | 锁链拖地，低频多，适合锁链绷直拽回敌人那一下 |
+| 锁链（备选） | Chains.wav（cribbler） | https://freesound.org/people/cribbler/sounds/370877/ | CC0 | WAV 6 s，3.4 MB，96 kHz 立体声 | 截 0.4 s → 7 KB | 甩链打沙袋，重击感强，可做锚落地前的链响 |
+| 冷兵器 / 金属命中 | Impact Sounds（Kenney，130 个） | https://kenney.nl/assets/impact-sounds | CC0 | zip，页面未写大小，下载后核 | 每个约 0.2–0.5 s → 4–9 KB | 金属、板材等短促撞击，干净、已归一化；可补能天使命中、星熊格挡、德克萨斯刀剑 |
+| 冷兵器 / 金属小音 | 50 RPG Sound Effects（Kenney） | https://opengameart.org/content/50-rpg-sound-effects | CC0 | zip 691 KB，OGG 50 个 | 每个 2–8 KB | 刀、金属、硬币等短音，偏轻；能用的不多，作补充 |
+| 科幻提示 / 技能底层 | Sci-fi Sounds（Kenney，70 个） | https://kenney.nl/assets/sci-fi-sounds（OGA 镜像 https://opengameart.org/content/sci-fi-sounds） | CC0 | zip 5.9 MB，OGG 70 个，已归一化 | 每个 5–20 KB | 激光、引擎、爆炸，偏街机；只挑冷一点的做技能发动的电子层 |
+
+**不用的**（查过，许可或性质不合）：Tactical Weapons And Tactics Sound Pack（OpenGameArt，CC-BY 4.0 / 3.0，要署名，不是 CC0；用户同意署名的话可再考虑）；Large metal sheet hitting（GPL 3.0，作者标 Soundsnap，来源存疑）；ElevenLabs、BudgetPixel 的锁链音（AI 生成，ElevenLabs 免费档要署名）；The Free Firearm Sound Library（OpenGameArt，CC0 但整包 194 MB 7z，只能整包下，先不考虑，单发枪声用上面的 Freesound 就够）。
+
+**另一类来源**：Sonniss GDC Game Audio Bundle（https://sonniss.com/gameaudiogdc，GDC 2024 版 23.5 GB）。许可是免版税、可商用、不用署名，素材质量是专业库级别；但原始文件不得再分发（只能用在成品游戏里），并且明确禁止用于 AI / 机器学习训练。由代理挑选剪辑算不算「训练」不清楚，体量又大，列出来供用户定，默认不用。
+
+**采用后的做法**：用户勾选后再下载；截取、单声道、按本篇 §1 的响度对齐到原文件的播放音量；放进 `game/audio/sfx/`，在 `data/credits.json` 的「音乐与音效」里加一行来源（CC0 不强制署名，但写明来源，也改掉现在「全部程序合成」的说法）。
