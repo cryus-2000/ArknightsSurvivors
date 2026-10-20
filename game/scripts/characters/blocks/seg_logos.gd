@@ -130,8 +130,11 @@ static func _hw3_bolts(o, dt: float) -> void:
 					if h.bolts.size() >= HW_BOLT_MAX:
 						hw_bolt_hit(o, e, q.dmg, q.src, q.b)
 					else:
+						# ph 决定飞行摆动 → 命中时刻，是玩法量：不能取 g.vrng（画面随机流的消耗次数随画面特效变，同 seed 会分叉）；
+						# 用发射计数的黄金角序列，确定且不耗任何随机流。rune 只决定画哪个符文，仍取 g.vrng
+						h["bolt_n"] = int(h.get("bolt_n", 0)) + 1
 						var bolt := {"pos": hand, "e": e, "dmg": q.dmg, "src": q.src, "b": q.b, "hist": [hand], "life": float(q.b.get("life", 1.3)), "age": 0.0,
-							"ph": g.vrng.randf() * TAU, "rune": g.vrng.randi(), "to": e.pos + Vector2(0, -e.r * 0.5)}
+							"ph": fposmod(float(h.bolt_n) * 2.399963, TAU), "rune": g.vrng.randi(), "to": e.pos + Vector2(0, -e.r * 0.5)}
 						if int(q.get("variant", -1)) >= 0:
 							bolt.visual = {"variant": q.variant, "start": hand, "span": maxf(1.0, hand.distance_to(bolt.to)), "u": 0.0, "hist": [hand]}
 						h.bolts.append(bolt)

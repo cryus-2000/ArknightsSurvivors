@@ -592,8 +592,10 @@ func _ready() -> void:
 	for a in Cfg.dev_args():
 		if a.begins_with("--seed="):
 			rng.seed = int(a.substr(7))
-			vrng.seed = int(a.substr(7)) + 7919
-			seed(int(a.substr(7)))
+			# --rngshift（快检「同 seed 复现」第 3 局）：画面随机流与全局随机流换种子；玩法只能用 g.rng 系，结果必须不变
+			var shift: int = 1 if Cfg.dev_args().has("--rngshift") else 0
+			vrng.seed = int(a.substr(7)) + 7919 + shift
+			seed(int(a.substr(7)) + shift)
 			seeded = true
 		elif a.begins_with("--placebo="):
 			placebo_n = maxi(0, int(a.substr(10)))
