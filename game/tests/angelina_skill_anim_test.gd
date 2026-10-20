@@ -56,7 +56,7 @@ func test_sequence(o) -> void:
 	o.play_vis_skill(2)
 	ok(kind(o) == "float_in" and frame(o) == 0, "起飞从 f0 开始")
 	step(o, 0.1)
-	ok(kind(o) == "float_in" and frame(o) == 1, "起飞按 fps 前进")
+	ok(kind(o) == "float_in" and frame(o) == 2, "起飞按逐帧时长前进")
 	ok(o.shadow_k().x < 1.0 and o.shadow_k().x > 0.7, "起飞影子渐变")
 	step(o, 0.3)
 	ok(kind(o) == "float", "起飞结束进入浮空待机")
@@ -65,7 +65,7 @@ func test_sequence(o) -> void:
 	for i in 60:
 		o.follow(DT, o.pos)
 		seen[frame(o)] = true
-	ok(seen.size() == 6, "浮空待机六帧循环")
+	ok(seen.size() >= 7, "浮空待机八帧循环（末帧 16 ms 可能落在两次刷新之间）")
 	o.mv = 200.0
 	o.follow(DT, o.pos)
 	ok(kind(o) == "float_move", "移动使用 run 槽")
@@ -81,9 +81,9 @@ func test_sequence(o) -> void:
 	ok(kind(o) == "float", "普攻播完回循环")
 	o.s_t[2] = 0.0
 	o.follow(DT, o.pos)
-	ok(kind(o) == "float_in" and frame(o) == 3, "收势倒放从 f3 开始")
+	ok(kind(o) == "float_in" and frame(o) == 7, "收势倒放从 f7 开始")
 	step(o, 0.1)
-	ok(kind(o) == "float_in" and frame(o) == 2, "收势倒放到 f2")
+	ok(kind(o) == "float_in" and frame(o) == 5, "收势倒放到 f5")
 	step(o, 0.5)
 	ok(kind(o) == "idle" and o.shadow_k() == Vector2.ONE, "收势结束恢复待机与影子")
 	ok(game.rng_states() == rng, "动画不消耗玩法 RNG")
@@ -118,7 +118,7 @@ func test_validation() -> void:
 		"非法键": func(x): x.sprites.skills.s4 = {"anim": "skill"},
 		"run 缺图槽": func(x): x.sprites.skills.s3.run = "missing",
 		"enter 未加载": func(x): x.extra_sprites.erase("float_in"),
-		"子段越界": func(x): x.sprites.skills.s3.end.frames = [4],
+		"子段越界": func(x): x.sprites.skills.s3.end.frames = [8],
 		"子段非整数": func(x): x.sprites.skills.s3.end.frames = [0.5],
 		"reverse 类型": func(x): x.sprites.skills.s3.end.reverse = "yes",
 		"run 无 loop": func(x): x.sprites.skills.s3.erase("loop"),

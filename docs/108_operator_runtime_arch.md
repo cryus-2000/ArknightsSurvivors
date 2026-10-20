@@ -172,6 +172,7 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | 乌尔比安 | 64 + 128（同上，顶层未改） | frame_durations、`hand` | 无（elite2 `anim: throw`） | native_motion | 锚 / 锁链从 `hand` 连出 |
 | 斯卡蒂（10-20 claude/skadi-integrate） | 64 + 96 | frame_durations + fire_time（窗口沿用旧条，同 seed 不变） | 无（S3 `swap_attack` 用 attack_spin；S2 skill 槽借 leap_strike 帧条） | talent `vis_anim: backslash` | Codex cz 原生 idle / attack / death + Claude Spine 脚本 run / leap_strike / attack_spin / backslash |
 | 安洁莉娜 | 48（新序列、旧画布） | fire | s3 start/enter/loop/run/attack/end | — | 帧条待重画 |
+| 安洁莉娜 | 64 + 96（attack） | frame_durations、fire_time（出手时刻同旧条） | s3 start/enter/loop/run/attack/end | 次数 / 永久默认绑定 | 10-20 原作条 + dl 步态跑步；浮空离地 9 像素烘进帧条（`tools/probes/package_angelina.py`） |
 
 其余 8 人（星熊、艾丽妮、凯尔希、流明、斯卡蒂、浊心斯卡蒂、归溟幽灵鲨、德克萨斯）仍是 48 旧口径，见 §9。
 

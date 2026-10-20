@@ -100,6 +100,10 @@ WAIVERS = {
     ('ulpianus', 'ground', 'attack'): "10-20 已确认原生锚击最低像素59，脚底边界60，不平移已确认姿势（同交接）",
     ('ulpianus', 'ground', 'skill'): "10-20 起手复用正常持锚 Idle，脚底边界差异同 idle（同交接）",
     # 10-19 原生交付的已记录差异；不改变通用阈值，视觉验收仍独立。
+    ('angelina', 'outline'): "10-20 用户批准原生像素整套接入（cb_18 原作条 + run_trial 逐附件像素化）：附件自身暗色边缘，不改成旧黑壳（angelina_native_sources.json）",
+    ('angelina', 'skill_end'): "10-20 技能条取原作 Skill1 起手 / 出手 / 收势，末帧为原生横杖姿势，逻辑结束切 Idle（同上）",
+    ('angelina', 'run'): "10-20 用户批准：Codex dl 步态 + 起伏压 0.3 + 原作握法持杖、近侧手自然摆；头部起伏 0.8px（与推进之王 / 乌尔比安同级）、上身指标按旧 48 帧条定",
+    ('angelina', 'ground'): "10-20 统一脚根锚点：cb_18 / run_trial 地面行映射到 @2x 120（最后一行 119），1x 最低行 59 与脚底边界 60 相差 1，同能天使口径",
     ('exusiai', 'outline'): "10-19 用户指定原生像素整套接入：保留附件自身暗色边缘，230 姿势逐像素保真；不改成旧黑壳（three_operator_art_1019_handoff.md）",
     ('exusiai', 'skill_end'): "10-19 三技能复用原生 Attack，末帧保持源姿势，逻辑结束切 Idle；不以 Idle 像素覆盖原生末帧（同交接）",
     ('exusiai', 'frontal'): "10-19 保留原生 Idle 头部与最新修复跑步；不按旧48画布的对称率改造原作脸型（同交接）",
@@ -134,8 +138,8 @@ WAIVERS = {
     ("texas", "run"): "用户 10-13 认可现版（1a761c8e 连续性修复后）；机检头部起伏 0.5px 仍低于线，暂不返修",
     ("specter_unchained", "run"): "用户 10-13 认可现版：归溟幽灵鲨跑步前倾 35°、停顿帧 2 对，不返修",
     # 单条帧条豁免（op, check, 动作）：只豁免这条帧条的这一项，同一干员其他帧条照常检查
-    ("angelina", "ground", "float_in"): "设计例外（docs/92）：S3 起飞，f2–f3 离地属造型",
-    ("angelina", "ground", "float"): "设计例外（docs/92）：S3 浮空待机，最低行 38±1 离地属造型",
+    ("angelina", "ground", "float_in"): "设计例外（docs/92）：S3 起飞，f1–f7 逐帧离地 1–9 像素属造型",
+    ("angelina", "ground", "float"): "设计例外（docs/92）：S3 浮空待机，离地 9–10 像素（64 口径最低行约 50）属造型",
     ("angelina", "ground", "float_move"): "设计例外（docs/92）：S3 浮空移动，离地属造型",
     ("angelina", "ground", "float_attack"): "设计例外（docs/92）：S3 浮空普攻，离地属造型",
     ("suzuran", "ground", "skill_s3_loop"): "设计例外（docs/97 J 批附表「狐火渺然：身体微浮」，codex/art 0827a990）：S3 循环两帧离地 2px 属造型",

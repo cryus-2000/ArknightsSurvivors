@@ -3,7 +3,7 @@
  "src": "angelina_dl.src.json",
  "leadLeg": "L",
  "nearSide": "R",
- "name": "安洁莉娜 · 换手跑步（Codex DL 候选）",
+ "name": "安洁莉娜 · 跑步（Codex DL 步态；起伏压 0.3；远侧手按原作 Idle 握法持杖、杖头朝前下，近侧手随步自然摆）",
  "body": {
   "hip": "F_Hip",
   "chest": "F_Chest",
@@ -86,6 +86,20 @@
    0.375,
    0.45,
    0.525
-  ]
+  ],
+  "flatten": 0.3,
+  "carry": {
+   "side": "L",
+   "upper": -95,
+   "fore": -50,
+   "weapon": -10,
+   "swing": 6,
+   "grip": "native",
+   "free": {
+    "amp": 45,
+    "elbow": 45,
+    "elbowAmp": 30
+   }
+  }
  }
 }
