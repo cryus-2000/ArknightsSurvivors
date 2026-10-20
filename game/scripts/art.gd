@@ -613,9 +613,15 @@ static func normal_stats() -> String:
 
 
 ## 由任意贴图生成白色剪影（受击闪白用）
+static var _white_cache := {}   # 原贴图 instance id → 白色剪影（10-21：每建一局都从显存读回重算，图鉴演示每点一次卡 1–2 秒）
+
+
 static func white_of(src: Texture2D) -> Texture2D:
 	if src == null:
 		return null
+	var wk := src.get_instance_id()
+	if _white_cache.has(wk):
+		return _white_cache[wk]
 	var img := src.get_image()
 	if img.is_compressed():
 		img.decompress()
@@ -634,7 +640,44 @@ static func white_of(src: Texture2D) -> Texture2D:
 	img = Image.create_from_data(img.get_width(), img.get_height(), false, Image.FORMAT_RGBA8, data)
 	var w := ImageTexture.create_from_image(img)
 	_hires_rid[w.get_rid()] = hires_of(src)
+	_white_cache[wk] = w
 	return w
+
+
+## 分帧预载（10-21，图鉴 / 选人 / 封面「演示」首点卡顿）：进界面后每帧按时间预算把一局要用的贴图读进 tex() 缓存、
+## 敌人的白色剪影一并算好；法线预热线程没做完时不读（否则主线程当场算法线）。不在标题页启动时跑。
+static var _warm_q: Array = []
+static var _warm_white := {}
+
+
+static func warm_begin(names: Array, white_names: Array) -> void:
+	var seen := {}
+	for n in _warm_q:
+		seen[n] = true
+	for n in names + white_names:
+		if n is String and n != "" and not seen.has(n) and not _cache.has(n):
+			seen[n] = true
+			_warm_q.append(n)
+	for n in white_names:
+		_warm_white[n] = true
+
+
+## 每帧调一次：budget_usec 微秒内尽量多读；返回是否还有剩
+static func warm_step(budget_usec: int) -> bool:
+	if _warm_q.is_empty():
+		return false
+	if prewarm_busy():
+		return true
+	var t0 := Time.get_ticks_usec()
+	while not _warm_q.is_empty() and Time.get_ticks_usec() - t0 < budget_usec:
+		var n: String = _warm_q.pop_front()
+		var w0 := Time.get_ticks_usec()
+		var t := tex(n)
+		if late_log and Time.get_ticks_usec() - w0 > 20000:
+			print("WARMSLOW %s %.1fms" % [n, (Time.get_ticks_usec() - w0) / 1000.0])
+		if t != null and _warm_white.has(n) and not n.ends_with("_death"):
+			white_of(t)
+	return not _warm_q.is_empty()
 
 
 ## 帧条逐帧水平镜像（2026-10-13，docs/84）：干员 json 的 sprites.<kind>.mirror = true 表示这条帧条画反了（朝左），

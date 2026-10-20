@@ -62,6 +62,7 @@ const ELITE_RIM_RGB := Color(0.55, 0.9, 1.0)
 var elite_rim := 0.0
 var elite_rim_col := Color(0, 0, 0, 0)
 var _afast := false               # 本帧缓存路径走图集快速路径（_dc_emit）
+static var _atlas_cache := {}      # 上一次拼好的图集（键：帧条名单 + 镜像 / 法线开关；贴图 instance id 也须相同）
 var atlas: EnemyAtlas = null      # 普通怪 / 精英帧条图集（docs/50 §12 B，build_enemy_atlas）；null = 全走原帧条贴图
 var dc_on := true                 # 敌人画法缓存（docs/50 §9.9）：balance.json fx/enemy_draw_cache（缺省 1），0 = 全走原路径（对照用）
 var dc_check := false             # --dccheck：抽查缓存路径与原路径发出的贴图绘制参数，不一致报 SCRIPT ERROR（快检冒烟开着）
@@ -2021,8 +2022,17 @@ func build_enemy_atlas() -> void:
 			if g.tex.get(base + sfx) != null:
 				names.append(base + sfx)
 	EnemyAtlas.xform_flip = not Cfg.dev_args().has("--atlasflip=neg")
+	# 同一进程里贴图来自 A.tex 缓存、名单相同则图集相同：复用（10-21，图鉴演示每建一局重拼图集卡 1.5–2 秒）
+	var key := "|".join(names) + "#%s#%s" % [EnemyAtlas.xform_flip, A.normal_maps]
+	var ids := []
+	for n in names:
+		ids.append(g.tex[n].get_instance_id())
+	if _atlas_cache.get("key", "") == key and _atlas_cache.get("ids", []) == ids:
+		atlas = null if _atlas_cache.atlas.reg.is_empty() else _atlas_cache.atlas
+		return
 	atlas = EnemyAtlas.new()
 	atlas.build(g.tex, names)
+	_atlas_cache = {"key": key, "ids": ids, "atlas": atlas}
 	if atlas.reg.is_empty():
 		atlas = null
 		return

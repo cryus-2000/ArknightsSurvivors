@@ -136,6 +136,27 @@ func open() -> void:
 	visible = true
 	_build()
 	_restart_open()
+	_warm_demo()
+
+
+## 「演示」首点卡顿（10-21）：进图鉴后后台编译干员脚本、分帧把一局要用的贴图读进缓存（_process 里每帧 4 毫秒），
+## 演示建局时就只剩建节点。只做一次；标题页启动不受影响。
+static var _warmed := false
+
+func _warm_demo() -> void:
+	if _warmed or DisplayServer.get_name() == "headless":
+		return
+	_warmed = true
+	ResourceLoader.load_threaded_request("res://scripts/characters/data_operator.gd")
+	var G = load("res://scripts/game.gd")
+	var enemies: Array = []   # 敌人帧条：一局开局要算白色剪影（受击闪白）
+	for k in D.ENEMIES:
+		var tn: String = D.ENEMIES[k].tex
+		if not enemies.has(tn):
+			enemies.append(tn)
+			for suffix in A.ENEMY_SUFFIXES:
+				enemies.append(tn + suffix)
+	A.warm_begin(G.preload_tex_names() + G.demo_warm_names(), enemies)
 
 
 func close() -> void:
@@ -216,6 +237,7 @@ func _demo_stop() -> void:
 func _process(delta: float) -> void:
 	if not visible:
 		return
+	A.warm_step(4000)
 	UIMo.advance(delta)
 	t += delta
 	form_t += delta

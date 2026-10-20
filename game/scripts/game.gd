@@ -465,6 +465,27 @@ var demo_stage := -1           # 三联对照（--compareshot）：0 = 精一前
 var demo_basic := false        # 只普攻、不放技能（三联对照看普攻形态的成长）
 
 
+## 图鉴「演示」分帧预载的补充名单（10-21）：_ready 里 preload_tex_names 之外的小图——技能图标、特效帧条、
+## 武器 / 成长图标、固定敌人的白色剪影贴图。漏了只是建局时当场读（--loadprof 下用 A.late_log 能看到）。
+static func demo_warm_names() -> Array:
+	var names: Array = ["player_attack_48", "player_idle", "player_run", "player_attack", "player_hurt", "player_death", "skill_s1", "skill_s2", "skill_s3"]
+	names.append_array(FXF.keys())
+	names.append_array(["fx_umbrella_slash", "fx_umbrella_slash_awaken", "fx_umbrella_slash_mirage"])
+	names.append_array(Vfx.STRIPS)
+	for pid in Doctor.PASSIVES:
+		names.append("growth_" + pid)
+	for wid in D.WEAPONS:
+		names.append("weapon_" + wid)
+	for n in BASE_TEX:
+		if str(n).begins_with("e_"):
+			names.append(str(n) + "_white")
+	for cid in Character.list_ids():
+		for sd in Character.load_def(cid).get("skills", []):
+			if sd.get("icon", "") != "":
+				names.append(sd.icon)
+	return names
+
+
 ## 一局开始（_ready）会固定加载的贴图名单，只看静态数据，标题页用它预热法线图（art.gd prewarm_start）。
 ## 覆盖 _ready 里的固定表、博士与全部干员的帧条、V6 帧、data/enemies.json 的敌人及附加帧条、地图主题的道具与前景。
 ## 不做法线的前缀（fx_ / proj_ / relic_ …）由 art.gd 过滤，这里不用管；漏掉的名字只是回到当场算（--loadprof 的 sync_names 能看到）
@@ -486,6 +507,9 @@ static func preload_tex_names() -> Array:
 				names.append(csp[kind] if csp[kind] is String else csp[kind].tex)
 		if csp.has("base"):
 			names.append(csp.base)
+		var nsa = csp.get("noshield", {}).get("art", {}) if csp.get("noshield", {}) is Dictionary else {}
+		for kind in nsa:   # 星熊无盾帧条（_ready 也加载）：以前漏在名单外，开局 / 演示时当场算法线 100–230 ms 一张
+			names.append(str(nsa[kind]))
 	names.append_array(V6_FRAMES.keys())
 	var etex: Array = ["e_paranoia2", "e_ishar_t", "e_ishar_transform"]   # 伊莎玛拉变身形态（render/world.gd 原来首次画到才读：变身那一帧同步读图 + 算法线，卡 0.7–0.8 秒，docs/50 §10）
 	for k in D.ENEMIES:
