@@ -123,6 +123,61 @@ func _process(_dt: float) -> void:
 				if resting.is_empty() or resting[0] != load("res://scripts/art.gd").tex("op_mon3tr_native_idle"):
 					failures += 1
 					print("MISSING S2 native rest in ", state)
+	op.s_t[2] = 0.0
+	op.perm_on[1] = false
+	OB._mf_patch_tick(op, s, kd, 0.0)
+	var elite = load("res://scripts/characters/blocks/ob_elite.gd")
+	var data: Dictionary = {"blocks": op.B}
+	for action in ["lunge", "leap"]:
+		var start: Vector2 = g.ppos
+		var finish: Vector2 = start + Vector2(70, 0)
+		s.pos = start
+		op.pfx.clear()
+		var land: Dictionary = {"kind": "lunge", "b": {"r": 40.0, "mult": 0.3, "fx": data.blocks.progression.elite1.lunge.fx}}
+		if action == "leap":
+			land = {"kind": "leap", "then": data.blocks.progression.elite2[1].do[0].then}
+		var duration: float = 0.18 if action == "lunge" else 0.2
+		var landing: float = 0.25 if action == "lunge" else 4.0 / 12.0
+		var rate: float = 14.0 if action == "lunge" else 12.0
+		elite._el_dash_start(op, s, kd, action, finish, duration, 12.0, land)
+		if not is_equal_approx(float(s.dash.t0), landing - duration) or not is_equal_approx(float(s.dash.end), landing + 1.0 / rate):
+			failures += 1
+			print("CHANGED dash start/end timing ", action)
+		for tick in range(3):
+			elite.el_dash_step(op, s, kd, OB.mf_mods(op, "mon3tr"), 0.03)
+		var flight: Array = OB._mf_frame(op, s, kd, action, float(s.at))
+		if flight.is_empty() or flight[0] != load("res://scripts/art.gd").tex("op_mon3tr_native_" + action):
+			failures += 1
+			print("MISSING native dash body ", action)
+		var record: Array = s.dash.hist.back()
+		if record.size() < 5 or not (record[3] is Array) or record[3].is_empty():
+			failures += 1
+			print("MISSING frozen native trail frame ", action)
+		var frozen_index: int = int(record[3][1]) if record.size() > 3 and not record[3].is_empty() else -1
+		var phase: float = clampf((float(s.dash.t) - float(s.dash.t0)) / duration, 0.0, 1.0)
+		var expected: Vector2 = start.lerp(finish, 1.0 - (1.0 - phase) * (1.0 - phase) if action == "lunge" else phase)
+		if not s.pos.is_equal_approx(expected) or not is_equal_approx(float(s.dash.h_now), 12.0 * sin(phase * PI)):
+			failures += 1
+			print("CHANGED dash trajectory ", action)
+		elite.el_dash_step(op, s, kd, OB.mf_mods(op, "mon3tr"), landing + 0.001 - float(s.dash.t))
+		elite.el_dash_step(op, s, kd, OB.mf_mods(op, "mon3tr"), 0.001)
+		if frozen_index < 0 or int(record[3][1]) != frozen_index:
+			failures += 1
+			print("CHANGED historical trail frame after landing ", action)
+		var rings := 0
+		for f in op.pfx:
+			if f.get("name", "") == "fx_mon3tr_slam_ring":
+				rings += 1
+				if not f.pos.is_equal_approx(finish) or not f.get("floor", false):
+					failures += 1
+					print("MOVED landing ring from ground contact ", action, " got=", f.pos, " expected=", finish, " floor=", f.get("floor", false))
+		if rings != 1:
+			failures += 1
+			print("MISSING unique native landing ring ", action)
+		elite.el_dash_step(op, s, kd, OB.mf_mods(op, "mon3tr"), float(s.dash.end) - float(s.dash.t) + 0.001)
+		if s.has("dash") or not s.pos.is_equal_approx(finish) or s.ak != "idle":
+			failures += 1
+			print("CHANGED dash release contract ", action)
 	print("MON3TR FX failures=", failures)
 	op = null
 	g.queue_free()

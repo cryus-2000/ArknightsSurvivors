@@ -280,23 +280,23 @@
   },
   "m_lunge": {
    "_doc": "Codex 精英化第 1 批：Mon3tr 前扑，出手帧 3 落爪",
-   "tex": "op_kaltsit_m_lunge",
+   "tex": "op_mon3tr_native_lunge",
    "frames": 6,
    "fps": 14,
    "foot": [
-    32,
-    60
+    64,
+    92
    ],
    "fire": 3
   },
   "m_leap": {
    "_doc": "Codex 精英化第 1 批：Mon3tr 跃回，第 4 帧展开刃爪落地",
-   "tex": "op_kaltsit_m_leap",
+   "tex": "op_mon3tr_native_leap",
    "frames": 6,
    "fps": 12,
    "foot": [
-    32,
-    60
+    64,
+    92
    ]
   },
   "native_m_attack_s2": {
@@ -482,11 +482,11 @@
       },
       {"sparks": {"col": [0.55, 1.0, 0.5], "n": 5, "spd": 160, "life": 0.3, "sz": 2.5}, "along": 0.6, "cond": "!skill_active:2"},
       {"arc": {"pad": 8, "w": 5, "life": 0.2, "col": [0.5, 1.1, 0.55]}, "first_only": true, "cond": "node:wide_arc && !skill_active:2"},
-      {"sprite": {"name": "fx_mon3tr_melt_slash", "scale_r": 0.0275, "swing_rot": 0.18}, "side_x": 0.38, "r_mult": 1.25, "off": [0, -18], "cond": "skill_active:2"},
-      {"pfx": {"kind": "impact", "r": 20, "life": 0.14, "col": [1.6, 0.15, 0.12]}, "along": 0.75, "r_mult": 1.25, "cond": "skill_active:2"},
-      {"sparks": {"col": [1.7, 0.25, 0.15], "n": 7, "spd": 240, "life": 0.28, "sz": 2.5}, "along": 0.75, "r_mult": 1.25, "cond": "skill_active:2"},
+      {"sprite": {"name": "fx_mon3tr_melt_slash", "scale_r": 0.0275, "swing_rot": 0.18, "tint": [1.0, 1.0, 1.0, 0.65]}, "side_x": 0.38, "r_mult": 1.25, "off": [0, -18], "cond": "skill_active:2"},
+      {"pfx": {"kind": "impact", "r": 8, "life": 0.10, "col": [1.6, 0.15, 0.12]}, "along": 0.75, "r_mult": 1.25, "cond": "skill_active:2"},
+      {"sparks": {"col": [1.7, 0.25, 0.15], "n": 2, "spd": 160, "life": 0.18, "sz": 1.5}, "along": 0.75, "r_mult": 1.25, "cond": "skill_active:2"},
       {"pfx": {"kind": "glow", "r": 10, "life": 0.18, "col": [0.55, 1.0, 0.5], "alpha": 0.55}, "at": "hits", "cond": "!skill_active:2"},
-      {"pfx": {"kind": "glow", "r": 10, "life": 0.18, "col": [1.6, 0.15, 0.12], "alpha": 0.55}, "at": "hits", "cond": "skill_active:2"}
+      {"pfx": {"kind": "glow", "r": 6, "life": 0.12, "col": [1.6, 0.15, 0.12], "alpha": 0.2}, "at": "hits", "cond": "skill_active:2"}
      ]
     },
     "patch": [
@@ -506,15 +506,15 @@
     ],
     "fx": [
      {"ghost": {"every": 0.12, "tint": [1.5, 0.2, 0.15, 0.35]}, "cond": "skill_active:2"},
-     {"mist": {"n": 3, "col": [0.85, 0.025, 0.02, 0.12]}, "cond": "skill_active:2"},
+     {"mist": {"n": 2, "col": [0.85, 0.025, 0.02, 0.05]}, "cond": "skill_active:2"},
      {
-      "pfx": {"kind": "glow", "r": [10, 18], "life": 0.5, "col": [1.6, 0.15, 0.12], "alpha": 0.3},
+      "pfx": {"kind": "glow", "r": [5, 9], "life": 0.25, "col": [1.6, 0.15, 0.12], "alpha": 0.12},
       "every": 0.07,
       "jit": [-26, -46, 26, -4],
       "cond": "skill_active:2"
      },
      {
-      "pfx": {"kind": "line", "life": 0.15, "col": [1.6, 0.15, 0.12], "w": 1.5},
+      "pfx": {"kind": "line", "life": 0.10, "col": [1.6, 0.15, 0.12], "w": 0.8},
       "every": 0.07,
       "jit": [-30, -44, 30, 0],
       "to": "center",
@@ -898,7 +898,7 @@
    ],
    "elite1": {"verb": "summon_mod", "kind": "mon3tr", "_doc": "扑击（docs/91 §6）：目标在 lunge_min 外时先扑过去，落地 lunge_r 内 × lunge_mult",
     "lunge": {"min_d": "$lunge_min", "t": "$lunge_t", "cd": "$lunge_cd", "mult": "$lunge_mult", "r": "$lunge_r",
-     "fx": [{"strip": "fx_claw_green", "scale": 0.8, "off": [0, -14]}]}},
+     "fx": [{"strip": "fx_mon3tr_slam_ring", "layer": "floor", "fit": 32}, {"strip": "fx_mon3tr_claw", "scale": 0.45, "off": [0, -10], "tint": [0.55, 1.0, 0.5, 0.5]}]}},
    "elite2": [
     {"verb": "summon_mod", "kind": "mon3tr", "mirror": {"mult": "$m_back_mult"}},
     {"trig": "on_hurt", "cd": "$guard_cd", "_doc": "回防（docs/91 §6）：队长受击时 Mon3tr 跃回队长身边，落地一圈 × leap_mult 并击退", "do": [
@@ -907,7 +907,7 @@
        "fx": [
         {"strip": "fx_mon3tr_slam_ring", "layer": "floor", "fit": 32},
         {"strip": "fx_circle_steel", "if_tex": "!fx_mon3tr_slam_ring", "layer": "floor", "fit": 16, "tint": [0.55, 1.0, 0.5]},
-        {"strip": "fx_mon3tr_claw", "n": 4, "spread": 0.55, "off": [0, -10]},
+        {"strip": "fx_mon3tr_claw", "n": 2, "spread": 0.35, "scale": 0.45, "off": [0, -10], "tint": [0.55, 1.0, 0.5, 0.5]},
         {"sfx": {"kind": "big", "db": -6, "pitch": 1.1}},
         {"pfx": {"kind": "glow", "r": 10, "life": 0.18, "col": [0.55, 1.0, 0.5], "alpha": 0.55}, "at": "hits"}]}]}]}]
   }
