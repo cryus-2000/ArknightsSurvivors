@@ -194,3 +194,32 @@
 **另一类来源**：Sonniss GDC Game Audio Bundle（https://sonniss.com/gameaudiogdc，GDC 2024 版 23.5 GB）。许可是免版税、可商用、不用署名，素材质量是专业库级别；但原始文件不得再分发（只能用在成品游戏里），并且明确禁止用于 AI / 机器学习训练。由代理挑选剪辑算不算「训练」不清楚，体量又大，列出来供用户定，默认不用。
 
 **采用后的做法**：用户勾选后再下载；截取、单声道、按本篇 §1 的响度对齐到原文件的播放音量；放进 `game/audio/sfx/`，在 `data/credits.json` 的「音乐与音效」里加一行来源（CC0 不强制署名，但写明来源，也改掉现在「全部程序合成」的说法）。
+
+## 8. CC0 素材接入（10-21 用户批准下载，Sonniss 不用）
+
+**下载**：§7 的 11 条全部下到主仓库 `build/sfx_src/<来源>/`（不进 git、不进包），每条一个目录。Freesound 原文件要登录才能下，下的是页面上公开的 HQ 试听 mp3（同一条目、同一 CC0 许可）；Kenney 三包是官方 zip，包内 License.txt 均为 CC0 1.0。`cribbler` 那条试听版几乎无声（峰值 −57 dBFS），没用。
+
+**处理**：`game/tools/import_sfx_cc0.py` 写死每条的截取起点 / 时长 / 处理 / 响度，重跑结果一样；缺省先写 `build/sfx_stage/` 核对，加 `--apply` 才写进 `game/audio/sfx/`。统一转单声道 44.1 kHz，按要替换的原文件对齐「有效响度」（§1 口径），峰值软限幅到 −1 dBFS；导入沿用项目的 QOA 压缩。锁链录音频谱重心约 10 kHz，一律降调（×0.7–0.75）+ 8 阶低通（2.4–3.2 kHz）+ 补 800 Hz 以下的链身。
+
+| 游戏文件 | 动作 | 来源（CC0） | 截取 / 处理 | 时长 | 有效响度 原 → 新 | 频谱重心 原 → 新 |
+|---|---|---|---|---|---|---|
+| `op_exusiai_atk`（新） | 能天使普攻（枪声） | Freesound 645317 DarkShroom「M9_noisegate」 | 整段单发，120 Hz 高通 | 0.26 s | −29.7 → −27.6 | 1.9（炮声 ×1.9）→ 3.2 kHz |
+| `op_exusiai_hit`（新） | 能天使命中 | Kenney Impact「impactMetal_light_002」 | 4 kHz 低通，截 0.12 s | 0.12 s | −37.9 → −33.0 | 7.8 → 3.0 kHz |
+| `op_exusiai_big`（新） | 能天使弹匣倾泻 | Freesound 517058 Invisible_inks「scifi_sniper_rifle」 | 0.50 s 起 0.62 s | 0.62 s | −20.9 → −20.0 | 1.7 → 4.5 kHz |
+| `op_ulpianus_s1`（替换） | 乌尔比安一技能（掷锚） | Freesound 108265 klakmart「ChainsRattling」 | 18.00 s 起 0.55 s，链处理 | 0.79 s | −21.6 → −19.6 | 5.3 → 2.1 kHz，4 kHz 以上 13% → 0.2% |
+| `op_ulpianus_s3`（替换） | 乌尔比安三技能（锚链收紧） | Freesound 387240 nettimato「chain」 | 8.76 s 起 0.50 s，链处理 ×0.75 | 0.67 s | −17.9 → −18.6 | 5.1 → 3.0 kHz |
+| `op_ulpianus_atk`（替换） | 乌尔比安普攻（抡锚） | 原合成风声 + 砸地，链抖换 Freesound 448917 Kp69606「Chain Rattling」 | 7.90 s 起 0.20 s，链处理 ×0.7 | 0.36 s | −23.5 → 约 −23 | 2.1 → 1.4 kHz |
+| `op_texas_atk`（新） | 德克萨斯普攻（拔剑斩） | Kenney RPG「knifeSlice」 | 截 0.22 s | 0.22 s | −35.1 → −28.0 | 4.9 → 4.9 kHz（原为艾丽妮风切 ×1.15） |
+| `op_hoshiguma_hit`（新） | 星熊命中（盾格挡「铛」） | Kenney Impact「impactMetal_heavy_001」 | 7 kHz 低通，截 0.35 s | 0.35 s | −27.6 → −27.8 | 2.0 → 1.7 kHz |
+
+`sfx.gd`：`OP_SFX` 登记能天使 atk / hit / big、德克萨斯 atk、星熊 hit，删掉对应的 OP_ALT 借用；能天使 big 同时最多 2 个。其余类别仍借用。新增 8 个文件（含 3 个替换）合计约 3.3 秒，QOA 后约 58 KB，替换掉的旧文件约 31 KB，网页包净增约 0.03 MiB。
+
+**没接进游戏、放 `build/sfx_candidates/` 备选试听**：`exusiai_atk_smg`（insaind 冲锋枪单发，更轻更脆）、`exusiai_atk_scifi`（humanoide9000 科幻枪声）、`ulpianus_chain_hit`（nettimato 单下重链）。Kenney Sci-fi Sounds 70 个都是街机式激光 / 引擎，和明日方舟的冷硬质感不合，一个没用。§5 的合成候选同目录，可一起比。
+
+**署名**：CC0 不强制署名，仍写进 `data/credits.json`「音乐与音效」，只列实际进游戏的来源。
+
+## 9. 要用户试听（第二轮）
+
+1. 能天使：枪声 M9 单发够不够脆、要不要换 `exusiai_atk_smg`；命中金属「叮」在每秒多发时是否合适；弹匣倾泻的科幻狙击尾音。
+2. 乌尔比安：掷锚 / 收紧 / 抡锚三处的链声还刺不刺耳、够不够沉。
+3. 德克萨斯刀划、星熊格挡「铛」。

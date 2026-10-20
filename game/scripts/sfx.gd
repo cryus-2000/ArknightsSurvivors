@@ -29,6 +29,10 @@ const OP_SFX := {
 	"lumen": ["atk", "hit", "s1", "s2", "s3", "big"],
 	"specter_unchained": ["atk", "s1", "s2", "s3"],
 	"ulpianus": ["atk", "s1", "s2", "s3", "big"],
+	# 网上 CC0 录音截取（docs/113 §8，tools/import_sfx_cc0.py）：能天使枪声 / 命中 / 弹匣倾泻、德克萨斯刀划、星熊格挡；其余类别仍走 OP_ALT 借用
+	"exusiai": ["atk", "hit", "big"],
+	"texas": ["atk"],
+	"hoshiguma": ["hit"],
 }
 ## 各类别的默认音量（dB）：普攻 / 命中最频繁，压低；技能发动是一局里少数几次的"高光"，放开
 const OP_VOL := {"atk": -11.0, "hit": -10.0, "s1": -4.0, "s2": -4.0, "s3": -2.0, "big": -6.0, "heal": -9.0, "quake": -13.0}
@@ -48,18 +52,18 @@ const OP_ALT := {"op_logos_hit": ["op_mizuki_hit", 0.8, -4.0],
 	# 浊心斯卡蒂（docs/61，数据干员，暂无专属音）：普攻借铃兰低八度的吟唱，技能借流明 / 铃兰 / 凯尔希的发动音（docs/28 加新干员前的借用）
 	"op_skalter_atk": ["op_suzuran_atk", 0.75, -3.0], "op_skalter_s1": ["op_lumen_s1", 0.85, 0.0],
 	"op_skalter_s2": ["op_suzuran_s2", 0.8, 0.0], "op_skalter_s3": ["op_kaltsit_s3", 0.85, 0.0],
-	# 星熊（docs/61「星熊」节，数据干员，暂无专属音）：盾沿横扫借塞雷娅普攻降调、格挡「铛」借推进之王重击升调，技能借塞雷娅 / 推进之王 / 斯卡蒂
-	"op_hoshiguma_atk": ["op_saria_atk", 0.85, 0.0], "op_hoshiguma_hit": ["op_siege_hit", 0.9, -2.0], "op_hoshiguma_big": ["op_siege_big", 1.25, -2.0],
+	# 星熊（docs/61「星熊」节，数据干员）：盾沿横扫借塞雷娅普攻降调，技能借塞雷娅 / 推进之王 / 斯卡蒂；格挡「铛」已换 CC0 录音 op_hoshiguma_hit（docs/113 §8）
+	"op_hoshiguma_atk": ["op_saria_atk", 0.85, 0.0], "op_hoshiguma_big": ["op_siege_big", 1.25, -2.0],
 	"op_hoshiguma_s1": ["op_saria_s1", 0.9, 0.0], "op_hoshiguma_s2": ["op_siege_s2", 0.85, 0.0], "op_hoshiguma_s3": ["op_skadi_s3", 0.85, 0.0],
 	# 安洁莉娜（docs/61 §12，数据干员，暂无专属音）：普攻借 Logos 低沉的法术起手（「嗡」），落点借铃兰命中压低（内收短鸣），技能借 Logos / 铃兰 / 流明
 	"op_angelina_atk": ["op_logos_atk", 0.7, -2.0], "op_angelina_hit": ["op_suzuran_hit", 0.7, -2.0], "op_angelina_s1": ["op_logos_s1", 0.85, 0.0],
 	"op_angelina_s2": ["op_suzuran_s2", 0.6, 0.0], "op_angelina_s3": ["op_lumen_s3", 0.9, -1.0],
-	# 德克萨斯（docs/61 §13，数据干员，暂无专属音）：拔剑风切借艾丽妮刺剑（音高上提），技能借艾丽妮 / 推进之王
-	"op_texas_atk": ["op_irene_atk", 1.15, -2.0], "op_texas_hit": ["op_irene_hit", 1.1, -3.0], "op_texas_s1": ["op_irene_s1", 1.05, 0.0],
+	# 德克萨斯（docs/61 §13，数据干员）：命中借艾丽妮，技能借艾丽妮 / 推进之王；拔剑斩已换 CC0 录音 op_texas_atk（docs/113 §8）
+	"op_texas_hit": ["op_irene_hit", 1.1, -3.0], "op_texas_s1": ["op_irene_s1", 1.05, 0.0],
 	"op_texas_s2": ["op_siege_s2", 1.15, 0.0], "op_texas_s3": ["op_irene_s3", 1.1, 0.0],
-	# 能天使（docs/61 §14，数据干员，暂无专属音）：普攻借维什戴尔炮声升调成轻脆的枪声，命中借艾丽妮，技能借艾丽妮 / 维什戴尔，弹匣倾泻借维什戴尔重炮
-	"op_exusiai_atk": ["op_wisadel_atk", 1.9, -6.0], "op_exusiai_hit": ["op_irene_hit", 1.3, -4.0], "op_exusiai_s1": ["op_irene_s1", 1.15, 0.0],
-	"op_exusiai_s2": ["op_wisadel_s2", 1.3, 0.0], "op_exusiai_s3": ["op_wisadel_s3", 1.2, 0.0], "op_exusiai_big": ["op_wisadel_big", 1.5, -3.0]}
+	# 能天使（docs/61 §14，数据干员）：技能借艾丽妮 / 维什戴尔；枪声 / 命中 / 弹匣倾泻已换 CC0 录音 op_exusiai_atk / hit / big（docs/113 §8）
+	"op_exusiai_s1": ["op_irene_s1", 1.15, 0.0],
+	"op_exusiai_s2": ["op_wisadel_s2", 1.3, 0.0], "op_exusiai_s3": ["op_wisadel_s3", 1.2, 0.0]}
 ## 通用音缺文件时的借用（docs/53 §5 的三个材质 / 重击层，正式文件已由 tools/gen_sfx_hitfeel.py 合成；[音名, 音高倍率, 音量偏移 dB]，
 ## 偏移按调用处的音量算成和原顶替一样：kill_big −8 → mire_splat −9 ×0.85，kill_shell −6 → hit −6 ×0.6，hurt_heavy −8 → boom −10 ×0.7）
 const ALT := {"kill_big": ["mire_splat", 0.85, -1.0], "kill_shell": ["hit", 0.6, 0.0], "hurt_heavy": ["boom", 0.7, -2.0]}
@@ -824,7 +828,7 @@ const PRIO_NAME := {
 ## 冲锋类预警同时最多 1 个；骑士冲锋按位置降音量（world.gd 用 play_at）
 const SIEGE_S1_GAP := 4.5
 const VOICE_CAP := {"op_siege_s1": 1, "cue_charge_start": 1, "cue_charge_hit": 1, "knight_charge": 2,
-	"op_wisadel_quake": 2, "op_wisadel_hit": 3, "op_wisadel_big": 2, "op_kaltsit_big": 2, "op_eyjafjalla_big": 3}
+	"op_wisadel_quake": 2, "op_wisadel_hit": 3, "op_wisadel_big": 2, "op_kaltsit_big": 2, "op_eyjafjalla_big": 3, "op_exusiai_big": 2}
 const OFF_FADE := 480.0
 const OFF_DB := 12.0
 var view := Rect2()
