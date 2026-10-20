@@ -166,13 +166,13 @@
    "anim": "Idle",
    "t": 0,
    "rot": {
-    "F_R_Arm": 112,
-    "F_R_Forearm": -4,
+    "F_R_Arm": 100,
+    "F_R_Forearm": 4,
     "F_R_Hand": 0,
-    "F_Chest": 3,
-    "F_Head": -2,
-    "F_Hip": -4,
-    "F_R_Shawl4": -112
+    "F_Chest": -2,
+    "F_Head": -1,
+    "F_Hip": -6,
+    "F_R_Shawl4": -100
    },
    "mark": [
     "C_Light"

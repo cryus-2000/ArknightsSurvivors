@@ -52,7 +52,7 @@ SLOTS = {
     'irene': {
         'idle': ('native', 'Idle', 'loop'),
         'run': ('spine', 'frames', 'run'),
-        'attack': ('native', 'Attack', ('old', 'attack', 3)),
+        'attack': ('native', 'Attack', ('thrusts', [3, 4], [1.5 / 12, 1.5 / 12 + 2 / 12], 5 / 12, 3)),   # 两段刺：刺出帧 3 / 4 起点 = 两段命中
         'attack_retrial': ('spine', 'attack_retrial/frames', ('thrusts', [2, 4, 6], [1.5 / 12, 1.5 / 12 + 2 / 12, 1.5 / 12 + 4 / 12], 0.62)),
         'finisher': ('spine', 'finisher/frames', ('fps', 16)),
         'skill': ('spine', 's1/frames|Skill_1', ('old', 'skill', 2)),
@@ -121,21 +121,25 @@ def timing(kind, n, native_d=None, native_total=None, op=None):
     if kind[0] == 'fps':
         return {'fps': kind[1]}
     if kind[0] == 'old':
+        # 出手与画面对齐（10-20 协调人转用户口径）：逻辑时序不变，前 f 帧均分旧出手时刻、其余均分收势，出手帧 = f；
+        # 画面按 native_motion.clips 均匀播 clip = F × n / f 秒，出手帧画面起点正好 = 伤害时刻，放慢的只有收势
         T, F = OLD[(op, kind[1])]; f = kind[2]
-        w = native_d or [1] * n
-        pre = exact_split(w[:f], F) if f else []
-        d = pre + [x / sum(w[f:]) * (T - F) for x in w[f:]]
+        pre = exact_split([1] * f, F)
+        d = pre + [(T - F) / (n - f)] * (n - f)
         d = exact_split(d, T)
         s = 0.0
         for x in d[:f]: s += x
         assert abs(s - F) < 1e-12, (op, kind, s, F)
-        return {'frame_durations': d, 'fire_time': F, 'fire': f}
+        return {'frame_durations': d, 'fire_time': F, 'fire': f, 'clip': F * n / f}
     if kind[0] == 'thrusts':
         idx, times, total = kind[1], kind[2], kind[3]
         marks = [0.0] + times + [total]; frs = [0] + idx + [n]; d = []
         for a in range(len(marks) - 1):
-            k = frs[a + 1] - frs[a]; d += [(marks[a + 1] - marks[a]) / k] * k
-        return {'frame_durations': exact_split(d, total)}
+            k = frs[a + 1] - frs[a]
+            d += exact_split([1] * k, marks[1]) if a == 0 else [(marks[a + 1] - marks[a]) / k] * k   # 第一段精确落在首个命中（V7）
+        out = {'frame_durations': exact_split(d, total)}
+        if len(kind) > 4: out.update(fire_time=times[0], fire=kind[4])
+        return out
     raise ValueError(kind)
 
 
@@ -183,7 +187,89 @@ def build(op):
     return res
 
 
+FOOT = {128: [32, 60], 192: [48, 76], 256: [64, 92]}
+# 本批替换的旧 48 条（1x 与 @2x）；Mon3tr（op_mon3tr_* / op_kaltsit_m_*）不动
+OLD48 = {'kaltsit': ['idle', 'run', 'attack', 'skill', 'command'], 'lumen': ['idle', 'run', 'attack', 'skill'],
+         'irene': ['idle', 'run', 'attack', 'skill', 'finisher']}
+NEW_EXTRA = {'kaltsit': [], 'lumen': ['attack_beam', 'skill_s2', 'skill_s3_start', 'skill_s3_loop', 'skill_s3_end'],
+             'irene': ['attack_retrial', 'skill_s2', 'skill_s3_start', 'skill_s3_loop', 'skill_s3_end']}
+
+
+def apply(op, res):
+    path = ROOT / f'game/data/characters/{op}.json'
+    data = json.loads(path.read_text(encoding='utf-8'))
+    sp = data['sprites']
+    clips = {}
+    for slot, v in res.items():
+        tex = f'op_{op}_{v.get("same", slot)}'
+        if 'same' not in v:
+            (INC / f'{tex}@2x.png').write_bytes((OUT / op / slot / 'strip@2x.png').read_bytes())
+        spec = {'tex': tex, 'frames': v['frames'], 'foot': FOOT[v['size']]}
+        for k in ('fps', 'fire', 'fire_time', 'frame_durations'):
+            if k in v: spec[k] = v[k]
+        if 'clip' in v and not slot.startswith('skill_s3'): clips[slot] = v['clip']   # 序列起手不经 _start_action，不用 clip
+        if slot == 'run': spec['frame_durations'] = [0.075] * 8
+        sp[slot] = spec
+    for slot in OLD48[op]:
+        (INC / f'op_{op}_{slot}.png').unlink(missing_ok=True)
+        if slot not in res or 'same' in res[slot]: (INC / f'op_{op}_{slot}@2x.png').unlink(missing_ok=True)   # 凯尔希 skill 改用 attack 条
+    sp['size'] = 64; sp['foot'] = [32, 60]
+    ex = data.setdefault('extra_sprites', [])
+    for slot in NEW_EXTRA[op]:
+        if slot not in ex: ex.append(slot)
+    if op == 'lumen':
+        sp['skills'] = {'s2': {'anim': 'skill_s2'}, 's3': {'start': 'skill_s3_start', 'loop': 'skill_s3_loop', 'run': 'run', 'end': 'skill_s3_end'}}
+        data['blocks']['attack']['hand'] = [20, -37]   # 10-20 用户定：光弹出生点挪到举起的提灯灯心（原 [31, -42]）
+    if op == 'irene':
+        sp.pop('second', None)
+        sp['attack']['second'] = 5   # 段间隔 = (second − fire) / fps = 2 / 12，与旧条 (3 − 1) / 12 相同
+        sp['attack']['fps'] = 12
+        sp['finisher']['fire'] = 1   # 收尾换斩那一刻播锥斩挥出帧（e3_ir_anim 按 fps / fire 取帧）
+        sp['skills'] = {'s2': {'anim': 'skill_s2'}, 's3': {'start': 'skill_s3_start', 'loop': 'skill_s3_loop', 'end': 'skill_s3_end'}}
+        clips['attack_retrial'] = sum(res['attack_retrial']['frame_durations'])
+        data['native_motion'] = {'clips': clips,
+                                 'variants': [{'slot': 'attack', 'node': 'retrial', 'use': 'attack_retrial'}],
+                                 'yield': ['finisher']}
+    if op != 'irene':
+        data['native_motion'] = {'clips': clips}
+    if op == 'kaltsit':   # 手排版的文件：只替换本批的槽，其余（Mon3tr 等）原样保留
+        text = path.read_text(encoding='utf-8')
+        for key in list(res) + ['size', 'foot']:
+            text = _replace_key(text, '  ', key, sp[key])
+        if '"native_motion"' not in text:   # 顶层追加在 sprites 前
+            at = text.find('\n "sprites": {')
+            text = text[:at] + '\n "native_motion": ' + json.dumps(data['native_motion'], ensure_ascii=False) + ',' + text[at:]
+        path.write_text(text, encoding='utf-8', newline='\n')
+    else:
+        path.write_text(json.dumps(data, ensure_ascii=False, indent=1) + '\n', encoding='utf-8', newline='\n')
+
+
+def _replace_key(text, ind, key, value):
+    """把 sprites 下一层（缩进 ind）的 "key": 值 换成 indent=1 的新值；找不到就在 "size" 前插入。"""
+    body = json.dumps(value, ensure_ascii=False, indent=1).replace('\n', '\n' + ind)
+    head = '\n' + ind + json.dumps(key) + ': '
+    sp0 = text.find('"sprites": {')
+    start = text.find(head, sp0)
+    if start < 0:
+        at = text.find('\n' + ind + '"size": ', sp0)
+        return text[:at] + head + body + ',' + text[at:]
+    i = start + len(head)
+    if text[i] in '[{':
+        depth = 0
+        for j in range(i, len(text)):
+            if text[j] in '[{': depth += 1
+            elif text[j] in ']}':
+                depth -= 1
+                if depth == 0: break
+        end = j + 1
+    else:
+        end = i
+        while text[end] not in ',\r\n': end += 1
+    return text[:i] + body + text[end:]
+
+
 if __name__ == '__main__':
     for op in SLOTS:
         r = build(op)
+        if '--apply' in sys.argv: apply(op, r)
         print(op, {k: (v['frames'], v.get('size'), round(sum(v['frame_durations']), 4) if 'frame_durations' in v else v.get('fps'), v.get('fire_time')) for k, v in r.items()})

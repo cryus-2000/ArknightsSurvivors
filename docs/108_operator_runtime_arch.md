@@ -95,7 +95,8 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 ```json
 "native_motion": {
   "clips":    {"attack": 0.667, "attack_s2": 0.667},          // 起手（_start_action）后整条播的秒数
-  "variants": [{"slot": "attack", "perm": 1, "use": "attack_s2"}],  // 普攻时技能 perm 永久生效 → 换播 use
+  "variants": [{"slot": "attack", "perm": 1, "use": "attack_s2"}],  // 普攻时技能 perm 永久生效 → 换播 use；或 {"node": "<成长节点 id>"}（已选该节点）
+  "yield":    ["finisher"],                                       // 这些帧条正在播时不覆盖（手写段收尾动作）
   "states": [                                                 // 按序取第一条命中的
     {"on": "tether.reel", "slot": "tether_native", "from": 3, "to": 4, "rate": 2},  // 帧 = from + min(to-from, int(k×rate))
     {"on": "tether",      "slot": "tether_native", "from": 1, "to": 2, "rate": 2},  // on 匹配信号名或其「族.」前缀
@@ -105,7 +106,7 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 }
 ```
 
-帧数一律取槽的 `frames`（不再写死 8）。校验见 V4 / V8。新人若有 Spine 原生姿势：手写段加一个 `*_native_signals`（只读自己的状态、写进 out），其余全填 json。
+帧数一律取槽的 `frames`（不再写死 8）；clip 槽写了 `frame_durations` 时按逐帧时长播（clips 的秒数写总和）。校验见 V4 / V8。新人若有 Spine 原生姿势：手写段加一个 `*_native_signals`（只读自己的状态、写进 out），其余全填 json。
 
 ## 4. json 字段表（现行）
 
@@ -167,8 +168,11 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | 推进之王 | 64 | frame_durations | 无（`skills[].anim`） | native_motion（数据驱动） | 取消号令 |
 | 乌尔比安 | 64 + 128 | frame_durations、`hand` | 无（elite2 `anim: throw`） | native_motion（数据驱动） | 锚 / 锁链从 `hand` 连出 |
 | 安洁莉娜 | 48（新序列、旧画布） | fire | s3 start/enter/loop/run/attack/end | — | 帧条待重画 |
+| 凯尔希（本体） | 64 | frame_durations + fire_time（时长 / 出手同旧条） | 无（S2 / S3 `command`） | — | S1 复用 attack 条；Mon3tr 不动（10-20） |
+| 流明 | 64 | frame_durations + fire_time | s2 单条、s3 start/loop/run/end | — | 普攻 / 精二光柱手提灯举向敌人；光弹出生点 `hand` 改 [20, -37]（灯心，用户 10-20 定，会改同 seed）；光柱一发起手播 `attack_beam`（seg_lumen） |
+| 艾丽妮 | 64 + 96 + 128 | frame_durations + fire_time；attack 保留 fps 12 / fire 3 / second 5（段间隔 2/12 不变） | s2 单条、s3 start/loop/end | native_motion：variants `node: retrial` → 12 帧三段刺 `attack_retrial`；`yield: [finisher]` | 裂潮余波 finisher 9 帧 16 fps、fire 1 |
 
-其余 8 人（星熊、艾丽妮、凯尔希、流明、斯卡蒂、浊心斯卡蒂、归溟幽灵鲨、德克萨斯）仍是 48 旧口径，见 §9。
+其余（星熊、斯卡蒂、浊心斯卡蒂、归溟幽灵鲨、德克萨斯）仍是 48 旧口径，见 §9；凯尔希 / 流明 / 艾丽妮 10-20 已换（上表）。
 
 ## 7. 旧口径 ↔ 新口径冲突清单
 

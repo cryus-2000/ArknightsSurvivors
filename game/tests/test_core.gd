@@ -348,6 +348,7 @@ func test_operator_contract() -> void:
 		ok(errs.is_empty(), "数据契约零错误：%s %s" % [cid, str(errs)])
 	var wd: Dictionary = Ch.load_def("wisadel")
 	var sg: Dictionary = Ch.load_def("siege")
+	var ir: Dictionary = Ch.load_def("irene")
 	var cases := [
 		["V1", wd, func(d): d.sprites.skill["attack_timing"] = {"duration": 0.5, "fire_time": 0.6, "active_ratio": 0.9, "windup_ratio": 0.45}],
 		["V2", wd, func(d): d.sprites.erase("foot_exempt")],
@@ -355,6 +356,8 @@ func test_operator_contract() -> void:
 		["V2", sg, func(d): d.sprites.size = 96],
 		["V4", sg, func(d): d.native_motion.states[0].to = 99],
 		["V4", sg, func(d): d.native_motion["clip"] = {}],
+		["V4", ir, func(d): d.native_motion.variants[0]["perm"] = 1],   # perm 与 node 二选一
+		["V4", ir, func(d): d.native_motion["yield"] = "finisher"],
 		["V5", wd, func(d): d.sprites.s2_attack.muzzles.pop_back()],
 		["V6", wd, func(d): d.sprites.s2_attack.muzzles[0] = [1]],
 		["V7", sg, func(d): d.sprites.attack.fire = 2],

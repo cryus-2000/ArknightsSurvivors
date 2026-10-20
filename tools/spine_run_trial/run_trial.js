@@ -202,6 +202,8 @@ async function main() {
       sk.drawOrder.splice(sk.drawOrder.findIndex(x => x.data.name === before), 0, s);
     }
     for (const n of k.hide || []) { const s = sk.findSlot(n); if (s) s.attachment = null; }
+    // only：只画这些槽（量道具像素位置用）
+    if (k.only || process.env.ONLY) { const keep = k.only || process.env.ONLY.split(','); for (const s of sk.slots) if (!keep.includes(s.data.name)) s.attachment = null; }
     // mark：记录某骨在 @2x 画布上的像素位置（核对道具 / 炮口与游戏出手点）
     const marks = {}; for (const n of k.mark || []) { const b = get(sk, n); marks[n] = [+(ANCHOR[0] + b.worldX * SCALE).toFixed(1), +(ANCHOR[1] - b.worldY * SCALE).toFixed(1)]; }
     return finish(sk, [{ pose: k.anim || 'Idle', t: k.t || 0, marks }]);
