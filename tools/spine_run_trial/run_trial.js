@@ -174,6 +174,8 @@ async function main() {
       const ws = sk.findSlot(cfg.weaponSlot), hs = sk.findSlot(cfg.handSlot);
       sk.drawOrder = sk.drawOrder.filter(x => x !== ws); sk.drawOrder.splice(sk.drawOrder.indexOf(hs), 0, ws);
     }
+    // top：这些槽按给定顺序移到最前（持剑手靠近大头时，原层序会被头 / 帽子挡住）
+    for (const n of k.top || []) { const t = sk.findSlot(n); sk.drawOrder = sk.drawOrder.filter(x => x !== t); sk.drawOrder.push(t); }
     return finish(sk, contacts);
   }
 

@@ -194,15 +194,16 @@
    },
    "arms": {
     "R": [
-     100,
-     100
+     -150,
+     -170
     ],
     "L": [
      -80,
      -40
     ]
    },
-   "weapon": 175
+   "weapon": 115,
+   "front": false
   },
   {
    "hipY": 0.4,
@@ -223,16 +224,22 @@
    },
    "arms": {
     "R": [
-     30,
-     20
+     -100,
+     -45
     ],
     "L": [
      -130,
      -150
     ]
    },
-   "weapon": 30,
-   "front": true
+   "weapon": 15,
+   "front": false,
+   "top": [
+    "F_R_Arm",
+    "F_R_Forearm",
+    "F_Weapon",
+    "F_R_Hand"
+   ]
   },
   {
    "hipY": -0.22,
@@ -253,16 +260,22 @@
    },
    "arms": {
     "R": [
-     -5,
-     -15
+     -105,
+     -65
     ],
     "L": [
      -150,
      -170
     ]
    },
-   "weapon": -22,
-   "front": true
+   "weapon": -20,
+   "front": false,
+   "top": [
+    "F_R_Arm",
+    "F_R_Forearm",
+    "F_Weapon",
+    "F_R_Hand"
+   ]
   },
   {
    "hipY": -0.25,
@@ -283,16 +296,22 @@
    },
    "arms": {
     "R": [
-     -10,
-     -20
+     -108,
+     -70
     ],
     "L": [
      -145,
      -165
     ]
    },
-   "weapon": -24,
-   "front": true
+   "weapon": -22,
+   "front": false,
+   "top": [
+    "F_R_Arm",
+    "F_R_Forearm",
+    "F_Weapon",
+    "F_R_Hand"
+   ]
   },
   {
    "hipY": -0.08,
