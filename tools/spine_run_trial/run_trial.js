@@ -129,7 +129,7 @@ async function main() {
       const k = (i + (side === cfg.leadLeg ? 0 : 4)) % 8, g = GAIT[k];
       const [a, b, c] = cfg.legs[side].map(n => get(sk, n)), info = legInfo[side];
       const tx = a.worldX + f * (cfg.gaitX?.[k] ?? g[0]) * L * P.stride;   // gaitX：按相位覆盖脚踝前后位置
-      const setFoot = () => rotate(sk, c, info.foot + f * g[2] - ang(c));
+      const setFoot = () => rotate(sk, c, info.foot + f * g[2] * (P.footRot ?? 1) - ang(c));   // footRot：脚掌转角比例（靴筒挂在小腿上的干员转多了会脱开）
       // gaitLiftPx：按像素指定各相位离地高度（对齐已批准的旧条），否则用步态表 × lift
       const liftPx = (cfg.gaitLiftPx === undefined ? LIFT_PX : cfg.gaitLiftPx || [])[k];
       let ty = ground + info.ankleAbove + (liftPx != null ? liftPx / SCALE : g[1] * L * P.lift);
@@ -144,10 +144,21 @@ async function main() {
       }
       contacts.push({ side, phase: k, support: stance, gap: +(bottom(sk, side) - ground).toFixed(2) });
       // swingTop：抬起的腿（相位 4–7）整条移到最前绘制，免得高抬的膝 / 鞋被衣摆、武器挡住（维什戴尔）
-      if (cfg.swingTop && !stance) {
+      if (cfg.swingTop && !stance && (cfg.swingTop !== 'back' || k <= 5)) {   // 'back' 只在后踢相位（4–5）压底
         const root = get(sk, cfg.legs[side][0]);
         const mine = sk.drawOrder.filter(sl => { for (let p = sl.bone; p; p = p.parent) if (p === root) return true; return false; });
         sk.drawOrder = cfg.swingTop === 'back' ? mine.concat(sk.drawOrder.filter(sl => !mine.includes(sl))) : sk.drawOrder.filter(sl => !mine.includes(sl)).concat(mine);   // 'back' = 抬起的腿压到最底层（后踢在身后）
+      }
+    }
+    // legDepth：按脚踝前后排两腿层序——靠后的腿整条放到靠前那条腿的最底层部件之前（靴筒翻边不压到另一条小腿上）
+    if (cfg.legDepth && !(cfg.swingTop === 'back' && contacts.some(c => c.phase === 4 || c.phase === 5))) {
+      const slotsOf = side => { const root = get(sk, cfg.legs[side][0]); return sk.drawOrder.filter(sl => { for (let p = sl.bone; p; p = p.parent) if (p === root) return true; return false; }); };
+      const ax = side => f * get(sk, cfg.legs[side][2]).worldX;
+      const [back, front] = ax('L') < ax('R') ? ['L', 'R'] : ['R', 'L'];
+      const bs = slotsOf(back), fs = slotsOf(front);
+      if (bs.length && fs.length) {
+        const rest = sk.drawOrder.filter(sl => !bs.includes(sl)), at = rest.indexOf(fs[0]);
+        sk.drawOrder = rest.slice(0, at).concat(bs, rest.slice(at));
       }
     }
     arms(sk, i, phi);

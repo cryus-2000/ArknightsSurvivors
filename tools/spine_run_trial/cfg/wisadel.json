@@ -58,7 +58,8 @@
   "elbow": 70,
   "carryLean": 0.0,
   "stride": 1.25,
-  "crouch": 0.07
+  "crouch": 0.07,
+  "footRot": 0.25
  },
  "carry": {
   "C_Weapon_A_01": [
@@ -127,7 +128,6 @@
   5,
   2
  ],
- "swingTop": "back",
  "gaitX": [
   null,
   null,
@@ -137,5 +137,7 @@
   -0.3,
   0.0,
   0.25
- ]
+ ],
+ "legDepth": true,
+ "swingTop": "back"
 }
