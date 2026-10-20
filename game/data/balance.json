@@ -11,8 +11,8 @@
   "recall_done": 28,
   "recall_max": 3.0,
   "gather": 0.4,
-  "stamina_secs": 15,
-  "regen_secs": 30,
+  "stamina_secs": 25,
+  "regen_secs": 50,
   "min_start": 0.3,
   "range_k": 0.6,
   "bot_roam": 0

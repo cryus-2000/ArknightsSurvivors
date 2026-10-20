@@ -327,13 +327,13 @@ func can_roam() -> bool:
 ## 耐力：突击扣、其余回；耗尽 → 自动归队（走集合那套）+ 冷却。机器人突击常开（command/bot_roam）时随行中耐力够了就再突击
 func _tick_stamina(dt: float) -> void:
 	if stance == ROAM:
-		stamina -= dt / maxf(0.1, Bal.v("command/stamina_secs", 15.0))
+		stamina -= dt / maxf(0.1, Bal.v("command/stamina_secs", 25.0))
 		if stamina <= 0.0:
 			stamina = 0.0
 			exhausted = true
 			set_stance(RECALL)
 		return
-	stamina = minf(1.0, stamina + dt / maxf(0.1, Bal.v("command/regen_secs", 30.0)))
+	stamina = minf(1.0, stamina + dt / maxf(0.1, Bal.v("command/regen_secs", 50.0)))
 	if exhausted and stamina >= Bal.v("command/min_start", 0.3):
 		exhausted = false
 	if stance == GUARD and g.get("bot") != null and Bal.v("command/bot_roam", 0.0) > 0.0 and cmd_on() and can_roam():

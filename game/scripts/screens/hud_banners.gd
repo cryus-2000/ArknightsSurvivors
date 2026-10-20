@@ -600,14 +600,14 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 		g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), oc)
 	if g.touch.active:
 		return   # 触屏：模式写在「指挥」键上（touch.gd）
-	var y: float = h.squad.squad_top(vs) - 34.0
+	var y: float = h.squad.squad_top(vs) - 38.0
 	var key: String = Pad.GLYPH.LB if Pad.using else "F"
 	var x: float = vs.x - 16.0
 	var kw: float = g.font.get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x + 12.0
 	UI.keycap(g.hud, g.font, Vector2(x - kw, y), key, UI.SUB, 11)
 	UI.text(g.hud, g.font, Vector2(x - kw - 168.0, y + 14.0), "指挥 · " + g.squad.STANCE_NAMES[st], 14, col, HORIZONTAL_ALIGNMENT_RIGHT, 160)
 	# 突击耐力条（全队共用）：标签下方右对齐；突击中金色、耗尽冷却灰色，细刻度 = 可再次突击的线（command/min_start）
-	draw_stamina_bar(Rect2(Vector2(x - 120.0, y + 21.0), Vector2(120.0, 4.0)))
+	draw_stamina_bar(Rect2(Vector2(x - 180.0, y + 21.0), Vector2(180.0, 7.0)))
 
 
 func draw_stamina_bar(r: Rect2) -> void:
