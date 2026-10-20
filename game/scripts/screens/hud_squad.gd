@@ -29,6 +29,13 @@ func draw(vs: Vector2) -> void:
 	# 编队栏：静态部分（底、立绘、名字、职业 / 精英标签、技能格底与图标、源石锭框）只在内容变了才重画；
 	# 充能遮罩、进度条、边框、倒计时、悬停提示等每帧画（在父画布上，压在静态层之上）
 	var sbr := Vector2(vs.x - 16, vs.y - 16)
+	# 各干员的 skill_hud() / portrait() 每帧只取一次，签名、静态层、每帧层共用（性能 docs/50 §21：原来每帧各取 2–3 次）
+	_fr_items = []
+	_fr_pts = []
+	if not (g.opt_old & Game.OPT_HUDSQ):
+		for o in g.squad.ops:
+			_fr_items.append(o.skill_hud())
+			_fr_pts.append(o.portrait())
 	h._layer("squad", _squad_sig(sbr), func(): draw_squad_hud(sbr, 1))
 	draw_squad_hud(sbr, 2)
 
@@ -38,13 +45,26 @@ func squad_top(vs: Vector2) -> float:
 	return vs.y - 16.0 - SQ_CARD.y - SQ_SK - 14.0 - 46.0
 
 
+## 本帧各干员的 skill_hud() / portrait()（draw 开头取一次；为空时各处当场取，即 OPT_HUDSQ 旧写法）
+var _fr_items: Array = []
+var _fr_pts: Array = []
+
+func _items_of(i: int) -> Array:
+	return _fr_items[i] if i < _fr_items.size() else g.squad.ops[i].skill_hud()
+
+
+func _pt_of(i: int) -> Dictionary:
+	return _fr_pts[i] if i < _fr_pts.size() else g.squad.ops[i].portrait()
+
+
 ## 编队栏静态层的签名：这些变了才重画静态层
 func _squad_sig(br: Vector2) -> Array:
 	var sig: Array = [br, g.squad.size(), g.squad.cap(), g.ingots]
-	for o in g.squad.ops:
-		var pt: Dictionary = o.portrait()
+	for i in g.squad.ops.size():
+		var o = g.squad.ops[i]
+		var pt: Dictionary = _pt_of(i)
 		sig.append([o.id, o.elite, o.display_name(), o.cls, pt.tex, pt.frames])
-		var items: Array = o.skill_hud()
+		var items: Array = _items_of(i)
 		for k in 3:
 			var it: Array = items[k]
 			sig.append([it[9] if it.size() > 9 else "", it[2]])
@@ -90,8 +110,8 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 		var cbot := Color(0.07, 0.08, 0.1, 0.95)
 		if S:
 			bg.grad(cr, ctop, cbot)
-		var pt: Dictionary = o.portrait()
-		var at: Texture2D = g.tex.get(pt.tex)
+		var pt: Dictionary = _pt_of(i) if S or (g.opt_old & Game.OPT_HUDSQ) else {}   # 立绘只在静态层用
+		var at: Texture2D = g.tex.get(pt.tex) if S or (g.opt_old & Game.OPT_HUDSQ) else null
 		if at != null and S:
 			var fw := float(at.get_width()) / int(pt.frames)
 			var fh := float(at.get_height())
@@ -106,20 +126,8 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 			var src := Rect2(maxf(0.0, (fw * ks - cr.size.x) / 2.0) / ks, bot - dst_h / ks, minf(cr.size.x / ks, fw), dst_h / ks)
 			var dst := Rect2(cr.position, Vector2(minf(cr.size.x, fw * ks), dst_h))
 			texq.append([at, dst, src, Color.WHITE])
-		var clear := Color(0, 0, 0, 0)
-		var shade := Color(0, 0, 0, 0.88)
-		var nm: String = o.display_name().substr(0, 5)
-		var cls: String = String(o.cls).substr(0, 1)
-		var el: String = ["精零", "精一", "精二"][o.elite]
-		var ew := g.font.get_string_size(el, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(10)).x + 8.0
-		if S:
-			fg.grad(Rect2(Vector2(cr.position.x, cr.end.y - 28), Vector2(cr.size.x, 28)), clear, shade)
-			txt.append(func(): UI.text(g.hud, g.font, Vector2(cr.position.x, cr.end.y - 8), nm, 11, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cr.size.x, 2))
-			if cls != "":
-				fg.rect(Rect2(cr.position, Vector2(18, 18)), Color(0, 0, 0, 0.72))
-				txt.append(func(): UI.text(g.hud, g.font, cr.position + Vector2(0, 14), cls, 12, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 18))
-			fg.rect(Rect2(Vector2(cr.end.x - ew, cr.position.y), Vector2(ew, 16)), Color(0, 0, 0, 0.66))
-			txt.append(func(): UI.text(g.hud, g.font, Vector2(cr.end.x - ew + 4, cr.position.y + 12), el, 10, ocol.lerp(UI.TEXT, 0.4)))
+		if S or (g.opt_old & Game.OPT_HUDSQ):   # 名字 / 职业 / 精英标签只在静态层画
+			_card_static(o, cr, ocol, fg, txt, S)
 		if not Dn:
 			pass
 		elif act:
@@ -135,7 +143,7 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 			fg.rect(lt, UI.VIOLET)
 			txt.append(func(): UI.text(g.hud, g.font, lt.position + Vector2(0, 11), "队长", 10, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, lt.size.x))
 		# ---- 三枚技能格
-		var items: Array = o.skill_hud()
+		var items: Array = _items_of(i)
 		for k in 3:
 			var it: Array = items[k]
 			var sr := Rect2(Vector2(x + k * (SQ_SK + 6.0), sk_y), Vector2(SQ_SK, SQ_SK))
@@ -202,6 +210,23 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 	h.icons_draw(texq)
 	fg.flush(g.hud)
 	h.text_flush(txt)
+
+
+## 立绘卡的名字 / 职业 / 精英标签（静态层；S = false 时只算不画，OPT_HUDSQ 旧写法的每帧层照旧算一遍）
+func _card_static(o, cr: Rect2, ocol: Color, fg, txt: Array[Callable], S: bool) -> void:
+	var nm: String = o.display_name().substr(0, 5)
+	var cls: String = String(o.cls).substr(0, 1)
+	var el: String = ["精零", "精一", "精二"][o.elite]
+	var ew := g.font.get_string_size(el, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(10)).x + 8.0
+	if not S:
+		return
+	fg.grad(Rect2(Vector2(cr.position.x, cr.end.y - 28), Vector2(cr.size.x, 28)), Color(0, 0, 0, 0), Color(0, 0, 0, 0.88))
+	txt.append(func(): UI.text(g.hud, g.font, Vector2(cr.position.x, cr.end.y - 8), nm, 11, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cr.size.x, 2))
+	if cls != "":
+		fg.rect(Rect2(cr.position, Vector2(18, 18)), Color(0, 0, 0, 0.72))
+		txt.append(func(): UI.text(g.hud, g.font, cr.position + Vector2(0, 14), cls, 12, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, 18))
+	fg.rect(Rect2(Vector2(cr.end.x - ew, cr.position.y), Vector2(ew, 16)), Color(0, 0, 0, 0.66))
+	txt.append(func(): UI.text(g.hud, g.font, Vector2(cr.end.x - ew + 4, cr.position.y + 12), el, 10, ocol.lerp(UI.TEXT, 0.4)))
 
 
 ## 手动技能首次就绪提示：每局主控的手动技能第一次充满时，在主控头顶显示 3.5 秒「按 Q 释放「技能名」」
