@@ -23,7 +23,7 @@ for key, title in [("low_lob", "普攻低抛与熔岩碎块"), ("ignite", "点�
     sections.append(f'<section><h2>{title}</h2><p>左旧右新 · 常速。<a href="{key}_slow.gif">半速</a> · <a href="after/{key}/f_0022.png">完整实机 PNG</a></p><img src="{key}.gif"><details><summary>关键瞬间</summary><img src="{key}_key.png"></details></section>')
 
 trace = json.loads((OUT / "trace_verification.json").read_text(encoding="utf-8"))
-page = '''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>艾雅法拉 · 保留熔池方格与精英阶段对照</title><style>body{max-width:1400px;margin:24px auto;padding:0 18px;background:#192530;color:#e4edf4;font:17px/1.7 system-ui}a{color:#a2d8f3}img{max-width:100%;image-rendering:pixelated}section{margin:30px 0;border-top:1px solid #526678}.note{padding:18px;background:#293c4c}table{border-collapse:collapse;width:100%}th,td{border:1px solid #526678;padding:9px;text-align:left}</style><h1>艾雅法拉 · 保留熔池方格与精英阶段对照</h1><p class="note">左：上一版统一热斑；右：本次。保留原 fx_eyja_lava_pool 的橙色方格 / 翻滚纹理，作为持续熔池内层；外侧沿用统一岩壳。普通落地仍为短促亮闪、贴地热斑和两块低矮碎屑。原先清掉的重复爆炸、冲击环及四散火星保持移除。</p><p>S3 三路都使用完整岩块。现有伤害、弹数、目标、弹道、飞行与持续时间不变；沿用普攻低抛 0.36 秒、直线速度 280，S2 速度 320，以及 S3 末轮后 0.28 秒落地收势。</p><section id="stages"><h2>当前三个精英阶段 · 普攻常速实机</h2><p>人物普攻共用原 8 帧；各阶段的弹数、轨迹、命中附着和留场效果保留。以下分别按图鉴的 N1–N2、N1–N5、全部六个成长节点录制；精零图已取得复咏与迸溅，不是初始无成长状态。</p><table><tr><th>精零 · 复咏与迸溅</th><th>精一 · 熔蚀</th><th>精二 · 三重咏唱</th></tr><tr><td>直射；复咏追加第二发，爆点再迸出熔岩</td><td>保持直射；爆炸范围 +25%，附加暗红熔蚀裂纹；解锁 S2 重弹</td><td>三发三角低抛，全部落地后留 1.2 秒熔池；解锁 S3 浮空投弹</td></tr></table><img src="stages.gif"><p>三阶段均为实际图鉴视口，1 倍像素显示；每段 72 张 PNG、15 fps。分别录制，不声称同帧敌人状态完全相同。</p></section>'''
+page = '''<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>艾雅法拉 · 精零单发火球与精英阶段对照</title><style>body{max-width:1400px;margin:24px auto;padding:0 18px;background:#192530;color:#e4edf4;font:17px/1.7 system-ui}a{color:#a2d8f3}img{max-width:100%;image-rendering:pixelated}section{margin:30px 0;border-top:1px solid #526678}.note{padding:18px;background:#293c4c}table{border-collapse:collapse;width:100%}th,td{border:1px solid #526678;padding:9px;text-align:left}</style><h1>艾雅法拉 · 精零单发火球与精英阶段对照</h1><p class="note">按用户确认调整：精零普攻保持一发火球，取得「复咏」后将原两发倍率 1＋0.6 合成一发 1.6 倍火球；精一恢复原双发熔岩弹，精二保留三重低抛。精零主弹与命中后的迸溅恢复原火球贴图，后两阶段继续使用岩壳。攻击间隔和技能机制保留。</p><p>原熔池的橙色方格 / 翻滚纹理已保留为内层，外侧沿用统一岩壳。熔岩球落地保留贴地热斑和两块低矮碎屑；火球使用独立火焰爆开，不留岩壳碎石。没有重新叠回旧爆炸、冲击环及散射火星。S3 三路完整岩块、弹数、倍率及时间不变。</p><section id="stages"><h2>当前三个精英阶段 · 普攻常速实机</h2><p>人物普攻共用原 8 帧。以下分别按图鉴 N1–N2、N1–N5、全部六个成长节点录制；精零图已取得复咏与迸溅，其单发是 1.6 倍，初始无成长时是普通单发。火球命中后产生的迸溅属于 N2 效果，不是额外普攻。</p><table><tr><th>精零 · 单发火球</th><th>精一 · 双发熔蚀</th><th>精二 · 三重咏唱</th></tr><tr><td>直射单发；复咏强化为 1.6 倍；命中后可迸出火星</td><td>原 1 倍主弹＋0.6 倍后续弹；爆炸范围 +25%，附加熔蚀裂纹；解锁 S2</td><td>三发三角低抛，保持 1／1.4／1.4 倍；落完留 1.2 秒熔池，解锁 S3</td></tr></table><img src="stages.gif"><p>三阶段均为实际图鉴视口，1 倍像素显示；每段 72 张 PNG、15 fps。分别录制，不声称同帧敌人状态完全相同。</p></section>'''
 stage_pairs = []
 for i in range(72):
     row = Image.new("RGB", (1350, 280))
@@ -35,8 +35,19 @@ palette = stage_pairs[22].quantize(colors=256, method=Image.Quantize.MEDIANCUT, 
 stage_frames = [f.quantize(palette=palette, dither=Image.Dither.NONE) for f in stage_pairs]
 stage_frames[0].save(OUT / "stages.gif", save_all=True, append_images=stage_frames[1:], duration=[(70,70,60)[i % 3] for i in range(72)], loop=0, disposal=1)
 stage_pairs[22].save(OUT / "stages_key.png")
+fire_pairs = []
+for i in range(72):
+    row = Image.new("RGB", (1800, 560))
+    for col, version in enumerate(["stages_single_oldimpact", "stages_grid"]):
+        with Image.open(OUT / version / "elite0" / f"f_{i:04d}.png") as im:
+            row.paste(im.convert("RGB").crop((240,90,690,370)).resize((900,560), Image.Resampling.NEAREST), (col*900,0))
+    fire_pairs.append(row)
+palette = fire_pairs[10].quantize(colors=256, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE)
+fire_frames = [f.quantize(palette=palette, dither=Image.Dither.NONE) for f in fire_pairs]
+fire_frames[0].save(OUT / "fireball_impact.gif", save_all=True, append_images=fire_frames[1:], duration=[(70,70,60)[i%3] for i in range(72)], loop=0, disposal=1)
+page += '<section><h2>火球命中与熔岩落地区分</h2><p>左：精零单发仍套用岩块热斑；右：本次独立火焰爆开。火球为 0.24 秒橙黄火舌和亮芯，快速消散，不留岩壳碎石；精一后的熔岩球保留 0.4 秒贴地热斑、低矮碎屑及原有持续熔池。弹体发射时固定类型，途中升级也不改材质。</p><img src="fireball_impact.gif"></section>'
 launches = json.loads((OUT / "airborne_launches.json").read_text(encoding="utf-8"))
-page += f'<p>实际场景专项回归：{len(launches["launches"])} 轮主弹、{launches["bonus_count"]} 枚附加弹；发射均处于抬升后或浮空循环。本轮恢复熔池纹理前后 {trace["trace_lines_identical"]} 行玩法 TRACE 一致，全部干员数据配置逐字段相同。</p>'
+page += f'<p>实际成长回归已逐节点验证：精零 1 → 1.6 倍单发；精一原双发；精二三发倍率保留。S3 仍为 {len(launches["launches"])} 轮主弹、{launches["bonus_count"]} 枚附加弹。满成长同种子前后 {trace["trace_lines_identical"]} 行 TRACE 一致；精零行为变化为本轮批准的修改，不宣称相对旧版全阶段等价。</p>'
 page += "".join(sections)
 delivery_path = OUT / "delivery.json"
 status = json.loads(delivery_path.read_text(encoding="utf-8")) if delivery_path.exists() else {}

@@ -1479,6 +1479,10 @@ data_operator 的挂钩：`update` 在技能计时之后先跑 `hw_tick`（按�
 
 用户随后要求保留原熔池的橙色方格纹理：weighted 熔池在统一岩壳内恢复 `fx_eyja_lava_pool` 动画内层，缺贴图时才用程序热区 / 裂隙回退。精零直射（复咏追加第二发）、精一熔蚀裂纹及扩大爆炸、精二三角低抛与留场熔池分别保留；材质共用不改变这些阶段条件。
 
+随后用户批准精零改为单发火球，复咏合并为一发 `1+twin_mult`；精一双发，精二低抛不变，以上旧精零双发描述以此为准。复咏复用 `verb.buff_self {stat: atk, op: mult, cond: elite<1}`；`shape.shell` 在普攻出手时接入已有 `el_atk_mult`，技能出手不乘。精零主弹 / 迸溅使用原 `proj_lavaball`，精一后使用 weighted 岩壳；飞行与落地接口不变。
+
+shell 普攻在选择目标和消费次数型技能装填前调用 `_restat()`，避免 `follow` 先出手、`update` 后重算导致升级当帧沿用旧倍率。直射 / 抛射弹在发射时快照火球类型，绘制及落地读取快照，升级不改在途弹材质。火球落地为 `fireball_burst`（0.24 秒火焰爆开），熔岩球继续 `lava_spot.mass`（0.4 秒热斑与岩屑）；均走现有 pfx 生命周期 / 降噪，不修改命中时间、伤害、音效和顿帧。
+
 | 积木 | 类 | 说明 |
 |---|---|---|
 | `shape.shell` | 普攻 / 技能 do | 直线法术弹（game 的 fire 子弹：hidden、命中即在 `aoe` 内爆炸，爆炸后回调 `bullet_exploded`）。伤害 = base × mult [× 技能强度]（出手时）× 加成（发射时）；`aoe` × op_range × `aoe_mults`（cond）× `aoe_mult`；`tip / tip_skill` 出手点；`follow`（第一条 cond 成立的：n 发后续弹每 `gap` 秒一发，打首发目标以外的敌人，不够就在两侧偏开 `side`）；`on_explode`（target = 爆点、basis hit = 这一弹、r: hit = 爆炸半径）；`look` / `fire_fx` / `boom_fx` 画面 |

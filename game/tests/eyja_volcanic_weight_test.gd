@@ -84,10 +84,6 @@ func check_runtime() -> void:
 	if op == null:
 		game.queue_free()
 		return
-	for i in 6:
-		var node: Dictionary = op.next_node()
-		var choices: Dictionary = op.elite_choices(node) if node.get("type", "") == "elite" else {}
-		op.advance(choices.keys()[0] if not choices.is_empty() else "")
 	for e in game.enemies: e.dead = true
 	game.enemies.clear()
 	var target: Dictionary = game.spawner.spawn_enemy("stone", game.ppos + Vector2(180, 0))
@@ -99,6 +95,7 @@ func check_runtime() -> void:
 	second.max_hp = second.hp
 	second.spd = 0.0
 	game.enemies_sys.build_grid()
+	check_growth(game, op, target.pos)
 	op._sq_clear()
 	op.attack_t = 0.0
 	op.fire_t = -1.0
@@ -171,6 +168,53 @@ func check_runtime() -> void:
 			player.stream = null
 			player.queue_free()
 	await get_tree().process_frame
+
+func check_growth(game, op, at: Vector2) -> void:
+	var initial: Dictionary = {}
+	for node_index in 7:
+		if node_index > 0:
+			var node: Dictionary = op.next_node()
+			var choices: Dictionary = op.elite_choices(node) if node.get("type", "") == "elite" else {}
+			op.advance(choices.keys()[0] if not choices.is_empty() else "")
+		game.bullets.clear()
+		op.hw["shells"] = []
+		op.hw["lobvol"] = []
+		op.atk_aim = at
+		op._sq_clear()
+		op.sp = [-100000.0, -100000.0, -100000.0]
+		op.cd = 10000.0
+		op.act_kind = "attack"
+		op.attack_t = 0.1
+		op.fire_t = 0.0
+		var raw: float = op.base("atk", 0.0) * op._dmg_bonus()
+		op.follow(1.0 / 60.0, op.pos)
+		if op.elite == 0:
+			check(game.bullets.size() == 1 and op.hw.shells.is_empty(), "E0 stays one main fireball after every E0 growth node")
+			var expected: float = 1.0 if node_index == 0 else 1.6
+			check(game.bullets.size() == 1 and is_equal_approx(float(game.bullets[0].dmg), raw * expected), "E0 twin-cast damage node=%d actual=%s raw=%f atk=%s" % [node_index, str(game.bullets.map(func(b): return b.dmg)), raw, str(op.loc.atk)])
+			check(game.bullets.size() == 1 and game.bullets[0].get("hw_fireball", false), "E0 snapshots its fireball presentation when launched")
+			if node_index == 0 and game.bullets.size() == 1: initial = game.bullets[0].duplicate()
+		elif op.elite == 1:
+			check(is_equal_approx(float(op.loc.atk), 1.0), "E1 removes E0-only single-shot multiplier")
+			check(game.bullets.size() == 1 and op.hw.shells.size() == 1, "E1 retains the second magma projectile")
+			check(game.bullets.size() == 1 and is_equal_approx(float(game.bullets[0].dmg), raw), "E1 first shot keeps its original damage")
+			Blocks._hw2_tick(op, 0.13)
+			check(game.bullets.size() == 2 and is_equal_approx(float(game.bullets[-1].dmg), raw * 0.6), "E1 delayed second shot keeps 0.6 damage")
+		else:
+			check(game.bullets.is_empty() and op.hw.lobvol.size() == 1 and op.hw.lobvol[0].shots.size() == 3, "E2 retains three low-arc projectiles")
+			if op.hw.lobvol.size() == 1:
+				Blocks._hw5_lobs(op, 0.25)
+				for i in 3:
+					check(is_equal_approx(float(op.hw.lobvol[0].shots[i].dmg), raw * (1.0 if i == 0 else 1.4)), "E2 keeps original per-shot damage")
+		op.update(0.0)
+	if not initial.is_empty():
+		op.pfx.clear()
+		initial.hw_oe = []
+		Blocks.hw_shell_boom(op, initial)
+		check(op.pfx.any(func(f): return f.kind == "fireball_burst") and not op.pfx.any(func(f): return f.get("mass", false)), "E0 projectile landing after promotion keeps its fire burst, not rock debris")
+	game.bullets.clear()
+	op.hw.shells.clear()
+	op.hw.lobvol.clear()
 
 func check_impact(game, op, target: Dictionary) -> void:
 	game.fx.clear()

@@ -8,6 +8,16 @@ static func position_at(from: Vector2, to: Vector2, k: float, height: float) -> 
 	# Finite velocity at both ends; one early crest followed by accelerating descent.
 	return from.lerp(to, k) + Vector2(0, -4.0 * height * k * (1.0 - k) * (1.18 - 0.36 * k))
 
+static func draw_fireball(o, p: Vector2, direction: Vector2, size: float, age: float) -> void:
+	var dim: float = o.g.world.fx_dim
+	o.cv.draw_circle(p, 8.0 * size, Color(HOT, dim * 0.15))
+	if o.g.tex.get("proj_lavaball") != null and o.g.V6_FRAMES.has("proj_lavaball"):
+		var spec: Array = o.g.V6_FRAMES.proj_lavaball
+		o.draw_spr_rot("proj_lavaball", int(age * float(spec[1])) % int(spec[0]), p, direction.angle(), o.g.PX * size, Color(1, 1, 1, dim))
+	else:
+		o.cv.draw_circle(p, 5.0 * size, Color(HOT, dim))
+		o.cv.draw_circle(p, 2.0 * size, Color(1.0, 0.85, 0.35, dim))
+
 static func draw(o, p: Vector2, direction: Vector2, size: float, age: float, spin := 1.0) -> void:
 	var dim: float = o.g.world.fx_dim
 	var scale := Vector2.ONE * size
@@ -29,6 +39,19 @@ static func draw(o, p: Vector2, direction: Vector2, size: float, age: float, spi
 
 static func impact(o, p: Vector2, radius: float, size: float) -> void:
 	o.fx({"kind": "lava_spot", "mass": true, "pos": p, "r": clampf(radius * 0.42, 14.0, 32.0) * sqrt(size), "life": 0.4, "floor": true})
+
+static func fireball_impact(o, p: Vector2, radius: float, size: float) -> void:
+	o.fx({"kind": "fireball_burst", "pos": p + Vector2(0, -5), "r": clampf(radius * 0.3, 12.0, 24.0) * sqrt(size), "life": 0.24})
+
+static func draw_fireball_impact(o, f: Dictionary) -> void:
+	var k: float = clampf(1.0 - float(f.life) / float(f.max), 0.0, 1.0)
+	var radius: float = float(f.r) * (0.65 + 0.35 * k)
+	var scale := Vector2.ONE * radius / 10.0
+	var fade: float = (1.0 - k) * o.g.world.fx_dim
+	_poly(o, [Vector2(-10, 0), Vector2(-6, -4), Vector2(-4, -9), Vector2(-1, -5), Vector2(2, -12), Vector2(5, -5), Vector2(8, -2), Vector2(10, 0), Vector2(4, 3), Vector2(-4, 3)], f.pos, 0.0, scale, Color(HOT, fade * 0.8))
+	_poly(o, [Vector2(-5, 0), Vector2(-2, -5), Vector2(0, -2), Vector2(2, -6), Vector2(5, 0), Vector2(0, 2)], f.pos, 0.0, scale, Color(1.0, 0.8, 0.3, fade))
+	var flash: float = maxf(0.0, 1.0 - k / 0.24) * o.g.world.fx_dim
+	_poly(o, [Vector2(-3, 0), Vector2(0, -3), Vector2(3, 0), Vector2(0, 2)], f.pos, 0.0, scale, Color(1.0, 0.95, 0.65, flash))
 
 static func draw_impact(o, f: Dictionary) -> void:
 	var age: float = float(f.max) - float(f.life)

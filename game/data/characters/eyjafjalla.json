@@ -418,7 +418,7 @@
    "id": "twin_cast",
    "name": "复咏",
    "icon": "growth_b_count",
-   "desc": "每次施法投出 2 发熔岩弹：第二发打另一名敌人（没有则在旁边偏开），伤害 {$twin_mult*100}%；精英二起由「三重咏唱」取代"
+   "desc": "精英化前，普攻伤害 ×{$twin_mult+1}；精英一时普攻投出 2 发熔岩弹：第二发打另一名敌人（没有则在旁边偏开），伤害 {$twin_mult*100}%；精英二起由「三重咏唱」取代"
   },
   {
    "type": "custom",
@@ -584,12 +584,12 @@
    ],
    "follow": [
     {
-     "cond": "node:twin_cast && elite < 2",
+     "cond": "node:twin_cast && elite >= 1 && elite < 2",
      "n": 1,
      "gap": "$follow_gap",
      "mult": "$twin_mult",
      "sz": "$twin_size",
-     "_doc": "复咏：第 2 发（精二起由低抛三重咏唱取代）"
+     "_doc": "复咏：精一启用第 2 发；精零由局部 atk 合并为一发 1+0.6，精二由低抛三重咏唱取代"
     }
    ],
    "on_explode": [
@@ -1178,8 +1178,16 @@
   "progression": {
    "twin_cast": {
     "trig": "passive",
-    "do": [],
-    "_doc": "复咏：写在 attack.follow（cond node:twin_cast）"
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "atk",
+      "op": "mult",
+      "value": "$twin_mult+1",
+      "cond": "elite < 1"
+     }
+    ],
+    "_doc": "复咏：精零强化单发火球；精一在 attack.follow 启用双发；精二由低抛取代"
    },
    "embers": {
     "trig": "passive",

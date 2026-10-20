@@ -46,6 +46,8 @@ static func hw_shell_aim(o, a: Dictionary) -> Vector2:
 static func hw_shell_fire(o, b: Dictionary, is_atk: bool) -> void:
 	var g = o.g
 	var h := _hw2(o)
+	if is_atk:
+		o._restat()   # follow may release an attack before update refreshes a newly selected growth node.
 	var ts: Array
 	if is_atk and o.atk_aim != Vector2.ZERO:
 		ts = [o.aim_land(float(b.get("range", 290.0)) * o.stat(&"op_range"))]
@@ -62,6 +64,8 @@ static func hw_shell_fire(o, b: Dictionary, is_atk: bool) -> void:
 				patch = sk[i].get("attack_patch", {})
 				break
 	var pre: float = o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.get("mult", 1.0))
+	if is_atk:
+		pre *= _F().el_atk_mult(o)
 	if b.get("power", false) or patch.get("power", false):
 		pre *= o.skill_power()
 	var aoe: float = hw_aoe(o, b) * float(b.get("aoe_mult", 1.0))
@@ -110,7 +114,8 @@ static func _hw_cast(o, b: Dictionary, from: Vector2, target: Vector2, pre: floa
 		o._set_face(signf(d.x))
 	g.bullets.append({"kind": "fire", "pos": from, "vel": d * float(b.get("speed", 360.0)), "dmg": pre * o._dmg_bonus(), "life": float(b.get("life", 1.3)), "r": float(b.get("r", 8.0)) * sz,
 		"aoe": aoe, "src": str(b.get("src", "")), "op": o.id, "on_hit": o, "burn": false, "weak": 0.0, "fx_col": _mf_col(b.get("col", []), HW_ORANGE), "hidden": true,
-		"etrail": 0.0, "sz": sz, "hw_b": b, "hw_oe": oe})
+		"etrail": 0.0, "sz": sz, "hw_b": b, "hw_oe": oe,
+		"hw_fireball": o.elite < 1 and b.get("look", {}).get("weighted", false)})
 	if sfx:
 		o._sfx_op("atk")
 
@@ -121,7 +126,7 @@ static func hw_shell_boom(o, bl: Dictionary) -> void:
 	var b: Dictionary = bl.get("hw_b", {})
 	var h := _hw2(o)
 	if b.get("look", {}).get("weighted", false):
-		_hw_magma_impact(o, bl.pos, float(bl.aoe), float(bl.get("sz", 1.0)), b.get("boom_fx", []))
+		_hw_magma_impact(o, bl.pos, float(bl.aoe), float(bl.get("sz", 1.0)), b.get("boom_fx", []), bl.get("hw_fireball", false))
 	elif b.has("boom_fx"):
 		fx_play(o, b.boom_fx, bl.pos, float(bl.aoe))
 	var keep := hw_snap(o)
@@ -133,10 +138,13 @@ static func hw_shell_boom(o, bl: Dictionary) -> void:
 	h.hit_r = kr
 
 
-static func _hw_magma_impact(o, at: Vector2, radius: float, size: float, cues: Array) -> void:
+static func _hw_magma_impact(o, at: Vector2, radius: float, size: float, cues: Array, fireball := false) -> void:
 	# Keep sound/hitstop; one shared ground effect replaces the stacked visual entries.
 	fx_play(o, cues.filter(func(f): return f.has("pause") or f.has("sfx")), at, radius)
-	MagmaProjectile.impact(o, at, radius, size)
+	if fireball:
+		MagmaProjectile.fireball_impact(o, at, radius, size)
+	else:
+		MagmaProjectile.impact(o, at, radius, size)
 
 
 # ---------------------------------------------------------------- verb.lob / verb.affect / st.burn / st.fragile / shape.pool 的执行
@@ -177,14 +185,15 @@ static func hw_lob(o, b: Dictionary, at: Vector2) -> void:
 				tos.append(at + Vector2.from_angle(a0 + k * TAU / float(n)) * aoe * float(b.get("ring_k", 1.4)))
 	var hh: float = float(b.get("h", 30.0))
 	var lk = b.get("look", null)
-	if lk is Dictionary and lk.get("burst", false) and not tos.is_empty():
+	if lk is Dictionary and lk.get("burst", false) and not tos.is_empty() and not (o.elite < 1 and lk.get("weighted", false)):
 		_hw_lob_burst(o, from, float(b.get("sz", 1.0)))
 	for p in tos:
 		if h.lobs.size() >= HW_LOB_MAX:
 			break
 		var dur: float = (clampf(from.distance_to(p) / 420.0, 0.25, 0.6) + (0.2 if hh > 80.0 else 0.0)) * float(b.get("flight_mult", 1.0))
 		h.lobs.append({"b": b, "from": from, "to": p, "t": 0.0, "dur": dur, "dmg": dmg, "r": float(b.get("r", 30.0)), "src": str(b.get("src", "")), "h": hh,
-			"sz": float(b.get("sz", 1.0)), "trail": 0.0, "spin": signf(p.x - from.x) if absf(p.x - from.x) > 1.0 else 1.0})
+			"sz": float(b.get("sz", 1.0)), "trail": 0.0, "fireball": o.elite < 1,
+			"spin": signf(p.x - from.x) if absf(p.x - from.x) > 1.0 else 1.0})
 
 
 ## 熔岩块喷起的原点（10-14 用户「火山喷发的感觉」，纯画面，g.vrng）：白热闪光 + 一束向上猛喷的火星 + 几缕黑烟
@@ -354,7 +363,10 @@ static func _hw2_tick(o, dt: float) -> bool:
 			if l.t >= l.dur:
 				o.area_hit(l.src, l.to, l.r, l.dmg)
 				if lk is Dictionary and lk.get("weighted", false):
-					MagmaProjectile.impact(o, l.to, float(l.r), float(l.sz))
+					if l.get("fireball", false):
+						MagmaProjectile.fireball_impact(o, l.to, float(l.r), float(l.sz))
+					else:
+						MagmaProjectile.impact(o, l.to, float(l.r), float(l.sz))
 					continue
 				if lk is Dictionary:   # 熔岩块落地：一小下溅射闪光 + 碎块（纯画面）
 					var ln: String = str(lk.get("land", ""))
@@ -510,7 +522,10 @@ static func hw_draw_shells(o) -> void:
 		var sz: float = float(bl.get("sz", 1.0))
 		if lk.get("weighted", false):
 			var age: float = maxf(0.0, float(bl.hw_b.get("life", 1.3)) - float(bl.life))
-			MagmaProjectile.draw(o, bl.pos, bl.vel, sz * (1.5 if lk.has("big_tex") else 1.0), age)
+			if bl.get("hw_fireball", false):
+				MagmaProjectile.draw_fireball(o, bl.pos, bl.vel, sz, age)
+			else:
+				MagmaProjectile.draw(o, bl.pos, bl.vel, sz * (1.5 if lk.has("big_tex") else 1.0), age)
 			continue
 		var fl := 1.0 + 0.15 * sin(g.t * 40.0 + bl.pos.x)
 		cv.draw_circle(bl.pos, float(lk.get("glow", 13.0)) * fl * sz, Color(1.6, 0.6, 0.15, 0.22))
@@ -536,7 +551,10 @@ static func hw_draw_shells(o) -> void:
 		var rr: float = 5.5 * l.sz
 		if lk is Dictionary and lk.get("weighted", false):
 			var direction: Vector2 = p - _hw_lob_pos_at(l, maxf(0.0, float(l.t) - 0.02))
-			MagmaProjectile.draw(o, p, direction, float(l.sz) * float(lk.get("scale", 1.4)) / 1.4, float(l.t), float(l.spin))
+			if l.get("fireball", false):
+				MagmaProjectile.draw_fireball(o, p, direction, float(l.sz), float(l.t))
+			else:
+				MagmaProjectile.draw(o, p, direction, float(l.sz) * float(lk.get("scale", 1.4)) / 1.4, float(l.t), float(l.spin))
 			continue
 		if lk is Dictionary and g.tex.get(str(lk.get("tex", ""))) != null and g.V6_FRAMES.has(str(lk.get("tex", ""))):
 			# 熔岩块（10-14 用户「小红点太抽象，改成小的熔岩块，保留力量感」）：暗红外晕 + 翻滚的熔岩块帧条
@@ -620,6 +638,9 @@ static func hw_draw_pfx(o, f: Dictionary, a: float) -> bool:
 			var ps: Vector2 = f.pos
 			cv.draw_colored_polygon(PackedVector2Array([ps + Vector2(-ws, 0), ps + Vector2(-ws * 0.2, -hs), ps + Vector2(ws * 0.2, -hs), ps + Vector2(ws, 0)]), Color(HW_LAVA.r, HW_LAVA.g, HW_LAVA.b, 0.75 * a))
 			cv.draw_colored_polygon(PackedVector2Array([ps + Vector2(-ws * 0.4, 0), ps + Vector2(0, -hs * 0.85), ps + Vector2(ws * 0.4, 0)]), Color(2.4, 1.7, 0.8, 0.85 * a))
+			return true
+		"fireball_burst":
+			MagmaProjectile.draw_fireball_impact(o, f)
 			return true
 		"lava_spot":   # 熔岩块落点（10-14）：地面一小块发红，从白热褪到暗红
 			if f.get("mass", false):
