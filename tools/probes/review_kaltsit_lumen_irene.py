@@ -20,7 +20,7 @@ LABEL = {
 }
 SRC_NOTE = {
     ('kaltsit', 'attack'): '原作 Attack（治疗）', ('kaltsit', 'skill'): '同普攻条（S1 原作无独立轨），按旧技能时长播',
-    ('lumen', 'attack'): '新做：举灯伞朝敌瞄准、出手', ('lumen', 'skill'): '原作 Skill_1', ('lumen', 'skill_s2'): '原作 Skill_2',
+    ('lumen', 'attack'): '新做：举伞挑灯，灯对准游戏出弹点（光弹从灯中出）', ('lumen', 'skill'): '原作 Skill_1', ('lumen', 'skill_s2'): '原作 Skill_2',
     ('lumen', 'skill_s3_start'): '原作 Skill_3_Begin', ('lumen', 'skill_s3_loop'): '原作 Skill_3_Idle', ('lumen', 'skill_s3_end'): '原作 Skill_3_End',
     ('irene', 'attack'): '原作 Attack（两段刺）', ('irene', 'skill'): '原作 Skill_1（去掉原作刀光）', ('irene', 'skill_s2'): '原作 Skill_2（去掉原作刀光）',
     ('irene', 'skill_s3_start'): '原作 Skill_3_Start', ('irene', 'skill_s3_loop'): '原作 Skill_3_Attack 中段（原作这段人物透明，强制显示）',
@@ -150,7 +150,7 @@ img.x8{image-rendering:pixelated;max-width:100%;margin-top:8px}summary{cursor:po
 </style></head><body>
 <h1>凯尔希（本体）/ 流明 / 艾丽妮 动作候选</h1>
 <div class="n">64 画布 @2x（超界的槽用 96 / 128 加边，人物尺寸不变）。常速按游戏内时序播；普攻 / 技能的出手时刻与现版相同。Mon3tr 不在本批。<br>
-需要确认：① 流明原作骨架里的灯挂在提包上，手里拿的是带金色伞尖的长柄伞，所以“举灯瞄准”做成举伞尖瞄准（光弹从伞尖出）；如要手提灯，需 Codex 补「手持提灯」部件。② 艾丽妮 S3 持续段原作人物是透明的，这里强制显示原作姿势（空中转身连射）。③ 艾丽妮 S1 / S2 / S3 起手去掉了原作刀光（刀光由现有特效出）。</div>
+10-20 更新：流明普攻 / 精二光柱改为提灯挂在伞尖、举向敌人，出手帧灯心正对游戏里光弹的出生点（不改出弹位置与时刻）。艾丽妮 S3 持续段按原作姿势；S1 / S2 / S3 起手不带刀光，刀光另作美术追加。</div>
 {{BODY}}
 </body></html>'''
 

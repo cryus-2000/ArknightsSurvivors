@@ -182,6 +182,18 @@ async function main() {
     // opaque：原作这段把正面部件淡出（艾丽妮 S3 连射期间整个人透明），强制不透明看姿势
     if (k.opaque) for (const s of sk.slots) if (!s.data.name.startsWith('B_')) s.color.a = 1;
     sk.updateWorldTransform();
+    // pin：这些骨（含子骨）回到 Idle t=0 的世界位置（流明举灯时提包仍挂在髋侧）
+    if (k.pin) { const ref = pose('Idle', 0); for (const n of k.pin) { const b = get(sk, n), r = get(ref, n); rotate(sk, b, ang(r) - ang(b)); move(sk, b, r.worldX - b.worldX, r.worldY - b.worldY); } }
+    // carry：{骨: [手骨, dx, dy]} 把道具（含子骨）挂到手上，保持竖直下垂（dx / dy 为世界单位偏移）
+    // tip：{骨: [槽, 手骨, dx, dy]} 挂到某附件离手最远的顶点（流明把提灯挂在伞尖）
+    for (const [n, [sl, h, dx, dy]] of Object.entries(k.tip || {})) {
+      const b = get(sk, n), hb = get(sk, h), s = sk.findSlot(sl), v = verts(sp, s, s.getAttachment()); let best = null, far = -1;
+      // 有 tipDir 时取沿该方向最远的顶点（伞尖朝前上），否则取离手最远的顶点
+      const td = k.tipDir;
+      for (let q = 0; q < v.length; q += 2) { const d = td ? (v[q] - hb.worldX) * td[0] + (v[q + 1] - hb.worldY) * td[1] : Math.hypot(v[q] - hb.worldX, v[q + 1] - hb.worldY); if (d > far) { far = d; best = [v[q], v[q + 1]]; } }
+      rotate(sk, b, (k.carryAngle ?? -90) - ang(b)); move(sk, b, best[0] + (dx || 0) - b.worldX, best[1] + (dy || 0) - b.worldY);
+    }
+    for (const [n, [h, dx, dy]] of Object.entries(k.carry || {})) { const b = get(sk, n), hb = get(sk, h); rotate(sk, b, (k.carryAngle ?? -90) - ang(b)); move(sk, b, hb.worldX + (dx || 0) - b.worldX, hb.worldY + (dy || 0) - b.worldY); }
     if (k.lift) move(sk, get(sk, cfg.body.root || 'Front'), (k.dx || 0), k.lift);
     else if (k.dx) move(sk, get(sk, cfg.body.root || 'Front'), k.dx, 0);
     for (const n of k.top || []) { const t = sk.findSlot(n); sk.drawOrder = sk.drawOrder.filter(x => x !== t); sk.drawOrder.push(t); }
@@ -190,7 +202,9 @@ async function main() {
       sk.drawOrder.splice(sk.drawOrder.findIndex(x => x.data.name === before), 0, s);
     }
     for (const n of k.hide || []) { const s = sk.findSlot(n); if (s) s.attachment = null; }
-    return finish(sk, [{ pose: k.anim || 'Idle', t: k.t || 0 }]);
+    // mark：记录某骨在 @2x 画布上的像素位置（核对道具 / 炮口与游戏出手点）
+    const marks = {}; for (const n of k.mark || []) { const b = get(sk, n); marks[n] = [+(ANCHOR[0] + b.worldX * SCALE).toFixed(1), +(ANCHOR[1] - b.worldY * SCALE).toFixed(1)]; }
+    return finish(sk, [{ pose: k.anim || 'Idle', t: k.t || 0, marks }]);
   }
 
   // 关键帧动作（跳劈等）：每帧给髋位移、前倾、两脚（着地 = 贴地放脚；空中 = 相对髋的脚踝位置）、两臂绝对角、武器角
