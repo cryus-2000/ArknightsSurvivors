@@ -791,7 +791,7 @@ const V6_FRAMES := {
 	# 重画的 fx_wisadel_soul / fx_wisadel_mark（9140fe7b，尺寸帧数同原文件）照原规格切帧，不在这里登记
 	"fx_siege_pebbles": [6, 16.0], "fx_siege_rock_spike": [7, 18.0], "fx_siege_fissure_tile": [4, 12.0],
 	"fx_suzuran_seal": [6, 10.0], "fx_suzuran_bigfox_trail": [5, 12.0],
-	"fx_wisadel_gift_mark": [6, 10.0], "fx_wisadel_soul_fire": [5, 16.0], "proj_wisadel_soul_shell": [2, 20.0],
+	"fx_wisadel_gift_mark": [6, 10.0], "fx_wisadel_soul_fire": [5, 16.0], "op_wisadel_soul_native_die": [12, 12.0], "proj_wisadel_soul_shell": [2, 20.0],
 	"fx_saria_amber_spot": [4, 8.0], "fx_saria_pillar_rise": [5, 20.0], "fx_saria_pillar_idle": [4, 6.0], "fx_saria_pillar_break": [6, 18.0],
 	# Codex 精英化第 5 批（docs/93 §5，art/incoming/elite_art_5_manifest.json；接入见 docs/91 §27）：浊心斯卡蒂余音回声环、海嗣小歌域。
 	# 海嗣本体帧条 op_skalter_ishar_* 是人物帧条，登记在 skalter.json sprites（extra_sprites）

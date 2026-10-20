@@ -207,6 +207,7 @@ func on_leave() -> void:
 	if hw.has("mz"):
 		SegMizuki.h3_cancel(self)
 	SegAngelina.airborne_clear(self)
+	SegSkalter.h4_souls_leave(self)   # 魂灵之影离场画面（seg_wisadel，纯画面；积木链末端 SegSkalter 可调全链静态函数）
 	ObSummon.sm_clear(self)   # 召唤 / 封印段
 	g.stats.remove_source(_src_tag())
 	_mods = []

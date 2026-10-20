@@ -781,6 +781,7 @@ static func _h4wd_draw_souls(o) -> void:
 	for i in souls.size():
 		var s: Dictionary = souls[i]
 		var p: Vector2 = s.p
+		var native := _h4_soul_native(o, i, s)
 		if _h4_draw_soul_fire(o, s, p):
 			continue
 		if o._fx_tex("fx_wisadel_soul") != null:
@@ -790,7 +791,6 @@ static func _h4wd_draw_souls(o) -> void:
 				var fl: bool = tg != null and not tg.dead and tg.pos.x < p.x
 				o._fx_strip("fx_wisadel_soul", 6, 4 + mini(1, int((g.t - float(s.get("gt", g.t))) * 12.0)), p, Vector2(0.5, 0.5), 0.0, Color.WHITE, fl)
 			else:
-				var native := mf_visual_frame(o, {}, "soul_idle", g.t + i * 0.25)
 				if native.is_empty():
 					o._fx_strip("fx_wisadel_soul", 6, (int(g.t * 8.0) + i * 2) % 4, p)
 				else:
@@ -802,6 +802,44 @@ static func _h4wd_draw_souls(o) -> void:
 		cv.draw_polyline(tail, Color(0.08, 0.03, 0.05, 0.7), 5.0)
 		cv.draw_circle(p, 18.0, Color(1.0, 0.06, 0.12, 0.2 + 0.06 * sin(g.t * 6.0)))
 		_h4_shade_body(o, p, 9.5, 0.95)
+
+
+## 魂灵之影原生身体（docs/108 §3、docs/107 显示时钟；纯画面，状态只写 wd.vis，玩法不读）：
+## 首次出现 / 离场后重新上场播 native_soul_start → 常驻 soul_idle 循环 → 魂炮开火时起 native_soul_attack，
+## 原作 OnAttack 事件对齐真实出膛（s.fired，不改伤害时刻）；开火窗口内仍画 fx_wisadel_soul_fire（交接要求保留），之后接 Attack 余下时间线 → 回 Idle。
+## 离场（data_operator.on_leave → h4_souls_leave）在原地播 native_soul_die。返回 mf_visual_frame 的 [tex, 帧, 帧数, 槽]，缺图为空
+static func _h4_soul_native(o, k: int, s: Dictionary) -> Array:
+	var g = o.g
+	var wd: Dictionary = o.hw.wd
+	if not wd.has("vis"):
+		wd["vis"] = []
+	var vis: Array = wd.vis
+	while vis.size() <= k:
+		vis.append({})
+	var st: Dictionary = vis[k]
+	if g.t - float(st.get("seen", -99.0)) > 0.25:
+		SummonVisual.start(st, o.sprite_spec("native_soul_start").get("visual", {}), g.t)
+		st["fire"] = false
+	st["seen"] = g.t
+	var firing: bool = float(s.get("ft", -1.0)) >= 0.0
+	if firing and not st.get("fire", false):
+		var fc: Dictionary = _h4_sub(o, _h4_live(o, "verb.souls").get("fire", null))
+		SummonVisual.start(st, o.sprite_spec("native_soul_attack").get("visual", {}), g.t, float(fc.get("fire_at", 0.16)))
+		st["shot"] = false
+	if firing and s.get("fired", false) and not st.get("shot", true):
+		SummonVisual.hit(st, g.t)
+		st["shot"] = true
+	st["fire"] = firing
+	return mf_visual_frame(o, st, "soul_idle", g.t + k * 0.25)
+
+
+## 离场：每个魂灵之影在原地播一次 native_soul_die（世界特效，纯画面）；下次上场重播出场
+static func h4_souls_leave(o) -> void:
+	if not o.hw.has("wd"):
+		return
+	for s in o.hw.wd.souls:
+		o.spawn_fx_sprite("op_wisadel_soul_native_die", s.p, o.g.PX)
+	o.hw.wd.erase("vis")
 
 
 ## 魂灵之影开火（Codex fx_wisadel_soul_fire 5 帧 16fps：收缩 → 炮口喷暗紫烟）；缺图时照常画悬浮帧
