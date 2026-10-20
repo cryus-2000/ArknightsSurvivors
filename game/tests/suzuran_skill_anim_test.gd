@@ -166,13 +166,13 @@ func test_s3(o) -> void:
 func test_mate() -> void:
 	var m = null
 	for x in game.squad.ops:
-		if x.id != "suzuran" and x.skill_seq(0).is_empty() and x.skill_seq(2).is_empty():   # 找一个没写 sprites.skills 的队友（流明 10-20 起有序列）
+		if x.id != "suzuran" and x.skill_seq(0).is_empty():   # 找一个一技能没写 sprites.skills 序列的队友（流明 10-20 起二 / 三技能有序列）
 			m = x
 			break
 	ok(m != null, "有队友")
 	if m == null:
 		return
-	ok(m.skill_seq(0).is_empty() and m.skill_seq(2).is_empty(), "队友 %s 没有 sprites.skills" % m.id)
+	ok(m.skill_seq(0).is_empty(), "队友 %s 一技能没有 sprites.skills 序列" % m.id)
 	m.start_skill(Vector2.INF, 0)
 	ok(m.sq_ph == 0 and m.act_kind == "skill", "队友技能照旧走单条")
 	step(m, 1.0)
