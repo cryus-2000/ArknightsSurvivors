@@ -872,7 +872,7 @@ func follow_target(slot_pos: Vector2) -> Vector2:
 	return p if p != Vector2.INF else slot_pos
 
 
-## 指挥模式出击（docs/111）：近战按 blocks.follow.gap 贴身；普攻带 range 的远程站到射程 × command/range_k
+## 指挥模式突击（docs/114）：近战按 blocks.follow.gap 贴身；普攻带 range 的远程站到射程 × command/range_k
 func cmd_reach() -> float:
 	var fw: Dictionary = B.get("follow", {})
 	if fw.has("gap"):

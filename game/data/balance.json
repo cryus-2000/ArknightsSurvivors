@@ -2,7 +2,7 @@
  "version": "p5.0",
  "_doc": "docs/27_balance_framework.md。所有全局数值旋钮集中在这里；干员各自的基础数值在 data/characters/<id>.json 的 base 段。",
  "command": {
-  "_doc": "指挥模式（docs/111，10-21 原型）：on 总开关（0 = 关，不显示按钮、按键无效）；leash 出击时离队长最远（世界像素，约 1.5 个半屏宽）；search 找怪半径（以干员自己为中心）；roam_speed / recall_speed 出击 / 召回限速（× 队长移速）；recall_done 召回归位判定距离；recall_max 召回最长秒数；range_k 远程出击站位 = 普攻射程 × 它；bot_roam 机器人局开局常开出击（对照用）。",
+  "_doc": "指挥模式（docs/114，10-21 原型）：on 总开关（0 = 关，不显示按钮、按键无效）；leash 突击时离队长最远（世界像素，约 1.5 个半屏宽）；search 找怪半径（以干员自己为中心）；roam_speed / recall_speed 突击 / 归队限速（× 队长移速）；recall_done 归队归位判定距离；recall_max 归队最长秒数；gather 归队到位后站定秒数（集合完毕再回随行）；range_k 远程突击站位 = 普攻射程 × 它；bot_roam 机器人局开局常开突击（对照用）。",
   "on": 1,
   "leash": 960,
   "search": 520,
@@ -10,6 +10,7 @@
   "recall_speed": 4.0,
   "recall_done": 28,
   "recall_max": 3.0,
+  "gather": 0.4,
   "range_k": 0.6,
   "bot_roam": 0
  },

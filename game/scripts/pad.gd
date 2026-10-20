@@ -38,7 +38,7 @@ const MAP := {
 	"play": {
 		JOY_BUTTON_A: KEY_Q, JOY_BUTTON_Y: KEY_Q, JOY_BUTTON_X: KEY_J, JOY_BUTTON_START: KEY_ESCAPE, JOY_BUTTON_BACK: KEY_TAB,   # Ⓐ / Ⓨ 手动技能（Q），Ⓧ = J（手动普攻时是攻击，否则兼作手动技能）
 		JOY_BUTTON_B: KEY_K, JOY_BUTTON_RIGHT_SHOULDER: KEY_K,   # 冲刺
-		JOY_BUTTON_LEFT_SHOULDER: KEY_F,   # 指挥模式（docs/111）：LB / LT 循环 护卫 → 出击 → 召回
+		JOY_BUTTON_LEFT_SHOULDER: KEY_F,   # 指挥模式（docs/114）：LB / LT 循环 随行 → 突击 → 归队
 	},
 	"game_menu": {
 		JOY_BUTTON_A: KEY_ENTER, JOY_BUTTON_B: KEY_ESCAPE, JOY_BUTTON_START: KEY_ESCAPE, JOY_BUTTON_BACK: KEY_TAB,

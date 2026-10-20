@@ -317,7 +317,7 @@ func _draw_key(k: String, e: Dictionary, on: bool, drag: bool) -> void:
 			var fill := Color(0.14, 0.08, 0.04, 0.75) if k == "atk" else Color(0.05, 0.12, 0.16, 0.75)
 			draw_circle(c, r, fill)
 			draw_arc(c, r, 0.0, TAU, 40, Color(1.0, 0.72, 0.4, 1.0 if on else 0.6) if k == "atk" else ring, 3.0 if on else 2.0)
-			var glyph: String = {"dash": "冲刺", "skill": "技能", "atk": "攻击", "pause": "Ⅱ", "stats": "≡", "cmd": "护卫"}.get(k, "")
+			var glyph: String = {"dash": "冲刺", "skill": "技能", "atk": "攻击", "pause": "Ⅱ", "stats": "≡", "cmd": "随行"}.get(k, "")
 			var fs: int = int(round((18.0 if k in ["dash", "skill", "atk"] else (13.0 if k == "cmd" else 20.0)) * clampf(s, 0.8, 1.3)))
 			UI.text(self, font, c + Vector2(-40, fs * 0.4), glyph, fs, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 80)
 	# 名称标签（控件下方；冲刺 / 技能 / 攻击的名字已经写在圆里）

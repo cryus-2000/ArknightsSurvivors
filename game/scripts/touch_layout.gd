@@ -142,7 +142,7 @@ static func default_center(key: String, vs: Vector2, manual_atk: bool, dash_c :=
 		"speed":
 			return Vector2(vs.x - 44.0, 93.0)
 		"cmd":
-			# 指挥模式（docs/111）：暂停键左侧同一行——右手拇指够得到，离冲刺 / 技能键和编队区都远，不挡摇杆
+			# 指挥模式（docs/114）：暂停键左侧同一行——右手拇指够得到，离冲刺 / 技能键和编队区都远，不挡摇杆
 			return Vector2(vs.x - 46.0 - 72.0, 160.0 if ph else 186.0)
 	return vs / 2.0
 

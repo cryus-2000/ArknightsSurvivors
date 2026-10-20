@@ -321,7 +321,7 @@ func _opt_ab() -> void:
 
 
 ## 仅用于开发自测：快速模拟一整局，自动选择升级，打印状态后退出
-## --cmdat=<秒>,<秒>,…（指挥模式录片 / 复现，docs/111）：游戏时间到这些秒各按一次指挥键（同玩家按 F），切换照常记进 squad.stance_log
+## --cmdat=<秒>,<秒>,…（指挥模式录片 / 复现，docs/114）：游戏时间到这些秒各按一次指挥键（同玩家按 F），切换照常记进 squad.stance_log
 var _cmd_at: Array = []
 var _cmd_read := false
 func _cmd_step() -> void:

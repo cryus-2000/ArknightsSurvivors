@@ -923,7 +923,7 @@ func _ready() -> void:
 				bot_seed = int(a.substr(7))
 		bot = Bot.new(self, bot_p, bot_seed)
 		if Bal.v("command/bot_roam", 0.0) > 0.0 and Squad.cmd_on():
-			squad.set_stance(squad.ROAM)   # 指挥模式对照（docs/111）：机器人局常开出击；缺省 0 = 护卫，同 seed 不变
+			squad.set_stance(squad.ROAM)   # 指挥模式对照（docs/114）：机器人局常开突击；缺省 0 = 随行，同 seed 不变
 	for arg in Cfg.dev_args():
 		if arg.begins_with("--shotdir="):
 			shot_dir = arg.substr(10)
@@ -1331,7 +1331,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if k == KEY_V and state == S.PLAY:
 		PlayClock.cycle()
 		return
-	if k == KEY_F and state == S.PLAY:   # 指挥模式（docs/111）：F / 手柄 LB / 触屏「指挥」键循环 护卫 → 出击 → 召回
+	if k == KEY_F and state == S.PLAY:   # 指挥模式（docs/114）：F / 手柄 LB / 触屏「指挥」键循环 随行 → 突击 → 归队
 		toggle_command()
 		get_viewport().set_input_as_handled()
 		return

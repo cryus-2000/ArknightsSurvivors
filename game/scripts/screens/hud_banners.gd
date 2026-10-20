@@ -6,6 +6,8 @@ const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const UI = preload("res://scripts/ui.gd")
 const UM = preload("res://scripts/ui_motion.gd")
+const A = preload("res://scripts/art.gd")
+const Character = preload("res://scripts/characters/character.gd")   # CLASS_COL（指挥模式屏外标记）
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
 var _b_serial := -1   # 横幅动效：正在画的是哪一条（vfx.banner_serial）、第一次真正画出来的界面时刻
@@ -562,8 +564,8 @@ func draw_zone_hint(vs: Vector2) -> void:
 	UI.text(g.hud, g.font, tp - Vector2(120, 0), line2, 15, Color(col.r, col.g, col.b, 0.95), HORIZONTAL_ALIGNMENT_CENTER, 240, 4)
 
 
-## 指挥模式（docs/111）：屏幕外的队友在屏幕边缘画方向标记（干员色圈 + 职业首字 + 箭头）；非触屏时右下编队区上方显示当前模式与按键
-const CMD_COLS := [UI.CYAN, UI.GOLD, UI.GREEN]   # 护卫 / 出击 / 召回
+## 指挥模式（docs/114）：屏幕外的队友在屏幕边缘画方向标记（小头像 + 职业色外圈 + 方向箭头）；非触屏时右下编队区上方显示当前模式与按键
+const CMD_COLS := [UI.CYAN, UI.GOLD, UI.GREEN]   # 随行 / 突击 / 归队
 
 func draw_command(vs: Vector2, ct: Transform2D) -> void:
 	if g.state != Game.S.PLAY or not g.squad.cmd_on():
@@ -581,13 +583,19 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 		var c: Vector2 = box.get_center()
 		var d := (sp - c).normalized()
 		var edge: Vector2 = c + d * minf(absf(box.size.x / 2.0 / maxf(absf(d.x), 0.01)), absf(box.size.y / 2.0 / maxf(absf(d.y), 0.01)))
-		var oc: Color = o.col()
-		g.hud.draw_circle(edge, 19.0, Color(0.03, 0.05, 0.07, 0.88))
-		g.hud.draw_arc(edge, 19.0, 0.0, TAU, 24, oc, 2.5)
-		g.hud.draw_arc(edge, 22.0, 0.0, TAU, 24, Color(col.r, col.g, col.b, 0.45), 1.0)
-		UI.text(g.hud, g.font, edge + Vector2(-20, 6), o.cls.left(1), 15, oc, HORIZONTAL_ALIGNMENT_CENTER, 40)   # 职业首字（同编队卡左上角）
-		var tip: Vector2 = edge + d * 30.0
-		var base: Vector2 = edge + d * 22.0
+		var oc: Color = Character.CLASS_COL.get(o.cls, UI.CYAN)   # 外圈 / 箭头 = 职业色（同图鉴、选人）
+		g.hud.draw_circle(edge, 20.0, Color(0.03, 0.05, 0.07, 0.9))
+		var pt: Dictionary = o.portrait()   # 编队卡同一份头像帧条（待机帧），裁出头部
+		var tx: Texture2D = g.tex.get(pt.tex)
+		if tx != null:
+			var src: Rect2 = _head_src(pt.tex, tx, int(pt.frames))
+			g.hud.draw_texture_rect_region(tx, Rect2(edge - Vector2(15, 15), Vector2(30, 30)), src)
+		else:
+			UI.text(g.hud, g.font, edge + Vector2(-20, 6), o.cls.left(1), 15, oc, HORIZONTAL_ALIGNMENT_CENTER, 40)
+		g.hud.draw_arc(edge, 20.0, 0.0, TAU, 28, oc, 3.0)
+		g.hud.draw_arc(edge, 23.5, 0.0, TAU, 28, Color(col.r, col.g, col.b, 0.5), 1.0)
+		var tip: Vector2 = edge + d * 33.0
+		var base: Vector2 = edge + d * 24.0
 		var sd := d.orthogonal() * 7.0
 		g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), oc)
 	if g.touch.active:
@@ -598,3 +606,41 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 	var kw: float = g.font.get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, 11).x + 12.0
 	UI.keycap(g.hud, g.font, Vector2(x - kw, y), key, UI.SUB, 11)
 	UI.text(g.hud, g.font, Vector2(x - kw - 168.0, y + 14.0), "指挥 · " + g.squad.STANCE_NAMES[st], 14, col, HORIZONTAL_ALIGNMENT_RIGHT, 160)
+
+
+
+## 头像帧条第 0 帧里头部的方框（帧条像素）：第一行不透明像素往下取约 26 美术像素见方，横向按这几行的不透明范围居中。
+## 按贴图名缓存，每名干员只扫一次
+var _head_cache := {}
+
+func _head_src(tn: String, tx: Texture2D, frames: int) -> Rect2:
+	if _head_cache.has(tn):
+		return _head_cache[tn]
+	var fw: int = int(tx.get_width() / maxi(1, frames))
+	var fh: int = tx.get_height()
+	var side: float = minf(minf(float(fw), float(fh)), 26.0 * A.hires_of(tx))
+	var r := Rect2((fw - side) / 2.0, 0.0, side, side)
+	var img: Image = tx.get_image()
+	if img != null:
+		if img.is_compressed():
+			img.decompress()
+		var y0 := -1
+		for y in fh:
+			for x in fw:
+				if img.get_pixel(x, y).a > 0.5:
+					y0 = y
+					break
+			if y0 >= 0:
+				break
+		if y0 >= 0:
+			var x0 := fw
+			var x1 := -1
+			for y in range(y0, mini(fh, y0 + int(side))):
+				for x in fw:
+					if img.get_pixel(x, y).a > 0.5:
+						x0 = mini(x0, x)
+						x1 = maxi(x1, x)
+			var cx: float = (x0 + x1) / 2.0 if x1 >= x0 else fw / 2.0
+			r = Rect2(clampf(cx - side / 2.0, 0.0, fw - side), clampf(y0 - A.hires_of(tx), 0.0, fh - side), side, side)
+	_head_cache[tn] = r
+	return r

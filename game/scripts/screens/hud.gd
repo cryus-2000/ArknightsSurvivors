@@ -186,7 +186,7 @@ func _draw_body() -> void:
 	relics.draw_right_top(vs)   # 收合批段：这两行必须相邻
 	bars.draw_boss_bars(vs)
 	squad.draw(vs)
-	banners.draw_command(vs, ct)   # 指挥模式：屏外队友方向标记 + 当前模式（docs/111）；压在顶栏 / 编队栏之上
+	banners.draw_command(vs, ct)   # 指挥模式：屏外队友方向标记 + 当前模式（docs/114）；压在顶栏 / 编队栏之上
 	banners.draw_banner(vs)
 	banners.draw_notices(vs)
 	banners.draw_open_hints(vs)

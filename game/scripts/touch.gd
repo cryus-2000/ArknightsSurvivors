@@ -331,7 +331,7 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 	else:
 		skill_rect = Rect2()
 		atk_rect = Rect2()
-	# 指挥键（docs/111）：圈里写当前模式，颜色随模式（护卫青 / 出击金 / 召回绿），下方标签「指挥」
+	# 指挥键（docs/114）：圈里写当前模式，颜色随模式（随行青 / 突击金 / 归队绿），下方标签「指挥」
 	if g.state == g.S.PLAY and g.squad.cmd_on():
 		var ce: Dictionary = L.cmd
 		var cc: Vector2 = ce.c

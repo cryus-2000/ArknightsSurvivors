@@ -3,7 +3,7 @@
  "name": "流明",
  "en": "LUMEN",
  "class": "医疗",
- "command": {"roam": false, "_doc": "指挥模式（docs/111）：医疗 / 辅助出击时照旧护卫"},
+ "command": {"roam": false, "_doc": "指挥模式（docs/114）：医疗 / 辅助突击时照旧随行"},
  "col": [
   0.55,
   0.85,

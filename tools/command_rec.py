@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-"""指挥模式观感录片（docs/111 §6）：机器人局（队长持续走位），按 --cmdat 时刻切模式，存帧后用 ffmpeg 合成 mp4。
+"""指挥模式观感录片（docs/114 §6）：机器人局（队长持续走位），按 --cmdat 时刻切模式，存帧后用 ffmpeg 合成 mp4。
 
 用法：python tools/command_rec.py [--out build/command_rec] [--seed 3] [--squad mizuki,siege,wisadel,kaltsit]
     [--start 50] [--secs 40] [--cmdat 62,80]
-缺省：50 秒开录 40 秒；62 秒按一次（护卫 → 出击），80 秒再按（出击 → 召回，归位后自动回护卫）。
+缺省：50 秒开录 40 秒；62 秒按一次（随行 → 突击），80 秒再按（突击 → 归队，归位后自动回随行）。
 窗口经 godot_runner 放副屏 / 屏幕外，静音；ffmpeg 用 imageio_ffmpeg 自带的。
 """
 import argparse, glob, os, shutil, subprocess, sys

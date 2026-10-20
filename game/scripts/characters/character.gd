@@ -1210,9 +1210,9 @@ func portrait() -> Dictionary:
 ## 跟随主控的编队位：近处慢慢挪、远处快步跟上；离得太远（开局 / 传送）直接归位
 func follow(dt: float, target: Vector2) -> void:
 	var sq = g.get("squad")
-	var st: int = sq.stance if sq != null and not is_leader else 0   # 指挥模式（docs/111）：0 护卫 / 1 出击 / 2 召回
+	var st: int = sq.stance if sq != null and not is_leader else 0   # 指挥模式（docs/114）：0 随行 / 1 突击 / 2 归队
 	if st == 1 and not cmd_roam():
-		st = 0   # 不出击的干员（json command.roam: false）出击时照旧护卫
+		st = 0   # 不突击的干员（json command.roam: false）突击时照旧随行
 	if pos == Vector2.INF or pos.distance_to(target) > (700.0 if st == 0 else CmdBal.v("command/leash", 960.0) * 1.6):
 		pos = target
 		mv = 0.0
@@ -1222,13 +1222,15 @@ func follow(dt: float, target: Vector2) -> void:
 		pos = target   # 主控：位置就是玩家位置（g.ppos），不走编队跟随 / 近战前压
 	else:
 		target = roam_target(target) if st == 1 else follow_target(target)
+		if st == 2 and sq.gather_t >= 0.0:
+			target = pos   # 归队集合：到位后站定一下（squad._tick_recall）
 		var d: float = pos.distance_to(target)
 		var k: float = clampf(dt * (3.0 if d < 20.0 else (9.0 if st == 2 else 6.0)), 0.0, 1.0)
 		cmd_d = d
 		if st == 0:
 			pos = pos.lerp(target, k)
 		else:
-			# 出击 / 召回：限速（护卫原样不限）——出击按队长移速 × command/roam_speed 跑过去，召回 × command/recall_speed 快速归位
+			# 突击 / 归队：限速（随行原样不限）——突击按队长移速 × command/roam_speed 跑过去，归队 × command/recall_speed 快速归位
 			var step: Vector2 = (target - pos) * k
 			var vmax: float = g.speed * CmdBal.v("command/roam_speed" if st == 1 else "command/recall_speed", 1.3 if st == 1 else 4.0) * dt
 			if step.length() > vmax:
@@ -1459,21 +1461,21 @@ func follow_target(slot_pos: Vector2) -> Vector2:
 	return slot_pos
 
 
-## 指挥模式（docs/111）：这名干员出击时是否离队找怪（json command.roam，缺省 true；医疗 / 辅助写 false）
+## 指挥模式（docs/114）：这名干员突击时是否离队找怪（json command.roam，缺省 true；医疗 / 辅助写 false）
 func cmd_roam() -> bool:
 	return bool(def.get("command", {}).get("roam", true))
 
 
-## 出击时离敌人多远站定（近战贴身、远程退到射程内），子类按普攻定义覆盖
+## 突击时离敌人多远站定（近战贴身、远程退到射程内），子类按普攻定义覆盖
 func cmd_reach() -> float:
 	return 30.0
 
 
-## 出击站位：自己身边 command/search 内最近的敌人（离队长不超过 command/leash），站到它朝自己一侧 cmd_reach 处；
+## 突击站位：自己身边 command/search 内最近的敌人（离队长不超过 command/leash），站到它朝自己一侧 cmd_reach 处；
 ## 现目标死亡 / 出圈才换，身边出现明显更近的（近 GUARD_MARGIN 以上）也换。没怪 = 回编队位。只读 op_api 索敌，不抽随机数
 const CmdBal = preload("res://scripts/core/balance.gd")
 var roam_tgt = null
-var cmd_d := 0.0   # 本帧到跟随目标的距离（召回是否归位完由 squad 读）
+var cmd_d := 0.0   # 本帧到跟随目标的距离（归队是否归位完由 squad 读）
 
 func roam_target(slot_pos: Vector2) -> Vector2:
 	var leash: float = CmdBal.v("command/leash", 960.0)
