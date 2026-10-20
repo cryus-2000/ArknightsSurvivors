@@ -19,7 +19,7 @@ const D = 180 / Math.PI;
 const manifest = JSON.parse(fs.readFileSync(`${BZ}/${cfg.id}/manifest.json`, 'utf8'));
 const catalog = JSON.parse(fs.readFileSync(`${BT}/${cfg.id}/source/catalog.json`, 'utf8'));
 const SCALE = manifest.global_transform.scale * Number(catalog.scale);
-const ANCHOR = manifest.global_transform.mapped_root;
+const ANCHOR = manifest.global_transform.mapped_root.slice();
 const SIZE = 128, CUT = manifest.alpha_cutoff || 96;
 
 const P = Object.assign({ lean: 9, chestLean: 3, headKeep: 0.6, stride: 1, lift: 1, bob: 1, armAmp: 38, elbow: 75, elbowAmp: 25,
@@ -86,6 +86,9 @@ async function main() {
     return y;
   };
   const ground = Math.min(bottom(base, 'L'), bottom(base, 'R'));
+  // 鞋底贴原点：地面映射到 y=120（最后一行 119），与游戏原点 (64,120) 和旧 run 条一致。
+  // bz_18 的 mapped_root 按整身包围盒放置，推进之王因锤头垂到脚下会让鞋底悬空约 4 像素。
+  ANCHOR[1] = 120 + ground * SCALE;
   const legInfo = {};
   for (const side of ['L', 'R']) {
     const [a, b, c] = cfg.legs[side].map(n => get(base, n));
