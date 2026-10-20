@@ -1047,7 +1047,7 @@ func anim_state() -> Dictionary:
 	var st := super()
 	if hw.has("bolts"):
 		st = SegLogos.hw_native_body_state(self, st)
-	if not hw.is_empty() and hw.has("ir"):
+	if not hw.is_empty() and hw.has("ir") and not seq_locked():
 		st = SegIrene.e3_ir_anim(self, st)   # 精英化第 3 批：收尾斩的帧条
 	st = SegUlpianus.hw_anim_state(self, st) if not hw.is_empty() else st
 	st = NativeMotion.state(self, st)

@@ -266,7 +266,8 @@
    "s3": {
     "start": "skill_s3_start",
     "loop": "skill_s3_loop",
-    "end": "skill_s3_end"
+    "end": "skill_s3_end",
+    "lock": true
    }
   }
  },
