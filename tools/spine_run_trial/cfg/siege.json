@@ -1,0 +1,76 @@
+{
+ "id": "siege",
+ "src": "siege.src.json",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Shoulder",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Shoulder",
+   "F_R_Hand"
+  ]
+ },
+ "leadLeg": "L",
+ "hold": "R",
+ "weapon": "F_Weapon",
+ "hide": [
+  "F_L_Lollipop"
+ ],
+ "params": {
+  "lean": 13,
+  "headKeep": 0.45,
+  "stride": 1.35,
+  "lift": 1.3,
+  "bob": 1.1
+ },
+ "secondary": [
+  {
+   "match": "^(F_B_Hair_B|F_L_Hair|F_R_Hair|F_F_Hair|bone1[1-6]|bone19|bone2[0-2]|bone9|bone10)$"
+  },
+  {
+   "match": "^F_[LR]_Ear$",
+   "amp": 4,
+   "drag": 3
+  },
+  {
+   "match": "^F_Tail$",
+   "amp": 6,
+   "drag": 8,
+   "lag": 1.4
+  },
+  {
+   "match": "^F_[LR]_Jacket$",
+   "amp": 3,
+   "drag": 4
+  }
+ ],
+ "holdPose": {
+  "upper": -115,
+  "fore": 150,
+  "weapon": 158
+ },
+ "editorShift": [
+  0,
+  3.1
+ ]
+}
