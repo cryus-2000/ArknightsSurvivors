@@ -507,7 +507,6 @@
      {
       "verb": "fx_rain",
       "strip": "fx_texas_blade",
-      "hit": "fx_texas_rain_hit",
       "mark": "fx_texas_rain_mark",
       "r": "$s1_r",
       "center": "target",
@@ -519,10 +518,9 @@
       "fall_t": 0.1,
       "fall_frames": 2,
       "mark_frames": 3,
-      "scale": 0.95,
+      "scale": 0.633,
       "streak": 2,
-      "hit_scale": 1.2,
-      "scorch": 0.6,
+      "scorch": 0.0,
       "finale": {
        "scale": 1.8,
        "ring": 1.0,
@@ -565,7 +563,6 @@
      {
       "verb": "fx_rain",
       "strip": "fx_texas_blade",
-      "hit": "fx_texas_rain_hit",
       "mark": "fx_texas_rain_mark",
       "r": "$s1_r",
       "center": "self",
@@ -576,7 +573,7 @@
       "fall_t": 0.1,
       "fall_frames": 2,
       "mark_frames": 3,
-      "scale": 0.7,
+      "scale": 0.467,
       "streak": 2
      }
     ]
@@ -736,7 +733,6 @@
      {
       "verb": "fx_rain",
       "strip": "fx_texas_blade",
-      "hit": "fx_texas_rain_hit",
       "mark": "fx_texas_rain_mark",
       "r": "$s1_r",
       "center": "self",
@@ -747,10 +743,10 @@
       "fall_t": 0.1,
       "fall_frames": 2,
       "mark_frames": 3,
-      "scale": 0.6,
+      "scale": 0.4,
       "streak": 1,
       "alpha": 0.75,
-      "scorch": 0.3
+      "scorch": 0.0
      }
     ]
    },
@@ -882,7 +878,6 @@
         "step": "$rain_step",
         "if_tex": "!fx_texas_sword_drop",
         "strip": "fx_texas_blade",
-        "hit": "fx_texas_rain_hit",
         "mark": "fx_texas_rain_mark",
         "stagger": "$rain_gap",
         "fall": 70,
@@ -890,9 +885,9 @@
         "fall_frames": 2,
         "mark_frames": 3,
         "stick": 0.3,
-        "scorch": 0.3,
+        "scorch": 0.0,
         "streak": 1,
-        "scale": 0.6,
+        "scale": 0.4,
         "tilt": 3
        }
       ],
