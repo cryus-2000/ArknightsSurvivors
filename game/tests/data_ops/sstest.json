@@ -22,7 +22,7 @@
   "idle": {"tex": "op_skadi_idle", "frames": 4, "fps": 4, "foot": [22, 46]},
   "run": {"tex": "op_skadi_run", "frames": 6, "fps": 10, "foot": [24, 46]},
   "attack": {"tex": "op_skadi_attack", "frames": 5, "fps": 14, "foot": [24, 46], "fire": 2},
-  "skill": {"tex": "op_skadi_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 4},
+  "skill": {"tex": "op_skadi_leap_strike", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 4},
   "size": 48, "foot": [24, 46]
  },
  "attack": {"mode": "auto", "name": "测试封印脉冲", "desc": "以主控为中心的范围脉冲"},

@@ -80,7 +80,8 @@
         "duration": 0.95,
         "fire_time": 0.20833333333333334,
         "active_ratio": 0.9,
-        "windup_ratio": 0.45
+        "windup_ratio": 0.45,
+        "min_duration": 0.2
       }
     },
     "skill": {
