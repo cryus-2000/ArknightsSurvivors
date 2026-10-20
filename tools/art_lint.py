@@ -163,6 +163,9 @@ def roster(data=DATA):
                     acts[k]["_body"] = True
         for v in acts.values():
             v.setdefault("foot", foot)
+            # docs/108 V3：json 画布 sprites.size 与贴图单帧一致（本体槽 = size 或 size + 32 / 64 透明加边；foot_exempt 的干员跳过）
+            if isinstance(sp.get("size"), (int, float)) and not sp.get("foot_exempt"):
+                v["_canvas"] = int(sp["size"])
         out[cid] = acts
     dp = os.path.join(data, "doctor.json")
     if os.path.exists(dp):
@@ -551,6 +554,8 @@ def lint_op(op, acts, art=ART, prev=None):
         if _body(act, cfg) and w1 != h1:
             bad.append("%s 干员本体必须使用正方形画布" % act)
         n1, n2 = lo.shape[1] / w1, hi.shape[1] / (w1 * 2)
+        if _body(act, cfg) and cfg.get("_canvas") and w1 == h1 and h1 not in (cfg["_canvas"], cfg["_canvas"] + 32, cfg["_canvas"] + 64):
+            bad.append("%s 单帧 %d 与 json sprites.size %d 不符（应为 size 或 size + 32 / 64 透明加边，docs/108 V3）" % (act, h1, cfg["_canvas"]))
         if _body(act, cfg) and (h1, h2) not in ((48, 96), (64, 128), (96, 192)):
             bad.append("%s 单帧高 %d/%d（应 48/96、64/128 或 96/192）" % (act, h1, h2))
         if h2 != 2 * h1 or n1 != int(n1) or n2 != n1:

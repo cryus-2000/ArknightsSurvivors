@@ -27,14 +27,13 @@ func _ready():
  o.sq_ph = 3
  LC.tick(o)
  ok(o.ends.is_empty(), "exclusive end waits for sequence recovery")
- o.sq_ph = 0
- LC.tick(o)
- LC.tick(o)
- ok(o.ends == [0], "natural end once")
- o.sq_i = 0
- o.sq_ph = 3
  ok(LC.occupied(o), "recovery keeps ownership")
  o.sq_ph = 0
+ LC.tick(o)
+ ok(o.ends == [0] and LC.owns(o, 0), "end frame keeps the entry so legacy end paths stay suppressed")
+ LC.tick(o)
+ ok(o.ends == [0], "natural end once")
+ ok(LC.left(o, 0) == -1.0 and not LC.owns(o, 0) and o.lifecycle.is_empty(), "ended effects are removed after recovery (docs/108 F3)")
  ok(not LC.occupied(o), "recovery releases ownership")
  source.remaining = 5.0
  LC.bind(o, "independent", 2, source, "remaining", false, false)
@@ -63,6 +62,8 @@ func _ready():
  LC.tick(combined)
  LC.tick(combined)
  ok(combined.ends == [1],"composed skill dispatches once after all effects finish")
+ LC.tick(combined)
+ ok(not LC.owns(combined, 1) and LC.left(combined, 1) == -1.0, "composed effects are removed together")
  LC.cancel(combined)
  await integration()
  print("SKILL LIFECYCLE checks=%d failures=%d" % [checks,failures])

@@ -80,8 +80,11 @@ static func validate(cid: String, d: Dictionary) -> bool:
 			if sb.has("attack_phases"):
 				preload("res://scripts/characters/blocks/attack_phases.gd").validate(sb, p, ctx, atk, i, eval_expr)
 				_F().h4_phase_validate(sb, p, ctx, atk, i)
-				if preload("res://scripts/characters/blocks/attack_phases.gd").has_swap(blocks):
+				if preload("res://scripts/characters/blocks/attack_phases.gd").has_swap(sb):   # 只查同一技能（docs/108 F9）：别的技能换普攻不影响本技能分阶段
 					errs.append(p + ".attack_phases cannot combine swap_attack")
+				for sw in preload("res://scripts/characters/blocks/attack_phases.gd").swap_attacks(blocks):   # 别的技能换上的普攻也会被分阶段接管，形状要同样合规
+					if not sw is Dictionary or not str(sw.get("shape", "")) in ["circle", "cone"] or sw.has("armed") or sw.has("combo"):
+						errs.append(p + ".attack_phases：本干员其他技能的 swap_attack 换上的普攻须是 circle / cone")
 			_num(sb, "aim_r", p, ctx, false, 1.0, 2000.0)
 			if sb.has("fx"):
 				_F()._fx(sb.fx, p + ".fx", ctx, "cast")

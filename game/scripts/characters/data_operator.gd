@@ -1027,6 +1027,15 @@ func bot_wants_manual(i: int) -> bool:
 	return super(i)
 
 
+## 手写段给原生动作覆盖层的信号（native_motion.gd；名 → 进度 0–1，按优先级先后写入）
+func native_signals() -> Dictionary:
+	var out := {}
+	if not hw.is_empty():
+		SegSiege.h4_native_signals(self, out)
+		SegUlpianus.hw_native_signals(self, out)
+	return out
+
+
 func anim_state() -> Dictionary:
 	var st := super()
 	if hw.has("bolts"):

@@ -883,6 +883,8 @@ SCENE_REGRESSIONS = {
     "skill_lifecycle": ("技能生命周期共享模块", "skill_lifecycle_test", r"SKILL LIFECYCLE checks=.*failures=0", ["--balance", "--seed=1", "--op=wisadel"]),
     "attack_phases": ("持续攻击阶段共享模块", "attack_phases_test", r"ATTACK PHASES checks=.*failures=0", ["--balance", "--seed=1", "--op=wisadel"]),
     "wisadel_s2": ("维什戴尔两阶段群攻与四连发", "wisadel_s2_test", r"WISADEL S2 checks=.*failures=0", ["--balance", "--seed=1", "--op=wisadel"]),
+    "logos_projectiles": ("逻各斯交替弹体与 S1 符文", "logos_projectile_test", r"LOGOS PROJECTILES failures=0", ["--balance", "--seed=1", "--op=logos"]),
+    "three_operator_art": ("能天使 / 艾雅法拉 / 逻各斯原生帧条接线", "three_operator_art_test", r"THREE OPERATOR ART failures=0", ["--balance", "--seed=1", "--op=exusiai", "--squad=eyjafjalla,logos"]),
     "attack_timing": ("三人完整攻击与攻速时序", "attack_timing_test", r"ATTACK TIMING checks=.*failures=0", ["--balance", "--seed=1", "--op=wisadel", "--squad=saria,suzuran"]),
     "gallery_demo": ("图鉴敌人演示：近战主体贴身循环不定住 / 敌弹与特效命中后回收", "gallery_demo_test", r"GALLERY DEMO failures=0", []),
     "play_clock": ("倍速模拟时钟", "play_clock_test", r"Play clock regression: 0 failures", []),

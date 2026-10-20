@@ -7,6 +7,7 @@ extends "res://scripts/characters/op_api.gd"
 
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")   # 地裂共用画法
 const A = preload("res://scripts/art.gd")
+const OperatorContract = preload("res://scripts/characters/operator_contract.gd")   # 帧条 / 动画数据契约（docs/108 §10）
 ## B6 ②（docs/101 §7.3.6）：积木按定义所在的 blocks 文件直连（原 const OpBlocks = preload(op_blocks.gd) 门面）
 ## 发版排查（10-16，bisect 到 dada5e32）：blocks 24 个文件是一条单继承链（ob_geom → ob_core → ob_check → … → seg_angelina → … → seg_skalter），
 ## 链上任一文件都transitively 带出它之前的全部文件；这里原来对 ob_check.gd / seg_angelina.gd 各开一次 preload，两条路径在
@@ -308,14 +309,10 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 	if d.get("sprites", {}).has("skill_pose"):
 		push_error("干员 %s 的 sprites.skill_pose 已移除，请按 docs/105 §4 迁移到 sprites.skills" % cid)
 		ok = false
-	var attack_spec = d.get("sprites", {}).get("attack", {})
-	if attack_spec is Dictionary and not valid_attack_timing(attack_spec):
-		push_error("干员 %s 的 attack_timing 无效" % cid)
+	# 帧条 / 动画数据契约 V1–V9（docs/108 §10：attack_timing、frame_durations、画布与 foot、native_motion、逐帧点、extra_sprites）
+	for contract_error in OperatorContract.errors(d):
+		push_error("干员 %s：%s" % [cid, contract_error])
 		ok = false
-	for slot in d.get("sprites", {}).values():
-		if slot is Dictionary and slot.has("frame_durations") and not valid_frame_durations(slot):
-			push_error("干员 %s 的 frame_durations 无效" % cid)
-			ok = false
 	# 多条技能帧条（sprites.skills，docs/87 §3.5）：键 s1–s3，引用的帧条要在 sprites 里，非主动作的要列进 extra_sprites
 	var sq_ = d.get("sprites", {}).get("skills", null)
 	if sq_ != null:
@@ -1280,36 +1277,11 @@ func follow(dt: float, target: Vector2) -> void:
 ## 贴图槽带 fps + fire（出手帧，零基）时，时长与出手时刻按帧条算，dur / fire_at 参数被忽略（docs/24 §1）
 ## anim：这一击改播别的帧条（例如斯卡蒂潮汐期间播 "attack_spin"）；缺图时退回 attack 条。出手仍调 _release（逻辑类型不变）
 static func valid_attack_timing(spec: Dictionary) -> bool:
-	if not spec.has("attack_timing"):
-		return true
-	var t = spec.attack_timing
-	if not t is Dictionary:
-		return false
-	for key in ["duration", "fire_time", "active_ratio", "windup_ratio"]:
-		if not typeof(t.get(key)) in [TYPE_INT, TYPE_FLOAT] or not is_finite(float(t[key])) or float(t[key]) <= 0.0:
-			return false
-	for key in ["min_duration", "min_rest"]:
-		if t.has(key) and (not typeof(t[key]) in [TYPE_INT, TYPE_FLOAT] or not is_finite(float(t[key])) or float(t[key]) <= 0.0):
-			return false
-	if float(t.get("min_duration", 0.0)) > float(t.duration):
-		return false
-	return float(t.fire_time) < float(t.duration) and float(t.active_ratio) < 1.0 and float(t.windup_ratio) < 1.0 and int(spec.get("fire", 0)) > 0 and int(spec.get("fire", 0)) < int(spec.get("frames", 0))
+	return OperatorContract.valid_attack_timing(spec)
 
 
 static func valid_frame_durations(spec: Dictionary) -> bool:
-	var ds = spec.get("frame_durations")
-	if not ds is Array or ds.size() != int(spec.get("frames", 0)) or ds.is_empty():
-		return false
-	var total := 0.0
-	for v in ds:
-		if not typeof(v) in [TYPE_INT, TYPE_FLOAT] or not is_finite(float(v)) or float(v) <= 0.0:
-			return false
-		total += float(v)
-	if spec.has("fire_time"):
-		var t = spec.fire_time
-		if not typeof(t) in [TYPE_INT, TYPE_FLOAT] or not is_finite(float(t)) or float(t) < 0.0 or float(t) >= total:
-			return false
-	return true
+	return OperatorContract.valid_frame_durations(spec)
 
 
 func frame_seconds(kind: String, frame: int) -> float:
@@ -1673,19 +1645,32 @@ func sprite_point(key: String) -> Vector2:
 	var st := anim_state()
 	if st.is_empty():
 		return Vector2.INF
-	var kind: String = str(st.get("kind", ""))
+	return sprite_point_at(str(st.get("kind", "")), key, int(st.get("frame", 0)), -1, st.get("flip", false))
+
+
+## 指定帧条 / 帧 / 点名的世界坐标（docs/108 §4，所有逐帧定位点与炮口共用这一份换算）：
+## idx ≥ 0 时该帧的点是一组（如 muzzles[帧][发]）取第 idx 个；flip 缺省 = 当前朝向异或帧条 mirror。
+## 含 pt_foot（缺省 = 槽 foot / 顶层 foot）与 sprites.draw_scale；screen = true 时再加屏幕抖动 draw_off（与本体画在同一处）。
+## 玩法用的点（炮口 = 弹体起点）传 screen = false：draw_off 是绘制期的状态，玩法读它会让无头与有窗口的结果分叉
+func sprite_point_at(kind: String, key: String, frame: int, idx := -1, flip = null, screen := true) -> Vector2:
+	if pos == Vector2.INF:
+		return Vector2.INF
 	var spec := sprite_spec(kind)
 	var pts = spec.get(key, null)
 	if not (pts is Array) or pts.is_empty():
 		return Vector2.INF
-	var p = pts[int(st.get("frame", 0)) % pts.size()]
+	var p = pts[frame % pts.size()]
+	if idx >= 0:
+		p = p[idx] if p is Array and idx < p.size() else null
 	if not (p is Array) or p.size() < 2:
 		return Vector2.INF
 	var ft = spec.get("foot", def.get("sprites", {}).get("foot", [24, 46]))
 	# pt_foot：这些点量的时候用的脚底（换画布时只改 foot、不重标点：48 → 64 画布把旧 foot 写进 pt_foot 即可，docs/103 §5）；缺省 = foot
 	var pf = spec.get("pt_foot", ft)
-	var sgn: float = -1.0 if st.get("flip", false) else 1.0
-	return pos + g.draw_off + Vector2(sgn * (float(p[0]) - float(pf[0])), float(p[1]) - float(pf[1])) * g.PX
+	var fl: bool = ((face < 0.0) != sprite_mirror(kind)) if flip == null else bool(flip)
+	var sgn: float = -1.0 if fl else 1.0
+	var ds: float = float(def.get("sprites", {}).get("draw_scale", 1.0))
+	return pos + (g.draw_off if screen else Vector2.ZERO) + Vector2(sgn * (float(p[0]) - float(pf[0])), float(p[1]) - float(pf[1])) * g.PX * ds
 
 
 ## 道具离手（星熊「般若回旋」盾在外面）：本体换无盾画面、盾心定位点失效。数据干员按积木状态重写（data_operator）

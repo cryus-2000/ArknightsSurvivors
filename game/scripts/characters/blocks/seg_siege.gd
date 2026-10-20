@@ -528,3 +528,9 @@ static func _h4sg_draw_pfx(o, f: Dictionary, a: float) -> bool:
 			cv.draw_circle(f.pos, 5.0 * a + 2.0, Color(2.4, 2.2, 1.6, a))
 			return true
 	return false
+
+
+## 原生动作信号（native_motion.gd 按 json native_motion.states / exits 取用，docs/108 §3.5）：leap = 跃空锤进度 0–1
+static func h4_native_signals(o, out: Dictionary) -> void:
+	if o.hw.has("sg") and float(o.hw.sg.get("leap_t", -1.0)) >= 0.0:
+		out["leap"] = float(o.hw.sg.leap_t) / float(o.hw.sg.get("leap_b", {}).get("t", 0.42))

@@ -29,6 +29,7 @@ func _init() -> void:
 	test_modifiers()
 	test_db_and_profile()
 	test_squad_contract()
+	test_operator_contract()
 	test_hoshiguma_blocks()
 	test_voice()
 	test_voice_interrupt()
@@ -338,6 +339,36 @@ func test_squad_contract() -> void:
 
 ## 干员语音（audio/voice，tools/voice_ogg.py）：清单里每条都有 OGG、能加载、不循环、时长和母带一致；
 ## sfx.gd 按「干员_事件.ogg」取文件；目录里不能留没转换的 WAV（游戏只读 OGG，WAV 会被静默跳过）
+## 帧条 / 动画数据契约 V1–V9（docs/108 §10）：真实数据零错误；每条规则一个坏样例，只报对应编号
+func test_operator_contract() -> void:
+	var Ch = load("res://scripts/characters/character.gd")
+	var C = load("res://scripts/characters/operator_contract.gd")
+	for cid in Ch.list_ids():
+		var errs: Array = C.errors(Ch.load_def(cid))
+		ok(errs.is_empty(), "数据契约零错误：%s %s" % [cid, str(errs)])
+	var wd: Dictionary = Ch.load_def("wisadel")
+	var sg: Dictionary = Ch.load_def("siege")
+	var cases := [
+		["V1", wd, func(d): d.sprites.skill["attack_timing"] = {"duration": 0.5, "fire_time": 0.6, "active_ratio": 0.9, "windup_ratio": 0.45}],
+		["V2", wd, func(d): d.sprites.erase("foot_exempt")],
+		["V2", sg, func(d): d.sprites.heavy_attack.foot = [40, 68]],
+		["V2", sg, func(d): d.sprites.size = 96],
+		["V4", sg, func(d): d.native_motion.states[0].to = 99],
+		["V4", sg, func(d): d.native_motion["clip"] = {}],
+		["V5", wd, func(d): d.sprites.s2_attack.muzzles.pop_back()],
+		["V6", wd, func(d): d.sprites.s2_attack.muzzles[0] = [1]],
+		["V7", sg, func(d): d.sprites.attack.fire = 2],
+		["V8", sg, func(d): d.extra_sprites.erase("leap_native")],
+		["V8", sg, func(d): d.native_motion.clips["nope"] = 0.5],
+		["V9", wd, func(d): d.sprites["draw_scale"] = 0.9],
+	]
+	for c in cases:
+		var d: Dictionary = c[1].duplicate(true)
+		c[2].call(d)
+		var errs: Array = C.errors(d)
+		ok(not errs.is_empty() and errs.all(func(e): return str(e).begins_with(c[0] + " ")), "数据契约坏样例只报 %s：%s" % [c[0], str(errs)])
+
+
 func test_voice() -> void:
 	var man = JSON.parse_string(FileAccess.get_file_as_string("res://audio/voice/voice_manifest.json"))
 	ok(man is Dictionary and man.get("clips", []).size() >= 91, "语音清单可读，至少 91 条（66 + 第五批 25）")

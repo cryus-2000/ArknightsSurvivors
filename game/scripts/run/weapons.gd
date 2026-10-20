@@ -53,7 +53,7 @@ func drone_heal(dr: Dictionary, amount: float, cure: bool) -> void:
 	g.fx.append({"kind": "beam", "a": dr.pos + Vector2(0, 6), "b": g.ppos + Vector2(0, -24), "life": 0.3, "max": 0.3, "col": Color(0.5, 1.0, 0.6), "w": 2.5})
 	if not g.vfx.fx_sprite("fx_heal_aura_green", g.ppos + Vector2(0, 6), g.PX * 1.1, 0.0, false, true):
 		for k in 4:
-			g.fx.append({"kind": "cross", "pos": g.ppos + Vector2(randf_range(-18, 18), randf_range(-40, -8)), "life": 0.8, "max": 0.8, "delay": k * 0.08, "sz": randf_range(3.0, 4.5)})
+			g.fx.append({"kind": "cross", "pos": g.ppos + Vector2(g.vrng.randf_range(-18, 18), g.vrng.randf_range(-40, -8)), "life": 0.8, "max": 0.8, "delay": k * 0.08, "sz": g.vrng.randf_range(3.0, 4.5)})
 	Sfx.play("pickup", -14.0, 1.4, 0.05)
 
 
@@ -89,7 +89,7 @@ func update_bullets(dt: float) -> void:
 			b.trail = b.get("trail", 0.0) - dt
 			if b.trail <= 0.0:
 				b.trail = 0.03
-				g.fx.append({"kind": "spark", "pos": b.pos - b.vel.normalized() * 6.0, "vel": -b.vel * 0.1 + Vector2(randf_range(-20, 20), randf_range(-20, 20)),
+				g.fx.append({"kind": "spark", "pos": b.pos - b.vel.normalized() * 6.0, "vel": -b.vel * 0.1 + Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-20, 20)),
 					"sz": 3.0, "life": 0.3, "max": 0.3, "col": Color(0.75, 0.35, 1.0)})
 		for j in g.enemies_sys.query(b.pos, maxf(40.0, b.r + g.enemies_sys.max_r)):   # 查询半径覆盖大体型敌人（docs/101 §3.4 ⑦）
 			var e: Dictionary = g.enemies[j]
@@ -122,8 +122,8 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 				else:
 					g.fx.append({"kind": "explode", "pos": b.pos, "r": b.aoe, "life": 0.4, "max": 0.4, "col": fc, "op_hit": b.has("op")})
 				for k in 6:
-					g.fx.append({"kind": "spark", "pos": b.pos, "vel": Vector2.from_angle(randf() * TAU) * randf_range(60, 240), "sz": 3.0, "life": 0.45, "max": 0.45,
-						"col": fc.lerp(Color(0.95, 0.85, 1.0) if b.kind == "fire" else Color(1, 0.95, 0.6), randf())})
+					g.fx.append({"kind": "spark", "pos": b.pos, "vel": Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf_range(60, 240), "sz": 3.0, "life": 0.45, "max": 0.45,
+						"col": fc.lerp(Color(0.95, 0.85, 1.0) if b.kind == "fire" else Color(1, 0.95, 0.6), g.vrng.randf())})
 			if b.has("op"):
 				Sfx.op(b.op, "hit", 0.0, 1.0, 0.1)   # 干员法术弹（艾雅法拉熔岩弹）
 			else:

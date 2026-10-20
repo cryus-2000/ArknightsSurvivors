@@ -171,5 +171,17 @@ static func has_swap(node) -> bool:
 				return true
 	return false
 
+## 全部 swap_attack 换上的普攻（校验用：持续攻击期间若别的技能换了普攻，begin_round 会用换后的那个）
+static func swap_attacks(node, out: Array = []) -> Array:
+	if node is Dictionary:
+		if str(node.get("verb", "")) == "swap_attack":
+			out.append(node.get("attack"))
+		for value in node.values():
+			swap_attacks(value, out)
+	elif node is Array:
+		for value in node:
+			swap_attacks(value, out)
+	return out
+
 static func positive_number(value) -> bool:
 	return (value is int or value is float) and is_finite(float(value)) and float(value) > 0.0
