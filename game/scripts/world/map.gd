@@ -58,7 +58,9 @@ func load_theme(theme_id: String) -> void:
 	_tile_img = null
 	_patch_img = null
 	var amb: Array = theme.get("ambient", [0.16, 0.22, 0.32])
-	ambient = Color(amb[0], amb[1], amb[2])
+	# render/ambient_mult：灯火圈外的环境光（CanvasModulate）整体倍率，角色受光同一份（Look 读 map.ambient）；1 = 主题原值（docs/111 亮度候选）
+	var am: float = Bal.v("render/ambient_mult", 1.0)
+	ambient = Color(amb[0] * am, amb[1] * am, amb[2] * am)
 	tex.clear()
 	_load(theme.tiles.tex)
 	if theme.has("patches"):
