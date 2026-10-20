@@ -951,7 +951,7 @@ func test_blocks_handwritten() -> void:
 		["eyjafjalla", "cast 写错", func(d): d.blocks.skills[0]["cast"] = "now"],
 		["eyjafjalla", "pulse 没配 dur.pulses", func(d): d.blocks.skills[1]["pulse"] = {"r": 100, "do": []}],
 		["eyjafjalla", "attack_patch 字段写错", func(d): d.blocks.skills[0].attack_patch["burn_x"] = true],
-		["eyjafjalla", "地面池 look 写错", func(d): d.blocks.skills[2].pulse.do[2]["look"] = "fire"],
+		["eyjafjalla", "地面池 look 写错", func(d): d.blocks.skills[2].pulse.do.filter(func(b): return b.get("shape", "") == "pool")[0]["look"] = "fire"],
 		["logos", "咒文弹没写 then", func(d): d.blocks.attack.erase("then")],
 		["logos", "锁定放进触发 do", func(d): d.blocks.talent[0].do.append({"verb": "lock", "dur": 5, "tick": 0.25, "mult": 0.5, "src": "提喻"})],
 		["logos", "处决缺 thr", func(d): d.blocks.attack.then[0].erase("thr")],

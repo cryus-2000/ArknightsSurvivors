@@ -1471,6 +1471,12 @@ data_operator 的挂钩：`update` 在技能计时之后先跑 `hw_tick`（按�
 
 ### 17.2 艾雅法拉段（`HW2_TAGS`）
 
+同日用户追加：`pulse.projectile {tip, speed, min_flight, max_flight, apex, size, radius}` 从身体出手点生成弹体，原 `pulse.do` 延至弹体到达才执行；`pulse.launch` 为每轮发射时执行的瞬时积木数组。`pulse.recovery` 只在最后一轮发出后短暂阻止新动作，`skill_active_left` 此时为 0，使身体进入落地而非继续空悬。`verb.lob.origin` 可为 `self / target`（缺省 target），`flight_mult` 缺省 1。艾雅法拉 S3 仍为原次数和倍率，附加火焰弹移到 launch 从身体发出。弹速下调属于用户授权时序变更，需按新时序验收。
+
+2026-10-20 表现补丁：`shape.shell.look.weighted`、`verb.lob.look.weighted` 和 `shape.shell.lob.weighted` 为可选纯视觉开关。开启后使用 `characters/magma_projectile.gd` 的固定岩壳、短拖焰及贴地冲击；抛射采用起落速度有限、顶点提前的连续视觉曲线。`look.apex_k` 仍控制视觉拱高。实际落点、原飞行时长、命中与伤害由原积木处理，不随视觉曲线改变；未开启时保留原贴图 / 轨迹路径。落地 `lava_spot.mass` 是表现模块的内部粒子字段，随原 pfx 生命周期清理，并遵守特效降噪。
+
+后续统一：上述 weighted 路径不再叠加通用火弹爆炸、旧 boom_fx 视觉项和散射火星；boom_fx 中的 pause / sfx 仍按原条件执行。`shape.pool.weighted: true` 只改用相同岩壳、热区和亮缝绘制熔池，不修改池的半径、伤害、跳伤间隔及存续。S3 三路均使用同一岩块绘制器，主弹 size=1.65、附加弹 look.scale=1.9；没有减少实际弹数。普攻另用 base.attack_shell_speed，避免调整普攻时影响 S2。
+
 | 积木 | 类 | 说明 |
 |---|---|---|
 | `shape.shell` | 普攻 / 技能 do | 直线法术弹（game 的 fire 子弹：hidden、命中即在 `aoe` 内爆炸，爆炸后回调 `bullet_exploded`）。伤害 = base × mult [× 技能强度]（出手时）× 加成（发射时）；`aoe` × op_range × `aoe_mults`（cond）× `aoe_mult`；`tip / tip_skill` 出手点；`follow`（第一条 cond 成立的：n 发后续弹每 `gap` 秒一发，打首发目标以外的敌人，不够就在两侧偏开 `side`）；`on_explode`（target = 爆点、basis hit = 这一弹、r: hit = 爆炸半径）；`look` / `fire_fx` / `boom_fx` 画面 |

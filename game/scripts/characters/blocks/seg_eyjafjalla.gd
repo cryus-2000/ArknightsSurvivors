@@ -1,6 +1,8 @@
 ## 干员积木 · seg_eyjafjalla（docs/101 §7.3 B6 ①，10-15：由 op_blocks.gd 按段拆出，内容与注释照搬；继承链与门面见 op_blocks.gd）
 extends "res://scripts/characters/blocks/seg_skadi.gd"
 
+const MagmaProjectile = preload("res://scripts/characters/magma_projectile.gd")
+
 const HW_LOB_MAX := 12
 
 const HW_POOL_MAX := 32
@@ -118,7 +120,9 @@ static func hw_shell_boom(o, bl: Dictionary) -> void:
 	var g = o.g
 	var b: Dictionary = bl.get("hw_b", {})
 	var h := _hw2(o)
-	if b.has("boom_fx"):
+	if b.get("look", {}).get("weighted", false):
+		_hw_magma_impact(o, bl.pos, float(bl.aoe), float(bl.get("sz", 1.0)), b.get("boom_fx", []))
+	elif b.has("boom_fx"):
 		fx_play(o, b.boom_fx, bl.pos, float(bl.aoe))
 	var keep := hw_snap(o)
 	var kr: float = float(h.hit_r)
@@ -129,6 +133,12 @@ static func hw_shell_boom(o, bl: Dictionary) -> void:
 	h.hit_r = kr
 
 
+static func _hw_magma_impact(o, at: Vector2, radius: float, size: float, cues: Array) -> void:
+	# Keep sound/hitstop; one shared ground effect replaces the stacked visual entries.
+	fx_play(o, cues.filter(func(f): return f.has("pause") or f.has("sfx")), at, radius)
+	MagmaProjectile.impact(o, at, radius, size)
+
+
 # ---------------------------------------------------------------- verb.lob / verb.affect / st.burn / st.fragile / shape.pool 的执行
 
 static func hw_lob(o, b: Dictionary, at: Vector2) -> void:
@@ -137,7 +147,8 @@ static func hw_lob(o, b: Dictionary, at: Vector2) -> void:
 	if at == Vector2.INF:
 		at = o.pos
 	var fv = b.get("from_off", [0, 0])
-	var from: Vector2 = at + Vector2(float(fv[0]), float(fv[1]))
+	var self_origin: bool = str(b.get("origin", "target")) == "self"
+	var from: Vector2 = (o.pos if self_origin else at) + Vector2(float(fv[0]) * (float(o.face) if self_origin else 1.0), float(fv[1]))
 	var dmg: float
 	if b.has("basis"):
 		dmg = hw_basis(o, str(b.basis)) * float(b.get("mult", 1.0))
@@ -171,7 +182,7 @@ static func hw_lob(o, b: Dictionary, at: Vector2) -> void:
 	for p in tos:
 		if h.lobs.size() >= HW_LOB_MAX:
 			break
-		var dur: float = clampf(from.distance_to(p) / 420.0, 0.25, 0.6) + (0.2 if hh > 80.0 else 0.0)
+		var dur: float = (clampf(from.distance_to(p) / 420.0, 0.25, 0.6) + (0.2 if hh > 80.0 else 0.0)) * float(b.get("flight_mult", 1.0))
 		h.lobs.append({"b": b, "from": from, "to": p, "t": 0.0, "dur": dur, "dmg": dmg, "r": float(b.get("r", 30.0)), "src": str(b.get("src", "")), "h": hh,
 			"sz": float(b.get("sz", 1.0)), "trail": 0.0, "spin": signf(p.x - from.x) if absf(p.x - from.x) > 1.0 else 1.0})
 
@@ -284,7 +295,7 @@ static func _hw2_tick(o, dt: float) -> bool:
 			if l.tick <= 0.0 and l.t > float(b.get("tail", -INF)):
 				l.tick = (l.tick + float(b.every)) if b.get("accum", false) else float(b.every)
 				o.area_hit(str(b.get("src", "")), l.pos, l.r, l.dmg, 0.0, 0.0, b.get("tags", []))
-			if str(b.get("look", "")) == "lava" and l.bub <= 0.0 and l.t > 0.4:   # 熔岩冒泡（画面，g.vrng）
+			if str(b.get("look", "")) == "lava" and not b.get("weighted", false) and l.bub <= 0.0 and l.t > 0.4:   # 熔岩冒泡（画面，g.vrng）
 				l.bub = 0.18
 				var a: float = g.vrng.randf() * TAU
 				var rr: float = g.vrng.randf() * l.r * 0.8
@@ -319,6 +330,8 @@ static func _hw2_tick(o, dt: float) -> bool:
 	for bl in g.bullets:   # 自己的法术弹：火星尾（画面）
 		if bl.life <= 0.0 or bl.get("op", "") != o.id or bl.kind != "fire" or not bl.has("hw_b"):
 			continue
+		if bl.hw_b.get("look", {}).get("weighted", false):
+			continue
 		bl.etrail = float(bl.get("etrail", 0.0)) - dt
 		if bl.etrail <= 0.0:
 			bl.etrail = 0.04
@@ -328,9 +341,9 @@ static func _hw2_tick(o, dt: float) -> bool:
 			l.t += dt
 			l.trail -= dt
 			var lk = l.b.get("look", null)
-			if l.trail <= 0.0 and l.t < l.dur:
+			if l.trail <= 0.0 and l.t < l.dur and not (lk is Dictionary and lk.get("weighted", false)):
 				if lk is Dictionary:   # 熔岩块：贴着块身的短火星拖尾（往飞行反方向甩、很快熄灭）
-					l.trail = 0.035
+					l.trail = 0.09 if lk.get("weighted", false) else 0.035
 					var lp: Vector2 = _hw_lob_pos(l)
 					var back: Vector2 = (lp - _hw_lob_pos_at(l, maxf(0.0, l.t - 0.03))).normalized() * -40.0
 					o.fx({"kind": "spark", "pos": lp + Vector2(g.vrng.randf_range(-2, 2), g.vrng.randf_range(-2, 2)), "vel": back + Vector2(g.vrng.randf_range(-15, 15), g.vrng.randf_range(-15, 5)),
@@ -340,6 +353,9 @@ static func _hw2_tick(o, dt: float) -> bool:
 					o.fx({"kind": "spark", "pos": _hw_lob_pos(l), "vel": Vector2(g.vrng.randf_range(-20, 20), g.vrng.randf_range(-20, 10)), "life": 0.25, "col": HW_ORANGE, "sz": 2.0 * l.sz})
 			if l.t >= l.dur:
 				o.area_hit(l.src, l.to, l.r, l.dmg)
+				if lk is Dictionary and lk.get("weighted", false):
+					MagmaProjectile.impact(o, l.to, float(l.r), float(l.sz))
+					continue
 				if lk is Dictionary:   # 熔岩块落地：一小下溅射闪光 + 碎块（纯画面）
 					var ln: String = str(lk.get("land", ""))
 					if ln != "":
@@ -370,10 +386,16 @@ static func _hw2_tick(o, dt: float) -> bool:
 			p.t -= dt
 			if p.t <= 0.0:
 				o._exec_list(p.do, p.pos)
+				if p.has("shot"):
+					MagmaProjectile.impact(o, p.pos, float(p.shot.get("radius", 40.0)), float(p.shot.get("size", 1.2)))
 		h.erupts = h.erupts.filter(func(p): return p.t > 0.0)
 	if not h.pulse.is_empty():
 		var pu: Dictionary = h.pulse
 		if int(pu.n) <= 0:
+			var recovery_left: float = float(pu.get("recovery", pu.sp.get("recovery", 0.0)))
+			if recovery_left > 0.0:
+				pu["recovery"] = recovery_left - dt
+				return true
 			h.pulse = {}
 			return false
 		var sp: Dictionary = pu.sp
@@ -391,7 +413,17 @@ static func _hw2_tick(o, dt: float) -> bool:
 				c = ts[0].pos
 			var jv = sp.get("jit", [0, 0])
 			var at: Vector2 = c + Vector2(g.rng_op.randf_range(-float(jv[0]), float(jv[0])), g.rng_op.randf_range(-float(jv[1]), float(jv[1])))
-			h.erupts.append({"pos": at, "t": float(sp.get("delay", 0.12)), "do": sp.get("do", [])})
+			var event := {"pos": at, "t": float(sp.get("delay", 0.12)), "do": sp.get("do", [])}
+			if sp.has("projectile"):
+				var shot: Dictionary = sp.projectile.duplicate()
+				var tip: Array = shot.get("tip", [0, -54])
+				shot["from"] = o.pos + Vector2(float(tip[0]) * float(o.face), float(tip[1]))
+				shot["dur"] = clampf((shot.from as Vector2).distance_to(at) / float(shot.get("speed", 320.0)),
+					float(shot.get("min_flight", 0.3)), float(shot.get("max_flight", 0.85)))
+				event["shot"] = shot
+				event.t = shot.dur
+			h.erupts.append(event)
+			o._exec_list(sp.get("launch", []), at)
 			if sp.has("fx"):
 				fx_play(o, sp.fx, at, 40.0, [], at.x * 0.02)
 		return true
@@ -407,6 +439,8 @@ static func _hw_lob_pos_at(l: Dictionary, t: float) -> Vector2:
 	var k: float = clampf(t / l.dur, 0.0, 1.0)
 	var lk = l.b.get("look", null)
 	if lk is Dictionary:
+		if lk.get("weighted", false):
+			return MagmaProjectile.position_at(l.from, l.to, k, l.h * float(lk.get("apex_k", 1.0)))
 		if lk.has("arc_pow"):
 			return l.from.lerp(l.to, k) + Vector2(0, -pow(sin(k * PI), float(lk.arc_pow)) * l.h * float(lk.get("apex_k", 1.0)))
 		return l.from.lerp(l.to, k) + Vector2(0, -sin(pow(k, 0.8) * PI) * l.h * float(lk.get("apex_k", 1.0)))
@@ -460,11 +494,24 @@ static func hw_instant(o, i: int) -> bool:
 static func hw_draw_shells(o) -> void:
 	var g = o.g
 	var cv = o.cv
+	for event in o.hw.get("erupts", []):
+		if not event.has("shot") or float(event.t) <= 0.0:
+			continue
+		var shot: Dictionary = event.shot
+		var k: float = clampf(1.0 - float(event.t) / float(shot.dur), 0.0, 1.0)
+		var p: Vector2 = MagmaProjectile.position_at(shot.from, event.pos, k, float(shot.get("apex", 24.0)))
+		var before: Vector2 = MagmaProjectile.position_at(shot.from, event.pos, maxf(0.0, k - 0.04), float(shot.get("apex", 24.0)))
+		var after: Vector2 = MagmaProjectile.position_at(shot.from, event.pos, minf(1.0, k + 0.04), float(shot.get("apex", 24.0)))
+		MagmaProjectile.draw(o, p, after - before, float(shot.get("size", 1.2)), float(shot.dur) - float(event.t))
 	for bl in g.bullets:
 		if bl.life <= 0.0 or bl.get("op", "") != o.id or bl.kind != "fire" or not bl.has("hw_b"):
 			continue
 		var lk: Dictionary = bl.hw_b.get("look", {})
 		var sz: float = float(bl.get("sz", 1.0))
+		if lk.get("weighted", false):
+			var age: float = maxf(0.0, float(bl.hw_b.get("life", 1.3)) - float(bl.life))
+			MagmaProjectile.draw(o, bl.pos, bl.vel, sz * (1.5 if lk.has("big_tex") else 1.0), age)
+			continue
 		var fl := 1.0 + 0.15 * sin(g.t * 40.0 + bl.pos.x)
 		cv.draw_circle(bl.pos, float(lk.get("glow", 13.0)) * fl * sz, Color(1.6, 0.6, 0.15, 0.22))
 		var big: String = str(lk.get("big_tex", ""))
@@ -482,11 +529,15 @@ static func hw_draw_shells(o) -> void:
 	for l in o.hw.lobs:
 		var p: Vector2 = _hw_lob_pos(l)
 		var k: float = clampf(l.t / l.dur, 0.0, 1.0)
+		var lk = l.b.get("look", null)
 		cv.draw_set_transform(l.to, 0.0, Vector2(1.0, 0.5))
 		cv.draw_circle(Vector2.ZERO, 5.0 * l.sz * (0.5 + 0.5 * k), Color(0.1, 0.03, 0.02, 0.35))
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var rr: float = 5.5 * l.sz
-		var lk = l.b.get("look", null)
+		if lk is Dictionary and lk.get("weighted", false):
+			var direction: Vector2 = p - _hw_lob_pos_at(l, maxf(0.0, float(l.t) - 0.02))
+			MagmaProjectile.draw(o, p, direction, float(l.sz) * float(lk.get("scale", 1.4)) / 1.4, float(l.t), float(l.spin))
+			continue
 		if lk is Dictionary and g.tex.get(str(lk.get("tex", ""))) != null and g.V6_FRAMES.has(str(lk.get("tex", ""))):
 			# 熔岩块（10-14 用户「小红点太抽象，改成小的熔岩块，保留力量感」）：暗红外晕 + 翻滚的熔岩块帧条
 			var tn: String = str(lk.tex)
@@ -512,6 +563,9 @@ static func hw_draw_pools(o) -> void:
 	var cv = o.cv
 	for l in o.hw.pools:
 		var b: Dictionary = l.b
+		if b.get("weighted", false):
+			MagmaProjectile.draw_pool(o, l)
+			continue
 		match str(b.get("look", "")):
 			"lava":
 				var a: float = clampf(l.t / 0.6, 0.0, 1.0)
@@ -568,6 +622,9 @@ static func hw_draw_pfx(o, f: Dictionary, a: float) -> bool:
 			cv.draw_colored_polygon(PackedVector2Array([ps + Vector2(-ws * 0.4, 0), ps + Vector2(0, -hs * 0.85), ps + Vector2(ws * 0.4, 0)]), Color(2.4, 1.7, 0.8, 0.85 * a))
 			return true
 		"lava_spot":   # 熔岩块落点（10-14）：地面一小块发红，从白热褪到暗红
+			if f.get("mass", false):
+				MagmaProjectile.draw_impact(o, f)
+				return true
 			cv.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.5))
 			cv.draw_circle(Vector2.ZERO, float(f.r), Color(1.2, 0.25, 0.05, 0.45 * a))
 			cv.draw_circle(Vector2.ZERO, float(f.r) * 0.55, Color(2.2, 0.9, 0.25, 0.55 * a * a))
@@ -666,6 +723,9 @@ static func _hw2_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 						_fx(lb.boom_fx, p + ".lob.boom_fx", ctx, "shape.circle")
 					_list(lb.get("pool", []), p + ".lob.pool", "instant", ctx)
 		"verb.lob":
+			if not str(b.get("origin", "target")) in ["self", "target"]:
+				errs.append(p + ".origin 只能是 self / target")
+			_num(b, "flight_mult", p, ctx, false, 0.5, 2.0)
 			if not str(b.get("pick", "near_out")) in HW_LOB_PICKS:
 				errs.append("%s.pick 只能是 %s" % [p, " / ".join(HW_LOB_PICKS)])
 			_num(b, "n", p, ctx, true, 1.0, 8.0)
@@ -726,7 +786,25 @@ static func _hw_skill(sb: Dictionary, p: String, ctx: Dictionary) -> void:
 			errs.append(p + ".pulse 必须是对象 {r, pad, jit, delay, fx, do}")
 		else:
 			_num(pu, "r", p + ".pulse", ctx, true, 1.0, 2000.0)
+			_num(pu, "recovery", p + ".pulse", ctx, false, 0.0, 1.0)
 			_list(pu.get("do", []), p + ".pulse.do", "instant", ctx)
+			_list(pu.get("launch", []), p + ".pulse.launch", "instant", ctx)
+			if pu.has("projectile"):
+				if not (pu.projectile is Dictionary):
+					errs.append(p + ".pulse.projectile 必须是对象")
+				else:
+					var shot: Dictionary = pu.projectile
+					_num(shot, "speed", p + ".pulse.projectile", ctx, true, 10.0, 2000.0)
+					_num(shot, "min_flight", p + ".pulse.projectile", ctx, false, 0.05, 2.0)
+					_num(shot, "max_flight", p + ".pulse.projectile", ctx, false, 0.05, 3.0)
+					_num(shot, "apex", p + ".pulse.projectile", ctx, false, 0.0, 200.0)
+					_num(shot, "size", p + ".pulse.projectile", ctx, false, 0.3, 3.0)
+					_num(shot, "radius", p + ".pulse.projectile", ctx, false, 1.0, 400.0)
+					var tip = shot.get("tip", [0, -54])
+					if not (tip is Array) or tip.size() != 2 or not (tip[0] is float or tip[0] is int) or not (tip[1] is float or tip[1] is int):
+						errs.append(p + ".pulse.projectile.tip 必须是 [x, y]")
+					if float(shot.get("min_flight", 0.3)) > float(shot.get("max_flight", 0.85)):
+						errs.append(p + ".pulse.projectile.min_flight 不能大于 max_flight")
 			if pu.has("fx"):
 				_fx(pu.fx, p + ".pulse.fx", ctx, "shape.circle")
 	elif sb.has("pulse"):
@@ -798,7 +876,9 @@ static func _hw5_lob_land(o, b: Dictionary, s: Dictionary) -> void:
 			o.deal_damage(e, float(s.dmg))
 	o._sfx_op("hit")
 	var lb: Dictionary = b.lob
-	if lb.has("boom_fx"):
+	if lb.get("weighted", false):
+		_hw_magma_impact(o, c, aoe, float(s.sz), lb.get("boom_fx", []))
+	elif lb.has("boom_fx"):
 		fx_play(o, lb.boom_fx, c, aoe)
 	hw_shell_boom(o, {"pos": c, "dmg": float(s.dmg), "aoe": aoe, "hw_b": {}, "hw_oe": s.oe})
 
@@ -822,6 +902,11 @@ static func hw_draw_lobs(o) -> void:
 			o.cv.draw_circle(Vector2.ZERO, 6.0 * float(s.sz) * (1.0 - 0.3 * hh / maxf(1.0, apex)), Color(0.08, 0.03, 0.02, 0.45))
 			o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			var p: Vector2 = gp + Vector2(0, -hh - 8.0)
+			if lb.get("weighted", false):
+				p = MagmaProjectile.position_at(s.from, s.to, k, apex) + Vector2(0, -8)
+				var prev: Vector2 = MagmaProjectile.position_at(s.from, s.to, maxf(0.0, k - 0.04), apex) + Vector2(0, -8)
+				MagmaProjectile.draw(o, p, p - prev, float(s.sz), float(s.t))
+				continue
 			if tn != "" and g.tex.get(tn) != null and g.V6_FRAMES.has(tn):
 				var spec: Array = g.V6_FRAMES[tn]
 				fx_frame(o.cv, g, tn, int(spec[0]), int(float(g.t) * float(spec[1])), p, g.PX * float(s.sz), Color.WHITE)
