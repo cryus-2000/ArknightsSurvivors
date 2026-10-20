@@ -391,6 +391,17 @@ Boss 与关卡改动的对照口径和最近一次基线。新基线出来后替
   - 判「改动有没有真影响」：改前、改后各取 ≥3 份实现，比两边均值（组间标准差约 6 点时，差 <8 点不下结论）。
 - **批跑步长**：`--balance` 每帧固定推进 0.066 秒（约 15 帧 / 秒，9/30 起的校准口径，所有基线都按它）。按位移判定的改动（接触、扫掠、冲刺命中）在批跑下会被放大约 4 倍；这类改动另用 `balance_run.py --dt 0.016667` 跑一组小样本抽查（慢约 4 倍，不替换口径）。
 
+### 8.3 新美术干员基线刷新（2026-10-20）
+
+对 main **2968bf4a** 用 `tools/trace_base.py <seed> <id> 180`（`--ref 2968bf4a`）重录了 15 名干员的同种子 TRACE 基线，`seed=1`、`--maxt=180`，缓存文件 `<主仓库>build/trace_cache/2968bf4a_1_<id>_180.txt`：
+
+- **9 名换新美术干员**（docs/108 §6）：wisadel、saria、suzuran、mizuki、logos、eyjafjalla、exusiai、siege、ulpianus。
+- **6 名控制组**（docs/108 §9 列的仍是旧 48 画布的 9 人里，经 `git diff 6b697796..7784b32c` 核实本轮代码 / json 没有实质行为改动的）：angelina、hoshiguma、irene、lumen、skadi、texas。被排除的 3 人（kaltsit、skalter、specter_unchained）在这个范围内 json / 脚本有成百上千行实质改动，不适合当「改前」对照；texas 的 `seg_texas.gd` 只多了一条针对 `attack_phases` / `SkillLifecycle` 的互斥判断，texas 自己的 json 不含这两个字段，条件恒真，等效无变化；angelina / irene 各有一行 `add_cc(..., "airborne")` 的分类标签改动（新增 cc 来源标签，不改数值），按"几乎没动"收入控制组，仅作提示。
+
+旧的（7784b32c 及更早提交号的）这 15 人缓存条目已清理（`build/trace_cache/` 下按 id 匹配、按提交号前缀过滤删除，共 23 个文件）。
+
+**这次是刷新基线，不是发现回归**：docs/108 §11 F11 已指出本批改动（`attack_timing` 改出手时刻、水月删 `flow: free`、艾雅法拉改弹速与收势）是**有意的时序变化**，旧基线（7784b32c 之前）与新基线逐行不同属预期，不要拿两者做 `--here` 对照报回归。之后的同种子对照请以 `2968bf4a_1_<id>_180` 为「改前」。
+
 ## 9. 真机验收（发布前音效 / 打击感，2026-10-01）
 
 - **做法**：本机安静时段（01:00–01:27 UTC），构建 f472d64（音效代码与冻结提交 e97b4a2 相同；之后进来的是 EA 数值包、合批热修和机器人改动，所以帧时间和敌人数只作参考）。3 局，每局打到 10:00 或死亡；熟练机器人（master，自动普攻，机器人不支持手动普攻）；窗口 1920×1080；真实音频驱动，音量 0（Dummy 下播放器状态失真）；`--realtime --perf --sfxstat`；约每 60 秒一张截图。脚本 `play/play.py`（测试与验收会话）。
@@ -584,4 +595,38 @@ main 6aa19849 起干员帧改按帧条自身尺寸 / json 里的 `foot` 读（�
 - 本次中断前没有执行任何 `git add` / `git commit`（文档改动只到这一节为止），没有 push，没有合并 main。
 
 下一位接手请：① 先修好 `_tmp_newart_capture.gd` / `_tmp_newart_runner.py` 的调用参数再重跑 9 人截图；② 完成后再做任务 2 的基线刷新；③ 两项都完成后才整理 §13（新美术问题记录）与 §8 基线登记行；④ 过程文件（临时脚本、`build/newart_1020/`、`build/trace_cache/` 的变化）按任务要求不进 git，只提交 `docs/36_testing.md`。
+
+## 13. 新美术干员实测记录（2026-10-20）
+
+接手后修好了 §12.1 记的参数 bug（`_tmp_newart_capture.gd` 需要同时传 `--op=<id>`（让 `game.gd` 把这名干员编进编队当队长）和 `--capture-op=<id>`（截图脚本自己认哪个 id）；`opshot` / `galleryshot` 的调用方式对照 `tools/op_bright_mockup.py` 改成不带场景路径、`--unlockall`、`1280x720`、不加 `--autotest`），9 人全部跑通：局内（idle / run / attack / s1 / s2 / s3，按 docs/108 §6 技能序列列确认该干员实际有哪些阶段）+ 选人页（`--opshot --opid=`）+ 图鉴（`--galleryshot=0,0,0,1.5 --galleryid=`）。截图存 `build/newart_1020/<id>/`（未入库，产物）。
+
+**方法与范围说明（如实）**：
+- 9 人的局内截图 `evidence.json` 显示的动画 kind 都与 docs/108 §6 的「技能序列」列吻合，没有缺帧条（`missing: []`）：wisadel（attack/skill/s2_*）、saria（heal/skill/s3_loop/s3_end）、suzuran（skill/s2_intro/s2_hold/s3/s3_loop）、mizuki（skill/s1_attack/s2_*/s3_*）、logos（attack_b/skill/s1_loop/s2/attack_s2/idle_s2/s3_*）、eyjafjalla（skill/s3/s3_loop/s3_end）、exusiai（只有单一 `skill` kind，符合她 s1–s3 都是「次数型单条」的设计，不是缺帧条）、siege（leap_native/heavy_attack）、ulpianus（whirl_native/tether_native/zip_native/attack_s2）。
+- 每人每阶段抽 2–3 帧代表帧，不是 540 帧全扫；人工看图时把截图裁剪放大 + 提亮 4 倍对比度（战斗场景本身光照较暗，原图直接看很难辨认细节，裁剪放大只影响人眼查看方式，不影响截图本身的判定）。
+- hurt / death：核实 `character.gd` 全文搜索，`anim_kind` 从未被赋值为 `"hurt"` 或 `"death"`（9 个干员和其余所有干员一样，引擎目前没有触发干员本体受击 / 阵亡播放独立帧条的代码路径，这两个 kind 字段在 json schema 里保留但运行时走不到）——**9 人全部跳过 hurt / death 截图**，这不是本批美术的问题，是干员系统现状如此。
+- 没有去逐帧比对特效坐标的像素级数值，是人工目测「特效原点是否贴在角色身上、脚底是否在同一水平线」。
+
+**问题记录（按严重度分组）**：
+
+| 严重度 | 干员 | 动作 | 现象 | 截图 | 疑似原因 |
+| --- | --- | --- | --- | --- | --- |
+| 高 | — | — | 无 | — | — |
+| 中 | — | — | 无 | — | — |
+| 低 | 全员通用 | — | 战斗截图整体偏暗，肉眼判断穿帮需要先裁剪提亮才看得清细节 | `build/newart_1020/<id>/f_*.png` | 不是美术或代码问题：`game.t = 60.0` 落在局内昼夜曲线的较暗时段，截图脚本没有去强制调亮度；真要查细节瑕疵建议后续截图脚本把 `g.t` 固定到白天时段，或截图后固定走一遍本次用的裁剪 + 提亮流程 |
+
+**9 人逐一结论**：
+
+| 干员 | idle/run/attack | 技能序列 | 特效原点 | 结论 |
+| --- | --- | --- | --- | --- |
+| wisadel | 正常，脚底贴地 | s2 两段 phase、s3 start/loop/attack/end 都按序播放 | 炮击 / 余震特效落在目标与角色之间，合理 | 未见异常 |
+| saria | 正常 | s1/s2 治疗序列、s3 start/loop/end | 治疗光环贴着角色脚下 | 未见异常 |
+| suzuran | 正常 | s2 hold（持续）、s3 序列，九尾 fx 形态随阶段变化 | fx 以角色为中心展开，无偏移 | 未见异常 |
+| mizuki | 正常，伞具贴手 | s2/s3 start/loop/attack/end 四阶段齐全 | 伞 / 剑气特效原点在角色手部附近 | 未见异常 |
+| logos | 正常，交替弹体 a/b 可见 | s1/s3 序列、s2 单条，均播放完整 | 弹道线 / 分裂体位置合理 | 未见异常 |
+| eyjafjalla | 正常 | s3 start/loop/run/end | 熔岩地面特效覆盖范围与角色位置对应 | 未见异常 |
+| exusiai | 正常 | s1–s3 均为单条，技能触发瞬间 + 之后的 idle/attack 状态变化已截（永久增益型，不强求 start/loop/end） | 翅膀 fx 贴身 | 未见异常 |
+| siege（推进之王） | 正常，`native_motion` 跑步 / 攻击姿态连贯 | 无序列（`skills[].anim`），leap_native 起跳与落地帧衔接自然，heavy_attack 蓄力动作完整 | 冲击波 / 重击特效落点对齐 | 未见异常（沿用已验收过的 `siege_ulpianus_art_capture.gd`） |
+| ulpianus | 正常 | whirl_native / tether_native / zip_native 三种原生姿态切换顺畅，attack_s2 精二形态独立 | 锁链 / 旋斩特效从手部连出，位置正确 | 未见异常（沿用已验收过的 `siege_ulpianus_art_capture.gd`） |
+
+**结论**：抽样范围内（每人每阶段 2–3 帧、9 人共约 160 张战斗截图 + 选人页 / 图鉴各 9 张）没有发现穿帮、残留帧、朝向错误或特效错位；选人页大立绘与图鉴页用的是另一套美术（不受这次 64 画布改动影响），两处截图也都正常。这不是逐帧全扫的结论，只能说明抽样帧里没有看到问题；`docs/108` §11 里列的 F1–F11 架构级问题仍然有效，不在本次人工验收范围内。
 
