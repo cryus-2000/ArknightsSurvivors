@@ -287,6 +287,7 @@ func update(dt: float) -> void:
 		if o.is_leader and o.pos != Vector2.INF and o.pos.distance_to(g.ppos) > 0.5:
 			g.ppos = o.pos
 			g.invuln = maxf(g.invuln, 0.12)
+			g.invuln_move_until = g.t + 0.12
 		o._tick_pfx(dt)
 
 

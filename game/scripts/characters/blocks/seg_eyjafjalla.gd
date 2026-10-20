@@ -520,12 +520,13 @@ static func hw_draw_shells(o) -> void:
 			continue
 		var lk: Dictionary = bl.hw_b.get("look", {})
 		var sz: float = float(bl.get("sz", 1.0))
-		if lk.get("weighted", false):
+		# S2 点燃弹（look 带 big_tex）仍画火焰弹本体：10-21 用户实测「二技能火焰弹不见了」——weighted 岩壳把 proj_eyja_ignite 替掉了；落点冲击照旧走 weighted
+		if lk.get("weighted", false) and not (lk.has("big_tex") and g.tex.get(str(lk.big_tex)) != null):
 			var age: float = maxf(0.0, float(bl.hw_b.get("life", 1.3)) - float(bl.life))
 			if bl.get("hw_fireball", false):
 				MagmaProjectile.draw_fireball(o, bl.pos, bl.vel, sz, age)
 			else:
-				MagmaProjectile.draw(o, bl.pos, bl.vel, sz * (1.5 if lk.has("big_tex") else 1.0), age)
+				MagmaProjectile.draw(o, bl.pos, bl.vel, sz, age)
 			continue
 		var fl := 1.0 + 0.15 * sin(g.t * 40.0 + bl.pos.x)
 		cv.draw_circle(bl.pos, float(lk.get("glow", 13.0)) * fl * sz, Color(1.6, 0.6, 0.15, 0.22))

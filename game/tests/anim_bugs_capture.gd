@@ -1,0 +1,79 @@
+extends Node
+const Look = preload("res://scripts/render/look.gd")
+## 10-21 动画 bug 实机截图（艾雅法拉 S2 火焰弹 / 水月待机末帧 / 推进之王 S2 转圈）：真实渲染视口逐帧存 PNG。
+## 用法：tools/probes/anim_bugs_capture.py <out> <op> <skill|idle> [advance]
+
+func _ready() -> void:
+	var id := "eyjafjalla"
+	var what := "1"
+	var adv := 6
+	var out_dir := "anim_bugs"
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--capture-op="): id = arg.get_slice("=", 1)
+		if arg.begins_with("--capture-what="): what = arg.get_slice("=", 1)
+		if arg.begins_with("--capture-adv="): adv = int(arg.get_slice("=", 1))
+		if arg.begins_with("--capture-out="): out_dir = arg.get_slice("=", 1)
+	var output := ProjectSettings.globalize_path("res://../build/" + out_dir + "/" + id + "_" + what)
+	DirAccess.make_dir_recursive_absolute(output)
+	var g = load("res://game.tscn").instantiate()
+	add_child(g)
+	for i in 5: await get_tree().process_frame
+	g.set_process(false)
+	g.mode = g.Mode.PLAY
+	g.state = g.S.PLAY
+	g.sandbox = true
+	g.t = 60.0
+	g.invuln = 0.0   # 不开无敌：主控无敌闪烁 0.6 透明会被误看成虚化
+	g.xp_need = 1000000000.0
+	var o = g.squad.get_op(id)
+	assert(o != null)
+	for i in adv: o.advance()
+	print("CAPTURE elite=", o.elite, " prog=", o.prog)
+	o.sp = [-100000.0, -100000.0, -100000.0]
+	o.cd = 10000.0
+	var center: Vector2 = g.ppos
+	for enemy in g.enemies: enemy.dead = true
+	g.enemies.clear()
+	var target: Dictionary = g.spawner.spawn_enemy("stone", center + Vector2(140, 0))
+	target.hp = 10000000.0
+	target.max_hp = target.hp
+	target.spd = 0.0
+	g.enemies_sys.build_grid()
+	var idle := what == "idle"
+	var total := 860 if idle else 150
+	var every := 6 if idle else 1
+	var log := []
+	for frame in total:
+		if frame == 10 and not idle:
+			o.attack_t = 0.0
+			o.fire_t = -1.0
+			o.manual_pt = target.pos
+			o.start_skill(target.pos, int(what))
+		o.sp = [-100000.0, -100000.0, -100000.0]
+		if not idle: o.cd = maxf(o.cd, 0.5)
+		else: o.cd = 10000.0
+		target.pos = center + Vector2(140, 0)
+		target.kb = Vector2.ZERO
+		g.enemies_sys.build_grid()
+		g._update(1.0 / 60.0)
+		g.world.update_visuals(1.0 / 60.0)
+		g.world.present_step()
+		var st: Dictionary = o.anim_state()
+		var n_b := 0
+		for b in g.bullets:
+			if b.get("op", "") == id: n_b += 1
+		log.append({"frame": frame, "kind": st.get("kind", ""), "pose": st.get("frame", -1), "bullets": n_b, "lobs": o.hw.get("lobs", []).size() if o.hw is Dictionary else 0, "ghosts": o.ghosts.size(), "mod": str(g.sprite.modulate), "lead": o.is_leader, "opmod": str(Look.op_mod(g, o.pos, Color.WHITE)), "fx_dim": g.world.fx_dim})
+		if frame % every != 0: continue
+		g.queue_redraw()
+		g.fx_add.queue_redraw()
+		g.fg.queue_redraw()
+		g.hud.queue_redraw()
+		await get_tree().process_frame
+		await RenderingServer.frame_post_draw
+		var im := get_viewport().get_texture().get_image()
+		assert(im.save_png(output.path_join("f_%04d.png" % frame)) == OK)
+	var file := FileAccess.open(output.path_join("log.json"), FileAccess.WRITE)
+	file.store_string(JSON.stringify(log))
+	file.close()
+	print("ANIM BUGS CAPTURE ", id, " ", what, " done failures=0")
+	get_tree().quit(0)
