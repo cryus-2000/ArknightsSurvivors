@@ -562,7 +562,7 @@ func draw_zone_hint(vs: Vector2) -> void:
 	UI.text(g.hud, g.font, tp - Vector2(120, 0), line2, 15, Color(col.r, col.g, col.b, 0.95), HORIZONTAL_ALIGNMENT_CENTER, 240, 4)
 
 
-## 指挥模式（docs/111）：屏幕外的队友在屏幕边缘画方向标记（小头像 + 箭头）；非触屏时右下编队区上方显示当前模式与按键
+## 指挥模式（docs/111）：屏幕外的队友在屏幕边缘画方向标记（干员色圈 + 职业首字 + 箭头）；非触屏时右下编队区上方显示当前模式与按键
 const CMD_COLS := [UI.CYAN, UI.GOLD, UI.GREEN]   # 护卫 / 出击 / 召回
 
 func draw_command(vs: Vector2, ct: Transform2D) -> void:
@@ -577,7 +577,7 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 		if Rect2(Vector2(8, 8), vs - Vector2(16, 16)).has_point(sp):
 			continue
 		# 标记框：避开顶栏（生命 / 击杀 / 藏品）与底部提示，标记沿「屏幕中心 → 队友」的射线贴到框边
-		var box := Rect2(Vector2(56, 104), vs - Vector2(112, 104 + 64))
+		var box := Rect2(Vector2(56, 128), vs - Vector2(112, 128 + 64))
 		var c: Vector2 = box.get_center()
 		var d := (sp - c).normalized()
 		var edge: Vector2 = c + d * minf(absf(box.size.x / 2.0 / maxf(absf(d.x), 0.01)), absf(box.size.y / 2.0 / maxf(absf(d.y), 0.01)))
@@ -585,15 +585,7 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 		g.hud.draw_circle(edge, 19.0, Color(0.03, 0.05, 0.07, 0.88))
 		g.hud.draw_arc(edge, 19.0, 0.0, TAU, 24, oc, 2.5)
 		g.hud.draw_arc(edge, 22.0, 0.0, TAU, 24, Color(col.r, col.g, col.b, 0.45), 1.0)
-		var pt: Dictionary = o.portrait()
-		var tx: Texture2D = g.tex.get(pt.tex)
-		if tx != null:
-			var fw: float = float(tx.get_width()) / maxf(1.0, float(pt.frames))
-			var fh: float = float(tx.get_height())
-			var k: float = 26.0 / fh
-			var src := Rect2(0, 0, fw, fh * 0.55)   # 只取上半身（头像），画在圈里
-			var sz := Vector2(fw, fh * 0.55) * k
-			g.hud.draw_texture_rect_region(tx, Rect2(edge - Vector2(sz.x / 2.0, sz.y * 0.62), sz), src)
+		UI.text(g.hud, g.font, edge + Vector2(-20, 6), o.cls.left(1), 15, oc, HORIZONTAL_ALIGNMENT_CENTER, 40)   # 职业首字（同编队卡左上角）
 		var tip: Vector2 = edge + d * 30.0
 		var base: Vector2 = edge + d * 22.0
 		var sd := d.orthogonal() * 7.0
