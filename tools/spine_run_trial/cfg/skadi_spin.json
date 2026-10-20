@@ -81,14 +81,18 @@
   -4
  ],
  "ms": [
-  110,
+  100,
+  50,
+  50,
   60,
-  90,
+  50,
+  50,
+  50,
   60,
+  50,
+  50,
   60,
-  60,
-  90,
-  110
+  100
  ],
  "keys": [
   {
@@ -119,84 +123,13 @@
      10
     ]
    },
-   "weapon": -165
+   "weapon": -172,
+   "weaponScale": 1
   },
   {
    "hipY": -0.2,
    "hipX": 0,
    "lean": 6,
-   "chest": 0,
-   "headKeep": 0.6,
-   "legs": {
-    "L": {
-     "ground": true,
-     "x": 0.32,
-     "foot": 0
-    },
-    "R": {
-     "ground": true,
-     "x": -0.25,
-     "foot": -10
-    }
-   },
-   "arms": {
-    "R": [
-     -70,
-     -35
-    ],
-    "L": [
-     -140,
-     -160
-    ]
-   },
-   "weapon": -10,
-   "top": [
-    "F_R_Arm",
-    "F_R_Forearm",
-    "F_Weapon",
-    "F_R_Hand"
-   ]
-  },
-  {
-   "hipY": -0.2,
-   "hipX": 0,
-   "lean": 4,
-   "chest": 0,
-   "headKeep": 0.6,
-   "legs": {
-    "L": {
-     "ground": true,
-     "x": 0.34,
-     "foot": 0
-    },
-    "R": {
-     "ground": true,
-     "x": -0.24,
-     "foot": -10
-    }
-   },
-   "arms": {
-    "R": [
-     -45,
-     -40
-    ],
-    "L": [
-     -150,
-     -170
-    ]
-   },
-   "weapon": 5,
-   "top": [
-    "F_R_Arm",
-    "F_R_Forearm",
-    "F_Weapon",
-    "F_R_Hand"
-   ]
-  },
-  {
-   "hipY": -0.2,
-   "hipX": 0,
-   "lean": 4,
    "chest": 0,
    "headKeep": 0.6,
    "legs": {
@@ -213,27 +146,71 @@
    },
    "arms": {
     "R": [
-     -150,
-     -170
+     -110,
+     -100
     ],
     "L": [
-     -40,
-     10
+     -140,
+     -150
     ]
    },
-   "weapon": -170,
-   "flip": true
+   "weapon": -160,
+   "weaponScale": 0.35,
+   "top": [
+    "F_R_Arm",
+    "F_R_Forearm",
+    "F_Weapon",
+    "F_R_Hand"
+   ]
   },
   {
    "hipY": -0.2,
    "hipX": 0,
-   "lean": 4,
+   "lean": 6,
    "chest": 0,
    "headKeep": 0.6,
    "legs": {
     "L": {
      "ground": true,
-     "x": 0.32,
+     "x": 0.3,
+     "foot": 0
+    },
+    "R": {
+     "ground": true,
+     "x": -0.25,
+     "foot": -10
+    }
+   },
+   "arms": {
+    "R": [
+     -75,
+     -50
+    ],
+    "L": [
+     -140,
+     -150
+    ]
+   },
+   "weapon": -4,
+   "weaponScale": 0.7,
+   "top": [
+    "F_R_Arm",
+    "F_R_Forearm",
+    "F_Weapon",
+    "F_R_Hand"
+   ],
+   "smear": true
+  },
+  {
+   "hipY": -0.2,
+   "hipX": 0,
+   "lean": 6,
+   "chest": 0,
+   "headKeep": 0.6,
+   "legs": {
+    "L": {
+     "ground": true,
+     "x": 0.3,
      "foot": 0
     },
     "R": {
@@ -248,23 +225,178 @@
      -40
     ],
     "L": [
-     -150,
-     -170
+     -140,
+     -150
     ]
    },
    "weapon": 0,
+   "weaponScale": 1,
    "top": [
     "F_R_Arm",
     "F_R_Forearm",
     "F_Weapon",
     "F_R_Hand"
    ],
-   "flip": true
+   "smear": true
+  },
+  {
+   "view": "B",
+   "weapon": -4,
+   "weaponScale": 1,
+   "hipY": -0.1,
+   "smear": true
+  },
+  {
+   "view": "B",
+   "weapon": -30,
+   "weaponScale": 0.35,
+   "hipY": -0.1,
+   "top": [
+    "B_L_Arm",
+    "B_L_Forearm",
+    "B_L_Hand",
+    "B_L_Fingers_2",
+    "B_Coat_Back",
+    "B_L_Calf",
+    "B_L_Foot",
+    "B_L_Leg",
+    "B_R_Calf",
+    "B_R_Foot",
+    "B_R_Leg",
+    "B_L_Waist",
+    "B_Head",
+    "B_Coat",
+    "B_R_Arm",
+    "B_R_Hand",
+    "B_R_Forearm",
+    "B_Cape",
+    "B_Back_Hair",
+    "B_Hat_C",
+    "B_Hat_B",
+    "B_Hat_A"
+   ]
   },
   {
    "hipY": -0.2,
    "hipX": 0,
-   "lean": 4,
+   "lean": 6,
+   "chest": 0,
+   "headKeep": 0.6,
+   "legs": {
+    "L": {
+     "ground": true,
+     "x": 0.3,
+     "foot": 0
+    },
+    "R": {
+     "ground": true,
+     "x": -0.25,
+     "foot": -10
+    }
+   },
+   "arms": {
+    "R": [
+     -75,
+     -50
+    ],
+    "L": [
+     -140,
+     -150
+    ]
+   },
+   "weapon": -4,
+   "weaponScale": 0.7,
+   "top": [
+    "F_R_Arm",
+    "F_R_Forearm",
+    "F_Weapon",
+    "F_R_Hand"
+   ],
+   "flip": true,
+   "smear": true
+  },
+  {
+   "hipY": -0.2,
+   "hipX": 0,
+   "lean": 6,
+   "chest": 0,
+   "headKeep": 0.6,
+   "legs": {
+    "L": {
+     "ground": true,
+     "x": 0.3,
+     "foot": 0
+    },
+    "R": {
+     "ground": true,
+     "x": -0.25,
+     "foot": -10
+    }
+   },
+   "arms": {
+    "R": [
+     -55,
+     -40
+    ],
+    "L": [
+     -140,
+     -150
+    ]
+   },
+   "weapon": 0,
+   "weaponScale": 1,
+   "top": [
+    "F_R_Arm",
+    "F_R_Forearm",
+    "F_Weapon",
+    "F_R_Hand"
+   ],
+   "flip": true,
+   "smear": true
+  },
+  {
+   "view": "B",
+   "weapon": -4,
+   "weaponScale": 1,
+   "hipY": -0.1,
+   "flip": true,
+   "smear": true
+  },
+  {
+   "view": "B",
+   "weapon": -30,
+   "weaponScale": 0.35,
+   "hipY": -0.1,
+   "flip": true,
+   "top": [
+    "B_L_Arm",
+    "B_L_Forearm",
+    "B_L_Hand",
+    "B_L_Fingers_2",
+    "B_Coat_Back",
+    "B_L_Calf",
+    "B_L_Foot",
+    "B_L_Leg",
+    "B_R_Calf",
+    "B_R_Foot",
+    "B_R_Leg",
+    "B_L_Waist",
+    "B_Head",
+    "B_Coat",
+    "B_R_Arm",
+    "B_R_Hand",
+    "B_R_Forearm",
+    "B_Cape",
+    "B_Back_Hair",
+    "B_Hat_C",
+    "B_Hat_B",
+    "B_Hat_A"
+   ]
+  },
+  {
+   "hipY": -0.2,
+   "hipX": 0,
+   "lean": 6,
    "chest": 0,
    "headKeep": 0.6,
    "legs": {
@@ -289,43 +421,8 @@
      10
     ]
    },
-   "weapon": -175
-  },
-  {
-   "hipY": -0.22,
-   "hipX": 0,
-   "lean": 6,
-   "chest": 0,
-   "headKeep": 0.6,
-   "legs": {
-    "L": {
-     "ground": true,
-     "x": 0.34,
-     "foot": 0
-    },
-    "R": {
-     "ground": true,
-     "x": -0.24,
-     "foot": -10
-    }
-   },
-   "arms": {
-    "R": [
-     -50,
-     -45
-    ],
-    "L": [
-     -150,
-     -170
-    ]
-   },
-   "weapon": -15,
-   "top": [
-    "F_R_Arm",
-    "F_R_Forearm",
-    "F_Weapon",
-    "F_R_Hand"
-   ]
+   "weapon": -172,
+   "weaponScale": 1
   },
   {
    "hipY": -0.08,
@@ -355,9 +452,25 @@
      -80
     ]
    },
-   "weapon": -150
+   "weapon": -150,
+   "weaponScale": 1
   }
  ],
  "weaponSlot": "F_Weapon",
- "handSlot": "F_R_Hand"
+ "handSlot": "F_R_Hand",
+ "back": {
+  "hip": "B_Hip",
+  "arm": [
+   "B_R_Arm",
+   "B_R_Forearm",
+   "B_R_Hand"
+  ],
+  "weapon": "B_R_Weapon",
+  "weaponSlot": "B_Weapon",
+  "feet": [
+   "B_L_Foot",
+   "B_R_Foot"
+  ],
+  "bladeFlip": true
+ }
 }
