@@ -1374,7 +1374,8 @@ func vis_dur() -> float:
 func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim := "", interval := 0.0) -> void:
 	if aim != Vector2.INF and absf(aim.x - pos.x) > FACE_DEAD:
 		_set_face(signf(aim.x - pos.x))
-	_sq_interrupt()
+	if not (seq_locked() and kind == "attack"):
+		_sq_interrupt()
 	act_kind = kind
 	act_anim = anim if anim != "" and (anim_tex(anim) != null or sprite_spec(anim).has("frames")) else kind
 	if anim_tex(act_anim) == null and not sprite_spec(act_anim).has("frames"):
@@ -1613,6 +1614,12 @@ func anim_state() -> Dictionary:
 
 
 func _anim_state_raw() -> Dictionary:
+	if seq_locked():   # sprites.skills.sN.lock：序列持续 / 收势期间只播序列（艾丽妮 S3 只播空中连射，普攻照常结算不换画面）
+		var lk := _sq_kind()
+		var ltx: Texture2D = anim_tex(lk) if lk != "" else null
+		if ltx != null:
+			var ln: int = anim_hframes(ltx, lk)
+			return {"tex": ltx, "frame": _sq_frame(ln), "hf": ln, "flip": (face < 0.0) != sprite_mirror(lk), "kind": lk}
 	var tx: Texture2D = anim_tex(anim_kind)
 	if tx == null:
 		tx = anim_tex("idle")
@@ -1886,6 +1893,11 @@ func _sq_frame(n: int) -> int:
 
 
 ## 别的动作起手（_start_action）：起手 / 收势途中作废序列；循环 / 定格期间只是暂时被压过
+## 锁定序列（json sprites.skills.sN.lock = true）：序列整段（起手 / 持续 / 收势）画面不让给普攻等别的动作，普攻起手也不打断序列（纯显示）
+func seq_locked() -> bool:
+	return sq_ph != 0 and bool(sq.get("lock", false))
+
+
 func _sq_interrupt() -> void:
 	if sq_ph == 1 or sq_ph == 3:
 		_sq_clear()

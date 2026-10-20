@@ -65,6 +65,24 @@ func _process(_d: float) -> void:
 	ok(str(o.native_motion.get("clip", "")) == "attack_retrial", "再审：普攻起手播 attack_retrial（%s）" % str(o.native_motion.get("clip", "")))
 	var st: Dictionary = NM.state(o, {"kind": "finisher", "frame": 1, "tex": null})
 	ok(str(st.kind) == "finisher", "收尾斩在 yield 里不被三段刺覆盖")
+	# 艾丽妮 S3（sprites.skills.s3.lock）：持续期间普攻 / 收尾斩不换画面，只播空中连射
+	o.attack_t = 0.0
+	o.native_motion.clip = ""
+	o.hw.ir.erase("fin_t")
+	o.start_skill(o.pos + Vector2(60, 0), 2)
+	ok(o.sq_ph != 0 and o.seq_locked(), "艾丽妮 S3 起手进锁定序列（sq_ph %d）" % o.sq_ph)
+	o.attack_t = 0.0
+	o.sq_ph = 2
+	o.sq_t = 0.3
+	o.start_attack(o.pos + Vector2(60, 0))
+	ok(o.sq_ph == 2, "S3 持续中普攻起手不打断序列")
+	ok(str(o.anim_state().kind) == "skill_s3_loop", "S3 持续中普攻仍播空中连射（%s）" % str(o.anim_state().kind))
+	o.hw.ir["fin_t"] = 0.0
+	o.hw.ir["fin_anim"] = "finisher"
+	ok(str(o.anim_state().kind) == "skill_s3_loop", "S3 持续中收尾斩不换画面（%s）" % str(o.anim_state().kind))
+	o._sq_clear()
+	o.hw.ir.erase("fin_t")
+	o.attack_t = 0.0
 	# 流明：光柱充满后起手播 attack_beam
 	var lm = _make("lumen")
 	if lm != null:
