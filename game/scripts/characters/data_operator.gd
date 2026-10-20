@@ -1049,7 +1049,7 @@ func anim_state() -> Dictionary:
 	if not hw.is_empty() and hw.has("ir"):
 		st = SegIrene.e3_ir_anim(self, st)   # 精英化第 3 批：收尾斩的帧条
 	st = SegUlpianus.hw_anim_state(self, st) if not hw.is_empty() else st
-	return NativeMotion.state(self, st)
+	return _noshield(NativeMotion.state(self, st))   # 原生覆盖层换了槽，盾在外面时照样换无盾画面
 
 
 # ---------------------------------------------------------------- 手写迁移段第 3 批：干员侧询问（squad / game 按 has_method 询问；没用到的数据干员返回中性值）

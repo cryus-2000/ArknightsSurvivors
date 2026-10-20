@@ -144,13 +144,13 @@ def hoshiguma():
     S['idle'] = (cb_frames(op, 'Idle', range(7)), cb_frames(op, 'Idle', range(7), drop=SHIELD), even(3.0, 7), None)
     S['run'] = (rt_frames(op, 'run'), rt_frames(op, 'run_noshield'), even(0.6, 8), None)
     at = F('attack')
-    S['attack'] = (cb_frames(op, 'Attack'), cb_frames(op, 'Attack', drop=SHIELD), [0.14, at - 0.14, 0.03, 0.025, 0.025, 0.02, 0.0125, T('attack') - at - 0.1125], at)
+    S['attack'] = (cb_frames(op, 'Attack'), cb_frames(op, 'Attack', drop=SHIELD), windup(at, 2, T('attack'), 8), at)   # 原作出手 = 第 2 帧（t 0.333）
     sk, st = F('skill'), T('skill')
     S['skill'] = (cb_frames(op, 'Attack'), cb_frames(op, 'Attack', drop=SHIELD), windup(sk, 2, st, 8), sk)       # S2 荆棘：盾斧斩落
     s1, s1n = rt_frames(op, 's1'), rt_frames(op, 's1_ns')
     S['s1'] = (s1[:2], s1n[:2], [sk, st - sk], sk)                                                                   # S1 起手：举盾
     S['s1_guard'] = (s1[1:2], s1n[1:2], [0.5], None)                                                                 # 格挡窗口内定格
-    S['s1_counter'] = (s1[2:], s1n[2:], [0.09, 0.08, 0.07, 0.06, 0.07, 0.09], None)                                  # 格挡 / 窗口到点：转腰反手重斩
+    S['s1_counter'] = (s1[5:], s1n[5:], [0.12, 0.12, 0.18], None)   # 格挡 / 窗口到点：反手重斩（伤害在格挡瞬间，所以从击中帧起播，不放前摇）
     S['s3_start'] = (cb_frames(op, 'Skill_Begin'), cb_frames(op, 'Skill_Begin', drop=SHIELD), windup(sk, 3, st, 8), sk)
     S['s3_loop'] = (cb_frames(op, 'Skill', range(7)), cb_frames(op, 'Skill', range(7), drop=SHIELD), even(1 / 3, 7), None)
     S['s3_end'] = (cb_frames(op, 'Skill_End'), cb_frames(op, 'Skill_End', drop=SHIELD), even(0.4, 8), None)
@@ -180,8 +180,9 @@ def hoshiguma():
     sp['size'] = 64
     sp['foot'] = [32, 60]
     data['extra_sprites'] = ['death', 's1', 's1_guard', 's1_counter', 's3_start', 's3_loop', 's3_end', 'throw', 'catch']
-    data['native_motion'] = {'_doc': '原生动作覆盖层（docs/108 §3.5）：盾回手（信号 prop 结束）时播接盾',
-                             'clips': {'catch': round(sum(S['catch'][2]), 6)},
+    data['native_motion'] = {'_doc': '原生动作覆盖层（docs/108 §3.5）：普攻 / S2 / S3 起手按 clips 整条均匀播（击中帧起点 = 伤害时刻）；盾回手（信号 prop 结束）时播接盾',
+                             # 出手与画面对齐（协调人 10-21 口径）：原作条按 clip = fire × 帧数 / k 均匀整条播，击中帧起点 = 伤害时刻，收势放慢可越过逻辑窗口
+                             'clips': {'catch': round(sum(S['catch'][2]), 6), 'attack': at * 8 / 2, 'skill': sk * 8 / 2, 's3_start': sk * 8 / 3},
                              'exits': [{'on': 'prop', 'slot': 'catch', 'from': 0, 'tail': round(sum(S['catch'][2]), 6)}]}
     path.write_text(json.dumps(data, ensure_ascii=False, indent=1) + '\n', encoding='utf-8')
     for k in ['idle', 'run', 'attack', 'skill', 'throw']:
