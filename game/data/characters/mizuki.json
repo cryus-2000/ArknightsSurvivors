@@ -286,7 +286,7 @@
     "kill_heal": 0.01,
     "kill_regen": 0.05,
     "kill_cap": 0.05,
-    "drag_dist": 40,
+    "drag_dist": 20,
     "jelly_every": 1.2,
     "jelly_r": 200,
     "jelly_mult": 0.4,
@@ -294,10 +294,10 @@
   },
   "leader": {
     "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1758 / 防御 356 / 法抗 30%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
-    "max_hp": 110,
+    "max_hp": 125,
     "armor": 2.5,
     "arts_res": 0.3,
-    "regen": 1.1
+    "regen": 1.5
   },
   "attack": {
     "mode": "auto",
