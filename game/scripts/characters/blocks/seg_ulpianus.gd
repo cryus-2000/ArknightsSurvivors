@@ -1,6 +1,8 @@
 ## 干员积木 · seg_ulpianus（docs/101 §7.3 B6 ①，10-15：由 op_blocks.gd 按段拆出，内容与注释照搬；继承链与门面见 op_blocks.gd）
 extends "res://scripts/characters/blocks/seg_logos.gd"
 
+const UlpImpact = preload("res://scripts/characters/ulpianus_impact.gd")
+
 const HW_STEEL := Color(0.55, 0.75, 0.95)
 
 const HW_CHAIN := Color(0.62, 0.68, 0.78)
@@ -139,6 +141,10 @@ static func hw_armed_release(o, a: Dictionary) -> bool:
 # ---------------------------------------------------------------- verb.tether
 
 static func _hw_hand(o) -> Vector2:
+	if o.def.has("native_motion"):
+		var socket: Vector2 = o.sprite_point("hand")
+		if socket != Vector2.INF:
+			return socket
 	var b: Dictionary = o.hw.anchor.get("b", {})
 	var v = b.get("hand", [33, -33])
 	return o.pos + Vector2(float(v[0]) * float(o.face), float(v[1]))
@@ -287,9 +293,8 @@ static func _hw_anchor_bite(o) -> void:
 	var dir: Vector2 = (to - o.pos).normalized() if to.distance_to(o.pos) > 1.0 else Vector2(o.face, 0)
 	var big: bool = b.get("big", false)
 	o.impact_pause(0.07 if big else 0.05)
-	o.fx({"kind": "glow", "pos": to + Vector2(0, -6), "r": 18.0 if big else 14.0, "life": 0.12, "col": Color(1.4, 1.7, 2.3), "alpha": 0.8})
-	o.fx({"kind": "ring", "pos": to, "r": 48.0 if big else 36.0, "r0": 6.0, "life": 0.22, "col": HW_STEEL, "floor": true, "w": 3.0})
-	_hw_splash(o, to, 6, 0.8)
+	o.fx({"kind": "ulp_wave", "pos": to, "r": 48.0 if big else 36.0, "life": 0.36, "floor": true})
+	UlpImpact.splash(o, to, 0.8)
 	for i in 6:
 		var a: float = dir.angle() + g.vrng.randf_range(-0.9, 0.9)
 		o.fx({"kind": "spark", "pos": to + Vector2(0, -6), "vel": Vector2.from_angle(a) * g.vrng.randf_range(160, 300), "life": 0.22, "col": HW_CHAIN, "sz": 2.5})
@@ -358,7 +363,7 @@ static func _hw_reel_arrive(o) -> void:
 		o.add_cc(e, float(b.get("stun", 0.6)) * (0.5 if e.elite else 1.0) + 0.25)
 		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.6), "r": 10.0, "life": 0.25, "col": Color(1.3, 1.5, 2.0), "alpha": 0.6})
 	o.impact_pause(0.05)
-	o.fx({"kind": "ring", "pos": c, "r": 34.0, "r0": 4.0, "life": 0.2, "col": HW_CHAIN, "floor": true, "w": 2.0})
+	o.fx({"kind": "ulp_wave", "pos": c, "r": 34.0, "life": 0.2, "pull": true, "floor": true})
 	for i in 5:
 		o.fx({"kind": "spark", "pos": c + Vector2(0, -30), "vel": Vector2.from_angle(i * TAU / 5.0) * 60.0, "life": 0.3, "col": Color(1.4, 1.4, 0.8), "sz": 2.0})
 	an.phase = "hold"
@@ -420,8 +425,6 @@ static func _hw_zip_land(o) -> void:
 				o.apply_kb(e, (e.pos - c).normalized() * float(b.get("land_kb", 50.0)))
 	var big: bool = b.get("big", false)
 	_hw_slam_fx(o, c, r, 1.6 if big else 1.0)
-	if big:
-		_hw_splash(o, c, 10, 1.3)
 	h.prev_dmg = dmg
 	h.prev_c = c
 	h.prev_r = r
@@ -616,24 +619,11 @@ static func _hw_sparks(o, p: Vector2, c: Color, n: int, spd: float, life := 0.4,
 			"col": c, "sz": sz, "drag": 2.0, "grav": grav, "floor": false})
 
 
-## 深海蓝水珠 + 落点一团蓝水花
-static func _hw_splash(o, c: Vector2, n: int, k: float) -> void:
-	var g = o.g
-	o.spawn_fx_sprite("fx_splash_blue", c + Vector2(0, 6), g.PX * clampf(0.8 * k, 0.8, 1.6), 0.0, false, true)
-	for i in n:
-		var a: float = -PI / 2.0 + g.vrng.randf_range(-1.1, 1.1)
-		o.fx({"kind": "mote", "pos": c + Vector2(g.vrng.randf_range(-10, 10), -4), "vel": Vector2.from_angle(a) * g.vrng.randf_range(90, 190) * k,
-			"life": g.vrng.randf_range(0.35, 0.5), "col": HW_WATER, "sz": 2.0 if i % 2 == 0 else 1.5, "grav": 420.0})
-
-
-## 砸地：尘土 + 顿帧 + 地裂 + 冲击环 + 水珠 + 火花
+## Keep the existing hit pause; separate water and delayed ground wake.
 static func _hw_slam_fx(o, c: Vector2, r: float, k: float) -> void:
-	o.ground_dust(c, minf(r * 0.45, 42.0), 10)
+	o.ground_dust(c, minf(r * 0.25, 24.0), 5)
 	o.impact_pause(0.045 * k)
-	o.fx({"kind": "crack", "pos": c, "r": r * 0.9, "life": 0.4 * k, "col": HW_STEEL, "floor": true, "n": 7})
-	o.fx({"kind": "ring", "pos": c, "r": r, "r0": 10.0, "life": 0.3 * k, "col": HW_STEEL, "floor": true, "w": 3.0})
-	_hw_splash(o, c, int(8 * k), 1.0 * k)
-	_hw_sparks(o, c + Vector2(0, -8), HW_CHAIN, 6, 150.0, 0.35, 2.5, 220.0)
+	UlpImpact.spawn(o, c, r, k)
 
 
 static func _hw_draw_chain(o, a: Vector2, b: Vector2, al: float) -> void:
@@ -651,6 +641,11 @@ static func _hw_draw_chain(o, a: Vector2, b: Vector2, al: float) -> void:
 
 
 static func _hw_draw_anchor(o, p: Vector2, d: Vector2, a: float) -> void:
+	var native: Dictionary = o.sprite_spec("anchor_native")
+	if not native.is_empty():
+		var anchor: Array = native.anchor
+		if o._fx_strip(str(native.tex), 1, 0, p, Vector2(float(anchor[0]), float(anchor[1])), d.angle(), Color(1, 1, 1, a)):
+			return
 	var g = o.g
 	var cv = o.cv
 	if g.tex.get("proj_ulpianus_anchor") != null:
@@ -728,7 +723,11 @@ static func hw_draw_tether(o) -> void:
 static func hw4_draw_pfx(o, f: Dictionary, a: float) -> bool:
 	var cv = o.cv
 	match str(f.kind):
+		"ulp_wave", "ulp_fracture":
+			return UlpImpact.draw(o, f, a)
 		"whirl":
+			if o.def.has("native_motion") and str(o.anim_state().get("kind", "")) == "whirl_native":
+				return true  # Native body, chain and four-blade anchor are composed together.
 			var u: float = 1.0 - a
 			var dirv: float = float(f.get("dir", 1.0))
 			var head: float = float(f.get("a0", 0.0)) + dirv * TAU * (1.0 - (1.0 - u) * (1.0 - u))
@@ -1056,6 +1055,10 @@ static func hw_draw_hooks(o) -> void:
 		var hv = b.get("hand", [33, -33])
 		var hand: Vector2 = o.pos + Vector2(float(hv[0]) * float(o.face), float(hv[1]))
 		var p: Vector2 = (hk.head as Vector2) + Vector2(0, -6)
+		if o.def.has("native_motion"):
+			hand = _hw_hand(o)
+			if hk.phase == "fly":
+				p = hand.lerp(hk.to, clampf(float(hk.t) / maxf(float(hk.dur), .001), 0.0, 1.0)) + Vector2(0, -6)
 		var tile: String = str(b.get("chain", ""))
 		var taut: bool = str(hk.phase) != "fly"
 		if tile != "" and g.tex.get(tile) != null:

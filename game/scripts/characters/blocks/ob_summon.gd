@@ -884,7 +884,7 @@ const MF_FX_COMMON := ["cond", "if_tex", "at", "off", "n", "every", "jit", "jit_
 
 const MF_SPRITE_KEYS := ["fit", "scale_r", "scale", "rot", "second_scale", "second_rot", "swing_rot", "tint", "bottom", "flip_side", "rot_ang"]
 
-const MF_PFX_KINDS := ["ring", "glow", "spark", "shard", "line", "mote", "crescent", "impact", "core", "qshard", "beamray", "crack", "flame", "lava_pillar", "s1link", "h4_cross"]   # crack / flame：手写迁移段（character.gd 的地裂 / 火舌）；lava_pillar：hw_draw_pfx
+const MF_PFX_KINDS := ["ring", "glow", "spark", "shard", "line", "mote", "crescent", "impact", "core", "qshard", "beamray", "crack", "flame", "lava_pillar", "s1link", "h4_cross", "ulp_wave", "ulp_fracture"]   # Custom kinds route through hw_draw_pfx.
 
 const MF_GFX_KINDS := ["beam", "rays", "cross"]
 
@@ -1028,7 +1028,7 @@ static func mf_tick(o, dt: float, prev: Array) -> void:
 				st.deployed[int(t._uid)] = true
 				o._exec_list(t.get("do", []))
 	for i in 3:
-		if prev[i] > 0.0 and o.s_t[i] <= 0.0:
+		if prev[i] > 0.0 and o.s_t[i] <= 0.0 and not o.B.get("skills", [{}, {}, {}])[i].has("attack_phases") and not o.SkillLifecycle.owns(o, i):
 			for t in o._trigs():
 				if str(t.get("_tag", "")) == "trig.on_skill_end" and t.has("at") and int(t.get("skill", -1)) == i and cond_true(o, t.get("cond", _ED)):
 					mf_fire_at(o, t, mf_at_point(o, str(t.at)))

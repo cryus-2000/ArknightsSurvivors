@@ -2,6 +2,7 @@ extends RefCounted
 ## 战斗结算：对敌伤害（伤害描述符、护甲 / 易伤 / 藏品倍率，契约 v2.0）、击杀与掉落触发、主控受击（闪避 / 护盾 / 减伤 / 法抗）、
 ## 治疗、神经损伤、缩圈（黑潮区域）。干员经 characters/op_api.gd 调用。2026-09-26 从 game.gd 拆出。
 
+const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
@@ -1145,7 +1146,16 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 		var dtx: Texture2D = g.tex[e.tex + "_death"]
 		var foot: Vector2 = e.pos + Vector2(0, e.r * 0.8 + 3.0 * g.PX)
 		var dsc: float = g.PX * float(e.get("sc", 1.0))   # 怪物体型（spawner.escale）放大过的按同一倍数画
-		g.vfx.fx_sprite(e.tex + "_death", foot + Vector2(0, -(dtx.get_height() - 3) * dsc * 0.5), dsc, 0.0)
+		var death_name: String = e.tex + "_death"
+		if not A.enemy_pixel_spec(death_name).is_empty():
+			var frames: int = g.V6_FRAMES[death_name][0]
+			var size := Vector2(dtx.get_width() / float(frames), dtx.get_height()) / A.hires_of(dtx)
+			var anchor := A.enemy_pixel_anchor(death_name, Vector2(0.5, 1.0))
+			var origin: Vector2 = foot if g.foot_anchor.has(e.tex) else e.pos
+			dsc = D.enemy_scale(e, g.t, g.PX) * A.enemy_pixel_scale(death_name)
+			g.vfx.fx_sprite(death_name, origin, dsc, 0.0, e.fx < 0.0, false, Color.WHITE, false, anchor * size)
+		else:
+			g.vfx.fx_sprite(death_name, foot + Vector2(0, -(dtx.get_height() - 3) * dsc * 0.5), dsc, 0.0)
 	elif not g.vfx.fx_sprite("fx_death_dissolve", e.pos, g.PX * max(1.0, e.r / 12.0)):
 		g.vfx.anim("fx_death", e.pos, 0.3, g.PX * max(1.0, e.r / 12.0))
 	if e.elite:

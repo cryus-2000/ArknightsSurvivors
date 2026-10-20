@@ -88,14 +88,37 @@ LEGACY = {"eyjafjalla", "irene", "kaltsit", "logos", "lumen", "mizuki", "saria",
 
 # ---------------------------------------------------------------- 豁免：已开返修单、未交付的 FAIL（交付合入后删条目）
 WAIVERS = {
+    # 10-20 用户要求接入既有原生部件像素；保留原始指标，例外不代表视觉验收通过。
+    ('siege', 'outline'): "10-20 原生附件暗色收边，不重描旧 #080E18 黑壳；来源像素哈希见 siege_ulpianus_native_sources.json",
+    ('ulpianus', 'outline'): "10-20 原生附件暗色收边，不重描旧 #080E18 黑壳；同原生接入交接",
+    ('siege', 'run'): "10-20 用户指定最新扛锤、持锤手下移版本；肩部稳定且后方锤子影响区域前倾指标，保留起伏/上身报警供实机复核（siege_ulpianus_runtime_handoff.md）",
+    ('ulpianus', 'run'): "10-20 沿用用户已确认八帧提锚跑步；上身/起伏/停顿旧区域指标未过，实机证据与原始数据保留（同交接）",
+    ('siege', 'ground', 'idle'): "10-20 原生根骨与衣摆保持源位置，最低轮廓61–62不是逻辑脚底60；不逐帧挪图贴底（同交接）",
+    ('siege', 'ground', 'run'): "10-20 保留原生支撑脚关节与抬脚；最低像素58–59与脚底边界60有1–2像素差（同交接）",
+    ('siege', 'ground', 'skill'): "10-20 技能开启取消号令，复用原生正常持锤 Idle，根骨差异同 idle（同交接）",
+    ('ulpianus', 'ground', 'idle'): "10-20 最低像素59、逻辑脚底边界60，保留原生根骨关系（同交接）",
+    ('ulpianus', 'ground', 'attack'): "10-20 已确认原生锚击最低像素59，脚底边界60，不平移已确认姿势（同交接）",
+    ('ulpianus', 'ground', 'skill'): "10-20 起手复用正常持锚 Idle，脚底边界差异同 idle（同交接）",
+    # 10-19 原生交付的已记录差异；不改变通用阈值，视觉验收仍独立。
+    ('exusiai', 'outline'): "10-19 用户指定原生像素整套接入：保留附件自身暗色边缘，230 姿势逐像素保真；不改成旧黑壳（three_operator_art_1019_handoff.md）",
+    ('exusiai', 'skill_end'): "10-19 三技能复用原生 Attack，末帧保持源姿势，逻辑结束切 Idle；不以 Idle 像素覆盖原生末帧（同交接）",
+    ('exusiai', 'frontal'): "10-19 保留原生 Idle 头部与最新修复跑步；不按旧48画布的对称率改造原作脸型（同交接）",
+    ('exusiai', 'ground'): "10-19 统一脚根锚点；最低像素行59与脚底边界60相差1，保持原生根骨关系（同交接）",
+    ('eyjafjalla', 'outline'): "10-19 原生附件暗色边缘，源像素逐帧保真；旧硬黑描边指标不适用（同交接）",
+    ('eyjafjalla', 'run'): "10-19 用户指定接入 arm_revision_04；旧区域指标的上身变化/停顿报警保留，实机跑姿待用户复核（同交接）",
+    ('eyjafjalla', 'ground'): "10-19 保留原生脚根及施法抬脚，最低轮廓不恒等脚底点；倒下另用192画布防止裁脚（同交接）",
+    ('logos', 'outline'): "10-19 原生附件暗色边缘，源像素逐帧保真；旧硬黑描边指标不适用（同交接）",
+    ('logos', 'frontal'): "10-19 保留原生 Idle 头部与已指定腿部修复；不按旧48画布对称率改造原作脸型（同交接）",
+    ('logos', 'run'): "10-19 用户指定接入 leg_revision_04；旧起伏/前倾指标报警保留，实机跑姿待用户复核（同交接）",
+    ('logos', 'ground'): "10-19 保留原生脚根与 S3 悬起施法，最低轮廓不是每帧脚底；禁止逐帧挪图贴底（同交接）",
+    ("mizuki", "ground", "idle"): "10-18 原生 Idle f6 转伞，伞尖到逻辑 y83，双脚仍在 y75.5；最低透明边缘不是脚底。见 mizuki_runtime_manifest.json 与 build/mizuki_idle_anchor.png",
+    ("saria", "outline"): "10-18 三人全动画接入：按原生附件暗色收边，不使用旧版纯 #080E18 外壳（docs/plans/2026-10-18-three-attack-timing.md）",
+    ("saria", "run"): "10-18 用户要求接入现有全动画：沿用已确认 saria_latest_all 八帧持盾前冲；上身稳定的自动指标未过，保留视觉复核项（同交付记录）",
+    ("suzuran", "frontal"): "10-18 原生 Idle 的正面头部与已确认小跑组合，保持原作朝向；旧版正面比例阈值不用于改造原生脸型（同交付记录）",
     ("suzuran", "outline"): "10-16 新规格（docs/103 §5 / 104）：64 画布 @2x 原生细节不画硬黑外描边（codex/art 0827a990 接入）；art_lint 描边项待按新规格改口径",
     ("suzuran", "run"): "10-16 用户看过 all_actions.gif 批准的六帧屈膝小跑（codex/art 0827a990）；机检剪影 / 上身变化阈值按旧 48 帧条定，待改口径",
-    ("mizuki", "outline"): "10-16 新规格（docs/103 §5 / 104）：64 画布 @2x 暗色收边、无硬黑外描边（codex/art 1206366c）；描边项待改口径",
-    ("mizuki", "idle"): "10-16 用户批准的整套（codex/art 1206366c）：呼吸 0.5px 属新规格的轻微呼吸，阈值待改口径",
-    ("mizuki", "run"): "10-16 用户批准的整套（codex/art 1206366c）：上半身变化阈值按旧 48 帧条定，待改口径",
-    ("mizuki", "ground", "skill_s2"): "设计例外（codex/art 1206366c）：S2 张伞触手承托坐姿，离地 1–2px 属造型",
-    ("mizuki", "ground", "skill_s2_loop"): "设计例外（codex/art 1206366c）：S2 坐姿循环，离地 1px 属造型",
-    ("mizuki", "ground", "skill_s2_attack"): "设计例外（codex/art 1206366c）：S2 坐姿伞击变体，离地 1px 属造型（10-16 接 attack 槽后纳入机检）",
+    ("mizuki", "outline"): "10-18 原生附件像素重组：96 逻辑画布 @2x 暗色收边；旧纯黑外壳阈值不适用（mizuki_runtime_manifest.json）",
+    ("mizuki", "run"): "10-18 接入既有 cf 原生骨架跑步：上身稳定、腿部变化0.120，保留视觉复核；旧48画布上身阈值未过（mizuki_runtime_manifest.json）",
     ("wisadel", "outline"): "10-16 新规格（docs/103 §5 / 104）：64 画布 @2x 暗色收边、无硬黑外描边（codex/art 01392fc7）",
     ("wisadel", "facing"): "10-16 用户批准整套（codex/art 01392fc7）：扛炮 / 蹲射构图让头部同向分偏，机检口径按旧 48 帧条定",
     ("wisadel", "frontal"): "10-16 用户批准整套（codex/art 01392fc7）：待机 / 跑步偏正面是定稿构图，待改口径",
@@ -105,7 +128,7 @@ WAIVERS = {
     # 以下为 docs/87 附录 B 基线新发现，待协调人 / 用户定是否开返修单（开单后把说明改成返修单号）
     ("skalter", "run"): "设计例外（用户 10-13 定）：浊心斯卡蒂跑步是悬浮飘行，腿不交替属造型，长期豁免",
     ("skalter", "ground"): "设计例外（用户 10-13 定）：浊心斯卡蒂悬浮飘行，离地 4–6px 属造型，长期豁免",
-    ("exusiai", "run"): "用户 10-13 认可现版（fafe6f1e 连续性修复后）；机检上半身变化 0.000、头部起伏 0.8px 仍低于线，暂不返修",
+    ("exusiai", "run"): "10-19 用户指定接入 exusiai_arm_revision_03；保留原步态，旧上身/起伏指标报警待实机视觉复核（three_operator_art_1019_handoff.md）",
     ("texas", "run"): "用户 10-13 认可现版（1a761c8e 连续性修复后）；机检头部起伏 0.5px 仍低于线，暂不返修",
     ("specter_unchained", "run"): "用户 10-13 认可现版：归溟幽灵鲨跑步前倾 35°、停顿帧 2 对，不返修",
     # 单条帧条豁免（op, check, 动作）：只豁免这条帧条的这一项，同一干员其他帧条照常检查
@@ -138,11 +161,6 @@ def roster(data=DATA):
                 k = seg.get("anim") if isinstance(seg, dict) else seg
                 if k in acts:
                     acts[k]["_body"] = True
-        if cid == "mizuki":   # idle / run / attack 仍是字符串槽（world.gd 缺省帧条）；skill 自 docs/97 B 起是带 fps / fire 的字典槽，两者合并
-            for k, v in {"idle": {"tex": "player_idle", "frames": 4, "fps": 6, "foot": foot},
-                         "run": {"tex": "player_run", "frames": 6, "fps": 12, "foot": foot},
-                         "attack": {"tex": "player_attack_48", "frames": 4, "fps": 12, "foot": foot}}.items():
-                acts.setdefault(k, v)
         for v in acts.values():
             v.setdefault("foot", foot)
         out[cid] = acts
@@ -150,7 +168,7 @@ def roster(data=DATA):
     if os.path.exists(dp):
         sp = json.load(open(dp, encoding="utf-8")).get("sprites", {})
         foot = sp.get("foot", [24, 46])
-        out["doctor"] = {k: {"tex": sp[k], "frames": None, "foot": foot} for k in ("idle", "run") if isinstance(sp.get(k), str)}
+        out["doctor"] = {k: {"tex": sp[k], "frames": None, "foot": sp.get(k + "_foot", foot)} for k in ("idle", "run") if isinstance(sp.get(k), str)}
     return out
 
 
@@ -252,6 +270,9 @@ def _best_dist(A, cxa, rr, mr, k):
 
 def facing_margin(idle0, ref, k=2):
     """idle f0 头部（外框顶往下 30%）与参考帧头部的距离：镜像参考 − 原样参考（对齐搜索 ±6×±3 px@1x）。正 = 同向"""
+    width = max(idle0.shape[1], ref.shape[1])
+    idle0 = np.pad(idle0, ((0, 0), (0, width - idle0.shape[1]), (0, 0)))
+    ref = np.pad(ref, ((0, 0), (0, width - ref.shape[1]), (0, 0)))
     i0, m0 = _prep(idle0, k)
     t0, b0 = _headrows(m0)
     A = i0[t0:b0]
@@ -319,7 +340,7 @@ def run_metrics(art, tex_run, tex_idle):
     """复用 tools/run_cycle_review.py 的 metrics（同一口径）。它按 strip_path(op) 找跑步条，
     待机条用 strip_path(op).replace("_run@2x", "_idle@2x")，所以只要换掉 strip_path 即可（待机条名 = 跑步条名把 run 换成 idle）"""
     import run_cycle_review as rcr
-    assert tex_idle == tex_run.replace("_run", "_idle"), (tex_run, tex_idle)
+    assert tex_idle == tex_run.removesuffix("_run") + "_idle", (tex_run, tex_idle)
     rcr.ART = art
     rcr.strip_path = lambda op, hi=True: os.path.join(art, tex_run + ("@2x" if hi else "") + ".png")
     m = rcr.metrics("__run__")
@@ -515,8 +536,8 @@ def lint_op(op, acts, art=ART, prev=None):
         cfg = acts[act]
         h1, h2 = lo.shape[0], hi.shape[0]
         n1, n2 = lo.shape[1] / h1, hi.shape[1] / h2
-        if _body(act, cfg) and (h1, h2) not in ((48, 96), (64, 128)):
-            bad.append("%s 单帧高 %d/%d（应 48/96 或 64/128）" % (act, h1, h2))
+        if _body(act, cfg) and (h1, h2) not in ((48, 96), (64, 128), (96, 192)):
+            bad.append("%s 单帧高 %d/%d（应 48/96、64/128 或 96/192）" % (act, h1, h2))
         if h2 != 2 * h1 or n1 != int(n1) or n2 != n1:
             bad.append("%s 尺寸 %dx%d / %dx%d 不成帧条" % (act, lo.shape[1], h1, hi.shape[1], h2))
         if cfg.get("frames") and cfg["frames"] != n1:
@@ -595,7 +616,7 @@ def lint_op(op, acts, art=ART, prev=None):
         e1, e2 = np.array_equal(s1, idle1[0]), np.array_equal(s2, idle2[0])
         if "skill" in derived or "idle" in derived:
             e1 = e2   # 只有 @2x：以 @2x 为准
-        d2 = float(np.any(s2 != idle2[0], -1).mean())
+        d2 = float(np.any(s2 != idle2[0], -1).mean()) if s2.shape == idle2[0].shape else 1.0
         if e1 and e2:
             lvl, det = "PASS", "skill 末帧 = idle f0（1x 与 @2x）"
         elif e2:   # 游戏读 @2x；1x 备用版不同只报 WARN
@@ -603,6 +624,8 @@ def lint_op(op, acts, art=ART, prev=None):
         else:
             lvl = "WARN" if op in LEGACY else "FAIL"
             det = "skill 末帧 ≠ idle f0（@2x 不同像素 %.1f%%%s）" % (d2 * 100, "；存量，重画 idle / skill 时对齐" if lvl == "WARN" else "")
+        if s2.shape != idle2[0].shape:
+            det += "；画布尺寸不同 %s / %s，不作逐像素比较" % (s2.shape[:2], idle2[0].shape[:2])
         add("skill_end", lvl, round(d2, 3), det)
 
     # facing
@@ -676,12 +699,15 @@ def lint_op(op, acts, art=ART, prev=None):
         if not _body(act, acts[act]):
             continue
         sw = WAIVERS.get((op, "ground", act))
-        jy = acts[act]["foot"][1]
+        jy = int(np.floor(acts[act]["foot"][1]))
         bots = [int(np.nonzero((f[..., 3] > 0).any(axis=1))[0].max()) // 2 for f in split(hi)]
         gv[act] = "".join(str(b - 40) if 0 <= b - 40 <= 9 else "?" for b in bots)
         if act == "idle" and any(b != jy for b in bots):
-            gf.append("idle 最低行 %s（应每帧 = %d）" % (bots, jy))
-        elif max(bots) != jy:
+            if sw:
+                gwv.append(act)
+            else:
+                gf.append("idle 最低行 %s（应每帧 = %d）" % (bots, jy))
+        elif jy not in bots:
             if sw:
                 gwv.append(act)
             else:

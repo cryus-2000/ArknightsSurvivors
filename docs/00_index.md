@@ -82,6 +82,9 @@
 | [25_operator_fx](25_operator_fx.md) | 干员特效 | 现行规范 | 成长「看得见」规则、帧条锚点、能天使弹药色；§5.2 精二列被 91 取代 | 23、53、61、归档34、归档66、归档70；characters/character.gd、game.gd、characters/op_blocks.gd 等 23 个文件 |
 | [28_operator_sfx](28_operator_sfx.md) | 干员专属音效 | 已实施记录 | 13 人 op_* 音色与 OP_SFX 约定；「加新干员」一节作废（新干员走 OP_ALT，见 61） | — |
 | [31_arknights_reference](31_arknights_reference.md) | 原作技能对照（13 人） | 已实施记录 | 原作技能与档案摘录；总览差距表已过时 | 25、60、归档30；v17_codex_logos_glyphs.md |
+| [维什戴尔 S2 两阶段试做](plans/2026-10-18-wisadel-s2-two-phase.md) | S2 群攻与过载四连发 | 已实施记录 | 8 秒试做、无三人上限、原生八轨动作与炮口事件；已交本地测试包 | wisadel.json、seg_wisadel.gd |
+| [持续攻击阶段模块](plans/2026-10-18-sustained-attack-module-design.md) | 通用阶段、连发与收势 | 已实施记录 | 维什戴尔已迁移；独立夹具 66 项、完整快检 80 项通过 | data_operator、attack_phases、docs/61 |
+| [三干员完整标准化](plans/2026-10-18-three-operator-standardization-design.md) | 维什戴尔、塞雷娅、铃兰生命周期 | 已实现记录 | 九技能统一查询、归属、结束与取消；81 项检查通过，保留角色效果 | data_operator、skill_lifecycle、docs/61 |
 
 ## 敌人与 Boss
 
@@ -123,6 +126,7 @@
 
 | 文档 | 标题 | 状态 | 说明 | 被谁引用 |
 |---|---|---|---|---|
+| [艾雅法拉弹体重量返修](plans/2026-10-20-eyja-volcanic-weight.md) | 火球、熔岩弹与火山弹表现 | 已实施记录 | 精零单发火球 / 复咏1.6倍、精一双发、精二低抛；分开两类命中，保留方格熔池与阶段实机对照，待视觉认可 | docs/61 §17.2 |
 | [52_EA反馈问卷](52_EA反馈问卷.md) | EA 试玩反馈问卷 | 进行中 | 问卷在收；38 §8.12 普通档目标等它 | 38、41、56 |
 | [100_store_copy](100_store_copy.md) | 商店页文案与改名候选 | 进行中 | B 站 Toy / itch 商店页文案（按 76、99）与游戏改名候选（文案，10-14） | — |
 
@@ -162,3 +166,10 @@
 |---|---|
 | [archive/](archive/README.md) | 归档文档（10-13 第一轮 40 篇 + 10-14 第二轮 25 篇），README 有第一轮逐篇说明 |
 | [reference/](reference/README.md) | 用户提供的参考资料：262 件藏品原作表、全局设计框架 v1.0、藏品图标参考 |
+
+| [三人全动画接入](plans/2026-10-18-three-attack-timing.md) | 29 条动画、原生像素与分段时序 | 实施记录 | 三人完整动作、攻速适配及测试包；试验分支，未合入 main | docs/87、character.gd、attack_timing_test |
+| [水月标准化](plans/2026-10-18-mizuki-runtime-standardization.md) | 公共攻击时序、技能生命周期与原生像素接入 | 实施记录 | 水月四步修复、旧分支清理；试验分支，未合入 main | docs/61 §26、art/incoming/mizuki_runtime_handoff.md |
+
+| [水月 S3 整范围触手](plans/2026-10-18-mizuki-s3-fx.md) | 原作群攻与控制方向、新触手范围表现 | 试验实现 | 保留本作数值、不扣血，移除镜像 | seg_mizuki、mizuki_s3_fx、mizuki_runtime_test |
+
+| [博士统一画风接入](plans/2026-10-18-doctor-style-integration.md) | 待机、跑步、倒下统一及 64/128 原点 | 测试版接入 | 用户批准新画风；保留既有四干员测试基线 | doctor.json、world、title_bg、doctor_run_test |

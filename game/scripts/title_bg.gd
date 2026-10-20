@@ -268,10 +268,12 @@ func _draw_wave(i: int) -> void:
 func _load_figures() -> void:
 	var dd: Dictionary = _json("res://data/doctor.json").get("sprites", {})
 	var dt: Texture2D = A.tex(str(dd.get("idle", "doctor_idle")))
+	var doctor_foot: Array = dd.get("foot", [24,46])
 	if dt == null:
 		dt = A.tex("doctor")
+		doctor_foot = [24,45]
 	if dt != null:
-		doctor = {"idle": dt, "fi": maxi(1, dt.get_width() / dt.get_height()), "fps": 4.0}
+		doctor = {"idle": dt, "fi": maxi(1, dt.get_width() / dt.get_height()), "fps": 4.0, "foot": Vector2(doctor_foot[0], doctor_foot[1])}
 	reload_guest()
 
 
@@ -323,7 +325,7 @@ func _draw_figures() -> void:
 	if not guest.is_empty():
 		_draw_figure(guest.idle, guest.fi, guest.fps, GUEST_FEET, 0.2, 2, 1.0, Color.WHITE, guest.foot)
 	if not doctor.is_empty():
-		_draw_figure(doctor.idle, doctor.fi, doctor.fps, FEET, 0.0, 2, 1.0, DOCTOR_TINT)
+		_draw_figure(doctor.idle, doctor.fi, doctor.fps, FEET, 0.0, 2, 1.0, DOCTOR_TINT, doctor.foot)
 
 
 ## 站在浅水里的人物：逐行错位的水波倒影 + 本体（帧条横向等宽，脚底在帧底部上方 foot_up 像素）

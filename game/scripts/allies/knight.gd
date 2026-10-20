@@ -93,9 +93,12 @@ func die() -> void:
 	alive = false
 	fallen = true
 	g.knight_alive = false
-	var foot: Vector2 = pos + Vector2(0, R * 0.8 + 3.0 * g.PX)
-	if g.tex.get("e_knight_death") != null:
-		g.vfx.fx_sprite("e_knight_death", foot + Vector2(0, -(80.0 - 3.0) * g.PX * 0.5), g.PX, 0.0)
+	var foot: Vector2 = pos + Vector2(0, R * 0.8 + 3.0 * g.PX * DRAW_K)
+	if g.tex.get("e_knight_walk_death") != null:
+		var tx: Texture2D = g.tex["e_knight_walk_death"]
+		var anchor := A.enemy_pixel_anchor("e_knight_walk_death", Vector2(0.5, 1.0))
+		var frame_size := Vector2(tx.get_width() / 4.0, tx.get_height()) / A.hires_of(tx)
+		g.vfx.fx_sprite("e_knight_walk_death", foot, g.PX * DRAW_K, 0.0, face < 0.0, false, Color.WHITE, false, anchor * frame_size)
 	g.vfx.sparks(pos, Vector2.ZERO, Color(0.7, 0.85, 1.0), 16, 220.0)
 	g.vfx.show_banner("骑士倒下了 —— 罗辛南特退行，黑潮中出现了敌对的骑士")
 	Sfx.play("boom", -2.0, 0.8, 0.0)
@@ -366,32 +369,32 @@ func _target() -> Dictionary:
 	return best
 
 
-## 绘制（在 2.5D 排序中按脚底 y 调用）；本体帧条 96×80，脚底锚点 (48,77)
+## 队友使用独立步行部件；敌对骑士仍使用 e_knight 骑乘帧条。
 func draw() -> void:
 	if not alive:
 		return
-	var name := "e_knight"
+	var name := "e_knight_walk"
 	var frames := 2
 	var frame := int(g.t * 3.0) % 2
 	if state == "wind" or state == "charge":
-		if g.tex.get("e_knight_charge") != null:
-			name = "e_knight_charge"
+		if g.tex.get("e_knight_walk_charge") != null:
+			name = "e_knight_walk_charge"
 			frames = 4
 			frame = (0 if st < CHARGE_WIND * 0.5 else 1) if state == "wind" else (2 if st < CHARGE_T * 0.7 else 3)
 	elif state == "stab":
-		if g.tex.get("e_knight_attack") != null:
-			name = "e_knight_attack"
+		if g.tex.get("e_knight_walk_attack") != null:
+			name = "e_knight_walk_attack"
 			frames = 4
 			frame = clampi(int(st * 10.0), 0, 3)
-	elif mv > 40.0 and g.tex.get("e_knight_move") != null:
-		name = "e_knight_move"
+	elif mv > 40.0 and g.tex.get("e_knight_walk_move") != null:
+		name = "e_knight_walk_move"
 		frames = 4
 		frame = int(mt * 8.0) % 4
 	if g.tex.get(name) == null:
 		g.draw_circle(pos, R, Color(0.6, 0.8, 1.0))
 		return
-	var anc := Vector2(0.5, 77.0 / 80.0)
-	var sc: float = g.PX * DRAW_K
+	var anc := A.enemy_pixel_anchor(name, Vector2(0.5, 77.0 / 80.0))
+	var sc: float = g.PX * DRAW_K * A.enemy_pixel_scale(name)
 	# @2x 高清帧条按密度减半画（同 world.gd draw_enemy / character._fx_strip 的口径）：敌对骑士已经这样处理，
 	# 这里漏了（Boss与怪物 10-15 发现）——e_knight@2x 交付后同伴骑士被画成 2 倍大，死亡帧另走 vfx.fx_sprite（已按密度画，不受影响）
 	var tsc: float = sc / A.hires_of(g.tex.get(name))
@@ -414,10 +417,10 @@ func draw() -> void:
 	if state == "charge":
 		g.vfx.sparks(pos, -dash_dir, Color(0.8, 0.9, 1.4), 2, 110.0)
 	# 冲锋残影：冲锋帧条的白色剪影，冰蓝色、渐隐
-	if g.tex.has("e_knight_charge_white"):
-		var trail_sc: float = sc / A.hires_of(g.tex.get("e_knight_charge_white"))
+	if g.tex.has("e_knight_walk_charge_white"):
+		var trail_sc: float = sc / A.hires_of(g.tex.get("e_knight_walk_charge_white"))
 		for tr in trail:
-			g.vfx.spr("e_knight_charge_white", 4, tr[1], tr[0] + Vector2(0, R * 0.8 + 3.0 * sc), trail_sc, flip, Color(0.55, 0.85, 1.4, tr[2] / 0.25 * 0.45), anc)
+			g.vfx.spr("e_knight_walk_charge_white", 4, tr[1], tr[0] + Vector2(0, R * 0.8 + 3.0 * sc), trail_sc, flip, Color(0.55, 0.85, 1.4, tr[2] / 0.25 * 0.45), anc)
 	if Cfg.outline and g.tex.has(name + "_white"):
 		var ol_sc: float = sc / A.hires_of(g.tex.get(name + "_white"))
 		for d in [Vector2(g.PX, 0), Vector2(-g.PX, 0), Vector2(0, g.PX), Vector2(0, -g.PX)]:
@@ -430,7 +433,8 @@ func draw() -> void:
 		g.vfx.spr(name + "_white", frames, frame, bpos, sc / A.hires_of(g.tex.get(name + "_white")), flip, Color(1, 1, 1, 0.9), anc)
 	# 血条
 	var w := 48.0
-	var top: Vector2 = pos + Vector2(-w / 2.0, -80.0 * sc + 16.0)
+	var visible_height: float = float(A.enemy_pixel_spec(name).get("visible_height", 160.0))
+	var top: Vector2 = bpos + Vector2(-w / 2.0, -visible_height * tsc - 8.0)
 	g.draw_rect(Rect2(top, Vector2(w, 4)), Color(0, 0, 0, 0.6))
 	g.draw_rect(Rect2(top, Vector2(w * clampf(hp / maxhp, 0.0, 1.0), 4)), Color(0.6, 0.85, 1.0))
 
@@ -444,12 +448,14 @@ func draw_hud(hud: CanvasItem, c: Vector2) -> void:
 	var grey := Color(0.45, 0.5, 0.56)
 	var acol := grey if submerged else Color(0.6, 0.85, 1.0)
 	UI.ring(hud, c, 21.0, 1.0 if submerged else clampf(hp / maxhp, 0.0, 1.0), acol, false, submerged)
-	var at: Texture2D = g.tex.get("e_knight")
+	var at: Texture2D = g.tex.get("e_knight_walk")
 	if at != null:
 		var fw := at.get_width() / 2
-		var ks: float = 34.0 / at.get_height()
+		var rect: Array = A.enemy_pixel_spec("e_knight_walk").get("visible_rect", [0, 0, fw, at.get_height()])
+		var src := Rect2(float(rect[0]), float(rect[1]), float(rect[2]), float(rect[3]))
+		var ks: float = 34.0 / src.size.y
 		var mod := Color(0.4, 0.42, 0.46, 0.75) if submerged else Color.WHITE
-		hud.draw_texture_rect_region(at, Rect2(c + Vector2(-fw * ks / 2.0, 16 - at.get_height() * ks), Vector2(fw, at.get_height()) * ks), Rect2(0, 0, fw, at.get_height()), mod)
+		hud.draw_texture_rect_region(at, Rect2(c + Vector2(-src.size.x * ks / 2.0, 16 - src.size.y * ks), src.size * ks), src, mod)
 	UI.text(hud, font, c + Vector2(-30, 36), "骑士", 11, grey if submerged else UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 60, 2)
 	if submerged:
 		UI.text(hud, font, c + Vector2(-30, -40), "已入潮", 10, grey, HORIZONTAL_ALIGNMENT_CENTER, 60, 2)

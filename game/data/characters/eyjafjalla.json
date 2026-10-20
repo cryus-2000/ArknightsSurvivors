@@ -40,7 +40,8 @@
   "idle_cd": 0.2,
   "fire_pad": 40,
   "aim_pad": 60,
-  "shell_speed": 360,
+  "shell_speed": 320,
+  "attack_shell_speed": 280,
   "talent_aoe": 1.25,
   "s2_aoe": 1.3,
   "s2_weak": 6.0,
@@ -66,7 +67,7 @@
   "melt_v": 0.08,
   "melt_dur": 4.0,
   "lob_apex": 20,
-  "lob_flight": 0.25,
+  "lob_flight": 0.36,
   "lob_spacing": 40,
   "pool_r": 50,
   "pool_dur": 1.2,
@@ -83,48 +84,208 @@
  "sprites": {
   "idle": {
    "tex": "op_eyjafjalla_idle",
-   "frames": 4,
-   "fps": 4,
+   "frames": 8,
+   "fps": 2.6666666666666665,
    "foot": [
-    24,
-    46
+    32.0,
+    60.0
+   ],
+   "frame_durations": [
+    0.42714285714285716,
+    0.42714285714285716,
+    0.42714285714285727,
+    0.42714285714285705,
+    0.42714285714285705,
+    0.4271428571428575,
+    0.4271428571428566,
+    0.010000000000000231
    ]
   },
   "run": {
    "tex": "op_eyjafjalla_run",
-   "frames": 6,
-   "fps": 10,
+   "frames": 8,
+   "fps": 13.333333333333334,
    "foot": [
-    27,
-    46
+    32.0,
+    60.0
+   ],
+   "frame_durations": [
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075
    ]
   },
   "attack": {
    "tex": "op_eyjafjalla_attack",
-   "frames": 4,
-   "fps": 14,
+   "frames": 8,
+   "fps": 28.0,
    "foot": [
-    24,
-    46
+    32.0,
+    60.0
    ],
-   "fire": 2
+   "frame_durations": [
+    0.044642857142857144,
+    0.044642857142857144,
+    0.044642857142857144,
+    0.044642857142857144,
+    0.02678571428571428,
+    0.02678571428571428,
+    0.02678571428571428,
+    0.0267857142857143
+   ],
+   "fire": 4,
+   "fire_time": 0.17857142857142858
   },
   "skill": {
    "tex": "op_eyjafjalla_skill",
    "frames": 8,
-   "fps": 12,
+   "fps": 12.0,
    "foot": [
-    24,
-    46
+    32.0,
+    60.0
    ],
-   "fire": 4
+   "frame_durations": [
+    0.09375,
+    0.09375,
+    0.09375,
+    0.09375,
+    0.07291666666666666,
+    0.07291666666666666,
+    0.07291666666666666,
+    0.07291666666666663
+   ],
+   "fire": 4,
+   "fire_time": 0.375
   },
-  "size": 48,
+  "death": {
+   "tex": "op_eyjafjalla_death",
+   "frames": 8,
+   "fps": 6.666666401757145,
+   "foot": [
+    48.0,
+    76.0
+   ],
+   "frame_durations": [
+    0.1700000068119594,
+    0.1700000068119594,
+    0.17000000681195943,
+    0.17000000681195937,
+    0.17000000681195948,
+    0.17000000681195937,
+    0.17000000681195937,
+    0.010000000000000009
+   ]
+  },
+  "hurt": {
+   "tex": "op_eyjafjalla_hurt",
+   "frames": 2,
+   "fps": 10.0,
+   "foot": [
+    32.0,
+    60.0
+   ],
+   "frame_durations": [
+    0.1,
+    0.1
+   ]
+  },
+  "size": 64,
   "foot": [
-   24,
-   46
-  ]
+   32,
+   60
+  ],
+  "skill_s3": {
+   "tex": "op_eyjafjalla_skill_s3",
+   "frames": 8,
+   "fps": 12.0,
+   "foot": [
+    32.0,
+    60.0
+   ],
+   "frame_durations": [
+    0.09375,
+    0.09375,
+    0.09375,
+    0.09375,
+    0.07291666666666666,
+    0.07291666666666666,
+    0.07291666666666666,
+    0.07291666666666663
+   ],
+   "fire": 4,
+   "fire_time": 0.375
+  },
+  "skill_s3_loop": {
+   "tex": "op_eyjafjalla_skill_s3_loop",
+   "frames": 8,
+   "fps": 6.666666401757145,
+   "foot": [
+    32.0,
+    60.0
+   ],
+   "frame_durations": [
+    0.1700000068119594,
+    0.1700000068119594,
+    0.17000000681195943,
+    0.17000000681195937,
+    0.17000000681195948,
+    0.17000000681195937,
+    0.17000000681195937,
+    0.010000000000000009
+   ]
+  },
+  "skill_s3_end": {
+   "tex": "op_eyjafjalla_skill_s3_end",
+   "frames": 8,
+   "fps": 4.0,
+   "foot": [
+    32.0,
+    60.0
+   ],
+   "frame_durations": [
+    0.07,
+    0.07,
+    0.07,
+    0.07,
+    0.07,
+    0.09,
+    0.07,
+    0.05
+   ]
+  },
+  "skills": {
+   "s1": {
+    "anim": "skill"
+   },
+   "s2": {
+    "anim": "skill"
+   },
+   "s3": {
+    "start": "skill_s3",
+    "loop": "skill_s3_loop",
+    "run": "run",
+    "end": {
+     "anim": "skill_s3_end",
+     "frames": [
+      4,
+      5,
+      6,
+      7
+     ]
+    }
+   }
+  }
  },
+ "extra_sprites": [
+  "skill_s3",
+  "skill_s3_loop",
+  "skill_s3_end"
+ ],
  "attack": {
   "mode": "auto",
   "name": "熔岩弹",
@@ -149,7 +310,7 @@
    "name": "火山",
    "en": "VOLCANO",
    "sp": 22,
-   "desc": "在敌群最密处连续喷发 {$s3_count} 次（伤害 ×{$s3_mult}），每处留下 {$lava_dur} 秒熔岩（每 {$lava_every} 秒 {$lava_mult*100}% 法术伤害）",
+   "desc": "浮空向敌群投射 {$s3_count} 轮火焰弹（伤害 ×{$s3_mult}），每处留下 {$lava_dur} 秒熔岩（每 {$lava_every} 秒 {$lava_mult*100}% 法术伤害）",
    "icon": "skill_eyjafjalla_s3"
   }
  ],
@@ -257,7 +418,7 @@
    "id": "twin_cast",
    "name": "复咏",
    "icon": "growth_b_count",
-   "desc": "每次施法投出 2 发熔岩弹：第二发打另一名敌人（没有则在旁边偏开），伤害 {$twin_mult*100}%；精英二起由「三重咏唱」取代"
+   "desc": "精英化前，普攻伤害 ×{$twin_mult+1}；精英一时普攻投出 2 发熔岩弹：第二发打另一名敌人（没有则在旁边偏开），伤害 {$twin_mult*100}%；精英二起由「三重咏唱」取代"
   },
   {
    "type": "custom",
@@ -288,13 +449,13 @@
    "id": "meteor",
    "name": "熔岩天降",
    "icon": "skill_eyjafjalla_s3",
-   "desc": "「二重咏唱」强化的熔岩弹炸开时，向附近 {$meteor_n} 名随机敌人高抛一颗熔岩弹（这发伤害的 {$meteor_mult*100}%）；精英二后「火山」每次喷发同样如此"
+   "desc": "「二重咏唱」强化的熔岩弹炸开时，向附近 {$meteor_n} 名随机敌人高抛一颗熔岩弹（这发伤害的 {$meteor_mult*100}%）；精英二后「火山」每轮投弹同样追加"
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「火山」：在敌群最密处连续喷发 {$s3_count} 次（伤害 ×{$s3_mult}），每处留下 {$lava_dur} 秒熔岩；普攻质变「三重咏唱」（取代「复咏」）：熔岩弹改为低弧抛射，每次 3 发在目标周围呈三角落下（后 2 发伤害 ×{$tri_mult}），落地后中心留下熔池 {$pool_dur} 秒，每 {$pool_every} 秒造成第一发 {$pool_mult*100}% 的法术伤害",
+   "desc": "解锁三技能「火山」：浮空向敌群投射 {$s3_count} 轮火焰弹（伤害 ×{$s3_mult}），每处留下 {$lava_dur} 秒熔岩；普攻质变「三重咏唱」（取代「复咏」）：熔岩弹改为低弧抛射，每次 3 发在目标周围呈三角落下（后 2 发伤害 ×{$tri_mult}），落地后中心留下熔池 {$pool_dur} 秒，每 {$pool_every} 秒造成第一发 {$pool_mult*100}% 的法术伤害",
    "attack": {
     "name": "三重咏唱",
     "desc": "熔岩弹改为低弧抛射：每次 3 发在目标周围呈三角落下（后 2 发伤害 ×{$tri_mult}），各自爆炸；3 发都落地后，三角中心留下熔池 {$pool_dur} 秒，每 {$pool_every} 秒对池内敌人造成第一发 {$pool_mult*100}% 的法术伤害"
@@ -326,7 +487,7 @@
      "mult": "$talent_aoe"
     }
    ],
-   "speed": "$shell_speed",
+   "speed": "$attack_shell_speed",
    "src": "熔岩弹",
    "tip": [
     42,
@@ -344,7 +505,8 @@
    "look": {
     "glow": 13,
     "tex": "proj_lavaball",
-    "scale": 1.1
+    "scale": 1.1,
+    "weighted": true
    },
    "fire_fx": [
     {
@@ -422,12 +584,12 @@
    ],
    "follow": [
     {
-     "cond": "node:twin_cast && elite < 2",
+     "cond": "node:twin_cast && elite >= 1 && elite < 2",
      "n": 1,
      "gap": "$follow_gap",
      "mult": "$twin_mult",
      "sz": "$twin_size",
-     "_doc": "复咏：第 2 发（精二起由低抛三重咏唱取代）"
+     "_doc": "复咏：精一启用第 2 发；精零由局部 atk 合并为一发 1+0.6，精二由低抛三重咏唱取代"
     }
    ],
    "on_explode": [
@@ -450,15 +612,17 @@
       "tex": "proj_eyja_lava_lob",
       "scale": 1.8,
       "spin": 9,
-      "apex_k": 3.0,
+      "apex_k": 1.15,
       "arc_pow": 0.55,
       "burst": true,
       "heavy": 1.6,
       "spot": 0.4,
       "land": "fx_eyja_lava_splash",
       "land_scale": 0.85,
-      "_doc": "10-14 小红点改熔岩块，用户二改「大一点、少一点、火山喷发的感觉」（纯画面）：从爆点猛地喷起（原点火柱 + 火星 + 黑烟），弧高 × 3、悬一下砸下来，落地重溅射 + 地面发红 0.4 秒"
-     }
+      "_doc": "10-20 重量返修：固定岩壳、慢转和短拖焰，视觉拱高 ×1.15，连续起落并提前转入下坠；落地热量压向地面，保持原飞行时长和命中",
+      "weighted": true
+     },
+     "flight_mult": 1.15
     },
     {
      "verb": "affect",
@@ -556,10 +720,12 @@
       "mult": "$pool_mult",
       "src": "熔池",
       "look": "pool",
+      "weighted": true,
       "tex": "fx_eyja_lava_pool",
       "fit": 22
      }
-    ]
+    ],
+    "weighted": true
    }
   },
   "skills": [
@@ -601,13 +767,15 @@
         "heavy": 1.8,
         "spot": 0.5,
         "land": "fx_eyja_lava_splash",
-        "land_scale": 1.2
+        "land_scale": 1.2,
+        "weighted": true
        },
        "shell": true,
        "from_off": [
         0,
         -20
-       ]
+       ],
+       "flight_mult": 1.15
       },
       {
        "verb": "affect",
@@ -730,7 +898,8 @@
        "big_scale": 1.5,
        "back": 14,
        "tex": "proj_lavaball",
-       "scale": 1.5
+       "scale": 1.5,
+       "weighted": true
       },
       "boom_fx": [
        {
@@ -824,14 +993,16 @@
          "tex": "proj_eyja_lava_lob",
          "scale": 1.6,
          "spin": 8,
-         "apex_k": 2.2,
+         "apex_k": 1.15,
          "arc_pow": 0.55,
          "burst": true,
          "heavy": 1.6,
          "spot": 0.45,
          "land": "fx_eyja_lava_splash",
-         "land_scale": 1.0
-        }
+         "land_scale": 1.0,
+         "weighted": true
+        },
+        "flight_mult": 1.15
        },
        {
         "verb": "affect",
@@ -917,23 +1088,6 @@
       50,
       40
      ],
-     "delay": "$erupt_delay",
-     "fx": [
-      {
-       "pfx": {
-        "kind": "crack",
-        "r": 40.0,
-        "life": 0.3,
-        "col": [
-         0.95,
-         0.3,
-         0.08
-        ],
-        "floor": true,
-        "n": 6
-       }
-      }
-     ],
      "do": [
       {
        "shape": "circle",
@@ -945,131 +1099,10 @@
        "ring": false,
        "fx": [
         {
-         "pfx": {
-          "kind": "lava_pillar",
-          "r": 1.0,
-          "life": 0.5,
-          "col": [
-           1.0,
-           0.5,
-           0.2
-          ]
-         },
-         "r_scale": [
-          "r"
-         ]
-        },
-        {
-         "sprite": {
-          "name": "fx_flam_hit",
-          "scale": 1.7
-         },
-         "off": [
-          0,
-          -20
-         ]
-        },
-        {
-         "pfx": {
-          "kind": "glow",
-          "r": 0.5,
-          "life": 0.18,
-          "col": [
-           1.6,
-           0.9,
-           0.4
-          ],
-          "alpha": 0.7
-         },
-         "r_scale": [
-          "r"
-         ]
-        },
-        {
-         "pfx": {
-          "kind": "ring",
-          "r": 1.0,
-          "r0": 0.2,
-          "life": 0.35,
-          "col": [
-           1.0,
-           0.5,
-           0.2
-          ],
-          "floor": true,
-          "w": 3.0
-         },
-         "r_scale": [
-          "r",
-          "r0"
-         ]
-        },
-        {
-         "pfx": {
-          "kind": "mote",
-          "vel": [
-           [
-            -120,
-            120
-           ],
-           [
-            -260,
-            -120
-           ]
-          ],
-          "life": 0.6,
-          "col": [
-           0.95,
-           0.3,
-           0.08
-          ],
-          "sz": 3.0,
-          "grav": 420.0
-         },
-         "n": 8,
-         "jit": [
-          -8,
-          -30,
-          8,
-          -30
-         ]
-        },
-        {
          "sfx": {
           "kind": "big"
          }
         }
-       ]
-      },
-      {
-       "verb": "lob",
-       "cond": "node:meteor",
-       "pick": "shuffle",
-       "n": "$meteor_n",
-       "cand": 10,
-       "reach": "$meteor_reach",
-       "basis": "prev",
-       "mult": "$meteor_mult",
-       "r": "$meteor_r",
-       "h": "$meteor_h",
-       "sz": "$meteor_sz",
-       "src": "熔岩天降",
-       "look": {
-        "tex": "proj_eyja_lava_lob",
-        "scale": 1.4,
-        "spin": 6,
-        "apex_k": 1.0,
-        "arc_pow": 0.55,
-        "burst": true,
-        "heavy": 1.8,
-        "spot": 0.5,
-        "land": "fx_eyja_lava_splash",
-        "land_scale": 1.2
-       },
-       "shell": true,
-       "from_off": [
-        0,
-        -30
        ]
       },
       {
@@ -1083,7 +1116,57 @@
        "mult": "$lava_mult",
        "power": true,
        "src": "熔岩",
-       "look": "lava"
+       "look": "lava",
+       "weighted": true
+      }
+     ],
+     "projectile": {
+      "tip": [
+       8,
+       -54
+      ],
+      "speed": 320,
+      "min_flight": 0.3,
+      "max_flight": 0.85,
+      "apex": 24,
+      "size": 1.65,
+      "radius": "$s3_r"
+     },
+     "recovery": 0.28,
+     "launch": [
+      {
+       "verb": "lob",
+       "cond": "node:meteor",
+       "pick": "shuffle",
+       "n": "$meteor_n",
+       "cand": 10,
+       "reach": "$meteor_reach",
+       "mult": "$s3_mult*$meteor_mult",
+       "r": "$meteor_r",
+       "h": "$meteor_h",
+       "sz": "$meteor_sz",
+       "src": "熔岩天降",
+       "look": {
+        "tex": "proj_eyja_lava_lob",
+        "scale": 1.9,
+        "spin": 6,
+        "apex_k": 1.0,
+        "arc_pow": 0.55,
+        "burst": false,
+        "heavy": 1.8,
+        "spot": 0.5,
+        "land": "fx_eyja_lava_splash",
+        "land_scale": 1.2,
+        "weighted": true
+       },
+       "shell": true,
+       "from_off": [
+        8,
+        -54
+       ],
+       "flight_mult": 1.15,
+       "power": true,
+       "origin": "self"
       }
      ]
     },
@@ -1095,8 +1178,16 @@
   "progression": {
    "twin_cast": {
     "trig": "passive",
-    "do": [],
-    "_doc": "复咏：写在 attack.follow（cond node:twin_cast）"
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "atk",
+      "op": "mult",
+      "value": "$twin_mult+1",
+      "cond": "elite < 1"
+     }
+    ],
+    "_doc": "复咏：精零强化单发火球；精一在 attack.follow 启用双发；精二由低抛取代"
    },
    "embers": {
     "trig": "passive",

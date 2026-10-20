@@ -359,6 +359,8 @@ static func _h4_spikes_tick(o, sg: Dictionary, dt: float) -> void:
 
 ## 跃空锤在空中：身体绕身体中心整圈翻转（贴图按帧画、只加旋转），高度抛物线；身后实心扇形扫光。返回 true = 已画（data_operator.draw_body 不再画本体）
 static func h4_draw_body(o) -> bool:
+	if o.def.has("native_motion"):
+		return false  # Native leap poses already contain the turn and height.
 	if not o.hw.has("sg") or float(o.hw.sg.leap_t) < 0.0:
 		return false
 	var g = o.g

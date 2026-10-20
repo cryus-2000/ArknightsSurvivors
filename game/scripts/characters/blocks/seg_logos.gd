@@ -80,11 +80,15 @@ static func hw_bolt_fire(o, b: Dictionary, is_atk: bool) -> bool:
 				ts = ts.filter(func(e): return hw_in_fan(o, e.pos)).slice(0, n + ex.size())
 			if ts.is_empty():
 				return false
+			var variant := -1
+			if is_atk and b.has("flight_visual"):
+				variant = int(h.get("bolt_variant", 0))
+				h.bolt_variant = 1 - variant
 			var a: float = hw_atk(o)
 			for k in ts.size():
 				var d: float = hw_mul(a, b.get("mult", 1.0))
 				d = hw_mul(d, ex[k - n].get("mult", 1.0)) if k >= n else d * 1.0
-				_hw_word(o, ts[k], d, src, b)
+				_hw_word(o, ts[k], d, src, b, variant)
 		"random":
 			if b.has("chance") and not roll(g, float(b.chance)):
 				return false
@@ -99,9 +103,9 @@ static func hw_bolt_fire(o, b: Dictionary, is_atk: bool) -> bool:
 	return true
 
 
-static func _hw_word(o, e: Dictionary, dmg: float, src: String, b: Dictionary) -> void:
+static func _hw_word(o, e: Dictionary, dmg: float, src: String, b: Dictionary, variant := -1) -> void:
 	var h: Dictionary = o.hw
-	h.word_q.append({"t": float(b.get("gap", 0.12)) * h.word_q.size(), "e": e, "dmg": dmg, "src": src, "b": b})
+	h.word_q.append({"t": float(b.get("gap", 0.12)) * h.word_q.size(), "e": e, "dmg": dmg, "src": src, "b": b, "variant": variant})
 
 
 static func _hw_bolt_tip(o, b: Dictionary) -> Vector2:
@@ -126,8 +130,11 @@ static func _hw3_bolts(o, dt: float) -> void:
 					if h.bolts.size() >= HW_BOLT_MAX:
 						hw_bolt_hit(o, e, q.dmg, q.src, q.b)
 					else:
-						h.bolts.append({"pos": hand, "e": e, "dmg": q.dmg, "src": q.src, "b": q.b, "hist": [hand], "life": float(q.b.get("life", 1.3)), "age": 0.0,
-							"ph": g.vrng.randf() * TAU, "rune": g.vrng.randi(), "to": e.pos + Vector2(0, -e.r * 0.5)})
+						var bolt := {"pos": hand, "e": e, "dmg": q.dmg, "src": q.src, "b": q.b, "hist": [hand], "life": float(q.b.get("life", 1.3)), "age": 0.0,
+							"ph": g.vrng.randf() * TAU, "rune": g.vrng.randi(), "to": e.pos + Vector2(0, -e.r * 0.5)}
+						if int(q.get("variant", -1)) >= 0:
+							bolt.visual = {"variant": q.variant, "start": hand, "span": maxf(1.0, hand.distance_to(bolt.to)), "u": 0.0, "hist": [hand]}
+						h.bolts.append(bolt)
 						o.fx({"kind": "glow", "pos": hand, "r": 7.0, "life": 0.1, "col": HW_PALE, "alpha": 0.7})
 		h.word_q = h.word_q.filter(func(q): return q.t > 0.0)
 	if h.bolts.is_empty():
@@ -158,7 +165,28 @@ static func _hw3_bolts(o, dt: float) -> void:
 		bo.hist.append(bo.pos)
 		if bo.hist.size() > 6:
 			bo.hist.pop_front()
+		if bo.has("visual"):
+			var v: Dictionary = bo.visual
+			v.u = maxf(v.u, clampf(1.0 - bo.pos.distance_to(bo.to) / v.span, 0.0, 1.0))
+			v.hist.append(hw_bolt_pose(bo)[0])
+			if v.hist.size() > 6:
+				v.hist.pop_front()
 	h.bolts = h.bolts.filter(func(bo): return bo.life > 0.0)
+
+
+## 弧线只用于显示；逻辑弹位与命中时刻继续走原追踪，画面进度不倒退。
+static func hw_bolt_pose(bo: Dictionary) -> Array:
+	if not bo.has("visual"):
+		var hist: Array = bo.hist
+		return [bo.pos, (bo.pos - hist[-2]).angle() if hist.size() >= 2 else 0.0]
+	var v: Dictionary = bo.visual
+	var cfg: Dictionary = bo.b.flight_visual
+	var delta: Vector2 = bo.to - v.start
+	var axis: Vector2 = delta.normalized()
+	var normal := Vector2(axis.y, -axis.x)
+	var lift := clampf(delta.length() * float(cfg.arc_lift[int(v.variant)]), -float(cfg.max_lift), float(cfg.max_lift))
+	var u: float = v.u
+	return [v.start.lerp(bo.to, u) + normal * (4.0 * lift * u * (1.0 - u)), (delta + normal * (4.0 * lift * (1.0 - 2.0 * u))).angle()]
 
 
 ## 命中：then（target = 这名敌人，basis hit = 这一枚的伤害）；verb.execute 处决成功且 halt 时停下
@@ -300,7 +328,8 @@ static func _hw3_lock(o, dt: float) -> void:
 		o.deal_damage(lk.e, hw_atk(o) * float(b.get("mult", 0.5)) * ramp * o.skill_power())
 		o.add_cc(lk.e, -INF, float(b.get("slow", 0.6)) * ramp)
 		var tip: Vector2 = _hw_bolt_tip(o, o.B.get("attack", {}))
-		o.fx({"kind": "line", "pos": tip, "to": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "life": 0.12, "col": HW_INK, "w": 1.5 + ramp})
+		if g.tex.get("fx_logos_s1_chain") == null:
+			o.fx({"kind": "line", "pos": tip, "to": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "life": 0.12, "col": HW_INK, "w": 1.5 + ramp})
 		o.fx({"kind": "glow", "pos": lk.e.pos + Vector2(0, -lk.e.r * 0.5), "r": 8.0 + 6.0 * ramp, "life": 0.2, "col": HW_PALE, "alpha": 0.5})
 
 
@@ -538,26 +567,34 @@ static func hw_draw_logos_over(o) -> void:
 	var cv = o.cv
 	var h: Dictionary = o.hw
 	for bo in h.bolts:
-		var hh: Array = bo.hist
+		var visual: Dictionary = bo.get("visual", {})
+		var hh: Array = visual.get("hist", bo.hist)
+		var pose := hw_bolt_pose(bo)
+		var draw_pos: Vector2 = pose[0]
+		var name: String = str(bo.b.flight_visual.variants[int(visual.variant)]) if not visual.is_empty() else ""
+		var trail_alpha: float = float(bo.b.flight_visual.get("trail_alpha", 0.28)) if not visual.is_empty() else 0.28
+		var trail_width: float = float(bo.b.flight_visual.get("trail_width", 3.5)) if not visual.is_empty() else 3.5
 		for i in range(1, hh.size()):
 			var k: float = float(i) / float(hh.size())
-			cv.draw_line(hh[i - 1], hh[i], Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.08 + 0.2 * k), 1.0 + 2.5 * k)
+			cv.draw_line(hh[i - 1], hh[i], Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.08 + (trail_alpha - 0.08) * k), 1.0 + (trail_width - 1.0) * k)
 		var rtx: Texture2D = ArtS.tex("fx_logos_glyphs")
-		if rtx != null:
+		if name != "" and g.tex.get(name) != null:
+			o.draw_spr_rot(name, int(bo.age * float(bo.b.flight_visual.fps)) % 4, draw_pos, pose[1], g.PX)
+		elif rtx != null:
 			var fh: int = rtx.get_height()
 			var rn: int = maxi(1, rtx.get_width() / maxi(1, fh))
 			var sc: float = g.PX * 13.0 / float(fh)
-			cv.draw_set_transform(bo.pos + g.draw_off, sin(bo.age * 5.0 + bo.ph) * 0.35, Vector2(sc, sc))
+			cv.draw_set_transform(draw_pos + g.draw_off, sin(bo.age * 5.0 + bo.ph) * 0.35, Vector2(sc, sc))
 			cv.draw_texture_rect_region(rtx, Rect2(-Vector2(fh, fh) / 2.0, Vector2(fh, fh)), Rect2(fh * (int(bo.rune) % rn), 0, fh, fh), Color(1, 1, 1, clampf(bo.life / 0.25, 0.0, 1.0)))
 			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		elif g.tex.get("fx_logos_glyph") != null:
-			o.draw_spr_rot("fx_logos_glyph", 5, bo.pos, sin(bo.age * 5.0 + bo.ph) * 0.35, g.PX * 13.0 / 24.0, Color(1, 1, 1, clampf(bo.life / 0.25, 0.0, 1.0)))
+			o.draw_spr_rot("fx_logos_glyph", 5, draw_pos, sin(bo.age * 5.0 + bo.ph) * 0.35, g.PX * 13.0 / 24.0, Color(1, 1, 1, clampf(bo.life / 0.25, 0.0, 1.0)))
 		elif g.tex.get("proj_logos_ink") != null and hh.size() >= 2:
-			o.draw_spr_rot("proj_logos_ink", int(g.t * 12.0) % 4, bo.pos, (bo.pos - hh[hh.size() - 2]).angle(), g.PX)
+			o.draw_spr_rot("proj_logos_ink", int(g.t * 12.0) % 4, draw_pos, pose[1], g.PX)
 		else:
-			cv.draw_circle(bo.pos, 10.0, Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.35))
-			cv.draw_circle(bo.pos, 5.5, Color(HW_INK.r * 1.4, HW_INK.g * 1.4, HW_INK.b * 1.6))
-			cv.draw_circle(bo.pos, 2.5, Color(1.8, 1.9, 2.2))
+			cv.draw_circle(draw_pos, 10.0, Color(HW_INK.r, HW_INK.g, HW_INK.b, 0.35))
+			cv.draw_circle(draw_pos, 5.5, Color(HW_INK.r * 1.4, HW_INK.g * 1.4, HW_INK.b * 1.6))
+			cv.draw_circle(draw_pos, 2.5, Color(1.8, 1.9, 2.2))
 	if h.has("pools"):
 		for l in h.pools:
 			if str(l.b.get("look", "")) != "rune":
@@ -576,7 +613,11 @@ static func hw_draw_logos_over(o) -> void:
 	if lk is Dictionary and not lk.is_empty() and float(lk.t) > 0.0 and lk.e != null and not lk.e.dead:
 		var tip: Vector2 = _hw_bolt_tip(o, o.B.get("attack", {}))
 		var to: Vector2 = lk.e.pos + Vector2(0, -lk.e.r * 0.5)
-		if g.tex.get("fx_logos_script") != null:
+		if g.tex.get("fx_logos_s1_chain") != null:
+			var train := hw_s1_train_pose(lk, tip, to)
+			if not train.is_empty():
+				_hw_draw_tiled(o, "fx_logos_s1_chain", train[0], train[1], g.PX, train[3], 0, Color.WHITE, -1, true, train[2])
+		elif g.tex.get("fx_logos_script") != null:
 			_hw_draw_tiled(o, "fx_logos_script", tip, to, g.PX * 0.8, fmod(g.t * 210.0, 64.0 * g.PX * 0.8))
 		var p: Vector2 = lk.e.pos + Vector2(0, -lk.e.r - 14)
 		var kk: float = 0.5 + 0.5 * sin(g.t * 8.0)
@@ -589,8 +630,60 @@ static func hw_draw_logos_over(o) -> void:
 		cv.draw_circle(q, 3.0 + sin(g.t * 12.0), Color(HW_INK.r * 1.6, HW_INK.g * 1.6, HW_INK.b * 1.4, 0.8))
 
 
+## 首轮抵达后符文首尾衔接；滚动只影响画面，伤害仍由 lock 的 tick 独立结算。
+static func hw_s1_train_pose(lk: Dictionary, a: Vector2, b: Vector2) -> Array:
+	if lk.is_empty() or float(lk.get("t", 0.0)) <= 0.0:
+		return []
+	var period: float = maxf(0.001, float(lk.b.get("tick", 0.25)))
+	var elapsed: float = float(lk.get("n", 0)) * period + float(lk.get("tick", 0.0))
+	var length: float = a.distance_to(b)
+	if elapsed <= 0.0 or length < 2.0:
+		return []
+	var head_t: float = minf(1.0, elapsed / period)
+	var bend: float = minf(12.0, length * 0.05)
+	var normal := Vector2(-(b - a).y, (b - a).x) / length
+	var head := a.lerp(b, head_t) - normal * 4.0 * bend * head_t * (1.0 - head_t)
+	return [a, head, bend * head_t * head_t, -elapsed * 60.0 / period]
+
+
+static func hw_native_body_state(o, st: Dictionary) -> Dictionary:
+	if st.is_empty():
+		return st
+	var kind: String = str(st.kind)
+	if kind == "idle" and o.perm[1]:
+		kind = "idle_s2"
+	elif kind == "attack":
+		# 起手固定身体变体，命中或丢失目标都不在收势中换姿势。
+		var variant: int = int(o.hw.get("body_variant", o.hw.get("bolt_variant", 0)))
+		kind = "attack_s2" if o.perm[1] else ("attack_b" if variant == 1 else "attack")
+	var tx: Texture2D = o.anim_tex(kind)
+	if kind == st.kind or tx == null:
+		return st
+	var n: int = o.anim_hframes(tx, kind)
+	st.tex = tx
+	st.hf = n
+	st.frame = o.timed_frame(kind, range(n), o.anim_t, true) if kind == "idle_s2" else mini(int(st.frame), n - 1)
+	st.kind = kind
+	st.flip = (o.face < 0.0) != o.sprite_mirror(kind)
+	return st
+
+
+static func _hw_tile_curve(x: float, length: float, bend: float, offset: float, variation: float) -> Vector2:
+	var t: float = x / length
+	var curve := Vector2(-4.0 * bend * t * (1.0 - t), -4.0 * bend * (1.0 - 2.0 * t) / length)
+	if variation > 0.0:
+		# 局部曲线随符文前进，两端衰减为零以固定手部和命中点。
+		var phase: float = (x + offset) * TAU / 64.0
+		var wave: float = 0.75 * sin(phase) + 0.25 * sin(phase * 0.73 + 1.2)
+		var slope: float = (0.75 * cos(phase) + 0.1825 * cos(phase * 0.73 + 1.2)) * TAU / 64.0
+		var envelope: float = 4.0 * t * (1.0 - t)
+		curve.x += variation * envelope * wave
+		curve.y += variation * (4.0 * (1.0 - 2.0 * t) * wave / length + envelope * slope)
+	return curve
+
+
 ## 沿 a→b 平铺一张横向帧条（每段一帧宽），offset 为沿方向的滚动位移；最后一段按端点裁剪
-static func _hw_draw_tiled(o, tn: String, a: Vector2, b: Vector2, sc: float, offset: float, frame_off: int = 0, col := Color.WHITE, fixed := -1) -> void:
+static func _hw_draw_tiled(o, tn: String, a: Vector2, b: Vector2, sc: float, offset: float, frame_off: int = 0, col := Color.WHITE, fixed := -1, fade_to_target := false, bend := 0.0) -> void:
 	var g = o.g
 	var tx: Texture2D = g.tex.get(tn)
 	if tx == null or not g.V6_FRAMES.has(tn):
@@ -606,15 +699,38 @@ static func _hw_draw_tiled(o, tn: String, a: Vector2, b: Vector2, sc: float, off
 	if L < 2.0:
 		return
 	var fr: int = (int(g.t * float(g.V6_FRAMES[tn][1])) + frame_off) % frames if fixed < 0 else fixed % frames   # fixed：停在这一帧（锁链松 / 绷直）
+	var variation: float = 1.5 if tn == "fx_logos_s1_chain" and bend != 0.0 else 0.0
 	cv.draw_set_transform(a + g.draw_off, (b - a).angle(), Vector2(k, k))
-	var x: float = -fmod(offset, seg)
+	var x: float = -fposmod(offset, seg)
 	while x < L:
 		var x0: float = maxf(x, 0.0)
 		var x1: float = minf(x + seg, L)
 		if x1 > x0:
 			var u0: float = (x0 - x) / k
 			var u1: float = (x1 - x) / k
-			cv.draw_texture_rect_region(tx, Rect2(Vector2(x0 / k, -fh / 2.0), Vector2(u1 - u0, fh)), Rect2(fw * fr + u0, 0, u1 - u0, fh), col)
+			if fade_to_target or bend != 0.0:
+				# 小段沿同一浅弧线排布，明暗按整条法术进度计算。
+				var parts: int = maxi(1, ceili((x1 - x0) / (4.0 if variation > 0.0 else 8.0)))
+				for j in parts:
+					var lo: float = lerpf(x0, x1, float(j) / parts)
+					var hi: float = lerpf(x0, x1, float(j + 1) / parts)
+					var t0: float = lo / L
+					var t1: float = hi / L
+					var c0 := _hw_tile_curve(lo, L, bend, offset, variation)
+					var c1 := _hw_tile_curve(hi, L, bend, offset, variation)
+					var p0 := Vector2(lo, c0.x) / k
+					var p1 := Vector2(hi, c1.x) / k
+					var n0 := Vector2(-c0.y, 1).normalized() * fh / 2.0
+					var n1 := Vector2(-c1.y, 1).normalized() * fh / 2.0
+					var tint: Color = col
+					if fade_to_target:
+						tint *= Color(0.55, 0.55, 0.55, 0.55).lerp(Color(1.15, 1.15, 1.15, 1.0), smoothstep(0.0, 1.0, (t0 + t1) * 0.5))
+					var uv0: float = (fw * fr + (lo - x) / k) / tx.get_width()
+					var uv1: float = (fw * fr + (hi - x) / k) / tx.get_width()
+					cv.draw_colored_polygon(PackedVector2Array([p0 - n0, p1 - n1, p1 + n1, p0 + n0]), tint,
+						PackedVector2Array([Vector2(uv0, 0), Vector2(uv1, 0), Vector2(uv1, 1), Vector2(uv0, 1)]), tx)
+			else:
+				cv.draw_texture_rect_region(tx, Rect2(Vector2(x0 / k, -fh / 2.0), Vector2(u1 - u0, fh)), Rect2(fw * fr + u0, 0, u1 - u0, fh), col)
 		x += seg
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 

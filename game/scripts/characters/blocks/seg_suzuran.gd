@@ -102,7 +102,7 @@ static func _h4_fox_start(o, a: Dictionary) -> void:
 		return
 	o.cd = float(a.get("every", 1.0)) / o.stat(&"op_aspd")
 	sz.merging = _h4_next_merge(o, a) and not _h4_patch_pending(o)
-	o.start_attack(ts[0].pos)
+	o.start_attack(ts[0].pos, 0.5, 0.25, "", o.cd)
 	if sz.merging:
 		o.spawn_fx_sprite("fx_suzuran_foxfire_gather", _h4_tip(o, a), o.g.PX * 0.9)   # 三团狐火汇聚（原作：三团狐火合而为一再射出）
 
@@ -438,8 +438,11 @@ static func h4_fox_cast(o, b: Dictionary) -> void:
 	var haze: bool = b.has("haze")
 	if haze:
 		sz.haze_t = float(b.haze)
+		o.SkillLifecycle.bind(o, "fox_haze", o.effect_skill, sz, "haze_t", true, false, func(): _h4_field_cancel(o))
 		if o.cur_skill >= 0:
 			o.s_dur[o.cur_skill] = float(b.haze)
+	else:
+		o.SkillLifecycle.bind(o, "fox_warm", o.effect_skill, o.perm_on, o.cur_skill, false, false, func(): _h4_field_cancel(o), "permanent")
 	_h4_field_buff(o, float(b.get("buff", 0.15)) * o.skill_power())
 	if b.has("banner"):
 		o.show_banner(str(b.banner))
@@ -623,3 +626,8 @@ static func _h4sz_draw_floor_e(o) -> void:
 			cv.draw_set_transform(bp, 0.0, Vector2(1.0, 0.5))
 			cv.draw_arc(Vector2.ZERO, float(e.r) * 0.8 + 4.0, 0.0, TAU, 20, Color(2.0, 1.6, 0.8, 0.75 * al), 1.5)
 			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+static func _h4_field_cancel(o) -> void:
+	o.g.stats.remove_source(_h4_field_src(o))
+	o.refresh_stats()

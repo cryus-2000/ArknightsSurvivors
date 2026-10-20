@@ -3,6 +3,38 @@ extends RefCounted
 ## 这样新图放进文件夹后，重新打开游戏就能看到，不需要重新导出。
 
 static var _cache := {}
+static var enemy_pixels: Dictionary = {}
+static var _enemy_pixels_loaded := false
+static var _enemy_pixel_tops: Dictionary = {}
+
+static func enemy_pixel_spec(name: String) -> Dictionary:
+	if not _enemy_pixels_loaded:
+		_enemy_pixels_loaded = true
+		var path := "res://data/enemy_pixels.json"
+		if FileAccess.file_exists(path):
+			var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+			if parsed is Dictionary:
+				enemy_pixels = parsed
+	return enemy_pixels.get(name.trim_suffix("_white"), {})
+
+static func enemy_pixel_anchor(name: String, fallback: Vector2) -> Vector2:
+	var spec := enemy_pixel_spec(name)
+	var a = spec.get("anchor")
+	return Vector2(float(a[0]), float(a[1])) if a is Array and a.size() == 2 else fallback
+
+static func enemy_pixel_scale(name: String) -> float:
+	return float(enemy_pixel_spec(name).get("scale", 1.0))
+
+## Native strips retain transparent skeleton space; labels belong above visible pixels.
+static func enemy_pixel_top(name: String, texture: Texture2D) -> float:
+	var key := str(texture.get_rid())
+	if not _enemy_pixel_tops.has(key):
+		var image := texture.get_image()
+		if image.is_compressed():
+			image.decompress()
+		_enemy_pixel_tops[key] = image.get_used_rect().position.y
+	return texture.get_height() * enemy_pixel_anchor(name, Vector2(0.5, 1.0)).y - float(_enemy_pixel_tops[key])
+
 static var late_log := false   # --perf：开局后才读的贴图逐张打印 TEXLATE（docs/50 §10）
 
 ## 载入计时（--loadprof）：标题页离开 / game.gd _ready 各阶段 / 首帧画完打点，首帧后打印 LOADPROF（docs/36 §5）。
@@ -117,6 +149,8 @@ static func _pop_setup() -> void:
 
 
 static func pop_wanted(name: String) -> bool:
+	if enemy_pixel_spec(name).get("preserve_palette", false):
+		return false
 	if not _pop_ready:
 		_pop_setup()
 	return _pop_bcs != Vector3.ZERO and _pop_names.has(name)
@@ -637,7 +671,7 @@ static func mirror_strip(src: Texture2D, frames: int) -> Texture2D:
 
 # ---------------------------------------------------------------- 数据表（10-15 从 game.gd 搬来，docs/101 S5；game.gd 留同名别名）
 ## 开局固定预载的贴图（_ready；标题页预热法线图也按这份名单 + preload_tex_names）
-const BASE_TEX := ["drifter", "dart", "crawler", "shell", "boss", "tiles", "seaweed", "coral", "shell_prop", "rock",
+const BASE_TEX := ["e_knight_walk", "e_knight_walk_move", "e_knight_walk_attack", "e_knight_walk_charge", "e_knight_walk_death", "drifter", "dart", "crawler", "shell", "boss", "tiles", "seaweed", "coral", "shell_prop", "rock",
 			"gem_small", "gem_big", "oil", "chest", "slash", "tentacle", "jelly", "light", "shadow", "player",
 			"ally_sniper", "ally_caster", "ally_medic", "ally_support", "orb", "doctor",
 			"e_bone", "e_slider", "e_stone", "e_offspring", "e_brood", "e_pocket", "e_skimmer", "e_mother", "e_chest", "e_mimic", "e_event",
@@ -664,7 +698,7 @@ const V6_FRAMES := {
 	"fx_tendril_stake": [4, 8.0], "fx_tendril_stake_whip": [4, 16.0], "fx_kraken_rise": [6, 12.0],
 	"fx_hit_flesh": [4, 20.0], "fx_hit_shell": [4, 20.0], "fx_hit_spirit": [4, 20.0], "fx_death_dissolve": [6, 14.0],
 	# 美术 V9：最后的骑士
-	"e_knight_death": [4, 6.0], "fx_knight_impact": [4, 12.0], "fx_knight_rebirth": [4, 10.0],
+	"e_knight_walk_death": [4, 6.0], "e_knight_death": [4, 6.0], "fx_knight_impact": [4, 12.0], "fx_knight_rebirth": [4, 10.0],
 	# Boss 招式改版第 1 批特效（docs/95 §13，Codex 单；缺图时 fx_sprite 返回 false、各处走程序版回退）
 	"fx_paranoia_gaze_hit": [4, 16.0], "fx_paranoia_stack": [6, 14.0], "fx_paranoia_howl": [6, 12.0], "fx_paranoia_aura_rune": [2, 2.0],
 	"fx_ishar_song_ring": [4, 12.0], "fx_ishar_maw_red": [4, 14.0], "fx_ishar_line_muzzle": [3, 16.0],
@@ -697,11 +731,13 @@ const V6_FRAMES := {
 	"fx_thrust_hit_rose": [5, 20.0], "fx_star_hit_rose": [7, 20.0], "fx_cannon_burst": [10, 20.0], "fx_muzzle_flash": [7, 28.0],
 	# Codex fx30（docs/30，双密度 @2x）：帧数 / fps 按 art/incoming/fx30_handoff.md；钙质晶体放慢到 10fps 以延长停留
 	"proj_ulpianus_anchor": [2, 10.0], "fx_irene_thrust": [5, 25.0], "fx_specter_saw": [6, 24.0], "fx_specter_saw_blood": [6, 24.0],
-	"fx_mizuki_tentacle": [6, 15.0], "fx_mizuki_tentacle_mass": [6, 15.0], "fx_suzuran_foxfire_gather": [6, 24.0],
+	"fx_mizuki_s3_field": [6, 20.0], "fx_mizuki_tentacle": [6, 15.0], "fx_mizuki_tentacle_mass": [6, 15.0], "fx_suzuran_foxfire_gather": [6, 24.0],
 	"fx_logos_glyph": [6, 18.0], "fx_logos_script": [4, 12.0], "fx_saria_shield_bash": [5, 20.0], "fx_saria_calcite": [8, 10.0],
 	# Codex 逻各斯实机参考特效（art/incoming/logos_fx_handoff.md）
 	"fx_logos_s3_orbit": [6, 10.0], "fx_logos_s3_back": [6, 10.0], "fx_logos_s3_front": [6, 10.0],
 	"fx_logos_s1_link": [4, 12.0], "proj_logos_ink": [4, 12.0],
+	"fx_logos_s1_chain": [4, 12.0],
+	"proj_logos_ink_a": [4, 16.0], "proj_logos_ink_b": [4, 16.0],
 	# 艾雅法拉 S2 点燃：彗星火球 + 大团熔岩爆炸（ansimuz，fx_import）
 	"proj_eyja_ignite": [5, 14.0], "fx_eyja_ignite_boom": [11, 18.0],
 	# 第三批干员（docs/59）弹体 / 特效帧条（tools/gen_fx_batch3.py，程序生成 + @2x；锚点见 docs/25 §6）。暂未接玩法，数据干员实现时取用

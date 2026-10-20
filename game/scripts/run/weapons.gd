@@ -113,17 +113,17 @@ func bullet_hit(b: Dictionary, e: Dictionary) -> void:
 					g.combat.damage(o, b.dmg, h)
 					if b.get("slow", false):
 						o.slow = maxf(o.slow, 1.2)
-			# 术师法术团：紫色（对应重绘后的 fx_fire_explode）；导弹：暖黄
-			var fc: Color = b.get("fx_col", Color(0.7, 0.3, 1.0) if b.kind == "fire" else Color(1.0, 0.8, 0.4))
-			# 美术 V6：爆炸帧条按伤害半径缩放（半径 / 26，限制 1.5–3.0），首帧叠判定圈；干员配色（fx_col）走程序爆炸
-			var ename := "fx_fire_explode" if b.kind == "fire" else "fx_missile_explode"
-			if not b.has("fx_col") and g.vfx.fx_sprite(ename, b.pos, clampf(b.aoe / EXPLODE_R_PX, 1.5, 3.0)):
-				g.fx[-1]["ring"] = b.aoe
-			else:
-				g.fx.append({"kind": "explode", "pos": b.pos, "r": b.aoe, "life": 0.4, "max": 0.4, "col": fc, "op_hit": b.has("op")})
-			for k in 6:
-				g.fx.append({"kind": "spark", "pos": b.pos, "vel": Vector2.from_angle(randf() * TAU) * randf_range(60, 240), "sz": 3.0, "life": 0.45, "max": 0.45,
-					"col": fc.lerp(Color(0.95, 0.85, 1.0) if b.kind == "fire" else Color(1, 0.95, 0.6), randf())})
+			# Weighted magma supplies its own landing effect through bullet_exploded.
+			if not b.get("hw_b", {}).get("look", {}).get("weighted", false):
+				var fc: Color = b.get("fx_col", Color(0.7, 0.3, 1.0) if b.kind == "fire" else Color(1.0, 0.8, 0.4))
+				var ename := "fx_fire_explode" if b.kind == "fire" else "fx_missile_explode"
+				if not b.has("fx_col") and g.vfx.fx_sprite(ename, b.pos, clampf(b.aoe / EXPLODE_R_PX, 1.5, 3.0)):
+					g.fx[-1]["ring"] = b.aoe
+				else:
+					g.fx.append({"kind": "explode", "pos": b.pos, "r": b.aoe, "life": 0.4, "max": 0.4, "col": fc, "op_hit": b.has("op")})
+				for k in 6:
+					g.fx.append({"kind": "spark", "pos": b.pos, "vel": Vector2.from_angle(randf() * TAU) * randf_range(60, 240), "sz": 3.0, "life": 0.45, "max": 0.45,
+						"col": fc.lerp(Color(0.95, 0.85, 1.0) if b.kind == "fire" else Color(1, 0.95, 0.6), randf())})
 			if b.has("op"):
 				Sfx.op(b.op, "hit", 0.0, 1.0, 0.1)   # 干员法术弹（艾雅法拉熔岩弹）
 			else:

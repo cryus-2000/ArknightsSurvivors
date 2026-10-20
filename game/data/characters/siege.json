@@ -54,40 +54,62 @@
  "sprites": {
   "idle": {
    "tex": "op_siege_idle",
-   "frames": 4,
+   "frames": 8,
    "fps": 4,
    "foot": [
-    24,
-    46
+    32,
+    60
    ]
   },
   "run": {
    "tex": "op_siege_run",
-   "frames": 6,
-   "fps": 10,
+   "frames": 8,
+   "fps": 13.333333333333334,
    "foot": [
-    26,
-    46
+    32,
+    60
    ]
   },
   "attack": {
    "tex": "op_siege_attack",
-   "frames": 4,
+   "frames": 8,
    "fps": 14,
    "foot": [
-    26,
-    46
+    32,
+    60
    ],
+   "frame_durations": [
+    0.03571428571428571,
+    0.03571428571428571,
+    0.03571428571428571,
+    0.03571428571428571,
+    0.03571428571428571,
+    0.03571428571428571,
+    0.03571428571428571,
+    0.03571428571428571
+   ],
+   "fire_time": 0.17857142857142858,
    "fire": 2
   },
   "skill": {
-   "tex": "op_siege_skill",
-   "frames": 6,
-   "fps": 12,
+   "tex": "op_siege_idle",
+   "frames": 8,
+   "fps": 4,
    "foot": [
-    24,
-    46
+    32,
+    60
    ],
+   "frame_durations": [
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625
+   ],
+   "fire_time": 0.2916666666666667,
    "fire": 3
   },
   "size": 48,
@@ -95,19 +117,71 @@
    24,
    46
   ],
-  "command": {
-   "tex": "op_siege_command",
-   "frames": 6,
+  "leap_native": {
+   "tex": "op_siege_leap_native",
+   "frames": 8,
+   "fps": 13.095238095238095,
+   "foot": [
+    32,
+    60
+   ]
+  },
+  "heavy_attack": {
+   "tex": "op_siege_heavy_attack",
+   "frames": 8,
    "fps": 12,
    "foot": [
-    24,
-    46
+    32,
+    60
    ],
+   "frame_durations": [
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625
+   ],
+   "fire_time": 0.2916666666666667,
+   "fire": 3
+  },
+  "death": {
+   "tex": "op_siege_death",
+   "frames": 8,
+   "fps": 8,
+   "foot": [
+    32,
+    60
+   ]
+  },
+  "activation": {
+   "tex": "op_siege_idle",
+   "frames": 8,
+   "fps": 4,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625,
+    0.0625
+   ],
+   "fire_time": 0.20833333333333334,
    "fire": 2
   }
  },
  "extra_sprites": [
-  "command"
+  "leap_native",
+  "heavy_attack",
+  "activation"
  ],
  "attack": {
   "mode": "auto",
@@ -121,7 +195,7 @@
    "sp": 6,
    "desc": "全队技力 +{$s1_sp*100}%；下一次锤击伤害 ×{$s1_mult}",
    "icon": "skill_siege_s1",
-   "anim": "command"
+   "anim": "activation"
   },
   {
    "name": "跃空锤",
@@ -137,7 +211,7 @@
    "desc": "{$s3_dur} 秒内锤击伤害 ×{$s3_mult}、每次命中 50% 眩晕 0.8 秒，攻击速度 -25%",
    "dur": 8.0,
    "icon": "skill_siege_s3",
-   "anim": "command"
+   "anim": "activation"
   }
  ],
  "talent": {
@@ -305,7 +379,7 @@
     "interval": 1.33,
     "stun_chance": 0.5,
     "stun": 0.8,
-    "anim": "skill",
+    "anim": "heavy_attack",
     "ring": true,
     "_doc": "碎颅击：每一锤 ×1.8 × 技能强度、攻速 -25%（间隔 ×1.33）、命中 50% 眩晕 0.8 秒，用技能动作起手"
    },
@@ -541,5 +615,10 @@
     "_doc": "粉碎：写在 attack.crush（cond elite >= 1）"
    }
   }
+ },
+ "native_motion": {
+  "attack": 0.5714285714285714,
+  "heavy_attack": 0.6666666666666666,
+  "leap_native": 0.610909090909091
  }
 }

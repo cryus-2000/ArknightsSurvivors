@@ -26,6 +26,9 @@ static func h3_attack_aim(o, a: Dictionary) -> Vector2:
 
 ## 普攻起手（data_operator.update：技能判定之后）：荧光先累计计时；其余同数据干员的起手（冷却、闸门、replace 帧条），间隔按 h3_attack_cd
 static func h3_attack_start(o, a: Dictionary, dt: float) -> void:
+	if str(a.get("shape", "")) == "umbrella":
+		_F().h3_umbrella_start(o, a)
+		return
 	if str(a.get("shape", "")) == "lantern":
 		_F()._h3_lantern_start(o, a, dt)
 		return
