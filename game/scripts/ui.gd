@@ -1052,10 +1052,10 @@ static func roster_card(ci: CanvasItem, font: Font, r: Rect2, od: Dictionary, li
 	if tx != null:
 		var hi: float = od.get("hires", 1.0)
 		var fw: float = tx.get_width() / float(maxi(1, int(od.get("frames", 1))))
-		var bb: Rect2 = od.get("bb", Rect2(0, 0, fw, tx.get_height()))
+		var bb: Rect2 = card_bb(od, tx)
 		var pl := card_place(r, fw, tx.get_height(), hi, bb, 24.0)
 		var src := Rect2(fw * frame + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
-		blit_clipped(ci, tx, pl, src, r.grow(-2.0), Color(1, 1, 1, a))
+		blit_clipped(ci, tx, pl, src, r.grow(-1.0), Color(1, 1, 1, a))
 	rbox(ci, Rect2(r.position.x + 2, r.end.y - 22, r.size.x - 4, 20), 4, Color(0.016, 0.031, 0.063, 0.78 * a))
 	rbox(ci, Rect2(r.position.x + 4, r.position.y + 8, 16, 16), 3, Color(0, 0, 0, 0.63 * a), Color(col.r, col.g, col.b, 0.78 * a))
 	class_glyph(ci, od.get("cls", ""), r.position + Vector2(12, 16), 5.0, fa(col, a), 1.6)
@@ -1305,36 +1305,49 @@ static func card_art(ci: CanvasItem, r: Rect2, od: Dictionary, frame: int, col :
 		return
 	var hi: float = od.get("hires", 1.0)
 	var fw: float = tx.get_width() / float(maxi(1, int(od.get("frames", 1))))
-	var bb: Rect2 = od.get("bb", Rect2(0, 0, fw, tx.get_height()))
+	var bb: Rect2 = card_bb(od, tx)
 	var src := Rect2(fw * frame + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
-	blit_clipped(ci, tx, card_place(r, fw, tx.get_height(), hi, bb, name_h), src, r.grow(-2.0), col)
+	blit_clipped(ci, tx, card_place(r, fw, tx.get_height(), hi, bb, name_h), src, r.grow(-1.0), col)
 
 
 ## 名册卡 / 图鉴格子里的小人（10-21 用户：居中、统一缩放、留在名字条之上，长武器 / 大盾不另降倍但整幅在格子内）：
-## 倍数按卡的尺寸与 CARD_REF（全员待机并集的最大宽高，@2x 像素）取 CARD_STEPS 里放得下的最大一档，同一种卡里每人同倍率、看上去一样大；
+## 倍数按卡的尺寸与 CARD_FIT（全员待机并集的最大宽高，@2x 像素）取 CARD_STEPS 里放得下的最大一档，同一种卡里每人同倍率、看上去一样大；
 ## 脚底点（画布水平中线、脚底行）对齐卡中线与名字条上方的同一条底线（脚下的阴影 / 衣摆留 8 像素）；横向超出时只平移不缩放。
 ## 返回贴图并集区 bb 在屏幕上的目标矩形
 const CARD_REF := Vector2(100.0, 100.0)   # 10-21 实测：浊心待机举杖高 99、归溟锯盘宽 98（@2x 像素）
-## 0.75 = 4 个 @2x 像素画成 3 个屏幕像素（选人名册卡 82 × 112 用；0.5 会只剩一半大）
-const CARD_STEPS := [3.0, 2.0, 1.0, 0.75, 0.5]
+## 舞台立绘取倍数用 CARD_REF；格子小人用实测并集 CARD_FIT（放得下的上限，差 1 像素以内算放得下）
+const CARD_FIT := Vector2(98.0, 99.0)
+## 非整数档只取规律丢像素的分数（10-21 用户要放大到 0.85 左右）：0.8 = 每 5 个 @2x 像素画成 4 个（桌面图鉴 80 × 110 / 名册 82 × 112），
+## 0.6 = 每 5 个画成 3 个（手机 62 × 88–90）；0.833 / 0.875 在桌面卡里放不下归溟的锯盘与浊心举杖
+const CARD_STEPS := [3.0, 2.0, 1.0, 0.875, 0.8, 0.75, 0.6, 0.5]
 
 static func card_place(r: Rect2, fw: float, fh: float, hi: float, bb: Rect2, name_h: float) -> Rect2:
-	var room := Vector2(r.size.x - 4.0, r.size.y - name_h - 6.0)   # 横向到裁切框（r.grow(-2)）为止
+	var room := Vector2(r.size.x - 2.0, r.size.y - name_h - 4.0)   # 横向到裁切框（r.grow(-1)）为止
 	var kk: float = 0.5
 	for st in CARD_STEPS:
-		if CARD_REF.x * st <= room.x and CARD_REF.y * st <= room.y:
+		if CARD_FIT.x * st <= room.x + 1.0 and CARD_FIT.y * st <= room.y + 1.0:
 			kk = st
 			break
 	var k: float = kk * 2.0 / hi
 	var foot := Vector2(fw / 2.0, foot_row(fh, hi))   # 帧内贴图像素
 	var base := Vector2(r.get_center().x, r.end.y - name_h - 2.0 - 8.0 * kk)
 	var dst := Rect2(base + (bb.position - foot) * k, bb.size * k)
-	var inner := r.grow(-2.0)
+	var inner := r.grow(-1.0)
 	dst.position.x += maxf(0.0, inner.position.x - dst.position.x) - maxf(0.0, dst.end.x - inner.end.x)
 	dst.position.y += maxf(0.0, inner.position.y - dst.position.y)
 	dst.position = dst.position.round()
 	dst.size = dst.size.round()
 	return dst
+
+
+## 小人的待机帧并集区：有 bb（立绘已算）就用；没有就自己算一次存进 card_bb（10-21：选人名册里还没上过舞台的干员只有整帧，
+## 整帧顶边越界被往下推，水月等大画布的人会沉到名字条后面）。不写 bb，免得跳过选人页 _op_art 的剪影计算
+static func card_bb(od: Dictionary, tx: Texture2D) -> Rect2:
+	if od.has("bb"):
+		return od.bb
+	if not od.has("card_bb"):
+		od["card_bb"] = idle_bb(tx, int(od.get("frames", 1)))
+	return od.card_bb
 
 
 ## 帧内脚底行（贴图像素）：48 画布 46；64 口径 60，96 / 128 加边画布各加一半边宽（docs/108 §5）
