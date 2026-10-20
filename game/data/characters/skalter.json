@@ -943,34 +943,6 @@
       "zone_mult": "$s3_aura",
       "fx": [
        {
-        "strip": "fx_skalter_s3_back",
-        "layer": "behind",
-        "anchor": [
-         48,
-         84
-        ],
-        "tint": [
-         0.8,
-         0.98,
-         0.92,
-         0.55
-        ]
-       },
-       {
-        "strip": "fx_skalter_s3_front",
-        "layer": "front",
-        "anchor": [
-         48,
-         84
-        ],
-        "tint": [
-         0.8,
-         0.98,
-         0.92,
-         0.45
-        ]
-       },
-       {
         "strip": "fx_skalter_vortex_floor",
         "hold": true,
         "layer": "ground",
