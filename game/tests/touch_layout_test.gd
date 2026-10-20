@@ -143,7 +143,7 @@ func in_game() -> void:
 	Cfg.cam_zoom_pct = -1
 	Cfg.apply()
 	await frames(2)
-	check(absf(Cfg.ui_k - Cfg.UI_K_PHONE) < 0.001 and absf(game.cam.zoom.x - 1.2) < 0.001, "恢复缺省")
+	check(absf(Cfg.ui_k - Cfg.UI_K_PHONE) < 0.001 and absf(game.cam.zoom.x - Cfg.ZOOM_PHONE_DEF / 100.0) < 0.001, "恢复缺省")
 	var cfgf := ConfigFile.new()
 	Cfg.ui_size_pct = 115
 	Cfg.cam_zoom_pct = 130
@@ -225,7 +225,7 @@ func in_game() -> void:
 		check(after > mid + 0.5, "%s 点 ▶ 应增大（%.0f → %.0f）" % [key, mid, after])
 	for i in 20:
 		game.settings._adjust(game.settings.ROWS.map(func(r): return r.key).find("cam_zoom_pct"), -1)
-	check(absf(Cfg.cam_zoom() - 0.8) < 0.001 and absf(game.cam.zoom.x - 0.8) < 0.001, "战斗画面缩放可降到 80%%（%.2f）" % game.cam.zoom.x)
+	check(absf(Cfg.cam_zoom() - Cfg.ZOOM_PCT_MIN / 100.0) < 0.001 and absf(game.cam.zoom.x - Cfg.ZOOM_PCT_MIN / 100.0) < 0.001, "战斗画面缩放可降到下限 %d%%（%.2f）" % [Cfg.ZOOM_PCT_MIN, game.cam.zoom.x])
 	check(game.view_size().x > game.get_viewport_rect().size.x, "拉远时 view_size 比视口大（地面按它铺满）")
 	for i in 20:
 		game.settings._adjust(game.settings.ROWS.map(func(r): return r.key).find("ui_size_pct"), -1)

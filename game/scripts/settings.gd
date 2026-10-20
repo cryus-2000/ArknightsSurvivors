@@ -40,9 +40,11 @@ const UI_PCT_MAX := 120
 ## 战斗画面缩放（设置 → 画面，用户 10-13「手机横屏战斗画面放大一点」；同日「只能放大不能缩小」→ 下限 100 改 80）：
 ## 镜头 zoom 百分比 80–140（< 100 = 拉远、看得更多）；-1 = 按设备缺省（手机横屏 120，其余 100）
 var cam_zoom_pct := -1
-const ZOOM_PCT_MIN := 80
+const ZOOM_PCT_MIN := 60
 const ZOOM_PCT_MAX := 140
-const ZOOM_PHONE_DEF := 120
+const ZOOM_PHONE_DEF := 100
+const ZOOM_DESK_DEF := 67    # 67 = 精确 2/3（1080p / 4K 下 @2x 帧条正好 1:1 / 2:1，docs/112）
+const ZOOM_TWO_THIRDS := 67
 ## 手机横屏的界面放大缺省（原 1.3 → 1.15，界面整体收到约 88%）；平板 / 16:9 触屏仍按宽度 1.0–1.3
 const UI_K_PHONE := 1.15
 ## 界面逻辑高度下限：界面大小调到 120% 时也不低于手机版式设计高度（原手机 481）
@@ -143,8 +145,28 @@ func phone_ui() -> bool:
 
 ## 战斗镜头缩放（Camera2D.zoom）：玩家设过用玩家的，否则手机横屏 1.2、其余 1.0。只改画面，玩法不读视口
 func cam_zoom() -> float:
-	var pct: int = cam_zoom_pct if cam_zoom_pct > 0 else (ZOOM_PHONE_DEF if phone_ui() else 100)
-	return clampi(pct, ZOOM_PCT_MIN, ZOOM_PCT_MAX) / 100.0
+	var pct: int = snap_zoom_pct(cam_zoom_pct if cam_zoom_pct > 0 else zoom_default_pct())
+	return 2.0 / 3.0 if pct == ZOOM_TWO_THIRDS else pct / 100.0
+
+
+func zoom_default_pct() -> int:
+	return ZOOM_PHONE_DEF if phone_ui() else ZOOM_DESK_DEF
+
+
+## 缩放百分比吸附：66–68 吸到 67（= 精确 2/3），其余按 5 取整，夹在上下限内
+func snap_zoom_pct(p: int) -> int:
+	p = clampi(p, ZOOM_PCT_MIN, ZOOM_PCT_MAX)
+	return ZOOM_TWO_THIRDS if absi(p - ZOOM_TWO_THIRDS) <= 1 else p / 5 * 5
+
+
+## 设置页 ◀ / ▶：60、65、67、70、75 … 140 逐档走
+func zoom_step(cur: int, dir: int) -> int:
+	var stops: Array = [ZOOM_TWO_THIRDS]
+	for v in range(ZOOM_PCT_MIN, ZOOM_PCT_MAX + 1, 5):
+		stops.append(v)
+	stops.sort()
+	var i: int = stops.find(snap_zoom_pct(cur))
+	return int(stops[clampi(i + dir, 0, stops.size() - 1)])
 
 
 ## 系统安全边距（UI 逻辑像素，[左, 上, 右, 下]）：刘海 / 灵动岛 / 圆角 / 底部横条。
@@ -250,7 +272,7 @@ func _ready() -> void:
 		ui_size_pct = clampi(int(c.get_value("video", "ui_size", 100)) / 5 * 5, UI_PCT_MIN, UI_PCT_MAX)
 		cam_zoom_pct = int(c.get_value("video", "cam_zoom", -1))
 		if cam_zoom_pct > 0:
-			cam_zoom_pct = clampi(cam_zoom_pct / 5 * 5, ZOOM_PCT_MIN, ZOOM_PCT_MAX)
+			cam_zoom_pct = snap_zoom_pct(cam_zoom_pct)
 		quality = str(c.get_value("video", "quality", ""))
 		difficulty = c.get_value("progress", "difficulty", difficulty)
 		diff_unlocked = c.get_value("progress", "diff_unlocked", diff_unlocked)
@@ -277,7 +299,7 @@ func _ready() -> void:
 		if a.begins_with("--uisize="):
 			ui_size_pct = clampi(int(a.substr(9)), UI_PCT_MIN, UI_PCT_MAX)
 		elif a.begins_with("--camzoom="):
-			cam_zoom_pct = clampi(int(a.substr(10)), ZOOM_PCT_MIN, ZOOM_PCT_MAX)
+			cam_zoom_pct = snap_zoom_pct(int(a.substr(10)))
 	if quality == "":
 		set_quality(_guess_quality())   # 首次启动：按设备猜一个缺省档（存档后玩家可改）
 	for a in dev_args():
@@ -515,7 +537,7 @@ func cloud_apply(body: Dictionary) -> void:
 		ui_size_pct = clampi(int(d.ui_size_pct) / 5 * 5, UI_PCT_MIN, UI_PCT_MAX)
 	if d.get("cam_zoom_pct") is float or d.get("cam_zoom_pct") is int:
 		var z := int(d.cam_zoom_pct)
-		cam_zoom_pct = -1 if z <= 0 else clampi(z / 5 * 5, ZOOM_PCT_MIN, ZOOM_PCT_MAX)
+		cam_zoom_pct = -1 if z <= 0 else snap_zoom_pct(z)
 	if (d.get("play_speed") is float or d.get("play_speed") is int) and float(d.play_speed) in [1.0, 1.5, 2.0]:
 		play_speed = float(d.play_speed)
 	if d.get("cover_character_id") is String and FileAccess.file_exists("res://data/characters/%s.json" % d.cover_character_id):

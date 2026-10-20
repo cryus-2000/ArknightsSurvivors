@@ -335,9 +335,9 @@ func _adjust(i: int, dir: int) -> void:
 		"uisize":
 			Cfg.ui_size_pct = clampi(Cfg.ui_size_pct + dir * 5, Cfg.UI_PCT_MIN, Cfg.UI_PCT_MAX)
 		"zoom":
-			# 调回设备缺省（手机横屏 120 / 其余 100）时存 -1：换设备仍按那台的缺省
-			var def: int = Cfg.ZOOM_PHONE_DEF if Cfg.phone_ui() else 100
-			var n: int = clampi(int(round(Cfg.cam_zoom() * 100.0)) + dir * 5, Cfg.ZOOM_PCT_MIN, Cfg.ZOOM_PCT_MAX)
+			# 调回设备缺省（手机横屏 / 其余各自的缺省）时存 -1：换设备仍按那台的缺省。67% = 精确 2/3
+			var def: int = Cfg.zoom_default_pct()
+			var n: int = Cfg.zoom_step(int(round(Cfg.cam_zoom() * 100.0)), dir)
 			Cfg.cam_zoom_pct = -1 if n == def else n
 		"res":
 			var n: int = Cfg.RESOLUTIONS.size()

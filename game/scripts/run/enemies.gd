@@ -357,14 +357,14 @@ func update(dt: float) -> void:
 			e.fx = sign(dir.x)
 
 		if e.chest:
-			if dist > 1500.0:
+			if dist > 1500.0 * Bal.v("view/logic_k", 1.0):
 				if e.get("event", "") != "":
 					# 海嗣祭坛不静默删除（事件验收 P2-8）：挪到主控前方约 600 处，保留剩余窗口；屏外方位指示在 hud.gd
 					g.endg.reposition_box(e)
 				else:
 					e.dead = true
 			continue
-		if dist > 1300.0 and not e.boss:
+		if dist > 1300.0 * Bal.v("view/logic_k", 1.0) and not e.boss:   # 掉队拉回门槛随逻辑视野（docs/112）
 			if e.ai == "static" or e.get("dormant", false):
 				e.dead = true
 			else:

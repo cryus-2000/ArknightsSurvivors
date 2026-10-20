@@ -1,5 +1,9 @@
 {
  "version": "p5.0",
+ "view": {
+  "_doc": "逻辑视野倍率（docs/112，镜头 2/3 试玩分支）：刷怪环 720–820、大群环 560–640、掉队拉回 1300、宝箱清理 1500、伏兵门槛 700、经验回收视野 1280×720、命中火花距离都乘它。只看这个常量，不读实际视口和玩家的缩放设置，同 seed 在任何机器上一致。1 = 原镜头 100% 口径；1.5 = 桌面 2/3 视野",
+  "logic_k": 1.5
+ },
  "_doc": "docs/27_balance_framework.md。所有全局数值旋钮集中在这里；干员各自的基础数值在 data/characters/<id>.json 的 base 段。",
  "operators": {
   "_doc": "干员档位系数（docs/27 §3）：全员可玩，档位差压缩到 ±5%。atk / aspd / range / skill_power 以 add 方式写入 op:<id> 作用域，来源 balance。",

@@ -146,6 +146,8 @@ func update_visuals(dt: float) -> void:
 	g.cam.offset = cam_kick.round()
 	# 灯火光源：半径随灯火变化，快熄灭时闪烁
 	var radius: float = lerp(150.0, 520.0, g.lamp / 100.0) * g.squad.light_radius_mult()
+	if g.cam != null and g.cam.zoom.x < 1.0:
+		radius /= g.cam.zoom.x   # 镜头拉远时光圈画面半径同比放大（docs/112），屏幕上占比不变；判定 lamp_r 不动
 	if g.state == Game.S.DEAD:
 		radius *= 1.0 - clampf(g.state_age / Game.HudView.DEATH_LAMP_T, 0.0, 1.0)   # 倒下过渡：灯火熄灭（hud.draw_death_transition）
 	var flicker := 1.0 + sin(g.t * 13.0) * 0.02 + sin(g.t * 7.3) * 0.03

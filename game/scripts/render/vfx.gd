@@ -78,7 +78,7 @@ func contact(oid: String, e: Dictionary, origin: Vector2, source := "") -> void:
 	if g.t >= prev and g.t - prev < 0.18:
 		return
 	contact_at[oid] = g.t
-	if (e.pos as Vector2).distance_to(g.ppos) > 650.0:
+	if (e.pos as Vector2).distance_to(g.ppos) > 650.0 * Bal.v("view/logic_k", 1.0):
 		return
 	var heavy: bool = oid in ["ulpianus", "siege", "saria", "kaltsit", "wisadel"]
 	var melee: bool = oid in ["mizuki", "skadi", "specter_unchained", "irene"]
@@ -132,7 +132,7 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}) -> vo
 		e.rc_dir = d.normalized() if d.length_squared() > 1.0 else Vector2(1.0, 0.0)
 		e.rc_at = g.t
 		e.rc_k = Bal.v("fx/recoil_skill_k", 1.6) if (skill or crit or weak) else 1.0
-	if (e.pos as Vector2).distance_to(g.ppos) > 700.0 or g.fx.size() > 380:
+	if (e.pos as Vector2).distance_to(g.ppos) > 700.0 * Bal.v("view/logic_k", 1.0) or g.fx.size() > 380:
 		return
 	var head: Vector2 = e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6)
 	if crit:

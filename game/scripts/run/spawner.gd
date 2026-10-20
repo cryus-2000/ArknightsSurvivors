@@ -27,7 +27,9 @@ func _init(game: Game) -> void:
 
 func edge_pos() -> Vector2:
 	var ang: float = g.rng_spawn.randf() * TAU
-	var dist: float = g.rng_spawn.randf_range(720.0, 820.0)
+	# 刷怪环按「逻辑视野」放大（view/logic_k，docs/112：镜头拉远后不在画面里凭空冒出）；不读实际视口与玩家设置，同 seed 各机器一致
+	var vk: float = Bal.v("view/logic_k", 1.0)
+	var dist: float = g.rng_spawn.randf_range(720.0 * vk, 820.0 * vk)
 	# 背光刷怪（docs/56 候选 e，beacon/shade_deg > 0 开）：朝向未点燃灯标 ±shade_deg 的扇区不刷杂兵。
 	# 不重掷：把 [0, TAU) 的随机角均匀映射到扇区以外的那段弧上，随机数调用次数与旋钮无关，同 seed 同旋钮可复现
 	var sh: Array = g.beacon_sys.shade_sector()
@@ -422,7 +424,7 @@ func update(dt: float) -> void:
 		g.horde_warn = 0.0
 		g.horde_hit = 1.2
 		g.vfx.shake_screen(1.4)
-		g.fx.append({"kind": "horde_ring", "pos": g.ppos, "r": 640.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
+		g.fx.append({"kind": "horde_ring", "pos": g.ppos, "r": 640.0 * Bal.v("view/logic_k", 1.0), "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
 		Sfx.play("roar", 2.0, 0.8, 0.0)
 		# 数量：32 → 88（10 分钟），× 难度修正 horde；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
 		var n := int((Bal.v("enemy/horde_base", 24.0) + int(g.t / Bal.v("enemy/horde_div", 9.0))) * float(g.dmod.horde))
@@ -443,7 +445,8 @@ func update(dt: float) -> void:
 			if g.enemies.size() >= max_alive() + 60:
 				break
 			var ang: float = g.horde_gap + gap_half + span * float(s.u)
-			var p := g.ppos + Vector2.from_angle(ang) * (g.rng_spawn.randf_range(560.0, 640.0) + float(s.dr))
+			var vk: float = Bal.v("view/logic_k", 1.0)   # 大群环同样按逻辑视野放大（docs/112）
+			var p := g.ppos + Vector2.from_angle(ang) * (g.rng_spawn.randf_range(560.0 * vk, 640.0 * vk) + float(s.dr) * vk)
 			var he := spawn_enemy(s.id, p)
 			he["horde"] = g.horde_log.size() - 1
 			he.dormant = false
@@ -793,7 +796,7 @@ func horde_plan(mix: Dictionary, n: int) -> Array:
 func spawn_enemy(type: String, pos: Vector2) -> Dictionary:
 	var e := new_enemy(type, pos)
 	# 休眠的敌人（钵海收割者）从屏幕外刷出来就看不到了：改放到主控周围 330–480 的海床上当伏兵；大群里的会在刷出后唤醒
-	if e.dormant and pos.distance_to(g.ppos) > 700.0:
+	if e.dormant and pos.distance_to(g.ppos) > 700.0 * Bal.v("view/logic_k", 1.0):
 		e.pos = g.map.push_out(g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(330.0, 480.0), e.r)
 	g.enemies_sys.admit(e)   # 唯一出生口（docs/101 B5）：槽位 + id 表
 	check_enemy(e, type)
