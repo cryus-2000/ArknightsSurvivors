@@ -104,6 +104,8 @@ static func e5_spawn_state(o, s: Dictionary, kd: Dictionary) -> void:
 	var sp: bool = an.has("spawn") and o.anim_tex(str(an.spawn)) != null
 	s.merge({"e5": true, "mv": 0.0, "ak": "spawn" if sp else "idle", "at": 0.0, "act": 0.0, "fire": -1.0, "flip_t": -99.0,
 		"pcur": {}, "pout": 0.0, "pold": -1, "ghost": {}, "e5_then": [], "rp": 0.0})
+	if sp:
+		SummonVisual.start(s, o.sprite_spec(str(an.spawn)).get("visual", {}), o.g.t)
 	s["zr"] = e5_zone_r(o, kd)
 
 
@@ -154,6 +156,10 @@ static func e5_cast(o, b: Dictionary) -> void:
 		if s.gone or str(s.kind) != kind:
 			continue
 		if not s.has("e5") or str(s.ak) == "spawn" or ak == "" or o.anim_tex(ak) == null or o.g.perf_alt:
+			SummonVisual.cancel(s)
+			if s.has("e5") and ak != "" and not o.g.perf_alt:
+				SummonVisual.start(s, o.sprite_spec(ak).get("visual", {}), o.g.t)
+				SummonVisual.hit(s, o.g.t)
 			o._exec_list(b.get("then", []), s.pos)
 			continue
 		if float(s.fire) >= 0.0:
@@ -162,12 +168,14 @@ static func e5_cast(o, b: Dictionary) -> void:
 		var fps: float = maxf(1.0, float(sp.get("fps", 10)))
 		s.act = float(sp.get("frames", 4)) / fps
 		s.fire = (float(sp.get("fire", 2)) + 0.5) / fps
+		SummonVisual.start(s, sp.get("visual", {}), o.g.t, float(s.fire))
 		s.e5_then = b.get("then", [])
 		s.ak = "attack"
 		s.at = 0.0
 
 
 static func e5_cast_fire(o, s: Dictionary) -> void:
+	SummonVisual.hit(s, o.g.t)
 	s.fire = -1.0
 	var th: Array = s.get("e5_then", [])
 	s.e5_then = []

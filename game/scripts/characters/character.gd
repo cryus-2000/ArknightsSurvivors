@@ -360,6 +360,9 @@ static func validate_operator(cid: String, d: Dictionary) -> bool:
 						if not (seg.frames is Array) or seg.frames.is_empty() or seg.frames.any(func(x): return not (x is float or x is int) or float(x) != float(int(x)) or int(x) < 0 or (nf != null and int(x) >= int(nf))):
 							push_error("干员 %s 的 sprites.skills.%s.%s.frames 须是帧条范围内的帧号数组" % [cid, sk_, part])
 							ok = false
+	for visual_error in preload("res://scripts/characters/summon_visual.gd").errors(d.get("sprites", {}), d.get("extra_sprites", [])):
+		push_error("%s: %s" % [cid, visual_error])
+		ok = false
 	var prog = d.get("progression", [])
 	if not (prog is Array):
 		push_error("干员 %s 的 progression 必须是数组" % cid)

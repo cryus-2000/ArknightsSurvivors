@@ -65,22 +65,224 @@
   "regen": 1.0
  },
  "sprites": {
-  "idle": {"tex": "op_kaltsit_idle", "frames": 4, "fps": 4, "foot": [24, 46]},
-  "run": {"tex": "op_kaltsit_run", "frames": 6, "fps": 10, "foot": [24, 46]},
-  "attack": {"tex": "op_kaltsit_attack", "frames": 4, "fps": 14, "foot": [24, 46], "fire": 2},
-  "skill": {"tex": "op_kaltsit_skill", "frames": 6, "fps": 12, "foot": [24, 46], "fire": 3},
+  "idle": {
+   "tex": "op_kaltsit_idle",
+   "frames": 4,
+   "fps": 4,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "run": {
+   "tex": "op_kaltsit_run",
+   "frames": 6,
+   "fps": 10,
+   "foot": [
+    24,
+    46
+   ]
+  },
+  "attack": {
+   "tex": "op_kaltsit_attack",
+   "frames": 4,
+   "fps": 14,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 2
+  },
+  "skill": {
+   "tex": "op_kaltsit_skill",
+   "frames": 6,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 3
+  },
   "size": 48,
-  "foot": [24, 46],
-  "m_idle": {"tex": "op_mon3tr_idle", "frames": 4, "fps": 4, "foot": [32, 60]},
-  "m_run": {"tex": "op_mon3tr_run", "frames": 6, "fps": 10, "foot": [32, 60]},
-  "m_attack": {"tex": "op_mon3tr_attack", "frames": 4, "fps": 14, "foot": [32, 60], "fire": 2},
-  "command": {"tex": "op_kaltsit_command", "frames": 6, "fps": 12, "foot": [24, 46], "fire": 2},
-  "m_skill": {"tex": "op_mon3tr_skill", "frames": 6, "fps": 12, "foot": [32, 60], "fire": 2},
-  "m_attack_melt": {"tex": "op_mon3tr_attack_melt", "frames": 4, "fps": 14, "foot": [32, 60], "fire": 2},
-  "m_lunge": {"_doc": "Codex 精英化第 1 批：Mon3tr 前扑，出手帧 3 落爪", "tex": "op_kaltsit_m_lunge", "frames": 6, "fps": 14, "foot": [32, 60], "fire": 3},
-  "m_leap": {"_doc": "Codex 精英化第 1 批：Mon3tr 跃回，第 4 帧展开刃爪落地", "tex": "op_kaltsit_m_leap", "frames": 6, "fps": 12, "foot": [32, 60]}
+  "foot": [
+   24,
+   46
+  ],
+  "m_idle": {
+   "tex": "op_mon3tr_idle",
+   "frames": 4,
+   "fps": 4,
+   "foot": [
+    32,
+    60
+   ],
+   "visual": {
+    "anim": "native_m_idle",
+    "times": [
+     0.0,
+     0.07843137488645666,
+     0.1568627497729133,
+     0.23529412465936997,
+     0.3137254995458266,
+     0.3921568744322833,
+     0.47058824931873994,
+     0.5490196242051966,
+     0.6274509990916532,
+     0.7058823739781099,
+     0.7843137488645666,
+     0.8627451237510232,
+     0.9411764986374799,
+     1.0196078735239364,
+     1.0980392484103931,
+     1.1764706232968498,
+     1.2549019981833065
+    ],
+    "duration": 1.3333333730697632
+   }
+  },
+  "m_run": {
+   "tex": "op_mon3tr_run",
+   "frames": 6,
+   "fps": 10,
+   "foot": [
+    32,
+    60
+   ],
+   "visual": {
+    "anim": "native_m_idle",
+    "times": [
+     0.0,
+     0.07843137488645666,
+     0.1568627497729133,
+     0.23529412465936997,
+     0.3137254995458266,
+     0.3921568744322833,
+     0.47058824931873994,
+     0.5490196242051966,
+     0.6274509990916532,
+     0.7058823739781099,
+     0.7843137488645666,
+     0.8627451237510232,
+     0.9411764986374799,
+     1.0196078735239364,
+     1.0980392484103931,
+     1.1764706232968498,
+     1.2549019981833065
+    ],
+    "duration": 1.3333333730697632
+   }
+  },
+  "m_attack": {
+   "tex": "op_mon3tr_attack",
+   "frames": 4,
+   "fps": 14,
+   "foot": [
+    32,
+    60
+   ],
+   "fire": 2,
+   "visual": {
+    "anim": "native_m_attack",
+    "times": [
+     0.0,
+     0.07777777810891469,
+     0.15555555621782938,
+     0.23333333432674408,
+     0.31111111243565875,
+     0.3888888905445735,
+     0.46666666865348816,
+     0.5444444467624029,
+     0.6222222248713175,
+     0.7000000029802322,
+     0.777777781089147,
+     0.8555555591980616
+    ],
+    "duration": 0.9333333373069763,
+    "event": 0.23333333432674408
+   }
+  },
+  "command": {
+   "tex": "op_kaltsit_command",
+   "frames": 6,
+   "fps": 12,
+   "foot": [
+    24,
+    46
+   ],
+   "fire": 2
+  },
+  "m_skill": {
+   "tex": "op_mon3tr_skill",
+   "frames": 6,
+   "fps": 12,
+   "foot": [
+    32,
+    60
+   ],
+   "fire": 2
+  },
+  "m_attack_melt": {
+   "tex": "op_mon3tr_attack_melt",
+   "frames": 4,
+   "fps": 14,
+   "foot": [
+    32,
+    60
+   ],
+   "fire": 2
+  },
+  "m_lunge": {
+   "_doc": "Codex 精英化第 1 批：Mon3tr 前扑，出手帧 3 落爪",
+   "tex": "op_kaltsit_m_lunge",
+   "frames": 6,
+   "fps": 14,
+   "foot": [
+    32,
+    60
+   ],
+   "fire": 3
+  },
+  "m_leap": {
+   "_doc": "Codex 精英化第 1 批：Mon3tr 跃回，第 4 帧展开刃爪落地",
+   "tex": "op_kaltsit_m_leap",
+   "frames": 6,
+   "fps": 12,
+   "foot": [
+    32,
+    60
+   ]
+  },
+  "native_m_idle": {
+   "tex": "op_mon3tr_native_idle",
+   "frames": 17,
+   "fps": 12.7499996200204,
+   "foot": [
+    64,
+    92
+   ]
+  },
+  "native_m_attack": {
+   "tex": "op_mon3tr_native_attack",
+   "frames": 12,
+   "fps": 12.857142802403898,
+   "foot": [
+    64,
+    92
+   ]
+  }
  },
- "extra_sprites": ["m_idle", "m_run", "m_attack", "command", "m_skill", "m_attack_melt", "m_lunge", "m_leap"],
+ "extra_sprites": [
+  "m_idle",
+  "m_run",
+  "m_attack",
+  "command",
+  "m_skill",
+  "m_attack_melt",
+  "m_lunge",
+  "m_leap",
+  "native_m_idle",
+  "native_m_attack"
+ ],
  "attack": {"mode": "auto", "name": "治疗", "desc": "每 {$heal_cd} 秒为队长回复 {$heal_pct*100}% 最大生命；随行的 Mon3tr 自动撕咬队长身边的敌人（物理）", "heal": true},
  "skills": [
   {"name": "指令：结构加固", "en": "COMMAND: STRUCTURAL FORTIFICATION", "sp": 7, "desc": "立即为队长回复 {$s1_heal*100}% 最大生命并清除神经损伤", "heal": true, "cleanse": ["神经损伤"], "icon": "skill_kaltsit_s1"},

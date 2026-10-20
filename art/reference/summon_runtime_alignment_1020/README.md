@@ -1,0 +1,1 @@
+Runtime bindings and retained custom states: docs/107_summon_visual_alignment.md. mon3tr_existing_fx_alignment.png is an offline exact-placement comparison, not an engine screenshot. Engine screenshots and logs remain in build/. Raw Spine sources are local references and are not included. FX artwork is unchanged.

@@ -882,6 +882,7 @@ SCENE_REGRESSIONS = {
     "angelina_skill_anim": ("统一技能动画契约（安洁莉娜）", "angelina_skill_anim_test", r"ANGELINA SKILL ANIM failures=0", ["--balance", "--op=angelina", "--squad=lumen"]),
     "mizuki_skill_anim": ("充满即发干员的多条技能帧条（docs/87 §3.5，水月 S2 起手 → 坐姿循环（伞击播 attack 槽 skill_s2_attack 后回循环）→ 收势，纯画面）", "mizuki_skill_anim_test", r"MIZUKI SKILL ANIM failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
     "run_stats": ("作战记录：统计守恒（占比合计 100%、来源相加、按干员拆 = dmg_out）+ 界面打开 / 导航 / 桌面与手机排版", "run_stats_test", r"RUN STATS failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
+    "summon_visual": ("Summon visual clock and native source timeline", "summon_visual_test", r"SUMMON VISUAL failures=0", []),
     "summon_seal_blocks": ("召唤 / 封印 / 护盾 / 治疗光环积木（docs/61 §15，测试专用干员 sstest）", "summon_seal_blocks_test", r"SUMMON SEAL BLOCKS failures=0", ["--balance", "--op=sstest"]),
     "op_dummy": ("干员木桩表场景（docs/79）：队友身份 + 怪群 5 秒自检", "op_dummy_test", r"OP DUMMY failures=0",
                  ["--balance", "--bot=afk", "--nodeath", "--op=hoshiguma", "--squad=wisadel", "--dummy_op=wisadel", "--dummy_role=mate",

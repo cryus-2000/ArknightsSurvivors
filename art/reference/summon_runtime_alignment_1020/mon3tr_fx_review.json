@@ -1,0 +1,54 @@
+{
+  "basis": "static offline compositor from live main formulas; not an engine screenshot",
+  "reach": 93,
+  "fx_origin": [
+    0,
+    -14
+  ],
+  "claw_along": 0.55,
+  "claw_world_scale_per_texel": 1.453125,
+  "hit_seconds": 0.17857142857142858,
+  "native_attack_event": 0.23333333432674408,
+  "effects": [
+    {
+      "name": "fx_mon3tr_claw",
+      "frame": [
+        96,
+        96
+      ],
+      "frames": 4,
+      "fps": 16,
+      "decision": "re-anchor and redraw release arc to native claw trajectory; retain hit trigger"
+    },
+    {
+      "name": "fx_mon3tr_melt_slash",
+      "frame": [
+        96,
+        96
+      ],
+      "frames": 4,
+      "fps": 16,
+      "decision": "redesign crimson core/slash phase with melt body state before replacing legacy"
+    },
+    {
+      "name": "fx_mon3tr_blade",
+      "frame": [
+        32,
+        48
+      ],
+      "frames": 2,
+      "fps": 4,
+      "decision": "rebind to body attachment trajectory; avoid fixed side duplication of native blades"
+    },
+    {
+      "name": "fx_mon3tr_slam_ring",
+      "frame": [
+        128,
+        64
+      ],
+      "frames": 6,
+      "fps": 16,
+      "decision": "retain ground ring artwork; align landing origin and real landing event"
+    }
+  ]
+}

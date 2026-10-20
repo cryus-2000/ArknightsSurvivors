@@ -180,9 +180,16 @@ def derive_1x(hi):
     return out
 
 
-def split(a):
-    s = a.shape[0]
+def split(a, frame_width=None):
+    s = frame_width or a.shape[0]
     return [a[:, i * s:(i + 1) * s] for i in range(a.shape[1] // s)]
+
+
+def _explicit_frame_size(cfg):
+    size = cfg.get("frame_size")
+    if isinstance(size, list) and len(size) == 2 and all(type(v) is int and v > 0 for v in size):
+        return size
+    return None
 
 
 # ---------------------------------------------------------------- 基础量
@@ -514,7 +521,15 @@ def lint_op(op, acts, art=ART, prev=None):
     for act, (lo, hi) in strips.items():
         cfg = acts[act]
         h1, h2 = lo.shape[0], hi.shape[0]
-        n1, n2 = lo.shape[1] / h1, hi.shape[1] / h2
+        size = _explicit_frame_size(cfg)
+        if "frame_size" in cfg and size is None:
+            bad.append("%s frame_size 必须是两个正整数" % act)
+        w1 = size[0] if size else h1
+        if size and (h1 != size[1] or h2 != size[1] * 2):
+            bad.append("%s 帧高与 frame_size 不一致" % act)
+        if _body(act, cfg) and w1 != h1:
+            bad.append("%s 干员本体必须使用正方形画布" % act)
+        n1, n2 = lo.shape[1] / w1, hi.shape[1] / (w1 * 2)
         if _body(act, cfg) and (h1, h2) not in ((48, 96), (64, 128)):
             bad.append("%s 单帧高 %d/%d（应 48/96 或 64/128）" % (act, h1, h2))
         if h2 != 2 * h1 or n1 != int(n1) or n2 != n1:
@@ -530,7 +545,9 @@ def lint_op(op, acts, art=ART, prev=None):
     for act, (lo, hi) in strips.items():
         if act in derived:   # 1x 由 @2x 推出，不比
             continue
-        f1, f2 = split(lo), split(hi)
+        size = _explicit_frame_size(acts[act])
+        f1 = split(lo, size[0] if size else None)
+        f2 = split(hi, size[0] * 2 if size else None)
         if len(f1) != len(f2):
             continue
         dm = []

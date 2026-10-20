@@ -115,6 +115,7 @@
 | [104_pixel_pipeline](104_pixel_pipeline.md) | 干员像素素材流程规范 | 现行规范 | 10-16 定：Codex 静态 f0 / 动画（分层合成）两条线、三层验收、f0 并行 + 人内串行；口径只在 103 改 | 97、103；tools/px_lint.py |
 | [105_op_anim_arch_for_codex](105_op_anim_arch_for_codex.md) | 干员动画接口：现状与 Codex 改造说明 | 进行中 | 10-17：skills.sN 与 skill_pose 合并成一个契约（start / loop / run / attack / end / shadow），交 Codex 改代码；验收同 seed + 逐帧回归 | 87、92、101 |
 | [106_codebase_overview_for_codex](106_codebase_overview_for_codex.md) | 代码架构总览（给 Codex 改代码） | 现行规范 | 10-17：目录职责、每帧次序、干员数据与动画接口、测试工具、Codex 改代码规则 §6 | 41、36、101、105 |
+| [107_summon_visual_alignment](107_summon_visual_alignment.md) | 召唤物美术运行时对齐 | 进行中 | 独立显示时钟、真实出手对齐、七条身体接线与Mon3tr特效返工判断；旧专用动作保留 | 06、36、87、104、106 |
 | [99_bilibili_toy_faq](99_bilibili_toy_faq.md) | B站 Toy 官方 FAQ | 现行规范 | 官方答疑帖存档（外部参考）+ 本作对照；§0 的数字已过时 | — |
 | [encrypted_release_20260928](encrypted_release_20260928.md) | Windows 加密发行 | 已实施记录 | 换机重建加密模板步骤的唯一出处（33「一次性准备」链到这里） | — |
 | [live_test_launcher](live_test_launcher.md) | 免打包测试入口 | 现行规范 | 启动测试版.cmd 的用法；末段 Boss 描述已过时 | — |
