@@ -1508,10 +1508,15 @@ func phase_shot(round_: Dictionary, shot: int) -> void:
 				return
 			at = target.pos
 		else:
-			var candidates := nearest_enemies(g.enemies.size(), radius, pos)
-			if candidates.is_empty():
+			var target: Dictionary = {}
+			if round_.target == "random":
+				target = random_enemy(radius, pos)
+			else:
+				var near_: Array = nearest_enemies(1, radius, pos)
+				target = near_[0] if not near_.is_empty() else {}
+			if target.is_empty():
 				return
-			at = candidates[g.rng.randi_range(0, candidates.size() - 1) if round_.target == "random" else 0].pos
+			at = target.pos
 	var previous_aim := atk_aim
 	if str(a.shape) == "cone" and at != Vector2.INF:
 		atk_aim = (at - pos).normalized()

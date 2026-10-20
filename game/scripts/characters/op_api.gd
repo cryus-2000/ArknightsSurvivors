@@ -52,6 +52,13 @@ func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> 
 	return out
 
 
+## 射程内随机一名敌人（docs/108 F4，持续攻击 target: random）：入选条件同 nearest_enemies（活着、距离 < max_dist），
+## 但不排序、不做 Boss 优先；有候选时只抽一次 g.rng。没有候选返回空字典
+func random_enemy(max_dist: float, origin: Vector2 = Vector2.INF) -> Dictionary:
+	var c: Array = g.enemies_sys.in_range(max_dist, origin)
+	return {} if c.is_empty() else c[g.rng.randi_range(0, c.size() - 1)]
+
+
 ## 地形阻挡（terrain/aim_los，10-13 用户批准）：直线弹干员自动选目标——同 nearest_enemies，但从 from（缺省 = 干员自己）
 ## 到目标的连线穿过景物底座的排到后面；全被挡时就是原来的最近目标。无景物主题 / 旋钮关 = nearest_enemies 原样
 func los_targets(n: int, max_dist: float, origin: Vector2 = Vector2.INF, from: Vector2 = Vector2.INF) -> Array:

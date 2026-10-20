@@ -859,9 +859,7 @@ static func h4_phase_shot(o, a: Dictionary, round_: Dictionary, muzzle: int) -> 
 	var reach: float = _h4_wd_reach(o, a, float(effect.get("aim_r", 540.0)))
 	var target: Dictionary = {}
 	if round_.target == "random":
-		var candidates: Array = o.nearest_enemies(o.g.enemies.size(), reach, o.pos)
-		if not candidates.is_empty():
-			target = candidates[o.g.rng.randi_range(0, candidates.size() - 1)]
+		target = o.random_enemy(reach, o.pos)
 	else:
 		target = _h4_wd_target(o, a, reach) if o.atk_aim == Vector2.ZERO else o.aim_land(reach)
 	if target.is_empty():
