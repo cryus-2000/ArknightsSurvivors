@@ -553,7 +553,7 @@ static func hw_draw_pfx(o, f: Dictionary, a: float) -> bool:
 	if str(f.kind).begins_with("h4_"):   # 手写迁移段第 4 批
 		return h4_draw_pfx(o, f, a)
 	match str(f.kind):
-		"whirl", "chain", "rift", "ulp_wave":   # 乌尔比安段
+		"whirl", "chain", "rift", "ulp_wave", "ulp_fracture":   # 乌尔比安段
 			return _F().hw4_draw_pfx(o, f, a)
 		"s1link":   # 逻各斯湮灭余伤传递：黑色咒文链从起点铺向目标
 			var grow: float = minf(1.0, (1.0 - a) / 0.3)

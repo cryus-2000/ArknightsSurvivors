@@ -884,7 +884,7 @@ const MF_FX_COMMON := ["cond", "if_tex", "at", "off", "n", "every", "jit", "jit_
 
 const MF_SPRITE_KEYS := ["fit", "scale_r", "scale", "rot", "second_scale", "second_rot", "swing_rot", "tint", "bottom", "flip_side", "rot_ang"]
 
-const MF_PFX_KINDS := ["ring", "glow", "spark", "shard", "line", "mote", "crescent", "impact", "core", "qshard", "beamray", "crack", "flame", "lava_pillar", "s1link", "h4_cross", "ulp_wave"]   # Custom kinds route through hw_draw_pfx.
+const MF_PFX_KINDS := ["ring", "glow", "spark", "shard", "line", "mote", "crescent", "impact", "core", "qshard", "beamray", "crack", "flame", "lava_pillar", "s1link", "h4_cross", "ulp_wave", "ulp_fracture"]   # Custom kinds route through hw_draw_pfx.
 
 const MF_GFX_KINDS := ["beam", "rays", "cross"]
 

@@ -93,6 +93,9 @@ func check_impact(o) -> void:
 	rules._hw_slam_fx(o, o.pos + Vector2(80, 0), 180.0, 1.6)
 	var waves := 0
 	var water := 0
+	var fractures := 0
+	var fracture_life := 0.0
+	var water_life := 0.0
 	for f in o.pfx + o.g.fx:
 		check(str(f.kind) != "ring" and str(f.kind) != "crack", "impact avoids full generic rings and heavy global cracks")
 		if str(f.kind) == "ulp_wave":
@@ -100,9 +103,18 @@ func check_impact(o) -> void:
 			check(bool(f.get("floor", false)), "shock stays on ground layer")
 		if str(f.get("name", "")) == "fx_splash_blue":
 			water += 1
+			water_life = float(f.max)
 			check(not bool(f.get("floor", false)), "water has separate foreground lifetime")
+		if str(f.kind) == "ulp_fracture":
+			fractures += 1
+			fracture_life = float(f.max)
+			check(bool(f.get("floor", false)), "fracture remains on ground")
 	check(waves == 1 and water == 1, "one restrained wave and one splash per impact")
+	check(fractures == 1 and fracture_life > water_life, "one independent fracture survives the water splash")
 	check(before == o.g.rng_states(), "impact consumes no gameplay RNG")
+	o.pfx.clear()
+	rules.fx_play(o, o.B.attack.fx, o.pos + Vector2(80, 0), 85.0)
+	check(o.pfx.any(func(f): return str(f.kind) == "ulp_fracture"), "ordinary attack creates visible ground fracture")
 	var seen_wave := false
 	var inspect_entries: Array = [o.B]
 	while not inspect_entries.is_empty():

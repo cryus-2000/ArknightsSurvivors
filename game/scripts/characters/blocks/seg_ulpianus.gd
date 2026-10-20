@@ -723,7 +723,7 @@ static func hw_draw_tether(o) -> void:
 static func hw4_draw_pfx(o, f: Dictionary, a: float) -> bool:
 	var cv = o.cv
 	match str(f.kind):
-		"ulp_wave":
+		"ulp_wave", "ulp_fracture":
 			return UlpImpact.draw(o, f, a)
 		"whirl":
 			if o.def.has("native_motion") and str(o.anim_state().get("kind", "")) == "whirl_native":
