@@ -1,0 +1,85 @@
+{
+  "branch": "codex/siege-ulpianus-runtime",
+  "runtime_base": "1e109651",
+  "checks_passed": 83,
+  "checks_failed": 0,
+  "check_seconds": 313,
+  "check_logs": "build/check/quick_1020_134308",
+  "numpy_serial_preload": true,
+  "runtime": {
+    "siege": {
+      "frames_simulated": 540,
+      "seconds": 27,
+      "body_slots_observed": [
+        "idle",
+        "run",
+        "attack",
+        "skill",
+        "leap_native",
+        "heavy_attack"
+      ],
+      "missing_slots": [],
+      "script_errors": 0,
+      "exit_resource_warning": true
+    },
+    "ulpianus": {
+      "frames_simulated": 540,
+      "seconds": 27,
+      "body_slots_observed": [
+        "idle",
+        "run",
+        "attack",
+        "whirl_native",
+        "skill",
+        "tether_native",
+        "attack_s2",
+        "zip_native"
+      ],
+      "missing_slots": [],
+      "script_errors": 0,
+      "exit_resource_warning": true
+    }
+  },
+  "same_seed": {
+    "reference": "1e109651",
+    "seed": 1,
+    "seconds_each": 60,
+    "identical_trace_lines": {
+      "siege": 61,
+      "ulpianus": 61
+    }
+  },
+  "data_and_textures": {
+    "gameplay_data_unchanged": true,
+    "reference_commit": "1e109651",
+    "binary_alpha": true,
+    "slot_frame_dimensions_match": true,
+    "textures": [
+      "op_siege_idle@2x.png",
+      "op_siege_run@2x.png",
+      "op_siege_attack@2x.png",
+      "op_siege_leap_native@2x.png",
+      "op_siege_heavy_attack@2x.png",
+      "op_siege_death@2x.png",
+      "op_ulpianus_idle@2x.png",
+      "op_ulpianus_run@2x.png",
+      "op_ulpianus_attack@2x.png",
+      "op_ulpianus_tether_native@2x.png",
+      "op_ulpianus_death@2x.png",
+      "op_ulpianus_zip_native@2x.png",
+      "op_ulpianus_whirl_native@2x.png",
+      "op_ulpianus_attack_s2@2x.png",
+      "op_ulpianus_anchor_native@2x.png"
+    ]
+  },
+  "legacy_lint": {
+    "unwaived_failures": 0,
+    "documented_native_exceptions": 6,
+    "warnings": 11
+  },
+  "command_cancelled": true,
+  "main_integrated": false,
+  "public_release": false,
+  "user_runtime_visual_review": "pending",
+  "local_package": "export follows this code commit"
+}

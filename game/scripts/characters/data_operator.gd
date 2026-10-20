@@ -14,6 +14,8 @@ var phases: Dictionary = {}
 const SkillLifecycle = preload("res://scripts/characters/blocks/skill_lifecycle.gd")
 var lifecycle: Dictionary = {}
 var effect_skill := -1  # Only skill do execution may bind skill-owned effects.
+const NativeMotion = preload("res://scripts/characters/native_motion.gd")
+var native_motion: Dictionary = {}
 
 const SegSkalter = preload("res://scripts/characters/blocks/seg_skalter.gd")
 const ObCore = SegSkalter
@@ -256,6 +258,7 @@ func update(dt: float) -> void:
 			s_t[i] = maxf(0.0, s_t[i] - dt)
 	AttackPhases.tick(self, dt)
 	var hw_busy: bool = ObHw.hw_tick(self, dt) if not hw.is_empty() else false   # 手写迁移段：浪墙 / 弹体 / 地面 / 锚（按手写干员 update 的先后）；true = 本帧不起手
+	NativeMotion.tick(self, dt)
 	SkillLifecycle.tick(self)
 	ObSummon.mf_tick(self, dt, prev_s)   # 召唤物扩展段（§15.9）：限时减伤计时、trig.on_deploy、带 at 的 trig.on_skill_end
 	_tick_pending(dt)
@@ -1032,7 +1035,8 @@ func anim_state() -> Dictionary:
 		st = SegSpecter.h3_anim_state(self, st)   # 手写迁移段第 3 批：倒下帧条
 	if not hw.is_empty() and hw.has("ir"):
 		st = SegIrene.e3_ir_anim(self, st)   # 精英化第 3 批：收尾斩的帧条
-	return SegUlpianus.hw_anim_state(self, st) if not hw.is_empty() else st
+	st = SegUlpianus.hw_anim_state(self, st) if not hw.is_empty() else st
+	return NativeMotion.state(self, st)
 
 
 # ---------------------------------------------------------------- 手写迁移段第 3 批：干员侧询问（squad / game 按 has_method 询问；没用到的数据干员返回中性值）
@@ -1465,6 +1469,10 @@ func charge_skills(dt: float) -> int:
 func start_skill(aim: Vector2, idx: int = -1, dur: float = 0.6, fire_at: float = 0.3, anim := "") -> void:
 	if not skills_occupied():
 		super(aim, idx, dur, fire_at, anim)
+
+func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim := "", interval := 0.0) -> void:
+	super(kind, aim, dur, fire_at, anim, interval)
+	NativeMotion.started(self)
 
 func start_attack(aim: Vector2, dur: float = 0.5, fire_at: float = 0.25, anim := "", interval := 0.0) -> void:
 	if AttackPhases.attack_locked(self):

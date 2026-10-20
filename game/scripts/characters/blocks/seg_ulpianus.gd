@@ -139,6 +139,10 @@ static func hw_armed_release(o, a: Dictionary) -> bool:
 # ---------------------------------------------------------------- verb.tether
 
 static func _hw_hand(o) -> Vector2:
+	if o.def.has("native_motion"):
+		var socket: Vector2 = o.sprite_point("hand")
+		if socket != Vector2.INF:
+			return socket
 	var b: Dictionary = o.hw.anchor.get("b", {})
 	var v = b.get("hand", [33, -33])
 	return o.pos + Vector2(float(v[0]) * float(o.face), float(v[1]))
@@ -651,6 +655,11 @@ static func _hw_draw_chain(o, a: Vector2, b: Vector2, al: float) -> void:
 
 
 static func _hw_draw_anchor(o, p: Vector2, d: Vector2, a: float) -> void:
+	var native: Dictionary = o.sprite_spec("anchor_native")
+	if not native.is_empty():
+		var anchor: Array = native.anchor
+		if o._fx_strip(str(native.tex), 1, 0, p, Vector2(float(anchor[0]), float(anchor[1])), d.angle(), Color(1, 1, 1, a)):
+			return
 	var g = o.g
 	var cv = o.cv
 	if g.tex.get("proj_ulpianus_anchor") != null:
@@ -729,6 +738,8 @@ static func hw4_draw_pfx(o, f: Dictionary, a: float) -> bool:
 	var cv = o.cv
 	match str(f.kind):
 		"whirl":
+			if o.def.has("native_motion") and str(o.anim_state().get("kind", "")) == "whirl_native":
+				return true  # Native body, chain and four-blade anchor are composed together.
 			var u: float = 1.0 - a
 			var dirv: float = float(f.get("dir", 1.0))
 			var head: float = float(f.get("a0", 0.0)) + dirv * TAU * (1.0 - (1.0 - u) * (1.0 - u))
@@ -1056,6 +1067,10 @@ static func hw_draw_hooks(o) -> void:
 		var hv = b.get("hand", [33, -33])
 		var hand: Vector2 = o.pos + Vector2(float(hv[0]) * float(o.face), float(hv[1]))
 		var p: Vector2 = (hk.head as Vector2) + Vector2(0, -6)
+		if o.def.has("native_motion"):
+			hand = _hw_hand(o)
+			if hk.phase == "fly":
+				p = hand.lerp(hk.to, clampf(float(hk.t) / maxf(float(hk.dur), .001), 0.0, 1.0)) + Vector2(0, -6)
 		var tile: String = str(b.get("chain", ""))
 		var taut: bool = str(hk.phase) != "fly"
 		if tile != "" and g.tex.get(tile) != null:
