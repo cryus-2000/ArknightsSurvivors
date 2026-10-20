@@ -21,3 +21,5 @@
 真实视口前后对照、常速 / 半速与关键 PNG：`build/ulpianus_impact_revision/review.html`。左旧右新，相同夹具时刻；截图没有后贴人物或特效。博士三套使用同一真实渲染器在暂停场景取样，不冒充自然对局。
 
 定向回归先在旧效果观察到失败，修复后通过；再补收链放大、保留原水花回归，均先失败后通过。两人各 61 行、合计 122 行同种子 TRACE 与 0abf7207 相同；乌尔比安去除美术字段后的数据完全一致，540 个实机采样点的角色位置、动作阶段与敌人生命值也一致。最终原水花版分级检查 83 项、0 失败、414 秒（build/check/quick_1020_142723；日志 build/ulpianus_impact_revision/check_water_preserved.log）。打包结果随最终交付记录。采集夹具退出仍有既有资源清理告警，技术检查不代替用户视觉批准。
+
+代码 c19718d2 的独立内测包已导出并验证：`build/release/方舟幸存者_Internal_EA_Encrypted_20261020_c19718d2.zip`；启动入口 `build/_export/方舟幸存者/开始游戏.bat`。包内 1351 张 PNG、319 个音频、30 份 JSON、内测全解锁、存档隔离与迁移、实际启动及 ZIP 一致性通过。博士六张权威素材与已批准源稿再次核对一致。详细记录 `build/ulpianus_impact_revision/delivery.json` 与 `build/encrypted_game_verification_internal_c19718d2.json`；未合入 main、未公开发布。

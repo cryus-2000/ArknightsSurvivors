@@ -9,7 +9,9 @@
 - [x] 在现有定向回归中先验证落地只生成一套水花、不生成完整圆环，余波与水花生命周期独立，视觉不消耗玩法 RNG。
 - [x] 实现 characters/ulpianus_impact.gd；仅改乌尔比安调用与 fx 配置，保留角色身体、动作、玩法与其他角色通用特效。
 - [x] 录制相同夹具的旧版与新版实际视口，展示常速、慢放、关键瞬间与新版博士；先目视检查，再跑定向与分级检查、同种子 TRACE。最终保留原水花版 83 项、0 失败，122 行 TRACE 相同，540 个实机采样点无玩法差异。
-- [ ] 提交选定文件，更新独立本地内测包，验证图片、存档隔离、解锁、启动与 ZIP 一致性；交付实际录制与启动入口。
+- [x] 提交选定文件，更新独立本地内测包，验证图片、存档隔离、解锁、启动与 ZIP 一致性；交付实际录制与启动入口。
+
+交付代码 c19718d2（含博士接入 c4049d5f）。本地包 `build/release/方舟幸存者_Internal_EA_Encrypted_20261020_c19718d2.zip`，直接启动 `build/_export/方舟幸存者/开始游戏.bat`。1351 张 PNG、319 个音频、30 份 JSON 读取、内测解锁、独立存档迁移、打包游戏启动与 ZIP 一致性通过；报告 `build/encrypted_game_verification_internal_c19718d2.json`。实际游戏启动无资源清理告警；资源探针 / 画面采集退出保留既有清理告警。汇总 `build/ulpianus_impact_revision/delivery.json`。
 
 复现入口：tools/probes/siege_ulpianus_runtime.py；现有实际视口基线 build/siege_ulpianus_runtime。最终新增审阅目录 build/ulpianus_impact_revision。自动检查通过不等于用户视觉批准。
 
