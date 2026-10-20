@@ -36,7 +36,10 @@
  "hold": "L",
  "weapon": "F_L_Weapon",
  "params": {
-  "lean": 10
+  "lean": 12,
+  "holdAmp": 6,
+  "holdElbowAmp": 4,
+  "weaponSway": 3
  },
  "secondary": [
   {
@@ -65,5 +68,10 @@
    "amp": 3,
    "drag": 4
   }
- ]
+ ],
+ "holdPose": {
+  "upper": -112,
+  "fore": 5,
+  "weapon": -148
+ }
 }
