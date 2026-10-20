@@ -375,16 +375,16 @@
      "src": "Mon3tr",
      "sfx": {"kind": "atk"},
      "fx": [
-      {"sprite": {"name": "fx_mon3tr_claw", "fit": [64, 0.9, 1.5], "second_scale": 0.9, "second_rot": 1.05}, "along": 0.55, "cond": "!skill_active:2"},
+      {"sprite": {"name": "fx_mon3tr_claw", "fit": [64, 0.9, 1.5], "second_scale": 0.9, "second_rot": 1.05}, "along": 0.55, "off": [0, -40], "cond": "!skill_active:2"},
       {
        "sprite": {"name": "fx_mon3tr_claw", "fit": [64, 0.9, 1.5], "scale": 0.85, "rot": -0.65, "second_scale": 0.9, "second_rot": 1.05, "tint": [0.8, 1.0, 0.8, 0.8]},
        "along": 0.55,
-       "off": [0, -6],
+       "off": [0, -46],
        "cond": "!skill_active:2 && skill_active:1"
       },
       {"sparks": {"col": [0.55, 1.0, 0.5], "n": 5, "spd": 160, "life": 0.3, "sz": 2.5}, "along": 0.6, "cond": "!skill_active:2"},
       {"arc": {"pad": 8, "w": 5, "life": 0.2, "col": [0.5, 1.1, 0.55]}, "first_only": true, "cond": "node:wide_arc && !skill_active:2"},
-      {"sprite": {"name": "fx_mon3tr_melt_slash", "scale_r": 0.034375, "swing_rot": 0.18}, "side_x": 0.38, "r_mult": 1.25, "cond": "skill_active:2"},
+      {"sprite": {"name": "fx_mon3tr_melt_slash", "scale_r": 0.0275, "swing_rot": 0.18}, "side_x": 0.38, "r_mult": 1.25, "off": [0, -18], "cond": "skill_active:2"},
       {"pfx": {"kind": "impact", "r": 20, "life": 0.14, "col": [1.6, 0.15, 0.12]}, "along": 0.75, "r_mult": 1.25, "cond": "skill_active:2"},
       {"sparks": {"col": [1.7, 0.25, 0.15], "n": 7, "spd": 240, "life": 0.28, "sz": 2.5}, "along": 0.75, "r_mult": 1.25, "cond": "skill_active:2"},
       {"pfx": {"kind": "glow", "r": 10, "life": 0.18, "col": [0.55, 1.0, 0.5], "alpha": 0.55}, "at": "hits", "cond": "!skill_active:2"},
@@ -423,15 +423,15 @@
       "cond": "skill_active:2"
      },
      {
-      "side": {"strip": "fx_mon3tr_blade", "frames": 2, "fps": 4, "anchor": [8, 12], "dx": 33, "col": [0.55, 1.0, 0.5], "j": 0},
+      "side": {"strip": "fx_mon3tr_blade", "frames": 2, "fps": 4, "anchor": [8, 12], "dx": 42, "body_y": -45, "y": -12, "bob": 1.0, "col": [0.55, 1.0, 0.5], "j": 0},
       "cond": "elite >= 2 && !skill_active:2"
      },
      {
-      "side": {"strip": "fx_mon3tr_blade", "frames": 2, "fps": 4, "anchor": [8, 12], "dx": 33, "col": [0.55, 1.0, 0.5], "j": 1},
+      "side": {"strip": "fx_mon3tr_blade", "frames": 2, "fps": 4, "anchor": [8, 12], "dx": 42, "body_y": -45, "y": -12, "bob": 1.0, "col": [0.55, 1.0, 0.5], "j": 1},
       "cond": "elite >= 2 && !skill_active:2 && node:twin_claw"
      },
-     {"side": {"col": [1.6, 0.15, 0.12], "j": 0}, "cond": "elite >= 2 && skill_active:2"},
-     {"side": {"col": [1.6, 0.15, 0.12], "j": 1}, "cond": "elite >= 2 && skill_active:2 && node:twin_claw"}
+     {"side": {"col": [1.6, 0.15, 0.12], "body_y": -40, "arc_dx": 38, "y": -12, "j": 0}, "cond": "elite >= 2 && skill_active:2"},
+     {"side": {"col": [1.6, 0.15, 0.12], "body_y": -40, "arc_dx": 38, "y": -12, "j": 1}, "cond": "elite >= 2 && skill_active:2 && node:twin_claw"}
     ]
    }
   },
