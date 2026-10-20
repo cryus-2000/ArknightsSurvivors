@@ -36,10 +36,12 @@
  "hold": "L",
  "weapon": "F_L_Weapon",
  "params": {
-  "lean": 12,
+  "lean": 20,
   "holdAmp": 6,
   "holdElbowAmp": 4,
-  "weaponSway": 3
+  "weaponSway": 3,
+  "chestLean": 5,
+  "headKeep": 0.25
  },
  "secondary": [
   {
