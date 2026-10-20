@@ -235,6 +235,17 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 - 还缺（换新美术时才补，都是填 json）：64 画布帧条与 `size: 64` / `foot: [32, 60]`；`frame_durations` / `fire_time`；`attack_timing`（会改普攻出手时刻，属数值决定，交数值会话）；S3 若要专属循环 / 收势条，加 `skill_s3_loop` / `skill_s3_end` 并列进 `extra_sprites`。dash_line 普攻**不能**用 attack_phases（只支持 circle / cone / cannon），德克萨斯本来也不需要。
 - 结论：现有积木 + 新契约下，新人动画接入只填 json 成立；需要写代码的只剩「新的普攻形状 / 新手写机制」本身，以及有 Spine 原生姿势时的一个 `*_native_signals` 信号函数。
 
+### 9.3 德克萨斯 / 星熊接入（10-21，分支 claude/op-texas-hoshiguma）
+
+64 画布 @2x（超界槽 96），整数 foot；打包 `tools/probes/package_texas_hoshiguma.py`（原作条 cb_18 按整数平移对齐原点、无盾版按部件重组去盾；新动作由 `tools/spine_run_trial` 的增量关键帧模式出图：`keys[].from = [原作动画, 秒]` 上加前倾 / 手臂 / 武器 / 腿 / 镜像，`cfg.attach` 让挂在髋上的武器跟手）。每条 `frame_durations` 求和 = 旧条时长、`fire_time` = 旧出手时刻。
+
+| 干员 | 原作条 | 新做（用户 10-20 看过候选） | 接法 |
+|---|---|---|---|
+| 星熊 | idle、attack（兼 S2 `skill`）、S3 `s3_start/s3_loop/s3_end`、death；`idle/attack_noshield` | run、S1 `s1`（举盾）/ `s1_guard` / `s1_counter`（反手重斩）、throw、catch、`run/throw_noshield` | S1 序列 start/loop/end（格挡即技能结束 → 收势从击中帧起播反手重斩；窗口到点同样）；普攻 / S2 / S3 起手按 `native_motion.clips`（clip = fire × 8 / k）整条均匀播，击中帧起点 = 伤害时刻（协调人 10-21 口径），盾在外面时覆盖层也换无盾画面；盾回手 = 信号 `prop` 结束 → `native_motion.exits` 播 catch；每帧 `shield` 盾心按新画布重量；`noshield.keep` 删除 |
+| 德克萨斯 | idle、S1/S2 `skill`（剑雨）、death | run、attack（原作 Attack_Loop 姿势 + 冲刺前倾）、`back_native`（回马剑）、`s3_start`、`s3_dash` | 冲刺按进度换播：`seg_texas.tx_native_signals` 出 `dash.basic / dash.skill / dash.reverse / wait.reverse`，json `native_motion.states` 选槽；S3 序列 start = s3_start、end = skill 后 6 帧（落剑雨） |
+
+代码只加信号：`data_operator.native_signals` 的 `prop`（往返弹体在外）与德克萨斯段；回马剑延迟队列项多记 `t0`（只读）。**有意的玩法变化（单列，待协调人确认后刷新基线）**：德克萨斯 `dash_t` 0.18 → 0.24、`dash_hold` 0.15 → 0.20、`back_delay` 0.2 → 0.3、回马剑反冲加 `hold`（用户 10-20「改一下动作时间」）。这四项改回原值时 seed 1 180 秒、seed 2 240 秒（`--sptest`）对 b1ee9cef 逐行相同。星熊 seed 1 180 秒逐行相同；seed 2 240 秒 `--sptest` 在约 85–120 秒处 h 值小差（rng 流相同），且 b1ee9cef 自己连跑两次也在 215 秒分叉，同 §12 维什戴尔的「同 seed 长局不稳定」，未定位。
+
 ## 10. 「新人接入只填 json」检查表（10-20 已全部实现：`operator_contract.gd`，test_core 坏样例逐条覆盖）
 
 已有：skill_pose 禁用、`attack_timing`（仅 attack 槽）、`frame_durations`、sN 序列互斥、`summon_visual.errors`、`AttackPhases.validate`、`h4_phase_validate`。

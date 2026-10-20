@@ -1033,6 +1033,10 @@ func bot_wants_manual(i: int) -> bool:
 ## 手写段给原生动作覆盖层的信号（native_motion.gd；名 → 进度 0–1，按优先级先后写入）
 func native_signals() -> Dictionary:
 	var out := {}
+	if prop_out():
+		out["prop"] = 1.0   # 往返弹体（星熊盾）在外面；结束 = 盾回手（json native_motion.exits 播接盾）
+	if not tx.is_empty():
+		SegTexas.tx_native_signals(self, out)   # 德克萨斯段：冲刺 / 回马剑等待
 	if not hw.is_empty():
 		SegSiege.h4_native_signals(self, out)
 		SegUlpianus.hw_native_signals(self, out)
@@ -1048,7 +1052,7 @@ func anim_state() -> Dictionary:
 	if not hw.is_empty() and hw.has("ir"):
 		st = SegIrene.e3_ir_anim(self, st)   # 精英化第 3 批：收尾斩的帧条
 	st = SegUlpianus.hw_anim_state(self, st) if not hw.is_empty() else st
-	return NativeMotion.state(self, st)
+	return _noshield(NativeMotion.state(self, st))   # 原生覆盖层换了槽，盾在外面时照样换无盾画面
 
 
 # ---------------------------------------------------------------- 手写迁移段第 3 批：干员侧询问（squad / game 按 has_method 询问；没用到的数据干员返回中性值）

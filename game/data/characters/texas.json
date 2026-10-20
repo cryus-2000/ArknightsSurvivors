@@ -4,122 +4,938 @@
  "en": "TEXAS",
  "class": "先锋",
  "branch": "尖兵",
- "faction": ["企鹅物流"],
- "col": [1.0, 0.55, 0.2],
+ "faction": [
+  "企鹅物流"
+ ],
+ "col": [
+  1.0,
+  0.55,
+  0.2
+ ],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值（docs/59 §2 / §8.2）；纯数据干员，行为在 blocks 段（docs/61 §13）。精英化形态（docs/91 §16）：pin_* 精一「钉剑」，rain_* 精二「余像·剑雨」（残像 30% → 15% 配合下调；每柄 35% 按木桩表 +33% 再按 docs/91 收到 25%）。普攻是朝最近敌人的冲刺穿行，穿过敌人给全队回技力；精一天赋「战术快递」= 她自己按 talent_cd 自动冲向附近敌群（10-12 用户「改成自动冲刺」，不再跟主控的冲刺键）；S2 把这个间隔 × s2_cd_mult",
-  "atk": 32, "cd": 1.1, "dash_len": 140, "dash_w": 44, "dash_t": 0.18, "dash_hold": 0.15, "hit_sp": 0.6,
-  "s1_r": 130, "s1_mult": 1.6, "s1_stun": 0.5, "s1_sp": 0.10,
-  "s2_len": 0.4, "s2_mult": 1.3, "s2_cd_mult": 0.8,
-  "s3_dur": 8.0, "s3_every": 0.5, "s3_mult": 0.9, "s3_stun": 0.3, "s3_sp": 0.4, "s3_end_mult": 1.6,
-  "talent_cd": 2.5, "talent_sp": 0.8, "talent_many": 3, "talent_many_sp": 0.3,
-  "n1_w": 1.3, "n2_mult": 1.15,
-  "back_delay": 0.2, "back_mult": 0.5, "rain2_delay": 0.3, "rain2_mult": 0.6, "trail_life": 0.6, "trail_mult": 0.15, "trail_slow": 0.5,
-  "pin_dur": 0.4, "rain_step": 40, "rain_r": 30, "rain_mult": 0.25, "rain_mult_s3": 0.2, "rain_stun": 0.2, "rain_fall": 0.1, "rain_gap": 0.03
+  "atk": 32,
+  "cd": 1.1,
+  "dash_len": 140,
+  "dash_w": 44,
+  "dash_t": 0.24,
+  "dash_hold": 0.2,
+  "hit_sp": 0.6,
+  "s1_r": 130,
+  "s1_mult": 1.6,
+  "s1_stun": 0.5,
+  "s1_sp": 0.1,
+  "s2_len": 0.4,
+  "s2_mult": 1.3,
+  "s2_cd_mult": 0.8,
+  "s3_dur": 8.0,
+  "s3_every": 0.5,
+  "s3_mult": 0.9,
+  "s3_stun": 0.3,
+  "s3_sp": 0.4,
+  "s3_end_mult": 1.6,
+  "talent_cd": 2.5,
+  "talent_sp": 0.8,
+  "talent_many": 3,
+  "talent_many_sp": 0.3,
+  "n1_w": 1.3,
+  "n2_mult": 1.15,
+  "back_delay": 0.3,
+  "back_mult": 0.5,
+  "rain2_delay": 0.3,
+  "rain2_mult": 0.6,
+  "trail_life": 0.6,
+  "trail_mult": 0.15,
+  "trail_slow": 0.5,
+  "pin_dur": 0.4,
+  "rain_step": 40,
+  "rain_r": 30,
+  "rain_mult": 0.25,
+  "rain_mult_s3": 0.2,
+  "rain_stun": 0.2,
+  "rain_fall": 0.1,
+  "rain_gap": 0.03
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1986 / 防御 441 / 法抗 0%，近战主控有效生命 ×1.06",
-  "max_hp": 130, "armor": 3.0, "arts_res": 0.0, "regen": 1.6
+  "max_hp": 130,
+  "armor": 3.0,
+  "arts_res": 0.0,
+  "regen": 1.6
  },
  "sprites": {
-  "idle": {"tex": "op_texas_idle", "frames": 4, "fps": 4, "foot": [28, 46]},
-  "run": {"tex": "op_texas_run", "frames": 6, "fps": 10, "foot": [20, 46]},
-  "attack": {"tex": "op_texas_attack", "frames": 5, "fps": 14, "foot": [24, 46], "fire": 1},
-  "skill": {"tex": "op_texas_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 3},
-  "skills": {"_doc": "新契约试点（docs/108 §9.1）：不改帧条只填 json。S1 / S2 单条；S3 持续 8 秒，起手播 skill、持续期站立回待机条、移动播跑步条，结束不另播收势",
-   "s1": {"anim": "skill"}, "s2": {"anim": "skill"}, "s3": {"start": "skill", "loop": "idle", "run": "run"}},
-  "size": 48, "foot": [24, 46]
+  "idle": {
+   "tex": "op_texas_idle",
+   "frames": 7,
+   "fps": 3.5,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.2857142857142857,
+    0.2857142857142857,
+    0.2857142857142857,
+    0.2857142857142857,
+    0.2857142857142857,
+    0.2857142857142857,
+    0.2857142857142857
+   ]
+  },
+  "run": {
+   "tex": "op_texas_run",
+   "frames": 8,
+   "fps": 13.333333,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075,
+    0.075
+   ]
+  },
+  "attack": {
+   "tex": "op_texas_attack",
+   "frames": 8,
+   "fps": 22.4,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.05357142857142857,
+    0.05357142857142857,
+    0.041666666666666664,
+    0.041666666666666664,
+    0.041666666666666664,
+    0.041666666666666664,
+    0.041666666666666664,
+    0.041666666666666664
+   ],
+   "fire": 2,
+   "fire_time": 0.10714285714285714
+  },
+  "skill": {
+   "tex": "op_texas_skill",
+   "frames": 8,
+   "fps": 13.714286,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.06,
+    0.08,
+    0.08,
+    0.07166666666666668,
+    0.07291666666666667,
+    0.07291666666666667,
+    0.07291666666666667,
+    0.07291666666666667
+   ],
+   "fire": 4,
+   "fire_time": 0.2916666666666667
+  },
+  "skills": {
+   "_doc": "S1 / S2 原作剑雨；S3 起步（举剑 → 压低蓄势）→ 持续期站立 idle / 移动 run，每次冲刺由 native_motion 换播 s3_dash → 结束落剑雨（skill 后 6 帧）",
+   "s1": {
+    "anim": "skill"
+   },
+   "s2": {
+    "anim": "skill"
+   },
+   "s3": {
+    "start": "s3_start",
+    "loop": "idle",
+    "run": "run",
+    "end": {
+     "anim": "skill",
+     "frames": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7
+     ]
+    }
+   }
+  },
+  "size": 64,
+  "foot": [
+   32,
+   60
+  ],
+  "back_native": {
+   "tex": "op_texas_back_native",
+   "frames": 8,
+   "fps": 10.810811,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.09999999999999999,
+    0.09999999999999999,
+    0.09999999999999999,
+    0.088,
+    0.088,
+    0.088,
+    0.088,
+    0.088
+   ]
+  },
+  "s3_start": {
+   "tex": "op_texas_s3_start",
+   "frames": 8,
+   "fps": 13.714286,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.07291666666666667,
+    0.07291666666666667,
+    0.07291666666666667,
+    0.07291666666666667,
+    0.07291666666666667,
+    0.07291666666666667,
+    0.07291666666666667,
+    0.07291666666666667
+   ],
+   "fire": 4,
+   "fire_time": 0.2916666666666667
+  },
+  "s3_dash": {
+   "tex": "op_texas_s3_dash",
+   "frames": 8,
+   "fps": 18.181818,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.055,
+    0.055,
+    0.055,
+    0.055,
+    0.055,
+    0.055,
+    0.055,
+    0.055
+   ]
+  },
+  "death": {
+   "tex": "op_texas_death",
+   "frames": 8,
+   "fps": 6.974717,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.141,
+    0.141,
+    0.141,
+    0.141,
+    0.141,
+    0.141,
+    0.141,
+    0.16
+   ]
+  }
  },
- "extra_sprites": [],
- "attack": {"mode": "auto", "name": "疾行斩", "desc": "每 {$cd} 秒朝最近敌人方向冲刺 {$dash_len}（宽 {$dash_w}，穿透），沿途全部敌人受物理伤害；穿过敌人时全队技力 +{$hit_sp} 秒（即 {$hit_sp} 秒的自然回复量）"},
- "skills": [
-  {"name": "剑雨", "en": "SWORD RAIN", "sp": 6, "desc": "以自身为中心半径 {$s1_r} 落下剑雨，×{$s1_mult} 并眩晕 {$s1_stun} 秒（精英减半，Boss 除外），全队技力 +{$s1_sp*100}%", "icon": "skill_texas_s1"},
-  {"name": "可靠伙伴", "en": "RELIABLE PARTNER", "sp": 14, "permanent": true, "desc": "充能一次后永久生效：冲刺距离 +{$s2_len*100}%、伤害 ×{$s2_mult}；「战术快递」自动冲刺的间隔 -{(1-$s2_cd_mult)*100}%（{$talent_cd} → {$talent_cd*$s2_cd_mult} 秒）", "icon": "skill_texas_s2"},
-  {"name": "剑雨滂沱", "en": "TORRENTIAL SWORD RAIN", "sp": 20, "dur": 8.0, "desc": "{$s3_dur} 秒内每 {$s3_every} 秒向敌群最密处冲刺一次（×{$s3_mult}），穿过的敌人眩晕 {$s3_stun} 秒、全队技力 +{$s3_sp} 秒；结束时在最后的落点落下剑雨 ×{$s3_end_mult}", "icon": "skill_texas_s3"}
+ "extra_sprites": [
+  "death",
+  "back_native",
+  "s3_start",
+  "s3_dash"
  ],
- "talent": {"name": "战术快递", "desc": "每 {$talent_cd} 秒自动朝附近敌群最密处冲刺一次（她自己冲；她当队长时带着队长冲，你的冲刺键照旧），穿过敌人时全队技力 +{$talent_sp} 秒；一次冲刺穿过 {$talent_many} 名以上敌人时额外 +{$talent_many_sp} 秒"},
+ "attack": {
+  "mode": "auto",
+  "name": "疾行斩",
+  "desc": "每 {$cd} 秒朝最近敌人方向冲刺 {$dash_len}（宽 {$dash_w}，穿透），沿途全部敌人受物理伤害；穿过敌人时全队技力 +{$hit_sp} 秒（即 {$hit_sp} 秒的自然回复量）"
+ },
+ "skills": [
+  {
+   "name": "剑雨",
+   "en": "SWORD RAIN",
+   "sp": 6,
+   "desc": "以自身为中心半径 {$s1_r} 落下剑雨，×{$s1_mult} 并眩晕 {$s1_stun} 秒（精英减半，Boss 除外），全队技力 +{$s1_sp*100}%",
+   "icon": "skill_texas_s1"
+  },
+  {
+   "name": "可靠伙伴",
+   "en": "RELIABLE PARTNER",
+   "sp": 14,
+   "permanent": true,
+   "desc": "充能一次后永久生效：冲刺距离 +{$s2_len*100}%、伤害 ×{$s2_mult}；「战术快递」自动冲刺的间隔 -{(1-$s2_cd_mult)*100}%（{$talent_cd} → {$talent_cd*$s2_cd_mult} 秒）",
+   "icon": "skill_texas_s2"
+  },
+  {
+   "name": "剑雨滂沱",
+   "en": "TORRENTIAL SWORD RAIN",
+   "sp": 20,
+   "dur": 8.0,
+   "desc": "{$s3_dur} 秒内每 {$s3_every} 秒向敌群最密处冲刺一次（×{$s3_mult}），穿过的敌人眩晕 {$s3_stun} 秒、全队技力 +{$s3_sp} 秒；结束时在最后的落点落下剑雨 ×{$s3_end_mult}",
+   "icon": "skill_texas_s3"
+  }
+ ],
+ "talent": {
+  "name": "战术快递",
+  "desc": "每 {$talent_cd} 秒自动朝附近敌群最密处冲刺一次（她自己冲；她当队长时带着队长冲，你的冲刺键照旧），穿过敌人时全队技力 +{$talent_sp} 秒；一次冲刺穿过 {$talent_many} 名以上敌人时额外 +{$talent_many_sp} 秒"
+ },
  "hit_sources": {
-  "疾行斩": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["pierce", "basic"]},
-  "剑雨": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "area", "stun"]},
-  "剑雨滂沱": {"emitter": "operator", "origin": "skill", "range": "近战", "kind": "物理", "tags": ["skill", "pierce", "stun"]},
-  "战术快递": {"emitter": "operator", "origin": "talent", "range": "近战", "kind": "物理", "tags": ["pierce", "basic"]},
-  "回马剑": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["follow_up", "pierce"]},
-  "余像": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "dot", "control"]},
-  "余像·剑雨": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "area", "stun"]}
+  "疾行斩": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "pierce",
+    "basic"
+   ]
+  },
+  "剑雨": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area",
+    "stun"
+   ]
+  },
+  "剑雨滂沱": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "pierce",
+    "stun"
+   ]
+  },
+  "战术快递": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "pierce",
+    "basic"
+   ]
+  },
+  "回马剑": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "follow_up",
+    "pierce"
+   ]
+  },
+  "余像": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "dot",
+    "control"
+   ]
+  },
+  "余像·剑雨": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area",
+    "stun"
+   ]
+  }
  },
  "progression": [
-  {"type": "custom", "id": "wide", "name": "阔剑", "icon": "growth_b_range", "desc": "冲刺宽度 +{$n1_w*100-100}%"},
-  {"type": "custom", "id": "sharp", "name": "利刃", "icon": "growth_b_size", "desc": "伤害 ×{$n2_mult}"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「可靠伙伴」；解锁天赋「战术快递」：每 {$talent_cd} 秒自动冲进敌群并为全队回技力；普攻「钉剑」：冲刺穿过的第一名敌人停顿 {$pin_dur} 秒（精英减半，Boss 除外）",
-   "attack": {"name": "钉剑", "desc": "每次冲刺穿过的第一名敌人身上插一柄源石剑，停顿 {$pin_dur} 秒（精英减半，Boss 除外）"}},
-  {"type": "custom", "id": "back", "name": "回马剑", "icon": "growth_b_echo", "desc": "疾行斩冲到头 {$back_delay} 秒后原路反冲一次（{$back_mult*100}% 伤害）"},
-  {"type": "custom", "id": "rain2", "name": "剑雨·连", "icon": "skill_texas_s1", "desc": "「剑雨」{$rain2_delay} 秒后在她脚下再落一次（{$rain2_mult*100}% 伤害）"},
-  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「剑雨滂沱」；普攻质变「余像」：每次冲刺的路径上留下 {$trail_life} 秒剑气残像，踩进的敌人受 {$trail_mult*100}% 伤害并减速；残像消散时沿路径每 {$rain_step} 落下一柄剑（{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒，精英减半，Boss 除外）",
-   "attack": {"name": "余像·剑雨", "desc": "冲刺路径上留下 {$trail_life} 秒剑气残像（{$trail_mult*100}% 伤害并减速）；残像消散时沿路径每 {$rain_step} 落下一柄源石剑：{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒（精英减半，Boss 除外）。「剑雨滂沱」期间每柄 {$rain_mult_s3*100}%"}}
+  {
+   "type": "custom",
+   "id": "wide",
+   "name": "阔剑",
+   "icon": "growth_b_range",
+   "desc": "冲刺宽度 +{$n1_w*100-100}%"
+  },
+  {
+   "type": "custom",
+   "id": "sharp",
+   "name": "利刃",
+   "icon": "growth_b_size",
+   "desc": "伤害 ×{$n2_mult}"
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英一",
+   "desc": "解锁二技能「可靠伙伴」；解锁天赋「战术快递」：每 {$talent_cd} 秒自动冲进敌群并为全队回技力；普攻「钉剑」：冲刺穿过的第一名敌人停顿 {$pin_dur} 秒（精英减半，Boss 除外）",
+   "attack": {
+    "name": "钉剑",
+    "desc": "每次冲刺穿过的第一名敌人身上插一柄源石剑，停顿 {$pin_dur} 秒（精英减半，Boss 除外）"
+   }
+  },
+  {
+   "type": "custom",
+   "id": "back",
+   "name": "回马剑",
+   "icon": "growth_b_echo",
+   "desc": "疾行斩冲到头 {$back_delay} 秒后原路反冲一次（{$back_mult*100}% 伤害）"
+  },
+  {
+   "type": "custom",
+   "id": "rain2",
+   "name": "剑雨·连",
+   "icon": "skill_texas_s1",
+   "desc": "「剑雨」{$rain2_delay} 秒后在她脚下再落一次（{$rain2_mult*100}% 伤害）"
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英二",
+   "desc": "解锁三技能「剑雨滂沱」；普攻质变「余像」：每次冲刺的路径上留下 {$trail_life} 秒剑气残像，踩进的敌人受 {$trail_mult*100}% 伤害并减速；残像消散时沿路径每 {$rain_step} 落下一柄剑（{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒，精英减半，Boss 除外）",
+   "attack": {
+    "name": "余像·剑雨",
+    "desc": "冲刺路径上留下 {$trail_life} 秒剑气残像（{$trail_mult*100}% 伤害并减速）；残像消散时沿路径每 {$rain_step} 落下一柄源石剑：{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒（精英减半，Boss 除外）。「剑雨滂沱」期间每柄 {$rain_mult_s3*100}%"
+   }
+  }
  ],
- "gallery": {"tags": ["近战", "位移", "穿透", "技力"], "desc": "冲刺穿过敌阵为全队回技力；不用你按，她每隔几秒自己冲进敌群"},
+ "gallery": {
+  "tags": [
+   "近战",
+   "位移",
+   "穿透",
+   "技力"
+  ],
+  "desc": "冲刺穿过敌阵为全队回技力；不用你按，她每隔几秒自己冲进敌群"
+ },
  "blocks": {
-  "attack": {"shape": "dash_line", "aim": "nearest", "r": "$dash_len", "w": "$dash_w", "t": "$dash_t", "hold": "$dash_hold", "every": "$cd",
-             "mult": 1.0, "src": "疾行斩", "tags": ["basic"], "strip": "fx_texas_dash"},
+  "attack": {
+   "shape": "dash_line",
+   "aim": "nearest",
+   "r": "$dash_len",
+   "w": "$dash_w",
+   "t": "$dash_t",
+   "hold": "$dash_hold",
+   "every": "$cd",
+   "mult": 1.0,
+   "src": "疾行斩",
+   "tags": [
+    "basic"
+   ],
+   "strip": "fx_texas_dash"
+  },
   "trait": [
-   {"trig": "on_dash_end", "src": "疾行斩", "min_hits": 1, "do": [{"verb": "sp_secs", "seconds": "$hit_sp"}]},
-   {"trig": "tick", "every": "$s3_every", "cond": "skill_active:2", "do": [
-    {"shape": "dash_line", "aim": "densest", "r": "$dash_len", "w": "$dash_w", "t": "$dash_t", "hold": "$dash_hold", "mult": "$s3_mult", "power": true,
-     "src": "剑雨滂沱", "tags": ["skill"], "strip": "fx_texas_dash", "sfx": "atk", "on_hit": [{"st": "stun", "dur": "$s3_stun"}]},
-    {"verb": "sp_secs", "seconds": "$s3_sp"}]},
-   {"trig": "on_skill_end", "skill": 2, "do": [
-    {"shape": "circle", "center": "target", "r": "$s1_r", "mult": "$s3_end_mult", "power": true, "src": "剑雨", "tags": ["skill"]},
-    {"verb": "fx_rain", "strip": "fx_texas_blade", "hit": "fx_texas_rain_hit", "mark": "fx_texas_rain_mark", "r": "$s1_r", "center": "target", "density": 6.5, "n_max": 56, "on_enemies": 0.4, "stagger": 0.5, "fall": 120, "fall_t": 0.1, "fall_frames": 2, "mark_frames": 3, "scale": 0.95, "streak": 2, "hit_scale": 1.2, "scorch": 0.6,
-     "finale": {"scale": 1.8, "ring": 1.0, "col": [1.0, 0.86, 0.45, 0.9]}}]}
+   {
+    "trig": "on_dash_end",
+    "src": "疾行斩",
+    "min_hits": 1,
+    "do": [
+     {
+      "verb": "sp_secs",
+      "seconds": "$hit_sp"
+     }
+    ]
+   },
+   {
+    "trig": "tick",
+    "every": "$s3_every",
+    "cond": "skill_active:2",
+    "do": [
+     {
+      "shape": "dash_line",
+      "aim": "densest",
+      "r": "$dash_len",
+      "w": "$dash_w",
+      "t": "$dash_t",
+      "hold": "$dash_hold",
+      "mult": "$s3_mult",
+      "power": true,
+      "src": "剑雨滂沱",
+      "tags": [
+       "skill"
+      ],
+      "strip": "fx_texas_dash",
+      "sfx": "atk",
+      "on_hit": [
+       {
+        "st": "stun",
+        "dur": "$s3_stun"
+       }
+      ]
+     },
+     {
+      "verb": "sp_secs",
+      "seconds": "$s3_sp"
+     }
+    ]
+   },
+   {
+    "trig": "on_skill_end",
+    "skill": 2,
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$s1_r",
+      "mult": "$s3_end_mult",
+      "power": true,
+      "src": "剑雨",
+      "tags": [
+       "skill"
+      ]
+     },
+     {
+      "verb": "fx_rain",
+      "strip": "fx_texas_blade",
+      "hit": "fx_texas_rain_hit",
+      "mark": "fx_texas_rain_mark",
+      "r": "$s1_r",
+      "center": "target",
+      "density": 6.5,
+      "n_max": 56,
+      "on_enemies": 0.4,
+      "stagger": 0.5,
+      "fall": 120,
+      "fall_t": 0.1,
+      "fall_frames": 2,
+      "mark_frames": 3,
+      "scale": 0.95,
+      "streak": 2,
+      "hit_scale": 1.2,
+      "scorch": 0.6,
+      "finale": {
+       "scale": 1.8,
+       "ring": 1.0,
+       "col": [
+        1.0,
+        0.86,
+        0.45,
+        0.9
+       ]
+      }
+     }
+    ]
+   }
   ],
   "skills": [
-   {"dur": 0, "do": [
-    {"shape": "circle", "center": "self", "r": "$s1_r", "mult": "$s1_mult", "power": true, "src": "剑雨", "tags": ["skill"], "on_hit": [{"st": "stun", "dur": "$s1_stun"}]},
-    {"verb": "sp_team", "pct": "$s1_sp"},
-    {"verb": "fx_rain", "strip": "fx_texas_blade", "hit": "fx_texas_rain_hit", "mark": "fx_texas_rain_mark", "r": "$s1_r", "center": "self", "density": 4.0, "on_enemies": 0.5, "stagger": 0.4, "fall": 96, "fall_t": 0.1, "fall_frames": 2, "mark_frames": 3, "scale": 0.7, "streak": 2}]},
-   {"dur": "permanent", "do": [
-    {"verb": "dash_mod", "len_add": "$s2_len"},
-    {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$s2_mult"}]},
-   {"dur": "$s3_dur", "do": [
-    {"verb": "mode", "no_attack": true}]}
+   {
+    "dur": 0,
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$s1_r",
+      "mult": "$s1_mult",
+      "power": true,
+      "src": "剑雨",
+      "tags": [
+       "skill"
+      ],
+      "on_hit": [
+       {
+        "st": "stun",
+        "dur": "$s1_stun"
+       }
+      ]
+     },
+     {
+      "verb": "sp_team",
+      "pct": "$s1_sp"
+     },
+     {
+      "verb": "fx_rain",
+      "strip": "fx_texas_blade",
+      "hit": "fx_texas_rain_hit",
+      "mark": "fx_texas_rain_mark",
+      "r": "$s1_r",
+      "center": "self",
+      "density": 4.0,
+      "on_enemies": 0.5,
+      "stagger": 0.4,
+      "fall": 96,
+      "fall_t": 0.1,
+      "fall_frames": 2,
+      "mark_frames": 3,
+      "scale": 0.7,
+      "streak": 2
+     }
+    ]
+   },
+   {
+    "dur": "permanent",
+    "do": [
+     {
+      "verb": "dash_mod",
+      "len_add": "$s2_len"
+     },
+     {
+      "verb": "buff_self",
+      "stat": "dmg",
+      "op": "mult",
+      "value": "$s2_mult"
+     }
+    ]
+   },
+   {
+    "dur": "$s3_dur",
+    "do": [
+     {
+      "verb": "mode",
+      "no_attack": true
+     }
+    ]
+   }
   ],
   "talent": [
-   {"trig": "tick", "every": "$talent_cd", "cond": "!skill_active:1", "do": [
-    {"shape": "dash_line", "aim": "densest", "r": "$dash_len", "w": "$dash_w", "t": "$dash_t", "hold": "$dash_hold", "mult": 1.0,
-     "src": "战术快递", "tags": ["basic"], "strip": "fx_texas_dash", "sfx": "atk"}]},
-   {"trig": "tick", "every": "$talent_cd*$s2_cd_mult", "cond": "skill_active:1", "do": [
-    {"shape": "dash_line", "aim": "densest", "r": "$dash_len", "w": "$dash_w", "t": "$dash_t", "hold": "$dash_hold", "mult": 1.0,
-     "src": "战术快递", "tags": ["basic"], "strip": "fx_texas_dash", "sfx": "atk"}]},
-   {"trig": "on_dash_end", "src": "战术快递", "min_hits": 1, "do": [{"verb": "sp_secs", "seconds": "$talent_sp"}]},
-   {"trig": "on_dash_end", "src": "疾行斩", "min_hits": "$talent_many", "do": [{"verb": "sp_secs", "seconds": "$talent_many_sp"}]},
-   {"trig": "on_dash_end", "src": "战术快递", "min_hits": "$talent_many", "do": [{"verb": "sp_secs", "seconds": "$talent_many_sp"}]}
+   {
+    "trig": "tick",
+    "every": "$talent_cd",
+    "cond": "!skill_active:1",
+    "do": [
+     {
+      "shape": "dash_line",
+      "aim": "densest",
+      "r": "$dash_len",
+      "w": "$dash_w",
+      "t": "$dash_t",
+      "hold": "$dash_hold",
+      "mult": 1.0,
+      "src": "战术快递",
+      "tags": [
+       "basic"
+      ],
+      "strip": "fx_texas_dash",
+      "sfx": "atk"
+     }
+    ]
+   },
+   {
+    "trig": "tick",
+    "every": "$talent_cd*$s2_cd_mult",
+    "cond": "skill_active:1",
+    "do": [
+     {
+      "shape": "dash_line",
+      "aim": "densest",
+      "r": "$dash_len",
+      "w": "$dash_w",
+      "t": "$dash_t",
+      "hold": "$dash_hold",
+      "mult": 1.0,
+      "src": "战术快递",
+      "tags": [
+       "basic"
+      ],
+      "strip": "fx_texas_dash",
+      "sfx": "atk"
+     }
+    ]
+   },
+   {
+    "trig": "on_dash_end",
+    "src": "战术快递",
+    "min_hits": 1,
+    "do": [
+     {
+      "verb": "sp_secs",
+      "seconds": "$talent_sp"
+     }
+    ]
+   },
+   {
+    "trig": "on_dash_end",
+    "src": "疾行斩",
+    "min_hits": "$talent_many",
+    "do": [
+     {
+      "verb": "sp_secs",
+      "seconds": "$talent_many_sp"
+     }
+    ]
+   },
+   {
+    "trig": "on_dash_end",
+    "src": "战术快递",
+    "min_hits": "$talent_many",
+    "do": [
+     {
+      "verb": "sp_secs",
+      "seconds": "$talent_many_sp"
+     }
+    ]
+   }
   ],
   "progression": {
-   "wide": {"verb": "dash_mod", "w_mult": "$n1_w"},
-   "sharp": {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$n2_mult"},
-   "back": {"trig": "on_dash_end", "src": "疾行斩", "delay": "$back_delay", "do": [
-    {"shape": "dash_line", "aim": "reverse", "r": "$dash_len", "w": "$dash_w", "t": "$dash_t", "mult": "$back_mult", "src": "回马剑", "tags": ["follow_up"], "strip": "fx_texas_dash"}]},
-   "rain2": {"trig": "on_skill_start", "skill": 0, "delay": "$rain2_delay", "do": [
-    {"shape": "circle", "center": "self", "r": "$s1_r", "mult": "$rain2_mult", "power": true, "src": "剑雨", "tags": ["skill"]},
-    {"verb": "fx_rain", "strip": "fx_texas_blade", "hit": "fx_texas_rain_hit", "mark": "fx_texas_rain_mark", "r": "$s1_r", "center": "self", "density": 2.0, "on_enemies": 0.5, "stagger": 0.3, "fall": 80, "fall_t": 0.1, "fall_frames": 2, "mark_frames": 3, "scale": 0.6, "streak": 1, "alpha": 0.75, "scorch": 0.3}]},
-   "elite1": {"verb": "dash_mod", "_doc": "钉剑（docs/91 §16）：每次冲刺（普攻 / 战术快递 / 剑雨滂沱 / 回马剑）扫到的第一名敌人停顿，身上插一柄源石剑，消失时碎成红光",
-    "on_hit": [{"st": "stun", "dur": "$pin_dur", "first_only": true, "fx": [
-     {"strip": "fx_texas_pin_sword", "anchor": [6, 22], "off": [0, -8], "scale": 1.15, "stay": "$pin_dur"},
-     {"strip": "fx_texas_pin_shatter", "off": [0, -18], "delay": "$pin_dur"},
-     {"strip": "fx_texas_rain_mark", "if_tex": "!fx_texas_pin_sword", "layer": "floor", "scale": 0.8}]}]},
-   "elite2": {"trig": "on_dash_end", "do": [
-    {"verb": "trail", "life": "$trail_life", "mult": "$trail_mult", "src": "余像", "tags": ["dot"], "on_hit": [{"st": "slow", "dur": "$trail_slow"}],
-     "_doc": "余像·剑雨（docs/91 §16）：残像消散时沿路径每 rain_step 落一柄剑，从起点到终点间隔 rain_gap 秒；伤害在各自落地时结算",
-     "on_expire": [
-      {"shape": "circle", "center": "path", "step": "$rain_step", "r": "$rain_r", "delay": "$rain_fall", "stagger": "$rain_gap", "mult": "$rain_mult", "cond": "!skill_active:2",
-       "ring": false, "src": "余像·剑雨", "tags": ["basic"], "on_hit": [{"st": "stun", "dur": "$rain_stun"}]},
-      {"shape": "circle", "center": "path", "step": "$rain_step", "r": "$rain_r", "delay": "$rain_fall", "stagger": "$rain_gap", "mult": "$rain_mult_s3", "cond": "skill_active:2",
-       "ring": false, "src": "余像·剑雨", "tags": ["basic"], "on_hit": [{"st": "stun", "dur": "$rain_stun"}]},
-      {"verb": "fx_rain", "along": "path", "step": "$rain_step", "if_tex": "fx_texas_sword_drop", "strip": "fx_texas_sword_drop", "anchor": [6, 38], "fall_frames": 4,
-       "hit": "fx_texas_sword_impact", "hit_anchor": [16, 8], "stagger": "$rain_gap", "fall": 70, "fall_t": "$rain_fall", "stick": 0.3, "scorch": 0.0, "streak": 1, "scale": 0.9, "tilt": 3},
-      {"verb": "fx_rain", "along": "path", "step": "$rain_step", "if_tex": "!fx_texas_sword_drop", "strip": "fx_texas_blade", "hit": "fx_texas_rain_hit", "mark": "fx_texas_rain_mark",
-       "stagger": "$rain_gap", "fall": 70, "fall_t": "$rain_fall", "fall_frames": 2, "mark_frames": 3, "stick": 0.3, "scorch": 0.3, "streak": 1, "scale": 0.6, "tilt": 3}]}]}
+   "wide": {
+    "verb": "dash_mod",
+    "w_mult": "$n1_w"
+   },
+   "sharp": {
+    "verb": "buff_self",
+    "stat": "dmg",
+    "op": "mult",
+    "value": "$n2_mult"
+   },
+   "back": {
+    "trig": "on_dash_end",
+    "src": "疾行斩",
+    "delay": "$back_delay",
+    "do": [
+     {
+      "shape": "dash_line",
+      "aim": "reverse",
+      "r": "$dash_len",
+      "w": "$dash_w",
+      "t": "$dash_t",
+      "hold": "$dash_hold",
+      "mult": "$back_mult",
+      "src": "回马剑",
+      "tags": [
+       "follow_up"
+      ],
+      "strip": "fx_texas_dash"
+     }
+    ]
+   },
+   "rain2": {
+    "trig": "on_skill_start",
+    "skill": 0,
+    "delay": "$rain2_delay",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$s1_r",
+      "mult": "$rain2_mult",
+      "power": true,
+      "src": "剑雨",
+      "tags": [
+       "skill"
+      ]
+     },
+     {
+      "verb": "fx_rain",
+      "strip": "fx_texas_blade",
+      "hit": "fx_texas_rain_hit",
+      "mark": "fx_texas_rain_mark",
+      "r": "$s1_r",
+      "center": "self",
+      "density": 2.0,
+      "on_enemies": 0.5,
+      "stagger": 0.3,
+      "fall": 80,
+      "fall_t": 0.1,
+      "fall_frames": 2,
+      "mark_frames": 3,
+      "scale": 0.6,
+      "streak": 1,
+      "alpha": 0.75,
+      "scorch": 0.3
+     }
+    ]
+   },
+   "elite1": {
+    "verb": "dash_mod",
+    "_doc": "钉剑（docs/91 §16）：每次冲刺（普攻 / 战术快递 / 剑雨滂沱 / 回马剑）扫到的第一名敌人停顿，身上插一柄源石剑，消失时碎成红光",
+    "on_hit": [
+     {
+      "st": "stun",
+      "dur": "$pin_dur",
+      "first_only": true,
+      "fx": [
+       {
+        "strip": "fx_texas_pin_sword",
+        "anchor": [
+         6,
+         22
+        ],
+        "off": [
+         0,
+         -8
+        ],
+        "scale": 1.15,
+        "stay": "$pin_dur"
+       },
+       {
+        "strip": "fx_texas_pin_shatter",
+        "off": [
+         0,
+         -18
+        ],
+        "delay": "$pin_dur"
+       },
+       {
+        "strip": "fx_texas_rain_mark",
+        "if_tex": "!fx_texas_pin_sword",
+        "layer": "floor",
+        "scale": 0.8
+       }
+      ]
+     }
+    ]
+   },
+   "elite2": {
+    "trig": "on_dash_end",
+    "do": [
+     {
+      "verb": "trail",
+      "life": "$trail_life",
+      "mult": "$trail_mult",
+      "src": "余像",
+      "tags": [
+       "dot"
+      ],
+      "on_hit": [
+       {
+        "st": "slow",
+        "dur": "$trail_slow"
+       }
+      ],
+      "_doc": "余像·剑雨（docs/91 §16）：残像消散时沿路径每 rain_step 落一柄剑，从起点到终点间隔 rain_gap 秒；伤害在各自落地时结算",
+      "on_expire": [
+       {
+        "shape": "circle",
+        "center": "path",
+        "step": "$rain_step",
+        "r": "$rain_r",
+        "delay": "$rain_fall",
+        "stagger": "$rain_gap",
+        "mult": "$rain_mult",
+        "cond": "!skill_active:2",
+        "ring": false,
+        "src": "余像·剑雨",
+        "tags": [
+         "basic"
+        ],
+        "on_hit": [
+         {
+          "st": "stun",
+          "dur": "$rain_stun"
+         }
+        ]
+       },
+       {
+        "shape": "circle",
+        "center": "path",
+        "step": "$rain_step",
+        "r": "$rain_r",
+        "delay": "$rain_fall",
+        "stagger": "$rain_gap",
+        "mult": "$rain_mult_s3",
+        "cond": "skill_active:2",
+        "ring": false,
+        "src": "余像·剑雨",
+        "tags": [
+         "basic"
+        ],
+        "on_hit": [
+         {
+          "st": "stun",
+          "dur": "$rain_stun"
+         }
+        ]
+       },
+       {
+        "verb": "fx_rain",
+        "along": "path",
+        "step": "$rain_step",
+        "if_tex": "fx_texas_sword_drop",
+        "strip": "fx_texas_sword_drop",
+        "anchor": [
+         6,
+         38
+        ],
+        "fall_frames": 4,
+        "hit": "fx_texas_sword_impact",
+        "hit_anchor": [
+         16,
+         8
+        ],
+        "stagger": "$rain_gap",
+        "fall": 70,
+        "fall_t": "$rain_fall",
+        "stick": 0.3,
+        "scorch": 0.0,
+        "streak": 1,
+        "scale": 0.9,
+        "tilt": 3
+       },
+       {
+        "verb": "fx_rain",
+        "along": "path",
+        "step": "$rain_step",
+        "if_tex": "!fx_texas_sword_drop",
+        "strip": "fx_texas_blade",
+        "hit": "fx_texas_rain_hit",
+        "mark": "fx_texas_rain_mark",
+        "stagger": "$rain_gap",
+        "fall": 70,
+        "fall_t": "$rain_fall",
+        "fall_frames": 2,
+        "mark_frames": 3,
+        "stick": 0.3,
+        "scorch": 0.3,
+        "streak": 1,
+        "scale": 0.6,
+        "tilt": 3
+       }
+      ]
+     }
+    ]
+   }
   }
+ },
+ "native_motion": {
+  "_doc": "原生动作覆盖层（docs/108 §3.5）：信号来自 seg_texas.tx_native_signals；冲刺按进度播（普攻 / 天赋 = attack 2–7、技能 = s3_dash、回马剑 = 等待段 back_native 0–2 + 反冲 3–7）",
+  "states": [
+   {
+    "on": "dash.reverse",
+    "slot": "back_native",
+    "from": 3,
+    "to": 7,
+    "rate": 5
+   },
+   {
+    "on": "wait.reverse",
+    "slot": "back_native",
+    "from": 0,
+    "to": 2,
+    "rate": 3
+   },
+   {
+    "on": "dash.skill",
+    "slot": "s3_dash",
+    "from": 0,
+    "to": 7,
+    "rate": 8
+   },
+   {
+    "on": "dash",
+    "slot": "attack",
+    "from": 2,
+    "to": 7,
+    "rate": 6
+   }
+  ]
  }
 }

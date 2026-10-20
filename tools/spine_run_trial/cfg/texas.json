@@ -38,7 +38,8 @@
   "R"
  ],
  "params": {
-  "lean": 10
+  "lean": 10,
+  "bob": 0.7
  },
  "secondary": [
   {

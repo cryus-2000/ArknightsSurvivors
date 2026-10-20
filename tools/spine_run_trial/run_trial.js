@@ -160,6 +160,7 @@ async function main() {
   }
 
   function frame(i) {
+    if (cfg.keys?.[i]?.from) return deltaFrame(i, cfg.keys[i]);
     if (cfg.keys?.[i]?.view === 'B') return backFrame(i, cfg.keys[i]);
     // sample：直接按时间采样现成的 Spine 动画（如 Codex 交来的候选动画），只做像素化
     if (cfg.sample) {
@@ -271,6 +272,71 @@ async function main() {
     return finish(sk, contacts);
   }
 
+  // 增量关键帧（10-20，德克萨斯 / 星熊）：以原作动画某时刻的姿势为底稿（from: [动画, 秒]），只在上面做增量——
+  //   hipX / hipY（腿长单位）、lean（前倾度数）、chest / head（度）、legs（同 keyedFrame：着地放脚 / 空中相对髋）、
+  //   arms {侧: [上臂, 前臂]}（世界角，同 keyedFrame）、armRot {侧: [上臂, 前臂, 手]}（相对转角，度，+ = 向前上挥）、
+  //   rot {骨: 度}（相对转角，+ = 逆时针，朝右时即向后仰）、weapon（武器世界角，同 keyedFrame）/ weaponRot（绕握点相对转角）/ weaponScale（沿剑身压短，透视）、plant（整体平移让最低的鞋底贴地）、
+  //   hide [槽]、top [槽]、flip（整帧镜像）、sec（加次级摆动）。
+  //   cfg.attach {武器骨: 跟随骨}：武器不是手的子骨（德克萨斯的剑挂在髋上、由约束跟手）时，按底稿里的相对变换重新贴到跟随骨上
+  const affine = b => [b.a, b.b, b.c, b.d, b.worldX, b.worldY];
+  const mul = (M, N) => [M[0] * N[0] + M[1] * N[2], M[0] * N[1] + M[1] * N[3], M[2] * N[0] + M[3] * N[2], M[2] * N[1] + M[3] * N[3],
+    M[0] * N[4] + M[1] * N[5] + M[4], M[2] * N[4] + M[3] * N[5] + M[5]];
+  const inv = M => { const d = M[0] * M[3] - M[1] * M[2], a = M[3] / d, b = -M[1] / d, c = -M[2] / d, e = M[0] / d;
+    return [a, b, c, e, -(a * M[4] + b * M[5]), -(c * M[4] + e * M[5])]; };
+  function applyAffine(sk, root, D) {
+    for (const p of branch(sk, root)) { const n = mul(D, affine(p)); [p.a, p.b, p.c, p.d, p.worldX, p.worldY] = n; }
+  }
+  // cfg.attach 在跑步 / 关键帧模式下按待机 t=0 的相对变换贴回
+  const relBase = {};
+  for (const [w, t] of Object.entries(cfg.attach || {})) relBase[w] = mul(inv(affine(get(base, t))), affine(get(base, w)));
+  function reattach(sk) {
+    for (const [w, t] of Object.entries(cfg.attach || {})) { const W = get(sk, w); applyAffine(sk, W, mul(mul(affine(get(sk, t)), relBase[w]), inv(affine(W)))); }
+  }
+  function deltaFrame(i, k) {
+    const sk = pose(k.from[0], k.from[1]), f = P.facing, hip = get(sk, cfg.body.hip);
+    const rel = {};
+    for (const [w, t] of Object.entries(cfg.attach || {})) rel[w] = mul(inv(affine(get(sk, t))), affine(get(sk, w)));
+    if (k.hipX || k.hipY) move(sk, hip, f * (k.hipX || 0) * L, (k.hipY || 0) * L);
+    if (k.lean) rotate(sk, hip, -f * k.lean);
+    if (k.chest && cfg.body.chest) rotate(sk, get(sk, cfg.body.chest), -f * k.chest);
+    if (k.head && cfg.body.head) rotate(sk, get(sk, cfg.body.head), f * k.head);
+    for (const [n, d] of Object.entries(k.rot || {})) rotate(sk, get(sk, n), f * d);
+    const contacts = [];
+    for (const side of ['L', 'R']) {
+      const leg = k.legs?.[side];
+      if (!leg) continue;
+      const [a, b, c] = cfg.legs[side].map(n => get(sk, n)), info = legInfo[side];
+      const setFoot = () => rotate(sk, c, info.foot + f * (leg.foot || 0) - ang(c));
+      if (leg.ground) {
+        const tx = a.worldX + f * leg.x * L; let ty = ground + info.ankleAbove;
+        ik(sk, a, b, c, [tx, ty], f); setFoot();
+        for (let n = 0; n < 6; n++) { const err = bottom(sk, side) - ground; if (Math.abs(err) < 0.05) break; ty -= err; ik(sk, a, b, c, [tx, ty], f); setFoot(); }
+      } else { ik(sk, a, b, c, [a.worldX + f * leg.x * L, a.worldY + leg.y * L], f); setFoot(); }
+      contacts.push({ side, ground: !!leg.ground, gap: +(bottom(sk, side) - ground).toFixed(2) });
+    }
+    for (const side of ['L', 'R']) {
+      const [a, b, c] = cfg.arms[side].map(n => get(sk, n));
+      const arm = k.arms?.[side];
+      if (arm) { aim(sk, a, b, f > 0 ? arm[0] : 180 - arm[0]); aim(sk, b, c, f > 0 ? arm[1] : 180 - arm[1]); }
+      const r = k.armRot?.[side];
+      if (r) { rotate(sk, a, f * (r[0] || 0)); rotate(sk, b, f * (r[1] || 0)); if (r[2]) rotate(sk, c, f * r[2]); }
+    }
+    for (const [w, t] of Object.entries(cfg.attach || {})) {
+      const W = get(sk, w); applyAffine(sk, W, mul(mul(affine(get(sk, t)), rel[w]), inv(affine(W))));
+    }
+    if (k.weapon != null && cfg.weapon) { const g = get(sk, cfg.arms[hold][2]), w = get(sk, cfg.weapon); rotate(sk, w, (f > 0 ? k.weapon : 180 - k.weapon) - ang(w), [g.worldX, g.worldY]); }
+    if (k.weaponRot && cfg.weapon) { const g = get(sk, cfg.arms[hold][2]); rotate(sk, get(sk, cfg.weapon), f * k.weaponRot, [g.worldX, g.worldY]); }
+    if (k.weaponScale && cfg.weapon) { const g = get(sk, cfg.arms[hold][2]); foreshorten(sk, get(sk, cfg.weapon), g, k.weaponScale); }
+    if (k.sec) secondary(sk, i / (cfg.keys.length) * 2 * Math.PI);
+    if (k.plant) {
+      const dy = ground - Math.min(bottom(sk, 'L'), bottom(sk, 'R')) + (k.lift || 0) / SCALE;
+      move(sk, sk.bones[0], 0, dy);
+    }
+    for (const n of k.hide || []) { const s = sk.findSlot(n); if (s) s.attachment = null; }
+    for (const n of k.top || []) { const t = sk.findSlot(n); sk.drawOrder = sk.drawOrder.filter(x => x !== t); sk.drawOrder.push(t); }
+    return finish(sk, contacts);
+  }
+
   // 背面视角（原作骨架自带 B_* 背面部件，Idle 里隐藏）：用 setup 姿势，只显示 B_ 槽，鞋底贴地；可转持剑臂与剑
   function backFrame(i, k) {
     const sk = new sp.Skeleton(data); sk.setToSetupPose(); sk.updateWorldTransform();
@@ -300,6 +366,7 @@ async function main() {
   // 刀光示意：剑贴图离手最远的顶点当剑尖（像素坐标），供预览叠一道拖影，不进帧条
   function swordLine(sk, i) {
     const k = cfg.keys?.[i] || {}, back = k.view === 'B';
+    if (!(back ? cfg.back?.weaponSlot : cfg.weaponSlot) || !hold) return null;
     const slot = sk.findSlot(back ? cfg.back.weaponSlot : cfg.weaponSlot), att = slot?.getAttachment();
     if (!att) return null;
     const hand = get(sk, back ? cfg.back.arm[2] : cfg.arms[hold][2]), v = verts(sp, slot, att);
@@ -351,6 +418,7 @@ async function main() {
       }
     }
     if (cfg.weapon && hold) {
+      reattach(sk);
       const w = get(sk, cfg.weapon), grip = get(sk, cfg.arms[hold][2]);
       rotate(sk, w, (cfg.holdPose?.weapon ?? weaponBase) - f * P.lean * P.weaponLean + P.weaponSway * Math.sin(2 * phi - 1.0) - ang(w), [grip.worldX, grip.worldY]);
       // grip：武器局部坐标里的握把点；原姿势手不在握把上时（斯卡蒂大剑立在身后），把握把点移到手上
