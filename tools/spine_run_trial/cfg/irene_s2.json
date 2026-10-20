@@ -1,0 +1,93 @@
+{
+ "id": "irene",
+ "src": "irene.src.json",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "canvas": 256,
+ "action": "s2",
+ "poses": [
+  {
+   "anim": "Skill_2",
+   "t": 0,
+   "hide": [
+    "F_Weapon(2)"
+   ]
+  },
+  {
+   "anim": "Skill_2",
+   "t": 0.141,
+   "hide": [
+    "F_Weapon(2)"
+   ]
+  },
+  {
+   "anim": "Skill_2",
+   "t": 0.267,
+   "hide": [
+    "F_Weapon(2)"
+   ]
+  },
+  {
+   "anim": "Skill_2",
+   "t": 0.424,
+   "hide": [
+    "F_Weapon(2)"
+   ]
+  },
+  {
+   "anim": "Skill_2",
+   "t": 0.566,
+   "hide": [
+    "F_Weapon(2)"
+   ]
+  },
+  {
+   "anim": "Skill_2",
+   "t": 0.707,
+   "hide": [
+    "F_Weapon(2)"
+   ]
+  },
+  {
+   "anim": "Skill_2",
+   "t": 0.849,
+   "hide": [
+    "F_Weapon(2)"
+   ]
+  },
+  {
+   "anim": "Skill_2",
+   "t": 0.99,
+   "hide": [
+    "F_Weapon(2)"
+   ]
+  }
+ ]
+}

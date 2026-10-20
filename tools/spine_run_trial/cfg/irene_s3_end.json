@@ -1,0 +1,77 @@
+{
+ "id": "irene",
+ "src": "irene.src.json",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "canvas": 192,
+ "action": "s3_end",
+ "poses": [
+  {
+   "anim": "Skill_3_Attack",
+   "t": 2.47,
+   "opaque": true
+  },
+  {
+   "anim": "Skill_3_Attack",
+   "t": 2.75,
+   "opaque": true
+  },
+  {
+   "anim": "Skill_3_Attack",
+   "t": 3.0,
+   "opaque": true
+  },
+  {
+   "anim": "Skill_3_Attack",
+   "t": 3.15,
+   "opaque": true
+  },
+  {
+   "anim": "Skill_3_Attack",
+   "t": 3.3,
+   "opaque": true
+  },
+  {
+   "anim": "Skill_3_Attack",
+   "t": 3.5,
+   "opaque": true
+  },
+  {
+   "anim": "Skill_3_Attack",
+   "t": 3.65,
+   "opaque": true
+  },
+  {
+   "anim": "Skill_3_Attack",
+   "t": 3.82,
+   "opaque": true
+  }
+ ]
+}

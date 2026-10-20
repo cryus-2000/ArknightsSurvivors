@@ -1,0 +1,141 @@
+{
+ "id": "lumen",
+ "src": "lumen.src.json",
+ "leadLeg": "L",
+ "nearSide": "L",
+ "name": "流明",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "hold": "R",
+ "weapon": "F_Weapon",
+ "relativeArms": [
+  "L"
+ ],
+ "follow": [
+  [
+   "F_Kaban",
+   "F_L_Bag",
+   "hang"
+  ]
+ ],
+ "params": {
+  "lean": 8,
+  "holdAmp": 6,
+  "weaponSway": 2,
+  "relAmp": 8
+ },
+ "secondary": [
+  {
+   "match": "^F_(L|R)_Hair_[1-9]$|^F_(L|R)_B_Hair[2_]?[0-9]?$|^F_Silly_Hair[2-4]?$",
+   "amp": 2.5,
+   "drag": 3
+  },
+  {
+   "match": "^F_B_Coat[2-8]?$|^F_(L|R)_Coat_Front[23]?$",
+   "amp": 3,
+   "drag": 3,
+   "lag": 1.3,
+   "gravity": 0.8
+  },
+  {
+   "match": "^F_(L|R)_(Shawl|Scarf)[2-7]?$|^F_(L|R)_String_(Blue|Brown|Long|[1-6])[2-4]?$|^F_R_Coat_String[23]?$|^F_Tie_(Up|Middle)_[1-5]$",
+   "amp": 3,
+   "drag": 4,
+   "lag": 1.2,
+   "gravity": 0.5
+  },
+  {
+   "match": "^F_Kaban_[2-5]$",
+   "amp": 5,
+   "drag": 6,
+   "lag": 1.5
+  }
+ ],
+ "relOffset": {
+  "L": [
+   -6,
+   38
+  ]
+ },
+ "order": [
+  [
+   "F_Kaban_3",
+   "F_R_Foot"
+  ],
+  [
+   "F_Kaban",
+   "F_R_Foot"
+  ],
+  [
+   "F_Kaban_4",
+   "F_R_Foot"
+  ],
+  [
+   "F_Kaban_2",
+   "F_R_Foot"
+  ],
+  [
+   "F_Kaban_Annex",
+   "F_R_Foot"
+  ],
+  [
+   "C_Light",
+   "F_R_Foot"
+  ],
+  [
+   "F_Kaban_5",
+   "F_R_Foot"
+  ],
+  [
+   "F_Kaban_1",
+   "F_R_Foot"
+  ],
+  [
+   "C_Key_Ring",
+   "F_R_Foot"
+  ],
+  [
+   "C_Key_3",
+   "F_R_Foot"
+  ],
+  [
+   "C_Key_2",
+   "F_R_Foot"
+  ],
+  [
+   "C_Key_1",
+   "F_R_Foot"
+  ],
+  [
+   "C_Keycard",
+   "F_R_Foot"
+  ]
+ ]
+}

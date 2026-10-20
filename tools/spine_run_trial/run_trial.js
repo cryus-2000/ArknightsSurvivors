@@ -109,6 +109,7 @@ async function main() {
     const sk = pose('Idle', 0), f = P.facing, phi = i / 8 * 2 * Math.PI;
     const hip = get(sk, cfg.body.hip);
     if (cfg.mode === 'float') return floatFrame(sk, i, phi);
+    if (cfg.poses) return posedFrame(i, cfg.poses[i]);
     if (cfg.keys) return keyedFrame(sk, i, cfg.keys[i], phi);
     // 1) 躯干：前倾 + 起伏；胸再前倾一点，头部回正一部分（保持脸可读）
     move(sk, hip, 0, BOB[i] * L * P.bob);
@@ -136,9 +137,60 @@ async function main() {
       }
       contacts.push({ side, phase: k, support: stance, gap: +(bottom(sk, side) - ground).toFixed(2) });
     }
+    const fol = followStart(sk);
     arms(sk, i, phi);
+    followEnd(sk, fol);
     secondary(sk, phi);
     return finish(sk, contacts);
+  }
+
+  // follow：[[随动骨, 目标骨]]——原作用变换约束把道具挂在手上（艾丽妮提灯、流明提包），世界空间改手臂后约束不会重算，这里按目标的位移和转角整枝带过去
+  function followStart(sk) { return (cfg.follow || []).map(([b, t, mode]) => { const tb = get(sk, t); return { b, t, hang: mode === 'hang', x: tb.worldX, y: tb.worldY, r: ang(tb) }; }); }
+  function followEnd(sk, fol) {
+    for (const f of fol) { const b = get(sk, f.b), t = get(sk, f.t); move(sk, b, t.worldX - f.x, t.worldY - f.y); if (!f.hang) rotate(sk, b, ang(t) - f.r, [t.worldX, t.worldY]); }
+  }
+
+  // 姿势关键帧（新动作）：每帧取一条原生动画的某一时刻（可再叠第二条动画按比例混合），再在骨骼局部量上加转角 / 位移 / 缩放，
+  // 最后 updateWorldTransform（IK、变换约束照常生效，道具跟手）。rot / x / y / sx 均为相对原值的增量；单位：度 / 骨骼局部单位
+  function posedFrame(i, k) {
+    const sk = new sp.Skeleton(data); sk.setToSetupPose();
+    const apply = (name, t, alpha, first) => {
+      const a = data.findAnimation(name); if (!a) throw Error('缺动画 ' + name);
+      if (sp.MixBlend) a.apply(sk, 0, t, false, null, alpha, first ? sp.MixBlend.setup : sp.MixBlend.replace, sp.MixDirection.mixIn);
+      else a.apply(sk, 0, t, false, null, alpha, first, false);
+    };
+    apply(k.anim || 'Idle', k.t || 0, 1, true);
+    if (k.mix) apply(k.mix.anim, k.mix.t || 0, k.mix.alpha ?? 0.5, false);
+    // take：只从另一条动画的某一时刻抄这些骨（含子骨）的局部量，其余（表情、附件）保留底稿，如流明举伞瞄准时眼睛仍睁着
+    for (const tk of [].concat(k.take || [])) {
+      const o = new sp.Skeleton(data); o.setToSetupPose();
+      const a = data.findAnimation(tk.anim);
+      if (sp.MixBlend) a.apply(o, 0, tk.t || 0, false, null, 1, sp.MixBlend.setup, sp.MixDirection.mixIn); else a.apply(o, 0, tk.t || 0, false, null, 1, true, false);
+      const roots = tk.bones.map(n => o.findBone(n));
+      for (const b of o.bones) {
+        if (!roots.some(r => { for (let p = b; p; p = p.parent) if (p === r) return true; return false; })) continue;
+        const d = sk.findBone(b.data.name); d.x = b.x; d.y = b.y; d.rotation = b.rotation; d.scaleX = b.scaleX; d.scaleY = b.scaleY; d.shearX = b.shearX; d.shearY = b.shearY;
+      }
+      for (const n of tk.slots || []) { const so = o.findSlot(n), sd = sk.findSlot(n); sd.setAttachment(so.getAttachment()); }
+    }
+    // copy：把一根骨的局部位置 / 转角抄给同父的另一根（换用原作的另一套手部附件时，让它落在原来的手位上）
+    for (const [n, from] of Object.entries(k.copy || {})) { const b = get(sk, n), f = get(sk, from); b.x = f.x; b.y = f.y; b.rotation = f.rotation; }
+    for (const [n, v] of Object.entries(k.rot || {})) get(sk, n).rotation += v;
+    for (const [n, v] of Object.entries(k.pos || {})) { const b = get(sk, n); b.x += v[0]; b.y += v[1]; }
+    for (const [n, v] of Object.entries(k.scale || {})) { const b = get(sk, n); b.scaleX *= v[0]; b.scaleY *= v[1] ?? v[0]; }
+    for (const [n, v] of Object.entries(k.attach || {})) { const s = sk.findSlot(n); s.setAttachment(v ? sk.getAttachment(s.data.index, v) : null); }
+    // opaque：原作这段把正面部件淡出（艾丽妮 S3 连射期间整个人透明），强制不透明看姿势
+    if (k.opaque) for (const s of sk.slots) if (!s.data.name.startsWith('B_')) s.color.a = 1;
+    sk.updateWorldTransform();
+    if (k.lift) move(sk, get(sk, cfg.body.root || 'Front'), (k.dx || 0), k.lift);
+    else if (k.dx) move(sk, get(sk, cfg.body.root || 'Front'), k.dx, 0);
+    for (const n of k.top || []) { const t = sk.findSlot(n); sk.drawOrder = sk.drawOrder.filter(x => x !== t); sk.drawOrder.push(t); }
+    for (const [n, before] of k.order || []) {
+      const s = sk.findSlot(n); sk.drawOrder = sk.drawOrder.filter(x => x !== s);
+      sk.drawOrder.splice(sk.drawOrder.findIndex(x => x.data.name === before), 0, s);
+    }
+    for (const n of k.hide || []) { const s = sk.findSlot(n); if (s) s.attachment = null; }
+    return finish(sk, [{ pose: k.anim || 'Idle', t: k.t || 0 }]);
   }
 
   // 关键帧动作（跳劈等）：每帧给髋位移、前倾、两脚（着地 = 贴地放脚；空中 = 相对髋的脚踝位置）、两臂绝对角、武器角
@@ -248,7 +300,9 @@ async function main() {
       const fwd = -Math.cos(k / 8 * 2 * Math.PI);           // 同侧腿在前时手在后
       if ((cfg.relativeArms || []).includes(side)) {
         // 原姿势就握着东西（挂在髋上的武器 / 盾）：只在原姿势上小幅摆，不改握持关系
-        rotate(sk, a, f * (P.relAmp ?? 6) * fwd); rotate(sk, b, f * (P.relElbowAmp ?? 3) * fwd);
+        // relOffset：在原姿势上先整体抬臂 [上臂, 前臂]（度，+ = 朝面向方向抬），如流明提包离地
+        const ro = cfg.relOffset?.[side] || [0, 0];
+        rotate(sk, a, f * ro[0] + f * (P.relAmp ?? 6) * fwd); rotate(sk, b, f * ro[1] + f * (P.relElbowAmp ?? 3) * fwd);
       } else if (side === hold && cfg.holdPose) {
         // 扛 / 端武器：上臂、前臂给绝对角，再小幅随步摆动
         const hp = cfg.holdPose, up = hp.upper + f * P.holdAmp * fwd;
@@ -352,10 +406,12 @@ async function main() {
     return { canvas: out, clipped: [...new Set(problems)] };
   }
 
+  // --clean：先删旧的逐帧图（帧数变少时不留上一版的尾帧）
+  if (process.argv.includes('--clean') && fs.existsSync(OUT)) for (const f of fs.readdirSync(OUT)) if (/^(hires_)?f\d\d\.png$/.test(f)) fs.unlinkSync(path.join(OUT, f));
   fs.mkdirSync(OUT, { recursive: true });
   const report = [];
   const frames = [];
-  const N = cfg.keys?.length || cfg.sample?.times.length || 8, lines = [];
+  const N = cfg.poses?.length || cfg.keys?.length || cfg.sample?.times.length || 8, lines = [];
   for (let i = 0; i < N; i++) {
     const { sk, contacts } = frame(i), { canvas: px, clipped } = pixelize(sk);
     // flip：回旋类动作转到背面的帧整帧水平镜像（原点在画布中线，镜像后脚下位置不变）
