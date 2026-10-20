@@ -124,3 +124,14 @@ D:/Anaconda/python.exe -X utf8 tools/spine_editor/server.py --source build/spine
 - **背面视角**：原作骨架自带一套背面部件（`B_*`，Idle 里被隐藏，setup 姿势可见，尺寸与正面一致）。`view: "B"` 的帧改用这套背面部件，转身变成「正面 → 背面 → 镜像正面」。背面剑骨的 +x 指向剑柄，配置里用 `back.bladeFlip` 统一成按剑身方向填角度。
 - **刀光示意**：`smear` 帧在 `fx_preview/` 另出一份，角色身后填上一帧剑身到这一帧剑身之间的浅色带。只用来判断动作是否看得懂，不是正式特效，不进帧条；正式刀光仍按特效单交 Codex。
 - 帧数 ≠ 8 时不写编辑台数据包（编辑台固定 8 帧）。
+
+## 11. Codex 跑步交接（dn_latest_spine_delivery_1020）核对（10-20）
+
+只解了用到的分卷到 `build/dn_restore/`（dl_angelina、run-three-latest、run-ulpianus、cz_skadi），沿用 verify_restore.py 的哈希与路径检查；不进 git。
+
+- **安洁莉娜**：DL 换手候选是 3.5 JSON 里的自定义动画 `Angelina_Run_LandmarkDraft`（0.6 秒）。脚本新增 `sample` 模式：按时间采样现成动画，只做逐附件像素化，配置为 `cfg/angelina_dl.json`。图在 `build/spine_run_trial/angelina/dl_swap_hand/`，8 帧没有出界。我自己做的那版安洁莉娜（§1）降为参考，以 DL 为准。
+- **乌尔比安**：以 ct_…/ulpianus_run_standard_01 的用户选定图为准，不做。
+- **艾雅法拉、逻各斯**：art/incoming 的运行时条与 CP 修订（eyjafjalla_arm_revision_04、logos_leg_revision_04）逐像素一致。
+- **能天使**：运行时条等于 CP exusiai_arm_revision_03 整体下移 1 像素（逐帧平移后 0 差异），脚底在第 120–121 行，比原点低 1–2 像素。要不要回调 1 像素，交协调人或用户定。我做的九人试稿里的能天使、艾雅法拉（§1）作废。
+- **斯卡蒂（CZ）**：Codex 已出 Idle、Attack、Die（像素候选）；重劈、连斩、跳劈（leap_revision_05/06）待用户验收；回旋只有参考图；跑步未做像素。与本文对应：跑步（§1）补的是 CZ 的空缺；跳劈（§9）与 CZ Leap 重复，二者择一由用户定；回旋（§10）补 CZ 的空缺；反手斩（§10）与 CZ「连斩」第二刀的回斩重叠。
+- 召唤物移动用待机 + 平移，不出跑步（交接要求）。

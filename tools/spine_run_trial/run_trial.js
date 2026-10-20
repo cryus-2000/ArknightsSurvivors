@@ -104,6 +104,8 @@ async function main() {
 
   function frame(i) {
     if (cfg.keys?.[i]?.view === 'B') return backFrame(i, cfg.keys[i]);
+    // sample：直接按时间采样现成的 Spine 动画（如 Codex 交来的候选动画），只做像素化
+    if (cfg.sample) return finish(pose(cfg.sample.anim, cfg.sample.times[i]), [{ t: cfg.sample.times[i] }]);
     const sk = pose('Idle', 0), f = P.facing, phi = i / 8 * 2 * Math.PI;
     const hip = get(sk, cfg.body.hip);
     if (cfg.mode === 'float') return floatFrame(sk, i, phi);
@@ -353,7 +355,7 @@ async function main() {
   fs.mkdirSync(OUT, { recursive: true });
   const report = [];
   const frames = [];
-  const N = cfg.keys?.length || 8, lines = [];
+  const N = cfg.keys?.length || cfg.sample?.times.length || 8, lines = [];
   for (let i = 0; i < N; i++) {
     const { sk, contacts } = frame(i), { canvas: px, clipped } = pixelize(sk);
     // flip：回旋类动作转到背面的帧整帧水平镜像（原点在画布中线，镜像后脚下位置不变）
