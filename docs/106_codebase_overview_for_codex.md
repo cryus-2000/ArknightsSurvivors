@@ -37,6 +37,8 @@ Godot 4.7 单场景幸存者 roguelite：`game/scripts/game.gd` 是局内总控�
 
 ## 4. 干员（Codex 最常碰的部分）
 
+> **10-20 口径更新**：动画 / 技能运行时（attack_timing、frame_durations、持续攻击 attack_phases、技能生命周期、native_motion、召唤物 visual、每帧次序、画布口径）的现行总表见 [docs/108](108_operator_runtime_arch.md)；下面「docs/105 = 目标契约」已实施。
+
 - 数据：`characters/<id>.json` = 属性、`attack`、`skills[0..2]`（数值、`anim`）、`blocks`（积木，tag → 执行器）、`sprites`（帧条槽）、`extra_sprites`。启动时 `validate_operator` 校验，`test_core` 的「干员契约」断言会抓。
 - 动画接口：docs/105（现状 + 目标契约 `sprites.skills.sN`），docs/87 §3.5。
 - 帧条规格：docs/103（尺度：身体 64 @2x、头高公式）、docs/104（制作 / 验收流程）、docs/87（命名、`art_lint`）。

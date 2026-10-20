@@ -13,6 +13,8 @@
 
 ## 1. 通用硬规格
 
+> **10-20 口径更新**：本节 48 画布 / (24,46) / 帧数表 / 末帧 = idle f0 只对未换新美术的旧干员有效；现行干员 64 主规格 + 96 / 128 透明加边、`frame_durations` / `fire_time` / `attack_timing` 见 [docs/108](108_operator_runtime_arch.md) §4–§5、§7。
+
 | 项 | 要求 | 机检 |
 |---|---|---|
 | 单帧尺寸 | 48×48（1x）与 96×96（@2x），**以 96px 为主绘制**，48px 是备用版 | `size` FAIL |
@@ -81,6 +83,8 @@
 - 机检 `skill_end`：@2x 不同 → FAIL；只有 1x 备用版不同 → WARN。存量 12 人 + 博士（这条规则定之前交付的）只 WARN，重画 idle 或 skill 时必须对齐。
 
 ### 3.5 多条技能帧条 + 循环状态：json `sprites.skills`（10-16，首例铃兰）
+
+> **10-20 口径更新**：下文「出手 = fire 帧中点」「时长 = 帧数 / fps」「变体按 fps 偏移对齐」在写了 `fire_time` / `frame_durations` / `attack_timing` 的槽上已被覆盖；持续攻击 `phases`、炮口 `muzzles`、生命周期与每帧次序见 [docs/108](108_operator_runtime_arch.md) §2–§4。
 
 一名干员三个技能各一套动作（docs/97 J 批附表：S1 发力条、S2 定格、S3 持续循环）时，帧条按动作各登记一个 `sprites` 槽（和 `skill` 一样写 `{tex, frames, fps, foot, fire}`），再用 `sprites.skills` 把技能序号接到槽上；非 `idle / run / attack / skill` 的槽要列进 `extra_sprites`（否则不加载）。没写 `skills` 的技能照旧走单条 `skill`（`skills[i].anim` 可换条），其他干员不用改。
 

@@ -19,6 +19,8 @@
 
 ## 2. 帧条与 json 现状
 
+> **10-20 口径更新**：水月槽名已是 `mizuki_runtime_*`（96 画布 + draw_scale 0.9）、`flow: free` 已删；本节与 §1 的 `flow` 描述过时，现行架构见 [docs/108](108_operator_runtime_arch.md)。
+
 - 帧条：`art/incoming/op_<id>_<slot>@2x.png`，128×128 一帧、横排，`frames = 宽 / 高`，脚底 `foot` 为 1x 口径 `[32, 60]`（@2x ×2）。`sprites.<slot> = {tex, frames, fps, foot, fire}`，`fire` = 出手帧（零基），只对 attack / 技能起手段有意义。
 - 主槽：`idle / run / attack / skill / hurt / death`。其他槽（`skill_s2`、`skill_s3_loop`、`float` …）必须同时列进顶层 `extra_sprites`。
 - 水月例外：槽名沿用 `player_*`（`world.gd` 的 `p48_tex` 与 `intro.gd` 写死了 `player_attack_48`），其余干员都是 `op_<id>_*`。
