@@ -34,9 +34,9 @@ const OP_SFX := {
 const OP_VOL := {"atk": -11.0, "hit": -10.0, "s1": -4.0, "s2": -4.0, "s3": -2.0, "big": -6.0, "heal": -9.0, "quake": -13.0}
 ## 各类别的最短间隔（秒，按单个干员计）：三四名干员同时开火时不糊成一片
 const OP_LIMIT := {"atk": 0.06, "hit": 0.06, "quake": 0.08, "big": 0.1, "heal": 0.3}
-## 音效盘点（docs/111，10-21 用户「枪击、锁链等各种音效都需要优化」）按请求名（op_<干员>_<类别>）的三张旋钮表：
+## 音效盘点（docs/113，10-21 用户「枪击、锁链等各种音效都需要优化」）按请求名（op_<干员>_<类别>）的三张旋钮表：
 ## OP_DB 音量偏移（dB，叠在 OP_VOL 与调用处偏移上）；OP_GAP 最短间隔（秒，按请求名算，借用同一文件的干员各算各的）；
-## OP_PVAR 音高随机（±，取它与调用处的较大值）。数字来自 docs/111 §2 实测：混音里最响的是长尾低频重击的高频连发
+## OP_PVAR 音高随机（±，取它与调用处的较大值）。数字来自 docs/113 §2 实测：混音里最响的是长尾低频重击的高频连发
 const OP_DB := {"op_eyjafjalla_big": -3.0, "op_kaltsit_big": -2.0, "op_wisadel_quake": -3.0, "op_wisadel_hit": -1.5, "op_exusiai_hit": -2.0}
 const OP_GAP := {"op_exusiai_hit": 0.1, "op_exusiai_big": 0.3, "op_eyjafjalla_big": 0.2}
 const OP_PVAR := {"op_exusiai_atk": 0.09, "op_exusiai_hit": 0.1, "op_irene_atk": 0.08, "op_texas_atk": 0.08, "op_eyjafjalla_atk": 0.08, "op_lumen_atk": 0.07, "op_wisadel_quake": 0.12}
@@ -965,7 +965,7 @@ func op(oid: String, kind: String, vol := 0.0, pitch := 1.0, pitch_var := 0.05) 
 		play(OP_FALLBACK[kind], v, pitch, pitch_var)
 
 
-## --sfxstat：干员动作 -> 实际文件、音量、音高（docs/111 音效盘点用）。sfx_op[op_<id>_<类别>] = {n, file, v0, v1, vsum, p0, p1, var}
+## --sfxstat：干员动作 -> 实际文件、音量、音高（docs/113 音效盘点用）。sfx_op[op_<id>_<类别>] = {n, file, v0, v1, vsum, p0, p1, var}
 var sfx_op := {}
 
 
