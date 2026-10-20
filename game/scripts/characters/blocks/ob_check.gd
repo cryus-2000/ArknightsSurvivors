@@ -350,6 +350,12 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 					errs.append("%s.anim「%s」不是 sprites 里的帧条键" % [p, str(b.anim)])
 			if b.get("replace", false) and b.has("delay") and _val(b.delay, ctx.base) > 0.0:
 				errs.append(p + "：replace 的 every_n 不写 delay（就在这一次出手帧执行）")
+			# vis_anim = 追加段（非 replace）触发时只播的画面帧条（play_vis_anim，不占动作窗口、不改出手）；要列进 extra_sprites
+			if b.has("vis_anim"):
+				if b.get("replace", false):
+					errs.append(p + ".vis_anim 只配非 replace 的追加段（replace 用 anim）")
+				elif not (ctx.sprites is Dictionary and ctx.sprites.has(str(b.vis_anim))):
+					errs.append("%s.vis_anim「%s」不是 sprites 里的帧条键" % [p, str(b.vis_anim)])
 		"trig.tick":
 			_num(b, "every", p, ctx, true, 0.1)
 			_list(b.get("do", []), p + ".do", "instant", ctx)
