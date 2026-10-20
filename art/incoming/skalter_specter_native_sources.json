@@ -1,0 +1,97 @@
+{
+ "skalter.idle": {
+  "tex": "op_skalter_idle",
+  "sha256": "62e1f82167169a7937a8d731aab3b8ff34e8412cd289a472f9feb433a9853d98",
+  "canvas": 64
+ },
+ "skalter.run": {
+  "tex": "op_skalter_run",
+  "sha256": "0da5107db3637a254015e2f6355869f655574582e7be13c2c1d091c8d5f3674a",
+  "canvas": 64
+ },
+ "skalter.attack": {
+  "tex": "op_skalter_attack",
+  "sha256": "7d4a1ba881973cee82598c075ac1413a63329d0c9ae0f3a0dd68d51045c434e5",
+  "canvas": 64
+ },
+ "skalter.skill": {
+  "tex": "op_skalter_skill",
+  "sha256": "044ddcd8c3dca1ac93bd74deeca067a000e8f91480e14947179f2720e9720fc7",
+  "canvas": 64
+ },
+ "skalter.skill_s2": {
+  "tex": "op_skalter_skill_s2",
+  "sha256": "8dc0824db166b1f84064e55e195b6de8e8918f61781f88fa2b28d3a5ff5df7fb",
+  "canvas": 96
+ },
+ "skalter.skill_s3": {
+  "tex": "op_skalter_skill_s3",
+  "sha256": "7736d0a1d8da1c7f1dd7c61f007e708822eb80ca8c5ed56e093a541a06a14268",
+  "canvas": 96
+ },
+ "skalter.death": {
+  "tex": "op_skalter_death",
+  "sha256": "5f3d8676babd2669e11fbe52af519de560cbb3105a1434e5e5f96fd0dd85bcfe",
+  "canvas": 64
+ },
+ "specter_unchained.idle": {
+  "tex": "op_specter_unchained_idle",
+  "sha256": "322506ca809f3f06cfc801cd2eb2962803fd9550be38b0856638cbac77a73bdb",
+  "canvas": 64
+ },
+ "specter_unchained.run": {
+  "tex": "op_specter_unchained_run",
+  "sha256": "7d4b89642e37af648a91c86737421a295b36f78e59a4baf71ec3051749929ab7",
+  "canvas": 64
+ },
+ "specter_unchained.attack": {
+  "tex": "op_specter_unchained_attack",
+  "sha256": "95e27ff11208246138bebc11ea8c4f24e27351771fbdf305e2ab69ec297fbb01",
+  "canvas": 96
+ },
+ "specter_unchained.skill": {
+  "tex": "op_specter_unchained_skill",
+  "sha256": "3506658afd244e230b366687275f0bc616fde1273126c3187589a955796e549b",
+  "canvas": 64
+ },
+ "specter_unchained.skill_s3": {
+  "tex": "op_specter_unchained_skill_s3",
+  "sha256": "de56167701d79c40a56ca183ab4fedac656f13fec6bf94e305c17c741907666f",
+  "canvas": 64
+ },
+ "specter_unchained.idle_s3": {
+  "tex": "op_specter_unchained_idle_s3",
+  "sha256": "e4e538f5e87d7df1f22af18ae37ff7073e83c57bf586e78d94a2de17e4528a34",
+  "canvas": 64
+ },
+ "specter_unchained.attack_s3": {
+  "tex": "op_specter_unchained_attack_s3",
+  "sha256": "d2b385cdad5d8125677399f84b34172145aa8b4ac3752bbb6da6293b3799e42f",
+  "canvas": 96
+ },
+ "specter_unchained.fall": {
+  "tex": "op_specter_unchained_fall",
+  "sha256": "c725f3647575b2ca22c4bcbcb426010d241f3d283f17d8c8ac9d22bf527f2078",
+  "canvas": 96
+ },
+ "specter_unchained.death": {
+  "tex": "op_specter_unchained_death",
+  "sha256": "c725f3647575b2ca22c4bcbcb426010d241f3d283f17d8c8ac9d22bf527f2078",
+  "canvas": 96
+ },
+ "specter_unchained.doll_appear": {
+  "tex": "op_specter_unchained_doll_appear",
+  "sha256": "1afd08ec9db28fcd48dba21ee87ca81f596212097775652193c714cd25a5197d",
+  "canvas": 64
+ },
+ "specter_unchained.doll_spin": {
+  "tex": "op_specter_unchained_doll_spin",
+  "sha256": "9c07b01a159b034560e9d9f6b5d81a978a3be7fb4f1c124ada61ed0a8bacda5b",
+  "canvas": 64
+ },
+ "specter_unchained.doll_vanish": {
+  "tex": "op_specter_unchained_doll_vanish",
+  "sha256": "546b6a7f81d6da36879444dfaa83686a9c3a79b326b824f67566b58d57759f24",
+  "canvas": 64
+ }
+}

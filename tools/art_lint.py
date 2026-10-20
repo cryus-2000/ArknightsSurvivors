@@ -154,7 +154,12 @@ WAIVERS = {
     ("skalter", "run"): "设计例外（用户 10-13 定）：浊心斯卡蒂跑步是悬浮飘行，腿不交替属造型，长期豁免",
     ("skalter", "ground"): "设计例外（用户 10-13 定）：浊心斯卡蒂悬浮飘行，离地 4–6px 属造型，长期豁免",
     ("exusiai", "run"): "10-19 用户指定接入 exusiai_arm_revision_03；保留原步态，旧上身/起伏指标报警待实机视觉复核（three_operator_art_1019_handoff.md）",
-    ("specter_unchained", "run"): "用户 10-13 认可现版：归溟幽灵鲨跑步前倾 35°、停顿帧 2 对，不返修",
+    ("specter_unchained", "run"): "10-20 用户批准新版（run_trial 原生骨架步态，头顶起伏 ±1px、支撑脚贴地）；裙摆盖腿，腿部 / 前倾指标按旧 48 帧条定",
+    ("skalter", "outline"): "10-20 用户批准原生像素整套接入（cb_18 原作条 + run_trial 逐附件像素化）：附件自身暗色边缘，不改成旧黑壳（skalter_specter_native_sources.json）",
+    ("skalter", "skill_end"): "10-20 技能条取原作 Skill_N_Begin 重排（关键姿势在出手帧），末帧为原生姿势，逻辑结束切 Idle（同上）",
+    ("specter_unchained", "outline"): "10-20 用户批准原生像素整套接入（cb_18 原作条 + run_trial 逐附件像素化）：附件自身暗色边缘，不改成旧黑壳（skalter_specter_native_sources.json）",
+    ("specter_unchained", "skill_end"): "10-20 技能条取原作 Skill_1 / Skill_3_Begin 重排（关键姿势在出手帧），末帧为原生姿势，逻辑结束切 Idle（同上）",
+    ("specter_unchained", "ground"): "10-20 统一脚根锚点：cb_18 / run_trial 地面行映射到 @2x 120（最后一行 119），1x 最低行 59 与脚底边界 60 相差 1，同能天使口径；普攻锯盘低扫越过脚底行属动作",
     # 单条帧条豁免（op, check, 动作）：只豁免这条帧条的这一项，同一干员其他帧条照常检查
     ("angelina", "ground", "float_in"): "设计例外（docs/92）：S3 起飞，f1–f7 逐帧离地 1–9 像素属造型",
     ("angelina", "ground", "float"): "设计例外（docs/92）：S3 浮空待机，离地 9–10 像素（64 口径最低行约 50）属造型",

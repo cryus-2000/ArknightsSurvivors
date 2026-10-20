@@ -126,6 +126,9 @@ static func _h3_spins_tick(o, sp: Dictionary, dt: float) -> void:
 		sp.spin2_t = float(sp.spin2_t) - dt
 		if float(sp.spin2_t) < 0.0:
 			_h3_spin(o, a, float(sp.spin2_dmg), 1)
+			sp["spin2_vis"] = 0.0   # 纯画面：反向第二圈的本体转身（h3_anim_state 读，玩法不读）
+	if sp.has("spin2_vis"):
+		sp.spin2_vis = float(sp.spin2_vis) + dt
 	if float(sp.whirl_t) > 0.0 or int(sp.whirl_n) > 0:
 		sp.whirl_t = maxf(0.0, float(sp.whirl_t) - dt)
 		sp.whirl_tick = float(sp.whirl_tick) - dt
@@ -290,8 +293,10 @@ static func h3_follow_away(o) -> bool:
 
 ## 倒下期间的帧（data_operator.anim_state 转来）
 static func h3_anim_state(o, st: Dictionary) -> Dictionary:
-	if not o.hw.has("sp") or float(o.hw.sp.fall_t) <= 0.0:
+	if not o.hw.has("sp") or st.is_empty():
 		return st
+	if float(o.hw.sp.fall_t) <= 0.0:
+		return _h3_look(o, st)
 	var an: String = str(o.hw.sp.sub.get("anim", "fall"))
 	var tx: Texture2D = o.anim_tex(an)
 	if tx == null:
@@ -299,6 +304,43 @@ static func h3_anim_state(o, st: Dictionary) -> Dictionary:
 	var n: int = o.anim_hframes(tx, an)
 	var fr: int = clampi(int((_h3_fall_dur(o, o.hw.sp.sub) - float(o.hw.sp.fall_t)) * float(o.sprite_spec(an).get("fps", 10))), 0, n - 1)
 	return {"tex": tx, "frame": fr, "hf": n, "flip": (o.face < 0.0) != o.sprite_mirror(an), "kind": an}
+
+
+## 纯画面（10-20 新美术）：S3 期间待机 / 普攻换原作重锯条（idle_s3 / attack_s3，帧号同 attack）；
+## 双重回转的反向第二圈：出手后按 attack 条出手段（fire 起 4 帧）镜像重播一遍，与反向锯环同步。只换贴图，不碰玩法状态
+static func _h3_look(o, st: Dictionary) -> Dictionary:
+	var sp: Dictionary = o.hw.sp
+	var s3: bool = o.s_t.size() > 2 and o.s_t[2] > 0.0
+	var kind: String = str(st.get("kind", ""))
+	var atk: String = "attack_s3" if s3 and o.anim_tex("attack_s3") != null else "attack"
+	if float(sp.get("spin2_vis", -1.0)) >= 0.0 and kind in ["idle", "run", "attack", "attack_s3", "idle_s3"]:
+		var spec: Dictionary = o.sprite_spec(atk)
+		var f0: int = int(spec.get("fire", 0))
+		var per: float = float(o.def.get("native_motion", {}).get("clips", {}).get(atk, 0.0)) / maxf(1.0, float(spec.get("frames", 1)))
+		var k: int = int(float(sp.spin2_vis) / maxf(per, 0.001)) if per > 0.0 else 99
+		var tx2: Texture2D = o.anim_tex(atk)
+		if k < 4 and tx2 != null:
+			var n2: int = o.anim_hframes(tx2, atk)
+			return {"tex": tx2, "frame": clampi(f0 + k, 0, n2 - 1), "hf": n2, "flip": (o.face >= 0.0) != o.sprite_mirror(atk), "kind": atk}
+	if not s3:
+		return st
+	if kind == "attack" and atk == "attack_s3":
+		var tx: Texture2D = o.anim_tex(atk)
+		return {"tex": tx, "frame": int(st.frame), "hf": o.anim_hframes(tx, atk), "flip": st.flip, "kind": atk}
+	if kind == "idle" and o.anim_tex("idle_s3") != null:
+		var ti: Texture2D = o.anim_tex("idle_s3")
+		var ni: int = o.anim_hframes(ti, "idle_s3")
+		return {"tex": ti, "frame": o.timed_frame("idle_s3", range(ni), o.anim_t, true), "hf": ni, "flip": (o.face < 0.0) != o.sprite_mirror("idle_s3"), "kind": "idle_s3"}
+	return st
+
+
+## 替身闪现的现身 / 消散本体（doll_appear / doll_vanish，原作 Start_B / Die_B）：按该段秒数整条播一遍，叠在原特效之下
+static func _e3_doll_phase(o, an: String, p: Vector2, flip: bool, k: float) -> void:
+	var tx: Texture2D = o.anim_tex(an)
+	if tx == null:
+		return
+	var n: int = o.anim_hframes(tx, an)
+	o.draw_sprite_at(p, flip, Color(0.92, 0.96, 1.1), clampi(int(k * n), 0, n - 1), tx, n, o.foot_off(tx, an))
 
 
 ## 替身参与 2.5D 排序（data_operator.extra_bodies 转来）
@@ -541,9 +583,10 @@ static func _e3_flash_draw(o) -> void:
 	if t < ap:
 		var k: float = t / ap
 		var nm: String = str(b.get("appear_fx", "fx_specter_doll_appear"))
+		_e3_doll_phase(o, "doll_appear", p, f.rev, k)
 		if g.tex.get(nm) != null:
 			fx_frame(cv, g, nm, 5, mini(int(k * 5.0), 4), mid, g.PX, Color.WHITE)
-		else:
+		elif o.anim_tex("doll_appear") == null:
 			_e3_doll_body(o, p, f.rev, Color(0.85, 0.92, 1.1, k), 0)
 		return
 	if t < ap + sw:
@@ -558,9 +601,10 @@ static func _e3_flash_draw(o) -> void:
 		return
 	var kb: float = clampf((t - ap - sw) / bu, 0.0, 1.0)
 	var nb: String = str(b.get("burst_fx", "fx_specter_doll_burst"))
+	_e3_doll_phase(o, "doll_vanish", p, f.rev, kb)
 	if g.tex.get(nb) != null:
 		fx_frame(cv, g, nb, 6, mini(int(kb * 6.0), 5), mid, g.PX, Color.WHITE)
-	else:
+	elif o.anim_tex("doll_vanish") == null:
 		_e3_doll_body(o, p, f.rev, Color(0.85, 0.92, 1.1, 1.0 - kb), 0)
 		for q in 7:
 			var an: float = q * TAU / 7.0 + p.x * 0.01

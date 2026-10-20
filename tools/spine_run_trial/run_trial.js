@@ -449,7 +449,7 @@ async function main() {
   // 悬浮飘行（浊心斯卡蒂）：不踩地；身体缓慢上下浮动并前倾，两腿向后拖、交替轻摆，衣摆和头发大幅向后飘
   function floatFrame(sk, i, phi) {
     const f = P.facing, hip = get(sk, cfg.body.hip);
-    move(sk, hip, 0, (P.floatBob ?? 2) / SCALE * Math.sin(phi));
+    move(sk, hip, 0, ((P.floatLift ?? 0) + (P.floatBob ?? 2) * Math.sin(phi)) / SCALE);   // floatLift：整体离地（@2x 像素）
     rotate(sk, hip, -f * P.lean);
     if (cfg.body.head) rotate(sk, get(sk, cfg.body.head), f * P.lean * P.headKeep + 1.2 * Math.sin(phi - 0.8));
     for (const side of ['L', 'R']) {
@@ -492,7 +492,7 @@ async function main() {
       const w = get(sk, cfg.weapon), grip = get(sk, cfg.arms[hold][2]);
       rotate(sk, w, (cfg.holdPose?.weapon ?? weaponBase) - f * P.lean * P.weaponLean + P.weaponSway * Math.sin(2 * phi - 1.0) - ang(w), [grip.worldX, grip.worldY]);
       // grip：武器局部坐标里的握把点；原姿势手不在握把上时（斯卡蒂大剑立在身后），把握把点移到手上
-      const g = cfg.holdPose?.grip;
+      const g = cfg.holdPose?.grip || cfg.grip;
       if (g) move(sk, w, grip.worldX - (w.worldX + w.a * g[0] + w.b * g[1]), grip.worldY - (w.worldY + w.c * g[0] + w.d * g[1]));
     }
   }
@@ -579,6 +579,7 @@ async function main() {
         a[q] = c[0]; a[q + 1] = c[1]; a[q + 2] = c[2]; a[q + 3] = 255;
         const px = x0 + (q / 4) % w, py = y0 + Math.floor(q / 4 / w);
         if (px < 2 || py < 2 || px >= SIZE - 2 || py >= SIZE - 2) problems.push(slot.data.name);
+        if (process.env.BELOW && py >= 120 + PAD) problems.push('below:' + slot.data.name);
       }
       const low = createCanvas(w, h); low.getContext('2d').putImageData(img, 0, 0);
       oc.globalCompositeOperation = ['source-over', 'lighter', 'multiply', 'screen'][slot.data.blendMode] || 'source-over';

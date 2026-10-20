@@ -45,7 +45,8 @@
   "floatBob": 2.5,
   "floatTrail": 12,
   "floatKick": 5,
-  "floatKnee": 12
+  "floatKnee": 12,
+  "floatLift": 6
  },
  "secondary": [
   {
