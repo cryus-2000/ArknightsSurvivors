@@ -208,6 +208,8 @@
   "elite_drop_chance": 0.3,
   "lane_weight": 1.3,
   "lane_weight_cap": 2.0,
+  "shield_weight": 4.0,
+  "_shield_weight": "护盾保底（10-21）：队长护盾层数上限为 0 时，给护盾层数的藏品（relic_db shield_layer，现 7 件）在三选一与行商里的权重倍数；1 = 改前。基线标准档一局见到的概率 39%，×4 估约 81%（docs/35「护盾保底」）",
   "h_early": 0.7,
   "h_late": 1.0,
   "wrath_dmg": 45.0,
