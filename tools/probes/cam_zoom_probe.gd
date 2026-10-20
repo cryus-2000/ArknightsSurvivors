@@ -1,5 +1,5 @@
 extends SceneTree
-## 战斗镜头拉远候选（docs/111，tools/probes/cam_zoom_probe.py 调用；不改游戏代码）：
+## 战斗镜头拉远候选（docs/112，tools/probes/cam_zoom_probe.py 调用；不改游戏代码）：
 ## 跑确定性批跑（--balance + 机器人 + --fixed-fps 60 --realtime），每帧把 Camera2D.zoom 强制成 --cz=<浮点>（可给 2/3 这种设置里存不下的精确值），
 ## 并按需：
 ##   --cz_shots=60,240,480   到这些游戏秒存一张整屏 PNG（shot_t0240.png）

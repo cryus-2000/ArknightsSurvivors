@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""docs/111 对照图：把 build/camzoom/<标签>/shot_t*.png 拼成「整屏缩小 2×2」和「主控周围 1:1 裁窗放大 3 倍」两张。
+"""docs/112 对照图：把 build/camzoom/<标签>/shot_t*.png 拼成「整屏缩小 2×2」和「主控周围 1:1 裁窗放大 3 倍」两张。
 用法：python tools/probes/cam_zoom_sheet.py <前缀 d|p> <t> <标签1,标签2,…>"""
 import os, sys
 from PIL import Image, ImageDraw

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""战斗镜头拉远候选（docs/111）：同 seed 同局按不同镜头档截图 / 录像 / 量帧时间。不改游戏代码。
+"""战斗镜头拉远候选（docs/112）：同 seed 同局按不同镜头档截图 / 录像 / 量帧时间。不改游戏代码。
 用法：
   python tools/probes/cam_zoom_probe.py shot <标签> <zoom> [res] [额外游戏参数…]   静态图 60/240/480 秒 + 240 秒起录 3 秒（mp4 整屏 + 主控周围 1:1 裁窗放大 3 倍）
   python tools/probes/cam_zoom_probe.py perf <标签> <z1,z2,…> [res] [maxt]          同局每 60 帧轮换镜头档，按档按分钟记帧时间
