@@ -111,12 +111,16 @@ async function main() {
       const [a, b, c] = cfg.legs[side].map(n => get(sk, n)), info = legInfo[side];
       const tx = a.worldX + f * g[0] * L * P.stride;
       const setFoot = () => rotate(sk, c, info.foot + f * g[2] - ang(c));
-      let ty = ground + info.ankleAbove + g[1] * L * P.lift;
+      // gaitLiftPx：按像素指定各相位离地高度（对齐已批准的旧条），否则用步态表 × lift
+      const liftPx = cfg.gaitLiftPx?.[k];
+      let ty = ground + info.ankleAbove + (liftPx != null ? liftPx / SCALE : g[1] * L * P.lift);
       ik(sk, a, b, c, [tx, ty], f); setFoot();
       const stance = k <= 3;
       for (let n = 0; n < 6; n++) {
         const err = bottom(sk, side) - ground;
-        if (stance ? Math.abs(err) < 0.05 : err >= -0.05) break;
+        const want = !stance && liftPx != null ? liftPx / SCALE : 0;
+        if (stance || liftPx != null ? Math.abs(err - want) < 0.05 : err >= -0.05) break;
+        if (liftPx != null && !stance) { ty -= err - want; ik(sk, a, b, c, [tx, ty], f); setFoot(); continue; }
         ty -= err; ik(sk, a, b, c, [tx, ty], f); setFoot();
       }
       contacts.push({ side, phase: k, support: stance, gap: +(bottom(sk, side) - ground).toFixed(2) });
