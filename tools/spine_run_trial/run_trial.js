@@ -113,6 +113,13 @@ async function main() {
     // 1) 躯干：前倾 + 起伏；胸再前倾一点，头部回正一部分（保持脸可读）
     move(sk, hip, 0, BOB[i] * L * P.bob);
     rotate(sk, hip, -f * P.lean);
+    // carry：不挂在身体骨链上、但该跟着身体走的部件（维什戴尔四件浮游武器挂在 Front 下）——随起伏 / 前倾绕髋转，
+    // 再按配置抬起 / 后收 / 转角，[dx, dy, 度] 像素单位（@2x），带一点滞后摆动
+    for (const [n, off] of Object.entries(cfg.carry || {})) {
+      const b = get(sk, n); move(sk, b, 0, BOB[i] * L * P.bob); rotate(sk, b, -f * P.lean * (P.carryLean ?? 1), [hip.worldX, hip.worldY]);
+      move(sk, b, f * (off[0] || 0) / SCALE, (off[1] || 0) / SCALE + (off[3] || 1.5) / SCALE * Math.sin(2 * phi - 1.2));
+      if (off[2]) rotate(sk, b, f * off[2]);
+    }
     if (cfg.body.chest) rotate(sk, get(sk, cfg.body.chest), -f * (P.chestLean + 1.5 * Math.cos(2 * phi)));
     if (cfg.body.head) rotate(sk, get(sk, cfg.body.head), f * (P.lean + P.chestLean) * P.headKeep + 1.5 * Math.sin(2 * phi - 0.6));
     // 2) 腿：按相位放脚踝，支撑相把鞋底贴地
@@ -135,6 +142,12 @@ async function main() {
         ty -= err; ik(sk, a, b, c, [tx, ty], f); setFoot();
       }
       contacts.push({ side, phase: k, support: stance, gap: +(bottom(sk, side) - ground).toFixed(2) });
+      // swingTop：抬起的腿（相位 4–7）整条移到最前绘制，免得高抬的膝 / 鞋被衣摆、武器挡住（维什戴尔）
+      if (cfg.swingTop && !stance) {
+        const root = get(sk, cfg.legs[side][0]);
+        const mine = sk.drawOrder.filter(sl => { for (let p = sl.bone; p; p = p.parent) if (p === root) return true; return false; });
+        sk.drawOrder = sk.drawOrder.filter(sl => !mine.includes(sl)).concat(mine);
+      }
     }
     arms(sk, i, phi);
     secondary(sk, phi);
