@@ -1,4 +1,4 @@
-"""Local, read-only-source native Spine pose editor. Start with --source ART_FOLDER."""
+"""Local, read-only-source native Spine pose editor (Spine 3.5 / 3.8). Start with --source ART_FOLDER or a pack folder."""
 import argparse
 import base64
 import hashlib
@@ -73,16 +73,96 @@ def export_frames(output, project, patch, encoded):
         bg = Image.new('RGBA', im.size, '#303d4d');bg.alpha_composite(im)
         previews.append(bg.convert('RGB').resize((512, 512), Image.Resampling.NEAREST))
     strip.save(dest / 'run_strip.png')
+    # 游戏口径 128 @2x：场景原点 (128,180) 对齐帧原点 (64,120)
+    game = Image.new('RGBA', (128 * len(frames), 128))
+    for i, im in enumerate(frames):
+        game.paste(im.crop((64, 60, 192, 188)), (128 * i, 0))
+    game.save(dest / 'strip@2x.png')
     durations = [round((i + 1) * 100 / project['fps']) * 10 - round(i * 100 / project['fps']) * 10 for i in range(len(frames))]
     previews[0].save(dest / 'run.gif', save_all=True, append_images=previews[1:], duration=durations, loop=0, disposal=2)
     (dest / 'pose.json').write_text(json.dumps(patch, ensure_ascii=False, indent=2), encoding='utf-8')
     (dest / 'manifest.json').write_text(json.dumps(dict(source=project['id'], fps=project['fps'], frames=8,
         frame_size=[256, 256], origin=[128, 180], pixel_method='Per-attachment Canvas BOX-like downsample and native palette',
-        engine_ready=False, note='审阅用完整场景；非旧版128导入规格，未做游戏接入验收'), ensure_ascii=False, indent=2), encoding='utf-8')
+        engine_ready=False, game_strip='strip@2x.png 为 128 @2x、原点 (64,120) 的裁切，超出部分丢弃',
+        note='审阅用完整场景；未做游戏接入验收'), ensure_ascii=False, indent=2), encoding='utf-8')
     return dest
 
 
-def load_project(source, runtime):
+# 运行库只在主工作区 build/prts_ref/_node（不进 git）；工作树里向上找到主工作区为止
+RUNTIME_DIR = next((p / 'build/prts_ref/_node' for p in HERE.parents if (p / 'build/prts_ref/_node').is_dir()),
+                   HERE.parent.parent / 'build/prts_ref/_node')
+RUNTIMES = {'3.5': 'spine-canvas-3.5.51.js', '3.8': 'spine-canvas-3.8.js'}
+
+
+def _read_string(data, pos):
+    """Spine 二进制字符串：变长整数（字节数 + 1），0 为空。"""
+    value, shift = 0, 0
+    while True:
+        byte = data[pos];pos += 1
+        value |= (byte & 0x7F) << shift;shift += 7
+        if not byte & 0x80:
+            break
+    if value == 0:
+        return None, pos
+    return data[pos:pos + value - 1].decode('utf-8'), pos + value - 1
+
+
+def spine_version(path):
+    """按文件头读 Spine 版本：.json 取 skeleton.spine，.skel 取第二个字符串（hash 之后）。"""
+    path = Path(path)
+    if path.suffix == '.json':
+        return json.loads(path.read_text(encoding='utf-8'))['skeleton']['spine']
+    data = path.read_bytes()[:256]
+    _, pos = _read_string(data, 0)
+    version, _ = _read_string(data, pos)
+    if not version or not version[0].isdigit():
+        raise ValueError(f'无法识别 Spine 版本：{path.name}')
+    return version
+
+
+def pick_runtime(version, runtime_dir):
+    major = '.'.join(version.split('.')[:2])
+    if major not in RUNTIMES:
+        raise ValueError(f'不支持 Spine {version}；仅支持 3.5 / 3.8')
+    path = Path(runtime_dir) / RUNTIMES[major]
+    if not path.is_file():
+        raise ValueError(f'缺少运行库 {path}')
+    return path
+
+
+def load_pack(source, runtime_dir, runtime=None):
+    """通用数据包（tools/spine_run_trial 生成）：pack.json + frames/<name>/bones.json，3.5 JSON 或 3.8 二进制。"""
+    pack = json.loads((source / 'pack.json').read_text(encoding='utf-8'))
+    if pack.get('version') != 1 or len(pack.get('frames', [])) != 8:
+        raise ValueError('数据包需为 version 1、八帧')
+    native = Path(pack['skeleton']);atlas = Path(pack['atlas'])
+    version = spine_version(native)
+    runtime = Path(runtime) if runtime else pick_runtime(version, runtime_dir)
+    textures = [line.strip() for line in atlas.read_text().splitlines() if line.strip().endswith('.png')]
+    if len(textures) != 1 or '/' in textures[0] or '\\' in textures[0]:
+        raise ValueError('要求单张本地纹理图集')
+    texture = atlas.parent / textures[0]
+    source_files = [source / 'pack.json', native, atlas, texture, runtime]
+    rows = []
+    for f in pack['frames']:
+        bone_file = source / 'frames' / f['name'] / 'bones.json';source_files.append(bone_file)
+        rows.append(dict(name=f['name'], anim=f.get('anim', 'Idle'), t=f.get('t', 0), bones=json.loads(bone_file.read_text()),
+                         order=f['order'], hidden=f.get('hidden', [])))
+    digest = hashlib.sha256()
+    for p in source_files:
+        digest.update(p.read_bytes())
+    fmt = 'json' if native.suffix == '.json' else 'skel'
+    project = dict(id=digest.hexdigest(), title=pack['title'], frames=rows, bones=pack['bones'], slots=pack['slots'],
+                   chains=pack['chains'], equipment=pack.get('equipment', {}), fps=pack.get('fps', 40 / 3),
+                   scale=pack['scale'], palette=pack['palette'], labels=pack.get('labels', {}),
+                   default_bone=pack.get('default_bone'), format=fmt, spine=version, character=pack.get('character'))
+    assets = {'/native.' + fmt:native, '/native.atlas':atlas, '/texture.png':texture, '/runtime.js':runtime}
+    return project, assets
+
+
+def load_project(source, runtime, runtime_dir=None):
+    if (source / 'pack.json').exists():
+        return load_pack(source, runtime_dir or RUNTIME_DIR, runtime)
     job = json.loads((source / 'job.json').read_text(encoding='utf-8'))
     if job['character'] != 'siege' or not job.get('json'):
         raise ValueError('首版仅支持推进之王的原生 3.5 Run 数据包')
@@ -93,6 +173,7 @@ def load_project(source, runtime):
     if len(frames) != 8:
         raise ValueError('需要八帧跑步源数据')
     skel = json.loads(native.read_text(encoding='utf-8'))
+    runtime = Path(runtime) if runtime else pick_runtime(spine_version(native), runtime_dir or RUNTIME_DIR)
     textures = [line.strip() for line in atlas.read_text().splitlines() if line.strip().endswith('.png')]
     if len(textures) != 1 or '/' in textures[0] or '\\' in textures[0]:
         raise ValueError('首版要求单张本地纹理图集')
@@ -113,7 +194,8 @@ def load_project(source, runtime):
                    bones=[b['name'] for b in skel['bones']], slots=[s['name'] for s in skel['slots']],
                    chains=chains, equipment={'F_R_Hand':['F_Weapon']},
                    fps=next(a['fps'] for a in job['actions'] if a['action']=='Run'),
-                   scale=job['base_scale'], palette=json.loads((source/'palette.json').read_text())['rgb'])
+                   scale=job['base_scale'], palette=json.loads((source/'palette.json').read_text())['rgb'],
+                   labels={}, default_bone='F_R_Hand', format='json', spine=spine_version(native), character='siege')
     assets = {'/native.json':native, '/native.atlas':atlas, '/texture.png':texture, '/runtime.js':runtime}
     return project, assets
 
@@ -152,6 +234,7 @@ def make_handler(project, assets, output, token):
                 self.respond(404, {'error':'不存在'});return
             kind = mimetypes.guess_type(str(p))[0] or 'application/octet-stream'
             if p.suffix == '.js':kind='application/javascript'
+            if p.suffix == '.skel':kind='application/octet-stream'
             self.respond(200, p.read_bytes(), kind)
 
         def do_POST(self):
@@ -182,13 +265,14 @@ def make_handler(project, assets, output, token):
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--source',type=Path,required=True)
-    p.add_argument('--runtime',type=Path,required=True)
+    p.add_argument('--runtime',type=Path,help='显式运行库；省略时按骨架文件头版本从 --runtime-dir 选 3.5 / 3.8')
+    p.add_argument('--runtime-dir',type=Path,default=RUNTIME_DIR)
     p.add_argument('--output',type=Path,default=HERE.parent.parent/'build/spine_editor')
     p.add_argument('--port',type=int,default=8876)
     args=p.parse_args()
     source=args.source.resolve();output=args.output.resolve()
     if output.is_relative_to(source):raise ValueError('输出目录不能位于原始美术包中')
-    project,assets=load_project(source,args.runtime.resolve())
+    project,assets=load_project(source,args.runtime.resolve() if args.runtime else None,args.runtime_dir)
     server=ThreadingHTTPServer(('127.0.0.1',args.port),make_handler(project,assets,output,secrets.token_urlsafe(24)))
     print(f'Spine editor: http://127.0.0.1:{server.server_port}/',flush=True)
     print(f'Saved edits: {output}',flush=True)

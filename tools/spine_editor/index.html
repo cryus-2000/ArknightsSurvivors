@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Spine 姿势编辑台</title><link rel="stylesheet" href="/style.css">
-<header><div><small>原生骨骼 → 部件像素化</small><h1>Spine 姿势编辑台</h1><span id="source">正在载入推进之王…</span></div>
+<header><div><small>原生骨骼 → 部件像素化</small><h1>Spine 姿势编辑台</h1><span id="source">正在载入…</span></div>
 <div class="toolbar"><button id="undo" disabled>撤销</button><button id="redo" disabled>重做</button><button id="save" disabled>保存姿势</button><button id="download" disabled>下载 JSON</button><label class="button">导入 JSON<input id="import" type="file" accept=".json" hidden disabled></label><button id="export" class="accent" disabled>导出像素动画</button></div></header>
 <div id="message" role="status" aria-live="polite">正在读取原生附件与八帧姿势。</div>
 <main><aside><h2>关节与握持</h2><label for="bone">选中关节</label><select id="bone" disabled></select>
 <label for="mode">拖动方式</label><select id="mode" disabled><option value="ik">拖手脚 · 固定骨长</option><option value="rotate">围绕关节旋转</option><option value="move">移动整支骨骼（会改变接缝）</option></select>
-<p class="hint">在左图拖圆点。手腕 / 脚踝使用双节关节联动；持锤手移动时，锤子保持方向并跟随握点。</p>
+<p class="hint">在左图拖圆点。手腕 / 脚踝使用双节关节联动；持武器手移动时，武器保持方向并跟随握点。</p>
 <div class="row"><button id="left" disabled>←</button><button id="up" disabled>↑</button><button id="down" disabled>↓</button><button id="right" disabled>→</button></div><p class="hint">每次移动 1 个输出像素；仅作用于当前帧。</p>
 <label for="angle">当前关节旋转增量</label><div class="row"><input id="angle" type="number" value="0" min="-180" max="180" step="1" disabled><button id="rotate" disabled>应用角度</button></div>
 <label><input id="bones" type="checkbox" checked>显示骨骼</label><label><input id="onion" type="checkbox">显示上一帧轮廓</label><button id="reset" disabled>恢复当前帧</button>

@@ -1,0 +1,79 @@
+{
+ "id": "skalter",
+ "src": "skalter.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "浊心斯卡蒂",
+ "mode": "float",
+ "body": {
+  "hip": "bone",
+  "chest": "bone9",
+  "head": "bone10"
+ },
+ "legs": {
+  "L": [
+   "bone5",
+   "bone6",
+   "bone7"
+  ],
+  "R": [
+   "bone2",
+   "bone3",
+   "bone4"
+  ]
+ },
+ "arms": {
+  "L": [
+   "bone14",
+   "bone15",
+   "bone16"
+  ],
+  "R": [
+   "bone11",
+   "bone12",
+   "bone13"
+  ]
+ },
+ "hold": "L",
+ "weapon": "F_Weapon",
+ "params": {
+  "lean": 6,
+  "holdAmp": 4,
+  "armAmp": 10,
+  "elbow": 20,
+  "elbowAmp": 6,
+  "floatBob": 2.5,
+  "floatTrail": 12,
+  "floatKick": 5,
+  "floatKnee": 12
+ },
+ "secondary": [
+  {
+   "match": "^bone(3[89]|4[0-9]|5[0-9]|6[0-4]|13[7-9]|14[0-4]|179|8[2-9]|90|214)$",
+   "amp": 3,
+   "drag": 5,
+   "freq": 1,
+   "lag": 1.0
+  },
+  {
+   "match": "^bone(7[2-6]|11[89]|12[0-9]|13[0-5]|14[5-9]|15[0-7])$",
+   "amp": 4,
+   "drag": 8,
+   "freq": 1,
+   "lag": 1.3
+  },
+  {
+   "match": "^bone(6[5-9]|7[01])$",
+   "amp": 4,
+   "drag": 5,
+   "freq": 1,
+   "lag": 1.1
+  },
+  {
+   "match": "^bone(17|1[89]|2[0-4]|159|16[0-7])$",
+   "amp": 2,
+   "drag": 2,
+   "freq": 1
+  }
+ ]
+}

@@ -1,6 +1,6 @@
 # 本地 Spine 姿势编辑台
 
-首版：推进之王 Run，八帧 / 0.6 秒。原生 3.5 贴图、网格、权重、动画 deformation 为只读；在现有已烘焙骨骼姿势上增加世界坐标姿势修正。不是官方 Spine 软件，也不是 `.spine` 工程导出器。
+支持 Spine 3.5 与 3.8（按骨架文件头自动选运行库）。默认打开推进之王 Run，八帧 / 0.6 秒；也可打开 `tools/spine_run_trial` 生成的任意干员数据包（`--source build/spine_run_trial/<id>/editor_pack`）。原生贴图、网格、权重、动画 deformation 为只读；在现有已烘焙骨骼姿势上增加世界坐标姿势修正。不是官方 Spine 软件，也不是 `.spine` 工程导出器。
 
 ## 打开
 
@@ -12,7 +12,7 @@
 D:/Anaconda/python.exe -X utf8 tools/spine_editor/server.py --source E:/ArknightsSurvivors/.worktrees/codex-art/art/incoming/cy_siege_all_actions_1020 --runtime E:/ArknightsSurvivors/build/prts_ref/_node/spine-canvas-3.5.51.js
 ```
 
-原生运行库和游戏素材从已存在的本机目录加载，不拷贝进工具源码，不从网络下载依赖。若安装位置变化，使用显式参数。首版不支持不同版本 Spine / 多图集 / 剪裁附件 / 权重编辑。
+原生运行库和游戏素材从已存在的本机目录加载，不拷贝进工具源码，不从网络下载依赖。`--runtime` 可省略：按 `.skel` / `.json` 文件头版本从 `--runtime-dir`（默认主工作区 `build/prts_ref/_node`）选 `spine-canvas-3.5.51.js` 或 `spine-canvas-3.8.js`。不支持 4.x、多图集、权重编辑；3.8 剪裁附件按层序裁切。
 
 ## 使用
 
@@ -22,7 +22,7 @@ D:/Anaconda/python.exe -X utf8 tools/spine_editor/server.py --source E:/Arknight
 4. 列表越上方越靠前，用上下移调整层序；隐藏选中部件仅供观察，不影响导出。
 5. 每次修改仅作用于当前帧。通过八个帧按钮切换；播放、慢放、上一帧轮廓用于检查循环。工具不自动补帧，也不自动修改其他七帧。
 6. 点击“保存姿势”写入 `build/spine_editor/draft.json`，每次另存带时间的备份。刷新会自动载入匹配源指纹的草稿。“下载 / 导入 JSON”用于携带同源修正。退出未保存时浏览器会提示。
-7. “导出像素动画”创建独立 `export_*` 文件夹：8 个透明 PNG、2048×256 帧条、0.6 秒 GIF、姿势 JSON 和 manifest。超出场景边缘的像素会阻止导出，不静默裁剪。
+7. “导出像素动画”创建独立 `export_*` 文件夹：8 个透明 PNG、2048×256 帧条、128 @2x 游戏口径帧条 `strip@2x.png`（原点 (64,120)）、0.6 秒 GIF、姿势 JSON 和 manifest。超出场景边缘的像素会阻止导出，不静默裁剪。
 
 修改文件包含来源 SHA256、八帧各自的操作序列和可选完整层序。原生 source JSON、atlas、raw/bones 和原有交付 PNG 不写入。骨架 / 来源改变会拒绝套用旧修正，以免误配。
 

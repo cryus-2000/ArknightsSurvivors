@@ -1,0 +1,79 @@
+{
+ "id": "hoshiguma",
+ "src": "hoshiguma.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "星熊",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "hold": "R",
+ "weapon": "F_Weapon_A",
+ "footExtra": {
+  "L": [
+   "F_L_Shoelace"
+  ],
+  "R": [
+   "F_R_Shoelace"
+  ]
+ },
+ "params": {
+  "lean": 8,
+  "holdAmp": 5,
+  "weaponSway": 2
+ },
+ "secondary": [
+  {
+   "match": "^(F_Front_Hair_[ABC](_[23B])?|F_[LR]_Hair(_[23])?)$",
+   "amp": 2.5,
+   "drag": 3
+  },
+  {
+   "match": "^F_Belt_[ABC](_[234])?$",
+   "amp": 4,
+   "drag": 6,
+   "lag": 1.3
+  },
+  {
+   "match": "^F_Dress_[AB](_2)?$",
+   "amp": 3,
+   "drag": 4
+  },
+  {
+   "match": "^F_Bandage_[AB](_2)?$",
+   "amp": 4,
+   "drag": 5
+  },
+  {
+   "match": "^F_Rope$",
+   "amp": 3,
+   "drag": 4
+  }
+ ]
+}
