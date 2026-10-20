@@ -23,7 +23,7 @@ Mon3tr 普攻旧动作窗口4/14秒、预定出手(2+0.5)/14秒；海嗣施放�
 |幽灵鲨 替身跟随/光环|seg_specter.h3_draw_extra，doll|native_doll_idle：40帧、10秒、4fps|包含新嘴线/86px体型；伤害tick与减速半径不改|
 |幽灵鲨 替身闪现环斩|_e3_flash_tick/_e3_flash_draw，doll_spin|暂用现有专用动作与前后锯环|原作没有此动作，不能将Idle_B当攻击；appear/hit_at/spins/gap/消失时刻不改|
 |魂灵之影 悬浮|seg_wisadel._h4wd_draw_souls|native_soul_idle：24帧、2秒、40×56|贴图锚点20,28；按当前1:1世界像素大小绘制|
-|魂灵之影 开火/历史飞出状态|_h4_draw_soul_fire / st=go|保留当前fx_wisadel_soul_fire及旧帧条|原作Attack静止，不替换本作开火；尚需与新身体匹配的开火表现|
+|魂灵之影 开火/历史飞出状态|st=go|10-21 用户定：不要攻击帧，开火保持待机身体时间线直接出弹（炮口烟）；native_soul_attack 与 fx_wisadel_soul_fire 已删|—|
 
 M3/海嗣显示条为256画布（含64px透明边距），原点128,184；density2对应foot=[64,92]，保持同一世界位置和比例，完整轨迹不被128画布截断。替身128画布foot=[32,60]。魂灵之影40×56、foot=[10,14]、frame_size=[20,28]；art_lint显式支持长方形附属帧条，主干员画布规则不放宽。
 
