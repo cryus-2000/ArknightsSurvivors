@@ -52,6 +52,16 @@ static func occupied(o) -> bool:
 	return false
 
 static func tick(o) -> void:
+	# 上一帧之前已全部结束、且该技能序列已退出的条目移除（left 回到 -1、owns 为假）；结束当帧保留，
+	# 免得旧 s_t 路径（mf_tick / seg_texas 的 on_skill_end）在同一帧把它当成未绑定再触发一次
+	var done := {}
+	for effect in o.lifecycle.values():
+		done[effect.skill] = done.get(effect.skill, true) and effect.ended
+	for skill in done:
+		if done[skill] and not (o.sq_i == skill and o.sq_ph != 0):
+			for key in o.lifecycle.keys():
+				if o.lifecycle[key].skill == skill:
+					o.lifecycle.erase(key)
 	var ended := {}
 	for effect in o.lifecycle.values():
 		if not effect.ended and float(effect.source[effect.field]) <= 0.0 and not (effect.exclusive and o.sq_i == effect.skill and o.sq_ph != 0):

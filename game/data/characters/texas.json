@@ -27,8 +27,11 @@
   "run": {"tex": "op_texas_run", "frames": 6, "fps": 10, "foot": [20, 46]},
   "attack": {"tex": "op_texas_attack", "frames": 5, "fps": 14, "foot": [24, 46], "fire": 1},
   "skill": {"tex": "op_texas_skill", "frames": 7, "fps": 12, "foot": [24, 46], "fire": 3},
+  "skills": {"_doc": "新契约试点（docs/108 §9.1）：不改帧条只填 json。S1 / S2 单条；S3 持续 8 秒，起手播 skill、持续期站立回待机条、移动播跑步条，结束不另播收势",
+   "s1": {"anim": "skill"}, "s2": {"anim": "skill"}, "s3": {"start": "skill", "loop": "idle", "run": "run"}},
   "size": 48, "foot": [24, 46]
  },
+ "extra_sprites": [],
  "attack": {"mode": "auto", "name": "疾行斩", "desc": "每 {$cd} 秒朝最近敌人方向冲刺 {$dash_len}（宽 {$dash_w}，穿透），沿途全部敌人受物理伤害；穿过敌人时全队技力 +{$hit_sp} 秒（即 {$hit_sp} 秒的自然回复量）"},
  "skills": [
   {"name": "剑雨", "en": "SWORD RAIN", "sp": 6, "desc": "以自身为中心半径 {$s1_r} 落下剑雨，×{$s1_mult} 并眩晕 {$s1_stun} 秒（精英减半，Boss 除外），全队技力 +{$s1_sp*100}%", "icon": "skill_texas_s1"},

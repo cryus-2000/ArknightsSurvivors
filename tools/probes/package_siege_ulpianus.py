@@ -77,7 +77,7 @@ for op, actions in sources.items():
         if slot not in ['idle', 'run', 'attack', 'death'] and slot not in data['extra_sprites']: data['extra_sprites'].append(slot)
         print(op, slot, size, 'pixels')
     def logical(spec, duration, fire, frame):
-        spec.update(frame_durations=[duration/8]*8, fire_time=fire, fire=frame)
+        spec.update(frame_durations=[duration/8]*8, fire_time=fire, fire=min(7, int(fire / (duration/8) + 1e-6)))  # fire = fire_time 所在的帧（docs/108 V7）；frame 为原作逻辑帧，仅作记录
     if op == 'siege':
         logical(sprites['attack'], 4/14, 2.5/14, 2)
         logical(sprites['heavy_attack'], .5, 3.5/12, 3)
@@ -86,13 +86,13 @@ for op, actions in sources.items():
         if 'activation' not in data['extra_sprites']: data['extra_sprites'].append('activation')
         data['skills'][0]['anim'] = data['skills'][2]['anim'] = 'activation'
         data['blocks']['attack']['heavy']['anim'] = 'heavy_attack'
-        data['native_motion'] = {'attack': 8/14, 'heavy_attack': 8/12, 'leap_native': 8/rates['LeapSlam']}
+        data.setdefault('native_motion', {})['clips'] = {'attack': 8/14, 'heavy_attack': 8/12, 'leap_native': 8/rates['LeapSlam']}  # states / exits 手填（docs/108 §3.5）
     else:
         logical(sprites['attack'], 5/12, 3.5/12, 3)
         logical(sprites['attack_s2'], 5/12, 3.5/12, 3)
         sprites['skill'] = dict(sprites['idle']);logical(sprites['skill'], 7/12, 3.5/12, 3)
         sprites['throw'] = dict(sprites['tether_native']);logical(sprites['throw'], 8/14, 3.5/14, 3)
-        data['native_motion'] = {'attack': 8/12, 'attack_s2': 8/12}
+        data.setdefault('native_motion', {})['clips'] = {'attack': 8/12, 'attack_s2': 8/12}  # variants / states / exits 手填（docs/108 §3.5）
         source = SOURCE / 'cw_ulpianus_skill_pixel_cleanup_1020'
         manifest = json.loads((source / 'manifest.json').read_text())
         record = manifest['actions'][0]['records'][3]

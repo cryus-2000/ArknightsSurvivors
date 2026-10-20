@@ -859,9 +859,7 @@ static func h4_phase_shot(o, a: Dictionary, round_: Dictionary, muzzle: int) -> 
 	var reach: float = _h4_wd_reach(o, a, float(effect.get("aim_r", 540.0)))
 	var target: Dictionary = {}
 	if round_.target == "random":
-		var candidates: Array = o.nearest_enemies(o.g.enemies.size(), reach, o.pos)
-		if not candidates.is_empty():
-			target = candidates[o.g.rng.randi_range(0, candidates.size() - 1)]
+		target = o.random_enemy(reach, o.pos)
 	else:
 		target = _h4_wd_target(o, a, reach) if o.atk_aim == Vector2.ZERO else o.aim_land(reach)
 	if target.is_empty():
@@ -870,9 +868,7 @@ static func h4_phase_shot(o, a: Dictionary, round_: Dictionary, muzzle: int) -> 
 	var slot: String = str(round_.anim)
 	var spec: Dictionary = o.sprite_spec(slot)
 	var frame: int = o.attack_phase_frame(int(spec.frames), int(spec.fire), o.attack_dur - o.attack_t)
-	var point: Array = spec.muzzles[frame][muzzle]
-	var foot: Array = spec.foot
-	var origin: Vector2 = o.pos + Vector2((float(point[0])-float(foot[0]))*o.face, float(point[1])-float(foot[1])) * o.g.PX
+	var origin: Vector2 = o.sprite_point_at(slot, "muzzles", frame, muzzle, null, false)
 	_h4_fire(o, a, target.pos, o.base(str(a.get("atk_key", "atk")), 0.0) * mult * o.skill_power(), str(effect.src), float(effect.size), true, 0.0, false, false, "exec", effect.get("mark", null), origin)
 	o.fx({"kind": "h4_muzzle", "pos": origin, "dir": (target.pos-origin).normalized(), "life": 0.07, "col": H4_RED, "sz": 18.0})
 	_h3_sfx(o, "atk", 2.0)

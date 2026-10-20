@@ -631,6 +631,18 @@ func nearest(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
 	return out
 
 
+## origin 周围 max_dist 内的活敌人（入选条件同 nearest，不排序；按网格查询顺序，同 seed 稳定）
+func in_range(max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
+	if origin == Vector2.INF:
+		origin = g.ppos
+	var out: Array = []
+	for j in query(origin, max_dist):
+		var e: Dictionary = g.enemies[j]
+		if not e.dead and e.pos.distance_squared_to(origin) < max_dist * max_dist:
+			out.append(e)
+	return out
+
+
 ## 扇形判定：返回 origin 周围 radius 内、与 ang 夹角不超过 half 的敌人
 func arc_hit(origin: Vector2, ang: float, half: float, radius: float) -> Array:
 	var out: Array = []

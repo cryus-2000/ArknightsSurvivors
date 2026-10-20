@@ -130,7 +130,7 @@
     0.052083333333333336
    ],
    "fire_time": 0.2916666666666667,
-   "fire": 3
+   "fire": 5
   },
   "skill": {
    "tex": "op_ulpianus_idle",
@@ -151,12 +151,12 @@
     0.07291666666666667
    ],
    "fire_time": 0.2916666666666667,
-   "fire": 3
+   "fire": 4
   },
-  "size": 48,
+  "size": 64,
   "foot": [
-   24,
-   46
+   32,
+   60
   ],
   "throw": {
    "tex": "op_ulpianus_tether_native",
@@ -309,6 +309,7 @@
    ]
   },
   "whirl_native": {
+   "foot_exempt": "128 画布按原生共同裁窗，脚底行 90 而非对称加边的 92（docs/108 §5）",
    "tex": "op_ulpianus_whirl_native",
    "frames": 8,
    "fps": 12,
@@ -318,6 +319,7 @@
    ]
   },
   "attack_s2": {
+   "foot_exempt": "128 画布按原生共同裁窗，脚底行 90 而非对称加边的 92（docs/108 §5）",
    "tex": "op_ulpianus_attack_s2",
    "frames": 8,
    "fps": 12,
@@ -336,7 +338,7 @@
     0.052083333333333336
    ],
    "fire_time": 0.2916666666666667,
-   "fire": 3
+   "fire": 5
   },
   "anchor_native": {
    "tex": "op_ulpianus_anchor_native",
@@ -1124,7 +1126,27 @@
   "anchor_native"
  ],
  "native_motion": {
-  "attack": 0.6666666666666666,
-  "attack_s2": 0.6666666666666666
+  "_doc": "原生动作覆盖层（docs/108 §3.5，native_motion.gd）：clips = 起手后整条播的秒数；variants = S2 永久生效时普攻换 attack_s2；states 按序取第一条；exits = 信号族结束后的收势",
+  "clips": {"attack": 0.6666666666666666, "attack_s2": 0.6666666666666666},
+  "variants": [{"slot": "attack", "perm": 1, "use": "attack_s2"}],
+  "states": [
+   {"on": "zip.zip", "slot": "zip_native", "from": 3, "to": 4, "rate": 2},
+   {"on": "zip.reel", "slot": "zip_native", "from": 3, "to": 4, "rate": 2},
+   {"on": "zip.hold", "slot": "zip_native", "from": 5, "to": 5},
+   {"on": "zip", "slot": "zip_native", "from": 1, "to": 2, "rate": 2},
+   {"on": "tether.reel", "slot": "tether_native", "from": 3, "to": 4, "rate": 2},
+   {"on": "tether.hold", "slot": "tether_native", "from": 5, "to": 5},
+   {"on": "tether", "slot": "tether_native", "from": 1, "to": 2, "rate": 2},
+   {"on": "hook.taut", "slot": "tether_native", "from": 3, "to": 3},
+   {"on": "hook.drag", "slot": "tether_native", "from": 4, "to": 5, "rate": 2},
+   {"on": "hook", "slot": "tether_native", "from": 1, "to": 2, "rate": 2},
+   {"on": "act:throw", "slot": "idle", "loop": true},
+   {"on": "whirl", "slot": "whirl_native", "from": 0, "to": 7, "rate": 8}
+  ],
+  "exits": [
+   {"on": "tether", "slot": "tether_native", "from": 6, "tail": 0.16},
+   {"on": "zip", "slot": "zip_native", "from": 6, "tail": 0.16},
+   {"on": "hook", "slot": "tether_native", "from": 6, "tail": 0.16}
+  ]
  }
 }

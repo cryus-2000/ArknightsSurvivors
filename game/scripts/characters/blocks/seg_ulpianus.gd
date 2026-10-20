@@ -1071,3 +1071,20 @@ static func hw_draw_hooks(o) -> void:
 				_hw_draw_chain(o, p, dg.e.pos + Vector2(0, -float(dg.e.r) * 0.5), 0.7)
 		var dirv: Vector2 = ((hk.to as Vector2) - (hk.from as Vector2)).normalized()
 		_hw_draw_anchor(o, p, -dirv if str(hk.phase) == "drag" else dirv, 1.0)
+
+
+## 原生动作信号（native_motion.gd 按 json native_motion.states / exits 取用，docs/108 §3.5）：
+## tether.<阶段> / zip.<阶段> = 掷锚（弹射式或 zip 阶段归 zip），hook.<阶段> = 最后一条钩索，whirl = 甩锚；值为该阶段进度 0–1
+static func hw_native_signals(o, out: Dictionary) -> void:
+	var an: Dictionary = o.hw.get("anchor", {})
+	if not an.is_empty() and str(an.get("phase", "")) != "":
+		var fam := "zip" if str(an.phase) == "zip" or str(an.get("b", {}).get("mode", "")) == "zip" else "tether"
+		out[fam + "." + str(an.phase)] = clampf(float(an.t) / maxf(float(an.dur), 0.001), 0.0, 1.0)
+	var hooks: Array = o.hw.get("hooks", [])
+	if not hooks.is_empty():
+		var hk: Dictionary = hooks[-1]
+		out["hook." + str(hk.phase)] = clampf(float(hk.t) / maxf(float(hk.dur), .001), 0.0, 1.0)
+	for f in o.pfx:
+		if str(f.get("kind", "")) == "whirl":
+			out["whirl"] = 1.0 - float(f.life) / float(f.max)
+			break

@@ -7,6 +7,7 @@
   "sprites": {
     "base": "mizuki_runtime_idle",
     "size": 96,
+    "foot_exempt": "整套 96 画布 + draw_scale 0.9（docs/103 10-16 试验值沿用），不是 64 主规格；重画时回到 64（docs/108 §5）",
     "foot": [
       48,
       75.50702040908614

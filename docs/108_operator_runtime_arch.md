@@ -1,4 +1,4 @@
-# 108 干员动画运行时架构（现行，2026-10-20）
+# 108 干员动画运行时架构（现行，2026-10-20；同日标准化收口见 §12）
 
 > 架构会话 10-20 审读 `6b697796..7784b32c`（Codex 10-17 起的 three-attack-timing → mizuki-standardization → logos-projectiles → siege-ulpianus-runtime → eyja-volcanic-weight、doctor-style-integration、summon-alignment、enemy-mechanics、anim-review-fixes 等分支）后收拢的**现行口径**。
 > 冲突时以本文为准；docs/105（已实施记录）、106 §4、98 §2–§3、87 §1 / §3.5 中与本文不一致的段落已加指向本文的标注。字段写法细节仍见 87 §3.5（序列）、docs/107（召唤物显示时钟）、docs/plans/2026-10-18-*（各模块设计稿）。
@@ -14,7 +14,7 @@
 | 持续攻击（逻辑） | `blocks/attack_phases.gd`（状态在 `data_operator.phases`） | 分阶段倍率、连发队列、阶段切换、结束事件 | 执行具体效果（交给 `phase_shot` / 适配器） |
 | 技能生命周期（逻辑） | `blocks/skill_lifecycle.gd`（状态在 `data_operator.lifecycle`） | 绑定「权威计数器」（s_t / ammo / perm_on / 适配器自己的字段），算剩余、占用、自然结束、取消 | 自己推进计数器 |
 | 占用闸门 | `data_operator.skills_occupied()` | 动作中技能 / 水月收势 / 持续攻击 / 独占生命周期 → 禁止起新技能；**不禁止充能** | — |
-| 原生动作覆盖（纯显示） | `native_motion.gd`（状态在 `data_operator.native_motion`） | 推进之王 / 乌尔比安的 Spine 原生姿势覆盖 `anim_state()` | 读写伤害、位移 |
+| 原生动作覆盖（纯显示） | `native_motion.gd`（状态在 `data_operator.native_motion`），信号由手写段 `*_native_signals` 提供 | 按 json `native_motion` 把原生姿势覆盖到 `anim_state()`（§3.5） | 读写伤害、位移；认识具体干员 |
 | 召唤物显示时钟（纯显示） | `summon_visual.gd`（状态在召唤物字典 `s.visual`） | 原生帧按源时间轴播放，出手事件对齐真实 `_mf_strike` | 被玩法读取 |
 | 怪物原生条（纯显示） | `art.gd enemy_pixel_*` + `data/enemy_pixels.json`、`world.gd _dc_compute / _draw_enemy_full / _enemy_top` | 归一化锚点、显示倍率、标签高度 | 改判定半径 |
 
@@ -84,7 +84,28 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | 取消 | `on_leave` → 计数器清零 + `cleanup`；不触发自然结束 |
 | 默认绑定 | `bind_skill_duration`：永久 → `perm_on`（后台、unit permanent）；次数 → `ammo`（后台、unit attacks）；水月 s_t → 前台 |
 
+条目寿命：某技能的效果全部结束、且该技能序列已退出后，**下一帧**移除（`left` 回到 -1、`owns` 为假）；结束当帧保留，防旧 s_t 路径同帧再发一次 on_skill_end。
+
 现有适配器绑定：塞雷娅 `heal_over_time`（后台）/ `calc_field`（前台）；铃兰 `fox_haze`（前台）/ `fox_warm`（永久）；维什戴尔 `cannon_load`（前台、独占、发数）。
+
+### 3.5 原生动作覆盖（native_motion，数据驱动）
+
+手写段只暴露**信号**（`data_operator.native_signals()` 汇总 `SegSiege.h4_native_signals`、`SegUlpianus.hw_native_signals`）：名 → 进度 0–1，如 `leap`、`tether.reel`、`zip.hold`、`hook.drag`、`whirl`。`native_motion.gd` 不认识任何干员，只按 json 走：
+
+```json
+"native_motion": {
+  "clips":    {"attack": 0.667, "attack_s2": 0.667},          // 起手（_start_action）后整条播的秒数
+  "variants": [{"slot": "attack", "perm": 1, "use": "attack_s2"}],  // 普攻时技能 perm 永久生效 → 换播 use
+  "states": [                                                 // 按序取第一条命中的
+    {"on": "tether.reel", "slot": "tether_native", "from": 3, "to": 4, "rate": 2},  // 帧 = from + min(to-from, int(k×rate))
+    {"on": "tether",      "slot": "tether_native", "from": 1, "to": 2, "rate": 2},  // on 匹配信号名或其「族.」前缀
+    {"on": "act:throw",   "slot": "idle", "loop": true}                              // act:<槽> = 该动作窗口内；loop 按槽帧时长循环
+  ],
+  "exits": [{"on": "tether", "slot": "tether_native", "from": 6, "tail": 0.16}]   // 信号族结束 → 从 from 帧用 tail 秒播完
+}
+```
+
+帧数一律取槽的 `frames`（不再写死 8）。校验见 V4 / V8。新人若有 Spine 原生姿势：手写段加一个 `*_native_signals`（只读自己的状态、写进 out），其余全填 json。
 
 ## 4. json 字段表（现行）
 
@@ -97,7 +118,7 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | `S.<slot>.fire_time` | 出手 / 事件时刻，替代 `(fire+0.5)/fps` | 同上（< 总时长） | 同上 + mizuki |
 | `S.attack.attack_timing{duration,fire_time,active_ratio,windup_ratio[,min_duration,min_rest]}` | 普攻随攻速压缩的完整动作（§3.1） | `valid_attack_timing`（**只查 `attack` 槽**） | mizuki saria suzuran wisadel |
 | `S.<slot>.muzzles[帧][发]` | 逐帧炮口 [x,y]，随 face 镜像 | `h4_phase_validate`（只炮击） | wisadel s2_attack / s2_over_attack |
-| `S.<slot>.<点名>[帧]`、`pt_foot` | 逐帧定位点（盾心 `shield`、手 `hand`）；`sprite_point(key)` 取世界坐标 | 无（见 §7） | hoshiguma、ulpianus |
+| `S.<slot>.<点名>[帧]`、`pt_foot` | 逐帧定位点（盾心 `shield`、手 `hand`、炮口 `muzzles`）；一律经 `sprite_point_at(槽, 点名, 帧, 组内序号)` 换世界坐标（含 pt_foot、flip / mirror、draw_scale；画面点加 draw_off，玩法点不加） | V5 / V6 / V9 | hoshiguma、ulpianus、wisadel |
 | `S.<slot>.frame_size` | 非正方形单帧尺寸 | 无 | wisadel 魂灵 |
 | `S.<slot>.visual{anim,times[],duration,event}` | 召唤物原生显示时钟（docs/107）；`anim` 必须在 `extra_sprites` | `summon_visual.errors` | kaltsit skalter specter wisadel |
 | `S.skills.sN` | 单条 `{anim}` / hold `{intro,hold,hold_ms}` / 起手型 `{start,loop[,enter,run,attack,end,shadow,shadow_a]}` | validate_operator（87 §3.5） | 8 人 |
@@ -105,24 +126,31 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | `B.skills[i].attack_phases[]{at,interval_mult,damage_mult,burst,shot_offsets[],target}` | §3.3；`at` 首项 0 严格递增 <1；`shot_offsets` 长 = burst，首 0 严格递增 <1（出手→收势末的比例）；`target` inherit / random | `AttackPhases.validate`：普攻须 circle / cone / cannon，不能 armed / combo / free，**整名干员任一处有 `swap_attack` 即禁用** | wisadel s2 |
 | `B.skills[i].attack_effect{src,size,aim_r[,mark]}` | 炮击适配器参数 | `h4_phase_validate` | wisadel |
 | `B.skills[i].stack_max` | 次数型技能可叠加上限（`load_skill_attacks`） | — | — |
-| 顶层 `native_motion{<slot>: 秒}` | 原生动作显示时长；收势可超出逻辑窗口 | **无** | siege ulpianus |
+| 顶层 `native_motion{clips,variants,states,exits}` | 原生动作覆盖（§3.5）；收势可超出逻辑窗口 | V4 / V8 | siege ulpianus |
 | `S.draw_scale` | 本体整体显示倍率 | 无 | mizuki 0.9 |
-| `S.size` | 画布边长（**运行时不读**，只给人和工具看） | 无 | 全员 |
+| `S.size` | 画布边长（运行时不读；art_lint 核对贴图） | V2 / V3 | 全员 |
+| `S.foot_exempt`、`S.<slot>.foot_exempt` | 不合 §5 口径的原因说明（字符串）；写了才放行 | V2 | saria suzuran wisadel mizuki、ulpianus 两槽 |
 | `S.foot` | 顶层缺省脚底；槽内 `foot` 优先 | — | 全员 |
 | `data/enemy_pixels.json{anchor,scale,frames,frame_size,preserve_palette[,visible_height,visible_rect]}` | 原生怪透明留白条：归一化锚点、显示倍率（普通 0.667 / 大型 1.0），标签高度按可见像素顶 | enemy_pixel_contract | 116 条 |
 | `enemies.json draw_scale` / `transformed_draw_scale` | 怪物显示倍率（不改判定） | — | 7 种 |
 
 ## 5. 画布与原点口径
 
-| 画布（1x） | 用途 | 缺省 foot | 规则 |
+**定稿规格（10-20 协调人转用户批准，V2 / V3 强制）**：
+
+| 画布（1x） | 用途 | foot | 规则 |
 |---|---|---|---|
-| 48 | 旧干员（未换新美术的 9 人） | (24, 46) | 维持到重画 |
-| **64** | 现行干员身体（只交 @2x = 128） | (32, 60)；Spine 烘焙可为浮点，取 `base_anchor/2` | **主规格** |
-| 96 | 64 四边各加 16 透明边，装超界动作（死亡、大幅技能） | 64 口径 foot + (16, 16)，如维什戴尔 (48.25, 75.86) | 像素密度不变、**不得**因画布大而放大人物；同一干员 64 / 96 槽混用合法 |
-| 128 | 超大幅动作（乌尔比安 whirl_native / attack_s2 foot (64, 90)）、召唤物原生条 256@2x foot (64, 92) | 按共同裁窗 | 同上 |
+| 48 | 旧干员（未换新美术） | 顶层脚底行 46 | 维持到重画，不再新增 |
+| **64** | 现行干员身体（只交 @2x = 128） | 顶层 **(32, 60) 整数** | **主规格**；`sprites.size: 64` |
+| 96 | 64 四边各加 16 透明边，装超界动作 | 顶层 foot + (16, 16) = (48, 76) | 只给超界槽用；像素密度不变、**不得**因画布大而放大人物 |
+| 128 | 64 四边各加 32 透明边 | 顶层 foot + (32, 32) = (64, 92) | 同上 |
+
+- 槽 foot 必须正好是「顶层 foot + (0|16|32, 同值)」；Spine 烘焙出的小数原点由交付侧在出图时对齐到整数（不是在 json 里写小数）。
+- 例外须在 json 写 `foot_exempt` 说明原因（V2 放行、art_lint V3 跳过）。现有例外：塞雷娅 / 铃兰 / 维什戴尔的小数顶层 foot 与整数跑步条（取整会让本体平移半个 @2x 像素、维什戴尔还会挪炮口原点，等协调人定是否取整）；水月 96 画布；乌尔比安 whirl_native / attack_s2 的 128 裁窗脚底行 90。
+- 召唤物 / 魂灵等非本体槽（带 `visual`、被 `visual.anim` 引用、或带 `frame_size`）不受本节约束，按 docs/107。
 
 - foot 一律 1x 逻辑像素；art_lint 对浮点 foot 取 floor 行；@2x 由 `hires_of` 自动折算。
-- 例外：**水月整套用 96 画布 + `draw_scale 0.9`**（docs/103 10-16 的试验值沿用），不是 64 主规格；`sprite_point` 不乘 draw_scale，水月不要加定位点，或先补乘法（§7）。
+- 例外：**水月整套用 96 画布 + `draw_scale 0.9`**（docs/103 10-16 的试验值沿用），不是 64 主规格；定位点换算已乘 draw_scale，但 V9 仍要求有定位点的干员先确认缩放再加。
 - 怪物：原生条不再「脚底贴画布底」，按 `enemy_pixels.json` 归一化锚点 + 0.667 / 1.0 显示倍率；98 §10 的放大档作废、以 98 §10.1 为准。
 
 ## 6. 现状表（10-20 main 7784b32c）
@@ -136,8 +164,8 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | 逻各斯 | 64 | frame_durations | s1/s3 序列、s2 单条 | `hw_native_body_state` | 交替弹体 a/b |
 | 艾雅法拉 | 64 + 96 | frame_durations | s3 start/loop/run/end | — | 熔岩弹 `magma_projectile.gd`、S3 收势 0.28 s、`look.weighted` |
 | 能天使 | 64 | frame_durations（全槽） | s1–s3 单条 | 次数型 lifecycle 默认绑定 | |
-| 推进之王 | 64（**顶层 size / foot 仍写 48 / (24,46)**） | frame_durations | 无（`skills[].anim`） | native_motion | 取消号令 |
-| 乌尔比安 | 64 + 128（同上，顶层未改） | frame_durations、`hand` | 无（elite2 `anim: throw`） | native_motion | 锚 / 锁链从 `hand` 连出 |
+| 推进之王 | 64 | frame_durations | 无（`skills[].anim`） | native_motion（数据驱动） | 取消号令 |
+| 乌尔比安 | 64 + 128 | frame_durations、`hand` | 无（elite2 `anim: throw`） | native_motion（数据驱动） | 锚 / 锁链从 `hand` 连出 |
 | 安洁莉娜 | 48（新序列、旧画布） | fire | s3 start/enter/loop/run/attack/end | — | 帧条待重画 |
 
 其余 8 人（星熊、艾丽妮、凯尔希、流明、斯卡蒂、浊心斯卡蒂、归溟幽灵鲨、德克萨斯）仍是 48 旧口径，见 §9。
@@ -191,9 +219,17 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | 归溟幽灵鲨 | saw（H3） | s1/s2/s3 限时（s2 undying / substitute） | 序列；替身 `doll` 已走 `visual`（闪现环斩仍旧动作） | fall、doll_spin（elite2） | `h3_anim_state` 倒下帧条覆盖；替身环斩待补原生 |
 | 德克萨斯 | dash_line | s1 瞬发、s2 永久、s3 限时 mode | 序列（s3）；dash_line **不能用 attack_phases** | 本体 6 条；当前无 `extra_sprites` | on_skill_end（s3）走 s_t 旧路径，换 lifecycle 绑定时要确认不重复触发 |
 
-**推进之王 / 乌尔比安补尾**：顶层 `sprites.size` / `foot` 仍是 48 / (24,46)，每槽 foot 已是 (32,60)，目前只在「槽缺 foot」时回退，暂无可见错误；下次动 json 时顺手改成 64 / (32,60)。
+**推进之王 / 乌尔比安补尾**：已改（10-20 §12）。
 
-## 10. 「新人接入只填 json」检查表（validate_operator 应补的校验）
+### 9.1 试点：德克萨斯「只填 json」（10-20）
+
+帧条不变，只改 json：`sprites.skills`（S1 / S2 单条 `skill`；S3 `{start: skill, loop: idle, run: run}`）+ `extra_sprites: []`。**没有改任何代码**。结果：
+- 契约校验 V1–V9 零错误；`texas_contract` 回归（快检项）通过：S1 窗口 / 出手与原单条相同，S3 起手 → 持续期站立 idle / 移动 run → 结束退出，S2 永久由生命周期默认绑定为后台 permanent、不占技能通道。
+- 同 seed：seed 1 180 秒、seed 2 240 秒满技力（`--sptest`）两局对 2968bf4a 逐行相同。
+- 还缺（换新美术时才补，都是填 json）：64 画布帧条与 `size: 64` / `foot: [32, 60]`；`frame_durations` / `fire_time`；`attack_timing`（会改普攻出手时刻，属数值决定，交数值会话）；S3 若要专属循环 / 收势条，加 `skill_s3_loop` / `skill_s3_end` 并列进 `extra_sprites`。dash_line 普攻**不能**用 attack_phases（只支持 circle / cone / cannon），德克萨斯本来也不需要。
+- 结论：现有积木 + 新契约下，新人动画接入只填 json 成立；需要写代码的只剩「新的普攻形状 / 新手写机制」本身，以及有 Spine 原生姿势时的一个 `*_native_signals` 信号函数。
+
+## 10. 「新人接入只填 json」检查表（10-20 已全部实现：`operator_contract.gd`，test_core 坏样例逐条覆盖）
 
 已有：skill_pose 禁用、`attack_timing`（仅 attack 槽）、`frame_durations`、sN 序列互斥、`summon_visual.errors`、`AttackPhases.validate`、`h4_phase_validate`。
 
@@ -209,7 +245,7 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | V8 | `extra_sprites` 必须覆盖 `S.skills.*`、`phases[]`、`native_motion`、`visual.anim` 引用的所有槽 | 现在只部分路径查 |
 | V9 | `draw_scale ≠ 1` 与逐帧定位点不能同时出现（`sprite_point` 不乘 draw_scale） | 水月 0.9 若加点会偏 10% |
 
-建议做法：V1–V9 写进 `character.gd validate_operator`（V3 只在 `tools/art_lint.py` 查，避免运行时读图），`test_core` 加一份坏样例 fixture 覆盖每条。
+实现：V1、V2、V4–V9 在 `game/scripts/characters/operator_contract.gd`（`validate_operator` 调用，错误以「V<n> 」开头）；V3 在 `tools/art_lint.py` 的「尺寸帧数」项；`test_core.test_operator_contract` 先断言 18 人真实数据零错误，再对每条规则一个坏样例断言只报对应编号。
 
 ## 11. 审查发现（严重度：高 = 会出错 / 中 = 维护或性能风险 / 低 = 口径不一）
 
@@ -228,3 +264,18 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | F11 | 低 | 同 seed：本批改动（attack_timing 改出手时刻、水月删 free、eyja 改弹速与收势）都是**有意的时序变化**，TRACE 基线需由协调人统一刷新；`phase_shot` 的 `g.rng` 抽取只在 random 阶段消耗，顺序稳定 | — | 合入后跑 `trace_base.py` 全员一次重建基线 |
 
 本次审查没有发现需要立即改代码的明确 bug（F3 / F5 是潜在问题，现有 9 人的数据不触发）。
+
+## 12. 标准化收口（2026-10-20，分支 claude/op-standardize）
+
+| 项 | 处理 | 同 seed / 画面 |
+|---|---|---|
+| F1 | native_motion 改数据驱动（§3.5），删 id 分支与私有状态读取、帧数取槽 frames；推进之王 / 乌尔比安改填 json；`tools/probes/package_siege_ulpianus.py` 只写 clips | 推进之王 / 乌尔比安 TRACE 逐行相同；截图脚本逐帧状态记录相同 |
+| F2 | check.py 登记 `logos_projectiles`、`three_operator_art`（另加 `texas_contract`） | — |
+| F3 | 生命周期条目结束后移除（§3.4），skill_lifecycle_test 补回归 | 7 人 TRACE 逐行相同 |
+| F4 | `random_enemy`（射程内不排序、g.rng 抽一次）替代全量排序；**单独提交**，会改维什戴尔 S2 后半段同 seed 选中的目标 | 胜率 A/B 按「平衡批跑一律云端」待协调人排云端 |
+| F5 / F7 | `sprite_point_at` 统一定位点 / 炮口；乘 draw_scale；玩法点（炮口）不加绘制期的 draw_off | 维什戴尔见下 |
+| F6 / V2 / V3 | 推进之王 / 乌尔比安顶层 64 / (32,60)；`fire` 改为 `fire_time` 所在帧（V7 抓出的旧值，运行时不读） | 逐行相同 |
+| F8 | weapons.gd 画面随机全改 `g.vrng` | 不影响玩法随机 |
+| F9 | swap_attack 禁令只查同一技能；另校验他技换上的普攻须是 circle / cone | — |
+
+**新发现（中）**：维什戴尔 seed 1 180 秒在 **2968bf4a 本身**两次运行就不一致（99 / 100 / 150 秒处分叉，与机器负载相关），所以维什戴尔的同 seed 对照没有意义，需单独排查（候选：随渲染频率变化的状态被玩法读到）。其余干员同 seed 稳定。
