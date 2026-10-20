@@ -312,7 +312,10 @@ async function main() {
   const report = [];
   const frames = [];
   for (let i = 0; i < 8; i++) {
-    const { sk, contacts } = frame(i), { canvas, clipped } = pixelize(sk);
+    const { sk, contacts } = frame(i), { canvas: px, clipped } = pixelize(sk);
+    // flip：回旋类动作转到背面的帧整帧水平镜像（原点在画布中线，镜像后脚下位置不变）
+    let canvas = px;
+    if (cfg.keys?.[i]?.flip) { canvas = createCanvas(SIZE, SIZE); const m = canvas.getContext('2d'); m.translate(SIZE, 0); m.scale(-1, 1); m.drawImage(px, 0, 0); }
     fs.writeFileSync(path.join(OUT, `f${String(i).padStart(2, '0')}.png`), canvas.toBuffer('image/png'));
     frames.push(sk);
     report.push({ frame: i, contacts, clipped_near_edge: clipped });
