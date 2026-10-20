@@ -6,6 +6,7 @@ extends RefCounted
 const UI = preload("res://scripts/ui.gd")
 const TouchLayout = preload("res://scripts/touch_layout.gd")   # 各按键位置 / 大小（缺省 + 设置里的自定义，10-13）
 const PlayClock = preload("res://scripts/run/play_clock.gd")
+const TriBatch = preload("res://scripts/render/tri_batch.gd")
 
 const RADIUS := 64.0        # 摇杆最大行程
 const DEAD := 10.0          # 死区
@@ -279,23 +280,30 @@ func draw_hud(vs: Vector2) -> void:
 	var hud: CanvasItem = g.hud
 	var font: Font = g.font
 	btn_rects.clear()
+	_tb = null if g.opt_old & g.OPT_TOUCHB else TriBatch.new()
+	_draw_hud_body(hud, font, vs)
+	_seal(hud)
+	_tb = null
+
+
+func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 	# 位置 / 大小：缺省或玩家在「设置 → 触屏按键布局」里改过的（touch_layout.gd，夹在安全区内）
 	var L: Dictionary = layout(vs)
 	var sk: float = L.stick.s
 	# 摇杆
 	if stick_id >= 0 and g.state == g.S.PLAY:
 		var rr: float = stick_r()
-		hud.draw_circle(stick_origin, rr + 10.0 * sk, Color(0.05, 0.12, 0.16, 0.35))
-		hud.draw_arc(stick_origin, rr + 10.0 * sk, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.5), 2.0)
+		_circ(hud, stick_origin, rr + 10.0 * sk, Color(0.05, 0.12, 0.16, 0.35))
+		_arc(hud, stick_origin, rr + 10.0 * sk, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.5), 2.0)
 		var knob: Vector2 = stick_origin + vec * rr
-		hud.draw_circle(knob, 24.0 * sk, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35))
-		hud.draw_arc(knob, 24.0 * sk, 0.0, TAU, 24, Color(0.8, 1.0, 1.0, 0.8), 2.0)
+		_circ(hud, knob, 24.0 * sk, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35))
+		_arc(hud, knob, 24.0 * sk, 0.0, TAU, 24, Color(0.8, 1.0, 1.0, 0.8), 2.0)
 	elif g.state == g.S.PLAY:
 		# 提示：左下角淡淡的摇杆位置（改过位置时稍亮一点：那里按下就是固定摇杆）
 		var c: Vector2 = L.stick.c
 		var ka: float = 0.2 if L.stick.custom else 0.12
-		hud.draw_arc(c, 40.0 * sk, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ka), 1.5)
-		hud.draw_circle(c, 10.0 * sk, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ka))
+		_arc(hud, c, 40.0 * sk, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ka), 1.5)
+		_circ(hud, c, 10.0 * sk, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ka))
 	# 冲刺按钮：缺省在右下角编队区（源石锭框 + 「编队 n / m」）正上方；技能键 / 攻击键缺省跟着冲刺键（touch_layout.default_center）
 	# 手机（界面层放大后逻辑高约 481，手机端 UI 优化 r2）：右侧竖列只放暂停 / 属性，冲刺键左移到 vs.x − 134
 	var ph: bool = vs.y < 520.0 or Cfg.phone_ui()
@@ -306,12 +314,12 @@ func draw_hud(vs: Vector2) -> void:
 		var dr0 := Rect2(dc - Vector2(dr, dr), Vector2(dr * 2.0, dr * 2.0))
 		btn_rects.append([dr0, "dash"])
 		var ready: bool = g.dash_ready()
-		hud.draw_circle(dc, dr, Color(0.05, 0.12, 0.16, 0.7 if ready else 0.45))
-		hud.draw_arc(dc, dr, -PI / 2.0, -PI / 2.0 + TAU * g.dash_frac(), 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if ready else 0.5), 3.0)
+		_circ(hud, dc, dr, Color(0.05, 0.12, 0.16, 0.7 if ready else 0.45))
+		_arc(hud, dc, dr, -PI / 2.0, -PI / 2.0 + TAU * g.dash_frac(), 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if ready else 0.5), 3.0)
 		var dfs: int = int(round(18.0 * clampf(ds, 0.85, 1.3)))
-		UI.text(hud, font, dc + Vector2(-40, dfs * 0.45), "冲刺", dfs, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80)
+		_tx(func(): UI.text(hud, font, dc + Vector2(-40, dfs * 0.45), "冲刺", dfs, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80))
 		if g.dash_max() > 1:   # 连冲：剩余次数
-			UI.text(hud, font, dc + Vector2(-40, dfs * 0.45 + 18.0 * clampf(ds, 0.85, 1.3)), "×%d" % g.dash_left(), int(round(12.0 * clampf(ds, 0.85, 1.3))), Color(1, 1, 1, 0.8), HORIZONTAL_ALIGNMENT_CENTER, 80)
+			_tx(func(): UI.text(hud, font, dc + Vector2(-40, dfs * 0.45 + 18.0 * clampf(ds, 0.85, 1.3)), "×%d" % g.dash_left(), int(round(12.0 * clampf(ds, 0.85, 1.3))), Color(1, 1, 1, 0.8), HORIZONTAL_ALIGNMENT_CENTER, 80))
 		if g.doctor.manual_attack:
 			_draw_atk_button(hud, font, L.atk.c, L.atk.s)
 		else:
@@ -331,15 +339,16 @@ func draw_hud(vs: Vector2) -> void:
 			var r := Rect2(c - Vector2(br, br), Vector2(br * 2.0, br * 2.0))
 			btn_rects.append([r, items[i][1]])
 			var lit: bool = flash.get(items[i][1], 0.0) > 0.0 or (items[i][1] == "pause" and g.state == g.S.PAUSE) or (items[i][1] == "stats" and g.state == g.S.STATS)
-			hud.draw_circle(c, br, Color(0.05, 0.12, 0.16, 0.75 if lit else 0.55))
-			hud.draw_arc(c, br, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if lit else 0.5), 2.0)
+			_circ(hud, c, br, Color(0.05, 0.12, 0.16, 0.75 if lit else 0.55))
+			_arc(hud, c, br, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.9 if lit else 0.5), 2.0)
 			var ifs: int = int(round(20.0 * clampf(float(e.s), 0.8, 1.3)))
-			UI.text(hud, font, c + Vector2(-20, ifs * 0.35), items[i][0], ifs, Color(1, 1, 1, 0.95 if lit else 0.8), HORIZONTAL_ALIGNMENT_CENTER, 40)
-			UI.text(hud, font, c + Vector2(-30, br + 15), items[i][2], 13 if ph else 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 60)
+			_tx(func(): UI.text(hud, font, c + Vector2(-20, ifs * 0.35), items[i][0], ifs, Color(1, 1, 1, 0.95 if lit else 0.8), HORIZONTAL_ALIGNMENT_CENTER, 40))
+			_tx(func(): UI.text(hud, font, c + Vector2(-30, br + 15), items[i][2], 13 if ph else 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 60))
 			# 开局「点「属性」查看……」提示期间，属性键跟着呼吸（提示条件同 hud.gd）
 			if items[i][1] == "stats" and g.state == g.S.PLAY and (((g.t >= 6.0 and g.t < 16.0) and not g.tab_used) or g.tab_hint > 0.0):
+				_seal(hud)   # 呼吸外圈压在「属性」字上（原顺序）
 				var pulse: float = 0.5 + 0.5 * sin(g.t * 5.0)
-				hud.draw_arc(c, br + 4.0 + 2.0 * pulse, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.3 + 0.5 * pulse), 2.0)
+				_arc(hud, c, br + 4.0 + 2.0 * pulse, 0.0, TAU, 32, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.3 + 0.5 * pulse), 2.0)
 
 
 ## 攻击键：圆底 + 交叉双刃图标 + 「攻击」；按住时亮、拖动时按钮上画小摇杆（同技能键）
@@ -348,20 +357,21 @@ func _draw_atk_button(hud: CanvasItem, font: Font, c: Vector2, sc := 1.0) -> voi
 	atk_rect = Rect2(c - Vector2(r, r), Vector2(r * 2.0, r * 2.0))
 	var held: bool = atk_id >= 0 or flash.get("atk", 0.0) > 0.0
 	var ac := Color(1.0, 0.72, 0.4)
-	hud.draw_circle(c, r, Color(0.14, 0.08, 0.04, 0.8 if held else 0.55))
-	hud.draw_arc(c, r, 0.0, TAU, 40, Color(ac.r, ac.g, ac.b, 0.95 if held else 0.6), 3.0 if held else 2.0)
+	_circ(hud, c, r, Color(0.14, 0.08, 0.04, 0.8 if held else 0.55))
+	_arc(hud, c, r, 0.0, TAU, 40, Color(ac.r, ac.g, ac.b, 0.95 if held else 0.6), 3.0 if held else 2.0)
 	for sgn in [-1.0, 1.0]:
 		var a0: Vector2 = c + Vector2(-12.0 * sgn, 12.0) * sc
 		var a1: Vector2 = c + Vector2(12.0 * sgn, -12.0) * sc
-		hud.draw_line(a0, a1, Color(1, 1, 1, 0.95 if held else 0.75), 3.0)
-		hud.draw_line(a0 + Vector2(-4.0 * sgn, -4.0), a0 + Vector2(4.0 * sgn, 4.0), Color(ac.r, ac.g, ac.b, 0.9), 3.0)
+		_ln(hud, a0, a1, Color(1, 1, 1, 0.95 if held else 0.75), 3.0)
+		_ln(hud, a0 + Vector2(-4.0 * sgn, -4.0), a0 + Vector2(4.0 * sgn, 4.0), Color(ac.r, ac.g, ac.b, 0.9), 3.0)
 	if atk_id >= 0:
+		_seal(hud)   # 拖动小摇杆压在按钮字上（原顺序）
 		var reach := r + 30.0
-		hud.draw_arc(c, reach, 0.0, TAU, 40, Color(ac.r, ac.g, ac.b, 0.35), 1.5)
-		hud.draw_arc(c, AIM_DEAD, 0.0, TAU, 24, Color(1, 1, 1, 0.25), 1.0)
+		_arc(hud, c, reach, 0.0, TAU, 40, Color(ac.r, ac.g, ac.b, 0.35), 1.5)
+		_arc(hud, c, AIM_DEAD, 0.0, TAU, 24, Color(1, 1, 1, 0.25), 1.0)
 		var k: Vector2 = atk_drag.limit_length(reach)
-		hud.draw_circle(c + k, 12.0, Color(ac.r, ac.g, ac.b, 0.45 if atk_drag.length() >= AIM_DEAD else 0.25))
-		hud.draw_arc(c + k, 12.0, 0.0, TAU, 20, Color(1.0, 0.9, 0.75, 0.9), 2.0)
+		_circ(hud, c + k, 12.0, Color(ac.r, ac.g, ac.b, 0.45 if atk_drag.length() >= AIM_DEAD else 0.25))
+		_arc(hud, c + k, 12.0, 0.0, TAU, 20, Color(1.0, 0.9, 0.75, 0.9), 2.0)
 
 
 ## 手动技能键：圆底 + 技能图标 + 外圈充能；就绪时青色呼吸外圈。只在主控有已解锁的手动技能时画（干员契约 v2.3：手动只对主控）
@@ -379,23 +389,78 @@ func _draw_skill_button(hud: CanvasItem, font: Font, c: Vector2, sc := 1.0) -> v
 	var frac: float = clampf(ld.sp[i] / need, 0.0, 1.0) if need > 0.0 else 1.0
 	var ready: bool = g.hud_view.squad.manual_castable(ld, i)
 	var held: bool = skill_id >= 0 or flash.get("skill", 0.0) > 0.0
-	hud.draw_circle(c, r, Color(0.05, 0.12, 0.16, 0.8 if ready or held else 0.5))
+	_circ(hud, c, r, Color(0.05, 0.12, 0.16, 0.8 if ready or held else 0.5))
 	var tx: Texture2D = g.tex.get(ld.skill_def(i).get("icon", ""))
 	if tx != null:
 		var s := r * 1.2
-		hud.draw_texture_rect(tx, Rect2(c - Vector2(s, s) / 2.0, Vector2(s, s)), false, Color.WHITE if ready else Color(0.55, 0.58, 0.62))
+		_icon(hud, tx, Rect2(c - Vector2(s, s) / 2.0, Vector2(s, s)), Color.WHITE if ready else Color(0.55, 0.58, 0.62))
 	else:
-		UI.text(hud, font, c + Vector2(-40, 7), ld.skill_def(i).get("name", "技能").substr(0, 2), 16, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80)
-	hud.draw_arc(c, r, -PI / 2.0, -PI / 2.0 + TAU * frac, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.95 if ready else 0.5), 3.0)
+		_tx(func(): UI.text(hud, font, c + Vector2(-40, 7), ld.skill_def(i).get("name", "技能").substr(0, 2), 16, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80))
+	_arc(hud, c, r, -PI / 2.0, -PI / 2.0 + TAU * frac, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.95 if ready else 0.5), 3.0)
 	if ready:
 		var pulse: float = 0.5 + 0.5 * sin(g.t * 6.0)
-		hud.draw_arc(c, r + 4.0 + 2.0 * pulse, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35 + 0.4 * pulse), 2.0)
-	UI.text(hud, font, c + Vector2(-40, r + 17), ld.skill_def(i).get("name", ""), 13, UI.TEXT if ready else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 80)
+		_arc(hud, c, r + 4.0 + 2.0 * pulse, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35 + 0.4 * pulse), 2.0)
+	_tx(func(): UI.text(hud, font, c + Vector2(-40, r + 17), ld.skill_def(i).get("name", ""), 13, UI.TEXT if ready else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 80))
 	# 按住拖动：按钮上画小摇杆（外圈 = 拖动示意范围，内圈 = 死区，拖回内圈 = 自动瞄准）
 	if skill_id >= 0 and ld.manual_aims(i):
+		_seal(hud)   # 同上
 		var reach := r + 30.0
-		hud.draw_arc(c, reach, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35), 1.5)
-		hud.draw_arc(c, AIM_DEAD, 0.0, TAU, 24, Color(1, 1, 1, 0.25), 1.0)
+		_arc(hud, c, reach, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35), 1.5)
+		_arc(hud, c, AIM_DEAD, 0.0, TAU, 24, Color(1, 1, 1, 0.25), 1.0)
 		var k: Vector2 = skill_aim.limit_length(reach)
-		hud.draw_circle(c + k, 14.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.45 if aim_dir() != Vector2.ZERO else 0.25))
-		hud.draw_arc(c + k, 14.0, 0.0, TAU, 20, Color(0.85, 1.0, 1.0, 0.9), 2.0)
+		_circ(hud, c + k, 14.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.45 if aim_dir() != Vector2.ZERO else 0.25))
+		_arc(hud, c + k, 14.0, 0.0, TAU, 20, Color(0.85, 1.0, 1.0, 0.9), 2.0)
+
+
+## 合批（性能 docs/50 §21，OPT_TOUCHB）：按钮的圆 / 弧 / 线进一个 TriBatch（引擎同款几何），技能图标随后、字最后按字号成组画，
+## 一帧原来二三十次绘制调用压到几次。字只压在本按钮的图形上；拖动小摇杆 / 呼吸外圈这种要压在字上的，先 _seal 把前面的交掉再画（层次同原来）
+var _tb: TriBatch = null
+var _txt: Array[Callable] = []
+var _icons: Array = []
+
+func _circ(hud: CanvasItem, c: Vector2, r: float, col: Color) -> void:
+	if _tb != null:
+		_tb.circle(c, r, col)
+	else:
+		hud.draw_circle(c, r, col)
+
+
+func _arc(hud: CanvasItem, c: Vector2, r: float, a0: float, a1: float, n: int, col: Color, w: float) -> void:
+	if _tb != null:
+		_tb.arc(c, r, a0, a1, n, col, w)
+	else:
+		hud.draw_arc(c, r, a0, a1, n, col, w)
+
+
+func _ln(hud: CanvasItem, a: Vector2, b: Vector2, col: Color, w: float) -> void:
+	if _tb != null:
+		_tb.line(a, b, col, w)
+	else:
+		hud.draw_line(a, b, col, w)
+
+
+func _icon(hud: CanvasItem, tx: Texture2D, r: Rect2, col: Color) -> void:
+	if _tb != null:
+		_icons.append([tx, r, col])
+	else:
+		hud.draw_texture_rect(tx, r, false, col)
+
+
+func _tx(f: Callable) -> void:
+	if _tb != null:
+		_txt.append(f)
+	else:
+		f.call()
+
+
+func _seal(hud: CanvasItem) -> void:
+	if _tb == null:
+		return
+	_tb.flush(hud)
+	for it in _icons:
+		hud.draw_texture_rect(it[0], it[1], false, it[2])
+	_icons.clear()
+	if not _txt.is_empty():
+		g.hud_view.text_flush(_txt)
+		_txt = []
+
