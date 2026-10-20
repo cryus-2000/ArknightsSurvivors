@@ -588,22 +588,30 @@ def check_native_eq(godot):
 
 
 def check_repro(godot):
-    extra = ["--balance", "--seed=7", "--op=wisadel", "--squad=suzuran", "--bot=expert", "--maxt=240"]
-    with ThreadPoolExecutor(2) as ex:
-        a, b = list(ex.map(lambda k: run_case(godot, "复现_%d" % k, extra), [1, 2]))
-    logs = "、".join(x["log"] for x in (a, b) if x.get("log"))
-    if not (a["ok"] and b["ok"]):
-        why = "；".join("第 %d 局 %s" % (k + 1, x["detail"]) for k, x in enumerate((a, b)) if not x["ok"])
-        return {"name": "同 seed 复现", "ok": False, "detail": "有一局没跑完（%s）" % why, "errors": a["errors"] + b["errors"], "log": logs}
-    da, db = dict(a["data"]), dict(b["data"])
-    da.pop("prof", None)
-    db.pop("prof", None)
+    # 第 3 局加 --rngshift：画面随机流 g.vrng 与全局随机流换种子。它们的消耗次数随真实帧间隔变（脚下尘土等按真实时间生成），
+    # 玩法读了它们就会「同 seed 偶尔不同」（10-20 逻各斯弹道摆动读 g.vrng，招募了逻各斯的维什戴尔 / 星熊局随机分叉）。
+    # 逻各斯在队里，覆盖弹道这一路
+    extra = ["--balance", "--seed=7", "--op=wisadel", "--squad=suzuran,logos", "--bot=expert", "--maxt=240"]
+    with ThreadPoolExecutor(3) as ex:
+        a, b, c = list(ex.map(lambda k: run_case(godot, "复现_%d" % k, extra + (["--rngshift"] if k == 3 else [])), [1, 2, 3]))
+    logs = "、".join(x["log"] for x in (a, b, c) if x.get("log"))
+    if not (a["ok"] and b["ok"] and c["ok"]):
+        why = "；".join("第 %d 局 %s" % (k + 1, x["detail"]) for k, x in enumerate((a, b, c)) if not x["ok"])
+        return {"name": "同 seed 复现", "ok": False, "detail": "有一局没跑完（%s）" % why, "errors": a["errors"] + b["errors"] + c["errors"], "log": logs}
+    ds = [dict(x["data"]) for x in (a, b, c)]
     # 同屏数量峰值（telemetry peak / peak_min）只观察画面：特效里有绘制时追加的项，两局可能差一两个，不算复现失败
-    for d in (da, db):
+    for d in ds:
+        d.pop("prof", None)
         if isinstance(d.get("bot"), dict):
             d["bot"] = {k: v for k, v in d["bot"].items() if k not in ("peak", "peak_min")}
-    diff = [k for k in sorted(set(da) | set(db)) if da.get(k) != db.get(k)]
-    return {"name": "同 seed 复现", "ok": not diff, "detail": "4:00 游戏时间逐字段相同" if not diff else "不同的字段：" + "、".join(diff[:8]), "errors": [], "log": logs}
+    diff = [k for k in sorted(set(ds[0]) | set(ds[1])) if ds[0].get(k) != ds[1].get(k)]
+    shift = [k for k in sorted(set(ds[0]) | set(ds[2])) if ds[0].get(k) != ds[2].get(k)]
+    detail = "4:00 游戏时间逐字段相同（含画面 / 全局随机流换种子）"
+    if diff:
+        detail = "两局不同的字段：" + "、".join(diff[:8])
+    elif shift:
+        detail = "画面 / 全局随机流换种子后结果变了（玩法读了 g.vrng 或全局 randf）：" + "、".join(shift[:8])
+    return {"name": "同 seed 复现", "ok": not diff and not shift, "detail": detail, "errors": [], "log": logs}
 
 
 # 积木等价测试（docs/61 §测试；10-15 起「数据版 vs 金样」，docs/36 §1.3）：原先数据干员与同一份数值的手写参照（tests/data_ops/*_legacy.gd、
