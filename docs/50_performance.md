@@ -1342,3 +1342,55 @@ HUD 平均减少 **0.024 毫秒（1.8%）**；8–10 分钟 HUD 1.355 → 1.334 
 `control_clean_1`、`thin_clean_1`、`geometry_clean_ab_1`、`typed_clean_1`、`typed_control_clean_1`、`typed_blocks_clean_1`、`typed_control_clean_2` 共 7 局固定步长的 601 行 TRACE 完全一致，均无浏览器 ERROR，逐局清理审计均为零残留。类型候选与对应原版都用 --export-pack；核对本版本 main.cpp，export_debug 初值为 false，--export-pack 不启用 debug 导出。类型副本证据 `build/fps_web/typed_candidate.patch`、`webres/typed*_k-_s-.json`。正式代码仍是既有字体查表 / HUD 圆环缓存等提交，本轮只补性能记录。
 
 当前结论：本机桌面发布模板标准场景的正常调度预算通过；网页正常呈现仍未通过，三角化错误仍未定位。未合入 main，未发版，未改正式模板、画质或刷新频率。继续压缩网页慢帧需要新的可验证热点方案；本节不宣称双端 60 FPS 已完成。
+
+
+## 21. 网页为主基准的帧率迭代（2026-10-21，Claude，分支 claude/optimistic-dhawan-7e67e2）
+
+协调人 10-21 转达用户口径：**帧率以 B站 Toy 网页版为主基准，桌面只作参考**；后期满屏怪 + Boss 两段都按网页报 p50 / p95 / p99；网页不默认低画质。
+
+### 21.1 测法
+
+- **场景**：seed 13 浊心斯卡蒂 + 德克萨斯 / 能天使、高手、标准、`--nodeath --rtfrom=420 --maxt=660`、`--fixed-fps 60`、高画质。段：7–10 分钟（420–600 秒，同屏敌人中位 50 / 峰值 71）、Boss（600–660 秒）。
+- **网页（主）**：测量副本同 §20（测试参数在发布版也读、`requestAnimationFrame` 换 MessageChannel 测计算吞吐），改成**手机横屏口径**：Edge 独立用户目录、窗口屏幕外、视口 844×390、DPR 2（画布 1688×776）、`--touch`（触屏界面）、`--camzoom=120`（手机缺省镜头；镜头会话评估的 100 / 80 档用同一参数切）。脚本在本工作树 `build/perf1021/`（`web_export.py` / `web_run.py` / `web_prof.py`，不入库）；浏览器只关本次 profile 的进程树（沿用 §20 的 browser_processes）。
+- **净收益只看同局轮换**：游戏侧用 `--optab=60 --optmask=<位>`；新加的测量副本开关 `--optcyc=60:m1,m2,…`（每 60 帧换一个掩码，含 0，PERF 分桶 `/m<掩码>`，只在探针副本里）。网页外壳层的改动在 JS 里每 60 帧切换，按回调耗时分桶。
+- **本轮全程机器重载**：其他会话的 Godot 7–18 个、整机 CPU 72–90%，绝对帧时是安静时的 3–9 倍（手机口径基线 8–10 分钟均值 158 ms，安静时约 17–20），**本节所有绝对值都不能当记分板**；同局两桶在同一负载下比，比例可信。安静窗口复测见 §21.6（协调人安排）。
+- **CPU 采样**：`web_prof.py` 经 CDP `Profiler` 在 500 秒起采 15 秒（200 µs 间隔）。发布模板的 wasm 没有函数名，只能分清「wasm（引擎 + GDScript）」与 JS 胶水层的各 WebGL 调用。
+
+### 21.2 网页分层成本（同局轮换关层，手机口径，负载重只看比例）
+
+每 60 帧轮流关掉一层（只关绘制，TRACE 与基线逐行相同），8–10 分钟 / Boss 段帧均值相对全开：
+
+| 关掉的层 | 8–10 分钟 | Boss | 绘制调用 |
+|---|---|---|---|
+| 整个 HUD | **−12%** | **−26%** | 261 → 199 |
+| 干员地面 / 上层特效（auras / floor / skill_over / ground_fx） | −7% | −12% | → 242 |
+| 掉落物 | −6% | −8% | → 258 |
+| 排序层里的敌人 | −4% | −2% | → 235 |
+| 地面类（溟痕 / 地面预警 / 缩圈） | −1% | −16% | → 249 |
+| 敌人影子 | 0 | −8% | 不变 |
+
+HUD 再细分到块（11 桶）每桶只有约 650 帧，这个负载下 ±5% 的噪声盖过了各块的差别，没有结论；HUD 合计成本与绘制调用数（62 次）是确定的。
+
+### 21.3 网页 CPU 采样：每帧一次的同步回读（最大单项）
+
+改前（`wprof1`，500–515 秒）：wasm 71.7%、JS 胶水层 25.2%，其中 **WebGL `getParameter` 一项 19.4%**，全部来自 emscripten 的 `blitOffscreenFramebuffer` ← `emscripten_webgl_do_commit_frame`。Godot 4.7 网页模板固定 `-sOFFSCREEN_FRAMEBUFFER=1` + `explicitSwapControl`（`platform/web/detect.py`、`display_server_web.cpp`），每帧交帧时把离屏缓冲拷到画布，拷之前用 `getParameter(SCISSOR_TEST)`、`getParameter(FRAMEBUFFER_BINDING)` 记下状态。Chromium 里这是同步回读：渲染进程要等 GPU 进程把这一帧的全部命令做完才返回，CPU 与 GPU 进程没法流水并行。其余 JS：每帧 createBuffer / createVertexArray / deleteVertexArray / bufferData 各约 0.3–0.6%（引擎每帧重建多边形的缓冲），setVolume 0.8%。
+
+### 21.4 改动
+
+| # | 提交 | 改了什么 | 网页净收益（同局轮换，手机口径） | 同 seed |
+|---|---|---|---|---|
+| 1 | `d62a0855` | HUD 编队栏（`hud_squad.gd`）：各干员 `skill_hud()` / `portrait()` 每帧只取一次，签名、静态层、每帧层共用；每帧层不再算名字 / 精英标签。`OPT_HUDSQ` | 与 #2 合测：8–10 分钟 69.98 → 69.25 ms（−1.0%），0–8 分钟 −10%，Boss 持平；噪声内，桌面也在噪声内 | 网页 654 行 TRACE 与基线逐行相同 |
+| 2 | `1f87dd01` | 触屏按钮（`touch.gd` draw_hud）：圆 / 弧 / 线进一个 TriBatch（引擎同款几何），技能图标随后、字最后按字号成组画；拖动小摇杆 / 呼吸外圈先交掉前面的再画（层次同原来）。`OPT_TOUCHB` | 绘制调用 −4 ～ −10；帧时见 #1 | 同上；逐像素 `--touch` 5 帧新对旧 0 差（旧对旧的唯一差异在小地图声呐，按真实时间转） |
+| 3 | `b1ac0473` | **网页 WebGL 状态缓存** `tools/web/gl_state.js`：建 WebGL2 上下文时包一层，enable / disable / bindFramebuffer 照常调用并记下剪裁开关与绘制帧缓冲绑定，这两项 `getParameter` 直接答记下的值，其余原样转发；`tools/export_web.py` 放在加载器最前。不改引擎、不改游戏代码。`?glsync=1` 关掉、`?glcheck=1` 每次快答同时问真实值并计数不一致 | **7–10 分钟 42.2 → 34.3 ms（−19%）**，p50 34.9 → 27.8，p95 82 → 85（尾部这一局持平），p99 200 → 162；**Boss 44.3 → 30.1（−32%）**，p50 35.4 → 25.2，p95 132 → 91，p99 158 → 117（回调耗时，各约 5800 / 1200 帧） | 654 行 TRACE 与基线逐行相同；校验模式局（到 520 秒）不一致 0 次、TRACE 前 520 行与基线相同；正式导出包（`export_web.py --ref HEAD`，43.3 MiB） Edge 冒烟进标题、0 报错 |
+
+改后再采样（`wprof2`）：`getParameter` 消失，JS 胶水层 25.2% → 约 8%，wasm 占 88%（单个函数——应是 GDScript 解释器的主循环——占 30%）。网页剩下的大头回到 GDScript 逻辑与引擎画布处理。
+
+### 21.5 下一步（按网页瓶颈）
+
+1. **安静窗口复测基线**（协调人安排约 40 分钟各会话停 Godot）：网页手机口径改前（`NO_GLSTATE=1` 导出 / `?glsync=1`）与改后各一局，7–10 分钟与 Boss 两段的 p50 / p95 / p99；镜头 120 / 100 / 80 三档；另跑一局原生 requestAnimationFrame（正常呈现）确认收益不只在 MessageChannel 测法里。
+2. GDScript 段：采样里 wasm 占 88%，按 §21.2 的顺序依次是 HUD、干员特效、掉落、敌人。干员特效（data_operator / 积木）归干员会话，改之前先协调。
+3. 引擎每帧重建多边形缓冲（createBuffer / createVertexArray / deleteVertexArray / bufferData 合计约 2%）：TriBatch 的三角形批越少越好，后续合并批次时一并看。
+
+### 21.6 安静窗口复测
+
+（待测）
