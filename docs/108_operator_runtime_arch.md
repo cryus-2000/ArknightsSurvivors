@@ -161,7 +161,7 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 
 | 干员 | 画布 | 时序字段 | 技能序列 | 共用模块 | 备注 |
 |---|---|---|---|---|---|
-| 维什戴尔 | 64 + 96 | attack_timing、frame_durations、muzzles | s2 phases×2、s3 start/loop/attack/end | attack_phases（炮击适配）、lifecycle `cannon_load` | 魂灵之影走 `visual` 显示时钟：出场 `native_soul_start` → 常驻 `soul_idle` → 魂炮开火起 `native_soul_attack`（OnAttack 对齐出膛，开火窗口内仍画 `fx_wisadel_soul_fire`）→ 离场 `native_soul_die`（10-20，seg_wisadel `_h4_soul_native`） |
+| 维什戴尔 | 64 + 96 | attack_timing、frame_durations、muzzles | s2 phases×2、s3 start/loop/attack/end | attack_phases（炮击适配）、lifecycle `cannon_load` | 魂灵之影走 `visual` 显示时钟：出场 `native_soul_start` → 常驻 `soul_idle`（魂炮开火不换动作，直接出弹，10-21）→ 离场 `native_soul_die`（10-20，seg_wisadel `_h4_soul_native`） |
 | 塞雷娅 | 64 + 96 | attack_timing、frame_durations | s1/s2 `skill_heal`、s3 序列 | lifecycle `heal_over_time` / `calc_field` | |
 | 铃兰 | 64 + 96 | attack_timing、frame_durations | s2 hold、s3 序列 | lifecycle `fox_haze` / `fox_warm` | |
 | 水月 | **96 + draw_scale 0.9** | attack_timing（含 min_duration / min_rest） | s2/s3 start/loop/attack/end | lifecycle `skill:i`（s_t 前台） | 删 `flow: free`；伞 `shape.umbrella` 走 start→fire→recovery |

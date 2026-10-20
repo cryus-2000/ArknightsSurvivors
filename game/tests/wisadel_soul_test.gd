@@ -1,12 +1,11 @@
 extends Node
 ## 维什戴尔「魂灵之影」原生身体时间线（docs/108 §3、docs/107）：
 ##   godot --headless --path game res://tests/wisadel_soul_test.tscn -- --regression --balance --seed=1 --op=wisadel
-## 出场 native_soul_start → 常驻 soul_idle 循环 → 魂炮开火起 native_soul_attack（OnAttack 事件对齐真实出膛）→ 离场在原地播 native_soul_die。
+## 出场 native_soul_start → 常驻 soul_idle 循环；魂炮开火不换攻击动作（10-21 用户：直接发射），身体时间线照常 → 离场在原地播 native_soul_die。
 ## 画面状态只写 wd.vis，不影响伤害时刻。加 --capture 时开窗口逐帧截图到 build/wisadel_soul_capture/（evidence.json 记每帧状态）。
 ## 全部通过时打印 "WISADEL SOUL failures=0"。
 
 const DT := 1.0 / 60.0
-const SV = preload("res://scripts/characters/summon_visual.gd")
 var fails := 0
 var n := 0
 
@@ -51,7 +50,7 @@ func _ready() -> void:
 	var evidence := []
 	var seen := {}
 	var fired_at := -1.0
-	var attack_t_at_hit := -1.0
+	var slot_at_hit := ""
 	var idle_after_start := false
 	for frame in 300:
 		g._update(DT)
@@ -75,16 +74,16 @@ func _ready() -> void:
 			idle_after_start = true
 		if s.get("fired", false) and float(s.get("ft", -1.0)) >= 0.0 and fired_at < 0.0:
 			fired_at = g.t
-			attack_t_at_hit = SV.time(st, g.t) if st.has("visual") else -1.0
+			slot_at_hit = key
 		evidence.append({"frame": frame, "t": snappedf(g.t, 0.001), "slot": key, "pose": native[1] if not native.is_empty() else -1, "ft": snappedf(float(s.get("ft", -1.0)), 0.001)})
 		if capture:
 			var image := get_viewport().get_texture().get_image()
 			image.save_png(output.path_join("f_%03d.png" % frame))
 	ok(seen.has("native_soul_start"), "出场播 native_soul_start")
 	ok(idle_after_start, "出场播完进入 soul_idle 循环")
-	ok(seen.has("native_soul_attack"), "魂炮开火时播 native_soul_attack")
-	var event: float = float(o.sprite_spec("native_soul_attack").visual.event)
-	ok(fired_at > 0.0 and absf(attack_t_at_hit - event) < 0.0001, "出膛那一刻 Attack 时间线正好在 OnAttack 事件（%.4f vs %.4f）" % [attack_t_at_hit, event])
+	ok(fired_at > 0.0, "魂炮照常出膛")
+	ok(not seen.has("native_soul_attack") and o.sprite_spec("native_soul_attack").is_empty(), "不再有攻击帧条（native_soul_attack 已删）")
+	ok(slot_at_hit in ["native_soul_idle", "native_soul_start"], "出膛那一刻身体仍是待机 / 出场时间线（%s）" % slot_at_hit)
 	var fx_before: int = g.fx.size()
 	o.on_leave()
 	var dies: int = g.fx.slice(fx_before).filter(func(f): return str(f.get("name", "")) == "op_wisadel_soul_native_die").size()

@@ -432,8 +432,7 @@ static func _h4_soul_shot(o, a: Dictionary, fc: Dictionary, s: Dictionary, tg: D
 	if fc.get("mark", false):
 		sh["mark_e"] = tg
 	var dir: Vector2 = (tg.pos - from).normalized()
-	if g.tex.get("fx_wisadel_soul_fire") == null:   # 没有开火帧条：炮口一团暗紫烟
-		o.spawn_fx_sprite("fx_muzzle_flash", from + dir * 6.0, g.PX * 0.7, dir.angle(), false, false, Color(0.55, 0.3, 0.75))
+	o.spawn_fx_sprite("fx_muzzle_flash", from + dir * 6.0, g.PX * 0.7, dir.angle(), false, false, Color(0.55, 0.3, 0.75))   # 炮口一团暗紫烟（10-21 用户：魂灵之影不要攻击帧，直接出弹）
 	for q in 3:
 		o.fx({"kind": "spark", "pos": from, "vel": dir.rotated(g.vrng.randf_range(-0.6, 0.6)) * g.vrng.randf_range(60, 130), "life": 0.2, "col": Color(0.55, 0.15, 0.35), "sz": 2.0, "drag": 3.0})
 	_h3_sfx(o, "atk", -4.0, 1.25, 0.05)
@@ -788,8 +787,6 @@ static func _h4wd_draw_souls(o) -> void:
 		var s: Dictionary = souls[i]
 		var p: Vector2 = s.p
 		var native := _h4_soul_native(o, i, s)
-		if _h4_draw_soul_fire(o, s, p):
-			continue
 		if o._fx_tex("fx_wisadel_soul") != null:
 			cv.draw_circle(p, 18.0, Color(1.0, 0.06, 0.12, 0.2 + 0.06 * sin(g.t * 6.0)))
 			if str(s.st) == "go":
@@ -811,8 +808,8 @@ static func _h4wd_draw_souls(o) -> void:
 
 
 ## 魂灵之影原生身体（docs/108 §3、docs/107 显示时钟；纯画面，状态只写 wd.vis，玩法不读）：
-## 首次出现 / 离场后重新上场播 native_soul_start → 常驻 soul_idle 循环 → 魂炮开火时起 native_soul_attack，
-## 原作 OnAttack 事件对齐真实出膛（s.fired，不改伤害时刻）；开火窗口内仍画 fx_wisadel_soul_fire（交接要求保留），之后接 Attack 余下时间线 → 回 Idle。
+## 首次出现 / 离场后重新上场播 native_soul_start → 常驻 soul_idle 循环；魂炮开火不换动作（10-21 用户：不需要攻击帧，直接发射），
+## 身体时间线照常走，出膛只有炮口烟（_h4_soul_shot）。
 ## 离场（data_operator.on_leave → h4_souls_leave）在原地播 native_soul_die。返回 mf_visual_frame 的 [tex, 帧, 帧数, 槽]，缺图为空
 static func _h4_soul_native(o, k: int, s: Dictionary) -> Array:
 	var g = o.g
@@ -827,15 +824,6 @@ static func _h4_soul_native(o, k: int, s: Dictionary) -> Array:
 		SummonVisual.start(st, o.sprite_spec("native_soul_start").get("visual", {}), g.t)
 		st["fire"] = false
 	st["seen"] = g.t
-	var firing: bool = float(s.get("ft", -1.0)) >= 0.0
-	if firing and not st.get("fire", false):
-		var fc: Dictionary = _h4_sub(o, _h4_live(o, "verb.souls").get("fire", null))
-		SummonVisual.start(st, o.sprite_spec("native_soul_attack").get("visual", {}), g.t, float(fc.get("fire_at", 0.16)))
-		st["shot"] = false
-	if firing and s.get("fired", false) and not st.get("shot", true):
-		SummonVisual.hit(st, g.t)
-		st["shot"] = true
-	st["fire"] = firing
 	return mf_visual_frame(o, st, "soul_idle", g.t + k * 0.25)
 
 
@@ -846,20 +834,6 @@ static func h4_souls_leave(o) -> void:
 	for s in o.hw.wd.souls:
 		o.spawn_fx_sprite("op_wisadel_soul_native_die", s.p, o.g.PX)
 	o.hw.wd.erase("vis")
-
-
-## 魂灵之影开火（Codex fx_wisadel_soul_fire 5 帧 16fps：收缩 → 炮口喷暗紫烟）；缺图时照常画悬浮帧
-static func _h4_draw_soul_fire(o, s: Dictionary, p: Vector2) -> bool:
-	if float(s.get("ft", -1.0)) < 0.0:
-		return false
-	var g = o.g
-	if g.tex.get("fx_wisadel_soul_fire") == null:
-		return false
-	var tg = s.get("ftg", null)
-	var fl: bool = tg != null and not tg.dead and tg.pos.x < p.x
-	o.cv.draw_circle(p, 18.0, Color(1.0, 0.06, 0.12, 0.26))
-	o._fx_strip("fx_wisadel_soul_fire", 5, mini(4, int(float(s.ft) * 16.0)), p, Vector2(0.5, 0.5), 0.0, Color.WHITE, fl)
-	return true
 
 
 static func _h4_shade_body(o, p: Vector2, r: float, al: float) -> void:
