@@ -15,7 +15,7 @@
 | Boss与怪物 | 95 → 38 §1、§8.11–§8.14 → 49 / 49c → 98 |
 | 数值 / 藏品 | 80 → 27 §2、§3、§9 → 83 → 35 → 74 |
 | 界面与美术 | 37 → 98 → 87（干员帧条）→ 62 §2 → 76 |
-| 音频 | 21 → 53 → 28_operator_sfx → 110_sfx_audit |
+| 音频 | 21 → 53 → 28_operator_sfx → 111_sfx_audit |
 | 部署 | 33 → 22 → 89 / 99（B站 Toy） |
 | 文案 | 76 → 49 / 49a |
 
@@ -82,7 +82,7 @@
 | [79_op_dummy_table](79_op_dummy_table.md) | 干员木桩表 | 现行规范 | 理论预算口径与工具 | 36、91、归档72；tools/op_dummy_table.py、game.gd、tests/op_dummy_test.gd 等 4 个文件 |
 | [25_operator_fx](25_operator_fx.md) | 干员特效 | 现行规范 | 成长「看得见」规则、帧条锚点、能天使弹药色；§5.2 精二列被 91 取代 | 23、53、61、归档34、归档66、归档70；characters/character.gd、game.gd、characters/op_blocks.gd 等 23 个文件 |
 | [28_operator_sfx](28_operator_sfx.md) | 干员专属音效 | 已实施记录 | 13 人 op_* 音色与 OP_SFX 约定；「加新干员」一节作废（新干员走 OP_ALT，见 61） | — |
-| [110_sfx_audit](110_sfx_audit.md) | 干员音效盘点与调整 | 进行中 | 10-21：18 人普攻 / 命中 / 技能音效的文件、响度、触发频率总表；问题清单；已调 OP_DB / OP_GAP / OP_PVAR / VOICE_CAP；枪击、锁链替换候选待用户试听；§7 网上 CC0 素材候选清单（未下载） | 28、53；sfx.gd、tools/gen_sfx_candidates.py |
+| [111_sfx_audit](111_sfx_audit.md) | 干员音效盘点与调整 | 进行中 | 10-21：18 人普攻 / 命中 / 技能音效的文件、响度、触发频率总表；问题清单；已调 OP_DB / OP_GAP / OP_PVAR / VOICE_CAP；枪击、锁链替换候选待用户试听；§7 网上 CC0 素材候选清单（未下载） | 28、53；sfx.gd、tools/gen_sfx_candidates.py |
 | [31_arknights_reference](31_arknights_reference.md) | 原作技能对照（13 人） | 已实施记录 | 原作技能与档案摘录；总览差距表已过时 | 25、60、归档30；v17_codex_logos_glyphs.md |
 | [维什戴尔 S2 两阶段试做](plans/2026-10-18-wisadel-s2-two-phase.md) | S2 群攻与过载四连发 | 已实施记录 | 8 秒试做、无三人上限、原生八轨动作与炮口事件；已交本地测试包 | wisadel.json、seg_wisadel.gd |
 | [持续攻击阶段模块](plans/2026-10-18-sustained-attack-module-design.md) | 通用阶段、连发与收势 | 已实施记录 | 维什戴尔已迁移；独立夹具 66 项、完整快检 80 项通过 | data_operator、attack_phases、docs/61 |

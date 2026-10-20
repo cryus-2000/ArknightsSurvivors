@@ -1,4 +1,4 @@
-"""音效盘点（docs/110）的替换候选：枪击 / 锁链等先合成到 build/sfx_candidates/，用户试听选定后再改进 gen_sfx_ops.py 正式替换。
+"""音效盘点（docs/111）的替换候选：枪击 / 锁链等先合成到 build/sfx_candidates/，用户试听选定后再改进 gen_sfx_ops.py 正式替换。
 合成函数直接取 gen_sfx_ops.py 的工具段（同一套程序合成，不用任何外部音频），不会改动 audio/sfx/ 里的现有文件。
 
 运行：python game/tools/gen_sfx_candidates.py      输出：<主仓库>/build/sfx_candidates/<名字>.wav + 现用文件的对照副本
