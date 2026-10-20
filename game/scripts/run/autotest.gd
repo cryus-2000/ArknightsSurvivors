@@ -321,6 +321,20 @@ func _opt_ab() -> void:
 
 
 ## 仅用于开发自测：快速模拟一整局，自动选择升级，打印状态后退出
+## --cmdat=<秒>,<秒>,…（指挥模式录片 / 复现，docs/111）：游戏时间到这些秒各按一次指挥键（同玩家按 F），切换照常记进 squad.stance_log
+var _cmd_at: Array = []
+var _cmd_read := false
+func _cmd_step() -> void:
+	if not _cmd_read:
+		_cmd_read = true
+		for a in Cfg.dev_args():
+			if a.begins_with("--cmdat="):
+				_cmd_at = Array(a.substr(8).split(",")).map(func(x): return float(x))
+	if not _cmd_at.is_empty() and g.state == g.S.PLAY and g.t >= float(_cmd_at[0]):
+		_cmd_at.pop_front()
+		g.toggle_command()
+
+
 func step() -> void:
 	g.at_frames += 1
 	if g.rt_from >= 0.0 and not g.realtime and g.t >= g.rt_from:
@@ -336,6 +350,7 @@ func step() -> void:
 	if g.mode == g.Mode.BALANCE and g.t >= sfx_win_t + 30.0 and Cfg.dev_args().has("--sfxstat"):
 		_sfx_win()
 	_rec_step()
+	_cmd_step()
 	_opt_ab()   # 在 --perf 采样之后轮换：采样记的是上一帧所走的实现
 	Dc.ab_step(g.at_frames)   # --clutterab=N：每 N 帧在降噪 0 档与当前档之间轮换（--perf 分 /d0 /dN 两桶）
 	if vfxab > 0 and g.at_frames % vfxab == 0:

@@ -1,6 +1,18 @@
 {
  "version": "p5.0",
  "_doc": "docs/27_balance_framework.md。所有全局数值旋钮集中在这里；干员各自的基础数值在 data/characters/<id>.json 的 base 段。",
+ "command": {
+  "_doc": "指挥模式（docs/111，10-21 原型）：on 总开关（0 = 关，不显示按钮、按键无效）；leash 出击时离队长最远（世界像素，约 1.5 个半屏宽）；search 找怪半径（以干员自己为中心）；roam_speed / recall_speed 出击 / 召回限速（× 队长移速）；recall_done 召回归位判定距离；recall_max 召回最长秒数；range_k 远程出击站位 = 普攻射程 × 它；bot_roam 机器人局开局常开出击（对照用）。",
+  "on": 1,
+  "leash": 960,
+  "search": 520,
+  "roam_speed": 1.3,
+  "recall_speed": 4.0,
+  "recall_done": 28,
+  "recall_max": 3.0,
+  "range_k": 0.6,
+  "bot_roam": 0
+ },
  "operators": {
   "_doc": "干员档位系数（docs/27 §3）：全员可玩，档位差压缩到 ±5%。atk / aspd / range / skill_power 以 add 方式写入 op:<id> 作用域，来源 balance。",
   "wisadel": {

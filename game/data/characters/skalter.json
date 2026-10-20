@@ -3,6 +3,7 @@
  "name": "浊心斯卡蒂",
  "en": "SKADI THE CORRUPTING HEART",
  "class": "辅助",
+ "command": {"roam": false, "_doc": "指挥模式（docs/111）：医疗 / 辅助出击时照旧护卫"},
  "faction": [
   "深海猎人"
  ],

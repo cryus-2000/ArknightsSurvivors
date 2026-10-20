@@ -922,6 +922,8 @@ func _ready() -> void:
 			elif a.begins_with("--seed="):
 				bot_seed = int(a.substr(7))
 		bot = Bot.new(self, bot_p, bot_seed)
+		if Bal.v("command/bot_roam", 0.0) > 0.0 and Squad.cmd_on():
+			squad.set_stance(squad.ROAM)   # 指挥模式对照（docs/111）：机器人局常开出击；缺省 0 = 护卫，同 seed 不变
 	for arg in Cfg.dev_args():
 		if arg.begins_with("--shotdir="):
 			shot_dir = arg.substr(10)
@@ -1329,6 +1331,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if k == KEY_V and state == S.PLAY:
 		PlayClock.cycle()
 		return
+	if k == KEY_F and state == S.PLAY:   # 指挥模式（docs/111）：F / 手柄 LB / 触屏「指挥」键循环 护卫 → 出击 → 召回
+		toggle_command()
+		get_viewport().set_input_as_handled()
+		return
 	if k == KEY_TAB or k == KEY_C:
 		if state == S.PLAY:
 			state = S.STATS
@@ -1460,6 +1466,12 @@ func dash_frac() -> float:
 
 
 ## 冲刺任何时候都能按（docs/38 §1.11「永不硬控」）：只看冷却、是否正在冲刺、是否在局内；僵直时也能冲，方向取按住的方向
+## 指挥键（键盘 / 手柄 / 触屏共用）
+func toggle_command() -> void:
+	if state == S.PLAY and squad.cycle_stance():
+		Sfx.play("ui_ok", -8.0)
+
+
 func _try_dash() -> void:
 	if not dash_ready() or dash_t > 0.0 or state != S.PLAY:
 		return

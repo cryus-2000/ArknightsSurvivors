@@ -872,6 +872,17 @@ func follow_target(slot_pos: Vector2) -> Vector2:
 	return p if p != Vector2.INF else slot_pos
 
 
+## 指挥模式出击（docs/111）：近战按 blocks.follow.gap 贴身；普攻带 range 的远程站到射程 × command/range_k
+func cmd_reach() -> float:
+	var fw: Dictionary = B.get("follow", {})
+	if fw.has("gap"):
+		return float(fw.gap)
+	var a: Dictionary = cur_attack()
+	if a.has("range"):
+		return float(a.range) * stat(&"op_range") * CmdBal.v("command/range_k", 0.6)
+	return 30.0
+
+
 ## 手写迁移段：每打中一名敌人的画面（blocks.hit_fx）
 func _hit_fx(e: Dictionary, origin: Vector2) -> void:
 	if B.has("hit_fx"):

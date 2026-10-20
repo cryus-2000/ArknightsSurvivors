@@ -17,6 +17,12 @@ var cv                           # 干员绘制合批画布（batch_canvas.gd，
 var ops: Array = []            # Character 实例，按入队顺序
 var extra_slot := false        # 第 4 位是否已解锁
 var side := 1.0                # 编队站位的左右（-1..1），主控转身时约 0.8 秒平滑换边（2026-09-27 跑步审查）
+## 指挥模式（docs/111）：全队站位。一个键循环 护卫 → 出击 → 召回；召回归位完自动回护卫（下一次按键进出击）
+enum { GUARD, ROAM, RECALL }
+const STANCE_NAMES := ["护卫", "出击", "召回"]
+var stance := GUARD
+var recall_t := 0.0
+var stance_log: Array = []     # [[g.t, 新站位], …]：玩家切换记录（同 seed 复现 / 机器人对照）
 
 
 func _init(game) -> void:
@@ -279,6 +285,8 @@ func update(dt: float) -> void:
 	side = move_toward(side, g.facing, dt * 2.5)
 	for o in ops:
 		o.follow(dt, g.ppos if o.is_leader else g.ppos + _slot_offset(o.slot))
+	if stance == RECALL:
+		_tick_recall(dt)
 	for o in ops:
 		o.tick_sp(dt)
 		_battle_voice(o, dt)
@@ -289,6 +297,44 @@ func update(dt: float) -> void:
 			g.invuln = maxf(g.invuln, 0.12)
 			g.invuln_move_until = g.t + 0.12
 		o._tick_pfx(dt)
+
+
+## 指挥模式总开关（balance command/on）
+static func cmd_on() -> bool:
+	return Bal.v("command/on", 1.0) > 0.0
+
+
+## 玩家按「指挥」键：护卫 → 出击 → 召回；召回途中再按 = 出击。返回是否切换了
+func cycle_stance() -> bool:
+	if not cmd_on():
+		return false
+	set_stance(ROAM if stance != ROAM else RECALL)
+	return true
+
+
+func set_stance(s: int) -> void:
+	if s == stance:
+		return
+	stance = s
+	recall_t = 0.0
+	stance_log.append([g.t, s])
+	if g.get("trace_every") != null and g.trace_every > 0.0:
+		print("CMD t=%.2f stance=%d" % [g.t, s])   # 不进 TRACE 行（trace_base 只比 TRACE / BALANCE），护卫局同 seed 逐行不变
+
+
+## 召回：全员离护卫站位都在 command/recall_done 以内（或超过 command/recall_max 秒）就回护卫
+func _tick_recall(dt: float) -> void:
+	recall_t += dt
+	var done := recall_t >= Bal.v("command/recall_max", 3.0)
+	if not done:
+		done = true
+		var lim: float = Bal.v("command/recall_done", 28.0)
+		for o in ops:
+			if not o.is_leader and o.cmd_d > lim:
+				done = false
+				break
+	if done:
+		set_stance(GUARD)
 
 
 ## 战斗台词：每人 30–55 秒一次，身边 300 内有敌人才说；维什戴尔四成概率换成 W 的笑声

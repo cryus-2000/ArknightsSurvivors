@@ -8,8 +8,8 @@ extends RefCounted
 ## 换一台比例不同的设备（19.5:9 手机 → 4:3 平板）时按钮仍贴着原来那条边，最后再夹进安全区，不会跑出屏幕。
 ## 存档：settings.cfg 的 [touch] layout = {键: {ax, ay, x, y, s}}；没有的键用缺省位置、缩放 1。
 
-const KEYS := ["stick", "dash", "skill", "atk", "pause", "stats", "speed"]
-const NAMES := {"stick": "移动摇杆", "dash": "冲刺", "skill": "技能", "atk": "攻击", "pause": "暂停", "stats": "属性", "speed": "倍速"}
+const KEYS := ["stick", "dash", "skill", "atk", "pause", "stats", "speed", "cmd"]
+const NAMES := {"stick": "移动摇杆", "dash": "冲刺", "skill": "技能", "atk": "攻击", "pause": "暂停", "stats": "属性", "speed": "倍速", "cmd": "指挥"}
 const S_MIN := 0.7
 const S_MAX := 1.5
 const S_STEP := 0.05
@@ -31,7 +31,7 @@ static func radius(key: String) -> float:
 			return BTN * 0.7
 		"atk":
 			return BTN * 0.62
-		"pause", "stats":
+		"pause", "stats", "cmd":
 			return BTN / 2.0
 		"speed":
 			return 28.0
@@ -42,7 +42,7 @@ static func radius(key: String) -> float:
 static func bounds(key: String, s: float) -> Rect2:
 	var r: float = radius(key) * s
 	match key:
-		"pause", "stats":
+		"pause", "stats", "cmd":
 			return Rect2(-maxf(r, 30.0 * s), -r, maxf(r, 30.0 * s) * 2.0, r * 2.0 + 20.0 * s)
 		"skill":
 			return Rect2(-maxf(r, 40.0), -r, maxf(r, 40.0) * 2.0, r * 2.0 + 22.0)
@@ -141,13 +141,16 @@ static func default_center(key: String, vs: Vector2, manual_atk: bool, dash_c :=
 			return Vector2(vs.x - 46.0, (160.0 if ph else 186.0) + 86.0)
 		"speed":
 			return Vector2(vs.x - 44.0, 93.0)
+		"cmd":
+			# 指挥模式（docs/111）：暂停键左侧同一行——右手拇指够得到，离冲刺 / 技能键和编队区都远，不挡摇杆
+			return Vector2(vs.x - 46.0 - 72.0, 160.0 if ph else 186.0)
 	return vs / 2.0
 
 
 ## 解出全部控件的位置与缩放：{键: {"c": 中心, "s": 缩放, "custom": 是否玩家改过}}
 static func resolve(vs: Vector2, manual_atk: bool, custom: Dictionary, safe: Rect2, phone := false) -> Dictionary:
 	var out := {}
-	for k in ["dash", "stick", "skill", "atk", "pause", "stats", "speed"]:
+	for k in ["dash", "stick", "skill", "atk", "pause", "stats", "speed", "cmd"]:
 		var e = custom.get(k)
 		var s := 1.0
 		var c: Vector2

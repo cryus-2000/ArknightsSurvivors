@@ -249,6 +249,8 @@ func _do(action: String) -> void:
 		"speed":
 			if g.state == g.S.PLAY:
 				PlayClock.cycle()
+		"cmd":
+			g.toggle_command()
 		"stats":
 			if g.state == g.S.PLAY:
 				g.state = g.S.STATS
@@ -329,6 +331,20 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 	else:
 		skill_rect = Rect2()
 		atk_rect = Rect2()
+	# 指挥键（docs/111）：圈里写当前模式，颜色随模式（护卫青 / 出击金 / 召回绿），下方标签「指挥」
+	if g.state == g.S.PLAY and g.squad.cmd_on():
+		var ce: Dictionary = L.cmd
+		var cc: Vector2 = ce.c
+		var cr: float = BTN / 2.0 * float(ce.s)
+		btn_rects.append([Rect2(cc - Vector2(cr, cr), Vector2(cr * 2.0, cr * 2.0)), "cmd"])
+		var st: int = g.squad.stance
+		var scol: Color = [UI.CYAN, UI.GOLD, UI.GREEN][st]
+		var lit: bool = flash.get("cmd", 0.0) > 0.0 or st != 0
+		hud.draw_circle(cc, cr, Color(0.05, 0.12, 0.16, 0.75 if lit else 0.55))
+		hud.draw_arc(cc, cr, 0.0, TAU, 32, Color(scol.r, scol.g, scol.b, 0.95 if lit else 0.6), 2.0 if st == 0 else 3.0)
+		var cfs: int = int(round(14.0 * clampf(float(ce.s), 0.8, 1.3)))
+		UI.text(hud, font, cc + Vector2(-30, cfs * 0.38), g.squad.STANCE_NAMES[st], cfs, Color(scol.r, scol.g, scol.b, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 60)
+		UI.text(hud, font, cc + Vector2(-30, cr + 15), "指挥", 13 if ph else 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 60)
 	# 按钮：右侧中部纵向两个（暂停 / 属性）
 	if g.state == g.S.PLAY or g.state == g.S.PAUSE or g.state == g.S.STATS:
 		var items := [["Ⅱ", "pause", "暂停"], ["≡", "stats", "属性"]]

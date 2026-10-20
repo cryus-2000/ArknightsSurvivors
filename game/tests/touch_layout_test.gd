@@ -85,7 +85,7 @@ func unit() -> void:
 		# 缺省布局：都在安全区内，显示的按键两两不整个叠在一起
 		for manual in [false, true]:
 			var d: Dictionary = TL.resolve(vs, manual, {}, TL.safe_rect(vs))
-			var shown: Array = ["stick", "dash", "skill", "pause", "stats", "speed"] + (["atk"] if manual else [])
+			var shown: Array = ["stick", "dash", "skill", "pause", "stats", "speed", "cmd"] + (["atk"] if manual else [])
 			for i in shown.size():
 				check(inside(d[shown[i]].c, shown[i], 1.0, TL.safe_rect(vs)), "%s 缺省 %s 出了安全区" % [vs, shown[i]])
 				for j in range(i + 1, shown.size()):
