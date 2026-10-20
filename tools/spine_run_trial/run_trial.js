@@ -147,7 +147,7 @@ async function main() {
       if (cfg.swingTop && !stance) {
         const root = get(sk, cfg.legs[side][0]);
         const mine = sk.drawOrder.filter(sl => { for (let p = sl.bone; p; p = p.parent) if (p === root) return true; return false; });
-        sk.drawOrder = sk.drawOrder.filter(sl => !mine.includes(sl)).concat(mine);
+        sk.drawOrder = cfg.swingTop === 'back' ? mine.concat(sk.drawOrder.filter(sl => !mine.includes(sl))) : sk.drawOrder.filter(sl => !mine.includes(sl)).concat(mine);   // 'back' = 抬起的腿压到最底层（后踢在身后）
       }
     }
     arms(sk, i, phi);
