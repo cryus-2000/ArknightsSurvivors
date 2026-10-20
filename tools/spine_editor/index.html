@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Spine 姿势编辑台</title><link rel="stylesheet" href="/style.css">
+<header><div><small>原生骨骼 → 部件像素化</small><h1>Spine 姿势编辑台</h1><span id="source">正在载入推进之王…</span></div>
+<div class="toolbar"><button id="undo" disabled>撤销</button><button id="redo" disabled>重做</button><button id="save" disabled>保存姿势</button><button id="download" disabled>下载 JSON</button><label class="button">导入 JSON<input id="import" type="file" accept=".json" hidden disabled></label><button id="export" class="accent" disabled>导出像素动画</button></div></header>
+<div id="message" role="status" aria-live="polite">正在读取原生附件与八帧姿势。</div>
+<main><aside><h2>关节与握持</h2><label for="bone">选中关节</label><select id="bone" disabled></select>
+<label for="mode">拖动方式</label><select id="mode" disabled><option value="ik">拖手脚 · 固定骨长</option><option value="rotate">围绕关节旋转</option><option value="move">移动整支骨骼（会改变接缝）</option></select>
+<p class="hint">在左图拖圆点。手腕 / 脚踝使用双节关节联动；持锤手移动时，锤子保持方向并跟随握点。</p>
+<div class="row"><button id="left" disabled>←</button><button id="up" disabled>↑</button><button id="down" disabled>↓</button><button id="right" disabled>→</button></div><p class="hint">每次移动 1 个输出像素；仅作用于当前帧。</p>
+<label for="angle">当前关节旋转增量</label><div class="row"><input id="angle" type="number" value="0" min="-180" max="180" step="1" disabled><button id="rotate" disabled>应用角度</button></div>
+<label><input id="bones" type="checkbox" checked>显示骨骼</label><label><input id="onion" type="checkbox">显示上一帧轮廓</label><button id="reset" disabled>恢复当前帧</button>
+<h2>遮挡层序</h2><p class="hint">列表上方盖在下方前面。修改仅作用于当前帧。</p><select id="layers" size="10" aria-label="部件层序" disabled></select><div class="row"><button id="front" disabled>上移一层</button><button id="back" disabled>下移一层</button></div>
+<label><input id="hide" type="checkbox">暂时隐藏选中部件</label><p class="hint">临时隐藏只用于检查，不写入导出。</p></aside>
+<section class="workspace"><div class="views"><figure><figcaption>原生部件 · 拖动关节修改</figcaption><canvas id="native" width="768" height="768" aria-label="原生骨架编辑画布"></canvas></figure><figure><figcaption>像素预览 · 同一姿势与层序</figcaption><canvas id="pixel" width="256" height="256" aria-label="像素预览"></canvas></figure></div>
+<div class="timeline"><button id="play" disabled>播放</button><button id="prev" disabled>上一帧</button><button id="next" disabled>下一帧</button><label>预览速度 <select id="speed"><option value="1">1×</option><option value="0.5">0.5×</option><option value="0.25">0.25×</option></select></label><strong id="clock">0 / 8</strong><div id="frames"></div></div>
+<p class="hint">原作网格与贴图保留。右侧为逐附件像素预览，浏览器采样与正式离线清理可能略有区别。导出为 256×256 完整场景，含长武器范围；不是直接替换游戏的 128 帧条。</p><div id="exports"></div></section></main>
+<script src="/runtime.js"></script><script src="/pose_core.js"></script><script src="/editor.js"></script></html>
