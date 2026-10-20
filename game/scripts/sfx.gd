@@ -10,7 +10,7 @@ const NAMES := ["heartbeat", "swing", "swing_heavy", "hit", "kill", "tentacle", 
 ## 倒下过渡的「灯灭」（music_director 触发）：-8 dB 时比同时段的 lose 乐句低约 3 dB（全频段），不盖过配乐
 const LAMP_OUT_DB := -8.0
 ## 同一音效的最短间隔（秒），避免大量敌人同时被击中时声音糊成一片
-const LIMIT := {"crit_tick": 0.08, "break_hit": 0.12, "enemy_acid": 0.25, "enemy_elite": 0.25, "enemy_nerve": 0.25, "atk_gate": 0.1, "mire_splat": 0.12, "enemy_screech": 1.2, "enemy_spit": 0.22, "enemy_bite": 0.18, "op_wisadel_atk": 0.12, "op_wisadel_hit": 0.16, "op_wisadel_big": 0.25, "knight_charge": 0.15, "knight_stab": 0.08, "hit": 0.035, "kill": 0.045, "kill_big": 0.045, "kill_shell": 0.045, "hurt_heavy": 0.1, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}
+const LIMIT := {"crit_tick": 0.08, "break_hit": 0.12, "enemy_acid": 0.25, "enemy_elite": 0.25, "enemy_nerve": 0.25, "atk_gate": 0.1, "mire_splat": 0.12, "enemy_screech": 1.2, "enemy_spit": 0.22, "enemy_bite": 0.18, "op_wisadel_atk": 0.12, "op_wisadel_hit": 0.16, "op_wisadel_big": 0.25, "op_wisadel_quake": 0.25, "op_kaltsit_big": 0.3, "knight_charge": 0.15, "knight_stab": 0.08, "hit": 0.035, "kill": 0.045, "kill_big": 0.045, "kill_shell": 0.045, "hurt_heavy": 0.1, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}
 
 ## 干员专属音效（docs/28，tools/gen_sfx_ops.py 合成）：audio/sfx/op_<干员>_<类别>.wav
 ## 类别：atk 普攻出手 / hit 命中 / s1 s2 s3 技能发动（character.spend_sp 统一播放）/ big 大招落点 / heal 治疗 / quake 余震
@@ -34,6 +34,13 @@ const OP_SFX := {
 const OP_VOL := {"atk": -11.0, "hit": -10.0, "s1": -4.0, "s2": -4.0, "s3": -2.0, "big": -6.0, "heal": -9.0, "quake": -13.0}
 ## 各类别的最短间隔（秒，按单个干员计）：三四名干员同时开火时不糊成一片
 const OP_LIMIT := {"atk": 0.06, "hit": 0.06, "quake": 0.08, "big": 0.1, "heal": 0.3}
+## 音效盘点（docs/109，10-21 用户「枪击、锁链等各种音效都需要优化」）按请求名（op_<干员>_<类别>）的三张旋钮表：
+## OP_DB 音量偏移（dB，叠在 OP_VOL 与调用处偏移上）；OP_GAP 最短间隔（秒，按请求名算，借用同一文件的干员各算各的）；
+## OP_PVAR 音高随机（±，取它与调用处的较大值）。数字来自 docs/109 §2 实测：混音里最响的是长尾低频重击的高频连发
+const OP_DB := {"op_eyjafjalla_big": -3.0, "op_kaltsit_big": -2.0, "op_wisadel_quake": -3.0, "op_wisadel_hit": -1.5, "op_exusiai_hit": -2.0}
+const OP_GAP := {"op_exusiai_hit": 0.1, "op_exusiai_big": 0.3, "op_eyjafjalla_big": 0.2}
+const OP_PVAR := {"op_exusiai_atk": 0.09, "op_exusiai_hit": 0.1, "op_irene_atk": 0.08, "op_texas_atk": 0.08, "op_eyjafjalla_atk": 0.08, "op_lumen_atk": 0.07, "op_wisadel_quake": 0.12}
+var op_last := {}          # 请求名 -> 上次放行的墙钟秒（OP_GAP）
 ## 缺文件时退回的通用音效（新干员还没配音时也有声音）
 const OP_FALLBACK := {"atk": "swing", "hit": "hit", "s1": "skill", "s2": "skill", "s3": "skill", "big": "boom", "heal": "oil", "quake": "boom"}
 ## 缺专属文件时优先借用的近似音（docs/53，比通用 hit 更贴角色；[音名, 音高倍率, 音量偏移 dB]）。正式音色见 docs/53 §5 的制作清单
@@ -46,7 +53,7 @@ const OP_ALT := {"op_logos_hit": ["op_mizuki_hit", 0.8, -4.0],
 	"op_hoshiguma_s1": ["op_saria_s1", 0.9, 0.0], "op_hoshiguma_s2": ["op_siege_s2", 0.85, 0.0], "op_hoshiguma_s3": ["op_skadi_s3", 0.85, 0.0],
 	# 安洁莉娜（docs/61 §12，数据干员，暂无专属音）：普攻借 Logos 低沉的法术起手（「嗡」），落点借铃兰命中压低（内收短鸣），技能借 Logos / 铃兰 / 流明
 	"op_angelina_atk": ["op_logos_atk", 0.7, -2.0], "op_angelina_hit": ["op_suzuran_hit", 0.7, -2.0], "op_angelina_s1": ["op_logos_s1", 0.85, 0.0],
-	"op_angelina_s2": ["op_suzuran_s2", 0.6, 0.0], "op_angelina_s3": ["op_lumen_s3", 1.15, 0.0],
+	"op_angelina_s2": ["op_suzuran_s2", 0.6, 0.0], "op_angelina_s3": ["op_lumen_s3", 0.9, -1.0],
 	# 德克萨斯（docs/61 §13，数据干员，暂无专属音）：拔剑风切借艾丽妮刺剑（音高上提），技能借艾丽妮 / 推进之王
 	"op_texas_atk": ["op_irene_atk", 1.15, -2.0], "op_texas_hit": ["op_irene_hit", 1.1, -3.0], "op_texas_s1": ["op_irene_s1", 1.05, 0.0],
 	"op_texas_s2": ["op_siege_s2", 1.15, 0.0], "op_texas_s3": ["op_irene_s3", 1.1, 0.0],
@@ -816,7 +823,8 @@ const PRIO_NAME := {
 ## 骑士 knight_charge 没出现。节流：冲锋号令全局至少隔 SIEGE_S1_GAP 秒（技能照常放，只是不每次都响），同名音同时只响 1 个；
 ## 冲锋类预警同时最多 1 个；骑士冲锋按位置降音量（world.gd 用 play_at）
 const SIEGE_S1_GAP := 4.5
-const VOICE_CAP := {"op_siege_s1": 1, "cue_charge_start": 1, "cue_charge_hit": 1, "knight_charge": 2}
+const VOICE_CAP := {"op_siege_s1": 1, "cue_charge_start": 1, "cue_charge_hit": 1, "knight_charge": 2,
+	"op_wisadel_quake": 2, "op_wisadel_hit": 3, "op_wisadel_big": 2, "op_kaltsit_big": 2, "op_eyjafjalla_big": 3}
 const OFF_FADE := 480.0
 const OFF_DB := 12.0
 var view := Rect2()
@@ -937,14 +945,46 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 ## 干员音效：op("skadi", "atk")；vol 为相对该类别默认音量的偏移。没有专属文件时退回通用音效
 func op(oid: String, kind: String, vol := 0.0, pitch := 1.0, pitch_var := 0.05) -> void:
 	var sn := "op_%s_%s" % [oid, kind]
-	var v: float = float(OP_VOL.get(kind, -8.0)) + vol
+	if OP_GAP.has(sn):
+		var now := Time.get_ticks_usec() / 1000000.0
+		if now - float(op_last.get(sn, -99.0)) < float(OP_GAP[sn]):
+			sfx_stat.merged += 1
+			return
+		op_last[sn] = now
+	var v: float = float(OP_VOL.get(kind, -8.0)) + vol + float(OP_DB.get(sn, 0.0))
+	pitch_var = maxf(pitch_var, float(OP_PVAR.get(sn, 0.0)))
 	if streams.get(sn) != null:
+		_op_log(sn, sn, v, pitch, pitch_var)
 		play(sn, v, pitch, pitch_var)
 	elif OP_ALT.has(sn) and streams.get(OP_ALT[sn][0]) != null:
 		var alt: Array = OP_ALT[sn]
+		_op_log(sn, alt[0], v + float(alt[2]), pitch * float(alt[1]), pitch_var)
 		play(alt[0], v + float(alt[2]), pitch * float(alt[1]), pitch_var)
 	elif OP_FALLBACK.has(kind):
+		_op_log(sn, OP_FALLBACK[kind], v, pitch, pitch_var)
 		play(OP_FALLBACK[kind], v, pitch, pitch_var)
+
+
+## --sfxstat：干员动作 -> 实际文件、音量、音高（docs/109 音效盘点用）。sfx_op[op_<id>_<类别>] = {n, file, v0, v1, vsum, p0, p1, var}
+var sfx_op := {}
+
+
+func _op_log(sn: String, file: String, v: float, p: float, pv: float) -> void:
+	if sfx_by_on < 0:
+		var cfg: Node = get_node_or_null("/root/Cfg")
+		sfx_by_on = 1 if (cfg != null and cfg.dev_args().has("--sfxstat")) else 0
+	if sfx_by_on != 1:
+		return
+	var r: Dictionary = sfx_op.get(sn, {"n": 0, "file": {}, "v0": 99.0, "v1": -99.0, "vsum": 0.0, "p0": 99.0, "p1": 0.0, "var": pv})
+	r.n += 1
+	r.file[file] = int(r.file.get(file, 0)) + 1
+	r.v0 = minf(r.v0, v)
+	r.v1 = maxf(r.v1, v)
+	r.vsum += v
+	r.p0 = minf(r.p0, p)
+	r.p1 = maxf(r.p1, p)
+	r["var"] = maxf(float(r["var"]), pv)
+	sfx_op[sn] = r
 
 
 ## 重击闷音（combat.hurt，docs/53）：配乐低通立刻压到 hz，之后由 cut_target（music_director 每帧设）按 _process 的速率回升
