@@ -135,3 +135,7 @@ D:/Anaconda/python.exe -X utf8 tools/spine_editor/server.py --source build/spine
 - **能天使**：运行时条等于 CP exusiai_arm_revision_03 整体下移 1 像素（逐帧平移后 0 差异），脚底在第 120–121 行，比原点低 1–2 像素。要不要回调 1 像素，交协调人或用户定。我做的九人试稿里的能天使、艾雅法拉（§1）作废。
 - **斯卡蒂（CZ）**：Codex 已出 Idle、Attack、Die（像素候选）；重劈、连斩、跳劈（leap_revision_05/06）待用户验收；回旋只有参考图；跑步未做像素。与本文对应：跑步（§1）补的是 CZ 的空缺；跳劈（§9）与 CZ Leap 重复，二者择一由用户定；回旋（§10）补 CZ 的空缺；反手斩（§10）与 CZ「连斩」第二刀的回斩重叠。
 - 召唤物移动用待机 + 平移，不出跑步（交接要求）。
+
+## 12. 维什戴尔跑步（10-20，未接入，待用户选）
+
+`cfg/wisadel.json`（3.8）。照 Codex 现版 op_wisadel_run 调：前倾 20°、头回正（headKeep 0.65）、整体屈膝（crouch 0.07）；四件浮游武器用 `carry` 保持 X 形、只随身体起伏平移；步态改后踢（`gaitX` 把抬起的脚放在身后，`gaitLiftPx` 后踢 10–12、前摆 2–5 像素）。穿模处理：后踢腿压到最底层（`swingTop: back`），两腿按脚踝前后排层序（`legDepth`），脚掌转角减到 25%（`footRot`，靴筒挂在小腿上，转多了会和鞋脱开）。嘴按 bz_18 mouth_sampling 光学取样（两格软色短线）。8 帧原生网格检查图 `build/spine_run_trial/wisadel/wisadel_hires_check.png` 无穿模；支撑脚贴地误差 ≤ 0.2 源单位，无出界。

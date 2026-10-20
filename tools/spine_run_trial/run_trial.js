@@ -111,8 +111,16 @@ async function main() {
     if (cfg.mode === 'float') return floatFrame(sk, i, phi);
     if (cfg.keys) return keyedFrame(sk, i, cfg.keys[i], phi);
     // 1) 躯干：前倾 + 起伏；胸再前倾一点，头部回正一部分（保持脸可读）
-    move(sk, hip, 0, BOB[i] * L * P.bob);
+    // crouch：整体压低髋（腿长单位），支撑腿膝盖随之更弯
+    move(sk, hip, 0, BOB[i] * L * P.bob - (P.crouch || 0) * L);
     rotate(sk, hip, -f * P.lean);
+    // carry：不挂在身体骨链上、但该跟着身体走的部件（维什戴尔四件浮游武器挂在 Front 下）——随起伏 / 前倾绕髋转，
+    // 再按配置抬起 / 后收 / 转角，[dx, dy, 度] 像素单位（@2x），带一点滞后摆动
+    for (const [n, off] of Object.entries(cfg.carry || {})) {
+      const b = get(sk, n); move(sk, b, 0, BOB[i] * L * P.bob - (P.crouch || 0) * L); rotate(sk, b, -f * P.lean * (P.carryLean ?? 1), [hip.worldX, hip.worldY]);
+      move(sk, b, f * (off[0] || 0) / SCALE, (off[1] || 0) / SCALE + (off[3] || 1.5) / SCALE * Math.sin(2 * phi - 1.2));
+      if (off[2]) rotate(sk, b, f * off[2]);
+    }
     if (cfg.body.chest) rotate(sk, get(sk, cfg.body.chest), -f * (P.chestLean + 1.5 * Math.cos(2 * phi)));
     if (cfg.body.head) rotate(sk, get(sk, cfg.body.head), f * (P.lean + P.chestLean) * P.headKeep + 1.5 * Math.sin(2 * phi - 0.6));
     // 2) 腿：按相位放脚踝，支撑相把鞋底贴地
@@ -120,8 +128,8 @@ async function main() {
     for (const side of ['L', 'R']) {
       const k = (i + (side === cfg.leadLeg ? 0 : 4)) % 8, g = GAIT[k];
       const [a, b, c] = cfg.legs[side].map(n => get(sk, n)), info = legInfo[side];
-      const tx = a.worldX + f * g[0] * L * P.stride;
-      const setFoot = () => rotate(sk, c, info.foot + f * g[2] - ang(c));
+      const tx = a.worldX + f * (cfg.gaitX?.[k] ?? g[0]) * L * P.stride;   // gaitX：按相位覆盖脚踝前后位置
+      const setFoot = () => rotate(sk, c, info.foot + f * g[2] * (P.footRot ?? 1) - ang(c));   // footRot：脚掌转角比例（靴筒挂在小腿上的干员转多了会脱开）
       // gaitLiftPx：按像素指定各相位离地高度（对齐已批准的旧条），否则用步态表 × lift
       const liftPx = (cfg.gaitLiftPx === undefined ? LIFT_PX : cfg.gaitLiftPx || [])[k];
       let ty = ground + info.ankleAbove + (liftPx != null ? liftPx / SCALE : g[1] * L * P.lift);
@@ -135,6 +143,23 @@ async function main() {
         ty -= err; ik(sk, a, b, c, [tx, ty], f); setFoot();
       }
       contacts.push({ side, phase: k, support: stance, gap: +(bottom(sk, side) - ground).toFixed(2) });
+      // swingTop：抬起的腿（相位 4–7）整条移到最前绘制，免得高抬的膝 / 鞋被衣摆、武器挡住（维什戴尔）
+      if (cfg.swingTop && !stance && (cfg.swingTop !== 'back' || k <= 5)) {   // 'back' 只在后踢相位（4–5）压底
+        const root = get(sk, cfg.legs[side][0]);
+        const mine = sk.drawOrder.filter(sl => { for (let p = sl.bone; p; p = p.parent) if (p === root) return true; return false; });
+        sk.drawOrder = cfg.swingTop === 'back' ? mine.concat(sk.drawOrder.filter(sl => !mine.includes(sl))) : sk.drawOrder.filter(sl => !mine.includes(sl)).concat(mine);   // 'back' = 抬起的腿压到最底层（后踢在身后）
+      }
+    }
+    // legDepth：按脚踝前后排两腿层序——靠后的腿整条放到靠前那条腿的最底层部件之前（靴筒翻边不压到另一条小腿上）
+    if (cfg.legDepth && !(cfg.swingTop === 'back' && contacts.some(c => c.phase === 4 || c.phase === 5))) {
+      const slotsOf = side => { const root = get(sk, cfg.legs[side][0]); return sk.drawOrder.filter(sl => { for (let p = sl.bone; p; p = p.parent) if (p === root) return true; return false; }); };
+      const ax = side => f * get(sk, cfg.legs[side][2]).worldX;
+      const [back, front] = ax('L') < ax('R') ? ['L', 'R'] : ['R', 'L'];
+      const bs = slotsOf(back), fs = slotsOf(front);
+      if (bs.length && fs.length) {
+        const rest = sk.drawOrder.filter(sl => !bs.includes(sl)), at = rest.indexOf(fs[0]);
+        sk.drawOrder = rest.slice(0, at).concat(bs, rest.slice(at));
+      }
     }
     arms(sk, i, phi);
     secondary(sk, phi);
@@ -331,6 +356,22 @@ async function main() {
         max = Math.max(max, A / 16);
       }
       const th = Math.max(1, Math.min(CUT, max));
+      // 嘴：沿用 bz_18 mouth_sampling 的光学取样——按列覆盖率取 ≥ 18% 峰值的列（至少两格成线），每列取覆盖最高的一行，
+      // 墨色按覆盖率（夹 0.30–0.65）与下层脸色混合；否则亚像素嘴二值化后只剩一个黑点或碎点
+      if (/mouth/i.test(slot.data.name) && max > 0) {
+        const cols = new Float64Array(w);
+        for (let x = 0; x < w; x++) for (let y = 0; y < h; y++) cols[x] += acc[(y * w + x) * 4 + 3] / 255;
+        const peak = Math.max(...cols); let xs = [];
+        for (let x = 0; x < w; x++) if (cols[x] >= peak * 0.18) xs.push(x);
+        if (xs.length < 2) { const x = cols.indexOf(peak), nb = [x - 1, x + 1].filter(n => n >= 0 && n < w); xs = [x, nb.reduce((m, n) => cols[n] > cols[m] ? n : m, nb[0])].sort((p, q) => p - q); }
+        const under = oc.getImageData(x0, y0, w, h).data;
+        for (const x of xs) {
+          let y = 0; for (let yy = 1; yy < h; yy++) if (acc[(yy * w + x) * 4 + 3] > acc[(y * w + x) * 4 + 3]) y = yy;
+          const q = (y * w + x) * 4, wt = Math.min(0.65, Math.max(0.30, acc[q + 3] / 255));
+          for (let k = 0; k < 3; k++) a[q + k] = Math.round(acc[q + k] * wt + under[q + k] * (1 - wt));
+          a[q + 3] = 255;
+        }
+      } else
       for (let q = 0; q < acc.length; q += 4) {
         if (acc[q + 3] < th) continue;
         const c = nearest(palette, acc[q], acc[q + 1], acc[q + 2]);

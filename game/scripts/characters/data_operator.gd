@@ -740,6 +740,8 @@ func _release() -> void:
 				continue   # 精英化第 2 批段：这一下被 replace 换掉了（掷锚）——跟着锚击中心走的追加（定点爆破 / 收链……）不走
 			var n: int = maxi(1, int(t.n))
 			if atk_n % n == 0:
+				if t.has("vis_anim"):
+					play_vis_anim(str(t.vis_anim))   # 纯画面：追加段的帧条（斯卡蒂反手斩），不占动作窗口、不改出手
 				var dl: float = float(t.get("delay", 0.0))
 				if dl > 0.0:
 					if hw.is_empty():

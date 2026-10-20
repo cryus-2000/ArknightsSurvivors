@@ -127,6 +127,8 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | `B.skills[i].attack_effect{src,size,aim_r[,mark]}` | 炮击适配器参数 | `h4_phase_validate` | wisadel |
 | `B.skills[i].stack_max` | 次数型技能可叠加上限（`load_skill_attacks`） | — | — |
 | 顶层 `native_motion{clips,variants,states,exits}` | 原生动作覆盖（§3.5）；收势可超出逻辑窗口 | V4 / V8 | siege ulpianus |
+| `B.*.trig every_n.vis_anim` | 非 replace 的追加段触发时只播的画面帧条（`play_vis_anim`，不占动作窗口、不改出手）；须是 sprites 键并列进 `extra_sprites` | ob_check `trig.every_n` | skadi 反手斩（10-20） |
+| 顶层 `native_motion{<slot>: 秒}` | 原生动作显示时长；收势可超出逻辑窗口 | **无** | siege ulpianus |
 | `S.draw_scale` | 本体整体显示倍率 | 无 | mizuki 0.9 |
 | `S.size` | 画布边长（运行时不读；art_lint 核对贴图） | V2 / V3 | 全员 |
 | `S.foot_exempt`、`S.<slot>.foot_exempt` | 不合 §5 口径的原因说明（字符串）；写了才放行 | V2 | saria suzuran wisadel mizuki、ulpianus 两槽 |
@@ -166,6 +168,9 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | 能天使 | 64 | frame_durations（全槽） | s1–s3 单条 | 次数型 lifecycle 默认绑定 | |
 | 推进之王 | 64 | frame_durations | 无（`skills[].anim`） | native_motion（数据驱动） | 取消号令 |
 | 乌尔比安 | 64 + 128 | frame_durations、`hand` | 无（elite2 `anim: throw`） | native_motion（数据驱动） | 锚 / 锁链从 `hand` 连出 |
+| 推进之王 | 64（**顶层 size / foot 仍写 48 / (24,46)**） | frame_durations | 无（`skills[].anim`） | native_motion | 取消号令 |
+| 乌尔比安 | 64 + 128（同上，顶层未改） | frame_durations、`hand` | 无（elite2 `anim: throw`） | native_motion | 锚 / 锁链从 `hand` 连出 |
+| 斯卡蒂（10-20 claude/skadi-integrate） | 64 + 96 | frame_durations + fire_time（窗口沿用旧条，同 seed 不变） | 无（S3 `swap_attack` 用 attack_spin；S2 skill 槽借 leap_strike 帧条） | talent `vis_anim: backslash` | Codex cz 原生 idle / attack / death + Claude Spine 脚本 run / leap_strike / attack_spin / backslash |
 | 安洁莉娜 | 48（新序列、旧画布） | fire | s3 start/enter/loop/run/attack/end | — | 帧条待重画 |
 
 其余 8 人（星熊、艾丽妮、凯尔希、流明、斯卡蒂、浊心斯卡蒂、归溟幽灵鲨、德克萨斯）仍是 48 旧口径，见 §9。
