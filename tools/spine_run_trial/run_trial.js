@@ -128,7 +128,7 @@ async function main() {
     for (const side of ['L', 'R']) {
       const k = (i + (side === cfg.leadLeg ? 0 : 4)) % 8, g = GAIT[k];
       const [a, b, c] = cfg.legs[side].map(n => get(sk, n)), info = legInfo[side];
-      const tx = a.worldX + f * g[0] * L * P.stride;
+      const tx = a.worldX + f * (cfg.gaitX?.[k] ?? g[0]) * L * P.stride;   // gaitX：按相位覆盖脚踝前后位置
       const setFoot = () => rotate(sk, c, info.foot + f * g[2] - ang(c));
       // gaitLiftPx：按像素指定各相位离地高度（对齐已批准的旧条），否则用步态表 × lift
       const liftPx = (cfg.gaitLiftPx === undefined ? LIFT_PX : cfg.gaitLiftPx || [])[k];
