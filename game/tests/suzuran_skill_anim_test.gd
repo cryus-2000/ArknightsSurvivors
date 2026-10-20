@@ -191,7 +191,7 @@ func test_sequence_overlap(o) -> void:
 			o.hw.sz.haze_t = 0.0
 		step(o, 0.35)
 		if expires:
-			ok(o.sq_ph == 3 and kind(o) == "skill_s3", "被遮住时结束的 S3 只恢复收势")
+			ok(o.sq_ph == 3 and kind(o) == "skill_s3_end", "被遮住时结束的 S3 只恢复收势")
 		else:
 			ok(o.sq_ph == 2 and kind(o) == "skill_s3_loop", "S2 序列结束恢复仍生效的 S3 循环")
 			o.hw.sz.haze_t = 0.0
