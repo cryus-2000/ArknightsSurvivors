@@ -122,7 +122,7 @@ WAIVERS = {
     ("wisadel", "outline"): "10-16 新规格（docs/103 §5 / 104）：64 画布 @2x 暗色收边、无硬黑外描边（codex/art 01392fc7）",
     ("wisadel", "facing"): "10-16 用户批准整套（codex/art 01392fc7）：扛炮 / 蹲射构图让头部同向分偏，机检口径按旧 48 帧条定",
     ("wisadel", "frontal"): "10-16 用户批准整套（codex/art 01392fc7）：待机 / 跑步偏正面是定稿构图，待改口径",
-    ("wisadel", "run"): "10-16 用户批准的前冲跑步（codex/art 01392fc7，前倾 24–28°）；机检上半身 / 前倾阈值按旧帧条定",
+    ("wisadel", "run"): "10-20 用户批准的 Spine 步态跑步（tools/spine_run_trial cfg/wisadel.json，d64e4648：前倾 20°、后踢、浮游武器 X 形）；机检上半身 / 前倾阈值按旧帧条定",
     ("wisadel", "ground"): "10-16 整套最低行 60–61（@2x 120–121），1px 以内，待改口径",
     ("skadi", "run"): "10-20 用户确认的 Spine 步态跑步（tools/spine_run_trial cfg/skadi.json，右手拖剑、前倾 20°、抬腿对齐推进之王旧条）；旧 48 帧条剪影 / 上身阈值未过，保留视觉复核",
     ("skadi", "outline"): "10-20 原生附件逐件像素化（cz_skadi_actions_1020 + spine_run_trial）：暗色收边，不使用旧 #080E18 黑壳",
