@@ -260,7 +260,10 @@ func tick(dt: float) -> void:
 		heal_last = g.heal_log.duplicate()
 		curve.append({"t": int(t), "hp": int(100.0 * g.hp / maxf(1.0, g.max_hp)), "lamp": int(g.lamp), "lv": g.level,
 			"kills": g.kills, "squad": g.squad.size(), "taken": int(taken_window), "enemies": g.enemies.size(),
-			"zone": g.zone_state, "boss": int(_boss_alive()), "mhp": int(g.max_hp), "dsrc": dsrc, "hsrc": hsrc})
+			"zone": g.zone_state, "boss": int(_boss_alive()), "mhp": int(g.max_hp), "dsrc": dsrc, "hsrc": hsrc,
+			# 曲线审计（docs/116）：累计全队输出 outc、普通怪生命倍率 hpm（时间 × 难度 × 全局，不含密度换算）、主控每秒回复 rg
+			"outc": int(out_last), "hpm": snappedf(g.combat.enemy_hp_time_mult() * float(g.dmod.enemy_hp) * g.enemy_hp_mult, 0.01),
+			"rg": snappedf(g.combat.regen_per_sec(), 0.01)})
 		taken_window = 0.0
 		win_src = {}
 
