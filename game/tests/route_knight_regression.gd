@@ -104,6 +104,7 @@ func _process(_dt: float) -> void:
 	check(game.knight.pos.distance_to(game.zone_c) <= 77.0, "ally retreat cannot follow player into tide")
 	_final_flow()
 	_walk_death()
+	_camera_glance_matches_spawn()
 	print("ROUTE KNIGHT REGRESSION: ", fails, " failures")
 	game.queue_free()
 	game = null
@@ -241,3 +242,23 @@ func _walk_death() -> void:
 	check(game.knight.fallen and not game.knight.alive and not game.knight.submerged, "knight killed on the way falls (no submerge)")
 	check(game.relics.has("223") and game.endg.cur != "knight", "walk death grants 223 and the ending falls back")
 	check(_count_banner("没入") == 0, "no submerge banner after a walk death")
+
+
+## 10-20 修：enter_arena 的 freeze_zone 会把场地圆心拉向主控，take_over 当时给的落点可能被后面的 arena_clamp 挪走；
+## 镜头一瞥（camera_glance）必须用挪走之后的最终落点，否则镜头看的地方是空的（正式局「刚开始骑士没有出现」）。
+## 主控离旧黑潮圆心够远（> arena_r - 100），才会触发 freeze_zone 的圆心内收、进而触发 arena_clamp 的二次搬移。
+func _camera_glance_matches_spawn() -> void:
+	const Dt = preload("res://scripts/data.gd")
+	_fresh_knight_game(Vector2(300, 0))
+	game.knight.alive = false
+	game.knight.submerged = true
+	game.knight.vanish_pos = Vector2(300, 0)
+	game.ppos = Vector2(1300, 0)   # 离旧黑潮圆心 1000，远超 arena_r(520) - 100
+	game.spawner.boss_idx = Dt.BOSS_TIMES.size() - 1
+	game.t = 600.0
+	game.spawner.update(0.05)
+	var fb = game.final_boss
+	check(fb != null and fb.type == "knight_boss", "final boss spawns via take_over + arena_clamp")
+	if fb != null:
+		check(fb.pos.distance_to(Vector2(300, 0)) > 60.0, "arena_clamp actually moved the spawn point in this setup (sanity check)")
+		check(game.glance_pos.distance_to(fb.pos) <= 12.0, "camera glances at the knight's actual (post-clamp) spawn point, not the stale pre-clamp one (d=%.1f)" % game.glance_pos.distance_to(fb.pos))

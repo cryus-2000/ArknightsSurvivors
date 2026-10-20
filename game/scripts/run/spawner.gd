@@ -288,17 +288,22 @@ func update(dt: float) -> void:
 		var base := edge_pos()
 		if g.zone_state != 0 and base.distance_to(g.zone_c) > g.zone_r - 90.0:
 			base = g.zone_c + (base - g.zone_c).normalized() * maxf(60.0, g.zone_r - 110.0)
+		var knight_takeover := false
 		if boss_idx == D.BOSS_TIMES.size() and group == ["knight_boss"]:
 			# 结局二：骑士（已入潮或仍在）重生为最终 Boss，从黑潮中心出现（take_over 返回位置）；若骑士已不在，则从边缘出现
 			if g.knight.alive or g.knight.submerged:
 				base = g.knight.take_over()
-				g.camera_glance(base)   # 镜头一瞥黑潮中心看寒冰重生（用户 10-14；只动镜头，game.camera_glance）
+				knight_takeover = true
 			g.vfx.show_banner("寒冰重生 —— 最后的骑士")
 		if boss_idx == D.BOSS_TIMES.size():
 			final_at = g.t
 			retreat_mid_bosses()
 			enter_arena(group[0])
 			base = g.combat.arena_clamp(base, 80.0)   # 场地内、离圈边 ≥80 登场
+		if knight_takeover:
+			# 10-20 修：一瞥要用 arena_clamp 之后的最终落点——enter_arena 会 freeze_zone 把场地圆心拉向主控，
+			# 原来镜头瞥的是冻结前的旧 g.zone_c，和骑士实际出现的位置可能差一截，镜头看的地方是空的（正式局「刚开始骑士没有出现」）
+			g.camera_glance(base)   # 镜头一瞥黑潮中心看寒冰重生（用户 10-14；只动镜头，game.camera_glance）
 		var spawned: Array = []
 		for k in group.size():
 			var b := spawn_enemy(group[k], base + Vector2(k * 90.0, 0))
