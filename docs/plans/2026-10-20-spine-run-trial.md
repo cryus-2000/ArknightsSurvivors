@@ -89,3 +89,13 @@ D:/Anaconda/python.exe -X utf8 tools/spine_editor/server.py --source build/spine
 ```
 
 旧条是 96 画布的用 `--old-size 96 --old-origin 48 92`；水月用 `--old art/incoming/mizuki_runtime_run@2x.png --old-size 192 --old-origin 96 152`。推进之王的旧 Codex 包另可加 `--editor-ops E:/ArknightsSurvivors/.worktrees/codex-art/art/incoming/cy_siege_all_actions_1020/raw`。
+
+## 8. 进度（10-20 收工）
+
+已完成并提交：编辑台支持 3.8 与通用数据包（含测试）；推进之王、水月、铃兰加九人共 12 人的跑步试稿（图在本机 build/spine_run_trial/，不进 git，可用 §7 命令重出）；铃兰 / 塞雷娅 / 星熊补件清单（§6）。
+
+剩余（需本机：编辑台、codex-art 工作树素材、build/prts_ref）：
+1. 等用户看九人试稿反馈，按反馈调 cfg 参数重出。
+2. 其余 3.8 干员（艾丽妮、逻各斯、流明、归溟幽灵鲨、乌尔比安、维什戴尔）还没写 cfg、没出试稿。
+3. 推进之王持锤手挡下巴、铃兰法杖下端低于地面 1–4 像素，还没手调。
+4. 补件清单待协调人转 Codex。
