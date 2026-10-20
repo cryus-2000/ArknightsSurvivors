@@ -52,6 +52,12 @@ static func draw_pool(o, l: Dictionary) -> void:
 	var scale := Vector2(float(l.r) / 10.0, float(l.r) / 24.0)
 	_poly(o, [Vector2(-10, 0), Vector2(-8, -6), Vector2(-2, -8), Vector2(6, -6), Vector2(10, 0), Vector2(6, 6), Vector2(-2, 8), Vector2(-8, 4)], l.pos, 0.0, scale, Color(CRUST, fade * 0.7))
 	_poly(o, [Vector2(-8, 0), Vector2(-4, -4), Vector2(2, -6), Vector2(8, -2), Vector2(6, 4), Vector2(0, 6), Vector2(-6, 4)], l.pos, 0.0, scale, Color(0.7, 0.16, 0.04, fade * 0.65))
+	var texture := "fx_eyja_lava_pool"
+	if o.g.tex.get(texture) != null and o.g.V6_FRAMES.has(texture):
+		var spec: Array = o.g.V6_FRAMES[texture]
+		var frame: int = int((float(l.dur) - float(l.t)) * float(spec[1])) % int(spec[0])
+		o.draw_spr_rot(texture, frame, l.pos, 0.0, minf(float(l.r) / 26.0, 3.2), Color(1, 1, 1, fade * 0.75))
+		return
 	var pulse: float = 0.45 + 0.05 * sin((float(l.dur) - float(l.t)) * 3.0)
 	_poly(o, [Vector2(-6, 0), Vector2(-2, -2), Vector2(4, -4), Vector2(6, 0), Vector2(2, 2), Vector2(-4, 2)], l.pos, 0.0, scale, Color(HOT, fade * pulse))
 	for crack in [[Vector2(-5, 0), Vector2(-2, -2)], [Vector2(0, 0), Vector2(3, 2)], [Vector2(4, -2), Vector2(6, 0)]]:

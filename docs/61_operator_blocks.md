@@ -1477,6 +1477,8 @@ data_operator 的挂钩：`update` 在技能计时之后先跑 `hw_tick`（按�
 
 后续统一：上述 weighted 路径不再叠加通用火弹爆炸、旧 boom_fx 视觉项和散射火星；boom_fx 中的 pause / sfx 仍按原条件执行。`shape.pool.weighted: true` 只改用相同岩壳、热区和亮缝绘制熔池，不修改池的半径、伤害、跳伤间隔及存续。S3 三路均使用同一岩块绘制器，主弹 size=1.65、附加弹 look.scale=1.9；没有减少实际弹数。普攻另用 base.attack_shell_speed，避免调整普攻时影响 S2。
 
+用户随后要求保留原熔池的橙色方格纹理：weighted 熔池在统一岩壳内恢复 `fx_eyja_lava_pool` 动画内层，缺贴图时才用程序热区 / 裂隙回退。精零直射（复咏追加第二发）、精一熔蚀裂纹及扩大爆炸、精二三角低抛与留场熔池分别保留；材质共用不改变这些阶段条件。
+
 | 积木 | 类 | 说明 |
 |---|---|---|
 | `shape.shell` | 普攻 / 技能 do | 直线法术弹（game 的 fire 子弹：hidden、命中即在 `aoe` 内爆炸，爆炸后回调 `bullet_exploded`）。伤害 = base × mult [× 技能强度]（出手时）× 加成（发射时）；`aoe` × op_range × `aoe_mults`（cond）× `aoe_mult`；`tip / tip_skill` 出手点；`follow`（第一条 cond 成立的：n 发后续弹每 `gap` 秒一发，打首发目标以外的敌人，不够就在两侧偏开 `side`）；`on_explode`（target = 爆点、basis hit = 这一弹、r: hit = 爆炸半径）；`look` / `fire_fx` / `boom_fx` 画面 |
