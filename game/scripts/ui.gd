@@ -1325,9 +1325,10 @@ static func card_art(ci: CanvasItem, r: Rect2, od: Dictionary, frame: int, col :
 
 ## 立绘适配（选人 B+ 与图鉴 C4' 同一规则）：在舞台框里（四边留 m）取 ≤ kmax 的最大整数倍（@2x 像素），使待机帧并集区整个放得下；
 ## w2 / h2 = 并集区按 @2x 像素的宽高；中心先放在 cx，放不下再往舞台里挪；返回 [倍数, 脚底中点]
-static func art_fit(w2: float, h2: float, stage: Rect2, kmax: float, cx: float, foot_y: float, m := 8.0) -> Array:
+## full2：完整并集高度（含按 fit_h 不计入降倍的角 / 武器）；给了就保证整幅仍在舞台框内（框边留 2，10-21 浊心待机举杖）
+static func art_fit(w2: float, h2: float, stage: Rect2, kmax: float, cx: float, foot_y: float, m := 8.0, full2 := 0.0) -> Array:
 	var k: float = maxf(1.0, floorf(kmax))
-	while k > 1.0 and (w2 * k > stage.size.x - 2.0 * m or h2 * k > foot_y - stage.position.y - m):
+	while k > 1.0 and (w2 * k > stage.size.x - 2.0 * m or h2 * k > foot_y - stage.position.y - m or full2 * k > foot_y - stage.position.y - 2.0):
 		k -= 1.0
 	var half: float = w2 * k / 2.0
 	cx = clampf(cx, stage.position.x + m + half, stage.end.x - m - half)

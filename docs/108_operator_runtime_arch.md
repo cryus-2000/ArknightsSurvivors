@@ -174,7 +174,7 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | 安洁莉娜 | 48（新序列、旧画布） | fire | s3 start/enter/loop/run/attack/end | — | 帧条待重画 |
 | 安洁莉娜 | 64 + 96（attack） | frame_durations、fire_time（出手时刻同旧条） | s3 start/enter/loop/run/attack/end | 次数 / 永久默认绑定 | 10-20 原作条 + dl 步态跑步；浮空离地 9 像素烘进帧条（`tools/probes/package_angelina.py`） |
 
-其余 8 人（星熊、艾丽妮、凯尔希、流明、斯卡蒂、浊心斯卡蒂、归溟幽灵鲨、德克萨斯）仍是 48 旧口径，见 §9。
+其余 8 人（星熊、艾丽妮、凯尔希、流明、斯卡蒂、浊心斯卡蒂、归溟幽灵鲨、德克萨斯）仍是 48 旧口径，见 §9（浊心 / 归溟 10-21 已接，见 §9.4）。
 
 ## 7. 旧口径 ↔ 新口径冲突清单
 
@@ -245,6 +245,17 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | 德克萨斯 | idle、S1/S2 `skill`（剑雨）、death | run、attack（原作 Attack_Loop 姿势 + 冲刺前倾）、`back_native`（回马剑）、`s3_start`、`s3_dash` | 冲刺按进度换播：`seg_texas.tx_native_signals` 出 `dash.basic / dash.skill / dash.reverse / wait.reverse`，json `native_motion.states` 选槽；S3 序列 start = s3_start、end = skill 后 6 帧（落剑雨） |
 
 代码只加信号：`data_operator.native_signals` 的 `prop`（往返弹体在外）与德克萨斯段；回马剑延迟队列项多记 `t0`（只读）。**有意的玩法变化（单列，待协调人确认后刷新基线）**：德克萨斯 `dash_t` 0.18 → 0.24、`dash_hold` 0.15 → 0.20、`back_delay` 0.2 → 0.3、回马剑反冲加 `hold`（用户 10-20「改一下动作时间」）。这四项改回原值时 seed 1 180 秒、seed 2 240 秒（`--sptest`）对 b1ee9cef 逐行相同。星熊 seed 1 180 秒逐行相同；seed 2 240 秒 `--sptest` 在约 85–120 秒处 h 值小差（rng 流相同），且 b1ee9cef 自己连跑两次也在 215 秒分叉，同 §12 维什戴尔的「同 seed 长局不稳定」，未定位。
+
+### 9.4 浊心斯卡蒂 / 归溟幽灵鲨接入（10-21，分支 claude/op-skalter-specter）
+
+64 画布 @2x（超界槽 96），整数 foot；打包 `tools/probes/package_skalter_specter.py`（cb_18 原作 8 帧像素部件按层序合成、整数平移对齐 run_trial 的 Idle t=0；回旋转身 = 整帧镜像 + 锯盘部件压到最底层；替身按 dg `export_doll.py` 同法从 dc 源采样）。逻辑时序一律保持旧条（`frame_durations` 求和 = 旧时长、`fire_time` = 旧出手），画面按 `native_motion.clips` 整条均匀播，clip = fire × 帧数 / k，出手帧 k 的画面起点 = 伤害时刻（用户 10-20：出手与画面要对上）。
+
+| 干员 | 原作条 | 新做 | 接法 |
+|---|---|---|---|
+| 浊心斯卡蒂 | idle（原作 Idle 8.77 秒按 36 帧加密，用户要求补帧）、S1/S2/S3 起手（Skill_N_Begin 重排，关键姿势在出手帧 2）、death | run（悬浮飘行，离地 6 px）、attack（用户定不做出手姿势，只原地漂浮） | `sprites.skills` 三条单 anim；海嗣四槽不动（已走 `visual`） |
+| 归溟幽灵鲨 | idle、S1 skill / S3 `skill_s3`（关键姿势在出手帧）、`idle_s3`（Skill_3_Idle）、fall / death（Die）；替身 `doll_appear`（Start_B）/ `doll_vanish`（Die_B） | run、attack（12 帧 360° 环斩：前摇 3 帧到伤害时刻，0.28 秒转完一圈与锯环同步）、`attack_s3`（重锯环斩，帧号同 attack）、`doll_spin`（张袍姿势 + 镜像旋身，原作无此动作） | 纯显示代码：`seg_specter.h3_anim_state` 改在 native_motion 之后调用，S3 期间 idle / attack 换 `idle_s3` / `attack_s3`；双重回转反向圈出手后按 attack 出手段镜像重播（`sp.spin2_vis`，玩法不读）；闪现现身 / 消散段叠画替身本体 |
+
+S3 数值与机制保持本作设计（用户 10-20 定，不与原作同步）；S3 收势不接（技能序列会改技能占用、同 seed 不再相同）。同 seed：两人 seed 1 180 秒、seed 2 240 秒 `--sptest` 对 98cc869c 逐行相同。回归 `skalter_specter_anim`。图鉴 / 选人立绘：`UI.art_fit` 加完整并集高度参数，角 / 武器不计入降倍但整幅仍须在舞台内（浊心待机举杖）。
 
 ## 10. 「新人接入只填 json」检查表（10-20 已全部实现：`operator_contract.gd`，test_core 坏样例逐条覆盖）
 

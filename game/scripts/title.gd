@@ -2391,7 +2391,7 @@ func _op_fit(od: Dictionary, ph: bool) -> Array:
 	var w2: float = bb.size.x * 2.0 / hi
 	var h2: float = UI.fit_h(bb, float(od.tex.get_height()) if od.tex != null else bb.size.y, hi) * 2.0 / hi   # 64 画布：角 / 武器超出身体不触发降倍
 	var foot_y: float = (312.0 if ph else sr.end.y - m)
-	return UI.art_fit(w2, h2, sr, op_art_k * (0.6 if ph else 1.0), 380.0 if ph else 780.0, foot_y, m)   # 图鉴 C4' 同一规则
+	return UI.art_fit(w2, h2, sr, op_art_k * (0.6 if ph else 1.0), 380.0 if ph else 780.0, foot_y, m, bb.size.y * 2.0 / hi)   # 图鉴 C4' 同一规则
 
 
 ## 立绘：适配倍数 + 裁进舞台框（画在描边英文名之后、名字块之前，层次同定稿）

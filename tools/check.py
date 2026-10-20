@@ -904,6 +904,7 @@ SCENE_REGRESSIONS = {
     "exusiai_blocks": ("能天使积木（docs/61 §14）", "exusiai_blocks_test", r"EXUSIAI BLOCKS failures=0", ["--balance", "--op=exusiai"]),
     "suzuran_skill_anim": ("多条技能帧条 + 循环状态（docs/87 §3.5，铃兰）", "suzuran_skill_anim_test", r"SUZURAN SKILL ANIM failures=0", ["--balance", "--op=suzuran", "--squad=lumen"]),
     "angelina_skill_anim": ("统一技能动画契约（安洁莉娜）", "angelina_skill_anim_test", r"ANGELINA SKILL ANIM failures=0", ["--balance", "--op=angelina", "--squad=lumen"]),
+    "skalter_specter_anim": ("浊心 / 归溟新美术：出手帧对齐、S3 重锯 / 反向圈换条", "skalter_specter_anim_test", r"SKALTER SPECTER ANIM failures=0", ["--balance", "--op=specter_unchained", "--squad=skalter"]),
     "mizuki_runtime": ("水月完整出手、持续状态、退出与成长", "mizuki_runtime_test", r"MIZUKI RUNTIME .* 0 failed", ["--balance", "--seed=1", "--op=mizuki", "--squad=skadi"]),
     "mizuki_skill_anim": ("水月原生像素起手、命中、收势和持续变体", "mizuki_skill_anim_test", r"MIZUKI SKILL ANIM failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
     "run_stats": ("作战记录：统计守恒（占比合计 100%、来源相加、按干员拆 = dmg_out）+ 界面打开 / 导航 / 桌面与手机排版", "run_stats_test", r"RUN STATS failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
