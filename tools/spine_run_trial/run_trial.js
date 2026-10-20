@@ -193,7 +193,7 @@ async function main() {
       for (let q = 0; q < v.length; q += 2) { const d = td ? (v[q] - hb.worldX) * td[0] + (v[q + 1] - hb.worldY) * td[1] : Math.hypot(v[q] - hb.worldX, v[q + 1] - hb.worldY); if (d > far) { far = d; best = [v[q], v[q + 1]]; } }
       rotate(sk, b, (k.carryAngle ?? -90) - ang(b)); move(sk, b, best[0] + (dx || 0) - b.worldX, best[1] + (dy || 0) - b.worldY);
     }
-    for (const [n, [h, dx, dy]] of Object.entries(k.carry || {})) { const b = get(sk, n), hb = get(sk, h); rotate(sk, b, (k.carryAngle ?? -90) - ang(b)); move(sk, b, hb.worldX + (dx || 0) - b.worldX, hb.worldY + (dy || 0) - b.worldY); }
+    for (const [n, [h, dx, dy, an]] of Object.entries(k.carry || {})) { const b = get(sk, n), hb = get(sk, h); rotate(sk, b, (an ?? k.carryAngle ?? -90) - ang(b)); move(sk, b, hb.worldX + (dx || 0) - b.worldX, hb.worldY + (dy || 0) - b.worldY); }
     if (k.lift) move(sk, get(sk, cfg.body.root || 'Front'), (k.dx || 0), k.lift);
     else if (k.dx) move(sk, get(sk, cfg.body.root || 'Front'), k.dx, 0);
     for (const n of k.top || []) { const t = sk.findSlot(n); sk.drawOrder = sk.drawOrder.filter(x => x !== t); sk.drawOrder.push(t); }

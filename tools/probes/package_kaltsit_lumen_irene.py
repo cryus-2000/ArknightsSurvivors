@@ -41,8 +41,8 @@ SLOTS = {
     'lumen': {
         'idle': ('native', 'Idle', 'loop'),
         'run': ('spine', 'frames', 'run'),
-        'attack': ('spine', 'attack/frames', ('old', 'attack', 5)),
-        'attack_beam': ('spine', 'attack_beam/frames', ('old', 'attack', 4)),
+        'attack': ('spine', 'attack_hand/frames', ('old', 'attack', 5)),   # 手提灯举向敌人（伞尖挂灯版 attack/ 留作备选）
+        'attack_beam': ('spine', 'attack_beam_hand/frames', ('old', 'attack', 4)),
         'skill': ('native', 'Skill_1', ('old', 'skill', 2)),
         'skill_s2': ('native', 'Skill_2', ('old', 'skill', 4)),
         'skill_s3_start': ('native', 'Skill_3_Begin', ('old', 'skill', 4)),
