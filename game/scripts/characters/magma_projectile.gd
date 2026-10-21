@@ -64,8 +64,8 @@ static func draw_ignite_hit(o, f: Dictionary) -> void:
 	var flash: float = maxf(0.0, 1.0 - age / 0.07) * dim
 	if flash > 0.0:
 		o.cv.draw_circle(p + Vector2(0, -6), r * 0.55, Color(1.0, 0.9, 0.6, flash * 0.8))
-	var tex := "fx_eyja_ignite_hit" if o.g.tex.get("fx_eyja_ignite_hit") != null and o.g.V6_FRAMES.has("fx_eyja_ignite_hit") else "fx_eyja_ignite_boom"
-	if o.g.tex.get(tex) != null and o.g.V6_FRAMES.has(tex):
+	var tex := "fx_eyja_ignite_hit" if o._fx_tex("fx_eyja_ignite_hit") != null and o.g.V6_FRAMES.has("fx_eyja_ignite_hit") else "fx_eyja_ignite_boom"   # 懒加载：g.tex 只预载 json 引用过的贴图
+	if o._fx_tex(tex) != null and o.g.V6_FRAMES.has(tex):
 		var spec: Array = o.g.V6_FRAMES[tex]
 		var fr: int = mini(int(age / float(f.max) * float(spec[0])), int(spec[0]) - 1)   # 整条压进 life 播完
 		var fw: float = float(o.g.tex[tex].get_width()) / float(spec[0]) / A.hires_of(o.g.tex[tex])

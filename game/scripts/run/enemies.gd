@@ -288,6 +288,7 @@ func update(dt: float) -> void:
 	_dv_o.clear()
 	_ab_e.clear()
 	_ab_o.clear()
+	var _sq = g.get("squad")
 	# ---- A 决策段
 	for i in n:
 		_seg_on[i] = 0
@@ -389,6 +390,11 @@ func update(dt: float) -> void:
 		# 重型怪只削外来击退；自己冲锋 / 突刺（kb_self，boss_ai 的 dash / stab）不削，否则骑士冲锋只冲出 1/3（用户实机反馈 9/27）
 		var v: Vector2 = e.kb * (0.3 if D.ENEMIES[e.type].get("heavy", false) and not e.get("kb_self", false) else 1.0)
 		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0) * g.beacon_sys.slow_mult(e)
+		if e.get("lead_charge", false) and dist < Bal.v("enemy/horde_lead_charge_r", 320.0) and e.get("wake_t", 0.0) <= 0.0 and e.stun <= 0.0 and not g.eai.busy(e):
+			# 领头冲撞（docs/116 §7.4）：大群领头的重型怪 / 精英第一次逼近时起一次带地面预警的直线冲撞（复用 telegraph 的 dash）
+			e.lead_charge = false
+			g.tele.warn(e, "line", Bal.v("enemy/horde_lead_charge_warn", 0.8), {"ang": dir.angle(), "len": clampf(dist + 60.0, 160.0, 420.0), "wid": 26.0, "track": 0.3,
+				"act": "dash", "fit_len": true, "name": "", "col": Color(1.0, 0.4, 0.55), "dmg": 0.0})
 		if e.get("rush", 0.0) > 0.0:
 			# 合围冲锋段（docs/116 §7.3）：大群入场时 × rush，进到队长 horde_rush_r 内回到正常速度（只降不升）
 			if dist <= Bal.v("enemy/horde_rush_r", 180.0):
@@ -405,12 +411,18 @@ func update(dt: float) -> void:
 		if e.get("haste", 0.0) > 0.0:
 			spd *= 1.4
 		var move_dir := dir
+		# 指挥模式仇恨（docs/114 §7）：突击中圈内一部分怪改追最近的突击队友（squad.aggro_target；不突击时不调用、不抽随机数）
+		var ag = _sq.aggro_target(e) if _sq != null and _sq.stance == 1 else null
 		if e.feed and final_target_valid(e):
 			move_dir = (by_id(e.feed_to_id).pos - e.pos).normalized()
 		elif e.get("aggro", Vector2.INF) != Vector2.INF:
 			# 海嗣分身吸引仇恨：本帧朝分身走（每帧由分身重新标记）
 			move_dir = (e.aggro - e.pos).normalized()
 			e.aggro = Vector2.INF
+		elif ag != null:
+			move_dir = (ag.pos - e.pos).normalized()
+			if absf(move_dir.x) > 0.1 and e.ai != "static":
+				e.fx = signf(move_dir.x)
 		var held: bool = e.stun > 0.0 or bst > 0.0
 		# 封印（docs/61 §15 st.seal，干员积木）：非 Boss 敌人不起新的特殊招式（pattern：冲刺 / 吐酸 / 环弹 / 神经光环 / 额外招式……），
 		# 已经起手的蓄力 / 冲刺 / 自爆照常走完（enemy_ai.busy）；Boss 的封印在 boss_ai 的 ready 里。没有封印时 seal_t 不存在，这里恒为 false

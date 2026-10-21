@@ -50,7 +50,12 @@ func update_opening(dt: float) -> void:
 		g.fx.append({"kind": "ring", "pos": g.ppos + Vector2(0, 6), "r": 60.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.85, 1.0)})
 		g.vfx.shake_screen(0.7)
 		Sfx.play("boom", -14.0, 1.4, 0.0)
+		for o in g.squad.ops:
+			o.play_entry()   # 编队着地接入场条（10-22）
 	if opening_t >= 1.7:
+		for o in g.squad.ops:
+			if o.vis_anim == "entry":
+				o.anim_t += dt   # 开场期间干员不走 update：入场条在这里推进（end_opening 后由 update 接着走）
 		g.p_sq = g.p_sq.lerp(Vector2.ONE, 1.0 - exp(-dt * 10.0))
 		g.p_lean = lerpf(g.p_lean, 0.0, 1.0 - exp(-dt * 10.0))
 	# 灯火点亮：2.1s 起，先闪两下再稳定

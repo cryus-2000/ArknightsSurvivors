@@ -76,6 +76,7 @@
   "regen": 1.5
  },
  "sprites": {
+  "entry": {"tex": "op_lappland_entry", "frames": 8, "fps": 12.5589, "foot": [32, 60], "frame_durations": [0.098, 0.049, 0.098, 0.049, 0.098, 0.098, 0.049, 0.098], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/lappland_entry.json），64 画布 @2x；落下由代码补"},
   "_doc": "Codex 交付 199d7b73（原生像素 @2x、整数 foot；192 画布槽 foot = 顶层 + (16,16)）。跑步条未交，暂借斯卡蒂 run。attack 走 attack_timing（B 步改出手时刻），skill / throw 为 S1 / S3 与 S2 的起手条",
   "size": 64,
   "foot": [
@@ -219,7 +220,7 @@
    }
   }
  },
- "extra_sprites": [
+ "extra_sprites": ["entry", 
   "throw"
  ],
  "attack": {

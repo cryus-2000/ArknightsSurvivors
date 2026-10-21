@@ -12,6 +12,7 @@ const MAX_ENEMIES := 450
 var next_id := 0
 var spawn_acc := 0.0
 var next_elite: float = Bal.v("enemy/first_elite", 45.0)   # 首只精英出现时间（balance.json）
+var _lead_slot := 0.0   # 大群领头精英已占的精英名额（不足一个时攒着）
 var horde_warned := -1.0
 var boss_idx := 0
 var mid_used: Array = []
@@ -428,7 +429,7 @@ func update(dt: float) -> void:
 		if due < Bal.v("enemy/close_ring_until", 0.0) or Bal.v("enemy/horde_streams", 0.0) > 0.0:
 			# 分股合围原型（docs/116 §7.2）：缺口对面 3 股，股心相隔 close_ring_spread 弧度；HUD 预警箭头只画这几个方向
 			for i in 3:
-				g.horde_streams.append(g.horde_gap + PI + (i - 1) * Bal.v("enemy/close_ring_spread", 1.3) + i * deg_to_rad(Bal.v("enemy/close_ring_rot", 20.0)))
+				g.horde_streams.append(g.horde_gap + PI + (i - 1) * deg_to_rad(Bal.v("enemy/close_ring_spread_deg", 110.0)) + i * deg_to_rad(Bal.v("enemy/close_ring_rot", 20.0)))
 		Sfx.play("roar", -2.0, 0.55, 0.0)
 	if g.t >= due and horde_ok:
 		g.next_horde += D.THREAT[g.threat].get("horde_every", 120.0)
@@ -452,10 +453,16 @@ func update(dt: float) -> void:
 		var early: bool = g.t < Bal.v("enemy/early_until", 0.0)   # 前期压力段（docs/116 §7）：大群加密、单体伤害不打折，普通刷怪同期打折抵消经验
 		if early:
 			n = int(round(n * Bal.v("enemy/early_horde_mult", 1.0)))
+		var n_base := n   # 未乘只数倍率前的只数：经验按「实际刷出只数 / 这个数」折算，被同屏上限裁掉时不多折（docs/116 §7.3）
 		n = int(round(n * Bal.v("enemy/horde_count_mult", 1.0)))   # 压力型大群（docs/116 §7.3）：只数倍率，经验按只数折算守恒（下面 xp）
 		n = dens_count(n, "horde")   # 怪物密度：只数 × density（累计余数取整；在 Boss 余量裁剪之前）
 		# Boss 在场时（Ⅷ horde_in_boss 让大群不顺延）超出存活杂兵上限的部分裁掉（协调人 9/30）；没有 Boss 时余量 = 同屏上限 max_alive()，不裁
 		n = mini(n, maxi(0, boss_mob_room()))
+		# 本波实际能刷出的只数（下面循环到同屏上限 + 60 就停）与「不乘只数倍率时」会刷出的只数之比，用来折算单只经验
+		var room_now: int = maxi(1, max_alive() + 60 - g.enemies.size())
+		var n_real: int = mini(n, room_now)
+		var n_old: int = mini(mini(int(round(float(n_base) * density())), maxi(0, boss_mob_room())), room_now)
+		var xp_ratio: float = clampf(float(n_old) / maxf(1.0, float(n_real)), 0.0, 1.0)
 		var gap_half := deg_to_rad(35.0)
 		var span: float = TAU - gap_half * 2.0
 		var mix := horde_mix()
@@ -488,13 +495,13 @@ func update(dt: float) -> void:
 					he.wake_t = si * Bal.v("enemy/close_ring_delay", 1.5)   # 后几股原地等一下再一股脑出发（wake_t 期间不行动，enemy_ai）
 					he.spd *= 1.0 + si * Bal.v("enemy/close_ring_spd", 0.1)
 			# 群体个体的接触伤害 ×0.7：被包围时不至于两下暴毙，压力来自数量而不是单体
-			he.dmg *= Bal.v("enemy/early_horde_dmg", 0.7) if early else 0.7
+			he.dmg *= Bal.v("enemy/early_horde_dmg", 0.7) if early else Bal.v("enemy/horde_dmg", 0.7)   # 大群单体接触伤害倍率（原写死 0.7）
 			var ehp: float = Bal.v("enemy/horde_hp_mult", 1.0) * (Bal.v("enemy/early_horde_hp", 1.0) if early else 1.0)   # 大群单只生命倍率（不加经验）
 			he.hp *= ehp
 			he.maxhp *= ehp
-			var cm: float = Bal.v("enemy/horde_count_mult", 1.0)
 			var xm: float = Bal.v("enemy/horde_xp_mult", -1.0)
-			he.xp *= (1.0 / maxf(0.1, cm)) if xm < 0.0 else xm   # 大群经验按只数折算：缺省 -1 = 1 / 只数倍率，大群总经验不变
+			# 大群经验按只数折算：缺省 -1 = 原只数 / 本波实际可刷只数（≤ 1），大群总经验不变；后期被同屏上限裁掉时折得少（10-22 修：原按固定 1 / 只数倍率，后期少给 15–30%）
+			he.xp *= xp_ratio if xm < 0.0 else xm
 			hl.hp += he.maxhp
 		# 领头精英（docs/116 §7.3，用户 10-22）：每次大群 1 只（horde_elite_late_t 秒起 2 只）走在第一股前列；
 		# 占用精英计时的一个名额（next_elite 顺延一个间隔），精英总数、经验、掉箱不变
@@ -509,8 +516,13 @@ func update(dt: float) -> void:
 			var lid: String = str(leads[g.rng_spawn.randi() % leads.size()])
 			var le := spawn_enemy(pick_elite() if lid == "elite" else lid, lp)
 			le["rush"] = Bal.v("enemy/horde_rush_lead", 1.8)   # 领头跑在最前面冲进来
+			le["lead_charge"] = Bal.v("enemy/horde_lead_charge", 0.0) > 0.0   # 第一次逼近时一次带预警的冲撞（run/enemies.gd）
 			if lid == "elite":
-				next_elite += D.THREAT[g.threat].elite * float(g.dmod.elite_interval)
+				# 一个精英名额平时出 1 只（威胁 ≥ 4 出 2 只、「坚决」规则再 +1）：领头精英按只数折成名额，攒满一个才顺延，精英总数不少
+				_lead_slot += 1.0 / float(1 + (1 if g.threat >= 4 else 0) + (1 if g.rfx.rule("resolve_elite") > 0 else 0))
+				while _lead_slot >= 0.999:
+					_lead_slot -= 1.0
+					next_elite += D.THREAT[g.threat].elite * float(g.dmod.elite_interval)
 			else:
 				le["horde"] = g.horde_log.size() - 1
 				le.dormant = false
@@ -866,8 +878,17 @@ func horde_plan(mix: Dictionary, n: int) -> Array:
 			out.append({"id": ex.id, "u": u, "dr": dr})
 		ei += 1
 	var nb := n - out.size()
+	var rp: float = Bal.v("enemy/horde_runner_pct", 0.0)   # 压力型大群（docs/116 §7.4）：主体里按比例换成壳海狂奔者（快怪），均匀穿插
+	var racc := 0.0
+	var rleft := maxi(0, nb - (n - n / 2))   # 换成狂奔者后主体仍 ≥ 一半
 	for i in nb:
-		out.append({"id": body[i % body.size()], "u": (i + 0.5) / nb, "dr": 0.0})
+		var bid: String = body[i % body.size()]
+		racc += rp
+		if racc >= 1.0 and rleft > 0:
+			rleft -= 1
+			racc -= 1.0
+			bid = "runner"
+		out.append({"id": bid, "u": (i + 0.5) / nb, "dr": 0.0})
 	return out
 
 

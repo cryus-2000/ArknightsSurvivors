@@ -242,6 +242,8 @@ func new_op() -> void:
 	g.stats.remove_scope("op:" + id)
 	g.sync_stats()
 	g.ch = g.squad.add(id)
+	if g.ch != null:
+		g.ch.play_entry()   # 图鉴演示开场播入场条（10-22）
 	if g.demo_stage >= 0:
 		# 三联对照：按成长节点数推进（N1 N2 → 2 个；到 N5 → 5 个；全部 → 6 个）
 		var nodes: int = [2, 5, 6][clampi(g.demo_stage, 0, 2)]

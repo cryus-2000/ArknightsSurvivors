@@ -109,6 +109,7 @@
   "regen": 2.0
  },
  "sprites": {
+  "entry": {"tex": "op_ulpianus_entry", "frames": 8, "fps": 12.8, "foot": [32, 60], "frame_durations": [0.0781, 0.0781, 0.0782, 0.0781, 0.0781, 0.0782, 0.0781, 0.0781], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/ulpianus_entry.json），64 画布 @2x；落下由代码补"},
   "idle": {
    "tex": "op_ulpianus_idle",
    "frames": 8,
@@ -1355,7 +1356,7 @@
    }
   ]
  },
- "extra_sprites": [
+ "extra_sprites": ["entry", 
   "throw",
   "tether_native",
   "zip_native",

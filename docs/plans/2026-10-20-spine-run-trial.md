@@ -139,3 +139,24 @@ D:/Anaconda/python.exe -X utf8 tools/spine_editor/server.py --source build/spine
 ## 12. 维什戴尔跑步（10-20，未接入，待用户选）
 
 `cfg/wisadel.json`（3.8）。照 Codex 现版 op_wisadel_run 调：前倾 20°、头回正（headKeep 0.65）、整体屈膝（crouch 0.07）；四件浮游武器用 `carry` 保持 X 形、只随身体起伏平移；步态改后踢（`gaitX` 把抬起的脚放在身后，`gaitLiftPx` 后踢 10–12、前摆 2–5 像素）。穿模处理：后踢腿压到最底层（`swingTop: back`），两腿按脚踝前后排层序（`legDepth`），脚掌转角减到 25%（`footRot`，靴筒挂在小腿上，转多了会和鞋脱开）。嘴按 bz_18 mouth_sampling 光学取样（两格软色短线）。8 帧原生网格检查图 `build/spine_run_trial/wisadel/wisadel_hires_check.png` 无穿模；支撑脚贴地误差 ≤ 0.2 源单位，无出界。
+
+## 10. 入场条（10-22，claude/op-entry-start）
+
+用户嫌入场僵硬，改用原作 Start（部署登场）轨。原作 Start 是「从上方落下 → 着地屈膝 → 收势」，空中段在 64 画布 @2x 里放不下，所以帧条只取**着地前一帧 + 着地到收势均匀 7 帧**，空中下落交给游戏代码（character.arrive_dy）。
+
+- 配置 `cfg/<id>_entry.json`：`sample.anim = "Start"`，`sample.times` 按着地时刻排（着地时刻用 24 点采样找脚底首次到地面），`durations` = 帧间原作时长，写进干员 json 的 `frame_durations`；槽名 `entry`，列进 `extra_sprites`，foot [32, 60]。
+- `anims_probe.js <id…>` 列出各人骨骼的动画轨与时长；20 人都有 Start（多数 1.0 秒，艾雅法拉 1.2、塞雷娅 / 推进之王 0.83）。
+- run_trial.js：Start 轨里有缩到 0 / 透明 / 飞出画布的部件（登场光效、初始在画布外的身体），跳过这些部件；嘴部光学取样在部件出画布时跳过。
+- 游戏接入（纯画面 vis_anim，同 seed 不变）：`character.play_entry(delay)`——delay 秒内停在首帧（空中），之后播一遍回待机；原生动作覆盖层（native_motion）对 entry 让路。
+  - 开局：intro 落地那一刻全队 play_entry，开场期间在 intro 里推进 anim_t。
+  - 局中招募：从屏幕上方落下（0.35 秒）→ 着地接 entry。
+  - 换人：被换下的跳出（0.35 秒）→ 新干员落下（0.35 秒）→ 着地接 entry。
+  - 图鉴实机演示开场：demo.gd 加入干员后 play_entry。
+- 录像：`tests/entry_capture.tscn -- --op=<队长> --rec=<招募> --swap=<换入>`（开场 → 第 130 帧招募 → 第 175 帧换人）。
+- 第一批 4 人（德克萨斯 / 星熊 / 艾雅法拉 / 能天使）用户 10-22 看过「没问题」，按同一做法铺了其余 16 人。
+- 批量：`python tools/spine_run_trial/entry_batch.py spine <id…> --apply`（Spine 干员）、`… codex lappland gladiia --apply`（Codex 5839d9d2 交付的 Start 大画布条，按原点裁到 128 画布、就近取源帧、时长 = 源帧间隔）。
+  - 第二批起点改为「第一个整个人进了画布的采样点」（包围盒上沿不贴边、不透明像素 ≥ 收势的一半），之后到收势均匀 8 帧：原来按重心判着地，安洁莉娜（落下后又浮起）、艾丽妮（着地后小跳）会把前半段切掉，首帧也常被画布顶切掉一半。第一批 4 人已验收，没重出。
+  - 叠加 / 滤色混合的登场光效（艾丽妮的白色光团等）像素化后成白块，入场条里不画（`skipAdditive`）。
+  - 逻各斯 / 乌尔比安原先没有跑步 cfg，补了最小 cfg（只用于缩放与采样，没出跑步）。
+  - 有几人原作 Start 是先落武器再落人（斯卡蒂的剑、乌尔比安的锚、浊心斯卡蒂的剑），首帧只有武器，保留原作这样。
+- 拼合预览：`build/entry/entry20.gif`（每人局中招募落下 → 入场条）。

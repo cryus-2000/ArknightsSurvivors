@@ -328,12 +328,22 @@ func _opt_ab() -> void:
 ## --cmdat=<秒>,<秒>,…（指挥模式录片 / 复现，docs/114）：游戏时间到这些秒各按一次指挥键（同玩家按 F），切换照常记进 squad.stance_log
 var _cmd_at: Array = []
 var _cmd_read := false
+var _cmd_down_at := -1.0
 func _cmd_step() -> void:
 	if not _cmd_read:
 		_cmd_read = true
 		for a in Cfg.dev_args():
+			if a.begins_with("--cmddown="):
+				_cmd_down_at = float(a.substr(10))
 			if a.begins_with("--cmdat="):
 				_cmd_at = Array(a.substr(8).split(",")).map(func(x): return float(x))
+	if _cmd_down_at >= 0.0 and g.state == g.S.PLAY and g.t >= _cmd_down_at:
+		_cmd_down_at = -1.0
+		for o in g.squad.ops:   # --cmddown=<秒>（录片用）：到点让全部队友原地倒地，看倒地姿势 / 复活
+			if not o.is_leader:
+				o.cmd_hp = 0.0
+				o.cmd_down = Bal.v("command/revive_secs", 25.0)
+				o.cmd_down_age = 0.0
 	if not _cmd_at.is_empty() and g.state == g.S.PLAY and g.t >= float(_cmd_at[0]):
 		_cmd_at.pop_front()
 		g.toggle_command()
@@ -822,6 +832,19 @@ func step() -> void:
 						g.get_tree().quit()
 					elif act != null:
 						g.headhunt._act(act)
+	# --akmock=<屏>（docs/125 结算 / 寻访静态样张）：第 20 帧盖一层样张画布，第 60 帧截 shot_akmock.png 退出
+	for da in Cfg.dev_args():
+		if str(da).begins_with("--akmock="):
+			if g.at_frames == 20:
+				var mk = preload("res://scripts/screens/ak_mock.gd").new()
+				mk.g = g
+				mk.which = str(da).substr(9)
+				mk.size = g.hud.size
+				g.hud.add_child(mk)
+			if g.at_frames == 60:
+				if DisplayServer.get_name() != "headless":
+					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_akmock.png")
+				g.get_tree().quit()
 	# --sptest：每 2 秒把全队技力充满（截图 / 观察技能特效用）
 	if Cfg.dev_args().has("--sptest") and g.at_frames % 120 == 0:
 		for o in g.squad.ops:

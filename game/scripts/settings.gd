@@ -240,7 +240,9 @@ func _ready() -> void:
 	if c.load(PATH) == OK:
 		cover_character_id = str(c.get_value("display", "cover_character", "mizuki"))
 		play_speed = float(c.get_value("game", "play_speed", 1.0))
-		if play_speed not in [1.0, 1.5, 2.0]:
+		if play_speed == 2.0:   # 10-22 删 2× 倍速：旧存档回落到最接近的 1.5×
+			play_speed = 1.5
+		if play_speed not in [1.0, 1.5]:
 			play_speed = 1.0
 		master = c.get_value("audio", "master", master)
 		music = c.get_value("audio", "music", music)
@@ -610,7 +612,7 @@ func cloud_apply(body: Dictionary) -> void:
 		var z := int(d.cam_zoom_pct)
 		cam_zoom_pct = -1 if z <= 0 else clampi(z / 5 * 5, ZOOM_PCT_MIN, ZOOM_PCT_MAX)
 	if (d.get("play_speed") is float or d.get("play_speed") is int) and float(d.play_speed) in [1.0, 1.5, 2.0]:
-		play_speed = float(d.play_speed)
+		play_speed = 1.5 if float(d.play_speed) == 2.0 else float(d.play_speed)   # 旧云存档的 2.0 回落 1.5（10-22 删 2×）
 	if d.get("cover_character_id") is String and FileAccess.file_exists("res://data/characters/%s.json" % d.cover_character_id):
 		cover_character_id = d.cover_character_id
 	if d.get("touch_layout") is Dictionary:

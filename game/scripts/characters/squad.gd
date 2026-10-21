@@ -28,6 +28,17 @@ var gather_t := -1.0          # 归队：全员到位后站定的剩余秒数（
 var stamina := 1.0
 var exhausted := false         # 耗尽后的冷却：回到 min_start 以上才解除（HUD 灰显）
 var stance_log: Array = []     # [[g.t, 新站位], …]：玩家切换记录（同 seed 复现 / 机器人对照）
+## 突击三件套（10-22 原型，docs/114 §7）：仇恨（突击队友引走一部分怪）、队友生命 + 倒地、耐力，各自开关 command/aggro、command/hp、command/stamina
+const HP_K_DEF := {"重装": 1.2, "近卫": 0.9, "先锋": 0.8, "特种": 0.75, "辅助": 0.65, "医疗": 0.65, "术师": 0.5, "狙击": 0.5}
+var lead_dir := Vector2.ZERO    # 队长移动方向（平滑后的单位向量，几乎不动时为 ZERO）：突击断后站位用（character.roam_target）
+var _lead_v := Vector2.ZERO
+var _lead_p := Vector2.INF
+var roam_secs := 0.0           # 统计（cmd_stats）：突击累计秒数 / 倒地次数 / 掷中仇恨的怪数
+var downs_n := 0
+var sorties_n := 0             # 进入突击的次数；sortie_downs_n = 其中至少有一人倒地的次数（调血目标 10–20%）
+var sortie_downs_n := 0
+var _sortie_down := false
+var aggro_n := 0
 var gathered_n := 0            # 归队集合完毕（全员到位、开始站定）的次数：响应动作 on_stance to: gathered 的触发源（docs/118）
 
 
@@ -110,6 +121,7 @@ func add(cid: String, recruit_event := true):
 			g.rfx.on_recruit(op)   # 招募事件（docs/57 P10）：开局干员不算
 	if recruit_event and not op.is_leader and g.state == g.S.PLAY and g.demo_op == "":
 		op.arrive_t = op.ARRIVE_WAIT   # 局中招募：从屏幕上方落到编队位（不等，纯画面；换人在 replace 里从 0 起等被换下的跳出）
+		op.play_entry(op.ARRIVE_FALL)   # 着地接入场条
 	return op
 
 
@@ -173,6 +185,7 @@ func replace(old_id: String, new_id: String, route := ""):
 		ops[i].slot = i
 	op.pos = g.ppos + _slot_offset(op.slot)
 	op.arrive_t = 0.0   # 等被换下的跳出屏幕后从上方落下（纯画面，character.arrive_dy）
+	op.play_entry(op.ARRIVE_WAIT + op.ARRIVE_FALL)   # 着地接入场条
 	var sq0: int = g.show_queue.size()
 	if route != "":
 		op.route = route
@@ -315,8 +328,12 @@ func update(dt: float) -> void:
 		o.follow(dt, g.ppos if o.is_leader else g.ppos + _slot_offset(o.slot))
 	if stance == RECALL:
 		_tick_recall(dt)
+	_tick_lead(dt)
 	_tick_stamina(dt)
+	_tick_hp(dt)
 	for o in ops:
+		if o.cmd_down > 0.0:
+			continue   # 倒地：不充技力、不出手（docs/114 §7）
 		o.tick_sp(dt)
 		_battle_voice(o, dt)
 		o.update(dt)
@@ -344,12 +361,158 @@ func cycle_stance() -> bool:
 
 
 func can_roam() -> bool:
-	return stamina >= Bal.v("command/min_start", 0.3) and not exhausted
+	return not stamina_on() or (stamina >= Bal.v("command/min_start", 0.3) and not exhausted)
+
+
+static func stamina_on() -> bool:
+	return Bal.v("command/stamina", 1.0) > 0.0
+
+
+static func aggro_on() -> bool:
+	return Bal.v("command/aggro", 1.0) > 0.0
+
+
+static func hp_on() -> bool:
+	return Bal.v("command/hp", 1.0) > 0.0
+
+
+## 队友生命上限：队长当前生命上限 × 职业系数（json command.hp_k 可单独覆盖；缺省按 HP_K_DEF，balance command/hp_k_<职业> 可调）
+func op_maxhp(o) -> float:
+	var k: float = float(o.def.get("command", {}).get("hp_k", Bal.v("command/hp_k_" + str(o.cls), HP_K_DEF.get(o.cls, 0.7))))
+	return maxf(1.0, g.max_hp * k * Bal.v("command/hp_mul", 4.0))
+
+
+## 能吸引仇恨 / 会受伤的队友：突击中、肯出击、没倒地
+func roaming_op(o) -> bool:
+	return stance == ROAM and not o.is_leader and o.cmd_down <= 0.0 and o.pos != Vector2.INF and o.cmd_roam()
+
+
+## 仇恨（A 段逐只调用，enemies.gd）：突击中半径 command/aggro_r 内最近的突击队友；本只第一次进圈时用 rng_enemy 掷一次，
+## 小于 command/aggro_share 的改追这名队友（之后一直按这次结果）。不在突击 / 关着时返回 null，且不抽随机数
+func aggro_target(e: Dictionary):
+	if stance != ROAM or not aggro_on() or e.boss or e.chest:
+		return null
+	var best = null
+	var bd: float = Bal.v("command/aggro_r", 240.0)
+	bd *= bd
+	for o in ops:
+		if not roaming_op(o):
+			continue
+		var d: float = o.pos.distance_squared_to(e.pos)
+		if d < bd:
+			bd = d
+			best = o
+	if best == null:
+		return null
+	if not e.has("cmd_roll"):
+		e["cmd_roll"] = g.rng_enemy.randf()
+		if float(e.cmd_roll) < Bal.v("command/aggro_share", 0.4):
+			aggro_n += 1
+	return best if float(e.cmd_roll) < Bal.v("command/aggro_share", 0.4) else null
+
+
+## 队友生命：突击中被近战怪碰到掉血（每人 command/op_inv 秒无敌间隔）；不突击时回血（command/hp_regen_secs 空到满）；
+## 血空倒地 command/revive_secs 秒，到时原地复活；归队集合完毕时倒地的人在队长身边复活。复活给 command/revive_inv 秒无敌
+func _tick_hp(dt: float) -> void:
+	if stance == ROAM:
+		roam_secs += dt
+	for o in ops:
+		if o.is_leader:
+			continue
+		o.cmd_inv = maxf(0.0, o.cmd_inv - dt)
+		o.cmd_show = maxf(0.0, o.cmd_show - dt)
+		if o.cmd_down > 0.0:
+			o.cmd_down_age += dt
+			o.cmd_down -= dt
+			if o.cmd_down <= 0.0:
+				_revive(o, o.pos)
+			continue
+		if not hp_on():
+			continue
+		if stance != ROAM:
+			o.cmd_hp = minf(1.0, o.cmd_hp + dt / maxf(0.1, Bal.v("command/hp_regen_secs", 30.0)))
+			continue
+		if not roaming_op(o) or o.cmd_inv > 0.0:
+			continue
+		for e in g.enemies_sys.nearest(4, 60.0, o.pos):
+			if e.dmg > 0.0 and e.ai == "melee" and not e.get("coma", false) and not e.get("dormant", false) and o.pos.distance_to(e.pos) < e.r + 12.0:
+				o.cmd_hp -= e.dmg * Bal.v("command/op_dmg_k", 1.0) / op_maxhp(o)
+				o.cmd_inv = Bal.v("command/op_inv", 0.5)
+				o.cmd_show = 3.0
+				if o.cmd_hp <= 0.0:
+					o.cmd_hp = 0.0
+					o.cmd_down = Bal.v("command/revive_secs", 25.0)
+					o.cmd_down_age = 0.0
+					o.roam_tgt = null
+					downs_n += 1
+					if not _sortie_down:
+						_sortie_down = true
+						sortie_downs_n += 1
+					if g.get("trace_every") != null and g.trace_every > 0.0:
+						print("CMD t=%.2f down %s" % [g.t, o.id])
+				break
+
+
+## 归队瞬回（10-22 用户定）：按下归队，离站位远的队友原地放共用退场闪光、直接出现在队长身边（落点一圈光），1 秒无敌；
+## 倒地的人也一起回位，继续复活计时。之后照常集合站定再回随行
+func _recall_blink() -> void:
+	var lim: float = Bal.v("command/recall_done", 28.0)
+	for o in ops:
+		if o.is_leader or o.pos == Vector2.INF:
+			continue
+		var dst: Vector2 = g.ppos + _slot_offset(o.slot)
+		o.cmd_inv = maxf(o.cmd_inv, Bal.v("command/recall_inv", 1.0))
+		o.roam_tgt = null
+		if o.pos.distance_to(dst) <= lim:
+			continue
+		_leave_fx(o)
+		o.pos = dst
+		o.ghosts.clear()
+		if g.get("fx") != null:
+			g.fx.append({"kind": "ring", "pos": dst, "r": 34.0, "life": 0.35, "max": 0.35, "col": Color(0.85, 0.95, 1.0)})
+
+
+## 突击 / 归队语音（10-22 用户定）：编队里轮流一人（从队长起），突击播「作战中 4」（*_battle，CN_028），归队播「部署 1」（*_entry，CN_023）；
+## 走 Sfx 语音通道（占线放弃、每人 15 秒间隔、整体 3 秒间隔照旧），另按 command/voice_gap 节流，连按不刷屏。纯声音，不碰玩法状态
+var _vo_i := 0
+var _vo_t := -999.0
+
+func _stance_voice(s: int) -> void:
+	if g.demo_op != "" or g.t - _vo_t < Bal.v("command/voice_gap", 6.0):
+		return
+	var order: Array = ops.filter(func(o): return o.is_leader) + ops.filter(func(o): return not o.is_leader)
+	if order.is_empty():
+		return
+	var o = order[_vo_i % order.size()]
+	_vo_i += 1
+	_vo_t = g.t
+	var sfx: Node = g.get_node_or_null("/root/Sfx")
+	if sfx != null:
+		sfx.voice(o.id, "battle" if s == ROAM else "entry")
+
+
+func _tick_lead(dt: float) -> void:
+	if _lead_p != Vector2.INF and dt > 0.0:
+		_lead_v = _lead_v.lerp((g.ppos - _lead_p) / dt, clampf(dt * 4.0, 0.0, 1.0))
+	_lead_p = g.ppos
+	lead_dir = _lead_v.normalized() if _lead_v.length() > 30.0 else Vector2.ZERO
+
+
+func cmd_stats() -> Dictionary:
+	return {"roam": snappedf(roam_secs, 0.1), "downs": downs_n, "aggro": aggro_n, "switch": stance_log.size(), "sorties": sorties_n, "sortie_downs": sortie_downs_n}
+
+
+func _revive(o, p: Vector2) -> void:
+	o.cmd_down = 0.0
+	o.cmd_hp = maxf(o.cmd_hp, Bal.v("command/revive_hp", 0.5))
+	o.cmd_inv = Bal.v("command/revive_inv", 1.0)
+	o.cmd_show = 3.0
+	o.pos = p
 
 
 ## 耐力：突击扣、其余回；耗尽 → 自动归队（走集合那套）+ 冷却。机器人突击常开（command/bot_roam）时随行中耐力够了就再突击
 func _tick_stamina(dt: float) -> void:
-	if stance == ROAM:
+	if stance == ROAM and stamina_on():
 		stamina -= dt / maxf(0.1, Bal.v("command/stamina_secs", 25.0))
 		if stamina <= 0.0:
 			stamina = 0.0
@@ -359,7 +522,8 @@ func _tick_stamina(dt: float) -> void:
 	stamina = minf(1.0, stamina + dt / maxf(0.1, Bal.v("command/regen_secs", 50.0)))
 	if exhausted and stamina >= Bal.v("command/min_start", 0.3):
 		exhausted = false
-	if stance == GUARD and g.get("bot") != null and Bal.v("command/bot_roam", 0.0) > 0.0 and cmd_on() and can_roam():
+	# 机器人等耐力回满（command/bot_roam_at，缺省 1.0）才再出击：每次都是完整的作战时限，倒地率按「每次出击」统计才有意义
+	if stance == GUARD and g.get("bot") != null and Bal.v("command/bot_roam", 0.0) > 0.0 and cmd_on() and can_roam() and (not stamina_on() or stamina >= Bal.v("command/bot_roam_at", 1.0)):
 		set_stance(ROAM)
 
 
@@ -367,6 +531,13 @@ func set_stance(s: int) -> void:
 	if s == stance:
 		return
 	stance = s
+	if s == ROAM:
+		sorties_n += 1
+		_sortie_down = false
+	elif s == RECALL:
+		_recall_blink()
+	if s == ROAM or s == RECALL:
+		_stance_voice(s)
 	recall_t = 0.0
 	gather_t = -1.0
 	stance_log.append([g.t, s])
@@ -387,7 +558,7 @@ func _tick_recall(dt: float) -> void:
 		done = true
 		var lim: float = Bal.v("command/recall_done", 28.0)
 		for o in ops:
-			if not o.is_leader and o.cmd_d > lim:
+			if not o.is_leader and o.cmd_down <= 0.0 and o.cmd_d > lim:
 				done = false
 				break
 	if done:

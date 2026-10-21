@@ -38,11 +38,11 @@ func run() -> void:
 	# Real scheduler: speed affects simulation and Doctor follow, pause remains frozen.
 	var saved_speed: float = Cfg.play_speed
 	var saved_hitstop: bool = Cfg.hitstop
-	Cfg.play_speed = 2.0
+	Cfg.play_speed = 1.5   # 10-22 起只有 1× / 1.5×
 	Cfg.hitstop = false
 	var tick0: float = g.t
 	g._process(1.0 / 30.0)
-	check(is_equal_approx(g.t - tick0, 2.0 / 30.0), "game process runs 2x simulation")
+	check(is_equal_approx(g.t - tick0, 1.5 / 30.0), "game process runs 1.5x simulation")
 	g.state = g.S.PAUSE
 	tick0 = g.t
 	g._process(0.05)
@@ -58,7 +58,7 @@ func run() -> void:
 	key = key.duplicate()
 	key.pressed = false
 	Input.parse_input_event(key)
-	check(g.doc_pos.distance_to(g.ppos) < 180.0, "Doctor follows 2x running without falling behind")
+	check(g.doc_pos.distance_to(g.ppos) < 180.0, "Doctor follows 1.5x running without falling behind")
 	Cfg.play_speed = saved_speed
 	Cfg.hitstop = saved_hitstop
 	g.final_boss.dead = true

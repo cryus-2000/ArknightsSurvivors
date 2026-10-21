@@ -80,6 +80,7 @@
   "regen": 1.1
  },
  "sprites": {
+  "entry": {"tex": "op_logos_entry", "frames": 8, "fps": 9.1429, "foot": [32, 60], "frame_durations": [0.1094, 0.1094, 0.1093, 0.1094, 0.1094, 0.1093, 0.1094, 0.1094], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/logos_entry.json），64 画布 @2x；落下由代码补"},
   "idle": {
    "tex": "op_logos_idle",
    "frames": 8,
@@ -415,7 +416,7 @@
    }
   }
  },
- "extra_sprites": [
+ "extra_sprites": ["entry", 
   "attack_b",
   "attack_s2",
   "idle_s2",

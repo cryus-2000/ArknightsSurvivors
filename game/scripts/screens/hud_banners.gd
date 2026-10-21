@@ -590,6 +590,7 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 			continue
 		var sp: Vector2 = ct * (o.pos + Vector2(0, -24))
 		if Rect2(Vector2(8, 8), vs - Vector2(16, 16)).has_point(sp):
+			_draw_op_hp(o, ct, st)
 			continue
 		# 标记框：避开顶栏（生命 / 击杀 / 藏品）与底部提示，标记沿「屏幕中心 → 队友」的射线贴到框边
 		var box := Rect2(Vector2(56, 128), vs - Vector2(112, 128 + 64))
@@ -597,6 +598,8 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 		var d := (sp - c).normalized()
 		var edge: Vector2 = c + d * minf(absf(box.size.x / 2.0 / maxf(absf(d.x), 0.01)), absf(box.size.y / 2.0 / maxf(absf(d.y), 0.01)))
 		var oc: Color = Character.CLASS_COL.get(o.cls, UI.CYAN)   # 外圈 / 箭头 = 职业色（同图鉴、选人）
+		if o.cmd_down > 0.0:
+			oc = Color(0.5, 0.52, 0.55)   # 倒地：灰圈（docs/114 §7）
 		g.hud.draw_circle(edge, 20.0, Color(0.03, 0.05, 0.07, 0.9))
 		var pt: Dictionary = o.portrait()   # 编队卡同一份头像帧条（待机帧），裁出头部
 		var tx: Texture2D = g.tex.get(pt.tex)
@@ -623,13 +626,31 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 	draw_stamina_bar(Rect2(Vector2(x - 180.0, y + 21.0), Vector2(180.0, 7.0)))
 
 
+## 队友小血条（docs/114 §7，command/hp 开时）：突击中、受伤后 3 秒、倒地时显示在头顶；倒地时灰条 = 复活倒计时
+func _draw_op_hp(o, ct: Transform2D, st: int) -> void:
+	if not g.squad.hp_on() or not (st == 1 or o.cmd_show > 0.0 or o.cmd_down > 0.0):
+		return
+	var c: Vector2 = ct * (o.pos + Vector2(0, -62))
+	var r := Rect2(c - Vector2(16, 0), Vector2(32, 4))
+	g.hud.draw_rect(r.grow(1.0), Color(0.02, 0.03, 0.04, 0.85))
+	if o.cmd_down > 0.0:
+		var k: float = 1.0 - clampf(o.cmd_down / maxf(0.1, Bal.v("command/revive_secs", 25.0)), 0.0, 1.0)
+		g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * k, r.size.y)), Color(0.55, 0.57, 0.6))
+		return
+	var hc: Color = UI.GREEN if o.cmd_hp > 0.5 else (UI.GOLD if o.cmd_hp > 0.25 else UI.RED)
+	g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * clampf(o.cmd_hp, 0.0, 1.0), r.size.y)), hc)
+
+
 func draw_stamina_bar(r: Rect2) -> void:
 	var sq = g.squad
+	if not sq.stamina_on():
+		return
 	var fc: Color = UI.GOLD if sq.stance == sq.ROAM else (Color(0.5, 0.52, 0.55) if sq.exhausted else UI.CYAN)
 	g.hud.draw_rect(r.grow(1.0), Color(0.02, 0.03, 0.04, 0.8))
 	g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * clampf(sq.stamina, 0.0, 1.0), r.size.y)), fc)
 	var mx: float = r.position.x + r.size.x * Bal.v("command/min_start", 0.3)
 	g.hud.draw_line(Vector2(mx, r.position.y - 2.0), Vector2(mx, r.end.y + 2.0), Color(1, 1, 1, 0.55), 1.0)
+	UI.text(g.hud, g.font, Vector2(r.position.x - 72.0, r.end.y + 2.0), "作战时限", 10, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 66)   # 玩家可见名（10-22 定，内部仍叫耐力 stamina）
 
 
 

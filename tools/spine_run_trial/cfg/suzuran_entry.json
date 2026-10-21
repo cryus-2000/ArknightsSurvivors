@@ -1,0 +1,102 @@
+{
+ "id": "suzuran",
+ "src": "suzuran.src.json",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_forearm",
+   "F_R_Hand_b"
+  ]
+ },
+ "leadLeg": "L",
+ "hold": "R",
+ "weapon": "F_Weapon_b",
+ "params": {
+  "lean": 7,
+  "headKeep": 0.5,
+  "stride": 1.1,
+  "lift": 1.1,
+  "bob": 0.9,
+  "holdAmp": 8,
+  "armAmp": 25,
+  "elbow": 45,
+  "elbowAmp": 15
+ },
+ "secondary": [
+  {
+   "match": "^F_Tail(_[a-z][0-9]*)?$",
+   "amp": 5,
+   "drag": 6,
+   "lag": 1.4
+  },
+  {
+   "match": "^F_Hair_[a-i][0-9]*$",
+   "amp": 2.5,
+   "drag": 3
+  },
+  {
+   "match": "^F_[LR]_Ear2?$",
+   "amp": 4,
+   "drag": 3
+  },
+  {
+   "match": "^F_Coat_[a-d][0-9]*$",
+   "amp": 2,
+   "drag": 1.5,
+   "lag": 1.1
+  },
+  {
+   "match": "^F_Annex_[a-h][0-9]*$",
+   "amp": 2,
+   "drag": 1.5
+  }
+ ],
+ "action": "entry",
+ "skipAdditive": true,
+ "sample": {
+  "anim": "Start",
+  "times": [
+   0.25,
+   0.3438,
+   0.4375,
+   0.5312,
+   0.625,
+   0.7188,
+   0.8125,
+   0.9062
+  ]
+ },
+ "durations": [
+  0.0938,
+  0.0937,
+  0.0937,
+  0.0938,
+  0.0938,
+  0.0937,
+  0.0937,
+  0.0938
+ ],
+ "_doc": "入场条（10-22）：原作 Start 轨，整个人进画布起到收势均匀 8 帧；之前的空中下落由游戏代码补（durations = 帧间原作时长）"
+}
