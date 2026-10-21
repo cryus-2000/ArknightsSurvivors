@@ -11,6 +11,8 @@ const MotionShot = preload("res://scripts/run/motion_shot.gd")   # --motionshot 
 var g: Game
 var mshot: MotionShot
 var winshot := false
+var hunt_rec0 := 0     # --huntrec：拉包开始的帧
+var hunt_rec_end := 0  # --huntrec：进寻访结果后又录了几张
 var touchtest_p0 := Vector2.ZERO
 var bal_done := false
 var _lampat_done := false   # --lampat 只生效一次
@@ -779,11 +781,13 @@ func step() -> void:
 		if a.begins_with("--winshot=") and g.at_frames == 130 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_win.png")
 			g.get_tree().quit()
-	# --huntshot（docs/109 §12 寻访演出截图）：配 --roster=start5 --rostertickets=1,1,1。第 60 帧进胜利结算，
-	# 之后依次截 寻访揭晓 → 招募券选职业 → 揭晓 → 人事调度函选干员 → 揭晓 → 意向干员页，存 shot_hunt_<n>.png；无头只走流程
+	# --huntshot（docs/109 §12、docs/124 寻访演出截图）：配 --roster=start5 --rostertickets=1,1,1。第 60 帧进胜利结算，
+	# 之后依次截 招募券选职业 → 人事调度函选干员 → 拉包 → 揭示 → 寻访结果 → 意向干员页，存 shot_hunt_<n>.png；无头只走流程。
+	# 演出按帧计时（headhunt.clock_frames）。另加 --huntrec：从拉包起每 2 帧存一张 rec_<n>.png（30 fps 录屏），到寻访结果 1 秒后退出
 	if Cfg.dev_args().has("--huntshot"):
 		if g.at_frames == 60:
 			winshot = true
+			preload("res://scripts/screens/headhunt.gd").clock_frames = true
 			g.ending = "standard"
 			g.endg.cur = g.ending
 			g.state = g.S.WIN
@@ -791,16 +795,33 @@ func step() -> void:
 		if Cfg.dev_args().has("--rostertickets=0,0,0") and g.at_frames == 100 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_result_meta.png")   # 没有券：直接截结算面板
 			g.get_tree().quit()
-		var steps := [["ok"], [0], ["ok"], [0], ["wish"], []]
-		for k in steps.size():
-			if g.at_frames == 110 + k * 40:
-				if DisplayServer.get_name() != "headless":
-					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_hunt_%d.png" % k)
-				print("HUNTSHOT %d step=%s mode=%s reveal=%s open=%s" % [k, g.headhunt.step, g.headhunt.mode, g.headhunt.reveal_id, g.headhunt.open])
-				if steps[k].is_empty():
-					g.get_tree().quit()
-				else:
-					g.headhunt._act(steps[k][0])
+		var shoot := DisplayServer.get_name() != "headless"
+		if Cfg.dev_args().has("--huntrec"):
+			if hunt_rec0 == 0 and g.headhunt.mode == "bag":
+				hunt_rec0 = g.at_frames
+			if hunt_rec0 > 0 and (g.at_frames - hunt_rec0) % 2 == 0:
+				if shoot:
+					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/rec_%04d.png" % ((g.at_frames - hunt_rec0) / 2))
+				if g.headhunt.mode == "summary":
+					hunt_rec_end += 1
+					if hunt_rec_end > 30:
+						print("HUNTREC frames=%d" % ((g.at_frames - hunt_rec0) / 2))
+						g.get_tree().quit()
+			if g.at_frames == 110 or g.at_frames == 130:
+				g.headhunt._act(0)
+		else:
+			# [帧, 动作]：动作在截图之后执行
+			var steps := [[110, 0], [150, 0], [210, null], [420, "skip"], [450, "wish"], [480, ""]]
+			for k in steps.size():
+				if g.at_frames == steps[k][0]:
+					if shoot:
+						g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_hunt_%d.png" % k)
+					print("HUNTSHOT %d step=%s mode=%s reveal=%s open=%s" % [k, g.headhunt.step, g.headhunt.mode, g.headhunt.reveal_id, g.headhunt.open])
+					var act = steps[k][1]
+					if act is String and act == "":
+						g.get_tree().quit()
+					elif act != null:
+						g.headhunt._act(act)
 	# --sptest：每 2 秒把全队技力充满（截图 / 观察技能特效用）
 	if Cfg.dev_args().has("--sptest") and g.at_frames % 120 == 0:
 		for o in g.squad.ops:
