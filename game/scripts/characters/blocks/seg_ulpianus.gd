@@ -1007,6 +1007,8 @@ static func _hw5_hook_drag_start(o, hk: Dictionary) -> void:
 			continue
 		if e.pos.distance_to(a) <= float(b.get("front", 60.0)):
 			continue   # 已经在身前的不拖
+		if str(b.get("drag_only", "all")) == "ranged" and str(e.get("ai", "")) != "ranged":
+			continue   # 歌蕾蒂娅（docs/123 §2.1，10-22）：只把远程怪拖回身前，近战怪本来就会贴上来，拉过来只会把队长埋进怪堆
 		got.append(e)
 	got.sort_custom(func(x, y): return x.pos.distance_squared_to(a) < y.pos.distance_squared_to(a) if x.pos.distance_squared_to(a) != y.pos.distance_squared_to(a) else int(x.id) < int(y.id))
 	var mx: int = int(b.get("max_n", 12))

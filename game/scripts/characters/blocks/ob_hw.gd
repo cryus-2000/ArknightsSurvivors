@@ -440,6 +440,8 @@ static func _hw5_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 				errs.append(p + ".chain 必须是 fx_* 帧条名")
 			if b.has("head") and not str(b.head).begins_with("proj_"):
 				errs.append(p + ".head 必须是 proj_* 帧条名（钩头贴图）")
+			if b.has("drag_only") and not str(b.drag_only) in ["all", "ranged"]:
+				errs.append(p + ".drag_only 只能是 all / ranged（只拖回远程怪）")
 			_src(b, p, ctx, true)
 			if b.has("back_src") and not ctx.srcs.has(str(b.back_src)):
 				errs.append("%s.back_src「%s」没在 hit_sources 里登记" % [p, str(b.back_src)])

@@ -432,7 +432,7 @@
  "attack": {
   "mode": "auto",
   "name": "钩索",
-  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害，随后把钩索与她之间一线的敌人拖回身前（Boss 除外），到位时再受 {$hook_back*100}% 伤害"
+  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害，随后把钩索与她之间一线的**远程敌人**拖回身前（近战敌人与 Boss 不拖），到位时再受 {$hook_back*100}% 伤害"
  },
  "skills": [
   {
@@ -461,7 +461,7 @@
  ],
  "talent": {
   "name": "阿戈尔的波涛",
-  "desc": "队长每秒回复 {$heal_pct*100} % 最大生命；编队里每名其他深海猎人（斯卡蒂、浊心斯卡蒂、乌尔比安、归溟幽灵鲨），队长每秒再回复 {$mate_heal*100} % 最大生命、受到的伤害 -{$mate_dr*100}%（最多 {$mate_cap} 人）"
+  "desc": "队长每秒回复 {$heal_pct*100} % 最大生命（入队即生效）；精英一起，编队里每名其他深海猎人（斯卡蒂、浊心斯卡蒂、乌尔比安、归溟幽灵鲨），队长每秒再回复 {$mate_heal*100} % 最大生命、受到的伤害 -{$mate_dr*100}%（最多 {$mate_cap} 人）"
  },
  "hit_sources": {
   "钩索": {
@@ -537,7 +537,7 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「缺水的掌握怒海」；解锁天赋「阿戈尔的波涛」：队长每秒回复 {$heal_pct*100} % 最大生命，编队里每名其他深海猎人再加 {$mate_heal*100} % 回复与 {$mate_dr*100}% 减伤；普攻「锚定」：被拖到身前的敌人眩晕 {$pin_stun} 秒（精英减半，Boss 除外）",
+   "desc": "解锁二技能「缺水的掌握怒海」；解锁天赋「阿戈尔的波涛」：编队里每名其他深海猎人，队长每秒再回复 {$mate_heal*100} % 最大生命、受到的伤害 -{$mate_dr*100}%；普攻「锚定」：被拖到身前的敌人眩晕 {$pin_stun} 秒（精英减半，Boss 除外）",
    "attack": {
     "name": "锚定",
     "desc": "钩索把敌人拖到身前后，身前 {$pin_r} 内的敌人眩晕 {$pin_stun} 秒（精英减半，Boss 除外）"
@@ -841,7 +841,8 @@
       "lock": true,
       "src": "钩索",
       "back_src": "拖拽",
-      "head": "proj_gladiia_hook"
+      "head": "proj_gladiia_hook",
+      "drag_only": "ranged"
      }
     ]
    },
@@ -869,7 +870,8 @@
       "lock": true,
       "src": "钩索",
       "back_src": "拖拽",
-      "head": "proj_gladiia_hook"
+      "head": "proj_gladiia_hook",
+      "drag_only": "ranged"
      }
     ]
    },
@@ -897,7 +899,8 @@
       "lock": true,
       "src": "钩索",
       "back_src": "拖拽",
-      "head": "proj_gladiia_hook"
+      "head": "proj_gladiia_hook",
+      "drag_only": "ranged"
      }
     ]
    },
@@ -980,12 +983,10 @@
       ]
      }
     ]
-   }
-  ],
-  "talent": [
+   },
    {
     "trig": "passive",
-    "_doc": "阿戈尔的波涛：她在队时队长每秒回复 0.4% 最大生命",
+    "_doc": "阿戈尔的波涛（基础段）：她在队时队长每秒回复 heal_pct，精零起生效（10-22 云端复核 45.8% 后从天赋挪到特性）；每名其他深海猎人的加档仍在天赋（精一）",
     "do": [
      {
       "aura": "heal",
@@ -994,7 +995,9 @@
       "src": "歌蕾蒂娅"
      }
     ]
-   },
+   }
+  ],
+  "talent": [
    {
     "trig": "passive",
     "cond": "faction:深海猎人 >= 1",
