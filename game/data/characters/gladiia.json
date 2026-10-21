@@ -208,14 +208,14 @@
    "_doc": "Codex 199d7b73 原作 Idle 107 帧 5.333 秒（64 画布，原生像素 @2x）"
   },
   "run": {
-   "tex": "op_ulpianus_run",
+   "tex": "op_gladiia_run",
    "frames": 8,
    "fps": 13.333333333333334,
    "foot": [
     32,
     60
    ],
-   "_doc": "占位：借乌尔比安 run"
+   "_doc": "10-21 Spine 步态脚本（tools/spine_run_trial cfg/gladiia.json）：原作骨架逐部件像素化，调色板取 Codex 待机条；8 帧 0.6 秒循环"
   },
   "attack": {
    "tex": "op_gladiia_attack",
