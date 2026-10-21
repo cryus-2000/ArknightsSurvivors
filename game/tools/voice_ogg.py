@@ -28,7 +28,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 VOICE = os.path.normpath(os.path.join(HERE, "..", "audio", "voice"))
 MASTERS = os.path.join(VOICE, "masters")
 MANIFEST = os.path.join(VOICE, "voice_manifest.json")
-DEFAULT_Q = 0.7   # 10-21 网页包压音频：人声 24 kHz + 档位 0.7 ≈ 57 kbps（docs/120），全部条目统一这一档
+DEFAULT_Q = 0.7   # 10-21 网页包压音频：人声 24 kHz + 档位 0.7 ≈ 57 kbps（docs/121），全部条目统一这一档
 OUT_SR = 24000    # 游戏用 OGG 的采样率（母带仍是 44.1 kHz；人声 12 kHz 以内足够）
 SR = 44100
 
