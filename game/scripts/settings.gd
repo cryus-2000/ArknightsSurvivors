@@ -288,6 +288,7 @@ func _ready() -> void:
 		roster_draws = int(c.get_value("roster", "draws", roster_draws))
 		roster_seed = int(c.get_value("roster", "seed", roster_seed))
 		roster_fresh = c.get_value("roster", "fresh", roster_fresh)
+		load("res://scripts/core/roster.gd").migrate_tickets()   # 三种券 → 单一寻访凭证（1:1 / 1:1 / 1:2）
 		meta_shape = c.get_value("meta", "shape", meta_shape)
 		meta_shape_t = int(c.get_value("meta", "shape_t", meta_shape_t))
 		meta_earned = c.get_value("meta", "earned", meta_earned)
@@ -328,8 +329,9 @@ func _ready() -> void:
 		elif a.begins_with("--metacells="):
 			meta_earned = {"test": int(a.substr(12))}   # 截图 / 测试：预置累计生机细胞（只在内存）
 		elif a.begins_with("--rostertickets="):
+			# 单一寻访凭证（10-22 晚）：--rostertickets=N；旧写法 a,b,c 按 a + b + 2c 折算
 			var tk := a.substr(16).split(",")
-			roster_tickets = {"hunt": int(tk[0]) if tk.size() > 0 else 0, "cls": int(tk[1]) if tk.size() > 1 else 0, "pick": int(tk[2]) if tk.size() > 2 else 0}
+			roster_tickets = {"hunt": (int(tk[0]) if tk.size() > 0 else 0) + (int(tk[1]) if tk.size() > 1 else 0) + 2 * (int(tk[2]) if tk.size() > 2 else 0)}
 		elif a.begins_with("--rosterwish="):
 			roster_wish = a.substr(13)
 	for a in dev_args():
@@ -664,6 +666,7 @@ func cloud_apply(body: Dictionary) -> void:
 		var st0: Dictionary = p.opst
 		if st0.get("tk") is Dictionary:
 			roster_tickets = (st0.tk as Dictionary).duplicate()
+			load("res://scripts/core/roster.gd").migrate_tickets()   # 旧云档的三种券折成寻访凭证
 		if st0.get("sp") is Dictionary:
 			roster_spare = (st0.sp as Dictionary).duplicate()
 		if st0.get("wish") is String:
