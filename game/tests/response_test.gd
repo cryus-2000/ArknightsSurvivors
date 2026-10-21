@@ -10,6 +10,7 @@ extends Node
 ##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=texas --squad=saria,kaltsit
 ##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=texas --squad=mizuki,specter_unchained
 ##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=texas --squad=irene,angelina
+##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=texas --squad=ulpianus
 ## 编队里有谁就测谁；冻结主循环，手动改队长状态后推一帧 update，只看响应有没有按条件生效。
 ## 全部通过时打印 "RESPONSE failures=0"。
 
@@ -59,7 +60,7 @@ func _process(_d: float) -> void:
 		test_suzuran(g, sz)
 	if hs != null and tx != null:
 		test_stance(g, hs, tx)
-	for id in ["exusiai", "skadi", "siege", "wisadel", "lumen", "logos", "skalter", "saria", "kaltsit", "mizuki", "specter_unchained", "irene", "angelina"]:
+	for id in ["exusiai", "skadi", "siege", "wisadel", "lumen", "logos", "skalter", "saria", "kaltsit", "mizuki", "specter_unchained", "irene", "angelina", "ulpianus"]:
 		var op = g.squad.get_op(id)
 		if op != null:
 			call("test_" + id, g, op)
@@ -413,3 +414,20 @@ func test_angelina(g, o) -> void:
 		if str(m[0]) == "move_speed" and absf(float(m[2]) - 1.15) < 0.001:
 			has = true
 	ok(not has, "安洁莉娜：3 秒后收回")
+
+
+## 乌尔比安：队长冲刺结束 → 把锚掷向队长落点，落地后收回（他本人不位移）
+func test_ulpianus(g, o) -> void:
+	if o.is_leader:
+		return
+	o.hw["hooks"] = []
+	var p0: Vector2 = o.pos
+	dash(g, true, o)
+	dash(g, false, o)
+	var hs: Array = o.hw.get("hooks", [])
+	ok(hs.size() == 1 and Vector2(hs[0].to).distance_to(g.ppos) < 1.0, "乌尔比安：队长冲刺结束 → 锚掷向队长落点")
+	var h0 := hp_sum(g)
+	for k in 40:
+		tick(o)
+	ok(o.hw.hooks.is_empty() and hp_sum(g) < h0, "乌尔比安：锚落地砸中并收回（%.0f → %.0f）" % [h0, hp_sum(g)])
+	ok(o.pos.distance_to(p0) < 60.0, "乌尔比安：本人不随锚位移（%.0f）" % o.pos.distance_to(p0))

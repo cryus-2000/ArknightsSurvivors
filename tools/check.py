@@ -902,6 +902,7 @@ SCENE_REGRESSIONS = {
     "response_p2d": ("干员响应动作第二批二组（塞雷娅 / 凯尔希）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=saria,kaltsit"]),
     "response_p2e": ("干员响应动作第二批二组（水月 / 归溟幽灵鲨）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=mizuki,specter_unchained"]),
     "response_p2f": ("干员响应动作第二批二组（艾丽妮 / 安洁莉娜）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=irene,angelina"]),
+    "response_p2g": ("干员响应动作第二批（乌尔比安锚链）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=ulpianus"]),
     "logos_projectiles": ("逻各斯交替弹体与 S1 符文", "logos_projectile_test", r"LOGOS PROJECTILES failures=0", ["--balance", "--seed=1", "--op=logos"]),
     "three_operator_art": ("能天使 / 艾雅法拉 / 逻各斯原生帧条接线", "three_operator_art_test", r"THREE OPERATOR ART failures=0", ["--balance", "--seed=1", "--op=exusiai", "--squad=eyjafjalla,logos"]),
     "attack_timing": ("三人完整攻击与攻速时序", "attack_timing_test", r"ATTACK TIMING checks=.*failures=0", ["--balance", "--seed=1", "--op=wisadel", "--squad=saria,suzuran"]),

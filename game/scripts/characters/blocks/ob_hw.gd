@@ -338,6 +338,7 @@ static func hw_exec(o, b: Dictionary, at: Vector2) -> void:
 #  shape.hookshot      瞬时：把锚掷向 range（× op_range）内离本干员最远、且在 min_d 外的敌人（没有就最近的），飞 clamp(距离 / speed, 0.1, 0.24) 秒（低弧 apex），
 #                      落地 r 内 basis × mult（src），锁链绷直 taut 秒后把本干员与锚之间宽 w 的一线非 Boss 敌人连同锚拖回身前 front 处（drag 秒），
 #                      到了再受 basis × back_mult（back_src）；lock = 锚在外面时不普攻。乌尔比安精二「掷锚」
+#                      at: leader = 掷向队长所在处（超出 range 掷到 range 处），不找敌人（响应动作 docs/118，冲刺落点）
 # 确定性：本段不取 g.rng；画面只用 g.vrng 与 g.t。
 
 const HW5_TAGS := ["verb.requiem_stack", "verb.link", "shape.hookshot"]
@@ -428,6 +429,8 @@ static func _hw5_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 			_src(b, p, ctx, true)
 		"shape.hookshot":
 			_num(b, "range", p, ctx, true, 10.0, 1000.0)
+			if b.has("at") and str(b.at) != "leader":
+				errs.append(p + ".at 只能是 leader")
 			_num(b, "r", p, ctx, true, 1.0, 400.0)
 			_num(b, "mult", p, ctx, true, 0.0, 20.0)
 			_num(b, "back_mult", p, ctx, false, 0.0, 20.0)
