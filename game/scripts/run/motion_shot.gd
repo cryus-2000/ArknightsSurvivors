@@ -132,9 +132,9 @@ func open(s: String) -> void:
 		"pause":
 			g.state = Game.S.PAUSE
 		"banner":
-			g.vfx.banner_seen.erase("海嗣大群正在逼近 · 稳住阵线")
+			g.vfx.banner_seen.erase("海嗣大群正在逼近 —— 稳住阵线")
 			g.banner_t = 0.0
-			g.vfx.show_banner("海嗣大群正在逼近 · 稳住阵线", 3)
+			g.vfx.show_banner("海嗣大群正在逼近 —— 稳住阵线", 3)
 		"fail":
 			g.state = Game.S.DEAD
 
