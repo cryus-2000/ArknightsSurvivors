@@ -1436,6 +1436,9 @@ func _nav_key(k: int) -> bool:
 ## dash_cd = 还欠的冷却秒数：每冲一次 + 一次冷却，随时间减少；dash_cd ≤ 冷却 × (次数 − 1) 时可以再冲。只有 1 次时等同旧的「冷却归零才能冲」
 const DASH_TIME := 0.18
 var dash_t := 0.0
+var leader_still_t := 0.0   # 响应动作（docs/118）：队长连续站定的秒数（移动 / 冲刺 / 被定身清零）；条件 still >= 秒 读它
+var leader_skill_n := 0     # 响应动作：队长自己的技能出手次数（trig.on_leader_skill 看它增长）
+var leader_skill_i := -1    # 最近一次出手的技能序号
 var dash_cd := 0.0
 var dash_dir := Vector2.RIGHT
 var last_mv := Vector2.ZERO
@@ -1534,6 +1537,7 @@ func _update(dt: float) -> void:
 	if pstun > 0.0 or root_t > 0.0:
 		mv = Vector2.ZERO
 	moving = mv != Vector2.ZERO
+	leader_still_t = 0.0 if moving or dash_t > 0.0 or pstun > 0.0 or root_t > 0.0 else leader_still_t + dt
 	if moving:
 		mv = mv.normalized() * minf(mv.length(), 1.0)   # 键盘斜向归一；手柄半推 = 慢走
 		walk_t += dt * 12.0

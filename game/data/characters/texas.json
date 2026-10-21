@@ -297,7 +297,7 @@
  ],
  "talent": {
   "name": "战术快递",
-  "desc": "每 {$talent_cd} 秒自动朝附近敌群最密处冲刺一次（她自己冲；她当队长时带着队长冲，你的冲刺键照旧），穿过敌人时全队技力 +{$talent_sp} 秒；一次冲刺穿过 {$talent_many} 名以上敌人时额外 +{$talent_many_sp} 秒"
+  "desc": "队长每次冲刺，她沿同一方向冲刺一次（她当队长时，冲刺路径上的敌人一同被斩）；队长 {$talent_cd} 秒没有冲刺时，她自己朝附近敌群最密处冲刺一次。穿过敌人时全队技力 +{$talent_sp} 秒；一次冲刺穿过 {$talent_many} 名以上敌人时额外 +{$talent_many_sp} 秒"
  },
  "hit_sources": {
   "疾行斩": {
@@ -462,7 +462,7 @@
    "穿透",
    "技力"
   ],
-  "desc": "先锋干员，企鹅物流成员。冲刺穿过敌阵为全队回复技力；天赋驱动她每隔几秒自动冲向敌群最密处，不需要手动操作触发"
+  "desc": "冲刺穿过敌阵为全队回技力；精英一起，你冲刺时她同向冲刺，你不冲时她每隔几秒自己冲进敌群"
  },
  "blocks": {
   "attack": {
@@ -643,7 +643,7 @@
    {
     "trig": "tick",
     "every": "$talent_cd",
-    "cond": "!skill_active:1",
+    "cond": "!skill_active:1 && resp_idle >= $talent_cd",
     "do": [
      {
       "shape": "dash_line",
@@ -665,7 +665,7 @@
    {
     "trig": "tick",
     "every": "$talent_cd*$s2_cd_mult",
-    "cond": "skill_active:1",
+    "cond": "skill_active:1 && resp_idle >= $talent_cd*$s2_cd_mult",
     "do": [
      {
       "shape": "dash_line",
@@ -1033,7 +1033,32 @@
      ]
     }
    ]
-  }
+  },
+  "response": [
+   {
+    "trig": "on_leader_dash",
+    "cond": "elite >= 1",
+    "hint": "同向疾行",
+    "_doc": "响应动作（docs/118 §4.1）：队长冲刺时她沿同一方向冲刺。天赋原来的定时自动冲刺保留为兜底：条件 resp_idle >= talent_cd（队长这么久没冲刺才自己冲；响应关闭时恒成立 = 原行为），保证不触发不吃亏、冲刺间隔不短于队长。她当队长时 aim leader_dir 改为跟着队长这次冲刺扫过沿途（ride），不另位移",
+    "do": [
+     {
+      "shape": "dash_line",
+      "aim": "leader_dir",
+      "r": "$dash_len",
+      "w": "$dash_w",
+      "t": "$dash_t",
+      "hold": "$dash_hold",
+      "mult": 1.0,
+      "src": "战术快递",
+      "tags": [
+       "basic"
+      ],
+      "strip": "fx_texas_dash",
+      "sfx": "atk"
+     }
+    ]
+   }
+  ]
  },
  "native_motion": {
   "_doc": "原生动作覆盖层（docs/108 §3.5）：信号来自 seg_texas.tx_native_signals；冲刺按进度播（普攻 / 天赋 = attack 2–7、技能 = s3_dash、回马剑 = 等待段 back_native 0–2 + 反冲 3–7）",
@@ -1067,5 +1092,10 @@
     "rate": 6
    }
   ]
+ },
+ "response": {
+  "name": "同向疾行",
+  "trigger": "队长冲刺",
+  "desc": "精英一起：队长每次冲刺，她沿同一方向冲刺，穿过的敌人受到疾行斩伤害，并为全队回复技力；队长一阵子不冲刺时，她照旧自己冲进敌群"
  }
 }
