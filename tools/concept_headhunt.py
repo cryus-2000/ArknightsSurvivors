@@ -1066,119 +1066,138 @@ def main_anim():
 
 
 # ================================================================ 第三版主动作：拉开作战包（10-22 用户：要原作那种「拉开包」，不要档案匣）
-# 本作自画的黑色作战包（罗德岛风格：横放的筒形帆布包、两道束带、提手、侧面菱形 + 浪徽记与 R.I. FIELD KIT 小字，不用原作 HUMAN RESOURCE 图样）。
+# 本作自画的黑色作战包（10-22 用户第二张截图：从斜上方俯视的筒形旅行包；顶面长拉链、两道提手、肩带、侧面白色印记——本作用菱形 + 浪 + R.I. + 小三角，不用原作 HUMAN RESOURCE 图样）。
 # 1x 像素画在小画布上，再整数倍最近邻放大；拉链从右向左拉开，开口按档位漏光（青白 / 金），越拉越亮。
-BAG_W, BAG_H = 128, 48
-BAG_ZIP_Y, BAG_ZIP_X0, BAG_ZIP_X1 = 9, 18, 110
+BAG_W, BAG_H = 128, 76
+BAG_ZIP_Y, BAG_ZIP_X0, BAG_ZIP_X1 = 24, 14, 114
+_BAG_BASE = {}
+
+
+def _bag_base():
+    """俯视 3/4 角的筒形旅行包（不含拉链开口）：顶面椭圆 + 前侧面 + 两端端盖 + 两道提手 + 束带 + 肩带 + 白色印记"""
+    if "a" in _BAG_BASE:
+        return _BAG_BASE["a"].copy()
+    a = np.zeros((BAG_H, BAG_W, 4), np.uint8)
+    ys, xs = np.mgrid[0:BAG_H, 0:BAG_W]
+    top = ((xs - 64) / 58.0) ** 2 + ((ys - 24) / 14.0) ** 2 <= 1.0
+    bot = ((xs - 64) / 58.0) ** 2 + ((ys - 54) / 13.0) ** 2 <= 1.0
+    side = (xs >= 6) & (xs <= 121) & (ys >= 24) & (ys <= 54)
+    body = top | bot | side
+    # 前侧面：上亮下暗；顶面：中间亮、边缘暗（帆布反光）
+    front = body & ~top
+    v = np.clip((ys - 24) / 44.0, 0, 1)
+    for lo, hi_, c in ((0.0, 0.25, (34, 37, 46)), (0.25, 0.6, (24, 26, 32)), (0.6, 1.01, (13, 14, 19))):
+        m = front & (v >= lo) & (v < hi_)
+        a[m] = c + (255,)
+    tv = ((xs - 64) / 58.0) ** 2 + ((ys - 24) / 14.0) ** 2
+    for lo, hi_, c in ((0.0, 0.35, (58, 62, 74)), (0.35, 0.75, (44, 48, 58)), (0.75, 1.01, (30, 33, 41))):
+        m = top & (tv >= lo) & (tv < hi_)
+        a[m] = c + (255,)
+    # 顶面与侧面的分界棱
+    edge = top & ~(np.roll(top, -1, 0))
+    a[edge & body] = (70, 74, 86, 255)
+    # 两端端盖（亮边一圈）
+    for ex in (10, 117):
+        cap = ((xs - ex) / 7.0) ** 2 + ((ys - 40) / 17.0) ** 2
+        a[body & (cap <= 1.0) & (cap > 0.65)] = (66, 70, 82, 255)
+    # 前面两道束带 + 扣
+    for sx in (40, 84):
+        m = body & ~top & (xs >= sx) & (xs < sx + 5)
+        a[m] = (18, 19, 24, 255)
+        a[46:51, sx - 1:sx + 6] = (110, 116, 128, 255)
+        a[47:50, sx:sx + 5] = (36, 40, 48, 255)
+    # 肩带：沿前下方垂下的一条带子
+    for x in range(8, 120):
+        y = int(58 + 10 * np.sin((x - 8) / 112 * np.pi))
+        a[y:y + 3, x] = (20, 21, 27, 255)
+        a[y, x] = (44, 47, 56, 255)
+    # 白色印记（本作：菱形 + 一道浪 + R.I. 小字 + 小三角）
+    ex, ey = 26, 38
+    for k in range(5):
+        for x, y in ((ex - k, ey - 5 + k), (ex + k, ey - 5 + k), (ex - k, ey + 5 - k), (ex + k, ey + 5 - k)):
+            a[y, x] = (226, 230, 236, 255)
+    for i, x in enumerate(range(ex - 3, ex + 4)):
+        a[ey + (1 if i % 3 == 1 else 0), x] = (226, 230, 236, 255)
+    for (x0, rows) in ((34, ["111", "101", "110", "101"]), (38, ["1", "0", "1", "1"]), (40, ["111", "010", "010", "111"])):
+        for r, row in enumerate(rows):
+            for c, ch in enumerate(row):
+                if ch == "1":
+                    a[35 + r, x0 + c] = (226, 230, 236, 255)
+    for r in range(4):   # 小三角
+        a[41 + r, 34 - r // 2:35 + r // 2 + 1] = (226, 230, 236, 255)
+    _BAG_BASE["a"] = a
+    return a.copy()
 
 
 def _bag_px(p, tier):
-    """1x 作战包：p = 拉开进度 0–1（拉头从右端 x1 走到左端 x0）"""
-    im = Image.new("RGBA", (BAG_W, BAG_H), (0, 0, 0, 0))
-    a = np.zeros((BAG_H, BAG_W, 4), np.uint8)
-    cy0, r = 26, 20
-    body = (24, 26, 32)
-    for y in range(BAG_H):
-        for x in range(BAG_W):
-            inside = False
-            if 22 <= x <= BAG_W - 23 and cy0 - r <= y <= cy0 + r:
-                inside = True
-            for ex in (22, BAG_W - 23):
-                if (x - ex) ** 2 + ((y - cy0) * 1.0) ** 2 <= r * r:
-                    inside = True
-            if y > cy0 + r - 1 and 6 <= x <= BAG_W - 7 and y <= cy0 + r + 1:
-                inside = True   # 底边被压扁一点
-            if not inside:
-                continue
-            v = (y - (cy0 - r)) / (2 * r)
-            if v < 0.18:
-                c = (54, 58, 70)
-            elif v < 0.42:
-                c = (36, 39, 48)
-            elif v < 0.78:
-                c = body
-            else:
-                c = (13, 14, 19)
-            if x in (34, 35, 61, 88, 89) and 0.2 < v < 0.95:      # 帆布褶
-                c = tuple(max(0, k - 10) for k in c)
-            a[y, x] = c + (255,)
-    # 两端端盖
-    for ex in (22, BAG_W - 23):
-        for y in range(BAG_H):
-            for x in range(BAG_W):
-                d2 = (x - ex) ** 2 + (y - cy0) ** 2
-                if r * r - 2 * r <= d2 <= r * r and a[y, x, 3]:
-                    a[y, x, :3] = (70, 74, 86)
-    # 束带 ×2 + 扣
-    for sx in (40, 84):
-        for y in range(cy0 - r + 1, cy0 + r + 1):
-            for x in range(sx, sx + 5):
-                if a[y, x, 3]:
-                    a[y, x, :3] = (16, 17, 22) if x in (sx, sx + 4) else (30, 33, 40)
-        a[cy0 + 4:cy0 + 9, sx - 1:sx + 6, :3] = (96, 102, 114)
-        a[cy0 + 5:cy0 + 8, sx:sx + 5, :3] = (40, 44, 52)
-    # 提手
-    for x in range(52, 76):
-        y = 4 - int(3 * np.sin((x - 52) / 24 * np.pi))
-        a[y:y + 2, x] = (40, 43, 52, 255)
-    # 侧面徽记：菱形 + 一道浪，R.I. 小字（像素点阵）
-    ex, ey = 100, 30
-    for k in range(5):
-        for x, y in ((ex - k, ey - 5 + k), (ex + k, ey - 5 + k), (ex - k, ey + 5 - k), (ex + k, ey + 5 - k)):
-            a[y, x] = (150, 162, 176, 255)
-    for i, x in enumerate(range(ex - 3, ex + 4)):
-        a[ey + (1 if i % 3 == 1 else 0), x] = (110, 200, 220, 255)
-    # 拉链：齿（交替亮暗）+ 拉开段
+    """p = 拉开进度 0–1：拉头沿顶面中线从右端 x1 走到左端 x0；开口朝上，宽度随进度增大，内填档位色光"""
+    a = _bag_base()
     xp = int(round(BAG_ZIP_X1 - p * (BAG_ZIP_X1 - BAG_ZIP_X0)))
     col, hi, dk = TIER[tier]
     for x in range(BAG_ZIP_X0, BAG_ZIP_X1 + 1):
+        y = BAG_ZIP_Y
         if x >= xp and p > 0:
-            gap = int(round(min(5, 1 + 5 * p) * np.sin(min(1.0, (x - xp) / max(6, (BAG_ZIP_X1 - xp))) * np.pi * 0.9 + 0.15)))
+            span = max(6, BAG_ZIP_X1 - xp)
+            gap = int(round((1 + 6 * p) * np.sin(min(1.0, (x - xp) / span) * np.pi)))
+            gap = max(1, gap)
+            a[y - gap - 1, x] = (96, 100, 112, 255)          # 拉链两唇（外翻、亮边）
+            a[y + gap + 1, x] = (96, 100, 112, 255)
             for g in range(-gap, gap + 1):
-                y = BAG_ZIP_Y + 1 + g
-                a[y, x] = (hi if abs(g) < max(1, gap - 1) else col) + (255,)
-            a[BAG_ZIP_Y - gap, x] = (88, 92, 104, 255)
-            a[BAG_ZIP_Y + 2 + gap, x] = (88, 92, 104, 255)
+                a[y + g, x] = (hi if abs(g) < gap else col) + (255,)
         else:
-            a[BAG_ZIP_Y, x] = (96, 100, 112, 255) if x % 2 else (40, 42, 50, 255)
-            a[BAG_ZIP_Y + 1, x] = (40, 42, 50, 255) if x % 2 else (96, 100, 112, 255)
+            a[y, x] = (110, 114, 126, 255) if x % 2 else (32, 34, 42, 255)
+            a[y + 1, x] = (32, 34, 42, 255) if x % 2 else (110, 114, 126, 255)
     # 拉头
-    a[BAG_ZIP_Y - 2:BAG_ZIP_Y + 4, max(0, xp - 2):xp + 2] = (176, 184, 196, 255)
-    a[BAG_ZIP_Y + 3:BAG_ZIP_Y + 7, max(0, xp - 1):xp + 1] = (140, 148, 160, 255)
+    a[BAG_ZIP_Y - 2:BAG_ZIP_Y + 3, max(0, xp - 2):xp + 2] = (184, 190, 202, 255)
+    a[BAG_ZIP_Y + 3:BAG_ZIP_Y + 7, max(0, xp - 1):xp + 1] = (150, 156, 168, 255)
+    # 两道提手（画在开口之后，横跨顶面）
+    for hx0, hx1 in ((34, 56), (72, 94)):
+        py = None
+        for x in range(hx0, hx1 + 1):
+            t_ = (x - hx0) / (hx1 - hx0)
+            y = int(round(30 - 20 * np.sin(t_ * np.pi)))
+            y0_, y1_ = (min(py, y), max(py, y)) if py is not None else (y, y)
+            a[y0_:y1_ + 3, x] = (16, 17, 22, 255)      # 提手带子 3 像素粗、连续不断
+            a[y0_:y1_ + 1, x] = (58, 62, 74, 255)
+            py = y
     return Image.fromarray(a, "RGBA"), xp
 
 
 def bag(img, cx, cy, s, tier, p, t=0.0):
-    """把作战包画在 (cx, cy)（包体中心），返回开口中心（屏幕坐标）"""
+    """俯视作战包画在 (cx, cy)（包体中心）；光从顶面开口向上冲出，返回开口中心"""
     k = max(1, int(round(4 * s)))
     px, xp = _bag_px(p, tier)
     big = px.resize((BAG_W * k, BAG_H * k), Image.NEAREST)
     x0, y0 = int(cx - BAG_W * k / 2), int(cy - BAG_H * k / 2)
     col, hi, _ = TIER[tier]
-    mouth = (x0 + int((xp + BAG_ZIP_X1) / 2 * k), y0 + (BAG_ZIP_Y + 1) * k)
+    mouth = (x0 + int((xp + BAG_ZIP_X1) / 2 * k), y0 + BAG_ZIP_Y * k)
+    ImageDraw.Draw(img).ellipse([x0 + 6 * k, y0 + 62 * k, x0 + (BAG_W - 6) * k, y0 + 74 * k], fill=(0, 0, 0, 110))
+    img.alpha_composite(big, (x0, y0))
     if p > 0:
         lay = Image.new("RGBA", img.size, (0, 0, 0, 0))
         d = ImageDraw.Draw(lay)
         L = (BAG_ZIP_X1 - xp) * k
         bright = min(1.0, 0.25 + p)
-        for i, (sp, a) in enumerate(((1.0, 30), (0.7, 60), (0.45, 110))):
-            hgt = int((80 + 520 * p) * s * sp)
-            wid = int((L * 0.5 + 40 * s) * (1 + p * sp))
+        # 开口上方的光：开口形状向上张开的三档光柱（俯视：光冲向画面上方，越拉越宽越高）
+        for sp, al in ((1.0, 34), (0.72, 64), (0.48, 120)):
+            hgt = int((60 + 640 * p) * s * sp)
+            wid = int((L * 0.5 + 30 * s) * (1 + 1.4 * p * sp))
             d.polygon([(mouth[0] - L // 2, mouth[1]), (mouth[0] + L // 2, mouth[1]), (mouth[0] + wid, mouth[1] - hgt), (mouth[0] - wid, mouth[1] - hgt)],
-                      fill=col + (int(a * bright),))
-        # 一根根光线（像素粗细）
+                      fill=col + (int(al * bright),))
         rnd = random.Random(int(t * 12))
-        for _ in range(int(6 + 24 * p)):
-            ang = rnd.uniform(-1.2, 1.2)
-            ln = rnd.uniform(60, 420) * s * (0.4 + p)
+        for _ in range(int(6 + 30 * p)):
+            ang = rnd.uniform(-1.3, 1.3)
+            ln = rnd.uniform(60, 460) * s * (0.4 + p)
             sx = mouth[0] + rnd.uniform(-L / 2, L / 2)
-            d.line([sx, mouth[1], sx + np.sin(ang) * ln, mouth[1] - np.cos(ang) * ln], fill=hi + (int(140 * bright),), width=max(1, k // 2))
+            d.line([sx, mouth[1], sx + np.sin(ang) * ln, mouth[1] - np.cos(ang) * ln], fill=hi + (int(150 * bright),), width=max(1, k // 2))
+        if tier == "gold":   # 金档：小三角碎光
+            for _ in range(int(4 + 10 * p)):
+                tx = mouth[0] + rnd.uniform(-L, L)
+                ty = mouth[1] - rnd.uniform(20, 260) * s * (0.4 + p)
+                r_ = rnd.choice([3, 4, 6]) * max(1, k // 2)
+                d.polygon([(tx, ty - r_), (tx + r_, ty + r_), (tx - r_, ty + r_)], fill=hi + (int(200 * bright),))
         img.alpha_composite(lay)
-    img.alpha_composite(big, (x0, y0))
-    # 落地阴影
-    ImageDraw.Draw(img).ellipse([x0 + 10 * k, y0 + BAG_H * k - 2 * k, x0 + (BAG_W - 10) * k, y0 + BAG_H * k + 4 * k], fill=(0, 0, 0, 90))
-    if p > 0:
-        stardust(img, mouth[0], mouth[1] - int(40 * s), (120 + 300 * p) * s, int(20 + 120 * p), int(t * 10) + 1, hi)
+        stardust(img, mouth[0], mouth[1] - int(60 * s), (120 + 320 * p) * s, int(20 + 130 * p), int(t * 10) + 1, hi)
     return mouth
 
 
@@ -1189,7 +1208,7 @@ def hh_bag(phase, tier, s=1.0, w=W, h=H):
     p = {"closed": 0.0, "half": 0.5, "open": 1.0}[phase]
     bag(img, cx, cy, s, tier, p, 1.0)
     if phase == "closed":
-        text(img, (cx, cy + int(110 * s)), "向左拖动拉链 · 点按开启", int(15 * s), SUB, "mm")
+        text(img, (cx, cy + int(190 * s)), "向左拖动拉链 · 点按开启", int(15 * s), SUB, "mm")
     ptxt(img, (w - int(28 * s), int(30 * s)), "SKIP >", max(1, int(round(2 * s))), SUB, 1, "rm")
     header(img, s, "HEADHUNT", "寻访")
     return img
