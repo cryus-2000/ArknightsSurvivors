@@ -84,10 +84,16 @@ func build(restart := false) -> void:
 		var bot: float = 60.0
 		if touch and not chips.is_empty():
 			bot = 52.0 + (22.0 if UI.chip_fits(g.font, chips, cw - 16.0, 1, 10) else 44.0) + 6.0
-		var fs0 := UI.fit(g.font, it.desc, cw - 20.0, (ch - 164.0 - bot) if touch else 64.0, szs)
+		# 商品卡说明 + 构筑受益行（docs/119 §4.4，build_affinity.relic_lines；非三条链 / 开关关为空）
+		var sdesc: String = str(it.desc)
+		if it.kind == "relic":
+			var bline: String = g.progression.affinity.relic_lines(str(it.id), true)
+			if bline != "":
+				sdesc += "\n" + bline
+		var fs0 := UI.fit(g.font, sdesc, cw - 20.0, (ch - 164.0 - bot) if touch else 64.0, szs)
 		var sc_compact: bool = not fs0.fit
 		if sc_compact:
-			fs0 = UI.fit(g.font, it.desc, cw - 20.0, (ch - 152.0 - bot) if touch else 80.0, szs)
+			fs0 = UI.fit(g.font, sdesc, cw - 20.0, (ch - 152.0 - bot) if touch else 80.0, szs)
 		card.set_meta("fit", fs0)
 		card.set_meta("compact", sc_compact)
 		card.set_meta("affects", chips)

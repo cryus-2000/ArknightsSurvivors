@@ -80,12 +80,18 @@ func price(kind: String) -> int:
 	return 0
 
 
-func roll() -> void:
+## first = 第一位商人的首轮货架（docs/119 §4.5）：合法池里有「基础 / 稀有、三条链、当前有在队干员能触发」的藏品时保证一件（顶掉第三格），
+## 其余照原规则；没有就不动。付费刷新不带 first（不重复保证）
+func roll(first := false) -> void:
 	g.shop_items.clear()
 	var pool: Array = g.progression.relic_pool_ids(true)
 	for i in min(3, pool.size()):
 		var r: Dictionary = g.RL[pool[i]]
 		g.shop_items.append({"kind": "relic", "id": pool[i], "name": ("【遭诅】" if r.rarity == "遭诅古物" else "") + g.rfx.display_name(pool[i]), "desc": g.rfx.display_desc(pool[i]), "price": g.rfx.db.price(pool[i], price_mult()), "sold": false})
+	if first:
+		var link: String = g.progression.affinity.merchant_link_pick(pool)
+		if link != "" and not g.shop_items.any(func(it): return it.id == link) and not g.shop_items.is_empty():
+			g.shop_items[g.shop_items.size() - 1] = {"kind": "relic", "id": link, "name": g.rfx.display_name(link), "desc": g.rfx.display_desc(link), "price": g.rfx.db.price(link, price_mult()), "sold": false}
 	# 深蓝线：商店多一栏必为遭诅古物（深海的馈赠）
 	if g.rfx.rule("deep_sea") > 0:
 		var cursed: Array = pool.filter(func(id): return g.RL[id].rarity == "遭诅古物" and not g.shop_items.any(func(it): return it.id == id))
@@ -96,6 +102,51 @@ func roll() -> void:
 		g.dbg_relic_offer.append([int(g.t), "shop", g.shop_items.map(func(it): return it.id)])
 	g.shop_items.append({"kind": "heal", "id": "heal", "name": "急救包", "desc": "回复 40% 最大生命", "price": price("heal"), "sold": false})
 	g.shop_items.append({"kind": "oil", "id": "oil", "name": "灯油", "desc": "灯火 +50", "price": price("oil"), "sold": false})
+
+
+## ---- 第一位商人预告（docs/119 §4.5）：生成时就定下首轮货架与价格（到店不再抽），HUD 指示写出联动商品、价格、持有源石锭与差额。
+## 只影响第一位商人；开关 build/merchant_preview = 0 时不提前抽货（随机数消耗与改前相同）
+func preview_on() -> bool:
+	return g.merchant_idx == 1 and Bal.vi("build/merchant_preview", 1) != 0
+
+
+func prepare_first() -> void:
+	if not preview_on() or g.merchant.is_empty():
+		return
+	roll(true)
+	sync_preview()
+
+
+## 预告 = 货架上第一件「三条链、基础 / 稀有、当前有在队干员能触发、未售出」的藏品；没有就撤掉预告
+func sync_preview() -> void:
+	if g.merchant.is_empty():
+		return
+	g.merchant.erase("preview")
+	if not preview_on():
+		return
+	var af = g.progression.affinity
+	for it in g.shop_items:
+		if it.kind == "relic" and not it.sold and af.chain_of(str(it.id)) != "" and g.RL[it.id].rarity in ["基础", "稀有"] and af.relic_live(str(it.id)):
+			g.merchant["preview"] = str(it.id)
+			return
+
+
+## HUD 读的预告：{name, price, have, short}（价格从当前货架读，成交涨价后同步）；没有预告返回空字典
+func preview_item() -> Dictionary:
+	if g.merchant.is_empty() or not g.merchant.has("preview"):
+		return {}
+	for it in g.shop_items:
+		if it.kind == "relic" and str(it.id) == str(g.merchant.preview) and not it.sold:
+			return {"name": g.RL[it.id].name, "price": int(it.price), "have": g.ingots, "short": maxi(0, int(it.price) - g.ingots)}
+	return {}
+
+
+## 预告文字（HUD 指示 / 横幅）："「炸裂之手」14 锭，持有 9，差 5" / "…持有 20，可买"（手机一行要放得下，用短式）
+func preview_text() -> String:
+	var pv := preview_item()
+	if pv.is_empty():
+		return ""
+	return "「%s」%d 锭，持有 %d，%s" % [pv.name, pv.price, pv.have, ("差 %d" % pv.short) if pv.short > 0 else "可买"]
 
 
 func open() -> void:
@@ -137,6 +188,9 @@ func buy(i: int) -> void:
 	for item in g.shop_items:
 		if not item.sold:
 			item.price = g.rfx.db.price(item.id, price_mult()) if item.kind == "relic" else price(item.kind)
+	# 预告的商品售出即撤销（docs/119 §4.5）；预告价格由 preview_item 从货架现价读，这里不用改
+	if not g.merchant.is_empty() and g.merchant.has("preview") and str(g.merchant.preview) == str(it.id):
+		g.merchant.erase("preview")
 	Sfx.play("ui_ok")
 	g.shop_ui.build()
 
@@ -148,6 +202,7 @@ func refresh() -> void:
 	g.telemetry.ingots_spent += price("refresh")
 	g.ingots -= price("refresh")
 	roll()
+	sync_preview()   # 刷新后同步预告：按新货架重定，不保证联动位、不留旧商品
 	Sfx.play("relic", -6.0)
 	g.shop_ui.build(true)
 

@@ -927,6 +927,8 @@ SCENE_REGRESSIONS = {
                   "--dummy_scene=horde", "--dummy_stage=2", "--dummy_secs=5", "--dummy_warm=2", "--dummy_check"]),
     "cloud_save": ("B站云存档：打包 / 分片 / 平台限制 / 校验 / 版本 / 合并规则 / Cfg 往返 / 非网页不启用（docs/89）", "cloud_save_test", r"CLOUD SAVE failures=0", []),
     "look": ("观感预设 render/look（角色受光封顶 / 后期曲线 / 亮度缺省）", "look_test", r"LOOK TEST failures=0", []),
+    "build_affinity": ("构筑匹配（docs/119 §4.3 / §4.4）：三条链的来源 / 门槛 / 浮空与永久技能不误算、卡面说明行、强制招募保底与开关", "build_affinity_test", r"BUILD AFFINITY failures=0", ["--balance", "--op=angelina", "--squad=skadi,kaltsit"]),
+    "merchant_build_offer": ("第一位商人预告（docs/119 §4.5）：生成时定货架、进店不重抽、联动位、价格同步、售出 / 刷新 / 离开撤销、开关关不提前抽", "merchant_build_offer_test", r"MERCHANT BUILD OFFER failures=0", ["--balance", "--op=skadi", "--squad=kaltsit"]),
 }
 
 

@@ -63,6 +63,7 @@ func draw_merchant_pointer(vs: Vector2, ct: Transform2D) -> void:
 			# 文字放在圆圈（半径 24 + 光晕）之外：下半屏放上方，上半屏放下方
 			var lab_y := -40.0 if edge.y > vs.y / 2 else 54.0
 			UI.text(g.hud, g.font, edge + Vector2(-60, lab_y), "商人  %dm · %ds" % [dist, int(g.merchant.life)], 13, g.shop_sys.merchant_col(), HORIZONTAL_ALIGNMENT_CENTER, 120, 3)
+			_preview_line(edge + Vector2(0, lab_y + (16.0 if edge.y <= vs.y / 2 else -16.0)), vs)
 		else:
 			# 在画面内：头顶跳动的箭头
 			var big_m: bool = g.tex.merchant != null and g.tex.merchant.get_height() >= 40
@@ -70,6 +71,18 @@ func draw_merchant_pointer(vs: Vector2, ct: Transform2D) -> void:
 			var hp2 := sp + Vector2(0, -head - 12.0 - bounce)
 			g.hud.draw_colored_polygon(PackedVector2Array([hp2 + Vector2(0, 12), hp2 + Vector2(-10, -2), hp2 + Vector2(10, -2)]), UI.GOLD)
 			UI.text(g.hud, g.font, hp2 + Vector2(-60, -8), ("商人 %ds" if g.merchant.life > 15.0 else "商人即将离开 %ds") % int(g.merchant.life), 13, g.shop_sys.merchant_col(), HORIZONTAL_ALIGNMENT_CENTER, 140, 3)
+			_preview_line(hp2 + Vector2(0, -24), vs)
+
+
+## 第一位商人预告（docs/119 §4.5）：指示下方 / 上方再写一行联动商品与差额，余额变了随帧更新；手机字号过 UI.fs。宽 240、夹在画面内
+func _preview_line(at: Vector2, vs: Vector2) -> void:
+	var pv: String = g.shop_sys.preview_text()
+	if pv == "":
+		return
+	var w := 320.0
+	var x: float = clampf(at.x - w / 2.0, 8.0, vs.x - w - 8.0)
+	var y: float = clampf(at.y, 24.0, vs.y - 8.0)
+	UI.text(g.hud, g.font, Vector2(x, y), pv, 13, Color(1.0, 0.9, 0.6), HORIZONTAL_ALIGNMENT_CENTER, w, 3)
 
 
 ## 海嗣祭坛方位指示（屏内头顶箭头 / 屏外边缘圈）；最终 Boss 前 10 秒未开的祭坛金红快闪

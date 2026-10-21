@@ -556,7 +556,17 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 ## 按技能的真实手动属性和当前身份提示；队友不会出现按 Q 的误导。
 func option_description(option: Dictionary) -> String:
 	var description: String = str(option.get("desc", ""))
-	if option.get("kind", "") not in ["prog", "growth"]:
+	var kind: String = str(option.get("kind", ""))
+	# 构筑可读性（docs/119 §4.3 / §4.4，build_affinity）：招募卡写与已持有藏品的互动（入队即生效 / 培养后生效）；
+	# 藏品卡写当前受益干员、触发条件、与已持有相近藏品的关系。换人卡的在 progression.open_swap 里。开关关时为空
+	var extra := ""
+	if kind == "recruit" and not option.get("swap", false):
+		extra = g.progression.affinity.recruit_lines(str(option.get("id", "")))
+	elif kind == "relic":
+		extra = g.progression.affinity.relic_lines(str(option.get("id", "")))
+	if extra != "":
+		description += "\n" + extra
+	if kind not in ["prog", "growth"]:
 		return description
 	var op = g.squad.get_op(str(option.get("op", g.ch.id)))
 	if op == null:
