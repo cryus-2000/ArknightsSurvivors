@@ -1503,7 +1503,7 @@ func toggle_command() -> void:
 	if squad.cycle_stance():
 		Sfx.play("ui_ok", -8.0)
 	elif Squad.cmd_on():
-		vfx.add_text(ppos + Vector2(0, -70), "耐力不足", UI.SUB, 14)   # 突击耐力没回到 command/min_start
+		vfx.add_text(ppos + Vector2(0, -70), "作战时限未恢复", UI.SUB, 14)   # 突击耐力（玩家可见名「作战时限」，10-22 定）没回到 command/min_start
 
 
 func _try_dash() -> void:

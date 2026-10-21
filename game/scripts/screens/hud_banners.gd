@@ -650,6 +650,7 @@ func draw_stamina_bar(r: Rect2) -> void:
 	g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * clampf(sq.stamina, 0.0, 1.0), r.size.y)), fc)
 	var mx: float = r.position.x + r.size.x * Bal.v("command/min_start", 0.3)
 	g.hud.draw_line(Vector2(mx, r.position.y - 2.0), Vector2(mx, r.end.y + 2.0), Color(1, 1, 1, 0.55), 1.0)
+	UI.text(g.hud, g.font, Vector2(r.position.x - 72.0, r.end.y + 2.0), "作战时限", 10, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 66)   # 玩家可见名（10-22 定，内部仍叫耐力 stamina）
 
 
 

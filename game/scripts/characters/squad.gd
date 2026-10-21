@@ -30,6 +30,9 @@ var exhausted := false         # 耗尽后的冷却：回到 min_start 以上才
 var stance_log: Array = []     # [[g.t, 新站位], …]：玩家切换记录（同 seed 复现 / 机器人对照）
 ## 突击三件套（10-22 原型，docs/114 §7）：仇恨（突击队友引走一部分怪）、队友生命 + 倒地、耐力，各自开关 command/aggro、command/hp、command/stamina
 const HP_K_DEF := {"重装": 1.2, "近卫": 0.9, "先锋": 0.8, "特种": 0.75, "辅助": 0.65, "医疗": 0.65, "术师": 0.5, "狙击": 0.5}
+var lead_dir := Vector2.ZERO    # 队长移动方向（平滑后的单位向量，几乎不动时为 ZERO）：突击断后站位用（character.roam_target）
+var _lead_v := Vector2.ZERO
+var _lead_p := Vector2.INF
 var roam_secs := 0.0           # 统计（cmd_stats）：突击累计秒数 / 倒地次数 / 掷中仇恨的怪数
 var downs_n := 0
 var sorties_n := 0             # 进入突击的次数；sortie_downs_n = 其中至少有一人倒地的次数（调血目标 10–20%）
@@ -323,6 +326,7 @@ func update(dt: float) -> void:
 		o.follow(dt, g.ppos if o.is_leader else g.ppos + _slot_offset(o.slot))
 	if stance == RECALL:
 		_tick_recall(dt)
+	_tick_lead(dt)
 	_tick_stamina(dt)
 	_tick_hp(dt)
 	for o in ops:
@@ -483,6 +487,13 @@ func _stance_voice(s: int) -> void:
 	var sfx: Node = g.get_node_or_null("/root/Sfx")
 	if sfx != null:
 		sfx.voice(o.id, "battle" if s == ROAM else "entry")
+
+
+func _tick_lead(dt: float) -> void:
+	if _lead_p != Vector2.INF and dt > 0.0:
+		_lead_v = _lead_v.lerp((g.ppos - _lead_p) / dt, clampf(dt * 4.0, 0.0, 1.0))
+	_lead_p = g.ppos
+	lead_dir = _lead_v.normalized() if _lead_v.length() > 30.0 else Vector2.ZERO
 
 
 func cmd_stats() -> Dictionary:

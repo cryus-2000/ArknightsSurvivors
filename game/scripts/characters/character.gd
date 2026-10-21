@@ -1665,12 +1665,18 @@ var cmd_down_age := 0.0
 var cmd_inv := 0.0
 var cmd_show := 0.0
 
+## 断后站位（10-22 用户：别跑太远、要有留下来断后的感觉）：活动圈 = 队长周围 command/roam_r（约 0.5–0.7 屏，屏内）；
+## 只在圈内挑怪，优先队长身后（移动方向反侧 command/rear_d 处，队长不动时取圈内怪群中心）最近的；队长往前走时不跟着冲，
+## 守着目标直到它出圈（滞回 ×1.15）或被圈边拉回，看起来就是「拖住一段再追上」。重装站在队长与身后怪群之间；近战贴在怪朝队长那一侧；
+## 远程在目标外沿 reach 处绕圈（仍在圈内，即队长侧后方）
 func roam_target(slot_pos: Vector2) -> Vector2:
-	var leash: float = CmdBal.v("command/leash", 960.0)
+	var R: float = CmdBal.v("command/roam_r", 380.0)
 	var role := cmd_role()
+	var sq = g.squad
+	var ld: Vector2 = sq.lead_dir if sq != null else Vector2.ZERO
+	var rear: Vector2 = g.ppos - ld * CmdBal.v("command/rear_d", 160.0) if ld != Vector2.ZERO else g.ppos
 	if role == "wall":
-		# 重装：队长身边 search 内最近 6 只的中心，站到「队长 → 怪群」连线上离队长一半（40–160）处，把怪挡在外面
-		var ns: Array = nearest_enemies(6, CmdBal.v("command/search", 520.0), g.ppos)
+		var ns: Array = nearest_enemies(6, R, rear).filter(func(en): return en.pos.distance_to(g.ppos) <= R)
 		if ns.is_empty():
 			return slot_pos
 		var c := Vector2.ZERO
@@ -1680,32 +1686,35 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 		var tw: Vector2 = c - g.ppos
 		if tw.length() < 1.0:
 			return slot_pos
-		return g.ppos + tw.normalized() * clampf(tw.length() * 0.5, 40.0, 160.0)
-	var near: Array = nearest_enemies(1, CmdBal.v("command/search", 520.0), pos)
-	var n0 = near[0] if not near.is_empty() and near[0].pos.distance_to(g.ppos) <= leash else null
+		return g.ppos + tw.normalized() * clampf(tw.length() * 0.6, 50.0, R * 0.7)
 	var e = roam_tgt
-	if e == null or e.dead or e.pos.distance_to(g.ppos) > leash:
-		e = n0
-	elif n0 != null and not is_same(n0, e) and n0.pos.distance_to(pos) + GUARD_MARGIN < e.pos.distance_to(pos):
-		e = n0
+	if e == null or e.dead or e.pos.distance_to(g.ppos) > R * 1.15:
+		e = null
+		for en in nearest_enemies(4, R, rear):
+			if en.pos.distance_to(g.ppos) <= R:
+				e = en
+				break
 	roam_tgt = e
 	if e == null:
 		return slot_pos
 	var reach: float = cmd_reach() + e.r
-	var dv: Vector2 = pos - e.pos
 	var p: Vector2 = pos
 	if role == "kite":
-		# 远程放风筝：始终站在离目标 reach 的圆上，并沿圆周往前挪（编队位单双号决定顺 / 逆时针），被贴近就后退
+		# 远程放风筝：站在离目标 reach 的圆上，沿圆周往前挪（编队位单双号决定顺 / 逆时针），被贴近就后退
+		var dv: Vector2 = pos - e.pos
 		if dv.length() < 1.0:
 			dv = Vector2(-face, 0)
 		p = e.pos + dv.normalized().rotated(CmdBal.v("command/kite_step", 0.5) * (1.0 if slot % 2 == 0 else -1.0)) * reach
-	elif dv.length() > reach + 14.0:
-		if dv.length() < 1.0:
-			dv = Vector2(-face, 0)
-		p = e.pos + dv.normalized() * reach
+	else:
+		# 近战：贴在怪朝队长的那一侧（挡在队长和追兵之间）；已经够得着就原地打
+		if pos.distance_to(e.pos) > reach + 14.0:
+			var tl: Vector2 = g.ppos - e.pos
+			if tl.length() < 1.0:
+				tl = Vector2(-face, 0)
+			p = e.pos + tl.normalized() * reach
 	var off: Vector2 = p - g.ppos
-	if off.length() > leash:
-		p = g.ppos + off.normalized() * leash   # 超出范围往回收
+	if off.length() > R:
+		p = g.ppos + off.normalized() * R   # 超出活动圈往回收
 	return p
 
 
