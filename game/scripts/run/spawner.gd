@@ -362,6 +362,8 @@ func update(dt: float) -> void:
 	var dens := density()
 	if dens != 1.0:
 		rate *= dens   # 怪物密度：普通刷怪率 × density（spawn_acc 本身就是累计余数）
+	if g.t < Bal.v("enemy/early_until", 0.0):
+		rate *= Bal.v("enemy/early_spawn_mult", 1.0)   # 前期压力段：大群加密的那部分从普通刷怪里扣（总经验约不变，docs/116 §7）
 	spawn_acc += rate * dt
 	# Boss 在场时的存活杂兵上限（协调人 9/30 定，最终 boss/final_mob_cap / 中期 boss/mid_mob_cap，0 = 关）：活着的非 Boss 敌人到上限就不再刷普通怪，
 	# 现有的不杀；精英、Boss 召唤物照常。杂兵墙挡住干员索敌是伊莎玛拉 / 偏执泡影超时的主因（Boss A/B 9/30）
@@ -422,16 +424,35 @@ func update(dt: float) -> void:
 		horde_warned = due
 		g.horde_warn = 3.0
 		g.horde_gap = g.rng_spawn.randf() * TAU
+		g.horde_streams = []
+		if due < Bal.v("enemy/close_ring_until", 0.0) or Bal.v("enemy/horde_streams", 0.0) > 0.0:
+			# 分股合围原型（docs/116 §7.2）：缺口对面 3 股，股心相隔 close_ring_spread 弧度；HUD 预警箭头只画这几个方向
+			for i in 3:
+				g.horde_streams.append(g.horde_gap + PI + (i - 1) * Bal.v("enemy/close_ring_spread", 1.3) + i * deg_to_rad(Bal.v("enemy/close_ring_rot", 20.0)))
 		Sfx.play("roar", -2.0, 0.55, 0.0)
 	if g.t >= due and horde_ok:
 		g.next_horde += D.THREAT[g.threat].get("horde_every", 120.0)
 		g.horde_warn = 0.0
 		g.horde_hit = 1.2
 		g.vfx.shake_screen(1.4)
-		g.fx.append({"kind": "horde_ring", "pos": g.ppos, "r": 640.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
+		# 分股合围（docs/116 §7.2 原型，enemy/close_ring_until 秒之前的大群；缺省 0 = 关，用户 10-22 看 gif 后改：不整圈同步收）：
+		# 仍从屏外刷入，分 3 股从缺口对面的不同方向先后压来（每股晚 close_ring_delay 秒出发、速度依次 +close_ring_spd），后出发的股向一侧偏 close_ring_rot 度（缺口跟着转）
+		var close_ring: bool = not g.horde_streams.is_empty()
+		g.horde_stream_rel = []
+		for i in g.horde_streams.size():
+			g.horde_stream_rel.append(g.t + i * Bal.v("enemy/close_ring_delay", 1.5))   # 各股出发时刻：HUD 在出发前 0.8 秒于该方向屏边亮预警
+		if close_ring:
+			g.world.cam_kick = Vector2.from_angle(float(g.horde_streams[0])) * Bal.v("enemy/horde_shake", 10.0)   # 入场镜头轻推（像素，约 0.2 秒衰减回位；镜头震动已整体移除，只用 cam_kick，纯画面）
+		var ring_r := 600.0
+		if not close_ring:
+			g.fx.append({"kind": "horde_ring", "pos": g.ppos, "r": 640.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
 		Sfx.play("roar", 2.0, 0.8, 0.0)
 		# 数量：32 → 88（10 分钟），× 难度修正 horde；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
 		var n := int((Bal.v("enemy/horde_base", 24.0) + int(g.t / Bal.v("enemy/horde_div", 9.0))) * float(g.dmod.horde))
+		var early: bool = g.t < Bal.v("enemy/early_until", 0.0)   # 前期压力段（docs/116 §7）：大群加密、单体伤害不打折，普通刷怪同期打折抵消经验
+		if early:
+			n = int(round(n * Bal.v("enemy/early_horde_mult", 1.0)))
+		n = int(round(n * Bal.v("enemy/horde_count_mult", 1.0)))   # 压力型大群（docs/116 §7.3）：只数倍率，经验按只数折算守恒（下面 xp）
 		n = dens_count(n, "horde")   # 怪物密度：只数 × density（累计余数取整；在 Boss 余量裁剪之前）
 		# Boss 在场时（Ⅷ horde_in_boss 让大群不顺延）超出存活杂兵上限的部分裁掉（协调人 9/30）；没有 Boss 时余量 = 同屏上限 max_alive()，不裁
 		n = mini(n, maxi(0, boss_mob_room()))
@@ -445,17 +466,54 @@ func update(dt: float) -> void:
 			comp[s.id] = int(comp.get(s.id, 0)) + 1
 		var hl := {"t": int(g.t), "n": n, "hp": 0.0, "killed": 0, "t80": -1, "minhp": g.hp, "hp0": g.hp, "mix": str(mix.get("name", "")), "comp": comp}
 		g.horde_log.append(hl)
+		var pidx := 0
 		for s in plan:
 			if g.enemies.size() >= max_alive() + 60:
 				break
 			var ang: float = g.horde_gap + gap_half + span * float(s.u)
-			var p := g.ppos + Vector2.from_angle(ang) * (g.rng_spawn.randf_range(560.0, 640.0) + float(s.dr))
+			var si := 0
+			var row := 0.0   # 股内前后位置 0 = 最前排、1 = 最后排（潮水形：前排密集、后排拖长，docs/116 §7.3）
+			if close_ring:
+				si = pidx % g.horde_streams.size()
+				row = float(pidx / g.horde_streams.size()) / maxf(1.0, ceilf(float(plan.size()) / g.horde_streams.size()) - 1.0)
+				pidx += 1
+				ang = float(g.horde_streams[si]) + (fposmod(float(s.u) * 3.0, 1.0) - 0.5) * deg_to_rad(Bal.v("enemy/close_ring_arc", 50.0)) * (0.45 + 0.55 * row)
+			var p := g.ppos + Vector2.from_angle(ang) * (g.rng_spawn.randf_range(ring_r - 40.0, ring_r + 40.0) + float(s.dr) + pow(row, 1.6) * Bal.v("enemy/horde_tail", 260.0))
 			var he := spawn_enemy(s.id, p)
 			he["horde"] = g.horde_log.size() - 1
 			he.dormant = false
+			if close_ring:
+				he["rush"] = Bal.v("enemy/horde_rush", 1.6)   # 冲锋段：进到 horde_rush_r 内回正常速度（run/enemies.gd）
+				if si > 0:
+					he.wake_t = si * Bal.v("enemy/close_ring_delay", 1.5)   # 后几股原地等一下再一股脑出发（wake_t 期间不行动，enemy_ai）
+					he.spd *= 1.0 + si * Bal.v("enemy/close_ring_spd", 0.1)
 			# 群体个体的接触伤害 ×0.7：被包围时不至于两下暴毙，压力来自数量而不是单体
-			he.dmg *= 0.7
+			he.dmg *= Bal.v("enemy/early_horde_dmg", 0.7) if early else 0.7
+			var ehp: float = Bal.v("enemy/horde_hp_mult", 1.0) * (Bal.v("enemy/early_horde_hp", 1.0) if early else 1.0)   # 大群单只生命倍率（不加经验）
+			he.hp *= ehp
+			he.maxhp *= ehp
+			var cm: float = Bal.v("enemy/horde_count_mult", 1.0)
+			var xm: float = Bal.v("enemy/horde_xp_mult", -1.0)
+			he.xp *= (1.0 / maxf(0.1, cm)) if xm < 0.0 else xm   # 大群经验按只数折算：缺省 -1 = 1 / 只数倍率，大群总经验不变
 			hl.hp += he.maxhp
+		# 领头精英（docs/116 §7.3，用户 10-22）：每次大群 1 只（horde_elite_late_t 秒起 2 只）走在第一股前列；
+		# 占用精英计时的一个名额（next_elite 顺延一个间隔），精英总数、经验、掉箱不变
+		var ne := int(Bal.v("enemy/horde_elite", 0.0))
+		if ne > 0 and g.t >= Bal.v("enemy/horde_elite_late_t", 420.0):
+			ne = int(Bal.v("enemy/horde_elite_late", float(ne)))
+		for k in ne:
+			var lead_ang: float = float(g.horde_streams[0]) if not g.horde_streams.is_empty() else g.horde_gap + PI
+			var lp := g.ppos + Vector2.from_angle(lead_ang + (k - 0.5 * (ne - 1)) * 0.2) * (ring_r - 60.0)
+			# 领头从本威胁等级的 horde_lead 表里抽（waves.json）：elite = 当时可出的精英（占精英计时名额），其余是提前露面的后期重型普通怪（按当时曲线算血 / 伤害）
+			var leads: Array = D.THREAT[g.threat].get("horde_lead", ["elite"])
+			var lid: String = str(leads[g.rng_spawn.randi() % leads.size()])
+			var le := spawn_enemy(pick_elite() if lid == "elite" else lid, lp)
+			le["rush"] = Bal.v("enemy/horde_rush_lead", 1.8)   # 领头跑在最前面冲进来
+			if lid == "elite":
+				next_elite += D.THREAT[g.threat].elite * float(g.dmod.elite_interval)
+			else:
+				le["horde"] = g.horde_log.size() - 1
+				le.dormant = false
 		_norm = false
 	# 补给箱
 	if g.t >= next_chest:

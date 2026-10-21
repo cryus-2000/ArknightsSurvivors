@@ -80,7 +80,7 @@ func run() -> void:
 	check(Meta.earned_total() == 53 and Cfg.meta_bounty.has(8) and fg.meta_result.cells == 53, "局终记账 %s" % [Cfg.meta_earned])
 	r = Meta.run_reward(fg, true)
 	check(r.bounty == 0, "同一潮位第二次通关没有首通赏金")
-	check(Meta.buy("sh1") and Meta.available() == 13, "点危机感Ⅰ后余额 13，实为 %d" % Meta.available())
+	check(Meta.buy("sh1") and Meta.available() == 13, "点危机感Ⅰ（40）后余额 13，实为 %d" % Meta.available())
 	check(not Meta.buy("atk2"), "没点攻击性Ⅰ不能点攻击性Ⅱ")
 	Meta.buy_recommended()
 	check(Meta.available() >= 0 and Meta.available() < 5, "推荐点完余额 %d" % Meta.available())

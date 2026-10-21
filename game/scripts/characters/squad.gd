@@ -108,6 +108,8 @@ func add(cid: String, recruit_event := true):
 		g.rfx.refresh_squad()
 		if not op.is_leader and recruit_event:
 			g.rfx.on_recruit(op)   # 招募事件（docs/57 P10）：开局干员不算
+	if recruit_event and not op.is_leader and g.state == g.S.PLAY and g.demo_op == "":
+		op.arrive_t = op.ARRIVE_WAIT   # 局中招募：从屏幕上方落到编队位（不等，纯画面；换人在 replace 里从 0 起等被换下的跳出）
 	return op
 
 

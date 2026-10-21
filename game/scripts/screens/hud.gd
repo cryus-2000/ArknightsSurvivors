@@ -287,7 +287,7 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		g.hud.draw_rect(Rect2(0, cy - 62, vs.x, 92), Color(0.05, 0.0, 0.08, 0.55 * ta))
 		g.hud.draw_rect(Rect2(0, cy - 62, vs.x, 2), Color(0.8, 0.4, 1.0, 0.8 * ta))
 		g.hud.draw_rect(Rect2(0, cy + 28, vs.x, 2), Color(0.8, 0.4, 1.0, 0.8 * ta))
-		UI.text(g.hud, g.font, Vector2(0, cy + 14) + jit, "大 群 来 袭" if hw else "海嗣大群 已抵达", int(38 * pop), Color(1.0, 0.75, 1.0, ta), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 6)
+		UI.text(g.hud, g.font, Vector2(0, cy + 14) + jit, (("海嗣注意到了你的存在……" if g.t < 240.0 else "海嗣自四方合围而来……") if not g.horde_streams.is_empty() else ("大 群 来 袭" if hw else "海嗣大群 已抵达")), int(38 * pop), Color(1.0, 0.75, 1.0, ta), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 6)
 		if hw:
 			UI.en(g.hud, g.font, Vector2(vs.x / 2 - 130, cy - 40), "THE  SWARM  APPROACHES  ·  %d" % int(ceil(g.horde_warn)), 12, Color(0.85, 0.6, 1.0, ta), 3.0)
 			# 四周方向警示箭头（向内）
@@ -295,12 +295,29 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 				var ang := TAU * j / 12.0
 				if absf(angle_difference(ang, g.horde_gap)) < deg_to_rad(40.0):
 					continue  # 缺口方向不画箭头：那边没有敌人
+				if not g.horde_streams.is_empty() and g.horde_streams.all(func(sa): return absf(angle_difference(ang, float(sa))) > deg_to_rad(35.0)):
+					continue  # 分股合围：只在各股来向画箭头
 				var dir := Vector2.from_angle(ang)
 				var c := vs / 2.0
 				var ed: Vector2 = c + dir * min(abs((vs.x / 2 - 40) / max(abs(dir.x), 0.01)), abs((vs.y / 2 - 40) / max(abs(dir.y), 0.01)))
 				var tip: Vector2 = ed - dir * (10.0 + 8.0 * pulse)
 				var sd := dir.orthogonal() * 12.0
 				g.hud.draw_colored_polygon(PackedVector2Array([tip, ed + sd, ed - sd]), Color(0.9, 0.5, 1.0, 0.5 + 0.4 * pulse))
+
+	# 分股合围：后几股出发前 0.8 秒，在它的来向屏边亮一组箭头（docs/116 §7.3）
+	if not g.horde_stream_rel.is_empty() and not g.panel.visible:
+		for i in mini(g.horde_stream_rel.size(), g.horde_streams.size()):
+			var lead: float = float(g.horde_stream_rel[i]) - g.t
+			if i == 0 or lead < 0.0 or lead > 0.8:
+				continue
+			var dir := Vector2.from_angle(float(g.horde_streams[i]))
+			var c := vs / 2.0
+			var ed: Vector2 = c + dir * min(abs((vs.x / 2 - 40) / max(abs(dir.x), 0.01)), abs((vs.y / 2 - 40) / max(abs(dir.y), 0.01)))
+			var pk := 0.5 + 0.5 * sin(g.t * 18.0)
+			for j in 3:
+				var tip: Vector2 = ed - dir * (12.0 + 16.0 * j + 6.0 * pk)
+				var sd := dir.orthogonal() * 14.0
+				g.hud.draw_colored_polygon(PackedVector2Array([tip, tip + dir * 14.0 + sd, tip + dir * 14.0 - sd]), Color(1.0, 0.45, 0.9, 0.85 - 0.2 * j))
 
 	# 屏幕边缘光只留最要紧的一种（EA 1.1：低血红暗角和圈外紫光叠在一起分不清）：生命垂危 > 圈外 > 溟痕 > 灯火低
 	var low_hp: bool = g.state == Game.S.PLAY and g.hp < g.max_hp * 0.3 and g.hp > 0.0
