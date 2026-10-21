@@ -287,7 +287,7 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		g.hud.draw_rect(Rect2(0, cy - 62, vs.x, 92), Color(0.05, 0.0, 0.08, 0.55 * ta))
 		g.hud.draw_rect(Rect2(0, cy - 62, vs.x, 2), Color(0.8, 0.4, 1.0, 0.8 * ta))
 		g.hud.draw_rect(Rect2(0, cy + 28, vs.x, 2), Color(0.8, 0.4, 1.0, 0.8 * ta))
-		UI.text(g.hud, g.font, Vector2(0, cy + 14) + jit, "大 群 来 袭" if hw else "海嗣大群 已抵达", int(38 * pop), Color(1.0, 0.75, 1.0, ta), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 6)
+		UI.text(g.hud, g.font, Vector2(0, cy + 14) + jit, ("海嗣注意到了你的存在……" if not g.horde_streams.is_empty() else ("大 群 来 袭" if hw else "海嗣大群 已抵达")), int(38 * pop), Color(1.0, 0.75, 1.0, ta), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 6)
 		if hw:
 			UI.en(g.hud, g.font, Vector2(vs.x / 2 - 130, cy - 40), "THE  SWARM  APPROACHES  ·  %d" % int(ceil(g.horde_warn)), 12, Color(0.85, 0.6, 1.0, ta), 3.0)
 			# 四周方向警示箭头（向内）
