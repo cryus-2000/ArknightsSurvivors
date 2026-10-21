@@ -25,7 +25,7 @@ func update(dt: float) -> void:
 		g.vfx.show_banner("商人 15 秒后离开 —— 还没交易就快去")
 		Sfx.play("ui_move", -2.0, 0.8)
 	g.merchant_light.visible = true
-	g.merchant_light.position = g.merchant.pos + Vector2(10, -10)
+	g.merchant_light.position = g.merchant.pos + g.vfx.merchant_goods()   # 暖光在身前货物上（10-21 新商人没有提灯）
 	var d: float = g.merchant.pos.distance_to(g.ppos)
 	if d < 46.0 and not g.merchant.near:
 		g.merchant.near = true

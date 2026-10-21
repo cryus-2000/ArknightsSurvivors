@@ -246,7 +246,7 @@ func draw_bg(vs: Vector2) -> void:
 		var fr := int(g.t * 2.0) % 2
 		var mdst := Rect2((mr.position + Vector2(mr.size.x / 2.0 - sz.x / 2.0, 334 + my - sz.y)).round(), sz)
 		g.panel_fg.draw_texture_rect_region(mtx, mdst, Rect2(fw * fr, 0, fw, fh))
-		g.panel_ui.motion.draw_shop_lantern(g.panel_fg, mdst, fr)   # 灯笼一明一暗、货架逐格亮起（docs/62 §3.15）
+		g.panel_ui.motion.draw_shop_lantern(g.panel_fg, mdst, fr)   # 货物暖光一明一暗、货架逐格亮起（docs/62 §3.15；10-21 新商人无提灯）
 	g.panel_fg.draw_rect(mr, Color(1, 1, 1, 0.11), false, 1.0)
 	g.panel_fg.draw_rect(Rect2(mr.position, Vector2(14, 2)), UI.GOLD)
 	UI.strip(g.panel_fg, g.font, mr.position + Vector2(12, 12), "STAY", "还会停留 %d 秒" % int(g.merchant.get("life", 0.0)), UI.GOLD, Color(0.95, 0.87, 0.68))

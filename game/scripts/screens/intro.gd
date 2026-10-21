@@ -381,7 +381,7 @@ func draw_icon(kind: String, c: Vector2) -> void:
 			if mtx != null:
 				var fw3: int = mtx.get_width() / 2
 				var fr3: int = int(g.intro_t * 2.0) % 2
-				var sz3 := Vector2(fw3, mtx.get_height()) * 3.0
+				var sz3 := Vector2(fw3, mtx.get_height()) * 3.0 / A.hires_of(mtx)   # @2x 按高清倍率换算
 				g.hud.draw_texture_rect_region(mtx, Rect2(c - Vector2(sz3.x / 2.0, sz3.y - 40), sz3), Rect2(fw3 * fr3, 0, fw3, mtx.get_height()))
 			var left: int = 60 - int(fmod(g.intro_t * 6.0, 60.0))
 			var mc: Color = UI.GOLD if left > 15 else UI.GOLD.lerp(UI.RED, 0.5 + 0.5 * sin(g.intro_t * 8.0))

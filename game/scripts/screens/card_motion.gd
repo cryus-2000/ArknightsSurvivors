@@ -393,19 +393,15 @@ func shop_lantern() -> Dictionary:
 	return {"bright": false, "glow": 0.5 + 0.3 * sin((t - n_items * SH_STEP) * 2.2), "beam": -1, "beam_a": 0.0}
 
 
-## 商人立绘上叠灯笼覆盖帧（tools/gen_merchant_lantern.py，[商人帧 × 2 + 亮]）+ 一圈暖光 + 扫向那一格的光；
+## 商人身前货物上一圈暖光 + 扫向那一格的光（10-21 坎诺特重绘去掉提灯，覆盖帧停用）；
 ## dst = 商人立绘这一帧画在 ci 上的矩形，fr = 商人帧
-func draw_shop_lantern(ci: Control, dst: Rect2, fr: int) -> void:
+func draw_shop_lantern(ci: Control, dst: Rect2, _fr: int) -> void:
 	var st := shop_lantern()
-	var lp := dst.position + Vector2(37.5, 33.9) / 48.0 * dst.size   # 灯芯在 48×48 商人帧里的位置
+	var lp := dst.position + Vector2(37.0, 30.0) / 48.0 * dst.size   # 货物在 48×48 商人帧里的位置
 	var warm := Color(1.0, 0.72, 0.36)
 	var glow: float = st.glow
 	for k in 4:
 		ci.draw_circle(lp, 34.0 - k * 7.0, Color(warm.r, warm.g, warm.b, (0.05 + 0.04 * k) * glow))
-	var lt: Texture2D = g.tex.get("fx_merchant_lantern")
-	if lt != null:
-		var fw := lt.get_width() / 4
-		ci.draw_texture_rect_region(lt, dst, Rect2(fw * (fr * 2 + (1 if st.bright else 0)), 0, fw, lt.get_height()))
 	var bi: int = st.beam
 	if bi >= 0 and bi < g.panel_box.get_child_count() and float(st.beam_a) > 0.0:
 		var card: Control = g.panel_box.get_child(bi)

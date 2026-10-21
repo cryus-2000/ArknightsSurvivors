@@ -166,8 +166,6 @@ func update_visuals(dt: float) -> void:
 	update_beacon_lights()
 	g.vfx.watch_lamp(rd)        # docs/54 ③ 灯火暗淡 / 寂灭的一压 + 余烬
 	g.vfx.watch_merchant(rd)    # docs/54 ⑧ 商人出现 + 灯笼暖尘
-	if g.merchant_light != null and g.merchant_light.visible and g.vfx.strip("fx_merchant_lantern"):
-		g.merchant_light.energy = 1.2 if g.vfx.lantern_bright() else 1.0   # 灯光能量随灯笼覆盖帧一起抖
 	# 海中浮游颗粒
 	g.map.update_snow(dt, g.view_size())
 	_enemy_act_fx()
@@ -390,8 +388,7 @@ func _draw_warns_auras() -> void:
 		if big_m:
 			var mfr: int = int(g.t * 2.0) % 2
 			var mflip: bool = g.ppos.x < g.merchant.pos.x
-			g.vfx.spr("merchant", 2, mfr, g.merchant.pos + Vector2(0, 18), Game.PX, mflip, Color.WHITE, Vector2(0.5, 45.0 / 48.0))
-			g.vfx.merchant_lantern(mfr, g.merchant.pos + Vector2(0, 18), mflip)   # 灯笼亮度闪烁覆盖帧（docs/54 §6；贴图不在就不画）
+			g.vfx.spr("merchant", 2, mfr, g.merchant.pos + Vector2(0, 18), Game.PX / A.hires_of(mtx), mflip, Color.WHITE, Vector2(0.5, 45.0 / 48.0))   # @2x（10-21 坎诺特）不放大世界尺寸
 		else:
 			g.vfx.spr("merchant", 2, int(g.t * 2.0) % 2, g.merchant.pos, Game.PX)
 		# 「商人 %ds」标签由 HUD 层在头顶绘制（_draw_hud 商人方向指示），这里不再重复画一份
