@@ -11,8 +11,9 @@ const Character = preload("res://scripts/characters/character.gd")
 const STARTERS := ["texas", "hoshiguma", "eyjafjalla", "suzuran", "exusiai"]
 ## 第一张寻访凭证必出的干员（开局没有医疗）
 const FIRST_DRAW := "lumen"
-## 同职业里先出「上手快」的那位：权重 2（其余 1）
-const PRIORITY := {"lumen": 2, "skadi": 2, "specter_unchained": 2}
+## 同职业里先出「上手快」的那位：权重 2（其余 1）；后加入的干员排在同职业第二人之后：权重 0.5
+## （10-22 拉普兰德 近卫、歌蕾蒂娅 特种，协调人定）
+const PRIORITY := {"lumen": 2.0, "skadi": 2.0, "specter_unchained": 2.0, "lappland": 0.5, "gladiia": 0.5}
 ## 意向干员保底：连续 PITY - 1 张没出，第 PITY 张必出
 const PITY := 3
 ## 三种券：寻访凭证（随机）/ 招募券（选职业）/ 人事调度函（指定）
