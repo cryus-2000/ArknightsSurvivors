@@ -70,6 +70,7 @@
   "regen": 1.5
  },
  "sprites": {
+  "death": {"tex": "op_irene_death", "frames": 8, "fps": 8.0, "foot": [48, 76], "frame_durations": [0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125], "_doc": "10-21 原作 Die 轨逐部件像素化（tools/spine_run_trial cfg/irene_death.json），96 画布 @2x"},
   "idle": {
    "tex": "op_irene_idle",
    "frames": 8,

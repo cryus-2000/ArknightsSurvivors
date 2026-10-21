@@ -1,7 +1,6 @@
 ## 编队（docs/23 §3）：持有编队位上的干员实例，负责招募 / 替换、编队校验、跟随队形与统一的 update / draw 分发。
 ## 常规上限 3 人，第 4 位由事件 / 藏品 / 商店解锁（extra_slot）。干员没有生命值，敌人只追主控。
 extends RefCounted
-const RetreatFx = preload("res://scripts/render/retreat_fx.gd")   # 共用撤退表现（10-21）
 
 const Character = preload("res://scripts/characters/character.gd")
 const BatchCanvas = preload("res://scripts/characters/batch_canvas.gd")
@@ -134,14 +133,18 @@ func remove(cid: String) -> void:
 		g.rfx.refresh_squad()
 
 
-## 队友离队 / 换人：在原地留一个共用撤退表现（render/retreat_fx.gd，纯画面 g.fx kind "retreat"）
+## 队友离队 / 换人（10-22 用户定「倒地」）：原地播本人 death 条倒下，末帧停 DOWN_HOLD 秒后淡出（纯画面 g.fx kind "downed"，world._draw_fx 画）；没有 death 条就不留
+const DOWN_HOLD := 0.5
+const DOWN_FADE := 0.3
+
 func _leave_fx(o) -> void:
 	if o.pos == Vector2.INF or g.get("fx") == null:
 		return
-	var st: Dictionary = o.anim_state()
+	var st: Dictionary = o.downed_state(0.0)
 	if st.is_empty():
 		return
-	g.fx.append({"kind": "retreat", "pos": o.pos + Vector2(o.foot_dx(st), 0), "st": st, "foot_off": o.foot_off(st.tex, st.get("kind", "")), "life": RetreatFx.TOTAL, "max": RetreatFx.TOTAL})
+	var dur: float = o.downed_seconds() + DOWN_HOLD + DOWN_FADE
+	g.fx.append({"kind": "downed", "op": o, "pos": o.pos + Vector2(o.foot_dx(st), 0), "flip": st.flip, "foot_off": o.foot_off(st.tex, "death"), "life": dur, "max": dur})
 
 
 var _hold_size := false   # replace 中途：人数先减后加，不重算入队加成（人数不变，台阶不变）

@@ -1,5 +1,4 @@
 extends RefCounted
-const RetreatFx = preload("res://scripts/render/retreat_fx.gd")   # 共用撤退表现（10-21）
 ## 世界绘制（2.5D）：地图之上按纵深排序画敌人 / 主控 / 编队 / 博士挂件 / 特效，缩圈与护盾；主控与博士的动画状态、手感（压缩 / 拉伸 / 扬尘）。
 ## game.gd 的 _draw 只转发到这里。地图本身在 world/map.gd，HUD 在 screens/hud.gd。2026-09-26 从 game.gd 拆出。
 
@@ -950,8 +949,11 @@ func _draw_fx() -> void:
 			skip_sparks -= 1
 			continue
 		match f.kind:
-			"retreat":
-				RetreatFx.draw(g, f.st, f.pos + g.draw_off, f.foot_off, f.max - f.life, g.PX)   # 队友离队 / 换人的共用撤退（squad._leave_fx）
+			"downed":   # 队友离队 / 换人：本人 death 条倒地 → 末帧停留 → 淡出（squad._leave_fx，10-22）
+				var dst: Dictionary = f.op.downed_state(f.max - f.life)
+				if not dst.is_empty():
+					var dc := Color(1, 1, 1, clampf(f.life / 0.3, 0.0, 1.0))   # 最后 0.3 秒（squad.DOWN_FADE）淡出
+					draw_sprite_at(f.pos, f.flip, dc, dst.frame, dst.tex, dst.hf, f.foot_off)
 			"frost":
 				# 寒冰领域：淡蓝地面 + 旋转冰纹（地面椭圆与判定一致，ground_y，docs/48 ①）
 				var fa: float = minf(1.0, f.life / 0.6) * 0.9
