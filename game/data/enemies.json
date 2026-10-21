@@ -4,6 +4,7 @@
   "bone": {
    "name": "骨海漂流体",
    "hp": 7.0,
+   "hp_late": 3.0,
    "spd": 64.0,
    "dmg": 5.0,
    "r": 10.0,
@@ -19,6 +20,7 @@
    "dash_fx": "fx_slider_dash",
    "name": "底海滑动者",
    "hp": 12.0,
+   "hp_late": 1.5,
    "spd": 72.0,
    "dmg": 6.0,
    "r": 10.0,
@@ -145,6 +147,7 @@
    "blast_fx": "fx_runner_blast",
    "name": "壳海狂奔者",
    "hp": 9.0,
+   "hp_late": 2.0,
    "spd": 108.0,
    "dmg": 12.0,
    "r": 9.0,
