@@ -173,6 +173,8 @@ func update_visuals(dt: float) -> void:
 	var nfx: int = g.fx.size()
 	for o in g.squad.ops:
 		nfx += o.pfx.size()
+		if o.arrive_t >= 0.0:
+			o.arrive_t = -1.0 if not o.arriving() else o.arrive_t + dt   # 换人入场的下落计时（character.arrive_dy）
 	var want: float = 0.0 if g.demo_op != "" else clampf((nfx - Dc.p("crowd_from")) / Dc.p("crowd_span"), 0.0, 1.0)
 	crowd = move_toward(crowd, want, rd * (3.0 if want > crowd else 0.8))
 	var ne := 0
