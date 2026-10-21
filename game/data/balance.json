@@ -300,11 +300,11 @@
   "ishar_tear_block_radius": 32.0
  },
  "final": {
-  "_doc": "最终 Boss 战停刷（run/spawner.gd mobs_stopped，docs/38 §8.14，用户 10-11「最终 boss 出现以后小怪就可以不用刷了」）。stop_mobs 1：最终 Boss 在场时普通刷怪 / 精英 / 大群 / 威胁上升新种类都不刷，Boss 召唤物、剧本刷怪、补给箱、灯标照常；0 = 旧行为（仍受 boss/final_mob_cap 120 限制）。clear_mobs_s：0 = 场上现有杂兵留着；> 0 = 最终 Boss 登场时现有普通杂兵在 N 秒内由远到近逐只消散（不算击杀、不掉东西）。难度表 final_stop_mobs / final_clear_mobs_s ≥ 0 时按档覆盖。少量补怪（spawner.trickling，用户 10-12「最后 boss 还是需要刷新点小怪的，但是频率和数量可以下降点」「新怪中也可以有，可以少一点」）：stop_mobs 1 且 trickle_mult > 0 时，普通刷怪按正常刷怪率 × trickle_mult 继续（替代 enemy/spawn_boss_mult），存活杂兵（非 Boss / 宝箱 / 友方）到 trickle_cap 就不补（替代 boss/final_mob_cap；0 = 仍用 final_mob_cap；云端 ftr 配对：上限 40 时 Ⅷ 62.5→50.0%（压线），25 时 57.1%，10-12 定 25）；本级威胁新种类（上一级刷怪池没有的）在补怪里抽取权重 × trickle_fresh_w；精英 / 大群（含预警）/ 威胁上升那一小波仍不刷。trickle_mult 0 = 10-11 的全停。难度表 final_trickle_mult / final_trickle_cap / final_trickle_fresh_w ≥ 0 时按档覆盖",
+  "_doc": "最终 Boss 战停刷（run/spawner.gd mobs_stopped，docs/38 §8.14，用户 10-11「最终 boss 出现以后小怪就可以不用刷了」）。stop_mobs 1：最终 Boss 在场时普通刷怪 / 精英 / 大群 / 威胁上升新种类都不刷，Boss 召唤物、剧本刷怪、补给箱、灯标照常；0 = 旧行为（仍受 boss/final_mob_cap 120 限制）。clear_mobs_s：0 = 场上现有杂兵留着；> 0 = 最终 Boss 登场时现有普通杂兵在 N 秒内由远到近逐只消散（不算击杀、不掉东西）。难度表 final_stop_mobs / final_clear_mobs_s ≥ 0 时按档覆盖。少量补怪（spawner.trickling，用户 10-12「最后 boss 还是需要刷新点小怪的，但是频率和数量可以下降点」「新怪中也可以有，可以少一点」）：stop_mobs 1 且 trickle_mult > 0 时，普通刷怪按正常刷怪率 × trickle_mult 继续（替代 enemy/spawn_boss_mult），存活杂兵（非 Boss / 宝箱 / 友方）到 trickle_cap 就不补（替代 boss/final_mob_cap）；本级威胁新种类（上一级刷怪池没有的）在补怪里抽取权重 × trickle_fresh_w；精英 / 大群（含预警）/ 威胁上升那一小波仍不刷。trickle_mult 0 = 10-11 的全停。难度表 final_trickle_mult / final_trickle_cap / final_trickle_fresh_w ≥ 0 时按档覆盖。注意 trickle_cap 和 final_mob_cap / mid_mob_cap 不是同一口径：后两个经 boss_mob_room() 按怪物密度（density）同比缩放，trickle_cap 10-21 起**不缩放**——它是「最终 Boss 登场 N 秒内场上敌人数不低于登场前百分之多少」这类目标直接反推出来的只读数字，写多少就是场上真实允许的数量，不用再乘密度心算（旧版本经密度 0.4 二次折算，写 25/40 实际只生效约 10/16，表现为「调了 cap 没用」，10-21 协调人定改成直接写实际值）。docs/117：trickle_mult 1.2、trickle_cap 云端 6 编队×4 seed 配对验证（cloud-results/boss-pacing-ab）36 时 30 秒后场上敌人数 36.8/83.7（登场前）= 44%，略低于 50% 目标，10-21 提到 42（预期约 50%，与 cap 近似线性、未再跑云端复核）；胜率 base 17/24=70.8% 与 new 17/24=70.8% 完全一致（24 局配对，trickle_cap 对标准档胜率看不出影响）；最终 Boss 用时中位 52→63.5 秒（更贴近 60–120 目标，杂兵变多后玩家分心、Boss 战略微变长，仍在区间内）。目标 30 秒内不低于登场前 50%、Boss 用时仍在 60–120 秒、标准档胜率 50–70",
   "stop_mobs": 1,
   "clear_mobs_s": 0,
-  "trickle_mult": 0.35,
-  "trickle_cap": 25,
+  "trickle_mult": 1.2,
+  "trickle_cap": 42,
   "trickle_fresh_w": 0.5
  },
  "difficulty": {

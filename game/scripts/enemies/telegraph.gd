@@ -64,6 +64,8 @@ func warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary
 	if e.boss:
 		w.dur = maxf(w.dur, 0.6)
 		w.track = minf(w.track, maxf(0.0, w.dur - 0.4))
+		if float(w.dmg) > 0.0:
+			e.moves_n = int(e.get("moves_n", 0)) + 1   # docs/117 节奏审计：Boss 有伤害的预警次数，纯计数字段，只读不改判定
 	# 冲刺 / 突刺的预警线长 = 实际冲出的距离（docs/48 P0-3：原来斥亡体画 190 冲 373、塑路者画 440 冲 214）：
 	# 按击退每秒衰减 900 算，距离 = v²/1800 + 本体半径（自冲不受重型削减）。fit_len：按设计线长反推速度（骑士冲锋、塑路者冲撞要真冲到位）
 	if w.act in ["dash", "stab"] and shape == "line":

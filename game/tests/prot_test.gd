@@ -830,7 +830,8 @@ func test_final_mob_cap() -> void:
 	var cap: int = sp.dens_cap(int(Bal.v("boss/final_mob_cap", 120.0)))
 	ok(sp.boss_mob_room() == cap - 5, "最终 Boss 在场：余量 = 上限（按密度 %d）− 存活杂兵（%d）" % [cap, sp.boss_mob_room()])
 	Bal._data["final"] = {"stop_mobs": 1.0, "trickle_mult": 0.35, "trickle_cap": 40.0}
-	ok(sp.boss_mob_room() == sp.dens_cap(40) - 5, "少量补怪开：余量 = trickle_cap 40（按密度 %d）− 存活杂兵（%d）" % [sp.dens_cap(40), sp.boss_mob_room()])
+	# trickle_cap 10-21 起不再乘密度（docs/117：和 final_mob_cap / mid_mob_cap 不同口径，直接是场上允许的真实数量）
+	ok(sp.boss_mob_room() == 40 - 5, "少量补怪开：余量 = trickle_cap 40（不按密度）− 存活杂兵（%d）" % sp.boss_mob_room())
 	if keep_fin == null:
 		Bal._data.erase("final")
 	else:
@@ -918,8 +919,8 @@ func test_final_stop_mobs() -> void:
 	ok(not sp.mobs_stopped() and step.call() >= 3, "difficulty final_stop_mobs 0 覆盖：按档照常刷")
 	game.dmod = keep_d
 	# 少量补怪（10-12）：stop_mobs 1 + trickle_mult 0.35 + trickle_cap 5，场上已有 3 只杂兵；攒 10 只的累积、精英到点、大群到点、威胁待升
-	# trickle_cap 经 dens_cap 按密度缩：填 5 / k，缩后仍是 5（k = 1 时就是 5）
-	Bal._data["final"] = {"stop_mobs": 1.0, "clear_mobs_s": 0.0, "trickle_mult": 0.35, "trickle_cap": 5.0 / sp.density(), "trickle_fresh_w": 0.5}
+	# trickle_cap 10-21 起不再乘密度（docs/117），填 5 就是 5
+	Bal._data["final"] = {"stop_mobs": 1.0, "clear_mobs_s": 0.0, "trickle_mult": 0.35, "trickle_cap": 5.0, "trickle_fresh_w": 0.5}
 	game.enemies = [fb]
 	game.bosses = [fb]
 	for k in 3:

@@ -191,16 +191,22 @@ func max_alive() -> int:
 
 
 ## Boss 在场时还能刷几只普通怪：最终 Boss 读 boss/final_mob_cap（120），中期 Boss 读 boss/mid_mob_cap（160，协调人 9/30 定：
-## Ⅷ 7:00 双体战全场 230 只、主教 on_boss 0%）；没有 Boss 或上限为 0 时按同屏上限 max_alive()
+## Ⅷ 7:00 双体战全场 230 只、主教 on_boss 0%）；没有 Boss 或上限为 0 时按同屏上限 max_alive()。final_mob_cap / mid_mob_cap
+## 按怪物密度同比缩（dens_cap），trickle_cap 不缩——它是「登场后 N 秒内场上敌人数不低于登场前百分之多少」这类目标直接
+## 反推出来的只读数字（docs/117 §6），写多少就是多少，不想再绕一层密度换算（10-21 协调人定，同 seed 不变）
 func boss_mob_room() -> int:
 	var cap := 0
+	var raw := false   # true：cap 是 trickle_cap，不再乘密度
 	if g.final_boss != null and not g.final_boss.dead:
 		cap = int(Bal.v("boss/final_mob_cap", 120.0))
 		if trickling() and final_knob("trickle_cap") > 0.0:
-			cap = int(final_knob("trickle_cap"))   # 少量补怪的存活杂兵上限（final/trickle_cap）
+			cap = int(final_knob("trickle_cap"))   # 少量补怪的存活杂兵上限（final/trickle_cap，直接数值）
+			raw = true
 	elif boss_alive():
 		cap = int(Bal.v("boss/mid_mob_cap", 160.0))
-	return dens_cap(cap) - mob_count() if cap > 0 else max_alive()   # 存活杂兵上限按怪物密度同比缩
+	if cap <= 0:
+		return max_alive()
+	return (cap if raw else dens_cap(cap)) - mob_count()
 
 
 ## 最终 Boss 战停刷（用户 10-11「最终 boss 出现以后小怪就可以不用刷了」，docs/38 §8.14）：旋钮 final/<key>，难度表 final_<key> ≥ 0 时优先。
