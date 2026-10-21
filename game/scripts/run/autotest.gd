@@ -328,12 +328,22 @@ func _opt_ab() -> void:
 ## --cmdat=<秒>,<秒>,…（指挥模式录片 / 复现，docs/114）：游戏时间到这些秒各按一次指挥键（同玩家按 F），切换照常记进 squad.stance_log
 var _cmd_at: Array = []
 var _cmd_read := false
+var _cmd_down_at := -1.0
 func _cmd_step() -> void:
 	if not _cmd_read:
 		_cmd_read = true
 		for a in Cfg.dev_args():
+			if a.begins_with("--cmddown="):
+				_cmd_down_at = float(a.substr(10))
 			if a.begins_with("--cmdat="):
 				_cmd_at = Array(a.substr(8).split(",")).map(func(x): return float(x))
+	if _cmd_down_at >= 0.0 and g.state == g.S.PLAY and g.t >= _cmd_down_at:
+		_cmd_down_at = -1.0
+		for o in g.squad.ops:   # --cmddown=<秒>（录片用）：到点让全部队友原地倒地，看倒地姿势 / 复活
+			if not o.is_leader:
+				o.cmd_hp = 0.0
+				o.cmd_down = Bal.v("command/revive_secs", 25.0)
+				o.cmd_down_age = 0.0
 	if not _cmd_at.is_empty() and g.state == g.S.PLAY and g.t >= float(_cmd_at[0]):
 		_cmd_at.pop_front()
 		g.toggle_command()
