@@ -41,6 +41,10 @@ func _draw() -> void:
 	off = ((vs - dsz * k) / 2.0).round()
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0.02, 0.03, 0.05))
 	draw_set_transform(off, 0.0, Vector2(k, k))
+	if which.ends_with("_f"):
+		_f(dsz)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
 	if which.ends_with("_v2"):
 		_v2(dsz)
 		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -1309,3 +1313,340 @@ func _v2_hunt_result(dsz: Vector2) -> void:
 	UI.para(self, Rect2(W - 520, H - 104, 176, 60), 14.0, Color(1, 1, 1, 0.08), Color.WHITE)
 	UI.text_at(self, font, Vector2(W - 432, H - 74), "设定意向", 16, UI.TEXT, "mm")
 	_motion_tag(W, "动效：卡片逐张横向翻入（第 3 张正在翻）")
+
+
+# ================================================================ 定稿（10-22 用户：以 GPT 寻访概念图 27–33 为准，docs/125 §6）
+# 规则改动：只有一种「寻访凭证」（每局 3 张、通关 4 张）；入口只留凭证数 +「寻访一次（1 张）」+「定向寻访（2 张）」；
+# 定向 = 先选职业（28 式阵列）再选干员（30 式）；意向干员与保底删除；拉包 / 揭示 / 汇总照做（汇总去掉「设定意向」）。结算用同一语言补一张
+
+const HS = preload("res://scripts/screens/hh_style.gd")
+
+
+func _f(dsz: Vector2) -> void:
+	HS.backdrop(self, dsz)
+	match which:
+		"hunt_f":
+			_f_hunt(dsz)
+		"class_f":
+			_f_class(dsz)
+		"pick_f":
+			_f_pick(dsz)
+		"bag_f":
+			_f_bag(dsz)
+		"reveal_f":
+			_f_reveal(dsz)
+		"summary_f":
+			_f_summary(dsz)
+		"result_f":
+			_f_result(dsz)
+
+
+## 灰色像素剪影 + 底部 LOCKED（卡池 / 候选用）
+func _f_locked(od: Dictionary, foot: Vector2, k2: float, label := true) -> void:
+	_figure(od, foot, k2, HS.SIL, 0, false)
+	draw_set_transform(off + foot * k, 0.0, Vector2(k, k * 0.2))
+	draw_circle(Vector2.ZERO, 80 * k2 / 4.0, Color(0, 0, 0, 0.35))
+	draw_set_transform(off, 0.0, Vector2(k, k))
+	if label:
+		HS.solid_px(self, foot + Vector2(0, 22), "LOCKED", 2.0, Color(1, 1, 1, 0.6), 1)
+
+
+func _f_hunt(dsz: Vector2) -> void:
+	var W := dsz.x
+	var H := dsz.y
+	HS.left_panel(self, dsz, 470, 330, 62)
+	HS.topbar(self, font, dsz, ["PERSONNEL /", "RECRUITMENT"], "寻访")
+	HS.title_block(self, font, Vector2(36, 150), "01", "人事寻访", "寻访", "HEADHUNT", 1.0, 80)
+	# 凭证（只有一种）
+	var vr := Rect2(36, 400, 380, 76)
+	draw_rect(vr, Color(1, 1, 1, 0.55))
+	draw_rect(vr, Color(0, 0, 0, 0.25), false, 1.0)
+	HS.voucher(self, vr.position + Vector2(52, 38), 1.0)
+	UI.text_at(self, font, vr.position + Vector2(110, 38), "寻访凭证", 20, HS.INK, "lm", true)
+	UI.text_at(self, font, Vector2(vr.end.x - 20, vr.position.y + 38), "× 3", 30, HS.INK, "rm", true)
+	for j in 3:
+		draw_rect(Rect2(40, 506 + j * 26, 6, 6), HS.INK)
+		UI.text_at(self, font, Vector2(56, 509 + j * 26), ["每次探索结算获得 3 张，通关获得 4 张", "未解锁 12 名 · 不会抽到重复干员", "首次寻访必定获得医疗干员"][j], 14, HS.INK2, "lm")
+	HS.hr_mark(self, font, Vector2(40, 640))
+	# 右：卡池（巨型描边英文 + 三个灰色像素剪影 + 每组一排小剪影）
+	HS.outline_px(self, Vector2(560, 180), "PERSONNEL", 11.0, Color(1, 1, 1, 0.12), HS.DARK)
+	var pools := [["skadi", ["irene", "lappland", "specter_unchained", "gladiia"]], ["lumen", ["kaltsit", "mizuki", "logos", "angelina"]], ["wisadel", ["ulpianus", "skalter", "siege", "saria"]]]
+	for i in 3:
+		var cx := 690.0 + i * 250.0
+		var big := i == 1
+		_f_locked(_card(pools[i][0]), Vector2(cx, 520 if big else 500), 4.0 if big else 3.0)
+		for j in 4:
+			_figure(_card(pools[i][1][j]), Vector2(cx - 84 + j * 56, 600 if big else 580), 0.7, Color(0.45, 0.47, 0.52), 0, false)
+	_brackets(Rect2(840, 250, 200, 300), Color(1, 1, 1, 0.85), 22, 3)
+	HS.para(self, Rect2(840, 210, 210, 36), UI.fa(UI.VIOLET, 0.9))
+	UI.text_at(self, font, Vector2(945, 228), "卡池 · 未解锁 12 名", 15, Color.WHITE, "mm", true)
+	# 右下：两个按钮
+	HS.ghost_btn(self, font, Rect2(620, 636, 300, 62), "定向寻访  （2 张）", "", 1.0)
+	HS.main_btn(self, font, Rect2(940, 632, 310, 68), "寻访一次  （1 张）", "")
+
+
+func _f_class(dsz: Vector2) -> void:
+	var W := dsz.x
+	var H := dsz.y
+	HS.left_panel(self, dsz, 500, 380, 62)
+	HS.topbar(self, font, dsz, ["PERSONNEL /", "RECRUITMENT"], "定向寻访 · 选择职业")
+	var by := HS.title_block(self, font, Vector2(36, 150), "01", "定向寻访", "定向寻访", "DIRECTED", 1.0, 72)
+	UI.text_at(self, font, Vector2(36, by + 34), "先选职业，再从该职业的未解锁干员中指定 1 名。", 15, HS.INK, "lm")
+	UI.text_at(self, font, Vector2(36, by + 58), "消耗寻访凭证 2 张。", 15, HS.INK, "lm")
+	_blit_bag(Vector2(210, 650), 1.0, 0)
+	HS.hr_mark(self, font, Vector2(36, 430))
+	# 右：4 × 2 职业卡
+	var nlock := {"先锋": 1, "近卫": 3, "重装": 0, "狙击": 1, "术师": 1, "医疗": 2, "辅助": 1, "特种": 4}
+	var per := {"先锋": ["siege"], "近卫": ["skadi", "irene", "lappland"], "重装": [], "狙击": ["wisadel"], "术师": ["logos"], "医疗": ["lumen", "kaltsit"], "辅助": ["angelina"], "特种": ["mizuki", "specter_unchained", "gladiia", "skalter"]}
+	var owned := ["先锋", "重装", "术师", "辅助", "狙击"]
+	for i in 8:
+		var cls: String = CLASS_ORDER[i]
+		var col: Color = Character.CLASS_COL[cls]
+		var row := int(i / 4)
+		var r := Rect2(560 + (i % 4) * 182 - row * 60, 104 + row * 284, 166, 262)
+		var sel := cls == "近卫"
+		var dis: bool = nlock[cls] == 0
+		HS.card(self, r, col, sel, dis)
+		var ink := HS.INK if sel else Color(1, 1, 1, 0.4 if dis else 1.0)
+		var cx := r.get_center().x + 10
+		UI.class_glyph(self, cls, Vector2(cx, r.position.y + 70), 26.0, ink, 4.0)
+		HS.spaced(self, font, Vector2(cx - UI.cwidth(font, CLASS_EN[cls], 9) * 0.5 - 18, r.position.y + 128), CLASS_EN[cls], 9, UI.fa(ink, 0.7), 3.0)
+		UI.text_at(self, font, Vector2(cx, r.position.y + 154), cls, 30, ink, "mm", true)
+		draw_line(Vector2(r.position.x + 30, r.position.y + 182), Vector2(r.end.x - 20, r.position.y + 182), UI.fa(ink, 0.3), 1.0)
+		UI.text_at(self, font, Vector2(cx, r.position.y + 204), "已全部解锁" if dis else "未解锁  %d" % nlock[cls], 16, ink, "mm")
+		var sx: float = cx - per[cls].size() * 16.0
+		for cid in per[cls]:
+			_figure(_card(cid), Vector2(sx + 16, r.end.y - 10), 0.32, Color(0.4, 0.42, 0.47) if not sel else Color(0.45, 0.47, 0.52), 0, false)
+			sx += 32.0
+		if not owned.has(cls) and not dis:
+			HS.tag(self, font, r.position + Vector2(r.size.y * HS.SKEW * 0.2 + 34, 10), "新职业", 0.85, HS.CYB)
+	HS.bottom_bar(self, dsz, 88)
+	HS.voucher(self, Vector2(80, H - 44), 0.8)
+	UI.text_at(self, font, Vector2(130, H - 44), "持有寻访凭证  × 3", 20, UI.TEXT, "lm")
+	UI.text_at(self, font, Vector2(330, H - 44), "本次消耗 2", 15, HS.MUTE, "lm")
+	UI.text_at(self, font, Vector2(640, H - 44), "方向键选择", 15, UI.TEXT, "mm")
+	HS.main_btn(self, font, Rect2(W - 330, H - 74, 310, 60), "确认职业", "Enter")
+
+
+func _f_pick(dsz: Vector2) -> void:
+	var W := dsz.x
+	var H := dsz.y
+	HS.right_panel(self, dsz, 780, 640, 62, H - 88)
+	HS.topbar(self, font, dsz, ["PERSONNEL /", "TRANSFER"], "定向寻访 · 指定干员")
+	# 左：该职业的候选（一排大卡：剪影 + 名字可见）
+	var cands := ["skadi", "irene", "lappland"]
+	for i in 3:
+		var od := _card(cands[i])
+		var r := Rect2(40 + i * 220, 104, 200, 470)
+		var sel := i == 1
+		HS.card(self, r, od.col, sel)
+		var ink := HS.INK if sel else Color.WHITE
+		UI.class_glyph(self, od.cls, r.position + Vector2(70, 40), 14.0, ink, 3.0)
+		HS.spaced(self, font, r.position + Vector2(96, 36), "GUARD", 9, UI.fa(ink, 0.7), 3.0)
+		UI.text_at(self, font, r.position + Vector2(96, 54), od.cls, 16, ink, "lm", true)
+		_figure(od, Vector2(r.get_center().x, r.end.y - 104), 1.8, Color(0.42, 0.44, 0.5) if not sel else Color(0.30, 0.32, 0.37), 0, false)
+		draw_line(Vector2(r.position.x + 30, r.end.y - 80), Vector2(r.end.x - 30, r.end.y - 80), UI.fa(ink, 0.3), 1.0)
+		UI.text_at(self, font, Vector2(r.get_center().x - 8, r.end.y - 44), od.name, 28, ink, "mm", true)
+	# 右：浅色档案（编号 + 大字名 + 像素描边英文 + 职业 + 技能）+ 大剪影
+	var od2 := _card("irene")
+	var by := HS.title_block(self, font, Vector2(820, 130), "01", "人事调度", od2.name, od2.en, 1.0, 64)
+	UI.class_glyph(self, od2.cls, Vector2(846, by + 50), 22.0, HS.INK, 4.0)
+	HS.spaced(self, font, Vector2(890, by + 40), "GUARD", 10, HS.INK2, 4.0)
+	UI.text_at(self, font, Vector2(890, by + 64), "近卫", 22, HS.INK, "lm", true)
+	draw_rect(Rect2(820, by + 92, 240, 2), HS.INK)
+	draw_rect(Rect2(820, by + 116, 3, 16), HS.INK)
+	UI.text_at(self, font, Vector2(832, by + 124), "技能", 16, HS.INK, "lm", true)
+	var sk: Array = od2.def.get("skills", [])
+	for j in mini(3, sk.size()):
+		var y := by + 150 + j * 52
+		draw_rect(Rect2(820, y, 40, 40), HS.INK)
+		HS.solid_px(self, Vector2(840, y + 20), "S%d" % (j + 1), 2.0, Color.WHITE, 1)
+		UI.text_at(self, font, Vector2(876, y + 20), str(sk[j].get("name", "")), 17, HS.INK, "lm")
+		draw_line(Vector2(876, y + 44), Vector2(1060, y + 44), UI.fa(HS.INK, 0.2), 1.0)
+	_figure(od2, Vector2(1160, H - 130), 3.0, Color(0.16, 0.17, 0.21), 0, false)
+	UI.text_at(self, font, Vector2(820, H - 112), "指定 1 名未解锁干员加入名册。立绘在解锁后显示。", 14, HS.INK, "lm")
+	HS.bottom_bar(self, dsz, 88)
+	HS.voucher(self, Vector2(80, H - 44), 0.8)
+	UI.text_at(self, font, Vector2(130, H - 44), "持有寻访凭证  × 3", 20, UI.TEXT, "lm")
+	UI.text_at(self, font, Vector2(330, H - 44), "本次消耗 2", 15, HS.MUTE, "lm")
+	HS.ghost_btn(self, font, Rect2(W - 560, H - 72, 210, 56), "返回", "Esc")
+	HS.main_btn(self, font, Rect2(W - 330, H - 74, 310, 60), "确认寻访", "Enter")
+
+
+## Codex 作战包（ui_hh_bag_zip@2x 第 f 档）画在 foot（底边中点），sc = 每 @2x 像素的界面单位
+func _blit_bag(foot: Vector2, sc: float, f: int) -> void:
+	var tx := A.tex("ui_hh_bag_zip")
+	if tx == null:
+		return
+	draw_texture_rect_region(tx, Rect2((foot - Vector2(128, 148) * sc).round(), Vector2(256, 152) * sc), Rect2(256 * f, 0, 256, 152))
+
+
+func _f_bag(dsz: Vector2) -> void:
+	var W := dsz.x
+	var H := dsz.y
+	# 地面（浅灰台面 + 斜向墙面）
+	draw_colored_polygon(PackedVector2Array([Vector2(0, 470), Vector2(W, 470), Vector2(W, H), Vector2(0, H)]), Color8(58, 62, 72))
+	draw_colored_polygon(PackedVector2Array([Vector2(180, 470), Vector2(W - 180, 470), Vector2(W - 60, H), Vector2(60, H)]), Color8(74, 78, 88))
+	for x in [150.0, 320.0, W - 320.0, W - 150.0]:
+		draw_line(Vector2(x, 0), Vector2(x - 60, 470), Color(1, 1, 1, 0.05), 24.0)
+	var foot := Vector2(W / 2.0, 600)
+	var sc := 2.0
+	var s := 6
+	var tx := A.tex("ui_hh_bag_zip")
+	var tl := foot - Vector2(128, 148) * sc
+	if tx != null:
+		draw_texture_rect_region(tx, Rect2(tl, Vector2(256, 152) * sc), Rect2(256 * s, 0, 256, 152))
+	var gl := A.tex("fx_hh_mouth_glow")
+	var slider := [Vector2(220, 48), Vector2(194, 53), Vector2(168, 58), Vector2(142, 63), Vector2(115, 68), Vector2(89, 73), Vector2(63, 78), Vector2(37, 83)]
+	var mouth: Vector2 = tl + (slider[s] + Vector2(220, 48)) / 2.0 * sc
+	if gl != null:
+		draw_texture_rect_region(gl, Rect2(mouth - Vector2(128, 272) * sc, Vector2(256, 320) * sc), Rect2(256, 0, 256, 320))
+	var fr := A.tex("ui_hh_bag_zip_front")
+	if fr != null:
+		draw_texture_rect_region(fr, Rect2(tl, Vector2(256, 152) * sc), Rect2(256 * s, 0, 256, 152))
+	var sh := A.tex("fx_hh_shards")
+	if sh != null:
+		for e in [[-120, -260, 6], [90, -330, 7], [-60, -420, 8], [150, -200, 9], [-190, -160, 0], [40, -480, 2]]:
+			draw_texture_rect_region(sh, Rect2(mouth + Vector2(e[0], e[1]) - Vector2(32, 32) * sc, Vector2(64, 64) * sc), Rect2(64 * e[2], 0, 64, 64), Color8(255, 196, 80))
+	draw_rect(Rect2(40, 34, 3, 64), UI.TEXT)
+	UI.text_at(self, font, Vector2(64, 48), "寻访", 26, UI.TEXT, "lm", true)
+	draw_rect(Rect2(64, 74, 140, 1.5), UI.TEXT)
+	HS.spaced(self, font, Vector2(64, 98), "PERSONNEL", 13, UI.TEXT, 5.0)
+	var br := Rect2(W - 210, 26, 180, 50)
+	HS.para(self, br, Color(0, 0, 0, 0.3), UI.TEXT)
+	UI.text_at(self, font, br.get_center(), "跳过    Esc", 17, UI.TEXT, "mm", true)
+	draw_line(Vector2(W / 2.0 - 160, H - 66), Vector2(W / 2.0 - 70, H - 66), UI.TEXT, 3.0)
+	draw_polyline(PackedVector2Array([Vector2(W / 2.0 - 146, H - 78), Vector2(W / 2.0 - 160, H - 66), Vector2(W / 2.0 - 146, H - 54)]), UI.TEXT, 3.0)
+	HS.spaced(self, font, Vector2(W / 2.0 - 50, H - 58), "向左拉开拉链", 18, UI.TEXT, 8.0)
+
+
+func _f_reveal(dsz: Vector2) -> void:
+	var W := dsz.x
+	var H := dsz.y
+	var od := _card("lumen")
+	var col: Color = od.col
+	# 右：职业色半透明斜带 + 大号职业图标水印 + 描边英文
+	draw_colored_polygon(PackedVector2Array([Vector2(1080, 0), Vector2(1280, 0), Vector2(1280, 0), Vector2(900, H), Vector2(700, H)]), UI.fa(col.darkened(0.35), 0.45))
+	UI.class_glyph(self, od.cls, Vector2(1000, 250), 150.0, UI.fa(col.darkened(0.2), 0.45), 28.0)
+	HS.outline_px(self, Vector2(440, 450), od.en, 28.0, Color(1, 1, 1, 0.16), HS.DARK)
+	# 左：浅灰斜切名牌面板
+	draw_colored_polygon(PackedVector2Array([Vector2(0, 48), Vector2(460, 48), Vector2(300, 660), Vector2(0, 660)]), HS.LIGHT)
+	draw_line(Vector2(300, 668), Vector2(650, 668), Color(1, 1, 1, 0.3), 1.0)
+	UI.class_glyph(self, od.cls, Vector2(110, 190), 40.0, HS.INK, 7.0)
+	draw_rect(Rect2(186, 152, 2, 76), HS.INK)
+	HS.spaced(self, font, Vector2(214, 176), "MEDIC", 13, HS.INK, 8.0)
+	UI.text_at(self, font, Vector2(212, 212), "医疗", 40, HS.INK, "lm", true)
+	UI.text_at(self, font, Vector2(46, 262), "流明", 110, HS.INK, "la", true)
+	draw_rect(Rect2(52, 410, 66, 4), HS.YEL)
+	HS.outline_px(self, Vector2(52, 456), od.en, 14.0, HS.INK2, HS.LIGHT)
+	HS.tag(self, font, Vector2(52, 540), "新加入", 1.1)
+	draw_rect(Rect2(170, 544, 2, 26), HS.INK)
+	UI.text_at(self, font, Vector2(186, 557), "已加入名册", 18, HS.INK, "lm")
+	draw_line(Vector2(330, 557), Vector2(420, 557), HS.INK2, 1.0)
+	# 立绘（6 倍像素）+ 网点投影
+	_figure(od, Vector2(820, 650), 6.0, Color(0, 0, 0, 0), 2, false)
+	for i in 120:
+		var x := 640.0 + (i % 40) * 9.0
+		var y := 640.0 + int(i / 40) * 8.0
+		draw_rect(Rect2(x + (int(i / 40) % 2) * 4, y, 3, 3), Color(0, 0, 0, 0.35))
+	var br := Rect2(W - 190, 18, 160, 40)
+	HS.para(self, br, Color(0, 0, 0, 0.3), UI.TEXT)
+	UI.text_at(self, font, br.get_center(), "跳过   Esc", 15, UI.TEXT, "mm", true)
+	HS.main_btn(self, font, Rect2(W - 330, H - 112, 300, 70), "继续", "Enter")
+
+
+func _f_summary(dsz: Vector2) -> void:
+	var W := dsz.x
+	var H := dsz.y
+	HS.left_panel(self, dsz, 400, 290, 62)
+	HS.topbar(self, font, dsz, ["PERSONNEL /", "RECRUITMENT"], "本次寻访")
+	var by := HS.title_block(self, font, Vector2(36, 150), "01", "人员寻访记录", "本次寻访", "RECORD", 1.0, 72)
+	UI.text_at(self, font, Vector2(36, by + 34), "本次加入干员如下。", 18, HS.INK, "lm")
+	draw_rect(Rect2(40, by + 74, 3, 100), HS.INK)
+	UI.text_at(self, font, Vector2(64, by + 88), "本次加入", 18, HS.INK, "lm")
+	UI.text_at(self, font, Vector2(60, by + 110), "3", 76, HS.INK, "la", true)
+	UI.text_at(self, font, Vector2(118, by + 156), "名", 30, HS.INK, "lm", true)
+	HS.hr_mark(self, font, Vector2(36, 600))
+	var ids := ["irene", "lumen", "gladiia"]
+	var tiers := ["cyan", "gold", "cyan"]
+	for i in 3:
+		var od := _card(ids[i])
+		var r := Rect2(470 + i * 266, 112, 246, 520)
+		HS.card(self, r, od.col)
+		UI.class_glyph(self, od.cls, Vector2(r.get_center().x + 28, r.position.y + 46), 22.0, Color.WHITE, 4.0)
+		HS.spaced(self, font, Vector2(r.get_center().x - 6, r.position.y + 94), CLASS_EN[od.cls], 9, UI.fa(Color.WHITE, 0.7), 3.0)
+		UI.text_at(self, font, Vector2(r.get_center().x + 26, r.position.y + 118), od.cls, 24, Color.WHITE, "mm", true)
+		_figure(od, Vector2(r.get_center().x + 6, r.position.y + 372), 2.5, Color(0, 0, 0, 0), 0, false)
+		# 名牌：浅色斜块 + 新加入黄签
+		var nr := Rect2(r.position.x + 10, r.end.y - 132, r.size.x - 22, 112)
+		HS.para(self, nr, HS.LIGHT)
+		HS.tag(self, font, nr.position + Vector2(30, -12), "新加入", 0.9, HS.YEL if tiers[i] == "gold" else HS.CYB)
+		UI.text_at(self, font, Vector2(nr.get_center().x, nr.position.y + 46), od.name, 34, HS.INK, "mm", true)
+		draw_line(Vector2(nr.position.x + 50, nr.position.y + 74), Vector2(nr.end.x - 50, nr.position.y + 74), HS.INK2, 1.0)
+		HS.spaced(self, font, Vector2(nr.get_center().x - UI.cwidth(font, od.en, 10) * 0.9, nr.position.y + 98), od.en, 10, HS.INK2, 6.0)
+	HS.bottom_bar(self, dsz, 88)
+	UI.text_at(self, font, Vector2(64, H - 44), "已加入名册。新干员可以在选人页选为队长。", 16, UI.TEXT, "lm")
+	HS.main_btn(self, font, Rect2(W - 330, H - 74, 310, 60), "完成", "")
+
+
+func _f_result(dsz: Vector2) -> void:
+	var W := dsz.x
+	var H := dsz.y
+	HS.left_panel(self, dsz, 440, 320, 62)
+	HS.topbar(self, font, dsz, ["OPERATION /", "REPORT"], "作战记录", 1.0, "潮位 8")
+	var by := HS.title_block(self, font, Vector2(36, 140), "01", "作战报告", "探索完成", "COMPLETE", 1.0, 62)
+	# 评级大字（像素描边）+ 结局 + 关键数字
+	HS.outline_px(self, Vector2(306, 206), "A", 12.0, HS.INK, HS.LIGHT)
+	HS.spaced(self, font, Vector2(300, 266), "RATING", 9, HS.INK2, 4.0)
+	UI.text_at(self, font, Vector2(36, by + 14), "结局一 · 平凡即是喜乐", 15, HS.INK, "lm", true)
+	by += 20.0
+	var bx := 36.0
+	for it in [["10:24", "探索时间"], ["1,284", "击杀"], ["3 / 3", "Boss"]]:
+		UI.text_at(self, font, Vector2(bx, by + 30), it[0], 30, HS.INK, "la", true)
+		UI.text_at(self, font, Vector2(bx, by + 74), it[1], 13, HS.INK2, "la")
+		bx += 116.0
+	# 计分
+	var sy := by + 116
+	for j in 4:
+		var row: Array = SCORE[j]
+		UI.text_at(self, font, Vector2(36, sy + j * 24), row[0], 14, HS.INK, "lm")
+		UI.text_at(self, font, Vector2(330, sy + j * 24), row[3], 15, HS.INK, "rm", true)
+		draw_line(Vector2(36, sy + j * 24 + 11), Vector2(330, sy + j * 24 + 11), UI.fa(HS.INK, 0.15), 1.0)
+	UI.text_at(self, font, Vector2(36, sy + 104), "(200 × 潮位 8 ×1.4 + 40) ÷ 8 = 40", 13, HS.INK2, "lm")
+	HS.hr_mark(self, font, Vector2(36, 646), 1.0, HS.INK2, ["RHODES ISLAND", "OPERATION RECORD"])
+	# 右：本局编队（队长大卡 + 队友小卡）
+	HS.spaced(self, font, Vector2(500, 104), "SQUAD  //  本局编队", 11, HS.MUTE, 3.0)
+	var lead := _card("mizuki")
+	var lr := Rect2(500, 124, 300, 420)
+	HS.card(self, lr, lead.col)
+	HS.tag(self, font, lr.position + Vector2(90, 14), "队长", 0.85, UI.VIOLET)
+	_figure(lead, Vector2(lr.get_center().x + 20, lr.end.y - 116), 4.0, Color(0, 0, 0, 0), 0, false)
+	UI.text_at(self, font, Vector2(lr.position.x + 40, lr.end.y - 84), lead.name, 30, Color.WHITE, "lm", true)
+	UI.text_at(self, font, Vector2(lr.position.x + 36, lr.end.y - 50), "伤害 46% · 参与击杀 590", 14, UI.TEXT, "lm")
+	UI.text_at(self, font, Vector2(lr.position.x + 30, lr.end.y - 26), "Lv.24 精二", 13, HS.MUTE, "lm")
+	var mates := [["lumen", "伤害 21% · 击杀 312", "Lv.18 精一", "new"], ["skadi", "伤害 27% · 击杀 361", "Lv.16 精一", ""], ["exusiai", "伤害 6% · 击杀 21", "Lv.9 精零", "out"]]
+	for i in 3:
+		var od := _card(mates[i][0])
+		var out: bool = mates[i][3] == "out"
+		var r := Rect2(840 - i * 20, 124 + i * 142, 400, 126)
+		HS.card(self, r, od.col, false, out)
+		_figure(od, Vector2(r.position.x + 92, r.end.y - 12), 1.5, Color(0.3, 0.32, 0.36) if out else Color(0, 0, 0, 0), 0, false)
+		UI.text_at(self, font, Vector2(r.position.x + 160, r.position.y + 36), od.name, 22, UI.fa(Color.WHITE, 0.45 if out else 1.0), "lm", true)
+		UI.text_at(self, font, Vector2(r.position.x + 158, r.position.y + 70), mates[i][1], 13, UI.fa(UI.TEXT, 0.45 if out else 0.9), "lm")
+		UI.text_at(self, font, Vector2(r.position.x + 154, r.position.y + 96), mates[i][2], 12, UI.fa(HS.MUTE, 0.6 if out else 1.0), "lm")
+		if mates[i][3] == "new":
+			HS.tag(self, font, Vector2(r.end.x - 110, r.position.y + 14), "新加入", 0.8)
+		elif out:
+			HS.tag(self, font, Vector2(r.end.x - 110, r.position.y + 14), "已撤退", 0.8, HS.MUTE)
+	# 底栏：获得（生机细胞 + 寻访凭证）+ 按钮
+	HS.bottom_bar(self, dsz, 96)
+	HS.spaced(self, font, Vector2(470, H - 66), "REWARDS", 10, HS.MUTE, 4.0)
+	_halo(Vector2(520, H - 36), 22, UI.GREEN)
+	draw_circle(Vector2(520, H - 36), 11, UI.GREEN)
+	UI.text_at(self, font, Vector2(548, H - 36), "生机细胞  +53", 18, UI.TEXT, "lm", true)
+	HS.voucher(self, Vector2(720, H - 36), 0.65)
+	UI.text_at(self, font, Vector2(756, H - 36), "寻访凭证  × 4", 18, UI.TEXT, "lm", true)
+	UI.text_at(self, font, Vector2(900, H - 36), "通关 4 张", 12, HS.MUTE, "lm")
+	HS.ghost_btn(self, font, Rect2(24, H - 78, 190, 56), "再次探索", "R")
+	HS.ghost_btn(self, font, Rect2(224, H - 78, 190, 56), "回到标题", "T")
+	HS.main_btn(self, font, Rect2(W - 300, H - 80, 280, 62), "前往寻访", "Enter")
