@@ -1026,7 +1026,7 @@ func _form_frame(f: Dictionary) -> int:
 func _od(e: Dictionary) -> Dictionary:
 	if not e.has("od"):
 		var f: Dictionary = e.forms[0] if not e.forms.is_empty() else {}
-		e.od = {"tex": f.get("tex"), "frames": int(f.get("frames", 1)), "hires": A.hires_of(f.get("tex"))}
+		e.od = {"tex": f.get("tex"), "frames": int(f.get("frames", 1)), "hires": A.hires_of(f.get("tex")), "ds": UI.op_scale(e.get("op"))}
 	var od: Dictionary = e.od
 	if not od.has("bb"):
 		od.bb = UI.idle_bb(od.get("tex"), int(od.get("frames", 1)))
@@ -1158,15 +1158,18 @@ func _draw_op_art(ci: CanvasItem, e: Dictionary, ph: bool) -> void:
 	if a <= 0.0:
 		return
 	var frames: int = int(od.frames)
-	_blit_art(ci, tx, frames, od.bb, float(od.hires), fit[0], fit[1], c, a, _stage(), Color.WHITE, int(t * 4.0) % maxi(1, frames), true)
+	_blit_art(ci, tx, frames, od.bb, float(od.hires), float(fit[0]) * float(od.get("ds", 1.0)), fit[1], c, a, _stage(), Color.WHITE, int(t * 4.0) % maxi(1, frames), true, false, true, true)
 
 
 ## 一张帧条的一帧：k2 = @2x 像素倍数，foot = 脚底中点，c = 进场进度（缩放 / 右移），a = 透明度，clip = 舞台框
-func _blit_art(ci: CanvasItem, tx: Texture2D, frames: int, bb: Rect2, hires: float, k2: float, foot: Vector2, c: float, a: float, clip: Rect2, tint: Color, fr: int, shadow: bool, sil := false, fade := true) -> void:
+## at_foot：干员立绘按帧内脚底点摆（10-21 水月：并集区底边 / 中线摆会被伞尖抬高）；非干员仍按并集区底边居中
+func _blit_art(ci: CanvasItem, tx: Texture2D, frames: int, bb: Rect2, hires: float, k2: float, foot: Vector2, c: float, a: float, clip: Rect2, tint: Color, fr: int, shadow: bool, sil := false, fade := true, at_foot := false) -> void:
 	var fw: float = tx.get_width() / float(maxi(1, frames))
 	var k: float = k2 * 2.0 / hires * (0.92 + 0.08 * c)
 	var sz := bb.size * k
 	var pos := Vector2(foot.x - sz.x / 2.0 + 24.0 * (1.0 - c), foot.y - sz.y)
+	if at_foot:
+		pos = UI.foot_pos(foot, bb, fw, tx.get_height(), hires, k) + Vector2(24.0 * (1.0 - c), 0.0)
 	if c >= 1.0:
 		pos = pos.round()
 	var src := Rect2(fw * fr + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
