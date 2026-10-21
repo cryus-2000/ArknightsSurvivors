@@ -5,7 +5,7 @@
 干员像用游戏里的 @2x 待机帧（art/incoming），未解锁画剪影；特效（扫描线、星屑、信号缝）用程序画法占位，正式素材见 docs/124 §6 特效单。
 主动作「信号解码」：一道横向扫描线自上而下扫过剪影，扫过的行由剪影解码成彩色像素（docs/62 §2.8：全游戏不复用）。
 
-用法：python -X utf8 tools/concept_headhunt.py
+用法：python -X utf8 tools/concept_headhunt.py [--v1] [--anim]（--anim：第二版动画 mp4 + gif，30 fps）
 输出（不入库）：主仓库 build/headhunt_design/
 """
 import json
@@ -859,6 +859,187 @@ def main_v2():
     print("v2 ok", out)
 
 
+# ================================================================ 第二版动画（docs/124 §9.4 时间轴；程序粒子占位）
+def _ease_out(x):
+    x = min(1.0, max(0.0, x))
+    return 1 - (1 - x) ** 3
+
+
+def _out_back(x, s=1.2):
+    x = min(1.0, max(0.0, x))
+    return 1 + (s + 1) * (x - 1) ** 3 + s * (x - 1) ** 2
+
+
+def _seg(t, a, b):
+    return min(1.0, max(0.0, (t - a) / (b - a)))
+
+
+def _fade(img, a):
+    """整帧压暗到 a（0–1）"""
+    if a >= 1.0:
+        return img
+    blk = Image.new("RGBA", img.size, (5, 11, 24, int(255 * (1 - a))))
+    img.alpha_composite(blk)
+    return img
+
+
+def _flash(img, k):
+    if k <= 0:
+        return
+    lay = Image.new("RGBA", img.size, (230, 250, 255, int(110 * k)))
+    img.alpha_composite(lay)
+
+
+def moving_streaks(img, tier, t, seed=1, n=26):
+    col, hi, _ = TIER[tier]
+    rnd = random.Random(seed)
+    lay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(lay)
+    W_ = img.width
+    for _ in range(n):
+        y0 = rnd.randrange(img.height + 200)
+        ln = rnd.randint(120, 520)
+        th = rnd.choice([2, 2, 4, 6])
+        a = rnd.randint(60, 200)
+        sp = rnd.uniform(1400, 2600)
+        x = (rnd.randrange(W_ + 600) - 600 + t * sp) % (W_ + 600) - 600
+        y = y0 - (t * sp) * 0.35
+        y = (y % (img.height + 200)) - 100
+        d.polygon([(x, y), (x + ln, y - ln * 0.35), (x + ln, y - ln * 0.35 + th), (x, y + th)], fill=(hi if th <= 2 else col) + (a,))
+    img.alpha_composite(lay)
+
+
+class Anim:
+    """单名寻访：t 秒 → 一帧（1280×720 或手机 740×360 × s）"""
+
+    def __init__(self, op, tier, s=1.0, w=W, h=H, src="寻访凭证", summary=True):
+        self.op, self.tier, self.s, self.w, self.h, self.src, self.summary = op, tier, s, w, h, src, summary
+        self.base = bg(w, h, 22, stars=False)
+        floor(self.base, int(h * 0.62), s)
+        self.base2 = bg(w, h, 23, stars=False)
+        self.spr, self.foot = frame0(op, 4 * s)
+        self.sil = silhouette(self.spr, (6, 12, 22), TIER[tier][1])
+        self.decoded = {}
+        self.summ = hh_summary([(op, tier, src)], s, w, h) if summary else None
+        self.T = 6.0 if summary else 5.0
+
+    def frame(self, t):
+        s, w, h = self.s, self.w, self.h
+        col, hi, _ = TIER[self.tier]
+        cx, cy = w // 2, int(h * 0.56)
+        if t < 1.7:
+            img = self.base.copy()
+            drop = _out_back(_seg(t, 0.0, 0.5))
+            yy = int(-160 * s + (cy + 160 * s) * drop)
+            open_k = 0.0
+            tier = None
+            if t >= 0.5:
+                tier = self.tier
+                open_k = 0.15 * _ease_out(_seg(t, 0.5, 1.1)) + 0.85 * _ease_out(_seg(t, 1.1, 1.6))
+            crate(img, cx, yy, s, tier, open_k)
+            if 0.5 <= t < 1.1:
+                # 封条被拖开：一段青条向右滑出
+                k = _seg(t, 0.5, 0.9)
+                sx = cx - int(10 * s) + int(260 * s * _ease_out(k))
+                ImageDraw.Draw(img).rectangle([sx, yy - int(60 * s) - 4, sx + int(20 * s), yy - int(60 * s) + int(64 * s)], fill=CY + (int(255 * (1 - k)),))
+            if t >= 0.5:
+                stardust(img, cx, yy - int((60 + 80 * open_k) * s), (260 + 80 * open_k) * s, int(40 + 80 * open_k), int(t * 10), hi)
+            if t >= 1.1:
+                _flash(img, 1 - _seg(t, 1.1, 1.25))
+            header(img, s, "HEADHUNT", "寻访")
+            if t >= 1.5:
+                _fade(img, 1 - _seg(t, 1.5, 1.7) * 0.9)
+        elif t < 4.9 or not self.summary:
+            img = self.base2.copy()
+            fx, fy = w // 2 + int(120 * s), h - int(110 * s)
+            if t < 3.2:
+                moving_streaks(img, self.tier, t, 3)
+            if t < 2.2:
+                a = int(255 * _ease_out(_seg(t, 1.7, 2.0)))
+                paste_at_foot(img, self.sil, self.foot, fx, fy, a)
+            else:
+                frac = _seg(t, 2.2, 3.0)
+                key = round(frac * 40)
+                if key not in self.decoded:
+                    self.decoded[key] = decode(self.spr, key / 40.0, seed=key)
+                dec, yl = self.decoded[key]
+                x0, y0 = int(fx - self.foot[0]), int(fy - self.foot[1])
+                img.alpha_composite(dec, (x0, y0))
+                if frac < 1.0:
+                    slit(img, y0 + yl, fx - int(170 * s), fx + int(170 * s), 1, hi, col)
+                else:
+                    stardust(img, fx, fy - int(140 * s), 260 * s, 26, 4, hi)
+            if t >= 3.0:
+                _flash(img, (1 - _seg(t, 3.0, 3.12)) * 0.6)
+                lay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+                k = _ease_out(_seg(t, 3.05, 3.4))
+                name_block(lay, self.op, int(70 * s) - int(30 * s * (1 - k)), int(h * 0.30), s, fresh=False)
+                kst = _out_back(_seg(t, 3.0, 3.2), 1.6)
+                st = (int(70 * s), int(h * 0.30) - int(46 * s), int(70 * s) + int(84 * s), int(h * 0.30) - int(18 * s))
+                panel(lay, st, 2, 2, tones=[col, col, col], edge=hi)
+                text(lay, ((st[0] + st[2]) // 2, (st[1] + st[3]) // 2), "新加入", int(14 * s), NAVY_INK, "mm", True)
+                if self.tier == "gold":
+                    text(lay, (st[2] + int(12 * s), (st[1] + st[3]) // 2), "新职业 · " + self.op["cls"], int(14 * s), col, "lm")
+                lay.putalpha(lay.split()[-1].point(lambda v, k=k: int(v * min(1.0, k * 1.5))))
+                img.alpha_composite(lay)
+                if kst < 1.0:
+                    pass
+            if t >= 3.4:
+                lay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+                by = h - int(96 * s)
+                panel(lay, (int(60 * s), by, int(w * 0.55), by + int(54 * s)), 2, 3, a=220)
+                text(lay, (int(84 * s), by + int(27 * s)), "「" + self.op["line"].rstrip("。") + "。」", int(15 * s), TXT, "lm")
+                k = _ease_out(_seg(t, 3.4, 3.7))
+                lay.putalpha(lay.split()[-1].point(lambda v, k=k: int(v * k)))
+                img.alpha_composite(lay, (0, int(12 * s * (1 - k))))
+            ptxt(img, (w - int(28 * s), int(30 * s)), "SKIP >", max(1, int(round(2 * s))), SUB, 1, "rm")
+            if self.summary and t >= 4.6:
+                _fade(img, 1 - _seg(t, 4.6, 4.9))
+            if t < 1.9:
+                _fade(img, _seg(t, 1.7, 1.9) * 0.9 + 0.1)
+        else:
+            img = self.summ.copy()
+            _fade(img, _seg(t, 4.9, 5.2))
+        return img.convert("RGB")
+
+
+def render_anim(anim, path_base, fps=30, up=1):
+    import imageio_ffmpeg
+    import subprocess
+    n = int(anim.T * fps)
+    frames = []
+    for i in range(n):
+        f = anim.frame(i / fps)
+        if up != 1:
+            f = f.resize((f.width * up, f.height * up), Image.NEAREST)
+        frames.append(f)
+    W_, H_ = frames[0].size
+    ff = imageio_ffmpeg.get_ffmpeg_exe()
+    p = subprocess.Popen([ff, "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W_, H_), "-r", str(fps), "-i", "-",
+                          "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", "-preset", "medium", path_base + ".mp4"], stdin=subprocess.PIPE)
+    for f in frames:
+        p.stdin.write(f.tobytes())
+    p.stdin.close()
+    p.wait()
+    # GIF：15 fps、宽 640（文件不至于太大）；调色板逐帧自适应
+    g = [f.resize((640, int(640 * H_ / W_)), Image.LANCZOS).quantize(colors=128, method=Image.Quantize.MEDIANCUT) for f in frames[::2]]
+    g[0].save(path_base + ".gif", save_all=True, append_images=g[1:], duration=int(2000 / fps), loop=0, optimize=True)
+    return n
+
+
+def main_anim():
+    out = os.path.join(OUT, "v2")
+    os.makedirs(out, exist_ok=True)
+    jobs = [
+        ("v2_anim_single", Anim(OPS["saria"], "cyan", src="寻访凭证"), 1),          # 常规（青白档）：重装已有人
+        ("v2_anim_newclass_gold", Anim(OPS["lumen"], "gold", src="寻访凭证"), 1),   # 新职业命中（金档）：医疗
+        ("v2_anim_phone", Anim(OPS["lumen"], "gold", 0.62, PW, PH, src="寻访凭证"), 2),
+    ]
+    for name, an, up in jobs:
+        n = render_anim(an, os.path.join(out, name), 30, up)
+        print(name, n, "frames")
+
+
 ORDER = []
 OPS = {}
 
@@ -867,4 +1048,7 @@ if __name__ == "__main__":
     ORDER.extend(OPS)
     if "--v1" in sys.argv:
         main()
-    main_v2()
+    if "--anim" in sys.argv:
+        main_anim()
+    else:
+        main_v2()
