@@ -160,7 +160,7 @@
 | 槽 | 原作轨 | 帧 / 时长 / 画布 | 出手 | 用法 |
 |---|---|---|---|---|
 | `idle` | Idle | 107 / 5.333 s / 64 | — | 原生像素 @2x（13696 px 宽） |
-| `attack` | Attack（掷钩） | 37 / 1.8 s / 96 | OnAttack 0.5667 = 第 12 帧 | `attack_timing {duration 1.8, fire_time 0.568, 0.9, 0.4}`：cd 1.1 → 窗口 0.99 秒、出手 0.396 秒（**改了出手时刻**；A 步 `logic [8,12,3]` 逐行相同，4f69fb5d） |
+| `attack` | Attack（掷钩） | 37 / 1.8 s / 96 | OnAttack 0.5667 = 第 12 帧 | 逻辑窗口照旧条 `logic [8,12,3]`（0.667 秒、出手 0.292 秒，同 seed 与接美术前逐行相同）；画面 `native_motion.clips.attack` 0.899 秒整条均匀播，第 12 帧画面起点 = 伤害时刻。曾试 attack_timing（e2c055fe），用户 10-22 反馈节奏不对，改回 |
 | `s1_begin` | Skill_1_Begin | 14 / 0.633 s / 96 | 0.334 = 第 7 帧 | S1 瞬发单条（Skill_1_Loop / End 已交未用） |
 | `s2_start / s2_enter / s2_loop / s2_attack / s2_end` | Skill_2 Startup / Begin / Idle / Loop / End | 10 / 13 / 54 / 27 / 14 帧 | Begin 0.434 | `skills.s2 {start, enter, loop, attack, run, end}`：持续期站立 Idle、普攻播 Loop |
 | `s3_start / s3_enter / s3_loop / s3_attack / s3_end` | Skill_3 Startup / Begin / Chant / Loop / End | 11 / 14 / 27 / 27 / 24 帧 | Startup 0.368 | 同上，持续期 Chant |

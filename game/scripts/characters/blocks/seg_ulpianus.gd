@@ -145,7 +145,7 @@ static func _hw_hand(o) -> Vector2:
 		var socket: Vector2 = o.sprite_point("hand")
 		if socket != Vector2.INF:
 			return socket
-	var b: Dictionary = o.hw.anchor.get("b", {})
+	var b: Dictionary = o.hw.get("anchor", {}).get("b", {})   # 没掷过锚（歌蕾蒂娅只有钩索）时 hw 里没有 anchor
 	var v = b.get("hand", [33, -33])
 	return o.pos + Vector2(float(v[0]) * float(o.face), float(v[1]))
 
