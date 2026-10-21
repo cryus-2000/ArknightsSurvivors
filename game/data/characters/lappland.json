@@ -93,14 +93,14 @@
    "_doc": "占位：借斯卡蒂 idle"
   },
   "run": {
-   "tex": "op_skadi_run",
+   "tex": "op_lappland_run",
    "frames": 8,
    "fps": 13.333333333333334,
    "foot": [
     32,
     60
    ],
-   "_doc": "占位：借斯卡蒂 run"
+   "_doc": "10-21 Spine 步态脚本（tools/spine_run_trial cfg/lappland.json）：原作骨架逐部件像素化，调色板取 Codex 待机条；8 帧 0.6 秒循环"
   },
   "attack": {
    "tex": "op_skadi_attack",

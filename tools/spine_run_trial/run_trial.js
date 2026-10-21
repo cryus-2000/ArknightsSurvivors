@@ -16,8 +16,10 @@ const BT = 'E:/ArknightsSurvivors/.worktrees/codex-art/art/incoming/bt_18_comple
 const D = 180 / Math.PI;
 
 // 像素映射与 bz_18 静态部件包一致：px = mapped_root + bz_scale × source_scale × 世界坐标
-const manifest = JSON.parse(fs.readFileSync(`${BZ}/${cfg.id}/manifest.json`, 'utf8'));
-const catalog = JSON.parse(fs.readFileSync(`${BT}/${cfg.id}/source/catalog.json`, 'utf8'));
+// cfg.pack：没有 bz_18 部件包的新干员（拉普兰德 / 歌蕾蒂娅）——直接给 {scale, root: [x, y], alpha_cutoff, palette_png}
+const manifest = cfg.pack ? { global_transform: { scale: cfg.pack.scale, mapped_root: cfg.pack.root || [64, 120] }, alpha_cutoff: cfg.pack.alpha_cutoff || 96 }
+  : JSON.parse(fs.readFileSync(`${BZ}/${cfg.id}/manifest.json`, 'utf8'));
+const catalog = cfg.pack ? { scale: 1 } : JSON.parse(fs.readFileSync(`${BT}/${cfg.id}/source/catalog.json`, 'utf8'));
 const SCALE = manifest.global_transform.scale * Number(catalog.scale);
 const ANCHOR = manifest.global_transform.mapped_root.slice();
 // 画布：跑步 128；动作可加大（cfg.canvas），原点随之平移到中心，保持 (64,120) 相对位置
@@ -487,6 +489,9 @@ async function main() {
         aim(sk, b, c, upper + f * (P.elbow + P.elbowAmp * Math.max(0, fwd)));
       }
     }
+    if (cfg.attach && !(cfg.weapon && hold)) reattach(sk);   // 双持（拉普兰德两把剑挂在髋上、由约束跟手）：两只手都摆，剑各自贴回手上
+    // attachRot {武器骨: 度}：贴回后再绕跟随骨（手）转，跑步时剑尖拖在身后，不插地
+    for (const [w, d] of Object.entries(cfg.attachRot || {})) { const h = get(sk, cfg.attach[w]); rotate(sk, get(sk, w), P.facing * d, [h.worldX, h.worldY]); }
     if (cfg.weapon && hold) {
       reattach(sk);
       const w = get(sk, cfg.weapon), grip = get(sk, cfg.arms[hold][2]);
@@ -707,9 +712,10 @@ async function main() {
 async function loadPalette() {
   const { loadImage } = require('@napi-rs/canvas');
   const set = new Map();
-  const dir = `${BZ}/${cfg.id}/parts`;
-  for (const f of fs.readdirSync(dir)) {
-    const img = await loadImage(fs.readFileSync(path.join(dir, f)));
+  const dir = cfg.pack ? null : `${BZ}/${cfg.id}/parts`;
+  // cfg.pack.palette_png：调色板取自 Codex 交付的帧条（风格对齐它的配色）
+  for (const f of cfg.pack ? [path.resolve(cfg.pack.palette_png)] : fs.readdirSync(dir).map(n => path.join(dir, n))) {
+    const img = await loadImage(fs.readFileSync(f));
     const c = createCanvas(img.width, img.height), x = c.getContext('2d'); x.drawImage(img, 0, 0);
     const d = x.getImageData(0, 0, img.width, img.height).data;
     for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 0) set.set((d[i] << 16) | (d[i + 1] << 8) | d[i + 2], [d[i], d[i + 1], d[i + 2]]);
