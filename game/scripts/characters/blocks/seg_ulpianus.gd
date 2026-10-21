@@ -978,6 +978,8 @@ static func _hw5_hook_impact(o, hk: Dictionary) -> void:
 	var c: Vector2 = hk.to
 	var r: float = float(b.get("r", 90.0)) * o.stat(&"op_range")
 	var hits: Array = o.area_hit(str(b.get("src", "")), c, r, float(hk.dmg) * float(b.get("mult", 1.2)), float(b.get("kb", 0.0)), 0.0, b.get("tags", []))
+	if not hits.is_empty() and "last_hit_pos" in o:   # 钩索当普攻（歌蕾蒂娅 every_n replace）：落地命中也算「上一次普攻命中点」（verb.field center: last_hit，S3 漩涡落点）
+		o.last_hit_pos = hits[0].pos
 	if b.has("impact_fx"):
 		fx_play(o, b.impact_fx, c, r, hits)
 	hk.phase = "taut"

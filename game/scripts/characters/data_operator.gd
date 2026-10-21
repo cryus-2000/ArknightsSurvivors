@@ -62,6 +62,7 @@ var ext := {}                          # 积木扩展段的运行时状态（能
 var kill_w := 1.0                      # trig.on_kill 执行期间这次击杀的权重：怪物密度缩放过的普通怪 = e.dk（1/k），其余 1（docs/50 §16.8）
 var sm := {}                           # 召唤 / 封印段（op_blocks.gd 末尾，docs/61 §15）：召唤物、封印标记、护盾、治疗光环计时；空 = 用不到
 var mf := {}                           # 召唤物扩展段（docs/61 §15.9）：限时减伤、召唤物倍率表、已执行的 on_deploy；空 = 用不到
+var mhook_cd := {}                     # 联动段（docs/123 §2.7）：trig.on_mate_hook 每块的上次触发时刻（不放 el：el 非空会被精英化段当成「用得到」）
 var el := {}                           # 精英化段（docs/91 第 1 批，op_blocks.gd 末尾）：限时增益、叠层、往返弹体、状态冷却；空 = 用不到
 
 
@@ -810,9 +811,9 @@ func on_mate_hook(m, at: Vector2, hits: Array) -> void:
 			continue
 		var key := "mhook:%d" % int(t.get("_uid", 0))
 		var cd: float = float(t.get("cd", 0.0))
-		if cd > 0.0 and el.has(key) and g.t - float(el[key]) < cd:
+		if cd > 0.0 and mhook_cd.has(key) and g.t - float(mhook_cd[key]) < cd:
 			continue
-		el[key] = g.t
+		mhook_cd[key] = g.t
 		_exec_list(t.get("do", []), at)
 
 

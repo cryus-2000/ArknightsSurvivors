@@ -168,7 +168,9 @@
 | `run` | （未交） | 借乌尔比安 run | — | 像素 Spine 会话另出 |
 
 特效（按 playback_contract）：钩头 `proj_gladiia_hook`（`shape.hookshot.head`，新参数：锚头贴图沿飞行 / 拖回方向旋转，缺图退回程序锚；牵引索仍是程序细链）；到位冲击 `fx_gladiia_ram`（S1 `arrive_fx`、精二「冲撞」、S3 结束）；牵引水带 `fx_gladiia_pull`（S2 每次掷钩拉近身边敌人时 4 份散播；S3 结束 6 份）；水龙卷 `fx_gladiia_tornado_open`（once）→ `_loop`（随力场寿命循环）→ `_close`（S3 结束块，与牵引 + 冲击同时）；场中心 = `verb.field center last_hit` 建场时快照，不跟人。`fx_gladiia_water_glide` 已登记未挂（等跑步条）。
-art_lint：未豁免 FAIL 0；豁免 outline / ground（原生）+ run（占位）。精二「冲撞」击退改回 160。
+art_lint：未豁免 FAIL 0；豁免 outline / ground（原生）+ run（长裙遮腿）。精二「冲撞」击退改回 160。
+**接美术时抓到的玩法 bug（已修）**：S3「碎漩狂舞」的漩涡落在 `last_hit`，而 `last_hit_pos` 只在 circle / cone 普攻路径里记，钩索（every_n replace 的 hookshot）从不记 → 漩涡从未生成，§5 的木桩表与所有云端胜率里 S3 都是 0 伤害。修法：hookshot 落地命中也写 `last_hit_pos`（seg_ulpianus `_hw5_hook_impact`）。修后木桩 E2 主控：单体 81（碎漩狂舞 17）、怪群 561（碎漩狂舞 138 / 秒，占 25%）；她的单开胜率要在这个修复之后重测（§5 的 43.8–54% 都是没有 S3 的数）。
+另一处：`trig.on_mate_hook` 的冷却原先记在 `el` 字典里，`el` 非空会被精英化段当成「有往返弹体 / 限时增益」去读 `timed / boom` 键而报脚本错误（快检 冒烟·texas 抓到：队里有歌蕾蒂娅 + 乌尔比安时联动一触发就报）；改成独立字典 `mhook_cd`。
 
 ## 7. 验收记录与待办
 
