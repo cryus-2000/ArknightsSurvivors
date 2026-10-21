@@ -864,6 +864,8 @@ static func _h3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 		"verb.lift_around":
 			_num(b, "r", p, ctx, true, 1.0, 400.0)
 			_num(b, "dur", p, ctx, true, 0.0, 10.0)
+			if b.has("center") and not str(b.center) in ["self", "leader"]:
+				errs.append(p + ".center 只能是 self / leader（响应动作：没有命中点时的中心）")
 		"st.launch":
 			_num(b, "dur", p, ctx, true, 0.0, 10.0)
 			_num(b, "h", p, ctx, false, 0.0, 100.0)
@@ -1047,14 +1049,16 @@ static func _e3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 #                   命中的非 Boss 敌人 stun_chance 概率（g.rng，同手写）眩晕 stun 秒（精英减半）；hit_sp + hit_sp_mults：命中时其他干员技力 + 秒数（第一条 cond 成立的倍率）；
 #                   quake {cond, r, mult, src, roar {cond, r_mult, kb}}：落点一圈贴地冲击环；breach {cond, len, w, mult, life, max, src}：沿锤击方向的直线地裂
 #  verb.leap_slam   跃空锤：朝 aim_r 内最近的敌人跃过去（至多 dist，落在它面前 24 处），t 秒、高 h 的空中翻转，落地 r × op_range 内 × mult × 技能强度、kb、stun，
-#                   其他干员技力 + sp × 技能强度；again {cond, range, dist, mult, near}：落地后再跃向身边敌人最密处砸第二下（× mult，不回技力）
+#                   其他干员技力 + sp × 技能强度；again {cond, range, dist, mult, near}：落地后再跃向身边敌人最密处砸第二下（× mult，不回技力）；
+#                   响应动作（docs/118）：from: leader = 找队长 aim_r 内离队长最近的敌人（本人是队长时原地砸）、power: false = 不吃技能强度、
+#                   sp_secs = 改为砸中敌人时其他干员技力 + 秒数（取代 sp）；已在空中时不另跳
 #  verb.cmd_wave    号令波：以自身为心向外扩张到 r（dur 秒，先快后慢），扫到的敌人 × mult × 技能强度、非精英击退 kb；同时至多 max 道
 #  verb.sp_team 的 power / motes（第 4 批追加）：技力 × 技能强度；金色技力粒子飞向每名队友
 
 const H4_TAGS := ["shape.hammer", "verb.leap_slam", "verb.cmd_wave",
 	"shape.foxfire", "verb.foxlight", "verb.fox_cast",
 	"shape.cannon", "verb.cannon_exec", "verb.cannon_load", "verb.souls",
-	"shape.bash", "verb.guard_ring", "verb.calc_orbs", "verb.saria_heal", "verb.calc_field", "verb.suit"]
+	"shape.bash", "verb.guard_ring", "verb.calc_orbs", "verb.saria_heal", "verb.calc_field", "verb.suit", "verb.amber_ring"]
 
 const H4_ATTACKS := ["hammer", "foxfire", "cannon", "bash"]   # 第 4 批的普攻形状（起手 / 出手由本段接管）
 
@@ -1064,7 +1068,7 @@ const SZ_TAGS := ["shape.foxfire", "verb.foxlight", "verb.fox_cast"]
 
 const WD_TAGS := ["shape.cannon", "verb.cannon_exec", "verb.cannon_load", "verb.souls"]
 
-const SA_TAGS := ["shape.bash", "verb.guard_ring", "verb.calc_orbs", "verb.saria_heal", "verb.calc_field", "verb.suit"]
+const SA_TAGS := ["shape.bash", "verb.guard_ring", "verb.calc_orbs", "verb.saria_heal", "verb.calc_field", "verb.suit", "verb.amber_ring"]
 
 const H4_GOLD := Color(1.0, 0.78, 0.35)
 
@@ -1211,6 +1215,8 @@ static func h4_exec(o, b: Dictionary, _at: Vector2) -> void:
 			_F().h4_saria_heal(o, b)
 		"verb.calc_field":
 			_F().h4_calc_start(o, b)
+		"verb.amber_ring":
+			_F().h4_amber_ring(o, b)
 
 
 ## 起手朝向（mf_skill_aim 转来）：elite = 精英 / Boss 优先（血最多）；cluster = 离队长最近、相仿时挑落点最密
@@ -1384,7 +1390,7 @@ static func _h4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 	var where_ok := {
 		"shape.hammer": ["attack"], "shape.foxfire": ["attack"], "shape.cannon": ["attack"], "shape.bash": ["attack"],
 		"verb.leap_slam": ["skill", "instant"], "verb.cmd_wave": ["skill", "instant"], "verb.fox_cast": ["skill", "instant"],
-		"verb.cannon_exec": ["skill", "instant"], "verb.cannon_load": ["skill", "instant"], "verb.saria_heal": ["skill", "instant"], "verb.calc_field": ["skill", "instant"],
+		"verb.cannon_exec": ["skill", "instant"], "verb.cannon_load": ["skill", "instant"], "verb.saria_heal": ["skill", "instant"], "verb.calc_field": ["skill", "instant"], "verb.amber_ring": ["skill", "instant"],
 		"verb.foxlight": ["sustain"], "verb.souls": ["sustain"], "verb.guard_ring": ["sustain"], "verb.calc_orbs": ["sustain"], "verb.suit": ["sustain"],
 	}
 	if not kind in where_ok[tag]:
@@ -1411,6 +1417,8 @@ static func _h4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 		"verb.leap_slam":
 			for k in ["r", "mult", "t", "dist"]:
 				_num(b, k, p, ctx, true, 0.0, 1000.0)
+			if not str(b.get("from", "self")) in ["self", "leader"]:
+				errs.append(p + ".from 只能是 self / leader")
 			_src(b, p, ctx, true)
 		"verb.cmd_wave":
 			for k in ["r", "dur", "mult"]:
@@ -1477,6 +1485,12 @@ static func _h4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			_num(b, "r", p, ctx, true, 1.0, 1000.0)
 			if b.has("shatter") and b.shatter is Dictionary:
 				_src(b.shatter, p + ".shatter", ctx, true)
+		"verb.amber_ring":
+			_num(b, "n", p, ctx, true, 2.0, 16.0)
+			_num(b, "r", p, ctx, true, 10.0, 400.0)
+			_num(b, "life", p, ctx, true, 0.1, 20.0)
+			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_src(b, p, ctx, true)
 		"verb.suit":
 			_num(b, "seg_t", p, ctx, true, 0.1, 60.0)
 			_num(b, "r", p, ctx, true, 1.0, 1000.0)

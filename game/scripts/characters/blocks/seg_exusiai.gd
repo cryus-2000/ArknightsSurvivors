@@ -143,6 +143,25 @@ static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 	return out
 
 
+## 响应动作（docs/118 §4.1）aim: behind_leader：她射程内、在队长冲刺方向身后半边的敌人，按离队长由近到远（同距离按 id）取 n 个；
+## 身后没有敌人退回离队长最近的（掩护队长撤出：先打追在队长身后的）
+static func _exu_behind(o, n: int, rr: float) -> Array:
+	var g = o.g
+	var back: Vector2 = -Vector2(g.dash_dir) if Vector2(g.dash_dir) != Vector2.ZERO else Vector2(-o.face, 0.0)
+	var keyed: Array = []
+	for j in o.query_ids(o.pos, rr):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or o.pos.distance_to(e.pos) > rr:
+			continue
+		var rel: Vector2 = e.pos - g.ppos
+		keyed.append([0 if rel.dot(back) > 0.0 else 1, rel.length(), int(e.id), e])
+	keyed.sort_custom(func(x, y): return x[0] < y[0] if x[0] != y[0] else (x[1] < y[1] if x[1] != y[1] else x[2] < y[2]))
+	var out: Array = []
+	for k in mini(n, keyed.size()):
+		out.append(keyed[k][3])
+	return out
+
+
 ## 普攻起手点（data_operator.update 的 projectile 分支）：B 需要目标类手动普攻走 attack_targets
 static func exu_aim(o, a: Dictionary) -> Vector2:
 	var rr: float = _exu_range(o, _exu_params(o, a, true))
@@ -192,11 +211,11 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 	if o.pos == Vector2.INF:
 		return
 	var n: int = int(p.get("shots", 1))
-	if main:
+	if main or p.get("op_shots", false):   # op_shots: true = 非普攻的一轮也按子弹数属性（响应动作的补射，发数同普攻）
 		n = int(round(float(n) * o.stat(&"op_shots")))
 	n = clampi(n, 1, 12)
 	var fan: bool = p.get("fan", false)
-	var ts: Array = _exu_targets(o, 1 if fan else n, _exu_range(o, p), float(p.get("elite_prio", 1.0)))
+	var ts: Array = _exu_behind(o, n, _exu_range(o, p)) if str(p.get("aim", "")) == "behind_leader" else _exu_targets(o, 1 if fan else n, _exu_range(o, p), float(p.get("elite_prio", 1.0)))
 	if ts.is_empty():
 		return
 	if p.get("focus_boss", false) and ts[0].boss:
@@ -477,6 +496,8 @@ static func _exu_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 			_num(b, "burst", p, ctx, false, 1.0, 8.0)
 			_num(b, "burst_gap", p, ctx, false, 0.02, 1.0)
 			_num(b, "elite_prio", p, ctx, false, 1.0, 100.0)
+			if b.has("aim") and str(b.aim) != "behind_leader":
+				errs.append(p + ".aim 只能是 behind_leader（响应动作：队长冲刺方向身后的敌人）")
 			_exu_muzzle_ok(b, p, ctx)
 			_exu_fx_ok(b, p, ctx)
 			_src(b, p, ctx, true)

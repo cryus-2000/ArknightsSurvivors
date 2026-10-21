@@ -219,7 +219,7 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 	if tag in ANGELINA_TAGS:   # 安洁莉娜段
 		_F()._v_angelina(b, p, kind, ctx, tag)
 		return
-	if tag in ["trig.on_leader_skill", "trig.on_stance"]:   # 响应动作（docs/118）
+	if tag in ["trig.on_leader_skill", "trig.on_stance", "trig.on_leader_still"]:   # 响应动作（docs/118）
 		if kind != "trig":
 			errs.append("%s：「%s」只能放在 blocks.response" % [p, tag])
 			return

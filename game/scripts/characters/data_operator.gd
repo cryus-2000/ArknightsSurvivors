@@ -643,6 +643,7 @@ const EXEC_SEG := {
 	"verb.fox_cast": 8,   # h4_exec
 	"verb.leap_slam": 8,   # h4_exec
 	"verb.saria_heal": 8,   # h4_exec
+	"verb.amber_ring": 8,   # h4_exec（响应动作，塞雷娅）
 }
 
 

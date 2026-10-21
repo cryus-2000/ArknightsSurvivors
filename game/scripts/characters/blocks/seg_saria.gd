@@ -13,6 +13,8 @@ extends "res://scripts/characters/blocks/seg_wisadel.gd"
 #  verb.calc_field  钙质化：dur 秒以队长为心 r 的琥珀区域（每帧清寒冷 / 束缚、每秒回复 heal、区域内敌人减速 slow 秒 + aura_weak），每 shard_every 秒在区域里长出一根晶柱；
 #                   shatter {cond, every, n, mult, src}：每 every 秒击碎一根晶柱，碎片飞向区域内敌人
 #  verb.suit        莱茵充能护服（放 passive）：每 seg_t 秒充满一格（共 segs 格），满格后下一次出拳变为全方位冲击（半径 r，拳击 × mult、kb、stun）
+#  verb.amber_ring  瞬时（响应动作 docs/118 §4.2）：以队长为心升起一圈晶柱，参数同 verb.suit.pillars（n / r / sy / life / pr / wall / mult / cd / elite_push / arm / src），
+#                   与精二晶柱环共用一个位置（新的升起时旧的碎掉）
 
 static func _h4sa(o) -> Dictionary:
 	var h := hw_st(o)
@@ -127,6 +129,17 @@ static func _h4_suit_after(o, su: Dictionary) -> void:
 	var pc: Dictionary = _h4_sub(o, su.get("pillars", null))
 	if pc.is_empty() or o.pos == Vector2.INF:
 		return
+	_h4_pillars_raise(o, pc, o.pos)
+
+
+## 响应动作（verb.amber_ring）：以队长为心升起晶柱环
+static func h4_amber_ring(o, b: Dictionary) -> void:
+	if o.pos == Vector2.INF:
+		return
+	_h4_pillars_raise(o, b, o.g.ppos)
+
+
+static func _h4_pillars_raise(o, pc: Dictionary, c: Vector2) -> void:
 	var sa := _h4sa(o)
 	if not sa.crystals.is_empty():
 		_h4_pillars_break(o, sa.crystals)
@@ -136,8 +149,8 @@ static func _h4_suit_after(o, su: Dictionary) -> void:
 	var posts: Array = []
 	for k in n:
 		var an: float = float(pc.get("a0", 0.0)) + k * TAU / n
-		posts.append(o.pos + Vector2(cos(an) * R, sin(an) * R * sy))
-	sa.crystals = {"c": o.pos, "t": 0.0, "life": float(pc.get("life", 2.0)), "posts": posts, "hit": {}, "b": pc}
+		posts.append(c + Vector2(cos(an) * R, sin(an) * R * sy))
+	sa.crystals = {"c": c, "t": 0.0, "life": float(pc.get("life", 2.0)), "posts": posts, "hit": {}, "b": pc}
 	_h3_sfx(o, "hit", -2.0, 1.25)
 
 

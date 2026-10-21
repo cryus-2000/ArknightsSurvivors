@@ -204,11 +204,15 @@ static func _h4_sp_motes(o, n: int) -> void:
 
 static func h4_leap(o, b: Dictionary) -> void:
 	var sg := _h4sg(o)
+	var lead: bool = str(b.get("from", "self")) == "leader"
+	if lead and float(sg.leap_t) >= 0.0:
+		return   # 响应动作：已在空中（S2 跃空锤）就不另跳
 	var ag: Dictionary = _h4_sub(o, b.get("again", null))
 	sg.leap_n = 1 if not ag.is_empty() else 0
 	sg.leap_second = false
 	sg.leap_b = b
-	var ts: Array = o.nearest_enemies(1, float(b.get("aim_r", 160.0)), o.pos)
+	# from: leader（响应动作 docs/118 §4.1）：找队长 aim_r 内离队长最近的敌人；她本人是队长时原地砸（不另位移，冲刺已由队长本体完成）
+	var ts: Array = [] if lead and o.is_leader else o.nearest_enemies(1, float(b.get("aim_r", 160.0)), o.g.ppos if lead else o.pos)
 	_h4_start_leap(o, ts[0] if not ts.is_empty() else null, float(b.get("dist", 90.0)))
 
 
@@ -232,7 +236,8 @@ static func _h4_slam(o, b: Dictionary, second: bool) -> void:
 	var r: float = float(b.get("r", 110.0)) * o.stat(&"op_range")
 	var ag = b.get("again", {})
 	var sm: float = float(ag.get("mult", 0.6)) if second else 1.0
-	o.area_hit(str(b.get("src", "")), pos, r, o.base("atk", 0.0) * float(b.get("mult", 2.2)) * o._dmg_bonus() * o.skill_power() * sm, float(b.get("kb", 220.0)), float(b.get("stun", 0.6)))
+	var pw: float = o.skill_power() if b.get("power", true) else 1.0   # power: false = 不吃技能强度（响应动作的补锤）
+	var hits: Array = o.area_hit(str(b.get("src", "")), pos, r, o.base("atk", 0.0) * float(b.get("mult", 2.2)) * o._dmg_bonus() * pw * sm, float(b.get("kb", 220.0)), float(b.get("stun", 0.6)))
 	o.fx({"kind": "glow", "pos": pos + Vector2(0, -6), "r": 34.0, "life": 0.16, "col": Color(2.0, 1.7, 0.9), "alpha": 0.8})
 	o.fx({"kind": "ring", "pos": pos, "r": r, "r0": 14.0, "life": 0.35, "col": H4_FLAME, "floor": true, "w": 4.0})
 	o.fx({"kind": "crack", "pos": pos + Vector2(0, 2), "r": r * 0.8, "life": 0.55, "col": H4_GOLD, "floor": true, "n": 10, "ang": g.t})
@@ -242,8 +247,14 @@ static func _h4_slam(o, b: Dictionary, second: bool) -> void:
 	o.ground_dust(pos, r * 0.6, 10)
 	_h3_vsparks(o, pos + Vector2(0, -4), Color(1.0, 0.8, 0.35), 12, 260.0, 0.4, 2.5, 320.0)
 	o.impact_pause(0.07)
-	if not second:
-		g.squad.gain_sp(float(b.get("sp", 0.2)) * o.skill_power(), o)
+	if second:
+		pass
+	elif b.has("sp_secs"):   # 响应动作的补锤：砸中敌人时全队（不含自己）技力 + 秒数，同锤击的 hit_sp
+		if not hits.is_empty():
+			_h4_squad_sp_seconds(o, float(b.sp_secs))
+			_h4_sp_motes(o, 2)
+	else:
+		g.squad.gain_sp(float(b.get("sp", 0.2)) * pw, o)
 		_h4_sp_motes(o, 3)
 	_h3_sfx(o, "big")
 

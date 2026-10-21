@@ -1508,7 +1508,105 @@
      ]
     }
    ]
-  }
+  },
+  "response": [
+   {
+    "trig": "on_leader_skill",
+    "hint": "应和",
+    "_doc": "响应动作（docs/118 §4.3）：队长开技能时，歌域立刻放一圈声浪（同普攻：×0.85、至多 wave_n 名，不重置普攻计时）；之后 3 秒歌域内干员攻击速度 +10%（下一条，条件 resp_idle < 3）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "zone",
+      "r": "zone",
+      "mult": 0.85,
+      "max_n": "$wave_n",
+      "src": "声浪",
+      "tags": ["basic"],
+      "fx": [
+       {
+        "strip": "fx_skalter_wave_big",
+        "if_tex": "fx_skalter_wave_big",
+        "layer": "floor",
+        "cond": "lamp >= $talent_dark",
+        "xfade": 0.4,
+        "ease": "out2",
+        "grow": 0.7,
+        "grow0": 0.1,
+        "grow_to": "zone",
+        "max_scale": 3,
+        "tint": [0.78, 0.95, 0.9, 0.6]
+       },
+       {
+        "strip": "fx_skalter_wave_big_dim",
+        "if_tex": "fx_skalter_wave_big_dim",
+        "layer": "floor",
+        "cond": "lamp < $talent_dark",
+        "xfade": 0.4,
+        "ease": "out2",
+        "grow": 0.7,
+        "grow0": 0.1,
+        "grow_to": "zone",
+        "max_scale": 3,
+        "tint": [0.85, 0.85, 0.9, 0.48]
+       },
+       {
+        "strip": "fx_skalter_wave",
+        "if_tex": "!fx_skalter_wave_big",
+        "max_scale": 4,
+        "layer": "floor",
+        "cond": "lamp >= $talent_dark",
+        "xfade": 0.4,
+        "ease": "out2",
+        "grow": 0.7,
+        "grow0": 0.1,
+        "grow_to": "zone",
+        "tint": [0.78, 0.95, 0.9, 0.5],
+        "wake": {
+         "n": 2,
+         "w": 12,
+         "a": 0.55,
+         "lag": 0.09,
+         "col": [0.55, 0.92, 1.0]
+        }
+       },
+       {
+        "strip": "fx_skalter_wave_dim",
+        "if_tex": "!fx_skalter_wave_big_dim",
+        "max_scale": 4,
+        "layer": "floor",
+        "cond": "lamp < $talent_dark",
+        "xfade": 0.4,
+        "ease": "out2",
+        "grow": 0.7,
+        "grow0": 0.1,
+        "grow_to": "zone",
+        "tint": [0.85, 0.85, 0.9, 0.38],
+        "wake": {
+         "n": 2,
+         "w": 12,
+         "a": 0.5,
+         "lag": 0.09,
+         "col": [0.62, 0.46, 0.88]
+        }
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "trig": "passive",
+    "cond": "resp_idle < 3",
+    "_doc": "响应动作：上一条触发后 3 秒内，歌域内干员攻击速度 +10%",
+    "do": [
+     {
+      "aura": "aspd",
+      "value": 0.1,
+      "scope": "in_zone"
+     }
+    ]
+   }
+  ]
  },
  "native_motion": {
   "_doc": "出手帧对齐（10-20 用户）：画面整条播 clip 秒，出手帧画面起点 = fire_time，收势越过逻辑窗口、下一动作打断（docs/108 §3.5）",
@@ -1518,5 +1616,10 @@
    "skill_s2": 1.166667,
    "skill_s3": 1.166667
   }
+ },
+ "response": {
+  "name": "应和",
+  "trigger": "队长开技能",
+  "desc": "队长每次开技能，歌域立刻放出一圈声浪；之后 3 秒，歌域内干员攻击速度 +10%"
  }
 }
