@@ -1566,7 +1566,7 @@ func _open_op_pick(for_cover := false) -> void:
 			for n in d.get("progression", []):
 				if n is Dictionary and n.get("type", "") == "elite":
 					elite += 1
-			op_defs.append({"id": cid, "def": d, "tex": tx, "frames": frames, "hires": A.hires_of(tx), "lore": op_lore.get(cid, {}).get("lore", ""),
+			op_defs.append({"id": cid, "def": d, "tex": tx, "frames": frames, "hires": A.hires_of(tx), "ds": UI.op_scale(d), "lore": op_lore.get(cid, {}).get("lore", ""),
 				"sheet": sh, "name": d.get("name", cid), "en": str(d.get("en", cid.to_upper())), "cls": cls, "col": col,
 				"elite": elite if elite > 0 else 2, "melee": _op_is_melee(d),
 				"vals": {"hp": InitialStats.row(sh, "hp").val, "atk": InitialStats.row(sh, "atk").val, "cd": InitialStats.row(sh, "cd").val,
@@ -2092,9 +2092,9 @@ func _op_char(ci: CanvasItem, od: Dictionary, foot: Vector2, k2: float, clip: Re
 	var bb: Rect2 = od.bb
 	var fw: float = tx.get_width() / float(od.frames)
 	var fr: int = int(t * 4.0) % int(od.frames)
-	var k: float = k2 * 2.0 / float(od.hires) * (0.92 + 0.08 * c)
+	var k: float = k2 * 2.0 / float(od.hires) * float(od.get("ds", 1.0)) * (0.92 + 0.08 * c)
 	var sz := bb.size * k
-	var pos := Vector2(foot.x - sz.x / 2.0 + 24.0 * (1.0 - c), foot.y - sz.y)
+	var pos := UI.foot_pos(foot, bb, fw, tx.get_height(), float(od.hires), k) + Vector2(24.0 * (1.0 - c), 0.0)   # 脚底点对齐（10-21 水月）
 	var src := Rect2(fw * fr + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
 	var cut := floorf(bb.size.y * 0.72)
 	if od.sil != null:

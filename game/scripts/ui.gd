@@ -1053,7 +1053,7 @@ static func roster_card(ci: CanvasItem, font: Font, r: Rect2, od: Dictionary, li
 		var hi: float = od.get("hires", 1.0)
 		var fw: float = tx.get_width() / float(maxi(1, int(od.get("frames", 1))))
 		var bb: Rect2 = card_bb(od, tx)
-		var pl := card_place(r, fw, tx.get_height(), hi, bb, 24.0)
+		var pl := card_place(r, fw, tx.get_height(), hi, bb, 24.0, float(od.get("ds", 1.0)))
 		var src := Rect2(fw * frame + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
 		blit_clipped(ci, tx, pl, src, r.grow(-1.0), Color(1, 1, 1, a))
 	rbox(ci, Rect2(r.position.x + 2, r.end.y - 22, r.size.x - 4, 20), 4, Color(0.016, 0.031, 0.063, 0.78 * a))
@@ -1307,7 +1307,7 @@ static func card_art(ci: CanvasItem, r: Rect2, od: Dictionary, frame: int, col :
 	var fw: float = tx.get_width() / float(maxi(1, int(od.get("frames", 1))))
 	var bb: Rect2 = card_bb(od, tx)
 	var src := Rect2(fw * frame + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
-	blit_clipped(ci, tx, card_place(r, fw, tx.get_height(), hi, bb, name_h), src, r.grow(-1.0), col)
+	blit_clipped(ci, tx, card_place(r, fw, tx.get_height(), hi, bb, name_h, float(od.get("ds", 1.0))), src, r.grow(-1.0), col)
 
 
 ## 名册卡 / 图鉴格子里的小人（10-21 用户：居中、统一缩放、留在名字条之上，长武器 / 大盾不另降倍但整幅在格子内）：
@@ -1321,17 +1321,16 @@ const CARD_FIT := Vector2(98.0, 99.0)
 ## 0.6 = 每 5 个画成 3 个（手机 62 × 88–90）；0.833 / 0.875 在桌面卡里放不下归溟的锯盘与浊心举杖
 const CARD_STEPS := [3.0, 2.0, 1.0, 0.875, 0.8, 0.75, 0.6, 0.5]
 
-static func card_place(r: Rect2, fw: float, fh: float, hi: float, bb: Rect2, name_h: float) -> Rect2:
+static func card_place(r: Rect2, fw: float, fh: float, hi: float, bb: Rect2, name_h: float, ds := 1.0) -> Rect2:
 	var room := Vector2(r.size.x - 2.0, r.size.y - name_h - 4.0)   # 横向到裁切框（r.grow(-1)）为止
 	var kk: float = 0.5
 	for st in CARD_STEPS:
 		if CARD_FIT.x * st <= room.x + 1.0 and CARD_FIT.y * st <= room.y + 1.0:
 			kk = st
 			break
-	var k: float = kk * 2.0 / hi
-	var foot := Vector2(fw / 2.0, foot_row(fh, hi))   # 帧内贴图像素
+	var k: float = kk * 2.0 / hi * ds
 	var base := Vector2(r.get_center().x, r.end.y - name_h - 2.0 - 8.0 * kk)
-	var dst := Rect2(base + (bb.position - foot) * k, bb.size * k)
+	var dst := Rect2(foot_pos(base, bb, fw, fh, hi, k), bb.size * k)
 	var inner := r.grow(-1.0)
 	dst.position.x += maxf(0.0, inner.position.x - dst.position.x) - maxf(0.0, dst.end.x - inner.end.x)
 	dst.position.y += maxf(0.0, inner.position.y - dst.position.y)
@@ -1348,6 +1347,17 @@ static func card_bb(od: Dictionary, tx: Texture2D) -> Rect2:
 	if not od.has("card_bb"):
 		od["card_bb"] = idle_bb(tx, int(od.get("frames", 1)))
 	return od.card_bb
+
+
+## 立绘按脚底点摆放（10-21 水月）：foot = 屏幕上的脚底点，返回并集区 bb 的左上角；脚底点 = 画布水平中线、foot_row 行。
+## 原来按并集区底边 / 中线摆，水月伞尖在脚下 14 像素、整个人被抬高，大画布的人横向也偏
+static func foot_pos(foot: Vector2, bb: Rect2, fw: float, fh: float, hi: float, k: float) -> Vector2:
+	return foot - (Vector2(fw / 2.0, foot_row(fh, hi)) - bb.position) * k
+
+
+## 干员整体显示倍率（sprites.draw_scale，水月 96 画布 0.9）：界面小人 / 立绘同局内一样乘上，和别人一样大
+static func op_scale(def) -> float:
+	return float(def.get("sprites", {}).get("draw_scale", 1.0)) if def is Dictionary else 1.0
 
 
 ## 帧内脚底行（贴图像素）：48 画布 46；64 口径 60，96 / 128 加边画布各加一半边宽（docs/108 §5）
