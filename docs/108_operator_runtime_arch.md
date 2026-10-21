@@ -169,7 +169,7 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | 艾雅法拉 | 64 + 96 | frame_durations | s3 start/loop/run/end | — | 熔岩弹 `magma_projectile.gd`、S3 收势 0.28 s、`look.weighted` |
 | 能天使 | 64 | frame_durations（全槽） | s1–s3 单条 | 次数型 lifecycle 默认绑定 | |
 | 推进之王 | 64 | frame_durations | 无（`skills[].anim`） | native_motion（数据驱动） | 取消号令 |
-| 乌尔比安 | 64 + 128 | frame_durations、`hand` | 无（elite2 `anim: throw`） | native_motion（数据驱动） | 锚 / 锁链从 `hand` 连出 |
+| 乌尔比安 | 64 + 128 | frame_durations、`hand` | 无（elite2 `anim: throw`） | native_motion（数据驱动） | 锚 / 锁链从 `hand` 连出；10-22 删去顺锁链弹射（S1 钩 Boss / S3 掷锚改为锚在落点原地砸下，本干员不位移），`zip.zip` 信号不再出现，`zip` 族只剩掷锚飞行段与收势；玩法变化、同 seed 会变；伤害倍率不补（木桩表精零 / 精一不变，精二单体队长 199.9 → 202.8、队友 198.4 → 188.0，怪群队长 1303 → 1333、队友 949 → 1035） |
 | 推进之王 | 64（**顶层 size / foot 仍写 48 / (24,46)**） | frame_durations | 无（`skills[].anim`） | native_motion | 取消号令 |
 | 乌尔比安 | 64 + 128（同上，顶层未改） | frame_durations、`hand` | 无（elite2 `anim: throw`） | native_motion | 锚 / 锁链从 `hand` 连出 |
 | 斯卡蒂（10-20 claude/skadi-integrate） | 64 + 96 | frame_durations + fire_time（窗口沿用旧条，同 seed 不变） | 无（S3 `swap_attack` 用 attack_spin；S2 skill 槽借 leap_strike 帧条） | talent `vis_anim: backslash` | Codex cz 原生 idle / attack / death + Claude Spine 脚本 run / leap_strike / attack_spin / backslash |

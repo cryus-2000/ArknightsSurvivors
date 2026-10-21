@@ -303,7 +303,7 @@ func update(dt: float) -> void:
 		o.tick_sp(dt)
 		_battle_voice(o, dt)
 		o.update(dt)
-		# 主控的技能位移（推进之王跃空锤、乌尔比安顺锁链弹射）带着玩家一起走，位移中短暂无敌
+		# 主控的技能位移（推进之王跃空锤）带着玩家一起走，位移中短暂无敌
 		if o.is_leader and o.pos != Vector2.INF and o.pos.distance_to(g.ppos) > 0.5:
 			g.ppos = o.pos
 			g.invuln = maxf(g.invuln, 0.12)

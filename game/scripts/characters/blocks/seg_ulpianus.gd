@@ -240,7 +240,7 @@ static func _hw_anchor_pos(an: Dictionary, k: float) -> Vector2:
 	return (an.from as Vector2).lerp(an.to, travel) + Vector2(0, -sin(k * PI) * 10.0)
 
 
-## 每帧（hw_tick）：飞 → 咬地 → 收链 / 停顿 / 重砸，或弹射 → 落地
+## 每帧（hw_tick）：飞 → 咬地 → 收链 / 停顿 / 重砸，或原地落锚砸下
 static func _hw4_anchor(o, dt: float) -> void:
 	var h: Dictionary = o.hw
 	var an: Dictionary = h.anchor
@@ -272,16 +272,6 @@ static func _hw4_anchor(o, dt: float) -> void:
 			if k >= 1.0:
 				_hw_reel_slam(o)
 				h.anchor = {}
-		_:
-			var kk: float = k * k
-			o.pos = (an.start as Vector2).lerp(an.land, kk)
-			o.face = signf(an.land.x - an.start.x) if absf(an.land.x - an.start.x) > 1.0 else o.face
-			an.trail.push_front(o.pos)
-			if an.trail.size() > 5:
-				an.trail.pop_back()
-			if k >= 1.0:
-				_hw_zip_land(o)
-				h.anchor = {}
 
 
 static func _hw_anchor_bite(o) -> void:
@@ -303,14 +293,11 @@ static func _hw_anchor_bite(o) -> void:
 		if rf is Dictionary and hw_face_ok(o, rf.get("cond", true)):
 			_hw_open_rift(o, rf, o.pos, to)
 		return
-	var land: Vector2 = to - dir * 18.0
-	an.phase = "zip"
-	an.t = 0.0
-	an.dur = clampf(o.pos.distance_to(land) / 1400.0, 0.08, 0.2)
+	# 钩不到 / 钩到 Boss / mode zip：锚在落点原地砸下（10-22 用户：去掉顺锁链弹射，本干员不再位移）
 	an.start = o.pos
-	an.land = land
-	an.trail = []
-	o.melee_tgt = null
+	an.land = to
+	_hw_zip_land(o)
+	h.anchor = {}
 
 
 static func _hw_start_reel(o, to: Vector2, dir: Vector2) -> bool:
@@ -675,7 +662,7 @@ static func _hw_draw_anchor(o, p: Vector2, d: Vector2, a: float) -> void:
 	cv.draw_arc(tail - d * 3.0, 3.5, 0.0, TAU, 12, Color(HW_CHAIN.r, HW_CHAIN.g, HW_CHAIN.b, a), 2.0)
 
 
-## 锚与锁链、弹射残影（data_operator._draw_skill_over）
+## 锚与锁链（data_operator._draw_skill_over）
 static func hw_draw_tether(o) -> void:
 	var h: Dictionary = o.hw
 	var an: Dictionary = h.anchor
@@ -700,14 +687,6 @@ static func hw_draw_tether(o) -> void:
 			var off3: Vector2 = d.orthogonal() * (s - 1) * 9.0
 			if an.phase == "reel":
 				cv.draw_line(p + d * 24.0 + off3, p + d * (58.0 + s * 12.0) + off3, Color(1.3, 1.5, 1.8, 0.35), 1.5)
-	elif not throwing:
-		var tr: Array = an.trail
-		var mv_d: Vector2 = ((an.land as Vector2) - (an.start as Vector2)).normalized()
-		for i in range(tr.size() - 1, 0, -1):
-			o.draw_body_at(tr[i], o.face < 0.0, Color(HW_EDGE.r, HW_EDGE.g, HW_EDGE.b, 0.35 * (1.0 - float(i) / tr.size())))
-		for s in 3:
-			var off: Vector2 = mv_d.orthogonal() * (s - 1) * 10.0 + Vector2(0, -20)
-			cv.draw_line(o.pos - mv_d * 16.0 + off, o.pos - mv_d * (56.0 + s * 14.0) + off, Color(1.3, 1.5, 1.8, 0.4), 1.5)
 	_hw_draw_chain(o, hand, p, 1.0)
 	if throwing:
 		var tr2: Array = an.trail
@@ -1074,7 +1053,7 @@ static func hw_draw_hooks(o) -> void:
 
 
 ## 原生动作信号（native_motion.gd 按 json native_motion.states / exits 取用，docs/108 §3.5）：
-## tether.<阶段> / zip.<阶段> = 掷锚（弹射式或 zip 阶段归 zip），hook.<阶段> = 最后一条钩索，whirl = 甩锚；值为该阶段进度 0–1
+## tether.<阶段> / zip.<阶段> = 掷锚（mode zip 的掷锚归 zip），hook.<阶段> = 最后一条钩索，whirl = 甩锚；值为该阶段进度 0–1
 static func hw_native_signals(o, out: Dictionary) -> void:
 	var an: Dictionary = o.hw.get("anchor", {})
 	if not an.is_empty() and str(an.get("phase", "")) != "":
