@@ -57,7 +57,12 @@
   "flash_mult": 1.5,
   "flash_spins": 3,
   "flash_gap": 0.15,
-  "flash_n": 16
+  "flash_n": 16,
+  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 困兽 / 阿戈尔挽歌，节点 5：beast2_* 困兽·反噬（技巧期间每斩拉近），elegy2_* 阿戈尔挽歌·安魂（渴望期间替身周围伤害 + 减速）。数值为待试验参数",
+  "beast2_r_k": 1.8,
+  "beast2_dist": 25,
+  "elegy2_mult": 0.3,
+  "elegy2_slow": 1.0
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 2803 / 防御 322 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -531,14 +536,44 @@
    "id": "beast",
    "name": "困兽",
    "icon": "skill_specter_unchained_s1",
-   "desc": "「生存的技巧」期间锯刃变红、环斩半径 +{$beast_reach*100-100}%"
+   "desc": "「生存的技巧」期间锯刃变红、环斩半径 +{$beast_reach*100-100}%",
+   "branch": {
+    "beast": {
+     "id": "beast",
+     "name": "困兽",
+     "icon": "skill_specter_unchained_s1",
+     "desc": "「生存的技巧」期间锯刃变红、环斩半径 +{$beast_reach*100-100}%"
+    },
+    "elegy": {
+     "id": "elegy",
+     "name": "阿戈尔挽歌",
+     "icon": "skill_specter_unchained_s2",
+     "desc": "替身唱起阿戈尔挽歌：每 {$elegy_every} 秒一圈水纹外扩，减速范围 ×{$elegy_r_mult}（{$doll_r*$elegy_r_mult}）"
+    }
+   },
+   "branch_desc": "二选一：「困兽」—生存的技巧期间环斩半径更大；「阿戈尔挽歌」—替身的水纹减速范围翻倍。之后的节点沿所选路线强化",
+   "bot": "beast"
   },
   {
    "type": "custom",
    "id": "elegy",
    "name": "阿戈尔挽歌",
    "icon": "skill_specter_unchained_s2",
-   "desc": "替身唱起阿戈尔挽歌：每 {$elegy_every} 秒一圈水纹外扩，减速范围 ×{$elegy_r_mult}（{$doll_r*$elegy_r_mult}）"
+   "desc": "替身唱起阿戈尔挽歌：每 {$elegy_every} 秒一圈水纹外扩，减速范围 ×{$elegy_r_mult}（{$doll_r*$elegy_r_mult}）",
+   "routes": {
+    "beast": {
+     "id": "beast2",
+     "name": "困兽·反噬",
+     "icon": "skill_specter_s1",
+     "desc": "「生存的技巧」期间每次环斩起手把周围 {$reach*$beast2_r_k:0} 内的敌人拉近 {$beast2_dist}（精英减半，Boss 不动）"
+    },
+    "elegy": {
+     "id": "elegy2",
+     "name": "阿戈尔挽歌·安魂",
+     "icon": "skill_specter_s2",
+     "desc": "「生存的渴望」期间每 {$elegy_every} 秒，替身周围 {$doll_r} 内的敌人受到 {$elegy2_mult*100}% 法术伤害并减速 {$elegy2_slow} 秒"
+    }
+   }
   },
   {
    "type": "elite",
@@ -1043,6 +1078,48 @@
       "max_n": "$flash_n"
      }
     ]
+   },
+   "beast2": {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "skill_active:0",
+    "_doc": "困兽·反噬（路线 beast 节点 5）：技巧期间每斩拉近周围敌人",
+    "do": [
+     {
+      "verb": "displace",
+      "dir": "pull",
+      "center": "self",
+      "r": "$reach*$beast2_r_k",
+      "dist": "$beast2_dist",
+      "elite_mult": 0.5
+     }
+    ]
+   },
+   "elegy2": {
+    "trig": "tick",
+    "every": "$elegy_every",
+    "cond": "skill_active:1",
+    "_doc": "阿戈尔挽歌·安魂（路线 elegy 节点 5）：渴望期间替身（跟随队长）周围伤害 + 减速",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "leader",
+      "r": "$doll_r",
+      "mult": "$elegy2_mult",
+      "power": true,
+      "src": "替身",
+      "tags": [
+       "skill",
+       "dot"
+      ],
+      "on_hit": [
+       {
+        "st": "slow",
+        "dur": "$elegy2_slow"
+       }
+      ]
+     }
+    ]
    }
   },
   "response": [
@@ -1089,11 +1166,17 @@
          "r": 1.0,
          "r0": 10.0,
          "life": 0.35,
-         "col": [0.85, 0.2, 0.25],
+         "col": [
+          0.85,
+          0.2,
+          0.25
+         ],
          "floor": true,
          "w": 3.0
         },
-        "r_scale": ["r"]
+        "r_scale": [
+         "r"
+        ]
        }
       ]
      }

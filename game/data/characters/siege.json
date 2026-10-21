@@ -42,7 +42,14 @@
   "crush_r": 50,
   "crush_mult": 0.2,
   "crush_cap": 2,
-  "spike_step": 36
+  "spike_step": 36,
+  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 再跃 / 万兽之王，节点 5：leap3_* 再跃·裂地（两次落地后震圈），cmd2_* 万兽之王·威令（号令回技力 + 自身限时增伤）。数值为待试验参数",
+  "leap3_delay": 0.8,
+  "leap3_r": 140,
+  "leap3_mult": 0.8,
+  "cmd2_sp": 1.0,
+  "cmd2_dur": 4.0,
+  "cmd2_mult": 1.2
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 2251 / 防御 384 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -315,14 +322,44 @@
    "id": "leap_again",
    "name": "再跃",
    "icon": "skill_siege_s2",
-   "desc": "「跃空锤」落地后立刻再跃向下一群敌人砸第二下（{$leap2_mult*100}% 伤害）"
+   "desc": "「跃空锤」落地后立刻再跃向下一群敌人砸第二下（{$leap2_mult*100}% 伤害）",
+   "branch": {
+    "leap": {
+     "id": "leap_again",
+     "name": "再跃",
+     "icon": "skill_siege_s2",
+     "desc": "「跃空锤」落地后立刻再跃向下一群敌人砸第二下（{$leap2_mult*100}% 伤害）"
+    },
+    "cmd": {
+     "id": "beast_king",
+     "name": "万兽之王",
+     "icon": "skill_siege_s1",
+     "desc": "「冲锋号令·γ型」放出一圈向外扩张的金色号令波（半径 {$cmd_r}，锤击 {$cmd_mult*100}% 伤害），推开小怪"
+    }
+   },
+   "branch_desc": "二选一：「再跃」—跃空锤落地后再跃向下一群敌人；「万兽之王」—冲锋号令放出金色号令波。之后的节点沿所选路线强化",
+   "bot": "leap"
   },
   {
    "type": "custom",
    "id": "beast_king",
    "name": "万兽之王",
    "icon": "skill_siege_s1",
-   "desc": "「冲锋号令·γ型」放出一圈向外扩张的金色号令波（半径 {$cmd_r}，锤击 {$cmd_mult*100}% 伤害），推开小怪"
+   "desc": "「冲锋号令·γ型」放出一圈向外扩张的金色号令波（半径 {$cmd_r}，锤击 {$cmd_mult*100}% 伤害），推开小怪",
+   "routes": {
+    "leap": {
+     "id": "leap_again2",
+     "name": "再跃·裂地",
+     "icon": "skill_siege_s2",
+     "desc": "「跃空锤」两次落地后 {$leap3_delay} 秒，以自身为中心半径 {$leap3_r} 震出一圈（锤击 {$leap3_mult*100}% 伤害，击退）"
+    },
+    "cmd": {
+     "id": "beast_king2",
+     "name": "万兽之王·威令",
+     "icon": "skill_siege_s1",
+     "desc": "「冲锋号令·γ型」时全队技能各 +{$cmd2_sp} 秒充能，她自身 {$cmd2_dur} 秒内伤害 ×{$cmd2_mult}"
+    }
+   }
   },
   {
    "type": "elite",
@@ -613,6 +650,47 @@
     "trig": "passive",
     "do": [],
     "_doc": "粉碎：写在 attack.crush（cond elite >= 1）"
+   },
+   "leap_again2": {
+    "trig": "on_skill_start",
+    "skill": 1,
+    "delay": "$leap3_delay",
+    "_doc": "再跃·裂地（路线 leap 节点 5）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$leap3_r",
+      "mult": "$leap3_mult",
+      "power": true,
+      "kb": 220,
+      "src": "震地",
+      "tags": [
+       "skill"
+      ]
+     }
+    ]
+   },
+   "beast_king2": {
+    "trig": "on_skill_start",
+    "skill": 0,
+    "_doc": "万兽之王·威令（路线 cmd 节点 5）：全队技力 + 自身限时增伤",
+    "do": [
+     {
+      "verb": "sp_secs",
+      "seconds": "$cmd2_sp",
+      "exclude_self": false
+     },
+     {
+      "verb": "buff_timed",
+      "key": "cmd",
+      "stat": "dmg",
+      "op": "mult",
+      "value": "$cmd2_mult",
+      "dur": "$cmd2_dur",
+      "text": "威令"
+     }
+    ]
    }
   },
   "response": [
@@ -643,13 +721,32 @@
  },
  "native_motion": {
   "_doc": "原生动作覆盖层（docs/108 §3.5，native_motion.gd）：clips = 起手后整条播的秒数；states 按序取第一条；exits = 信号族结束后的收势",
-  "clips": {"attack": 0.5714285714285714, "heavy_attack": 0.6666666666666666, "leap_native": 0.610909090909091},
+  "clips": {
+   "attack": 0.5714285714285714,
+   "heavy_attack": 0.6666666666666666,
+   "leap_native": 0.610909090909091
+  },
   "states": [
-   {"on": "leap", "slot": "leap_native", "from": 0, "to": 4, "rate": 5.5},
-   {"on": "act:activation", "slot": "idle", "loop": true}
+   {
+    "on": "leap",
+    "slot": "leap_native",
+    "from": 0,
+    "to": 4,
+    "rate": 5.5
+   },
+   {
+    "on": "act:activation",
+    "slot": "idle",
+    "loop": true
+   }
   ],
   "exits": [
-   {"on": "leap", "slot": "leap_native", "from": 5, "tail": 0.2}
+   {
+    "on": "leap",
+    "slot": "leap_native",
+    "from": 5,
+    "tail": 0.2
+   }
   ]
  },
  "response": {

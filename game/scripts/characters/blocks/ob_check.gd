@@ -109,6 +109,11 @@ static func validate(cid: String, d: Dictionary) -> bool:
 		for n in d.get("progression", _EA):
 			if n is Dictionary and n.get("type", "") == "custom":
 				custom_ids.append(str(n.get("id", "")))
+				if n.has("alt"):   # 开关开时替换的节点（docs/120 安洁莉娜）
+					if not (n.alt is Dictionary) or not n.alt.has("id") or not n.alt.has("name") or not n.alt.has("desc"):
+						errs.append("progression 节点「%s」的 alt 要有 id / name / desc" % str(n.get("id", "")))
+					else:
+						custom_ids.append(str(n.alt.id))
 				for key in ["branch", "routes"]:
 					if not n.has(key):
 						continue

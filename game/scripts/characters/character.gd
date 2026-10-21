@@ -1063,15 +1063,21 @@ static func branch_on() -> bool:
 func node_view(n: Dictionary, rid: String = route) -> Dictionary:
 	if n.is_empty() or not branch_on():
 		return n
+	var out: Dictionary = n
+	if n.get("alt", null) is Dictionary:   # 开关开时无条件换成另一个节点（安洁莉娜 docs/119：双重引力提前到节点 1；顶层仍是旧线）
+		out = n.duplicate()
+		for k in n.alt:
+			out[k] = n.alt[k]
+		out.erase("alt")
 	var alts = n.get("branch", n.get("routes", null))
 	if alts is Dictionary and rid != "" and alts.has(rid) and alts[rid] is Dictionary:
-		var out: Dictionary = n.duplicate()
+		if out == n:
+			out = n.duplicate()
 		for k in alts[rid]:
 			out[k] = alts[rid][k]
 		out.erase("branch")
 		out.erase("routes")
-		return out
-	return n
+	return out
 
 
 ## 整条成长线按当前路线解析（属性面板 / 图鉴）

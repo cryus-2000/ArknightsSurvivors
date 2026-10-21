@@ -64,7 +64,13 @@
   "link_r": 120,
   "link_dur": 1.5,
   "link_share": 0.3,
-  "link_cap": 4
+  "link_cap": 4,
+  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 转喻 / 墓志铭，节点 5：meto2_* 转喻·共振（提喻期间周期震荡），epi2_* 墓志铭·连锁（击杀处小咒文）。数值为待试验参数",
+  "meto2_every": 1.0,
+  "meto2_r_k": 0.5,
+  "meto2_mult": 0.3,
+  "epi2_r": 50,
+  "epi2_mult": 0.4
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1663 / 防御 119 / 法抗 20%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -567,14 +573,44 @@
    "id": "metonymy",
    "name": "转喻",
    "icon": "skill_logos_s1",
-   "desc": "「提喻」锁定的目标死亡时，链接跳到最近的敌人，继续剩余时间"
+   "desc": "「提喻」锁定的目标死亡时，链接跳到最近的敌人，继续剩余时间",
+   "branch": {
+    "metonymy": {
+     "id": "metonymy",
+     "name": "转喻",
+     "icon": "skill_logos_s1",
+     "desc": "「提喻」锁定的目标死亡时，链接跳到最近的敌人，继续剩余时间"
+    },
+    "epitaph": {
+     "id": "epitaph",
+     "name": "墓志铭",
+     "icon": "skill_logos_s2",
+     "desc": "「殁亡」处决敌人时，在其位置写下一枚大咒文，{$epitaph_delay} 秒后爆开（半径 {$epitaph_r}，{$epitaph_mult*100}% 伤害）"
+    }
+   },
+   "branch_desc": "二选一：「转喻」—提喻的锁定目标死亡时链接跳到最近的敌人；「墓志铭」—殁亡处决时写下大咒文爆开。之后的节点沿所选路线强化",
+   "bot": "metonymy"
   },
   {
    "type": "custom",
    "id": "epitaph",
    "name": "墓志铭",
    "icon": "skill_logos_s2",
-   "desc": "「殁亡」处决敌人时，在其位置写下一枚大咒文，{$epitaph_delay} 秒后爆开（半径 {$epitaph_r}，{$epitaph_mult*100}% 伤害）"
+   "desc": "「殁亡」处决敌人时，在其位置写下一枚大咒文，{$epitaph_delay} 秒后爆开（半径 {$epitaph_r}，{$epitaph_mult*100}% 伤害）",
+   "routes": {
+    "metonymy": {
+     "id": "metonymy2",
+     "name": "转喻·共振",
+     "icon": "skill_logos_s1",
+     "desc": "「提喻」锁定期间，每 {$meto2_every} 秒以自身为中心半径 {$range*$meto2_r_k:0} 震荡一次（{$meto2_mult*100}% 法术伤害）"
+    },
+    "epitaph": {
+     "id": "epitaph2",
+     "name": "墓志铭·连锁",
+     "icon": "skill_logos_s2",
+     "desc": "她每击杀一名敌人，在其位置写下一枚小咒文立即爆开（半径 {$epi2_r}，{$epi2_mult*100}% 伤害）"
+    }
+   }
   },
   {
    "type": "elite",
@@ -601,9 +637,15 @@
   "attack": {
    "shape": "bolt",
    "flight_visual": {
-    "variants": ["proj_logos_ink_a", "proj_logos_ink_b"],
+    "variants": [
+     "proj_logos_ink_a",
+     "proj_logos_ink_b"
+    ],
     "fps": 16,
-    "arc_lift": [0.09, -0.05],
+    "arc_lift": [
+     0.09,
+     -0.05
+    ],
     "max_lift": 26,
     "trail_alpha": 0.72,
     "trail_width": 2
@@ -1162,6 +1204,43 @@
        "fx_logos_soul_rune_1",
        "fx_logos_soul_rune_2",
        "fx_logos_soul_rune_3"
+      ]
+     }
+    ]
+   },
+   "metonymy2": {
+    "trig": "tick",
+    "every": "$meto2_every",
+    "cond": "skill_active:0",
+    "_doc": "转喻·共振（路线 metonymy 节点 5）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$range*$meto2_r_k",
+      "mult": "$meto2_mult",
+      "power": true,
+      "src": "提喻",
+      "tags": [
+       "skill",
+       "dot"
+      ]
+     }
+    ]
+   },
+   "epitaph2": {
+    "trig": "on_kill",
+    "_doc": "墓志铭·连锁（路线 epitaph 节点 5）：击杀处小咒文",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$epi2_r",
+      "mult": "$epi2_mult",
+      "src": "墓志铭",
+      "tags": [
+       "skill",
+       "follow_up"
       ]
      }
     ]
