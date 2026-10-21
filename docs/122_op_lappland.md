@@ -146,14 +146,16 @@ S3 预算：8 秒 × 13 轮 × 0.7 ≈ 9.3 次普攻伤害（单体），群体 
 
 ### 6.1 接入记录（10-22，Codex `codex/art 199d7b73`，分支 claude/op-lappland-gladiia）
 
+> 10-22 用户：帧数要和别的干员一致、S3 持续攻击动作与 S2 一致。全部条已由 `tools/probes/package_lappland_gladiia.py` 从 Codex 的 20 fps 密采样条重采样成 **8 帧**（其他 18 人全是 8 帧级，只有水月 / 浊心待机 36 帧是用户要求的加密），每帧时长 = 它到下一取样帧之间的源时长之和（总长不变）、出手帧 = 原作 OnAttack 所在源帧；下表「帧」列是重采样后的数，括号内是源帧数。S3 序列改为 `{start skill, loop throw, attack throw, run run}`。
+
 | 槽 | 原作轨 | 帧 / 时长 / 画布 | 出手 | 用法 |
 |---|---|---|---|---|
-| `idle` | Idle | 40 / 2.0 s / 64 | — | 原生像素 @2x，foot (32,60) |
-| `attack` | Combat | 25 / 1.167 s / 96 | OnAttack 0.4667 = 第 10 帧 | 逻辑窗口照旧条 `logic [5,14,2]`（0.357 秒、出手 0.179 秒，同 seed 与接美术前逐行相同）；画面 `native_motion.clips.attack` 0.446 秒整条均匀播，出手帧（第 10 帧）画面起点 = 伤害时刻，收势越过窗口、下一动作打断——同浊心 / 幽灵鲨 / 星熊口径。曾试 `attack_timing` 把 1.17 秒动作压进 0.72 秒窗口（e2c055fe），用户 10-22 反馈节奏与现有干员对不上，改回 |
-| `skill` | Skill | 28 / 1.333 s / 96 | 0.5677 = 第 12 帧 | S1「日晷」充能那一次；S3「群狼之噬」起手（`skills.s3 {start skill, loop idle, run run}`） |
-| `throw` | Attack（领主远程掷刃） | 28 / 1.333 s / 96 | 0.601 = 第 13 帧 | S2「狼魂」起手 |
-| `death` | Die | 20 / 1.0 s / 64 | — | |
-| `run` | （未交） | 借斯卡蒂 run | — | 像素 Spine 会话另出；art_lint 豁免 run |
+| `idle` | Idle | 8（源 40）/ 2.0 s / 64 | — | 原生像素 @2x，foot (32,60) |
+| `attack` | Combat | 8（源 25）/ 1.167 s / 96 | OnAttack 0.4667 = 源第 10 帧 → 第 3 帧 | 逻辑窗口照旧条 `logic [5,14,2]`（0.357 秒、出手 0.179 秒，同 seed 与接美术前逐行相同）；画面 `native_motion.clips.attack` 0.446 秒整条均匀播，出手帧（第 10 帧）画面起点 = 伤害时刻，收势越过窗口、下一动作打断——同浊心 / 幽灵鲨 / 星熊口径。曾试 `attack_timing` 把 1.17 秒动作压进 0.72 秒窗口（e2c055fe），用户 10-22 反馈节奏与现有干员对不上，改回 |
+| `skill` | Skill | 8（源 28）/ 1.333 s / 96 | 0.5677 = 源第 12 帧 → 第 3 帧 | S1「日晷」充能那一次；S3「群狼之噬」起手（`skills.s3 {start skill, loop throw, attack throw, run run}`：持续期循环掷刃动作，与 S2 同一条） |
+| `throw` | Attack（领主远程掷刃） | 8（源 28）/ 1.333 s / 96 | 0.601 = 源第 13 帧 → 第 3 帧 | S2「狼魂」起手；S3 持续期 loop / attack |
+| `death` | Die | 8（源 20）/ 1.0 s / 64 | — | |
+| `run` | （Spine 步态脚本，claude/op-lappland-gladiia-run b20e912f） | 8 / 0.6 s / 64 | — | 双剑放身前 |
 | （不收） | Start | 514 画布登场 | — | 本作无登场演出 |
 
 特效：刀光 `fx_lappland_slash`（4 帧 10 fps，普攻 / 连斩第二刀，`rot` 随出手方向；缺图回退程序弧光）；剑气弹体 `proj_lappland_sword`（4 帧 16 fps）挂所有 `shape.wave` 的 `proj`（领主 / 狼魂 / 群狼之噬 / 双生刃）；封印标记改**头顶灰叉**（`st.seal look: cross`：8×8、2 px、#AAAEB2、头顶上方 12 px，不画地面圈 / 紫菱形，`ob_summon.sm_draw_over`），按 skill_completion/playback_contract。S3 三道剑气仍由 `trait tick` 每 0.6 秒实时发射（不加第二个调度器）。

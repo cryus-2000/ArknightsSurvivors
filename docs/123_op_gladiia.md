@@ -157,15 +157,17 @@
 
 ### 6.1 接入记录（10-22，Codex `codex/art 199d7b73` + skill_completion，分支 claude/op-lappland-gladiia）
 
+> 10-22 用户：帧数要和别的干员一致。全部条已由 `tools/probes/package_lappland_gladiia.py` 从 20 fps 密采样条重采样成 **8 帧**（口径同 docs/122 §6.1）；下表「帧」为重采样后，括号内源帧数。
+
 | 槽 | 原作轨 | 帧 / 时长 / 画布 | 出手 | 用法 |
 |---|---|---|---|---|
-| `idle` | Idle | 107 / 5.333 s / 64 | — | 原生像素 @2x（13696 px 宽） |
-| `attack` | Attack（掷钩） | 37 / 1.8 s / 96 | OnAttack 0.5667 = 第 12 帧 | 逻辑窗口照旧条 `logic [8,12,3]`（0.667 秒、出手 0.292 秒，同 seed 与接美术前逐行相同）；画面 `native_motion.clips.attack` 0.899 秒整条均匀播，第 12 帧画面起点 = 伤害时刻。曾试 attack_timing（e2c055fe），用户 10-22 反馈节奏不对，改回 |
-| `s1_begin` | Skill_1_Begin | 14 / 0.633 s / 96 | 0.334 = 第 7 帧 | S1 瞬发单条（Skill_1_Loop / End 已交未用） |
-| `s2_start / s2_enter / s2_loop / s2_attack / s2_end` | Skill_2 Startup / Begin / Idle / Loop / End | 10 / 13 / 54 / 27 / 14 帧 | Begin 0.434 | `skills.s2 {start, enter, loop, attack, run, end}`：持续期站立 Idle、普攻播 Loop |
-| `s3_start / s3_enter / s3_loop / s3_attack / s3_end` | Skill_3 Startup / Begin / Chant / Loop / End | 11 / 14 / 27 / 27 / 24 帧 | Startup 0.368 | 同上，持续期 Chant |
-| `death` | Die | 20 / 1.0 s / 96 | — | |
-| `run` | （未交） | 借乌尔比安 run | — | 像素 Spine 会话另出 |
+| `idle` | Idle | 8（源 107）/ 5.333 s / 64 | — | 原生像素 @2x |
+| `attack` | Attack（掷钩） | 8（源 37）/ 1.8 s / 96 | OnAttack 0.5667 = 源第 12 帧 → 第 2 帧 | 逻辑窗口照旧条 `logic [8,12,3]`（0.667 秒、出手 0.292 秒，同 seed 与接美术前逐行相同）；画面 `native_motion.clips.attack` 0.899 秒整条均匀播，第 12 帧画面起点 = 伤害时刻。曾试 attack_timing（e2c055fe），用户 10-22 反馈节奏不对，改回 |
+| `s1_begin` | Skill_1_Begin | 8（源 14）/ 0.633 s / 96 | 0.334 = 源第 7 帧 → 第 4 帧 | S1 瞬发单条（Skill_1_Loop / End 已交未用，不入库） |
+| `s2_start / s2_enter / s2_loop / s2_attack / s2_end` | Skill_2 Startup / Begin / Idle / Loop / End | 各 8 帧（源 10 / 13 / 54 / 27 / 14） | Begin 0.434 | `skills.s2 {start, enter, loop, attack, run, end}`：持续期站立 Idle、普攻播 Loop |
+| `s3_start / s3_enter / s3_loop / s3_attack / s3_end` | Skill_3 Startup / Begin / Chant / Loop / End | 各 8 帧（源 11 / 14 / 27 / 27 / 24） | Startup 0.368 | 同上，持续期 Chant |
+| `death` | Die | 8（源 20）/ 1.0 s / 96 | — | |
+| `run` | （Spine 步态脚本，b20e912f） | 8 / 0.6 s / 64 | — | 长裙遮腿，art_lint 豁免 |
 
 特效（按 playback_contract）：钩头 `proj_gladiia_hook`（`shape.hookshot.head`，新参数：锚头贴图沿飞行 / 拖回方向旋转，缺图退回程序锚；牵引索仍是程序细链）；到位冲击 `fx_gladiia_ram`（S1 `arrive_fx`、精二「冲撞」、S3 结束）；牵引水带 `fx_gladiia_pull`（S2 每次掷钩拉近身边敌人时 4 份散播；S3 结束 6 份）；水龙卷 `fx_gladiia_tornado_open`（once）→ `_loop`（随力场寿命循环）→ `_close`（S3 结束块，与牵引 + 冲击同时）；场中心 = `verb.field center last_hit` 建场时快照，不跟人。`fx_gladiia_water_glide` 已登记未挂（等跑步条）。
 art_lint：未豁免 FAIL 0；豁免 outline / ground（原生）+ run（长裙遮腿）。精二「冲撞」击退改回 160。

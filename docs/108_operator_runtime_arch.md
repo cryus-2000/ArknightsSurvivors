@@ -179,8 +179,8 @@ s_t 到 0：不再起新轮 → 排空当前轮 → phase_skill_end（一次）�
 | 流明 | 64 | frame_durations + fire_time | s2 单条、s3 start/loop/run/end | — | 普攻 / 精二光柱手提灯举向敌人；光弹出生点 `hand` 改 [20, -37]（灯心，用户 10-20 定，会改同 seed）；光柱一发起手播 `attack_beam`（seg_lumen） |
 | 艾丽妮 | 64 + 96 + 128 | frame_durations + fire_time；attack 保留 fps 12 / fire 3 / second 5（段间隔 2/12 不变） | s2 单条、s3 start/loop/end | native_motion：variants `node: retrial` → 12 帧三段刺 `attack_retrial`；`yield: [finisher]` | 裂潮余波 finisher 9 帧 16 fps、fire 1 |
 
-| 拉普兰德（10-22 claude/op-lappland-gladiia） | 64 + 96 | frame_durations + fire_time + logic（旧窗口）、native_motion.clips | s1 / s2 单条（skill / throw）、s3 start/loop/run | — | Codex 199d7b73 原生像素 @2x（Idle 40 / Combat 25 / Attack 28 / Skill 28 / Die 20 帧）；跑步借斯卡蒂；docs/122 §6.1 |
-| 歌蕾蒂娅（同上） | 64 + 96 | frame_durations + fire_time + logic、native_motion.clips | s1 单条；s2 / s3 start/enter/loop/attack/run/end（原作 Startup / Begin / Idle·Chant / Loop / End 五段） | hookshot `head` 贴图 | Idle 107 帧 5.3 秒；跑步借乌尔比安；docs/123 §6.1 |
+| 拉普兰德（10-22 claude/op-lappland-gladiia） | 64 + 96 | frame_durations + fire_time + logic（旧窗口）、native_motion.clips | s1 / s2 单条（skill / throw）、s3 start/loop/run | — | Codex 199d7b73 原生像素 @2x 重采样为 8 帧级（package_lappland_gladiia.py）；跑步 Spine 步态条；docs/122 §6.1 |
+| 歌蕾蒂娅（同上） | 64 + 96 | frame_durations + fire_time + logic、native_motion.clips | s1 单条；s2 / s3 start/enter/loop/attack/run/end（原作 Startup / Begin / Idle·Chant / Loop / End 五段） | hookshot `head` 贴图 | 全部 8 帧级（源 Idle 107 帧 5.3 秒）；跑步 Spine 步态条；docs/123 §6.1 |
 
 10-21 起 18 人全部换到 64 新口径（星熊 / 斯卡蒂 / 德克萨斯 10-20、凯尔希 / 流明 / 艾丽妮见上表、浊心斯卡蒂 / 归溟幽灵鲨见 §9.4）；§9 的 48 旧口径说明只作历史。
 
