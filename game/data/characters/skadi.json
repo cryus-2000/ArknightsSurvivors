@@ -440,38 +440,7 @@
    "first": "$first_cd",
    "idle": "$idle_cd",
    "face": true,
-   "fx": [
-    {
-     "blade": {
-      "strip": "fx_slash_arc_deep",
-      "fit": 40,
-      "k": 1.15,
-      "along": 0.5,
-      "col": [
-       0.35,
-       0.55,
-       0.95
-      ],
-      "edge": [
-       0.8,
-       0.95,
-       1.0
-      ],
-      "life": 0.22,
-      "half": 1.4,
-      "motes": {
-       "n": 5,
-       "col": [
-        0.6,
-        0.9,
-        1.0
-       ],
-       "along": 0.6,
-       "y": -10
-      }
-     }
-    }
-   ],
+   "fx": [],
    "combo": [
     {
      "cond": "node:combo2",
@@ -496,45 +465,7 @@
         "follow_up"
        ],
        "face": true,
-       "fx": [
-        {
-         "blade": {
-          "strip": "fx_slash_arc_deep",
-          "fit": 40,
-          "k": 1.15,
-          "along": 0.5,
-          "col": [
-           0.3,
-           0.5,
-           0.95
-          ],
-          "edge": [
-           0.8,
-           0.95,
-           1.0
-          ],
-          "life": 0.2,
-          "half": 1.4,
-          "tint": [
-           0.8,
-           0.92,
-           1.1,
-           0.85
-          ],
-          "mirror": true,
-          "motes": {
-           "n": 5,
-           "col": [
-            0.6,
-            0.9,
-            1.0
-           ],
-           "along": 0.6,
-           "y": -10
-          }
-         }
-        }
-       ]
+       "fx": []
       },
       {
        "shape": "cone",
@@ -612,34 +543,6 @@
        ],
        "face": true,
        "fx": [
-        {
-         "blade": {
-          "strip": "fx_slash_circle_deep",
-          "fit": 66,
-          "k": 1.6,
-          "along": 0.0,
-          "rot": false,
-          "col": [
-           0.8,
-           0.95,
-           1.0
-          ],
-          "edge": [
-           1.2,
-           1.5,
-           1.7
-          ],
-          "life": 0.24,
-          "half": 3.1416,
-          "tint": [
-           0.95,
-           1.05,
-           1.2,
-           0.45
-          ],
-          "mirror": "face"
-         }
-        },
         {
          "pfx": {
           "kind": "mote",
@@ -1555,38 +1458,7 @@
       "basis": "attack",
       "mult": "$back_mult",
       "kb": "$kb",
-      "fx": [
-       {
-        "blade": {
-         "strip": "fx_slash_arc_deep",
-         "fit": 40,
-         "k": 1.15,
-         "along": 0.5,
-         "col": [
-          0.8,
-          0.95,
-          1.0
-         ],
-         "edge": [
-          1.2,
-          1.5,
-          1.7
-         ],
-         "life": 0.2,
-         "half": 1.4,
-         "motes": {
-          "n": 5,
-          "col": [
-           0.6,
-           0.9,
-           1.0
-          ],
-          "along": 0.6,
-          "y": -10
-         }
-        }
-       }
-      ]
+      "fx": []
      }
     ],
     "vis_anim": "backslash"
