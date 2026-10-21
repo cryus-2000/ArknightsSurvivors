@@ -1879,3 +1879,11 @@ S3 当前契约（2026-10-18）：参考原作的全周范围攻击与追加目�
 两人全部用现有积木写成（docs/122 §3、docs/123 §3）：拉普兰德 = cone + `attack.combo` + `shape.wave from self` + `st.seal` + `trig.on_hurt`；歌蕾蒂娅 = 名义 circle + `trig.every_n {n 1, replace}` → `shape.hookshot`（乌尔比安精二积木当普攻）+ `verb.field` + `aura.heal / verb.dr` 按 `cond faction:深海猎人 >= n` 叠档。
 预算表与数值在各自文档 §4，不再写进本文；两人暴露的缺口（`shape.wave` 无 `on_hit`、`shape.hookshot` 不在 `ATTACK_SHAPES` / 无 `on_hit` / 只认最远目标、`verb.displace to: self` 未实现、非精英加伤、docs/118 的 `trig.on_leader_skill` / 共用 `on_leader_dash`）列在两文档的「需要新积木」表里，等积木会话排期。
 
+### 21.1 联动触发器 `trig.on_mate_hook`（10-22，「钩与锚」）
+
+| 积木 | 类 | 参数 | 说明 |
+|---|---|---|---|
+| `trig.on_mate_hook` | 触发（trait / talent / 节点） | `op`（只认这名队友的钩索，缺省任何）、`cd`（秒）、`range`（本干员到落点的距离上限，× op_range）、`knob`（balance.json 开关路径，缺省开）、`do`（瞬时积木，`center: target` = 拖回落点） | 队友的 `shape.hookshot` 把敌人拖回到位（至少拖回 1 名）时触发：`_hw5_hook_arrive` → `data_operator.notify_mate_hook` 广播 → 各队友 `on_mate_hook`。乌尔比安 × 歌蕾蒂娅「钩与锚」（docs/123 §2.7） |
+
+干员 JSON 顶层 `combo {with, name, knob, desc}` 只给界面用（`build_affinity.combo_partners`：招募 / 换人卡「联动」行），玩法仍由积木决定。
+

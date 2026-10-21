@@ -920,10 +920,15 @@ func test_blocks_elite1() -> void:
 	var Ch = preload("res://scripts/characters/character.gd")
 	var OB = preload("res://scripts/characters/op_blocks.gd")
 	var defs := {}
-	for id in ["texas", "exusiai", "hoshiguma", "angelina", "kaltsit"]:
+	for id in ["texas", "exusiai", "hoshiguma", "angelina", "kaltsit", "ulpianus"]:
 		defs[id] = Ch.load_def(id)
 		ok(Ch.validate_operator(id, defs[id]), "精英化第 1 批：%s 通过积木校验" % id)
 	var bads := [
+		# 联动触发器 trig.on_mate_hook（docs/123 §2.7「钩与锚」，乌尔比安 trait 首块）
+		["ulpianus", "on_mate_hook 没写 do", func(d): d.blocks.trait[0].erase("do")],
+		["ulpianus", "on_mate_hook 的 knob 不是段/键", func(d): d.blocks.trait[0]["knob"] = "hook_anchor"],
+		["ulpianus", "on_mate_hook 的 cd 超范围", func(d): d.blocks.trait[0]["cd"] = 99],
+		["ulpianus", "on_mate_hook 放进技能 do", func(d): d.blocks.skills[0].do.append({"trig": "on_mate_hook", "do": [{"verb": "sp_team", "pct": 0.1}]})],
 		["exusiai", "st.stack 放进技能 do", func(d): d.blocks.skills[1].do.append({"st": "stack", "key": "x", "per": 0.02, "max": 10, "decay": 1.5, "src": ["速射"]})],
 		["exusiai", "st.stack 每层超过 100%", func(d): d.blocks.progression.elite1.do[0]["per"] = 2.0],
 		["exusiai", "st.stack 来源没登记", func(d): d.blocks.progression.elite1.do[0]["src"] = ["没登记"]],

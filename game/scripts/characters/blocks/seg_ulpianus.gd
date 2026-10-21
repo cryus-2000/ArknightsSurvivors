@@ -1034,6 +1034,8 @@ static func _hw5_hook_arrive(o, hk: Dictionary) -> void:
 		hits.append(e)
 	if b.has("arrive_fx") and not hits.is_empty():
 		fx_play(o, b.arrive_fx, hk.front, 40.0, hits)
+	if not hits.is_empty() and o.has_method("notify_mate_hook"):   # 联动段（docs/123 §2.7「钩与锚」）：告诉队友「我把人拖到 front 了」
+		o.notify_mate_hook(hk.front, hits)
 
 
 static func hw_attack_locked(o) -> bool:

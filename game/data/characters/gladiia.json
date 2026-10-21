@@ -830,5 +830,11 @@
     "_doc": "怒海·巨浪（路线 brute 节点 5）：trait 里的钩索按 cond node:brute2 换参数"
    }
   }
+ },
+ "combo": {
+  "with": "ulpianus",
+  "name": "钩与锚",
+  "knob": "combo/hook_anchor",
+  "desc": "她的钩索把敌人拖回到位时，乌尔比安在射程内就朝落点补一次锚击（每 2 秒至多一次，不占他的普攻冷却）"
  }
 }

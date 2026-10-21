@@ -320,7 +320,37 @@ func recruit_lines(cid: String) -> String:
 		out.append("入队即生效：" + "、".join(now))
 	if not later.is_empty():
 		out.append("培养后生效：" + "、".join(later))
+	var cb := combo_line(cid)
+	if cb != "":
+		out.append(cb)
 	return "\n".join(out)
+
+
+## 干员专属联动（docs/123 §2.7「钩与锚」）：干员 JSON 顶层 combo {with, name, knob, desc}，只在两人同队时出现。
+## 候选 cid 入队后会和在队的哪些干员形成联动（任一方的 combo.with 指向对方即算）；knob 关掉的不写
+func combo_partners(cid: String, ops: Array) -> Array:
+	var out: Array = []
+	var d: Dictionary = Character.load_def(cid)
+	for o in ops:
+		if str(o.id) == cid:
+			continue
+		var od: Dictionary = o.def if o.get("def") is Dictionary else Character.load_def(str(o.id))
+		var c: Dictionary = {}
+		if d.get("combo", null) is Dictionary and str(d.combo.get("with", "")) == str(o.id):
+			c = d.combo
+		elif od.get("combo", null) is Dictionary and str(od.combo.get("with", "")) == cid:
+			c = od.combo
+		if c.is_empty() or (str(c.get("knob", "")) != "" and Bal.vi(str(c.knob), 1) == 0):
+			continue
+		out.append({"op": str(o.id), "name": str(od.get("name", o.id)), "combo": str(c.get("name", "联动"))})
+	return out
+
+
+func combo_line(cid: String) -> String:
+	var ps := combo_partners(cid, g.squad.ops)
+	if ps.is_empty():
+		return ""
+	return "联动：" + "、".join(ps.map(func(x): return "与%s「%s」" % [x.name, x.combo]))
 
 
 ## 换人卡（换下 old_op、换上 new_cid）：继承后的阶段与技能、新增 / 失去的藏品受益
@@ -353,6 +383,13 @@ func swap_lines(old_op, new_cid: String) -> String:
 		out.append("新增受益：" + "、".join(gain))
 	if not lose.is_empty():
 		out.append("失去受益：" + "、".join(lose))
+	var rest: Array = g.squad.ops.filter(func(o): return o != old_op)   # 换人后留下的队友
+	var cb_gain := combo_partners(new_cid, rest)
+	var cb_lose := combo_partners(str(old_op.id), rest)
+	if not cb_gain.is_empty():
+		out.append("新增联动：" + "、".join(cb_gain.map(func(x): return "与%s「%s」" % [x.name, x.combo])))
+	if not cb_lose.is_empty():
+		out.append("失去联动：" + "、".join(cb_lose.map(func(x): return "与%s「%s」" % [x.name, x.combo])))
 	return "\n".join(out)
 
 

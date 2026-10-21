@@ -15,6 +15,7 @@ extends "res://scripts/characters/blocks/ob_summon.gd"
 #                    （普攻替换时也吃局部倍率 atk）。lock: true = 弹体在外面时本干员不普攻。tex：弹体帧条（缺图画程序圆盾）；spark：沿途火花帧条。星熊「般若回旋」
 #  verb.summon_cmd   瞬时：指挥 kind 种召唤物做一个动作。action: leap = 以 t 秒弧线跃回 to（leader = 队长身边），落地执行 then（center: target = 落点）。凯尔希「回防」
 #  trig.on_mate_attack  画面挂点：编队里 scope（缺省 others）范围内的队友每次普攻出手，在她的出手点播 fx（at: mate）。只有画面，不进玩法。能天使「天使的祝福」
+#  trig.on_mate_hook    联动（docs/123 §2.7）：队友 op（缺省任何）的 shape.hookshot 把敌人拖回到位时，本干员在 range（× op_range）内就以落点为 target 执行 do；cd 秒一次；knob = balance.json 开关路径。乌尔比安 × 歌蕾蒂娅「钩与锚」
 # 新参数（挂在已有积木上）：
 #  st.* 的 first_only（只给这次命中列表 / 这次冲刺的第一个敌人）、cd（同一块状态两次生效至少隔几秒）、fx（状态生效时在这名敌人处播，中心 = 敌人脚底）
 #  trig.every_n 的 replace（这一次普攻整个换成 do）/ anim（这一次起手播的帧条）
@@ -24,7 +25,7 @@ extends "res://scripts/characters/blocks/ob_summon.gd"
 #  fx 条目的 delay / stay / once / face_x / flash: fire，at: members（光环受益者，hold）/ mate；hold 的 over 层（画在人物之上）
 # 确定性：本段不取 g.rng；画面只用 g.vrng 与 g.t。没写这些积木 / 参数的干员一个分支都不走（同 seed 逐行不变）。
 
-const EL_TAGS := ["st.stack", "verb.buff_timed", "shape.boomerang", "verb.summon_cmd", "trig.on_mate_attack"]
+const EL_TAGS := ["st.stack", "verb.buff_timed", "shape.boomerang", "verb.summon_cmd", "trig.on_mate_attack", "trig.on_mate_hook"]
 
 const EL_BOOM_MAX := 6           # 每名干员同时在外的往返弹体上限
 
@@ -521,6 +522,7 @@ static func _el_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 		"shape.boomerang": ["skill", "instant"],
 		"verb.summon_cmd": ["skill", "instant"],
 		"trig.on_mate_attack": ["trig"],
+		"trig.on_mate_hook": ["trig"],
 	}
 	if not kind in where_ok[tag]:
 		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok[tag])])
@@ -592,4 +594,15 @@ static func _el_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 				errs.append(p + "：trig.on_mate_attack 只挂画面，要写 fx")
 			if b.has("do") and not (b.do is Array and b.do.is_empty()):
 				errs.append(p + "：trig.on_mate_attack 只挂画面，不写 do")
+		"trig.on_mate_hook":   # 联动段（docs/123 §2.7「钩与锚」）：队友 shape.hookshot 拖回到位时执行 do（target = 落点）
+			if b.has("op") and not (b.op is String):
+				errs.append(p + ".op 须是干员 id 字符串")
+			if b.has("knob") and not (b.knob is String and str(b.knob).contains("/")):
+				errs.append(p + ".knob 须是 balance.json 的「段/键」路径")
+			_num(b, "cd", p, ctx, false, 0.0, 60.0)
+			_num(b, "range", p, ctx, false, 1.0, 2000.0)
+			if not (b.get("do", null) is Array) or b.do.is_empty():
+				errs.append(p + "：trig.on_mate_hook 要有 do（落点处执行的瞬时积木）")
+			else:
+				_list(b.do, p + ".do", "instant", ctx)
 	return true
