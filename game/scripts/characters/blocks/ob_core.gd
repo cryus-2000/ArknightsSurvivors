@@ -730,7 +730,7 @@ static func _v_shared(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 #  shape.dash_line   冲刺穿行：沿一条线段冲出 r（× op_range × 冲刺长度倍率），宽 w，用时 t、到头停 hold；
 #                    逐帧扫过的线段内敌人各吃一次（不重复）。aim：nearest（最近敌人，手动普攻 A 方向类）/ densest（敌群最密处；附近没有敌人就不冲）/
 #                    leader_dir（主控冲刺方向；本干员是主控时不另行位移，跟着主控的冲刺扫）/ reverse（上一次冲刺的反方向）。
-#                    干员是主控时冲刺就是主控本体位移（同乌尔比安弹射，squad.update 把 g.ppos 拉过去），到头不停顿。
+#                    干员是主控时冲刺就是主控本体位移（squad.update 把 g.ppos 拉过去），到头不停顿。
 #                    其余参数同 shape.circle：mult、src、tags、power、on_hit（st.stun / st.slow）；strip：剑光帧条名（可选，冲刺专用画法：拉到冲刺长度、半程起播；不是通用 fx 字段）；sfx：起冲时播的音（可选）
 #  verb.sp_secs      瞬时：编队技能各 +seconds 秒充能（推进之王 _squad_sp_seconds 的写法；不吃回复倍率）；exclude_self 缺省 true
 #  verb.dash_mod     常驻：本干员冲刺长度 / 宽度倍率（len_add / len_mult / w_add / w_mult；(1 + Σadd) × Πmult）
@@ -796,14 +796,14 @@ const HW2_TAGS := ["shape.shell", "verb.lob", "verb.affect", "st.burn", "st.frag
 const HW3_TAGS := ["shape.bolt", "shape.hit", "verb.execute", "st.requiem", "verb.lock", "verb.fan"]
 
 
-# ---------------------------------------------------------------- 乌尔比安段（手写迁移段续）：掷锚（钩回 / 弹射）/ 掀飞 / 拖拽 / 叠层 / 蓄势 / 计时
+# ---------------------------------------------------------------- 乌尔比安段（手写迁移段续）：掷锚（钩回 / 原地落锚）/ 掀飞 / 拖拽 / 叠层 / 蓄势 / 计时
 # shape.circle center: front   判定中心 = 脚底 + 朝 aim_r（× op_range，缺省 = 本形状半径）+ aim_pad 内最近敌人（转身）的方向 × 半径 × front（锚击砸在身前）
 # verb.tether  掷锚（技能 do）：pick（elite = 射程 pick_r_elite 内最近的精英 / Boss，没有退到 densest；densest = pick_r 内敌群最密处，没有退到最近的）选落点，
 #              manual: true = 当队长手动时用玩家给的落点 / 方向（aim_cone / aim_range / aim_empty / aim_free / aim_snap，契约 v2.4 / v2.5）；没有落点退回 refund 的技力。
 #              锚 throw 秒飞到落点咬地；mode reel：钩住落点 hook_r（hook_more 成立时 × r_mult）内至多 hook_n（+ hook_more.n）名非 Boss 敌人，收链拽到身前、眩晕，
 #              停 hold 秒后重砸身前（r × op_range，攻击 × mult × 加成 × 技能强度，钩中的首个精英 × elite_mult；stun；击退 slam_kb）；
-#              钩不到或钩到 Boss 就和 mode zip 一样：本干员顺锁链弹射到落点前，落地砸 r（land_kb 击退，kb_boss = Boss 也推；stun_boss / stun_elite 时长系数），
-#              落地后执行 then（target = 落点）、drag（cond：甩锁链拽来 r 内至多 n 名，伤害 = 落地伤害 × mult）、rift（cond：起跳点到落点裂开通路，
+#              钩不到或钩到 Boss 就和 mode zip 一样：锚在落点原地砸 r（10-22 起本干员不位移）（land_kb 击退，kb_boss = Boss 也推；stun_boss / stun_elite 时长系数），
+#              落地后执行 then（target = 落点）、drag（cond：甩锁链拽来 r 内至多 n 名，伤害 = 落地伤害 × mult）、rift（cond：本干员到落点裂开通路，
 #              宽 w，沿线 攻击 × 加成 × mult × 技能强度 并掀飞 air 秒）。锚在外面时本干员不起手、不放别的技能，动作停在技能条第 hold_frame 帧
 # verb.stack   叠层（触发 do）：key 层数 + add（Boss + add_boss），上限 cap + cap_more（cond 成立的 add）；层数变了立刻重算属性（aura 的 per: stack:<key>）
 # verb.arm     蓄势（触发 do）：key 置位（已置位不重复）；attack.armed [{key, do}]：置位时下一次普攻整个换成 do（不计普攻次数、不走 every_n），用掉清零
