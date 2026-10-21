@@ -9,6 +9,7 @@ const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const Doctor = preload("res://scripts/characters/doctor.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const Roster = preload("res://scripts/core/roster.gd")   # 干员解锁（docs/109 §12）：未解锁的干员在图鉴里显示锁定
 const Bal = preload("res://scripts/core/balance.gd")
 const UIMo = preload("res://scripts/ui_motion.gd")
 const InitialStats = preload("res://scripts/screens/initial_stats.gd")
@@ -308,7 +309,11 @@ func _build() -> void:
 			# 干员：data/characters/*.json（新干员自动出现）；顺序同选人页：封面干员水月在前，其余按职业；博士放最后
 			var ops: Array = []
 			for cid in Character.list_ids():
-				ops.append(_op_entry(cid, Character.load_def(cid)))
+				var oe: Dictionary = _op_entry(cid, Character.load_def(cid))
+				if not Roster.is_unlocked(cid):
+					oe["locked"] = true
+					oe["locked_text"] = "未解锁。\n\n探索结算时使用寻访凭证、招募券或人事调度函解锁。"
+				ops.append(oe)
 			ops.sort_custom(func(x, y):
 				var kx: int = 0 if x.id == "mizuki" else 1
 				var ky: int = 0 if y.id == "mizuki" else 1

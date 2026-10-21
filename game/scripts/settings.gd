@@ -63,6 +63,15 @@ var gallery_seen: Array = []
 var seen_relics: Array = []  # 获得过的藏品 id（图鉴用）
 var seen_intro := false      # 已看过开局指南
 var endings_cleared: Array = []   # 已达成的结局 id（通关结局一后才出现其余结局的事件）
+# 干员解锁（局外成长 P1，docs/109 §12，core/roster.gd）：存档 [roster] 段。开局 5 人不存（Roster.STARTERS）
+var roster_unlocked: Array = []   # 解锁过的干员 id（不含开局 5 人）
+var roster_tickets := {}          # 待用的券 {"hunt": 寻访凭证, "cls": 招募券, "pick": 人事调度函}
+var roster_spare := {}            # 名册已满后多出来的券（P2 换生机细胞）
+var roster_tiers: Array = []      # 已首通的难度档（发过人事调度函的）
+var roster_wish := ""             # 意向干员（寻访保底对象）
+var roster_pity := 0              # 意向保底计数：连续没出意向的寻访次数
+var roster_draws := 0             # 已用券总数（抽取随机数的种子之一）
+var roster_seed := 0              # 名册抽取的种子（第一次抽取时生成，不碰局内 g.rng）
 var unlock_all := false      # 本次运行全部解锁（只在内存里，见 _apply_unlock_all）：调试版与对内打包版为 true，对外包恒为 false
 var _real_progress := {}      # 全部解锁时存档里真实的进度字段，save() 原样写回
 var title_seen := false      # 本次运行已播过标题开场动画（仅内存；对局返回标题不重播）
@@ -260,6 +269,16 @@ func _ready() -> void:
 		seen_intro = c.get_value("progress", "seen_intro", seen_intro)
 		opening_seen = c.get_value("progress", "opening_seen", opening_seen)
 		endings_cleared = c.get_value("progress", "endings_cleared", endings_cleared)
+		roster_unlocked = c.get_value("roster", "unlocked", roster_unlocked)
+		roster_tickets = c.get_value("roster", "tickets", roster_tickets)
+		roster_spare = c.get_value("roster", "spare", roster_spare)
+		roster_tiers = c.get_value("roster", "tiers", roster_tiers)
+		roster_wish = str(c.get_value("roster", "wish", roster_wish))
+		roster_pity = int(c.get_value("roster", "pity", roster_pity))
+		roster_draws = int(c.get_value("roster", "draws", roster_draws))
+		roster_seed = int(c.get_value("roster", "seed", roster_seed))
+		if not c.has_section("roster"):
+			_migrate_roster()
 		if int(c.get_value("progress", "diff_ver", 1)) < DIFF_VER:
 			_migrate_diff()
 		cloud_set_t = int(c.get_value("cloud", "set_t", 0))
@@ -272,6 +291,21 @@ func _ready() -> void:
 	if _set_sig == "":
 		_set_sig = _settings_sig()   # 旧存档 / 首次启动：以现在的设置为基准，没改过就不算「新」（cloud_set_t 保持 0，换设备时让云端的设置生效）
 	_apply_unlock_all()
+	for a in dev_args():
+		# 截图 / 测试新玩家名册：--roster=start5 只留开局 5 人（只在内存，测试局不写存档）；--rostertickets=寻访,招募,调度 预置待用的券
+		if a == "--roster=start5":
+			roster_unlocked = []
+			roster_tickets = {}
+			roster_tiers = []
+			roster_wish = ""
+			roster_pity = 0
+			roster_draws = 0
+			roster_seed = 12345
+		elif a.begins_with("--rostertickets="):
+			var tk := a.substr(16).split(",")
+			roster_tickets = {"hunt": int(tk[0]) if tk.size() > 0 else 0, "cls": int(tk[1]) if tk.size() > 1 else 0, "pick": int(tk[2]) if tk.size() > 2 else 0}
+		elif a.begins_with("--rosterwish="):
+			roster_wish = a.substr(13)
 	for a in dev_args():
 		# 截图 / 对照用：--uisize=80（界面大小 %）、--camzoom=140（战斗画面缩放 %）
 		if a.begins_with("--uisize="):
@@ -353,6 +387,14 @@ func _migrate_diff() -> void:
 		if old_unlocked >= int(D.DIFFICULTY_TIERS[i - 1].level) + 1:
 			diff_unlocked = i
 	difficulty = mini(D.tier_of_level(old_diff), diff_unlocked)
+
+
+## 老存档（没有 [roster] 段）：EA 期间所有干员都开局可用，打过的玩家一律直接全部解锁，不收回已有内容（docs/109 §12.5）。
+## 判定「打过」：通关过任何难度、达成过结局、或获得过藏品。全新存档保持开局 5 人。
+func _migrate_roster() -> void:
+	if diff_unlocked >= 1 or not endings_cleared.is_empty() or not seen_relics.is_empty():
+		var Roster = load("res://scripts/core/roster.gd")
+		roster_unlocked = Roster.all_ids().filter(func(cid): return not Roster.STARTERS.has(cid))
 
 
 ## 开发测试用「全部解锁」（用户 2026-09-27 要求）：难度三档、图鉴（藏品 / 敌人 / 结局）、结局事件线全部解锁。
@@ -452,6 +494,14 @@ func save() -> void:
 	c.set_value("progress", "seen_intro", seen_intro)
 	c.set_value("progress", "opening_seen", opening_seen)
 	c.set_value("progress", "endings_cleared", _real_progress.get("endings_cleared", endings_cleared))
+	c.set_value("roster", "unlocked", roster_unlocked)
+	c.set_value("roster", "tickets", roster_tickets)
+	c.set_value("roster", "spare", roster_spare)
+	c.set_value("roster", "tiers", roster_tiers)
+	c.set_value("roster", "wish", roster_wish)
+	c.set_value("roster", "pity", roster_pity)
+	c.set_value("roster", "draws", roster_draws)
+	c.set_value("roster", "seed", roster_seed)
 	var ss := _settings_sig()
 	if ss != _set_sig:
 		_set_sig = ss
@@ -489,7 +539,9 @@ func cloud_body() -> Dictionary:
 	var pr: Dictionary = (cloud_extra.get("prog", {}) as Dictionary).duplicate(true)
 	pr.merge({"diff": int(_real_progress.get("diff_unlocked", diff_unlocked)), "gal": gallery_seen.duplicate(),
 		"rel": (_real_progress.get("seen_relics", seen_relics) as Array).duplicate(), "end": (_real_progress.get("endings_cleared", endings_cleared) as Array).duplicate(),
-		"shows": seen_shows.duplicate(), "intro": seen_intro, "open": opening_seen}, true)
+		"shows": seen_shows.duplicate(), "intro": seen_intro, "open": opening_seen,
+		"ops": roster_unlocked.duplicate(), "optier": roster_tiers.duplicate(),
+		"opst": {"tk": roster_tickets.duplicate(), "sp": roster_spare.duplicate(), "wish": roster_wish, "pity": roster_pity, "draws": roster_draws, "seed": roster_seed}}, true)
 	var out: Dictionary = (cloud_extra.get("top", {}) as Dictionary).duplicate(true)
 	out["set"] = st
 	out["prog"] = pr
@@ -522,7 +574,20 @@ func cloud_apply(body: Dictionary) -> void:
 		cover_character_id = d.cover_character_id
 	if d.get("touch_layout") is Dictionary:
 		touch_layout = TouchLayout.sanitize(d.touch_layout)
-	var lists := {"gal": "gallery_seen", "rel": "seen_relics", "end": "endings_cleared", "shows": "seen_shows"}
+	var lists := {"gal": "gallery_seen", "rel": "seen_relics", "end": "endings_cleared", "shows": "seen_shows", "ops": "roster_unlocked"}
+	if p.get("optier") is Array:
+		roster_tiers = p.optier.map(func(x): return int(x))
+	if p.get("opst") is Dictionary:
+		var st0: Dictionary = p.opst
+		if st0.get("tk") is Dictionary:
+			roster_tickets = (st0.tk as Dictionary).duplicate()
+		if st0.get("sp") is Dictionary:
+			roster_spare = (st0.sp as Dictionary).duplicate()
+		if st0.get("wish") is String:
+			roster_wish = st0.wish
+		for k in ["pity", "draws", "seed"]:
+			if st0.get(k) is float or st0.get(k) is int:
+				set("roster_" + k, int(st0[k]))
 	if p.get("diff") is float or p.get("diff") is int:
 		var unlocked: int = clampi(int(p.diff), 0, D.DIFFICULTY_TIERS.size() - 1)
 		if unlock_all:
