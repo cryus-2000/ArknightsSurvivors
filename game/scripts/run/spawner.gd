@@ -419,7 +419,8 @@ func update(dt: float) -> void:
 	# Boss 先倒下则按 kill() 的「至少推迟 12 秒」；难度修正 horde_in_boss 时不顺延；9:30 之后不再刷（给最终 Boss 留空间）
 	# 终局护卫波（docs/116 §9，10-22）：最终 Boss 少量补怪期间每 final/escort_every 秒一波分股小群（final/escort_n 只，不乘密度、不受补怪上限），
 	# 登场后 final/escort_first 秒第一波；0 = 关（旧行为：最终 Boss 战不来大群）
-	var escort: bool = trickling() and Bal.v("final/escort_every", 0.0) > 0.0
+	# Boss 生命低于 final/escort_stop_frac 后停（收尾不拖成超时）
+	var escort: bool = trickling() and Bal.v("final/escort_every", 0.0) > 0.0 and g.final_boss.hp > g.final_boss.maxhp * Bal.v("final/escort_stop_frac", 0.0)
 	if escort and g.next_horde < final_at + Bal.v("final/escort_first", 20.0):
 		g.next_horde = final_at + Bal.v("final/escort_first", 20.0)
 	var due: float = g.next_horde
