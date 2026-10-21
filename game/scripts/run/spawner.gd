@@ -424,16 +424,23 @@ func update(dt: float) -> void:
 		horde_warned = due
 		g.horde_warn = 3.0
 		g.horde_gap = g.rng_spawn.randf() * TAU
+		g.horde_streams = []
+		if due < Bal.v("enemy/close_ring_until", 0.0):
+			# 分股合围原型（docs/116 §7.2）：缺口对面 3 股，股心相隔 close_ring_spread 弧度；HUD 预警箭头只画这几个方向
+			for i in 3:
+				g.horde_streams.append(g.horde_gap + PI + (i - 1) * Bal.v("enemy/close_ring_spread", 1.3) + i * deg_to_rad(Bal.v("enemy/close_ring_rot", 20.0)))
 		Sfx.play("roar", -2.0, 0.55, 0.0)
 	if g.t >= due and horde_ok:
 		g.next_horde += D.THREAT[g.threat].get("horde_every", 120.0)
 		g.horde_warn = 0.0
 		g.horde_hit = 1.2
 		g.vfx.shake_screen(1.4)
-		# 收缩包围（docs/116 §7 原型，enemy/close_ring_until 秒之前的大群；缺省 0 = 关）：包围圈直接刷在屏内 close_ring_r 处，只留 70° 缺口，站桩会被夹住
-		var close_ring: bool = g.t < Bal.v("enemy/close_ring_until", 0.0)
-		var ring_r: float = Bal.v("enemy/close_ring_r", 320.0) if close_ring else 600.0
-		g.fx.append({"kind": "horde_ring", "pos": g.ppos, "r": ring_r + 40.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
+		# 分股合围（docs/116 §7.2 原型，enemy/close_ring_until 秒之前的大群；缺省 0 = 关，用户 10-22 看 gif 后改：不整圈同步收）：
+		# 仍从屏外刷入，分 3 股从缺口对面的不同方向先后压来（每股晚 close_ring_delay 秒出发、速度依次 +close_ring_spd），后出发的股向一侧偏 close_ring_rot 度（缺口跟着转）
+		var close_ring: bool = not g.horde_streams.is_empty()
+		var ring_r := 600.0
+		if not close_ring:
+			g.fx.append({"kind": "horde_ring", "pos": g.ppos, "r": 640.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
 		Sfx.play("roar", 2.0, 0.8, 0.0)
 		# 数量：32 → 88（10 分钟），× 难度修正 horde；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
 		var n := int((Bal.v("enemy/horde_base", 24.0) + int(g.t / Bal.v("enemy/horde_div", 9.0))) * float(g.dmod.horde))
@@ -453,14 +460,23 @@ func update(dt: float) -> void:
 			comp[s.id] = int(comp.get(s.id, 0)) + 1
 		var hl := {"t": int(g.t), "n": n, "hp": 0.0, "killed": 0, "t80": -1, "minhp": g.hp, "hp0": g.hp, "mix": str(mix.get("name", "")), "comp": comp}
 		g.horde_log.append(hl)
+		var pidx := 0
 		for s in plan:
 			if g.enemies.size() >= max_alive() + 60:
 				break
 			var ang: float = g.horde_gap + gap_half + span * float(s.u)
+			var si := 0
+			if close_ring:
+				si = pidx % g.horde_streams.size()
+				pidx += 1
+				ang = float(g.horde_streams[si]) + (fposmod(float(s.u) * 3.0, 1.0) - 0.5) * deg_to_rad(Bal.v("enemy/close_ring_arc", 50.0))
 			var p := g.ppos + Vector2.from_angle(ang) * (g.rng_spawn.randf_range(ring_r - 40.0, ring_r + 40.0) + float(s.dr))
 			var he := spawn_enemy(s.id, p)
 			he["horde"] = g.horde_log.size() - 1
 			he.dormant = false
+			if close_ring and si > 0:
+				he.wake_t = si * Bal.v("enemy/close_ring_delay", 1.5)   # 后几股原地等一下再出发（wake_t 期间不行动，enemy_ai）
+				he.spd *= 1.0 + si * Bal.v("enemy/close_ring_spd", 0.1)
 			# 群体个体的接触伤害 ×0.7：被包围时不至于两下暴毙，压力来自数量而不是单体
 			he.dmg *= Bal.v("enemy/early_horde_dmg", 0.7) if early else 0.7
 			if early:

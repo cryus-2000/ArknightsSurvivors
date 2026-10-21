@@ -246,6 +246,7 @@ var diff_new := false
 var ending_new := false            # 本局首次达成该结局（结算面板显示）        # 本局通关解锁了新难度
 var next_horde := Bal.v("enemy/first_horde", 75.0)   # 第一次大群（balance.json，docs/46 §1.2）
 var horde_gap := 0.0          # 本次大群包围圈的缺口方向（弧度），预警箭头会留出这一侧
+var horde_streams: Array = []   # 分股合围原型（docs/116 §7.2）：本次大群各股的方向（弧度），空 = 普通整圈；HUD 预警箭头只画这些方向
 var show_queue: Array = []   # 解锁演出队列
 var shop_refreshed := false  # 本次商人只能刷新一次
 var show_t := 0.0

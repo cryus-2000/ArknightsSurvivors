@@ -295,6 +295,8 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 				var ang := TAU * j / 12.0
 				if absf(angle_difference(ang, g.horde_gap)) < deg_to_rad(40.0):
 					continue  # 缺口方向不画箭头：那边没有敌人
+				if not g.horde_streams.is_empty() and g.horde_streams.all(func(sa): return absf(angle_difference(ang, float(sa))) > deg_to_rad(35.0)):
+					continue  # 分股合围：只在各股来向画箭头
 				var dir := Vector2.from_angle(ang)
 				var c := vs / 2.0
 				var ed: Vector2 = c + dir * min(abs((vs.x / 2 - 40) / max(abs(dir.x), 0.01)), abs((vs.y / 2 - 40) / max(abs(dir.y), 0.01)))
