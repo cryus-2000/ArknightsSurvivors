@@ -131,7 +131,7 @@
 | 干员 | 路线 A（节点 4 → 节点 5） | 路线 B（节点 4 → 节点 5） | 受影响攻击 / 取向 |
 |---|---|---|---|
 | 能天使 | `range` 延长弹道（射程 +15%）→ **延长弹道·猎杀** `range2`：射程再 +10%；击杀弹匣额外 +1（`verb.counter mag`） | `ricochet` 跳弹 → **跳弹·碎裂** `ricochet2`：击杀处迸出弹片，半径 60 内 40% 伤害（新来源「弹片」） | A：倾泻更勤（单体 / 远程）；B：清群 |
-| 斯卡蒂 | `leap_wave` 跃浪 → **跃浪·回澜** `leap_wave2`：跃浪击 0.6 秒后自身周围 150 再受 跃浪击 50% 并击退（来源「跃浪」） | `surge` 涌潮 → **涌潮·怒涛** `surge2`：S1 水环 0.4 秒后再涌一圈 42%；悲歌期间水环命中减速 1 秒（`verb.affect`） | A：S2 爆发；B：S1 / S3 范围 + 控制 |
+| 斯卡蒂 | `leap_wave` 跃浪 → **跃浪·回澜** `leap_wave2`：跃浪击 0.6 秒后自身周围 150 再受 跃浪击 50% 并击退（来源「跃浪」） | `surge` 涌潮 → **涌潮·怒涛** `surge2`：S1 水环 0.4 秒后再涌一圈 42%；涌潮悲歌结束时自身周围 180 掀一记大浪 120% + 击退（不加减速：构筑匹配回归把减速算控制来源） | A：S2 爆发；B：S1 / S3 范围 |
 | 推进之王 | `leap_again` 再跃 → **再跃·裂地** `leap_again2`：跃空锤 0.8 秒后自身周围 140 震圈 锤击 80% + 击退（来源「震地」） | `beast_king` 万兽之王 → **万兽之王·威令** `beast_king2`：冲锋号令时全队技能 +1.5 秒（含自己），自身 5 秒伤害 ×1.3（木桩表首轮 -20% 后上调） | A：S2 爆发；B：循环 / 协同 |
 | 塞雷娅 | `syringe` 急救针剂 → **针剂·强心** `syringe2`：急救时再回复 3% 最大生命、3 秒受到伤害 -10%（`verb.heal` + `verb.guard`） | `shatter` 碎晶 → **碎晶·崩落** `shatter2`：每第 3 拳自身周围 91 拳击 50% + 击退（来源「碎晶」） | A：保护 / 续航；B：近身清群 |
 | 维什戴尔 | `ash_rings` 余烬未冷 → **余烬未冷·续燃** `ash_rings2`：定点清算后 6 秒炮击局部倍率 +20%（`buff_timed atk`） | `exec_mark` 亡者回响 → **亡者回响·回馈** `exec_mark2`：每击杀全队技能 +0.15 秒（含自己） | A：技能窗口爆发；B：循环 |
@@ -222,7 +222,11 @@
 
 ### 6.2 验证
 
-VERIFY_B1_PLACEHOLDER
+- `check.py --only build_progression`：PILOT 扩到 17 人后 147 项 0 失败（其余 1 人 = 乌尔比安，无分支节点）。
+- `check.py --only nodes`：18 人 × 6 节点全部当场有变化，节点 4 记 route、节点 5 走路线版 id。
+- 开开关机器人全程局（`--bot=expert --maxt=720`）：seed 1 能天使 + 斯卡蒂 + 推进之王、seed 2 塞雷娅 + 维什戴尔 + 流明、seed 3 凯尔希 + 能天使 + 流明，无脚本错误，全员 prog 6。
+- 两批一起 rebase 到 main 242c0c12 后：`check.py --auto --jobs 3`（全量）98 项失败 1 → 构筑匹配回归（docs/119 §4.3，main 新进）把斯卡蒂路线 B 的减速算成控制来源，改为悲歌结束掀大浪（无控制）后 core / build_affinity / build_progression 重跑通过。
+- 关开关 TRACE（`--bal=levelup/branch=0 --bal=levelup/focus_guard=0`，对 main 242c0c12）：`trace_base.py 1 angelina 300`（队友能天使 / 塞雷娅）、`2 wisadel 300`（队友逻各斯 / 凯尔希）各 301 行逐行相同。
 
 ## 7. P2 第二批：逻各斯 / 浊心斯卡蒂 / 水月 / 归溟幽灵鲨 / 艾丽妮 / 安洁莉娜（乌尔比安等 `claude/ulpianus-no-launch` 合入后另补）
 
@@ -308,4 +312,5 @@ VERIFY_B1_PLACEHOLDER
 
 ### 7.2 验证
 
-VERIFY_B2_PLACEHOLDER
+- 同 §6.2：build_progression 147 项 0 失败（含安洁莉娜 alt 与顶层旧线断言）；nodes 18 × 6 通过（安洁莉娜节点 1 → pull2、2 → wide、4 → pull3、5 → pull4）；开开关全程局 seed 1 逻各斯 + 浊心 + 水月、seed 2 归溟 + 艾丽妮 + 安洁莉娜、seed 3 安洁莉娜 + 逻各斯 + 艾丽妮 无脚本错误、全员 prog 6；关开关 TRACE 安洁莉娜组逐行相同。
+- 乌尔比安：等 `claude/ulpianus-no-launch` 合入后另补（路线不依赖顺链弹射）。
