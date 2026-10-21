@@ -9,7 +9,9 @@ const Squad = preload("res://scripts/characters/squad.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
+const BuildAffinity = preload("res://scripts/run/build_affinity.gd")   # 构筑匹配（只读，docs/119 §4.3–4.5）：卡面说明行 / 招募保底 / 商人预告共用
 var g: Game
+var affinity: BuildAffinity
 var tab_hinted := false
 var heal_offer := 0   # 平衡输出：回复类卡被提供 / 被选中的张数（telemetry）
 var heal_pick := 0
@@ -48,6 +50,7 @@ func weighted_order(cards: Array) -> Array:
 
 func _init(game: Game) -> void:
 	g = game
+	affinity = BuildAffinity.new(game)
 
 
 ## 招募卡：data/characters 里未在队、且允许招募（JSON 无 "recruitable": false）的干员
@@ -96,8 +99,9 @@ func open_levelup() -> void:
 	var recruit: Array = recruit_cards()
 	var must_recruit: bool = not recruit.is_empty() and ((g.level >= Bal.vi("levelup/force_recruit_level_1", 6) and g.squad.size() <= 1) or (g.level >= Bal.vi("levelup/force_recruit_level_3", 12) and g.squad.size() < Squad.REGULAR_MAX))
 	if must_recruit:
-		g.shuffle(recruit)
-		g.panel_ui.show_choices("招募干员", recruit.slice(0, want + g.rfx.rule("recruit_extra")), "level")   # 罗德岛战术电台：招募多一个选项
+		# 保底画面（docs/119 §4.3）：有合格人选时保证一名与已持有藏品有实际互动的候选（build_affinity.forced_recruit_order；开关关 = 只洗牌）
+		var n_show: int = want + g.rfx.rule("recruit_extra")   # 罗德岛战术电台：招募多一个选项
+		g.panel_ui.show_choices("招募干员", affinity.forced_recruit_order(recruit, n_show).slice(0, n_show), "level")
 		return
 	# ---- 干员深度：Lv.2–4 只养开局干员；之后至少一张
 	var deep: Array = []
@@ -318,6 +322,10 @@ func open_swap(card: Dictionary, sel: int) -> void:
 「%s」接替，继承%s成长节点 %d/%d。
 离队后仍可能再被招募。" % [
 			stage, op.prog, total, card.name, stage, mini(op.prog, n_new), n_new]
+		# docs/119 §4.3：继承后的阶段与技能、新增 / 失去的藏品受益（build_affinity，开关关为空）
+		var sw: String = affinity.swap_lines(op, str(card.id))
+		if sw != "":
+			desc += "\n" + sw
 		opts.append({"kind": "swap_out", "op": op.id, "new": str(card.id), "name": "换下 " + op.display_name(), "desc": desc,
 			"cat": "队友 · %s  SWAP OUT" % op.cls})
 	opts.append({"kind": "swap_keep", "name": "不替换", "desc": "保留当前编队，返回上一步重新选择。

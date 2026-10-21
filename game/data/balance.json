@@ -525,5 +525,11 @@
  "ui": {
   "_doc": "界面（用户 10-13「手机版的字可以放大一点」）：phone_font_mult 手机横屏（Cfg.phone_ui）局内正文字号倍率，< 24 号的字乘它并封顶 24（ui.gd UI.fs），大标题与英文小标签不变；桌面 / 平板 / 标题页不受影响。1 = 关",
   "phone_font_mult": 1.18
+ },
+ "build": {
+  "_doc": "构筑可读性原型（docs/119 §4.3 / §4.4 / §4.5，run/build_affinity.gd）：affinity_ui = 卡面说明行（招募 / 换人 / 藏品 / 商品卡）；force_recruit_match = 强制招募画面保底一名与已有藏品有实际互动的候选；merchant_preview = 第一位商人生成时定货架并保证一件基础 / 稀有联动藏品、HUD 预告商品与差额。三个都是 0 时同 seed TRACE 与改前相同；后两个开着会改变发牌与抽货时机",
+  "affinity_ui": 1,
+  "force_recruit_match": 1,
+  "merchant_preview": 1
  }
 }

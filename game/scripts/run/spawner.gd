@@ -482,7 +482,10 @@ func update(dt: float) -> void:
 		g.merchant = {"pos": event_pos(260.0, 320.0, 100.0), "life": 60.0, "near": false, "purchases": 0}
 		g.shop_items.clear()
 		g.shop_refreshed = false
-		g.vfx.show_banner("商人出现了 —— 去找他交易源石锭")
+		# 第一位商人（docs/119 §4.5）：生成时定货架，有联动藏品就写进横幅；开关关 / 没有联动时横幅照旧
+		g.shop_sys.prepare_first()
+		var pv: String = g.shop_sys.preview_text()
+		g.vfx.show_banner("商人出现了 —— 去找他交易源石锭" if pv == "" else "商人出现了 —— 货架上有%s" % pv)
 		Sfx.play("relic", -4.0)
 
 
