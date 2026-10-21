@@ -2405,14 +2405,11 @@ func arrive_dy() -> float:
 
 ## 突击倒地（docs/114 §7）：播 death 条一遍停在末帧（压暗一点）；还没有 death 条的画躺倒的灰色剪影（待机帧转 90°）
 func _draw_downed(st: Dictionary) -> void:
-	var dtx: Texture2D = anim_tex("death")
-	var foot: Vector2 = pos + g.draw_off
-	if dtx != null:
-		var n: int = anim_hframes(dtx, "death")
-		var fr: int = mini(n - 1, int(cmd_down_age * float(sprite_spec("death").get("fps", ANIM_FPS.death))))
-		var ds := {"tex": dtx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror("death"), "kind": "death"}
-		draw_sprite_at(pos + Vector2(foot_dx(ds), 0), ds.flip, Color(0.75, 0.75, 0.8), fr, dtx, n, foot_off(dtx, "death"))
+	var ds := downed_state(cmd_down_age)   # 与队长倒下同一份 death 条播法（停在末帧）
+	if not ds.is_empty():
+		draw_sprite_at(pos + Vector2(foot_dx(ds), 0), ds.flip, Color(0.75, 0.75, 0.8), ds.frame, ds.tex, ds.hf, foot_off(ds.tex, "death"))
 		return
+	var foot: Vector2 = pos + g.draw_off
 	_cv_flush()   # 还没有 death 条的（用户 10-22 定倒地统一用 death 条，claude/retreat-to-downed 在补）：先画躺倒的灰色剪影，不再放共用退场闪光
 	var tx: Texture2D = st.tex
 	var hf: int = maxi(1, int(st.hf))
