@@ -57,8 +57,8 @@ func run() -> void:
 			var nd: Dictionary = nodes[id]
 			if nd.has("req"):
 				check(sh.has(str(nd.req)), "预算 %d：%s 没有前置 %s" % [b, id, nd.req])
-	check(Meta.shape_for(40).has("sh1"), "推荐点法第一个应是危机感Ⅰ")
-	check(not Meta.shape_for(40).has("atk2"), "预算 40 只点危机感Ⅰ")
+	check(Meta.shape_for(5).has("atk1"), "推荐点法第一个应是攻击性Ⅰ")
+	check(not Meta.shape_for(5).has("hp1"), "预算 5 只点攻击性Ⅰ")
 	check(Meta.run_shape().is_empty(), "测试局缺省不带局外成长")
 	# 生机细胞（§3.1）
 	Cfg.meta_earned = {}
@@ -80,7 +80,7 @@ func run() -> void:
 	check(Meta.earned_total() == 53 and Cfg.meta_bounty.has(8) and fg.meta_result.cells == 53, "局终记账 %s" % [Cfg.meta_earned])
 	r = Meta.run_reward(fg, true)
 	check(r.bounty == 0, "同一潮位第二次通关没有首通赏金")
-	check(Meta.buy("sh1") and Meta.available() == 13, "点危机感Ⅰ后余额 13，实为 %d" % Meta.available())
+	check(Meta.buy("sh1") and Meta.available() == 13, "点危机感Ⅰ（40）后余额 13，实为 %d" % Meta.available())
 	check(not Meta.buy("atk2"), "没点攻击性Ⅰ不能点攻击性Ⅱ")
 	Meta.buy_recommended()
 	check(Meta.available() >= 0 and Meta.available() < 5, "推荐点完余额 %d" % Meta.available())
