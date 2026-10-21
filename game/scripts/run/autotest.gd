@@ -832,6 +832,19 @@ func step() -> void:
 						g.get_tree().quit()
 					elif act != null:
 						g.headhunt._act(act)
+	# --akmock=<屏>（docs/125 结算 / 寻访静态样张）：第 20 帧盖一层样张画布，第 60 帧截 shot_akmock.png 退出
+	for da in Cfg.dev_args():
+		if str(da).begins_with("--akmock="):
+			if g.at_frames == 20:
+				var mk = preload("res://scripts/screens/ak_mock.gd").new()
+				mk.g = g
+				mk.which = str(da).substr(9)
+				mk.size = g.hud.size
+				g.hud.add_child(mk)
+			if g.at_frames == 60:
+				if DisplayServer.get_name() != "headless":
+					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_akmock.png")
+				g.get_tree().quit()
 	# --sptest：每 2 秒把全队技力充满（截图 / 观察技能特效用）
 	if Cfg.dev_args().has("--sptest") and g.at_frames % 120 == 0:
 		for o in g.squad.ops:
