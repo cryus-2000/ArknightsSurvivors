@@ -417,10 +417,15 @@ func update(dt: float) -> void:
 		Sfx.play("roar", -3.0)
 	# 大群：Boss 在场时顺延，最多顺延 boss/horde_defer_max 秒（数值起点 40），到时照常带 3 秒预警出场（用户 9/27）；
 	# Boss 先倒下则按 kill() 的「至少推迟 12 秒」；难度修正 horde_in_boss 时不顺延；9:30 之后不再刷（给最终 Boss 留空间）
+	# 终局护卫波（docs/116 §9，10-22）：最终 Boss 少量补怪期间每 final/escort_every 秒一波分股小群（final/escort_n 只，不乘密度、不受补怪上限），
+	# 登场后 final/escort_first 秒第一波；0 = 关（旧行为：最终 Boss 战不来大群）
+	var escort: bool = trickling() and Bal.v("final/escort_every", 0.0) > 0.0
+	if escort and g.next_horde < final_at + Bal.v("final/escort_first", 20.0):
+		g.next_horde = final_at + Bal.v("final/escort_first", 20.0)
 	var due: float = g.next_horde
-	if boss_alive() and int(g.dmod.horde_in_boss) <= 0:
+	if boss_alive() and int(g.dmod.horde_in_boss) <= 0 and not escort:
 		due += Bal.v("boss/horde_defer_max", 40.0)
-	var horde_ok: bool = g.t < 570.0 and not stop   # 最终 Boss 战停刷时连预警也不出
+	var horde_ok: bool = (g.t < 570.0 and not stop) or escort   # 最终 Boss 战停刷时连预警也不出（护卫波除外）
 	if g.t >= due - 3.0 and horde_warned != due and horde_ok:
 		horde_warned = due
 		g.horde_warn = 3.0
@@ -432,7 +437,7 @@ func update(dt: float) -> void:
 				g.horde_streams.append(g.horde_gap + PI + (i - 1) * deg_to_rad(Bal.v("enemy/close_ring_spread_deg", 110.0)) + i * deg_to_rad(Bal.v("enemy/close_ring_rot", 20.0)))
 		Sfx.play("roar", -2.0, 0.55, 0.0)
 	if g.t >= due and horde_ok:
-		g.next_horde += D.THREAT[g.threat].get("horde_every", 120.0)
+		g.next_horde = g.t + Bal.v("final/escort_every", 75.0) if escort else g.next_horde + D.THREAT[g.threat].get("horde_every", 120.0)
 		g.horde_warn = 0.0
 		g.horde_hit = 1.2
 		g.vfx.shake_screen(1.4)
@@ -449,7 +454,8 @@ func update(dt: float) -> void:
 			g.fx.append({"kind": "horde_ring", "pos": g.ppos, "r": 640.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
 		Sfx.play("roar", 2.0, 0.8, 0.0)
 		# 数量：32 → 88（10 分钟），× 难度修正 horde；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
-		var n := int((Bal.v("enemy/horde_base", 24.0) + int(g.t / Bal.v("enemy/horde_div", 9.0))) * float(g.dmod.horde))
+		# horde_grow_until 秒后只数不再随时间涨（docs/116 §9：8–9 分钟大群最大、压力堆在一处）
+		var n := int((Bal.v("enemy/horde_base", 24.0) + int(minf(g.t, Bal.v("enemy/horde_grow_until", 1.0e9)) / Bal.v("enemy/horde_div", 9.0))) * float(g.dmod.horde))
 		var early: bool = g.t < Bal.v("enemy/early_until", 0.0)   # 前期压力段（docs/116 §7）：大群加密、单体伤害不打折，普通刷怪同期打折抵消经验
 		if early:
 			n = int(round(n * Bal.v("enemy/early_horde_mult", 1.0)))
@@ -458,6 +464,9 @@ func update(dt: float) -> void:
 		n = dens_count(n, "horde")   # 怪物密度：只数 × density（累计余数取整；在 Boss 余量裁剪之前）
 		# Boss 在场时（Ⅷ horde_in_boss 让大群不顺延）超出存活杂兵上限的部分裁掉（协调人 9/30）；没有 Boss 时余量 = 同屏上限 max_alive()，不裁
 		n = mini(n, maxi(0, boss_mob_room()))
+		if escort:
+			n = int(Bal.v("final/escort_n", 12.0))
+			n_base = int(round(float(n) / density()))   # 护卫波经验不折算
 		# 本波实际能刷出的只数（下面循环到同屏上限 + 60 就停）与「不乘只数倍率时」会刷出的只数之比，用来折算单只经验
 		var room_now: int = maxi(1, max_alive() + 60 - g.enemies.size())
 		var n_real: int = mini(n, room_now)
@@ -505,7 +514,7 @@ func update(dt: float) -> void:
 			hl.hp += he.maxhp
 		# 领头精英（docs/116 §7.3，用户 10-22）：每次大群 1 只（horde_elite_late_t 秒起 2 只）走在第一股前列；
 		# 占用精英计时的一个名额（next_elite 顺延一个间隔），精英总数、经验、掉箱不变
-		var ne := int(Bal.v("enemy/horde_elite", 0.0))
+		var ne := 0 if escort else int(Bal.v("enemy/horde_elite", 0.0))   # 护卫波不带领头（最终 Boss 战不出精英）
 		if ne > 0 and g.t >= Bal.v("enemy/horde_elite_late_t", 420.0):
 			ne = int(Bal.v("enemy/horde_elite_late", float(ne)))
 		for k in ne:
