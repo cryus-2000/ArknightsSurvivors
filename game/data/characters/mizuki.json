@@ -567,6 +567,11 @@
         {
           "cond": "skill_active:2",
           "mult": "$s3_radius"
+        },
+        {
+         "cond": "response_on && resp_idle < 3",
+         "mult": 1.5,
+         "_doc": "响应动作「伞开」：切到突击后 3 秒内伞击范围 ×1.5"
         }
       ],
       "dmg_mults": [
@@ -591,6 +596,11 @@
           {
             "cond": "skill_active:2",
             "n": 2
+          },
+          {
+           "cond": "response_on && resp_idle < 3",
+           "n": 1,
+           "_doc": "响应动作「伞开」：切到突击后 3 秒内触手追击 +1 名"
           }
         ],
         "stun": [
@@ -791,7 +801,16 @@
         "do": [],
         "_doc": "精二深蓝之籽：写在 attack.jelly（cond elite >= 2）"
       }
-    }
+    },
+    "response": [
+      {
+        "trig": "on_stance",
+        "to": "roam",
+        "hint": "伞开",
+        "do": [],
+        "_doc": "响应动作（docs/118 §4.4）：切到突击时触发；效果写在 attack.r_mults / tentacle.n_add（cond response_on && resp_idle < 3）：之后 3 秒伞击范围 ×1.5、触手追击 +1 名。拉怪不是位移，不受 §1.4 限制"
+      }
+    ]
   },
   "extra_sprites": [
     "skill_s2",
@@ -803,5 +822,10 @@
     "skill_s3_loop",
     "skill_s3_attack",
     "skill_s3_end"
-  ]
+  ],
+  "response": {
+    "name": "伞开",
+    "trigger": "指挥：突击",
+    "desc": "切到突击后 3 秒内，她的伞击范围扩大 50%，触手多追击 1 名敌人"
+  }
 }

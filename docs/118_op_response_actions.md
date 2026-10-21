@@ -137,6 +137,35 @@
 
 3 seed 的存活秒数波动很大，胜率差 < 10 点不下结论（docs/27）；normal 机器人几乎不主动冲刺，冲刺类响应基本没触发，这组只能说明「开着不吃亏」。要看响应的收益，得用会冲刺 / 会停下的 expert 机器人或真人试玩。
 
+### 6.3 第二批实现记录（10-21，分支 `claude/op-verbs-p2`；乌尔比安等 `claude/ulpianus-no-launch` 合入后再接）
+
+口径同第一批：轻版、附加收益、总开关 `response.on`、关时 TRACE 与 main 逐行相同（seed 1、180 秒，13 人逐人核过）。
+
+共用新增：
+- `trig.on_leader_dash` 加 `at: end`（冲刺结束那一刻，队长已在落点）。
+- `trig.on_leader_still`（§3.1 原设计）：站满 `secs` 秒触发一次，`every > 0` 时每再站满 `every` 秒再触发，移动后重新计。站定类「随条件收放」的仍用 `trig.passive` + `still`。
+- `trig.on_stance` 加 `to: gathered`（归队时全员到位、开始集合站定那一刻，`squad.gathered_n`）。
+- 「触发后 N 秒内」的效果统一写成条件 `resp_idle < N`（`resp_idle` = 本干员事件类响应上次触发距今秒数），放在 `trig.passive` 或各段的 `*_mults` 条件里。
+
+| 干员 | 响应（名 / 触发） | 实现 | 与设计稿的差异 |
+|---|---|---|---|
+| 能天使 | 掩护射击 / 冲刺起步 | `shape.projectile aim: behind_leader`（她射程内、队长冲刺方向身后离队长最近的；没有就打离队长最近的），发数同普攻（`op_shots: true`），每发 ×0.8 | S3 期间不按连射数 |
+| 斯卡蒂 | 落点横扫 / 冲刺结束 | `shape.circle center: leader`，半径同普攻，大剑 ×1.2 | 不是「提前下一次横扫」，是独立的一下，不动普攻计时 |
+| 推进之王 | 跟进锤击 / 冲刺结束 | `verb.leap_slam from: leader`：跃向队长 160 内最近的敌人（至多 180），半径 70 锤击 ×1.3（不吃技能强度），砸中时其他干员技力 +1 秒（`sp_secs`）；她是队长时原地砸；S2 在空中时不另跳 | — |
+| 维什戴尔 | 架炮 / 站定 | `trig.passive still >= 0.6` + `buff_self op_aspd +0.18` | 「必定余震」不用写：炮击本来每发都余震 |
+| 流明 | 掌灯 / 站定 | `attack.heal.mults` 加 ×1.5、新增 `lamp_adds` +3（cond `response_on && still >= 0.6`）；`mults` 改为成立的依次乘（原来只有一条，结果不变） | 不是「下一次」，站着期间每次都算 |
+| 逻各斯 | 追言 / 开技能 | `shape.bolt pick: aim count: 2 then_of: attack`：向最近 2 名敌人各追加一枚「言」 | 设计稿是 1 枚 + 2 层安魂；安魂不叠层，改成 2 枚 |
+| 浊心斯卡蒂 | 应和 / 开技能 | 歌域一圈声浪（同普攻）+ 之后 3 秒 `aura.aspd +0.1 scope: in_zone`（cond `resp_idle < 3`） | 海嗣不同步 |
+| 塞雷娅 | 晶垒 / 站定 | `trig.on_leader_still secs 0.6 every 4` + 新积木 `verb.amber_ring`：以队长为心半径 70 升起 4 根晶柱 3 秒（同精二晶柱环的墙，拳击 ×0.1） | 与精二晶柱环共用一个位置（新的升起时旧的碎掉） |
+| 凯尔希 | 护主 / 开技能 | `verb.summon_cmd leap to leader` + 落地一圈 × leap_mult × 0.8，冷却 3 秒 | 冷却写死 3 秒（不读 `dash_cd`），开技能本身间隔远大于它 |
+| 水月 | 伞开 / 突击 | 切到突击后 3 秒内 `attack.r_mults` ×1.5、`tentacle.n_add` +1 | 不是「第一次伞击」，是 3 秒窗口；拖拽距离不加 |
+| 归溟幽灵鲨 | 替身突袭 / 突击 · 集合 | 突击：`verb.doll_flash`（同精二替身闪现）；集合完毕：以自身为心一圈 上次环斩 ×1.5 | — |
+| 艾丽妮 | 起风 / 归队 | `verb.lift_around center: self` 半径 90 浮空 0.8 秒 | 只取设计稿的归队这一半（每人一条）；手炮掩护不做 |
+| 安洁莉娜 | 斥力 / 集合完毕 | `verb.displace center: leader r 120 push 80` + 之后 3 秒 `buff_leader move_speed ×1.15` | 「她本人不突击」不做（会改突击局的同 seed 结果） |
+
+- 画面：都用现有素材 + 头顶职业色短名；要新画的 4 项（触发小标、斯卡蒂落点刀光环、维什戴尔架炮、流明提灯）写在 `art/incoming/codex_order_verbs_handoff.md`。
+- 验证：回归 `response_p2a`–`p2f`；示范录屏 `build/response_demo/<id>.gif`（录屏场景按触发源通用：冲刺 / 开技能 / 指挥 / 站定）。
+
 ## 7. 待定
 
 - 每条的数值是起始值，等切片后按测试调。
