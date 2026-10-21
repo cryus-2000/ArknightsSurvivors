@@ -1013,12 +1013,17 @@ static func _hw5_hook_arrive(o, hk: Dictionary) -> void:
 	var src: String = str(b.get("back_src", b.get("src", "")))
 	var ve: float = o.vs_elite()
 	var hits: Array = []
+	var st_arr: float = float(b.get("arrive_stun", 0.0))   # 歌蕾蒂娅（docs/123 §2.1，用户 10-22 定）：拖回到位的敌人原地眩晕；精一起用 arrive_stun_elite1
+	if o.elite >= 1 and b.has("arrive_stun_elite1"):
+		st_arr = float(b.arrive_stun_elite1)
 	for dg in hk.drag:
 		var e: Dictionary = dg.e
 		if e.dead:
 			continue
 		o.log_hit(src, b.get("tags", []))
 		o.deal_damage(e, dmg * (ve if e.elite or e.boss else 1.0))
+		if st_arr > 0.0 and not e.dead:
+			apply_status(o, e, {"st": "stun", "dur": st_arr}, e.pos)
 		hits.append(e)
 	if b.has("arrive_fx") and not hits.is_empty():
 		fx_play(o, b.arrive_fx, hk.front, 40.0, hits)
