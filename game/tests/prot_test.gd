@@ -1182,7 +1182,7 @@ func test_enemy_knob() -> void:
 	var dx: Dictionary = Bal._data["difficulty"]["extreme"]
 	for k in ["final_boss_hp", "beacon_guide_r", "beacon_shade_deg", "beacon_relay_r", "beacon_relay_rate", "beacon_stagger_r", "beacon_stagger_s", "beacon_stagger_cd", "beacon_safe_slow"]:
 		dx[k] = 1.25
-	var mx: Dictionary = D.dmod_for_tier(2)
+	var mx: Dictionary = D.dmod_for_legacy(2)   # 旧三档 Ⅷ 表（潮位 8 = 它 + 寒流，dmod_for_tier(8)）
 	var miss: Array = ["final_boss_hp", "beacon_guide_r", "beacon_shade_deg", "beacon_relay_r", "beacon_relay_rate", "beacon_stagger_r", "beacon_stagger_s", "beacon_stagger_cd", "beacon_safe_slow"].filter(func(k): return not is_equal_approx(float(mx.get(k, -9.0)), 1.25))
 	ok(miss.is_empty(), "difficulty/<档> 的 final_boss_hp / beacon_* 能被 dmod_for_tier 读到（漏：%s）" % str(miss))
 	Bal._data["difficulty"]["extreme"] = keep_x

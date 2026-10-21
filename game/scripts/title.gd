@@ -466,7 +466,7 @@ var diff_lv_t0 := -10.0
 var diff_lv_dur := 0.38
 var diff_was := false         # 上一帧难度页是否开着（打开那一帧水位从尺底涨上来）
 var diff_mod_t := -10.0       # 换档时修正项淡入（T2）
-const DIFF_PAD := 0.15        # 三档刻度离尺两端的留白（占尺高）
+const DIFF_PAD := 0.03        # 刻度离尺两端的留白（占尺高）；潮位 0–15 共 16 级，留白收小才排得下
 var _mod_re: RegEx
 
 
@@ -498,7 +498,7 @@ func _diff_layout(vs: Vector2, ph: bool) -> Dictionary:
 		L.gauge = Rect2(40, 112, 92, vs.y - 192)
 		L.card_x = 156.0
 		L.card_w = 400.0
-		L.card_h = 88.0
+		L.card_h = minf(88.0, (vs.y - 192) * (1.0 - DIFF_PAD * 2.0) / maxf(1.0, D.DIFFICULTY_TIERS.size() - 1) - 3.0)
 		L.panel = Rect2(612, 100, vs.x - 28 - 612, vs.y - 220)
 		L.go = Rect2(612, vs.y - 100, 300, 60)
 		L.back = Rect2(932, vs.y - 92, 150, 44)
@@ -506,7 +506,7 @@ func _diff_layout(vs: Vector2, ph: bool) -> Dictionary:
 		L.gauge = Rect2(20, 64, 64, vs.y - 80)
 		L.card_x = 100.0
 		L.card_w = 300.0
-		L.card_h = 74.0
+		L.card_h = minf(74.0, (vs.y - 80) * (1.0 - DIFF_PAD * 2.0) / maxf(1.0, D.DIFFICULTY_TIERS.size() - 1) - 2.0)
 		L.panel = Rect2(420, 56, vs.x - 16 - 420, vs.y - 56 - 76)
 		L.go = Rect2(420, vs.y - 64, 260, 52)
 		L.back = Rect2(696, vs.y - 60, 150, 44)
@@ -584,23 +584,20 @@ func _draw_diff(vs: Vector2) -> void:
 			num_c = TUI.TXT2
 		var x0: float = g.rect.position.x
 		var y0: float = g.rect.position.y
-		var parts: PackedStringArray = str(tdef.name).split("·")
-		var nm: String = parts[0].strip_edges()
-		var num: String = TUI.roman_ascii(parts[1].strip_edges()) if parts.size() > 1 else "0"
-		var kbig := 4.0 if not ph else 3.0
-		TUI.ptext(self, c, Vector2(x0 + (22 if not ph else 14), cy), num, kbig, num_c)
-		var tx0 := x0 + (140.0 if not ph else 104.0)
-		var ns := 22 if not ph else 19
-		UI.text(self, font, Vector2(tx0, y0 + (30 if not ph else 24) + ns * 0.36), nm, ns, ink)
-		var nw: float = font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, ns).x
-		if num != "0":
-			TUI.ptext(self, c, Vector2(tx0 + nw + 10, y0 + (30 if not ph else 24)), num, 2.0 if not ph else 1.4, ink)
-		TUI.ptext(self, c, Vector2(tx0 + 2, y0 + (54 if not ph else 44)), TUI.roman_ascii(str(tdef.en)), k1, ink, 2)
+		# 潮位 0–15（docs/109 §5）：一行 = 像素编号 + 级名 + 本级新规则（锁定时写解锁条件）
+		var nm: String = str(tdef.get("short", tdef.name))
+		var num: String = "%02d" % int(tdef.get("level", i))
+		var kn := (2.0 if not ph else 1.4) if L.card_h < 50.0 else (4.0 if not ph else 3.0)
+		TUI.ptext(self, c, Vector2(x0 + (14 if not ph else 10), cy), num, kn, num_c)
+		var tx0 := x0 + (58.0 if not ph else 40.0)
+		var ns := 15 if not ph else 13
+		UI.text(self, font, Vector2(tx0, cy + ns * 0.36), nm, ns, ink)
+		var nw: float = font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(ns)).x
 		var desc: String = str(tdef.get("desc", ""))
 		if locked and i > 0:
-			desc = "通关「%s」后解锁" % TUI.roman_ascii(str(D.DIFFICULTY_TIERS[i - 1].name))
-		UI.text_fit(self, font, Vector2(tx0, y0 + (72 if not ph else 60) + 5), desc, 13, sub, g.rect.end.x - tx0 - 10, 11)
-		TUI.ptext(self, c, Vector2(g.rect.end.x - 14, y0 + 16), "LV %d" % int(tdef.get("level", 0)), k1, sub, 1, 2)
+			desc = "通关潮位 %d 后解锁" % (i - 1)
+		var dx0 := tx0 + maxf(nw, 52.0) + 10.0
+		UI.text_fit(self, font, Vector2(dx0, cy + 12 * 0.36), desc, 12, sub, g.rect.end.x - dx0 - 8, 9)
 	# 右：档位文件（修正项）
 	var pr: Rect2 = L.panel
 	var pg := TUI.grid(c, pr, ps)
@@ -613,7 +610,7 @@ func _draw_diff(vs: Vector2) -> void:
 	var lines: Array = D.dmod_lines(D.dmod_for_tier(diff_sel))
 	var head: String = str(tdef2.get("desc", ""))
 	if locked2:
-		head = "通关「%s」后解锁 · 可以先看效果" % TUI.roman_ascii(str(D.DIFFICULTY_TIERS[diff_sel - 1].name))
+		head = "通关潮位 %d 后解锁 · 可以先看规则" % (diff_sel - 1)
 	var hs2 := 18 if not ph else 16
 	UI.text_fit(self, font, pp + Vector2(24 if not ph else 16, (54 if not ph else 42) + hs2 * 0.36), head, hs2, _fa(TUI.TXT, ma), pg.rect.size.x - 48, 12)
 	var gx := pp.x + (24.0 if not ph else 16.0)

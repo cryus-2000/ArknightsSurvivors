@@ -9,8 +9,8 @@ const D = preload("res://scripts/data.gd")
 const Look = preload("res://scripts/render/look.gd")
 const TouchLayout = preload("res://scripts/touch_layout.gd")
 const CloudPack = preload("res://scripts/core/cloud_pack.gd")
-## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的难度档下标（D.DIFFICULTY_TIERS）
-const DIFF_VER := 2
+## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的三档下标；3 = 10-22 起的潮位 0–15（D.DIFFICULTY_TIERS）
+const DIFF_VER := 3
 ## 存档里亮度字段的口径：0 = 旧缺省 110%；1 = 缺省随观感预设 render/look（10-12 起 100%）
 const LOOK_VER := 1
 
@@ -50,14 +50,14 @@ const UI_MIN_H := 470.0
 ## 触屏按键布局（设置 → 游戏 → 触屏按键布局，用户 10-13）：{键: {ax, ay, x, y, s}}，空 = 全部缺省（touch_layout.gd）
 var touch_layout := {}
 var manual_attack := false   # 主控普通攻击手动（契约 v2.5，docs/26）：开局读一次；机器人 / 自动测试 / 图鉴演示一律自动
-var difficulty := 0      # 本局难度档（D.DIFFICULTY_TIERS 下标）
+var difficulty := 0      # 上次选的潮位（0–15）
 var character_id := "mizuki"  # 本局角色（data/characters/<id>.json）
 var cover_character_id := "mizuki"
 var play_speed := 1.0
 var boss_trial_request := {} # transient, never saved
 var practice_active := false
 var map_id := "deep_sea"  # 本局地图主题（data/maps/<id>.json）
-var diff_unlocked := 0   # 已解锁的最高难度档（D.DIFFICULTY_TIERS 下标）
+var diff_unlocked := 0   # 已解锁的最高潮位（0–15）
 var seen_shows: Array = []   # 已看过的解锁演出
 var gallery_seen: Array = []
 var seen_relics: Array = []  # 获得过的藏品 id（图鉴用）
@@ -291,8 +291,11 @@ func _ready() -> void:
 		meta_bounty = c.get_value("meta", "bounty", meta_bounty)
 		if not c.has_section("roster"):
 			_migrate_roster()
-		if int(c.get_value("progress", "diff_ver", 1)) < DIFF_VER:
+		var dv := int(c.get_value("progress", "diff_ver", 1))
+		if dv < 2:
 			_migrate_diff()
+		if dv < 3:
+			_migrate_tide()
 		cloud_set_t = int(c.get_value("cloud", "set_t", 0))
 		cloud_sig = str(c.get_value("cloud", "sig", ""))
 		_set_sig = str(c.get_value("cloud", "set_sig", ""))
@@ -401,10 +404,23 @@ func _migrate_diff() -> void:
 	var old_unlocked := diff_unlocked
 	var old_diff := difficulty
 	diff_unlocked = 0
-	for i in range(1, D.DIFFICULTY_TIERS.size()):
-		if old_unlocked >= int(D.DIFFICULTY_TIERS[i - 1].level) + 1:
+	for i in range(1, D.LEGACY_TIERS.size()):
+		if old_unlocked >= int(D.LEGACY_TIERS[i - 1].level) + 1:
 			diff_unlocked = i
-	difficulty = mini(D.tier_of_level(old_diff), diff_unlocked)
+	difficulty = mini(D._tier_of_level_old(old_diff), diff_unlocked)
+
+
+## 三档 → 潮位（10-22，docs/109 §5 / docs/71 §4.3）：上次选的档 0 / 1 / 2 → 潮位 0 / 4 / 8；
+## 解锁：通关过标准 → 1，通关过 Ⅳ → 5，通关过 Ⅷ（P1 起记在 roster_tiers 里的档 2）→ 9。P1 记的首通档同时改成潮位号
+func _migrate_tide() -> void:
+	var lv := [0, 4, 8]
+	var cleared_8 := roster_tiers.has(2)
+	roster_tiers = roster_tiers.map(func(x): return lv[clampi(int(x), 0, 2)])
+	difficulty = lv[clampi(difficulty, 0, 2)]
+	diff_unlocked = [0, 1, 5][clampi(diff_unlocked, 0, 2)]
+	if cleared_8:
+		diff_unlocked = 9
+	difficulty = mini(difficulty, diff_unlocked)
 
 
 ## 老存档（没有 [roster] 段）：EA 期间所有干员都开局可用，打过的玩家一律直接全部解锁，不收回已有内容（docs/109 §12.5）。

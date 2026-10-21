@@ -70,7 +70,7 @@ func run() -> void:
 	var r := Meta.run_reward(fg, false)
 	check(r.base == 66 and r.cells == 8 and r.bounty == 0, "撤离 6:40 无 Boss：%s" % [r])
 	fg.t = 640.0
-	fg.tier = 2
+	fg.tier = 8   # 潮位 8
 	fg.bosses = [{"dead": true}, {"dead": true}, {"dead": true}]
 	fg.final_boss = fg.bosses[2]
 	fg.ending_new = true

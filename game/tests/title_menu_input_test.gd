@@ -230,9 +230,10 @@ func one_layout(tag: String) -> void:
 	check(title.diff_rects.has("tier0") and title.diff_rects.has("go") and title.diff_rects.has("back"), tag + ": difficulty hit rects")
 	await key(KEY_UP)
 	check(title.diff_sel == 1, tag + ": up raises tier")
-	await key(KEY_UP)
-	await key(KEY_UP)
-	check(title.diff_sel == 2, tag + ": up clamps at top tier")
+	for i in 20:
+		await key(KEY_UP)
+	check(title.diff_sel == 15, tag + ": up clamps at top tide (15)")
+	title.diff_sel = 2
 	await key(KEY_DOWN)
 	check(title.diff_sel == 1, tag + ": down lowers tier")
 	await frames(2)

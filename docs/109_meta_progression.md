@@ -504,6 +504,18 @@ docs/71 的 S0–S3（0–8 级逐级扫描）照原计划跑，0–8 用 `--met
 
 **老存档迁移**：EA 老玩家已经能用全部 18 人，**一律直接全部解锁**（有任何 `diff_unlocked ≥ 1` 或 `endings_cleared` 非空或 `seen_relics` 非空的存档），并按 §12.2 末条把应得的券换成生机细胞，不收回已有内容（§1.2 第 4 条）。
 
+## 13. P2 实装记录（分支 `claude/meta-tree`）
+
+- **认知塑造**：节点数据 `game/data/meta_tree.json`（34 个节点、合计 550，钥匙节点已删；`order` = 推荐点法），规则 `game/scripts/core/meta.gd`。开局 `Meta.apply_run` 把已点节点写进属性块（来源 `meta`）：攻击性 = 新属性 `elite_dmg` + 现有 `boss_dmg`（`combat.gd` 精英伤害乘 `g.elite_mult`）；生存本能 `max_hp`；自我保护 `dmg_taken`；生命感悟 `regen`；危机感 `shield_max` / `shield_interval`；领导欲 `xp_gain`；收藏癖 开局源石锭；命运认同 = `rfx.rules.choice_extra`；交涉 `shop_price`；为了生存（`g.meta_once_heal`，game.gd 每帧检查）；物由心生（开局 1 秒后开一次只出基础藏品的三选一）。
+- **`--meta=N|full`**：测试局按推荐点法点到 N 个生机细胞（full = 550）；不写 = 不带（同 seed 不变）。BALANCE 记录多 `meta` 字段。
+- **生机细胞**：`Meta.on_run_end`（与寻访同一处）按 §3.1 记账，结算面板多一行「生机细胞 +N（评分 × 系数）首通 +M」。
+- **认知塑造页**：`game/scripts/screens/meta_tree_ui.gd`，标题磁贴第二行新增「认知塑造」（编号顺延）；点击 / Enter 点亮，R 推荐，X 两次重置，Esc 返回。截图 `--metashot --metacells=N --metabuy=N --metasel=行,列`。
+- **潮位 0–15**：`data.gd DIFFICULTY_TIERS` 改为 16 级（名、规则）+ `TIDE_SET`（各级写入的键）；`dmod_for_tier(潮位)` = 锚点（0 / 4 / 8 取旧三档表，8 另加寒流两键）+ 依次写入。存档 `difficulty` / `diff_unlocked` 改存潮位（`DIFF_VER` 3，`_migrate_tide`：0 / 1 / 2 → 0 / 4 / 8，解锁 → 1 / 5，P1 起记过通关 Ⅷ → 9）。难度页 16 行（编号 + 级名 + 本级规则），右侧列累计修正。批跑 `--tier=0/1/2` 仍是旧三档表（逐局不变），新增 `--tide=0..15`。
+- **存档 / 云**：`[meta]` 段 shape / shape_t / earned（按设备）/ dev / bounty；云存档 `prog.meta`（`cloud_pack.merge_meta`：生机细胞逐设备取大、赏金并集、认知塑造取较新）。旧云档的 `diff` 是三档下标，和新存档合并时按较大值取（可能把旧档 2 读成潮位 2，只影响解锁前沿，不影响已玩内容）。
+- **回归**：`check.py --only meta`、`--only tide`（锚点逐键 + 严格累加）、`--only roster`、`--only title_menu`（第二行三块的导航）。
+- **未做**：战利品意识（Boss 演练对外开放）节点暂缓；9–15 级数值待 §5.4 云端测量；手机难度页 16 行未按 docs/71 §6.3 做窗口滚动（每行约 23 像素，触控偏小）。
+- 截图：`docs/reference/meta_p2_tree.png`（认知塑造页）、`meta_p2_title.png`（标题磁贴）、`meta_p2_result.png`（结算生机细胞行）、`meta_p2_tide.png`（潮位页）。
+
 ## 附录 A　原作认知塑造节点全表
 
 数据同 §1.3。`点` 为 `tokenCost`，类型 SMALL / NORMAL / LARGE_*。

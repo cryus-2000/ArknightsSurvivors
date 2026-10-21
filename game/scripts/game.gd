@@ -240,7 +240,7 @@ var texts: Array = []
 var grid := {}
 var threat := 0                  # 威胁等级（D.THREAT 下标）
 var diff := 0                # 本局难度（累计档位 0–10，D.DIFFICULTY）
-var tier := 0                # 本局难度档（D.DIFFICULTY_TIERS 下标，玩家看到的「波涛迭起 / ·Ⅳ / ·Ⅷ」）
+var tier := 0                # 本局潮位（0–15，D.DIFFICULTY_TIERS 下标；10-22 起由三档改为潮位阶梯，docs/109 §5）
 var dmod: Dictionary = D.dmod_for_level(0)   # 本局难度修正表（D.DMOD_DEFAULT 的键）；局内难度效果一律读它
 var diff_new := false
 var ending_new := false            # 本局首次达成该结局（结算面板显示）        # 本局通关解锁了新难度
@@ -883,8 +883,14 @@ func _ready() -> void:
 			tier = D.tier_of_level(diff)
 			dmod = D.dmod_for_level(diff)
 		elif a.begins_with("--tier="):
+			# 批跑旧三档：修正表与改动前逐局相同（潮位 8 比旧 Ⅷ 多寒流两键，所以 --tier=2 不走潮位表）
+			var lt := clampi(int(a.substr(7)), 0, D.LEGACY_TIERS.size() - 1)
+			tier = int(D.LEGACY_TIERS[lt].level)
+			diff = tier
+			dmod = D.dmod_for_legacy(lt)
+		elif a.begins_with("--tide="):
 			tier = clampi(int(a.substr(7)), 0, D.DIFFICULTY_TIERS.size() - 1)
-			diff = D.DIFFICULTY_TIERS[tier].level
+			diff = tier
 			dmod = D.dmod_for_tier(tier)
 	if float(dmod.lamp_hit) != 1.0:
 		stats.add(&"light_decay", "mult", float(dmod.lamp_hit), "difficulty")   # 受击灯火损失（g.lamp_decay 只用于受击，combat.gd lose_hp）

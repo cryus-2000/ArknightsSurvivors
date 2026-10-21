@@ -76,9 +76,9 @@ static func run_shape() -> Dictionary:
 ## 探索评分：存活每分钟 10（10:00 封顶 100）+ 中期 Boss 每个 20 + 通关 60，× 潮位系数（每级 +0.05，10 级起封顶 ×1.5）；
 ## 结局首达 +40（不乘系数）。生机细胞 = 评分 ÷ 8；首通某一潮位另给 5 + 潮位。
 
-## 现行三档难度对应的潮位（潮位阶梯上线前：0 / 4 / 8）
+## 本局潮位（g.tier，0–15）
 static func tide_of(g) -> int:
-	return [0, 4, 8][clampi(int(g.tier), 0, 2)]
+	return clampi(int(g.tier), 0, 15)
 
 
 static func tide_factor(tide: int) -> float:
