@@ -382,7 +382,7 @@
   "_doc": "入队加成（docs/83，用户 10-13 定）：编队每多 1 名干员（开局干员不算，最多算 hp_member_cap 人），主控最大生命 ×(1 + hp_per_member × 人数)（docs/46 §6，每人 +15%），主控生命回复 + regen_per_member × 人数（生命 / 秒，加在 regen 上，吃 heal_mult）。招募卡与属性面板的数字都从这里读。regen_per_member 0 = 关",
   "hp_per_member": 0.15,
   "hp_member_cap": 3,
-  "regen_per_member": 0.9,
+  "regen_per_member": 0.6,
   "_regen_t": "分档（协调人 10-13，只加旋钮）：第 1 / 第 2 名队友入队各加多少生命回复；-1 = 沿用 regen_per_member。第 3 名起（编队上限 +1）按 regen_per_member。招募界面、属性面板、指南的数字跟着走",
   "regen_t1": -1,
   "regen_t2": -1
