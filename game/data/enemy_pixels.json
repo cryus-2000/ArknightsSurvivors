@@ -1223,118 +1223,118 @@
   },
   "e_knight": {
     "anchor": [
-      0.49829351535836175,
-      0.8054607508532423
+      0.4965986394557823,
+      0.8027210884353742
     ],
     "scale": 1.0,
     "frames": 2,
     "frame_size": [
-      293,
-      293
+      294,
+      294
     ],
     "preserve_palette": true
   },
   "e_knight_move": {
     "anchor": [
-      0.49829351535836175,
-      0.8054607508532423
+      0.4965986394557823,
+      0.8027210884353742
     ],
     "scale": 1.0,
     "frames": 4,
     "frame_size": [
-      293,
-      293
+      294,
+      294
     ],
     "preserve_palette": true
   },
   "e_knight_charge_form": {
     "anchor": [
-      0.49829351535836175,
-      0.8054607508532423
+      0.4965986394557823,
+      0.8027210884353742
     ],
     "scale": 1.0,
     "frames": 4,
     "frame_size": [
-      293,
-      293
+      294,
+      294
     ],
     "preserve_palette": true
   },
   "e_knight_charge": {
     "anchor": [
-      0.49829351535836175,
-      0.8054607508532423
+      0.4965986394557823,
+      0.8027210884353742
     ],
     "scale": 1.0,
     "frames": 4,
     "frame_size": [
-      293,
-      293
+      294,
+      294
     ],
     "preserve_palette": true
   },
   "e_knight_attack": {
     "anchor": [
-      0.49829351535836175,
-      0.8054607508532423
+      0.4965986394557823,
+      0.8027210884353742
     ],
     "scale": 1.0,
     "frames": 4,
     "frame_size": [
-      293,
-      293
+      294,
+      294
     ],
     "preserve_palette": true
   },
   "e_knight_thrust": {
     "anchor": [
-      0.49829351535836175,
-      0.8054607508532423
+      0.4965986394557823,
+      0.8027210884353742
     ],
     "scale": 1.0,
     "frames": 3,
     "frame_size": [
-      293,
-      293
+      294,
+      294
     ],
     "preserve_palette": true
   },
   "e_knight_spin": {
     "anchor": [
-      0.49829351535836175,
-      0.8054607508532423
+      0.4965986394557823,
+      0.8027210884353742
     ],
     "scale": 1.0,
     "frames": 6,
     "frame_size": [
-      293,
-      293
+      294,
+      294
     ],
     "preserve_palette": true
   },
   "e_knight_plant": {
     "anchor": [
-      0.49829351535836175,
-      0.8054607508532423
+      0.4965986394557823,
+      0.8027210884353742
     ],
     "scale": 1.0,
     "frames": 4,
     "frame_size": [
-      293,
-      293
+      294,
+      294
     ],
     "preserve_palette": true
   },
   "e_knight_death": {
     "anchor": [
-      0.49829351535836175,
-      0.8054607508532423
+      0.4965986394557823,
+      0.8027210884353742
     ],
     "scale": 1.0,
     "frames": 4,
     "frame_size": [
-      293,
-      293
+      294,
+      294
     ],
     "preserve_palette": true
   },
@@ -1444,14 +1444,14 @@
   },
   "e_knight_walk": {
     "anchor": [
-      0.5012594458438288,
-      0.7506297229219143
+      0.5000000000000001,
+      0.7487437185929648
     ],
     "scale": 1.0,
     "frames": 2,
     "frame_size": [
-      397,
-      397
+      398,
+      398
     ],
     "preserve_palette": true,
     "visible_height": 140,
@@ -1464,56 +1464,56 @@
   },
   "e_knight_walk_move": {
     "anchor": [
-      0.5012594458438288,
-      0.7506297229219143
+      0.5000000000000001,
+      0.7487437185929648
     ],
     "scale": 1.0,
     "frames": 4,
     "frame_size": [
-      397,
-      397
+      398,
+      398
     ],
     "preserve_palette": true,
     "visible_height": 140
   },
   "e_knight_walk_attack": {
     "anchor": [
-      0.5012594458438288,
-      0.7506297229219143
+      0.5000000000000001,
+      0.7487437185929648
     ],
     "scale": 1.0,
     "frames": 4,
     "frame_size": [
-      397,
-      397
+      398,
+      398
     ],
     "preserve_palette": true,
     "visible_height": 140
   },
   "e_knight_walk_charge": {
     "anchor": [
-      0.5012594458438288,
-      0.7506297229219143
+      0.5000000000000001,
+      0.7487437185929648
     ],
     "scale": 1.0,
     "frames": 4,
     "frame_size": [
-      397,
-      397
+      398,
+      398
     ],
     "preserve_palette": true,
     "visible_height": 140
   },
   "e_knight_walk_death": {
     "anchor": [
-      0.5012594458438288,
-      0.7506297229219143
+      0.5000000000000001,
+      0.7487437185929648
     ],
     "scale": 1.0,
     "frames": 4,
     "frame_size": [
-      397,
-      397
+      398,
+      398
     ],
     "preserve_palette": true,
     "visible_height": 140
