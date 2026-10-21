@@ -269,6 +269,7 @@ func update(dt: float) -> void:
 	ObSummon.mf_tick(self, dt, prev_s)   # 召唤物扩展段（§15.9）：限时减伤计时、trig.on_deploy、带 at 的 trig.on_skill_end
 	_tick_pending(dt)
 	_sustain(dt)
+	_run_fx(dt)
 	if hw.has("mz"):
 		SegMizuki.h3_tick_effects(self, dt)
 	_tick_shots(dt)
@@ -782,6 +783,22 @@ func _replace_trig(n: int) -> Dictionary:
 func on_mate_attack(m) -> void:
 	if B.get("_el_mate", false):
 		ObElite.el_mate_attack(self, m)
+
+
+## 跑动拖尾（blocks.run_fx {every, fx}，10-22 歌蕾蒂娅水滑行）：动作为 run 时每 every 秒在脚底播一次 fx（朝左时 rot 条目转 180°）；
+## 只动 pfx / g.vrng，不碰玩法
+var _run_fx_t := 0.0
+func _run_fx(dt: float) -> void:
+	var rf = B.get("run_fx", null)
+	if not (rf is Dictionary) or pos == Vector2.INF:
+		return
+	if str(anim_state().get("kind", "")) != "run":
+		_run_fx_t = float(rf.get("every", 0.15))   # 下次起步立刻播一份
+		return
+	_run_fx_t += dt
+	if _run_fx_t >= float(rf.get("every", 0.15)):
+		_run_fx_t = 0.0
+		ObFx.fx_play(self, rf.fx, pos, 0.0, [], PI if face < 0.0 else 0.0)
 
 
 ## 联动段（docs/123 §2.7「钩与锚」）：本干员的钩索（shape.hookshot）把敌人拖回到位 → 告诉编队里的其他干员

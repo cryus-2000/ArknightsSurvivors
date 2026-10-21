@@ -432,7 +432,7 @@
  "attack": {
   "mode": "auto",
   "name": "钩索",
-  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害，随后把钩索与她之间一线的**远程敌人**拖回身前（近战敌人与 Boss 不拖），到位时再受 {$hook_back*100}% 伤害"
+  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害，随后把钩索与她之间一线的敌人拖回身前（Boss 除外），到位时再受 {$hook_back*100}% 伤害"
  },
  "skills": [
   {
@@ -842,7 +842,7 @@
       "src": "钩索",
       "back_src": "拖拽",
       "head": "proj_gladiia_hook",
-      "drag_only": "ranged"
+      "drag_only": "all"
      }
     ]
    },
@@ -871,7 +871,7 @@
       "src": "钩索",
       "back_src": "拖拽",
       "head": "proj_gladiia_hook",
-      "drag_only": "ranged"
+      "drag_only": "all"
      }
     ]
    },
@@ -900,7 +900,7 @@
       "src": "钩索",
       "back_src": "拖拽",
       "head": "proj_gladiia_hook",
-      "drag_only": "ranged"
+      "drag_only": "all"
      }
     ]
    },
@@ -1209,6 +1209,32 @@
     "do": [],
     "_doc": "怒海·巨浪（路线 brute 节点 5）：trait 里的钩索按 cond node:brute2 换参数"
    }
+  },
+  "run_fx": {
+   "every": 0.14,
+   "_doc": "水滑行（Codex fx_gladiia_water_glide，4 帧 10 fps，ground 层，原点 (32,44) 对齐脚底）：跑动时每 0.14 秒在脚下播一份，朝左时转 180°",
+   "fx": [
+    {
+     "strip": "fx_gladiia_water_glide",
+     "layer": "floor",
+     "anchor": [
+      32,
+      44
+     ],
+     "rot": true,
+     "scale": 1.0,
+     "off": [
+      0,
+      2
+     ],
+     "tint": [
+      1.0,
+      1.0,
+      1.0,
+      0.85
+     ]
+    }
+   ]
   }
  },
  "combo": {

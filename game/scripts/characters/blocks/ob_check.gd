@@ -15,7 +15,7 @@ static func validate(cid: String, d: Dictionary) -> bool:
 	var srcs: Dictionary = d.get("hit_sources", {})
 	var ctx := {"base": base, "srcs": srcs, "errs": errs, "custom": 0, "summons": blocks.get("summons", {}), "sprites": d.get("sprites", {}), "stat_defs": d.get("stat_defs", {})}
 	for k in blocks:
-		if not k in ["zone", "attack", "trait", "skills", "talent", "progression", "summons", "follow", "hit_fx", "look", "dmg_bonus", "_doc"]:
+		if not k in ["zone", "attack", "trait", "skills", "talent", "progression", "summons", "follow", "hit_fx", "look", "run_fx", "dmg_bonus", "_doc"]:
 			errs.append("blocks.%s：不认识的段（只能是 zone / attack / trait / skills / talent / progression / summons / follow / hit_fx / look / dmg_bonus）" % k)
 	_F()._hw_top(blocks, ctx)   # 手写迁移段：follow / hit_fx / look
 	if blocks.has("summons"):   # 召唤物种类（文件末尾「召唤 / 封印段」）

@@ -230,6 +230,13 @@ static func _hw_top(blocks: Dictionary, ctx: Dictionary) -> void:
 		_fx(blocks.hit_fx, "blocks.hit_fx", ctx, "shape.circle")
 	if blocks.has("look"):
 		_fx(blocks.look, "blocks.look", ctx, "verb.buff_self")
+	if blocks.has("run_fx"):   # 跑动拖尾（10-22 歌蕾蒂娅水滑行）：动作为 run 时每 every 秒在脚底播一次的瞬时条目
+		var rf = blocks.run_fx
+		if not (rf is Dictionary) or not (rf.get("fx", null) is Array):
+			errs.append("blocks.run_fx 必须是 {every, fx: [条目…]}")
+		else:
+			_num(rf, "every", "blocks.run_fx", ctx, true, 0.05, 2.0)
+			_fx(rf.fx, "blocks.run_fx.fx", ctx, "shape.circle")
 
 
 ## blocks.attack 的追加字段
