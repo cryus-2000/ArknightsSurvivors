@@ -1,6 +1,6 @@
 """乌尔比安锁链 v2 候选（docs/113 §10，用户 10-21「锁链声音不太明显」）：在 import_sfx_cc0.py 的处理上留一部分 4 kHz 以上的链节声
 （目标占比 2 / 3 / 4%）、响度抬 2–3 dB、掷锚叠低频「哐」、收链加清楚的起音；再按局内音量离线混一段 5 秒样本（配乐 + 同队其他音效）对比。
-只写 <主仓库>/build/sfx_candidates/，不改 game/audio/sfx/。运行：python game/tools/gen_ulpianus_v2.py
+缺省只写 <主仓库>/build/sfx_candidates/；加 --apply C 才把候选 C 写进 game/audio/sfx/（用户 10-21 定）。运行：python game/tools/gen_ulpianus_v2.py [--apply C]
 """
 import os, sys
 import numpy as np
@@ -8,7 +8,8 @@ import soundfile as sf
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 src = open(os.path.join(HERE, "import_sfx_cc0.py"), encoding="utf-8").read()
-sys.argv = [sys.argv[0]]   # 不带 --apply：工具段里的 SFX 指向暂存目录，这里只用 ALT_OUT
+APPLY = sys.argv[sys.argv.index("--apply") + 1] if "--apply" in sys.argv else ""   # --apply C：把该候选写进 game/audio/sfx（用户 10-21 定 C）
+sys.argv = [sys.argv[0]]   # 工具段不带 --apply：其中的 SFX 指向暂存目录，这里只用 ALT_OUT
 exec(src[:src.index("K_IMP = ")])
 rng = np.random.default_rng(10212)
 SFX_GAME = os.path.normpath(os.path.join(HERE, "..", "audio", "sfx"))
@@ -175,3 +176,8 @@ mix(wav("op_ulpianus_s1"), wav("op_ulpianus_s3"), "now")
 for k, (s1, s3) in out.items():
     mix(s1, s3, k)
 print("掷锚在 1.0 s，收链在 3.2 s ->", ALT_OUT)
+if APPLY:
+    s1, s3 = out[APPLY]
+    write(os.path.join(SFX_GAME, "op_ulpianus_s1.wav"), s1)
+    write(os.path.join(SFX_GAME, "op_ulpianus_s3.wav"), s3)
+    print("已写入游戏：候选", APPLY)
