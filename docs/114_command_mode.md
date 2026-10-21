@@ -176,28 +176,34 @@ HUD 文案候选（用户挑）：
 
 ### 8.3 出击 / 归队语音
 
-按突击（含机器人自动突击）、按归队或耐力耗尽归队时，编队里轮流一人开口（从队长起，按入队顺序轮），突击播「作战中 4」，归队播「部署 1」。现有语音只有部署 1 与作战中 1–4（来源 Ark-Voice 中文目录，按 PRTS 语音索引切片，见 `game/audio/voice/README.md`），没有专门的「行动出发 / 撤退」类，所以这样选。走现有语音通道：占线放弃、全队间隔 3 秒、每人 15 秒、作战中 4 另有 60 秒冷却（与战斗闲聊共用），再加 `command/voice_gap` 6 秒节流，连按不刷屏。台词原文未逐条转写，以 PRTS 对应干员「语音记录」页的同索引条目为准。
+10-22 用户已确认以下 20 条完整原句，随后明确由 Codex 按任务单直接接入。成功进入突击时播 `*_command.ogg`；归队（含耐力耗尽自动归队）仍播 `*_entry.ogg`（部署 1，CN_023）。从队长起按编队顺序轮换一人，排除倒地干员及 `command.roam=false` 的随从；后者当队长时可开口。没有修改这些干员的走位规则。重复设置相同状态、耐力拒绝突击、归队完成自动回随行均不请求突击回应。
 
-| 干员 | 职业 | 会突击 | 突击语音 | 归队语音 |
-|---|---|---|---|---|
-| 安洁莉娜 | 辅助 | 否（只在队长时播） | `angelina_battle`（作战中 4，CN_028） | `angelina_entry`（部署 1，CN_023） |
-| 能天使 | 狙击 | 是 | `exusiai_battle`（作战中 4，CN_028） | `exusiai_entry`（部署 1，CN_023） |
-| 艾雅法拉 | 术师 | 是 | `eyjafjalla_battle`（作战中 4，CN_028） | `eyjafjalla_entry`（部署 1，CN_023） |
-| 星熊 | 重装 | 是 | `hoshiguma_battle`（作战中 4，CN_028） | `hoshiguma_entry`（部署 1，CN_023） |
-| 艾丽妮 | 近卫 | 是 | `irene_battle`（作战中 4，CN_028） | `irene_entry`（部署 1，CN_023） |
-| 凯尔希 | 医疗 | 否（只在队长时播） | `kaltsit_battle`（作战中 4，CN_028） | `kaltsit_entry`（部署 1，CN_023） |
-| 逻各斯 | 术师 | 是 | `logos_battle`（作战中 4，CN_028） | `logos_entry`（部署 1，CN_023） |
-| 流明 | 医疗 | 否（只在队长时播） | `lumen_battle`（作战中 4，CN_028） | `lumen_entry`（部署 1，CN_023） |
-| 水月 | 特种 | 是 | `mizuki_battle`（作战中 4，CN_028） | `mizuki_entry`（部署 1，CN_023） |
-| 塞雷娅 | 重装 | 是 | `saria_battle`（作战中 4，CN_028） | `saria_entry`（部署 1，CN_023） |
-| 推进之王 | 先锋 | 是 | `siege_battle`（作战中 4，CN_028） | `siege_entry`（部署 1，CN_023） |
-| 斯卡蒂 | 近卫 | 是 | `skadi_battle`（作战中 4，CN_028） | `skadi_entry`（部署 1，CN_023） |
-| 浊心斯卡蒂 | 辅助 | 否（只在队长时播） | `skalter_battle`（作战中 4，CN_028） | `skalter_entry`（部署 1，CN_023） |
-| 归溟幽灵鲨 | 特种 | 是 | `specter_unchained_battle`（作战中 4，CN_028） | `specter_unchained_entry`（部署 1，CN_023） |
-| 铃兰 | 辅助 | 否（只在队长时播） | `suzuran_battle`（作战中 4，CN_028） | `suzuran_entry`（部署 1，CN_023） |
-| 德克萨斯 | 先锋 | 是 | `texas_battle`（作战中 4，CN_028） | `texas_entry`（部署 1，CN_023） |
-| 乌尔比安 | 近卫 | 是 | `ulpianus_battle`（作战中 4，CN_028） | `ulpianus_entry`（部署 1，CN_023） |
-| 维什戴尔 | 狙击 | 是 | `wisadel_battle`（作战中 4，CN_028） | `wisadel_entry`（部署 1，CN_023） |
+沿用语音通道：占线放弃、全队间隔 3 秒、每人 15 秒；`command` 单句冷却 6 秒、优先级 1，另按 `command/voice_gap` 6 秒节流。指挥语音不排队，不增加打断例外。选人用确定性轮换，不消耗玩法 RNG。桌面按键、手柄、触屏和机器人共用 `set_stance()`。事件映射、固定来源、采样边界与时长见 `game/audio/voice/voice_manifest.json`；选句说明见 `art/incoming/voice_batch6_1022/COMMAND_SELECTION.md`。
+
+| 干员 | 职业 | 会突击 | 突击语音 / 源索引 | 已确认原句 | 归队语音 |
+|---|---|---|---|---|---|
+| 安洁莉娜 | 辅助 | 否（队长时可播） | `angelina_command`（CN_021） | 好~ | `angelina_entry` |
+| 能天使 | 狙击 | 是 | `exusiai_command`（CN_021） | 好！ | `exusiai_entry` |
+| 艾雅法拉 | 术师 | 是 | `eyjafjalla_command`（CN_017） | 我知道了，前辈。 | `eyjafjalla_entry` |
+| 歌蕾蒂娅 | 特种 | 是 | `gladiia_command`（CN_022） | 悉听尊便。 | `gladiia_entry` |
+| 星熊 | 重装 | 是 | `hoshiguma_command`（CN_022） | 了解。 | `hoshiguma_entry` |
+| 艾丽妮 | 近卫 | 是 | `irene_command`（CN_024） | 我瞄准了。 | `irene_entry` |
+| 凯尔希 | 医疗 | 否（队长时可播） | `kaltsit_command`（CN_019） | 走了。 | `kaltsit_entry` |
+| 拉普兰德 | 近卫 | 是 | `lappland_command`（CN_021） | 让我见识见识你的能耐。 | `lappland_entry` |
+| 逻各斯 | 术师 | 是 | `logos_command`（CN_018） | 我愿引领。 | `logos_entry` |
+| 流明 | 医疗 | 否（队长时可播） | `lumen_command`（CN_021） | 听候您的安排。 | `lumen_entry` |
+| 水月 | 特种 | 是 | `mizuki_command`（CN_022） | 随时都可以上哦。 | `mizuki_entry` |
+| 塞雷娅 | 重装 | 是 | `saria_command`（CN_021） | 让我来。 | `saria_entry` |
+| 推进之王 | 先锋 | 是 | `siege_command`（CN_024） | 一口气解决。 | `siege_entry` |
+| 斯卡蒂 | 近卫 | 是 | `skadi_command`（CN_021） | 听你的。 | `skadi_entry` |
+| 浊心斯卡蒂 | 辅助 | 否（队长时可播） | `skalter_command`（CN_024） | 放心吧。不会有问题的。 | `skalter_entry` |
+| 归溟幽灵鲨 | 特种 | 是 | `specter_unchained_command`（CN_017） | 该狩猎了吗？ | `specter_unchained_entry` |
+| 铃兰 | 辅助 | 否（队长时可播） | `suzuran_command`（CN_021） | 啊，好的！ | `suzuran_entry` |
+| 德克萨斯 | 先锋 | 是 | `texas_command`（CN_022） | 了解。 | `texas_entry` |
+| 乌尔比安 | 近卫 | 是 | `ulpianus_command`（CN_021） | 我听到了。 | `ulpianus_entry` |
+| 维什戴尔 | 狙击 | 是 | `wisadel_command`（CN_024） | 任务简报都是废纸，我清楚你要干什么。 | `wisadel_entry` |
+
+部署语音统一经过 `Character.entry_started()` 的一次性请求钩子。当前尚无独立部署 Start 动画，因此 `Squad.add()` 即时调用；后续接入 Start 段时可将调用移到起手帧，同一实例重复通知不会重播。图鉴演示不播，寻访揭示不配语音。选句确认不代表已逐条人工听审。
 
 ### 8.4 调血结果（倒地率目标 10–20%）
 
@@ -228,7 +234,7 @@ HUD 文案候选（用户挑）：
 
 `claude/command-aggro` 已做完 §7–§8 全部内容并提交，未合 main。留给下一步的：
 - 用户挑 HUD 文案：「耐力」还是「作战时限」（§8.1），定了再改飘字 / 条旁小字。
-- 语音实际播放没有实听验证过（测试一律静音）；台词原文没有逐条转写进 §8.3 的表。
+- 语音选句、接入与调度回归已补于 §8.3；实际听感仍待试听（自动测试一律静音）。
 - 合入后 ship 时重录积木等价金样（`check.py --only blocks_eq --eq-all --update-golden`），否则 `--auto` 会一直报「金样过期」。
 - 原型的简化（§7.6）：敌方子弹 / Boss 招式不打队友、被引走的怪没有标记、倒地的人归队后躺着跟着编队位移动——要不要补，等用户试玩后定。
 - §7.4 的 4 组合表是旧机器人口径；若要定数值，用 §8.4 口径（耐力回满才出击）在云端重跑多 seed 配对。
