@@ -352,7 +352,7 @@ static func h3_bodies(o) -> Array:
 	if float(sp.doll_t) > 0.0 and sp.doll_pos != Vector2.INF:
 		out.append({"y": (sp.doll_pos as Vector2).y + 2.0, "h3": "doll"})
 	if not sp.get("flash", {}).is_empty():
-		out.append({"y": (sp.flash.pos as Vector2).y + 2.0, "h3": "flash"})
+		out.append({"y": (sp.flash.pos as Vector2).y + 24.0, "h3": "flash"})   # 替身闪现排在身后几行怪物之前（纯画面）
 	return out
 
 
@@ -528,8 +528,14 @@ static func h3_doll_flash(o, b: Dictionary) -> void:
 		if ts.is_empty():
 			return
 		c = ts[0].pos
+	# 10-21：现身点从敌群正中挪到敌群朝归溟一侧的边上（站在怪堆中间会被前排怪物整个挡住，看不到替身）；脉冲以替身为心，半径仍覆盖敌群
+	var to_me: Vector2 = o.pos - c
+	if to_me.length() > 1.0:
+		c += to_me.normalized() * minf(float(b.get("edge", 40.0)), to_me.length() * 0.5)
 	var dmg: float = hw_basis(o, str(b.get("basis", "attack"))) * float(b.get("mult", 0.4))
-	sp["flash"] = {"pos": c, "t": 0.0, "dmg": dmg, "hit": false, "b": b, "rev": o.face < 0.0}
+	var near: Array = o.nearest_enemies(1, rr, c)
+	var rev: bool = near[0].pos.x < c.x if not near.is_empty() else o.face < 0.0   # 替身朝最近的敌人（10-21：不再左右镜像旋身）
+	sp["flash"] = {"pos": c, "t": 0.0, "dmg": dmg, "hit": false, "b": b, "rev": rev}
 	var g = o.g
 	if not o.spawn_fx_sprite("fx_water_splash", c + Vector2(0, 4), g.PX, 0.0, false, true):
 		o.fx({"kind": "ring", "pos": c, "r": 26.0, "r0": 4.0, "life": 0.3, "col": H3_COLD, "floor": true, "w": 2.0})
@@ -546,22 +552,16 @@ static func _e3_flash_tick(o, sp: Dictionary, dt: float) -> void:
 	var sw: float = float(b.get("spin", 0.3))
 	var spins: int = int(b.get("spins", 1))
 	var gap: float = float(b.get("spin_gap", 0.15))
-	while int(f.get("n_hit", 0)) < spins and float(f.t) >= ap + float(b.get("hit_at", 0.08)) + int(f.get("n_hit", 0)) * gap:   # 连斩 spins 圈，每圈间隔 spin_gap 秒
+	while int(f.get("n_hit", 0)) < spins and float(f.t) >= ap + float(b.get("hit_at", 0.08)) + int(f.get("n_hit", 0)) * gap:   # spins 次法术脉冲，间隔 spin_gap 秒
 		var k: int = int(f.get("n_hit", 0))
 		f["n_hit"] = k + 1
-		var rev: bool = f.rev != (k % 2 == 1)   # 每圈换个转向
+		# 10-21 用户定：替身出手同浊心斯卡蒂普攻——以替身为心一圈法术脉冲，打圈内最近 max_n 个（Boss / 精英优先，area_hit → cap_targets）
 		var r: float = float(b.get("r", 100.0)) * o.stat(&"op_range")
 		var c: Vector2 = f.pos
-		var src: String = str(b.get("src", ""))
-		for e in o.arc_targets(c + Vector2(0, -10), 0.0, PI, r):
-			o.log_hit(src, b.get("tags", []))
-			o.deal_damage(e, float(f.dmg))
+		for e in o.area_hit(str(b.get("src", "")), c, r, float(f.dmg), 0.0, 0.0, b.get("tags", []), int(b.get("max_n", 0))):
 			o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 8.0, "life": 0.15, "col": H3_COLD, "alpha": 0.5})
-		var sc: float = r / 34.0
-		var ok_b: bool = o.spawn_fx_sprite(str(b.get("saw_back", "fx_specter_saw_cold_back")), c + Vector2(0, -6), sc, 0.0, rev)
-		var ok_f: bool = o.spawn_fx_sprite(str(b.get("saw_front", "fx_specter_saw_cold_front")), c + Vector2(0, -6), sc, 0.0, rev)
-		if not (ok_b or ok_f):
-			o.fx({"kind": "h3_saw", "pos": c + Vector2(0, -8), "r": r, "life": 0.24, "col": H3_COLD, "spin": (-1.0 if rev else 1.0) * 34.0, "tooth": 5.0, "ang": g.vrng.randf() * TAU})
+		o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * (0.15 + 0.12 * k), "life": 0.36, "col": H3_COLD, "floor": true, "w": 3.0, "alpha": 0.95})   # 法术脉冲外扩（同浊心声浪的地面环）
+		o.fx({"kind": "ring", "pos": c, "r": r * 0.6, "r0": r * 0.08, "life": 0.28, "col": H3_GHOST, "floor": true, "w": 2.0, "alpha": 0.8})
 		_h3_sfx(o, "atk", -3.0, 1.2 + 0.08 * k, 0.06)
 	if float(f.t) >= ap + sw + float(b.get("burst", 0.3)):
 		sp.flash = {}

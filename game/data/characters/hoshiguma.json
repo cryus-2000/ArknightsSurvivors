@@ -334,7 +334,7 @@
    "art": {
     "idle": "op_hoshiguma_idle_noshield",
     "run": "op_hoshiguma_run_noshield",
-    "attack": "op_hoshiguma_attack_noshield",
+    "attack": "op_hoshiguma_attack_noshield", "skill": "op_hoshiguma_attack_noshield",
     "throw": "op_hoshiguma_throw_noshield"
    },
    "fallback": {

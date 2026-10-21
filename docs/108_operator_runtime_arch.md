@@ -320,3 +320,8 @@ S3 数值与机制保持本作设计（用户 10-20 定，不与原作同步）�
 ## 12. 队友跟随停顿（10-21，用户定方案 C）
 
 `character.gd follow()` 随行分支（指挥模式 stance 0）在 lerp 前走 `_follow_paused`：队友进槽位 14 像素内站定、至少停 0.3 秒，偏离超过 32 像素才再起步，起步按编队位延迟 0.045 + slot × 0.035 秒（约 0.08–0.15）。突击 / 归队不停顿。`--fpause=off|a|b|c` 作对照（off = 旧的每帧追）。录像场景 `tests/follow_pause_capture.tscn`。**有意改变同 seed**：队友位置影响出手范围与索敌；DPS 小样（维什戴尔 + 铃兰 + 斯卡蒂、高手机器人 180 秒 × 3 seed）C 相对旧版 +1.0%，在 seed 噪声内。
+
+## 13. 共用撤退表现 + 归溟替身闪现改法术脉冲（10-21）
+
+- **撤退**（`render/retreat_fx.gd`，纯画面）：提白闪 0.12 秒 → 0.4 秒向上收窄消散 + 白色碎光上飘（按序号定位，不用随机数）。队长倒下走 `character.draw_body`（按 `g.state_age`），队友离队 / 换人由 `squad.remove` 留 `g.fx` kind `retreat`，图鉴干员「倒下」形态改「撤退」。逐人 death 条与 json 槽暂留，运行时不再用于队长倒下；删条与 operator_contract / art_lint 的 MAIN_SLOTS 调整待用户看过效果再做。
+- **归溟替身闪现**（用户定，同浊心斯卡蒂普攻类型）：每第 3 次环斩替身现身后，以自身为心放 `flash_spins` 次法术脉冲（半径 `flash_r`，每次命中最近 `flash_n` 个、Boss / 精英优先，走 `area_hit` → `cap_targets`），伤害倍率沿用原环斩 `flash_mult`（待数值会话复核）；`hit_sources.替身闪现.kind` 改法术。动作用本体 Skill_3_Attack 身体动作重定向到替身（`tools/spine_run_trial/doll_retarget.js`，cfg `specter_doll_cast.json`），替身朝最近敌人、不再镜像旋身。**有意改变同 seed**（命中目标与伤害类型变化）。原冷色锯环帧条 `fx_specter_saw_cold_back/front` 不再被引用，暂留。
