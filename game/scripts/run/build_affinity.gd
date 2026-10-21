@@ -375,10 +375,11 @@ func relic_lines(rid: String, compact := false) -> String:
 		elif not m.later.is_empty():
 			later.append("%s（%s）" % [o.display_name(), need_short(str(o.id), int(m.later[0].need))])
 	var with_src: bool = now.size() == 1 and not compact
+	var all_now: bool = now.size() >= 2 and now.size() == g.squad.ops.size()
 	now = now.map(func(o): return "%s（%s）" % [o.display_name(), ms[o.id].now[0]] if with_src else o.display_name())
 	var out: Array = []
 	if not now.is_empty():
-		out.append("受益：" + "、".join(now))
+		out.append("受益：全队" if all_now else "受益：" + "、".join(now))
 	if not later.is_empty():
 		out.append("培养后受益：" + "、".join(later))
 	if now.is_empty() and later.is_empty():
