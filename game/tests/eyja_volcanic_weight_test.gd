@@ -139,7 +139,9 @@ func check_runtime() -> void:
 			check(op.anim_state().kind != "skill_s3_loop", "last launch never leaves an empty hovering loop")
 	check(launches == total, "runtime preserves S3 volley count")
 	check(resumed, "ordinary attacks resume after the short descent")
-	check(bonus == total * int(op.base("meteor_n", 2)), "runtime preserves bonus fireball count")
+	# 分支培养（docs/120）：熔岩天降只在路线 meteor 上（check.py 用 --route=eyjafjalla:meteor），节点 5「陨落」每次再多 meteor2_n 块
+	var per_volley: int = (int(op.base("meteor_n", 2)) if op.taken.has("meteor") else 0) + (int(op.base("meteor2_n", 1)) if op.taken.has("meteor2") else 0)
+	check(bonus == total * per_volley, "runtime preserves bonus fireball count (%d vs %d)" % [bonus, total * per_volley])
 	check(target.hp < target.max_hp, "slower projectiles still resolve actual damage")
 	op.face = -1.0
 	Blocks.hw_lob(op, op.B.skills[2].pulse.launch[0], target.pos)

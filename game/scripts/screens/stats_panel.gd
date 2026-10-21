@@ -205,7 +205,7 @@ func draw(vs: Vector2) -> void:
 		ax2 += 116 if not touch else 150
 		ax2 += UI.chip(g.hud, g.font, Vector2(ax2, y), ["精零", "精一", "精二"][o.elite], UI.GOLD if o.elite > 0 else UI.SUB, fs_tag) + 6
 		# 成长线进度点
-		var pg: Array = o.progression()
+		var pg: Array = o.prog_view()
 		for k in pg.size():
 			var dc := Vector2(ax2 + k * 12, y + 8)   # 成长点（桌面 / 触屏同尺寸：点本身不是点击区）
 			var done: bool = k < o.prog
@@ -461,7 +461,7 @@ func _phone_squad(b2: Rect2) -> void:
 		UI.text(g.hud, g.font, Vector2(ax2, y + 12), "%s · %s" % [o.display_name(), o.cls], 19, UI.TEXT)
 		ax2 += 170
 		ax2 += UI.chip(g.hud, g.font, Vector2(ax2, y - 2), ["精零", "精一", "精二"][o.elite], UI.GOLD if o.elite > 0 else UI.SUB, 13) + 8
-		var pg: Array = o.progression()
+		var pg: Array = o.prog_view()
 		for k in pg.size():
 			var dc := Vector2(ax2 + k * 14, y + 7)
 			var done: bool = k < o.prog

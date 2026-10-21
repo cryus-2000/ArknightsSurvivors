@@ -3,7 +3,10 @@
   "name": "铃兰",
   "en": "SUZURAN",
   "class": "辅助",
-  "command": {"roam": false, "_doc": "指挥模式（docs/114）：医疗 / 辅助突击时照旧随行"},
+  "command": {
+    "roam": false,
+    "_doc": "指挥模式（docs/114）：医疗 / 辅助突击时照旧随行"
+  },
   "col": [
     1.0,
     0.82,
@@ -39,7 +42,15 @@
     "brand_dur": 2.0,
     "trail_life": 1.0,
     "trail_every": 0.3,
-    "trail_mult": 0.15
+    "trail_mult": 0.15,
+    "_branch": "分支培养（docs/119 §4.1，10-22）：节点 4 二选一 画地为牢 / 围炉，节点 5 沿路线强化——seal2_* 画地为牢·禁足（全力以赴出手时光域内定身 + 减速），hearth2_* 围炉·添薪（儿时的舞乐生效后周期性狐火爆发）。数值为待试验参数",
+    "seal2_r_mult": 1.5,
+    "seal2_stun": 0.6,
+    "seal2_slow": 1.5,
+    "hearth2_every": 3.0,
+    "hearth2_r_mult": 1.3,
+    "hearth2_mult": 0.5,
+    "hearth2_slow": 1.0
   },
   "leader": {
     "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1480 / 防御 128 / 法抗 25%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -59,7 +70,7 @@
       ]
     },
     "run": {
-     "foot_exempt": "跑步条沿用整数脚底 (32, 60)，与小数顶层 foot 相差不到 1px（docs/108 §5）",
+      "foot_exempt": "跑步条沿用整数脚底 (32, 60)，与小数顶层 foot 相差不到 1px（docs/108 §5）",
       "tex": "op_suzuran_run",
       "frames": 8,
       "fps": 13.333333333333334,
@@ -308,14 +319,44 @@
       "id": "fox_seal",
       "name": "画地为牢",
       "icon": "skill_suzuran_s1",
-      "desc": "「全力以赴」命中的敌人被定身 {$seal_stun} 秒（精英 {$seal_stun_elite} 秒，Boss 免疫），脚下浮现金色封印"
+      "desc": "「全力以赴」命中的敌人被定身 {$seal_stun} 秒（精英 {$seal_stun_elite} 秒，Boss 免疫），脚下浮现金色封印",
+      "branch": {
+        "seal": {
+          "id": "fox_seal",
+          "name": "画地为牢",
+          "icon": "skill_suzuran_s1",
+          "desc": "「全力以赴」命中的敌人被定身 {$seal_stun} 秒（精英 {$seal_stun_elite} 秒，Boss 免疫），脚下浮现金色封印"
+        },
+        "hearth": {
+          "id": "fox_hearth",
+          "name": "围炉",
+          "icon": "skill_suzuran_s2",
+          "desc": "「儿时的舞乐」生效后，光域边缘的 {$hearth_n} 团狐火会灼伤碰到的敌人（狐火 {$hearth_mult*100}% 伤害，每名敌人 {$hearth_cd} 秒一次）"
+        }
+      },
+      "branch_desc": "二选一：「画地为牢」—「全力以赴」命中的敌人被定身；「围炉」—「儿时的舞乐」生效后光域持续放出狐火。之后的节点沿所选路线强化",
+      "bot": "seal"
     },
     {
       "type": "custom",
       "id": "fox_hearth",
       "name": "围炉",
       "icon": "skill_suzuran_s2",
-      "desc": "「儿时的舞乐」生效后，光域边缘的 {$hearth_n} 团狐火会灼伤碰到的敌人（狐火 {$hearth_mult*100}% 伤害，每名敌人 {$hearth_cd} 秒一次）"
+      "desc": "「儿时的舞乐」生效后，光域边缘的 {$hearth_n} 团狐火会灼伤碰到的敌人（狐火 {$hearth_mult*100}% 伤害，每名敌人 {$hearth_cd} 秒一次）",
+      "routes": {
+        "seal": {
+          "id": "fox_seal2",
+          "name": "画地为牢·禁足",
+          "icon": "skill_suzuran_s1",
+          "desc": "「全力以赴」出手时，自身周围半径 {$aura*$seal2_r_mult:0} 内的敌人定身 {$seal2_stun} 秒（精英减半，Boss 不受）并减速 {$seal2_slow} 秒"
+        },
+        "hearth": {
+          "id": "fox_hearth2",
+          "name": "围炉·添薪",
+          "icon": "skill_suzuran_s2",
+          "desc": "「儿时的舞乐」生效后，每 {$hearth2_every} 秒以自身为中心半径 {$aura*$hearth2_r_mult:0} 爆发一次狐火（{$hearth2_mult*100}% 伤害，命中减速 {$hearth2_slow} 秒）"
+        }
+      }
     },
     {
       "type": "elite",
@@ -566,6 +607,53 @@
         "trig": "passive",
         "do": [],
         "_doc": "狐火灼印：写在 attack.brand（cond elite >= 1）"
+      },
+      "fox_seal2": {
+        "trig": "on_skill_start",
+        "skill": 0,
+        "_doc": "画地为牢·禁足（docs/119 §4.1 路线 seal 节点 5）：S1 出手时自身周围定身 + 减速（不伤害、不登记命中）",
+        "do": [
+          {
+            "verb": "affect",
+            "center": "self",
+            "r": "$aura*$seal2_r_mult",
+            "on_hit": [
+              {
+                "st": "stun",
+                "dur": "$seal2_stun"
+              },
+              {
+                "st": "slow",
+                "dur": "$seal2_slow"
+              }
+            ]
+          }
+        ]
+      },
+      "fox_hearth2": {
+        "trig": "tick",
+        "every": "$hearth2_every",
+        "cond": "skill_active:1",
+        "_doc": "围炉·添薪（路线 hearth 节点 5）：S2 生效后周期性狐火爆发",
+        "do": [
+          {
+            "shape": "circle",
+            "center": "self",
+            "r": "$aura*$hearth2_r_mult",
+            "mult": "$hearth2_mult",
+            "power": true,
+            "src": "围炉",
+            "tags": [
+              "skill"
+            ],
+            "on_hit": [
+              {
+                "st": "slow",
+                "dur": "$hearth2_slow"
+              }
+            ]
+          }
+        ]
       }
     }
   }

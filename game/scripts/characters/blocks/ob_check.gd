@@ -103,9 +103,27 @@ static func validate(cid: String, d: Dictionary) -> bool:
 		errs.append("blocks.progression 必须是对象（节点 id → 积木）")
 	else:
 		var custom_ids: Array = []
+		var branch_keys: Array = []   # 分支培养（docs/119 §4.1）：节点 4 branch 的路线 id；节点 5 routes 的键必须与之一致
 		for n in d.get("progression", _EA):
 			if n is Dictionary and n.get("type", "") == "custom":
 				custom_ids.append(str(n.get("id", "")))
+				for key in ["branch", "routes"]:
+					if not n.has(key):
+						continue
+					var alts = n.get(key)
+					if not (alts is Dictionary) or alts.size() < 2:
+						errs.append("progression 节点「%s」的 %s 必须是 ≥ 2 条路线的对象 {路线 id: {id, name, desc, …}}" % [str(n.get("id", "")), key])
+						continue
+					if key == "branch":
+						branch_keys = alts.keys()
+					elif not branch_keys.is_empty() and alts.keys() != branch_keys:
+						errs.append("progression 节点「%s」的 routes 键 %s 与分支节点的路线 %s 不一致" % [str(n.get("id", "")), str(alts.keys()), str(branch_keys)])
+					for rk in alts:
+						var rd = alts[rk]
+						if not (rd is Dictionary) or not rd.has("id") or not rd.has("name") or not rd.has("desc"):
+							errs.append("progression 节点「%s」的 %s.%s 要有 id / name / desc" % [str(n.get("id", "")), key, str(rk)])
+						else:
+							custom_ids.append(str(rd.id))
 		for k in pg:
 			if not (k in custom_ids or k in ["elite1", "elite2"]):
 				errs.append("blocks.progression.%s：不是 progression 里的 custom 节点 id，也不是 elite1 / elite2" % k)

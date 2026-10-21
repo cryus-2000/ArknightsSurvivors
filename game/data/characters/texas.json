@@ -55,7 +55,13 @@
   "rain_mult_s3": 0.2,
   "rain_stun": 0.2,
   "rain_fall": 0.1,
-  "rain_gap": 0.03
+  "rain_gap": 0.03,
+  "_branch": "分支培养（docs/119 §4.1，10-22）：节点 4 二选一 回马剑 / 剑雨·再，节点 5 沿路线强化——back2_* 回马剑·回技（回马剑扫到敌人给全队技力），rain3_* 剑雨·连绵（S1 第三波 + S3 每次冲刺落点小剑雨）。数值为待试验参数",
+  "back2_sp": 0.6,
+  "back2_many_sp": 0.4,
+  "rain3_echo": 0.4,
+  "rain3_r": 90,
+  "rain3_mult": 0.35
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1986 / 防御 441 / 法抗 0%，近战主控有效生命 ×1.06",
@@ -388,7 +394,7 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「可靠伙伴」；解锁天赋「战术快递」：每 {$talent_cd} 秒自动冲进敌群并为全队回技力；普攻「钉剑」：冲刺穿过的第一名敌人停顿 {$pin_dur} 秒（精英减半，Boss 除外）",
+   "desc": "解锁二技能「可靠伙伴」；解锁天赋「战术快递」：队长每次冲刺，她同向冲刺一次；队长 {$talent_cd} 秒没冲刺时她自己冲进敌群；穿过敌人时为全队回技力；普攻「钉剑」：冲刺穿过的第一名敌人停顿 {$pin_dur} 秒（精英减半，Boss 除外）",
    "attack": {
     "name": "钉剑",
     "desc": "每次冲刺穿过的第一名敌人身上插一柄源石剑，停顿 {$pin_dur} 秒（精英减半，Boss 除外）"
@@ -399,14 +405,44 @@
    "id": "back",
    "name": "回马剑",
    "icon": "growth_b_echo",
-   "desc": "疾行斩冲到头 {$back_delay} 秒后原路反冲一次（{$back_mult*100}% 伤害）"
+   "desc": "疾行斩冲到头 {$back_delay} 秒后原路反冲一次（{$back_mult*100}% 伤害）",
+   "branch": {
+    "back": {
+     "id": "back",
+     "name": "回马剑",
+     "icon": "growth_b_echo",
+     "desc": "疾行斩冲到头 {$back_delay} 秒后原路反冲一次（{$back_mult*100}% 伤害）"
+    },
+    "rain": {
+     "id": "rain2",
+     "name": "剑雨·连",
+     "icon": "skill_texas_s1",
+     "desc": "「剑雨」{$rain2_delay} 秒后在她脚下再落一次（{$rain2_mult*100}% 伤害）"
+    }
+   },
+   "branch_desc": "二选一：「回马剑」—冲刺到头后原路折返再斩一次；「剑雨·再」—「剑雨」落下后再落一波。之后的节点沿所选路线强化",
+   "bot": "back"
   },
   {
    "type": "custom",
    "id": "rain2",
    "name": "剑雨·连",
    "icon": "skill_texas_s1",
-   "desc": "「剑雨」{$rain2_delay} 秒后在她脚下再落一次（{$rain2_mult*100}% 伤害）"
+   "desc": "「剑雨」{$rain2_delay} 秒后在她脚下再落一次（{$rain2_mult*100}% 伤害）",
+   "routes": {
+    "back": {
+     "id": "back2",
+     "name": "回马剑·回技",
+     "icon": "growth_b_echo",
+     "desc": "「回马剑」扫到敌人时，全队技能（含她自己）各 +{$back2_sp} 秒充能；扫到 {$talent_many} 名及以上再 +{$back2_many_sp} 秒"
+    },
+    "rain": {
+     "id": "rain3",
+     "name": "剑雨·再临",
+     "icon": "skill_texas_s3",
+     "desc": "「剑雨」再落第三波（{$rain3_echo*100}% 伤害）；「剑雨滂沱」每次冲刺到头，落点半径 {$rain3_r} 内再落一片剑雨（{$rain3_mult*100}% 伤害）"
+    }
+   }
   },
   {
    "type": "elite",
@@ -894,7 +930,109 @@
       "line_w": 0.0
      }
     ]
-   }
+   },
+   "back2": [
+    {
+     "trig": "on_dash_end",
+     "src": "回马剑",
+     "min_hits": 1,
+     "do": [
+      {
+       "verb": "sp_secs",
+       "seconds": "$back2_sp",
+       "exclude_self": false
+      }
+     ],
+     "_doc": "回马剑·回技（docs/119 §4.1 路线 back 节点 5）：回马剑扫到 ≥1 名 → 全队技能 +back2_sp 秒"
+    },
+    {
+     "trig": "on_dash_end",
+     "src": "回马剑",
+     "min_hits": "$talent_many",
+     "do": [
+      {
+       "verb": "sp_secs",
+       "seconds": "$back2_many_sp",
+       "exclude_self": false
+      }
+     ]
+    }
+   ],
+   "rain3": [
+    {
+     "trig": "on_skill_start",
+     "skill": 0,
+     "delay": "$rain2_delay*2",
+     "_doc": "剑雨·连绵（路线 rain 节点 5）：S1 第三波",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "self",
+       "r": "$s1_r",
+       "mult": "$rain3_echo",
+       "power": true,
+       "src": "剑雨",
+       "tags": [
+        "skill"
+       ]
+      },
+      {
+       "verb": "fx_rain",
+       "strip": "fx_texas_blade",
+       "mark": "fx_texas_rain_mark",
+       "r": "$s1_r",
+       "center": "self",
+       "density": 2.0,
+       "on_enemies": 0.5,
+       "stagger": 0.3,
+       "fall": 80,
+       "fall_t": 0.1,
+       "fall_frames": 2,
+       "mark_frames": 3,
+       "scale": 0.4,
+       "streak": 1,
+       "alpha": 0.75,
+       "scorch": 0.0
+      }
+     ]
+    },
+    {
+     "trig": "on_dash_end",
+     "src": "剑雨滂沱",
+     "_doc": "S3 每次冲刺到头：落点小剑雨",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "self",
+       "r": "$rain3_r",
+       "mult": "$rain3_mult",
+       "power": true,
+       "src": "剑雨",
+       "tags": [
+        "skill"
+       ]
+      },
+      {
+       "verb": "fx_rain",
+       "strip": "fx_texas_blade",
+       "mark": "fx_texas_rain_mark",
+       "r": "$rain3_r",
+       "center": "self",
+       "density": 1.5,
+       "on_enemies": 0.5,
+       "stagger": 0.3,
+       "fall": 80,
+       "fall_t": 0.1,
+       "fall_frames": 2,
+       "mark_frames": 3,
+       "scale": 0.35,
+       "streak": 1,
+       "alpha": 0.75,
+       "scorch": 0.0
+      }
+     ]
+    }
+   ]
   }
  },
  "native_motion": {

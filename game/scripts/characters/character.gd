@@ -36,6 +36,8 @@ var aura_t := 0.0
 var voice_t := 25.0        # 战斗台词计时（squad.gd 每帧递减）
 var elite := 0             # 精英化阶段 0 / 1 / 2
 var prog := 0              # 已应用的成长节点数（progression 数组下标）
+var route := ""            # 培养路线 id（docs/119 §4.1：节点 4 二选一时记下；节点 5 / 6、卡面、统计按它解析；"" = 未选 / 不分支）
+const BranchBal = preload("res://scripts/core/balance.gd")
 var sp: Array = [0.0, 0.0, 0.0]   # 三个自动技能的充能（契约 v2.1：招募 S1 / 精一 S2 / 精二 S3）
 var cur_skill := 0                # 正在起手的技能序号（start_skill → _release_skill）
 var rej: Dictionary = {}          # 排异反应：被海嗣化的技能序号 → true
@@ -1049,11 +1051,89 @@ func node_requires_text(n: Dictionary) -> String:
 	return "、".join(parts)
 
 
-## 应用下一个成长节点（elite 节点可带 choice）
+## 分支培养开关（docs/119 §4.1；balance levelup/branch，缺省 1）：关着时节点按 JSON 顶层字段 = 旧成长线，同 seed TRACE 逐行不变
+static func branch_on() -> bool:
+	return BranchBal.vi("levelup/branch", 1) == 1
+
+
+## 节点按路线解析后的视图：节点 4 带 branch {路线 id: {id, name, desc, icon, …}}、节点 5 带 routes {路线 id: {…}}，
+## 已选路线时用该路线的字段覆盖顶层字段（id 决定 blocks.progression 里生效的积木与 node:<id> 条件）；
+## 开关关 / 未选路线 → 原节点（顶层字段就是旧成长线：德克萨斯 回马剑 → 剑雨·再 等）
+func node_view(n: Dictionary, rid: String = route) -> Dictionary:
+	if n.is_empty() or not branch_on():
+		return n
+	var alts = n.get("branch", n.get("routes", null))
+	if alts is Dictionary and rid != "" and alts.has(rid) and alts[rid] is Dictionary:
+		var out: Dictionary = n.duplicate()
+		for k in alts[rid]:
+			out[k] = alts[rid][k]
+		out.erase("branch")
+		out.erase("routes")
+		return out
+	return n
+
+
+## 整条成长线按当前路线解析（属性面板 / 图鉴）
+func prog_view() -> Array:
+	var out: Array = []
+	for n in progression():
+		out.append(node_view(n))
+	return out
+
+
+## 节点 n 是不是分支节点（开关开、带非空 branch）
+func is_branch_node(n: Dictionary) -> bool:
+	return branch_on() and n.get("branch", null) is Dictionary and not (n.branch as Dictionary).is_empty()
+
+
+## 下一个节点要不要先选路线（分支节点且还没选）
+func needs_route() -> bool:
+	return route == "" and is_branch_node(next_node())
+
+
+## 路线选项 {路线 id: {id, name, desc, icon, col?}}（分支节点；非分支节点为空）
+func route_choices(n: Dictionary = next_node()) -> Dictionary:
+	if not is_branch_node(n):
+		return {}
+	var out: Dictionary = {}
+	for k in n.branch:
+		if n.branch[k] is Dictionary:
+			out[k] = n.branch[k]
+	return out
+
+
+## 机器人 / 赠送推进（典训、博士银印）/ 测试直接 advance("") 时的固定路线（docs/119 §4.1：可记录、不凭界面外随机）：
+## --route=<op>:<路线>（可逗号分几人，调试构建）→ 节点 "bot" 字段 → 第一条路线
+func bot_route(n: Dictionary) -> String:
+	var chs := route_choices(n)
+	if chs.is_empty():
+		return ""
+	for a in (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()):
+		if a.begins_with("--route="):
+			for part in a.substr(8).split(","):
+				var kv: PackedStringArray = part.split(":")
+				if kv.size() == 2 and kv[0] == id and chs.has(kv[1]):
+					return kv[1]
+	var b: String = str(n.get("bot", ""))
+	return b if chs.has(b) else str(chs.keys()[0])
+
+
+## 应用下一个成长节点（elite 节点可带 choice；分支节点 choice = 路线 id）。
+## 分支节点没给路线、也没选过时：玩家局交给 progression.branch_defer 进路线选择画面（本次不推进，确认后再调一次），
+## 机器人 / 测试 / 演示按 bot_route 固定选。节点 4 / 5 的 id、文字按 node_view 解析后再应用，所以同一节点不会重复加成
 func advance(choice: String = "") -> void:
 	var n := next_node()
 	if n.is_empty():
 		return
+	if is_branch_node(n):
+		var rid: String = choice if n.branch.has(choice) else route
+		if rid == "" or not n.branch.has(rid):
+			if g.get("progression") != null and g.progression.branch_defer(self):
+				return
+			rid = bot_route(n)
+		route = rid
+		choice = ""
+	n = node_view(n)
 	prog += 1
 	match n.type:
 		"stat":
@@ -1090,12 +1170,23 @@ func deep_cards() -> Array:
 		var avail := node_available(n)
 		var stage_txt := "%d/%d" % [prog + 1, progression().size()]
 		var chs: Dictionary = elite_choices(n) if n.type == "elite" else {}
-		if not chs.is_empty():
+		if needs_route():
+			# 分支节点（docs/119 §4.1）：外层只出一张培养卡，选中后进二选一（progression.open_branch）；卡面列出两条路线
+			var rc := route_choices(n)
+			var names: Array = []
+			for k in rc:
+				names.append("「%s」" % str(rc[k].get("name", k)))
+			var bdesc: String = str(n.get("branch_desc", "选定一条培养路线：%s。之后的节点沿同一路线强化。" % " / ".join(names)))
+			out.append({"kind": "prog", "op": id, "choice": "", "branch": true, "name": "%s · %s" % [display_name(), n.get("name", "培养路线")],
+				"desc": bdesc + ("；攻击 +%d%%" % int(round(NODE_ATK * 100.0))) + (("\n条件：%s（已满足）" % node_requires_text(n)) if node_requires_text(n) != "" and avail else ""),
+				"icon": n.get("icon", ""), "avail": avail, "req": node_requires_text(n), "elite": 0})
+		elif not chs.is_empty():
 			for c in chs:
 				var cd: Dictionary = chs[c]
 				out.append({"kind": "prog", "op": id, "choice": c, "name": "%s · %s" % [n.get("name", "精英化"), cd.get("name", c)],
 					"desc": cd.get("desc", n.get("desc", "")), "icon": cd.get("icon", n.get("icon", "")), "col": cd.get("col", null), "avail": avail, "req": node_requires_text(n), "elite": n.level})
 		else:
+			n = node_view(n)   # 节点 5：按已选路线的名字 / 说明 / 图标
 			var req_txt := node_requires_text(n)
 			# 普通节点另带统一的攻击 +6%（NODE_ATK，advance()）：写在卡面说明末尾，免得这部分成长看不见
 			var node_atk: String = ("；攻击 +%d%%" % int(round(NODE_ATK * 100.0))) if n.get("type", "") != "elite" else ""

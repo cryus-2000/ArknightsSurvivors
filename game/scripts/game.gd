@@ -1656,6 +1656,8 @@ func check_pending() -> void:
 	if not show_queue.is_empty():
 		show_screen.open(show_queue.pop_front())
 		return
+	if progression.open_branch_queued():   # 赠送推进（典训 / 博士银印）碰到分支节点：先选路线（docs/119 §4.1）
+		return
 	if pending_chests > 0:
 		progression.open_relic_choice()
 	elif pending_levelups > 0 and lvup_delay <= 0.0:

@@ -275,7 +275,7 @@ func draw_bg() -> void:
 		"event":
 			draw_event_bg(vs)
 		_:
-			var en_label := "RELIC" if g.choice_kind == "relic" else ("SQUAD SWAP" if g.choice_kind == "swap" else "LEVEL UP")
+			var en_label := "RELIC" if g.choice_kind == "relic" else ("SQUAD SWAP" if g.choice_kind == "swap" else ("GROWTH PATH" if g.choice_kind == "branch" else "LEVEL UP"))
 			if g.choices.size() > 0 and g.choices.all(func(o): return o.get("kind", "") == "recruit"):
 				en_label = "RECRUIT"
 			var ph: bool = Cfg.touch_device()
@@ -612,6 +612,8 @@ func card_color(o: Dictionary) -> Color:
 			if o.get("col", null) != null:
 				return o.col
 			return Color(0.8, 0.55, 1.0) if o.get("elite", 0) > 0 else Color(0.55, 0.85, 1.0)
+		"branch_pick":
+			return Color(0.55, 0.85, 1.0)   # 培养路线卡：同干员深度卡
 		"weapon":
 			return D.WEAPONS[o.id].col
 	return UI.CYAN
@@ -664,8 +666,8 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 		if motion.icon_a > 0.0:
 			var isz := asz * motion.icon_scale
 			card.draw_texture_rect_region(idle.tex, Rect2(feet - Vector2(isz.x / 2.0, isz.y) + motion.icon_off, isz), wn)
-	elif o.kind == "swap_keep":
-		UI.icon(card, "exit", c + Vector2(0, bob), 40.0 if compact else 56.0, Color(0.8, 0.83, 0.86))   # 不替换：返回
+	elif o.kind == "swap_keep" or o.kind == "branch_back":
+		UI.icon(card, "exit", c + Vector2(0, bob), 40.0 if compact else 56.0, Color(0.8, 0.83, 0.86))   # 不替换 / 返回上一步
 	elif ic != null:
 		draw_icon_fit(card, ic, c + Vector2(0, bob), 64.0 if compact else 96.0)
 	else:

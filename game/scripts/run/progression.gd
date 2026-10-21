@@ -15,6 +15,14 @@ var heal_offer := 0   # 平衡输出：回复类卡被提供 / 被选中的张�
 var heal_pick := 0
 var low_levelups := 0        # 主控生命低于门槛时弹出的升级次数
 var heal_offer_low := 0      # 其中提供的回复类卡张数
+var focus_op := ""           # docs/119 §4.2 培养保底（简化版）：最近一次选中培养卡的干员 id；它还有合法成长卡时固定占第一个深度卡槽
+var branch_ctx: Dictionary = {}   # 培养路线二选一（docs/119 §4.1）：{opts, kind, title, sub, sel, card, source: level / swap / free}
+var branch_queue: Array = []      # 赠送推进（典训 / 博士银印）碰到分支节点、等玩家选路线的干员 id（按触发顺序排队）
+
+
+## 培养保底开关（balance levelup/focus_guard，缺省 1；关 = 旧发牌，随机数消耗不变）
+static func focus_on() -> bool:
+	return Bal.vi("levelup/focus_guard", 1) == 1
 
 ## 回复类升级卡（1.1 用户要求：回血偏弱，出现率调高）：[kind, id]——博士被动「自愈」「坚韧」、医疗无人机、填充卡「急救补给」。
 ## 吸血 / 击杀回复等在藏品池（relic_pool_ids），不在这里
@@ -109,6 +117,17 @@ func open_levelup() -> void:
 				continue
 			deep.append(c)
 	g.shuffle(deep)
+	# 培养保底（docs/119 §4.2 简化版）：最近培养的干员有合法成长卡就挪到 deep[0]（只重排，不多取随机数、不加选项）；离队 / 养满自然失效
+	if focus_on() and focus_op != "" and not deep.is_empty():
+		if not g.squad.has(focus_op):
+			focus_op = ""
+		for k in deep.size():
+			if str(deep[k].get("op", "")) == focus_op:
+				if k > 0:
+					var fc: Dictionary = deep[k]
+					deep.remove_at(k)
+					deep.insert(0, fc)
+				break
 	if not deep.is_empty():
 		picks.append(deep[0])
 		# 编队 ≥ 2 人时约一半的升级给第二张深度卡（换一名干员）
@@ -335,6 +354,130 @@ func cancel_swap() -> void:
 	g.nav_sel = int(ctx.get("sel", 0))
 
 
+## ---- 培养路线二选一（docs/119 §4.1，试点 4 人：德克萨斯 / 星熊 / 艾雅法拉 / 铃兰）。
+## 外层升级三选一只出一张该干员的培养卡（character.deep_cards 的 branch: true）；选中后进这一屏选路线，确认才推进节点、只扣这一次升级；
+## 「返回」恢复原卡组（不重抽、不扣）。换入会继承到节点 4 及以上的试点干员时，换人确认前也走这一屏（source = swap）；
+## 典训 / 博士银印等赠送推进碰到分支节点时排进 branch_queue，check_pending 时弹出（source = free：只能确认，不扣升级、不重发奖励）
+
+## 干员定义里的分支节点（节点 4）及其下标；没有返回 [{}, -1]
+static func branch_node_of(def: Dictionary) -> Array:
+	if not Character.branch_on():
+		return [{}, -1]
+	var pg: Array = def.get("progression", [])
+	for k in pg.size():
+		if pg[k] is Dictionary and pg[k].get("branch", null) is Dictionary and not (pg[k].branch as Dictionary).is_empty():
+			return [pg[k], k]
+	return [{}, -1]
+
+
+## 没有干员实例时（换人流程）的固定路线：节点 "bot" 字段，否则第一条
+static func default_route(n: Dictionary) -> String:
+	var alts: Dictionary = n.get("branch", {})
+	var b: String = str(n.get("bot", ""))
+	return b if alts.has(b) else (str(alts.keys()[0]) if not alts.is_empty() else "")
+
+
+## 换入 new_id 接替 old_id 时要不要先选路线：继承的节点数覆盖到新干员的分支节点、且该节点还没选
+func swap_needs_route(card: Dictionary) -> bool:
+	if str(card.get("route", "")) != "":
+		return false
+	var old = g.squad.get_op(str(card.get("op", "")))
+	if old == null:
+		return false
+	var bn: Array = branch_node_of(Character.load_def(str(card.get("new", ""))))
+	return bn[1] >= 0 and old.prog > bn[1]
+
+
+## 赠送推进遇到分支节点（character.advance 转来）：玩家局排队进路线选择画面并返回 true（本次不推进）；
+## 机器人 / 测试 / 演示 / Boss 演练返回 false（advance 按 bot_route 固定选）
+func branch_defer(op) -> bool:
+	if g.mode != g.Mode.PLAY or g.demo_op != "" or g.trial.active or g.bot != null:
+		return false
+	if not branch_queue.has(op.id):
+		branch_queue.append(op.id)
+	return true
+
+
+## 排队中的赠送推进：开路线选择（game.check_pending 调）。返回是否开了一屏
+func open_branch_queued() -> bool:
+	while not branch_queue.is_empty():
+		var oid: String = str(branch_queue.pop_front())
+		var op = g.squad.get_op(oid)
+		if op != null and op.needs_route():
+			open_branch({"kind": "prog", "op": oid, "choice": "", "branch": true}, 0, "free")
+			return true
+	return false
+
+
+## 路线选项卡：source = level（升级卡）/ swap（换人确认前，card 是 swap_out 项）/ free（赠送推进，没有「返回」）
+func open_branch(card: Dictionary, sel: int, source := "level") -> void:
+	var n: Dictionary = {}
+	var who := ""
+	var col: Color = UI.CYAN
+	if source == "swap":
+		var nd: Dictionary = Character.load_def(str(card.get("new", "")))
+		n = branch_node_of(nd)[0]
+		who = str(nd.get("name", card.get("new", "")))
+	else:
+		var op = g.squad.get_op(str(card.get("op", "")))
+		if op == null:
+			return
+		n = op.next_node()
+		who = op.display_name()
+		col = op.col()
+	var rc: Dictionary = n.get("branch", {})
+	if rc.is_empty():
+		return
+	branch_ctx = {"opts": g.choices, "kind": g.choice_kind, "title": g.panel_title_text, "sub": g.panel_ui.panel_sub_text, "sel": sel, "card": card, "source": source}
+	var opts: Array = []
+	for rid in rc:
+		var cd: Dictionary = rc[rid]
+		var item := {"kind": "branch_pick", "op": str(card.get("new", card.get("op", ""))), "route": str(rid), "name": str(cd.get("name", rid)),
+			"desc": str(cd.get("desc", "")), "icon": str(cd.get("icon", n.get("icon", ""))), "cat": "路线 · %s  PATH" % who}
+		if cd.has("col"):
+			item["col"] = cd.col
+		opts.append(item)
+	if source != "free":
+		opts.append({"kind": "branch_back", "name": "返回", "desc": "回到上一步重新选择。\n这次升级不消耗。", "cat": "返回  BACK", "col": UI.SUB})
+	var bidx: int = branch_node_of(Character.load_def(str(card.get("new", card.get("op", "")))))[1]
+	var stage: String = ("第 %d 节点" % (bidx + 1)) if bidx >= 0 else "分支节点"
+	var sub := "「%s」%s：选定一条培养路线 · 之后的节点沿它强化" % [who, stage]
+	match source:
+		"level":
+			sub += " · 只消耗这一次升级"
+		"swap":
+			sub += " · 换入后按此路线继承成长"
+		"free":
+			sub += " · 赠送的推进：选定后立即生效，不消耗升级"
+	g.panel_ui.show_choices("培养路线", opts, "branch", sub, true)
+	g.nav_sel = 0
+
+
+## 「返回」：回到上一屏（升级三选一 / 更换队友），焦点留在原来那张卡上，不重抽、不扣升级
+func cancel_branch() -> void:
+	var ctx := branch_ctx
+	branch_ctx = {}
+	g.panel_ui.show_choices(ctx.title, ctx.opts, ctx.kind, ctx.sub, true)
+	g.panel_ui.motion.skip()
+	g.nav_sel = int(ctx.get("sel", 0))
+
+
+## 机器人在路线屏选哪一项：固定路线（干员实例 bot_route / 换人 default_route）那张；找不到取 0
+func auto_branch_pick() -> int:
+	var want := ""
+	var card: Dictionary = branch_ctx.get("card", {})
+	if str(branch_ctx.get("source", "")) == "swap":
+		want = default_route(branch_node_of(Character.load_def(str(card.get("new", ""))))[0])
+	else:
+		var op = g.squad.get_op(str(card.get("op", "")))
+		if op != null:
+			want = op.bot_route(op.next_node())
+	for i in g.choices.size():
+		if g.choices[i].get("kind", "") == "branch_pick" and str(g.choices[i].get("route", "")) == want:
+			return i
+	return 0
+
+
 func pick(i: int) -> void:
 	if g.state != g.S.CHOICE or i >= g.choices.size():
 		return
@@ -350,8 +493,46 @@ func pick(i: int) -> void:
 			Sfx.play("ui_ok", -6.0)
 			return
 		"swap_out":
+			if swap_needs_route(o):
+				open_branch(o, i, "swap")   # 不消耗：先选换入干员的培养路线
+				Sfx.play("ui_ok", -4.0)
+				return
 			g.choice_kind = str(swap_ctx.get("kind", "level"))   # 按原来那次三选一结算（扣升级次数）
 			swap_ctx = {}
+		"prog":
+			if o.get("branch", false) and str(o.get("choice", "")) == "":
+				open_branch(o, i, "level")   # 不消耗：进路线二选一
+				Sfx.play("ui_ok", -4.0)
+				return
+		"branch_back":
+			cancel_branch()
+			Sfx.play("ui_ok", -6.0)
+			return
+		"branch_pick":
+			var bctx := branch_ctx
+			branch_ctx = {}
+			var src: String = str(bctx.get("source", "level"))
+			if src == "free":
+				# 赠送推进：直接推进，不扣升级、不重发奖励；回到战斗再看有没有下一位排队
+				var fop = g.squad.get_op(str(o.get("op", "")))
+				if fop != null:
+					fop.advance(str(o.route))
+					g.fx.append({"kind": "ring", "pos": fop.pos, "r": 90.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.9, 1.0)})
+					g.vfx.promote_burst(fop.pos, false)
+				g.panel.visible = false
+				Sfx.play("ui_ok", -4.0)
+				g.state = g.S.PLAY
+				g.check_pending()
+				return
+			# 升级卡 / 换人：换成带路线的原卡，按原来那一屏结算（只扣这一次升级）
+			o = (bctx.get("card", {}) as Dictionary).duplicate()
+			if src == "swap":
+				o["route"] = str(g.choices[i].route)
+				g.choice_kind = str(swap_ctx.get("kind", "level"))
+				swap_ctx = {}
+			else:
+				o["choice"] = str(g.choices[i].route)
+				g.choice_kind = str(bctx.get("kind", "level"))
 	if g.choice_kind == "level" and is_heal_card(o):
 		heal_pick += 1
 	match o.kind:
@@ -370,12 +551,13 @@ func pick(i: int) -> void:
 			var pop = g.squad.get_op(o.op)
 			if pop != null:
 				pop.advance(o.get("choice", ""))
+				focus_op = str(o.op)   # 培养保底：成为「最近培养对象」
 				g.fx.append({"kind": "ring", "pos": pop.pos, "r": 90.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.9, 1.0)})
 				g.vfx.promote_burst(pop.pos, o.get("elite", 0) > 0)   # docs/54 ⑥（fx/promote_burst）
 				if o.get("elite", 0) > 0:
 					g.vfx.show_banner("%s 晋升至精英%s" % [pop.display_name(), ["", "一", "二"][o.elite]])
 		"swap_out":
-			var sop = g.squad.replace(str(o.op), str(o.new))
+			var sop = g.squad.replace(str(o.op), str(o.new), str(o.get("route", "")))
 			if sop != null:
 				swaps.append([int(g.t), str(o.op), str(o.new)])
 				var st: String = ["", "（精英一）", "（精英二）"][clampi(sop.elite, 0, 2)]

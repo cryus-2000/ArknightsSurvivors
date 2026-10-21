@@ -137,7 +137,8 @@ var _hold_size := false   # replace 中途：人数先减后加，不重算入�
 ## 中途更换队友（用户 10-13 批准）：old_id 离队、new_id 接替它的编队位，继承 old 的成长节点数（精英化阶段 + 技能 / 成长节点），
 ## 继承的节点不看条件、不重播精英化演出。队长不能被替换。被换下的干员清掉它挂在 op:<id> 作用域上的修正，回到招募池。
 ## 人数不变 → 入队加成（最大生命 / 回复台阶）不重算，也不触发「招募」类藏品。失败返回 null
-func replace(old_id: String, new_id: String):
+## route：分支培养（docs/119 §4.1）——换入会继承到节点 4 及以上时，在换人流程里选好的路线 id（progression.open_branch），继承按它一次性重建
+func replace(old_id: String, new_id: String, route := ""):
 	var old = get_op(old_id)
 	if old == null or old.is_leader or has(new_id):
 		return null
@@ -156,12 +157,17 @@ func replace(old_id: String, new_id: String):
 		ops[i].slot = i
 	op.pos = g.ppos + _slot_offset(op.slot)
 	var sq0: int = g.show_queue.size()
+	if route != "":
+		op.route = route
 	for k in inherit:
 		var n: Dictionary = op.next_node()
 		if n.is_empty():
 			break
 		var chs: Dictionary = op.elite_choices(n) if n.get("type", "") == "elite" else {}
+		var p0: int = op.prog
 		op.advance(chs.keys()[0] if not chs.is_empty() else "")
+		if op.prog == p0:
+			break   # 没推进（分支节点在等玩家选路线）：不空转
 	if g.show_queue.size() > sq0:
 		g.show_queue.resize(sq0)   # 继承来的精英化不弹演出
 	g.sync_stats()

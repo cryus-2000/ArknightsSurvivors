@@ -864,7 +864,7 @@ def check_blocks_eq(godot):
 
 # 场景专项回归：默认快检执行全部；--only <key> 可单独复查，仍使用公共日志和错误扫描。
 SCENE_REGRESSIONS = {
-    "eyja_volcanic_weight": ("熔岩弹连续起落点与浮空持续投弹", "eyja_volcanic_weight_test", r"EYJA VOLCANIC WEIGHT failures=0", ["--balance", "--seed=1", "--op=eyjafjalla"]),
+    "eyja_volcanic_weight": ("熔岩弹连续起落点与浮空持续投弹", "eyja_volcanic_weight_test", r"EYJA VOLCANIC WEIGHT failures=0", ["--balance", "--seed=1", "--op=eyjafjalla", "--route=eyjafjalla:meteor"]),
     "siege_ulpianus_art": ("推进之王与乌尔比安原生美术", "siege_ulpianus_art_test", r"SIEGE ULPIANUS ART failures=0", ["--balance", "--seed=1", "--op=siege", "--squad=ulpianus"]),
     "doctor_run": ("博士八帧跑步与混合画布切换", "doctor_run_test", r"DOCTOR RUN failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
     "relic_reclassification": ("藏品效果分类与稀有度", "relic_reclassification", r"RELIC_RECLASSIFICATION_OK", []),
@@ -920,6 +920,8 @@ SCENE_REGRESSIONS = {
     "summon_visual": ("Summon visual clock and native source timeline", "summon_visual_test", r"SUMMON VISUAL failures=0", []),
     "enemy_identity": ("敌人原作机制与类型抗性", "enemy_identity_test", r"ENEMY IDENTITY checks=\d+ failures=0", ["--balance", "--op=sstest"]),
     "summon_seal_blocks": ("召唤 / 封印 / 护盾 / 治疗光环积木（docs/61 §15，测试专用干员 sstest）", "summon_seal_blocks_test", r"SUMMON SEAL BLOCKS failures=0", ["--balance", "--op=sstest"]),
+    "build_progression": ("分支培养 + 培养保底（docs/119 §4.1 / §4.2）：一张培养卡进二选一、返回不重抽、只扣一次升级、节点 5 按路线、赠送推进排队 / 固定路线、换人继承选路线、其余 14 人兼容", "build_progression_test", r"BUILD PROGRESSION failures=0",
+                          ["--balance", "--seed=1", "--op=texas", "--squad=hoshiguma,eyjafjalla"]),
     "op_dummy": ("干员木桩表场景（docs/79）：队友身份 + 怪群 5 秒自检", "op_dummy_test", r"OP DUMMY failures=0",
                  ["--balance", "--bot=afk", "--nodeath", "--op=hoshiguma", "--squad=wisadel", "--dummy_op=wisadel", "--dummy_role=mate",
                   "--dummy_scene=horde", "--dummy_stage=2", "--dummy_secs=5", "--dummy_warm=2", "--dummy_check"]),

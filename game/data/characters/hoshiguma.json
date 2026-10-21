@@ -60,7 +60,13 @@
   "saw_hold": 0.1,
   "saw_t_back": 0.3,
   "saw_out": 0.9,
-  "saw_back": 0.75
+  "saw_back": 0.75,
+  "_branch": "分支培养（docs/119 §4.1，10-22）：节点 4 二选一 盾墙 / 热砂余烬，节点 5 沿路线强化——wall2_* 盾墙·反震（格挡后以队长为中心一圈伤害 + 击退 + 限时减伤），ember2_* 热砂·熔流（荆棘期间命中减速 + 结束时热砂爆发）。数值为待试验参数",
+  "wall2_mult": 0.8,
+  "wall2_guard": 0.15,
+  "wall2_guard_dur": 3.0,
+  "ember2_slow": 1.0,
+  "ember2_burst": 1.5
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 3446 / 防御 625 / 法抗 10%，近战主控有效生命 ×1.06",
@@ -757,6 +763,17 @@
     "pierce",
     "area"
    ]
+  },
+  "盾墙反震": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "area",
+    "basic",
+    "knockback"
+   ]
   }
  },
  "progression": [
@@ -789,14 +806,44 @@
    "id": "wall",
    "name": "盾墙",
    "icon": "growth_armor",
-   "desc": "每次格挡时，队长身边半径 {$block_kb_r} 内的敌人眩晕 {$wall_stun} 秒（精英减半，Boss 免疫）"
+   "desc": "每次格挡时，队长身边半径 {$block_kb_r} 内的敌人眩晕 {$wall_stun} 秒（精英减半，Boss 免疫）",
+   "branch": {
+    "wall": {
+     "id": "wall",
+     "name": "盾墙",
+     "icon": "growth_armor",
+     "desc": "每次格挡时，队长身边半径 {$block_kb_r} 内的敌人眩晕 {$wall_stun} 秒（精英减半，Boss 免疫）"
+    },
+    "ember": {
+     "id": "ember",
+     "name": "热砂·余烬",
+     "icon": "growth_t_field",
+     "desc": "「荆棘」的每处热砂同时留下 {$ember_dur} 秒余烬：踩进的敌人每秒另受 {$ember_mult*100}% 攻击力的伤害"
+    }
+   },
+   "branch_desc": "二选一：「盾墙」—每次格挡震慑队长周围的敌人；「热砂余烬」—「荆棘」期间每次盾斧斩留下更久的热砂。之后的节点沿所选路线强化",
+   "bot": "wall"
   },
   {
    "type": "custom",
    "id": "ember",
    "name": "热砂·余烬",
    "icon": "growth_t_field",
-   "desc": "「荆棘」的每处热砂同时留下 {$ember_dur} 秒余烬：踩进的敌人每秒另受 {$ember_mult*100}% 攻击力的伤害"
+   "desc": "「荆棘」的每处热砂同时留下 {$ember_dur} 秒余烬：踩进的敌人每秒另受 {$ember_mult*100}% 攻击力的伤害",
+   "routes": {
+    "wall": {
+     "id": "wall2",
+     "name": "盾墙·反震",
+     "icon": "growth_armor",
+     "desc": "每次格挡后，队长周围半径 {$block_kb_r} 内的敌人受到 {$wall2_mult*100}% 伤害并被击退；队长 {$wall2_guard_dur} 秒内受到的伤害 -{$wall2_guard*100}%"
+    },
+    "ember": {
+     "id": "ember2",
+     "name": "热砂·熔流",
+     "icon": "growth_t_field",
+     "desc": "「荆棘」期间盾斧斩命中处半径 {$sand_r} 内的敌人减速 {$ember2_slow} 秒；「荆棘」结束时自身周围半径 {$sand_r*1.5:0} 爆发一次热砂（{$ember2_burst*100}% 伤害）"
+    }
+   }
   },
   {
    "type": "elite",
@@ -1190,6 +1237,68 @@
        ],
        "tex": "proj_hoshiguma_sawshield",
        "spark": "fx_hoshiguma_saw_spark"
+      }
+     ]
+    }
+   ],
+   "wall2": {
+    "trig": "on_negate",
+    "_doc": "盾墙·反震（docs/119 §4.1 路线 wall 节点 5）：格挡后队长周围一圈伤害 + 击退，再给队长限时减伤（同 name 刷新不叠）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "leader",
+      "r": "$block_kb_r",
+      "mult": "$wall2_mult",
+      "kb": "$block_kb",
+      "src": "盾墙反震",
+      "tags": [
+       "basic"
+      ]
+     },
+     {
+      "verb": "guard",
+      "value": "$wall2_guard",
+      "dur": "$wall2_guard_dur",
+      "name": "盾墙"
+     }
+    ]
+   },
+   "ember2": [
+    {
+     "trig": "every_n",
+     "n": 1,
+     "cond": "skill_active:1",
+     "_doc": "热砂·熔流（路线 ember 节点 5）：荆棘期间每次盾斧斩命中处的敌人减速",
+     "do": [
+      {
+       "verb": "affect",
+       "center": "last_hit",
+       "r": "$sand_r",
+       "on_hit": [
+        {
+         "st": "slow",
+         "dur": "$ember2_slow"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "trig": "on_skill_end",
+     "skill": 1,
+     "_doc": "荆棘结束时自身周围热砂爆发",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "self",
+       "r": "$sand_r*1.5",
+       "mult": "$ember2_burst",
+       "power": true,
+       "src": "热砂",
+       "tags": [
+        "skill"
+       ]
       }
      ]
     }

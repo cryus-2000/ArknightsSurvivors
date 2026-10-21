@@ -72,7 +72,12 @@
   "pool_r": 50,
   "pool_dur": 1.2,
   "pool_every": 0.4,
-  "pool_mult": 0.12
+  "pool_mult": 0.12,
+  "_branch": "分支培养（docs/119 §4.1，10-22）：节点 4 二选一 星火燎原 / 熔岩天降，节点 5 沿路线强化——blob2_* 星火燎原·蔓延（点燃弹爆炸再向爆炸范围外的敌人抛熔岩团），meteor2_* 熔岩天降·陨落（每次多坠一块更大的熔岩）。数值为待试验参数",
+  "blob2_n": 3,
+  "blob2_mult": 1.0,
+  "meteor2_n": 1,
+  "meteor2_r_add": 15
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1743 / 防御 122 / 法抗 20%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -442,14 +447,44 @@
    "id": "ignite_blobs",
    "name": "星火燎原",
    "icon": "skill_eyjafjalla_s2",
-   "desc": "「点燃」的重弹炸开后向四周喷出 {$blob_n} 团熔岩，落地各自爆炸（普攻熔岩弹的 {$blob_mult*100}% 伤害）"
+   "desc": "「点燃」的重弹炸开后向四周喷出 {$blob_n} 团熔岩，落地各自爆炸（普攻熔岩弹的 {$blob_mult*100}% 伤害）",
+   "branch": {
+    "ignite": {
+     "id": "ignite_blobs",
+     "name": "星火燎原",
+     "icon": "skill_eyjafjalla_s2",
+     "desc": "「点燃」的重弹炸开后向四周喷出 {$blob_n} 团熔岩，落地各自爆炸（普攻熔岩弹的 {$blob_mult*100}% 伤害）"
+    },
+    "meteor": {
+     "id": "meteor",
+     "name": "熔岩天降",
+     "icon": "skill_eyjafjalla_s3",
+     "desc": "「二重咏唱」强化的熔岩弹炸开时，向附近 {$meteor_n} 名随机敌人高抛一颗熔岩弹（这发伤害的 {$meteor_mult*100}%）；精英二后「火山」每轮投弹同样追加"
+    }
+   },
+   "branch_desc": "二选一：「星火燎原」—「点燃」的熔岩弹爆炸后再抛出熔岩团；「熔岩天降」—「二重咏唱」与「火山」的落点附近再坠熔岩。之后的节点沿所选路线强化",
+   "bot": "ignite"
   },
   {
    "type": "custom",
    "id": "meteor",
    "name": "熔岩天降",
    "icon": "skill_eyjafjalla_s3",
-   "desc": "「二重咏唱」强化的熔岩弹炸开时，向附近 {$meteor_n} 名随机敌人高抛一颗熔岩弹（这发伤害的 {$meteor_mult*100}%）；精英二后「火山」每轮投弹同样追加"
+   "desc": "「二重咏唱」强化的熔岩弹炸开时，向附近 {$meteor_n} 名随机敌人高抛一颗熔岩弹（这发伤害的 {$meteor_mult*100}%）；精英二后「火山」每轮投弹同样追加",
+   "routes": {
+    "ignite": {
+     "id": "ignite2",
+     "name": "星火燎原·蔓延",
+     "icon": "skill_eyjafjalla_s2",
+     "desc": "「点燃」的熔岩弹爆炸时，再向爆炸范围外最近的 {$blob2_n} 名敌人各抛一团熔岩（{$blob2_mult*100}% 伤害）"
+    },
+    "meteor": {
+     "id": "meteor2",
+     "name": "熔岩天降·陨落",
+     "icon": "skill_eyjafjalla_s3",
+     "desc": "「熔岩天降」每次多坠 {$meteor2_n} 块更大的熔岩（落点半径 {$meteor_r+$meteor2_r_add}），「二重咏唱」与「火山」都算"
+    }
+   }
   },
   {
    "type": "elite",
@@ -799,6 +834,39 @@
          "src": "点燃"
         }
        ]
+      },
+      {
+       "verb": "lob",
+       "cond": "node:meteor2",
+       "pick": "shuffle",
+       "n": "$meteor2_n",
+       "cand": 10,
+       "reach": "$meteor_reach",
+       "basis": "hit",
+       "mult": "$meteor_mult",
+       "r": "$meteor_r+$meteor2_r_add",
+       "h": "$meteor_h",
+       "sz": "$meteor_sz",
+       "src": "熔岩天降",
+       "look": {
+        "tex": "proj_eyja_lava_lob",
+        "scale": 1.7,
+        "spin": 6,
+        "apex_k": 1.0,
+        "arc_pow": 0.55,
+        "burst": true,
+        "heavy": 1.8,
+        "spot": 0.5,
+        "land": "fx_eyja_lava_splash",
+        "land_scale": 1.2,
+        "weighted": true
+       },
+       "shell": true,
+       "from_off": [
+        0,
+        -20
+       ],
+       "flight_mult": 1.15
       }
      ]
     },
@@ -1030,6 +1098,36 @@
           "dur": "$s2_weak"
          }
         ]
+       },
+       {
+        "verb": "lob",
+        "cond": "node:ignite2",
+        "pick": "near_out",
+        "n": "$blob2_n",
+        "mult": "$blob2_mult",
+        "power": true,
+        "r": "$blob_r",
+        "h": "$blob_h",
+        "sz": 1.0,
+        "src": "熔岩团",
+        "look": {
+         "tex": "proj_eyja_lava_lob",
+         "scale": 1.6,
+         "spin": 8,
+         "apex_k": 1.15,
+         "arc_pow": 0.55,
+         "burst": true,
+         "heavy": 1.6,
+         "spot": 0.45,
+         "land": "fx_eyja_lava_splash",
+         "land_scale": 1.0,
+         "weighted": true
+        },
+        "flight_mult": 1.15,
+        "cand": 6,
+        "reach": "$ember_reach",
+        "out_k": "$ember_out",
+        "pad_k": "$ember_pad"
        }
       ]
      }
@@ -1167,6 +1265,40 @@
        "flight_mult": 1.15,
        "power": true,
        "origin": "self"
+      },
+      {
+       "verb": "lob",
+       "cond": "node:meteor2",
+       "pick": "shuffle",
+       "n": "$meteor2_n",
+       "cand": 10,
+       "reach": "$meteor_reach",
+       "mult": "$s3_mult*$meteor_mult",
+       "r": "$meteor_r+$meteor2_r_add",
+       "h": "$meteor_h",
+       "sz": "$meteor_sz",
+       "src": "熔岩天降",
+       "look": {
+        "tex": "proj_eyja_lava_lob",
+        "scale": 2.2,
+        "spin": 6,
+        "apex_k": 1.0,
+        "arc_pow": 0.55,
+        "burst": false,
+        "heavy": 1.8,
+        "spot": 0.5,
+        "land": "fx_eyja_lava_splash",
+        "land_scale": 1.2,
+        "weighted": true
+       },
+       "shell": true,
+       "from_off": [
+        8,
+        -54
+       ],
+       "flight_mult": 1.15,
+       "power": true,
+       "origin": "self"
       }
      ]
     },
@@ -1203,6 +1335,16 @@
     "trig": "passive",
     "do": [],
     "_doc": "熔岩天降：写在 S1 attack_patch.on_explode 与 S3 喷发（cond node:meteor）"
+   },
+   "ignite2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "星火燎原·蔓延（docs/119 §4.1 路线 ignite 节点 5）：写在 S2 点燃弹的 on_explode（cond node:ignite2）"
+   },
+   "meteor2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "熔岩天降·陨落（路线 meteor 节点 5）：写在 S1 attack_patch.on_explode 与 S3 喷发 launch（cond node:meteor2）"
    }
   }
  }

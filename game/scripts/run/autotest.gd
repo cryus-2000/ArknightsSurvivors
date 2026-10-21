@@ -189,6 +189,8 @@ func bot_pick() -> int:
 		return 0
 	if g.choice_kind == "swap":
 		return g.progression.auto_swap_pick()   # 更换队友画面（bot/swap 缺省 0 = 不替换）
+	if g.choice_kind == "branch":
+		return g.progression.auto_branch_pick()   # 培养路线二选一：固定路线（character.bot_route），不取随机数
 	# 满员招募卡（更换队友）：bot/swap 关时不进候选，其余选法照旧；下标映射回 g.choices
 	var idx: Array = g.progression.auto_choices()
 	if idx.size() < g.choices.size():
