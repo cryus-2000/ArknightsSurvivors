@@ -362,6 +362,8 @@ func update(dt: float) -> void:
 	var dens := density()
 	if dens != 1.0:
 		rate *= dens   # 怪物密度：普通刷怪率 × density（spawn_acc 本身就是累计余数）
+	if g.t < Bal.v("enemy/early_until", 0.0):
+		rate *= Bal.v("enemy/early_spawn_mult", 1.0)   # 前期压力段：大群加密的那部分从普通刷怪里扣（总经验约不变，docs/116 §7）
 	spawn_acc += rate * dt
 	# Boss 在场时的存活杂兵上限（协调人 9/30 定，最终 boss/final_mob_cap / 中期 boss/mid_mob_cap，0 = 关）：活着的非 Boss 敌人到上限就不再刷普通怪，
 	# 现有的不杀；精英、Boss 召唤物照常。杂兵墙挡住干员索敌是伊莎玛拉 / 偏执泡影超时的主因（Boss A/B 9/30）
@@ -432,6 +434,9 @@ func update(dt: float) -> void:
 		Sfx.play("roar", 2.0, 0.8, 0.0)
 		# 数量：32 → 88（10 分钟），× 难度修正 horde；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
 		var n := int((Bal.v("enemy/horde_base", 24.0) + int(g.t / Bal.v("enemy/horde_div", 9.0))) * float(g.dmod.horde))
+		var early: bool = g.t < Bal.v("enemy/early_until", 0.0)   # 前期压力段（docs/116 §7）：大群加密、单体伤害不打折，普通刷怪同期打折抵消经验
+		if early:
+			n = int(round(n * Bal.v("enemy/early_horde_mult", 1.0)))
 		n = dens_count(n, "horde")   # 怪物密度：只数 × density（累计余数取整；在 Boss 余量裁剪之前）
 		# Boss 在场时（Ⅷ horde_in_boss 让大群不顺延）超出存活杂兵上限的部分裁掉（协调人 9/30）；没有 Boss 时余量 = 同屏上限 max_alive()，不裁
 		n = mini(n, maxi(0, boss_mob_room()))
@@ -454,7 +459,7 @@ func update(dt: float) -> void:
 			he["horde"] = g.horde_log.size() - 1
 			he.dormant = false
 			# 群体个体的接触伤害 ×0.7：被包围时不至于两下暴毙，压力来自数量而不是单体
-			he.dmg *= 0.7
+			he.dmg *= Bal.v("enemy/early_horde_dmg", 0.7) if early else 0.7
 			hl.hp += he.maxhp
 		_norm = false
 	# 补给箱
