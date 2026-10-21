@@ -24,7 +24,7 @@
   "hook_w": 40,
   "hook_taut": 0.12,
   "hook_drag": 0.22,
-  "hook_front": 150,
+  "hook_front": 230,
   "hook_speed": 900,
   "hook_n": 1,
   "first_cd": 0.4,
@@ -56,12 +56,9 @@
   "pull_elite": 0.5,
   "chain_range": 0.25,
   "anchor_mult": 1.15,
-  "pin_delay": 0.45,
-  "pin_r": 180,
-  "pin_stun": 0.6,
   "ram_delay": 0.5,
   "ram_r": 80,
-  "ram_front": 1.9,
+  "ram_front": 2.875,
   "ram_mult": 0.8,
   "ram_kb": 160,
   "shield_pct": 0.03,
@@ -72,7 +69,10 @@
   "brute_r": 110,
   "brute_mult": 1.15,
   "brute2_r": 130,
-  "brute2_back": 0.9
+  "brute2_back": 0.9,
+  "arrive_stun": 0.9,
+  "arrive_stun_e1": 1.4,
+  "_leader": "用户 10-22 定：队长 / 队友同一套——拖回落点离她 hook_front 230（不拉到面前），到位眩晕 arrive_stun 0.9 秒，精一「锚定」延长到 arrive_stun_e1 1.4 秒"
  },
  "leader": {
   "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 2309 / 防御 331 / 法抗 0（character_table）；有天赋自疗，regen 取 1.2（远程与小额自疗 1.1 口径略上浮，她的自疗精一才有）",
@@ -432,14 +432,14 @@
  "attack": {
   "mode": "auto",
   "name": "钩索",
-  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害，随后把钩索与她之间一线的敌人拖回身前（Boss 除外），到位时再受 {$hook_back*100}% 伤害"
+  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害，随后把钩索与她之间一线的敌人拖回到身前 {$hook_front} 处（Boss 除外），到位再受 {$hook_back*100}% 伤害并眩晕 {$arrive_stun} 秒（精英减半）"
  },
  "skills": [
   {
    "name": "缺水的大洋裂断",
    "en": "WATERLESS PARTING OF THE GREAT OCEAN",
    "sp": 7,
-   "desc": "立刻掷出重钩：{$s1_range} 内最远的敌人处半径 {$s1_r} 内 ×{$s1_mult} 伤害，把至多 {$s1_n} 名敌人拖回身前，到位再受 ×{$s1_back} 伤害（Boss 除外）",
+   "desc": "立刻掷出重钩：{$s1_range} 内最远的敌人处半径 {$s1_r} 内 ×{$s1_mult} 伤害，把至多 {$s1_n} 名敌人拖回身前 {$hook_front} 处，到位再受 ×{$s1_back} 伤害并眩晕 {$arrive_stun} 秒（精英减半，Boss 除外）",
    "icon": "skill_ulpianus_s1"
   },
   {
@@ -537,10 +537,10 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「缺水的掌握怒海」；解锁天赋「阿戈尔的波涛」：编队里每名其他深海猎人，队长每秒再回复 {$mate_heal*100} % 最大生命、受到的伤害 -{$mate_dr*100}%；普攻「锚定」：被拖到身前的敌人眩晕 {$pin_stun} 秒（精英减半，Boss 除外）",
+   "desc": "解锁二技能「缺水的掌握怒海」；解锁天赋「阿戈尔的波涛」：编队里每名其他深海猎人，队长每秒再回复 {$mate_heal*100} % 最大生命、受到的伤害 -{$mate_dr*100}%；普攻「锚定」：拖回到位的眩晕 {$arrive_stun} → {$arrive_stun_e1} 秒",
    "attack": {
     "name": "锚定",
-    "desc": "钩索把敌人拖到身前后，身前 {$pin_r} 内的敌人眩晕 {$pin_stun} 秒（精英减半，Boss 除外）"
+    "desc": "钩索拖回到位的敌人眩晕 {$arrive_stun} → {$arrive_stun_e1} 秒（精英减半，Boss 除外）"
    }
   },
   {
@@ -674,7 +674,9 @@
          2
         ]
        }
-      ]
+      ],
+      "arrive_stun": "$arrive_stun",
+      "arrive_stun_elite1": "$arrive_stun_e1"
      }
     ]
    },
@@ -842,7 +844,9 @@
       "src": "钩索",
       "back_src": "拖拽",
       "head": "proj_gladiia_hook",
-      "drag_only": "all"
+      "drag_only": "all",
+      "arrive_stun": "$arrive_stun",
+      "arrive_stun_elite1": "$arrive_stun_e1"
      }
     ]
    },
@@ -871,7 +875,9 @@
       "src": "钩索",
       "back_src": "拖拽",
       "head": "proj_gladiia_hook",
-      "drag_only": "all"
+      "drag_only": "all",
+      "arrive_stun": "$arrive_stun",
+      "arrive_stun_elite1": "$arrive_stun_e1"
      }
     ]
    },
@@ -900,7 +906,9 @@
       "src": "钩索",
       "back_src": "拖拽",
       "head": "proj_gladiia_hook",
-      "drag_only": "all"
+      "drag_only": "all",
+      "arrive_stun": "$arrive_stun",
+      "arrive_stun_elite1": "$arrive_stun_e1"
      }
     ]
    },
@@ -1074,39 +1082,9 @@
     ]
    },
    "elite1": {
-    "trig": "every_n",
-    "n": 1,
-    "delay": "$pin_delay",
-    "_doc": "精一锚定：掷钩后 0.45 秒（锚飞行 + 绷直 + 拖回到位）身前 74 内的敌人眩晕 0.6 秒（不伤害）",
-    "do": [
-     {
-      "verb": "displace",
-      "center": "self",
-      "r": "$pin_r",
-      "kb": 0,
-      "on_hit": [
-       {
-        "st": "stun",
-        "dur": "$pin_stun",
-        "fx": [
-         {
-          "pfx": {
-           "kind": "glow",
-           "r": 8.0,
-           "life": 0.25,
-           "col": [
-            0.35,
-            0.6,
-            0.9
-           ],
-           "alpha": 0.6
-          }
-         }
-        ]
-       }
-      ]
-     }
-    ]
+    "trig": "passive",
+    "do": [],
+    "_doc": "精一锚定：拖回到位眩晕 0.9 → 1.4 秒（hookshot arrive_stun_elite1，精一起自动生效）"
    },
    "elite2": {
     "trig": "every_n",
