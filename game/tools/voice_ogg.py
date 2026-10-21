@@ -28,7 +28,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 VOICE = os.path.normpath(os.path.join(HERE, "..", "audio", "voice"))
 MASTERS = os.path.join(VOICE, "masters")
 MANIFEST = os.path.join(VOICE, "voice_manifest.json")
-DEFAULT_Q = 0.3
+DEFAULT_Q = 0.4   # 10-21 网页包压音频：全部条目档位 +0.1（tools/shrink_audio.py），新语音缺省同步
 SR = 44100
 
 

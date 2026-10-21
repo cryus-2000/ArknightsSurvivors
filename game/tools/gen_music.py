@@ -33,7 +33,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUTDIR = os.path.join(HERE, "..", "audio", "music")
 os.makedirs(OUTDIR, exist_ok=True)
 SKIP = set()       # 只算不写的曲目名（见文件头）
-OGG_LEVEL = 0.45   # Vorbis 压缩档（libsndfile；码率与原来的 ffmpeg -q:a 5 相当，五首平均约 120 kbps）
+OGG_LEVEL = 0.70   # Vorbis 压缩档（libsndfile）；10-21 网页包压音频从 0.45 降到 0.70（约 96 kbps 档，tools/shrink_audio.py）
 
 
 # ============================================================ 基础
