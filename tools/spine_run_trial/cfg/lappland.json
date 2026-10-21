@@ -1,0 +1,96 @@
+{
+ "id": "lappland",
+ "src": "lappland.src.json",
+ "name": "拉普兰德",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Shoulder",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Shoulder",
+   "F_R_Hand"
+  ]
+ },
+ "leadLeg": "L",
+ "nearSide": "R",
+ "hold": null,
+ "attach": {
+  "F_Weapon_A": "F_L_Hand",
+  "F_Weapon_B": "F_R_Hand"
+ },
+ "pack": {
+  "scale": 0.17722,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": "build/lg_src/lappland/idle@2x.png"
+ },
+ "params": {
+  "lean": 14,
+  "headKeep": 0.5,
+  "armAmp": 26,
+  "elbow": 55,
+  "elbowAmp": 15,
+  "relAmp": 7,
+  "relElbowAmp": 3
+ },
+ "secondary": [
+  {
+   "match": "^(F_[BCF]_Hair|F_F_Hair_B|F_[LR]_Hair|bone1[5-8]|bone4)$",
+   "amp": 2.5,
+   "drag": 4
+  },
+  {
+   "match": "^F_Tail$",
+   "amp": 6,
+   "drag": 8,
+   "lag": 1.4
+  },
+  {
+   "match": "^(F_[LR]_Coat|bone[23])$",
+   "amp": 3,
+   "drag": 5,
+   "gravity": 0.6
+  },
+  {
+   "match": "^F_[LR]_Ear$",
+   "amp": 4,
+   "drag": 2
+  },
+  {
+   "match": "^F_Streamer$",
+   "amp": 4,
+   "drag": 6,
+   "lag": 1.2
+  }
+ ],
+ "relativeArms": [
+  "L",
+  "R"
+ ],
+ "attachRot": {
+  "F_Weapon_A": 40,
+  "F_Weapon_B": 40
+ }
+}

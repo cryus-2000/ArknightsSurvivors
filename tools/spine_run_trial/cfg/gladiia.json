@@ -1,0 +1,97 @@
+{
+ "id": "gladiia",
+ "src": "gladiia.src.json",
+ "name": "歌蕾蒂娅",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "footExtra": {
+  "L": [
+   "F_L_Shoe"
+  ],
+  "R": [
+   "F_R_Shoe"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "leadLeg": "L",
+ "nearSide": "R",
+ "hold": "R",
+ "weapon": "F_Weapon",
+ "pack": {
+  "scale": 0.18837,
+  "root": [
+   64,
+   120
+  ],
+  "palette_png": "build/lg_src/gladiia/idle@2x.png"
+ },
+ "params": {
+  "lean": 12,
+  "headKeep": 0.5,
+  "armAmp": 24,
+  "elbow": 50,
+  "holdAmp": 5,
+  "weaponSway": 2
+ },
+ "secondary": [
+  {
+   "match": "^F_(L|R)_Hair(_[a-e])?$|^F_FrontHair[AB](_[a-c])?$|^F_HairTip(_a)?$|^F_Braid_[AB](_[ab])?$",
+   "amp": 2.5,
+   "drag": 4
+  },
+  {
+   "match": "^F_[LR]_Tail(_[a-d])?$",
+   "amp": 5,
+   "drag": 7,
+   "lag": 1.4
+  },
+  {
+   "match": "^F_[LR]_(Cloak|Dress)(_[a-c])?$",
+   "amp": 3,
+   "drag": 5,
+   "gravity": 0.6
+  },
+  {
+   "match": "^F_[LR]_Shawl(_a)?$|^F_[LR]_ShawlBelt_(I|II|III)$",
+   "amp": 3,
+   "drag": 4
+  },
+  {
+   "match": "^F_Ribbon_[ABC](_[ab])?$",
+   "amp": 4,
+   "drag": 6,
+   "lag": 1.2
+  },
+  {
+   "match": "^F_[LR]_FinB(_[a-c])?$",
+   "amp": 3,
+   "drag": 3
+  }
+ ]
+}

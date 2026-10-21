@@ -59,7 +59,7 @@ MAIN_ACTS = ["idle", "run", "attack", "skill"]
 REF_OPS = ["skadi", "skalter", "lumen"]   # docs/87 §2 朝右 3/4 侧身参考
 NAMES = {"angelina": "安洁莉娜", "exusiai": "能天使", "eyjafjalla": "艾雅法拉", "hoshiguma": "星熊", "irene": "艾丽妮",
          "kaltsit": "凯尔希", "logos": "逻各斯", "lumen": "流明", "mizuki": "水月", "saria": "塞雷娅", "siege": "推进之王",
-         "skadi": "斯卡蒂", "skalter": "浊心斯卡蒂", "specter_unchained": "归溟幽灵鲨", "suzuran": "铃兰", "texas": "德克萨斯",
+         "skadi": "斯卡蒂", "skalter": "浊心斯卡蒂", "specter_unchained": "归溟幽灵鲨", "suzuran": "铃兰", "texas": "德克萨斯", "lappland": "拉普兰德", "gladiia": "歌蕾蒂娅",
          "ulpianus": "乌尔比安", "wisadel": "维什戴尔", "doctor": "博士"}
 
 # ---------------------------------------------------------------- 阈值（docs/87，改这里先改文档）
@@ -150,6 +150,16 @@ WAIVERS = {
     ("skadi", "run"): "10-20 用户确认的 Spine 步态跑步（tools/spine_run_trial cfg/skadi.json，右手拖剑、前倾 20°、抬腿对齐推进之王旧条）；旧 48 帧条剪影 / 上身阈值未过，保留视觉复核",
     ("skadi", "outline"): "10-20 原生附件逐件像素化（cz_skadi_actions_1020 + spine_run_trial）：暗色收边，不使用旧 #080E18 黑壳",
     ("skadi", "ground"): "10-20 统一脚根锚点：最低像素行 59（96 画布 75）与脚底边界 60（76）差 1，同能天使口径，不逐帧挪图贴底",
+    # 10-22 第四批（docs/122 / 123）：待机 / 攻击 / 倒下已换 Codex 199d7b73 原生像素条（原作附件重组，暗色收边、脚底行 59/60/61 随原作抬脚），
+    # 跑步条来自像素 Spine 会话（claude/op-lappland-gladiia-run b20e912f）
+    ("lappland", "outline"): "10-22 Codex 原生附件暗色收边（同斯卡蒂 / 乌尔比安口径），不重描 #080E18 黑壳",
+    ("lappland", "ground"): "10-22 原作 Idle 原生像素：脚底行 60/61 随呼吸抬脚；Spine 步态跑步条按原生根骨对齐",
+    ("lappland", "skill_end"): "10-22 原作 Skill 条末帧是原生收势姿势，逻辑结束切 Idle（同归溟幽灵鲨 skill_end 口径）；192 / 128 画布不同不逐像素比",
+    ("lappland", "frontal"): "10-22 原作 Idle 原生朝向（头部对称差 0.713），不改造原生脸型（同铃兰口径）",
+    ("lappland", "idle"): "10-22 原作 Idle 40 帧 2 秒，呼吸幅度本来就小（起伏 0.1px）；Codex handoff 记用户已确认待机首帧",
+    ("gladiia", "outline"): "10-22 Codex 原生附件暗色收边（同斯卡蒂 / 乌尔比安口径），不重描 #080E18 黑壳",
+    ("gladiia", "run"): "10-22 Spine 步态跑步条（claude/op-lappland-gladiia-run b20e912f）：长裙盖腿、原作设定为水上滑行，剪影 / 腿部变化指标偏低（0.027 / 0.028）属造型本身；水滑行拖尾另由特效叠加",
+    ("gladiia", "ground"): "10-22 原作 Idle 原生像素：脚底行 59/60 随呼吸（5.3 秒 107 帧）；跑步条按原生根骨对齐",
     # 以下为 docs/87 附录 B 基线新发现，待协调人 / 用户定是否开返修单（开单后把说明改成返修单号）
     ("skalter", "run"): "设计例外（用户 10-13 定）：浊心斯卡蒂跑步是悬浮飘行，腿不交替属造型，长期豁免",
     ("skalter", "ground"): "设计例外（用户 10-13 定）：浊心斯卡蒂悬浮飘行，离地 4–6px 属造型，长期豁免",
@@ -719,7 +729,10 @@ def lint_op(op, acts, art=ART, prev=None):
         _lead(probs, warns) + "起伏 %.1fpx 剪影变化 %.3f 停顿对 %d" % (im["bob"], im["sil"], im["static_pairs"]))
 
     # run
-    if "run" in strips:
+    if "run" in strips and acts["idle"]["tex"] != acts["run"]["tex"].removesuffix("_run") + "_idle":
+        # 跑步条借用别人的（占位，10-22 拉普兰德 / 歌蕾蒂娅：跑步由像素 Spine 会话另出）：步态指标比的是本尊的待机条，这里不比，直接记 FAIL 让豁免表接
+        add("run", "FAIL", 0, "跑步条借用 %s（待机是 %s），未比步态；正式跑步条交付后删豁免" % (acts["run"]["tex"], acts["idle"]["tex"]))
+    elif "run" in strips:
         rm = run_metrics(art, acts["run"]["tex"], acts["idle"]["tex"])
         probs, warns = [], []
         if rm["move"] < T["run_move"]:

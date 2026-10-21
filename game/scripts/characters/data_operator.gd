@@ -64,6 +64,7 @@ var ext := {}                          # 积木扩展段的运行时状态（能
 var kill_w := 1.0                      # trig.on_kill 执行期间这次击杀的权重：怪物密度缩放过的普通怪 = e.dk（1/k），其余 1（docs/50 §16.8）
 var sm := {}                           # 召唤 / 封印段（op_blocks.gd 末尾，docs/61 §15）：召唤物、封印标记、护盾、治疗光环计时；空 = 用不到
 var mf := {}                           # 召唤物扩展段（docs/61 §15.9）：限时减伤、召唤物倍率表、已执行的 on_deploy；空 = 用不到
+var mhook_cd := {}                     # 联动段（docs/123 §2.7）：trig.on_mate_hook 每块的上次触发时刻（不放 el：el 非空会被精英化段当成「用得到」）
 var el := {}                           # 精英化段（docs/91 第 1 批，op_blocks.gd 末尾）：限时增益、叠层、往返弹体、状态冷却；空 = 用不到
 
 
@@ -91,16 +92,20 @@ func _init(game, def_: Dictionary) -> void:
 	ObHw.hw_init(self)
 	var dep := false
 	var mate := false
+	var mhook := false
 	for sec in ["trait", "talent"]:
 		for t in B.get(sec, []):
 			dep = dep or str(t.get("_tag", "")) == "trig.on_deploy"
 			mate = mate or str(t.get("_tag", "")) == "trig.on_mate_attack"
+			mhook = mhook or str(t.get("_tag", "")) == "trig.on_mate_hook"
 	for k in B.get("progression", {}):
 		for t in _node_list(B.progression[k]):
 			dep = dep or str(t.get("_tag", "")) == "trig.on_deploy"
 			mate = mate or str(t.get("_tag", "")) == "trig.on_mate_attack"
+			mhook = mhook or str(t.get("_tag", "")) == "trig.on_mate_hook"
 	B["_mf_deploy"] = dep
 	B["_el_mate"] = mate   # 精英化段：有没有 trig.on_mate_attack（队友出手时才查）
+	B["_el_mate_hook"] = mhook   # 联动段（docs/123 §2.7）：有没有 trig.on_mate_hook（队友钩索拖回到位时才查）
 	B["_e5_among"] = SegSkalter.e5_scan(B)   # 精英化第 5 批段：有 among 的积木才记普攻命中表
 
 
@@ -267,6 +272,7 @@ func update(dt: float) -> void:
 	ObSummon.mf_tick(self, dt, prev_s)   # 召唤物扩展段（§15.9）：限时减伤计时、trig.on_deploy、带 at 的 trig.on_skill_end
 	_tick_pending(dt)
 	_sustain(dt)
+	_run_fx(dt)
 	if hw.has("mz"):
 		SegMizuki.h3_tick_effects(self, dt)
 	_tick_shots(dt)
@@ -553,7 +559,7 @@ func _collect_trig(t: Dictionary, act: Array) -> void:
 					act.append(b)
 		"trig.tick":
 			act.append(t)
-		"trig.every_n", "trig.on_kill", "trig.on_mate_attack":
+		"trig.every_n", "trig.on_kill", "trig.on_mate_attack", "trig.on_mate_hook":
 			pass
 		_:
 			act.append(t)
@@ -785,6 +791,55 @@ func _replace_trig(n: int) -> Dictionary:
 func on_mate_attack(m) -> void:
 	if B.get("_el_mate", false):
 		ObElite.el_mate_attack(self, m)
+
+
+## 跑动拖尾（blocks.run_fx {every, fx}，10-22 歌蕾蒂娅水滑行）：动作为 run 时每 every 秒在脚底播一次 fx（朝左时 rot 条目转 180°）；
+## 只动 pfx / g.vrng，不碰玩法
+var _run_fx_t := 0.0
+func _run_fx(dt: float) -> void:
+	var rf = B.get("run_fx", null)
+	if not (rf is Dictionary) or pos == Vector2.INF:
+		return
+	if str(anim_state().get("kind", "")) != "run":
+		_run_fx_t = float(rf.get("every", 0.15))   # 下次起步立刻播一份
+		return
+	_run_fx_t += dt
+	if _run_fx_t >= float(rf.get("every", 0.15)):
+		_run_fx_t = 0.0
+		ObFx.fx_play(self, rf.fx, pos, 0.0, [], PI if face < 0.0 else 0.0)
+
+
+## 联动段（docs/123 §2.7「钩与锚」）：本干员的钩索（shape.hookshot）把敌人拖回到位 → 告诉编队里的其他干员
+func notify_mate_hook(at: Vector2, hits: Array) -> void:
+	var sq = g.get("squad") if g != null else null
+	if sq == null:
+		return
+	for m in sq.ops:
+		if m != self and m.has_method("on_mate_hook"):
+			m.on_mate_hook(self, at, hits)
+
+
+## 队友 m 的钩索把敌人拖回到 at（hits = 被拖回的敌人）：本干员生效中的 trig.on_mate_hook —— op 只认这名队友（缺省任何）、
+## knob = balance.json 开关路径（缺省开）、range = 本干员到落点的距离上限（× op_range）、cd = 两次之间至少隔几秒（按触发块计）；
+## 命中后以落点为 target 执行 do。确定性：只读队长 / 队友状态与 g.t，不取随机数
+func on_mate_hook(m, at: Vector2, hits: Array) -> void:
+	if not B.get("_el_mate_hook", false) or pos == Vector2.INF or hits.is_empty():
+		return
+	for t in _trigs():
+		if str(t.get("_tag", "")) != "trig.on_mate_hook" or not ObCore.cond_true(self, t.get("cond", _ED)):
+			continue
+		if str(t.get("op", "")) != "" and str(t.get("op", "")) != str(m.id):
+			continue
+		if str(t.get("knob", "")) != "" and BranchBal.vi(str(t.knob), 1) == 0:
+			continue
+		if t.has("range") and pos.distance_to(at) > float(t.range) * stat(&"op_range"):
+			continue
+		var key := "mhook:%d" % int(t.get("_uid", 0))
+		var cd: float = float(t.get("cd", 0.0))
+		if cd > 0.0 and mhook_cd.has(key) and g.t - float(mhook_cd[key]) < cd:
+			continue
+		mhook_cd[key] = g.t
+		_exec_list(t.get("do", []), at)
 
 
 ## 图鉴演示（run/demo.gd 每 3 秒把队长生命压到 70% 时调）：演示里怪不伤人，模拟一次「队长受到攻击」的询问，

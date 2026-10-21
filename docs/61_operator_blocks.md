@@ -1873,3 +1873,25 @@ S3 当前契约（2026-10-18）：参考原作的全周范围攻击与追加目�
 - 实际出手时设置 `s3_fx` 与 `s3_fx_radius`，整片攻击范围内的触手同步出现。特效只表现已结算的攻击，不额外触发伤害或控制；离队时清空。完整表现约定见 [水月 S3 范围攻击与特效方案](plans/2026-10-18-mizuki-s3-fx.md)。
 
 验收入口：`mizuki_runtime_test`（真实技能入口、1/2/4 倍攻速、主控 / 队友、手动 / 自动、目标死亡、取消 / 重新部署、重叠恢复、成长与缺图，以及 S3 全周群攻、追加目标控制、半径边界、无回声与无生命消耗），`mizuki_skill_anim_test`（完整八帧、fire 对齐、持续循环 / 收势、S1 优先级与无变体回退）。三干员既有 lifecycle / phases / timing / Wisadel 回归保留。
+
+## 21. 第四批设计稿：拉普兰德 / 歌蕾蒂娅（10-22，只填 json，不加积木）
+
+两人全部用现有积木写成（docs/122 §3、docs/123 §3）：拉普兰德 = cone + `attack.combo` + `shape.wave from self` + `st.seal` + `trig.on_hurt`；歌蕾蒂娅 = 名义 circle + `trig.every_n {n 1, replace}` → `shape.hookshot`（乌尔比安精二积木当普攻）+ `verb.field` + `aura.heal / verb.dr` 按 `cond faction:深海猎人 >= n` 叠档。
+预算表与数值在各自文档 §4，不再写进本文；两人暴露的缺口（`shape.wave` 无 `on_hit`、`shape.hookshot` 不在 `ATTACK_SHAPES` / 无 `on_hit` / 只认最远目标、`verb.displace to: self` 未实现、非精英加伤、docs/118 的 `trig.on_leader_skill` / 共用 `on_leader_dash`）列在两文档的「需要新积木」表里，等积木会话排期。
+
+### 21.1 联动触发器 `trig.on_mate_hook`（10-22，「钩与锚」）
+
+| 积木 | 类 | 参数 | 说明 |
+|---|---|---|---|
+| `trig.on_mate_hook` | 触发（trait / talent / 节点） | `op`（只认这名队友的钩索，缺省任何）、`cd`（秒）、`range`（本干员到落点的距离上限，× op_range）、`knob`（balance.json 开关路径，缺省开）、`do`（瞬时积木，`center: target` = 拖回落点） | 队友的 `shape.hookshot` 把敌人拖回到位（至少拖回 1 名）时触发：`_hw5_hook_arrive` → `data_operator.notify_mate_hook` 广播 → 各队友 `on_mate_hook`。乌尔比安 × 歌蕾蒂娅「钩与锚」（docs/123 §2.7） |
+
+干员 JSON 顶层 `combo {with, name, knob, desc}` 只给界面用（`build_affinity.combo_partners`：招募 / 换人卡「联动」行），玩法仍由积木决定。
+
+### 21.2 接美术时加的两个参数（10-22）
+
+| 参数 | 放哪 | 说明 |
+|---|---|---|
+| `shape.hookshot.head` | 钩索积木 | `proj_*` 帧条：锚头贴图，飞行 / 绷直 / 拖回各取第 0 / 1 / 2 帧，沿方向旋转（`draw_spr_rot`）；缺图退回程序锚头。歌蕾蒂娅 `proj_gladiia_hook` |
+| `shape.hookshot.drag_only` | 钩索积木 | `all`（缺省）/ `ranged`：只把 `e.ai == ranged` 的敌人拖回身前（落地伤害不受影响）。歌蕾蒂娅普攻 |
+| `st.seal.look` | 封印状态 | `cross` = 被封印敌人头顶 8×8 灰叉（#AAAEB2，头顶上方 12 px），不画地面圈与紫菱形；写进 `e.seal_look`，`sm_draw_over` 按它分支。拉普兰德全部封印用它 |
+

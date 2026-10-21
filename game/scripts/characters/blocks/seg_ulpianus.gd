@@ -145,7 +145,7 @@ static func _hw_hand(o) -> Vector2:
 		var socket: Vector2 = o.sprite_point("hand")
 		if socket != Vector2.INF:
 			return socket
-	var b: Dictionary = o.hw.anchor.get("b", {})
+	var b: Dictionary = o.hw.get("anchor", {}).get("b", {})   # 没掷过锚（歌蕾蒂娅只有钩索）时 hw 里没有 anchor
 	var v = b.get("hand", [33, -33])
 	return o.pos + Vector2(float(v[0]) * float(o.face), float(v[1]))
 
@@ -962,6 +962,8 @@ static func _hw5_hook_impact(o, hk: Dictionary) -> void:
 	var c: Vector2 = hk.to
 	var r: float = float(b.get("r", 90.0)) * o.stat(&"op_range")
 	var hits: Array = o.area_hit(str(b.get("src", "")), c, r, float(hk.dmg) * float(b.get("mult", 1.2)), float(b.get("kb", 0.0)), 0.0, b.get("tags", []))
+	if not hits.is_empty() and "last_hit_pos" in o:   # 钩索当普攻（歌蕾蒂娅 every_n replace）：落地命中也算「上一次普攻命中点」（verb.field center: last_hit，S3 漩涡落点）
+		o.last_hit_pos = hits[0].pos
 	if b.has("impact_fx"):
 		fx_play(o, b.impact_fx, c, r, hits)
 	hk.phase = "taut"
@@ -989,6 +991,8 @@ static func _hw5_hook_drag_start(o, hk: Dictionary) -> void:
 			continue
 		if e.pos.distance_to(a) <= float(b.get("front", 60.0)):
 			continue   # 已经在身前的不拖
+		if str(b.get("drag_only", "all")) == "ranged" and str(e.get("ai", "")) != "ranged":
+			continue   # 歌蕾蒂娅（docs/123 §2.1，10-22）：只把远程怪拖回身前，近战怪本来就会贴上来，拉过来只会把队长埋进怪堆
 		got.append(e)
 	got.sort_custom(func(x, y): return x.pos.distance_squared_to(a) < y.pos.distance_squared_to(a) if x.pos.distance_squared_to(a) != y.pos.distance_squared_to(a) else int(x.id) < int(y.id))
 	var mx: int = int(b.get("max_n", 12))
@@ -1018,6 +1022,8 @@ static func _hw5_hook_arrive(o, hk: Dictionary) -> void:
 		hits.append(e)
 	if b.has("arrive_fx") and not hits.is_empty():
 		fx_play(o, b.arrive_fx, hk.front, 40.0, hits)
+	if not hits.is_empty() and o.has_method("notify_mate_hook"):   # 联动段（docs/123 §2.7「钩与锚」）：告诉队友「我把人拖到 front 了」
+		o.notify_mate_hook(hk.front, hits)
 
 
 static func hw_attack_locked(o) -> bool:
@@ -1054,7 +1060,12 @@ static func hw_draw_hooks(o) -> void:
 			if str(hk.phase) == "drag" and not dg.e.dead:
 				_hw_draw_chain(o, p, dg.e.pos + Vector2(0, -float(dg.e.r) * 0.5), 0.7)
 		var dirv: Vector2 = ((hk.to as Vector2) - (hk.from as Vector2)).normalized()
-		_hw_draw_anchor(o, p, -dirv if str(hk.phase) == "drag" else dirv, 1.0)
+		var head: String = str(b.get("head", ""))   # 歌蕾蒂娅（docs/123 §6）：细长倒钩贴图代替程序锚头；缺图退回程序锚
+		if head != "" and g.tex.get(head) != null and g.V6_FRAMES.has(head):
+			var hf: int = 0 if str(hk.phase) == "fly" else (1 if str(hk.phase) == "taut" else 2)
+			o.draw_spr_rot(head, hf, p, (-dirv if str(hk.phase) == "drag" else dirv).angle(), g.PX, Color.WHITE)
+		else:
+			_hw_draw_anchor(o, p, -dirv if str(hk.phase) == "drag" else dirv, 1.0)
 
 
 ## 原生动作信号（native_motion.gd 按 json native_motion.states / exits 取用，docs/108 §3.5）：

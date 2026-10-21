@@ -8,7 +8,11 @@ func _ready() -> void:
 	var what := "1"
 	var adv := 6
 	var out_dir := "anim_bugs"
+	var total_arg := -1   # --capture-total=<帧数>（10-22：录 S3 这类长技能用）
+	var skill_at := 10    # --capture-skill-at=<帧>（10-22：先普攻几下再放技能，例：歌蕾蒂娅 S3 落在最近一次钩中处）
 	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--capture-total="): total_arg = int(arg.get_slice("=", 1))
+		if arg.begins_with("--capture-skill-at="): skill_at = int(arg.get_slice("=", 1))
 		if arg.begins_with("--capture-op="): id = arg.get_slice("=", 1)
 		if arg.begins_with("--capture-what="): what = arg.get_slice("=", 1)
 		if arg.begins_with("--capture-adv="): adv = int(arg.get_slice("=", 1))
@@ -40,18 +44,21 @@ func _ready() -> void:
 	target.spd = 0.0
 	g.enemies_sys.build_grid()
 	var idle := what == "idle"
+	var basic := what == "attack"   # 10-22：只普攻（不放技能），录普攻 gif 用
 	var total := 860 if idle else 150
+	if total_arg > 0: total = total_arg
 	var every := 6 if idle else 1
 	var log := []
 	for frame in total:
-		if frame == 10 and not idle:
+		if frame == skill_at and not idle and not basic:
 			o.attack_t = 0.0
 			o.fire_t = -1.0
 			o.manual_pt = target.pos
 			o.start_skill(target.pos, int(what))
 		o.sp = [-100000.0, -100000.0, -100000.0]
-		if not idle: o.cd = maxf(o.cd, 0.5)
-		else: o.cd = 10000.0
+		if idle: o.cd = 10000.0
+		elif not basic and frame >= skill_at - 10: o.cd = maxf(o.cd, 0.5)
+		elif frame == 0: o.cd = 0.0   # 普攻模式 / 技能前的普攻段：上面把冷却设成 10000 是为了压住技能录制里的普攻，这里放开
 		target.pos = center + Vector2(140, 0)
 		target.kb = Vector2.ZERO
 		g.enemies_sys.build_grid()
@@ -62,7 +69,7 @@ func _ready() -> void:
 		var n_b := 0
 		for b in g.bullets:
 			if b.get("op", "") == id: n_b += 1
-		log.append({"frame": frame, "kind": st.get("kind", ""), "pose": st.get("frame", -1), "bullets": n_b, "lobs": o.hw.get("lobs", []).size() if o.hw is Dictionary else 0, "ghosts": o.ghosts.size(), "mod": str(g.sprite.modulate), "lead": o.is_leader, "opmod": str(Look.op_mod(g, o.pos, Color.WHITE)), "fx_dim": g.world.fx_dim})
+		log.append({"frame": frame, "kind": st.get("kind", ""), "pose": st.get("frame", -1), "bullets": n_b, "lobs": o.hw.get("lobs", []).size() if o.hw is Dictionary else 0, "ghosts": o.ghosts.size(), "mod": str(g.sprite.modulate), "lead": o.is_leader, "opmod": str(Look.op_mod(g, o.pos, Color.WHITE)), "fx_dim": g.world.fx_dim, "cd": o.cd, "noatk": o.no_attack, "near": o.nearest_enemies(1, 400.0, o.pos).size(), "attack_t": o.attack_t})
 		if frame % every != 0: continue
 		g.queue_redraw()
 		g.fx_add.queue_redraw()

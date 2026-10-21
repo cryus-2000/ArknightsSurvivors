@@ -563,6 +563,7 @@ static func seal_apply(o, e: Dictionary, s: Dictionary) -> void:
 	var was: bool = float(e.get("seal_t", 0.0)) > g.t
 	e["seal_t"] = maxf(float(e.get("seal_t", 0.0)), g.t + dur)
 	e["seal_by"] = o.id
+	e["seal_look"] = str(s.get("look", ""))   # 标记画法：缺省紫菱形 + 地面圈；cross = 头顶灰叉（拉普兰德）
 	sm_st(o).seal[int(e.id)] = e
 	if not was and (e.elite or e.boss):
 		o.float_text(e.pos + Vector2(0, -float(e.r) * 2.0 - 30.0), "封印", SEAL_COL, 15)
@@ -585,6 +586,14 @@ static func sm_draw_over(o) -> void:
 		var left: float = float(e.seal_t) - g.t
 		var al: float = clampf(left / 0.3, 0.0, 1.0) * 0.9
 		var er: float = float(e.r)
+		if str(e.get("seal_look", "")) == "cross":   # 灰叉：8×8、2px、#AAAEB2，头顶上方 12px；没有地面圈 / 菱形
+			var cp: Vector2 = e.pos + Vector2(0, -er * 2.0 - 12.0)
+			var gc := Color(0.667, 0.682, 0.698, al)
+			cv.draw_line(cp + Vector2(-4, -4), cp + Vector2(4, 4), Color(0.05, 0.05, 0.06, 0.6 * al), 4.0)
+			cv.draw_line(cp + Vector2(-4, 4), cp + Vector2(4, -4), Color(0.05, 0.05, 0.06, 0.6 * al), 4.0)
+			cv.draw_line(cp + Vector2(-4, -4), cp + Vector2(4, 4), gc, 2.0)
+			cv.draw_line(cp + Vector2(-4, 4), cp + Vector2(4, -4), gc, 2.0)
+			continue
 		cv.draw_set_transform(e.pos + Vector2(0, er * 0.6), 0.0, Vector2(1.0, 0.45))
 		cv.draw_arc(Vector2.ZERO, er + 6.0, 0.0, TAU, 24, Color(SEAL_COL.r, SEAL_COL.g, SEAL_COL.b, 0.55 * al), 2.0)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -835,6 +844,8 @@ static func _sm_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			_num(b, "dur", p, ctx, false, 0.5, 60.0)
 			_num(b, "decay", p, ctx, false, 0.0, 1.0)
 		"st.seal":
+			if b.has("look") and not str(b.look) in ["", "cross"]:
+				errs.append(p + ".look 只能是 cross（头顶灰叉）")
 			_num(b, "dur", p, ctx, true, 0.1, 10.0)
 			_num(b, "elite_mult", p, ctx, false, 0.0, 1.0)
 			_num(b, "boss_mult", p, ctx, false, 0.0, 1.0)
