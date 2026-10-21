@@ -57,8 +57,8 @@ func run() -> void:
 			var nd: Dictionary = nodes[id]
 			if nd.has("req"):
 				check(sh.has(str(nd.req)), "预算 %d：%s 没有前置 %s" % [b, id, nd.req])
-	check(Meta.shape_for(5).has("atk1"), "推荐点法第一个应是攻击性Ⅰ")
-	check(not Meta.shape_for(5).has("hp1"), "预算 5 只点攻击性Ⅰ")
+	check(Meta.shape_for(40).has("sh1"), "推荐点法第一个应是危机感Ⅰ")
+	check(not Meta.shape_for(40).has("atk2"), "预算 40 只点危机感Ⅰ")
 	check(Meta.run_shape().is_empty(), "测试局缺省不带局外成长")
 	# 生机细胞（§3.1）
 	Cfg.meta_earned = {}
