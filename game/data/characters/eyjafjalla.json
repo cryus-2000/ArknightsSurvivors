@@ -520,6 +520,21 @@
     {
      "cond": "elite >= 1",
      "mult": "$talent_aoe"
+    },
+    {
+     "cond": "response_on && still >= 0.6",
+     "mult": 1.15,
+     "_doc": "响应动作「咏唱」（docs/118 §4.2）：队长站定满 0.6 秒，熔岩弹爆炸范围再 ×1.15"
+    },
+    {
+     "cond": "response_on && still >= 1.6",
+     "mult": 1.15,
+     "_doc": "响应动作「咏唱」（docs/118 §4.2）：队长站定满 1.6 秒，熔岩弹爆炸范围再 ×1.15"
+    },
+    {
+     "cond": "response_on && still >= 2.6",
+     "mult": 1.15,
+     "_doc": "响应动作「咏唱」（docs/118 §4.2）：队长站定满 2.6 秒，熔岩弹爆炸范围再 ×1.15"
     }
    ],
    "speed": "$attack_shell_speed",
@@ -1346,6 +1361,20 @@
     "do": [],
     "_doc": "熔岩天降·陨落（路线 meteor 节点 5）：写在 S1 attack_patch.on_explode 与 S3 喷发 launch（cond node:meteor2）"
    }
-  }
+  },
+  "response": [
+   {
+    "trig": "passive",
+    "cond": "still >= 0.6",
+    "hint": "咏唱",
+    "do": [],
+    "_doc": "响应动作（docs/118 §4.2）：效果写在 attack.aoe_mults 的三档 still 条件里（站定 0.6 / 1.6 / 2.6 秒各 ×1.15）；这一条只负责生效时的头顶提示"
+   }
+  ]
+ },
+ "response": {
+  "name": "咏唱",
+  "trigger": "队长站定",
+  "desc": "队长站定不动时，她的熔岩弹爆炸范围逐渐扩大：站定满 0.6、1.6、2.6 秒各 +15%；队长移动就恢复"
  }
 }

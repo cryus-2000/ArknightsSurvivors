@@ -15,8 +15,10 @@ static func validate(cid: String, d: Dictionary) -> bool:
 	var srcs: Dictionary = d.get("hit_sources", {})
 	var ctx := {"base": base, "srcs": srcs, "errs": errs, "custom": 0, "summons": blocks.get("summons", {}), "sprites": d.get("sprites", {}), "stat_defs": d.get("stat_defs", {})}
 	for k in blocks:
-		if not k in ["zone", "attack", "trait", "skills", "talent", "progression", "summons", "follow", "hit_fx", "look", "dmg_bonus", "_doc"]:
-			errs.append("blocks.%s：不认识的段（只能是 zone / attack / trait / skills / talent / progression / summons / follow / hit_fx / look / dmg_bonus）" % k)
+		if not k in ["zone", "attack", "trait", "skills", "talent", "progression", "summons", "follow", "hit_fx", "look", "dmg_bonus", "response", "_doc"]:
+			errs.append("blocks.%s：不认识的段（只能是 zone / attack / trait / skills / talent / progression / summons / follow / hit_fx / look / dmg_bonus / response）" % k)
+	if blocks.has("response"):   # 响应动作（docs/118）
+		preload("res://scripts/characters/blocks/responses.gd").validate_section(blocks.response, ctx, _F())
 	_F()._hw_top(blocks, ctx)   # 手写迁移段：follow / hit_fx / look
 	if blocks.has("summons"):   # 召唤物种类（文件末尾「召唤 / 封印段」）
 		_F()._sm_kinds(blocks, ctx)
@@ -216,6 +218,12 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 		return
 	if tag in ANGELINA_TAGS:   # 安洁莉娜段
 		_F()._v_angelina(b, p, kind, ctx, tag)
+		return
+	if tag in ["trig.on_leader_skill", "trig.on_stance"]:   # 响应动作（docs/118）
+		if kind != "trig":
+			errs.append("%s：「%s」只能放在 blocks.response" % [p, tag])
+			return
+		preload("res://scripts/characters/blocks/responses.gd").validate(b, p, tag, ctx, _F())
 		return
 	if nm in TX_IMPL.get(fam, []):   # 德克萨斯段
 		_F()._tx_block(b, p, kind, tag, ctx)

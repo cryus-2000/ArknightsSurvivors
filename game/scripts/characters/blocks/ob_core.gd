@@ -136,6 +136,9 @@ static func parse_cond(s: String, base: Dictionary) -> Dictionary:
 	if s == "is_leader":
 		c.k = "is_leader"
 		return c
+	if s == "response_on":   # 响应动作总开关开着（balance.json response.on，docs/118）
+		c.k = "response_on"
+		return c
 	if s == "in_zone:leader":
 		c.k = "in_zone"
 		return c
@@ -160,7 +163,7 @@ static func parse_cond(s: String, base: Dictionary) -> Dictionary:
 			return {"err": ev[2]}
 		c.op = op
 		c.v = ev[1]
-		if lhs in ["lamp", "hp_pct", "elite"]:
+		if lhs in ["lamp", "hp_pct", "elite", "still"]:   # still：队长连续站定秒数（响应动作，docs/118）
 			c.k = lhs
 		elif lhs.begins_with("faction:") and lhs.length() > 8:
 			c.k = "faction"
@@ -169,7 +172,7 @@ static func parse_cond(s: String, base: Dictionary) -> Dictionary:
 			c.k = "class"
 			c.a = lhs.substr(6)
 		else:
-			return {"err": "条件左边只能是 lamp / hp_pct / elite / faction:<阵营> / class:<职业>：「%s」" % s}
+			return {"err": "条件左边只能是 lamp / hp_pct / elite / still / faction:<阵营> / class:<职业>：「%s」" % s}
 		return c
 	return {"err": "看不懂的条件「%s」" % s}
 
@@ -248,6 +251,10 @@ static func cond_true(o, c) -> bool:
 			r = _cmp(g.hp / maxf(1.0, g.max_hp), c.op, c.v)
 		"elite":
 			r = _cmp(float(o.elite), c.op, c.v)
+		"still":
+			r = _cmp(float(g.leader_still_t), c.op, c.v)
+		"response_on":
+			r = preload("res://scripts/characters/blocks/responses.gd").on()
 		"faction":
 			r = _cmp(float(count_others(o, "faction:" + str(c.a))), c.op, c.v)
 		"class":
