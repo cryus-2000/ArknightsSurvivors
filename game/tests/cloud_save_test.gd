@@ -182,7 +182,7 @@ func cfg_tests() -> void:
 	check(Cfg.cam_zoom_pct == Cfg.ZOOM_PCT_MAX, "战斗画面缩放应夹到上限")
 	check(Cfg.play_speed == speed0 and Cfg.dmg_numbers == dmg0 and Cfg.cover_character_id == cover0, "不合法的项应保持本地值")
 	check(Cfg.touch_layout.size() == 1 and is_equal_approx(float(Cfg.touch_layout.dash.s), 1.5), "触屏布局应清洗：%s" % Cfg.touch_layout)
-	var maxd: int = preload("res://scripts/data.gd").DIFFICULTY_TIERS.size() - 1
+	var maxd: int = preload("res://scripts/data.gd").DIFF_PRESETS.size() - 1   # 三档难度（10-22）
 	check(int(Cfg.cloud_body().prog.diff) == maxd, "已解锁难度应夹到最高档")
 	check(Cfg.difficulty <= maxd, "所选难度不超过已解锁")
 	check(Cfg.cloud_body().prog.rel == ["5", "6"], "藏品列表应采用正文")

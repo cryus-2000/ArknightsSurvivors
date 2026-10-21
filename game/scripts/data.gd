@@ -60,6 +60,27 @@ const DIFFICULTY_TIERS := [
 	{"name": "潮位 14 · 渊主", "short": "渊主", "en": "ABYSS LORD", "desc": "Boss 生命加重到 +60%；最终 Boss 生命再 +30%。", "level": 14},
 	{"name": "潮位 15 · 潮不止息", "short": "潮不止息", "en": "ENDLESS TIDE", "desc": "最终 Boss 在场时海嗣照常涌来；敌人生命加重到 +140%。", "level": 15},
 ]
+## 界面上的三档难度（用户 10-22：「难度改成三档，作为潮位系统的三个预设」）。潮位阶梯 0–15 的代码与数据保留但不在界面露出
+## （危机合约类玩法留作以后）。tide = 取哪一级潮位的修正表；factor = 结算系数（= Meta.tide_factor(tide)）。
+## 存档 Cfg.difficulty / diff_unlocked 存的是这里的下标；通关第 i 档解锁第 i+1 档。名字候选见 docs/109 §15（另一组：常规 / 高压 / 深潮）
+const DIFF_PRESETS := [
+	{"name": "标准", "short": "标准", "en": "STANDARD", "tide": 0, "level": 0, "factor": 1.0,
+		"desc": "没有额外规则。"},
+	{"name": "困难", "short": "困难", "en": "HARD", "tide": 5, "level": 5, "factor": 1.25,
+		"desc": "敌人生命与伤害 +20%，大群 +20%；队长初始最大生命 -10%，灯油与源石锭掉落减少。"},
+	{"name": "极限", "short": "极限", "en": "EXTREME", "tide": 10, "level": 10, "factor": 1.5,
+		"desc": "敌人生命 +70%、伤害 +35%；溟痕常驻，大群 +60%，Boss 在场时照常来袭；受击灯火损失 +60%。"},
+]
+
+
+## 潮位 → 界面档名：三档预设的潮位显示档名，其余（批跑 --tide）显示潮位名
+static func tier_name(tide: int) -> String:
+	for p in DIFF_PRESETS:
+		if int(p.tide) == tide:
+			return str(p.name)
+	return str(DIFFICULTY_TIERS[clampi(tide, 0, DIFFICULTY_TIERS.size() - 1)].name)
+
+
 ## 每级写入的修正键（锚点 0 / 4 / 8 之外）；数值是第一轮草案，按 docs/109 §5.4 云端实测再调
 const TIDE_SET := {
 	1: {"boss_hp": 1.15, "boss_warn": 0.85},

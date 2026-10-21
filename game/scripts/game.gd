@@ -240,6 +240,7 @@ var texts: Array = []
 var grid := {}
 var threat := 0                  # 威胁等级（D.THREAT 下标）
 var diff := 0                # 本局难度（累计档位 0–10，D.DIFFICULTY）
+var preset := 0              # 本局难度档（D.DIFF_PRESETS 下标；批跑 --tide / --tier / --diff 时为 -1，不推进解锁）
 var tier := 0                # 本局潮位（0–15，D.DIFFICULTY_TIERS 下标；10-22 起由三档改为潮位阶梯，docs/109 §5）
 var dmod: Dictionary = D.dmod_for_level(0)   # 本局难度修正表（D.DMOD_DEFAULT 的键）；局内难度效果一律读它
 var diff_new := false
@@ -875,22 +876,26 @@ func _ready() -> void:
 		Sfx.cut_target = 20000.0
 		Sfx.vol_target = -4.0
 		vfx.show_banner("深海的潮水正在涌来……")
-	tier = clampi(Cfg.difficulty, 0, D.DIFFICULTY_TIERS.size() - 1)
-	diff = D.DIFFICULTY_TIERS[tier].level
+	preset = clampi(Cfg.difficulty, 0, D.DIFF_PRESETS.size() - 1)
+	tier = int(D.DIFF_PRESETS[preset].tide)
+	diff = tier
 	dmod = D.dmod_for_tier(tier)
 	for a in Cfg.dev_args():
 		if a.begins_with("--diff="):
 			# 批跑：旧累计难度 0–10 拼修正表（与旧数据对得上）
 			diff = int(a.substr(7))
+			preset = -1
 			tier = D.tier_of_level(diff)
 			dmod = D.dmod_for_level(diff)
 		elif a.begins_with("--tier="):
 			# 批跑旧三档：修正表与改动前逐局相同（潮位 8 比旧 Ⅷ 多寒流两键，所以 --tier=2 不走潮位表）
 			var lt := clampi(int(a.substr(7)), 0, D.LEGACY_TIERS.size() - 1)
+			preset = -1
 			tier = int(D.LEGACY_TIERS[lt].level)
 			diff = tier
 			dmod = D.dmod_for_legacy(lt)
 		elif a.begins_with("--tide="):
+			preset = -1
 			tier = clampi(int(a.substr(7)), 0, D.DIFFICULTY_TIERS.size() - 1)
 			diff = tier
 			dmod = D.dmod_for_tier(tier)
@@ -1119,7 +1124,9 @@ func _process(delta: float) -> void:
 			telemetry.on_state(state)   # 进入胜 / 负时把这一局写进本地记录（docs/40）
 			if state == S.WIN or state == S.DEAD:
 				Roster.on_run_end(self, state == S.WIN)
-				Meta.on_run_end(self, state == S.WIN)   # 局外成长：记生机细胞（docs/109 §3.1）   # 干员解锁：发寻访凭证 / 招募券 / 人事调度函（docs/109 §12；不碰 g.rng）
+				Meta.on_run_end(self, state == S.WIN)   # 局外成长：记生机细胞（docs/109 §3.1）
+				if state == S.DEAD and mode == Mode.PLAY and preset >= 0 and demo_op == "" and not Cfg.practice_active:
+					Cfg.note_diff_best(preset, false, t)   # 各档最佳成绩（通关的在 victory_flow.record_win 记）   # 干员解锁：发寻访凭证 / 招募券 / 人事调度函（docs/109 §12；不碰 g.rng）
 				Cloud.flush("run_end")   # B站云存档：一局结算时上传（只在 B站环境生效，docs/89）
 		state_age = 0.0
 		ui_skip = false

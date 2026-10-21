@@ -83,7 +83,7 @@ static func snapshot(g) -> Dictionary:
 		final_boss = {"type": bt, "name": str(D.ENEMIES.get(bt, {}).get("name", bt)).replace("\"", "")}
 	return {"result": "win" if won else "dead", "trial": g.trial.active, "ending": str(g.ending), "ending_name": ending_name,
 		"t": t_end, "t0": g.trial.started_at if g.trial.active else 0.0,
-		"tier": g.tier, "tier_name": str(D.DIFFICULTY_TIERS[g.tier].name), "level": g.level, "elite": g.ch.elite if g.ch != null else 0,
+		"tier": g.tier, "tier_name": D.tier_name(g.tier), "level": g.level, "elite": g.ch.elite if g.ch != null else 0,
 		"kills": g.kills, "elites": g.elites_killed, "relics": g.relics.size(),
 		"ops": ops, "op_out": tm.op_out.duplicate(true), "op_kills": tm.op_kills.duplicate(), "op_casts": tm.op_casts.duplicate(),
 		"bins": tm.out_bins.duplicate(true), "bin_s": tm.BIN_S, "origin": origin,

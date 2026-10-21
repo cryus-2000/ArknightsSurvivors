@@ -9,8 +9,9 @@ const D = preload("res://scripts/data.gd")
 const Look = preload("res://scripts/render/look.gd")
 const TouchLayout = preload("res://scripts/touch_layout.gd")
 const CloudPack = preload("res://scripts/core/cloud_pack.gd")
-## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的三档下标；3 = 10-22 起的潮位 0–15（D.DIFFICULTY_TIERS）
-const DIFF_VER := 3
+## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的三档下标；3 = 10-22 的潮位 0–15（只在内部包短暂存在）；
+## 4 = 10-22 起的三档预设下标（D.DIFF_PRESETS：标准 / 困难 / 极限 = 潮位 0 / 5 / 10）
+const DIFF_VER := 4
 ## 存档里亮度字段的口径：0 = 旧缺省 110%；1 = 缺省随观感预设 render/look（10-12 起 100%）
 const LOOK_VER := 1
 
@@ -50,14 +51,15 @@ const UI_MIN_H := 470.0
 ## 触屏按键布局（设置 → 游戏 → 触屏按键布局，用户 10-13）：{键: {ax, ay, x, y, s}}，空 = 全部缺省（touch_layout.gd）
 var touch_layout := {}
 var manual_attack := false   # 主控普通攻击手动（契约 v2.5，docs/26）：开局读一次；机器人 / 自动测试 / 图鉴演示一律自动
-var difficulty := 0      # 上次选的潮位（0–15）
+var difficulty := 0      # 上次选的难度档（D.DIFF_PRESETS 下标）
 var character_id := "mizuki"  # 本局角色（data/characters/<id>.json）
 var cover_character_id := "mizuki"
 var play_speed := 1.0
 var boss_trial_request := {} # transient, never saved
 var practice_active := false
 var map_id := "deep_sea"  # 本局地图主题（data/maps/<id>.json）
-var diff_unlocked := 0   # 已解锁的最高潮位（0–15）
+var diff_unlocked := 0   # 已解锁的最高难度档（D.DIFF_PRESETS 下标）
+var diff_best := {}      # 各档最佳成绩 {"0": {"wins": 通关次数, "best_t": 最长探索秒数, "fast_t": 最快通关秒数}}（docs/109 §15）
 var seen_shows: Array = []   # 已看过的解锁演出
 var gallery_seen: Array = []
 var seen_relics: Array = []  # 获得过的藏品 id（图鉴用）
@@ -293,11 +295,12 @@ func _ready() -> void:
 		meta_bounty = c.get_value("meta", "bounty", meta_bounty)
 		if not c.has_section("roster"):
 			_migrate_roster()
+		diff_best = c.get_value("progress", "diff_best", diff_best)
 		var dv := int(c.get_value("progress", "diff_ver", 1))
 		if dv < 2:
-			_migrate_diff()
-		if dv < 3:
-			_migrate_tide()
+			_migrate_diff()   # 旧累计档 → 三档下标，已是 DIFF_VER 4 的含义
+		elif dv == 3:
+			_migrate_tide_to_preset()
 		cloud_set_t = int(c.get_value("cloud", "set_t", 0))
 		cloud_sig = str(c.get_value("cloud", "sig", ""))
 		_set_sig = str(c.get_value("cloud", "set_sig", ""))
@@ -412,7 +415,27 @@ func _migrate_diff() -> void:
 	difficulty = mini(D._tier_of_level_old(old_diff), diff_unlocked)
 
 
-## 三档 → 潮位（10-22，docs/109 §5 / docs/71 §4.3）：上次选的档 0 / 1 / 2 → 潮位 0 / 4 / 8；
+## 潮位 0–15（DIFF_VER 3，内部包短暂存在）→ 三档预设：潮位 < 5 标准、< 10 困难、其余极限；解锁同样换算
+func _migrate_tide_to_preset() -> void:
+	var to_p := func(t: int) -> int: return 0 if t < 5 else (1 if t < 10 else 2)
+	difficulty = to_p.call(difficulty)
+	diff_unlocked = to_p.call(diff_unlocked)
+	difficulty = mini(difficulty, diff_unlocked)
+
+
+## 各档最佳成绩（victory_flow / 失败时由 game 记）：通关次数、最长探索时间、最快通关时间
+func note_diff_best(preset: int, won: bool, t: float) -> void:
+	var k := str(preset)
+	var b: Dictionary = diff_best.get(k, {"wins": 0, "best_t": 0, "fast_t": 0})
+	b.best_t = maxi(int(b.get("best_t", 0)), int(t))
+	if won:
+		b.wins = int(b.get("wins", 0)) + 1
+		b.fast_t = int(t) if int(b.get("fast_t", 0)) <= 0 else mini(int(b.fast_t), int(t))
+	diff_best[k] = b
+	save()
+
+
+## （旧）三档 → 潮位（10-22，docs/109 §5 / docs/71 §4.3）：上次选的档 0 / 1 / 2 → 潮位 0 / 4 / 8；
 ## 解锁：通关过标准 → 1，通关过 Ⅳ → 5，通关过 Ⅷ（P1 起记在 roster_tiers 里的档 2）→ 9。P1 记的首通档同时改成潮位号
 func _migrate_tide() -> void:
 	var lv := [0, 4, 8]
@@ -446,7 +469,7 @@ func _apply_unlock_all() -> void:
 		return   # 对外包（public / diagnostic）恒不解锁；对内包（1.1.1，用户 09-30）启动即全部解锁，同样只在内存
 	unlock_all = true
 	_real_progress = {"diff_unlocked": diff_unlocked, "seen_relics": seen_relics.duplicate(), "endings_cleared": endings_cleared.duplicate()}
-	diff_unlocked = D.DIFFICULTY_TIERS.size() - 1
+	diff_unlocked = D.DIFF_PRESETS.size() - 1
 	endings_cleared = D.ENDINGS.keys()
 	var db = preload("res://scripts/core/relic_db.gd").new()
 	db.load_files()
@@ -524,6 +547,7 @@ func save() -> void:
 	c.set_value("progress", "difficulty", difficulty)
 	c.set_value("progress", "diff_unlocked", _real_progress.get("diff_unlocked", diff_unlocked))
 	c.set_value("progress", "diff_ver", DIFF_VER)
+	c.set_value("progress", "diff_best", diff_best)
 	c.set_value("progress", "gallery_seen", gallery_seen)
 	c.set_value("progress", "seen_shows", seen_shows)
 	c.set_value("progress", "seen_relics", _real_progress.get("seen_relics", seen_relics))
@@ -583,6 +607,7 @@ func cloud_body() -> Dictionary:
 		"rel": (_real_progress.get("seen_relics", seen_relics) as Array).duplicate(), "end": (_real_progress.get("endings_cleared", endings_cleared) as Array).duplicate(),
 		"shows": seen_shows.duplicate(), "intro": seen_intro, "open": opening_seen,
 		"ops": roster_unlocked.duplicate(), "optier": roster_tiers.duplicate(),
+		"dbest": diff_best.duplicate(true),
 		"meta": {"earned": meta_earned.duplicate(), "bounty": meta_bounty.duplicate(), "shape": meta_shape.duplicate(), "t": meta_shape_t},
 		"opst": {"tk": roster_tickets.duplicate(), "sp": roster_spare.duplicate(), "wish": roster_wish, "pity": roster_pity, "draws": roster_draws, "seed": roster_seed}}, true)
 	var out: Dictionary = (cloud_extra.get("top", {}) as Dictionary).duplicate(true)
@@ -631,6 +656,8 @@ func cloud_apply(body: Dictionary) -> void:
 		var M = load("res://scripts/core/meta.gd")
 		if M.spent(meta_shape) > M.earned_total():
 			meta_shape = {}   # 采用的认知塑造超出余额（另一台设备的进度还没同步过来）：整组重置，重置免费
+	if p.get("dbest") is Dictionary:
+		diff_best = (p.dbest as Dictionary).duplicate(true)
 	if p.get("optier") is Array:
 		roster_tiers = p.optier.map(func(x): return int(x))
 	if p.get("opst") is Dictionary:
@@ -645,7 +672,7 @@ func cloud_apply(body: Dictionary) -> void:
 			if st0.get(k) is float or st0.get(k) is int:
 				set("roster_" + k, int(st0[k]))
 	if p.get("diff") is float or p.get("diff") is int:
-		var unlocked: int = clampi(int(p.diff), 0, D.DIFFICULTY_TIERS.size() - 1)
+		var unlocked: int = clampi(int(p.diff), 0, D.DIFF_PRESETS.size() - 1)
 		if unlock_all:
 			_real_progress["diff_unlocked"] = unlocked
 		else:
