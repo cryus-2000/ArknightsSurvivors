@@ -569,10 +569,9 @@ func record(marks = null) -> Dictionary:
 	if g.bot != null:
 		prof_name = g.bot.profile
 	var bot_block: Dictionary = metrics(prof_name) if (g.bot != null or g.mode == g.Mode.PLAY) else {}
-	return {"meta": g.meta_cells, "win": g.state == g.S.WIN or g.victory.recorded, "t": int(g.t), "lv": g.level, "marks": lv_marks if marks == null else marks, "lv_times": g.lv_times,
+	var rec := {"meta": g.meta_cells, "win": g.state == g.S.WIN or g.victory.recorded, "t": int(g.t), "lv": g.level, "marks": lv_marks if marks == null else marks, "lv_times": g.lv_times,
 		"ops": g.squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": g.dbg_offer, "prog_pick": g.dbg_pick,
 		"heal_offer": g.progression.heal_offer, "heal_pick": g.progression.heal_pick,
-		"cmd": g.squad.cmd_stats(),   # 指挥模式（docs/114 §7）：突击秒数、倒地次数、被引走的怪数
 		"xp_total": snappedf(g.pickups.xp_total, 0.1),
 		# 经验分来源（docs/38 §8.13 方案 A，替代旧的 xp_overflow）：走近捡 / 磁铁吸回 / 视野外回收（含兜底），各带按分钟分段；
 		# 守恒 xp_dropped = xp_walk + xp_magnet + xp_recall + xp_ground（tools/check.py 逐局断言）
@@ -599,6 +598,9 @@ func record(marks = null) -> Dictionary:
 		"terrain": g.map.tb_log.duplicate(),   # 地形阻挡（只记录）：挡下的我方 / 敌方直线弹、撞停的冲刺
 		"sus": sus,   # docs/88：治疗分项 / 干员减伤 / 净化 / 照亮
 		"final_out": g.dmg_out, "ctrl": g.combat.ctrl_report(), "ctrl_src": g.combat.ctrl_src_report(), "bot": bot_block}
+	if not g.squad.stance_log.is_empty():
+		rec["cmd"] = g.squad.cmd_stats()   # 指挥模式（docs/114 §7）：突击秒数、倒地次数、被引走的怪数；没切过模式的局不写（BALANCE 与 main 逐字相同）
+	return rec
 
 
 ## 状态切换时调用（game.gd _process）：进入胜 / 负就把这一局写进本地记录
