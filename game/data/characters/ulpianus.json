@@ -15,6 +15,11 @@
  "base": {
   "_doc": "基础数值",
   "atk": 52,
+    "quake_r": 150,
+    "quake_mult": 0.5,
+    "quake_kb": 110,
+    "quake_r_e2": 180,
+    "quake_mult_e2": 0.6,
   "cd": 1.4,
   "reach": 105,
   "s1_mult": 1.7,
@@ -352,7 +357,7 @@
  "attack": {
   "mode": "auto",
   "name": "锚击",
-  "desc": "每 {$cd} 秒抡锚砸向身前，命中半径 {$reach} 内的全部敌人（撼地者）"
+  "desc": "每 {$cd} 秒抡锚砸向身前，命中半径 {$reach} 内的全部敌人；砸地同时撼地，周围 {$quake_r} 内的敌人受到 {$quake_mult*100}% 伤害并被震退（撼地者）"
  },
  "skills": [
   {
@@ -428,6 +433,7 @@
     "area"
    ]
   },
+  "撼地": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "area"]},
   "锁链回旋": {
    "emitter": "operator",
    "origin": "core",
@@ -523,7 +529,7 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「必须开辟的通路」（当队长时手动释放）：掷锚眩晕一片，之后 {$s3_haste} 秒锚击加速；普攻质变「掷锚」：身上常亮血脉红纹；每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的），落地造成锚击 ×{$throw_mult} 伤害，随后顺锁链把沿线敌人拖回面前，再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）",
+   "desc": "解锁三技能「必须开辟的通路」（当队长时手动释放）：掷锚眩晕一片，之后 {$s3_haste} 秒锚击加速；撼地范围扩大到 {$quake_r_e2}、伤害提高到 {$quake_mult_e2*100}%；普攻质变「掷锚」：身上常亮血脉红纹；每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的），落地造成锚击 ×{$throw_mult} 伤害，随后顺锁链把沿线敌人拖回面前，再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）",
    "attack": {
     "name": "掷锚",
     "desc": "每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的）：落地半径 {$throw_r} 造成锚击 ×{$throw_mult} 伤害，锁链绷直后把乌尔比安与锚之间宽 {$throw_w} 的一线敌人拖回面前，再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）。锚在外面时不出锚击"
@@ -537,7 +543,7 @@
    "聚怪",
    "精英克制"
   ],
-  "desc": "近卫干员，深海猎人成员，持锚作战。抡锚砸向身前一片敌人，掷锚把精英拖到面前；每击杀一名精英攻击 +{$stack_atk*100}%（最多 {$stack_cap} 层）"
+  "desc": "近卫干员，深海猎人成员，持锚作战。抡锚砸向身前一片敌人、撼地震退周围敌人，掷锚把精英拖到面前；每击杀一名精英攻击 +{$stack_atk*100}%（最多 {$stack_cap} 层）"
  },
  "blocks": {
   "_doc": "乌尔比安（docs/61 §17.5）：锚击（身前圆）、必须促成的接触（掷锚钩回 / 落锚砸下）、必须维系的界限（永久）、必须开辟的通路（手动掷锚 + 8 秒加速）、血脉的哺养（叠层）、精二血脉沸腾（蓄势大爆破）；原手写脚本作参照 tests/data_ops/ulpianus_legacy.gd",
@@ -850,6 +856,50 @@
       "stat": "interval",
       "op": "mult",
       "value": "$haste_mult"
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "elite < 2",
+    "_doc": "撼地（10-22 用户：原作撼地者，攻击周围所有敌人）：每次锚击砸地，以自身为中心追加一圈冲击环（普攻 quake_mult 倍、击退）；特效先用程序地裂环 + 裂纹占位，Codex 单见 art/incoming/codex_order_ulpianus_handoff.md",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$quake_r",
+      "basis": "atk",
+      "mult": "$quake_mult",
+      "kb": "$quake_kb",
+      "src": "撼地",
+      "ring": false,
+      "fx": [
+       {"pfx": {"kind": "ulp_wave", "r": 1.0, "life": 0.36, "floor": true, "alpha": 0.7}, "r_scale": ["r"]},
+       {"pfx": {"kind": "crack", "r": 60.0, "life": 0.35, "col": [0.45, 0.62, 0.8], "floor": true, "n": 8}}
+      ]
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "elite >= 2",
+    "_doc": "撼地（精二）：环更大、更痛（quake_r_e2 / quake_mult_e2）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$quake_r_e2",
+      "basis": "atk",
+      "mult": "$quake_mult_e2",
+      "kb": "$quake_kb",
+      "src": "撼地",
+      "ring": false,
+      "fx": [
+       {"pfx": {"kind": "ulp_wave", "r": 1.0, "life": 0.4, "floor": true, "alpha": 0.8}, "r_scale": ["r"]},
+       {"pfx": {"kind": "crack", "r": 72.0, "life": 0.4, "col": [0.9, 0.35, 0.4], "floor": true, "n": 10}}
+      ]
      }
     ]
    }
