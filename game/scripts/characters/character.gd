@@ -1224,7 +1224,7 @@ var fp_wait := -1.0
 func _follow_paused(dt: float, d: float) -> bool:
 	if follow_pause < 0:
 		follow_pause = 3
-		for a in OS.get_cmdline_user_args():
+		for a in (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()):   # 发布版不读命令行（check_release）；不用 Cfg：核心契约测试无 autoload，同第 265 行写法
 			if a.begins_with("--fpause="):
 				follow_pause = maxi(0, "-abc".find(a.substr(9, 1)))   # off → 0
 	if follow_pause == 0:
