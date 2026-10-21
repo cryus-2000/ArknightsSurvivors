@@ -90,10 +90,7 @@ func add(cid: String, recruit_event := true):
 	if op.is_leader:
 		_apply_leader_regen(op)
 	op.voice_t = g.vrng.randf_range(20.0, 40.0)   # 语音计时只影响声音（docs/101 §3.4 ④）
-	# 部署语音：排队播，多名干员不会同帧抢话（图鉴演示不播）
-	var sfx0: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
-	if sfx0 != null and g.demo_op == "":
-		sfx0.voice(cid, "entry", true)
+	op.entry_started()   # 尚无独立 Start 动画：即时请求登场语音，后续动画通知不会重复
 	ops.append(op)
 	g.stats.define_all(op.stat_defs())
 	# 干员档位系数（data/balance.json operators 段，docs/27 §3）：写入本干员作用域
@@ -470,7 +467,8 @@ func _recall_blink() -> void:
 			g.fx.append({"kind": "ring", "pos": dst, "r": 34.0, "life": 0.35, "max": 0.35, "col": Color(0.85, 0.95, 1.0)})
 
 
-## 突击 / 归队语音（10-22 用户定）：编队里轮流一人（从队长起），突击播「作战中 4」（*_battle，CN_028），归队播「部署 1」（*_entry，CN_023）；
+## 突击 / 归队语音（10-22 用户确认）：队长优先、按编队轮换；非突击型随从与倒地干员不回应。
+## 突击播已确认的 *_command 短回应，归队仍播 *_entry；队长不受职业是否突击的限制。
 ## 走 Sfx 语音通道（占线放弃、每人 15 秒间隔、整体 3 秒间隔照旧），另按 command/voice_gap 节流，连按不刷屏。纯声音，不碰玩法状态
 var _vo_i := 0
 var _vo_t := -999.0
@@ -478,7 +476,8 @@ var _vo_t := -999.0
 func _stance_voice(s: int) -> void:
 	if g.demo_op != "" or g.t - _vo_t < Bal.v("command/voice_gap", 6.0):
 		return
-	var order: Array = ops.filter(func(o): return o.is_leader) + ops.filter(func(o): return not o.is_leader)
+	var eligible: Array = ops.filter(func(o): return o.cmd_down <= 0.0 and (o.is_leader or o.cmd_roam()))
+	var order: Array = eligible.filter(func(o): return o.is_leader) + eligible.filter(func(o): return not o.is_leader)
 	if order.is_empty():
 		return
 	var o = order[_vo_i % order.size()]
@@ -486,7 +485,7 @@ func _stance_voice(s: int) -> void:
 	_vo_t = g.t
 	var sfx: Node = g.get_node_or_null("/root/Sfx")
 	if sfx != null:
-		sfx.voice(o.id, "battle" if s == ROAM else "entry")
+		sfx.voice(o.id, "command" if s == ROAM else "entry")
 
 
 func _tick_lead(dt: float) -> void:

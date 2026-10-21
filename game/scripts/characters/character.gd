@@ -34,6 +34,7 @@ var node_lv := 0           # 已拿的普通成长节点数（0–4），驱动�
 const NODE_ATK := 0.06
 var aura_t := 0.0
 var voice_t := 25.0        # 战斗台词计时（squad.gd 每帧递减）
+var entry_voice_done := false   # 登场语音每个实例只请求一次（含 Squad.add 的即时兜底）
 var elite := 0             # 精英化阶段 0 / 1 / 2
 var prog := 0              # 已应用的成长节点数（progression 数组下标）
 var route := ""            # 培养路线 id（docs/119 §4.1：节点 4 二选一时记下；节点 5 / 6、卡面、统计按它解析；"" = 未选 / 不分支）
@@ -68,6 +69,16 @@ func _init(game, def_: Dictionary) -> void:
 	id = def.get("id", "")
 	cls = def.get("class", "")
 	op_key = "op:" + id   # 本人作用域键（stats 的 scope），每帧拼接的省掉（docs/101 S9）
+
+
+## 登场起手时通知；当前没有独立 Start 动画，由 Squad.add 即时调用。后续动画通知可复用此钩子。
+func entry_started() -> void:
+	if entry_voice_done or g == null or not g.is_inside_tree() or g.demo_op != "":
+		return
+	var sfx: Node = g.get_node_or_null("/root/Sfx")
+	if sfx != null:
+		entry_voice_done = true
+		sfx.voice(id, "entry", true)
 
 
 static func list_ids() -> Array:
