@@ -1,6 +1,8 @@
 # 112 战斗镜头拉远 + 全局亮度候选（10-21）
 
-状态：**候选，待用户选**。分支 `claude/camera-zoom`。本分支只加了探针和一个缺省不生效的旋钮（`render/ambient_mult`，缺省 1），缺省镜头和亮度都没改。
+> **用户 10-22 定：镜头拉远不采用，缺省镜头不变**（试玩分支 `claude/camera-23-trial` 4dc6c33f / 2aa24d53 不合 main，分支保留）。亮度用 B（`claude/brightness-b` 52e989f9）。
+
+状态：已结案（原为候选）。分支 `claude/camera-zoom`。本分支只加了探针和一个缺省不生效的旋钮（`render/ambient_mult`，缺省 1），缺省镜头和亮度都没改。
 
 图和视频都在主仓库 `E:\ArknightsSurvivors\build\camzoom\`（`build/` 不进 git）。同 seed、同一局：水月队长 + 斯卡蒂 / 塞雷娅，Ⅳ，熟练机器人，seed 1，`--nodeath`，高画质，窗口 1920×1080。各档模拟逐帧相同（各档在 60 / 240 / 480 秒的敌人总数都是 17 / 38 / 59），只有画面不同。
 
