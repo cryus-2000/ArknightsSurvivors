@@ -2394,7 +2394,7 @@ func arrive_dy() -> float:
 	return -(1.0 - u * u) * (g.world.view_rect(0.0).size.y + 80.0 * g.PX)
 
 
-## 突击倒地（docs/114 §7）：有 death 条的播一遍停在末帧（压暗一点）；没有的先放共用退场闪光，再画躺倒的暗色剪影（待机帧转 90°）
+## 突击倒地（docs/114 §7）：播 death 条一遍停在末帧（压暗一点）；还没有 death 条的画躺倒的灰色剪影（待机帧转 90°）
 func _draw_downed(st: Dictionary) -> void:
 	var dtx: Texture2D = anim_tex("death")
 	var foot: Vector2 = pos + g.draw_off
@@ -2404,10 +2404,7 @@ func _draw_downed(st: Dictionary) -> void:
 		var ds := {"tex": dtx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror("death"), "kind": "death"}
 		draw_sprite_at(pos + Vector2(foot_dx(ds), 0), ds.flip, Color(0.75, 0.75, 0.8), fr, dtx, n, foot_off(dtx, "death"))
 		return
-	_cv_flush()
-	if cmd_down_age < RetreatFx.TOTAL:
-		RetreatFx.draw(g, st, foot + Vector2(foot_dx(st), 0), foot_off(st.tex, st.get("kind", "")), cmd_down_age, g.PX)
-		return
+	_cv_flush()   # 还没有 death 条的（用户 10-22 定倒地统一用 death 条，claude/retreat-to-downed 在补）：先画躺倒的灰色剪影，不再放共用退场闪光
 	var tx: Texture2D = st.tex
 	var hf: int = maxi(1, int(st.hf))
 	var fw: float = float(tx.get_width()) / hf
