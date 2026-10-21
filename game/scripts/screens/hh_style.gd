@@ -17,6 +17,7 @@ const INK2 := Color8(92, 97, 106)
 const MUTE := Color8(150, 156, 166)
 const YEL := Color8(255, 206, 0)          # 标题标签 / 新加入（同图鉴警示黄）
 const CYB := Color8(56, 214, 240)         # 主按钮青
+const RIB := Color8(24, 120, 214)         # 罗德岛蓝：进入转场的斜切色块（10-22 用户：不用警示黄）
 const SIL := Color8(118, 123, 132)        # 剪影灰
 const SKEW := 0.18                        # 平行四边形斜率（每 1 高度右移 0.18）
 const GLITCH := "#/_<>01:=+"               # 解码中的乱码字符（像素字与 ui.ttf 都有）

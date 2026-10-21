@@ -20,7 +20,7 @@ what = sys.argv[1] if len(sys.argv) > 1 else 'all'
 gr.ensure_imported(game)
 godot = gr.find_godot()
 DEVS = [('desktop', '1280x720', []), ('phone', '1480x720', ['--touch'])]
-BASE = ['--autotest', '--huntshot', '--roster=start5', '--rostertickets=3,0,1']   # 3 张寻访凭证 + 1 张人事调度函（roster.gd 还是旧三券时，定向寻访走人事调度函）
+BASE = ['--autotest', '--huntshot', '--roster=start5', '--rostertickets=5']   # 5 张寻访凭证（单一凭证规则）
 
 
 def run(item):
