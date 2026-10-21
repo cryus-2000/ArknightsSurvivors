@@ -1,6 +1,7 @@
 ## 编队（docs/23 §3）：持有编队位上的干员实例，负责招募 / 替换、编队校验、跟随队形与统一的 update / draw 分发。
 ## 常规上限 3 人，第 4 位由事件 / 藏品 / 商店解锁（extra_slot）。干员没有生命值，敌人只追主控。
 extends RefCounted
+const RetreatFx = preload("res://scripts/render/retreat_fx.gd")   # 共用撤退表现（10-21）
 
 const Character = preload("res://scripts/characters/character.gd")
 const BatchCanvas = preload("res://scripts/characters/batch_canvas.gd")
@@ -116,6 +117,7 @@ func remove(cid: String) -> void:
 		if ops[i].id == cid:
 			if g.get("telemetry") != null:
 				g.telemetry.on_leave(cid)
+			_leave_fx(ops[i])
 			if ops[i].has_method("on_leave"):
 				ops[i].on_leave()
 			ops.remove_at(i)
@@ -129,6 +131,16 @@ func remove(cid: String) -> void:
 		_apply_leader_regen(ops[0])
 	if g.get("rfx") != null:
 		g.rfx.refresh_squad()
+
+
+## 队友离队 / 换人：在原地留一个共用撤退表现（render/retreat_fx.gd，纯画面 g.fx kind "retreat"）
+func _leave_fx(o) -> void:
+	if o.pos == Vector2.INF or g.get("fx") == null:
+		return
+	var st: Dictionary = o.anim_state()
+	if st.is_empty():
+		return
+	g.fx.append({"kind": "retreat", "pos": o.pos + Vector2(o.foot_dx(st), 0), "st": st, "foot_off": o.foot_off(st.tex, st.get("kind", "")), "life": RetreatFx.TOTAL, "max": RetreatFx.TOTAL})
 
 
 var _hold_size := false   # replace 中途：人数先减后加，不重算入队加成（人数不变，台阶不变）
