@@ -1,0 +1,147 @@
+{
+ "id": "wisadel",
+ "src": "wisadel.src.json",
+ "name": "维什戴尔",
+ "body": {
+  "hip": "F_Waist_5",
+  "chest": "F_Chest_1",
+  "head": "F_Head_02"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg_01",
+   "F_L_Calf_01_01",
+   "F_L_Foot_01"
+  ],
+  "R": [
+   "F_R_Leg_01",
+   "F_R_Calf_01",
+   "F_R_Foot_01"
+  ]
+ },
+ "footExtra": {
+  "L": [
+   "F_L_Foot_1",
+   "F_L_Foot_02",
+   "F_L_Foot_04",
+   "F_L_Foot_05"
+  ],
+  "R": [
+   "F_R_Foot_1",
+   "F_R_Foot_02",
+   "F_R_Foot_04",
+   "F_R_Foot_05"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm_01",
+   "F_L_Forearm_01",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm_01",
+   "F_R_Forearm_01",
+   "F_R_Hand_01"
+  ]
+ },
+ "leadLeg": "L",
+ "nearSide": "R",
+ "hold": "L",
+ "weapon": "F_Knife_01",
+ "params": {
+  "lean": 20,
+  "headKeep": 0.65,
+  "chestLean": 2,
+  "holdAmp": 6,
+  "armAmp": 22,
+  "elbow": 70,
+  "carryLean": 0.0,
+  "stride": 1.25,
+  "crouch": 0.07,
+  "footRot": 0.25
+ },
+ "secondary": [
+  {
+   "match": "^F_(Hair_[2-5]|L_Temples_[1-4]|R_Temples_([1-9]|10)|Bangs_[1-3]|R_Bangs_[1-3])$",
+   "amp": 2.5,
+   "drag": 4
+  },
+  {
+   "match": "^F_Ahoge_([1-9]|1[0-5])$",
+   "amp": 3,
+   "drag": 2
+  },
+  {
+   "match": "^F_Tail(_[a-f])?$",
+   "amp": 5,
+   "drag": 6,
+   "lag": 1.4
+  },
+  {
+   "match": "^F_Ribbon_[1-5]$",
+   "amp": 4,
+   "drag": 6,
+   "lag": 1.2
+  },
+  {
+   "match": "^F_(Coat_[1-4]|L_Coat_[3-7]|R_Coat_[34])$",
+   "amp": 3,
+   "drag": 4,
+   "gravity": 0.6
+  },
+  {
+   "match": "^F_Belt_[3-6]$",
+   "amp": 3,
+   "drag": 3
+  }
+ ],
+ "gaitLiftPx": [
+  null,
+  null,
+  null,
+  null,
+  10,
+  12,
+  5,
+  2
+ ],
+ "gaitX": [
+  null,
+  null,
+  null,
+  null,
+  -0.42,
+  -0.3,
+  0.0,
+  0.25
+ ],
+ "legDepth": true,
+ "swingTop": "back",
+ "action": "entry",
+ "skipAdditive": true,
+ "sample": {
+  "anim": "Start",
+  "times": [
+   0.3333,
+   0.4166,
+   0.5,
+   0.5833,
+   0.6666,
+   0.75,
+   0.8333,
+   0.9167
+  ]
+ },
+ "durations": [
+  0.0833,
+  0.0834,
+  0.0833,
+  0.0833,
+  0.0834,
+  0.0833,
+  0.0834,
+  0.0833
+ ],
+ "_doc": "入场条（10-22）：原作 Start 轨，整个人进画布起到收势均匀 8 帧；之前的空中下落由游戏代码补（durations = 帧间原作时长）"
+}

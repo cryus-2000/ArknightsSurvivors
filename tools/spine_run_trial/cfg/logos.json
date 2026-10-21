@@ -1,0 +1,43 @@
+{
+ "id": "logos",
+ "src": "logos.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "逻各斯",
+ "body": {
+  "hip": "F_Waist",
+  "chest": "F_Chest",
+  "head": "F_Head_B"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Forearm",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Forearm",
+   "F_R_Hand"
+  ]
+ },
+ "hold": null,
+ "params": {
+  "lean": 6,
+  "armAmp": 24,
+  "elbow": 50,
+  "bob": 0.6
+ }
+}

@@ -547,6 +547,9 @@ async function main() {
       for (let n = 0; n < v.length; n += 2) { xs.push(ANCHOR[0] + v[n] * SCALE); ys.push(ANCHOR[1] - v[n + 1] * SCALE); }
       const x0 = Math.floor(Math.min(...xs)) - 1, y0 = Math.floor(Math.min(...ys)) - 1;
       const w = Math.ceil(Math.max(...xs)) - x0 + 1, h = Math.ceil(Math.max(...ys)) - y0 + 1;
+      // 入场 Start 轨里有缩到 0 / 透明 / 飞出画面很远的部件（登场光效之类）：跳过，否则读像素失败
+      if (!(w > 0 && h > 0 && w < SIZE * 4 && h < SIZE * 4) || slot.color.a <= 0.004) continue;
+      if (cfg.skipAdditive && slot.data.blendMode) continue;   // 入场：叠加 / 滤色的登场光效像素化后成白块，不画（特效另做）
       const hi = createCanvas(w * 4, h * 4), hc = hi.getContext('2d');
       hc.translate((ANCHOR[0] - x0) * 4, (ANCHOR[1] - y0) * 4); hc.scale(SCALE * 4, -SCALE * 4);
       if (clip) { hc.beginPath(); for (let n = 0; n < clip.v.length; n += 2) hc[n ? 'lineTo' : 'moveTo'](clip.v[n], clip.v[n + 1]); hc.closePath(); hc.clip(); }
@@ -566,7 +569,7 @@ async function main() {
       const th = Math.max(1, Math.min(CUT, max));
       // 嘴：沿用 bz_18 mouth_sampling 的光学取样——按列覆盖率取 ≥ 18% 峰值的列（至少两格成线），每列取覆盖最高的一行，
       // 墨色按覆盖率（夹 0.30–0.65）与下层脸色混合；否则亚像素嘴二值化后只剩一个黑点或碎点
-      if (/mouth/i.test(slot.data.name) && max > 0) {
+      if (/mouth/i.test(slot.data.name) && max > 0 && x0 >= 0 && y0 >= 0 && x0 + w <= SIZE && y0 + h <= SIZE) {
         const cols = new Float64Array(w);
         for (let x = 0; x < w; x++) for (let y = 0; y < h; y++) cols[x] += acc[(y * w + x) * 4 + 3] / 255;
         const peak = Math.max(...cols); let xs = [];

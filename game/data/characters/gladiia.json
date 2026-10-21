@@ -83,6 +83,7 @@
   "regen": 1.6
  },
  "sprites": {
+  "entry": {"tex": "op_gladiia_entry", "frames": 8, "fps": 9.4118, "foot": [32, 60], "frame_durations": [0.1, 0.1, 0.1, 0.1, 0.15, 0.1, 0.1, 0.1], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/gladiia_entry.json），64 画布 @2x；落下由代码补"},
   "_doc": "Codex 交付 199d7b73（原生像素 @2x、整数 foot；192 画布槽 foot = 顶层 + (16,16)）。跑步条未交，暂借乌尔比安 run。attack 走 attack_timing（B 步改出手时刻）；Skill_1_Loop / Skill_1_End 已交未用（S1 是瞬发）",
   "size": 64,
   "foot": [
@@ -417,7 +418,7 @@
    }
   }
  },
- "extra_sprites": [
+ "extra_sprites": ["entry", 
   "s1_begin",
   "s2_start",
   "s2_enter",

@@ -78,6 +78,7 @@
   "regen": 1.0
  },
  "sprites": {
+  "entry": {"tex": "op_lumen_entry", "frames": 8, "fps": 10.6667, "foot": [32, 60], "frame_durations": [0.0938, 0.0937, 0.0937, 0.0938, 0.0938, 0.0937, 0.0937, 0.0938], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/lumen_entry.json），64 画布 @2x；落下由代码补"},
   "death": {"tex": "op_lumen_death", "frames": 8, "fps": 8.0, "foot": [48, 76], "frame_durations": [0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125], "_doc": "10-21 原作 Die 轨逐部件像素化（tools/spine_run_trial cfg/lumen_death.json），96 画布 @2x"},
   "idle": {
    "tex": "op_lumen_idle",
@@ -304,7 +305,7 @@
    }
   }
  },
- "extra_sprites": [
+ "extra_sprites": ["entry", 
   "lighthouse",
   "attack_beam",
   "skill_s2",

@@ -60,6 +60,7 @@
     "regen": 1.1
   },
   "sprites": {
+  "entry": {"foot_exempt": "入场条同跑步条用整数脚底 (32, 60)，与小数顶层 foot 相差不到 1px（docs/108 §5）", "tex": "op_suzuran_entry", "frames": 8, "fps": 10.6667, "foot": [32, 60], "frame_durations": [0.0938, 0.0937, 0.0937, 0.0938, 0.0938, 0.0937, 0.0937, 0.0938], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/suzuran_entry.json），64 画布 @2x；落下由代码补"},
     "idle": {
       "tex": "op_suzuran_idle",
       "frames": 8,
@@ -211,7 +212,7 @@
       ]
     }
   },
-  "extra_sprites": [
+  "extra_sprites": ["entry", 
     "death",
     "skill_s2_hold",
     "skill_s2_intro",

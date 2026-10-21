@@ -81,6 +81,7 @@
   "regen": 1.6
  },
  "sprites": {
+  "entry": {"tex": "op_skadi_entry", "frames": 8, "fps": 9.1429, "foot": [32, 60], "frame_durations": [0.1094, 0.1094, 0.1093, 0.1094, 0.1094, 0.1093, 0.1094, 0.1094], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/skadi_entry.json），64 画布 @2x；落下由代码补"},
   "idle": {
    "tex": "op_skadi_idle",
    "frames": 8,
@@ -229,7 +230,7 @@
    "_doc": "Codex cz 原生 Die 8 帧（96 画布）"
   }
  },
- "extra_sprites": [
+ "extra_sprites": ["entry", 
   "attack_spin",
   "leap_strike",
   "backslash"

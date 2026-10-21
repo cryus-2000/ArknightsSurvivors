@@ -5,6 +5,7 @@
   "class": "特种",
   "script": "res://scripts/characters/data_operator.gd",
   "sprites": {
+  "entry": {"tex": "op_mizuki_entry", "frames": 8, "fps": 11.9994, "foot": [32, 60], "frame_durations": [0.0833, 0.0834, 0.0833, 0.0833, 0.0834, 0.0833, 0.0834, 0.0833], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/mizuki_entry.json），64 画布 @2x；落下由代码补"},
     "base": "mizuki_runtime_idle",
     "size": 96,
     "foot_exempt": "整套 96 画布 + draw_scale 0.9（docs/103 10-16 试验值沿用），不是 64 主规格；重画时回到 64（docs/108 §5）",
@@ -896,7 +897,7 @@
       }
     ]
   },
-  "extra_sprites": [
+  "extra_sprites": ["entry", 
     "skill_s2",
     "skill_s2_attack",
     "skill_s2_loop",

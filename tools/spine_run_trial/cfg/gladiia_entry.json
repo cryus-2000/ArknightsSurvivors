@@ -1,0 +1,36 @@
+{
+ "id": "gladiia",
+ "action": "entry",
+ "codex_start": "5839d9d2:art/incoming/lappland_gladiia_delivery_1021/gladiia/op_gladiia_start@2x.png",
+ "source_frames": [
+  3,
+  5,
+  7,
+  10,
+  12,
+  15,
+  17,
+  19
+ ],
+ "sample_times": [
+  0.15,
+  0.25,
+  0.35,
+  0.45,
+  0.55,
+  0.7,
+  0.8,
+  0.9
+ ],
+ "durations": [
+  0.1,
+  0.1,
+  0.1,
+  0.1,
+  0.15,
+  0.1,
+  0.1,
+  0.1
+ ],
+ "_doc": "入场条（10-22）：Codex 交付的原作 Start 条（20 fps 密采样、大画布），按原点裁到 128 画布，取整个人进画布起到收势 8 帧（就近源帧）；每帧时长 = 到下一取样帧的源时长"
+}

@@ -90,6 +90,8 @@ func _process(_dt: float) -> void:
 			if not spec is Dictionary or not spec.has("frame_durations"):
 				continue
 			ok(Ch.valid_frame_durations(spec), id + " valid durations " + slot)
+			if not spec.has("fire_time"):
+				continue   # 纯画面帧条（entry 入场 / death 倒下）：只验时长，不当技能事件测
 			var invalid: Dictionary = spec.duplicate(true)
 			invalid.frame_durations[0] = -0.1
 			ok(not Ch.valid_frame_durations(invalid), id + " reject negative duration")

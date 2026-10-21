@@ -1,0 +1,95 @@
+{
+ "id": "saria",
+ "src": "saria.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "塞雷娅",
+ "body": {
+  "hip": "F_Hip",
+  "chest": "F_Chest",
+  "head": "F_Head"
+ },
+ "legs": {
+  "L": [
+   "F_L_Leg",
+   "F_L_Calf",
+   "F_L_Foot"
+  ],
+  "R": [
+   "F_R_Leg",
+   "F_R_Calf",
+   "F_R_Foot"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_L_Arm",
+   "F_L_Shoulder",
+   "F_L_Hand"
+  ],
+  "R": [
+   "F_R_Arm",
+   "F_R_Shoulder",
+   "F_R_Hand"
+  ]
+ },
+ "hold": null,
+ "relativeArms": [
+  "L",
+  "R"
+ ],
+ "params": {
+  "lean": 7,
+  "relAmp": 5
+ },
+ "secondary": [
+  {
+   "match": "^(F_[BFLR]_Hair|bone([2-9]|1[0-3]))$",
+   "amp": 2.5,
+   "drag": 3
+  },
+  {
+   "match": "^(F_Tail|bone1[4-6])$",
+   "amp": 6,
+   "drag": 8,
+   "lag": 1.4
+  },
+  {
+   "match": "^(F_Skirt|bone(1[7-9]|2[0-2]))$",
+   "amp": 3,
+   "drag": 3
+  },
+  {
+   "match": "^(F_Streamer_[AB]|F_Sling|bone(29|3[0-4]))$",
+   "amp": 4,
+   "drag": 6,
+   "lag": 1.2
+  }
+ ],
+ "action": "entry",
+ "skipAdditive": true,
+ "sample": {
+  "anim": "Start",
+  "times": [
+   0.1729,
+   0.255,
+   0.3372,
+   0.4193,
+   0.5014,
+   0.5836,
+   0.6657,
+   0.7479
+  ]
+ },
+ "durations": [
+  0.0821,
+  0.0822,
+  0.0821,
+  0.0821,
+  0.0822,
+  0.0821,
+  0.0822,
+  0.0821
+ ],
+ "_doc": "入场条（10-22）：原作 Start 轨，整个人进画布起到收势均匀 8 帧；之前的空中下落由游戏代码补（durations = 帧间原作时长）"
+}

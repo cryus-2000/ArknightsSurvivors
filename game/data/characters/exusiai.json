@@ -67,7 +67,9 @@
   "arts_res": 0.0,
   "regen": 1.3
  },
+ "extra_sprites": ["entry"],
  "sprites": {
+  "entry": {"tex": "op_exusiai_entry", "frames": 8, "fps": 9.1429, "foot": [32, 60], "frame_durations": [0.042, 0.119, 0.119, 0.119, 0.119, 0.119, 0.119, 0.119], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/exusiai_entry.json），64 画布 @2x；落下由代码补"},
   "idle": {
    "tex": "op_exusiai_idle",
    "frames": 8,
