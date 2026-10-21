@@ -261,3 +261,9 @@
 | `op_ulpianus_s3`（收链） | Freesound 387240 nettimato「chain」 | 8.76 s 起 0.52 s，起点对齐同上 | 降调 ×0.75；链身 2.6 kHz 8 阶低通 + 800 Hz 以下 ×1.5；混回 3–7 kHz 链节至成品 4%；头 25 ms ×1.9；起点叠链节「咔」（1.1 kHz，3.5 kHz 低通，比锁链低 3 dB） | 0.65 s | −13.3 dBFS（§8 −16.6，+3.3） | 4% |
 
 播放音量不变（s1 −4 dB、s3 −2 dB），有效响度 s1 −19.6 → −17.0、s3 −18.6 → −15.3。包体：两文件 1.43 s，QOA 后约 25 KB，与 §8 版持平（时长基本相同）。
+
+## 12. 回退：锁链用回 §8 的 CC0 第一版（10-22 用户实玩）
+
+用户实玩觉得 C 版「太难听」。`op_ulpianus_s1.wav` / `op_ulpianus_s3.wav` 恢复成 547edc5f（§8）的文件，其余音效不动。§11 的 C 版不再使用；`gen_ulpianus_v2.py --apply` 别再跑（它会写回 C）。
+
+备选（不接进游戏）：A 版另存在主仓库 `build/sfx_candidates/ulpianus_backup_A_s1.wav`、`_s3.wav` 与 5 秒局内混音 `ulpianus_backup_A_mix.wav`（1.0 秒掷锚、3.2 秒收链，背景同 §10）。
