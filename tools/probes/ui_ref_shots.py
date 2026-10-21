@@ -21,7 +21,7 @@ tmp = os.path.join(ROOT, 'build', 'ui_ref_tmp')
 JOBS = {
     'title': (['--titleshot'], {'shot_title.png': '1_main_title'}),
     'hunt': (['--autotest', '--huntshot', '--roster=start5', '--rostertickets=1,1,1'],
-             {'shot_hunt_0.png': '2_hunt_reveal', 'shot_hunt_1.png': '2_hunt_pick_class', 'shot_hunt_3.png': '2_hunt_pick_letter', 'shot_hunt_5.png': '2_hunt_wish'}),
+             {'shot_hunt_0.png': '2_hunt_pick_class', 'shot_hunt_1.png': '2_hunt_pick_letter', 'shot_hunt_2.png': '2_hunt_bag', 'shot_hunt_3.png': '2_hunt_reveal', 'shot_hunt_4.png': '2_hunt_summary', 'shot_hunt_5.png': '2_hunt_wish'}),
     'win': (['--autotest', '--statsshot=20'], {'shot_stats_result.png': '3_result_win', 'shot_stats_overview.png': '3_result_stats'}),
     'fail': (['--autotest', '--statsshot=20,dead'], {'shot_stats_result.png': '3_result_fail'}),
     'hud': (['--balance', '--seed=1', '--op=mizuki', '--realtime', '--nodeath', '--maxt=22', '--shots=1260'], {'shot_1260.png': '4_hud'}),
