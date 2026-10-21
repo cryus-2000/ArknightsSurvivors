@@ -377,7 +377,7 @@ static func hp_on() -> bool:
 ## 队友生命上限：队长当前生命上限 × 职业系数（json command.hp_k 可单独覆盖；缺省按 HP_K_DEF，balance command/hp_k_<职业> 可调）
 func op_maxhp(o) -> float:
 	var k: float = float(o.def.get("command", {}).get("hp_k", Bal.v("command/hp_k_" + str(o.cls), HP_K_DEF.get(o.cls, 0.7))))
-	return maxf(1.0, g.max_hp * k * Bal.v("command/hp_mul", 5.0))
+	return maxf(1.0, g.max_hp * k * Bal.v("command/hp_mul", 4.0))
 
 
 ## 能吸引仇恨 / 会受伤的队友：突击中、肯出击、没倒地

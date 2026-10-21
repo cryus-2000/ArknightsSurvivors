@@ -24,7 +24,7 @@
   "aggro_share": 0.4,
   "kite_step": 0.5,
   "hp": 1,
-  "hp_mul": 5.0,
+  "hp_mul": 4.0,
   "hp_regen_secs": 30,
   "op_dmg_k": 1.0,
   "op_inv": 0.5,
