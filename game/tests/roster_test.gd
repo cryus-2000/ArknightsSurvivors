@@ -1,6 +1,6 @@
 extends Node
 ## 干员解锁单元测试（docs/109 §12，check.py 场景回归 roster）：以 --roster=start5 启动（新玩家名册，只在内存，测试局不写存档）。
-## 1. 开局 5 人、其余 13 人未解锁；2. 第一张寻访凭证必出流明，之后先补齐缺的职业（近卫 / 特种），不重复，13 张抽完名册满；
+## 1. 开局 5 人、其余未解锁；2. 第一张寻访凭证必出流明，之后先补齐缺的职业（近卫 / 特种），不重复，抽完名册满；
 ## 3. 意向干员 3 张内保底；4. 招募券只出所选职业；5. 局终发券（撤离 1 张寻访凭证；通关 +招募券；首通难度档 +人事调度函；演练 / 非 PLAY 不发）；
 ## 6. 云存档：解锁名单并集、券取较大值、Cfg 往返；7. 抽取不碰全局随机数之外的局内状态（同一状态抽两次结果相同）。
 const Roster = preload("res://scripts/core/roster.gd")
@@ -48,18 +48,19 @@ func run() -> void:
 	check(Roster.active(), "--roster=start5 下解锁规则应生效")
 	reset()
 	var all := Roster.all_ids()
-	check(all.size() == 18, "名册应为 18 人，实为 %d" % all.size())
+	check(all.size() >= 18, "名册至少 18 人，实为 %d" % all.size())
 	for s in Roster.STARTERS:
 		check(Roster.is_unlocked(s), "开局干员 %s 应已解锁" % s)
-	check(Roster.locked_ids().size() == 13, "应有 13 人未解锁，实为 %d" % Roster.locked_ids().size())
+	var n_locked := all.size() - Roster.STARTERS.size()
+	check(Roster.locked_ids().size() == n_locked, "应有 %d 人未解锁，实为 %d" % [n_locked, Roster.locked_ids().size()])
 	check(not Roster.owned_classes().has("医疗") and not Roster.owned_classes().has("近卫") and not Roster.owned_classes().has("特种"), "开局缺医疗 / 近卫 / 特种")
 
 	# 2. 寻访顺序：流明 → 补齐近卫 / 特种 → 其余；不重复
 	var c0 := Roster.choose_hunt()
 	check(c0 == Roster.choose_hunt(), "同一状态抽两次应相同（独立随机数，只看存档状态）")
-	Cfg.roster_tickets = {"hunt": 13}
+	Cfg.roster_tickets = {"hunt": n_locked}
 	var got: Array = []
-	for i in 13:
+	for i in n_locked:
 		var cid := Roster.choose_hunt()
 		check(cid != "" and not got.has(cid) and not Roster.is_unlocked(cid), "第 %d 张寻访凭证抽到 %s（应为未解锁且不重复）" % [i + 1, cid])
 		Roster.redeem(Roster.T_HUNT, cid)
@@ -69,7 +70,7 @@ func run() -> void:
 		if i == 2:
 			var oc := Roster.owned_classes()
 			check(oc.has("近卫") and oc.has("特种") and oc.has("医疗"), "前 3 张后应补齐医疗 / 近卫 / 特种：%s" % [got])
-	check(Roster.locked_ids().is_empty(), "13 张寻访凭证后名册应满")
+	check(Roster.locked_ids().is_empty(), "%d 张寻访凭证后名册应满" % n_locked)
 	check(Roster.choose_hunt() == "", "名册满后寻访应无可抽")
 	check(int(Cfg.roster_tickets.get("hunt", 0)) == 0, "券应用完")
 

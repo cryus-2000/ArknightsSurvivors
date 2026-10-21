@@ -32,6 +32,7 @@ const PLAYER := {
 	&"physical_dmg": {"base": 1.0, "min": 0.0, "name": "物理伤害倍率"},
 	&"arts_dmg": {"base": 1.0, "min": 0.0, "name": "法术伤害倍率"},
 	&"boss_dmg": {"base": 1.0, "min": 0.0, "name": "对 Boss 伤害倍率"},
+	&"elite_dmg": {"base": 1.0, "min": 0.0, "name": "对精英伤害倍率（认知塑造「攻击性」，docs/109 §4）"},
 	&"melee_dmg": {"base": 1.0, "min": 0.0, "old": "melee_mult", "name": "近战伤害倍率"},
 	&"ranged_dmg": {"base": 1.0, "min": 0.0, "old": "ranged_mult", "name": "远程伤害倍率"},
 	&"weak_bonus": {"base": 0.0, "min": 0.0, "old": "weak_bonus", "name": "弱点伤害额外加成"},

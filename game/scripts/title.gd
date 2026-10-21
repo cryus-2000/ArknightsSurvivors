@@ -22,6 +22,7 @@ const ITEMS := [
 	{"cn": "操作说明", "en": "GUIDE"},
 	{"cn": "设置", "en": "SETTINGS"},
 	{"cn": "退出", "en": "EXIT"},
+	{"cn": "认知塑造", "en": "SHAPING"},
 ]
 
 var font: Font
@@ -37,7 +38,7 @@ var item_rects: Array = []
 var menu_lay := {}            # 磁贴群排版（title_tiles.layout，_draw 里按当前尺寸算）
 var menu_boss := true         # 有没有「Boss 演练」（_ready 按 Cfg.can_boss_trial()；测试可改）
 var menu_exit := true         # 有没有「退出」（网页 / --simweb 没有；测试可改）
-var menu_water := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]   # 各磁贴水位 0–1（选中涨潮、离开退潮，T2）
+var menu_water := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]   # 各磁贴水位 0–1（选中涨潮、离开退潮，T2）
 var menu_rip_t := -10.0       # 选中变化的时刻（标题页时间 t）：涟漪扩散
 var menu_mem_x := -1.0        # 二维导航记住的列（磁贴中心 x）
 var cover_hover := false
@@ -69,6 +70,7 @@ var wait_t := 0.0           # 出发后等预热的时间（载入中…）
 var settings: Control
 var gallery: Control
 var boss_trial: Control
+var meta_ui: Control             # 认知塑造页（局外成长 P2，docs/109 §4）
 var transition: Control
 var overlay_was_open := false
 var cover_pick := false
@@ -154,6 +156,8 @@ func _ready() -> void:
 	add_child(settings)
 	boss_trial = preload("res://scripts/screens/boss_trial_menu.gd").new()
 	add_child(boss_trial)
+	meta_ui = preload("res://scripts/screens/meta_tree_ui.gd").new()
+	add_child(meta_ui)
 	var transition_layer := CanvasLayer.new()
 	transition_layer.layer = 90
 	add_child(transition_layer)
@@ -220,6 +224,19 @@ func _ready() -> void:
 			get_tree().create_timer(i).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_intro_%d.png" % int(i * 10)))
 		get_tree().create_timer(5.0).timeout.connect(func(): get_tree().quit())
+	if Cfg.dev_args().has("--metashot"):
+		# 认知塑造页截图（docs/109 §4）：配 --metacells=<累计生机细胞>；--metabuy=<n> 先按推荐点法点 n 个
+		meta_ui.open()
+		for a in Cfg.dev_args():
+			if a.begins_with("--metabuy="):
+				var M = preload("res://scripts/core/meta.gd")
+				Cfg.meta_shape = M.shape_for(int(a.substr(10)))
+			if a.begins_with("--metasel="):
+				var ps := a.substr(10).split(",")
+				meta_ui.sel = Vector2i(int(ps[0]), int(ps[1]) if ps.size() > 1 else 0)
+		get_tree().create_timer(1.0).timeout.connect(func():
+			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_meta.png")
+			get_tree().quit())
 	if Cfg.dev_args().has("--settingsshot"):
 		settings.open()
 		for a in Cfg.dev_args():
@@ -449,7 +466,7 @@ var diff_lv_t0 := -10.0
 var diff_lv_dur := 0.38
 var diff_was := false         # 上一帧难度页是否开着（打开那一帧水位从尺底涨上来）
 var diff_mod_t := -10.0       # 换档时修正项淡入（T2）
-const DIFF_PAD := 0.15        # 三档刻度离尺两端的留白（占尺高）
+const DIFF_PAD := 0.03        # 刻度离尺两端的留白（占尺高）；潮位 0–15 共 16 级，留白收小才排得下
 var _mod_re: RegEx
 
 
@@ -481,7 +498,7 @@ func _diff_layout(vs: Vector2, ph: bool) -> Dictionary:
 		L.gauge = Rect2(40, 112, 92, vs.y - 192)
 		L.card_x = 156.0
 		L.card_w = 400.0
-		L.card_h = 88.0
+		L.card_h = minf(88.0, (vs.y - 192) * (1.0 - DIFF_PAD * 2.0) / maxf(1.0, D.DIFFICULTY_TIERS.size() - 1) - 3.0)
 		L.panel = Rect2(612, 100, vs.x - 28 - 612, vs.y - 220)
 		L.go = Rect2(612, vs.y - 100, 300, 60)
 		L.back = Rect2(932, vs.y - 92, 150, 44)
@@ -489,7 +506,7 @@ func _diff_layout(vs: Vector2, ph: bool) -> Dictionary:
 		L.gauge = Rect2(20, 64, 64, vs.y - 80)
 		L.card_x = 100.0
 		L.card_w = 300.0
-		L.card_h = 74.0
+		L.card_h = minf(74.0, (vs.y - 80) * (1.0 - DIFF_PAD * 2.0) / maxf(1.0, D.DIFFICULTY_TIERS.size() - 1) - 2.0)
 		L.panel = Rect2(420, 56, vs.x - 16 - 420, vs.y - 56 - 76)
 		L.go = Rect2(420, vs.y - 64, 260, 52)
 		L.back = Rect2(696, vs.y - 60, 150, 44)
@@ -567,23 +584,20 @@ func _draw_diff(vs: Vector2) -> void:
 			num_c = TUI.TXT2
 		var x0: float = g.rect.position.x
 		var y0: float = g.rect.position.y
-		var parts: PackedStringArray = str(tdef.name).split("·")
-		var nm: String = parts[0].strip_edges()
-		var num: String = TUI.roman_ascii(parts[1].strip_edges()) if parts.size() > 1 else "0"
-		var kbig := 4.0 if not ph else 3.0
-		TUI.ptext(self, c, Vector2(x0 + (22 if not ph else 14), cy), num, kbig, num_c)
-		var tx0 := x0 + (140.0 if not ph else 104.0)
-		var ns := 22 if not ph else 19
-		UI.text(self, font, Vector2(tx0, y0 + (30 if not ph else 24) + ns * 0.36), nm, ns, ink)
-		var nw: float = font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, ns).x
-		if num != "0":
-			TUI.ptext(self, c, Vector2(tx0 + nw + 10, y0 + (30 if not ph else 24)), num, 2.0 if not ph else 1.4, ink)
-		TUI.ptext(self, c, Vector2(tx0 + 2, y0 + (54 if not ph else 44)), TUI.roman_ascii(str(tdef.en)), k1, ink, 2)
+		# 潮位 0–15（docs/109 §5）：一行 = 像素编号 + 级名 + 本级新规则（锁定时写解锁条件）
+		var nm: String = str(tdef.get("short", tdef.name))
+		var num: String = "%02d" % int(tdef.get("level", i))
+		var kn := (2.0 if not ph else 1.4) if L.card_h < 50.0 else (4.0 if not ph else 3.0)
+		TUI.ptext(self, c, Vector2(x0 + (14 if not ph else 10), cy), num, kn, num_c)
+		var tx0 := x0 + (58.0 if not ph else 40.0)
+		var ns := 15 if not ph else 13
+		UI.text(self, font, Vector2(tx0, cy + ns * 0.36), nm, ns, ink)
+		var nw: float = font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(ns)).x
 		var desc: String = str(tdef.get("desc", ""))
 		if locked and i > 0:
-			desc = "通关「%s」后解锁" % TUI.roman_ascii(str(D.DIFFICULTY_TIERS[i - 1].name))
-		UI.text_fit(self, font, Vector2(tx0, y0 + (72 if not ph else 60) + 5), desc, 13, sub, g.rect.end.x - tx0 - 10, 11)
-		TUI.ptext(self, c, Vector2(g.rect.end.x - 14, y0 + 16), "LV %d" % int(tdef.get("level", 0)), k1, sub, 1, 2)
+			desc = "通关潮位 %d 后解锁" % (i - 1)
+		var dx0 := tx0 + maxf(nw, 52.0) + 10.0
+		UI.text_fit(self, font, Vector2(dx0, cy + 12 * 0.36), desc, 12, sub, g.rect.end.x - dx0 - 8, 9)
 	# 右：档位文件（修正项）
 	var pr: Rect2 = L.panel
 	var pg := TUI.grid(c, pr, ps)
@@ -596,7 +610,7 @@ func _draw_diff(vs: Vector2) -> void:
 	var lines: Array = D.dmod_lines(D.dmod_for_tier(diff_sel))
 	var head: String = str(tdef2.get("desc", ""))
 	if locked2:
-		head = "通关「%s」后解锁 · 可以先看效果" % TUI.roman_ascii(str(D.DIFFICULTY_TIERS[diff_sel - 1].name))
+		head = "通关潮位 %d 后解锁 · 可以先看规则" % (diff_sel - 1)
 	var hs2 := 18 if not ph else 16
 	UI.text_fit(self, font, pp + Vector2(24 if not ph else 16, (54 if not ph else 42) + hs2 * 0.36), head, hs2, _fa(TUI.TXT, ma), pg.rect.size.x - 48, 12)
 	var gx := pp.x + (24.0 if not ph else 16.0)
@@ -687,7 +701,7 @@ func _grow(rng: RandomNumberGenerator, p: Vector2, ang: float, length: float, wi
 
 func _process(delta: float) -> void:
 	Pad.context = "title"
-	var overlay_open: bool = settings.visible or gallery.visible or boss_trial.visible
+	var overlay_open: bool = settings.visible or gallery.visible or boss_trial.visible or meta_ui.visible
 	if post_fx != null:
 		post_fx.crisp = gallery.visible   # 图鉴 C4' 是浅色终端：不叠辉光 / 水下色差
 	if overlay_was_open and not overlay_open and not transition.busy:
@@ -758,7 +772,7 @@ func menu_track() -> String:
 
 
 func _input(event: InputEvent) -> void:
-	if leaving >= 0.0 or transition.busy or settings.visible or gallery.visible or boss_trial.visible:
+	if leaving >= 0.0 or transition.busy or settings.visible or gallery.visible or boss_trial.visible or meta_ui.visible:
 		return
 	if intro < INTRO_LEN:
 		# 开场动画中：按键 / 点击直接跳到完成态，本次输入不再传给菜单
@@ -832,7 +846,7 @@ func _close_info() -> void:
 
 
 func _menu_ids() -> Array:
-	var ids: Array = [0, 1, 2, 3, 4, 5]
+	var ids: Array = [0, 1, 2, 6, 3, 4, 5]
 	if not menu_boss:
 		ids.erase(2)
 	# 网页版没有「退出」：quit() 只会把引擎停在最后一帧，玩家只能刷新页面（架构 10-01 实测）
@@ -883,6 +897,8 @@ func _activate(i: int) -> void:
 			transition.switch_page(settings.open)
 		5:
 			get_tree().quit()
+		6:
+			transition.switch_page(meta_ui.open)
 
 
 ## 磁贴入场（docs/62「每屏一个主动作」：标题菜单 = 磁贴从潮线下浮出）：开场 3.3 秒起按行错开 0.09 秒，每行 0.38 秒（T3）露出；
@@ -910,7 +926,7 @@ func _tile_text_a(i: int) -> float:
 
 ## 水位：选中块涨潮、其余退潮（T2 0.22 秒）；磁贴还没浮出水面时不涨；减少动态效果直接到位
 func _menu_tick(delta: float) -> void:
-	for i in 6:
+	for i in ITEMS.size():
 		var target := 1.0 if i == sel and _tile_rise(i) >= 1.0 else 0.0
 		if Cfg.reduce_motion:
 			menu_water[i] = target
@@ -1009,8 +1025,8 @@ func _draw() -> void:
 		item_rects[i] = menu_lay.rects[i]
 	if menu_mem_x < 0.0 and menu_lay.rects.has(sel):
 		menu_mem_x = (menu_lay.rects[sel] as Rect2).get_center().x
-	var rise := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-	var text_a := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+	var rise := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+	var text_a := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 	for i in menu_ids:
 		rise[i] = _tile_rise(i)
 		text_a[i] = _tile_text_a(i)

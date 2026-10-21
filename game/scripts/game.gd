@@ -34,6 +34,7 @@ const ResultScreen = preload("res://scripts/screens/result.gd")
 const RunStatsScreen = preload("res://scripts/screens/run_stats_screen.gd")
 const HeadhuntScreen = preload("res://scripts/screens/headhunt.gd")
 const Roster = preload("res://scripts/core/roster.gd")
+const Meta = preload("res://scripts/core/meta.gd")
 const StatsScreen = preload("res://scripts/screens/stats_panel.gd")
 const EliteShowScreen = preload("res://scripts/screens/elite_show.gd")
 const IntroScreen = preload("res://scripts/screens/intro.gd")
@@ -113,6 +114,11 @@ var result_screen = ResultScreen.new(self)   # 界面 · 结算（state DEAD / W
 var run_stats = RunStatsScreen.new(self)   # 界面 · 作战记录（结算上的「作战记录」按钮 / Tab 打开，docs/77）
 var headhunt = HeadhuntScreen.new(self)   # 界面 · 寻访（结算上有待用的券时盖在上面，docs/109 §12）
 var roster_new := {}                       # 本局结算发的券（Roster.on_run_end）
+var meta_cells := 0                        # 本局带入的认知塑造（已点生机细胞数，core/meta.gd）
+var meta_once_heal: Array = []             # 「为了生存」：[生命比例阈值, 回复比例]，用掉后清空
+var meta_start_relic := 0                  # 「物由心生」：开局从 n 件基础藏品中选 1（触发后清 0）
+var meta_result := {}                      # 本局结算的生机细胞（Meta.on_run_end；结算面板显示）
+var meta_basic_pick := false               # 正在开「物由心生」的三选一：藏品池只出基础稀有度
 var panel_ui = ChoicePanel.new(self)   # 界面 · 弹窗面板与选卡（state CHOICE）
 var shop_ui = ShopScreen.new(self)   # 界面 · 商店（state SHOP）
 var hud_view = HudView.new(self)   # 界面 · 局内 HUD（hud 画布节点的 draw 信号）
@@ -180,6 +186,7 @@ var corrode_taken_mult := 1.0    # 受到的侵蚀
 var nerve_taken_mult := 1.0      # 神经损伤累积
 # ---- docs/57 新接的属性（原先只在 stat_defs 里有定义、没人读）
 var boss_mult := 1.0             # 对 Boss 伤害
+var elite_mult := 1.0            # 对精英伤害（认知塑造「攻击性」）
 var lamp_loss_mult := 1.0        # 受击 / 黑潮 / 吞噬的灯火流失
 var enemy_speed_mult := 1.0      # 非 Boss 敌人移速
 var enemy_kb_mult := 1.0         # 非 Boss 敌人受到的击退
@@ -233,7 +240,7 @@ var texts: Array = []
 var grid := {}
 var threat := 0                  # 威胁等级（D.THREAT 下标）
 var diff := 0                # 本局难度（累计档位 0–10，D.DIFFICULTY）
-var tier := 0                # 本局难度档（D.DIFFICULTY_TIERS 下标，玩家看到的「波涛迭起 / ·Ⅳ / ·Ⅷ」）
+var tier := 0                # 本局潮位（0–15，D.DIFFICULTY_TIERS 下标；10-22 起由三档改为潮位阶梯，docs/109 §5）
 var dmod: Dictionary = D.dmod_for_level(0)   # 本局难度修正表（D.DMOD_DEFAULT 的键）；局内难度效果一律读它
 var diff_new := false
 var ending_new := false            # 本局首次达成该结局（结算面板显示）        # 本局通关解锁了新难度
@@ -688,6 +695,7 @@ func _ready() -> void:
 	if D.ENEMIES.has("knight"):
 		D.ENEMIES.knight.no_spawn = true  # 敌对骑士只在同伴骑士阵亡后进入精英池（每局重置）
 	RL = rfx.table()
+	Meta.apply_run(self)   # 认知塑造（docs/109 §4）：已点节点写进属性块与开局资源；测试局缺省不带，--meta=N 才带
 	A.mark("subsystems")
 	font = load("res://fonts/ui.ttf")
 	for n in BASE_TEX:
@@ -875,8 +883,14 @@ func _ready() -> void:
 			tier = D.tier_of_level(diff)
 			dmod = D.dmod_for_level(diff)
 		elif a.begins_with("--tier="):
+			# 批跑旧三档：修正表与改动前逐局相同（潮位 8 比旧 Ⅷ 多寒流两键，所以 --tier=2 不走潮位表）
+			var lt := clampi(int(a.substr(7)), 0, D.LEGACY_TIERS.size() - 1)
+			tier = int(D.LEGACY_TIERS[lt].level)
+			diff = tier
+			dmod = D.dmod_for_legacy(lt)
+		elif a.begins_with("--tide="):
 			tier = clampi(int(a.substr(7)), 0, D.DIFFICULTY_TIERS.size() - 1)
-			diff = D.DIFFICULTY_TIERS[tier].level
+			diff = tier
 			dmod = D.dmod_for_tier(tier)
 	if float(dmod.lamp_hit) != 1.0:
 		stats.add(&"light_decay", "mult", float(dmod.lamp_hit), "difficulty")   # 受击灯火损失（g.lamp_decay 只用于受击，combat.gd lose_hp）
@@ -1102,7 +1116,8 @@ func _process(delta: float) -> void:
 		if not trial.active:
 			telemetry.on_state(state)   # 进入胜 / 负时把这一局写进本地记录（docs/40）
 			if state == S.WIN or state == S.DEAD:
-				Roster.on_run_end(self, state == S.WIN)   # 干员解锁：发寻访凭证 / 招募券 / 人事调度函（docs/109 §12；不碰 g.rng）
+				Roster.on_run_end(self, state == S.WIN)
+				Meta.on_run_end(self, state == S.WIN)   # 局外成长：记生机细胞（docs/109 §3.1）   # 干员解锁：发寻访凭证 / 招募券 / 人事调度函（docs/109 §12；不碰 g.rng）
 				Cloud.flush("run_end")   # B站云存档：一局结算时上传（只在 B站环境生效，docs/89）
 		state_age = 0.0
 		ui_skip = false
@@ -1651,6 +1666,11 @@ func _update(dt: float) -> void:
 			floor_hits += 1   # 本该死掉的次数：不死模式下的生存压力指标（docs/27 §6）
 			floor_times.append(int(t))
 		hp = maxf(hp, max_hp * 0.5)
+	if not meta_once_heal.is_empty() and hp > 0.0 and hp < max_hp * float(meta_once_heal[0]):
+		# 认知塑造「为了生存」：每次探索一次，生命低于阈值时立即回复
+		combat.heal(max_hp * float(meta_once_heal[1]), "认知塑造")
+		meta_once_heal = []
+		vfx.show_banner("为了生存 —— 队长回复 30% 最大生命")
 	if hp <= 0.0 and squad.prevent_death():
 		hp = 1.0   # 幽灵鲨「求生之渴」：主控生命不会低于 1
 	if hp <= 0.0 and not rfx.on_death():
@@ -1672,6 +1692,11 @@ func check_pending() -> void:
 		return
 	if progression.open_branch_queued():   # 赠送推进（典训 / 博士银印）碰到分支节点：先选路线（docs/119 §4.1）
 		return
+	if meta_start_relic > 0 and t > 1.0:
+		# 认知塑造「物由心生」：开局从基础藏品中选 1 件（progression.relic_pool_ids 看 meta_basic_pick）
+		meta_start_relic = 0
+		meta_basic_pick = true
+		pending_chests += 1
 	if pending_chests > 0:
 		progression.open_relic_choice()
 	elif pending_levelups > 0 and lvup_delay <= 0.0:
@@ -1695,7 +1720,7 @@ const STAT_SYNC := {
 	&"followup_dmg": "followup_mult", &"heal_mult": "heal_mult", &"phys_taken": "phys_taken_mult", &"corrode_taken": "corrode_taken_mult", &"nerve_taken": "nerve_taken_mult",
 	# docs/57 P1–P5 / P7
 	&"boss_dmg": "boss_mult", &"light_loss": "lamp_loss_mult", &"enemy_speed": "enemy_speed_mult", &"enemy_kb": "enemy_kb_mult",
-	&"enemy_ranged_cd": "enemy_ranged_cd_mult", &"elite_dmg_taken": "elite_taken_mult",
+	&"enemy_ranged_cd": "enemy_ranged_cd_mult", &"elite_dmg_taken": "elite_taken_mult", &"elite_dmg": "elite_mult",
 }
 
 

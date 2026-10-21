@@ -157,12 +157,14 @@ func one_layout(tag: String) -> void:
 	var U := Vector2i(0, -1)
 	var R := Vector2i(1, 0)
 	var L := Vector2i(-1, 0)
-	check(walk(0, [D]) == 1, tag + ": 01 down -> 02")
-	check(walk(1, [D]) == 3, tag + ": 02 down -> 04")
-	check(walk(2, [D]) == 5, tag + ": 03 down -> 06")
-	check(walk(3, [U]) == 1, tag + ": 04 up -> 02")
-	check(walk(4, [U]) == 1, tag + ": 05 up -> 02")
-	check(walk(5, [U]) == 2, tag + ": 06 up -> 03")
+	# 10-22 第二行加「认知塑造」（id 6，docs/109 §4）：第二行三块、第三行三块，上下同列
+	check(walk(0, [D]) == 2, tag + ": 01 down -> 03（正中）")
+	check(walk(1, [D]) == 3, tag + ": 02 down -> 05")
+	check(walk(2, [D]) == 4, tag + ": 03 down -> 06")
+	check(walk(6, [D]) == 5, tag + ": 04 down -> 07")
+	check(walk(3, [U]) == 1, tag + ": 05 up -> 02")
+	check(walk(4, [U]) == 2, tag + ": 06 up -> 03")
+	check(walk(5, [U]) == 6, tag + ": 07 up -> 04")
 	check(walk(2, [U, D]) == 2, tag + ": 03 up down returns to 03 (column memory)")
 	check(walk(4, [U, D]) == 4, tag + ": 05 up down returns to 05")
 	check(walk(0, [U]) == 0 and walk(5, [D]) == 5 and walk(3, [L]) == 3 and walk(5, [R]) == 5, tag + ": no wrap at edges")
@@ -170,13 +172,13 @@ func one_layout(tag: String) -> void:
 	title.sel = 0
 	title.menu_mem_x = -1.0
 	await key(KEY_DOWN)
-	check(title.sel == 1, tag + ": key down 01 -> 02 (got %d)" % title.sel)
+	check(title.sel == 2, tag + ": key down 01 -> 03 (got %d)" % title.sel)
 	await key(KEY_D)
-	check(title.sel == 2, tag + ": key D 02 -> 03")
+	check(title.sel == 6, tag + ": key D 03 -> 04")
 	await key(KEY_S)
-	check(title.sel == 5, tag + ": key S 03 -> 06")
+	check(title.sel == 5, tag + ": key S 04 -> 07")
 	await key(KEY_LEFT)
-	check(title.sel == 4, tag + ": key left 06 -> 05")
+	check(title.sel == 4, tag + ": key left 07 -> 06")
 	await key(KEY_W)
 	await key(KEY_W)
 	check(title.sel == 0, tag + ": key W twice -> 01")
@@ -190,18 +192,18 @@ func one_layout(tag: String) -> void:
 	title.sel = 0
 	title.menu_mem_x = -1.0
 	await pad(JOY_BUTTON_DPAD_DOWN)
-	check(title.sel == 1, tag + ": dpad down 01 -> 02")
+	check(title.sel == 2, tag + ": dpad down 01 -> 03")
 	await pad(JOY_BUTTON_DPAD_RIGHT)
-	check(title.sel == 2, tag + ": dpad right 02 -> 03")
+	check(title.sel == 6, tag + ": dpad right 03 -> 04")
 	# 选中涨潮：一会儿后新选中块水位满、其余退潮
 	var t0 := Time.get_ticks_msec()
-	while title.menu_water[2] < 0.99 and Time.get_ticks_msec() - t0 < 2000:
+	while title.menu_water[6] < 0.99 and Time.get_ticks_msec() - t0 < 2000:
 		await get_tree().process_frame
-	check(title.menu_water[2] >= 0.99, tag + ": selected tile water rises")
+	check(title.menu_water[6] >= 0.99, tag + ": selected tile water rises")
 	t0 = Time.get_ticks_msec()
-	while title.menu_water[1] > 0.0 and Time.get_ticks_msec() - t0 < 2000:
+	while title.menu_water[2] > 0.0 and Time.get_ticks_msec() - t0 < 2000:
 		await get_tree().process_frame
-	check(title.menu_water[1] == 0.0, tag + ": previous tile drains")
+	check(title.menu_water[2] == 0.0, tag + ": previous tile drains")
 	# 网页组：Esc 不动（没有退出）
 	title.menu_exit = false
 	title.sel = 1
@@ -228,9 +230,10 @@ func one_layout(tag: String) -> void:
 	check(title.diff_rects.has("tier0") and title.diff_rects.has("go") and title.diff_rects.has("back"), tag + ": difficulty hit rects")
 	await key(KEY_UP)
 	check(title.diff_sel == 1, tag + ": up raises tier")
-	await key(KEY_UP)
-	await key(KEY_UP)
-	check(title.diff_sel == 2, tag + ": up clamps at top tier")
+	for i in 20:
+		await key(KEY_UP)
+	check(title.diff_sel == 15, tag + ": up clamps at top tide (15)")
+	title.diff_sel = 2
 	await key(KEY_DOWN)
 	check(title.diff_sel == 1, tag + ": down lowers tier")
 	await frames(2)

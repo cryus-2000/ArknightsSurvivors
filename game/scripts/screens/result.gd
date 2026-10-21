@@ -189,6 +189,13 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 	var ss := int(display_time) % 60
 	var stats := [["演练用时" if g.trial.active else "探索时间", "%02d:%02d" % [mm, ss]], ["等级", "Lv.%d  %s" % [g.level, ["精零", "精英一", "精英二"][g.ch.elite]]],
 		["击杀", str(g.kills)], ["难度", D.DIFFICULTY_TIERS[g.tier].name]]
+	if not g.meta_result.is_empty() and g.state != Game.S.PAUSE:
+		# 局外成长（docs/109 §3.1）：本次探索获得的生机细胞
+		var mr: Dictionary = g.meta_result
+		var mtxt := "+%d（评分 %d × %.2f）" % [int(mr.cells), int(mr.base), float(mr.factor)]
+		if int(mr.bounty) > 0:
+			mtxt += "  首通 +%d" % int(mr.bounty)
+		stats.append(["生机细胞", mtxt])
 	if ending_panel:
 		var ep: String = D.ENDINGS.get(g.ending, {}).get("gallery", {}).get("epilogue", "")
 		UI.text(g.hud, g.font, Vector2(r.position.x + 40, r.position.y + 132), ep, 15 if touch else 14, Color(col.r * 0.9 + 0.1, col.g * 0.9 + 0.1, col.b * 0.9 + 0.1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 80)
@@ -200,8 +207,12 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		# 结局结算下面有尾声和统计，放不下：挪到面板右上角（左上角是「新结局达成」）；普通结算按字宽居中在标题下
 		var ulp := Vector2(r.end.x - 20.0 - ulw, r.position.y + 10) if ending_panel else Vector2(r.get_center().x - ulw / 2.0, r.position.y + 118)
 		UI.chip(g.hud, g.font, ulp, ul, UI.GOLD, 13)
+	# 行距：多了「生机细胞」一行（docs/109 §3.1）时收紧，最后一行不压到按钮（触屏按钮 60 高、桌面 40 高）
+	var y0s: float = 166.0 if ending_panel else 156.0
+	var btn_top: float = r.size.y - (84.0 if touch else 70.0) - (12.0 if touch else 10.0)
+	var dy: float = minf(34.0 if touch else 32.0, (btn_top - y0s) / maxf(1.0, stats.size() - 0.4))
 	for i in stats.size():
-		var y := r.position.y + (166 if ending_panel else 156) + i * (34 if touch else 32)
+		var y := r.position.y + y0s + i * dy
 		var rw: Array = _row(i + 1)
 		for gh in ([rw[2], -rw[2]] if rw[2] != 0.0 else []):   # 失焦虚影（只在打捞对焦途中）
 			UI.text(g.hud, g.font, Vector2(r.position.x + 62 + rw[0] + gh, y), stats[i][0], 20 if touch else 16, _fa(UI.SUB, 0.25 * rw[1]))

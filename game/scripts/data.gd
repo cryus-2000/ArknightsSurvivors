@@ -31,14 +31,52 @@ const DIFFICULTY := [
 	{"name": "负伤", "desc": "初始最大生命 -20%"},
 	{"name": "深蓝之树", "desc": "敌人生命与攻击再 +20%，Boss 攻击 +25%"},
 ]
-## 玩家可选的难度档（1.1 用户决定：界面只给 3 档，以后再推多难度；命名取原作「波涛迭起」，desc 为选难度页的副标题）。存档 Cfg.difficulty / diff_unlocked 存的是档位下标。
-## 每档一张修正表（g.dmod，键见 DMOD_DEFAULT），数值在 data/balance.json 的 difficulty/<key> 段填；
-## 段里没写的键按 level（上表的累计档位）拼出来，所以不填 = 与旧累计难度逐局相同。批跑 --diff=N 也按累计档位拼表。
-const DIFFICULTY_TIERS := [
-	{"name": "波涛迭起", "en": "RISING TIDE", "desc": "基准难度。", "key": "standard", "level": 0},
-	{"name": "波涛迭起·Ⅳ", "en": "RISING TIDE Ⅳ", "desc": "敌人生命与攻击 +20%，受击损失的灯火 +30%，灯油掉落 -30%。", "key": "hard", "level": 4},
-	{"name": "波涛迭起·Ⅷ", "en": "RISING TIDE Ⅷ", "desc": "敌人生命 +70%、攻击 +25%；溟痕不再消散，Boss 战中仍有大群来袭。", "key": "extreme", "level": 8},
+## 旧三档（1.1 – 10-22）：标准 / Ⅳ / Ⅷ 的修正表在 data/balance.json 的 difficulty/<key> 段，段里没写的键按 level（上表的累计档位）拼出来。
+## 潮位阶梯的锚点（0 / 4 / 8）和批跑 --tier=0/1/2 仍按它取表（--tier 的结果与改动前逐局相同）。
+const LEGACY_TIERS := [
+	{"name": "波涛迭起", "key": "standard", "level": 0},
+	{"name": "波涛迭起·Ⅳ", "key": "hard", "level": 4},
+	{"name": "波涛迭起·Ⅷ", "key": "extreme", "level": 8},
 ]
+## 潮位阶梯 0–15（docs/71 + docs/109 §5.3，用户 10-22「难度回到 15 级」）：逐级叠加，每级加一条规则或加重前面的规则；
+## 通关潮位 N 解锁 N+1。存档 Cfg.difficulty / diff_unlocked 存的是潮位（0–15）。
+## 锚点：0 = 旧标准、4 = 旧 Ⅳ（逐键相等），8 = 旧 Ⅷ + 寒流两键（小怪控制 5:00、寒霜 2 层，docs/71 §2.3）；
+## 1–3 / 5–7 / 9–15 在前一个锚点上依次写入 TIDE_SET 的键（只往更难推）。name 是界面档名，short 是级名，desc 是本级新增的规则。
+const DIFFICULTY_TIERS := [
+	{"name": "潮位 0 · 海面", "short": "海面", "en": "SURFACE", "desc": "没有额外规则。", "key": "standard", "level": 0},
+	{"name": "潮位 1 · 巨影", "short": "巨影", "en": "LOOMING", "desc": "Boss 生命 +15%，Boss 招式预警缩短 15%。", "level": 1},
+	{"name": "潮位 2 · 昏灯", "short": "昏灯", "en": "DIM LAMP", "desc": "受击时灯火损失 +30%；灯油掉落 -30%，源石锭掉落 -10%。", "level": 2},
+	{"name": "潮位 3 · 暗涌", "short": "暗涌", "en": "UNDERTOW", "desc": "敌人生命与造成的伤害 +20%。", "level": 3},
+	{"name": "潮位 4 · 寒流", "short": "寒流", "en": "COLD CURRENT", "desc": "大群规模 +20%；小怪控制提前到 5:00，寒霜 2 层即冻结。", "key": "hard", "level": 4},
+	{"name": "潮位 5 · 搁浅", "short": "搁浅", "en": "STRANDED", "desc": "队长初始最大生命 -10%；灯油掉落加重到 -40%，源石锭加重到 -25%。", "level": 5},
+	{"name": "潮位 6 · 渊影", "short": "渊影", "en": "ABYSSAL SHADOW", "desc": "Boss 生命加重到 +35%，预警缩短加重到 20%；Boss 造成的伤害再 +15%。", "level": 6},
+	{"name": "潮位 7 · 甲潮", "short": "甲潮", "en": "HARD SHELL", "desc": "敌人生命加重到 +70%，造成的伤害加重到 +25%。", "level": 7},
+	{"name": "潮位 8 · 漫灌", "short": "漫灌", "en": "FLOOD", "desc": "自然溟痕常驻，只有引航灯标能驱散；大群加重到 +60%，Boss 在场时照常来袭。", "key": "extreme", "level": 8},
+	{"name": "潮位 9 · 夜潮", "short": "夜潮", "en": "NIGHT TIDE", "desc": "后期敌人伤害的成长上限提高到 +50%；敌人造成的伤害加重到 +35%。", "level": 9},
+	{"name": "潮位 10 · 残烛", "short": "残烛", "en": "GUTTERING", "desc": "受击时灯火损失加重到 +60%，灯油掉落加重到 -60%。", "level": 10},
+	{"name": "潮位 11 · 领潮者", "short": "领潮者", "en": "TIDE LORDS", "desc": "敌人生命加重到 +100%。", "level": 11},
+	{"name": "潮位 12 · 异变", "short": "异变", "en": "MUTATION", "desc": "带词条的海嗣提前到 5:00 出现，词条概率上限提高到 50%。", "level": 12},
+	{"name": "潮位 13 · 深压", "short": "深压", "en": "DEEP PRESSURE", "desc": "队长初始最大生命加重到 -20%；敌人造成的伤害加重到 +50%。", "level": 13},
+	{"name": "潮位 14 · 渊主", "short": "渊主", "en": "ABYSS LORD", "desc": "Boss 生命加重到 +60%；最终 Boss 生命再 +30%。", "level": 14},
+	{"name": "潮位 15 · 潮不止息", "short": "潮不止息", "en": "ENDLESS TIDE", "desc": "最终 Boss 在场时海嗣照常涌来；敌人生命加重到 +140%。", "level": 15},
+]
+## 每级写入的修正键（锚点 0 / 4 / 8 之外）；数值是第一轮草案，按 docs/109 §5.4 云端实测再调
+const TIDE_SET := {
+	1: {"boss_hp": 1.15, "boss_warn": 0.85},
+	2: {"lamp_hit": 1.3, "oil_drop": 0.7, "ingot": 0.9},
+	3: {"enemy_hp": 1.2, "enemy_dmg": 1.2, "hunt_dur": 0.85, "hunt_ring_hp": 0.85, "beacon_every": 0.8},
+	5: {"max_hp": 0.9, "oil_drop": 0.6, "ingot": 0.75},
+	6: {"boss_hp": 1.35, "boss_warn": 0.8, "boss_dmg": 1.15},
+	7: {"enemy_hp": 1.7, "enemy_dmg": 1.25, "hunt_dur": 0.7, "hunt_ring_hp": 0.7, "boss_fight_enemy_hp": 1.0},
+	8: {"ctrl_start": 300.0, "frost_max": 2.0},
+	9: {"dmg_late_cap": 0.5, "enemy_dmg": 1.35},
+	10: {"lamp_hit": 1.6, "oil_drop": 0.4},
+	11: {"enemy_hp": 2.0},
+	12: {"affix_start": 300.0, "affix_max": 0.5},
+	13: {"max_hp": 0.8, "enemy_dmg": 1.5},
+	14: {"boss_hp": 1.6, "final_boss_hp": 1.3},
+	15: {"final_stop_mobs": 0.0, "enemy_hp": 2.4},
+}
 ## 难度修正表：倍率（1.0 = 不变）与开关（0 / 1）
 const DMOD_DEFAULT := {
 	"enemy_hp": 1.0, "enemy_dmg": 1.0, "boss_hp": 1.0, "boss_dmg": 1.0,   # 小怪与 Boss 生命 / 攻击（Boss 攻击另乘 enemy_dmg）
@@ -94,14 +132,27 @@ static func dmod_for_level(L: int) -> Dictionary:
 	return m
 
 
-## 某一档的修正表：balance.json difficulty/<key> 覆盖按 level 拼出的表
-static func dmod_for_tier(tier: int) -> Dictionary:
-	var t: Dictionary = DIFFICULTY_TIERS[tier]
+## 旧三档的修正表：balance.json difficulty/<key> 覆盖按 level 拼出的表（批跑 --tier=0/1/2、潮位锚点）
+static func dmod_for_legacy(tier: int) -> Dictionary:
+	var t: Dictionary = LEGACY_TIERS[clampi(tier, 0, LEGACY_TIERS.size() - 1)]
 	var m := dmod_for_level(int(t.level))
 	var over: Dictionary = Bal.sec("difficulty/" + str(t.key))
 	for k in over:
 		if m.has(k):
 			m[k] = over[k]
+	return m
+
+
+## 潮位 tide（0–15）的修正表：取所在块的锚点（0 / 4 / 8 = 旧三档），再依次写入锚点之后各级的 TIDE_SET
+static func dmod_for_tier(tide: int) -> Dictionary:
+	tide = clampi(tide, 0, DIFFICULTY_TIERS.size() - 1)
+	var a := 0 if tide < 4 else (1 if tide < 8 else 2)
+	var m := dmod_for_legacy(a)
+	for lv in range(int(LEGACY_TIERS[a].level) + (1 if a < 2 else 0), tide + 1):
+		var s: Dictionary = TIDE_SET.get(lv, {})
+		for k in s:
+			if m.has(k):
+				m[k] = s[k]
 	return m
 
 
@@ -133,11 +184,16 @@ static func dmod_lines(m: Dictionary) -> Array:
 	return out
 
 
-## 累计档位落在哪一档（取 level 不超过它的最高档）
+## 旧累计档位（--diff=）→ 潮位：同号（0–10 都在 0–15 内）
 static func tier_of_level(level: int) -> int:
+	return clampi(level, 0, DIFFICULTY_TIERS.size() - 1)
+
+
+## 旧累计档位 → 旧三档下标（只给存档迁移 settings._migrate_diff 用）
+static func _tier_of_level_old(level: int) -> int:
 	var t := 0
-	for i in DIFFICULTY_TIERS.size():
-		if DIFFICULTY_TIERS[i].level <= level:
+	for i in LEGACY_TIERS.size():
+		if LEGACY_TIERS[i].level <= level:
 			t = i
 	return t
 

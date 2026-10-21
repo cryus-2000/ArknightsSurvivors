@@ -9,8 +9,8 @@ const D = preload("res://scripts/data.gd")
 const Look = preload("res://scripts/render/look.gd")
 const TouchLayout = preload("res://scripts/touch_layout.gd")
 const CloudPack = preload("res://scripts/core/cloud_pack.gd")
-## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的难度档下标（D.DIFFICULTY_TIERS）
-const DIFF_VER := 2
+## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的三档下标；3 = 10-22 起的潮位 0–15（D.DIFFICULTY_TIERS）
+const DIFF_VER := 3
 ## 存档里亮度字段的口径：0 = 旧缺省 110%；1 = 缺省随观感预设 render/look（10-12 起 100%）
 const LOOK_VER := 1
 
@@ -50,14 +50,14 @@ const UI_MIN_H := 470.0
 ## 触屏按键布局（设置 → 游戏 → 触屏按键布局，用户 10-13）：{键: {ax, ay, x, y, s}}，空 = 全部缺省（touch_layout.gd）
 var touch_layout := {}
 var manual_attack := false   # 主控普通攻击手动（契约 v2.5，docs/26）：开局读一次；机器人 / 自动测试 / 图鉴演示一律自动
-var difficulty := 0      # 本局难度档（D.DIFFICULTY_TIERS 下标）
+var difficulty := 0      # 上次选的潮位（0–15）
 var character_id := "mizuki"  # 本局角色（data/characters/<id>.json）
 var cover_character_id := "mizuki"
 var play_speed := 1.0
 var boss_trial_request := {} # transient, never saved
 var practice_active := false
 var map_id := "deep_sea"  # 本局地图主题（data/maps/<id>.json）
-var diff_unlocked := 0   # 已解锁的最高难度档（D.DIFFICULTY_TIERS 下标）
+var diff_unlocked := 0   # 已解锁的最高潮位（0–15）
 var seen_shows: Array = []   # 已看过的解锁演出
 var gallery_seen: Array = []
 var seen_relics: Array = []  # 获得过的藏品 id（图鉴用）
@@ -72,6 +72,11 @@ var roster_wish := ""             # 意向干员（寻访保底对象）
 var roster_pity := 0              # 意向保底计数：连续没出意向的寻访次数
 var roster_draws := 0             # 已用券总数（抽取随机数的种子之一）
 var roster_seed := 0              # 名册抽取的种子（第一次抽取时生成，不碰局内 g.rng）
+var meta_shape := {}              # 认知塑造已点的节点 {id: true}（core/meta.gd，docs/109 §4；存档 [meta] 段）
+var meta_shape_t := 0             # 认知塑造最后修改时刻（云存档合并：较新的一份为准）
+var meta_earned := {}             # 累计获得的生机细胞 {设备号: 数量}（云存档逐设备取大再求和）
+var meta_dev := ""                # 本机设备号（第一次记生机细胞时生成）
+var meta_bounty: Array = []       # 已领首通赏金的潮位
 var roster_fresh: Array = []      # 刚解锁、还没在名册里看过的干员（选人页 / 图鉴高亮一次；只存本机，不上云）
 var unlock_all := false      # 本次运行全部解锁（只在内存里，见 _apply_unlock_all）：调试版与对内打包版为 true，对外包恒为 false
 var _real_progress := {}      # 全部解锁时存档里真实的进度字段，save() 原样写回
@@ -279,10 +284,18 @@ func _ready() -> void:
 		roster_draws = int(c.get_value("roster", "draws", roster_draws))
 		roster_seed = int(c.get_value("roster", "seed", roster_seed))
 		roster_fresh = c.get_value("roster", "fresh", roster_fresh)
+		meta_shape = c.get_value("meta", "shape", meta_shape)
+		meta_shape_t = int(c.get_value("meta", "shape_t", meta_shape_t))
+		meta_earned = c.get_value("meta", "earned", meta_earned)
+		meta_dev = str(c.get_value("meta", "dev", meta_dev))
+		meta_bounty = c.get_value("meta", "bounty", meta_bounty)
 		if not c.has_section("roster"):
 			_migrate_roster()
-		if int(c.get_value("progress", "diff_ver", 1)) < DIFF_VER:
+		var dv := int(c.get_value("progress", "diff_ver", 1))
+		if dv < 2:
 			_migrate_diff()
+		if dv < 3:
+			_migrate_tide()
 		cloud_set_t = int(c.get_value("cloud", "set_t", 0))
 		cloud_sig = str(c.get_value("cloud", "sig", ""))
 		_set_sig = str(c.get_value("cloud", "set_sig", ""))
@@ -304,6 +317,11 @@ func _ready() -> void:
 			roster_draws = 0
 			roster_seed = 12345
 			roster_fresh = []
+			meta_shape = {}
+			meta_earned = {}
+			meta_bounty = []
+		elif a.begins_with("--metacells="):
+			meta_earned = {"test": int(a.substr(12))}   # 截图 / 测试：预置累计生机细胞（只在内存）
 		elif a.begins_with("--rostertickets="):
 			var tk := a.substr(16).split(",")
 			roster_tickets = {"hunt": int(tk[0]) if tk.size() > 0 else 0, "cls": int(tk[1]) if tk.size() > 1 else 0, "pick": int(tk[2]) if tk.size() > 2 else 0}
@@ -386,10 +404,23 @@ func _migrate_diff() -> void:
 	var old_unlocked := diff_unlocked
 	var old_diff := difficulty
 	diff_unlocked = 0
-	for i in range(1, D.DIFFICULTY_TIERS.size()):
-		if old_unlocked >= int(D.DIFFICULTY_TIERS[i - 1].level) + 1:
+	for i in range(1, D.LEGACY_TIERS.size()):
+		if old_unlocked >= int(D.LEGACY_TIERS[i - 1].level) + 1:
 			diff_unlocked = i
-	difficulty = mini(D.tier_of_level(old_diff), diff_unlocked)
+	difficulty = mini(D._tier_of_level_old(old_diff), diff_unlocked)
+
+
+## 三档 → 潮位（10-22，docs/109 §5 / docs/71 §4.3）：上次选的档 0 / 1 / 2 → 潮位 0 / 4 / 8；
+## 解锁：通关过标准 → 1，通关过 Ⅳ → 5，通关过 Ⅷ（P1 起记在 roster_tiers 里的档 2）→ 9。P1 记的首通档同时改成潮位号
+func _migrate_tide() -> void:
+	var lv := [0, 4, 8]
+	var cleared_8 := roster_tiers.has(2)
+	roster_tiers = roster_tiers.map(func(x): return lv[clampi(int(x), 0, 2)])
+	difficulty = lv[clampi(difficulty, 0, 2)]
+	diff_unlocked = [0, 1, 5][clampi(diff_unlocked, 0, 2)]
+	if cleared_8:
+		diff_unlocked = 9
+	difficulty = mini(difficulty, diff_unlocked)
 
 
 ## 老存档（没有 [roster] 段）：EA 期间所有干员都开局可用，打过的玩家一律直接全部解锁，不收回已有内容（docs/109 §12.5）。
@@ -506,6 +537,11 @@ func save() -> void:
 	c.set_value("roster", "draws", roster_draws)
 	c.set_value("roster", "seed", roster_seed)
 	c.set_value("roster", "fresh", roster_fresh)
+	c.set_value("meta", "shape", meta_shape)
+	c.set_value("meta", "shape_t", meta_shape_t)
+	c.set_value("meta", "earned", meta_earned)
+	c.set_value("meta", "dev", meta_dev)
+	c.set_value("meta", "bounty", meta_bounty)
 	var ss := _settings_sig()
 	if ss != _set_sig:
 		_set_sig = ss
@@ -545,6 +581,7 @@ func cloud_body() -> Dictionary:
 		"rel": (_real_progress.get("seen_relics", seen_relics) as Array).duplicate(), "end": (_real_progress.get("endings_cleared", endings_cleared) as Array).duplicate(),
 		"shows": seen_shows.duplicate(), "intro": seen_intro, "open": opening_seen,
 		"ops": roster_unlocked.duplicate(), "optier": roster_tiers.duplicate(),
+		"meta": {"earned": meta_earned.duplicate(), "bounty": meta_bounty.duplicate(), "shape": meta_shape.duplicate(), "t": meta_shape_t},
 		"opst": {"tk": roster_tickets.duplicate(), "sp": roster_spare.duplicate(), "wish": roster_wish, "pity": roster_pity, "draws": roster_draws, "seed": roster_seed}}, true)
 	var out: Dictionary = (cloud_extra.get("top", {}) as Dictionary).duplicate(true)
 	out["set"] = st
@@ -579,6 +616,19 @@ func cloud_apply(body: Dictionary) -> void:
 	if d.get("touch_layout") is Dictionary:
 		touch_layout = TouchLayout.sanitize(d.touch_layout)
 	var lists := {"gal": "gallery_seen", "rel": "seen_relics", "end": "endings_cleared", "shows": "seen_shows", "ops": "roster_unlocked"}
+	if p.get("meta") is Dictionary:
+		var mt: Dictionary = p.meta
+		if mt.get("earned") is Dictionary:
+			meta_earned = (mt.earned as Dictionary).duplicate()
+		if mt.get("bounty") is Array:
+			meta_bounty = mt.bounty.map(func(x): return int(x))
+		if mt.get("shape") is Dictionary:
+			meta_shape = (mt.shape as Dictionary).duplicate()
+		if mt.get("t") is float or mt.get("t") is int:
+			meta_shape_t = int(mt.t)
+		var M = load("res://scripts/core/meta.gd")
+		if M.spent(meta_shape) > M.earned_total():
+			meta_shape = {}   # 采用的认知塑造超出余额（另一台设备的进度还没同步过来）：整组重置，重置免费
 	if p.get("optier") is Array:
 		roster_tiers = p.optier.map(func(x): return int(x))
 	if p.get("opst") is Dictionary:

@@ -27,8 +27,8 @@ const KEY_LIMIT := 128
 const VALUE_LIMIT := 1024
 ## ops = 解锁过的干员、optier = 已首通的难度档（发过人事调度函），都取并集；opst = 名册的券与抽取状态（merge_opst）
 const LIST_KEYS := ["gal", "rel", "end", "shows", "ops", "optier"]
-const OPTIONAL_KEYS := ["ops", "optier", "opst"]   # 只在正文里有时才规范化 / 合并
-const PROG_KEYS := ["diff", "gal", "rel", "end", "shows", "intro", "open", "ops", "optier", "opst"]
+const OPTIONAL_KEYS := ["ops", "optier", "opst", "meta"]   # 只在正文里有时才规范化 / 合并
+const PROG_KEYS := ["diff", "gal", "rel", "end", "shows", "intro", "open", "ops", "optier", "opst", "meta"]
 ## 格式迁移：{旧版本 v: 把 v 版正文改成 v+1 版的静态函数名}。目前只有 v1，没有迁移；以后改格式时在这里登记（单测覆盖）
 const MIGRATIONS := {}
 
@@ -223,6 +223,21 @@ static func merge_opst(l: Dictionary, c: Dictionary) -> Dictionary:
 	return out
 
 
+## 局外成长合并（docs/109 §7.2）：生机细胞按设备号逐项取较大值（总数 = 各设备之和；整体取大会丢另一台设备、整体相加会翻倍）；
+## 首通赏金取并集；认知塑造跟修改时刻较新的一份（一样新用本地）。余额不够时由 Cfg 侧重置（免费）
+static func merge_meta(l: Dictionary, c: Dictionary) -> Dictionary:
+	var l2: Dictionary = l if l is Dictionary else {}
+	var c2: Dictionary = c if c is Dictionary else {}
+	var earned := {}
+	for src in [l2.get("earned", {}), c2.get("earned", {})]:
+		if src is Dictionary:
+			for k in src:
+				earned[k] = maxi(int(src[k]), int(earned.get(k, 0)))
+	var newer: Dictionary = c2 if int(c2.get("t", 0)) > int(l2.get("t", 0)) else l2
+	return {"earned": earned, "bounty": union(l2.get("bounty", []), c2.get("bounty", [])),
+		"shape": (newer.get("shape", {}) as Dictionary).duplicate() if newer.get("shape") is Dictionary else {}, "t": int(newer.get("t", 0))}
+
+
 ## 两份正文哪些字段不同（日志用）：["set.t", "set.d.master", "prog.rel", "ops"……]
 static func diff_keys(a: Dictionary, b: Dictionary) -> Array:
 	var out := []
@@ -291,6 +306,8 @@ static func merge(local: Dictionary, cloud: Dictionary) -> Dictionary:
 			p[k] = union(lp.get(k, []), cp.get(k, []))
 	if lp.has("opst") or cp.has("opst"):
 		p["opst"] = merge_opst(lp.get("opst", {}), cp.get("opst", {}))
+	if lp.has("meta") or cp.has("meta"):
+		p["meta"] = merge_meta(lp.get("meta", {}), cp.get("meta", {}))
 	var cloud_newer: bool = int(c.set.t) > int(l.set.t)
 	var win: Dictionary = c.set if cloud_newer else l.set
 	var lose: Dictionary = l.set if cloud_newer else c.set
