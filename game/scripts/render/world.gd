@@ -520,12 +520,12 @@ func _draw_pickups_fast() -> void:
 				var gc: Color = pu if big else cy
 				var dv: Vector2 = (gp - tgt).normalized()
 				var tl: float = 10.0 + 24.0 * minf(1.0, g_item.mag_t * 2.0)
-				_gt_line(gp, gp + dv * tl, Color(gc.r * 1.8, gc.g * 1.8, gc.b * 1.8, 0.55), 5.0 if big else 3.0)
-				_gt_line(gp, gp + dv * tl * 0.6, Color(2.5, 2.5, 2.5, 0.7), 1.5)
+				_gt_line(gp, gp + dv * tl * GEM_VIS, Color(gc.r * 1.8, gc.g * 1.8, gc.b * 1.8, 0.55), (5.0 if big else 3.0) * GEM_VIS)
+				_gt_line(gp, gp + dv * tl * 0.6 * GEM_VIS, Color(2.5, 2.5, 2.5, 0.7), 1.5 * GEM_VIS)
 			if not quiet:
-				_gt_circle(gp, (13.0 if big else 9.0) * tw, glow_b0 if big else glow_s0, _gt_fan14, _gt_c42)
-				_gt_circle(gp, (7.0 if big else 4.5) * tw, glow_b1 if big else glow_s1, _gt_fan14, _gt_c42)
-			_gt_circle(gp + Vector2(0, 1), 6.5 if big else 4.5, dark, _gt_fan10, _gt_c30)
+				_gt_circle(gp, (13.0 if big else 9.0) * tw * GEM_VIS, glow_b0 if big else glow_s0, _gt_fan14, _gt_c42)
+				_gt_circle(gp, (7.0 if big else 4.5) * tw * GEM_VIS, glow_b1 if big else glow_s1, _gt_fan14, _gt_c42)
+			_gt_circle(gp + Vector2(0, 1), (6.5 if big else 4.5) * GEM_VIS, dark, _gt_fan10, _gt_c30)
 			var gcol: Color = quiet_col if quiet else (lit_b if big else lit_s)
 			if big:
 				big_p.append(gp)
@@ -534,7 +534,7 @@ func _draw_pickups_fast() -> void:
 				small_p.append(gp)
 				small_c.append(gcol)
 			if not quiet:
-				spark.append([gp, 2.0 + 1.5 * tw, tw])
+				spark.append([gp, (2.0 + 1.5 * tw) * GEM_VIS, tw])
 			continue
 		# 落地的源石锭 / 灯油（不吸的时候数量可能上百）：先收集，循环后按贴图连续画（同 vfx.spr 的算式；画在结晶光晕批之前，同旧写法的前后关系）
 		if gz <= 1.0 and (kind == "ingot" or kind == "oil"):
@@ -552,14 +552,15 @@ func _draw_pickups_fast() -> void:
 	_gem_sprites("ingot", Game.PX, ing_p, wc1)
 	_gem_sprites("oil", Game.PX, oil_p, wc1)
 	_gt_flush()
-	_gem_sprites("gem_big", Game.PX * 1.9, big_p, big_c)
-	_gem_sprites("gem_small", Game.PX * 1.45, small_p, small_c)
+	_gem_sprites("gem_big", Game.PX * 1.9 * GEM_VIS, big_p, big_c)
+	_gem_sprites("gem_small", Game.PX * 1.45 * GEM_VIS, small_p, small_c)
 	for sk in spark:
 		var gp2: Vector2 = sk[0]
 		var sp3: float = sk[1]
 		var wc := Color(2.5, 2.5, 2.5, 0.5 * sk[2])
-		_gt_line(gp2 + Vector2(-sp3, -8), gp2 + Vector2(sp3, -8), wc, 1.0)
-		_gt_line(gp2 + Vector2(0, -8 - sp3), gp2 + Vector2(0, -8 + sp3), wc, 1.0)
+		var sy: float = -8.0 * GEM_VIS
+		_gt_line(gp2 + Vector2(-sp3, sy), gp2 + Vector2(sp3, sy), wc, 1.0)
+		_gt_line(gp2 + Vector2(0, sy - sp3), gp2 + Vector2(0, sy + sp3), wc, 1.0)
 	_gt_flush()
 	# 合并后的一堆：在格子中心画一颗，堆里 3 颗以上画成大结晶（紫），压暗同远处安静结晶；先画完小的再画大的（同贴图连续才合批）
 	var mp_s := PackedVector2Array()
@@ -573,8 +574,8 @@ func _draw_pickups_fast() -> void:
 	var qc := PackedColorArray()
 	qc.resize(maxi(mp_s.size(), mp_b.size()))
 	qc.fill(quiet_col)
-	_gem_sprites("gem_small", Game.PX * 1.45, mp_s, qc)
-	_gem_sprites("gem_big", Game.PX * 1.9, mp_b, qc)
+	_gem_sprites("gem_small", Game.PX * 1.45 * GEM_VIS, mp_s, qc)
+	_gem_sprites("gem_big", Game.PX * 1.9 * GEM_VIS, mp_b, qc)
 
 
 ## ---- 掉落物剩余断点合批（docs/50 §13，OPT_PICKB）：空中影子（每颗一个椭圆）、特殊掉落（宝箱 / 磁铁 / 回复药剂）的光柱、
@@ -668,6 +669,9 @@ func _pq_item(g_item: Dictionary, pos: Vector2, gz: float, kind: String, t: floa
 
 
 ## 同一张结晶贴图连续画（FrameDst.dst 的同一套算式：单帧、锚点居中、取整；热循环内联，docs/50 §11）
+## 经验结晶显示倍率（10-21 用户实玩「结晶画得太大」）：贴图、光晕、暗底、闪光、吸附拖尾一起缩；拾取判定不读它
+const GEM_VIS := 0.75
+
 func _gem_sprites(name: String, sc: float, ps: PackedVector2Array, cs: PackedColorArray) -> void:
 	if ps.is_empty():
 		return
