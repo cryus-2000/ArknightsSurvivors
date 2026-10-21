@@ -17,7 +17,7 @@
   "_doc": "基础数值（docs/27 §3、§9；设计稿 docs/123）：特种 · 钩索师，深海猎人。普攻「钩索」每一下都是 shape.hookshot（锚掷向远处敌人、落地伤害、拖回身前再受伤）；天赋「阿戈尔的波涛」队长每秒回复 + 每名其他深海猎人再加回复与减伤；S1「缺水的大洋裂断」重钩拖回 2 名；S2「缺水的掌握怒海」限时增伤 + 范围 + 每次钩索把身边敌人拉近；S3「缺水的碎漩狂舞」在最近一次钩中处留漩涡；精一「锚定」拖到面前的敌人眩晕；精二「冲撞」拖回到位时身前一圈冲击；节点 4 二选一「深海的庇护」/「怒海」（docs/119 §4.1）",
   "atk": 50,
   "cd": 1.1,
-  "range": 360,
+  "range": 240,
   "hook_min": 70,
   "hook_r": 90,
   "hook_back": 0.6,
@@ -26,14 +26,14 @@
   "hook_drag": 0.22,
   "hook_front": 230,
   "hook_speed": 900,
-  "hook_n": 1,
+  "hook_n": 2,
   "first_cd": 0.4,
   "idle_cd": 0.2,
   "heal_pct": 0.006,
   "mate_heal": 0.003,
   "mate_dr": 0.05,
   "mate_cap": 3,
-  "s1_range": 420,
+  "s1_range": 300,
   "s1_mult": 2.0,
   "s1_back": 1.0,
   "s1_n": 2,
@@ -73,7 +73,7 @@
   "arrive_stun": 0.9,
   "arrive_stun_e1": 1.4,
   "_leader": "用户 10-22 定：队长 / 队友同一套——拖回落点离她 hook_front 230（不拉到面前），到位眩晕 arrive_stun 0.9 秒，精一「锚定」延长到 arrive_stun_e1 1.4 秒",
-  "_range": "10-22 第 7 轮：落点 230 后射程 240 只剩 230–240 一窄带可拖（op4f 整局拖 1 次），射程改 360 / S1 420 留出 130 的可拖带"
+  "_range": "10-22 第 8 轮：射程回 240（第 7 轮 360 让钩掷得太远、身边的怪打不到，op4h 22.9%）；落点 230 靠 push_out 把线上更近的敌人也推到 230"
  },
  "leader": {
   "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 2309 / 防御 331 / 法抗 0（character_table）；有天赋自疗，regen 取 1.2（远程与小额自疗 1.1 口径略上浮，她的自疗精一才有）",
@@ -433,14 +433,14 @@
  "attack": {
   "mode": "auto",
   "name": "钩索",
-  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害，随后把钩索与她之间一线的敌人拖回到身前 {$hook_front} 处（Boss 除外），到位再受 {$hook_back*100}% 伤害并眩晕 {$arrive_stun} 秒（精英减半）"
+  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害，随后把钩索与她之间一线的敌人（至多 {$hook_n} 名，Boss 除外）拖到或推到身前 {$hook_front} 处，到位再受 {$hook_back*100}% 伤害并眩晕 {$arrive_stun} 秒（精英减半）"
  },
  "skills": [
   {
    "name": "缺水的大洋裂断",
    "en": "WATERLESS PARTING OF THE GREAT OCEAN",
    "sp": 7,
-   "desc": "立刻掷出重钩：{$s1_range} 内最远的敌人处半径 {$s1_r} 内 ×{$s1_mult} 伤害，把至多 {$s1_n} 名敌人拖回身前 {$hook_front} 处，到位再受 ×{$s1_back} 伤害并眩晕 {$arrive_stun} 秒（精英减半，Boss 除外）",
+   "desc": "立刻掷出重钩：{$s1_range} 内最远的敌人处半径 {$s1_r} 内 ×{$s1_mult} 伤害，把一线上至多 {$s1_n} 名敌人拖到或推到身前 {$hook_front} 处，到位再受 ×{$s1_back} 伤害并眩晕 {$arrive_stun} 秒（精英减半，Boss 除外）",
    "icon": "skill_ulpianus_s1"
   },
   {
@@ -677,7 +677,8 @@
        }
       ],
       "arrive_stun": "$arrive_stun",
-      "arrive_stun_elite1": "$arrive_stun_e1"
+      "arrive_stun_elite1": "$arrive_stun_e1",
+      "push_out": true
      }
     ]
    },
@@ -847,7 +848,8 @@
       "head": "proj_gladiia_hook",
       "drag_only": "all",
       "arrive_stun": "$arrive_stun",
-      "arrive_stun_elite1": "$arrive_stun_e1"
+      "arrive_stun_elite1": "$arrive_stun_e1",
+      "push_out": true
      }
     ]
    },
@@ -878,7 +880,8 @@
       "head": "proj_gladiia_hook",
       "drag_only": "all",
       "arrive_stun": "$arrive_stun",
-      "arrive_stun_elite1": "$arrive_stun_e1"
+      "arrive_stun_elite1": "$arrive_stun_e1",
+      "push_out": true
      }
     ]
    },
@@ -909,7 +912,8 @@
       "head": "proj_gladiia_hook",
       "drag_only": "all",
       "arrive_stun": "$arrive_stun",
-      "arrive_stun_elite1": "$arrive_stun_e1"
+      "arrive_stun_elite1": "$arrive_stun_e1",
+      "push_out": true
      }
     ]
    },

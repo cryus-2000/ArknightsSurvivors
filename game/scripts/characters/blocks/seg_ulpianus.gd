@@ -989,8 +989,8 @@ static func _hw5_hook_drag_start(o, hk: Dictionary) -> void:
 		var e: Dictionary = g.enemies[j]
 		if e.dead or not _movable(e) or not line_contains(a, d, L, w, e.pos, float(e.r)):
 			continue
-		if e.pos.distance_to(a) <= float(b.get("front", 60.0)):
-			continue   # 已经在身前的不拖
+		if e.pos.distance_to(a) <= float(b.get("front", 60.0)) and not bool(b.get("push_out", false)):
+			continue   # 已经在身前的不拖（push_out：比落点近的也推到落点去——歌蕾蒂娅「别拉到面前」，docs/123 §2.1 第 8 轮）
 		if str(b.get("drag_only", "all")) == "ranged" and str(e.get("ai", "")) != "ranged":
 			continue   # 歌蕾蒂娅（docs/123 §2.1，10-22）：只把远程怪拖回身前，近战怪本来就会贴上来，拉过来只会把队长埋进怪堆
 		got.append(e)
