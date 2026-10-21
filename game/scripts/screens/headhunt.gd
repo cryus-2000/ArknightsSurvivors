@@ -80,14 +80,11 @@ func _vouchers() -> int:
 	return int(Cfg.roster_tickets.get(Roster.T_HUNT, 0))
 
 
-# ---- 规则接口适配（10-22 协调人：券规则由局外成长会话改 roster.gd，这里只读接口；合入时由协调人对接）
-# 期望 roster.gd 提供：常量 PER_RUN / PER_CLEAR / DIRECTED_COST，静态函数 redeem_directed(cid) / migrate_tickets()。
-# 没有时用下面的缺省值，定向寻访退回旧的 redeem_pick（人事调度函）
-const RULE_DEFAULT := {"PER_RUN": 3, "PER_CLEAR": 4, "DIRECTED_COST": 2}
-
-
-func _rule(name: String) -> int:
-	return int((Roster as GDScript).get_script_constant_map().get(name, RULE_DEFAULT[name]))
+# ---- 规则接口适配（10-22：券规则由局外成长会话改 roster.gd，这里只读接口；合入时由协调人对接）
+# 新接口（claude/difficulty-3tiers b9e1d6bc）：RUN_TICKETS / WIN_BONUS / COST_RANDOM / COST_PICK、redeem_random()、redeem_pick(id) 花 COST_PICK 张、
+# migrate_tickets()、spill_to_cells()。旧接口（main）没有这些时：随机走 redeem_hunt，定向走 redeem_pick（人事调度函），满员走 spill_to_spare
+func _rule(name: String, dflt: int) -> int:
+	return int((Roster as GDScript).get_script_constant_map().get(name, dflt))
 
 
 func _roster_has(fn: String) -> bool:
@@ -97,16 +94,49 @@ func _roster_has(fn: String) -> bool:
 	return false
 
 
+func _rcall(fn: String, args := []) -> Variant:
+	return (Roster as GDScript).callv(fn, args)
+
+
+func _new_rules() -> bool:
+	return _roster_has("redeem_random")
+
+
+func _cost_pick() -> int:
+	return _rule("COST_PICK", 2)
+
+
+func _per_run() -> int:
+	return _rule("RUN_TICKETS", 3)
+
+
+func _per_clear() -> int:
+	return _rule("RUN_TICKETS", 3) + _rule("WIN_BONUS", 1)
+
+
+func _redeem_random() -> Dictionary:
+	return _rcall("redeem_random") if _new_rules() else _rcall("redeem_hunt")
+
+
 func _redeem_directed(cid: String) -> Dictionary:
-	if _roster_has("redeem_directed"):
-		return (Roster as GDScript).call("redeem_directed", cid)
 	return Roster.redeem_pick(cid)
 
 
+func _can_random() -> bool:
+	return _vouchers() >= _rule("COST_RANDOM", 1)
+
+
 func _can_direct() -> bool:
-	if _roster_has("redeem_directed"):
-		return _vouchers() >= _rule("DIRECTED_COST")
-	return int(Cfg.roster_tickets.get(Roster.T_PICK, 0)) > 0
+	if _new_rules():
+		return _vouchers() >= _cost_pick()
+	return int(Cfg.roster_tickets.get("pick", 0)) > 0
+
+
+func _spill() -> void:
+	if _roster_has("spill_to_cells"):
+		_rcall("spill_to_cells")
+	elif _roster_has("spill_to_spare"):
+		_rcall("spill_to_spare")
 
 
 ## 结算画出来时调（hud.gd）：有寻访凭证就打开入口
@@ -115,10 +145,10 @@ func maybe_open() -> void:
 		return
 	if _roster_has("migrate_tickets"):
 		(Roster as GDScript).call("migrate_tickets")
-	if _vouchers() <= 0 and not _can_direct():
+	if not _can_random() and not _can_direct():
 		return
 	if Roster.locked_ids().is_empty():
-		Roster.spill_to_spare()
+		_spill()
 		return
 	open = true
 	_entry()
@@ -126,9 +156,9 @@ func maybe_open() -> void:
 
 func _entry() -> void:
 	results.clear()
-	if (_vouchers() <= 0 and not _can_direct()) or Roster.locked_ids().is_empty():
+	if (not _can_random() and not _can_direct()) or Roster.locked_ids().is_empty():
 		if Roster.locked_ids().is_empty():
-			Roster.spill_to_spare()
+			_spill()
 		open = false
 		return
 	mode = "entry"
@@ -221,9 +251,9 @@ func _act(a) -> void:
 			if a is int:
 				sel = a
 				a = "one" if a == 0 else "directed"
-			if a == "one" and _vouchers() >= 1:
+			if a == "one" and _can_random():
 				Sfx.play("ui_ok")
-				var r := Roster.redeem_hunt()
+				var r := _redeem_random()
 				if str(r.get("id", "")) != "":
 					results = [r]
 				_play()
@@ -441,7 +471,7 @@ func _draw_entry() -> void:
 	HS.voucher(ci, vr.position + Vector2(52, 38), 1.0)
 	UI.text_at(ci, f, vr.position + Vector2(110, 38), "寻访凭证", 20, HS.INK, "lm", true)
 	UI.text_at(ci, f, Vector2(vr.end.x - 20, vr.position.y + 38), "× %d" % n, 30, HS.INK, "rm", true)
-	var rules := ["每次探索结算获得 %d 张，通关获得 %d 张" % [_rule("PER_RUN"), _rule("PER_CLEAR")], "未解锁 %d 名 · 不会抽到重复干员" % locked.size()]
+	var rules := ["每次探索结算获得 %d 张，通关获得 %d 张" % [_per_run(), _per_clear()], "未解锁 %d 名 · 不会抽到重复干员" % locked.size()]
 	if Cfg.roster_draws == 0:
 		rules.append("首次寻访必定获得医疗干员")
 	for j in rules.size():
@@ -471,7 +501,7 @@ func _draw_entry() -> void:
 	UI.text_at(ci, f, Vector2(945, 228), "卡池 · 未解锁 %d 名" % locked.size(), 15, Color.WHITE, "mm", true)
 	var r1 := Rect2(620, 636, 300, 62)
 	var r0 := Rect2(940, 632, 310, 68)
-	HS.ghost_btn(ci, f, r1, "定向寻访  （%d 张）" % _rule("DIRECTED_COST"), "", 1.0)
+	HS.ghost_btn(ci, f, r1, "定向寻访  （%d 张）" % _cost_pick(), "", 1.0)
 	if not _can_direct():
 		HS.para(ci, r1, Color(0, 0, 0, 0.55))
 	elif _hot(1, r1):
@@ -499,7 +529,7 @@ func _bottom(text_mid := "") -> void:
 	HS.bottom_bar(ci, D, 88)
 	HS.voucher(ci, Vector2(80, D.y - 44), 0.8)
 	UI.text_at(ci, f, Vector2(130, D.y - 44), "持有寻访凭证  × %d" % _vouchers(), 20, UI.TEXT, "lm")
-	UI.text_at(ci, f, Vector2(350, D.y - 44), "本次消耗 %d" % _rule("DIRECTED_COST"), 15, HS.MUTE, "lm")
+	UI.text_at(ci, f, Vector2(350, D.y - 44), "本次消耗 %d" % _cost_pick(), 15, HS.MUTE, "lm")
 	if text_mid != "":
 		UI.text_at(ci, f, Vector2(640, D.y - 44), text_mid, 15, UI.TEXT, "mm")
 
@@ -511,7 +541,7 @@ func _draw_class() -> void:
 	_btn(HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "定向寻访 · 选择职业"), "back")
 	var by := HS.title_block(ci, f, Vector2(36, 150), "01", "定向寻访", "定向寻访", "DIRECTED", 1.0, 72)
 	UI.text_at(ci, f, Vector2(36, by + 34), "先选职业，再从该职业的未解锁干员中指定 1 名。", 15, HS.INK, "lm")
-	UI.text_at(ci, f, Vector2(36, by + 58), "消耗寻访凭证 %d 张。" % _rule("DIRECTED_COST"), 15, HS.INK, "lm")
+	UI.text_at(ci, f, Vector2(36, by + 58), "消耗寻访凭证 %d 张。" % _cost_pick(), 15, HS.INK, "lm")
 	HS.hr_mark(ci, f, Vector2(36, 430))
 	var bag := A.tex("ui_hh_bag_zip")
 	if bag != null:
