@@ -225,7 +225,7 @@ func relic_pool_ids(for_shop := false) -> Array:
 			"核心": w = 12.0
 			"升华": w = 3.0 if g.t > 420.0 else 0.0
 			"遭诅古物": w = 8.0 if for_shop else 0.0
-		if w <= 0.0:
+		if w <= 0.0 or (g.meta_basic_pick and r.rarity != "基础"):
 			continue
 		var best_n := 0
 		for ln in r.lanes:
@@ -270,6 +270,7 @@ func open_relic_choice() -> void:
 		extra += 1
 		g.vfx.add_text(g.ppos + Vector2(0, -96), "钥匙 · 多一个选项", UI.GOLD, 15)
 	var shown: Array = pool.slice(0, 3 + g.rfx.rule("four_choices") + extra)
+	g.meta_basic_pick = false
 	if g.mode == g.Mode.BALANCE:
 		g.dbg_relic_offer.append([int(g.t), "choice", shown.map(func(c): return c.id)])
 	g.panel_ui.show_choices("获得藏品", shown, "relic")

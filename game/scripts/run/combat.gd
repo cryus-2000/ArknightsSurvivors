@@ -1022,6 +1022,8 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		dmg *= edef * g.rfx.dmg_extra()
 		if e.boss:
 			dmg *= g.boss_mult   # “文明的存续”（docs/57 P3）
+		elif e.elite:
+			dmg *= g.elite_mult   # 认知塑造「攻击性」（docs/109 §4）
 		# 弱点：对应类型伤害 +50%（藏品可加成 / 赋予双弱点）
 		var wk: String = e.get("weak", "")
 		if wk == ty[1] or (wk == "双" and ty[1] != "真实") or (g.rfx.rule("all_weak") > 0):

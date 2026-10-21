@@ -925,6 +925,7 @@ SCENE_REGRESSIONS = {
     "op_dummy": ("干员木桩表场景（docs/79）：队友身份 + 怪群 5 秒自检", "op_dummy_test", r"OP DUMMY failures=0",
                  ["--balance", "--bot=afk", "--nodeath", "--op=hoshiguma", "--squad=wisadel", "--dummy_op=wisadel", "--dummy_role=mate",
                   "--dummy_scene=horde", "--dummy_stage=2", "--dummy_secs=5", "--dummy_warm=2", "--dummy_check"]),
+    "meta": ("认知塑造（docs/109 §4）：节点数据完整（总量 550、前置、推荐顺序）、推荐点法按预算点、--meta=full 点满、测试局缺省不带", "meta_test", r"META failures=0", []),
     "roster": ("干员解锁（docs/109 §12）：开局 5 人、首抽流明、先补齐职业、不重复、意向保底、招募券、局终发券、云存档并集", "roster_test", r"ROSTER failures=0", ["--roster=start5"]),
     "cloud_save": ("B站云存档：打包 / 分片 / 平台限制 / 校验 / 版本 / 合并规则 / Cfg 往返 / 非网页不启用（docs/89）", "cloud_save_test", r"CLOUD SAVE failures=0", []),
     "look": ("观感预设 render/look（角色受光封顶 / 后期曲线 / 亮度缺省）", "look_test", r"LOOK TEST failures=0", []),
