@@ -665,6 +665,8 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		tmpl_keys = e.keys()   # 字段模板（check_enemy 用）：取字面量本身，不含下面按类型追加的字段
 	if _norm and role == "" and density() != 1.0:
 		_dens_apply(e)
+	if _norm and role == "" and d.has("hp_late"):
+		_late_hp_apply(e, float(d.hp_late))
 	if _norm and (role == "" or role == "elite") and escale() != 1.0:
 		e.r *= escale()   # 怪物体型：判定半径 × scale，r0 不动，画面缩放 enemy_scale = PX × r / r0 跟着放大
 		e["sc"] = escale()
@@ -751,6 +753,18 @@ func _dens_apply(e: Dictionary) -> void:
 	e.xp *= inv
 	e.dmg *= pow(inv, Bal.v("enemy/density_dmg_exp", 1.0))
 	e["dk"] = inv
+
+
+## 后期按类型抬血（docs/116 §6，10-21 用户「全程秒杀有点无聊」）：普通刷出的该类型单只生命 / 潮盾在 enemy/hp_late_t0 → t1 秒间
+## 从 ×1 线性升到 ×hp_late（enemies.json 按类型写，缺省不写 = 不变），之后保持。经验、伤害不变（加血不加经验，避免「加血变易」）；
+## 精英 / Boss / 召唤 / 事件不吃
+func _late_hp_apply(e: Dictionary, mult: float) -> void:
+	var t0: float = Bal.v("enemy/hp_late_t0", 240.0)
+	var t1: float = Bal.v("enemy/hp_late_t1", 360.0)
+	var f := lerpf(1.0, mult, clampf((g.t - t0) / maxf(1.0, t1 - t0), 0.0, 1.0))
+	e.hp *= f
+	e.maxhp *= f
+	e.shield_hp *= f
 
 
 ## 本次大群的编成（data/waves.json，EA 1.1 大群混编）：威胁等级写了 horde_mix 就从中随机抽一套（g.rng，同 seed 可复现），

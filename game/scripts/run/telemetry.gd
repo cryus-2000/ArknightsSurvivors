@@ -59,6 +59,7 @@ var ring: Array = []            # {t, src, amt, hp_after, boss, zone_out}
 var ring_ctx: Array = []        # [t, dt, corrode_pool, in_mire, 敌人数, 敌弹数, 熄灯]
 var floor_snaps: Array = []     # 不死模式每次托底的快照（最多前 5 次）
 var floor_seen := 0
+var kill_hits: Dictionary = {}  # 普通怪击杀时挨了几下（docs/116 §6 打几下才死）："分钟:类型" -> [只数, 受击次数和, 首次受击到死亡秒数和]
 # ---- 作战记录（局终统计界面，docs/77，2026-10-12）：按干员拆的输出 / 击杀 / 技能次数等。只累加、不读随机数，不影响同 seed 复现
 const BIN_S := 10.0             # 时间线分箱（局内秒）
 var op_out: Dictionary = {}     # 干员 id（没有干员的来源记 "_other"：援护 / 藏品 / 地雷……）-> {来源名: 有效伤害}
@@ -297,6 +298,18 @@ func tick(dt: float) -> void:
 			"rg": snappedf(g.combat.regen_per_sec(), 0.01)})
 		taken_window = 0.0
 		win_src = {}
+
+
+## 普通怪死亡时记一笔（combat 击杀结算调用）：按分钟 × 类型累计只数与受击次数，精英 / Boss / 友方不记
+func on_kill(e: Dictionary) -> void:
+	if e.elite or e.boss or e.get("friendly", false):
+		return
+	var k := "%d:%s" % [int(g.t / 60.0), e.type]
+	if not kill_hits.has(k):
+		kill_hits[k] = [0, 0, 0.0]
+	kill_hits[k][0] += 1
+	kill_hits[k][1] += int(e.hits)
+	kill_hits[k][2] = snappedf(kill_hits[k][2] + (g.t - float(e.get("h0", g.t))), 0.01)   # 首次受击 → 死亡的秒数和（实际 TTK）
 
 
 ## 灯火档位（docs/76 §5，以 hud_bars.gd 为准）：0 通明 ≥ 70 / 1 摇曳 30–69 / 2 暗淡 < 30 / 3 寂灭 0
@@ -579,7 +592,7 @@ func record(marks = null) -> Dictionary:
 		"allies": g.squad.size() - 1, "squad": g.squad.ids(), "elite_stage": g.ch.elite,
 		"boss_hp": (g.boss.hp / g.boss.maxhp) if g.boss != null else -1.0, "dmg": g.dmg_log, "out": g.dmg_out, "out_type": g.dmg_type_out,
 		"out_tag": g.dmg_tag_out, "ending": g.ending, "lamp": int(g.lamp), "rej": g.doctor.rej(), "heal": g.heal_log, "drone": g.weapons.get("drone", 0),
-		"floor_hits": g.floor_hits, "floor_times": g.floor_times,
+		"floor_hits": g.floor_hits, "floor_times": g.floor_times, "kill_hits": kill_hits,
 		"hordes": g.horde_log.map(func(h): return {"t": h.t, "n": h.n, "hp": int(h.hp), "t80": h.t80, "hp0": int(h.hp0), "minhp": int(h.minhp), "mix": h.get("mix", ""), "comp": h.comp}),
 		"armor_cf": g.combat.armor_cf, "growth": g.growth.duplicate(), "dashes": dashes, "swaps": g.progression.swaps.duplicate(),   # docs/83：物理减伤遥测、被动卡等级、冲刺次数
 		"terrain": g.map.tb_log.duplicate(),   # 地形阻挡（只记录）：挡下的我方 / 敌方直线弹、撞停的冲刺

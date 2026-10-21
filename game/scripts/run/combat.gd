@@ -1080,6 +1080,8 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	g.dmg_type_out[ty[1]] = g.dmg_type_out.get(ty[1], 0.0) + eff
 	for tg in h.tags:
 		g.dmg_tag_out[tg] = g.dmg_tag_out.get(tg, 0.0) + eff
+	if e.hits == 0:
+		e["h0"] = g.t   # 首次受击时刻（遥测 kill_hits 的实际 TTK，docs/116 §6）
 	e.hits += 1
 	g.vfx.hit_react(e, g.crit_hit, weak_hit, h)   # 白闪 / 形变 / 命中粒子按普攻、技能、暴击、弱点、破绽分档（纯画面，界面与美术；参数 balance.json fx 段）
 	# 伤害数字的位置抖动是纯画面，用 g.vrng：飘字数量取决于画面随机数（上面的「无效」），设置里还能关掉伤害数字，
@@ -1144,6 +1146,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 		return
 	if e.type != "tear":
 		g.kills += 1
+		g.telemetry.on_kill(e)
 	if e.has("horde") and e.horde < g.horde_log.size():
 		var hl: Dictionary = g.horde_log[e.horde]
 		hl.killed += 1
