@@ -5,7 +5,7 @@
 ## 1. 做法
 
 - **BGM**（`audio/music/*.ogg`，71 个，立体声 44.1 kHz）：没有母带（`gen_music.py` / `gen_music_battle.py` 直接写 OGG），解码后按 soundfile `compression_level` 0.70 重新编码（原 0.45 / 0.62 / 0.66；压后 65–105 kbps），只在变小时替换，帧数逐个核对与原文件相同（乐句式曲目按帧接缝）。两份生成脚本的编码档位同步改成 0.70。保留立体声。
-- **语音**（`audio/voice/*.ogg`，91 条，已是单声道）：从 `audio/voice/masters/` 的 WAV 母带重编码（不叠加有损），`voice_manifest.json` 每条 `ogg_quality` +0.1（封顶 0.8）；`voice_ogg.py` 的新条目缺省档 0.3 → 0.4。
+- **语音**（`audio/voice/*.ogg`，91 条，原本就是单声道 44.1 kHz、平均约 98 kbps）：协调人补充「语音优先、人声 48–64 kbps 够」。从 `audio/voice/masters/` 的 WAV 母带重编码（不叠加有损）：重采样到 24 kHz（人声 12 kHz 以内够用）+ 档位 0.7，平均约 57 kbps。`voice_ogg.py` 加 `OUT_SR = 24000`、缺省档 0.7，清单每条 `ogg_quality` 统一 0.7、`format` 写明 24 kHz；以后改档位直接 `voice_ogg.py --all`。只靠降档（不降采样率）在 44.1 kHz 下最低也有 60 kbps。首尾静音合计 8.2 秒（4%），去掉只省约 0.06 MiB，还会改变语音起播时机，没做。
 - **音效**（`audio/sfx/*.wav`，162 个，导入时已是 QOA）：不动。
 - 工具：`game/tools/shrink_audio.py`（缺省先写 `build/audio_shrink/stage/` 核对，`--apply` 写进游戏）。
 
@@ -18,20 +18,20 @@
 | `bgm_title_*` | 标题曲 20–30 秒（123 → 75 kbps） |
 | `bgm_archive_v2_*` | 图鉴曲 10–20 秒（码率最高的一首，165 → 102 kbps） |
 | `bgm_battle1_A_mix_*` | 战斗曲 A 句激战三层叠在一起（局内实际听到的样子） |
-| `voice_skalter_skill_3_*`、`voice_siege_skill_1_*`、`voice_saria_skill_2_*` | 语音最长一条与两条中等长度 |
+| `voice_skalter_skill_3_*`、`voice_siege_skill_1_*`、`voice_saria_skill_2_*` | 语音最长一条与两条中等长度（压后 24 kHz、约 57 kbps） |
 
 音效这次没改，没出对比样本。
 
 ## 3. 包内音频（按压前大小排序）
 
-包内大小取 `game/.godot/imported/` 里导出的文件（OGG 原样进包，WAV 导入成 QOA）。
+包内大小取 `game/.godot/imported/` 里导出的文件（OGG 原样进包，WAV 导入成 QOA）。语音 WAV 母带（`audio/voice/masters/`，16.7 MiB）目录里有 `.gdignore`，不导入也不进包（实导的 pck 里查过，没有 masters 路径）；「语音占 24.5 MiB」的口径应是把母带算进去了，网页包里的语音压前只有 2.55 MiB。
 
 | 用途 | 文件数 | 压前（MiB） | 压后（MiB） | 省 |
 |---|---|---|---|---|
 | BGM | 71 | 18.28 | 13.62 | 4.66 |
-| 语音 | 91 | 2.55 | 2.33 | 0.22 |
+| 语音 | 91 | 2.55 | 1.48 | 1.07 |
 | 音效 | 162 | 2.25 | 2.25 | 0.00 |
-| 合计 | 324 | 23.08 | 18.19 | 4.89 |
+| 合计 | 324 | 23.08 | 17.34 | 5.74 |
 
 | # | 文件 | 用途 | 格式 | 采样率 / 声道 | 时长 | 包内大小 压前 → 压后（KB） | 码率 压前 → 压后（kbps） |
 |---|---|---|---|---|---|---|---|
@@ -105,111 +105,111 @@
 | 68 | `music/battle1_D_base.ogg` | BGM | OGG | 44100 Hz / 立体声 | 15.0 s | 146 → 128 | 80 → 70 |
 | 69 | `music/battle3_D_base.ogg` | BGM | OGG | 44100 Hz / 立体声 | 14.5 s | 143 → 123 | 81 → 70 |
 | 70 | `music/boss_down.ogg` | BGM | OGG | 44100 Hz / 立体声 | 9.0 s | 97 → 68 | 89 → 61 |
-| 71 | `voice/skalter_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 7.2 s | 95 → 86 | 108 → 98 |
+| 71 | `voice/skalter_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 7.2 s | 95 → 45 | 108 → 51 |
 | 72 | `music/boss_in.ogg` | BGM | OGG | 44100 Hz / 立体声 | 6.5 s | 83 → 65 | 105 → 82 |
-| 73 | `voice/skalter_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 5.9 s | 80 → 73 | 111 → 101 |
-| 74 | `voice/skalter_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 5.5 s | 74 → 68 | 111 → 101 |
-| 75 | `voice/hoshiguma_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 5.6 s | 73 → 65 | 106 → 95 |
-| 76 | `voice/lumen_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 5.1 s | 70 → 62 | 113 → 101 |
-| 77 | `voice/skalter_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 4.2 s | 60 → 55 | 116 → 106 |
-| 78 | `voice/skalter_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.9 s | 56 → 51 | 116 → 107 |
-| 79 | `voice/specter_unchained_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 5.0 s | 55 → 52 | 90 → 84 |
-| 80 | `voice/lumen_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 4.7 s | 52 → 47 | 90 → 82 |
-| 81 | `voice/angelina_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.2 s | 50 → 46 | 131 → 119 |
-| 82 | `voice/hoshiguma_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.6 s | 50 → 45 | 113 → 101 |
-| 83 | `voice/wisadel_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 6.3 s | 48 → 44 | 62 → 57 |
-| 84 | `voice/wisadel_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 5.4 s | 46 → 43 | 69 → 65 |
-| 85 | `voice/mizuki_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.1 s | 44 → 39 | 117 → 103 |
+| 73 | `voice/skalter_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 5.9 s | 80 → 38 | 111 → 53 |
+| 74 | `voice/skalter_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 5.5 s | 74 → 35 | 111 → 53 |
+| 75 | `voice/hoshiguma_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 5.6 s | 73 → 35 | 106 → 51 |
+| 76 | `voice/lumen_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 5.1 s | 70 → 33 | 113 → 53 |
+| 77 | `voice/skalter_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 4.2 s | 60 → 28 | 116 → 55 |
+| 78 | `voice/skalter_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.9 s | 56 → 27 | 116 → 57 |
+| 79 | `voice/specter_unchained_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 5.0 s | 55 → 34 | 90 → 55 |
+| 80 | `voice/lumen_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 4.7 s | 52 → 28 | 90 → 49 |
+| 81 | `voice/angelina_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.2 s | 50 → 24 | 131 → 61 |
+| 82 | `voice/hoshiguma_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.6 s | 50 → 25 | 113 → 55 |
+| 83 | `voice/wisadel_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 6.3 s | 48 → 33 | 62 → 43 |
+| 84 | `voice/wisadel_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 5.4 s | 46 → 31 | 69 → 47 |
+| 85 | `voice/mizuki_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.1 s | 44 → 24 | 117 → 63 |
 | 86 | `sfx/op_lumen_s3.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 2.4 s | 42 → 42 | 144 → 144 |
 | 87 | `sfx/hunt_warn.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 2.4 s | 42 → 42 | 144 → 144 |
-| 88 | `voice/skadi_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.9 s | 42 → 39 | 87 → 80 |
-| 89 | `voice/skadi_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.4 s | 41 → 38 | 98 → 90 |
-| 90 | `voice/wisadel_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 4.3 s | 41 → 38 | 76 → 71 |
-| 91 | `voice/lumen_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.8 s | 40 → 34 | 118 → 101 |
+| 88 | `voice/skadi_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.9 s | 42 → 26 | 87 → 54 |
+| 89 | `voice/skadi_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.4 s | 41 → 24 | 98 → 57 |
+| 90 | `voice/wisadel_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 4.3 s | 41 → 27 | 76 → 52 |
+| 91 | `voice/lumen_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.8 s | 40 → 19 | 118 → 55 |
 | 92 | `sfx/op_irene_s3.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 2.3 s | 40 → 40 | 144 → 144 |
-| 93 | `voice/lumen_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.5 s | 40 → 34 | 132 → 114 |
-| 94 | `voice/ulpianus_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.2 s | 39 → 35 | 99 → 89 |
-| 95 | `voice/specter_unchained_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.6 s | 39 → 35 | 120 → 108 |
+| 93 | `voice/lumen_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.5 s | 40 → 19 | 132 → 62 |
+| 94 | `voice/ulpianus_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.2 s | 39 → 24 | 99 → 60 |
+| 95 | `voice/specter_unchained_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.6 s | 39 → 21 | 120 → 64 |
 | 96 | `sfx/op_logos_s3.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 2.2 s | 39 → 39 | 144 → 144 |
-| 97 | `voice/skadi_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.4 s | 37 → 34 | 87 → 80 |
-| 98 | `voice/ulpianus_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.9 s | 36 → 31 | 151 → 132 |
+| 97 | `voice/skadi_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.4 s | 37 → 22 | 87 → 52 |
+| 98 | `voice/ulpianus_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.9 s | 36 → 16 | 151 → 69 |
 | 99 | `sfx/izu_wave_count.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 2.0 s | 35 → 35 | 144 → 144 |
-| 100 | `voice/angelina_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.3 s | 35 → 32 | 125 → 114 |
-| 101 | `voice/wisadel_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.9 s | 34 → 32 | 73 → 68 |
-| 102 | `voice/mizuki_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.3 s | 34 → 32 | 85 → 80 |
-| 103 | `voice/angelina_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.0 s | 33 → 30 | 139 → 125 |
-| 104 | `voice/suzuran_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.3 s | 33 → 30 | 120 → 107 |
+| 100 | `voice/angelina_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.3 s | 35 → 17 | 125 → 61 |
+| 101 | `voice/wisadel_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.9 s | 34 → 24 | 73 → 51 |
+| 102 | `voice/mizuki_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.3 s | 34 → 24 | 85 → 61 |
+| 103 | `voice/angelina_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.0 s | 33 → 17 | 139 → 69 |
+| 104 | `voice/suzuran_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.3 s | 33 → 18 | 120 → 66 |
 | 105 | `sfx/op_suzuran_s3.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.9 s | 33 → 33 | 145 → 145 |
-| 106 | `voice/angelina_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.8 s | 33 → 30 | 146 → 132 |
+| 106 | `voice/angelina_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.8 s | 33 → 16 | 146 → 71 |
 | 107 | `sfx/op_mizuki_s3.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.9 s | 33 → 33 | 144 → 144 |
 | 108 | `sfx/cue_global_start.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.8 s | 32 → 32 | 145 → 145 |
-| 109 | `voice/wisadel_w_laugh.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.0 s | 31 → 28 | 87 → 77 |
-| 110 | `voice/angelina_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.7 s | 31 → 28 | 146 → 130 |
-| 111 | `voice/siege_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.8 s | 31 → 28 | 91 → 83 |
+| 109 | `voice/wisadel_w_laugh.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 3.0 s | 31 → 20 | 87 → 56 |
+| 110 | `voice/angelina_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.7 s | 31 → 15 | 146 → 72 |
+| 111 | `voice/siege_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.8 s | 31 → 21 | 91 → 62 |
 | 112 | `sfx/op_eyjafjalla_s3.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.7 s | 30 → 30 | 145 → 145 |
-| 113 | `voice/skadi_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.9 s | 30 → 28 | 83 → 79 |
-| 114 | `voice/irene_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.3 s | 29 → 27 | 107 → 97 |
+| 113 | `voice/skadi_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.9 s | 30 → 20 | 83 → 55 |
+| 114 | `voice/irene_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.3 s | 29 → 18 | 107 → 64 |
 | 115 | `sfx/op_suzuran_s2.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.6 s | 29 → 29 | 145 → 145 |
 | 116 | `sfx/op_skadi_s3.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.6 s | 28 → 28 | 145 → 145 |
 | 117 | `sfx/cue_global_hit.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.6 s | 28 → 28 | 145 → 145 |
 | 118 | `sfx/hunt_close.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.6 s | 28 → 28 | 145 → 145 |
-| 119 | `voice/specter_unchained_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.5 s | 28 → 25 | 92 → 84 |
-| 120 | `voice/texas_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.7 s | 27 → 25 | 134 → 122 |
-| 121 | `voice/ulpianus_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.8 s | 27 → 23 | 121 → 103 |
-| 122 | `voice/mizuki_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.0 s | 27 → 25 | 112 → 103 |
+| 119 | `voice/specter_unchained_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.5 s | 28 → 18 | 92 → 61 |
+| 120 | `voice/texas_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.7 s | 27 → 14 | 134 → 68 |
+| 121 | `voice/ulpianus_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.8 s | 27 → 17 | 121 → 75 |
+| 122 | `voice/mizuki_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.0 s | 27 → 16 | 112 → 68 |
 | 123 | `sfx/op_lumen_s2.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.5 s | 27 → 27 | 145 → 145 |
-| 124 | `voice/irene_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.2 s | 27 → 25 | 100 → 93 |
+| 124 | `voice/irene_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.2 s | 27 → 17 | 100 → 65 |
 | 125 | `sfx/op_ulpianus_s2.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.5 s | 27 → 27 | 145 → 145 |
 | 126 | `sfx/cocoon_revive.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.5 s | 27 → 27 | 145 → 145 |
-| 127 | `voice/saria_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.5 s | 26 → 25 | 86 → 81 |
-| 128 | `voice/irene_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.0 s | 26 → 24 | 107 → 100 |
-| 129 | `voice/siege_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.3 s | 26 → 24 | 91 → 85 |
+| 127 | `voice/saria_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.5 s | 26 → 18 | 86 → 59 |
+| 128 | `voice/irene_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.0 s | 26 → 16 | 107 → 65 |
+| 129 | `voice/siege_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.3 s | 26 → 18 | 91 → 64 |
 | 130 | `sfx/op_kaltsit_s3.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.4 s | 25 → 25 | 145 → 145 |
 | 131 | `sfx/op_logos_s2.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.4 s | 25 → 25 | 145 → 145 |
-| 132 | `voice/wisadel_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.4 s | 25 → 23 | 86 → 79 |
+| 132 | `voice/wisadel_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.4 s | 25 → 18 | 86 → 61 |
 | 133 | `sfx/cocoon_form.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.4 s | 25 → 25 | 145 → 145 |
 | 134 | `sfx/cue_phase_start.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.4 s | 25 → 25 | 145 → 145 |
 | 135 | `sfx/lamp_out.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.4 s | 25 → 25 | 145 → 145 |
 | 136 | `sfx/start.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.4 s | 25 → 25 | 145 → 145 |
-| 137 | `voice/hoshiguma_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.4 s | 25 → 23 | 145 → 134 |
-| 138 | `voice/irene_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.9 s | 24 → 23 | 103 → 96 |
+| 137 | `voice/hoshiguma_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.4 s | 25 → 13 | 145 → 75 |
+| 138 | `voice/irene_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.9 s | 24 → 16 | 103 → 66 |
 | 139 | `sfx/op_mizuki_s1.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.3 s | 23 → 23 | 145 → 145 |
 | 140 | `sfx/beacon_lit.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.3 s | 23 → 23 | 145 → 145 |
 | 141 | `sfx/lamp_empty.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.3 s | 23 → 23 | 145 → 145 |
 | 142 | `sfx/stake_hit.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.3 s | 23 → 23 | 145 → 145 |
 | 143 | `sfx/op_specter_unchained_s3.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.3 s | 23 → 23 | 145 → 145 |
-| 144 | `voice/irene_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.6 s | 23 → 21 | 115 → 105 |
-| 145 | `voice/eyjafjalla_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.6 s | 22 → 21 | 114 → 105 |
-| 146 | `voice/texas_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.3 s | 22 → 20 | 142 → 128 |
-| 147 | `voice/logos_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.2 s | 22 → 20 | 84 → 76 |
+| 144 | `voice/irene_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.6 s | 23 → 14 | 115 → 73 |
+| 145 | `voice/eyjafjalla_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.6 s | 22 → 13 | 114 → 68 |
+| 146 | `voice/texas_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.3 s | 22 → 11 | 142 → 72 |
+| 147 | `voice/logos_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.2 s | 22 → 15 | 84 → 56 |
 | 148 | `sfx/op_specter_unchained_s2.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.2 s | 22 → 22 | 145 → 145 |
-| 149 | `voice/logos_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.0 s | 22 → 19 | 87 → 78 |
+| 149 | `voice/logos_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 2.0 s | 22 → 15 | 87 → 60 |
 | 150 | `sfx/op_saria_s3.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.2 s | 22 → 22 | 145 → 145 |
-| 151 | `voice/suzuran_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.8 s | 21 → 20 | 99 → 91 |
+| 151 | `voice/suzuran_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.8 s | 21 → 15 | 99 → 70 |
 | 152 | `sfx/hunt_break.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.2 s | 21 → 21 | 145 → 145 |
 | 153 | `sfx/ishar_land_break.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.2 s | 21 → 21 | 145 → 145 |
 | 154 | `sfx/mire_clear.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.2 s | 21 → 21 | 145 → 145 |
 | 155 | `sfx/roar.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.2 s | 21 → 21 | 145 → 145 |
 | 156 | `sfx/op_logos_s1.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.2 s | 21 → 21 | 145 → 145 |
-| 157 | `voice/hoshiguma_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.1 s | 21 → 18 | 156 → 135 |
-| 158 | `voice/eyjafjalla_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.2 s | 21 → 20 | 140 → 129 |
+| 157 | `voice/hoshiguma_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.1 s | 21 → 11 | 156 → 81 |
+| 158 | `voice/eyjafjalla_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.2 s | 21 → 11 | 140 → 75 |
 | 159 | `sfx/op_skadi_s2.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.1 s | 20 → 20 | 145 → 145 |
-| 160 | `voice/logos_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.8 s | 20 → 20 | 92 → 88 |
+| 160 | `voice/logos_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.8 s | 20 → 13 | 92 → 60 |
 | 161 | `sfx/op_lumen_s1.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.1 s | 20 → 20 | 146 → 146 |
-| 162 | `voice/exusiai_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.1 s | 20 → 19 | 152 → 141 |
-| 163 | `voice/kaltsit_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.1 s | 20 → 18 | 153 → 137 |
-| 164 | `voice/hoshiguma_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.1 s | 20 → 18 | 152 → 141 |
-| 165 | `voice/eyjafjalla_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.2 s | 20 → 19 | 137 → 128 |
+| 162 | `voice/exusiai_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.1 s | 20 → 11 | 152 → 80 |
+| 163 | `voice/kaltsit_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.1 s | 20 → 11 | 153 → 85 |
+| 164 | `voice/hoshiguma_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.1 s | 20 → 11 | 152 → 84 |
+| 165 | `voice/eyjafjalla_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.2 s | 20 → 11 | 137 → 77 |
 | 166 | `sfx/beacon_end.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.1 s | 20 → 20 | 146 → 146 |
 | 167 | `sfx/izu_lamp_lit.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.1 s | 20 → 20 | 146 → 146 |
 | 168 | `sfx/nerve_burst.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.1 s | 20 → 20 | 146 → 146 |
 | 169 | `sfx/op_wisadel_big.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.1 s | 20 → 20 | 146 → 146 |
 | 170 | `sfx/shell_break.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.1 s | 20 → 20 | 146 → 146 |
-| 171 | `voice/ulpianus_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.6 s | 19 → 18 | 102 → 93 |
-| 172 | `voice/logos_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.9 s | 19 → 17 | 82 → 75 |
+| 171 | `voice/ulpianus_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.6 s | 19 → 14 | 102 → 73 |
+| 172 | `voice/logos_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.9 s | 19 → 13 | 82 → 56 |
 | 173 | `sfx/op_wisadel_s3.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.0 s | 18 → 18 | 146 → 146 |
-| 174 | `voice/exusiai_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.0 s | 18 → 17 | 143 → 135 |
-| 175 | `voice/eyjafjalla_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.2 s | 18 → 17 | 120 → 111 |
+| 174 | `voice/exusiai_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.0 s | 18 → 10 | 143 → 81 |
+| 175 | `voice/eyjafjalla_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.2 s | 18 → 11 | 120 → 76 |
 | 176 | `sfx/beacon_fizzle.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.0 s | 18 → 18 | 146 → 146 |
 | 177 | `sfx/break_open.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.0 s | 18 → 18 | 146 → 146 |
 | 178 | `sfx/cue_charge_start.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.0 s | 18 → 18 | 146 → 146 |
@@ -217,14 +217,14 @@
 | 180 | `sfx/skill.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.0 s | 18 → 18 | 146 → 146 |
 | 181 | `sfx/ulp_charge_loop.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.0 s | 18 → 18 | 146 → 146 |
 | 182 | `sfx/op_siege_s3.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 1.0 s | 18 → 18 | 146 → 146 |
-| 183 | `voice/siege_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.4 s | 17 → 16 | 106 → 100 |
-| 184 | `voice/exusiai_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.9 s | 17 → 16 | 149 → 139 |
-| 185 | `voice/saria_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.2 s | 17 → 16 | 116 → 107 |
-| 186 | `voice/specter_unchained_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.4 s | 17 → 16 | 98 → 92 |
-| 187 | `voice/lumen_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.9 s | 17 → 16 | 148 → 135 |
-| 188 | `voice/ulpianus_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.5 s | 17 → 16 | 95 → 90 |
-| 189 | `voice/eyjafjalla_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.4 s | 17 → 16 | 99 → 93 |
-| 190 | `voice/specter_unchained_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.2 s | 17 → 15 | 117 → 106 |
+| 183 | `voice/siege_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.4 s | 17 → 13 | 106 → 78 |
+| 184 | `voice/exusiai_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.9 s | 17 → 10 | 149 → 82 |
+| 185 | `voice/saria_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.2 s | 17 → 11 | 116 → 76 |
+| 186 | `voice/specter_unchained_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.4 s | 17 → 12 | 98 → 71 |
+| 187 | `voice/lumen_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.9 s | 17 → 10 | 148 → 90 |
+| 188 | `voice/ulpianus_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.5 s | 17 → 13 | 95 → 72 |
+| 189 | `voice/eyjafjalla_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.4 s | 17 → 12 | 99 → 72 |
+| 190 | `voice/specter_unchained_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.2 s | 17 → 11 | 117 → 78 |
 | 191 | `sfx/op_specter_unchained_s1.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.9 s | 16 → 16 | 146 → 146 |
 | 192 | `sfx/op_siege_s1.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.9 s | 16 → 16 | 146 → 146 |
 | 193 | `sfx/op_ulpianus_big.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.9 s | 16 → 16 | 146 → 146 |
@@ -247,14 +247,14 @@
 | 210 | `sfx/op_mizuki_s2.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.9 s | 16 → 16 | 146 → 146 |
 | 211 | `sfx/op_lumen_big.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.9 s | 16 → 16 | 146 → 146 |
 | 212 | `sfx/op_kaltsit_s2.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.9 s | 16 → 16 | 146 → 146 |
-| 213 | `voice/texas_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.9 s | 16 → 15 | 138 → 129 |
-| 214 | `voice/logos_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.1 s | 15 → 14 | 117 → 108 |
-| 215 | `voice/mizuki_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.7 s | 15 → 14 | 175 → 159 |
-| 216 | `voice/mizuki_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.9 s | 15 → 14 | 131 → 122 |
+| 213 | `voice/texas_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.9 s | 16 → 9 | 138 → 77 |
+| 214 | `voice/logos_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.1 s | 15 → 11 | 117 → 81 |
+| 215 | `voice/mizuki_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.7 s | 15 → 9 | 175 → 99 |
+| 216 | `voice/mizuki_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.9 s | 15 → 10 | 131 → 88 |
 | 217 | `sfx/op_saria_s2.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.8 s | 15 → 15 | 146 → 146 |
 | 218 | `sfx/hurt_heavy.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.8 s | 15 → 15 | 147 → 147 |
 | 219 | `sfx/op_eyjafjalla_s1.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.8 s | 15 → 15 | 147 → 147 |
-| 220 | `voice/texas_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.8 s | 15 → 13 | 145 → 129 |
+| 220 | `voice/texas_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.8 s | 15 → 8 | 145 → 80 |
 | 221 | `sfx/op_wisadel_s2.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.8 s | 15 → 15 | 147 → 147 |
 | 222 | `sfx/op_eyjafjalla_s2.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.8 s | 14 → 14 | 147 → 147 |
 | 223 | `sfx/apop_resume.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.8 s | 14 → 14 | 147 → 147 |
@@ -264,17 +264,17 @@
 | 227 | `sfx/izu_absorb.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.8 s | 14 → 14 | 147 → 147 |
 | 228 | `sfx/relic.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.8 s | 14 → 14 | 147 → 147 |
 | 229 | `sfx/ulp_release.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.8 s | 14 → 14 | 147 → 147 |
-| 230 | `voice/suzuran_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.1 s | 14 → 13 | 108 → 102 |
+| 230 | `voice/suzuran_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.1 s | 14 → 11 | 108 → 85 |
 | 231 | `sfx/op_ulpianus_s1.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.8 s | 14 → 14 | 149 → 147 |
-| 232 | `voice/exusiai_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.7 s | 14 → 13 | 160 → 152 |
-| 233 | `voice/skadi_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.1 s | 14 → 13 | 107 → 101 |
-| 234 | `voice/exusiai_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.8 s | 14 → 13 | 137 → 130 |
-| 235 | `voice/texas_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.9 s | 14 → 13 | 127 → 120 |
+| 232 | `voice/exusiai_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.7 s | 14 → 8 | 160 → 93 |
+| 233 | `voice/skadi_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 1.1 s | 14 → 10 | 107 → 80 |
+| 234 | `voice/exusiai_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.8 s | 14 → 8 | 137 → 81 |
+| 235 | `voice/texas_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.9 s | 14 → 8 | 127 → 75 |
 | 236 | `sfx/op_saria_s1.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.7 s | 13 → 13 | 147 → 147 |
-| 237 | `voice/kaltsit_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.9 s | 13 → 12 | 114 → 106 |
+| 237 | `voice/kaltsit_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.9 s | 13 → 10 | 114 → 85 |
 | 238 | `sfx/op_irene_big.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.7 s | 13 → 13 | 147 → 147 |
 | 239 | `sfx/op_skadi_s1.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.7 s | 13 → 13 | 147 → 147 |
-| 240 | `voice/saria_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.6 s | 13 → 11 | 164 → 145 |
+| 240 | `voice/saria_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.6 s | 13 → 8 | 164 → 102 |
 | 241 | `sfx/op_irene_s2.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.7 s | 13 → 13 | 147 → 147 |
 | 242 | `sfx/bishop_panic.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.7 s | 13 → 13 | 147 → 147 |
 | 243 | `sfx/carmen_sword.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.7 s | 13 → 13 | 147 → 147 |
@@ -282,24 +282,24 @@
 | 245 | `sfx/op_kaltsit_big.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.7 s | 13 → 13 | 147 → 147 |
 | 246 | `sfx/op_skadi_big.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.7 s | 13 → 13 | 147 → 147 |
 | 247 | `sfx/op_wisadel_hit.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.7 s | 13 → 13 | 147 → 147 |
-| 248 | `voice/suzuran_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.8 s | 13 → 12 | 122 → 114 |
-| 249 | `voice/saria_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.7 s | 12 → 12 | 150 → 140 |
+| 248 | `voice/suzuran_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.8 s | 13 → 10 | 122 → 93 |
+| 249 | `voice/saria_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.7 s | 12 → 8 | 150 → 97 |
 | 250 | `sfx/op_ulpianus_s3.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.7 s | 12 → 12 | 151 → 148 |
 | 251 | `sfx/knight_charge.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.7 s | 12 → 12 | 148 → 148 |
 | 252 | `sfx/op_irene_s1.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.6 s | 12 → 12 | 148 → 148 |
-| 253 | `voice/siege_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.5 s | 12 → 11 | 192 → 184 |
-| 254 | `voice/siege_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.6 s | 11 → 11 | 171 → 158 |
-| 255 | `voice/kaltsit_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.6 s | 11 → 11 | 169 → 157 |
+| 253 | `voice/siege_skill_2.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.5 s | 12 → 7 | 192 → 120 |
+| 254 | `voice/siege_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.6 s | 11 → 7 | 171 → 110 |
+| 255 | `voice/kaltsit_skill_1.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.6 s | 11 → 7 | 169 → 109 |
 | 256 | `sfx/op_exusiai_big.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.6 s | 11 → 11 | 148 → 148 |
-| 257 | `voice/suzuran_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.7 s | 11 → 10 | 129 → 118 |
-| 258 | `voice/kaltsit_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.6 s | 11 → 10 | 151 → 140 |
+| 257 | `voice/suzuran_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.7 s | 11 → 9 | 129 → 102 |
+| 258 | `voice/kaltsit_skill_3.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.6 s | 11 → 7 | 151 → 103 |
 | 259 | `sfx/boom.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.6 s | 11 → 11 | 148 → 148 |
 | 260 | `sfx/op_kaltsit_heal.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.6 s | 11 → 11 | 148 → 148 |
 | 261 | `sfx/op_siege_big.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.6 s | 11 → 11 | 148 → 148 |
 | 262 | `sfx/op_suzuran_s1.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.6 s | 11 → 11 | 148 → 148 |
 | 263 | `sfx/swing_heavy.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.6 s | 11 → 11 | 148 → 148 |
-| 264 | `voice/saria_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.5 s | 11 → 10 | 176 → 162 |
-| 265 | `voice/kaltsit_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.4 s | 10 → 9 | 222 → 204 |
+| 264 | `voice/saria_entry.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.5 s | 11 → 7 | 176 → 121 |
+| 265 | `voice/kaltsit_battle.ogg` | 语音 | OGG | 44100 Hz / 单声道 | 0.4 s | 10 → 6 | 222 → 142 |
 | 266 | `sfx/cue_melee_start.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.5 s | 9 → 9 | 149 → 149 |
 | 267 | `sfx/op_eyjafjalla_big.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.5 s | 9 → 9 | 149 → 149 |
 | 268 | `sfx/op_wisadel_quake.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.5 s | 9 → 9 | 149 → 149 |
@@ -359,3 +359,16 @@
 | 322 | `sfx/atk_gate.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.1 s | 2 → 2 | 182 → 182 |
 | 323 | `sfx/pickup.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.1 s | 2 → 2 | 188 → 188 |
 | 324 | `sfx/ui_move.wav` | 音效 | WAV→QOA | 44100 Hz / 单声道 | 0.0 s | 1 → 1 | 223 → 223 |
+
+## 4. 实导网页包（tools/export_web.py）
+
+| | 源码 | 网页包总大小 | index.pck（未压缩） |
+|---|---|---|---|
+| 压前 | main 420871c6 | 43.1 MiB | 35.79 MiB |
+| 压后 | 本分支（BGM + 语音） | 见 §4 补记 | — |
+
+## 5. 估算：网页版语音按编队按需加载、不进启动包（只估不做）
+
+- 现状：`sfx.gd._voice_stream` 已是用到才从 pck 里加载，引擎层面就是按需；问题只在下载——pck 是一整块，语音跟着启动包下。
+- 要改：① 导出预设 exclude_filter 加 `audio/voice/*.ogg`，`export_web.py` 把这 91 个 OGG 原样拷到输出目录；② `sfx.gd` 网页版在 pck 里找不到时改用 HTTPRequest 取文件、`AudioStreamOggVorbis.load_from_buffer` 解出来缓存，编队变化（招募 / 开局）时预取这几名干员的 5 条；第一次没取到就跳过这条（语音本来就允许放弃）；桌面 / 手机原生包不变。约 60–90 行 GDScript + 15 行导出脚本 + 一个离线测试，半天左右。
+- 收益：启动包少 1.48 MiB（压后语音全部），首屏下载快约 4%。**但不减上传总量**：B站 Toy 的 50 MB 是整个包的文件总量（docs/99 第 6 条），语音拆成单独文件仍算在里面，对「超不超 50 MB」没有帮助。建议不做，除非以后要单独优化首屏加载时间。

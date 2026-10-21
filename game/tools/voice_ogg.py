@@ -28,7 +28,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 VOICE = os.path.normpath(os.path.join(HERE, "..", "audio", "voice"))
 MASTERS = os.path.join(VOICE, "masters")
 MANIFEST = os.path.join(VOICE, "voice_manifest.json")
-DEFAULT_Q = 0.4   # 10-21 网页包压音频：全部条目档位 +0.1（tools/shrink_audio.py），新语音缺省同步
+DEFAULT_Q = 0.7   # 10-21 网页包压音频：人声 24 kHz + 档位 0.7 ≈ 57 kbps（docs/120），全部条目统一这一档
+OUT_SR = 24000    # 游戏用 OGG 的采样率（母带仍是 44.1 kHz；人声 12 kHz 以内足够）
 SR = 44100
 
 
@@ -42,10 +43,14 @@ def sha256(path):
 def encode(src, dst, q):
     x, sr = sf.read(src, dtype="float32")
     assert sr == SR and x.ndim == 1, f"{src}: 需要单声道 {SR} Hz，实际 {sr} Hz / {x.ndim} 维"
-    with sf.SoundFile(dst, "w", SR, 1, format="OGG", subtype="VORBIS", compression_level=q) as f:
+    if OUT_SR != SR:
+        from scipy.signal import resample_poly
+        g = np.gcd(OUT_SR, SR)
+        x = resample_poly(x, OUT_SR // g, SR // g).astype(np.float32)
+    with sf.SoundFile(dst, "w", OUT_SR, 1, format="OGG", subtype="VORBIS", compression_level=q) as f:
         for i in range(0, len(x), 8192):   # libsndfile 一次写整段 Vorbis 会崩，分块写
             f.write(x[i:i + 8192])
-    return len(x) / SR
+    return len(x) / OUT_SR
 
 
 def main(args):
