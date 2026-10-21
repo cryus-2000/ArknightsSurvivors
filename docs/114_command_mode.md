@@ -120,7 +120,7 @@ HUD：非触屏时编队区（源石锭框）上方右对齐一行「指挥 · �
 
 ### 7.3 统计
 
-BALANCE 行新增 `cmd`：`roam`（突击累计秒数）、`downs`（倒地次数）、`aggro`（被引走的怪数）、`switch`（切换次数）。`--trace` 时倒地打印 `CMD t=… down <干员>`。
+BALANCE 行新增 `cmd`（切过模式的局才写，没用指挥模式的局 BALANCE 与 main 逐字相同）：`roam`（突击累计秒数）、`downs`（倒地次数）、`aggro`（被引走的怪数）、`switch`（切换次数）。`--trace` 时倒地打印 `CMD t=… down <干员>`。
 
 ### 7.4 机器人小样（4 组合，仇恨都开）
 
