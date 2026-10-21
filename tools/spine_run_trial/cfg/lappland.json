@@ -90,7 +90,7 @@
   "R"
  ],
  "attachRot": {
-  "F_Weapon_A": -105,
-  "F_Weapon_B": -105
+  "F_Weapon_A": 40,
+  "F_Weapon_B": 40
  }
 }
