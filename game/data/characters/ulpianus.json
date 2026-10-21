@@ -88,7 +88,14 @@
   "throw_w": 40,
   "throw_taut": 0.2,
   "throw_drag": 0.18,
-  "throw_front": 60
+  "throw_front": 60,
+  "_branch": "分支培养（docs/119 §4.1 / docs/120 §8，10-22）：节点 4 二选一 不容挣脱 / 通路洞开，节点 5：drag2_* 不容挣脱·绞杀（钩回落地后身前再抡一锤），rift2_* 通路洞开·攻势（掷锚技能后限时增伤）。不依赖顺链弹射、不改 attack 积木。数值为待试验参数",
+  "drag2_delay": 0.3,
+  "drag2_r_k": 1.3,
+  "drag2_mult": 0.8,
+  "rift2_dur": 6.0,
+  "rift2_atk": 0.25,
+  "drag2_t": 0.6
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 6022 / 防御 0 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -516,14 +523,44 @@
    "id": "drag",
    "name": "不容挣脱",
    "icon": "skill_ulpianus_s1",
-   "desc": "「必须促成的接触」一次钩回的敌人 {$s1_pull_n} → {$s1_pull_n+$drag_n}、钩取范围扩大；锚砸中 Boss 时甩出锁链，把附近至多 {$drag_n} 名敌人拽到锚点（掷锚 {$drag_mult*100}% 伤害）"
+   "desc": "「必须促成的接触」一次钩回的敌人 {$s1_pull_n} → {$s1_pull_n+$drag_n}、钩取范围扩大；锚砸中 Boss 时甩出锁链，把附近至多 {$drag_n} 名敌人拽到锚点（掷锚 {$drag_mult*100}% 伤害）",
+   "branch": {
+    "drag": {
+     "id": "drag",
+     "name": "不容挣脱",
+     "icon": "skill_ulpianus_s1",
+     "desc": "「必须促成的接触」一次钩回的敌人 {$s1_pull_n} → {$s1_pull_n+$drag_n}、钩取范围扩大；锚砸中 Boss 时甩出锁链，把附近至多 {$drag_n} 名敌人拽到锚点（掷锚 {$drag_mult*100}% 伤害）"
+    },
+    "rift": {
+     "id": "rift",
+     "name": "通路洞开",
+     "icon": "skill_ulpianus_s3",
+     "desc": "「必须促成的接触」锁链绷直时，从乌尔比安到锚点裂开一道通路，沿途敌人被掀飞 {$rift_air} 秒并受到锚击 {$rift_mult*100}% 伤害；精英二后「必须开辟的通路」掷锚时同样开路"
+    }
+   },
+   "branch_desc": "二选一：「不容挣脱」—掷锚钩回更多敌人、砸中 Boss 时甩链拽人；「通路洞开」—锁链绷直时裂开通路掀飞沿途敌人。之后的节点沿所选路线强化",
+   "bot": "drag"
   },
   {
    "type": "custom",
    "id": "rift",
    "name": "通路洞开",
    "icon": "skill_ulpianus_s3",
-   "desc": "「必须促成的接触」锁链绷直时，从乌尔比安到锚点裂开一道通路，沿途敌人被掀飞 {$rift_air} 秒并受到锚击 {$rift_mult*100}% 伤害；精英二后「必须开辟的通路」掷锚时同样开路"
+   "desc": "「必须促成的接触」锁链绷直时，从乌尔比安到锚点裂开一道通路，沿途敌人被掀飞 {$rift_air} 秒并受到锚击 {$rift_mult*100}% 伤害；精英二后「必须开辟的通路」掷锚时同样开路",
+   "routes": {
+    "drag": {
+     "id": "drag2",
+     "name": "不容挣脱·绞杀",
+     "icon": "skill_ulpianus_s1",
+     "desc": "「必须促成的接触」钩回的敌人砸到面前后约 {$drag2_delay} 秒，他身前再抡一锤：半径 {$reach*$drag2_r_k:0} 内锚击 {$drag2_mult*100}% 伤害并击退"
+    },
+    "rift": {
+     "id": "rift2",
+     "name": "通路洞开·攻势",
+     "icon": "skill_ulpianus_s3",
+     "desc": "「必须促成的接触」与「必须开辟的通路」出手后 {$rift2_dur} 秒内锚击伤害 +{$rift2_atk*100}%"
+    }
+   }
   },
   {
    "type": "elite",
@@ -1149,22 +1186,89 @@
       "dir": "pull",
       "fx": [
        {
-         "pfx": {
-          "kind": "ulp_wave",
-          "r": 1.0,
-          "life": 0.28,
-          "floor": true,
-          "pull": true,
-          "alpha": 0.8
-         },
-         "r_scale": [
-          "r"
-         ]
+        "pfx": {
+         "kind": "ulp_wave",
+         "r": 1.0,
+         "life": 0.28,
+         "floor": true,
+         "pull": true,
+         "alpha": 0.8
+        },
+        "r_scale": [
+         "r"
+        ]
        }
       ]
      }
     ]
-   }
+   },
+   "drag2": {
+    "trig": "on_skill_start",
+    "skill": 0,
+    "delay": "$drag2_t",
+    "_doc": "不容挣脱·绞杀（路线 drag 节点 5）：钩回落地后身前再抡一锤",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "front",
+      "front": "$front",
+      "r": "$reach*$drag2_r_k",
+      "basis": "atk",
+      "mult": "$drag2_mult",
+      "kb": "$slam_kb",
+      "src": "锚击",
+      "tags": [
+       "skill"
+      ],
+      "ring": false,
+      "fx": [
+       {
+        "pfx": {
+         "kind": "ulp_wave",
+         "r": 1.0,
+         "life": 0.3,
+         "floor": true,
+         "alpha": 0.7
+        },
+        "r_scale": [
+         "r"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "rift2": [
+    {
+     "trig": "on_skill_start",
+     "skill": 0,
+     "_doc": "通路洞开·攻势（路线 rift 节点 5）：掷锚后限时增伤（同 key 刷新不叠）",
+     "do": [
+      {
+       "verb": "buff_timed",
+       "key": "rift",
+       "stat": "atk",
+       "value": "$rift2_atk",
+       "dur": "$rift2_dur",
+       "text": "攻势"
+      }
+     ]
+    },
+    {
+     "trig": "on_skill_start",
+     "skill": 2,
+     "do": [
+      {
+       "verb": "buff_timed",
+       "key": "rift",
+       "stat": "atk",
+       "value": "$rift2_atk",
+       "dur": "$rift2_dur",
+       "text": "攻势"
+      }
+     ]
+    }
+   ]
   },
   "response": [
    {
@@ -1201,7 +1305,10 @@
        {
         "strip": "fx_ulpianus_drag_dust",
         "layer": "floor",
-        "off": [0, 4]
+        "off": [
+         0,
+         4
+        ]
        }
       ],
       "arrive_fx": [
@@ -1250,26 +1357,117 @@
  ],
  "native_motion": {
   "_doc": "原生动作覆盖层（docs/108 §3.5，native_motion.gd）：clips = 起手后整条播的秒数；variants = S2 永久生效时普攻换 attack_s2；states 按序取第一条；exits = 信号族结束后的收势",
-  "clips": {"attack": 0.6666666666666666, "attack_s2": 0.6666666666666666},
-  "variants": [{"slot": "attack", "perm": 1, "use": "attack_s2"}],
+  "clips": {
+   "attack": 0.6666666666666666,
+   "attack_s2": 0.6666666666666666
+  },
+  "variants": [
+   {
+    "slot": "attack",
+    "perm": 1,
+    "use": "attack_s2"
+   }
+  ],
   "states": [
-   {"on": "zip.zip", "slot": "zip_native", "from": 3, "to": 4, "rate": 2},
-   {"on": "zip.reel", "slot": "zip_native", "from": 3, "to": 4, "rate": 2},
-   {"on": "zip.hold", "slot": "zip_native", "from": 5, "to": 5},
-   {"on": "zip", "slot": "zip_native", "from": 1, "to": 2, "rate": 2},
-   {"on": "tether.reel", "slot": "tether_native", "from": 3, "to": 4, "rate": 2},
-   {"on": "tether.hold", "slot": "tether_native", "from": 5, "to": 5},
-   {"on": "tether", "slot": "tether_native", "from": 1, "to": 2, "rate": 2},
-   {"on": "hook.taut", "slot": "tether_native", "from": 3, "to": 3},
-   {"on": "hook.drag", "slot": "tether_native", "from": 4, "to": 5, "rate": 2},
-   {"on": "hook", "slot": "tether_native", "from": 1, "to": 2, "rate": 2},
-   {"on": "act:throw", "slot": "idle", "loop": true},
-   {"on": "whirl", "slot": "whirl_native", "from": 0, "to": 7, "rate": 8}
+   {
+    "on": "zip.zip",
+    "slot": "zip_native",
+    "from": 3,
+    "to": 4,
+    "rate": 2
+   },
+   {
+    "on": "zip.reel",
+    "slot": "zip_native",
+    "from": 3,
+    "to": 4,
+    "rate": 2
+   },
+   {
+    "on": "zip.hold",
+    "slot": "zip_native",
+    "from": 5,
+    "to": 5
+   },
+   {
+    "on": "zip",
+    "slot": "zip_native",
+    "from": 1,
+    "to": 2,
+    "rate": 2
+   },
+   {
+    "on": "tether.reel",
+    "slot": "tether_native",
+    "from": 3,
+    "to": 4,
+    "rate": 2
+   },
+   {
+    "on": "tether.hold",
+    "slot": "tether_native",
+    "from": 5,
+    "to": 5
+   },
+   {
+    "on": "tether",
+    "slot": "tether_native",
+    "from": 1,
+    "to": 2,
+    "rate": 2
+   },
+   {
+    "on": "hook.taut",
+    "slot": "tether_native",
+    "from": 3,
+    "to": 3
+   },
+   {
+    "on": "hook.drag",
+    "slot": "tether_native",
+    "from": 4,
+    "to": 5,
+    "rate": 2
+   },
+   {
+    "on": "hook",
+    "slot": "tether_native",
+    "from": 1,
+    "to": 2,
+    "rate": 2
+   },
+   {
+    "on": "act:throw",
+    "slot": "idle",
+    "loop": true
+   },
+   {
+    "on": "whirl",
+    "slot": "whirl_native",
+    "from": 0,
+    "to": 7,
+    "rate": 8
+   }
   ],
   "exits": [
-   {"on": "tether", "slot": "tether_native", "from": 6, "tail": 0.16},
-   {"on": "zip", "slot": "zip_native", "from": 6, "tail": 0.16},
-   {"on": "hook", "slot": "tether_native", "from": 6, "tail": 0.16}
+   {
+    "on": "tether",
+    "slot": "tether_native",
+    "from": 6,
+    "tail": 0.16
+   },
+   {
+    "on": "zip",
+    "slot": "zip_native",
+    "from": 6,
+    "tail": 0.16
+   },
+   {
+    "on": "hook",
+    "slot": "tether_native",
+    "from": 6,
+    "tail": 0.16
+   }
   ]
  },
  "response": {
