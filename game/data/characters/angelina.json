@@ -3,7 +3,10 @@
  "name": "安洁莉娜",
  "en": "ANGELINA",
  "class": "辅助",
- "command": {"roam": false, "_doc": "指挥模式（docs/114）：医疗 / 辅助突击时照旧随行"},
+ "command": {
+  "roam": false,
+  "_doc": "指挥模式（docs/114）：医疗 / 辅助突击时照旧随行"
+ },
  "col": [
   0.7,
   0.5,
@@ -61,7 +64,13 @@
   "well_pull": 12,
   "well_core": 30,
   "well_mult": 0.15,
-  "well_cap": 3
+  "well_cap": 3,
+  "_branch": "分支培养（docs/119 §4.1 原表 / docs/120，10-22）：开关开时双重引力提前到节点 1、节点 2 保留引力扩散（alt）；节点 4 二选一 三重引力 pull3 / 潮汐锁 lock，节点 5 引力坍缩 pull4 / 潮汐锁·深锁 lock2；原节点 2 致密 ×1.15 拆成两条路线节点 4 / 5 各 ×route_dmg。数值为待试验参数",
+  "pull3_mult": 0.4,
+  "route_dmg": 1.075,
+  "pull4_delay": 0.6,
+  "pull4_stun": 0.4,
+  "lock2_mult": 0.2
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1484 / 防御 134 / 法抗 20%，远程主控有效生命 ×1.00",
@@ -385,14 +394,26 @@
    "id": "wide",
    "name": "引力扩散",
    "icon": "growth_b_range",
-   "desc": "重力弹的落点范围与拉拢范围 ×{$n1_area}"
+   "desc": "重力弹的落点范围与拉拢范围 ×{$n1_area}",
+   "alt": {
+    "id": "pull2",
+    "name": "双重引力",
+    "icon": "growth_b_echo",
+    "desc": "重力弹落地 {$pull2_delay} 秒后在落点再拉一次（拉拢与伤害各 {$pull2_mult*100}%）"
+   }
   },
   {
    "type": "custom",
    "id": "dense",
    "name": "致密",
    "icon": "growth_b_size",
-   "desc": "重力弹伤害 ×{$n2_dmg}"
+   "desc": "重力弹伤害 ×{$n2_dmg}",
+   "alt": {
+    "id": "wide",
+    "name": "引力扩散",
+    "icon": "growth_b_range",
+    "desc": "重力弹的落点范围与拉拢范围 ×{$n1_area}"
+   }
   },
   {
    "type": "elite",
@@ -409,14 +430,44 @@
    "id": "pull2",
    "name": "双重引力",
    "icon": "growth_b_echo",
-   "desc": "重力弹落地 {$pull2_delay} 秒后在落点再拉一次（拉拢与伤害各 {$pull2_mult*100}%）"
+   "desc": "重力弹落地 {$pull2_delay} 秒后在落点再拉一次（拉拢与伤害各 {$pull2_mult*100}%）",
+   "branch": {
+    "pull": {
+     "id": "pull3",
+     "name": "三重引力",
+     "icon": "growth_b_echo",
+     "desc": "重力弹落点在双重引力之后 {$pull2_delay} 秒再拉第三次（拉拢与伤害各 {$pull3_mult*100}%）；重力弹伤害 ×{$route_dmg}"
+    },
+    "lock": {
+     "id": "lockb",
+     "name": "潮汐锁",
+     "icon": "skill_angelina_s2",
+     "desc": "「秘杖·微粒模式」的环带上的敌人每 {$lock_tick} 秒受到重力弹 {$lock_mult*100}% 的法术伤害；重力弹伤害 ×{$route_dmg}"
+    }
+   },
+   "branch_desc": "二选一：「三重引力」—落点反复拉拢；「潮汐锁」—微粒环带上的敌人持续受法术伤害。之后的节点沿所选路线强化",
+   "bot": "pull"
   },
   {
    "type": "custom",
    "id": "lock",
    "name": "潮汐锁",
    "icon": "skill_angelina_s2",
-   "desc": "「秘杖·微粒模式」的环带上的敌人每 {$lock_tick} 秒受到重力弹 {$lock_mult*100}% 的法术伤害"
+   "desc": "「秘杖·微粒模式」的环带上的敌人每 {$lock_tick} 秒受到重力弹 {$lock_mult*100}% 的法术伤害",
+   "routes": {
+    "pull": {
+     "id": "pull4",
+     "name": "引力坍缩",
+     "icon": "growth_b_size",
+     "desc": "重力弹落地 {$pull4_delay} 秒后，落点 {$pull_r} 内的敌人停顿 {$pull4_stun} 秒（精英减半，Boss 除外）；重力弹伤害 ×{$route_dmg}"
+    },
+    "lock": {
+     "id": "lock2",
+     "name": "潮汐锁·深锁",
+     "icon": "skill_angelina_s2",
+     "desc": "「秘杖·微粒模式」环带上的敌人每 {$lock_tick} 秒再受重力弹 {$lock2_mult*100}% 法术伤害；重力弹伤害 ×{$route_dmg}"
+    }
+   }
   },
   {
    "type": "elite",
@@ -804,7 +855,116 @@
       "where": "ring"
      }
     ]
-   }
+   },
+   "pull3": [
+    {
+     "trig": "on_impact",
+     "delay": "$pull2_delay*2",
+     "_doc": "三重引力（路线 pull 节点 4）：第三次拉",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "target",
+       "r": "$aoe",
+       "mult": "$pull3_mult",
+       "src": "双重引力"
+      },
+      {
+       "verb": "displace",
+       "center": "target",
+       "r": "$pull_r",
+       "dir": "pull",
+       "dist": "$pull*$pull3_mult",
+       "elite_mult": "$pull_elite"
+      }
+     ]
+    },
+    {
+     "verb": "buff_self",
+     "stat": "dmg",
+     "op": "mult",
+     "value": "$route_dmg"
+    }
+   ],
+   "pull4": [
+    {
+     "trig": "on_impact",
+     "delay": "$pull4_delay",
+     "_doc": "引力坍缩（路线 pull 节点 5）：落点停顿",
+     "do": [
+      {
+       "verb": "affect",
+       "center": "target",
+       "r": "$pull_r",
+       "on_hit": [
+        {
+         "st": "stun",
+         "dur": "$pull4_stun"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "verb": "buff_self",
+     "stat": "dmg",
+     "op": "mult",
+     "value": "$route_dmg"
+    }
+   ],
+   "lock2": [
+    {
+     "verb": "field",
+     "center": "leader",
+     "r": "$s2_r",
+     "ring": "$s2_ring",
+     "ring_w": "$lock_w",
+     "every": "$lock_tick",
+     "look": "none",
+     "cond": "skill_active:1",
+     "tick": [
+      {
+       "st": "dot",
+       "mult": "$lock2_mult",
+       "src": "潮汐锁",
+       "where": "ring"
+      }
+     ],
+     "_doc": "潮汐锁·深锁（路线 lock 节点 5）：环带再叠一层持续伤害"
+    },
+    {
+     "verb": "buff_self",
+     "stat": "dmg",
+     "op": "mult",
+     "value": "$route_dmg"
+    }
+   ],
+   "lockb": [
+    {
+     "verb": "field",
+     "center": "leader",
+     "r": "$s2_r",
+     "ring": "$s2_ring",
+     "ring_w": "$lock_w",
+     "every": "$lock_tick",
+     "look": "none",
+     "cond": "skill_active:1",
+     "tick": [
+      {
+       "st": "dot",
+       "mult": "$lock_mult",
+       "src": "潮汐锁",
+       "where": "ring"
+      }
+     ]
+    },
+    {
+     "verb": "buff_self",
+     "stat": "dmg",
+     "op": "mult",
+     "value": "$route_dmg"
+    }
+   ]
   },
   "response": [
    {

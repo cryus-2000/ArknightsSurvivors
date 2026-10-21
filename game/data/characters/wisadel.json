@@ -38,7 +38,11 @@
     "s2_dur": 8.0,
     "s2_interval": 0.8,
     "s2_over_mult": 0.8,
-    "s2_burst": 4
+    "s2_burst": 4,
+    "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 余烬未冷 / 亡者回响，节点 5：ash2_* 余烬未冷·续燃（清算后限时增伤），mark2_* 亡者回响·回馈（击杀回技力）。数值为待试验参数",
+    "ash2_dur": 6.0,
+    "ash2_atk": 0.2,
+    "mark2_sp": 0.15
   },
   "leader": {
     "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1888 / 防御 256 / 法抗 15%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -58,7 +62,7 @@
       ]
     },
     "run": {
-     "foot_exempt": "跑步条沿用整数脚底 (32, 60)，与小数顶层 foot 相差不到 1px（docs/108 §5）",
+      "foot_exempt": "跑步条沿用整数脚底 (32, 60)，与小数顶层 foot 相差不到 1px（docs/108 §5）",
       "tex": "op_wisadel_run",
       "frames": 8,
       "fps": 13.333333333333334,
@@ -626,8 +630,68 @@
         75.86072405963687
       ]
     },
-    "native_soul_start": {"tex": "op_wisadel_soul_native_start", "frames": 12, "fps": 12.0, "foot": [10, 14], "frame_size": [20, 28], "visual": {"anim": "native_soul_start", "times": [0.0, 0.08333333333333333, 0.16666666666666666, 0.25, 0.3333333333333333, 0.4166666666666667, 0.5, 0.5833333333333334, 0.6666666666666666, 0.75, 0.8333333333333334, 0.9166666666666666], "duration": 1}},
-    "native_soul_die": {"tex": "op_wisadel_soul_native_die", "frames": 12, "fps": 12.0, "foot": [10, 14], "frame_size": [20, 28], "visual": {"anim": "native_soul_die", "times": [0.0, 0.08333333333333333, 0.16666666666666666, 0.25, 0.3333333333333333, 0.4166666666666667, 0.5, 0.5833333333333334, 0.6666666666666666, 0.75, 0.8333333333333334, 0.9166666666666666], "duration": 1}},
+    "native_soul_start": {
+      "tex": "op_wisadel_soul_native_start",
+      "frames": 12,
+      "fps": 12.0,
+      "foot": [
+        10,
+        14
+      ],
+      "frame_size": [
+        20,
+        28
+      ],
+      "visual": {
+        "anim": "native_soul_start",
+        "times": [
+          0.0,
+          0.08333333333333333,
+          0.16666666666666666,
+          0.25,
+          0.3333333333333333,
+          0.4166666666666667,
+          0.5,
+          0.5833333333333334,
+          0.6666666666666666,
+          0.75,
+          0.8333333333333334,
+          0.9166666666666666
+        ],
+        "duration": 1
+      }
+    },
+    "native_soul_die": {
+      "tex": "op_wisadel_soul_native_die",
+      "frames": 12,
+      "fps": 12.0,
+      "foot": [
+        10,
+        14
+      ],
+      "frame_size": [
+        20,
+        28
+      ],
+      "visual": {
+        "anim": "native_soul_die",
+        "times": [
+          0.0,
+          0.08333333333333333,
+          0.16666666666666666,
+          0.25,
+          0.3333333333333333,
+          0.4166666666666667,
+          0.5,
+          0.5833333333333334,
+          0.6666666666666666,
+          0.75,
+          0.8333333333333334,
+          0.9166666666666666
+        ],
+        "duration": 1
+      }
+    },
     "native_soul_idle": {
       "tex": "op_wisadel_soul_native_idle",
       "frames": 24,
@@ -812,14 +876,44 @@
       "id": "ash_rings",
       "name": "余烬未冷",
       "icon": "skill_wisadel_s1",
-      "desc": "「定点清算」强化的 3 发炮击，余震变为 3 圈并眩晕 {$ash_stun} 秒（精英减半，Boss 免疫）"
+      "desc": "「定点清算」强化的 3 发炮击，余震变为 3 圈并眩晕 {$ash_stun} 秒（精英减半，Boss 免疫）",
+      "branch": {
+        "ash": {
+          "id": "ash_rings",
+          "name": "余烬未冷",
+          "icon": "skill_wisadel_s1",
+          "desc": "「定点清算」强化的 3 发炮击，余震变为 3 圈并眩晕 {$ash_stun} 秒（精英减半，Boss 免疫）"
+        },
+        "mark": {
+          "id": "exec_mark",
+          "name": "亡者回响",
+          "icon": "skill_wisadel_s2",
+          "desc": "「饱和复仇」爆炸波及的敌人全部挂上残影标记（{$mark_dur} 秒）：被标记的敌人死亡时必定引爆残影（{$mark_mult*100}% 伤害）"
+        }
+      },
+      "branch_desc": "二选一：「余烬未冷」—定点清算的余震三圈并眩晕；「亡者回响」—饱和复仇波及的敌人全部挂上残影标记。之后的节点沿所选路线强化",
+      "bot": "ash"
     },
     {
       "type": "custom",
       "id": "exec_mark",
       "name": "亡者回响",
       "icon": "skill_wisadel_s2",
-      "desc": "「饱和复仇」爆炸波及的敌人全部挂上残影标记（{$mark_dur} 秒）：被标记的敌人死亡时必定引爆残影（{$mark_mult*100}% 伤害）"
+      "desc": "「饱和复仇」爆炸波及的敌人全部挂上残影标记（{$mark_dur} 秒）：被标记的敌人死亡时必定引爆残影（{$mark_mult*100}% 伤害）",
+      "routes": {
+        "ash": {
+          "id": "ash_rings2",
+          "name": "余烬未冷·续燃",
+          "icon": "skill_wisadel_s1",
+          "desc": "「定点清算」后 {$ash2_dur} 秒内炮击伤害 +{$ash2_atk*100}%"
+        },
+        "mark": {
+          "id": "exec_mark2",
+          "name": "亡者回响·回馈",
+          "icon": "skill_wisadel_s2",
+          "desc": "她每击杀一名敌人，全队技能（含她自己）各 +{$mark2_sp} 秒充能"
+        }
+      }
     },
     {
       "type": "elite",
@@ -1085,6 +1179,32 @@
         "trig": "passive",
         "do": [],
         "_doc": "好礼：写在 attack.gift（cond elite >= 1）"
+      },
+      "ash_rings2": {
+        "trig": "on_skill_start",
+        "skill": 0,
+        "_doc": "余烬未冷·续燃（路线 ash 节点 5）：清算后限时增伤（同 key 刷新不叠）",
+        "do": [
+          {
+            "verb": "buff_timed",
+            "key": "ash",
+            "stat": "atk",
+            "value": "$ash2_atk",
+            "dur": "$ash2_dur",
+            "text": "续燃"
+          }
+        ]
+      },
+      "exec_mark2": {
+        "trig": "on_kill",
+        "_doc": "亡者回响·回馈（路线 mark 节点 5）：击杀回技力",
+        "do": [
+          {
+            "verb": "sp_secs",
+            "seconds": "$mark2_sp",
+            "exclude_self": false
+          }
+        ]
       }
     },
     "response": [

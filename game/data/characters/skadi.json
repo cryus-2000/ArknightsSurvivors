@@ -62,7 +62,16 @@
   "blade_spd": 420,
   "blade_w": 48,
   "blade_kb": 190,
-  "blade_aim": 260
+  "blade_aim": 260,
+  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 跃浪 / 涌潮，节点 5：wave2_* 跃浪·回澜（跃浪击后海水回卷），surge2_* 涌潮·怒涛（S1 第二圈 + 悲歌水环减速）。数值为待试验参数",
+  "wave2_delay": 0.6,
+  "wave2_r": 150,
+  "wave2_mult": 0.5,
+  "surge2_delay": 0.4,
+  "surge2_k": 0.7,
+  "surge2_mult": 0.42,
+  "surge2_end_r": 1.5,
+  "surge2_end_mult": 1.2
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 3866 / 防御 263 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -375,14 +384,44 @@
    "id": "leap_wave",
    "name": "跃浪",
    "icon": "skill_skadi_s2",
-   "desc": "「跃浪击」落点掀起一道向前推进约 {$wave_dist} 的海浪墙，击退并伤害沿途敌人（跃浪击 {$wave_mult*100}% 伤害，每名敌人一次）"
+   "desc": "「跃浪击」落点掀起一道向前推进约 {$wave_dist} 的海浪墙，击退并伤害沿途敌人（跃浪击 {$wave_mult*100}% 伤害，每名敌人一次）",
+   "branch": {
+    "wave": {
+     "id": "leap_wave",
+     "name": "跃浪",
+     "icon": "skill_skadi_s2",
+     "desc": "「跃浪击」落点掀起一道向前推进约 {$wave_dist} 的海浪墙，击退并伤害沿途敌人（跃浪击 {$wave_mult*100}% 伤害，每名敌人一次）"
+    },
+    "surge": {
+     "id": "surge",
+     "name": "涌潮",
+     "icon": "skill_skadi_s3",
+     "desc": "「迅捷打击·γ型」挥出时脚下涌出一圈水环（半径 {$pulse_r}，{$s3_mult*$pulse_mult*100}% 伤害，击退）；精英二后「涌潮悲歌」期间每 {$pulse_every} 秒涌出一圈"
+    }
+   },
+   "branch_desc": "二选一：「跃浪」—跃浪击落点掀起海浪墙；「涌潮」—迅捷打击与涌潮悲歌涌出水环。之后的节点沿所选路线强化",
+   "bot": "wave"
   },
   {
    "type": "custom",
    "id": "surge",
    "name": "涌潮",
    "icon": "skill_skadi_s3",
-   "desc": "「迅捷打击·γ型」挥出时脚下涌出一圈水环（半径 {$pulse_r}，{$s3_mult*$pulse_mult*100}% 伤害，击退）；精英二后「涌潮悲歌」期间每 {$pulse_every} 秒涌出一圈"
+   "desc": "「迅捷打击·γ型」挥出时脚下涌出一圈水环（半径 {$pulse_r}，{$s3_mult*$pulse_mult*100}% 伤害，击退）；精英二后「涌潮悲歌」期间每 {$pulse_every} 秒涌出一圈",
+   "routes": {
+    "wave": {
+     "id": "leap_wave2",
+     "name": "跃浪·回澜",
+     "icon": "skill_skadi_s2",
+     "desc": "「跃浪击」{$wave2_delay} 秒后海水回卷，自身周围半径 {$wave2_r} 内的敌人再受跃浪击 {$wave2_mult*100}% 伤害并被击退"
+    },
+    "surge": {
+     "id": "surge2",
+     "name": "涌潮·怒涛",
+     "icon": "skill_skadi_s1",
+     "desc": "「迅捷打击·γ型」的水环 {$surge2_delay} 秒后再涌一圈（{$surge2_mult*100}% 伤害）；「涌潮悲歌」结束时以自身为中心掀一记大浪（半径 {$pulse_r*$surge2_end_r:0}，{$surge2_end_mult*100}% 伤害，击退）"
+    }
+   }
   },
   {
    "type": "elite",
@@ -1784,7 +1823,68 @@
       ]
      }
     ]
-   }
+   },
+   "leap_wave2": {
+    "trig": "on_skill_start",
+    "skill": 1,
+    "delay": "$wave2_delay",
+    "_doc": "跃浪·回澜（路线 wave 节点 5）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$wave2_r",
+      "mult": "$s2_mult*$wave2_mult",
+      "power": true,
+      "kb": "$wave_kb",
+      "src": "跃浪",
+      "tags": [
+       "skill"
+      ]
+     }
+    ]
+   },
+   "surge2": [
+    {
+     "trig": "on_skill_start",
+     "skill": 0,
+     "delay": "$surge2_delay",
+     "_doc": "涌潮·怒涛（路线 surge 节点 5）：S1 第二圈",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "self",
+       "r": "$pulse_r",
+       "mult": "$surge2_mult",
+       "power": true,
+       "kb": "$pulse_kb",
+       "src": "涌潮",
+       "tags": [
+        "skill"
+       ]
+      }
+     ]
+    },
+    {
+     "trig": "on_skill_end",
+     "skill": 2,
+     "_doc": "涌潮·怒涛：悲歌结束时掀一记大浪（无控制，免得构筑匹配把她算成控制来源）",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "self",
+       "r": "$pulse_r*$surge2_end_r",
+       "mult": "$surge2_end_mult",
+       "power": true,
+       "kb": "$pulse_kb",
+       "src": "涌潮",
+       "tags": [
+        "skill"
+       ]
+      }
+     ]
+    }
+   ]
   },
   "response": [
    {
@@ -1805,14 +1905,27 @@
         "pfx": {
          "kind": "mote",
          "life": 0.35,
-         "col": [0.8, 0.95, 1.0],
+         "col": [
+          0.8,
+          0.95,
+          1.0
+         ],
          "sz": 2.0,
          "grav": 200.0
         },
         "n": 12,
-        "vel_r": [110, 150],
-        "jit_r": [0.8, 0.44],
-        "off": [0, -12]
+        "vel_r": [
+         110,
+         150
+        ],
+        "jit_r": [
+         0.8,
+         0.44
+        ],
+        "off": [
+         0,
+         -12
+        ]
        }
       ]
      }
