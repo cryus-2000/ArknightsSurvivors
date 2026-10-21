@@ -1,7 +1,11 @@
 extends Node
-## 干员响应动作（docs/118 第一批）：德克萨斯（队长冲刺）/ 星熊、艾雅法拉（队长站定）/ 铃兰（队长开技能）。
+## 干员响应动作（docs/118）：第一批 德克萨斯（队长冲刺）/ 星熊、艾雅法拉（队长站定）/ 铃兰（队长开技能）；
+## 第二批一组 能天使 / 斯卡蒂 / 推进之王（队长冲刺）/ 维什戴尔 / 流明（队长站定）/ 逻各斯 / 浊心斯卡蒂（队长开技能）。
 ##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=hoshiguma --squad=texas,eyjafjalla
 ##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=suzuran --squad=texas
+##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=wisadel --squad=exusiai,skadi
+##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=texas --squad=siege
+##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=lumen --squad=logos,skalter
 ## 编队里有谁就测谁；冻结主循环，手动改队长状态后推一帧 update，只看响应有没有按条件生效。
 ## 全部通过时打印 "RESPONSE failures=0"。
 
@@ -51,6 +55,10 @@ func _process(_d: float) -> void:
 		test_suzuran(g, sz)
 	if hs != null and tx != null:
 		test_stance(g, hs, tx)
+	for id in ["exusiai", "skadi", "siege", "wisadel", "lumen", "logos", "skalter"]:
+		var op = g.squad.get_op(id)
+		if op != null:
+			call("test_" + id, g, op)
 	print("%d checks, %d failed" % [n, fails])
 	print("RESPONSE failures=%d" % fails)
 	get_tree().quit(1 if fails > 0 else 0)
@@ -162,3 +170,119 @@ func test_stance(g, o, mate) -> void:
 	tick(o)
 	ok(float(mate.sp[0]) < sp1 + 0.5, "指挥：切回随行不触发 roam 那条")
 	o.B.response.pop_back()
+
+
+func dash(g, on: bool, o) -> void:
+	g.dash_dir = Vector2.RIGHT
+	g.dash_t = 0.18 if on else 0.0
+	tick(o)
+
+
+func hp_sum(g) -> float:
+	var s := 0.0
+	for e in g.enemies:
+		if not e.dead:
+			s += float(e.hp)
+	return s
+
+
+## 能天使：队长冲刺起步 → 朝队长身后（冲刺向右 = 左边）的敌人补射
+func test_exusiai(g, o) -> void:
+	dash(g, false, o)
+	o.ext.bul = []
+	dash(g, true, o)
+	var n: int = o.ext.bul.size()
+	var ts: Array = o.SegExusiai._exu_behind(o, 1, 300.0)
+	ok(n >= 1 and not ts.is_empty() and (ts[0].pos - g.ppos).x < 0.0, "能天使：队长冲刺（向右）起步 → 补射 %d 发，目标在队长身后（左）" % n)
+	o.ext.bul = []
+	tick(o)
+	ok(o.ext.bul.is_empty(), "能天使：冲刺中不重复补射")
+	dash(g, false, o)
+
+
+## 斯卡蒂：队长冲刺结束（下降沿）→ 以队长为中心横扫一周
+func test_skadi(g, o) -> void:
+	dash(g, true, o)
+	var h0 := hp_sum(g)
+	dash(g, false, o)
+	ok(hp_sum(g) < h0 - 1.0, "斯卡蒂：队长冲刺结束 → 落点横扫命中（%.0f → %.0f）" % [h0, hp_sum(g)])
+
+
+## 推进之王：队长冲刺结束 → 跃向队长身边最近的敌人；落地砸中 → 其他干员技力 +1 秒
+func test_siege(g, o) -> void:
+	if o.is_leader:
+		return
+	var mate = null
+	for m in g.squad.ops:
+		if m != o and m.skill_unlocked(0) and m.sp_need(0) > 0.0:
+			mate = m
+	dash(g, true, o)
+	dash(g, false, o)
+	var sg: Dictionary = o.hw.get("sg", {})
+	ok(float(sg.get("leap_t", -1.0)) >= 0.0, "推进之王：队长冲刺结束 → 起跳")
+	if mate != null:
+		mate.sp[0] = 0.0
+	for k in 40:
+		tick(o)
+	ok(float(sg.get("leap_t", 0.0)) < 0.0, "推进之王：落地")
+	ok(mate == null or float(mate.sp[0]) >= 0.9, "推进之王：补锤砸中 → 其他干员技力 +1 秒（%.2f）" % (float(mate.sp[0]) if mate != null else -1.0))
+
+
+## 维什戴尔：队长站定 → 攻击速度 +18%
+func test_wisadel(g, o) -> void:
+	g.leader_still_t = 0.0
+	o._sustain(DT)
+	var a0: float = o.stat(&"op_aspd")
+	g.leader_still_t = 0.7
+	o._sustain(DT)
+	var a1: float = o.stat(&"op_aspd")
+	g.leader_still_t = 0.0
+	o._sustain(DT)
+	ok(absf(a1 - a0 - 0.18) < 0.001 and absf(o.stat(&"op_aspd") - a0) < 0.001, "维什戴尔：站定攻速 +0.18、移动收回（%.3f → %.3f）" % [a0, a1])
+
+
+## 流明：队长站定 → 荧光回复 ×1.5、灯火另 +3
+func test_lumen(g, o) -> void:
+	var a: Dictionary = o.B.attack
+	var res := []
+	for still in [0.0, 0.7]:
+		g.leader_still_t = still
+		g.hp = g.max_hp * 0.5
+		g.corrode_pool = 0.0
+		g.nerve = 0.0
+		g.lamp = 10.0
+		o.SegLumen._h3lm(o).heal_t = 99.0
+		o.SegLumen._h3_lantern_release(o, a)
+		res.append([g.hp - g.max_hp * 0.5, g.lamp - 10.0])
+	g.leader_still_t = 0.0
+	ok(res[0][0] > 0.0 and absf(res[1][0] / res[0][0] - 1.5) < 0.01 and absf(res[1][1] - res[0][1] - 3.0) < 0.01,
+		"流明：站定时荧光回复 ×1.5（%.2f → %.2f）、灯火另 +3（%.1f → %.1f）" % [res[0][0], res[1][0], res[0][1], res[1][1]])
+
+
+## 逻各斯：队长开技能 → 追加 2 枚「言」
+func test_logos(g, o) -> void:
+	tick(o)
+	var q0: int = o.hw.word_q.size() + o.hw.bolts.size()
+	g.leader_skill_n += 1
+	g.leader_skill_i = 0
+	tick(o)
+	var q1: int = o.hw.word_q.size() + o.hw.bolts.size()
+	ok(q1 - q0 >= 2, "逻各斯：队长开技能 → 追加 2 枚「言」（%d → %d）" % [q0, q1])
+
+
+## 浊心斯卡蒂：队长开技能 → 歌域一圈声浪；3 秒内歌域内干员攻速 +0.1
+func test_skalter(g, o) -> void:
+	tick(o)   # 前面的用例改过 leader_skill_n：先吃掉这次上升沿，再清掉触发时刻
+	o.rsp["last"] = g.t - 10.0
+	o._sustain(DT)
+	var a0: float = o.stat(&"op_aspd")
+	var h0 := hp_sum(g)
+	g.leader_skill_n += 1
+	g.leader_skill_i = 0
+	tick(o)
+	o._sustain(DT)
+	ok(hp_sum(g) < h0 - 1.0, "浊心斯卡蒂：队长开技能 → 声浪命中（%.0f → %.0f）" % [h0, hp_sum(g)])
+	ok(absf(o.stat(&"op_aspd") - a0 - 0.1) < 0.001, "浊心斯卡蒂：之后歌域内攻速 +0.1（%.3f → %.3f）" % [a0, o.stat(&"op_aspd")])
+	o.rsp["last"] = g.t - 3.5
+	o._sustain(DT)
+	ok(absf(o.stat(&"op_aspd") - a0) < 0.001, "浊心斯卡蒂：3 秒后攻速收回")

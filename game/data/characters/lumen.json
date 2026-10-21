@@ -501,9 +501,21 @@
      {
       "cond": "skill_active:1",
       "mult": "$guide_heal"
+     },
+     {
+      "cond": "response_on && still >= 0.6",
+      "mult": 1.5,
+      "_doc": "响应动作「掌灯」：队长站定时回复 ×1.5"
      }
     ],
-    "sub": "荧光"
+    "sub": "荧光",
+    "lamp_adds": [
+     {
+      "cond": "response_on && still >= 0.6",
+      "add": 3,
+      "_doc": "响应动作「掌灯」：队长站定时每次回复 / 驱散灯火另 +3"
+     }
+    ]
    },
    "bolt": {
     "atk_key": "bolt_atk",
@@ -801,7 +813,16 @@
     "do": [],
     "_doc": "精二灯塔光柱：写在 attack.beam（cond elite >= 2）"
    }
-  }
+  },
+  "response": [
+   {
+    "trig": "passive",
+    "cond": "still >= 0.6",
+    "hint": "掌灯",
+    "do": [],
+    "_doc": "响应动作（docs/118 §4.2）：效果写在 attack.heal 的 mults / lamp_adds（cond response_on && still >= 0.6）：队长站定时「荧光」回复 ×1.5、每次回复 / 驱散灯火另 +3；这一条只负责生效时的头顶提示"
+   }
+  ]
  },
  "native_motion": {
   "clips": {
@@ -810,5 +831,10 @@
    "skill": 1.1666666666666667,
    "skill_s2": 0.5833333333333334
   }
+ },
+ "response": {
+  "name": "掌灯",
+  "trigger": "队长站定",
+  "desc": "队长站定不动时，「荧光」的回复量提高 50%，每次回复或驱散灯火另 +3；队长移动就恢复"
  }
 }

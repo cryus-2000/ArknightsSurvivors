@@ -28,6 +28,7 @@ var gather_t := -1.0          # 归队：全员到位后站定的剩余秒数（
 var stamina := 1.0
 var exhausted := false         # 耗尽后的冷却：回到 min_start 以上才解除（HUD 灰显）
 var stance_log: Array = []     # [[g.t, 新站位], …]：玩家切换记录（同 seed 复现 / 机器人对照）
+var gathered_n := 0            # 归队集合完毕（全员到位、开始站定）的次数：响应动作 on_stance to: gathered 的触发源（docs/118）
 
 
 func _init(game) -> void:
@@ -375,6 +376,7 @@ func _tick_recall(dt: float) -> void:
 				break
 	if done:
 		gather_t = Bal.v("command/gather", 0.4)
+		gathered_n += 1
 
 
 ## 战斗台词：每人 30–55 秒一次，身边 300 内有敌人才说；维什戴尔四成概率换成 W 的笑声

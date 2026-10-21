@@ -1086,7 +1086,23 @@
         "do": [],
         "_doc": "好礼：写在 attack.gift（cond elite >= 1）"
       }
-    }
+    },
+    "response": [
+      {
+        "trig": "passive",
+        "cond": "still >= 0.6",
+        "hint": "架炮",
+        "_doc": "响应动作（docs/118 §4.2）：队长站定 0.6 秒后她架炮，攻击速度 +18%（攻击间隔约 ×0.85）；队长一移动就解除。设计稿的「必定余震」不用写：炮击本来就每发余震",
+        "do": [
+          {
+            "verb": "buff_self",
+            "stat": "op_aspd",
+            "op": "add",
+            "value": 0.18
+          }
+        ]
+      }
+    ]
   },
   "extra_sprites": [
     "death",
@@ -1108,5 +1124,10 @@
     "native_soul_idle",
     "native_soul_start",
     "native_soul_die"
-  ]
+  ],
+  "response": {
+    "name": "架炮",
+    "trigger": "队长站定",
+    "desc": "队长站定不动时，她架稳炮位，攻击间隔缩短约 15%；队长移动就收炮"
+  }
 }

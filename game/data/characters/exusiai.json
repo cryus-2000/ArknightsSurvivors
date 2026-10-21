@@ -162,7 +162,14 @@
   "冲锋模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "物理", "tags": ["skill", "projectile", "pierce"]},
   "过载模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "物理", "tags": ["skill", "projectile"]},
   "弹匣倾泻": {"emitter": "operator", "origin": "talent", "range": "远程", "kind": "物理", "tags": ["projectile", "pierce", "area"]},
-  "跳弹": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "物理", "tags": ["follow_up", "ricochet"]}
+  "跳弹": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "物理", "tags": ["follow_up", "ricochet"]},
+  "掩护射击": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "远程",
+   "kind": "物理",
+   "tags": ["projectile"]
+  }
  },
  "progression": [
   {"type": "custom", "id": "twin", "name": "双枪", "icon": "growth_b_count", "desc": "每次射击的子弹数 +{$twin_shots}"},
@@ -210,6 +217,30 @@
     {"trig": "on_mate_attack", "scope": "others", "fx": [
      {"strip": "fx_exusiai_blessed_flash", "at": "mate"},
      {"pfx": {"kind": "glow", "r": 9, "life": 0.16, "col": [1.5, 1.15, 0.45], "alpha": 0.75}, "if_tex": "!fx_exusiai_blessed_flash"}]}]
-  }
+  },
+  "response": [
+   {
+    "trig": "on_leader_dash",
+    "hint": "掩护",
+    "_doc": "响应动作（docs/118 §4.1）：队长冲刺起步时，她朝队长冲刺方向身后（她射程内）离队长最近的敌人补射一轮，发数同普攻（op_shots），每发 ×0.8；身后没有敌人就打离队长最近的。不占普攻冷却；补射击杀照常攒弹匣",
+    "do": [
+     {
+      "shape": "projectile",
+      "aim": "behind_leader",
+      "shots": "$shots",
+      "op_shots": true,
+      "spread_deg": "$spread_deg",
+      "pierce": "$pierce",
+      "mult": 0.8,
+      "src": "掩护射击"
+     }
+    ]
+   }
+  ]
+ },
+ "response": {
+  "name": "掩护射击",
+  "trigger": "队长冲刺",
+  "desc": "队长每次冲刺起步，她朝队长身后最近的敌人补射一轮（发数同普攻，每发 80% 伤害），掩护队长撤出；补射击倒的敌人照常填充弹匣"
  }
 }

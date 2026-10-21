@@ -1166,6 +1166,32 @@
      }
     ]
    }
-  }
+  },
+  "response": [
+   {
+    "trig": "on_leader_skill",
+    "hint": "追言",
+    "_doc": "响应动作（docs/118 §4.3）：队长开技能时，她向射程内最近的 2 名敌人各追加一枚「言」（伤害同普攻，命中效果同普攻：安魂、精二连缀照常）。不占普攻计时",
+    "do": [
+     {
+      "shape": "bolt",
+      "pick": "aim",
+      "count": 2,
+      "mult": "$word_mult",
+      "speed": "$bolt_speed",
+      "life": "$word_life",
+      "gap": "$word_gap",
+      "tip": [40, -36],
+      "src": "言",
+      "then_of": "attack"
+     }
+    ]
+   }
+  ]
+ },
+ "response": {
+  "name": "追言",
+  "trigger": "队长开技能",
+  "desc": "队长每次开技能，她立刻向最近的两名敌人各追加一枚「言」（伤害与效果同普攻）"
  }
 }
