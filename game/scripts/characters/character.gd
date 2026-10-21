@@ -1366,6 +1366,8 @@ func follow(dt: float, target: Vector2) -> void:
 		target = roam_target(target) if st == 1 else follow_target(target)
 		if st == 2 and sq.gather_t >= 0.0:
 			target = pos   # 归队集合：到位后站定一下（squad._tick_recall）
+		if cmd_down > 0.0:
+			target = pos   # 倒地：原地躺着（squad._tick_hp）
 		var d: float = pos.distance_to(target)
 		var k: float = clampf(dt * (3.0 if d < 20.0 else (9.0 if st == 2 else 6.0)), 0.0, 1.0)
 		cmd_d = d
@@ -1621,8 +1623,38 @@ const CmdBal = preload("res://scripts/core/balance.gd")
 var roam_tgt = null
 var cmd_d := 0.0   # 本帧到跟随目标的距离（归队是否归位完由 squad 读）
 
+## 突击站位按职业（10-22 原型，docs/114 §7）：重装 wall 站到怪群与队长之间；狙击 / 术师 kite 保持射程绕圈；其余 melee 贴怪群边缘
+func cmd_role() -> String:
+	if cls == "重装":
+		return "wall"
+	if cls in ["狙击", "术师"]:
+		return "kite"
+	return "melee"
+
+
+## 突击生命（squad._tick_hp）：cmd_hp 0–1；cmd_down > 0 = 倒地剩余秒数；cmd_inv 无敌剩余；cmd_show 血条显示剩余
+var cmd_hp := 1.0
+var cmd_down := 0.0
+var cmd_down_age := 0.0
+var cmd_inv := 0.0
+var cmd_show := 0.0
+
 func roam_target(slot_pos: Vector2) -> Vector2:
 	var leash: float = CmdBal.v("command/leash", 960.0)
+	var role := cmd_role()
+	if role == "wall":
+		# 重装：队长身边 search 内最近 6 只的中心，站到「队长 → 怪群」连线上离队长一半（40–160）处，把怪挡在外面
+		var ns: Array = nearest_enemies(6, CmdBal.v("command/search", 520.0), g.ppos)
+		if ns.is_empty():
+			return slot_pos
+		var c := Vector2.ZERO
+		for en in ns:
+			c += en.pos
+		c /= float(ns.size())
+		var tw: Vector2 = c - g.ppos
+		if tw.length() < 1.0:
+			return slot_pos
+		return g.ppos + tw.normalized() * clampf(tw.length() * 0.5, 40.0, 160.0)
 	var near: Array = nearest_enemies(1, CmdBal.v("command/search", 520.0), pos)
 	var n0 = near[0] if not near.is_empty() and near[0].pos.distance_to(g.ppos) <= leash else null
 	var e = roam_tgt
@@ -1636,7 +1668,12 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 	var reach: float = cmd_reach() + e.r
 	var dv: Vector2 = pos - e.pos
 	var p: Vector2 = pos
-	if dv.length() > reach + 14.0:
+	if role == "kite":
+		# 远程放风筝：始终站在离目标 reach 的圆上，并沿圆周往前挪（编队位单双号决定顺 / 逆时针），被贴近就后退
+		if dv.length() < 1.0:
+			dv = Vector2(-face, 0)
+		p = e.pos + dv.normalized().rotated(CmdBal.v("command/kite_step", 0.5) * (1.0 if slot % 2 == 0 else -1.0)) * reach
+	elif dv.length() > reach + 14.0:
 		if dv.length() < 1.0:
 			dv = Vector2(-face, 0)
 		p = e.pos + dv.normalized() * reach
@@ -2299,6 +2336,9 @@ func draw_body() -> void:
 	for gh in ghosts:
 		var a: float = GHOST_ALPHA * (1.0 - gh.age / GHOST_LIFE)
 		draw_sprite_at(gh.p + Vector2(foot_dx(gh.st), 0), gh.st.flip, Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, a), gh.st.frame, gh.st.tex, gh.st.hf, foot_off(gh.st.tex, gh.st.get("kind", "")))
+	if cmd_down > 0.0:
+		_draw_downed(st)
+		return
 	if is_leader and g.state == g.S.DEAD:   # 队长倒下：共用撤退表现（10-21，替代逐人 death 条；倒下过渡的灯火熄灭照旧）
 		_cv_flush()
 		RetreatFx.draw(g, st, pos + Vector2(foot_dx(st), 0) + g.draw_off, foot_off(st.tex, st.get("kind", "")), g.state_age, g.PX)
@@ -2306,6 +2346,30 @@ func draw_body() -> void:
 	# 主控：受击闪白 / 闪红 / 无敌闪烁沿用 game.gd 算好的 sprite.modulate
 	var mod: Color = g.sprite.modulate if is_leader else Color.WHITE
 	draw_sprite_at(pos + Vector2(foot_dx(st), 0), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
+
+
+## 突击倒地（docs/114 §7）：有 death 条的播一遍停在末帧（压暗一点）；没有的先放共用退场闪光，再画躺倒的暗色剪影（待机帧转 90°）
+func _draw_downed(st: Dictionary) -> void:
+	var dtx: Texture2D = anim_tex("death")
+	var foot: Vector2 = pos + g.draw_off
+	if dtx != null:
+		var n: int = anim_hframes(dtx, "death")
+		var fr: int = mini(n - 1, int(cmd_down_age * float(sprite_spec("death").get("fps", ANIM_FPS.death))))
+		var ds := {"tex": dtx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror("death"), "kind": "death"}
+		draw_sprite_at(pos + Vector2(foot_dx(ds), 0), ds.flip, Color(0.75, 0.75, 0.8), fr, dtx, n, foot_off(dtx, "death"))
+		return
+	_cv_flush()
+	if cmd_down_age < RetreatFx.TOTAL:
+		RetreatFx.draw(g, st, foot + Vector2(foot_dx(st), 0), foot_off(st.tex, st.get("kind", "")), cmd_down_age, g.PX)
+		return
+	var tx: Texture2D = st.tex
+	var hf: int = maxi(1, int(st.hf))
+	var fw: float = float(tx.get_width()) / hf
+	var fh: float = float(tx.get_height())
+	var pk: float = g.PX / A.hires_of(tx)
+	g.draw_set_transform(foot.round(), -PI / 2.0 if not st.flip else PI / 2.0, Vector2(pk, pk))
+	g.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + foot_off(tx, str(st.get("kind", "")))), Vector2(fw, fh)), Rect2(0, 0, fw, fh), Color(0.55, 0.58, 0.68, 0.9))
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 残影采样（follow() 每帧调用）：瞬时速度 > GHOST_SPEED 时每 GHOST_EVERY 秒留一个分身，存活 GHOST_LIFE 秒。

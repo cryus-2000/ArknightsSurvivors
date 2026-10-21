@@ -288,6 +288,7 @@ func update(dt: float) -> void:
 	_dv_o.clear()
 	_ab_e.clear()
 	_ab_o.clear()
+	var _sq = g.get("squad")
 	# ---- A 决策段
 	for i in n:
 		_seg_on[i] = 0
@@ -399,12 +400,18 @@ func update(dt: float) -> void:
 		if e.get("haste", 0.0) > 0.0:
 			spd *= 1.4
 		var move_dir := dir
+		# 指挥模式仇恨（docs/114 §7）：突击中圈内一部分怪改追最近的突击队友（squad.aggro_target；不突击时不调用、不抽随机数）
+		var ag = _sq.aggro_target(e) if _sq != null and _sq.stance == 1 else null
 		if e.feed and final_target_valid(e):
 			move_dir = (by_id(e.feed_to_id).pos - e.pos).normalized()
 		elif e.get("aggro", Vector2.INF) != Vector2.INF:
 			# 海嗣分身吸引仇恨：本帧朝分身走（每帧由分身重新标记）
 			move_dir = (e.aggro - e.pos).normalized()
 			e.aggro = Vector2.INF
+		elif ag != null:
+			move_dir = (ag.pos - e.pos).normalized()
+			if absf(move_dir.x) > 0.1 and e.ai != "static":
+				e.fx = signf(move_dir.x)
 		var held: bool = e.stun > 0.0 or bst > 0.0
 		# 封印（docs/61 §15 st.seal，干员积木）：非 Boss 敌人不起新的特殊招式（pattern：冲刺 / 吐酸 / 环弹 / 神经光环 / 额外招式……），
 		# 已经起手的蓄力 / 冲刺 / 自爆照常走完（enemy_ai.busy）；Boss 的封印在 boss_ai 的 ready 里。没有封印时 seal_t 不存在，这里恒为 false
