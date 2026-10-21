@@ -10,7 +10,7 @@ const Ch = preload("res://scripts/characters/character.gd")
 const Prog = preload("res://scripts/run/progression.gd")
 ## 已接分支的干员（docs/120；p2 逐批加入）——其余干员必须没有分支节点
 const PILOT := ["texas", "hoshiguma", "eyjafjalla", "suzuran", "exusiai", "skadi", "siege", "saria", "wisadel", "lumen", "kaltsit",
-	"logos", "skalter", "mizuki", "specter_unchained", "irene", "angelina"]
+	"logos", "skalter", "mizuki", "specter_unchained", "irene", "angelina", "ulpianus"]
 
 var game: Node
 var frames := 0
