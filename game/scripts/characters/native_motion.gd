@@ -67,7 +67,7 @@ static func _signal_k(signals: Dictionary, on: String) -> float:
 	return 0.0
 
 static func state(o, st: Dictionary) -> Dictionary:
-	if not enabled(o) or st.is_empty() or st.kind in ["death", "hurt"] or st.kind in _nm(o).get("yield", []): return st
+	if not enabled(o) or st.is_empty() or st.kind in ["death", "hurt", "entry"] or st.kind in _nm(o).get("yield", []): return st
 	var signals: Dictionary = o.native_signals()
 	for r in _nm(o).get("states", []):
 		var on: String = str(r.on)

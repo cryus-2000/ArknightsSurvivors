@@ -2342,6 +2342,14 @@ const ARRIVE_WAIT := 0.35
 const ARRIVE_FALL := 0.35
 var arrive_t := -1.0
 
+## 入场条（10-22 用户定，原作 Start 轨：着地前一帧 + 着地到收势）：纯画面 vis_anim，delay 秒内停在首帧（还在空中落下），之后播一遍回待机；没有 entry 条就不播
+func play_entry(delay := 0.0) -> void:
+	if anim_tex("entry") == null:
+		return
+	play_vis_anim("entry")
+	anim_t = -delay
+
+
 func arriving() -> bool:
 	return arrive_t >= 0.0 and arrive_t < ARRIVE_WAIT + ARRIVE_FALL
 

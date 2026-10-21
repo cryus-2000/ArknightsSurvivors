@@ -71,6 +71,7 @@
   "regen": 1.6
  },
  "sprites": {
+  "entry": {"tex": "op_texas_entry", "frames": 8, "fps": 11.236, "foot": [32, 60], "frame_durations": [0.089, 0.089, 0.089, 0.089, 0.089, 0.089, 0.089, 0.089], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/texas_entry.json），64 画布 @2x；落下由代码补"},
   "idle": {
    "tex": "op_texas_idle",
    "frames": 7,
@@ -259,7 +260,7 @@
    ]
   }
  },
- "extra_sprites": [
+ "extra_sprites": ["entry", 
   "death",
   "back_native",
   "s3_start",

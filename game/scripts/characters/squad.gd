@@ -110,6 +110,7 @@ func add(cid: String, recruit_event := true):
 			g.rfx.on_recruit(op)   # 招募事件（docs/57 P10）：开局干员不算
 	if recruit_event and not op.is_leader and g.state == g.S.PLAY and g.demo_op == "":
 		op.arrive_t = op.ARRIVE_WAIT   # 局中招募：从屏幕上方落到编队位（不等，纯画面；换人在 replace 里从 0 起等被换下的跳出）
+		op.play_entry(op.ARRIVE_FALL)   # 着地接入场条
 	return op
 
 
@@ -173,6 +174,7 @@ func replace(old_id: String, new_id: String, route := ""):
 		ops[i].slot = i
 	op.pos = g.ppos + _slot_offset(op.slot)
 	op.arrive_t = 0.0   # 等被换下的跳出屏幕后从上方落下（纯画面，character.arrive_dy）
+	op.play_entry(op.ARRIVE_WAIT + op.ARRIVE_FALL)   # 着地接入场条
 	var sq0: int = g.show_queue.size()
 	if route != "":
 		op.route = route
