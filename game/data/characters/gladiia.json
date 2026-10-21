@@ -72,7 +72,9 @@
   "brute_r": 110,
   "brute_mult": 1.15,
   "brute2_r": 130,
-  "brute2_back": 0.9
+  "brute2_back": 0.9,
+  "leader_pin_stun": 0.7,
+  "_leader": "队长身份（docs/123 §2.1 / §2.4，10-22 协调人定 ②）：钩索钩住不拖（leader_pin_stun 原地定身秒数，到位伤害原地结算）；精二「冲撞」以钩中点为中心"
  },
  "leader": {
   "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 2309 / 防御 331 / 法抗 0（character_table）；有天赋自疗，regen 取 1.2（远程与小额自疗 1.1 口径略上浮，她的自疗精一才有）",
@@ -432,14 +434,14 @@
  "attack": {
   "mode": "auto",
   "name": "钩索",
-  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害，随后把钩索与她之间一线的敌人拖回身前（Boss 除外），到位时再受 {$hook_back*100}% 伤害"
+  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害。队友时把钩索与她之间一线的敌人拖回身前，到位再受 {$hook_back*100}% 伤害；她当队长时钩住不拖：钩中的敌人原地眩晕 {$leader_pin_stun} 秒，{$hook_back*100}% 伤害原地结算（Boss 除外）"
  },
  "skills": [
   {
    "name": "缺水的大洋裂断",
    "en": "WATERLESS PARTING OF THE GREAT OCEAN",
    "sp": 7,
-   "desc": "立刻掷出重钩：{$s1_range} 内最远的敌人处半径 {$s1_r} 内 ×{$s1_mult} 伤害，把至多 {$s1_n} 名敌人拖回身前，到位再受 ×{$s1_back} 伤害（Boss 除外）",
+   "desc": "立刻掷出重钩：{$s1_range} 内最远的敌人处半径 {$s1_r} 内 ×{$s1_mult} 伤害，把至多 {$s1_n} 名敌人拖回身前，到位再受 ×{$s1_back} 伤害（Boss 除外）；她当队长时钩住不拖，原地眩晕 {$leader_pin_stun} 秒、伤害原地结算",
    "icon": "skill_ulpianus_s1"
   },
   {
@@ -591,10 +593,10 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「缺水的碎漩狂舞」；普攻质变「冲撞」：钩索把敌人拖回到位时，身前半径 {$ram_r} 掀起一圈冲击：{$ram_mult*100}% 伤害并击退周围敌人",
+   "desc": "解锁三技能「缺水的碎漩狂舞」；普攻质变「冲撞」：钩索拖回到位时，身前半径 {$ram_r} 掀起一圈冲击：{$ram_mult*100}% 伤害并击退周围敌人；她当队长时冲击以钩中点为中心",
    "attack": {
     "name": "冲撞",
-    "desc": "钩索把敌人拖回到位时，身前半径 {$ram_r} 掀起一圈冲击：{$ram_mult*100}% 伤害，击退周围敌人"
+    "desc": "钩索拖回到位时，身前半径 {$ram_r} 掀起一圈冲击：{$ram_mult*100}% 伤害，击退周围敌人；她当队长时（钩住不拖）冲击以钩中点为中心"
    }
   }
  ],
@@ -605,7 +607,7 @@
    "控制",
    "深海猎人"
   ],
-  "desc": "特种干员，深海猎人成员。把钩索掷向远处的敌人，砸中后沿锁链把它们拖到身前，供近战队友收割；编队里每多一名深海猎人，队长的回复与减伤就多一档"
+  "desc": "特种干员，深海猎人成员。把钩索掷向远处的敌人，砸中后沿锁链把它们拖到身前，供近战队友收割；她当队长时改为钩住定身，不把敌人拉到自己身上；编队里每多一名深海猎人，队长的回复与减伤就多一档"
  },
  "blocks": {
   "_doc": "歌蕾蒂娅（docs/123）：纯数据干员。普攻名义上是 circle，trait 用 every_n n:1 replace 把每一下换成 shape.hookshot（乌尔比安精二掷锚的积木，docs/61 §18.1）；路线「怒海」用 cond 切换三份钩索参数。拖拽到位的眩晕 / 冲撞用 every_n delay 对齐 taut + drag 的时刻。技能备注——S1：大洋裂断：重钩，拖回至多 2 名；S2：掌握怒海：伤害 ×1.5、间隔 ×1.3、射程 +40%；每次掷钩拉近身边敌人写在 trait（every_n 1 cond skill_active:1）；S3：碎漩狂舞：在最近一次钩中处（last_hit）留 8 秒漩涡；结束时聚拢 + 眩晕写在 trait（on_skill_end skill 2）",
@@ -674,7 +676,8 @@
          2
         ]
        }
-      ]
+      ],
+      "leader_pin_stun": "$leader_pin_stun"
      }
     ]
    },
@@ -842,7 +845,8 @@
       "src": "钩索",
       "back_src": "拖拽",
       "head": "proj_gladiia_hook",
-      "drag_only": "all"
+      "drag_only": "all",
+      "leader_pin_stun": "$leader_pin_stun"
      }
     ]
    },
@@ -871,7 +875,8 @@
       "src": "钩索",
       "back_src": "拖拽",
       "head": "proj_gladiia_hook",
-      "drag_only": "all"
+      "drag_only": "all",
+      "leader_pin_stun": "$leader_pin_stun"
      }
     ]
    },
@@ -900,7 +905,8 @@
       "src": "钩索",
       "back_src": "拖拽",
       "head": "proj_gladiia_hook",
-      "drag_only": "all"
+      "drag_only": "all",
+      "leader_pin_stun": "$leader_pin_stun"
      }
     ]
    },
@@ -1108,70 +1114,137 @@
      }
     ]
    },
-   "elite2": {
-    "trig": "every_n",
-    "n": 1,
-    "delay": "$ram_delay",
-    "_doc": "精二冲撞：拖回到位时身前半径 80 一圈 80% 伤害 + 击退",
-    "do": [
-     {
-      "shape": "circle",
-      "center": "front",
-      "front": "$ram_front",
-      "r": "$ram_r",
-      "r_abs": true,
-      "basis": "atk",
-      "mult": "$ram_mult",
-      "kb": "$ram_kb",
-      "src": "冲撞",
-      "ring": false,
-      "fx": [
-       {
-        "strip": "fx_gladiia_ram",
-        "layer": "floor",
-        "scale": 1.1,
-        "off": [
-         0,
-         2
-        ],
-        "if_tex": "fx_gladiia_ram"
-       },
-       {
-        "pfx": {
-         "kind": "ring",
-         "r": 1.0,
-         "r0": 0.2,
-         "life": 0.35,
-         "col": [
-          0.35,
-          0.6,
-          0.9
+   "elite2": [
+    {
+     "trig": "every_n",
+     "n": 1,
+     "delay": "$ram_delay",
+     "_doc": "精二冲撞（队友身份）：拖回到位时身前半径 80 一圈 80% 伤害 + 击退",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "front",
+       "front": "$ram_front",
+       "r": "$ram_r",
+       "r_abs": true,
+       "basis": "atk",
+       "mult": "$ram_mult",
+       "kb": "$ram_kb",
+       "src": "冲撞",
+       "ring": false,
+       "fx": [
+        {
+         "strip": "fx_gladiia_ram",
+         "layer": "floor",
+         "scale": 1.1,
+         "off": [
+          0,
+          2
          ],
-         "floor": true,
-         "w": 4.0,
-         "alpha": 0.7
+         "if_tex": "fx_gladiia_ram"
         },
-        "r_scale": [
-         "r",
-         "r0"
-        ]
-       },
-       {
-        "sprite": {
-         "name": "fx_splash_blue",
-         "scale": 1.0,
-         "bottom": true
+        {
+         "pfx": {
+          "kind": "ring",
+          "r": 1.0,
+          "r0": 0.2,
+          "life": 0.35,
+          "col": [
+           0.35,
+           0.6,
+           0.9
+          ],
+          "floor": true,
+          "w": 4.0,
+          "alpha": 0.7
+         },
+         "r_scale": [
+          "r",
+          "r0"
+         ]
         },
-        "off": [
-         0,
-         6
-        ],
-        "if_tex": "!fx_gladiia_ram"
-       }
-      ]
-     }
-    ]
-   },
+        {
+         "sprite": {
+          "name": "fx_splash_blue",
+          "scale": 1.0,
+          "bottom": true
+         },
+         "off": [
+          0,
+          6
+         ],
+         "if_tex": "!fx_gladiia_ram"
+        }
+       ]
+      }
+     ],
+     "cond": "!is_leader"
+    },
+    {
+     "trig": "every_n",
+     "n": 1,
+     "delay": 0.3,
+     "_doc": "精二冲撞（队长身份）：钩中点为中心一圈 80% 伤害 + 击退（钩住不拖，怪留在原地）",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "last_hit",
+       "r": "$ram_r",
+       "r_abs": true,
+       "basis": "atk",
+       "mult": "$ram_mult",
+       "kb": "$ram_kb",
+       "src": "冲撞",
+       "ring": false,
+       "fx": [
+        {
+         "strip": "fx_gladiia_ram",
+         "layer": "floor",
+         "scale": 1.1,
+         "off": [
+          0,
+          2
+         ],
+         "if_tex": "fx_gladiia_ram"
+        },
+        {
+         "pfx": {
+          "kind": "ring",
+          "r": 1.0,
+          "r0": 0.2,
+          "life": 0.35,
+          "col": [
+           0.35,
+           0.6,
+           0.9
+          ],
+          "floor": true,
+          "w": 4.0,
+          "alpha": 0.7
+         },
+         "r_scale": [
+          "r",
+          "r0"
+         ]
+        },
+        {
+         "sprite": {
+          "name": "fx_splash_blue",
+          "scale": 1.0,
+          "bottom": true
+         },
+         "off": [
+          0,
+          6
+         ],
+         "if_tex": "!fx_gladiia_ram"
+        }
+       ]
+      }
+     ],
+     "cond": "is_leader"
+    }
+   ],
    "shield": {
     "trig": "every_n",
     "n": 1,

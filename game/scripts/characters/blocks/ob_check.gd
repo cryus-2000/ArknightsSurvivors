@@ -296,8 +296,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 				_num(b, "step", p, ctx, true, 8.0, 400.0)
 				_num(b, "delay", p, ctx, false, 0.0, 5.0)
 				_num(b, "stagger", p, ctx, false, 0.0, 1.0)
-			elif not str(b.get("center", "zone")) in ["zone", "self", "leader", "target", "front"]:
-				errs.append(p + ".center 只能是 zone / self / leader / target / path / front / summon:<种类>")
+			elif not str(b.get("center", "zone")) in ["zone", "self", "leader", "target", "front", "last_hit"]:
+				errs.append(p + ".center 只能是 zone / self / leader / target / path / front / last_hit / summon:<种类>")
 			_F()._e5_shape(b, p, ctx, tag)   # 精英化第 5 批段：band / among、center summon:<种类> + r: zone
 			if b.has("only"):   # 精英化段：只打处于这些状态的敌人
 				var ol = b.only

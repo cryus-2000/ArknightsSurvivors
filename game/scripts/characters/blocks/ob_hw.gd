@@ -443,6 +443,7 @@ static func _hw5_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 				errs.append(p + ".chain 必须是 fx_* 帧条名")
 			if b.has("head") and not str(b.head).begins_with("proj_"):
 				errs.append(p + ".head 必须是 proj_* 帧条名（钩头贴图）")
+			_num(b, "leader_pin_stun", p, ctx, false, 0.0, 3.0)   # 队长身份：钩住不拖，原地定身这么多秒（0 = 照常拖回）
 			if b.has("drag_only") and not str(b.drag_only) in ["all", "ranged"]:
 				errs.append(p + ".drag_only 只能是 all / ranged（只拖回远程怪）")
 			_src(b, p, ctx, true)

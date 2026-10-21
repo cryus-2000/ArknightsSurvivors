@@ -448,6 +448,8 @@ static func shape_center(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Vector2
 			return o.g.ppos
 		"target":
 			return at
+		"last_hit":   # 上一次普攻命中的第一个敌人处（钩索落地也记，docs/123 §2.1）；没有就不打
+			return o.last_hit_pos if "last_hit_pos" in o else Vector2.INF
 	return o.zone_c()
 
 

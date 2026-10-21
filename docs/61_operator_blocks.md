@@ -1892,6 +1892,8 @@ S3 当前契约（2026-10-18）：参考原作的全周范围攻击与追加目�
 | 参数 | 放哪 | 说明 |
 |---|---|---|
 | `shape.hookshot.head` | 钩索积木 | `proj_*` 帧条：锚头贴图，飞行 / 绷直 / 拖回各取第 0 / 1 / 2 帧，沿方向旋转（`draw_spr_rot`）；缺图退回程序锚头。歌蕾蒂娅 `proj_gladiia_hook` |
+| `shape.hookshot.leader_pin_stun` | 钩索积木 | > 0 且本干员是队长时：钩住不拖，本该拖回的敌人原地 `st.stun` 这么多秒，`back_mult` 到位伤害原地结算，`arrive_fx` 在钩中点播，`notify_mate_hook` 照发。歌蕾蒂娅队长身份 |
+| `shape.circle.center: last_hit` | 伤害形状 | 上一次普攻命中的第一个敌人处（钩索落地也记）；没有就不打。歌蕾蒂娅队长身份的「冲撞」 |
 | `shape.hookshot.drag_only` | 钩索积木 | `all`（缺省）/ `ranged`：只把 `e.ai == ranged` 的敌人拖回身前（落地伤害不受影响）。歌蕾蒂娅普攻 |
 | `st.seal.look` | 封印状态 | `cross` = 被封印敌人头顶 8×8 灰叉（#AAAEB2，头顶上方 12 px），不画地面圈与紫菱形；写进 `e.seal_look`，`sm_draw_over` 按它分支。拉普兰德全部封印用它 |
 

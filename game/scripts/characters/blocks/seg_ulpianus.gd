@@ -996,6 +996,24 @@ static func _hw5_hook_drag_start(o, hk: Dictionary) -> void:
 		got.append(e)
 	got.sort_custom(func(x, y): return x.pos.distance_squared_to(a) < y.pos.distance_squared_to(a) if x.pos.distance_squared_to(a) != y.pos.distance_squared_to(a) else int(x.id) < int(y.id))
 	var mx: int = int(b.get("max_n", 12))
+	var pin_stun: float = float(b.get("leader_pin_stun", 0.0))
+	if pin_stun > 0.0 and o.is_leader:   # 歌蕾蒂娅当队长（docs/123 §2.1，协调人 10-22 定 ②）：钩住不拖，原地定身 + 到位伤害原地结算，不把怪拉进自己身上
+		var dmg2: float = float(hk.dmg) * float(b.get("back_mult", 0.4))
+		var src2: String = str(b.get("back_src", b.get("src", "")))
+		var ve2: float = o.vs_elite()
+		var pinned: Array = []
+		for i in mini(mx, got.size()):
+			var e: Dictionary = got[i]
+			apply_status(o, e, {"st": "stun", "dur": pin_stun}, e.pos)
+			o.log_hit(src2, b.get("tags", []))
+			o.deal_damage(e, dmg2 * (ve2 if e.elite or e.boss else 1.0))
+			pinned.append(e)
+		if b.has("arrive_fx") and not pinned.is_empty():
+			fx_play(o, b.arrive_fx, c, 40.0, pinned)
+		if not pinned.is_empty() and o.has_method("notify_mate_hook"):   # 联动「钩与锚」：队友的补锚击落在钩中点
+			o.notify_mate_hook(c, pinned)
+		hk.phase = "done"
+		return
 	for i in mini(mx, got.size()):
 		var e: Dictionary = got[i]
 		var side: float = (1.0 if i % 2 == 1 else -1.0) * ceilf(i / 2.0)
