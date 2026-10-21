@@ -820,6 +820,9 @@ const V6_FRAMES := {
 	"fx_logos_chain_tile": [6, 12.0], "fx_logos_chain_pulse": [4, 20.0], "fx_logos_chain_anchor": [6, 12.0],
 	"fx_eyja_melt_crack": [6, 8.0], "proj_eyja_lava_lob": [4, 16.0], "fx_eyja_lava_pool": [8, 10.0], "fx_eyja_lava_splash": [6, 18.0],
 	"fx_skadi_leap_splash": [6, 18.0], "proj_skadi_surge_blade": [4, 16.0], "fx_skadi_surge_hit": [5, 18.0], "fx_skadi_surge_release": [4, 18.0],
+	# 拉普兰德 / 歌蕾蒂娅（Codex 199d7b73 + skill_completion，docs/122 / 123 §6）：刀光、剑气弹体、倒钩头、到位冲击、牵引水带、水龙卷 open / loop / close
+	"fx_lappland_slash": [4, 10.0], "proj_lappland_sword": [4, 16.0], "proj_gladiia_hook": [4, 16.0], "fx_gladiia_ram": [6, 18.0], "fx_gladiia_pull": [4, 10.0],
+	"fx_gladiia_tornado_open": [6, 20.0], "fx_gladiia_tornado_loop": [6, 12.0], "fx_gladiia_tornado_close": [6, 15.0], "fx_gladiia_water_glide": [4, 10.0],
 	"fx_ulpianus_chain_tile": [2, 12.0], "fx_ulpianus_pull_ring": [6, 14.0], "fx_ulpianus_anchor_impact_back": [6, 16.0], "fx_ulpianus_anchor_impact_front": [6, 16.0],
 	"fx_ulpianus_drag_dust": [4, 14.0],
 	# Codex 精英化第 3 批（docs/93 §3，art/incoming/elite_art_3_manifest.json；接入见 docs/91 §25）：帧数 / fps 按 manifest。

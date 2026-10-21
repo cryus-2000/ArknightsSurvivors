@@ -155,6 +155,7 @@ WAIVERS = {
     ("lappland", "outline"): "10-22 Codex 原生附件暗色收边（同斯卡蒂 / 乌尔比安口径），不重描 #080E18 黑壳",
     ("lappland", "run"): "10-22 占位：借斯卡蒂跑步条；正式跑步条交付后删",
     ("lappland", "ground"): "10-22 原作 Idle 原生像素：脚底行 60/61 随呼吸抬脚；跑步占位借斯卡蒂（59）",
+    ("lappland", "skill_end"): "10-22 原作 Skill 条末帧是原生收势姿势，逻辑结束切 Idle（同归溟幽灵鲨 skill_end 口径）；192 / 128 画布不同不逐像素比",
     ("lappland", "frontal"): "10-22 原作 Idle 原生朝向（头部对称差 0.713），不改造原生脸型（同铃兰口径）",
     ("lappland", "idle"): "10-22 原作 Idle 40 帧 2 秒，呼吸幅度本来就小（起伏 0.1px）；Codex handoff 记用户已确认待机首帧",
     ("gladiia", "outline"): "10-22 Codex 原生附件暗色收边（同斯卡蒂 / 乌尔比安口径），不重描 #080E18 黑壳",

@@ -1072,7 +1072,12 @@ static func hw_draw_hooks(o) -> void:
 			if str(hk.phase) == "drag" and not dg.e.dead:
 				_hw_draw_chain(o, p, dg.e.pos + Vector2(0, -float(dg.e.r) * 0.5), 0.7)
 		var dirv: Vector2 = ((hk.to as Vector2) - (hk.from as Vector2)).normalized()
-		_hw_draw_anchor(o, p, -dirv if str(hk.phase) == "drag" else dirv, 1.0)
+		var head: String = str(b.get("head", ""))   # 歌蕾蒂娅（docs/123 §6）：细长倒钩贴图代替程序锚头；缺图退回程序锚
+		if head != "" and g.tex.get(head) != null and g.V6_FRAMES.has(head):
+			var hf: int = 0 if str(hk.phase) == "fly" else (1 if str(hk.phase) == "taut" else 2)
+			o.draw_spr_rot(head, hf, p, (-dirv if str(hk.phase) == "drag" else dirv).angle(), g.PX, Color.WHITE)
+		else:
+			_hw_draw_anchor(o, p, -dirv if str(hk.phase) == "drag" else dirv, 1.0)
 
 
 ## 原生动作信号（native_motion.gd 按 json native_motion.states / exits 取用，docs/108 §3.5）：

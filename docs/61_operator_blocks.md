@@ -1887,3 +1887,10 @@ S3 当前契约（2026-10-18）：参考原作的全周范围攻击与追加目�
 
 干员 JSON 顶层 `combo {with, name, knob, desc}` 只给界面用（`build_affinity.combo_partners`：招募 / 换人卡「联动」行），玩法仍由积木决定。
 
+### 21.2 接美术时加的两个参数（10-22）
+
+| 参数 | 放哪 | 说明 |
+|---|---|---|
+| `shape.hookshot.head` | 钩索积木 | `proj_*` 帧条：锚头贴图，飞行 / 绷直 / 拖回各取第 0 / 1 / 2 帧，沿方向旋转（`draw_spr_rot`）；缺图退回程序锚头。歌蕾蒂娅 `proj_gladiia_hook` |
+| `st.seal.look` | 封印状态 | `cross` = 被封印敌人头顶 8×8 灰叉（#AAAEB2，头顶上方 12 px），不画地面圈与紫菱形；写进 `e.seal_look`，`sm_draw_over` 按它分支。拉普兰德全部封印用它 |
+

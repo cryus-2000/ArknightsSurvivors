@@ -76,7 +76,7 @@
   "regen": 1.5
  },
  "sprites": {
-  "_doc": "Codex 交付 199d7b73（art/incoming/lappland_gladiia_delivery_1021 → art/incoming/op_<id>_*@2x），原生像素 @2x、整数 foot；192 画布槽 foot = 顶层 + (16,16)。跑步条未交，暂借原占位 run（像素 Spine 会话另出）。attack 带 logic = 占位条的旧窗口，纯换图同 seed 不变；attack_timing 另见",
+  "_doc": "Codex 交付 199d7b73（原生像素 @2x、整数 foot；192 画布槽 foot = 顶层 + (16,16)）。跑步条未交，暂借斯卡蒂 run。attack 走 attack_timing（B 步改出手时刻），skill / throw 为 S1 / S3 与 S2 的起手条",
   "size": 64,
   "foot": [
    32,
@@ -147,46 +147,47 @@
   "attack": {
    "tex": "op_lappland_combat",
    "frames": 25,
-   "fps": 70.0,
+   "fps": 21.428572,
    "foot": [
     48,
     76
    ],
    "frame_durations": [
-    0.01860118614529572,
-    0.01860118614529572,
-    0.01860118614529572,
-    0.018601186145295715,
-    0.018601186145295726,
-    0.018601224410601677,
-    0.018601186145295726,
-    0.018601186145295705,
-    0.018601186145295726,
-    0.011160714998461151,
-    0.004960314414665906,
-    0.01240079155547131,
-    0.01240079155547131,
-    0.012400791555471283,
-    0.01240079155547131,
-    0.01240079155547131,
-    0.0124008170656769,
-    0.01240079155547131,
-    0.01240079155547131,
-    0.01240079155547131,
-    0.01240079155547131,
-    0.01240079155547131,
-    0.01240079155547131,
-    0.01240079155547131,
-    0.012400798425430064
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.029167,
+    0.019444,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048611,
+    0.048614
    ],
    "fire": 10,
-   "fire_time": 0.17857142857142858,
-   "logic": [
-    5,
-    14,
-    2
-   ],
-   "_doc": "Codex 199d7b73 原作 Combat（近身横扫）25 帧 1.167 秒（96 画布）；logic = 占位斯卡蒂条的窗口 5/14 秒、出手 2.5/14 秒（同 seed 不变）；OnAttack 0.4667 = 第 10 帧；commit A：frame_durations 分段压到旧窗口（出手帧前 → fire_time、出手帧起 → 余下），出手帧仍是原作 OnAttack 那一帧，V7 过；B 步换 attack_timing"
+   "fire_time": 0.467666,
+   "_doc": "Codex 199d7b73 原作 Combat（近身横扫）25 帧 1.167 秒（96 画布）；attack_timing 随攻速压缩（docs/108 §3.1）：cd 0.8 × 0.9 = 0.72 秒窗口、出手 0.288 秒；出手帧 = OnAttack 0.4667 第 10 帧。会改同 seed（B 步，有意）",
+   "attack_timing": {
+    "duration": 1.166667,
+    "fire_time": 0.467666,
+    "active_ratio": 0.9,
+    "windup_ratio": 0.4
+   }
   },
   "death": {
    "tex": "op_lappland_die",
@@ -219,9 +220,109 @@
     0.05
    ],
    "_doc": "Codex 199d7b73 原作 Die 20 帧 1.000 秒（64 画布，原生像素 @2x）"
+  },
+  "skill": {
+   "tex": "op_lappland_skill",
+   "frames": 28,
+   "fps": 20.999999,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.023457,
+    0.025926,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049375
+   ],
+   "fire": 12,
+   "fire_time": 0.56767,
+   "_doc": "Codex 199d7b73 原作 Skill 28 帧 1.333 秒（96 画布）：S1「日晷」充能那一次与 S3「群狼之噬」起手；OnAttack 0.5667"
+  },
+  "throw": {
+   "tex": "op_lappland_attack",
+   "frames": 28,
+   "fps": 20.999999,
+   "foot": [
+    48,
+    76
+   ],
+   "frame_durations": [
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.007407,
+    0.041975,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049383,
+    0.049376
+   ],
+   "fire": 13,
+   "fire_time": 0.601003,
+   "_doc": "Codex 199d7b73 原作 Attack（领主远程掷刃）28 帧 1.333 秒（96 画布）：S2「狼魂」起手；OnAttack 0.6"
+  },
+  "skills": {
+   "_doc": "S1 / S2 单条；S3 起手 skill → 持续期站立 idle / 移动 run（8 秒，剑气由 trait tick 发，不占动作窗口）",
+   "s1": {
+    "anim": "skill"
+   },
+   "s2": {
+    "anim": "throw"
+   },
+   "s3": {
+    "start": "skill",
+    "loop": "idle",
+    "run": "run"
+   }
   }
  },
- "extra_sprites": [],
+ "extra_sprites": [
+  "throw"
+ ],
  "attack": {
   "mode": "auto",
   "name": "双刃",
@@ -468,10 +569,22 @@
      "boss_max": "$seal_boss_max",
      "boss_immune": "$seal_boss_imm",
      "cond": "elite >= 1",
-     "_doc": "天赋「精神摧毁」：精一起横扫命中封印"
+     "_doc": "天赋「精神摧毁」：精一起横扫命中封印",
+     "look": "cross"
     }
    ],
    "fx": [
+    {
+     "strip": "fx_lappland_slash",
+     "rot": true,
+     "along": 0.5,
+     "scale": 1.0,
+     "off": [
+      0,
+      -10
+     ],
+     "if_tex": "fx_lappland_slash"
+    },
     {
      "blade": {
       "strip": "fx_slash_heavy_deep",
@@ -490,7 +603,8 @@
       ],
       "life": 0.2,
       "half": 1.3
-     }
+     },
+     "if_tex": "!fx_lappland_slash"
     }
    ],
    "combo": [
@@ -524,10 +638,22 @@
          "boss_mult": "$seal_boss",
          "boss_max": "$seal_boss_max",
          "boss_immune": "$seal_boss_imm",
-         "cond": "elite >= 1"
+         "cond": "elite >= 1",
+         "look": "cross"
         }
        ],
        "fx": [
+        {
+         "strip": "fx_lappland_slash",
+         "rot": true,
+         "along": 0.5,
+         "scale": 0.9,
+         "off": [
+          0,
+          -10
+         ],
+         "if_tex": "fx_lappland_slash"
+        },
         {
          "blade": {
           "strip": "fx_slash_heavy_deep",
@@ -547,7 +673,8 @@
           "life": 0.18,
           "half": 1.3,
           "mirror": true
-         }
+         },
+         "if_tex": "!fx_lappland_slash"
         }
        ]
       }
@@ -692,7 +819,8 @@
        0,
        -6
       ],
-      "src": "领主"
+      "src": "领主",
+      "proj": "proj_lappland_sword"
      }
     ]
    },
@@ -721,7 +849,8 @@
        0,
        -6
       ],
-      "src": "领主"
+      "src": "领主",
+      "proj": "proj_lappland_sword"
      }
     ]
    },
@@ -760,7 +889,8 @@
        0,
        -8
       ],
-      "src": "狼魂"
+      "src": "狼魂",
+      "proj": "proj_lappland_sword"
      }
     ]
    },
@@ -789,7 +919,8 @@
        0,
        -8
       ],
-      "src": "狼魂"
+      "src": "狼魂",
+      "proj": "proj_lappland_sword"
      }
     ]
    },
@@ -823,7 +954,8 @@
        0,
        -6
       ],
-      "src": "群狼之噬"
+      "src": "群狼之噬",
+      "proj": "proj_lappland_sword"
      },
      {
       "verb": "affect",
@@ -836,7 +968,8 @@
         "elite_mult": "$seal_elite",
         "boss_mult": "$seal_boss",
         "boss_max": "$seal_boss_max",
-        "boss_immune": "$seal_boss_imm"
+        "boss_immune": "$seal_boss_imm",
+        "look": "cross"
        }
       ]
      }
@@ -878,7 +1011,8 @@
         "elite_mult": "$seal_elite",
         "boss_mult": "$seal_boss",
         "boss_max": "$seal_boss_max",
-        "boss_immune": "$seal_boss_imm"
+        "boss_immune": "$seal_boss_imm",
+        "look": "cross"
        }
       ],
       "fx": [
@@ -941,7 +1075,8 @@
         0,
         -6
        ],
-       "src": "双生刃"
+       "src": "双生刃",
+       "proj": "proj_lappland_sword"
       }
      ]
     },
@@ -972,7 +1107,8 @@
         0,
         -6
        ],
-       "src": "双生刃"
+       "src": "双生刃",
+       "proj": "proj_lappland_sword"
       }
      ]
     }
@@ -1000,7 +1136,8 @@
         "elite_mult": "$seal_elite",
         "boss_mult": "$seal_boss",
         "boss_max": "$seal_boss_max",
-        "boss_immune": "$seal_boss_imm"
+        "boss_immune": "$seal_boss_imm",
+        "look": "cross"
        }
       ],
       "fx": [
@@ -1050,7 +1187,8 @@
         "elite_mult": "$seal_elite",
         "boss_mult": "$seal_boss",
         "boss_max": "$seal_boss_max",
-        "boss_immune": "$seal_boss_imm"
+        "boss_immune": "$seal_boss_imm",
+        "look": "cross"
        }
       ],
       "fx": [

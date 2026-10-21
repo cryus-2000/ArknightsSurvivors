@@ -144,6 +144,21 @@ S3 预算：8 秒 × 13 轮 × 0.7 ≈ 9.3 次普攻伤害（单体），群体 
 特效（Claude 程序画，缺图回退已写在 json）：剑气弹体 `proj_lappland_blade`（新月形、白灰、朝右，4 帧 16 fps，参照 `proj_skadi_surge_blade`）、封印标记沿用 docs/61 §15.3 的紫锁、旋身斩落地水花换成白色尘圈。
 人物口径：docs/103 §3 全员发顶到脚底 64@2x；头高按 PRTS 头身实测后定（`tools/prts_metrics.py` 先量，身高 162 cm 偏矮 → 预计头身约 2.9、头高 28）；设定色按 PRTS 立绘（白发、灰白衣、黑灰双剑，瞳色灰蓝），不按簇取整（docs/87 §4.3）。
 
+### 6.1 接入记录（10-22，Codex `codex/art 199d7b73`，分支 claude/op-lappland-gladiia）
+
+| 槽 | 原作轨 | 帧 / 时长 / 画布 | 出手 | 用法 |
+|---|---|---|---|---|
+| `idle` | Idle | 40 / 2.0 s / 64 | — | 原生像素 @2x，foot (32,60) |
+| `attack` | Combat | 25 / 1.167 s / 96 | OnAttack 0.4667 = 第 10 帧 | `attack_timing {duration 1.167, fire_time 0.468, active_ratio 0.9, windup_ratio 0.4}`：cd 0.8 → 窗口 0.72 秒、出手 0.288 秒（**改了出手时刻**，同 seed 自此不同；A 步纯换图用 `logic [5,14,2]` 逐行相同，提交 4f69fb5d） |
+| `skill` | Skill | 28 / 1.333 s / 96 | 0.5677 = 第 12 帧 | S1「日晷」充能那一次；S3「群狼之噬」起手（`skills.s3 {start skill, loop idle, run run}`） |
+| `throw` | Attack（领主远程掷刃） | 28 / 1.333 s / 96 | 0.601 = 第 13 帧 | S2「狼魂」起手 |
+| `death` | Die | 20 / 1.0 s / 64 | — | |
+| `run` | （未交） | 借斯卡蒂 run | — | 像素 Spine 会话另出；art_lint 豁免 run |
+| （不收） | Start | 514 画布登场 | — | 本作无登场演出 |
+
+特效：刀光 `fx_lappland_slash`（4 帧 10 fps，普攻 / 连斩第二刀，`rot` 随出手方向；缺图回退程序弧光）；剑气弹体 `proj_lappland_sword`（4 帧 16 fps）挂所有 `shape.wave` 的 `proj`（领主 / 狼魂 / 群狼之噬 / 双生刃）；封印标记改**头顶灰叉**（`st.seal look: cross`：8×8、2 px、#AAAEB2、头顶上方 12 px，不画地面圈 / 紫菱形，`ob_summon.sm_draw_over`），按 skill_completion/playback_contract。S3 三道剑气仍由 `trait tick` 每 0.6 秒实时发射（不加第二个调度器）。
+art_lint：未豁免 FAIL 0；豁免 outline / ground / frontal / idle / skill_end（原作原生像素口径）+ run（占位）。
+
 ## 7. 验收记录与待办
 
 - `python tools/check.py --only core`：核心契约 3024 checks 0 failed（10-22）。

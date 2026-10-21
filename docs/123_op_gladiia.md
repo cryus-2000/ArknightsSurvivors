@@ -155,6 +155,21 @@
 特效（Claude 程序画 / 缺图回退）：钩索弹体 `proj_gladiia_hook`（三叉钩 + 链节，朝右，4 帧）、拖回到位冲击 `fx_gladiia_ram`（蓝白半环，6 帧 18 fps）、漩涡沿用浊心斯卡蒂 S3 的程序漩涡（`vortex` 条目，色改蓝灰）。
 人物口径：docs/103 §3 发顶到脚底 64@2x；身高 181 cm（成女里最高）→ 头身预计 3.1 左右、头高约 26，`tools/prts_metrics.py` 实测后定；设定色按 PRTS 立绘（黑长发、黑红礼服式作战服、金色饰件、瞳色暗红），槊与钩索是标志饰件，必须画全（可超出 64，离画布边 ≥ 2）。
 
+### 6.1 接入记录（10-22，Codex `codex/art 199d7b73` + skill_completion，分支 claude/op-lappland-gladiia）
+
+| 槽 | 原作轨 | 帧 / 时长 / 画布 | 出手 | 用法 |
+|---|---|---|---|---|
+| `idle` | Idle | 107 / 5.333 s / 64 | — | 原生像素 @2x（13696 px 宽） |
+| `attack` | Attack（掷钩） | 37 / 1.8 s / 96 | OnAttack 0.5667 = 第 12 帧 | `attack_timing {duration 1.8, fire_time 0.568, 0.9, 0.4}`：cd 1.1 → 窗口 0.99 秒、出手 0.396 秒（**改了出手时刻**；A 步 `logic [8,12,3]` 逐行相同，4f69fb5d） |
+| `s1_begin` | Skill_1_Begin | 14 / 0.633 s / 96 | 0.334 = 第 7 帧 | S1 瞬发单条（Skill_1_Loop / End 已交未用） |
+| `s2_start / s2_enter / s2_loop / s2_attack / s2_end` | Skill_2 Startup / Begin / Idle / Loop / End | 10 / 13 / 54 / 27 / 14 帧 | Begin 0.434 | `skills.s2 {start, enter, loop, attack, run, end}`：持续期站立 Idle、普攻播 Loop |
+| `s3_start / s3_enter / s3_loop / s3_attack / s3_end` | Skill_3 Startup / Begin / Chant / Loop / End | 11 / 14 / 27 / 27 / 24 帧 | Startup 0.368 | 同上，持续期 Chant |
+| `death` | Die | 20 / 1.0 s / 96 | — | |
+| `run` | （未交） | 借乌尔比安 run | — | 像素 Spine 会话另出 |
+
+特效（按 playback_contract）：钩头 `proj_gladiia_hook`（`shape.hookshot.head`，新参数：锚头贴图沿飞行 / 拖回方向旋转，缺图退回程序锚；牵引索仍是程序细链）；到位冲击 `fx_gladiia_ram`（S1 `arrive_fx`、精二「冲撞」、S3 结束）；牵引水带 `fx_gladiia_pull`（S2 每次掷钩拉近身边敌人时 4 份散播；S3 结束 6 份）；水龙卷 `fx_gladiia_tornado_open`（once）→ `_loop`（随力场寿命循环）→ `_close`（S3 结束块，与牵引 + 冲击同时）；场中心 = `verb.field center last_hit` 建场时快照，不跟人。`fx_gladiia_water_glide` 已登记未挂（等跑步条）。
+art_lint：未豁免 FAIL 0；豁免 outline / ground（原生）+ run（占位）。精二「冲撞」击退改回 160。
+
 ## 7. 验收记录与待办
 
 - `python tools/check.py --only core`：核心契约 3024 checks 0 failed（10-22）。

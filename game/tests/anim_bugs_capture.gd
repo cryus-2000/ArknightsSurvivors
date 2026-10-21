@@ -8,7 +8,9 @@ func _ready() -> void:
 	var what := "1"
 	var adv := 6
 	var out_dir := "anim_bugs"
+	var total_arg := -1   # --capture-total=<帧数>（10-22：录 S3 这类长技能用）
 	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--capture-total="): total_arg = int(arg.get_slice("=", 1))
 		if arg.begins_with("--capture-op="): id = arg.get_slice("=", 1)
 		if arg.begins_with("--capture-what="): what = arg.get_slice("=", 1)
 		if arg.begins_with("--capture-adv="): adv = int(arg.get_slice("=", 1))
@@ -40,18 +42,20 @@ func _ready() -> void:
 	target.spd = 0.0
 	g.enemies_sys.build_grid()
 	var idle := what == "idle"
+	var basic := what == "attack"   # 10-22：只普攻（不放技能），录普攻 gif 用
 	var total := 860 if idle else 150
+	if total_arg > 0: total = total_arg
 	var every := 6 if idle else 1
 	var log := []
 	for frame in total:
-		if frame == 10 and not idle:
+		if frame == 10 and not idle and not basic:
 			o.attack_t = 0.0
 			o.fire_t = -1.0
 			o.manual_pt = target.pos
 			o.start_skill(target.pos, int(what))
 		o.sp = [-100000.0, -100000.0, -100000.0]
-		if not idle: o.cd = maxf(o.cd, 0.5)
-		else: o.cd = 10000.0
+		if idle: o.cd = 10000.0
+		elif not basic: o.cd = maxf(o.cd, 0.5)
 		target.pos = center + Vector2(140, 0)
 		target.kb = Vector2.ZERO
 		g.enemies_sys.build_grid()
