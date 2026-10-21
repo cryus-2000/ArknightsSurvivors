@@ -566,7 +566,9 @@ func option_description(option: Dictionary) -> String:
 		extra = g.progression.affinity.relic_lines(str(option.get("id", "")))
 	if extra != "":
 		description += "\n" + extra
-	if kind not in ["prog", "growth"]:
+	# 手动技能提示只属于干员卡：成长节点卡（prog）和带 op 的干员成长卡。公共成长卡（生存 / 机动 / 协同，doctor.passive_cards，
+	# 没有 op）以前落到队长身上，队长有手动技能时（乌尔比安 S3）会把「按 Q 释放」拼进「协同·广」这类卡（用户 10-22 截图）
+	if kind != "prog" and not (kind == "growth" and option.has("op")):
 		return description
 	var op = g.squad.get_op(str(option.get("op", g.ch.id)))
 	if op == null:
