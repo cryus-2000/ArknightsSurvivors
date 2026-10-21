@@ -1,7 +1,7 @@
 extends RefCounted
 ## 对局倍速时钟：调用方仅在 PLAY 时传入真实 delta。界面、音频与自动平衡测试保持原时钟。
 ## 将本帧模拟时间均分为小步，倍速不放大单步位移，避免弹体穿透与高速冲锋越界。
-const SPEEDS := [1.0, 1.5, 2.0]
+const SPEEDS := [1.0, 1.5]   # 用户 10-22：只留 1× / 1.5×，删 2×（旧存档的 2.0 在 settings.gd 读档时回落 1.5）
 ## 后期卡顿的放大器（docs/50 §10）：原来按 1/60 切步、不封顶——60 Hz 下帧间隔常略超 1/60（59.94 Hz 屏、帧时间抖动）就跑两个半步，
 ## 30 fps 跑三步、2× 倍速跑到六步，模拟开销翻倍让下一帧更慢，越卡越追、越追越卡。现在：
 ## - 单步上限 1/48 秒（仍远小于平衡测试的 0.066 秒步长），帧间隔略超 1/60 只跑一步；
@@ -15,7 +15,7 @@ static func current_speed() -> float:
 	return Cfg.play_speed if Cfg.play_speed in SPEEDS else 1.0
 
 static func current_label() -> String:
-	return "1.5×" if current_speed() == 1.5 else ("2×" if current_speed() == 2.0 else "1×")
+	return "1.5×" if current_speed() == 1.5 else "1×"
 
 static func cycle() -> float:
 	var index: int = SPEEDS.find(current_speed())
