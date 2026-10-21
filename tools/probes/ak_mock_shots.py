@@ -15,6 +15,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 game = os.path.join(ROOT, 'game')
 OUT = os.path.join(gr.common_root(ROOT), 'build', 'ak_mock')
 SCREENS = ['result', 'hunt', 'reveal', 'pick_class', 'pick_letter', 'hunt_result']
+SCREENS += [s + '_b' for s in SCREENS]   # 方向 B（图鉴 C4′ 系）
+V2 = ['result_v2', 'hunt_v2', 'pick_class_v2', 'pick_letter_v2', 'reveal_v2', 'hunt_result_v2']
+V2 += ['hunt_f', 'class_f', 'pick_f', 'bag_f', 'reveal_f', 'summary_f', 'result_f']   # 定稿（GPT 寻访稿语言，docs/125 §6），只出桌面   # 第二版：每屏一个主体，只出桌面
 which = sys.argv[1].split(',') if len(sys.argv) > 1 else SCREENS
 DEVS = [('desktop', '1280x720', []), ('phone', '1480x720', ['--touch'])]
 gr.ensure_imported(game)
@@ -39,21 +42,21 @@ def run(item):
     return scr, dev, False
 
 
-items = [(s, v) for s in which for v in DEVS]
+items = [(s, v) for s in which for v in DEVS if not (s in V2 and v[0] == 'phone')]
 with ThreadPoolExecutor(3) as ex:
     for r in ex.map(run, items):
         print(*r, flush=True)
-for dev in ('desktop', 'phone'):
-    fs = [os.path.join(OUT, '%s_%s.png' % (s, dev)) for s in SCREENS if os.path.exists(os.path.join(OUT, '%s_%s.png' % (s, dev)))]
+for dev, d in (('desktop', 'A'), ('phone', 'A'), ('desktop', 'B'), ('phone', 'B'), ('desktop', 'V2'), ('desktop', 'F')):
+    fs = [os.path.join(OUT, '%s_%s.png' % (s, dev)) for s in ([x for x in V2 if x.endswith('_f') == (d == 'F')] if d in ('V2', 'F') else SCREENS) if (d in ('V2', 'F') or s.endswith('_b') == (d == 'B')) and os.path.exists(os.path.join(OUT, '%s_%s.png' % (s, dev)))]
     if not fs:
         continue
     ims = [Image.open(f).convert('RGB') for f in fs]
     w = 640
     hs = [round(im.height * w / im.width) for im in ims]
-    sheet = Image.new('RGB', (w * 2, sum(hs[::2]) + (hs[-1] if len(ims) % 2 else 0)), (0, 0, 0))
+    sheet = Image.new('RGB', (w * 2, sum(hs[::2])), (0, 0, 0))
     y = 0
     for i, im in enumerate(ims):
         sheet.paste(im.resize((w, hs[i]), Image.LANCZOS), ((i % 2) * w, y))
         if i % 2:
             y += hs[i]
-    sheet.save(os.path.join(OUT, 'sheet_%s.jpg' % dev), quality=88)
+    sheet.save(os.path.join(OUT, 'sheet_%s_%s.jpg' % (d, dev)), quality=88)
