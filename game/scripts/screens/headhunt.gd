@@ -64,7 +64,7 @@ func _start(k: String) -> void:
 	step = k
 	sel = 0
 	if k == Roster.T_HUNT:
-		_reveal(k, Roster.choose_hunt())
+		_show(Roster.redeem_hunt())
 	elif k == Roster.T_CLASS:
 		var lc := Roster.locked_classes()
 		choices = CLASS_ORDER.filter(func(c): return lc.has(c))
@@ -83,14 +83,14 @@ func _sorted(ids: Array) -> Array:
 	return out
 
 
-func _reveal(kind: String, cid: String) -> void:
-	if cid == "":
+## 揭晓一个兑换结果（Roster.redeem_* 的返回值）。表现层（docs/124）接手后这里换成它的 play(results, on_done)
+func _show(res: Dictionary) -> void:
+	if str(res.get("id", "")) == "":
 		_next()
 		return
-	reveal_new_cls = not Roster.owned_classes().has(Roster.class_of(cid))
-	Roster.redeem(kind, cid)
+	reveal_new_cls = bool(res.get("new_class", false))
 	Sfx.play("relic", -4.0)
-	reveal_id = cid
+	reveal_id = res.id
 	mode = "reveal"
 	reveal_t0 = _now()
 
@@ -101,9 +101,9 @@ func _act(a) -> void:
 			return
 		Sfx.play("ui_ok")
 		if step == Roster.T_CLASS:
-			_reveal(Roster.T_CLASS, Roster.choose_class(choices[a]))
+			_show(Roster.redeem_class(choices[a]))
 		elif step == Roster.T_PICK:
-			_reveal(Roster.T_PICK, choices[a])
+			_show(Roster.redeem_pick(choices[a]))
 		elif step == "wish":
 			Roster.set_wish(choices[a])
 			step = back_step

@@ -147,7 +147,61 @@ static func redeem(kind: String, cid: String) -> void:
 		Cfg.roster_wish = ""
 		Cfg.roster_pity = 0
 	Cfg.roster_unlocked.append(cid)
+	if not Cfg.roster_fresh.has(cid):
+		Cfg.roster_fresh.append(cid)
 	Cfg.save()
+
+
+# ---------------------------------------------------------------- 给表现层（screens/headhunt 演出，docs/124）的接口
+# 只读：is_unlocked(id) / locked_ids() / locked_classes() / tickets() / Cfg.roster_wish / pity()。
+# 兑换由这里执行并返回结果字典，表现层只负责演出：
+#   {"kind": "hunt"|"cls"|"pick", "id": 干员 id, "new_class": 是否首个该职业, "pity_hit": 是否意向保底出的, "wish": 是否意向干员}
+#   名册已满时 {"kind": …, "id": "", "spare": true}（券记入 roster_spare，P2 换生机细胞）
+
+## 待用的券 {"hunt": 寻访凭证, "cls": 招募券（通用，用时选职业）, "pick": 人事调度函}
+static func tickets() -> Dictionary:
+	return {T_HUNT: int(Cfg.roster_tickets.get(T_HUNT, 0)), T_CLASS: int(Cfg.roster_tickets.get(T_CLASS, 0)), T_PICK: int(Cfg.roster_tickets.get(T_PICK, 0))}
+
+
+## 意向保底进度：0 – PITY-1（再抽 PITY - pity() 张内必出）
+static func pity() -> int:
+	return Cfg.roster_pity
+
+
+static func _result(kind: String, cid: String) -> Dictionary:
+	if int(Cfg.roster_tickets.get(kind, 0)) <= 0:
+		return {"kind": kind, "id": ""}
+	if cid == "":
+		if locked_ids().is_empty():
+			spill_to_spare()
+		return {"kind": kind, "id": "", "spare": true}
+	var r := {"kind": kind, "id": cid, "new_class": not owned_classes().has(class_of(cid)), "wish": cid == Cfg.roster_wish,
+		"pity_hit": kind == T_HUNT and cid == Cfg.roster_wish and Cfg.roster_pity >= PITY - 1}
+	redeem(kind, cid)
+	return r
+
+
+static func redeem_hunt() -> Dictionary:
+	return _result(T_HUNT, choose_hunt())
+
+
+static func redeem_class(cls: String) -> Dictionary:
+	return _result(T_CLASS, choose_class(cls))
+
+
+static func redeem_pick(cid: String) -> Dictionary:
+	return _result(T_PICK, cid if locked_ids().has(cid) else "")
+
+
+## 「刚解锁」高亮：解锁后还没在选人页 / 图鉴里看过的干员；表现层显示一次后调 mark_seen
+static func fresh() -> Array:
+	return Cfg.roster_fresh.duplicate()
+
+
+static func mark_seen(cid: String) -> void:
+	if Cfg.roster_fresh.has(cid):
+		Cfg.roster_fresh.erase(cid)
+		Cfg.save()
 
 
 static func set_wish(cid: String) -> void:

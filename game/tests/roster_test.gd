@@ -99,6 +99,21 @@ func run() -> void:
 	Roster.redeem(Roster.T_PICK, "skadi")
 	check(not Roster.is_unlocked("skadi"), "没有人事调度函时不能解锁")
 
+	# 4b. 表现层接口：redeem_* 返回结果、刚解锁高亮
+	reset()
+	Cfg.roster_fresh = []
+	Cfg.roster_tickets = {"hunt": 1, "cls": 1, "pick": 1}
+	var r1 := Roster.redeem_hunt()
+	check(r1.id == "lumen" and r1.new_class and r1.kind == "hunt", "redeem_hunt 结果 %s" % [r1])
+	var r2 := Roster.redeem_class("近卫")
+	check(Roster.class_of(r2.id) == "近卫" and r2.new_class, "redeem_class 结果 %s" % [r2])
+	var r3 := Roster.redeem_pick("mizuki")
+	check(r3.id == "mizuki" and Roster.is_unlocked("mizuki") and Roster.tickets().pick == 0, "redeem_pick 结果 %s" % [r3])
+	check(Roster.fresh().size() == 3, "刚解锁应记 3 人")
+	Roster.mark_seen("mizuki")
+	check(not Roster.fresh().has("mizuki"), "mark_seen 后清掉")
+	check(Roster.redeem_hunt().get("id", "x") == "", "没有券时不兑换")
+
 	# 5. 局终发券
 	reset()
 	var fg := FakeG.new()
