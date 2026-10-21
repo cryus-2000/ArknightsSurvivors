@@ -110,6 +110,18 @@
 3. 机器人矩阵：开 / 关对照（同 seed 配对），胜率差 < 10 点不下结论；重点看德克萨斯取消自动冲刺后的强度。
 4. 录一段 30 秒视频（冲刺、站定、开技能各演示一次）给用户看手感。
 
+### 6.1 第一批实现记录（10-21，分支 `claude/op-verbs-p1`）
+
+- 共用：`game/scripts/characters/blocks/responses.gd`（`blocks.response` 段：`trig.on_leader_dash` / `on_leader_skill` / `on_stance` 三类事件 + 站定类 `trig.passive` 带条件 `still >= 秒`）；条件新增 `still`（`g.leader_still_t`，队长连续站定秒数，移动 / 冲刺 / 被定身清零）与 `response_on`；总开关 `balance.json response.on`（缺省 1）。`hint` = 触发 / 生效那一刻头顶飘一次职业色短名。
+- 与设计稿的差异（都往简单走，先试手感）：
+  - 站定类没有用新触发器，直接用 `trig.passive` + `still` 条件，效果随条件收放（§3.1 的 `on_leader_still` 不单独做）。
+  - **德克萨斯**：精英一起生效（同天赋解锁）；冲刺用现有 `aim: leader_dir`——她当队长时改为跟着这次冲刺扫过沿途，不另冲。天赋两条定时冲刺加 `!response_on`，开关关时照旧。
+  - **星熊**：只做「格挡概率 +基础值一半」，格挡后的反手重斩没做；`negate_chance` 只作用于精英一天赋，精英零站定无效果。
+  - **艾雅法拉**：写成 `attack.aoe_mults` 的三档 `still` 条件（站定 0.6 / 1.6 / 2.6 秒各 ×1.15），队长一移动就回到 ×1（设计稿的「移动保留层数、出手后清空」没做）。
+  - **铃兰**：队长开技能 → 以队长为中心、光域半径内敌人受 0.3 倍狐火伤害并减速 2 秒，其他干员技力 +1 秒。
+- 文案：四人 json 顶层新增 `response{name, trigger, desc}`（图鉴 / 面板显示留给界面）；德克萨斯天赋、S2、图鉴说明随之改写。精英一节点说明里的「自动冲进敌群」归成长分支，未改。
+- 验证：开关关时四人 seed 1 180 秒 TRACE 与 main 逐行相同；回归 `response` / `response_skill`（含合成的指挥切换用例）；示范录屏 `build/response_demo/<id>.gif`（`tests/response_demo_capture.gd`）。
+
 ## 7. 待定
 
 - 每条的数值是起始值，等切片后按测试调。
