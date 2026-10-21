@@ -32,6 +32,9 @@ var stance_log: Array = []     # [[g.t, 新站位], …]：玩家切换记录（
 const HP_K_DEF := {"重装": 1.2, "近卫": 0.9, "先锋": 0.8, "特种": 0.75, "辅助": 0.65, "医疗": 0.65, "术师": 0.5, "狙击": 0.5}
 var roam_secs := 0.0           # 统计（cmd_stats）：突击累计秒数 / 倒地次数 / 掷中仇恨的怪数
 var downs_n := 0
+var sorties_n := 0             # 进入突击的次数；sortie_downs_n = 其中至少有一人倒地的次数（调血目标 10–20%）
+var sortie_downs_n := 0
+var _sortie_down := false
 var aggro_n := 0
 var gathered_n := 0            # 归队集合完毕（全员到位、开始站定）的次数：响应动作 on_stance to: gathered 的触发源（docs/118）
 
@@ -370,7 +373,7 @@ static func hp_on() -> bool:
 ## 队友生命上限：队长当前生命上限 × 职业系数（json command.hp_k 可单独覆盖；缺省按 HP_K_DEF，balance command/hp_k_<职业> 可调）
 func op_maxhp(o) -> float:
 	var k: float = float(o.def.get("command", {}).get("hp_k", Bal.v("command/hp_k_" + str(o.cls), HP_K_DEF.get(o.cls, 0.7))))
-	return maxf(1.0, g.max_hp * k)
+	return maxf(1.0, g.max_hp * k * Bal.v("command/hp_mul", 5.0))
 
 
 ## 能吸引仇恨 / 会受伤的队友：突击中、肯出击、没倒地
@@ -436,13 +439,54 @@ func _tick_hp(dt: float) -> void:
 					o.cmd_down_age = 0.0
 					o.roam_tgt = null
 					downs_n += 1
+					if not _sortie_down:
+						_sortie_down = true
+						sortie_downs_n += 1
 					if g.get("trace_every") != null and g.trace_every > 0.0:
 						print("CMD t=%.2f down %s" % [g.t, o.id])
 				break
 
 
+## 归队瞬回（10-22 用户定）：按下归队，离站位远的队友原地放共用退场闪光、直接出现在队长身边（落点一圈光），1 秒无敌；
+## 倒地的人也一起回位，继续复活计时。之后照常集合站定再回随行
+func _recall_blink() -> void:
+	var lim: float = Bal.v("command/recall_done", 28.0)
+	for o in ops:
+		if o.is_leader or o.pos == Vector2.INF:
+			continue
+		var dst: Vector2 = g.ppos + _slot_offset(o.slot)
+		o.cmd_inv = maxf(o.cmd_inv, Bal.v("command/recall_inv", 1.0))
+		o.roam_tgt = null
+		if o.pos.distance_to(dst) <= lim:
+			continue
+		_leave_fx(o)
+		o.pos = dst
+		o.ghosts.clear()
+		if g.get("fx") != null:
+			g.fx.append({"kind": "ring", "pos": dst, "r": 34.0, "life": 0.35, "max": 0.35, "col": Color(0.85, 0.95, 1.0)})
+
+
+## 突击 / 归队语音（10-22 用户定）：编队里轮流一人（从队长起），突击播「作战中 4」（*_battle，CN_028），归队播「部署 1」（*_entry，CN_023）；
+## 走 Sfx 语音通道（占线放弃、每人 15 秒间隔、整体 3 秒间隔照旧），另按 command/voice_gap 节流，连按不刷屏。纯声音，不碰玩法状态
+var _vo_i := 0
+var _vo_t := -999.0
+
+func _stance_voice(s: int) -> void:
+	if g.demo_op != "" or g.t - _vo_t < Bal.v("command/voice_gap", 6.0):
+		return
+	var order: Array = ops.filter(func(o): return o.is_leader) + ops.filter(func(o): return not o.is_leader)
+	if order.is_empty():
+		return
+	var o = order[_vo_i % order.size()]
+	_vo_i += 1
+	_vo_t = g.t
+	var sfx: Node = g.get_node_or_null("/root/Sfx")
+	if sfx != null:
+		sfx.voice(o.id, "battle" if s == ROAM else "entry")
+
+
 func cmd_stats() -> Dictionary:
-	return {"roam": snappedf(roam_secs, 0.1), "downs": downs_n, "aggro": aggro_n, "switch": stance_log.size()}
+	return {"roam": snappedf(roam_secs, 0.1), "downs": downs_n, "aggro": aggro_n, "switch": stance_log.size(), "sorties": sorties_n, "sortie_downs": sortie_downs_n}
 
 
 func _revive(o, p: Vector2) -> void:
@@ -465,7 +509,8 @@ func _tick_stamina(dt: float) -> void:
 	stamina = minf(1.0, stamina + dt / maxf(0.1, Bal.v("command/regen_secs", 50.0)))
 	if exhausted and stamina >= Bal.v("command/min_start", 0.3):
 		exhausted = false
-	if stance == GUARD and g.get("bot") != null and Bal.v("command/bot_roam", 0.0) > 0.0 and cmd_on() and can_roam():
+	# 机器人等耐力回满（command/bot_roam_at，缺省 1.0）才再出击：每次都是完整的作战时限，倒地率按「每次出击」统计才有意义
+	if stance == GUARD and g.get("bot") != null and Bal.v("command/bot_roam", 0.0) > 0.0 and cmd_on() and can_roam() and (not stamina_on() or stamina >= Bal.v("command/bot_roam_at", 1.0)):
 		set_stance(ROAM)
 
 
@@ -473,6 +518,13 @@ func set_stance(s: int) -> void:
 	if s == stance:
 		return
 	stance = s
+	if s == ROAM:
+		sorties_n += 1
+		_sortie_down = false
+	elif s == RECALL:
+		_recall_blink()
+	if s == ROAM or s == RECALL:
+		_stance_voice(s)
 	recall_t = 0.0
 	gather_t = -1.0
 	stance_log.append([g.t, s])
@@ -499,9 +551,6 @@ func _tick_recall(dt: float) -> void:
 	if done:
 		gather_t = Bal.v("command/gather", 0.4)
 		gathered_n += 1
-		for o in ops:
-			if not o.is_leader and o.cmd_down > 0.0:
-				_revive(o, g.ppos + _slot_offset(o.slot))   # 队长归队：倒地的队友在队长身边复活
 
 
 ## 战斗台词：每人 30–55 秒一次，身边 300 内有敌人才说；维什戴尔四成概率换成 W 的笑声

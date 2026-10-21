@@ -1365,8 +1365,8 @@ func follow(dt: float, target: Vector2) -> void:
 		target = roam_target(target) if st == 1 else follow_target(target)
 		if st == 2 and sq.gather_t >= 0.0:
 			target = pos   # 归队集合：到位后站定一下（squad._tick_recall）
-		if cmd_down > 0.0:
-			target = pos   # 倒地：原地躺着（squad._tick_hp）
+		if cmd_down > 0.0 and st == 1:
+			target = pos   # 突击中倒地：原地躺着（squad._tick_hp）；归队后随队回位，躺着跟着编队位继续复活计时
 		var d: float = pos.distance_to(target)
 		var k: float = clampf(dt * (3.0 if d < 20.0 else (9.0 if st == 2 else 6.0)), 0.0, 1.0)
 		cmd_d = d
