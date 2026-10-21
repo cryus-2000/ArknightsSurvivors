@@ -20,7 +20,7 @@
 | `run/autotest.gd` | 自动测试与平衡机器人（只在带测试参数时运行） | `autotest_sys` |
 | `run/boss_trial.gd` | Boss 演练（EA）：读标题页的演练请求，跳过波次 / 经济 / 结局，按正式 Boss 生成与 AI 打；进入时 `Cfg.practice_active`、退出时还原进度 | `trial` |
 | `run/victory_flow.gd` | 击败最终 Boss 后约 1.7 秒的胜利演出（只推进画面），并记一次通关、解锁下一档 | `victory` |
-| `run/play_clock.gd` | 倍速（1× / 1.5× / 2×，V 键或 HUD 按钮）：把本帧模拟时间拆成 ≤ 1/60 秒的小步；自动测试与平衡跑不走它 | 常量 `PlayClock`（静态） |
+| `run/play_clock.gd` | 倍速（1× / 1.5×，V 键或 HUD 按钮；10-22 用户定删 2×，旧存档 2.0 回落 1.5）：把本帧模拟时间拆成 ≤ 1/60 秒的小步；自动测试与平衡跑不走它 | 常量 `PlayClock`（静态） |
 | `run/ishar_encounter.gd` | 伊莎玛拉一阶段（人形治疗海嗣、泪滴、转化计时）；敌对二阶段的攻击仍在 `boss_ai.gd` | `ishar` |
 | `run/gallery_progress.gd` | 对外图鉴的「遭遇即收录」：正式游玩每秒记一次附近的敌人 / 道具；演练、演示、测试、全解锁都不记 | 常量 `GalleryProgress`（静态） |
 | `run/enemy_demo.gd` | 图鉴敌人页的实机演示（SubViewport 里的受击靶 + 正式敌方 AI） | `enemy_demo` |
