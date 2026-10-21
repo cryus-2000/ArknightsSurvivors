@@ -1164,7 +1164,91 @@ def _bag_px(p, tier):
     return Image.fromarray(a, "RGBA"), xp
 
 
+# Codex 交付的作战包 / 金光 / 碎光（codex/art 35587bca；游戏里由 tools/probes/package_headhunt_bag.py 接入 art/incoming）。
+# 样张直接读交付提交里的正式 PNG，读不到时退回下面的程序占位。拉链契约同 playback_contract.json
+CODEX_REV = "35587bca"
+CODEX_DIR = "art/incoming/headhunt_bag_1022/delivery/"
+CX_SLIDER = [(220, 48), (194, 53), (168, 58), (142, 63), (115, 68), (89, 73), (63, 78), (37, 83)]
+CX_CYAN = {(135, 85, 28): (28, 104, 124), (196, 136, 44): (52, 168, 188), (255, 196, 80): (96, 224, 232), (255, 240, 180): (200, 255, 255)}
+CX_SHARDS = [[0.62, -24, 0.55, 0], [0.70, 18, 0.62, 3], [0.80, -8, 0.70, 6], [0.86, 34, 0.50, 1], [0.95, -40, 0.58, 7], [1.02, 6, 0.80, 2],
+             [1.10, -18, 0.66, 8], [1.16, 26, 0.72, 4], [1.24, -32, 0.60, 9], [1.30, 12, 0.85, 5], [1.38, -4, 0.90, 6], [1.44, 40, 0.64, 0],
+             [1.50, -28, 0.76, 7], [1.56, 20, 0.95, 3]]
+_CX = {}
+
+
+def _cx_img(path):
+    if path not in _CX:
+        import io
+        import subprocess
+        try:
+            b = subprocess.run(["git", "show", "%s:%s" % (CODEX_REV, CODEX_DIR + path)], cwd=ROOT, capture_output=True, check=True).stdout
+            _CX[path] = Image.open(io.BytesIO(b)).convert("RGBA")
+        except (subprocess.CalledProcessError, OSError):
+            _CX[path] = None
+    return _CX[path]
+
+
+def _cx_glow(tier, f, st):
+    key = ("glow", tier, f, st)
+    if key not in _CX:
+        g = _cx_img("fx_hh_mouth_glow@2x.png").crop((f * 256, 0, f * 256 + 256, 320))
+        a = np.array(g)
+        if tier != "gold":
+            for src, dst in CX_CYAN.items():
+                m = (a[..., 0] == src[0]) & (a[..., 1] == src[1]) & (a[..., 2] == src[2])
+                a[m, :3] = dst
+        clip = np.array(_cx_img("frames/light_clip_%d.png" % st))[..., 0]
+        a[..., 3] = np.where(clip > 0, a[..., 3], 0)
+        _CX[key] = Image.fromarray(a, "RGBA")
+    return _CX[key]
+
+
+def _cx_tint(im, col):
+    a = np.array(im).astype(np.float32)
+    a[..., :3] = a[..., :3] * np.array(col, np.float32) / 255.0
+    return Image.fromarray(a.astype(np.uint8), "RGBA")
+
+
+def bag_codex(img, cx, cy, s, tier, p, t=0.0):
+    """Codex 版作战包画在 (cx, cy)（包体中心，同程序占位口径）：拉链 8 档 → 金光乘遮罩 → 前景层；碎光从开口飞出（三角只金档）"""
+    k = max(1, int(round(4 * s / 2)))       # @2x 像素 → 屏幕像素
+    x0, y0 = int(cx - 128 * k), int(cy - 76 * k)
+    col, hi, _ = TIER[tier]
+    st = min(7, int(p * 8)) if p > 0 else 0
+    ImageDraw.Draw(img).ellipse([x0 + 16 * k, y0 + 128 * k, x0 + 240 * k, y0 + 152 * k], fill=(0, 0, 0, 110))
+    zip_ = _cx_img("ui_hh_bag_zip@2x.png").crop((st * 256, 0, st * 256 + 256, 152)).resize((256 * k, 152 * k), Image.NEAREST)
+    img.alpha_composite(zip_, (x0, y0))
+    sx, sy = CX_SLIDER[st]
+    mouth = (x0 + int((sx + 220) / 2 * k), y0 + int((sy + 48) / 2 * k))
+    if st >= 1:
+        gl = _cx_glow(tier, int(t * 12) % 4, st).resize((256 * k, 320 * k), Image.NEAREST)
+        lay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        lay.paste(gl, (mouth[0] - 128 * k, mouth[1] - 272 * k))
+        img.alpha_composite(lay)
+    front = _cx_img("ui_hh_bag_zip_front@2x.png").crop((st * 256, 0, st * 256 + 256, 152)).resize((256 * k, 152 * k), Image.NEAREST)
+    img.alpha_composite(front, (x0, y0))
+    sh = _cx_img("fx_hh_shards@2x.png")
+    for t0, ang, sp, v in CX_SHARDS:
+        lt = t - t0
+        if lt < 0 or lt > 0.6:
+            continue
+        if tier != "gold" and v >= 6:
+            v -= 6
+        a = np.deg2rad(ang)
+        d = lt * sp * img.height
+        px, py = int(mouth[0] + np.sin(a) * d), int(mouth[1] - np.cos(a) * d)
+        piece = _cx_tint(sh.crop((v * 64, 0, v * 64 + 64, 64)), hi if v < 6 else col).resize((64 * k, 64 * k), Image.NEAREST)
+        al = np.array(piece)
+        al[..., 3] = (al[..., 3] * (1 - lt / 0.6)).astype(np.uint8)
+        lay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        lay.paste(Image.fromarray(al, "RGBA"), (px - 32 * k, py - 32 * k))
+        img.alpha_composite(lay)
+    return mouth
+
+
 def bag(img, cx, cy, s, tier, p, t=0.0):
+    if _cx_img("ui_hh_bag_zip@2x.png") is not None:
+        return bag_codex(img, cx, cy, s, tier, p, t)
     """俯视作战包画在 (cx, cy)（包体中心）；光从顶面开口向上冲出，返回开口中心"""
     k = max(1, int(round(4 * s)))
     px, xp = _bag_px(p, tier)
@@ -1457,7 +1541,10 @@ def main_anim3():
         ("v3_anim_newclass_gold", Anim3(OPS["lumen"], "gold"), 1),
         ("v3_anim_phone", Anim3(OPS["lumen"], "gold", 0.62, PW, PH), 2),
     ]
+    only = [a.split("=", 1)[1] for a in sys.argv if a.startswith("--only=")]
     for name, an, up in jobs:
+        if only and name not in only:
+            continue
         n = render_anim3(an, os.path.join(out, name), 30, up)
         print(name, n, "frames")
 
