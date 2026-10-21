@@ -1,0 +1,8824 @@
+{
+ "args": {
+  "preset": null,
+  "op": null,
+  "squad": "texas,lappland",
+  "seeds": 3,
+  "seed0": 1,
+  "diff": 0,
+  "jobs": 4,
+  "timeout": 900,
+  "tag": "op4c-lapp-mate-texas",
+  "extra": "--tier=0",
+  "bot": "expert",
+  "bots": null,
+  "lanes": null,
+  "game": "game",
+  "keep": "",
+  "nocache": true,
+  "placebos": "0",
+  "dt": null,
+  "out": "build/cloud/op4c-lapp"
+ },
+ "records": [
+  {
+   "squad": [
+    "texas",
+    "lappland"
+   ],
+   "seed": 1,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 0,
+   "wall": 38.8,
+   "data": {
+    "allies": 2,
+    "armor_cf": {
+     "m0": {
+      "a2": 17.702661078377,
+      "a4": 14.0,
+      "a8": 10.0,
+      "all": 21.702661078377,
+      "armor": 6.0,
+      "n": 2,
+      "phys": 21.702661078377,
+      "phys_n": 2,
+      "phys_pre": 27.702661078377
+     },
+     "m4": {
+      "a2": 145.761922996737,
+      "a4": 135.761922996737,
+      "a8": 115.761922996737,
+      "all": 155.761922996737,
+      "armor": 15.0,
+      "n": 5,
+      "phys": 155.761922996737,
+      "phys_n": 5,
+      "phys_pre": 170.761922996737
+     }
+    },
+    "boss_hp": 0.490874999999999,
+    "bosses": [
+     "path:dead",
+     "bishop:dead",
+     "archon:dead"
+    ],
+    "bot": {
+     "bosses": [
+      {
+       "en_alive": 34,
+       "en_alive_pk": 39,
+       "en_near": 6,
+       "en_near_pk": 11,
+       "gates": 1,
+       "on_boss": 0.66,
+       "shield": 1.3,
+       "t0": 210,
+       "t1": 228,
+       "tv": 210,
+       "type": "path",
+       "windows": [
+        {
+         "en": 35,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 0
+        },
+        {
+         "en": 38,
+         "hits": 7,
+         "hp": 0.07,
+         "moves": 7,
+         "out": 10851,
+         "t": 15
+        },
+        {
+         "en": 27,
+         "hits": 3,
+         "hp": 0.0,
+         "moves": 2,
+         "out": 4341,
+         "t": 30
+        },
+        {
+         "en": 56,
+         "hits": 2,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 2277,
+         "t": 45
+        },
+        {
+         "en": 26,
+         "hits": 2,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 6187,
+         "t": 60
+        },
+        {
+         "en": 42,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 5235,
+         "t": 76
+        },
+        {
+         "en": 36,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 16048,
+         "t": 91
+        },
+        {
+         "en": 43,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 18308,
+         "t": 106
+        },
+        {
+         "en": 40,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 19098,
+         "t": 121
+        },
+        {
+         "en": 54,
+         "hits": 2,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 21661,
+         "t": 136
+        },
+        {
+         "en": 34,
+         "hits": 61,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 17278,
+         "t": 151
+        },
+        {
+         "en": 40,
+         "hits": 7,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 14754,
+         "t": 166
+        },
+        {
+         "en": 54,
+         "hits": 92,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 26242,
+         "t": 181
+        },
+        {
+         "en": 36,
+         "hits": 2,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 19551,
+         "t": 196
+        },
+        {
+         "en": 45,
+         "hits": 9,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 21196,
+         "t": 211
+        },
+        {
+         "en": 49,
+         "hits": 27,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 26542,
+         "t": 226
+        },
+        {
+         "en": 41,
+         "hits": 95,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 28350,
+         "t": 241
+        },
+        {
+         "en": 53,
+         "hits": 8,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 26092,
+         "t": 256
+        },
+        {
+         "en": 40,
+         "hits": 10,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 35269,
+         "t": 271
+        },
+        {
+         "en": 50,
+         "hits": 38,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 35802,
+         "t": 287
+        },
+        {
+         "en": 60,
+         "hits": 228,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 34189,
+         "t": 302
+        }
+       ]
+      },
+      {
+       "en_alive": 49,
+       "en_alive_pk": 53,
+       "en_near": 13,
+       "en_near_pk": 19,
+       "gates": 1,
+       "on_boss": 0.09,
+       "panic_hit": 0.5,
+       "panic_n": 1,
+       "shield": 2.9,
+       "t0": 420,
+       "t1": 440,
+       "tv": 420,
+       "type": "bishop",
+       "windows": [
+        {
+         "en": 45,
+         "hits": 0,
+         "hp": 0.87,
+         "moves": 0,
+         "out": 0,
+         "t": 1
+        },
+        {
+         "en": 49,
+         "hits": 27,
+         "hp": 0.47,
+         "moves": 15,
+         "out": 26542,
+         "t": 16
+        },
+        {
+         "en": 41,
+         "hits": 95,
+         "hp": 0.0,
+         "moves": 2,
+         "out": 28350,
+         "t": 31
+        },
+        {
+         "en": 53,
+         "hits": 8,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 26092,
+         "t": 46
+        },
+        {
+         "en": 40,
+         "hits": 10,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 35269,
+         "t": 61
+        },
+        {
+         "en": 50,
+         "hits": 38,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 35802,
+         "t": 77
+        },
+        {
+         "en": 60,
+         "hits": 228,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 34189,
+         "t": 92
+        }
+       ]
+      },
+      {
+       "en_alive": 49,
+       "en_alive_pk": 53,
+       "en_near": 10,
+       "en_near_pk": 25,
+       "gates": 1,
+       "on_boss": 0.2,
+       "shield": 4.3,
+       "t0": 420,
+       "t1": 440,
+       "tv": 420,
+       "type": "archon",
+       "windows": [
+        {
+         "en": 45,
+         "hits": 0,
+         "hp": 0.69,
+         "moves": 0,
+         "out": 0,
+         "t": 1
+        },
+        {
+         "en": 49,
+         "hits": 27,
+         "hp": 0.27,
+         "moves": 5,
+         "out": 26542,
+         "t": 16
+        },
+        {
+         "en": 41,
+         "hits": 95,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 28350,
+         "t": 31
+        },
+        {
+         "en": 53,
+         "hits": 8,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 26092,
+         "t": 46
+        },
+        {
+         "en": 40,
+         "hits": 10,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 35269,
+         "t": 61
+        },
+        {
+         "en": 50,
+         "hits": 38,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 35802,
+         "t": 77
+        },
+        {
+         "en": 60,
+         "hits": 228,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 34189,
+         "t": 92
+        }
+       ]
+      }
+     ],
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.0,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lv": 1,
+       "mhp": 149,
+       "outc": 0,
+       "rg": 2.5,
+       "squad": 2,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 12,
+       "hp": 100,
+       "hpm": 1.27,
+       "hsrc": {},
+       "kills": 20,
+       "lamp": 100,
+       "lv": 2,
+       "mhp": 149,
+       "outc": 348,
+       "rg": 2.5,
+       "squad": 2,
+       "t": 30,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 15,
+       "hp": 100,
+       "hpm": 1.55,
+       "hsrc": {},
+       "kills": 59,
+       "lamp": 100,
+       "lv": 4,
+       "mhp": 149,
+       "outc": 1129,
+       "rg": 2.5,
+       "squad": 2,
+       "t": 60,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 47,
+       "hp": 100,
+       "hpm": 1.82,
+       "hsrc": {},
+       "kills": 119,
+       "lamp": 100,
+       "lv": 6,
+       "mhp": 169,
+       "outc": 3286,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 90,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 20,
+       "hp": 100,
+       "hpm": 2.09,
+       "hsrc": {},
+       "kills": 215,
+       "lamp": 100,
+       "lv": 7,
+       "mhp": 169,
+       "outc": 10106,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 120,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "mire": 5
+       },
+       "enemies": 19,
+       "hp": 96,
+       "hpm": 2.13,
+       "hsrc": {},
+       "kills": 285,
+       "lamp": 100,
+       "lv": 9,
+       "mhp": 169,
+       "outc": 12736,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 150,
+       "taken": 5,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "mire": 22
+       },
+       "enemies": 28,
+       "hp": 100,
+       "hpm": 2.37,
+       "hsrc": {
+        "拾取": 4,
+        "自身回复": 22
+       },
+       "kills": 367,
+       "lamp": 100,
+       "lv": 10,
+       "mhp": 169,
+       "outc": 16977,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 180,
+       "taken": 22,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "mire": 11
+       },
+       "enemies": 34,
+       "hp": 95,
+       "hpm": 2.62,
+       "hsrc": {
+        "自身回复": 2
+       },
+       "kills": 446,
+       "lamp": 100,
+       "lv": 11,
+       "mhp": 169,
+       "outc": 21274,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 210,
+       "taken": 11,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_stone": 4,
+        "contact_path": 17,
+        "mire": 55
+       },
+       "enemies": 30,
+       "hp": 100,
+       "hpm": 2.86,
+       "hsrc": {
+        "自身回复": 84
+       },
+       "kills": 554,
+       "lamp": 100,
+       "lv": 14,
+       "mhp": 169,
+       "outc": 36312,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 240,
+       "taken": 77,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "mire": 22
+       },
+       "enemies": 28,
+       "hp": 100,
+       "hpm": 3.11,
+       "hsrc": {
+        "自身回复": 22
+       },
+       "kills": 671,
+       "lamp": 100,
+       "lv": 15,
+       "mhp": 169,
+       "outc": 44846,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 270,
+       "taken": 22,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "mire": 11
+       },
+       "enemies": 38,
+       "hp": 100,
+       "hpm": 3.35,
+       "hsrc": {
+        "自身回复": 11
+       },
+       "kills": 776,
+       "lamp": 100,
+       "lv": 16,
+       "mhp": 169,
+       "outc": 63578,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 300,
+       "taken": 11,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "mire": 11
+       },
+       "enemies": 40,
+       "hp": 100,
+       "hpm": 3.6,
+       "hsrc": {
+        "自身回复": 11
+       },
+       "kills": 896,
+       "lamp": 96,
+       "lv": 17,
+       "mhp": 169,
+       "outc": 100693,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 330,
+       "taken": 11,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_nest": 19,
+        "contact_tracer": 22,
+        "mire": 49,
+        "zone": 31
+       },
+       "enemies": 34,
+       "hp": 56,
+       "hpm": 3.85,
+       "hsrc": {
+        "自身回复": 48
+       },
+       "kills": 1050,
+       "lamp": 53,
+       "lv": 18,
+       "mhp": 169,
+       "outc": 141589,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 360,
+       "taken": 122,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_reaper": 56,
+        "contact_tracer": 22,
+        "mire": 94,
+        "zone": 55
+       },
+       "enemies": 52,
+       "hp": 0,
+       "hpm": 4.09,
+       "hsrc": {
+        "拾取": 50,
+        "自身回复": 102
+       },
+       "kills": 1177,
+       "lamp": 0,
+       "lv": 19,
+       "mhp": 169,
+       "outc": 181286,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 390,
+       "taken": 228,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "mire": 55
+       },
+       "enemies": 39,
+       "hp": 54,
+       "hpm": 4.34,
+       "hsrc": {
+        "拾取": 50,
+        "自身回复": 101
+       },
+       "kills": 1345,
+       "lamp": 73,
+       "lv": 20,
+       "mhp": 169,
+       "outc": 221910,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 420,
+       "taken": 55,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_tracer": 35,
+        "mire": 71,
+        "wound": 2,
+        "zone": 15
+       },
+       "enemies": 38,
+       "hp": 68,
+       "hpm": 4.58,
+       "hsrc": {
+        "拾取": 45,
+        "自身回复": 102
+       },
+       "kills": 1509,
+       "lamp": 61,
+       "lv": 21,
+       "mhp": 169,
+       "outc": 275290,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 450,
+       "taken": 124,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "mire": 112
+       },
+       "enemies": 57,
+       "hp": 68,
+       "hpm": 4.83,
+       "hsrc": {
+        "自身回复": 104
+       },
+       "kills": 1685,
+       "lamp": 95,
+       "lv": 23,
+       "mhp": 195,
+       "outc": 334155,
+       "rg": 4.0,
+       "squad": 3,
+       "t": 480,
+       "taken": 112,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "mire": 30,
+        "zone": 212
+       },
+       "enemies": 69,
+       "hp": 25,
+       "hpm": 5.05,
+       "hsrc": {
+        "商店": 47,
+        "自身回复": 105
+       },
+       "kills": 1859,
+       "lamp": 0,
+       "lv": 23,
+       "mhp": 212,
+       "outc": 401202,
+       "rg": 4.0,
+       "squad": 3,
+       "t": 510,
+       "taken": 243,
+       "zone": 3
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {
+       "mire": 18,
+       "zone": 36
+      },
+      "hsrc": {
+       "自身回复": 10
+      },
+      "mhp": 212,
+      "t": 512,
+      "t0": 510,
+      "taken": 55
+     },
+     "dark_dmg": 39,
+     "dark_s": 13,
+     "death_src": "zone",
+     "elite_t": {
+      "lappland:1": 266,
+      "lappland:2": 348,
+      "logos:1": 218,
+      "logos:2": 369,
+      "texas:1": 47,
+      "texas:2": 120
+     },
+     "end": {
+      "boss": false,
+      "hp": 0,
+      "last15": {
+       "corrode_out": 0.0,
+       "corrode_peak": 0.0,
+       "dark_s": 5.0,
+       "ebullets_peak": 34,
+       "enemies_peak": 72,
+       "hits": [
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 184,
+         "src": "zone",
+         "t": 497.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 183,
+         "src": "zone",
+         "t": 497.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 182,
+         "src": "zone",
+         "t": 497.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 182,
+         "src": "zone",
+         "t": 497.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 181,
+         "src": "zone",
+         "t": 498.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 180,
+         "src": "zone",
+         "t": 498.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 180,
+         "src": "zone",
+         "t": 498.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 179,
+         "src": "zone",
+         "t": 498.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 178,
+         "src": "zone",
+         "t": 498.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 178,
+         "src": "zone",
+         "t": 498.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 177,
+         "src": "zone",
+         "t": 498.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 176,
+         "src": "zone",
+         "t": 498.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 176,
+         "src": "zone",
+         "t": 498.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 175,
+         "src": "zone",
+         "t": 498.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 174,
+         "src": "zone",
+         "t": 498.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 174,
+         "src": "zone",
+         "t": 498.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 173,
+         "src": "zone",
+         "t": 498.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 172,
+         "src": "zone",
+         "t": 498.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 172,
+         "src": "zone",
+         "t": 498.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 171,
+         "src": "zone",
+         "t": 499.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 170,
+         "src": "zone",
+         "t": 499.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 170,
+         "src": "zone",
+         "t": 499.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 169,
+         "src": "zone",
+         "t": 499.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 169,
+         "src": "zone",
+         "t": 499.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 168,
+         "src": "zone",
+         "t": 499.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 167,
+         "src": "zone",
+         "t": 499.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 167,
+         "src": "zone",
+         "t": 499.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 166,
+         "src": "zone",
+         "t": 499.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 165,
+         "src": "zone",
+         "t": 499.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 165,
+         "src": "zone",
+         "t": 499.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 164,
+         "src": "zone",
+         "t": 499.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 163,
+         "src": "zone",
+         "t": 499.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 163,
+         "src": "zone",
+         "t": 499.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 162,
+         "src": "zone",
+         "t": 499.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 161,
+         "src": "zone",
+         "t": 499.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 161,
+         "src": "zone",
+         "t": 500.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 160,
+         "src": "zone",
+         "t": 500.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 159,
+         "src": "zone",
+         "t": 500.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 159,
+         "src": "zone",
+         "t": 500.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 158,
+         "src": "zone",
+         "t": 500.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 157,
+         "src": "zone",
+         "t": 500.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 157,
+         "src": "zone",
+         "t": 500.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 156,
+         "src": "zone",
+         "t": 500.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 155,
+         "src": "zone",
+         "t": 500.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 155,
+         "src": "zone",
+         "t": 500.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 154,
+         "src": "zone",
+         "t": 500.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 153,
+         "src": "zone",
+         "t": 500.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 153,
+         "src": "zone",
+         "t": 500.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 152,
+         "src": "zone",
+         "t": 500.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 151,
+         "src": "zone",
+         "t": 500.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 151,
+         "src": "zone",
+         "t": 501.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 150,
+         "src": "zone",
+         "t": 501.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 149,
+         "src": "zone",
+         "t": 501.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 149,
+         "src": "zone",
+         "t": 501.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 148,
+         "src": "zone",
+         "t": 501.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 147,
+         "src": "zone",
+         "t": 501.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 147,
+         "src": "zone",
+         "t": 501.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 146,
+         "src": "zone",
+         "t": 501.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 145,
+         "src": "zone",
+         "t": 501.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 145,
+         "src": "zone",
+         "t": 501.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 144,
+         "src": "zone",
+         "t": 501.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 143,
+         "src": "zone",
+         "t": 501.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 143,
+         "src": "zone",
+         "t": 501.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 142,
+         "src": "zone",
+         "t": 501.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 141,
+         "src": "zone",
+         "t": 501.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 141,
+         "src": "zone",
+         "t": 502.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 140,
+         "src": "zone",
+         "t": 502.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 139,
+         "src": "zone",
+         "t": 502.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 139,
+         "src": "zone",
+         "t": 502.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 138,
+         "src": "zone",
+         "t": 502.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 137,
+         "src": "zone",
+         "t": 502.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 137,
+         "src": "zone",
+         "t": 502.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 136,
+         "src": "zone",
+         "t": 502.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 136,
+         "src": "zone",
+         "t": 502.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 135,
+         "src": "zone",
+         "t": 502.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 134,
+         "src": "zone",
+         "t": 502.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 134,
+         "src": "zone",
+         "t": 502.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 133,
+         "src": "zone",
+         "t": 502.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 132,
+         "src": "zone",
+         "t": 502.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 132,
+         "src": "zone",
+         "t": 502.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 131,
+         "src": "zone",
+         "t": 503.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 130,
+         "src": "zone",
+         "t": 503.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 130,
+         "src": "zone",
+         "t": 503.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 129,
+         "src": "zone",
+         "t": 503.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 128,
+         "src": "zone",
+         "t": 503.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 128,
+         "src": "zone",
+         "t": 503.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 127,
+         "src": "zone",
+         "t": 503.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 126,
+         "src": "zone",
+         "t": 503.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 126,
+         "src": "zone",
+         "t": 503.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 125,
+         "src": "zone",
+         "t": 503.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 124,
+         "src": "zone",
+         "t": 503.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 124,
+         "src": "zone",
+         "t": 503.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 123,
+         "src": "zone",
+         "t": 503.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 122,
+         "src": "zone",
+         "t": 503.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 122,
+         "src": "zone",
+         "t": 503.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 121,
+         "src": "zone",
+         "t": 504.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 120,
+         "src": "zone",
+         "t": 504.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 120,
+         "src": "zone",
+         "t": 504.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 119,
+         "src": "zone",
+         "t": 504.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 118,
+         "src": "zone",
+         "t": 504.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 118,
+         "src": "zone",
+         "t": 504.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 117,
+         "src": "zone",
+         "t": 504.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 116,
+         "src": "zone",
+         "t": 504.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 116,
+         "src": "zone",
+         "t": 504.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 115,
+         "src": "zone",
+         "t": 504.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 114,
+         "src": "zone",
+         "t": 504.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 114,
+         "src": "zone",
+         "t": 504.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 113,
+         "src": "zone",
+         "t": 504.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 112,
+         "src": "zone",
+         "t": 504.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 112,
+         "src": "zone",
+         "t": 504.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 111,
+         "src": "zone",
+         "t": 505.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 110,
+         "src": "zone",
+         "t": 505.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 110,
+         "src": "zone",
+         "t": 505.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 109,
+         "src": "zone",
+         "t": 505.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 108,
+         "src": "zone",
+         "t": 505.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 108,
+         "src": "zone",
+         "t": 505.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 107,
+         "src": "zone",
+         "t": 505.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 106,
+         "src": "zone",
+         "t": 505.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 106,
+         "src": "zone",
+         "t": 505.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 105,
+         "src": "zone",
+         "t": 505.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 104,
+         "src": "zone",
+         "t": 505.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 104,
+         "src": "zone",
+         "t": 505.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 103,
+         "src": "zone",
+         "t": 505.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 103,
+         "src": "zone",
+         "t": 505.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 102,
+         "src": "zone",
+         "t": 505.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 101,
+         "src": "zone",
+         "t": 506.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 101,
+         "src": "zone",
+         "t": 506.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 100,
+         "src": "zone",
+         "t": 506.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 99,
+         "src": "zone",
+         "t": 506.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 99,
+         "src": "zone",
+         "t": 506.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 98,
+         "src": "zone",
+         "t": 506.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 97,
+         "src": "zone",
+         "t": 506.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 97,
+         "src": "zone",
+         "t": 506.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 96,
+         "src": "zone",
+         "t": 506.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 95,
+         "src": "zone",
+         "t": 506.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 95,
+         "src": "zone",
+         "t": 506.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 94,
+         "src": "zone",
+         "t": 506.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 93,
+         "src": "zone",
+         "t": 506.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 93,
+         "src": "zone",
+         "t": 506.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 92,
+         "src": "zone",
+         "t": 506.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 91,
+         "src": "zone",
+         "t": 506.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 91,
+         "src": "zone",
+         "t": 507.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 90,
+         "src": "zone",
+         "t": 507.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 89,
+         "src": "zone",
+         "t": 507.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 89,
+         "src": "zone",
+         "t": 507.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 88,
+         "src": "zone",
+         "t": 507.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 87,
+         "src": "zone",
+         "t": 507.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 87,
+         "src": "zone",
+         "t": 507.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 86,
+         "src": "zone",
+         "t": 507.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 85,
+         "src": "zone",
+         "t": 507.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 85,
+         "src": "zone",
+         "t": 507.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 84,
+         "src": "zone",
+         "t": 507.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 83,
+         "src": "zone",
+         "t": 507.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 82,
+         "src": "zone",
+         "t": 507.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 81,
+         "src": "zone",
+         "t": 507.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 81,
+         "src": "zone",
+         "t": 507.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 80,
+         "src": "zone",
+         "t": 508.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 79,
+         "src": "zone",
+         "t": 508.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 78,
+         "src": "zone",
+         "t": 508.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 77,
+         "src": "zone",
+         "t": 508.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 76,
+         "src": "zone",
+         "t": 508.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 508.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 508.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 74,
+         "src": "zone",
+         "t": 508.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 73,
+         "src": "zone",
+         "t": 508.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 72,
+         "src": "zone",
+         "t": 508.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 71,
+         "src": "zone",
+         "t": 508.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 70,
+         "src": "zone",
+         "t": 508.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 69,
+         "src": "zone",
+         "t": 508.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 69,
+         "src": "zone",
+         "t": 508.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 68,
+         "src": "zone",
+         "t": 508.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 67,
+         "src": "zone",
+         "t": 509.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 66,
+         "src": "zone",
+         "t": 509.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 65,
+         "src": "zone",
+         "t": 509.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 64,
+         "src": "zone",
+         "t": 509.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 63,
+         "src": "zone",
+         "t": 509.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 63,
+         "src": "zone",
+         "t": 509.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 62,
+         "src": "zone",
+         "t": 509.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 61,
+         "src": "zone",
+         "t": 509.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 60,
+         "src": "zone",
+         "t": 509.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 59,
+         "src": "zone",
+         "t": 509.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 58,
+         "src": "zone",
+         "t": 509.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 57,
+         "src": "zone",
+         "t": 509.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 57,
+         "src": "zone",
+         "t": 509.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 56,
+         "src": "zone",
+         "t": 509.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 55,
+         "src": "zone",
+         "t": 509.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 54,
+         "src": "zone",
+         "t": 510.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 53,
+         "src": "zone",
+         "t": 510.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 52,
+         "src": "zone",
+         "t": 510.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 51,
+         "src": "zone",
+         "t": 510.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 51,
+         "src": "zone",
+         "t": 510.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 50,
+         "src": "zone",
+         "t": 510.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 49,
+         "src": "zone",
+         "t": 510.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 48,
+         "src": "zone",
+         "t": 510.4,
+         "zone_out": true
+        },
+        {
+         "amt": 6.2,
+         "boss": false,
+         "hp_after": 41,
+         "src": "mire",
+         "t": 510.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 41,
+         "src": "zone",
+         "t": 510.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 40,
+         "src": "zone",
+         "t": 510.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 39,
+         "src": "zone",
+         "t": 510.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 38,
+         "src": "zone",
+         "t": 510.7,
+         "zone_out": true
+        },
+        {
+         "amt": 6.2,
+         "boss": false,
+         "hp_after": 31,
+         "src": "mire",
+         "t": 510.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 31,
+         "src": "zone",
+         "t": 510.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 30,
+         "src": "zone",
+         "t": 510.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 30,
+         "src": "zone",
+         "t": 510.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 29,
+         "src": "zone",
+         "t": 511.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 28,
+         "src": "zone",
+         "t": 511.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 27,
+         "src": "zone",
+         "t": 511.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 26,
+         "src": "zone",
+         "t": 511.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 25,
+         "src": "zone",
+         "t": 511.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 24,
+         "src": "zone",
+         "t": 511.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 24,
+         "src": "zone",
+         "t": 511.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 23,
+         "src": "zone",
+         "t": 511.4,
+         "zone_out": true
+        },
+        {
+         "amt": 6.2,
+         "boss": false,
+         "hp_after": 16,
+         "src": "mire",
+         "t": 511.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 16,
+         "src": "zone",
+         "t": 511.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 15,
+         "src": "zone",
+         "t": 511.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 14,
+         "src": "zone",
+         "t": 511.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 13,
+         "src": "zone",
+         "t": 511.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 12,
+         "src": "zone",
+         "t": 511.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 11,
+         "src": "zone",
+         "t": 511.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 11,
+         "src": "zone",
+         "t": 511.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 10,
+         "src": "zone",
+         "t": 512.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 9,
+         "src": "zone",
+         "t": 512.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 8,
+         "src": "zone",
+         "t": 512.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 7,
+         "src": "zone",
+         "t": 512.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 6,
+         "src": "zone",
+         "t": 512.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 5,
+         "src": "zone",
+         "t": 512.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 5,
+         "src": "zone",
+         "t": 512.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 4,
+         "src": "zone",
+         "t": 512.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 3,
+         "src": "zone",
+         "t": 512.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.9,
+         "boss": false,
+         "hp_after": 2,
+         "src": "zone",
+         "t": 512.6,
+         "zone_out": true
+        },
+        {
+         "amt": 1.8,
+         "boss": false,
+         "hp_after": 0,
+         "src": "zone",
+         "t": 512.7,
+         "zone_out": true
+        }
+       ],
+       "mire_s": 0.1,
+       "nerve_bursts": 0,
+       "t": 512.8
+      },
+      "src": "zone",
+      "t": 512,
+      "zone_out": true,
+      "zone_phase": 3,
+      "zone_state": 3
+     },
+     "floors": [],
+     "hits": 614,
+     "hits_pm": 71.8,
+     "low_hp_s": 22,
+     "moved_pm": 24889,
+     "peak": [
+      72,
+      52,
+      0,
+      304,
+      28
+     ],
+     "peak_min": [
+      [
+       15,
+       0,
+       0,
+       61,
+       3
+      ],
+      [
+       47,
+       1,
+       0,
+       138,
+       10
+      ],
+      [
+       45,
+       1,
+       0,
+       85,
+       12
+      ],
+      [
+       41,
+       11,
+       0,
+       304,
+       12
+      ],
+      [
+       57,
+       17,
+       0,
+       111,
+       17
+      ],
+      [
+       69,
+       16,
+       0,
+       135,
+       20
+      ],
+      [
+       57,
+       18,
+       0,
+       183,
+       26
+      ],
+      [
+       72,
+       52,
+       0,
+       200,
+       24
+      ],
+      [
+       72,
+       35,
+       0,
+       187,
+       28
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 0,
+     "recruit_t": [
+      83
+     ],
+     "still_pct": 0,
+     "taken": 1102,
+     "taken_pm": 128
+    },
+    "ctrl": {
+     "aslow_slow": 0,
+     "aslow_t": 0.0,
+     "boss_t": 38.61,
+     "floor": 0.7,
+     "move_min": 0.7,
+     "slow_min": 0.55,
+     "stun_slow": 0,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "slow_any_t": 0.0
+    },
+    "dashes": 0,
+    "dmg": {
+     "atk_stone": 4.702661078377,
+     "contact_nest": 19.5231834943316,
+     "contact_path": 17.0,
+     "contact_reaper": 56.1564696093228,
+     "contact_tracer": 80.0822698930829,
+     "mire": 571.281000000001,
+     "wound": 2.537535,
+     "zone": 351.905330013025
+    },
+    "drone": 0,
+    "elite_stage": 2,
+    "elites": 15,
+    "ending": "standard",
+    "final_out": {
+     "余像": 7168.22840428166,
+     "余像·剑雨": 9105.93666780097,
+     "剑雨": 10773.5788563743,
+     "剑雨滂沱": 18147.9716869252,
+     "双刃": 38953.5443860147,
+     "双生刃": 11700.1134125733,
+     "回马剑": 3018.06592815567,
+     "墓志铭": 3104.87981542156,
+     "延异视阈": 86888.4529570056,
+     "战术快递": 12045.9061618948,
+     "提喻": 95407.0666357573,
+     "断喝": 9486.78024915152,
+     "殁亡": 15268.9458412012,
+     "狼之舞": 4689.39382065098,
+     "狼魂": 13184.6350573335,
+     "疾行斩": 15126.1186019382,
+     "群狼之噬": 6451.33064656551,
+     "言": 30171.5549349935,
+     "语汇演化": 4103.29406920572,
+     "连缀": 2015.35204280142,
+     "铭文": 9368.0547753124,
+     "领主": 7462.34124532204
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 12,
+     "pct": 0.01,
+     "pool": 15,
+     "t": 485
+    },
+    "growth": {
+     "armor": 1,
+     "dodge": 2,
+     "hp": 1,
+     "regen": 1
+    },
+    "heal": {
+     "事件": 0.0,
+     "商店": 47.4901088937617,
+     "拾取": 152.5644,
+     "自身回复": 729.889861078366,
+     "藏品": 0.0
+    },
+    "heal_offer": 8,
+    "heal_offer_low": 2,
+    "heal_pick": 2,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 5,
+       "slider": 5
+      },
+      "hp": 317,
+      "hp0": 149,
+      "minhp": 149,
+      "mix": "滑行群",
+      "n": 10,
+      "t": 75,
+      "t80": 9
+     },
+     {
+      "comp": {
+       "bone": 8,
+       "slider": 2,
+       "stone": 3
+      },
+      "hp": 706,
+      "hp0": 169,
+      "minhp": 157,
+      "mix": "凿石阵",
+      "n": 13,
+      "t": 165,
+      "t80": 9
+     },
+     {
+      "comp": {
+       "bone": 9,
+       "offspring": 2,
+       "slider": 4,
+       "stone": 2
+      },
+      "hp": 1799,
+      "hp0": 169,
+      "minhp": 163,
+      "mix": "子代壁垒",
+      "n": 17,
+      "t": 255,
+      "t80": 10
+     },
+     {
+      "comp": {
+       "bone": 6,
+       "slider": 13
+      },
+      "hp": 1449,
+      "hp0": 164,
+      "minhp": 94,
+      "mix": "潜袭",
+      "n": 19,
+      "t": 340,
+      "t80": 6
+     },
+     {
+      "comp": {
+       "slider": 21,
+       "spitter": 2
+      },
+      "hp": 3328,
+      "hp0": 116,
+      "minhp": 116,
+      "mix": "深海潮",
+      "n": 23,
+      "t": 452,
+      "t80": 9
+     }
+    ],
+    "ingots": 0,
+    "items": {
+     "heal_elite": 10,
+     "heal_low": 1,
+     "heal_mob": 13,
+     "heal_pick": 18,
+     "magnet_elite": 8,
+     "magnet_mob": 5,
+     "magnet_pick": 7,
+     "mob_capped": 860,
+     "mob_rolled": 1013
+    },
+    "kills": 1891,
+    "lamp": 0,
+    "low_levelups": 3,
+    "lv": 24,
+    "lv_times": [
+     12,
+     33,
+     46,
+     65,
+     82,
+     99,
+     120,
+     136,
+     167,
+     191,
+     218,
+     234,
+     234,
+     265,
+     297,
+     315,
+     347,
+     368,
+     393,
+     441,
+     458,
+     474,
+     512
+    ],
+    "marks": {
+     "120": 7,
+     "300": 16,
+     "480": 23
+    },
+    "maxhp": 212.55,
+    "ops": [
+     {
+      "elite": 2,
+      "id": "texas",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "lappland",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "logos",
+      "prog": 6
+     }
+    ],
+    "out": {
+     "余像": 7168.22840428166,
+     "余像·剑雨": 9105.93666780097,
+     "剑雨": 10773.5788563743,
+     "剑雨滂沱": 18147.9716869252,
+     "双刃": 38953.5443860147,
+     "双生刃": 11700.1134125733,
+     "回马剑": 3018.06592815567,
+     "墓志铭": 3104.87981542156,
+     "延异视阈": 86888.4529570056,
+     "战术快递": 12045.9061618948,
+     "提喻": 95407.0666357573,
+     "断喝": 9486.78024915152,
+     "殁亡": 15268.9458412012,
+     "狼之舞": 4689.39382065098,
+     "狼魂": 13184.6350573335,
+     "疾行斩": 15126.1186019382,
+     "群狼之噬": 6451.33064656551,
+     "言": 30171.5549349935,
+     "语汇演化": 4103.29406920572,
+     "连缀": 2015.35204280142,
+     "铭文": 9368.0547753124,
+     "领主": 7462.34124532204
+    },
+    "out_tag": {
+     "aftershock": 3104.87981542156,
+     "area": 213184.393932328,
+     "basic": 172701.099067105,
+     "control": 7168.22840428166,
+     "dot": 206000.031176638,
+     "entity": 9368.0547753124,
+     "execute": 15268.9458412012,
+     "follow_up": 25948.1258542246,
+     "pierce": 48338.0623789139,
+     "projectile": 38798.4203617943,
+     "single": 30171.5549349935,
+     "skill": 259774.586383261,
+     "stun": 38027.4872111004,
+     "talent": 4103.29406920572
+    },
+    "out_type": {
+     "法术": 244243.290287831,
+     "物理": 154129.310067649,
+     "真实": 15268.9458412012
+    },
+    "prof": {},
+    "prog_offer": {
+     "lappland": 10,
+     "logos": 8,
+     "texas": 7
+    },
+    "prog_pick": {
+     "lappland": 6,
+     "logos": 5,
+     "texas": 6
+    },
+    "recall_backstop": 0,
+    "recall_n": 69,
+    "rej": {},
+    "relic_offer": [
+     [
+      120,
+      "shop",
+      [
+       "63",
+       "49",
+       "130"
+      ]
+     ],
+     [
+      155,
+      "choice",
+      [
+       "191",
+       "17",
+       "172"
+      ]
+     ],
+     [
+      237,
+      "choice",
+      [
+       "16",
+       "154",
+       "24"
+      ]
+     ],
+     [
+      285,
+      "choice",
+      [
+       "180",
+       "28",
+       "43"
+      ]
+     ],
+     [
+      319,
+      "shop",
+      [
+       "104",
+       "37",
+       "230"
+      ]
+     ],
+     [
+      347,
+      "choice",
+      [
+       "209",
+       "59",
+       "256"
+      ]
+     ],
+     [
+      369,
+      "choice",
+      [
+       "70",
+       "73",
+       "252"
+      ]
+     ],
+     [
+      441,
+      "choice",
+      [
+       "2",
+       "130",
+       "208"
+      ]
+     ],
+     [
+      451,
+      "choice",
+      [
+       "21",
+       "16",
+       "212"
+      ]
+     ],
+     [
+      480,
+      "choice",
+      [
+       "91",
+       "57",
+       "183"
+      ]
+     ],
+     [
+      485,
+      "shop",
+      [
+       "122",
+       "251",
+       "90"
+      ]
+     ],
+     [
+      490,
+      "choice",
+      [
+       "132",
+       "167",
+       "81",
+       "69"
+      ]
+     ]
+    ],
+    "relic_out": 0.0,
+    "relic_take": [
+     [
+      121,
+      "63",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      121,
+      "49",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      155,
+      "191",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      237,
+      "16",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      245,
+      "240",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      285,
+      "43",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      319,
+      "104",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      319,
+      "37",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      347,
+      "59",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      369,
+      "252",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      441,
+      "208",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      451,
+      "212",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      480,
+      "183",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      482,
+      "239",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      485,
+      "122",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      485,
+      "251",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ],
+     [
+      490,
+      "81",
+      [
+       "先锋",
+       "近卫",
+       "术师"
+      ]
+     ]
+    ],
+    "relics": 17,
+    "squad": [
+     "texas",
+     "lappland",
+     "logos"
+    ],
+    "sus": {
+     "m0": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "事件": [
+        0.0,
+        33.8
+       ],
+       "拾取": [
+        4.93619999999984,
+        337.35
+       ],
+       "藏品": [
+        0.0,
+        67.6
+       ]
+      },
+      "lit": 0.0
+     },
+     "m3": {
+      "clean": {},
+      "dr": {
+       "lappland": 85.8103013329956
+      },
+      "heal": {
+       "商店": [
+        0.0,
+        67.6
+       ],
+       "拾取": [
+        0.598199999999935,
+        405.6
+       ]
+      },
+      "lit": 0.0
+     },
+     "m6": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "商店": [
+        47.4901088937617,
+        85.02
+       ],
+       "拾取": [
+        147.03,
+        147.03
+       ]
+      },
+      "lit": 0.0
+     }
+    },
+    "swaps": [],
+    "t": 512,
+    "terrain": {
+     "bul": 0,
+     "dash": 0,
+     "ebul": 29
+    },
+    "win": false,
+    "xp_backstop": 0.0,
+    "xp_dropped": 8256.0,
+    "xp_ground": 332.5,
+    "xp_magnet": 1541.8,
+    "xp_magnet_min": [
+     0.0,
+     0.0,
+     0.0,
+     426.5,
+     0.0,
+     201.3,
+     641.5,
+     272.5
+    ],
+    "xp_recall": 1492.0,
+    "xp_recall_min": [
+     0.0,
+     11.0,
+     83.0,
+     12.5,
+     142.5,
+     56.5,
+     67.5,
+     682.0,
+     437.0
+    ],
+    "xp_total": 7923.5,
+    "xp_total_min": [
+     145.0,
+     331.0,
+     418.8,
+     901.0,
+     638.0,
+     1090.3,
+     1234.0,
+     2354.0,
+     811.5
+    ],
+    "xp_walk": 4889.8,
+    "xp_walk_min": [
+     145.0,
+     320.0,
+     335.8,
+     462.0,
+     495.5,
+     832.5,
+     525.0,
+     1399.5,
+     374.5
+    ]
+   }
+  },
+  {
+   "squad": [
+    "texas",
+    "lappland"
+   ],
+   "seed": 2,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 0,
+   "wall": 40.4,
+   "data": {
+    "allies": 2,
+    "armor_cf": {
+     "m0": {
+      "a2": 37.3870462598001,
+      "a4": 33.3870462598001,
+      "a8": 25.3870462598001,
+      "all": 41.3870462598001,
+      "armor": 6.0,
+      "n": 2,
+      "phys": 41.3870462598001,
+      "phys_n": 2,
+      "phys_pre": 47.3870462598001
+     },
+     "m4": {
+      "a2": 851.508382341613,
+      "a4": 799.508382341613,
+      "a8": 696.804971821209,
+      "all": 913.609654996918,
+      "armor": 160.0,
+      "n": 27,
+      "phys": 903.508382341613,
+      "phys_n": 26,
+      "phys_pre": 1063.50838234161
+     },
+     "m8": {
+      "a2": 246.346130093281,
+      "a4": 236.346130093281,
+      "a8": 216.346130093281,
+      "all": 256.346130093281,
+      "armor": 40.0,
+      "n": 5,
+      "phys": 256.346130093281,
+      "phys_n": 5,
+      "phys_pre": 296.346130093281
+     }
+    },
+    "boss_hp": -0.00374736298452424,
+    "bosses": [
+     "path:dead",
+     "iberia:dead"
+    ],
+    "bot": {
+     "bosses": [
+      {
+       "en_alive": 35,
+       "en_alive_pk": 45,
+       "en_near": 8,
+       "en_near_pk": 16,
+       "gates": 1,
+       "on_boss": 0.56,
+       "shield": 0.0,
+       "t0": 210,
+       "t1": 237,
+       "tv": 210,
+       "type": "path",
+       "windows": [
+        {
+         "en": 31,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 1
+        },
+        {
+         "en": 31,
+         "hits": 4,
+         "hp": 0.16,
+         "moves": 7,
+         "out": 11561,
+         "t": 16
+        },
+        {
+         "en": 29,
+         "hits": 3,
+         "hp": 0.0,
+         "moves": 6,
+         "out": 5827,
+         "t": 31
+        },
+        {
+         "en": 46,
+         "hits": 56,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 3586,
+         "t": 46
+        },
+        {
+         "en": 34,
+         "hits": 2,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 5554,
+         "t": 61
+        },
+        {
+         "en": 28,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 9275,
+         "t": 76
+        },
+        {
+         "en": 38,
+         "hits": 0,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 9928,
+         "t": 91
+        },
+        {
+         "en": 45,
+         "hits": 7,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 21027,
+         "t": 106
+        },
+        {
+         "en": 48,
+         "hits": 14,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 18371,
+         "t": 121
+        },
+        {
+         "en": 61,
+         "hits": 4,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 19070,
+         "t": 136
+        },
+        {
+         "en": 49,
+         "hits": 10,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 34666,
+         "t": 151
+        },
+        {
+         "en": 48,
+         "hits": 12,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 11412,
+         "t": 166
+        },
+        {
+         "en": 60,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 17449,
+         "t": 181
+        },
+        {
+         "en": 52,
+         "hits": 4,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 26156,
+         "t": 197
+        },
+        {
+         "en": 53,
+         "hits": 92,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 24488,
+         "t": 212
+        },
+        {
+         "en": 53,
+         "hits": 8,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 28689,
+         "t": 227
+        },
+        {
+         "en": 58,
+         "hits": 184,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 32702,
+         "t": 242
+        },
+        {
+         "en": 76,
+         "hits": 12,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 20227,
+         "t": 257
+        },
+        {
+         "en": 74,
+         "hits": 126,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 34339,
+         "t": 272
+        }
+       ]
+      },
+      {
+       "en_alive": 56,
+       "en_alive_pk": 65,
+       "en_near": 17,
+       "en_near_pk": 25,
+       "gates": 1,
+       "on_boss": 0.12,
+       "shield": 0.0,
+       "t0": 420,
+       "t1": 459,
+       "tv": 420,
+       "type": "iberia",
+       "windows": [
+        {
+         "en": 53,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 2
+        },
+        {
+         "en": 53,
+         "hits": 8,
+         "hp": 0.84,
+         "moves": 2,
+         "out": 28689,
+         "t": 17
+        },
+        {
+         "en": 58,
+         "hits": 184,
+         "hp": 0.15,
+         "moves": 1,
+         "out": 32702,
+         "t": 32
+        },
+        {
+         "en": 76,
+         "hits": 12,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 20227,
+         "t": 47
+        },
+        {
+         "en": 74,
+         "hits": 126,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 34339,
+         "t": 62
+        }
+       ]
+      }
+     ],
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.0,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lv": 1,
+       "mhp": 149,
+       "outc": 0,
+       "rg": 2.5,
+       "squad": 2,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 16,
+       "hp": 100,
+       "hpm": 1.27,
+       "hsrc": {},
+       "kills": 16,
+       "lamp": 100,
+       "lv": 2,
+       "mhp": 149,
+       "outc": 322,
+       "rg": 2.5,
+       "squad": 2,
+       "t": 30,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 13,
+       "hp": 100,
+       "hpm": 1.55,
+       "hsrc": {},
+       "kills": 61,
+       "lamp": 100,
+       "lv": 4,
+       "mhp": 149,
+       "outc": 1203,
+       "rg": 2.5,
+       "squad": 2,
+       "t": 60,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_mimic": 22,
+        "contact_pocket": 18
+       },
+       "enemies": 49,
+       "hp": 100,
+       "hpm": 1.82,
+       "hsrc": {
+        "拾取": 16,
+        "自身回复": 24
+       },
+       "kills": 118,
+       "lamp": 100,
+       "lv": 6,
+       "mhp": 169,
+       "outc": 3731,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 90,
+       "taken": 41,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 19,
+       "hp": 100,
+       "hpm": 2.09,
+       "hsrc": {},
+       "kills": 213,
+       "lamp": 100,
+       "lv": 8,
+       "mhp": 169,
+       "outc": 10055,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 120,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 22,
+       "hp": 100,
+       "hpm": 2.36,
+       "hsrc": {},
+       "kills": 278,
+       "lamp": 100,
+       "lv": 9,
+       "mhp": 169,
+       "outc": 12719,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 150,
+       "taken": 0,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 28,
+       "hp": 100,
+       "hpm": 2.64,
+       "hsrc": {},
+       "kills": 364,
+       "lamp": 100,
+       "lv": 10,
+       "mhp": 169,
+       "outc": 17638,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 180,
+       "taken": 0,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "mire": 11
+       },
+       "enemies": 28,
+       "hp": 100,
+       "hpm": 2.91,
+       "hsrc": {
+        "自身回复": 11
+       },
+       "kills": 443,
+       "lamp": 94,
+       "lv": 12,
+       "mhp": 169,
+       "outc": 22745,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 210,
+       "taken": 11,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "mire": 38
+       },
+       "enemies": 30,
+       "hp": 96,
+       "hpm": 3.18,
+       "hsrc": {
+        "自身回复": 33
+       },
+       "kills": 553,
+       "lamp": 97,
+       "lv": 13,
+       "mhp": 169,
+       "outc": 39425,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 240,
+       "taken": 38,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "mire": 12,
+        "zone": 14
+       },
+       "enemies": 41,
+       "hp": 99,
+       "hpm": 3.8,
+       "hsrc": {
+        "自身回复": 32
+       },
+       "kills": 657,
+       "lamp": 65,
+       "lv": 15,
+       "mhp": 219,
+       "outc": 48012,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 270,
+       "taken": 27,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 41,
+       "hp": 100,
+       "hpm": 4.1,
+       "hsrc": {},
+       "kills": 771,
+       "lamp": 100,
+       "lv": 16,
+       "mhp": 239,
+       "outc": 64839,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 300,
+       "taken": 0,
+       "zone": 2
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_founder": 148,
+        "contact_nest": 34,
+        "contact_reaper": 34,
+        "contact_slider": 22,
+        "contact_tracer": 62,
+        "mire": 27,
+        "zone": 2
+       },
+       "enemies": 45,
+       "hp": 75,
+       "hpm": 4.4,
+       "hsrc": {
+        "拾取": 170,
+        "自身回复": 75,
+        "铃兰": 17
+       },
+       "kills": 886,
+       "lamp": 37,
+       "lv": 18,
+       "mhp": 283,
+       "outc": 105462,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 330,
+       "taken": 332,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_slider": 44,
+        "contact_tracer": 48,
+        "mire": 87
+       },
+       "enemies": 49,
+       "hp": 72,
+       "hpm": 4.7,
+       "hsrc": {
+        "拾取": 29,
+        "自身回复": 99,
+        "铃兰": 42
+       },
+       "kills": 1044,
+       "lamp": 14,
+       "lv": 19,
+       "mhp": 283,
+       "outc": 159688,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 360,
+       "taken": 180,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_slider": 24,
+        "mire": 94
+       },
+       "enemies": 56,
+       "hp": 100,
+       "hpm": 5.0,
+       "hsrc": {
+        "拾取": 85,
+        "自身回复": 66,
+        "铃兰": 45
+       },
+       "kills": 1174,
+       "lamp": 48,
+       "lv": 20,
+       "mhp": 283,
+       "outc": 188315,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 390,
+       "taken": 118,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "contact_founder": 79,
+        "contact_nest": 38,
+        "contact_tracer": 29,
+        "mire": 29,
+        "wound": 4
+       },
+       "enemies": 66,
+       "hp": 99,
+       "hpm": 5.3,
+       "hsrc": {
+        "拾取": 76,
+        "自身回复": 60,
+        "铃兰": 44
+       },
+       "kills": 1315,
+       "lamp": 74,
+       "lv": 21,
+       "mhp": 283,
+       "outc": 235496,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 420,
+       "taken": 180,
+       "zone": 3
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "contact_iberia": 14,
+        "contact_slider": 15,
+        "contact_tracer": 179,
+        "mire": 152,
+        "wound": 19
+       },
+       "enemies": 62,
+       "hp": 29,
+       "hpm": 5.6,
+       "hsrc": {
+        "拾取": 51,
+        "无人机": 3,
+        "自身回复": 73,
+        "铃兰": 54
+       },
+       "kills": 1478,
+       "lamp": 75,
+       "lv": 22,
+       "mhp": 283,
+       "outc": 296557,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 450,
+       "taken": 381,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_stone": 8,
+        "bullet": 10,
+        "contact_slider": 70,
+        "contact_tracer": 46,
+        "corrode": 1,
+        "mire": 130,
+        "wound": 4
+       },
+       "enemies": 81,
+       "hp": 38,
+       "hpm": 5.9,
+       "hsrc": {
+        "拾取": 85,
+        "无人机": 27,
+        "自身回复": 106,
+        "铃兰": 76
+       },
+       "kills": 1654,
+       "lamp": 58,
+       "lv": 23,
+       "mhp": 283,
+       "outc": 348493,
+       "rg": 4.0,
+       "squad": 3,
+       "t": 480,
+       "taken": 272,
+       "zone": 3
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {
+       "atk_tracer": 41,
+       "contact_founder": 101,
+       "contact_slider": 18,
+       "contact_tracer": 46,
+       "mire": 59,
+       "wound": 7,
+       "zone": 8
+      },
+      "hsrc": {
+       "商店": 111,
+       "无人机": 11,
+       "自身回复": 44,
+       "铃兰": 29
+      },
+      "mhp": 309,
+      "t": 491,
+      "t0": 480,
+      "taken": 283
+     },
+     "dark_dmg": 0,
+     "dark_s": 0,
+     "death_src": "wound",
+     "elite_t": {
+      "lappland:1": 181,
+      "lappland:2": 248,
+      "suzuran:1": 314,
+      "suzuran:2": 363,
+      "texas:1": 48,
+      "texas:2": 113
+     },
+     "end": {
+      "boss": false,
+      "hp": 0,
+      "last15": {
+       "corrode_out": 1.3,
+       "corrode_peak": 1.0,
+       "dark_s": 0.0,
+       "ebullets_peak": 23,
+       "enemies_peak": 83,
+       "hits": [
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 106,
+         "src": "wound",
+         "t": 476.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 476.3,
+         "zone_out": false
+        },
+        {
+         "amt": 10.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "bullet",
+         "t": 476.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "corrode",
+         "t": 476.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 476.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "corrode",
+         "t": 476.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 97,
+         "src": "wound",
+         "t": 476.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 97,
+         "src": "corrode",
+         "t": 476.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 97,
+         "src": "wound",
+         "t": 476.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 97,
+         "src": "corrode",
+         "t": 476.5,
+         "zone_out": false
+        },
+        {
+         "amt": 7.3,
+         "boss": false,
+         "hp_after": 90,
+         "src": "mire",
+         "t": 476.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 90,
+         "src": "wound",
+         "t": 476.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 90,
+         "src": "corrode",
+         "t": 476.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 90,
+         "src": "wound",
+         "t": 476.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 90,
+         "src": "corrode",
+         "t": 476.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 90,
+         "src": "wound",
+         "t": 476.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 90,
+         "src": "corrode",
+         "t": 476.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 90,
+         "src": "wound",
+         "t": 476.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 90,
+         "src": "corrode",
+         "t": 476.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 90,
+         "src": "wound",
+         "t": 476.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 90,
+         "src": "corrode",
+         "t": 476.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 90,
+         "src": "wound",
+         "t": 476.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 90,
+         "src": "corrode",
+         "t": 476.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 476.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "corrode",
+         "t": 476.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 96,
+         "src": "wound",
+         "t": 477.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 96,
+         "src": "corrode",
+         "t": 477.0,
+         "zone_out": false
+        },
+        {
+         "amt": 7.9,
+         "boss": false,
+         "hp_after": 88,
+         "src": "contact_slider",
+         "t": 477.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 88,
+         "src": "wound",
+         "t": 477.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 88,
+         "src": "corrode",
+         "t": 477.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 88,
+         "src": "wound",
+         "t": 477.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 88,
+         "src": "corrode",
+         "t": 477.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 88,
+         "src": "wound",
+         "t": 477.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 89,
+         "src": "wound",
+         "t": 477.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 89,
+         "src": "wound",
+         "t": 477.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 91,
+         "src": "wound",
+         "t": 477.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 92,
+         "src": "wound",
+         "t": 477.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 92,
+         "src": "wound",
+         "t": 477.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 92,
+         "src": "wound",
+         "t": 477.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 92,
+         "src": "wound",
+         "t": 477.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 70,
+         "src": "wound",
+         "t": 480.3,
+         "zone_out": false
+        },
+        {
+         "amt": 41.2,
+         "boss": false,
+         "hp_after": 70,
+         "src": "atk_tracer",
+         "t": 480.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 71,
+         "src": "wound",
+         "t": 480.4,
+         "zone_out": false
+        },
+        {
+         "amt": 7.3,
+         "boss": false,
+         "hp_after": 64,
+         "src": "mire",
+         "t": 480.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 64,
+         "src": "wound",
+         "t": 480.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 64,
+         "src": "wound",
+         "t": 480.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 64,
+         "src": "wound",
+         "t": 480.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 64,
+         "src": "wound",
+         "t": 480.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 65,
+         "src": "wound",
+         "t": 480.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 65,
+         "src": "wound",
+         "t": 480.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 65,
+         "src": "wound",
+         "t": 480.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 65,
+         "src": "wound",
+         "t": 480.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 65,
+         "src": "wound",
+         "t": 481.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 481.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 481.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 481.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 481.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 69,
+         "src": "wound",
+         "t": 481.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 69,
+         "src": "wound",
+         "t": 481.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 69,
+         "src": "wound",
+         "t": 481.5,
+         "zone_out": false
+        },
+        {
+         "amt": 7.3,
+         "boss": false,
+         "hp_after": 62,
+         "src": "mire",
+         "t": 481.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 481.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 481.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 481.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 481.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 63,
+         "src": "wound",
+         "t": 481.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 64,
+         "src": "wound",
+         "t": 481.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 64,
+         "src": "wound",
+         "t": 481.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 64,
+         "src": "wound",
+         "t": 482.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 64,
+         "src": "wound",
+         "t": 482.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 64,
+         "src": "wound",
+         "t": 482.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 65,
+         "src": "wound",
+         "t": 482.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 65,
+         "src": "wound",
+         "t": 482.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 68,
+         "src": "wound",
+         "t": 482.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 68,
+         "src": "wound",
+         "t": 482.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 68,
+         "src": "wound",
+         "t": 482.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 68,
+         "src": "wound",
+         "t": 482.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 68,
+         "src": "wound",
+         "t": 482.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 69,
+         "src": "wound",
+         "t": 482.7,
+         "zone_out": false
+        },
+        {
+         "amt": 7.3,
+         "boss": false,
+         "hp_after": 62,
+         "src": "mire",
+         "t": 482.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 482.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 62,
+         "src": "wound",
+         "t": 482.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.0,
+         "boss": false,
+         "hp_after": 200,
+         "src": "wound",
+         "t": 482.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 206,
+         "src": "wound",
+         "t": 482.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 206,
+         "src": "wound",
+         "t": 483.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 206,
+         "src": "wound",
+         "t": 483.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 206,
+         "src": "wound",
+         "t": 483.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 207,
+         "src": "wound",
+         "t": 483.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 207,
+         "src": "wound",
+         "t": 483.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 207,
+         "src": "wound",
+         "t": 483.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 210,
+         "src": "wound",
+         "t": 483.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 210,
+         "src": "wound",
+         "t": 483.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 210,
+         "src": "wound",
+         "t": 483.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 211,
+         "src": "wound",
+         "t": 483.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 211,
+         "src": "wound",
+         "t": 483.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 211,
+         "src": "wound",
+         "t": 483.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 211,
+         "src": "wound",
+         "t": 483.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 212,
+         "src": "wound",
+         "t": 483.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 212,
+         "src": "wound",
+         "t": 483.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 212,
+         "src": "wound",
+         "t": 484.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 212,
+         "src": "wound",
+         "t": 484.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 212,
+         "src": "wound",
+         "t": 484.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 213,
+         "src": "wound",
+         "t": 484.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 213,
+         "src": "wound",
+         "t": 484.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 213,
+         "src": "wound",
+         "t": 484.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 216,
+         "src": "wound",
+         "t": 484.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 216,
+         "src": "wound",
+         "t": 484.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 216,
+         "src": "wound",
+         "t": 484.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 217,
+         "src": "wound",
+         "t": 484.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 217,
+         "src": "wound",
+         "t": 484.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 217,
+         "src": "wound",
+         "t": 484.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 217,
+         "src": "wound",
+         "t": 484.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 217,
+         "src": "wound",
+         "t": 484.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 218,
+         "src": "wound",
+         "t": 484.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 218,
+         "src": "wound",
+         "t": 485.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 218,
+         "src": "zone",
+         "t": 485.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 218,
+         "src": "wound",
+         "t": 485.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 217,
+         "src": "zone",
+         "t": 485.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 217,
+         "src": "wound",
+         "t": 485.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 217,
+         "src": "zone",
+         "t": 485.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 217,
+         "src": "wound",
+         "t": 485.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 217,
+         "src": "zone",
+         "t": 485.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 217,
+         "src": "wound",
+         "t": 485.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 216,
+         "src": "zone",
+         "t": 485.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 216,
+         "src": "wound",
+         "t": 485.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 219,
+         "src": "zone",
+         "t": 485.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 219,
+         "src": "wound",
+         "t": 485.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 219,
+         "src": "zone",
+         "t": 485.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 219,
+         "src": "wound",
+         "t": 485.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 218,
+         "src": "zone",
+         "t": 485.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 218,
+         "src": "wound",
+         "t": 485.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 218,
+         "src": "zone",
+         "t": 485.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 218,
+         "src": "wound",
+         "t": 485.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 218,
+         "src": "zone",
+         "t": 485.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 218,
+         "src": "wound",
+         "t": 485.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 218,
+         "src": "zone",
+         "t": 485.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 218,
+         "src": "wound",
+         "t": 485.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 217,
+         "src": "zone",
+         "t": 485.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 217,
+         "src": "wound",
+         "t": 485.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 217,
+         "src": "zone",
+         "t": 485.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 217,
+         "src": "wound",
+         "t": 485.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 217,
+         "src": "zone",
+         "t": 485.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 217,
+         "src": "wound",
+         "t": 485.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 217,
+         "src": "zone",
+         "t": 486.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 217,
+         "src": "wound",
+         "t": 486.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 217,
+         "src": "zone",
+         "t": 486.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 217,
+         "src": "wound",
+         "t": 486.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 216,
+         "src": "zone",
+         "t": 486.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 216,
+         "src": "wound",
+         "t": 486.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 216,
+         "src": "zone",
+         "t": 486.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 216,
+         "src": "wound",
+         "t": 486.2,
+         "zone_out": false
+        },
+        {
+         "amt": 7.6,
+         "boss": false,
+         "hp_after": 209,
+         "src": "mire",
+         "t": 486.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 209,
+         "src": "wound",
+         "t": 486.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 209,
+         "src": "wound",
+         "t": 486.3,
+         "zone_out": false
+        },
+        {
+         "amt": 7.6,
+         "boss": false,
+         "hp_after": 205,
+         "src": "mire",
+         "t": 486.7,
+         "zone_out": false
+        },
+        {
+         "amt": 46.6,
+         "boss": false,
+         "hp_after": 159,
+         "src": "contact_tracer",
+         "t": 487.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 159,
+         "src": "wound",
+         "t": 487.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 159,
+         "src": "wound",
+         "t": 487.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 160,
+         "src": "wound",
+         "t": 487.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 160,
+         "src": "wound",
+         "t": 487.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 160,
+         "src": "wound",
+         "t": 487.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 160,
+         "src": "wound",
+         "t": 487.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 161,
+         "src": "wound",
+         "t": 487.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 164,
+         "src": "wound",
+         "t": 487.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 164,
+         "src": "wound",
+         "t": 487.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 164,
+         "src": "wound",
+         "t": 487.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 164,
+         "src": "wound",
+         "t": 487.7,
+         "zone_out": false
+        },
+        {
+         "amt": 7.6,
+         "boss": false,
+         "hp_after": 157,
+         "src": "mire",
+         "t": 487.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 157,
+         "src": "wound",
+         "t": 487.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 157,
+         "src": "wound",
+         "t": 487.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 157,
+         "src": "wound",
+         "t": 487.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 157,
+         "src": "wound",
+         "t": 488.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 158,
+         "src": "wound",
+         "t": 488.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 158,
+         "src": "wound",
+         "t": 488.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 158,
+         "src": "wound",
+         "t": 488.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 158,
+         "src": "wound",
+         "t": 488.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 158,
+         "src": "wound",
+         "t": 488.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 159,
+         "src": "wound",
+         "t": 488.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 159,
+         "src": "wound",
+         "t": 488.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 162,
+         "src": "wound",
+         "t": 488.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 162,
+         "src": "wound",
+         "t": 488.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 162,
+         "src": "wound",
+         "t": 488.7,
+         "zone_out": false
+        },
+        {
+         "amt": 7.6,
+         "boss": false,
+         "hp_after": 155,
+         "src": "mire",
+         "t": 488.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 155,
+         "src": "wound",
+         "t": 488.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 155,
+         "src": "wound",
+         "t": 488.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 155,
+         "src": "wound",
+         "t": 488.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 161,
+         "src": "wound",
+         "t": 488.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 161,
+         "src": "wound",
+         "t": 489.0,
+         "zone_out": false
+        },
+        {
+         "amt": 101.4,
+         "boss": false,
+         "hp_after": 60,
+         "src": "contact_founder",
+         "t": 489.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 60,
+         "src": "wound",
+         "t": 489.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 60,
+         "src": "wound",
+         "t": 489.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "wound",
+         "t": 489.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "wound",
+         "t": 489.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "wound",
+         "t": 489.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "wound",
+         "t": 489.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 61,
+         "src": "wound",
+         "t": 489.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 64,
+         "src": "wound",
+         "t": 489.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 65,
+         "src": "wound",
+         "t": 489.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 65,
+         "src": "wound",
+         "t": 489.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 65,
+         "src": "wound",
+         "t": 489.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 65,
+         "src": "wound",
+         "t": 489.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 65,
+         "src": "wound",
+         "t": 489.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 489.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 490.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 490.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 66,
+         "src": "wound",
+         "t": 490.1,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 67,
+         "src": "wound",
+         "t": 490.2,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 67,
+         "src": "wound",
+         "t": 490.2,
+         "zone_out": false
+        },
+        {
+         "amt": 18.6,
+         "boss": false,
+         "hp_after": 48,
+         "src": "contact_slider",
+         "t": 490.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 48,
+         "src": "wound",
+         "t": 490.3,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 49,
+         "src": "wound",
+         "t": 490.4,
+         "zone_out": false
+        },
+        {
+         "amt": 7.6,
+         "boss": false,
+         "hp_after": 41,
+         "src": "mire",
+         "t": 490.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 41,
+         "src": "wound",
+         "t": 490.4,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 44,
+         "src": "wound",
+         "t": 490.5,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 44,
+         "src": "wound",
+         "t": 490.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 45,
+         "src": "wound",
+         "t": 490.6,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 45,
+         "src": "wound",
+         "t": 490.7,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 45,
+         "src": "wound",
+         "t": 490.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 45,
+         "src": "wound",
+         "t": 490.8,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 45,
+         "src": "wound",
+         "t": 490.9,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 46,
+         "src": "wound",
+         "t": 491.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 46,
+         "src": "wound",
+         "t": 491.0,
+         "zone_out": false
+        },
+        {
+         "amt": 0.1,
+         "boss": false,
+         "hp_after": 46,
+         "src": "wound",
+         "t": 491.1,
+         "zone_out": false
+        }
+       ],
+       "mire_s": 4.0,
+       "nerve_bursts": 0,
+       "t": 491.2
+      },
+      "src": "wound",
+      "t": 491,
+      "zone_out": false,
+      "zone_phase": 3,
+      "zone_state": 1
+     },
+     "floors": [],
+     "hits": 664,
+     "hits_pm": 81.1,
+     "low_hp_s": 18,
+     "moved_pm": 24156,
+     "peak": [
+      93,
+      39,
+      9,
+      288,
+      24
+     ],
+     "peak_min": [
+      [
+       18,
+       0,
+       0,
+       74,
+       5
+      ],
+      [
+       49,
+       1,
+       7,
+       122,
+       10
+      ],
+      [
+       41,
+       0,
+       8,
+       124,
+       8
+      ],
+      [
+       50,
+       16,
+       8,
+       131,
+       13
+      ],
+      [
+       54,
+       11,
+       9,
+       288,
+       18
+      ],
+      [
+       65,
+       15,
+       7,
+       154,
+       22
+      ],
+      [
+       70,
+       21,
+       5,
+       252,
+       22
+      ],
+      [
+       93,
+       39,
+       0,
+       158,
+       20
+      ],
+      [
+       83,
+       23,
+       0,
+       118,
+       24
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 0,
+     "recruit_t": [
+      77
+     ],
+     "still_pct": 1,
+     "taken": 1868,
+     "taken_pm": 228
+    },
+    "ctrl": {
+     "aslow_slow": 0,
+     "aslow_t": 0.0,
+     "boss_t": 66.92,
+     "floor": 0.7,
+     "move_min": 0.7,
+     "slow_min": 0.55,
+     "stun_slow": 0,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 5.21
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "slow_any_t": 5.21
+    },
+    "dashes": 0,
+    "dmg": {
+     "atk_mimic": 22.5456535698,
+     "atk_stone": 8.76808496859543,
+     "atk_tracer": 41.175119372748,
+     "bullet": 10.1012726553045,
+     "contact_founder": 329.52213098039,
+     "contact_iberia": 14.0,
+     "contact_nest": 121.55145266743,
+     "contact_pocket": 18.84139269,
+     "contact_reaper": 34.181686348811,
+     "contact_slider": 197.088883696782,
+     "contact_tracer": 413.567154400137,
+     "corrode": 1.13639317372175,
+     "mire": 643.1607,
+     "wound": 35.8999576649999,
+     "zone": 25.7833686212158
+    },
+    "drone": 1,
+    "elite_stage": 2,
+    "elites": 18,
+    "ending": "standard",
+    "final_out": {
+     "余像": 14024.4666354734,
+     "余像·剑雨": 15411.1210983101,
+     "剑雨": 27354.9746251579,
+     "剑雨滂沱": 45569.5765430826,
+     "双刃": 67678.8649374789,
+     "双生刃": 32764.5105484084,
+     "回马剑": 3519.22745046758,
+     "战术快递": 20798.5209675868,
+     "断喝": 31519.82419295,
+     "狐火": 38139.6745007602,
+     "狼之舞": 1363.19389768835,
+     "狼魂": 30974.0018534765,
+     "疾行斩": 12430.3542145243,
+     "群狼之噬": 33919.6530045048,
+     "领主": 2465.81003883521
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 15,
+     "pct": 0.011,
+     "pool": 16,
+     "t": 482
+    },
+    "growth": {
+     "regen": 1,
+     "squad_atk": 1
+    },
+    "heal": {
+     "事件": 0.0,
+     "商店": 111.51972,
+     "拾取": 513.704706193425,
+     "无人机": 42.894228,
+     "自身回复": 628.917540563787,
+     "铃兰": 308.730998620214
+    },
+    "heal_offer": 12,
+    "heal_offer_low": 3,
+    "heal_pick": 2,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 5,
+       "slider": 5
+      },
+      "hp": 317,
+      "hp0": 149,
+      "minhp": 149,
+      "mix": "滑行群",
+      "n": 10,
+      "t": 75,
+      "t80": 13
+     },
+     {
+      "comp": {
+       "bone": 8,
+       "slider": 2,
+       "stone": 3
+      },
+      "hp": 785,
+      "hp0": 169,
+      "minhp": 169,
+      "mix": "凿石阵",
+      "n": 13,
+      "t": 165,
+      "t80": 10
+     },
+     {
+      "comp": {
+       "bone": 8,
+       "floater": 2,
+       "runner": 3,
+       "slider": 4
+      },
+      "hp": 1299,
+      "hp0": 219,
+      "minhp": 210,
+      "mix": "狂奔潮",
+      "n": 17,
+      "t": 255,
+      "t80": 9
+     },
+     {
+      "comp": {
+       "bone": 4,
+       "floater": 2,
+       "runner": 3,
+       "slider": 8,
+       "tracer": 2
+      },
+      "hp": 5431,
+      "hp0": 232,
+      "minhp": 190,
+      "mix": "引痕突击",
+      "n": 19,
+      "t": 340,
+      "t80": 11
+     },
+     {
+      "comp": {
+       "slider": 21,
+       "spitter": 2
+      },
+      "hp": 4211,
+      "hp0": 103,
+      "minhp": 41,
+      "mix": "深海潮",
+      "n": 23,
+      "t": 471,
+      "t80": 10
+     }
+    ],
+    "ingots": 0,
+    "items": {
+     "heal_elite": 9,
+     "heal_low": 6,
+     "heal_mob": 8,
+     "heal_pick": 14,
+     "magnet_elite": 11,
+     "magnet_mob": 6,
+     "magnet_pick": 13,
+     "mob_capped": 1205,
+     "mob_rolled": 520
+    },
+    "kills": 1745,
+    "lamp": 1,
+    "low_levelups": 2,
+    "lv": 23,
+    "lv_times": [
+     14,
+     34,
+     47,
+     67,
+     76,
+     96,
+     112,
+     137,
+     160,
+     180,
+     207,
+     235,
+     247,
+     266,
+     289,
+     313,
+     313,
+     346,
+     363,
+     404,
+     444,
+     472
+    ],
+    "marks": {
+     "120": 8,
+     "300": 16,
+     "480": 23
+    },
+    "maxhp": 309.777,
+    "ops": [
+     {
+      "elite": 2,
+      "id": "texas",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "lappland",
+      "prog": 6
+     },
+     {
+      "elite": 2,
+      "id": "suzuran",
+      "prog": 6
+     }
+    ],
+    "out": {
+     "余像": 14024.4666354734,
+     "余像·剑雨": 15411.1210983101,
+     "剑雨": 27354.9746251579,
+     "剑雨滂沱": 45569.5765430826,
+     "双刃": 67678.8649374789,
+     "双生刃": 32764.5105484084,
+     "回马剑": 3519.22745046758,
+     "战术快递": 20798.5209675868,
+     "断喝": 31519.82419295,
+     "狐火": 38139.6745007602,
+     "狼之舞": 1363.19389768835,
+     "狼魂": 30974.0018534765,
+     "疾行斩": 12430.3542145243,
+     "群狼之噬": 33919.6530045048,
+     "领主": 2465.81003883521
+    },
+    "out_tag": {
+     "area": 281591.628697569,
+     "basic": 215576.838618727,
+     "control": 52164.1411362341,
+     "dot": 28048.9332709477,
+     "follow_up": 59462.1311392999,
+     "pierce": 85190.0248794827,
+     "projectile": 138263.649945985,
+     "skill": 210742.757194461,
+     "stun": 88335.6722665509
+    },
+    "out_type": {
+     "法术": 69113.6763542367,
+     "物理": 308820.098154469
+    },
+    "prof": {},
+    "prog_offer": {
+     "lappland": 7,
+     "suzuran": 9,
+     "texas": 7
+    },
+    "prog_pick": {
+     "lappland": 6,
+     "suzuran": 6,
+     "texas": 6
+    },
+    "recall_backstop": 0,
+    "recall_n": 32,
+    "rej": {},
+    "relic_offer": [
+     [
+      67,
+      "choice",
+      [
+       "73",
+       "7",
+       "119"
+      ]
+     ],
+     [
+      71,
+      "choice",
+      [
+       "249",
+       "264",
+       "127"
+      ]
+     ],
+     [
+      112,
+      "choice",
+      [
+       "139",
+       "167",
+       "209"
+      ]
+     ],
+     [
+      120,
+      "shop",
+      [
+       "131",
+       "224",
+       "85"
+      ]
+     ],
+     [
+      167,
+      "choice",
+      [
+       "77",
+       "237",
+       "2",
+       "113"
+      ]
+     ],
+     [
+      247,
+      "choice",
+      [
+       "85",
+       "133",
+       "22"
+      ]
+     ],
+     [
+      286,
+      "choice",
+      [
+       "27",
+       "13",
+       "183"
+      ]
+     ],
+     [
+      313,
+      "shop",
+      [
+       "213",
+       "77",
+       "137"
+      ]
+     ],
+     [
+      361,
+      "choice",
+      [
+       "57",
+       "103",
+       "83"
+      ]
+     ],
+     [
+      368,
+      "choice",
+      [
+       "133",
+       "49",
+       "91"
+      ]
+     ],
+     [
+      374,
+      "choice",
+      [
+       "247",
+       "94",
+       "171"
+      ]
+     ],
+     [
+      395,
+      "choice",
+      [
+       "182",
+       "3",
+       "130"
+      ]
+     ],
+     [
+      402,
+      "choice",
+      [
+       "237",
+       "167",
+       "24"
+      ]
+     ],
+     [
+      414,
+      "choice",
+      [
+       "84",
+       "21",
+       "134"
+      ]
+     ],
+     [
+      437,
+      "choice",
+      [
+       "11",
+       "214",
+       "115"
+      ]
+     ],
+     [
+      471,
+      "choice",
+      [
+       "181",
+       "88",
+       "16"
+      ]
+     ],
+     [
+      482,
+      "shop",
+      [
+       "166",
+       "181",
+       "120"
+      ]
+     ]
+    ],
+    "relic_out": 0.0,
+    "relic_take": [
+     [
+      67,
+      "7",
+      [
+       "先锋",
+       "近卫"
+      ]
+     ],
+     [
+      71,
+      "127",
+      [
+       "先锋",
+       "近卫"
+      ]
+     ],
+     [
+      112,
+      "139",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      127,
+      "131",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      127,
+      "224",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      167,
+      "113",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      243,
+      "238",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      247,
+      "85",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      286,
+      "183",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      313,
+      "213",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      313,
+      "77",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      313,
+      "137",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      361,
+      "83",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      368,
+      "91",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      374,
+      "171",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      395,
+      "130",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      402,
+      "237",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      414,
+      "84",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      437,
+      "115",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      471,
+      "16",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      474,
+      "239",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      482,
+      "166",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ],
+     [
+      482,
+      "181",
+      [
+       "先锋",
+       "近卫",
+       "辅助"
+      ]
+     ]
+    ],
+    "relics": 23,
+    "squad": [
+     "texas",
+     "lappland",
+     "suzuran"
+    ],
+    "sus": {
+     "m0": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "事件": [
+        0.0,
+        33.8
+       ],
+       "商店": [
+        0.0,
+        67.6
+       ],
+       "拾取": [
+        16.6056535698002,
+        146.25
+       ]
+      },
+      "lit": 0.0
+     },
+     "m3": {
+      "clean": {},
+      "dr": {
+       "lappland": 141.333504165898
+      },
+      "heal": {
+       "拾取": [
+        199.475530541875,
+        377.6136
+       ],
+       "铃兰": [
+        59.7745642274523,
+        60.933795
+       ]
+      },
+      "lit": 0.0
+     },
+     "m6": {
+      "clean": {},
+      "dr": {
+       "lappland": 129.526587123064
+      },
+      "heal": {
+       "商店": [
+        111.51972,
+        111.51972
+       ],
+       "拾取": [
+        297.623522081751,
+        484.63623
+       ],
+       "无人机": [
+        42.894228,
+        42.894228
+       ],
+       "铃兰": [
+        248.956434392761,
+        251.0544855
+       ]
+      },
+      "lit": 0.0
+     }
+    },
+    "swaps": [],
+    "t": 491,
+    "terrain": {
+     "bul": 0,
+     "dash": 0,
+     "ebul": 34
+    },
+    "win": false,
+    "xp_backstop": 0.0,
+    "xp_dropped": 6887.3,
+    "xp_ground": 262.5,
+    "xp_magnet": 1470.5,
+    "xp_magnet_min": [
+     7.5,
+     7.5,
+     79.5,
+     90.0,
+     572.0,
+     0.0,
+     506.5,
+     207.5
+    ],
+    "xp_recall": 451.5,
+    "xp_recall_min": [
+     0.0,
+     9.5,
+     60.0,
+     45.0,
+     47.5,
+     82.5,
+     125.0,
+     82.0
+    ],
+    "xp_total": 7264.0,
+    "xp_total_min": [
+     150.0,
+     380.0,
+     425.5,
+     468.0,
+     1050.8,
+     1672.8,
+     1260.0,
+     1661.5,
+     195.5
+    ],
+    "xp_walk": 4702.8,
+    "xp_walk_min": [
+     142.5,
+     363.0,
+     286.0,
+     333.0,
+     431.3,
+     951.0,
+     628.5,
+     1372.0,
+     195.5
+    ]
+   }
+  },
+  {
+   "squad": [
+    "texas",
+    "lappland"
+   ],
+   "seed": 3,
+   "diff": 0,
+   "bot": "expert",
+   "tier": 0,
+   "placebo": 0,
+   "wall": 24.9,
+   "data": {
+    "allies": 2,
+    "armor_cf": {
+     "m0": {
+      "a2": 32.4187543511165,
+      "a4": 27.0,
+      "a8": 19.0,
+      "all": 38.4187543511165,
+      "armor": 9.0,
+      "n": 3,
+      "phys": 38.4187543511165,
+      "phys_n": 3,
+      "phys_pre": 47.4187543511165
+     },
+     "m4": {
+      "a2": 297.086637497884,
+      "a4": 283.086637497884,
+      "a8": 255.086637497884,
+      "all": 311.086637497884,
+      "armor": 21.0,
+      "n": 7,
+      "phys": 311.086637497884,
+      "phys_n": 7,
+      "phys_pre": 332.086637497884
+     }
+    },
+    "boss_hp": -8.15393012693709e-05,
+    "bosses": [
+     "path:dead"
+    ],
+    "bot": {
+     "bosses": [
+      {
+       "en_alive": 32,
+       "en_alive_pk": 46,
+       "en_near": 8,
+       "en_near_pk": 17,
+       "gates": 1,
+       "on_boss": 0.64,
+       "shield": 1.2,
+       "t0": 210,
+       "t1": 233,
+       "tv": 210,
+       "type": "path",
+       "windows": [
+        {
+         "en": 28,
+         "hits": 0,
+         "hp": 1.0,
+         "moves": 0,
+         "out": 0,
+         "t": 0
+        },
+        {
+         "en": 32,
+         "hits": 4,
+         "hp": 0.59,
+         "moves": 7,
+         "out": 6648,
+         "t": 15
+        },
+        {
+         "en": 22,
+         "hits": 3,
+         "hp": 0.0,
+         "moves": 3,
+         "out": 10357,
+         "t": 31
+        },
+        {
+         "en": 53,
+         "hits": 4,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 2505,
+         "t": 46
+        },
+        {
+         "en": 39,
+         "hits": 3,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 4886,
+         "t": 61
+        },
+        {
+         "en": 38,
+         "hits": 1,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 8137,
+         "t": 76
+        },
+        {
+         "en": 52,
+         "hits": 3,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 9174,
+         "t": 91
+        },
+        {
+         "en": 44,
+         "hits": 102,
+         "hp": 0.0,
+         "moves": 0,
+         "out": 17514,
+         "t": 106
+        }
+       ]
+      }
+     ],
+     "curve": [
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 0,
+       "hp": 100,
+       "hpm": 1.0,
+       "hsrc": {},
+       "kills": 0,
+       "lamp": 100,
+       "lv": 1,
+       "mhp": 149,
+       "outc": 0,
+       "rg": 2.5,
+       "squad": 2,
+       "t": 0,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 10,
+       "hp": 100,
+       "hpm": 1.27,
+       "hsrc": {},
+       "kills": 22,
+       "lamp": 100,
+       "lv": 2,
+       "mhp": 149,
+       "outc": 383,
+       "rg": 2.5,
+       "squad": 2,
+       "t": 30,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 15,
+       "hp": 100,
+       "hpm": 1.55,
+       "hsrc": {},
+       "kills": 59,
+       "lamp": 100,
+       "lv": 4,
+       "mhp": 149,
+       "outc": 1010,
+       "rg": 2.5,
+       "squad": 2,
+       "t": 60,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {},
+       "enemies": 53,
+       "hp": 100,
+       "hpm": 1.82,
+       "hsrc": {},
+       "kills": 113,
+       "lamp": 100,
+       "lv": 6,
+       "mhp": 169,
+       "outc": 3122,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 90,
+       "taken": 0,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "mire": 5
+       },
+       "enemies": 20,
+       "hp": 100,
+       "hpm": 2.09,
+       "hsrc": {
+        "自身回复": 5
+       },
+       "kills": 209,
+       "lamp": 100,
+       "lv": 8,
+       "mhp": 169,
+       "outc": 8305,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 120,
+       "taken": 5,
+       "zone": 0
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "atk_stone": 4,
+        "mire": 27
+       },
+       "enemies": 24,
+       "hp": 100,
+       "hpm": 2.36,
+       "hsrc": {
+        "自身回复": 32
+       },
+       "kills": 274,
+       "lamp": 97,
+       "lv": 9,
+       "mhp": 169,
+       "outc": 11154,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 150,
+       "taken": 32,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "mire": 11
+       },
+       "enemies": 25,
+       "hp": 100,
+       "hpm": 2.64,
+       "hsrc": {
+        "自身回复": 11
+       },
+       "kills": 364,
+       "lamp": 100,
+       "lv": 10,
+       "mhp": 169,
+       "outc": 16180,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 180,
+       "taken": 11,
+       "zone": 2
+      },
+      {
+       "boss": 1,
+       "dsrc": {
+        "mire": 22
+       },
+       "enemies": 31,
+       "hp": 98,
+       "hpm": 2.91,
+       "hsrc": {
+        "自身回复": 19
+       },
+       "kills": 443,
+       "lamp": 100,
+       "lv": 12,
+       "mhp": 169,
+       "outc": 21392,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 210,
+       "taken": 22,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_path": 34,
+        "mire": 22
+       },
+       "enemies": 22,
+       "hp": 100,
+       "hpm": 3.18,
+       "hsrc": {
+        "水月": 3,
+        "自身回复": 55
+       },
+       "kills": 560,
+       "lamp": 90,
+       "lv": 14,
+       "mhp": 169,
+       "outc": 37647,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 240,
+       "taken": 56,
+       "zone": 3
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "mire": 44
+       },
+       "enemies": 37,
+       "hp": 100,
+       "hpm": 3.45,
+       "hsrc": {
+        "水月": 31,
+        "自身回复": 12
+       },
+       "kills": 661,
+       "lamp": 100,
+       "lv": 15,
+       "mhp": 169,
+       "outc": 46147,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 270,
+       "taken": 44,
+       "zone": 1
+      },
+      {
+       "boss": 0,
+       "dsrc": {
+        "contact_reaper": 31,
+        "mire": 5
+       },
+       "enemies": 52,
+       "hp": 100,
+       "hpm": 3.73,
+       "hsrc": {
+        "水月": 22,
+        "自身回复": 14
+       },
+       "kills": 758,
+       "lamp": 100,
+       "lv": 16,
+       "mhp": 169,
+       "outc": 60788,
+       "rg": 3.4,
+       "squad": 3,
+       "t": 300,
+       "taken": 37,
+       "zone": 2
+      }
+     ],
+     "curve_tail": {
+      "dsrc": {
+       "contact_founder": 71,
+       "contact_nest": 32,
+       "contact_slider": 13,
+       "contact_tracer": 73,
+       "mire": 78,
+       "zone": 47
+      },
+      "hsrc": {
+       "拾取": 33,
+       "水月": 136,
+       "自身回复": 62
+      },
+      "mhp": 169,
+      "t": 319,
+      "t0": 300,
+      "taken": 316
+     },
+     "dark_dmg": 6,
+     "dark_s": 2,
+     "death_src": "zone",
+     "elite_t": {
+      "lappland:1": 184,
+      "mizuki:1": 236,
+      "texas:1": 54,
+      "texas:2": 118
+     },
+     "end": {
+      "boss": false,
+      "hp": 0,
+      "last15": {
+       "corrode_out": 0.0,
+       "corrode_peak": 0.0,
+       "dark_s": 2.2,
+       "ebullets_peak": 12,
+       "enemies_peak": 54,
+       "hits": [
+        {
+         "amt": 32.6,
+         "boss": false,
+         "hp_after": 103,
+         "src": "contact_nest",
+         "t": 304.3,
+         "zone_out": false
+        },
+        {
+         "amt": 5.5,
+         "boss": false,
+         "hp_after": 141,
+         "src": "mire",
+         "t": 308.2,
+         "zone_out": true
+        },
+        {
+         "amt": 5.5,
+         "boss": false,
+         "hp_after": 141,
+         "src": "mire",
+         "t": 308.4,
+         "zone_out": true
+        },
+        {
+         "amt": 5.5,
+         "boss": false,
+         "hp_after": 148,
+         "src": "mire",
+         "t": 309.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 147,
+         "src": "zone",
+         "t": 310.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 147,
+         "src": "zone",
+         "t": 310.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 151,
+         "src": "zone",
+         "t": 310.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 151,
+         "src": "zone",
+         "t": 310.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 150,
+         "src": "zone",
+         "t": 310.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 150,
+         "src": "zone",
+         "t": 310.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 150,
+         "src": "zone",
+         "t": 310.4,
+         "zone_out": true
+        },
+        {
+         "amt": 5.5,
+         "boss": false,
+         "hp_after": 144,
+         "src": "mire",
+         "t": 310.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 144,
+         "src": "zone",
+         "t": 310.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 144,
+         "src": "zone",
+         "t": 310.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 148,
+         "src": "zone",
+         "t": 310.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 147,
+         "src": "zone",
+         "t": 310.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 147,
+         "src": "zone",
+         "t": 310.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 147,
+         "src": "zone",
+         "t": 310.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 146,
+         "src": "zone",
+         "t": 310.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 146,
+         "src": "zone",
+         "t": 310.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 146,
+         "src": "zone",
+         "t": 311.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 139,
+         "src": "zone",
+         "t": 311.1,
+         "zone_out": true
+        },
+        {
+         "amt": 13.3,
+         "boss": false,
+         "hp_after": 139,
+         "src": "contact_slider",
+         "t": 311.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 139,
+         "src": "zone",
+         "t": 311.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 138,
+         "src": "zone",
+         "t": 311.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 138,
+         "src": "zone",
+         "t": 311.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 138,
+         "src": "zone",
+         "t": 311.3,
+         "zone_out": true
+        },
+        {
+         "amt": 5.5,
+         "boss": false,
+         "hp_after": 132,
+         "src": "mire",
+         "t": 311.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 132,
+         "src": "zone",
+         "t": 311.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 132,
+         "src": "zone",
+         "t": 311.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 132,
+         "src": "zone",
+         "t": 311.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 131,
+         "src": "zone",
+         "t": 311.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 135,
+         "src": "zone",
+         "t": 311.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 137,
+         "src": "zone",
+         "t": 311.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 137,
+         "src": "zone",
+         "t": 311.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 137,
+         "src": "zone",
+         "t": 311.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 137,
+         "src": "zone",
+         "t": 311.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 137,
+         "src": "zone",
+         "t": 312.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 136,
+         "src": "zone",
+         "t": 312.0,
+         "zone_out": true
+        },
+        {
+         "amt": 5.5,
+         "boss": false,
+         "hp_after": 131,
+         "src": "mire",
+         "t": 312.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 131,
+         "src": "zone",
+         "t": 312.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 131,
+         "src": "zone",
+         "t": 312.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 131,
+         "src": "zone",
+         "t": 312.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 130,
+         "src": "zone",
+         "t": 312.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 130,
+         "src": "zone",
+         "t": 312.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 134,
+         "src": "zone",
+         "t": 312.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 134,
+         "src": "zone",
+         "t": 312.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 133,
+         "src": "zone",
+         "t": 312.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 133,
+         "src": "zone",
+         "t": 312.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 133,
+         "src": "zone",
+         "t": 312.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 133,
+         "src": "zone",
+         "t": 312.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 132,
+         "src": "zone",
+         "t": 312.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 136,
+         "src": "zone",
+         "t": 312.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 136,
+         "src": "zone",
+         "t": 313.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 136,
+         "src": "zone",
+         "t": 313.0,
+         "zone_out": true
+        },
+        {
+         "amt": 5.5,
+         "boss": false,
+         "hp_after": 130,
+         "src": "mire",
+         "t": 313.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 130,
+         "src": "zone",
+         "t": 313.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 130,
+         "src": "zone",
+         "t": 313.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 133,
+         "src": "zone",
+         "t": 313.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 133,
+         "src": "zone",
+         "t": 313.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 133,
+         "src": "zone",
+         "t": 313.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 134,
+         "src": "zone",
+         "t": 313.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 169,
+         "src": "zone",
+         "t": 313.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 168,
+         "src": "zone",
+         "t": 313.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 169,
+         "src": "zone",
+         "t": 313.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 168,
+         "src": "zone",
+         "t": 313.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 168,
+         "src": "zone",
+         "t": 313.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 168,
+         "src": "zone",
+         "t": 313.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 169,
+         "src": "zone",
+         "t": 313.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 169,
+         "src": "zone",
+         "t": 314.0,
+         "zone_out": true
+        },
+        {
+         "amt": 5.5,
+         "boss": false,
+         "hp_after": 163,
+         "src": "mire",
+         "t": 314.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 163,
+         "src": "zone",
+         "t": 314.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 162,
+         "src": "zone",
+         "t": 314.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 165,
+         "src": "zone",
+         "t": 314.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 164,
+         "src": "zone",
+         "t": 314.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 164,
+         "src": "zone",
+         "t": 314.3,
+         "zone_out": true
+        },
+        {
+         "amt": 5.5,
+         "boss": false,
+         "hp_after": 158,
+         "src": "mire",
+         "t": 314.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 158,
+         "src": "zone",
+         "t": 314.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 158,
+         "src": "zone",
+         "t": 314.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 158,
+         "src": "zone",
+         "t": 314.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 158,
+         "src": "zone",
+         "t": 314.6,
+         "zone_out": true
+        },
+        {
+         "amt": 5.5,
+         "boss": false,
+         "hp_after": 152,
+         "src": "mire",
+         "t": 314.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 152,
+         "src": "zone",
+         "t": 314.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 156,
+         "src": "zone",
+         "t": 314.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 156,
+         "src": "zone",
+         "t": 314.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 157,
+         "src": "zone",
+         "t": 314.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 157,
+         "src": "zone",
+         "t": 314.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 156,
+         "src": "zone",
+         "t": 315.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 156,
+         "src": "zone",
+         "t": 315.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 156,
+         "src": "zone",
+         "t": 315.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 156,
+         "src": "zone",
+         "t": 315.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 156,
+         "src": "zone",
+         "t": 315.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 155,
+         "src": "zone",
+         "t": 315.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 155,
+         "src": "zone",
+         "t": 315.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 155,
+         "src": "zone",
+         "t": 315.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 155,
+         "src": "zone",
+         "t": 315.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 154,
+         "src": "zone",
+         "t": 315.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 154,
+         "src": "zone",
+         "t": 315.6,
+         "zone_out": true
+        },
+        {
+         "amt": 5.5,
+         "boss": false,
+         "hp_after": 148,
+         "src": "mire",
+         "t": 315.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.5,
+         "boss": false,
+         "hp_after": 148,
+         "src": "zone",
+         "t": 315.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 148,
+         "src": "zone",
+         "t": 315.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 148,
+         "src": "zone",
+         "t": 315.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 148,
+         "src": "zone",
+         "t": 315.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 148,
+         "src": "zone",
+         "t": 315.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 152,
+         "src": "zone",
+         "t": 316.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.4,
+         "boss": false,
+         "hp_after": 152,
+         "src": "zone",
+         "t": 316.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 151,
+         "src": "zone",
+         "t": 316.1,
+         "zone_out": true
+        },
+        {
+         "amt": 5.5,
+         "boss": false,
+         "hp_after": 146,
+         "src": "mire",
+         "t": 316.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 146,
+         "src": "zone",
+         "t": 316.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 146,
+         "src": "zone",
+         "t": 316.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 316.3,
+         "zone_out": true
+        },
+        {
+         "amt": 71.1,
+         "boss": false,
+         "hp_after": 75,
+         "src": "contact_founder",
+         "t": 316.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 316.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 74,
+         "src": "zone",
+         "t": 316.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 79,
+         "src": "zone",
+         "t": 316.5,
+         "zone_out": true
+        },
+        {
+         "amt": 3.3,
+         "boss": false,
+         "hp_after": 75,
+         "src": "mire",
+         "t": 316.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 316.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 316.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 316.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 316.8,
+         "zone_out": true
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 316.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 316.9,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 317.0,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 317.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 317.1,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 79,
+         "src": "zone",
+         "t": 317.2,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 79,
+         "src": "zone",
+         "t": 317.3,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 79,
+         "src": "zone",
+         "t": 317.3,
+         "zone_out": true
+        },
+        {
+         "amt": 3.3,
+         "boss": false,
+         "hp_after": 75,
+         "src": "mire",
+         "t": 317.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.3,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 317.4,
+         "zone_out": true
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 317.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 317.5,
+         "zone_out": true
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 317.6,
+         "zone_out": true
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 317.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 317.7,
+         "zone_out": true
+        },
+        {
+         "amt": 0.2,
+         "boss": false,
+         "hp_after": 75,
+         "src": "zone",
+         "t": 317.8,
+         "zone_out": true
+        }
+       ],
+       "mire_s": 5.7,
+       "nerve_bursts": 0,
+       "t": 319.0
+      },
+      "src": "zone",
+      "t": 319,
+      "zone_out": false,
+      "zone_phase": 1,
+      "zone_state": 3
+     },
+     "floors": [],
+     "hits": 155,
+     "hits_pm": 29.1,
+     "low_hp_s": 0,
+     "moved_pm": 23404,
+     "peak": [
+      54,
+      14,
+      0,
+      304,
+      22
+     ],
+     "peak_min": [
+      [
+       26,
+       0,
+       0,
+       93,
+       8
+      ],
+      [
+       53,
+       1,
+       0,
+       154,
+       10
+      ],
+      [
+       33,
+       1,
+       0,
+       108,
+       9
+      ],
+      [
+       47,
+       10,
+       0,
+       304,
+       14
+      ],
+      [
+       53,
+       8,
+       0,
+       266,
+       16
+      ],
+      [
+       54,
+       14,
+       0,
+       202,
+       22
+      ]
+     ],
+     "profile": "expert",
+     "reaper_drain_deaths": 0,
+     "recruit_t": [
+      67
+     ],
+     "still_pct": 2,
+     "taken": 525,
+     "taken_pm": 98
+    },
+    "ctrl": {
+     "aslow_slow": 0,
+     "aslow_t": 0.0,
+     "boss_t": 23.1,
+     "floor": 0.7,
+     "move_min": 0.7,
+     "slow_min": 0.55,
+     "stun_slow": 0,
+     "stun_t": 0.0
+    },
+    "ctrl_src": {
+     "boss": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "founder": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "other": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "skimmer": {
+      "dash_break_n": 0,
+      "freeze_n": 0,
+      "freeze_t": 0.0,
+      "slow_t": 0.0
+     },
+     "slow_any_t": 0.0
+    },
+    "dashes": 0,
+    "dmg": {
+     "atk_stone": 4.41875435111647,
+     "contact_founder": 151.102312003973,
+     "contact_nest": 32.6345775675588,
+     "contact_path": 34.0,
+     "contact_reaper": 31.6151721884082,
+     "contact_slider": 13.342967175516,
+     "contact_tracer": 73.7619035454509,
+     "mire": 216.972,
+     "zone": 47.2995781650391
+    },
+    "drone": 0,
+    "elite_stage": 2,
+    "elites": 6,
+    "ending": "standard",
+    "final_out": {
+     "伞击": 7598.47606928579,
+     "余像": 2206.03459870505,
+     "余像·剑雨": 2725.57831978848,
+     "剑雨": 2932.38438778352,
+     "剑雨滂沱": 6387.01403334144,
+     "双刃": 19565.7095170368,
+     "回马剑": 1089.84135206929,
+     "战术快递": 5028.70986598595,
+     "技能·法术": 1651.58039588519,
+     "断喝": 1148.81459302312,
+     "狼之舞": 3586.13176405442,
+     "狼魂": 7723.30361340097,
+     "疾行斩": 6570.90087132894,
+     "触手": 8682.15440081944,
+     "领主": 7159.80036270983
+    },
+    "floor_hits": 0,
+    "floor_times": [],
+    "fuse": {
+     "left": 0,
+     "pct": 0.0,
+     "pool": 0,
+     "t": -1
+    },
+    "growth": {},
+    "heal": {
+     "事件": 0.0,
+     "拾取": 33.8472794799312,
+     "水月": 194.383408506767,
+     "自身回复": 213.300954351117
+    },
+    "heal_offer": 3,
+    "heal_offer_low": 0,
+    "heal_pick": 0,
+    "hordes": [
+     {
+      "comp": {
+       "bone": 6,
+       "slider": 1,
+       "stone": 3
+      },
+      "hp": 441,
+      "hp0": 169,
+      "minhp": 169,
+      "mix": "凿石阵",
+      "n": 10,
+      "t": 75,
+      "t80": 19
+     },
+     {
+      "comp": {
+       "bone": 7,
+       "slider": 6
+      },
+      "hp": 601,
+      "hp0": 169,
+      "minhp": 169,
+      "mix": "滑行群",
+      "n": 13,
+      "t": 165,
+      "t80": 9
+     },
+     {
+      "comp": {
+       "bone": 10,
+       "slider": 5,
+       "stone": 2
+      },
+      "hp": 1200,
+      "hp0": 169,
+      "minhp": 161,
+      "mix": "海嗣先锋",
+      "n": 17,
+      "t": 255,
+      "t80": 7
+     }
+    ],
+    "ingots": 78,
+    "items": {
+     "heal_elite": 3,
+     "heal_low": 0,
+     "heal_mob": 6,
+     "heal_pick": 9,
+     "magnet_elite": 4,
+     "magnet_mob": 8,
+     "magnet_pick": 10,
+     "mob_capped": 174,
+     "mob_rolled": 653
+    },
+    "kills": 834,
+    "lamp": 0,
+    "low_levelups": 0,
+    "lv": 16,
+    "lv_times": [
+     15,
+     30,
+     53,
+     67,
+     88,
+     95,
+     118,
+     136,
+     167,
+     183,
+     206,
+     235,
+     235,
+     264,
+     295
+    ],
+    "marks": {
+     "120": 8,
+     "300": 16
+    },
+    "maxhp": 169.0,
+    "ops": [
+     {
+      "elite": 2,
+      "id": "texas",
+      "prog": 6
+     },
+     {
+      "elite": 1,
+      "id": "lappland",
+      "prog": 4
+     },
+     {
+      "elite": 1,
+      "id": "mizuki",
+      "prog": 4
+     }
+    ],
+    "out": {
+     "伞击": 7598.47606928579,
+     "余像": 2206.03459870505,
+     "余像·剑雨": 2725.57831978848,
+     "剑雨": 2932.38438778352,
+     "剑雨滂沱": 6387.01403334144,
+     "双刃": 19565.7095170368,
+     "回马剑": 1089.84135206929,
+     "战术快递": 5028.70986598595,
+     "技能·法术": 1651.58039588519,
+     "断喝": 1148.81459302312,
+     "狼之舞": 3586.13176405442,
+     "狼魂": 7723.30361340097,
+     "疾行斩": 6570.90087132894,
+     "触手": 8682.15440081944,
+     "领主": 7159.80036270983
+    },
+    "out_tag": {
+     "aftershock": 1651.58039588519,
+     "area": 46493.3029536823,
+     "basic": 68766.5304259983,
+     "control": 2206.03459870505,
+     "dot": 4412.0691974101,
+     "empowered": 4990.57260267734,
+     "follow_up": 16715.5214755222,
+     "pierce": 19076.4661227256,
+     "projectile": 14883.1039761108,
+     "skill": 28013.6808515361,
+     "stun": 12044.9767409134
+    },
+    "out_type": {
+     "法术": 18057.0384101056,
+     "物理": 65999.3957351125
+    },
+    "prof": {},
+    "prog_offer": {
+     "lappland": 7,
+     "mizuki": 8,
+     "texas": 7
+    },
+    "prog_pick": {
+     "lappland": 4,
+     "mizuki": 4,
+     "texas": 6
+    },
+    "recall_backstop": 0,
+    "recall_n": 12,
+    "rej": {},
+    "relic_offer": [
+     [
+      94,
+      "choice",
+      [
+       "19",
+       "261",
+       "14"
+      ]
+     ],
+     [
+      120,
+      "shop",
+      [
+       "3",
+       "213",
+       "130"
+      ]
+     ],
+     [
+      124,
+      "choice",
+      [
+       "34",
+       "231",
+       "195"
+      ]
+     ],
+     [
+      154,
+      "choice",
+      [
+       "251",
+       "247",
+       "207"
+      ]
+     ],
+     [
+      190,
+      "choice",
+      [
+       "172",
+       "49",
+       "106"
+      ]
+     ],
+     [
+      239,
+      "choice",
+      [
+       "4",
+       "59",
+       "12"
+      ]
+     ],
+     [
+      241,
+      "choice",
+      [
+       "20",
+       "166",
+       "13"
+      ]
+     ]
+    ],
+    "relic_out": 0.0,
+    "relic_take": [
+     [
+      94,
+      "261",
+      [
+       "先锋",
+       "近卫",
+       "特种"
+      ]
+     ],
+     [
+      122,
+      "3",
+      [
+       "先锋",
+       "近卫",
+       "特种"
+      ]
+     ],
+     [
+      124,
+      "231",
+      [
+       "先锋",
+       "近卫",
+       "特种"
+      ]
+     ],
+     [
+      154,
+      "207",
+      [
+       "先锋",
+       "近卫",
+       "特种"
+      ]
+     ],
+     [
+      190,
+      "172",
+      [
+       "先锋",
+       "近卫",
+       "特种"
+      ]
+     ],
+     [
+      239,
+      "59",
+      [
+       "先锋",
+       "近卫",
+       "特种"
+      ]
+     ],
+     [
+      241,
+      "166",
+      [
+       "先锋",
+       "近卫",
+       "特种"
+      ]
+     ],
+     [
+      245,
+      "239",
+      [
+       "先锋",
+       "近卫",
+       "特种"
+      ]
+     ]
+    ],
+    "relics": 8,
+    "squad": [
+     "texas",
+     "lappland",
+     "mizuki"
+    ],
+    "sus": {
+     "m0": {
+      "clean": {},
+      "dr": {},
+      "heal": {
+       "事件": [
+        0.0,
+        33.8
+       ],
+       "拾取": [
+        0.0,
+        152.1
+       ]
+      },
+      "lit": 0.0
+     },
+     "m3": {
+      "clean": {},
+      "dr": {
+       "lappland": 44.125355084888
+      },
+      "heal": {
+       "拾取": [
+        33.8472794799312,
+        304.2
+       ],
+       "水月": [
+        194.383408506767,
+        610.884300000001
+       ]
+      },
+      "lit": 0.0
+     }
+    },
+    "swaps": [],
+    "t": 319,
+    "terrain": {
+     "bul": 0,
+     "dash": 0,
+     "ebul": 0
+    },
+    "win": false,
+    "xp_backstop": 0.0,
+    "xp_dropped": 2824.5,
+    "xp_ground": 107.5,
+    "xp_magnet": 714.0,
+    "xp_magnet_min": [
+     0.0,
+     64.0,
+     60.0,
+     472.5,
+     117.5
+    ],
+    "xp_recall": 117.5,
+    "xp_recall_min": [
+     0.0,
+     2.5,
+     0.0,
+     22.5,
+     77.5,
+     15.0
+    ],
+    "xp_total": 2717.0,
+    "xp_total_min": [
+     137.5,
+     354.5,
+     445.0,
+     841.3,
+     706.3,
+     232.5
+    ],
+    "xp_walk": 1885.5,
+    "xp_walk_min": [
+     137.5,
+     288.0,
+     385.0,
+     346.3,
+     511.3,
+     217.5
+    ]
+   }
+  }
+ ]
+}
