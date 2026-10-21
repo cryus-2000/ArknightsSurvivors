@@ -1004,7 +1004,14 @@ func _v2_result(dsz: Vector2) -> void:
 	# 左：队长站在一块暗斜板上，脚底出画面下缘
 	draw_colored_polygon(PackedVector2Array([Vector2(0, 0), Vector2(440, 0), Vector2(320, H), Vector2(0, H)]), Color(0.07, 0.085, 0.11))
 	draw_colored_polygon(PackedVector2Array([Vector2(440, 0), Vector2(452, 0), Vector2(332, H), Vector2(320, H)]), UI.fa(lead.col, 0.8))
-	_figure(lead, Vector2(220, H + 30), 6.0, Color(0, 0, 0, 0), 0, false)
+	_figure(lead, Vector2(210, H - 70), 6.0, Color(0, 0, 0, 0), 0, false)
+	# 队长读数（作战记录 run_stats：伤害占比 / 参与击杀 / 等级与精英阶段）
+	draw_rect(Rect2(0, H - 64, 330, 64), Color(0, 0, 0, 0.55))
+	UI.btab(self, font, Vector2(24, H - 56), "队长", UI.VIOLET, 9)
+	UI.text_at(self, font, Vector2(64, H - 49), "水月", 15, UI.TEXT, "lm", true)
+	UI.text_at(self, font, Vector2(24, H - 24), "伤害 46%  ·  参与击杀 590  ·  Lv.24 精二", 11, UI.fa(UI.TEXT, 0.85), "lm")
+	draw_rect(Rect2(24, H - 10, 280, 3), Color(1, 1, 1, 0.08))
+	draw_rect(Rect2(24, H - 10, 280 * 0.46, 3), lead.col)
 	UI.code(self, font, Vector2(24, 20), "OPERATION REPORT  //  ENDING 01  //  潮位 8", 9, UI.fa(UI.TEXT, 0.6))
 	# 评级大字（描边）+ 结果
 	draw_string_outline(font, Vector2(470, 40 + font.get_ascent(220)), "A", HORIZONTAL_ALIGNMENT_LEFT, -1, 220, 4, UI.fa(UI.TEXT, 0.9))
@@ -1015,20 +1022,42 @@ func _v2_result(dsz: Vector2) -> void:
 	UI.text_at(self, font, Vector2(640, 182), "泡影散了。水月回到岸上，准备好好吃一顿，迎接明天。", 11, UI.B_SUB)
 	# 数据表：项目 / 数值 / 条形读数（长条）
 	var rows := [["探索时间", "10:24", 1.0], ["击杀", "1,284", 0.86], ["精英击杀", "23", 0.55], ["Boss 击破", "3 / 3", 1.0], ["造成伤害", "412,880", 0.92], ["受到的伤害", "1,206", 0.18]]
-	var ty := 228.0
+	var ty := 222.0
 	draw_line(Vector2(640, ty - 8), Vector2(W - 40, ty - 8), UI.fa(UI.TEXT, 0.5), 1.0)
 	for i in rows.size():
-		var y := ty + i * 30
+		var y := ty + i * 24
 		var sl := 0.0 if i < 4 else (14.0 if i == 4 else 30.0)   # 横滑：后两行还在滑入
 		UI.text_at(self, font, Vector2(640 + sl, y + 10), rows[i][0], 12, UI.fa(UI.TEXT, 0.75 if sl == 0.0 else 0.4), "lm")
 		draw_rect(Rect2(760 + sl, y + 8, 300, 4), Color(1, 1, 1, 0.07))
 		draw_rect(Rect2(760 + sl, y + 8, 300 * rows[i][2], 4), UI.fa(UI.B_ACC, 0.9 if sl == 0.0 else 0.35))
 		UI.text_at(self, font, Vector2(W - 40 + sl, y + 10), rows[i][1], 16, UI.fa(UI.TEXT, 1.0 if sl == 0.0 else 0.4), "rm", true)
 	# 计分 → 系数 → 生机细胞
-	var sy := ty + rows.size() * 30 + 10
+	var sy := ty + rows.size() * 24 + 6
 	draw_line(Vector2(640, sy), Vector2(W - 40, sy), UI.fa(UI.TEXT, 0.5), 1.0)
 	UI.text_at(self, font, Vector2(640, sy + 18), "探索评分  存活 100 + 中期 Boss 40 + 通关 60  =  200   × 潮位 8  ×1.4   + 结局首达 40   ÷ 8", 11, UI.B_SUB, "lm")
 	UI.text_at(self, font, Vector2(W - 40, sy + 18), "40", 16, UI.TEXT, "rm", true)
+	# 本局编队：队友小像（3 倍，出卡框上缘）+ 一行读数；换下的灰显「已撤退」，本局新解锁的标 NEW（队长在左侧大立绘）
+	var mates := [["lumen", "伤害 21%  ·  击杀 312", "Lv.18 精一", 0.21, "new"], ["skadi", "伤害 27%  ·  击杀 361", "Lv.16 精一", 0.27, ""],
+		["exusiai", "伤害 6%  ·  击杀 21", "Lv.9 精零", 0.06, "out"]]
+	var qy := sy + 38.0
+	UI.code(self, font, Vector2(640, qy), "SQUAD  //  本局编队 · 队友", 9, UI.fa(UI.TEXT, 0.6))
+	for i in mates.size():
+		var od := _card(mates[i][0])
+		var out: bool = mates[i][4] == "out"
+		var r := Rect2(640 + i * 204, qy + 60, 192, 64)
+		draw_rect(r, Color(0.07, 0.08, 0.1, 0.9))
+		draw_rect(Rect2(r.position, Vector2(3, r.size.y)), UI.fa(od.col, 0.35 if out else 1.0))
+		_figure(od, Vector2(r.position.x + 34, r.end.y - 6), 1.0, Color(0.22, 0.23, 0.27) if out else Color(0, 0, 0, 0), 0, false)
+		UI.text_at(self, font, r.position + Vector2(72, 16), od.name, 14, UI.fa(UI.TEXT, 0.45 if out else 1.0), "lm", true)
+		UI.text_at(self, font, r.position + Vector2(72, 36), mates[i][1], 10, UI.fa(UI.TEXT, 0.45 if out else 0.85), "lm")
+		UI.text_at(self, font, r.position + Vector2(72, 52), mates[i][2], 10, UI.fa(UI.B_SUB, 0.6 if out else 1.0), "lm")
+		draw_rect(Rect2(r.position.x + 72, r.end.y - 4, r.size.x - 84, 2), Color(1, 1, 1, 0.08))
+		draw_rect(Rect2(r.position.x + 72, r.end.y - 4, (r.size.x - 84) * mates[i][3], 2), UI.fa(od.col, 0.4 if out else 1.0))
+		if mates[i][4] == "new":
+			UI.para(self, Rect2(r.end.x - 52, r.position.y + 6, 44, 16), 4.0, Color8(255, 196, 80))
+			UI.en(self, font, Vector2(r.end.x - 42, r.position.y + 18), "NEW", 9, V2_INK, 3.0)
+		elif out:
+			UI.btab(self, font, Vector2(r.end.x - 56, r.position.y + 6), "已撤退", Color(0.3, 0.32, 0.36), 9)
 	# 底部：获得物资条（原作结算的一排奖励，带光圈 + 分类小标签）
 	draw_rect(Rect2(332, H - 150, W - 332, 150), Color(0, 0, 0, 0.45))
 	UI.code(self, font, Vector2(372, H - 136), "REWARDS  //  获得", 9, UI.fa(UI.TEXT, 0.6))
