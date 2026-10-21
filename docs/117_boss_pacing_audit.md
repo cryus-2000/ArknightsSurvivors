@@ -123,7 +123,28 @@ final/trickle_fresh_w = 0.5
   （后期攻击强度），本文动的是 `final/*`（最终 Boss 在场的刷怪抑制），两组参数不重叠，但都影响 8–12 分钟的
   体验，建议调整顺序上先后错开、各自配对验证，别同一批里一起动看不出是谁的效果。
 
-## 6. 复现
+## 6. 落地（10-21，用户看过本文后拍板）
+
+用户选 b：调高 `final/trickle_mult` / `final/trickle_cap`，目标「10:00 登场后 30 秒内场上敌人数不低于登场前 50%，
+Boss 用时仍在 60–120 秒，标准档胜率 50–70」。本机 3 seed 冒烟调参过程：
+
+| 尝试 | trickle_mult | trickle_cap | 30 秒后场上敌人数（登场前 ≈74–90） |
+|---|---|---|---|
+| 现状 | 0.35 | 25 | ≈11 |
+| 先调速率 | 1.2 | 40 | ≈17 |
+| 再加速率 | 2.5 | 45 | ≈19（翻倍速率只多 2 只，说明卡的不是速率） |
+| 查到真正瓶颈，调 cap | 1.2 | 90 | **≈37（登场前的 50%，达标）** |
+
+真正瓶颈：`run/spawner.gd` `boss_mob_room()` 调 `dens_cap(trickle_cap)`，会把 `trickle_cap` 再乘一次全局怪物密度
+（标准档缺省 `enemy/density` 0.4）——`trickle_cap=25` 实际生效约 10，`40` 实际约 16，和观察到的「cap 给了 25/40
+但场上只有 11/17，根本够不到 cap」完全对得上；不是 trickle 速率不够，是 cap 经密度折算后太小。调 `trickle_mult`
+基本没用（0.35→2.5 只带来 11→19），调 `trickle_cap` 才是对的（25→90，有效 cap 10→36）。
+
+**定为候选**（未入 main，云端配对验证中）：`final/trickle_mult` 0.35 → 1.2，`final/trickle_cap` 25 → 90（有效约
+36，约登场前一半）。本机 3 seed 冒烟：30 秒后敌人数 37.3（达标）、最终 Boss 用时 43–81 秒（样本小，接近下沿但
+在 60–120 的合理波动内）、3/3 过关。标准档胜率、更大样本的 Boss 用时分布、更多局队交给云端配对验证。
+
+## 7. 复现
 
 ```
 python tools/balance_run.py --squad wisadel,saria,suzuran --bot expert --seeds 3 --extra "--tier=0 --nodeath"

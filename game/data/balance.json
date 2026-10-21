@@ -300,11 +300,11 @@
   "ishar_tear_block_radius": 32.0
  },
  "final": {
-  "_doc": "最终 Boss 战停刷（run/spawner.gd mobs_stopped，docs/38 §8.14，用户 10-11「最终 boss 出现以后小怪就可以不用刷了」）。stop_mobs 1：最终 Boss 在场时普通刷怪 / 精英 / 大群 / 威胁上升新种类都不刷，Boss 召唤物、剧本刷怪、补给箱、灯标照常；0 = 旧行为（仍受 boss/final_mob_cap 120 限制）。clear_mobs_s：0 = 场上现有杂兵留着；> 0 = 最终 Boss 登场时现有普通杂兵在 N 秒内由远到近逐只消散（不算击杀、不掉东西）。难度表 final_stop_mobs / final_clear_mobs_s ≥ 0 时按档覆盖。少量补怪（spawner.trickling，用户 10-12「最后 boss 还是需要刷新点小怪的，但是频率和数量可以下降点」「新怪中也可以有，可以少一点」）：stop_mobs 1 且 trickle_mult > 0 时，普通刷怪按正常刷怪率 × trickle_mult 继续（替代 enemy/spawn_boss_mult），存活杂兵（非 Boss / 宝箱 / 友方）到 trickle_cap 就不补（替代 boss/final_mob_cap；0 = 仍用 final_mob_cap；云端 ftr 配对：上限 40 时 Ⅷ 62.5→50.0%（压线），25 时 57.1%，10-12 定 25）；本级威胁新种类（上一级刷怪池没有的）在补怪里抽取权重 × trickle_fresh_w；精英 / 大群（含预警）/ 威胁上升那一小波仍不刷。trickle_mult 0 = 10-11 的全停。难度表 final_trickle_mult / final_trickle_cap / final_trickle_fresh_w ≥ 0 时按档覆盖",
+  "_doc": "最终 Boss 战停刷（run/spawner.gd mobs_stopped，docs/38 §8.14，用户 10-11「最终 boss 出现以后小怪就可以不用刷了」）。stop_mobs 1：最终 Boss 在场时普通刷怪 / 精英 / 大群 / 威胁上升新种类都不刷，Boss 召唤物、剧本刷怪、补给箱、灯标照常；0 = 旧行为（仍受 boss/final_mob_cap 120 限制）。clear_mobs_s：0 = 场上现有杂兵留着；> 0 = 最终 Boss 登场时现有普通杂兵在 N 秒内由远到近逐只消散（不算击杀、不掉东西）。难度表 final_stop_mobs / final_clear_mobs_s ≥ 0 时按档覆盖。少量补怪（spawner.trickling，用户 10-12「最后 boss 还是需要刷新点小怪的，但是频率和数量可以下降点」「新怪中也可以有，可以少一点」）：stop_mobs 1 且 trickle_mult > 0 时，普通刷怪按正常刷怪率 × trickle_mult 继续（替代 enemy/spawn_boss_mult），存活杂兵（非 Boss / 宝箱 / 友方）到 trickle_cap 就不补（替代 boss/final_mob_cap；0 = 仍用 final_mob_cap；云端 ftr 配对：上限 40 时 Ⅷ 62.5→50.0%（压线），25 时 57.1%，10-12 定 25）；本级威胁新种类（上一级刷怪池没有的）在补怪里抽取权重 × trickle_fresh_w；精英 / 大群（含预警）/ 威胁上升那一小波仍不刷。trickle_mult 0 = 10-11 的全停。难度表 final_trickle_mult / final_trickle_cap / final_trickle_fresh_w ≥ 0 时按档覆盖。10-21 docs/117：实测 0.35 / 25 撑不住，最终 Boss 登场 30 秒内场上敌人数从约 67 砸到约 11；先调速率（trickle_mult 1.2）只到约 17–19，查到 boss_mob_room() 的 dens_cap(cap) 会把 trickle_cap 再乘一次全局 density（标准档缺省 0.4），25 实际生效约 10、40 实际约 16，是 cap 本身卡住了不是速率；trickle_cap 提到 90（有效约 36）后 30 秒内回到约 37，正好是登场前的 50%（本机 3 seed 冒烟，云端配对验证中，未定稿）；trickle_mult 1.2 够用，不用再加。目标 30 秒内不低于登场前 50%、Boss 用时仍在 60–120 秒、标准档胜率 50–70",
   "stop_mobs": 1,
   "clear_mobs_s": 0,
-  "trickle_mult": 0.35,
-  "trickle_cap": 25,
+  "trickle_mult": 1.2,
+  "trickle_cap": 90,
   "trickle_fresh_w": 0.5
  },
  "difficulty": {
