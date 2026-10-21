@@ -14,8 +14,12 @@ const FIRST_DRAW := "lumen"
 ## 同职业里先出「上手快」的那位：权重 2（其余 1）；后加入的干员排在同职业第二人之后：权重 0.5
 ## （10-22 拉普兰德 近卫、歌蕾蒂娅 特种，协调人定）
 const PRIORITY := {"lumen": 2.0, "skadi": 2.0, "specter_unchained": 2.0, "lappland": 0.5, "gladiia": 0.5}
-## 意向干员保底：连续 PITY - 1 张没出，第 PITY 张必出
+## 意向干员保底：连续 PITY - 1 张没出，第 PITY 张必出（10-22 用户删掉意向与保底，表现层不再设意向；旧存档里的意向不再生效）
 const PITY := 3
+## 10-22 用户定：只有一种券「寻访凭证」。每次结算 3 张、通关 4 张；寻访一次（随机 1 名）1 张，定向寻访（选职业再指定干员）2 张
+const PER_RUN := 3
+const PER_CLEAR := 4
+const DIRECTED_COST := 2
 ## 三种券：寻访凭证（随机）/ 招募券（选职业）/ 人事调度函（指定）
 const T_HUNT := "hunt"
 const T_CLASS := "cls"
@@ -117,15 +121,13 @@ static func _weighted(ids: Array) -> String:
 	return ids[ids.size() - 1]
 
 
-## 寻访凭证：第一张固定流明；意向干员到保底必出；还有职业一个都没有时只从缺的职业里抽；同职业「上手快」权重 2
+## 寻访凭证：第一张固定流明；还有职业一个都没有时只从缺的职业里抽；同职业「上手快」权重 2
 static func choose_hunt() -> String:
 	var locked := locked_ids()
 	if locked.is_empty():
 		return ""
 	if Cfg.roster_draws == 0 and locked.has(FIRST_DRAW):
 		return FIRST_DRAW
-	if Cfg.roster_wish != "" and locked.has(Cfg.roster_wish) and Cfg.roster_pity >= PITY - 1:
-		return Cfg.roster_wish
 	var owned := owned_classes()
 	var fresh: Array = locked.filter(func(c): return not owned.has(class_of(c)))
 	return _weighted(fresh if not fresh.is_empty() else locked)
@@ -194,6 +196,27 @@ static func redeem_pick(cid: String) -> Dictionary:
 	return _result(T_PICK, cid if locked_ids().has(cid) else "")
 
 
+## 定向寻访：用 DIRECTED_COST 张寻访凭证指定解锁 cid（先选职业、再选人由表现层做）；凭证不够或 cid 已解锁时不兑换
+static func redeem_directed(cid: String) -> Dictionary:
+	if int(Cfg.roster_tickets.get(T_HUNT, 0)) < DIRECTED_COST or not locked_ids().has(cid):
+		return {"kind": "directed", "id": ""}
+	var r := {"kind": "directed", "id": cid, "new_class": not owned_classes().has(class_of(cid)), "wish": false, "pity_hit": false}
+	Cfg.roster_tickets[T_HUNT] = int(Cfg.roster_tickets[T_HUNT]) - (DIRECTED_COST - 1)
+	redeem(T_HUNT, cid)
+	return r
+
+
+## 旧存档的招募券 / 人事调度函（10-22 前的三种券）折成寻访凭证：招募券 1 张、人事调度函 2 张（= 一次定向）
+static func migrate_tickets() -> void:
+	var n := int(Cfg.roster_tickets.get(T_CLASS, 0)) + int(Cfg.roster_tickets.get(T_PICK, 0)) * DIRECTED_COST
+	if n <= 0:
+		return
+	Cfg.roster_tickets[T_HUNT] = int(Cfg.roster_tickets.get(T_HUNT, 0)) + n
+	Cfg.roster_tickets[T_CLASS] = 0
+	Cfg.roster_tickets[T_PICK] = 0
+	Cfg.save()
+
+
 ## 「刚解锁」高亮：解锁后还没在选人页 / 图鉴里看过的干员；表现层显示一次后调 mark_seen
 static func fresh() -> Array:
 	return Cfg.roster_fresh.duplicate()
@@ -214,17 +237,14 @@ static func set_wish(cid: String) -> void:
 
 
 ## 一次探索结束（state 进入 DEAD / WIN，game.gd _process 调一次）：发券。
-## 寻访凭证每次 1 张（撤离也给）；通关 1 张招募券；首通某一难度档 1 张人事调度函。
+## 寻访凭证每次 PER_RUN 张（撤离也给），通关 PER_CLEAR 张（10-22 用户定；招募券 / 人事调度函不再发）。
 ## 不发：演练、练习、图鉴演示、非 PLAY 模式、全部解锁 / 测试局（active() 为假）。名册已满时券记进 roster_spare（P2 换生机细胞）
 static func on_run_end(g, won: bool) -> void:
 	if not active() or g.mode != g.Mode.PLAY or g.trial.active or g.demo_op != "" or Cfg.practice_active:
 		return
-	var add := {T_HUNT: 1}
-	if won:
-		add[T_CLASS] = 1
-		if not Cfg.roster_tiers.has(int(g.tier)):
-			Cfg.roster_tiers.append(int(g.tier))
-			add[T_PICK] = 1
+	var add := {T_HUNT: PER_CLEAR if won else PER_RUN}
+	if won and not Cfg.roster_tiers.has(int(g.tier)):
+		Cfg.roster_tiers.append(int(g.tier))
 	var full := locked_ids().is_empty()
 	for k in add:
 		if full:

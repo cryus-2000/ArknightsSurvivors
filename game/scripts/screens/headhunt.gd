@@ -1,42 +1,44 @@
 extends RefCounted
-## 界面 · 寻访（局外成长 P1，docs/109 §12；表现层 docs/124 第三版 + §11 揭示屏加厚）：结算面板出来后，有待用的券就盖一层寻访。
-## 先一次用完寻访凭证，再用定向券（招募券选职业 → 人事调度函选干员），然后整段演出：
-##   拉开作战包（只拉一次，光按本次最高档）→ 光炸 → 每名干员一屏揭示（滑入 → 信号解码 → 待机循环 + 名牌 + NEW 章，5 秒自动下一名）→ 寻访结果
-## 点按 / Enter：本屏直接到终态，再按下一名；Esc / 右上「跳过」：直接到寻访结果。不配语音，只用现有音效（10-22 用户）。
+## 界面 · 寻访（局外成长 P1，docs/109 §12；表现层 docs/124 第三版 + docs/125 §6 定稿：10-22 用户以 GPT 寻访概念图 27–33 为准）。
+## 规则（10-22 用户）：只有一种「寻访凭证」，每局结算 3 张、通关 4 张；寻访一次（随机 1 名）1 张，定向寻访（先选职业、再指定干员）2 张；没有意向与保底。
+## 流程：结算面板出来后，有凭证就盖一层寻访入口 →（寻访一次 | 定向寻访 → 选职业 → 指定干员）→ 拉开作战包 → 光炸 → 揭示 → 本次寻访 → 回入口（凭证用完或名册满则关）。
+## 视觉：hh_style.gd（左白右黑斜切、像素描边英文、职业色斜卡、青色主按钮）；版面按 1280×720 设计、等比缩放居中。不配语音，只用现有音效（10-22 用户）。
 ## 抽取在 core/roster.gd，用独立随机数，不碰局内 g.rng；演出里的碎光 / 噪点用固定表。
-## 动效用真实时间（测试录屏 clock_frames 时按帧数）；「减少动态效果」不拉包、揭示直接到名牌；无头批跑直接到寻访结果。
+## 动效用真实时间（测试录屏 clock_frames 时按帧数）；「减少动态效果」不拉包、揭示直接到名牌；无头批跑直接到本次寻访。
 ## 作战包 / 金光 / 碎光 / 流光：Codex 交付（codex/art 35587bca，tools/probes/package_headhunt_bag.py 接入）
 
 const UI = preload("res://scripts/ui.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 const A = preload("res://scripts/art.gd")
+const HS = preload("res://scripts/screens/hh_style.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const Roster = preload("res://scripts/core/roster.gd")
 const Game = preload("res://scripts/game.gd")
 
+const D := Vector2(1280, 720)   # 设计稿尺寸
 const CLASS_ORDER := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
 const CLASS_EN := {"先锋": "VANGUARD", "近卫": "GUARD", "重装": "DEFENDER", "狙击": "SNIPER", "术师": "CASTER", "医疗": "MEDIC", "辅助": "SUPPORTER", "特种": "SPECIALIST"}
-## 两档（docs/124 §9.3）：金 = 新职业或意向保底命中，其余青白。[主色, 亮色]
+## 两档（docs/124 §9.3）：金 = 补上还没有人的职业，其余青白。[主色, 亮色]
 const TIER := {"gold": [Color8(255, 196, 80), Color8(255, 240, 180)], "cyan": [Color8(96, 224, 232), Color8(200, 255, 255)]}
 ## 作战包时间轴（秒）：落下 0–0.4，拉链 0.4–1.6（8 档），光炸 1.45–1.9
 const BAG_T := 1.9
 const ZIP0 := 0.4
 const ZIP1 := 1.6
 const BURST := 1.55
-## 每名干员一屏：滑入 0–0.5，解码 0.5–1.2，名牌 1.2–1.6（NEW 章 1.5），5 秒自动下一名（协调人缺省：每人 5 秒可跳过）
+## 每名干员一屏：名牌滑入 0–0.4，立绘滑入 0–0.5，解码 0.5–1.2，新加入签 1.3，5 秒自动下一名（协调人缺省：每人 5 秒可跳过）
 const SLIDE := 0.5
 const DECODE := 1.2
 const PLATE := 1.6
-const STAMP := 1.5
+const STAMP := 1.3
 const OP_T := 5.0
-## Codex 交付的拉链契约（playback_contract.json，@2x 像素）：拉头 8 档位置、拉链右端、包体 / 金光原点
+## Codex 交付的拉链契约（playback_contract.json，@2x 像素）
 const SLIDER := [Vector2(220, 48), Vector2(194, 53), Vector2(168, 58), Vector2(142, 63), Vector2(115, 68), Vector2(89, 73), Vector2(63, 78), Vector2(37, 83)]
 const ZIP_END := Vector2(220, 48)
 const BAG_O := Vector2(128, 148)
 const BAG_SZ := Vector2(256, 152)
 const GLOW_O := Vector2(128, 272)
 const GLOW_SZ := Vector2(256, 320)
-## 碎光固定表：[出现时刻, 角度（度，0 = 正上）, 速度（屏高 / 秒）, 变体 0–9（6–9 是三角，只金档用）]
+## 碎光固定表：[出现时刻, 角度（度，0 = 正上）, 速度（设计高 / 秒）, 变体 0–9（6–9 是三角，只金档用）]
 const SHARDS := [[0.62, -24, 0.55, 0], [0.70, 18, 0.62, 3], [0.80, -8, 0.70, 6], [0.86, 34, 0.50, 1], [0.95, -40, 0.58, 7], [1.02, 6, 0.80, 2],
 	[1.10, -18, 0.66, 8], [1.16, 26, 0.72, 4], [1.24, -32, 0.60, 9], [1.30, 12, 0.85, 5], [1.38, -4, 0.90, 6], [1.44, 40, 0.64, 0],
 	[1.50, -28, 0.76, 7], [1.56, 20, 0.95, 3]]
@@ -45,9 +47,7 @@ static var clock_frames := false   # 测试录屏：按渲染帧计时（--fixed
 
 var g: Game
 var open := false
-var step := ""            # 选择界面：Roster.T_CLASS / T_PICK / "wish"
-var mode := "choose"      # choose 选择 / bag 拉包 / op 揭示 / summary 寻访结果
-var back_mode := ""       # 选意向前的界面（选完回去）
+var mode := "entry"       # entry 入口 / class 定向选职业 / pick 定向选干员 / bag 拉包 / op 揭示 / summary 本次寻访
 var results: Array = []   # Roster.redeem_* 的返回值（只留解出干员的）
 var idx := 0              # 揭示到第几名
 var t0 := 0.0             # 当前段开始时刻
@@ -55,9 +55,12 @@ var _zip_ticks := 0
 var _burst := false
 var _stamped := -1
 var reveal_id := ""       # 当前揭示的干员（测试输出用）
-var choices: Array = []
-var sel := 0
-var rects: Array = []     # [Rect2, 动作]：动作 = "ok" / "wish" / "back" / "skip" / int（选项下标）
+var sel := 0              # 入口：0 寻访一次 / 1 定向；选职业 / 选干员：格子下标
+var sel_cls := ""
+var choices: Array = []   # 选职业：职业；选干员：干员 id
+var rects: Array = []     # [Rect2（设计坐标）, 动作]
+var _k := 1.0             # 设计 → 界面单位
+var _off := Vector2.ZERO
 var _od := {}
 var _img := {}            # 金光遮罩合成用的原图缓存
 var _glow := {}           # [档, 帧, 拉链档] → 裁好的金光贴图
@@ -73,47 +76,34 @@ func _now() -> float:
 	return Time.get_ticks_msec() / 1000.0
 
 
-## 结算画出来时调（hud.gd）：有待用的券就打开
+func _vouchers() -> int:
+	return int(Cfg.roster_tickets.get(Roster.T_HUNT, 0))
+
+
+## 结算画出来时调（hud.gd）：有寻访凭证就打开入口
 func maybe_open() -> void:
-	if open or not Roster.active() or Roster.pending_total() <= 0:
+	if open or not Roster.active():
+		return
+	Roster.migrate_tickets()
+	if _vouchers() <= 0:
 		return
 	if Roster.locked_ids().is_empty():
 		Roster.spill_to_spare()
 		return
 	open = true
+	_entry()
+
+
+func _entry() -> void:
 	results.clear()
-	_next()
-
-
-## 下一步：先一次用完寻访凭证（第一张必出流明等规则按兑换次序，必须排在定向券前），再用定向券（各自选），最后整段演出
-func _next() -> void:
-	while int(Cfg.roster_tickets.get(Roster.T_HUNT, 0)) > 0 and not Roster.locked_ids().is_empty():
-		var r := Roster.redeem_hunt()
-		if str(r.get("id", "")) == "":
-			break
-		results.append(r)
-	if not Roster.locked_ids().is_empty():
-		for k in [Roster.T_CLASS, Roster.T_PICK]:
-			if int(Cfg.roster_tickets.get(k, 0)) > 0:
-				_start(k)
-				return
-	if Roster.locked_ids().is_empty():
-		Roster.spill_to_spare()
-	if results.is_empty():
+	if _vouchers() <= 0 or Roster.locked_ids().is_empty():
+		if Roster.locked_ids().is_empty():
+			Roster.spill_to_spare()
 		open = false
 		return
-	_play()
-
-
-func _start(k: String) -> void:
-	step = k
+	mode = "entry"
 	sel = 0
-	mode = "choose"
-	if k == Roster.T_CLASS:
-		var lc := Roster.locked_classes()
-		choices = CLASS_ORDER.filter(func(c): return lc.has(c))
-	else:
-		choices = _sorted(Roster.locked_ids())
+	t0 = _now()
 
 
 func _sorted(ids: Array) -> Array:
@@ -126,7 +116,7 @@ func _sorted(ids: Array) -> Array:
 
 
 func _tier(r: Dictionary) -> String:
-	return "gold" if bool(r.get("new_class", false)) or bool(r.get("pity_hit", false)) else "cyan"
+	return "gold" if bool(r.get("new_class", false)) else "cyan"
 
 
 func _bag_tier() -> String:
@@ -139,6 +129,9 @@ func _bag_tier() -> String:
 func _play() -> void:
 	idx = 0
 	_stamped = -1
+	if results.is_empty():
+		_entry()
+		return
 	if UM.skip_all():
 		_summary()
 		return
@@ -155,12 +148,11 @@ func _op(i: int) -> void:
 	idx = i
 	mode = "op"
 	reveal_id = results[i].id
-	t0 = _now() - (DECODE if UM.rm() else 0.0)
+	t0 = _now() - (PLATE if UM.rm() else 0.0)
 
 
 func _summary() -> void:
 	mode = "summary"
-	sel = 0
 	t0 = _now()
 
 
@@ -194,53 +186,82 @@ func _burst_sfx() -> void:
 
 
 func _act(a) -> void:
-	if a is int:
-		if mode != "choose" or a < 0 or a >= choices.size():
-			return
-		Sfx.play("ui_ok")
-		if step == Roster.T_CLASS:
-			_got(Roster.redeem_class(choices[a]))
-		elif step == Roster.T_PICK:
-			_got(Roster.redeem_pick(choices[a]))
-		elif step == "wish":
-			Roster.set_wish(choices[a])
-			mode = back_mode
-		return
-	match a:
-		"ok":
-			if mode == "summary":
+	match mode:
+		"entry":
+			if a is int:
+				sel = a
+				a = "one" if a == 0 else "directed"
+			if a == "one" and _vouchers() >= 1:
 				Sfx.play("ui_ok")
-				results.clear()
-				_next()
-			elif mode in ["bag", "op"]:
-				_tap()
-		"skip":
-			if mode in ["bag", "op"]:
+				var r := Roster.redeem_hunt()
+				if str(r.get("id", "")) != "":
+					results = [r]
+				_play()
+			elif a == "directed" and _vouchers() >= Roster.DIRECTED_COST:
+				Sfx.play("ui_ok")
+				mode = "class"
+				var lc := Roster.locked_classes()
+				choices = CLASS_ORDER.duplicate()
+				sel = 0
+				for i in choices.size():
+					if lc.has(choices[i]):
+						sel = i
+						break
+			elif a == "back":
+				Sfx.play("ui_ok")
+				open = false
+		"class":
+			if a is int and a >= 0 and a < choices.size():
+				if not Roster.locked_classes().has(choices[a]):
+					return
+				var again: bool = sel == a or Pad.touch
+				sel = a
+				Sfx.play("ui_move")
+				if not again:
+					return
+				a = "ok"
+			if a == "ok" and Roster.locked_classes().has(choices[sel]):
+				Sfx.play("ui_ok")
+				sel_cls = choices[sel]
+				choices = _sorted(Roster.locked_ids().filter(func(c): return Roster.class_of(c) == sel_cls))
+				sel = 0
+				mode = "pick"
+			elif a == "back":
+				Sfx.play("ui_ok")
+				mode = "entry"
+				sel = 1
+		"pick":
+			if a is int and a >= 0 and a < choices.size():
+				sel = a
+				Sfx.play("ui_move")
+				return
+			if a == "ok" and sel < choices.size():
+				Sfx.play("ui_ok")
+				var r := Roster.redeem_directed(choices[sel])
+				if str(r.get("id", "")) != "":
+					results = [r]
+				_play()
+			elif a == "back":
+				Sfx.play("ui_ok")
+				mode = "class"
+				choices = CLASS_ORDER.duplicate()
+				sel = maxi(0, choices.find(sel_cls))
+		"bag", "op":
+			if a == "skip":
 				Sfx.play("ui_ok")
 				_summary()
-		"wish":
-			if mode == "summary" and not Roster.locked_ids().is_empty():
+			elif a == "ok":
+				_tap()
+		"summary":
+			if a == "ok":
 				Sfx.play("ui_ok")
-				back_mode = mode
-				step = "wish"
-				choices = _sorted(Roster.locked_ids())
-				sel = maxi(0, choices.find(Cfg.roster_wish))
-				mode = "choose"
-		"back":
-			if mode == "choose" and step == "wish":
-				mode = back_mode
+				_entry()
 
 
-func _got(r: Dictionary) -> void:
-	if str(r.get("id", "")) != "":
-		results.append(r)
-	_next()
-
-
-## 输入（game.gd _unhandled_input 在寻访面板打开时整段交给这里）；返回是否用掉了这次输入
+## 输入（game.gd _unhandled_input 在寻访打开时整段交给这里）；返回是否用掉了这次输入
 func input(event: InputEvent) -> bool:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		var p: Vector2 = event.position / Cfg.ui_k
+		var p: Vector2 = (event.position / Cfg.ui_k - _off) / _k
 		for r in rects:
 			if (r[0] as Rect2).has_point(p):
 				_act(r[1])
@@ -251,26 +272,31 @@ func input(event: InputEvent) -> bool:
 	if event is InputEventKey and event.pressed and not event.echo:
 		var k: int = Pad.kc(event)
 		if k in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
-			_act(sel if mode == "choose" else "ok")
-		elif k == KEY_W:
-			_act("wish")
+			_act(("one" if sel == 0 else "directed") if mode == "entry" else "ok")
 		elif k == KEY_ESCAPE:
 			_act("skip" if mode in ["bag", "op"] else "back")
-		elif mode == "choose" and k in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN, KEY_A, KEY_D]:
-			var cols := _cols()
-			var d: int = {KEY_LEFT: -1, KEY_A: -1, KEY_RIGHT: 1, KEY_D: 1, KEY_UP: -cols, KEY_DOWN: cols}[k]
-			sel = clampi(sel + d, 0, maxi(0, choices.size() - 1))
+		elif k in [KEY_LEFT, KEY_RIGHT, KEY_UP, KEY_DOWN, KEY_A, KEY_D, KEY_W, KEY_S]:
+			var d: int = {KEY_LEFT: -1, KEY_A: -1, KEY_RIGHT: 1, KEY_D: 1, KEY_UP: -4, KEY_W: -4, KEY_DOWN: 4, KEY_S: 4}[k]
+			if mode == "entry":
+				sel = clampi(sel - signi(d), 0, 1)
+			elif mode == "class":
+				var n := sel
+				for _i in 8:
+					n = clampi(n + (d if absi(d) == 4 else signi(d)), 0, choices.size() - 1)
+					if Roster.locked_classes().has(choices[n]):
+						sel = n
+						break
+					if absi(d) == 4:
+						d = signi(d)
+			elif mode == "pick":
+				sel = clampi(sel + signi(d), 0, maxi(0, choices.size() - 1))
 			g.kb_nav = true
 			Sfx.play("ui_move")
 		return true
 	return event is InputEventMouseButton or event is InputEventScreenTouch
 
 
-func _cols() -> int:
-	return 4 if step == Roster.T_CLASS else 7
-
-
-## 名册卡用的干员资料（同选人页 title.gd _open_op_pick 的取法，缓存）
+## 干员资料（同选人页的取法，缓存）
 func _card(cid: String) -> Dictionary:
 	if _od.has(cid):
 		return _od[cid]
@@ -292,19 +318,9 @@ func _card(cid: String) -> Dictionary:
 		col = Color(float(cc[0]), float(cc[1]), float(cc[2]))
 	var durs: Array = idle.get("frame_durations", []) if idle is Dictionary else []
 	var od := {"id": cid, "tex": tx, "frames": frames, "hires": A.hires_of(tx), "ds": UI.op_scale(d), "name": d.get("name", cid), "cls": cls, "col": col,
-		"en": str(d.get("en", cid)).to_upper(), "durs": durs, "affil": _affil(cid)}
+		"en": str(d.get("en", cid)).to_upper(), "durs": durs, "def": d}
 	_od[cid] = od
 	return od
-
-
-## 所属：lore.json 的 PRTS 档案字段（docs/76 §4）
-func _affil(cid: String) -> String:
-	if not _od.has("_lore"):
-		var lf := FileAccess.open("res://data/lore.json", FileAccess.READ)
-		var lj = JSON.parse_string(lf.get_as_text()) if lf != null else null
-		_od["_lore"] = lj if lj is Dictionary else {}
-	var e = _od["_lore"].get(cid, {})
-	return str(e.get("profile", {}).get("所属", "")) if e is Dictionary else ""
 
 
 ## 待机帧：按 frame_durations 循环（没有就 4 fps）
@@ -324,54 +340,237 @@ func _idle_frame(od: Dictionary, t: float) -> int:
 	return n - 1
 
 
-func _title() -> Array:
-	match step:
-		Roster.T_CLASS:
-			return ["招募券 · 选择职业", "RECRUITMENT PERMIT"]
-		Roster.T_PICK:
-			return ["人事调度函 · 指定干员", "PERSONNEL TRANSFER"]
-		"wish":
-			return ["设定意向干员", "PREFERRED OPERATOR"]
-	return ["寻访", "HEADHUNTING"]
+## 立绘（k2 = 每个 @2x 像素的设计单位，再乘 draw_scale）：脚底点 foot；sil = 剪影色；返回目标矩形
+func _figure(od: Dictionary, foot: Vector2, k2: float, sil := Color(0, 0, 0, 0), frame := 0, clip := Rect2()) -> Rect2:
+	var tx: Texture2D = od.tex
+	if tx == null:
+		return Rect2()
+	var hi: float = od.hires
+	var fw: float = tx.get_width() / float(maxi(1, int(od.frames)))
+	var bb: Rect2 = UI.card_bb(od, tx)
+	var kk: float = k2 * 2.0 / hi * float(od.ds)
+	var dst := Rect2(UI.foot_pos(foot, bb, fw, tx.get_height(), hi, kk).round(), (bb.size * kk).round())
+	var src := Rect2(fw * frame + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
+	var t2: Texture2D = A.white_of(tx) if sil.a > 0.0 else tx
+	var c2 := sil if sil.a > 0.0 else Color.WHITE
+	if clip.size.x > 0.0:
+		UI.blit_clipped(g.hud, t2, dst, src, clip, c2)
+	else:
+		g.hud.draw_texture_rect_region(t2, dst, src, c2)
+	return dst
 
 
-func _button(r: Rect2, label: String, key: String, act, hot: bool) -> void:
+func _btn(r: Rect2, act) -> void:
 	rects.append([r, act])
-	var hov: bool = hot if (Pad.using or g.kb_nav) else r.has_point(g.hud.get_local_mouse_position())
-	g.hud.draw_rect(r, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
-	var ink := Color(0.04, 0.07, 0.09) if hov else UI.TEXT
-	UI.text(g.hud, g.font, r.position + Vector2(14, r.size.y / 2.0 + 6.0), label, 15, ink)
-	var kst: String = "" if Pad.touch else key
-	if kst != "":
-		UI.keycap(g.hud, g.font, Vector2(r.end.x - UI.cwidth(g.font, kst, 10) - 20, r.position.y + r.size.y / 2.0 - 9.0), kst, ink, 10)
 
 
 func draw(vs: Vector2) -> void:
 	rects.clear()
-	match mode:
-		"bag":
-			_draw_bag(vs)
-		"op":
-			_draw_op(vs)
-		"summary":
-			_draw_summary(vs)
-		_:
-			_draw_panel(vs)
+	var ci: CanvasItem = g.hud
+	_k = minf(vs.x / D.x, vs.y / D.y)
+	_off = ((vs - D * _k) / 2.0).round()
+	ci.draw_rect(Rect2(Vector2.ZERO, vs), HS.DARK)
+	ci.draw_set_transform(_off, 0.0, Vector2(_k, _k))
+	if mode == "bag":
+		_draw_bag()
+	elif mode == "op":
+		_draw_op()
+	else:
+		HS.backdrop(ci, D)
+		match mode:
+			"entry":
+				_draw_entry()
+			"class":
+				_draw_class()
+			"pick":
+				_draw_pick()
+			"summary":
+				_draw_summary()
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-## 像素倍数：每个 1x 美术像素画几个屏幕像素，返回每个 @2x 像素的界面单位。
-## 720 屏高：作战包 4 倍、立绘 6 倍，手机同屏高同倍数（docs/124 §2.1 原定立绘 4 倍、手机 2 倍，实机看太小，10-22 放大）
-func _sc2(vs: Vector2, fig := false) -> float:
-	var sh := vs.y * Cfg.ui_k
-	var m := maxf(2.0, roundf(sh / (120.0 if fig else 180.0)))
-	return m / 2.0 / Cfg.ui_k
+func _hot(i: int, r: Rect2) -> bool:
+	if Pad.using or g.kb_nav:
+		return sel == i
+	return r.has_point((g.hud.get_local_mouse_position() - _off) / _k)
 
 
-func _blit(tx: Texture2D, frame: int, fsz: Vector2, origin: Vector2, pos: Vector2, sc: float, col := Color.WHITE) -> void:
-	if tx == null:
-		return
-	g.hud.draw_texture_rect_region(tx, Rect2((pos - origin * sc).round(), fsz * sc), Rect2(fsz.x * frame, 0, fsz.x, fsz.y), col)
+# ---------------------------------------------------------------- 入口（GPT 27）
 
+func _draw_entry() -> void:
+	var ci: CanvasItem = g.hud
+	var f: Font = g.font
+	var n := _vouchers()
+	var locked := Roster.locked_ids()
+	HS.left_panel(ci, D, 470, 330, 62)
+	_btn(HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "寻访"), "back")
+	HS.title_block(ci, f, Vector2(36, 150), "01", "人事寻访", "寻访", "HEADHUNT", 1.0, 80)
+	var vr := Rect2(36, 400, 380, 76)
+	ci.draw_rect(vr, Color(1, 1, 1, 0.55))
+	ci.draw_rect(vr, Color(0, 0, 0, 0.25), false, 1.0)
+	HS.voucher(ci, vr.position + Vector2(52, 38), 1.0)
+	UI.text_at(ci, f, vr.position + Vector2(110, 38), "寻访凭证", 20, HS.INK, "lm", true)
+	UI.text_at(ci, f, Vector2(vr.end.x - 20, vr.position.y + 38), "× %d" % n, 30, HS.INK, "rm", true)
+	var rules := ["每次探索结算获得 %d 张，通关获得 %d 张" % [Roster.PER_RUN, Roster.PER_CLEAR], "未解锁 %d 名 · 不会抽到重复干员" % locked.size()]
+	if Cfg.roster_draws == 0:
+		rules.append("首次寻访必定获得医疗干员")
+	for j in rules.size():
+		ci.draw_rect(Rect2(40, 506 + j * 26, 6, 6), HS.INK)
+		UI.text_at(ci, f, Vector2(56, 509 + j * 26), rules[j], 14, HS.INK2, "lm")
+	HS.hr_mark(ci, f, Vector2(40, 640))
+	# 卡池：三组灰色像素剪影（未解锁的前 3 名 + 每组 4 名小剪影），缓慢视差
+	HS.outline_px(ci, Vector2(560, 180), "PERSONNEL", 11.0, Color(1, 1, 1, 0.12), HS.DARK)
+	var pool := _sorted(locked)
+	var t := _now() - t0
+	for i in mini(3, pool.size()):
+		var cx := 690.0 + i * 250.0
+		var big := i == 1
+		var foot := Vector2(cx + (0.0 if UM.rm() else sin(t * 0.6 + i) * 6.0), 520.0 if big else 500.0)
+		_figure(_card(pool[i]), foot, 4.0 if big else 3.0, HS.SIL)
+		ci.draw_set_transform(_off + foot * _k, 0.0, Vector2(_k, _k * 0.2))
+		ci.draw_circle(Vector2.ZERO, 70.0 if big else 56.0, Color(0, 0, 0, 0.35))
+		ci.draw_set_transform(_off, 0.0, Vector2(_k, _k))
+		HS.solid_px(ci, foot + Vector2(0, 22), "LOCKED", 2.0, Color(1, 1, 1, 0.6), 1)
+		for j in 4:
+			var pj := 3 + i * 4 + j
+			if pj < pool.size():
+				_figure(_card(pool[pj]), Vector2(cx - 84 + j * 56, 600.0 if big else 580.0), 0.7, Color(0.45, 0.47, 0.52))
+	if pool.size() >= 2:
+		_brackets(Rect2(840, 250, 200, 300), Color(1, 1, 1, 0.85))
+	HS.para(ci, Rect2(840, 210, 210, 36), UI.fa(UI.VIOLET, 0.9))
+	UI.text_at(ci, f, Vector2(945, 228), "卡池 · 未解锁 %d 名" % locked.size(), 15, Color.WHITE, "mm", true)
+	var r1 := Rect2(620, 636, 300, 62)
+	var r0 := Rect2(940, 632, 310, 68)
+	HS.ghost_btn(ci, f, r1, "定向寻访  （%d 张）" % Roster.DIRECTED_COST, "", 1.0)
+	if n < Roster.DIRECTED_COST:
+		HS.para(ci, r1, Color(0, 0, 0, 0.55))
+	elif _hot(1, r1):
+		HS.para(ci, r1.grow(3), Color(0, 0, 0, 0), HS.CYB, 2.0)
+	HS.main_btn(ci, f, r0, "寻访一次  （1 张）", "")
+	if _hot(0, r0):
+		HS.para(ci, r0.grow(4), Color(0, 0, 0, 0), Color.WHITE, 2.0)
+	_btn(r1, 1)
+	_btn(r0, 0)
+
+
+func _brackets(r: Rect2, col: Color, l := 22.0, w := 3.0) -> void:
+	var ci: CanvasItem = g.hud
+	for c in [[r.position, 1, 1], [Vector2(r.end.x, r.position.y), -1, 1], [Vector2(r.position.x, r.end.y), 1, -1], [r.end, -1, -1]]:
+		var p: Vector2 = c[0]
+		ci.draw_rect(Rect2(p + Vector2(0 if c[1] > 0 else -l, 0 if c[2] > 0 else -w), Vector2(l, w)), col)
+		ci.draw_rect(Rect2(p + Vector2(0 if c[1] > 0 else -w, 0 if c[2] > 0 else -l), Vector2(w, l)), col)
+
+
+# ---------------------------------------------------------------- 定向 · 选职业（GPT 28）
+
+func _bottom(text_mid := "") -> void:
+	var ci: CanvasItem = g.hud
+	var f: Font = g.font
+	HS.bottom_bar(ci, D, 88)
+	HS.voucher(ci, Vector2(80, D.y - 44), 0.8)
+	UI.text_at(ci, f, Vector2(130, D.y - 44), "持有寻访凭证  × %d" % _vouchers(), 20, UI.TEXT, "lm")
+	UI.text_at(ci, f, Vector2(350, D.y - 44), "本次消耗 %d" % Roster.DIRECTED_COST, 15, HS.MUTE, "lm")
+	if text_mid != "":
+		UI.text_at(ci, f, Vector2(640, D.y - 44), text_mid, 15, UI.TEXT, "mm")
+
+
+func _draw_class() -> void:
+	var ci: CanvasItem = g.hud
+	var f: Font = g.font
+	HS.left_panel(ci, D, 500, 380, 62)
+	_btn(HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "定向寻访 · 选择职业"), "back")
+	var by := HS.title_block(ci, f, Vector2(36, 150), "01", "定向寻访", "定向寻访", "DIRECTED", 1.0, 72)
+	UI.text_at(ci, f, Vector2(36, by + 34), "先选职业，再从该职业的未解锁干员中指定 1 名。", 15, HS.INK, "lm")
+	UI.text_at(ci, f, Vector2(36, by + 58), "消耗寻访凭证 %d 张。" % Roster.DIRECTED_COST, 15, HS.INK, "lm")
+	HS.hr_mark(ci, f, Vector2(36, 430))
+	var bag := A.tex("ui_hh_bag_zip")
+	if bag != null:
+		ci.draw_texture_rect_region(bag, Rect2(Vector2(210, 650) - BAG_O, BAG_SZ), Rect2(0, 0, 256, 152))
+	var locked := Roster.locked_ids()
+	var owned := Roster.owned_classes()
+	for i in 8:
+		var cls: String = CLASS_ORDER[i]
+		var col: Color = Character.CLASS_COL[cls]
+		var row := int(i / 4)
+		var r := Rect2(560 + (i % 4) * 182 - row * 60, 104 + row * 284, 166, 262)
+		var mine: Array = _sorted(locked.filter(func(c): return Roster.class_of(c) == cls))
+		var dis := mine.is_empty()
+		var on: bool = i == sel and not dis
+		HS.card(ci, r, col, on, dis)
+		if not dis and not on and not (Pad.using or g.kb_nav) and r.has_point((ci.get_local_mouse_position() - _off) / _k):
+			HS.para(ci, r.grow(2), Color(0, 0, 0, 0), UI.fa(HS.CYB, 0.6), 1.5)
+		var ink := HS.INK if on else Color(1, 1, 1, 0.4 if dis else 1.0)
+		var cx := r.get_center().x + 10
+		UI.class_glyph(ci, cls, Vector2(cx, r.position.y + 70), 26.0, ink, 4.0)
+		HS.spaced(ci, f, Vector2(cx - UI.cwidth(f, CLASS_EN[cls], 9) * 0.5 - 18, r.position.y + 128), CLASS_EN[cls], 9, UI.fa(ink, 0.7), 3.0)
+		UI.text_at(ci, f, Vector2(cx, r.position.y + 154), cls, 30, ink, "mm", true)
+		ci.draw_line(Vector2(r.position.x + 30, r.position.y + 182), Vector2(r.end.x - 20, r.position.y + 182), UI.fa(ink, 0.3), 1.0)
+		UI.text_at(ci, f, Vector2(cx, r.position.y + 204), "已全部解锁" if dis else "未解锁  %d" % mine.size(), 16, ink, "mm")
+		var sx: float = cx - mini(4, mine.size()) * 16.0
+		for j in mini(4, mine.size()):
+			_figure(_card(mine[j]), Vector2(sx + 16, r.end.y - 10), 0.32, Color(0.45, 0.47, 0.52))
+			sx += 32.0
+		if not owned.has(cls) and not dis:
+			HS.tag(ci, f, r.position + Vector2(r.size.y * HS.SKEW * 0.2 + 34, 10), "新职业", 0.85, HS.CYB)
+		if not dis:
+			_btn(r, i)
+	_bottom("" if Pad.touch else "方向键选择")
+	var br := Rect2(D.x - 330, D.y - 74, 310, 60)
+	HS.main_btn(ci, f, br, "确认职业", "" if Pad.touch else "Enter")
+	_btn(br, "ok")
+
+
+# ---------------------------------------------------------------- 定向 · 指定干员（GPT 30）
+
+func _draw_pick() -> void:
+	var ci: CanvasItem = g.hud
+	var f: Font = g.font
+	HS.right_panel(ci, D, 780, 640, 62, D.y - 88)
+	_btn(HS.topbar(ci, f, D, ["PERSONNEL /", "TRANSFER"], "定向寻访 · 指定干员"), "back")
+	var n := choices.size()
+	var cw := minf(200.0, (660.0 - 20.0 * (n - 1)) / maxf(1.0, n))
+	for i in n:
+		var od := _card(choices[i])
+		var r := Rect2(40 + i * (cw + 20), 104, cw, 470)
+		var on := i == sel
+		HS.card(ci, r, od.col, on)
+		var ink := HS.INK if on else Color.WHITE
+		UI.class_glyph(ci, od.cls, r.position + Vector2(70, 40), 14.0, ink, 3.0)
+		HS.spaced(ci, f, r.position + Vector2(96, 36), CLASS_EN[od.cls], 9, UI.fa(ink, 0.7), 3.0)
+		UI.text_at(ci, f, r.position + Vector2(96, 54), od.cls, 16, ink, "lm", true)
+		_figure(od, Vector2(r.get_center().x, r.end.y - 104), minf(1.8, cw / 110.0), Color(0.42, 0.44, 0.5) if not on else Color(0.30, 0.32, 0.37))
+		ci.draw_line(Vector2(r.position.x + 30, r.end.y - 80), Vector2(r.end.x - 30, r.end.y - 80), UI.fa(ink, 0.3), 1.0)
+		var fl := UI.fit_line(f, str(od.name), 28, cw - 40, 14)
+		UI.text_at(ci, f, Vector2(r.get_center().x - 8, r.end.y - 44), fl[0], fl[1], ink, "mm", true)
+		_btn(r, i)
+	if sel < n:
+		var od2 := _card(choices[sel])
+		var by := HS.title_block(ci, f, Vector2(820, 130), "01", "人事调度", od2.name, od2.en, 1.0, 64)
+		UI.class_glyph(ci, od2.cls, Vector2(846, by + 50), 22.0, HS.INK, 4.0)
+		HS.spaced(ci, f, Vector2(890, by + 40), CLASS_EN[od2.cls], 10, HS.INK2, 4.0)
+		UI.text_at(ci, f, Vector2(890, by + 64), od2.cls, 22, HS.INK, "lm", true)
+		ci.draw_rect(Rect2(820, by + 92, 240, 2), HS.INK)
+		ci.draw_rect(Rect2(820, by + 116, 3, 16), HS.INK)
+		UI.text_at(ci, f, Vector2(832, by + 124), "技能", 16, HS.INK, "lm", true)
+		var sk: Array = od2.def.get("skills", [])
+		for j in mini(3, sk.size()):
+			var y := by + 150 + j * 52
+			ci.draw_rect(Rect2(820, y, 40, 40), HS.INK)
+			HS.solid_px(ci, Vector2(840, y + 20), "S%d" % (j + 1), 2.0, Color.WHITE, 1)
+			UI.text_at(ci, f, Vector2(876, y + 20), str(sk[j].get("name", "")), 17, HS.INK, "lm")
+			ci.draw_line(Vector2(876, y + 44), Vector2(1060, y + 44), UI.fa(HS.INK, 0.2), 1.0)
+		_figure(od2, Vector2(1160, D.y - 130), 3.0, Color(0.16, 0.17, 0.21))
+		UI.text_at(ci, f, Vector2(820, D.y - 112), "指定 1 名未解锁干员加入名册。立绘在解锁后显示。", 14, HS.INK, "lm")
+	_bottom()
+	var bb := Rect2(D.x - 560, D.y - 72, 210, 56)
+	HS.ghost_btn(ci, f, bb, "返回", "" if Pad.touch else "Esc")
+	_btn(bb, "back")
+	var br := Rect2(D.x - 330, D.y - 74, 310, 60)
+	HS.main_btn(ci, f, br, "确认寻访", "" if Pad.touch else "Enter")
+	_btn(br, "ok")
+
+
+# ---------------------------------------------------------------- 拉包（GPT 31，Codex 作战包）
 
 ## 金光（4 帧 12 fps）按拉链档乘遮罩（交付契约：先乘 light_clip 再画，不能用整包 alpha 裁）
 func _glow_tex(tier: String, f: int, s: int) -> Texture2D:
@@ -404,60 +603,81 @@ func _image(name: String) -> Image:
 	return im
 
 
-## 拉开作战包（docs/124 §10.2）
-func _draw_bag(vs: Vector2) -> void:
+func _blit(tx: Texture2D, frame: int, fsz: Vector2, origin: Vector2, pos: Vector2, sc: float, col := Color.WHITE) -> void:
+	if tx == null:
+		return
+	g.hud.draw_texture_rect_region(tx, Rect2((pos - origin * sc).round(), fsz * sc), Rect2(fsz.x * frame, 0, fsz.x, fsz.y), col)
+
+
+func _skip() -> void:
 	var ci: CanvasItem = g.hud
+	var br := Rect2(D.x - 210, 26, 180, 50)
+	HS.para(ci, br, Color(0, 0, 0, 0.3), UI.TEXT)
+	UI.text_at(ci, g.font, br.get_center(), "跳过" if Pad.touch else "跳过    Esc", 17, UI.TEXT, "mm", true)
+	_btn(br, "skip")
+
+
+func _draw_bag() -> void:
+	var ci: CanvasItem = g.hud
+	var f: Font = g.font
 	var t := _now() - t0
 	if t >= BAG_T:
 		_op(0)
-		_draw_op(vs)
+		_draw_op()
 		return
 	var tier := _bag_tier()
 	var tc: Array = TIER[tier]
-	ci.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.02, 0.03, 0.05))
-	_scanlines(vs, t, tc[1])
-	var sc := _sc2(vs)
-	var ground := Vector2(roundf(vs.x / 2.0), roundf(vs.y * 0.8))
-	# 落下：0–0.32 加速落地，0.32–0.4 压扁两帧
+	# 台面与墙面
+	ci.draw_rect(Rect2(Vector2.ZERO, D), Color8(22, 25, 32))
+	for x in [150.0, 320.0, D.x - 320.0, D.x - 150.0]:
+		ci.draw_line(Vector2(x, 0), Vector2(x - 60, 470), Color(1, 1, 1, 0.05), 24.0)
+	ci.draw_colored_polygon(PackedVector2Array([Vector2(0, 470), Vector2(D.x, 470), D, Vector2(0, D.y)]), Color8(58, 62, 72))
+	ci.draw_colored_polygon(PackedVector2Array([Vector2(180, 470), Vector2(D.x - 180, 470), Vector2(D.x - 60, D.y), Vector2(60, D.y)]), Color8(74, 78, 88))
+	var sc := 2.0
+	var ground := Vector2(D.x / 2.0, 600)
 	var drop := clampf(t / 0.32, 0.0, 1.0)
-	var pos := ground + Vector2(0, -(1.0 - drop * drop) * vs.y * 0.7)
-	var sh := clampf(drop, 0.2, 1.0)
-	ci.draw_set_transform(ground, 0.0, Vector2(1.0, 0.18))
-	ci.draw_circle(Vector2.ZERO, BAG_SZ.x * sc * 0.5 * sh, Color(0, 0, 0, 0.5 * sh))
-	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var pos := ground + Vector2(0, -(1.0 - drop * drop) * D.y * 0.7)
+	ci.draw_set_transform(_off + ground * _k, 0.0, Vector2(_k, _k * 0.18))
+	ci.draw_circle(Vector2.ZERO, BAG_SZ.x * sc * 0.5 * clampf(drop, 0.2, 1.0), Color(0, 0, 0, 0.45))
+	ci.draw_set_transform(_off, 0.0, Vector2(_k, _k))
 	if t < ZIP0:
-		var f := 0 if t < 0.32 else (1 if t < 0.36 else 2)
-		_blit(A.tex("ui_hh_bag"), f, BAG_SZ, BAG_O, pos, sc)
-		return
-	var p := UI.ease_io((t - ZIP0) / (ZIP1 - ZIP0))
-	var s := clampi(int(p * 8.0), 0, 7)
-	var ticks := int((t - ZIP0) / 0.11)
-	if t < ZIP1 and ticks > _zip_ticks:
-		_zip_ticks = ticks
-		Sfx.play("ui_move", -5.0, 1.0 + 0.04 * s)
-	if t >= BURST and not _burst:
-		_burst_sfx()
-	_blit(A.tex("ui_hh_bag_zip"), s, BAG_SZ, BAG_O, pos, sc)
-	var tl := pos - BAG_O * sc
-	var mouth: Vector2 = tl + (SLIDER[s] + ZIP_END) / 2.0 * sc
-	if s >= 1:
-		var gt := _glow_tex(tier, int(t * 12.0) % 4, s)
-		if gt != null:
-			ci.draw_texture_rect(gt, Rect2((mouth - GLOW_O * sc).round(), GLOW_SZ * sc), false)
-	_blit(A.tex("ui_hh_bag_zip_front"), s, BAG_SZ, BAG_O, pos, sc)
-	# 碎光：从开口往上飞（三角只金档）
-	var shards := A.tex("fx_hh_shards")
-	for e in SHARDS:
-		var lt: float = t - float(e[0]) - 0.15   # 第 1 档开口（约 0.7 秒）之后才出
-		if lt < 0.0 or lt > 0.6:
-			continue
-		var v: int = int(e[3])
-		if tier != "gold" and v >= 6:
-			v -= 6
-		var ang := deg_to_rad(float(e[1]))
-		var d := lt * float(e[2]) * vs.y
-		var sp: Vector2 = mouth + Vector2(sin(ang), -cos(ang)) * d
-		_blit(shards, v, Vector2(64, 64), Vector2(32, 32), sp, sc, UI.fa(tc[1] if v < 6 else tc[0], 1.0 - lt / 0.6))
+		_blit(A.tex("ui_hh_bag"), 0 if t < 0.32 else (1 if t < 0.36 else 2), BAG_SZ, BAG_O, pos, sc)
+	else:
+		var p := UI.ease_io((t - ZIP0) / (ZIP1 - ZIP0))
+		var s := clampi(int(p * 8.0), 0, 7)
+		var ticks := int((t - ZIP0) / 0.11)
+		if t < ZIP1 and ticks > _zip_ticks:
+			_zip_ticks = ticks
+			Sfx.play("ui_move", -5.0, 1.0 + 0.04 * s)
+		if t >= BURST and not _burst:
+			_burst_sfx()
+		_blit(A.tex("ui_hh_bag_zip"), s, BAG_SZ, BAG_O, pos, sc)
+		var tl := pos - BAG_O * sc
+		var mouth: Vector2 = tl + (SLIDER[s] + ZIP_END) / 2.0 * sc
+		if s >= 1:
+			var gt := _glow_tex(tier, int(t * 12.0) % 4, s)
+			if gt != null:
+				ci.draw_texture_rect(gt, Rect2((mouth - GLOW_O * sc).round(), GLOW_SZ * sc), false)
+		_blit(A.tex("ui_hh_bag_zip_front"), s, BAG_SZ, BAG_O, pos, sc)
+		var shards := A.tex("fx_hh_shards")
+		for e in SHARDS:
+			var lt: float = t - float(e[0]) - 0.15
+			if lt < 0.0 or lt > 0.6:
+				continue
+			var v: int = int(e[3])
+			if tier != "gold" and v >= 6:
+				v -= 6
+			var ang := deg_to_rad(float(e[1]))
+			var sp: Vector2 = mouth + Vector2(sin(ang), -cos(ang)) * lt * float(e[2]) * D.y
+			_blit(shards, v, Vector2(64, 64), Vector2(32, 32), sp, sc, UI.fa(tc[1] if v < 6 else tc[0], 1.0 - lt / 0.6))
+	ci.draw_rect(Rect2(40, 34, 3, 64), UI.TEXT)
+	UI.text_at(ci, f, Vector2(64, 48), "寻访", 26, UI.TEXT, "lm", true)
+	ci.draw_rect(Rect2(64, 74, 140, 1.5), UI.TEXT)
+	HS.spaced(ci, f, Vector2(64, 98), "PERSONNEL", 13, UI.TEXT, 5.0)
+	if t < ZIP1:
+		ci.draw_line(Vector2(D.x / 2.0 - 160, D.y - 66), Vector2(D.x / 2.0 - 70, D.y - 66), UI.TEXT, 3.0)
+		ci.draw_polyline(PackedVector2Array([Vector2(D.x / 2.0 - 146, D.y - 78), Vector2(D.x / 2.0 - 160, D.y - 66), Vector2(D.x / 2.0 - 146, D.y - 54)]), UI.TEXT, 3.0)
+		HS.spaced(ci, f, Vector2(D.x / 2.0 - 50, D.y - 58), "向左拉开拉链", 18, UI.TEXT, 8.0)
 	# 光炸：档位色铺满再转白，再退（docs/124 §10.2）
 	if t > 1.45:
 		var a := 0.0
@@ -470,109 +690,90 @@ func _draw_bag(vs: Vector2) -> void:
 		else:
 			a = 0.9 * (1.0 - (t - 1.72) / 0.18)
 			c = Color.WHITE
-		ci.draw_rect(Rect2(Vector2.ZERO, vs), UI.fa(c, clampf(a, 0.0, 1.0)))
-	_skip_button(vs)
+		ci.draw_rect(Rect2(-_off / _k, D + _off * 2.0 / _k), UI.fa(c, clampf(a, 0.0, 1.0)))
+	_skip()
 
 
-## 全屏 4 像素暗线 + 一道自上而下移动的亮带（信号主题）
-func _scanlines(vs: Vector2, t: float, hi: Color) -> void:
+# ---------------------------------------------------------------- 揭示（GPT 32）
+
+func _draw_op() -> void:
 	var ci: CanvasItem = g.hud
-	var y := 0.0
-	while y < vs.y:
-		ci.draw_rect(Rect2(0, y, vs.x, 1), Color(0, 0, 0, 0.22))
-		y += 4.0
-	var by := fmod(t * vs.y * 0.25, vs.y + 60.0) - 30.0
-	ci.draw_rect(Rect2(0, by, vs.x, 24), UI.fa(hi, 0.04))
-	ci.draw_rect(Rect2(0, by + 22, vs.x, 2), UI.fa(hi, 0.08))
-
-
-func _skip_button(vs: Vector2) -> void:
-	var r := Rect2(vs.x - 132, 18, 112, 32)
-	rects.append([r, "skip"])
-	var hov := r.has_point(g.hud.get_local_mouse_position())
-	UI.rbox(g.hud, r, 3, Color(0.03, 0.05, 0.08, 0.7), Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, 0.7 if hov else 0.35), 1)
-	UI.text(g.hud, g.font, r.position + Vector2(14, 22), "跳过", 14, UI.TEXT)
-	UI.en(g.hud, g.font, r.position + Vector2(52, 21), "SKIP", 10, UI.SUB, 2.0)
-
-
-## 干员揭示屏（docs/124 §11）
-func _draw_op(vs: Vector2) -> void:
-	var ci: CanvasItem = g.hud
+	var f: Font = g.font
 	var lt := _now() - t0
 	if lt >= OP_T:
 		_advance()
 		if mode != "op":
-			draw(vs)
+			ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			draw(g.hud.size)
 			return
 		lt = 0.0
 	var res: Dictionary = results[idx]
 	var od := _card(res.id)
-	var tier := _tier(res)
-	var tc: Array = TIER[tier]
 	var col: Color = od.col
-	var phone := Pad.touch
-	ci.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.02, 0.035, 0.06))
-	# 背景：职业色斜向宽光束（缓慢平移）
-	for i in 4:
-		var bx := fmod(i * vs.x * 0.3 + lt * 18.0, vs.x * 1.3) - vs.x * 0.2
-		UI.para(ci, Rect2(bx, 0, vs.x * (0.08 + 0.03 * (i % 2)), vs.y), vs.y * 0.45, UI.fa(col, 0.05 + 0.02 * (i % 2)))
-	# 大号职业图标水印 + 所属名水印
-	UI.class_glyph(ci, od.cls, Vector2(vs.x * 0.64, vs.y * 0.46), vs.y * 0.33, UI.fa(col, 0.08), maxf(4.0, vs.y * 0.012))
-	if od.affil != "":
-		UI.text(ci, g.font, Vector2(0, vs.y - 26), od.affil, 64 if not phone else 44, UI.fa(UI.TEXT, 0.06), HORIZONTAL_ALIGNMENT_RIGHT, vs.x - 28)
-	# 档位色斜向流光
-	var stx := A.tex("fx_hh_streak")
-	if stx != null:
-		var sc := _sc2(vs)
-		for i in 5:
-			var ph := fmod(lt * 0.55 + i * 0.37, 1.6)
-			var sp := Vector2(-vs.x * 0.3 + ph * vs.x * 1.1, vs.y * (0.95 - 0.17 * i) + ph * -vs.y * 0.35)
-			ci.draw_set_transform(sp.round(), deg_to_rad(-30.0), Vector2(sc, sc))
-			ci.draw_texture_rect_region(stx, Rect2(Vector2(0, -8), Vector2(512, 16)), Rect2(512 * (i % 3), 0, 512, 16), UI.fa(tc[1], 0.18 + 0.06 * (i % 2)))
-		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	_scanlines(vs, lt, tc[1])
-	_draw_figure(vs, od, tc, lt)
-	_draw_plate(vs, od, res, tier, lt)
-	# 顶栏：第几名 / 共几名
-	UI.en(ci, g.font, Vector2(28, 40), "HEADHUNTING // %02d / %02d" % [idx + 1, results.size()], 12, UI.fa(tc[1], 0.8), 3.0)
+	HS.backdrop(ci, D)
+	# 右：职业色斜带 + 职业图标水印 + 描边英文（缓慢平移）
+	var drift := 0.0 if UM.rm() else lt * 6.0
+	ci.draw_colored_polygon(PackedVector2Array([Vector2(1080, 0), Vector2(1280, 0), Vector2(900, D.y), Vector2(700, D.y)]), UI.fa(col.darkened(0.35), 0.45))
+	UI.class_glyph(ci, od.cls, Vector2(1000, 250), 150.0, UI.fa(col.darkened(0.2), 0.45), 28.0)
+	HS.outline_px(ci, Vector2(440 - drift, 450), od.en, 28.0, Color(1, 1, 1, 0.16), HS.DARK)
+	# 立绘：滑入（3 道残影）→ 信号解码 → 待机循环；网点投影
+	_reveal_figure(od, lt)
+	# 左：浅灰名牌（滑入）
+	var e := UM.out_cubic(lt / 0.4)
+	ci.draw_set_transform(_off + Vector2(-(1.0 - e) * 480.0, 0) * _k, 0.0, Vector2(_k, _k))
+	ci.draw_colored_polygon(PackedVector2Array([Vector2(0, 48), Vector2(460, 48), Vector2(300, 660), Vector2(0, 660)]), HS.LIGHT)
+	UI.class_glyph(ci, od.cls, Vector2(110, 190), 40.0, HS.INK, 7.0)
+	ci.draw_rect(Rect2(186, 152, 2, 76), HS.INK)
+	HS.spaced(ci, f, Vector2(214, 176), CLASS_EN[od.cls], 13, HS.INK, 8.0)
+	UI.text_at(ci, f, Vector2(212, 212), od.cls, 40, HS.INK, "lm", true)
+	var fl := UI.fit_line(f, str(od.name), 110, 330, 48)
+	UI.text_at(ci, f, Vector2(46, 262 + (110 - fl[1]) * 0.6), fl[0], fl[1], HS.INK, "la", true)
+	ci.draw_rect(Rect2(52, 410, 66, 4), HS.YEL)
+	HS.outline_px(ci, Vector2(52, 456), od.en, minf(14.0, 84.0 / maxf(1.0, od.en.length())), HS.INK2, HS.LIGHT)
+	if lt >= STAMP:
+		if _stamped != idx:
+			_stamped = idx
+			Sfx.play("ui_ok")
+		var se := clampf((lt - STAMP) / 0.2, 0.0, 1.0)
+		var tg := Vector2(52, 540) + Vector2(0, (1.0 - UI.ease_back(se)) * -14.0)
+		HS.tag(ci, f, tg, "新职业" if bool(res.get("new_class", false)) else "新加入", 1.1, HS.YEL if _tier(res) == "gold" else HS.CYB)
+		ci.draw_rect(Rect2(170, 544, 2, 26), HS.INK)
+		UI.text_at(ci, f, Vector2(186, 557), "已加入名册", 18, HS.INK, "lm")
+	ci.draw_set_transform(_off, 0.0, Vector2(_k, _k))
+	HS.spaced(ci, f, Vector2(40, 30), "PERSONNEL  //  %02d / %02d" % [idx + 1, results.size()], 10, HS.MUTE, 3.0)
+	_skip()
 	if lt >= PLATE:
-		var hint := "点击继续" if idx + 1 < results.size() else "点击查看寻访结果"
-		UI.text(ci, g.font, Vector2(0, vs.y - 22), hint, 12, UI.fa(UI.SUB, clampf((lt - PLATE) / 0.3, 0.0, 1.0)), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
-	_skip_button(vs)
+		var br := Rect2(D.x - 330, D.y - 112, 300, 70)
+		HS.main_btn(ci, f, br, "继续", "" if Pad.touch else "Enter")
+		_btn(br, "ok")
 
 
-## 立绘：整数倍（桌面 4 倍、手机 2 倍 × draw_scale）；滑入带 3 道残影 → 信号解码（扫描线自上而下）→ 待机循环
-func _draw_figure(vs: Vector2, od: Dictionary, tc: Array, lt: float) -> void:
+func _reveal_figure(od: Dictionary, lt: float) -> void:
 	var ci: CanvasItem = g.hud
 	var tx: Texture2D = od.tex
 	if tx == null:
 		return
 	var hi: float = od.hires
 	var fw: float = tx.get_width() / float(maxi(1, int(od.frames)))
-	var fh: float = tx.get_height()
 	var bb: Rect2 = UI.card_bb(od, tx)
-	var k: float = _sc2(vs, true) * 2.0 / hi * float(od.ds)
-	var foot := Vector2(roundf(vs.x * 0.64), roundf(vs.y * 0.86))
-	var f := 0 if lt < DECODE else _idle_frame(od, lt - DECODE)
-	var src := Rect2(fw * f + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
+	var kk: float = 6.0 * 2.0 / hi * float(od.ds)
+	var foot := Vector2(820, 650)
+	var fr := 0 if lt < DECODE else _idle_frame(od, lt - DECODE)
+	var src := Rect2(fw * fr + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
 	var slide := UM.out_cubic(lt / SLIDE)
-	var dx := (1.0 - slide) * vs.x * 0.45
-	var pos := UI.foot_pos(foot, bb, fw, fh, hi, k).round()
-	var dst := Rect2(pos + Vector2(roundf(dx), 0), (bb.size * k).round())
+	var dst := Rect2(UI.foot_pos(foot, bb, fw, tx.get_height(), hi, kk).round() + Vector2(roundf((1.0 - slide) * 520.0), 0), (bb.size * kk).round())
 	var wt := A.white_of(tx)
-	# 脚下投影环
-	ci.draw_set_transform(foot, 0.0, Vector2(1.0, 0.22))
-	for i in 3:
-		ci.draw_arc(Vector2.ZERO, bb.size.x * k * (0.45 + 0.18 * i), 0, TAU, 48, UI.fa(tc[0], (0.35 - 0.1 * i) * slide), 2.0)
-	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	for i in 120:   # 网点投影
+		var x := 640.0 + (i % 40) * 9.0
+		var y := 640.0 + int(i / 40) * 8.0
+		ci.draw_rect(Rect2(x + (int(i / 40) % 2) * 4, y, 3, 3), Color(0, 0, 0, 0.35 * slide))
 	if lt < SLIDE:
 		for i in 3:
 			var ar := dst
-			ar.position.x += (i + 1) * vs.x * 0.05 * (1.0 - slide)
-			ci.draw_texture_rect_region(wt, ar, src, UI.fa(tc[0], 0.32 - 0.09 * i))
-	var dk := Color(0.07, 0.09, 0.16)
+			ar.position.x += (i + 1) * 60.0 * (1.0 - slide)
+			ci.draw_texture_rect_region(wt, ar, src, UI.fa(od.col, 0.32 - 0.09 * i))
 	if lt < DECODE:
-		ci.draw_texture_rect_region(wt, dst, src, dk)
+		ci.draw_texture_rect_region(wt, dst, src, Color8(60, 64, 74))
 	if lt < SLIDE:
 		return
 	if lt >= DECODE:
@@ -581,179 +782,67 @@ func _draw_figure(vs: Vector2, od: Dictionary, tc: Array, lt: float) -> void:
 		if fl > 0.0:
 			ci.draw_texture_rect_region(wt, dst, src, UI.fa(Color.WHITE, fl * 0.7))
 		return
-	# 解码：扫过的行已是彩色
-	var e := (lt - SLIDE) / (DECODE - SLIDE)
-	var rows := floorf(bb.size.y * e)
+	# 扫描线解码：扫过的行已是彩色，扫描线下沿 3 行 6 单位噪点块（固定散列，不读 g.rng）
+	var rows := floorf(bb.size.y * (lt - SLIDE) / (DECODE - SLIDE))
 	if rows > 0.0:
-		ci.draw_texture_rect_region(tx, Rect2(dst.position, Vector2(dst.size.x, rows * k)), Rect2(src.position, Vector2(src.size.x, rows)))
-	var sy := dst.position.y + rows * k
-	ci.draw_rect(Rect2(dst.position.x - 16, sy - 1, dst.size.x + 32, 2), UI.fa(tc[1], 0.95))
-	# 扫描线下沿 3 行 4 像素噪点块（固定散列，不读 g.rng）
-	var cell := 4.0
-	var nx := int(dst.size.x / cell) + 1
+		ci.draw_texture_rect_region(tx, Rect2(dst.position, Vector2(dst.size.x, rows * kk)), Rect2(src.position, Vector2(src.size.x, rows)))
+	var sy := dst.position.y + rows * kk
+	ci.draw_rect(Rect2(dst.position.x - 20, sy - 1, dst.size.x + 40, 3), UI.fa(Color.WHITE, 0.95))
+	var nx := int(dst.size.x / 6.0) + 1
 	for r in 3:
 		for c in nx:
 			var hsh := (c * 73856093) ^ (r * 19349663) ^ (int(lt * 20.0) * 83492791)
 			if hsh % 5 < 2:
-				ci.draw_rect(Rect2(dst.position.x + c * cell, sy + 2 + r * cell, cell, cell), UI.fa(tc[0] if hsh % 3 else tc[1], 0.5 - 0.14 * r))
+				ci.draw_rect(Rect2(dst.position.x + c * 6.0, sy + 3 + r * 6.0, 6, 6), UI.fa(od.col, 0.5 - 0.14 * r))
 
 
-## 名牌：职业色竖条 + 职业图标、编号 // 职业英文、大字中文名、英文代号、职业干员 · 所属；NEW 章（金档金边）
-func _draw_plate(vs: Vector2, od: Dictionary, res: Dictionary, tier: String, lt: float) -> void:
-	if lt < DECODE:
-		return
+# ---------------------------------------------------------------- 本次寻访（GPT 33）
+
+func _draw_summary() -> void:
 	var ci: CanvasItem = g.hud
-	var tc: Array = TIER[tier]
-	var s := clampf(vs.y / (560.0 if Pad.touch else 720.0), 0.72, 1.2)
-	var e := UM.out_cubic((lt - DECODE) / (PLATE - DECODE))
-	var w := 440.0 * s
-	var h := 200.0 * s
-	var r := Rect2(roundf(vs.x * 0.06 - (1.0 - e) * w * 0.6), roundf(vs.y * 0.34), w, h)
-	var a := e
-	ci.draw_rect(r, Color(0.03, 0.045, 0.075, 0.82 * a))
-	ci.draw_rect(Rect2(r.position, Vector2(6 * s, r.size.y)), UI.fa(od.col, a))
-	if tier == "gold":
-		var gc := UI.fa(tc[0], a)
-		ci.draw_rect(r, gc, false, 2.0)
-		ci.draw_rect(r.grow(-4.0), UI.fa(tc[1], 0.35 * a), false, 1.0)
-	else:
-		ci.draw_rect(Rect2(r.position, Vector2(r.size.x, 1)), UI.fa(tc[0], 0.6 * a))
-	var x := r.position.x + 28 * s
-	UI.class_glyph(ci, od.cls, Vector2(x + 10 * s, r.position.y + 30 * s), 10 * s, UI.fa(od.col, a), 2.0)
-	var no := Roster.all_ids().find(od.id) + 1
-	UI.en(ci, g.font, Vector2(x + 30 * s, r.position.y + 36 * s), "NO.%02d // %s" % [no, CLASS_EN.get(od.cls, "")], int(12 * s), UI.fa(UI.SUB, a), 3.0)
-	UI.text(ci, g.font, Vector2(x, r.position.y + 100 * s), od.name, int(48 * s), UI.fa(UI.TEXT, a))
-	UI.en(ci, g.font, Vector2(x + 2, r.position.y + 128 * s), od.en, int(16 * s), UI.fa(od.col, a), 4.0)
-	var line: String = "%s干员" % od.cls + ((" · 所属 " + od.affil) if od.affil != "" else "")
-	UI.text(ci, g.font, Vector2(x, r.position.y + 160 * s), line, int(14 * s), UI.fa(UI.SUB, a))
-	var cx := x
-	var cy := r.position.y + 172 * s
-	if bool(res.get("new_class", false)):
-		cx += UI.chip(ci, g.font, Vector2(cx, cy), "新职业 · " + od.cls, UI.fa(UI.GOLD, a), int(11 * s)) + 6.0
-	if bool(res.get("pity_hit", false)):
-		UI.chip(ci, g.font, Vector2(cx, cy), "意向干员 · 保底", UI.fa(UI.PURPLE, a), int(11 * s))
-	# NEW 章：1.5 秒盖下（out_back 缩放落定）
-	if lt >= STAMP:
-		if _stamped != idx:
-			_stamped = idx
-			Sfx.play("ui_ok")
-		var se := clampf((lt - STAMP) / 0.22, 0.0, 1.0)
-		var k := lerpf(1.6, 1.0, UI.ease_back(se))
-		var sc_ := Vector2(r.end.x - 70 * s, r.end.y - 22 * s)
-		ci.draw_set_transform(sc_, deg_to_rad(-8.0), Vector2(k, k))
-		var sr := Rect2(Vector2(-46, -18) * s, Vector2(92, 36) * s)
-		var sa := clampf(se * 2.0, 0.0, 1.0)
-		ci.draw_rect(sr, UI.fa(tc[0], 0.2 * sa))
-		ci.draw_rect(sr, UI.fa(tc[0], sa), false, 2.0)
-		UI.en(ci, g.font, Vector2(-30 * s, 8 * s), "NEW", int(20 * s), UI.fa(tc[1], sa), 6.0)
-		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	UI.text(ci, g.font, Vector2(r.position.x, r.end.y + 26 * s), "已加入名册", int(13 * s), UI.fa(tc[1], a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-
-
-## 寻访结果：一排竖卡，按职业顺序（docs/124 §11）
-func _draw_summary(vs: Vector2) -> void:
-	var ci: CanvasItem = g.hud
+	var f: Font = g.font
 	var t := 99.0 if (UM.rm() or UM.skip_all()) else _now() - t0
-	ci.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.02, 0.035, 0.06))
-	_scanlines(vs, t, UI.CYAN)
-	var tier := _bag_tier()
-	var tc: Array = TIER[tier]
-	var ew := UI.en_width(g.font, "HEADHUNT RESULT", 13, 4.0)
-	UI.en(ci, g.font, Vector2(vs.x / 2.0 - ew / 2.0, vs.y * 0.12), "HEADHUNT RESULT", 13, tc[0], 4.0)
-	UI.heading(ci, g.font, Vector2(vs.x / 2.0, vs.y * 0.12 + 36), "寻访结果", 26, tc[0], minf(240.0, vs.x / 4.0))
-	UI.text(ci, g.font, Vector2(0, vs.y * 0.12 + 70), "%d 名干员已加入名册" % results.size(), 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+	HS.left_panel(ci, D, 400, 290, 62)
+	HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "本次寻访", 1.0, "01 / 01", "")
+	var by := HS.title_block(ci, f, Vector2(36, 150), "01", "人员寻访记录", "本次寻访", "RECORD", 1.0, 72)
+	UI.text_at(ci, f, Vector2(36, by + 34), "本次加入干员如下。", 18, HS.INK, "lm")
+	ci.draw_rect(Rect2(40, by + 74, 3, 100), HS.INK)
+	UI.text_at(ci, f, Vector2(64, by + 88), "本次加入", 18, HS.INK, "lm")
+	UI.text_at(ci, f, Vector2(60, by + 110), str(results.size()), 76, HS.INK, "la", true)
+	UI.text_at(ci, f, Vector2(118, by + 156), "名", 30, HS.INK, "lm", true)
+	HS.hr_mark(ci, f, Vector2(36, 600))
 	var rs := results.duplicate()
 	rs.sort_custom(func(a, b): return CLASS_ORDER.find(Roster.class_of(a.id)) < CLASS_ORDER.find(Roster.class_of(b.id)))
 	var n := rs.size()
-	var cw := minf(150.0, (vs.x - 96.0 - 14.0 * (n - 1)) / n)
-	var chh := cw * 1.42
-	var x0 := vs.x / 2.0 - (n * cw + (n - 1) * 14.0) / 2.0
-	var y0 := vs.y * 0.12 + 96
+	var cw := minf(246.0, (780.0 - 20.0 * (n - 1)) / maxf(1.0, n))
+	var x0 := 470.0 + (780.0 - (n * cw + (n - 1) * 20.0)) / 2.0
 	for i in n:
 		var r: Dictionary = rs[i]
 		var od := _card(r.id)
-		var e := UM.out_cubic((t - 0.06 * i) / 0.3)
-		var cr := Rect2(roundf(x0 + i * (cw + 14.0)), roundf(y0 + (1.0 - e) * 24.0), cw, chh)
-		var rc: Array = TIER[_tier(r)]
-		UI.roster_card(ci, g.font, cr, od, 0.0, 0.0, 0, _idle_frame(od, t), e, 13)
-		ci.draw_rect(Rect2(cr.position, Vector2(cr.size.x, 4)), UI.fa(rc[0], e))
-		UI.class_glyph(ci, od.cls, cr.position + Vector2(cr.size.x - 16, 20), 7.0, UI.fa(od.col, e), 1.8)
-		UI.en(ci, g.font, cr.position + Vector2(8, 24), "NEW", 11, UI.fa(rc[1], e), 3.0)
-		UI.text(ci, g.font, Vector2(cr.position.x, cr.end.y + 20), Roster.TICKET_NAME.get(r.kind, ""), 11, UI.fa(UI.SUB, e), HORIZONTAL_ALIGNMENT_CENTER, cr.size.x)
-	var locked := Roster.locked_ids()
-	var wl: String
-	if locked.is_empty():
-		wl = "名册已满"
-	elif Cfg.roster_wish != "" and locked.has(Cfg.roster_wish):
-		wl = "意向干员：%s（寻访保底 %d / %d）" % [Character.load_def(Cfg.roster_wish).get("name", Cfg.roster_wish), mini(Cfg.roster_pity + 1, Roster.PITY), Roster.PITY]
-	else:
-		wl = "未设定意向干员：设定后 %d 张寻访凭证内必出" % Roster.PITY
-	UI.text(ci, g.font, Vector2(0, y0 + chh + 58), wl, 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
-	var bw := 180.0
-	var by := minf(vs.y - 70.0, y0 + chh + 82)
-	if locked.is_empty():
-		_button(Rect2(vs.x / 2.0 - bw / 2.0, by, bw, 40), "完成", "Enter", "ok", true)
-	else:
-		_button(Rect2(vs.x / 2.0 - bw - 6.0, by, bw, 40), "完成", "Enter", "ok", sel == 0)
-		_button(Rect2(vs.x / 2.0 + 6.0, by, bw, 40), "设定意向", "W", "wish", false)
-
-
-## 选择界面（招募券选职业 / 人事调度函选干员 / 设定意向）
-func _draw_panel(vs: Vector2) -> void:
-	var ci: CanvasItem = g.hud
-	ci.draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.9))
-	var pw := minf(vs.x - 48.0, 700.0)
-	var ph := 430.0
-	var r := Rect2(vs.x / 2.0 - pw / 2.0, vs.y / 2.0 - ph / 2.0, pw, ph)
-	var col := UI.CYAN
-	UI.frame(ci, r, col, {"t": g.t})
-	ci.draw_rect(Rect2(r.position, Vector2(r.size.x, 2)), Color(col.r, col.g, col.b, 0.85))
-	var tt := _title()
-	var ew: float = g.font.get_string_size(tt[1], HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + tt[1].length() * 4.0
-	UI.en(ci, g.font, Vector2(r.get_center().x - ew / 2.0, r.position.y + 40), tt[1], 13, col, 4.0)
-	UI.heading(ci, g.font, Vector2(r.get_center().x, r.position.y + 74), tt[0], 26, col, minf(240.0, pw / 2.0 - 24.0))
-	# 剩余的券
-	var left: Array = []
-	for k in [Roster.T_HUNT, Roster.T_CLASS, Roster.T_PICK]:
-		var n := int(Cfg.roster_tickets.get(k, 0))
-		if n > 0:
-			left.append("%s ×%d" % [Roster.TICKET_NAME[k], n])
-	UI.text(ci, g.font, Vector2(r.position.x + 24, r.end.y - 18), ("待用：" + " · ".join(left)) if not left.is_empty() else "待用：无", 12, UI.SUB)
-	UI.text(ci, g.font, Vector2(r.end.x - 224, r.end.y - 18), "名册 %d / %d" % [Roster.all_ids().size() - Roster.locked_ids().size(), Roster.all_ids().size()], 12, UI.SUB, HORIZONTAL_ALIGNMENT_RIGHT, 200)
-	_draw_choose(r)
-
-
-func _draw_choose(r: Rect2) -> void:
-	var ci: CanvasItem = g.hud
-	var mouse := ci.get_local_mouse_position()
-	if step == Roster.T_CLASS:
-		UI.text(ci, g.font, Vector2(r.position.x, r.position.y + 112), "从所选职业的未解锁干员里随机解锁 1 名", 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-		var cols := _cols()
-		var bw := (r.size.x - 64.0 - 12.0 * (cols - 1)) / cols
-		for i in choices.size():
-			var cls: String = choices[i]
-			var br := Rect2(r.position.x + 32 + (i % cols) * (bw + 12), r.position.y + 140 + int(i / cols) * 70, bw, 58)
-			rects.append([br, i])
-			var hov: bool = (i == sel) if (Pad.using or g.kb_nav) else br.has_point(mouse)
-			var cc: Color = Character.CLASS_COL.get(cls, UI.CYAN)
-			UI.rbox(ci, br, 5, Color(0.086, 0.102, 0.204, 0.92) if hov else Color(0.039, 0.078, 0.118, 0.86), cc if hov else Color(cc.r, cc.g, cc.b, 0.45), 2 if hov else 1)
-			UI.class_glyph(ci, cls, br.position + Vector2(22, 29), 7.0, cc, 1.8)
-			UI.text(ci, g.font, br.position + Vector2(40, 26), cls, 16, UI.TEXT)
-			var n := Roster.locked_ids().filter(func(c): return Roster.class_of(c) == cls).size()
-			UI.text(ci, g.font, br.position + Vector2(40, 46), "未解锁 %d 名" % n, 11, UI.SUB)
-		return
-	var hint := "选择 1 名干员直接解锁" if step == Roster.T_PICK else "意向干员 %d 张寻访凭证内必出；之后可以随时更换" % Roster.PITY
-	UI.text(ci, g.font, Vector2(r.position.x, r.position.y + 112), hint, 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-	var cols := _cols()
-	var cw := minf(78.0, (r.size.x - 48.0 - 8.0 * (cols - 1)) / cols)
-	var chh := cw * 1.3
-	var x0 := r.get_center().x - (cols * cw + (cols - 1) * 8.0) / 2.0
-	for i in choices.size():
-		var cr := Rect2(x0 + (i % cols) * (cw + 8.0), r.position.y + 132 + int(i / cols) * (chh + 14.0), cw, chh)
-		rects.append([cr, i])
-		var hov: bool = (i == sel) if (Pad.using or g.kb_nav) else cr.has_point(mouse)
-		UI.roster_card(ci, g.font, cr, _card(choices[i]), 1.0 if hov else 0.0, 0.0, 0, int(g.t * 4.0 + i) % int(_card(choices[i]).frames), 1.0, 11)
-		if choices[i] == Cfg.roster_wish:
-			UI.chip(ci, g.font, cr.position + Vector2(2, cr.size.y + 4), "意向", UI.GOLD, 10)
-	if step == "wish":
-		_button(Rect2(r.get_center().x - 90.0, r.end.y - 62.0, 180, 36), "返回", "Esc", "back", false)
+		var e := UM.out_cubic((t - 0.1 * i) / 0.35)   # 卡片翻入（横向压窄 → 展开）
+		if e <= 0.0:
+			continue
+		var full := Rect2(x0 + i * (cw + 20), 112, cw, 520)
+		var rr := Rect2(full.position.x + full.size.x * (1.0 - e) / 2.0, full.position.y, full.size.x * e, full.size.y)
+		HS.card(ci, rr, od.col)
+		if e < 0.98:
+			continue
+		var cx := rr.get_center().x
+		UI.class_glyph(ci, od.cls, Vector2(cx + 28, rr.position.y + 46), 22.0, Color.WHITE, 4.0)
+		HS.spaced(ci, f, Vector2(cx - 6, rr.position.y + 94), CLASS_EN[od.cls], 9, UI.fa(Color.WHITE, 0.7), 3.0)
+		UI.text_at(ci, f, Vector2(cx + 26, rr.position.y + 118), od.cls, 24, Color.WHITE, "mm", true)
+		_figure(od, Vector2(cx + 6, rr.position.y + 372), minf(2.5, cw / 98.0), Color(0, 0, 0, 0), _idle_frame(od, t))
+		var nr := Rect2(rr.position.x + 10, rr.end.y - 132, rr.size.x - 22, 112)
+		HS.para(ci, nr, HS.LIGHT)
+		HS.tag(ci, f, nr.position + Vector2(30, -12), "新加入", 0.9, HS.YEL if _tier(r) == "gold" else HS.CYB)
+		var fl := UI.fit_line(f, str(od.name), 34, nr.size.x - 40, 16)
+		UI.text_at(ci, f, Vector2(nr.get_center().x, nr.position.y + 46), fl[0], fl[1], HS.INK, "mm", true)
+		ci.draw_line(Vector2(nr.position.x + 50, nr.position.y + 74), Vector2(nr.end.x - 50, nr.position.y + 74), HS.INK2, 1.0)
+		HS.spaced(ci, f, Vector2(nr.get_center().x - UI.cwidth(f, od.en, 10) * 0.9, nr.position.y + 98), od.en, 10, HS.INK2, 6.0)
+	HS.bottom_bar(ci, D, 88)
+	var left := _vouchers()
+	var more: bool = left > 0 and not Roster.locked_ids().is_empty()
+	UI.text_at(ci, f, Vector2(64, D.y - 44), "已加入名册。新干员可以在选人页选为队长。" + ("   剩余寻访凭证 × %d" % left if more else ""), 16, UI.TEXT, "lm")
+	var br := Rect2(D.x - 330, D.y - 74, 310, 60)
+	HS.main_btn(ci, f, br, "继续寻访" if more else "完成", "")
+	_btn(br, "ok")

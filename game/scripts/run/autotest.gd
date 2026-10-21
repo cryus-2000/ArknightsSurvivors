@@ -11,7 +11,6 @@ const MotionShot = preload("res://scripts/run/motion_shot.gd")   # --motionshot 
 var g: Game
 var mshot: MotionShot
 var winshot := false
-var hunt_rec0 := 0     # --huntrec：拉包开始的帧
 var hunt_rec_end := 0  # --huntrec：进寻访结果后又录了几张
 var touchtest_p0 := Vector2.ZERO
 var bal_done := false
@@ -792,8 +791,8 @@ func step() -> void:
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_win.png")
 			g.get_tree().quit()
 	# --huntshot（docs/109 §12、docs/124 寻访演出截图）：配 --roster=start5 --rostertickets=1,1,1。第 60 帧进胜利结算，
-	# 之后依次截 招募券选职业 → 人事调度函选干员 → 拉包 → 揭示 → 寻访结果 → 意向干员页，存 shot_hunt_<n>.png；无头只走流程。
-	# 演出按帧计时（headhunt.clock_frames）。另加 --huntrec：从拉包起每 2 帧存一张 rec_<n>.png（30 fps 录屏），到寻访结果 1 秒后退出
+	# 之后依次截 入口 → 定向选职业 → 指定干员 → 拉包 → 揭示 → 本次寻访 → 回入口，存 shot_hunt_<n>.png；无头只走流程。
+	# 演出按帧计时（headhunt.clock_frames）。另加 --huntrec：从入口起每 2 帧存一张 rec_<n>.png（30 fps 录屏），到本次寻访约 1.3 秒后退出
 	if Cfg.dev_args().has("--huntshot"):
 		if g.at_frames == 60:
 			winshot = true
@@ -806,27 +805,26 @@ func step() -> void:
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_result_meta.png")   # 没有券：直接截结算面板
 			g.get_tree().quit()
 		var shoot := DisplayServer.get_name() != "headless"
+		# 新流程（10-22，单一寻访凭证）：入口 → 定向寻访 → 选职业 → 指定干员 → 拉包 → 揭示 → 本次寻访；[帧, 动作]，动作在截图之后执行
+		var acts := {120: "directed", 170: "ok", 220: "ok"}
 		if Cfg.dev_args().has("--huntrec"):
-			if hunt_rec0 == 0 and g.headhunt.mode == "bag":
-				hunt_rec0 = g.at_frames
-			if hunt_rec0 > 0 and (g.at_frames - hunt_rec0) % 2 == 0:
+			if g.at_frames >= 80 and (g.at_frames - 80) % 2 == 0:
 				if shoot:
-					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/rec_%04d.png" % ((g.at_frames - hunt_rec0) / 2))
+					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/rec_%04d.png" % ((g.at_frames - 80) / 2))
 				if g.headhunt.mode == "summary":
 					hunt_rec_end += 1
-					if hunt_rec_end > 30:
-						print("HUNTREC frames=%d" % ((g.at_frames - hunt_rec0) / 2))
+					if hunt_rec_end > 40:
+						print("HUNTREC frames=%d" % ((g.at_frames - 80) / 2))
 						g.get_tree().quit()
-			if g.at_frames == 110 or g.at_frames == 130:
-				g.headhunt._act(0)
+			if acts.has(g.at_frames):
+				g.headhunt._act(acts[g.at_frames])
 		else:
-			# [帧, 动作]：动作在截图之后执行
-			var steps := [[110, 0], [150, 0], [210, null], [420, "skip"], [450, "wish"], [480, ""]]
+			var steps := [[110, "directed"], [160, "ok"], [210, "ok"], [270, null], [480, "skip"], [510, "ok"], [540, ""]]
 			for k in steps.size():
 				if g.at_frames == steps[k][0]:
 					if shoot:
 						g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_hunt_%d.png" % k)
-					print("HUNTSHOT %d step=%s mode=%s reveal=%s open=%s" % [k, g.headhunt.step, g.headhunt.mode, g.headhunt.reveal_id, g.headhunt.open])
+					print("HUNTSHOT %d mode=%s reveal=%s open=%s vouchers=%d" % [k, g.headhunt.mode, g.headhunt.reveal_id, g.headhunt.open, int(Cfg.roster_tickets.get("hunt", 0))])
 					var act = steps[k][1]
 					if act is String and act == "":
 						g.get_tree().quit()

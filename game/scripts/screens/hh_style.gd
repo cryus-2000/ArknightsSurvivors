@@ -57,6 +57,8 @@ static func topbar(ci: CanvasItem, font: Font, vs: Vector2, en: Array, title: St
 	if page != "":
 		spaced(ci, font, Vector2(vs.x - 250 * s, h / 2.0 + 5 * s), page, int(10 * s), MUTE, 3.0)
 	var br := Rect2(vs.x - 160 * s, 12 * s, 140 * s, h - 26 * s)
+	if back == "":
+		return Rect2()
 	para(ci, br, Color(0, 0, 0, 0), Color(1, 1, 1, 0.8))
 	UI.text_at(ci, font, br.get_center(), back, int(15 * s), UI.TEXT, "mm", true)
 	return br
@@ -166,19 +168,18 @@ static func bottom_bar(ci: CanvasItem, vs: Vector2, h: float) -> void:
 	ci.draw_rect(Rect2(0, vs.y - h, vs.x, 1.5), Color(1, 1, 1, 0.35))
 
 
-## 寻访凭证图标（像素票面：白底 + 青色条 + 编号孔）
+## 寻访凭证图标（像素票面：白底 + 青色条 + 编号孔，斜放 10°）。不改画布变换（调用方可能在缩放版面里）
 static func voucher(ci: CanvasItem, c: Vector2, s: float) -> void:
-	var r := Rect2(c - Vector2(30, 16) * s, Vector2(60, 32) * s)
-	ci.draw_set_transform(c, deg_to_rad(-10.0), Vector2.ONE)
+	var rot := Transform2D(deg_to_rad(-10.0), c)
+	var quad := func(r: Rect2, col: Color) -> void:
+		ci.draw_colored_polygon(PackedVector2Array([rot * r.position, rot * Vector2(r.end.x, r.position.y), rot * r.end, rot * Vector2(r.position.x, r.end.y)]), col)
 	var rr := Rect2(-Vector2(30, 16) * s, Vector2(60, 32) * s)
-	ci.draw_rect(rr.grow(2 * s), INK)
-	ci.draw_rect(rr, Color8(240, 244, 248))
-	ci.draw_rect(Rect2(rr.position + Vector2(4, 4) * s, Vector2(8, 24) * s), CYB)
-	ci.draw_rect(Rect2(rr.position + Vector2(18, 18) * s, Vector2(34, 6) * s), Color8(40, 90, 200))
+	quad.call(rr.grow(2 * s), INK)
+	quad.call(rr, Color8(240, 244, 248))
+	quad.call(Rect2(rr.position + Vector2(4, 4) * s, Vector2(8, 24) * s), CYB)
+	quad.call(Rect2(rr.position + Vector2(18, 18) * s, Vector2(34, 6) * s), Color8(40, 90, 200))
 	for i in 3:
-		ci.draw_rect(Rect2(rr.position + Vector2(20 + i * 8, 8) * s, Vector2(4, 4) * s), INK)
-	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	r = r
+		quad.call(Rect2(rr.position + Vector2(20 + i * 8, 8) * s, Vector2(4, 4) * s), INK)
 
 
 ## 黄色小标签（新加入 / 新职业）
