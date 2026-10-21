@@ -7,6 +7,7 @@ const UI = preload("res://scripts/ui.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const Squad = preload("res://scripts/characters/squad.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
+const Roster = preload("res://scripts/core/roster.gd")   # 干员解锁（docs/109 §12）：招募卡只出已解锁的干员；测试局全部解锁
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 const BuildAffinity = preload("res://scripts/run/build_affinity.gd")   # 构筑匹配（只读，docs/119 §4.3–4.5）：卡面说明行 / 招募保底 / 商人预告共用
@@ -71,7 +72,7 @@ func recruit_cards() -> Array:
 		if g.squad.has(cid):
 			continue
 		var d: Dictionary = Character.load_def(cid)
-		if not d.get("recruitable", true):
+		if not d.get("recruitable", true) or not Roster.is_unlocked(cid):
 			continue
 		var desc: String = d.get("gallery", {}).get("desc", d.get("attack", {}).get("desc", ""))
 		# 入队加成不再逐张写（用户 10-13）：统一写在三选一标题下的说明行（choice_panel.show_choices）
@@ -91,7 +92,7 @@ func swap_cards() -> Array:
 		if g.squad.has(cid):
 			continue
 		var d: Dictionary = Character.load_def(cid)
-		if not d.get("recruitable", true):
+		if not d.get("recruitable", true) or not Roster.is_unlocked(cid):
 			continue
 		var desc: String = d.get("gallery", {}).get("desc", d.get("attack", {}).get("desc", ""))
 		opts.append({"kind": "recruit", "swap": true, "id": cid, "name": d.get("name", cid), "desc": desc + "

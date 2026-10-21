@@ -925,6 +925,7 @@ SCENE_REGRESSIONS = {
     "op_dummy": ("干员木桩表场景（docs/79）：队友身份 + 怪群 5 秒自检", "op_dummy_test", r"OP DUMMY failures=0",
                  ["--balance", "--bot=afk", "--nodeath", "--op=hoshiguma", "--squad=wisadel", "--dummy_op=wisadel", "--dummy_role=mate",
                   "--dummy_scene=horde", "--dummy_stage=2", "--dummy_secs=5", "--dummy_warm=2", "--dummy_check"]),
+    "roster": ("干员解锁（docs/109 §12）：开局 5 人、首抽流明、先补齐职业、不重复、意向保底、招募券、局终发券、云存档并集", "roster_test", r"ROSTER failures=0", ["--roster=start5"]),
     "cloud_save": ("B站云存档：打包 / 分片 / 平台限制 / 校验 / 版本 / 合并规则 / Cfg 往返 / 非网页不启用（docs/89）", "cloud_save_test", r"CLOUD SAVE failures=0", []),
     "look": ("观感预设 render/look（角色受光封顶 / 后期曲线 / 亮度缺省）", "look_test", r"LOOK TEST failures=0", []),
     "build_affinity": ("构筑匹配（docs/119 §4.3 / §4.4）：三条链的来源 / 门槛 / 浮空与永久技能不误算、卡面说明行、强制招募保底与开关", "build_affinity_test", r"BUILD AFFINITY failures=0", ["--balance", "--op=angelina", "--squad=skadi,kaltsit"]),

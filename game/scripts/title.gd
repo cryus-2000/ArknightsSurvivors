@@ -6,6 +6,7 @@ const Affects = preload("res://scripts/run/affects.gd")
 const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const Roster = preload("res://scripts/core/roster.gd")   # 干员解锁（docs/109 §12）：选人页只列已解锁的干员（选封面干员时列全部）
 const Game = preload("res://scripts/game.gd")
 const InitialStats = preload("res://scripts/screens/initial_stats.gd")
 const TUI = preload("res://scripts/screens/tide_ui.gd")
@@ -1586,7 +1587,10 @@ func _open_op_pick(for_cover := false) -> void:
 				mx = maxf(mx, float(od.vals[key]))
 			op_max[key] = mx
 	op_sel = 0
-	for i in op_defs.size():
+	var lst0 := _op_list()
+	if not lst0.is_empty():
+		op_sel = lst0[0]
+	for i in lst0:
 		if op_defs[i].id == (Cfg.cover_character_id if cover_pick else Cfg.character_id):
 			op_sel = i
 	op_filter = ""
@@ -1631,9 +1635,14 @@ func _touch_mode() -> bool:
 func _op_list() -> Array:
 	var out: Array = []
 	for i in op_defs.size():
-		if op_filter == "" or op_defs[i].cls == op_filter:
+		if (op_filter == "" or op_defs[i].cls == op_filter) and _op_ok(i):
 			out.append(i)
 	return out
+
+
+## 名册里能不能选：选封面干员时全部可选；选开局干员时只有已解锁的（docs/109 §12）
+func _op_ok(i: int) -> bool:
+	return cover_pick or Roster.is_unlocked(op_defs[i].id)
 
 
 func _op_classes() -> Array:
@@ -1644,8 +1653,8 @@ func _op_classes() -> Array:
 
 func _op_class_count(c: String) -> int:
 	var n := 0
-	for od in op_defs:
-		if c == "" or od.cls == c:
+	for i in op_defs.size():
+		if (c == "" or op_defs[i].cls == c) and _op_ok(i):
 			n += 1
 	return n
 
