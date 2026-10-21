@@ -589,9 +589,7 @@ def storyboard(frames, labels, out, cell=(426, 240)):
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    global ORDER
-    ops = load_ops()
-    ORDER = list(ops)
+    ops = OPS
     unlocked = set(START5)
     op = ops["mizuki"]
     seq = [("wait", "1 等待 0–0.6 秒"), ("signal", "2 信号 0.6–1.4 秒"), ("decode", "3 解码 1.4–2.6 秒"), ("name", "4 定格 2.6–3.6 秒"), ("line", "5 台词 3.6–5.0 秒")]
@@ -638,7 +636,235 @@ def portrait_line(op, w=360, h=740):
     return img
 
 
+
+
+# ================================================================ v2：按原作寻访节奏（docs/124 §9 原作对照，10-22 用户）
+# 原作：寻访界面（卡池立绘 + 凭证 + 保底提示）→ 黑色背包、拉开拉链，缝里漏出星级色光（白 3–4★ / 金 5★ / 火光彩虹 6★）→ 干员逐个揭示 → 十连结算一排。
+# 本作：寻访界面（未解锁剪影 + 凭证 + 意向保底）→ 罗德岛档案匣、拖开封条，缝里漏出档位色光（青白 = 常规 / 金 = 新职业或意向命中）
+#       → 档位色流光 → 剪影亮起（信号解码：扫描线把剪影解码成彩色）→ 名字 / 职业 /「新加入」+ 招聘合同一句 → 多名时汇总一排。
+TIER = {"cyan": (CY, CY_HI, (30, 90, 120)), "gold": ((255, 196, 80), (255, 240, 180), (120, 80, 20))}
+
+
+def tier_of(op, unlocked_before):
+    owned = {OPS[i]["cls"] for i in unlocked_before}
+    return "gold" if op["cls"] not in owned else "cyan"
+
+
+def floor(img, cy, s, col=CY):
+    d = ImageDraw.Draw(img)
+    w = img.width
+    for i in range(6):
+        y = cy + int((8 + i * i * 4) * s)
+        d.line([0, y, w, y], fill=(20, 40, 62) if i % 2 else (14, 30, 50), width=1)
+    for k in range(-10, 11):
+        d.line([w // 2 + k * int(30 * s), cy, w // 2 + k * int(160 * s), img.height], fill=(16, 34, 56), width=1)
+
+
+def crate(img, cx, cy, s, tier=None, open_k=0.0):
+    """罗德岛档案匣（本作自画：钢灰阶梯切角箱、青色封条、菱形 + 浪徽记）；open_k > 0 时盖子上抬、缝里漏光"""
+    w, h = int(300 * s), int(120 * s)
+    lid_h = int(34 * s)
+    x0, y0 = cx - w // 2, cy - h // 2
+    lift = int(26 * s * open_k)
+    if tier:
+        col, hi, _ = TIER[tier]
+        lay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        d = ImageDraw.Draw(lay)
+        sy = y0 + lid_h - lift // 2
+        spread = int((60 + 260 * open_k) * s)
+        for k, a in ((1.0, 40), (0.7, 70), (0.4, 120)):
+            d.polygon([(x0 + 10, sy), (x0 + w - 10, sy), (cx + spread * k + w // 2, sy - int(260 * s * k)), (cx - spread * k - w // 2, sy - int(260 * s * k))], fill=col + (a,))
+        d.rectangle([x0 + 6, sy - max(1, lift // 2) - 2, x0 + w - 6, sy + 2], fill=hi + (255,))
+        img.alpha_composite(lay)
+    body = (x0, y0 + lid_h, x0 + w, y0 + h)
+    panel(img, body, 2, 3, tones=[(52, 64, 78), (38, 48, 62), (24, 30, 42)], edge=(90, 110, 130))
+    lid = (x0 - 4, y0 - lift, x0 + w + 4, y0 + lid_h - lift)
+    panel(img, lid, 2, 3, tones=[(62, 76, 92), (46, 58, 74), (32, 40, 54)], edge=(110, 130, 150))
+    d = ImageDraw.Draw(img)
+    # 封条（未开时完整一条，开时断开）
+    sx = cx - int(10 * s)
+    if open_k <= 0:
+        d.rectangle([sx, y0 - 4, sx + int(20 * s), y0 + lid_h + int(30 * s)], fill=CY)
+        d.rectangle([sx + 3, y0 - 1, sx + int(20 * s) - 3, y0 + lid_h + int(27 * s)], fill=(20, 60, 80))
+        ptxt(img, (sx + int(10 * s), y0 + lid_h + int(46 * s)), "R.I.", 1, CY, 1, "mm")
+    # 徽记
+    ex, ey, r = x0 + int(46 * s), y0 + lid_h + int(44 * s), int(14 * s)
+    d.polygon([(ex, ey - r), (ex + r, ey), (ex, ey + r), (ex - r, ey)], outline=(160, 180, 200), width=2)
+    d.line([ex - r + 4, ey + 3, ex - 3, ey - 1, ex + 3, ey + 3, ex + r - 4, ey - 1], fill=(160, 180, 200), width=2)
+    ptxt(img, (x0 + w - int(18 * s), y0 + lid_h + int(66 * s)), "PERSONNEL FILE", 1, (120, 140, 160), 1, "rm")
+
+
+def streaks(img, tier, s, seed=1):
+    col, hi, _ = TIER[tier]
+    rnd = random.Random(seed)
+    lay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(lay)
+    for _ in range(26):
+        y = rnd.randrange(img.height)
+        x = rnd.randrange(-200, img.width)
+        ln = rnd.randint(120, 520)
+        th = rnd.choice([2, 2, 4, 6])
+        a = rnd.randint(60, 200)
+        d.polygon([(x, y), (x + ln, y - ln * 0.35), (x + ln, y - ln * 0.35 + th), (x, y + th)], fill=(hi if th <= 2 else col) + (a,))
+    img.alpha_composite(lay)
+
+
+def hh_entry(s=1.0, w=W, h=H, wish="mizuki"):
+    img = bg(w, h, 21)
+    header(img, s, "HEADHUNT", "寻访", "常驻寻访 · 罗德岛人事档案")
+    # 「卡池立绘」：未解锁干员不剧透 → 意向干员大剪影居中，另两名剪影在后
+    floor(img, int(h * 0.80), s)
+    for cid, dx, k, a in (("specter_unchained", -230, 2.6, 150), ("wisadel", 220, 2.6, 150), (wish, 0, 4.0, 255)):
+        sp, ft = frame0(OPS[cid], k * s)
+        paste_at_foot(img, silhouette(sp, (16, 34, 58) if a < 255 else (20, 44, 74), (50, 100, 130) if a < 255 else (90, 170, 200)), ft,
+                      int(w * 0.45) + int(dx * s), int(h * 0.80), a)
+    text(img, (int(w * 0.45), int(h * 0.80) + int(26 * s)), "意向干员 · 水月", int(16 * s), TXT, "mm")
+    # 右栏：凭证与保底
+    pb = panel(img, (w - int(330 * s), int(110 * s), w - int(28 * s), int(470 * s)))
+    x = pb[0] + int(20 * s)
+    ptxt(img, (x, pb[1] + int(22 * s)), "PERMITS", 1, CY, 1, "lm")
+    rows = [("寻访凭证", "1"), ("招募券", "1"), ("人事调度函", "0")]
+    for i, (k, v) in enumerate(rows):
+        yy = pb[1] + int(44 * s) + i * int(40 * s)
+        panel(img, (x, yy, pb[2] - int(20 * s), yy + int(32 * s)), 2, 2)
+        text(img, (x + int(12 * s), yy + int(16 * s)), k, int(15 * s), TXT, "lm")
+        ptxt(img, (pb[2] - int(32 * s), yy + int(16 * s)), "X" + v, max(1, int(round(2 * s))), CY if v != "0" else DIM, 1, "rm")
+    yy = pb[1] + int(178 * s)
+    ImageDraw.Draw(img).line([x, yy, pb[2] - int(20 * s), yy], fill=(44, 98, 124), width=1)
+    text(img, (x, yy + int(14 * s)), "意向干员保底", int(13 * s), SUB, "la")
+    text(img, (x, yy + int(36 * s)), "再寻访 1 次必定获得 水月", int(16 * s), (255, 196, 80), "la")
+    for j in range(3):
+        px = x + j * int(18 * s)
+        if j < 2:
+            ImageDraw.Draw(img).rectangle([px, yy + int(66 * s), px + int(12 * s), yy + int(78 * s)], fill=CY)
+        else:
+            ImageDraw.Draw(img).rectangle([px, yy + int(66 * s), px + int(12 * s), yy + int(78 * s)], outline=CY, width=1)
+    text(img, (x, yy + int(96 * s)), "未解锁 13 名 · 不会重复", int(13 * s), SUB, "la")
+    text(img, (x, yy + int(118 * s)), "首次寻访必定获得医疗干员", int(13 * s), SUB, "la")
+    # 按钮（原作：寻访一次 / 寻访十次；本作：寻访一次 / 全部使用）
+    bw = int(200 * s)
+    btn(img, (w - 2 * bw - int(48 * s), h - int(88 * s), w - bw - int(48 * s), h - int(40 * s)), "寻访一次", "X1")
+    btn(img, (w - bw - int(28 * s), h - int(88 * s), w - int(28 * s), h - int(40 * s)), "全部使用", "ALL", True)
+    text(img, (w - bw - int(28 * s), h - int(100 * s)), "寻访凭证 ×1 + 招募券 ×1", int(12 * s), SUB, "la")
+    return img
+
+
+def hh_crate(phase, tier, s=1.0, w=W, h=H):
+    img = bg(w, h, 22, stars=False)
+    floor(img, int(h * 0.62), s)
+    cx, cy = w // 2, int(h * 0.56)
+    if phase == "closed":
+        crate(img, cx, cy, s, None, 0.0)
+        text(img, (cx, cy + int(110 * s)), "拖开封条 · 点按开启", int(15 * s), SUB, "mm")
+    elif phase == "leak":
+        crate(img, cx, cy, s, tier, 0.15)
+        stardust(img, cx, cy - int(60 * s), 260 * s, 40, 9, TIER[tier][1])
+    elif phase == "open":
+        crate(img, cx, cy, s, tier, 1.0)
+        stardust(img, cx, cy - int(140 * s), 340 * s, 120, 10, TIER[tier][1])
+    ptxt(img, (w - int(28 * s), int(30 * s)), "SKIP >", max(1, int(round(2 * s))), SUB, 1, "rm")
+    header(img, s, "HEADHUNT // 1/2", "寻访")
+    return img
+
+
+def hh_reveal(op, phase, tier, s=1.0, w=W, h=H):
+    img = bg(w, h, 23, stars=False)
+    col, hi, _ = TIER[tier]
+    cx, foot_y = w // 2 + int(120 * s), h - int(110 * s)
+    spr, foot = frame0(op, 4 * s)
+    if phase in ("streak", "decode"):
+        streaks(img, tier, s, 3 if phase == "streak" else 4)
+    if phase == "streak":
+        paste_at_foot(img, silhouette(spr, (6, 12, 22), hi), foot, cx, foot_y)
+    else:
+        frac = 0.55 if phase == "decode" else 1.0
+        dec, yl = decode(spr, frac)
+        x0, y0 = int(cx - foot[0]), int(foot_y - foot[1])
+        img.alpha_composite(dec, (x0, y0))
+        if phase == "decode":
+            slit(img, y0 + yl, cx - int(170 * s), cx + int(170 * s), 1, hi, col)
+    if phase in ("name", "line"):
+        stardust(img, cx, foot_y - int(140 * s), 260 * s, 26, 4, hi)
+        name_block(img, op, int(70 * s), int(h * 0.30), s, fresh=False)
+        # 「新加入」章（原作 NEW）：档位色
+        st = (int(70 * s), int(h * 0.30) - int(46 * s), int(70 * s) + int(84 * s), int(h * 0.30) - int(18 * s))
+        panel(img, st, 2, 2, tones=[col, col, col], edge=hi)
+        text(img, ((st[0] + st[2]) // 2, (st[1] + st[3]) // 2), "新加入", int(14 * s), NAVY_INK, "mm", True)
+        if tier == "gold":
+            text(img, (st[2] + int(12 * s), (st[1] + st[3]) // 2), "新职业 · " + op["cls"], int(14 * s), col, "lm")
+    if phase == "line":
+        by = h - int(96 * s)
+        panel(img, (int(60 * s), by, int(w * 0.55), by + int(54 * s)), 2, 3, a=220)
+        text(img, (int(84 * s), by + int(27 * s)), "「" + op["line"].rstrip("。") + "。」", int(15 * s), TXT, "lm")
+    ptxt(img, (w - int(28 * s), int(30 * s)), "SKIP >", max(1, int(round(2 * s))), SUB, 1, "rm")
+    return img
+
+
+def hh_summary(items, s=1.0, w=W, h=H):
+    """多名时汇总（原作十连结算：一排干员卡、新干员标 NEW）：本作每张卡都带「新加入」，档位色作卡底"""
+    img = bg(w, h, 24)
+    header(img, s, "HEADHUNT // RESULT", "寻访结果", "%d 名干员已加入名册" % len(items))
+    n = len(items)
+    cw, ch = int(150 * s), int(400 * s)
+    gap = int(14 * s)
+    x = (w - (n * cw + (n - 1) * gap)) // 2
+    y = int(120 * s)
+    for op, tier, src in items:
+        col, hi, dk = TIER[tier]
+        box = (x, y, x + cw, y + ch)
+        m = stair(cw, ch, 2, 3)
+        lv = dith(x, y, cw, ch, 2, lambda cxx, cyy: np.clip(cyy / ch * 2.2, 0, 2))
+        paint(img, x, y, m, lv, [tuple(int(v * 0.35) for v in col), tuple(int(v * 0.2) for v in col), (8, 14, 24)], 255)
+        solid(img, x, y, edge_of(m, 2), hi + (200,))
+        spr, ft = frame0(op, 2 * s)
+        paste_at_foot(img, spr, ft, x + cw // 2, y + ch - int(92 * s))
+        st = (x + int(8 * s), y + int(10 * s), x + int(72 * s), y + int(32 * s))
+        panel(img, st, 2, 2, tones=[col, col, col], edge=hi)
+        text(img, ((st[0] + st[2]) // 2, (st[1] + st[3]) // 2), "新加入", int(12 * s), NAVY_INK, "mm", True)
+        cls_glyph(img, op["cls"], x + cw - int(18 * s), y + int(21 * s), int(6 * s), hi, 2)
+        text(img, (x + cw // 2, y + ch - int(66 * s)), op["name"], int(18 * s), NEAR_WHITE, "mm", True)
+        text(img, (x + cw // 2, y + ch - int(40 * s)), op["cls"], int(13 * s), SUB, "mm")
+        text(img, (x + cw // 2, y + ch - int(20 * s)), src, int(12 * s), DIM, "mm")
+        x += cw + gap
+    bw = int(200 * s)
+    btn(img, (w // 2 - bw - 10, h - int(80 * s), w // 2 - 10, h - int(36 * s)), "前往干员名册", "ROSTER", True)
+    btn(img, (w // 2 + 10, h - int(80 * s), w // 2 + bw + 10, h - int(36 * s)), "返回", "BACK")
+    return img
+
+
+def main_v2():
+    out = os.path.join(OUT, "v2")
+    os.makedirs(out, exist_ok=True)
+    op, op2 = OPS["lumen"], OPS["skadi"]
+    frames = [
+        (hh_entry(), "1 寻访界面"),
+        (hh_crate("closed", "gold"), "2 档案匣 0–0.5 秒"),
+        (hh_crate("leak", "gold"), "3 封条拉开·漏光 0.5–1.1"),
+        (hh_crate("open", "gold"), "4 开匣·光柱 1.1–1.6"),
+        (hh_reveal(op, "streak", "gold"), "5 流光·剪影 1.6–2.2"),
+        (hh_reveal(op, "decode", "gold"), "6 剪影亮起 2.2–3.0"),
+        (hh_reveal(op, "line", "gold"), "7 定格·台词 3.0–4.5"),
+    ]
+    for i, (im, lab) in enumerate(frames):
+        im.convert("RGB").save(os.path.join(out, "v2_%d.png" % (i + 1)))
+    storyboard([f for f, _ in frames[:4]], [l for _, l in frames[:4]], os.path.join(out, "v2_storyboard_a.png"))
+    storyboard([f for f, _ in frames[4:]], [l for _, l in frames[4:]], os.path.join(out, "v2_storyboard_b.png"))
+    hh_crate("leak", "cyan").convert("RGB").save(os.path.join(out, "v2_leak_cyan.png"))
+    hh_reveal(op2, "line", "cyan").convert("RGB").save(os.path.join(out, "v2_reveal_cyan.png"))
+    hh_summary([(OPS["skadi"], "gold", "寻访凭证"), (OPS["specter_unchained"], "gold", "招募券 · 特种"), (OPS["kaltsit"], "cyan", "人事调度函")]).convert("RGB").save(os.path.join(out, "v2_summary.png"))
+    sp = 0.62
+    for nm, im in (("v2_phone_entry", hh_entry(sp, PW, PH)), ("v2_phone_leak", hh_crate("leak", "gold", sp, PW, PH)),
+                   ("v2_phone_line", hh_reveal(op, "line", "gold", sp, PW, PH))):
+        im.convert("RGB").resize((PW * 2, PH * 2), Image.NEAREST).save(os.path.join(out, nm + ".png"))
+    print("v2 ok", out)
+
+
 ORDER = []
+OPS = {}
 
 if __name__ == "__main__":
-    main()
+    OPS.update(load_ops())
+    ORDER.extend(OPS)
+    if "--v1" in sys.argv:
+        main()
+    main_v2()
