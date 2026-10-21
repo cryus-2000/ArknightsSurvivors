@@ -85,6 +85,7 @@
   }
  },
  "sprites": {
+  "entry": {"tex": "op_kaltsit_entry", "frames": 8, "fps": 9.6004, "foot": [32, 60], "frame_durations": [0.1042, 0.1041, 0.1042, 0.1042, 0.1041, 0.1042, 0.1041, 0.1042], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/kaltsit_entry.json），64 画布 @2x；落下由代码补"},
   "death": {"tex": "op_kaltsit_death", "frames": 8, "fps": 8.0, "foot": [48, 76], "frame_durations": [0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125], "_doc": "10-21 原作 Die 轨逐部件像素化（tools/spine_run_trial cfg/kaltsit_death.json），96 画布 @2x"},
   "idle": {
    "tex": "op_kaltsit_idle",
@@ -451,7 +452,7 @@
    ]
   }
  },
- "extra_sprites": [
+ "extra_sprites": ["entry", 
   "m_idle",
   "m_run",
   "m_attack",

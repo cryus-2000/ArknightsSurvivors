@@ -79,6 +79,7 @@
   "regen": 1.1
  },
  "sprites": {
+  "entry": {"tex": "op_skalter_entry", "frames": 8, "fps": 8.3481, "foot": [32, 60], "frame_durations": [0.1198, 0.1198, 0.1198, 0.1198, 0.1197, 0.1198, 0.1198, 0.1198], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/skalter_entry.json），64 画布 @2x；落下由代码补"},
   "idle": {
    "tex": "op_skalter_idle",
    "frames": 36,
@@ -415,7 +416,7 @@
    }
   }
  },
- "extra_sprites": [
+ "extra_sprites": ["entry", 
   "ishar_idle",
   "ishar_move",
   "ishar_attack",

@@ -72,6 +72,7 @@
   "regen": 1.5
  },
  "sprites": {
+  "entry": {"tex": "op_specter_unchained_entry", "frames": 8, "fps": 8.727, "foot": [32, 60], "frame_durations": [0.1146, 0.1146, 0.1146, 0.1145, 0.1146, 0.1146, 0.1146, 0.1146], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/specter_unchained_entry.json），64 画布 @2x；落下由代码补"},
   "idle": {
    "tex": "op_specter_unchained_idle",
    "frames": 8,
@@ -416,7 +417,7 @@
    }
   }
  },
- "extra_sprites": [
+ "extra_sprites": ["entry", 
   "doll",
   "fall",
   "doll_spin",

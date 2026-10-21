@@ -1,0 +1,164 @@
+{
+ "id": "specter_unchained",
+ "src": "specter_unchained.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "归溟幽灵鲨",
+ "body": {
+  "hip": "F_hip",
+  "chest": "F_chest",
+  "head": "F_head"
+ },
+ "legs": {
+  "L": [
+   "F_R_thigh",
+   "F_R_shin",
+   "F_R_shoes"
+  ],
+  "R": [
+   "F_L_thigh",
+   "F_L_shin",
+   "F_L_shoes"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_R_arm_A",
+   "F_R_arm_B",
+   "F_R_hand_close"
+  ],
+  "R": [
+   "F_L_arm_A",
+   "F_L_arm_B",
+   "F_L_palm"
+  ]
+ },
+ "hold": "R",
+ "weapon": "F_Weapon2",
+ "relativeArms": [
+  "L"
+ ],
+ "params": {
+  "lean": 11,
+  "holdAmp": 6,
+  "holdElbowAmp": 3,
+  "weaponSway": 4,
+  "relAmp": 4,
+  "relElbowAmp": 2,
+  "stride": 1.3,
+  "bob": 0.4,
+  "chestLean": 4,
+  "weaponLean": -0.3
+ },
+ "secondary": [
+  {
+   "match": "^(F_hair_[1-47]|bone(1[5-9]|20))$",
+   "amp": 2.5,
+   "drag": 4
+  },
+  {
+   "match": "^F_Back_L_Ribbon[2-6]?$",
+   "amp": 4,
+   "drag": 6,
+   "lag": 1.3
+  },
+  {
+   "match": "^F_Back_R_Ribbon[2-5]?$",
+   "amp": 3,
+   "drag": -30.0,
+   "lag": 1.3
+  },
+  {
+   "match": "^F_Back_L_Ribbon[2-6]?$",
+   "amp": 4,
+   "drag": 6,
+   "lag": 1.3
+  },
+  {
+   "match": "^F_Back_L_Ribbon[2-6]?$",
+   "amp": 4,
+   "drag": 6,
+   "lag": 1.3
+  },
+  {
+   "match": "^F_Back_[LR]_Ribbon[2-6]?$",
+   "amp": 4,
+   "drag": 6,
+   "lag": 1.3
+  },
+  {
+   "match": "^F_[LR]_RibbonA[1-6]$",
+   "amp": 3,
+   "drag": 4,
+   "lag": 1.1
+  },
+  {
+   "match": "^(F_Dress[A-G][2-8]?|F_Dress_Back2?)$",
+   "amp": 6,
+   "drag": 6,
+   "lag": 1.3,
+   "gravity": 1.0,
+   "freq": 2
+  },
+  {
+   "match": "^F_L_Belt[AB][1-6]?$",
+   "amp": 3,
+   "drag": 3
+  },
+  {
+   "match": "^(F_D_Line([1-9]|1[0-4])|F_Dress_Ribbon[ABC][2-5]?)$",
+   "amp": 2,
+   "drag": 3,
+   "lag": 1.4,
+   "gravity": 1.0
+  },
+  {
+   "match": "^B_W_Ribbon[23]?$",
+   "amp": 2,
+   "drag": 16,
+   "lag": 1.2
+  },
+  {
+   "match": "^bone3[3-7]$",
+   "amp": 2,
+   "drag": -10.0,
+   "lag": 1.2
+  }
+ ],
+ "grip": [
+  86.5,
+  16.3
+ ],
+ "hide": [
+  "F_L_Shoe_Line1",
+  "F_L_Shoe_Line2",
+  "F_R_Shoe_Line1",
+  "F_R_Shoe_Line2"
+ ],
+ "action": "entry",
+ "skipAdditive": true,
+ "sample": {
+  "anim": "Start",
+  "times": [
+   0.0833,
+   0.1979,
+   0.3125,
+   0.4271,
+   0.5416,
+   0.6562,
+   0.7708,
+   0.8854
+  ]
+ },
+ "durations": [
+  0.1146,
+  0.1146,
+  0.1146,
+  0.1145,
+  0.1146,
+  0.1146,
+  0.1146,
+  0.1146
+ ],
+ "_doc": "入场条（10-22）：原作 Start 轨，整个人进画布起到收势均匀 8 帧；之前的空中下落由游戏代码补（durations = 帧间原作时长）"
+}

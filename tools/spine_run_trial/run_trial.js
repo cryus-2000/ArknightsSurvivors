@@ -549,6 +549,7 @@ async function main() {
       const w = Math.ceil(Math.max(...xs)) - x0 + 1, h = Math.ceil(Math.max(...ys)) - y0 + 1;
       // 入场 Start 轨里有缩到 0 / 透明 / 飞出画面很远的部件（登场光效之类）：跳过，否则读像素失败
       if (!(w > 0 && h > 0 && w < SIZE * 4 && h < SIZE * 4) || slot.color.a <= 0.004) continue;
+      if (cfg.skipAdditive && slot.data.blendMode) continue;   // 入场：叠加 / 滤色的登场光效像素化后成白块，不画（特效另做）
       const hi = createCanvas(w * 4, h * 4), hc = hi.getContext('2d');
       hc.translate((ANCHOR[0] - x0) * 4, (ANCHOR[1] - y0) * 4); hc.scale(SCALE * 4, -SCALE * 4);
       if (clip) { hc.beginPath(); for (let n = 0; n < clip.v.length; n += 2) hc[n ? 'lineTo' : 'moveTo'](clip.v[n], clip.v[n + 1]); hc.closePath(); hc.clip(); }

@@ -7,6 +7,7 @@ const DT := 1.0 / 30.0
 var dir := ""
 var rec := ""
 var swap := ""
+var frames := 220
 
 
 func _ready() -> void:
@@ -17,6 +18,8 @@ func _ready() -> void:
 			rec = a.substr(6)
 		elif a.begins_with("--swap="):
 			swap = a.substr(7)
+		elif a.begins_with("--frames="):
+			frames = int(a.substr(9))   # 只录开场：--frames=90
 	DirAccess.make_dir_recursive_absolute(dir)
 	var g = load("res://game.tscn").instantiate()
 	add_child(g)
@@ -25,7 +28,7 @@ func _ready() -> void:
 	g.intro_screen.start_opening()
 	g.invuln = 999.0
 	g.xp_need = 1000000000.0
-	for f in 220:
+	for f in frames:
 		if f == 130 and rec != "":
 			g.squad.add(rec)   # 局中招募：从上方落下，着地接入场条
 		if f == 175 and rec != "" and swap != "" and g.squad.has(rec):
