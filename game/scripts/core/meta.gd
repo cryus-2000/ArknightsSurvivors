@@ -2,7 +2,7 @@ extends RefCounted
 ## 认知塑造（局外成长 P2，docs/109 §4，用户 10-22 确认 v3）：节点数据在 data/meta_tree.json，玩家已点的在 Cfg.meta_shape（{节点 id: true}）。
 ## 一局开局时 apply_run(g) 把已点节点写进属性块（来源 "meta"）与开局资源。
 ## 测试局缺省不带任何局外成长（与改动前逐局相同）；--meta=<生机细胞数> 按推荐点法点到这个数，--meta=full 点满（机器人校准用，docs/109 §5.4）。
-## --meta 只在测试局读；正式游玩用存档里的 Cfg.meta_shape。
+## --metanodes=<id,id,…> 只点指定节点（按线单测）。--meta / --metanodes 只在测试局读；正式游玩用存档里的 Cfg.meta_shape。
 
 const PATH := "res://data/meta_tree.json"
 static var _data := {}
@@ -67,6 +67,13 @@ static func run_shape() -> Dictionary:
 		if a.begins_with("--meta="):
 			var v := a.substr(7)
 			return shape_for(total_cost() if v == "full" else int(v))
+		if a.begins_with("--metanodes="):
+			# 只点指定节点（逗号分隔 id，不看前置与余额；按线单测用，docs/109 §5.4 S1b）
+			var sh := {}
+			for id in a.substr(12).split(",", false):
+				if nodes().has(id):
+					sh[id] = true
+			return sh
 		if a.begins_with("--"):
 			test = true
 	return {} if test else Cfg.meta_shape
