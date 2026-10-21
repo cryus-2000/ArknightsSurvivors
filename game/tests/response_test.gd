@@ -431,3 +431,9 @@ func test_ulpianus(g, o) -> void:
 		tick(o)
 	ok(o.hw.hooks.is_empty() and hp_sum(g) < h0, "乌尔比安：锚落地砸中并收回（%.0f → %.0f）" % [h0, hp_sum(g)])
 	ok(o.pos.distance_to(p0) < 60.0, "乌尔比安：本人不随锚位移（%.0f）" % o.pos.distance_to(p0))
+	o.rsp["last"] = g.t
+	o._sustain(DT)
+	var k1: float = float(o.loc.atk)
+	o.rsp["last"] = g.t - 2.0
+	o._sustain(DT)
+	ok(absf(k1 - 1.3) < 0.001 and absf(float(o.loc.atk) - 1.0) < 0.001, "乌尔比安：锚链后 1.5 秒内锚击 ×1.3、之后恢复（%.2f → %.2f）" % [k1, float(o.loc.atk)])
