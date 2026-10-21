@@ -1,0 +1,78 @@
+{
+ "id": "specter_unchained",
+ "src": "specter_unchained.src.json",
+ "leadLeg": "L",
+ "nearSide": "R",
+ "name": "归溟替身 · 施术（本体 Skill_3_Attack 身体动作重定向）",
+ "body": {
+  "hip": "F_hip",
+  "chest": "F_chest",
+  "head": "F_head"
+ },
+ "legs": {
+  "L": [
+   "F_R_thigh",
+   "F_R_shin",
+   "F_R_shoes"
+  ],
+  "R": [
+   "F_L_thigh",
+   "F_L_shin",
+   "F_L_shoes"
+  ]
+ },
+ "arms": {
+  "L": [
+   "F_R_arm_A",
+   "F_R_arm_B",
+   "F_R_hand_close"
+  ],
+  "R": [
+   "F_L_arm_A",
+   "F_L_arm_B",
+   "F_L_palm"
+  ]
+ },
+ "hold": "R",
+ "weapon": "F_Weapon2",
+ "relativeArms": [
+  "L"
+ ],
+ "params": {
+  "lean": 11,
+  "holdAmp": 6,
+  "holdElbowAmp": 3,
+  "weaponSway": 4,
+  "relAmp": 4,
+  "relElbowAmp": 2,
+  "stride": 1.3,
+  "bob": 0.4,
+  "chestLean": 4,
+  "weaponLean": -0.3
+ },
+ "grip": [
+  86.5,
+  16.3
+ ],
+ "hide": [
+  "F_L_Shoe_Line1",
+  "F_L_Shoe_Line2",
+  "F_R_Shoe_Line1",
+  "F_R_Shoe_Line2"
+ ],
+ "action": "doll_cast",
+ "retarget": {
+  "anim": "Skill_3_Attack",
+  "times": [
+   0,
+   0.27,
+   0.55,
+   0.82,
+   1.1,
+   1.37,
+   1.65,
+   1.9
+  ]
+ },
+ "scaleMul": 1.09
+}

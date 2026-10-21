@@ -971,8 +971,8 @@ static func _h3_cond_mults(b: Dictionary, k: String, p: String, ctx: Dictionary)
 # ================================================================ 精英化第 3 批（docs/91 §5 / §8 / §9 / §14、§25；docs/61 §20，10-14）
 # 只往后加，建在第 3 批手写迁移段上（o.hw 的 ir / sp / lm / mz）。新积木 / 新参数：
 #  trig.on_windup     普攻起手时（第 3 批的普攻形状）执行 do。幽灵鲨精一「卷刃」：起手把外圈敌人吸近（verb.displace，环斩在出手帧）
-#  verb.doll_flash    瞬时（trig.every_n 的 do）：替身人偶在 range（× op_range）内敌群最密处从水花里现身 appear 秒 → 旋身斩一圈
-#                     （r × op_range，basis × mult，src）→ 碎成泡沫 burst 秒；同时最多 1 个，本体离场（替身跟随）时不出。幽灵鲨精二「替身闪现」
+#  verb.doll_flash    瞬时（trig.every_n 的 do）：替身人偶在 range（× op_range）内敌群最密处从水花里现身 appear 秒 → spins 次以自身为心的法术脉冲
+#                     （r × op_range，命中最近 max_n 个、Boss / 精英优先，basis × mult，src；10-21 原为旋身锯环）→ 碎成泡沫 burst 秒；同时最多 1 个，本体离场（替身跟随）时不出。幽灵鲨精二「替身闪现」
 #  shape.thrust 的 stages[k].on_first           第 k 段命中的第一个敌人吃的状态（艾丽妮精一「挑刺」：第 2 段挑起，cd 门）
 #  shape.thrust 的 finisher {cond, every, anim, do, volley}  每第 every 次刺击，最后一段换成 do（艾丽妮精二「裂潮余波」：新月斩 + 浮空），
 #                     volley {delay, n, mult[], r, src}：收尾 delay 秒后手炮补射这一斩里浮空的至多 n 名
@@ -1027,6 +1027,7 @@ static func _e3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			for k in ["appear", "spin", "burst", "spin_gap"]:
 				_num(b, k, p, ctx, false, 0.0, 3.0)
 			_num(b, "spins", p, ctx, false, 1.0, 6.0)
+			_num(b, "max_n", p, ctx, false, 0.0, 64.0)   # 每次脉冲命中上限（0 = 不限；10-21 改法术脉冲）
 			if b.has("basis") and not str(b.basis) in ["attack", "prev", "hit", "atk"]:
 				errs.append(p + ".basis 只能是 attack / prev / hit / atk")
 			if b.has("anim") and not (ctx.sprites is Dictionary and ctx.sprites.has(str(b.anim))):
