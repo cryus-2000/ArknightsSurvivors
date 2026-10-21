@@ -430,7 +430,10 @@ func update(dt: float) -> void:
 		g.horde_warn = 0.0
 		g.horde_hit = 1.2
 		g.vfx.shake_screen(1.4)
-		g.fx.append({"kind": "horde_ring", "pos": g.ppos, "r": 640.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
+		# 收缩包围（docs/116 §7 原型，enemy/close_ring_until 秒之前的大群；缺省 0 = 关）：包围圈直接刷在屏内 close_ring_r 处，只留 70° 缺口，站桩会被夹住
+		var close_ring: bool = g.t < Bal.v("enemy/close_ring_until", 0.0)
+		var ring_r: float = Bal.v("enemy/close_ring_r", 320.0) if close_ring else 600.0
+		g.fx.append({"kind": "horde_ring", "pos": g.ppos, "r": ring_r + 40.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
 		Sfx.play("roar", 2.0, 0.8, 0.0)
 		# 数量：32 → 88（10 分钟），× 难度修正 horde；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
 		var n := int((Bal.v("enemy/horde_base", 24.0) + int(g.t / Bal.v("enemy/horde_div", 9.0))) * float(g.dmod.horde))
@@ -454,12 +457,16 @@ func update(dt: float) -> void:
 			if g.enemies.size() >= max_alive() + 60:
 				break
 			var ang: float = g.horde_gap + gap_half + span * float(s.u)
-			var p := g.ppos + Vector2.from_angle(ang) * (g.rng_spawn.randf_range(560.0, 640.0) + float(s.dr))
+			var p := g.ppos + Vector2.from_angle(ang) * (g.rng_spawn.randf_range(ring_r - 40.0, ring_r + 40.0) + float(s.dr))
 			var he := spawn_enemy(s.id, p)
 			he["horde"] = g.horde_log.size() - 1
 			he.dormant = false
 			# 群体个体的接触伤害 ×0.7：被包围时不至于两下暴毙，压力来自数量而不是单体
 			he.dmg *= Bal.v("enemy/early_horde_dmg", 0.7) if early else 0.7
+			if early:
+				var ehp: float = Bal.v("enemy/early_horde_hp", 1.0)   # 前期大群单只生命倍率（不加经验）
+				he.hp *= ehp
+				he.maxhp *= ehp
 			hl.hp += he.maxhp
 		_norm = false
 	# 补给箱

@@ -14,7 +14,8 @@
     "bone",
     "bone",
     "bone",
-    "slider"
+    "slider",
+    "stone"
    ],
    "horde": [
     "bone",
@@ -57,7 +58,8 @@
     "bone",
     "slider",
     "slider",
-    "stone"
+    "stone",
+    "floater"
    ],
    "horde": [
     "bone",
