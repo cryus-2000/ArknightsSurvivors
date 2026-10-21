@@ -1873,3 +1873,9 @@ S3 当前契约（2026-10-18）：参考原作的全周范围攻击与追加目�
 - 实际出手时设置 `s3_fx` 与 `s3_fx_radius`，整片攻击范围内的触手同步出现。特效只表现已结算的攻击，不额外触发伤害或控制；离队时清空。完整表现约定见 [水月 S3 范围攻击与特效方案](plans/2026-10-18-mizuki-s3-fx.md)。
 
 验收入口：`mizuki_runtime_test`（真实技能入口、1/2/4 倍攻速、主控 / 队友、手动 / 自动、目标死亡、取消 / 重新部署、重叠恢复、成长与缺图，以及 S3 全周群攻、追加目标控制、半径边界、无回声与无生命消耗），`mizuki_skill_anim_test`（完整八帧、fire 对齐、持续循环 / 收势、S1 优先级与无变体回退）。三干员既有 lifecycle / phases / timing / Wisadel 回归保留。
+
+## 21. 第四批设计稿：拉普兰德 / 歌蕾蒂娅（10-22，只填 json，不加积木）
+
+两人全部用现有积木写成（docs/122 §3、docs/123 §3）：拉普兰德 = cone + `attack.combo` + `shape.wave from self` + `st.seal` + `trig.on_hurt`；歌蕾蒂娅 = 名义 circle + `trig.every_n {n 1, replace}` → `shape.hookshot`（乌尔比安精二积木当普攻）+ `verb.field` + `aura.heal / verb.dr` 按 `cond faction:深海猎人 >= n` 叠档。
+预算表与数值在各自文档 §4，不再写进本文；两人暴露的缺口（`shape.wave` 无 `on_hit`、`shape.hookshot` 不在 `ATTACK_SHAPES` / 无 `on_hit` / 只认最远目标、`verb.displace to: self` 未实现、非精英加伤、docs/118 的 `trig.on_leader_skill` / 共用 `on_leader_dash`）列在两文档的「需要新积木」表里，等积木会话排期。
+

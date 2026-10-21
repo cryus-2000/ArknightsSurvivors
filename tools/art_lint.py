@@ -59,7 +59,7 @@ MAIN_ACTS = ["idle", "run", "attack", "skill"]
 REF_OPS = ["skadi", "skalter", "lumen"]   # docs/87 §2 朝右 3/4 侧身参考
 NAMES = {"angelina": "安洁莉娜", "exusiai": "能天使", "eyjafjalla": "艾雅法拉", "hoshiguma": "星熊", "irene": "艾丽妮",
          "kaltsit": "凯尔希", "logos": "逻各斯", "lumen": "流明", "mizuki": "水月", "saria": "塞雷娅", "siege": "推进之王",
-         "skadi": "斯卡蒂", "skalter": "浊心斯卡蒂", "specter_unchained": "归溟幽灵鲨", "suzuran": "铃兰", "texas": "德克萨斯",
+         "skadi": "斯卡蒂", "skalter": "浊心斯卡蒂", "specter_unchained": "归溟幽灵鲨", "suzuran": "铃兰", "texas": "德克萨斯", "lappland": "拉普兰德", "gladiia": "歌蕾蒂娅",
          "ulpianus": "乌尔比安", "wisadel": "维什戴尔", "doctor": "博士"}
 
 # ---------------------------------------------------------------- 阈值（docs/87，改这里先改文档）
@@ -150,6 +150,13 @@ WAIVERS = {
     ("skadi", "run"): "10-20 用户确认的 Spine 步态跑步（tools/spine_run_trial cfg/skadi.json，右手拖剑、前倾 20°、抬腿对齐推进之王旧条）；旧 48 帧条剪影 / 上身阈值未过，保留视觉复核",
     ("skadi", "outline"): "10-20 原生附件逐件像素化（cz_skadi_actions_1020 + spine_run_trial）：暗色收边，不使用旧 #080E18 黑壳",
     ("skadi", "ground"): "10-20 统一脚根锚点：最低像素行 59（96 画布 75）与脚底边界 60（76）差 1，同能天使口径，不逐帧挪图贴底",
+    # 10-22 第四批设计稿（docs/122 / 123）：拉普兰德借斯卡蒂、歌蕾蒂娅借乌尔比安的 idle / run / attack / death 当占位帧条，豁免同本尊；正式帧条交付后删这六条
+    ("lappland", "outline"): "10-22 占位：借斯卡蒂帧条（同 skadi outline 豁免）；正式帧条交付后删",
+    ("lappland", "run"): "10-22 占位：借斯卡蒂帧条（同 skadi run 豁免）；正式帧条交付后删",
+    ("lappland", "ground"): "10-22 占位：借斯卡蒂帧条（同 skadi ground 豁免）；正式帧条交付后删",
+    ("gladiia", "outline"): "10-22 占位：借乌尔比安帧条（同 ulpianus outline 豁免）；正式帧条交付后删",
+    ("gladiia", "run"): "10-22 占位：借乌尔比安帧条（同 ulpianus run 豁免）；正式帧条交付后删",
+    ("gladiia", "ground"): "10-22 占位：借乌尔比安帧条（同 ulpianus ground 豁免）；正式帧条交付后删",
     # 以下为 docs/87 附录 B 基线新发现，待协调人 / 用户定是否开返修单（开单后把说明改成返修单号）
     ("skalter", "run"): "设计例外（用户 10-13 定）：浊心斯卡蒂跑步是悬浮飘行，腿不交替属造型，长期豁免",
     ("skalter", "ground"): "设计例外（用户 10-13 定）：浊心斯卡蒂悬浮飘行，离地 4–6px 属造型，长期豁免",

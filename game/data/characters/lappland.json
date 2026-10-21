@@ -1,0 +1,1023 @@
+{
+ "id": "lappland",
+ "name": "拉普兰德",
+ "en": "LAPPLAND",
+ "class": "近卫",
+ "branch": "领主",
+ "col": [
+  0.86,
+  0.88,
+  0.95
+ ],
+ "script": "res://scripts/characters/data_operator.gd",
+ "base": {
+  "_doc": "基础数值（docs/27 §3、§9；设计稿 docs/122）：近卫 · 领主。普攻「双刃」近身横扫（cone），特性「领主」每第 blade_every 次普攻追加一道剑气（远程 80%）；天赋「精神摧毁」命中封印；S1「日晷」永久（攻击 + 队长受击格挡概率）；S2「狼魂」限时（攻击 + 法术剑气）；S3「群狼之噬」（本作自创名）限时每 s3_every 秒三道剑气 + 封印环；精一「狼之舞」每第 dance_n 次改为旋身斩；精二「双生刃」剑气改为每次双刃；节点 4 二选一「断喝」/「狼魂·狂」（docs/119 §4.1）",
+  "atk": 36,
+  "cd": 0.8,
+  "reach": 118,
+  "half": 1.3,
+  "kb": 50,
+  "aim_pad": 60,
+  "first_cd": 0.3,
+  "idle_cd": 0.1,
+  "leash": 200,
+  "gap": 30,
+  "blade_every": 2,
+  "blade_mult": 0.8,
+  "blade_dist": 200,
+  "blade_w": 50,
+  "blade_spd": 500,
+  "blade_kb": 60,
+  "blade_aim": 260,
+  "seal_dur": 1.5,
+  "seal_elite": 0.5,
+  "seal_boss": 0.3,
+  "seal_boss_max": 1.5,
+  "seal_boss_imm": 10,
+  "s1_atk": 1.25,
+  "s1_resist": 0.2,
+  "s2_dur": 12.0,
+  "s2_atk": 1.4,
+  "s2_mult": 0.6,
+  "s3_dur": 8.0,
+  "s3_every": 0.6,
+  "s3_mult": 0.7,
+  "s3_dist": 220,
+  "s3_seal": 2.0,
+  "s3_seal_r": 180,
+  "twin_delay": 0.12,
+  "twin_mult": 0.5,
+  "far_dist": 270,
+  "far_w": 60,
+  "dance_n": 5,
+  "dance_r": 120,
+  "dance_mult": 1.3,
+  "dance_kb": 90,
+  "dance_seal": 2.0,
+  "twin_fan": 12,
+  "twin_blade_mult": 0.55,
+  "bark_n": 4,
+  "bark_r": 150,
+  "bark_mult": 0.5,
+  "bark_kb": 80,
+  "bark_seal": 2.0,
+  "bark2_n": 3,
+  "bark2_r": 190,
+  "bark2_mult": 0.6,
+  "bark2_seal": 3.0,
+  "rage_atk": 0.25,
+  "rage2_aspd": 0.2
+ },
+ "leader": {
+  "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 2350 / 防御 365 / 法抗 15（character_table）；近战无自疗 regen 1.4–1.7 口径取 1.5，防御高于斯卡蒂故生命略低、护甲略高",
+  "max_hp": 125,
+  "armor": 2.4,
+  "arts_res": 0.1,
+  "regen": 1.5
+ },
+ "sprites": {
+  "_doc": "占位帧条（docs/122 §6 美术需求单未出图前）：借斯卡蒂的 idle / run / attack / death 四条，槽参数逐字照抄（art_lint 的 files / 尺寸项才能过）；正式帧条到了只换 tex 与 frame_durations",
+  "size": 64,
+  "foot": [
+   32,
+   60
+  ],
+  "idle": {
+   "tex": "op_skadi_idle",
+   "frames": 8,
+   "fps": 4,
+   "foot": [
+    32,
+    60
+   ],
+   "_doc": "占位：借斯卡蒂 idle"
+  },
+  "run": {
+   "tex": "op_skadi_run",
+   "frames": 8,
+   "fps": 13.333333333333334,
+   "foot": [
+    32,
+    60
+   ],
+   "_doc": "占位：借斯卡蒂 run"
+  },
+  "attack": {
+   "tex": "op_skadi_attack",
+   "frames": 8,
+   "fps": 14,
+   "foot": [
+    48,
+    76
+   ],
+   "fire": 2,
+   "frame_durations": [
+    0.08928571428571429,
+    0.08928571428571429,
+    0.029761904761904764,
+    0.029761904761904764,
+    0.029761904761904764,
+    0.029761904761904764,
+    0.029761904761904764,
+    0.029761904761904764
+   ],
+   "fire_time": 0.17857142857142858,
+   "_doc": "占位：借斯卡蒂 attack（96 画布）；动作窗口 5/14 秒、出手 2.5/14 秒"
+  },
+  "death": {
+   "tex": "op_skadi_death",
+   "frames": 8,
+   "fps": 8,
+   "foot": [
+    48,
+    76
+   ],
+   "_doc": "占位：借斯卡蒂 death（96 画布）"
+  }
+ },
+ "extra_sprites": [],
+ "attack": {
+  "mode": "auto",
+  "name": "双刃",
+  "desc": "每 {$cd} 秒在队长身边挥出双刃横扫（物理，扇形约 150°，半径 {$reach}）；特性「领主」：每第 {$blade_every} 次横扫额外掷出一道剑气，飞出 {$blade_dist}，穿透沿途敌人，造成横扫 {$blade_mult*100}% 的伤害"
+ },
+ "skills": [
+  {
+   "name": "日晷",
+   "en": "SUNDIAL",
+   "sp": 10,
+   "permanent": true,
+   "desc": "充能一次后永久生效：攻击 +{$s1_atk*100-100}%；队长受到的攻击有 {$s1_resist*100}% 概率被她格挡（完全抵消这一下）",
+   "icon": "skill_skadi_s1"
+  },
+  {
+   "name": "狼魂",
+   "en": "WOLF SPIRIT",
+   "sp": 14,
+   "dur": 12.0,
+   "desc": "{$s2_dur} 秒内攻击 +{$s2_atk*100-100}%，每次横扫额外掷出一道法术剑气（横扫 {$s2_mult*100}% 伤害，飞出 {$blade_dist}，穿透）",
+   "icon": "skill_skadi_s2"
+  },
+  {
+   "name": "群狼之噬",
+   "en": "WOLF PACK",
+   "sp": 24,
+   "dur": 8.0,
+   "desc": "{$s3_dur} 秒内每 {$s3_every} 秒朝最近的敌人掷出 3 道剑气（±18°，每道攻击 {$s3_mult*100}%，飞出 {$s3_dist}，穿透，每名敌人每轮只受一道），同时封印周围 {$s3_seal_r} 内的敌人 {$s3_seal} 秒；普攻照常",
+   "icon": "skill_skadi_s3"
+  }
+ ],
+ "talent": {
+  "name": "精神摧毁",
+  "desc": "横扫命中的敌人被封印 {$seal_dur} 秒：不起新的特殊招式、不远程开火、甲壳 / 潮盾失效（精英减半；Boss 只推迟出招，至多 {$seal_boss_max} 秒，之后 {$seal_boss_imm} 秒免疫）"
+ },
+ "hit_sources": {
+  "双刃": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
+  "领主": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area",
+    "projectile"
+   ]
+  },
+  "狼魂": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "skill",
+    "area",
+    "projectile"
+   ]
+  },
+  "群狼之噬": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area",
+    "projectile"
+   ]
+  },
+  "狼之舞": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
+  "双生刃": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area",
+    "projectile"
+   ]
+  },
+  "断喝": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "follow_up",
+    "area"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "custom",
+   "id": "twin",
+   "name": "双刃连斩",
+   "icon": "growth_u_spd",
+   "desc": "每次横扫变为两连斩：{$twin_delay} 秒后再补一刀（{$twin_mult*100}% 伤害）"
+  },
+  {
+   "type": "custom",
+   "id": "far",
+   "name": "远掷",
+   "icon": "growth_b_range",
+   "desc": "剑气飞出 {$blade_dist} → {$far_dist}，宽度 {$blade_w} → {$far_w}"
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英一",
+   "desc": "解锁二技能「狼魂」；解锁天赋「精神摧毁」：横扫命中的敌人被封印 {$seal_dur} 秒（精英减半，Boss 只推迟出招至多 {$seal_boss_max} 秒）；普攻「狼之舞」：每第 {$dance_n} 次横扫改为旋身斩：以自身为中心半径 {$dance_r} 内 ×{$dance_mult} 伤害、击退并封印 {$dance_seal} 秒",
+   "attack": {
+    "name": "狼之舞",
+    "desc": "每第 {$dance_n} 次横扫改为旋身斩：以自身为中心半径 {$dance_r} 内 ×{$dance_mult} 伤害，击退，命中的敌人封印 {$dance_seal} 秒（「群狼之噬」期间不换）"
+   }
+  },
+  {
+   "type": "custom",
+   "id": "bark",
+   "name": "断喝",
+   "icon": "growth_t_field",
+   "desc": "每第 {$bark_n} 次横扫放出一圈冲击：半径 {$bark_r} 内横扫 {$bark_mult*100}% 伤害，击退并封印 {$bark_seal} 秒",
+   "branch": {
+    "bark": {
+     "id": "bark",
+     "name": "断喝",
+     "icon": "growth_t_field",
+     "desc": "每第 {$bark_n} 次横扫放出一圈冲击：半径 {$bark_r} 内横扫 {$bark_mult*100}% 伤害，击退并封印 {$bark_seal} 秒"
+    },
+    "rage": {
+     "id": "rage",
+     "name": "狼魂·狂",
+     "icon": "skill_skadi_s2",
+     "desc": "「狼魂」期间攻击再 +{$rage_atk*100}%"
+    }
+   },
+   "branch_desc": "二选一：「断喝」—每第 {$bark_n} 次横扫放出封印冲击，走控制；「狼魂·狂」—「狼魂」期间攻击再提高，走爆发。之后的节点沿所选路线强化",
+   "bot": "bark"
+  },
+  {
+   "type": "custom",
+   "id": "rage",
+   "name": "狼魂·狂",
+   "icon": "skill_skadi_s2",
+   "desc": "「狼魂」期间攻击再 +{$rage_atk*100}%",
+   "routes": {
+    "bark": {
+     "id": "bark2",
+     "name": "断喝·长啸",
+     "icon": "growth_t_field",
+     "desc": "冲击改为每第 {$bark2_n} 次横扫，半径 {$bark2_r}，{$bark2_mult*100}% 伤害，封印 {$bark2_seal} 秒"
+    },
+    "rage": {
+     "id": "rage2",
+     "name": "狼魂·疾",
+     "icon": "skill_skadi_s2",
+     "desc": "「狼魂」期间攻击速度 +{$rage2_aspd*100}%"
+    }
+   }
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英二",
+   "desc": "解锁三技能「群狼之噬」：{$s3_dur} 秒内每 {$s3_every} 秒掷出 3 道剑气并封印周围敌人；普攻质变「双生刃」：每次横扫都掷出两道交叉剑气（各 {$twin_blade_mult*100}% 伤害，±{$twin_fan}°，每名敌人每轮只受一道），取代「领主」的单道剑气",
+   "attack": {
+    "name": "双生刃",
+    "desc": "每次横扫都掷出两道交叉剑气（各横扫 {$twin_blade_mult*100}% 伤害，±{$twin_fan}°，飞出 {$blade_dist}，穿透；每名敌人每轮只受一道）"
+   }
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "近战",
+   "范围",
+   "封印",
+   "剑气"
+  ],
+  "desc": "近卫干员，领主。贴身双刃横扫，隔两刀掷出一道穿透剑气；精英一起每一刀都封印敌人的特殊招式，三技能期间不断掷出剑气并封印周围敌人"
+ },
+ "blocks": {
+  "_doc": "拉普兰德（docs/122）：纯数据干员。普攻 cone（斯卡蒂同款写法），剑气用 shape.wave from self（斯卡蒂精二潮刃的写法），封印用 st.seal（docs/61 §15.3）。waves 不支持 on_hit，封印一律挂在 cone / circle 的 on_hit 或 verb.affect 上。技能备注——S1：日晷：永久攻击 +25%；队长受击 15% 概率格挡写在 trait（trig.on_hurt cond skill_active:0）；S2：狼魂：攻击 +40%；每次横扫追加法术剑气写在 trait（every_n 1 cond skill_active:1）；S3：群狼之噬：期间每 s3_every 秒三道剑气 + 封印环，写在 trait（trig.tick cond skill_active:2）；普攻照常",
+  "follow": {
+   "leash": "$leash",
+   "gap": "$gap"
+  },
+  "hit_fx": [
+   {
+    "pfx": {
+     "kind": "glow",
+     "r": 6.0,
+     "life": 0.15,
+     "col": [
+      0.95,
+      0.95,
+      1.0
+     ],
+     "alpha": 0.5
+    }
+   }
+  ],
+  "attack": {
+   "shape": "cone",
+   "origin_off": [
+    0,
+    -10
+   ],
+   "aim_pad": "$aim_pad",
+   "ring": false,
+   "src": "双刃",
+   "r": "$reach",
+   "half": "$half",
+   "kb": "$kb",
+   "every": "$cd",
+   "first": "$first_cd",
+   "idle": "$idle_cd",
+   "face": true,
+   "on_hit": [
+    {
+     "st": "seal",
+     "dur": "$seal_dur",
+     "elite_mult": "$seal_elite",
+     "boss_mult": "$seal_boss",
+     "boss_max": "$seal_boss_max",
+     "boss_immune": "$seal_boss_imm",
+     "cond": "elite >= 1",
+     "_doc": "天赋「精神摧毁」：精一起横扫命中封印"
+    }
+   ],
+   "fx": [
+    {
+     "blade": {
+      "strip": "fx_slash_heavy_deep",
+      "fit": 28,
+      "k": 1.0,
+      "along": 0.5,
+      "col": [
+       0.9,
+       0.9,
+       1.0
+      ],
+      "edge": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "life": 0.2,
+      "half": 1.3
+     }
+    }
+   ],
+   "combo": [
+    {
+     "cond": "node:twin",
+     "delay": "$twin_delay",
+     "do": [
+      {
+       "shape": "cone",
+       "origin_off": [
+        0,
+        -10
+       ],
+       "aim_pad": "$aim_pad",
+       "ring": false,
+       "src": "双刃",
+       "r": "$reach",
+       "half": "$half",
+       "basis": "attack",
+       "mult": "$twin_mult",
+       "kb": "$kb",
+       "tags": [
+        "follow_up"
+       ],
+       "face": true,
+       "on_hit": [
+        {
+         "st": "seal",
+         "dur": "$seal_dur",
+         "elite_mult": "$seal_elite",
+         "boss_mult": "$seal_boss",
+         "boss_max": "$seal_boss_max",
+         "boss_immune": "$seal_boss_imm",
+         "cond": "elite >= 1"
+        }
+       ],
+       "fx": [
+        {
+         "blade": {
+          "strip": "fx_slash_heavy_deep",
+          "fit": 28,
+          "k": 0.9,
+          "along": 0.5,
+          "col": [
+           0.9,
+           0.9,
+           1.0
+          ],
+          "edge": [
+           1.0,
+           1.0,
+           1.0
+          ],
+          "life": 0.18,
+          "half": 1.3,
+          "mirror": true
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "skills": [
+   {
+    "dur": "permanent",
+    "fx": [
+     {
+      "pfx": {
+       "kind": "glow",
+       "r": 24.0,
+       "life": 0.4,
+       "col": [
+        1.0,
+        0.9,
+        0.6
+       ],
+       "alpha": 0.4
+      },
+      "at": "self",
+      "off": [
+       0,
+       -24
+      ]
+     }
+    ],
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "atk",
+      "op": "mult",
+      "value": "$s1_atk",
+      "power": true
+     }
+    ]
+   },
+   {
+    "dur": "$s2_dur",
+    "status": "狼魂",
+    "status_col": [
+     0.7,
+     0.6,
+     1.0
+    ],
+    "fx": [
+     {
+      "gfx": {
+       "kind": "rays",
+       "life": 0.5,
+       "col": [
+        0.7,
+        0.6,
+        1.0
+       ]
+      },
+      "at": "self",
+      "off": [
+       0,
+       -20
+      ]
+     },
+     {
+      "banner": "狼魂"
+     }
+    ],
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "atk",
+      "op": "mult",
+      "value": "$s2_atk",
+      "power": true
+     }
+    ]
+   },
+   {
+    "dur": "$s3_dur",
+    "status": "群狼之噬",
+    "status_col": [
+     0.9,
+     0.9,
+     1.0
+    ],
+    "fx": [
+     {
+      "pfx": {
+       "kind": "ring",
+       "r": 180.0,
+       "r0": 10.0,
+       "life": 0.5,
+       "col": [
+        0.9,
+        0.9,
+        1.0
+       ],
+       "floor": true
+      },
+      "at": "self"
+     },
+     {
+      "banner": "群狼之噬"
+     }
+    ],
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "dmg",
+      "op": "mult",
+      "value": 1.0
+     }
+    ]
+   }
+  ],
+  "trait": [
+   {
+    "trig": "every_n",
+    "n": "$blade_every",
+    "cond": "elite < 2 && !node:far",
+    "_doc": "领主：每第 2 次横扫掷一道剑气（80%），精二起由「双生刃」取代",
+    "do": [
+     {
+      "shape": "wave",
+      "from": "self",
+      "aim": "nearest",
+      "aim_r": "$blade_aim",
+      "fan": [
+       0
+      ],
+      "basis": "attack",
+      "mult": "$blade_mult",
+      "dist": "$blade_dist",
+      "speed": "$blade_spd",
+      "w": "$blade_w",
+      "depth": 14,
+      "kb": "$blade_kb",
+      "cap": 9,
+      "off": [
+       0,
+       -6
+      ],
+      "src": "领主"
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": "$blade_every",
+    "cond": "elite < 2 && node:far",
+    "do": [
+     {
+      "shape": "wave",
+      "from": "self",
+      "aim": "nearest",
+      "aim_r": "$blade_aim",
+      "fan": [
+       0
+      ],
+      "basis": "attack",
+      "mult": "$blade_mult",
+      "dist": "$far_dist",
+      "speed": "$blade_spd",
+      "w": "$far_w",
+      "depth": 14,
+      "kb": "$blade_kb",
+      "cap": 9,
+      "off": [
+       0,
+       -6
+      ],
+      "src": "领主"
+     }
+    ]
+   },
+   {
+    "trig": "on_hurt",
+    "chance": "$s1_resist",
+    "cond": "skill_active:0",
+    "negate": true,
+    "text": "日晷",
+    "_doc": "日晷：永久生效后队长受到的攻击 15% 概率被格挡（g.rng，同星熊战术装甲）",
+    "do": []
+   },
+   {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "skill_active:1 && !node:far",
+    "_doc": "狼魂：期间每次横扫追加一道法术剑气（60%）",
+    "do": [
+     {
+      "shape": "wave",
+      "from": "self",
+      "aim": "nearest",
+      "aim_r": "$blade_aim",
+      "fan": [
+       0
+      ],
+      "basis": "attack",
+      "mult": "$s2_mult",
+      "dist": "$blade_dist",
+      "speed": "$blade_spd",
+      "w": "$blade_w",
+      "depth": 14,
+      "kb": "$blade_kb",
+      "cap": 9,
+      "off": [
+       0,
+       -8
+      ],
+      "src": "狼魂"
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "skill_active:1 && node:far",
+    "do": [
+     {
+      "shape": "wave",
+      "from": "self",
+      "aim": "nearest",
+      "aim_r": "$blade_aim",
+      "fan": [
+       0
+      ],
+      "basis": "attack",
+      "mult": "$s2_mult",
+      "dist": "$far_dist",
+      "speed": "$blade_spd",
+      "w": "$far_w",
+      "depth": 14,
+      "kb": "$blade_kb",
+      "cap": 9,
+      "off": [
+       0,
+       -8
+      ],
+      "src": "狼魂"
+     }
+    ]
+   },
+   {
+    "trig": "tick",
+    "every": "$s3_every",
+    "countdown": true,
+    "cond": "skill_active:2",
+    "_doc": "群狼之噬：每 0.6 秒三道剑气（70%，每名敌人每轮一道）+ 周围 180 封印 2 秒",
+    "do": [
+     {
+      "shape": "wave",
+      "from": "self",
+      "aim": "nearest",
+      "aim_r": "$blade_aim",
+      "fan": [
+       -18,
+       0,
+       18
+      ],
+      "fan_once": true,
+      "basis": "atk",
+      "mult": "$s3_mult",
+      "dist": "$s3_dist",
+      "speed": "$blade_spd",
+      "w": "$blade_w",
+      "depth": 14,
+      "kb": "$blade_kb",
+      "cap": 9,
+      "off": [
+       0,
+       -6
+      ],
+      "src": "群狼之噬"
+     },
+     {
+      "verb": "affect",
+      "center": "self",
+      "r": "$s3_seal_r",
+      "on_hit": [
+       {
+        "st": "seal",
+        "dur": "$s3_seal",
+        "elite_mult": "$seal_elite",
+        "boss_mult": "$seal_boss",
+        "boss_max": "$seal_boss_max",
+        "boss_immune": "$seal_boss_imm"
+       }
+      ]
+     }
+    ]
+   }
+  ],
+  "talent": [],
+  "progression": {
+   "twin": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "双刃连斩：写在 attack.combo（cond node:twin）"
+   },
+   "far": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "远掷：trait 里的剑气按 cond node:far 换成 far_dist / far_w 版本"
+   },
+   "elite1": {
+    "trig": "every_n",
+    "n": "$dance_n",
+    "replace": true,
+    "cond": "!skill_active:2",
+    "_doc": "精一狼之舞：每第 5 次横扫改为旋身斩（自身为中心 r120 ×1.3，击退，封印 2 秒）；群狼之噬期间不换",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$dance_r",
+      "r_abs": true,
+      "mult": "$dance_mult",
+      "kb": "$dance_kb",
+      "src": "狼之舞",
+      "ring": false,
+      "on_hit": [
+       {
+        "st": "seal",
+        "dur": "$dance_seal",
+        "elite_mult": "$seal_elite",
+        "boss_mult": "$seal_boss",
+        "boss_max": "$seal_boss_max",
+        "boss_immune": "$seal_boss_imm"
+       }
+      ],
+      "fx": [
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 1.0,
+         "r0": 0.2,
+         "life": 0.35,
+         "col": [
+          0.9,
+          0.9,
+          1.0
+         ],
+         "floor": true,
+         "w": 4.0,
+         "alpha": 0.7
+        },
+        "r_scale": [
+         "r",
+         "r0"
+        ]
+       },
+       {
+        "sfx": {
+         "kind": "big",
+         "db": -4.0
+        }
+       }
+      ]
+     }
+    ]
+   },
+   "elite2": [
+    {
+     "trig": "every_n",
+     "n": 1,
+     "cond": "!node:far",
+     "_doc": "精二双生刃：每次横扫两道交叉剑气（各 55%，±12°，每名敌人每轮一道），取代领主单刃",
+     "do": [
+      {
+       "shape": "wave",
+       "from": "self",
+       "aim": "nearest",
+       "aim_r": "$blade_aim",
+       "fan": [
+        -12,
+        12
+       ],
+       "fan_once": true,
+       "basis": "attack",
+       "mult": "$twin_blade_mult",
+       "dist": "$blade_dist",
+       "speed": "$blade_spd",
+       "w": "$blade_w",
+       "depth": 14,
+       "kb": "$blade_kb",
+       "cap": 9,
+       "off": [
+        0,
+        -6
+       ],
+       "src": "双生刃"
+      }
+     ]
+    },
+    {
+     "trig": "every_n",
+     "n": 1,
+     "cond": "node:far",
+     "do": [
+      {
+       "shape": "wave",
+       "from": "self",
+       "aim": "nearest",
+       "aim_r": "$blade_aim",
+       "fan": [
+        -12,
+        12
+       ],
+       "fan_once": true,
+       "basis": "attack",
+       "mult": "$twin_blade_mult",
+       "dist": "$far_dist",
+       "speed": "$blade_spd",
+       "w": "$far_w",
+       "depth": 14,
+       "kb": "$blade_kb",
+       "cap": 9,
+       "off": [
+        0,
+        -6
+       ],
+       "src": "双生刃"
+      }
+     ]
+    }
+   ],
+   "bark": {
+    "trig": "every_n",
+    "n": "$bark_n",
+    "cond": "!node:bark2",
+    "_doc": "断喝（docs/119 §4.1 路线 bark 节点 4）：每第 4 次横扫一圈封印冲击",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$bark_r",
+      "r_abs": true,
+      "basis": "attack",
+      "mult": "$bark_mult",
+      "kb": "$bark_kb",
+      "src": "断喝",
+      "ring": false,
+      "on_hit": [
+       {
+        "st": "seal",
+        "dur": "$bark_seal",
+        "elite_mult": "$seal_elite",
+        "boss_mult": "$seal_boss",
+        "boss_max": "$seal_boss_max",
+        "boss_immune": "$seal_boss_imm"
+       }
+      ],
+      "fx": [
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 1.0,
+         "r0": 0.15,
+         "life": 0.4,
+         "col": [
+          0.7,
+          0.6,
+          1.0
+         ],
+         "floor": true,
+         "w": 3.0,
+         "alpha": 0.6
+        },
+        "r_scale": [
+         "r",
+         "r0"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "bark2": {
+    "trig": "every_n",
+    "n": "$bark2_n",
+    "_doc": "断喝·长啸（路线 bark 节点 5）：改为每第 3 次、半径 190、60%、封印 3 秒；节点 4 的那块按 cond !node:bark2 停用",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$bark2_r",
+      "r_abs": true,
+      "basis": "attack",
+      "mult": "$bark2_mult",
+      "kb": "$bark_kb",
+      "src": "断喝",
+      "ring": false,
+      "on_hit": [
+       {
+        "st": "seal",
+        "dur": "$bark2_seal",
+        "elite_mult": "$seal_elite",
+        "boss_mult": "$seal_boss",
+        "boss_max": "$seal_boss_max",
+        "boss_immune": "$seal_boss_imm"
+       }
+      ],
+      "fx": [
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 1.0,
+         "r0": 0.15,
+         "life": 0.45,
+         "col": [
+          0.7,
+          0.6,
+          1.0
+         ],
+         "floor": true,
+         "w": 3.5,
+         "alpha": 0.65
+        },
+        "r_scale": [
+         "r",
+         "r0"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "rage": {
+    "trig": "passive",
+    "cond": "skill_active:1",
+    "_doc": "狼魂·狂（路线 rage 节点 4）：狼魂期间攻击再 +25%",
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "atk",
+      "op": "mult",
+      "value": "1+$rage_atk"
+     }
+    ]
+   },
+   "rage2": {
+    "trig": "passive",
+    "cond": "skill_active:1",
+    "_doc": "狼魂·疾（路线 rage 节点 5）：狼魂期间攻击速度 +20%",
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "op_aspd",
+      "op": "add",
+      "value": "$rage2_aspd"
+     }
+    ]
+   }
+  }
+ }
+}

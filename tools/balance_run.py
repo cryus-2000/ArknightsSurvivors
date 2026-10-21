@@ -29,7 +29,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GAME = os.path.join(ROOT, "game")
 OPS = ["mizuki", "wisadel", "eyjafjalla", "kaltsit", "saria", "siege", "skadi", "suzuran",
        "ulpianus", "irene", "specter_unchained", "logos", "lumen", "skalter",
-       "hoshiguma", "angelina", "texas", "exusiai"]
+       "hoshiguma", "angelina", "texas", "exusiai",
+       "lappland", "gladiia"]   # 第四批（docs/122 / 123，10-22）
 PRESETS = {
     "solo": [[o] for o in OPS],
     "squads": [

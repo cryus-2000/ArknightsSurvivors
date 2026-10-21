@@ -3,12 +3,12 @@ extends Node
 ##   godot --headless --path game res://tests/build_progression_test.tscn -- --regression --balance --seed=1 --op=texas --squad=hoshiguma,eyjafjalla
 ## 校验：外层只出一张培养卡；选中进二选一、「返回」恢复原卡组（同一个数组、不重抽、不扣升级）；确认只扣一次升级、节点攻击 +6% 只加一次；
 ## 节点 5 按路线解析；赠送推进（典训 / 博士银印）玩家局排队进同一事务（只能确认、不扣升级）、机器人局固定路线；
-## 换入继承到节点 4 以上时在换人流程里选路线并按新路线一次性重建；机器人在路线屏选固定路线；其余 14 人无分支节点、校验通过；
+## 换入继承到节点 4 以上时在换人流程里选路线并按新路线一次性重建；机器人在路线屏选固定路线；其余干员无分支节点、校验通过；
 ## 培养保底：最近培养的干员有合法成长卡时固定占一个位。全部通过时打印 "BUILD PROGRESSION failures=0"
 
 const Ch = preload("res://scripts/characters/character.gd")
 const Prog = preload("res://scripts/run/progression.gd")
-const PILOT := ["texas", "hoshiguma", "eyjafjalla", "suzuran"]
+const PILOT := ["texas", "hoshiguma", "eyjafjalla", "suzuran", "lappland", "gladiia"]   # 10-22 第四批设计稿（docs/122 / 123）按同一结构带分支节点
 
 var game: Node
 var frames := 0
@@ -280,7 +280,7 @@ func test_bot_branch_pick() -> void:
 	o.route = "rain"
 
 
-## 其余 14 人：没有分支节点、契约校验通过；4 名试点干员的 blocks.progression 含全部路线节点 id
+## 其余干员：没有分支节点、契约校验通过；带分支的干员（PILOT）的 blocks.progression 含全部路线节点 id
 func test_others_compat() -> void:
 	var others := 0
 	for cid in Ch.list_ids():
@@ -296,7 +296,7 @@ func test_others_compat() -> void:
 		else:
 			others += 1
 			ok(bn[1] == -1, "%s 没有分支节点" % cid)
-	ok(others == 14, "其余 14 人（%d）" % others)
+	ok(others == Ch.list_ids().size() - PILOT.size(), "其余 %d 人（%d）" % [Ch.list_ids().size() - PILOT.size(), others])
 
 
 ## 培养保底（§4.2 简化版）：最近培养的干员有合法成长卡时，升级三选一固定含它的成长卡；离队 / 养满自然失效
