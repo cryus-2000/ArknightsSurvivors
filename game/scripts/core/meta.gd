@@ -72,6 +72,90 @@ static func run_shape() -> Dictionary:
 	return {} if test else Cfg.meta_shape
 
 
+# ---------------------------------------------------------------- 生机细胞（docs/109 §3.1 v3）
+## 探索评分：存活每分钟 10（10:00 封顶 100）+ 中期 Boss 每个 20 + 通关 60，× 潮位系数（每级 +0.05，10 级起封顶 ×1.5）；
+## 结局首达 +40（不乘系数）。生机细胞 = 评分 ÷ 8；首通某一潮位另给 5 + 潮位。
+
+## 现行三档难度对应的潮位（潮位阶梯上线前：0 / 4 / 8）
+static func tide_of(g) -> int:
+	return [0, 4, 8][clampi(int(g.tier), 0, 2)]
+
+
+static func tide_factor(tide: int) -> float:
+	return minf(1.5, 1.0 + 0.05 * tide)
+
+
+## 结算用：{score, factor, cells, bounty, ending}
+static func run_reward(g, won: bool) -> Dictionary:
+	var tide := tide_of(g)
+	var mid := 0
+	for b in g.bosses:
+		if b.dead and not is_same(b, g.final_boss):
+			mid += 1
+	var base := mini(100, int(g.t / 60.0 * 10.0)) + 20 * mini(mid, 2) + (60 if won else 0)
+	var f := tide_factor(tide)
+	var score := int(round(base * f)) + (40 if won and g.ending_new else 0)
+	var bounty := (5 + tide) if won and not Cfg.meta_bounty.has(tide) else 0
+	return {"base": base, "factor": f, "score": score, "cells": score / 8 + bounty, "bounty": bounty, "tide": tide}
+
+
+static func earned_total() -> int:
+	var n := 0
+	for k in Cfg.meta_earned:
+		n += int(Cfg.meta_earned[k])
+	return n
+
+
+static func available() -> int:
+	return earned_total() - spent(Cfg.meta_shape)
+
+
+## 一次探索结束（game.gd _process 进入 WIN / DEAD 时，与寻访同一处）：记生机细胞。条件同 Roster.on_run_end
+static func on_run_end(g, won: bool) -> void:
+	var Roster = load("res://scripts/core/roster.gd")
+	if not Roster.active() or g.mode != g.Mode.PLAY or g.trial.active or g.demo_op != "" or Cfg.practice_active:
+		return
+	var r := run_reward(g, won)
+	if Cfg.meta_dev == "":
+		var rr := RandomNumberGenerator.new()
+		rr.randomize()
+		Cfg.meta_dev = "d%08x" % rr.randi()
+	Cfg.meta_earned[Cfg.meta_dev] = int(Cfg.meta_earned.get(Cfg.meta_dev, 0)) + int(r.cells)
+	if int(r.bounty) > 0:
+		Cfg.meta_bounty.append(int(r.tide))
+	g.meta_result = r
+	Cfg.save()
+
+
+## 点 / 重置（认知塑造页）
+static func buy(id: String) -> bool:
+	if not can_buy(Cfg.meta_shape, id, earned_total()):
+		return false
+	Cfg.meta_shape[id] = true
+	Cfg.meta_shape_t = int(Time.get_unix_time_from_system())
+	Cfg.save()
+	return true
+
+
+static func reset() -> void:
+	Cfg.meta_shape = {}
+	Cfg.meta_shape_t = int(Time.get_unix_time_from_system())
+	Cfg.save()
+
+
+## 推荐：从当前已点出发，按推荐顺序把余额点完
+static func buy_recommended() -> void:
+	var changed := true
+	while changed:
+		changed = false
+		for id in data().get("order", []):
+			if can_buy(Cfg.meta_shape, str(id), earned_total()):
+				Cfg.meta_shape[str(id)] = true
+				changed = true
+	Cfg.meta_shape_t = int(Time.get_unix_time_from_system())
+	Cfg.save()
+
+
 ## 开局：属性写进 stats（来源 meta），开局资源与一次性规则写进 g / rfx。返回本局点了多少生机细胞（记进作战记录 / BALANCE）
 static func apply_run(g) -> int:
 	var shape := run_shape()

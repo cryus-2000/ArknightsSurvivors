@@ -787,6 +787,10 @@ func step() -> void:
 			g.ending = "standard"
 			g.endg.cur = g.ending
 			g.state = g.S.WIN
+			g.meta_result = preload("res://scripts/core/meta.gd").run_reward(g, true)   # 结算面板的「生机细胞」行（截图用）
+		if Cfg.dev_args().has("--rostertickets=0,0,0") and g.at_frames == 100 and DisplayServer.get_name() != "headless":
+			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_result_meta.png")   # 没有券：直接截结算面板
+			g.get_tree().quit()
 		var steps := [["ok"], [0], ["ok"], [0], ["wish"], []]
 		for k in steps.size():
 			if g.at_frames == 110 + k * 40:

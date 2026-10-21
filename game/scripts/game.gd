@@ -117,6 +117,7 @@ var roster_new := {}                       # 本局结算发的券（Roster.on_r
 var meta_cells := 0                        # 本局带入的认知塑造（已点生机细胞数，core/meta.gd）
 var meta_once_heal: Array = []             # 「为了生存」：[生命比例阈值, 回复比例]，用掉后清空
 var meta_start_relic := 0                  # 「物由心生」：开局从 n 件基础藏品中选 1（触发后清 0）
+var meta_result := {}                      # 本局结算的生机细胞（Meta.on_run_end；结算面板显示）
 var meta_basic_pick := false               # 正在开「物由心生」的三选一：藏品池只出基础稀有度
 var panel_ui = ChoicePanel.new(self)   # 界面 · 弹窗面板与选卡（state CHOICE）
 var shop_ui = ShopScreen.new(self)   # 界面 · 商店（state SHOP）
@@ -1109,7 +1110,8 @@ func _process(delta: float) -> void:
 		if not trial.active:
 			telemetry.on_state(state)   # 进入胜 / 负时把这一局写进本地记录（docs/40）
 			if state == S.WIN or state == S.DEAD:
-				Roster.on_run_end(self, state == S.WIN)   # 干员解锁：发寻访凭证 / 招募券 / 人事调度函（docs/109 §12；不碰 g.rng）
+				Roster.on_run_end(self, state == S.WIN)
+				Meta.on_run_end(self, state == S.WIN)   # 局外成长：记生机细胞（docs/109 §3.1）   # 干员解锁：发寻访凭证 / 招募券 / 人事调度函（docs/109 §12；不碰 g.rng）
 				Cloud.flush("run_end")   # B站云存档：一局结算时上传（只在 B站环境生效，docs/89）
 		state_age = 0.0
 		ui_skip = false

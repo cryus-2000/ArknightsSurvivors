@@ -189,6 +189,13 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 	var ss := int(display_time) % 60
 	var stats := [["演练用时" if g.trial.active else "探索时间", "%02d:%02d" % [mm, ss]], ["等级", "Lv.%d  %s" % [g.level, ["精零", "精英一", "精英二"][g.ch.elite]]],
 		["击杀", str(g.kills)], ["难度", D.DIFFICULTY_TIERS[g.tier].name]]
+	if not g.meta_result.is_empty() and g.state != Game.S.PAUSE:
+		# 局外成长（docs/109 §3.1）：本次探索获得的生机细胞
+		var mr: Dictionary = g.meta_result
+		var mtxt := "+%d（评分 %d × %.2f）" % [int(mr.cells), int(mr.base), float(mr.factor)]
+		if int(mr.bounty) > 0:
+			mtxt += "  首通 +%d" % int(mr.bounty)
+		stats.append(["生机细胞", mtxt])
 	if ending_panel:
 		var ep: String = D.ENDINGS.get(g.ending, {}).get("gallery", {}).get("epilogue", "")
 		UI.text(g.hud, g.font, Vector2(r.position.x + 40, r.position.y + 132), ep, 15 if touch else 14, Color(col.r * 0.9 + 0.1, col.g * 0.9 + 0.1, col.b * 0.9 + 0.1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 80)

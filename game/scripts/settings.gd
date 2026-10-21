@@ -73,6 +73,10 @@ var roster_pity := 0              # 意向保底计数：连续没出意向的�
 var roster_draws := 0             # 已用券总数（抽取随机数的种子之一）
 var roster_seed := 0              # 名册抽取的种子（第一次抽取时生成，不碰局内 g.rng）
 var meta_shape := {}              # 认知塑造已点的节点 {id: true}（core/meta.gd，docs/109 §4；存档 [meta] 段）
+var meta_shape_t := 0             # 认知塑造最后修改时刻（云存档合并：较新的一份为准）
+var meta_earned := {}             # 累计获得的生机细胞 {设备号: 数量}（云存档逐设备取大再求和）
+var meta_dev := ""                # 本机设备号（第一次记生机细胞时生成）
+var meta_bounty: Array = []       # 已领首通赏金的潮位
 var roster_fresh: Array = []      # 刚解锁、还没在名册里看过的干员（选人页 / 图鉴高亮一次；只存本机，不上云）
 var unlock_all := false      # 本次运行全部解锁（只在内存里，见 _apply_unlock_all）：调试版与对内打包版为 true，对外包恒为 false
 var _real_progress := {}      # 全部解锁时存档里真实的进度字段，save() 原样写回
@@ -281,6 +285,10 @@ func _ready() -> void:
 		roster_seed = int(c.get_value("roster", "seed", roster_seed))
 		roster_fresh = c.get_value("roster", "fresh", roster_fresh)
 		meta_shape = c.get_value("meta", "shape", meta_shape)
+		meta_shape_t = int(c.get_value("meta", "shape_t", meta_shape_t))
+		meta_earned = c.get_value("meta", "earned", meta_earned)
+		meta_dev = str(c.get_value("meta", "dev", meta_dev))
+		meta_bounty = c.get_value("meta", "bounty", meta_bounty)
 		if not c.has_section("roster"):
 			_migrate_roster()
 		if int(c.get_value("progress", "diff_ver", 1)) < DIFF_VER:
@@ -306,6 +314,11 @@ func _ready() -> void:
 			roster_draws = 0
 			roster_seed = 12345
 			roster_fresh = []
+			meta_shape = {}
+			meta_earned = {}
+			meta_bounty = []
+		elif a.begins_with("--metacells="):
+			meta_earned = {"test": int(a.substr(12))}   # 截图 / 测试：预置累计生机细胞（只在内存）
 		elif a.begins_with("--rostertickets="):
 			var tk := a.substr(16).split(",")
 			roster_tickets = {"hunt": int(tk[0]) if tk.size() > 0 else 0, "cls": int(tk[1]) if tk.size() > 1 else 0, "pick": int(tk[2]) if tk.size() > 2 else 0}
@@ -509,6 +522,10 @@ func save() -> void:
 	c.set_value("roster", "seed", roster_seed)
 	c.set_value("roster", "fresh", roster_fresh)
 	c.set_value("meta", "shape", meta_shape)
+	c.set_value("meta", "shape_t", meta_shape_t)
+	c.set_value("meta", "earned", meta_earned)
+	c.set_value("meta", "dev", meta_dev)
+	c.set_value("meta", "bounty", meta_bounty)
 	var ss := _settings_sig()
 	if ss != _set_sig:
 		_set_sig = ss
@@ -548,6 +565,7 @@ func cloud_body() -> Dictionary:
 		"rel": (_real_progress.get("seen_relics", seen_relics) as Array).duplicate(), "end": (_real_progress.get("endings_cleared", endings_cleared) as Array).duplicate(),
 		"shows": seen_shows.duplicate(), "intro": seen_intro, "open": opening_seen,
 		"ops": roster_unlocked.duplicate(), "optier": roster_tiers.duplicate(),
+		"meta": {"earned": meta_earned.duplicate(), "bounty": meta_bounty.duplicate(), "shape": meta_shape.duplicate(), "t": meta_shape_t},
 		"opst": {"tk": roster_tickets.duplicate(), "sp": roster_spare.duplicate(), "wish": roster_wish, "pity": roster_pity, "draws": roster_draws, "seed": roster_seed}}, true)
 	var out: Dictionary = (cloud_extra.get("top", {}) as Dictionary).duplicate(true)
 	out["set"] = st
@@ -582,6 +600,19 @@ func cloud_apply(body: Dictionary) -> void:
 	if d.get("touch_layout") is Dictionary:
 		touch_layout = TouchLayout.sanitize(d.touch_layout)
 	var lists := {"gal": "gallery_seen", "rel": "seen_relics", "end": "endings_cleared", "shows": "seen_shows", "ops": "roster_unlocked"}
+	if p.get("meta") is Dictionary:
+		var mt: Dictionary = p.meta
+		if mt.get("earned") is Dictionary:
+			meta_earned = (mt.earned as Dictionary).duplicate()
+		if mt.get("bounty") is Array:
+			meta_bounty = mt.bounty.map(func(x): return int(x))
+		if mt.get("shape") is Dictionary:
+			meta_shape = (mt.shape as Dictionary).duplicate()
+		if mt.get("t") is float or mt.get("t") is int:
+			meta_shape_t = int(mt.t)
+		var M = load("res://scripts/core/meta.gd")
+		if M.spent(meta_shape) > M.earned_total():
+			meta_shape = {}   # 采用的认知塑造超出余额（另一台设备的进度还没同步过来）：整组重置，重置免费
 	if p.get("optier") is Array:
 		roster_tiers = p.optier.map(func(x): return int(x))
 	if p.get("opst") is Dictionary:

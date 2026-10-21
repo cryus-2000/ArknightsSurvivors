@@ -8,9 +8,10 @@ extends RefCounted
 const T = preload("res://scripts/screens/tide_ui.gd")
 const UI = preload("res://scripts/ui.gd")
 
-const CN := ["集结出发", "图鉴", "Boss 演练", "操作说明", "设置", "退出"]
-const EN := ["DEPLOY", "GALLERY", "BOSS TRIAL", "GUIDE", "SETTINGS", "EXIT"]
-const ICON := ["deploy", "gallery", "boss", "guide", "settings", "exit"]
+## 6 = 认知塑造（局外成长 P2，docs/109 §4）：放在第二行图鉴 / Boss 演练之后
+const CN := ["集结出发", "图鉴", "Boss 演练", "操作说明", "设置", "退出", "认知塑造"]
+const EN := ["DEPLOY", "GALLERY", "BOSS TRIAL", "GUIDE", "SETTINGS", "EXIT", "SHAPING"]
+const ICON := ["deploy", "gallery", "boss", "guide", "settings", "exit", "tree"]
 const SUB0 := "选择干员与难度，走进深海"
 ## 设计尺寸（1280×720）：大 / 中 / 小号高度与缝
 const HB := 146.0
@@ -24,7 +25,7 @@ const FRAC := {"big": 0.22, "mid": 0.22, "small": 0.24}
 ## 按可见项分行（空行去掉）
 static func rows(ids: Array) -> Array:
 	var out: Array = []
-	for grp in [[0], [1, 2], [3, 4, 5]]:
+	for grp in [[0], [1, 2, 6], [3, 4, 5]]:
 		var r: Array = []
 		for i in grp:
 			if ids.has(i):
@@ -59,7 +60,7 @@ static func layout(ids: Array, x0: float, y0: float, w: float, avail: float, tou
 	var n := 1
 	for ri in rs.size():
 		var row: Array = rs[ri]
-		var kind := "big" if row.has(0) else ("mid" if (row.has(1) or row.has(2)) else "small")
+		var kind := "big" if row.has(0) else ("mid" if (row.has(1) or row.has(2) or row.has(6)) else "small")
 		var h: float = hb if kind == "big" else (hm if kind == "mid" else hs)
 		var cw := (w - g * (row.size() - 1)) / row.size()
 		for k in row.size():
@@ -183,6 +184,9 @@ static func draw(ci: CanvasItem, lay: Dictionary, st: Dictionary) -> void:
 				T.ptext(ci, c, Vector2(x0 + 14 * f, y0 + 16 * f), nums, km, idx)
 				T.icon(ci, c, ICON[id], Vector2(rr.end.x - 24 * f, y0 + 24 * f), km, ico, ico2)
 				var cs := int(22 * f) if big_ui else int(maxf(16.0, 22 * f))
+				# 一行三块（图鉴 / Boss 演练 / 认知塑造）时块窄：缩字，不压右上角图标
+				while cs > 14 and font.get_string_size(CN[id], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(cs)).x > w - 14 * f - 36 * km:
+					cs -= 1
 				UI.text(ci, font, Vector2(x0 + 14 * f, y0 + 44 * f + cs * 0.36), CN[id], cs, ink)
 				T.ptext(ci, c, Vector2(x0 + 16 * f, y0 + 64 * f + (0.0 if big_ui else 5.0)), EN[id], k1, ink, 2)
 				if on:

@@ -22,6 +22,7 @@ const ITEMS := [
 	{"cn": "操作说明", "en": "GUIDE"},
 	{"cn": "设置", "en": "SETTINGS"},
 	{"cn": "退出", "en": "EXIT"},
+	{"cn": "认知塑造", "en": "SHAPING"},
 ]
 
 var font: Font
@@ -37,7 +38,7 @@ var item_rects: Array = []
 var menu_lay := {}            # 磁贴群排版（title_tiles.layout，_draw 里按当前尺寸算）
 var menu_boss := true         # 有没有「Boss 演练」（_ready 按 Cfg.can_boss_trial()；测试可改）
 var menu_exit := true         # 有没有「退出」（网页 / --simweb 没有；测试可改）
-var menu_water := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]   # 各磁贴水位 0–1（选中涨潮、离开退潮，T2）
+var menu_water := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]   # 各磁贴水位 0–1（选中涨潮、离开退潮，T2）
 var menu_rip_t := -10.0       # 选中变化的时刻（标题页时间 t）：涟漪扩散
 var menu_mem_x := -1.0        # 二维导航记住的列（磁贴中心 x）
 var cover_hover := false
@@ -69,6 +70,7 @@ var wait_t := 0.0           # 出发后等预热的时间（载入中…）
 var settings: Control
 var gallery: Control
 var boss_trial: Control
+var meta_ui: Control             # 认知塑造页（局外成长 P2，docs/109 §4）
 var transition: Control
 var overlay_was_open := false
 var cover_pick := false
@@ -154,6 +156,8 @@ func _ready() -> void:
 	add_child(settings)
 	boss_trial = preload("res://scripts/screens/boss_trial_menu.gd").new()
 	add_child(boss_trial)
+	meta_ui = preload("res://scripts/screens/meta_tree_ui.gd").new()
+	add_child(meta_ui)
 	var transition_layer := CanvasLayer.new()
 	transition_layer.layer = 90
 	add_child(transition_layer)
@@ -220,6 +224,19 @@ func _ready() -> void:
 			get_tree().create_timer(i).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_intro_%d.png" % int(i * 10)))
 		get_tree().create_timer(5.0).timeout.connect(func(): get_tree().quit())
+	if Cfg.dev_args().has("--metashot"):
+		# 认知塑造页截图（docs/109 §4）：配 --metacells=<累计生机细胞>；--metabuy=<n> 先按推荐点法点 n 个
+		meta_ui.open()
+		for a in Cfg.dev_args():
+			if a.begins_with("--metabuy="):
+				var M = preload("res://scripts/core/meta.gd")
+				Cfg.meta_shape = M.shape_for(int(a.substr(10)))
+			if a.begins_with("--metasel="):
+				var ps := a.substr(10).split(",")
+				meta_ui.sel = Vector2i(int(ps[0]), int(ps[1]) if ps.size() > 1 else 0)
+		get_tree().create_timer(1.0).timeout.connect(func():
+			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_meta.png")
+			get_tree().quit())
 	if Cfg.dev_args().has("--settingsshot"):
 		settings.open()
 		for a in Cfg.dev_args():
@@ -687,7 +704,7 @@ func _grow(rng: RandomNumberGenerator, p: Vector2, ang: float, length: float, wi
 
 func _process(delta: float) -> void:
 	Pad.context = "title"
-	var overlay_open: bool = settings.visible or gallery.visible or boss_trial.visible
+	var overlay_open: bool = settings.visible or gallery.visible or boss_trial.visible or meta_ui.visible
 	if post_fx != null:
 		post_fx.crisp = gallery.visible   # 图鉴 C4' 是浅色终端：不叠辉光 / 水下色差
 	if overlay_was_open and not overlay_open and not transition.busy:
@@ -758,7 +775,7 @@ func menu_track() -> String:
 
 
 func _input(event: InputEvent) -> void:
-	if leaving >= 0.0 or transition.busy or settings.visible or gallery.visible or boss_trial.visible:
+	if leaving >= 0.0 or transition.busy or settings.visible or gallery.visible or boss_trial.visible or meta_ui.visible:
 		return
 	if intro < INTRO_LEN:
 		# 开场动画中：按键 / 点击直接跳到完成态，本次输入不再传给菜单
@@ -832,7 +849,7 @@ func _close_info() -> void:
 
 
 func _menu_ids() -> Array:
-	var ids: Array = [0, 1, 2, 3, 4, 5]
+	var ids: Array = [0, 1, 2, 6, 3, 4, 5]
 	if not menu_boss:
 		ids.erase(2)
 	# 网页版没有「退出」：quit() 只会把引擎停在最后一帧，玩家只能刷新页面（架构 10-01 实测）
@@ -883,6 +900,8 @@ func _activate(i: int) -> void:
 			transition.switch_page(settings.open)
 		5:
 			get_tree().quit()
+		6:
+			transition.switch_page(meta_ui.open)
 
 
 ## 磁贴入场（docs/62「每屏一个主动作」：标题菜单 = 磁贴从潮线下浮出）：开场 3.3 秒起按行错开 0.09 秒，每行 0.38 秒（T3）露出；
@@ -910,7 +929,7 @@ func _tile_text_a(i: int) -> float:
 
 ## 水位：选中块涨潮、其余退潮（T2 0.22 秒）；磁贴还没浮出水面时不涨；减少动态效果直接到位
 func _menu_tick(delta: float) -> void:
-	for i in 6:
+	for i in ITEMS.size():
 		var target := 1.0 if i == sel and _tile_rise(i) >= 1.0 else 0.0
 		if Cfg.reduce_motion:
 			menu_water[i] = target
@@ -1009,8 +1028,8 @@ func _draw() -> void:
 		item_rects[i] = menu_lay.rects[i]
 	if menu_mem_x < 0.0 and menu_lay.rects.has(sel):
 		menu_mem_x = (menu_lay.rects[sel] as Rect2).get_center().x
-	var rise := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-	var text_a := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+	var rise := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+	var text_a := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 	for i in menu_ids:
 		rise[i] = _tile_rise(i)
 		text_a[i] = _tile_text_a(i)
