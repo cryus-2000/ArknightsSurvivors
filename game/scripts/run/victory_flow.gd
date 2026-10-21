@@ -72,8 +72,11 @@ func record_win() -> void:
 		return
 	recorded = true
 	g.endg.on_win()
-	if g.mode != g.Mode.BALANCE and g.tier >= Cfg.diff_unlocked and Cfg.diff_unlocked < D.DIFFICULTY_TIERS.size() - 1:
-		Cfg.diff_unlocked = g.tier + 1
+	# 三档难度（D.DIFF_PRESETS）：通关第 i 档解锁第 i+1 档；各档最佳成绩记在 Cfg.diff_best（docs/109 §15）
+	if g.mode != g.Mode.BALANCE and g.preset >= 0:
+		Cfg.note_diff_best(g.preset, true, g.t)
+	if g.mode != g.Mode.BALANCE and g.preset >= Cfg.diff_unlocked and Cfg.diff_unlocked < D.DIFF_PRESETS.size() - 1:
+		Cfg.diff_unlocked = g.preset + 1
 		Cfg.save()
 		g.diff_new = true
 	g.telemetry.on_state(g.S.WIN)

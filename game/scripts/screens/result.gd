@@ -188,7 +188,7 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 	var mm := int(display_time) / 60
 	var ss := int(display_time) % 60
 	var stats := [["演练用时" if g.trial.active else "探索时间", "%02d:%02d" % [mm, ss]], ["等级", "Lv.%d  %s" % [g.level, ["精零", "精英一", "精英二"][g.ch.elite]]],
-		["击杀", str(g.kills)], ["难度", D.DIFFICULTY_TIERS[g.tier].name]]
+		["击杀", str(g.kills)], ["难度", D.tier_name(g.tier)]]
 	if not g.meta_result.is_empty() and g.state != Game.S.PAUSE:
 		# 局外成长（docs/109 §3.1）：本次探索获得的生机细胞
 		var mr: Dictionary = g.meta_result
@@ -202,7 +202,7 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		if g.ending_new:
 			UI.chip(g.hud, g.font, Vector2(r.position.x + 30, r.position.y + 30), "新结局达成", col, 12)
 	if allow_unlocks and g.diff_new and g.state == Game.S.WIN:
-		var ul: String = "解锁难度「%s」" % D.DIFFICULTY_TIERS[g.tier + 1].name
+		var ul: String = "解锁难度「%s」" % D.DIFF_PRESETS[mini(g.preset + 1, D.DIFF_PRESETS.size() - 1)].name
 		var ulw: float = g.font.get_string_size(ul, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(13)).x + 20.0
 		# 结局结算下面有尾声和统计，放不下：挪到面板右上角（左上角是「新结局达成」）；普通结算按字宽居中在标题下
 		var ulp := Vector2(r.end.x - 20.0 - ulw, r.position.y + 10) if ending_panel else Vector2(r.get_center().x - ulw / 2.0, r.position.y + 118)

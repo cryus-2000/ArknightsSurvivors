@@ -295,7 +295,7 @@ func _ready() -> void:
 		for a in Cfg.dev_args():
 			if a == "--reducemotion":
 				Cfg.reduce_motion = true
-		Cfg.diff_unlocked = D.DIFFICULTY_TIERS.size() - 1   # 只改内存（测试模式不写存档），录到能出发的档
+		Cfg.diff_unlocked = D.DIFF_PRESETS.size() - 1   # 只改内存（测试模式不写存档），录到能出发的档
 		DirAccess.make_dir_recursive_absolute(_shot_dir() + "/titlemotion")
 		title_motion = 0
 	if Cfg.dev_args().has("--opmotion"):
@@ -348,9 +348,9 @@ func _ready() -> void:
 		if a.begins_with("--diffshot="):
 			# 选难度页截图：--diffshot=<选中档>,<已解锁到第几档>（只改内存，测试模式不写存档）
 			var dp := a.substr(11).split(",")
-			Cfg.diff_unlocked = clampi(int(dp[1]) if dp.size() > 1 else 0, 0, D.DIFFICULTY_TIERS.size() - 1)
+			Cfg.diff_unlocked = clampi(int(dp[1]) if dp.size() > 1 else 0, 0, D.DIFF_PRESETS.size() - 1)
 			diff_pick = true
-			diff_sel = clampi(int(dp[0]), 0, D.DIFFICULTY_TIERS.size() - 1)
+			diff_sel = clampi(int(dp[0]), 0, D.DIFF_PRESETS.size() - 1)
 			get_tree().create_timer(1.2).timeout.connect(func():
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_diff_%d_%d.png" % [diff_sel, Cfg.diff_unlocked])
 				get_tree().quit())
@@ -436,7 +436,7 @@ func _diff_back() -> void:
 
 func _diff_step(d: int) -> void:
 	# 未解锁的档也能翻过去看效果，只是不能出发（_diff_go）
-	var n := clampi(diff_sel + d, 0, D.DIFFICULTY_TIERS.size() - 1)
+	var n := clampi(diff_sel + d, 0, D.DIFF_PRESETS.size() - 1)
 	if n != diff_sel:
 		_diff_level_to(n, absi(n - diff_sel))
 		diff_sel = n
@@ -466,12 +466,12 @@ var diff_lv_t0 := -10.0
 var diff_lv_dur := 0.38
 var diff_was := false         # 上一帧难度页是否开着（打开那一帧水位从尺底涨上来）
 var diff_mod_t := -10.0       # 换档时修正项淡入（T2）
-const DIFF_PAD := 0.03        # 刻度离尺两端的留白（占尺高）；潮位 0–15 共 16 级，留白收小才排得下
+const DIFF_PAD := 0.15        # 三档刻度离尺两端的留白（占尺高）
 var _mod_re: RegEx
 
 
 func _diff_frac(i: int) -> float:
-	return DIFF_PAD + (1.0 - DIFF_PAD * 2.0) * float(i) / float(maxi(1, D.DIFFICULTY_TIERS.size() - 1))
+	return DIFF_PAD + (1.0 - DIFF_PAD * 2.0) * float(i) / float(maxi(1, D.DIFF_PRESETS.size() - 1))
 
 
 func _diff_level_to(n: int, steps: int) -> void:
@@ -498,7 +498,7 @@ func _diff_layout(vs: Vector2, ph: bool) -> Dictionary:
 		L.gauge = Rect2(40, 112, 92, vs.y - 192)
 		L.card_x = 156.0
 		L.card_w = 400.0
-		L.card_h = minf(88.0, (vs.y - 192) * (1.0 - DIFF_PAD * 2.0) / maxf(1.0, D.DIFFICULTY_TIERS.size() - 1) - 3.0)
+		L.card_h = minf(88.0, (vs.y - 192) * (1.0 - DIFF_PAD * 2.0) / maxf(1.0, D.DIFF_PRESETS.size() - 1) - 3.0)
 		L.panel = Rect2(612, 100, vs.x - 28 - 612, vs.y - 220)
 		L.go = Rect2(612, vs.y - 100, 300, 60)
 		L.back = Rect2(932, vs.y - 92, 150, 44)
@@ -506,13 +506,13 @@ func _diff_layout(vs: Vector2, ph: bool) -> Dictionary:
 		L.gauge = Rect2(20, 64, 64, vs.y - 80)
 		L.card_x = 100.0
 		L.card_w = 300.0
-		L.card_h = minf(74.0, (vs.y - 80) * (1.0 - DIFF_PAD * 2.0) / maxf(1.0, D.DIFFICULTY_TIERS.size() - 1) - 2.0)
+		L.card_h = minf(74.0, (vs.y - 80) * (1.0 - DIFF_PAD * 2.0) / maxf(1.0, D.DIFF_PRESETS.size() - 1) - 2.0)
 		L.panel = Rect2(420, 56, vs.x - 16 - 420, vs.y - 56 - 76)
 		L.go = Rect2(420, vs.y - 64, 260, 52)
 		L.back = Rect2(696, vs.y - 60, 150, 44)
 	var g: Rect2 = L.gauge
 	L.cards = []
-	for i in D.DIFFICULTY_TIERS.size():
+	for i in D.DIFF_PRESETS.size():
 		var cy: float = g.end.y - g.size.y * _diff_frac(i)
 		L.cards.append(Rect2(L.card_x, cy - L.card_h / 2.0, L.card_w, L.card_h))
 	return L
@@ -559,8 +559,8 @@ func _draw_diff(vs: Vector2) -> void:
 	if not ph:
 		TUI.ptext(self, c, Vector2(gg.rect.get_center().x, gg.rect.end.y + 16), "TIDE", k1, TUI.TXT2, 1, 1)
 	# 三档卡（刻度旁）
-	for i in D.DIFFICULTY_TIERS.size():
-		var tdef: Dictionary = D.DIFFICULTY_TIERS[i]
+	for i in D.DIFF_PRESETS.size():
+		var tdef: Dictionary = D.DIFF_PRESETS[i]
 		var on := i == diff_sel
 		var locked := i > Cfg.diff_unlocked
 		var r: Rect2 = L.cards[i]
@@ -584,6 +584,19 @@ func _draw_diff(vs: Vector2) -> void:
 			num_c = TUI.TXT2
 		var x0: float = g.rect.position.x
 		var y0: float = g.rect.position.y
+		if L.card_h >= 50.0:
+			# 三档（D.DIFF_PRESETS，用户 10-22）：编号 + 档名 + 英文 + 说明；右上写结算系数
+			var tx1 := x0 + (96.0 if not ph else 72.0)
+			TUI.ptext(self, c, Vector2(x0 + (22 if not ph else 14), cy), "%d" % (i + 1), 4.0 if not ph else 3.0, num_c)
+			var ns1 := 22 if not ph else 19
+			UI.text(self, font, Vector2(tx1, y0 + (30 if not ph else 24) + ns1 * 0.36), str(tdef.name), ns1, ink)
+			TUI.ptext(self, c, Vector2(tx1 + 2, y0 + (54 if not ph else 44)), str(tdef.en), k1, ink, 2)
+			var d1: String = str(tdef.get("desc", ""))
+			if locked and i > 0:
+				d1 = "通关「%s」后解锁" % str(D.DIFF_PRESETS[i - 1].name)
+			UI.text_fit(self, font, Vector2(tx1, y0 + (72 if not ph else 60) + 5), d1, 13, sub, g.rect.end.x - tx1 - 10, 11)
+			TUI.ptext(self, c, Vector2(g.rect.end.x - 14, y0 + 16), "X%.2f" % float(tdef.get("factor", 1.0)), k1, sub, 1, 2)
+			continue
 		# 潮位 0–15（docs/109 §5）：一行 = 像素编号 + 级名 + 本级新规则（锁定时写解锁条件）
 		var nm: String = str(tdef.get("short", tdef.name))
 		var num: String = "%02d" % int(tdef.get("level", i))
@@ -603,14 +616,14 @@ func _draw_diff(vs: Vector2) -> void:
 	var pg := TUI.grid(c, pr, ps)
 	TUI.panel(self, pg, 3, 0.93)
 	var pp: Vector2 = pg.rect.position
-	var tdef2: Dictionary = D.DIFFICULTY_TIERS[diff_sel]
+	var tdef2: Dictionary = D.DIFF_PRESETS[diff_sel]
 	var locked2 := diff_sel > Cfg.diff_unlocked
 	var ma := clampf((t - diff_mod_t) / (0.12 if Cfg.reduce_motion else 0.22), 0.0, 1.0)
 	TUI.ptext(self, c, pp + Vector2(24 if not ph else 16, 24 if not ph else 18), "TIER FILE // MODIFIERS", k1, TUI.CY)
-	var lines: Array = D.dmod_lines(D.dmod_for_tier(diff_sel))
+	var lines: Array = D.dmod_lines(D.dmod_for_tier(int(D.DIFF_PRESETS[diff_sel].tide)))
 	var head: String = str(tdef2.get("desc", ""))
 	if locked2:
-		head = "通关潮位 %d 后解锁 · 可以先看规则" % (diff_sel - 1)
+		head = "通关「%s」后解锁 · 可以先看规则" % str(D.DIFF_PRESETS[diff_sel - 1].name)
 	var hs2 := 18 if not ph else 16
 	UI.text_fit(self, font, pp + Vector2(24 if not ph else 16, (54 if not ph else 42) + hs2 * 0.36), head, hs2, _fa(TUI.TXT, ma), pg.rect.size.x - 48, 12)
 	var gx := pp.x + (24.0 if not ph else 16.0)
@@ -2209,7 +2222,7 @@ func _op_draw_desk(od: Dictionary) -> void:
 	op_rects["back"] = back.grow(4.0)
 	var px := W - 136.0
 	var cover_name: String = Character.load_def(Cfg.cover_character_id).get("name", Cfg.cover_character_id) if Cfg.cover_character_id != "" else ""
-	for chip in [["封面干员 " + cover_name, UI.PURPLE], ["难度 " + str(D.DIFFICULTY_TIERS[clampi(Cfg.difficulty, 0, D.DIFFICULTY_TIERS.size() - 1)].name), UI.STEEL]]:
+	for chip in [["封面干员 " + cover_name, UI.PURPLE], ["难度 " + str(D.DIFF_PRESETS[clampi(Cfg.difficulty, 0, D.DIFF_PRESETS.size() - 1)].name), UI.STEEL]]:
 		if chip[0].ends_with(" "):
 			continue
 		px -= UI.pill_width(font, chip[0], 11)

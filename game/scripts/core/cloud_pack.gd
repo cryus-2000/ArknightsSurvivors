@@ -27,8 +27,8 @@ const KEY_LIMIT := 128
 const VALUE_LIMIT := 1024
 ## ops = 解锁过的干员、optier = 已首通的难度档（发过人事调度函），都取并集；opst = 名册的券与抽取状态（merge_opst）
 const LIST_KEYS := ["gal", "rel", "end", "shows", "ops", "optier"]
-const OPTIONAL_KEYS := ["ops", "optier", "opst", "meta"]   # 只在正文里有时才规范化 / 合并
-const PROG_KEYS := ["diff", "gal", "rel", "end", "shows", "intro", "open", "ops", "optier", "opst", "meta"]
+const OPTIONAL_KEYS := ["ops", "optier", "opst", "meta", "dbest"]   # 只在正文里有时才规范化 / 合并
+const PROG_KEYS := ["diff", "gal", "rel", "end", "shows", "intro", "open", "ops", "optier", "opst", "meta", "dbest"]
 ## 格式迁移：{旧版本 v: 把 v 版正文改成 v+1 版的静态函数名}。目前只有 v1，没有迁移；以后改格式时在这里登记（单测覆盖）
 const MIGRATIONS := {}
 
@@ -223,6 +223,24 @@ static func merge_opst(l: Dictionary, c: Dictionary) -> Dictionary:
 	return out
 
 
+## 各档最佳成绩合并：通关次数 / 最长探索取较大值，最快通关取较小的非 0 值
+static func merge_dbest(l, c) -> Dictionary:
+	var out := {}
+	for src in [l, c]:
+		if not (src is Dictionary):
+			continue
+		for k in src:
+			var a: Dictionary = src[k] if src[k] is Dictionary else {}
+			var o: Dictionary = out.get(k, {"wins": 0, "best_t": 0, "fast_t": 0})
+			o.wins = maxi(int(o.wins), int(a.get("wins", 0)))
+			o.best_t = maxi(int(o.best_t), int(a.get("best_t", 0)))
+			var f := int(a.get("fast_t", 0))
+			if f > 0:
+				o.fast_t = f if int(o.fast_t) <= 0 else mini(int(o.fast_t), f)
+			out[k] = o
+	return out
+
+
 ## 局外成长合并（docs/109 §7.2）：生机细胞按设备号逐项取较大值（总数 = 各设备之和；整体取大会丢另一台设备、整体相加会翻倍）；
 ## 首通赏金取并集；认知塑造跟修改时刻较新的一份（一样新用本地）。余额不够时由 Cfg 侧重置（免费）
 static func merge_meta(l: Dictionary, c: Dictionary) -> Dictionary:
@@ -306,6 +324,8 @@ static func merge(local: Dictionary, cloud: Dictionary) -> Dictionary:
 			p[k] = union(lp.get(k, []), cp.get(k, []))
 	if lp.has("opst") or cp.has("opst"):
 		p["opst"] = merge_opst(lp.get("opst", {}), cp.get("opst", {}))
+	if lp.has("dbest") or cp.has("dbest"):
+		p["dbest"] = merge_dbest(lp.get("dbest", {}), cp.get("dbest", {}))
 	if lp.has("meta") or cp.has("meta"):
 		p["meta"] = merge_meta(lp.get("meta", {}), cp.get("meta", {}))
 	var cloud_newer: bool = int(c.set.t) > int(l.set.t)

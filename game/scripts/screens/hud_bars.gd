@@ -154,7 +154,7 @@ func draw_top_center(vs: Vector2) -> void:
 	UI.text(g.hud, g.font, Vector2(fx0 + 14, 66), fname, 14, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
 	UI.en(g.hud, g.font, Vector2(fx0 + 24 + fw0, 65), fen, 10, UI.SUB, 3.0)
 	UI.gbar(g.hud, Rect2(cx0 - 70, 73, 140, 2), tfrac, tcol)
-	var threat_label := "不记录通关进度" if g.trial.active else ("威胁 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"][g.threat]) + (("  ·  %s" % D.DIFFICULTY_TIERS[g.tier].name) if g.tier > 0 else "")
+	var threat_label := "不记录通关进度" if g.trial.active else ("威胁 %s" % ["Ⅰ", "Ⅱ", "Ⅲ", "Ⅳ", "Ⅴ", "Ⅵ"][g.threat]) + (("  ·  %s" % D.tier_name(g.tier)) if g.tier > 0 else "")
 	UI.text(g.hud, g.font, Vector2(cx0 - 150, 90), threat_label, 14 if g.touch.active else 11, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 300, 2)
 
 
