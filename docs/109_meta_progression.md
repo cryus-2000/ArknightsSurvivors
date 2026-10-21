@@ -507,6 +507,7 @@ docs/71 的 S0–S3（0–8 级逐级扫描）照原计划跑，0–8 用 `--met
 ## 13. P2 实装记录（分支 `claude/meta-tree`）
 
 - **认知塑造**：节点数据 `game/data/meta_tree.json`（34 个节点、合计 550，钥匙节点已删；`order` = 推荐点法），规则 `game/scripts/core/meta.gd`。开局 `Meta.apply_run` 把已点节点写进属性块（来源 `meta`）：攻击性 = 新属性 `elite_dmg` + 现有 `boss_dmg`（`combat.gd` 精英伤害乘 `g.elite_mult`）；生存本能 `max_hp`；自我保护 `dmg_taken`；生命感悟 `regen`；危机感 `shield_max` / `shield_interval`；领导欲 `xp_gain`；收藏癖 开局源石锭；命运认同 = `rfx.rules.choice_extra`；交涉 `shop_price`；为了生存（`g.meta_once_heal`，game.gd 每帧检查）；物由心生（开局 1 秒后开一次只出基础藏品的三选一）。
+- **r2 削弱（10-22，数值会话 base-trim 实测：入队回复 0.6 后无成长标准 58.3 / Ⅳ 56.0，但 --meta=full 标准 94.6 / Ⅳ 88.1，比目标 60–75 高 20–30 点，满点约 +2.5 logit）**：按协调人口径「砍乘区和攻击 / 伤害、保留补回类」——删「为了生存」「物由心生」「命运认同Ⅰ–Ⅱ」「危机感Ⅱ–Ⅲ」；攻击性 +20% → +10%（1 / 2 / 2 / 2 / 3%）、领导欲 +10% → +5%；保留生命感悟 +0.9（补回入队回复 0.9 → 0.6）、生存本能 +20%、自我保护 -10%、危机感Ⅰ（1 层护盾）。28 个节点，价格约 ×1.4，总量 560。§4.2 的节点表以 `game/data/meta_tree.json` 为准。
 - **`--meta=N|full`**：测试局按推荐点法点到 N 个生机细胞（full = 550）；不写 = 不带（同 seed 不变）。BALANCE 记录多 `meta` 字段。
 - **生机细胞**：`Meta.on_run_end`（与寻访同一处）按 §3.1 记账，结算面板多一行「生机细胞 +N（评分 × 系数）首通 +M」。
 - **认知塑造页**：`game/scripts/screens/meta_tree_ui.gd`，标题磁贴第二行新增「认知塑造」（编号顺延）；点击 / Enter 点亮，R 推荐，X 两次重置，Esc 返回。截图 `--metashot --metacells=N --metabuy=N --metasel=行,列`。

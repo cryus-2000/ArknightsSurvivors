@@ -38,8 +38,8 @@ func _ready() -> void:
 
 func run() -> void:
 	var nodes := Meta.nodes()
-	check(nodes.size() >= 30, "节点数 %d" % nodes.size())
-	check(Meta.total_cost() == 550, "总量应为 550，实为 %d" % Meta.total_cost())
+	check(nodes.size() >= 25, "节点数 %d" % nodes.size())
+	check(Meta.total_cost() == 560, "总量应为 560，实为 %d" % Meta.total_cost())
 	var order: Array = Meta.data().get("order", [])
 	for id in nodes:
 		check(order.has(id), "推荐顺序缺 " + id)
@@ -49,16 +49,16 @@ func run() -> void:
 		check(nd.has("name") and nd.has("desc") and int(nd.get("cost", 0)) > 0, "%s 缺名字 / 说明 / 价格" % id)
 	check(Meta.shape_for(0).is_empty(), "预算 0 不点")
 	var full := Meta.shape_for(Meta.total_cost())
-	check(full.size() == nodes.size() and Meta.spent(full) == 550, "满预算应点满：%d 个 / %d" % [full.size(), Meta.spent(full)])
-	for b in [30, 75, 150, 220, 360, 549]:
+	check(full.size() == nodes.size() and Meta.spent(full) == 560, "满预算应点满：%d 个 / %d" % [full.size(), Meta.spent(full)])
+	for b in [30, 75, 150, 220, 360, 559]:
 		var sh := Meta.shape_for(b)
 		check(Meta.spent(sh) <= b, "预算 %d 超支 %d" % [b, Meta.spent(sh)])
 		for id in sh:
 			var nd: Dictionary = nodes[id]
 			if nd.has("req"):
 				check(sh.has(str(nd.req)), "预算 %d：%s 没有前置 %s" % [b, id, nd.req])
-	check(Meta.shape_for(30).has("sh1"), "推荐点法第一个应是危机感Ⅰ")
-	check(not Meta.shape_for(199).has("survive"), "已点不足 200 不能点「为了生存」")
+	check(Meta.shape_for(40).has("sh1"), "推荐点法第一个应是危机感Ⅰ")
+	check(not Meta.shape_for(40).has("atk2"), "预算 40 只点危机感Ⅰ")
 	check(Meta.run_shape().is_empty(), "测试局缺省不带局外成长")
 	# 生机细胞（§3.1）
 	Cfg.meta_earned = {}
@@ -80,8 +80,8 @@ func run() -> void:
 	check(Meta.earned_total() == 53 and Cfg.meta_bounty.has(8) and fg.meta_result.cells == 53, "局终记账 %s" % [Cfg.meta_earned])
 	r = Meta.run_reward(fg, true)
 	check(r.bounty == 0, "同一潮位第二次通关没有首通赏金")
-	check(Meta.buy("sh1") and Meta.available() == 23, "点危机感Ⅰ后余额 23，实为 %d" % Meta.available())
-	check(not Meta.buy("relic"), "门槛不够不能点物由心生")
+	check(Meta.buy("sh1") and Meta.available() == 13, "点危机感Ⅰ后余额 13，实为 %d" % Meta.available())
+	check(not Meta.buy("atk2"), "没点攻击性Ⅰ不能点攻击性Ⅱ")
 	Meta.buy_recommended()
 	check(Meta.available() >= 0 and Meta.available() < 5, "推荐点完余额 %d" % Meta.available())
 	Meta.reset()
