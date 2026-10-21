@@ -808,13 +808,13 @@ func step() -> void:
 		# 新流程（10-22，单一寻访凭证）：入口 → 定向寻访 → 选职业 → 指定干员 → 拉包 → 揭示 → 本次寻访；[帧, 动作]，动作在截图之后执行
 		var acts := {120: "directed", 170: "ok", 220: "ok"}
 		if Cfg.dev_args().has("--huntrec"):
-			if g.at_frames >= 80 and (g.at_frames - 80) % 2 == 0:
+			if g.at_frames >= 56 and (g.at_frames - 56) % 2 == 0:
 				if shoot:
-					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/rec_%04d.png" % ((g.at_frames - 80) / 2))
+					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/rec_%04d.png" % ((g.at_frames - 56) / 2))
 				if g.headhunt.mode == "summary":
 					hunt_rec_end += 1
 					if hunt_rec_end > 40:
-						print("HUNTREC frames=%d" % ((g.at_frames - 80) / 2))
+						print("HUNTREC frames=%d" % ((g.at_frames - 56) / 2))
 						g.get_tree().quit()
 			if acts.has(g.at_frames):
 				g.headhunt._act(acts[g.at_frames])

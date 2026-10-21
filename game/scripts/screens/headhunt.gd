@@ -45,6 +45,10 @@ const SHARDS := [[0.62, -24, 0.55, 0], [0.70, 18, 0.62, 3], [0.80, -8, 0.70, 6],
 
 static var clock_frames := false   # 测试录屏：按渲染帧计时（--fixed-fps 下与画面同步）
 
+## 转场（docs/124 §12）：enter = 从结算进入（最重，PV 感）/ slide = 屏间横移（轻）/ cut = 硬切白闪（进拉包）/ wipe = 斜向遮罩擦除（揭示 → 本次寻访）。
+## 全部 ≤ 0.6 秒；点按 / 任意键跳过；减少动态效果与无头直接切
+const TR_DUR := {"enter": 0.6, "slide": 0.3, "cut": 0.15, "wipe": 0.4}
+
 var g: Game
 var open := false
 var mode := "entry"       # entry 入口 / class 定向选职业 / pick 定向选干员 / bag 拉包 / op 揭示 / summary 本次寻访
@@ -64,6 +68,10 @@ var _off := Vector2.ZERO
 var _od := {}
 var _img := {}            # 金光遮罩合成用的原图缓存
 var _glow := {}           # [档, 帧, 拉链档] → 裁好的金光贴图
+var _tr := ""             # 当前转场（"" = 没有）
+var _tr_t0 := 0.0
+var _tr_cut := false      # enter 的硬切音效是否已放
+var _mode_t0 := 0.0       # 进入当前屏的时刻（各屏招牌动效用）
 
 
 func _init(game: Game) -> void:
@@ -152,6 +160,7 @@ func maybe_open() -> void:
 		return
 	open = true
 	_entry()
+	_trans("enter")
 
 
 func _entry() -> void:
@@ -164,6 +173,7 @@ func _entry() -> void:
 	mode = "entry"
 	sel = 0
 	t0 = _now()
+	_mode_t0 = t0
 
 
 func _sorted(ids: Array) -> Array:
@@ -202,6 +212,7 @@ func _play() -> void:
 	t0 = _now()
 	_zip_ticks = 0
 	_burst = false
+	_trans("cut")
 
 
 func _op(i: int) -> void:
@@ -212,6 +223,8 @@ func _op(i: int) -> void:
 
 
 func _summary() -> void:
+	if mode in ["op", "bag"]:
+		_trans("wipe")
 	mode = "summary"
 	t0 = _now()
 
@@ -260,6 +273,7 @@ func _act(a) -> void:
 			elif a == "directed" and _can_direct():
 				Sfx.play("ui_ok")
 				mode = "class"
+				_trans("slide")
 				var lc := Roster.locked_classes()
 				choices = CLASS_ORDER.duplicate()
 				sel = 0
@@ -286,12 +300,16 @@ func _act(a) -> void:
 				choices = _sorted(Roster.locked_ids().filter(func(c): return Roster.class_of(c) == sel_cls))
 				sel = 0
 				mode = "pick"
+				_trans("slide")
 			elif a == "back":
 				Sfx.play("ui_ok")
 				mode = "entry"
 				sel = 1
+				_trans("slide")
 		"pick":
 			if a is int and a >= 0 and a < choices.size():
+				if sel != a:
+					_mode_t0 = _now()   # 换人：档案重新解码
 				sel = a
 				Sfx.play("ui_move")
 				return
@@ -306,6 +324,7 @@ func _act(a) -> void:
 				mode = "class"
 				choices = CLASS_ORDER.duplicate()
 				sel = maxi(0, choices.find(sel_cls))
+				_trans("slide")
 		"bag", "op":
 			if a == "skip":
 				Sfx.play("ui_ok")
@@ -316,10 +335,15 @@ func _act(a) -> void:
 			if a == "ok":
 				Sfx.play("ui_ok")
 				_entry()
+				if open:
+					_trans("slide")
 
 
 ## 输入（game.gd _unhandled_input 在寻访打开时整段交给这里）；返回是否用掉了这次输入
 func input(event: InputEvent) -> bool:
+	if _tr != "" and (event is InputEventKey or event is InputEventMouseButton) and event.is_pressed():
+		_tr = ""   # 转场中任意键 / 点按：直接到位，这次输入不再往下传
+		return true
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var p: Vector2 = (event.position / Cfg.ui_k - _off) / _k
 		for r in rects:
@@ -430,6 +454,20 @@ func draw(vs: Vector2) -> void:
 	_k = minf(vs.x / D.x, vs.y / D.y)
 	_off = ((vs - D * _k) / 2.0).round()
 	ci.draw_rect(Rect2(Vector2.ZERO, vs), HS.DARK)
+	var k0 := _k
+	var off0 := _off
+	var p := _tr_p()
+	HS.glitch_seed = Engine.get_process_frames() / 3
+	HS.reveal = 1.0
+	if _tr == "enter":   # 镜头轻推 1.06 → 1 + 文字解码
+		var sc := lerpf(1.06, 1.0, UM.out_cubic(p))
+		_k = k0 * sc
+		_off = off0 + D * k0 * (1.0 - sc) / 2.0
+		HS.reveal = clampf((p * 0.6 - 0.15) / 0.4, 0.0, 1.0)
+	elif _tr == "slide":   # 内容自右横移 60 + 文字逐字出现
+		var e := UM.out_cubic(p)
+		_off.x += (1.0 - e) * 60.0 * k0
+		HS.reveal = e
 	ci.draw_set_transform(_off, 0.0, Vector2(_k, _k))
 	if mode == "bag":
 		_draw_bag()
@@ -446,7 +484,97 @@ func draw(vs: Vector2) -> void:
 				_draw_pick()
 			"summary":
 				_draw_summary()
+	HS.reveal = 1.0
+	_k = k0
+	_off = off0
+	ci.draw_set_transform(_off, 0.0, Vector2(_k, _k))
+	_draw_trans(p)
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+func _trans(kind: String) -> void:
+	if UM.rm() or UM.skip_all():
+		_tr = ""
+		return
+	_tr = kind
+	_tr_t0 = _now()
+	_tr_cut = false
+	_mode_t0 = _tr_t0
+	match kind:
+		"enter":
+			Sfx.play("dodge", -4.0, 0.8)
+		"slide":
+			Sfx.play("dodge", -12.0, 1.4)
+		"wipe":
+			Sfx.play("dodge", -8.0, 1.1)
+
+
+## 转场进度 0–1（没有转场 = 1；到时自动结束）
+func _tr_p() -> float:
+	if _tr == "":
+		return 1.0
+	var p := (_now() - _tr_t0) / float(TR_DUR[_tr])
+	if p >= 1.0:
+		_tr = ""
+		return 1.0
+	return p
+
+
+## 转场叠层（画在整屏之上，设计坐标）
+func _draw_trans(p: float) -> void:
+	if _tr == "":
+		return
+	var ci: CanvasItem = g.hud
+	var f: Font = g.font
+	var full := Rect2(-_off / _k, D + _off * 2.0 / _k)
+	var sk := D.y * 0.35   # 斜切量
+	match _tr:
+		"enter":
+			var t := p * 0.6
+			if t < 0.12:
+				# ① 黑场 + 黄色斜切色块从左扫过（后面跟一道青细带）
+				ci.draw_rect(full, Color(0.02, 0.025, 0.035))
+				var x := lerpf(-500.0, D.x + 200.0, UM.in_out_cubic(t / 0.12))
+				ci.draw_colored_polygon(PackedVector2Array([Vector2(x, 0), Vector2(x + 260, 0), Vector2(x + 260 - sk, D.y), Vector2(x - sk, D.y)]), HS.YEL)
+				ci.draw_colored_polygon(PackedVector2Array([Vector2(x - 40, 0), Vector2(x - 30, 0), Vector2(x - 30 - sk, D.y), Vector2(x - 40 - sk, D.y)]), HS.CYB)
+				HS.spaced(ci, f, Vector2(60, D.y / 2.0), "RHODES ISLAND  //  PERSONNEL", 14, Color(1, 1, 1, 0.8), 6.0)
+				return
+			if not _tr_cut:
+				_tr_cut = true
+				Sfx.play("crit_tick", -2.0)
+			# ② 硬切 + 白闪（2 帧量级）
+			var fl := 1.0 - (t - 0.12) / 0.08
+			if fl > 0.0:
+				ci.draw_rect(full, UI.fa(Color.WHITE, fl * 0.85))
+			# ③ 斜向遮罩从左往右擦除（黄 + 青边）
+			var e := UM.in_out_cubic((t - 0.12) / 0.48)
+			var ex := lerpf(-200.0, D.x + sk + 40.0, e)
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(ex, 0), Vector2(full.end.x, 0), Vector2(full.end.x, D.y), Vector2(ex - sk, D.y)]), Color(0.02, 0.025, 0.035))
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(ex - 14, 0), Vector2(ex, 0), Vector2(ex - sk, D.y), Vector2(ex - sk - 14, D.y)]), HS.YEL)
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(ex - 30, 0), Vector2(ex - 26, 0), Vector2(ex - 26 - sk, D.y), Vector2(ex - 30 - sk, D.y)]), HS.CYB)
+			# ④ 扫描线 + 噪点自上而下
+			var sy := e * D.y
+			ci.draw_rect(Rect2(0, sy, D.x, 2), UI.fa(Color.WHITE, 0.8))
+			for c in 64:
+				var hsh := absi(hash([c, HS.glitch_seed]))
+				if hsh % 3 == 0:
+					ci.draw_rect(Rect2(c * 20.0, sy + 4 + (hsh % 4) * 4, 12, 4), UI.fa(HS.CYB, 0.5))
+			# ⑤ 右上角编号逐字打出
+			HS.reveal = clampf((t - 0.12) / 0.4, 0.0, 1.0)
+			HS.spaced(ci, f, Vector2(D.x - 470, 92), HS.dec("R.I. HR DEPT.  //  ACCESS GRANTED  //  01"), 10, HS.MUTE, 3.0)
+			HS.reveal = 1.0
+		"slide":
+			var e := UM.out_cubic(p)
+			ci.draw_rect(full, Color(0.02, 0.025, 0.035, (1.0 - e) * 0.55))
+			var x := lerpf(-100.0, D.x + sk, e)
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(x, 0), Vector2(x + 4, 0), Vector2(x + 4 - sk, D.y), Vector2(x - sk, D.y)]), UI.fa(HS.CYB, 1.0 - e))
+		"cut":
+			ci.draw_rect(full, UI.fa(Color.WHITE, (1.0 - p) * 0.9))
+		"wipe":
+			var e := UM.in_out_cubic(p)
+			var ex := lerpf(D.x + sk, -40.0, e)
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(full.position.x, 0), Vector2(ex, 0), Vector2(ex - sk, D.y), Vector2(full.position.x, D.y)]), Color(0.02, 0.025, 0.035))
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(ex, 0), Vector2(ex + 12, 0), Vector2(ex + 12 - sk, D.y), Vector2(ex - sk, D.y)]), HS.YEL)
 
 
 func _hot(i: int, r: Rect2) -> bool:
@@ -555,6 +683,10 @@ func _draw_class() -> void:
 		var r := Rect2(560 + (i % 4) * 182 - row * 60, 104 + row * 284, 166, 262)
 		var mine: Array = _sorted(locked.filter(func(c): return Roster.class_of(c) == cls))
 		var dis := mine.is_empty()
+		var lt := 99.0 if UM.rm() else _now() - _mode_t0 - 0.05 * i   # 逐格点亮：每格晚 0.05 秒，点亮瞬间闪一下白边
+		if lt < 0.0:
+			HS.para(ci, r, Color(0, 0, 0, 0), Color(1, 1, 1, 0.12), 1.0)
+			continue
 		var on: bool = i == sel and not dis
 		HS.card(ci, r, col, on, dis)
 		if not dis and not on and not (Pad.using or g.kb_nav) and r.has_point((ci.get_local_mouse_position() - _off) / _k):
@@ -574,6 +706,8 @@ func _draw_class() -> void:
 			HS.tag(ci, f, r.position + Vector2(r.size.y * HS.SKEW * 0.2 + 34, 10), "新职业", 0.85, HS.CYB)
 		if not dis:
 			_btn(r, i)
+		if lt < 0.1:
+			HS.para(ci, r.grow(2), UI.fa(Color.WHITE, 0.35 * (1.0 - lt / 0.1)), UI.fa(Color.WHITE, 1.0 - lt / 0.1), 2.0)
 	_bottom("" if Pad.touch else "方向键选择")
 	var br := Rect2(D.x - 330, D.y - 74, 310, 60)
 	HS.main_btn(ci, f, br, "确认职业", "" if Pad.touch else "Enter")
@@ -604,6 +738,7 @@ func _draw_pick() -> void:
 		UI.text_at(ci, f, Vector2(r.get_center().x - 8, r.end.y - 44), fl[0], fl[1], ink, "mm", true)
 		_btn(r, i)
 	if sel < n:
+		HS.reveal = minf(HS.reveal, 1.0 if UM.rm() else clampf((_now() - _mode_t0) / 0.5, 0.0, 1.0))
 		var od2 := _card(choices[sel])
 		var by := HS.title_block(ci, f, Vector2(820, 130), "01", "人事调度", od2.name, od2.en, 1.0, 64)
 		UI.class_glyph(ci, od2.cls, Vector2(846, by + 50), 22.0, HS.INK, 4.0)
@@ -621,6 +756,7 @@ func _draw_pick() -> void:
 			ci.draw_line(Vector2(876, y + 44), Vector2(1060, y + 44), UI.fa(HS.INK, 0.2), 1.0)
 		_figure(od2, Vector2(1160, D.y - 130), 3.0, Color(0.16, 0.17, 0.21))
 		UI.text_at(ci, f, Vector2(820, D.y - 112), "指定 1 名未解锁干员加入名册。立绘在解锁后显示。", 14, HS.INK, "lm")
+		HS.reveal = 1.0
 	_bottom()
 	var bb := Rect2(D.x - 560, D.y - 72, 210, 56)
 	HS.ghost_btn(ci, f, bb, "返回", "" if Pad.touch else "Esc")

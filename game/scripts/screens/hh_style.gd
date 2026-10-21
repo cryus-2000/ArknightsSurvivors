@@ -19,6 +19,27 @@ const YEL := Color8(255, 206, 0)          # 标题标签 / 新加入（同图鉴
 const CYB := Color8(56, 214, 240)         # 主按钮青
 const SIL := Color8(118, 123, 132)        # 剪影灰
 const SKEW := 0.18                        # 平行四边形斜率（每 1 高度右移 0.18）
+const GLITCH := "#/_<>01:=+"               # 解码中的乱码字符（像素字与 ui.ttf 都有）
+
+## 转场「文字解码 / 逐字打出」进度（docs/124 §12）：调用方在画一屏前设好、画完复位为 1。< 1 时标题、英文、编号逐字出现，
+## 已出现的最后两格是乱码（英文 / 编号），中文只逐字出现不乱码
+static var reveal := 1.0
+static var glitch_seed := 0
+
+
+## 按 reveal 截字：英文 / 编号把正在出现的两格换成乱码
+static func dec(s: String, latin := true) -> String:
+	if reveal >= 1.0:
+		return s
+	var n := int(ceil(s.length() * clampf(reveal, 0.0, 1.0)))
+	var out := s.substr(0, maxi(0, n - (2 if latin else 0)))
+	if latin:
+		for i in range(maxi(0, n - 2), n):
+			if s[i] == " ":
+				out += " "
+			else:
+				out += GLITCH[absi(hash([glitch_seed, i])) % GLITCH.length()]
+	return out
 
 
 ## 背景：暗场 + 几道很淡的斜带
@@ -49,11 +70,11 @@ static func topbar(ci: CanvasItem, font: Font, vs: Vector2, en: Array, title: St
 	var bw := 160.0 * s
 	ci.draw_rect(Rect2(0, 0, bw, h - 2), LIGHT2)
 	for i in en.size():
-		spaced(ci, font, Vector2(26 * s, (20 + 18 * i) * s), str(en[i]), int(10 * s), INK, 2.0)
+		spaced(ci, font, Vector2(26 * s, (20 + 18 * i) * s), dec(str(en[i])), int(10 * s), INK, 2.0)
 	UI.hazard(ci, Rect2(bw, 0, 28 * s, h - 2), 0.0, YEL, INK, 9.0 * s)
 	var tw := UI.cwidth(font, title, int(22 * s)) + 44 * s
 	para(ci, Rect2(bw + 40 * s, 10 * s, tw, h - 22 * s), YEL)
-	UI.text_at(ci, font, Vector2(bw + 62 * s, h / 2.0 - 1), title, int(22 * s), INK, "lm", true)
+	UI.text_at(ci, font, Vector2(bw + 62 * s, h / 2.0 - 1), dec(title, false), int(22 * s), INK, "lm", true)
 	if page != "":
 		spaced(ci, font, Vector2(vs.x - 250 * s, h / 2.0 + 5 * s), page, int(10 * s), MUTE, 3.0)
 	var br := Rect2(vs.x - 160 * s, 12 * s, 140 * s, h - 26 * s)
@@ -87,12 +108,12 @@ static func spaced(ci: CanvasItem, font: Font, pos: Vector2, s: String, size: in
 ## 标题块：「| 01 / 人 事 寻 访」+ 大黑字中文 + 像素描边英文 + 一道短黑线；返回块底 y
 static func title_block(ci: CanvasItem, font: Font, p: Vector2, idx: String, sub: String, cn: String, en: String, s := 1.0, cn_size := 76, ink := INK, line := INK2) -> float:
 	ci.draw_rect(Rect2(p.x, p.y - 12 * s, 3 * s, 16 * s), ink)
-	var w := spaced(ci, font, Vector2(p.x + 16 * s, p.y + 2 * s), idx + "  /  ", int(13 * s), ink, 3.0)
-	spaced(ci, font, Vector2(p.x + 16 * s + w, p.y + 2 * s), sub, int(13 * s), ink, 6.0)
-	UI.text_at(ci, font, Vector2(p.x - 4 * s, p.y + 24 * s), cn, int(cn_size * s), ink, "la", true)
+	var w := spaced(ci, font, Vector2(p.x + 16 * s, p.y + 2 * s), dec(idx + "  /  "), int(13 * s), ink, 3.0)
+	spaced(ci, font, Vector2(p.x + 16 * s + w, p.y + 2 * s), dec(sub, false), int(13 * s), ink, 6.0)
+	UI.text_at(ci, font, Vector2(p.x - 4 * s, p.y + 24 * s), dec(cn, false), int(cn_size * s), ink, "la", true)
 	var ey := p.y + 24 * s + cn_size * s * 1.32
 	var ek := 2.0 * s * (cn_size / 76.0) * 4.6 / 2.0
-	outline_px(ci, Vector2(p.x, ey + 18 * s * cn_size / 76.0), en, ek, line, LIGHT if ink == INK else DARK)
+	outline_px(ci, Vector2(p.x, ey + 18 * s * cn_size / 76.0), dec(en), ek, line, LIGHT if ink == INK else DARK)
 	var by := ey + 48 * s * cn_size / 76.0
 	ci.draw_rect(Rect2(p.x, by, 58 * s, 4 * s), ink)
 	return by + 4 * s
