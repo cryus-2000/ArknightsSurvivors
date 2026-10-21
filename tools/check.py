@@ -626,7 +626,8 @@ def check_repro(godot):
 #   10-21 起「过期」不再静默跳过：ok 照样记 False（除非这一轮正好 --update-golden 把它刷新掉），detail 开头打印醒目
 #   提示，让 --auto 的汇总不是绿的；但不计进 errs 硬失败列表——过期不是改坏积木本身，不该让改别处代码的人背锅。
 #   下一个改了相关干员 / 积木代码、看到自己这组过期的人负责重录，不是「过期=直接阻断所有人合入」的硬规则。
-#   ship 全量通过后 `check.py --only blocks_eq --eq-all --update-golden` 把数据版输出重录到 build/golden_cache/（不进 git），之后优先用它。
+#   ship 全量通过后 `check.py --only blocks_eq --eq-all --update-golden` 把数据版输出重录到 game/tests/golden_current/（git 跟踪，10-21 起
+#   不再靠不进 git 的本地缓存；重录后要把该目录的改动 git add + commit）。
 #  kaltsit：数据版的 Mon3tr 出手带通用召唤物标签 summon（手写参照没有），金样录的时候已去掉，比较时同样去掉
 EQ_GROUPS = [
     ("eqtest", [
@@ -729,9 +730,12 @@ def _balance_core(d, drop_tags=()):
 
 
 EQ_ALL = False   # --eq-all：每组跑全部用例；缺省每组只跑第一条（seed1），第二条（seed2 / seed3 当队友）改到云端每日一跑（docs/36 §7.6，10-15）
-UPDATE_GOLDEN = False   # --update-golden：本项通过后把数据版输出重录到 build/golden_cache/（ship 全量通过后调用）
+UPDATE_GOLDEN = False   # --update-golden：本项通过后把数据版输出重录到 game/tests/golden_current/（ship 全量通过后调用，git 跟踪，记得 commit）
 GOLDEN_SNAP = os.path.join(GAME, "tests", "golden")
-GOLDEN_ROLL = os.environ.get("ARK_GOLDEN_DIR") or os.path.join(GR.common_root(), "build", "golden_cache")   # ARK_GOLDEN_DIR：临时金样目录（大重构对改前对照，docs/101 §7.3）
+GOLDEN_GIT = os.path.join(GAME, "tests", "golden_current")   # 10-21 起：git 跟踪的当前有效金样，--auto 默认读写都在这里，不依赖任何本机本地缓存
+GOLDEN_ROLL = os.environ.get("ARK_GOLDEN_DIR") or os.path.join(GR.common_root(), "build", "golden_cache")   # 可选本地覆盖层（不进 git）：
+                                                                                                              # ARK_GOLDEN_DIR 显式指定，或默认 build/golden_cache；读取时优先于 GOLDEN_GIT，
+                                                                                                              # 用于大重构对改前对照等临时场景（docs/101 §7.3），--auto 不依赖它存在
 EQ_COMMON = ("game/scripts/characters/op_blocks.gd", "game/scripts/characters/data_operator.gd",
              "game/scripts/characters/character.gd", "game/scripts/characters/op_api.gd")
 # B6 ①（docs/101 §7.3.3，10-15）：op_blocks 拆到 scripts/characters/blocks/ 后，公共段 ob_*.gd 也算积木公共文件（进本干员侧），
@@ -784,11 +788,15 @@ def _golden_file(gid, name):
 
 
 def load_golden(gid, name):
-    """优先 build/golden_cache（ship 重录的），否则 game/tests/golden/<提交>/（下线时的证据快照，取最新一份）"""
-    p = os.path.join(GOLDEN_ROLL, _golden_file(gid, name))
+    """优先 GOLDEN_ROLL（本地未提交的临时覆盖层，一般不存在），然后 game/tests/golden_current/（git 跟踪的当前有效金样，--auto 默认命中这里），
+    最后 game/tests/golden/<提交>/（下线时的证据快照，取最新一份）"""
+    fname = _golden_file(gid, name)
+    p = os.path.join(GOLDEN_ROLL, fname)
+    if not os.path.exists(p):
+        p = os.path.join(GOLDEN_GIT, fname)
     if not os.path.exists(p) and os.path.isdir(GOLDEN_SNAP):
         snaps = sorted(d for d in os.listdir(GOLDEN_SNAP) if os.path.isdir(os.path.join(GOLDEN_SNAP, d)))
-        p = os.path.join(GOLDEN_SNAP, snaps[-1], _golden_file(gid, name)) if snaps else ""
+        p = os.path.join(GOLDEN_SNAP, snaps[-1], fname) if snaps else ""
     try:
         return json.load(open(p, encoding="utf-8")), p
     except (OSError, ValueError):
@@ -858,11 +866,11 @@ def check_blocks_eq(godot):
     rec_ok = not errs and len(rec) == len(jobs)
     recorded = False
     if UPDATE_GOLDEN and rec_ok:
-        os.makedirs(GOLDEN_ROLL, exist_ok=True)
+        os.makedirs(GOLDEN_GIT, exist_ok=True)
         for r in rec:
-            tmp = os.path.join(GOLDEN_ROLL, _golden_file(r["gid"], r["case"]) + ".%d.tmp" % os.getpid())
+            tmp = os.path.join(GOLDEN_GIT, _golden_file(r["gid"], r["case"]) + ".%d.tmp" % os.getpid())
             json.dump(r, open(tmp, "w", encoding="utf-8"), ensure_ascii=False, indent=0)
-            os.replace(tmp, os.path.join(GOLDEN_ROLL, _golden_file(r["gid"], r["case"])))
+            os.replace(tmp, os.path.join(GOLDEN_GIT, _golden_file(r["gid"], r["case"])))
         recorded = True
     # 10-21 改：「过期」不再静默跳过——之前「别处变了就跳过、不算失败」导致金样一旦跟不上大改就全组长期过期，
     # 这项检查形同虚设也没人知道。现在过期时 ok 照样记 False（除非这一轮正好用 --update-golden 把它刷新掉了），
@@ -873,7 +881,7 @@ def check_blocks_eq(godot):
     if nog:
         same_part += "、没有金样 %d" % len(nog)
     if UPDATE_GOLDEN and rec_ok:
-        same_part += "；已重录 %d 份到 build/golden_cache" % len(rec)
+        same_part += "；已重录 %d 份到 game/tests/golden_current（git 跟踪，记得 git add + commit）" % len(rec)
     if stale:
         stale_list = "、".join(stale[:6]) + ("……" if len(stale) > 6 else "")
         if recorded:
@@ -1078,7 +1086,7 @@ def main():
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
                     help="透传给每个 Godot 进程的旋钮覆盖（--bal=enemy/density=1，可重复）；查测试在非缺省旋钮下是否仍过")
     ap.add_argument("--eq-all", action="store_true", help="积木等价每组跑全部用例（缺省只跑 seed1；全部用例由云端每日例行任务跑，docs/36 §7.6）")
-    ap.add_argument("--update-golden", action="store_true", help="积木等价通过后把数据版输出重录到 build/golden_cache（ship 全量通过后用，docs/36 §1.3）")
+    ap.add_argument("--update-golden", action="store_true", help="积木等价通过后把数据版输出重录到 game/tests/golden_current（git 跟踪，ship 全量通过后用，docs/36 §1.3）")
     ap.add_argument("--rerecord-golden", action="store_true",
                     help="等价于 --only blocks_eq --eq-all --update-golden：重录积木等价金样（docs/36 §1.3；谁负责跑见该节）")
     ap.add_argument("--nocache", action="store_true", help="不读也不写结果缓存（build/check_cache，docs/36 §1.2）")

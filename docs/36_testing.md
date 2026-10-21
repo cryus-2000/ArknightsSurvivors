@@ -68,10 +68,12 @@
   - 但过期**不计进硬失败（`errors`）列表**——过期不是本干员或积木自己改坏的，是「别处」的玩法代码变了，不该让改别处代码的人背锅，也不做成「过期 = 直接阻断所有人合入」的硬规则；
   - detail 开头打印醒目提示（`⚠ 金样过期需要重录 N（组名……）：…`），列出哪些组过期、怎么重录；
   - **谁负责重录、什么时候重录（10-21 定）**：**凡是改了积木文件**（`game/scripts/characters/blocks/`、`op_blocks.gd`、`character.gd`、`data_operator.gd`、`op_api.gd` 等「本干员侧」或「别处」公共文件）**或干员 json**（`game/data/characters/*.json`）**的分支，合入 main 之后由协调人跑一次** `python tools/check.py --rerecord-golden` 重录，不是每个干员会话自己跑——因为金样要基于**最终合入 main 之后**的真实积木行为来录，不是某个分支自己工作区里的状态；同一时间段内有多个相关分支要合，等协调人把这批都合完、main 稳定下来后再跑一次即可，不必每条分支合入都单独跑一遍。不必每次改动都跑，但只要合并了会动积木输出的分支，合并后必须跑这一次，避免金样长期基于错误/过期的积木行为却没人发现（协调人曾因合并顺序踩过这个坑：金样重录早于另一批第4节点分支合入，合入后积木输出变了，刚录的金样全部作废）。
-- **重录**：`python tools/check.py --rerecord-golden`（等价 `--only blocks_eq --eq-all --update-golden`）把数据版输出录到主仓库 `build/golden_cache/`（不进 git），之后优先用它；证据快照只在没有重录时兜底。`tools/ship.py` 在快检通过后也会自动跑这一条；重录失败不挡发版，只提示。
+- **重录与存储位置（10-21 改）**：金样现在存在 **`game/tests/golden_current/`（git 跟踪）**，不再是「本机 `build/golden_cache/`、不进 git」的本地缓存——之前这个机制导致其他会话的工作树（没在本机跑过重录）跑 `--auto` 时读不到缓存、退回下线证据快照 `game/tests/golden/fd9ce553/`（早已过时），被误判成「金样过期」。现在 `python tools/check.py --rerecord-golden`（等价 `--only blocks_eq --eq-all --update-golden`）把数据版输出直接写到 `game/tests/golden_current/`；**重录后要把该目录的改动 `git add game/tests/golden_current && git commit`**，否则其他工作树还是看不到。`tools/ship.py` 在快检通过后也会自动跑这一条重录，但同样只落在协调人那次 commit 里才会传播给别人；重录失败不挡发版，只提示。
+  - `build/golden_cache/`（或 `ARK_GOLDEN_DIR` 指定的目录）保留作为**可选的本地未提交覆盖层**：读取时优先于 `game/tests/golden_current/`，用于大重构对改前对照等临时场景（见下）；`--auto` 默认不依赖它存在，没有这一层也能正常读到 git 里的有效金样。
+  - 证据快照 `game/tests/golden/fd9ce553/` 不动，只在 `golden_current/` 也没有对应文件时才兜底。
 - **局限**：金样过期期间这一项不判；只有「别处没变」的分支（只改干员 / 积木的分支）才真正比。「别处」含其他干员的数据（招募会把别人拉进局里），所以一个分支同时改了积木和某名干员的数据时，只有那名干员这组真比，其余组过期。积木改动最好单独成分支。
-- **大重构对改前对照（10-15，docs/101 §7.3.5）**：改动了所有干员共用的段（例：op_blocks 拆文件）时每组的「别处」都变，金样一律过期。这时用两个环境变量：在改前提交的临时工作树里 `ARK_GOLDEN_DIR=<临时目录> python tools/check.py --only blocks_eq --eq-all --update-golden` 录一份临时金样，分支上 `ARK_EQ_FORCE=1 ARK_GOLDEN_DIR=<同一目录> python tools/check.py --only blocks_eq --eq-all` 过期也照比。不设这两个变量时行为不变。
-- **验证（10-15）**：录制时 14 组 × 2 用例数据版与手写参照 28 / 28 逐字节相同；删掉手写参照后 `--eq-all` 28 组与金样相同；把斯卡蒂 `atk` 改 ×1.3 → 斯卡蒂组 FAIL（TRACE 第 34 行起不同），其余 13 组判过期；`--update-golden` 重录 28 份后再比 14 / 14 相同。
+- **大重构对改前对照（10-15，docs/101 §7.3.5）**：改动了所有干员共用的段（例：op_blocks 拆文件）时每组的「别处」都变，金样一律过期。这时用两个环境变量：在改前提交的临时工作树里 `ARK_GOLDEN_DIR=<临时目录> python tools/check.py --only blocks_eq --eq-all --update-golden` 录一份临时金样（写到 `<临时目录>`，不进 `golden_current/`，不进 git），分支上 `ARK_EQ_FORCE=1 ARK_GOLDEN_DIR=<同一目录> python tools/check.py --only blocks_eq --eq-all` 过期也照比。不设这两个变量时行为不变，读写都在 `game/tests/golden_current/`。
+- **验证（10-15 录制 + 10-21 迁移）**：录制时 14 组 × 2 用例数据版与手写参照 28 / 28 逐字节相同；删掉手写参照后 `--eq-all` 28 组与金样相同；把斯卡蒂 `atk` 改 ×1.3 → 斯卡蒂组 FAIL（TRACE 第 34 行起不同），其余 13 组判过期；`--update-golden` 重录 28 份后再比 14 / 14 相同。10-21 把当时 `build/golden_cache/` 下已重录的 28 份原样迁入 `game/tests/golden_current/` 并改 git 跟踪，在全新 worktree（没有本机缓存）里验证 `--only blocks_eq --eq-all` 能直接读到、不再误判过期。
 
 快检（全量）包含五项：
 
