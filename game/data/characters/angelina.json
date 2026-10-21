@@ -805,6 +805,42 @@
      }
     ]
    }
-  }
+  },
+  "response": [
+   {
+    "trig": "on_stance",
+    "to": "gathered",
+    "hint": "斥力",
+    "_doc": "响应动作（docs/118 §4.4）：归队集合完毕时，以队长为心推开半径 120 内的敌人 80（精英 × pull_elite，重型 ×0.3，Boss 不动）；之后 3 秒队长移速 ×1.15（下一条，条件 resp_idle < 3）。设计稿的「她本人不突击」不做（会改突击局的同 seed 结果）",
+    "do": [
+     {
+      "verb": "displace",
+      "center": "leader",
+      "r": 120,
+      "dir": "push",
+      "dist": 80,
+      "elite_mult": "$pull_elite"
+     }
+    ]
+   },
+   {
+    "trig": "passive",
+    "cond": "resp_idle < 3",
+    "_doc": "响应动作：上一条触发后 3 秒内队长移速 ×1.15",
+    "do": [
+     {
+      "verb": "buff_leader",
+      "stat": "move_speed",
+      "op": "mult",
+      "value": 1.15
+     }
+    ]
+   }
+  ]
+ },
+ "response": {
+  "name": "斥力",
+  "trigger": "指挥：归队",
+  "desc": "归队集合完毕时，她以队长为中心推开周围的敌人，之后 3 秒队长移动速度 +15%"
  }
 }

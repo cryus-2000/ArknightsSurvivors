@@ -1,11 +1,15 @@
 extends Node
 ## 干员响应动作（docs/118）：第一批 德克萨斯（队长冲刺）/ 星熊、艾雅法拉（队长站定）/ 铃兰（队长开技能）；
-## 第二批一组 能天使 / 斯卡蒂 / 推进之王（队长冲刺）/ 维什戴尔 / 流明（队长站定）/ 逻各斯 / 浊心斯卡蒂（队长开技能）。
+## 第二批一组 能天使 / 斯卡蒂 / 推进之王（队长冲刺）/ 维什戴尔 / 流明（队长站定）/ 逻各斯 / 浊心斯卡蒂（队长开技能）；
+## 第二批二组 塞雷娅（队长站定，on_leader_still）/ 凯尔希（队长开技能）/ 水月 / 归溟幽灵鲨 / 艾丽妮 / 安洁莉娜（指挥切换）。
 ##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=hoshiguma --squad=texas,eyjafjalla
 ##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=suzuran --squad=texas
 ##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=wisadel --squad=exusiai,skadi
 ##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=texas --squad=siege
 ##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=lumen --squad=logos,skalter
+##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=texas --squad=saria,kaltsit
+##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=texas --squad=mizuki,specter_unchained
+##   godot --headless --path game res://tests/response_test.tscn -- --regression --balance --seed=1 --op=texas --squad=irene,angelina
 ## 编队里有谁就测谁；冻结主循环，手动改队长状态后推一帧 update，只看响应有没有按条件生效。
 ## 全部通过时打印 "RESPONSE failures=0"。
 
@@ -55,7 +59,7 @@ func _process(_d: float) -> void:
 		test_suzuran(g, sz)
 	if hs != null and tx != null:
 		test_stance(g, hs, tx)
-	for id in ["exusiai", "skadi", "siege", "wisadel", "lumen", "logos", "skalter"]:
+	for id in ["exusiai", "skadi", "siege", "wisadel", "lumen", "logos", "skalter", "saria", "kaltsit", "mizuki", "specter_unchained", "irene", "angelina"]:
 		var op = g.squad.get_op(id)
 		if op != null:
 			call("test_" + id, g, op)
@@ -286,3 +290,126 @@ func test_skalter(g, o) -> void:
 	o.rsp["last"] = g.t - 3.5
 	o._sustain(DT)
 	ok(absf(o.stat(&"op_aspd") - a0) < 0.001, "浊心斯卡蒂：3 秒后攻速收回")
+
+
+## 塞雷娅：队长站定 0.6 秒 → 队长身边升起晶柱环；站满 4 秒再升一次；移动后重新计
+func test_saria(g, o) -> void:
+	var sa: Dictionary = o.SegSaria._h4sa(o)
+	sa.crystals = {}
+	g.leader_still_t = 0.3
+	tick(o)
+	ok(sa.crystals.is_empty(), "塞雷娅：站定不满 0.6 秒不升晶柱")
+	g.leader_still_t = 0.7
+	tick(o)
+	ok(not sa.crystals.is_empty() and Vector2(sa.crystals.c).distance_to(g.ppos) < 0.5 and sa.crystals.posts.size() == 4, "塞雷娅：站定 0.6 秒 → 队长身边升起 4 根晶柱")
+	sa.crystals.t = 1.0
+	g.leader_still_t = 2.0
+	tick(o)
+	ok(float(sa.crystals.t) >= 1.0, "塞雷娅：站满 4 秒前不再升")
+	g.leader_still_t = 4.7
+	tick(o)
+	ok(float(sa.crystals.t) < 0.5, "塞雷娅：站满 0.6 + 4 秒 → 再升一次")
+	g.leader_still_t = 0.0
+	tick(o)
+	sa.crystals = {}
+	g.leader_still_t = 0.7
+	tick(o)
+	ok(not sa.crystals.is_empty(), "塞雷娅：移动后重新站定 → 重新计")
+	g.leader_still_t = 0.0
+	sa.crystals = {}
+
+
+## 凯尔希：队长开技能 → Mon3tr 跃回队长身边；3 秒内再开不重复
+func test_kaltsit(g, o) -> void:
+	tick(o)
+	o.rsp["last"] = -1.0e9
+	for k in o.rsp.keys():
+		if str(k).begins_with("cd"):
+			o.rsp.erase(k)
+	g.leader_skill_n += 1
+	g.leader_skill_i = 0
+	tick(o)
+	var leaping := false
+	for sm in o.sm.list:
+		if sm.get("dash", {}).get("k", "") == "leap":
+			leaping = true
+	ok(leaping, "凯尔希：队长开技能 → Mon3tr 跃回")
+	var t0: float = float(o.rsp.get("last", -1.0))
+	g.leader_skill_n += 1
+	tick(o)
+	ok(float(o.rsp.get("last", -1.0)) == t0, "凯尔希：3 秒冷却内不重复")
+
+
+## 水月：切到突击 → 3 秒内伞击范围 ×1.5
+func test_mizuki(g, o) -> void:
+	var a: Dictionary = o.B.attack
+	tick(o)
+	o.rsp["last"] = g.t - 10.0
+	var r0: float = o.SegMizuki.h3_umb_radius(o, a)
+	g.squad.set_stance(1)
+	tick(o)
+	var r1: float = o.SegMizuki.h3_umb_radius(o, a)
+	g.squad.set_stance(0)
+	tick(o)
+	ok(absf(r1 / r0 - 1.5) < 0.001, "水月：切到突击 → 伞击范围 ×1.5（%.1f → %.1f）" % [r0, r1])
+	o.rsp["last"] = g.t - 3.5
+	ok(absf(o.SegMizuki.h3_umb_radius(o, a) - r0) < 0.001, "水月：3 秒后恢复")
+
+
+## 归溟幽灵鲨：切到突击 → 替身闪现；归队集合完毕 → 环斩一圈
+func test_specter_unchained(g, o) -> void:
+	tick(o)
+	var sp: Dictionary = o.SegSpecter._h3sp(o)
+	sp["flash"] = {}
+	g.squad.set_stance(1)
+	tick(o)
+	ok(not sp.get("flash", {}).is_empty(), "归溟幽灵鲨：切到突击 → 替身现身")
+	g.squad.set_stance(0)
+	o.hw.atk_dmg = 100.0
+	var h0 := hp_sum(g)
+	g.squad.gathered_n += 1
+	tick(o)
+	ok(hp_sum(g) < h0 - 100.0, "归溟幽灵鲨：归队集合完毕 → 环斩一圈（%.0f → %.0f）" % [h0, hp_sum(g)])
+
+
+## 艾丽妮：切到归队 → 身边敌人浮空
+func test_irene(g, o) -> void:
+	tick(o)
+	var ir: Dictionary = o.SegIrene._h3ir(o)
+	ir.air = []
+	g.squad.set_stance(1)
+	tick(o)
+	ok(ir.air.is_empty(), "艾丽妮：切到突击不起风")
+	g.squad.set_stance(2)
+	tick(o)
+	ok(not ir.air.is_empty(), "艾丽妮：切到归队 → 身边 %d 名敌人浮空" % ir.air.size())
+	g.squad.set_stance(0)
+
+
+## 安洁莉娜：归队集合完毕 → 以队长为心推开敌人；3 秒内队长移速 ×1.15
+func test_angelina(g, o) -> void:
+	tick(o)
+	o.rsp["last"] = g.t - 10.0
+	o._sustain(DT)
+	var kb0 := 0.0
+	for e in g.enemies:
+		e.kb = Vector2.ZERO
+	g.squad.gathered_n += 1
+	tick(o)
+	for e in g.enemies:
+		if not e.dead and not e.boss and Vector2(e.pos).distance_to(g.ppos) < 120.0:
+			kb0 += Vector2(e.kb).dot((Vector2(e.pos) - g.ppos).normalized())
+	ok(kb0 > 0.0, "安洁莉娜：归队集合完毕 → 队长身边的敌人被推开（外推冲量和 %.0f）" % kb0)
+	o._sustain(DT)
+	var has := false
+	for m in o._mods:
+		if str(m[0]) == "move_speed" and absf(float(m[2]) - 1.15) < 0.001:
+			has = true
+	ok(has, "安洁莉娜：之后 3 秒队长移速 ×1.15")
+	o.rsp["last"] = g.t - 3.5
+	o._sustain(DT)
+	has = false
+	for m in o._mods:
+		if str(m[0]) == "move_speed" and absf(float(m[2]) - 1.15) < 0.001:
+			has = true
+	ok(not has, "安洁莉娜：3 秒后收回")

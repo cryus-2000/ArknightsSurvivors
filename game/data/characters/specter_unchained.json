@@ -1044,7 +1044,62 @@
      }
     ]
    }
-  }
+  },
+  "response": [
+   {
+    "trig": "on_stance",
+    "to": "roam",
+    "hint": "替身",
+    "_doc": "响应动作（docs/118 §4.4）：切到突击时，替身立刻在她 300 内敌群最密处现身连斩（同精二「替身闪现」，各自计；已在场时不另放）。替身现身不是本体位移",
+    "do": [
+     {
+      "verb": "doll_flash",
+      "range": "$flash_range",
+      "r": "$flash_r",
+      "basis": "attack",
+      "mult": "$flash_mult",
+      "appear": 0.25,
+      "spin": 0.45,
+      "burst": 0.3,
+      "anim": "doll_spin",
+      "src": "替身闪现",
+      "spins": "$flash_spins",
+      "spin_gap": "$flash_gap"
+     }
+    ]
+   },
+   {
+    "trig": "on_stance",
+    "to": "gathered",
+    "hint": "回旋",
+    "_doc": "响应动作：归队集合完毕（全员到位）时，本体以自身为心环斩一圈（上一次环斩伤害 ×1.5，半径同普攻，击退同普攻）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$reach",
+      "basis": "attack",
+      "mult": 1.5,
+      "kb": "$kb",
+      "src": "锯刃",
+      "fx": [
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 1.0,
+         "r0": 10.0,
+         "life": 0.35,
+         "col": [0.85, 0.2, 0.25],
+         "floor": true,
+         "w": 3.0
+        },
+        "r_scale": ["r"]
+       }
+      ]
+     }
+    ]
+   }
+  ]
  },
  "native_motion": {
   "_doc": "出手帧对齐（10-20 用户）：画面整条播 clip 秒，出手帧画面起点 = fire_time，收势越过逻辑窗口、下一动作打断（docs/108 §3.5）",
@@ -1054,5 +1109,10 @@
    "skill_s3": 1.5,
    "attack_s3": 0.833333
   }
+ },
+ "response": {
+  "name": "替身突袭",
+  "trigger": "指挥：突击 / 归队",
+  "desc": "切到突击时，替身立刻在附近敌群最密处现身连斩；归队集合完毕时，她环斩一圈（上一次环斩的 150%）"
  }
 }

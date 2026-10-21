@@ -976,6 +976,80 @@
         {"strip": "fx_mon3tr_claw", "n": 2, "spread": 0.35, "scale": 0.45, "off": [0, -10], "tint": [0.55, 1.0, 0.5, 0.5]},
         {"sfx": {"kind": "big", "db": -6, "pitch": 1.1}},
         {"pfx": {"kind": "glow", "r": 10, "life": 0.18, "col": [0.55, 1.0, 0.5], "alpha": 0.55}, "at": "hits"}]}]}]}]
-  }
+  },
+  "response": [
+   {
+    "trig": "on_leader_skill",
+    "cd": 3.0,
+    "hint": "护主",
+    "_doc": "响应动作（docs/118 §4.3）：队长开技能时，Mon3tr 跃回队长身边，落地一圈 × leap_mult × 0.8 并击退（同精二「回防」的跃回，各自计冷却）。Mon3tr 位移按 §1.4 设冷却 3 秒（不短于队长冲刺冷却）",
+    "do": [
+     {
+      "verb": "summon_cmd",
+      "kind": "mon3tr",
+      "action": "leap",
+      "to": "leader",
+      "t": "$leap_t",
+      "then": [
+       {
+        "shape": "circle",
+        "center": "target",
+        "r": "$leap_r",
+        "r_abs": true,
+        "atk_key": "m_atk",
+        "mult": "$leap_mult*0.8",
+        "kb": "$leap_kb",
+        "src": "Mon3tr · 回防",
+        "ring": false,
+        "fx": [
+         {
+          "strip": "fx_mon3tr_slam_ring",
+          "layer": "floor",
+          "fit": 32
+         },
+         {
+          "strip": "fx_circle_steel",
+          "if_tex": "!fx_mon3tr_slam_ring",
+          "layer": "floor",
+          "fit": 16,
+          "tint": [0.55, 1.0, 0.5]
+         },
+         {
+          "strip": "fx_mon3tr_claw",
+          "n": 2,
+          "spread": 0.35,
+          "scale": 0.45,
+          "off": [0, -10],
+          "tint": [0.55, 1.0, 0.5, 0.5]
+         },
+         {
+          "sfx": {
+           "kind": "big",
+           "db": -6,
+           "pitch": 1.1
+          }
+         },
+         {
+          "pfx": {
+           "kind": "glow",
+           "r": 10,
+           "life": 0.18,
+           "col": [0.55, 1.0, 0.5],
+           "alpha": 0.55
+          },
+          "at": "hits"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "response": {
+  "name": "护主",
+  "trigger": "队长开技能",
+  "desc": "队长每次开技能，Mon3tr 跃回队长身边，落地扑击周围的敌人并将其击退（每 3 秒至多一次）"
  }
 }

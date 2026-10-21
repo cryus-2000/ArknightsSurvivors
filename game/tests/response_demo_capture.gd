@@ -2,11 +2,12 @@ extends Node
 ## 响应动作示范录屏（docs/118）：开窗口跑，逐帧截图到 build/response_demo/<demo>/，再由脚本拼成 gif。
 ##   godot --path game res://tests/response_demo_capture.tscn -- --balance --seed=1 --op=<队长> --squad=<队友…> --demo=<干员 id>
 ## 队长由按键事件驱动：移动 = 按住方向键，冲刺 = 空格；开技能 = 把队长技力充满。只截图，不断言。
-## 演示什么按 demo 的触发源：DASH 冲刺 / SKILL 开技能 / 其余 = 站定（每轮移动 30 帧后站定）。
+## 演示什么按 demo 的触发源：DASH 冲刺 / SKILL 开技能 / CMD 指挥（站定第 5 帧切突击、第 35 帧切归队，之后自动集合）/ 其余 = 站定（每轮移动 30 帧后站定）。
 
 const DT := 1.0 / 60.0
 const DASH := ["texas", "exusiai", "skadi", "siege", "ulpianus"]
 const SKILL := ["suzuran", "logos", "skalter", "kaltsit"]
+const CMD := ["mizuki", "specter_unchained", "irene", "angelina"]
 
 
 func key(code: int, down: bool) -> void:
@@ -57,6 +58,8 @@ func _ready() -> void:
 			key(KEY_SPACE, true)
 		if demo in DASH and ph == 12:
 			key(KEY_SPACE, false)
+		if demo in CMD and (ph == 35 or ph == 65):
+			g.squad.cycle_stance()
 		if demo in SKILL and ph == 50 and lead != null:
 			lead.sp[0] = lead.sp_need(0)
 		g._update(DT)

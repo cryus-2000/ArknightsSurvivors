@@ -878,7 +878,25 @@
     "do": [],
     "_doc": "精二裂潮余波：写在 attack.finisher（cond elite >= 2）；追诉写在 attack.pursue"
    }
-  }
+  },
+  "response": [
+   {
+    "trig": "on_stance",
+    "to": "recall",
+    "hint": "起风",
+    "_doc": "响应动作（docs/118 §4.4，取设计稿的归队这一半）：切到归队时，她在自己身边起风，半径 90 内的敌人浮空 0.8 秒（同 S1 节点「狂风」的浮空，Boss 不受），掩护队伍收拢；浮空照常吃天赋「审判之火」与精二追诉",
+    "do": [
+     {
+      "verb": "lift_around",
+      "center": "self",
+      "r": 90,
+      "pad": 30,
+      "dur": 0.8,
+      "h": 20
+     }
+    ]
+   }
+  ]
  },
  "extra_sprites": [
   "finisher",
@@ -904,5 +922,10 @@
   "yield": [
    "finisher"
   ]
+ },
+ "response": {
+  "name": "起风",
+  "trigger": "指挥：归队",
+  "desc": "切到归队时，她在身边扬起一阵风，周围的敌人浮空 0.8 秒，掩护队伍收拢"
  }
 }
