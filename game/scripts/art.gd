@@ -781,7 +781,7 @@ const V6_FRAMES := {
 	"fx_logos_s1_chain": [4, 12.0],
 	"proj_logos_ink_a": [4, 16.0], "proj_logos_ink_b": [4, 16.0],
 	# 艾雅法拉 S2 点燃：彗星火球 + 大团熔岩爆炸（ansimuz，fx_import）
-	"proj_eyja_ignite": [5, 14.0], "fx_eyja_ignite_boom": [11, 18.0],
+	"proj_eyja_ignite": [5, 14.0], "fx_eyja_ignite_boom": [11, 18.0], "fx_eyja_ignite_hit": [9, 21.0],
 	# 第三批干员（docs/59）弹体 / 特效帧条（tools/gen_fx_batch3.py，程序生成 + @2x；锚点见 docs/25 §6）。暂未接玩法，数据干员实现时取用
 	"proj_exusiai_bullet": [2, 20.0], "proj_exusiai_bullet_power": [2, 20.0], "fx_exusiai_muzzle": [3, 30.0], "fx_exusiai_muzzle_gold": [3, 30.0], "fx_exusiai_hit": [3, 24.0],
 	# 能天使技能弹药换色（docs/25 §6.1，gen_fx_batch3.py EXU_VARIANTS）：S1 冰青 / S2 琥珀橙 / S3 过热白；倾泻补金色命中
