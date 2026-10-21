@@ -99,10 +99,11 @@
 
 | 文档 | 标题 | 状态 | 说明 | 被谁引用 |
 |---|---|---|---|---|
-| [93_codex_elite_forms_art](93_codex_elite_forms_art.md) | 精英化攻击形态素材 | 进行中 | §0 是全部特效单的规格依据；补单已交、待验收 | 61、91、95、96、98；elite_art_1_manifest.json、game.gd、ally_rework_1014_handoff.md 等 12 个文件 |
+| [93_codex_elite_forms_art](93_codex_elite_forms_art.md) | 精英化攻击形态素材 | 已全部交付 | §0 是全部特效单的规格依据；10-22 逐条核对无未交付项（见 incoming/codex_order_1022_handoff.md §1） | 61、91、95、96、98；elite_art_1_manifest.json、game.gd、ally_rework_1014_handoff.md 等 12 个文件 |
 | [94_codex_enemy_redraw](94_codex_enemy_redraw.md) | 普通 / 精英怪重画 | 进行中 | §0 敌人条款被 98 引用；暖橙补单已被冷色回调，晚补单未交 | 93、96、98；gallery.gd、enemy_redraw_3_handoff.md、game.gd 等 15 个文件 |
 | [96_codex_enemy_attack_fx](96_codex_enemy_attack_fx.md) | 怪物攻击特效 | 进行中 | 第 1 批已接入，第 2 / 3 批未交 | render/world.gd、enemies/enemy_ai.gd、run/enemies.gd 等 7 个文件 |
 | [97_codex_operator_fixes](97_codex_operator_fixes.md) | 干员存量修整 | 进行中 | A–F 已接入；G 批只交了水月，还在 codex/art | 98；incoming/op_fix_b_handoff.md、incoming/op_fix_e_handoff.md、characters/character.gd 等 15 个文件 |
+| [codex_order_1022_handoff](../art/incoming/codex_order_1022_handoff.md) | Codex 素材单 10-22 | 进行中 | §1 精英化素材核对（无未交付项）；§2 骑士 `e_knight*` @2x = 1x × 2 返修单，待交 | docs/93、115、108 §5、98 §10.1 |
 | [90_codex_toy_cover](90_codex_toy_cover.md) | B站 Toy 封面与图标 | 进行中 | 已选定 shadow_1014，未上传 | — |
 
 ## 测试与发布
