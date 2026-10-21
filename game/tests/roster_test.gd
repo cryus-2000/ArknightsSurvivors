@@ -74,47 +74,63 @@ func run() -> void:
 	check(Roster.choose_hunt() == "", "名册满后寻访应无可抽")
 	check(int(Cfg.roster_tickets.get("hunt", 0)) == 0, "券应用完")
 
-	# 3. 定向寻访：2 张寻访凭证指定 1 名；不够 2 张时不兑换
+	# 3. 意向保底：设好意向后第 3 张必出
 	reset()
-	Cfg.roster_tickets = {"hunt": 3}
-	var rd := Roster.redeem_directed("mizuki")
-	check(rd.id == "mizuki" and Roster.is_unlocked("mizuki") and int(Cfg.roster_tickets.hunt) == 1, "定向寻访用 2 张解锁水月 %s / %s" % [rd, Cfg.roster_tickets])
-	check(Roster.redeem_directed("skadi").get("id", "x") == "", "只剩 1 张时不能定向")
-	check(Roster.redeem_directed("mizuki").get("id", "x") == "", "已解锁的不能再定向")
+	Cfg.roster_tickets = {"hunt": 10}
+	Roster.redeem(Roster.T_HUNT, Roster.choose_hunt())   # 第一张固定流明
+	Roster.set_wish("mizuki")
+	var hit := -1
+	for i in 3:
+		var cid := Roster.choose_hunt()
+		Roster.redeem(Roster.T_HUNT, cid)
+		if cid == "mizuki":
+			hit = i
+			break
+	check(hit >= 0, "意向干员 3 张寻访凭证内应必出")
+	check(Cfg.roster_wish == "" and Cfg.roster_pity == 0, "意向出了之后清空")
+
+	# 4. 招募券
+	reset()
 	for k in 5:
 		var cid := Roster.choose_class("近卫")
-		check(Roster.class_of(cid) == "近卫", "按职业抽（近卫）抽到 %s" % cid)
+		check(Roster.class_of(cid) == "近卫", "招募券（近卫）抽到 %s" % cid)
+	Cfg.roster_tickets = {"cls": 1}
+	Roster.redeem(Roster.T_CLASS, Roster.choose_class("特种"))
+	check(Roster.owned_classes().has("特种") and int(Cfg.roster_tickets.cls) == 0, "招募券用后应解锁 1 名特种")
+	Roster.redeem(Roster.T_PICK, "skadi")
+	check(not Roster.is_unlocked("skadi"), "没有人事调度函时不能解锁")
 
-	# 4. 表现层接口：redeem_hunt / redeem_directed 返回结果、刚解锁高亮；旧券折算
+	# 4b. 表现层接口：redeem_* 返回结果、刚解锁高亮
 	reset()
 	Cfg.roster_fresh = []
-	Cfg.roster_tickets = {"hunt": 3}
+	Cfg.roster_tickets = {"hunt": 1, "cls": 1, "pick": 1}
 	var r1 := Roster.redeem_hunt()
 	check(r1.id == "lumen" and r1.new_class and r1.kind == "hunt", "redeem_hunt 结果 %s" % [r1])
-	var r3 := Roster.redeem_directed("irene")
-	check(r3.id == "irene" and r3.new_class and Roster.tickets().hunt == 0, "redeem_directed 结果 %s" % [r3])
-	check(Roster.fresh().size() == 2, "刚解锁应记 2 人")
-	Roster.mark_seen("irene")
-	check(not Roster.fresh().has("irene"), "mark_seen 后清掉")
+	var r2 := Roster.redeem_class("近卫")
+	check(Roster.class_of(r2.id) == "近卫" and r2.new_class, "redeem_class 结果 %s" % [r2])
+	var r3 := Roster.redeem_pick("mizuki")
+	check(r3.id == "mizuki" and Roster.is_unlocked("mizuki") and Roster.tickets().pick == 0, "redeem_pick 结果 %s" % [r3])
+	check(Roster.fresh().size() == 3, "刚解锁应记 3 人")
+	Roster.mark_seen("mizuki")
+	check(not Roster.fresh().has("mizuki"), "mark_seen 后清掉")
 	check(Roster.redeem_hunt().get("id", "x") == "", "没有券时不兑换")
-	Cfg.roster_tickets = {"hunt": 1, "cls": 1, "pick": 1}
-	Roster.migrate_tickets()
-	check(Roster.tickets().hunt == 4 and Roster.tickets().cls == 0 and Roster.tickets().pick == 0, "旧券折算：招募券 1 + 人事调度函 2 %s" % [Cfg.roster_tickets])
 
-	# 5. 局终发券：撤离 3 张、通关 4 张，只有寻访凭证
+	# 5. 局终发券
 	reset()
 	var fg := FakeG.new()
 	Roster.on_run_end(fg, false)
-	check(int(Cfg.roster_tickets.get("hunt", 0)) == 3 and int(Cfg.roster_tickets.get("cls", 0)) == 0, "撤离：寻访凭证 3 张 %s" % [Cfg.roster_tickets])
+	check(int(Cfg.roster_tickets.get("hunt", 0)) == 1 and int(Cfg.roster_tickets.get("cls", 0)) == 0, "撤离：寻访凭证 1 张")
 	Roster.on_run_end(fg, true)
-	check(int(Cfg.roster_tickets.get("hunt", 0)) == 7 and int(Cfg.roster_tickets.get("cls", 0)) == 0 and int(Cfg.roster_tickets.get("pick", 0)) == 0, "通关：寻访凭证 4 张 %s" % [Cfg.roster_tickets])
+	check(int(Cfg.roster_tickets.get("hunt", 0)) == 2 and int(Cfg.roster_tickets.get("cls", 0)) == 1 and int(Cfg.roster_tickets.get("pick", 0)) == 1, "首通标准：+寻访 +招募券 +人事调度函 %s" % [Cfg.roster_tickets])
+	Roster.on_run_end(fg, true)
+	check(int(Cfg.roster_tickets.get("pick", 0)) == 1, "同一档第二次通关不再发人事调度函")
 	fg.trial.active = true
 	Roster.on_run_end(fg, true)
-	check(int(Cfg.roster_tickets.get("hunt", 0)) == 7, "演练不发券")
+	check(int(Cfg.roster_tickets.get("hunt", 0)) == 3, "演练不发券")
 	fg.trial.active = false
 	fg.mode = 1
 	Roster.on_run_end(fg, false)
-	check(int(Cfg.roster_tickets.get("hunt", 0)) == 7, "非 PLAY 模式不发券")
+	check(int(Cfg.roster_tickets.get("hunt", 0)) == 3, "非 PLAY 模式不发券")
 
 	# 6. 云存档
 	reset()
