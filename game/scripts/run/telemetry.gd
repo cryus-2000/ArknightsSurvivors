@@ -39,6 +39,11 @@ var boss_seen: Dictionary = {}  # id -> {type, t0, t1}
 var boss_acc := 0.0
 var boss_samp: Dictionary = {}   # key -> {n, alive, alive_pk, near, near_pk, hp_last, on_boss, out}
 var out_last := 0.0
+# docs/117 Boss 节奏审计（只读，不影响同 seed）：每 15 秒一个窗口，从 Boss 登场记到倒下 / 撤场，
+# 看哪一段只在刮血、没有新东西发生（出招 / 小怪 / 受击都少）。key -> {out0, hits0, moves0}（上一个窗口结束时的基准值）
+const BOSS_WIN_S := 15.0
+var boss_win_acc := 0.0
+var boss_win_base: Dictionary = {}   # key -> {out, hits, moves}
 var elite_t: Dictionary = {}    # "<op>:<elite>" -> 秒
 var recruit_t: Array = []       # 每名干员入队时间
 var squad_n := 0
@@ -189,6 +194,32 @@ func tick(dt: float) -> void:
 			# 主教慌乱（协调人 9/30）：慌乱触发次数、慌乱期间掉血占最大生命的比例
 			bs["panic_n"] = int(b.panic_n)
 			bs["panic_hit"] = snappedf(float(b.get("panic_dmg", 0.0)) / maxf(1.0, float(b.maxhp)), 0.01)
+	# docs/117 Boss 节奏审计：每 15 秒一个窗口，记 hp 剩余比例、这窗口的全队输出、受击次数、Boss 出招次数（telegraph.gd
+	# e.moves_n）、全场怪物数——用来找「只在刮血、没有新东西发生」的空档。只读，不影响同 seed
+	boss_win_acc += dt
+	if boss_win_acc >= BOSS_WIN_S:
+		boss_win_acc -= BOSS_WIN_S
+		var win_out := 0.0
+		for k in g.dmg_out:
+			win_out += float(g.dmg_out[k])
+		for b in g.bosses:
+			if b.get("retreated", false) or b.get("friendly", false):
+				continue
+			var key := str(b.get("id", b.type))
+			var bs: Dictionary = boss_seen.get(key, {})
+			if bs.is_empty():
+				continue
+			if not boss_win_base.has(key):
+				boss_win_base[key] = {"out": win_out, "hits": hits, "moves": int(b.get("moves_n", 0))}
+			var base: Dictionary = boss_win_base[key]
+			if not bs.has("windows"):
+				bs["windows"] = []
+			bs["windows"].append({"t": int(t) - int(bs.t0), "hp": 0.0 if b.dead else snappedf(float(b.hp) / maxf(1.0, float(b.maxhp)), 0.01),
+				"out": int(win_out - float(base.out)), "hits": hits - int(base.hits), "moves": int(b.get("moves_n", 0)) - int(base.moves),
+				"en": g.enemies.size()})
+			base.out = win_out
+			base.hits = hits
+			base.moves = int(b.get("moves_n", 0))
 	boss_acc += dt
 	if boss_acc >= 1.0:
 		boss_acc -= 1.0

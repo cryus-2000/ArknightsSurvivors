@@ -127,6 +127,7 @@
 | [115_boss_portrait_candidates](115_boss_portrait_candidates.md) | Boss 登场名片头像：现状、候选与候选 A 实现 | 已实施记录 | 10-21：10 只都有专画头像但是糊剪影；用户选候选 A（局内像素裁切放大，暂弃用专画头像文件但不删），实现记录 + e_knight@2x 尺寸异常待核实 | 38、41、87、104 |
 | [114_command_mode](114_command_mode.md) | 指挥模式（第 1 步原型） | 进行中 | 10-21：一个键循环 随行 / 突击 / 归队（F / LB / 触屏「指挥」键），归队到位后集合站定，突击耐力（25 秒耗尽自动归队、50 秒回满），屏外队友头像标记，balance command 段旋钮；对比视频与机器人小样（突击常开输出 +8%、承伤 +22%）；按键名待用户定 | 22、41、76、109 |
 | [116_curve_audit](116_curve_audit.md) | 玩家 / 怪物成长曲线审计 | 方案待用户看 | 10-21：TTK / TTD 按分钟实测（输出 ×22 vs 怪物生命 ×3.2；败局集中 8:20–9:30、单下接触 15–28% 最大生命）；主流肉鸽做法；建议血量不动、压重型怪单下伤害、回血不加 | 27、50、111 |
+| [117_boss_pacing_audit](117_boss_pacing_audit.md) | 后期 Boss 垃圾时间审计 | 方案待用户看 | 10-21：最终 Boss 用时中位 42–101 秒（偏短不偏长）、战内无空转；根因是 10:00 登场后场上敌人数 67→11（−83%）——`final/stop_mobs` + `trickle_mult` 0.35 太保守；建议调高 trickle 旋钮，不建议砍 Boss 血量 | 38、41、95、116 |
 | [99_bilibili_toy_faq](99_bilibili_toy_faq.md) | B站 Toy 官方 FAQ | 现行规范 | 官方答疑帖存档（外部参考）+ 本作对照；§0 的数字已过时 | — |
 | [encrypted_release_20260928](encrypted_release_20260928.md) | Windows 加密发行 | 已实施记录 | 换机重建加密模板步骤的唯一出处（33「一次性准备」链到这里） | — |
 | [live_test_launcher](live_test_launcher.md) | 免打包测试入口 | 现行规范 | 启动测试版.cmd 的用法；末段 Boss 描述已过时 | — |
