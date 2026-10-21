@@ -15,6 +15,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 game = os.path.join(ROOT, 'game')
 OUT = os.path.join(gr.common_root(ROOT), 'build', 'ak_mock')
 SCREENS = ['result', 'hunt', 'reveal', 'pick_class', 'pick_letter', 'hunt_result']
+SCREENS += [s + '_b' for s in SCREENS]   # 方向 B（图鉴 C4′ 系）
 which = sys.argv[1].split(',') if len(sys.argv) > 1 else SCREENS
 DEVS = [('desktop', '1280x720', []), ('phone', '1480x720', ['--touch'])]
 gr.ensure_imported(game)
@@ -43,8 +44,8 @@ items = [(s, v) for s in which for v in DEVS]
 with ThreadPoolExecutor(3) as ex:
     for r in ex.map(run, items):
         print(*r, flush=True)
-for dev in ('desktop', 'phone'):
-    fs = [os.path.join(OUT, '%s_%s.png' % (s, dev)) for s in SCREENS if os.path.exists(os.path.join(OUT, '%s_%s.png' % (s, dev)))]
+for dev, d in (('desktop', 'A'), ('phone', 'A'), ('desktop', 'B'), ('phone', 'B')):
+    fs = [os.path.join(OUT, '%s_%s.png' % (s, dev)) for s in SCREENS if s.endswith('_b') == (d == 'B') and os.path.exists(os.path.join(OUT, '%s_%s.png' % (s, dev)))]
     if not fs:
         continue
     ims = [Image.open(f).convert('RGB') for f in fs]
@@ -56,4 +57,4 @@ for dev in ('desktop', 'phone'):
         sheet.paste(im.resize((w, hs[i]), Image.LANCZOS), ((i % 2) * w, y))
         if i % 2:
             y += hs[i]
-    sheet.save(os.path.join(OUT, 'sheet_%s.jpg' % dev), quality=88)
+    sheet.save(os.path.join(OUT, 'sheet_%s_%s.jpg' % (d, dev)), quality=88)

@@ -41,6 +41,23 @@ func _draw() -> void:
 	off = ((vs - dsz * k) / 2.0).round()
 	draw_rect(Rect2(Vector2.ZERO, vs), Color(0.02, 0.03, 0.05))
 	draw_set_transform(off, 0.0, Vector2(k, k))
+	if which.ends_with("_b"):
+		_b_backdrop(dsz)
+		match which:
+			"result_b":
+				_b_result(dsz)
+			"hunt_b":
+				_b_hunt(dsz)
+			"reveal_b":
+				_b_reveal(dsz)
+			"pick_class_b":
+				_b_pick_class(dsz)
+			"pick_letter_b":
+				_b_pick_letter(dsz)
+			"hunt_result_b":
+				_b_hunt_result(dsz)
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
 	_backdrop(dsz)
 	match which:
 		"result":
@@ -631,3 +648,295 @@ func _hunt_result(dsz: Vector2) -> void:
 		_btn(Rect2(W / 2.0 - 330, by + 18, 160, 38), "设定意向", "W")
 		_btn(Rect2(W / 2.0 - 160, by + 18, 140, 38), "完成", "Esc")
 		UI.deploy_button(self, font, Rect2(W / 2.0 + 10, by, 300, 72), "前往选人  ›", "ENTER  ·  新干员可选为队长", 0.6, 0.0, 22)
+
+
+# ================================================================ 方向 B：图鉴 C4′ 系（黑白灰 + 浅色档案面板 + 平行四边形页签 + 警示条 + 警示黄）
+# A 是选人 B+ 系；B 把图鉴的语言推到结算 / 寻访（docs/125 §4.3）。黄目前只许图鉴用（docs/37 §2），选 B 要用户放宽这条
+
+func _b_backdrop(dsz: Vector2) -> void:
+	draw_rect(Rect2(Vector2.ZERO, dsz), UI.C_D_BG)
+	var y := 0.0
+	while y < dsz.y:
+		draw_line(Vector2(0, y), Vector2(dsz.x, y), Color(1, 1, 1, 0.025), 1.0)
+		y += 24.0
+	var x := 0.0
+	while x < dsz.x:
+		draw_line(Vector2(x, 0), Vector2(x, dsz.y), Color(1, 1, 1, 0.025), 1.0)
+		x += 24.0
+
+
+## 顶栏（图鉴式）：左上浅色标题块 + 警示条 + 说明 + 平行四边形返回键
+func _b_top(W: float, en: String, cn: String, sub: String, back := "返回  Esc") -> void:
+	var h := 32.0 if phone else 48.0
+	draw_rect(Rect2(0, 0, W, h), Color(0.04, 0.043, 0.05, 0.92))
+	var bw := 96.0 if phone else 132.0
+	draw_rect(Rect2(0, 0, bw, h), UI.C_L_GLASS)
+	UI.code(self, font, Vector2(10, 5 if phone else 7), en, 7 if phone else 8, UI.C_L_SUB)
+	UI.text_at(self, font, Vector2(10, h * 0.62), cn, 13 if phone else 18, UI.C_L_INK, "lm", true)
+	UI.hazard(self, Rect2(bw, 0, 14 if phone else 22, h))
+	if not phone:
+		UI.text_at(self, font, Vector2(bw + 40, h / 2.0), sub, 12, UI.C_D_SUB, "lm")
+	var bk := Rect2(W - (66 if phone else 120), (5 if phone else 10), (56 if phone else 104), (22 if phone else 28))
+	UI.para(self, bk, 8.0, UI.C_D_PANEL, UI.C_D_INK)
+	UI.text_at(self, font, bk.get_center(), back.split(" ")[0] if phone else back, 11 if phone else 12, UI.C_D_INK, "mm")
+
+
+## 浅色档案面板（图鉴右侧磨砂面板同色）+ 左边一道斜切
+func _b_glass(r: Rect2, cut := 28.0) -> void:
+	draw_colored_polygon(PackedVector2Array([r.position + Vector2(cut, 0), Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]), UI.C_L_GLASS)
+
+
+func _b_head(p: Vector2, en: String, cn: String) -> void:
+	UI.code(self, font, p, en + "  //  " + cn, 8 if phone else 9, UI.C_L_SUB)
+
+
+## 暗场名字块（图鉴舞台式：No.xx // 分类 + 大字 + 英文 + 墨色标签片）
+func _b_name(p: Vector2, code: String, cn: String, en: String, tags: Array, size := 48) -> float:
+	UI.code(self, font, p, code, 9 if phone else 10, UI.C_D_SUB)
+	UI.text_at(self, font, p + Vector2(-2, 8), cn, size, UI.C_D_INK, "la", true)
+	var ey := p.y + 8 + size * 1.5
+	UI.en(self, font, Vector2(p.x + 2, ey + 4), en, maxi(9, int(size * 0.28)), UI.C_D_SUB, 5.0)
+	var px := p.x
+	for tg in tags:
+		px += UI.ctag(self, font, Vector2(px, ey + 14), tg, 10 if phone else 11, true)
+	return ey + 44
+
+
+func _b_btn(r: Rect2, s: String, main := false) -> void:
+	UI.para(self, r, 10.0, UI.C_ACC if main else UI.C_D_PANEL, Color(0, 0, 0, 0) if main else UI.C_D_INK)
+	var sz := (20 if not phone else 15) if main else (13 if not phone else 12)
+	UI.text_at(self, font, r.get_center(), s, sz, UI.C_L_INK if main else UI.C_D_INK, "mm", main)
+
+
+func _b_result(dsz: Vector2) -> void:
+	var W := dsz.x
+	var H := dsz.y
+	var lead := _card("mizuki")
+	var gp := 0.62 if not phone else 0.6
+	_b_glass(Rect2(W * gp, 0, W * (1.0 - gp), H), 60.0 if not phone else 34.0)
+	UI.c_band(self, H, W * (0.28 if not phone else 0.2), W * 0.16, W * 0.16, lead.col, Color(0, 0, 0, 0), 1.0, 0.6, Vector2(W * 0.2, 12 if not phone else 8))
+	UI.ghost_name(self, font, Vector2(W * 0.02, H * 0.14), "PRECIOUS DAYS", 1.0, 120 if not phone else 60, UI.C_D_GHOST, 2)
+	_figure(lead, Vector2(W * 0.42, H * 0.86), 5.0 if not phone else 3.0, Color(0, 0, 0, 0), 0, false)
+	_b_top(W, "OPERATION REPORT", "作战记录", "潮位 8 · 漫灌 · 结算系数 ×1.4   ·   SEED 7F3A-21C9")
+	var y := _b_name(Vector2(24 if phone else 40, 50 if phone else 80), "No.01  //  ENDING 01", "探索完成", "OPERATION COMPLETE", ["平凡即是喜乐", "首次达成"], 30 if phone else 54)
+	var bx := 24.0 if phone else 40.0
+	for it in [["10:24", "探索时间"], ["1,284", "击杀"], ["3", "Boss"]]:
+		UI.text_at(self, font, Vector2(bx, y), it[0], 18 if phone else 30, UI.C_D_INK, "la", true)
+		UI.text_at(self, font, Vector2(bx, y + (24 if phone else 40)), it[1], 9 if phone else 11, UI.C_D_SUB)
+		bx += 64.0 if phone else 104.0
+	# 右：档案面板（页签 + 计分表 + 收获）
+	var px := W * gp + (76.0 if not phone else 42.0)
+	var pw := W - px - (16.0 if phone else 24.0)
+	var ty := 40.0 if phone else 64.0
+	UI.c_tabs(self, font, Rect2(px, ty, pw, 24 if phone else 34), ["结算", "数据", "藏品"], 0.0, 8.0, 11 if phone else 13)
+	var ry := ty + (40.0 if phone else 60.0)
+	_b_head(Vector2(px, ry - (14 if phone else 18)), "OPERATION SCORE", "探索评分")
+	for row in SCORE:
+		UI.text_at(self, font, Vector2(px, ry), row[0], 10 if phone else 13, UI.C_L_INK, "lm")
+		if not phone:
+			UI.text_at(self, font, Vector2(px + pw - 70, ry), row[2], 11, UI.C_L_SUB, "rm")
+		UI.text_at(self, font, Vector2(px + pw, ry), row[3], 11 if phone else 15, UI.C_L_INK, "rm", true)
+		draw_line(Vector2(px, ry + (8 if phone else 13)), Vector2(px + pw, ry + (8 if phone else 13)), Color(0, 0, 0, 0.12), 1.0)
+		ry += 16.0 if phone else 28.0
+	draw_rect(Rect2(px, ry - (4 if phone else 6), pw, 2), UI.C_L_INK)
+	UI.text_at(self, font, Vector2(px, ry + (6 if phone else 10)), "(200 × 潮位 8 ×1.4 + 40) ÷ 8", 9 if phone else 12, UI.C_L_SUB, "lm")
+	UI.text_at(self, font, Vector2(px + pw, ry + (6 if phone else 10)), "= 40", 12 if phone else 16, UI.C_L_INK, "rm", true)
+	ry += 20.0 if phone else 40.0
+	_b_head(Vector2(px, ry), "OUTCOME", "局外收获")
+	ry += 6.0 if phone else 10.0
+	var cr := Rect2(px, ry, pw, 40 if phone else 70)
+	UI.cpanel(self, cr, true)
+	UI.text_at(self, font, cr.position + Vector2(12, cr.size.y / 2.0), "+53", 20 if phone else 34, UI.C_L_INK, "lm", true)
+	UI.text_at(self, font, cr.position + Vector2(64 if phone else 100, cr.size.y * 0.32), "生机细胞", 10 if phone else 13, UI.C_L_INK, "lm", true)
+	UI.text_at(self, font, cr.position + Vector2(64 if phone else 100, cr.size.y * 0.72), "评分 +40 · 首通赏金 +13", 8 if phone else 11, UI.C_L_SUB, "lm")
+	ry += cr.size.y + (5 if phone else 10)
+	for i in 3:
+		var tw := (pw - 12.0) / 3.0
+		var tr := Rect2(px + i * (tw + 6), ry, tw, 30 if phone else 52)
+		UI.cpanel(self, tr)
+		draw_rect(Rect2(tr.position, Vector2(tr.size.x, 3)), TICKET[i][2].darkened(0.3))
+		UI.text_at(self, font, tr.position + Vector2(6, tr.size.y * 0.42), TICKET[i][0], 8 if phone else 12, UI.C_L_INK, "lm", true)
+		if not phone:
+			UI.text_at(self, font, tr.position + Vector2(8, 38), ["每次结算", "通关", "首通潮位 8"][i], 9, UI.C_L_SUB, "lm")
+		UI.text_at(self, font, Vector2(tr.end.x - 6, tr.position.y + tr.size.y * (0.72 if phone else 0.42)), "×1", 10 if phone else 16, UI.C_L_INK, "rm", true)
+	var by := H - (42 if phone else 78)
+	_b_btn(Rect2(px - 20, by, pw * 0.36, 34 if phone else 54), "再次探索")
+	_b_btn(Rect2(px - 20 + pw * 0.38, by, pw * 0.64 + 20, 34 if phone else 54), "前往寻访  ›", true)
+	UI.hazard(self, Rect2(0, H - 8, W * gp - 20, 8))
+
+
+func _b_hunt(dsz: Vector2) -> void:
+	var W := dsz.x
+	var H := dsz.y
+	var wish := _card("mizuki")
+	var gp := 0.64 if not phone else 0.62
+	_b_glass(Rect2(W * gp, 0, W * (1.0 - gp), H), 60.0 if not phone else 34.0)
+	UI.c_band(self, H, W * 0.26, W * 0.16, W * 0.16, wish.col, Color(0, 0, 0, 0), 1.0, 0.6, Vector2(W * 0.2, 12 if not phone else 8))
+	UI.ghost_name(self, font, Vector2(W * 0.02, H * 0.12), "HEADHUNTING", 1.0, 120 if not phone else 60, UI.C_D_GHOST, 2)
+	if not phone:
+		_figure(_card("skadi"), Vector2(W * 0.3, H * 0.74), 3.0, Color(0.16, 0.17, 0.2), 0, false)
+		_figure(_card("kaltsit"), Vector2(W * 0.56, H * 0.74), 3.0, Color(0.16, 0.17, 0.2), 0, false)
+	_figure(wish, Vector2(W * 0.44, H * 0.84), 5.0 if not phone else 3.0, Color(0.24, 0.26, 0.31), 0, false)
+	_b_top(W, "HEADHUNTING", "寻访", "常驻寻访 · 罗德岛人事档案 · 未解锁 13 名 · 不会重复")
+	var y := _b_name(Vector2(24 if phone else 40, 50 if phone else 80), "PREFERRED  //  意向干员", "水月", "MIZUKI", ["特种", "未解锁"], 30 if phone else 50)
+	for i in 3:
+		UI.para(self, Rect2((24 if phone else 40) + i * (34 if phone else 50), y, 30 if phone else 44, 10), 4.0, UI.C_ACC if i < 2 else Color(0, 0, 0, 0), UI.C_ACC)
+	UI.text_at(self, font, Vector2(24 if phone else 40, y + (26 if phone else 34)), "再寻访 1 次，必定获得 水月", 11 if phone else 16, UI.C_D_INK, "lm", true)
+	var px := W * gp + (76.0 if not phone else 42.0)
+	var pw := W - px - (16.0 if phone else 24.0)
+	var ry := 48.0 if phone else 80.0
+	_b_head(Vector2(px, ry), "TICKETS", "持有")
+	ry += 8.0
+	for i in 3:
+		var tr := Rect2(px, ry + i * (44 if phone else 74), pw, 38 if phone else 64)
+		UI.cpanel(self, tr, i == 0)
+		draw_rect(Rect2(tr.position + Vector2(4 if i == 0 else 0, 0), Vector2(3, tr.size.y)), TICKET[i][2].darkened(0.3))
+		UI.text_at(self, font, tr.position + Vector2(14, tr.size.y * 0.36), TICKET[i][0], 12 if phone else 16, UI.C_L_INK, "lm", true)
+		UI.text_at(self, font, tr.position + Vector2(14, tr.size.y * 0.72), ["随机 1 名 · 计入保底", "选职业 · 随机 1 名", "指定 1 名"][i], 9 if phone else 11, UI.C_L_SUB, "lm")
+		UI.text_at(self, font, Vector2(tr.end.x - 10, tr.get_center().y), "×%d" % [2, 1, 0][i], 16 if phone else 26, UI.C_L_INK, "rm", true)
+	if not phone:
+		var rr := ry + 3 * 74 + 10
+		_b_head(Vector2(px, rr), "RULES", "规则")
+		for j in 3:
+			UI.text_at(self, font, Vector2(px, rr + 20 + j * 20), "· " + ["未解锁干员 13 名，不会抽到重复干员", "首次寻访必定获得医疗干员", "名册已满后，券换成生机细胞"][j], 11, UI.C_L_SUB, "lm")
+	var by := H - (42 if phone else 78)
+	_b_btn(Rect2(px - 20, by, pw * 0.38, 34 if phone else 54), "寻访一次")
+	_b_btn(Rect2(px - 20 + pw * 0.4, by, pw * 0.62 + 20, 34 if phone else 54), "全部使用  ›", true)
+	UI.hazard(self, Rect2(0, H - 8, W * gp - 20, 8))
+
+
+## 揭示 B：浅色底 + 墨色大字 + 职业色斜带（亮场版图鉴舞台，接近原作寻访的白底出场）
+func _b_reveal(dsz: Vector2) -> void:
+	var W := dsz.x
+	var H := dsz.y
+	var od := _card("lumen")
+	draw_rect(Rect2(Vector2.ZERO, dsz), UI.C_L_BG)
+	UI.c_band(self, H, W * 0.42, W * 0.18, W * 0.18, od.col, Color(0, 0, 0, 0), 1.0, 0.75, Vector2(W * 0.22, 14 if not phone else 8), UI.C_L_INK)
+	UI.ghost_name(self, font, Vector2(W * 0.3, H * 0.08), od.en, 1.0, 150 if not phone else 80, Color(0, 0, 0, 0.12), 3)
+	_figure(od, Vector2(W * 0.66, H * 0.9), 6.0 if not phone else 4.0, Color(0, 0, 0, 0), 2, false)
+	var p := Vector2(24 if phone else 48, H * (0.3 if phone else 0.36))
+	UI.code(self, font, p, "No.10  //  MEDIC  //  HEADHUNTING 01 / 03", 9 if phone else 10, UI.C_L_SUB)
+	UI.text_at(self, font, p + Vector2(-2, 8), "流明", 36 if phone else 72, UI.C_L_INK, "la", true)
+	var ey := p.y + (64 if phone else 124)
+	UI.en(self, font, Vector2(p.x + 2, ey), "LUMEN", 12 if phone else 20, UI.C_L_SUB, 6.0)
+	var tx := p.x
+	for tg in ["医疗", "新职业", "罗德岛（驻伊比利亚）"]:
+		tx += UI.ctag(self, font, Vector2(tx, ey + 12), tg, 10 if phone else 12, false)
+	# NEW：警示黄实底斜块
+	var nr := Rect2(p.x, ey + (42 if phone else 56), 70 if phone else 104, 22 if phone else 32)
+	UI.para(self, nr, 8.0, UI.C_ACC)
+	UI.en(self, font, nr.position + Vector2(14, nr.size.y * 0.72), "NEW", 12 if phone else 18, UI.C_L_INK, 6.0)
+	UI.text_at(self, font, Vector2(nr.end.x + 12, nr.get_center().y), "已加入名册", 11 if phone else 14, UI.C_L_INK, "lm", true)
+	UI.hazard(self, Rect2(0, H - 10, W, 10))
+	var bk := Rect2(W - (66 if phone else 120), (8 if phone else 14), (56 if phone else 104), (22 if phone else 28))
+	UI.para(self, bk, 8.0, UI.C_L_INK)
+	UI.text_at(self, font, bk.get_center(), "跳过" if phone else "跳过  Esc", 11 if phone else 12, UI.C_L_INV, "mm")
+
+
+func _b_pick_class(dsz: Vector2) -> void:
+	var W := dsz.x
+	var H := dsz.y
+	_b_top(W, "RECRUITMENT PERMIT", "招募券", "选择职业：从该职业的未解锁干员里随机解锁 1 名 · 持有 ×1")
+	var cols := 4
+	var x0 := 14.0 if phone else 40.0
+	var top := 42.0 if phone else 72.0
+	var cw := (W - x0 * 2 - 10.0 * (cols - 1)) / cols
+	var ch := 116.0 if phone else 232.0
+	var nlock := {"先锋": 1, "近卫": 3, "重装": 0, "狙击": 1, "术师": 1, "医疗": 2, "辅助": 1, "特种": 4}
+	var per := {"先锋": ["siege"], "近卫": ["skadi", "irene", "lappland"], "重装": [], "狙击": ["wisadel"], "术师": ["logos"], "医疗": ["lumen", "kaltsit"], "辅助": ["angelina"], "特种": ["mizuki", "specter_unchained", "gladiia", "skalter"]}
+	for i in 8:
+		var cls: String = CLASS_ORDER[i]
+		var r := Rect2(x0 + (i % cols) * (cw + 10), top + int(i / cols) * (ch + 10), cw, ch)
+		var col: Color = Character.CLASS_COL.get(cls, UI.CYAN)
+		var dis: bool = nlock[cls] == 0
+		var sel := cls == "近卫"
+		UI.cpanel(self, r, sel, 0.45 if dis else 1.0)
+		draw_rect(Rect2(r.position + Vector2(4 if sel else 0, 0), Vector2(r.size.x - (4 if sel else 0), 4)), UI.fa(col.darkened(0.2), 0.4 if dis else 1.0))
+		UI.code(self, font, r.position + Vector2(12, 10), "%02d  //  %s" % [i + 1, CLASS_EN[cls]], 7 if phone else 9, UI.C_L_SUB)
+		UI.class_glyph(self, cls, Vector2(r.end.x - (18 if phone else 28), r.position.y + (22 if phone else 34)), 8.0 if phone else 13.0, UI.fa(UI.C_L_INK, 0.35 if dis else 1.0), 2.0)
+		UI.text_at(self, font, r.position + Vector2(12, 34 if phone else 50), cls, 18 if phone else 32, UI.fa(UI.C_L_INK, 0.35 if dis else 1.0), "lm", true)
+		UI.text_at(self, font, Vector2(r.position.x + 12, r.end.y - 12), "已全部解锁" if dis else "未解锁 %d 名" % nlock[cls], 10 if phone else 12, UI.C_L_SUB, "lm")
+		var sx := r.position.x + 10
+		for cid in per[cls]:
+			var od := _card(cid)
+			var cell := Rect2(sx, r.position.y + (50 if phone else 82), (24 if phone else 60), (44 if phone else 120))
+			var tx: Texture2D = od.tex
+			if tx != null:
+				var fw: float = tx.get_width() / float(maxi(1, int(od.frames)))
+				var bb: Rect2 = UI.card_bb(od, tx)
+				var pl := UI.card_place(cell, fw, tx.get_height(), od.hires, bb, 0.0, float(od.ds))
+				UI.blit_clipped(self, A.white_of(tx), pl, Rect2(bb.position, bb.size), cell, UI.fa(UI.C_L_INK, 0.75 if sel else 0.35))
+			sx += cell.size.x + 4
+	_b_btn(Rect2(W - (200 if phone else 330), H - (44 if phone else 80), (186 if phone else 300), (34 if phone else 56)), "使用招募券 · 近卫  ›", true)
+	UI.hazard(self, Rect2(0, H - 8, W - (220 if phone else 360), 8))
+
+
+func _b_pick_letter(dsz: Vector2) -> void:
+	var W := dsz.x
+	var H := dsz.y
+	var od := _card("mizuki")
+	var gp := 0.64 if not phone else 0.62
+	_b_glass(Rect2(W * gp, 0, W * (1.0 - gp), H), 60.0 if not phone else 34.0)
+	UI.c_band(self, H, W * 0.36, W * 0.14, W * 0.14, od.col, Color(0, 0, 0, 0), 1.0, 0.6, Vector2(W * 0.18, 12 if not phone else 8))
+	UI.ghost_name(self, font, Vector2(W * 0.3, H * 0.12), od.en, 1.0, 130 if not phone else 64, UI.C_D_GHOST, 2)
+	_figure(od, Vector2(W * 0.5, H * 0.86), 5.0 if not phone else 3.0, Color(0.24, 0.26, 0.31), 0, false)
+	_b_top(W, "TRANSFER ORDER", "人事调度函", "选择 1 名未解锁干员直接加入名册 · 立绘在解锁后显示")
+	var cols := 3
+	var cw := 50.0 if phone else 78.0
+	var chh := 66.0 if phone else 100.0
+	for i in mini(LOCKED.size(), 9 if phone else 12):
+		var r := Rect2((10 if phone else 32) + (i % cols) * (cw + 6), (40 if phone else 66) + int(i / cols) * (chh + 6), cw, chh)
+		_locked_card(r, _card(LOCKED[i]), LOCKED[i] == "mizuki")
+	var px := W * gp + (76.0 if not phone else 42.0)
+	var pw := W - px - (16.0 if phone else 24.0)
+	var ry := 46.0 if phone else 76.0
+	UI.code(self, font, Vector2(px, ry), "No.01  //  SPECIALIST", 8 if phone else 10, UI.C_L_SUB)
+	UI.text_at(self, font, Vector2(px - 2, ry + 6), od.name, 26 if phone else 48, UI.C_L_INK, "la", true)
+	UI.en(self, font, Vector2(px, ry + (48 if phone else 86)), od.en, 9 if phone else 14, UI.C_L_SUB, 5.0)
+	var tx := px
+	for tg in ["特种", "近战", "意向干员"]:
+		tx += UI.ctag(self, font, Vector2(tx, ry + (54 if phone else 96)), tg, 9 if phone else 11, false)
+	ry += 82.0 if phone else 138.0
+	UI.code(self, font, Vector2(px, ry), "SKILL  //  技能", 8 if phone else 9, UI.C_L_SUB)
+	var sk: Array = od.def.get("skills", [])
+	for i in mini(3, sk.size()):
+		var r := Rect2(px, ry + 8 + i * (28 if phone else 52), pw, 24 if phone else 44)
+		UI.cpanel(self, r)
+		UI.text_at(self, font, r.position + Vector2(10, r.size.y / 2.0), "S%d  %s" % [i + 1, sk[i].get("name", "")], 11 if phone else 15, UI.C_L_INK, "lm", true)
+	var by := H - (42 if phone else 78)
+	_b_btn(Rect2(px - 20, by, pw + 20, 34 if phone else 54), "使用人事调度函  ›", true)
+	UI.hazard(self, Rect2(0, H - 8, W * gp - 20, 8))
+
+
+## 寻访结果 B：原作十连式斜切竖条（条里裁切立绘，顶边档位色，NEW 斜块，名字压在条底）
+func _b_hunt_result(dsz: Vector2) -> void:
+	var W := dsz.x
+	var H := dsz.y
+	_b_top(W, "HEADHUNTING", "寻访结果", "3 名干员已加入名册 · 名册 9 / 19 · 按职业排列")
+	var ids := ["irene", "lumen", "gladiia"]
+	var tiers := ["cyan", "gold", "cyan"]
+	var n := ids.size()
+	var sw := 140.0 if phone else 220.0
+	var sk := 30.0 if phone else 50.0
+	var x0 := W / 2.0 - (n * sw - (n - 1) * 6.0) / 2.0
+	var top := 40.0 if phone else 64.0
+	var bot := H - (54 if phone else 96)
+	for i in n:
+		var od := _card(ids[i])
+		var x := x0 + i * (sw - 6.0)
+		draw_colored_polygon(PackedVector2Array([Vector2(x + sk, top), Vector2(x + sw, top), Vector2(x + sw - sk, bot), Vector2(x, bot)]), UI.C_D_CARD)
+		var tc := UI.C_ACC if tiers[i] == "gold" else Color8(200, 255, 255)
+		draw_colored_polygon(PackedVector2Array([Vector2(x + sk, top), Vector2(x + sw, top), Vector2(x + sw - 2, top + 8), Vector2(x + sk - 2, top + 8)]), tc)
+		var clip := Rect2(x + sk * 0.5, top + 8, sw - sk, bot - top - 8)
+		_figure(od, Vector2(x + sw / 2.0, bot - (50 if phone else 90)), 3.0 if phone else 5.0, Color(0, 0, 0, 0), 0, false, clip)
+		draw_rect(Rect2(x + 4, bot - (44 if phone else 76), sw - 14, (44 if phone else 76)), Color(0, 0, 0, 0.55))
+		draw_rect(Rect2(x + 4, bot - (44 if phone else 76), 4, (44 if phone else 76)), od.col)
+		UI.text_at(self, font, Vector2(x + 14, bot - (26 if phone else 46)), od.name, 15 if phone else 26, UI.C_D_INK, "lm", true)
+		UI.en(self, font, Vector2(x + 14, bot - (8 if phone else 14)), od.en, 7 if phone else 10, UI.C_D_SUB, 3.0)
+		var nr := Rect2(x + sk + 6, top + 14, 50 if phone else 70, 16 if phone else 22)
+		UI.para(self, nr, 5.0, tc)
+		UI.en(self, font, nr.position + Vector2(10, nr.size.y * 0.75), "NEW", 9 if phone else 12, UI.C_L_INK, 4.0)
+	var by := H - (42 if phone else 78)
+	_b_btn(Rect2(W / 2.0 - (180 if phone else 300), by, (150 if phone else 240), 34 if phone else 54), "设定意向")
+	_b_btn(Rect2(W / 2.0 - (20 if phone else 40), by, (200 if phone else 340), 34 if phone else 54), "前往选人  ›", true)
+	UI.hazard(self, Rect2(0, H - 8, W, 8))
