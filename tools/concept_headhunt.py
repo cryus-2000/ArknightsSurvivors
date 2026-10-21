@@ -803,6 +803,7 @@ def hh_reveal(op, phase, tier, s=1.0, w=W, h=H):
 def hh_summary(items, s=1.0, w=W, h=H):
     """多名时汇总（原作十连结算：一排干员卡、新干员标 NEW）：本作每张卡都带「新加入」，档位色作卡底"""
     img = bg(w, h, 24)
+    items = sorted(items, key=lambda it: CLASSES.index(it[0]["cls"]))   # 按职业色排列（10-22 协调人转用户）
     header(img, s, "HEADHUNT // RESULT", "寻访结果", "%d 名干员已加入名册" % len(items))
     n = len(items)
     cw, ch = int(150 * s), int(400 * s)
@@ -1214,6 +1215,253 @@ def hh_bag(phase, tier, s=1.0, w=W, h=H):
     return img
 
 
+# ================================================================ 揭示屏加厚（10-22 用户：「新干员出现那一屏太单调」）
+# 背景：大号职业图标水印 + 所属名水印、职业色斜向光束、档位色流光、扫描线；人物：整数倍像素立绘从右侧滑入带残影 → 解码亮起 → 播待机动画；
+# 名牌：大字中文名 + 英文代号 + 职业图标 + 所属（lore.json 的 PRTS 档案）+ 右下「NEW」章（金档金边）。
+# 声音：不配语音（10-22 用户：「语音就不需要了，有个音效就行」），只用现有音效：拉链咔嗒、光炸、NEW 章盖下。
+VOICE_TEXT = {   # PRTS「<干员>/语音记录」部署1 中文原文（10-22 核对），与 audio/voice/<id>_entry.ogg（CN_023）同一句
+    "lumen": "我能处理好的！",
+    "saria": "前进。",
+}
+AFFIL = {}
+
+
+def load_affil():
+    lore = json.load(open(os.path.join(ROOT, "game", "data", "lore.json"), encoding="utf-8"))
+    for k, v in lore.items():
+        if isinstance(v, dict) and isinstance(v.get("profile"), dict):
+            AFFIL[k] = v["profile"].get("所属", "")
+
+
+def idle_frames(op, k):
+    """待机整条：每帧按同一并集区裁切（脚底点一致），k 倍最近邻；返回 ([图], 脚底点, [每帧秒])"""
+    sp = op["idle"]
+    im = Image.open(os.path.join(ART, sp["tex"] + "@2x.png")).convert("RGBA")
+    n = int(sp["frames"])
+    fw = im.width // n
+    frs = [im.crop((i * fw, 0, (i + 1) * fw, im.height)) for i in range(n)]
+    bb = None
+    for f in frs:
+        b = f.getbbox()
+        if b:
+            bb = b if bb is None else (min(bb[0], b[0]), min(bb[1], b[1]), max(bb[2], b[2]), max(bb[3], b[3]))
+    foot_y = (46 if fw <= 96 else 60 + (fw / 2 - 64) / 2) * 2
+    kk = k * op["ds"]
+    out = [f.crop(bb).resize((max(1, round((bb[2] - bb[0]) * kk)), max(1, round((bb[3] - bb[1]) * kk))), Image.NEAREST) for f in frs]
+    durs = sp.get("frame_durations") or [1.0 / float(sp.get("fps", 4.0))] * n
+    return out, ((fw // 2 - bb[0]) * kk, (foot_y - bb[1]) * kk), durs
+
+
+def big_glyph_watermark(img, cls, cx, cy, r, col, a):
+    lay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    cls_glyph(lay, cls, cx, cy, r, col + (a,), max(4, r // 8))
+    img.alpha_composite(lay)
+
+
+def beams(img, col, t, s):
+    lay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(lay)
+    w, h = img.size
+    for i, (off, wid, a) in enumerate(((0.15, 90, 34), (0.42, 46, 46), (0.63, 140, 22), (0.86, 30, 56))):
+        x = (off * w + t * 60 * s * (1 + i * 0.3)) % (w + 400) - 200
+        wd = wid * s
+        d.polygon([(x, h), (x + wd, h), (x + wd + h * 0.55, 0), (x + h * 0.55, 0)], fill=col + (a,))
+    img.alpha_composite(lay)
+
+
+def scanlines(img, t, s, col=CY):
+    lay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(lay)
+    w, h = img.size
+    step = max(3, int(4 * s))
+    for y in range(0, h, step):
+        d.line([0, y, w, y], fill=(0, 0, 0, 40))
+    yb = int((t * 220 * s) % (h + 120)) - 60
+    for k, a in ((18, 18), (8, 36), (2, 70)):
+        d.rectangle([0, yb - k * s, w, yb + k * s], fill=col + (a,))
+    img.alpha_composite(lay)
+
+
+def nameplate(img, op, x, y, s, tier, k, new_k):
+    col, hi, _ = TIER[tier]
+    ccol = CLS_COL[op["cls"]]
+    lay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+    pw, ph = int(430 * s), int(196 * s)
+    box = (x, y, x + pw, y + ph)
+    panel(lay, box, 2, 3, tones=[(16, 30, 52), (11, 22, 40), (7, 14, 28)], a=225, edge=(hi if tier == "gold" else EDGE))
+    if tier == "gold":
+        ImageDraw.Draw(lay).rectangle([x + 2, y + 2, x + pw - 3, y + ph - 3], outline=col + (255,), width=max(1, int(2 * s)))
+    d = ImageDraw.Draw(lay)
+    d.rectangle([x + int(10 * s), y + int(14 * s), x + int(14 * s), y + ph - int(14 * s)], fill=ccol + (255,))
+    cls_glyph(lay, op["cls"], x + int(46 * s), y + int(48 * s), int(18 * s), ccol, max(2, int(3 * s)))
+    ptxt(lay, (x + int(80 * s), y + int(26 * s)), "NO.%02d // %s" % (ORDER.index(op["id"]) + 1, CLS_EN[op["cls"]]), max(1, int(round(2 * s))), CY, 1, "lm")
+    text(lay, (x + int(80 * s), y + int(38 * s)), op["name"], int(48 * s), NEAR_WHITE, "la", True)
+    ptxt(lay, (x + int(80 * s), y + int(124 * s)), op["en"], max(1, int(round(2 * s))), SUB, 2, "lm")
+    text(lay, (x + int(26 * s), y + ph - int(30 * s)), "%s干员　·　所属 %s" % (op["cls"], AFFIL.get(op["id"], "—")), int(14 * s), TXT, "lm")
+    if k < 1.0:
+        lay.putalpha(lay.split()[-1].point(lambda v: int(v * k)))
+    img.alpha_composite(lay, (int(-40 * s * (1 - k)), 0))
+    if new_k > 0:
+        sc = 1.0 + 0.6 * (1 - _out_back(new_k, 1.6))
+        sw, sh = int(76 * s * sc), int(34 * s * sc)
+        sx, sy = x + pw - int(48 * s) - sw // 2, y + ph - int(4 * s) - sh // 2
+        st = (sx, sy, sx + sw, sy + sh)
+        panel(img, st, 2, 2, tones=[col, col, col], edge=hi)
+        ptxt(img, ((st[0] + st[2]) // 2, (st[1] + st[3]) // 2), "NEW", max(1, int(round(3 * s * sc))), NAVY_INK, 1, "mm")
+
+
+class Anim3(Anim):
+    """拉包 → 光炸（同 Anim）；之后换成加厚的揭示屏"""
+
+    def __init__(self, op, tier, s=1.0, w=W, h=H, src="寻访凭证", summary=True):
+        super().__init__(op, tier, s, w, h, src, summary)
+        self.ck = 4 if s >= 1 else 2                      # 立绘整数倍：桌面 4、手机 2
+        self.idle, self.ifoot, self.idur = idle_frames(op, self.ck)
+        self.sil0 = silhouette(self.idle[0], (6, 12, 22), TIER[tier][1])
+        self.decoded3 = {}
+        self.voice_t = 3.4
+        self.vline = ""   # 不配语音、不出字幕（10-22 用户）
+        self.vdur = max(0.8, float(VOICE_DUR.get(op["id"], 1.0)))
+        self.T = 7.0 if summary else 6.0
+        self.bgr = bg(w, h, 31, stars=False)
+
+    def frame(self, t):
+        if t < 1.9:
+            return super().frame(t)
+        if self.summary and t >= 6.0:
+            img = self.summ.copy()
+            _fade(img, _seg(t, 6.0, 6.3))
+            return img.convert("RGB")
+        s, w, h = self.s, self.w, self.h
+        col, hi, _ = TIER[self.tier]
+        ccol = CLS_COL[self.op["cls"]]
+        img = self.bgr.copy()
+        # 背景：职业色斜向光束 + 大号职业图标 / 所属水印 + 档位色流光 + 扫描线
+        beams(img, ccol, t, s)
+        big_glyph_watermark(img, self.op["cls"], int(w * 0.68), int(h * 0.45), int(250 * s), ccol, 30)
+        lay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        text(lay, (w - int(24 * s), h - int(70 * s)), AFFIL.get(self.op["id"], ""), int(64 * s), ccol + (40,), "rs", True)
+        img.alpha_composite(lay)
+        moving_streaks(img, self.tier, t, 5, 18)
+        scanlines(img, t, s)
+        fx, fy = int(w * 0.66), h - int(96 * s)
+        # 人物：滑入带残影（1.9–2.4）→ 解码（2.4–3.1）→ 待机循环
+        if t < 2.4:
+            k = _ease_out(_seg(t, 1.9, 2.4))
+            x = fx + int(460 * s * (1 - k))
+            for g in range(3, 0, -1):
+                gx = x + int(g * 70 * s * (1 - k))
+                ghost = self.sil0.copy()
+                ghost.putalpha(ghost.split()[-1].point(lambda v, g=g: int(v * 0.25 / g)))
+                paste_at_foot(img, ghost, self.ifoot, gx, fy)
+            paste_at_foot(img, self.sil0, self.ifoot, x, fy)
+        elif t < 3.1:
+            frac = _seg(t, 2.4, 3.1)
+            key = round(frac * 40)
+            if key not in self.decoded3:
+                self.decoded3[key] = decode(self.idle[0], key / 40.0, seed=key)
+            dec, yl = self.decoded3[key]
+            x0, y0 = int(fx - self.ifoot[0]), int(fy - self.ifoot[1])
+            img.alpha_composite(dec, (x0, y0))
+            slit(img, y0 + yl, fx - int(190 * s), fx + int(190 * s), 1, hi, col)
+        else:
+            tt = (t - 3.1) % sum(self.idur)
+            i = 0
+            for i, d_ in enumerate(self.idur):
+                if tt < d_:
+                    break
+                tt -= d_
+            paste_at_foot(img, self.idle[i], self.ifoot, fx, fy)
+            stardust(img, fx, fy - int(160 * s), 280 * s, 20, int(t * 4), hi)
+            if t < 3.25:
+                _flash(img, (1 - _seg(t, 3.1, 3.25)) * 0.5)
+        # 名牌（3.1–3.5 滑入）+ NEW 章（3.4 盖下）
+        if t >= 3.1:
+            nameplate(img, self.op, int(56 * s), int(h * 0.30), s, self.tier, _ease_out(_seg(t, 3.1, 3.5)), _seg(t, 3.4, 3.6) if t >= 3.4 else 0)
+        # 语音字幕（与 <id>_entry.ogg 同步，逐字出）
+        if t >= self.voice_t and self.vline:
+            n = len(self.vline)
+            shown = self.vline[:max(1, int(n * _seg(t, self.voice_t, self.voice_t + self.vdur)))]
+            by = h - int(80 * s)
+            lay = Image.new("RGBA", img.size, (0, 0, 0, 0))
+            panel(lay, (int(56 * s), by, int(56 * s) + int(430 * s), by + int(46 * s)), 2, 3, a=220)
+            ptxt(lay, (int(72 * s), by + int(23 * s)), "VOICE", 1, CY, 1, "lm")
+            text(lay, (int(118 * s), by + int(23 * s)), "「" + shown + ("」" if len(shown) == n else ""), int(17 * s), TXT, "lm")
+            img.alpha_composite(lay)
+        if t < 2.15:
+            img.alpha_composite(Image.new("RGBA", img.size, hi + (int(230 * (1 - _seg(t, 1.9, 2.15))),)))
+        ptxt(img, (w - int(28 * s), int(30 * s)), "SKIP >", max(1, int(round(2 * s))), SUB, 1, "rm")
+        if self.summary and t >= 5.7:
+            _fade(img, 1 - _seg(t, 5.7, 6.0))
+        return img.convert("RGB")
+
+
+VOICE_DUR = {}
+
+
+def voice_path(op_id):
+    return os.path.join(ROOT, "game", "audio", "voice", op_id + "_entry.ogg")
+
+
+SFX_DIR = os.path.join(ROOT, "game", "audio", "sfx")
+
+
+def sfx_track(anim):
+    """音效时间轴（秒, 文件, 音量）：拉链拉开期间 ui_move 每 0.11 秒一下（拉链齿）；光炸 金档 beacon_lit + levelup、青白档 relic；NEW 章 ui_ok"""
+    out = []
+    t = 0.45
+    while t < 1.55:
+        out.append((t, "ui_move", 0.55))
+        t += 0.11
+    if anim.tier == "gold":
+        out += [(1.55, "beacon_lit", 1.0), (1.62, "levelup", 0.8)]
+    else:
+        out += [(1.55, "relic", 1.0)]
+    out.append((3.4, "ui_ok", 0.9))
+    return out
+
+
+def render_anim3(anim, path_base, fps=30, up=1):
+    """同 render_anim，另按 sfx_track 把现有音效混进 mp4（gif 无声）"""
+    import imageio_ffmpeg
+    import subprocess
+    n = render_anim(anim, path_base + "_silent", fps, up)
+    ff = imageio_ffmpeg.get_ffmpeg_exe()
+    tr = sfx_track(anim)
+    cmd = [ff, "-y", "-loglevel", "error", "-i", path_base + "_silent.mp4"]
+    for _, f, _v in tr:
+        cmd += ["-i", os.path.join(SFX_DIR, f + ".wav")]
+    parts = []
+    for i, (t, _f, v) in enumerate(tr):
+        d = int(t * 1000)
+        parts.append("[%d:a]aformat=sample_rates=44100:channel_layouts=stereo,volume=%.2f,adelay=%d|%d[a%d]" % (i + 1, v, d, d, i))
+    mix = "".join("[a%d]" % i for i in range(len(tr))) + "amix=inputs=%d:normalize=0,apad[a]" % len(tr)
+    cmd += ["-filter_complex", ";".join(parts) + ";" + mix, "-map", "0:v", "-map", "[a]", "-c:v", "copy", "-c:a", "aac", "-b:a", "128k", "-shortest", path_base + ".mp4"]
+    subprocess.run(cmd, check=True)
+    os.replace(path_base + "_silent.gif", path_base + ".gif")
+    os.remove(path_base + "_silent.mp4")
+    return n
+
+
+def main_anim3():
+    import json as _j
+    load_affil()
+    man = _j.load(open(os.path.join(ROOT, "game", "audio", "voice", "voice_manifest.json"), encoding="utf-8"))
+    for c in man.get("clips", man.get("files", [])) if isinstance(man, dict) else man:
+        if isinstance(c, dict) and c.get("event") == "entry":
+            VOICE_DUR[c["operator"]] = c.get("duration_seconds", 1.0)
+    out = os.path.join(OUT, "v2")
+    os.makedirs(out, exist_ok=True)
+    jobs = [
+        ("v3_anim_single", Anim3(OPS["saria"], "cyan"), 1),
+        ("v3_anim_newclass_gold", Anim3(OPS["lumen"], "gold"), 1),
+        ("v3_anim_phone", Anim3(OPS["lumen"], "gold", 0.62, PW, PH), 2),
+    ]
+    for name, an, up in jobs:
+        n = render_anim3(an, os.path.join(out, name), 30, up)
+        print(name, n, "frames")
+
+
 ORDER = []
 OPS = {}
 
@@ -1222,7 +1470,9 @@ if __name__ == "__main__":
     ORDER.extend(OPS)
     if "--v1" in sys.argv:
         main()
-    if "--anim" in sys.argv:
+    if "--anim3" in sys.argv:
+        main_anim3()
+    elif "--anim" in sys.argv:
         main_anim()
     else:
         main_v2()
