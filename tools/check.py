@@ -9,6 +9,8 @@
     python tools/check.py --jobs 4     本次最多同时开 4 个 Godot（全机总数另受 GODOT_MAX_PROCS 限制）
     python tools/check.py --auto       按相对 main 的改动只跑相关项目：只改文档 → 不开 Godot；只改说明字段 → +核心契约；
                                        只改某几名干员 → +这些干员的冒烟 / 成长节点 + 复现；其余 → 全量。合入 main 前仍跑全量
+    python tools/check.py --rerecord-golden   重录积木等价金样（等价于 --only blocks_eq --eq-all --update-golden）；
+                                       谁负责跑 / 什么时候跑见 docs/36 §1.3
 
 每个 Godot 进程的输出按输入内容哈希缓存在主仓库 build/check_cache/（docs/36 §1.2），同样的输入不再重跑；--nocache 关掉。
 每次快检把每局的完整输出写到 build/check/quick_<时间>/，失败时报告末尾列出失败项、原因和日志路径。
@@ -1077,10 +1079,16 @@ def main():
                     help="透传给每个 Godot 进程的旋钮覆盖（--bal=enemy/density=1，可重复）；查测试在非缺省旋钮下是否仍过")
     ap.add_argument("--eq-all", action="store_true", help="积木等价每组跑全部用例（缺省只跑 seed1；全部用例由云端每日例行任务跑，docs/36 §7.6）")
     ap.add_argument("--update-golden", action="store_true", help="积木等价通过后把数据版输出重录到 build/golden_cache（ship 全量通过后用，docs/36 §1.3）")
+    ap.add_argument("--rerecord-golden", action="store_true",
+                    help="等价于 --only blocks_eq --eq-all --update-golden：重录积木等价金样（docs/36 §1.3；谁负责跑见该节）")
     ap.add_argument("--nocache", action="store_true", help="不读也不写结果缓存（build/check_cache，docs/36 §1.2）")
     ap.add_argument("--auto", action="store_true",
                     help="按相对 main 改了哪些文件只跑相关项目（改的过程中用；合入 main 前仍跑全量）")
     a = ap.parse_args()
+    if a.rerecord_golden:   # 等价于 --only blocks_eq --eq-all --update-golden（docs/36 §1.3）
+        a.only = "blocks_eq"
+        a.eq_all = True
+        a.update_golden = True
     global JOBS, LOG_DIR, BAL_ARGS
     JOBS = max(1, a.jobs)
     BAL_ARGS = ["--bal=" + b for b in a.bal]
