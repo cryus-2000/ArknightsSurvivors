@@ -1,6 +1,7 @@
 extends RefCounted
 ## Solid magma projectiles: stable crust, short directional flame, compressed landing.
 
+const A = preload("res://scripts/art.gd")
 const CRUST := Color(0.18, 0.09, 0.07)
 const HOT := Color(1.0, 0.43, 0.08)
 
@@ -42,6 +43,58 @@ static func impact(o, p: Vector2, radius: float, size: float) -> void:
 
 static func fireball_impact(o, p: Vector2, radius: float, size: float) -> void:
 	o.fx({"kind": "fireball_burst", "pos": p + Vector2(0, -5), "r": clampf(radius * 0.3, 12.0, 24.0) * sqrt(size), "life": 0.24})
+
+## S2 点燃弹命中爆燃（10-22 用户「命中几乎没表现」）：短促火焰炸开 + 向外火星 + 地面焦痕 / 余烬。纯画面，随机只用 g.vrng。
+## 有 Codex 帧条 fx_eyja_ignite_hit（单子见 art/incoming/codex_order_eyja_handoff.md）时炸开用它，否则用旧 fx_eyja_ignite_boom 占位
+static func ignite_hit(o, p: Vector2, radius: float, size: float) -> void:
+	var r: float = clampf(radius * 0.5, 18.0, 40.0) * sqrt(size)
+	var sparks := []
+	for i in 10:
+		var ang: float = -PI * 0.5 + (float(i) / 10.0 - 0.5) * PI * 1.7 + o.g.vrng.randf_range(-0.15, 0.15)
+		sparks.append([Vector2.from_angle(ang), o.g.vrng.randf_range(0.7, 1.25)])
+	o.fx({"kind": "ignite_scorch", "pos": p, "r": r, "life": 1.1, "floor": true})
+	o.fx({"kind": "ignite_hit", "pos": p, "r": r, "life": 0.42, "sparks": sparks})
+
+static func draw_ignite_hit(o, f: Dictionary) -> void:
+	var age: float = float(f.max) - float(f.life)
+	var k: float = clampf(age / float(f.max), 0.0, 1.0)
+	var dim: float = o.g.world.fx_dim
+	var r: float = float(f.r)
+	var p: Vector2 = f.pos
+	var flash: float = maxf(0.0, 1.0 - age / 0.07) * dim
+	if flash > 0.0:
+		o.cv.draw_circle(p + Vector2(0, -6), r * 0.55, Color(1.0, 0.9, 0.6, flash * 0.8))
+	var tex := "fx_eyja_ignite_hit" if o.g.tex.get("fx_eyja_ignite_hit") != null and o.g.V6_FRAMES.has("fx_eyja_ignite_hit") else "fx_eyja_ignite_boom"
+	if o.g.tex.get(tex) != null and o.g.V6_FRAMES.has(tex):
+		var spec: Array = o.g.V6_FRAMES[tex]
+		var fr: int = mini(int(age / float(f.max) * float(spec[0])), int(spec[0]) - 1)   # 整条压进 life 播完
+		var fw: float = float(o.g.tex[tex].get_width()) / float(spec[0]) / A.hires_of(o.g.tex[tex])
+		var own: bool = tex == "fx_eyja_ignite_hit"   # Codex 版原点 (32,44)（爆心偏下），占位条按中心
+		o.draw_spr_rot(tex, fr, p + (Vector2(0, -4) if own else Vector2(0, -r * 0.35)), 0.0, r * 1.7 / fw, Color(1, 1, 1, dim * clampf((float(f.life)) / 0.12, 0.0, 1.0)), Vector2(32, 44) * A.hires_of(o.g.tex[tex]) if own else Vector2(-1, -1))
+	else:
+		var scale := Vector2.ONE * r / 10.0 * (0.7 + 0.5 * k)
+		_poly(o, [Vector2(-10, 0), Vector2(-6, -5), Vector2(-3, -11), Vector2(0, -6), Vector2(3, -13), Vector2(6, -5), Vector2(10, 0), Vector2(4, 3), Vector2(-4, 3)], p, 0.0, scale, Color(HOT, (1.0 - k) * dim))
+	for sp in f.sparks:
+		var d: Vector2 = sp[0]
+		var dist: float = r * 1.6 * float(sp[1]) * (1.0 - pow(1.0 - k, 2.0))
+		var head: Vector2 = p + Vector2(d.x * dist, d.y * dist * 0.75 + 30.0 * k * k) + Vector2(0, -6)
+		var tail: Vector2 = head - d * (5.0 + 8.0 * (1.0 - k))
+		var a: float = (1.0 - k) * dim
+		o.cv.draw_line(_snap(tail), _snap(head), Color(2.2, 0.8 + 0.6 * (1.0 - k), 0.2, a), 2.0)   # HDR 进辉光
+
+static func draw_ignite_scorch(o, f: Dictionary) -> void:
+	var age: float = float(f.max) - float(f.life)
+	var dim: float = o.g.world.fx_dim
+	var r: float = float(f.r) * (0.75 + 0.25 * minf(age / 0.12, 1.0))
+	var fade: float = minf(1.0, float(f.life) / 0.35) * dim
+	var scale := Vector2(r / 10.0, r / 20.0)
+	_poly(o, [Vector2(-10, 0), Vector2(-7, -6), Vector2(-1, -8), Vector2(7, -6), Vector2(10, 0), Vector2(6, 6), Vector2(-2, 8), Vector2(-8, 5)], f.pos, 0.0, scale, Color(0.1, 0.05, 0.04, fade * 0.7))
+	var heat: float = clampf(1.0 - age / 0.6, 0.0, 1.0)
+	_poly(o, [Vector2(-6, 0), Vector2(-3, -4), Vector2(3, -4), Vector2(7, 0), Vector2(3, 4), Vector2(-3, 4)], f.pos, 0.0, scale, Color(0.75, 0.18, 0.04, fade * (0.25 + 0.55 * heat)))
+	for i in 6:
+		var e: Vector2 = Vector2.from_angle(float(i) * TAU / 6.0 + 0.4) * Vector2(r * 0.7, r * 0.35) * (0.5 + 0.5 * float(i % 2))
+		var tw: float = 0.6 + 0.4 * sin(age * 18.0 + float(i) * 1.7)
+		o.cv.draw_rect(Rect2(_snap(f.pos + e), Vector2(2, 2)), Color(1.0, 0.5 + 0.3 * heat, 0.12, fade * tw))
 
 static func draw_fireball_impact(o, f: Dictionary) -> void:
 	var k: float = clampf(1.0 - float(f.life) / float(f.max), 0.0, 1.0)
