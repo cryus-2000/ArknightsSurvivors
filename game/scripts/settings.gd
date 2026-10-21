@@ -72,6 +72,7 @@ var roster_wish := ""             # 意向干员（寻访保底对象）
 var roster_pity := 0              # 意向保底计数：连续没出意向的寻访次数
 var roster_draws := 0             # 已用券总数（抽取随机数的种子之一）
 var roster_seed := 0              # 名册抽取的种子（第一次抽取时生成，不碰局内 g.rng）
+var meta_shape := {}              # 认知塑造已点的节点 {id: true}（core/meta.gd，docs/109 §4；存档 [meta] 段）
 var roster_fresh: Array = []      # 刚解锁、还没在名册里看过的干员（选人页 / 图鉴高亮一次；只存本机，不上云）
 var unlock_all := false      # 本次运行全部解锁（只在内存里，见 _apply_unlock_all）：调试版与对内打包版为 true，对外包恒为 false
 var _real_progress := {}      # 全部解锁时存档里真实的进度字段，save() 原样写回
@@ -279,6 +280,7 @@ func _ready() -> void:
 		roster_draws = int(c.get_value("roster", "draws", roster_draws))
 		roster_seed = int(c.get_value("roster", "seed", roster_seed))
 		roster_fresh = c.get_value("roster", "fresh", roster_fresh)
+		meta_shape = c.get_value("meta", "shape", meta_shape)
 		if not c.has_section("roster"):
 			_migrate_roster()
 		if int(c.get_value("progress", "diff_ver", 1)) < DIFF_VER:
@@ -506,6 +508,7 @@ func save() -> void:
 	c.set_value("roster", "draws", roster_draws)
 	c.set_value("roster", "seed", roster_seed)
 	c.set_value("roster", "fresh", roster_fresh)
+	c.set_value("meta", "shape", meta_shape)
 	var ss := _settings_sig()
 	if ss != _set_sig:
 		_set_sig = ss
