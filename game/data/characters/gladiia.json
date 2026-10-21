@@ -63,7 +63,7 @@
   "ram_r": 80,
   "ram_front": 1.9,
   "ram_mult": 0.8,
-  "ram_kb": 160,
+  "ram_kb": 260,
   "shield_pct": 0.03,
   "shield_cap": 0.15,
   "shield_dur": 6.0,
