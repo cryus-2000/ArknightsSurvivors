@@ -163,7 +163,7 @@ static func parse_cond(s: String, base: Dictionary) -> Dictionary:
 			return {"err": ev[2]}
 		c.op = op
 		c.v = ev[1]
-		if lhs in ["lamp", "hp_pct", "elite", "still"]:   # still：队长连续站定秒数（响应动作，docs/118）
+		if lhs in ["lamp", "hp_pct", "elite", "still", "resp_idle"]:   # still：队长连续站定秒数；resp_idle：本干员响应上次触发距今秒数（响应关闭时恒为极大，响应动作 docs/118）
 			c.k = lhs
 		elif lhs.begins_with("faction:") and lhs.length() > 8:
 			c.k = "faction"
@@ -172,7 +172,7 @@ static func parse_cond(s: String, base: Dictionary) -> Dictionary:
 			c.k = "class"
 			c.a = lhs.substr(6)
 		else:
-			return {"err": "条件左边只能是 lamp / hp_pct / elite / still / faction:<阵营> / class:<职业>：「%s」" % s}
+			return {"err": "条件左边只能是 lamp / hp_pct / elite / still / resp_idle / faction:<阵营> / class:<职业>：「%s」" % s}
 		return c
 	return {"err": "看不懂的条件「%s」" % s}
 
@@ -253,6 +253,8 @@ static func cond_true(o, c) -> bool:
 			r = _cmp(float(o.elite), c.op, c.v)
 		"still":
 			r = _cmp(float(g.leader_still_t), c.op, c.v)
+		"resp_idle":
+			r = _cmp(preload("res://scripts/characters/blocks/responses.gd").idle(o), c.op, c.v)
 		"response_on":
 			r = preload("res://scripts/characters/blocks/responses.gd").on()
 		"faction":

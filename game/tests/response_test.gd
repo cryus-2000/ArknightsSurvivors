@@ -92,6 +92,13 @@ func test_texas(g, o) -> void:
 	g.dash_t = 0.0
 	o.elite = 1
 	o.refresh_stats()
+	# 兜底：响应刚触发过，天赋定时冲刺不该成立；距上次触发超过 talent_cd 才成立
+	var C = o.ObCore
+	var cond0 = o.B.talent[0].cond
+	o.rsp["last"] = g.t
+	ok(not C.cond_true(o, cond0), "德克萨斯：队长刚冲刺过，天赋定时冲刺不触发（resp_idle 未到）")
+	o.rsp["last"] = g.t - 100.0
+	ok(C.cond_true(o, cond0), "德克萨斯：队长很久没冲刺，天赋定时冲刺照旧（不触发不吃亏）")
 
 
 func test_hoshiguma(g, o) -> void:

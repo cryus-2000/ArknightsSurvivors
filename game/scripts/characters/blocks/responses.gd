@@ -21,6 +21,14 @@ static func on() -> bool:
 	return BalS.vi("response/on", 1) > 0
 
 
+## 本干员事件类响应上次触发距今秒数（条件 resp_idle >= 秒；响应关闭或从未触发时为极大）：
+## 给「响应没触发时退回原来的自动行为」用，保证不触发不吃亏（德克萨斯：队长 talent_cd 秒没冲刺时她照旧自己冲）
+static func idle(o) -> float:
+	if not on():
+		return 1.0e9
+	return float(o.g.t) - float(o.rsp.get("last", -1.0e9))
+
+
 ## 每帧（data_operator.update 在常驻积木之后调）：三类事件触发器求值；站定类只负责在生效那一刻飘提示
 static func tick(o) -> void:
 	var rs: Array = o.B.get("response", _EA)
@@ -55,6 +63,7 @@ static func tick(o) -> void:
 		if g.t < float(st.get(k, -99.0)):
 			continue
 		st[k] = g.t + float(t.get("cd", 0.0))
+		st["last"] = g.t
 		o._exec_list(t.get("do", _EA))
 		hint(o, t)
 

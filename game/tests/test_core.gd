@@ -605,7 +605,7 @@ func test_blocks_texas() -> void:
 	near(float(B.talent[0].every), 2.5, "战术快递：自动冲刺间隔 $talent_cd = 2.5")
 	near(float(B.talent[1].every), 2.0, "可靠伙伴：自动冲刺间隔 $talent_cd*$s2_cd_mult = 2.0")
 	ok(str(B.talent[0].get("_tag", "")) == "trig.tick" and str(B.talent[0].do[0].aim) == "densest" and str(B.talent[0].do[0].src) == "战术快递", "战术快递是 tick → dash_line（densest，来源战术快递），不再挂主控冲刺")
-	ok(str(tx.blocks.talent[0].cond) == "!skill_active:1 && !response_on" and str(tx.blocks.talent[1].cond) == "skill_active:1 && !response_on", "两块 tick 的条件互斥（!skill_active:1 / skill_active:1），且只在响应动作关闭时生效")
+	ok(str(tx.blocks.talent[0].cond).begins_with("!skill_active:1 && resp_idle >=") and str(tx.blocks.talent[1].cond).begins_with("skill_active:1 && resp_idle >="), "两块 tick 的条件互斥（!skill_active:1 / skill_active:1），且只在队长一段时间没冲刺（或响应关闭）时兜底")
 	# 响应动作（docs/118 §4.1）：队长冲刺 → 同向冲刺（aim leader_dir，来源同战术快递，精英一起）
 	ok(B.has("response") and str(B.response[0].get("_tag", "")) == "trig.on_leader_dash" and str(B.response[0].do[0].aim) == "leader_dir" and str(B.response[0].do[0].src) == "战术快递", "响应：队长冲刺 → dash_line leader_dir（来源战术快递）")
 	ok(str(B.attack.get("_tag", "")) == "shape.dash_line" and float(B.attack.r) == 140.0, "普攻编译成 shape.dash_line、长度 140")
