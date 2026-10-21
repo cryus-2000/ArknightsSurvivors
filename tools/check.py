@@ -620,7 +620,10 @@ def check_repro(godot):
 # 现在只跑数据版，与金样比：
 #   金样记「本干员侧」与「别处」两个哈希。本干员侧 = 本干员的数据 / 脚本 / 帧条尺寸 + 积木公共文件（op_blocks / data_operator /
 #   character / op_api）；别处 = 其余玩法输入（check.logic_entries，不含 game/tests/）。
-#   别处没变、输出却变了 → FAIL（只可能是本干员或积木改出来的）；别处变了 → 判「金样过期」跳过（不算失败）。
+#   别处没变、输出却变了 → FAIL（只可能是本干员或积木改出来的）；别处变了 → 判「金样过期」。
+#   10-21 起「过期」不再静默跳过：ok 照样记 False（除非这一轮正好 --update-golden 把它刷新掉），detail 开头打印醒目
+#   提示，让 --auto 的汇总不是绿的；但不计进 errs 硬失败列表——过期不是改坏积木本身，不该让改别处代码的人背锅。
+#   下一个改了相关干员 / 积木代码、看到自己这组过期的人负责重录，不是「过期=直接阻断所有人合入」的硬规则。
 #   ship 全量通过后 `check.py --only blocks_eq --eq-all --update-golden` 把数据版输出重录到 build/golden_cache/（不进 git），之后优先用它。
 #  kaltsit：数据版的 Mon3tr 出手带通用召唤物标签 summon（手写参照没有），金样录的时候已去掉，比较时同样去掉
 EQ_GROUPS = [
@@ -848,17 +851,36 @@ def check_blocks_eq(godot):
                 tag, why, bad_t + 1, trace[bad_t] if bad_t < len(trace) else "-", ta[bad_t] if bad_t < len(ta) else "-", os.path.relpath(gp, ROOT)))
         else:
             errs.append("%s：与金样不同，%s；BALANCE 字段 %s（金样 %s）。有意改行为就用 --update-golden 重录" % (tag, why, "、".join(diff[:6]), os.path.relpath(gp, ROOT)))
-    ok = not errs and len(rec) == len(jobs)
-    if UPDATE_GOLDEN and ok:
+    # rec_ok：本局本身没有真失败（不含「过期」）——决定能不能重录；--update-golden 要靠它才能在「过期」状态下把金样刷新，
+    # 否则过期会反过来挡住重录（鸡生蛋）。对外汇总用的 ok 则把「过期」也算不通过（见下，10-21 改）
+    rec_ok = not errs and len(rec) == len(jobs)
+    recorded = False
+    if UPDATE_GOLDEN and rec_ok:
         os.makedirs(GOLDEN_ROLL, exist_ok=True)
         for r in rec:
             tmp = os.path.join(GOLDEN_ROLL, _golden_file(r["gid"], r["case"]) + ".%d.tmp" % os.getpid())
             json.dump(r, open(tmp, "w", encoding="utf-8"), ensure_ascii=False, indent=0)
             os.replace(tmp, os.path.join(GOLDEN_ROLL, _golden_file(r["gid"], r["case"])))
-    detail = "与金样相同 %d、金样过期跳过 %d%s%s" % (len(same), len(stale), "、没有金样 %d" % len(nog) if nog else "",
-                                              "；已重录 %d 份到 build/golden_cache" % len(rec) if UPDATE_GOLDEN and ok else "")
+        recorded = True
+    # 10-21 改：「过期」不再静默跳过——之前「别处变了就跳过、不算失败」导致金样一旦跟不上大改就全组长期过期，
+    # 这项检查形同虚设也没人知道。现在过期时 ok 照样记 False（除非这一轮正好用 --update-golden 把它刷新掉了），
+    # 让 --auto 的汇总不是绿的，逼人去重录；但不把它计进 errs/硬失败列表——过期不是改坏积木本身，不该让改别处代码
+    # 的人背锅，detail 里只打印醒目提示，不阻断合入（docs/36 §1.3）
+    ok = rec_ok and (not stale or recorded)
+    same_part = "与金样相同 %d" % len(same)
+    if nog:
+        same_part += "、没有金样 %d" % len(nog)
+    if UPDATE_GOLDEN and rec_ok:
+        same_part += "；已重录 %d 份到 build/golden_cache" % len(rec)
     if stale:
-        detail += "（过期：%s）" % "、".join(stale[:6]) + ("……" if len(stale) > 6 else "")
+        stale_list = "、".join(stale[:6]) + ("……" if len(stale) > 6 else "")
+        if recorded:
+            detail = "%s；过期 %d 份已随本次 --update-golden 重录刷新（%s）" % (same_part, len(stale), stale_list)
+        else:
+            detail = ("⚠ 金样过期需要重录 %d（%s）：别处玩法代码变了，无法比对；下一个改了相关干员 / 积木代码的人请跑 "
+                       "`python tools/check.py --only blocks_eq --eq-all --update-golden` 重录；%s") % (len(stale), stale_list, same_part)
+    else:
+        detail = same_part
     return {"name": "积木等价（数据版 vs 金样）", "ok": ok, "detail": detail, "errors": errs[:5], "log": "、".join(l for l in logs if l)}
 
 
