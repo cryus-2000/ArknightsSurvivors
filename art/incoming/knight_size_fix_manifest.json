@@ -1,0 +1,560 @@
+{
+  "source_main_commit": "27ecef867e1391d07429404d828eeda6a0cd8914",
+  "method": "Pad each source @2x frame right/bottom by one transparent pixel. Mounted 1x uses per-frame nearest-neighbor downsample; no redraw. Timings/events untouched.",
+  "engine_acceptance": "pending Claude integration",
+  "entries": [
+    {
+      "id": "e_knight",
+      "frames": 2,
+      "source_sha256": "82d7f0fd3851cb46c07797ff8b2ac00b021f964f4eef4f22753d1c7c9617d5df",
+      "source_frame_size": [
+        293,
+        293
+      ],
+      "padding": {
+        "left": 0,
+        "top": 0,
+        "right": 1,
+        "bottom": 1
+      },
+      "file_2x": "e_knight@2x.png",
+      "frame_size_2x": [
+        294,
+        294
+      ],
+      "origin_2x": [
+        146.0,
+        236.0
+      ],
+      "normalized_anchor": [
+        0.4965986394557823,
+        0.8027210884353742
+      ],
+      "sha256_2x": "0972767e166c024304d4497b1a1b22da02da8a13ff68b4690a4813a78fba1b77",
+      "unchanged_source_pixels": true,
+      "transparent_added_border": true,
+      "frame_order_unchanged": true,
+      "file_1x": "e_knight.png",
+      "frame_size_1x": [
+        147,
+        147
+      ],
+      "origin_1x": [
+        73.0,
+        118.0
+      ],
+      "sha256_1x": "3a57469044d3fc6ca6c45168a09c6d5f3a17b757cc50d7a90da9f665472e1afc"
+    },
+    {
+      "id": "e_knight_move",
+      "frames": 4,
+      "source_sha256": "36421bd5be564a49570ba4d7b8e2df3311e54dca9b9118b0c6074c8f918692bf",
+      "source_frame_size": [
+        293,
+        293
+      ],
+      "padding": {
+        "left": 0,
+        "top": 0,
+        "right": 1,
+        "bottom": 1
+      },
+      "file_2x": "e_knight_move@2x.png",
+      "frame_size_2x": [
+        294,
+        294
+      ],
+      "origin_2x": [
+        146.0,
+        236.0
+      ],
+      "normalized_anchor": [
+        0.4965986394557823,
+        0.8027210884353742
+      ],
+      "sha256_2x": "50a754cc9ceeaa0801137928023e5fb9025c05e7c4c32e1ad09c14b169f9af65",
+      "unchanged_source_pixels": true,
+      "transparent_added_border": true,
+      "frame_order_unchanged": true,
+      "file_1x": "e_knight_move.png",
+      "frame_size_1x": [
+        147,
+        147
+      ],
+      "origin_1x": [
+        73.0,
+        118.0
+      ],
+      "sha256_1x": "ecfb649c6ce8451a3d83cd3d73979f1a36278702a8a6f8943fac0b4ed3264b0f"
+    },
+    {
+      "id": "e_knight_charge_form",
+      "frames": 4,
+      "source_sha256": "a6af19317345bada5e3999cc4241cda03a135de22d70bd5187cc7b00a0fc0c40",
+      "source_frame_size": [
+        293,
+        293
+      ],
+      "padding": {
+        "left": 0,
+        "top": 0,
+        "right": 1,
+        "bottom": 1
+      },
+      "file_2x": "e_knight_charge_form@2x.png",
+      "frame_size_2x": [
+        294,
+        294
+      ],
+      "origin_2x": [
+        146.0,
+        236.0
+      ],
+      "normalized_anchor": [
+        0.4965986394557823,
+        0.8027210884353742
+      ],
+      "sha256_2x": "f8dedd65580f4a340e2e4fb3c4e7b2035e68b8f9c2d5f52ccd54169b3ebf753a",
+      "unchanged_source_pixels": true,
+      "transparent_added_border": true,
+      "frame_order_unchanged": true,
+      "file_1x": "e_knight_charge_form.png",
+      "frame_size_1x": [
+        147,
+        147
+      ],
+      "origin_1x": [
+        73.0,
+        118.0
+      ],
+      "sha256_1x": "0105d6b80f6c045f57c6ecd79919288fa510e708e7beed422a73e1055728d646"
+    },
+    {
+      "id": "e_knight_charge",
+      "frames": 4,
+      "source_sha256": "4a382eb514ec42b44d574d92b9486b3949462056f60efebe731337e6e5da1f49",
+      "source_frame_size": [
+        293,
+        293
+      ],
+      "padding": {
+        "left": 0,
+        "top": 0,
+        "right": 1,
+        "bottom": 1
+      },
+      "file_2x": "e_knight_charge@2x.png",
+      "frame_size_2x": [
+        294,
+        294
+      ],
+      "origin_2x": [
+        146.0,
+        236.0
+      ],
+      "normalized_anchor": [
+        0.4965986394557823,
+        0.8027210884353742
+      ],
+      "sha256_2x": "9387a001b8fd4d7c715d6b11b8f062bdcd37550c736d7e4ebaedf168ff0d6f85",
+      "unchanged_source_pixels": true,
+      "transparent_added_border": true,
+      "frame_order_unchanged": true,
+      "file_1x": "e_knight_charge.png",
+      "frame_size_1x": [
+        147,
+        147
+      ],
+      "origin_1x": [
+        73.0,
+        118.0
+      ],
+      "sha256_1x": "e0c5a3ac6097bdfe734190f357e58cabc8faf0ec0e2e839ade8aabc0decca8de"
+    },
+    {
+      "id": "e_knight_attack",
+      "frames": 4,
+      "source_sha256": "ea5f4c85719802d720c9d74694081fd27303be7e7eaa3fe02a6fd7e5deb7801e",
+      "source_frame_size": [
+        293,
+        293
+      ],
+      "padding": {
+        "left": 0,
+        "top": 0,
+        "right": 1,
+        "bottom": 1
+      },
+      "file_2x": "e_knight_attack@2x.png",
+      "frame_size_2x": [
+        294,
+        294
+      ],
+      "origin_2x": [
+        146.0,
+        236.0
+      ],
+      "normalized_anchor": [
+        0.4965986394557823,
+        0.8027210884353742
+      ],
+      "sha256_2x": "324336a66995a89f34611b4a2e22d615077cfc39c4f19dc62f73fc2c357a6d5c",
+      "unchanged_source_pixels": true,
+      "transparent_added_border": true,
+      "frame_order_unchanged": true,
+      "file_1x": "e_knight_attack.png",
+      "frame_size_1x": [
+        147,
+        147
+      ],
+      "origin_1x": [
+        73.0,
+        118.0
+      ],
+      "sha256_1x": "eeadb3196c84eb45e98371af9a49f85f7a245c6a3f9e2ed4e53115e2d77d33eb"
+    },
+    {
+      "id": "e_knight_thrust",
+      "frames": 3,
+      "source_sha256": "7b78ce0a60be97f9815240fbf1a3b4426b4045b3ea364d26d61fa88679331779",
+      "source_frame_size": [
+        293,
+        293
+      ],
+      "padding": {
+        "left": 0,
+        "top": 0,
+        "right": 1,
+        "bottom": 1
+      },
+      "file_2x": "e_knight_thrust@2x.png",
+      "frame_size_2x": [
+        294,
+        294
+      ],
+      "origin_2x": [
+        146.0,
+        236.0
+      ],
+      "normalized_anchor": [
+        0.4965986394557823,
+        0.8027210884353742
+      ],
+      "sha256_2x": "f62dec0b935d25295e3bbd5f5faaa7b3bb4f547e632d47f63d3544ed3a1883b8",
+      "unchanged_source_pixels": true,
+      "transparent_added_border": true,
+      "frame_order_unchanged": true,
+      "file_1x": "e_knight_thrust.png",
+      "frame_size_1x": [
+        147,
+        147
+      ],
+      "origin_1x": [
+        73.0,
+        118.0
+      ],
+      "sha256_1x": "8318e9c94250e40d88810de6e577bf2a271f86a4b080b6efda35d04bc1c46cb6"
+    },
+    {
+      "id": "e_knight_spin",
+      "frames": 6,
+      "source_sha256": "4b8ee635941fcaea1e3b39213f4a0e7b7168b5cdd5daf5c29ed175cd7f5b5dac",
+      "source_frame_size": [
+        293,
+        293
+      ],
+      "padding": {
+        "left": 0,
+        "top": 0,
+        "right": 1,
+        "bottom": 1
+      },
+      "file_2x": "e_knight_spin@2x.png",
+      "frame_size_2x": [
+        294,
+        294
+      ],
+      "origin_2x": [
+        146.0,
+        236.0
+      ],
+      "normalized_anchor": [
+        0.4965986394557823,
+        0.8027210884353742
+      ],
+      "sha256_2x": "f05943e0246ff0c7bae92db2ec971db33d669d37ab391535396ffceaad0c3011",
+      "unchanged_source_pixels": true,
+      "transparent_added_border": true,
+      "frame_order_unchanged": true,
+      "file_1x": "e_knight_spin.png",
+      "frame_size_1x": [
+        147,
+        147
+      ],
+      "origin_1x": [
+        73.0,
+        118.0
+      ],
+      "sha256_1x": "c2b36f54c1cf5f38d32b0dce13d0c55363a4016c77aa9df035948aceaa40f3b4"
+    },
+    {
+      "id": "e_knight_plant",
+      "frames": 4,
+      "source_sha256": "d53c1777cd71fb7630b126f2ed7b40d52b4fd85e073df31a8c00569208a50dda",
+      "source_frame_size": [
+        293,
+        293
+      ],
+      "padding": {
+        "left": 0,
+        "top": 0,
+        "right": 1,
+        "bottom": 1
+      },
+      "file_2x": "e_knight_plant@2x.png",
+      "frame_size_2x": [
+        294,
+        294
+      ],
+      "origin_2x": [
+        146.0,
+        236.0
+      ],
+      "normalized_anchor": [
+        0.4965986394557823,
+        0.8027210884353742
+      ],
+      "sha256_2x": "a950e6e8aa5f034fdfafb2b44912346e7b9df8df10b6dd0e18da205a8cdcc4d2",
+      "unchanged_source_pixels": true,
+      "transparent_added_border": true,
+      "frame_order_unchanged": true,
+      "file_1x": "e_knight_plant.png",
+      "frame_size_1x": [
+        147,
+        147
+      ],
+      "origin_1x": [
+        73.0,
+        118.0
+      ],
+      "sha256_1x": "b9d3fbf87ee1daa9bdf65fd237488db8ce384bc2166018ba9725bb9d4a28df04"
+    },
+    {
+      "id": "e_knight_death",
+      "frames": 4,
+      "source_sha256": "ef2dda1e5bbd715304bf13e89fcd979a00650573dfa805295d1eec4f4e2b76ee",
+      "source_frame_size": [
+        293,
+        293
+      ],
+      "padding": {
+        "left": 0,
+        "top": 0,
+        "right": 1,
+        "bottom": 1
+      },
+      "file_2x": "e_knight_death@2x.png",
+      "frame_size_2x": [
+        294,
+        294
+      ],
+      "origin_2x": [
+        146.0,
+        236.0
+      ],
+      "normalized_anchor": [
+        0.4965986394557823,
+        0.8027210884353742
+      ],
+      "sha256_2x": "3dc13da53a3cb7cfc5819eab648924c918c1aac8449cfff0250230e4b78aee40",
+      "unchanged_source_pixels": true,
+      "transparent_added_border": true,
+      "frame_order_unchanged": true,
+      "file_1x": "e_knight_death.png",
+      "frame_size_1x": [
+        147,
+        147
+      ],
+      "origin_1x": [
+        73.0,
+        118.0
+      ],
+      "sha256_1x": "62ac89d00ce8d900828048bb0eda15225599834075a5691f3804c47cba6a58b8"
+    },
+    {
+      "id": "e_knight_walk",
+      "frames": 2,
+      "source_sha256": "c3f5fc1e6a3cce0f8f2f3cbd8e8c92e3517223d46b7375ce678acefca8e39284",
+      "source_frame_size": [
+        397,
+        397
+      ],
+      "padding": {
+        "left": 0,
+        "top": 0,
+        "right": 1,
+        "bottom": 1
+      },
+      "file_2x": "e_knight_walk@2x.png",
+      "frame_size_2x": [
+        398,
+        398
+      ],
+      "origin_2x": [
+        199.00000000000003,
+        298.0
+      ],
+      "normalized_anchor": [
+        0.5000000000000001,
+        0.7487437185929648
+      ],
+      "sha256_2x": "b81364d02f6cd33f5fbeff9390e265c7c44a5ca6b7768f88612d7980da8b0a7d",
+      "unchanged_source_pixels": true,
+      "transparent_added_border": true,
+      "frame_order_unchanged": true,
+      "file_1x": null,
+      "frame_size_1x": null,
+      "origin_1x": null
+    },
+    {
+      "id": "e_knight_walk_move",
+      "frames": 4,
+      "source_sha256": "217ea7777b312b2da72f6cac1bdfa6191d06cc0aa2cc509eb2574b620eb5d53c",
+      "source_frame_size": [
+        397,
+        397
+      ],
+      "padding": {
+        "left": 0,
+        "top": 0,
+        "right": 1,
+        "bottom": 1
+      },
+      "file_2x": "e_knight_walk_move@2x.png",
+      "frame_size_2x": [
+        398,
+        398
+      ],
+      "origin_2x": [
+        199.00000000000003,
+        298.0
+      ],
+      "normalized_anchor": [
+        0.5000000000000001,
+        0.7487437185929648
+      ],
+      "sha256_2x": "7f39c6ef81fb7c7659699e89ba76508b957c746f74dfd30611a5932a3495fda3",
+      "unchanged_source_pixels": true,
+      "transparent_added_border": true,
+      "frame_order_unchanged": true,
+      "file_1x": null,
+      "frame_size_1x": null,
+      "origin_1x": null
+    },
+    {
+      "id": "e_knight_walk_attack",
+      "frames": 4,
+      "source_sha256": "45683a312d832698e7e88ce52b70995217f32dcca0abe0c4769e4dc872d41c0e",
+      "source_frame_size": [
+        397,
+        397
+      ],
+      "padding": {
+        "left": 0,
+        "top": 0,
+        "right": 1,
+        "bottom": 1
+      },
+      "file_2x": "e_knight_walk_attack@2x.png",
+      "frame_size_2x": [
+        398,
+        398
+      ],
+      "origin_2x": [
+        199.00000000000003,
+        298.0
+      ],
+      "normalized_anchor": [
+        0.5000000000000001,
+        0.7487437185929648
+      ],
+      "sha256_2x": "3fcff6a81b279fca60d949afdeede7f68748302be858cd8feaa4611d525c3545",
+      "unchanged_source_pixels": true,
+      "transparent_added_border": true,
+      "frame_order_unchanged": true,
+      "file_1x": null,
+      "frame_size_1x": null,
+      "origin_1x": null
+    },
+    {
+      "id": "e_knight_walk_charge",
+      "frames": 4,
+      "source_sha256": "2a524508d7c53108824fdaf6e5f56206ee71e93800cbd5c1331094ea496e5a33",
+      "source_frame_size": [
+        397,
+        397
+      ],
+      "padding": {
+        "left": 0,
+        "top": 0,
+        "right": 1,
+        "bottom": 1
+      },
+      "file_2x": "e_knight_walk_charge@2x.png",
+      "frame_size_2x": [
+        398,
+        398
+      ],
+      "origin_2x": [
+        199.00000000000003,
+        298.0
+      ],
+      "normalized_anchor": [
+        0.5000000000000001,
+        0.7487437185929648
+      ],
+      "sha256_2x": "a4af110bfbeadcd5b141e10f656f6a5c9f6350ef32f404b05bc39f0d7ac71572",
+      "unchanged_source_pixels": true,
+      "transparent_added_border": true,
+      "frame_order_unchanged": true,
+      "file_1x": null,
+      "frame_size_1x": null,
+      "origin_1x": null
+    },
+    {
+      "id": "e_knight_walk_death",
+      "frames": 4,
+      "source_sha256": "b2a4146d7b7bacc1431f9a18dbd4a8a192a210124016d0cbd5644e84dd604990",
+      "source_frame_size": [
+        397,
+        397
+      ],
+      "padding": {
+        "left": 0,
+        "top": 0,
+        "right": 1,
+        "bottom": 1
+      },
+      "file_2x": "e_knight_walk_death@2x.png",
+      "frame_size_2x": [
+        398,
+        398
+      ],
+      "origin_2x": [
+        199.00000000000003,
+        298.0
+      ],
+      "normalized_anchor": [
+        0.5000000000000001,
+        0.7487437185929648
+      ],
+      "sha256_2x": "37d8af445998233262deae2b8f05f3a66ac7e67562afb81f1a5c020111ee101a",
+      "unchanged_source_pixels": true,
+      "transparent_added_border": true,
+      "frame_order_unchanged": true,
+      "file_1x": null,
+      "frame_size_1x": null,
+      "origin_1x": null
+    }
+  ]
+}
