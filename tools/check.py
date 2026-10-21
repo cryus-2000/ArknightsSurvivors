@@ -733,9 +733,9 @@ EQ_ALL = False   # --eq-all：每组跑全部用例；缺省每组只跑第一�
 UPDATE_GOLDEN = False   # --update-golden：本项通过后把数据版输出重录到 game/tests/golden_current/（ship 全量通过后调用，git 跟踪，记得 commit）
 GOLDEN_SNAP = os.path.join(GAME, "tests", "golden")
 GOLDEN_GIT = os.path.join(GAME, "tests", "golden_current")   # 10-21 起：git 跟踪的当前有效金样，--auto 默认读写都在这里，不依赖任何本机本地缓存
-GOLDEN_ROLL = os.environ.get("ARK_GOLDEN_DIR") or os.path.join(GR.common_root(), "build", "golden_cache")   # 可选本地覆盖层（不进 git）：
-                                                                                                              # ARK_GOLDEN_DIR 显式指定，或默认 build/golden_cache；读取时优先于 GOLDEN_GIT，
-                                                                                                              # 用于大重构对改前对照等临时场景（docs/101 §7.3），--auto 不依赖它存在
+GOLDEN_ROLL = os.environ.get("ARK_GOLDEN_DIR")   # 可选本地覆盖层（不进 git）：只在显式设置 ARK_GOLDEN_DIR 时才读取，读取时优先于 GOLDEN_GIT，
+                                                  # 用于大重构对改前对照等临时场景（docs/101 §7.3）。10-22 起不再默认指向 build/golden_cache——
+                                                  # 旧的本地缓存残留会遮住 git 里已经刷新的金样，导致合并后误报过期（协调人实测两次），--auto 默认完全不读它
 EQ_COMMON = ("game/scripts/characters/op_blocks.gd", "game/scripts/characters/data_operator.gd",
              "game/scripts/characters/character.gd", "game/scripts/characters/op_api.gd")
 # B6 ①（docs/101 §7.3.3，10-15）：op_blocks 拆到 scripts/characters/blocks/ 后，公共段 ob_*.gd 也算积木公共文件（进本干员侧），
@@ -788,11 +788,11 @@ def _golden_file(gid, name):
 
 
 def load_golden(gid, name):
-    """优先 GOLDEN_ROLL（本地未提交的临时覆盖层，一般不存在），然后 game/tests/golden_current/（git 跟踪的当前有效金样，--auto 默认命中这里），
+    """优先 GOLDEN_ROLL（仅在显式设置 ARK_GOLDEN_DIR 时才非空，--auto 默认不读），然后 game/tests/golden_current/（git 跟踪的当前有效金样，--auto 默认命中这里），
     最后 game/tests/golden/<提交>/（下线时的证据快照，取最新一份）"""
     fname = _golden_file(gid, name)
-    p = os.path.join(GOLDEN_ROLL, fname)
-    if not os.path.exists(p):
+    p = os.path.join(GOLDEN_ROLL, fname) if GOLDEN_ROLL else ""
+    if not p or not os.path.exists(p):
         p = os.path.join(GOLDEN_GIT, fname)
     if not os.path.exists(p) and os.path.isdir(GOLDEN_SNAP):
         snaps = sorted(d for d in os.listdir(GOLDEN_SNAP) if os.path.isdir(os.path.join(GOLDEN_SNAP, d)))
