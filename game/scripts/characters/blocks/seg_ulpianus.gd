@@ -893,19 +893,24 @@ static func hw_hook_start(o, b: Dictionary) -> void:
 		return
 	var rr: float = float(b.get("range", 160.0)) * o.stat(&"op_range")
 	var md: float = float(b.get("min_d", 160.0)) * o.stat(&"op_range")
-	var best: Dictionary = {}
-	var bd := -1.0
-	for e in o.nearest_enemies(24, rr, o.pos):
-		var dd: float = e.pos.distance_to(o.pos)
-		if dd >= md and dd > bd:
-			bd = dd
-			best = e
-	if best.is_empty():
-		var ts: Array = o.nearest_enemies(1, rr, o.pos)
-		if ts.is_empty():
-			return
-		best = ts[0]
-	var to: Vector2 = best.pos
+	var to: Vector2
+	if str(b.get("at", "")) == "leader":   # 响应动作（docs/118 §4.1）：掷向队长（冲刺落点），超出 range 就掷到 range 处；不找敌人
+		var dv: Vector2 = o.g.ppos - o.pos
+		to = o.pos + dv.limit_length(rr)
+	else:
+		var best: Dictionary = {}
+		var bd := -1.0
+		for e in o.nearest_enemies(24, rr, o.pos):
+			var dd: float = e.pos.distance_to(o.pos)
+			if dd >= md and dd > bd:
+				bd = dd
+				best = e
+		if best.is_empty():
+			var ts: Array = o.nearest_enemies(1, rr, o.pos)
+			if ts.is_empty():
+				return
+			best = ts[0]
+		to = best.pos
 	var hv = b.get("hand", [33, -33])
 	var hand: Vector2 = o.pos + Vector2(float(hv[0]) * float(o.face), float(hv[1]))
 	if absf(to.x - o.pos.x) > 2.0:

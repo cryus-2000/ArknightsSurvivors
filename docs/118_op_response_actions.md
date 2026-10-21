@@ -137,9 +137,9 @@
 
 3 seed 的存活秒数波动很大，胜率差 < 10 点不下结论（docs/27）；normal 机器人几乎不主动冲刺，冲刺类响应基本没触发，这组只能说明「开着不吃亏」。要看响应的收益，得用会冲刺 / 会停下的 expert 机器人或真人试玩。
 
-### 6.3 第二批实现记录（10-21，分支 `claude/op-verbs-p2`；乌尔比安等 `claude/ulpianus-no-launch` 合入后再接）
+### 6.3 第二批实现记录（10-21，分支 `claude/op-verbs-p2`；乌尔比安在 `claude/ulpianus-no-launch` 合入后接上）
 
-口径同第一批：轻版、附加收益、总开关 `response.on`、关时 TRACE 与 main 逐行相同（seed 1、180 秒，13 人逐人核过）。
+口径同第一批：轻版、附加收益、总开关 `response.on`、关时 TRACE 与 main 逐行相同（seed 1、180 秒，14 人逐人核过）。
 
 共用新增：
 - `trig.on_leader_dash` 加 `at: end`（冲刺结束那一刻，队长已在落点）。
@@ -160,6 +160,7 @@
 | 凯尔希 | 护主 / 开技能 | `verb.summon_cmd leap to leader` + 落地一圈 × leap_mult × 0.8，冷却 3 秒 | 冷却写死 3 秒（不读 `dash_cd`），开技能本身间隔远大于它 |
 | 水月 | 伞开 / 突击 | 切到突击后 3 秒内 `attack.r_mults` ×1.5、`tentacle.n_add` +1 | 不是「第一次伞击」，是 3 秒窗口；拖拽距离不加 |
 | 归溟幽灵鲨 | 替身突袭 / 突击 · 集合 | 突击：`verb.doll_flash`（同精二替身闪现）；集合完毕：以自身为心一圈 上次环斩 ×1.5 | — |
+| 乌尔比安 | 锚链 / 冲刺结束 | `shape.hookshot at: leader`（同精二「掷锚」）：锚掷向队长落点，落地半径 throw_r 内 ×0.6，锁链把他与落点之间一线的非 Boss 敌人拖回身前；他本人不位移，是队长时锚落在脚下；不锁普攻。之后 1.5 秒内锚击 ×1.3（`buff_self atk`，cond `resp_idle < 1.5`，约等于下一次锚击；不改 attack 积木） | 设计稿「拉落点半径 90 内」改为沿锁链一线拖回；「下一次」写成 1.5 秒窗口（攻速很高时可能吃到两下） |
 | 艾丽妮 | 起风 / 归队 | `verb.lift_around center: self` 半径 90 浮空 0.8 秒 | 只取设计稿的归队这一半（每人一条）；手炮掩护不做 |
 | 安洁莉娜 | 斥力 / 集合完毕 | `verb.displace center: leader r 120 push 80` + 之后 3 秒 `buff_leader move_speed ×1.15` | 「她本人不突击」不做（会改突击局的同 seed 结果） |
 
