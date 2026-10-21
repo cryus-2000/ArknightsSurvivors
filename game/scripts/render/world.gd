@@ -949,11 +949,10 @@ func _draw_fx() -> void:
 			skip_sparks -= 1
 			continue
 		match f.kind:
-			"downed":   # 队友离队 / 换人：本人 death 条倒地 → 末帧停留 → 淡出（squad._leave_fx，10-22）
-				var dst: Dictionary = f.op.downed_state(f.max - f.life)
-				if not dst.is_empty():
-					var dc := Color(1, 1, 1, clampf(f.life / 0.3, 0.0, 1.0))   # 最后 0.3 秒（squad.DOWN_FADE）淡出
-					draw_sprite_at(f.pos, f.flip, dc, dst.frame, dst.tex, dst.hf, f.foot_off)
+			"leave_jump":   # 队友离队 / 换人：原地一蹲后向上跳出屏幕（squad._leave_fx，10-22）
+				var jt: float = (f.max - f.life) / f.max
+				var jy: float = 2.0 * g.PX if jt < 0.12 else -pow((jt - 0.12) / 0.88, 1.6) * (view_rect(0.0).size.y + 80.0 * g.PX)
+				draw_sprite_at(f.pos + Vector2(0, jy), f.st.flip, Color.WHITE, f.st.frame, f.st.tex, f.st.hf, f.foot_off)
 			"frost":
 				# 寒冰领域：淡蓝地面 + 旋转冰纹（地面椭圆与判定一致，ground_y，docs/48 ①）
 				var fa: float = minf(1.0, f.life / 0.6) * 0.9

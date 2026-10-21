@@ -133,18 +133,16 @@ func remove(cid: String) -> void:
 		g.rfx.refresh_squad()
 
 
-## 队友离队 / 换人（10-22 用户定「倒地」）：原地播本人 death 条倒下，末帧停 DOWN_HOLD 秒后淡出（纯画面 g.fx kind "downed"，world._draw_fx 画）；没有 death 条就不留
-const DOWN_HOLD := 0.5
-const DOWN_FADE := 0.3
+## 队友离队 / 换人（10-22 用户定）：定格当前帧原地起跳，向上跳出屏幕（纯画面 g.fx kind "leave_jump"，world._draw_fx 画）
+const LEAVE_JUMP := 0.5
 
 func _leave_fx(o) -> void:
 	if o.pos == Vector2.INF or g.get("fx") == null:
 		return
-	var st: Dictionary = o.downed_state(0.0)
+	var st: Dictionary = o.anim_state()
 	if st.is_empty():
 		return
-	var dur: float = o.downed_seconds() + DOWN_HOLD + DOWN_FADE
-	g.fx.append({"kind": "downed", "op": o, "pos": o.pos + Vector2(o.foot_dx(st), 0), "flip": st.flip, "foot_off": o.foot_off(st.tex, "death"), "life": dur, "max": dur})
+	g.fx.append({"kind": "leave_jump", "pos": o.pos + Vector2(o.foot_dx(st), 0), "st": st, "foot_off": o.foot_off(st.tex, st.get("kind", "")), "life": LEAVE_JUMP, "max": LEAVE_JUMP})
 
 
 var _hold_size := false   # replace 中途：人数先减后加，不重算入队加成（人数不变，台阶不变）
