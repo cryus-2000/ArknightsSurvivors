@@ -1207,6 +1207,50 @@ func portrait() -> Dictionary:
 
 # ---------------------------------------------------------------- 跟随与动画（squad.gd 调用）
 
+## 队友跟随停顿（10-21，用户定方案 C 为缺省；--fpause=off|a|b 对照，off = 原来每帧 lerp 追槽位）：
+##   a 到位滞回：进槽位 FP_ARRIVE 像素内站定，至少停 FP_HOLD 秒，偏离超过 FP_LEAVE 才再起步；
+##   b 错开起步：站定后要起步时按编队位延迟 FP_DELAY0 + slot × FP_DELAY_STEP 秒（约 0.08–0.15）；
+##   c 两者都开。纯跟随位移，有意改变同 seed（队友位置影响出手范围 / 索敌）
+const FP_ARRIVE := 14.0
+const FP_LEAVE := 32.0
+const FP_HOLD := 0.3
+const FP_DELAY0 := 0.045
+const FP_DELAY_STEP := 0.035
+static var follow_pause := -1   # -1 未读；缺省 3 = c（10-21 用户定）；--fpause=off|a|b|c 作对照
+var fp_moving := true
+var fp_t := 0.0
+var fp_wait := -1.0
+
+func _follow_paused(dt: float, d: float) -> bool:
+	if follow_pause < 0:
+		follow_pause = 3
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--fpause="):
+				follow_pause = maxi(0, "-abc".find(a.substr(9, 1)))   # off → 0
+	if follow_pause == 0:
+		return false
+	var hold: bool = follow_pause != 2
+	var stagger: bool = follow_pause != 1
+	if fp_moving:
+		if d < FP_ARRIVE:
+			fp_moving = false
+			fp_t = FP_HOLD if hold else 0.0
+		return false
+	fp_t -= dt
+	if d <= (FP_LEAVE if hold else FP_ARRIVE + 2.0) or fp_t > 0.0:
+		fp_wait = -1.0
+		return true
+	if stagger:
+		if fp_wait < 0.0:
+			fp_wait = FP_DELAY0 + float(slot) * FP_DELAY_STEP
+		fp_wait -= dt
+		if fp_wait > 0.0:
+			return true
+	fp_wait = -1.0
+	fp_moving = true
+	return false
+
+
 ## 跟随主控的编队位：近处慢慢挪、远处快步跟上；离得太远（开局 / 传送）直接归位
 func follow(dt: float, target: Vector2) -> void:
 	var sq = g.get("squad")
@@ -1228,8 +1272,10 @@ func follow(dt: float, target: Vector2) -> void:
 		var k: float = clampf(dt * (3.0 if d < 20.0 else (9.0 if st == 2 else 6.0)), 0.0, 1.0)
 		cmd_d = d
 		if st == 0:
-			pos = pos.lerp(target, k)
+			if not _follow_paused(dt, d):   # 随行：到位停 + 错开起步（10-21 用户定方案 C）
+				pos = pos.lerp(target, k)
 		else:
+			fp_moving = true   # 突击 / 归队不停顿；回到随行时从「在走」开始
 			# 突击 / 归队：限速（随行原样不限）——突击按队长移速 × command/roam_speed 跑过去，归队 × command/recall_speed 快速归位
 			var step: Vector2 = (target - pos) * k
 			var vmax: float = g.speed * CmdBal.v("command/roam_speed" if st == 1 else "command/recall_speed", 1.3 if st == 1 else 4.0) * dt
