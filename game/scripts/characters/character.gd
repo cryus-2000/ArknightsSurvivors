@@ -2325,13 +2325,33 @@ func draw_body() -> void:
 	for gh in ghosts:
 		var a: float = GHOST_ALPHA * (1.0 - gh.age / GHOST_LIFE)
 		draw_sprite_at(gh.p + Vector2(foot_dx(gh.st), 0), gh.st.flip, Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, a), gh.st.frame, gh.st.tex, gh.st.hf, foot_off(gh.st.tex, gh.st.get("kind", "")))
+	if arriving() and arrive_t < ARRIVE_WAIT:
+		return   # 换人入场：还在屏幕外等
 	if is_leader and g.state == g.S.DEAD:   # 队长倒下：播本人 death 条，停在末帧（10-22 用户定「倒地」，不用撤退闪白）
 		var ds := downed_state(g.state_age)
 		if not ds.is_empty():
 			st = ds
 	# 主控：受击闪白 / 闪红 / 无敌闪烁沿用 game.gd 算好的 sprite.modulate
 	var mod: Color = g.sprite.modulate if is_leader else Color.WHITE
-	draw_sprite_at(pos + Vector2(foot_dx(st), 0), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
+	draw_sprite_at(pos + Vector2(foot_dx(st), 0) + Vector2(0, arrive_dy()), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
+
+
+## 换人入队（10-22 用户定）：等被换下的队友跳出屏幕（ARRIVE_WAIT 秒）后从屏幕上方落到编队位，纯画面（玩法照常从入队起算）。
+## arrive_t 由 world.update_visuals 推进，< 0 = 不在入场
+const ARRIVE_WAIT := 0.35
+const ARRIVE_FALL := 0.35
+var arrive_t := -1.0
+
+func arriving() -> bool:
+	return arrive_t >= 0.0 and arrive_t < ARRIVE_WAIT + ARRIVE_FALL
+
+
+## 入场时本体的竖直偏移：等待期间放在屏幕外，下落按二次加速落地
+func arrive_dy() -> float:
+	if not arriving():
+		return 0.0
+	var u: float = clampf((arrive_t - ARRIVE_WAIT) / ARRIVE_FALL, 0.0, 1.0)
+	return -(1.0 - u * u) * (g.world.view_rect(0.0).size.y + 80.0 * g.PX)
 
 
 ## 残影采样（follow() 每帧调用）：瞬时速度 > GHOST_SPEED 时每 GHOST_EVERY 秒留一个分身，存活 GHOST_LIFE 秒。

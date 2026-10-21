@@ -170,6 +170,7 @@ func replace(old_id: String, new_id: String, route := ""):
 	for i in ops.size():
 		ops[i].slot = i
 	op.pos = g.ppos + _slot_offset(op.slot)
+	op.arrive_t = 0.0   # 等被换下的跳出屏幕后从上方落下（纯画面，character.arrive_dy）
 	var sq0: int = g.show_queue.size()
 	if route != "":
 		op.route = route
