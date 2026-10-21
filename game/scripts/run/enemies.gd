@@ -389,6 +389,12 @@ func update(dt: float) -> void:
 		# 重型怪只削外来击退；自己冲锋 / 突刺（kb_self，boss_ai 的 dash / stab）不削，否则骑士冲锋只冲出 1/3（用户实机反馈 9/27）
 		var v: Vector2 = e.kb * (0.3 if D.ENEMIES[e.type].get("heavy", false) and not e.get("kb_self", false) else 1.0)
 		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0) * g.beacon_sys.slow_mult(e)
+		if e.get("rush", 0.0) > 0.0:
+			# 合围冲锋段（docs/116 §7.3）：大群入场时 × rush，进到队长 horde_rush_r 内回到正常速度（只降不升）
+			if dist <= Bal.v("enemy/horde_rush_r", 180.0):
+				e.rush = 0.0
+			else:
+				spd *= float(e.rush)
 		if not e.boss:
 			# 藏品（docs/57 P1 / P2）：非 Boss 敌人的移速与受到的击退倍率；自己冲锋（kb_self）不算击退
 			spd *= g.enemy_speed_mult
