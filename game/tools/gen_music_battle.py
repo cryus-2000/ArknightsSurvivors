@@ -482,8 +482,8 @@ class Song:
         B[i:j] += sig[: j - i] * gain
 
 
-def write_ogg(name, data, q=0.62):
-    """Vorbis（libsndfile；compression_level 0.62 ≈ 质量 3.8）。一次写整段会崩，分块写"""
+def write_ogg(name, data, q=0.70):
+    """Vorbis（libsndfile；compression_level 0.70，10-21 网页包压音频从 0.62 降到 0.70，tools/shrink_audio.py）。一次写整段会崩，分块写"""
     path = os.path.join(OUTDIR, name + ".ogg")
     data = np.clip(data, -1, 1).astype(np.float32)
     with sf.SoundFile(path, "w", SR, 2, format="OGG", subtype="VORBIS", compression_level=q) as f:
@@ -725,7 +725,7 @@ def write_seg(name, data):
     pk = np.max(np.abs(x))
     if pk > 0.97:
         x = limiter(x, 0.95)
-    write_ogg(name, x, q=0.66)
+    write_ogg(name, x, q=0.70)
 
 
 def body(x, S):

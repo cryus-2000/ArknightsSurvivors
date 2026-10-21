@@ -1,6 +1,6 @@
 {
   "language": "zh-CN",
-  "format": "OGG Vorbis mono 44100 Hz, per-clip ogg_quality (soundfile compression_level); masters: WAV PCM 16-bit mono 44100 Hz in masters/ (sha256 is of the master)",
+  "format": "OGG Vorbis mono 24000 Hz (resampled from the 44.1 kHz masters), per-clip ogg_quality (soundfile compression_level); masters: WAV PCM 16-bit mono 44100 Hz in masters/ (sha256 is of the master)",
   "source": "https://github.com/isHarryh/Ark-Voice/tree/main/voice_cn",
   "source_metadata": "Ark-Voice voice_data.json; game data region zh_CN; generated 2025-02-02",
   "source_note": "Original voice recordings are copyrighted by Hypergryph. The user confirmed permission for these selected clips in this noncommercial fan project.",
@@ -35,7 +35,7 @@
       "source_end_seconds": 222.7749,
       "duration_seconds": 1.975,
       "sha256": "8412f5e145dcfebd83c314a9d02b8e4804294690780d42737f0d82c992b40c17",
-      "ogg_quality": 0.5,
+      "ogg_quality": 0.7,
       "master": "masters/mizuki_entry.wav"
     },
     {
@@ -48,7 +48,7 @@
       "source_end_seconds": 225.3199,
       "duration_seconds": 0.955,
       "sha256": "8c7c1f95368d7c4594fd6f9a2e80e41ece14b46fb4a672cca40291f17d546212",
-      "ogg_quality": 0.5,
+      "ogg_quality": 0.7,
       "master": "masters/mizuki_skill_1.wav"
     },
     {
@@ -61,7 +61,7 @@
       "source_end_seconds": 226.0349,
       "duration_seconds": 0.715,
       "sha256": "53696e502d66e66a5bec277d4cf6474943183414567fdeb53b617d088ca6489d",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/mizuki_skill_2.wav"
     },
     {
@@ -74,7 +74,7 @@
       "source_end_seconds": 229.1399,
       "duration_seconds": 3.105,
       "sha256": "a926c62a530b34548a1289f2c2733e29731a5951a2db0f73e3424f6148312c42",
-      "ogg_quality": 0.4,
+      "ogg_quality": 0.7,
       "master": "masters/mizuki_skill_3.wav"
     },
     {
@@ -113,7 +113,7 @@
       "source_end_seconds": 230.7899,
       "duration_seconds": 3.93,
       "sha256": "217baa32ba60123d93b6e385b08fa82925f30c96176cafedd2752e805e64409e",
-      "ogg_quality": 0.5,
+      "ogg_quality": 0.7,
       "master": "masters/skadi_skill_1.wav"
     },
     {
@@ -126,7 +126,7 @@
       "source_end_seconds": 234.2149,
       "duration_seconds": 3.425,
       "sha256": "9fea64b8a9a46229407e32599840bf494bef0ebc3fa66c50c32a11cfcd97f0d9",
-      "ogg_quality": 0.5,
+      "ogg_quality": 0.7,
       "master": "masters/skadi_skill_2.wav"
     },
     {
@@ -139,7 +139,7 @@
       "source_end_seconds": 237.6598,
       "duration_seconds": 3.445,
       "sha256": "44e402d180ad7234a5e33c37d21353d71ec36362854072fdba9e4fe6e8c830b8",
-      "ogg_quality": 0.5,
+      "ogg_quality": 0.7,
       "master": "masters/skadi_skill_3.wav"
     },
     {
@@ -152,7 +152,7 @@
       "source_end_seconds": 240.6048,
       "duration_seconds": 2.945,
       "sha256": "a08a16b7ad1fb31cf2f69f793397ccad2f2bf30caf1fae2d2b82754ad40e5e08",
-      "ogg_quality": 0.6,
+      "ogg_quality": 0.7,
       "master": "masters/skadi_battle.wav"
     },
     {
@@ -165,7 +165,7 @@
       "source_end_seconds": 108.1799,
       "duration_seconds": 0.55,
       "sha256": "611fedcc00b49078343e1feffa1a3c3f7f17acbb910cfc12e6d98c349a37f012",
-      "ogg_quality": 0.4,
+      "ogg_quality": 0.7,
       "master": "masters/siege_entry.wav"
     },
     {
@@ -191,7 +191,7 @@
       "source_end_seconds": 111.8898,
       "duration_seconds": 0.49,
       "sha256": "e3d60f996d3dfe645598bba71105251f6dd021d5e3c5626d774b7414bfaa3b44",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/siege_skill_2.wav"
     },
     {
@@ -230,7 +230,7 @@
       "source_end_seconds": 145.2153,
       "duration_seconds": 0.495,
       "sha256": "c3614b527c6c0006f37ab67288d2c4212332a232fb6be8b4528d4202ae90e688",
-      "ogg_quality": 0.4,
+      "ogg_quality": 0.7,
       "master": "masters/saria_entry.wav"
     },
     {
@@ -256,7 +256,7 @@
       "source_end_seconds": 149.4074,
       "duration_seconds": 1.224,
       "sha256": "9d62043e958cb9b3ad8b13ac896b532146cb59c13b71a22911d6554369142d37",
-      "ogg_quality": 0.5,
+      "ogg_quality": 0.7,
       "master": "masters/saria_skill_2.wav"
     },
     {
@@ -269,7 +269,7 @@
       "source_end_seconds": 150.0405,
       "duration_seconds": 0.633,
       "sha256": "6eb0e84d32f2317a6493f398dc16171e6a107704b95dcc3ad5a6a00ca8526b89",
-      "ogg_quality": 0.4,
+      "ogg_quality": 0.7,
       "master": "masters/saria_skill_3.wav"
     },
     {
@@ -282,7 +282,7 @@
       "source_end_seconds": 150.7196,
       "duration_seconds": 0.679,
       "sha256": "000df2dd47ffc344809ca18db0b53edf456eeb03b1f04773967d5e089e036211",
-      "ogg_quality": 0.4,
+      "ogg_quality": 0.7,
       "master": "masters/saria_battle.wav"
     },
     {
@@ -295,7 +295,7 @@
       "source_end_seconds": 253.6585,
       "duration_seconds": 2.27,
       "sha256": "e13730ce95e3416555bc6883bdd96c26db29c5dc0ecf120e09bedcd2301289dc",
-      "ogg_quality": 0.4,
+      "ogg_quality": 0.7,
       "master": "masters/suzuran_entry.wav"
     },
     {
@@ -360,7 +360,7 @@
       "source_end_seconds": 162.6399,
       "duration_seconds": 1.19,
       "sha256": "0e4680d495f27e2bec7a20344959e001b86d7a2152ae10051741728ffa2fddd6",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/eyjafjalla_entry.wav"
     },
     {
@@ -373,7 +373,7 @@
       "source_end_seconds": 164.6399,
       "duration_seconds": 1.238,
       "sha256": "483a6a76897b58064d70d56a1e8ac867e24ef2fdd58e89c71ff4a8e950ef94ea",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/eyjafjalla_skill_1.wav"
     },
     {
@@ -386,7 +386,7 @@
       "source_end_seconds": 166.3199,
       "duration_seconds": 1.614,
       "sha256": "223982af02c5b0626836d7e9b0e2bd51ed270d5eeadac9f0b59454690c62f96d",
-      "ogg_quality": 0.5,
+      "ogg_quality": 0.7,
       "master": "masters/eyjafjalla_skill_2.wav"
     },
     {
@@ -412,7 +412,7 @@
       "source_end_seconds": 169.1399,
       "duration_seconds": 1.234,
       "sha256": "2d81c643c81c6dbe721715130655c9300f2227d563bfeda4f07f67342f2ef2d5",
-      "ogg_quality": 0.5,
+      "ogg_quality": 0.7,
       "master": "masters/eyjafjalla_battle.wav"
     },
     {
@@ -425,7 +425,7 @@
       "source_end_seconds": 205.4916,
       "duration_seconds": 1.077,
       "sha256": "9fa354dcadbe77ad15f38bbd07b0ef658eea43672956a387f6bf89efa2378879",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/kaltsit_entry.wav"
     },
     {
@@ -438,7 +438,7 @@
       "source_end_seconds": 207.5016,
       "duration_seconds": 0.55,
       "sha256": "20b7b13aa055d52445d77e4bd7d3faaaf3422f11c87251703e424613d7f426a1",
-      "ogg_quality": 0.4,
+      "ogg_quality": 0.7,
       "master": "masters/kaltsit_skill_1.wav"
     },
     {
@@ -464,7 +464,7 @@
       "source_end_seconds": 209.0319,
       "duration_seconds": 0.595,
       "sha256": "0055ae484ff284fd9b1792af318f53a87ebf528b33da609ba0ac8b92d963e9a5",
-      "ogg_quality": 0.5,
+      "ogg_quality": 0.7,
       "master": "masters/kaltsit_skill_3.wav"
     },
     {
@@ -477,7 +477,7 @@
       "source_end_seconds": 209.4019,
       "duration_seconds": 0.37,
       "sha256": "780239c79d482cd733e97b874b92fcd59a0b361b6dfc0e3da52d8684483bd9d2",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/kaltsit_battle.wav"
     },
     {
@@ -555,7 +555,7 @@
       "source_end_seconds": 238.2549,
       "duration_seconds": 1.605,
       "sha256": "e00f07e87fdeea4c7b3bde4f3bd6cbbb8b093370d27bcf06bce7847364f75b13",
-      "ogg_quality": 0.5,
+      "ogg_quality": 0.7,
       "master": "masters/irene_entry.wav"
     },
     {
@@ -568,7 +568,7 @@
       "source_end_seconds": 240.9199,
       "duration_seconds": 1.995,
       "sha256": "d7ab71d275c15bd6f20604ae48ea08c1386c919e8c4eb4122b90e46cc2fa507a",
-      "ogg_quality": 0.5,
+      "ogg_quality": 0.7,
       "master": "masters/irene_skill_1.wav"
     },
     {
@@ -581,7 +581,7 @@
       "source_end_seconds": 242.8699,
       "duration_seconds": 1.95,
       "sha256": "ccf6b8f89dc9d39d2b1ec89bbed6e2054e6940cacedd715440a2680fbbb1094d",
-      "ogg_quality": 0.6,
+      "ogg_quality": 0.7,
       "master": "masters/irene_skill_2.wav"
     },
     {
@@ -594,7 +594,7 @@
       "source_end_seconds": 245.1299,
       "duration_seconds": 2.26,
       "sha256": "ea89b52ee71f64a34e43952eb661cd209dcb82b72190c2ce72ef3bd51801a118",
-      "ogg_quality": 0.5,
+      "ogg_quality": 0.7,
       "master": "masters/irene_skill_3.wav"
     },
     {
@@ -607,7 +607,7 @@
       "source_end_seconds": 247.3049,
       "duration_seconds": 2.175,
       "sha256": "9ef83a315583b5073aed6121a6f07c5451145777641b67b1da4b9fe00f77b44c",
-      "ogg_quality": 0.6,
+      "ogg_quality": 0.7,
       "master": "masters/irene_battle.wav"
     },
     {
@@ -620,7 +620,7 @@
       "source_end_seconds": 235.5918,
       "duration_seconds": 1.073,
       "sha256": "f54fdd1e57364a3838403875972e3121a238a7aae3e284e51a69959a77666a14",
-      "ogg_quality": 0.5,
+      "ogg_quality": 0.7,
       "master": "masters/logos_entry.wav"
     },
     {
@@ -633,7 +633,7 @@
       "source_end_seconds": 239.1733,
       "duration_seconds": 1.828,
       "sha256": "3b18f29c88279ff1fc9c48c04c717911930dd0edc4465e8e1dda992ff569093f",
-      "ogg_quality": 0.6,
+      "ogg_quality": 0.7,
       "master": "masters/logos_skill_1.wav"
     },
     {
@@ -685,7 +685,7 @@
       "source_end_seconds": 213.4249,
       "duration_seconds": 0.945,
       "sha256": "dfeeed0802792c810a5c82581e5590803d6e64f719c01cbbcdcca0803e135808",
-      "ogg_quality": 0.4,
+      "ogg_quality": 0.7,
       "master": "masters/lumen_entry.wav"
     },
     {
@@ -698,7 +698,7 @@
       "source_end_seconds": 218.6149,
       "duration_seconds": 2.465,
       "sha256": "c4b628e8a7e5704459f10f45688c2da5c98c5680806d5370e47d08ecaa10d51b",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/lumen_skill_1.wav"
     },
     {
@@ -711,7 +711,7 @@
       "source_end_seconds": 223.7049,
       "duration_seconds": 5.09,
       "sha256": "2b68498c2004e96b1f99072aaa2807f07af9ece1932627f57d3c3b082375d492",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/lumen_skill_2.wav"
     },
     {
@@ -724,7 +724,7 @@
       "source_end_seconds": 226.5098,
       "duration_seconds": 2.805,
       "sha256": "f5382eb5b34b296dc24c46519b6d91ed7e9a7fc85a8846dd5bbee6c898ca81e5",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/lumen_skill_3.wav"
     },
     {
@@ -737,7 +737,7 @@
       "source_end_seconds": 231.2548,
       "duration_seconds": 4.745,
       "sha256": "5d2b81ba2cff00e8414cb891e5e7733800a5bbcbbdd62449fc7b824df3c971e2",
-      "ogg_quality": 0.4,
+      "ogg_quality": 0.7,
       "master": "masters/lumen_battle.wav"
     },
     {
@@ -750,7 +750,7 @@
       "source_end_seconds": 270.0593,
       "duration_seconds": 2.648,
       "sha256": "5302b9ced3862f735bb231b137fc44ef0680570f4ccd5ca8f93ae0bb7d647306",
-      "ogg_quality": 0.4,
+      "ogg_quality": 0.7,
       "master": "masters/specter_unchained_entry.wav"
     },
     {
@@ -776,7 +776,7 @@
       "source_end_seconds": 275.9193,
       "duration_seconds": 1.17,
       "sha256": "42e4d2aa30fbd8a7c9936136aaf8b2f4feb3a0c7221379b2ceae606431842a65",
-      "ogg_quality": 0.6,
+      "ogg_quality": 0.7,
       "master": "masters/specter_unchained_skill_2.wav"
     },
     {
@@ -802,7 +802,7 @@
       "source_end_seconds": 283.5842,
       "duration_seconds": 5.05,
       "sha256": "8003727232191a79b04a68341b9c1a3325c8255da328f6422a97c2085c84dad5",
-      "ogg_quality": 0.6,
+      "ogg_quality": 0.7,
       "master": "masters/specter_unchained_battle.wav"
     },
     {
@@ -815,7 +815,7 @@
       "source_end_seconds": 183.6754,
       "duration_seconds": 1.947,
       "sha256": "a9def43f7232d25f9d0c288c00102dd5944cdfeeabe7911d2a0e196ef8c5bd14",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/ulpianus_entry.wav"
     },
     {
@@ -854,7 +854,7 @@
       "source_end_seconds": 190.9136,
       "duration_seconds": 1.844,
       "sha256": "a8aec711e3ed3133881746c0fa3d4314e0f93df663889ce7ce6cd44e727245b7",
-      "ogg_quality": 0.5,
+      "ogg_quality": 0.7,
       "master": "masters/ulpianus_skill_3.wav"
     },
     {
@@ -867,7 +867,7 @@
       "source_end_seconds": 194.1554,
       "duration_seconds": 3.242,
       "sha256": "d43ffd509850dff2e5ba5ecb9cc0b7789bfc2bf008316ed3ad0925998153a39f",
-      "ogg_quality": 0.5,
+      "ogg_quality": 0.7,
       "master": "masters/ulpianus_battle.wav"
     },
     {
@@ -893,7 +893,7 @@
       "source_end_seconds": 80.574875,
       "duration_seconds": 0.9249886621315193,
       "sha256": "d3658af3e6c309df331cba47007dd0c2ba4a6753c477097d157ff1ad761f0559",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/texas_entry.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_102_texas.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -908,7 +908,7 @@
       "source_end_seconds": 82.694853,
       "duration_seconds": 0.8749886621315193,
       "sha256": "1b8827f6e6d309978bc58c93992930e09758ac2353ae74bb80c6e746f0b4d5c8",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/texas_skill_1.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_102_texas.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -923,7 +923,7 @@
       "source_end_seconds": 84.369841,
       "duration_seconds": 1.6749886621315193,
       "sha256": "e6bb4b0a4c7541169e7bf5340c0a9cae6459367ed997fb1a60fdde691d9480a8",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/texas_skill_2.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_102_texas.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -938,7 +938,7 @@
       "source_end_seconds": 85.66483,
       "duration_seconds": 1.2949886621315192,
       "sha256": "84ae161a699fd1a2678ea337e31331051feee121c7d94f03e9076b1c9604ac38",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/texas_skill_3.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_102_texas.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -953,7 +953,7 @@
       "source_end_seconds": 86.509819,
       "duration_seconds": 0.8449886621315192,
       "sha256": "5c2d98ef71f94d9218f4f9db790124e7dc3f1b0707ace7971c300d063f03b187",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/texas_battle.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_102_texas.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -968,7 +968,7 @@
       "source_end_seconds": 136.212608,
       "duration_seconds": 1.0676643990929706,
       "sha256": "b98dbeb86a471462659cafe71c5b2ee6dabffb25045a682fdfa505cd91fc4071",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/hoshiguma_entry.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_136_hsguma.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -983,7 +983,7 @@
       "source_end_seconds": 138.638526,
       "duration_seconds": 1.3952607709750566,
       "sha256": "b815882529e8e8a135089d8cc915993670c4196831ecbc9aaa183abb75d9335c",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/hoshiguma_skill_1.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_136_hsguma.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -998,7 +998,7 @@
       "source_end_seconds": 142.286531,
       "duration_seconds": 3.6480045351473924,
       "sha256": "765b11ff07e5a9309f2baf50460fe191b0281592e553a5612f08a3b98d242a55",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/hoshiguma_skill_2.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_136_hsguma.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1013,7 +1013,7 @@
       "source_end_seconds": 143.396349,
       "duration_seconds": 1.1098185941043084,
       "sha256": "0545c4acb230d872859ca47d4b1904aaaa3db808184f08fbfc6c4f2760e1d2b3",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/hoshiguma_skill_3.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_136_hsguma.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1028,7 +1028,7 @@
       "source_end_seconds": 149.036236,
       "duration_seconds": 5.639886621315193,
       "sha256": "6663a082ff5a35b588e1f620b9e7b1404856804d72cf8dcd8d9e2d29493ada05",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/hoshiguma_battle.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_136_hsguma.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1043,7 +1043,7 @@
       "source_end_seconds": 199.904898,
       "duration_seconds": 2.27,
       "sha256": "c0da9ba41ef39062e9d78113ee61838534134182182119db8d30a34a763bbec5",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/angelina_entry.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_291_aglina.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1058,7 +1058,7 @@
       "source_end_seconds": 202.789887,
       "duration_seconds": 1.8349886621315192,
       "sha256": "8fe1940b090079a60370c1ea3fe314c9c814d7a13b50faa5a872ec5d5aa703be",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/angelina_skill_1.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_291_aglina.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1073,7 +1073,7 @@
       "source_end_seconds": 204.524875,
       "duration_seconds": 1.7349886621315194,
       "sha256": "3e154477080c3bb2d0c8a1ca59b4105b1ae3532dd1f92b31d60636af694c4959",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/angelina_skill_2.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_291_aglina.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1088,7 +1088,7 @@
       "source_end_seconds": 206.489864,
       "duration_seconds": 1.9649886621315193,
       "sha256": "1d2f64df1e886816a61f9c369b56c9934b97cfaf5239ef20d2e499b09a8b78da",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/angelina_skill_3.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_291_aglina.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1103,7 +1103,7 @@
       "source_end_seconds": 209.649864,
       "duration_seconds": 3.16,
       "sha256": "d7cca69f4e33ae5a5f56a9e1a6c7eaac2f97cd67d4ca5d46b89b45acbbd987ef",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/angelina_battle.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_291_aglina.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1118,7 +1118,7 @@
       "source_end_seconds": 436.280227,
       "duration_seconds": 5.5,
       "sha256": "07d32651a8d435dea447dbad751d2729f977a258b8f61b5d1059991bcac26dc6",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/skalter_entry.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_1012_skadi2.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1133,7 +1133,7 @@
       "source_end_seconds": 444.465215,
       "duration_seconds": 4.24498866213152,
       "sha256": "324380721afe7811f43ee036f98a8b6daa5cdc70cb406065bcb238e04bc71cdf",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/skalter_skill_1.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_1012_skadi2.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1148,7 +1148,7 @@
       "source_end_seconds": 448.395215,
       "duration_seconds": 3.93,
       "sha256": "118ac09bd33e260d11838fa864c3fda55599320efa4c4d2cac9af2578bb7c79b",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/skalter_skill_2.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_1012_skadi2.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1163,7 +1163,7 @@
       "source_end_seconds": 455.565215,
       "duration_seconds": 7.17,
       "sha256": "37022862d7ae893800176aaafa86e5f9cbd8febb23adaa97a3ae2f1e7aa0164e",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/skalter_skill_3.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_1012_skadi2.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1178,7 +1178,7 @@
       "source_end_seconds": 461.485215,
       "duration_seconds": 5.92,
       "sha256": "199314efcbd6bbee63b272e3c2451aabd7be40ca6f91af39647cf604f6c735cd",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/skalter_battle.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_1012_skadi2.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1193,7 +1193,7 @@
       "source_end_seconds": 116.199932,
       "duration_seconds": 0.8149886621315193,
       "sha256": "b962869a1686843fe2e81c0dca1b9cf70b10f816bd24f84e7d9ca8f85dcc1251",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/exusiai_entry.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_103_angel.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1208,7 +1208,7 @@
       "source_end_seconds": 119.294921,
       "duration_seconds": 0.9549886621315192,
       "sha256": "3a8830ad429d3655265a0c0878fbe162c3ec7392615f55801c6d037543ee0b56",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/exusiai_skill_1.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_103_angel.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1223,7 +1223,7 @@
       "source_end_seconds": 120.339909,
       "duration_seconds": 1.0449886621315192,
       "sha256": "b0f5c4a41465d8672d21a319fc916e07e802faeb9cb526dc46b8774387bca0fc",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/exusiai_skill_2.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_103_angel.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1238,7 +1238,7 @@
       "source_end_seconds": 121.049909,
       "duration_seconds": 0.71,
       "sha256": "9e8b19aae3d4bf52c48f4aea9533f631ed5bd99aa1b9c64d75e0921f170df4a2",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/exusiai_skill_3.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_103_angel.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
@@ -1253,7 +1253,7 @@
       "source_end_seconds": 122.139909,
       "duration_seconds": 1.09,
       "sha256": "ba4273b7418daab4c17f3ec3a86537e92dfcfb95d5b12ddd2d233003bbbcb57d",
-      "ogg_quality": 0.3,
+      "ogg_quality": 0.7,
       "master": "masters/exusiai_battle.wav",
       "source_url": "https://raw.githubusercontent.com/isHarryh/Ark-Voice/79584841f7a28f9d029ec2dc1b72444bce87eb1e/voice_cn/char_103_angel.ogg",
       "source_revision": "79584841f7a28f9d029ec2dc1b72444bce87eb1e"
