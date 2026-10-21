@@ -109,12 +109,15 @@ static func _h3_lantern_release(o, a: Dictionary) -> void:
 		var gm := 1.0
 		for m in hb.get("mults", _EA):
 			if cond_true(o, m.get("cond", _ED)):
-				gm = float(m.get("mult", 1.0))
+				gm *= float(m.get("mult", 1.0))   # 10-21 响应动作起成立的依次乘（原来只有一条，取最后一条 = 乘）
 		_h3_mend(o, pct * gm * _h3_heal_mult(o), 15, str(hb.get("sub", "")))
 		did = true
 	if did:
 		lm.heal_t = 0.0
 		_h3_heal_lamp(o)
+		for m in hb.get("lamp_adds", _EA):   # 响应动作（docs/118 §4.2）：cond 成立时这次回复 / 驱散另给灯火 + add
+			if cond_true(o, m.get("cond", _ED)):
+				g.lamp = minf(g.lamp_cap, g.lamp + float(m.get("add", 0.0)))
 		g.fx.append({"kind": "beam", "a": hand, "b": g.ppos + Vector2(0, -24), "life": 0.25, "max": 0.25, "col": H3_WARM, "w": 2.5})
 	lm.hand_glow = 0.18
 	var rr: float = _h3_bolt_range(o, a)

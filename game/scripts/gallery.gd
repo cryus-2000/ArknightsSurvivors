@@ -1,4 +1,5 @@
 extends Control
+const RetreatFx = preload("res://scripts/render/retreat_fx.gd")   # 共用撤退表现（10-21）
 ## 图鉴：干员 / 敌人 / 精英 / Boss / 道具 / 藏品 / 结局。版式 C4'（docs/58 §8 / §11，10-11 用户定）：左暗舞台 + 右浅色终端面板、
 ## 平行四边形页签、黄黑警示条、警示黄 #FFCE00（docs/37：只用于图鉴）；干员页三页签 档案 / 技能 / 成长。
 ## 从标题菜单打开（斜切黑带转场）；Q/E 或点击切换分页，方向键或点击选择条目（最左一列再 ← 进职业轨），Z/X 或点击切换动作/形态，
@@ -9,6 +10,7 @@ const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const Doctor = preload("res://scripts/characters/doctor.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const Roster = preload("res://scripts/core/roster.gd")   # 干员解锁（docs/109 §12）：未解锁的干员在图鉴里显示锁定
 const Bal = preload("res://scripts/core/balance.gd")
 const UIMo = preload("res://scripts/ui_motion.gd")
 const InitialStats = preload("res://scripts/screens/initial_stats.gd")
@@ -308,7 +310,11 @@ func _build() -> void:
 			# 干员：data/characters/*.json（新干员自动出现）；顺序同选人页：封面干员水月在前，其余按职业；博士放最后
 			var ops: Array = []
 			for cid in Character.list_ids():
-				ops.append(_op_entry(cid, Character.load_def(cid)))
+				var oe: Dictionary = _op_entry(cid, Character.load_def(cid))
+				if not Roster.is_unlocked(cid):
+					oe["locked"] = true
+					oe["locked_text"] = "未解锁。\n\n探索结算时使用寻访凭证、招募券或人事调度函解锁。"
+				ops.append(oe)
 			ops.sort_custom(func(x, y):
 				var kx: int = 0 if x.id == "mizuki" else 1
 				var ky: int = 0 if y.id == "mizuki" else 1
@@ -449,7 +455,7 @@ func _op_entry(cid: String, cd: Dictionary) -> Dictionary:
 	# 专属动作（docs/32 验收 §2 接线的新帧条）：有就列出来，没有就跳过
 	for kind in [["待机", "idle", 4.0], ["跑步", "run", 10.0], ["攻击", "attack", 8.0], ["技能", "skill", 12.0],
 			["号令", "command", 12.0], ["治疗", "skill_heal", 12.0], ["旋斩", "attack_spin", 12.0], ["倒下", "fall", 10.0],
-			["受击", "hurt", 6.0], ["倒下", "death", 5.0]]:
+			["受击", "hurt", 6.0]]:
 		if not sp.has(kind[1]):
 			continue
 		var fm: Dictionary = _sprite_form(kind[0], sp[kind[1]], kind[2], kind[1] != "death" and kind[1] != "fall")
@@ -461,6 +467,11 @@ func _op_entry(cid: String, cd: Dictionary) -> Dictionary:
 			fm.pair_label = {"attack": "Mon3tr 爪击", "skill": "Mon3tr 熔毁"}.get(kind[1], "Mon3tr")
 			fm.main_label = cd.get("name", cid)
 		forms.append(fm)
+	# 撤退（10-21 用户定：替代逐人「倒下」death 条）：待机首帧上播共用撤退表现（render/retreat_fx.gd 的闪白 → 消散），循环
+	if sp.has("idle"):
+		var rf: Dictionary = _sprite_form("撤退", sp.idle, 4.0, true)
+		rf["retreat"] = true
+		forms.append(rf)
 	# 攻击演示：实机跑一段（弹道 / 命中 / 技能都是战斗里的真实效果）
 	forms.append({"label": "演示", "tex": null, "frames": 1, "fps": 1.0, "loop": true, "demo": cid})
 	var mech: String = cd.get("gallery", {}).get("desc", "")
@@ -1008,6 +1019,8 @@ func _white_of(tx: Texture2D) -> Texture2D:
 
 
 func _form_frame(f: Dictionary) -> int:
+	if f.get("retreat", false):
+		return 0
 	if f.has("frame_durations"):
 		var total := 0.0
 		for dt in f.frame_durations:
@@ -1251,6 +1264,18 @@ func _draw_form_art(ci: CanvasItem, e: Dictionary, f: Dictionary, ph: bool) -> v
 			var dst := Rect2((foot - Vector2(bb.size.x * k3 / 2.0, bb.size.y * k3)).round(), bb.size * k3)
 			for d in [Vector2(k3, 0), Vector2(-k3, 0), Vector2(0, k3), Vector2(0, -k3)]:
 				UI.blit_clipped(ci, wt, Rect2(dst.position + d, dst.size), src, clip, Color(0.7, 0.85, 0.95, 0.5 * a))
+	if f.get("retreat", false) and not locked:
+		# 撤退形态：同 RetreatFx 的时间线（闪白 FLASH 秒 → FADE 秒消散），停 0.6 秒再循环；舞台上只做提白 + 透明（不缩放）
+		var ra: float = fposmod(form_t, RetreatFx.TOTAL + 0.6)
+		if ra < RetreatFx.FLASH:
+			var kw: float = 1.0 + 2.2 * ra / RetreatFx.FLASH
+			tint = Color(tint.r * kw, tint.g * kw, tint.b * kw, tint.a)
+		elif ra < RetreatFx.FLASH + RetreatFx.FADE:
+			var kf: float = (ra - RetreatFx.FLASH) / RetreatFx.FADE
+			tint = Color(tint.r * 3.2, tint.g * 3.2, tint.b * 3.4, tint.a)
+			a *= 1.0 - kf
+		else:
+			a = 0.0
 	_blit_art(ci, tx, int(f.frames), bb, hi, k2, foot, 1.0, a, clip, tint, _form_frame(f), not locked, locked, tab in [0, 1, 2, 3, 6])
 	if locked:
 		UI.text_at(ci, font, foot - Vector2(0, h2 * k2 / 2.0), "?", 40 if not ph else 28, UI.C_D_SUB, "mm", true)

@@ -55,7 +55,12 @@
   "tide_half": 0.785,
   "tide_mult": 1.2,
   "tide_lift": 0.8,
-  "tide_shots": 2
+  "tide_shots": 2,
+  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 卷风 / 二度裂潮，节点 5：gale2_* 卷风·追斩（起风后追斩周围），tide3_* 裂潮·三度（裂潮第三斩）。数值为待试验参数",
+  "gale2_delay": 0.8,
+  "gale2_r_k": 2.0,
+  "gale2_mult": 0.8,
+  "tide3_mult": 0.5
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 2935 / 防御 349 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -408,14 +413,44 @@
    "id": "gale",
    "name": "卷风",
    "icon": "skill_irene_s1",
-   "desc": "「起风」浮空的目标卷起身边 {$gale_r} 内的敌人一起浮空 {$gale_lift} 秒"
+   "desc": "「起风」浮空的目标卷起身边 {$gale_r} 内的敌人一起浮空 {$gale_lift} 秒",
+   "branch": {
+    "gale": {
+     "id": "gale",
+     "name": "卷风",
+     "icon": "skill_irene_s1",
+     "desc": "「起风」浮空的目标卷起身边 {$gale_r} 内的敌人一起浮空 {$gale_lift} 秒"
+    },
+    "tide": {
+     "id": "tide2",
+     "name": "二度裂潮",
+     "icon": "skill_irene_s2",
+     "desc": "「裂潮」{$tide2_delay} 秒后再斩一次（{$tide2_mult*100}% 伤害，重新瞄准）"
+    }
+   },
+   "branch_desc": "二选一：「卷风」—起风浮空的目标卷起身边敌人一起浮空；「二度裂潮」—裂潮之后再斩一次。之后的节点沿所选路线强化",
+   "bot": "gale"
   },
   {
    "type": "custom",
    "id": "tide2",
    "name": "二度裂潮",
    "icon": "skill_irene_s2",
-   "desc": "「裂潮」{$tide2_delay} 秒后再斩一次（{$tide2_mult*100}% 伤害，重新瞄准）"
+   "desc": "「裂潮」{$tide2_delay} 秒后再斩一次（{$tide2_mult*100}% 伤害，重新瞄准）",
+   "routes": {
+    "gale": {
+     "id": "gale2",
+     "name": "卷风·追斩",
+     "icon": "skill_irene_s1",
+     "desc": "「起风」{$gale2_delay} 秒后，自身周围 {$gale_r*$gale2_r_k:0} 内（多为被卷起的）敌人再受刺击 {$gale2_mult*100}% 伤害"
+    },
+    "tide": {
+     "id": "tide3",
+     "name": "裂潮·三度",
+     "icon": "skill_irene_s2",
+     "desc": "「裂潮」{$tide2_delay*2} 秒后第三次斩击：以自身为中心半径 {$tide_r}，裂潮 {$tide3_mult*100}% 伤害"
+    }
+   }
   },
   {
    "type": "elite",
@@ -877,8 +912,64 @@
     "trig": "passive",
     "do": [],
     "_doc": "精二裂潮余波：写在 attack.finisher（cond elite >= 2）；追诉写在 attack.pursue"
+   },
+   "gale2": {
+    "trig": "on_skill_start",
+    "skill": 0,
+    "delay": "$gale2_delay",
+    "_doc": "卷风·追斩（路线 gale 节点 5）：起风后追斩周围（审判之火对浮空加成照常）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$gale_r*$gale2_r_k",
+      "mult": "$gale2_mult",
+      "power": true,
+      "src": "起风",
+      "tags": [
+       "skill"
+      ]
+     }
+    ]
+   },
+   "tide3": {
+    "trig": "on_skill_start",
+    "skill": 1,
+    "delay": "$tide2_delay*2",
+    "_doc": "裂潮·三度（路线 tide 节点 5）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$tide_r",
+      "mult": "$s2_mult*$tide3_mult",
+      "power": true,
+      "src": "裂潮",
+      "tags": [
+       "skill"
+      ]
+     }
+    ]
    }
-  }
+  },
+  "response": [
+   {
+    "trig": "on_stance",
+    "to": "recall",
+    "hint": "起风",
+    "_doc": "响应动作（docs/118 §4.4，取设计稿的归队这一半）：切到归队时，她在自己身边起风，半径 90 内的敌人浮空 0.8 秒（同 S1 节点「狂风」的浮空，Boss 不受），掩护队伍收拢；浮空照常吃天赋「审判之火」与精二追诉",
+    "do": [
+     {
+      "verb": "lift_around",
+      "center": "self",
+      "r": 90,
+      "pad": 30,
+      "dur": 0.8,
+      "h": 20
+     }
+    ]
+   }
+  ]
  },
  "extra_sprites": [
   "finisher",
@@ -904,5 +995,10 @@
   "yield": [
    "finisher"
   ]
+ },
+ "response": {
+  "name": "起风",
+  "trigger": "指挥：归队",
+  "desc": "切到归队时，她在身边扬起一阵风，周围的敌人浮空 0.8 秒，掩护队伍收拢"
  }
 }

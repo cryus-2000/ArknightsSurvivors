@@ -3,22 +3,69 @@
  "name": "能天使",
  "en": "EXUSIAI",
  "class": "狙击",
- "faction": ["企鹅物流"],
- "col": [0.95, 0.3, 0.3],
+ "faction": [
+  "企鹅物流"
+ ],
+ "col": [
+  0.95,
+  0.3,
+  0.3
+ ],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值（docs/59 §4 / §8.4，本机冒烟后上调：atk 9 → 13、普攻穿透 2、击退 30 → 40（10-12 第一旋钮）、S1 穿透 3、S3 ×0.8、倾泻 ×1.0、双枪提前到第 1 节点，docs/61 §14.3）；纯数据干员，行为在 blocks 段（docs/61 §14）。子弹数 = shots × 属性 op_shots（基础 1，成长节点「双枪」与精英二各 +1，带 op_shots 的藏品同样生效）；muzzle = 枪口（docs/64 §5.2 返修后出手帧 @2x (+30, −35)，脚底为原点、朝右）；弹药颜色按模式分（docs/25 §6.1，纯画面）：速射红、S1 冰青、S2 琥珀橙、S3 过热白、倾泻金；精英化形态（docs/91 §2）：e1_* 精一「穿甲连射」（st.stack，原 +3% / 30% 按输出位预算改 +2% / 20%），e2_* 精二「天使的祝福」（取代子弹数 +1）",
-  "atk": 15, "cd": 0.35, "range": 300, "bullet_speed": 520, "shots": 1, "pierce": 2, "kb": 40, "spread_deg": 8, "elite_prio": 1.2,
-  "s1_ammo": 6, "s1_mult": 1.8, "s1_pierce": 3,
-  "s2_dur": 8.0, "s2_cd": 0.20, "s2_mult": 0.9, "s2_overheat": 1.0,
-  "s3_dur": 10.0, "s3_burst": 4, "s3_gap": 0.06, "s3_mult": 0.8, "s3_range": 0.2, "s3_prio": 99, "s3_pause": 0.2,
-  "mag_cap": 8, "mag_lit_bonus": 2, "mag_shots": 8, "mag_spread_deg": 25, "mag_mult": 1.2, "mag_pierce": 1,
-  "n1_range": 0.15, "n2_mult": 1.15, "twin_shots": 1, "ricochet_chance": 0.5, "ricochet_r": 120, "ricochet_mult": 0.5, "e2_mag_cap": 12,
-  "e1_per": 0.02, "e1_max": 10, "e1_decay": 1.5, "e2_aspd": 0.15
+  "atk": 15,
+  "cd": 0.35,
+  "range": 300,
+  "bullet_speed": 520,
+  "shots": 1,
+  "pierce": 2,
+  "kb": 40,
+  "spread_deg": 8,
+  "elite_prio": 1.2,
+  "s1_ammo": 6,
+  "s1_mult": 1.8,
+  "s1_pierce": 3,
+  "s2_dur": 8.0,
+  "s2_cd": 0.2,
+  "s2_mult": 0.9,
+  "s2_overheat": 1.0,
+  "s3_dur": 10.0,
+  "s3_burst": 4,
+  "s3_gap": 0.06,
+  "s3_mult": 0.8,
+  "s3_range": 0.2,
+  "s3_prio": 99,
+  "s3_pause": 0.2,
+  "mag_cap": 8,
+  "mag_lit_bonus": 2,
+  "mag_shots": 8,
+  "mag_spread_deg": 25,
+  "mag_mult": 1.2,
+  "mag_pierce": 1,
+  "n1_range": 0.15,
+  "n2_mult": 1.15,
+  "twin_shots": 1,
+  "ricochet_chance": 0.5,
+  "ricochet_r": 120,
+  "ricochet_mult": 0.5,
+  "e2_mag_cap": 12,
+  "e1_per": 0.02,
+  "e1_max": 10,
+  "e1_decay": 1.5,
+  "e2_aspd": 0.15,
+  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 延长弹道 / 跳弹，节点 5：range2_* 延长弹道·猎杀（射程 + 击杀多攒弹匣），frag_* 跳弹·碎裂（击杀处弹片）。数值为待试验参数",
+  "range2_add": 0.1,
+  "range2_mag": 1,
+  "frag_r": 60,
+  "frag_mult": 0.4
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1613 / 防御 136 / 法抗 0%，远程主控有效生命 ×1.00",
-  "max_hp": 110, "armor": 1.0, "arts_res": 0.0, "regen": 1.3
+  "max_hp": 110,
+  "armor": 1.0,
+  "arts_res": 0.0,
+  "regen": 1.3
  },
  "sprites": {
   "idle": {
@@ -150,66 +197,483 @@
    }
   }
  },
- "attack": {"mode": "auto", "name": "速射", "desc": "每 {$cd} 秒向最近的敌人（精英优先）射出 {$shots} 发物理弹（射程 {$range}，穿透 {$pierce} 名敌人，轻微击退）；每次射击的子弹数可以成长，多发时各自瞄准不同的敌人，最近的是 Boss 时全部打 Boss"},
+ "attack": {
+  "mode": "auto",
+  "name": "速射",
+  "desc": "每 {$cd} 秒向最近的敌人（精英优先）射出 {$shots} 发物理弹（射程 {$range}，穿透 {$pierce} 名敌人，轻微击退）；每次射击的子弹数可以成长，多发时各自瞄准不同的敌人，最近的是 Boss 时全部打 Boss"
+ },
  "skills": [
-  {"name": "冲锋模式", "en": "CHARGING MODE", "sp": 6, "desc": "装填 {$s1_ammo} 发强力弹：之后的子弹每发伤害 ×{$s1_mult}、穿透 {$s1_pierce} 名敌人，打完为止（每次射击按子弹数消耗强力弹）", "icon": "skill_exusiai_s1"},
-  {"name": "扫射模式", "en": "SHOOTING MODE", "sp": 14, "dur": 8.0, "desc": "{$s2_dur} 秒：射击间隔 {$cd} → {$s2_cd} 秒，每发伤害 ×{$s2_mult}；结束时枪管过热，{$s2_overheat} 秒不能射击", "icon": "skill_exusiai_s2"},
-  {"name": "过载模式", "en": "OVERLOADING MODE", "sp": 22, "dur": 10.0, "desc": "{$s3_dur} 秒：每次射击改为 {$s3_burst} 连射（每发伤害 ×{$s3_mult}），射程 +{$s3_range*100}%，优先瞄准精英与 Boss；连射与子弹数相乘；每轮最后一发让非精英停顿 {$s3_pause} 秒", "icon": "skill_exusiai_s3"}
+  {
+   "name": "冲锋模式",
+   "en": "CHARGING MODE",
+   "sp": 6,
+   "desc": "装填 {$s1_ammo} 发强力弹：之后的子弹每发伤害 ×{$s1_mult}、穿透 {$s1_pierce} 名敌人，打完为止（每次射击按子弹数消耗强力弹）",
+   "icon": "skill_exusiai_s1"
+  },
+  {
+   "name": "扫射模式",
+   "en": "SHOOTING MODE",
+   "sp": 14,
+   "dur": 8.0,
+   "desc": "{$s2_dur} 秒：射击间隔 {$cd} → {$s2_cd} 秒，每发伤害 ×{$s2_mult}；结束时枪管过热，{$s2_overheat} 秒不能射击",
+   "icon": "skill_exusiai_s2"
+  },
+  {
+   "name": "过载模式",
+   "en": "OVERLOADING MODE",
+   "sp": 22,
+   "dur": 10.0,
+   "desc": "{$s3_dur} 秒：每次射击改为 {$s3_burst} 连射（每发伤害 ×{$s3_mult}），射程 +{$s3_range*100}%，优先瞄准精英与 Boss；连射与子弹数相乘；每轮最后一发让非精英停顿 {$s3_pause} 秒",
+   "icon": "skill_exusiai_s3"
+  }
  ],
- "talent": {"name": "快速弹匣", "desc": "弹匣：她每击杀 1 名敌人弹匣 +1（上限 {$mag_cap}，精英二起 {$e2_mag_cap}），敌人倒在队长照亮范围内时 +{$mag_lit_bonus}；弹匣满时下一次射击改为一次倾泻：{$mag_shots} 发扇形散射（每发伤害 ×{$mag_mult}，穿透 {$mag_pierce} 名敌人），然后清空"},
+ "talent": {
+  "name": "快速弹匣",
+  "desc": "弹匣：她每击杀 1 名敌人弹匣 +1（上限 {$mag_cap}，精英二起 {$e2_mag_cap}），敌人倒在队长照亮范围内时 +{$mag_lit_bonus}；弹匣满时下一次射击改为一次倾泻：{$mag_shots} 发扇形散射（每发伤害 ×{$mag_mult}，穿透 {$mag_pierce} 名敌人），然后清空"
+ },
  "hit_sources": {
-  "速射": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "物理", "tags": ["projectile", "basic"]},
-  "冲锋模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "物理", "tags": ["skill", "projectile", "pierce"]},
-  "过载模式": {"emitter": "operator", "origin": "skill", "range": "远程", "kind": "物理", "tags": ["skill", "projectile"]},
-  "弹匣倾泻": {"emitter": "operator", "origin": "talent", "range": "远程", "kind": "物理", "tags": ["projectile", "pierce", "area"]},
-  "跳弹": {"emitter": "operator", "origin": "core", "range": "远程", "kind": "物理", "tags": ["follow_up", "ricochet"]}
+  "速射": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "projectile",
+    "basic"
+   ]
+  },
+  "冲锋模式": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "projectile",
+    "pierce"
+   ]
+  },
+  "过载模式": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "projectile"
+   ]
+  },
+  "弹匣倾泻": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "projectile",
+    "pierce",
+    "area"
+   ]
+  },
+  "跳弹": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "follow_up",
+    "ricochet"
+   ]
+  },
+  "掩护射击": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "projectile"
+   ]
+  },
+  "弹片": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "area",
+    "follow_up"
+   ]
+  }
  },
  "progression": [
-  {"type": "custom", "id": "twin", "name": "双枪", "icon": "growth_b_count", "desc": "每次射击的子弹数 +{$twin_shots}"},
-  {"type": "custom", "id": "power", "name": "高压弹", "icon": "growth_b_size", "desc": "她的伤害 ×{$n2_mult}"},
-  {"type": "elite", "level": 1, "name": "精英一", "desc": "解锁二技能「扫射模式」；解锁天赋「快速弹匣」：击杀攒满弹匣后倾泻 {$mag_shots} 发；普攻「穿甲连射」：连续命中同一名敌人时每发伤害 +{$e1_per*100}%（最多 +{$e1_per*$e1_max*100}%），{$e1_decay} 秒未命中该敌人则清零",
-   "attack": {"name": "穿甲连射", "desc": "速射连续命中同一名敌人时每发伤害 +{$e1_per*100}%（最多 +{$e1_per*$e1_max*100}%），子弹由白转金，叠满时命中迸出金色火花；{$e1_decay} 秒未命中该敌人则清零"}},
-  {"type": "custom", "id": "range", "name": "延长弹道", "icon": "growth_b_range", "desc": "射程 +{$n1_range*100}%"},
-  {"type": "custom", "id": "ricochet", "name": "跳弹", "icon": "growth_b_echo", "desc": "子弹命中后有 {$ricochet_chance*100}% 概率跳向 {$ricochet_r} 内另一名敌人（伤害 {$ricochet_mult*100}%）"},
-  {"type": "elite", "level": 2, "name": "精英二", "desc": "解锁三技能「过载模式」；普攻质变「天使的祝福」：编队中另外两名干员头顶浮现光环，攻击速度 +{$e2_aspd*100}%；弹匣上限 {$mag_cap} → {$e2_mag_cap}",
-   "attack": {"name": "天使的祝福", "desc": "编队中另外两名干员头顶浮现金色光环：攻击速度 +{$e2_aspd*100}%，每次攻击带一道金色闪光；她开火时光环随之一亮。弹匣上限 {$mag_cap} → {$e2_mag_cap}"}}
+  {
+   "type": "custom",
+   "id": "twin",
+   "name": "双枪",
+   "icon": "growth_b_count",
+   "desc": "每次射击的子弹数 +{$twin_shots}"
+  },
+  {
+   "type": "custom",
+   "id": "power",
+   "name": "高压弹",
+   "icon": "growth_b_size",
+   "desc": "她的伤害 ×{$n2_mult}"
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英一",
+   "desc": "解锁二技能「扫射模式」；解锁天赋「快速弹匣」：击杀攒满弹匣后倾泻 {$mag_shots} 发；普攻「穿甲连射」：连续命中同一名敌人时每发伤害 +{$e1_per*100}%（最多 +{$e1_per*$e1_max*100}%），{$e1_decay} 秒未命中该敌人则清零",
+   "attack": {
+    "name": "穿甲连射",
+    "desc": "速射连续命中同一名敌人时每发伤害 +{$e1_per*100}%（最多 +{$e1_per*$e1_max*100}%），子弹由白转金，叠满时命中迸出金色火花；{$e1_decay} 秒未命中该敌人则清零"
+   }
+  },
+  {
+   "type": "custom",
+   "id": "range",
+   "name": "延长弹道",
+   "icon": "growth_b_range",
+   "desc": "射程 +{$n1_range*100}%",
+   "branch": {
+    "range": {
+     "id": "range",
+     "name": "延长弹道",
+     "icon": "growth_b_range",
+     "desc": "射程 +{$n1_range*100}%"
+    },
+    "ricochet": {
+     "id": "ricochet",
+     "name": "跳弹",
+     "icon": "growth_b_echo",
+     "desc": "子弹命中后有 {$ricochet_chance*100}% 概率跳向 {$ricochet_r} 内另一名敌人（伤害 {$ricochet_mult*100}%）"
+    }
+   },
+   "branch_desc": "二选一：「延长弹道」—射程更远；「跳弹」—子弹命中后跳向另一名敌人。之后的节点沿所选路线强化",
+   "bot": "range"
+  },
+  {
+   "type": "custom",
+   "id": "ricochet",
+   "name": "跳弹",
+   "icon": "growth_b_echo",
+   "desc": "子弹命中后有 {$ricochet_chance*100}% 概率跳向 {$ricochet_r} 内另一名敌人（伤害 {$ricochet_mult*100}%）",
+   "routes": {
+    "range": {
+     "id": "range2",
+     "name": "延长弹道·猎杀",
+     "icon": "growth_b_range",
+     "desc": "射程再 +{$range2_add*100}%；她每击杀一名敌人，弹匣额外 +{$range2_mag}（倾泻更勤）"
+    },
+    "ricochet": {
+     "id": "ricochet2",
+     "name": "跳弹·碎裂",
+     "icon": "growth_b_echo",
+     "desc": "她击杀的敌人处迸出弹片，半径 {$frag_r} 内的敌人受到 {$frag_mult*100}% 伤害"
+    }
+   }
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英二",
+   "desc": "解锁三技能「过载模式」；普攻质变「天使的祝福」：编队中另外两名干员头顶浮现光环，攻击速度 +{$e2_aspd*100}%；弹匣上限 {$mag_cap} → {$e2_mag_cap}",
+   "attack": {
+    "name": "天使的祝福",
+    "desc": "编队中另外两名干员头顶浮现金色光环：攻击速度 +{$e2_aspd*100}%，每次攻击带一道金色闪光；她开火时光环随之一亮。弹匣上限 {$mag_cap} → {$e2_mag_cap}"
+   }
+  }
  ],
- "gallery": {"demo_mate": {"op": "texas", "elite": 2}, "tags": ["远程", "连射", "子弹数", "弹匣"], "desc": "狙击干员，持双枪连射，每秒可达三发。每次射击的子弹数随成长增加；弹匣随击杀增长（每次 +1，照亮范围内击杀 +{$mag_lit_bonus}），攒满后倾泻一轮扇形射击"},
+ "gallery": {
+  "demo_mate": {
+   "op": "texas",
+   "elite": 2
+  },
+  "tags": [
+   "远程",
+   "连射",
+   "子弹数",
+   "弹匣"
+  ],
+  "desc": "狙击干员，持双枪连射，每秒可达三发。每次射击的子弹数随成长增加；弹匣随击杀增长（每次 +1，照亮范围内击杀 +{$mag_lit_bonus}），攒满后倾泻一轮扇形射击"
+ },
  "blocks": {
-  "attack": {"shape": "projectile", "every": "$cd", "range": "$range", "speed": "$bullet_speed", "shots": "$shots", "spread_deg": "$spread_deg", "elite_prio": "$elite_prio", "focus_boss": true, "pierce": "$pierce", "kb": "$kb",
-             "mult": 1.0, "src": "速射", "tex": "proj_exusiai_bullet", "muzzle": [30, -35]},
+  "attack": {
+   "shape": "projectile",
+   "every": "$cd",
+   "range": "$range",
+   "speed": "$bullet_speed",
+   "shots": "$shots",
+   "spread_deg": "$spread_deg",
+   "elite_prio": "$elite_prio",
+   "focus_boss": true,
+   "pierce": "$pierce",
+   "kb": "$kb",
+   "mult": 1.0,
+   "src": "速射",
+   "tex": "proj_exusiai_bullet",
+   "muzzle": [
+    30,
+    -35
+   ]
+  },
   "skills": [
-   {"dur": {"ammo": "$s1_ammo"}, "attack_patch": {"mult": "$s1_mult", "pierce": "$s1_pierce", "src": "冲锋模式", "power": true,
-                                         "tex": "proj_exusiai_bullet_s1", "muzzle_fx": "fx_exusiai_muzzle_s1", "hit_fx": "fx_exusiai_hit_s1"}},
-   {"dur": "$s2_dur", "do": [{"verb": "mode", "interval_mult": "$s2_cd/$cd", "dmg_mult": "$s2_mult"}],
-    "end": [{"verb": "attack_lock", "dur": "$s2_overheat"}],
-    "attack_patch": {"tex": "proj_exusiai_bullet_s2", "muzzle_fx": "fx_exusiai_muzzle_s2", "hit_fx": "fx_exusiai_hit_s2"}},
-   {"dur": "$s3_dur", "attack_patch": {"burst": "$s3_burst", "burst_gap": "$s3_gap", "mult": "$s3_mult", "range_mult": "1+$s3_range", "elite_prio": "$s3_prio",
-                                         "src": "过载模式", "power": true, "last_on_hit": [{"st": "pause", "dur": "$s3_pause"}],
-                                         "tex": "proj_exusiai_bullet_s3", "muzzle_fx": "fx_exusiai_muzzle_s3", "hit_fx": "fx_exusiai_hit_s3"}}
+   {
+    "dur": {
+     "ammo": "$s1_ammo"
+    },
+    "attack_patch": {
+     "mult": "$s1_mult",
+     "pierce": "$s1_pierce",
+     "src": "冲锋模式",
+     "power": true,
+     "tex": "proj_exusiai_bullet_s1",
+     "muzzle_fx": "fx_exusiai_muzzle_s1",
+     "hit_fx": "fx_exusiai_hit_s1"
+    }
+   },
+   {
+    "dur": "$s2_dur",
+    "do": [
+     {
+      "verb": "mode",
+      "interval_mult": "$s2_cd/$cd",
+      "dmg_mult": "$s2_mult"
+     }
+    ],
+    "end": [
+     {
+      "verb": "attack_lock",
+      "dur": "$s2_overheat"
+     }
+    ],
+    "attack_patch": {
+     "tex": "proj_exusiai_bullet_s2",
+     "muzzle_fx": "fx_exusiai_muzzle_s2",
+     "hit_fx": "fx_exusiai_hit_s2"
+    }
+   },
+   {
+    "dur": "$s3_dur",
+    "attack_patch": {
+     "burst": "$s3_burst",
+     "burst_gap": "$s3_gap",
+     "mult": "$s3_mult",
+     "range_mult": "1+$s3_range",
+     "elite_prio": "$s3_prio",
+     "src": "过载模式",
+     "power": true,
+     "last_on_hit": [
+      {
+       "st": "pause",
+       "dur": "$s3_pause"
+      }
+     ],
+     "tex": "proj_exusiai_bullet_s3",
+     "muzzle_fx": "fx_exusiai_muzzle_s3",
+     "hit_fx": "fx_exusiai_hit_s3"
+    }
+   }
   ],
   "talent": [
-   {"trig": "on_kill", "do": [{"verb": "counter", "name": "mag", "label": "弹匣", "own": true, "add": 1, "add_lit": "$mag_lit_bonus", "cap": "$mag_cap"}]},
-   {"trig": "on_attack", "counter": "mag", "do": [
-    {"shape": "projectile", "shots": "$mag_shots", "fan": true, "spread_deg": "$mag_spread_deg", "pierce": "$mag_pierce", "mult": "$mag_mult", "src": "弹匣倾泻",
-     "tex": "proj_exusiai_bullet_power", "muzzle_fx": "fx_exusiai_muzzle_gold", "hit_fx": "fx_exusiai_hit_gold"}]}
+   {
+    "trig": "on_kill",
+    "do": [
+     {
+      "verb": "counter",
+      "name": "mag",
+      "label": "弹匣",
+      "own": true,
+      "add": 1,
+      "add_lit": "$mag_lit_bonus",
+      "cap": "$mag_cap"
+     }
+    ]
+   },
+   {
+    "trig": "on_attack",
+    "counter": "mag",
+    "do": [
+     {
+      "shape": "projectile",
+      "shots": "$mag_shots",
+      "fan": true,
+      "spread_deg": "$mag_spread_deg",
+      "pierce": "$mag_pierce",
+      "mult": "$mag_mult",
+      "src": "弹匣倾泻",
+      "tex": "proj_exusiai_bullet_power",
+      "muzzle_fx": "fx_exusiai_muzzle_gold",
+      "hit_fx": "fx_exusiai_hit_gold"
+     }
+    ]
+   }
   ],
   "progression": {
-   "range": {"verb": "buff_self", "stat": "op_range", "op": "add", "value": "$n1_range"},
-   "power": {"verb": "buff_self", "stat": "dmg", "op": "mult", "value": "$n2_mult"},
-   "twin": {"verb": "buff_self", "stat": "op_shots", "op": "add", "value": "$twin_shots"},
-   "ricochet": {"verb": "ricochet", "chance": "$ricochet_chance", "r": "$ricochet_r", "mult": "$ricochet_mult", "src": "跳弹"},
-   "elite1": {"trig": "passive", "_doc": "穿甲连射（docs/91 §2）：速射连续命中同一名敌人逐发增伤，弹体按层数白 → 浅金 → 金，叠满换金色命中火花", "do": [
-    {"st": "stack", "key": "pierce", "per": "$e1_per", "max": "$e1_max", "decay": "$e1_decay", "src": ["速射"],
-     "tex": ["proj_exusiai_bullet_t1", "proj_exusiai_bullet_t2", "proj_exusiai_bullet_t3"], "full_fx": "fx_exusiai_pierce_gold"}]},
+   "range": {
+    "verb": "buff_self",
+    "stat": "op_range",
+    "op": "add",
+    "value": "$n1_range"
+   },
+   "power": {
+    "verb": "buff_self",
+    "stat": "dmg",
+    "op": "mult",
+    "value": "$n2_mult"
+   },
+   "twin": {
+    "verb": "buff_self",
+    "stat": "op_shots",
+    "op": "add",
+    "value": "$twin_shots"
+   },
+   "ricochet": {
+    "verb": "ricochet",
+    "chance": "$ricochet_chance",
+    "r": "$ricochet_r",
+    "mult": "$ricochet_mult",
+    "src": "跳弹"
+   },
+   "elite1": {
+    "trig": "passive",
+    "_doc": "穿甲连射（docs/91 §2）：速射连续命中同一名敌人逐发增伤，弹体按层数白 → 浅金 → 金，叠满换金色命中火花",
+    "do": [
+     {
+      "st": "stack",
+      "key": "pierce",
+      "per": "$e1_per",
+      "max": "$e1_max",
+      "decay": "$e1_decay",
+      "src": [
+       "速射"
+      ],
+      "tex": [
+       "proj_exusiai_bullet_t1",
+       "proj_exusiai_bullet_t2",
+       "proj_exusiai_bullet_t3"
+      ],
+      "full_fx": "fx_exusiai_pierce_gold"
+     }
+    ]
+   },
    "elite2": [
-    {"trig": "passive", "_doc": "天使的祝福（docs/91 §2）：另外两名干员攻速 +15%，头顶金色光环（她开火时一亮）", "do": [
-     {"aura": "aspd", "value": "$e2_aspd", "scope": "others",
-      "fx": [{"strip": "fx_exusiai_halo", "hold": true, "at": "members", "layer": "over", "off": [0, -66], "flash": "fire", "fade": 0.3}]},
-     {"verb": "counter_cap", "name": "mag", "value": "$e2_mag_cap"}]},
-    {"trig": "on_mate_attack", "scope": "others", "fx": [
-     {"strip": "fx_exusiai_blessed_flash", "at": "mate"},
-     {"pfx": {"kind": "glow", "r": 9, "life": 0.16, "col": [1.5, 1.15, 0.45], "alpha": 0.75}, "if_tex": "!fx_exusiai_blessed_flash"}]}]
-  }
+    {
+     "trig": "passive",
+     "_doc": "天使的祝福（docs/91 §2）：另外两名干员攻速 +15%，头顶金色光环（她开火时一亮）",
+     "do": [
+      {
+       "aura": "aspd",
+       "value": "$e2_aspd",
+       "scope": "others",
+       "fx": [
+        {
+         "strip": "fx_exusiai_halo",
+         "hold": true,
+         "at": "members",
+         "layer": "over",
+         "off": [
+          0,
+          -66
+         ],
+         "flash": "fire",
+         "fade": 0.3
+        }
+       ]
+      },
+      {
+       "verb": "counter_cap",
+       "name": "mag",
+       "value": "$e2_mag_cap"
+      }
+     ]
+    },
+    {
+     "trig": "on_mate_attack",
+     "scope": "others",
+     "fx": [
+      {
+       "strip": "fx_exusiai_blessed_flash",
+       "at": "mate"
+      },
+      {
+       "pfx": {
+        "kind": "glow",
+        "r": 9,
+        "life": 0.16,
+        "col": [
+         1.5,
+         1.15,
+         0.45
+        ],
+        "alpha": 0.75
+       },
+       "if_tex": "!fx_exusiai_blessed_flash"
+      }
+     ]
+    }
+   ],
+   "range2": [
+    {
+     "verb": "buff_self",
+     "stat": "op_range",
+     "op": "add",
+     "value": "$range2_add"
+    },
+    {
+     "trig": "on_kill",
+     "do": [
+      {
+       "verb": "counter",
+       "name": "mag",
+       "add": "$range2_mag",
+       "cap": "$mag_cap"
+      }
+     ],
+     "_doc": "延长弹道·猎杀（路线 range 节点 5）：击杀额外 +1 弹匣"
+    }
+   ],
+   "ricochet2": {
+    "trig": "on_kill",
+    "_doc": "跳弹·碎裂（路线 ricochet 节点 5）：击杀处弹片四溅",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$frag_r",
+      "mult": "$frag_mult",
+      "src": "弹片",
+      "tags": [
+       "basic",
+       "follow_up"
+      ]
+     }
+    ]
+   }
+  },
+  "response": [
+   {
+    "trig": "on_leader_dash",
+    "hint": "掩护",
+    "_doc": "响应动作（docs/118 §4.1）：队长冲刺起步时，她朝队长冲刺方向身后（她射程内）离队长最近的敌人补射一轮，发数同普攻（op_shots），每发 ×0.8；身后没有敌人就打离队长最近的。不占普攻冷却；补射击杀照常攒弹匣",
+    "do": [
+     {
+      "shape": "projectile",
+      "aim": "behind_leader",
+      "shots": "$shots",
+      "op_shots": true,
+      "spread_deg": "$spread_deg",
+      "pierce": "$pierce",
+      "mult": 0.8,
+      "src": "掩护射击"
+     }
+    ]
+   }
+  ]
+ },
+ "response": {
+  "name": "掩护射击",
+  "trigger": "队长冲刺",
+  "desc": "队长每次冲刺起步，她朝队长身后最近的敌人补射一轮（发数同普攻，每发 80% 伤害），掩护队长撤出；补射击倒的敌人照常填充弹匣"
  }
 }

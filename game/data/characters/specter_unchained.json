@@ -56,7 +56,13 @@
   "flash_r": 140,
   "flash_mult": 1.5,
   "flash_spins": 3,
-  "flash_gap": 0.15
+  "flash_gap": 0.15,
+  "flash_n": 16,
+  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 困兽 / 阿戈尔挽歌，节点 5：beast2_* 困兽·反噬（技巧期间每斩拉近），elegy2_* 阿戈尔挽歌·安魂（渴望期间替身周围伤害 + 减速）。数值为待试验参数",
+  "beast2_r_k": 1.8,
+  "beast2_dist": 25,
+  "elegy2_mult": 0.3,
+  "elegy2_slow": 1.0
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 2803 / 防御 322 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -261,7 +267,7 @@
     60
    ],
    "fire": 1,
-   "_doc": "替身连斩旋身（原作无此动作）：Start_B 张袍姿势 + 镜像；整个连斩段播一遍，三斩落在帧 1 / 4 / 6（正 / 反 / 正，与锯环转向一致）"
+   "_doc": "替身闪现出手（10-21 用户选 ①）：原作替身没有攻击轨，把本体 Skill_3_Attack 的身体动作按骨骼名转到替身上（tools/spine_run_trial cfg/specter_doll_cast.json）；整个出手段播一遍，三次法术脉冲落在帧 1 / 4 / 6（双手前伸）"
   },
   "native_doll_idle": {
    "tex": "op_specter_unchained_native_doll",
@@ -493,7 +499,7 @@
    "emitter": "summon",
    "origin": "core",
    "range": "近战",
-   "kind": "物理",
+   "kind": "法术",
    "tags": [
     "area",
     "entity"
@@ -530,23 +536,53 @@
    "id": "beast",
    "name": "困兽",
    "icon": "skill_specter_unchained_s1",
-   "desc": "「生存的技巧」期间锯刃变红、环斩半径 +{$beast_reach*100-100}%"
+   "desc": "「生存的技巧」期间锯刃变红、环斩半径 +{$beast_reach*100-100}%",
+   "branch": {
+    "beast": {
+     "id": "beast",
+     "name": "困兽",
+     "icon": "skill_specter_unchained_s1",
+     "desc": "「生存的技巧」期间锯刃变红、环斩半径 +{$beast_reach*100-100}%"
+    },
+    "elegy": {
+     "id": "elegy",
+     "name": "阿戈尔挽歌",
+     "icon": "skill_specter_unchained_s2",
+     "desc": "替身唱起阿戈尔挽歌：每 {$elegy_every} 秒一圈水纹外扩，减速范围 ×{$elegy_r_mult}（{$doll_r*$elegy_r_mult}）"
+    }
+   },
+   "branch_desc": "二选一：「困兽」—生存的技巧期间环斩半径更大；「阿戈尔挽歌」—替身的水纹减速范围翻倍。之后的节点沿所选路线强化",
+   "bot": "beast"
   },
   {
    "type": "custom",
    "id": "elegy",
    "name": "阿戈尔挽歌",
    "icon": "skill_specter_unchained_s2",
-   "desc": "替身唱起阿戈尔挽歌：每 {$elegy_every} 秒一圈水纹外扩，减速范围 ×{$elegy_r_mult}（{$doll_r*$elegy_r_mult}）"
+   "desc": "替身唱起阿戈尔挽歌：每 {$elegy_every} 秒一圈水纹外扩，减速范围 ×{$elegy_r_mult}（{$doll_r*$elegy_r_mult}）",
+   "routes": {
+    "beast": {
+     "id": "beast2",
+     "name": "困兽·反噬",
+     "icon": "skill_specter_s1",
+     "desc": "「生存的技巧」期间每次环斩起手把周围 {$reach*$beast2_r_k:0} 内的敌人拉近 {$beast2_dist}（精英减半，Boss 不动）"
+    },
+    "elegy": {
+     "id": "elegy2",
+     "name": "阿戈尔挽歌·安魂",
+     "icon": "skill_specter_s2",
+     "desc": "「生存的渴望」期间每 {$elegy_every} 秒，替身周围 {$doll_r} 内的敌人受到 {$elegy2_mult*100}% 法术伤害并减速 {$elegy2_slow} 秒"
+    }
+   }
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「生存的重压」：环斩间隔 ×{$s3_cd_mult}、每斩 ×{$s3_mult}，对生命低于 50% 的敌人再 ×{$s3_low_mult}；普攻质变「替身闪现」：每第 3 次环斩，替身在附近敌群最密处现身，连斩 {$flash_spins} 圈（半径 {$flash_r}，每圈 {$flash_mult*100}% 伤害）后碎成泡沫消失",
+   "desc": "解锁三技能「生存的重压」：环斩间隔 ×{$s3_cd_mult}、每斩 ×{$s3_mult}，对生命低于 50% 的敌人再 ×{$s3_low_mult}；普攻质变「替身闪现」：每第 3 次环斩，替身在附近敌群最密处现身，释放 {$flash_spins} 次法术脉冲（半径 {$flash_r}，每次命中最近 {$flash_n} 个，{$flash_mult*100}% 伤害）后碎成泡沫消失",
    "attack": {
     "name": "替身闪现",
-    "desc": "每第 3 次环斩，替身在 {$flash_range} 内敌群最密处从水花里现身，连斩 {$flash_spins} 圈冷色锯环（半径 {$flash_r}，每圈为环斩的 {$flash_mult*100}% 伤害），随后碎成泡沫消失；同时最多 1 个，替身跟随队长期间不出现"
+    "desc": "每第 3 次环斩，替身在 {$flash_range} 内敌群最密处从水花里现身，以自身为中心释放 {$flash_spins} 次法术脉冲（半径 {$flash_r}，每次命中最近的 {$flash_n} 个敌人，优先首领与精英，为环斩的 {$flash_mult*100}% 伤害），随后碎成泡沫消失；同时最多 1 个，替身跟随队长期间不出现"
    }
   }
  ],
@@ -1024,7 +1060,74 @@
    "elite2": {
     "trig": "every_n",
     "n": 3,
-    "_doc": "精二替身闪现（取代无尽回旋，不常驻）：每第 3 次环斩，替身人偶在 300 内敌群最密处现身，连斩 3 圈冷色锯环（间隔 0.15 秒）后碎成泡沫，全程约 1 秒",
+    "_doc": "精二替身闪现（取代无尽回旋，不常驻）：每第 3 次环斩，替身人偶在 300 内敌群最密处现身，以自身为中心放 3 次法术脉冲（间隔 0.15 秒，同浊心普攻：圈内最近 flash_n 个、Boss / 精英优先；10-21 用户定，原为冷色锯环），随后碎成泡沫，全程约 1 秒",
+    "do": [
+     {
+      "verb": "doll_flash",
+      "range": "$flash_range",
+      "r": "$flash_r",
+      "basis": "attack",
+      "mult": "$flash_mult",
+      "appear": 0.25,
+      "spin": 0.45,
+      "burst": 0.3,
+      "anim": "doll_spin",
+      "src": "替身闪现",
+      "spins": "$flash_spins",
+      "spin_gap": "$flash_gap",
+      "max_n": "$flash_n"
+     }
+    ]
+   },
+   "beast2": {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "skill_active:0",
+    "_doc": "困兽·反噬（路线 beast 节点 5）：技巧期间每斩拉近周围敌人",
+    "do": [
+     {
+      "verb": "displace",
+      "dir": "pull",
+      "center": "self",
+      "r": "$reach*$beast2_r_k",
+      "dist": "$beast2_dist",
+      "elite_mult": 0.5
+     }
+    ]
+   },
+   "elegy2": {
+    "trig": "tick",
+    "every": "$elegy_every",
+    "cond": "skill_active:1",
+    "_doc": "阿戈尔挽歌·安魂（路线 elegy 节点 5）：渴望期间替身（跟随队长）周围伤害 + 减速",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "leader",
+      "r": "$doll_r",
+      "mult": "$elegy2_mult",
+      "power": true,
+      "src": "替身",
+      "tags": [
+       "skill",
+       "dot"
+      ],
+      "on_hit": [
+       {
+        "st": "slow",
+        "dur": "$elegy2_slow"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  "response": [
+   {
+    "trig": "on_stance",
+    "to": "roam",
+    "hint": "替身",
+    "_doc": "响应动作（docs/118 §4.4）：切到突击时，替身立刻在她 300 内敌群最密处现身连斩（同精二「替身闪现」，各自计；已在场时不另放）。替身现身不是本体位移",
     "do": [
      {
       "verb": "doll_flash",
@@ -1041,8 +1144,45 @@
       "spin_gap": "$flash_gap"
      }
     ]
+   },
+   {
+    "trig": "on_stance",
+    "to": "gathered",
+    "hint": "回旋",
+    "_doc": "响应动作：归队集合完毕（全员到位）时，本体以自身为心环斩一圈（上一次环斩伤害 ×1.5，半径同普攻，击退同普攻）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$reach",
+      "basis": "attack",
+      "mult": 1.5,
+      "kb": "$kb",
+      "src": "锯刃",
+      "fx": [
+       {
+        "pfx": {
+         "kind": "ring",
+         "r": 1.0,
+         "r0": 10.0,
+         "life": 0.35,
+         "col": [
+          0.85,
+          0.2,
+          0.25
+         ],
+         "floor": true,
+         "w": 3.0
+        },
+        "r_scale": [
+         "r"
+        ]
+       }
+      ]
+     }
+    ]
    }
-  }
+  ]
  },
  "native_motion": {
   "_doc": "出手帧对齐（10-20 用户）：画面整条播 clip 秒，出手帧画面起点 = fire_time，收势越过逻辑窗口、下一动作打断（docs/108 §3.5）",
@@ -1052,5 +1192,10 @@
    "skill_s3": 1.5,
    "attack_s3": 0.833333
   }
+ },
+ "response": {
+  "name": "替身突袭",
+  "trigger": "指挥：突击 / 归队",
+  "desc": "切到突击时，替身立刻在附近敌群最密处现身连斩；归队集合完毕时，她环斩一圈（上一次环斩的 150%）"
  }
 }

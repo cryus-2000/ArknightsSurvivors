@@ -20,7 +20,7 @@ const D = 180 / Math.PI;
 const manifest = cfg.pack ? { global_transform: { scale: cfg.pack.scale, mapped_root: cfg.pack.root || [64, 120] }, alpha_cutoff: cfg.pack.alpha_cutoff || 96 }
   : JSON.parse(fs.readFileSync(`${BZ}/${cfg.id}/manifest.json`, 'utf8'));
 const catalog = cfg.pack ? { scale: 1 } : JSON.parse(fs.readFileSync(`${BT}/${cfg.id}/source/catalog.json`, 'utf8'));
-const SCALE = manifest.global_transform.scale * Number(catalog.scale);
+const SCALE = (manifest.global_transform.scale * Number(catalog.scale)) * (cfg.scaleMul || 1);   // scaleMul：召唤物等按自己的显示尺度（归溟替身沿用 Codex 召唤物管线尺度）
 const ANCHOR = manifest.global_transform.mapped_root.slice();
 // 画布：跑步 128；动作可加大（cfg.canvas），原点随之平移到中心，保持 (64,120) 相对位置
 const SIZE = cfg.canvas || 128, PAD = (SIZE - 128) / 2, CUT = manifest.alpha_cutoff || 96;
@@ -165,6 +165,8 @@ async function main() {
     if (cfg.keys?.[i]?.from) return deltaFrame(i, cfg.keys[i]);
     if (cfg.keys?.[i]?.view === 'B') return backFrame(i, cfg.keys[i]);
     // sample：直接按时间采样现成的 Spine 动画（如 Codex 交来的候选动画），只做像素化
+    // retarget：把本体动画的骨骼局部动作转到替身骨骼（名字带 2 后缀）上，只显示替身部件（归溟替身，doll_retarget.js）
+    if (cfg.retarget) { const R = cfg.retarget; return finish(require('./doll_retarget.js').retarget(pose, data, R.anim, R.times[i], R.base || ['Idle', 0], R.doll || ['Idle_B', 0.3]), [{ t: R.times[i] }]); }
     if (cfg.sample) {
       const sk = pose(cfg.sample.anim, cfg.sample.times[i]);
       if (cfg.sample.flatten != null) flatten(sk);
@@ -605,7 +607,7 @@ async function main() {
   fs.mkdirSync(OUT, { recursive: true });
   const report = [];
   const frames = [];
-  const N = cfg.poses?.length || cfg.keys?.length || cfg.sample?.times.length || 8, lines = [];
+  const N = cfg.poses?.length || cfg.keys?.length || cfg.sample?.times.length || cfg.retarget?.times.length || 8, lines = [];
   for (let i = 0; i < N; i++) {
     const { sk, contacts } = frame(i), { canvas: px, clipped } = pixelize(sk);
     // flip：回旋类动作转到背面的帧整帧水平镜像（原点在画布中线，镜像后脚下位置不变）

@@ -32,6 +32,8 @@ const ShopScreen = preload("res://scripts/screens/shop_screen.gd")
 const ChoicePanel = preload("res://scripts/screens/choice_panel.gd")
 const ResultScreen = preload("res://scripts/screens/result.gd")
 const RunStatsScreen = preload("res://scripts/screens/run_stats_screen.gd")
+const HeadhuntScreen = preload("res://scripts/screens/headhunt.gd")
+const Roster = preload("res://scripts/core/roster.gd")
 const StatsScreen = preload("res://scripts/screens/stats_panel.gd")
 const EliteShowScreen = preload("res://scripts/screens/elite_show.gd")
 const IntroScreen = preload("res://scripts/screens/intro.gd")
@@ -109,6 +111,8 @@ var show_screen = EliteShowScreen.new(self)   # 界面 · 精英化 / 解锁演�
 var stats_screen = StatsScreen.new(self)   # 界面 · 属性面板（Tab，state STATS）
 var result_screen = ResultScreen.new(self)   # 界面 · 结算（state DEAD / WIN）
 var run_stats = RunStatsScreen.new(self)   # 界面 · 作战记录（结算上的「作战记录」按钮 / Tab 打开，docs/77）
+var headhunt = HeadhuntScreen.new(self)   # 界面 · 寻访（结算上有待用的券时盖在上面，docs/109 §12）
+var roster_new := {}                       # 本局结算发的券（Roster.on_run_end）
 var panel_ui = ChoicePanel.new(self)   # 界面 · 弹窗面板与选卡（state CHOICE）
 var shop_ui = ShopScreen.new(self)   # 界面 · 商店（state SHOP）
 var hud_view = HudView.new(self)   # 界面 · 局内 HUD（hud 画布节点的 draw 信号）
@@ -1098,6 +1102,7 @@ func _process(delta: float) -> void:
 		if not trial.active:
 			telemetry.on_state(state)   # 进入胜 / 负时把这一局写进本地记录（docs/40）
 			if state == S.WIN or state == S.DEAD:
+				Roster.on_run_end(self, state == S.WIN)   # 干员解锁：发寻访凭证 / 招募券 / 人事调度函（docs/109 §12；不碰 g.rng）
 				Cloud.flush("run_end")   # B站云存档：一局结算时上传（只在 B站环境生效，docs/89）
 		state_age = 0.0
 		ui_skip = false
@@ -1274,6 +1279,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	# 跳过 / 播完过渡后 0.35 秒（结算面板淡入期间）再挡一下输入：倒下时习惯连按，第二下别落到还在淡入的结算按钮上（架构建议）
 	if state == S.DEAD and state_age < HudView.DEATH_T + 0.35:
 		return
+	# 寻访面板打开时独占输入（docs/109 §12）
+	if (state == S.DEAD or state == S.WIN) and headhunt.open and not run_stats.open:
+		if headhunt.input(event):
+			get_viewport().set_input_as_handled()
+		return
 	# 作战记录打开时独占输入（docs/77）：键盘 / 手柄（Pad 翻成按键）/ 鼠标与触屏点按 / 滚轮
 	if (state == S.DEAD or state == S.WIN) and run_stats.open:
 		if event is InputEventMouseButton and event.pressed:
@@ -1426,6 +1436,9 @@ func _nav_key(k: int) -> bool:
 ## dash_cd = 还欠的冷却秒数：每冲一次 + 一次冷却，随时间减少；dash_cd ≤ 冷却 × (次数 − 1) 时可以再冲。只有 1 次时等同旧的「冷却归零才能冲」
 const DASH_TIME := 0.18
 var dash_t := 0.0
+var leader_still_t := 0.0   # 响应动作（docs/118）：队长连续站定的秒数（移动 / 冲刺 / 被定身清零）；条件 still >= 秒 读它
+var leader_skill_n := 0     # 响应动作：队长自己的技能出手次数（trig.on_leader_skill 看它增长）
+var leader_skill_i := -1    # 最近一次出手的技能序号
 var dash_cd := 0.0
 var dash_dir := Vector2.RIGHT
 var last_mv := Vector2.ZERO
@@ -1524,6 +1537,7 @@ func _update(dt: float) -> void:
 	if pstun > 0.0 or root_t > 0.0:
 		mv = Vector2.ZERO
 	moving = mv != Vector2.ZERO
+	leader_still_t = 0.0 if moving or dash_t > 0.0 or pstun > 0.0 or root_t > 0.0 else leader_still_t + dt
 	if moving:
 		mv = mv.normalized() * minf(mv.length(), 1.0)   # 键盘斜向归一；手柄半推 = 慢走
 		walk_t += dt * 12.0

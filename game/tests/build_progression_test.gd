@@ -8,7 +8,10 @@ extends Node
 
 const Ch = preload("res://scripts/characters/character.gd")
 const Prog = preload("res://scripts/run/progression.gd")
-const PILOT := ["texas", "hoshiguma", "eyjafjalla", "suzuran", "lappland", "gladiia"]   # 10-22 第四批设计稿（docs/122 / 123）按同一结构带分支节点
+## 已接分支的干员（docs/120；p2 逐批加入）——其余干员必须没有分支节点
+const PILOT := ["texas", "hoshiguma", "eyjafjalla", "suzuran", "exusiai", "skadi", "siege", "saria", "wisadel", "lumen", "kaltsit",
+	"logos", "skalter", "mizuki", "specter_unchained", "irene", "angelina", "ulpianus",
+	"lappland", "gladiia"]   # 10-22 第四批（docs/122 / 123）
 
 var game: Node
 var frames := 0
@@ -296,7 +299,11 @@ func test_others_compat() -> void:
 		else:
 			others += 1
 			ok(bn[1] == -1, "%s 没有分支节点" % cid)
-	ok(others == Ch.list_ids().size() - PILOT.size(), "其余 %d 人（%d）" % [Ch.list_ids().size() - PILOT.size(), others])
+	ok(others == Ch.list_ids().size() - PILOT.size(), "其余 %d 人没有分支节点（%d）" % [Ch.list_ids().size() - PILOT.size(), others])
+	# 安洁莉娜（docs/119 §4.1 原表）：开关开时 alt 把双重引力提前到节点 1、节点 2 保留引力扩散；顶层仍是旧线
+	var ad: Dictionary = Ch.load_def("angelina")
+	ok(str(ad.progression[0].get("alt", {}).get("id", "")) == "pull2" and str(ad.progression[1].get("alt", {}).get("id", "")) == "wide", "安洁莉娜 alt：节点 1 双重引力、节点 2 引力扩散")
+	ok(str(ad.progression[0].id) == "wide" and str(ad.progression[1].id) == "dense" and str(ad.progression[3].id) == "pull2", "安洁莉娜顶层仍是旧线")
 
 
 ## 培养保底（§4.2 简化版）：最近培养的干员有合法成长卡时，升级三选一固定含它的成长卡；离队 / 养满自然失效

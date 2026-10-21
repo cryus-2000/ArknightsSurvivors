@@ -232,7 +232,8 @@ func check_impact(game, op, target: Dictionary) -> void:
 	# Normal target contact sparks remain; the generic fire blast scatters for 0.45 s.
 	check(not game.fx.any(func(f): return f.kind == "explode" or (f.kind == "spark" and is_equal_approx(float(f.max), 0.45))), "weighted shell does not stack the generic explosion and long scatter sparks")
 	check(not op.pfx.any(func(f): return f.kind in ["ring", "mote"]), "weighted shell replaces legacy rings and scattered debris")
-	check(op.pfx.filter(func(f): return f.get("mass", false)).size() == 1, "weighted shell has one shared ground impact")
+	# S2 点燃弹（look.big_tex）命中改为爆燃（10-22）：一个炸开 + 一块焦痕，不再叠岩壳落点
+	check(op.pfx.filter(func(f): return f.kind == "ignite_hit").size() == 1 and op.pfx.filter(func(f): return f.kind == "ignite_scorch").size() == 1 and not op.pfx.any(func(f): return f.get("mass", false)), "S2 ignite shell has one burst and one scorch, no rock impact")
 	check(int(game.vfx.stop_stat.get("impact", [0])[0]) == pauses + 1, "unified impact retains the original heavy shell hitstop cue")
 	game.fx.clear()
 	shell.erase("on_hit")

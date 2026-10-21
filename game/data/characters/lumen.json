@@ -3,7 +3,10 @@
  "name": "流明",
  "en": "LUMEN",
  "class": "医疗",
- "command": {"roam": false, "_doc": "指挥模式（docs/114）：医疗 / 辅助突击时照旧随行"},
+ "command": {
+  "roam": false,
+  "_doc": "指挥模式（docs/114）：医疗 / 辅助突击时照旧随行"
+ },
  "col": [
   0.55,
   0.85,
@@ -58,7 +61,14 @@
   "refract_mult": 0.25,
   "pillar_len": 200,
   "pillar_w": 10,
-  "pillar_mult": 1.4
+  "pillar_mult": 1.4,
+  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 光雨 / 灯塔守望，节点 5：rain2_* 光雨·澄明（沐雨清神经损伤 + 灯火 + 回复），watch2_* 灯塔守望·回光（沐雨与灯火不灭期间的光脉冲）。数值为待试验参数",
+  "rain2_lamp": 3,
+  "rain2_heal": 0.02,
+  "watch2_every": 1.0,
+  "watch2_r": 120,
+  "watch2_mult": 0.3,
+  "watch2_slow": 0.8
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1825 / 防御 111 / 法抗 10%，按本作玩法补正——远程主控有效生命 ×1.00，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低。2026-10-13（docs/82）：流明当主控前期清怪最弱，Ⅷ 32 局有 13 局在 2:00 围猎 / 首只精英时被贴身打死（opr-t2），生命 115→135、减伤 0.5→1.5，只影响当主控",
@@ -453,14 +463,44 @@
    "id": "rain",
    "name": "光雨",
    "icon": "skill_lumen_s1",
-   "desc": "「沐雨」时发光单元在队长周围 {$rain_r} 内洒下光雨 {$rain_dur} 秒：雨中敌人被照亮，每 {$rain_tick} 秒受 {$rain_mult*100}% 伤害"
+   "desc": "「沐雨」时发光单元在队长周围 {$rain_r} 内洒下光雨 {$rain_dur} 秒：雨中敌人被照亮，每 {$rain_tick} 秒受 {$rain_mult*100}% 伤害",
+   "branch": {
+    "rain": {
+     "id": "rain",
+     "name": "光雨",
+     "icon": "skill_lumen_s1",
+     "desc": "「沐雨」时发光单元在队长周围 {$rain_r} 内洒下光雨 {$rain_dur} 秒：雨中敌人被照亮，每 {$rain_tick} 秒受 {$rain_mult*100}% 伤害"
+    },
+    "watch": {
+     "id": "watch",
+     "name": "灯塔守望",
+     "icon": "skill_lumen_s3",
+     "desc": "「沐雨」后，队长身上亮起一道旋转光束 3 秒（长 {$beam_len}，{$beam_period} 秒一圈），扫到的敌人受 {$beam_mult*100}% 伤害并被照亮；精英二后「灯火不灭」全程射出同样的光束"
+    }
+   },
+   "branch_desc": "二选一：「光雨」—沐雨时发光单元洒下光雨；「灯塔守望」—沐雨后队长身上亮起旋转光束。之后的节点沿所选路线强化",
+   "bot": "rain"
   },
   {
    "type": "custom",
    "id": "watch",
    "name": "灯塔守望",
    "icon": "skill_lumen_s3",
-   "desc": "「沐雨」后，队长身上亮起一道旋转光束 3 秒（长 {$beam_len}，{$beam_period} 秒一圈），扫到的敌人受 {$beam_mult*100}% 伤害并被照亮；精英二后「灯火不灭」全程射出同样的光束"
+   "desc": "「沐雨」后，队长身上亮起一道旋转光束 3 秒（长 {$beam_len}，{$beam_period} 秒一圈），扫到的敌人受 {$beam_mult*100}% 伤害并被照亮；精英二后「灯火不灭」全程射出同样的光束",
+   "routes": {
+    "rain": {
+     "id": "rain2",
+     "name": "光雨·澄明",
+     "icon": "skill_lumen_s1",
+     "desc": "「沐雨」时清除队长的神经损伤，灯火 +{$rain2_lamp}，再回复 {$rain2_heal*100}% 最大生命"
+    },
+    "watch": {
+     "id": "watch2",
+     "name": "灯塔守望·回光",
+     "icon": "skill_lumen_s3",
+     "desc": "「沐雨」时、以及「灯火不灭」期间每 {$watch2_every} 秒，以队长为中心半径 {$watch2_r} 放出一圈光脉冲（光弹 {$watch2_mult*100}% 伤害，命中减速 {$watch2_slow} 秒）"
+    }
+   }
   },
   {
    "type": "elite",
@@ -501,9 +541,21 @@
      {
       "cond": "skill_active:1",
       "mult": "$guide_heal"
+     },
+     {
+      "cond": "response_on && still >= 0.6",
+      "mult": 1.5,
+      "_doc": "响应动作「掌灯」：队长站定时回复 ×1.5"
      }
     ],
-    "sub": "荧光"
+    "sub": "荧光",
+    "lamp_adds": [
+     {
+      "cond": "response_on && still >= 0.6",
+      "add": 3,
+      "_doc": "响应动作「掌灯」：队长站定时每次回复 / 驱散灯火另 +3"
+     }
+    ]
    },
    "bolt": {
     "atk_key": "bolt_atk",
@@ -800,8 +852,93 @@
     "trig": "passive",
     "do": [],
     "_doc": "精二灯塔光柱：写在 attack.beam（cond elite >= 2）"
+   },
+   "rain2": {
+    "trig": "on_skill_start",
+    "skill": 0,
+    "_doc": "光雨·澄明（路线 rain 节点 5）",
+    "do": [
+     {
+      "verb": "cleanse",
+      "what": [
+       "nerve"
+      ]
+     },
+     {
+      "verb": "lamp",
+      "add": "$rain2_lamp"
+     },
+     {
+      "verb": "heal",
+      "pct": "$rain2_heal",
+      "scale": "op",
+      "src": "光雨"
+     }
+    ]
+   },
+   "watch2": [
+    {
+     "trig": "on_skill_start",
+     "skill": 0,
+     "_doc": "灯塔守望·回光（路线 watch 节点 5）：沐雨一圈",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "leader",
+       "r": "$watch2_r",
+       "atk_key": "bolt_atk",
+       "mult": "$watch2_mult",
+       "power": true,
+       "src": "灯塔光束",
+       "tags": [
+        "skill"
+       ],
+       "on_hit": [
+        {
+         "st": "slow",
+         "dur": "$watch2_slow"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "trig": "tick",
+     "every": "$watch2_every",
+     "cond": "skill_active:2",
+     "_doc": "灯火不灭期间每秒一圈",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "leader",
+       "r": "$watch2_r",
+       "atk_key": "bolt_atk",
+       "mult": "$watch2_mult",
+       "power": true,
+       "src": "灯塔光束",
+       "tags": [
+        "skill"
+       ],
+       "on_hit": [
+        {
+         "st": "slow",
+         "dur": "$watch2_slow"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "response": [
+   {
+    "trig": "passive",
+    "cond": "still >= 0.6",
+    "hint": "掌灯",
+    "do": [],
+    "_doc": "响应动作（docs/118 §4.2）：效果写在 attack.heal 的 mults / lamp_adds（cond response_on && still >= 0.6）：队长站定时「荧光」回复 ×1.5、每次回复 / 驱散灯火另 +3；这一条只负责生效时的头顶提示"
    }
-  }
+  ]
  },
  "native_motion": {
   "clips": {
@@ -810,5 +947,10 @@
    "skill": 1.1666666666666667,
    "skill_s2": 0.5833333333333334
   }
+ },
+ "response": {
+  "name": "掌灯",
+  "trigger": "队长站定",
+  "desc": "队长站定不动时，「荧光」的回复量提高 50%，每次回复或驱散灯火另 +3；队长移动就恢复"
  }
 }

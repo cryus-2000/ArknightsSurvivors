@@ -15,6 +15,8 @@ const SkillLifecycle = preload("res://scripts/characters/blocks/skill_lifecycle.
 var lifecycle: Dictionary = {}
 var effect_skill := -1  # Only skill do execution may bind skill-owned effects.
 const NativeMotion = preload("res://scripts/characters/native_motion.gd")
+const Responses = preload("res://scripts/characters/blocks/responses.gd")
+var rsp: Dictionary = {}   # 响应动作（docs/118）：触发沿 / 冷却记录
 var native_motion: Dictionary = {}
 
 const SegSkalter = preload("res://scripts/characters/blocks/seg_skalter.gd")
@@ -266,6 +268,7 @@ func update(dt: float) -> void:
 	var hw_busy: bool = ObHw.hw_tick(self, dt) if not hw.is_empty() else false   # 手写迁移段：浪墙 / 弹体 / 地面 / 锚（按手写干员 update 的先后）；true = 本帧不起手
 	NativeMotion.tick(self, dt)
 	SkillLifecycle.tick(self)
+	Responses.tick(self)   # 响应动作：队长冲刺 / 开技能 / 指挥切换（docs/118）
 	ObSummon.mf_tick(self, dt, prev_s)   # 召唤物扩展段（§15.9）：限时减伤计时、trig.on_deploy、带 at 的 trig.on_skill_end
 	_tick_pending(dt)
 	_sustain(dt)
@@ -394,6 +397,10 @@ func _sustain(dt: float, stats_only := false) -> void:
 	for k in _ELITE_KEYS:
 		if elite >= k[1] and pg.has(k[0]):
 			for t in _node_list(pg[k[0]]):
+				_collect_trig(t, act)
+	if B.has("response") and Responses.on():   # 响应动作的站定类（trig.passive + still 条件，docs/118）
+		for t in B.response:
+			if str(t.get("_tag", "")) == "trig.passive":
 				_collect_trig(t, act)
 	ObElite.el_sustain_collect(self, act)   # 精英化段：生效中的限时增益（verb.buff_timed）排在最后；记下 st.stack
 	# 一：局部倍率
@@ -642,6 +649,7 @@ const EXEC_SEG := {
 	"verb.fox_cast": 8,   # h4_exec
 	"verb.leap_slam": 8,   # h4_exec
 	"verb.saria_heal": 8,   # h4_exec
+	"verb.amber_ring": 8,   # h4_exec（响应动作，塞雷娅）
 }
 
 
@@ -851,6 +859,9 @@ func _release_skill() -> void:
 	var sk: Array = B.get("skills", [])
 	if i < 0 or i >= sk.size():
 		return
+	if is_leader:   # 响应动作：队长开技能（trig.on_leader_skill，docs/118）
+		g.leader_skill_n += 1
+		g.leader_skill_i = i
 	var sb: Dictionary = sk[i]
 	var dv = sb.get("dur", 0.0)
 	if dv is String and dv == "permanent":

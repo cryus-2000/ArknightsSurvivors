@@ -338,6 +338,7 @@ static func hw_exec(o, b: Dictionary, at: Vector2) -> void:
 #  shape.hookshot      瞬时：把锚掷向 range（× op_range）内离本干员最远、且在 min_d 外的敌人（没有就最近的），飞 clamp(距离 / speed, 0.1, 0.24) 秒（低弧 apex），
 #                      落地 r 内 basis × mult（src），锁链绷直 taut 秒后把本干员与锚之间宽 w 的一线非 Boss 敌人连同锚拖回身前 front 处（drag 秒），
 #                      到了再受 basis × back_mult（back_src）；lock = 锚在外面时不普攻。乌尔比安精二「掷锚」
+#                      at: leader = 掷向队长所在处（超出 range 掷到 range 处），不找敌人（响应动作 docs/118，冲刺落点）
 # 确定性：本段不取 g.rng；画面只用 g.vrng 与 g.t。
 
 const HW5_TAGS := ["verb.requiem_stack", "verb.link", "shape.hookshot"]
@@ -428,6 +429,8 @@ static func _hw5_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 			_src(b, p, ctx, true)
 		"shape.hookshot":
 			_num(b, "range", p, ctx, true, 10.0, 1000.0)
+			if b.has("at") and str(b.at) != "leader":
+				errs.append(p + ".at 只能是 leader")
 			_num(b, "r", p, ctx, true, 1.0, 400.0)
 			_num(b, "mult", p, ctx, true, 0.0, 20.0)
 			_num(b, "back_mult", p, ctx, false, 0.0, 20.0)
@@ -868,6 +871,8 @@ static func _h3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 		"verb.lift_around":
 			_num(b, "r", p, ctx, true, 1.0, 400.0)
 			_num(b, "dur", p, ctx, true, 0.0, 10.0)
+			if b.has("center") and not str(b.center) in ["self", "leader"]:
+				errs.append(p + ".center 只能是 self / leader（响应动作：没有命中点时的中心）")
 		"st.launch":
 			_num(b, "dur", p, ctx, true, 0.0, 10.0)
 			_num(b, "h", p, ctx, false, 0.0, 100.0)
@@ -975,8 +980,8 @@ static func _h3_cond_mults(b: Dictionary, k: String, p: String, ctx: Dictionary)
 # ================================================================ 精英化第 3 批（docs/91 §5 / §8 / §9 / §14、§25；docs/61 §20，10-14）
 # 只往后加，建在第 3 批手写迁移段上（o.hw 的 ir / sp / lm / mz）。新积木 / 新参数：
 #  trig.on_windup     普攻起手时（第 3 批的普攻形状）执行 do。幽灵鲨精一「卷刃」：起手把外圈敌人吸近（verb.displace，环斩在出手帧）
-#  verb.doll_flash    瞬时（trig.every_n 的 do）：替身人偶在 range（× op_range）内敌群最密处从水花里现身 appear 秒 → 旋身斩一圈
-#                     （r × op_range，basis × mult，src）→ 碎成泡沫 burst 秒；同时最多 1 个，本体离场（替身跟随）时不出。幽灵鲨精二「替身闪现」
+#  verb.doll_flash    瞬时（trig.every_n 的 do）：替身人偶在 range（× op_range）内敌群最密处从水花里现身 appear 秒 → spins 次以自身为心的法术脉冲
+#                     （r × op_range，命中最近 max_n 个、Boss / 精英优先，basis × mult，src；10-21 原为旋身锯环）→ 碎成泡沫 burst 秒；同时最多 1 个，本体离场（替身跟随）时不出。幽灵鲨精二「替身闪现」
 #  shape.thrust 的 stages[k].on_first           第 k 段命中的第一个敌人吃的状态（艾丽妮精一「挑刺」：第 2 段挑起，cd 门）
 #  shape.thrust 的 finisher {cond, every, anim, do, volley}  每第 every 次刺击，最后一段换成 do（艾丽妮精二「裂潮余波」：新月斩 + 浮空），
 #                     volley {delay, n, mult[], r, src}：收尾 delay 秒后手炮补射这一斩里浮空的至多 n 名
@@ -1031,6 +1036,7 @@ static func _e3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			for k in ["appear", "spin", "burst", "spin_gap"]:
 				_num(b, k, p, ctx, false, 0.0, 3.0)
 			_num(b, "spins", p, ctx, false, 1.0, 6.0)
+			_num(b, "max_n", p, ctx, false, 0.0, 64.0)   # 每次脉冲命中上限（0 = 不限；10-21 改法术脉冲）
 			if b.has("basis") and not str(b.basis) in ["attack", "prev", "hit", "atk"]:
 				errs.append(p + ".basis 只能是 attack / prev / hit / atk")
 			if b.has("anim") and not (ctx.sprites is Dictionary and ctx.sprites.has(str(b.anim))):
@@ -1051,14 +1057,16 @@ static func _e3_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 #                   命中的非 Boss 敌人 stun_chance 概率（g.rng，同手写）眩晕 stun 秒（精英减半）；hit_sp + hit_sp_mults：命中时其他干员技力 + 秒数（第一条 cond 成立的倍率）；
 #                   quake {cond, r, mult, src, roar {cond, r_mult, kb}}：落点一圈贴地冲击环；breach {cond, len, w, mult, life, max, src}：沿锤击方向的直线地裂
 #  verb.leap_slam   跃空锤：朝 aim_r 内最近的敌人跃过去（至多 dist，落在它面前 24 处），t 秒、高 h 的空中翻转，落地 r × op_range 内 × mult × 技能强度、kb、stun，
-#                   其他干员技力 + sp × 技能强度；again {cond, range, dist, mult, near}：落地后再跃向身边敌人最密处砸第二下（× mult，不回技力）
+#                   其他干员技力 + sp × 技能强度；again {cond, range, dist, mult, near}：落地后再跃向身边敌人最密处砸第二下（× mult，不回技力）；
+#                   响应动作（docs/118）：from: leader = 找队长 aim_r 内离队长最近的敌人（本人是队长时原地砸）、power: false = 不吃技能强度、
+#                   sp_secs = 改为砸中敌人时其他干员技力 + 秒数（取代 sp）；已在空中时不另跳
 #  verb.cmd_wave    号令波：以自身为心向外扩张到 r（dur 秒，先快后慢），扫到的敌人 × mult × 技能强度、非精英击退 kb；同时至多 max 道
 #  verb.sp_team 的 power / motes（第 4 批追加）：技力 × 技能强度；金色技力粒子飞向每名队友
 
 const H4_TAGS := ["shape.hammer", "verb.leap_slam", "verb.cmd_wave",
 	"shape.foxfire", "verb.foxlight", "verb.fox_cast",
 	"shape.cannon", "verb.cannon_exec", "verb.cannon_load", "verb.souls",
-	"shape.bash", "verb.guard_ring", "verb.calc_orbs", "verb.saria_heal", "verb.calc_field", "verb.suit"]
+	"shape.bash", "verb.guard_ring", "verb.calc_orbs", "verb.saria_heal", "verb.calc_field", "verb.suit", "verb.amber_ring"]
 
 const H4_ATTACKS := ["hammer", "foxfire", "cannon", "bash"]   # 第 4 批的普攻形状（起手 / 出手由本段接管）
 
@@ -1068,7 +1076,7 @@ const SZ_TAGS := ["shape.foxfire", "verb.foxlight", "verb.fox_cast"]
 
 const WD_TAGS := ["shape.cannon", "verb.cannon_exec", "verb.cannon_load", "verb.souls"]
 
-const SA_TAGS := ["shape.bash", "verb.guard_ring", "verb.calc_orbs", "verb.saria_heal", "verb.calc_field", "verb.suit"]
+const SA_TAGS := ["shape.bash", "verb.guard_ring", "verb.calc_orbs", "verb.saria_heal", "verb.calc_field", "verb.suit", "verb.amber_ring"]
 
 const H4_GOLD := Color(1.0, 0.78, 0.35)
 
@@ -1215,6 +1223,8 @@ static func h4_exec(o, b: Dictionary, _at: Vector2) -> void:
 			_F().h4_saria_heal(o, b)
 		"verb.calc_field":
 			_F().h4_calc_start(o, b)
+		"verb.amber_ring":
+			_F().h4_amber_ring(o, b)
 
 
 ## 起手朝向（mf_skill_aim 转来）：elite = 精英 / Boss 优先（血最多）；cluster = 离队长最近、相仿时挑落点最密
@@ -1388,7 +1398,7 @@ static func _h4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 	var where_ok := {
 		"shape.hammer": ["attack"], "shape.foxfire": ["attack"], "shape.cannon": ["attack"], "shape.bash": ["attack"],
 		"verb.leap_slam": ["skill", "instant"], "verb.cmd_wave": ["skill", "instant"], "verb.fox_cast": ["skill", "instant"],
-		"verb.cannon_exec": ["skill", "instant"], "verb.cannon_load": ["skill", "instant"], "verb.saria_heal": ["skill", "instant"], "verb.calc_field": ["skill", "instant"],
+		"verb.cannon_exec": ["skill", "instant"], "verb.cannon_load": ["skill", "instant"], "verb.saria_heal": ["skill", "instant"], "verb.calc_field": ["skill", "instant"], "verb.amber_ring": ["skill", "instant"],
 		"verb.foxlight": ["sustain"], "verb.souls": ["sustain"], "verb.guard_ring": ["sustain"], "verb.calc_orbs": ["sustain"], "verb.suit": ["sustain"],
 	}
 	if not kind in where_ok[tag]:
@@ -1415,6 +1425,8 @@ static func _h4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 		"verb.leap_slam":
 			for k in ["r", "mult", "t", "dist"]:
 				_num(b, k, p, ctx, true, 0.0, 1000.0)
+			if not str(b.get("from", "self")) in ["self", "leader"]:
+				errs.append(p + ".from 只能是 self / leader")
 			_src(b, p, ctx, true)
 		"verb.cmd_wave":
 			for k in ["r", "dur", "mult"]:
@@ -1481,6 +1493,12 @@ static func _h4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			_num(b, "r", p, ctx, true, 1.0, 1000.0)
 			if b.has("shatter") and b.shatter is Dictionary:
 				_src(b.shatter, p + ".shatter", ctx, true)
+		"verb.amber_ring":
+			_num(b, "n", p, ctx, true, 2.0, 16.0)
+			_num(b, "r", p, ctx, true, 10.0, 400.0)
+			_num(b, "life", p, ctx, true, 0.1, 20.0)
+			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_src(b, p, ctx, true)
 		"verb.suit":
 			_num(b, "seg_t", p, ctx, true, 0.1, 60.0)
 			_num(b, "r", p, ctx, true, 1.0, 1000.0)

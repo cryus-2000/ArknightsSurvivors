@@ -779,6 +779,24 @@ func step() -> void:
 		if a.begins_with("--winshot=") and g.at_frames == 130 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_win.png")
 			g.get_tree().quit()
+	# --huntshot（docs/109 §12 寻访演出截图）：配 --roster=start5 --rostertickets=1,1,1。第 60 帧进胜利结算，
+	# 之后依次截 寻访揭晓 → 招募券选职业 → 揭晓 → 人事调度函选干员 → 揭晓 → 意向干员页，存 shot_hunt_<n>.png；无头只走流程
+	if Cfg.dev_args().has("--huntshot"):
+		if g.at_frames == 60:
+			winshot = true
+			g.ending = "standard"
+			g.endg.cur = g.ending
+			g.state = g.S.WIN
+		var steps := [["ok"], [0], ["ok"], [0], ["wish"], []]
+		for k in steps.size():
+			if g.at_frames == 110 + k * 40:
+				if DisplayServer.get_name() != "headless":
+					g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_hunt_%d.png" % k)
+				print("HUNTSHOT %d step=%s mode=%s reveal=%s open=%s" % [k, g.headhunt.step, g.headhunt.mode, g.headhunt.reveal_id, g.headhunt.open])
+				if steps[k].is_empty():
+					g.get_tree().quit()
+				else:
+					g.headhunt._act(steps[k][0])
 	# --sptest：每 2 秒把全队技力充满（截图 / 观察技能特效用）
 	if Cfg.dev_args().has("--sptest") and g.at_frames % 120 == 0:
 		for o in g.squad.ops:

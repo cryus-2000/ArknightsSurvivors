@@ -231,6 +231,12 @@ func _draw_body() -> void:
 				g.run_stats.draw(vs)   # 作战记录（docs/77）
 			else:
 				g.result_screen.draw(vs, "%s · 探索完成" % D.ENDINGS[g.ending].name, D.ENDINGS[g.ending].en, g.endg.cur_col().lerp(UI.GOLD, 0.35), [["再次探索", "R", "restart"], ["作战记录", "Tab", "stats"], ["回到标题", "T", "title"]], true)
+	# 寻访（docs/109 §12）：结算面板出来后有待用的券就盖一层；用完才回到结算按钮
+	if (g.state == Game.S.WIN or (g.state == Game.S.DEAD and g.state_age >= DEATH_T + 0.35)) and not g.trial.active and not g.run_stats.open:
+		g.headhunt.maybe_open()
+		if g.headhunt.open:
+			g.result_btns.clear()
+			g.headhunt.draw(vs)
 
 
 ## 原 _draw_body 开头那段：精英标记、伤害数字（图鉴演示 / 精英化演出时也画），以及之后的升级字样、全屏闪光 / 溟痕 / 受伤红 / 低血 / 低灯暗角、

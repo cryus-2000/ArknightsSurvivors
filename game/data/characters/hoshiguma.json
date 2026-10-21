@@ -334,7 +334,7 @@
    "art": {
     "idle": "op_hoshiguma_idle_noshield",
     "run": "op_hoshiguma_run_noshield",
-    "attack": "op_hoshiguma_attack_noshield",
+    "attack": "op_hoshiguma_attack_noshield", "skill": "op_hoshiguma_attack_noshield",
     "throw": "op_hoshiguma_throw_noshield"
    },
    "fallback": {
@@ -1303,7 +1303,21 @@
      ]
     }
    ]
-  }
+  },
+  "response": [
+   {
+    "trig": "passive",
+    "cond": "still >= 0.6",
+    "hint": "架盾",
+    "_doc": "响应动作（docs/118 §4.2）：队长站定 0.6 秒后架盾，「战术装甲」格挡概率 +基础值的一半（×1.5）；队长一移动就收盾。negate_chance 只作用于带 negate 的 on_hurt（精英一天赋），精英零站定无效果",
+    "do": [
+     {
+      "verb": "negate_chance",
+      "add": "$block_chance*0.5"
+     }
+    ]
+   }
+  ]
  },
  "native_motion": {
   "_doc": "原生动作覆盖层（docs/108 §3.5）：普攻 / S2 / S3 起手按 clips 整条均匀播（击中帧起点 = 伤害时刻）；盾回手（信号 prop 结束）时播接盾",
@@ -1321,5 +1335,10 @@
     "tail": 0.43
    }
   ]
+ },
+ "response": {
+  "name": "架盾",
+  "trigger": "队长站定",
+  "desc": "精英一起：队长站定不动时，她举盾护住队长，「战术装甲」的格挡概率提高一半；队长移动就收盾"
  }
 }

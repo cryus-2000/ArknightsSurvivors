@@ -9,6 +9,8 @@
     python tools/check.py --jobs 4     本次最多同时开 4 个 Godot（全机总数另受 GODOT_MAX_PROCS 限制）
     python tools/check.py --auto       按相对 main 的改动只跑相关项目：只改文档 → 不开 Godot；只改说明字段 → +核心契约；
                                        只改某几名干员 → +这些干员的冒烟 / 成长节点 + 复现；其余 → 全量。合入 main 前仍跑全量
+    python tools/check.py --rerecord-golden   重录积木等价金样（等价于 --only blocks_eq --eq-all --update-golden）；
+                                       谁负责跑 / 什么时候跑见 docs/36 §1.3
 
 每个 Godot 进程的输出按输入内容哈希缓存在主仓库 build/check_cache/（docs/36 §1.2），同样的输入不再重跑；--nocache 关掉。
 每次快检把每局的完整输出写到 build/check/quick_<时间>/，失败时报告末尾列出失败项、原因和日志路径。
@@ -620,7 +622,10 @@ def check_repro(godot):
 # 现在只跑数据版，与金样比：
 #   金样记「本干员侧」与「别处」两个哈希。本干员侧 = 本干员的数据 / 脚本 / 帧条尺寸 + 积木公共文件（op_blocks / data_operator /
 #   character / op_api）；别处 = 其余玩法输入（check.logic_entries，不含 game/tests/）。
-#   别处没变、输出却变了 → FAIL（只可能是本干员或积木改出来的）；别处变了 → 判「金样过期」跳过（不算失败）。
+#   别处没变、输出却变了 → FAIL（只可能是本干员或积木改出来的）；别处变了 → 判「金样过期」。
+#   10-21 起「过期」不再静默跳过：ok 照样记 False（除非这一轮正好 --update-golden 把它刷新掉），detail 开头打印醒目
+#   提示，让 --auto 的汇总不是绿的；但不计进 errs 硬失败列表——过期不是改坏积木本身，不该让改别处代码的人背锅。
+#   下一个改了相关干员 / 积木代码、看到自己这组过期的人负责重录，不是「过期=直接阻断所有人合入」的硬规则。
 #   ship 全量通过后 `check.py --only blocks_eq --eq-all --update-golden` 把数据版输出重录到 build/golden_cache/（不进 git），之后优先用它。
 #  kaltsit：数据版的 Mon3tr 出手带通用召唤物标签 summon（手写参照没有），金样录的时候已去掉，比较时同样去掉
 EQ_GROUPS = [
@@ -848,17 +853,36 @@ def check_blocks_eq(godot):
                 tag, why, bad_t + 1, trace[bad_t] if bad_t < len(trace) else "-", ta[bad_t] if bad_t < len(ta) else "-", os.path.relpath(gp, ROOT)))
         else:
             errs.append("%s：与金样不同，%s；BALANCE 字段 %s（金样 %s）。有意改行为就用 --update-golden 重录" % (tag, why, "、".join(diff[:6]), os.path.relpath(gp, ROOT)))
-    ok = not errs and len(rec) == len(jobs)
-    if UPDATE_GOLDEN and ok:
+    # rec_ok：本局本身没有真失败（不含「过期」）——决定能不能重录；--update-golden 要靠它才能在「过期」状态下把金样刷新，
+    # 否则过期会反过来挡住重录（鸡生蛋）。对外汇总用的 ok 则把「过期」也算不通过（见下，10-21 改）
+    rec_ok = not errs and len(rec) == len(jobs)
+    recorded = False
+    if UPDATE_GOLDEN and rec_ok:
         os.makedirs(GOLDEN_ROLL, exist_ok=True)
         for r in rec:
             tmp = os.path.join(GOLDEN_ROLL, _golden_file(r["gid"], r["case"]) + ".%d.tmp" % os.getpid())
             json.dump(r, open(tmp, "w", encoding="utf-8"), ensure_ascii=False, indent=0)
             os.replace(tmp, os.path.join(GOLDEN_ROLL, _golden_file(r["gid"], r["case"])))
-    detail = "与金样相同 %d、金样过期跳过 %d%s%s" % (len(same), len(stale), "、没有金样 %d" % len(nog) if nog else "",
-                                              "；已重录 %d 份到 build/golden_cache" % len(rec) if UPDATE_GOLDEN and ok else "")
+        recorded = True
+    # 10-21 改：「过期」不再静默跳过——之前「别处变了就跳过、不算失败」导致金样一旦跟不上大改就全组长期过期，
+    # 这项检查形同虚设也没人知道。现在过期时 ok 照样记 False（除非这一轮正好用 --update-golden 把它刷新掉了），
+    # 让 --auto 的汇总不是绿的，逼人去重录；但不把它计进 errs/硬失败列表——过期不是改坏积木本身，不该让改别处代码
+    # 的人背锅，detail 里只打印醒目提示，不阻断合入（docs/36 §1.3）
+    ok = rec_ok and (not stale or recorded)
+    same_part = "与金样相同 %d" % len(same)
+    if nog:
+        same_part += "、没有金样 %d" % len(nog)
+    if UPDATE_GOLDEN and rec_ok:
+        same_part += "；已重录 %d 份到 build/golden_cache" % len(rec)
     if stale:
-        detail += "（过期：%s）" % "、".join(stale[:6]) + ("……" if len(stale) > 6 else "")
+        stale_list = "、".join(stale[:6]) + ("……" if len(stale) > 6 else "")
+        if recorded:
+            detail = "%s；过期 %d 份已随本次 --update-golden 重录刷新（%s）" % (same_part, len(stale), stale_list)
+        else:
+            detail = ("⚠ 金样过期需要重录 %d（%s）：别处玩法代码变了，无法比对；下一个改了相关干员 / 积木代码的人请跑 "
+                       "`python tools/check.py --only blocks_eq --eq-all --update-golden` 重录；%s") % (len(stale), stale_list, same_part)
+    else:
+        detail = same_part
     return {"name": "积木等价（数据版 vs 金样）", "ok": ok, "detail": detail, "errors": errs[:5], "log": "、".join(l for l in logs if l)}
 
 
@@ -894,6 +918,15 @@ SCENE_REGRESSIONS = {
     "texas_contract": ("新契约只填 json 试点（德克萨斯）", "texas_contract_test", r"TEXAS CONTRACT failures=0", ["--balance", "--seed=1", "--op=texas"]),
     "wisadel_soul": ("维什戴尔魂灵之影原生身体时间线", "wisadel_soul_test", r"WISADEL SOUL failures=0", ["--balance", "--seed=1", "--op=wisadel"]),
     "klc_contract": ("凯尔希本体 / 流明 / 艾丽妮新条：出手时刻逐位同旧条、三段刺 / 光柱换条", "klc_contract_test", r"KLC CONTRACT failures=0", ["--balance", "--seed=1", "--op=irene"]),
+    "response": ("干员响应动作（冲刺 / 站定）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=hoshiguma", "--squad=texas,eyjafjalla"]),
+    "response_skill": ("干员响应动作（开技能）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=suzuran", "--squad=texas"]),
+    "response_p2a": ("干员响应动作第二批一组（冲刺 / 站定）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=wisadel", "--squad=exusiai,skadi"]),
+    "response_p2b": ("干员响应动作第二批一组（站定 / 开技能）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=lumen", "--squad=logos,skalter"]),
+    "response_p2c": ("干员响应动作第二批一组（推进之王跟进锤击）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=siege"]),
+    "response_p2d": ("干员响应动作第二批二组（塞雷娅 / 凯尔希）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=saria,kaltsit"]),
+    "response_p2e": ("干员响应动作第二批二组（水月 / 归溟幽灵鲨）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=mizuki,specter_unchained"]),
+    "response_p2f": ("干员响应动作第二批二组（艾丽妮 / 安洁莉娜）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=irene,angelina"]),
+    "response_p2g": ("干员响应动作第二批（乌尔比安锚链）", "response_test", r"RESPONSE failures=0", ["--balance", "--seed=1", "--op=texas", "--squad=ulpianus"]),
     "logos_projectiles": ("逻各斯交替弹体与 S1 符文", "logos_projectile_test", r"LOGOS PROJECTILES failures=0", ["--balance", "--seed=1", "--op=logos"]),
     "three_operator_art": ("能天使 / 艾雅法拉 / 逻各斯原生帧条接线", "three_operator_art_test", r"THREE OPERATOR ART failures=0", ["--balance", "--seed=1", "--op=exusiai", "--squad=eyjafjalla,logos"]),
     "attack_timing": ("三人完整攻击与攻速时序", "attack_timing_test", r"ATTACK TIMING checks=.*failures=0", ["--balance", "--seed=1", "--op=wisadel", "--squad=saria,suzuran"]),
@@ -925,9 +958,11 @@ SCENE_REGRESSIONS = {
     "op_dummy": ("干员木桩表场景（docs/79）：队友身份 + 怪群 5 秒自检", "op_dummy_test", r"OP DUMMY failures=0",
                  ["--balance", "--bot=afk", "--nodeath", "--op=hoshiguma", "--squad=wisadel", "--dummy_op=wisadel", "--dummy_role=mate",
                   "--dummy_scene=horde", "--dummy_stage=2", "--dummy_secs=5", "--dummy_warm=2", "--dummy_check"]),
+    "roster": ("干员解锁（docs/109 §12）：开局 5 人、首抽流明、先补齐职业、不重复、意向保底、招募券、局终发券、云存档并集", "roster_test", r"ROSTER failures=0", ["--roster=start5"]),
     "cloud_save": ("B站云存档：打包 / 分片 / 平台限制 / 校验 / 版本 / 合并规则 / Cfg 往返 / 非网页不启用（docs/89）", "cloud_save_test", r"CLOUD SAVE failures=0", []),
     "look": ("观感预设 render/look（角色受光封顶 / 后期曲线 / 亮度缺省）", "look_test", r"LOOK TEST failures=0", []),
     "build_affinity": ("构筑匹配（docs/119 §4.3 / §4.4）：三条链的来源 / 门槛 / 浮空与永久技能不误算、卡面说明行、强制招募保底与开关", "build_affinity_test", r"BUILD AFFINITY failures=0", ["--balance", "--op=angelina", "--squad=skadi,kaltsit"]),
+    "card_desc": ("卡片描述不串台：公共成长 / 填充 / 支援卡不含队长手动技能提示（10-22 截图），干员卡只提自己的技能", "card_desc_test", r"CARD DESC failures=0", ["--balance", "--op=ulpianus", "--squad=skadi,angelina"]),
     "merchant_build_offer": ("第一位商人预告（docs/119 §4.5）：生成时定货架、进店不重抽、联动位、价格同步、售出 / 刷新 / 离开撤销、开关关不提前抽", "merchant_build_offer_test", r"MERCHANT BUILD OFFER failures=0", ["--balance", "--op=skadi", "--squad=kaltsit"]),
 }
 
@@ -1044,10 +1079,16 @@ def main():
                     help="透传给每个 Godot 进程的旋钮覆盖（--bal=enemy/density=1，可重复）；查测试在非缺省旋钮下是否仍过")
     ap.add_argument("--eq-all", action="store_true", help="积木等价每组跑全部用例（缺省只跑 seed1；全部用例由云端每日例行任务跑，docs/36 §7.6）")
     ap.add_argument("--update-golden", action="store_true", help="积木等价通过后把数据版输出重录到 build/golden_cache（ship 全量通过后用，docs/36 §1.3）")
+    ap.add_argument("--rerecord-golden", action="store_true",
+                    help="等价于 --only blocks_eq --eq-all --update-golden：重录积木等价金样（docs/36 §1.3；谁负责跑见该节）")
     ap.add_argument("--nocache", action="store_true", help="不读也不写结果缓存（build/check_cache，docs/36 §1.2）")
     ap.add_argument("--auto", action="store_true",
                     help="按相对 main 改了哪些文件只跑相关项目（改的过程中用；合入 main 前仍跑全量）")
     a = ap.parse_args()
+    if a.rerecord_golden:   # 等价于 --only blocks_eq --eq-all --update-golden（docs/36 §1.3）
+        a.only = "blocks_eq"
+        a.eq_all = True
+        a.update_golden = True
     global JOBS, LOG_DIR, BAL_ARGS
     JOBS = max(1, a.jobs)
     BAL_ARGS = ["--bal=" + b for b in a.bal]

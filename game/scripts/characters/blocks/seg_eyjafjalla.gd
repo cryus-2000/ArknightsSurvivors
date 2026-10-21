@@ -126,7 +126,7 @@ static func hw_shell_boom(o, bl: Dictionary) -> void:
 	var b: Dictionary = bl.get("hw_b", {})
 	var h := _hw2(o)
 	if b.get("look", {}).get("weighted", false):
-		_hw_magma_impact(o, bl.pos, float(bl.aoe), float(bl.get("sz", 1.0)), b.get("boom_fx", []), bl.get("hw_fireball", false))
+		_hw_magma_impact(o, bl.pos, float(bl.aoe), float(bl.get("sz", 1.0)), b.get("boom_fx", []), bl.get("hw_fireball", false), b.get("look", {}).has("big_tex"))   # big_tex = S2 点燃弹：命中爆燃
 	elif b.has("boom_fx"):
 		fx_play(o, b.boom_fx, bl.pos, float(bl.aoe))
 	var keep := hw_snap(o)
@@ -138,11 +138,13 @@ static func hw_shell_boom(o, bl: Dictionary) -> void:
 	h.hit_r = kr
 
 
-static func _hw_magma_impact(o, at: Vector2, radius: float, size: float, cues: Array, fireball := false) -> void:
+static func _hw_magma_impact(o, at: Vector2, radius: float, size: float, cues: Array, fireball := false, ignite := false) -> void:
 	# Keep sound/hitstop; one shared ground effect replaces the stacked visual entries.
 	fx_play(o, cues.filter(func(f): return f.has("pause") or f.has("sfx")), at, radius)
 	if fireball:
 		MagmaProjectile.fireball_impact(o, at, radius, size)
+	elif ignite:
+		MagmaProjectile.ignite_hit(o, at, radius, size)
 	else:
 		MagmaProjectile.impact(o, at, radius, size)
 
@@ -642,6 +644,12 @@ static func hw_draw_pfx(o, f: Dictionary, a: float) -> bool:
 			return true
 		"fireball_burst":
 			MagmaProjectile.draw_fireball_impact(o, f)
+			return true
+		"ignite_hit":
+			MagmaProjectile.draw_ignite_hit(o, f)
+			return true
+		"ignite_scorch":
+			MagmaProjectile.draw_ignite_scorch(o, f)
 			return true
 		"lava_spot":   # 熔岩块落点（10-14）：地面一小块发红，从白热褪到暗红
 			if f.get("mass", false):

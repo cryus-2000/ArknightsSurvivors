@@ -15,6 +15,11 @@
  "base": {
   "_doc": "基础数值",
   "atk": 52,
+    "quake_r": 150,
+    "quake_mult": 0.5,
+    "quake_kb": 110,
+    "quake_r_e2": 180,
+    "quake_mult_e2": 0.6,
   "cd": 1.4,
   "reach": 105,
   "s1_mult": 1.7,
@@ -87,7 +92,14 @@
   "_combo": "钩与锚（docs/123 §2.7）：歌蕾蒂娅钩索拖回到位时，他在 combo_range 内就朝落点补一次锚击（× combo_mult，combo_cd 秒一次，不占普攻冷却）",
   "combo_mult": 1.0,
   "combo_cd": 2.0,
-  "combo_range": 260
+  "combo_range": 260,
+  "_branch": "分支培养（docs/119 §4.1 / docs/120 §8，10-22）：节点 4 二选一 不容挣脱 / 通路洞开，节点 5：drag2_* 不容挣脱·绞杀（钩回落地后身前再抡一锤），rift2_* 通路洞开·攻势（掷锚技能后限时增伤）。不依赖顺链弹射、不改 attack 积木。数值为待试验参数",
+  "drag2_delay": 0.3,
+  "drag2_r_k": 1.3,
+  "drag2_mult": 0.8,
+  "rift2_dur": 6.0,
+  "rift2_atk": 0.25,
+  "drag2_t": 0.6
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 6022 / 防御 0 / 法抗 0%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -356,14 +368,14 @@
  "attack": {
   "mode": "auto",
   "name": "锚击",
-  "desc": "每 {$cd} 秒抡锚砸向身前，命中半径 {$reach} 内的全部敌人（撼地者）"
+  "desc": "每 {$cd} 秒抡锚砸向身前，命中半径 {$reach} 内的全部敌人；砸地同时撼地，周围 {$quake_r} 内的敌人受到 {$quake_mult*100}% 伤害并被震退（撼地者）"
  },
  "skills": [
   {
    "name": "必须促成的接触",
    "en": "CONTACT MUST BE MADE",
    "sp": 6,
-   "desc": "向最近的精英（没有则敌群最密处）掷出带锁链的锚，钩住至多 {$s1_pull_n} 名敌人拽到面前并眩晕 {$s1_stun} 秒，随即重砸身前 {$s1_r} 内 ×{$s1_mult} 伤害（钩中的精英额外 +{$s1_elite_mult*100-100}%）；钩住 Boss 时改为顺锁链弹射过去砸下",
+   "desc": "向最近的精英（没有则敌群最密处）掷出带锁链的锚，钩住至多 {$s1_pull_n} 名敌人拽到面前并眩晕 {$s1_stun} 秒，随即重砸身前 {$s1_r} 内 ×{$s1_mult} 伤害（钩中的精英额外 +{$s1_elite_mult*100-100}%）；钩不到人或钩住 Boss 时，锚直接砸在落点",
    "icon": "skill_ulpianus_s1"
   },
   {
@@ -381,7 +393,7 @@
    "dur": 8.0,
    "mode": "manual",
    "aim": "point",
-   "desc": "掷锚：落点半径 {$s3_r} 内 ×{$s3_mult} 伤害并眩晕 {$s3_stun} 秒（精英减半、Boss {$s3_stun*$s3_stun_boss:1} 秒），乌尔比安顺着锁链弹射到锚点；之后 {$s3_haste} 秒锚击间隔 -{(1-$haste_mult)*100}%。当队友时自动掷向敌群最密处；当队长时手动释放、自己选落点：鼠标指哪掷哪，键盘按住技能键蓄远、松手掷出，手柄右摇杆推多远掷多远，手机拖多远掷多远，最远 {$aim_range}。落点没有敌人也照掷，可以当位移用",
+   "desc": "掷锚：落点半径 {$s3_r} 内 ×{$s3_mult} 伤害并眩晕 {$s3_stun} 秒（精英减半、Boss {$s3_stun*$s3_stun_boss:1} 秒）；之后 {$s3_haste} 秒锚击间隔 -{(1-$haste_mult)*100}%。当队友时自动掷向敌群最密处；当队长时手动释放、自己选落点：鼠标指哪掷哪，键盘按住技能键蓄远、松手掷出，手柄右摇杆推多远掷多远，手机拖多远掷多远，最远 {$aim_range}。落点没有敌人也照掷",
    "icon": "skill_ulpianus_s3"
   }
  ],
@@ -433,6 +445,7 @@
     "area"
    ]
   },
+  "撼地": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "area"]},
   "锁链回旋": {
    "emitter": "operator",
    "origin": "core",
@@ -515,20 +528,50 @@
    "id": "drag",
    "name": "不容挣脱",
    "icon": "skill_ulpianus_s1",
-   "desc": "「必须促成的接触」一次钩回的敌人 {$s1_pull_n} → {$s1_pull_n+$drag_n}、钩取范围扩大；弹射到 Boss 面前时甩出锁链，拽来附近至多 {$drag_n} 名敌人（掷锚 {$drag_mult*100}% 伤害）"
+   "desc": "「必须促成的接触」一次钩回的敌人 {$s1_pull_n} → {$s1_pull_n+$drag_n}、钩取范围扩大；锚砸中 Boss 时甩出锁链，把附近至多 {$drag_n} 名敌人拽到锚点（掷锚 {$drag_mult*100}% 伤害）",
+   "branch": {
+    "drag": {
+     "id": "drag",
+     "name": "不容挣脱",
+     "icon": "skill_ulpianus_s1",
+     "desc": "「必须促成的接触」一次钩回的敌人 {$s1_pull_n} → {$s1_pull_n+$drag_n}、钩取范围扩大；锚砸中 Boss 时甩出锁链，把附近至多 {$drag_n} 名敌人拽到锚点（掷锚 {$drag_mult*100}% 伤害）"
+    },
+    "rift": {
+     "id": "rift",
+     "name": "通路洞开",
+     "icon": "skill_ulpianus_s3",
+     "desc": "「必须促成的接触」锁链绷直时，从乌尔比安到锚点裂开一道通路，沿途敌人被掀飞 {$rift_air} 秒并受到锚击 {$rift_mult*100}% 伤害；精英二后「必须开辟的通路」掷锚时同样开路"
+    }
+   },
+   "branch_desc": "二选一：「不容挣脱」—掷锚钩回更多敌人、砸中 Boss 时甩链拽人；「通路洞开」—锁链绷直时裂开通路掀飞沿途敌人。之后的节点沿所选路线强化",
+   "bot": "drag"
   },
   {
    "type": "custom",
    "id": "rift",
    "name": "通路洞开",
    "icon": "skill_ulpianus_s3",
-   "desc": "「必须促成的接触」锁链绷直时，从乌尔比安到锚点裂开一道通路，沿途敌人被掀飞 {$rift_air} 秒并受到锚击 {$rift_mult*100}% 伤害；精英二后「必须开辟的通路」弹射时同样开路"
+   "desc": "「必须促成的接触」锁链绷直时，从乌尔比安到锚点裂开一道通路，沿途敌人被掀飞 {$rift_air} 秒并受到锚击 {$rift_mult*100}% 伤害；精英二后「必须开辟的通路」掷锚时同样开路",
+   "routes": {
+    "drag": {
+     "id": "drag2",
+     "name": "不容挣脱·绞杀",
+     "icon": "skill_ulpianus_s1",
+     "desc": "「必须促成的接触」钩回的敌人砸到面前后约 {$drag2_delay} 秒，他身前再抡一锤：半径 {$reach*$drag2_r_k:0} 内锚击 {$drag2_mult*100}% 伤害并击退"
+    },
+    "rift": {
+     "id": "rift2",
+     "name": "通路洞开·攻势",
+     "icon": "skill_ulpianus_s3",
+     "desc": "「必须促成的接触」与「必须开辟的通路」出手后 {$rift2_dur} 秒内锚击伤害 +{$rift2_atk*100}%"
+    }
+   }
   },
   {
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「必须开辟的通路」（当队长时手动释放）：掷锚眩晕一片并弹射过去，之后 {$s3_haste} 秒锚击加速；普攻质变「掷锚」：身上常亮血脉红纹；每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的），落地造成锚击 ×{$throw_mult} 伤害，随后顺锁链把沿线敌人拖回面前，再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）",
+   "desc": "解锁三技能「必须开辟的通路」（当队长时手动释放）：掷锚眩晕一片，之后 {$s3_haste} 秒锚击加速；撼地范围扩大到 {$quake_r_e2}、伤害提高到 {$quake_mult_e2*100}%；普攻质变「掷锚」：身上常亮血脉红纹；每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的），落地造成锚击 ×{$throw_mult} 伤害，随后顺锁链把沿线敌人拖回面前，再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）",
    "attack": {
     "name": "掷锚",
     "desc": "每第 {$throw_n} 次锚击改为把锚掷向 {$throw_min} 外最远的敌人（没有就掷向最近的）：落地半径 {$throw_r} 造成锚击 ×{$throw_mult} 伤害，锁链绷直后把乌尔比安与锚之间宽 {$throw_w} 的一线敌人拖回面前，再造成 {$throw_back*100}% 伤害（拖动 Boss 除外）。锚在外面时不出锚击"
@@ -542,10 +585,10 @@
    "聚怪",
    "精英克制"
   ],
-  "desc": "近卫干员，深海猎人成员，持锚作战。抡锚砸向身前一片敌人，掷锚后顺锁链弹射到精英面前；每击杀一名精英攻击 +{$stack_atk*100}%（最多 {$stack_cap} 层）"
+  "desc": "近卫干员，深海猎人成员，持锚作战。抡锚砸向身前一片敌人、撼地震退周围敌人，掷锚把精英拖到面前；每击杀一名精英攻击 +{$stack_atk*100}%（最多 {$stack_cap} 层）"
  },
  "blocks": {
-  "_doc": "乌尔比安（docs/61 §17.5）：锚击（身前圆）、必须促成的接触（掷锚钩回 / 弹射）、必须维系的界限（永久）、必须开辟的通路（手动掷锚弹射 + 8 秒加速）、血脉的哺养（叠层）、精二血脉沸腾（蓄势大爆破）；原手写脚本作参照 tests/data_ops/ulpianus_legacy.gd",
+  "_doc": "乌尔比安（docs/61 §17.5）：锚击（身前圆）、必须促成的接触（掷锚钩回 / 落锚砸下）、必须维系的界限（永久）、必须开辟的通路（手动掷锚 + 8 秒加速）、血脉的哺养（叠层）、精二血脉沸腾（蓄势大爆破）；原手写脚本作参照 tests/data_ops/ulpianus_legacy.gd",
   "follow": {
    "leash": "$leash",
    "gap": "$gap"
@@ -860,6 +903,50 @@
       "value": "$haste_mult"
      }
     ]
+   },
+   {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "elite < 2",
+    "_doc": "撼地（10-22 用户：原作撼地者，攻击周围所有敌人）：每次锚击砸地，以自身为中心追加一圈冲击环（普攻 quake_mult 倍、击退）；特效先用程序地裂环 + 裂纹占位，Codex 单见 art/incoming/codex_order_ulpianus_handoff.md",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$quake_r",
+      "basis": "atk",
+      "mult": "$quake_mult",
+      "kb": "$quake_kb",
+      "src": "撼地",
+      "ring": false,
+      "fx": [
+       {"pfx": {"kind": "ulp_wave", "r": 1.0, "life": 0.36, "floor": true, "alpha": 0.7}, "r_scale": ["r"]},
+       {"pfx": {"kind": "crack", "r": 60.0, "life": 0.35, "col": [0.45, 0.62, 0.8], "floor": true, "n": 8}}
+      ]
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "elite >= 2",
+    "_doc": "撼地（精二）：环更大、更痛（quake_r_e2 / quake_mult_e2）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$quake_r_e2",
+      "basis": "atk",
+      "mult": "$quake_mult_e2",
+      "kb": "$quake_kb",
+      "src": "撼地",
+      "ring": false,
+      "fx": [
+       {"pfx": {"kind": "ulp_wave", "r": 1.0, "life": 0.4, "floor": true, "alpha": 0.8}, "r_scale": ["r"]},
+       {"pfx": {"kind": "crack", "r": 72.0, "life": 0.4, "col": [0.9, 0.35, 0.4], "floor": true, "n": 10}}
+      ]
+     }
+    ]
    }
   ],
   "talent": [
@@ -1107,23 +1194,166 @@
       "dir": "pull",
       "fx": [
        {
-         "pfx": {
-          "kind": "ulp_wave",
-          "r": 1.0,
-          "life": 0.28,
-          "floor": true,
-          "pull": true,
-          "alpha": 0.8
-         },
-         "r_scale": [
-          "r"
-         ]
+        "pfx": {
+         "kind": "ulp_wave",
+         "r": 1.0,
+         "life": 0.28,
+         "floor": true,
+         "pull": true,
+         "alpha": 0.8
+        },
+        "r_scale": [
+         "r"
+        ]
        }
       ]
      }
     ]
+   },
+   "drag2": {
+    "trig": "on_skill_start",
+    "skill": 0,
+    "delay": "$drag2_t",
+    "_doc": "不容挣脱·绞杀（路线 drag 节点 5）：钩回落地后身前再抡一锤",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "front",
+      "front": "$front",
+      "r": "$reach*$drag2_r_k",
+      "basis": "atk",
+      "mult": "$drag2_mult",
+      "kb": "$slam_kb",
+      "src": "锚击",
+      "tags": [
+       "skill"
+      ],
+      "ring": false,
+      "fx": [
+       {
+        "pfx": {
+         "kind": "ulp_wave",
+         "r": 1.0,
+         "life": 0.3,
+         "floor": true,
+         "alpha": 0.7
+        },
+        "r_scale": [
+         "r"
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "rift2": [
+    {
+     "trig": "on_skill_start",
+     "skill": 0,
+     "_doc": "通路洞开·攻势（路线 rift 节点 5）：掷锚后限时增伤（同 key 刷新不叠）",
+     "do": [
+      {
+       "verb": "buff_timed",
+       "key": "rift",
+       "stat": "atk",
+       "value": "$rift2_atk",
+       "dur": "$rift2_dur",
+       "text": "攻势"
+      }
+     ]
+    },
+    {
+     "trig": "on_skill_start",
+     "skill": 2,
+     "do": [
+      {
+       "verb": "buff_timed",
+       "key": "rift",
+       "stat": "atk",
+       "value": "$rift2_atk",
+       "dur": "$rift2_dur",
+       "text": "攻势"
+      }
+     ]
+    }
+   ]
+  },
+  "response": [
+   {
+    "trig": "on_leader_dash",
+    "at": "end",
+    "hint": "锚链",
+    "_doc": "响应动作（docs/118 §4.1）：队长冲刺结束时，他把锚掷向队长落点（至多 throw_range），落地半径 throw_r 内 ×0.6，锁链绷直后把他与落点之间一线的非 Boss 敌人拖回自己身前（同精二「掷锚」的拖拽，回拉 × throw_back）。他本人不位移（10-21 已删顺链弹射）；他是队长时锚落在脚下原地砸；不锁普攻",
+    "do": [
+     {
+      "shape": "hookshot",
+      "range": "$throw_range",
+      "r": "$throw_r",
+      "basis": "atk",
+      "mult": 0.6,
+      "back_mult": "$throw_back",
+      "w": "$throw_w",
+      "taut": "$throw_taut",
+      "drag": "$throw_drag",
+      "front": "$throw_front",
+      "speed": 900,
+      "apex": 24,
+      "src": "抛锚",
+      "back_src": "回拉",
+      "chain": "fx_ulpianus_chain_tile",
+      "impact_fx": [
+       {
+        "slam": {
+         "k": 1.1,
+         "r_mult": 1.0
+        }
+       }
+      ],
+      "dust_fx": [
+       {
+        "strip": "fx_ulpianus_drag_dust",
+        "layer": "floor",
+        "off": [
+         0,
+         4
+        ]
+       }
+      ],
+      "arrive_fx": [
+       {
+        "pfx": {
+         "kind": "ulp_wave",
+         "r": 46.0,
+         "life": 0.25,
+         "floor": true
+        }
+       },
+       {
+        "sfx": {
+         "kind": "atk",
+         "db": 2.0,
+         "pitch": 0.85
+        }
+       }
+      ],
+      "at": "leader"
+     }
+    ]
+   },
+   {
+    "trig": "passive",
+    "cond": "resp_idle < 1.5",
+    "_doc": "响应动作：锚链掷出后 1.5 秒内（约下一次锚击）普攻锚击 ×1.3（局部倍率 atk，只乘普攻；不改 attack 积木）",
+    "do": [
+     {
+      "verb": "buff_self",
+      "stat": "atk",
+      "op": "mult",
+      "value": 1.3
+     }
+    ]
    }
-  }
+  ]
  },
  "extra_sprites": [
   "throw",
@@ -1136,26 +1366,122 @@
  "combo": {"with": "gladiia", "name": "钩与锚", "knob": "combo/hook_anchor", "desc": "歌蕾蒂娅的钩索把敌人拖回到位时，乌尔比安在 {$combo_range} 内就朝落点补一次锚击（{$combo_mult*100}% 伤害，每 {$combo_cd} 秒至多一次，不占普攻冷却）"},
  "native_motion": {
   "_doc": "原生动作覆盖层（docs/108 §3.5，native_motion.gd）：clips = 起手后整条播的秒数；variants = S2 永久生效时普攻换 attack_s2；states 按序取第一条；exits = 信号族结束后的收势",
-  "clips": {"attack": 0.6666666666666666, "attack_s2": 0.6666666666666666},
-  "variants": [{"slot": "attack", "perm": 1, "use": "attack_s2"}],
+  "clips": {
+   "attack": 0.6666666666666666,
+   "attack_s2": 0.6666666666666666
+  },
+  "variants": [
+   {
+    "slot": "attack",
+    "perm": 1,
+    "use": "attack_s2"
+   }
+  ],
   "states": [
-   {"on": "zip.zip", "slot": "zip_native", "from": 3, "to": 4, "rate": 2},
-   {"on": "zip.reel", "slot": "zip_native", "from": 3, "to": 4, "rate": 2},
-   {"on": "zip.hold", "slot": "zip_native", "from": 5, "to": 5},
-   {"on": "zip", "slot": "zip_native", "from": 1, "to": 2, "rate": 2},
-   {"on": "tether.reel", "slot": "tether_native", "from": 3, "to": 4, "rate": 2},
-   {"on": "tether.hold", "slot": "tether_native", "from": 5, "to": 5},
-   {"on": "tether", "slot": "tether_native", "from": 1, "to": 2, "rate": 2},
-   {"on": "hook.taut", "slot": "tether_native", "from": 3, "to": 3},
-   {"on": "hook.drag", "slot": "tether_native", "from": 4, "to": 5, "rate": 2},
-   {"on": "hook", "slot": "tether_native", "from": 1, "to": 2, "rate": 2},
-   {"on": "act:throw", "slot": "idle", "loop": true},
-   {"on": "whirl", "slot": "whirl_native", "from": 0, "to": 7, "rate": 8}
+   {
+    "on": "zip.zip",
+    "slot": "zip_native",
+    "from": 3,
+    "to": 4,
+    "rate": 2
+   },
+   {
+    "on": "zip.reel",
+    "slot": "zip_native",
+    "from": 3,
+    "to": 4,
+    "rate": 2
+   },
+   {
+    "on": "zip.hold",
+    "slot": "zip_native",
+    "from": 5,
+    "to": 5
+   },
+   {
+    "on": "zip",
+    "slot": "zip_native",
+    "from": 1,
+    "to": 2,
+    "rate": 2
+   },
+   {
+    "on": "tether.reel",
+    "slot": "tether_native",
+    "from": 3,
+    "to": 4,
+    "rate": 2
+   },
+   {
+    "on": "tether.hold",
+    "slot": "tether_native",
+    "from": 5,
+    "to": 5
+   },
+   {
+    "on": "tether",
+    "slot": "tether_native",
+    "from": 1,
+    "to": 2,
+    "rate": 2
+   },
+   {
+    "on": "hook.taut",
+    "slot": "tether_native",
+    "from": 3,
+    "to": 3
+   },
+   {
+    "on": "hook.drag",
+    "slot": "tether_native",
+    "from": 4,
+    "to": 5,
+    "rate": 2
+   },
+   {
+    "on": "hook",
+    "slot": "tether_native",
+    "from": 1,
+    "to": 2,
+    "rate": 2
+   },
+   {
+    "on": "act:throw",
+    "slot": "idle",
+    "loop": true
+   },
+   {
+    "on": "whirl",
+    "slot": "whirl_native",
+    "from": 0,
+    "to": 7,
+    "rate": 8
+   }
   ],
   "exits": [
-   {"on": "tether", "slot": "tether_native", "from": 6, "tail": 0.16},
-   {"on": "zip", "slot": "zip_native", "from": 6, "tail": 0.16},
-   {"on": "hook", "slot": "tether_native", "from": 6, "tail": 0.16}
+   {
+    "on": "tether",
+    "slot": "tether_native",
+    "from": 6,
+    "tail": 0.16
+   },
+   {
+    "on": "zip",
+    "slot": "zip_native",
+    "from": 6,
+    "tail": 0.16
+   },
+   {
+    "on": "hook",
+    "slot": "tether_native",
+    "from": 6,
+    "tail": 0.16
+   }
   ]
+ },
+ "response": {
+  "name": "锚链",
+  "trigger": "队长冲刺",
+  "desc": "队长每次冲刺结束，他把锚掷向队长的落点，砸中周围的敌人，再把锁链沿线的敌人拖回自己身前；之后的下一次锚击伤害 +30%"
  }
 }

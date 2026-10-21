@@ -25,8 +25,10 @@ const CHUNK := 1000          # 每片字节数（上限 1024，留余量）
 const MAX_CHUNKS := 48       # 正文上限 48 KB（49 个 key）；其余 key 留给以后的功能
 const KEY_LIMIT := 128
 const VALUE_LIMIT := 1024
-const LIST_KEYS := ["gal", "rel", "end", "shows"]
-const PROG_KEYS := ["diff", "gal", "rel", "end", "shows", "intro", "open"]
+## ops = 解锁过的干员、optier = 已首通的难度档（发过人事调度函），都取并集；opst = 名册的券与抽取状态（merge_opst）
+const LIST_KEYS := ["gal", "rel", "end", "shows", "ops", "optier"]
+const OPTIONAL_KEYS := ["ops", "optier", "opst"]   # 只在正文里有时才规范化 / 合并
+const PROG_KEYS := ["diff", "gal", "rel", "end", "shows", "intro", "open", "ops", "optier", "opst"]
 ## 格式迁移：{旧版本 v: 把 v 版正文改成 v+1 版的静态函数名}。目前只有 v1，没有迁移；以后改格式时在这里登记（单测覆盖）
 const MIGRATIONS := {}
 
@@ -178,7 +180,11 @@ static func normalize(b: Dictionary) -> Dictionary:
 	pr["diff"] = int(pr.get("diff", 0))
 	pr["intro"] = bool(pr.get("intro", false))
 	pr["open"] = bool(pr.get("open", false))
+	if pr.has("opst"):
+		pr["opst"] = (pr.opst as Dictionary).duplicate(true) if pr.opst is Dictionary else {}
 	for k in LIST_KEYS:
+		if k in OPTIONAL_KEYS and not pr.has(k):
+			continue   # 名册字段（P1 之后才有）：旧正文里没有就不补，往返与旧版本逐字相同
 		var arr := []
 		for x in pr.get(k, []):
 			var xs := str(x)
@@ -191,6 +197,29 @@ static func normalize(b: Dictionary) -> Dictionary:
 		if not (k in ["t", "d"]):
 			out.set[k] = st[k]
 	out["prog"] = pr
+	return out
+
+
+## 名册状态合并（docs/109 §12.5）：待用的券 / 多余的券按种类取较大值（两台设备各领一张不会翻倍；
+## 一台用掉、另一台还没同步时可能多留一张，可接受）；已用券数取较大值，保底计数跟着已用券数较大的一份；
+## 意向干员和种子优先本地（本地为空 / 0 时用云端）
+static func merge_opst(l: Dictionary, c: Dictionary) -> Dictionary:
+	var out := {}
+	for key in ["tk", "sp"]:
+		var m := {}
+		var a: Dictionary = l.get(key, {}) if l.get(key) is Dictionary else {}
+		var b: Dictionary = c.get(key, {}) if c.get(key) is Dictionary else {}
+		for k in a:
+			m[k] = maxi(int(a[k]), int(m.get(k, 0)))
+		for k in b:
+			m[k] = maxi(int(b[k]), int(m.get(k, 0)))
+		out[key] = m
+	var ld := int(l.get("draws", 0))
+	var cd := int(c.get("draws", 0))
+	out["draws"] = maxi(ld, cd)
+	out["pity"] = int(l.get("pity", 0)) if ld >= cd else int(c.get("pity", 0))
+	out["wish"] = str(l.get("wish", "")) if str(l.get("wish", "")) != "" else str(c.get("wish", ""))
+	out["seed"] = int(l.get("seed", 0)) if int(l.get("seed", 0)) != 0 else int(c.get("seed", 0))
 	return out
 
 
@@ -258,7 +287,10 @@ static func merge(local: Dictionary, cloud: Dictionary) -> Dictionary:
 	p["intro"] = bool(lp.intro) or bool(cp.intro)
 	p["open"] = bool(lp.open) or bool(cp.open)
 	for k in LIST_KEYS:
-		p[k] = union(lp[k], cp[k])
+		if lp.has(k) or cp.has(k):
+			p[k] = union(lp.get(k, []), cp.get(k, []))
+	if lp.has("opst") or cp.has("opst"):
+		p["opst"] = merge_opst(lp.get("opst", {}), cp.get("opst", {}))
 	var cloud_newer: bool = int(c.set.t) > int(l.set.t)
 	var win: Dictionary = c.set if cloud_newer else l.set
 	var lose: Dictionary = l.set if cloud_newer else c.set

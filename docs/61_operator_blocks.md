@@ -1510,7 +1510,7 @@ shell 普攻在选择目标和消费次数型技能装填前调用 `_restat()`�
 
 | 积木 | 类 | 说明 |
 |---|---|---|
-| `verb.tether` | 技能 do | 掷锚：pick `elite`（pick_r_elite 内最近精英 / Boss，退到 densest）/ `densest`；`manual: true` = 队长手动时用玩家给的落点 / 方向（aim_cone / aim_range / aim_empty / aim_free / aim_snap，契约 v2.4 / v2.5），并接管 `manual_ready / manual_block_reason / manual_aim_point / bot_wants_manual`。锚 throw 秒飞到落点咬地；`mode: reel` 钩住 hook_r（`hook_more` 成立时 × r_mult、+n）内至多 hook_n 名非 Boss 敌人拽到身前、眩晕、停 hold 秒重砸身前（钩中的首个精英 × elite_mult）；钩不到 / 钩到 Boss 就和 `mode: zip` 一样顺锁链弹射到落点前落地砸 r（stun_boss / stun_elite / land_kb / kb_boss），然后 `then`、`drag`（cond：拽来 r 内至多 n 名）、`rift`（cond：起跳点到落点裂开通路，沿线掀飞）。锚在外面时不起手，动作停在技能条第 hold_frame 帧 |
+| `verb.tether` | 技能 do | 掷锚：pick `elite`（pick_r_elite 内最近精英 / Boss，退到 densest）/ `densest`；`manual: true` = 队长手动时用玩家给的落点 / 方向（aim_cone / aim_range / aim_empty / aim_free / aim_snap，契约 v2.4 / v2.5），并接管 `manual_ready / manual_block_reason / manual_aim_point / bot_wants_manual`。锚 throw 秒飞到落点咬地；`mode: reel` 钩住 hook_r（`hook_more` 成立时 × r_mult、+n）内至多 hook_n 名非 Boss 敌人拽到身前、眩晕、停 hold 秒重砸身前（钩中的首个精英 × elite_mult）；钩不到 / 钩到 Boss 就和 `mode: zip` 一样，锚在落点原地砸 r（stun_boss / stun_elite / land_kb / kb_boss；10-22 起本干员不再顺锁链弹射位移），然后 `then`、`drag`（cond：拽来 r 内至多 n 名到落点）、`rift`（cond：本干员到落点裂开通路，沿线掀飞）。锚在外面时不起手，动作停在技能条第 hold_frame 帧 |
 | `verb.stack` | 触发 do | 叠层：+add（Boss + add_boss），上限 cap + cap_more（cond）；层数一变**立刻**重算属性（`_restat`，同手写 refresh_stats）；`status` / `row` 显示 |
 | `verb.arm` + `attack.armed [{key, do}]` | 触发 do / 普攻 | 蓄势：置位后下一次普攻整个换成 do（target = 锚击中心），不计普攻次数、不走 every_n |
 | `verb.timer` + 技能 `active_timer` | 瞬时 / 技能积木 | 计时 dur 秒（每帧开头倒数）；条件 `timer:<key>`；技能剩余按这个计时（「开辟」8 秒内不充能） |

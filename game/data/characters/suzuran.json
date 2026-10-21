@@ -369,6 +369,7 @@
       }
     }
   ],
+  "response": {"name": "祈愿", "trigger": "队长开技能", "desc": "队长每次开技能，她的光域闪一下：光域内的敌人受到少量狐火伤害并减速 2 秒，其他干员技力 +1 秒"},
   "gallery": {
     "tags": [
       "控制",
@@ -655,6 +656,7 @@
           }
         ]
       }
-    }
-  }
+    },
+  "response": [{"trig": "on_leader_skill", "hint": "祈愿", "_doc": "响应动作（docs/118 §4.3）：队长开技能时光域闪一下——以队长为中心光域半径内的敌人受到 0.3 倍狐火伤害并减速 2 秒，其他干员技力 +1 秒", "do": [{"shape": "circle", "center": "leader", "r": "$aura", "mult": 0.3, "src": "狐火", "on_hit": [{"st": "slow", "dur": 2.0}]}, {"verb": "sp_secs", "seconds": 1.0}]}]
+ }
 }

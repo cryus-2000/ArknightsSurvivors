@@ -4,6 +4,7 @@
 ## 生命、等级、经验、拾取由 game.gd 持有；博士是挂件（characters/doctor.gd：指挥技能、被动、排异反应）。
 ## 干员调用 game.gd 的能力一律走 op_api.gd（本类的父类），不直接调用 g._ 开头的内部函数。
 extends "res://scripts/characters/op_api.gd"
+const RetreatFx = preload("res://scripts/render/retreat_fx.gd")   # 共用撤退表现（10-21）
 
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")   # 地裂共用画法
 const A = preload("res://scripts/art.gd")
@@ -1062,15 +1063,21 @@ static func branch_on() -> bool:
 func node_view(n: Dictionary, rid: String = route) -> Dictionary:
 	if n.is_empty() or not branch_on():
 		return n
+	var out: Dictionary = n
+	if n.get("alt", null) is Dictionary:   # 开关开时无条件换成另一个节点（安洁莉娜 docs/119：双重引力提前到节点 1；顶层仍是旧线）
+		out = n.duplicate()
+		for k in n.alt:
+			out[k] = n.alt[k]
+		out.erase("alt")
 	var alts = n.get("branch", n.get("routes", null))
 	if alts is Dictionary and rid != "" and alts.has(rid) and alts[rid] is Dictionary:
-		var out: Dictionary = n.duplicate()
+		if out == n:
+			out = n.duplicate()
 		for k in alts[rid]:
 			out[k] = alts[rid][k]
 		out.erase("branch")
 		out.erase("routes")
-		return out
-	return n
+	return out
 
 
 ## 整条成长线按当前路线解析（属性面板 / 图鉴）
@@ -2292,6 +2299,10 @@ func draw_body() -> void:
 	for gh in ghosts:
 		var a: float = GHOST_ALPHA * (1.0 - gh.age / GHOST_LIFE)
 		draw_sprite_at(gh.p + Vector2(foot_dx(gh.st), 0), gh.st.flip, Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, a), gh.st.frame, gh.st.tex, gh.st.hf, foot_off(gh.st.tex, gh.st.get("kind", "")))
+	if is_leader and g.state == g.S.DEAD:   # 队长倒下：共用撤退表现（10-21，替代逐人 death 条；倒下过渡的灯火熄灭照旧）
+		_cv_flush()
+		RetreatFx.draw(g, st, pos + Vector2(foot_dx(st), 0) + g.draw_off, foot_off(st.tex, st.get("kind", "")), g.state_age, g.PX)
+		return
 	# 主控：受击闪白 / 闪红 / 无敌闪烁沿用 game.gd 算好的 sprite.modulate
 	var mod: Color = g.sprite.modulate if is_leader else Color.WHITE
 	draw_sprite_at(pos + Vector2(foot_dx(st), 0), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))

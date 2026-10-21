@@ -290,7 +290,13 @@
     "jelly_every": 1.2,
     "jelly_r": 200,
     "jelly_mult": 0.4,
-    "jelly_bind": 0.3
+    "jelly_bind": 0.3,
+    "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 惊跳反射 / 病理性依恋，节点 5：awk2_* 惊跳反射·余悸（唤醒后触手再抽一圈），bind2_* 病理性依恋·缠缚（囚徒困境期间身边减速 + 伤害）。数值为待试验参数",
+    "awk2_delay": 0.5,
+    "awk2_r_k": 1.5,
+    "awk2_mult": 0.6,
+    "bind2_slow": 1.0,
+    "bind2_mult": 0.2
   },
   "leader": {
     "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1758 / 防御 356 / 法抗 30%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
@@ -464,14 +470,44 @@
       "id": "awaken_burst",
       "name": "惊跳反射",
       "icon": "skill_s1",
-      "desc": "「唤醒」强化的那一击，身边再钻出 2 根触手抽打附近的敌人"
+      "desc": "「唤醒」强化的那一击，身边再钻出 2 根触手抽打附近的敌人",
+      "branch": {
+        "awaken": {
+          "id": "awaken_burst",
+          "name": "惊跳反射",
+          "icon": "skill_s1",
+          "desc": "「唤醒」强化的那一击，身边再钻出 2 根触手抽打附近的敌人"
+        },
+        "bind": {
+          "id": "bind_drag",
+          "name": "病理性依恋",
+          "icon": "skill_s2",
+          "desc": "「囚徒困境」期间，触手把束缚住的敌人拖到水月身边"
+        }
+      },
+      "branch_desc": "二选一：「惊跳反射」—唤醒的那一击身边再钻出触手；「病理性依恋」—囚徒困境期间触手把束缚的敌人拖到身边。之后的节点沿所选路线强化",
+      "bot": "awaken"
     },
     {
       "type": "custom",
       "id": "bind_drag",
       "name": "病理性依恋",
       "icon": "skill_s2",
-      "desc": "「囚徒困境」期间，触手把束缚住的敌人拖到水月身边"
+      "desc": "「囚徒困境」期间，触手把束缚住的敌人拖到水月身边",
+      "routes": {
+        "awaken": {
+          "id": "awaken_burst2",
+          "name": "惊跳反射·余悸",
+          "icon": "skill_mizuki_s1",
+          "desc": "「唤醒」{$awk2_delay} 秒后，身边触手再抽打一圈（半径 {$s1_burst_r*$awk2_r_k:0}，伞击 {$awk2_mult*100}% 伤害，击退）"
+        },
+        "bind": {
+          "id": "bind_drag2",
+          "name": "病理性依恋·缠缚",
+          "icon": "skill_mizuki_s2",
+          "desc": "「囚徒困境」期间每秒，身边 {$swing_radius} 内的敌人被触手缠住：减速 {$bind2_slow} 秒并受伞击 {$bind2_mult*100}% 伤害"
+        }
+      }
     },
     {
       "type": "elite",
@@ -567,6 +603,11 @@
         {
           "cond": "skill_active:2",
           "mult": "$s3_radius"
+        },
+        {
+         "cond": "response_on && resp_idle < 3",
+         "mult": 1.5,
+         "_doc": "响应动作「伞开」：切到突击后 3 秒内伞击范围 ×1.5"
         }
       ],
       "dmg_mults": [
@@ -591,6 +632,11 @@
           {
             "cond": "skill_active:2",
             "n": 2
+          },
+          {
+           "cond": "response_on && resp_idle < 3",
+           "n": 1,
+           "_doc": "响应动作「伞开」：切到突击后 3 秒内触手追击 +1 名"
           }
         ],
         "stun": [
@@ -790,8 +836,65 @@
         "trig": "passive",
         "do": [],
         "_doc": "精二深蓝之籽：写在 attack.jelly（cond elite >= 2）"
+      },
+      "awaken_burst2": {
+        "trig": "on_skill_start",
+        "skill": 0,
+        "delay": "$awk2_delay",
+        "_doc": "惊跳反射·余悸（路线 awaken 节点 5）",
+        "do": [
+          {
+            "shape": "circle",
+            "center": "self",
+            "r": "$s1_burst_r*$awk2_r_k",
+            "atk_key": "umbrella_dmg",
+            "mult": "$awk2_mult",
+            "power": true,
+            "kb": "$kb",
+            "src": "触手",
+            "tags": [
+              "skill"
+            ]
+          }
+        ]
+      },
+      "bind_drag2": {
+        "trig": "tick",
+        "every": 1.0,
+        "cond": "skill_active:1",
+        "_doc": "病理性依恋·缠缚（路线 bind 节点 5）",
+        "do": [
+          {
+            "shape": "circle",
+            "center": "self",
+            "r": "$swing_radius",
+            "atk_key": "umbrella_dmg",
+            "mult": "$bind2_mult",
+            "power": true,
+            "src": "触手",
+            "tags": [
+              "skill",
+              "dot"
+            ],
+            "on_hit": [
+              {
+                "st": "slow",
+                "dur": "$bind2_slow"
+              }
+            ]
+          }
+        ]
       }
-    }
+    },
+    "response": [
+      {
+        "trig": "on_stance",
+        "to": "roam",
+        "hint": "伞开",
+        "do": [],
+        "_doc": "响应动作（docs/118 §4.4）：切到突击时触发；效果写在 attack.r_mults / tentacle.n_add（cond response_on && resp_idle < 3）：之后 3 秒伞击范围 ×1.5、触手追击 +1 名。拉怪不是位移，不受 §1.4 限制"
+      }
+    ]
   },
   "extra_sprites": [
     "skill_s2",
@@ -803,5 +906,10 @@
     "skill_s3_loop",
     "skill_s3_attack",
     "skill_s3_end"
-  ]
+  ],
+  "response": {
+    "name": "伞开",
+    "trigger": "指挥：突击",
+    "desc": "切到突击后 3 秒内，她的伞击范围扩大 50%，触手多追击 1 名敌人"
+  }
 }

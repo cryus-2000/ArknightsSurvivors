@@ -1,6 +1,7 @@
 ## 编队（docs/23 §3）：持有编队位上的干员实例，负责招募 / 替换、编队校验、跟随队形与统一的 update / draw 分发。
 ## 常规上限 3 人，第 4 位由事件 / 藏品 / 商店解锁（extra_slot）。干员没有生命值，敌人只追主控。
 extends RefCounted
+const RetreatFx = preload("res://scripts/render/retreat_fx.gd")   # 共用撤退表现（10-21）
 
 const Character = preload("res://scripts/characters/character.gd")
 const BatchCanvas = preload("res://scripts/characters/batch_canvas.gd")
@@ -28,6 +29,7 @@ var gather_t := -1.0          # 归队：全员到位后站定的剩余秒数（
 var stamina := 1.0
 var exhausted := false         # 耗尽后的冷却：回到 min_start 以上才解除（HUD 灰显）
 var stance_log: Array = []     # [[g.t, 新站位], …]：玩家切换记录（同 seed 复现 / 机器人对照）
+var gathered_n := 0            # 归队集合完毕（全员到位、开始站定）的次数：响应动作 on_stance to: gathered 的触发源（docs/118）
 
 
 func _init(game) -> void:
@@ -116,6 +118,7 @@ func remove(cid: String) -> void:
 		if ops[i].id == cid:
 			if g.get("telemetry") != null:
 				g.telemetry.on_leave(cid)
+			_leave_fx(ops[i])
 			if ops[i].has_method("on_leave"):
 				ops[i].on_leave()
 			ops.remove_at(i)
@@ -129,6 +132,16 @@ func remove(cid: String) -> void:
 		_apply_leader_regen(ops[0])
 	if g.get("rfx") != null:
 		g.rfx.refresh_squad()
+
+
+## 队友离队 / 换人：在原地留一个共用撤退表现（render/retreat_fx.gd，纯画面 g.fx kind "retreat"）
+func _leave_fx(o) -> void:
+	if o.pos == Vector2.INF or g.get("fx") == null:
+		return
+	var st: Dictionary = o.anim_state()
+	if st.is_empty():
+		return
+	g.fx.append({"kind": "retreat", "pos": o.pos + Vector2(o.foot_dx(st), 0), "st": st, "foot_off": o.foot_off(st.tex, st.get("kind", "")), "life": RetreatFx.TOTAL, "max": RetreatFx.TOTAL})
 
 
 var _hold_size := false   # replace 中途：人数先减后加，不重算入队加成（人数不变，台阶不变）
@@ -303,7 +316,7 @@ func update(dt: float) -> void:
 		o.tick_sp(dt)
 		_battle_voice(o, dt)
 		o.update(dt)
-		# 主控的技能位移（推进之王跃空锤、乌尔比安顺锁链弹射）带着玩家一起走，位移中短暂无敌
+		# 主控的技能位移（推进之王跃空锤）带着玩家一起走，位移中短暂无敌
 		if o.is_leader and o.pos != Vector2.INF and o.pos.distance_to(g.ppos) > 0.5:
 			g.ppos = o.pos
 			g.invuln = maxf(g.invuln, 0.12)
@@ -375,6 +388,7 @@ func _tick_recall(dt: float) -> void:
 				break
 	if done:
 		gather_t = Bal.v("command/gather", 0.4)
+		gathered_n += 1
 
 
 ## 战斗台词：每人 30–55 秒一次，身边 300 内有敌人才说；维什戴尔四成概率换成 W 的笑声
