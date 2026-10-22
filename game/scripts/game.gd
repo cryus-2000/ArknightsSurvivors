@@ -687,6 +687,11 @@ func _ready() -> void:
 	for k in ["max_hp", "armor", "arts_res"]:
 		if lead.has(k) and stats.has_stat(k):
 			stats.set_base(k, float(lead[k]))
+	# 基础砍（docs/109 §14 v4，用户 10-22「砍干员基础数值，把差值留给树」）：队长最大生命、干员攻击倍率的基础值；1 = 不变
+	if stats.has_stat(&"max_hp"):
+		stats.set_base(&"max_hp", float(stats._base[&"max_hp"]) * Bal.v("squad/leader_hp_mult", 1.0))
+	if stats.has_stat(&"op_atk"):
+		stats.set_base(&"op_atk", Bal.v("squad/op_atk_base", 1.0))
 	# 博士动画条（data/doctor.json 的 sprites：idle / run / hurt / death）
 	for kind in ["idle", "run", "hurt", "death"]:
 		var dn = doctor.def.get("sprites", {}).get(kind, "")
@@ -884,7 +889,7 @@ func _ready() -> void:
 	preset = clampi(Cfg.difficulty, 0, D.DIFF_PRESETS.size() - 1)
 	tier = int(D.DIFF_PRESETS[preset].tide)
 	diff = tier
-	dmod = D.dmod_for_tier(tier)
+	dmod = D.dmod_for_preset(preset)   # 潮位表 + 该档的 enemy_scale（深潮档微降，docs/109 §15）
 	for a in Cfg.dev_args():
 		if a.begins_with("--diff="):
 			# 批跑：旧累计难度 0–10 拼修正表（与旧数据对得上）
@@ -903,7 +908,7 @@ func _ready() -> void:
 			preset = -1
 			tier = clampi(int(a.substr(7)), 0, D.DIFFICULTY_TIERS.size() - 1)
 			diff = tier
-			dmod = D.dmod_for_tier(tier)
+			dmod = D.dmod_for_tide(tier)   # 潮位正好是三档预设之一时带上该档的 enemy_scale（校准批跑与正式档同一张表）
 	if float(dmod.lamp_hit) != 1.0:
 		stats.add(&"light_decay", "mult", float(dmod.lamp_hit), "difficulty")   # 受击灯火损失（g.lamp_decay 只用于受击，combat.gd lose_hp）
 	if float(dmod.max_hp) != 1.0:
@@ -1717,6 +1722,14 @@ func _update(dt: float) -> void:
 		vfx.show_banner("为了生存 —— 队长回复 30% 最大生命")
 	if hp <= 0.0 and squad.prevent_death():
 		hp = 1.0   # 幽灵鲨「求生之渴」：主控生命不会低于 1
+	if hp <= 0.0 and rfx.rule("last_stand") > 0:
+		# 认知塑造「生存本能」末节：每局一次，致命伤后保留 1 点生命并 meta/last_stand_inv 秒不受伤害
+		rfx.use_rule("last_stand")
+		hp = 1.0
+		invuln = maxf(invuln, Bal.v("meta/last_stand_inv", 1.5))
+		fx.append({"kind": "rays", "pos": ppos, "life": 0.9, "max": 0.9, "col": Color(0.8, 0.95, 1.0)})
+		vfx.show_banner("生存本能 —— 队长保留 1 点生命")
+		Sfx.play("levelup", 0.0, 0.7)
 	if hp <= 0.0 and not rfx.on_death():
 		hp = 0.0
 		state = S.DEAD

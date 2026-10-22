@@ -1,11 +1,23 @@
 extends RefCounted
-## 认知塑造（局外成长 P2，docs/109 §4，用户 10-22 确认 v3）：节点数据在 data/meta_tree.json，玩家已点的在 Cfg.meta_shape（{节点 id: true}）。
+## 认知塑造（局外成长 P2，docs/109 §4 / §14 v5）：节点数据在 data/meta_tree.json，玩家已点的在 Cfg.meta_shape（{节点 id: true}）。
+## 质变 / 非数值节点走 effects 里的 rule（开局写进 rfx.rules），各自的钩子：combat.gd（护盾反震 / 低血回复 / 处决 / 静守）、game.gd（濒死免死）、pickups.gd（升级再升）、progression.gd（开局四选一）、shop.gd（免费刷新）。
 ## 一局开局时 apply_run(g) 把已点节点写进属性块（来源 "meta"）与开局资源。
 ## 测试局缺省不带任何局外成长（与改动前逐局相同）；--meta=<生机细胞数> 按推荐点法点到这个数，--meta=full 点满（机器人校准用，docs/109 §5.4）。
 ## --metanodes=<id,id,…> 只点指定节点（按线单测）。--meta / --metanodes 只在测试局读；正式游玩用存档里的 Cfg.meta_shape。
 
 const PATH := "res://data/meta_tree.json"
 static var _data := {}
+
+
+## 「队长攻击」（护盾反震等质变节点的基数）：队长 JSON base.atk；没有这一项的干员（水月伞击 / 凯尔希 / 流明）用 balance meta/leader_atk_fallback
+static func leader_atk(g) -> float:
+	var Bal = load("res://scripts/core/balance.gd")
+	if g.ch == null:
+		return Bal.v("meta/leader_atk_fallback", 15.0)
+	var a: float = g.ch.base("atk", g.ch.base("umbrella_dmg", 0.0))
+	if a <= 0.0:
+		a = Bal.v("meta/leader_atk_fallback", 15.0)
+	return a * g.ch._dmg_bonus()
 
 
 static func data() -> Dictionary:

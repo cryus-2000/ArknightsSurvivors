@@ -293,6 +293,13 @@ func gain_xp(v: float) -> void:
 		g.pending_levelups += 1
 		g.lv_times.append(int(g.t))
 		levelup_fx()
+		# 认知塑造「领导欲」末节：每次升级 meta/double_level_chance 概率再升一级（用对局 rng，只在点了该节点时取数）
+		if g.rfx.rule("double_level") > 0 and g.rng.randf() < Bal.v("meta/double_level_chance", 0.1):
+			g.level += 1
+			g.xp_need = xp_required(g.level)
+			g.pending_levelups += 1
+			g.lv_times.append(int(g.t))
+			g.vfx.add_text(g.ppos + Vector2(0, -110), "领导欲 · 再升一级", Color(1.0, 0.85, 0.4), 15)
 	if g.level != lv0:
 		sync_level_pickup()
 		g.rfx.on_levelup(g.level - lv0)   # 疗养卡（docs/57 P9）

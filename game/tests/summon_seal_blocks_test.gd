@@ -10,6 +10,7 @@ extends Node
 const OB = preload("res://scripts/characters/op_blocks.gd")
 const Ch = preload("res://scripts/characters/character.gd")
 const D = preload("res://scripts/data.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 var game: Node
 var frames := 0
@@ -162,7 +163,7 @@ func test_summon(o) -> void:
 	game.stats.add(&"op_aspd", "add", 1.0, "sm_test", "op:sstest")
 	o.refresh_stats()
 	var k_atk: float = o.stat(&"op_atk")
-	near(OB.sm_dmg(o, a) / d0, k_atk / (k_atk - 1.0) * o.skill_power() / (o.skill_power() - 0.5), "召唤物吃本干员 op_atk 与技能强度", 0.0001)
+	near(OB.sm_dmg(o, a) / d0, k_atk / (k_atk - Bal.v("squad/op_atk_base", 1.0)) * o.skill_power() / (o.skill_power() - 0.5), "召唤物吃本干员 op_atk 与技能强度（add 按基础值 squad/op_atk_base 放大）", 0.0001)
 	var w: Dictionary = kinds(o, "wolf")[0]
 	w.cd = 0.0
 	w.tgt = e1
@@ -388,7 +389,7 @@ func test_shield_heal(o) -> void:
 	var hp0: float = game.hp
 	game.invuln = 0.0
 	game.in_type = ["近战", "物理"]
-	game.combat.enemy_hit(20.0, {}, false, true)
+	game.combat.enemy_hit(mh * 0.15, {}, false, true)   # 一发 15% 最大生命，护盾 20% 够吸整下（不写死 20，队长生命有基础砍 squad/leader_hp_mult）
 	ok(game.hp == hp0, "enemy_hit：护盾吸收整下，主控不掉血（%.1f → %.1f）" % [hp0, game.hp])
 	ok(float(o.sm.shield) < mh * 0.3, "enemy_hit 扣了护盾（受击询问传了这一下的伤害）")
 	var sh: float = o.sm.shield

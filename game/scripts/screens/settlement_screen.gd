@@ -240,7 +240,7 @@ func draw(ci: CanvasItem, vs: Vector2) -> void:
 	_text(ci,382,155,"探索用时",12,HH.INK2)
 	_text(ci,382,176,RS_time(float(model.t)),21,HH.INK)
 	_text(ci,518,155,"难度档",12,HH.INK2)
-	_text(ci,518,178,["标准","困难","极限"][clampi(g.preset,0,2)],18,HH.INK)
+	_text(ci,518,178,str(D.DIFF_PRESETS[clampi(g.preset,0,D.DIFF_PRESETS.size()-1)].name),18,HH.INK)
 	var count := 1.0 - pow(1.0-clampf((elapsed-0.12)/0.38,0,1),3)
 	_text(ci,754,80,"本局获得",14,HH.MUTE)
 	_text(ci,754,116,"生机细胞",13,HH.MUTE)

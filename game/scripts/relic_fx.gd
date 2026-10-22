@@ -38,6 +38,7 @@ var dot_tick := 0.0
 var perm_dmg := 0.0        # 刻勋之手：击杀永久累加（上限 0.3）
 var tulip_t := 0.0         # 黑色郁金香：技能未生效的持续时间
 var no_hurt_t := 0.0       # 深蓝之树：连续未受伤时间
+var calm_t := 0.0          # 认知塑造「自我保护」末节：连续未受伤秒数（任何规则下都计，on_hurt 归零）
 var stun_all_cd := 0.0
 var revived := false
 var king_n := 0            # 国王套装件数
@@ -640,6 +641,7 @@ func tick(dt: float) -> void:
 			no_hurt_t = 0.0
 			g.lamp = minf(g.lamp_cap, g.lamp + float(ta.get("amount", 6.0)))
 			g.vfx.add_text(g.ppos + Vector2(0, -90), "深蓝之树 · 灯火 +%d" % int(ta.get("amount", 6.0)), Color(0.5, 0.8, 1.0), 15)
+	calm_t += dt
 	stun_all_cd -= dt
 	hurt_sp_cd -= dt
 	wrath_cd -= dt
@@ -1231,6 +1233,7 @@ func on_recruit(op) -> void:
 
 func on_hurt(src_corrode: bool, amount := 0.0) -> void:
 	no_hurt_t = 0.0
+	calm_t = 0.0
 	for id in unhurt:
 		unhurt[id] = 0.0
 	# docs/57 P23：受击全屏真伤（碎片大厦的回忆，带冷却）、受重击周围晕眩（荣耀套餐）

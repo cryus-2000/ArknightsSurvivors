@@ -195,12 +195,20 @@ func buy(i: int) -> void:
 	g.shop_ui.build()
 
 
+## 认知塑造「自我审视」：每局一次免费刷新还没用掉
+func refresh_free() -> bool:
+	return g.rfx.rule("shop_free_refresh") > 0
+
+
 func refresh() -> void:
-	if g.shop_refreshed or g.ingots < price("refresh"):
+	if g.shop_refreshed or (not refresh_free() and g.ingots < price("refresh")):
 		return
 	g.shop_refreshed = true
-	g.telemetry.ingots_spent += price("refresh")
-	g.ingots -= price("refresh")
+	if refresh_free():
+		g.rfx.use_rule("shop_free_refresh")
+	else:
+		g.telemetry.ingots_spent += price("refresh")
+		g.ingots -= price("refresh")
 	roll()
 	sync_preview()   # 刷新后同步预告：按新货架重定，不保证联动位、不留旧商品
 	Sfx.play("relic", -6.0)
