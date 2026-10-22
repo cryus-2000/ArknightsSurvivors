@@ -912,5 +912,7 @@
     "name": "伞开",
     "trigger": "指挥：突击",
     "desc": "切到突击后 3 秒内，她的伞击范围扩大 50%，触手多追击 1 名敌人"
-  }
+  },
+  "hit_feel": "melee",
+  "list_first": true
 }

@@ -10,7 +10,6 @@ const NOTE := "以上为队长、精零、无藏品时的数值"
 ## 每张数值表都必须有的行（测试按这个查缺）
 const REQUIRED := ["hp", "atk", "cd", "dps", "reach", "armor", "arts", "regen", "speed"]
 ## 每次普攻的段数写死在脚本里的干员（irene.gd：刺击两段，N1 再审才 3 段）
-const HITS := {"irene": 2}
 const ATK_KEYS := ["atk", "m_atk", "umbrella_dmg", "bolt_atk"]
 const CD_KEYS := ["cd", "m_cd", "swing_interval", "bolt_cd"]
 ## 范围键 → [标签, 英文]；按顺序取第一个存在的键（aura：浊心斯卡蒂歌域，docs/61；dash_len：德克萨斯冲刺距离）
@@ -69,13 +68,13 @@ static func sheet(cid: String, definition: Dictionary) -> Dictionary:
 	var speed: float = float(doc.get("move_speed", StatDefs.PLAYER[&"move_speed"].base))
 	# 普攻的段数 / 附加伤害：单体每秒伤害 = 攻击 × 段数 × (1 + 附加) ÷ 间隔
 	var atk_lbl := "Mon3tr 攻击" if b.has("m_atk") else "攻击"
-	var hits: int = int(b.get("shots", HITS.get(cid, 1)))
+	var hits: int = int(b.get("shots", definition.get("stat_hits", 1)))   # stat_hits：干员 json（艾丽妮一次刺击 2 段）
 	var follow := 0.0
 	var atk_sub := ""
 	var dps_sub := "单体"
 	var extra: Array = []
 	if hits > 1:
-		atk_sub = "× %d %s" % [hits, "段" if HITS.has(cid) else "发"]
+		atk_sub = "× %d %s" % [hits, "段" if definition.has("stat_hits") else "发"]
 	if b.has("quake"):   # 维什戴尔：落点 0.45 秒后余震
 		follow = float(b.quake)
 		atk_sub = "+ 余震 %s" % _num(atk * follow)

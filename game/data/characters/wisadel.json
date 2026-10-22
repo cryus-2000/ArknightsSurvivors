@@ -1250,5 +1250,9 @@
     "name": "架炮",
     "trigger": "队长站定",
     "desc": "队长站定不动时，她架稳炮位，攻击间隔缩短约 15%；队长移动就收炮"
+  },
+  "hit_feel": "heavy",
+  "voice_alt": {
+    "battle": ["w_laugh", 0.4]
   }
 }

@@ -18,8 +18,8 @@ const Game = preload("res://scripts/game.gd")
 const DESK := Vector2(1280, 720)   # 桌面设计稿尺寸
 var D := DESK                      # 当前版面：手机横屏按屏幕比例取 1280 ×（600–720），纵向位置用 _p() 单独排（docs/124 §13.7）
 var _phone := false
-const CLASS_ORDER := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
-const CLASS_EN := {"先锋": "VANGUARD", "近卫": "GUARD", "重装": "DEFENDER", "狙击": "SNIPER", "术师": "CASTER", "医疗": "MEDIC", "辅助": "SUPPORTER", "特种": "SPECIALIST"}
+const CLASS_ORDER: Array = preload("res://scripts/data.gd").CLASS_ORDER
+const CLASS_EN: Dictionary = preload("res://scripts/data.gd").CLASS_EN
 ## 光炸色：拉包光效只有金一档（10-22 用户：全部用 Codex 原图，金 / 青白两档作废，docs/124 §9.3）
 const BURST_COL := Color8(255, 196, 80)
 ## 作战包时间轴（秒）：落下 0–0.4，拉链 0.4–1.6（8 档，每档 0.17 秒，同 Codex manifest.opening），全开后光柱循环约 0.6 秒，光炸 2.05–2.5

@@ -12,7 +12,7 @@ const InitialStats = preload("res://scripts/screens/initial_stats.gd")
 const TUI = preload("res://scripts/screens/tide_ui.gd")
 const Tiles = preload("res://scripts/screens/title_tiles.gd")
 ## 选人页的职业顺序（docs/23 §11.1）
-const CLASS_ORDER := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
+const CLASS_ORDER: Array = D.CLASS_ORDER
 
 ## 菜单项（T5s 磁贴群，docs/67 §12）：0 集结出发 / 1 图鉴 / 2 Boss 演练 / 3 操作说明 / 4 设置 / 5 退出 / 6 认知塑造；
 ## 文字、图标、分行都在 screens/title_tiles.gd 的 MENU 表（docs/126 A2），这里只管按 id 打开（_activate）
@@ -1608,8 +1608,8 @@ func _open_op_pick(for_cover := false) -> void:
 					"reach": InitialStats.row(sh, "reach").val, "speed": InitialStats.row(sh, "speed").val, "dps": InitialStats.row(sh, "dps").val}})
 		# 原作按稀有度排；本作没有稀有度：封面干员水月在前，其余按职业顺序（docs/58 §11 概念图同序）
 		op_defs.sort_custom(func(a, b):
-			var ka: int = 0 if a.id == "mizuki" else 1
-			var kb: int = 0 if b.id == "mizuki" else 1
+			var ka: int = 0 if a.def.get("list_first", false) else 1   # list_first：干员 json（封面干员水月排第一）
+			var kb: int = 0 if b.def.get("list_first", false) else 1
 			if ka != kb:
 				return ka < kb
 			var ca: int = CLASS_ORDER.find(a.cls)
