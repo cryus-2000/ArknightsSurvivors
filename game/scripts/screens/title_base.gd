@@ -12,6 +12,7 @@ const Roster = preload("res://scripts/core/roster.gd")   # 干员解锁（docs/1
 const Game = preload("res://scripts/game.gd")
 const InitialStats = preload("res://scripts/screens/initial_stats.gd")
 const TUI = preload("res://scripts/screens/tide_ui.gd")
+const DifficultyScreen = preload("res://scripts/screens/difficulty_screen.gd")
 const Tiles = preload("res://scripts/screens/title_tiles.gd")
 ## 选人页的职业顺序（docs/23 §11.1）
 const CLASS_ORDER: Array = D.CLASS_ORDER
@@ -72,6 +73,7 @@ var cover_pick := false
 var diff_pick := false
 var diff_sel := 0
 var diff_rects := {}
+var difficulty_screen = DifficultyScreen.new()
 ## 选开局干员（docs/23 §14 P4）：开始探索 → 选人 → 选难度；B+ 版式的其余状态在文件后部「选开局干员」一节
 var op_pick := false
 var op_sel := 0

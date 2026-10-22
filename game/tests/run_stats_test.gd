@@ -203,8 +203,9 @@ func test_screen() -> void:
 	game.hud.size = Vector2(1280, 720)   # 无头窗口只有 64×64
 	game.state = Game.S.DEAD
 	game.state_age = 99.0
+	game.settlement.tick(1.0)
 	await _redraw()
-	ok(game.result_btns.any(func(b): return b[1] == "stats"), "失败结算有「作战记录」按钮")
+	ok(not game.settlement.model.is_empty(), "失败结算自动准备真实参战记录")
 	game._do_action("stats")
 	ok(rs.open and rs.page == 0, "按钮打开作战记录总览")
 	await _redraw()
@@ -237,7 +238,7 @@ func test_screen() -> void:
 	rs.key(KEY_ESCAPE)
 	ok(not rs.open, "总览 Esc 回结算")
 	await _redraw()
-	ok(game.result_btns.size() == 3, "回到结算：三个按钮")
+	ok(game.settlement.active(), "关闭作战记录后返回新结算")
 	# 假记录：桌面 1280×720、手机 1044×481
 	game.state = Game.S.WIN
 	for vs in [Vector2(1280, 720), Vector2(1044, 481)]:

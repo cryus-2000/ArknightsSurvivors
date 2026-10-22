@@ -63,6 +63,9 @@ func _ready() -> void:
 	add_child(boss_trial)
 	meta_ui = preload("res://scripts/screens/meta_tree_ui.gd").new()
 	add_child(meta_ui)
+	if get_tree().has_meta("settlement_open_meta"):
+		get_tree().remove_meta("settlement_open_meta")
+		meta_ui.open.call_deferred()
 	var transition_layer := CanvasLayer.new()
 	transition_layer.layer = 90
 	add_child(transition_layer)
@@ -325,7 +328,7 @@ func _process(delta: float) -> void:
 	Pad.context = "title"
 	var overlay_open: bool = _overlay_open()
 	if post_fx != null:
-		post_fx.crisp = gallery.visible   # 图鉴 C4' 是浅色终端：不叠辉光 / 水下色差
+		post_fx.crisp = gallery.visible or diff_pick or settings.visible   # 局外终端：不叠辉光 / 水下色差
 	if overlay_was_open and not overlay_open and not transition.busy:
 		transition.reveal_page()
 	overlay_was_open = overlay_open
@@ -333,8 +336,8 @@ func _process(delta: float) -> void:
 		Sfx.play_music(menu_track())   # 出发后（载入中）不换曲，开场引子由对局接手
 	t += delta
 	_menu_tick(delta)
-	if not diff_pick:
-		diff_was = false
+	if diff_pick:
+		difficulty_screen.tick(delta, diff_sel, Cfg.reduce_motion)
 	if op_panel != null:
 		_op_tick(delta)
 	if op_motion >= 0.0:

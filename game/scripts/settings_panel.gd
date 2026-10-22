@@ -4,11 +4,12 @@ extends Control
 ## 每页末尾一行「返回」。选项本身（ROWS 的键名、类型、存档键）不变，TABS 只按键名分组
 ## 触屏（手机）不列 TOUCH_HIDE 里的桌面专用项（全屏 / 窗口分辨率：手机永远全屏、分辨率由系统定）；页签 / 底部提示不画键位
 ## 选项列表可滚动（10-11 触屏、10-14 全设备）：标题 / 页签钉住，各行（含末尾「返回」）在裁剪子控件 list 里按 scroll_f 平移，触屏行高 88（≈ 48 pt）；
-## 手指拖动 1:1 跟手、松手带惯性，拖过 TAP_SLOP 不算点选；键盘 / 手柄选到看不见的行时自动滚到可见；桌面排版逐像素不变
+## 手指拖动 1:1 跟手、松手带惯性，拖过 TAP_SLOP 不算点选；键盘 / 手柄选到看不见的行时自动滚到可见；桌面与触屏共享左分类、右列表布局
 
 signal closed
 
 const UI = preload("res://scripts/ui.gd")
+const Shell = preload("res://scripts/screens/settings_shell.gd")
 
 const ROWS := [
 	{"cn": "主音量", "en": "MASTER", "key": "master", "type": "vol"},
@@ -49,7 +50,7 @@ const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
 	["画面", "DISPLAY", ["quality", "fullscreen", "res_index", "ui_size_pct", "cam_zoom_pct", "brightness", "bloom", "water_filter", "dof", "normal_maps"]],
-	["游戏", "GAMEPLAY", ["manual_attack", "touch_layout", "dmg_numbers", "outline", "hitstop", "boss_intro", "reduce_motion", "pad_rumble", "runs"]],
+	["操作", "CONTROLS", ["manual_attack", "touch_layout", "dmg_numbers", "outline", "hitstop", "boss_intro", "reduce_motion", "pad_rumble", "runs"]],
 ]
 
 ## 「存档」页：只在 B站 Toy 环境列出（_tabs）；面板高度仍按 TABS 定（这一页行数少），其他环境排版不变
@@ -80,14 +81,11 @@ var pending_res := -1        # 分辨率：←→ 只选择，Enter / 点击「�
 ## 触屏滚动（只在 Cfg.touch_device() 时用）
 const T_STEP := 92.0         # 触屏行距
 const T_ROW := 88.0          # 触屏行本体高（≈ 48 pt）
-const D_STEP := 46.0         # 桌面行距
-const D_ROW := 38.0          # 桌面行本体高
-## 面板（10-14 用户：设置页不再整页铺满）：约占页面 70%、居中、四周留暗底；选项在可滚动列表里（桌面滚轮、触屏拖动），
-## 右上角「×」手动关闭（触屏也能点，点击区 ≥ 44）。手机横屏逻辑高只有约 540：面板高至少 440（否则一屏不到三行）
-const PANEL_FRAC := 0.7
-const PANEL_MIN_W := 600.0
-const PANEL_MIN_H := 440.0
+const D_STEP := 76.0         # 桌面行距
+const D_ROW := 68.0          # 桌面行本体高
+## 标题使用完整安全区，暂停保留四周 HUD 空间；几何由 settings_shell 统一绘制。
 var panel_rect := Rect2()    # 面板（本控件坐标；测试读）
+var footer_rect := Rect2()
 var close_rect := Rect2()    # 右上角「×」的点击区
 const TAP_SLOP := 12.0       # 手指移动超过这个距离算拖动，不算点选
 var list: Control            # 裁剪用的子控件：选项行画在它里面
@@ -124,7 +122,7 @@ func open() -> void:
 	if Cfg.ui_k != 1.0:
 		Cfg.ui_fill(self)   # 触屏界面层放大：撑满 UI 逻辑区而不是视口
 	sel = 0
-	_set_tab(0)
+	_set_tab(1)
 	pending_res = Cfg.res_index
 	if list == null:
 		list = Control.new()
@@ -173,6 +171,13 @@ func set_scroll(v: float, instant := true) -> void:
 
 func _tabs() -> Array:
 	return TABS + [CLOUD_TAB] if Cloud.supported else TABS
+
+
+func _cycle_tab(dir: int) -> void:
+	var order: Array = [1, 0, 2]
+	if Cloud.supported:
+		order.append(3)
+	_set_tab(order[posmod(order.find(tab) + dir, order.size())])
 
 
 func _set_tab(t: int) -> void:
@@ -234,11 +239,11 @@ func _input(event: InputEvent) -> void:
 			KEY_RIGHT, KEY_D:
 				_adjust(cur[sel], 1)
 			KEY_Q, KEY_PAGEUP:
-				_set_tab(tab - 1)
+				_cycle_tab(-1)
 				sel = 0
 				Sfx.play("ui_move")
 			KEY_E, KEY_PAGEDOWN, KEY_TAB:
-				_set_tab(tab + 1)
+				_cycle_tab(1)
 				sel = 0
 				Sfx.play("ui_move")
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
@@ -290,7 +295,7 @@ func _tap(mp: Vector2, button: int) -> void:
 		set_scroll(clampf(scroll + (_step() if button == MOUSE_BUTTON_WHEEL_DOWN else -_step()), 0.0, scroll_max), false)
 		get_viewport().set_input_as_handled()
 		return
-	if button == MOUSE_BUTTON_LEFT and close_rect.has_point(mp):
+	if button == MOUSE_BUTTON_LEFT and (close_rect.has_point(mp) or footer_rect.has_point(mp)):
 		close()
 		get_viewport().set_input_as_handled()
 		return
@@ -306,16 +311,20 @@ func _tap(mp: Vector2, button: int) -> void:
 		var i: int = cur[si]
 		if r.has_point(mp) and view.has_point(mp):
 			var arrows: bool = ROWS[i].type in ["vol", "bright", "res", "uisize", "zoom"]
-			var fx: float = (mp.x - r.position.x) / r.size.x
+			var control_x: float = r.position.x + r.size.x - 8.0 - (252.0 if _tl() else 230.0)
 			var dir := 1
 			if arrows:
 				# 以数值块中点分左右（◀ 在 vx − 10、▶ 在 vx + 180，vx 同 _draw_row）。原来按整行宽 62% 分：桌面行宽 580 时恰好在中点，
 				# 触屏行宽约 1100（面板占满）时 ◀ 落在 77% 处被当成 ▶，点 ◀ 也是加（用户 10-13「设置大小不能减小只能放大」）
-				var vx: float = r.position.x + r.size.x - (252.0 if _tl() else 230.0)
+				var vx: float = control_x
 				dir = -1 if mp.x < vx + 85.0 else 1
 			if button == MOUSE_BUTTON_LEFT:
-				if ROWS[i].type == "res" and fx >= 0.62 and fx <= 0.88:
+				if ROWS[i].type == "res" and mp.x >= control_x and mp.x <= control_x + 184.0:
 					_apply_res()
+				elif ROWS[i].type == "quality" and mp.x >= control_x:
+					var high: bool = mp.x >= control_x + 106.0
+					if high != (Cfg.quality != "low"):
+						_adjust(i, dir)
 				else:
 					_adjust(i, dir)
 	get_viewport().set_input_as_handled()
@@ -422,73 +431,7 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	var vs := size
-	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.8))
-	# 触屏（手机 / 平板）：行距 92 / 行高 88、字 21–22；桌面行距 46 / 行高 38
-	var touch: bool = _tl()
-	var pw: float = clampf(maxf(vs.x * PANEL_FRAC, PANEL_MIN_W), 0.0, vs.x - 24.0)
-	if vs.y > vs.x:
-		pw = vs.x - 48.0   # 竖屏（375×812 一类）：宽度本来就窄，面板用满宽，只留边
-	# 高：约 70%（矮屏至少 PANEL_MIN_H），但不超过最长一页全部摊开所需（竖屏 / 高窗口不留大片空白）
-	var most := 0
-	for tb in _tabs():
-		most = maxi(most, tb[2].size() + 1)   # + 返回
-	var need: float = (86.0 + 14.0 if touch else 150.0 + 40.0) + most * _step() - (_step() - _rowh()) + 8.0
-	var rh: float = clampf(minf(maxf(vs.y * PANEL_FRAC, PANEL_MIN_H), need), 0.0, vs.y - 16.0)
-	# 顶部安全区（B站沉浸模式顶栏 / 刘海，docs/99）：面板整体往下让，「×」不落进去
-	var top_in: float = float(Cfg.safe_insets()[1])
-	var r := Rect2(roundf(vs.x / 2 - pw / 2.0), roundf(maxf(vs.y / 2 - rh / 2.0, top_in + 8.0)), pw, rh)
-	if r.end.y > vs.y - 8.0:
-		r.size.y = vs.y - 8.0 - r.position.y
-	panel_rect = r
-	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN, 81, st)
-	var hy: float = 50.0 if touch else 56.0
-	UI.text(self, font, r.position + Vector2(40, hy), "设置", 28, UI.TEXT)
-	UI.en(self, font, r.position + Vector2(112, hy - 2.0), "SETTINGS", 13, UI.CYAN, 3.0)
-	# 右上角「×」：图形 36（触屏 44），点击区 56（触屏 72），离面板边 10
-	var mp := get_local_mouse_position()
-	var hit: float = 72.0 if touch else 56.0
-	close_rect = Rect2(r.end.x - 10.0 - hit, r.position.y + 6.0, hit, hit)
-	var vis: float = 44.0 if touch else 36.0
-	var cr := Rect2(close_rect.get_center() - Vector2(vis, vis) / 2.0, Vector2(vis, vis))
-	var chov: bool = close_rect.has_point(mp) and not touch
-	draw_rect(cr, Color(0.05, 0.2, 0.24, 0.9) if chov else Color(1, 1, 1, 0.05))
-	draw_rect(cr, UI.CYAN if chov else UI.CYAN_DIM, false, 1.0)
-	var ck: float = vis * 0.26
-	var cc := cr.get_center()
-	var xc: Color = UI.TEXT if chov else UI.SUB
-	draw_line(cc - Vector2(ck, ck), cc + Vector2(ck, ck), xc, 2.0)
-	draw_line(cc + Vector2(-ck, ck), cc + Vector2(ck, -ck), xc, 2.0)
-	# 分类标签：中文 + 英文小字，当前页青色底线；桌面在标题下一行，触屏与标题同一行（宽度按面板剩余宽度分）
-	tab_rects.clear()
-	var tabs := _tabs()
-	var tx := r.position.x + (40.0 if not touch else 230.0)
-	var ty := r.position.y + (84.0 if not touch else 18.0)
-	var avail: float = (r.end.x - 10.0 - hit - 16.0) - tx
-	var tw: float = minf(112.0 if not touch else 150.0, avail / tabs.size() - 8.0)
-	if not touch:
-		tw = minf(112.0, (r.size.x - 80.0 - 120.0) / tabs.size() - 8.0)
-	for t in tabs.size():
-		var tbr := Rect2(tx + t * (tw + 8.0), ty, tw, 40 if not touch else 44)
-		# 触屏点击区上下各扩 10（44 → 64 逻辑像素，手机上约 45 CSS px）；图形不变
-		tab_rects.append(tbr.grow_individual(0, 10, 0, 10) if touch else tbr)
-		var ton := t == tab
-		var hov := tbr.has_point(mp)
-		draw_rect(tbr, Color(0.05, 0.2, 0.24, 0.8) if ton else Color(1, 1, 1, 0.06 if hov else 0.03))
-		draw_rect(Rect2(tbr.position.x, tbr.end.y - 3, tbr.size.x, 3), UI.CYAN if ton else Color(1, 1, 1, 0.12))
-		UI.text(self, font, tbr.position + Vector2(0, 25 if not touch else 29), tabs[t][0], 17 if not touch else 20, UI.TEXT if ton else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, tw * 0.55)
-		UI.en(self, font, tbr.position + Vector2(tw * 0.52, 24 if not touch else 28), tabs[t][1], 8, UI.CYAN if ton else UI.CYAN_DIM, 1.5)
-	if not Pad.touch_ui():
-		var kx: float = tx + tabs.size() * (tw + 8.0) + 8.0
-		UI.keycap(self, font, Vector2(kx, ty + 11), Pad.hint("Q", "LB"), UI.SUB, 11)
-		UI.keycap(self, font, Vector2(kx + 40.0, ty + 11), Pad.hint("E", "RB"), UI.SUB, 11)
-	var rule_y: float = ty + (50 if not touch else 58)
-	UI.rule(self, Vector2(r.position.x + 30, rule_y), Vector2(r.end.x - 30, rule_y), UI.EDGE_DIM)
-	row_rects.clear()
-	var bottom: float = r.end.y - (14.0 if touch else 40.0)
-	_layout_list(Rect2(r.position.x + 30, rule_y + 10.0, r.size.x - 60, bottom - (rule_y + 10.0)))
-	if not touch:
-		UI.text(self, font, Vector2(r.position.x, r.end.y - 16), Pad.hint("Q / E 切换分类 · ↑↓ 选择 · ←→ 调整 · 滚轮翻看 · Esc 返回", "LB / RB 切换分类 · 摇杆 ↑↓ 选择 · ←→ 调整 · Ⓐ 确认 · Ⓑ 返回", "点上方分类切换 · 点选项调整"), 13, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	Shell.draw(self)
 
 
 ## 选项列表（所有设备）：标题 / 页签钉在顶部，各行（含末尾「返回」）在 list 子控件里按 scroll_f 平移；vr = 可视区
@@ -537,7 +480,7 @@ func _draw_list() -> void:
 		var rr := Rect2(0.0, si * stp - scroll_f, view.size.x - 8.0, rh)
 		if rr.end.y < 0.0 or rr.position.y > view.size.y:
 			continue
-		_draw_row(list, rr, si, touch, rh / 2.0 + (8.0 if touch else 6.0))
+		_draw_row(list, rr, si, touch, rh / 2.0 + (0.0 if touch else -2.0))
 	# 上下还有行时边缘渐隐（画在 list 里，跟着裁剪）
 	if scroll_f > 0.5:
 		_vfade_on(list, Rect2(0.0, 0.0, view.size.x - 8.0, 18.0), true)
@@ -553,13 +496,14 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 	var fs_v := 22 if touch else 18    # 数值 / 开关
 	var fs_a := 20 if touch else 14    # ◀ ▶ 与音量数字
 	var on := si == sel
+	ci.draw_line(Vector2(rr.position.x + 18, rr.end.y - 1), Vector2(rr.end.x - 10, rr.end.y - 1), Color("303a44"), 1.0)
 	if on:
 		ci.draw_rect(rr, Color(0.05, 0.2, 0.24, 0.7))
 		ci.draw_rect(Rect2(rr.position, Vector2(3, rr.size.y)), UI.CYAN)
 	UI.text(ci, font, rr.position + Vector2(18, ty0), row.cn, fs_cn, UI.TEXT if on else UI.SUB)
-	UI.en(ci, font, rr.position + Vector2(130 if not touch else 200, ty0 - 1.0), row.en, 9 if not touch else 10, UI.CYAN_DIM, 2.0)   # 触屏字大，「Boss 登场演出」要 200 才不压到英文
+	UI.en(ci, font, rr.position + Vector2(18, ty0 + 16), row.en, 9, UI.CYAN_DIM, 1.0)
 	if row.has("note"):
-		UI.text(ci, font, rr.position + Vector2(rr.size.x - (70.0 if not touch else 84.0), ty0), row.note, 11 if not touch else 13, UI.SUB)
+		UI.text(ci, font, rr.position + Vector2(18, ty0 + 31), row.note, 11 if not touch else 13, UI.SUB)
 	var vx := rr.position.x + rr.size.x - (230.0 if not touch else 252.0)   # 触屏数值块左移 22：音量「100」（20 号字）不压到右侧滚动条
 	match row.type:
 		"cloud":
@@ -605,14 +549,26 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 			UI.text(ci, font, Vector2(vx + 180, rr.position.y + ty0), "▶", fs_a, UI.CYAN if on else UI.SUB)
 			UI.text(ci, font, Vector2(vx + 200, rr.position.y + ty0), "%d" % int(round(v * 100.0)), fs_a, UI.TEXT)
 		"bool":
-			var b: bool = Cfg.get(row.key)
-			UI.text(ci, font, Vector2(vx, rr.position.y + ty0), str(row.get("on", "开")) if b else str(row.get("off", "关")), fs_v, UI.CYAN if b else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 200)
+			var enabled: bool = Cfg.get(row.key)
+			var track := Rect2(vx + 128, rr.position.y + ty0 - 21, 72, 28)
+			ci.draw_rect(track, Color("174956") if enabled else Color("303a44"))
+			ci.draw_rect(Rect2(track.position + Vector2(44 if enabled else 4, 4), Vector2(24, 20)), UI.CYAN if enabled else UI.SUB)
+			UI.text(ci, font, Vector2(vx, rr.position.y + ty0), str(row.get("on", "开启")) if enabled else str(row.get("off", "关闭")), fs_v - 2, UI.CYAN if enabled else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 116)
 		"quality":
 			var hq: bool = Cfg.quality != "low"
-			UI.text(ci, font, Vector2(vx, rr.position.y + ty0), "高" if hq else "低", fs_v, UI.CYAN if hq else UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, 200)
+			for quality in 2:
+				var active: bool = (quality == 1) == hq
+				var qr := Rect2(vx + quality * 106, rr.position.y + ty0 - 25, 96, 36)
+				ci.draw_rect(qr, UI.CYAN if active else Color("1b252e"))
+				UI.text(ci, font, qr.position + Vector2(0, 25), "高" if quality else "低", fs_v, Color("10151b") if active else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, qr.size.x)
 		"uisize", "zoom":
 			var pv: int = Cfg.ui_size_pct if row.type == "uisize" else int(round(Cfg.cam_zoom() * 100.0))
 			var dflt: bool = (Cfg.ui_size_pct == 100) if row.type == "uisize" else (Cfg.cam_zoom_pct < 0)
+			var lo: float = Cfg.UI_PCT_MIN if row.type == "uisize" else Cfg.ZOOM_PCT_MIN
+			var hi: float = Cfg.UI_PCT_MAX if row.type == "uisize" else Cfg.ZOOM_PCT_MAX
+			var fill: float = clampf((pv - lo) / (hi - lo), 0, 1)
+			for tick in 20:
+				ci.draw_rect(Rect2(vx + tick * 9, rr.position.y + ty0 + 12, 6, 4), UI.CYAN if tick <= fill * 19 else Color("303a44"))
 			UI.text(ci, font, Vector2(vx - 10, rr.position.y + ty0), "◀", fs_a, UI.CYAN if on else UI.SUB)
 			UI.text(ci, font, Vector2(vx, rr.position.y + ty0), "%d%%" % pv, fs_v, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
 			UI.text(ci, font, Vector2(vx + 180, rr.position.y + ty0), "▶", fs_a, UI.CYAN if on else UI.SUB)

@@ -1,0 +1,70 @@
+{
+  "selected": "困难",
+  "sample_values": true,
+  "conditions": [
+    [
+      "敌人生命与伤害",
+      "+20%"
+    ],
+    [
+      "Boss 生命",
+      "+15%"
+    ],
+    [
+      "大群规模",
+      "+20%"
+    ],
+    [
+      "Boss 预警时间",
+      "-15%"
+    ],
+    [
+      "队长初始最大生命",
+      "-10%"
+    ],
+    [
+      "受击灯火损失",
+      "+30%"
+    ],
+    [
+      "灯油掉落",
+      "-40%"
+    ],
+    [
+      "源石锭掉落",
+      "-25%"
+    ],
+    [
+      "小怪控制开始",
+      "05:00"
+    ],
+    [
+      "寒霜冻结层数",
+      "2 层"
+    ],
+    [
+      "围猎时长／圈上海嗣生命",
+      "-15%"
+    ],
+    [
+      "灯标刷新间隔",
+      "-20%"
+    ]
+  ],
+  "record_sample": {
+    "clears": 3
+  },
+  "design": "depth instrument and terrain section; no equal cards",
+  "terrain": "original schematic, not actual level geometry",
+  "source": "DIFF_PRESETS; record values are examples",
+  "previous_candidate": "../difficulty/difficulty_desktop.png",
+  "canvas": [
+    1280,
+    720
+  ],
+  "stage": "desktop-design-review",
+  "visual_approval": false,
+  "runtime_changes": false,
+  "image_generation_used": false,
+  "sha256": "0035c64cfb9aee01535791b31bda9d5b9970a10ebab38cf5e6dabce0060ed93a"
+}

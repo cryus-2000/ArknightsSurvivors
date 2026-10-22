@@ -1,0 +1,23 @@
+{
+  "selected": "困难",
+  "locked": "极限",
+  "sample_values": true,
+  "record_sample": {
+    "clears": 3,
+    "longest": "10:24"
+  },
+  "data_sources": [
+    "game/scripts/data.gd DIFF_PRESETS",
+    "Cfg.diff_best"
+  ],
+  "design": "oversized selected band, compressed neighbours, tier accents, separate record column",
+  "canvas": [
+    1280,
+    720
+  ],
+  "stage": "desktop-design-review",
+  "visual_approval": false,
+  "runtime_changes": false,
+  "image_generation_used": false,
+  "sha256": "307dd90e52e8592299aaa14a4e26264f90c8de91c3307ce07b66ea5605bceb1e"
+}

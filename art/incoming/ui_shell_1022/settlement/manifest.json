@@ -1,0 +1,225 @@
+{
+  "stage": "desktop-victory-handoff",
+  "approved": true,
+  "canvas": [
+    1280,
+    720
+  ],
+  "runtime_changes": false,
+  "rating_sample": {
+    "grade": "SS",
+    "difficulty": "困难",
+    "completed": true,
+    "rule_approved": true,
+    "engine_integrated": false
+  },
+  "revision": "06-rating-handoff",
+  "decorative_assets": [
+    {
+      "file": "decor\\navigation_watermark@2x.png",
+      "size": [
+        384,
+        384
+      ],
+      "sha256": "a3a258bb936524fbc427a5e53610b0ee9aa2d529a34b24c6cacdd57e5a2c652e",
+      "pixel_grid": 2
+    },
+    {
+      "file": "decor\\portrait_calibration@2x.png",
+      "size": [
+        192,
+        160
+      ],
+      "sha256": "bcce210a98f3e4be6d7342b2194a3e94dc49e6a2d0ccce8b5ea476748982545e",
+      "pixel_grid": 2
+    },
+    {
+      "file": "decor\\topography_sparse@2x.png",
+      "size": [
+        1280,
+        720
+      ],
+      "sha256": "b10ccc47a39b49cb09e159803ab8b2c60eae9ade95ebb11f3eab3dfe8cd955b0",
+      "pixel_grid": 2
+    }
+  ],
+  "image_generation_used": false,
+  "sample_values": true,
+  "palette_source": "game/scripts/screens/hh_style.gd",
+  "palette": {
+    "DARK": [
+      19,
+      23,
+      30
+    ],
+    "DARK2": [
+      27,
+      32,
+      41
+    ],
+    "DARK3": [
+      36,
+      42,
+      53
+    ],
+    "LIGHT": [
+      223,
+      226,
+      230
+    ],
+    "LIGHT2": [
+      206,
+      210,
+      215
+    ],
+    "INK": [
+      17,
+      19,
+      24
+    ],
+    "INK2": [
+      92,
+      97,
+      106
+    ],
+    "MUTE": [
+      150,
+      156,
+      166
+    ],
+    "YEL": [
+      255,
+      206,
+      0
+    ],
+    "CYB": [
+      56,
+      214,
+      240
+    ],
+    "RIB": [
+      24,
+      120,
+      214
+    ],
+    "SIL": [
+      118,
+      123,
+      132
+    ]
+  },
+  "fonts": {
+    "chinese": "game/fonts/ui.ttf",
+    "latin": "Windows Bahnschrift",
+    "raster": "binary glyph mask"
+  },
+  "placements": [
+    {
+      "id": "mizuki",
+      "file": "source\\mizuki_f0.png",
+      "sha256": "17a20a7fea31bf1848614965caa930718f5ae6ef69dd37eb83cf5b9dc4889ca4",
+      "source_bbox": [
+        16,
+        43,
+        87,
+        121
+      ],
+      "display_bbox": [
+        67,
+        295,
+        209,
+        451
+      ],
+      "scale": 2
+    },
+    {
+      "id": "skadi",
+      "file": "source\\skadi_f0.png",
+      "sha256": "114fc1e714e3d0ad06aaeb64e3514e377b9918021325968b4f50d75e8d105fb0",
+      "source_bbox": [
+        39,
+        44,
+        96,
+        122
+      ],
+      "display_bbox": [
+        305,
+        295,
+        419,
+        451
+      ],
+      "scale": 2
+    },
+    {
+      "id": "lumen",
+      "file": "source\\lumen_f0.png",
+      "sha256": "09cd0b3fa3e87f0adad212d979cddac2fa30f50500a56192fc0e5505960d5163",
+      "source_bbox": [
+        31,
+        49,
+        89,
+        121
+      ],
+      "display_bbox": [
+        528,
+        307,
+        644,
+        451
+      ],
+      "scale": 2
+    },
+    {
+      "id": "exusiai",
+      "file": "source\\exusiai_f0.png",
+      "sha256": "507270e801a8ee8d1515bf7890867a2488f6f01df1721e67271da06a8bf95fc3",
+      "source_bbox": [
+        38,
+        50,
+        88,
+        121
+      ],
+      "display_bbox": [
+        760,
+        309,
+        860,
+        451
+      ],
+      "scale": 2
+    }
+  ],
+  "team_sample": [
+    {
+      "id": "mizuki",
+      "damage": 720250,
+      "share": 56.1,
+      "kills": 719,
+      "participation": 916,
+      "casts": 42
+    },
+    {
+      "id": "skadi",
+      "damage": 372180,
+      "share": 29.0,
+      "kills": 372,
+      "participation": 640,
+      "casts": 28
+    },
+    {
+      "id": "lumen",
+      "damage": 77420,
+      "share": 6.0,
+      "kills": 77,
+      "participation": 488,
+      "casts": 36
+    },
+    {
+      "id": "exusiai",
+      "damage": 114770,
+      "share": 8.9,
+      "kills": 116,
+      "participation": 312,
+      "casts": 22
+    }
+  ],
+  "sha256": "8d70c3fe0a8979fa7c16c268e3a9e42615c5608036ae43a82a87d98b64d63641"
+}
