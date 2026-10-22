@@ -39,14 +39,20 @@ func draw_merchant_pointer(vs: Vector2, ct: Transform2D) -> void:
 		var sp: Vector2 = ct * g.merchant.pos
 		var bounce := absf(sin(g.t * 5.0)) * 8.0
 		var mf := int(g.t * 2.0) % 2
+		# 即将离开（最后 15 秒，横幅已取消）：指示金红快闪，屏边圈外再走一圈剩余时间的红弧（同祭坛「即将沉没」）
+		var leaving: bool = float(g.merchant.life) <= 15.0
+		var lk: float = absf(sin(g.t * 9.0)) if leaving else 0.0
+		var mcol: Color = UI.GOLD.lerp(Color(1.0, 0.4, 0.3), lk)
 		if not Rect2(Vector2(60, 60), vs - Vector2(120, 120)).has_point(sp):
 			var c := vs / 2.0
 			var d := (sp - c).normalized()
 			var edge: Vector2 = c + d * min(abs((vs.x / 2 - 64) / max(abs(d.x), 0.01)), abs((vs.y / 2 - 64) / max(abs(d.y), 0.01)))
 			var pulse := 0.5 + 0.5 * sin(g.t * 6.0)
-			g.hud.draw_circle(edge, 30.0 + 4.0 * pulse, Color(1.0, 0.7, 0.3, 0.12))
+			g.hud.draw_circle(edge, 30.0 + 4.0 * pulse + 6.0 * lk, Color(1.0, 0.7, 0.3, 0.12) if not leaving else Color(1.0, 0.4, 0.3, 0.25 * lk))
 			g.hud.draw_circle(edge, 24.0, Color(0.06, 0.05, 0.03, 0.85))
-			g.hud.draw_arc(edge, 24.0, 0.0, TAU, 28, UI.GOLD, 2.0)
+			g.hud.draw_arc(edge, 24.0, 0.0, TAU, 28, mcol, 2.0)
+			if leaving:
+				g.hud.draw_arc(edge, 29.0, -PI / 2.0, -PI / 2.0 + TAU * clampf(float(g.merchant.life) / 15.0, 0.0, 1.0), 32, Color(1.0, 0.4, 0.3, 0.9), 3.0)
 			var mt: Texture2D = g.tex.merchant
 			var fw := mt.get_width() / 2
 			# 头像整体缩放到直径 40 的圆圈里居中（高清 48px 图缩到 0.8，像素 20px 图放大 2 倍）
@@ -58,19 +64,32 @@ func draw_merchant_pointer(vs: Vector2, ct: Transform2D) -> void:
 			var tip: Vector2 = edge + d * (40.0 + 5.0 * pulse)
 			var base: Vector2 = edge + d * 28.0
 			var sd := d.orthogonal() * 10.0
-			g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), UI.GOLD)
-			# 10-22b 用户：屏边只留头像圈 + 箭头，不写「商人 Nm · Ns」与货架预告
+			g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), mcol)
+			# 10-22b 用户：屏边只留头像圈 + 箭头，不写「商人 Nm · Ns」；首商人货架预告行保留（docs/119 §4.5，是功能不是提示）
+			_preview_line(edge + Vector2(0, -40.0 if edge.y > vs.y / 2 else 46.0), vs)
 		else:
 			# 在画面内：头顶跳动的箭头
 			var big_m: bool = g.tex.merchant != null and g.tex.merchant.get_height() >= 40
 			var head: float = (84.0 if big_m else 36.0) * ct.get_scale().y
 			var hp2 := sp + Vector2(0, -head - 12.0 - bounce)
-			g.hud.draw_colored_polygon(PackedVector2Array([hp2 + Vector2(0, 12), hp2 + Vector2(-10, -2), hp2 + Vector2(10, -2)]), UI.GOLD)
+			g.hud.draw_colored_polygon(PackedVector2Array([hp2 + Vector2(0, 12), hp2 + Vector2(-10, -2), hp2 + Vector2(10, -2)]), mcol)
+			_preview_line(hp2 + Vector2(0, -24), vs)
+
+
+## 第一位商人预告（docs/119 §4.5）：指示下方 / 上方再写一行联动商品与差额，余额变了随帧更新；手机字号过 UI.fs。宽 240、夹在画面内
+func _preview_line(at: Vector2, vs: Vector2) -> void:
+	var pv: String = g.shop_sys.preview_text()
+	if pv == "":
+		return
+	var w := 320.0
+	var x: float = clampf(at.x - w / 2.0, 8.0, vs.x - w - 8.0)
+	var y: float = clampf(at.y, 24.0, vs.y - 8.0)
+	UI.text(g.hud, g.font, Vector2(x, y), pv, 13, Color(1.0, 0.9, 0.6), HORIZONTAL_ALIGNMENT_CENTER, w, 3)
 
 
 ## 海嗣祭坛方位指示（屏内头顶箭头 / 屏外边缘圈）；最终 Boss 前 10 秒未开的祭坛金红快闪
 func draw_altar_pointers(vs: Vector2, ct: Transform2D) -> void:
-	# 海嗣祭坛方位指示（屏幕外）；最终 Boss 登场前 10 秒还有没开的祭坛（g.endg.urgent）：指示变金红快闪、写「即将沉没」
+	# 海嗣祭坛方位指示（屏幕外）；最终 Boss 登场前 10 秒还有没开的祭坛（g.endg.urgent）：指示变金红快闪（文字已取消）
 	var urgent: bool = g.endg != null and g.endg.get("urgent") == true
 	var uk: float = absf(sin(g.t * 9.0)) if urgent else 0.0
 	var acol: Color = Color(0.55, 0.8, 1.0).lerp(Color(1.0, 0.45, 0.3), uk) if urgent else Color(0.55, 0.8, 1.0)
