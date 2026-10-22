@@ -1,13 +1,15 @@
 {
   "passed": true,
   "checks": [
-    "Final frame pixel-identical to approved 1280x720 still",
+    "Outside squad pixel-identical to approved still",
     "Visible midpoint animation",
     "Pause freezes time; resume completes",
     "900 ms completion",
     "Reduce-motion toggle skips animation",
     "System reduced-motion respected",
     "Canvas click skips",
+    "Seven operators reachable by keyboard, wheel and drag; clamped at edges",
+    "Responsive viewport",
     "No browser errors"
   ],
   "runtime_integrated": false
