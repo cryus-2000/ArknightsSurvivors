@@ -1141,7 +1141,7 @@ func follow(dt: float, target: Vector2) -> void:
 		want = vis_anim   # 纯画面动作（play_vis_anim）：播完前压过普攻 / 跑步，不占出手窗口
 	elif sq_atk != "" and anim_tex(sq_atk) != null:
 		want = sq_atk   # 循环期间的普攻变体（sprites.skills.sN.attack）：按其 fire 帧对齐出手，播完回循环（_tick_sq_atk）
-	elif attack_t > 0.0 and not sq_own and anim_tex(act_anim) != null:
+	elif attack_t > 0.0 and not sq_own and anim_tex(act_anim) != null and not act_anim_yield():
 		want = act_anim   # 序列之外的动作（循环期间起手的普攻 / 另一技能）压过序列，播完接着循环
 	elif sqk != "":
 		want = sqk   # 序列自己的起手 / 定格 / 循环 / 收势（起手段同时也是出手窗口；序列结束后 sq_own 的窗口余下部分回待机）
@@ -1276,6 +1276,20 @@ func play_vis_skill(i: int) -> void:
 	if _start_vis_seq(i):
 		return
 	play_vis_anim(skill_anim(i))
+
+
+## 出手动作的画面该不该让位（10-22 用户：很多干员攻击后卡在末帧然后滑步）——只管画面，attack_t / fire_t 等模拟量不动，同 seed 不变：
+## ① 帧条按逐帧时长已经播完（总长短于逻辑窗口）→ 不停在末帧，回待机 / 跑步；② 出手帧已过（收势，普攻与单条技能动作都算）且在移动 → 让给跑步
+func act_anim_yield() -> bool:
+	if attack_t <= 0.0:
+		return true
+	var elapsed := attack_dur - attack_t
+	var spec := sprite_spec(act_anim)
+	if spec.has("frame_durations") and not attack_phased and elapsed >= frames_seconds(act_anim, range(int(spec.get("frames", 0)))) - 0.000001:
+		return true
+	if elapsed >= attack_fire_at and anim_tex("run") != null and mv > (RUN_EXIT if anim_kind == "run" else RUN_ENTER):
+		return true
+	return false
 
 
 ## 纯画面动作的时长：帧数 / fps（没写 fps 按 12）

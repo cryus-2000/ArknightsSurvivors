@@ -66,7 +66,8 @@
   "bark2_mult": 0.6,
   "bark2_seal": 3.0,
   "rage_atk": 0.25,
-  "rage2_aspd": 0.2
+  "rage2_aspd": 0.2,
+  "far_mult": 0.8
  },
  "leader": {
   "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 2350 / 防御 365 / 法抗 15（character_table）；近战无自疗 regen 1.4–1.7 口径取 1.5，防御高于斯卡蒂故生命略低、护甲略高",
@@ -76,7 +77,26 @@
   "regen": 1.5
  },
  "sprites": {
-  "entry": {"tex": "op_lappland_entry", "frames": 8, "fps": 12.5589, "foot": [32, 60], "frame_durations": [0.098, 0.049, 0.098, 0.049, 0.098, 0.098, 0.049, 0.098], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/lappland_entry.json），64 画布 @2x；落下由代码补"},
+  "entry": {
+   "tex": "op_lappland_entry",
+   "frames": 8,
+   "fps": 12.5589,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.098,
+    0.049,
+    0.098,
+    0.049,
+    0.098,
+    0.098,
+    0.049,
+    0.098
+   ],
+   "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/lappland_entry.json），64 画布 @2x；落下由代码补"
+  },
   "_doc": "Codex 交付 199d7b73（原生像素 @2x、整数 foot；192 画布槽 foot = 顶层 + (16,16)）。跑步条未交，暂借斯卡蒂 run。attack 走 attack_timing（B 步改出手时刻），skill / throw 为 S1 / S3 与 S2 的起手条",
   "size": 64,
   "foot": [
@@ -220,13 +240,14 @@
    }
   }
  },
- "extra_sprites": ["entry", 
+ "extra_sprites": [
+  "entry",
   "throw"
  ],
  "attack": {
   "mode": "auto",
   "name": "双刃",
-  "desc": "每 {$cd} 秒在队长身边挥出双刃横扫（物理，扇形约 150°，半径 {$reach}）；特性「领主」：每第 {$blade_every} 次横扫额外掷出一道剑气，飞出 {$blade_dist}，穿透沿途敌人，造成横扫 {$blade_mult*100}% 的伤害"
+  "desc": "每 {$cd} 秒在队长身边挥出双刃横扫（物理，扇形约 150°，半径 {$reach}）；触及内没有敌人时，这一下改为朝 {$blade_aim} 内最近的敌人掷出一道剑气（攻击 {$far_mult*100}%，飞出 {$blade_dist}，穿透）；特性「领主」：每第 {$blade_every} 次横扫额外掷出一道剑气，飞出 {$blade_dist}，穿透沿途敌人，造成横扫 {$blade_mult*100}% 的伤害"
  },
  "skills": [
   {
@@ -331,6 +352,17 @@
    "tags": [
     "follow_up",
     "area"
+   ]
+  },
+  "远掷": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area",
+    "projectile"
    ]
   }
  },
@@ -580,7 +612,31 @@
       }
      ]
     }
-   ]
+   ],
+   "far": {
+    "shape": "wave",
+    "from": "self",
+    "aim": "nearest",
+    "aim_r": "$blade_aim",
+    "fan": [
+     0
+    ],
+    "basis": "atk",
+    "mult": "$far_mult",
+    "dist": "$blade_dist",
+    "speed": "$blade_spd",
+    "w": "$blade_w",
+    "depth": 14,
+    "kb": "$blade_kb",
+    "cap": 9,
+    "off": [
+     0,
+     -6
+    ],
+    "src": "远掷",
+    "proj": "proj_lappland_sword",
+    "_doc": "远近切换（10-22 用户）：触及 reach 内没有敌人时，这一下横扫改为朝 260 内最近敌人掷一道剑气（攻击 80%，飞 200，穿透）；「领主」每第 2 刀附带剑气照旧"
+   }
   },
   "skills": [
    {
