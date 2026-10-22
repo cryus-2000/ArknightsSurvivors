@@ -272,7 +272,7 @@ func run() -> void:
 	var screen = preload("res://scripts/screens/difficulty_screen.gd")
 	var data = preload("res://scripts/data.gd")
 	for tier in 3:
-		var mods: Dictionary = data.dmod_for_tier(int(data.DIFF_PRESETS[tier].tide))
+		var mods: Dictionary = data.dmod_for_preset(tier)   # 难度页显示该档实际修正（深潮档带 enemy_scale）
 		var lines: Array = screen.condition_lines(tier)
 		for line in data.dmod_lines(mods):
 			check(lines.has(line), "difficulty preserves real modifier: " + str(line))
