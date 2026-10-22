@@ -1,4 +1,4 @@
-# Codex 任务单 10-22b：手感与提示七项（用户直接定，不跑批次验证，直接做）
+# 任务单 10-22b：手感与提示七项（用户直接定，不跑批次验证）——**10-23 改由 Claude 会话做**（§1–§3 claude/manual-aim，§5–§7 claude/hud-prompts），Codex 不做
 
 > 用户 10-22 晚定，按 `codex_handover_1022.md` 规范在 `codex/gameplay-1022b` 做，每项一个提交；玩法改动会改同 seed TRACE，合入后协调人统一重录金样；只跑 `--auto` 与各自回归。做完报分支 + 提交号。
 
