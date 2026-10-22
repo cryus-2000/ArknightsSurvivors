@@ -33,6 +33,69 @@
 
 - `tools/web/container.js`（export_web.py 内联到加载器后面）：只在 B站环境（域名含 bilibili / hdslb，或 UA 含 Bili）异步加载 Toy JS SDK；`isSupport('onContainerChange')` 为真（只在 B站 App 内）时先监听再 `setContainerMode({orientation:'landscape', immersive:true})`，按回调的 `viewport` / `safeArea` 把画布缩进安全区（改写 innerWidth / innerHeight + 画布定位，派 resize）；1.5 秒收不到回调回退 `env(safe-area-inset-*)`。itch / 普通浏览器 / 桌面版不加载。
 - 本地用假 `window.toy` + `window.__syToyBoot()` 验证过；需在 B站 App 真机验证。云存档已做（docs/89，10-13）；排行榜 / 分享未做。
+- 10-22 起 Toy 包的接入细节（环境透传、胶囊、回退、导出 / 打包、验证）见下节「Toy 接入」。
+
+## Toy 接入（10-22，分支 claude/toy-sdk；SDK 能力见 .claude/skills/bilibili-toy-sdk，官方 FAQ 见 docs/99 §0）
+
+**同一份网页壳**：itch 包与 Toy 包用同一个 `index.html` 模板（Godot Web 预设的 `head_include` + `export_web.py` 内联的 gl_state / fps_meter / loader / container / cloud），加载进度页（博士沿进度条跑、真实字节进度、「正在启动…」）与说明页脚两边一样。差异只有 `python tools/export_web.py --toy` 做的两件事：
+
+1. `container.js` 之前写 `window.__SY_TOY = 1` → 一律加载 Toy JS SDK（`//s1.hdslb.com/bfs/seed/toy/app/sdk/toy-sdk.js`）；itch / 本地包仍只在域名含 bilibili / hdslb 或 UA 含 Bili 时加载。
+2. 分片文件名不带 `.gz`：`index.00.pck` / `index.00.wasm`（内容仍是 gzip，`loader.js` 按魔数识别，不改加载器）。原因：Toy 只发布白名单后缀的文件（docs/99 一-16），`.pck` / `.wasm` 是 Godot 网页包必有的后缀，`.gz` 是否在白名单里没有官方清单可查。
+   输出 `build/toy/web/`（目录）+ `build/toy/方舟幸存者_toy_<提交>.zip`（`index.html` 在 zip 根目录、无外层文件夹，gzip 内容的分片按存储放，> 50 MB 中止）。不上传：发布 / 预览由用户用 `/toy` 技能（`toy create <zip>`，先预览再 `--yes` 提交审核）。
+
+**JS 侧（`tools/web/container.js`）**：
+
+| 对象 | 内容 |
+|---|---|
+| `window.__syToyEnv` | `{rev, sdk, container, deviceType, orientation, immersive, viewport{w,h}, safeArea{l,t,r,b}, capsule, source}`；`rev` 每次变化 +1，`sdk` = `window.toy` 是否存在，`container` = 是否拿到过容器状态（只在 B站 App 内），`source` = `toy`（SDK 回调）/ `env`（CSS `env()` 回退）/ `none` |
+| `window.__sySafe` | 当前生效的安全边距 `{left, top, right, bottom, source, capsule}`（CSS px；`capsule` 为画布坐标系里的 `{x, y, w, h}` 或 null） |
+| `window.__syToy` | 给 Godot 的桥：`env()` 回 `__syToyEnv` 的 JSON 串；`onchange(cb)` 注册回调，环境每次变化 `cb(JSON)`，注册时已有状态就立刻回一次 |
+| `window.__syToyWait()` | Promise，SDK 加载结束（成功 / 失败 / 8 秒超时 / 非 B站环境）后给出 `window.toy` 或 null；云存档 `cloud.js` 用它 |
+
+流程：SDK 加载 → `isSupport('onContainerChange')` 为真（B站 App 内）→ 先 `onContainerChange` 监听，再 `setContainerMode({orientation:'landscape', immersive:true})`（手机横屏必须同时沉浸；Promise 不算成功，以回调状态为准）→ 回调的 `viewport` / `safeArea` 把画布缩进安全区（改写 `innerWidth` / `innerHeight` + 画布 `fixed` 定位 + 派 `resize`），`changedFields` 含 viewport / safeArea / orientation / immersive / deviceType 时重排。
+
+**顶栏胶囊**：SDK 文档（技能清单）没有单独的胶囊接口，FAQ 三-14 说「由 SDK 提供」；`container.js` 兼容性地从容器状态里找 `capsule` / `capsuleRect` / `menuButton` / `menuButtonRect` / `menuButtonBoundingClientRect` / `topBar` / `navBar` / `navigationBar` 这类矩形字段（`{x|left, y|top, width, height}`，CSS px、相对 viewport），换到画布坐标系后写进 `__sySafe.capsule`。真机拿到真实字段名后若不在这串里，只需在 `findCapsule` 加一个名字。
+
+**Godot 侧（`scripts/settings.gd`）**：
+
+- `Cfg._toy_init()`（`_ready`，仅网页）：`JavaScriptBridge.get_interface("__syToy")`，`onchange` 注册回调 → `Cfg.toy_env`（Dictionary）更新、安全边距缓存清掉、`view_changed` 发出（标题页 / game.gd / 设置面板本来就按它重排）。
+- `Cfg.toy_device()`：容器状态里的 `deviceType`（没拿到容器状态时为空串）。`Cfg.phone_ui()` 在「画面比例 ≥ 1.9」之外也认 `deviceType == phone`（16:9 的旧手机在 Toy 里也走手机版式）。
+- `Cfg.safe_insets()`：画布已被 `container.js` 缩进安全区，所以四边仍按 0；只有 `__sySafe.capsule` 存在、且在画布上半部时，把它的下沿（`y + h`，CSS px → UI 逻辑像素）当成额外的顶部边距。触屏按键布局（`touch_layout.safe_rect`）、选卡面板、设置面板顶部本来就按 `safe_insets()[1]` 让位，所以 HUD 按键自动避开胶囊；顶部中央计时器等非交互元素不动（FAQ 的要求是交互元素避开）。
+- 局内玩法代码不碰：以上全在界面层，同种子 TRACE 不变。
+
+**回退**（非 Toy 环境 / 旧客户端，全部静默）：
+
+| 情况 | 行为 |
+|---|---|
+| itch / 本地 / 桌面（没有 SDK） | 不加载 SDK，`__syToyEnv.sdk=false`，`__syCloud.probe` 回 unsupported，浏览器自己的布局 |
+| Toy 包但 SDK 加载失败 / 8 秒超时 | 同上 |
+| B站网页端（SDK 在、容器接口 `unsupported`） | 不改布局；云存档照常 |
+| B站 App 旧客户端（接口在、1.5 秒不回调） | 先试一次 `getContainerState`，再不行按 CSS `env(safe-area-inset-*)` 留边（`source=env`）；横竖屏交给预设 `head_include` 里原有的「请将手机横过来」提示 + 首次触摸尝试全屏 / `screen.orientation.lock('landscape')`（旋转自适应） |
+| 容器状态里没有胶囊字段 | `capsule=null`，顶部边距 0（画布本来已在安全区内） |
+
+**验证**（内置浏览器，桌面 Chrome 模拟手机：宽 < 768、派 TouchEvent，docs 的 `web-mobile-emulation-testing`）：
+
+```
+python tools/export_web.py --toy
+python tools/web_cloud_mock.py --dir build/toy/web --ports 8811,8812
+```
+
+`web_cloud_mock.py` 注入的假 `window.toy`（`tools/web/toy_mock.js`）在网址带 `?toyc=phone | tablet | desktop` 时同时模拟容器接口（手机横屏 safeArea 左右 44 / 下 21、沉浸后右上角 88×32 的胶囊；`setContainerMode` 后异步回调；窗口 resize 回调 viewport），`?toyc=old` 模拟旧客户端（接口在、永不回调）。真机（B站 App ≥ 9.9.0）与 Toy 平台预览仍需用户走 `/toy`（`toy create` 会在账号下建一个 Toy，10-22 本会话没有代做）。
+
+**10-22 实测记录**（Toy 包 `--toy` 导出 + mock，内置浏览器模拟手机 740×360、合成 TouchEvent；面板隐藏时引擎不出帧，测试页注入 setTimeout 版 rAF）：
+
+| 步骤 | 结果 |
+|---|---|
+| `?toyc=phone` 打开 | 加载进度页（同 itch）→ 标题页；mock 回调后 `__syToyEnv` = phone / landscape / immersive，safeArea 44 / 0 / 44 / 21，胶囊 `{x:556, y:8, w:88, h:32}`（画布坐标）；画布 651×338、`getBoundingClientRect` 左 44、上 0，右侧与底部留黑边 |
+| 真 SDK 在非 B站域名 | 10-22 顺手实测：`s1.hdslb.com` 的 SDK 在 127.0.0.1 也能加载，`isSupport` 容器三项 false、云存储两项 true；真 SDK 会覆盖页面里已有的 `window.toy`，所以 `container.js` 遇到已有 `window.toy`（mock）不再加载 SDK。SDK 原型上另有本技能清单没列的 `getSharedStorage` / `setSharedStorage` / `onPlayerChange` / `getPlayerState` / `onPageClose` / `reportAction` / `sharePicture`，以后做排行榜 / 分享时再查官方文档 |
+| 画布定位 | 引擎每次 resize 把 canvas 行内样式重写成 `position:absolute; left:0; top:0`，旧写法（改行内样式）在引擎起来后失效；改为 `<style id="sy-frame">` 里带 `!important` 的规则后稳定 |
+| `Cfg.safe_insets` 的 JS 段 | 页面里直接跑同一段：`'0,40,0,0,652'`（胶囊下沿 40 CSS px 当顶部边距） |
+| 设备 A（8811）首次进入 | 1 读 1 写（云端为空 → 上传），`sy_h` + `sy_d0` |
+| 标题 → 选人 → 难度 → 一局（标准，原地不动，自动选第三张卡）→ 倒下 → 结算 → 寻访页 | 结算时 1 读 1 写，云端 813 字节、`n:1`；`__syCloud.staged()` 清空 |
+| 设备 B（8812，空 IndexedDB = 清缓存）进入 | 1 读、不写（合并结果与云端一致），标题页正常 |
+| 快检 `--auto` | 111 项，只剩「积木等价金样过期」（按规则忽略） |
+
+没做到的：B站 App 真机（容器状态字段名、胶囊字段是否存在、`setContainerMode` 行为）与 Toy 平台预览（`toy create` 建 Toy 后才有 preview_url）。
 
 ## 超宽横屏（10-13 用户反馈：iPhone 横屏在 itch App 里显示不全、比例失调）
 

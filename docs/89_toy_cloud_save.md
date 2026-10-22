@@ -145,7 +145,7 @@ python tools/export_web.py --out build/web_cloud
 python tools/web_cloud_mock.py --dir build/web_cloud --ports 8811,8812
 ```
 
-`web_cloud_mock.py` 把同一份包开在两个端口（网站源不同 = 两台设备，各自的 IndexedDB 本地存档），返回 index.html 时在 `<head>` 最前面注入 `tools/web/toy_mock.js`（假 `window.toy`，读写转发到进程内存里的一份云端）。`POST /__mock/ctl` 切换未登录 / reject N 次 / 307044 N 次 / 清空，`GET /__mock/state` 看云端内容与请求日志（时间戳）。发布包里没有 mock。
+`web_cloud_mock.py` 把同一份包开在两个端口（网站源不同 = 两台设备，各自的 IndexedDB 本地存档），返回 index.html 时在 `<head>` 最前面注入 `tools/web/toy_mock.js`（假 `window.toy`，读写转发到进程内存里的一份云端；网址带 `?toyc=phone` 时同时模拟容器接口，见 docs/22「Toy 接入」）。Toy 包（`export_web.py --toy`）也能这样测：`container.js` 遇到页面里已有的 `window.toy` 不再加载真 SDK。`POST /__mock/ctl` 切换未登录 / reject N 次 / 307044 N 次 / 清空，`GET /__mock/state` 看云端内容与请求日志（时间戳）。发布包里没有 mock。
 
 验收步骤（2026-10-13 实测结果见 §7）：
 
