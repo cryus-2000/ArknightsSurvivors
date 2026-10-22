@@ -19,10 +19,9 @@ func update(dt: float) -> void:
 		return
 	g.merchant.pos = g.spawner.safe_event_pos(g.merchant.pos, 100.0)
 	g.merchant.life -= dt
-	# 离开前 15 秒提醒一次（横幅 + 音效），之后倒计时变红闪烁
+	# 离开前 15 秒提醒一次（音效；文字横幅 10-22b 用户取消）
 	if g.merchant.life <= 15.0 and not g.merchant.get("warned", false):
 		g.merchant.warned = true
-		g.vfx.show_banner("商人 15 秒后离开 —— 还没交易就快去")
 		Sfx.play("ui_move", -2.0, 0.8)
 	g.merchant_light.visible = true
 	g.merchant_light.position = g.merchant.pos + g.vfx.merchant_goods()   # 暖光在身前货物上（10-21 新商人没有提灯）

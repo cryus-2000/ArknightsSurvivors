@@ -448,8 +448,7 @@ func update(dt: float) -> void:
 		g.horde_stream_rel = []
 		for i in g.horde_streams.size():
 			g.horde_stream_rel.append(g.t + i * Bal.v("enemy/close_ring_delay", 1.5))   # 各股出发时刻：HUD 在出发前 0.8 秒于该方向屏边亮预警
-		if close_ring:
-			g.world.cam_kick = Vector2.from_angle(float(g.horde_streams[0])) * Bal.v("enemy/horde_shake", 10.0)   # 入场镜头轻推（像素，约 0.2 秒衰减回位；镜头震动已整体移除，只用 cam_kick，纯画面）
+		# 分股合围的入场镜头轻推（cam_kick）10-22b 用户取消：「海嗣注意到了你的存在……」只留文字（纯画面）
 		var ring_r := 600.0
 		if not close_ring:
 			g.fx.append({"kind": "horde_ring", "pos": g.ppos, "r": 640.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
@@ -562,10 +561,8 @@ func update(dt: float) -> void:
 		g.merchant = {"pos": event_pos(260.0, 320.0, 100.0), "life": 60.0, "near": false, "purchases": 0}
 		g.shop_items.clear()
 		g.shop_refreshed = false
-		# 第一位商人（docs/119 §4.5）：生成时定货架，有联动藏品就写进横幅；开关关 / 没有联动时横幅照旧
+		# 第一位商人（docs/119 §4.5）：生成时定货架。出现横幅 10-22b 用户取消（只留屏边头像圈 + 箭头与音效）
 		g.shop_sys.prepare_first()
-		var pv: String = g.shop_sys.preview_text()
-		g.vfx.show_banner("商人出现了 —— 去找他交易源石锭" if pv == "" else "商人出现了 —— 货架上有%s" % pv)
 		Sfx.play("relic", -4.0)
 
 
