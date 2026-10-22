@@ -33,7 +33,11 @@ var water_filter := true # 水下滤镜：色差 + 暗角 + 焦散
 var normal_maps := true  # 2D 法线光照（贴图加载时生成，改动下局生效）
 var brightness := 1.1    # 画面亮度 0.8 ~ 1.4（缺省值随观感预设 render/look，_ready 里设）
 var pad_rumble := true   # 手柄震动
-var quality := ""        # 画质档位 "high" / "low"（空 = 首次启动，按设备猜）：低档关后期、粒子减半、真人局同屏敌人上限 300
+var quality := ""        # 生效中的画质档 "high" / "mid" / "low"（由 quality_mode 决定）：中 = 关辉光 / 景深 / 法线光照 / 水下滤镜；低 = 再加粒子减半、真人局同屏敌人上限 300、演出简化
+var quality_mode := "auto"   # 玩家选的画质档：auto / low / mid / high（10-22 用户：设置精简 + 画质自动档，Codex 界面单 §4）
+var quality_probed := false  # 自动档：本次启动的首局已测过前 2 秒帧时（每次启动只测一次）
+const QUALITY_NAME := {"low": "低", "mid": "中", "high": "高"}
+const QUALITY_MODES := ["auto", "low", "mid", "high"]
 ## 界面大小（设置 → 画面，用户 10-13「手机横屏太拥挤」）：在设备缺省的界面放大倍数（ui_scale）上再乘 ui_size_pct / 100，80–120，步长 5
 var ui_size_pct := 100
 const UI_PCT_MIN := 80
@@ -307,8 +311,7 @@ func _ready() -> void:
 			ui_size_pct = clampi(int(a.substr(9)), UI_PCT_MIN, UI_PCT_MAX)
 		elif a.begins_with("--camzoom="):
 			cam_zoom_pct = clampi(int(a.substr(10)), ZOOM_PCT_MIN, ZOOM_PCT_MAX)
-	if quality == "":
-		set_quality(_guess_quality())   # 首次启动：按设备猜一个缺省档（存档后玩家可改）
+	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)   # 自动档：每次启动按本机检测；手选档：按档位统一开关后期
 	for a in dev_args():
 		if a.begins_with("--quality="):
 			set_quality(a.substr(10))   # 截图自测：强制画质档（测试模式不写存档）
@@ -362,6 +365,10 @@ func _read_cfg(c: ConfigFile) -> void:
 	if cam_zoom_pct > 0:
 		cam_zoom_pct = clampi(cam_zoom_pct / 5 * 5, ZOOM_PCT_MIN, ZOOM_PCT_MAX)
 	quality = str(c.get_value("video", "quality", ""))
+	# 旧存档只有 quality（高 / 低）：当作手选那一档；没有（首次启动）就是自动
+	quality_mode = str(c.get_value("video", "quality_mode", quality if quality in ["low", "high"] else "auto"))
+	if not QUALITY_MODES.has(quality_mode):
+		quality_mode = "auto"
 	difficulty = c.get_value("progress", "difficulty", difficulty)
 	diff_unlocked = c.get_value("progress", "diff_unlocked", diff_unlocked)
 	seen_shows = c.get_value("progress", "seen_shows", seen_shows)
@@ -515,11 +522,12 @@ func _apply_unlock_all() -> void:
 	seen_relics = db.implemented().map(func(r): return r.id)
 
 
-## 画质一键档位（协调人 9/30：低配机）：低 = 关辉光 / 景深 / 法线光照 / 水下滤镜 + 粒子减半（fx_density）+ 真人局同屏敌人上限 300
-## （spawner.max_alive；机器人 / 自动测试一律 450）。切到高档时把这四项打开；之后玩家仍可在「画面」页单独开关
+## 画质档位（10-22 改三档 + 自动）：高 = 全开；中 = 关辉光 / 景深 / 法线光照 / 水下滤镜，其余同高；
+## 低 = 同中 + 粒子减半（fx_density）+ 真人局同屏敌人上限 300（spawner.max_alive；机器人 / 自动测试一律 450）+ 演出简化。
+## 这四项后期开关在设置里不再单独露出（键保留、旧存档兼容），一律跟档位走
 func set_quality(q: String) -> void:
-	quality = q
-	var hi := q == "high"
+	quality = q if QUALITY_NAME.has(q) else "high"
+	var hi := quality == "high"
 	bloom = hi
 	dof = hi
 	normal_maps = hi
@@ -530,15 +538,36 @@ func fx_density() -> float:
 	return 0.5 if quality == "low" else 1.0
 
 
-## 首次启动的缺省档：触屏 / 网页移动端 / 核显与软件渲染 → 低，其余 → 高
+## 自动档的检测（每次启动）：触屏 / 网页移动端 / 移动 GPU 与软件渲染 → 低；桌面核显 → 中；其余 → 高
 func _guess_quality() -> String:
 	if DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios"):
 		return "low"
 	var gpu := RenderingServer.get_video_adapter_name().to_lower()
-	for k in ["intel(r) uhd", "intel(r) hd", "intel(r) iris", "mali", "adreno", "powervr", "llvmpipe", "swiftshader", "microsoft basic"]:
+	for k in ["mali", "adreno", "powervr", "llvmpipe", "swiftshader", "microsoft basic"]:
 		if gpu.contains(k):
 			return "low"
+	for k in ["intel(r) uhd", "intel(r) hd", "intel(r) iris"]:
+		if gpu.contains(k):
+			return "mid"
 	return "high"
+
+
+## 设置里选档：自动 = 立刻按本机检测；手选 = 用那一档（之后不再自动降）
+func set_quality_mode(m: String) -> void:
+	quality_mode = m if QUALITY_MODES.has(m) else "auto"
+	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)
+	quality_probed = quality_mode != "auto"
+
+
+## 自动档：首局前 2 秒平均帧时 > 25 ms 时降一档（game.gd 调）；返回降到的档（没降返回空）
+func auto_downgrade() -> String:
+	quality_probed = true
+	if quality_mode != "auto":
+		return ""
+	var nxt: String = {"high": "mid", "mid": "low"}.get(quality, "")
+	if nxt != "":
+		set_quality(nxt)
+	return nxt
 
 
 ## 开发用参数（--allend / --allrelics 这类解锁开关）：只在 debug 构建（编辑器、测试、debug 导出）里读命令行；
@@ -583,6 +612,7 @@ func save() -> void:
 	c.set_value("video", "ui_size", ui_size_pct)
 	c.set_value("video", "cam_zoom", cam_zoom_pct)
 	c.set_value("video", "quality", quality)
+	c.set_value("video", "quality_mode", quality_mode)
 	c.set_value("progress", "difficulty", difficulty)
 	c.set_value("progress", "diff_unlocked", _real_progress.get("diff_unlocked", diff_unlocked))
 	c.set_value("progress", "diff_ver", DIFF_VER)

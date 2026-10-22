@@ -84,8 +84,21 @@ func _ready() -> void:
 	ok(game.run_stats.open and not s.squad_canvas.visible,"records hide scrolling foreground immediately")
 	game.run_stats.close()
 
+	var fast := m.duplicate(true)
+	fast.downs=0
+	fast.t=700.0
 	for tier in 3:
-		ok(Screen.grade(m,tier)==["S","SS","SSS"][tier],"clear rating")
+		ok(Screen.grade(fast,tier)==["S","SS","SSS"][tier],"clear rating: no downs, within 12:30")
+	var downed := fast.duplicate(true)
+	downed.downs=1
+	var slow := fast.duplicate(true)
+	slow.t=760.0
+	for tier in 3:
+		ok(Screen.grade(downed,tier)==["A","S","SS"][tier],"clear rating: downed once drops one grade")
+		ok(Screen.grade(slow,tier)==["A","S","SS"][tier],"clear rating: over 12:30 drops one grade")
+	var edge := fast.duplicate(true)
+	edge.t=750.0
+	ok(Screen.grade(edge,0)=="S","clear rating: exactly 12:30 is still top")
 	var dead := m.duplicate(true)
 	dead.result="dead"
 	dead.bosses=[]

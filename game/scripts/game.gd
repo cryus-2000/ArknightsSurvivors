@@ -361,6 +361,9 @@ var shake := 0.0
 var hurt_vignette := 0.0
 var hurt_duck := 0.0         # 重击后配乐低通保持的剩余秒数（combat.hurt 写，music_director 读，world.update_player_feel 衰减；docs/53）
 var tab_hint := 0.0          # 首次升级后再提醒一次 Tab
+var q_probe := Vector2.ZERO  # 画质自动档：首局前 2 秒的帧时累计（x = 秒数和，y = 帧数；Cfg.auto_downgrade）
+var quality_note := ""       # 自动降档后的提示（hud_banners.draw_open_hints 画）
+var quality_note_t := 0.0
 var tab_used := false
 var hp_trail := 100.0        # 血条上的「被扣掉」残影
 var hp_shake := 0.0
@@ -1115,6 +1118,22 @@ func cam_center() -> Vector2:
 # =====================================================================
 # 主循环
 # =====================================================================
+## 画质自动档（10-22 用户）：每次启动的首局，开局 0.5–2.5 秒的平均帧时 > 25 ms 就降一档并提示一次。
+## 只在真人局测（测试 / 机器人局不测，同 seed 结果不变）
+func _quality_probe(delta: float) -> void:
+	quality_note_t = maxf(0.0, quality_note_t - delta)
+	if Cfg.quality_probed or Cfg.quality_mode != "auto" or state != S.PLAY or mode != Mode.PLAY or not Cfg.dev_args().is_empty() or t < 0.5:
+		return
+	q_probe += Vector2(delta, 1.0)
+	if t < 2.5:
+		return
+	var nxt: String = Cfg.auto_downgrade() if q_probe.x / maxf(1.0, q_probe.y) > 0.025 else ""
+	Cfg.quality_probed = true
+	if nxt != "":
+		quality_note = "本机帧率偏低，画质已自动降为「%s」（可在设置里改）" % Cfg.QUALITY_NAME[nxt]
+		quality_note_t = 5.0
+
+
 func _process(delta: float) -> void:
 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
@@ -1145,6 +1164,7 @@ func _process(delta: float) -> void:
 		_pm("autotest")
 		dt = (minf(delta, 0.05) if realtime else bal_dt) if mode == Mode.BALANCE else 0.05
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
+	_quality_probe(delta)
 	if victory.active and state == S.PLAY:
 		simulated_dt = victory.step(minf(delta, 0.05))   # 最终 Boss 击破演出按慢动作缩放画面步长（run/victory_flow.gd）
 	elif hitstop > 0.0 and (mode == Mode.PLAY or playclock_test) and Cfg.hitstop and demo_op == "":

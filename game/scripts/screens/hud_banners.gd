@@ -482,6 +482,8 @@ func banner_y(vs: Vector2) -> float:
 ## 开局提示：先移动，再提醒 Tab 属性面板；首次升级后再提醒一次
 func draw_open_hints(vs: Vector2) -> void:
 	# 开局提示：先移动，再提醒 Tab 属性面板；首次升级后再提醒一次
+	if g.quality_note_t > 0.0 and g.state == Game.S.PLAY:   # 画质自动降档提示（game._quality_probe）
+		UI.text(g.hud, g.font, Vector2(0, 104), g.quality_note, 15, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, clampf(g.quality_note_t / 0.5, 0.0, 1.0)), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 	if g.state == Game.S.PLAY:
 		if g.t < 6.0:
 			var ohint: String

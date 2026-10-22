@@ -16,7 +16,7 @@ const ROWS := [
 	{"cn": "音乐", "en": "MUSIC", "key": "music", "type": "vol"},
 	{"cn": "音效", "en": "SFX", "key": "sfx", "type": "vol"},
 	{"cn": "语音", "en": "VOICE", "key": "voice", "type": "vol"},
-	{"cn": "画质", "en": "QUALITY", "key": "quality", "type": "quality", "note": "低配机选低"},
+	{"cn": "画质", "en": "QUALITY", "key": "quality", "type": "quality"},
 	{"cn": "全屏", "en": "FULLSCREEN", "key": "fullscreen", "type": "bool"},
 	{"cn": "窗口分辨率", "en": "RESOLUTION", "key": "res_index", "type": "res"},
 	{"cn": "伤害数字", "en": "DAMAGE NUMBERS", "key": "dmg_numbers", "type": "bool"},
@@ -46,15 +46,19 @@ const ROWS := [
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
 const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
-## 分类：[中文, 英文, 该页的选项键名]；ROWS 里每个选项恰好出现在一页（返回行每页都有）
+## 分类：[中文, 英文, 该页的选项键名]（返回行每页都有）。10-22 用户定 16 行清单（Codex 界面单 §4）：
+## 命中顿帧 / Boss 登场演出 / Boss 轮廓光 / 景深 / 辉光 / 水下滤镜 / 法线光照 / 战斗画面缩放 / 对局记录不再露出——
+## ROWS 与存档键都保留（旧存档兼容），后期四项跟画质档走，对局记录挪到作战结算底栏
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
-	["画面", "DISPLAY", ["quality", "fullscreen", "res_index", "ui_size_pct", "cam_zoom_pct", "brightness", "bloom", "water_filter", "dof", "normal_maps"]],
-	["操作", "CONTROLS", ["manual_attack", "touch_layout", "dmg_numbers", "outline", "hitstop", "boss_intro", "reduce_motion", "pad_rumble", "runs"]],
+	["画面", "DISPLAY", ["quality", "fullscreen", "res_index", "brightness", "ui_size_pct", "dmg_numbers", "reduce_motion"]],
+	["操作", "CONTROLS", ["manual_attack", "pad_rumble", "touch_layout"]],
 ]
 
-## 「存档」页：只在 B站 Toy 环境列出（_tabs）；面板高度仍按 TABS 定（这一页行数少），其他环境排版不变
-const CLOUD_TAB := ["存档", "SAVE DATA", ["cloud", "cloud_pull", "cloud_push"]]
+## 「存档」页：只在 B站 Toy 环境列出（_tabs）；面板高度仍按 TABS 定（这一页行数少），其他环境排版不变。
+## 云存档并成一行：点开（cloud_open）才展开「从云端恢复 / 以本地覆盖云端」两行
+const CLOUD_TAB := ["存档", "SAVE DATA", ["cloud"]]
+var cloud_open := false
 const CLOUD_HINT := {"cloud_pull": "云端存档替换本机进度与设置", "cloud_push": "本机存档覆盖云端存档"}
 const CLOUD_BTN := {"cloud_pull": ["恢复", "确认恢复"], "cloud_push": ["覆盖", "确认覆盖"]}
 var confirm_key := ""        # 恢复 / 覆盖：第一次点进入确认，CONFIRM_SECS 秒内再点一次才执行
@@ -194,7 +198,7 @@ func _set_tab(t: int) -> void:
 		if key == "runs" and not Cfg.runs_log_enabled():
 			continue   # 对外包不记录，也不显示这一行
 		for i in ROWS.size():
-			if ROWS[i].key == key:
+			if ROWS[i].key == key or (key == "cloud" and cloud_open and ROWS[i].key in ["cloud_pull", "cloud_push"]):
 				cur.append(i)
 	cur.append(ROWS.size() - 1)   # 返回
 	sel = clampi(sel, 0, cur.size() - 1)
@@ -321,10 +325,13 @@ func _tap(mp: Vector2, button: int) -> void:
 			if button == MOUSE_BUTTON_LEFT:
 				if ROWS[i].type == "res" and mp.x >= control_x and mp.x <= control_x + 184.0:
 					_apply_res()
-				elif ROWS[i].type == "quality" and mp.x >= control_x:
-					var high: bool = mp.x >= control_x + 106.0
-					if high != (Cfg.quality != "low"):
-						_adjust(i, dir)
+				elif ROWS[i].type == "quality" and mp.x >= control_x - 40.0:
+					# 四格（自动 / 低 / 中 / 高，各 56 宽、间距 4）：点哪格选哪档
+					var qi := clampi(int((mp.x - (control_x - 40.0)) / 60.0), 0, 3)
+					if Cfg.QUALITY_MODES[qi] != Cfg.quality_mode:
+						Cfg.set_quality_mode(Cfg.QUALITY_MODES[qi])
+						Cfg.apply()
+						Sfx.play("ui_move")
 				else:
 					_adjust(i, dir)
 	get_viewport().set_input_as_handled()
@@ -338,7 +345,8 @@ func _adjust(i: int, dir: int) -> void:
 		"bool":
 			Cfg.set(row.key, not Cfg.get(row.key))
 		"quality":
-			Cfg.set_quality("low" if Cfg.quality == "high" else "high")
+			var qm: Array = Cfg.QUALITY_MODES
+			Cfg.set_quality_mode(qm[posmod(qm.find(Cfg.quality_mode) + dir, qm.size())])
 		"bright":
 			Cfg.brightness = clampf(snappedf(Cfg.brightness + dir * 0.05, 0.05), 0.8, 1.4)
 		"uisize":
@@ -361,7 +369,12 @@ func _adjust(i: int, dir: int) -> void:
 			open_touch_editor()
 			return
 		"cloud":
+			# 一行展开 / 收起「从云端恢复 / 以本地覆盖云端」，同时立即同步一次
+			cloud_open = not cloud_open
 			Cloud.flush("manual")
+			var keep: int = sel
+			_set_tab(tab)
+			sel = keep
 			Sfx.play("ui_ok")
 			return
 		"cloud_pull", "cloud_push":
@@ -555,12 +568,15 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 			ci.draw_rect(Rect2(track.position + Vector2(44 if enabled else 4, 4), Vector2(24, 20)), UI.CYAN if enabled else UI.SUB)
 			UI.text(ci, font, Vector2(vx, rr.position.y + ty0), str(row.get("on", "开启")) if enabled else str(row.get("off", "关闭")), fs_v - 2, UI.CYAN if enabled else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 116)
 		"quality":
-			var hq: bool = Cfg.quality != "low"
-			for quality in 2:
-				var active: bool = (quality == 1) == hq
-				var qr := Rect2(vx + quality * 106, rr.position.y + ty0 - 25, 96, 36)
+			# 四格 自动 / 低 / 中 / 高；自动时行尾左侧写检测结果「已按本机选：中」
+			for qi in 4:
+				var m: String = Cfg.QUALITY_MODES[qi]
+				var active: bool = m == Cfg.quality_mode
+				var qr := Rect2(vx - 40 + qi * 60, rr.position.y + ty0 - 25, 56, 36)
 				ci.draw_rect(qr, UI.CYAN if active else Color("1b252e"))
-				UI.text(ci, font, qr.position + Vector2(0, 25), "高" if quality else "低", fs_v, Color("10151b") if active else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, qr.size.x)
+				UI.text(ci, font, qr.position + Vector2(0, 25), "自动" if m == "auto" else Cfg.QUALITY_NAME[m], fs_v - (2 if m == "auto" else 0), Color("10151b") if active else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, qr.size.x)
+			if Cfg.quality_mode == "auto":
+				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "已按本机选：%s" % Cfg.QUALITY_NAME.get(Cfg.quality, "高"), 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 186)
 		"uisize", "zoom":
 			var pv: int = Cfg.ui_size_pct if row.type == "uisize" else int(round(Cfg.cam_zoom() * 100.0))
 			var dflt: bool = (Cfg.ui_size_pct == 100) if row.type == "uisize" else (Cfg.cam_zoom_pct < 0)

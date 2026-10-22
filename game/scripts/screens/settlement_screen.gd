@@ -106,9 +106,14 @@ func select(index: int) -> void:
 	elif left + 212.0 > offset + VIEW.size.x:
 		scroll(left + 212.0 - VIEW.size.x)
 
+## 评级（只展示，不影响奖励）。通关按档位分两级（10-22 用户）：倒地 0 次且用时 ≤ 12:30 取高档（常规 S / 高压 SS / 深潮 SSS），
+## 否则低一级（A / S / SS）；失败：打到终局 Boss A、击败中期 Boss B、其余 C
+const GRADE_FAST := 750.0
+
 static func grade(m: Dictionary, preset: int) -> String:
 	if str(m.get("result", "")) == "win":
-		return ["S", "SS", "SSS"][clampi(preset, 0, 2)]
+		var top: bool = int(m.get("downs", 0)) == 0 and float(m.get("t", 0.0)) <= GRADE_FAST
+		return (["S", "SS", "SSS"] if top else ["A", "S", "SS"])[clampi(preset, 0, 2)]
 	# A requires the final boss to have appeared; B requires a defeated mid boss.
 	var final_name := str(D.ENEMIES.get(D.ENDINGS.get(str(m.get("ending", "standard")), {}).get("boss", ""), {}).get("name", "")).replace('"', '')
 	for boss in m.get("bosses", []):
@@ -188,6 +193,7 @@ func _pointer(p: Vector2, pressed: bool) -> void:
 			if p.x >= 910: _action("hunt")
 			elif p.x >= 642: _action("meta")
 			elif p.x >= 374: _action("title")
+			elif p.x >= 200 and Cfg.runs_log_enabled(): Cfg.show_runs_folder()
 			elif p.x >= 28: _records()
 	elif dragging:
 		if not moved:
@@ -261,6 +267,8 @@ func draw(ci: CanvasItem, vs: Vector2) -> void:
 	_timeline(ci)
 	ci.draw_rect(Rect2(0,652,1280,68),HH.INK)
 	_text(ci,28,679,"作战数据  SELECT" if Pad.using else "作战数据  Tab",16,HH.MUTE)
+	if Cfg.runs_log_enabled():   # 对局记录（测试版 / 对内包）：从设置页挪到这里（10-22 用户），点一下打开记录文件夹
+		_text(ci,206,679,"对局记录",16,HH.MUTE)
 	for b in [[374,250,"返回主界面  B" if Pad.using else "返回主界面  Esc"],[642,250,"认知塑造  Y" if Pad.using else "认知塑造  X"],[910,342,("寻访 ×%d  A" if Pad.using else "寻访 ×%d  Enter") % Roster.tickets()]]:
 		ci.draw_rect(Rect2(b[0],666,b[1],40),HH.CYB if b[0]==910 and Roster.tickets()>0 else HH.DARK2)
 		_text(ci,b[0]+20,676,b[2],18,HH.INK if b[0]==910 and Roster.tickets()>0 else HH.LIGHT)
