@@ -644,7 +644,7 @@ func _draw_class() -> void:
 	HS.left_panel(ci, D, 500, 380, 62)
 	_btn(HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "定向寻访 · 选择职业"), "back")
 	var by := HS.title_block(ci, f, Vector2(36, _p(150, 116)), "01", "定向寻访", "定向寻访", "DIRECTED", 1.0, int(_p(72, 60)))
-	UI.text_at(ci, f, Vector2(36, by + 34), "先选职业，再从该职业的未解锁干员中指定 1 名。", int(_p(15, 17)), HS.INK, "lm")
+	UI.text_at(ci, f, Vector2(36, by + 34), "先选职业，再从未解锁干员中指定 1 名。", int(_p(15, 17)), HS.INK, "lm")
 	UI.text_at(ci, f, Vector2(36, by + 60), "消耗寻访凭证 %d 张。" % _cost_pick(), int(_p(15, 17)), HS.INK, "lm")
 	if not _phone:
 		HS.hr_mark(ci, f, Vector2(36, 430))
@@ -735,7 +735,7 @@ func _draw_pick() -> void:
 			ci.draw_line(Vector2(876, y + 44), Vector2(1060, y + 44), UI.fa(HS.INK, 0.2), 1.0)
 		_figure(od2, Vector2(1160, D.y - 130), 3.0, Color(0.16, 0.17, 0.21))
 		if not _phone:
-			UI.text_at(ci, f, Vector2(820, D.y - 112), "指定 1 名未解锁干员加入名册。立绘在解锁后显示。", 14, HS.INK, "lm")
+			UI.text_at(ci, f, Vector2(820, D.y - 112), "指定 1 名未解锁干员加入名册，解锁后显示立绘。", 14, HS.INK, "lm")
 		HS.reveal = 1.0
 	_bottom()
 	var bb := Rect2(D.x - 560, D.y - 72, 210, 56)
@@ -1021,7 +1021,7 @@ func _draw_summary() -> void:
 	HS.bottom_bar(ci, D, 88)
 	var left := _vouchers()
 	var more: bool = (left > 0 or _can_direct()) and not Roster.locked_ids().is_empty()
-	UI.text_at(ci, f, Vector2(64, D.y - 44), "已加入名册。新干员可以在选人页选为队长。" + ("   剩余寻访凭证 × %d" % left if more else ""), 16, UI.TEXT, "lm")
+	UI.text_at(ci, f, Vector2(64, D.y - 44), "已加入名册。新干员可在选人页选为队长。" + ("   剩余寻访凭证 × %d" % left if more else ""), 16, UI.TEXT, "lm")
 	var br := Rect2(D.x - 330, D.y - 74, 310, 60)
 	HS.main_btn(ci, f, br, "继续寻访" if more else "完成", "")
 	_btn(br, "ok")
