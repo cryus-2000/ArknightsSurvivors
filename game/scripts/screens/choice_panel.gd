@@ -164,6 +164,7 @@ func build(parent: Node) -> void:
 	panel_band.material = sm
 	panel_band.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	g.panel.add_child(panel_band)
+	_warm_band(parent, sm.shader)
 	# 标题 / 商人立绘 / 事件插画画在这一层：在压暗带之上、卡片之下
 	g.panel_fg = Control.new()
 	g.panel_fg.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -209,6 +210,27 @@ func build(parent: Node) -> void:
 		serif = sf
 	else:
 		serif = g.font
+
+
+## 压暗带着色器预热（10-22 网页开局掉帧：第一次升级弹出选卡时当帧编译这支读屏着色器 + 拷屏，网页上卡约 200 ms）：
+## 进局后在界面层左上角放一个 1×1 的同款材质，参数设成原样输出（不去色、不压暗、无渐隐），渲染约 0.2 秒后删掉——
+## 着色器在进局时就编译好，那个像素输出的就是它底下原来的颜色，画面不变。不能中途读屏的设备（Cfg.screen_copy_ok）不做
+func _warm_band(parent: Node, shader: Shader) -> void:
+	if g.demo_op != "" or not Cfg.screen_copy_ok() or DisplayServer.get_name() == "headless":
+		return
+	var w := ColorRect.new()
+	var wm := ShaderMaterial.new()
+	wm.shader = shader
+	wm.set_shader_parameter("desat", 0.0)
+	wm.set_shader_parameter("dim", 1.0)
+	wm.set_shader_parameter("fade_px", 0.0)
+	wm.set_shader_parameter("rect_size", Vector2.ONE)
+	w.material = wm
+	w.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	w.position = Vector2.ZERO
+	w.size = Vector2.ONE
+	parent.add_child(w)
+	g.get_tree().create_timer(0.2, true, false, true).timeout.connect(w.queue_free)
 
 
 ## 压暗带与卡片容器的布局：选卡在顶栏与底栏之间；商人压暗到底部；事件整屏灰阶（C 版式）
