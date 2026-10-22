@@ -817,6 +817,8 @@ func step() -> void:
 						print("HUNTREC frames=%d" % ((g.at_frames - 56) / 2))
 						g.get_tree().quit()
 			if acts.has(g.at_frames):
+				if g.at_frames == 170 and Cfg.dev_args().has("--huntgold"):   # 金档录屏：定向选一个还没有人的职业（近卫）
+					g.headhunt.sel = g.headhunt.CLASS_ORDER.find("近卫")
 				g.headhunt._act(acts[g.at_frames])
 		else:
 			var steps := [[110, "directed"], [160, "ok"], [210, "ok"], [270, null], [480, "skip"], [510, "ok"], [540, ""]]

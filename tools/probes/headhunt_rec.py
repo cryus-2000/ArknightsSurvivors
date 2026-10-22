@@ -25,29 +25,29 @@ BASE = ['--autotest', '--huntshot', '--roster=start5', '--rostertickets=5']   # 
 
 def run(item):
     kind, (dev, res, extra) = item
-    d = os.path.join(OUT, dev + ('_rec' if kind == 'rec' else ''))
+    d = os.path.join(OUT, dev + {'rec': '_rec', 'gold': '_gold'}.get(kind, ''))
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d, exist_ok=True)
-    args = BASE + (['--huntrec'] if kind == 'rec' else [])
+    args = BASE + (['--huntrec'] if kind in ('rec', 'gold') else []) + (['--huntgold'] if kind == 'gold' else [])
     so, se, _to = gr.run_godot([godot, '--path', game, '--resolution', res, '--position', '-4000,0', '--fixed-fps', '60', '--audio-driver', 'Dummy', '--', '--shotdir=' + d] + extra + args, 600)
     for ln in (so + se).splitlines():
         if 'ERROR' in ln or 'SCRIPT' in ln or 'HUNT' in ln:
             print(dev, kind, ln[:300], flush=True)
-    if kind == 'rec':
+    if kind in ('rec', 'gold'):
         fs = sorted(glob.glob(os.path.join(d, 'rec_*.png')))
         frames = []
 
         for f in fs[::2]:   # 30 fps 录的 → 15 fps
             im = Image.open(f).convert('RGB')
             frames.append(im.resize((640, round(im.height * 640 / im.width)), Image.LANCZOS).convert('P', palette=Image.ADAPTIVE, colors=128))
-        out = os.path.join(OUT, 'headhunt_%s.gif' % dev)
+        out = os.path.join(OUT, 'headhunt_%s%s.gif' % (dev, '_gold' if kind == 'gold' else ''))
         if frames:
             frames[0].save(out, save_all=True, append_images=frames[1:], duration=67, loop=0, optimize=True)
         return dev, kind, len(fs), out
     return dev, kind, sorted(os.listdir(d)), d
 
 
-items = [(k, v) for k in (['shot', 'rec'] if what == 'all' else [what]) for v in DEVS]
+items = [(k, v) for k in (['shot', 'rec'] if what == 'all' else [what]) for v in (DEVS[:1] if what == 'gold' else DEVS)]   # gold：金档（定向补缺职业）桌面录屏
 with ThreadPoolExecutor(2) as ex:
     for r in ex.map(run, items):
         print(*r, flush=True)
