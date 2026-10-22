@@ -158,7 +158,24 @@
     5,
     14,
     2
-   ]
+   ],
+   "attack_timing": {
+    "duration": 0.4385714285714286,
+    "fire_time": 0.17857142857142858,
+    "active_ratio": 0.9,
+    "windup_ratio": 0.4071661237785016,
+    "min_duration": 0.13333333333333333,
+    "frame_durations": [
+     0.055803558435887156,
+     0.07440478284648884,
+     0.048363087289052586,
+     0.03781818181818182,
+     0.04490909090909091,
+     0.052000000000000005,
+     0.05909090909090909,
+     0.06618181818181817
+    ]
+   }
   },
   "death": {
    "tex": "op_lappland_die",
@@ -225,7 +242,7 @@
    "_doc": "Codex 199d7b73 原作 Attack 28 帧 1.333 秒重采样为 8 帧（源帧 [0, 4, 9, 13, 16, 19, 22, 25]，出手帧 = 源第 13 帧 → 第 3 帧；tools/probes/package_lappland_gladiia.py）"
   },
   "skills": {
-   "_doc": "S1 单条 skill；S2 单条 throw（原作 Attack 掷刃）；S3 起手 skill → 持续期循环 throw（与 S2 同一掷刃动作，用户 10-22：三技能持续攻击动作与二技能一致）、普攻也播 throw、移动 run",
+   "_doc": "S1 单条 skill；S2 单条 throw（原作 Attack 掷刃）；S3 起手 skill → 持续期由实际剑气事件驱动 throw（与 S2 同一掷刃动作，用户 10-22），等待事件时保持准备姿势、普攻也播 throw、移动 run",
    "s1": {
     "anim": "skill"
    },
@@ -234,7 +251,12 @@
    },
    "s3": {
     "start": "skill",
-    "loop": "throw",
+    "loop": {
+     "anim": "throw",
+     "frames": [
+      0
+     ]
+    },
     "run": "run",
     "attack": "throw"
    }
@@ -635,7 +657,9 @@
     ],
     "src": "远掷",
     "proj": "proj_lappland_sword",
-    "_doc": "远近切换（10-22 用户）：触及 reach 内没有敌人时，这一下横扫改为朝 260 内最近敌人掷一道剑气（攻击 80%，飞 200，穿透）；「领主」每第 2 刀附带剑气照旧"
+    "_doc": "远近切换（10-22 用户）：触及 reach 内没有敌人时，这一下横扫改为朝 260 内最近敌人掷一道剑气（攻击 80%，飞 200，穿透）；「领主」每第 2 刀附带剑气照旧",
+    "proj_hold": 1,
+    "proj_front": true
    }
   },
   "skills": [
@@ -776,7 +800,9 @@
        -6
       ],
       "src": "领主",
-      "proj": "proj_lappland_sword"
+      "proj": "proj_lappland_sword",
+      "proj_hold": 1,
+      "proj_front": true
      }
     ]
    },
@@ -806,7 +832,9 @@
        -6
       ],
       "src": "领主",
-      "proj": "proj_lappland_sword"
+      "proj": "proj_lappland_sword",
+      "proj_hold": 1,
+      "proj_front": true
      }
     ]
    },
@@ -846,7 +874,9 @@
        -8
       ],
       "src": "狼魂",
-      "proj": "proj_lappland_sword"
+      "proj": "proj_lappland_sword",
+      "proj_hold": 1,
+      "proj_front": true
      }
     ]
    },
@@ -876,7 +906,9 @@
        -8
       ],
       "src": "狼魂",
-      "proj": "proj_lappland_sword"
+      "proj": "proj_lappland_sword",
+      "proj_hold": 1,
+      "proj_front": true
      }
     ]
    },
@@ -911,7 +943,14 @@
        -6
       ],
       "src": "群狼之噬",
-      "proj": "proj_lappland_sword"
+      "proj": "proj_lappland_sword",
+      "proj_hold": 1,
+      "proj_front": true,
+      "release_pose": {
+       "slot": "throw",
+       "skill": 2,
+       "cycle": "$s3_every"
+      }
      },
      {
       "verb": "affect",
@@ -1032,7 +1071,9 @@
         -6
        ],
        "src": "双生刃",
-       "proj": "proj_lappland_sword"
+       "proj": "proj_lappland_sword",
+       "proj_hold": 1,
+       "proj_front": true
       }
      ]
     },
@@ -1064,7 +1105,9 @@
         -6
        ],
        "src": "双生刃",
-       "proj": "proj_lappland_sword"
+       "proj": "proj_lappland_sword",
+       "proj_hold": 1,
+       "proj_front": true
       }
      ]
     }

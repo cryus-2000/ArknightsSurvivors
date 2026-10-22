@@ -1140,7 +1140,7 @@ func follow(dt: float, target: Vector2) -> void:
 	if vis_anim != "" and anim_tex(vis_anim) != null:
 		want = vis_anim   # 纯画面动作（play_vis_anim）：播完前压过普攻 / 跑步，不占出手窗口
 	elif sq_atk != "" and anim_tex(sq_atk) != null:
-		want = sq_atk   # 循环期间的普攻变体（sprites.skills.sN.attack）：按其 fire 帧对齐出手，播完回循环（_tick_sq_atk）
+		want = sqk if _sq_atk_yield() else sq_atk   # 循环期间的普攻变体（sprites.skills.sN.attack）：按其 fire 帧对齐出手，播完回循环（_tick_sq_atk）
 	elif attack_t > 0.0 and not sq_own and anim_tex(act_anim) != null and not act_anim_yield():
 		want = act_anim   # 序列之外的动作（循环期间起手的普攻 / 另一技能）压过序列，播完接着循环
 	elif sqk != "":
@@ -1158,7 +1158,12 @@ func follow(dt: float, target: Vector2) -> void:
 	_tick_sq_shadow(dt)
 	# 跑步帧率按实际移动速度缩放（原固定 fps：快速前压的近战队友脚步打滑 3 倍以上）；帧条按主控基础移速 RUN_REF 画
 	if anim_kind == "run":
-		run_ph += dt * float(sprite_spec("run").get("fps", ANIM_FPS.get("run", 10.0))) * clampf(mv / RUN_REF, RUN_K_MIN, RUN_K_MAX)
+		advance_run_phase(dt)
+
+
+## 原生画面让位跑步时也使用同一速度时钟；不被攻击起手重置。
+func advance_run_phase(dt: float) -> void:
+	run_ph += dt * float(sprite_spec("run").get("fps", ANIM_FPS.get("run", 10.0))) * clampf(mv / RUN_REF, RUN_K_MIN, RUN_K_MAX)
 
 
 ## 起手：面向目标、播攻击条（4 帧 8fps 约定：0.5 秒，零基第 2 帧出手）；没有攻击条就立即出手
@@ -1306,8 +1311,11 @@ func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim 
 	if not (seq_locked() and kind == "attack"):
 		_sq_interrupt()
 	act_kind = kind
+	attack_phased = false
 	act_anim = anim if anim != "" and (anim_tex(anim) != null or sprite_spec(anim).has("frames")) else kind
 	if anim_tex(act_anim) == null and not sprite_spec(act_anim).has("frames"):
+		attack_t = 0.0
+		fire_t = -1.0
 		if kind == "skill":
 			_release_skill()
 		else:
@@ -1640,6 +1648,9 @@ func _anim_state_raw() -> Dictionary:
 	if tx == null:
 		return {}
 	var kind: String = anim_kind if anim_tex(anim_kind) != null else "idle"
+	if kind == sq_atk and _sq_atk_yield():
+		kind = seq_anim(sq.run)
+		tx = anim_tex(kind)
 	var n: int = anim_hframes(tx, kind)
 	var fr := 0
 	if sq_atk != "" and kind == sq_atk:
@@ -1650,7 +1661,7 @@ func _anim_state_raw() -> Dictionary:
 		fr = timed_frame(kind, range(n), anim_t)   # 纯画面动作播一遍，停在末帧
 		return {"tex": tx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
 	if sprite_spec(kind).has("frame_durations") and act_anim == kind and attack_t > 0.0:
-		fr = timed_frame(kind, range(n), attack_dur - attack_t)
+		fr = attack_phase_frame(n, int(sprite_spec(kind).get("fire", 0)), attack_dur - attack_t, kind) if attack_phased else timed_frame(kind, range(n), attack_dur - attack_t)
 		return {"tex": tx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
 	match kind:
 		"attack", "skill":
@@ -1663,7 +1674,23 @@ func _anim_state_raw() -> Dictionary:
 
 
 ## 每击完整经过前摇、出手、收势；伤害事件位于出手帧起点。
-func attack_phase_frame(n: int, release_frame: int, elapsed: float) -> int:
+func attack_phase_frame(n: int, release_frame: int, elapsed: float, slot := "") -> int:
+	var spec := sprite_spec(slot if slot != "" else act_anim)
+	var timing: Dictionary = spec.get("attack_timing", {})
+	var ds: Array = timing.get("frame_durations", spec.get("frame_durations", []))
+	if ds.size() == n and release_frame > 0 and release_frame < n:
+		# 前摇与收势各自映射到当前逻辑窗口，保留审核过的非均匀停留。
+		var before := elapsed < attack_fire_at
+		var first := 0 if before else release_frame
+		var end := release_frame if before else n
+		var length := attack_fire_at if before else attack_dur - attack_fire_at
+		var source_length := 0.0
+		for i in range(first, end): source_length += float(ds[i])
+		var source_t := maxf(0.0, elapsed if before else elapsed - attack_fire_at) / maxf(length, 0.000001) * source_length
+		for i in range(first, end):
+			if source_t < float(ds[i]): return i
+			source_t -= float(ds[i])
+		return end - 1
 	if elapsed < attack_fire_at:
 		return clampi(int(elapsed / maxf(attack_fire_at, 0.000001) * release_frame), 0, release_frame - 1)
 	return clampi(release_frame + int((elapsed - attack_fire_at) / maxf(attack_dur - attack_fire_at, 0.000001) * (n - release_frame)), release_frame, n - 1)
@@ -1897,6 +1924,8 @@ func _sq_kind() -> String:
 func _sq_frame(n: int) -> int:
 	var seg = _sq_seg()
 	var k := seq_anim(seg)
+	if sq_ph == 2 and k == "run":
+		return int(run_ph) % n   # 普通跑步与技能跑步共享相位，不随技能计时重启。
 	var frs: Array = [0] if (sq_ph == 1 and sq.has("hold") and not (seg is Dictionary)) else _seq_frames(seg, k)
 	if frs.is_empty():
 		return 0
@@ -2013,6 +2042,14 @@ func _tick_sq_atk(dt: float) -> void:
 		sq_atk = ""   # 播完回循环
 
 
+## 移动只暂时让出画面，保留变体时钟；同轮停下可接着收势。
+func _sq_atk_yield() -> bool:
+	if sq_atk == "" or sq_ph != 2 or not sq.has("run") or sq_atk_t < attack_fire_at:
+		return false
+	var run_slot := seq_anim(sq.run)
+	return anim_tex(run_slot) != null and mv > (RUN_EXIT if anim_kind == run_slot else RUN_ENTER)
+
+
 ## 当前序列循环阶段可用的普攻变体帧条（"" = 没写 / 缺图 / 不在循环阶段）
 func _sq_atk_kind() -> String:
 	if sq_ph != 2 or sq.has("hold"):
@@ -2033,7 +2070,7 @@ func _sq_atk_off() -> float:
 
 func _sq_atk_frame(n: int) -> int:
 	if attack_phased:
-		return attack_phase_frame(n, int(sprite_spec(sq_atk).get("fire", 0)), sq_atk_t)
+		return attack_phase_frame(n, int(sprite_spec(sq_atk).get("fire", 0)), sq_atk_t, sq_atk)
 	if sprite_spec(sq_atk).has("frame_durations"):
 		return timed_frame(sq_atk, range(n), maxf(0.0, sq_atk_t + _sq_atk_off()))
 	var fps := float(sprite_spec(sq_atk).get("fps", 12.0))

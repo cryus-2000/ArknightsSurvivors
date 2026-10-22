@@ -704,6 +704,18 @@ static func _v_shared(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 				_F()._num(b, "r", p, ctx, true, 1.0, 800.0)
 				_F()._num(b, "dur", p, ctx, true, 0.1, 30.0)
 				_F()._num(b, "every", p, ctx, true, 0.1, 30.0)
+				if b.has("visual_end"):
+					var ve = b.visual_end
+					if not ve is Dictionary:
+						errs.append(p + ".visual_end 须为 {skill, fx}")
+					else:
+						var skill = ve.get("skill", -1)
+						if not (skill is int or skill is float) or float(skill) != floorf(float(skill)) or float(skill) < 0.0 or float(skill) > 2.0:
+							errs.append(p + ".visual_end.skill 须为 0–2 的整数")
+						if not ve.get("fx") is Array or ve.fx.is_empty():
+							errs.append(p + ".visual_end.fx 须为非空特效列表")
+						else:
+							_F()._fx(ve.fx, p + ".visual_end.fx", ctx, "verb.field")
 				_F()._num(b, "cap", p, ctx, false, 1.0, 16.0)   # 精英化段：这块积木同时最多几处（超出时最早的先消失；安洁莉娜失重井 3 口）
 				if not str(b.get("center", "self")) in FIELD_CENTERS:
 					errs.append("%s.center 只能是 %s" % [p, " / ".join(FIELD_CENTERS)])

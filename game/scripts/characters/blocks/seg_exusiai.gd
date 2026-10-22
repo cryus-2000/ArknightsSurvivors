@@ -174,7 +174,8 @@ static func exu_fire(o, b: Dictionary) -> void:
 	var st := exu_st(o)
 	var main := _exu_main(o, b)
 	if main:
-		o.attack_t = minf(o.attack_t, maxf(0.0, o.cd))   # 射击间隔短于动作时把剩下的动作截短，下一次起手不被拖慢
+		if not o.attack_phased:
+			o.attack_t = minf(o.attack_t, maxf(0.0, o.cd))   # 旧动作路径；阶段普攻已在起手时压缩，保留其收势下限。
 		for t in o._trigs():
 			if str(t.get("_tag", "")) != "trig.on_attack" or not cond_true(o, t.get("cond", _ED)):
 				continue

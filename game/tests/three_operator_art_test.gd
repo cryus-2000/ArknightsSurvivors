@@ -12,6 +12,7 @@ func _ready() -> void:
 	for i in 5:
 		await get_tree().process_frame
 	g.set_process(false)
+	var approved: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://tests/data_ops/approved_attack_rhythm.json"))
 	for id in ["exusiai", "eyjafjalla", "logos"]:
 		var o = g.squad.get_op(id)
 		check(o != null, id + " is loaded")
@@ -25,9 +26,10 @@ func _ready() -> void:
 			check(foot.size() == 2 and float(foot[0]) == (48.0 if id == "eyjafjalla" and slot == "death" else 32.0) and float(foot[1]) == (76.0 if id == "eyjafjalla" and slot == "death" else 60.0), id + " " + slot + " shares the runtime foot anchor")
 			check(tx != null and tx.get_height() == (192 if id == "eyjafjalla" and slot == "death" else 128) and tx.get_width() == tx.get_height() * 8, id + " " + slot + " loads the packaged @2x strip")
 		var before: Array = g.rng_states()
+		o.cd=approved[id].cycle
 		o.start_attack(o.pos + Vector2(200, 0))
-		var expected: Array = {"exusiai": [0.25, 0.09375], "eyjafjalla": [4.0/14, 2.5/14], "logos": [4.0/12, 2.5/12]}[id]
-		check(o.attack_dur == expected[0] and absf(o.fire_t - expected[1]) < 0.000000000001, id + " exactly retains its previous attack window and release time")
+		var expected: Array = [approved[id].duration,approved[id].fire]
+		check(absf(o.attack_dur-expected[0])<1e-9 and absf(o.fire_t - expected[1]) < 1e-9, id + " approved recovery and original release time")
 		o.anim_t = float(expected[1]) + 0.000001
 		o.attack_t = o.attack_dur - o.anim_t
 		check(int(o.anim_state().frame) == int(o.sprite_spec("attack").get("fire", -1)), id + " releases on its native attack-event pose")

@@ -49,7 +49,8 @@ func _process(_d: float) -> void:
 		ok(lw[0] == old_dur and lw[1] == old_fire, "%s.%s 逻辑窗口 %.17f / %.17f = 旧 %.17f / %.17f" % [r[0], r[1], lw[0], lw[1], old_dur, old_fire])
 		if not r[1].begins_with("skill_s3"):   # 走 _start_action 的槽：实跑一次，读运行时的窗口与出手时刻
 			op._start_action("skill" if r[1].begins_with("skill") else "attack", Vector2.INF, 0.5, 0.25, r[1])
-			ok(op.attack_dur == old_dur and op.attack_fire_at == old_fire, "%s.%s 起手窗口 %.17f / 出手 %.17f 与旧条相同" % [r[0], r[1], op.attack_dur, op.attack_fire_at])
+			var expected_dur: float = float(spec.attack_timing.duration) if spec.has("attack_timing") else old_dur
+			ok(absf(op.attack_dur-expected_dur)<1e-9 and absf(op.attack_fire_at-old_fire)<1e-9, "%s.%s 使用确认的收势并保留原出手时刻" % [r[0], r[1]])
 			op.attack_t = 0.0
 			op.fire_t = -1.0
 		var k := int(spec.fire)   # 画面：出手帧起点 = 出手时刻（1e-9 内，json 小数解析误差）

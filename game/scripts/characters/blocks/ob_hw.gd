@@ -233,6 +233,7 @@ static func hw_busy(o) -> bool:
 
 ## 技能上层（data_operator._draw_skill_over）
 static func hw_draw_over(o) -> void:
+	_F().hw_draw_waves(o, true)
 	_F().hw_draw_shells(o)
 	if o.hw.has("links"):   # 精英化第 2 批段
 		_F().hw_draw_lobs(o)
@@ -443,6 +444,8 @@ static func _hw5_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 				errs.append(p + ".chain 必须是 fx_* 帧条名")
 			if b.has("head") and not str(b.head).begins_with("proj_"):
 				errs.append(p + ".head 必须是 proj_* 帧条名（钩头贴图）")
+			if b.has("thin_chain") and not b.thin_chain is bool:
+				errs.append(p + ".thin_chain 应是 true / false")
 			if b.has("push_out") and not b.push_out is bool:
 				errs.append(p + ".push_out 应是 true / false")
 			_num(b, "arrive_stun", p, ctx, false, 0.0, 3.0)          # 拖回到位的敌人眩晕秒数（精英减半，同 st.stun）

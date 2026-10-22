@@ -194,6 +194,15 @@ static func valid_attack_timing(spec: Dictionary) -> bool:
 			return false
 	if float(t.get("min_duration", 0.0)) > float(t.duration):
 		return false
+	if t.has("frame_durations"):
+		var visual := {"frames": spec.get("frames", 0), "frame_durations": t.frame_durations, "fire_time": t.fire_time}
+		if not valid_frame_durations(visual): return false
+		var total := 0.0
+		var release := 0.0
+		for i in t.frame_durations.size():
+			total += float(t.frame_durations[i])
+			if i < int(spec.get("fire", 0)): release += float(t.frame_durations[i])
+		if absf(total-float(t.duration)) > 0.000001 or absf(release-float(t.fire_time)) > 0.000001: return false
 	return float(t.fire_time) < float(t.duration) and float(t.active_ratio) < 1.0 and float(t.windup_ratio) < 1.0 and int(spec.get("fire", 0)) > 0 and int(spec.get("fire", 0)) < int(spec.get("frames", 0))
 
 

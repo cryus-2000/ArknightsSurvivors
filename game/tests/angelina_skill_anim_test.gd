@@ -72,12 +72,13 @@ func test_sequence(o) -> void:
 	o.mv = 0.0
 	o.follow(DT, o.pos)
 	ok(kind(o) == "float", "停止回 loop")
+	o.cd=1.0
 	o.start_attack(Vector2.INF)
-	ok(is_equal_approx(o.attack_t, 5.0 / 12.0) and is_equal_approx(o.fire_t, 2.5 / 12.0), "普攻仍用原出手窗口")
+	ok(is_equal_approx(o.attack_t, 2.5 / 12.0+0.34) and is_equal_approx(o.fire_t, 2.5 / 12.0), "普攻用确认收势并保留出手时刻")
 	o.fire_t = -1.0 # 本测试只推进画面，避免实际发弹消耗 RNG。
 	o.follow(DT, o.pos)
 	ok(kind(o) == "float_attack", "持续期普攻使用变体")
-	step(o, 0.5)
+	step(o, 0.6)
 	ok(kind(o) == "float", "普攻播完回循环")
 	o.s_t[2] = 0.0
 	o.follow(DT, o.pos)
@@ -100,11 +101,12 @@ func test_migration(o) -> void:
 	step(o, 0.6)
 	ok(kind(o) == "float_in" and frame(o) == 0, "原施法完成才起飞")
 	ok(o.attack_t <= 0.0 and o.fire_t < 0.0, "起飞不占逻辑窗口")
+	o.cd=1.0
 	o.start_attack(Vector2.INF)
 	o.fire_t = -1.0
 	step(o, 0.2)
 	ok(o.sq_ph == 4 and kind(o) == "attack", "进入段被普攻遮住时保留序列")
-	step(o, 0.6)
+	step(o, 0.9)   # 完整普攻收势结束后，起飞进入段才继续计时。
 	ok(kind(o) == "float", "普攻后继续起飞并进入循环")
 	o.start_skill(Vector2.INF, 0)
 	step(o, 0.7)

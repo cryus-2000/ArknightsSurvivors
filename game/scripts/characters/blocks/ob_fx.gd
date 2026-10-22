@@ -8,7 +8,7 @@ extends "res://scripts/characters/blocks/ob_check.gd"
 ## 缺图（g.tex 没有这条）时静默跳过，程序画法照旧作底。
 
 const FX_KEYS := ["strip", "vortex", "cond", "at", "layer", "fit", "scale", "max_scale", "n", "spread", "rise", "life", "every", "tint", "anchor", "off", "ang", "rot",
-	"hold", "fade", "if_tex", "ease", "grow", "grow0", "grow_to", "wake", "xfade",
+	"hold", "fade", "no_fade", "inward", "if_tex", "ease", "grow", "grow0", "grow_to", "wake", "xfade",
 	"delay", "stay", "once", "face_x", "flash", "along", "play", "on_sprite"]   # on_sprite（10-15）：锚到本干员当前帧的定位点（character.sprite_point，星熊盾心），这一帧没有就退回原锚点 / 贴身层不画；play：精英化第 5 批段（扩散缓动的帧号按 fps 播）；精英化段（docs/91 第 1 批）：延迟起播、末帧停留、区域里不循环、偏移随朝向、开火时提亮
 
 ## ground：紧贴地砖（溟痕 / Boss 地面预警 / 掉落之下），只给常驻跟随帧条（hold）用，大片地面特效不盖住危险提示（10-12 加）
@@ -164,7 +164,8 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 				var a: float = g.vrng.randf() * TAU
 				var d: float = sqrt(g.vrng.randf()) * spread
 				q += Vector2(cos(a) * d, sin(a) * d * 0.55)   # 地面椭圆（同区域画法 y × 0.55）
-			var px := {"kind": "strip", "name": name, "pos": q, "life": life, "sc": sc, "col": tint, "ang": rot, "anc": anc,
+			var angle: float = (c + off - q).angle() if f.get("inward", false) else rot
+			var px := {"kind": "strip", "name": name, "pos": q, "life": life, "sc": sc, "col": tint, "ang": angle, "anc": anc, "no_fade": bool(f.get("no_fade", false)),
 				"fr": frames, "fps": fps, "loop": loop, "ph": g.vrng.randi_range(0, frames - 1) if loop else 0,
 				"floor": layer == "floor", "add": layer == "add"}
 			if dly > 0.0:
@@ -212,9 +213,10 @@ static func fx_draw(ci, g, f: Dictionary, dim: float) -> void:
 	var a: float = dim
 	if f.loop:
 		fr = (int(el * float(f.fps)) + int(f.ph)) % frames
-		a *= clampf(float(f.life) / maxf(0.01, float(f.max) * 0.3), 0.0, 1.0) * clampf(el / 0.08, 0.0, 1.0)   # 循环件：进场 0.08 秒、最后三成淡出
+		if not f.get("no_fade", false):
+			a *= clampf(float(f.life) / maxf(0.01, float(f.max) * 0.3), 0.0, 1.0) * clampf(el / 0.08, 0.0, 1.0)   # 循环件：进场 0.08 秒、最后三成淡出
 	else:
-		fr = mini(int(el * float(f.fps)), frames - 1)
+		fr = mini(int(f.get("first_frame", 0)) + int(el * float(f.fps)), frames - 1)
 	fx_frame(ci, g, str(f.name), frames, fr, f.pos, float(f.sc), Color(f.col.r, f.col.g, f.col.b, f.col.a * a), f.anc, float(f.ang))
 
 

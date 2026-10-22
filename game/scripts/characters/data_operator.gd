@@ -192,6 +192,8 @@ func on_custom_node(nid: String, _choice: String = "") -> void:
 func cancel_skill_action() -> void:
 	attack_t = 0.0
 	fire_t = -1.0
+	attack_phased = false
+	native_motion.clear()
 	vis_anim = ""
 	manual_buf = 0.0
 	manual_buf_dir = Vector2.ZERO
@@ -1261,11 +1263,25 @@ func _ext_sustain(act: Array, dt: float) -> void:
 	# 地面区域：按 tick 计数（第 k 次在 k × every 秒），不靠浮点累加，次数 = round(dur / every)
 	if not fields.is_empty():
 		for f in fields:
+			if f.has("visual_end") and skill_active_left(int(f.visual_end.skill)) <= 0.0:
+				_end_field_visual(f)
 			f.t += dt
 			while f.done < f.n and f.t >= (f.done + 1) * f.every - 0.0001:
 				f.done += 1
 				_exec_list(f.do, f.pos)
+			if f.done >= f.n:
+				_end_field_visual(f)
 		fields = fields.filter(func(f): return f.done < f.n)
+
+
+## 区域画面的收尾只读原场快照，不修改区域伤害、tick 数或最后命中点。
+func _end_field_visual(f: Dictionary) -> void:
+	if not f.has("visual_end") or f.get("visual_done", false): return
+	f["visual_done"] = true
+	for px in f.get("visual_particles", []):
+		px.life = 0.0
+		pfx.erase(px)
+	ObFx.fx_play(self, f.visual_end.fx, f.pos, float(f.r))
 
 
 ## 瞬时部分（_exec_list 认不出的族.名转到这里）
@@ -1284,17 +1300,25 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 			var u: int = int(b.get("_uid", 0))
 			fields.append({"pos": c, "r": fr, "t": 0.0, "dur": float(b.dur), "every": ev,
 				"n": maxi(1, roundi(float(b.dur) / ev)), "done": 0, "do": b.get("do", []), "fx": b.get("fx", []), "u": u})
+			var field: Dictionary = fields.back()
+			if b.has("visual_end"):
+				field["visual_end"] = b.visual_end
 			if b.has("cap"):   # 精英化段：这块积木同时最多 cap 处，最早的先消失
 				var same: Array = fields.filter(func(q): return int(q.get("u", -1)) == u)
 				if same.size() > int(b.cap):
+					_end_field_visual(same[0])
 					fields.erase(same[0])
 			if fields.size() > FIELD_CAP:
+				_end_field_visual(fields[0])
 				fields.pop_front()
 			if b.has("fx"):   # 通用 fx（§5.6）：中心 = 区域中心、半径 = 区域半径；没写 life 的条目循环到区域结束（once：只播一遍，精英化段）
 				var fl: Array = []
 				for f in b.fx:
 					fl.append(f if not (f is Dictionary) or f.has("life") or f.get("once", false) else f.merged({"life": float(b.dur)}))
+				var fx_start: int = pfx.size()
 				ObFx.fx_play(self, fl, c, fr)
+				if b.has("visual_end"):
+					field["visual_particles"] = pfx.slice(fx_start)
 		"verb.negate_next":
 			if cur_skill >= 0:
 				neg_armed[cur_skill] = b
@@ -1576,6 +1600,8 @@ func start_skill(aim: Vector2, idx: int = -1, dur: float = 0.6, fire_at: float =
 		super(aim, idx, dur, fire_at, anim)
 
 func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim := "", interval := 0.0) -> void:
+	if kind == "attack":
+		anim = NativeMotion.timed_attack_slot(self, anim if anim != "" else "attack")
 	super(kind, aim, dur, fire_at, anim, interval)
 	NativeMotion.started(self)
 
@@ -1585,7 +1611,8 @@ func start_attack(aim: Vector2, dur: float = 0.5, fire_at: float = 0.25, anim :=
 	if hw.has("bolts"):
 		hw.body_variant = int(hw.get("bolt_variant", 0))
 	AttackPhases.begin_round(self)
-	super(aim, dur, fire_at, "" if not phases.is_empty() else anim, cd if not phases.is_empty() else interval)
+	# 普攻各形状都在起手前设置 cd；让无显式 interval 的近战 / 治疗也使用攻速压缩。
+	super(aim, dur, fire_at, "" if not phases.is_empty() else anim, cd if interval <= 0.0 or not phases.is_empty() else interval)
 	var timing: Dictionary = sprite_spec(act_anim).get("attack_timing", {})
 	if timing.has("min_rest"):
 		cd = maxf(cd, attack_dur + float(timing.min_rest))

@@ -613,8 +613,12 @@ static func _hw_slam_fx(o, c: Vector2, r: float, k: float) -> void:
 	UlpImpact.spawn(o, c, r, k)
 
 
-static func _hw_draw_chain(o, a: Vector2, b: Vector2, al: float) -> void:
+static func _hw_draw_chain(o, a: Vector2, b: Vector2, al: float, thin := false) -> void:
 	var cv = o.cv
+	if thin:
+		cv.draw_line(a, b, Color(0.04, 0.05, 0.08, 0.75 * al), 2.0)
+		cv.draw_line(a, b, Color(0.58, 0.65, 0.68, 0.95 * al), 1.0)
+		return
 	cv.draw_line(a, b, Color(0.04, 0.05, 0.08, 0.75 * al), 5.0)
 	cv.draw_line(a, b, Color(HW_CHAIN.r, HW_CHAIN.g, HW_CHAIN.b, 0.95 * al), 2.5)
 	var tile: String = str(o.hw.get("chain_tex", ""))
@@ -1060,10 +1064,10 @@ static func hw_draw_hooks(o) -> void:
 			var shake: Vector2 = Vector2(0, sin(float(g.t) * 60.0) * 2.0) if str(hk.phase) == "taut" else Vector2.ZERO
 			_hw_draw_tiled(o, tile, hand, p + shake, g.PX, 0.0, 0, Color.WHITE, 1 if taut else 0)
 		else:
-			_hw_draw_chain(o, hand, p, 1.0)
+			_hw_draw_chain(o, hand, p, 1.0, bool(b.get("thin_chain", false)))
 		for dg in hk.drag:
 			if str(hk.phase) == "drag" and not dg.e.dead:
-				_hw_draw_chain(o, p, dg.e.pos + Vector2(0, -float(dg.e.r) * 0.5), 0.7)
+				_hw_draw_chain(o, p, dg.e.pos + Vector2(0, -float(dg.e.r) * 0.5), 0.7, bool(b.get("thin_chain", false)))
 		var dirv: Vector2 = ((hk.to as Vector2) - (hk.from as Vector2)).normalized()
 		var head: String = str(b.get("head", ""))   # 歌蕾蒂娅（docs/123 §6）：细长倒钩贴图代替程序锚头；缺图退回程序锚
 		if head != "" and g.tex.get(head) != null and g.V6_FRAMES.has(head):

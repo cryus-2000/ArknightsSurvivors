@@ -147,6 +147,7 @@ static func tx_dash_start(o, b: Dictionary, dmg: float) -> Array:
 		o._set_face(signf(dir.x), true)
 	var ride: bool = o.is_leader and aim == "leader_dir"   # 主控自己按的冲刺：位移交给主控，冲刺只负责扫
 	var d := {"from": o.pos, "to": o.pos + dir * len, "dir": dir, "t": 0.0, "dur": float(b.get("t", 0.18)),
+		"attack_pose": o.attack_phased and o.act_kind == "attack" and o.attack_t > 0.0,
 		"hold": 0.0 if o.is_leader else float(b.get("hold", 0.0)), "ride": ride, "last": o.pos, "hit": {},
 		"dmg": dmg, "w": float(b.get("w", 40.0)) * float(o.tx.get("w", 1.0)), "b": b, "src": str(b.get("src", ""))}
 	o.tx["dash"] = d
@@ -298,7 +299,7 @@ static func _tx_dash_end(o) -> void:
 
 
 ## 原生动作覆盖层的信号（native_motion.gd，docs/108 §3.5；只读本段状态）：
-##   dash.<种类>  正在冲刺，进度 = 已冲时间 /（冲刺 + 停顿）；种类 reverse = 原路反冲（回马剑），skill = 技能冲刺（tags 含 skill），其余 basic
+##   dash.<种类>  正在冲刺，进度 = 已冲时间 /（冲刺 + 停顿）；reverse = 回马剑，skill = 技能冲刺，attack = 当前阶段普攻，其余 basic
 ##   wait.reverse 冲完到反冲之间的延迟（on_dash_end 的 delay），进度 0–1
 static func tx_native_signals(o, out: Dictionary) -> void:
 	var tx: Dictionary = o.tx
@@ -310,6 +311,8 @@ static func tx_native_signals(o, out: Dictionary) -> void:
 			kind = "reverse"
 		elif (b.get("tags", _EA) as Array).has("skill"):
 			kind = "skill"
+		elif d.get("attack_pose", false):
+			kind = "attack"
 		out["dash." + kind] = clampf(float(d.t) / maxf(0.01, float(d.dur) + float(d.hold)), 0.0, 1.0)
 		return
 	for it in tx.get("queue", _EA):

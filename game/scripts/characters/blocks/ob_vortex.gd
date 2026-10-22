@@ -328,6 +328,9 @@ static func _fx(arr, p: String, ctx: Dictionary, owner: String) -> void:
 		for k in f:
 			if not k in FX_KEYS:
 				errs.append("%s.%s：fx 条目不认识的字段（只能是 %s）" % [q, k, " / ".join(FX_KEYS)])
+		for flag in ["no_fade", "inward"]:
+			if f.has(flag) and not f[flag] is bool:
+				errs.append(q + "." + flag + " 须为布尔值")
 		var sn = f.get("strip", null)
 		if f.has("vortex"):
 			# 程序漩涡：不用帧条；常驻跟随（同贴身层），只能挂在常驻积木上；层只能 floor / add；at 只能 zone / self / leader

@@ -360,7 +360,7 @@ func test_operator_contract() -> void:
 		["V4", ir, func(d): d.native_motion["yield"] = "finisher"],
 		["V5", wd, func(d): d.sprites.s2_attack.muzzles.pop_back()],
 		["V6", wd, func(d): d.sprites.s2_attack.muzzles[0] = [1]],
-		["V7", sg, func(d): d.sprites.attack.fire = 2],
+		["V7", sg, func(d): d.sprites.attack.fire_time = 0.001],   # 只破坏画面事件，不同时破坏独立的阶段时钟。
 		["V8", sg, func(d): d.extra_sprites.erase("leap_native")],
 		["V8", sg, func(d): d.native_motion.clips["nope"] = 0.5],
 		["V9", wd, func(d): d.sprites["draw_scale"] = 0.9],

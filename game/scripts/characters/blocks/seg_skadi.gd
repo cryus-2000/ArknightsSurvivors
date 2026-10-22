@@ -21,6 +21,11 @@ static func hw_wave_start(o, b: Dictionary) -> void:
 		var from0: Vector2 = o.pos + Vector2(float(ov[0]), float(ov[1]))
 		if b.has("release_fx"):
 			fx_play(o, b.release_fx, o.pos, 30.0, [], ang)
+		# 首轮仍播完技能起手；每轮仅写纯画面事件。
+		if b.has("release_pose"):
+			var r: Dictionary = b.release_pose
+			if o.sq_ph == 2 and o.sq_i == int(r.skill) and o.skill_active_left(int(r.skill)) > 0.0 and not (o.act_kind == "skill" and o.attack_t > 0.0):
+				o.native_motion["wave_pose"] = {"slot": str(r.slot), "skill": int(r.skill), "cycle": float(r.cycle), "elapsed": 0.0, "angle": ang}
 		var shared := {}   # fan_once：同一轮的几道共用命中表，一名敌人每轮只吃一道
 		for fd in b.get("fan", [0]):
 			var d2 := Vector2.from_angle(ang + deg_to_rad(float(fd)))
@@ -65,24 +70,35 @@ static func _hw_waves(o, dt: float) -> void:
 			var l: float = g.vrng.randf_range(-0.5, 0.5) * w.w
 			var mc: Color = _mf_col(b.get("foam", []), Color(0.8, 0.95, 1.0))
 			o.fx({"kind": "mote", "pos": w.pos + nrm * l + Vector2(0, -18), "vel": w.dir * 120.0 + Vector2(0, g.vrng.randf_range(-120, -60)), "life": 0.4, "col": mc, "sz": 2.0, "grav": 320.0})
+		if w.dist >= w.max and b.has("proj_hold") and g.tex.get(str(b.proj)) != null:
+			var spec: Array = g.V6_FRAMES[str(b.proj)]
+			# 消散只进粒子表，不延长碰撞寿命。
+			o.fx({"kind": "strip", "name": str(b.proj), "pos": w.pos + Vector2(0, -16),
+				"life": 2.0 / float(spec[1]), "fr": int(spec[0]), "first_frame": 2, "fps": float(spec[1]),
+				"loop": false, "ph": 0, "sc": g.PX * float(b.get("proj_scale", 1.0)), "col": Color.WHITE,
+				"anc": Vector2(-1, -1), "ang": w.dir.angle(), "floor": not b.get("proj_front", false)})
 	h.waves = h.waves.filter(func(w): return w.dist < w.max)
 
 
 ## 地面层（data_operator.draw_entities_floor）：浪墙。有帧条（tex，朝右、底部锚点 anchor）时沿浪墙排三朵浪，帧按推进进度走完；缺图画程序浪墙
-static func hw_draw_waves(o) -> void:
+static func hw_draw_waves(o, front := false) -> void:
 	if not hw_on(o) or o.hw.waves.is_empty():
 		return
 	var g = o.g
 	var cv = o.cv
 	for w in o.hw.waves:
 		var b: Dictionary = w.b
+		if bool(b.get("proj_front", false)) != front: continue
 		if b.has("proj"):   # 精英化第 2 批段：弹体式（潮刃）——旋转的弹体帧条，缺图画程序新月
 			var pn: String = str(b.proj)
-			var pa: float = clampf((w.max - w.dist) / 40.0, 0.0, 1.0)
+			var pa: float = 1.0 if b.has("proj_hold") else clampf((w.max - w.dist) / 40.0, 0.0, 1.0)
 			var pp: Vector2 = w.pos + Vector2(0, -16)
 			if g.tex.get(pn) != null and g.V6_FRAMES.has(pn):
 				var spec: Array = g.V6_FRAMES[pn]
-				fx_frame(cv, g, pn, int(spec[0]), int(float(g.t) * float(spec[1])), pp, g.PX * float(b.get("proj_scale", 1.0)), Color(1, 1, 1, pa), Vector2(-1, -1), w.dir.angle())
+				var frame := int(float(g.t) * float(spec[1]))
+				if b.has("proj_hold"):
+					frame = mini(int(w.dist / float(b.speed) * float(spec[1])), int(b.proj_hold))
+				fx_frame(cv, g, pn, int(spec[0]), frame, pp, g.PX * float(b.get("proj_scale", 1.0)), Color(1, 1, 1, pa), Vector2(-1, -1), w.dir.angle())
 			else:
 				cv.draw_arc(pp - w.dir * 10.0, w.w * 0.5, w.dir.angle() - 1.0, w.dir.angle() + 1.0, 12, Color(0.6, 0.85, 1.3, 0.9 * pa), 4.0)
 			continue
@@ -342,6 +358,24 @@ static func _hw_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 				errs.append(p + ".fan 必须是 1–8 个偏角（度）的数组")
 			if b.has("proj") and not str(b.proj).begins_with("proj_"):
 				errs.append(p + ".proj 必须是 proj_* 帧条名")
+			if b.has("proj_hold"):
+				var spec: Array = ArtS.V6_FRAMES.get(str(b.get("proj", "")), [])
+				if b.proj_hold != 1 or spec.size() < 2 or int(spec[0]) != 4:
+					errs.append(p + ".proj_hold 须为 1，且 proj 须登记为四帧弹体")
+			if b.has("proj_front") and (not b.proj_front is bool or not b.has("proj")):
+				errs.append(p + ".proj_front 须为布尔值且须配置 proj")
+			if b.has("release_pose"):
+				if b.get("from", "prev") != "self":
+					errs.append(p + ".release_pose 只用于 from:self")
+				var r = b.release_pose
+				if not r is Dictionary:
+					errs.append(p + ".release_pose 须是 {slot, skill, cycle}")
+				else:
+					var spr: Dictionary = ctx.sprites.get(str(r.get("slot", "")), {})
+					if spr.is_empty() or not spr.has("fire") or int(spr.fire) < 1 or int(spr.fire) >= int(spr.get("frames", 0)):
+						errs.append(p + ".release_pose.slot 须引用有出手帧的动作槽")
+					_num(r, "skill", p + ".release_pose", ctx, true, 0.0, 2.0)
+					_num(r, "cycle", p + ".release_pose", ctx, true, 0.001)
 			for k in ["hit_fx", "release_fx"]:
 				if b.has(k):
 					_fx(b[k], p + "." + k, ctx, "shape.circle")

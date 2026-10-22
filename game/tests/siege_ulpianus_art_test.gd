@@ -11,6 +11,7 @@ func _ready() -> void:
 	add_child(g)
 	for i in 5: await get_tree().process_frame
 	g.set_process(false)
+	var approved: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://tests/data_ops/approved_attack_rhythm.json"))
 	for id in ["siege", "ulpianus"]:
 		var o = g.squad.get_op(id)
 		check(o != null, id + " loaded")
@@ -21,17 +22,19 @@ func _ready() -> void:
 			var tx: Texture2D = o.anim_tex(slot)
 			check(tx != null and tx.get_width() == 8 * tx.get_height(), id + " " + slot + " strip loaded")
 		var rng: Array = g.rng_states()
+		o.cd = approved[id].cycle
 		o.start_attack(o.pos + Vector2(120, 0))
-		var duration: float = 4.0 / 14.0 if id == "siege" else 5.0 / 12.0
+		var duration: float = approved[id].duration
 		var fire: float = 2.5 / 14.0 if id == "siege" else 3.5 / 12.0
-		check(absf(o.attack_dur - duration) < 0.000000001 and absf(o.fire_t - fire) < 0.000000001, id + " gameplay window and release unchanged")
+		check(absf(o.attack_dur - duration) < 0.000000001 and absf(o.fire_t - fire) < 0.000000001, id + " approved recovery and unchanged release")
 		check(rng == g.rng_states(), id + " animation consumes no gameplay RNG")
 		o.native_motion.t = fire
-		check(int(o.anim_state().frame) == (2 if id == "siege" else 3), id + " visual event pose matches actual hit time")
+		o.attack_t = duration-fire-0.000001
+		check(int(o.anim_state().frame) == int(o.sprite_spec("attack").fire), id + " visual event pose matches actual hit time")
 		o.native_motion.t = duration + 0.01
 		o.attack_t = 0.0
 		o.anim_kind = "idle"
-		check(o.anim_state().kind == "attack", id + " visual recovery can finish without extending gameplay window")
+		check(o.anim_state().kind == "idle", id + " visual and logical recovery finish together")
 		o.start_attack(o.pos + Vector2(120, 0))
 		check(o.anim_state().frame == 0, id + " new attack restarts its own motion")
 		o.face = -1.0
