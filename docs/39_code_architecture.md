@@ -71,6 +71,10 @@
 3. **操作走逻辑层**：按钮 / 选卡 / 购买回调调用 `run/` 的函数（`g.progression.pick(i)`、`g.shop_sys.buy(i)`），界面自己不结算。
 4. **分派在 HUD**：`screens/hud.gd` 的 `draw()` 按 `g.state` 把全屏界面交给对应模块画；新增一个全屏界面 = 新文件 + 在这里加一个分支 + `game.gd` 加一个字段。
 5. **弹窗框架共用**：面板节点、标题、按钮、提示在 `screens/choice_panel.gd`（`g.panel_ui.button(...)` 等），商店等弹窗复用它。
+6. **局内 HUD 是一串有序的块**（10-22，docs/126 §9.2）：`hud.gd` 的 `LAYER_ORDER` 定上下层次，每块是 `g.hud` 下的一张子画布，`_draw_body` 里 `_layer(键, 签名, 绘制函数)` 登记；签名 `null` = 每帧画（缺省，最安全），否则签名变了才重画。整屏状态界面（暂停 / 结算 / 寻访…）画在父画布，压在所有块之上。
+   - 加一个 HUD 元素：放进合适的块（或在 `LAYER_ORDER` 里按层次插一个新键），先不写签名。
+   - 想缓存：签名写全这块读到的状态（连续量用 `hud.qpx` 按 1/8 像素量化，动画进行中放 `g.t`）；绘制时顺手写的状态（点击区域等）挪到登记时算（例：`hud_relics.update_buttons`）。改了缓存块的绘制内容，要同步改它的签名（`top_left_sig` / `top_sig` / `status_sig` / `_squad_sig` / `_frame_sig`），否则画面会停在旧内容上。
+   - 验收：同一局开 / 关 `--hudnocache`（所有块每帧画）截图应逐像素相同。
 
 ## 4. 干员接口层（characters/op_api.gd）
 

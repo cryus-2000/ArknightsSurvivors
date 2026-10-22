@@ -6,6 +6,7 @@ const UI = preload("res://scripts/ui.gd")
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 const Tris = preload("res://scripts/screens/hud_tris.gd")
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
+const PlayClock = preload("res://scripts/run/play_clock.gd")
 var g: Game
 var h   # screens/hud.gd：合批段（batch_begin / _hb）、共用助手（edge_glow / corrode_seg / draw_tooltip）与兄弟模块都从这里取
 
@@ -128,6 +129,16 @@ func draw_lamp_strip(vs: Vector2) -> void:
 	h.batch_begin()
 	UI.strip(g.hud, g.font, o + Vector2(2, 66), st_en, st_txt, st_col, st_col.lerp(UI.TEXT, 0.45))
 	h.batch_end()
+
+
+## 顶部块（顶部中央 + 右上暂停 / 倍速键 + 结局走向，hud 的 top 缓存块）的签名：两段读到的全部状态；威胁进度条按 1/8 像素量化
+func top_sig(vs: Vector2) -> Array:
+	var display_time: float = maxf(0.0, g.t - g.trial.started_at) if g.trial.active else g.t
+	var tfrac: float = 1.0
+	if g.threat < D.THREAT.size() - 1:
+		tfrac = clampf((g.t - D.THREAT[g.threat].t) / (D.THREAT[g.threat + 1].t - D.THREAT[g.threat].t), 0.0, 1.0)
+	return [vs, h.panel_over_top(), int(display_time), g.kills, g.threat, h.qpx(140.0 * tfrac), g.trial.active, g.tier, g.touch.active, g.state,
+		h.relics.top_hover(vs), PlayClock.current_label(), g.ending, Cfg.endings_cleared.size(), g.endg.cur, g.relics.size()]
 
 
 ## 顶部中央：击杀 / 时间 / 楼层 / 威胁进度（原 _draw_body「顶部中央」段）。
@@ -308,8 +319,21 @@ func boss_bars() -> Array:
 
 ## 人物状态栏：左上面板下方，列出当前生效的增益 / 减益（带剩余时间条）
 func draw_status_bar(vs: Vector2) -> void:
+	draw_status(vs, status_items())
+
+
+## 状态条缓存块（hud 的 status）的签名：本帧的标签片列表（文字 / 颜色 / 进度条长度按 1/8 像素量化）+ 换行宽度
+func status_sig(vs: Vector2, items: Array) -> Array:
+	var sig: Array = [vs, boss_bars().is_empty(), g.touch.active]
+	for it in items:
+		sig.append([it[0], it[1], h.qpx(100.0 * float(it[2])) if float(it[2]) >= 0.0 else -1])
+	return sig
+
+
+## 状态条的标签片：[文字, 颜色, 进度 0..1 或 -1]；开场 / 介绍 / 演出时为空
+func status_items() -> Array:
 	if g.state == Game.S.OPENING or g.state == Game.S.INTRO or g.state == Game.S.SHOW:
-		return
+		return []
 	var items: Array = []   # [文字, 颜色, 进度 0..1 或 -1]
 	for it in g.ch.status_items():
 		items.append(it if it.size() >= 3 else [it[0], it[1], -1.0])
@@ -367,6 +391,10 @@ func draw_status_bar(vs: Vector2) -> void:
 		items.append(["黑潮", Color(0.9, 0.4, 1.0), -1.0])
 	if g.lamp < 30.0:
 		items.append(["灯火暗淡", Color(1.0, 0.55, 0.45), -1.0])
+	return items
+
+
+func draw_status(vs: Vector2, items: Array) -> void:
 	if items.is_empty():
 		return
 	var x := 18.0
