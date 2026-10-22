@@ -56,9 +56,9 @@ const TABS := [
 ]
 
 ## 「存档」页：只在 B站 Toy 环境列出（_tabs）；面板高度仍按 TABS 定（这一页行数少），其他环境排版不变。
-## 云存档并成一行：点开（cloud_open）才展开「从云端恢复 / 以本地覆盖云端」两行
+## 云存档只留一行状态（点一下立即同步）：自动同步已按并集 / 较新合并两边（docs/89 §4），10-22 用户定去掉
+## 「从云端恢复」「以本地覆盖云端」两个手动入口（ROWS 与 Cloud.pull / push 代码保留，不再列出）
 const CLOUD_TAB := ["存档", "SAVE DATA", ["cloud"]]
-var cloud_open := false
 const CLOUD_HINT := {"cloud_pull": "云端存档替换本机进度与设置", "cloud_push": "本机存档覆盖云端存档"}
 const CLOUD_BTN := {"cloud_pull": ["恢复", "确认恢复"], "cloud_push": ["覆盖", "确认覆盖"]}
 var confirm_key := ""        # 恢复 / 覆盖：第一次点进入确认，CONFIRM_SECS 秒内再点一次才执行
@@ -198,7 +198,7 @@ func _set_tab(t: int) -> void:
 		if key == "runs" and not Cfg.runs_log_enabled():
 			continue   # 对外包不记录，也不显示这一行
 		for i in ROWS.size():
-			if ROWS[i].key == key or (key == "cloud" and cloud_open and ROWS[i].key in ["cloud_pull", "cloud_push"]):
+			if ROWS[i].key == key:
 				cur.append(i)
 	cur.append(ROWS.size() - 1)   # 返回
 	sel = clampi(sel, 0, cur.size() - 1)
@@ -369,12 +369,7 @@ func _adjust(i: int, dir: int) -> void:
 			open_touch_editor()
 			return
 		"cloud":
-			# 一行展开 / 收起「从云端恢复 / 以本地覆盖云端」，同时立即同步一次
-			cloud_open = not cloud_open
 			Cloud.flush("manual")
-			var keep: int = sel
-			_set_tab(tab)
-			sel = keep
 			Sfx.play("ui_ok")
 			return
 		"cloud_pull", "cloud_push":
