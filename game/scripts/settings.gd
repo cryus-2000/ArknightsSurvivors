@@ -240,75 +240,7 @@ func _ready() -> void:
 	_migrate_internal_save()
 	var c := ConfigFile.new()
 	if c.load(PATH) == OK:
-		cover_character_id = str(c.get_value("display", "cover_character", "mizuki"))
-		play_speed = float(c.get_value("game", "play_speed", 1.0))
-		if play_speed == 2.0:   # 10-22 删 2× 倍速：旧存档回落到最接近的 1.5×
-			play_speed = 1.5
-		if play_speed not in [1.0, 1.5]:
-			play_speed = 1.0
-		master = c.get_value("audio", "master", master)
-		music = c.get_value("audio", "music", music)
-		sfx = c.get_value("audio", "sfx", sfx)
-		voice = c.get_value("audio", "voice", voice)
-		fullscreen = c.get_value("video", "fullscreen", fullscreen)
-		res_index = clampi(int(c.get_value("video", "res_index", res_index)), 0, RESOLUTIONS.size() - 1)
-		dmg_numbers = c.get_value("game", "dmg_numbers", dmg_numbers)
-		hitstop = c.get_value("game", "hitstop", hitstop)
-		boss_intro = c.get_value("game", "boss_intro", boss_intro)
-		reduce_motion = c.get_value("game", "reduce_motion", reduce_motion)
-		outline = c.get_value("game", "outline", outline)
-		dof = c.get_value("video", "dof", dof)
-		bloom = c.get_value("video", "bloom", bloom)
-		water_filter = c.get_value("video", "water_filter", water_filter)
-		normal_maps = c.get_value("video", "normal_maps", normal_maps)
-		brightness = clampf(float(c.get_value("video", "brightness", brightness)), 0.8, 1.4)
-		brightness = migrate_brightness(brightness, int(c.get_value("video", "look_ver", 0)))
-		pad_rumble = c.get_value("input", "pad_rumble", pad_rumble)
-		manual_attack = c.get_value("input", "manual_attack", manual_attack)
-		touch_layout = TouchLayout.load_from(c)
-		ui_size_pct = clampi(int(c.get_value("video", "ui_size", 100)) / 5 * 5, UI_PCT_MIN, UI_PCT_MAX)
-		cam_zoom_pct = int(c.get_value("video", "cam_zoom", -1))
-		if cam_zoom_pct > 0:
-			cam_zoom_pct = clampi(cam_zoom_pct / 5 * 5, ZOOM_PCT_MIN, ZOOM_PCT_MAX)
-		quality = str(c.get_value("video", "quality", ""))
-		difficulty = c.get_value("progress", "difficulty", difficulty)
-		diff_unlocked = c.get_value("progress", "diff_unlocked", diff_unlocked)
-		seen_shows = c.get_value("progress", "seen_shows", seen_shows)
-		gallery_seen = c.get_value("progress", "gallery_seen", [])
-		seen_relics = c.get_value("progress", "seen_relics", seen_relics)
-		seen_intro = c.get_value("progress", "seen_intro", seen_intro)
-		opening_seen = c.get_value("progress", "opening_seen", opening_seen)
-		endings_cleared = c.get_value("progress", "endings_cleared", endings_cleared)
-		roster_unlocked = c.get_value("roster", "unlocked", roster_unlocked)
-		roster_tickets = c.get_value("roster", "tickets", roster_tickets)
-		roster_spare = c.get_value("roster", "spare", roster_spare)
-		roster_tiers = c.get_value("roster", "tiers", roster_tiers)
-		roster_wish = str(c.get_value("roster", "wish", roster_wish))
-		roster_pity = int(c.get_value("roster", "pity", roster_pity))
-		roster_draws = int(c.get_value("roster", "draws", roster_draws))
-		roster_seed = int(c.get_value("roster", "seed", roster_seed))
-		roster_fresh = c.get_value("roster", "fresh", roster_fresh)
-		load("res://scripts/core/roster.gd").migrate_tickets()   # 三种券 → 单一寻访凭证（1:1 / 1:1 / 1:2）
-		meta_shape = c.get_value("meta", "shape", meta_shape)
-		meta_shape_t = int(c.get_value("meta", "shape_t", meta_shape_t))
-		meta_earned = c.get_value("meta", "earned", meta_earned)
-		meta_dev = str(c.get_value("meta", "dev", meta_dev))
-		meta_bounty = c.get_value("meta", "bounty", meta_bounty)
-		if not c.has_section("roster"):
-			_migrate_roster()
-		diff_best = c.get_value("progress", "diff_best", diff_best)
-		var dv := int(c.get_value("progress", "diff_ver", 1))
-		if dv < 2:
-			_migrate_diff()   # 旧累计档 → 三档下标，已是 DIFF_VER 4 的含义
-		elif dv == 3:
-			_migrate_tide_to_preset()
-		cloud_set_t = int(c.get_value("cloud", "set_t", 0))
-		cloud_sig = str(c.get_value("cloud", "sig", ""))
-		_set_sig = str(c.get_value("cloud", "set_sig", ""))
-		var ex = CloudPack.parse(str(c.get_value("cloud", "extra", "{}")))
-		cloud_extra = ex if ex is Dictionary else {}
-		cloud_v = int(c.get_value("cloud", "v", 0))
-		cloud_minv = int(c.get_value("cloud", "minv", 0))
+		_read_cfg(c)
 	if _set_sig == "":
 		_set_sig = _settings_sig()   # 旧存档 / 首次启动：以现在的设置为基准，没改过就不算「新」（cloud_set_t 保持 0，换设备时让云端的设置生效）
 	_apply_unlock_all()
@@ -361,6 +293,76 @@ func _ready() -> void:
 	apply.call_deferred()
 
 
+## 读档主体（_ready 读 user://settings.cfg 后调；tests/save_migrate_test.gd 拿旧存档样本直接调它，docs/126 R1）。
+## 没写的键沿用当前值；版本迁移都在这里：难度 diff_ver（_migrate_progress）、观感 look_ver、旧倍速、旧券、没有 [roster] 段的老存档
+func _read_cfg(c: ConfigFile) -> void:
+	cover_character_id = str(c.get_value("display", "cover_character", "mizuki"))
+	play_speed = float(c.get_value("game", "play_speed", 1.0))
+	if play_speed == 2.0:   # 10-22 删 2× 倍速：旧存档回落到最接近的 1.5×
+		play_speed = 1.5
+	if play_speed not in [1.0, 1.5]:
+		play_speed = 1.0
+	master = c.get_value("audio", "master", master)
+	music = c.get_value("audio", "music", music)
+	sfx = c.get_value("audio", "sfx", sfx)
+	voice = c.get_value("audio", "voice", voice)
+	fullscreen = c.get_value("video", "fullscreen", fullscreen)
+	res_index = clampi(int(c.get_value("video", "res_index", res_index)), 0, RESOLUTIONS.size() - 1)
+	dmg_numbers = c.get_value("game", "dmg_numbers", dmg_numbers)
+	hitstop = c.get_value("game", "hitstop", hitstop)
+	boss_intro = c.get_value("game", "boss_intro", boss_intro)
+	reduce_motion = c.get_value("game", "reduce_motion", reduce_motion)
+	outline = c.get_value("game", "outline", outline)
+	dof = c.get_value("video", "dof", dof)
+	bloom = c.get_value("video", "bloom", bloom)
+	water_filter = c.get_value("video", "water_filter", water_filter)
+	normal_maps = c.get_value("video", "normal_maps", normal_maps)
+	brightness = clampf(float(c.get_value("video", "brightness", brightness)), 0.8, 1.4)
+	brightness = migrate_brightness(brightness, int(c.get_value("video", "look_ver", 0)))
+	pad_rumble = c.get_value("input", "pad_rumble", pad_rumble)
+	manual_attack = c.get_value("input", "manual_attack", manual_attack)
+	touch_layout = TouchLayout.load_from(c)
+	ui_size_pct = clampi(int(c.get_value("video", "ui_size", 100)) / 5 * 5, UI_PCT_MIN, UI_PCT_MAX)
+	cam_zoom_pct = int(c.get_value("video", "cam_zoom", -1))
+	if cam_zoom_pct > 0:
+		cam_zoom_pct = clampi(cam_zoom_pct / 5 * 5, ZOOM_PCT_MIN, ZOOM_PCT_MAX)
+	quality = str(c.get_value("video", "quality", ""))
+	difficulty = c.get_value("progress", "difficulty", difficulty)
+	diff_unlocked = c.get_value("progress", "diff_unlocked", diff_unlocked)
+	seen_shows = c.get_value("progress", "seen_shows", seen_shows)
+	gallery_seen = c.get_value("progress", "gallery_seen", [])
+	seen_relics = c.get_value("progress", "seen_relics", seen_relics)
+	seen_intro = c.get_value("progress", "seen_intro", seen_intro)
+	opening_seen = c.get_value("progress", "opening_seen", opening_seen)
+	endings_cleared = c.get_value("progress", "endings_cleared", endings_cleared)
+	roster_unlocked = c.get_value("roster", "unlocked", roster_unlocked)
+	roster_tickets = c.get_value("roster", "tickets", roster_tickets)
+	roster_spare = c.get_value("roster", "spare", roster_spare)
+	roster_tiers = c.get_value("roster", "tiers", roster_tiers)
+	roster_wish = str(c.get_value("roster", "wish", roster_wish))
+	roster_pity = int(c.get_value("roster", "pity", roster_pity))
+	roster_draws = int(c.get_value("roster", "draws", roster_draws))
+	roster_seed = int(c.get_value("roster", "seed", roster_seed))
+	roster_fresh = c.get_value("roster", "fresh", roster_fresh)
+	load("res://scripts/core/roster.gd").migrate_tickets()   # 三种券 → 单一寻访凭证（1:1 / 1:1 / 1:2）
+	meta_shape = c.get_value("meta", "shape", meta_shape)
+	meta_shape_t = int(c.get_value("meta", "shape_t", meta_shape_t))
+	meta_earned = c.get_value("meta", "earned", meta_earned)
+	meta_dev = str(c.get_value("meta", "dev", meta_dev))
+	meta_bounty = c.get_value("meta", "bounty", meta_bounty)
+	if not c.has_section("roster"):
+		_migrate_roster()
+	diff_best = c.get_value("progress", "diff_best", diff_best)
+	_migrate_progress(int(c.get_value("progress", "diff_ver", 1)))
+	cloud_set_t = int(c.get_value("cloud", "set_t", 0))
+	cloud_sig = str(c.get_value("cloud", "sig", ""))
+	_set_sig = str(c.get_value("cloud", "set_sig", ""))
+	var ex = CloudPack.parse(str(c.get_value("cloud", "extra", "{}")))
+	cloud_extra = ex if ex is Dictionary else {}
+	cloud_v = int(c.get_value("cloud", "v", 0))
+	cloud_minv = int(c.get_value("cloud", "minv", 0))
+
+
 func apply() -> void:
 	view_changed.emit()
 	_bus("Master", master)
@@ -404,6 +406,19 @@ static func migrate_brightness(saved: float, ver: int) -> float:
 	return saved
 
 
+## 难度存档版本 diff_ver → 现在的 DIFF_VER（4 = 三档预设下标 0 标准 / 1 困难 / 2 极限）。逐个版本写明，新版本在这里加一支：
+##   1（或没写）：11 级累计难度 → _migrate_diff 一步换成三档下标
+##   2：三档下标，与 4 同义（潮位试验之前），不用动
+##   3：潮位 0–15（内部包短暂存在）→ _migrate_tide_to_preset
+##   4：当前；更大的版本号 = 新版本写的存档，原样读
+func _migrate_progress(dv: int) -> void:
+	match dv:
+		0, 1:
+			_migrate_diff()   # 旧累计档 → 三档下标，已是 DIFF_VER 4 的含义
+		3:
+			_migrate_tide_to_preset()
+
+
 ## 旧存档（11 级累计难度）→ 3 档：通关过某档对应的累计档位（旧 diff_unlocked = 通关的最高档 + 1）就解锁下一档，
 ## 只多不少——例如旧存档解锁到 5（通关过 4 = 第 1 档「波涛迭起·Ⅳ」的档位）→ 解锁第 2 档；只解锁到 1–4（通关过第 0 档）→ 解锁第 1 档。
 ## 上次选的难度落到它所在的档，且不超过已解锁的档
@@ -435,19 +450,6 @@ func note_diff_best(preset: int, won: bool, t: float) -> void:
 		b.fast_t = int(t) if int(b.get("fast_t", 0)) <= 0 else mini(int(b.fast_t), int(t))
 	diff_best[k] = b
 	save()
-
-
-## （旧）三档 → 潮位（10-22，docs/109 §5 / docs/71 §4.3）：上次选的档 0 / 1 / 2 → 潮位 0 / 4 / 8；
-## 解锁：通关过标准 → 1，通关过 Ⅳ → 5，通关过 Ⅷ（P1 起记在 roster_tiers 里的档 2）→ 9。P1 记的首通档同时改成潮位号
-func _migrate_tide() -> void:
-	var lv := [0, 4, 8]
-	var cleared_8 := roster_tiers.has(2)
-	roster_tiers = roster_tiers.map(func(x): return lv[clampi(int(x), 0, 2)])
-	difficulty = lv[clampi(difficulty, 0, 2)]
-	diff_unlocked = [0, 1, 5][clampi(diff_unlocked, 0, 2)]
-	if cleared_8:
-		diff_unlocked = 9
-	difficulty = mini(difficulty, diff_unlocked)
 
 
 ## 老存档（没有 [roster] 段）：EA 期间所有干员都开局可用，打过的玩家一律直接全部解锁，不收回已有内容（docs/109 §12.5）。
