@@ -39,6 +39,8 @@ func _mt() -> float:
 
 ## 动效是否还在可跳过的阶段（game.gd _input：这时的点击 / 确认键只跳到终态）
 func motion_running() -> bool:
+	if g.settlement.active():
+		return false   # New result module owns its own skip and input.
 	if UM.rm() or g.ui_skip or UM.skip_all():
 		return false
 	if g.state == Game.S.PAUSE:
@@ -131,6 +133,9 @@ static func _fa(c: Color, a: float) -> Color:
 
 
 func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array, ending_panel := false, allow_unlocks := true) -> void:
+	if g.settlement.active():
+		g.settlement.draw(g.hud, vs)
+		return
 	var dim := 1.0
 	if g.state == Game.S.PAUSE:
 		dim = UM.prog(0.0, UM.T1, _mt()) if UM.rm() else UM.out_cubic(_mt() / PAUSE_DIM)

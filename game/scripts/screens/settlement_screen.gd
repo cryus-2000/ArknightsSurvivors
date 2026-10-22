@@ -1,0 +1,326 @@
+extends RefCounted
+## Read-only run-end presentation. No combat work, RNG or input registration in draw.
+const RS = preload("res://scripts/run/run_stats.gd")
+const HH = preload("res://scripts/screens/hh_style.gd")
+const UM = preload("res://scripts/ui_motion.gd")
+const Roster = preload("res://scripts/core/roster.gd")
+const D = preload("res://scripts/data.gd")
+var g
+var topography: Texture2D = preload("res://art/ui/settlement/topography.png")
+var navigation: Texture2D = preload("res://art/ui/settlement/navigation.png")
+var _signature: Array = []
+var model: Dictionary = {}
+var rows: Array = []
+var art: Dictionary = {}
+var elapsed := 0.0
+var offset := 0.0
+var selected := 0
+var dragging := false
+var drag_x := 0.0
+var drag_offset := 0.0
+var moved := false
+var scale := 1.0
+var origin := Vector2.ZERO
+class SquadCanvas extends Control:
+	var screen
+	func _draw() -> void:
+		screen.draw_cards(self)
+
+var squad_canvas: Control
+var cells := 0
+var vouchers := 0
+const STRIDE := 224.0
+const VIEW := Rect2(28, 288, 884, 350)
+
+func _init(host) -> void:
+	g = host
+
+func active() -> bool:
+	return not g.trial.active and g.demo_op == "" and g.state in [g.S.WIN, g.S.DEAD]
+
+func tick(dt: float) -> void:
+	if not active():
+		if is_instance_valid(squad_canvas):
+			squad_canvas.hide()
+		return
+	if squad_canvas == null:
+		squad_canvas = SquadCanvas.new()
+		squad_canvas.screen = self
+		squad_canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		squad_canvas.clip_contents = true
+		g.hud.add_child(squad_canvas)
+	if model.is_empty():
+		set_model(RS.model(RS.snapshot(g)))
+		cells = int(g.meta_result.get("cells", 0))
+		vouchers = int(g.roster_new.get("hunt", 0))
+	var safe: Rect2 = Cfg.touch_safe_rect(g.get_viewport_rect().size / Cfg.ui_k)
+	scale = minf(safe.size.x / 1280.0, safe.size.y / 720.0)
+	origin = safe.position + (safe.size - Vector2(1280, 720) * scale) * 0.5
+	squad_canvas.position = origin + VIEW.position * scale
+	squad_canvas.size = VIEW.size * scale
+	squad_canvas.modulate.a = clampf((g.state_age-g.hud_view.DEATH_T)/0.35,0,1) if g.state==g.S.DEAD else 1.0
+	squad_canvas.visible = not g.run_stats.open and not g.headhunt.open and (g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T)
+	if g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T:
+		elapsed = 0.9 if UM.rm() or UM.skip_all() or g.ui_skip else minf(0.9, elapsed + dt)
+	var signature := [offset, selected, scale, elapsed, rows.size(), squad_canvas.visible]
+	if signature != _signature:
+		_signature = signature
+		squad_canvas.queue_redraw()
+
+func set_model(value: Dictionary) -> void:
+	_signature.clear()
+	model = value
+	rows = model.get("rows", []).filter(func(r): return str(r.key) != RS.OTHER)
+	offset = 0.0
+	selected = 0
+	art.clear()
+	for row in rows:
+		var idle: Dictionary = g.panel_ui.op_idle(str(row.key))
+		if idle.is_empty():
+			continue
+		var tx: Texture2D = idle.tex
+		if tx is CanvasTexture:
+			tx = tx.diffuse_texture
+		if tx == null:
+			continue
+		var image: Image = tx.get_image()
+		if image == null:
+			continue
+		if image.is_compressed():
+			image.decompress()
+		var region := Rect2i(0, 0, int(idle.fw), int(idle.fh))
+		var bounds := image.get_region(region).get_used_rect()
+		art[row.key] = {"tex": tx, "bounds": Rect2(bounds)}
+
+func max_offset() -> float:
+	return maxf(0.0, rows.size() * STRIDE - VIEW.size.x)
+
+func scroll(value: float) -> void:
+	offset = clampf(value, 0.0, max_offset())
+
+func select(index: int) -> void:
+	selected = clampi(index, 0, maxi(0, rows.size() - 1))
+	var left := selected * STRIDE
+	if left < offset:
+		scroll(left)
+	elif left + 212.0 > offset + VIEW.size.x:
+		scroll(left + 212.0 - VIEW.size.x)
+
+static func grade(m: Dictionary, preset: int) -> String:
+	if str(m.get("result", "")) == "win":
+		return ["S", "SS", "SSS"][clampi(preset, 0, 2)]
+	# A requires the final boss to have appeared; B requires a defeated mid boss.
+	var final_name := str(D.ENEMIES.get(D.ENDINGS.get(str(m.get("ending", "standard")), {}).get("boss", ""), {}).get("name", "")).replace('"', '')
+	for boss in m.get("bosses", []):
+		if final_name != "" and str(boss.name) == final_name:
+			return "A"
+	for boss in m.get("bosses", []):
+		if float(boss.get("t1", -1)) >= 0 and not bool(boss.get("retreat", false)):
+			return "B"
+	return "C"
+
+func _point(p: Vector2) -> Vector2:
+	return (p / Cfg.ui_k - origin) / scale
+
+func input(event: InputEvent) -> bool:
+	if not active() or model.is_empty():
+		return false
+	if (event is InputEventMouseButton or event is InputEventMouseMotion) and event.device == InputEvent.DEVICE_ID_EMULATION:
+		return true
+	if event is InputEventKey and event.pressed and not event.echo:
+		var key: int = Pad.kc(event)
+		match key:
+			KEY_LEFT, KEY_A: select(selected - 1)
+			KEY_RIGHT, KEY_D: select(selected + 1)
+			KEY_HOME: select(0)
+			KEY_END: select(rows.size() - 1)
+			KEY_TAB, KEY_C: _records()
+			KEY_X, KEY_F: _action("meta")
+			KEY_ESCAPE, KEY_T: _action("title")
+			KEY_R: g._do_action("restart")
+			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
+				if elapsed < 0.9:
+					elapsed = 0.9
+				else:
+					_action("hunt")
+		return true
+	if event is InputEventScreenDrag:
+		if dragging:
+			_drag(_point(event.position))
+		return true
+	if event is InputEventMouseMotion:
+		if dragging:
+			_drag(_point(event.position))
+		return true
+	if event is InputEventMouseButton:
+		var p := _point(event.position)
+		if event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN] and event.pressed:
+			if VIEW.has_point(p):
+				scroll(offset + (-80.0 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 80.0))
+			return true
+		if event.button_index == MOUSE_BUTTON_LEFT:
+			_pointer(p, event.pressed)
+		return true
+	if event is InputEventScreenTouch:
+		_pointer(_point(event.position), event.pressed)
+		return true
+	return true
+
+func _drag(p: Vector2) -> void:
+	if absf(p.x - drag_x) > 5:
+		moved = true
+	if moved:
+		scroll(drag_offset + drag_x - p.x)
+
+func _pointer(p: Vector2, pressed: bool) -> void:
+	if pressed:
+		if elapsed < 0.9:
+			elapsed = 0.9
+			return
+		if VIEW.has_point(p):
+			dragging = true
+			moved = false
+			drag_x = p.x
+			drag_offset = offset
+		elif Rect2(28,638,884,14).has_point(p):
+			scroll(offset + (-STRIDE if p.x < 470 else STRIDE))
+		elif p.y >= 666:
+			if p.x >= 910: _action("hunt")
+			elif p.x >= 642: _action("meta")
+			elif p.x >= 374: _action("title")
+			elif p.x >= 28: _records()
+	elif dragging:
+		if not moved:
+			select(int((p.x - VIEW.position.x + offset) / STRIDE))
+		dragging = false
+
+func _records() -> void:
+	if is_instance_valid(squad_canvas):
+		squad_canvas.hide()
+	g.run_stats.show_model(model)
+
+func _action(action: String) -> void:
+	if action == "hunt":
+		g.headhunt.maybe_open()
+		if g.headhunt.open and is_instance_valid(squad_canvas):
+			squad_canvas.hide()
+	elif action == "meta":
+		g.get_tree().set_meta("settlement_open_meta", true)
+		g._do_action("title")
+	elif action == "title":
+		g._do_action("title")
+
+func _text(ci: CanvasItem, x: float, y: float, text: String, size := 18, color := HH.LIGHT, width := -1.0) -> void:
+	ci.draw_string(g.font, Vector2(x, y + size), text, HORIZONTAL_ALIGNMENT_LEFT, width, size, color)
+
+func draw(ci: CanvasItem, vs: Vector2) -> void:
+	if model.is_empty():
+		return
+	ci.draw_rect(Rect2(Vector2.ZERO, vs), HH.DARK)
+	ci.draw_set_transform(origin, 0, Vector2.ONE * scale)
+	HH.backdrop(ci, Vector2(1280,720))
+	ci.draw_texture(topography, Vector2.ZERO)
+	ci.draw_rect(Rect2(0,0,1280,44), HH.INK)
+	_text(ci,28,10,"作战结算",18)
+	_text(ci,150,14,"OPERATION / REPORT",12,HH.MUTE)
+	_text(ci,1120,12,"方舟幸存者",15,HH.LIGHT)
+	HH.fill(ci, PackedVector2Array([Vector2(0,46),Vector2(716,46),Vector2(680,207),Vector2(0,207)]),HH.LIGHT)
+	ci.draw_texture_rect_region(navigation, Rect2(426,46,230,160), Rect2(0,140,230,160), Color(1,1,1,0.33))
+	var won: bool = model.result == "win"
+	_text(ci,32,64,"01 / RESULT",12,HH.INK2)
+	_text(ci,29,85,"探索完成" if won else "探索终止",52,HH.INK)
+	_text(ci,33,147,"OPERATION COMPLETE" if won else "OPERATION FAILED",21,HH.INK2)
+	_text(ci,33,183,str(model.get("ending_name", "")) if won else str(model.get("killer", {}).get("name", "")),13,HH.INK2,340)
+	_text(ci,382,155,"探索用时",12,HH.INK2)
+	_text(ci,382,176,RS_time(float(model.t)),21,HH.INK)
+	_text(ci,518,155,"难度档",12,HH.INK2)
+	_text(ci,518,178,["标准","困难","极限"][clampi(g.preset,0,2)],18,HH.INK)
+	var count := 1.0 - pow(1.0-clampf((elapsed-0.12)/0.38,0,1),3)
+	_text(ci,754,80,"本局获得",14,HH.MUTE)
+	_text(ci,754,116,"生机细胞",13,HH.MUTE)
+	_text(ci,754,140,"+%d" % int(cells*count),32)
+	_text(ci,944,116,"寻访凭证",13,HH.MUTE)
+	_text(ci,944,140,"×%d" % int(vouchers*count),32,HH.CYB)
+	ci.draw_rect(Rect2(1148,76,100,116),HH.MUTE,false)
+	_text(ci,1168,86,"RATING",11,HH.MUTE)
+	if elapsed >= 0.68:
+		_text(ci,1156,108,grade(model,g.preset),42)
+	_text(ci,32,232,"本局编队",20)
+	_text(ci,140,239,"%d–%d / 共 %d 名" % [0 if rows.is_empty() else int(offset/STRIDE)+1,mini(rows.size(),ceili((offset+VIEW.size.x)/STRIDE)),rows.size()],12,HH.MUTE)
+	_text(ci,440,237,"总伤害",12,HH.MUTE)
+	_text(ci,500,231,g.run_stats.fmt_n(float(model.total)),25)
+	_text(ci,720,237,"击败敌人",12,HH.MUTE)
+	_text(ci,810,231,str(model.kills),25)
+	ci.draw_line(Vector2(28,269),Vector2(912,269),HH.MUTE)
+	ci.draw_line(Vector2(64,643),Vector2(876,643),HH.DARK3,2)
+	if max_offset() > 0:
+		var thumb := 812.0*VIEW.size.x/(rows.size()*STRIDE)
+		ci.draw_rect(Rect2(64+(812-thumb)*offset/max_offset(),641,thumb,3),HH.CYB)
+	_text(ci,28,631,"‹",18,HH.CYB)
+	_text(ci,895,631,"›",18,HH.CYB)
+	_timeline(ci)
+	ci.draw_rect(Rect2(0,652,1280,68),HH.INK)
+	_text(ci,28,679,"作战数据  SELECT" if Pad.using else "作战数据  Tab",16,HH.MUTE)
+	for b in [[374,250,"返回主界面  B" if Pad.using else "返回主界面  Esc"],[642,250,"认知塑造  Y" if Pad.using else "认知塑造  X"],[910,342,("寻访 ×%d  A" if Pad.using else "寻访 ×%d  Enter") % Roster.tickets()]]:
+		ci.draw_rect(Rect2(b[0],666,b[1],40),HH.CYB if b[0]==910 and Roster.tickets()>0 else HH.DARK2)
+		_text(ci,b[0]+20,676,b[2],18,HH.INK if b[0]==910 and Roster.tickets()>0 else HH.LIGHT)
+	ci.draw_set_transform(Vector2.ZERO)
+
+func draw_cards(ci: CanvasItem) -> void:
+	ci.draw_set_transform(-VIEW.position * scale, 0, Vector2.ONE * scale)
+	for i in rows.size():
+		var x := 28.0 + i * STRIDE - offset
+		if x + 212 < VIEW.position.x or x > VIEW.end.x:
+			continue
+		_card(ci, rows[i], x, i)
+
+func _card(ci: CanvasItem, r: Dictionary, x: float, index: int) -> void:
+	HH.fill(ci,PackedVector2Array([Vector2(x+16,288),Vector2(x+210,288),Vector2(x+194,459),Vector2(x,459)]),HH.LIGHT if r.leader else HH.DARK2)
+	ci.draw_rect(Rect2(x+16,288,40,3),HH.CYB if index==selected else r.col)
+	if art.has(r.key):
+		var a: Dictionary = art[r.key]
+		var bb: Rect2 = a.bounds
+		if bb.has_area():
+			var k := floorf(minf(190/bb.size.x,146/bb.size.y)*2.0)/2.0
+			k = maxf(0.5,k)
+			var sz := bb.size*k
+			ci.draw_texture_rect_region(a.tex,Rect2(Vector2(x+110-sz.x/2,451-sz.y).round(),sz),bb)
+	_text(ci,x+8,474,str(r.name),24,HH.LIGHT,145)
+	_text(ci,x+151,480,"队长" if r.leader else ("已离队" if r.left_t>=0 else ""),11,HH.CYB)
+	_text(ci,x+8,513,"伤害占比",12,HH.MUTE)
+	_text(ci,x+142,506,"%d%%" % int(r.pct),24)
+	ci.draw_rect(Rect2(x+8,539,186,5),HH.DARK3)
+	var fill := clampf((elapsed-0.24)/0.3,0,1)
+	ci.draw_rect(Rect2(x+8,539,186*float(r.share)*fill,5),r.col)
+	_text(ci,x+8,559,"参与击杀",13,HH.MUTE)
+	_text(ci,x+145,553,str(r.kills),23)
+	_text(ci,x+8,594,"参战时间",11,HH.MUTE)
+	_text(ci,x+8,612,RS_time(float(r.in_s)),17)
+	_text(ci,x+145,594,"技能次数",11,HH.MUTE)
+	_text(ci,x+172,612,str(r.casts),17)
+
+func _timeline(ci: CanvasItem) -> void:
+	_text(ci,962,235,"关键事件",16,HH.MUTE)
+	ci.draw_line(Vector2(995,304),Vector2(995,608),HH.MUTE)
+	var events: Array = [[0.0,"探索开始"]]
+	for b in model.get("bosses",[]):
+		if float(b.t1)>=0 and not bool(b.get("retreat",false)):
+			events.append([float(b.t1),str(b.name)+" 击破"])
+	if events.size() == 1 or absf(float(events.back()[0])-float(model.t)) > 1.0:
+		events.append([float(model.t),"探索完成" if model.result=="win" else "探索终止"])
+	var labels: Array = []
+	for event in events:
+		var y := 304.0+304.0*float(event[0])/maxf(1.0,float(model.t))
+		labels.append(maxf(y, float(labels.back())+48.0) if not labels.is_empty() else y)
+	for j in range(labels.size()-1,-1,-1):
+		labels[j] = minf(float(labels[j]),608.0 if j==labels.size()-1 else float(labels[j+1])-48.0)
+	for i in events.size():
+		var y := 304.0+304.0*float(events[i][0])/maxf(1.0,float(model.t))
+		if y>304+304*clampf((elapsed-0.3)/0.42,0,1):
+			continue
+		ci.draw_rect(Rect2(991,y-4,8,8),HH.CYB)
+		_text(ci,1014,float(labels[i])-12,RS_time(float(events[i][0])),12,HH.MUTE)
+		_text(ci,1014,float(labels[i])+8,events[i][1],13,HH.LIGHT,230)
+
+static func RS_time(t: float) -> String:
+	return "%02d:%02d" % [int(t)/60,int(t)%60]

@@ -153,6 +153,9 @@ func _ready() -> void:
 	add_child(boss_trial)
 	meta_ui = preload("res://scripts/screens/meta_tree_ui.gd").new()
 	add_child(meta_ui)
+	if get_tree().has_meta("settlement_open_meta"):
+		get_tree().remove_meta("settlement_open_meta")
+		meta_ui.open.call_deferred()
 	var transition_layer := CanvasLayer.new()
 	transition_layer.layer = 90
 	add_child(transition_layer)

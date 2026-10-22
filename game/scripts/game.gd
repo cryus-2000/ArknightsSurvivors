@@ -110,6 +110,7 @@ var intro_screen = IntroScreen.new(self)   # 界面 · 开场与教程
 var boss_intro = BossIntro.new(self)   # 界面 · Boss 登场 / 击破演出（纯覆盖层，不影响模拟；用户 10-10）
 var show_screen = EliteShowScreen.new(self)   # 界面 · 精英化 / 解锁演出（state SHOW）
 var stats_screen = StatsScreen.new(self)   # 界面 · 属性面板（Tab，state STATS）
+var settlement = preload("res://scripts/screens/settlement_screen.gd").new(self)
 var result_screen = ResultScreen.new(self)   # 界面 · 结算（state DEAD / WIN）
 var run_stats = RunStatsScreen.new(self)   # 界面 · 作战记录（结算上的「作战记录」按钮 / Tab 打开，docs/77）
 var headhunt = HeadhuntScreen.new(self)   # 界面 · 寻访（结算上有待用的券时盖在上面，docs/109 §12）
@@ -1135,7 +1136,7 @@ func _process(delta: float) -> void:
 	else:
 		state_age += delta
 	if state == S.WIN or state == S.DEAD:
-		headhunt.tick()   # 寻访：结算面板出来后有待用的凭证就打开（docs/126 R4：原在 hud 绘制回调里）
+		settlement.tick(delta)   # Read-only result model; recruitment now opens explicitly from the footer.
 	if demo_op == "":
 		Pad.context = "play" if state == S.PLAY else "game_menu"   # 图鉴演示（SubViewport 里）不抢手柄映射：图鉴仍按标题页翻译 LB / RB / Ⓐ
 	if mode != Mode.PLAY:
@@ -1219,6 +1220,12 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseMotion and event.relative.length() > 6.0:
 		kb_nav = false
 	if settings.visible:
+		return
+	# Result owns terminal input before stale combat touch regions can consume it.
+	if settlement.active() and not run_stats.open and not headhunt.open and (state == S.WIN or state_age >= HudView.DEATH_T + 0.35):
+		settlement.input(event)
+		if is_inside_tree():
+			get_viewport().set_input_as_handled()
 		return
 	if _motion_skip(event):
 		get_viewport().set_input_as_handled()
@@ -1324,6 +1331,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		elif event is InputEventKey and event.pressed and not event.echo:
 			if run_stats.key(Pad.kc(event)) and is_inside_tree():
 				get_viewport().set_input_as_handled()
+		return
+	if settlement.active():
+		settlement.input(event)
+		if is_inside_tree():
+			get_viewport().set_input_as_handled()
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var mp0: Vector2 = event.position / Cfg.ui_k   # 界面层放大：视口坐标 → UI 坐标（桌面 ui_k = 1）
