@@ -734,7 +734,7 @@ func test_operator_sheet() -> void:
 	ok("触手" in IS.row(IS.sheet("mizuki", Ch.load_def("mizuki")), "atk").sub, "水月：附带触手")
 	ok(IS.row(IS.sheet("kaltsit", Ch.load_def("kaltsit")), "atk").label == "Mon3tr 攻击", "凯尔希：攻击标为 Mon3tr")
 	var ex: Dictionary = IS.sheet("exusiai", Ch.load_def("exusiai"))
-	ok(IS.row(ex, "cd").text == "0.35 秒" and not IS.row(ex, "pierce").is_empty(), "能天使：间隔 0.35 秒 + 穿透")
+	ok(IS.row(ex, "cd").text == "0.35 秒" and IS.row(ex, "pierce").is_empty(), "能天使：间隔 0.35 秒，普攻不穿透（10-23 用户定，穿透由贯穿卡 / 穿甲弹给）")
 	near(float(IS.row(IS.sheet("irene", Ch.load_def("irene")), "dps").val), 24.0 * 1.03 * 2.0 / 0.8, "艾丽妮单体每秒伤害 = 攻击 × 2 段 ÷ 间隔")
 	var syn: Dictionary = IS.sheet("test", {"base": {"atk": 77.0, "cd": 2.5, "reach": 180}, "leader": {"max_hp": 155, "armor": 0.5}})
 	ok(IS.row(syn, "hp").text == "155" and IS.row(syn, "atk").text == "77" and IS.row(syn, "cd").text == "2.50 秒" and IS.row(syn, "armor").text == "0.5", "数值表跟随传入的数据")

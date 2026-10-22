@@ -66,6 +66,9 @@ static func _hw_waves(o, dt: float) -> void:
 				o.apply_kb(e, w.dir * float(b.get("kb", 0.0)) * (0.3 if e.elite else 1.0))
 			if b.has("hit_fx"):   # 精英化第 2 批段：潮刃命中的浪花
 				fx_play(o, b.hit_fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e], w.dir.angle())
+			if b.has("max_hits") and w.hit.size() >= int(b.max_hits):   # 10-23 用户定：远程普攻取消穿透——命中 max_hits 名即消失（缺省不限）
+				w.dist = w.max
+				break
 		w.drop -= dt
 		if w.drop <= 0.0 and not b.has("proj"):   # 浪尖甩出的水沫（画面，g.vrng；弹体式的潮刃不甩）
 			w.drop = 0.03
@@ -353,6 +356,7 @@ static func _hw_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			_num(b, "along", p, ctx, false, -2.0, 2.0)
 			_num(b, "depth", p, ctx, false, 1.0, 100.0)
 			_num(b, "cap", p, ctx, false, 1.0, 16.0)
+			_num(b, "max_hits", p, ctx, false, 1.0, 99.0)   # 命中几名敌人后消失（缺省不限；普攻剑气 1）
 			_num(b, "aim_r", p, ctx, false, 1.0, 1000.0)
 			if b.has("from") and not str(b.from) in ["prev", "self"]:
 				errs.append(p + ".from 只能是 prev / self")
