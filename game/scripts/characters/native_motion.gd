@@ -54,6 +54,14 @@ static func tick(o, dt: float) -> void:
 	if not enabled(o): return
 	var n: Dictionary = o.native_motion
 	n["t"] = float(n.get("t", 0.0)) + dt
+	if n.has("wave_pose"):
+		var r: Dictionary = n.wave_pose
+		if o.sq_ph != 2 or o.sq_i != int(r.skill) or o.skill_active_left(int(r.skill)) <= 0.0 or o.pos == Vector2.INF or (o.act_kind == "skill" and o.attack_t > 0.0):
+			n.erase("wave_pose")
+		else:
+			r.elapsed = minf(float(r.elapsed) + dt, float(r.cycle))
+			if o.anim_kind != "run" and o.mv > o.RUN_ENTER:
+				o.advance_run_phase(dt)
 	var signals: Dictionary = o.native_signals()
 	var prev: Dictionary = n.get("active", {})
 	var now := {}
@@ -79,6 +87,18 @@ static func _signal_k(signals: Dictionary, on: String) -> float:
 
 static func state(o, st: Dictionary) -> Dictionary:
 	if not enabled(o) or st.is_empty() or st.kind in ["death", "hurt", "entry"] or st.kind in _nm(o).get("yield", []): return st
+	var event: Dictionary = o.native_motion.get("wave_pose", {})
+	if not event.is_empty() and not (o.act_kind == "skill" and o.attack_t > 0.0) and o.sq_ph == 2 and o.sq_i == int(event.skill) and o.skill_active_left(int(event.skill)) > 0.0:
+		var moving: bool = o.mv > (o.RUN_EXIT if o.anim_kind == "run" else o.RUN_ENTER)
+		if moving and o.anim_tex("run") != null:
+			return pose(o, "run", int(o.run_ph) % int(o.sprite_spec("run").frames), st)
+		var slot: String = str(event.slot)
+		var spec: Dictionary = o.sprite_spec(slot)
+		var order: Array = range(int(spec.fire), int(spec.frames)) + range(int(spec.fire))
+		var elapsed: float = float(event.elapsed) / float(event.cycle) * o.frames_seconds(slot, order)
+		var result := pose(o, slot, o.timed_frame(slot, order, elapsed), st)
+		result.flip = (cos(float(event.angle)) < 0.0) != o.sprite_mirror(slot)
+		return result
 	var signals: Dictionary = o.native_signals()
 	for r in _nm(o).get("states", []):
 		var on: String = str(r.on)

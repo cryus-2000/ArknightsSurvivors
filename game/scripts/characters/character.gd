@@ -1158,7 +1158,12 @@ func follow(dt: float, target: Vector2) -> void:
 	_tick_sq_shadow(dt)
 	# 跑步帧率按实际移动速度缩放（原固定 fps：快速前压的近战队友脚步打滑 3 倍以上）；帧条按主控基础移速 RUN_REF 画
 	if anim_kind == "run":
-		run_ph += dt * float(sprite_spec("run").get("fps", ANIM_FPS.get("run", 10.0))) * clampf(mv / RUN_REF, RUN_K_MIN, RUN_K_MAX)
+		advance_run_phase(dt)
+
+
+## 原生画面让位跑步时也使用同一速度时钟；不被攻击起手重置。
+func advance_run_phase(dt: float) -> void:
+	run_ph += dt * float(sprite_spec("run").get("fps", ANIM_FPS.get("run", 10.0))) * clampf(mv / RUN_REF, RUN_K_MIN, RUN_K_MAX)
 
 
 ## 起手：面向目标、播攻击条（4 帧 8fps 约定：0.5 秒，零基第 2 帧出手）；没有攻击条就立即出手

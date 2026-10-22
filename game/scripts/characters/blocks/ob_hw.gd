@@ -233,6 +233,7 @@ static func hw_busy(o) -> bool:
 
 ## 技能上层（data_operator._draw_skill_over）
 static func hw_draw_over(o) -> void:
+	_F().hw_draw_waves(o, true)
 	_F().hw_draw_shells(o)
 	if o.hw.has("links"):   # 精英化第 2 批段
 		_F().hw_draw_lobs(o)

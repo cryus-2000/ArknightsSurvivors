@@ -214,7 +214,7 @@ static func fx_draw(ci, g, f: Dictionary, dim: float) -> void:
 		fr = (int(el * float(f.fps)) + int(f.ph)) % frames
 		a *= clampf(float(f.life) / maxf(0.01, float(f.max) * 0.3), 0.0, 1.0) * clampf(el / 0.08, 0.0, 1.0)   # 循环件：进场 0.08 秒、最后三成淡出
 	else:
-		fr = mini(int(el * float(f.fps)), frames - 1)
+		fr = mini(int(f.get("first_frame", 0)) + int(el * float(f.fps)), frames - 1)
 	fx_frame(ci, g, str(f.name), frames, fr, f.pos, float(f.sc), Color(f.col.r, f.col.g, f.col.b, f.col.a * a), f.anc, float(f.ang))
 
 
