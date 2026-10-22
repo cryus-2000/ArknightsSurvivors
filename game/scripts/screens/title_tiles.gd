@@ -1,6 +1,6 @@
 extends RefCounted
 ## 标题页磁贴群（T5s，docs/67 §12，10-12 定稿）：放在左侧 Logo 下方（原纵向菜单的位置），keyart 与人物不动。
-## 三行：[集结出发] / [图鉴][Boss 演练] / [操作说明][设置][退出]；哪几项出现由 title.gd _menu_ids() 决定（对外包没有 Boss 演练、
+## 四行（10-22 用户）：[集结出发] / [寻访][认知塑造][图鉴] / [操作说明][设置][退出] / [试炼（测试版）]；哪几项出现由 title.gd _menu_ids() 决定（对外包没有 Boss 演练、
 ## 网页 / 手机没有退出），某一行只剩一块时它占满整行；编号按可见顺序连号（01…）。
 ## 导航（docs/67 §10.3）：↑↓ 换行并落到「水平位置最近」的那块（记住上次所在列：03 ↑ 01 ↓ 回 03），← → 行内移动，不循环；
 ## Tab / Shift+Tab 按可见顺序线性走。命中区始终是终态位置（docs/62 §2.5）。
@@ -10,16 +10,19 @@ const UI = preload("res://scripts/ui.gd")
 
 ## 菜单表（docs/126 A2，10-22）：加一个局外入口 = 这里加一行（id 接着编、row 定在哪一行，行内按表里的先后）+ title.gd _activate 加一支；
 ## 若是盖在标题上的界面，再登记进 title.gd 的 _overlays()。id 是 title.gd sel / item_rects / menu_water 的下标，不重排旧 id。
-## 6 = 认知塑造（局外成长 P2，docs/109 §4）：放在第二行图鉴 / Boss 演练之后
+## 6 = 认知塑造（局外成长 P2，docs/109 §4）；7 = 寻访（docs/124，右上角凭证数角标，没有凭证灰显不隐藏）；
+## 2 = Boss 演练改名「试炼（测试版）」挪到最下一行（10-22 用户：寻访 / 认知塑造与集结出发、图鉴同级）
 const MENU := [
 	{"id": 0, "cn": "集结出发", "en": "DEPLOY", "icon": "deploy", "row": 0},
+	{"id": 7, "cn": "寻访", "en": "HEADHUNT", "icon": "hunt", "row": 1},
+	{"id": 6, "cn": "认知塑造", "en": "SHAPING", "icon": "tree", "row": 1},
 	{"id": 1, "cn": "图鉴", "en": "GALLERY", "icon": "gallery", "row": 1},
-	{"id": 2, "cn": "Boss 演练", "en": "BOSS TRIAL", "icon": "boss", "row": 1},
 	{"id": 3, "cn": "操作说明", "en": "GUIDE", "icon": "guide", "row": 2},
 	{"id": 4, "cn": "设置", "en": "SETTINGS", "icon": "settings", "row": 2},
 	{"id": 5, "cn": "退出", "en": "EXIT", "icon": "exit", "row": 2},
-	{"id": 6, "cn": "认知塑造", "en": "SHAPING", "icon": "tree", "row": 1},
+	{"id": 2, "cn": "试炼（测试版）", "en": "TRIAL", "icon": "boss", "row": 3},
 ]
+const ROWS := 4
 static var CN: Array = _col("cn")
 static var EN: Array = _col("en")
 static var ICON: Array = _col("icon")
@@ -37,7 +40,7 @@ static func _col(k: String) -> Array:
 ## 全部 id 按显示顺序（逐行，行内按表序）
 static func order() -> Array:
 	var out: Array = []
-	for r in 3:
+	for r in ROWS:
 		for m in MENU:
 			if int(m.row) == r:
 				out.append(int(m.id))
@@ -55,7 +58,7 @@ const FRAC := {"big": 0.22, "mid": 0.22, "small": 0.24}
 ## 按可见项分行（空行去掉）
 static func rows(ids: Array) -> Array:
 	var out: Array = []
-	for row in 3:
+	for row in ROWS:
 		var r: Array = []
 		for m in MENU:
 			if int(m.row) == row and ids.has(int(m.id)):
@@ -72,17 +75,24 @@ static func layout(ids: Array, x0: float, y0: float, w: float, avail: float, tou
 	var hb := HB
 	var hm := HM
 	var hs := HS
-	var f := clampf((avail - GAP * 2.0) / (HB + HM + HS), 0.5, 1.0)
+	var nsmall := 0   # 第三行起都是小号
+	for ri in rs.size():
+		if not (rs[ri].has(0) or _row_of(rs[ri][0]) == 1):
+			nsmall += 1
+	var f := clampf((avail - GAP * (rs.size() - 1)) / (HB + HM + HS * nsmall), 0.5, 1.0)
 	hb *= f
 	hm *= f
 	hs *= f
 	var g := maxf(5.0, GAP * f)
 	if touch and hs < 46.0:
-		var f2 := clampf((avail - g * 2.0 - 46.0) / (HB + HM), 0.4, 1.0)
+		var f2 := clampf((avail - g * (rs.size() - 1) - 46.0 * nsmall) / (HB + HM), 0.4, 1.0)
 		hb = HB * f2
 		hm = HM * f2
 		hs = 46.0
 		f = f2
+		if hm < 46.0:   # 四行时中号也压到触控下限以下：中号保 46，剩下的高度给大号
+			hm = 46.0
+			hb = maxf(60.0, avail - g * (rs.size() - 1) - 46.0 * nsmall - hm)
 	var rects := {}
 	var sizes := {}
 	var num := {}
@@ -90,7 +100,7 @@ static func layout(ids: Array, x0: float, y0: float, w: float, avail: float, tou
 	var n := 1
 	for ri in rs.size():
 		var row: Array = rs[ri]
-		var kind := "big" if row.has(0) else ("mid" if (row.has(1) or row.has(2) or row.has(6)) else "small")
+		var kind := "big" if row.has(0) else ("mid" if _row_of(row[0]) == 1 else "small")
 		var h: float = hb if kind == "big" else (hm if kind == "mid" else hs)
 		var cw := (w - g * (row.size() - 1)) / row.size()
 		for k in row.size():
@@ -101,6 +111,13 @@ static func layout(ids: Array, x0: float, y0: float, w: float, avail: float, tou
 			n += 1
 		y += h + g
 	return {"rects": rects, "size": sizes, "rows": rs, "f": f, "num": num, "bottom": y - g, "w": w}
+
+
+static func _row_of(id: int) -> int:
+	for m in MENU:
+		if int(m.id) == id:
+			return int(m.row)
+	return -1
 
 
 ## 二维导航：dir = Vector2i；mem_x = 记住的列（屏幕 x 中心）。返回 [新选中, 新 mem_x]
@@ -172,7 +189,7 @@ static func draw(ci: CanvasItem, lay: Dictionary, st: Dictionary) -> void:
 		var wl: float = st.water[id]
 		var frac: float = 0.2 if (kind == "small" and not big_ui) else FRAC[kind]   # 手机小号磁贴矮（46），水位压低一点，不淹英文
 		var crest := T.water(ci, g, n, frac, UI_ease(wl), st.phase, on)
-		var ta: float = st.text_a[id]
+		var ta: float = st.text_a[id] * (0.4 if st.get("dim", []).has(id) else 1.0)   # 灰显（寻访没有凭证）
 		var ink := T.SEL_INK if on else T.TXT
 		var sub := T.SEL_SUB if on else T.TXT2
 		var idx := T.SEL_IDX if on else T.CY

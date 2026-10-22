@@ -1,5 +1,6 @@
 extends "res://scripts/screens/title_diff_pick.gd"
 ## 标题界面：「方舟幸存者」Logo + 地图副标题 + 菜单；背景按地图（现为蓝眼泪银河沙滩 title_bg.gd，博士与水月站在浪边）
+const HS = preload("res://scripts/screens/hh_style.gd")
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	# 触屏：标题页（含图鉴 / 设置 / Boss 演练子面板）整体放大 Cfg.ui_k（手机 1.3）；背景 / 转场在各自的 CanvasLayer 不受影响
@@ -63,6 +64,8 @@ func _ready() -> void:
 	add_child(boss_trial)
 	meta_ui = preload("res://scripts/screens/meta_tree_ui.gd").new()
 	add_child(meta_ui)
+	hunt_ui = preload("res://scripts/screens/hunt_host.gd").new()
+	add_child(hunt_ui)
 	if get_tree().has_meta("settlement_open_meta"):
 		get_tree().remove_meta("settlement_open_meta")
 		meta_ui.open.call_deferred()
@@ -142,8 +145,18 @@ func _ready() -> void:
 			if a.begins_with("--metasel="):
 				var ps := a.substr(10).split(",")
 				meta_ui.sel = Vector2i(int(ps[0]), int(ps[1]) if ps.size() > 1 else 0)
-		get_tree().create_timer(1.0).timeout.connect(func():
+		if Cfg.dev_args().has("--metalit"):   # 解锁演出截图：0.6 秒时塑造选中节点，演出进行到 0.35 秒时截
+			get_tree().create_timer(0.6).timeout.connect(func(): meta_ui._buy(meta_ui._sel_id()))
+		get_tree().create_timer(0.95 if Cfg.dev_args().has("--metalit") else 1.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_meta.png")
+			get_tree().quit())
+	if Cfg.dev_args().has("--titlehunt"):
+		# 标题页寻访入口截图（10-22）：配 --rostertickets=<n>；打开寻访入口 1.2 秒后截
+		intro = INTRO_LEN
+		_activate(7)
+		get_tree().create_timer(1.2).timeout.connect(func():
+			print("TITLEHUNT open=%s" % hunt_ui.visible)
+			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_titlehunt.png")
 			get_tree().quit())
 	if Cfg.dev_args().has("--settingsshot"):
 		settings.open()
@@ -472,7 +485,7 @@ func _close_info() -> void:
 
 ## 盖在标题上的界面（各自处理 Esc、关掉时 visible = false）：开着时标题不收输入，关掉那一帧 reveal_page。新的局外界面登记在这里
 func _overlays() -> Array:
-	return [settings, gallery, boss_trial, meta_ui]
+	return [settings, gallery, boss_trial, meta_ui, hunt_ui]
 
 
 func _overlay_open() -> bool:
@@ -524,7 +537,7 @@ func _activate(i: int) -> void:
 		0:
 			transition.switch_page(_open_op_pick.bind(false))
 		1:
-			transition.switch_slash(gallery.open)   # 图鉴 C4'：斜切黑带（黄前缘）转场，docs/58 §11.2
+			gallery.open()   # 10-22 用户：进图鉴不要入场动效，直接出现
 		2:
 			if Cfg.can_boss_trial():
 				transition.switch_page(boss_trial.open)
@@ -536,6 +549,9 @@ func _activate(i: int) -> void:
 			get_tree().quit()
 		6:
 			transition.switch_page(meta_ui.open)
+		7:
+			if not _hunt_ready() or not hunt_ui.open():
+				Sfx.play("ui_move", -4.0, 0.6)   # 没有凭证：灰显，点了只响一声
 
 
 ## 磁贴入场（docs/62「每屏一个主动作」：标题菜单 = 磁贴从潮线下浮出）：开场 3.3 秒起按行错开 0.09 秒，每行 0.38 秒（T3）露出；
@@ -660,14 +676,15 @@ func _draw() -> void:
 		item_rects[i] = menu_lay.rects[i]
 	if menu_mem_x < 0.0 and menu_lay.rects.has(sel):
 		menu_mem_x = (menu_lay.rects[sel] as Rect2).get_center().x
-	var rise := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-	var text_a := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+	var rise := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+	var text_a := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 	for i in menu_ids:
 		rise[i] = _tile_rise(i)
 		text_a[i] = _tile_text_a(i)
 	if not diff_pick and not op_pick:
 		Tiles.draw(self, menu_lay, {"sel": sel, "water": menu_water, "rip_t": menu_rip_t, "now": t, "rise": rise, "text_a": text_a,
-			"phase": 0.0 if Cfg.reduce_motion else t * 0.9, "font": font, "rm": Cfg.reduce_motion})
+			"phase": 0.0 if Cfg.reduce_motion else t * 0.9, "font": font, "rm": Cfg.reduce_motion, "dim": [] if _hunt_ready() else [7]})
+		_draw_hunt_badge(rise[7], text_a[7])
 	var tc := TUI.ctx(self)
 	# 操作提示：一行暗色像素字（键鼠 / 手柄；触屏不画）
 	var hf := _seg(4.0, 0.4)
@@ -771,44 +788,61 @@ func _draw_emblem(c: Vector2, r: float, col: Color) -> void:
 
 
 ## 操作说明页的触屏版（触屏验收 10-01）
+## 操作说明（10-22 用户：每条一行，只写键位 + 动作；页面换寻访 hh_style 模板）：[动作, 键鼠, 手柄]；触屏只用前两列
+const GUIDE_ROWS := [
+	["移动", "WASD / 方向键", "左摇杆"],
+	["冲刺", "空格", "Ⓑ / RB"],
+	["队长技能", "Q / E", "Ⓐ / Ⓨ"],
+	["手动普攻", "左键 / J", "Ⓧ / RT"],
+	["瞄准", "鼠标", "右摇杆"],
+	["选卡", "数字键 / 点击", "Ⓐ"],
+	["暂停", "Esc", "START"],
+	["属性", "Tab / C", "SELECT"],
+	["重看指南", "暂停时 G", "暂停菜单"],
+	["音乐开关", "M", ""],
+	["重来 / 回标题", "R / T", ""],
+]
 const TOUCH_GUIDE := [
-	["移动", "按住屏幕左半边任意处拖动：手指落下的地方就是摇杆中心"],
-	["冲刺", "右下「冲刺」键（冲刺中无敌，冷却 1.2 秒）"],
-	["技能", "干员的技能自动释放；队长有手动技能时，冲刺键左上方出现技能键：点一下自动瞄准，按住拖动选方向 / 落点"],
-	["手动普攻", "设置 · 游戏里可改为手动：冲刺键左侧出现攻击键，按住攻击，拖动选方向"],
-	["选卡", "点击卡片"],
-	["暂停 / 属性", "右侧「暂停」「属性」键；属性面板点任意处关闭"],
-	["", "编队、灯火、藏品、商人、结局等说明在开局指南里，暂停菜单的「指南」可以随时重看"],
+	["移动", "左半屏拖动"],
+	["冲刺", "冲刺键"],
+	["队长技能", "技能键 · 按住拖动瞄准"],
+	["手动普攻", "攻击键 · 按住拖动瞄准"],
+	["选卡", "点卡片"],
+	["暂停 / 属性", "暂停键 / 属性键"],
+	["重看指南", "暂停菜单 · 指南"],
 ]
 
 
+## 寻访同款版式：暗场 + 左侧浅灰斜切栏（大号中文 + 像素描边英文）+ 右侧键位表 + 底栏返回
 func _draw_guide(vs: Vector2) -> void:
-	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.75))
-	# 面板 880 宽：说明列 654px，最长一行（手柄）也放得下；再长就按宽度缩字号（text_fit），不会伸出面板
-	var r := Rect2(vs.x / 2 - 440, vs.y / 2 - 230, 880, 460)
-	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN)
-	UI.text(self, font, r.position + Vector2(36, 56), "操作说明", 28, UI.TEXT)
-	UI.en(self, font, r.position + Vector2(36 + font.get_string_size("操作说明", HORIZONTAL_ALIGNMENT_LEFT, -1, 28).x + 18, 54), "GUIDE", 13, UI.CYAN, 3.0)
-	var lines: Array = TOUCH_GUIDE if Pad.touch_ui() else [
-		["移动", "WASD / 方向键"],
-		["冲刺", "空格（冲刺中无敌，冷却 1.2 秒）"],
-		["技能", "干员的技能自动释放；队长的手动技能按 Q / E（乌尔比安三技能：鼠标指落点，或按住蓄距离）"],
-		["手动普攻", "设置 · 游戏里可改为手动：左键 / J 攻击，朝光标方向"],
-		["选卡", "数字键或鼠标点击"],
-		["暂停 / 属性", "Esc 暂停　Tab / C 属性　M 开关音乐　R 重来　T 回标题"],
-		["手柄", "左摇杆移动　Ⓑ / RB 冲刺　Ⓐ / Ⓨ 手动技能　Ⓧ / RT 手动攻击　右摇杆瞄准"],
-		["", "START 暂停　SELECT 属性　菜单里 Ⓐ 确认、Ⓑ 返回　LB / RB 翻页"],
-		["", "编队、灯火、藏品、商人、结局等说明在开局指南里，暂停时按 G 可以随时重看"],
-	]
-	# 触屏（手机，逻辑高约 481，面板 460）：行距 32 → 30，最后一行不再压到「点击任意处返回」；桌面不变
-	var lstep: float = 30.0 if Pad.touch_ui() else 32.0
-	for i in lines.size():
-		var y := r.position.y + 98 + i * lstep   # 11 行：行距 35 → 32，最后一行仍在底部提示之上
-		if lines[i][0] != "":
-			UI.diamond(self, Vector2(r.position.x + 44, y - 7), 4.0, UI.CYAN)
-		UI.text(self, font, Vector2(r.position.x + 60, y), lines[i][0], 18, UI.CYAN)
-		UI.text_fit(self, font, Vector2(r.position.x + 190, y), lines[i][1], 17, UI.TEXT, r.size.x - 190 - 36, 13)
-	UI.text(self, font, Vector2(r.position.x, r.end.y - 24), Pad.hint("按任意键返回", "按任意键返回（Ⓐ / Ⓑ）", "点击任意处返回"), 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
+	HS.backdrop(self, vs)
+	var wt: float = clampf(vs.x * 0.3, 300.0, 420.0)
+	HS.left_panel(self, vs, wt, wt - 70.0, 0.0)
+	HS.title_block(self, font, Vector2(48, vs.y * 0.2), "01", "操 作", "操作说明", "GUIDE", 1.0, 64)
+	HS.hr_mark(self, font, Vector2(48, vs.y - 120), 1.0, HS.INK2, ["RHODES ISLAND", "OPERATION", "MANUAL"])
+	var touch: bool = Pad.touch_ui()
+	var rows: Array = TOUCH_GUIDE if touch else GUIDE_ROWS
+	var x0: float = wt + 60.0
+	var x1: float = vs.x - 48.0
+	var top: float = maxf(40.0, vs.y / 2.0 - rows.size() * 22.0 - 30.0)
+	var step: float = minf(44.0, (vs.y - top - 110.0) / rows.size())
+	var kx: float = x0 + 200.0
+	var px: float = x0 + 200.0 + (x1 - x0 - 200.0) * 0.5
+	HS.spaced(self, font, Vector2(x0, top), "ACTION", 10, HS.MUTE, 3.0)
+	HS.spaced(self, font, Vector2(kx, top), "触屏" if touch else "键鼠", 12, HS.MUTE, 3.0)
+	if not touch:
+		HS.spaced(self, font, Vector2(px, top), "手柄", 12, HS.MUTE, 3.0)
+	for i in rows.size():
+		var y: float = top + 22.0 + i * step
+		draw_line(Vector2(x0, y + step - 6.0), Vector2(x1, y + step - 6.0), Color(1, 1, 1, 0.08), 1.0)
+		UI.diamond(self, Vector2(x0 + 4, y + step / 2.0 - 3.0), 3.5, HS.CYB)
+		UI.text_at(self, font, Vector2(x0 + 18, y + step / 2.0 - 3.0), rows[i][0], 19, UI.TEXT, "lm", true)
+		UI.text_at(self, font, Vector2(kx, y + step / 2.0 - 3.0), rows[i][1], 18, HS.CYB, "lm")
+		if not touch and rows[i][2] != "":
+			UI.text_at(self, font, Vector2(px, y + step / 2.0 - 3.0), rows[i][2], 18, Color8(200, 210, 222), "lm")
+	HS.bottom_bar(self, vs, 52.0)
+	UI.text_at(self, font, Vector2(x0, vs.y - 26.0), "编队、灯火、藏品、商人、结局：见开局指南", 14, HS.MUTE, "lm")
+	HS.ghost_btn(self, font, Rect2(vs.x - 196, vs.y - 44, 168, 36), "返回", Pad.hint("Esc", "Ⓑ", ""))
 
 
 ## 致谢与声明：内容来自 data/credits.json。左列条目名（长的折两行）、右列说明 + 链接。
@@ -942,24 +976,27 @@ func _credits_input(event: InputEvent) -> void:
 			cr_vel = lerpf(cr_vel, -dy / dt, 0.5)
 
 
+## 10-22 用户：换寻访 hh_style 模板——暗场 + 左侧浅灰斜切栏（大号中文 + 像素描边英文），右侧正文（滚动逻辑不变）
 func _draw_credits(vs: Vector2) -> void:
-	draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.02, 0.04, 0.9))
+	HS.backdrop(self, vs)
+	var wt: float = clampf(vs.x * 0.3, 300.0, 420.0)
+	HS.left_panel(self, vs, wt, wt - 70.0, 0.0)
+	var title: String = credits_data.get("title", "致谢与声明")
+	HS.title_block(self, font, Vector2(48, vs.y * 0.2), "02", "致 谢", title, "CREDITS", 1.0, 56)
+	HS.hr_mark(self, font, Vector2(48, vs.y - 120), 1.0, HS.INK2, ["ARKNIGHTS", "FAN GAME", "NON-COMMERCIAL"])
 	var secs: Array = credits_data.get("sections", [])
 	var touch: bool = Pad.touch_ui()
-	var pw: float = minf(CREDITS_W, vs.x - (24.0 if touch else 48.0))
+	var px0: float = wt + 24.0
+	var pw: float = minf(CREDITS_W, vs.x - px0 - (12.0 if touch else 24.0))
 	var tx: float = CREDITS_LX + CREDITS_LW + 18.0
 	var tw: float = pw - tx - 56.0   # 右边留滚动条
 	if tw != cr_lay_w or cr_lay.is_empty():
 		cr_lay = _credits_layout(secs, CREDITS_FS, tw)
 		cr_lay_w = tw
-	var margin: float = 8.0 if touch else 16.0
-	var h: float = minf(CREDITS_HEAD + cr_lay.h + 8.0 + CREDITS_FOOT, vs.y - 2.0 * margin)
-	var r := Rect2(roundf(vs.x / 2 - pw / 2), roundf(maxf(margin, vs.y / 2 - h / 2)), pw, h)
-	cr_panel = r
-	UI.panel(self, r, UI.BG2, UI.CYAN_DIM, 16.0, UI.CYAN)
-	var title: String = credits_data.get("title", "致谢与声明")
-	UI.text(self, font, r.position + Vector2(36, 52), title, 26, UI.TEXT)
-	UI.en(self, font, r.position + Vector2(36 + font.get_string_size(title, HORIZONTAL_ALIGNMENT_LEFT, -1, 26).x + 18, 50), credits_data.get("en", "CREDITS"), 12, UI.CYAN, 3.0)
+	var h: float = vs.y
+	var r := Rect2(roundf(px0), 0.0, pw, h)
+	cr_panel = Rect2(Vector2.ZERO, vs)   # 整屏都算面板：只有「返回」/ 按键关
+	HS.spaced(self, font, r.position + Vector2(36, 44), credits_data.get("en", "CREDITS"), 11, HS.MUTE, 3.0)
 	UI.rule(self, r.position + Vector2(36, 68), r.position + Vector2(pw - 36, 68), UI.EDGE_DIM)
 	# 正文可视区（钉住的标题与底部之间）
 	cr_vr = Rect2(r.position.x + 20, r.position.y + CREDITS_HEAD - 8.0, pw - 40, h - CREDITS_HEAD + 8.0 - CREDITS_FOOT)
@@ -985,7 +1022,9 @@ func _draw_credits(vs: Vector2) -> void:
 	var bw2: float = 132.0 if touch else 120.0
 	cr_back = Rect2(r.end.x - 36 - bw2, fy + 16, bw2, 40.0 if touch else 36.0)
 	var back_hot: bool = cr_back.has_point(get_local_mouse_position()) and not touch
-	UI.button(self, font, cr_back, Pad.hint("返回  Esc", "返回  Ⓑ", "返回"), "normal", back_hot, 17 if touch else 16)
+	HS.ghost_btn(self, font, cr_back, "返回", Pad.hint("Esc", "Ⓑ", ""))
+	if back_hot:
+		HS.para(self, cr_back, Color(1, 1, 1, 0.12))
 	var fw: float = cr_back.position.x - 24 - (r.position.x + 36)
 	var ft := UI.fit_line(font, credits_data.get("footer", ""), 15, fw, 12)
 	UI.text(self, font, Vector2(r.position.x + 36, fy + 32), ft[0], ft[1], UI.SUB)
@@ -1002,8 +1041,8 @@ func _draw_credits_body() -> void:
 	var y: float = 8.0 - cr_scroll_f
 	for row in cr_lay.rows:
 		if y + row.h >= 0.0 and y <= cr_vr.size.y:
-			UI.diamond(cr_view, Vector2(ox + 44, y + 12), 4.0, UI.CYAN)
-			UI.draw_fit(cr_view, font, Vector2(ox + CREDITS_LX, y), row.label, UI.CYAN)
+			UI.diamond(cr_view, Vector2(ox + 44, y + 12), 4.0, HS.CYB)
+			UI.draw_fit(cr_view, font, Vector2(ox + CREDITS_LX, y), row.label, HS.CYB)
 			var th: float = UI.draw_fit(cr_view, font, Vector2(ox + tx, y + 2), row.text, UI.TEXT)
 			if row.link != "":
 				UI.text_fit(cr_view, font, Vector2(ox + tx, y + 2 + th + 4 + font.get_ascent(14)), row.link, 14, Color(0.5, 0.75, 0.85), cr_vr.size.x - tx - 40.0, 11)
@@ -1022,7 +1061,7 @@ func _credits_vfade(top: bool) -> void:
 	for k in n:
 		var a: float = 0.8 * (1.0 - (k + 0.5) / n)
 		var yy: float = (k * hh) if top else (cr_vr.size.y - (k + 1) * hh)
-		cr_view.draw_rect(Rect2(0, yy, w, hh + 0.5), Color(0.06, 0.08, 0.1, a))
+		cr_view.draw_rect(Rect2(0, yy, w, hh + 0.5), Color(HS.DARK, a))
 
 
 ## 致谢页排版：每条 {label: 条目名 fit, text: 说明 fit, link, h}；返回 {rows, h}
@@ -1095,3 +1134,25 @@ func _compare_shot(spec: String) -> void:
 			out.blit_rect(imgs[k], Rect2i(0, 0, iw, ih), Vector2i(k * (iw + 8), 0))
 		out.save_png(_shot_dir() + "/shot_compare_%s.png" % cid)
 		get_tree().quit())
+
+
+## 寻访磁贴：有凭证且还有没招募的干员才能进（没有就灰显，不隐藏）
+func _hunt_ready() -> bool:
+	const R = preload("res://scripts/core/roster.gd")
+	return R.active() and R.tickets() >= R.COST_RANDOM and not R.locked_ids().is_empty()
+
+
+## 寻访磁贴右上角的凭证数角标（黄底斜块 + 黑字；没有凭证时灰）
+func _draw_hunt_badge(rise: float, ta: float) -> void:
+	if not menu_lay.has("rects") or not menu_lay.rects.has(7) or rise < 1.0:
+		return
+	const R = preload("res://scripts/core/roster.gd")
+	var r: Rect2 = menu_lay.rects[7]
+	var s := "×%d" % R.tickets()
+	var w: float = font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 18.0
+	var br := Rect2(r.end.x - w + 8.0, r.position.y - 14.0, w, 20.0)
+	var col := Color8(255, 206, 0) if R.tickets() > 0 else Color8(110, 118, 128)
+	col.a = ta
+	var k := br.size.y * 0.18
+	draw_colored_polygon(PackedVector2Array([br.position + Vector2(k, 0), Vector2(br.end.x, br.position.y), br.end - Vector2(k, 0), Vector2(br.position.x, br.end.y)]), col)
+	UI.text(self, font, Vector2(br.position.x, br.position.y + 15.0), s, 14, Color(0.07, 0.07, 0.09, ta), HORIZONTAL_ALIGNMENT_CENTER, br.size.x)

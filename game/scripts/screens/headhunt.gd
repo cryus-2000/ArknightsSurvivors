@@ -49,7 +49,7 @@ static var clock_frames := false   # 测试录屏：按渲染帧计时（--fixed
 ## 全部 ≤ 0.6 秒；点按 / 任意键跳过；减少动态效果与无头直接切
 const TR_DUR := {"enter": 0.6, "slide": 0.3, "cut": 0.15, "wipe": 0.4}
 
-var g: Game
+var g   # Game，或标题页的 screens/hunt_host.gd（只用 hud / font / kb_nav）
 var open := false
 var mode := "entry"       # entry 入口 / class 定向选职业 / pick 定向选干员 / bag 拉包 / op 揭示 / summary 本次寻访
 var results: Array = []   # Roster.redeem_* 的返回值（只留解出干员的）
@@ -74,7 +74,7 @@ var _tr_cut := false      # enter 的硬切音效是否已放
 var _mode_t0 := 0.0       # 进入当前屏的时刻（各屏招牌动效用）
 
 
-func _init(game: Game) -> void:
+func _init(game) -> void:
 	g = game
 
 
