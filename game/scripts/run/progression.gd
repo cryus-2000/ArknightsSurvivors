@@ -103,6 +103,9 @@ func swap_cards() -> Array:
 
 func open_levelup() -> void:
 	var want: int = 3 + g.rfx.rule("four_choices") + g.rfx.take_choice_extra()   # 后者：一次性「多一个选项」（docs/57 P27）
+	if g.rfx.rule("first_choice_extra") > 0:
+		g.rfx.use_rule("first_choice_extra")   # 认知塑造「多程信息处理」：开局第一次升级多一个选项
+		want += 1
 	var picks: Array = []
 	# ---- 招募（docs/23 §6）：Lv.5 起进池；保底：Lv.6 仍只有 1 人 / Lv.12 仍不满 3 人 → 本次必出招募
 	var recruit: Array = recruit_cards()

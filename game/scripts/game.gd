@@ -1687,6 +1687,14 @@ func _update(dt: float) -> void:
 		vfx.show_banner("为了生存 —— 队长回复 30% 最大生命")
 	if hp <= 0.0 and squad.prevent_death():
 		hp = 1.0   # 幽灵鲨「求生之渴」：主控生命不会低于 1
+	if hp <= 0.0 and rfx.rule("last_stand") > 0:
+		# 认知塑造「生存本能」末节：每局一次，致命伤后保留 1 点生命并 meta/last_stand_inv 秒不受伤害
+		rfx.use_rule("last_stand")
+		hp = 1.0
+		invuln = maxf(invuln, Bal.v("meta/last_stand_inv", 1.5))
+		fx.append({"kind": "rays", "pos": ppos, "life": 0.9, "max": 0.9, "col": Color(0.8, 0.95, 1.0)})
+		vfx.show_banner("生存本能 —— 队长保留 1 点生命")
+		Sfx.play("levelup", 0.0, 0.7)
 	if hp <= 0.0 and not rfx.on_death():
 		hp = 0.0
 		state = S.DEAD

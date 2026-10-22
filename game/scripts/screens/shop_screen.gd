@@ -55,7 +55,9 @@ func build(restart := false) -> void:
 		bl = cx - tot / 2.0
 	var by: float = g.panel_box.offset_top + ch + 14.0
 	var bh: float = 44.0 if touch else 40.0
-	g.panel_ui.button("刷新货架", Rect2(bl, by, 214, bh), g.shop_sys.refresh, not g.shop_refreshed and g.ingots >= g.shop_sys.price("refresh"), "refresh", "仅一次" if not g.shop_refreshed else "已刷新过", -1 if g.shop_refreshed else g.shop_sys.price("refresh"))
+	var free: bool = g.shop_sys.refresh_free()
+	g.panel_ui.button("刷新货架", Rect2(bl, by, 214, bh), g.shop_sys.refresh, not g.shop_refreshed and (free or g.ingots >= g.shop_sys.price("refresh")), "refresh",
+		("本局免费一次" if free else "仅一次") if not g.shop_refreshed else "已刷新过", -1 if (g.shop_refreshed or free) else g.shop_sys.price("refresh"))
 	g.panel_ui.button("离开", Rect2(bl + 228, by, 150, bh), g.shop_sys.close, true, "", "", -1, "ESC")
 	for i in n:
 		var it: Dictionary = g.shop_items[i]
