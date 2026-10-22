@@ -155,13 +155,15 @@
   },
   "pierce": {
    "name": "贯穿",
-   "desc": "全队远程普攻的子弹穿透 +1（可叠 2 次；对技能弹幕无效）",
+   "desc": "远程普攻可再穿透 2 名敌人。",
    "max": 2,
-   "cat": "squad",
+   "cat": "fire",
+   "requires": "ranged_basic",
    "stat": "op_pierce",
    "op": "flat",
-   "value": 1.0,
-   "scope": "squad"
+   "value": 2.0,
+   "scope": "squad",
+   "_doc": "10-23 用户定：每张 +2、可叠 2 次（最多穿 4 个），穿过后的目标伤害不减；只在编队有远程普攻（子弹能穿透的）干员时进卡池；不影响技能弹幕；与穿甲弹同在时藏品全穿、卡层数失效"
   }
  },
  "fillers": [

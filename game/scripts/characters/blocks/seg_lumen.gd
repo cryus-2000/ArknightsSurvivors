@@ -149,12 +149,13 @@ static func _h3_bolts_tick(o, lm: Dictionary, dt: float) -> void:
 			var e: Dictionary = g.enemies[j]
 			if e.dead or e.pos.distance_to(b.pos) > e.r + float(bt.get("r", 8.0)) or b.get("hit", _ED).has(e.id):
 				continue
+			var pm: float = o.atk_pierce_mult(b.hit.size()) if b.has("hit") else 1.0   # 穿甲弹：每穿过一名 −15%（10-23）
 			if b.has("hit"):
 				b.hit[e.id] = true
 			var src: String = b.get("src", main_src)
 			var was_lit: bool = float(e.get("lit", 0.0)) > 0.0   # 精英化第 3 批：折光看命中前是否已被照亮
 			o.log_hit(src)
-			o.deal_damage(e, b.dmg)
+			o.deal_damage(e, b.dmg * pm)
 			e["lit"] = float(bt.get("lit", 3.0))
 			_h3_sfx(o, "hit", -4.0 if src != main_src else 0.0)
 			if b.get("heal", 0.0) > 0.0 and g.hp < g.max_hp:

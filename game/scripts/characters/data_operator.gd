@@ -80,6 +80,7 @@ var zmode := 1.0                       # 本帧 verb.mode 的 zone_mult 乘积�
 func _init(game, def_: Dictionary) -> void:
 	super(game, def_)
 	B = ObCore.compile(def)
+	pierce_atk = _scan_pierce_atk(B)
 	tags_all = ObCore.tag_set(B, {})
 	# 召唤物扩展段（§15.9）：普攻 shape.support 的 when 条件、首拍；有没有 trig.on_deploy（每帧只在有时才查）
 	var a: Dictionary = B.get("attack", {})
@@ -711,6 +712,28 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 # ---------------------------------------------------------------- 出手
 
 var in_release := false                # 正在执行普攻出手（_release 整段，含 replace / far / 连斩排队 / every_n 追加）：手动普攻时剑气 / 钩索按玩家指向（10-23）
+var pierce_atk := false                # 普攻子弹能穿透（能天使弹道 / 流明光弹 / 带 max_hits 的普攻剑气）：升级卡「贯穿」只在编队有这样的人时进池（10-23）
+
+
+## 载入后扫一遍积木：普攻形状是弹道 / 光弹，或普攻段 / 特性 / 成长里有写了 max_hits 的剑气
+static func _scan_pierce_atk(B: Dictionary) -> bool:
+	if str(B.get("attack", {}).get("shape", "")) in ["projectile", "lantern"]:
+		return true
+	return _has_max_hits(B.get("attack", {})) or _has_max_hits(B.get("trait", [])) or _has_max_hits(B.get("progression", {}))
+
+
+static func _has_max_hits(n) -> bool:
+	if n is Dictionary:
+		if str(n.get("shape", "")) == "wave" and n.has("max_hits"):
+			return true
+		for k in n:
+			if _has_max_hits(n[k]):
+				return true
+	elif n is Array:
+		for x in n:
+			if _has_max_hits(x):
+				return true
+	return false
 
 
 func _release() -> void:

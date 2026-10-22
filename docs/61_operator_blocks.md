@@ -1459,7 +1459,7 @@ data_operator 的挂钩：`update` 在技能计时之后先跑 `hw_tick`（按�
 | `attack.first` / `idle` | 普攻 | 首击冷却 / 没目标时的重试间隔（缺省 0.5 / 0.2；手写干员各自的初值） |
 | `attack.anim` / `turn` | 普攻（含 swap_attack 换上的） | 这一下播的帧条 / `false` = 起手不转身 |
 | `shape.wave.max_hits` | 剑气 / 潮刃 | 命中几名敌人后消失（缺省不限）。10-23 用户定远程普攻取消穿透：拉普兰德普攻剑气（领主 / 远掷 / 双生刃）写 1；实际上限 = `character.atk_pierce(max_hits)`（贯穿卡 +1 / 次、穿甲弹 = 全部） |
-| 属性 `op_pierce` / 规则 `atk_pierce_all` | 远程普攻穿透 | `stat_defs` 新属性（基础 0，flat 加，升级卡「贯穿」全队 +1 可叠两次）与藏品「穿甲弹」#265 的规则；`character.atk_pierce(base)` 统一换算，只接到普攻子弹：能天使弹道 `pierce`、拉普兰德普攻剑气 `max_hits`、流明普攻光弹（新加 pierce / hit 表）；技能弹幕不读 |
+| 属性 `op_pierce` / 规则 `atk_pierce_all` | 远程普攻穿透 | `stat_defs` 新属性（基础 0，flat 加，升级卡「贯穿」火力类，全队 +2 / 张可叠两次，不减伤）与藏品「穿甲弹」#265 的规则（全穿，每穿过一名 −15%、最低 40%，`character.atk_pierce_mult`；与卡同在按藏品）；`character.atk_pierce(base)` 统一换算，只接到普攻子弹：能天使弹道 `pierce`、拉普兰德普攻剑气 `max_hits`、流明普攻光弹（新加 pierce / hit 表）；技能弹幕不读。卡的 `requires: ranged_basic` 由 `data_operator.pierce_atk` 判（编队里有弹道 / 光弹 / 带 `max_hits` 普攻剑气的人才出卡） |
 | `attack.far {shape …}` | 普攻 | 远程兜底（10-22，拉普兰德「远近切换」）：出手那一刻普攻形状半径（× op_range）内没有敌人、而 `far.aim_r`（缺省 `dist`）内有 → 这一下改执行 `far`（任一瞬时伤害形状，通常 `shape.wave from self aim nearest`），仍计一次普攻（every_n / combo 计数照旧）；否则照常出手。`last_hit_pos` 这一下不记 |
 | `attack.combo [{cond, delay, do}]` + `trig.on_combo_end` | 普攻 / 触发 | 连斩：出手后第 1 段 `cond` 成立就 `delay` 秒后执行它的 `do`，执行完再看下一段；最后一段执行完（或第 1 段不成立）触发 `on_combo_end`。延迟执行带着出手那一刻的 basis |
 | 形状 `basis` | shape.circle / cone / wave / lob / pool / hit | 伤害 = 已算好的伤害 × `mult`：`attack` 本轮普攻这一下、`prev` 上一个伤害形状、`hit` 触发事件（弹体命中、爆炸）、`atk` 攻击值（base × 加成 × `attack.atk_mults`）。同手写「dmg × 0.7」这类写法的浮点顺序 |

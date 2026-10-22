@@ -59,9 +59,10 @@ static func _hw_waves(o, dt: float) -> void:
 				continue
 			if not box_centered(w.pos, w.dir, depth, w.w * 0.5, e.pos, e.r):   # B6 ⑤：ob_geom
 				continue
+			var pm: float = o.atk_pierce_mult(w.hit.size()) if b.has("max_hits") else 1.0   # 穿甲弹：普攻剑气每穿过一名 −15%（10-23）
 			w.hit[e.id] = true
 			o.log_hit(str(b.get("src", "")), b.get("tags", []))
-			o.deal_damage(e, w.dmg)
+			o.deal_damage(e, w.dmg * pm)
 			if not e.dead and not e.boss:
 				o.apply_kb(e, w.dir * float(b.get("kb", 0.0)) * (0.3 if e.elite else 1.0))
 			if b.has("hit_fx"):   # 精英化第 2 批段：潮刃命中的浪花

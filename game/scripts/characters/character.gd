@@ -447,12 +447,24 @@ func aim_targets(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Arra
 
 
 ## 远程普攻直线子弹的穿透数（10-23 用户定：远程普攻本身不穿透，穿透是成长内容）：积木自带 base + 升级卡「贯穿」（属性 op_pierce，
-## 全队 flat +1 / 次，可叠两次）；藏品「穿甲弹」（规则 atk_pierce_all）= 穿透全部。只给普攻子弹用（能天使弹道、拉普兰德普攻剑气、流明光弹），技能弹幕不读
+## 全队 flat +2 / 张，可叠两次，穿过后的目标伤害不减）；藏品「穿甲弹」（规则 atk_pierce_all）= 穿透全部、每穿过一名 −15%（最低 40%，
+## atk_pierce_mult），与卡同在时按藏品、卡层数失效。只给普攻子弹用（能天使弹道、拉普兰德普攻剑气、流明光弹），技能弹幕不读
 func atk_pierce(base: int) -> int:
-	var rf = g.get("rfx")
-	if rf != null and rf.rule("atk_pierce_all") > 0:
+	if _pierce_all():
 		return 999
 	return base + int(round(stat(&"op_pierce")))
+
+
+## 这一发已穿过 prev 名敌人后对下一名的伤害倍率：穿甲弹 1 − 0.15 × prev（最低 0.4）；贯穿卡不减
+func atk_pierce_mult(prev: int) -> float:
+	if prev <= 0 or not _pierce_all():
+		return 1.0
+	return maxf(0.4, 1.0 - 0.15 * float(prev))
+
+
+func _pierce_all() -> bool:
+	var rf = g.get("rfx")
+	return rf != null and rf.rule("atk_pierce_all") > 0
 
 
 ## 手动普攻沿指向打空时的伪目标（同 aim_land 的写法）：只有 pos / id / dead / r 等只读字段可用，id = -1
