@@ -62,13 +62,13 @@ const DIFFICULTY_TIERS := [
 ]
 ## 界面上的三档难度（用户 10-22：「难度改成三档，作为潮位系统的三个预设」）。潮位阶梯 0–15 的代码与数据保留但不在界面露出
 ## （危机合约类玩法留作以后）。tide = 取哪一级潮位的修正表；factor = 结算系数（= Meta.tide_factor(tide)）。
-## 存档 Cfg.difficulty / diff_unlocked 存的是这里的下标；通关第 i 档解锁第 i+1 档。名字候选见 docs/109 §15（另一组：常规 / 高压 / 深潮）
+## 存档 Cfg.difficulty / diff_unlocked 存的是这里的下标；通关第 i 档解锁第 i+1 档。档名用户 10-22 定 B 组（docs/109 §15）
 const DIFF_PRESETS := [
-	{"name": "标准", "short": "标准", "en": "STANDARD", "tide": 0, "level": 0, "factor": 1.0,
+	{"name": "常规", "short": "常规", "en": "NORMAL", "tide": 0, "level": 0, "factor": 1.0,
 		"desc": "没有额外规则。"},
-	{"name": "困难", "short": "困难", "en": "HARD", "tide": 5, "level": 5, "factor": 1.25,
+	{"name": "高压", "short": "高压", "en": "HIGH PRESSURE", "tide": 5, "level": 5, "factor": 1.25,
 		"desc": "敌人生命与伤害 +20%，大群 +20%；队长初始最大生命 -10%，灯油与源石锭掉落减少。"},
-	{"name": "极限", "short": "极限", "en": "EXTREME", "tide": 10, "level": 10, "factor": 1.5,
+	{"name": "深潮", "short": "深潮", "en": "DEEP TIDE", "tide": 10, "level": 10, "factor": 1.5,
 		"desc": "敌人生命 +70%、伤害 +35%；溟痕常驻，大群 +60%，Boss 在场时照常来袭；受击灯火损失 +60%。"},
 ]
 
