@@ -93,6 +93,7 @@ func title_part(tag: String) -> void:
 	await wait_idle()
 	# ---- 设置：键盘调数值 / 换页 / 换行
 	await open_settings()
+	st._set_tab(0)   # Sound assertions are independent of the approved display-first landing page.
 	Cfg.master = 0.5   # 测试用户目录里主音量是 0：降不下去，先放到中间
 	var m0: float = Cfg.master
 	await key(KEY_LEFT)
@@ -103,17 +104,15 @@ func title_part(tag: String) -> void:
 	check(st.sel == 1, tag + ": Down moves to next row (sel=%d)" % st.sel)
 	# 按住 Enter 不连发：音乐行切开关不适用（是音量），换到「游戏」页的开关行测
 	await key(KEY_E)
-	await key(KEY_E)
 	st.sel = 0
 	var b0 = Cfg.manual_attack
 	await key(KEY_ENTER, false, 3)
 	check(Cfg.manual_attack != b0, tag + ": held Enter toggles exactly once")
 	await key(KEY_ENTER)
 	await key(KEY_Q)
-	await key(KEY_Q)
 	st.sel = 1
 	await key(KEY_E)
-	check(st.tab == 1, tag + ": E switches tab")
+	check(st.tab == 2, tag + ": E follows visible category order")
 	await key(KEY_Q)
 	check(st.tab == 0, tag + ": Q switches back")
 	# 输入法：只带物理键码的 ← / Esc 也认
@@ -121,7 +120,7 @@ func title_part(tag: String) -> void:
 	check(Cfg.master < m0, tag + ": physical-only Left adjusts")
 	await key(KEY_RIGHT, true)
 	# 滚轮：滚列表，不改数值
-	await key(KEY_E)   # 画面页：行多，滚得动
+	await key(KEY_Q)   # 画面页：按可见分类顺序回到画面
 	await frames(2)
 	var m1: float = Cfg.master
 	var lr: Rect2 = st.view
@@ -139,12 +138,12 @@ func title_part(tag: String) -> void:
 	await click(st, st.close_rect.get_center())
 	check(not st.visible, tag + ": close button closes settings")
 	await wait_idle()
-	# ---- 面板约占 70%
+	# ---- 标题设置使用完整页面
 	await open_settings()
 	await frames(2)
 	var pr: Rect2 = st.panel_rect
 	var fw: float = pr.size.x / st.size.x
-	check(fw > 0.55 and fw < 0.9, tag + ": panel width ~70%% of page (%.2f)" % fw)
+	check(pr.is_equal_approx(Cfg.touch_safe_rect(st.size)), tag + ": title settings fills safe page (%.2f)" % fw)
 	check(pr.position.y >= 0.0 and pr.end.y <= st.size.y, tag + ": panel inside page")
 	# 按住 Esc：关设置那一下之后的自动重复不再落到标题（焦点不跳走）
 	var sel0: int = title.sel
@@ -197,11 +196,59 @@ func game_part() -> void:
 	check(g.state == g.S.PLAY, "game: Esc resumes (state=%d)" % g.state)
 	await key(KEY_ESCAPE, true)
 	check(g.state == g.S.PAUSE, "game: physical-only Esc pauses (state=%d)" % g.state)
+	await paused_cloud_layout(g)
 	g.queue_free()
 	await frames(3)
 
 
+## Narrow paused layout with all four categories and asymmetric phone safe insets.
+func paused_cloud_layout(g: Node) -> void:
+	var saved_support: bool = Cloud.supported
+	var saved_touch: int = Cfg._touch
+	var saved_pad: bool = Pad.touch
+	var saved_ins: Array = Cfg._ins.duplicate()
+	var saved_key: Vector3 = Cfg._ins_key
+	Cloud.supported = true
+	Cfg._touch = 1
+	Pad.touch = true
+	var st: Control = g.settings
+	st.open()
+	st.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	st.size = Vector2(1044, 540)
+	var vis: Vector2 = get_viewport().get_visible_rect().size
+	Cfg._ins_key = Vector3(vis.x, vis.y, Cfg.ui_k)
+	Cfg._ins = [24.0, 60.0, 32.0, 20.0]
+	st._set_tab(3)
+	await frames(3)
+	check(st.tab_rects.size() == 4, "paused cloud: all four categories")
+	var footer_top: float = st.panel_rect.end.y - 56
+	for i in st.tab_rects.size():
+		var r: Rect2 = st.tab_rects[i]
+		check(r.end.y <= footer_top, "paused cloud: category fits above footer")
+		for j in range(i + 1, st.tab_rects.size()):
+			check(not r.intersects(st.tab_rects[j]), "paused cloud: categories do not overlap")
+	check(st.view.size.y >= st._rowh(), "paused cloud: at least one complete option visible")
+	check(st.panel_rect.encloses(st.footer_rect), "paused cloud: footer hit area inside panel")
+	if Cfg.dev_args().has("--settingscloudshot"):
+		await RenderingServer.frame_post_draw
+		get_viewport().get_texture().get_image().save_png("res://../build/ui-shell-qa/settings_paused_cloud_phone.png")
+	# No cloud request in this layout test: restore platform support before close.
+	Cloud.supported = saved_support
+	st._tap(st.footer_rect.get_center(), MOUSE_BUTTON_LEFT)
+	check(not st.visible, "paused cloud: footer closes settings")
+	check(g.state == g.S.PAUSE, "paused cloud: footer keeps battle paused")
+	Cfg._touch = saved_touch
+	Pad.touch = saved_pad
+	Cfg._ins = saved_ins
+	Cfg._ins_key = saved_key
+
+
 func run() -> void:
+	if Cfg.dev_args().has("--settingscloudshot"):
+		await game_part()
+		print("SETTINGS PAUSED CLOUD: %d failures" % failures)
+		get_tree().quit.call_deferred(1 if failures else 0)
+		return
 	title = load("res://main.tscn").instantiate()
 	add_child(title)
 	await get_tree().process_frame

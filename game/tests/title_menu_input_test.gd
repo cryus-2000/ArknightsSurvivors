@@ -228,26 +228,39 @@ func one_layout(tag: String) -> void:
 	title.diff_pick = true
 	await frames(3)
 	check(title.diff_rects.has("tier0") and title.diff_rects.has("go") and title.diff_rects.has("back"), tag + ": difficulty hit rects")
-	await key(KEY_UP)
-	check(title.diff_sel == 1, tag + ": up raises tier")
-	for i in 4:
-		await key(KEY_UP)
-	check(title.diff_sel == 2, tag + ": up clamps at top tier（三档）")
-	title.diff_sel = 2
 	await key(KEY_DOWN)
-	check(title.diff_sel == 1, tag + ": down lowers tier")
+	check(title.diff_sel == 1, tag + ": down increases depth")
+	for i in 4:
+		await key(KEY_DOWN)
+	check(title.diff_sel == 2, tag + ": down clamps at extreme（三档）")
+	title.diff_sel = 2
+	await key(KEY_UP)
+	check(title.diff_sel == 1, tag + ": up reduces depth")
 	await frames(2)
 	await click((title.diff_rects["tier0"] as Rect2).get_center())
 	check(title.diff_sel == 0, tag + ": click tier card selects it")
-	await pad(JOY_BUTTON_DPAD_UP)
-	check(title.diff_sel == 1, tag + ": dpad up raises tier")
+	await pad(JOY_BUTTON_DPAD_DOWN)
+	check(title.diff_sel == 1, tag + ": dpad down increases depth")
 	for r in title.diff_rects.values():
 		check(Rect2(Vector2.ZERO, title.size).encloses(r), tag + ": difficulty rect inside screen %s" % str(r))
+	# Native touch uses the same transformed hit areas as mouse, including UI scale.
+	var touch := InputEventScreenTouch.new()
+	touch.pressed = true
+	touch.position = title.get_global_transform_with_canvas() * (title.diff_rects["tier0"] as Rect2).get_center()
+	title._diff_input(touch)
+	check(title.diff_sel == 0, tag + ": direct touch selects standard")
 	# 未解锁档：出发无效
 	title.diff_sel = 2
 	await frames(2)
 	await key(KEY_ENTER)
 	check(title.diff_pick and title.leaving < 0.0, tag + ": locked tier can't deploy")
+	# Growth is available from the controller/keyboard without losing difficulty.
+	await key(KEY_X)
+	await wait_idle()
+	check(title.meta_ui.visible, tag + ": difficulty X opens cognitive growth")
+	await key(KEY_ESCAPE)
+	await wait_idle()
+	check(not title.meta_ui.visible and title.diff_pick and title.diff_sel == 2, tag + ": growth closes back to same difficulty")
 	await key(KEY_ESCAPE)
 	await wait_idle()
 	check(not title.diff_pick, tag + ": esc leaves difficulty")
@@ -256,6 +269,24 @@ func one_layout(tag: String) -> void:
 
 
 func run() -> void:
+	var screen = preload("res://scripts/screens/difficulty_screen.gd")
+	var data = preload("res://scripts/data.gd")
+	for tier in 3:
+		var mods: Dictionary = data.dmod_for_tier(int(data.DIFF_PRESETS[tier].tide))
+		var lines: Array = screen.condition_lines(tier)
+		for line in data.dmod_lines(mods):
+			check(lines.has(line), "difficulty preserves real modifier: " + str(line))
+		if tier > 0:
+			for label in ["围猎持续时间", "围猎海嗣生命", "灯标刷新间隔"]:
+				check("\n".join(lines).contains(label), "difficulty includes benefit: " + label)
+	var survey = screen.new()
+	survey.tick(0.0, 0, false)
+	survey.tick(0.1, 2, false)
+	check(survey.depth > 0.0 and survey.depth < 2.0, "difficulty locator moves along depth contour")
+	var visual_time: float = survey.clock
+	survey.tick(1.0, 2, true)
+	check(survey.depth == 2.0 and survey.clock == visual_time and survey.change == 1.0, "reduce motion snaps depth and freezes scenery")
+	survey = null
 	title = load("res://main.tscn").instantiate()
 	add_child(title)
 	await get_tree().process_frame

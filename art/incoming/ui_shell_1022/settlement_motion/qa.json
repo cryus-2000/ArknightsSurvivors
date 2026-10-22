@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "checks": [
+    "Final frame pixel-identical to approved 1280x720 still",
+    "Visible midpoint animation",
+    "Pause freezes time; resume completes",
+    "900 ms completion",
+    "Reduce-motion toggle skips animation",
+    "System reduced-motion respected",
+    "Canvas click skips",
+    "No browser errors"
+  ],
+  "runtime_integrated": false
+}
