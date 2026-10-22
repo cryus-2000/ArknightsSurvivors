@@ -34,7 +34,7 @@
 
 | # | 事项 | 现状 / 入口 |
 |---|---|---|
-| 1 | 主界面 B 版实装 | Claude 界面会话在 `claude/title-b` 做占位版；若未交，Codex 按 docs/125 §7 + `codex_task_title_bg_1022.md`（背景分层契约）自己做；背景美术也是 Codex 的单 |
+| 1 | 主界面 B 版 | **用户 10-22 叫停**：半成品在 `claude/title-b` 3c030347（勿合）；背景单 `codex_task_title_bg_1022.md` 同样暂停，用户重启时再做 |
 | 2 | 网页开局掉帧预热 + 自动档封顶「中」 | `claude/web-warmup`（性能会话），未交则 Codex 做：着色器 / 贴图 / 音效在加载页末预热 |
 | 3 | 触屏布局 C6 | `claude/touch-layout`（架构会话） |
 | 4 | Toy 真机验证 + 发布 | 包 `build/toy/`；SDK 桥 docs/22「Toy 接入」节；用户用 /toy 发布 |
