@@ -1097,6 +1097,11 @@ func follow(dt: float, target: Vector2) -> void:
 	var st: int = sq.stance if sq != null and not is_leader else 0   # 指挥模式（docs/114）：0 随行 / 1 突击 / 2 归队
 	if st == 1 and not cmd_roam():
 		st = 0   # 不突击的干员（json command.roam: false）突击时照旧随行
+	if cmd_down > 0.0 and pos != Vector2.INF and not is_leader:
+		_sample_motion(Vector2.ZERO, dt)   # 倒地：留在倒地点，不跟随、不瞬移归位（10-23 用户实测：原来躺着跟编队漂）
+		mv = 0.0
+		cmd_d = 0.0
+		return
 	if pos == Vector2.INF or pos.distance_to(target) > (700.0 if st == 0 else CmdBal.v("command/leash", 960.0) * 1.6):
 		pos = target
 		mv = 0.0
@@ -1108,8 +1113,6 @@ func follow(dt: float, target: Vector2) -> void:
 		target = roam_target(target) if st == 1 else follow_target(target)
 		if st == 2 and sq.gather_t >= 0.0:
 			target = pos   # 归队集合：到位后站定一下（squad._tick_recall）
-		if cmd_down > 0.0 and st == 1:
-			target = pos   # 突击中倒地：原地躺着（squad._tick_hp）；归队后随队回位，躺着跟着编队位继续复活计时
 		var d: float = pos.distance_to(target)
 		var k: float = clampf(dt * (3.0 if d < 20.0 else (9.0 if st == 2 else 6.0)), 0.0, 1.0)
 		cmd_d = d

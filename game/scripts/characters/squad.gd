@@ -420,7 +420,9 @@ func _tick_hp(dt: float) -> void:
 		o.cmd_show = maxf(0.0, o.cmd_show - dt)
 		if o.cmd_down > 0.0:
 			o.cmd_down_age += dt
-			o.cmd_down -= dt
+			# 队长站到身边（command/revive_near 内）复活计时加速 command/revive_near_k 倍（10-23）
+			var nk: float = Bal.v("command/revive_near_k", 4.0) if o.pos.distance_to(g.ppos) <= Bal.v("command/revive_near", 64.0) else 1.0
+			o.cmd_down -= dt * nk
 			if o.cmd_down <= 0.0:
 				_revive(o, o.pos)
 			continue
@@ -457,6 +459,8 @@ func _recall_blink() -> void:
 	for o in ops:
 		if o.is_leader or o.pos == Vector2.INF:
 			continue
+		if o.cmd_down > 0.0:
+			continue   # 倒地的留在倒地点，复活计时照走（10-23 用户实测：不跟着漂）
 		var dst: Vector2 = g.ppos + _slot_offset(o.slot)
 		o.cmd_inv = maxf(o.cmd_inv, Bal.v("command/recall_inv", 1.0))
 		o.roam_tgt = null
@@ -487,7 +491,7 @@ func _stance_voice(s: int) -> void:
 	_vo_t = g.t
 	var sfx: Node = g.get_node_or_null("/root/Sfx")
 	if sfx != null:
-		sfx.voice(o.id, "command" if s == ROAM else "entry")
+		sfx.voice(o.id, "command" if s == ROAM else "entry", false, true)   # urgent：玩家指挥回应，不被闲聊 / 间隔吃掉（10-23）
 
 
 func _tick_lead(dt: float) -> void:
@@ -502,6 +506,8 @@ func cmd_stats() -> Dictionary:
 
 
 func _revive(o, p: Vector2) -> void:
+	if g.get("trace_every") != null and g.trace_every > 0.0:
+		print("CMD t=%.2f revive %s at %.0f,%.0f" % [g.t, o.id, p.x, p.y])
 	o.cmd_down = 0.0
 	o.cmd_hp = maxf(o.cmd_hp, Bal.v("command/revive_hp", 0.5))
 	o.cmd_inv = Bal.v("command/revive_inv", 1.0)

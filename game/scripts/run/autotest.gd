@@ -343,6 +343,7 @@ func _cmd_step() -> void:
 				o.cmd_hp = 0.0
 				o.cmd_down = Bal.v("command/revive_secs", 25.0)
 				o.cmd_down_age = 0.0
+				print("CMD t=%.2f down %s at %.0f,%.0f" % [g.t, o.id, o.pos.x, o.pos.y])
 	if not _cmd_at.is_empty() and g.state == g.S.PLAY and g.t >= float(_cmd_at[0]):
 		_cmd_at.pop_front()
 		g.toggle_command()

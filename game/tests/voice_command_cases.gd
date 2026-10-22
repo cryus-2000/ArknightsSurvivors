@@ -5,8 +5,10 @@ const Character = preload("res://scripts/characters/character.gd")
 
 class VoiceSpy extends Node:
 	var calls: Array = []
-	func voice(cid: String, key: String, queued := false) -> void:
+	var urgents: Array = []
+	func voice(cid: String, key: String, queued := false, urgent := false) -> void:
 		calls.append([cid, key, queued])
+		urgents.append(urgent)   # 指挥回应一律 urgent（10-23）
 
 class VoiceGame extends RefCounted:
 	var sfx: Node
