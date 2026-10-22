@@ -198,6 +198,8 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 		# 局外成长（docs/109 §3.1）：本次探索获得的生机细胞
 		var mr: Dictionary = g.meta_result
 		var mtxt := "+%d（评分 %d × %.2f）" % [int(mr.cells), int(mr.base), float(mr.factor)]
+		if g.ending_new and g.state == Game.S.WIN:   # 评分含新结局 +40（core/meta.gd run_reward），括号内的乘法算不出这部分，单独写明
+			mtxt += "  新结局 +40"
 		if int(mr.bounty) > 0:
 			mtxt += "  首通 +%d" % int(mr.bounty)
 		stats.append(["生机细胞", mtxt])

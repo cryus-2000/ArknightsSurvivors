@@ -555,7 +555,7 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 				var c := UI.CYAN if k < int(round(v * 10.0)) else Color(0.15, 0.22, 0.26)
 				ci.draw_rect(Rect2(vx + 16 + k * 16, rr.position.y + ty0 - 13.0, 12, 13), c)
 			UI.text(ci, font, Vector2(vx + 180, rr.position.y + ty0), "▶", fs_a, UI.CYAN if on else UI.SUB)
-			UI.text(ci, font, Vector2(vx + 200, rr.position.y + ty0), "%d" % int(round(v * 100.0)), fs_a, UI.TEXT)
+			UI.text(ci, font, Vector2(vx + 200, rr.position.y + ty0), "%d%%" % int(round(v * 100.0)), fs_a, UI.TEXT)
 		"bool":
 			var enabled: bool = Cfg.get(row.key)
 			var track := Rect2(vx + 128, rr.position.y + ty0 - 21, 72, 28)
