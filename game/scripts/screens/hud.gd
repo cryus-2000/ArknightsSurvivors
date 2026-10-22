@@ -176,11 +176,52 @@ func _layer_draw(key: String) -> void:
 
 
 func draw() -> void:
+	if not _glyphs_warm and g.demo_op == "":   # 图鉴演示不预热
+		_warm_glyphs()
 	for k in _layers:
 		_layers[k].used = false
 	_draw_body()
 	for k in _layers:
 		_layers[k].node.visible = _layers[k].used
+
+## 字形预热（网页开局掉帧，10-22）：动态字体按「字号 + 描边」各自建字形缓存，飘字 / 大群横幅 / LEVEL UP 带弹出放大，
+## 字号逐帧变，局内每遇到一个新字号就要当帧栅格化一批字形、重传字体贴图（网页实测开局 0–15 秒几次 150–390 ms 的卡顿，
+## 当帧几十到两百多次 texImage2D）。进局第一帧在屏幕外按局内同样的调用把这些字号各画一遍，缓存提前建好。只画在屏幕外，画面不变
+var _glyphs_warm := false
+const WARM_NUM := "0123456789弱点破绽 "
+
+func _warm_glyphs() -> void:
+	_glyphs_warm = true
+	var keep = UI.tq
+	UI.tq = null
+	var ci: CanvasItem = g.hud
+	var fnt: Font = g.font
+	var far := Vector2(-20000, -20000)
+	# 飘字（_dmg_numbers）：基准字号 8–20（合并后最多 +6），弹出放大到 ×1.7；按 UI._ks 换算后的字号，描边 4 与本体各一遍
+	var sizes := {}
+	for s0 in range(6, 41):
+		sizes[UI._ks(ci, s0)] = true
+	for ks in sizes:
+		ci.draw_string_outline(fnt, far, WARM_NUM, HORIZONTAL_ALIGNMENT_LEFT, -1, ks, 4, Color(0, 0, 0, 1))
+		ci.draw_string(fnt, far, WARM_NUM, HORIZONTAL_ALIGNMENT_LEFT, -1, ks, Color.WHITE)
+	# 大群横幅（_draw_under）：int(38 × pop)，pop 1.0–1.8，描边 6
+	var horde := "海嗣注意到了你的存在……自四方合围而来大 群 来 袭海嗣大群 已抵达"
+	for sz in range(38, 69):
+		UI.text(ci, fnt, far, horde, sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 6)
+	# 升级字样：LEVEL UP! int(30 × pop)（描边 6）、Lv.n int(18 × pop)（描边 4），pop 0.9–1.6
+	for sz in range(27, 49):
+		UI.text(ci, fnt, far, "LEVEL UP!", sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 6)
+	for sz in range(16, 30):
+		UI.text(ci, fnt, far, "Lv.0123456789", sz, Color.WHITE, HORIZONTAL_ALIGNMENT_LEFT, -1, 4)
+	# 左上等级数字（hud_bars.draw_top_left）：int(20 × (1 + 0.3 × 闪光))
+	for sz in range(20, 27):
+		UI.ctext(ci, fnt, far, "0123456789", sz, Color.WHITE)
+	UI.tq = keep
+	# 界面层「无光照 + 图元」着色器变体（选卡卡片的细线等第一次画时当帧编译，网页实测约 200 ms）：画一条透明度 0 的细线让它进局就编译；
+	# 透明度 0 混合后像素不变（必须画在屏幕内，屏幕外会被剔除）
+	ci.draw_line(Vector2(0, 0), Vector2(1, 0), Color(1, 1, 1, 0), -1.0)
+	ci.draw_primitive(PackedVector2Array([Vector2(0, 0), Vector2(1, 0), Vector2(0, 1)]), PackedColorArray([Color(1, 1, 1, 0), Color(1, 1, 1, 0), Color(1, 1, 1, 0)]), PackedVector2Array())
+
 
 
 func _draw_body() -> void:
