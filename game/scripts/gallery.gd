@@ -279,7 +279,9 @@ func _sprite_form(label: String, v, fps: float, loop: bool) -> Dictionary:
 	if v is String:
 		return _anim(label, v, fps, loop)
 	var result := _anim_n(label, v.tex, int(v.get("frames", 2)), float(v.get("fps", fps)), loop)
-	if v.has("frame_durations"):
+	if v.get("attack_timing", {}).has("frame_durations"):
+		result["frame_durations"] = v.attack_timing.frame_durations
+	elif v.has("frame_durations"):
 		result["frame_durations"] = v.frame_durations
 	elif v.has("attack_timing"):
 		var t: Dictionary = v.attack_timing

@@ -1306,8 +1306,11 @@ func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim 
 	if not (seq_locked() and kind == "attack"):
 		_sq_interrupt()
 	act_kind = kind
+	attack_phased = false
 	act_anim = anim if anim != "" and (anim_tex(anim) != null or sprite_spec(anim).has("frames")) else kind
 	if anim_tex(act_anim) == null and not sprite_spec(act_anim).has("frames"):
+		attack_t = 0.0
+		fire_t = -1.0
 		if kind == "skill":
 			_release_skill()
 		else:
@@ -1650,7 +1653,7 @@ func _anim_state_raw() -> Dictionary:
 		fr = timed_frame(kind, range(n), anim_t)   # 纯画面动作播一遍，停在末帧
 		return {"tex": tx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
 	if sprite_spec(kind).has("frame_durations") and act_anim == kind and attack_t > 0.0:
-		fr = timed_frame(kind, range(n), attack_dur - attack_t)
+		fr = attack_phase_frame(n, int(sprite_spec(kind).get("fire", 0)), attack_dur - attack_t, kind) if attack_phased else timed_frame(kind, range(n), attack_dur - attack_t)
 		return {"tex": tx, "frame": fr, "hf": n, "flip": (face < 0.0) != sprite_mirror(kind), "kind": kind}
 	match kind:
 		"attack", "skill":
@@ -1663,7 +1666,23 @@ func _anim_state_raw() -> Dictionary:
 
 
 ## 每击完整经过前摇、出手、收势；伤害事件位于出手帧起点。
-func attack_phase_frame(n: int, release_frame: int, elapsed: float) -> int:
+func attack_phase_frame(n: int, release_frame: int, elapsed: float, slot := "") -> int:
+	var spec := sprite_spec(slot if slot != "" else act_anim)
+	var timing: Dictionary = spec.get("attack_timing", {})
+	var ds: Array = timing.get("frame_durations", spec.get("frame_durations", []))
+	if ds.size() == n and release_frame > 0 and release_frame < n:
+		# 前摇与收势各自映射到当前逻辑窗口，保留审核过的非均匀停留。
+		var before := elapsed < attack_fire_at
+		var first := 0 if before else release_frame
+		var end := release_frame if before else n
+		var length := attack_fire_at if before else attack_dur - attack_fire_at
+		var source_length := 0.0
+		for i in range(first, end): source_length += float(ds[i])
+		var source_t := maxf(0.0, elapsed if before else elapsed - attack_fire_at) / maxf(length, 0.000001) * source_length
+		for i in range(first, end):
+			if source_t < float(ds[i]): return i
+			source_t -= float(ds[i])
+		return end - 1
 	if elapsed < attack_fire_at:
 		return clampi(int(elapsed / maxf(attack_fire_at, 0.000001) * release_frame), 0, release_frame - 1)
 	return clampi(release_frame + int((elapsed - attack_fire_at) / maxf(attack_dur - attack_fire_at, 0.000001) * (n - release_frame)), release_frame, n - 1)
@@ -2033,7 +2052,7 @@ func _sq_atk_off() -> float:
 
 func _sq_atk_frame(n: int) -> int:
 	if attack_phased:
-		return attack_phase_frame(n, int(sprite_spec(sq_atk).get("fire", 0)), sq_atk_t)
+		return attack_phase_frame(n, int(sprite_spec(sq_atk).get("fire", 0)), sq_atk_t, sq_atk)
 	if sprite_spec(sq_atk).has("frame_durations"):
 		return timed_frame(sq_atk, range(n), maxf(0.0, sq_atk_t + _sq_atk_off()))
 	var fps := float(sprite_spec(sq_atk).get("fps", 12.0))

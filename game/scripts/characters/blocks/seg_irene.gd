@@ -101,7 +101,12 @@ static func _h3_thrust_release(o, a: Dictionary) -> void:
 static func _h3_stage_gap(o, a: Dictionary) -> float:
 	var spec: Dictionary = o.sprite_spec(str(a.get("gap_anim", "attack")))
 	var fps: float = float(spec.get("fps", 12))
-	return maxf(0.05, (float(spec.get("second", a.get("second", 3))) - float(spec.get("fire", 1))) / fps)
+	var gap := maxf(0.05, (float(spec.get("second", a.get("second", 3))) - float(spec.get("fire", 1))) / fps)
+	# 连刺属于同一轮；压缩后不能仍按原秒数排队到下一轮。
+	var action: Dictionary = o.sprite_spec(o.act_anim)
+	if o.attack_phased and action.has("attack_timing"):
+		gap *= o.attack_dur / float(action.attack_timing.duration)
+	return gap
 
 
 ## 第 k 段之后的段（hw_tick：浮空 → 连射 → 追诉冷却之后）

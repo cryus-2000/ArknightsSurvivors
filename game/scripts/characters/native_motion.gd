@@ -6,6 +6,7 @@
 ##   states   [{on, slot, from, to, rate | loop}]  按顺序取第一条命中的：
 ##              on = "act:<槽>"：该动作窗口内；否则匹配手写段 native_signals() 的信号名（等于 on 或以 on + "." 开头）
 ##              帧 = from + min(to - from, int(k × rate))，k 为信号进度 0–1；loop = true 按该槽帧时长循环播
+##              attack_clock = true：属于本轮普攻的信号延续动作末帧，直到信号结束
 ##   exits    [{on, slot, from, tail}]  信号族 on 上一帧有、本帧没有 → 从 from 帧起用 tail 秒播到末帧
 ## 本模块不认识具体干员，也不读手写段私有字段；信号由手写段的 *_native_signals 提供。
 extends RefCounted
@@ -28,6 +29,16 @@ static func started(o) -> void:
 	o.native_motion["clip"] = slot if _nm(o).get("clips", {}).has(slot) else ""
 	o.native_motion["t"] = 0.0
 	o.native_motion["from"] = 0
+
+
+## 明确配置阶段时钟的强化普攻，在起手时连逻辑一起换槽。
+static func timed_attack_slot(o, slot: String) -> String:
+	if not enabled(o): return slot
+	for v in _nm(o).get("variants", []):
+		if str(v.slot) != slot: continue
+		var active: bool = o.perm[int(v.perm)] if v.has("perm") else str(v.node) in o.taken
+		if active and o.sprite_spec(str(v.use)).has("attack_timing"): return str(v.use)
+	return slot
 
 static func _family(name: String) -> String:
 	var dot := name.find(".")
@@ -77,6 +88,10 @@ static func state(o, st: Dictionary) -> Dictionary:
 				continue
 		elif not _has(signals, on):
 			continue
+		if o.attack_phased and o.act_kind == "attack" and (o.attack_t > 0.0 or r.get("attack_clock", false)) and slot == o.act_anim:
+			# 普攻冲刺的位移仍读信号，身体姿势读本轮时钟，结束冲刺不倒播。
+			var spec: Dictionary = o.sprite_spec(slot)
+			return pose(o, slot, o.attack_phase_frame(int(spec.frames), int(spec.fire), o.attack_dur-o.attack_t, slot), st)
 		if r.get("loop", false):
 			var nf := int(o.sprite_spec(slot).get("frames", 1))
 			return pose(o, slot, o.timed_frame(slot, range(nf), o.g.t, true), st)
@@ -88,6 +103,11 @@ static func state(o, st: Dictionary) -> Dictionary:
 	if slot == "" or int(o.get("sq_ph")) != 0: return st   # 技能序列（不经 _start_action 起手）期间不让上一个 clip 盖住
 	if o.anim_kind == "run" and float(n.get("t", 0.0)) >= float(o.attack_fire_at): return st   # 出手后在跑：整条动作让给跑步，不再卡末帧滑步（10-22 用户）
 	var start: int = int(n.get("from", 0))
+	if start == 0 and o.attack_phased and o.act_kind == "attack":
+		# 普攻只认逻辑阶段时钟；技能变体可换姿势，不能另起固定秒数覆盖。
+		if o.attack_t <= 0.0 or o.act_anim_yield() or slot == o.act_anim: return st
+		var count: int = int(o.sprite_spec(slot).get("frames", 8))
+		return pose(o, slot, o.attack_phase_frame(count, int(o.sprite_spec(slot).get("fire", 0)), o.attack_dur-o.attack_t, slot), st)
 	var duration: float = float(n.get("tail", .16)) if start > 0 else float(_nm(o).get("clips", {}).get(slot, 0.0))
 	if float(n.get("t", 0.0)) >= duration: return st
 	var hf: int = int(o.sprite_spec(slot).get("frames", 8))

@@ -968,6 +968,7 @@ SCENE_REGRESSIONS = {
     "angelina_skill_anim": ("统一技能动画契约（安洁莉娜）", "angelina_skill_anim_test", r"ANGELINA SKILL ANIM failures=0", ["--balance", "--op=angelina", "--squad=lumen"]),
     "skalter_specter_anim": ("浊心 / 归溟新美术：出手帧对齐、S3 重锯 / 反向圈换条", "skalter_specter_anim_test", r"SKALTER SPECTER ANIM failures=0", ["--balance", "--op=specter_unchained", "--squad=skalter"]),
     "mizuki_runtime": ("水月完整出手、持续状态、退出与成长", "mizuki_runtime_test", r"MIZUKI RUNTIME .* 0 failed", ["--balance", "--seed=1", "--op=mizuki", "--squad=skadi"]),
+    "attack_rhythm": ("20 人确认节奏、攻速压缩、逐帧映射、移动让位与技能接管", "attack_rhythm_test", r"ATTACK RHYTHM .* 0 failed", ["--balance", "--seed=1", "--op=mizuki"]),
     "mizuki_skill_anim": ("水月原生像素起手、命中、收势和持续变体", "mizuki_skill_anim_test", r"MIZUKI SKILL ANIM failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
     "settlement": ("结算：历史编队滚动、评级与视觉 RNG", "settlement_test", r"SETTLEMENT failures=0", []),
     "run_stats": ("作战记录：统计守恒（占比合计 100%、来源相加、按干员拆 = dmg_out）+ 界面打开 / 导航 / 桌面与手机排版", "run_stats_test", r"RUN STATS failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),

@@ -42,6 +42,7 @@ func _process(_dt: float) -> void:
 		var expected: Array = {"wisadel": [1.4, 0.95, 2.5/12], "saria": [0.9, 0.65, 2.5/14], "suzuran": [1.0, 0.72, 2.5/14]}[id]
 		ok(o.sprite_spec("attack").get("frames", 0) == 8, id + " eight frames")
 		# Fail before integration on the existing short, uniform action window.
+		o.cd = expected[0]
 		o.start_attack(Vector2.INF)
 		ok(absf(o.attack_dur - expected[1]) < 0.00001, id + " full recovery duration")
 		if not o.sprite_spec("attack").has("attack_timing"):
@@ -54,7 +55,7 @@ func _process(_dt: float) -> void:
 			var interval: float = expected[0] / rate
 			o.start_attack(Vector2.INF, 0.5, 0.25, "", interval)
 			var dur: float = minf(expected[1], interval * 0.9)
-			var fire: float = minf(expected[2], dur * 0.45)
+			var fire: float = expected[2] * dur / expected[1]
 			ok(absf(o.attack_dur-dur)<0.00001 and absf(o.fire_t-fire)<0.00001, id + " timing " + str(rate))
 			var seen := {}
 			var release_entries := 0

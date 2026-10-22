@@ -192,6 +192,8 @@ func on_custom_node(nid: String, _choice: String = "") -> void:
 func cancel_skill_action() -> void:
 	attack_t = 0.0
 	fire_t = -1.0
+	attack_phased = false
+	native_motion.clear()
 	vis_anim = ""
 	manual_buf = 0.0
 	manual_buf_dir = Vector2.ZERO
@@ -1576,6 +1578,8 @@ func start_skill(aim: Vector2, idx: int = -1, dur: float = 0.6, fire_at: float =
 		super(aim, idx, dur, fire_at, anim)
 
 func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim := "", interval := 0.0) -> void:
+	if kind == "attack":
+		anim = NativeMotion.timed_attack_slot(self, anim if anim != "" else "attack")
 	super(kind, aim, dur, fire_at, anim, interval)
 	NativeMotion.started(self)
 
@@ -1585,7 +1589,8 @@ func start_attack(aim: Vector2, dur: float = 0.5, fire_at: float = 0.25, anim :=
 	if hw.has("bolts"):
 		hw.body_variant = int(hw.get("bolt_variant", 0))
 	AttackPhases.begin_round(self)
-	super(aim, dur, fire_at, "" if not phases.is_empty() else anim, cd if not phases.is_empty() else interval)
+	# 普攻各形状都在起手前设置 cd；让无显式 interval 的近战 / 治疗也使用攻速压缩。
+	super(aim, dur, fire_at, "" if not phases.is_empty() else anim, cd if interval <= 0.0 or not phases.is_empty() else interval)
 	var timing: Dictionary = sprite_spec(act_anim).get("attack_timing", {})
 	if timing.has("min_rest"):
 		cd = maxf(cd, attack_dur + float(timing.min_rest))

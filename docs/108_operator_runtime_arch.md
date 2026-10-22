@@ -328,3 +328,38 @@ S3 数值与机制保持本作设计（用户 10-20 定，不与原作同步）�
 
 - **撤退**（`render/retreat_fx.gd`，纯画面）：提白闪 0.12 秒 → 0.4 秒向上收窄消散 + 白色碎光上飘（按序号定位，不用随机数）。队长倒下走 `character.draw_body`（按 `g.state_age`），队友离队 / 换人由 `squad.remove` 留 `g.fx` kind `retreat`，图鉴干员「倒下」形态改「撤退」。逐人 death 条与 json 槽暂留，运行时不再用于队长倒下；删条与 operator_contract / art_lint 的 MAIN_SLOTS 调整待用户看过效果再做。
 - **归溟替身闪现**（用户定，同浊心斯卡蒂普攻类型）：每第 3 次环斩替身现身后，以自身为心放 `flash_spins` 次法术脉冲（半径 `flash_r`，每次命中最近 `flash_n` 个、Boss / 精英优先，走 `area_hit` → `cap_targets`），伤害倍率沿用原环斩 `flash_mult`（待数值会话复核）；`hit_sources.替身闪现.kind` 改法术。动作用本体 Skill_3_Attack 身体动作重定向到替身（`tools/spine_run_trial/doll_retarget.js`，cfg `specter_doll_cast.json`），替身朝最近敌人、不再镜像旋身。**有意改变同 seed**（命中目标与伤害类型变化）。原冷色锯环帧条 `fx_specter_saw_cold_back/front` 不再被引用，暂留。
+
+
+## 14. 全员普通攻击节奏接入（2026-10-22，Codex）
+
+用户已确认 20 人视觉节奏；斯卡蒂特批出手由 0.178571 秒延后至 0.28 秒。普通攻击基础周期保留；收势窗口变长会改变技能自动起手时机，因此这是逻辑变更，不能声称相对旧版 TRACE 全同。
+
+### 数据与时钟
+
+- `sprites.attack.attack_timing.frame_durations`：可选逐帧秒数（长度 = frames，全部正数，和 = timing.duration，前 fire 帧和 = timing.fire_time）。只用于本次普攻，不改 `sprites.attack.frame_durations / logic / fps / fire_time`，避免借用 attack 槽的技能、旧连刺参数被意外改写。
+- 确认基准在 `game/tests/data_ops/approved_attack_rhythm.json`，对应已审核 20 人表。该表用于回归期望，不参与运行时。
+- 所有普通起手都传入刚设置的 cd；窗口沿用 `attack_timing` 的 `min(duration, interval × active_ratio)`，到 `min_duration` 为止。新增干员配置 active_ratio=0.9，已配置者保留原 active_ratio / min_duration / min_rest；新增下限为帧数/60 秒，8 帧为 0.1333 秒、12 帧为 0.2 秒。下限限制极端攻速下的实际出手频率；不承诺高攻速时每张源帧都能在 60 Hz 显示一帧。
+- windup_ratio = 基准 fire_time / duration。等待充足时不加速动作；动作放不进间隔时，前摇与收势同比压缩。普通攻击前摇、收势分别按逐帧比例映射到逻辑窗口，伤害事件只由 fire_t 触发。
+- 旧 `native_motion.clips.attack` 不再覆盖阶段普攻。原生变体可换姿势，但也读当前阶段时钟；接盾等独立退出动作、信号姿势仍按原契约。
+
+### 切换与边界
+
+- 保留出手后移动让给 run 的规则；画面让位不取消或推进逻辑。
+- 技能动作不继承 attack_phased；无帧条的瞬时回退清掉旧 action/fire 倒计时，避免旧攻击或技能重复释放。取消 / 离队清掉旧 native clip。
+- 技能循环中的攻击变体使用自己的帧序，映射到当前攻击阶段；现有持续连发队列、技能生命周期与独占闸门仍为权威。
+- 艾丽妮连刺间隔按当前窗口 / 基础窗口缩放，基础间隔保持原值，避免高攻速后续刺落入下一轮。
+- 再审三连刺有自己的 `attack_retrial.attack_timing`（0.62 秒、首刺 0.125 秒、fire=2）；声明了时钟的 native variant 在起手时切换逻辑槽，使第三刺与后续收势全部处于占用窗口内。流明强化光柱沿用普通攻击时钟。
+- 德克萨斯冲刺起手记录是否属于当前阶段普攻；`dash.attack` 状态用 `attack_clock: true` 保留本轮末帧直至位移结束。独立响应冲刺不继承旧动作，技能冲刺与反冲仍用自己的信号。
+- 能天使射击后的旧 cd 截断只用于未配置阶段时钟的动作，高攻速阶段普攻保留最短收势。
+- 冲刺移动、飞盾、锚链在外的占用不因提高攻速而绕过。普通攻击改动不重设它们的速度或技能数值。
+
+### 验收
+
+`attack_rhythm` 场景覆盖 20 人 × 1/2/4/8 倍间隔、逐帧中点与出手边界、真实 follow 计时只释放一次、动作结束回待机、移动让位、技能替换未出手攻击、取消清理、错误数据拒绝。其他技能回归与全员冒烟仍由 check.py 执行。相对旧版 TRACE 记录预期差异，修改后同 seed 双跑必须一致；不得重录金样来掩盖差异。
+
+10-22 验证记录（`codex/rhythm-runtime`，基于 `6326692ac`）：
+
+- `python tools/check.py --auto --jobs 3` 全量 116 项；原两项异常中，核心契约的旧断言及流明变体时长已修正并补测：3,240 检查、0 失败。剩余 14 组积木金样过期，按交接单保留，由协调人统一重录；没有修改 golden_current。
+- 最终节奏专项 2,819 检查、0 失败，另有三人攻速时序、凯尔希 / 流明 / 艾丽妮、安洁莉娜技能衔接、推进之王 / 乌尔比安、能天使 / 艾雅法拉 / 逻各斯、浊心 / 归溟和培养分支回归通过。日志在本工作树 `build/contract_verified/`、`build/contract_final/` 与 `build/check/quick_1022_210515/`。
+- 同 seed 4 分钟游戏时间逐字段相同，包含画面 / 全局随机流换种子；另对斯卡蒂、星熊各做 seed 1 的 60 秒双跑，均为 61 行 TRACE 全同。与旧版 `6326692ac` 的斯卡蒂 TRACE 从第 7 行开始出现预期时序差异，不作为平衡效果结论。
+- 独立审查发现并修复：能天使释放后截短收势、艾丽妮再审缺少完整三刺窗口、德克萨斯冲刺结束姿势回跳。基础攻击周期与技能数值未改，实际极限出手频率仍受最短动作和独立技能占用约束。

@@ -51,8 +51,9 @@ func test_specter(o) -> void:
 	o.attack_t = 0.0
 	o.fire_t = -1.0
 	o.s_t[2] = 0.0
+	o.cd = 1.2
 	o.start_attack(Vector2.INF)
-	ok(is_equal_approx(o.attack_t, 5.0 / 12.0) and is_equal_approx(o.fire_t, 2.5 / 12.0), "环斩仍用原出手窗口 5/12、出手 2.5/12")
+	ok(is_equal_approx(o.attack_t, 2.5 / 12.0 + 0.7) and is_equal_approx(o.fire_t, 2.5 / 12.0), "环斩保留出手时刻，逻辑包含已确认的 0.7 秒收势")
 	o.fire_t = -1.0   # 只推进画面，不实际出手
 	var fire_frame := int(o.sprite_spec("attack").fire)
 	step(o, 0.18)
@@ -60,7 +61,7 @@ func test_specter(o) -> void:
 	step(o, 0.05)
 	ok(st(o).kind == "attack" and int(st(o).frame) == fire_frame, "伤害时刻（0.21 秒）画面正好到出手帧 %d" % fire_frame)
 	step(o, 0.4)
-	ok(o.attack_t <= 0.0 and st(o).kind == "attack", "收势越过逻辑窗口继续播")
+	ok(o.attack_t > 0.0 and st(o).kind == "attack", "收势画面与逻辑窗口保持一致")
 	step(o, 0.3)
 	ok(st(o).kind == "idle", "整条播完回待机")
 	# 反向第二圈：出手段镜像重播
@@ -73,6 +74,7 @@ func test_specter(o) -> void:
 	# S3：待机 / 普攻换原作重锯条，帧号同普攻
 	o.s_t[2] = 5.0
 	ok(st(o).kind == "idle_s3", "S3 期间待机换举锯待机")
+	o.cd = 1.2
 	o.start_attack(Vector2.INF)
 	o.fire_t = -1.0
 	step(o, 0.23)
