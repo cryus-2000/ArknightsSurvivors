@@ -4,8 +4,7 @@
   fx_hh_beams@2x        flowing_beams@2x 原样（24 帧 384×400，12 fps，原点 (192,350)）
   fx_hh_frags@2x        rising_fragments@2x 原样（同规格）
   fx_hh_reveal@2x       opening_reveal@2x 8 档灰度遮罩 → 白色 + 灰度做 alpha（供 Image.blit_rect_mask）
-  fx_hh_beams_cyan@2x / fx_hh_frags_cyan@2x
-                        青白档（docs/124 §9.3）：同一套素材按明度换色——暗部藏青 → #60E0E8 → #C8FFFF → 白，alpha 不变
+  （10-22 用户：拉包光效只用金一档 = Codex 原图，青白换色删掉）
 用法：python -X utf8 tools/probes/package_headhunt_bagfx.py
 """
 import os
@@ -15,25 +14,10 @@ from PIL import Image
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SRC = os.path.join(ROOT, "art", "incoming", "headhunt_reference_fx_1022", "reference_return")
 OUT = os.path.join(ROOT, "art", "incoming")
-# 青白档色阶（按明度 0–1 插值）
-CYAN = [(0.0, (14, 60, 86)), (0.35, (40, 150, 180)), (0.6, (96, 224, 232)), (0.82, (200, 255, 255)), (1.0, (255, 255, 255))]
-
-
-def cyan(img):
-    a = np.array(img.convert("RGBA")).astype(np.float32)
-    lum = (0.299 * a[..., 0] + 0.587 * a[..., 1] + 0.114 * a[..., 2]) / 255.0
-    out = a.copy()
-    xs = [c[0] for c in CYAN]
-    for ch in range(3):
-        out[..., ch] = np.interp(lum, xs, [c[1][ch] for c in CYAN])
-    return Image.fromarray(out.round().astype(np.uint8), "RGBA")
-
-
 for src, dst in (("flowing_beams@2x.png", "fx_hh_beams"), ("rising_fragments@2x.png", "fx_hh_frags")):
     im = Image.open(os.path.join(SRC, src)).convert("RGBA")
     assert im.size == (384 * 24, 400), im.size
     im.save(os.path.join(OUT, dst + "@2x.png"))
-    cyan(im).save(os.path.join(OUT, dst + "_cyan@2x.png"))
     print(dst, im.size)
 
 r = np.array(Image.open(os.path.join(SRC, "opening_reveal@2x.png")).convert("L"))

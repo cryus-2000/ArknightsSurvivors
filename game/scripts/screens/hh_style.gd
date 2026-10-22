@@ -43,24 +43,36 @@ static func dec(s: String, latin := true) -> String:
 	return out
 
 
+## 填充多边形（先看能否三角化：斜块扫出画面边、窄卡斜切时会退化成自交 / 零面积；带 tag 时退化会打印出来，便于定位）
+static var poly_debug := false
+
+
+static func fill(ci: CanvasItem, pts: PackedVector2Array, col: Color, tag := "") -> void:
+	if Geometry2D.triangulate_polygon(pts).is_empty():
+		if poly_debug:
+			print("HHPOLY bad %s %s" % [tag, pts])
+		return
+	ci.draw_colored_polygon(pts, col)
+
+
 ## 背景：暗场 + 几道很淡的斜带
 static func backdrop(ci: CanvasItem, vs: Vector2) -> void:
 	ci.draw_rect(Rect2(Vector2.ZERO, vs), DARK)
 	for i in 5:
 		var x := vs.x * (0.3 + 0.16 * i)
-		ci.draw_colored_polygon(PackedVector2Array([Vector2(x, 0), Vector2(x + vs.x * 0.06, 0), Vector2(x + vs.x * 0.06 - vs.y * 0.35, vs.y), Vector2(x - vs.y * 0.35, vs.y)]), Color(1, 1, 1, 0.022))
+		fill(ci, PackedVector2Array([Vector2(x, 0), Vector2(x + vs.x * 0.06, 0), Vector2(x + vs.x * 0.06 - vs.y * 0.35, vs.y), Vector2(x - vs.y * 0.35, vs.y)]), Color(1, 1, 1, 0.022))
 
 
 ## 左侧浅灰斜切面板：上边宽 wt、下边宽 wb，从 y0 到底；外侧再一道浅色细带
 static func left_panel(ci: CanvasItem, vs: Vector2, wt: float, wb: float, y0: float) -> void:
-	ci.draw_colored_polygon(PackedVector2Array([Vector2(0, y0), Vector2(wt + 26, y0), Vector2(wb + 26, vs.y), Vector2(0, vs.y)]), LIGHT2)
-	ci.draw_colored_polygon(PackedVector2Array([Vector2(0, y0), Vector2(wt, y0), Vector2(wb, vs.y), Vector2(0, vs.y)]), LIGHT)
+	fill(ci, PackedVector2Array([Vector2(0, y0), Vector2(wt + 26, y0), Vector2(wb + 26, vs.y), Vector2(0, vs.y)]), LIGHT2)
+	fill(ci, PackedVector2Array([Vector2(0, y0), Vector2(wt, y0), Vector2(wb, vs.y), Vector2(0, vs.y)]), LIGHT)
 
 
 ## 右侧浅灰斜切面板（人事调度函 / 揭示用）
 static func right_panel(ci: CanvasItem, vs: Vector2, xt: float, xb: float, y0: float, y1 := -1.0) -> void:
 	var yb := vs.y if y1 < 0 else y1
-	ci.draw_colored_polygon(PackedVector2Array([Vector2(xt, y0), Vector2(vs.x, y0), Vector2(vs.x, yb), Vector2(xb, yb)]), LIGHT)
+	fill(ci, PackedVector2Array([Vector2(xt, y0), Vector2(vs.x, y0), Vector2(vs.x, yb), Vector2(xb, yb)]), LIGHT)
 
 
 ## 顶栏：左灰块两行英文 + 警示条 + 黄色斜标签（标题）；右「01 / 01」+ 平行四边形返回键。返回返回键矩形
@@ -88,10 +100,12 @@ static func topbar(ci: CanvasItem, font: Font, vs: Vector2, en: Array, title: St
 
 ## 平行四边形（左下 → 右上斜），fill / line 可空
 static func para(ci: CanvasItem, r: Rect2, fill: Color, line := Color(0, 0, 0, 0), w := 1.5) -> void:
-	var k := r.size.y * SKEW
+	if r.size.x < 1.0 or r.size.y < 1.0:
+		return
+	var k := minf(r.size.y * SKEW, r.size.x - 1.0)   # 比斜切量还窄（卡片翻入中）就收斜切，免得多边形自交、三角化失败
 	var p := PackedVector2Array([Vector2(r.position.x + k, r.position.y), Vector2(r.end.x, r.position.y), Vector2(r.end.x - k, r.end.y), Vector2(r.position.x, r.end.y)])
 	if fill.a > 0.0:
-		ci.draw_colored_polygon(p, fill)
+		fill(ci, p, fill)
 	if line.a > 0.0:
 		p.append(p[0])
 		ci.draw_polyline(p, line, w)
@@ -146,9 +160,11 @@ static func card(ci: CanvasItem, r: Rect2, top: Color, sel := false, dim := fals
 	var a := 0.45 if dim else 1.0
 	para(ci, r, LIGHT if sel else UI.fa(DARK2, 0.96), Color(1, 1, 1, 0.16 * a) if not sel else Color(0, 0, 0, 0))
 	var k := r.size.y * SKEW
-	ci.draw_colored_polygon(PackedVector2Array([Vector2(r.position.x + k, r.position.y - 6), Vector2(r.end.x, r.position.y - 6), Vector2(r.end.x - 1.1, r.position.y), Vector2(r.position.x + k - 1.1, r.position.y)]), UI.fa(top, a))
+	if r.size.x < k + 30.0:   # 翻入中的窄卡只画底板
+		return
+	fill(ci, PackedVector2Array([Vector2(r.position.x + k, r.position.y - 6), Vector2(r.end.x, r.position.y - 6), Vector2(r.end.x - 1.1, r.position.y), Vector2(r.position.x + k - 1.1, r.position.y)]), UI.fa(top, a))
 	ci.draw_line(Vector2(r.end.x - 18, r.position.y + 18), Vector2(r.end.x - 10, r.position.y + 10), UI.fa(top, a), 2.0)
-	ci.draw_colored_polygon(PackedVector2Array([Vector2(r.end.x - k - 14, r.end.y), Vector2(r.end.x - k, r.end.y), Vector2(r.end.x - k + 14 * SKEW * 4, r.end.y - 14)]), Color(1, 1, 1, 0.12 * a))
+	fill(ci, PackedVector2Array([Vector2(r.end.x - k - 14, r.end.y), Vector2(r.end.x - k, r.end.y), Vector2(r.end.x - k + 14 * SKEW * 4, r.end.y - 14)]), Color(1, 1, 1, 0.12 * a))
 	if sel:
 		para(ci, r.grow(4), Color(0, 0, 0, 0), CYB, 2.5)
 		for c in [Vector2(r.position.x + k - 2, r.position.y - 4), Vector2(r.end.x + 4, r.position.y - 4), Vector2(r.position.x - 4, r.end.y + 4), Vector2(r.end.x - k + 2, r.end.y + 4)]:
@@ -194,7 +210,7 @@ static func bottom_bar(ci: CanvasItem, vs: Vector2, h: float) -> void:
 static func voucher(ci: CanvasItem, c: Vector2, s: float) -> void:
 	var rot := Transform2D(deg_to_rad(-10.0), c)
 	var quad := func(r: Rect2, col: Color) -> void:
-		ci.draw_colored_polygon(PackedVector2Array([rot * r.position, rot * Vector2(r.end.x, r.position.y), rot * r.end, rot * Vector2(r.position.x, r.end.y)]), col)
+		fill(ci, PackedVector2Array([rot * r.position, rot * Vector2(r.end.x, r.position.y), rot * r.end, rot * Vector2(r.position.x, r.end.y)]), col)
 	var rr := Rect2(-Vector2(30, 16) * s, Vector2(60, 32) * s)
 	quad.call(rr.grow(2 * s), INK)
 	quad.call(rr, Color8(240, 244, 248))
