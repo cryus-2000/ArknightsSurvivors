@@ -212,6 +212,7 @@ func in_game() -> void:
 			continue
 		game.settings.sel = si
 		game.settings._follow()
+		game.settings.set_scroll(game.settings.scroll)   # 滚动是缓动的：直接落位（画面页多了「最高帧率」行，界面大小行要滚下去才看得全）
 		await frames(3)
 		var rr: Rect2 = game.settings.row_rects[si]
 		var vx: float = rr.position.x + rr.size.x - 252.0

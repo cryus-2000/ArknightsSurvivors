@@ -20,6 +20,8 @@ var music := 0.8
 var sfx := 0.9
 var voice := 0.8        # 干员语音（Voice 总线）
 var fullscreen := false
+var max_fps := 60          # 最高帧率 60 / 30（10-22，设置「画面」）：只限渲染帧（Engine.max_fps；网页端 Godot 在 requestAnimationFrame 回调里按它跳帧），逻辑仍按 PlayClock 固定步长
+const MAX_FPS_OPTS := [60, 30]
 const RESOLUTIONS := [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(3840, 2160)]   # 都是 1280×720 的整数倍，像素对齐
 var res_index := 0        # 窗口分辨率（RESOLUTIONS 下标；全屏时按屏幕）
 var dmg_numbers := true
@@ -33,7 +35,7 @@ var water_filter := true # 水下滤镜：色差 + 暗角 + 焦散
 var normal_maps := true  # 2D 法线光照（贴图加载时生成，改动下局生效）
 var brightness := 1.1    # 画面亮度 0.8 ~ 1.4（缺省值随观感预设 render/look，_ready 里设）
 var pad_rumble := true   # 手柄震动
-var quality := ""        # 生效中的画质档 "high" / "mid" / "low"（由 quality_mode 决定）：中 = 关辉光 / 景深 / 法线光照 / 水下滤镜；低 = 再加粒子减半、真人局同屏敌人上限 300、演出简化
+var quality := ""        # 生效中的画质档 "high" / "mid" / "low"（由 quality_mode 决定）：中 = 关法线光照 / 辉光；低 = 四项后期全关（再关景深 / 水下滤镜）+ 粒子减半、真人局同屏敌人上限 300、演出简化
 var quality_mode := "auto"   # 玩家选的画质档：auto / low / mid / high（10-22 用户：设置精简 + 画质自动档，Codex 界面单 §4）
 var quality_probed := false  # 自动档：本次启动的首局已测过前 2 秒帧时（每次启动只测一次）
 const QUALITY_NAME := {"low": "低", "mid": "中", "high": "高"}
@@ -345,6 +347,9 @@ func _read_cfg(c: ConfigFile) -> void:
 	sfx = c.get_value("audio", "sfx", sfx)
 	voice = c.get_value("audio", "voice", voice)
 	fullscreen = c.get_value("video", "fullscreen", fullscreen)
+	max_fps = int(c.get_value("video", "max_fps", 60))
+	if not MAX_FPS_OPTS.has(max_fps):
+		max_fps = 60
 	res_index = clampi(int(c.get_value("video", "res_index", res_index)), 0, RESOLUTIONS.size() - 1)
 	dmg_numbers = c.get_value("game", "dmg_numbers", dmg_numbers)
 	hitstop = c.get_value("game", "hitstop", hitstop)
@@ -413,7 +418,7 @@ func apply() -> void:
 	_bus("Voice", voice)
 	if DisplayServer.get_name() != "headless":
 		if OS.get_environment("ARK_NO_FOCUS") == "1":
-			return   # 测试局：窗口由 _ready 里的最小化循环管，不居中、不改模式
+			return   # 测试局（不限帧，由测试自己管 max_fps）：窗口由 _ready 里的最小化循环管，不居中、不改模式
 		var want := DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
 		if DisplayServer.window_get_mode() != want:
 			DisplayServer.window_set_mode(want)
@@ -427,6 +432,7 @@ func apply() -> void:
 			if DisplayServer.window_get_size() != sz:
 				DisplayServer.window_set_size(sz)
 				DisplayServer.window_set_position((scr - sz) / 2 + DisplayServer.screen_get_position())
+		Engine.max_fps = max_fps   # 无头 / 测试局不走到这里：批跑仍不限帧
 
 
 const WEB_MASTER_TRIM := -7.0
@@ -522,16 +528,16 @@ func _apply_unlock_all() -> void:
 	seen_relics = db.implemented().map(func(r): return r.id)
 
 
-## 画质档位（10-22 改三档 + 自动）：高 = 全开；中 = 关辉光 / 景深 / 法线光照 / 水下滤镜，其余同高；
-## 低 = 同中 + 粒子减半（fx_density）+ 真人局同屏敌人上限 300（spawner.max_alive；机器人 / 自动测试一律 450）+ 演出简化。
+## 画质档位（10-22 改三档 + 自动）：高 = 全开；中 = 只关法线光照 + 辉光（docs/50 量测：法线最贵、辉光次之，景深 / 水下滤镜几乎免费，10-22 协调人定保留）；
+## 低 = 四项后期全关 + 粒子减半（fx_density）+ 真人局同屏敌人上限 300（spawner.max_alive；机器人 / 自动测试一律 450）+ 演出简化。
 ## 这四项后期开关在设置里不再单独露出（键保留、旧存档兼容），一律跟档位走
 func set_quality(q: String) -> void:
 	quality = q if QUALITY_NAME.has(q) else "high"
 	var hi := quality == "high"
 	bloom = hi
-	dof = hi
 	normal_maps = hi
-	water_filter = hi
+	dof = quality != "low"
+	water_filter = quality != "low"
 
 
 func fx_density() -> float:
@@ -594,6 +600,7 @@ func save() -> void:
 	c.set_value("audio", "sfx", sfx)
 	c.set_value("audio", "voice", voice)
 	c.set_value("video", "fullscreen", fullscreen)
+	c.set_value("video", "max_fps", max_fps)
 	c.set_value("video", "res_index", res_index)
 	c.set_value("game", "dmg_numbers", dmg_numbers)
 	c.set_value("game", "hitstop", hitstop)
