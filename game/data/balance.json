@@ -440,10 +440,10 @@
   "_doc": "入队加成（docs/83，用户 10-13 定）：编队每多 1 名干员（开局干员不算，最多算 hp_member_cap 人），主控最大生命 ×(1 + hp_per_member × 人数)（docs/46 §6，每人 +15%），主控生命回复 + regen_per_member × 人数（生命 / 秒，加在 regen 上，吃 heal_mult）。招募卡与属性面板的数字都从这里读。regen_per_member 0 = 关",
   "hp_per_member": 0.15,
   "hp_member_cap": 3,
-  "regen_per_member": 0.4,
-  "leader_hp_mult": 0.85,
+  "regen_per_member": 0.2,
+  "leader_hp_mult": 0.9,
   "op_atk_base": 0.9,
-  "_base_trim": "基础砍（docs/109 §14 v4，用户 10-22「局外树满点数值太碎，砍干员基础数值，把差值留给树」）：leader_hp_mult 乘队长最大生命的基础值（JSON leader 段 / 博士），op_atk_base 是干员攻击倍率 op_atk 的基础值（全员攻击同比）；入队回复 0.6 → 0.4（r2，10-22 云端 mc1：无成长 61.3 偏高再收）。都是基础值，不在属性面板里另列来源",
+  "_base_trim": "基础砍（docs/109 §14 v4，用户 10-22「局外树满点数值太碎，砍干员基础数值，把差值留给树」）：leader_hp_mult 乘队长最大生命的基础值（JSON leader 段 / 博士），op_atk_base 是干员攻击倍率 op_atk 的基础值（全员攻击同比）；入队回复 0.6 → 0.2（r3，用户 10-22：基础砍优先放在入队回复和攻击，队长生命 ×0.85 偏多回到 ×0.9；攻击不砍超 10%）。都是基础值，不在属性面板里另列来源",
   "_regen_t": "分档（协调人 10-13，只加旋钮）：第 1 / 第 2 名队友入队各加多少生命回复；-1 = 沿用 regen_per_member。第 3 名起（编队上限 +1）按 regen_per_member。招募界面、属性面板、指南的数字跟着走",
   "regen_t1": -1,
   "regen_t2": -1
