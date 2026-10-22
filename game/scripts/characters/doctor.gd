@@ -11,24 +11,31 @@ var rej_log: Array = []        # 每次排异的说明文字
 ##   doctor → 生存（主控的生命 / 回复 / 减伤 / 闪避 / 拾取 / 护灯），种类上限 PASSIVE_CAP 4
 ##   mobility → 机动（移动速度 + 冲刺三张），种类上限 balance.json levelup/mobility_kinds（缺省 3）
 ##   squad → 协同（全队干员），种类上限 PASSIVE_CAP 4
-## 选满种类后只出已有种类。desc 里的数字由 passive_desc() 按 balance.json 现值生成的，以它为准
-const PASSIVES := {
-	"hp": {"name": "坚韧", "desc": "队长最大生命 +20", "max": 99, "cat": "doctor"},
-	"regen": {"name": "自愈", "desc": "队长生命回复 +0.6 / 秒", "max": 5, "cat": "doctor"},
-	"armor": {"name": "硬化", "desc": "队长受到的物理伤害 -8%（乘算；对法术、真实伤害无效）", "max": 4, "cat": "doctor"},
-	"dodge": {"name": "水影", "desc": "队长闪避率 +5%", "max": 4, "cat": "doctor"},
-	"pickup": {"name": "感知", "desc": "队长拾取范围 +30%", "max": 5, "cat": "doctor"},
-	"wick": {"name": "护灯", "desc": "队长受击时灯火损失 -15%", "max": 4, "cat": "doctor"},
-	"speed": {"name": "轻盈", "desc": "队长移动速度 +10%", "max": 5, "cat": "mobility"},
-	"dash_cd": {"name": "迅捷", "desc": "冲刺冷却 -12%", "max": 4, "cat": "mobility"},
-	"dash_dist": {"name": "远跃", "desc": "冲刺距离 +12%", "max": 3, "cat": "mobility"},
-	"dash_charge": {"name": "连冲", "desc": "冲刺可储存 2 次，冷却逐次恢复", "max": 1, "cat": "mobility"},
-	"sp": {"name": "协同·技", "desc": "全队技力回复 +15%", "max": 4, "cat": "squad"},
-	"squad_atk": {"name": "协同·攻", "desc": "全队干员攻击 +8%", "max": 5, "cat": "squad"},
-	"squad_aspd": {"name": "协同·迅", "desc": "全队干员攻击速度 +6%", "max": 5, "cat": "squad"},
-	"squad_range": {"name": "协同·广", "desc": "全队干员攻击范围 +8%", "max": 4, "cat": "squad"},
-	"squad_crit": {"name": "协同·专", "desc": "全队干员技能强度 +10%", "max": 4, "cat": "squad"},
-}
+## 选满种类后只出已有种类。desc 里的数字由 passive_desc() 按 balance.json 现值生成的，以它为准。
+## 卡的定义在 data/cards.json（10-22 从这里的常量原样迁出，docs/126 A1）：键序 = 出卡 / 机器人遍历的顺序；新卡只填 json
+static var _card_data = null
+static var PASSIVES: Dictionary = _cards().get("passives", {})
+static var FILLERS: Array = _cards().get("fillers", [])
+
+
+static func _cards() -> Dictionary:
+	if _card_data == null:
+		_card_data = {}
+		var f := FileAccess.open("res://data/cards.json", FileAccess.READ)
+		var d = JSON.parse_string(f.get_as_text()) if f != null else null
+		if d is Dictionary:
+			_card_data = d
+		else:
+			push_error("data/cards.json 缺失或格式不对：升级卡为空")
+	return _card_data
+
+
+## 一张卡的效果数值：value，或 value_bal [balance.json 路径, 缺省]（invert = 取 1 − 值）
+static func card_value(c: Dictionary) -> float:
+	if c.has("value_bal"):
+		var v: float = Bal.v(str(c.value_bal[0]), float(c.value_bal[1]))
+		return 1.0 - v if c.get("invert", false) else v
+	return float(c.get("value", 0.0))
 const PASSIVE_CAP := 4         # 生存 / 协同每类最多几种；机动见 cat_cap()
 const CAT_LABEL := {"doctor": "生存  SURVIVAL", "mobility": "机动  MOBILITY", "squad": "协同  SQUAD"}
 const CATS := ["doctor", "mobility", "squad"]
@@ -350,24 +357,8 @@ func passive_cards(cat: String) -> Array:
 func apply_passive(pid: String) -> bool:
 	if not PASSIVES.has(pid):
 		return false
-	var st = g.stats
-	var src := "growth:" + pid
-	match pid:
-		"hp": st.add(&"max_hp", "flat", 20.0, src)
-		"regen": st.add(&"regen", "flat", Bal.v("sustain/regen_card", 0.6), src)
-		"armor": st.add(&"phys_taken", "mult", 1.0 - Bal.v("growth/armor_pct", 0.08), src)
-		"dash_cd": st.add(&"dash_cd", "mult", Bal.v("dash/cd_card", 0.88), src)
-		"dash_dist": st.add(&"dash_dist", "add", Bal.v("dash/dist_card", 0.12), src)
-		"dash_charge": st.add(&"dash_charges", "flat", 1.0, src)
-		"dodge": st.add(&"dodge", "flat", 0.05, src)
-		"speed": st.add(&"move_speed", "mult", 1.1, src)
-		"pickup": st.add(&"pickup", "mult", 1.3, src)
-		"wick": st.add(&"light_decay", "mult", 0.85, src)
-		"sp": st.add(&"sp_gain", "mult", 1.15, src)
-		"squad_atk": st.add(&"op_atk", "add", 0.08, src, "squad")
-		"squad_aspd": st.add(&"op_aspd", "add", 0.06, src, "squad")
-		"squad_range": st.add(&"op_range", "add", 0.08, src, "squad")
-		"squad_crit": st.add(&"op_skill_power", "add", 0.1, src, "squad")
+	var c: Dictionary = PASSIVES[pid]
+	g.stats.add(StringName(str(c.stat)), str(c.op), card_value(c), "growth:" + pid, str(c.get("scope", "")))
 	g.sync_stats()
 	return true
 
@@ -414,25 +405,33 @@ func passive_preview(pid: String) -> String:
 		"squad_aspd": return "全队攻速 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_aspd", ["squad"]), g.stats.value_for(&"op_aspd", ["squad"]) + 0.06]
 		"squad_range": return "全队范围 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_range", ["squad"]), g.stats.value_for(&"op_range", ["squad"]) + 0.08]
 		"squad_crit": return "技能强度 ×%.2f → ×%.2f" % [g.stats.value_for(&"op_skill_power", ["squad"]), g.stats.value_for(&"op_skill_power", ["squad"]) + 0.1]
+	# 新卡（cards.json 里有、上面没写特别写法的）：属性 现值 → 选中后
+	var c: Dictionary = PASSIVES.get(pid, {})
+	if c.has("stat") and str(c.get("scope", "")) == "":
+		var sn := StringName(str(c.stat))
+		return "%s %.2f → %.2f" % [str(c.stat), st.value(sn), st.value_with(sn, str(c.op), card_value(c))]
 	return ""
 
 
-## 填充卡：其他类别都满时
+## 填充卡：其他类别都满时（cards.json fillers）
 func filler_cards() -> Array:
-	return [
-		{"kind": "filler", "id": "heal", "name": "急救补给", "desc": "队长立刻回复 30% 最大生命", "cat": "补给  SUPPLY"},
-		{"kind": "filler", "id": "oil", "name": "灯油补给", "desc": "灯火 +30", "cat": "补给  SUPPLY"},
-		{"kind": "filler", "id": "atk", "name": "临时协同", "desc": "全队干员攻击 +4%（可叠加）", "cat": "补给  SUPPLY"},
-	]
+	var out: Array = []
+	for c in FILLERS:
+		out.append({"kind": "filler", "id": str(c.id), "name": str(c.name), "desc": str(c.desc), "cat": "补给  SUPPLY"})
+	return out
 
 
 func apply_filler(fid: String) -> void:
-	match fid:
-		"heal": g.combat.heal(g.max_hp * 0.3, "填充卡")
-		"oil": g.lamp = minf(g.lamp_cap, g.lamp + 30.0)
-		"atk":
-			g.stats.add(&"op_atk", "add", 0.04, "filler", "squad")
-			g.sync_stats()
+	for c in FILLERS:
+		if str(c.id) != fid:
+			continue
+		match str(c.get("effect", "")):
+			"heal_pct": g.combat.heal(g.max_hp * float(c.value), "填充卡")
+			"lamp": g.lamp = minf(g.lamp_cap, g.lamp + float(c.value))
+			"stat":
+				g.stats.add(StringName(str(c.stat)), str(c.op), float(c.value), "filler", str(c.get("scope", "")))
+				g.sync_stats()
+		return
 
 
 # ---------------------------------------------------------------- 博士挂件跟随（docs/23 v0.7；10-15 从 game.gd 搬来，docs/101 S5）

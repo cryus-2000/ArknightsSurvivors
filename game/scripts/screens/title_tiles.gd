@@ -8,10 +8,40 @@ extends RefCounted
 const T = preload("res://scripts/screens/tide_ui.gd")
 const UI = preload("res://scripts/ui.gd")
 
+## 菜单表（docs/126 A2，10-22）：加一个局外入口 = 这里加一行（id 接着编、row 定在哪一行，行内按表里的先后）+ title.gd _activate 加一支；
+## 若是盖在标题上的界面，再登记进 title.gd 的 _overlays()。id 是 title.gd sel / item_rects / menu_water 的下标，不重排旧 id。
 ## 6 = 认知塑造（局外成长 P2，docs/109 §4）：放在第二行图鉴 / Boss 演练之后
-const CN := ["集结出发", "图鉴", "Boss 演练", "操作说明", "设置", "退出", "认知塑造"]
-const EN := ["DEPLOY", "GALLERY", "BOSS TRIAL", "GUIDE", "SETTINGS", "EXIT", "SHAPING"]
-const ICON := ["deploy", "gallery", "boss", "guide", "settings", "exit", "tree"]
+const MENU := [
+	{"id": 0, "cn": "集结出发", "en": "DEPLOY", "icon": "deploy", "row": 0},
+	{"id": 1, "cn": "图鉴", "en": "GALLERY", "icon": "gallery", "row": 1},
+	{"id": 2, "cn": "Boss 演练", "en": "BOSS TRIAL", "icon": "boss", "row": 1},
+	{"id": 3, "cn": "操作说明", "en": "GUIDE", "icon": "guide", "row": 2},
+	{"id": 4, "cn": "设置", "en": "SETTINGS", "icon": "settings", "row": 2},
+	{"id": 5, "cn": "退出", "en": "EXIT", "icon": "exit", "row": 2},
+	{"id": 6, "cn": "认知塑造", "en": "SHAPING", "icon": "tree", "row": 1},
+]
+static var CN: Array = _col("cn")
+static var EN: Array = _col("en")
+static var ICON: Array = _col("icon")
+
+
+## 按 id 取 MENU 的一列（下标 = id）
+static func _col(k: String) -> Array:
+	var out: Array = []
+	out.resize(MENU.size())
+	for m in MENU:
+		out[int(m.id)] = m[k]
+	return out
+
+
+## 全部 id 按显示顺序（逐行，行内按表序）
+static func order() -> Array:
+	var out: Array = []
+	for r in 3:
+		for m in MENU:
+			if int(m.row) == r:
+				out.append(int(m.id))
+	return out
 const SUB0 := "选择干员与难度，走进深海"
 ## 设计尺寸（1280×720）：大 / 中 / 小号高度与缝
 const HB := 146.0
@@ -25,11 +55,11 @@ const FRAC := {"big": 0.22, "mid": 0.22, "small": 0.24}
 ## 按可见项分行（空行去掉）
 static func rows(ids: Array) -> Array:
 	var out: Array = []
-	for grp in [[0], [1, 2, 6], [3, 4, 5]]:
+	for row in 3:
 		var r: Array = []
-		for i in grp:
-			if ids.has(i):
-				r.append(i)
+		for m in MENU:
+			if int(m.row) == row and ids.has(int(m.id)):
+				r.append(int(m.id))
 		if not r.is_empty():
 			out.append(r)
 	return out

@@ -14,16 +14,9 @@ const Tiles = preload("res://scripts/screens/title_tiles.gd")
 ## 选人页的职业顺序（docs/23 §11.1）
 const CLASS_ORDER := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
 
-## 菜单项（T5s 磁贴群，docs/67 §12）：0 集结出发 / 1 图鉴 / 2 Boss 演练 / 3 操作说明 / 4 设置 / 5 退出；文字与图标在 screens/title_tiles.gd
-const ITEMS := [
-	{"cn": "集结出发", "en": "DEPLOY"},
-	{"cn": "图鉴", "en": "GALLERY"},
-	{"cn": "Boss 演练", "en": "BOSS TRIAL"},
-	{"cn": "操作说明", "en": "GUIDE"},
-	{"cn": "设置", "en": "SETTINGS"},
-	{"cn": "退出", "en": "EXIT"},
-	{"cn": "认知塑造", "en": "SHAPING"},
-]
+## 菜单项（T5s 磁贴群，docs/67 §12）：0 集结出发 / 1 图鉴 / 2 Boss 演练 / 3 操作说明 / 4 设置 / 5 退出 / 6 认知塑造；
+## 文字、图标、分行都在 screens/title_tiles.gd 的 MENU 表（docs/126 A2），这里只管按 id 打开（_activate）
+const ITEMS: Array = Tiles.MENU
 
 var font: Font
 var tex_player: Texture2D
@@ -714,7 +707,7 @@ func _grow(rng: RandomNumberGenerator, p: Vector2, ang: float, length: float, wi
 
 func _process(delta: float) -> void:
 	Pad.context = "title"
-	var overlay_open: bool = settings.visible or gallery.visible or boss_trial.visible or meta_ui.visible
+	var overlay_open: bool = _overlay_open()
 	if post_fx != null:
 		post_fx.crisp = gallery.visible   # 图鉴 C4' 是浅色终端：不叠辉光 / 水下色差
 	if overlay_was_open and not overlay_open and not transition.busy:
@@ -785,7 +778,7 @@ func menu_track() -> String:
 
 
 func _input(event: InputEvent) -> void:
-	if leaving >= 0.0 or transition.busy or settings.visible or gallery.visible or boss_trial.visible or meta_ui.visible:
+	if leaving >= 0.0 or transition.busy or _overlay_open():
 		return
 	if intro < INTRO_LEN:
 		# 开场动画中：按键 / 点击直接跳到完成态，本次输入不再传给菜单
@@ -858,8 +851,20 @@ func _close_info() -> void:
 		credits = false)
 
 
+## 盖在标题上的界面（各自处理 Esc、关掉时 visible = false）：开着时标题不收输入，关掉那一帧 reveal_page。新的局外界面登记在这里
+func _overlays() -> Array:
+	return [settings, gallery, boss_trial, meta_ui]
+
+
+func _overlay_open() -> bool:
+	for o in _overlays():
+		if o != null and o.visible:
+			return true
+	return false
+
+
 func _menu_ids() -> Array:
-	var ids: Array = [0, 1, 2, 6, 3, 4, 5]
+	var ids: Array = Tiles.order()
 	if not menu_boss:
 		ids.erase(2)
 	# 网页版没有「退出」：quit() 只会把引擎停在最后一帧，玩家只能刷新页面（架构 10-01 实测）

@@ -1133,6 +1133,8 @@ func _process(delta: float) -> void:
 		res_sel = 0
 	else:
 		state_age += delta
+	if state == S.WIN or state == S.DEAD:
+		headhunt.tick()   # 寻访：结算面板出来后有待用的凭证就打开（docs/126 R4：原在 hud 绘制回调里）
 	if demo_op == "":
 		Pad.context = "play" if state == S.PLAY else "game_menu"   # 图鉴演示（SubViewport 里）不抢手柄映射：图鉴仍按标题页翻译 LB / RB / Ⓐ
 	if mode != Mode.PLAY:

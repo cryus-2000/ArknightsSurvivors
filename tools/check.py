@@ -5,7 +5,7 @@
     python tools/check.py              快检（提交前必跑，约 1 分钟）：核心契约测试 + 每名干员冒烟 + 同 seed 复现
     python tools/check.py --bots       快检 + 机器人标准矩阵（starts × 高手 / 普通 × 4 seed，结果缓存）
     python tools/check.py --ab REF     A/B：临时工作树跑 REF，与当前工作区同 seed 对比机器人标准矩阵
-    python tools/check.py --only smoke 只跑某一项（core / smoke / nodes / prot / repro / blocks_eq / regressions / art_lint / slim / op_text / ob_tag / cc_lint / px_lint，或单项回归名）
+    python tools/check.py --only smoke 只跑某一项（core / smoke / nodes / prot / repro / blocks_eq / regressions / art_lint / slim / op_text / ob_tag / cc_lint / data_lint / px_lint，或单项回归名）
     python tools/check.py --jobs 4     本次最多同时开 4 个 Godot（全机总数另受 GODOT_MAX_PROCS 限制）
     python tools/check.py --auto       按相对 main 的改动只跑相关项目：只改文档 → 不开 Godot；只改说明字段 → +核心契约；
                                        只改某几名干员 → +这些干员的冒烟 / 成长节点 + 复现；其余 → 全量。合入 main 前仍跑全量
@@ -179,6 +179,16 @@ def check_ob_tag():
     import ob_tag_audit
     errs, detail = ob_tag_audit.check()
     return {"name": "积木单播表 ob_tag", "ok": not errs, "detail": detail, "errors": errs[:8]}
+
+
+def check_data_lint():
+    """不开 Godot（约 1 秒）：数据契约——json 重复键、waves 引用的敌人 / Boss / 藏品存在且 Boss 已登记、balance.json 疑似拼错的键（tools/data_lint.py，docs/126 R2）"""
+    import data_lint
+    errs = []
+    data_lint.check_dupes(errs)
+    data_lint.check_waves(errs)
+    unread = data_lint.check_balance(errs, False)
+    return {"name": "数据契约 data_lint", "ok": not errs, "detail": "balance.json 无字面读点的键 %d 个（提示）" % len(unread), "errors": errs[:8]}
 
 
 def check_cc_lint():
@@ -970,6 +980,7 @@ SCENE_REGRESSIONS = {
     "tide": ("潮位阶梯 0–15（docs/109 §5）：16 级、锚点 0 / 4 / 8 与旧三档逐键、严格累加", "tide_test", r"TIDE failures=0", []),
     "meta": ("认知塑造（docs/109 §4）：节点数据完整（总量 550、前置、推荐顺序）、推荐点法按预算点、--meta=full 点满、测试局缺省不带", "meta_test", r"META failures=0", ["--roster=start5"]),
     "roster": ("干员解锁（docs/109 §12）：开局 5 人、随机寻访先补齐职业、不重复、定向寻访 2 张、旧券折算、局终 3 / 4 张、满员折细胞、云存档并集", "roster_test", r"ROSTER failures=0", ["--roster=start5"]),
+    "save_migrate": ("存档迁移样本（docs/126 R1）：难度 diff_ver 1–5、旧倍速、旧亮度缺省、三种旧券、没有 [roster] 段的老存档", "save_migrate_test", r"SAVE MIGRATE failures=0", []),
     "cloud_save": ("B站云存档：打包 / 分片 / 平台限制 / 校验 / 版本 / 合并规则 / Cfg 往返 / 非网页不启用（docs/89）", "cloud_save_test", r"CLOUD SAVE failures=0", []),
     "look": ("观感预设 render/look（角色受光封顶 / 后期曲线 / 亮度缺省）", "look_test", r"LOOK TEST failures=0", []),
     "build_affinity": ("构筑匹配（docs/119 §4.3 / §4.4）：三条链的来源 / 门槛 / 浮空与永久技能不误算、卡面说明行、强制招募保底与开关", "build_affinity_test", r"BUILD AFFINITY failures=0", ["--balance", "--op=angelina", "--squad=skadi,kaltsit"]),
@@ -1083,7 +1094,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "px_lint", "enemy_art"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "px_lint", "enemy_art"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1126,6 +1137,8 @@ def main():
         jobs.append(check_enemy_art)
     if a.only == "px_lint":
         jobs.append(check_px_lint)   # 不开 Godot；只在 --only px_lint 时跑（不进 --auto / 全量：样本在 codex-art 工作树，别人机器上可能没有）
+    if a.only in (None, "data_lint"):
+        jobs.append(check_data_lint)   # 不开 Godot，约 1 秒；--auto 也跑（改数据表最容易静默出错的几类）
     if a.only in (None, "cc_lint"):
         jobs.append(check_cc_lint)   # 不开 Godot，约 1 秒；--auto 也跑（击退累加漏乘失重、干员绕过 add_cc / set_air）
     if a.auto and not a.only:

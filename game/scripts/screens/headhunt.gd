@@ -88,42 +88,22 @@ func _vouchers() -> int:
 	return int(Cfg.roster_tickets.get(Roster.T_HUNT, 0))
 
 
-# ---- 规则接口适配（10-22：券规则由局外成长会话改 roster.gd，这里只读接口；合入时由协调人对接）
-# 新接口（claude/difficulty-3tiers b9e1d6bc）：RUN_TICKETS / WIN_BONUS / COST_RANDOM / COST_PICK、redeem_random()、redeem_pick(id) 花 COST_PICK 张、
-# migrate_tickets()、spill_to_cells()。旧接口（main）没有这些时：随机走 redeem_hunt，定向走 redeem_pick（人事调度函），满员走 spill_to_spare
-func _rule(name: String, dflt: int) -> int:
-	return int((Roster as GDScript).get_script_constant_map().get(name, dflt))
-
-
-func _roster_has(fn: String) -> bool:
-	for m in (Roster as GDScript).get_script_method_list():
-		if m.name == fn:
-			return true
-	return false
-
-
-func _rcall(fn: String, args := []) -> Variant:
-	return (Roster as GDScript).callv(fn, args)
-
-
-func _new_rules() -> bool:
-	return _roster_has("redeem_random")
-
-
+# ---- 券规则（core/roster.gd，docs/124）：直接读常量、直接调兑换。10-22 架构复审（docs/126 R5）删掉了合入前的反射适配层——
+# 它在绘制里每帧 get_script_constant_map / get_script_method_list（分配整张表），旧券的折算由 Cfg 读档时的 migrate_tickets 做
 func _cost_pick() -> int:
-	return _rule("COST_PICK", 2)
+	return Roster.COST_PICK
 
 
 func _per_run() -> int:
-	return _rule("RUN_TICKETS", 3)
+	return Roster.RUN_TICKETS
 
 
 func _per_clear() -> int:
-	return _rule("RUN_TICKETS", 3) + _rule("WIN_BONUS", 1)
+	return Roster.RUN_TICKETS + Roster.WIN_BONUS
 
 
 func _redeem_random() -> Dictionary:
-	return _rcall("redeem_random") if _new_rules() else _rcall("redeem_hunt")
+	return Roster.redeem_random()
 
 
 func _redeem_directed(cid: String) -> Dictionary:
@@ -131,28 +111,28 @@ func _redeem_directed(cid: String) -> Dictionary:
 
 
 func _can_random() -> bool:
-	return _vouchers() >= _rule("COST_RANDOM", 1)
+	return _vouchers() >= Roster.COST_RANDOM
 
 
 func _can_direct() -> bool:
-	if _new_rules():
-		return _vouchers() >= _cost_pick()
-	return int(Cfg.roster_tickets.get("pick", 0)) > 0
+	return _vouchers() >= Roster.COST_PICK
 
 
 func _spill() -> void:
-	if _roster_has("spill_to_cells"):
-		_rcall("spill_to_cells")
-	elif _roster_has("spill_to_spare"):
-		_rcall("spill_to_spare")
+	Roster.spill_to_cells()
 
 
-## 结算画出来时调（hud.gd）：有寻访凭证就打开入口
+## 主循环每帧调（game._process，docs/126 R4：原来在 hud.gd 的绘制回调里调）：结算面板出来后（胜利即时；倒下等过渡画完）有待用的凭证就盖一层，
+## 用完才回到结算按钮；作战记录开着、演练局不开
+func tick() -> void:
+	if not (g.state == g.S.WIN or (g.state == g.S.DEAD and g.state_age >= g.hud_view.DEATH_T + 0.35)) or g.trial.active or g.run_stats.open:
+		return
+	maybe_open()
+
+
 func maybe_open() -> void:
 	if open or not Roster.active():
 		return
-	if _roster_has("migrate_tickets"):
-		(Roster as GDScript).call("migrate_tickets")
 	if not _can_random() and not _can_direct():
 		return
 	if Roster.locked_ids().is_empty():
