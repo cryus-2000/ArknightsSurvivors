@@ -111,22 +111,42 @@ func batch_end(mid: Array = []) -> void:
 		_tqs.append(q)
 
 
-## HUD 分层（性能，docs/50 §9.10）：不每帧变的部分（藏品栏、编队卡的静态部分）和小地图画在 g.hud 下面的子画布上
+## HUD 分层（性能，docs/50 §9.10）：不每帧变的部分（左上面板、藏品栏、编队卡的静态部分）和小地图画在 g.hud 下面的子画布上
 ## （全屏 Control、画在父节点之下 show_behind_parent）。子画布只在「签名」变了时重画，平时 Godot 保留它上次的绘制命令，
-## 不再每帧跑 GDScript。重画时把 g.hud 临时指向子画布，原来的绘制函数不用改。本帧走到调用点的层才显示（暂停 / 结算等界面照旧）
+## 不再每帧跑 GDScript。重画时把 g.hud 临时指向子画布，原来的绘制函数不用改。本帧走到调用点的层才显示（暂停 / 结算等界面照旧）。
+## 能进缓存层的块：主画布里画在它之前的东西都不和它重叠（子画布整体在主画布之下）；签名要写全这块读到的状态，
+## 连续量按像素量化（qpx），动画进行中把 g.t 放进签名（逐帧重画）。层的上下次序固定按 LAYER_ORDER 建（docs/126 §8 HUD 第一步）
+const LAYER_ORDER := ["under", "top_left", "minimap", "relics", "squad"]
 var _layers := {}
 
+
+## 连续量的签名：x（逻辑像素）按 1/8 像素量化——没跨过量化格不重画；画面上最多差 1/8 逻辑像素，到跨格那一帧补上
+static func qpx(x: float) -> int:
+	return floori(x * 8.0)
+
+
+func _layer_node(key: String) -> Dictionary:
+	if _layers.is_empty():
+		for k in LAYER_ORDER:   # 第一次用到任何一层时按固定次序一次建好（后建的画在上面），不随哪一块先被调用而变
+			_layers[k] = _new_layer(k)
+	if not _layers.has(key):
+		_layers[key] = _new_layer(key)
+	return _layers[key]
+
+
+func _new_layer(key: String) -> Dictionary:
+	var node := Control.new()
+	node.set_anchors_preset(Control.PRESET_FULL_RECT)
+	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	node.show_behind_parent = true
+	node.visible = false
+	g.hud.add_child(node)
+	node.draw.connect(func(): _layer_draw(key))
+	return {"node": node, "sig": null, "fn": Callable(), "used": false}
+
+
 func _layer(key: String, sig, fn: Callable) -> void:
-	var L = _layers.get(key)
-	if L == null:
-		var node := Control.new()
-		node.set_anchors_preset(Control.PRESET_FULL_RECT)
-		node.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		node.show_behind_parent = true
-		g.hud.add_child(node)
-		L = {"node": node, "sig": null, "fn": fn, "used": false}
-		_layers[key] = L
-		node.draw.connect(func(): _layer_draw(key))
+	var L: Dictionary = _layer_node(key)
 	L.used = true
 	L.fn = fn
 	if L.sig != sig:
@@ -136,6 +156,8 @@ func _layer(key: String, sig, fn: Callable) -> void:
 
 func _layer_draw(key: String) -> void:
 	var L: Dictionary = _layers[key]
+	if not L.fn.is_valid():
+		return
 	var keep: Control = g.hud
 	g.hud = L.node
 	L.fn.call()
@@ -167,7 +189,9 @@ func _draw_body() -> void:
 		return
 	# 各块的顺序就是绘制层次（2026-10-10 拆分前 _draw_body 的原顺序），别调换
 	if not (panel_over_top() and g.choice_kind == "event"):
-		bars.draw_top_left(vs)   # 触屏事件（祭坛）的标题与剧情行占左上角，生命 / 灯火条不画（10-13 手机实测压字）
+		# 触屏事件（祭坛）的标题与剧情行占左上角，生命 / 灯火条不画（10-13 手机实测压字）。
+		# 左上面板进缓存层：它是主画布里最先画的块，之前没有东西压在它下面，挪到子画布层次不变
+		_layer("top_left", bars.top_left_sig(vs), func(): bars.draw_top_left(vs))
 	banners.draw_leader_hints(ct)
 	banners.draw_merchant_pointer(vs, ct)
 	banners.draw_altar_pointers(vs, ct)
