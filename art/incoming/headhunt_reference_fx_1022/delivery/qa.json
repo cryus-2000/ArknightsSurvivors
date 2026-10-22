@@ -1,0 +1,18 @@
+{
+  "passed": true,
+  "checks": [
+    "sheet sizes and hashes",
+    "exact 2px grid on three FX strips",
+    "static base identical across 24 frames",
+    "24 unique upward particle frames",
+    "inner light limited to bag coverage",
+    "stage0 no light",
+    "original bag hashes unchanged",
+    "APNG frame counts",
+    "ground and bag bottom unchanged across loop"
+  ],
+  "loop_brightness_range_percent": 0.11957940325537861,
+  "native_grid": true,
+  "engine_tested": false,
+  "user_review": "pending"
+}

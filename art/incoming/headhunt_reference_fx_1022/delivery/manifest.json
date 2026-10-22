@@ -1,0 +1,104 @@
+{
+  "assets": [
+    {
+      "file": "fx_hh_rear_field@2x.png",
+      "frame_size": [
+        384,
+        400
+      ],
+      "frames": 24,
+      "fps": 12,
+      "origin": [
+        192,
+        322
+      ],
+      "sha256": "fa98fb5be57749f7ee17484c4ee691763aa457af9a525e643a5fbd647e4d8e74"
+    },
+    {
+      "file": "fx_hh_mouth_reference@2x.png",
+      "frame_size": [
+        256,
+        320
+      ],
+      "frames": 24,
+      "fps": 12,
+      "origin": [
+        128,
+        272
+      ],
+      "sha256": "a01e20c1001df51dd1684fa6e324fa00cfa7bd6542f57a53b36909ecc7b55df7"
+    },
+    {
+      "file": "fx_hh_rising_fragments@2x.png",
+      "frame_size": [
+        384,
+        400
+      ],
+      "frames": 24,
+      "fps": 12,
+      "origin": [
+        192,
+        322
+      ],
+      "sha256": "ecf9063f63b549faad0bedb54e0fa48c9030bee42b130923b19387f56596b883"
+    }
+  ],
+  "clip": {
+    "file": "fx_hh_mouth_clip@2x.png",
+    "frames": 8,
+    "frame_size": [
+      256,
+      320
+    ],
+    "origin": [
+      128,
+      272
+    ],
+    "sha256": "da4cf780b22f7183ab9fe3671bb926db7aa24eb91c15e12661bfd2cf2ca8cf05"
+  },
+  "source_sha256": "4de3f4fd2e214a912ff7b115f3662ba02ed976a211df8505a6030cff26bd2eea",
+  "bag_dependencies": {
+    "ui_hh_bag_zip@2x.png": "ec531d17f77a29422687dd46c63a632df0387234c557aab32bc4d767d40fb179",
+    "ui_hh_bag_zip_front@2x.png": "a96fb5b18fc720a455d7d0fac325cd07fb2d4ff328b9b69ce664707ee76e932e",
+    "playback_contract.json": "7cb85fc73a042d153ad613c072391534c8e5e2be7c476544527a7a3acba91715"
+  },
+  "layer_order": [
+    "rear field * reveal",
+    "rising fragments * reveal",
+    "bag base",
+    "(inner field + fragments crop) * mouth_clip * reveal crop",
+    "bag front"
+  ],
+  "placement": "FIXED bag_top_left + (128,66) - each_layer_origin; never follow slider",
+  "animation": "24 frames at12fps: static pixel light field; only separate short streaks and shards rise from zipper; no warp, no brightness modulation",
+  "native_pixel_grid": true,
+  "engine_tested": false,
+  "reveal": {
+    "file": "fx_hh_rear_reveal@2x.png",
+    "frames": 8,
+    "frame_size": [
+      384,
+      400
+    ],
+    "origin": [
+      192,
+      322
+    ],
+    "sha256": "165c2179ffe7ecb943ac897d27f6a5fcde7e33764494243e4abb29081ec1a531"
+  },
+  "pixel_grid": {
+    "native": [
+      192,
+      200
+    ],
+    "display_pixel": 2,
+    "alpha_levels": [
+      0,
+      51,
+      102,
+      153,
+      204,
+      255
+    ]
+  }
+}

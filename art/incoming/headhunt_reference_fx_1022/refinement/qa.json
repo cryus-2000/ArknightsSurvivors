@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "frames": 24,
+  "fps": 12,
+  "duration_ms": 2000,
+  "brightness_range_percent": 1.7358417303230838,
+  "beam_loop_seam_ratio": 0.9033811777887426,
+  "checks": [
+    "24 unique main beam frames",
+    "loop seam within normal frame change",
+    "beam texture moves along straight radial axes; no global brightness modulation",
+    "24 unique particle frames",
+    "straight upward trajectories from zipper",
+    "2px particle grid",
+    "no light below bag",
+    "bag bottom identical across frames",
+    "APNG duration and frames"
+  ],
+  "engine_tested": false
+}

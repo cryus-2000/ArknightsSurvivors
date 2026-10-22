@@ -1,0 +1,1 @@
+Built-in imagegen edit of wide_base_source.png: consistent coarse pixel grid; straight gold/ivory beams; peripheral prismatic halo; broad ground glow; transparent background; remove detached fragments for separate animation. No waves or deformation. Export quantizes native grid and thins ground glow following user feedback.

@@ -1,0 +1,32 @@
+{
+  "status": "animation candidate",
+  "static_reference": "light@2x.png",
+  "animated": [
+    "flowing_beams@2x.png",
+    "rising_fragments@2x.png"
+  ],
+  "frame_size": [
+    384,
+    400
+  ],
+  "frames": 24,
+  "fps": 12,
+  "origin": [
+    192,
+    350
+  ],
+  "placement": "bag_top_left + (128,66) - origin",
+  "inner_crop": [
+    64,
+    78,
+    256,
+    320
+  ],
+  "layer_order": [
+    "flowing beams + fragments",
+    "bag base",
+    "same light crop * fixed mouth clip",
+    "bag front"
+  ],
+  "source_sha256": "f146aebdda1f683432f10a3e7f03b3b581e15446cfa9871ac17b3fe882a764c0"
+}

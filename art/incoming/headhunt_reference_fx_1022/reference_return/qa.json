@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "frames": 24,
+  "fps": 12,
+  "duration_ms": 2000,
+  "brightness_range_percent": 0.12438887764699547,
+  "beam_loop_seam_ratio": 1.0087313082046645,
+  "checks": [
+    "12-frame main flow cycle, twice per preview",
+    "loop seam within normal frame change",
+    "gold texture flows upward at double speed; long launch streaks; halo alpha fixed",
+    "12-frame fast fragment cycle",
+    "straight upward trajectories from zipper",
+    "2px particle grid",
+    "no light below bag",
+    "bag bottom identical across frames",
+    "APNG duration and frames"
+  ],
+  "engine_tested": false,
+  "opening_frames": 39,
+  "opening_duration_ms": 3600,
+  "closed_ms": 400,
+  "fully_open_ms": 1600,
+  "opening_checks": [
+    "closed bag has no light",
+    "right-to-left original zipper stages",
+    "monotonic in-place light reveal",
+    "inner mask within bag coverage",
+    "original handles/front overlay last"
+  ]
+}
