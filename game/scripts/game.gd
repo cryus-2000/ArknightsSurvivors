@@ -884,7 +884,7 @@ func _ready() -> void:
 	preset = clampi(Cfg.difficulty, 0, D.DIFF_PRESETS.size() - 1)
 	tier = int(D.DIFF_PRESETS[preset].tide)
 	diff = tier
-	dmod = D.dmod_for_tier(tier)
+	dmod = D.dmod_for_preset(preset)   # 潮位表 + 该档的 enemy_scale（极限档微降，docs/109 §15）
 	for a in Cfg.dev_args():
 		if a.begins_with("--diff="):
 			# 批跑：旧累计难度 0–10 拼修正表（与旧数据对得上）
@@ -903,7 +903,7 @@ func _ready() -> void:
 			preset = -1
 			tier = clampi(int(a.substr(7)), 0, D.DIFFICULTY_TIERS.size() - 1)
 			diff = tier
-			dmod = D.dmod_for_tier(tier)
+			dmod = D.dmod_for_tide(tier)   # 潮位正好是三档预设之一时带上该档的 enemy_scale（校准批跑与正式档同一张表）
 	if float(dmod.lamp_hit) != 1.0:
 		stats.add(&"light_decay", "mult", float(dmod.lamp_hit), "difficulty")   # 受击灯火损失（g.lamp_decay 只用于受击，combat.gd lose_hp）
 	if float(dmod.max_hp) != 1.0:

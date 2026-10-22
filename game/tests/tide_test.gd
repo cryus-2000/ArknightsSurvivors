@@ -26,6 +26,16 @@ func run() -> void:
 	for i in 16:
 		check(int(D.DIFFICULTY_TIERS[i].level) == i, "第 %d 级 level" % i)
 	check(D.dmod_for_tier(0) == D.dmod_for_legacy(0), "潮位 0 = 旧标准")
+	# 三档预设（docs/109 §15）：标准 / 困难 = 纯潮位表；极限 = 潮位 10 的表上小怪生命 / 伤害再乘 enemy_scale；其余键与潮位 10 相同；--tide=10 走同一张表
+	check(D.dmod_for_preset(0) == D.dmod_for_tier(0) and D.dmod_for_preset(1) == D.dmod_for_tier(5), "标准 / 困难预设 = 潮位 0 / 5 的表")
+	var m10 := D.dmod_for_tier(10)
+	var px := D.dmod_for_preset(2)
+	var ks: float = float(D.DIFF_PRESETS[2].get("enemy_scale", 1.0))
+	check(ks < 1.0 and is_equal_approx(float(px.enemy_hp), float(m10.enemy_hp) * ks) and is_equal_approx(float(px.enemy_dmg), float(m10.enemy_dmg) * ks), "极限预设：小怪生命 / 伤害 × enemy_scale（%s）" % ks)
+	for k in m10:
+		if not k in D.PRESET_SCALE_KEYS:
+			check(px[k] == m10[k], "极限预设其余键同潮位 10：" + str(k))
+	check(D.dmod_for_tide(10) == px and D.dmod_for_tide(5) == D.dmod_for_tier(5) and D.dmod_for_tide(8) == D.dmod_for_tier(8), "--tide=10 带极限档修正，5 / 8 为纯潮位表")
 	check(D.dmod_for_tier(4) == D.dmod_for_legacy(1), "潮位 4 = 旧 Ⅳ")
 	var m8 := D.dmod_for_legacy(2)
 	m8.ctrl_start = 300.0

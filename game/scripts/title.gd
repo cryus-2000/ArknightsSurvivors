@@ -620,7 +620,7 @@ func _draw_diff(vs: Vector2) -> void:
 	var locked2 := diff_sel > Cfg.diff_unlocked
 	var ma := clampf((t - diff_mod_t) / (0.12 if Cfg.reduce_motion else 0.22), 0.0, 1.0)
 	TUI.ptext(self, c, pp + Vector2(24 if not ph else 16, 24 if not ph else 18), "TIER FILE // MODIFIERS", k1, TUI.CY)
-	var lines: Array = D.dmod_lines(D.dmod_for_tier(int(D.DIFF_PRESETS[diff_sel].tide)))
+	var lines: Array = D.dmod_lines(D.dmod_for_preset(diff_sel))
 	var head: String = str(tdef2.get("desc", ""))
 	if locked2:
 		head = "通关「%s」后解锁 · 可以先看规则" % str(D.DIFF_PRESETS[diff_sel - 1].name)
