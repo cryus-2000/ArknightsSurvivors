@@ -195,13 +195,16 @@ func hp_sum(g) -> float:
 func test_exusiai(g, o) -> void:
 	dash(g, false, o)
 	o.ext.bul = []
+	var hp0: float = hp_sum(g)
 	dash(g, true, o)
 	var n: int = o.ext.bul.size()
+	var dealt: float = hp0 - hp_sum(g)   # 10-23 起普攻子弹不穿透：贴脸的目标当帧命中、子弹当帧消失，所以按「弹体还在 或 已造成伤害」算补射
 	var ts: Array = o.SegExusiai._exu_behind(o, 1, 300.0)
-	ok(n >= 1 and not ts.is_empty() and (ts[0].pos - g.ppos).x < 0.0, "能天使：队长冲刺（向右）起步 → 补射 %d 发，目标在队长身后（左）" % n)
+	ok((n >= 1 or dealt > 0.0) and not ts.is_empty() and (ts[0].pos - g.ppos).x < 0.0, "能天使：队长冲刺（向右）起步 → 补射 %d 发 / 命中 %.0f，目标在队长身后（左）" % [n, dealt])
 	o.ext.bul = []
+	hp0 = hp_sum(g)
 	tick(o)
-	ok(o.ext.bul.is_empty(), "能天使：冲刺中不重复补射")
+	ok(o.ext.bul.is_empty() and hp_sum(g) >= hp0 - 0.001, "能天使：冲刺中不重复补射")
 	dash(g, false, o)
 
 

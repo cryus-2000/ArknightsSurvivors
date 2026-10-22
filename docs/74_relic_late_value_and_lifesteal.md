@@ -213,6 +213,14 @@ python tools/balance_run.py --game game --jobs 4 --preset starts --bots master -
 | 263 | 血魔的银杯 · 稀有 | 全队造成伤害的 0.05% 转为主控生命（每秒最多 0.5% 最大生命；主控生命低于 50% 时上限翻倍） | `rule lifesteal`；`combat.damage` 把护盾之后、扣血之前的伤害传进 `rfx.on_hit(e, h, amount)`（通用参数，按 `min(伤害, 目标剩余生命)` 计）；每秒预算随 `sp_budget_t` 清零；上限按受治疗加成之前的量计，之后 `combat.heal` 照常乘受治疗加成与侵蚀创口。藏品自身伤害（origin = relic）不计，#102 食腐者手杖的伤害显式排除，无回路（满血吸血的溢出仍会喂给 #102，这是保留的搭配） | `steal_pct 0.0005`、`steal_cap 0.005`、`steal_low_at 0.5`、`steal_low_mult 2.0` |
 | 264 | 猎人的口粮 · 基础 | 每击杀 60 名敌人，主控回复 2% 最大生命（精英算 10 名，Boss 算 60 名） | `rule killheal`，在 `rfx.on_kill` 里累计权重；宝箱、友方、泪滴不算 | `killheal_n 60`、`killheal_pct 0.02`、`killheal_elite 10`、`killheal_boss 60` |
 
+### 8.4 穿甲弹（#265，10-23，流派 E，`damage` + `range` + `projectile` 标签，效果分类 `range`）
+
+| # | 名字 · 稀有度 | 效果 | 实装 | 旋钮 |
+|---|---|---|---|---|
+| 265 | 穿甲弹 · 稀有 | 远程普攻的子弹穿透全部敌人，每穿过一名伤害 −15%（最低 40%）；与升级卡「贯穿」同在时按本藏品全穿、卡层数失效；对技能弹幕无效 | `rule atk_pierce_all`；`character.atk_pierce` / `atk_pierce_mult` 统一换算，只接到能天使弹道、拉普兰德普攻剑气（`shape.wave.max_hits`）、流明普攻光弹（docs/108 §17） | 无（−15% / 40% 写死在 `atk_pierce_mult`） |
+
+只有 1 级，无门槛，可进商店。评审口径同 §8.3：稀有度按实效（全穿是能天使 / 流明的主要输出放大，与 #79 全队伤害 +20% 同档），效果分类 `range`（攻击范围 / 覆盖类）。图标暂无（choice_panel 无图回退）。
+
 两件都只有 1 级。图标手摆（`tools/relic_icons_hand_h.py`）：#263 盛着暗红液体的银高脚杯，#264 油纸包着的压缩干粮（麻绳扎口、蓝封条）。机器人按现有规则评分（H 流派、受伤时 `survival` +1.5），没有单独加分。
 
 ### 8.4 遥测
