@@ -969,6 +969,8 @@ SCENE_REGRESSIONS = {
     "skalter_specter_anim": ("浊心 / 归溟新美术：出手帧对齐、S3 重锯 / 反向圈换条", "skalter_specter_anim_test", r"SKALTER SPECTER ANIM failures=0", ["--balance", "--op=specter_unchained", "--squad=skalter"]),
     "mizuki_runtime": ("水月完整出手、持续状态、退出与成长", "mizuki_runtime_test", r"MIZUKI RUNTIME .* 0 failed", ["--balance", "--seed=1", "--op=mizuki", "--squad=skadi"]),
     "lappland_presentation": ("拉普兰德剑气生命周期与技能动作接续", "lappland_presentation_test", r"LAPPLAND PRESENTATION .* 0 failed", ["--balance", "--op=lappland"]),
+    "gladiia_presentation": ("歌蕾蒂娅牵引、水柱锚点与场特效收尾", "gladiia_presentation_test", r"GLADIIA PRESENTATION .* 0 failed", ["--balance", "--op=gladiia"]),
+    "operator_transitions": ("全员技能起手、移动接续与强化重锤", "operator_transition_test", r"OPERATOR TRANSITIONS .* 0 failed", ["--balance", "--op=mizuki"]),
     "attack_rhythm": ("20 人确认节奏、攻速压缩、逐帧映射、移动让位与技能接管", "attack_rhythm_test", r"ATTACK RHYTHM .* 0 failed", ["--balance", "--seed=1", "--op=mizuki"]),
     "mizuki_skill_anim": ("水月原生像素起手、命中、收势和持续变体", "mizuki_skill_anim_test", r"MIZUKI SKILL ANIM failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
     "settlement": ("结算：历史编队滚动、评级与视觉 RNG", "settlement_test", r"SETTLEMENT failures=0", []),

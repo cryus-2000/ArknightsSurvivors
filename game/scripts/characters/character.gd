@@ -1140,7 +1140,7 @@ func follow(dt: float, target: Vector2) -> void:
 	if vis_anim != "" and anim_tex(vis_anim) != null:
 		want = vis_anim   # 纯画面动作（play_vis_anim）：播完前压过普攻 / 跑步，不占出手窗口
 	elif sq_atk != "" and anim_tex(sq_atk) != null:
-		want = sq_atk   # 循环期间的普攻变体（sprites.skills.sN.attack）：按其 fire 帧对齐出手，播完回循环（_tick_sq_atk）
+		want = sqk if _sq_atk_yield() else sq_atk   # 循环期间的普攻变体（sprites.skills.sN.attack）：按其 fire 帧对齐出手，播完回循环（_tick_sq_atk）
 	elif attack_t > 0.0 and not sq_own and anim_tex(act_anim) != null and not act_anim_yield():
 		want = act_anim   # 序列之外的动作（循环期间起手的普攻 / 另一技能）压过序列，播完接着循环
 	elif sqk != "":
@@ -1648,6 +1648,9 @@ func _anim_state_raw() -> Dictionary:
 	if tx == null:
 		return {}
 	var kind: String = anim_kind if anim_tex(anim_kind) != null else "idle"
+	if kind == sq_atk and _sq_atk_yield():
+		kind = seq_anim(sq.run)
+		tx = anim_tex(kind)
 	var n: int = anim_hframes(tx, kind)
 	var fr := 0
 	if sq_atk != "" and kind == sq_atk:
@@ -1921,6 +1924,8 @@ func _sq_kind() -> String:
 func _sq_frame(n: int) -> int:
 	var seg = _sq_seg()
 	var k := seq_anim(seg)
+	if sq_ph == 2 and k == "run":
+		return int(run_ph) % n   # 普通跑步与技能跑步共享相位，不随技能计时重启。
 	var frs: Array = [0] if (sq_ph == 1 and sq.has("hold") and not (seg is Dictionary)) else _seq_frames(seg, k)
 	if frs.is_empty():
 		return 0
@@ -2035,6 +2040,14 @@ func _tick_sq_atk(dt: float) -> void:
 	var n := float(spec.get("frames", anim_hframes(anim_tex(sq_atk), sq_atk)))
 	if (sq_atk_t >= attack_dur) if attack_phased else (sq_atk_t + _sq_atk_off() >= frames_seconds(sq_atk, range(int(n)))):
 		sq_atk = ""   # 播完回循环
+
+
+## 移动只暂时让出画面，保留变体时钟；同轮停下可接着收势。
+func _sq_atk_yield() -> bool:
+	if sq_atk == "" or sq_ph != 2 or not sq.has("run") or sq_atk_t < attack_fire_at:
+		return false
+	var run_slot := seq_anim(sq.run)
+	return anim_tex(run_slot) != null and mv > (RUN_EXIT if anim_kind == run_slot else RUN_ENTER)
 
 
 ## 当前序列循环阶段可用的普攻变体帧条（"" = 没写 / 缺图 / 不在循环阶段）

@@ -691,12 +691,17 @@
         "off": [
          0,
          2
+        ],
+        "anchor": [
+         32,
+         50
         ]
        }
       ],
       "arrive_stun": "$arrive_stun",
       "arrive_stun_elite1": "$arrive_stun_e1",
-      "push_out": true
+      "push_out": true,
+      "thin_chain": true
      }
     ]
    },
@@ -774,7 +779,11 @@
          4
         ],
         "once": true,
-        "if_tex": "fx_gladiia_tornado_open"
+        "if_tex": "fx_gladiia_tornado_open",
+        "anchor": [
+         32,
+         58
+        ]
        },
        {
         "strip": "fx_gladiia_tornado_loop",
@@ -784,7 +793,12 @@
          4
         ],
         "delay": 0.3,
-        "if_tex": "fx_gladiia_tornado_loop"
+        "if_tex": "fx_gladiia_tornado_loop",
+        "anchor": [
+         32,
+         58
+        ],
+        "no_fade": true
        },
        {
         "pfx": {
@@ -831,9 +845,65 @@
         "r": "$s3_r",
         "dir": "pull",
         "dist": "$s3_pull",
-        "elite_mult": "$pull_elite"
+        "elite_mult": "$pull_elite",
+        "fx": [
+         {
+          "strip": "fx_gladiia_pull",
+          "n": 4,
+          "spread": 0.8,
+          "inward": true,
+          "scale": 0.9,
+          "off": [
+           0,
+           -8
+          ]
+         }
+        ]
        }
-      ]
+      ],
+      "visual_end": {
+       "skill": 2,
+       "fx": [
+        {
+         "strip": "fx_gladiia_tornado_close",
+         "scale": 1.2,
+         "off": [
+          0,
+          4
+         ],
+         "once": true,
+         "if_tex": "fx_gladiia_tornado_close",
+         "anchor": [
+          32,
+          58
+         ]
+        },
+        {
+         "strip": "fx_gladiia_pull",
+         "n": 6,
+         "spread": 0.9,
+         "scale": 0.9,
+         "off": [
+          0,
+          -8
+         ],
+         "inward": true
+        },
+        {
+         "strip": "fx_gladiia_ram",
+         "layer": "floor",
+         "scale": 1.3,
+         "off": [
+          0,
+          2
+         ],
+         "anchor": [
+          32,
+          50
+         ]
+        }
+       ]
+      }
      }
     ]
    }
@@ -867,7 +937,8 @@
       "drag_only": "all",
       "arrive_stun": "$arrive_stun",
       "arrive_stun_elite1": "$arrive_stun_e1",
-      "push_out": true
+      "push_out": true,
+      "thin_chain": true
      }
     ]
    },
@@ -899,7 +970,8 @@
       "drag_only": "all",
       "arrive_stun": "$arrive_stun",
       "arrive_stun_elite1": "$arrive_stun_e1",
-      "push_out": true
+      "push_out": true,
+      "thin_chain": true
      }
     ]
    },
@@ -931,7 +1003,8 @@
       "drag_only": "all",
       "arrive_stun": "$arrive_stun",
       "arrive_stun_elite1": "$arrive_stun_e1",
-      "push_out": true
+      "push_out": true,
+      "thin_chain": true
      }
     ]
    },
@@ -957,7 +1030,8 @@
         "off": [
          0,
          -8
-        ]
+        ],
+        "inward": true
        }
       ]
      }
@@ -979,37 +1053,6 @@
        {
         "st": "stun",
         "dur": "$s3_end_stun"
-       }
-      ],
-      "fx": [
-       {
-        "strip": "fx_gladiia_tornado_close",
-        "scale": 1.2,
-        "off": [
-         0,
-         4
-        ],
-        "once": true,
-        "if_tex": "fx_gladiia_tornado_close"
-       },
-       {
-        "strip": "fx_gladiia_pull",
-        "n": 6,
-        "spread": 0.9,
-        "scale": 0.9,
-        "off": [
-         0,
-         -8
-        ]
-       },
-       {
-        "strip": "fx_gladiia_ram",
-        "layer": "floor",
-        "scale": 1.3,
-        "off": [
-         0,
-         2
-        ]
        }
       ]
      }
@@ -1135,7 +1178,11 @@
          0,
          2
         ],
-        "if_tex": "fx_gladiia_ram"
+        "if_tex": "fx_gladiia_ram",
+        "anchor": [
+         32,
+         50
+        ]
        },
        {
         "pfx": {
