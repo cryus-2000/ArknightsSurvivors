@@ -742,6 +742,9 @@ func _release() -> void:
 		SegIrene.h3_attack_fire(self, a)
 	elif str(a.get("shape", "")) in ObHw.H4_ATTACKS:   # 手写迁移段第 4 批：锤击 / 狐火 / 炮击 / 拳击（音效由形状自己播）
 		ObHw.h4_attack_fire(self, a)
+	elif a.get("far", null) is Dictionary and _far_wanted(a, a.far):   # 远程兜底（docs/122 §2.1 attack.far，10-22 用户）：触及内没人就改用远程形状
+		_exec_list([a.far])
+		last_hit_pos = Vector2.INF
 	else:
 		exec_any_shape(a, Vector2.INF, true)
 	atk_live = false
@@ -1199,6 +1202,14 @@ var neg_mul := 1.0                     # 本帧 verb.negate_chance 的 Πmult
 var swap_atk: Dictionary = {}          # 本帧生效的 verb.swap_attack（空 = 用 blocks.attack）
 var negate_n := 0                      # 本局格挡次数（图鉴 / 测试看）
 var _hurt_cd: Dictionary = {}          # trig.on_hurt 的冷却（_uid → 下次可触发的 g.t）
+
+
+## attack.far（通用积木）：这一下普攻的触及范围（形状半径 × op_range）内没有敌人、而远程形状的瞄准范围（aim_r，缺省 dist）内有 → 改掷远程形状
+func _far_wanted(a: Dictionary, far: Dictionary) -> bool:
+	if not nearest_enemies(1, ObCore.shape_radius(self, a), pos).is_empty():
+		return false
+	var fr: float = float(far.get("aim_r", far.get("dist", 0.0))) * stat(&"op_range")
+	return fr > 0.0 and not nearest_enemies(1, fr, pos).is_empty()
 
 
 ## 当前普攻形状：verb.swap_attack 生效时用它，否则 blocks.attack

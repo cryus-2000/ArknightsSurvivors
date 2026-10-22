@@ -244,6 +244,12 @@ static func _hw_attack(atk: Dictionary, ctx: Dictionary) -> void:
 	var errs: Array = ctx.errs
 	_num(atk, "first", "blocks.attack", ctx, false, 0.0, 30.0)
 	_num(atk, "idle", "blocks.attack", ctx, false, 0.0, 5.0)
+	if atk.has("far"):   # 远程兜底（docs/122 §2.1）：触及内没有敌人时这一下改掷远程形状
+		var fr = atk.far
+		if not (fr is Dictionary) or not str(fr.get("shape", "")) in ["wave", "circle", "cone"]:
+			errs.append("blocks.attack.far 必须是一个伤害形状对象（shape.wave / circle / cone），触及内没有敌人时替代这一下普攻")
+		else:
+			_list([fr], "blocks.attack.far", "skill", ctx)
 	if atk.has("combo"):
 		var cb = atk.combo
 		if not (cb is Array) or cb.is_empty() or cb.size() > 6:
