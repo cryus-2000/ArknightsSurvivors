@@ -192,6 +192,15 @@ func update_visuals(dt: float) -> void:
 		fx_dim = 0.0   # --clutterdbg=nofriend：友方特效全透明（代码照跑、随机数照抽）
 	ol_mul = lerpf(1.0, Dc.p("ol_floor"), ecrowd)
 	flash_a = lerpf(0.9, Dc.p("flash_a"), ecrowd)
+	# 集体白闪封顶（docs/127 FX-A1，10-23）：同一帧在白闪的普通怪超过 fx/flash_group（缺省 6）只时，白闪按 6 / 只数 压淡（最低 fx/flash_group_floor），
+	# 群伤技能不再把一整片怪刷成白块盖住技能本体与队长；精英 / Boss 不受影响（纯画面）
+	var nfl := 0
+	for e in g.enemies:
+		if e.flash > 0.0 and not e.elite and not e.boss:
+			nfl += 1
+	var fg: float = Bal.v("fx/flash_group", 6.0)
+	if nfl > fg:
+		flash_a *= maxf(Bal.v("fx/flash_group_floor", 0.35), fg / float(nfl))
 	spark_left = int(Dc.p("spark_budget")) if Dc.p("spark_budget") > 0.0 else 1 << 30
 	elite_rim = clampf(Bal.v("render/elite_rim", 0.0), 0.0, 1.0)
 	var rg: float = Bal.v("render/elite_rim_gain", 2.2)
@@ -2315,7 +2324,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	_espr(name, frames, frame, bpos, sc, flip, col, anc, sq)
 	if e.flash > 0.0:
 		# 受击白闪：普通怪随 ecrowd 降到 declutter flash_a（缺省 0.9 = 不变）；精英 / Boss 照旧
-		_espr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 if (e.elite or e.boss) else flash_a), anc, sq)
+		_espr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, (Bal.v("fx/flash_boss", 0.5) if e.boss else 0.9) if (e.elite or e.boss) else flash_a), anc, sq)   # Boss 白闪 50%（docs/127 C3：大体型整块变白刺眼）
 	elif e.boss and _rec == null and g.tex.has(name + "_white"):
 		# Boss 登场：先是白剪影、0.15–0.7 秒亮成本体（screens/boss_intro.gd；Boss 不进画法缓存，docs/50 §9.9）
 		var sk: float = g.boss_intro.silhouette_k(e)
