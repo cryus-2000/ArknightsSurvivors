@@ -1,5 +1,5 @@
 ## Boss 行为脚本基类（docs/55 §6，10-10）：每只 Boss 一个 scripts/enemies/bosses/<type>.gd，继承本类、覆写 step()；
-## 多个 type 共用一份脚本时在 boss_ai.gd 的 SCRIPTS 注册表里指到同一个文件（圣徒 iberia / carmen → saint.gd）。
+## 多个 type 共用一份脚本时在 enemies.json 写同一个 "script"（圣徒 iberia / carmen → saint.gd；docs/126 A3）。
 ## 状态全部还在敌人字典 e 上（docs/39：敌人用字典），脚本本身无状态，所以同一只 Boss 的多个实例共用一个脚本对象。
 ## 预警管线在 enemies/telegraph.gd（g.tele，docs/101 B2）；招式冷却 _cd、远程迫近 _close_in、招式令牌都留在 boss_ai.gd，这里只转发。
 extends RefCounted

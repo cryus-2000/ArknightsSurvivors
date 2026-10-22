@@ -309,14 +309,16 @@ func _build() -> void:
 			# 干员：data/characters/*.json（新干员自动出现）；顺序同选人页：封面干员水月在前，其余按职业；博士放最后
 			var ops: Array = []
 			for cid in Character.list_ids():
-				var oe: Dictionary = _op_entry(cid, Character.load_def(cid))
+				var cdef: Dictionary = Character.load_def(cid)
+				var oe: Dictionary = _op_entry(cid, cdef)
+				oe["first"] = bool(cdef.get("list_first", false))   # list_first：干员 json（封面干员水月排第一）
 				if not Roster.is_unlocked(cid):
 					oe["locked"] = true
 					oe["locked_text"] = "未解锁。\n\n探索结算时使用寻访凭证、招募券或人事调度函解锁。"
 				ops.append(oe)
 			ops.sort_custom(func(x, y):
-				var kx: int = 0 if x.id == "mizuki" else 1
-				var ky: int = 0 if y.id == "mizuki" else 1
+				var kx: int = 0 if x.get("first", false) else 1
+				var ky: int = 0 if y.get("first", false) else 1
 				if kx != ky:
 					return kx < ky
 				var cx: int = CLASS_ORDER.find(x.cls)
@@ -546,7 +548,7 @@ func _lore_text(key: String, mech: String) -> String:
 const DESK := Vector2(1280, 720)
 const PHONE := Vector2(740, 360)
 const ART_K := 4.0                 # 立绘倍数上限（@2x 像素）：与选人页 title.gd OP_ART_K 相同，手机 ×0.6
-const CLASS_ORDER := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
+const CLASS_ORDER: Array = D.CLASS_ORDER
 ## 非干员页斜带颜色（干员页用干员色）：敌人 / 精英 / Boss / 道具 / 藏品；结局用各结局自己的颜色
 const TAB_COL := [Color(0.212, 0.886, 0.863), Color(0.85, 0.3, 0.42), Color(0.957, 0.753, 0.306), Color(1.0, 0.239, 0.545),
 	Color(0.212, 0.886, 0.863), Color(0.66, 0.52, 1.0), Color(0.66, 0.52, 1.0)]

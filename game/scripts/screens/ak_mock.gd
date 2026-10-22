@@ -11,8 +11,8 @@ const Character = preload("res://scripts/characters/character.gd")
 
 const DESK := Vector2(1280, 720)
 const PHONE := Vector2(740, 360)
-const CLASS_ORDER := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
-const CLASS_EN := {"先锋": "VANGUARD", "近卫": "GUARD", "重装": "DEFENDER", "狙击": "SNIPER", "术师": "CASTER", "医疗": "MEDIC", "辅助": "SUPPORTER", "特种": "SPECIALIST"}
+const CLASS_ORDER: Array = preload("res://scripts/data.gd").CLASS_ORDER
+const CLASS_EN: Dictionary = preload("res://scripts/data.gd").CLASS_EN
 ## 三种券的识别色：寻访凭证 青 / 招募券 紫 / 人事调度函 近白（不用黄，黄只留给图鉴，docs/37 §2）
 const TICKET := [["寻访凭证", "HEADHUNTING PERMIT", Color(0.235, 0.784, 0.894)], ["招募券", "RECRUITMENT PERMIT", Color(0.486, 0.42, 1.0)], ["人事调度函", "TRANSFER ORDER", Color(0.85, 0.9, 0.95)]]
 const LOCKED := ["mizuki", "skadi", "irene", "lumen", "logos", "specter_unchained", "gladiia", "kaltsit", "ulpianus", "wisadel", "skalter", "lappland", "angelina"]

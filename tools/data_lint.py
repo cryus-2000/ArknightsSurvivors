@@ -4,7 +4,7 @@
 失败（退出码 1）：
   1. 任何 game/data/**/*.json 里同一个对象出现重复的键（JSON.parse 只留最后一个，前面的改了等于白改）。
   2. waves.json 引用了 enemies.json 里没有的敌人 id（threat 的 pool / horde / horde_mix 主体与特种、mid_pool、endings 的 boss）；
-     Boss 位（mid_pool、endings.boss）的 id 没在 boss_ai.gd 的 SCRIPTS 登记（没登记的 Boss 不出招）；events 选项给的藏品不在 relics.json。
+     Boss 位（mid_pool、endings.boss）的 id 不是 role boss 或缺 enemies/bosses/<script>.gd（boss_ai.script_of，不出招）；events 选项给的藏品不在 relics.json。
   3. balance.json 疑似拼错的键：代码里 Bal.v / Bal.vi / BalS.v / MfBal.v("段/键", 缺省) 读的路径 json 里没有，
      而同一段里有一个名字很像、却没有任何代码读到的键（读不到时静默取缺省值，改了 json 等于没改）。
 提示（不算失败）：balance.json 里没有在代码里以字面路径出现的叶子键（可能是动态拼的路径，也可能是死键），只报个数，--verbose 列出。
@@ -51,17 +51,21 @@ def check_dupes(errs):
     return n
 
 
-def _boss_scripts():
-    src = open(os.path.join(SCRIPTS, "boss_ai.gd"), encoding="utf-8").read()
-    m = re.search(r"const SCRIPTS := \{(.*?)\n\}", src, re.S)
-    return set(re.findall(r'"([a-z_0-9]+)"\s*:', m.group(1))) if m else set()
+def _boss_scripts(ens):
+    """enemies.json 里 role == boss 且 scripts/enemies/bosses/<script 或种类名>.gd 存在的种类（boss_ai.script_of 的约定）"""
+    out = set()
+    for k, d in ens.items():
+        if d.get("role") == "boss" and os.path.exists(os.path.join(SCRIPTS, "enemies", "bosses", str(d.get("script", k)) + ".gd")):
+            out.add(k)
+    return out
 
 
 def check_waves(errs):
-    enemies = set(_load(os.path.join(DATA, "enemies.json"), [])["enemies"].keys())
+    ens = _load(os.path.join(DATA, "enemies.json"), [])["enemies"]
+    enemies = set(ens.keys())
     relics = {str(it.get("id")) for it in _load(os.path.join(DATA, "relics.json"), []).get("items", []) if isinstance(it, dict)}
     w = _load(os.path.join(DATA, "waves.json"), [])
-    bosses = _boss_scripts()
+    bosses = _boss_scripts(ens)
 
     def need(eid, where):
         if eid not in enemies:
@@ -81,7 +85,7 @@ def check_waves(errs):
     for eid, where in boss_ids:
         need(eid, where)
         if bosses and eid not in bosses:
-            errs.append("waves.json %s：Boss「%s」没在 boss_ai.gd SCRIPTS 登记（不会出招）" % (where, eid))
+            errs.append("waves.json %s：Boss「%s」不是 role boss 或没有 enemies/bosses/<script>.gd（不会出招）" % (where, eid))
     for ev in w.get("events", []):
         for oi, op in enumerate(ev.get("options", [])):
             for x in op.get("ops", []):

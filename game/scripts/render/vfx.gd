@@ -73,6 +73,19 @@ func stop(seconds: float, kind: String, must := false) -> bool:
 	return true
 
 
+var _feel := {}
+
+
+## 干员的打击手感类别（json hit_feel：heavy / melee / 空），按 id 缓存
+func hit_feel(oid: String) -> String:
+	var f = _feel.get(oid)
+	if f == null:
+		var o = g.squad.get_op(oid) if g.squad != null else null
+		f = str(o.def.get("hit_feel", "")) if o != null else ""
+		_feel[oid] = f
+	return f
+
+
 func contact(oid: String, e: Dictionary, origin: Vector2, source := "") -> void:
 	var prev: float = contact_at.get(oid, -99.0)
 	if g.t >= prev and g.t - prev < 0.18:
@@ -80,8 +93,9 @@ func contact(oid: String, e: Dictionary, origin: Vector2, source := "") -> void:
 	contact_at[oid] = g.t
 	if (e.pos as Vector2).distance_to(g.ppos) > 650.0:
 		return
-	var heavy: bool = oid in ["ulpianus", "siege", "saria", "kaltsit", "wisadel"]
-	var melee: bool = oid in ["mizuki", "skadi", "specter_unchained", "irene"]
+	var feel: String = hit_feel(oid)   # hit_feel：干员 json（heavy 重击 / melee 近战）
+	var heavy: bool = feel == "heavy"
+	var melee: bool = feel == "melee"
 	var color := Color(0.72, 0.84, 0.92) if heavy or melee else Color(0.55, 0.65, 0.92)
 	var direction: Vector2 = (e.pos - origin).normalized()
 	# 普通命中火花：用户 10-14 定去掉（受击白闪 + 伤害数字 + 击退已够；满屏淡紫小点和弱点火花混淆）。fx/contact_sparks 1 = 恢复

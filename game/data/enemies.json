@@ -14,7 +14,8 @@
    "ai": "melee",
    "corrode": 0.2,
    "atk_anim": true,
-   "extra": {"name": "骨刺扫击", "mode": "swipe", "range": 78, "cd": 15.0, "damage_mult": 0.2, "min_time": 400.0}
+   "extra": {"name": "骨刺扫击", "mode": "swipe", "range": 78, "cd": 15.0, "damage_mult": 0.2, "min_time": 400.0},
+   "ecol": [0.85, 0.9, 0.85]
   },
   "slider": {
    "dash_fx": "fx_slider_dash",
@@ -34,7 +35,9 @@
    "dash_wind": 0.5,
    "dash_speed": 3.8,
    "atk_anim": true,
-   "extra": {"name": "滑行侧撞", "mode": "swipe", "range": 115, "cd": 15.0, "damage_mult": 0.2, "min_time": 400.0}
+   "extra": {"name": "滑行侧撞", "mode": "swipe", "range": 115, "cd": 15.0, "damage_mult": 0.2, "min_time": 400.0},
+   "ecol": [0.45, 0.7, 1.0],
+   "dash_lamp_drain": 8.0
   },
   "stone": {
    "entrench_phys_taken": 0.55,
@@ -62,7 +65,8 @@
     "cd": 13.0,
     "damage_mult": 0.45
    },
-   "desc": "另会使用「凿石贯射」进行预警攻击。"
+   "desc": "另会使用「凿石贯射」进行预警攻击。",
+   "ecol": [0.7, 0.7, 0.75]
   },
   "offspring": {
    "shot_tex": "proj_offspring_spore",
@@ -89,7 +93,8 @@
     "range": 110,
     "cd": 12.0,
     "damage_mult": 0.45
-   }
+   },
+   "ecol": [0.6, 0.9, 0.5]
   },
   "brood": {
    "name": "注亡拟嗣",
@@ -107,7 +112,10 @@
    "acid_range": 300,
    "acid_cd": 4.2,
    "extra": {"name": "酸蚀脉冲", "mode": "pulse", "range": 100, "cd": 15.0, "damage_mult": 0.25, "min_time": 400.0},
-   "desc": "由投嗣育母投出、落地孵化的子体，不移动并逐渐衰亡；接触和酸弹命中附加侵蚀，酸弹每 4.2 秒发射一次。"
+   "desc": "由投嗣育母投出、落地孵化的子体，不移动并逐渐衰亡；接触和酸弹命中附加侵蚀，酸弹每 4.2 秒发射一次。",
+   "ecol": [0.9, 0.6, 0.8],
+   "hp_drain": 0.08,
+   "contact": true
   },
   "spitter": {
    "wound_hit": 1,
@@ -141,7 +149,8 @@
     "speed": 235,
     "spread": 0.8
    },
-   "shot_kind": "acid"
+   "shot_kind": "acid",
+   "ecol": [0.6, 1.0, 0.65]
   },
   "runner": {
    "blast_fx": "fx_runner_blast",
@@ -244,7 +253,10 @@
     "damage_mult": 0.3,
     "first_delay": 0.85,
     "nerve": 10.0
-   }
+   },
+   "wake_no_contact": true,
+   "rage_move_fps_mult": 1.45,
+   "rage_keep_tint": true
   },
   "founder": {
    "cold_hit": 1,
@@ -379,7 +391,8 @@
    "tex": "e_fractal",
    "anchor": "foot",
    "ai": "melee",
-   "extra": {"name": "分形前刺", "mode": "pierce", "range": 105, "cd": 14.0, "damage_mult": 0.2, "min_time": 400.0}
+   "extra": {"name": "分形前刺", "mode": "pierce", "range": 105, "cd": 14.0, "damage_mult": 0.2, "min_time": 400.0},
+   "ecol": [0.6, 0.7, 1.0]
   },
   "tear": {
    "name": "伊莎玛拉之泪",
@@ -391,7 +404,8 @@
    "tex": "e_tear",
    "anchor": "foot",
    "ai": "static",
-   "tear": true
+   "tear": true,
+   "ecol": [0.75, 0.55, 1.0]
   },
   "pocket": {
    "name": "囊海爬行者",
@@ -418,7 +432,8 @@
     "damage_mult": 0.42,
     "stun": 0.2
    },
-   "desc": "另会使用「囊壳震爆」进行预警攻击。"
+   "desc": "另会使用「囊壳震爆」进行预警攻击。",
+   "ecol": [0.8, 0.55, 1.0]
   },
   "skimmer": {
    "cold_hit": 1,
@@ -456,7 +471,8 @@
     "first_delay": 1.1,
     "frost": 0.45
    },
-   "desc": "另会使用「掠海贯射」进行预警攻击。"
+   "desc": "另会使用「掠海贯射」进行预警攻击。",
+   "ecol": [0.4, 0.9, 0.9]
   },
   "mother": {
    "wound_hit": 1,
@@ -494,7 +510,8 @@
     "count": 3,
     "speed": 185,
     "spread": 0.95
-   }
+   },
+   "ecol": [0.9, 0.5, 0.7]
   },
   "mimic": {
    "stun_immune": true,
@@ -526,7 +543,8 @@
     "damage_mult": 0.42,
     "first_delay": 1.0
    },
-   "desc": "另会使用「箱舌突刺」进行预警攻击。"
+   "desc": "另会使用「箱舌突刺」进行预警攻击。",
+   "ecol": [1.0, 0.75, 0.4]
   },
   "path": {
    "draw_scale": 1.15,
@@ -559,7 +577,16 @@
      "cd": 10,
      "fx": "fx_path_correct_ring"
     }
-   ]
+   ],
+   "intro": {
+    "en": "PATHSHAPER",
+    "sub": "替大群探路的海嗣",
+    "portrait": "portraits/boss_path",
+    "line": "它把自己的碎片撒向每一条岔路，让它们先去走那些错的路。"
+   },
+   "portrait_crop": [24, 4, 32, 32],
+   "draw_full": true,
+   "ecol": [0.6, 0.7, 1.0]
   },
   "izumik": {
    "apop_hit": 15.0,
@@ -593,7 +620,16 @@
      "speed": 345,
      "gap": 0.38
     }
-   ]
+   ],
+   "intro": {
+    "en": "IZUMIK, FOUNT OF LIFE",
+    "sub": "最终 · 人之光辉",
+    "portrait": "portraits/boss_izumik",
+    "line": "海嗣的母体之一。子代从它身上涌出，回到它身上就被吸收。"
+   },
+   "portrait_crop": [8, 0, 54, 54],
+   "draw_full": true,
+   "ecol": [0.5, 1.0, 0.7]
   },
   "iberia": {
    "name": "圣徒伊比利亚",
@@ -646,7 +682,17 @@
      "mult": 0.6,
      "fx": "fx_saint_clear_ring"
     }
-   ]
+   ],
+   "intro": {
+    "en": "SAINT OF IBERIA",
+    "sub": "老猎人的枪 · 强化",
+    "portrait": "portraits/boss_iberia",
+    "line": "斗篷破了，他不再说话。手炮只装一发，打空就贴身追来。"
+   },
+   "portrait_crop": [4, 0, 32, 32],
+   "script": "saint",
+   "draw_full": true,
+   "ecol": [1.0, 0.6, 0.5]
   },
   "carmen": {
    "name": "圣徒卡门",
@@ -688,7 +734,17 @@
       0.55
      ]
     }
-   ]
+   ],
+   "intro": {
+    "en": "SAINT CARMEN",
+    "sub": "伊比利亚最后的圣徒",
+    "portrait": "portraits/boss_carmen",
+    "line": "退后、装填、瞄准。弹药打空，就用炮身砸过来。"
+   },
+   "portrait_crop": [4, 0, 32, 32],
+   "script": "saint",
+   "draw_full": true,
+   "ecol": [0.7, 0.7, 1.0]
   },
   "bishop": {
    "name": "接潮主教",
@@ -732,7 +788,15 @@
      "cd": 8,
      "fx": "fx_bishop_wave"
     }
-   ]
+   ],
+   "intro": {
+    "en": "TIDE BISHOP",
+    "sub": "分离与统一",
+    "portrait": "portraits/boss_bishop",
+    "line": "一方倒下只是假死，两者同时倒下才会真正消散。"
+   },
+   "portrait_crop": [5, 0, 32, 32],
+   "ecol": [0.7, 1.0, 0.9]
   },
   "archon": {
    "name": "接潮蔑死体",
@@ -761,7 +825,15 @@
      "ring_r": 84,
      "mult": 0.8
     }
-   ]
+   ],
+   "intro": {
+    "en": "TIDE DEFIER",
+    "sub": "接潮主教的护卫",
+    "portrait": "portraits/boss_archon",
+    "line": "粗壮的近战海嗣，与主教同生共死，单独击倒只会假死片刻。"
+   },
+   "portrait_crop": [12, 2, 30, 30],
+   "ecol": [0.5, 0.9, 0.9]
   },
   "immortal": {
    "name": "接潮斥亡体",
@@ -805,7 +877,15 @@
      "mult": 0.8,
      "cd": 7
     }
-   ]
+   ],
+   "intro": {
+    "en": "TIDE REBUKER",
+    "sub": "接潮主教的另一名护卫",
+    "portrait": "portraits/boss_immortal",
+    "line": "迅捷的近战海嗣，与主教同生共死，单独击倒只会假死片刻。"
+   },
+   "portrait_crop": [14, 0, 28, 28],
+   "ecol": [0.6, 0.8, 1.0]
   },
   "paranoia": {
    "draw_scale": 1.15,
@@ -847,7 +927,17 @@
      "cd": 4.0,
      "p2_every": 2
     }
-   ]
+   ],
+   "intro": {
+    "cn": "「偏执泡影」",
+    "en": "PARANOIA",
+    "sub": "最终 · 变成最厌恶的样子",
+    "portrait": "portraits/boss_paranoia",
+    "line": "大群的祈望堵住了她的喉咙，她只能被那股力量拖着，一点点变成自己最痛恨的模样。"
+   },
+   "portrait_crop": [14, 4, 44, 44],
+   "draw_full": true,
+   "ecol": [0.8, 0.6, 1.0]
   },
   "ishar": {
    "name": "伊莎玛拉，腐化之心",
@@ -883,7 +973,16 @@
     "maw_mult": 0.9,
     "recovery": 1.25
    },
-   "patterns": []
+   "patterns": [],
+   "intro": {
+    "en": "ISHAR-MLA, CORRUPTED HEART",
+    "sub": "最终 · 替大群发声",
+    "portrait": "portraits/boss_ishar",
+    "line": "转化完成后，她才会攻击队长。"
+   },
+   "portrait_crop": [16, 8, 48, 48],
+   "draw_full": true,
+   "ecol": [0.75, 0.55, 1.0]
   },
   "knight": {
    "cold_hit": 1,
@@ -936,7 +1035,14 @@
    "draw_scale": 0.98,
    "patterns": [],
    "frost": 2.0,
-   "desc": "骑士攻击命中附加 2 秒冰霜减速；寒冰领域持续施加减速。冰霜不造成硬冻结，Boss 战仍保留移速下限。"
+   "desc": "骑士攻击命中附加 2 秒冰霜减速；寒冰领域持续施加减速。冰霜不造成硬冻结，Boss 战仍保留移速下限。",
+   "intro": {
+    "en": "THE LAST KNIGHT",
+    "sub": "最终 · 堂吉诃德",
+    "portrait": "portraits/boss_knight_boss",
+    "line": "曾经护送旅人穿越海嗣领地的猎潮骑士，如今站到了海嗣那一边。"
+   },
+   "portrait_crop": [52, 40, 56, 56]
   }
  }
 }

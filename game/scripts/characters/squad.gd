@@ -575,7 +575,8 @@ func _battle_voice(o, dt: float) -> void:
 		return
 	var sfx: Node = g.get_node_or_null("/root/Sfx")
 	if sfx != null:
-		sfx.voice(o.id, "w_laugh" if o.id == "wisadel" and g.vrng.randf() < 0.4 else "battle")
+		var alt = o.def.get("voice_alt", {}).get("battle", null)   # voice_alt：干员 json（维什戴尔四成换成 W 的笑声）
+		sfx.voice(o.id, str(alt[0]) if alt != null and g.vrng.randf() < float(alt[1]) else "battle")
 
 
 ## 主控干员（docs/23 v0.7：玩家操控的干员，唯一受击体）

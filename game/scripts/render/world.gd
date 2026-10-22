@@ -1822,7 +1822,7 @@ func enemy_scale(e: Dictionary) -> float:
 ## 以及正在受击形变 / 蓄力 / 冲刺 / 鼓胀 / 唤醒 / 狂暴 / 阶段护盾 / 空中 / 剑光 / 装填跪地 / 出招姿态 / 攻击帧窗口 / 灯边硬直（bstag，docs/56 §10）里的敌人。
 ## 签名（e.dc[0..7]）：moving、stun > 0、coma、invuln、dormant、e.r、[6]、[7] 两位恒为 false（原为普通怪 / 精英描边的 outline_skip、ol_norm，10-15 随旧写法删掉，保留下标免得改缓存格式）。
 ## 以后给敌人加会影响画面的新状态：要么加进 _dc_ok 的排除条件，要么加进签名；--dccheck（快检冒烟开着）会抓漏。
-const DC_SKIP_TYPES := ["carmen", "iberia", "izumik", "path", "ishar", "paranoia"]
+## enemies.json draw_full：带专用帧条挂点的几只 Boss（卡门 / 伊比利亚 / 伊祖米克 / 塑路者 / 伊莎玛拉 / 偏执泡影）
 
 var _no_flash: bool = Look.dbg("noflash") != ""
 var _act_mod := Color.WHITE   # 当前这只敌人的受光封顶缩放（Look.actor_mod；_espr 乘在本体 / 白闪上，描边不乘）
@@ -1862,7 +1862,7 @@ var _am_mode := 0
 func _dc_ok(e: Dictionary) -> bool:
 	var st = e.get("dcs")
 	if st == null:
-		st = e.boss or e.chest or e.tex == "e_knight" or e.type in DC_SKIP_TYPES
+		st = e.boss or e.chest or e.tex == "e_knight" or D.ENEMIES.get(e.type, _NO_DEF).get("draw_full", false)
 		e["dcs"] = st
 	if st:
 		return false
@@ -2020,7 +2020,7 @@ func build_enemy_atlas() -> void:
 	var names: Array = []
 	for k in D.ENEMIES:
 		var d: Dictionary = D.ENEMIES[k]
-		if str(d.get("role", "")) == "boss" or d.get("boss", false) or d.tex == "e_knight" or k in DC_SKIP_TYPES:
+		if str(d.get("role", "")) == "boss" or d.get("boss", false) or d.tex == "e_knight" or d.get("draw_full", false):
 			continue
 		var base: String = d.tex
 		for sfx in ["", "_feign", "_dormant", "_awaken", "_enraged", "_swell"] + Game.ENEMY_SUFFIXES:   # _swell：囊海爬行者鼓胀帧条（docs/96 §1.3）
@@ -2109,8 +2109,8 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			name += "_move"
 			frames = 4
 			var fps: float = float(D.ENEMIES.get(e.type, _NO_DEF).get("move_fps", 6.0))
-			if e.type == "reaper" and e.enraged:
-				fps *= 1.45
+			if e.enraged:
+				fps *= float(D.ENEMIES.get(e.type, _NO_DEF).get("rage_move_fps_mult", 1.0))   # 收割者狂奔时腿更快（enemies.json）
 			if e.type == "immortal":
 				fps = 8.0
 			elif e.type in ["paranoia", "izumik", "ishar"]:
@@ -2154,7 +2154,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		name = e.tex + "_enraged"
 		frames = 2
 		frame = int(g.t * 5.0 + e.id * 0.37) % 2
-	var rage_fx: bool = e.get("enraged", false) and e.type != "reaper"   # 收割者的狂奔保持冷蓝本色；波纹另画。
+	var rage_fx: bool = e.get("enraged", false) and not D.ENEMIES.get(e.type, _NO_DEF).get("rage_keep_tint", false)   # rage_keep_tint：收割者的狂奔保持冷蓝本色；波纹另画。
 	# 巢涌者神经光环改到地面层画（draw_nest_auras），不再按 4.6 倍放大帧条盖在实体上
 	# 染色复用贴图的敌人（巨海、撕裂者、潜地者、吐酸者）按自身半径放大：enemies.json 的 draw_scale（docs/48 §1 第 7 项）
 	var sc: float = enemy_scale(e)

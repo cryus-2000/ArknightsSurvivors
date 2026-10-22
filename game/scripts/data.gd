@@ -33,6 +33,10 @@ const DIFFICULTY := [
 ]
 ## 旧三档（1.1 – 10-22）：标准 / Ⅳ / Ⅷ 的修正表在 data/balance.json 的 difficulty/<key> 段，段里没写的键按 level（上表的累计档位）拼出来。
 ## 潮位阶梯的锚点（0 / 4 / 8）和批跑 --tier=0/1/2 仍按它取表（--tier 的结果与改动前逐局相同）。
+## 干员职业的显示顺序与英文名（选人页 / 图鉴 / 寻访共用；docs/126 C5，原来四处各写一份）
+const CLASS_ORDER := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
+const CLASS_EN := {"先锋": "VANGUARD", "近卫": "GUARD", "重装": "DEFENDER", "狙击": "SNIPER", "术师": "CASTER", "医疗": "MEDIC", "辅助": "SUPPORTER", "特种": "SPECIALIST"}
+
 const LEGACY_TIERS := [
 	{"name": "波涛迭起", "key": "standard", "level": 0},
 	{"name": "波涛迭起·Ⅳ", "key": "hard", "level": 4},

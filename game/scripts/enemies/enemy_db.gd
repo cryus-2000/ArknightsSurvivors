@@ -21,6 +21,9 @@ static func load_enemies() -> Dictionary:
 		if e.has("tint") and e.tint is Array:
 			var c: Array = e.tint
 			e.tint = Color(c[0], c[1], c[2])
+		if e.has("ecol") and e.ecol is Array:   # 受击 / 击杀碎屑色（combat.gd）
+			var ec: Array = e.ecol
+			e.ecol = Color(ec[0], ec[1], ec[2])
 		# JSON 里的整数会读成 float，这几项在代码里按 int 用
 		for ik in ["ammo", "ingots"]:
 			if e.has(ik):

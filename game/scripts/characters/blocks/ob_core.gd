@@ -419,7 +419,7 @@ static func apply_status(o, e: Dictionary, s: Dictionary, c := Vector2.INF, ring
 		"st.stun":
 			o.add_cc(e, float(s.dur) * k)
 		"st.slow":
-			o.add_cc(e, -INF, float(s.dur) * (1.0 if e.boss else k), "stop" if o.id == "suzuran" else "")
+			o.add_cc(e, -INF, float(s.dur) * (1.0 if e.boss else k), str(o.def.get("slow_kind", "")))   # slow_kind：干员 json（铃兰 stop = 定住式减速）
 		"st.airborne":
 			_F().lift(o, e, float(s.dur), float(s.get("h", 26.0)), s)
 		"st.weightless":
