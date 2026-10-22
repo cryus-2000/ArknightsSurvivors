@@ -34,7 +34,7 @@ var item_rects: Array = []
 var menu_lay := {}            # 磁贴群排版（title_tiles.layout，_draw 里按当前尺寸算）
 var menu_boss := true         # 有没有「Boss 演练」（_ready 按 Cfg.can_boss_trial()；测试可改）
 var menu_exit := true         # 有没有「退出」（网页 / --simweb 没有；测试可改）
-var menu_water := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]   # 各磁贴水位 0–1（选中涨潮、离开退潮，T2）
+var menu_water := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]   # 各磁贴水位 0–1（选中涨潮、离开退潮，T2）
 var menu_rip_t := -10.0       # 选中变化的时刻（标题页时间 t）：涟漪扩散
 var menu_mem_x := -1.0        # 二维导航记住的列（磁贴中心 x）
 var cover_hover := false
@@ -67,6 +67,7 @@ var settings: Control
 var gallery: Control
 var boss_trial: Control
 var meta_ui: Control             # 认知塑造页（局外成长 P2，docs/109 §4）
+var hunt_ui: Control             # 寻访（screens/hunt_host.gd 把结算页的寻访盖到标题上，10-22）
 var transition: Control
 var overlay_was_open := false
 var cover_pick := false

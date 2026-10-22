@@ -1,7 +1,7 @@
 extends Node
 ## 标题页 T5s 磁贴群与难度页（docs/67 §12）输入回归：
 ## - 四种菜单组（内部 / 对外 × 桌面 / 网页）：没有空格子（每行铺满整宽、编号连号）、方向键能走到每一块；
-## - 二维导航邻接（docs/67 §10.3：01↓02、02↓04、03↓06、04↑02、05↑02、06↑03，记住列：03↑01↓03）；
+## - 二维导航邻接（10-22 四行：[集结出发] / [寻访][认知塑造][图鉴] / [操作说明][设置][退出] / [试炼（测试版）]，上下同列、记住列）；
 ## - 键盘 ↑↓←→ / WASD、Tab / Shift+Tab、手柄十字键（经 Pad 翻译）、Esc 跳到退出、鼠标悬停 / 点击、选中涨潮；
 ## - 难度页：↑↓ 换档（不越界）、点档位卡换档、未解锁档不能出发、Esc 返回；桌面与触屏版式都查一遍。
 var failures := 0
@@ -103,7 +103,7 @@ func menu_set(tag: String, boss: bool, ex: bool) -> void:
 	var ids: Array = title._menu_ids()
 	var lay: Dictionary = title.menu_lay
 	check(lay.rects.size() == ids.size(), tag + ": one tile per visible item (%d / %d)" % [lay.rects.size(), ids.size()])
-	check(lay.rows.size() == 3, tag + ": three rows")
+	check(lay.rows.size() == (4 if boss else 3), tag + ": %d rows" % (4 if boss else 3))
 	# 没有空格子：每行左端齐、右端齐（铺满整宽）
 	var w: float = lay.w
 	var x0: float = (lay.rects[0] as Rect2).position.x
@@ -157,24 +157,26 @@ func one_layout(tag: String) -> void:
 	var U := Vector2i(0, -1)
 	var R := Vector2i(1, 0)
 	var L := Vector2i(-1, 0)
-	# 10-22 第二行加「认知塑造」（id 6，docs/109 §4）：第二行三块、第三行三块，上下同列
-	check(walk(0, [D]) == 2, tag + ": 01 down -> 03（正中）")
-	check(walk(1, [D]) == 3, tag + ": 02 down -> 05")
-	check(walk(2, [D]) == 4, tag + ": 03 down -> 06")
-	check(walk(6, [D]) == 5, tag + ": 04 down -> 07")
-	check(walk(3, [U]) == 1, tag + ": 05 up -> 02")
-	check(walk(4, [U]) == 2, tag + ": 06 up -> 03")
-	check(walk(5, [U]) == 6, tag + ": 07 up -> 04")
-	check(walk(2, [U, D]) == 2, tag + ": 03 up down returns to 03 (column memory)")
-	check(walk(4, [U, D]) == 4, tag + ": 05 up down returns to 05")
-	check(walk(0, [U]) == 0 and walk(5, [D]) == 5 and walk(3, [L]) == 3 and walk(5, [R]) == 5, tag + ": no wrap at edges")
+	# 10-22 用户：第二行 寻访(7) / 认知塑造(6) / 图鉴(1)，第三行 操作说明(3) / 设置(4) / 退出(5)，第四行 试炼（测试版）(2)
+	check(walk(0, [D]) == 6, tag + ": 01 down -> 03（正中）")
+	check(walk(7, [D]) == 3, tag + ": 02 down -> 05")
+	check(walk(6, [D]) == 4, tag + ": 03 down -> 06")
+	check(walk(1, [D]) == 5, tag + ": 04 down -> 07")
+	check(walk(3, [U]) == 7, tag + ": 05 up -> 02")
+	check(walk(4, [U]) == 6, tag + ": 06 up -> 03")
+	check(walk(5, [U]) == 1, tag + ": 07 up -> 04")
+	check(walk(4, [D]) == 2 and walk(3, [D]) == 2, tag + ": row 3 down -> trial")
+	check(walk(6, [U, D]) == 6, tag + ": 03 up down returns to 03 (column memory)")
+	check(walk(3, [U, D]) == 3, tag + ": 05 up down returns to 05")
+	check(walk(5, [D, U]) == 5, tag + ": 07 down up returns to 07")
+	check(walk(0, [U]) == 0 and walk(2, [D]) == 2 and walk(3, [L]) == 3 and walk(5, [R]) == 5, tag + ": no wrap at edges")
 	# 键盘
 	title.sel = 0
 	title.menu_mem_x = -1.0
 	await key(KEY_DOWN)
-	check(title.sel == 2, tag + ": key down 01 -> 03 (got %d)" % title.sel)
+	check(title.sel == 6, tag + ": key down 01 -> 03 (got %d)" % title.sel)
 	await key(KEY_D)
-	check(title.sel == 6, tag + ": key D 03 -> 04")
+	check(title.sel == 1, tag + ": key D 03 -> 04")
 	await key(KEY_S)
 	check(title.sel == 5, tag + ": key S 04 -> 07")
 	await key(KEY_LEFT)
@@ -183,7 +185,7 @@ func one_layout(tag: String) -> void:
 	await key(KEY_W)
 	check(title.sel == 0, tag + ": key W twice -> 01")
 	await key(KEY_TAB)
-	check(title.sel == 1, tag + ": tab -> 02")
+	check(title.sel == 7, tag + ": tab -> 02")
 	await key(KEY_TAB, true)
 	check(title.sel == 0, tag + ": shift+tab -> 01")
 	await key(KEY_ESCAPE)
@@ -192,18 +194,18 @@ func one_layout(tag: String) -> void:
 	title.sel = 0
 	title.menu_mem_x = -1.0
 	await pad(JOY_BUTTON_DPAD_DOWN)
-	check(title.sel == 2, tag + ": dpad down 01 -> 03")
+	check(title.sel == 6, tag + ": dpad down 01 -> 03")
 	await pad(JOY_BUTTON_DPAD_RIGHT)
-	check(title.sel == 6, tag + ": dpad right 03 -> 04")
+	check(title.sel == 1, tag + ": dpad right 03 -> 04")
 	# 选中涨潮：一会儿后新选中块水位满、其余退潮
 	var t0 := Time.get_ticks_msec()
-	while title.menu_water[6] < 0.99 and Time.get_ticks_msec() - t0 < 2000:
+	while title.menu_water[1] < 0.99 and Time.get_ticks_msec() - t0 < 2000:
 		await get_tree().process_frame
-	check(title.menu_water[6] >= 0.99, tag + ": selected tile water rises")
+	check(title.menu_water[1] >= 0.99, tag + ": selected tile water rises")
 	t0 = Time.get_ticks_msec()
-	while title.menu_water[2] > 0.0 and Time.get_ticks_msec() - t0 < 2000:
+	while title.menu_water[6] > 0.0 and Time.get_ticks_msec() - t0 < 2000:
 		await get_tree().process_frame
-	check(title.menu_water[2] == 0.0, tag + ": previous tile drains")
+	check(title.menu_water[6] == 0.0, tag + ": previous tile drains")
 	# 网页组：Esc 不动（没有退出）
 	title.menu_exit = false
 	title.sel = 1

@@ -137,6 +137,7 @@ func open() -> void:
 	visible = true
 	_build()
 	_restart_open()
+	_skip()   # 10-22 用户：进图鉴不要入场动效（卡片浮现 / 面板滑入），直接出现；换页、换干员的动效不变
 	_warm_demo()
 
 
