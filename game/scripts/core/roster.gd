@@ -5,7 +5,7 @@ extends RefCounted
 ## 数据在 Cfg（[roster] 存档段，settings.gd）；这里只放规则。抽取用独立的 RandomNumberGenerator（种子来自存档的 roster_seed + 已抽次数），
 ## 不碰局内 g.rng：同 seed 的对局结果与解锁无关。
 ## 测试局（任何 -- 启动参数）缺省「全部解锁」，招募池 / 选人页与改动前完全相同；--roster=start5 才按新玩家的名册跑（也不写存档）。
-## 调试版 / 对内包的「全部解锁」（Cfg.unlock_all）同样视为全部解锁，存档里的真实名册不动。
+## 调试版的「全部解锁」（Cfg.roster_all_open()）同样视为全部解锁，存档里的真实名册不动；对内发布包例外，名册照新玩家走（10-22 用户要测寻访）。
 
 const Character = preload("res://scripts/characters/character.gd")
 
@@ -47,7 +47,7 @@ static func _test_all() -> bool:
 
 ## 解锁规则是否生效（false = 视为全部解锁：全部解锁开关、测试局）
 static func active() -> bool:
-	return not (Cfg.unlock_all or _test_all())
+	return not (Cfg.roster_all_open() or _test_all())
 
 
 static func is_unlocked(cid: String) -> bool:

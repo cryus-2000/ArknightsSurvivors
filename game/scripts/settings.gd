@@ -86,6 +86,9 @@ var meta_earned := {}             # 累计获得的生机细胞 {设备号: 数�
 var meta_dev := ""                # 本机设备号（第一次记生机细胞时生成）
 var meta_bounty: Array = []       # 已领首通赏金的潮位
 var roster_fresh: Array = []      # 刚解锁、还没在名册里看过的干员（选人页 / 图鉴高亮一次；只存本机，不上云）
+var roster_int_grant := false     # 对内包的测试寻访凭证已发过（INTERNAL_TICKETS，每份存档一次）
+## 对内包（用户 10-22：要在对内包里测寻访）：名册不全部解锁，按新玩家开局 5 人；每份存档首次启动发这么多张寻访凭证
+const INTERNAL_TICKETS := 20
 var unlock_all := false      # 本次运行全部解锁（只在内存里，见 _apply_unlock_all）：调试版与对内打包版为 true，对外包恒为 false
 var _real_progress := {}      # 全部解锁时存档里真实的进度字段，save() 原样写回
 var title_seen := false      # 本次运行已播过标题开场动画（仅内存；对局返回标题不重播）
@@ -391,6 +394,7 @@ func _read_cfg(c: ConfigFile) -> void:
 	roster_draws = int(c.get_value("roster", "draws", roster_draws))
 	roster_seed = int(c.get_value("roster", "seed", roster_seed))
 	roster_fresh = c.get_value("roster", "fresh", roster_fresh)
+	roster_int_grant = bool(c.get_value("roster", "int_grant", roster_int_grant))
 	load("res://scripts/core/roster.gd").migrate_tickets()   # 三种券 → 单一寻访凭证（1:1 / 1:1 / 1:2）
 	meta_shape = c.get_value("meta", "shape", meta_shape)
 	meta_shape_t = int(c.get_value("meta", "shape_t", meta_shape_t))
@@ -526,6 +530,21 @@ func _apply_unlock_all() -> void:
 	var db = preload("res://scripts/core/relic_db.gd").new()
 	db.load_files()
 	seen_relics = db.implemented().map(func(r): return r.id)
+	# 对内发布包：名册照新玩家走（roster_all_open() 为假），首次启动发测试用寻访凭证，写进存档（真实进度，寻访结果也照常存）
+	if internal_roster() and not roster_int_grant:
+		roster_int_grant = true
+		roster_tickets["hunt"] = int(roster_tickets.get("hunt", 0)) + INTERNAL_TICKETS
+		save()
+
+
+## 对内发布包（非调试版、audience = internal）：图鉴 / 难度 / 结局照旧全开，名册按开局 5 人 + 寻访（10-22）
+func internal_roster() -> bool:
+	return not OS.is_debug_build() and build_audience() == "internal"
+
+
+## 名册是否视为全部解锁：调试版的「全部解锁」开着时是；对内发布包不是（要测寻访）
+func roster_all_open() -> bool:
+	return unlock_all and not internal_roster()
 
 
 ## 画质档位（10-22 改三档 + 自动）：高 = 全开；中 = 只关法线光照 + 辉光（docs/50 量测：法线最贵、辉光次之，景深 / 水下滤镜几乎免费，10-22 协调人定保留）；
@@ -639,6 +658,7 @@ func save() -> void:
 	c.set_value("roster", "draws", roster_draws)
 	c.set_value("roster", "seed", roster_seed)
 	c.set_value("roster", "fresh", roster_fresh)
+	c.set_value("roster", "int_grant", roster_int_grant)
 	c.set_value("meta", "shape", meta_shape)
 	c.set_value("meta", "shape_t", meta_shape_t)
 	c.set_value("meta", "earned", meta_earned)
