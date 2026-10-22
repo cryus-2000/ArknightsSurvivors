@@ -25,36 +25,21 @@ const BAR_T := 0.25       # 黑边滑入 / 滑出用时
 ##   但整只缩成 88×88 的半身像细节少、辨识度不够；10-21 用户选候选 A，card_for() 对 PORTRAIT_CROP 里有裁切框的
 ##   Boss 改用战斗帧条（e.tex）裁一块头部 / 标志特征再放大（见下方 PORTRAIT_CROP），不读这里的 `portrait` 字段了；
 ##   没有裁切框的 Boss 仍走旧路径：读这里的 `portrait`（缺图退回 e.tex 待机条第 0 帧整体缩小，见 _portrait_name）
-const CARDS := {
-	"path": {"en": "PATHSHAPER", "sub": "替大群探路的海嗣", "portrait": "portraits/boss_path", "line": "它把自己的碎片撒向每一条岔路，让它们先去走那些错的路。"},
-	"iberia": {"en": "SAINT OF IBERIA", "sub": "老猎人的枪 · 强化", "portrait": "portraits/boss_iberia", "line": "斗篷破了，他不再说话。手炮只装一发，打空就贴身追来。"},
-	"carmen": {"en": "SAINT CARMEN", "sub": "伊比利亚最后的圣徒", "portrait": "portraits/boss_carmen", "line": "退后、装填、瞄准。弹药打空，就用炮身砸过来。"},
-	"bishop": {"en": "TIDE BISHOP", "sub": "分离与统一", "portrait": "portraits/boss_bishop", "line": "一方倒下只是假死，两者同时倒下才会真正消散。"},
-	"archon": {"en": "TIDE DEFIER", "sub": "接潮主教的护卫", "portrait": "portraits/boss_archon", "line": "粗壮的近战海嗣，与主教同生共死，单独击倒只会假死片刻。"},
-	"immortal": {"en": "TIDE REBUKER", "sub": "接潮主教的另一名护卫", "portrait": "portraits/boss_immortal", "line": "迅捷的近战海嗣，与主教同生共死，单独击倒只会假死片刻。"},
-	"paranoia": {"cn": "「偏执泡影」", "en": "PARANOIA", "sub": "最终 · 变成最厌恶的样子", "portrait": "portraits/boss_paranoia", "line": "大群的祈望堵住了她的喉咙，她只能被那股力量拖着，一点点变成自己最痛恨的模样。"},
-	"ishar": {"en": "ISHAR-MLA, CORRUPTED HEART", "sub": "最终 · 替大群发声", "portrait": "portraits/boss_ishar", "line": "转化完成后，她才会攻击队长。"},
-	"izumik": {"en": "IZUMIK, FOUNT OF LIFE", "sub": "最终 · 人之光辉", "portrait": "portraits/boss_izumik", "line": "海嗣的母体之一。子代从它身上涌出，回到它身上就被吸收。"},
-	"knight_boss": {"en": "THE LAST KNIGHT", "sub": "最终 · 堂吉诃德", "portrait": "portraits/boss_knight_boss", "line": "曾经护送旅人穿越海嗣领地的猎潮骑士，如今站到了海嗣那一边。"},
-}
+## 名片数据在 enemies.json 各 Boss 的 intro 字段（docs/126 A3，10-22 从这里的常量原样迁出）
+static func _card(type: String) -> Dictionary:
+	return D.ENEMIES.get(type, {}).get("intro", {})
+
 
 ## 候选 A（docs/115 §2，10-21 用户选定）：10-11 交付的专画头像把整只战斗本体整体缩小进 88×88，细节少、大多看着像一团剪影；
 ## 改成从战斗帧条（e.tex）idle 第 0 帧里裁一块头部 / 标志特征的小方块，逐只手动对齐，按整数倍最近邻放大。单位是帧条原始
 ## （1x）像素，坐标系原点在该 Boss 本体帧条左上角（取的是 idle 第 0 帧，即帧条左半张）。card_for() 里，只要这里登记了
 ## 裁切框就不再读 CARDS 的 `portrait` 字段（art/incoming/portraits/boss_<id>.png 那版专画头像暂时弃用，文件不删，
 ## 留给以后候选 B 用）。没有登记裁切框的 Boss（目前没有）仍走旧路径。只改这张名片怎么取图，不碰战斗绘制、不进模拟字段（同 seed 不变）
-const PORTRAIT_CROP := {
-	"path": Rect2(24, 4, 32, 32),        # 塑路者：苍白面具 + 蓝色眼窝，偏右
-	"iberia": Rect2(4, 0, 32, 32),       # 圣徒伊比利亚：礼帽 + 胡须，顶部居中
-	"carmen": Rect2(4, 0, 32, 32),       # 圣徒卡门：同款礼帽半身
-	"bishop": Rect2(5, 0, 32, 32),       # 接潮主教：兜帽下的双眼幽光
-	"archon": Rect2(12, 2, 30, 30),      # 接潮蔑死体：白色裂纹面具
-	"immortal": Rect2(14, 0, 28, 28),    # 接潮斥亡体：尖喙面甲
-	"paranoia": Rect2(14, 4, 44, 44),    # "偏执泡影"：一对红瞳，标志性特征
-	"ishar": Rect2(16, 8, 48, 48),       # 伊莎玛拉：荆冠 + 赤瞳
-	"izumik": Rect2(8, 0, 54, 54),       # 伊祖米克：虹彩伞冠顶部（无五官，取最有辨识度的部位）
-	"knight_boss": Rect2(52, 40, 56, 56), # 最后的骑士：骑手 + 坐骑头部（10-22 换原生帧条，1x 单帧 147×147，按新图重量）
-}
+## 裁切框在 enemies.json 各 Boss 的 portrait_crop 字段 [x, y, 宽, 高]（docs/126 A3，10-22 从这里的常量原样迁出）
+static func _crop(type: String) -> Rect2:
+	var r = D.ENEMIES.get(type, {}).get("portrait_crop", null)
+	return Rect2(r[0], r[1], r[2], r[3]) if r is Array and r.size() == 4 else Rect2()
+
 
 ## 最终 Boss 击破演出（docs/38 §1.8，10-11）：run/victory_flow.gd 把画面步长压到慢动作（真实 2 秒），这里只画覆盖层：
 ##   白闪褪去 → 黑边滑入（内缘结局色细线）→ 结局色洗色 + 暗角 + 后期去色（低画质不洗色、不去色）→ 「名字 · 击破 / DEFEATED」名片 → 末 0.3 秒收黑边
@@ -134,13 +119,13 @@ func on_down(b: Dictionary) -> void:
 ## 按 Boss 组拼名片：第一只为主，双体把名字用「与」连起来、英文用 & 连
 func card_for(bosses: Array) -> Dictionary:
 	var main: Dictionary = bosses[0]
-	var cd: Dictionary = CARDS.get(main.type, {})
+	var cd: Dictionary = _card(main.type)
 	var def: Dictionary = D.ENEMIES.get(main.type, {})
 	var cn: String = str(cd.get("cn", def.get("name", main.type)))
 	var en: String = str(cd.get("en", main.type.to_upper()))
 	for i in range(1, bosses.size()):
 		var b2: Dictionary = bosses[i]
-		var cd2: Dictionary = CARDS.get(b2.type, {})
+		var cd2: Dictionary = _card(b2.type)
 		cn += " 与 " + str(cd2.get("cn", D.ENEMIES.get(b2.type, {}).get("name", b2.type)))
 		en += " & " + str(cd2.get("en", b2.type.to_upper()))
 	var col: Color = cd.get("col", g.vfx.boss_color(main.type))
@@ -152,7 +137,7 @@ func card_for(bosses: Array) -> Dictionary:
 ## 按需加载进 g.tex（不在开局预载表里），没指定或缺图就用待机帧条。登场名片在 Boss 刚刷出的那一帧就画，这时世界层可能还
 ## 没画过它（_lazy_tex 懒加载没触发过），两条路径都要保证贴图已经进了 g.tex 缓存，不强制加载会拿到 null
 func _portrait_source(main: Dictionary, cd_portrait: String) -> String:
-	if PORTRAIT_CROP.has(main.type):
+	if _crop(main.type).has_area():
 		return _portrait_tex_1x_key(str(main.tex))
 	return _portrait_name(cd_portrait, str(main.tex))
 
@@ -352,7 +337,7 @@ func _draw_top() -> void:
 	# 退回待机帧条时取第 0 帧放大到 80 高。左侧细边与强调色底
 	if ptx != null:
 		var is_portrait: bool = card.portrait.begins_with("portraits/")
-		var crop: Rect2 = PORTRAIT_CROP.get(card.type, Rect2())
+		var crop: Rect2 = _crop(card.type)
 		var fw: int
 		var fh: int
 		var src: Rect2

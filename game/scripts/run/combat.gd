@@ -11,11 +11,6 @@ const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类
 var g: Game
 ## 「追击」（docs/35）：带这些标签的伤害吃 followup_dmg 与追击类藏品（追击、余震、殉爆、召唤物）
 const FOLLOWUP_TAGS := ["follow_up", "aftershock", "detonation", "entity"]
-const ECOL := {"bone": Color(0.85, 0.9, 0.85), "slider": Color(0.45, 0.7, 1.0), "stone": Color(0.7, 0.7, 0.75), "offspring": Color(0.6, 0.9, 0.5),
-	"brood": Color(0.9, 0.6, 0.8), "pocket": Color(0.8, 0.55, 1.0), "skimmer": Color(0.4, 0.9, 0.9), "mother": Color(0.9, 0.5, 0.7),
-	"mimic": Color(1.0, 0.75, 0.4), "path": Color(0.6, 0.7, 1.0), "fractal": Color(0.6, 0.7, 1.0), "izumik": Color(0.5, 1.0, 0.7),
-	"ishar": Color(0.75, 0.55, 1.0), "tear": Color(0.75, 0.55, 1.0), "iberia": Color(1.0, 0.6, 0.5), "carmen": Color(0.7, 0.7, 1.0),
-	"spitter": Color(0.6, 1.0, 0.65), "bishop": Color(0.7, 1.0, 0.9), "archon": Color(0.5, 0.9, 0.9), "immortal": Color(0.6, 0.8, 1.0), "paranoia": Color(0.8, 0.6, 1.0)}
 var zone_from_c := Vector2.ZERO
 var zone_from_r := 99999.0
 var zone_phase := 0
@@ -1152,7 +1147,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 		hl.killed += 1
 		if hl.t80 < 0 and hl.killed >= int(hl.n * 0.8):
 			hl.t80 = int(g.t) - hl.t
-	var col: Color = ECOL.get(e.type, Color(0.6, 0.9, 0.9))
+	var col: Color = D.ENEMIES.get(e.type, {}).get("ecol", Color(0.6, 0.9, 0.9))   # ecol：enemies.json（受击 / 击杀碎屑色）
 	g.vfx.kill_burst(e, col, g.crit_hit)   # 击杀爆点 / 击杀音按体型分档 + 大体型或暴击击杀的短顿帧（docs/53，纯画面与音效）
 	if e.get("tex_death", false) and g.V6_FRAMES.has(e.tex + "_death"):
 		var dtx: Texture2D = g.tex[e.tex + "_death"]

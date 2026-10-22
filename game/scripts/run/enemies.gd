@@ -273,6 +273,18 @@ var _ab_e := PackedInt32Array()
 var _ab_o := PackedInt32Array()
 
 
+## enemies.json hp_drain 的种类 → 每秒流失比例（逐只每帧查，先建表）
+var _drain: Dictionary = _build_drain()
+
+
+static func _build_drain() -> Dictionary:
+	var out := {}
+	for k in D.ENEMIES:
+		if D.ENEMIES[k].has("hp_drain"):
+			out[k] = float(D.ENEMIES[k].hp_drain)
+	return out
+
+
 func update(dt: float) -> void:
 	var dark_mod: float = Bal.v("lamp/dark_enemy", 1.2) if g.lamp < 30.0 else 1.0   # 灯火暗淡时敌人移速 / 接触伤害倍率（docs/88 旋钮，缺省 1.2 不变）
 	# 敌人更新分三段（docs/101 B7 ③，10-15 起换基线）：
@@ -375,9 +387,9 @@ func update(dt: float) -> void:
 		if not e.evo and not e.elite and not e.boss and e.ai != "static" and e.age > EVO_AGE * maxf(0.55, 1.0 - g.t / 900.0):
 			evolve(e)
 
-		# 注亡拟嗣：生命持续流失
-		if e.type == "brood":
-			e.hp -= e.maxhp * 0.08 * dt
+		# 生命持续流失（enemies.json hp_drain：每秒失去最大生命的比例；注亡拟嗣）
+		if _drain.has(e.type):
+			e.hp -= e.maxhp * float(_drain[e.type]) * dt
 			if e.hp <= 0.0:
 				e.dead = true
 				continue
@@ -517,14 +529,14 @@ func update(dt: float) -> void:
 				e.burst_cd = 1.2
 		# ---- 接触伤害
 		# 休眠中的收割者、自爆的狂奔者（V8）没有接触伤害；Boss 登场 2 秒内不造成接触伤害（docs/38 B0 第 6 项：边缘刷出贴脸）
-		if e.dmg > 0.0 and (e.ai == "melee" or e.type == "brood") and dist < e.r + 12.0 and not e.get("coma", false) and not e.get("dormant", false) and not (e.type == "reaper" and e.get("wake_t", 0.0) > 0.0) and not D.ENEMIES[e.type].get("no_contact", false) and not (e.boss and e.age < 2.0) and e.get("air", 0.0) <= 0.0 and not e.get("under", false) and float(e.get("hatch_until", 0.0)) <= g.t:
+		if e.dmg > 0.0 and (e.ai == "melee" or D.ENEMIES[e.type].get("contact", false)) and dist < e.r + 12.0 and not e.get("coma", false) and not e.get("dormant", false) and not (e.get("wake_t", 0.0) > 0.0 and D.ENEMIES[e.type].get("wake_no_contact", false)) and not D.ENEMIES[e.type].get("no_contact", false) and not (e.boss and e.age < 2.0) and e.get("air", 0.0) <= 0.0 and not e.get("under", false) and float(e.get("hatch_until", 0.0)) <= g.t:
 			if D.ENEMIES[e.type].get("morph", false):
 				morph(e)
 				continue
 			if g.invuln <= 0.0:
-				# 底海滑动者冲刺撞击：熄灭灯火
-				if e.type == "slider" and e.get("dash_t", 0.0) > 0.0:
-					g.lamp = maxf(0.0, g.lamp - 8.0 * g.lamp_loss_mult)
+				# 冲刺撞击熄灭灯火（enemies.json dash_lamp_drain；底海滑动者）
+				if e.get("dash_t", 0.0) > 0.0 and D.ENEMIES[e.type].has("dash_lamp_drain"):
+					g.lamp = maxf(0.0, g.lamp - float(D.ENEMIES[e.type].dash_lamp_drain) * g.lamp_loss_mult)
 					g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -8", Color(1.0, 0.6, 0.4), 14)
 				g.combat.enemy_hit(e.dmg * dark_mod, e, false, false, ["近战", "物理"], "contact_" + e.type)
 				e.atk_until = g.t + 0.2   # 近战出手：atk_anim 的敌人播攻击帧条第 3、4 帧

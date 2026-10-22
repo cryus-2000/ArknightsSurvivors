@@ -1,5 +1,5 @@
 ## Boss 行为与招式预警（从 game.gd 拆出）：所有状态仍在 game.gd，本文件通过 g 访问
-## 10-10 起各 Boss 的招式分支在 scripts/enemies/bosses/<type>.gd（见下方 SCRIPTS 注册表与 docs/38 §1.17）；本文件是公共段 + 分派 + 预警管线
+## 10-10 起各 Boss 的招式分支在 scripts/enemies/bosses/<type>.gd（按 enemies.json 的 role / script 约定登记，见 script_of 与 docs/38 §1.17）；本文件是公共段 + 分派 + 预警管线
 extends RefCounted
 
 const D = preload("res://scripts/data.gd")
@@ -123,13 +123,15 @@ func close_in(e: Dictionary, dir: Vector2, dist: float, key: String, title: Stri
 	return cw.dur
 
 
-## ---- 每只 Boss 的行为脚本（docs/55 §6 拆分，10-10）：type → scripts/enemies/bosses/<文件>.gd；新 Boss = 加一个文件 + 在这里登记一行
-## （圣徒两档共用 saint.gd）。脚本无状态（状态在敌人字典上），按 type 只实例化一次；没登记的 type 不出招（和拆分前的 match 缺省分支一样）
-const SCRIPTS := {
-	"iberia": "saint", "carmen": "saint", "path": "path", "bishop": "bishop", "archon": "archon", "immortal": "immortal",
-	"paranoia": "paranoia", "izumik": "izumik", "knight_boss": "knight_boss", "ishar": "ishar",
-}
+## ---- 每只 Boss 的行为脚本（docs/55 §6 拆分，10-10；docs/126 A3 10-22 改按约定登记）：enemies.json 里 role == "boss" 的种类
+## 用 scripts/enemies/bosses/<script>.gd，script 缺省 = 种类名（圣徒两档写 "script": "saint" 共用）。新 Boss = 加一个文件 + enemies.json 一条。
+## 脚本无状态（状态在敌人字典上），按 type 只实例化一次；不是 Boss 的种类不出招（和拆分前的 match 缺省分支一样）
 var _bosses := {}   # type -> 脚本实例
+
+
+static func script_of(type: String) -> String:
+	var d: Dictionary = D.ENEMIES.get(type, {})
+	return str(d.get("script", type)) if str(d.get("role", "")) == "boss" else ""
 
 
 func boss(type: String):
@@ -137,8 +139,9 @@ func boss(type: String):
 	if not (c is bool):
 		return c
 	var h = null
-	if SCRIPTS.has(type):
-		h = load("res://scripts/enemies/bosses/%s.gd" % SCRIPTS[type]).new(g)
+	var sn := script_of(type)
+	if sn != "":
+		h = load("res://scripts/enemies/bosses/%s.gd" % sn).new(g)
 	_bosses[type] = h
 	return h
 

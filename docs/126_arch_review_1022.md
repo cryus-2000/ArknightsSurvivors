@@ -247,3 +247,13 @@
 - 画面：seed 13 浊心斯卡蒂队到 Boss 段 16 个时刻，手机触屏（1480×720 `--touch`）拆块前 / 后 16 张全部 0 像素差；桌面 1280×720 差异只在左下小地图（声呐按真实时间转，`--hudnocache` 对照与旧对旧同样差），其余 HUD 0 差。
 - 桌面同局轮换（`--optab=60 --optmask=2097152 --prof`，本机另有 3 个 Godot，只看同局两桶的差）：8–10 分钟 HUD 脚本 **5.28 → 2.93 毫秒**，帧均值 30.84 → 28.35（−8%），p95 45.6 → 43.5，p99 58.5 → 53.9；0–8 分钟 4.98 → 2.94、帧 30.14 → 28.19。对照桶是「所有块每帧画」，比拆块前（左上 / 小地图 / 藏品栏 / 编队静态层本来就缓存）多画了这几块，所以相对拆块前的净收益小于这个差，按 §9.2 的分块估约 1.0–1.5 毫秒（`--prof` 口径）。网页净收益要在测量副本上复测。
 - 快检 113 项只有「积木等价金样过期」1 项（本分支起源的 game.gd / settings.gd 改动触发过期判定，合入后统一重录）。
+
+### 9.4 第二轮清理（10-22，分支 `claude/arch-cleanup-2`，基于 main 07283f81；三件同 seed TRACE 不动、画面不变）
+
+| 条目 | 改了什么 | 验证 |
+|---|---|---|
+| C5 | 公共代码里写死的干员 id 改成干员 json 字段：`slow_kind`（铃兰）、`voice_alt`（维什戴尔）、`stat_hits`（艾丽妮）、`hit_feel`（打击手感 9 人）、`list_first`（水月）；职业顺序 / 英文名收成 `D.CLASS_ORDER / D.CLASS_EN` | 铃兰 / 维什戴尔 / 艾丽妮 180 秒 TRACE 逐行相同；gallery_demo / title_menu |
+| C2 | title.gd 按段拆成继承链 `title_base → title_op_pick → title_diff_pick → title.gd`（只搬代码，2803 → 1092 行） | 标题 / 选人页三页签 + 触屏 / 难度页 7 张截图 0 差；title_menu / ea_ui / credits / esc_layers |
+| A3 + A4 | Boss 脚本按约定登记（`role: boss` → `bosses/<script>.gd`，`script` 缺省 = 种类名）；登场名片 `intro`、头像裁切 `portrait_crop`、`draw_full`（原 DC_SKIP_TYPES）进 enemies.json；普通敌人的特殊机制改能力字段：`hp_drain` / `contact`（育母）、`dash_lamp_drain`（滑行者）、`wake_no_contact` / `rage_move_fps_mult` / `rage_keep_tint`（收割者），击杀碎屑色 `ecol`（原 combat.ECOL）；data_lint 按新约定查 Boss 脚本；docs/38「加一只 Boss 的步骤」改写 | 三局 660 秒（seed 1 水月、13 浊心斯卡蒂队、7 维什戴尔，含中期 / 最终 Boss）TRACE 逐行相同；手机触屏 16 张截图差异只在小地图声呐；快检 113 项只有金样过期 1 项 |
+
+仍按种类名写死的：伊莎玛拉之泪、偏执泡影分形、圣徒 / 伊祖米克 / 骑士等 Boss 机制散在 combat / enemy_ai / world / vfx（各 Boss 的帧条挂点集中在 `world.boss_strip_animation`），属于 Boss 自己的逻辑，下一只 Boss 进来时再往 boss_base 钩子收。
