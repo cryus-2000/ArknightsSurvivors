@@ -902,15 +902,19 @@ static func hw_hook_start(o, b: Dictionary) -> void:
 		var dv: Vector2 = o.g.ppos - o.pos
 		to = o.pos + dv.limit_length(rr)
 	else:
+		var manual: bool = o.manual_attack() and o.get("in_release") == true   # 手动普攻（10-23）：只在玩家指向的锥内找目标，没有就掷到指向 rr 处
+		var pool: Array = o.aim_targets(24, rr, o.pos) if manual else o.nearest_enemies(24, rr, o.pos)
 		var best: Dictionary = {}
 		var bd := -1.0
-		for e in o.nearest_enemies(24, rr, o.pos):
+		for e in pool:
+			if int(e.get("id", 0)) < 0:
+				continue
 			var dd: float = e.pos.distance_to(o.pos)
 			if dd >= md and dd > bd:
 				bd = dd
 				best = e
 		if best.is_empty():
-			var ts: Array = o.nearest_enemies(1, rr, o.pos)
+			var ts: Array = pool.slice(0, 1) if manual else o.nearest_enemies(1, rr, o.pos)
 			if ts.is_empty():
 				return
 			best = ts[0]

@@ -1314,7 +1314,7 @@ static func mf_step(o, s: Dictionary, kd: Dictionary, dt: float) -> void:
 			s.cmd_t = MfBal.v("manual/m_linger", 1.2)
 			if g.doctor.atk_edge or tg == null or tg.dead or tg.pos.distance_to(anc) > leash + 40.0:
 				var tsm: Array = o.aim_targets(1, leash, anc)
-				if not tsm.is_empty():
+				if not tsm.is_empty() and int(tsm[0].get("id", 0)) >= 0:   # 伪目标（指向上没敌人）不命令
 					tg = tsm[0]
 					g.doctor.atk_buf = 0.0
 		else:

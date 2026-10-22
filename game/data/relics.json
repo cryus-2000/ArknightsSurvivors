@@ -4677,6 +4677,26 @@
    "first_batch": false,
    "boss_only": false,
    "shop_allowed": true
+  },
+  {
+   "id": 265,
+   "name": "穿甲弹",
+   "original": "子弹不再停在第一具躯体上。每穿过一名敌人，威力 −15%。",
+   "cat": "攻击与输出",
+   "tier": "B",
+   "adapt": "远程普攻的子弹穿透全部敌人，每穿过一名敌人伤害 −15%（最低 40%）；与「贯穿」卡同在时按本藏品全穿、卡层数失效；对技能弹幕无效",
+   "rarity": "稀有",
+   "lanes": [
+    "E"
+   ],
+   "tags": [
+    "damage",
+    "range",
+    "projectile"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
   }
  ]
 }

@@ -37,8 +37,8 @@ static func card_value(c: Dictionary) -> float:
 		return 1.0 - v if c.get("invert", false) else v
 	return float(c.get("value", 0.0))
 const PASSIVE_CAP := 4         # 生存 / 协同每类最多几种；机动见 cat_cap()
-const CAT_LABEL := {"doctor": "生存  SURVIVAL", "mobility": "机动  MOBILITY", "squad": "协同  SQUAD"}
-const CATS := ["doctor", "mobility", "squad"]
+const CAT_LABEL := {"doctor": "生存  SURVIVAL", "mobility": "机动  MOBILITY", "squad": "协同  SQUAD", "fire": "火力  FIREPOWER"}
+const CATS := ["doctor", "mobility", "squad", "fire"]   # fire（火力，10-23 用户定）：远程普攻子弹的成长，只在编队有能穿透的远程普攻干员时出卡（cards.json requires: ranged_basic）
 
 
 ## 类别的种类上限
@@ -204,11 +204,13 @@ func mouse_world() -> Vector2:
 	return g.get_viewport().get_canvas_transform().affine_inverse() * g.get_viewport().get_mouse_position()
 
 
-## 手动普攻的瞄准方向（单位向量）：鼠标 = 主控指向光标；手柄 = 右摇杆，没推取左摇杆 / 朝向；键盘 = 移动方向，站着取朝向；
-## 触屏 = 攻击键拖出的方向，不拖返回 Vector2.ZERO（吸附最近目标）
+## 手动普攻的瞄准方向（单位向量，永远非零）：鼠标 = 主控指向光标；手柄 = 右摇杆，没推取左摇杆 / 朝向；键盘 = 移动方向，站着取朝向；
+## 触屏 = 攻击键拖出的方向，点按不拖 = 移动方向，站着取朝向（10-23 用户定：不再吸附最近目标）
 func attack_dir() -> Vector2:
 	if _touching():
-		return touch_atk_dir.normalized() if touch_atk_dir != Vector2.ZERO else Vector2.ZERO
+		if touch_atk_dir != Vector2.ZERO:
+			return touch_atk_dir.normalized()
+		return g.move_in.normalized() if g.move_in != Vector2.ZERO else Vector2(g.facing, 0.0)
 	if mouse_aim():
 		var off: Vector2 = mouse_world() - g.ppos
 		if off.length() > 4.0:
@@ -349,9 +351,19 @@ func passive_cards(cat: String) -> Array:
 		var n: int = g.growth.get(pid, 0)
 		if n >= pdef.max or (full and n == 0):
 			continue
+		if str(pdef.get("requires", "")) == "ranged_basic" and not _squad_has_pierce_atk():
+			continue   # 贯穿（10-23）：编队里没有子弹能穿透的远程普攻干员就不进池
 		var nm: String = pdef.name if pdef.max > 90 else "%s  %d/%d" % [pdef.name, n + 1, pdef.max]
 		out.append({"kind": "growth", "id": pid, "name": nm, "desc": passive_desc(pid) + "\n" + passive_preview(pid), "cat": CAT_LABEL.get(cat, "")})
 	return out
+
+
+## 编队里有没有普攻子弹能穿透的干员（data_operator.pierce_atk：能天使弹道 / 流明光弹 / 拉普兰德普攻剑气）
+func _squad_has_pierce_atk() -> bool:
+	for o in g.squad.ops:
+		if o.get("pierce_atk") == true:
+			return true
+	return false
 
 
 func apply_passive(pid: String) -> bool:

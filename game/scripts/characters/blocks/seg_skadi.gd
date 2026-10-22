@@ -13,7 +13,9 @@ static func hw_wave_start(o, b: Dictionary) -> void:
 		if o.pos == Vector2.INF:
 			return
 		var ang: float = o.facing_angle()
-		if str(b.get("aim", "")) == "nearest":
+		if o.manual_attack() and o.get("in_release") == true and o.atk_aim != Vector2.ZERO:
+			ang = o.atk_aim.angle()   # 手动普攻（10-23 用户定）：普攻里放出的剑气 / 潮刃沿玩家指向，不吸附最近敌人；技能里的照旧找最近
+		elif str(b.get("aim", "")) == "nearest":
 			var ts: Array = o.nearest_enemies(1, float(b.get("aim_r", 260.0)), o.pos)
 			if not ts.is_empty():
 				ang = (ts[0].pos - o.pos).angle()
@@ -57,13 +59,17 @@ static func _hw_waves(o, dt: float) -> void:
 				continue
 			if not box_centered(w.pos, w.dir, depth, w.w * 0.5, e.pos, e.r):   # B6 ⑤：ob_geom
 				continue
+			var pm: float = o.atk_pierce_mult(w.hit.size()) if b.has("max_hits") else 1.0   # 穿甲弹：普攻剑气每穿过一名 −15%（10-23）
 			w.hit[e.id] = true
 			o.log_hit(str(b.get("src", "")), b.get("tags", []))
-			o.deal_damage(e, w.dmg)
+			o.deal_damage(e, w.dmg * pm)
 			if not e.dead and not e.boss:
 				o.apply_kb(e, w.dir * float(b.get("kb", 0.0)) * (0.3 if e.elite else 1.0))
 			if b.has("hit_fx"):   # 精英化第 2 批段：潮刃命中的浪花
 				fx_play(o, b.hit_fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e], w.dir.angle())
+			if b.has("max_hits") and w.hit.size() >= o.atk_pierce(int(b.max_hits)):   # 10-23 用户定：远程普攻取消穿透——命中 max_hits 名即消失（缺省不限）；贯穿卡 / 穿甲弹加在上面
+				w.dist = w.max
+				break
 		w.drop -= dt
 		if w.drop <= 0.0 and not b.has("proj"):   # 浪尖甩出的水沫（画面，g.vrng；弹体式的潮刃不甩）
 			w.drop = 0.03
@@ -351,6 +357,7 @@ static func _hw_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			_num(b, "along", p, ctx, false, -2.0, 2.0)
 			_num(b, "depth", p, ctx, false, 1.0, 100.0)
 			_num(b, "cap", p, ctx, false, 1.0, 16.0)
+			_num(b, "max_hits", p, ctx, false, 1.0, 99.0)   # 命中几名敌人后消失（缺省不限；普攻剑气 1）
 			_num(b, "aim_r", p, ctx, false, 1.0, 1000.0)
 			if b.has("from") and not str(b.from) in ["prev", "self"]:
 				errs.append(p + ".from 只能是 prev / self")

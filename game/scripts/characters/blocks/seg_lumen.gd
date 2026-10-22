@@ -128,7 +128,8 @@ static func _h3_lantern_release(o, a: Dictionary) -> void:
 		if _e3_beam_shot(o, lm, hand, ts[0].pos, o.base(str(bt.get("atk_key", "atk")), 0.0) * o._dmg_bonus()):
 			return   # 精英化第 3 批：这一发变灯塔光柱
 		if lm.bolts.size() < H3_BOLT_MAX:
-			lm.bolts.append({"pos": hand, "vel": d * float(bt.get("speed", 380.0)), "dmg": o.base(str(bt.get("atk_key", "atk")), 0.0) * o._dmg_bonus(), "life": float(bt.get("life", 1.4)), "src": str(bt.get("src", ""))})
+			lm.bolts.append({"pos": hand, "vel": d * float(bt.get("speed", 380.0)), "dmg": o.base(str(bt.get("atk_key", "atk")), 0.0) * o._dmg_bonus(), "life": float(bt.get("life", 1.4)), "src": str(bt.get("src", "")),
+				"pierce": o.atk_pierce(0), "hit": {}})   # 普攻光弹：穿透只来自贯穿卡 / 穿甲弹（10-23）
 
 
 static func _h3_bolts_tick(o, lm: Dictionary, dt: float) -> void:
@@ -146,12 +147,15 @@ static func _h3_bolts_tick(o, lm: Dictionary, dt: float) -> void:
 			continue
 		for j in o.query_ids(b.pos, 30.0):
 			var e: Dictionary = g.enemies[j]
-			if e.dead or e.pos.distance_to(b.pos) > e.r + float(bt.get("r", 8.0)):
+			if e.dead or e.pos.distance_to(b.pos) > e.r + float(bt.get("r", 8.0)) or b.get("hit", _ED).has(e.id):
 				continue
+			var pm: float = o.atk_pierce_mult(b.hit.size()) if b.has("hit") else 1.0   # 穿甲弹：每穿过一名 −15%（10-23）
+			if b.has("hit"):
+				b.hit[e.id] = true
 			var src: String = b.get("src", main_src)
 			var was_lit: bool = float(e.get("lit", 0.0)) > 0.0   # 精英化第 3 批：折光看命中前是否已被照亮
 			o.log_hit(src)
-			o.deal_damage(e, b.dmg)
+			o.deal_damage(e, b.dmg * pm)
 			e["lit"] = float(bt.get("lit", 3.0))
 			_h3_sfx(o, "hit", -4.0 if src != main_src else 0.0)
 			if b.get("heal", 0.0) > 0.0 and g.hp < g.max_hp:
@@ -167,7 +171,10 @@ static func _h3_bolts_tick(o, lm: Dictionary, dt: float) -> void:
 				q["lit"] = float(bt.get("lit", 3.0))
 			if was_lit:
 				_e3_refract(o, bt, e, b.dmg)
-			b.life = 0.0
+			if int(b.get("pierce", 0)) > 0:
+				b.pierce = int(b.pierce) - 1   # 贯穿卡 / 穿甲弹：穿过去继续飞（已命中的不再打）
+			else:
+				b.life = 0.0
 			if not o.spawn_fx_sprite("fx_holy_impact_lantern", e.pos + Vector2(0, -e.r * 0.5), g.PX * 0.7):
 				o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.5), "r": 12.0, "life": 0.25, "col": H3_WARM, "alpha": 0.6})
 			_h3_vsparks(o, e.pos + Vector2(0, -e.r * 0.5), H3_WARM, 4, 120.0, 0.3, 2.0)

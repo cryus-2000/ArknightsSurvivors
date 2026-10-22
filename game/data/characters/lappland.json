@@ -269,7 +269,7 @@
  "attack": {
   "mode": "auto",
   "name": "双刃",
-  "desc": "每 {$cd} 秒在队长身边挥出双刃横扫（物理，扇形约 150°，半径 {$reach}）；触及内没有敌人时，这一下改为朝 {$blade_aim} 内最近的敌人掷出一道剑气（攻击 {$far_mult*100}%，飞出 {$blade_dist}，穿透）；特性「领主」：每第 {$blade_every} 次横扫额外掷出一道剑气，飞出 {$blade_dist}，穿透沿途敌人，造成横扫 {$blade_mult*100}% 的伤害"
+  "desc": "每 {$cd} 秒在队长身边挥出双刃横扫（物理，扇形约 150°，半径 {$reach}）；触及内没有敌人时，这一下改为朝 {$blade_aim} 内最近的敌人掷出一道剑气（攻击 {$far_mult*100}%，飞出 {$blade_dist}，命中第一名敌人即消失）；特性「领主」：每第 {$blade_every} 次横扫额外掷出一道剑气，飞出 {$blade_dist}，命中第一名敌人即消失，造成横扫 {$blade_mult*100}% 的伤害"
  },
  "skills": [
   {
@@ -464,7 +464,7 @@
    "desc": "解锁三技能「群狼之噬」：{$s3_dur} 秒内每 {$s3_every} 秒掷出 3 道剑气并封印周围敌人；普攻质变「双生刃」：每次横扫都掷出两道交叉剑气（各 {$twin_blade_mult*100}% 伤害，±{$twin_fan}°，每名敌人每轮只受一道），取代「领主」的单道剑气",
    "attack": {
     "name": "双生刃",
-    "desc": "每次横扫都掷出两道交叉剑气（各横扫 {$twin_blade_mult*100}% 伤害，±{$twin_fan}°，飞出 {$blade_dist}，穿透；每名敌人每轮只受一道）"
+    "desc": "每次横扫都掷出两道交叉剑气（各横扫 {$twin_blade_mult*100}% 伤害，±{$twin_fan}°，飞出 {$blade_dist}，命中第一名敌人即消失；每名敌人每轮只受一道）"
    }
   }
  ],
@@ -659,7 +659,8 @@
     "proj": "proj_lappland_sword",
     "_doc": "远近切换（10-22 用户）：触及 reach 内没有敌人时，这一下横扫改为朝 260 内最近敌人掷一道剑气（攻击 80%，飞 200，穿透）；「领主」每第 2 刀附带剑气照旧",
     "proj_hold": 1,
-    "proj_front": true
+    "proj_front": true,
+    "max_hits": 1
    }
   },
   "skills": [
@@ -802,7 +803,8 @@
       "src": "领主",
       "proj": "proj_lappland_sword",
       "proj_hold": 1,
-      "proj_front": true
+      "proj_front": true,
+      "max_hits": 1
      }
     ]
    },
@@ -834,7 +836,8 @@
       "src": "领主",
       "proj": "proj_lappland_sword",
       "proj_hold": 1,
-      "proj_front": true
+      "proj_front": true,
+      "max_hits": 1
      }
     ]
    },
@@ -1073,7 +1076,8 @@
        "src": "双生刃",
        "proj": "proj_lappland_sword",
        "proj_hold": 1,
-       "proj_front": true
+       "proj_front": true,
+       "max_hits": 1
       }
      ]
     },
@@ -1107,7 +1111,8 @@
        "src": "双生刃",
        "proj": "proj_lappland_sword",
        "proj_hold": 1,
-       "proj_front": true
+       "proj_front": true,
+       "max_hits": 1
       }
      ]
     }
