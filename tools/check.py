@@ -747,7 +747,8 @@ GOLDEN_ROLL = os.environ.get("ARK_GOLDEN_DIR")   # 可选本地覆盖层（不�
                                                   # 用于大重构对改前对照等临时场景（docs/101 §7.3）。10-22 起不再默认指向 build/golden_cache——
                                                   # 旧的本地缓存残留会遮住 git 里已经刷新的金样，导致合并后误报过期（协调人实测两次），--auto 默认完全不读它
 EQ_COMMON = ("game/scripts/characters/op_blocks.gd", "game/scripts/characters/data_operator.gd",
-             "game/scripts/characters/character.gd", "game/scripts/characters/op_api.gd")
+             "game/scripts/characters/character.gd", "game/scripts/characters/op_api.gd",
+             "game/scripts/characters/operator_defs.gd", "game/scripts/characters/operator_validate.gd")
 # B6 ①（docs/101 §7.3.3，10-15）：op_blocks 拆到 scripts/characters/blocks/ 后，公共段 ob_*.gd 也算积木公共文件（进本干员侧），
 # 按人的段 seg_<名>.gd 只进那名干员的本干员侧（不然拆分后的新文件落进「别处」，金样全判过期）
 EQ_COMMON_PREFIX = "game/scripts/characters/blocks/ob_"

@@ -24,6 +24,8 @@ const Doctor = preload("res://scripts/characters/doctor.gd")
 const StatBlock = preload("res://scripts/core/stat_block.gd")
 const StatDefs = preload("res://scripts/core/stat_defs.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
+const RunSetup = preload("res://scripts/run/run_setup.gd")   # 开局：难度、批跑 / 测试参数（docs/126 C1）
+const RunEnd = preload("res://scripts/run/run_end.gd")   # 局终：局外结算
 const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
 const Telemetry = preload("res://scripts/run/telemetry.gd")
 const WorldView = preload("res://scripts/render/world.gd")
@@ -886,33 +888,7 @@ func _ready() -> void:
 		Sfx.cut_target = 20000.0
 		Sfx.vol_target = -4.0
 		vfx.show_banner("深海的潮水正在涌来……")
-	preset = clampi(Cfg.difficulty, 0, D.DIFF_PRESETS.size() - 1)
-	tier = int(D.DIFF_PRESETS[preset].tide)
-	diff = tier
-	dmod = D.dmod_for_preset(preset)   # 潮位表 + 该档的 enemy_scale（深潮档微降，docs/109 §15）
-	for a in Cfg.dev_args():
-		if a.begins_with("--diff="):
-			# 批跑：旧累计难度 0–10 拼修正表（与旧数据对得上）
-			diff = int(a.substr(7))
-			preset = -1
-			tier = D.tier_of_level(diff)
-			dmod = D.dmod_for_level(diff)
-		elif a.begins_with("--tier="):
-			# 批跑旧三档：修正表与改动前逐局相同（潮位 8 比旧 Ⅷ 多寒流两键，所以 --tier=2 不走潮位表）
-			var lt := clampi(int(a.substr(7)), 0, D.LEGACY_TIERS.size() - 1)
-			preset = -1
-			tier = int(D.LEGACY_TIERS[lt].level)
-			diff = tier
-			dmod = D.dmod_for_legacy(lt)
-		elif a.begins_with("--tide="):
-			preset = -1
-			tier = clampi(int(a.substr(7)), 0, D.DIFFICULTY_TIERS.size() - 1)
-			diff = tier
-			dmod = D.dmod_for_tide(tier)   # 潮位正好是三档预设之一时带上该档的 enemy_scale（校准批跑与正式档同一张表）
-	if float(dmod.lamp_hit) != 1.0:
-		stats.add(&"light_decay", "mult", float(dmod.lamp_hit), "difficulty")   # 受击灯火损失（g.lamp_decay 只用于受击，combat.gd lose_hp）
-	if float(dmod.max_hp) != 1.0:
-		stats.add(&"max_hp", "mult", float(dmod.max_hp), "difficulty")
+	RunSetup.apply_difficulty(self)   # 难度预设 / 批跑难度参数（run/run_setup.gd）
 	sync_stats()
 	hp = max_hp
 	hp_trail = hp
@@ -948,64 +924,7 @@ func _ready() -> void:
 			s += " total=%d %s" % [A.marks[-1][1] - A.marks[0][1], A.normal_stats()]
 			print(s)
 			, CONNECT_ONE_SHOT)
-	if mode == Mode.BALANCE:
-		var bot_p := "normal"
-		var bot_seed := 0
-		for a in Cfg.dev_args():
-			if a.begins_with("--bot="):
-				bot_p = a.substr(6)
-			elif a.begins_with("--seed="):
-				bot_seed = int(a.substr(7))
-		bot = Bot.new(self, bot_p, bot_seed)
-		if Bal.v("command/bot_roam", 0.0) > 0.0 and Squad.cmd_on():
-			squad.set_stance(squad.ROAM)   # 之后耐力耗尽归队、回到 min_start 再突击（squad._tick_stamina）   # 指挥模式对照（docs/114）：机器人局常开突击；缺省 0 = 随行，同 seed 不变
-	for arg in Cfg.dev_args():
-		if arg.begins_with("--shotdir="):
-			shot_dir = arg.substr(10)
-		if arg.begins_with("--shots="):
-			shot_at = []
-			for v in arg.substr(8).split(","):
-				shot_at.append(int(v))
-	if mode == Mode.BALANCE:
-		playclock_test = Cfg.dev_args().has("--playclock") and Cfg.dev_args().has("--realtime")
-		if not playclock_test:
-			DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
-			Engine.max_fps = 0
-		for a in Cfg.dev_args():
-			if a.begins_with("--maxt="):
-				bal_maxt = float(a.substr(7))
-		prof_on = Cfg.dev_args().has("--prof")
-		for a in Cfg.dev_args():
-			if a.begins_with("--dt="):
-				bal_dt = clampf(float(a.substr(5)), 0.004, 0.1)
-		realtime = Cfg.dev_args().has("--realtime")
-		for a in Cfg.dev_args():
-			if a.begins_with("--rtfrom=") and realtime:
-				rt_from = float(a.substr(9))
-				realtime = false
-		headless_batch = DisplayServer.get_name() == "headless" and not Cfg.dev_args().has("--drawtest")
-		for a in Cfg.dev_args():
-			if a.begins_with("--trace="):
-				trace_every = float(a.substr(8))
-			# --bosstimes=30,60,90：冒烟测试把 Boss 提前（中期 Boss × 2 + 最终 Boss），一局两分钟内跑完所有 Boss 代码
-			if a.begins_with("--bosstimes="):
-				D.BOSS_TIMES = Array(a.substr(12).split(",")).map(func(x): return float(x))
-		OS.low_processor_usage_mode = false
-		OS.low_processor_usage_mode_sleep_usec = 0
-	for a in Cfg.dev_args():
-		if a.begins_with("--forceboss="):
-			force_boss = int(a.substr(12))
-		# 测试：开局直接编入干员（逗号分隔 id，跟在开局干员之后）
-		if a.begins_with("--squad="):
-			for cid in a.substr(8).split(","):
-				if squad.add(cid) != null:
-					panel_ui.load_op_tex(cid)
-	# 测试：全队直接推进 N 个成长节点（看精英化后的技能 / 特效）
-	for a in Cfg.dev_args():
-		if a.begins_with("--prog="):
-			for o in squad.ops:
-				for k in int(a.substr(7)):
-					o.advance()
+	RunSetup.apply_test_args(self)   # 批跑 / 测试的命令行参数（run/run_setup.gd）
 
 	trial.setup()
 
@@ -1149,11 +1068,7 @@ func _process(delta: float) -> void:
 		if not trial.active:
 			telemetry.on_state(state)   # 进入胜 / 负时把这一局写进本地记录（docs/40）
 			if state == S.WIN or state == S.DEAD:
-				Roster.on_run_end(self, state == S.WIN)
-				Meta.on_run_end(self, state == S.WIN)   # 局外成长：记生机细胞（docs/109 §3.1）
-				if state == S.DEAD and mode == Mode.PLAY and preset >= 0 and demo_op == "" and not Cfg.practice_active:
-					Cfg.note_diff_best(preset, false, t)   # 各档最佳成绩（通关的在 victory_flow.record_win 记）   # 干员解锁：发寻访凭证 / 招募券 / 人事调度函（docs/109 §12；不碰 g.rng）
-				Cloud.flush("run_end")   # B站云存档：一局结算时上传（只在 B站环境生效，docs/89）
+				RunEnd.settle(self)   # 局外结算：寻访凭证、生机细胞、最佳成绩、云存档（run/run_end.gd）
 		state_age = 0.0
 		ui_skip = false
 		res_sel = 0

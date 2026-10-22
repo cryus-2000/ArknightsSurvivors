@@ -104,6 +104,48 @@ func has(id: String) -> bool:
 	return db.items.has(id) and db.items[id].implemented
 
 
+## 有专属代码的藏品（docs/126 A5，10-22）：代码里只认这些名字，编号只写在这一处。
+## 新藏品能用 relic_effects.json 的 stat / rule / trigger / on_gain 表达的就写数据，不进这张表；要专属代码的才在这里登记一个名字
+const RELIC_ID := {
+	"gaul_coin": "85",   # 古高卢银币：技能结束回技力
+	"bloom": "94",   # 「绽放」：受伤回技力
+	"scavenger_staff": "102",   # 食腐者手杖：溢出治疗转伤害
+	"greens_can": "110",   # 绿叶菜罐头：开技能后 3 秒增伤
+	"syracusan_wrath": "111",   # 叙拉古人的愤怒：开技能后 1 秒增伤
+	"glory_ribbon": "112",   # 荣耀绶带：单体攻击增伤
+	"home_zone": "116",   # 遥乡之引：遥乡回复区
+	"kazimierz_glory": "120",   # 《光耀卡西米尔》：闪避后增伤
+	"return": "121",   # 《归来》：闪避后增伤（强）
+	"broken_halberd": "139",   # 折戟-浴血：近卫命中回技力
+	"iron_guard": "145",   # 铁卫-无锋：受击时重装回技力
+	"throat_hand": "169",   # 扼喉之手：狙击处决
+	"scratch_hand": "170",   # 扣挠之手：追击附加当前生命伤害
+	"burst_hand": "171",   # 炸裂之手：追击回技力
+	"shatter_hand": "175",   # 碎靶之手：术师命中叠伤害
+	"rocinante": "223",   # 退行的罗辛南特：骑士退行（结局二）
+	"time_end": "228",   # 「时光之末」：复活一次
+	"inquisition_fire": "229",   # 「审判庭之火」
+	"little_granfaloon": "231",   # 「小格兰法洛」：受伤全场眩晕
+	"wrath": "234",   # 「岁怒」：追击法术爆炸
+	"coral": "246",   # 无字珊瑚：低灯火追击增伤
+	"medal_hand": "252",   # 刻勋之手：击杀永久增伤
+	"merc_policy": "255",   # 佣兵保单：低灯火减伤
+	"survivor_contract": "261",   # 生还者合约：指定干员增伤
+}
+var _held := {}      # 已持有藏品编号的集合（g.relics 只会追加，按长度判断是否要重建）
+var _held_n := -1
+
+
+## 是否持有某件有专属代码的藏品（名字见 RID）；比逐次 g.relics.has 扫数组快
+func has_relic(key: String) -> bool:
+	if _held_n != g.relics.size():
+		_held.clear()
+		for r in g.relics:
+			_held[r] = true
+		_held_n = g.relics.size()
+	return _held.has(RELIC_ID[key])
+
+
 func rule(name: String) -> int:
 	return int(rules.get(name, 0))
 
@@ -713,7 +755,7 @@ func tick(dt: float) -> void:
 			overheal_t = 0.5
 			_scavenge()
 	# 遥乡之引
-	if g.relics.has("116"):
+	if has_relic("home_zone"):
 		_tick_home(dt)
 	# 周期生成：地雷 / 支援装置 / 随机充满 / 定时排异（docs/57 P21 P24 P18）
 	for tm in timers:
@@ -937,7 +979,7 @@ func _tick_stakes(dt: float) -> void:
 
 ## 溢出回复登记（game.gd _heal / 自然回复调用）
 func on_overheal(v: float) -> void:
-	if g.relics.has("102"):
+	if has_relic("scavenger_staff"):
 		overheal += v
 
 
@@ -1015,7 +1057,7 @@ func draw() -> void:
 		g.draw_circle(Vector2.ZERO, 4.0, Color(1.0 + bl, 0.5 + bl * 0.5, 0.3, 0.8))
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# 遥乡：地面上一片淡青色的圈，呼吸光
-	if home_pos != Vector2.INF and g.relics.has("116"):
+	if home_pos != Vector2.INF and has_relic("home_zone"):
 		var bl2: float = 0.5 + 0.5 * sin(g.t * 2.5)
 		var inside := in_home()
 		g.draw_set_transform(home_pos, 0.0, Vector2(1.0, 0.55))
@@ -1083,15 +1125,15 @@ func dmg_extra() -> float:
 
 ## 追击与召唤物的额外倍率：无字珊瑚（低灯火）
 func followup_extra() -> float:
-	return 1.0 + Bal.v("relic/coral_followup", 0.6) if g.relics.has("246") and g.lamp < DEEP_LAMP else 1.0
+	return 1.0 + Bal.v("relic/coral_followup", 0.6) if has_relic("coral") and g.lamp < DEEP_LAMP else 1.0
 
 
 ## 按命中描述符的倍率：碎靶之手（术师叠层）、荣耀绶带（不带范围效果的单体攻击）、Scout的狙击镜（远程命中按距离，docs/57 P15）
 func hit_mult(h: Dictionary, e: Dictionary = {}) -> float:
 	var m := 1.0
-	if shatter > 0 and h.get("class", "") == "术师" and g.relics.has("175"):
+	if shatter > 0 and h.get("class", "") == "术师" and has_relic("shatter_hand"):
 		m *= 1.0 + 0.05 * shatter
-	if g.relics.has("112") and not h.tags.has("area") and h.get("origin", "") != "relic":
+	if has_relic("glory_ribbon") and not h.tags.has("area") and h.get("origin", "") != "relic":
 		m *= 1.5
 	if rule("far_dmg") > 0 and h.get("range", "") == "远程" and h.get("origin", "") != "relic" and not e.is_empty():
 		var o = g.squad.get_op(str(h.get("op", "")))
@@ -1128,7 +1170,7 @@ func umbrella_interval_mult() -> float:
 ## 受伤倍率：佣兵保单（低灯火）、国王的圆饼
 func taken_mult() -> float:
 	var m: float = g.dmg_taken_mult
-	if g.relics.has("255") and g.lamp < DEEP_LAMP:
+	if has_relic("merc_policy") and g.lamp < DEEP_LAMP:
 		m *= 0.7
 	if rule("king_cake") > 0:
 		m *= 0.7 if king_low() else 0.95
@@ -1147,7 +1189,7 @@ func sp_extra() -> float:
 		m *= 1.5
 	if rule("king_branch") > 0:
 		m *= 1.5 if king_low() else 1.1
-	if g.relics.has("116") and in_home():
+	if has_relic("home_zone") and in_home():
 		m *= 1.3
 	if not zones.is_empty():
 		m *= 1.0 + _zone_bonus("sp")
@@ -1156,9 +1198,9 @@ func sp_extra() -> float:
 
 ## ---------- 事件钩子（game.gd 调用）----------
 func on_dodge() -> void:
-	if g.relics.has("121"):
+	if has_relic("return"):
 		_temp("dmg", 1.3, 6.0, "121")
-	elif g.relics.has("120"):
+	elif has_relic("kazimierz_glory"):
 		_temp("dmg", 0.6, 6.0, "120")
 	# 锈刃-可视静谧（docs/57）：闪避后无敌
 	for t in _triggers("Dodge"):
@@ -1168,11 +1210,11 @@ func on_dodge() -> void:
 
 ## 技能开始（character.spend_sp）：o 为施放的干员，i 为技能序号
 func on_skill_start(o = null, i := -1) -> void:
-	if g.relics.has("110"):
+	if has_relic("greens_can"):
 		_temp("dmg", 0.6, 3.0, "110")
-	if g.relics.has("111"):
+	if has_relic("syracusan_wrath"):
 		_temp("dmg", 1.0, 1.0, "111")
-	if g.relics.has("85") and o != null and i >= 0:
+	if has_relic("gaul_coin") and o != null and i >= 0:
 		coin_q.append({"t": g.t + float(o.skill_def(i).get("dur", 0.0)), "op": o})
 	# docs/57：数据驱动的 SkillStarted（refund / stack_stat / 带职业的 temp_stat）；110 / 111 仍走上面的写法
 	for t in _triggers("SkillStarted"):
@@ -1265,17 +1307,17 @@ func on_hurt(src_corrode: bool, amount := 0.0) -> void:
 				g.fx.append({"kind": "ring", "pos": g.ppos, "r": r, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.9, 0.6)})
 				g.vfx.add_text(g.ppos + Vector2(0, -96), "荣耀套餐 · 周围眩晕", Color(1.0, 0.9, 0.6), 15)
 	# 盘蛇之匣：受伤回技力 pct，神经损伤来源再加 corrode_extra（数据 relic_effects.json #94）
-	if g.relics.has("94"):
+	if has_relic("bloom"):
 		var a: Dictionary = _targs("94")
 		_gain_sp(float(a.get("pct", 0.03)) + (float(a.get("corrode_extra", 0.03)) if src_corrode else 0.0))
 	# 铁卫-无锋：主控受击时该职业回技力 pct，内置冷却 icd 秒（#145；pct 可被 balance.json relic/iron_sp 覆盖）
-	if g.relics.has("145") and hurt_sp_cd <= 0.0:
+	if has_relic("iron_guard") and hurt_sp_cd <= 0.0:
 		var a: Dictionary = _targs("145")
 		hurt_sp_cd = float(a.get("icd", 0.5))
 		for o in g.squad.ops:
 			if o.cls == str(a.get("class", "重装")):
 				o.gain_sp(Bal.v("relic/iron_sp", float(a.get("pct", 0.05))))
-	if g.relics.has("231") and stun_all_cd <= 0.0:
+	if has_relic("little_granfaloon") and stun_all_cd <= 0.0:
 		stun_all_cd = 30.0
 		for e in g.enemies:
 			if not e.dead and not e.chest and not e.boss:
@@ -1287,7 +1329,7 @@ func on_hurt(src_corrode: bool, amount := 0.0) -> void:
 
 ## 生命归零：时光之末复活一次。返回 true 表示已复活
 func on_death() -> bool:
-	if g.relics.has("228") and not revived:
+	if has_relic("time_end") and not revived:
 		revived = true
 		g.hp = g.max_hp * 0.5
 		g.invuln = 2.0
@@ -1300,10 +1342,10 @@ func on_death() -> bool:
 
 func on_kill(e: Dictionary) -> void:
 	var dk: float = float(e.get("dk", 1.0))   # 怪物密度缩放过的普通怪：击杀权重 1/density（docs/50 §16），其余 1
-	if g.relics.has("252"):
+	if has_relic("medal_hand"):
 		perm_dmg = minf(0.3, perm_dmg + 0.001 * dk)
 	# 生还者合约：每击败一个 Boss，被选中的干员再 +20%
-	if e.get("boss", false) and not e.get("dead", false) and contract_op != "" and g.relics.has("261"):
+	if e.get("boss", false) and not e.get("dead", false) and contract_op != "" and has_relic("survivor_contract"):
 		g.stats.add(&"dmg", "add", 0.2, "relic:261", "op:" + contract_op)
 		g.sync_stats()
 		g.vfx.show_banner("生还者合约：伤害再 +20%")
@@ -1361,12 +1403,12 @@ func on_hit(e: Dictionary, h: Dictionary, amount := 0.0) -> void:
 	# 吸血（docs/74 L1）：食腐者手杖的伤害显式排除（它的 origin 已是 relic，这里再保一道，防回路）
 	if amount > 0.0 and rule("lifesteal") > 0 and str(h.get("src", "")) != "食腐":
 		_lifesteal(minf(amount, maxf(0.0, float(e.get("hp", amount)))))
-	if g.relics.has("229"):
+	if has_relic("inquisition_fire"):
 		_budget_sp("229", "", 0.002, Bal.v("relic/judge_cap", 0.03))
 	var cls: String = h.get("class", "")
-	if cls == "近卫" and g.relics.has("139"):
+	if cls == "近卫" and has_relic("broken_halberd"):
 		_budget_sp("139", h.get("op", ""), 0.0025, 0.02)
-	if cls == "术师" and g.relics.has("175"):
+	if cls == "术师" and has_relic("shatter_hand"):
 		shatter = mini(10, shatter + 1)
 		shatter_t = g.t
 	# docs/57：数据驱动的「命中回技力」（衍生者终端 130 等）；229 / 139 / 171 仍走上面 / 下面的写法
@@ -1383,22 +1425,22 @@ func on_hit(e: Dictionary, h: Dictionary, amount := 0.0) -> void:
 	if not g.combat.is_followup(h):
 		return
 	# 追击命中：扣挠之手（目标当前生命 pct，Boss boss_pct，每个敌人每 icd 秒一次；数据 #170）
-	if g.relics.has("170") and not e.dead and g.t >= float(e.get("claw_t", 0.0)):
+	if has_relic("scratch_hand") and not e.dead and g.t >= float(e.get("claw_t", 0.0)):
 		var a: Dictionary = _targs("170")
 		e["claw_t"] = g.t + float(a.get("icd", 0.5))
 		g.combat.damage(e, e.hp * (float(a.get("boss_pct", 0.005)) if e.boss else float(a.get("pct", 0.03))), g.combat.make_hit("真实"))
 	# 炸裂之手：造成这次追击的干员回技力（每秒最多 2.5%）
-	if g.relics.has("171"):
+	if has_relic("burst_hand"):
 		_budget_sp("171", h.get("op", ""), 0.005, 0.025)
 	# 岁怒：冷却好了就在这次追击的目标处引爆
-	if g.relics.has("234") and wrath_cd <= 0.0:
+	if has_relic("wrath") and wrath_cd <= 0.0:
 		wrath_cd = 8.0
 		wrath_q.append(e.pos)
 
 
 ## 狙击命中：扼喉之手处决（该职业干员的任意命中；数据 #169：args.class / not_boss、if.target_hp_below）
 func sniper_execute(e: Dictionary, h: Dictionary) -> bool:
-	if not g.relics.has("169"):
+	if not has_relic("throat_hand"):
 		return false
 	var ef: Dictionary = _trigger("169")
 	var a: Dictionary = ef.get("args", {})

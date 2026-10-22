@@ -8,6 +8,8 @@ extends "res://scripts/characters/op_api.gd"
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")   # 地裂共用画法
 const A = preload("res://scripts/art.gd")
 const OperatorContract = preload("res://scripts/characters/operator_contract.gd")   # 帧条 / 动画数据契约（docs/108 §10）
+const OpDefs = preload("res://scripts/characters/operator_defs.gd")   # 读定义、文字占位（docs/126 C3）
+const OpValidate = preload("res://scripts/characters/operator_validate.gd")   # 招募校验（docs/126 C3）
 ## B6 ②（docs/101 §7.3.6）：积木按定义所在的 blocks 文件直连（原 const OpBlocks = preload(op_blocks.gd) 门面）
 ## 发版排查（10-16，bisect 到 dada5e32）：blocks 24 个文件是一条单继承链（ob_geom → ob_core → ob_check → … → seg_angelina → … → seg_skalter），
 ## 链上任一文件都transitively 带出它之前的全部文件；这里原来对 ob_check.gd / seg_angelina.gd 各开一次 preload，两条路径在
@@ -81,192 +83,25 @@ func entry_started() -> void:
 		sfx.voice(id, "entry", true)
 
 
+## 读定义 / 文字占位 / 测试专用干员 → characters/operator_defs.gd（docs/126 C3，10-22 原样搬出）；这里留转发，外部调用不变
 static func list_ids() -> Array:
-	var out: Array = []
-	var d := DirAccess.open("res://data/characters")
-	if d != null:
-		for f in d.get_files():
-			if f.ends_with(".json"):
-				out.append(f.get_basename())
-	return out
+	return OpDefs.list_ids()
 
 
 static func load_def(cid: String) -> Dictionary:
-	var f := FileAccess.open(def_path(cid), FileAccess.READ)
-	if f == null:
-		push_error("character def missing: " + cid)
-		return {"id": cid}
-	var d = JSON.parse_string(f.get_as_text())
-	if not (d is Dictionary):
-		return {"id": cid}
-	# 测试旋钮（docs/88）：--bal=opbase/<id>/<base 键>=值 覆盖干员 JSON 的 base 段（含数据干员 "$键" 引用）；
-	# 只在命令行带 --bal 时才有这一段（Bal 只在 debug 构建读命令行），正式游玩与发布版不受影响
-	var ob: Dictionary = preload("res://scripts/core/balance.gd").sec("opbase/" + cid)
-	if not ob.is_empty() and d.get("base") is Dictionary:
-		for k in ob:
-			d.base[k] = ob[k]
-	fill_text(d, d.get("base", {}) if d.get("base") is Dictionary else {})
-	return d
+	return OpDefs.load_def(cid)
 
 
-## 玩家可见文字里的数值占位（docs/61 §1.4）：desc / banner 里的「{表达式}」按 base 求值后填进去。
-## 表达式至少引用一个 $键，支持数字、+ - * / 与括号，例如 {$s1_mult}、{$e1_per*100}%、{$n2_mult*100-100}%、{(1-$slow)*100}%；末尾 :N 指定小数位（{$a*$b:0}）；
-## 结果按 text_fmt 去掉多余的小数（最多 3 位）。填在 load_def 里：选人 / 图鉴 / 升级卡 / 精英化演出 / 属性面板读到的都是填好的文字，
-## 改 base 数值（含 --bal=opbase）文字自动跟着变。求不出值的占位原样留下并报错（tools/op_text_check.py 同规则静态检查）
-const TEXT_FILL_KEYS := ["desc", "banner"]
-
-
-static func fill_text(n, base: Dictionary) -> void:
-	if n is Dictionary:
-		for k in n:
-			if k == "base" or k == "_doc":
-				continue
-			var v = n[k]
-			if v is String and k in TEXT_FILL_KEYS and v.contains("{"):
-				n[k] = fill_line(v, base)
-			elif v is Dictionary or v is Array:
-				fill_text(v, base)
-	elif n is Array:
-		for v in n:
-			if v is Dictionary or v is Array:
-				fill_text(v, base)
-
-
-## 一行文字里的全部 {…$键…} 占位换成数值
 static func fill_line(s: String, base: Dictionary) -> String:
-	var out := ""
-	var i := 0
-	while i < s.length():
-		var a := s.find("{", i)
-		if a < 0:
-			break
-		var b := s.find("}", a + 1)
-		if b < 0:
-			break
-		var expr := s.substr(a + 1, b - a - 1)
-		out += s.substr(i, a - i)
-		if expr.contains("$"):
-			var nd := 3
-			var ci := expr.rfind(":")
-			if ci > 0 and expr.substr(ci + 1).is_valid_int():   # {表达式:N}：四舍五入到 N 位小数（150.15 → {…:0} → 150）
-				nd = clampi(expr.substr(ci + 1).to_int(), 0, 3)
-				expr = expr.substr(0, ci)
-			var r := text_eval(expr, base)
-			if r[0]:
-				out += text_fmt(r[1], nd)
-			else:
-				push_error("干员文字占位「{%s}」求值失败：%s" % [expr, r[2]])
-				out += s.substr(a, b - a + 1)
-		else:
-			out += "{" + expr + "}"
-		i = b + 1
-	return out + s.substr(i)
+	return OpDefs.fill_line(s, base)
 
 
-## 去掉多余的小数：最多保留 nd 位（缺省 3：0.15 → 0.15，1.50 → 1.5，15.0 → 15，1.275 → 1.275）
 static func text_fmt(v: float, nd := 3) -> String:
-	var k := pow(10.0, nd)
-	var r := floorf(v * k + 0.5) / k   # 与 tools/op_text_check.py 同算法（.5 进位）
-	if absf(r - roundf(r)) < 0.0001:
-		return str(int(roundf(r)))
-	var t := ("%." + str(nd) + "f") % r
-	while t.ends_with("0"):
-		t = t.left(-1)
-	return t
+	return OpDefs.text_fmt(v, nd)
 
 
-## 文字占位的表达式求值：[ok, 值, 错误说明]；递归下降（加减 < 乘除 < 负号 / 括号）
-static func text_eval(expr: String, base: Dictionary) -> Array:
-	var toks: Array = []
-	var s := expr.replace(" ", "")
-	var i := 0
-	while i < s.length():
-		var c := s[i]
-		if c in "+-*/()":
-			toks.append(c)
-			i += 1
-		elif c == "$" or c.is_valid_int() or c == ".":
-			var j := i + 1
-			while j < s.length() and not (s[j] in "+-*/()"):
-				j += 1
-			toks.append(s.substr(i, j - i))
-			i = j
-		else:
-			return [false, 0.0, "看不懂的字符「%s」" % c]
-	var st := {"t": toks, "i": 0, "err": ""}
-	var v := _te_sum(st, base)
-	if st.err == "" and int(st.i) != toks.size():
-		st.err = "多余的「%s」" % str(toks[st.i])
-	return [st.err == "", v, st.err]
-
-
-static func _te_sum(st: Dictionary, base: Dictionary) -> float:
-	var v := _te_prod(st, base)
-	while st.err == "" and int(st.i) < st.t.size() and st.t[st.i] in ["+", "-"]:
-		var op: String = st.t[st.i]
-		st.i += 1
-		var r := _te_prod(st, base)
-		v = v + r if op == "+" else v - r
-	return v
-
-
-static func _te_prod(st: Dictionary, base: Dictionary) -> float:
-	var v := _te_atom(st, base)
-	while st.err == "" and int(st.i) < st.t.size() and st.t[st.i] in ["*", "/"]:
-		var op: String = st.t[st.i]
-		st.i += 1
-		var r := _te_atom(st, base)
-		if op == "*":
-			v *= r
-		elif r == 0.0:
-			st.err = "除以 0"
-		else:
-			v /= r
-	return v
-
-
-static func _te_atom(st: Dictionary, base: Dictionary) -> float:
-	if int(st.i) >= st.t.size():
-		st.err = "表达式不完整"
-		return 0.0
-	var t: String = st.t[st.i]
-	st.i += 1
-	if t == "-":
-		return -_te_atom(st, base)
-	if t == "(":
-		var v := _te_sum(st, base)
-		if int(st.i) >= st.t.size() or st.t[st.i] != ")":
-			st.err = "缺「)」"
-			return 0.0
-		st.i += 1
-		return v
-	if t.begins_with("$"):
-		var k := t.substr(1)
-		if not base.has(k) or not (base[k] is int or base[k] is float):
-			st.err = "base 里没有数字「%s」" % k
-			return 0.0
-		return float(base[k])
-	if t.is_valid_float():
-		return t.to_float()
-	st.err = "看不懂的「%s」" % t
-	return 0.0
-
-
-## 测试专用干员（docs/61 §测试）：不在 data/characters/ 里（不进名单 / 招募池 / 图鉴），只能用 --op=<id> 指名加载
-const TEST_OPS_DIR := "res://tests/data_ops/"
-
-
-## 干员定义文件：data/characters/<id>.json；没有时找测试专用干员
-static func def_path(cid: String) -> String:
-	var p := "res://data/characters/%s.json" % cid
-	if not FileAccess.file_exists(p) and FileAccess.file_exists(TEST_OPS_DIR + cid + ".json"):
-		return TEST_OPS_DIR + cid + ".json"
-	return p
-
-
-## 能按 id 加载（正式名单 + 测试专用干员）
 static func exists(cid: String) -> bool:
-	return cid != "" and FileAccess.file_exists(def_path(cid))
+	return OpDefs.exists(cid)
 
 
 ## 按 id 实例化角色（脚本路径来自定义里的 script 字段，默认 scripts/characters/<id>.gd；
@@ -283,132 +118,14 @@ static func create(game, cid: String) -> RefCounted:
 		push_error("character script missing: " + path)
 		return null
 	var inst = scr.new(game, d)
-	if validate_on():
-		validate_operator(cid, d)
+	if OpValidate.validate_on():
+		OpValidate.validate_operator(cid, d)
 	return inst
 
 
-## 招募时的干员 / 积木校验（约 2500 行，只读、只报错）：只在 debug 构建（编辑器、快检、批跑）跑，发布版每次招募不再跑（docs/101 S8）。
-## --novalidate：debug 下也跳过，用来对照校验没有副作用（同 seed TRACE 逐行相同）。JSON 的正确性由快检 core / 各积木测试保证
-static func validate_on() -> bool:
-	return OS.is_debug_build() and not OS.get_cmdline_user_args().has("--novalidate")
-
-
-## 干员契约 v2.1（docs/23 §4.2）：attack（普攻）+ 恰好 3 个自动技能 skills[0..2]（招募 / 精一 / 精二解锁）；talent 可选（精一）；
-## 手动技能只属于博士；progression 若存在必须是数组，节点 type ∈ stat / elite / custom，elite 节点带 level
+## 招募校验 → characters/operator_validate.gd（docs/126 C3）
 static func validate_operator(cid: String, d: Dictionary) -> bool:
-	var ok := true
-	if not d.has("attack") or not (d.attack is Dictionary):
-		push_error("干员 %s 缺少 attack 定义" % cid)
-		ok = false
-	var sk = d.get("skills", null)
-	if not (sk is Array) or sk.size() != 3:
-		push_error("干员 %s 必须恰好定义 3 个技能（skills 数组）" % cid)
-		ok = false
-	else:
-		for i in 3:
-			if not (sk[i] is Dictionary) or not sk[i].has("name"):
-				push_error("干员 %s 的技能 %d 缺 name" % [cid, i + 1])
-				ok = false
-			elif not sk[i].get("mode", "auto") in ["auto", "manual"]:
-				push_error("干员 %s 的技能 %d 的 mode 只能是 auto / manual" % [cid, i + 1])
-				ok = false
-			elif sk[i].has("anim") and not d.get("sprites", {}).has(str(sk[i].anim)):
-				push_error("干员 %s 的技能 %d 的 anim「%s」不是它的帧条（sprites 里没有）" % [cid, i + 1, sk[i].anim])
-				ok = false
-		if sk.filter(func(x): return x is Dictionary and x.get("mode", "auto") == "manual").size() > 1:
-			push_error("干员 %s 最多只能有 1 个手动技能" % cid)
-			ok = false
-	if d.get("sprites", {}).has("skill_pose"):
-		push_error("干员 %s 的 sprites.skill_pose 已移除，请按 docs/105 §4 迁移到 sprites.skills" % cid)
-		ok = false
-	# 帧条 / 动画数据契约 V1–V9（docs/108 §10：attack_timing、frame_durations、画布与 foot、native_motion、逐帧点、extra_sprites）
-	for contract_error in OperatorContract.errors(d):
-		push_error("干员 %s：%s" % [cid, contract_error])
-		ok = false
-	# 多条技能帧条（sprites.skills，docs/87 §3.5）：键 s1–s3，引用的帧条要在 sprites 里，非主动作的要列进 extra_sprites
-	var sq_ = d.get("sprites", {}).get("skills", null)
-	if sq_ != null:
-		if not (sq_ is Dictionary):
-			push_error("干员 %s 的 sprites.skills 须是字典" % cid)
-			ok = false
-		else:
-			for sk_ in sq_:
-				if str(sk_).begins_with("_"):
-					continue   # _doc
-				var q = sq_[sk_]
-				if not str(sk_) in ["s1", "s2", "s3"] or not (q is Dictionary):
-					push_error("干员 %s 的 sprites.skills 键「%s」须是 s1 / s2 / s3 且值为字典" % [cid, sk_])
-					ok = false
-					continue
-				if not (q.has("anim") or q.has("hold") or q.has("start")):
-					push_error("干员 %s 的 sprites.skills.%s 要有 anim、hold 或 start" % [cid, sk_])
-					ok = false
-				if q.has("hold") and not q.has("intro"):
-					push_error("干员 %s 的 sprites.skills.%s 有 hold 就要有 intro" % [cid, sk_])
-					ok = false
-				if q.has("hold") and q.has("start"):
-					push_error("干员 %s 的 sprites.skills.%s 不能同时写 hold 与 start" % [cid, sk_])
-					ok = false
-				if q.has("anim") and ["intro", "hold", "start", "enter", "loop", "run", "attack", "end"].any(func(key): return q.has(key)):
-					push_error("干员 %s 的 sprites.skills.%s 单条 anim 不能混写序列字段" % [cid, sk_])
-					ok = false
-				if q.has("start") and not q.has("loop"):
-					push_error("干员 %s 的 sprites.skills.%s 有 start 就要有 loop" % [cid, sk_])
-					ok = false
-				if (q.has("attack") or q.has("run") or q.has("enter")) and (not q.has("loop") or not q.has("start") or q.has("hold")):
-					push_error("干员 %s 的 sprites.skills.%s 的 attack / run / enter 槽需要 start 与 loop，不能用于 hold" % [cid, sk_])
-					ok = false
-				for key in ["shadow", "shadow_a"]:
-					if q.has(key) and (not (q[key] is float or q[key] is int) or not is_finite(float(q[key])) or float(q[key]) < 0.0 or float(q[key]) > 1.0):
-						push_error("干员 %s 的 sprites.skills.%s.%s 须为 0–1 的数值" % [cid, sk_, key])
-						ok = false
-				for part in ["anim", "intro", "hold", "start", "enter", "loop", "run", "end", "attack"]:
-					if not q.has(part):
-						continue
-					var seg = q[part]
-					if part == "attack" and seg is Dictionary:
-						push_error("干员 %s 的 sprites.skills.%s.attack 须是帧条名（出手帧按该条 fire）" % [cid, sk_])
-						ok = false
-						continue
-					if seg is Dictionary and seg.has("reverse") and not (seg.reverse is bool):
-						push_error("干员 %s 的 sprites.skills.%s.%s.reverse 须是布尔值" % [cid, sk_, part])
-						ok = false
-					var k := seq_anim(seg)
-					if k == "" or not d.sprites.has(k) or not (d.sprites[k] is Dictionary) or not d.sprites[k].has("tex"):
-						push_error("干员 %s 的 sprites.skills.%s.%s 帧条「%s」不在 sprites（须是带 tex 的槽）" % [cid, sk_, part, k])
-						ok = false
-					elif not k in ["idle", "run", "attack", "skill", "hurt", "death"] and not k in d.get("extra_sprites", []):
-						push_error("干员 %s 的 sprites.skills.%s.%s 帧条「%s」没列进 extra_sprites" % [cid, sk_, part, k])
-						ok = false
-					elif seg is Dictionary and seg.has("frames"):
-						var nf = d.sprites[k].get("frames", null)
-						if not (seg.frames is Array) or seg.frames.is_empty() or seg.frames.any(func(x): return not (x is float or x is int) or float(x) != float(int(x)) or int(x) < 0 or (nf != null and int(x) >= int(nf))):
-							push_error("干员 %s 的 sprites.skills.%s.%s.frames 须是帧条范围内的帧号数组" % [cid, sk_, part])
-							ok = false
-	for visual_error in preload("res://scripts/characters/summon_visual.gd").errors(d.get("sprites", {}), d.get("extra_sprites", [])):
-		push_error("%s: %s" % [cid, visual_error])
-		ok = false
-	var prog = d.get("progression", [])
-	if not (prog is Array):
-		push_error("干员 %s 的 progression 必须是数组" % cid)
-		return false
-	for i in prog.size():
-		var n = prog[i]
-		if not (n is Dictionary) or not n.get("type", "") in ["stat", "elite", "custom"]:
-			push_error("干员 %s 的成长节点 %d 类型非法" % [cid, i])
-			ok = false
-		elif n.type == "elite" and not n.has("level"):
-			push_error("干员 %s 的精英化节点 %d 缺 level" % [cid, i])
-			ok = false
-	var fac = d.get("faction", [])
-	if not (fac is Array) or fac.any(func(x): return not (x is String) or x == ""):
-		push_error("干员 %s 的 faction 必须是字符串数组" % cid)
-		ok = false
-	# 数据干员（docs/61 §8）：积木名、参数、$ 引用、伤害来源、节点对应
-	if d.has("blocks") and not ObCheck.validate(cid, d):
-		ok = false
-	return ok
+	return OpValidate.validate_operator(cid, d)
 
 
 ## 手动技能入口（Q / J）：三自动角色返回 false；两自动一主动的角色在这里校验解锁与资源后施放
@@ -2042,9 +1759,7 @@ func skill_seq(i: int) -> Dictionary:
 
 ## 「段」的帧条名
 static func seq_anim(seg) -> String:
-	if seg is Dictionary:
-		return str(seg.get("anim", ""))
-	return str(seg) if seg != null else ""
+	return OpDefs.seq_anim(seg)
 
 
 ## 「段」播的帧号表（没写 frames = 整条）
