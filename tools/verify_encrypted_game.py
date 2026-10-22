@@ -72,6 +72,14 @@ func _verify():
                 failures.append("internal_save_missing")
             elif int(saved.get_value("progress", "diff_unlocked", 0)) != 0 or not saved.get_value("progress", "seen_relics", []).is_empty() or not saved.get_value("progress", "endings_cleared", []).is_empty() or not saved.get_value("progress", "gallery_seen", []).is_empty():
                 failures.append("unlock_written_to_save")
+            # 对内包名册（用户 10-22 要测寻访）：新存档只有开局 5 人，首次启动发 INTERNAL_TICKETS 张寻访凭证并写进存档
+            var roster = load("res://scripts/core/roster.gd")
+            if cfg.roster_all_open() or not roster.active() or roster.locked_ids().size() != roster.all_ids().size() - roster.STARTERS.size():
+                failures.append("internal_roster_start5")
+            if roster.tickets() != cfg.INTERNAL_TICKETS or not cfg.roster_int_grant:
+                failures.append("internal_roster_tickets:" + str(roster.tickets()))
+            elif saved.load("user://settings.cfg") != OK or int(saved.get_value("roster", "tickets", {}).get("hunt", 0)) != cfg.INTERNAL_TICKETS or not bool(saved.get_value("roster", "int_grant", false)):
+                failures.append("internal_roster_tickets_saved")
         elif not cfg.gallery_seen.is_empty() or not cfg.seen_relics.is_empty() or not cfg.endings_cleared.is_empty() or cfg.diff_unlocked != 0:
             failures.append("fresh_progress")
         if cfg.can_boss_trial() != (audience == "internal"):
@@ -83,7 +91,7 @@ func _verify():
     var user_dir = str(ProjectSettings.get_setting("application/config/custom_user_dir_name", ""))
     if user_dir != ("ArknightsSurvivors_Internal" if audience == "internal" else "ArknightsSurvivors"):
         failures.append("user_dir_isolation:" + user_dir)
-    # 图鉴：对内包全部解锁；对外包新存档其余页全锁，干员页按名册（docs/109 §12：开局 5 人解锁、其余锁定，博士不锁）
+    # 图鉴：对内包全部解锁（干员页也全可看，名册虽按开局 5 人）；对外包新存档其余页全锁，干员页按名册（docs/109 §12：开局 5 人解锁、其余锁定，博士不锁）
     if cfg != null:
         var roster = load("res://scripts/core/roster.gd")
         var roster_ids: Array = roster.all_ids()

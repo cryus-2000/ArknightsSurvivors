@@ -600,10 +600,12 @@ func _draw() -> void:
 	UI.en(self, font, Vector2(tx + 24, 49), "ARKNIGHTS FAN GAME  ·  ROGUELIKE SURVIVORS", 11, _fa(Color(0.55, 0.59, 0.63), hf0), 2.5)
 	if Cfg.unlock_all:
 		# 暗底衬板：右上角是明亮的巨树枝，金字直接压在上面看不清
-		var tbw: float = font.get_string_size("测试版 · 已全部解锁（不写入存档）", HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+		# 对内发布包名册按新玩家走（测寻访），只有图鉴 / 难度 / 结局全开
+		var tb_txt: String = "测试版 · 图鉴与难度全开（不写入存档）" if Cfg.internal_roster() else "测试版 · 已全部解锁（不写入存档）"
+		var tbw: float = font.get_string_size(tb_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
 		draw_rect(Rect2(vs.x - 30 - tbw - 12, 13, tbw + 24, 24), Color(0.02, 0.03, 0.05, 0.85))
 		draw_rect(Rect2(vs.x - 30 - tbw - 12, 13, 3, 24), UI.GOLD)
-		UI.text(self, font, Vector2(vs.x - 330, 30), "测试版 · 已全部解锁（不写入存档）", 12, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 300)
+		UI.text(self, font, Vector2(vs.x - 330, 30), tb_txt, 12, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 300)
 	# 标题（像素 Logo）：2.6s 起青色扫光从左往右「刷」出来（Logo 按扫光位置裁切），扫完右上菱形闪一下
 	var lg := _seg(2.6, 0.6)
 	var ly := 6.0 * (1.0 - lg)

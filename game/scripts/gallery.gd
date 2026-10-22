@@ -312,7 +312,7 @@ func _build() -> void:
 				var cdef: Dictionary = Character.load_def(cid)
 				var oe: Dictionary = _op_entry(cid, cdef)
 				oe["first"] = bool(cdef.get("list_first", false))   # list_first：干员 json（封面干员水月排第一）
-				if not Roster.is_unlocked(cid):
+				if not Cfg.unlock_all and not Roster.is_unlocked(cid):   # 对内包图鉴全开（名册虽按新玩家走）
 					oe["locked"] = true
 					oe["locked_text"] = "未招募。\n\n探索结算时使用寻访凭证寻访解锁。"
 				ops.append(oe)
