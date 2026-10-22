@@ -7,6 +7,11 @@ extends Node
 ## 培养保底：最近培养的干员有合法成长卡时固定占一个位。全部通过时打印 "BUILD PROGRESSION failures=0"
 
 const Ch = preload("res://scripts/characters/character.gd")
+const Bal = preload("res://scripts/core/balance.gd")
+
+## 干员攻击倍率的基础值（基础砍 squad/op_atk_base，docs/109 §14.1）：节点 +6% 是 add，按它放大
+func atk_base() -> float:
+	return Bal.v("squad/op_atk_base", 1.0)
 const Prog = preload("res://scripts/run/progression.gd")
 ## 已接分支的干员（docs/120；p2 逐批加入）——其余干员必须没有分支节点
 const PILOT := ["texas", "hoshiguma", "eyjafjalla", "suzuran", "exusiai", "skadi", "siege", "saria", "wisadel", "lumen", "kaltsit",
@@ -148,7 +153,7 @@ func test_confirm_once() -> void:
 	ok(o.prog == 4 and o.route == "rain", "推进到节点 4、路线 rain（prog=%d route=%s）" % [o.prog, o.route])
 	ok(o.taken.has("rain2") and not o.taken.has("back"), "taken 只有所选路线的节点 id：%s" % str(o.taken))
 	ok(o.node_lv == lv0 + 1, "普通节点计数只 +1")
-	ok(is_equal_approx(op_atk(o) - a0, Ch.NODE_ATK), "节点攻击 +6%% 只加一次（Δ=%.3f）" % (op_atk(o) - a0))
+	ok(is_equal_approx(op_atk(o) - a0, Ch.NODE_ATK * atk_base()), "节点攻击 +6%% 只加一次（Δ=%.3f）" % (op_atk(o) - a0))
 	ok(game.progression.focus_op == "texas", "培养保底：德克萨斯成为最近培养对象")
 
 
@@ -189,7 +194,7 @@ func test_gift_player_queue() -> void:
 	game.progression.pick(ei)
 	ok(o.prog == 4 and o.route == "ember" and o.taken.has("ember") and not o.taken.has("wall"), "确认后推进节点 4、路线 ember：%s" % str(o.taken))
 	ok(game.pending_levelups == 2, "赠送推进不扣升级")
-	ok(is_equal_approx(op_atk(o) - a0, Ch.NODE_ATK), "赠送推进节点攻击只加一次")
+	ok(is_equal_approx(op_atk(o) - a0, Ch.NODE_ATK * atk_base()), "赠送推进节点攻击只加一次")
 	ok(game.progression.branch_queue.is_empty(), "队列清空")
 	ok(game.state == game.S.CHOICE and game.choice_kind == "level", "确认后 check_pending 接着处理待办的升级（pending=2）")
 	game.panel.visible = false
@@ -247,7 +252,7 @@ func test_swap_inherit() -> void:
 	if s != null:
 		ok(s.prog == 5 and s.elite == 1 and s.route == "hearth", "继承 5 个节点、精一、路线 hearth（prog=%d route=%s）" % [s.prog, s.route])
 		ok(s.taken.has("fox_hearth") and s.taken.has("fox_hearth2") and not s.taken.has("fox_seal") and not s.taken.has("fox_seal2"), "按新路线一次性重建：%s" % str(s.taken))
-		ok(s.node_lv == 4 and is_equal_approx(op_atk(s), 1.0 + 4 * Ch.NODE_ATK), "继承的普通节点攻击加成 = 4 × 6%%（op_atk=%.3f）" % op_atk(s))
+		ok(s.node_lv == 4 and is_equal_approx(op_atk(s), atk_base() * (1.0 + 4 * Ch.NODE_ATK)), "继承的普通节点攻击加成 = 4 × 6%%（op_atk=%.3f）" % op_atk(s))
 	ok(game.pending_levelups == 0 and game.state == game.S.PLAY, "换人只扣一次升级")
 	# 继承不足节点 4：不进路线屏（铃兰换回艾雅法拉时艾雅法拉继承 5 → 要选；这里用 prog 2 的临时情形）
 	var card2 := {"kind": "recruit", "swap": true, "id": "eyjafjalla", "name": "艾雅法拉", "cls": "术师", "desc": ""}
