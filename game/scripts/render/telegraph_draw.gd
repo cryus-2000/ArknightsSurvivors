@@ -9,9 +9,15 @@ const UI = preload("res://scripts/ui.gd")
 ## 填充样式按 docs/95 §0.2 全局固定，玩家看形状就知道躲法、看颜色就知道是谁放的：
 ## ① 落点圈 实填（主色 100%）；② 直线 斜条纹（主色 70%，条纹随结算进度流向终点）；③ 扇形 暗填 + 亮边（45% 填充、外弧 130% 亮）；
 ## ④ 缺口环 空心（只画线、无填充）；0 预告 低亮度（25%，不发光）；⑤ 必须冲刺 同 ①（屏幕级提示在 HUD）
+## 10-22b 用户：普通怪（非 Boss）远程攻击（直线射击 shot / 扇形连射 extra_volley）开火前不再画预警；预警本身照常计时、到点照常开火（纯画面）
+static func quiet(w: Dictionary) -> bool:
+	var o = w.get("owner")
+	return o is Dictionary and not o.get("boss", false) and str(w.get("act", "")) in ["shot", "extra_volley"]
+
+
 static func draw_fills(g) -> void:
 	for w in g.warns:
-		if w.get("dim", false):
+		if w.get("dim", false) or quiet(w):
 			continue   # 打不到主控的杂兵预警只画淡轮廓（world.classify_tells / draw_warn_outlines，可读性 1.1.1，界面与美术）
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var c: Color = w.col

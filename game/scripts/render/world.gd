@@ -1421,12 +1421,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 	for l in g.lobs:
 		var k: float = l.t / l.dur
 		var brood: bool = l.get("kind", "") == "brood"
-		# 抛石落点：地面椭圆（与判定一致）+ 深色描边 + 敌方洋红，不再乘亮度（docs/48 ①④）
-		g.draw_set_transform(l.to, 0.0, Vector2(1.0, ground_y()))
-		g.draw_circle(Vector2.ZERO, l.r * k, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.22 * tell_fill))
-		g.draw_arc(Vector2.ZERO, l.r, 0.0, TAU, 32, Color(0, 0, 0, 0.55), 4.0)
-		g.draw_arc(Vector2.ZERO, l.r, 0.0, TAU, 32, Color(ENEMY_TELL.r, ENEMY_TELL.g, ENEMY_TELL.b, 0.6 + 0.35 * sin(g.t * 20.0)), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		# 抛石落点的地面椭圆预警 10-22b 用户取消（g.lobs 只有普通怪的抛射，Boss 抛射走 g.warns）：只画空中的石块 / 投嗣弹
 		var gp: Vector2 = l.from.lerp(l.to, k)
 		var hgt := sin(k * PI) * (80.0 if brood else 120.0)
 		g.draw_set_transform(gp, 0.0, Vector2(1.0, 0.45))
@@ -3529,7 +3524,7 @@ func _warn_dash_arc(r: float, a0: float, a1: float, col: Color, wdt: float) -> v
 
 func draw_warn_outlines() -> void:
 	for w in g.warns:
-		if w.done:
+		if w.done or TeleDraw.quiet(w):
 			continue
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var tr: float = float(w.get("track", 0.0))
@@ -3643,8 +3638,7 @@ func draw_warn_outlines() -> void:
 					g.draw_line(w.pos + v * r_in, w.pos + v * r_out, Color(0, 0, 0, 0.7), 5.0)
 					g.draw_line(w.pos + v * r_in, w.pos + v * r_out, safe_col, 2.0)
 				var mp: Vector2 = w.pos + Vector2.from_angle(float(ga)) * (r_in + r_out) * 0.5
-				g.draw_rect(Rect2(mp + Vector2(-20, -11), Vector2(40, 18)), Color(0.05, 0.04, 0.02, 0.85))
-				UI.text(g, g.font, mp + Vector2(-20, 3), "出口", 12, safe_col, HORIZONTAL_ALIGNMENT_CENTER, 40)
+				# 缺口处的「出口」字样 10-22b 用户取消：只留两侧金线标出缺口
 
 
 func draw_zone() -> void:

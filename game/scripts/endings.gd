@@ -60,8 +60,7 @@ func update(dt: float) -> void:
 	# 最终 Boss 登场前 10 秒还有祭坛没开：强提示一次（登场即冻结，没开的会沉没；hud 读 urgent 让方位指示闪烁）
 	urgent = alive > 0 and g.t >= final_t - 10.0
 	if urgent and not urgent_warned:
-		urgent_warned = true
-		g.vfx.show_banner("海嗣祭坛即将沉没 —— 最后 10 秒")
+		urgent_warned = true   # 文字横幅 10-22b 用户取消：方位指示金红快闪 + 音效
 		Sfx.play("ui_move", -2.0, 0.8)
 	# 多个祭坛可以同时存在（主控走近才打开，不会同时弹两个面板）：一个没开不再挡住后面的事件
 	if alive >= MAX_BOXES:
@@ -136,7 +135,7 @@ func _spawn_box(ev: Dictionary) -> void:
 	var p: Vector2 = g.spawner.event_pos(520.0, 650.0, 110.0)
 	g.spawner.spawn_chest(p, ev.id)
 	g.enemies[g.enemies.size() - 1].invuln = true   # 不吃伤害：只在主控走近时打开（update 里）
-	g.vfx.show_banner("海嗣祭坛「%s」出现了 —— 靠近祭坛进行抉择" % ev.name)
+	# 出现横幅 10-22b 用户取消：只留屏边指示与音效
 	Sfx.play("relic", -2.0, 0.7, 0.0)
 
 
