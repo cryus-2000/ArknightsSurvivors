@@ -1,10 +1,67 @@
 {
-  "_doc": "认知塑造（局外成长 P2，docs/109 §14 v5，用户 10-22「砍干员基础数值，把差值留给树；点满要爽」）：节点名沿用原作水月「认知塑造」。每个节点 cost 生机细胞，同一条线要从 I 往后点（req = 前置节点），大节点另要求已点总量 ≥ need。effects：stat = 写进属性块（来源 meta，op add / flat）；rule = 开局写 rfx.rules 计数（质变 / 非数值节点：shield_shatter 护盾反震、low_hp_regen 低血回复翻倍、execute 处决、last_stand 濒死免死、calm_guard 久未受伤减伤、double_level 升级再升、first_choice_extra 开局四选一、shop_free_refresh 行商免费刷新）；start_ingots = 开局源石锭；start_relic = 开局从基础藏品中选 1。order = 推荐点法（机器人 --meta=N 与界面「推荐」共用）。总量 665（八线 560 + 调度线 105）。满点合计：生命 +40%、受伤 -20%、回复 +1.2/秒、护盾 2 层、精英 / Boss 伤害 +25%、经验 +10%；每线按 Ⅰ→Ⅴ 递增。基础砍在 balance.json squad 段（leader_hp_mult / op_atk_base / regen_per_member）。",
+  "_doc": "认知塑造（局外成长 P2，docs/109 §14 v5，用户 10-22「砍干员基础数值，把差值留给树；点满要爽」）：节点名沿用原作水月「认知塑造」。每个节点 cost 生机细胞，同一条线要从 I 往后点（req = 前置节点），大节点另要求已点总量 ≥ need。effects：stat = 写进属性块（来源 meta，op add / flat）；rule = 开局写 rfx.rules 计数（质变 / 非数值节点：shield_shatter 护盾反震、low_hp_regen 低血回复翻倍、execute 处决、last_stand 濒死免死、calm_guard 久未受伤减伤、double_level 升级再升、first_choice_extra 开局四选一、shop_free_refresh 行商免费刷新）；start_ingots = 开局源石锭；start_relic = 开局从基础藏品中选 1。order = 推荐点法（机器人 --meta=N 与界面「推荐」共用）。总量 665（八线 560 + 调度线 105）。满点合计（r2，10-22 云端 mc1 满点标准 98.8 / 无成长 61.3 后收）：生命 +20%、受伤 -10%、回复 +0.6/秒、护盾 1 层、精英 / Boss 伤害 +12%、经验 +8%；每线按 Ⅰ→Ⅴ 递增。基础砍在 balance.json squad 段（leader_hp_mult / op_atk_base / regen_per_member）。",
   "nodes": {
     "atk1": {
       "line": "攻击",
       "name": "攻击性Ⅰ",
       "cost": 5,
+      "effects": [
+        {
+          "stat": "boss_dmg",
+          "op": "add",
+          "value": 0.01
+        },
+        {
+          "stat": "elite_dmg",
+          "op": "add",
+          "value": 0.01
+        }
+      ],
+      "desc": "对精英与 Boss 造成的伤害 +1%"
+    },
+    "atk2": {
+      "line": "攻击",
+      "name": "攻击性Ⅱ",
+      "cost": 15,
+      "req": "atk1",
+      "effects": [
+        {
+          "stat": "boss_dmg",
+          "op": "add",
+          "value": 0.02
+        },
+        {
+          "stat": "elite_dmg",
+          "op": "add",
+          "value": 0.02
+        }
+      ],
+      "desc": "对精英与 Boss 造成的伤害 +2%"
+    },
+    "atk3": {
+      "line": "攻击",
+      "name": "攻击性Ⅲ",
+      "cost": 20,
+      "req": "atk2",
+      "effects": [
+        {
+          "stat": "boss_dmg",
+          "op": "add",
+          "value": 0.02
+        },
+        {
+          "stat": "elite_dmg",
+          "op": "add",
+          "value": 0.02
+        }
+      ],
+      "desc": "对精英与 Boss 造成的伤害 +2%"
+    },
+    "atk4": {
+      "line": "攻击",
+      "name": "攻击性Ⅳ",
+      "cost": 30,
+      "req": "atk3",
       "effects": [
         {
           "stat": "boss_dmg",
@@ -19,63 +76,6 @@
       ],
       "desc": "对精英与 Boss 造成的伤害 +3%"
     },
-    "atk2": {
-      "line": "攻击",
-      "name": "攻击性Ⅱ",
-      "cost": 15,
-      "req": "atk1",
-      "effects": [
-        {
-          "stat": "boss_dmg",
-          "op": "add",
-          "value": 0.04
-        },
-        {
-          "stat": "elite_dmg",
-          "op": "add",
-          "value": 0.04
-        }
-      ],
-      "desc": "对精英与 Boss 造成的伤害 +4%"
-    },
-    "atk3": {
-      "line": "攻击",
-      "name": "攻击性Ⅲ",
-      "cost": 20,
-      "req": "atk2",
-      "effects": [
-        {
-          "stat": "boss_dmg",
-          "op": "add",
-          "value": 0.05
-        },
-        {
-          "stat": "elite_dmg",
-          "op": "add",
-          "value": 0.05
-        }
-      ],
-      "desc": "对精英与 Boss 造成的伤害 +5%"
-    },
-    "atk4": {
-      "line": "攻击",
-      "name": "攻击性Ⅳ",
-      "cost": 30,
-      "req": "atk3",
-      "effects": [
-        {
-          "stat": "boss_dmg",
-          "op": "add",
-          "value": 0.06
-        },
-        {
-          "stat": "elite_dmg",
-          "op": "add",
-          "value": 0.06
-        }
-      ],
-      "desc": "对精英与 Boss 造成的伤害 +6%"
-    },
     "atk5": {
       "line": "攻击",
       "name": "攻击性Ⅴ",
@@ -85,18 +85,18 @@
         {
           "stat": "boss_dmg",
           "op": "add",
-          "value": 0.07
+          "value": 0.04
         },
         {
           "stat": "elite_dmg",
           "op": "add",
-          "value": 0.07
+          "value": 0.04
         },
         {
           "rule": "execute"
         }
       ],
-      "desc": "对精英与 Boss 造成的伤害 +7%。处决：普通敌人生命低于 15% 最大生命、精英低于 8% 时直接击杀（Boss 除外）"
+      "desc": "对精英与 Boss 造成的伤害 +4%。处决：普通敌人生命低于 15% 最大生命、精英低于 8% 时直接击杀（Boss 除外）"
     },
     "hp1": {
       "line": "生命",
@@ -106,10 +106,10 @@
         {
           "stat": "max_hp",
           "op": "add",
-          "value": 0.04
+          "value": 0.02
         }
       ],
-      "desc": "队长最大生命 +4%"
+      "desc": "队长最大生命 +2%"
     },
     "hp2": {
       "line": "生命",
@@ -120,10 +120,10 @@
         {
           "stat": "max_hp",
           "op": "add",
-          "value": 0.06
+          "value": 0.03
         }
       ],
-      "desc": "队长最大生命 +6%"
+      "desc": "队长最大生命 +3%"
     },
     "hp3": {
       "line": "生命",
@@ -134,10 +134,10 @@
         {
           "stat": "max_hp",
           "op": "add",
-          "value": 0.08
+          "value": 0.04
         }
       ],
-      "desc": "队长最大生命 +8%"
+      "desc": "队长最大生命 +4%"
     },
     "hp4": {
       "line": "生命",
@@ -148,10 +148,10 @@
         {
           "stat": "max_hp",
           "op": "add",
-          "value": 0.1
+          "value": 0.05
         }
       ],
-      "desc": "队长最大生命 +10%"
+      "desc": "队长最大生命 +5%"
     },
     "hp5": {
       "line": "生命",
@@ -162,13 +162,13 @@
         {
           "stat": "max_hp",
           "op": "add",
-          "value": 0.12
+          "value": 0.06
         },
         {
           "rule": "last_stand"
         }
       ],
-      "desc": "队长最大生命 +12%。每局一次：受到致命伤时保留 1 点生命，1.5 秒内不受伤害"
+      "desc": "队长最大生命 +6%。每局一次：受到致命伤时保留 1 点生命，1.5 秒内不受伤害"
     },
     "def1": {
       "line": "减伤",
@@ -178,10 +178,10 @@
         {
           "stat": "dmg_taken",
           "op": "add",
-          "value": -0.03
+          "value": -0.01
         }
       ],
-      "desc": "队长受到的伤害 -3%"
+      "desc": "队长受到的伤害 -1%"
     },
     "def2": {
       "line": "减伤",
@@ -192,10 +192,10 @@
         {
           "stat": "dmg_taken",
           "op": "add",
-          "value": -0.04
+          "value": -0.02
         }
       ],
-      "desc": "队长受到的伤害 -4%"
+      "desc": "队长受到的伤害 -2%"
     },
     "def3": {
       "line": "减伤",
@@ -206,10 +206,10 @@
         {
           "stat": "dmg_taken",
           "op": "add",
-          "value": -0.06
+          "value": -0.03
         }
       ],
-      "desc": "队长受到的伤害 -6%"
+      "desc": "队长受到的伤害 -3%"
     },
     "def4": {
       "line": "减伤",
@@ -220,13 +220,13 @@
         {
           "stat": "dmg_taken",
           "op": "add",
-          "value": -0.07
+          "value": -0.04
         },
         {
           "rule": "calm_guard"
         }
       ],
-      "desc": "队长受到的伤害 -7%。连续 5 秒未受伤后，下一次受到的伤害 -50%"
+      "desc": "队长受到的伤害 -4%。连续 5 秒未受伤后，下一次受到的伤害 -50%"
     },
     "reg1": {
       "line": "回复",
@@ -236,10 +236,10 @@
         {
           "stat": "regen",
           "op": "flat",
-          "value": 0.3
+          "value": 0.1
         }
       ],
-      "desc": "队长每秒回复 +0.3 生命"
+      "desc": "队长每秒回复 +0.1 生命"
     },
     "reg2": {
       "line": "回复",
@@ -250,10 +250,10 @@
         {
           "stat": "regen",
           "op": "flat",
-          "value": 0.4
+          "value": 0.2
         }
       ],
-      "desc": "队长每秒回复 +0.4 生命"
+      "desc": "队长每秒回复 +0.2 生命"
     },
     "reg3": {
       "line": "回复",
@@ -264,13 +264,13 @@
         {
           "stat": "regen",
           "op": "flat",
-          "value": 0.5
+          "value": 0.3
         },
         {
           "rule": "low_hp_regen"
         }
       ],
-      "desc": "队长每秒回复 +0.5 生命。队长生命低于 35% 最大生命时，每秒回复翻倍"
+      "desc": "队长每秒回复 +0.3 生命。队长生命低于 35% 最大生命时，每秒回复翻倍"
     },
     "sh1": {
       "line": "护盾",
@@ -280,13 +280,13 @@
         {
           "stat": "shield_max",
           "op": "flat",
-          "value": 2
+          "value": 1
         },
         {
           "rule": "shield_shatter"
         }
       ],
-      "desc": "队长护盾层数上限 +2（每 12 秒生成一层，每层抵挡一次伤害）。护盾被击碎时反震：周围 140 范围内的敌人受到 队长攻击 ×2 的物理伤害并被击退（Boss 不击退）"
+      "desc": "队长护盾层数上限 +1（每 12 秒生成一层，抵挡一次伤害）。护盾被击碎时反震：周围 140 范围内的敌人受到 队长攻击 ×2 的物理伤害并被击退（Boss 不击退）"
     },
     "xp1": {
       "line": "经验",
@@ -296,10 +296,10 @@
         {
           "stat": "xp_gain",
           "op": "add",
-          "value": 0.015
+          "value": 0.01
         }
       ],
-      "desc": "获得的经验 +1.5%"
+      "desc": "获得的经验 +1%"
     },
     "xp2": {
       "line": "经验",
@@ -310,10 +310,10 @@
         {
           "stat": "xp_gain",
           "op": "add",
-          "value": 0.02
+          "value": 0.015
         }
       ],
-      "desc": "获得的经验 +2%"
+      "desc": "获得的经验 +1.5%"
     },
     "xp3": {
       "line": "经验",
@@ -324,10 +324,10 @@
         {
           "stat": "xp_gain",
           "op": "add",
-          "value": 0.03
+          "value": 0.025
         }
       ],
-      "desc": "获得的经验 +3%"
+      "desc": "获得的经验 +2.5%"
     },
     "xp4": {
       "line": "经验",
@@ -338,13 +338,13 @@
         {
           "stat": "xp_gain",
           "op": "add",
-          "value": 0.035
+          "value": 0.03
         },
         {
           "rule": "double_level"
         }
       ],
-      "desc": "获得的经验 +3.5%。每次升级有 10% 概率再升一级"
+      "desc": "获得的经验 +3%。每次升级有 10% 概率再升一级"
     },
     "gold1": {
       "line": "资源",

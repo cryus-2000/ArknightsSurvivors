@@ -70,7 +70,7 @@ func spawn(type: String, off: Vector2) -> Dictionary:
 func test_rules() -> void:
 	for r in ["shield_shatter", "low_hp_regen", "execute", "last_stand", "calm_guard", "double_level", "first_choice_extra", "shop_free_refresh"]:
 		ok(game.rfx.rule(r) > 0, "开局写进 rfx.rules：" + r)
-	ok(game.shield_max == 2, "危机感：护盾上限 2（%d）" % game.shield_max)
+	ok(game.shield_max == 1, "危机感：护盾上限 1（%d）" % game.shield_max)
 	ok(game.meta_start_relic == 3 or relic_seen or game.relics.size() > 0, "战利品意识：开局待选 3 件（%d，t=%.2f，见过 %s）" % [game.meta_start_relic, game.t, relic_seen])
 	ok(Meta.leader_atk(game) > 0.0, "队长攻击基数 > 0（%.1f）" % Meta.leader_atk(game))
 
