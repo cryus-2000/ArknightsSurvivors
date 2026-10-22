@@ -15,7 +15,38 @@ func _init(hud) -> void:
 	g = hud.g
 
 
-## 右上：暂停按钮 + 倍速 + 藏品栏（藏品 / 等级 / 悬停格变了才重画）+ 结局走向（原 _draw_body「右上」段）。
+## 暂停 / 倍速键的点击区域（g.pause_btn / g.speed_btn）：hud 登记时每帧算，与 draw_right_top / draw_speed_button 画的位置相同
+## （顶部块缓存时不重画，点击区域不能靠绘制时写）
+func update_buttons(vs: Vector2) -> void:
+	g.pause_btn = Rect2(vs.x - 56, 12, 40, 40) if not g.touch.active and g.state == Game.S.PLAY else Rect2()
+	g.speed_btn = _speed_rect(vs) if g.state == Game.S.PLAY and not g.touch.active else Rect2()
+
+
+## 顶部块签名用：鼠标悬停在暂停键 / 倍速键上（只在 PLAY、非触屏时有悬停效果）
+func top_hover(vs: Vector2) -> Array:
+	if g.touch.active or g.state != Game.S.PLAY:
+		return [false, false]
+	var mp := g.hud.get_local_mouse_position()
+	return [Rect2(vs.x - 56, 12, 40, 40).has_point(mp), _speed_rect(vs).has_point(mp)]
+
+
+func _speed_rect(vs: Vector2) -> Rect2:
+	return g.touch.speed_rect(vs) if g.touch.active else Rect2(vs.x - 72.0, 76.0, 56.0, 34.0)
+
+
+## 藏品栏缓存块（hud 的 relics）登记：藏品 / 等级 / 悬停格变了才重画（原在 draw_right_top 里登记）
+func register_tray(vs: Vector2) -> void:
+	var trp := Vector2(vs.x - 80.0, 12)
+	var hov := -1
+	var mouse := g.hud.get_local_mouse_position()
+	for ci in g.tray_cells.size():
+		if (g.tray_cells[ci][0] as Rect2).has_point(mouse):
+			hov = ci
+	var lvs: Array = g.relics.map(func(r): return g.rfx.lv.get(r, 1))
+	h._layer("relics", [g.relics.duplicate(), lvs, hov, trp], func(): draw_relic_tray(trp))
+
+
+## 右上：暂停按钮 + 倍速 + 结局走向（原 _draw_body「右上」段；藏品栏缓存块由 register_tray 登记）。
 ## 注意：暂停按钮画在 hud_bars.draw_top_center 开的合批段里（h._hb），本函数负责 h.batch_end；两块在 hud._draw_body 里必须相邻
 func draw_right_top(vs: Vector2) -> void:
 	# 右上：暂停按钮（鼠标可点；触屏有自己的按钮）+ 收藏品栏 + 当前结局走向
@@ -32,15 +63,6 @@ func draw_right_top(vs: Vector2) -> void:
 			g.pause_btn = pr
 	h.batch_end()
 	draw_speed_button(vs)
-	# 藏品栏：藏品 / 等级 / 悬停格变了才重画
-	var trp := Vector2(tray_x, 12)
-	var hov := -1
-	var mouse := g.hud.get_local_mouse_position()
-	for ci in g.tray_cells.size():
-		if (g.tray_cells[ci][0] as Rect2).has_point(mouse):
-			hov = ci
-	var lvs: Array = g.relics.map(func(r): return g.rfx.lv.get(r, 1))
-	h._layer("relics", [g.relics.duplicate(), lvs, hov, trp], func(): draw_relic_tray(trp))
 	if not g.trial.active and (g.ending != "standard" or Cfg.endings_cleared.size() > 0):
 		UI.text(g.hud, g.font, Vector2(tray_x - 220, 12.0 + tray_layout(g.relics.size()).h + 18.0), g.endg.cur_name(), 12, g.endg.cur_col(), HORIZONTAL_ALIGNMENT_RIGHT, 220, 2)
 
