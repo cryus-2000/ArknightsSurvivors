@@ -86,6 +86,7 @@ static func state(o, st: Dictionary) -> Dictionary:
 	var n: Dictionary = o.native_motion
 	var slot: String = str(n.get("clip", ""))
 	if slot == "" or int(o.get("sq_ph")) != 0: return st   # 技能序列（不经 _start_action 起手）期间不让上一个 clip 盖住
+	if o.anim_kind == "run" and float(n.get("t", 0.0)) >= float(o.attack_fire_at): return st   # 出手后在跑：整条动作让给跑步，不再卡末帧滑步（10-22 用户）
 	var start: int = int(n.get("from", 0))
 	var duration: float = float(n.get("tail", .16)) if start > 0 else float(_nm(o).get("clips", {}).get(slot, 0.0))
 	if float(n.get("t", 0.0)) >= duration: return st
