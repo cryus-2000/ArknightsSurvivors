@@ -6,6 +6,7 @@ const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")   # data/balance.json 数值旋钮（docs/27）
+const Meta = preload("res://scripts/core/meta.gd")   # 认知塑造质变节点（docs/109 §14 v5）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -82,6 +83,10 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	if src.get("elite", false):
 		dmg *= g.elite_taken_mult   # 王庭盟约（docs/57 P7）：精英来源对主控的伤害
 	one_cap = float(src.get("hit_cap", 0.0))   # 来源自带的单次上限（玩法系统「围猎」事件敌人 e.hit_cap，其子弹 / 抛石照带）
+	# 认知塑造「自我保护」末节：连续 meta/calm_t 秒未受伤后，下一次受到的伤害 × meta/calm_mult（受击后 rfx.on_hurt 归零计时）
+	if g.rfx.rule("calm_guard") > 0 and g.rfx.calm_t >= Bal.v("meta/calm_t", 5.0):
+		dmg *= Bal.v("meta/calm_mult", 0.5)
+		g.vfx.add_text(g.ppos + Vector2(0, -100), "静守", Color(0.7, 0.9, 1.0), 15)
 	var lost := hurt(dmg * (Bal.v("lamp/dark_taken", 1.15) if g.lamp < 30.0 else 1.0), ignore_armor, boss)   # 灯火暗淡（< 30）受到的伤害倍率（docs/88 旋钮，缺省 1.15 不变）
 	one_cap = 0.0
 	if lost <= 0.0:
@@ -669,6 +674,23 @@ func shield_block() -> void:
 					g.enemies_sys.apply_kb(e, (e.pos - g.ppos).normalized() * 420.0)
 		g.fx.append({"kind": "explode", "pos": g.ppos, "r": 140.0, "life": 0.4, "max": 0.4, "col": Color(0.5, 0.85, 1.0)})
 		g.vfx.shake_screen(0.6)
+	if g.rfx.rule("shield_shatter") > 0:
+		meta_shatter()
+
+
+## 认知塑造「危机感」末节（docs/109 §14 v5）：护盾被击碎时反震，周围 meta/shatter_r 内的敌人受到 队长攻击 × meta/shatter_mult 的物理伤害并被击退（Boss 不击退）
+func meta_shatter() -> void:
+	var r: float = Bal.v("meta/shatter_r", 140.0)
+	var dmg: float = Meta.leader_atk(g) * Bal.v("meta/shatter_mult", 2.0)
+	var hd: Dictionary = make_hit("认知塑造")
+	for j in g.enemies_sys.query(g.ppos, r + 24.0):
+		var e: Dictionary = g.enemies[j]
+		if not e.dead and not e.chest and e.pos.distance_to(g.ppos) < r + e.r:
+			damage(e, dmg, hd)
+			if not e.boss:
+				g.enemies_sys.apply_kb(e, (e.pos - g.ppos).normalized() * Bal.v("meta/shatter_kb", 420.0))
+	g.fx.append({"kind": "explode", "pos": g.ppos, "r": r, "life": 0.4, "max": 0.4, "col": Color(0.7, 0.9, 1.0)})
+	g.vfx.add_text(g.ppos + Vector2(0, -100), "反震", Color(0.7, 0.9, 1.0), 15)
 
 
 ## 这次伤害是否算「追击」（docs/35）
@@ -698,7 +720,11 @@ func regen_time_mult() -> float:
 ## add_flat / add_pct：预览「再加一张卡」时额外加进 regen / regen_pct 的量
 func regen_per_sec(add_flat := 0.0, add_pct := 0.0, max_hp := -1.0) -> float:
 	var mh: float = g.max_hp if max_hp < 0.0 else max_hp
-	return (g.regen + add_flat + (g.regen_pct + add_pct) * mh) * g.heal_mult * regen_time_mult()
+	var v: float = (g.regen + add_flat + (g.regen_pct + add_pct) * mh) * g.heal_mult * regen_time_mult()
+	# 认知塑造「生命感悟」末节：队长生命低于 meta/low_regen_at 最大生命时回复 × meta/low_regen_mult
+	if g.rfx.rule("low_hp_regen") > 0 and g.hp < mh * Bal.v("meta/low_regen_at", 0.35):
+		v *= Bal.v("meta/low_regen_mult", 2.0)
+	return v
 
 
 ## 构造伤害描述符（extra_tags 追加本次特有标签，如 empowered）；不写全局，直接传给 damage(e, dmg, h)（docs/101 B7 ⑤）
@@ -1063,6 +1089,11 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		dmg -= ab
 	g.rfx.on_hit(e, h, dmg)
 	e.hp -= dmg
+	# 认知塑造「攻击性」末节「处决」：普通敌人生命低于 meta/execute_pct、精英低于 meta/execute_elite_pct 时直接击杀（Boss / 补给箱除外）
+	if e.hp > 0.0 and not e.boss and not e.chest and g.rfx.rule("execute") > 0 and e.hp < e.maxhp * Bal.v("meta/execute_elite_pct" if e.elite else "meta/execute_pct", 0.08 if e.elite else 0.15):
+		dmg += e.hp
+		e.hp = 0.0
+		g.vfx.add_text(e.pos + Vector2(0, -30), "处决", Color(1.0, 0.55, 0.4), 15)
 	if e.get("panic", false):
 		e.panic_dmg = float(e.get("panic_dmg", 0.0)) + minf(dmg, e.hp + dmg)   # 遥测 panic_hit：主教慌乱期间掉的血（boss_ai 主教慌乱）
 	if e.boss and tough_on(e):

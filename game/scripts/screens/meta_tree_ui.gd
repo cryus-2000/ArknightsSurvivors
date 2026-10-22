@@ -8,7 +8,7 @@ const UI = preload("res://scripts/ui.gd")
 const Meta = preload("res://scripts/core/meta.gd")
 
 const DESIGN := Vector2(1280, 720)
-const LINES := ["攻击", "生命", "减伤", "回复", "护盾", "经验", "资源", "大节点"]
+const LINES := ["攻击", "生命", "减伤", "回复", "护盾", "经验", "资源", "调度", "大节点"]
 const CW := 118.0
 const CH := 46.0
 const GAP := 8.0

@@ -72,9 +72,32 @@ const DIFF_PRESETS := [
 		"desc": "没有额外规则。"},
 	{"name": "高压", "short": "高压", "en": "HIGH PRESSURE", "tide": 5, "level": 5, "factor": 1.25,
 		"desc": "敌人生命与伤害 +20%，大群 +20%；队长初始最大生命 -10%，灯油与源石锭掉落减少。"},
-	{"name": "深潮", "short": "深潮", "en": "DEEP TIDE", "tide": 10, "level": 10, "factor": 1.5,
-		"desc": "敌人生命 +70%、伤害 +35%；溟痕常驻，大群 +60%，Boss 在场时照常来袭；受击灯火损失 +60%。"},
+	# enemy_scale（用户 10-22，docs/109 §15）：深潮档的小怪生命 / 伤害倍率在潮位 10 的表上再乘这个系数（只乘 enemy_hp / enemy_dmg，
+	# Boss 生命、潮位阶梯 TIDE_SET、结算系数 ×1.5 都不动）：四档目标（无成长常规 45–55、满点常规 85–90、高压 70–80、深潮 55–65）
+	# 的跨度比潮位 0→10 的实测跨度窄，基础砍 / 树值只能整体平移，深潮档单独微降补齐
+	{"name": "深潮", "short": "深潮", "en": "DEEP TIDE", "tide": 10, "level": 10, "factor": 1.5, "enemy_scale": 0.95,
+		"desc": "敌人生命 +62%、伤害 +28%；溟痕常驻，大群 +60%，Boss 在场时照常来袭；受击灯火损失 +60%。"},
 ]
+const PRESET_SCALE_KEYS := ["enemy_hp", "enemy_dmg"]
+
+
+## 三档预设的修正表：潮位表 + 该档自己的 enemy_scale
+static func dmod_for_preset(i: int) -> Dictionary:
+	var p: Dictionary = DIFF_PRESETS[clampi(i, 0, DIFF_PRESETS.size() - 1)]
+	var m := dmod_for_tier(int(p.tide))
+	var k: float = float(p.get("enemy_scale", 1.0))
+	if k != 1.0:
+		for key in PRESET_SCALE_KEYS:
+			m[key] = float(m[key]) * k
+	return m
+
+
+## 按潮位取修正表，潮位正好是某一档预设时带上该档的 enemy_scale（批跑 --tide=10 与界面「深潮」同一张表）；其余潮位 = 纯潮位表
+static func dmod_for_tide(tide: int) -> Dictionary:
+	for i in DIFF_PRESETS.size():
+		if int(DIFF_PRESETS[i].tide) == tide:
+			return dmod_for_preset(i)
+	return dmod_for_tier(tide)
 
 
 ## 潮位 → 界面档名：三档预设的潮位显示档名，其余（批跑 --tide）显示潮位名

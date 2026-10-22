@@ -1,5 +1,5 @@
 extends Node
-## 认知塑造单元测试（docs/109 §4，check.py 场景回归 meta）：节点数据完整（总量 550、前置存在、推荐顺序覆盖全部节点）、
+## 认知塑造单元测试（docs/109 §4，check.py 场景回归 meta）：节点数据完整（总量 665、前置存在、推荐顺序覆盖全部节点）、
 ## 推荐点法按预算点（前置 / 大节点门槛 / 余额）、--meta=full 点满、测试局缺省不带局外成长。
 const Meta = preload("res://scripts/core/meta.gd")
 const Pack = preload("res://scripts/core/cloud_pack.gd")
@@ -39,7 +39,7 @@ func _ready() -> void:
 func run() -> void:
 	var nodes := Meta.nodes()
 	check(nodes.size() >= 25, "节点数 %d" % nodes.size())
-	check(Meta.total_cost() == 560, "总量应为 560，实为 %d" % Meta.total_cost())
+	check(Meta.total_cost() == 665, "总量应为 665，实为 %d" % Meta.total_cost())
 	var order: Array = Meta.data().get("order", [])
 	for id in nodes:
 		check(order.has(id), "推荐顺序缺 " + id)
@@ -49,8 +49,8 @@ func run() -> void:
 		check(nd.has("name") and nd.has("desc") and int(nd.get("cost", 0)) > 0, "%s 缺名字 / 说明 / 价格" % id)
 	check(Meta.shape_for(0).is_empty(), "预算 0 不点")
 	var full := Meta.shape_for(Meta.total_cost())
-	check(full.size() == nodes.size() and Meta.spent(full) == 560, "满预算应点满：%d 个 / %d" % [full.size(), Meta.spent(full)])
-	for b in [30, 75, 150, 220, 360, 559]:
+	check(full.size() == nodes.size() and Meta.spent(full) == 665, "满预算应点满：%d 个 / %d" % [full.size(), Meta.spent(full)])
+	for b in [30, 75, 150, 220, 360, 559, 664]:
 		var sh := Meta.shape_for(b)
 		check(Meta.spent(sh) <= b, "预算 %d 超支 %d" % [b, Meta.spent(sh)])
 		for id in sh:
