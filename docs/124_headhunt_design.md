@@ -160,6 +160,8 @@
 
 ### 9.3 没有星级怎么分档（建议）
 
+> **10-22 用户改为单档**：拉包光效全部用金档（Codex 原图），金 / 青白两档作废；揭示与汇总的标签只用文字区分「新职业 / 新加入」（同为黄签）。下文保留作记录。
+
 建议**两档**，按「这次解锁对玩家意味着什么」分，而不是按干员强弱（本作不分稀有度，给干员定星级会和平衡口径冲突）：
 
 | 档 | 颜色 | 条件 | 对应原作 |
@@ -304,7 +306,9 @@
 
 ## 14. 拉包光效回归接入（10-22，Codex main 9444db06）
 
-- 素材：`art/incoming/headhunt_reference_fx_1022/reference_return/`（宽金白主光柱 `flowing_beams@2x` + 上冲碎光 `rising_fragments@2x`，各 24 帧 384 × 400、12 fps，原点 (192,350)；开包遮罩 `opening_reveal@2x` 8 档）。`tools/probes/package_headhunt_bagfx.py` 放进 `art/incoming` 根目录：`fx_hh_beams@2x` / `fx_hh_frags@2x` 原样、`fx_hh_reveal@2x`（灰度转 alpha）、青白档 `*_cyan@2x`（同一套素材按明度换色：藏青 → #60E0E8 → #C8FFFF → 白，§9.3）。
+- **单档（10-22 用户）**：只用金档原图，青白换色（`*_cyan@2x`）已删。
+- 素材：`art/incoming/headhunt_reference_fx_1022/reference_return/`（宽金白主光柱 `flowing_beams@2x` + 上冲碎光 `rising_fragments@2x`，各 24 帧 384 × 400、12 fps，原点 (192,350)；开包遮罩 `opening_reveal@2x` 8 档）。`tools/probes/package_headhunt_bagfx.py` 放进 `art/incoming` 根目录：`fx_hh_beams@2x` / `fx_hh_frags@2x` 原样、`fx_hh_reveal@2x`（灰度转 alpha）。
 - 替换：原来的开口金光 `fx_hh_mouth_glow` 与碎光 `fx_hh_shards` 不再用；拉链 8 档仍是原包体帧条。
 - 层序（按 HANDOFF）：主光 + 碎光合成（拉链没全开时只留遮罩第 s 档露出的部分）→ 包底层 → 同一光层的裁片 (64,78,256,320) 乘原 delivery 全开口遮罩 → 包前景（提手、前包沿）。固定放置 = 包左上 + (128,66) − 原点，纹理不跟拉头平移。
 - 时间轴：0–0.4 落下（闭合无光）；0.4 起每 0.17 秒开一档（同 manifest.opening，约 1.6 秒全开）；全开后光柱循环约 0.5 秒再光炸（2.05–2.5），拉包段总长 1.9 → 2.5 秒。
+- 修：录屏里的「Invalid polygon data, triangulation failed」来自转场遮罩——进入转场的斜向暗遮罩前沿越过屏幕右缘、揭示 → 本次寻访的擦除前沿越过左缘时，四边形的边界点没跟着走，多边形自交（共 8 帧）。现在边界跟着前沿出画面；另外寻访里的填充多边形统一走 `HS.fill`（画前先检查能否三角化，退化就跳过），平行四边形窄于斜切量时（卡片翻入第一帧）也收斜切量。

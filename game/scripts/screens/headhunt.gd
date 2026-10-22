@@ -20,8 +20,8 @@ var D := DESK                      # 当前版面：手机横屏按屏幕比例�
 var _phone := false
 const CLASS_ORDER := ["先锋", "近卫", "重装", "狙击", "术师", "医疗", "辅助", "特种"]
 const CLASS_EN := {"先锋": "VANGUARD", "近卫": "GUARD", "重装": "DEFENDER", "狙击": "SNIPER", "术师": "CASTER", "医疗": "MEDIC", "辅助": "SUPPORTER", "特种": "SPECIALIST"}
-## 两档（docs/124 §9.3）：金 = 补上还没有人的职业，其余青白。[主色, 亮色]
-const TIER := {"gold": [Color8(255, 196, 80), Color8(255, 240, 180)], "cyan": [Color8(96, 224, 232), Color8(200, 255, 255)]}
+## 光炸色：拉包光效只有金一档（10-22 用户：全部用 Codex 原图，金 / 青白两档作废，docs/124 §9.3）
+const BURST_COL := Color8(255, 196, 80)
 ## 作战包时间轴（秒）：落下 0–0.4，拉链 0.4–1.6（8 档，每档 0.17 秒，同 Codex manifest.opening），全开后光柱循环约 0.6 秒，光炸 2.05–2.5
 const BAG_T := 2.5
 const ZIP0 := 0.4
@@ -185,17 +185,6 @@ func _sorted(ids: Array) -> Array:
 	return out
 
 
-func _tier(r: Dictionary) -> String:
-	return "gold" if bool(r.get("new_class", false)) else "cyan"
-
-
-func _bag_tier() -> String:
-	for r in results:
-		if _tier(r) == "gold":
-			return "gold"
-	return "cyan"
-
-
 func _play() -> void:
 	idx = 0
 	_stamped = -1
@@ -251,11 +240,8 @@ func _advance() -> void:
 
 func _burst_sfx() -> void:
 	_burst = true
-	if _bag_tier() == "gold":
-		Sfx.play("beacon_lit")
-		Sfx.play("levelup", -2.0)
-	else:
-		Sfx.play("relic")
+	Sfx.play("beacon_lit")
+	Sfx.play("levelup", -2.0)
 
 
 func _act(a) -> void:
@@ -537,8 +523,8 @@ func _draw_trans(p: float) -> void:
 				# ① 黑场 + 黄色斜切色块从左扫过（后面跟一道青细带）
 				ci.draw_rect(full, Color(0.02, 0.025, 0.035))
 				var x := lerpf(-500.0, D.x + 200.0, UM.in_out_cubic(t / 0.12))
-				ci.draw_colored_polygon(PackedVector2Array([Vector2(x, 0), Vector2(x + 260, 0), Vector2(x + 260 - sk, D.y), Vector2(x - sk, D.y)]), HS.RIB)
-				ci.draw_colored_polygon(PackedVector2Array([Vector2(x - 40, 0), Vector2(x - 30, 0), Vector2(x - 30 - sk, D.y), Vector2(x - 40 - sk, D.y)]), HS.CYB)
+				HS.fill(ci, PackedVector2Array([Vector2(x, 0), Vector2(x + 260, 0), Vector2(x + 260 - sk, D.y), Vector2(x - sk, D.y)]), HS.RIB)
+				HS.fill(ci, PackedVector2Array([Vector2(x - 40, 0), Vector2(x - 30, 0), Vector2(x - 30 - sk, D.y), Vector2(x - 40 - sk, D.y)]), HS.CYB)
 				HS.spaced(ci, f, Vector2(60, D.y / 2.0), "RHODES ISLAND  //  PERSONNEL", 14, Color(1, 1, 1, 0.8), 6.0)
 				return
 			if not _tr_cut:
@@ -551,9 +537,10 @@ func _draw_trans(p: float) -> void:
 			# ③ 斜向遮罩从左往右擦除（黄 + 青边）
 			var e := UM.in_out_cubic((t - 0.12) / 0.48)
 			var ex := lerpf(-200.0, D.x + sk + 40.0, e)
-			ci.draw_colored_polygon(PackedVector2Array([Vector2(ex, 0), Vector2(full.end.x, 0), Vector2(full.end.x, D.y), Vector2(ex - sk, D.y)]), Color(0.02, 0.025, 0.035))
-			ci.draw_colored_polygon(PackedVector2Array([Vector2(ex - 14, 0), Vector2(ex, 0), Vector2(ex - sk, D.y), Vector2(ex - sk - 14, D.y)]), HS.RIB)
-			ci.draw_colored_polygon(PackedVector2Array([Vector2(ex - 30, 0), Vector2(ex - 26, 0), Vector2(ex - 26 - sk, D.y), Vector2(ex - 30 - sk, D.y)]), HS.CYB)
+			var rx := maxf(full.end.x, ex) + 1.0   # 遮罩右边界跟着前沿出画面，避免前沿越过屏幕右缘时多边形自交
+			HS.fill(ci, PackedVector2Array([Vector2(ex, 0), Vector2(rx, 0), Vector2(rx, D.y), Vector2(ex - sk, D.y)]), Color(0.02, 0.025, 0.035))
+			HS.fill(ci, PackedVector2Array([Vector2(ex - 14, 0), Vector2(ex, 0), Vector2(ex - sk, D.y), Vector2(ex - sk - 14, D.y)]), HS.RIB)
+			HS.fill(ci, PackedVector2Array([Vector2(ex - 30, 0), Vector2(ex - 26, 0), Vector2(ex - 26 - sk, D.y), Vector2(ex - 30 - sk, D.y)]), HS.CYB)
 			# ④ 扫描线 + 噪点自上而下
 			var sy := e * D.y
 			ci.draw_rect(Rect2(0, sy, D.x, 2), UI.fa(Color.WHITE, 0.8))
@@ -569,14 +556,15 @@ func _draw_trans(p: float) -> void:
 			var e := UM.out_cubic(p)
 			ci.draw_rect(full, Color(0.02, 0.025, 0.035, (1.0 - e) * 0.55))
 			var x := lerpf(-100.0, D.x + sk, e)
-			ci.draw_colored_polygon(PackedVector2Array([Vector2(x, 0), Vector2(x + 4, 0), Vector2(x + 4 - sk, D.y), Vector2(x - sk, D.y)]), UI.fa(HS.CYB, 1.0 - e))
+			HS.fill(ci, PackedVector2Array([Vector2(x, 0), Vector2(x + 4, 0), Vector2(x + 4 - sk, D.y), Vector2(x - sk, D.y)]), UI.fa(HS.CYB, 1.0 - e))
 		"cut":
 			ci.draw_rect(full, UI.fa(Color.WHITE, (1.0 - p) * 0.9))
 		"wipe":
 			var e := UM.in_out_cubic(p)
 			var ex := lerpf(D.x + sk, -40.0, e)
-			ci.draw_colored_polygon(PackedVector2Array([Vector2(full.position.x, 0), Vector2(ex, 0), Vector2(ex - sk, D.y), Vector2(full.position.x, D.y)]), Color(0.02, 0.025, 0.035))
-			ci.draw_colored_polygon(PackedVector2Array([Vector2(ex, 0), Vector2(ex + 12, 0), Vector2(ex + 12 - sk, D.y), Vector2(ex - sk, D.y)]), HS.YEL)
+			var lx := minf(full.position.x, ex - sk) - 1.0   # 同上：前沿越过屏幕左缘时左边界跟着走
+			HS.fill(ci, PackedVector2Array([Vector2(lx, 0), Vector2(ex, 0), Vector2(ex - sk, D.y), Vector2(lx, D.y)]), Color(0.02, 0.025, 0.035))
+			HS.fill(ci, PackedVector2Array([Vector2(ex, 0), Vector2(ex + 12, 0), Vector2(ex + 12 - sk, D.y), Vector2(ex - sk, D.y)]), HS.YEL)
 
 
 ## 纵向位置：桌面值 / 手机横屏值
@@ -780,15 +768,14 @@ func _draw_pick() -> void:
 
 # ---------------------------------------------------------------- 拉包（GPT 31，Codex 作战包）
 
-## 拉包光层：主光 + 碎光第 f 帧合成；拉链没全开（s < 7）时只留开包遮罩第 s 档露出的部分。返回 [整层, 裁片]，按 [档, 帧, 拉链档] 缓存
+## 拉包光层：主光 + 碎光第 f 帧合成；拉链没全开（s < 7）时只留开包遮罩第 s 档露出的部分。返回 [整层, 裁片]，按 [帧, 拉链档] 缓存
 ## 裁片 = 整层的 FX_CROP 区再乘全开口遮罩（原 delivery light_clip 第 7 档），画在包底层之上、前景之下，让光从开口里透出
-func _light(tier: String, f: int, s: int) -> Array:
-	var key := "%s%d_%d" % [tier, f, mini(s, 7)]
+func _light(f: int, s: int) -> Array:
+	var key := "%d_%d" % [f, mini(s, 7)]
 	if _glow.has(key):
 		return _glow[key]
-	var suf := "" if tier == "gold" else "_cyan"
-	var beams := _image("fx_hh_beams" + suf)
-	var frags := _image("fx_hh_frags" + suf)
+	var beams := _image("fx_hh_beams")
+	var frags := _image("fx_hh_frags")
 	var out := [null, null]
 	if beams != null:
 		var sz := Vector2i(FX_SZ)
@@ -846,15 +833,13 @@ func _draw_bag() -> void:
 		_op(0)
 		_draw_op()
 		return
-	var tier := _bag_tier()
-	var tc: Array = TIER[tier]
 	# 台面与墙面
 	ci.draw_rect(Rect2(Vector2.ZERO, D), Color8(22, 25, 32))
 	var fl := D.y - 250.0   # 台面线
 	for x in [150.0, 320.0, D.x - 320.0, D.x - 150.0]:
 		ci.draw_line(Vector2(x, 0), Vector2(x - 60, fl), Color(1, 1, 1, 0.05), 24.0)
-	ci.draw_colored_polygon(PackedVector2Array([Vector2(0, fl), Vector2(D.x, fl), D, Vector2(0, D.y)]), Color8(58, 62, 72))
-	ci.draw_colored_polygon(PackedVector2Array([Vector2(180, fl), Vector2(D.x - 180, fl), Vector2(D.x - 60, D.y), Vector2(60, D.y)]), Color8(74, 78, 88))
+	HS.fill(ci, PackedVector2Array([Vector2(0, fl), Vector2(D.x, fl), D, Vector2(0, D.y)]), Color8(58, 62, 72))
+	HS.fill(ci, PackedVector2Array([Vector2(180, fl), Vector2(D.x - 180, fl), Vector2(D.x - 60, D.y), Vector2(60, D.y)]), Color8(74, 78, 88))
 	var sc := 2.0
 	var ground := Vector2(D.x / 2.0, D.y - 120)
 	var drop := clampf(t / 0.32, 0.0, 1.0)
@@ -873,7 +858,7 @@ func _draw_bag() -> void:
 		if t >= BURST and not _burst:
 			_burst_sfx()
 		var tl := (pos - BAG_O * sc).round()
-		var lit := _light(tier, int((t - ZIP0) * 12.0) % 24, s)
+		var lit := _light(int((t - ZIP0) * 12.0) % 24, s)
 		var la := (tl + FX_AT * sc).round()
 		if lit[0] != null:
 			ci.draw_texture_rect(lit[0], Rect2(la, FX_SZ * sc), false)
@@ -892,7 +877,7 @@ func _draw_bag() -> void:
 	# 光炸：档位色铺满再转白，再退（docs/124 §10.2）
 	if t > BURST - 0.1:
 		var a := 0.0
-		var c: Color = tc[0]
+		var c: Color = BURST_COL
 		var bt := t - (BURST - 0.1)
 		if bt < 0.15:
 			a = bt / 0.15 * 0.85
@@ -925,7 +910,7 @@ func _draw_op() -> void:
 	HS.backdrop(ci, D)
 	# 右：职业色斜带 + 职业图标水印 + 描边英文（缓慢平移）
 	var drift := 0.0 if UM.rm() else lt * 6.0
-	ci.draw_colored_polygon(PackedVector2Array([Vector2(1080, 0), Vector2(1280, 0), Vector2(900, D.y), Vector2(700, D.y)]), UI.fa(col.darkened(0.35), 0.45))
+	HS.fill(ci, PackedVector2Array([Vector2(1080, 0), Vector2(1280, 0), Vector2(900, D.y), Vector2(700, D.y)]), UI.fa(col.darkened(0.35), 0.45))
 	UI.class_glyph(ci, od.cls, Vector2(1000, 250), 150.0, UI.fa(col.darkened(0.2), 0.45), 28.0)
 	HS.outline_px(ci, Vector2(440 - drift, D.y - 270), od.en, 28.0, Color(1, 1, 1, 0.16), HS.DARK)
 	# 立绘：滑入（3 道残影）→ 信号解码 → 待机循环；网点投影
@@ -934,7 +919,7 @@ func _draw_op() -> void:
 	var e := UM.out_cubic(lt / 0.4)
 	ci.draw_set_transform(_off + Vector2(-(1.0 - e) * 480.0, 0) * _k, 0.0, Vector2(_k, _k))
 	var py := _p(0.0, -60.0)   # 手机：名牌整体上移
-	ci.draw_colored_polygon(PackedVector2Array([Vector2(0, 48), Vector2(460, 48), Vector2(460 - 0.262 * (D.y - 108), D.y - 60), Vector2(0, D.y - 60)]), HS.LIGHT)
+	HS.fill(ci, PackedVector2Array([Vector2(0, 48), Vector2(460, 48), Vector2(460 - 0.262 * (D.y - 108), D.y - 60), Vector2(0, D.y - 60)]), HS.LIGHT)
 	UI.class_glyph(ci, od.cls, Vector2(110, 190 + py * 0.6), 40.0, HS.INK, 7.0)
 	ci.draw_rect(Rect2(186, 152 + py * 0.6, 2, 76), HS.INK)
 	HS.spaced(ci, f, Vector2(214, 176 + py * 0.6), CLASS_EN[od.cls], 13, HS.INK, 8.0)
@@ -949,7 +934,7 @@ func _draw_op() -> void:
 			Sfx.play("ui_ok")
 		var se := clampf((lt - STAMP) / 0.2, 0.0, 1.0)
 		var tg := Vector2(52, 540 + py) + Vector2(0, (1.0 - UI.ease_back(se)) * -14.0)
-		HS.tag(ci, f, tg, "新职业" if bool(res.get("new_class", false)) else "新加入", 1.1, HS.YEL if _tier(res) == "gold" else HS.CYB)
+		HS.tag(ci, f, tg, "新职业" if bool(res.get("new_class", false)) else "新加入", 1.1)
 		ci.draw_rect(Rect2(170, 544 + py, 2, 26), HS.INK)
 		UI.text_at(ci, f, Vector2(186, 557 + py), "已加入名册", 18, HS.INK, "lm")
 	ci.draw_set_transform(_off, 0.0, Vector2(_k, _k))
@@ -1048,7 +1033,7 @@ func _draw_summary() -> void:
 		_figure(od, Vector2(cx + 6, rr.end.y - _p(148, 118)), minf(_p(2.5, 2.0), cw / 98.0), Color(0, 0, 0, 0), _idle_frame(od, t))
 		var nr := Rect2(rr.position.x + 10, rr.end.y - _p(132, 104), rr.size.x - 22, _p(112, 92))
 		HS.para(ci, nr, HS.LIGHT)
-		HS.tag(ci, f, nr.position + Vector2(30, -12), "新加入", 0.9, HS.YEL if _tier(r) == "gold" else HS.CYB)
+		HS.tag(ci, f, nr.position + Vector2(30, -12), "新职业" if bool(r.get("new_class", false)) else "新加入", 0.9)
 		var fl := UI.fit_line(f, str(od.name), 34, nr.size.x - 40, 16)
 		UI.text_at(ci, f, Vector2(nr.get_center().x, nr.position.y + nr.size.y * 0.41), fl[0], fl[1], HS.INK, "mm", true)
 		ci.draw_line(Vector2(nr.position.x + 50, nr.position.y + nr.size.y * 0.66), Vector2(nr.end.x - 50, nr.position.y + nr.size.y * 0.66), HS.INK2, 1.0)
