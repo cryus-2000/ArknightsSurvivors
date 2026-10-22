@@ -9,7 +9,7 @@
  *      setContainerMode 的 Promise 不算成功，以回调里的状态为准。
  *   2. 用回调的 state.viewport（CSS px）与 state.safeArea 定画布：画布 = viewport 去掉安全边距，贴在安全区左上角，
  *      刘海 / 灵动岛 / 底部横条那几条留黑边（和 iOS Safari 不声明 viewport-fit=cover 时的效果一样），游戏里的界面因此全在安全区内。
- *      做法：改写 window.innerWidth / innerHeight（Godot 的 canvas_resize_policy=2 按它们定画布尺寸），画布 CSS 定位到安全区，
+ *      做法：改写 window.innerWidth / innerHeight（Godot 的 canvas_resize_policy=2 按它们定画布尺寸），画布用 !important 样式规则定位到安全区（引擎每次 resize 会重写行内样式），
  *      再派一次 resize 让引擎重排；触点坐标 Godot 按画布 getBoundingClientRect 换算，不受影响。
  *   3. 回调 changedFields 含 viewport / safeArea / orientation / immersive 时重新布局。
  *   4. 1.5 秒内收不到回调（旧客户端不通知）：回退 CSS env(safe-area-inset-*)，同样按安全区留边；横竖屏交给导出模板
@@ -115,8 +115,11 @@
           return frame ? Math.max(1, Math.floor((frame.vh || realH()) - frame.t - frame.b)) : realH(); } });
       } catch (e) { emit(); return; }
     }
-    var c = document.getElementById("canvas");
-    if (c) { c.style.position = "fixed"; c.style.left = l + "px"; c.style.top = t + "px"; }
+    // 画布定位用带 !important 的样式表规则：引擎每次 resize 都会把 canvas 的行内样式重写成 position:absolute; left:0; top:0（行内不带 !important），
+    // 样式表里的 !important 压得过它；触点坐标 Godot 按 getBoundingClientRect 算，和定位一致
+    var st = document.getElementById("sy-frame");
+    if (!st) { st = document.createElement("style"); st.id = "sy-frame"; document.head.appendChild(st); }
+    st.textContent = "#canvas{position:fixed!important;left:" + l + "px!important;top:" + t + "px!important}";
     document.body.style.background = "#000";
     emit();
     window.dispatchEvent(new Event("resize"));
@@ -179,8 +182,9 @@
   }
   window.__syToyBoot = boot;
 
+  if (window.toy) { settleToy(); boot(); return; }   // 页面里已有 window.toy（本地 mock，web_cloud_mock.py 注入）：不再加载 SDK（否则会被真 SDK 覆盖），直接启动
   var likely = !!window.__SY_TOY || /bilibili|hdslb/i.test(location.hostname) || /bili/i.test(navigator.userAgent);
-  if (!likely) { settleToy(); if (window.toy) boot(); return; }   // 页面里已有 window.toy（本地 mock）：直接启动
+  if (!likely) { settleToy(); return; }
   var s = document.createElement("script");
   s.src = SDK;
   s.async = true;
