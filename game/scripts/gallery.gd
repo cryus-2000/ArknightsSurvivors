@@ -315,7 +315,7 @@ func _build() -> void:
 				oe["first"] = bool(cdef.get("list_first", false))   # list_first：干员 json（封面干员水月排第一）
 				if not Cfg.unlock_all and not Roster.is_unlocked(cid):   # 对内包图鉴全开（名册虽按新玩家走）
 					oe["locked"] = true
-					oe["locked_text"] = "未招募。\n\n探索结算时使用寻访凭证寻访解锁。"
+					oe["locked_text"] = "未招募。\n\n探索结算后用寻访凭证解锁。"
 				ops.append(oe)
 			ops.sort_custom(func(x, y):
 				var kx: int = 0 if x.get("first", false) else 1
@@ -394,7 +394,7 @@ func _build() -> void:
 					mech += "\n\n攻击模式：" + " / ".join(moves) + "。"
 				entries.append({"id": k, "name": e.name, "en": k.to_upper(), "tag": ["", "普通敌人", "精英敌人", "Boss"][tab],
 					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, mech),
-					"locked": not Cfg.unlock_all and not Cfg.gallery_seen.has("enemy:" + str(k)), "locked_text": "尚未遭遇。在探索中遇到后收录。"})
+					"locked": not Cfg.unlock_all and not Cfg.gallery_seen.has("enemy:" + str(k)), "locked_text": "尚未遭遇，遇到后收录。"})
 		6:
 			# 结局：四格；未达成显示 ???，达成后显示最终 Boss 立绘与一句话
 			for i in ENDING_ORDER.size():
@@ -423,7 +423,7 @@ func _build() -> void:
 				if r.has("lanes") and not r.lanes.is_empty():
 					stt.append(["流派", " / ".join(r.lanes.map(func(l): return "%s %s" % [l, str(relic_db.lane_names.get(l, "")).split("（")[0]]))])
 				entries.append({"id": r.id, "name": r.name, "en": "NO. " + r.id, "tag": "藏品 · " + r.rarity + ("" if r.implemented else " · 未实装"), "forms": [_anim_n("图标", "relic_" + r.id, 1, 1.0)],
-					"stats": stt, "chips": [], "desc": r.get("desc", ""), "locked": not seen and not all_relics, "locked_text": "尚未获得。在探索中拿到后收录。"})
+					"stats": stt, "chips": [], "desc": r.get("desc", ""), "locked": not seen and not all_relics, "locked_text": "尚未获得，拿到后收录。"})
 		4:
 			entries.append({"name": "经验结晶", "en": "EXP", "tag": "掉落物", "forms": [_anim_n("小", "gem_small", 1, 1.0), _anim_n("大", "gem_big", 1, 1.0)], "stats": [], "desc": "击败敌人掉落，拾取后获得经验。"})
 			entries.append({"name": "灯油", "en": "OIL", "tag": "掉落物", "forms": [_anim_n("灯油", "oil", 1, 1.0)], "stats": [], "desc": "补充灯火。灯火暗淡（< 30）时队长受到的伤害 +5%，海嗣移速与接触伤害 +10%；灯火寂灭（0）时每秒失去 3 点生命。"})
@@ -440,7 +440,7 @@ func _build() -> void:
 	if tab == 4:
 		for entry in entries:
 			entry["locked"] = not Cfg.unlock_all and not Cfg.gallery_seen.has("item:" + str(entry.en))
-			entry["locked_text"] = "尚未发现。在探索中遇到后收录。"
+			entry["locked_text"] = "尚未发现，遇到后收录。"
 	sel = clampi(sel, 0, max(0, entries.size() - 1))
 	_rebuild_view()
 	if not vlist.is_empty() and not vlist.has(sel):

@@ -421,7 +421,7 @@
    "封印",
    "剑气"
   ],
-  "desc": "近卫干员，领主。贴身双刃横扫，隔两刀掷出一道穿透剑气；精英一起每一刀都封印敌人的特殊招式，三技能期间不断掷出剑气并封印周围敌人"
+  "desc": "近卫干员，领主。贴身双刃横扫，隔两刀掷出穿透剑气；精英一起每刀封印特殊招式，三技能连续掷气并封印周围敌人"
  },
  "blocks": {
   "_doc": "拉普兰德（docs/122）：纯数据干员。普攻 cone（斯卡蒂同款写法），剑气用 shape.wave from self（斯卡蒂精二潮刃的写法），封印用 st.seal（docs/61 §15.3）。waves 不支持 on_hit，封印一律挂在 cone / circle 的 on_hit 或 verb.affect 上。技能备注——S1：日晷：永久攻击 +25%；队长受击 15% 概率格挡写在 trait（trig.on_hurt cond skill_active:0）；S2：狼魂：攻击 +40%；每次横扫追加法术剑气写在 trait（every_n 1 cond skill_active:1）；S3：群狼之噬：期间每 s3_every 秒三道剑气 + 封印环，写在 trait（trig.tick cond skill_active:2）；普攻照常",
