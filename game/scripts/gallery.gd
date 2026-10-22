@@ -314,7 +314,7 @@ func _build() -> void:
 				oe["first"] = bool(cdef.get("list_first", false))   # list_first：干员 json（封面干员水月排第一）
 				if not Roster.is_unlocked(cid):
 					oe["locked"] = true
-					oe["locked_text"] = "未解锁。\n\n探索结算时使用寻访凭证、招募券或人事调度函解锁。"
+					oe["locked_text"] = "未招募。\n\n探索结算时使用寻访凭证寻访解锁。"
 				ops.append(oe)
 			ops.sort_custom(func(x, y):
 				var kx: int = 0 if x.get("first", false) else 1

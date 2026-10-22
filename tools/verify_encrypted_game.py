@@ -83,8 +83,10 @@ func _verify():
     var user_dir = str(ProjectSettings.get_setting("application/config/custom_user_dir_name", ""))
     if user_dir != ("ArknightsSurvivors_Internal" if audience == "internal" else "ArknightsSurvivors"):
         failures.append("user_dir_isolation:" + user_dir)
-    # 图鉴：对外包新存档只开放干员页；对内包全部解锁
+    # 图鉴：对内包全部解锁；对外包新存档其余页全锁，干员页按名册（docs/109 §12：开局 5 人解锁、其余锁定，博士不锁）
     if cfg != null:
+        var roster = load("res://scripts/core/roster.gd")
+        var roster_ids: Array = roster.all_ids()
         var gallery = load("res://scripts/gallery.gd").new()
         root.add_child(gallery)
         gallery.set_process(false)
@@ -93,10 +95,20 @@ func _verify():
             gallery._build()
             if gallery.entries.is_empty():
                 failures.append("gallery_empty:" + str(page))
+            var n_open := 0
             for entry in gallery.entries:
-                if bool(entry.get("locked", false)) != (audience != "internal" and page != 0):
-                    failures.append("gallery_initial_lock:" + str(page))
+                var want: bool = audience != "internal" and page != 0
+                if page == 0 and audience != "internal":
+                    var cid := str(entry.get("id", ""))
+                    want = roster_ids.has(cid) and not roster.is_unlocked(cid)
+                if not bool(entry.get("locked", false)):
+                    n_open += 1
+                if bool(entry.get("locked", false)) != want:
+                    failures.append("gallery_initial_lock:" + str(page) + ":" + str(entry.get("id", "")))
                     break
+            # 对外包新存档干员页：开局 5 人 + 博士可看，其余未招募
+            if page == 0 and audience != "internal" and n_open != roster.STARTERS.size() + (gallery.entries.size() - roster_ids.size()):
+                failures.append("gallery_roster_open:" + str(n_open))
         gallery.queue_free()
     var result = {"user_dir": str(ProjectSettings.get_setting("application/config/custom_user_dir_name", "")), "unlock_all": cfg != null and cfg.unlock_all, "runs_log": cfg != null and cfg.runs_log_enabled(), "packed_png_count": images.size(), "alias_count": Art.ALIAS.size(), "audio_count": audio_paths.size(), "json_count": json_paths.size(), "audience": audience, "failures": failures}
     Art._cache.clear()
