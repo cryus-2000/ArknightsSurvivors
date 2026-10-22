@@ -183,6 +183,7 @@ func _ready() -> void:
 	var cfg: Node = get_node_or_null("/root/Cfg")
 	if cfg != null and "voice" in cfg:
 		AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Voice"), linear_to_db(maxf(float(cfg.voice), 0.0001)))
+	voice_log = cfg != null and cfg.has_method("dev_args") and cfg.dev_args().has("--voicelog")
 	for n in NAMES:
 		streams[n] = _load_wav("res://audio/sfx/%s.wav" % n)
 	for oid in OP_SFX:
@@ -659,8 +660,13 @@ func voice_can_cut(key: String, now: float) -> bool:
 	return key.begins_with("skill") and voice_key in VOICE_CHATTER and now < voice_play_end
 
 
-## 播一条干员语音；queue = true 时占线则排队（部署语音用），否则直接放弃
-func voice(cid: String, key: String, queue := false) -> void:
+## 播一条干员语音；queue = true 时占线则排队（部署语音用），否则直接放弃。
+## urgent = true（指挥模式突击 / 归队回应，玩家按键触发，10-23 用户实测「听不到」）：不受同人 15 秒间隔、不受全队静默间隔，
+## 能打断正在说的战斗闲聊（同技能语音口径）；只有正在播技能 / 部署 / 指挥语音时才放弃
+var voice_urgent: Array = []          # [干员, 事件, 截止时刻]：等当前这条播完立即补播的指挥回应
+var voice_log := false                 # --voicelog（测试）：真正开播时打印 VOICEPLAY <干员> <事件>
+
+func voice(cid: String, key: String, queue := false, urgent := false) -> void:
 	var st := _voice_stream(cid, key)
 	if st == null:
 		return
@@ -668,15 +674,25 @@ func voice(cid: String, key: String, queue := false) -> void:
 	var lk := cid + ":" + key
 	if now - float(voice_last.get(lk, -999.0)) < float(VOICE_CD.get(key, 8.0)):
 		return
-	if key != "entry" and now - float(voice_op_last.get(cid, -999.0)) < VOICE_OP_GAP:
+	if key != "entry" and not urgent and now - float(voice_op_last.get(cid, -999.0)) < VOICE_OP_GAP:
 		return
 	var prio: int = VOICE_PRIO.get(key, 1)
 	# 占线：不打断（用户要求）；部署语音排队，其余放弃。例外：技能语音打断正在说的战斗台词（10-12）
 	var busy: bool = voice_player.playing or now < voice_end
+	if urgent:
+		busy = voice_player.playing and now < voice_play_end   # 静默间隔里照播
+		if busy and (voice_key in VOICE_CHATTER or voice_key == "entry"):
+			_voice_fade_out()   # 战斗闲聊 / 部署语音让路给玩家指挥回应
+			busy = false
+		elif busy:
+			voice_urgent = [cid, key, now + 1.5]   # 技能 / 指挥语音正在播：等它播完补播，1.5 秒内没轮到就算了
+			return
 	if busy and voice_can_cut(key, now):
 		_voice_fade_out()
 		busy = false
 	if busy:
+		if voice_log:
+			print("VOICESKIP %s %s busy(%s %s)" % [cid, key, voice_cid, voice_key])
 		if queue and voice_queue.size() < 4:
 			voice_queue.append([cid, key])
 		return
@@ -691,6 +707,8 @@ func voice(cid: String, key: String, queue := false) -> void:
 		voice_player.play()
 	voice_play_end = now + st.get_length()
 	voice_end = voice_play_end + VOICE_GAP
+	if voice_log:
+		print("VOICEPLAY %s %s" % [cid, key])
 
 
 ## 把正在播的那条换到 voice_fader 上淡出停掉，voice_player 腾出来给新语音
@@ -710,6 +728,11 @@ func _voice_fade_out() -> void:
 
 
 func _voice_tick() -> void:
+	if not voice_urgent.is_empty() and not voice_player.playing:
+		var u: Array = voice_urgent
+		voice_urgent = []
+		if _vnow() <= float(u[2]):
+			voice(u[0], u[1], false, true)
 	if voice_queue.is_empty() or voice_player.playing:
 		return
 	if _vnow() < voice_end:
