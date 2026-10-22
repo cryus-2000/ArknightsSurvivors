@@ -22,28 +22,26 @@ const CLASS_ORDER := ["先锋", "近卫", "重装", "狙击", "术师", "医疗"
 const CLASS_EN := {"先锋": "VANGUARD", "近卫": "GUARD", "重装": "DEFENDER", "狙击": "SNIPER", "术师": "CASTER", "医疗": "MEDIC", "辅助": "SUPPORTER", "特种": "SPECIALIST"}
 ## 两档（docs/124 §9.3）：金 = 补上还没有人的职业，其余青白。[主色, 亮色]
 const TIER := {"gold": [Color8(255, 196, 80), Color8(255, 240, 180)], "cyan": [Color8(96, 224, 232), Color8(200, 255, 255)]}
-## 作战包时间轴（秒）：落下 0–0.4，拉链 0.4–1.6（8 档），光炸 1.45–1.9
-const BAG_T := 1.9
+## 作战包时间轴（秒）：落下 0–0.4，拉链 0.4–1.6（8 档，每档 0.17 秒，同 Codex manifest.opening），全开后光柱循环约 0.6 秒，光炸 2.05–2.5
+const BAG_T := 2.5
 const ZIP0 := 0.4
 const ZIP1 := 1.6
-const BURST := 1.55
+const ZIP_STEP := 0.17
+const BURST := 2.15
 ## 每名干员一屏：名牌滑入 0–0.4，立绘滑入 0–0.5，解码 0.5–1.2，新加入签 1.3，5 秒自动下一名（协调人缺省：每人 5 秒可跳过）
 const SLIDE := 0.5
 const DECODE := 1.2
 const PLATE := 1.6
 const STAMP := 1.3
 const OP_T := 5.0
-## Codex 交付的拉链契约（playback_contract.json，@2x 像素）
-const SLIDER := [Vector2(220, 48), Vector2(194, 53), Vector2(168, 58), Vector2(142, 63), Vector2(115, 68), Vector2(89, 73), Vector2(63, 78), Vector2(37, 83)]
-const ZIP_END := Vector2(220, 48)
+## Codex 交付的包体（playback_contract.json，@2x 像素）：拉链 8 档帧条，原点 = 底边中点
 const BAG_O := Vector2(128, 148)
 const BAG_SZ := Vector2(256, 152)
-const GLOW_O := Vector2(128, 272)
-const GLOW_SZ := Vector2(256, 320)
-## 碎光固定表：[出现时刻, 角度（度，0 = 正上）, 速度（设计高 / 秒）, 变体 0–9（6–9 是三角，只金档用）]
-const SHARDS := [[0.62, -24, 0.55, 0], [0.70, 18, 0.62, 3], [0.80, -8, 0.70, 6], [0.86, 34, 0.50, 1], [0.95, -40, 0.58, 7], [1.02, 6, 0.80, 2],
-	[1.10, -18, 0.66, 8], [1.16, 26, 0.72, 4], [1.24, -32, 0.60, 9], [1.30, 12, 0.85, 5], [1.38, -4, 0.90, 6], [1.44, 40, 0.64, 0],
-	[1.50, -28, 0.76, 7], [1.56, 20, 0.95, 3]]
+## Codex 光效回归（main 9444db06，reference_return/manifest.json）：主光柱 + 上冲碎光各 24 帧 384×400、12 fps，原点 (192,350)，
+## 固定放置 = 包左上 + (128,66) − 原点；层序 合并光层（乘开包遮罩）→ 包底层 → 光层裁片 (64,78,256,320) 乘全开口遮罩 → 包前景
+const FX_SZ := Vector2(384, 400)
+const FX_AT := Vector2(128, 66) - Vector2(192, 350)
+const FX_CROP := Rect2i(64, 78, 256, 320)
 
 static var clock_frames := false   # 测试录屏：按渲染帧计时（--fixed-fps 下与画面同步）
 
@@ -782,21 +780,34 @@ func _draw_pick() -> void:
 
 # ---------------------------------------------------------------- 拉包（GPT 31，Codex 作战包）
 
-## 金光（4 帧 12 fps）按拉链档乘遮罩（交付契约：先乘 light_clip 再画，不能用整包 alpha 裁）
-func _glow_tex(tier: String, f: int, s: int) -> Texture2D:
-	var key := "%s%d_%d" % [tier, f, s]
+## 拉包光层：主光 + 碎光第 f 帧合成；拉链没全开（s < 7）时只留开包遮罩第 s 档露出的部分。返回 [整层, 裁片]，按 [档, 帧, 拉链档] 缓存
+## 裁片 = 整层的 FX_CROP 区再乘全开口遮罩（原 delivery light_clip 第 7 档），画在包底层之上、前景之下，让光从开口里透出
+func _light(tier: String, f: int, s: int) -> Array:
+	var key := "%s%d_%d" % [tier, f, mini(s, 7)]
 	if _glow.has(key):
 		return _glow[key]
-	var src := _image("fx_hh_mouth_glow" + ("" if tier == "gold" else "_cyan"))
-	var clip := _image("fx_hh_light_clip")
-	var t: Texture2D = null
-	if src != null and clip != null:
-		var sz := Vector2i(GLOW_SZ)
-		var dst := Image.create(sz.x, sz.y, false, Image.FORMAT_RGBA8)
-		dst.blit_rect_mask(src.get_region(Rect2i(Vector2i(f * sz.x, 0), sz)), clip.get_region(Rect2i(Vector2i(s * sz.x, 0), sz)), Rect2i(Vector2i.ZERO, sz), Vector2i.ZERO)
-		t = ImageTexture.create_from_image(dst)
-	_glow[key] = t
-	return t
+	var suf := "" if tier == "gold" else "_cyan"
+	var beams := _image("fx_hh_beams" + suf)
+	var frags := _image("fx_hh_frags" + suf)
+	var out := [null, null]
+	if beams != null:
+		var sz := Vector2i(FX_SZ)
+		var img := beams.get_region(Rect2i(Vector2i(f * sz.x, 0), sz))
+		if frags != null:
+			img.blend_rect(frags.get_region(Rect2i(Vector2i(f * sz.x, 0), sz)), Rect2i(Vector2i.ZERO, sz), Vector2i.ZERO)
+		var rv := _image("fx_hh_reveal")
+		if s < 7 and rv != null:
+			var m := Image.create(sz.x, sz.y, false, Image.FORMAT_RGBA8)
+			m.blit_rect_mask(img, rv.get_region(Rect2i(Vector2i(s * sz.x, 0), sz)), Rect2i(Vector2i.ZERO, sz), Vector2i.ZERO)
+			img = m
+		out[0] = ImageTexture.create_from_image(img)
+		var clip := _image("fx_hh_light_clip")
+		if clip != null:
+			var c := Image.create(FX_CROP.size.x, FX_CROP.size.y, false, Image.FORMAT_RGBA8)
+			c.blit_rect_mask(img.get_region(FX_CROP), clip.get_region(Rect2i(Vector2i(7 * FX_CROP.size.x, 0), FX_CROP.size)), Rect2i(Vector2i.ZERO, FX_CROP.size), Vector2i.ZERO)
+			out[1] = ImageTexture.create_from_image(c)
+	_glow[key] = out
+	return out
 
 
 func _image(name: String) -> Image:
@@ -854,33 +865,22 @@ func _draw_bag() -> void:
 	if t < ZIP0:
 		_blit(A.tex("ui_hh_bag"), 0 if t < 0.32 else (1 if t < 0.36 else 2), BAG_SZ, BAG_O, pos, sc)
 	else:
-		var p := UI.ease_io((t - ZIP0) / (ZIP1 - ZIP0))
-		var s := clampi(int(p * 8.0), 0, 7)
+		var s := clampi(1 + int((t - ZIP0) / ZIP_STEP), 1, 7)
 		var ticks := int((t - ZIP0) / 0.11)
 		if t < ZIP1 and ticks > _zip_ticks:
 			_zip_ticks = ticks
 			Sfx.play("ui_move", -5.0, 1.0 + 0.04 * s)
 		if t >= BURST and not _burst:
 			_burst_sfx()
+		var tl := (pos - BAG_O * sc).round()
+		var lit := _light(tier, int((t - ZIP0) * 12.0) % 24, s)
+		var la := (tl + FX_AT * sc).round()
+		if lit[0] != null:
+			ci.draw_texture_rect(lit[0], Rect2(la, FX_SZ * sc), false)
 		_blit(A.tex("ui_hh_bag_zip"), s, BAG_SZ, BAG_O, pos, sc)
-		var tl := pos - BAG_O * sc
-		var mouth: Vector2 = tl + (SLIDER[s] + ZIP_END) / 2.0 * sc
-		if s >= 1:
-			var gt := _glow_tex(tier, int(t * 12.0) % 4, s)
-			if gt != null:
-				ci.draw_texture_rect(gt, Rect2((mouth - GLOW_O * sc).round(), GLOW_SZ * sc), false)
+		if lit[1] != null:
+			ci.draw_texture_rect(lit[1], Rect2(la + Vector2(FX_CROP.position) * sc, Vector2(FX_CROP.size) * sc), false)
 		_blit(A.tex("ui_hh_bag_zip_front"), s, BAG_SZ, BAG_O, pos, sc)
-		var shards := A.tex("fx_hh_shards")
-		for e in SHARDS:
-			var lt: float = t - float(e[0]) - 0.15
-			if lt < 0.0 or lt > 0.6:
-				continue
-			var v: int = int(e[3])
-			if tier != "gold" and v >= 6:
-				v -= 6
-			var ang := deg_to_rad(float(e[1]))
-			var sp: Vector2 = mouth + Vector2(sin(ang), -cos(ang)) * lt * float(e[2]) * D.y
-			_blit(shards, v, Vector2(64, 64), Vector2(32, 32), sp, sc, UI.fa(tc[1] if v < 6 else tc[0], 1.0 - lt / 0.6))
 	ci.draw_rect(Rect2(40, 34, 3, 64), UI.TEXT)
 	UI.text_at(ci, f, Vector2(64, 48), "寻访", 26, UI.TEXT, "lm", true)
 	ci.draw_rect(Rect2(64, 74, 140, 1.5), UI.TEXT)
@@ -890,16 +890,17 @@ func _draw_bag() -> void:
 		ci.draw_polyline(PackedVector2Array([Vector2(D.x / 2.0 - 146, D.y - 78), Vector2(D.x / 2.0 - 160, D.y - 66), Vector2(D.x / 2.0 - 146, D.y - 54)]), UI.TEXT, 3.0)
 		HS.spaced(ci, f, Vector2(D.x / 2.0 - 50, D.y - 58), "向左拉开拉链", 18, UI.TEXT, 8.0)
 	# 光炸：档位色铺满再转白，再退（docs/124 §10.2）
-	if t > 1.45:
+	if t > BURST - 0.1:
 		var a := 0.0
 		var c: Color = tc[0]
-		if t < 1.6:
-			a = (t - 1.45) / 0.15 * 0.85
-		elif t < 1.72:
+		var bt := t - (BURST - 0.1)
+		if bt < 0.15:
+			a = bt / 0.15 * 0.85
+		elif bt < 0.27:
 			a = 0.9
-			c = c.lerp(Color.WHITE, (t - 1.6) / 0.12)
+			c = c.lerp(Color.WHITE, (bt - 0.15) / 0.12)
 		else:
-			a = 0.9 * (1.0 - (t - 1.72) / 0.18)
+			a = 0.9 * (1.0 - (bt - 0.27) / 0.18)
 			c = Color.WHITE
 		ci.draw_rect(Rect2(-_off / _k, D + _off * 2.0 / _k), UI.fa(c, clampf(a, 0.0, 1.0)))
 	_skip()

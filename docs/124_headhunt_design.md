@@ -301,3 +301,10 @@
 - 版面宽固定 1280，高按屏幕比例取 600–720（19.5:9 的手机约 1280 × 620），不再等比缩小留黑边；纵向位置用 `_p(桌面, 手机)` 单独排：标题块字号 80 / 72 → 64 / 60，凭证与规则上移，规则字号 14 → 17；选职业两行卡按顶栏与底栏之间的高度压缩（卡内各行按卡高比例排）；指定干员卡与本次寻访卡改为填满中区；拉包台面与包体随底边走；揭示名牌整体上移 60、立绘脚底贴底边；人事部小字三行在手机上省掉。
 - 触屏：转场中点一下直接到位（`InputEventScreenTouch` 也算）；按钮去掉键位字（`Enter` / `Esc`）；选职业单击即确认。
 - 验收：`--touch` + 1480 × 720 窗口逐屏截图（`tools/probes/headhunt_rec.py shot` → `build/headhunt_rec/phone/shot_hunt_<n>.png`）与录屏 `headhunt_phone.gif`。
+
+## 14. 拉包光效回归接入（10-22，Codex main 9444db06）
+
+- 素材：`art/incoming/headhunt_reference_fx_1022/reference_return/`（宽金白主光柱 `flowing_beams@2x` + 上冲碎光 `rising_fragments@2x`，各 24 帧 384 × 400、12 fps，原点 (192,350)；开包遮罩 `opening_reveal@2x` 8 档）。`tools/probes/package_headhunt_bagfx.py` 放进 `art/incoming` 根目录：`fx_hh_beams@2x` / `fx_hh_frags@2x` 原样、`fx_hh_reveal@2x`（灰度转 alpha）、青白档 `*_cyan@2x`（同一套素材按明度换色：藏青 → #60E0E8 → #C8FFFF → 白，§9.3）。
+- 替换：原来的开口金光 `fx_hh_mouth_glow` 与碎光 `fx_hh_shards` 不再用；拉链 8 档仍是原包体帧条。
+- 层序（按 HANDOFF）：主光 + 碎光合成（拉链没全开时只留遮罩第 s 档露出的部分）→ 包底层 → 同一光层的裁片 (64,78,256,320) 乘原 delivery 全开口遮罩 → 包前景（提手、前包沿）。固定放置 = 包左上 + (128,66) − 原点，纹理不跟拉头平移。
+- 时间轴：0–0.4 落下（闭合无光）；0.4 起每 0.17 秒开一档（同 manifest.opening，约 1.6 秒全开）；全开后光柱循环约 0.5 秒再光炸（2.05–2.5），拉包段总长 1.9 → 2.5 秒。
