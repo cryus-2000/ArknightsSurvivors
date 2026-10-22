@@ -366,7 +366,7 @@
      "desc": "每 {$orb_shatter_every} 秒击碎一枚环绕钙晶，碎片飞向附近至多 {$orb_shatter_n} 名敌人（各拳击 {$orb_shatter_mult*100}% 伤害），{$orb_regrow} 秒后重新长出；精英二后「钙质化」期间改为每 {$shatter_every} 秒击碎一根琥珀晶柱，碎片飞向区域内至多 {$shatter_n} 名敌人（各拳击 {$shatter_mult*100}%）"
     }
    },
-   "branch_desc": "二选一：「急救针剂」—急救时朝敌人掷出注射器；「碎晶」—环绕钙晶定期击碎飞向敌人。之后的节点沿所选路线强化",
+   "branch_desc": "「急救针剂」急救时掷出注射器；「碎晶」钙晶定期击碎飞向敌人；后续沿路线强化",
    "bot": "syringe"
   },
   {

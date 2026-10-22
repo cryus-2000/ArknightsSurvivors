@@ -36,7 +36,7 @@ static func load_def(cid: String) -> Dictionary:
 ## 表达式至少引用一个 $键，支持数字、+ - * / 与括号，例如 {$s1_mult}、{$e1_per*100}%、{$n2_mult*100-100}%、{(1-$slow)*100}%；末尾 :N 指定小数位（{$a*$b:0}）；
 ## 结果按 text_fmt 去掉多余的小数（最多 3 位）。填在 load_def 里：选人 / 图鉴 / 升级卡 / 精英化演出 / 属性面板读到的都是填好的文字，
 ## 改 base 数值（含 --bal=opbase）文字自动跟着变。求不出值的占位原样留下并报错（tools/op_text_check.py 同规则静态检查）
-const TEXT_FILL_KEYS := ["desc", "banner"]
+const TEXT_FILL_KEYS := ["desc", "banner", "branch_desc"]
 
 
 static func fill_text(n, base: Dictionary) -> void:

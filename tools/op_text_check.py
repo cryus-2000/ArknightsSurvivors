@@ -24,7 +24,7 @@ import sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CHAR_DIR = os.path.join(ROOT, "game", "data", "characters")
 
-TEXT_FILL_KEYS = ("desc", "banner")
+TEXT_FILL_KEYS = ("desc", "banner", "branch_desc")
 PH = re.compile(r"\{([^{}]*)\}")
 
 # 字面数字里允许、base / blocks 里对不上的（引擎通用规则或写死在代码里的数）：(干员 id 或 "*", 文字片段)。
@@ -163,6 +163,8 @@ def iter_texts(d):
         nm = n.get("name", "")
         if n.get("desc"):
             yield "progression[%d]「%s」" % (i, nm), t, n["desc"]
+        if n.get("branch_desc"):
+            yield "progression[%d]「%s」.branch_desc" % (i, nm), t, n["branch_desc"]
         if isinstance(n.get("attack"), dict) and n["attack"].get("desc"):
             yield "progression[%d]「%s」.attack「%s」" % (i, nm, n["attack"].get("name", "")), "elite_attack", n["attack"]["desc"]
         ch = n.get("choices")
