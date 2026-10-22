@@ -23,7 +23,20 @@ var _rc_first := -INF
 var _rc_last := -INF
 
 
-## 左上面板：等级圆 + 生命 / 灯火 / 神经 / 侵蚀（原 _draw_body 第一段）
+## 左上面板的缓存签名（hud._layer）：draw_top_left 读到的全部状态。条 / 环的长度按 1/8 像素量化，
+## 有动画（升级 / 经验闪光、受击抖动、低血 / 低灯火闪烁、侵蚀斜纹、回收提示淡出）时带上 g.t 逐帧重画
+func top_left_sig(vs: Vector2) -> Array:
+	var p = g.get("pickups")
+	var rt: float = float(p.recall_hud_t) if p != null and "recall_hud_t" in p else -INF
+	var rec: bool = g.t - rt >= 0.0 and g.t - rt <= 1.5
+	var low: bool = g.hp / g.max_hp < 0.3
+	var anim: bool = g.hud_lv_flash > 0.0 or g.xp_flash > 0.0 or g.hp_shake > 0.0 or low or g.lamp < 30.0 or g.corrode_pool > 0.0 or rec
+	return [vs, g.level, int(g.hp), int(g.max_hp), g.shield, g.shield_max, int(g.lamp), int(g.lamp_cap), g.nerve > 1.0, g.corrode_pool > 0.5, rt,
+		h.qpx(150.0 * g.hp / g.max_hp), h.qpx(150.0 * g.hp_trail / g.max_hp), h.qpx(1.2 * g.lamp), h.qpx(154.0 * g.xp / g.xp_need),
+		h.qpx(1.5 * g.nerve), g.t if anim else 0.0]
+
+
+## 左上面板：等级圆 + 生命 / 灯火 / 神经 / 侵蚀（原 _draw_body 第一段）。在 hud 的 top_left 缓存层里画（签名见 top_left_sig）
 func draw_top_left(vs: Vector2) -> void:
 	# 左上（方案 A · 原作顶栏）：等级圆（外圈 = 经验）+「生命值」「灯火」彩色小标签头 + 数值 + 细条；
 	# 名字与编队人数移到右下编队卡；下面一条灯火状态标签条在后面画（和状态效果一起）
