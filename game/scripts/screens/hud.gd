@@ -127,7 +127,7 @@ static var _nocache: int = -1
 
 static func nocache() -> bool:
 	if _nocache < 0:
-		_nocache = 1 if OS.get_cmdline_user_args().has("--hudnocache") else 0
+		_nocache = 1 if Cfg.dev_args().has("--hudnocache") else 0
 	return _nocache == 1
 
 
