@@ -197,11 +197,12 @@ func in_game() -> void:
 	game.state = game.S.PLAY
 	check(not game.hud_view.panel_over_top(), "对局中 panel_over_top 应为假")
 	# 设置页触屏行的 ◀ / ▶（用户 10-13「设置大小不能减小只能放大」：触屏行宽约 1100，◀ 原来被判成 ▶）：
-	# 画面页「界面大小」「战斗画面缩放」点 ◀ 减、点 ▶ 加；战斗画面缩放能降到 80%
+	# 画面页「界面大小」点 ◀ 减、点 ▶ 加。「战斗画面缩放」10-22 起不在设置里露出（键保留，下面仍直接调它验缩放逻辑）
 	game.settings.open()
 	game.settings._set_tab(1)
 	await frames(3)
-	for key in ["ui_size_pct", "cam_zoom_pct"]:
+	check(not game.settings.cur.any(func(i): return game.settings.ROWS[i].key == "cam_zoom_pct"), "画面页不应再有战斗画面缩放行（设置精简 16 行）")
+	for key in ["ui_size_pct"]:
 		var si := -1
 		for k in game.settings.cur.size():
 			if game.settings.ROWS[game.settings.cur[k]].key == key:
