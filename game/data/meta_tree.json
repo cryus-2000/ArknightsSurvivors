@@ -9,78 +9,21 @@
         {
           "stat": "boss_dmg",
           "op": "add",
-          "value": 0.01
+          "value": 0.02
         },
         {
           "stat": "elite_dmg",
           "op": "add",
-          "value": 0.01
+          "value": 0.02
         }
       ],
-      "desc": "对精英与 Boss 造成的伤害 +1%"
+      "desc": "对精英与 Boss 造成的伤害 +2%"
     },
     "atk2": {
       "line": "攻击",
       "name": "攻击性Ⅱ",
       "cost": 15,
       "req": "atk1",
-      "effects": [
-        {
-          "stat": "boss_dmg",
-          "op": "add",
-          "value": 0.02
-        },
-        {
-          "stat": "elite_dmg",
-          "op": "add",
-          "value": 0.02
-        }
-      ],
-      "desc": "对精英与 Boss 造成的伤害 +2%"
-    },
-    "atk3": {
-      "line": "攻击",
-      "name": "攻击性Ⅲ",
-      "cost": 20,
-      "req": "atk2",
-      "effects": [
-        {
-          "stat": "boss_dmg",
-          "op": "add",
-          "value": 0.02
-        },
-        {
-          "stat": "elite_dmg",
-          "op": "add",
-          "value": 0.02
-        }
-      ],
-      "desc": "对精英与 Boss 造成的伤害 +2%"
-    },
-    "atk4": {
-      "line": "攻击",
-      "name": "攻击性Ⅳ",
-      "cost": 30,
-      "req": "atk3",
-      "effects": [
-        {
-          "stat": "boss_dmg",
-          "op": "add",
-          "value": 0.02
-        },
-        {
-          "stat": "elite_dmg",
-          "op": "add",
-          "value": 0.02
-        }
-      ],
-      "desc": "对精英与 Boss 造成的伤害 +2%"
-    },
-    "atk5": {
-      "line": "攻击",
-      "name": "攻击性Ⅴ",
-      "cost": 30,
-      "req": "atk4",
       "effects": [
         {
           "stat": "boss_dmg",
@@ -95,6 +38,63 @@
       ],
       "desc": "对精英与 Boss 造成的伤害 +3%"
     },
+    "atk3": {
+      "line": "攻击",
+      "name": "攻击性Ⅲ",
+      "cost": 20,
+      "req": "atk2",
+      "effects": [
+        {
+          "stat": "boss_dmg",
+          "op": "add",
+          "value": 0.04
+        },
+        {
+          "stat": "elite_dmg",
+          "op": "add",
+          "value": 0.04
+        }
+      ],
+      "desc": "对精英与 Boss 造成的伤害 +4%"
+    },
+    "atk4": {
+      "line": "攻击",
+      "name": "攻击性Ⅳ",
+      "cost": 30,
+      "req": "atk3",
+      "effects": [
+        {
+          "stat": "boss_dmg",
+          "op": "add",
+          "value": 0.05
+        },
+        {
+          "stat": "elite_dmg",
+          "op": "add",
+          "value": 0.05
+        }
+      ],
+      "desc": "对精英与 Boss 造成的伤害 +5%"
+    },
+    "atk5": {
+      "line": "攻击",
+      "name": "攻击性Ⅴ",
+      "cost": 30,
+      "req": "atk4",
+      "effects": [
+        {
+          "stat": "boss_dmg",
+          "op": "add",
+          "value": 0.06
+        },
+        {
+          "stat": "elite_dmg",
+          "op": "add",
+          "value": 0.06
+        }
+      ],
+      "desc": "对精英与 Boss 造成的伤害 +6%"
+    },
     "hp1": {
       "line": "生命",
       "name": "生存本能Ⅰ",
@@ -103,10 +103,10 @@
         {
           "stat": "max_hp",
           "op": "add",
-          "value": 0.01
+          "value": 0.03
         }
       ],
-      "desc": "队长最大生命 +1%"
+      "desc": "队长最大生命 +3%"
     },
     "hp2": {
       "line": "生命",
@@ -117,10 +117,10 @@
         {
           "stat": "max_hp",
           "op": "add",
-          "value": 0.02
+          "value": 0.04
         }
       ],
-      "desc": "队长最大生命 +2%"
+      "desc": "队长最大生命 +4%"
     },
     "hp3": {
       "line": "生命",
@@ -131,10 +131,10 @@
         {
           "stat": "max_hp",
           "op": "add",
-          "value": 0.03
+          "value": 0.06
         }
       ],
-      "desc": "队长最大生命 +3%"
+      "desc": "队长最大生命 +6%"
     },
     "hp4": {
       "line": "生命",
@@ -145,10 +145,10 @@
         {
           "stat": "max_hp",
           "op": "add",
-          "value": 0.04
+          "value": 0.08
         }
       ],
-      "desc": "队长最大生命 +4%"
+      "desc": "队长最大生命 +8%"
     },
     "hp5": {
       "line": "生命",
@@ -159,10 +159,10 @@
         {
           "stat": "max_hp",
           "op": "add",
-          "value": 0.05
+          "value": 0.09
         }
       ],
-      "desc": "队长最大生命 +5%"
+      "desc": "队长最大生命 +9%"
     },
     "def1": {
       "line": "减伤",
@@ -186,10 +186,10 @@
         {
           "stat": "dmg_taken",
           "op": "add",
-          "value": -0.02
+          "value": -0.03
         }
       ],
-      "desc": "队长受到的伤害 -2%"
+      "desc": "队长受到的伤害 -3%"
     },
     "def3": {
       "line": "减伤",
@@ -200,10 +200,10 @@
         {
           "stat": "dmg_taken",
           "op": "add",
-          "value": -0.03
+          "value": -0.04
         }
       ],
-      "desc": "队长受到的伤害 -3%"
+      "desc": "队长受到的伤害 -4%"
     },
     "def4": {
       "line": "减伤",
@@ -214,10 +214,10 @@
         {
           "stat": "dmg_taken",
           "op": "add",
-          "value": -0.03
+          "value": -0.06
         }
       ],
-      "desc": "队长受到的伤害 -3%"
+      "desc": "队长受到的伤害 -6%"
     },
     "reg1": {
       "line": "回复",
@@ -227,10 +227,10 @@
         {
           "stat": "regen",
           "op": "flat",
-          "value": 0.2
+          "value": 0.25
         }
       ],
-      "desc": "队长每秒回复 +0.2 生命"
+      "desc": "队长每秒回复 +0.25 生命"
     },
     "reg2": {
       "line": "回复",
@@ -241,10 +241,10 @@
         {
           "stat": "regen",
           "op": "flat",
-          "value": 0.2
+          "value": 0.35
         }
       ],
-      "desc": "队长每秒回复 +0.2 生命"
+      "desc": "队长每秒回复 +0.35 生命"
     },
     "reg3": {
       "line": "回复",
@@ -255,10 +255,10 @@
         {
           "stat": "regen",
           "op": "flat",
-          "value": 0.2
+          "value": 0.4
         }
       ],
-      "desc": "队长每秒回复 +0.2 生命"
+      "desc": "队长每秒回复 +0.4 生命"
     },
     "sh1": {
       "line": "护盾",
@@ -268,10 +268,10 @@
         {
           "stat": "shield_max",
           "op": "flat",
-          "value": 1
+          "value": 2
         }
       ],
-      "desc": "队长护盾层数上限 +1（每 12 秒生成一层，抵挡一次伤害）"
+      "desc": "队长护盾层数上限 +2（每 12 秒生成一层，每层抵挡一次伤害）"
     },
     "xp1": {
       "line": "经验",
@@ -281,10 +281,10 @@
         {
           "stat": "xp_gain",
           "op": "add",
-          "value": 0.0125
+          "value": 0.015
         }
       ],
-      "desc": "获得的经验 +1.25%"
+      "desc": "获得的经验 +1.5%"
     },
     "xp2": {
       "line": "经验",
@@ -295,10 +295,10 @@
         {
           "stat": "xp_gain",
           "op": "add",
-          "value": 0.0125
+          "value": 0.0175
         }
       ],
-      "desc": "获得的经验 +1.25%"
+      "desc": "获得的经验 +1.75%"
     },
     "xp3": {
       "line": "经验",
@@ -309,10 +309,10 @@
         {
           "stat": "xp_gain",
           "op": "add",
-          "value": 0.0125
+          "value": 0.0225
         }
       ],
-      "desc": "获得的经验 +1.25%"
+      "desc": "获得的经验 +2.25%"
     },
     "xp4": {
       "line": "经验",
@@ -323,10 +323,10 @@
         {
           "stat": "xp_gain",
           "op": "add",
-          "value": 0.0125
+          "value": 0.025
         }
       ],
-      "desc": "获得的经验 +1.25%"
+      "desc": "获得的经验 +2.5%"
     },
     "gold1": {
       "line": "资源",
