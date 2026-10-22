@@ -3,6 +3,12 @@
   python tools/export_web.py            # 导出 HEAD 到 build/web/（对外网页版）
   python tools/export_web.py --ref xxx  # 导出指定提交
   python tools/export_web.py --ea --out build/release/final_<提交>/web_internal   # 对内网页版（演练开、全部解锁，同对内 Windows 包）
+  python tools/export_web.py --toy      # B站 Toy 包：build/toy/web/ + build/toy/方舟幸存者_toy_<提交>.zip（根目录 index.html，≤ 50 MB，不上传）
+
+--toy（docs/22「Toy 接入」）：同一份 index.html 模板（加载进度页、容器适配、云存档都一样），差异只有两处：
+  1. container.js 之前写 window.__SY_TOY = 1 → 一律加载 Toy JS SDK（itch 包只在像是 B站的域名 / UA 下加载）；
+  2. 分片文件名不用 .gz 后缀（Toy 只发布白名单后缀的文件，.pck / .wasm 是 Godot 包必有的后缀，.gz 不确定）：
+     index.pck.00.gz → index.00.pck、index.wasm.00.gz → index.00.wasm，内容仍是 gzip，加载器按魔数识别，不改加载器。
 
 构建信息：和 Windows 包一样往打包副本的 data/build.json 写 commit / built / audience（public 或 --ea 时 internal）/ encrypted=false，
 --ea 另写 channel=EA。游戏里 Boss 演练入口与「全部解锁」都按 audience 判断（settings.gd，docs/33 §双版本）。
@@ -37,13 +43,14 @@ def run(cmd, check=True):
     return p.stdout
 
 
-def split(out_dir, name, part_bytes):
+def split(out_dir, name, part_bytes, toy=False):
     path = os.path.join(out_dir, name)
     with open(path, "rb") as fh:
         raw = fh.read()
     parts = []
+    stem, ext = os.path.splitext(name)
     for i in range(0, len(raw), part_bytes):
-        pn = "%s.%02d.gz" % (name, len(parts))
+        pn = ("%s.%02d%s" % (stem, len(parts), ext)) if toy else ("%s.%02d.gz" % (name, len(parts)))
         data = gzip.compress(raw[i:i + part_bytes], compresslevel=9, mtime=0)
         with open(os.path.join(out_dir, pn), "wb") as fh:
             fh.write(data)
@@ -59,7 +66,10 @@ def main():
     ap.add_argument("--part-mib", type=float, default=10)
     ap.add_argument("--worktree-presets", action="store_true", help="用工作区的 export_presets.cfg（改预设时本地试导出用）")
     ap.add_argument("--ea", action="store_true", help="对内网页版：build.json audience = internal（演练开、全部解锁）")
+    ap.add_argument("--toy", action="store_true", help="B站 Toy 包：一律加载 Toy SDK、分片不带 .gz 后缀、另打 zip（缺省输出 build/toy/web）")
     a = ap.parse_args()
+    if a.toy and a.out == os.path.join(ROOT, "build", "web"):
+        a.out = os.path.join(ROOT, "build", "toy", "web")
 
     commit = run(["git", "-C", ROOT, "rev-parse", "--short", a.ref]).strip()
     shutil.rmtree(WORK, ignore_errors=True)
@@ -115,7 +125,7 @@ def main():
 
     print("[瘦身] pck：%.2f MB" % (os.path.getsize(os.path.join(tmp, "index.pck")) / 1e6), flush=True)
     part = int(a.part_mib * 1048576)
-    manifest = {n: split(tmp, n, part) for n in ("index.pck", "index.wasm")}
+    manifest = {n: split(tmp, n, part, a.toy) for n in ("index.pck", "index.wasm")}
     html_p = os.path.join(tmp, "index.html")
     with open(html_p, encoding="utf-8") as fh:
         html = fh.read()
@@ -130,6 +140,8 @@ def main():
     with open(os.path.join(WEB, "loader.js"), encoding="utf-8") as fh:
         js += fh.read().replace("/*SHUIYUE_MANIFEST*/null", json.dumps(manifest, separators=(",", ":")))
     # 网页容器适配（B站 Toy 横屏 / 安全区，tools/web/container.js）：接在加载器后面，同一个 <script>
+    if a.toy:
+        js += "\nwindow.__SY_TOY = 1;   // Toy 包：一律加载 Toy JS SDK（docs/22「Toy 接入」）\n"
     with open(os.path.join(WEB, "container.js"), encoding="utf-8") as fh:
         js += "\n" + fh.read()
     # B站 Toy 云存档的 JS 薄封装（tools/web/cloud.js，docs/89）：非 B站环境 probe 回 unsupported，Godot 侧不启用
@@ -159,6 +171,28 @@ def main():
     print("完成：%s @ %s，共 %.1f MiB，最大单文件 %.2f MiB" % (a.out, commit, tot / 1048576, big / 1048576))
     if big > LIMIT:
         sys.exit("有文件超过 25 MB 上限")
+    if a.toy:
+        make_toy_zip(a.out, commit)
+
+
+TOY_LIMIT = 50 * 1000 * 1000   # Toy 新内测作者 50 MB（docs/99 §0），按十进制算更保守
+TOY_GZ_EXT = (".pck", ".wasm")
+
+
+def make_toy_zip(web, commit):
+    """Toy 包：index.html 在 zip 根目录（没有外层文件夹）；gzip 内容的分片按存储放（再压没意义）。不上传，发布由 /toy 技能做。"""
+    import zipfile
+    out = os.path.join(os.path.dirname(web), "方舟幸存者_toy_%s.zip" % commit)
+    files = sorted(f for f in os.listdir(web) if os.path.isfile(os.path.join(web, f)))
+    with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=6) as z:
+        for f in files:
+            stored = f.endswith(TOY_GZ_EXT) and f != "index.pck" and f != "index.wasm"
+            z.write(os.path.join(web, f), f, compress_type=zipfile.ZIP_STORED if stored else zipfile.ZIP_DEFLATED)
+    size = os.path.getsize(out)
+    exts = sorted(set(os.path.splitext(f)[1] for f in files))
+    print("Toy zip：%s  %.2f MB（%d 个文件，后缀 %s）%s" % (out, size / 1e6, len(files), " ".join(exts), "" if size <= TOY_LIMIT else "  ← 超过 50 MB"))
+    if size > TOY_LIMIT:
+        sys.exit("Toy 包超过 50 MB 上限")
 
 
 if __name__ == "__main__":

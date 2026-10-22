@@ -154,6 +154,8 @@ func ui_scale() -> float:
 func phone_ui() -> bool:
 	if not touch_device():
 		return false
+	if toy_device() == "phone":
+		return true
 	var vs: Vector2 = get_viewport().get_visible_rect().size
 	return vs.y > 0.0 and vs.x / vs.y >= 1.9
 
@@ -166,10 +168,42 @@ func cam_zoom() -> float:
 
 ## 系统安全边距（UI 逻辑像素，[左, 上, 右, 下]）：刘海 / 灵动岛 / 圆角 / 底部横条。
 ## 原生移动端读 DisplayServer 的安全区；网页读 CSS env(safe-area-inset-*)（页面没声明 viewport-fit=cover 时浏览器自己留黑边，读到 0，
-## 嵌在 itch 的 iframe 里也是 0）；B站 Toy 容器里 tools/web/container.js 已把画布缩进安全区（window.__sySafe），这里按 0 算。
-## 桌面恒为 0。按视口尺寸缓存
+## 嵌在 itch 的 iframe 里也是 0）；B站 Toy 容器里 tools/web/container.js 已把画布缩进安全区（window.__sySafe），这里按 0 算，
+## 只有沉浸模式下压在画布上的顶栏胶囊（__sySafe.capsule，容器状态里有才有）把它的下沿当成额外的顶部边距（docs/22「Toy 接入」）。
+## 桌面恒为 0。按视口尺寸缓存；Toy 环境变化（_on_toy_change）时清缓存
 var _ins_key := Vector3(-1, -1, -1)
 var _ins: Array = [0.0, 0.0, 0.0, 0.0]
+
+## B站 Toy 环境（tools/web/container.js 的 window.__syToy 桥，docs/22「Toy 接入」）：deviceType（phone / tablet / desktop / unknown，
+## 只在 B站 App 内拿到容器状态后才有）、是否在容器里。手机版式 phone_ui 在画面比例之外也认 deviceType == phone
+var _toy_js: JavaScriptObject = null
+var _toy_cb: JavaScriptObject = null
+var toy_env: Dictionary = {}
+
+
+func _toy_init() -> void:
+	if not OS.has_feature("web"):
+		return
+	_toy_js = JavaScriptBridge.get_interface("__syToy")
+	if _toy_js == null:
+		return
+	_toy_cb = JavaScriptBridge.create_callback(_on_toy_change)
+	_toy_js.onchange(_toy_cb)
+
+
+func _on_toy_change(args: Array) -> void:
+	if args.is_empty() or not (args[0] is String):
+		return
+	var d = JSON.parse_string(args[0])
+	if not (d is Dictionary):
+		return
+	toy_env = d
+	_ins_key = Vector3(-1, -1, -1)
+	view_changed.emit()
+
+
+func toy_device() -> String:
+	return str(toy_env.get("deviceType", "")) if bool(toy_env.get("container", false)) else ""
 
 
 func safe_insets() -> Array:
@@ -184,7 +218,7 @@ func safe_insets() -> Array:
 	var px := [0.0, 0.0, 0.0, 0.0]
 	var per_px := 0.0   # 1 个物理 / CSS 像素 = 多少视口逻辑像素
 	if OS.has_feature("web"):
-		var js = JavaScriptBridge.eval("(function(){if(window.__sySafe)return '0,0,0,0,'+innerWidth;var d=document.createElement('div');d.style.cssText='position:fixed;visibility:hidden;padding:env(safe-area-inset-left) env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)';document.body.appendChild(d);var s=getComputedStyle(d);var r=[s.paddingLeft,s.paddingTop,s.paddingRight,s.paddingBottom].map(parseFloat).join(',');d.remove();return r+','+innerWidth;})()", true)
+		var js = JavaScriptBridge.eval("(function(){var S=window.__sySafe;if(S){var c=S.capsule,t=0;if(c&&c.y<innerHeight*0.5)t=Math.max(0,c.y+c.h);return '0,'+t+',0,0,'+innerWidth;}var d=document.createElement('div');d.style.cssText='position:fixed;visibility:hidden;padding:env(safe-area-inset-left) env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)';document.body.appendChild(d);var s=getComputedStyle(d);var r=[s.paddingLeft,s.paddingTop,s.paddingRight,s.paddingBottom].map(parseFloat).join(',');d.remove();return r+','+innerWidth;})()", true)
 		if js is String:
 			var parts: PackedStringArray = js.split(",")
 			if parts.size() == 5 and float(parts[4]) > 0.0:
@@ -236,6 +270,7 @@ func _ready() -> void:
 		water_filter = false
 		normal_maps = false
 		dof = DisplayServer.is_touchscreen_available() == false
+	_toy_init()
 	brightness = Look.p("bright_def")
 	_migrate_internal_save()
 	var c := ConfigFile.new()
