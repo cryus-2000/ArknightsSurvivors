@@ -1,0 +1,26 @@
+[
+  {
+    "id": "e_skimmer",
+    "source": "art/incoming/e_skimmer@2x.png",
+    "file": "assets/e_skimmer.png",
+    "sha256": "f61ccc3e70112acbe62ff02c53d73f0b34684328c3f611d33b7403030104fb3c",
+    "frames": 2,
+    "matches_current_main": true
+  },
+  {
+    "id": "e_path",
+    "source": "art/incoming/e_path@2x.png",
+    "file": "assets/e_path.png",
+    "sha256": "5f5230833c07ea52a8d4d6335e90a68ebea8ff6a54cfbaff145ea41376b42b26",
+    "frames": 2,
+    "matches_current_main": true
+  },
+  {
+    "id": "e_mother",
+    "source": "art/incoming/e_mother@2x.png",
+    "file": "assets/e_mother.png",
+    "sha256": "f41b0f3dda946c38afaa49b012a21e187785b5c047fccb7b52d400998f0007eb",
+    "frames": 2,
+    "matches_current_main": true
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "checks": [
+    "3 clickable tiers",
+    "keyboard navigation",
+    "visible animation changes",
+    "reduced motion static",
+    "zero browser errors"
+  ],
+  "runtime_integrated": false
+}
