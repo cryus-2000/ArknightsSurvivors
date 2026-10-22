@@ -37,6 +37,18 @@ const EV_COL_TOP_PHONE := 70.0
 ## 「界面大小」照常生效（整层再乘）；平板 / 16:9 触屏 / 电脑不缩
 const CARD_SCALE_PHONE := 0.8
 const HEADER_H := 80.0         # 标题块（英文小标 + 大标题 + 说明行）到卡片顶边的高度
+## 三档布局参数（docs/126 C6）：下标 = Cfg.ui_form()（0 桌面 / 1 触屏 / 2 手机横屏）。正文只读 lay()，不再各自判断平台。
+## touch：触屏版式（事件条横跨整屏、卡片紧凑排版、面板压暗带从顶到底）；phone：手机横屏（整排缩 card_scale、按说明加高、上下居中）；
+## cards_top：卡片顶边；title_up：标题块在卡片顶边上方多少；ev_col_top：事件选项列顶边；ev_title_dy / ev_hint_fs：事件右侧标题下移、提示字号
+const LAY := [
+	{"touch": false, "phone": false, "card_scale": 1.0, "cards_top": CARDS_TOP, "title_up": 92.0, "ev_col_top": 196.0, "ev_title_dy": 0.0, "ev_hint_fs": 12},
+	{"touch": true, "phone": false, "card_scale": 1.0, "cards_top": CARDS_TOP_PHONE, "title_up": 76.0, "ev_col_top": EV_COL_TOP_PHONE, "ev_title_dy": 12.0, "ev_hint_fs": 14},
+	{"touch": true, "phone": true, "card_scale": CARD_SCALE_PHONE, "cards_top": CARDS_TOP_PHONE, "title_up": 76.0, "ev_col_top": EV_COL_TOP_PHONE, "ev_title_dy": 12.0, "ev_hint_fs": 14},
+]
+
+
+func lay() -> Dictionary:
+	return LAY[Cfg.ui_form()]
 
 
 ## 手机横屏卡片内边距（用户 10-13「卡片和字体之间可以留点空隙」，设计像素，整排再缩 0.8）：
@@ -64,7 +76,7 @@ var row_k := 1.0               # 本次整排额外缩放（≤ 1）
 
 
 func card_scale() -> float:
-	return CARD_SCALE_PHONE if Cfg.phone_ui() else 1.0
+	return float(lay().card_scale)
 
 
 ## 按张数和可用宽度定 card_w / row_sep / row_k（n = 0：事件 / 商店，复位）
@@ -84,15 +96,16 @@ func fit_row(n: int) -> void:
 
 
 func cards_top() -> float:
-	if Cfg.phone_ui() and g.panel != null:
+	var L: Dictionary = lay()
+	if L.phone and g.panel != null:
 		# 标题块 + 缩小后的卡片整体上下居中，卡片顶边不早于原来的 80
 		var block: float = HEADER_H + (row_h if row_h > 0.0 else card_h()) * CARD_SCALE_PHONE * row_k
 		return maxf(CARDS_TOP_PHONE, round((g.panel.size.y - block) / 2.0) + HEADER_H)
-	return CARDS_TOP_PHONE if Cfg.touch_device() else CARDS_TOP
+	return float(L.cards_top)
 
 
 func card_h() -> float:
-	return minf(CARD_H, g.panel.size.y - CARDS_TOP_PHONE - 12.0) if Cfg.touch_device() else CARD_H
+	return minf(CARD_H, g.panel.size.y - CARDS_TOP_PHONE - 12.0) if lay().touch else CARD_H
 
 
 func _init(game: Game) -> void:
@@ -185,9 +198,10 @@ func build(parent: Node) -> void:
 	g.panel_col.anchor_right = 0.5
 	g.panel_col.offset_left = 12
 	g.panel_col.offset_right = 608
-	g.panel_col.offset_top = 196 if not Cfg.touch_device() else EV_COL_TOP_PHONE   # 手机：选项列顶边 70（见 CARDS_TOP_PHONE 注释）
+	var L: Dictionary = lay()
+	g.panel_col.offset_top = float(L.ev_col_top)   # 手机：选项列顶边 70（见 CARDS_TOP_PHONE 注释）
 	g.panel_col.offset_bottom = 560
-	if Cfg.touch_device():
+	if L.touch:
 		# 手机：选项条横跨整屏（左右各留 24），条间距 10
 		g.panel_col.anchor_left = 0.0
 		g.panel_col.anchor_right = 1.0
@@ -250,7 +264,7 @@ func layout(kind: String) -> void:
 		fade = 0.0
 		desat = 1.0
 		dim = 0.46
-	if Cfg.touch_device():
+	if lay().touch:
 		# 手机：面板标题压在顶栏上（逻辑高只有约 481），压暗带从顶到底，顶栏一起变灰变暗
 		top = 0.0
 		bot = vs.y
@@ -300,9 +314,10 @@ func draw_bg() -> void:
 			var en_label := "RELIC" if g.choice_kind == "relic" else ("SQUAD SWAP" if g.choice_kind == "swap" else ("GROWTH PATH" if g.choice_kind == "branch" else "LEVEL UP"))
 			if g.choices.size() > 0 and g.choices.all(func(o): return o.get("kind", "") == "recruit"):
 				en_label = "RECRUIT"
-			var ph: bool = Cfg.touch_device()
+			var L: Dictionary = lay()
+			var ph: bool = L.touch
 			# 手机：标题整体下移 4（英文小标原来基线 12，顶边贴着画面上沿被切掉一截）；顶栏中央的计时器在选卡时不画（hud.panel_over_top）
-			header(vs, en_label + "  ·  CHOOSE ONE", g.panel_title_text, panel_sub_text, cards_top() - (76.0 if ph else 92.0))
+			header(vs, en_label + "  ·  CHOOSE ONE", g.panel_title_text, panel_sub_text, cards_top() - float(L.title_up))
 			if not ph:   # 手机：卡片顶到底，没有提示行的位置（点卡片本身就是操作）
 				var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击卡片选择" if Pad.touch else "点击卡片，或按 1–%d 选择" % g.choices.size())
 				UI.text(g.panel_fg, g.font, Vector2(0, CARDS_TOP + CARD_H * row_k + 26), hint, 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
@@ -367,7 +382,7 @@ func ink_grad() -> GradientTexture2D:
 
 
 func draw_event_bg(vs: Vector2) -> void:
-	if Cfg.touch_device():
+	if lay().touch:
 		_draw_event_bg_phone(vs)
 		return
 	var art := event_art(g.panel_title_text)
@@ -417,11 +432,12 @@ func draw_event_bg(vs: Vector2) -> void:
 		g.panel_fg.draw_multiline_string(g.font, p0 + Vector2(92, 440), UI.soft(panel_sub_text), HORIZONTAL_ALIGNMENT_LEFT, 430, 13, 3, Color(0.81, 0.79, 0.76), UI.BRK)
 	# 右侧标题
 	var col_top: float = g.panel_col.offset_top   # 触屏 150 / 桌面 196，标题跟着上移
-	var tt: float = 12.0 if Cfg.touch_device() else 0.0   # 触屏标题再贴近选项列 12，不压到顶栏的威胁等级行
+	var L: Dictionary = lay()
+	var tt: float = float(L.ev_title_dy)   # 触屏标题再贴近选项列 12，不压到顶栏的威胁等级行
 	UI.en(g.panel_fg, g.font, Vector2(cx + 20, col_top - 54.0 + tt), "EVENT  ·  CHOOSE ONE", 12, Color(0.6, 0.59, 0.56), 4.0)
 	g.panel_fg.draw_string(serif, Vector2(cx + 20, col_top - 18.0 + tt), "选择一项", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(0.925, 0.91, 0.882))
 	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击选项" if Pad.touch else "点击选项，或按 1–%d" % g.choices.size())
-	UI.text(g.panel_fg, g.font, Vector2(cx + 20, col_top + ev_bars_h + 6), hint, 14 if Cfg.touch_device() else 12, Color(0.55, 0.54, 0.52))
+	UI.text(g.panel_fg, g.font, Vector2(cx + 20, col_top + ev_bars_h + 6), hint, int(L.ev_hint_fs), Color(0.55, 0.54, 0.52))
 
 
 ## 手机版事件背景（手机端 UI 优化 r2）：逻辑高只有约 481，左侧 560×500 的插画放不下——顶部一行放祭坛小图 + 事件名（衬线）+
@@ -487,7 +503,8 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	row_h = 0.0
 	fit_row(0 if kind == "event" else opts.size())
 	g.panel_box.add_theme_constant_override("separation", int(row_sep))   # 商店会改间距，这里每次按本次张数重设
-	if Cfg.phone_ui() and kind != "event":
+	var L: Dictionary = lay()
+	if L.phone and kind != "event":
 		# 手机横屏：卡片缩到 0.8 后上下有空，说明在最小字号 15 下仍放不下的（长说明藏品、招募卡），整排加高到放得下，最多到画面装得下为止
 		var base_h: float = card_h()
 		var max_h: float = (g.panel.size.y - HEADER_H - 12.0) / (CARD_SCALE_PHONE * row_k)
@@ -505,7 +522,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	# 触屏事件条：说明字号在 17 → 13 里取「全部选项条加起来放得进屏幕」的最大一档（桌面 13 → 12 不变）
 	var ev_sizes: Array = [13, 12]
 	# 手机事件条：横跨整屏（宽 = 面板宽 − 48），本体 74 高、说明一行起；说明字号在 19 → 14 里取全部选项条放得下的最大档
-	var ph: bool = ev and Cfg.touch_device()
+	var ph: bool = ev and L.touch
 	var ev_w: float = (g.panel.size.x - 48.0) if ph else 596.0
 	var ev_dw: float = (ev_w - 100.0 - 70.0) if ph else 420.0
 	var ev_h0: float = 74.0 if ph else 100.0
@@ -526,7 +543,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		var card := Button.new()
 		card.set_meta("full_desc", display_desc)
 		card.custom_minimum_size = Vector2(ev_w, ev_h0) if ev else Vector2(card_w, row_h if row_h > 0.0 else card_h())
-		if Cfg.touch_device():
+		if L.touch:
 			card.set_meta("phone", true)
 		card.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 		card.focus_mode = Control.FOCUS_NONE
@@ -554,7 +571,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 			# 触屏说明字先试大 2 号，放不下再退回原字号（紧凑布局同理）
 			var f0 := UI.fit(g.font, display_desc, card_w - 40.0, 60.0, [15, 14, 13, 12] if Pad.touch_ui() else [13, 12])
 			var compact: bool = not f0.fit
-			if Cfg.touch_device():
+			if L.touch:
 				# 手机：说明字比图标要紧——一律紧凑布局（图标 64 在 84、名字 160、说明 176 起到标签行上方），字 20 起、最小 15
 				compact = true
 				if row_h > 0.0:

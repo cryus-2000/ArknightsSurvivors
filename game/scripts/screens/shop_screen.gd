@@ -11,11 +11,22 @@ var g: Game
 ## 商人（A4）：左侧商人立绘框（暖色提灯光）+ 右上「货架」与持有源石锭 + 底部提示；五张货品卡在 panel_box
 const CARD_H := 330.0          # 货品卡高度（含两行作用对象标签）；卡片顶边见 choice_panel.layout("shop")
 const TOP_PHONE := 96.0        # 手机（界面层放大后逻辑约 1044×481，手机端 UI 优化 r2）：卡片顶边；不画商人立绘框，卡片横跨整屏
+## 三档布局参数（docs/126 C6）：下标 = Cfg.ui_form()（0 桌面 / 1 触屏 / 2 手机横屏，商店触屏与手机同一版式）。
+## touch：卡片横跨整屏、不画商人立绘框；card_max_w：卡宽上限；btn_h：按钮高；name_fs：名字放得下时的字号（0 = 按卡宽 15 / 12）
+const LAY := [
+	{"touch": false, "card_max_w": 160.0, "btn_h": 40.0, "name_fs": 0},
+	{"touch": true, "card_max_w": 190.0, "btn_h": 44.0, "name_fs": 18},
+	{"touch": true, "card_max_w": 190.0, "btn_h": 44.0, "name_fs": 18},
+]
+
+
+func lay() -> Dictionary:
+	return LAY[Cfg.ui_form()]
 
 
 ## 货品卡高度：手机按剩余高度（顶 96、底下留按钮 72）
 func card_h(vs: Vector2) -> float:
-	return clampf(vs.y - TOP_PHONE - 72.0, 240.0, CARD_H) if Cfg.touch_device() else CARD_H
+	return clampf(vs.y - TOP_PHONE - 72.0, 240.0, CARD_H) if lay().touch else CARD_H
 const MERCHANT_LINES := ["灯火暗下来之前，把源石锭花掉吧。", "深海里什么都能换，只要你出得起价。", "别盯着我看，看货。", "都是从沉船里捞上来的，保真。"]
 
 
@@ -42,19 +53,20 @@ func build(restart := false) -> void:
 			c.queue_free()
 	var vs0: Vector2 = g.panel.size   # 触屏界面层放大后 = UI 逻辑尺寸
 	var cx := vs0.x / 2.0
-	var touch: bool = Cfg.touch_device()
+	var L: Dictionary = lay()
+	var touch: bool = L.touch
 	var ch: float = card_h(vs0)
 	var bl: float = cx - 280.0   # 按钮行左边
 	if touch:
 		# 手机：卡片加宽到 ≤ 190、横跨整屏居中（左右各留 20），顶边 96；按钮本体 44 高跟在卡片下
-		cw = minf(190.0, (vs0.x - 40.0 - sep * (n - 1)) / maxf(1.0, n))
+		cw = minf(float(L.card_max_w), (vs0.x - 40.0 - sep * (n - 1)) / maxf(1.0, n))
 		var tot: float = cw * n + sep * (n - 1)
 		g.panel_box.offset_left = -tot / 2.0
 		g.panel_box.offset_right = tot / 2.0
 		g.panel_box.offset_top = TOP_PHONE
 		bl = cx - tot / 2.0
 	var by: float = g.panel_box.offset_top + ch + 14.0
-	var bh: float = 44.0 if touch else 40.0
+	var bh: float = float(L.btn_h)
 	var free: bool = g.shop_sys.refresh_free()
 	g.panel_ui.button("刷新货架", Rect2(bl, by, 214, bh), g.shop_sys.refresh, not g.shop_refreshed and (free or g.ingots >= g.shop_sys.price("refresh")), "refresh",
 		("本局免费一次" if free else "仅一次") if not g.shop_refreshed else "已刷新过", -1 if (g.shop_refreshed or free) else g.shop_sys.price("refresh"))
@@ -151,8 +163,9 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	else:
 		UI.text(card, g.font, c + Vector2(-30, 10), it.name.substr(0, 1), 28, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, a), HORIZONTAL_ALIGNMENT_CENTER, 60, 3)
 	var fs := 15 if g.font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(15)).x <= r.size.x - 14.0 else 12
-	if Cfg.touch_device() and g.font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(18)).x <= r.size.x - 14.0:
-		fs = 18   # 手机：名字 18
+	var nfs: int = int(lay().name_fs)
+	if nfs > 0 and g.font.get_string_size(it.name, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(nfs)).x <= r.size.x - 14.0:
+		fs = nfs   # 手机：名字 18
 	UI.text(card, g.font, r.position + Vector2(0, 144.0 if sc_compact else 156.0), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
@@ -220,7 +233,7 @@ func _draw_bg_phone(vs: Vector2) -> void:
 
 
 func draw_bg(vs: Vector2) -> void:
-	if Cfg.touch_device():
+	if lay().touch:
 		_draw_bg_phone(vs)
 		return
 	var cx := vs.x / 2.0
@@ -273,6 +286,6 @@ func draw_bg(vs: Vector2) -> void:
 	UI.text(g.panel_fg, g.font, Vector2(dp.position.x - 110, dp.position.y + 22), "持有", 12, Color(0.81, 0.84, 0.86), HORIZONTAL_ALIGNMENT_RIGHT, 100)
 	# 按键提示：分两行放在按钮右边（再往右是底栏的技能图标，一行长字会压上去）
 	var hints: Array = ["←→ 选择 · Ⓐ 购买", "Ⓨ 刷新 · Ⓑ 离开"] if Pad.using else (["点击卡片购买", "点「刷新货架」/「离开」"] if Pad.touch else ["点击或按 1–%d 购买" % g.shop_items.size(), "F 刷新  ·  Esc 离开"])
-	var hfs := 14 if Cfg.touch_device() else 12
+	var hfs := 12   # 桌面版（触屏在 draw_bg 开头已转去 _draw_bg_phone）
 	UI.text(g.panel_fg, g.font, Vector2(cx + 116, top + CARD_H + 30.0), hints[0], hfs, UI.SUB)
 	UI.text(g.panel_fg, g.font, Vector2(cx + 116, top + CARD_H + 49.0 if hfs > 12 else top + CARD_H + 47.0), hints[1], hfs, UI.SUB)

@@ -159,6 +159,11 @@ func ui_scale() -> float:
 	return clampf(k, 0.75, maxf(0.75, vs.y / UI_MIN_H)) if ui_size_pct != 100 else base
 
 
+## 界面平台档（docs/126 C6）：0 桌面 / 1 触屏（平板、16:9 触屏）/ 2 手机横屏（phone_ui）。各界面用它从自己的三档布局参数表里取一套
+func ui_form() -> int:
+	return 0 if not touch_device() else (2 if phone_ui() else 1)
+
+
 ## 手机横屏版式（触屏 + 画面比例 ≥ 1.9，19.5:9 手机是 2.17）：不再按界面逻辑高度（< 520）判，界面放大倍数调小后手机仍走手机版式
 func phone_ui() -> bool:
 	if not touch_device():

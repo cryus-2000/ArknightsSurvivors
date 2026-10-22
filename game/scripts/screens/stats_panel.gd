@@ -83,114 +83,78 @@ func draw(vs: Vector2) -> void:
 	UI.rule(g.hud, r.position + Vector2(24, 82), Vector2(r.end.x - 24, r.position.y + 82), UI.EDGE_DIM)
 	# 三个子面板
 	g.stats_cells.clear()
-	# 触屏（手机，逻辑高 626）：三栏并排字只有 6–7 pt 看不清，改成三页（属性 / 技能 / 编队）轮流占整个面板，字号放大；
-	# 页签放在标题行下面，点击区按 touch.gd HIT 外扩。桌面排版不变（page = -1 走原来的三栏）
-	var touch: bool = Cfg.touch_device()
-	var page: int = clampi(g.stats_page, 0, 2) if touch else -1
+	# 桌面三栏（触屏在开头已转去 draw_phone；docs/126 C6 删掉了这里走不到的旧「三页」触屏分支）
 	var top := r.position.y + (90.0 if compact else 98.0)
-	if touch:
-		var tabs := ["属性", "技能", "编队"]
-		var tabs_en := ["STATS", "SKILLS", "SQUAD"]
-		for i in tabs.size():
-			var tr := Rect2(r.position.x + 22 + i * 164.0, r.position.y + 90, 152, 36)
-			var on: bool = i == page
-			g.hud.draw_rect(tr, Color(0.05, 0.2, 0.24, 0.8) if on else Color(1, 1, 1, 0.04))
-			g.hud.draw_rect(Rect2(tr.position.x, tr.end.y - 3, tr.size.x, 3), UI.CYAN if on else Color(1, 1, 1, 0.12))
-			UI.text(g.hud, g.font, tr.position + Vector2(14, 25), tabs[i], 17, UI.TEXT if on else UI.SUB)
-			UI.en(g.hud, g.font, tr.position + Vector2(66, 24), tabs_en[i], 9, UI.CYAN if on else UI.CYAN_DIM, 2.0)
-			g.stats_cells.append([tr, "tab", i])
-		top = r.position.y + 136.0
 	var h := r.end.y - 44 - top
 	var boxes: Array = [Rect2(r.position.x + 22, top, 330, h), Rect2(r.position.x + 366, top, 330, h), Rect2(r.position.x + 710, top, r.size.x - 732, h)]
-	if touch:
-		var bw2: float = (r.size.x - 44.0 - 14.0) / 2.0
-		boxes = [Rect2(r.position.x + 22, top, bw2, h), Rect2(r.position.x + 22 + bw2 + 14.0, top, bw2, h), Rect2(r.position.x + 22, top, r.size.x - 44.0, h)]
-	# 字号 / 行距：触屏放大（桌面值不变）
-	var fs_sub := 16 if touch else 13      # 小标题 / 标签（「生命」「编队 1/3」）
-	var fs_row := 17 if touch else 14      # 属性行
-	var fs_min := 14 if touch else 11      # 次要小字（下一步 / 提示）
-	var fs_tag := 12 if touch else 10      # 标签片 / 角标
-	var row_h := 30.0 if touch else 25.0   # 生存行距
-	var sq_h := 38.0 if touch else 30.0    # 编队每人行距
+	# 字号 / 行距
+	var fs_sub := 13      # 小标题 / 标签（「生命」「编队 1/3」）
+	var fs_row := 14      # 属性行
+	var fs_min := 11      # 次要小字（下一步 / 提示）
+	var fs_tag := 10      # 标签片 / 角标
+	var row_h := 25.0     # 生存行距
+	var sq_h := 30.0      # 编队每人行距
 	for bi in boxes.size():
-		if page < 0 or (page == 0 and bi < 2) or (page > 0 and bi == 2):
-			UI.frame(g.hud, boxes[bi], UI.EDGE, {"cut": 8.0, "bracket": 8.0, "alpha": 0.6})
+		UI.frame(g.hud, boxes[bi], UI.EDGE, {"cut": 8.0, "bracket": 8.0, "alpha": 0.6})
 	var y: float = 0.0
 	# ---- 生存
 	var b0: Rect2 = boxes[0]
-	if page <= 0:
-		UI.text(g.hud, g.font, b0.position + Vector2(16, 26), "生存", 16, UI.CYAN)
-		UI.en(g.hud, g.font, b0.position + Vector2(60, 25), "SURVIVAL", 10, UI.CYAN_DIM, 3.0)
-		y = b0.position.y + 48
-		var barw: float = 180.0 if not touch else b0.size.x - 190.0
-		UI.text(g.hud, g.font, b0.position + Vector2(16, y - b0.position.y + 12), "生命", fs_sub, UI.SUB)
-		UI.gbar(g.hud, Rect2(b0.position.x + 70, y, barw, 10), g.hp / g.max_hp, UI.CYAN, 10)
-		UI.text(g.hud, g.font, Vector2(b0.position.x + 78 + barw, y + 11), "%d / %d" % [int(g.hp), int(g.max_hp)], fs_sub, UI.TEXT)
-		y += 26 if not touch else 30
-		UI.text(g.hud, g.font, Vector2(b0.position.x + 16, y + 12), "灯火", fs_sub, UI.SUB)
-		UI.gbar(g.hud, Rect2(b0.position.x + 70, y, barw, 10), g.lamp / 100.0, UI.GOLD, 10)
-		UI.text(g.hud, g.font, Vector2(b0.position.x + 78 + barw, y + 11), "%d" % int(g.lamp), fs_sub, UI.TEXT)
-		y += 30
+	UI.text(g.hud, g.font, b0.position + Vector2(16, 26), "生存", 16, UI.CYAN)
+	UI.en(g.hud, g.font, b0.position + Vector2(60, 25), "SURVIVAL", 10, UI.CYAN_DIM, 3.0)
+	y = b0.position.y + 48
+	var barw: float = 180.0
+	UI.text(g.hud, g.font, b0.position + Vector2(16, y - b0.position.y + 12), "生命", fs_sub, UI.SUB)
+	UI.gbar(g.hud, Rect2(b0.position.x + 70, y, barw, 10), g.hp / g.max_hp, UI.CYAN, 10)
+	UI.text(g.hud, g.font, Vector2(b0.position.x + 78 + barw, y + 11), "%d / %d" % [int(g.hp), int(g.max_hp)], fs_sub, UI.TEXT)
+	y += 26
+	UI.text(g.hud, g.font, Vector2(b0.position.x + 16, y + 12), "灯火", fs_sub, UI.SUB)
+	UI.gbar(g.hud, Rect2(b0.position.x + 70, y, barw, 10), g.lamp / 100.0, UI.GOLD, 10)
+	UI.text(g.hud, g.font, Vector2(b0.position.x + 78 + barw, y + 11), "%d" % int(g.lamp), fs_sub, UI.TEXT)
+	y += 30
 	var rows0 := [
 		["生命回复", regen_text()], ["物理减伤 / 法抗", armor_text()], ["闪避 物 / 法", "%d%% / %d%%" % [int(minf(g.dodge + g.dodge_phys, 0.6) * 100.0), int(minf(g.dodge + g.dodge_arts, 0.6) * 100.0)]],
 		["移动速度", "%d" % int(g.speed)], ["拾取范围", "%d" % int(g.pickup)], ["受击灯火损失", "×%.2f" % g.lamp_decay],
 		["照亮范围", "%d" % int(g.lamp_r())],
 		["护盾", ("%d / %d · 每 %.1f 秒" % [g.shield, g.shield_max, g.shield_every]) if g.shield_max > 0 else "无"],
 	]
-	var vx0: float = 130.0 if not touch else 170.0   # 数值列的 x
-	if page <= 0:
-		for row in rows0:
-			UI.text(g.hud, g.font, Vector2(b0.position.x + 16, y + 12), row[0], fs_row, UI.SUB)
-			UI.text_fit(g.hud, g.font, Vector2(b0.position.x + vx0, y + 12), row[1], fs_row, UI.TEXT, b0.size.x - vx0 - 16.0, 10)
-			g.hud.draw_rect(Rect2(b0.position.x + 16, y + row_h - 6, b0.size.x - 32, 1), Color(1, 1, 1, 0.05))
-			y += row_h
+	var vx0: float = 130.0   # 数值列的 x
+	for row in rows0:
+		UI.text(g.hud, g.font, Vector2(b0.position.x + 16, y + 12), row[0], fs_row, UI.SUB)
+		UI.text_fit(g.hud, g.font, Vector2(b0.position.x + vx0, y + 12), row[1], fs_row, UI.TEXT, b0.size.x - vx0 - 16.0, 10)
+		g.hud.draw_rect(Rect2(b0.position.x + 16, y + row_h - 6, b0.size.x - 32, 1), Color(1, 1, 1, 0.05))
+		y += row_h
 	# ---- 攻击
 	var b1: Rect2 = boxes[1]
 	var skill_rows: Array = skill_rows_data()
-	if page <= 0:
-		UI.text(g.hud, g.font, b1.position + Vector2(16, 26), "攻击", 16, UI.CYAN)
-		UI.en(g.hud, g.font, b1.position + Vector2(60, 25), "OFFENSE", 10, UI.CYAN_DIM, 3.0)
-		var rows1: Array = g.ch.stats_rows()
-		rows1.append_array([
-			["近战 / 远程", "×%.2f / ×%.2f" % [g.melee_mult, g.ranged_mult]], ["物理 / 法术", "×%.2f / ×%.2f" % [g.phys_mult, g.arts_mult]],
-			["本局构成", dmg_mix_text()],
-		])
-		y = b1.position.y + 48
-		# 属性行的行高按剩余空间收：下半的技能列表每条至少要「名字 + 一行说明」的高度（干员属性行多时不再挤出面板）
-		var need_sk: float = skill_rows.size() * maxf(42.0, 30.0 + g.font.get_height(UI.fs(11)) + 1.0) + 18.0
-		var rh1: float = clampf((b1.end.y - 6.0 - y - need_sk) / maxf(1.0, rows1.size()), 17.0 if compact else 19.0, 25.0)
-		var rfs := 14 if rh1 >= 23.0 else 13
-		if touch:
-			# 触屏：技能在第二页，这页只有属性行，行距按剩余高度放到 30
-			rh1 = clampf((b1.end.y - 6.0 - y) / maxf(1.0, rows1.size()), 22.0, row_h)
-			rfs = fs_row if rh1 >= 27.0 else 15
-		for row in rows1:
-			UI.text(g.hud, g.font, Vector2(b1.position.x + 16, y + 12), row[0], rfs, UI.SUB)
-			UI.text_fit(g.hud, g.font, Vector2(b1.position.x + vx0, y + 12), row[1], rfs, UI.TEXT, b1.size.x - vx0 - 16.0, 10)
-			g.hud.draw_rect(Rect2(b1.position.x + 16, y + rh1 - 6, b1.size.x - 32, 1), Color(1, 1, 1, 0.05))
-			y += rh1
-	if page < 0:
-		# 技能（攻击面板下半）
-		y += 8
-		UI.rule(g.hud, Vector2(b1.position.x + 16, y), Vector2(b1.end.x - 16, y), UI.EDGE_DIM)
-		y += 10
-		y = g.result_screen.draw_generic_skill_rows(b1, y, skill_rows)
-	elif page == 1:
-		# 触屏第二页：技能 + 天赋占整个面板，说明 15 号字
-		var bs: Rect2 = boxes[2]
-		UI.text(g.hud, g.font, bs.position + Vector2(16, 26), "技能与天赋", 16, UI.CYAN)
-		UI.en(g.hud, g.font, bs.position + Vector2(110, 25), "SKILLS", 10, UI.CYAN_DIM, 3.0)
-		g.result_screen.draw_generic_skill_rows(bs, bs.position.y + 44, skill_rows, 15, 18)
+	UI.text(g.hud, g.font, b1.position + Vector2(16, 26), "攻击", 16, UI.CYAN)
+	UI.en(g.hud, g.font, b1.position + Vector2(60, 25), "OFFENSE", 10, UI.CYAN_DIM, 3.0)
+	var rows1: Array = g.ch.stats_rows()
+	rows1.append_array([
+		["近战 / 远程", "×%.2f / ×%.2f" % [g.melee_mult, g.ranged_mult]], ["物理 / 法术", "×%.2f / ×%.2f" % [g.phys_mult, g.arts_mult]],
+		["本局构成", dmg_mix_text()],
+	])
+	y = b1.position.y + 48
+	# 属性行的行高按剩余空间收：下半的技能列表每条至少要「名字 + 一行说明」的高度（干员属性行多时不再挤出面板）
+	var need_sk: float = skill_rows.size() * maxf(42.0, 30.0 + g.font.get_height(UI.fs(11)) + 1.0) + 18.0
+	var rh1: float = clampf((b1.end.y - 6.0 - y - need_sk) / maxf(1.0, rows1.size()), 17.0 if compact else 19.0, 25.0)
+	var rfs := 14 if rh1 >= 23.0 else 13
+	for row in rows1:
+		UI.text(g.hud, g.font, Vector2(b1.position.x + 16, y + 12), row[0], rfs, UI.SUB)
+		UI.text_fit(g.hud, g.font, Vector2(b1.position.x + vx0, y + 12), row[1], rfs, UI.TEXT, b1.size.x - vx0 - 16.0, 10)
+		g.hud.draw_rect(Rect2(b1.position.x + 16, y + rh1 - 6, b1.size.x - 32, 1), Color(1, 1, 1, 0.05))
+		y += rh1
+	# 技能（攻击面板下半）
+	y += 8
+	UI.rule(g.hud, Vector2(b1.position.x + 16, y), Vector2(b1.end.x - 16, y), UI.EDGE_DIM)
+	y += 10
+	y = g.result_screen.draw_generic_skill_rows(b1, y, skill_rows)
 	# ---- 队伍与成长
-	if page == 0 or page == 1:
-		_draw_footer(vs, r)   # 触屏第一 / 二页没有编队栏
-		return
 	var b2: Rect2 = boxes[2]
 	UI.text(g.hud, g.font, b2.position + Vector2(16, 26), "编队与成长", 16, UI.CYAN)
 	UI.en(g.hud, g.font, b2.position + Vector2(110, 25), "BUILD", 10, UI.CYAN_DIM, 3.0)
 	y = b2.position.y + 44
 	UI.text(g.hud, g.font, Vector2(b2.position.x + 16, y + 12), "编队 %d/%d" % [g.squad.size(), g.squad.cap()], fs_sub, UI.SUB)
-	y += 22 if not touch else 28
+	y += 22
 	for o in g.squad.ops:
 		var ax2: float = b2.position.x + 16
 		var opt: Dictionary = o.portrait()
@@ -198,11 +162,11 @@ func draw(vs: Vector2) -> void:
 		if at != null:
 			var fw := at.get_width() / int(opt.frames)
 			var wn := UI.op_win(fw, at.get_height(), A.hires_of(at), o.sprite_spec("idle").get("foot", o.def.get("sprites", {}).get("foot", null)))
-			var ks := (26.0 if not touch else 32.0) / wn.size.y
+			var ks := 26.0 / wn.size.y
 			g.hud.draw_texture_rect_region(at, Rect2(Vector2(ax2, y - 6), wn.size * ks), wn)
 			ax2 += wn.size.x * ks + 6
 		UI.text(g.hud, g.font, Vector2(ax2, y + 12), "%s · %s" % [o.display_name(), o.cls], fs_sub, UI.TEXT)
-		ax2 += 116 if not touch else 150
+		ax2 += 116
 		ax2 += UI.chip(g.hud, g.font, Vector2(ax2, y), ["精零", "精一", "精二"][o.elite], UI.GOLD if o.elite > 0 else UI.SUB, fs_tag) + 6
 		# 成长线进度点
 		var pg: Array = o.prog_view()
@@ -233,12 +197,12 @@ func draw(vs: Vector2) -> void:
 		if wt != null:
 			g.hud.draw_texture_rect(wt, Rect2(Vector2(ax2, y - 6), Vector2(32, 32)), false)
 		UI.text(g.hud, g.font, Vector2(ax2 + 36, y + 14), "%s  Lv.%d" % [D.WEAPONS[wid].name, g.weapons[wid]], fs_sub, D.WEAPONS[wid].col)
-		ax2 += 150 if not touch else 190
+		ax2 += 150
 	y += 36
 	UI.rule(g.hud, Vector2(b2.position.x + 16, y), Vector2(b2.end.x - 16, y), UI.EDGE_DIM)
 	y += 8
 	UI.text(g.hud, g.font, Vector2(b2.position.x + 16, y + 12), "成长", fs_sub, UI.SUB)
-	y += 22 if not touch else 26
+	y += 22
 	# 成长 + 藏品：两块图标网格共用剩余高度，格子取「全部放得下」的最大尺寸（46 → 26 像素），
 	# 不再出现数量多了后面的图标被藏起来的情况；悬停看效果
 	var gx: float = b2.position.x + 16
@@ -248,7 +212,7 @@ func draw(vs: Vector2) -> void:
 	var room: float = b2.end.y - 8.0 - gy - 36.0
 	var pitch := 46.0
 	var per := 1
-	for pc in ([62.0, 54.0, 46.0, 40.0, 34.0, 30.0] if touch else [46.0, 40.0, 34.0, 30.0, 26.0, 22.0]):   # 触屏格子大一号（图标 ≥ 28，手指点得准）
+	for pc in [46.0, 40.0, 34.0, 30.0, 26.0, 22.0]:
 		pitch = pc
 		per = maxi(1, int((b2.size.x - 32) / pitch))
 		if (maxi(1, int(ceil(ng / float(per)))) + maxi(1, int(ceil(nr / float(per))))) * pitch <= room:
@@ -267,20 +231,20 @@ func draw(vs: Vector2) -> void:
 			g.hud.draw_texture_rect(gt, Rect2(gc + Vector2(3, 3), Vector2(isz, isz)), false)
 		else:
 			UI.text(g.hud, g.font, gc + Vector2(0, cs * 0.68), g.progression.growth_def(gid).name.substr(0, 1), int(cs * 0.42), UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cs)
-		UI.text(g.hud, g.font, gc + Vector2(cs - 18 - (6 if touch else 0), cs - 1), "×%d" % g.growth[gid], fs_tag, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18 + (6 if touch else 0), 2)
+		UI.text(g.hud, g.font, gc + Vector2(cs - 18, cs - 1), "×%d" % g.growth[gid], fs_tag, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
 		g.stats_cells.append([Rect2(gc, Vector2(cs, cs)), "growth", gid])
 		gi += 1
 	y = gy + maxi(1, int(ceil(ng / float(per)))) * pitch + 6
 	UI.rule(g.hud, Vector2(b2.position.x + 16, y), Vector2(b2.end.x - 16, y), UI.EDGE_DIM)
 	y += 8
 	UI.text(g.hud, g.font, Vector2(b2.position.x + 16, y + 12), "藏品  %d 件" % g.relics.size(), fs_sub, UI.SUB)
-	UI.text(g.hud, g.font, Vector2(b2.position.x + (120 if not touch else 150), y + 12), "点图标查看效果" if Pad.touch_ui() else "鼠标移到图标上查看效果", fs_min, UI.CYAN_DIM)
-	y += 22 if not touch else 26
+	UI.text(g.hud, g.font, Vector2(b2.position.x + 120, y + 12), "点图标查看效果" if Pad.touch_ui() else "鼠标移到图标上查看效果", fs_min, UI.CYAN_DIM)
+	y += 22
 	var mouse2 := g.hud.get_local_mouse_position()
 	var skip: int = _relic_skip(nr, per, pitch, cs, y, b2.end.y - 2.0)
 	var slot := 0
 	if skip > 0:
-		_draw_more_cell(Vector2(gx, y), cs, skip, 16 if touch else 13)
+		_draw_more_cell(Vector2(gx, y), cs, skip, 13)
 		slot = 1
 	for i in range(skip, nr):
 		var rc := Vector2(gx + (slot % per) * pitch, y + (slot / per) * pitch)
@@ -301,7 +265,7 @@ func draw(vs: Vector2) -> void:
 			UI.text(g.hud, g.font, rc + Vector2(0, cs * 0.68), rd.name.substr(0, 1), int(cs * 0.42), rcol, HORIZONTAL_ALIGNMENT_CENTER, cs)
 		var rl: int = g.rfx.lv.get(g.relics[i], 1)
 		if rl > 1:
-			UI.text(g.hud, g.font, rc + Vector2(cs - 18 - (6 if touch else 0), cs - 1), "L%d" % rl, fs_tag, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18 + (6 if touch else 0), 2)
+			UI.text(g.hud, g.font, rc + Vector2(cs - 18, cs - 1), "L%d" % rl, fs_tag, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 18, 2)
 		g.stats_cells.append([cr, "relic", g.relics[i]])
 	_draw_footer(vs, r)
 
