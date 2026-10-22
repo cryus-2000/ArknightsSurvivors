@@ -13,7 +13,9 @@ static func hw_wave_start(o, b: Dictionary) -> void:
 		if o.pos == Vector2.INF:
 			return
 		var ang: float = o.facing_angle()
-		if str(b.get("aim", "")) == "nearest":
+		if o.manual_attack() and o.get("in_release") == true and o.atk_aim != Vector2.ZERO:
+			ang = o.atk_aim.angle()   # 手动普攻（10-23 用户定）：普攻里放出的剑气 / 潮刃沿玩家指向，不吸附最近敌人；技能里的照旧找最近
+		elif str(b.get("aim", "")) == "nearest":
 			var ts: Array = o.nearest_enemies(1, float(b.get("aim_r", 260.0)), o.pos)
 			if not ts.is_empty():
 				ang = (ts[0].pos - o.pos).angle()

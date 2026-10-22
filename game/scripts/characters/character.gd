@@ -377,19 +377,15 @@ func idle_cd(v: float) -> float:
 var atk_aim := Vector2.ZERO    # A 类：这一击手动给的方向（起手时记下，出手帧 atk_angle 用）；ZERO = 自动
 
 ## A 类起手点：ts 为自动选出的目标（nearest_enemies 结果），reach 为这一击的距离。返回起手朝向点，Vector2.INF = 这一帧不出手。
-## 自动：有目标打目标；手动：没按不出，按了沿瞄准方向（触屏不拖 = 退回自动目标）
+## 自动：有目标打目标；手动（10-23 用户定）：没按不出，按了一律沿玩家指向出招——周围没有敌人也照常挥空 / 朝那个方向开火，不吸附最近敌人
 func atk_point(ts: Array, reach: float) -> Vector2:
 	atk_aim = Vector2.ZERO
 	if manual_attack():
 		if not g.doctor.attack_want():
 			return Vector2.INF
-		var d: Vector2 = g.doctor.attack_dir()
-		if d != Vector2.ZERO:
-			atk_aim = d
-			g.doctor.atk_buf = 0.0
-			return pos + d * reach
-		if not ts.is_empty():
-			g.doctor.atk_buf = 0.0
+		atk_aim = g.doctor.attack_dir()
+		g.doctor.atk_buf = 0.0
+		return pos + atk_aim * reach
 	return ts[0].pos if not ts.is_empty() else Vector2.INF
 
 
@@ -418,43 +414,41 @@ func aim_land(reach: float) -> Dictionary:
 	return {"id": -1, "pos": pos + atk_aim * dist, "dead": false, "elite": false, "boss": false, "r": 0.0}
 
 
-## B 类起手选目标：自动 = nearest_enemies；手动没按 = 空；按了 = aim_targets
+## B 类起手选目标：自动 = nearest_enemies；手动没按 = 空；按了 = aim_targets（10-23 起永远非空：没有敌人就朝指向打）
 func attack_targets(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
 	if not manual_attack():
 		return nearest_enemies(n, max_dist, origin)
 	if not g.doctor.attack_want():
 		return []
-	var out := aim_targets(n, max_dist, origin)
-	if not out.is_empty():
-		g.doctor.atk_buf = 0.0
-	elif g.doctor.atk_edge:
-		_sfx_play("atk_gate", "ATK_GATE_DB", 0.05)   # 按了但前方没敌人、不出手：轻「咔」（只在按下那一帧）
-	return out
+	g.doctor.atk_buf = 0.0
+	return aim_targets(n, max_dist, origin)
 
 
 ## B 类按瞄准方向选目标（出手帧重新找目标也用它；不看按键，起手后松手照样打完）：
-## ±aim_cone_deg 内由近到远，没有退到 ±aim_fallback_deg；触屏不拖（方向为 ZERO）= 最近的
+## 指向 ±aim_cone_deg 内由近到远（追踪弹 / 命令召唤物要有真目标）；锥内没人（10-23 用户定）= 朝指向 max_dist 处的伪目标
+## {id -1}（直线弹就沿指向飞、途中照常命中），不再吸附最近敌人。消费方见到 id < 0 的要当「没有敌人」处理（逻各斯咒文弹、Mon3tr 命令）
 func aim_targets(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
 	if not manual_attack():
 		return nearest_enemies(n, max_dist, origin)
 	var d: Vector2 = g.doctor.attack_dir()
-	if d == Vector2.ZERO:
-		return nearest_enemies(n, max_dist, origin)
 	var BalS = preload("res://scripts/core/balance.gd")
 	var o: Vector2 = g.ppos if origin == Vector2.INF else origin
-	var pool: Array = nearest_raw(maxi(n * 4, 48), max_dist, origin)
-	for deg in [BalS.v("manual/aim_cone_deg", 45.0), BalS.v("manual/aim_fallback_deg", 90.0)]:
-		var c: float = cos(deg_to_rad(deg)) - 0.0001
-		var out: Array = []
-		for e in pool:
-			var off: Vector2 = e.pos - o
-			if off.length() < 1.0 or off.normalized().dot(d) >= c:
-				out.append(e)
-				if out.size() >= n:
-					break
-		if not out.is_empty():
-			return out
-	return []
+	var c: float = cos(deg_to_rad(BalS.v("manual/aim_cone_deg", 45.0))) - 0.0001
+	var out: Array = []
+	for e in nearest_raw(maxi(n * 4, 48), max_dist, origin):
+		var off: Vector2 = e.pos - o
+		if off.length() < 1.0 or off.normalized().dot(d) >= c:
+			out.append(e)
+			if out.size() >= n:
+				break
+	if out.is_empty():
+		out.append(aim_point_target(o + d * max_dist))
+	return out
+
+
+## 手动普攻沿指向打空时的伪目标（同 aim_land 的写法）：只有 pos / id / dead / r 等只读字段可用，id = -1
+static func aim_point_target(p: Vector2) -> Dictionary:
+	return {"id": -1, "pos": p, "dead": false, "elite": false, "boss": false, "r": 0.0, "hp": 1.0, "max_hp": 1.0, "type": "", "kb": Vector2.ZERO}
 
 
 ## 消费技能 i 的充能并通知藏品（技能开始事件）

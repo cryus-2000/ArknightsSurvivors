@@ -150,7 +150,7 @@ static func _hw3_bolts(o, dt: float) -> void:
 			o.fx({"kind": "glow", "pos": bo.pos, "r": 8.0, "life": 0.25, "col": HW_INK, "alpha": 0.4})
 			continue
 		var e: Dictionary = bo.e
-		if not e.dead:
+		if not e.dead and int(e.get("id", 0)) >= 0:
 			bo.to = e.pos + Vector2(0, -e.r * 0.5)
 		var d: Vector2 = bo.to - bo.pos
 		var step: float = spd * dt
@@ -158,7 +158,7 @@ static func _hw3_bolts(o, dt: float) -> void:
 			bo.pos = bo.to
 			bo.life = -1.0
 			var tgt: Dictionary = e
-			if e.dead:
+			if e.dead or int(e.get("id", 0)) < 0:   # 目标已死 / 手动打空的伪目标（aim_point_target）：落点 60 内最近的
 				var near2: Array = o.nearest_enemies(1, 60.0, bo.to)
 				tgt = near2[0] if not near2.is_empty() else {}
 			if not tgt.is_empty():

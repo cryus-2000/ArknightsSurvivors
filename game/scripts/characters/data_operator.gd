@@ -710,7 +710,16 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 
 # ---------------------------------------------------------------- 出手
 
+var in_release := false                # 正在执行普攻出手（_release 整段，含 replace / far / 连斩排队 / every_n 追加）：手动普攻时剑气 / 钩索按玩家指向（10-23）
+
+
 func _release() -> void:
+	in_release = true
+	_release_body()
+	in_release = false
+
+
+func _release_body() -> void:
 	var a: Dictionary = cur_attack()
 	if str(a.get("shape", "")) == "support":   # 召唤物扩展段（§15.9）：出手帧执行 do（音效由 do 里的积木自己播）
 		_exec_list(a.get("do", []), g.ppos)
