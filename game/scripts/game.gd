@@ -682,6 +682,11 @@ func _ready() -> void:
 	for k in ["max_hp", "armor", "arts_res"]:
 		if lead.has(k) and stats.has_stat(k):
 			stats.set_base(k, float(lead[k]))
+	# 基础砍（docs/109 §14 v4，用户 10-22「砍干员基础数值，把差值留给树」）：队长最大生命、干员攻击倍率的基础值；1 = 不变
+	if stats.has_stat(&"max_hp"):
+		stats.set_base(&"max_hp", float(stats._base[&"max_hp"]) * Bal.v("squad/leader_hp_mult", 1.0))
+	if stats.has_stat(&"op_atk"):
+		stats.set_base(&"op_atk", Bal.v("squad/op_atk_base", 1.0))
 	# 博士动画条（data/doctor.json 的 sprites：idle / run / hurt / death）
 	for kind in ["idle", "run", "hurt", "death"]:
 		var dn = doctor.def.get("sprites", {}).get(kind, "")
