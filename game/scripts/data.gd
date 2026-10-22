@@ -71,8 +71,8 @@ const DIFF_PRESETS := [
 	# enemy_scale（用户 10-22，docs/109 §15）：极限档的小怪生命 / 伤害倍率在潮位 10 的表上再乘这个系数（只乘 enemy_hp / enemy_dmg，
 	# Boss 生命、潮位阶梯 TIDE_SET、结算系数 ×1.5 都不动）：四档目标（无成长标准 45–55、满点标准 85–90、困难 70–80、极限 55–65）
 	# 的跨度比潮位 0→10 的实测跨度窄，基础砍 / 树值只能整体平移，极限档单独微降补齐
-	{"name": "极限", "short": "极限", "en": "EXTREME", "tide": 10, "level": 10, "factor": 1.5, "enemy_scale": 0.9,
-		"desc": "敌人生命 +53%、伤害 +22%；溟痕常驻，大群 +60%，Boss 在场时照常来袭；受击灯火损失 +60%。"},
+	{"name": "极限", "short": "极限", "en": "EXTREME", "tide": 10, "level": 10, "factor": 1.5, "enemy_scale": 0.95,
+		"desc": "敌人生命 +62%、伤害 +28%；溟痕常驻，大群 +60%，Boss 在场时照常来袭；受击灯火损失 +60%。"},
 ]
 const PRESET_SCALE_KEYS := ["enemy_hp", "enemy_dmg"]
 
