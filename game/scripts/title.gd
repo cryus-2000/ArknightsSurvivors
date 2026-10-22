@@ -119,6 +119,7 @@ func _ready() -> void:
 	Sfx.cut_target = 20000.0
 	Sfx.vol_target = -6.0
 	Sfx.play_music("title")
+	Sfx.warm_begin()   # 网页：出发后的「载入中」里把战斗乐分轨 / 音效注册成样本（sfx.gd，10-22 开局掉帧）
 	# 截图 / 自动测试 / 从对局返回标题：不播开场动画
 	var args := Cfg.dev_args()
 	if (not args.is_empty() and not args.has("--introshot") and not args.has("--introshort") and not args.has("--titlemotion")) or Cfg.title_seen:
@@ -294,7 +295,7 @@ func _ready() -> void:
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_title.png")
 			get_tree().quit())
 	if Cfg.dev_args().has("--autotest") or Cfg.dev_args().has("--balance"):
-		if A.prewarm_busy():
+		if A.prewarm_busy() or Sfx.warm_busy():
 			auto_go = true   # 开窗口的自测：等法线图预热完（同玩家路径），黑屏时长才有可比性
 		else:
 			A.mark("title_leave")
@@ -383,16 +384,29 @@ func _process(delta: float) -> void:
 		if m[0].y < -10:
 			m[0].y = size.y + 10
 	A.prewarm_tick()
+	if leaving >= 0.0 or auto_go:
+		if not _op_warm_begun:
+			_op_warm_begun = true
+			A.warm_begin(_op_fx_names(), [])
+		_op_warm_more = A.warm_step(12000)   # 开局干员的技能 / 特效帧条先读进贴图缓存（10-22 网页开局掉帧：第一次放技能时现读）
+		if not _op_warm_more and not _grow_strips.is_empty():
+			# 扩散帧条的每帧半径（ob_fx.warm_frame_r，同一张贴图、同一算式）：一帧算一张
+			var sn: String = _grow_strips.pop_back()
+			var v6: Dictionary = load("res://scripts/game.gd").V6_FRAMES
+			if v6.has(sn):
+				load("res://scripts/characters/blocks/ob_fx.gd").warm_frame_r(sn, A.tex(sn), maxi(1, int(v6[sn][0])))
+			_op_warm_more = not _grow_strips.is_empty()
+		Sfx.warm_step(12000)   # 出发后的等待里逐条注册音频样本（网页；桌面队列为空）
 	if leaving >= 0.0:
 		leaving += delta
 		if leaving > 0.7:
 			# 法线图预热没完就画「载入中…」等它（以前这里直接切场景，game.gd _ready 同步算 10 秒法线图 = 黑屏），最多等 30 秒
-			if (A.prewarm_busy() or Cfg.dev_args().has("--loadingshot")) and wait_t < 30.0:
+			if (A.prewarm_busy() or Sfx.warm_busy() or _op_warm_more or Cfg.dev_args().has("--loadingshot")) and wait_t < 30.0:
 				wait_t += delta
 			else:
 				A.mark("title_leave")
 				get_tree().change_scene_to_file("res://game.tscn")
-	elif auto_go and not A.prewarm_busy():
+	elif auto_go and not A.prewarm_busy() and not Sfx.warm_busy() and not _op_warm_more and _op_warm_begun:
 		auto_go = false
 		A.mark("title_leave")
 		get_tree().change_scene_to_file("res://game.tscn")
@@ -767,13 +781,50 @@ func _draw_leaving(vs: Vector2) -> void:
 			_draw_loading(vs)
 
 
+## 开局干员（选人 / --op；测试的 --squad 一并）JSON 里写到的帧条名（"tex" / "strip"）：出发后的等待里先读进 A.tex 缓存
+var _op_warm_begun := false
+var _op_warm_more := false
+var _grow_strips: Array = []
+
+func _op_fx_names() -> Array:
+	var ids: Array = [Cfg.character_id]
+	for a in Cfg.dev_args():
+		if a.begins_with("--op="):
+			ids = [a.substr(5)]
+	for a in Cfg.dev_args():
+		if a.begins_with("--squad="):
+			ids.append_array(a.substr(8).split(","))
+	var out: Array = []
+	for cid in ids:
+		if Character.exists(cid):
+			_collect_tex(Character.load_def(cid), out)
+	return out
+
+
+func _collect_tex(x, out: Array, key := "") -> void:
+	if x is Dictionary:
+		if x.get("strip", "") is String and str(x.get("ease", "")) != "" and not _grow_strips.has(x.strip):
+			_grow_strips.append(x.strip)   # 扩散缓动的帧条（ob_fx.fx_draw_grow）：首用时要逐像素量每帧半径，预热里先算
+		for k in x:
+			_collect_tex(x[k], out, str(k))
+	elif x is Array:
+		for v in x:
+			_collect_tex(v, out, key)
+	elif x is String and (key == "tex" or key == "strip") and x != "" and not out.has(x):
+		out.append(x)
+
+
 ## 出发后等法线图预热：潮汐航线风格的小面板 + 进度条（docs/37）
 func _draw_loading(vs: Vector2) -> void:
 	var pr := A.prewarm_progress()
+	var what := "准备光照贴图"
+	if Sfx.warm_busy() and pr.x >= pr.y:
+		pr = Sfx.warm_progress()
+		what = "准备作战数据"
 	var r := Rect2(vs.x / 2 - 170, vs.y / 2 - 44, 340, 88)
 	UI.frame(self, r, UI.CYAN)
 	UI.en(self, font, Vector2(r.position.x + 18, r.position.y + 24), "LOADING", 11, Color(0.55, 0.59, 0.63), 2.5)
-	UI.text(self, font, Vector2(r.position.x + 18, r.position.y + 46), "载入中…  准备光照贴图 %d / %d" % [pr.x, pr.y], 15, UI.TEXT)
+	UI.text(self, font, Vector2(r.position.x + 18, r.position.y + 46), "载入中…  %s %d / %d" % [what, pr.x, pr.y], 15, UI.TEXT)
 	UI.gbar(self, Rect2(r.position.x + 18, r.position.y + 62, r.size.x - 36, 6), float(pr.x) / maxf(1.0, float(pr.y)), UI.CYAN)
 
 

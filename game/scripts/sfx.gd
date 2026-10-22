@@ -232,6 +232,53 @@ func _ready() -> void:
 	play_music("title")
 
 
+## 网页音频样本预热（10-22 网页开局掉帧）：网页版按「样本」播放，每条流第一次 play 时才整段解码、建 Web Audio 缓冲，
+## 当帧卡 50–130 ms。战斗乐 battle1 按乐句随机接续（A–E × 三层 + 危险层，每句约 13 秒），开局前一两分钟每换一句卡一下；
+## 音效同理（每种第一次响时）。标题页点出发后的「载入中」等待里把这些流逐条注册成样本（AudioServer.register_stream_as_sample），
+## 进局后就不再现解码。只在网页版做；声音本身、播放时机都不变
+var _warm_q: Array = []
+var _warm_total := 0
+
+func warm_begin() -> void:
+	if not OS.has_feature("web") or _warm_total > 0:
+		return
+	var list: Array = []
+	var q = seq.get("battle1")
+	if q != null:
+		for sname in q.segs:
+			for st in q.segs[sname]:
+				list.append(st)
+		list.append(q.danger)
+	for n in streams:
+		list.append(streams[n])
+	var seen := {}
+	for st in list:
+		if st is AudioStream and not seen.has(st) and not AudioServer.is_stream_registered_as_sample(st):
+			seen[st] = true
+			_warm_q.append(st)
+	_warm_total = _warm_q.size()
+
+
+## 每帧调一次：budget_usec 微秒内尽量多注册（至少一条）；返回是否还有剩
+func warm_step(budget_usec: int) -> bool:
+	var t0 := Time.get_ticks_usec()
+	while not _warm_q.is_empty():
+		var st: AudioStream = _warm_q.pop_front()
+		if not AudioServer.is_stream_registered_as_sample(st):
+			AudioServer.register_stream_as_sample(st)
+		if Time.get_ticks_usec() - t0 > budget_usec:
+			break
+	return not _warm_q.is_empty()
+
+
+func warm_busy() -> bool:
+	return not _warm_q.is_empty()
+
+
+func warm_progress() -> Vector2i:
+	return Vector2i(_warm_total - _warm_q.size(), _warm_total)
+
+
 ## 加载音频：优先用编辑器导入好的资源；直接用源码运行而没有导入记录时（.godot/imported 缺失），
 ## 退回到从原始文件解码，这样不打开编辑器也有声音
 func _load_ogg(path: String) -> AudioStreamOggVorbis:

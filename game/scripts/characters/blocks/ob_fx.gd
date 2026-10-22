@@ -265,31 +265,41 @@ static func fx_ease(kind: String, t: float) -> float:
 ## 帧条第 fr 帧自身的半径（1x 像素）：不透明像素离帧中心的最大横向距离；量不到（压缩贴图读不出图）时按帧宽一半
 static func fx_frame_r(g, name: String, frames: int, fr: int) -> float:
 	if not _fr_r.has(name):
-		var tx: Texture2D = g.tex.get(name)
-		var rs: Array = []
-		if tx != null:
-			var h: float = ArtS.hires_of(tx)
-			var fw: int = tx.get_width() / frames
-			var img: Image = tx.get_image()
-			if img != null and img.is_compressed():
-				img = null
-			for k in frames:
-				var r := fw / 2.0
-				if img != null:
-					var mn := fw
-					var mx := -1
-					for x in fw:
-						for y in range(0, img.get_height(), 1):
-							if img.get_pixel(k * fw + x, y).a > 0.1:
-								mn = mini(mn, x)
-								mx = maxi(mx, x)
-								break
-					if mx >= mn:
-						r = maxf(fw / 2.0 - mn, mx + 1 - fw / 2.0)
-				rs.append(maxf(1.0, r) / h)
-		_fr_r[name] = rs
+		_fr_r[name] = _calc_frame_r(g.tex.get(name), frames)
 	var a: Array = _fr_r[name]
 	return float(a[fr]) if fr < a.size() else 0.0
+
+
+## 预热（10-22 网页开局掉帧：第一次放浊心斯卡蒂声浪时这里读回整张帧条逐像素量半径，当帧 100+ ms）：
+## 标题页出发后的等待里用同一张贴图（A.tex 缓存，局内 g.tex 就是它）先算好，结果与首用时现算相同
+static func warm_frame_r(name: String, tx: Texture2D, frames: int) -> void:
+	if tx != null and not _fr_r.has(name):
+		_fr_r[name] = _calc_frame_r(tx, frames)
+
+
+static func _calc_frame_r(tx: Texture2D, frames: int) -> Array:
+	var rs: Array = []
+	if tx != null:
+		var h: float = ArtS.hires_of(tx)
+		var fw: int = tx.get_width() / frames
+		var img: Image = tx.get_image()
+		if img != null and img.is_compressed():
+			img = null
+		for k in frames:
+			var r := fw / 2.0
+			if img != null:
+				var mn := fw
+				var mx := -1
+				for x in fw:
+					for y in range(0, img.get_height(), 1):
+						if img.get_pixel(k * fw + x, y).a > 0.1:
+							mn = mini(mn, x)
+							mx = maxi(mx, x)
+							break
+				if mx >= mn:
+					r = maxf(fw / 2.0 - mn, mx + 1 - fw / 2.0)
+			rs.append(maxf(1.0, r) / h)
+	return rs
 
 
 ## 交叉淡入淡出权重：条目 f 的 cond 此刻为真 → 1，假 → 0，按 xfade 秒线性靠拢（只看 g.t，画面状态存在干员的 meta 里，不碰玩法）。
