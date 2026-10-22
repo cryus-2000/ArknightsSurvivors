@@ -538,7 +538,7 @@ func fx_density() -> float:
 	return 0.5 if quality == "low" else 1.0
 
 
-## 自动档的检测（每次启动）：触屏 / 网页移动端 / 移动 GPU 与软件渲染 → 低；桌面核显 → 中；其余 → 高
+## 自动档的检测（每次启动）：触屏 / 网页移动端 / 移动 GPU 与软件渲染 → 低；桌面核显 → 中；网页其余 → 中（封顶）；桌面其余 → 高
 func _guess_quality() -> String:
 	if DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios"):
 		return "low"
@@ -549,6 +549,8 @@ func _guess_quality() -> String:
 	for k in ["intel(r) uhd", "intel(r) hd", "intel(r) iris"]:
 		if gpu.contains(k):
 			return "mid"
+	if OS.has_feature("web"):
+		return "mid"   # 网页端自动档封顶「中」（10-22 用户网页实测：高卡、中不卡）；手选「高」照旧可用，桌面原生不变
 	return "high"
 
 
