@@ -10,7 +10,7 @@ const Look = preload("res://scripts/render/look.gd")
 const TouchLayout = preload("res://scripts/touch_layout.gd")
 const CloudPack = preload("res://scripts/core/cloud_pack.gd")
 ## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的三档下标；3 = 10-22 的潮位 0–15（只在内部包短暂存在）；
-## 4 = 10-22 起的三档预设下标（D.DIFF_PRESETS：标准 / 困难 / 极限 = 潮位 0 / 5 / 10）
+## 4 = 10-22 起的三档预设下标（D.DIFF_PRESETS：常规 / 高压 / 深潮 = 潮位 0 / 5 / 10）
 const DIFF_VER := 4
 ## 存档里亮度字段的口径：0 = 旧缺省 110%；1 = 缺省随观感预设 render/look（10-12 起 100%）
 const LOOK_VER := 1
@@ -441,7 +441,7 @@ static func migrate_brightness(saved: float, ver: int) -> float:
 	return saved
 
 
-## 难度存档版本 diff_ver → 现在的 DIFF_VER（4 = 三档预设下标 0 标准 / 1 困难 / 2 极限）。逐个版本写明，新版本在这里加一支：
+## 难度存档版本 diff_ver → 现在的 DIFF_VER（4 = 三档预设下标 0 常规 / 1 高压 / 2 深潮）。逐个版本写明，新版本在这里加一支：
 ##   1（或没写）：11 级累计难度 → _migrate_diff 一步换成三档下标
 ##   2：三档下标，与 4 同义（潮位试验之前），不用动
 ##   3：潮位 0–15（内部包短暂存在）→ _migrate_tide_to_preset
@@ -467,7 +467,7 @@ func _migrate_diff() -> void:
 	difficulty = mini(D._tier_of_level_old(old_diff), diff_unlocked)
 
 
-## 潮位 0–15（DIFF_VER 3，内部包短暂存在）→ 三档预设：潮位 < 5 标准、< 10 困难、其余极限；解锁同样换算
+## 潮位 0–15（DIFF_VER 3，内部包短暂存在）→ 三档预设：潮位 < 5 常规、< 10 高压、其余深潮；解锁同样换算
 func _migrate_tide_to_preset() -> void:
 	var to_p := func(t: int) -> int: return 0 if t < 5 else (1 if t < 10 else 2)
 	difficulty = to_p.call(difficulty)

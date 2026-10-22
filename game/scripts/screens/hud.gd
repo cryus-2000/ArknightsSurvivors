@@ -111,13 +111,24 @@ func batch_end(mid: Array = []) -> void:
 		_tqs.append(q)
 
 
-## HUD 分层（性能，docs/50 §9.10）：不每帧变的部分（左上面板、藏品栏、编队卡的静态部分）和小地图画在 g.hud 下面的子画布上
-## （全屏 Control、画在父节点之下 show_behind_parent）。子画布只在「签名」变了时重画，平时 Godot 保留它上次的绘制命令，
-## 不再每帧跑 GDScript。重画时把 g.hud 临时指向子画布，原来的绘制函数不用改。本帧走到调用点的层才显示（暂停 / 结算等界面照旧）。
-## 能进缓存层的块：主画布里画在它之前的东西都不和它重叠（子画布整体在主画布之下）；签名要写全这块读到的状态，
-## 连续量按像素量化（qpx），动画进行中把 g.t 放进签名（逐帧重画）。层的上下次序固定按 LAYER_ORDER 建（docs/126 §8 HUD 第一步）
-const LAYER_ORDER := ["under", "top_left", "minimap", "relics", "squad"]
+## HUD 块（性能 docs/50 §9.10；10-22 起整个局内 HUD 按块拆，docs/126 §9.2）：局内 HUD 是一串有序的兄弟画布——g.hud 下的全屏子 Control
+## （show_behind_parent，画在父画布之下），上下次序固定按 LAYER_ORDER 建（后建的在上），与拆分前的实际层次逐像素相同。
+## 父画布（g.hud 本身）只画整屏状态界面（暂停 / 结算 / 精英化演出 / 开场 / 寻访），压在所有块之上。
+## 每块 _layer(key, 签名, 绘制函数)：签名为 null = 每帧画；否则签名变了才重画，平时 Godot 保留上次的绘制命令、不跑 GDScript。
+## 重画时把 g.hud 临时指向子画布，原来的绘制函数不用改。本帧走到调用点的块才显示。
+## 加一块：在 LAYER_ORDER 里按层次插一个键，在 _draw_body 里调 _layer；缺省（签名 null）最安全。要缓存时签名必须写全这块读到的状态，
+## 连续量按像素量化（qpx），动画进行中把 g.t 放进签名；绘制时顺手写的状态（点击区域等）要挪到登记时算（例：relics.update_buttons）。
+## --hudnocache：所有块每帧画（验收新界面时对照用：开 / 关画面应当一样）
+const LAYER_ORDER := ["under", "top_left", "minimap", "relics", "squad",
+	"pointers", "mid", "top", "boss", "squad_fr", "front", "status", "tail"]
 var _layers := {}
+static var _nocache: int = -1
+
+
+static func nocache() -> bool:
+	if _nocache < 0:
+		_nocache = 1 if Cfg.dev_args().has("--hudnocache") else 0
+	return _nocache == 1
 
 
 ## 连续量的签名：x（逻辑像素）按 1/8 像素量化——没跨过量化格不重画；画面上最多差 1/8 逻辑像素，到跨格那一帧补上
@@ -149,7 +160,7 @@ func _layer(key: String, sig, fn: Callable) -> void:
 	var L: Dictionary = _layer_node(key)
 	L.used = true
 	L.fn = fn
-	if L.sig != sig:
+	if sig == null or nocache() or (g.opt_old & Game.OPT_HUDNC) or L.sig != sig:
 		L.sig = sig
 		L.node.queue_redraw()
 
@@ -160,7 +171,7 @@ func _layer_draw(key: String) -> void:
 		return
 	var keep: Control = g.hud
 	g.hud = L.node
-	L.fn.call()
+	g._timed("draw_hud", L.fn)   # --prof：各块的绘制也计进 draw_hud（与拆块前口径相同：整个局内 HUD 的脚本时间）
 	g.hud = keep
 
 
@@ -179,50 +190,58 @@ func _draw_body() -> void:
 	if g.state == Game.S.OPENING:
 		g.intro_screen.draw_opening_hud(vs)
 		return
-	# 底层（每帧重画的子画布，最先建 → 画在藏品栏 / 编队栏缓存层之下，和原来「先画」的层次一致）：精英标记、飘字、全屏色调与暗角
-	_layer("under", Engine.get_process_frames(), func(): _draw_under(vs, ct))
+	# 底层（每帧画，最下层）：精英标记、飘字、全屏色调与暗角
+	_layer("under", null, func(): _draw_under(vs, ct))
 	if g.demo_op != "":
 		return   # 图鉴演示：只要伤害数字，不画其余 HUD
 	if g.state == Game.S.SHOW:
 		# 精英化演出：不画其余 HUD（遮罩只有 86% 不透明，顶栏、编队卡的文字会隐约透出来），只画演出本身
 		g.show_screen.draw(vs)
 		return
-	# 各块的顺序就是绘制层次（2026-10-10 拆分前 _draw_body 的原顺序），别调换
+	# 各块的层次见 LAYER_ORDER（与 10-22 拆块前的实际层次相同：原缓存层在下，原主画布各段按原顺序在上）；块内的先后照旧，别调换。
+	# 绘制回调按登记先后执行：boss 块写的 bars.boss_bottom 在 front / tail 读之前更新
 	if not (panel_over_top() and g.choice_kind == "event"):
-		# 触屏事件（祭坛）的标题与剧情行占左上角，生命 / 灯火条不画（10-13 手机实测压字）。
-		# 左上面板进缓存层：它是主画布里最先画的块，之前没有东西压在它下面，挪到子画布层次不变
+		# 触屏事件（祭坛）的标题与剧情行占左上角，生命 / 灯火条不画（10-13 手机实测压字）
 		_layer("top_left", bars.top_left_sig(vs), func(): bars.draw_top_left(vs))
-	banners.draw_leader_hints(ct)
-	banners.draw_merchant_pointer(vs, ct)
-	banners.draw_altar_pointers(vs, ct)
-	banners.draw_boss_pointers(vs, ct)
-	banners.draw_offscreen_edges(vs, ct)   # 镜头拉近（战斗画面缩放 > 100%）时屏外近处敌人的边缘红边
-	banners.draw_field_wave(vs)
-	banners.draw_beacon_pointers(vs, ct)
-	banners.draw_hunt_ring(vs, ct)
-	banners.draw_hunt_pointer(vs, ct)
+	_layer("pointers", null, func():
+		banners.draw_leader_hints(ct)
+		banners.draw_merchant_pointer(vs, ct)
+		banners.draw_altar_pointers(vs, ct)
+		banners.draw_boss_pointers(vs, ct)
+		banners.draw_offscreen_edges(vs, ct)   # 镜头拉近（战斗画面缩放 > 100%）时屏外近处敌人的边缘红边
+		banners.draw_field_wave(vs)
+		banners.draw_beacon_pointers(vs, ct)
+		banners.draw_hunt_ring(vs, ct)
+		banners.draw_hunt_pointer(vs, ct))
 	if not overlay_left():
 		# 小地图每 3 帧重画一次（20 次 / 秒；红点 300 个时逐个画是 HUD 里最贵的一块）
 		_layer("minimap", [Engine.get_process_frames() / 3, vs], func(): bars.draw_minimap(vs))
-	bars.draw_lamp_strip(vs)
-	banners.draw_zone_warning(vs)
-	bars.draw_top_center(vs)   # 开合批段（顶部中央 + 右上暂停键共用一批）
-	relics.draw_right_top(vs)   # 收合批段：这两行必须相邻
-	bars.draw_boss_bars(vs)
-	squad.draw(vs)
-	banners.draw_command(vs, ct)   # 指挥模式：屏外队友方向标记 + 当前模式（docs/114）；压在顶栏 / 编队栏之上
-	banners.draw_banner(vs)
-	banners.draw_notices(vs)
-	banners.draw_open_hints(vs)
-	relics.draw_relic_tooltip(vs)
-	g.touch.draw_hud(vs)
+	_layer("mid", null, func():
+		bars.draw_lamp_strip(vs)
+		banners.draw_zone_warning(vs))
+	relics.update_buttons(vs)   # 暂停 / 倍速键的点击区域：每帧算（顶部块缓存时不重画）
+	_layer("top", bars.top_sig(vs), func():
+		bars.draw_top_center(vs)   # 开合批段（顶部中央 + 右上暂停键共用一批）
+		relics.draw_right_top(vs))   # 收合批段：这两行必须相邻
+	relics.register_tray(vs)   # 藏品栏缓存层（藏品 / 等级 / 悬停格变了才重画）
+	_layer("boss", null, func(): bars.draw_boss_bars(vs))
+	squad.draw(vs)   # 登记编队栏静态层（squad）与每帧层（squad_fr）
+	_layer("front", null, func():
+		banners.draw_command(vs, ct)   # 指挥模式：屏外队友方向标记 + 当前模式（docs/114）；压在顶栏 / 编队栏之上
+		banners.draw_banner(vs)
+		banners.draw_notices(vs)
+		banners.draw_open_hints(vs)
+		relics.draw_relic_tooltip(vs)
+		g.touch.draw_hud(vs))
 	if not overlay_left():
-		bars.draw_status_bar(vs)
-	banners.draw_dash_hint(vs)
-	banners.draw_zone_hint(vs)
-	squad.draw_manual_aim()
-	squad.draw_manual_hint()
-	g.boss_intro.draw_hud(vs)   # Boss 登场 / 击破演出：黑边、暗角、名片，压在全部 HUD 之上（screens/boss_intro.gd）
+		var sitems: Array = bars.status_items()
+		_layer("status", bars.status_sig(vs, sitems), func(): bars.draw_status(vs, sitems))
+	_layer("tail", null, func():
+		banners.draw_dash_hint(vs)
+		banners.draw_zone_hint(vs)
+		squad.draw_manual_aim()
+		squad.draw_manual_hint()
+		g.boss_intro.draw_hud(vs))   # Boss 登场 / 击破演出：黑边、暗角、名片，压在全部 HUD 之上（screens/boss_intro.gd）
 	match g.state:
 		Game.S.SHOW:
 			g.show_screen.draw(vs)

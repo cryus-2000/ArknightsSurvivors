@@ -37,7 +37,36 @@ func draw(vs: Vector2) -> void:
 			_fr_items.append(o.skill_hud())
 			_fr_pts.append(o.portrait())
 	h._layer("squad", _squad_sig(sbr), func(): draw_squad_hud(sbr, 1))
-	draw_squad_hud(sbr, 2)
+	h._layer("squad_fr", _frame_sig(sbr), func(): draw_squad_hud(sbr, 2))
+
+
+## 编队栏每帧层（hud 的 squad_fr 缓存块）的签名：draw_squad_hud(…, 2) 读到的全部状态。充能遮罩 / 进度条按 1/8 像素量化；
+## 手动技能可放时的呼吸框、骑士卡显示时带 g.t 逐帧重画
+func _frame_sig(br: Vector2) -> Array:
+	var n: int = g.squad.size()
+	var anim: bool = g.knight.alive or g.knight.submerged
+	var apop: bool = g.get("apop_t") != null and float(g.apop_t) > 0.0
+	var sig: Array = [br, n, g.touch.active, apop, Pad.hint("Q/E", "Ⓐ/Ⓨ")]
+	var mp := g.hud.get_local_mouse_position()
+	var sk_y: float = br.y - SQ_CARD.y - SQ_SK - 14.0
+	for i in n:
+		var o = g.squad.ops[i]
+		var x: float = br.x - (n - i) * SQ_COL_W + (SQ_COL_W - SQ_CARD.x)
+		sig.append([o.skill_active(), o == g.ch, o.col()])
+		var items: Array = _items_of(i)
+		for k in 3:
+			var it: Array = items[k]
+			var active: float = it[3]
+			var frac: float = clamp(it[5], 0.0, 1.0)
+			if active > 0.0:
+				frac = active / it[4]
+			var rdy: bool = o.is_manual(k) and it[2] and manual_castable(o, k)
+			anim = anim or rdy
+			var sr := Rect2(Vector2(x + k * (SQ_SK + 6.0), sk_y), Vector2(SQ_SK, SQ_SK))
+			sig.append([it[2], it[6], it[0], it.size() > 9 and it[9] != "", h.qpx(SQ_SK * frac), int(ceil(active)) if active > 0.0 else -1,
+				o.perm[k], o.rej.has(k), o.is_manual(k), rdy, sr.has_point(mp)])
+	sig.append(g.t if anim else 0.0)
+	return sig
 
 
 ## 编队区最上沿（源石锭框顶）的 y：触屏冲刺键 / 技能键摆在它上方，不压住「编队 n / m」和源石锭

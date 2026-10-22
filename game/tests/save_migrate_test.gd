@@ -53,7 +53,7 @@ func _ready() -> void:
 	# v2：三档下标，原样
 	load_sample(sample(2, 1, 2))
 	check(Cfg.difficulty == 1 and Cfg.diff_unlocked == 2, "diff_ver 2 三档原样（%d / %d）" % [Cfg.difficulty, Cfg.diff_unlocked])
-	# v3：潮位 0–15 → < 5 标准、< 10 困难、其余极限；难度不超过解锁
+	# v3：潮位 0–15 → < 5 常规、< 10 高压、其余深潮；难度不超过解锁
 	for case in [[3, 4, 0, 0], [7, 12, 1, 2], [12, 7, 1, 1]]:
 		load_sample(sample(3, case[0], case[1]))
 		check(Cfg.difficulty == case[2] and Cfg.diff_unlocked == case[3], "diff_ver 3 潮位 %d / %d → 应为 %d / %d，实际 %d / %d" % [case[0], case[1], case[2], case[3], Cfg.difficulty, Cfg.diff_unlocked])
