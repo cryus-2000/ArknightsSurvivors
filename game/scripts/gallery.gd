@@ -1165,7 +1165,9 @@ func _draw_op_art(ci: CanvasItem, e: Dictionary, ph: bool) -> void:
 	if a <= 0.0:
 		return
 	var frames: int = int(od.frames)
-	_blit_art(ci, tx, frames, od.bb, float(od.hires), float(fit[0]) * float(od.get("ds", 1.0)), fit[1], c, a, _stage(), Color.WHITE, int(t * 4.0) % maxi(1, frames), true, false, true, true)
+	var locked: bool = e.get("locked", false)
+	var tint: Color = Color(0.2, 0.21, 0.25) if locked else Color.WHITE
+	_blit_art(ci, tx, frames, od.bb, float(od.hires), float(fit[0]) * float(od.get("ds", 1.0)), fit[1], c, a, _stage(), tint, int(t * 4.0) % maxi(1, frames), true, locked, true, true)
 
 
 ## 一张帧条的一帧：k2 = @2x 像素倍数，foot = 脚底中点，c = 进场进度（缩放 / 右移），a = 透明度，clip = 舞台框
@@ -1259,8 +1261,6 @@ func _draw_form_art(ci: CanvasItem, e: Dictionary, f: Dictionary, ph: bool) -> v
 			for d in [Vector2(k3, 0), Vector2(-k3, 0), Vector2(0, k3), Vector2(0, -k3)]:
 				UI.blit_clipped(ci, wt, Rect2(dst.position + d, dst.size), src, clip, Color(0.7, 0.85, 0.95, 0.5 * a))
 	_blit_art(ci, tx, int(f.frames), bb, hi, k2, foot, 1.0, a, clip, tint, _form_frame(f), not locked, locked, tab in [0, 1, 2, 3, 6])
-	if locked:
-		UI.text_at(ci, font, foot - Vector2(0, h2 * k2 / 2.0), "?", 40 if not ph else 28, UI.C_D_SUB, "mm", true)
 
 
 ## 实机演示（干员技能 / 敌人攻击）：SubViewport 画进舞台框；右上两排平行四边形按钮，左下名字与当前段落
@@ -1499,7 +1499,13 @@ func _card(r: Rect2, e: Dictionary, i: int, a: float, flash: float, ph: bool) ->
 	draw_rect(r, UI.fa(UI.C_D_PANEL if selv else UI.C_D_CARD, a))
 	draw_rect(Rect2(r.position.x + 1, r.position.y + 1, r.size.x - 2, 4), UI.fa(UI.C_D_SUB if locked else _band_col(e), a))
 	if e.has("od") and tab == 0:
-		UI.card_art(self, r, _od(e), 0, Color(1, 1, 1, a), 24.0)
+		var od := _od(e)
+		if locked:
+			var od2 := od.duplicate()
+			od2.tex = _white_of(od.get("tex"))
+			UI.card_art(self, r, od2, 0, UI.fa(Color(0.3, 0.31, 0.35), a), 24.0)
+		else:
+			UI.card_art(self, r, od, 0, Color(1, 1, 1, a), 24.0)
 	else:
 		_tile_art(r, e, a)
 	var nb := Rect2(r.position.x + 1, r.end.y - 22, r.size.x - 2, 21)
@@ -1510,8 +1516,6 @@ func _card(r: Rect2, e: Dictionary, i: int, a: float, flash: float, ph: bool) ->
 		UI.class_box(self, r.position + Vector2(4, 8), 14 if ph else 16, str(e.cls), false, UI.C_D_INK, UI.C_D_INV, a)
 		for k in int(e.get("elite", 0)):
 			UI.diamond(self, Vector2(r.end.x - 8 - k * 9, r.position.y + 14), 3.0, UI.fa(UI.C_ACC, a))
-	if locked:
-		UI.text_at(self, font, Vector2(r.get_center().x, r.position.y + (r.size.y - 22) / 2.0 + 2), "?", 24 if not ph else 20, UI.fa(UI.C_D_SUB, a), "mm", true)
 	draw_rect(r, UI.fa(UI.C_D_INK, a * (1.0 if selv else 0.8)), false, 2.0 if selv else 1.0)
 	var hl := maxf(lift, hv * 0.6)
 	if hl > 0.01:
