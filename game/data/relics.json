@@ -4677,6 +4677,26 @@
    "first_batch": false,
    "boss_only": false,
    "shop_allowed": true
+  },
+  {
+   "id": 265,
+   "name": "穿甲弹",
+   "original": "（本作新增）泰拉各地军火商都在卖的制式穿甲弹，弹头硬得能钻过一整列源石虫。",
+   "cat": "攻击与输出",
+   "tier": "B",
+   "adapt": "远程普攻的子弹穿透全部敌人（对技能弹幕无效）",
+   "rarity": "稀有",
+   "lanes": [
+    "E"
+   ],
+   "tags": [
+    "damage",
+    "range",
+    "projectile"
+   ],
+   "first_batch": false,
+   "boss_only": false,
+   "shop_allowed": true
   }
  ]
 }

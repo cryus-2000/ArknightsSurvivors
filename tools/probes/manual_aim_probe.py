@@ -17,6 +17,7 @@ ap.add_argument('--t', type=float, default=6.0)
 ap.add_argument('--jobs', type=int, default=4)
 ap.add_argument('--dx', type=float, default=-220.0, help='木桩相对队长的 x，负 = 背后')
 ap.add_argument('--line', type=int, default=1, help='沿 +x 每 60 px 放几只木桩（穿透验收）')
+ap.add_argument('--dy', type=float, default=0.0, help='木桩线每只的 y 递增（排在弹道上：能天使约 17、流明约 22）')
 ap.add_argument('--card', type=int, default=0, help='先选几次「贯穿」卡')
 ap.add_argument('--relic', default='', help='先给的藏品编号（穿甲弹 265）')
 a = ap.parse_args()
@@ -27,7 +28,7 @@ gr.ensure_imported(game)
 
 def one(op):
     args = [gr.find_godot(), '--headless', '--audio-driver', 'Dummy', '--path', game, 'res://tests/manual_aim_probe.tscn', '--',
-            '--regression', '--seed=1', '--op=' + op, '--manualatk', '--probe-op=' + op, '--probe-t=%g' % a.t, '--probe-dx=%g' % a.dx, '--probe-line=%d' % a.line, '--probe-card=%d' % a.card, '--probe-relic=' + a.relic]
+            '--regression', '--seed=1', '--op=' + op, '--manualatk', '--probe-op=' + op, '--probe-t=%g' % a.t, '--probe-dx=%g' % a.dx, '--probe-line=%d' % a.line, '--probe-dy=%g' % a.dy, '--probe-card=%d' % a.card, '--probe-relic=' + a.relic]
     o, e, to = gr.run_godot(args, 300)
     line = [l for l in (o or '').splitlines() if l.startswith('MANUALPROBE')]
     errs = [l for l in (o or '').splitlines() + (e or '').splitlines() if 'SCRIPT ERROR' in l]

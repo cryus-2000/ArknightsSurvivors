@@ -66,7 +66,7 @@ static func _hw_waves(o, dt: float) -> void:
 				o.apply_kb(e, w.dir * float(b.get("kb", 0.0)) * (0.3 if e.elite else 1.0))
 			if b.has("hit_fx"):   # 精英化第 2 批段：潮刃命中的浪花
 				fx_play(o, b.hit_fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e], w.dir.angle())
-			if b.has("max_hits") and w.hit.size() >= int(b.max_hits):   # 10-23 用户定：远程普攻取消穿透——命中 max_hits 名即消失（缺省不限）
+			if b.has("max_hits") and w.hit.size() >= o.atk_pierce(int(b.max_hits)):   # 10-23 用户定：远程普攻取消穿透——命中 max_hits 名即消失（缺省不限）；贯穿卡 / 穿甲弹加在上面
 				w.dist = w.max
 				break
 		w.drop -= dt

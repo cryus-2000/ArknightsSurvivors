@@ -446,6 +446,15 @@ func aim_targets(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Arra
 	return out
 
 
+## 远程普攻直线子弹的穿透数（10-23 用户定：远程普攻本身不穿透，穿透是成长内容）：积木自带 base + 升级卡「贯穿」（属性 op_pierce，
+## 全队 flat +1 / 次，可叠两次）；藏品「穿甲弹」（规则 atk_pierce_all）= 穿透全部。只给普攻子弹用（能天使弹道、拉普兰德普攻剑气、流明光弹），技能弹幕不读
+func atk_pierce(base: int) -> int:
+	var rf = g.get("rfx")
+	if rf != null and rf.rule("atk_pierce_all") > 0:
+		return 999
+	return base + int(round(stat(&"op_pierce")))
+
+
 ## 手动普攻沿指向打空时的伪目标（同 aim_land 的写法）：只有 pos / id / dead / r 等只读字段可用，id = -1
 static func aim_point_target(p: Vector2) -> Dictionary:
 	return {"id": -1, "pos": p, "dead": false, "elite": false, "boss": false, "r": 0.0, "hp": 1.0, "max_hp": 1.0, "type": "", "kb": Vector2.ZERO}

@@ -9,6 +9,7 @@ func _ready() -> void:
 	var probe_t := 6.0
 	var dx := -220.0      # 木桩相对队长的 x（负 = 背后，指向为右）
 	var line := 1         # 沿 +x 每 60 px 放几只木桩（穿透验收用）
+	var dy := 0.0         # 木桩线每只的 y 递增（让木桩排在枪口到第一只的弹道上：能天使约 17、流明约 22）
 	var card := 0         # 先选几次「贯穿」卡
 	var relic := ""       # 先给的藏品编号（穿甲弹 265）
 	for arg in OS.get_cmdline_user_args():
@@ -16,6 +17,7 @@ func _ready() -> void:
 		if arg.begins_with("--probe-t="): probe_t = float(arg.get_slice("=", 1))
 		if arg.begins_with("--probe-dx="): dx = float(arg.get_slice("=", 1))
 		if arg.begins_with("--probe-line="): line = int(arg.get_slice("=", 1))
+		if arg.begins_with("--probe-dy="): dy = float(arg.get_slice("=", 1))
 		if arg.begins_with("--probe-card="): card = int(arg.get_slice("=", 1))
 		if arg.begins_with("--probe-relic="): relic = arg.get_slice("=", 1)
 	var g = load("res://game.tscn").instantiate()
@@ -33,7 +35,7 @@ func _ready() -> void:
 	g.enemies.clear()
 	var dummies: Array = []
 	for i in line:
-		var dm: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2(dx + 60.0 * i, 0))
+		var dm: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2(dx + 60.0 * i, dy * i))
 		dm.hp = 100000.0
 		dm.max_hp = dm.hp
 		dm.spd = 0.0
@@ -42,8 +44,7 @@ func _ready() -> void:
 	for i in card:
 		g.doctor.apply_passive("pierce")
 	if relic != "":
-		g.relics.append(relic)
-		g.rfx.rebuild()
+		g.progression.gain_relic(relic)
 	g.doctor.manual_attack = true
 	g.doctor.sim_atk = true
 	g.move_in = Vector2.ZERO
@@ -55,7 +56,7 @@ func _ready() -> void:
 	for k in steps:
 		o.sp = [-100000.0, -100000.0, -100000.0]   # 不放技能，只看普攻
 		for i in dummies.size():
-			dummies[i].pos = g.ppos + Vector2(dx + 60.0 * i, 0)
+			dummies[i].pos = g.ppos + Vector2(dx + 60.0 * i, dy * i)
 			dummies[i].kb = Vector2.ZERO
 			dummies[i].hp = maxf(dummies[i].hp, 1.0)
 			dummies[i].dead = false
@@ -68,9 +69,9 @@ func _ready() -> void:
 		if st is Dictionary:
 			for key in ["waves", "bolts", "lobs", "shells"]:
 				if st.has(key) and st[key] is Array: n_b += st[key].size()
-		var ex = o.get("exu")
+		var ex = o.get("ext")
 		if ex is Dictionary and ex.has("bul"): n_b += ex.bul.size()
-		var lm = o.get("lm")
+		var lm = st.lm if st is Dictionary and st.has("lm") else null
 		if lm is Dictionary and lm.has("bolts"): n_b += lm.bolts.size()
 		bul_max = maxi(bul_max, n_b)
 		if k % 120 == 0:
