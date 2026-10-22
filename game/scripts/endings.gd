@@ -245,7 +245,7 @@ func is_route_relic(id: String) -> bool:
 
 func reserved_relic_slots() -> int:
 	if frozen:
-		return 1 if (g.knight.alive or g.knight.submerged) and not g.relics.has("223") else 0
+		return 1 if (g.knight.alive or g.knight.submerged) and not g.rfx.has_relic("rocinante") else 0
 	var active: Array = []
 	for e in g.enemies:
 		if e.chest and not e.dead and e.get("event", "") != "":
@@ -263,7 +263,7 @@ func reserved_relic_slots() -> int:
 				var rid: String = str(effect.get("relic", ""))
 				if is_route_relic(rid) and not g.relics.has(rid) and not future.has(rid):
 					future.append(rid)
-	if (g.knight.alive or g.knight.submerged or future.has("222")) and not g.relics.has("223"):   # 已入潮的骑士仍算「在」
+	if (g.knight.alive or g.knight.submerged or future.has("222")) and not g.rfx.has_relic("rocinante"):   # 已入潮的骑士仍算「在」
 		future.append("223")
 	return future.size()
 

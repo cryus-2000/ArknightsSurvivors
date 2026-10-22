@@ -82,7 +82,7 @@ func leave() -> void:
 	g.knight_alive = false
 	g.vfx.show_banner("骑士无法接受海嗣的气息 —— 他离开了")
 	g.vfx.sparks(pos, Vector2.UP, Color(0.6, 0.8, 1.0), 12, 200.0)
-	if not g.relics.has("223"):
+	if not g.rfx.has_relic("rocinante"):
 		g.progression.gain_relic("223")
 
 
@@ -105,7 +105,7 @@ func die() -> void:
 	g.vfx.shake_screen(0.8)
 	if D.ENEMIES.has("knight"):
 		D.ENEMIES.knight.no_spawn = false
-	if not g.relics.has("223"):
+	if not g.rfx.has_relic("rocinante"):
 		g.progression.gain_relic("223")
 
 
