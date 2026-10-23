@@ -1654,6 +1654,14 @@ func _update(dt: float) -> void:
 		fx.append({"kind": "rays", "pos": ppos, "life": 0.9, "max": 0.9, "col": Color(0.8, 0.95, 1.0)})
 		vfx.show_banner("生存本能 —— 队长保留 1 点生命")
 		Sfx.play("levelup", 0.0, 0.7)
+	if hp <= 0.0 and rfx.rule("revive") > 0:
+		# 认知塑造「绝处逢生」（调度线末节）：每局一次，倒下时以 meta/revive_hp 最大生命复活，meta/revive_inv 秒不受伤害
+		rfx.use_rule("revive")
+		hp = max_hp * Bal.v("meta/revive_hp", 0.5)
+		invuln = maxf(invuln, Bal.v("meta/revive_inv", 3.0))
+		fx.append({"kind": "rays", "pos": ppos, "life": 1.1, "max": 1.1, "col": Color(1.0, 0.9, 0.6)})
+		vfx.show_banner("绝处逢生 —— 队长复活")
+		Sfx.play("levelup", 0.0, 0.6)
 	if hp <= 0.0 and not rfx.on_death():
 		hp = 0.0
 		state = S.DEAD
