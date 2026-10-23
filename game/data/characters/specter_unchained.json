@@ -16,7 +16,8 @@
   "_doc": "基础数值",
   "atk": 46,
   "cd": 1.2,
-  "reach": 120,
+  "reach": 102,
+  "reach_skill": 120,
   "s1_dur": 8,
   "s1_atk": 0.4,
   "s2_dur": 10,
@@ -1112,7 +1113,7 @@
       "verb": "displace",
       "dir": "pull",
       "center": "self",
-      "r": "$reach*$beast2_r_k",
+      "r": "$reach_skill*$beast2_r_k",
       "dist": "$beast2_dist",
       "elite_mult": 0.5
      }

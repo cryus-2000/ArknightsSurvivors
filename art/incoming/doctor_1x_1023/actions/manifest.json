@@ -1,0 +1,162 @@
+{
+  "palette": [
+    "151821",
+    "232533",
+    "303346",
+    "414559",
+    "535970",
+    "686f83",
+    "828a99",
+    "a5a9b0",
+    "c5c3bd",
+    "e4dfd4",
+    "f0eadd",
+    "241f25",
+    "3c3036",
+    "514048",
+    "174554",
+    "246574",
+    "388d9c",
+    "58aeb8",
+    "83c3c6",
+    "795333",
+    "a3753e",
+    "c79555",
+    "293d4b",
+    "526978"
+  ],
+  "assets": [
+    {
+      "sha256": "ee3f508a5e70866af4863e013629d7868381cf45c3c02e1557a95e3e43c46e37",
+      "anchor": [
+        32,
+        60
+      ],
+      "character": "doctor",
+      "loop": true,
+      "frame_height": 64,
+      "hold_last_frame": false,
+      "frame_width": 64,
+      "density": 1,
+      "frame_count": 4,
+      "fps": 4,
+      "file": "doctor_idle.png"
+    },
+    {
+      "sha256": "432a215501fefd45206f10f1e99b791b86d46b2781a835f9f61f96a9db681a23",
+      "anchor": [
+        64,
+        120
+      ],
+      "character": "doctor",
+      "loop": true,
+      "frame_height": 128,
+      "hold_last_frame": false,
+      "frame_width": 128,
+      "density": 2,
+      "frame_count": 4,
+      "fps": 4,
+      "file": "doctor_idle@2x.png"
+    },
+    {
+      "sha256": "1c68c8996af335473bf257790995cd3651e768d13be4c4792e3ddbae1652d0c4",
+      "anchor": [
+        32,
+        60
+      ],
+      "character": "doctor",
+      "loop": true,
+      "frame_height": 64,
+      "hold_last_frame": false,
+      "frame_width": 64,
+      "density": 1,
+      "frame_count": 8,
+      "fps": 10,
+      "file": "doctor_run.png"
+    },
+    {
+      "sha256": "cd5ffc99c2f0d96b3eb8ea2e0fa0bf0933cf207ce03a6c4cf050bdf9a9a00b4b",
+      "anchor": [
+        64,
+        120
+      ],
+      "character": "doctor",
+      "loop": true,
+      "frame_height": 128,
+      "hold_last_frame": false,
+      "frame_width": 128,
+      "density": 2,
+      "frame_count": 8,
+      "fps": 10,
+      "file": "doctor_run@2x.png"
+    },
+    {
+      "sha256": "0008e27e63f231ad32007dc6a507f23591a54e3d040b6cee742bf580db3ee748",
+      "anchor": [
+        32,
+        60
+      ],
+      "character": "doctor",
+      "loop": false,
+      "frame_height": 64,
+      "hold_last_frame": true,
+      "frame_width": 64,
+      "density": 1,
+      "frame_count": 2,
+      "fps": 10,
+      "file": "doctor_hurt.png"
+    },
+    {
+      "sha256": "917249a5783cd242c5ea5f982b338abe20fbc99d1753f69aa285d0947d5c8e6a",
+      "anchor": [
+        64,
+        120
+      ],
+      "character": "doctor",
+      "loop": false,
+      "frame_height": 128,
+      "hold_last_frame": true,
+      "frame_width": 128,
+      "density": 2,
+      "frame_count": 2,
+      "fps": 10,
+      "file": "doctor_hurt@2x.png"
+    },
+    {
+      "sha256": "4497c284a8befe18f402cc01178b318d24c16f241eef15127bda85f511bb0eff",
+      "anchor": [
+        32,
+        60
+      ],
+      "character": "doctor",
+      "loop": false,
+      "frame_height": 64,
+      "hold_last_frame": true,
+      "frame_width": 64,
+      "density": 1,
+      "frame_count": 4,
+      "fps": 6,
+      "file": "doctor_death.png"
+    },
+    {
+      "sha256": "6f8d535f82343bbbd698bec76a8362591c00fa76c436c23663ca1aa50b2a4563",
+      "anchor": [
+        64,
+        120
+      ],
+      "character": "doctor",
+      "loop": false,
+      "frame_height": 128,
+      "hold_last_frame": true,
+      "frame_width": 128,
+      "density": 2,
+      "frame_count": 4,
+      "fps": 6,
+      "file": "doctor_death@2x.png"
+    }
+  ],
+  "source": "ImageGen approved Doctor v2; mechanical fixed-scale export",
+  "hurt_runtime_trigger": false,
+  "engine_integrated": false,
+  "pixel_grid": 1
+}

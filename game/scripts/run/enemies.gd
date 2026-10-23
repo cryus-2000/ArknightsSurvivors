@@ -35,6 +35,8 @@ func build_grid() -> void:
 		_gcell[i * 3 + 2] = 0
 		if e.dead or e.get("friendly", false):
 			continue
+		if e.chest and e.get("event", "") != "":
+			continue   # 海嗣祭坛不进索敌网格：干员的普攻 / 技能 / 召唤物 / 吸附都查这张网格，不把祭坛当目标（只在主控走近时打开，endings.update 直接扫 g.enemies）
 		if e.r > mr:
 			mr = e.r
 		var k := Vector2i(floori(e.pos.x / CELL), floori(e.pos.y / CELL))
@@ -377,7 +379,7 @@ func update(dt: float) -> void:
 				else:
 					e.dead = true
 			continue
-		if dist > 1300.0 and not e.boss:
+		if dist > 1300.0 and not e.boss and not e.get("enc", false):   # 围猎的海嗣（enc）由 hunt.gd 管：屏幕外出生，不按「远处静止敌人清掉」处理
 			if e.ai == "static" or e.get("dormant", false):
 				e.dead = true
 			else:

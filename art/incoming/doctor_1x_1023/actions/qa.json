@@ -1,0 +1,475 @@
+{
+  "assets": [
+    {
+      "distinct_frames": 4,
+      "frames": [
+        {
+          "pixel_sha256": "11f7519932b216e741d5bb57429207cec9133e88627c7a710889b9078989de4d",
+          "bbox": [
+            22,
+            21,
+            40,
+            60
+          ],
+          "opaque": 500,
+          "index": 0
+        },
+        {
+          "pixel_sha256": "599b89b759a243ee329ed4e118f351f42490eb352cbf89b992965c0389dbee4b",
+          "bbox": [
+            22,
+            21,
+            40,
+            60
+          ],
+          "opaque": 514,
+          "index": 1
+        },
+        {
+          "pixel_sha256": "9ead567d516be4ec155ae32123e49b6b6d39fd69bb54df94dc4a12651add9f1a",
+          "bbox": [
+            22,
+            21,
+            40,
+            60
+          ],
+          "opaque": 506,
+          "index": 2
+        },
+        {
+          "pixel_sha256": "4472b4811ef284911b6c970736207b07f0256b127ae0fb452df639622941790f",
+          "bbox": [
+            22,
+            21,
+            40,
+            60
+          ],
+          "opaque": 501,
+          "index": 3
+        }
+      ],
+      "file": "doctor_idle.png"
+    },
+    {
+      "distinct_frames": 4,
+      "frames": [
+        {
+          "pixel_sha256": "c083729d9702bb0bfac18bf8b6f8185dd982ea1f94f1cb63b8fce36e8ddd59fa",
+          "bbox": [
+            44,
+            42,
+            81,
+            121
+          ],
+          "opaque": 2000,
+          "index": 0
+        },
+        {
+          "pixel_sha256": "17051692faae0a6b5031568f625fd3c7545dfaf98c19a3f1fc4d423f3c43e1c8",
+          "bbox": [
+            44,
+            42,
+            81,
+            121
+          ],
+          "opaque": 2056,
+          "index": 1
+        },
+        {
+          "pixel_sha256": "988fe847ca2a763b7c91a89d72f943f94e1f9838630de66924725b6ed4bc8364",
+          "bbox": [
+            44,
+            42,
+            81,
+            121
+          ],
+          "opaque": 2024,
+          "index": 2
+        },
+        {
+          "pixel_sha256": "445fe523d62ff3eb3049c757ca1dedd7f4b3f5172a842507d9aa27f917b17ead",
+          "bbox": [
+            44,
+            42,
+            81,
+            121
+          ],
+          "opaque": 2004,
+          "index": 3
+        }
+      ],
+      "file": "doctor_idle@2x.png"
+    },
+    {
+      "distinct_frames": 8,
+      "frames": [
+        {
+          "pixel_sha256": "b42b3a0270531f296da357b36fc3512f936374fa79e4e2bffd109699584ecbca",
+          "bbox": [
+            15,
+            21,
+            43,
+            59
+          ],
+          "opaque": 609,
+          "index": 0
+        },
+        {
+          "pixel_sha256": "720f22e64566c56fee5ef7f9c06f02fe7b53b1bb5559a66d4f2708ae4393dc4e",
+          "bbox": [
+            17,
+            21,
+            42,
+            59
+          ],
+          "opaque": 540,
+          "index": 1
+        },
+        {
+          "pixel_sha256": "f64d08d9b5eec1870cfda6c8de58158daee63d2477f604e2dd765c33c05da13b",
+          "bbox": [
+            14,
+            21,
+            40,
+            59
+          ],
+          "opaque": 575,
+          "index": 2
+        },
+        {
+          "pixel_sha256": "fbfa834b6ea93f67b2b70a38b77ef5d99adb533ad2fc339a326c327644a4ab5f",
+          "bbox": [
+            14,
+            21,
+            45,
+            57
+          ],
+          "opaque": 595,
+          "index": 3
+        },
+        {
+          "pixel_sha256": "2ce8bda58cd6b3dc5fd24e125323e7081fc0b13bfd86caaabe71031d849a256c",
+          "bbox": [
+            13,
+            21,
+            43,
+            60
+          ],
+          "opaque": 617,
+          "index": 4
+        },
+        {
+          "pixel_sha256": "d5b38bebc818a62df67a39af6b75c782c4e1134d01eae41683c3090caa8ef2e1",
+          "bbox": [
+            17,
+            21,
+            40,
+            60
+          ],
+          "opaque": 554,
+          "index": 5
+        },
+        {
+          "pixel_sha256": "0246b9e6679d8778d5b242f139c56e69f7d6a86aa7f46544abe7a24d6a3a6b97",
+          "bbox": [
+            12,
+            21,
+            40,
+            60
+          ],
+          "opaque": 594,
+          "index": 6
+        },
+        {
+          "pixel_sha256": "e36004a01babd9dbe069da8b567de2f2ec9d1ef8137cf39c3690eca12f9b6793",
+          "bbox": [
+            16,
+            21,
+            45,
+            59
+          ],
+          "opaque": 613,
+          "index": 7
+        }
+      ],
+      "file": "doctor_run.png"
+    },
+    {
+      "distinct_frames": 8,
+      "frames": [
+        {
+          "pixel_sha256": "dfb97de54e00809e8b87f515eeb71cd46efc0909de503dde6835a7cc9b219d29",
+          "bbox": [
+            30,
+            42,
+            87,
+            119
+          ],
+          "opaque": 2436,
+          "index": 0
+        },
+        {
+          "pixel_sha256": "d43343a97b05061ca0c3a0de6573503f9f39a9742e56428ef6ddfd3455670950",
+          "bbox": [
+            34,
+            42,
+            85,
+            119
+          ],
+          "opaque": 2160,
+          "index": 1
+        },
+        {
+          "pixel_sha256": "3bdf12fdb46d0903b3f6aeaa4e1b47270a7396e7b6d88c62088c4aaed513b1a7",
+          "bbox": [
+            28,
+            42,
+            81,
+            119
+          ],
+          "opaque": 2300,
+          "index": 2
+        },
+        {
+          "pixel_sha256": "2eeb2f90073e1488427a13687ca6c006e92789786f55ff5abaefdd78235f3e0e",
+          "bbox": [
+            28,
+            42,
+            91,
+            115
+          ],
+          "opaque": 2380,
+          "index": 3
+        },
+        {
+          "pixel_sha256": "81e7c5c13205ac23a9afda0926e2dfc5ca2d5fa173c6676b8268256cac32e889",
+          "bbox": [
+            26,
+            42,
+            87,
+            121
+          ],
+          "opaque": 2468,
+          "index": 4
+        },
+        {
+          "pixel_sha256": "f5de9886abb13855badf1a66f6dbb44e8d96ecb1f9badd938a49d48fe522b0a3",
+          "bbox": [
+            34,
+            42,
+            81,
+            121
+          ],
+          "opaque": 2216,
+          "index": 5
+        },
+        {
+          "pixel_sha256": "fb6dd0371d8ed6e56ddada22e1fca7c9b5a3ba3eed80b39eb46c99573c259848",
+          "bbox": [
+            24,
+            42,
+            81,
+            121
+          ],
+          "opaque": 2376,
+          "index": 6
+        },
+        {
+          "pixel_sha256": "025743c60e3cfba783686dd2356e34bebe68e82c6e608d622db41060e275fa82",
+          "bbox": [
+            32,
+            42,
+            91,
+            119
+          ],
+          "opaque": 2452,
+          "index": 7
+        }
+      ],
+      "file": "doctor_run@2x.png"
+    },
+    {
+      "distinct_frames": 2,
+      "frames": [
+        {
+          "pixel_sha256": "9a86663a815106efd6f31c7d236e47e1b815e91e144acaf22d426a8125a25cae",
+          "bbox": [
+            16,
+            22,
+            39,
+            60
+          ],
+          "opaque": 501,
+          "index": 0
+        },
+        {
+          "pixel_sha256": "afd484e07d4517603f13c3930677297b37c26c376a96b61537fd9044a920f638",
+          "bbox": [
+            22,
+            21,
+            40,
+            60
+          ],
+          "opaque": 490,
+          "index": 1
+        }
+      ],
+      "file": "doctor_hurt.png"
+    },
+    {
+      "distinct_frames": 2,
+      "frames": [
+        {
+          "pixel_sha256": "77cd9d2b456192e53d8894f94f56755bc832788984db7d0851262cd22f04f29d",
+          "bbox": [
+            32,
+            44,
+            79,
+            121
+          ],
+          "opaque": 2004,
+          "index": 0
+        },
+        {
+          "pixel_sha256": "dbbb3312c9ae689d6e85b78c2d77e241998edb82493b3eb7f46b72884f6cb692",
+          "bbox": [
+            44,
+            42,
+            81,
+            121
+          ],
+          "opaque": 1960,
+          "index": 1
+        }
+      ],
+      "file": "doctor_hurt@2x.png"
+    },
+    {
+      "distinct_frames": 4,
+      "frames": [
+        {
+          "pixel_sha256": "11f7519932b216e741d5bb57429207cec9133e88627c7a710889b9078989de4d",
+          "bbox": [
+            22,
+            21,
+            40,
+            60
+          ],
+          "opaque": 500,
+          "index": 0
+        },
+        {
+          "pixel_sha256": "cfc9b877e1572c88309304573700fbb6a27cb059347c99f9709cc6f68d460d40",
+          "bbox": [
+            19,
+            28,
+            44,
+            60
+          ],
+          "opaque": 474,
+          "index": 1
+        },
+        {
+          "pixel_sha256": "75a1d39e8a4ea39c91572d1e3922d63c9f58cade120a4583e3338f44d1308781",
+          "bbox": [
+            14,
+            38,
+            49,
+            60
+          ],
+          "opaque": 454,
+          "index": 2
+        },
+        {
+          "pixel_sha256": "b75d4e4072f86c57c0d162e9feab3557c63829f7ba581410fecd9b802a5983ac",
+          "bbox": [
+            12,
+            46,
+            53,
+            60
+          ],
+          "opaque": 403,
+          "index": 3
+        }
+      ],
+      "file": "doctor_death.png"
+    },
+    {
+      "distinct_frames": 4,
+      "frames": [
+        {
+          "pixel_sha256": "c083729d9702bb0bfac18bf8b6f8185dd982ea1f94f1cb63b8fce36e8ddd59fa",
+          "bbox": [
+            44,
+            42,
+            81,
+            121
+          ],
+          "opaque": 2000,
+          "index": 0
+        },
+        {
+          "pixel_sha256": "7787335b2be6aba3a6b4613e82c6389961994a9e18534f963a447ebcfdbf8e4f",
+          "bbox": [
+            38,
+            56,
+            89,
+            121
+          ],
+          "opaque": 1896,
+          "index": 1
+        },
+        {
+          "pixel_sha256": "3c0f44440f9dc9aece9384e8a5c1415152882bdfc2fd2ac102886940af1aeb94",
+          "bbox": [
+            28,
+            76,
+            99,
+            121
+          ],
+          "opaque": 1816,
+          "index": 2
+        },
+        {
+          "pixel_sha256": "dfc15aa750d44fd72c4e10f5a05798130858fc0da3327b20f61b2fcd04cc4804",
+          "bbox": [
+            24,
+            92,
+            107,
+            121
+          ],
+          "opaque": 1612,
+          "index": 3
+        }
+      ],
+      "file": "doctor_death@2x.png"
+    }
+  ],
+  "death_entry_matches_idle": true,
+  "binary_alpha": true,
+  "engine_tested": false,
+  "baseline_policy": "fixed ground anchor; running flight frames may lift",
+  "exact_nearest_2x": true,
+  "outline_policy": "natural material edges, no added shell (user approved)",
+  "user_motion_approved": false,
+  "colors": 23,
+  "passed": true,
+  "source_hashes": [
+    {
+      "file": "death.png",
+      "sha256": "5154463e6a2cb880774170640464c0b9c1bff12c7ff9b393cddaf0a2b3560732"
+    },
+    {
+      "file": "hurt.png",
+      "sha256": "07b14a57effbacda26747a3c7dc00834ede5cc0a57a0566adad8011977202d9f"
+    },
+    {
+      "file": "idle.png",
+      "sha256": "93eb37d8b2772e3352eb29f9a940f8925414f74878994b211ca1880d6740f2ec"
+    },
+    {
+      "file": "run.png",
+      "sha256": "6852d53a35c07f5272bc00a394fb952316723643945d8acabdbba292c2cdc3af"
+    }
+  ]
+}
