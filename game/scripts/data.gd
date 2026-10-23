@@ -270,7 +270,9 @@ static func enemy_scale(e: Dictionary, t: float, px: float) -> float:
 	var factor := float(d.get(scale_key, 1.0))
 	if e.type == "ishar" and t < float(e.get("transform_until", -1.0)):
 		factor = lerpf(float(d.get("draw_scale", 0.68)), factor, clampf((t - float(e.transform_started)) / 0.9, 0.0, 1.0))
-	return px * e.r / e.r0 * factor
+	# 10-23 怪物重画：美术按目标尺寸直接画，1 美术像素 = PX 个屏幕像素、1:1 显示。判定半径 e.r（含 enemy/scale 体型）不再放大画面；
+	# draw_scale 全部 1.0（保留字段只为兼容 gallery / 旧测试）。
+	return px * factor
 
 
 ## 敌人本体的画面偏移：击退跳起 + 受击后坐（fx/recoil_px、fx/recoil_t）。纯函数，算式与原 world._eoff 逐字相同（docs/101 B1）

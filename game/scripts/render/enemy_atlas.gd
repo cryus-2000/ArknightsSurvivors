@@ -14,7 +14,7 @@ const PAD := 2
 ## 负宽矩形（--atlasflip=neg，仅调试对照）省掉那两次调用，但引擎会把法线 x 一起翻（变换翻转时法线不翻），
 ## 朝左的敌人受灯光的明暗左右对调——10-13 逐像素对照每帧差 5–16 千像素，画面变了，所以缺省不用（docs/50 §12）
 static var xform_flip := true
-const WIDTH := 1024
+const WIDTH := 2048   # 重画帧条 8 帧的精英 / 大型怪横向比 1024 宽，图集加宽（10-23）
 
 var tex_body: Texture2D = null
 var tex_white: Texture2D = null

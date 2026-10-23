@@ -267,6 +267,12 @@ func _anim(label: String, name: String, fps: float, loop := true) -> Dictionary:
 	var frames := 1
 	if tx != null:
 		frames = max(1, tx.get_width() / tx.get_height()) if tx.get_width() >= tx.get_height() * 2 else 1
+		# 重画帧条（10-23）宽高比不等于帧数：读 enemy_redraw.json 的真实帧数，速度 = 帧数 / 原作时长
+		var rd := A.enemy_redraw(name)
+		if not rd.is_empty():
+			frames = int(rd.frames)
+			fps = A.enemy_loop_fps(name, fps)
+			loop = bool(rd.get("loop", loop))
 	return {"label": label, "tex": tx, "frames": frames, "fps": fps, "loop": loop}
 
 

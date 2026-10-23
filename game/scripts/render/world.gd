@@ -1673,8 +1673,10 @@ func ishar_animation(e: Dictionary) -> Dictionary:
 	if g.t < float(e.get("atk_until", 0.0)):
 		return {"name": base + "_attack", "frames": 4, "frame": 2 if e.atk_until - g.t > 0.1 else 3}
 	if g.t < float(e.get("mv_until", 0.0)):
-		return {"name": base + "_move", "frames": 4, "frame": int(g.t * 5.0) % 4}
-	return {"name": base, "frames": 2, "frame": int(g.t * 2.0) % 2}
+		var mn: int = A.enemy_frames(base + "_move", 4)
+		return {"name": base + "_move", "frames": mn, "frame": int(g.t * A.enemy_loop_fps(base + "_move", 5.0)) % mn}
+	var inn: int = A.enemy_frames(base, 2)
+	return {"name": base, "frames": inn, "frame": int(g.t * A.enemy_loop_fps(base, 2.0)) % inn}
 
 
 ## V13 Boss 帧条的逻辑帧（播放时机见 art/requests/v13_codex_boss_p2.md）；不适用时返回空字典，沿用原帧条。只换画面
@@ -1903,18 +1905,17 @@ func _dc_compute(e: Dictionary, moving: bool) -> Array:
 	var name: String = e.tex
 	if e.coma and e.tex_feign:
 		name = name + "_feign"
-	var frames := 2
-	var fps := 5.0
+	var frames: int = A.enemy_frames(name, 2)
+	var fps: float = A.enemy_loop_fps(name, 5.0)
 	if moving and g.tex.get(name + "_move") != null:
 		name += "_move"
-		frames = 4
-		fps = float(D.ENEMIES.get(e.type, {}).get("move_fps", 6.0))
-		if e.type == "immortal":
-			fps = 8.0
+		frames = A.enemy_frames(name, 4)
+		fps = A.enemy_loop_fps(name, float(D.ENEMIES.get(e.type, {}).get("move_fps", 6.0)))
 	if e.dormant and g.tex.get(e.tex + "_dormant") != null:
 		name = e.tex + "_dormant"
-		frames = 2
-		fps = 3.0
+		frames = A.enemy_frames(name, 2)
+		fps = A.enemy_loop_fps(name, 3.0)
+	var wname: String = (e.tex + "_wound") if (g.tex.get(e.tex + "_wound") != null and (name == e.tex or name == e.tex + "_move")) else ""   # 受击姿态（重画 *_wound，1 帧）：_dc_emit 在 flash > 0 时换它
 	var sc: float = enemy_scale(e)
 	var col: Color = D.ENEMIES.get(e.type, {}).get("tint", Color.WHITE)
 	if e.evo:
@@ -1938,8 +1939,15 @@ func _dc_compute(e: Dictionary, moving: bool) -> Array:
 	var ol: bool = g.tex.has(name + "_white") and _rim_on(e)
 	var ra = atlas.reg.get(name) if atlas != null else null   # [17] / [18]：图集里的本体 / 白剪影区域（docs/50 §12 B），不在图集里为 null
 	var rw = atlas.reg.get(name + "_white") if atlas != null else null
+	var wra = null
+	var wrw = null
+	if wname != "" and g.tex.get(wname) != null:
+		wra = atlas.reg.get(wname) if atlas != null else null
+		wrw = atlas.reg.get(wname + "_white") if atlas != null else null
+	else:
+		wname = ""
 	return [moving, e.stun > 0.0, e.coma, e.invuln, e.dormant, e.r, false, _ol_sig(),
-		name, frames, fps, col, sc, anc, off, ol, name + "_white", ra, rw]
+		name, frames, fps, col, sc, anc, off, ol, name + "_white", ra, rw, wname, wra, wrw]
 
 
 ## 缓存签名第 [7] 项：旧写法的普通怪描边开关 + 精英冷色描边开关（任一变了缓存作废）
@@ -1965,14 +1973,25 @@ func _ol_col(e: Dictionary) -> Color:
 func _dc_emit(e: Dictionary, c: Array) -> void:
 	var frames: int = c[9]
 	var frame: int = int(g.t * float(c[10]) + e.id * 0.37) % frames
+	var ra = c[17]
+	var rw_all = c[18]
+	var body: String = c[8]
+	var wht: String = c[16]
+	if e.flash > 0.0 and c[19] != "":
+		# 重画受击姿态（*_wound，1 帧）：受击闪白那几帧换姿态，白剪影同姿态
+		body = c[19]
+		wht = body + "_white"
+		ra = c[20]
+		rw_all = c[21]
+		frames = 1
+		frame = 0
 	g.draw_off = _eoff(e)
 	var flip: bool = e.fx < 0.0
 	var bpos: Vector2 = e.pos + c[14]
 	var sc: float = c[12]
 	var anc: Vector2 = c[13]
 	if c[15]:
-		_espr_outline(c[8], frames, frame, bpos, sc, flip, _ol_col(e), anc, Vector2.ONE)
-	var ra = c[17]
+		_espr_outline(body, frames, frame, bpos, sc, flip, _ol_col(e), anc, Vector2.ONE)
 	if ra != null and _afast and _rec == null:
 		# 图集快速路径（docs/50 §12 B）：本体和白闪直接按缓存的图集区域画，几何与 vfx.spr 相同；翻转时两次绘制共用一对变换
 		var fw: int = ra[2] / frames
@@ -1980,7 +1999,7 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 		var src := Rect2(o.x + fw * frame, o.y, fw, ra[3])
 		var size := Vector2(fw, ra[3]) * sc
 		var p: Vector2 = bpos + g.draw_off
-		var rw = c[18] if e.flash > 0.0 else null
+		var rw = rw_all if e.flash > 0.0 else null
 		if flip:
 			g.draw_set_transform(p.round(), 0.0, Vector2(-1, 1))
 			var rf := Rect2(-size * anc, size)
@@ -1994,11 +2013,11 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 			if rw != null:
 				g.draw_texture_rect_region(rw[0], rn, src, Color(1, 1, 1, 0.9 if e.elite else flash_a) * _act_mod)
 	else:
-		_espr(c[8], frames, frame, bpos, sc, flip, c[11], anc, Vector2.ONE)
+		_espr(body, frames, frame, bpos, sc, flip, c[11], anc, Vector2.ONE)
 		if e.flash > 0.0:
-			_espr(c[16], frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 if e.elite else flash_a), anc, Vector2.ONE)
+			_espr(wht, frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 if e.elite else flash_a), anc, Vector2.ONE)
 	if g.optical_on and _rec == null:
-		_glow_pts(c[8], frames, bpos + g.draw_off, sc, flip, anc, e)
+		_glow_pts(body, frames, bpos + g.draw_off, sc, flip, anc, e, frame)
 	if _rec == null and e.affix != "":
 		var af: String = e.affix
 		if af == "armor" or (af == "shield" and e.shield_hp > 0.0):   # 快速写法：_affix_fx 对其他词条直接返回，先判再算头顶位置
@@ -2034,8 +2053,10 @@ func _espr(name: String, frames: int, frame: int, pos: Vector2, sc: float, flip:
 var _glow_cache := {}
 ## 位置取帧条首帧最亮的几处像素；颜色按颜色语言统一（render/optical.gd enemy_glow：普通 / 精英 / Boss），不用像素自身颜色。
 ## 普通怪 3 处，精英 / Boss 多一处、大一号
-func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, anc: Vector2, e: Dictionary) -> void:
-	var pts = _glow_cache.get(name)
+func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, anc: Vector2, e: Dictionary, frame: int = 0) -> void:
+	var pts = _emit_pts(name, frames, frame)   # 重画帧条（10-23）带独立 _emit 发光层：读它，不再自动取最亮像素
+	if pts == null:
+		pts = _glow_cache.get(name)
 	if pts == null:
 		pts = []
 		var tx: Texture2D = g.tex.get(name)
@@ -2090,6 +2111,50 @@ func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, a
 			d.x = -d.x
 		var sz: float = maxf(2.0, sc) * (1.5 if big else 1.0)
 		g.glow_next.append([(pos + d - Vector2(sz, sz) * 0.5).round(), sz, cc])
+
+
+## 重画帧条的发光层（name_emit，同帧索引、同原点）：每帧取发光像素按 6 美术像素格归并，取像素最多的至多 4 团的重心。
+## 缓存 name -> 每帧点表；没有 _emit 图（旧帧条）返回 null，调用方退回旧的最亮像素法
+var _emit_cache := {}
+
+func _emit_pts(name: String, frames: int, frame: int):
+	var ent = _emit_cache.get(name)
+	if ent == null:
+		ent = []
+		var tx: Texture2D = A.tex(name + "_emit") if A.has_override(name + "_emit") else null
+		if tx != null:
+			var img: Image = tx.get_image()
+			if img != null and not img.is_empty():
+				if img.is_compressed():
+					img.decompress()
+				var dens: float = A.hires_of(tx)
+				var n: int = maxi(1, frames)
+				var fw: int = img.get_width() / n
+				var fh: int = img.get_height()
+				var cell: int = int(6.0 * dens)
+				for fi in n:
+					var cl := {}
+					for y in fh:
+						for x in range(fw * fi, fw * (fi + 1)):
+							var c: Color = img.get_pixel(x, y)
+							if c.a < 0.5:
+								continue
+							var key := Vector2i((x - fw * fi) / cell, y / cell)
+							var a: Array = cl.get(key, [0, 0.0, 0.0, c])
+							a[0] += 1
+							a[1] += float(x - fw * fi)
+							a[2] += float(y)
+							cl[key] = a
+					var lst: Array = cl.values()
+					lst.sort_custom(func(p, q): return p[0] > q[0])
+					var fpts: Array = []
+					for k in mini(4, lst.size()):
+						fpts.append([Vector2(lst[k][1] / lst[k][0], lst[k][2] / lst[k][0]), lst[k][3], Vector2(fw, fh), dens])
+					ent.append(fpts)
+		_emit_cache[name] = ent
+	if ent.is_empty():
+		return null
+	return ent[clampi(frame, 0, ent.size() - 1)]
 
 
 ## 朝灯边缘亮线标记：开着时把 alpha 取负（着色器 vertex() 认、还原），关着原样返回
@@ -2186,8 +2251,8 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		name = tbase
 		_lazy_tex("e_ishar_t_move")
 		_lazy_tex("e_ishar_t_attack")
-	var frames := 2
-	var frame := int(g.t * (2.0 if e.boss else 5.0) + e.id * 0.37) % 2
+	var frames: int = A.enemy_frames(name, 2)
+	var frame := int(g.t * A.enemy_loop_fps(name, 2.0 if e.boss else 5.0) + e.id * 0.37) % frames
 	# 移动帧条（美术 V5 / V8 / V9）：移动中播放 4 帧循环；停下、晕眩、假死时用本体
 	if e.tex_move:
 		if e.pos.distance_squared_to(e.get("dpos", e.pos)) > 0.04:
@@ -2195,15 +2260,12 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		e.dpos = e.pos
 		if g.t < e.mv_until and e.stun <= 0.0 and e.get("bstag", 0.0) <= 0.0 and not e.coma and g.tex.get(name + "_move") != null:
 			name += "_move"
-			frames = 4
-			var fps: float = float(D.ENEMIES.get(e.type, _NO_DEF).get("move_fps", 6.0))
+			frames = A.enemy_frames(name, 4)
+			# 重画帧条（10-23）：循环速度 = 帧数 / 原作动画时长；旧的 move_fps 是给 4 帧旧图调的，没登记的帧条仍用它
+			var fps: float = A.enemy_loop_fps(name, float(D.ENEMIES.get(e.type, _NO_DEF).get("move_fps", 6.0)))
 			if e.enraged:
 				fps *= float(D.ENEMIES.get(e.type, _NO_DEF).get("rage_move_fps_mult", 1.0))   # 收割者狂奔时腿更快（enemies.json）
-			if e.type == "immortal":
-				fps = 8.0
-			elif e.type in ["paranoia", "izumik", "ishar"]:
-				fps = 5.0
-			frame = int(g.t * fps + e.id * 0.37) % 4
+			frame = int(g.t * fps + e.id * 0.37) % frames
 	# 冲刺帧条（V9 骑士）：蓄力用前 2 帧，冲出去用后 2 帧
 	if e.get("tex_charge", false) and (e.get("dash_w", 0.0) > 0.0 or e.get("dash_t", 0.0) > 0.0):
 		name = e.tex + "_charge"
@@ -2232,12 +2294,12 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			frame = int((g.t - float(e.get("prepare_started", g.t))) * 3.0) % 2
 	if e.get("dormant", false) and g.tex.get(e.tex + "_dormant") != null:
 		name = e.tex + "_dormant"
-		frames = 2
-		frame = int(g.t * 3.0 + e.id * 0.37) % 2
+		frames = A.enemy_frames(name, 2)
+		frame = int(g.t * A.enemy_loop_fps(name, 3.0) + e.id * 0.37) % frames
 	elif e.get("wake_t", 0.0) > 0.0 and g.tex.get(e.tex + "_awaken") != null:
 		name = e.tex + "_awaken"
-		frames = 4
-		frame = clampi(int((0.4 - e.wake_t) * 10.0), 0, 3)
+		frames = A.enemy_frames(name, 4)
+		frame = clampi(int((0.4 - e.wake_t) / 0.4 * frames), 0, frames - 1)
 	elif e.get("enraged", false) and name == e.tex and g.tex.get(e.tex + "_enraged") != null:
 		name = e.tex + "_enraged"
 		frames = 2
@@ -2365,6 +2427,20 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			name = ia.name
 			frames = ia.frames
 			frame = ia.frame
+	# 重画受击姿态（10-23 *_wound，1 帧）：受击闪白那几帧，待机 / 移动 / 攻击 / 专用动作都换它（白剪影同姿态）；死亡、伪装等不换
+	if e.flash > 0.0 and not e.chest and (name == e.tex or name == e.tex + "_move" or name.ends_with("_attack") or name == tbase or name == "e_paranoia2" or name.begins_with("e_knight")):
+		var wb: String = "e_paranoia_phase2" if name == "e_paranoia2" else (tbase if tbase != e.tex else e.tex)
+		if name.begins_with("e_knight_walk"):
+			wb = "e_knight_walk"
+		if _lazy_tex(wb + "_wound") != null:
+			name = wb + "_wound"
+			frames = 1
+			frame = 0
+	# 重画帧条（10-23）：上面各选帧器按旧帧数（2 / 4 帧）给的帧号，换成帧条真实帧数；攻击类蓄力段摊到出手帧之前、出手后摊到之后（A.enemy_remap_frame）
+	var nfr: int = A.enemy_frames(name, frames)
+	if nfr != frames:
+		frame = A.enemy_remap_frame(name, frames, frame)
+		frames = nfr
 	# @2x 高清帧条（伊莎玛拉变身形态有 @2x）：同一逻辑尺寸，按密度减半
 	if g.tex.get(name) == null and not g.tex_deferred.is_empty():
 		g.tex_deferred_miss(name)   # 网页版推迟加载漏网：记日志并补读
@@ -2407,7 +2483,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		_burst_fx_layer(e, "_back", bfx, bpos, flip)
 	_espr(name, frames, frame, bpos, sc, flip, col, anc, sq)
 	if g.optical_on and _rec == null:
-		_glow_pts(name, frames, bpos + g.draw_off, sc * sq.x, flip, anc, e)
+		_glow_pts(name, frames, bpos + g.draw_off, sc * sq.x, flip, anc, e, frame)
 	if e.flash > 0.0:
 		# 受击白闪：普通怪随 ecrowd 降到 declutter flash_a（缺省 0.9 = 不变）；精英 / Boss 照旧
 		_espr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, (Bal.v("fx/flash_boss", 0.5) if e.boss else 0.9) if (e.elite or e.boss) else flash_a), anc, sq)   # Boss 白闪 50%（docs/127 C3：大体型整块变白刺眼）

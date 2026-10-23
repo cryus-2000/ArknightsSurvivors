@@ -17,6 +17,51 @@ static func enemy_pixel_spec(name: String) -> Dictionary:
 				enemy_pixels = parsed
 	return enemy_pixels.get(name.trim_suffix("_white"), {})
 
+## 10-23 怪物重画（tools/install_enemy_redraw.py 生成 data/enemy_redraw.json）：帧条真实帧数、攻击出手帧 event_frames、循环时长。
+## 没登记的帧条（图鉴旧图、特效）返回 {}，调用方按旧口径
+static var _redraw: Dictionary = {}
+static var _redraw_loaded := false
+
+static func enemy_redraw(name: String) -> Dictionary:
+	if not _redraw_loaded:
+		_redraw_loaded = true
+		var path := "res://data/enemy_redraw.json"
+		if FileAccess.file_exists(path):
+			var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
+			if parsed is Dictionary:
+				_redraw = parsed
+	return _redraw.get(name.trim_suffix("_white"), {})
+
+## 帧条真实帧数（重画帧条读 enemy_redraw.json，其余用 fallback）
+static func enemy_frames(name: String, fallback: int) -> int:
+	return int(enemy_redraw(name).get("frames", fallback))
+
+## 循环帧条的每秒帧数 = 帧数 / 原作动画时长；没登记用 fallback
+static func enemy_loop_fps(name: String, fallback: float) -> float:
+	var r := enemy_redraw(name)
+	var d: float = float(r.get("duration", 0.0))
+	return float(r.get("frames", 0)) / d if d > 0.0 and int(r.get("frames", 0)) > 0 else fallback
+
+## 旧口径（攻击帧条 4 帧：0、1 = 蓄力，2、3 = 出手后）→ 重画帧条（N 帧，出手帧 event_frames[0]）：蓄力段摊到 0..ev-1，出手后摊到 ev..N-1；
+## 非攻击类按比例。旧帧数 = 新帧数时原样返回（骑士冲锋 / 突刺等本来就同帧数的不动）
+static func enemy_remap_frame(name: String, legacy: int, f: int) -> int:
+	var r := enemy_redraw(name)
+	var n := int(r.get("frames", 0))
+	if n <= 0 or n == legacy or legacy <= 0:
+		return f
+	var ev := -1
+	var evs: Array = r.get("event_frames", [])
+	if not evs.is_empty():
+		ev = int(evs[0])
+	elif r.get("release_frame") != null:
+		ev = int(r.release_frame)
+	if ev > 0 and legacy >= 2:
+		var w: int = maxi(1, legacy / 2)
+		if f < w:
+			return clampi(int(float(f) * ev / w), 0, ev - 1)
+		return clampi(ev + int(float(f - w) * (n - ev) / maxf(1.0, float(legacy - w))), ev, n - 1)
+	return clampi(int(float(f) * n / legacy), 0, n - 1)
+
 static func enemy_pixel_anchor(name: String, fallback: Vector2) -> Vector2:
 	var spec := enemy_pixel_spec(name)
 	var a = spec.get("anchor")
@@ -746,7 +791,7 @@ const BASE_TEX := ["e_knight_walk", "e_knight_walk_move", "e_knight_walk_attack"
 			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2", "e_bishop_feign", "e_archon_feign", "e_immortal_feign", "ebullet", "ingot", "merchant", "pickup_magnet", "pickup_heal", "drone", "drone_laser",
 			"terrain_patches", "prop_pillar", "prop_wall", "prop_wreck", "terrain_ridge", "terrain_peak", "terrain_mire"]
 ## 敌人贴图的附加帧条后缀（_ready 按 data/enemies.json 逐个尝试；_slash / _reload / _rooting：Codex V13（卡门 / 伊比利亚 / 伊祖米克））
-const ENEMY_SUFFIXES := ["_move", "_attack", "_charge", "_death", "_slash", "_reload", "_rooting", "_melee"]
+const ENEMY_SUFFIXES := ["_move", "_attack", "_charge", "_death", "_slash", "_reload", "_rooting", "_melee", "_wound", "_revive", "_skill", "_spin", "_reveal", "_change"]
 ## 美术交付的特效帧数（见 docs/05_art_handoff.md）
 const FXF := {"fx_s1_burst": 6, "fx_s1_slash": 4, "fx_s2_aura": 4, "fx_s2_bind": 4, "fx_s3_aura": 6,
 	"fx_s3_slash": 4, "fx_cast": 8, "fx_stun": 4, "fx_hit": 4, "fx_death": 5}
@@ -766,7 +811,7 @@ const V6_FRAMES := {
 	"fx_tendril_stake": [4, 8.0], "fx_tendril_stake_whip": [4, 16.0], "fx_kraken_rise": [6, 12.0],
 	"fx_hit_flesh": [4, 20.0], "fx_hit_shell": [4, 20.0], "fx_hit_spirit": [4, 20.0], "fx_death_dissolve": [6, 14.0],
 	# 美术 V9：最后的骑士
-	"e_knight_walk_death": [4, 6.0], "e_knight_death": [4, 6.0], "fx_knight_impact": [4, 12.0], "fx_knight_rebirth": [4, 10.0],
+	"fx_knight_impact": [4, 12.0], "fx_knight_rebirth": [4, 10.0],
 	# Boss 招式改版第 1 批特效（docs/95 §13，Codex 单；缺图时 fx_sprite 返回 false、各处走程序版回退）
 	"fx_paranoia_gaze_hit": [4, 16.0], "fx_paranoia_stack": [6, 14.0], "fx_paranoia_howl": [6, 12.0], "fx_paranoia_aura_rune": [2, 2.0],
 	"fx_ishar_song_ring": [4, 12.0], "fx_ishar_maw_red": [4, 14.0], "fx_ishar_line_muzzle": [3, 16.0],
@@ -867,7 +912,7 @@ const V6_FRAMES := {
 	# 海嗣本体帧条 op_skalter_ishar_* 是人物帧条，登记在 skalter.json sprites（extra_sprites）
 	"fx_skalter_echo_ring": [5, 14.0], "fx_skalter_seaborn_zone": [8, 10.0],
 	# 美术 V8 新敌人（art/incoming/enemy_v8_handoff.md）：本体 / 移动 / 攻击按 enemies.json 的 tex 自动加载，这里登记附加帧条
-	"e_reaper_dormant": [2, 3.0], "e_reaper_awaken": [4, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "proj_knight_spear": [2, 12.0], "prop_ice_stake": [2, 4.0], "prop_ice_stake_break": [4, 12.0], "prop_lamp_post": [3, 4.0], "proj_rock_shard": [4, 12.0], "proj_acid": [2, 8.0], "proj_nova": [4, 10.0], "fx_acid_splash": [4, 12.0], "fx_nest_aura": [4, 10.0],
+	"e_reaper_dormant": [4, 3.0], "e_reaper_awaken": [6, 10.0], "e_tracer_enraged": [2, 5.0], "proj_floater_nerve": [4, 12.0], "proj_knight_spear": [2, 12.0], "prop_ice_stake": [2, 4.0], "prop_ice_stake_break": [4, 12.0], "prop_lamp_post": [3, 4.0], "proj_rock_shard": [4, 12.0], "proj_acid": [2, 8.0], "proj_nova": [4, 10.0], "fx_acid_splash": [4, 12.0], "fx_nest_aura": [4, 10.0],
 	# Codex 怪物攻击特效第 1 批（docs/96 §1.1）投嗣育母：投出的拟嗣弹体（缺图时用 e_brood 帧缩小旋转）/ 出手（缺图时无）/ 落地孵化（缺图时 fx_acid_splash + 拟嗣直接出现）
 	"proj_mother_brood": [4, 12.0], "fx_mother_throw": [4, 16.0], "fx_brood_land": [6, 14.0],
 	# Codex 怪物攻击特效第 1 批（docs/96 §1.2–1.4，art/incoming/enemy_fx_1_manifest.json）：帧数 / fps 按 manifest；
@@ -880,4 +925,14 @@ const V6_FRAMES := {
 	"fx_nerve_hit": [4, 18.0], "fx_reaper_scythe": [4, 18.0], "fx_tracer_thrust": [4, 20.0], "fx_tracer_thrust_enraged": [4, 24.0], "fx_nest_sweep": [5, 16.0],
 	# 第 3 批（docs/96 §3，Codex 未交，先登记；fps 本单没写的按同类取）：凿石者碎石命中、箱形恐鱼咬合（enemies.json atk_fx，telegraph._atk_fx）、子代孢子弹（shot_tex）、狂奔者自爆（blast_fx）、滑动者冲刺水痕（dash_fx，地面层）
 	"fx_rock_hit": [4, 16.0], "fx_mimic_bite": [4, 20.0], "proj_offspring_spore": [4, 12.0], "fx_runner_blast": [6, 16.0], "fx_slider_dash": [4, 12.0],
+	# >>> enemy_redraw 死亡帧条（tools/install_enemy_redraw.py 生成，别手改）
+	"e_archon_death": [8, 8.0], "e_bishop_death": [8, 5.7], "e_bone_death": [6, 6.0], "e_brood_death": [6, 10.0],
+	"e_floater_death": [6, 5.0], "e_founder_death": [6, 6.0], "e_fractal_death": [6, 4.5], "e_immortal_death": [8, 8.0],
+	"e_ishar_death": [8, 8.0], "e_ishar_t_death": [8, 8.0], "e_izumik_death": [8, 3.7], "e_knight_death": [4, 3.1],
+	"e_knight_walk_death": [4, 6.0], "e_mimic_death": [8, 8.0], "e_mother_death": [8, 7.1], "e_nest_death": [6, 5.1],
+	"e_offspring_death": [6, 6.0], "e_paranoia_death": [8, 8.0], "e_paranoia_phase2_death": [8, 8.0], "e_path_death": [8, 4.4],
+	"e_pocket_death": [8, 8.0], "e_reaper_death": [6, 6.0], "e_runner_death": [6, 6.0], "e_saint_dark_death": [8, 3.4],
+	"e_saint_death": [8, 3.4], "e_skimmer_death": [8, 8.0], "e_slider_death": [6, 3.6], "e_spitter_death": [6, 4.7],
+	"e_stone_death": [6, 6.0], "e_tear_death": [6, 7.5], "e_tracer_death": [6, 6.0],
+	# <<< enemy_redraw
 }
