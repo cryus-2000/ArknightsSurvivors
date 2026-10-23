@@ -11,6 +11,7 @@ const CardMotion = preload("res://scripts/screens/card_motion.gd")   # 各种面
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
+var _bb_cache := {}   # 干员待机帧并集区（界面立绘统一按脚底对齐用），按帧条名缓存
 var motion: CardMotion          # 选卡 / 商人 / 事件面板的入场动效（按种类分派，screens/card_motion.gd）
 var panel_band: ColorRect      # 选卡 / 商人 / 事件背后的灰阶压暗带（ui_band.gdshader）
 var panel_sub_text := ""       # 面板标题下的一行说明（事件：剧情一句）
@@ -585,9 +586,22 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 			card.set_meta("compact", compact)
 			# 作用对象标签（影响编队里的哪些干员）；一行放不下会收成「+N」，悬停提示里列全
 			var chips := Affects.chips(g, o)
+			if o.kind == "recruit" and not o.get("swap", false):
+				var nl: int = g.progression.affinity.recruit_link_count(str(o.id))
+				if nl > 0:
+					chips = [["联动 %d" % nl, UI.GOLD]] + chips   # 和已持有藏品 / 在队干员的联动，详情在悬停提示
+					card.set_meta("links", g.progression.affinity.recruit_lines(str(o.id)))
 			card.set_meta("affects", chips)
 			card.set_meta("chips_cut", not UI.chip_fits(g.font, chips, card_w - (2.0 * PAD_X_PHONE if row_h > 0.0 else 32.0)))
 		(g.panel_col if ev else g.panel_box).add_child(card)
+	# 同一组卡统一版式（10-23 用户：三张招募卡并排时小人同高）：有一张要紧凑，全组都用紧凑，图标 / 脚底在同一高度
+	if not ev and not L.touch:
+		var cards: Array = g.panel_box.get_children().filter(func(c): return c is Button and c.has_meta("compact"))
+		if cards.any(func(c): return c.get_meta("compact")):
+			for c in cards:
+				if not c.get_meta("compact"):
+					c.set_meta("compact", true)
+					c.set_meta("fit", UI.fit(g.font, c.get_meta("full_desc", ""), card_w - 40.0, 108.0, [15, 14, 13, 12, 11] if Pad.touch_ui() else [13, 12, 11]))
 	g.panel.visible = true
 	g.panel_fg.queue_redraw()
 
@@ -599,8 +613,12 @@ func option_description(option: Dictionary) -> String:
 	# 构筑可读性（docs/119 §4.3 / §4.4，build_affinity）：招募卡写与已持有藏品的互动（入队即生效 / 培养后生效）；
 	# 藏品卡写当前受益干员、触发条件、与已持有相近藏品的关系。换人卡的在 progression.open_swap 里。开关关时为空
 	var extra := ""
+	if kind == "recruit":
+		# 10-23 用户「前面重复的介绍就不需要了」：卡头已写「招募 · 职业」，正文去掉开头的「X干员，」
+		var re := RegEx.create_from_string("^[^，,]{1,3}干员[，,]\\s*")
+		description = re.sub(description, "")
 	if kind == "recruit" and not option.get("swap", false):
-		extra = g.progression.affinity.recruit_lines(str(option.get("id", "")))
+		extra = ""   # 10-23 用户：招募卡正文不写联动，改为标签行「联动 N」+ 悬停提示（draw_panel_tip）
 	elif kind == "relic":
 		extra = g.progression.affinity.relic_lines(str(option.get("id", "")))
 	if extra != "":
@@ -707,16 +725,21 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var opid: String = o.id if o.kind == "recruit" else o.get("op", "")
 	var idle: Dictionary = op_idle(opid) if ic == null and opid != "" else {}
 	if not idle.is_empty():
-		var wn: Rect2 = idle.win   # 64 画布取脚底为准的 48 范围（UI.op_win），版式同 48 画布
-		var ks: float = ((1.0 if compact else 2.0) if wn.size.y <= 48 else (64.0 if compact else 96.0) / wn.size.y)
-		var asz := wn.size * ks
-		# 招募卡的部署落地（card_motion）：脚底画部署格 / 落地环，待机帧按 icon_off 从上方落下、落地按 icon_scale 压扁（以脚底为基点）
-		var feet := c + Vector2(0, asz.y / 2.0 + bob + 4)
+		# 统一规则（10-23 用户：三张卡里乌尔比安很小、斯卡蒂很大）：@2x 精细版，所有人同一倍率（1 屏幕像素 = 1 个 @2x 像素，
+		# 不按画布 / 取景窗缩放），脚底对齐到同一条线；身高差只来自人物本身（同一 Spine 尺度，约 70–80 像素）
+		var hi: float = A.hires_of(idle.tex)
+		var ks: float = 2.0 / hi   # 1 美术像素 = 2 屏幕像素（@2x 帧 1:1，1 倍帧 ×2）
+		var bb: Rect2 = idle.bb
+		var ft = idle.foot
+		var foot2 := Vector2(float(ft[0]), float(ft[1])) * hi if ft is Array and ft.size() >= 2 else Vector2(idle.fw / 2.0, UI.foot_row(idle.fh, hi))
+		var feet := c + Vector2(0, (40.0 if compact else 44.0) + bob)
 		if o.kind == "recruit":
 			motion.draw_deploy(card, i, feet.round())
 		if motion.icon_a > 0.0:
-			var isz := asz * motion.icon_scale
-			card.draw_texture_rect_region(idle.tex, Rect2(feet - Vector2(isz.x / 2.0, isz.y) + motion.icon_off, isz), wn)
+			var sc = motion.icon_scale * ks
+			var dst := Rect2(feet - (foot2 - bb.position) * sc + motion.icon_off, bb.size * sc)
+			dst.position = dst.position.round()
+			card.draw_texture_rect_region(idle.tex, dst, bb)
 	elif o.kind == "swap_keep" or o.kind == "branch_back":
 		UI.icon(card, "exit", c + Vector2(0, bob), 40.0 if compact else 56.0, Color(0.8, 0.83, 0.86))   # 不替换 / 返回上一步
 	elif ic != null:
@@ -842,10 +865,7 @@ func op_idle(cid: String) -> Dictionary:
 	if sp == null:
 		return {}
 	var tn: String = sp if sp is String else sp.get("tex", "")
-	var tx: Texture2D = g.tex.get(tn)
-	if tx == null:
-		tx = A.tex(tn)
-		g.tex[tn] = tx
+	var tx: Texture2D = A.tex_hi(tn)   # 界面位用 @2x 精细版（10-23 用户「选人和图鉴放精细版」；局内 g.tex 是 1 倍，不共用）
 	if tx == null:
 		return {}
 	var frames: int = int(sp.get("frames", 0)) if sp is Dictionary else 0
@@ -857,7 +877,11 @@ func op_idle(cid: String) -> Dictionary:
 	var ft = (sp.get("foot") if sp is Dictionary else null)
 	if ft == null:
 		ft = cdef.get("sprites", {}).get("foot", null)
-	return {"tex": tx, "fw": fw0, "fh": tx.get_height(), "win": UI.op_win(fw0, tx.get_height(), A.hires_of(tx), ft)}
+	var out := {"tex": tx, "fw": fw0, "fh": tx.get_height(), "win": UI.op_win(fw0, tx.get_height(), A.hires_of(tx), ft), "foot": ft, "frames": frames}
+	if not _bb_cache.has(tn):
+		_bb_cache[tn] = UI.idle_bb(tx, frames)
+	out["bb"] = _bb_cache[tn]
+	return out
 
 
 ## 干员贴图集（运行中招募 / 测试编入时补加载）
@@ -880,7 +904,8 @@ func draw_panel_tip() -> void:
 			continue
 		var fd: Dictionary = card.get_meta("fit", {})
 		var cut: bool = card.get_meta("chips_cut", false)
-		if ((fd.is_empty() or fd.get("fit", true)) and not cut) or not g.panel_ui.card_hot(card, card.get_index()):
+		var links: String = card.get_meta("links", "")
+		if ((fd.is_empty() or fd.get("fit", true)) and not cut and links == "") or not g.panel_ui.card_hot(card, card.get_index()):
 			continue
 		var gr: Rect2 = card.get_global_rect()
 		var it: Dictionary = card.get_meta("item", {})
@@ -889,5 +914,9 @@ func draw_panel_tip() -> void:
 		var desc: String = card.get_meta("full_desc", fallback)
 		if cut:
 			desc += "\n影响：" + "、".join(PackedStringArray(card.get_meta("affects", []).map(func(c): return c[0])))
-		g.hud_view.draw_tooltip(vs, Rect2(gr.position - g.panel_tip.get_global_rect().position, gr.size), title, "完整说明", desc, "", UI.CYAN, g.panel_tip)
+		var sub := "完整说明"
+		if links != "":
+			desc = links   # 10-23 用户：招募卡提示框只列生效的藏品 / 联动，不重复干员介绍
+			sub = "联动"
+		g.hud_view.draw_tooltip(vs, Rect2(gr.position - g.panel_tip.get_global_rect().position, gr.size), title, sub, desc, "", UI.CYAN, g.panel_tip)
 		return
