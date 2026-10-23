@@ -370,6 +370,8 @@ func step() -> void:
 				fx1ab = int(a.substr(8))
 			if a.begins_with("--tierab="):
 				tierab = int(a.substr(9))
+			if a == "--nohud" and g.hud != null and g.hud.get_parent() is CanvasLayer:
+				(g.hud.get_parent() as CanvasLayer).visible = false   # 概念样图底图（tools/probes/map_concept.py）：只要世界画面，界面层整层不画
 			if a == "--optical":
 				g.optical.force = 1   # 截图 / 录像：强制开光学观感（不改 balance）
 			if a == "--nooptical":
