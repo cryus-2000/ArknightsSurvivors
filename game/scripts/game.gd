@@ -230,6 +230,11 @@ var shield_heal := false
 var shield_flash := 0.0          # 护盾受击闪光
 var shield_pop := 0.0            # 新护盾生成动画
 var pvel := Vector2.ZERO
+## ④ 移动粘滞（开关 feel/move_sticky，缺省 0 = 关、同 seed 不变；用户 10-24 试）：队长普攻出手瞬间 feel/fire_slow_t 秒移速 −feel/fire_slow，
+## 起步 / 停步按 feel/accel_t 秒线性加减速（_mv_s 是平滑后的移动向量，停步时沿原方向滑一小段）
+var fire_slow_t := 0.0
+var _mv_s := Vector2.ZERO
+var sticky_on := false   # 对内包 / 调试版 F8 临时切换（不存档），给用户开 / 关对比试手感
 var frame_n := 0
 var lobs: Array = []             # 敌方抛射物 {from, to, t, dur, r, dmg}
 var drones: Array = []           # 医疗无人机 {pos, cd, ang, beam, face}
@@ -533,7 +538,7 @@ static func preload_tex_names() -> Array:
 	for cid in Character.list_ids():
 		var cdef: Dictionary = Character.load_def(cid)
 		var csp: Dictionary = cdef.get("sprites", {})
-		for kind in ["idle", "run", "attack", "skill", "hurt", "death"] + cdef.get("extra_sprites", []):
+		for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"] + cdef.get("extra_sprites", []):   # move_attack：移动攻击（docs/128，character._move_swap）
 			if csp.has(kind):
 				names.append(csp[kind] if csp[kind] is String else csp[kind].tex)
 		if csp.has("base"):
@@ -708,7 +713,8 @@ func _ready() -> void:
 	A.mark("squad_add")
 	next_mire = float(map.mire_cfg().get("first_at", 100))
 	# 无界面运行（批跑 / 冒烟）不画任何东西，法线图纯属浪费：一局启动要多花十几秒
-	A.normal_maps = Cfg.normal_maps and DisplayServer.get_name() != "headless"
+	# 光学观感开着时也不生成（docs/130 A4，用户 10-24 定）：朝灯亮线已取代法线的立体感，法线在半分辨率世界层里细节大多丢失
+	A.normal_maps = Cfg.normal_maps and DisplayServer.get_name() != "headless" and (Bal.v("render/optical_normals", 0.0) > 0.0 or not (Bal.v("render/optical", 1.0) > 0.0 and Cfg.quality != "low"))   # render/optical_normals 1 = 光学下也开（对照用）
 	rfx = RelicFx.new(self)
 	endg = Endings.new(self)
 	knight = Knight.new(self)
@@ -757,7 +763,7 @@ func _ready() -> void:
 	for cid in Character.list_ids():
 		var cdef: Dictionary = Character.load_def(cid)
 		var csp: Dictionary = cdef.get("sprites", {})
-		for kind in ["idle", "run", "attack", "skill", "hurt", "death"] + cdef.get("extra_sprites", []):
+		for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"] + cdef.get("extra_sprites", []):   # move_attack：移动攻击（docs/128，character._move_swap）
 			if csp.has(kind):
 				var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
 				if not tex.has(tn):
@@ -1138,7 +1144,8 @@ func _process(delta: float) -> void:
 		queue_redraw()
 		fx_add.queue_redraw()
 		fg.queue_redraw()
-		dof_layer.visible = Cfg.dof
+		dof_layer.visible = Cfg.dof and not optical_on   # 光学开时景深由光学 pass 取代（原来这里开、optical.gd 再关，一帧翻两次）
+		fg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if optical_on else CanvasItem.TEXTURE_FILTER_LINEAR   # 前景剪影：光学下像素风（map.draw_foreground）
 		hud.queue_redraw()
 	world.present_step()   # 表现事件步骤（Boss 换幕 / 倒下演出；docs/101 B3）：每帧一次，在本帧绘制之前，无头也走
 	_pm("tail")
@@ -1328,6 +1335,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if k == KEY_V and state == S.PLAY:
 		PlayClock.cycle()
+		return
+	if k == KEY_F8 and state == S.PLAY and (OS.is_debug_build() or Cfg.build_audience() == "internal"):   # ④ 移动粘滞试手感（用户 10-24）：只在对内包 / 调试版
+		sticky_on = not sticky_on
+		_mv_s = Vector2.ZERO
+		vfx.show_banner("移动粘滞（试验）：%s · F8 切换" % ("开" if sticky_on else "关"), 2)
+		get_viewport().set_input_as_handled()
 		return
 	if k == KEY_F and state == S.PLAY:   # 指挥模式（docs/114）：F / 手柄 LB / 触屏「指挥」键循环 随行 → 突击 → 归队
 		toggle_command()
@@ -1533,6 +1546,14 @@ func _update(dt: float) -> void:
 			facing = sign(mv.x)
 	# 溟痕：陷在里面移动速度 -45%；Boss 战里僵直 / 攻速减缓换成的减速也乘在这里，Boss 存活期间合计不低于 0.7（combat.move_mult）
 	var mspd: float = speed * combat.move_mult((1.0 - 0.45 * in_mire) * rej_slow * combat.ctrl_slow())
+	if sticky_on or Bal.v("feel/move_sticky", 0.0) > 0.0:
+		if fire_slow_t > 0.0:
+			fire_slow_t -= dt
+			mspd *= 1.0 - Bal.v("feel/fire_slow", 0.25)
+		_mv_s = _mv_s.move_toward(mv, dt / maxf(0.01, Bal.v("feel/accel_t", 0.06)))
+		if pstun > 0.0 or root_t > 0.0:
+			_mv_s = Vector2.ZERO
+		mv = _mv_s
 	pvel = mv * mspd
 	ppos += mv * mspd * dt
 	# 冲刺：主控沿冲刺方向高速位移，期间无敌；僵直时也能冲，冲刺距离不受减速影响

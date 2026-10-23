@@ -1383,6 +1383,8 @@ func _release() -> void:
 
 ## 普攻出手后告诉编队里的其他干员（数据干员的 trig.on_mate_attack：能天使「天使的祝福」给受祝福的队友出手点挂金光；只有画面）
 func _notify_attack() -> void:
+	if is_leader and g != null and g.get("fire_slow_t") != null:
+		g.fire_slow_t = BranchBal.v("feel/fire_slow_t", 0.08)   # ④ 移动粘滞：队长出手瞬间短暂减速（feel/move_sticky 关时不读）
 	var sq = g.get("squad") if g != null else null
 	if sq == null:
 		return

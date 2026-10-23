@@ -330,6 +330,8 @@ S3 数值与机制保持本作设计（用户 10-20 定，不与原作同步）�
 - **归溟替身闪现**（用户定，同浊心斯卡蒂普攻类型）：每第 3 次环斩替身现身后，以自身为心放 `flash_spins` 次法术脉冲（半径 `flash_r`，每次命中最近 `flash_n` 个、Boss / 精英优先，走 `area_hit` → `cap_targets`），伤害倍率沿用原环斩 `flash_mult`（待数值会话复核）；`hit_sources.替身闪现.kind` 改法术。动作用本体 Skill_3_Attack 身体动作重定向到替身（`tools/spine_run_trial/doll_retarget.js`，cfg `specter_doll_cast.json`），替身朝最近敌人、不再镜像旋身。**有意改变同 seed**（命中目标与伤害类型变化）。原冷色锯环帧条 `fx_specter_saw_cold_back/front` 不再被引用，暂留。
 
 
+**海嗣祭坛不是索敌对象（10-24，claude/altar-target）**：祭坛本来无敌、只在队长走近时打开，但它在 `g.enemies` 里且挂 `chest`，进了索敌网格，干员的普攻 / 技能 / 召唤物 / 手动吸附查网格都会把它当最近目标（打了没用，还占掉出手）。`enemies_sys.build_grid` 现在跳过带 `event` 的祭坛，所有 `nearest` / `in_range` / `query` / `arc_hit` / `densest_point` 都不再返回它；补给箱（无 event）不变，祭坛交互（走近打开 / 沉没计时）直接扫 `g.enemies`，不受影响。**同 seed TRACE 会变**：seed 1 mizuki 600 秒，第 155 行（t=154，祭坛出现）起不同——此前干员在祭坛旁会白打祭坛，之后不会；测试 `altar_not_target`。
+
 ## 14. 全员普通攻击节奏接入（2026-10-22，Codex）
 
 用户已确认 20 人视觉节奏；斯卡蒂特批出手由 0.178571 秒延后至 0.28 秒。普通攻击基础周期保留；收势窗口变长会改变技能自动起手时机，因此这是逻辑变更，不能声称相对旧版 TRACE 全同。

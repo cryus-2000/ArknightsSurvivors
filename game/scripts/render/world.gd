@@ -23,6 +23,22 @@ var p_dust_t := 0.0
 var p_swing_prev := 0.0
 var p_hurt_prev := 0.0
 var cam_kick := Vector2.ZERO
+## 开火微震（vfx._leader_kick）：方向（远离目标）、美术像素、剩余 / 总时长；cam.offset 按阶梯取整（1 px → 0；2 px → 1 → 0），不动 cam.position
+var _kick_dir := Vector2.ZERO
+var _kick_px := 0
+var _kick_t := 0.0
+var _kick_dur := 0.06
+
+
+func kick(to_target: Vector2, px: int, dur: float) -> void:
+	if px <= 0 or (_kick_t > 0.0 and px <= _kick_px):
+		return
+	var d: Vector2 = -to_target
+	# 八方向取整：斜向时两轴各挪同样的整像素
+	_kick_dir = Vector2(signf(d.x) if absf(d.x) > absf(d.y) * 0.4 else 0.0, signf(d.y) if absf(d.y) > absf(d.x) * 0.4 else 0.0)
+	_kick_px = px
+	_kick_dur = maxf(0.01, dur)
+	_kick_t = _kick_dur
 var heart_cd := 0.0
 var anim_name := ""
 var anim_t := 0.0
@@ -144,7 +160,13 @@ func update_visuals(dt: float) -> void:
 			Sfx.play("heartbeat_hi", -0.7, 1.0, 0.0)   # 高频层：原心跳 99% 在 120 Hz 以下，手机 / 笔记本外放听不到（音频 10/1）
 	# 镜头震动已整体移除（见 _shake）。干员脚本里还有直接写 g.shake 的（2.5–5，按 10·shake² 就是 ±250 像素），
 	# 在这里统一不用它，图鉴演示 / 精英化演出 / 实战都不再震；shake 变量只留给以后可能的非镜头用途
-	g.cam.offset = cam_kick.round()
+	var kick_off := Vector2.ZERO
+	if _kick_t > 0.0:
+		_kick_t = maxf(0.0, _kick_t - rd)
+		kick_off = _kick_dir * float(ceili(_kick_px * _kick_t / _kick_dur)) * Game.PX
+		if _kick_t <= 0.0:
+			_kick_px = 0
+	g.cam.offset = cam_kick.round() + kick_off
 	# 灯火光源：半径随灯火变化，快熄灭时闪烁
 	var radius: float = lerp(150.0, 520.0, g.lamp / 100.0) * g.squad.light_radius_mult()
 	if g.state == Game.S.DEAD:
@@ -1014,23 +1036,43 @@ func _draw_fx() -> void:
 			"marc":
 				# 近战刀光（vfx.melee_arc）：半径 / 半角 = 实际判定；干员本色、2–3 阶硬边（外层暗带 + 亮芯，重档再加白芯），
 				# 透明度按三阶跳着消失（不平滑淡出）。粗细亮度按这一下的命中档（轻 / 中 / 重）
+				# 跟着挥刀走：前端在前 55% 寿命里从起点扫到终点，尾端从 35% 起追上来；前端一小段更亮（刀尖）。
+				# 位置按干员当前脚底 + 出手时的偏移（移动攻击时刀光随人移动）
 				var tr: int = int(f.tier)
 				var aq: float = ceilf(a * 3.0) / 3.0
 				var wd: float = [0.0, 2.0, 3.0, 4.0][tr]
 				var kb: float = [0.0, 1.0, 1.25, 1.6][tr]
 				var full: bool = float(f.half) >= PI - 0.01
-				var a0: float = 0.0 if full else float(f.ang) - float(f.half)
-				var a1: float = TAU if full else float(f.ang) + float(f.half)
-				var nseg: int = clampi(int((a1 - a0) * float(f.r) / 6.0), 8, 64)
+				var ap: Vector2 = f.pos
+				var aop = g.squad.get_op(str(f.get("op", ""))) if g.squad != null else null
+				if aop != null and aop.pos != Vector2.INF:
+					ap = aop.pos + f.get("off", Vector2.ZERO)
+				var span: float = TAU if full else float(f.half) * 2.0
+				var sd: float = float(f.get("sdir", 1.0))
+				var s0: float = (float(f.ang) - PI if full else float(f.ang) - float(f.half) * sd)   # 挥刀起点
+				var pr: float = 1.0 - a
+				var hd: float = clampf(pr / 0.55, 0.0, 1.0)
+				var tl: float = clampf((pr - 0.35) / 0.65, 0.0, 1.0)
+				var e0: float = s0 + sd * span * tl
+				var e1: float = s0 + sd * span * hd
+				var a0: float = minf(e0, e1)
+				var a1: float = maxf(e0, e1)
 				var cc: Color = f.col
-				g.draw_arc(f.pos, f.r - wd * 0.5, a0, a1, nseg, Color(cc.r * 0.5, cc.g * 0.5, cc.b * 0.5, 0.55 * aq), wd + 4.0)
-				g.draw_arc(f.pos, f.r - wd * 0.5, a0, a1, nseg, Color(cc.r * kb, cc.g * kb, cc.b * kb, aq), wd)
-				if tr == 3:
-					g.draw_arc(f.pos, f.r - wd * 0.5, a0, a1, nseg, Color(1.6, 1.6, 1.6, aq), 1.0)
+				if a1 - a0 > 0.02:
+					var nseg: int = clampi(int((a1 - a0) * float(f.r) / 6.0), 4, 64)
+					g.draw_arc(ap, f.r - wd * 0.5, a0, a1, nseg, Color(cc.r * 0.5, cc.g * 0.5, cc.b * 0.5, 0.55 * aq), wd + 4.0)
+					g.draw_arc(ap, f.r - wd * 0.5, a0, a1, nseg, Color(cc.r * kb, cc.g * kb, cc.b * kb, aq), wd)
+					if tr == 3:
+						g.draw_arc(ap, f.r - wd * 0.5, a0, a1, nseg, Color(1.6, 1.6, 1.6, aq), 1.0)
+					var tip: float = minf(0.25, (a1 - a0))   # 刀尖：前端约 14° 更亮更粗
+					var t0: float = e1 - sd * tip
+					g.draw_arc(ap, f.r - wd * 0.5, minf(t0, e1), maxf(t0, e1), 4, Color(cc.r * kb * 1.5 + 0.3, cc.g * kb * 1.5 + 0.3, cc.b * kb * 1.5 + 0.3, aq), wd + 2.0)
+				a0 = 0.0 if full else float(f.ang) - float(f.half)
+				a1 = TAU if full else float(f.ang) + float(f.half)
 				if g.vfx.arc_dbg < 0:
 					g.vfx.arc_dbg = 1 if Cfg.dev_args().has("--arcdbg") else 0
 				if g.vfx.arc_dbg == 1:
-					g.draw_arc(f.pos, f.r, 0.0, TAU, 64, Color(1, 1, 1, 0.5), 1.0)   # 判定圈（核对）
+					g.draw_arc(f.pos, f.r, 0.0, TAU, 64, Color(1, 1, 1, 0.5), 1.0)   # 判定圈（核对，画在出手那一刻的判定原点）
 					if not full:
 						g.draw_line(f.pos, f.pos + Vector2.from_angle(a0) * float(f.r), Color(1, 1, 0.3, 0.7), 1.0)
 						g.draw_line(f.pos, f.pos + Vector2.from_angle(a1) * float(f.r), Color(1, 1, 0.3, 0.7), 1.0)
@@ -1235,7 +1277,7 @@ func _draw_fx() -> void:
 				g.vfx.spr("tentacle", 5, fr, f.pos + Vector2(48, 22), Game.PX * 2.4, false, tc * Color(0.9, 0.9, 0.9, 1.0), Vector2(0.5, 1.0))
 			"sprite":
 				var spec: Array = Game.V6_FRAMES[f.name]
-				var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
+				var fr := mini(int((f.max - f.life) * float(f.get("fps", spec[1]))), spec[0] - 1)   # fps：加快过的死亡帧条（vfx.death_shatter）
 				var scol: Color = f.get("col", Color.WHITE)
 				scol.a *= fdim
 				g.vfx.spr_rot(f.name, fr, f.pos, f.ang, f.scale, scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))

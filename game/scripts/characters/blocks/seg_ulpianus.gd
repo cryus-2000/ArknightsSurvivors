@@ -1071,7 +1071,7 @@ static func _hw5_hook_drag_start(o, hk: Dictionary) -> void:
 			continue   # 歌蕾蒂娅（docs/123 §2.1，10-22）：只把远程怪拖回身前，近战怪本来就会贴上来，拉过来只会把队长埋进怪堆
 		got.append(e)
 	var te: Dictionary = hk.get("tgt", {})
-	if not te.is_empty() and not te.dead and _movable(te) and not got.has(te) and str(b.get("drag_only", "all")) != "ranged" and (te.pos.distance_to(a) > float(b.get("front", 60.0)) or bool(b.get("push_out", false))):
+	if not te.is_empty() and int(te.get("id", -1)) >= 0 and not te.dead and _movable(te) and not got.has(te) and str(b.get("drag_only", "all")) != "ranged" and (te.pos.distance_to(a) > float(b.get("front", 60.0)) or bool(b.get("push_out", false))):
 		got.append(te)   # 钩中的那一名：落地后 0.12–0.34 秒里队长位置 / 敌人位置变了、掉出一线的窄走廊也照样拖（10-24 歌蕾蒂娅「拉不动人」）
 	got.sort_custom(func(x, y): return x.pos.distance_squared_to(a) < y.pos.distance_squared_to(a) if x.pos.distance_squared_to(a) != y.pos.distance_squared_to(a) else int(x.id) < int(y.id))
 	var mx: int = int(b.get("max_n", 12))
