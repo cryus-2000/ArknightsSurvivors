@@ -1,7 +1,7 @@
 ## 光学观感原型 · 粒子（10-23 协调人 / 用户「最想看粒子感」，docs/50 §25）：全部 GPUParticles2D（兼容渲染器 / WebGL2 可用），CPU 只在触发时摆位置。
 ## 颗粒固定 2 世界像素（= 1 美术像素）、最近邻；只用 GPU 自己的随机，不碰 g.rng / g.vrng，同 seed 模拟不变。中画质数量减半，低画质不开。
 ##   ⑦ 击杀碎屑：把怪物帧条首帧（开局后第一次击杀时按种类烘一次）的像素位置 + 颜色做成发射纹理，从怪物脚下按原样炸开、减速、下沉、熄灭；
-##      另从发光层喷几颗该怪发光色的荧光体液。对象池轮转，总数有上限
+##      另从发光层喷几颗荧光体液（环境色，颜色语言 10-23）。对象池轮转，总数有上限
 ##   ⑤ 漂浮荧光孢子：跟着镜头的一大块发射区，慢慢上漂、明灭（发光层，不受环境暗色影响）
 ##   灯火余烬：队长灯火处往上飘的暖色火星
 ##   命中迸溅：受击时几颗像素（限频）
@@ -34,6 +34,7 @@ var _mat_cache := {}          # 帧条名 → [ParticleProcessMaterial, 发光�
 var fluid_mat: ParticleProcessMaterial
 var spark_mat: ParticleProcessMaterial
 var k_amount := 1.0
+var env_col := Color(0.39, 0.7, 0.7)   # 怪死后体液 = 环境色（颜色语言，optical.step 每帧写）
 var active := false
 
 
@@ -58,7 +59,7 @@ func setup(game, wp: Node2D, gp: Node2D) -> void:
 		var p := _one_shot(glow_parent, 3, 0.35)
 		p.process_material = spark_mat
 		sparks.append(p)
-	spores = _ambient(glow_parent, int(70 * k_amount), 9.0, Color(0.35, 0.95, 1.0))
+	spores = _ambient(glow_parent, int(70 * k_amount), 9.0, Color.WHITE)   # 颜色由 modulate 给（step）
 	var sm: ParticleProcessMaterial = spores.process_material
 	sm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
 	sm.emission_box_extents = Vector3(760, 440, 0)
@@ -67,7 +68,7 @@ func setup(game, wp: Node2D, gp: Node2D) -> void:
 	sm.initial_velocity_min = 3.0
 	sm.initial_velocity_max = 9.0
 	spores.preprocess = 9.0
-	embers = _ambient(glow_parent, int(16 * k_amount), 1.6, Color(1.0, 0.62, 0.25))
+	embers = _ambient(glow_parent, int(16 * k_amount), 1.6, Color.WHITE)
 	var em: ParticleProcessMaterial = embers.process_material
 	em.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
 	em.emission_sphere_radius = 10.0
@@ -154,12 +155,15 @@ func set_active(on: bool) -> void:
 			p.emitting = false
 
 
-## 每帧（optical.gd）：孢子发射区跟着镜头，余烬跟着灯火
-func step(cam_center: Vector2, lamp_pos: Vector2) -> void:
+## 每帧（optical.gd）：孢子发射区跟着镜头，余烬跟着灯火；颜色按颜色语言（孢子 = 环境色、余烬 = 灯火色）
+func step(cam_center: Vector2, lamp_pos: Vector2, env: Color, lamp: Color) -> void:
 	if not active:
 		return
 	spores.global_position = cam_center
 	embers.global_position = lamp_pos + Vector2(0, -6)
+	spores.modulate = env
+	embers.modulate = lamp
+	env_col = env
 
 
 ## 某种怪的碎屑材质：首帧像素（1 美术像素取 1 个）均匀抽 DEBRIS_PTS 个，位置相对锚点、按画面缩放
@@ -232,7 +236,7 @@ func kill_burst(e: Dictionary) -> void:
 		var f: GPUParticles2D = fluid[_fi % fluid.size()]
 		_fi += 1
 		f.global_position = e.pos
-		f.modulate = mc[1]
+		f.modulate = env_col
 		f.visible = true
 		f.restart()
 

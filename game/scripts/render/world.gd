@@ -500,9 +500,12 @@ func _draw_pickups_fast() -> void:
 	var ing_p := PackedVector2Array()   # 落地源石锭 / 灯油的位置（已含 draw_off）
 	var oil_p := PackedVector2Array()
 	var cy := UI.CYAN
+	var pu := Color(0.85, 0.6, 1.0)
+	if g.optical_on:
+		cy = g.optical.col_loot   # 光学观感颜色语言（10-23）：经验结晶光晕 / 吸取拖尾淡金白（结晶贴图本身是美术，不改）
+		pu = g.optical.col_loot.lerp(Color.WHITE, 0.3)
 	var glow_s0 := Color(cy.r * 1.6, cy.g * 1.6, cy.b * 1.6, 0.16)
 	var glow_s1 := Color(cy.r * 2.0, cy.g * 2.0, cy.b * 2.0, 0.22)
-	var pu := Color(0.85, 0.6, 1.0)
 	var glow_b0 := Color(pu.r * 1.6, pu.g * 1.6, pu.b * 1.6, 0.16)
 	var glow_b1 := Color(pu.r * 2.0, pu.g * 2.0, pu.b * 2.0, 0.22)
 	var dark := Color(0.0, 0.02, 0.05, 0.55)
@@ -1381,6 +1384,10 @@ func _draw_ebullets_lobs_shocks() -> void:
 		var bp: Vector2 = b.pos + Vector2(0, -16)
 		# 敌方弹幕高对比：深色外圈垫底，画完再描一圈亮洋红边，压在友方特效上也一眼看得出
 		tb_circle(bp, b.r + 3.0, Color(0.02, 0.0, 0.05, 0.85))
+		if g.optical_on:
+			var ec: Color = g.optical.col_danger   # 光学观感颜色语言：敌弹光晕统一危险色
+			tb_circle(bp, b.r + 4.0, Color(ec.r, ec.g, ec.b, 0.3))
+			continue
 		match b.get("kind", "orb"):
 			"acid":
 				tb_circle(bp, b.r + 5.0, Color(0.5, 1.4, 0.3, 0.3))
@@ -1991,7 +1998,7 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 		if e.flash > 0.0:
 			_espr(c[16], frames, frame, bpos, sc, flip, Color(1, 1, 1, 0.9 if e.elite else flash_a), anc, Vector2.ONE)
 	if g.optical_on and _rec == null:
-		_glow_pts(c[8], frames, bpos + g.draw_off, sc, flip, anc)
+		_glow_pts(c[8], frames, bpos + g.draw_off, sc, flip, anc, e)
 	if _rec == null and e.affix != "":
 		var af: String = e.affix
 		if af == "armor" or (af == "shield" and e.shield_hp > 0.0):   # 快速写法：_affix_fx 对其他词条直接返回，先判再算头顶位置
@@ -2025,7 +2032,9 @@ func _espr(name: String, frames: int, frame: int, pos: Vector2, sc: float, flip:
 ## 光学观感原型的敌人发光点（render/optical，占位）：每种帧条首帧里最亮、偏饱和的至多 3 个像素当「眼睛 / 核心」，
 ## 排进 g.glow_next，下一帧由 render/optical.gd 的发光层（跟随镜头、不受环境暗色与灯光影响）画，后期按发光体散辉光。只看帧条首帧、按帧条名缓存；美术重做后换成发光遮罩图
 var _glow_cache := {}
-func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, anc: Vector2) -> void:
+## 位置取帧条首帧最亮的几处像素；颜色按颜色语言统一（render/optical.gd enemy_glow：普通 / 精英 / Boss），不用像素自身颜色。
+## 普通怪 3 处，精英 / Boss 多一处、大一号
+func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, anc: Vector2, e: Dictionary) -> void:
 	var pts = _glow_cache.get(name)
 	if pts == null:
 		pts = []
@@ -2059,7 +2068,7 @@ func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, a
 				cand.sort_custom(func(a, b): return a[0] > b[0])
 				var dens: float = A.hires_of(tx)
 				for cd in cand:
-					if pts.size() >= 3:
+					if pts.size() >= 4:
 						break
 					var q := Vector2(cd[1], cd[2])
 					var far := true
@@ -2069,16 +2078,18 @@ func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, a
 					if far:
 						pts.append([q, cd[3], Vector2(fw, fh), dens])
 		_glow_cache[name] = pts
-	var gk: float = Bal.v("render/optical_eye_gain", 4.0)
-	for pt in pts:
+	var big: bool = e.get("elite", false) or e.get("boss", false)
+	var cc: Color = g.optical.enemy_glow(e)
+	var npt: int = mini(pts.size(), 4 if big else 3)
+	for ip in npt:
+		var pt: Array = pts[ip]
 		var q: Vector2 = pt[0]
 		var fs: Vector2 = pt[2]
 		var d: Vector2 = (q - anc * fs) * sc / pt[3]   # sc 是 1x 美术像素的倍率，@2x 帧条要除以密度
 		if flip:
 			d.x = -d.x
-		var cc: Color = pt[1]
-		var sz: float = maxf(2.0, sc)
-		g.glow_next.append([(pos + d - Vector2(sz, sz) * 0.5).round(), sz, Color(minf(1.0, cc.r * gk), minf(1.0, cc.g * gk), minf(1.0, cc.b * gk), 1.0)])
+		var sz: float = maxf(2.0, sc) * (1.5 if big else 1.0)
+		g.glow_next.append([(pos + d - Vector2(sz, sz) * 0.5).round(), sz, cc])
 
 
 ## 朝灯边缘亮线标记：开着时把 alpha 取负（着色器 vertex() 认、还原），关着原样返回
@@ -2396,7 +2407,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		_burst_fx_layer(e, "_back", bfx, bpos, flip)
 	_espr(name, frames, frame, bpos, sc, flip, col, anc, sq)
 	if g.optical_on and _rec == null:
-		_glow_pts(name, frames, bpos + g.draw_off, sc * sq.x, flip, anc)
+		_glow_pts(name, frames, bpos + g.draw_off, sc * sq.x, flip, anc, e)
 	if e.flash > 0.0:
 		# 受击白闪：普通怪随 ecrowd 降到 declutter flash_a（缺省 0.9 = 不变）；精英 / Boss 照旧
 		_espr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, (Bal.v("fx/flash_boss", 0.5) if e.boss else 0.9) if (e.elite or e.boss) else flash_a), anc, sq)   # Boss 白闪 50%（docs/127 C3：大体型整块变白刺眼）
