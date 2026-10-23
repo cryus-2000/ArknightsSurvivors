@@ -1,6 +1,6 @@
 extends Node
 ## 认知塑造质变 / 非数值节点契约（docs/109 §14 v5，check.py 场景回归 meta_mech）：
-##   godot --headless --path game res://tests/meta_mech_test.tscn -- --balance --seed=1 --op=wisadel --metanodes=sh1,reg3,atk5,hp5,def4,xp4,disp1,disp2,disp3
+##   godot --headless --path game res://tests/meta_mech_test.tscn -- --balance --seed=1 --op=wisadel --metanodes=sh1,reg3,atk5,hp5,def4,xp4,disp1,disp2,disp3,disp4
 ## 把 game.tscn 当子节点跑起来，第 5 帧直接调结算入口逐条检查：
 ##   护盾反震（危机感）：护盾被击碎时周围敌人受伤并被击退；低血回复翻倍（生命感悟Ⅲ）；处决（攻击性Ⅴ）：普通 <15% / 精英 <8% 直接击杀、Boss 不受；
 ##   濒死免死（生存本能Ⅴ）：每局一次保留 1 点并无敌；静守（自我保护Ⅳ）：连续 5 秒未受伤后下一击减半；升级再升（领导欲Ⅳ）：100 次升级里有再升；
@@ -53,6 +53,12 @@ func _process(_d: float) -> void:
 	elif frames == 6:
 		ok(game.state != game.S.DEAD and game.hp >= 1.0 and game.rfx.rule("last_stand") == 0, "濒死免死：保留 1 点生命并用掉（state %d hp %.1f）" % [game.state, game.hp])
 		ok(game.invuln >= 1.0, "濒死免死：1.5 秒无敌（%.2f）" % game.invuln)
+		# 绝处逢生：免死用掉后再次致命，复活并回到 50% 最大生命、3 秒无敌
+		game.invuln = 0.0
+		game.hp = -5.0
+	elif frames == 7:
+		ok(game.state != game.S.DEAD and game.rfx.rule("revive") == 0 and game.hp >= game.max_hp * 0.45, "绝处逢生：复活并回到约 50%% 最大生命（state %d hp %.1f / %.1f）" % [game.state, game.hp, game.max_hp])
+		ok(game.invuln >= 2.0, "绝处逢生：3 秒无敌（%.2f）" % game.invuln)
 		game.hp = game.max_hp
 	elif frames == 120:
 		ok(relic_seen or game.relics.size() > 0, "战利品意识：开局 1 秒后打开首个藏品三选一（见过 %s，藏品 %d）" % [relic_seen, game.relics.size()])
@@ -68,7 +74,7 @@ func spawn(type: String, off: Vector2) -> Dictionary:
 
 
 func test_rules() -> void:
-	for r in ["shield_shatter", "low_hp_regen", "execute", "last_stand", "calm_guard", "double_level", "first_choice_extra", "shop_free_refresh"]:
+	for r in ["shield_shatter", "low_hp_regen", "execute", "last_stand", "calm_guard", "double_level", "first_choice_extra", "shop_free_refresh", "revive"]:
 		ok(game.rfx.rule(r) > 0, "开局写进 rfx.rules：" + r)
 	ok(game.shield_max == 1, "危机感：护盾上限 1（%d）" % game.shield_max)
 	ok(game.meta_start_relic == 3 or relic_seen or game.relics.size() > 0, "战利品意识：开局待选 3 件（%d，t=%.2f，见过 %s）" % [game.meta_start_relic, game.t, relic_seen])
