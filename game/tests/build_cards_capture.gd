@@ -10,12 +10,18 @@ var step := 0
 var dir := "res://../build/build_cards_shots"
 var wait := 0
 var tag := "desktop"
+var hot := -1   # --hot=N：招募卡截图时键盘焦点停在第 N 张（看悬停提示，10-23 联动标签）
+var recruit_ids: Array = ["wisadel", "exusiai", "irene"]   # --recruit=a,b,c 换招募卡三人（10-23 招募卡大小统一验收：ulpianus,skadi,mizuki）
 
 
 func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--shot_dir="):
 			dir = a.substr(11)
+		if a.begins_with("--hot="):
+			hot = int(a.substr(6))
+		if a.begins_with("--recruit="):
+			recruit_ids = a.substr(10).split(",")
 		if a == "--touch":
 			tag = "phone"
 	DirAccess.make_dir_recursive_absolute(dir)
@@ -44,6 +50,12 @@ func _process(_d: float) -> void:
 	var g = game
 	var pg = g.progression
 	match step:
+		10:
+			shot("1_recruit_hot")
+			g.kb_nav = false
+			step = 1
+			hot = -1
+			return
 		0:
 			g.set_process(false)   # 停住对局：卡片与 HUD 仍会画
 			g.ingots = 9
@@ -51,13 +63,20 @@ func _process(_d: float) -> void:
 			pg.gain_relic("130")
 			var opts: Array = []
 			for c in pg.recruit_cards():
-				if str(c.id) in ["wisadel", "exusiai", "irene"]:
+				if recruit_ids.has(str(c.id)):
 					opts.append(c)
 			g.panel_ui.show_choices("招募干员", opts, "level")
 			g.panel_ui.motion.skip()
 			wait = 30
 		1:
 			shot("1_recruit")
+			if hot >= 0 and step == 1:
+				g.kb_nav = true
+				g.nav_sel = hot
+				g.panel_tip.queue_redraw()
+				step = 10
+				wait = 10
+				return
 			g.panel.visible = false
 			g.state = g.S.PLAY
 			g.squad.add("kaltsit")

@@ -21,7 +21,7 @@ func _ready() -> void:
 	g.t = 100.0
 	g.enemy_demo.reset()
 	var e: Dictionary = g.enemy_demo.subject
-	check(is_equal_approx(g.world.enemy_scale(e), 1.36), "Ishar human is slightly taller than operator")
+	check(is_equal_approx(g.world.enemy_scale(e), 2.0), "Ishar human is drawn 1:1 (1 art px = PX screen px, 10-23 redraw)")
 	var state0: int = g.state
 	check(e.friendly and e.invuln, "Ishar first phase is neutral and not targetable")
 	var targets: Array = g.enemies.filter(func(x): return x.get("heal_demo_target", false))
@@ -55,7 +55,7 @@ func _ready() -> void:
 	e.atk_until = 0.0
 	e.mv_until = g.t + 1.0
 	check(g.world.ishar_animation(e).name == "e_ishar_t_move", "transformed move")
-	check(is_equal_approx(g.world.enemy_scale(e), 2.0), "transformed body keeps sea monster volume")
+	check(is_equal_approx(g.world.enemy_scale(e), 2.0), "transformed body is drawn 1:1 (10-23 redraw)")
 	g.eai.shoot(e, Vector2.RIGHT)
 	check(g.world.ishar_animation(e).name == "e_ishar_t_attack", "transformed ranged shot plays body attack")
 	check(not e.friendly and g.ebullets.size() == 3 and g.ebullets[0].vel.length() >= 335.0, "transformed enemy fires actual fast triple projectiles")

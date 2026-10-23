@@ -63,6 +63,8 @@ func boss_step(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 			e.invuln = false
 			e.coma_t = 0.0
 			e.revives = int(e.get("revives", 0)) + 1
+			e.vis_act = "revive"   # 重画 *_revive 复苏帧条（纯画面，world._vis_anim）
+			e.vis_t0 = g.t
 			g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.4, "life": 0.5, "max": 0.5, "col": Color(0.4, 1.0, 0.9), "enemy": true})
 			g.vfx.add_text(e.pos + Vector2(0, -50), "复苏（%d / %d）" % [e.revives, int(Bal.v("boss/pair_revives", 2.0))], Color(0.6, 1.0, 0.9), 18)
 			# 复苏回调（docs/95 §12 on_revive：斥亡体「迸发」等在这里起手）

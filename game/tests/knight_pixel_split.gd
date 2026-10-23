@@ -39,7 +39,7 @@ func check():
 	padded = null
 	var k := Knight.new(g)
 	k.alive = true
-	for row in [["idle", 0.0, "e_knight_walk", 2, 0], ["idle", 50.0, "e_knight_walk_move", 4, 0], ["stab", 0.0, "e_knight_walk_attack", 4, 2], ["charge", 0.0, "e_knight_walk_charge", 4, 2]]:
+	for row in [["idle", 0.0, "e_knight_walk", 6, 0], ["idle", 50.0, "e_knight_walk_move", 6, 0], ["stab", 0.0, "e_knight_walk_attack", 8, 3], ["charge", 0.0, "e_knight_walk_charge", 4, 2]]:   # 10-23 重画：待机 / 移动 6 帧、攻击 8 帧（出手帧 3，旧第 2 帧重映射到它），冲锋仍 4 帧:
 		g.vfx.calls.clear()
 		k.state = row[0]
 		k.mv = row[1]

@@ -29,7 +29,7 @@ func _ready() -> void:
 	if A.enemy_pixel_anchor("unregistered", Vector2(0.5, 1)) != Vector2(0.5, 1) or A.enemy_pixel_scale("unregistered") != 1.0:
 		failed += 1
 	# Regular enemies and elites restored; Boss size trial retained.
-	var expected := {"bone": 1.0, "slider": 1.0, "stone": 1.0, "offspring": 1.0, "brood": 1.0, "spitter": 1.17, "runner": 1.0, "floater": 1.0, "reaper": 1.0, "founder": 1.0, "tracer": 1.0, "nest": 1.0, "fractal": 1.0, "tear": 1.0, "pocket": 1.0, "skimmer": 1.0, "mother": 1.0, "mimic": 1.0, "path": 1.15, "izumik": 1.12, "iberia": 1, "carmen": 1, "bishop": 1, "archon": 1, "immortal": 1, "paranoia": 1.15, "ishar": 0.68, "knight": 0.7, "knight_boss": 0.98}
+	var expected := {"bone": 1.0, "slider": 1.0, "stone": 1.0, "offspring": 1.0, "brood": 1.0, "spitter": 1.0, "runner": 1.0, "floater": 1.0, "reaper": 1.0, "founder": 1.0, "tracer": 1.0, "nest": 1.0, "fractal": 1.0, "tear": 1.0, "pocket": 1.0, "skimmer": 1.0, "mother": 1.0, "mimic": 1.0, "path": 1.0, "izumik": 1.0, "iberia": 1, "carmen": 1, "bishop": 1, "archon": 1, "immortal": 1, "paranoia": 1.0, "ishar": 1.0, "knight": 1.0, "knight_boss": 1.0}   # 10-23 重画：美术按目标尺寸直接画，全部 1:1 显示
 	for id in expected:
 		if not is_equal_approx(float(D.ENEMIES[id].get("draw_scale", 1.0)), float(expected[id])):
 			printerr("FAIL: Enemy approved size: ", id)

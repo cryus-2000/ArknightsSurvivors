@@ -133,7 +133,7 @@
    "cd": 3.2,
    "spit": true,
    "corrode": 0.45,
-   "draw_scale": 1.17,
+   "draw_scale": 1.0,
    "atk_anim": true,
    "lob_tex": "proj_spitter_acid",
    "land_fx": "fx_spitter_land",
@@ -547,7 +547,7 @@
    "ecol": [1.0, 0.75, 0.4]
   },
   "path": {
-   "draw_scale": 1.15,
+   "draw_scale": 1.0,
    "name": "塑路者",
    "hp": 3200.0,
    "weak": "法术",
@@ -590,7 +590,7 @@
   },
   "izumik": {
    "apop_hit": 15.0,
-   "draw_scale": 1.12,
+   "draw_scale": 1.0,
    "name": "伊祖米克，生态泉源",
    "hp": 5200.0,
    "spd": 30.0,
@@ -888,7 +888,7 @@
    "ecol": [0.6, 0.8, 1.0]
   },
   "paranoia": {
-   "draw_scale": 1.15,
+   "draw_scale": 1.0,
    "name": "\"偏执泡影\"",
    "hp": 7400.0,
    "spd": 34.0,
@@ -952,7 +952,7 @@
    "cd": 1.5,
    "role": "boss",
    "arena_r": 600.0,
-   "draw_scale": 0.68,
+   "draw_scale": 1.0,
    "transformed_draw_scale": 1.0,
    "no_contact": true,
    "attack": {
@@ -978,7 +978,7 @@
     "en": "ISHAR-MLA, CORRUPTED HEART",
     "sub": "最终 · 替大群发声",
     "portrait": "portraits/boss_ishar",
-    "line": "转化完成后，她才会攻击队长。"
+    "line": "伊莎玛拉，腐化之心。"
    },
    "portrait_crop": [16, 8, 48, 48],
    "draw_full": true,
@@ -1006,7 +1006,7 @@
    "dash_speed": 5.2,
    "ingots": 6,
    "no_spawn": true,
-   "draw_scale": 0.7,
+   "draw_scale": 1.0,
    "frost": 1.5,
    "desc": "蓄力冲刺；攻击命中附加 1.5 秒冰霜减速。另会使用「冰枪点刺」进行预警攻击。",
    "extra": {
@@ -1032,7 +1032,7 @@
    "atk": "物理",
    "move_fps": 8,
    "phases": 2,
-   "draw_scale": 0.98,
+   "draw_scale": 1.0,
    "patterns": [],
    "frost": 2.0,
    "desc": "骑士攻击命中附加 2 秒冰霜减速；寒冰领域持续施加减速。冰霜不造成硬冻结，Boss 战仍保留移速下限。",
@@ -1040,7 +1040,7 @@
     "en": "THE LAST KNIGHT",
     "sub": "最终 · 堂吉诃德",
     "portrait": "portraits/boss_knight_boss",
-    "line": "曾经护送旅人穿越海嗣领地的猎潮骑士，如今站到了海嗣那一边。"
+    "line": "曾经同行的猎潮骑士。"
    },
    "portrait_crop": [52, 40, 56, 56]
   }

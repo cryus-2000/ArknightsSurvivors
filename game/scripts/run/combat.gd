@@ -1124,6 +1124,8 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		e.hover_lost = true
 		e.ai = "melee"
 		e.spd = 70.0
+		e.vis_act = "change"   # 重画 e_skimmer_change 落地变身帧条（纯画面）
+		e.vis_t0 = g.t
 		g.vfx.add_text(e.pos + Vector2(0, -30), "坠落", Color(0.6, 0.9, 1.0), 16)
 	if e.hp <= 0.0:
 		# Boss 不死的归零（偏执泡影结茧、最后的骑士寒冰重生、接潮假死）：钩子返回 true 就不走击杀

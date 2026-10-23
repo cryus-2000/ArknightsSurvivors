@@ -151,6 +151,8 @@ func paranoia_hatch(e: Dictionary, broken: bool) -> void:
 	e.count_end = 0.0
 	e.hp = e.maxhp * Bal.v("boss/paranoia_revive", 0.4)
 	_paranoia_p2(e)
+	e.vis_act = "revive"   # 二阶段破茧：e_paranoia_phase2_revive（纯画面）
+	e.vis_t0 = g.t
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 3.0, "life": 0.6, "max": 0.6, "col": Color(0.85, 0.45, 1.0), "enemy": true})
 	if broken:
 		g.combat.start_break(e, Bal.v("boss/paranoia_hatch_break", 5.0))

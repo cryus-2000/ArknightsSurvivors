@@ -326,6 +326,19 @@ func recruit_lines(cid: String) -> String:
 	return "\n".join(out)
 
 
+## 招募卡的联动数（10-23 用户：正文不再写「入队即生效 / 培养后生效」，标签行只放「联动 N」，悬停提示列 recruit_lines）：
+## 能被这名干员激活的已持有藏品件数 + 同队专属联动人数
+func recruit_link_count(cid: String) -> int:
+	if not ui_on():
+		return 0
+	var n := 0
+	for rid in owned_chain_relics():
+		var m := match_at(cid, str(rid), 0)
+		if not m.now.is_empty() or not m.later.is_empty():
+			n += 1
+	return n + combo_partners(cid, g.squad.ops).size()
+
+
 ## 干员专属联动（docs/123 §2.7「钩与锚」）：干员 JSON 顶层 combo {with, name, knob, desc}，只在两人同队时出现。
 ## 候选 cid 入队后会和在队的哪些干员形成联动（任一方的 combo.with 指向对方即算）；knob 关掉的不写
 func combo_partners(cid: String, ops: Array) -> Array:

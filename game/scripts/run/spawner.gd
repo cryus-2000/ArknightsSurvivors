@@ -960,6 +960,8 @@ func reveal_mimic(e: Dictionary) -> void:
 		if k != "id":
 			e[k] = m[k]
 	e.flash = 0.2
+	e.vis_act = "reveal"   # 重画 e_mimic_reveal 现形帧条（纯画面）
+	e.vis_t0 = g.t
 	g.vfx.show_banner("箱形恐鱼！")
 	g.vfx.add_text(e.pos + Vector2(0, -30), "伪装！", UI.RED, 20)
 	Sfx.play("roar", -2.0, 1.3)

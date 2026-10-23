@@ -1,6 +1,6 @@
 ## 光学观感原型（10-23，协调人单 / 用户参照 build/ui_ref/look_ref_cave_1023.webp，docs/50 §25）：一个全屏 pass（shaders/optical.gdshader）
 ## 在 HUD 之下取代 post_fx + dof：像素格（格子锁世界坐标）、灯火光池、调色 LUT、只从发光体散出的柔和辉光、暗角。
-## 开关：balance render/optical（缺省 0 = 关）；g.optical_on 每帧由这里写，world / look 据此打开朝灯亮线、敌人发光点、荧光颗粒。纯画面，不进模拟。
+## 开关：balance render/optical（10-23 起缺省 1 = 开，画质「低」自动关）；g.optical_on 每帧由这里写，world / look 据此打开朝灯亮线、敌人发光点、荧光颗粒。纯画面，不进模拟。
 extends CanvasLayer
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -391,7 +391,8 @@ func _draw_loot() -> void:
 func wanted() -> bool:
 	if force >= 0:
 		return force == 1
-	return Bal.v("render/optical", 0.0) > 0.0
+	# 10-23 用户：光学观感正式打开（render/optical 缺省 1）；画质「低」时自动关（低配兜底），中 / 高开
+	return Bal.v("render/optical", 1.0) > 0.0 and Cfg.quality != "low"
 
 
 func _process(_dt: float) -> void:

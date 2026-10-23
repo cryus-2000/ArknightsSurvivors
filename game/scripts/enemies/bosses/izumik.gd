@@ -29,6 +29,8 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 				o.spd = 45.0
 		if e.learn_t <= 0.0:
 			e.phase = 2
+			e.vis_act = "root_end"   # 扎根收势 e_izumik_root_end（纯画面）
+			e.vis_t0 = g.t
 			e.invuln = false
 			e.bt = 0.0
 			e.hp = e.maxhp

@@ -97,7 +97,7 @@ func _open_op_pick(for_cover := false) -> void:
 			var sp: Dictionary = d.get("sprites", {})
 			var idle = sp.get("idle", "")
 			var tn: String = idle if idle is String else idle.get("tex", "")
-			var tx: Texture2D = A.tex(tn) if tn != "" else null
+			var tx: Texture2D = A.tex_hi(tn) if tn != "" else null   # 立绘 / 名册用 @2x 精细版（10-23 用户，art.gd tex_hi）
 			var frames: int = 1
 			if idle is Dictionary and idle.has("frames"):
 				frames = int(idle.frames)
@@ -1182,7 +1182,7 @@ func _op_squad(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: bo
 				var w := UI.btab(ci, font, r.position + Vector2(8, (sh - 14.0) / 2.0), "封面" if cover_pick else "队长", UI.VIOLET, 9, a)
 				var nx := r.position.x + 16 + w
 				UI.text_at(ci, font, Vector2(nx, r.get_center().y), od.name, 13 if ph else 15, UI.fa(UI.TEXT, a), "lm")
-				UI.text_at(ci, font, Vector2(r.end.x - 10, r.get_center().y), "与博士同行" if cover_pick else "唯一受击体", 10, UI.fa(UI.B_SUB, a), "rm")
+				UI.text_at(ci, font, Vector2(r.end.x - 10, r.get_center().y), "与博士同行" if cover_pick else "由队长承受伤害", 10, UI.fa(UI.B_SUB, a), "rm")
 			else:
 				UI.text_at(ci, font, Vector2(r.position.x + 10, r.get_center().y), "队友 %d" % i, 13, UI.fa(UI.B_SUB, a), "lm")
 				UI.text_at(ci, font, Vector2(r.end.x - 10, r.get_center().y), "探索中通过升级招募", 10, UI.fa(UI.B_SUB, a), "rm")

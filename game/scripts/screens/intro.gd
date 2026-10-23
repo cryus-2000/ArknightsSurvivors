@@ -102,7 +102,7 @@ func draw_opening_hud(vs: Vector2) -> void:
 			enw += UI.cond(g.font).get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 5.0   # 同 UI.en 的逐字排法
 		UI.en(g.hud, g.font, Vector2(vs.x / 2 - enw / 2.0, vs.y * 0.22), ens, 13, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a), 5.0)
 		UI.text(g.hud, g.font, Vector2(0, vs.y * 0.22 + 44), "%s  ·  深海探索" % g.ch.display_name(), 34, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 4)
-		UI.text(g.hud, g.font, Vector2(0, vs.y * 0.22 + 74), "行动目标：撑过 10 分钟", 14, Color(0.7, 0.85, 0.9, a * 0.9), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+		UI.text(g.hud, g.font, Vector2(0, vs.y * 0.22 + 74), "行动目标：维持作战至 10:00，击败最终 Boss", 14, Color(0.7, 0.85, 0.9, a * 0.9), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 	UI.text(g.hud, g.font, Vector2(0, vs.y - 26), "点击跳过" if Pad.touch_ui() else "任意键跳过", 12, Color(0.5, 0.6, 0.65, 0.7), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 2)
 
 

@@ -95,7 +95,7 @@ static func draw_fills(g) -> void:
 		var hatched: bool = g.optical_on and g.optical.fx1 and not w.done
 		if hatched:
 			if st != 0 and st != 4:
-				_hatch(g, w, c, clampf(fa * 3.2, 0.25, 0.75), k)   # 光学观感 ④（10-23）：地面预警一律斜线填充 + 闪烁描边（world.draw_warn_outlines），危险色
+				_hatch(g, w, c, clampf(fa * 4.2, 0.4, 0.85), k)   # 光学观感 ④（10-23）：地面预警一律斜线填充 + 闪烁描边（world.draw_warn_outlines），危险色
 		var fill := Color(c.r, c.g, c.b, fa * 1.3)
 		var line := Color(c.r, c.g, c.b, oa)
 		var bright := Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, oa)

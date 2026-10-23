@@ -374,8 +374,8 @@ func draw() -> void:
 	if not alive:
 		return
 	var name := "e_knight_walk"
-	var frames := 2
-	var frame := int(g.t * 3.0) % 2
+	var frames: int = A.enemy_frames(name, 2)
+	var frame := int(g.t * A.enemy_loop_fps(name, 3.0)) % frames
 	if state == "wind" or state == "charge":
 		if g.tex.get("e_knight_walk_charge") != null:
 			name = "e_knight_walk_charge"
@@ -383,13 +383,22 @@ func draw() -> void:
 			frame = (0 if st < CHARGE_WIND * 0.5 else 1) if state == "wind" else (2 if st < CHARGE_T * 0.7 else 3)
 	elif state == "stab":
 		if g.tex.get("e_knight_walk_attack") != null:
+			# 重画攻击帧条 8 帧、出手帧 event_frames[0]（原来 4 帧）：旧口径帧号（10 帧/秒、第 3 帧 0.2 秒出手）按出手帧重映射，出手时刻不动
 			name = "e_knight_walk_attack"
 			frames = 4
 			frame = clampi(int(st * 10.0), 0, 3)
 	elif mv > 40.0 and g.tex.get("e_knight_walk_move") != null:
 		name = "e_knight_walk_move"
-		frames = 4
-		frame = int(mt * 8.0) % 4
+		frames = A.enemy_frames(name, 4)
+		frame = int(mt * A.enemy_loop_fps(name, 8.0)) % frames
+	if flash > 0.0 and g.tex.get("e_knight_walk_wound") != null and state != "sink":
+		name = "e_knight_walk_wound"
+		frames = 1
+		frame = 0
+	var nfr: int = A.enemy_frames(name, frames)
+	if nfr != frames:
+		frame = A.enemy_remap_frame(name, frames, frame)
+		frames = nfr
 	if g.tex.get(name) == null:
 		g.draw_circle(pos, R, Color(0.6, 0.8, 1.0))
 		return
