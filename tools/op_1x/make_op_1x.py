@@ -218,10 +218,11 @@ def build_op(op, dry=False):
         # 普攻 + 移动攻击
         att = spec(sprites, "attack")
         aa = ATTACK_ANIM.get(op, "Attack")
+        V2 = "op_skadi_attack_v2"   # 新普攻帧条名（json 已改指过来；重复跑不再叠后缀）
         if att and op == "skadi":
-            done[att["tex"] + "_v2"] = ("attack", lambda: slot_job("attack", "stand", keyed=SKADI_ATTACK_CFG, frames=9))
+            done[V2] = ("attack", lambda: slot_job("attack", "stand", keyed=SKADI_ATTACK_CFG, frames=9))
             done[f"op_{op}_move_attack"] = ("move_attack", lambda: slot_job("attack", "move", keyed=SKADI_ATTACK_CFG, frames=9))
-            done2x[att["tex"] + "_v2"] = lambda: slot_job("attack", "stand", keyed=SKADI_ATTACK_CFG, frames=9, dens=2)
+            done2x[V2] = lambda: slot_job("attack", "stand", keyed=SKADI_ATTACK_CFG, frames=9, dens=2)
         elif att and aa and aa in anims:
             n = int(att.get("frames", 8))
             times = sample_attack(anims, aa, n, att.get("fire"))
