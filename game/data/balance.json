@@ -492,6 +492,8 @@
   "_doc": "补给箱回血（docs/133，用户 10-24：参照吸血鬼幸存者靠打可破坏道具回血，基础回复同步下调：sustain/base_regen_mult 1 → 0.7、squad/regen_per_member 0.2 → 0.15）。补给箱（run/spawner.gd spawn_chest，hp 22，机器人 / 真人打碎）刷出间隔前松后紧：early_until 秒前 early_lo–early_hi，mid_until 秒前 mid_lo–mid_hi，之后 late_lo–late_hi；场上同时最多 3 个。打碎（run/combat.gd kill）：pack_p 掉应急补给（拾取回 pack_pct 最大生命，不吃 heal_mult），magnet_p 掉磁铁，shield_p 直接 +1 层临时护盾（最多到护盾上限 +1）；源石锭 / 灯油照旧。15% 伪装成箱形恐鱼的不掉。pack_p 0 = 关，回到旧行为",
   "pack_p": 0.9,
   "pack_pct": 0.3,
+  "pick_below": 0.9,
+  "bot_below": 0.75,
   "magnet_p": 0.1,
   "shield_p": 0.1,
   "early_until": 300,
