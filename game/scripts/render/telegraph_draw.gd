@@ -22,7 +22,7 @@ static func draw_fills(g) -> void:
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var c: Color = w.col
 		if g.optical_on:
-			c = g.optical.col_enemy   # 光学观感颜色语言（10-23）：敌方预警统一敌方色，黑潮时随之偏红
+			c = g.optical.col_danger   # 光学观感颜色语言（10-23）：敌方预警统一危险色，黑潮时随之偏红
 		var pulse: float = 0.5 + 0.5 * sin(g.t * 14.0)
 		var fa := 0.10 + 0.14 * k
 		var oa := 0.55 + 0.35 * pulse * k

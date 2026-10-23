@@ -1385,7 +1385,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 		# 敌方弹幕高对比：深色外圈垫底，画完再描一圈亮洋红边，压在友方特效上也一眼看得出
 		tb_circle(bp, b.r + 3.0, Color(0.02, 0.0, 0.05, 0.85))
 		if g.optical_on:
-			var ec: Color = g.optical.col_enemy   # 光学观感颜色语言：敌弹光晕统一敌方色
+			var ec: Color = g.optical.col_danger   # 光学观感颜色语言：敌弹光晕统一危险色
 			tb_circle(bp, b.r + 4.0, Color(ec.r, ec.g, ec.b, 0.3))
 			continue
 		match b.get("kind", "orb"):

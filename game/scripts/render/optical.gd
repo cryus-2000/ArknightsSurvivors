@@ -23,13 +23,14 @@ var lo_rect: TextureRect
 var op_node: Node2D         # 高清干员层（可见层 1，主视口画；squad.cv 合批画布在它的 draw 回调里临时改指到这里）
 var _lo_on := false
 var _was_on := false
-## 发光颜色语言（10-23 用户定，art/incoming/codex_task_size_compare_1023.md）：每类一组 render/optical_col_<类>_h / _s / _v（色相 0–1）。
-##   env 环境（孢子、地面荧光斑、怪死后体液）青 / 青绿，比原孢子色降饱和、降亮度约 30%；enemy 敌方（发光点、敌弹、敌方预警）洋红偏深红，
-##   不再取各怪自带的 ecol / 帧条亮色；elite 精英同色系更亮（并多一处发光点）；boss 限暖色专属色；
-##   horde 黑潮（缩圈开始后 1.5 秒内渐变）敌方色相往正红偏，紫色调下可读；lamp 我方灯火余烬琥珀暖橙；loot 经验结晶与掉落淡金白。
-##   干员技能保留原作色（不经过这里）
-var col_env := Color(0.39, 0.7, 0.7)
-var col_enemy := Color(1.0, 0.15, 0.4)
+## 发光颜色语言（10-23 用户定，同日按原作改：原作海嗣发光以青蓝为主）：每类一组 render/optical_col_<类>_h / _s / _v（色相 0–1）。
+##   enemy 海嗣本体发光点（眼睛 / 核心 / 发光器官）原作青蓝，不再取各怪 ecol / 帧条亮色；elite 精英同色相更亮（并多一处发光点、大一号）；
+##   boss 专属暖色；danger「危险」洋红偏深红：敌方攻击预警、敌方弹幕与拖尾，horde_h 黑潮（缩圈开始后 1.5 秒内渐变）往正红偏，紫色调下可读；
+##   env 环境（孢子、地面荧光斑、怪死后体液）暗青灰，比海嗣明显更暗、更低饱和，退到背景；lamp 我方灯火余烬琥珀暖橙；
+##   loot 经验结晶光晕与掉落淡金白。干员技能保留原作色（不经过这里）
+var col_env := Color(0.34, 0.42, 0.42)
+var col_enemy := Color(0.3, 0.75, 1.0)
+var col_danger := Color(1.0, 0.15, 0.4)
 var col_elite := Color(1.0, 0.45, 0.6)
 var col_boss := Color(1.0, 0.4, 0.15)
 var col_lamp := Color(1.0, 0.62, 0.25)
@@ -43,16 +44,18 @@ func _hsv(key: String, h: float, s: float, v: float) -> Color:
 
 func _update_cols(dt: float) -> void:
 	_tide_k = move_toward(_tide_k, 1.0 if g.zone_state > 0 else 0.0, dt / 1.5)
-	col_env = _hsv("env", 0.5, 0.45, 0.7)
+	col_env = _hsv("env", 0.5, 0.2, 0.42)
 	col_lamp = _hsv("lamp", 0.075, 0.75, 1.0)
 	col_loot = _hsv("loot", 0.13, 0.25, 1.0)
 	col_boss = _hsv("boss", 0.05, 0.85, 1.0)
-	var h: float = fposmod(lerpf(Bal.v("render/optical_col_enemy_h", 0.95), Bal.v("render/optical_col_horde_h", 1.0), _tide_k), 1.0)
-	col_enemy = Color.from_hsv(h, Bal.v("render/optical_col_enemy_s", 0.85), Bal.v("render/optical_col_enemy_v", 1.0))
-	col_elite = Color.from_hsv(h, Bal.v("render/optical_col_elite_s", 0.5), Bal.v("render/optical_col_elite_v", 1.0))
+	var eh: float = Bal.v("render/optical_col_enemy_h", 0.55)
+	col_enemy = Color.from_hsv(eh, Bal.v("render/optical_col_enemy_s", 0.7), Bal.v("render/optical_col_enemy_v", 1.0))
+	col_elite = Color.from_hsv(eh, Bal.v("render/optical_col_elite_s", 0.35), Bal.v("render/optical_col_elite_v", 1.0))
+	var dh: float = fposmod(lerpf(Bal.v("render/optical_col_danger_h", 0.95), Bal.v("render/optical_col_horde_h", 1.0), _tide_k), 1.0)
+	col_danger = Color.from_hsv(dh, Bal.v("render/optical_col_danger_s", 0.85), Bal.v("render/optical_col_danger_v", 1.0))
 
 
-## 某只怪的发光色：Boss 专属暖色、精英更亮、普通怪统一敌方色
+## 某只怪的本体发光色：Boss 专属暖色、精英更亮、普通怪统一海嗣青蓝
 func enemy_glow(e: Dictionary) -> Color:
 	if e.get("boss", false):
 		return col_boss
@@ -200,7 +203,7 @@ func _draw_glow() -> void:
 
 
 ## ⑧ 投射物发光像素拖尾：每颗弹沿速度反方向 5 个 2 px 像素、由亮到灭，吸附到 2 世界像素格；
-## 我方取弹体颜色（没有就青白），敌方一律敌方色（颜色语言）。最多画 300 颗
+## 我方取弹体颜色（没有就青白），敌方一律危险色（颜色语言）。最多画 300 颗
 func _draw_trails(list: Array, enemy: bool) -> void:
 	var n := 0
 	for b in list:
@@ -213,7 +216,7 @@ func _draw_trails(list: Array, enemy: bool) -> void:
 		n += 1
 		var col: Color
 		if enemy:
-			col = col_enemy   # 颜色语言：敌弹一律敌方色（不再取各怪 ecol）；弹芯另点一颗亮像素
+			col = col_danger   # 颜色语言：敌弹一律危险色（不再取各怪 ecol）；弹芯另点一颗亮像素
 			var c0: Vector2 = ((b.pos + Vector2(0, -16)) / 2.0).floor() * 2.0
 			glow_node.draw_rect(Rect2(c0 - Vector2(1, 1), Vector2(4, 4)), Color(col.r, col.g, col.b, 0.9))
 		else:
