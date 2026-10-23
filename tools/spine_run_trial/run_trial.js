@@ -541,6 +541,12 @@ async function main() {
   }
 
   function finish(sk, contacts) {
+    // Approved 1x face treatment; opt-in so other density exports are unchanged.
+    for (const slot of sk.slots) {
+      const n = slot.data.name;
+      if (cfg.noMouth && (/mouth/i.test(n) || (cfg.id === 'suzuran' && /^F_Face_(Default_g|Stun_c)$/.test(n)))) slot.attachment = null;
+      if (cfg.pixelEyes && ((cfg.id === 'wisadel' && /_Eye_0[1-4]$/.test(n)) || (cfg.id === 'specter_unchained' && /_Eye_Light$/.test(n)) || (cfg.id === 'skalter' && /_Eye_[CDE]$/.test(n)))) slot.attachment = null;
+    }
     for (const n of cfg.hide || []) { const s = sk.findSlot(n); if (s) s.attachment = null; }
     if (cfg.order) for (const [slot, before] of cfg.order) {
       const s = sk.findSlot(slot); sk.drawOrder = sk.drawOrder.filter(x => x !== s);
@@ -587,7 +593,28 @@ async function main() {
       const th = Math.max(1, Math.min(CUT, max));
       // 嘴：沿用 bz_18 mouth_sampling 的光学取样——按列覆盖率取 ≥ 18% 峰值的列（至少两格成线），每列取覆盖最高的一行，
       // 墨色按覆盖率（夹 0.30–0.65）与下层脸色混合；否则亚像素嘴二值化后只剩一个黑点或碎点
-      if (/mouth/i.test(slot.data.name) && max > 0 && x0 >= 0 && y0 >= 0 && x0 + w <= SIZE && y0 + h <= SIZE) {
+      const iris = cfg.pixelEyes && ((cfg.id==='wisadel' && /_Eye_05$/.test(slot.data.name)) || (cfg.id==='specter_unchained' && /_Eyeball$/.test(slot.data.name)) || (cfg.id==='skalter' && /_Eye_B$/.test(slot.data.name)));
+      const lash = cfg.pixelEyes && ((cfg.id==='wisadel' && /_Eyelash_/.test(slot.data.name)) || (cfg.id==='specter_unchained' && /_[LR]_Eye$/.test(slot.data.name)) || (cfg.id==='skalter' && /_Eye_A$/.test(slot.data.name)));
+      if ((iris || lash) && max>0) {
+        // Eye cells follow each native attachment's deformed source footprint.
+        // Hand-selected two-tone iris, one-row upper lid per covered column.
+        for(let x=0;x<w;x++) {
+          let best=-1,peak=0;
+          for(let y=0;y<h;y++){const al=acc[(y*w+x)*4+3];if(al>peak){peak=al;best=y;}}
+          if(peak<th)continue;
+          if(lash){const q=(best*w+x)*4;const under=oc.getImageData(x0+x,y0+best,1,1).data;const wt=Math.min(.8,peak/255);for(let k=0;k<3;k++)a[q+k]=Math.round([47,36,42][k]*wt+under[k]*(1-wt));a[q+3]=255;}
+          else {
+            const ys=[];for(let y=0;y<h;y++)if(acc[(y*w+x)*4+3]>=th)ys.push(y);
+            const top=ys[0],bottom=ys[ys.length-1];
+            for(const y of ys){const q=(y*w+x)*4;let c;
+              if(cfg.id==='wisadel')c=y===top&&top!==bottom?[157,65,32]:[239,157,59];
+              else if(cfg.id==='specter_unchained')c=y===top&&top!==bottom?[119,36,48]:[214,89,98];
+              else c=y===top&&top!==bottom?[128,29,44]:[203,53,70];
+              a[q]=c[0];a[q+1]=c[1];a[q+2]=c[2];a[q+3]=255;
+            }
+          }
+        }
+      } else if (/mouth/i.test(slot.data.name) && max > 0 && x0 >= 0 && y0 >= 0 && x0 + w <= SIZE && y0 + h <= SIZE) {
         const cols = new Float64Array(w);
         for (let x = 0; x < w; x++) for (let y = 0; y < h; y++) cols[x] += acc[(y * w + x) * 4 + 3] / 255;
         const peak = Math.max(...cols); let xs = [];

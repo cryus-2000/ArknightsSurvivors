@@ -117,6 +117,23 @@ def anchor_of(cfg):
 
 def compose(frames_dir, n, fw, fh, foot, anc, mirror=False):
     """渲染帧（锚点 anc = 脚底中心）贴进 fw×fh 帧格，锚点对到 json 的 foot"""
+    # Preserve original scale and foot; extend right/bottom only if native
+    # attachments would be clipped. Same contract as the approved art package.
+    for i in range(n):
+        probe = Image.open(os.path.join(frames_dir, f"f{i:02d}.png")).convert("RGBA")
+        ax = anc[0]
+        if mirror:
+            probe = probe.transpose(Image.FLIP_LEFT_RIGHT)
+            ax = probe.width - ax
+        box = probe.getbbox()
+        if box:
+            dx, dy = round(foot[0] - ax), round(foot[1] - anc[1])
+            if box[0] + dx < 0 or box[1] + dy < 0:
+                raise ValueError("Native frame needs left/top padding and an explicit foot update")
+            if box[2] + dx > fw:
+                fw = box[2] + dx + 1
+            if box[3] + dy > fh:
+                fh = box[3] + dy + 1
     out = Image.new("RGBA", (fw * n, fh), (0, 0, 0, 0))
     for i in range(n):
         f = Image.open(os.path.join(frames_dir, f"f{i:02d}.png")).convert("RGBA")
@@ -127,6 +144,29 @@ def compose(frames_dir, n, fw, fh, foot, anc, mirror=False):
         cell = Image.new("RGBA", (fw, fh), (0, 0, 0, 0))
         cell.paste(f, (int(round(foot[0] - ax)), int(round(foot[1] - anc[1]))), f)
         out.paste(cell, (i * fw, 0))
+    return out
+
+
+def skalter_fallback_eyes(img, kind):
+    """Retain legacy hover motion; recolor its authored iris cells only.
+
+    These coordinates describe the existing 64px, eight-frame hover sources,
+    not a face detector. Occluded / closed eyes remain untouched.
+    """
+    if img.size != (512, 64):
+        raise ValueError("Skalter hover source changed; review iris registration")
+    out = img.copy()
+    ys = [32, 31, 31, 31, 32, 33, 33, 33] if kind == "run" else [34, 34, 34, 34, 34, 35, 35, 35]
+    xs = (32, 36) if kind == "run" else (31, 35)
+    for i, y in enumerate(ys):
+        for x in xs:
+            px = i * 64 + x
+            r, g, b, a = out.getpixel((px, y))
+            if a and r > 80 and r > g * 1.6 and r > b * 1.2:
+                out.putpixel((px, y), (203, 53, 70, a))
+                r, g, b, a = out.getpixel((px, y - 1))
+                if a and r > 80 and r > g * 1.6 and r > b * 1.2:
+                    out.putpixel((px, y - 1), (128, 29, 44, a))
     return out
 
 
@@ -145,7 +185,8 @@ def bbox_h(img):
 
 
 def build_op(op, dry=False):
-    jd = json.load(open(os.path.join(CHARS, op + ".json"), encoding="utf-8"))
+    with open(os.path.join(CHARS, op + ".json"), encoding="utf-8") as source:
+        jd = json.load(source)
     sprites = jd.get("sprites", {})
     texs = set()
     walk_tex(sprites, texs)
@@ -156,7 +197,10 @@ def build_op(op, dry=False):
     anims = info(op) if os.path.exists(os.path.join(REF, op, op + "_info.json")) else {}
     spine_ok = os.path.exists(base_cfg_p) and bool(anims)
     if spine_ok:
-        base = json.load(open(base_cfg_p, encoding="utf-8"))
+        with open(base_cfg_p, encoding="utf-8") as source:
+            base = json.load(source)
+        base["noMouth"] = True
+        base["pixelEyes"] = op in {"wisadel", "specter_unchained", "skalter"}
         base.pop("keys", None); base.pop("poses", None); base.pop("sample", None)
         base["canvas"] = max(192, base.get("canvas", 128))
         sm0 = base.get("scaleMul") or 1
@@ -182,11 +226,14 @@ def build_op(op, dry=False):
             im2 = Image.open(os.path.join(INC, sp["tex"] + "@2x.png"))
             n = frames or int(sp.get("frames", max(1, im2.width // im2.height)))
             fw, fh = (im2.width // int(sp.get("frames", max(1, im2.width // im2.height))) + 1) // 2, (im2.height + 1) // 2
+            im2.close()
             foot = sp.get("foot", sprites.get("foot", [24, 46]))
             fw, fh, foot = fw * dens, fh * dens, [foot[0] * dens, foot[1] * dens]   # dens 2 = 同时出 @2x（斯卡蒂新普攻，render/op_1x 关时用）
             if keyed:
                 c = json.load(open(os.path.join(CFG, keyed), encoding="utf-8"))
                 c["scaleMul"] = scale * dens
+                c["noMouth"] = dens == 1
+                c["pixelEyes"] = dens == 1 and op in {"wisadel", "specter_unchained", "skalter"}
                 if mode == "move":
                     c["runLegs"] = True
             else:
@@ -239,7 +286,7 @@ def build_op(op, dry=False):
                     results[tex] = img
                     log.append(f"spine {kind} -> {tex}")
             except Exception as e:
-                log.append(f"spine {kind} 失败，改用合并：{e}")
+                raise RuntimeError(f"{op} {kind} native export failed; existing assets preserved") from e
         for tex in texs:
             if tex in results:
                 continue
@@ -253,6 +300,8 @@ def build_op(op, dry=False):
             if im2.width % fr:
                 fr = max(1, im2.width // im2.height)
             results[tex] = downsample(im2, fr)
+            if op == "skalter" and tex in {"op_skalter_run", "op_skalter_attack"}:
+                results[tex] = skalter_fallback_eyes(results[tex], "run" if tex.endswith("_run") else "attack")
         for tex, img in results.items():
             img.save(os.path.join(INC, tex + "@1x.png"))
         for tex, fn in done2x.items():
