@@ -6,6 +6,7 @@ from pathlib import Path
 import encrypted_release as enc
 import godot_runner
 from release_slim import is_review_art
+from export_build import ART_SUBDIRS   # 随包子目录只认 export_build 这一份（10-23 光学观感加 optical_fx/ 后这里漏数，对内包验证失败）
 
 ROOT=Path(__file__).resolve().parents[1]
 PROBE=r'''extends SceneTree
@@ -216,8 +217,8 @@ def main():
     manifest=json.loads((package/'release_manifest.json').read_text(encoding='utf-8'))
     images=[]
     art_root=project/'art/incoming'
-    # 根目录 + export_build.ART_SUBDIRS 子目录（Boss 名片头像 portraits/），与出包计数口径一致；子目录文件以 "子目录/名" 登记
-    subdirs=['']+[d for d in ('portraits',) if (art_root/d).is_dir()]
+    # 根目录 + export_build.ART_SUBDIRS 子目录（Boss 名片头像 portraits/、光学观感压阶特效 optical_fx/），与出包计数口径一致；子目录文件以 "子目录/名" 登记
+    subdirs=['']+[d for d in ART_SUBDIRS if (art_root/d).is_dir()]
     for sub in subdirs:
         for path in sorted((art_root/sub if sub else art_root).glob('*.png')):
             if is_review_art(path.name): continue
