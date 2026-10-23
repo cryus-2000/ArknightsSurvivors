@@ -1002,6 +1002,38 @@ func _draw_fx() -> void:
 				g.draw_circle(Vector2.ZERO, f.r, Color(0.6, 0.85, 1.3, 0.28 * a))
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				g.draw_line(f.pos + Vector2(-5, 1), f.pos + Vector2(5, -1), Color(1.2, 1.5, 2.0, 0.6 * a), 1.5)
+			"hstar":
+				# 命中星（vfx._tier_fx）：中档 4 臂、重档 8 臂；臂长随寿命先长后缩，2 px 线 + 白芯，三阶跳着消失
+				var hq: float = ceilf(a * 3.0) / 3.0
+				var hl: float = float(f.r) * (0.6 + 0.4 * sin((1.0 - a) * PI))
+				var hc: Color = f.col
+				for q in int(f.n):
+					var dv := Vector2.from_angle(TAU * q / float(f.n)) * (hl if q % 2 == 0 else hl * 0.6)
+					g.draw_line(f.pos, f.pos + dv, Color(hc.r * 1.4, hc.g * 1.4, hc.b * 1.4, hq), 2.0)
+				g.draw_rect(Rect2(f.pos - Vector2(2, 2), Vector2(4, 4)), Color(1.8, 1.8, 1.8, hq))
+			"marc":
+				# 近战刀光（vfx.melee_arc）：半径 / 半角 = 实际判定；干员本色、2–3 阶硬边（外层暗带 + 亮芯，重档再加白芯），
+				# 透明度按三阶跳着消失（不平滑淡出）。粗细亮度按这一下的命中档（轻 / 中 / 重）
+				var tr: int = int(f.tier)
+				var aq: float = ceilf(a * 3.0) / 3.0
+				var wd: float = [0.0, 2.0, 3.0, 4.0][tr]
+				var kb: float = [0.0, 1.0, 1.25, 1.6][tr]
+				var full: bool = float(f.half) >= PI - 0.01
+				var a0: float = 0.0 if full else float(f.ang) - float(f.half)
+				var a1: float = TAU if full else float(f.ang) + float(f.half)
+				var nseg: int = clampi(int((a1 - a0) * float(f.r) / 6.0), 8, 64)
+				var cc: Color = f.col
+				g.draw_arc(f.pos, f.r - wd * 0.5, a0, a1, nseg, Color(cc.r * 0.5, cc.g * 0.5, cc.b * 0.5, 0.55 * aq), wd + 4.0)
+				g.draw_arc(f.pos, f.r - wd * 0.5, a0, a1, nseg, Color(cc.r * kb, cc.g * kb, cc.b * kb, aq), wd)
+				if tr == 3:
+					g.draw_arc(f.pos, f.r - wd * 0.5, a0, a1, nseg, Color(1.6, 1.6, 1.6, aq), 1.0)
+				if g.vfx.arc_dbg < 0:
+					g.vfx.arc_dbg = 1 if Cfg.dev_args().has("--arcdbg") else 0
+				if g.vfx.arc_dbg == 1:
+					g.draw_arc(f.pos, f.r, 0.0, TAU, 64, Color(1, 1, 1, 0.5), 1.0)   # 判定圈（核对）
+					if not full:
+						g.draw_line(f.pos, f.pos + Vector2.from_angle(a0) * float(f.r), Color(1, 1, 0.3, 0.7), 1.0)
+						g.draw_line(f.pos, f.pos + Vector2.from_angle(a1) * float(f.r), Color(1, 1, 0.3, 0.7), 1.0)
 			"ring":
 				# op_hit：干员攻击 / 技能命中的装饰环（水月），render/hit_rings 缺省不画；其余（敌方、拾取、藏品……）照画
 				if f.get("op_hit", false) and not Dc.hit_rings():
