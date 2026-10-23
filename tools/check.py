@@ -997,6 +997,7 @@ SCENE_REGRESSIONS = {
     "gladiia_presentation": ("歌蕾蒂娅牵引、水柱锚点与场特效收尾", "gladiia_presentation_test", r"GLADIIA PRESENTATION .* 0 failed", ["--balance", "--op=gladiia"]),
     "operator_transitions": ("全员技能起手、移动接续与强化重锤", "operator_transition_test", r"OPERATOR TRANSITIONS .* 0 failed", ["--balance", "--op=mizuki"]),
     "attack_rhythm": ("20 人确认节奏、攻速压缩、逐帧映射、移动让位与技能接管", "attack_rhythm_test", r"ATTACK RHYTHM .* 0 failed", ["--balance", "--seed=1", "--op=mizuki"]),
+    "move_attack": ("移动攻击：帧条加载、移动中出手换 move_attack 且出手帧对齐、站定不换、收势不被跑步截掉（docs/128）", "move_attack_test", r"MOVE ATTACK \d+ checks, 0 failed", ["--balance", "--seed=1", "--op=mizuki"]),
     "mizuki_skill_anim": ("水月原生像素起手、命中、收势和持续变体", "mizuki_skill_anim_test", r"MIZUKI SKILL ANIM failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
     "settlement": ("结算：历史编队滚动、评级与视觉 RNG", "settlement_test", r"SETTLEMENT failures=0", []),
     "run_stats": ("作战记录：统计守恒（占比合计 100%、来源相加、按干员拆 = dmg_out）+ 界面打开 / 导航 / 桌面与手机排版", "run_stats_test", r"RUN STATS failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),

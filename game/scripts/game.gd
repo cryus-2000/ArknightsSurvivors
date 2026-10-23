@@ -533,7 +533,7 @@ static func preload_tex_names() -> Array:
 	for cid in Character.list_ids():
 		var cdef: Dictionary = Character.load_def(cid)
 		var csp: Dictionary = cdef.get("sprites", {})
-		for kind in ["idle", "run", "attack", "skill", "hurt", "death"] + cdef.get("extra_sprites", []):
+		for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"] + cdef.get("extra_sprites", []):   # move_attack：移动攻击（docs/128，character._move_swap）
 			if csp.has(kind):
 				names.append(csp[kind] if csp[kind] is String else csp[kind].tex)
 		if csp.has("base"):
@@ -757,7 +757,7 @@ func _ready() -> void:
 	for cid in Character.list_ids():
 		var cdef: Dictionary = Character.load_def(cid)
 		var csp: Dictionary = cdef.get("sprites", {})
-		for kind in ["idle", "run", "attack", "skill", "hurt", "death"] + cdef.get("extra_sprites", []):
+		for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"] + cdef.get("extra_sprites", []):   # move_attack：移动攻击（docs/128，character._move_swap）
 			if csp.has(kind):
 				var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
 				if not tex.has(tn):
