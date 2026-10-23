@@ -149,7 +149,8 @@ def build_op(op, dry=False):
     sprites = jd.get("sprites", {})
     texs = set()
     walk_tex(sprites, texs)
-    texs = sorted(t for t in texs if os.path.exists(os.path.join(INC, t + "@2x.png")))
+    # 特效帧条（fx_*，如维什戴尔魂火）不是小人，保持 @2x（10-23 协调人核包时发现误转）
+    texs = sorted(t for t in texs if os.path.exists(os.path.join(INC, t + "@2x.png")) and not t.startswith("fx_"))
     done, done2x, log = {}, {}, []
     base_cfg_p = os.path.join(CFG, op + ".json")
     anims = info(op) if os.path.exists(os.path.join(REF, op, op + "_info.json")) else {}
