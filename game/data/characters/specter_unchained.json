@@ -72,6 +72,7 @@
   "regen": 1.5
  },
  "sprites": {
+  "move_attack": {"tex": "op_specter_unchained_move_attack", "frames": 12, "foot": [48, 76], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},
   "entry": {"tex": "op_specter_unchained_entry", "frames": 8, "fps": 8.727, "foot": [32, 60], "frame_durations": [0.1146, 0.1146, 0.1146, 0.1145, 0.1146, 0.1146, 0.1146, 0.1146], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/specter_unchained_entry.json），64 画布 @2x；落下由代码补"},
   "idle": {
    "tex": "op_specter_unchained_idle",

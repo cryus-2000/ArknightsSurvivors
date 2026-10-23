@@ -100,6 +100,15 @@ static var normal_maps := false
 const USE_HIRES := true
 static var _hires := {}
 static var _hires_rid := {}
+## 干员 1 倍帧条（10-23 用户定「1 倍，整套替换」，docs/128）：art/incoming/<name>@1x.png 存在且 render/op_1x 开着时优先于 @2x，
+## 像素密度 1（1 美术像素 = 1 贴图像素，与怪物同密度），锚点 / 帧数 / 判定与 @2x 版相同。由 tools/op_1x/make_op_1x.py 生成：
+## 待机 / 跑步 / 普攻 / 移动攻击从原作 Spine 逐部件 1 倍像素化，其余帧条由 @2x 2×2 合并 + 本人调色板
+static var _op1x := -1
+static func op_1x_on() -> bool:
+	if _op1x < 0:
+		var Bal = load("res://scripts/core/balance.gd")
+		_op1x = 1 if Bal == null or Bal.v("render/op_1x", 1.0) > 0.0 else 0
+	return _op1x == 1
 ## 不做法线的贴图前缀（地面 / 特效 / UI 图标：做了反而奇怪）
 const NO_NORMAL_PREFIX := ["tiles", "terrain_", "fx_", "proj_", "relic_", "growth_", "skill_", "evo_", "weapon_", "light", "shadow", "slash", "title_", "ebullet", "drone_bullet", "drone_laser", "portraits/"]
 
@@ -195,7 +204,19 @@ static func tex(name: String) -> Texture2D:
 	var density := 1.0
 	var src_path := ""   # 法线缓存键用：原图路径（磁盘 PNG 或包内资源）
 	var pop := pop_wanted(name)   # 普通 / 精英怪祛雾：磁盘原图在建贴图前烘，包内贴图读回像素再烘（法线仍按原图 alpha 算）
-	var p2 := _incoming_path(name + "@2x") if USE_HIRES else ""
+	var p1 := _incoming_path(name + "@1x") if op_1x_on() else ""
+	if p1 != "":
+		var img1 := Image.load_from_file(p1)
+		if img1 != null and not img1.is_empty():
+			t = ImageTexture.create_from_image(img1)
+			src_path = p1
+	elif op_1x_on():
+		var q1 := _packed_path(name + "@1x")
+		if q1 != "":
+			t = load(q1)
+			if t != null:
+				src_path = q1
+	var p2 := _incoming_path(name + "@2x") if USE_HIRES and t == null else ""
 	if p2 != "":
 		var img2 := Image.load_from_file(p2)
 		if img2 != null and not img2.is_empty():
@@ -204,7 +225,7 @@ static func tex(name: String) -> Texture2D:
 			t = ImageTexture.create_from_image(img2)
 			density = 2.0
 			src_path = p2
-	elif USE_HIRES:
+	elif USE_HIRES and t == null:
 		var q2 := _packed_path(name + "@2x")
 		if q2 != "":
 			t = load(q2)
@@ -451,7 +472,11 @@ static func prewarm_join() -> void:
 ## 法线图的原图路径：与 tex() 选图的顺序一致（@2x 原图 > @2x 包内 > 原图 > 包内 > 占位）
 static func _normal_source(name: String) -> String:
 	var path := ""
-	if USE_HIRES:
+	if op_1x_on():
+		path = _incoming_path(name + "@1x")
+		if path == "":
+			path = _packed_path(name + "@1x")
+	if USE_HIRES and path == "":
 		path = _incoming_path(name + "@2x")
 		if path == "":
 			path = _packed_path(name + "@2x")

@@ -1310,8 +1310,8 @@ func act_anim_yield() -> bool:
 	var spec := sprite_spec(act_anim)
 	if spec.has("frame_durations") and not attack_phased and elapsed >= frames_seconds(act_anim, range(int(spec.get("frames", 0)))) - 0.000001:
 		return true
-	if elapsed >= attack_fire_at and anim_tex("run") != null and mv > (RUN_EXIT if anim_kind == "run" else RUN_ENTER):
-		return true
+	if elapsed >= attack_fire_at and anim_tex("run") != null and anim_tex("move_" + act_anim) == null and mv > (RUN_EXIT if anim_kind == "run" else RUN_ENTER):
+		return true   # 有移动攻击帧条时不再出手后就切跑步（收势被截），播完整个动作（_move_swap 换成跑动版）
 	return false
 
 
@@ -1650,7 +1650,22 @@ func anim_hframes(tx: Texture2D, kind: String = "") -> int:
 
 ## 当前帧（贴图 / 帧序号 / 帧数），残影 / 分身等复用。道具离手（prop_out）时换成无盾画面（_noshield）
 func anim_state() -> Dictionary:
-	return _noshield(_anim_state_raw())
+	return _move_swap(_noshield(_anim_state_raw()))
+
+
+## 移动攻击（10-23 用户「边跑边攻击」，docs/128 §3）：出手动作期间在移动、且有 sprites.move_<动作> 帧条（帧数相同）时，
+## 只换贴图：上半身同一动作、腿是跑步步态。帧序号 / 脚底 / kind 不变，所以出手点、炮口等玩法读数与原动作一致；纯画面
+func _move_swap(st: Dictionary) -> Dictionary:
+	if st.is_empty() or attack_t <= 0.0 or mv <= RUN_ENTER:
+		return st
+	var k := str(st.get("kind", ""))
+	if k == "" or k != act_anim:
+		return st
+	var mtx: Texture2D = anim_tex("move_" + k)
+	if mtx == null or anim_hframes(mtx, "move_" + k) != int(st.get("hf", 0)):
+		return st
+	st["tex"] = mtx
+	return st
 
 
 func _anim_state_raw() -> Dictionary:
