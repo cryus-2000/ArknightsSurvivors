@@ -265,7 +265,7 @@
     "_doc": "Native Spine pixels:192 @2x, logical96, common foot; source durations recorded in mizuki_runtime_manifest.json. Runtime attack uses full anticipation/fire/recovery with readable floor; S2/S3 share documented reference family."
   },
   "base": {
-    "umbrella_dmg": 15,
+    "umbrella_dmg": 16,
     "swing_radius": 112,
     "swing_skill": 132,
     "swing_interval": 0.9,

@@ -14,7 +14,7 @@
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
   "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
-  "atk": 40,
+  "atk": 43,
   "cd": 0.7,
   "reach": 112,
   "reach_skill": 132,
