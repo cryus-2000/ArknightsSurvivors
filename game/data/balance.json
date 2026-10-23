@@ -595,8 +595,8 @@
  "render": {
   "_doc_kill_style": "光学观感下的击杀（docs/130 C5，用户 10-24 定）：1 = 死亡动作加快后最后一帧碎成像素碎屑、不画溶解与老火花；0 = 旧样子（帧条 / 溶解 + 碎屑 + 火花）",
   "kill_style": 1.0,
-  "_doc_optical_fg": "光学观感下的前景海草（docs/130 A3）：optical_fg_px 1 = 像素剪影、0 = 不画、-1 = 原虚化；optical_normals 1 = 光学下也生成法线光照（对照用，缺省 0 = 高档也关，用户 10-24 定）",
-  "optical_fg_px": 1.0,
+  "_doc_optical_fg": "光学观感下的前景海草（docs/130 A3）：optical_fg_px 1 = 像素剪影、0 = 不画（缺省，用户 10-24 定）、-1 = 原虚化；optical_normals 1 = 光学下也生成法线光照（对照用，缺省 0 = 高档也关，用户 10-24 定）",
+  "optical_fg_px": 0.0,
   "optical_normals": 0.0,
   "_doc": "画面（界面与美术 10-01）：ambient_gain 全局亮度增益，乘在后期 brightness（玩家亮度设置）上，正常灯与低灯同比例；beacon/lit_glow_gain 点亮灯标的暖色光域强度（0 = 关，半径 = clear_r）",
   "ambient_gain": 1.05,
