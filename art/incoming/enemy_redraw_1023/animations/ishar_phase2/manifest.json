@@ -1,0 +1,2160 @@
+{
+  "id": "ishar_phase2",
+  "name": "伊莎玛拉，腐化之心",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    159,
+    128
+  ],
+  "origin": [
+    93,
+    122
+  ],
+  "source_crop_1x": [
+    0,
+    2,
+    159,
+    130
+  ],
+  "scale_fixed_across_actions": 0.10904948449192957,
+  "idle_height_target": 88,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B",
+    "#59485F",
+    "#8B7188",
+    "#B99DA8",
+    "#354853",
+    "#55737C",
+    "#405B58",
+    "#758980",
+    "#423941",
+    "#775C52",
+    "#9C7876",
+    "#C1A29B",
+    "#222D40",
+    "#52627D",
+    "#ADB8BD",
+    "#E1DACD",
+    "#5E6469"
+  ],
+  "color_cap": 32,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle_02",
+      "frames": 6,
+      "duration_seconds": 2,
+      "sample_times": [
+        0.0,
+        0.3333333333333333,
+        0.6666666666666666,
+        1.0,
+        1.3333333333333333,
+        1.6666666666666665
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03",
+        "idle_04",
+        "idle_05"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move_02",
+      "frames": 6,
+      "duration_seconds": 5.833333492279053,
+      "sample_times": [
+        0.0,
+        0.9722222487131754,
+        1.9444444974263508,
+        2.9166667461395264,
+        3.8888889948527017,
+        4.861111243565877
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03",
+        "move_04",
+        "move_05"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack_02",
+      "frames": 8,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.19047619615282332,
+        0.38095239230564665,
+        0.6666666865348816,
+        0.7619047846112933,
+        0.9523809807641166,
+        1.14285717691694,
+        1.3323333730697633
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.6666666865348816
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05",
+        "attack_06",
+        "attack_07"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die_02",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.14285714285714285,
+        0.2857142857142857,
+        0.42857142857142855,
+        0.5714285714285714,
+        0.7142857142857143,
+        0.8571428571428571,
+        0.999
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05",
+        "death_06",
+        "death_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.14285714285714285,
+        0.2857142857142857,
+        0.42857142857142855,
+        0.5714285714285714,
+        0.7142857142857143,
+        0.8571428571428571,
+        0.999
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "transform",
+      "source_animation": "Start_02",
+      "construction": "original Start_02 sampled in reverse for human-to-large transformation",
+      "frames": 8,
+      "duration_seconds": 2,
+      "sample_times": [
+        0,
+        0.2857142857142858,
+        0.5714285714285714,
+        0.8333333730697632,
+        1.1428571428571428,
+        1.4285714285714286,
+        1.7142857142857144,
+        2.0
+      ],
+      "source_events": [
+        {
+          "name": "OnStart",
+          "t": 1.1666666269302368
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "loop": false,
+      "frame_names": [
+        "transform_00",
+        "transform_01",
+        "transform_02",
+        "transform_03",
+        "transform_04",
+        "transform_05",
+        "transform_06",
+        "transform_07"
+      ],
+      "pose_times": [
+        1.999,
+        1.7142857142857142,
+        1.4285714285714286,
+        1.1666666269302368,
+        0.8571428571428571,
+        0.5714285714285714,
+        0.2857142857142857,
+        0.0
+      ],
+      "release_frame": null,
+      "playback_events": [
+        {
+          "name": "OnStart",
+          "t": 0.8333333730697632
+        }
+      ]
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle_02",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "t_sing",
+      "source_animation": "Attack_02",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 0.64,
+      "sample_times": [
+        0.0,
+        0.21333333333333335,
+        0.4266666666666667,
+        0.639
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "t_sing_00",
+        "t_sing_01",
+        "t_sing_02",
+        "t_sing_03"
+      ],
+      "pose_times": [
+        0,
+        0.4,
+        0.8,
+        1.2
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "C_Head_1",
+    "local": [
+      51.572909001934576,
+      -159.19010493511706
+    ],
+    "slot": "C_Head_01"
+  },
+  "subpixel_parts": [
+    {
+      "frame": "idle_00",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "move_00",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "move_00",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "move_00",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "move_00",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "move_01",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "move_01",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "move_01",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "move_01",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "move_02",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "move_02",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "move_02",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "move_02",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "move_03",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "move_03",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "move_03",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "move_03",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "move_04",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "move_04",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "move_04",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "move_04",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "move_05",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "move_05",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "move_05",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "move_05",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "death_00",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "death_00",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "death_00",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "death_00",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "death_01",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "death_01",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "death_01",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "death_01",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "death_02",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "death_02",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "death_02",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "death_02",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Ring_01",
+      "attachment": "C_Ring_01"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Body_04",
+      "attachment": "C_Body_04"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_017",
+      "attachment": "C_Fin_017"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Body_03",
+      "attachment": "C_Body_03"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_016",
+      "attachment": "C_Fin_016"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_015",
+      "attachment": "C_Fin_015"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Body_02",
+      "attachment": "C_Body_02"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_014",
+      "attachment": "C_Fin_014"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_013",
+      "attachment": "C_Fin_013"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_012",
+      "attachment": "C_Fin_012"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Body_01",
+      "attachment": "C_Body_01"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_011",
+      "attachment": "C_Fin_011"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_010",
+      "attachment": "C_Fin_010"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_09",
+      "attachment": "C_Fin_09"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_08",
+      "attachment": "C_Fin_08"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_07",
+      "attachment": "C_Fin_07"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Head_01",
+      "attachment": "C_Head_01"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_06",
+      "attachment": "C_Fin_06"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_05",
+      "attachment": "C_Fin_05"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_04",
+      "attachment": "C_Fin_04"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_03",
+      "attachment": "C_Fin_03"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_02",
+      "attachment": "C_Fin_02"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Fin_01",
+      "attachment": "C_Fin_01"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Ring_02",
+      "attachment": "C_Ring_02"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "transform_00",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Ring_01",
+      "attachment": "C_Ring_01"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Body_04",
+      "attachment": "C_Body_04"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_017",
+      "attachment": "C_Fin_017"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Body_03",
+      "attachment": "C_Body_03"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_016",
+      "attachment": "C_Fin_016"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_015",
+      "attachment": "C_Fin_015"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Body_02",
+      "attachment": "C_Body_02"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_014",
+      "attachment": "C_Fin_014"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_013",
+      "attachment": "C_Fin_013"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_012",
+      "attachment": "C_Fin_012"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Body_01",
+      "attachment": "C_Body_01"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_011",
+      "attachment": "C_Fin_011"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_010",
+      "attachment": "C_Fin_010"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_09",
+      "attachment": "C_Fin_09"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_08",
+      "attachment": "C_Fin_08"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_07",
+      "attachment": "C_Fin_07"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Head_01",
+      "attachment": "C_Head_01"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_06",
+      "attachment": "C_Fin_06"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_05",
+      "attachment": "C_Fin_05"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_04",
+      "attachment": "C_Fin_04"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_03",
+      "attachment": "C_Fin_03"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_02",
+      "attachment": "C_Fin_02"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Fin_01",
+      "attachment": "C_Fin_01"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Ring_02",
+      "attachment": "C_Ring_02"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "transform_01",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Ring_01",
+      "attachment": "C_Ring_01"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Body_04",
+      "attachment": "C_Body_04"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_017",
+      "attachment": "C_Fin_017"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Body_03",
+      "attachment": "C_Body_03"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_016",
+      "attachment": "C_Fin_016"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_015",
+      "attachment": "C_Fin_015"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Body_02",
+      "attachment": "C_Body_02"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_014",
+      "attachment": "C_Fin_014"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_013",
+      "attachment": "C_Fin_013"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_012",
+      "attachment": "C_Fin_012"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Body_01",
+      "attachment": "C_Body_01"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_011",
+      "attachment": "C_Fin_011"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_010",
+      "attachment": "C_Fin_010"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_09",
+      "attachment": "C_Fin_09"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_08",
+      "attachment": "C_Fin_08"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_07",
+      "attachment": "C_Fin_07"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Head_01",
+      "attachment": "C_Head_01"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_06",
+      "attachment": "C_Fin_06"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_05",
+      "attachment": "C_Fin_05"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_04",
+      "attachment": "C_Fin_04"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_03",
+      "attachment": "C_Fin_03"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_02",
+      "attachment": "C_Fin_02"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Fin_01",
+      "attachment": "C_Fin_01"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Ring_02",
+      "attachment": "C_Ring_02"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "transform_02",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "F_R_Finger_IV",
+      "attachment": "F_R_Finger_4"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "transform_03",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Belt_4",
+      "attachment": "F_R_Belt_4"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Belt_II",
+      "attachment": "F_L_Belt_2"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Belt_I",
+      "attachment": "F_L_Belt_1"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Braid_1",
+      "attachment": "F_R_Braid_1"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Braid_2",
+      "attachment": "F_R_Braid_2"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Braid_3",
+      "attachment": "F_R_Braid_3"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Braid_1",
+      "attachment": "F_L_Braid_1"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Braid_2",
+      "attachment": "F_L_Braid_2"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Dress_3",
+      "attachment": "F_L_Dress_3"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Dress_2",
+      "attachment": "F_L_Dress_2"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Belt_III",
+      "attachment": "F_L_Belt_3"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Belt_IV",
+      "attachment": "F_L_Belt_4"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Fist_F",
+      "attachment": "F_R_Fist"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "C_Weapon_V",
+      "attachment": "C_Weapon_5"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "C_Weapon_IV",
+      "attachment": "C_Weapon_4"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "C_Weapon_III",
+      "attachment": "C_Weapon_3"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "C_Weapon_II",
+      "attachment": "C_Weapon_2"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "C_Weapon_I",
+      "attachment": "C_Weapon_1"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Forearm",
+      "attachment": "F_L_Forearm"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Arm",
+      "attachment": "F_L_Arm"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Foot",
+      "attachment": "F_L_Foot"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Calf",
+      "attachment": "F_L_Calf"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Leg",
+      "attachment": "F_L_Leg"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Foot",
+      "attachment": "F_R_Foot"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Calf",
+      "attachment": "F_R_Calf"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Leg",
+      "attachment": "F_R_Leg"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_Skirt_2",
+      "attachment": "F_Skirt_2"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Dress_2",
+      "attachment": "F_R_Dress_2"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Dress_1",
+      "attachment": "F_R_Dress_1"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_Chest",
+      "attachment": "F_Chest"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_Neck",
+      "attachment": "F_Neck"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_Skirt_1",
+      "attachment": "F_Skirt_1"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Skirt",
+      "attachment": "F_L_Skirt"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Finger_V",
+      "attachment": "F_R_Finger_5"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Hand_II",
+      "attachment": "F_R_Hand_2"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Finger_IV",
+      "attachment": "F_R_Finger_4"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Finger_III",
+      "attachment": "F_R_Finger_3"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Finger_II",
+      "attachment": "F_R_Finger_2"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Finger_I",
+      "attachment": "F_R_Finger_1"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Hand_I",
+      "attachment": "F_R_Hand_1"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Arm",
+      "attachment": "F_R_Arm"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F _R_Sleeve",
+      "attachment": "F _R_Sleeve"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Bangs_2",
+      "attachment": "F_R_Bangs_2"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Eyewhite",
+      "attachment": "F_R_Eyewhite"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Eye",
+      "attachment": "F_R_Eye"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Eyewhite",
+      "attachment": "F_L_Eyewhite"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Eye",
+      "attachment": "F_L_Eye"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_Face_S",
+      "attachment": "F_Face"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_Head",
+      "attachment": "F_Head"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_Hair",
+      "attachment": "F_Hair"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Bangs_1",
+      "attachment": "F_R_Bangs_1"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_M_Bangs_1",
+      "attachment": "F_M_Bangs_1"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Bangs_2",
+      "attachment": "F_L_Bangs_2"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Bangs_1",
+      "attachment": "F_L_Bangs_1"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_Braid_1",
+      "attachment": "F_Braid_1"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Belt_2",
+      "attachment": "F_R_Belt_2"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Belt_3",
+      "attachment": "F_R_Belt_3"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Belt_1",
+      "attachment": "F_R_Belt_1"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_Hat",
+      "attachment": "F_Hat"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "F_Aho",
+      "attachment": "F_Aho"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "transform_04",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "transform_05",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "transform_05",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "transform_05",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "transform_05",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "transform_06",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "transform_06",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "transform_06",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "transform_06",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "transform_07",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "transform_07",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "transform_07",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "transform_07",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "t_sing_00",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "t_sing_00",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "t_sing_00",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "t_sing_00",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "t_sing_01",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "t_sing_01",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "t_sing_01",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "t_sing_01",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "t_sing_02",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "t_sing_02",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "t_sing_02",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "t_sing_02",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    },
+    {
+      "frame": "t_sing_03",
+      "slot": "C_Body_1",
+      "attachment": "C_Body_1"
+    },
+    {
+      "frame": "t_sing_03",
+      "slot": "C_Body_2",
+      "attachment": "C_Body_2"
+    },
+    {
+      "frame": "t_sing_03",
+      "slot": "C_Body_3",
+      "attachment": "C_Body_3"
+    },
+    {
+      "frame": "t_sing_03",
+      "slot": "C_Body_4",
+      "attachment": "C_Body_4"
+    }
+  ],
+  "assets": [
+    {
+      "file": "ishar_phase2/e_ishar_phase2_idle.png",
+      "sha256": "4efe19b9f2a5246fcb7215bbcdcc563b2ecea1c5cd2e8cb767ae0844b47b92b5"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_idle@2x.png",
+      "sha256": "5a29fc4ab4b39d49c9e02004900ed7f6e49e7ec449e4f4d17307debdd147c8f6"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_idle_emit.png",
+      "sha256": "fa06bcf336d9a5c5a4901dd2db35ca8d223d8741acfa849638bffac8cd731780"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_idle_emit@2x.png",
+      "sha256": "bc6563bade24a9efe7e08d5df084baa7257084549a2ce6f9abf26bd0d957b688"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_move.png",
+      "sha256": "722ebae3f4b5c80e6d139b456597eed0892f31eaa0d6e1dba75bb346e52d9eed"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_move@2x.png",
+      "sha256": "245d886480fffd4c4782baf74abcc74f85d36a5121b77887200d30321ba8b678"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_move_emit.png",
+      "sha256": "64dfc981b89c95bc986e37e8f9fba74252278a866045300ba3f3432a8569f770"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_move_emit@2x.png",
+      "sha256": "85ad168781f65411e3493e8f5c3592bcaee070f3115a6bca9c0286fd09eaf36b"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_attack.png",
+      "sha256": "e9c2fd4e6034a796cd01291c8ce36df0673ae126096b9b45beb95e2446c41993"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_attack@2x.png",
+      "sha256": "9dbae8df5cf36007ef3bddccf8cc1b6b9df10844cf44495fe4f283c196610cc6"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_attack_emit.png",
+      "sha256": "adb40e81a1b2b2c756bf03eaf6df0b957376cd62cf927bd27b59941dd19219f3"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_attack_emit@2x.png",
+      "sha256": "53e451abafd9f8605363b88c4c07684f397d76736a9f324d2c7f60ae6524c077"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_death.png",
+      "sha256": "0e99ce04a687097f382419809fd1af27645749f25a988f7cf807e6fd0aff2f05"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_death@2x.png",
+      "sha256": "b49fd351031e0b4687a6efd108f21df8f1c4c0c5fcecd1a36628fe43f0433a48"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_death_emit.png",
+      "sha256": "7467090553441cddbff2daa486fc2299b008a4aa84e9a9fcbcb34b4cd8e4d0b5"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_death_emit@2x.png",
+      "sha256": "127e5411fd48c29c2a11e26e51712656ff55a51184b5de12c7c207acdf9514fe"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_transform.png",
+      "sha256": "80f89121a300df279a05c80af88f332c92865079d1da5cc330eba868ce4ed531"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_transform@2x.png",
+      "sha256": "9be5e6310273b48b277e7d8b55584471c5ffa25b7adf6e56809c2c0073e2e48a"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_transform_emit.png",
+      "sha256": "0880234f55a6944acd755aceceb0605b66e1548bf8e79982e86ce699e1fd4608"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_transform_emit@2x.png",
+      "sha256": "52b2ab224ecc4f3055fbe10850727b90c51851c45b133b414911dbf165543120"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_wound.png",
+      "sha256": "58a4e2742fa0f0d20a615b870cc100a7ff2fe17da7af02f116ab02169701223d"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_wound@2x.png",
+      "sha256": "5695e05c9a9594badc43416a0697c1dd9645dc1cf036edda911fd19fb4c206a9"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_wound_emit.png",
+      "sha256": "ddd8c1ef534bd28692e57bac6219f56aa0426b59ca86b69d285e23dc8ff07c25"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_wound_emit@2x.png",
+      "sha256": "3f4801f713e0ea55c4b5c85f7bd1080b2f19b94d5670f3f039a1bc00f02bbc18"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_t_sing.png",
+      "sha256": "c1db5ca6f085a43acc90618875c1ae81419eae444e0c5e8e50d65311f5d18a26"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_t_sing@2x.png",
+      "sha256": "6526020ba5b218c9974e8e1bf0d90b0ef870007cac07ab6621521efb55278469"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_t_sing_emit.png",
+      "sha256": "f668203710438749374d260c0db918341f55d9fa047e335d9fc86616d5a32118"
+    },
+    {
+      "file": "ishar_phase2/e_ishar_phase2_t_sing_emit@2x.png",
+      "sha256": "928853aec5c72d2ba060a30c097b1e7269a521fb334a1dd65b7d5feebf2217b8"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "ccfe6d047f4f21149153e672ca5846b8d557a3a7d16dc9a02227beb2eb8fd059",
+    "atlas": "daeaebfcc456076d073d813249361383c9aaa11d3e7fc1a22472d3e3caeceb17"
+  }
+}

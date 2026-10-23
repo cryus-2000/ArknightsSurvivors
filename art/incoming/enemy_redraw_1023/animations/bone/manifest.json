@@ -1,0 +1,281 @@
+{
+  "id": "bone",
+  "name": "骨海漂流体",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    48,
+    32
+  ],
+  "origin": [
+    24,
+    28
+  ],
+  "source_crop_1x": [
+    0,
+    4,
+    48,
+    36
+  ],
+  "scale_fixed_across_actions": 0.08452700346835028,
+  "idle_height_target": 20,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B"
+  ],
+  "color_cap": 16,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 4,
+      "duration_seconds": 2,
+      "sample_times": [
+        0.0,
+        0.5,
+        1.0,
+        1.5
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 4,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.3333333432674408,
+        0.6666666865348816,
+        1.0000000298023224
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack",
+      "frames": 6,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.26666667461395266,
+        0.4333333373069763,
+        0.800000023841858,
+        1.0666666984558106,
+        1.3323333730697633
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.4333333373069763
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 6,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        0.999
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05"
+      ],
+      "pose_times": [
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        0.999
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "C_Body_01",
+    "local": [
+      16.730894448984625,
+      -26.678668967778552
+    ],
+    "slot": "C_Body_01"
+  },
+  "subpixel_parts": [
+    {
+      "frame": "death_05",
+      "slot": "C_Body_03",
+      "attachment": "C_Body_03"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_Body_02",
+      "attachment": "C_Body_02"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_Body_01",
+      "attachment": "C_Body_01"
+    }
+  ],
+  "assets": [
+    {
+      "file": "bone/e_bone_idle.png",
+      "sha256": "0b005ef83c08a80b14467fb266bad7e3ceb4a27a603f067337a9982ae3a612dd"
+    },
+    {
+      "file": "bone/e_bone_idle@2x.png",
+      "sha256": "7d4309d0da5501787e6a3a8cb90377c5f169810b2526ed35b68682ff4182de65"
+    },
+    {
+      "file": "bone/e_bone_idle_emit.png",
+      "sha256": "9dff94fb6aa5dd36ba188acd3d4eab31cc30ae5c8e3ef93176e479b1dcb8621e"
+    },
+    {
+      "file": "bone/e_bone_idle_emit@2x.png",
+      "sha256": "960cbf3948b502b5f46f700f1eeb74854f5b209ce1a9ed15fb4dacbae3e01e37"
+    },
+    {
+      "file": "bone/e_bone_move.png",
+      "sha256": "bf3b37d3b87c136fc20bdc006f1bfaf4bc184a43c88ddc87436378a5b767bd75"
+    },
+    {
+      "file": "bone/e_bone_move@2x.png",
+      "sha256": "92e4041e04df595309c156c548fd46672705b0a0e86fe8adde5edccd0ba923e3"
+    },
+    {
+      "file": "bone/e_bone_move_emit.png",
+      "sha256": "8033348c3b7593bab1dc5557408ad0cb97162b18b1d9cd77c4fd183d6f5df4fd"
+    },
+    {
+      "file": "bone/e_bone_move_emit@2x.png",
+      "sha256": "a7c226faedab5ca8be9d2978313ea216f7b066f0faa8134df100130f0433c9f4"
+    },
+    {
+      "file": "bone/e_bone_attack.png",
+      "sha256": "798acd4d97f4fa988ba12503e59cf5b881c58d075b885aa19b242f5b6d6d644d"
+    },
+    {
+      "file": "bone/e_bone_attack@2x.png",
+      "sha256": "e15cfd3bc260e4af7f8c998bb1b2b2c38b272b9ac38c8d63d4075a93e4f41fae"
+    },
+    {
+      "file": "bone/e_bone_attack_emit.png",
+      "sha256": "c5baf6c83b49a5c319de7c69ad32a3a49739abe2441ae730a98c27ef3ebfa59b"
+    },
+    {
+      "file": "bone/e_bone_attack_emit@2x.png",
+      "sha256": "48ea5af523c0c034e420a78be360aa66a2a6e5cdc52e623950bed7c51b0d3d7f"
+    },
+    {
+      "file": "bone/e_bone_death.png",
+      "sha256": "83e1ee3a8fe5a2d431a6b4784295be1a2242753c64445b55d2af3a71b9aa3e25"
+    },
+    {
+      "file": "bone/e_bone_death@2x.png",
+      "sha256": "88930e57edefbfadc53d5c6f5553a87b941e589332d0d5abfd38f640eef09702"
+    },
+    {
+      "file": "bone/e_bone_death_emit.png",
+      "sha256": "6b9998109e4f6f34b26eef1e0053783920c51085fac7c414c40303c16b238072"
+    },
+    {
+      "file": "bone/e_bone_death_emit@2x.png",
+      "sha256": "6a24831a559e1510464c162fda3b467c9571d9a18dec56a98d381f17ac6588f4"
+    },
+    {
+      "file": "bone/e_bone_wound.png",
+      "sha256": "ff10b5b1c444f24bd34270dac816daba78dc99daea44fb54e7e099ce89ccabc8"
+    },
+    {
+      "file": "bone/e_bone_wound@2x.png",
+      "sha256": "f4cbbb5576e55dec69f9fe84f0c0dc4a7c4aba45125ac87811354bd7227dd420"
+    },
+    {
+      "file": "bone/e_bone_wound_emit.png",
+      "sha256": "e4b54f1526028e31aea2ab1c0889b02dbe8612190390218fa28b393bf79baf9c"
+    },
+    {
+      "file": "bone/e_bone_wound_emit@2x.png",
+      "sha256": "0b996fff8df19600eb89d232987335c5115b3e7c44b9544b4e5904521b63622e"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "94f2f07b97a37dec4ab210362afe0c6c5952164547c4b71b29d6607122fd5567",
+    "atlas": "db9375297e9afd0765a7a0786cc236cdff1dbf30326b0b1cf5c6c1ed9ea8c805"
+  }
+}

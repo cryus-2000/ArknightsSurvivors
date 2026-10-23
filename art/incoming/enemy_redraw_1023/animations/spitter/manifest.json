@@ -1,0 +1,269 @@
+{
+  "id": "spitter",
+  "name": "脊海喷吐者",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    44,
+    40
+  ],
+  "origin": [
+    20,
+    36
+  ],
+  "source_crop_1x": [
+    0,
+    0,
+    44,
+    40
+  ],
+  "scale_fixed_across_actions": 0.0610574564299313,
+  "idle_height_target": 25,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B",
+    "#59485F",
+    "#8B7188",
+    "#B99DA8",
+    "#354853"
+  ],
+  "color_cap": 20,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 4,
+      "duration_seconds": 6,
+      "sample_times": [
+        0.0,
+        1.5,
+        3.0,
+        4.5
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 4,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.25,
+        0.5,
+        0.75
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack",
+      "frames": 6,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.26666667461395266,
+        0.5,
+        0.800000023841858,
+        1.0666666984558106,
+        1.3323333730697633
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 6,
+      "duration_seconds": 1.2666666507720947,
+      "sample_times": [
+        0.0,
+        0.25333333015441895,
+        0.5066666603088379,
+        0.7599999904632568,
+        1.0133333206176758,
+        1.2656666507720948
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05"
+      ],
+      "pose_times": [
+        0.0,
+        0.25333333015441895,
+        0.5066666603088379,
+        0.7599999904632568,
+        1.0133333206176758,
+        1.2656666507720948
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "C_Head",
+    "local": [
+      87.78945490407568,
+      20.601620361364837
+    ],
+    "slot": "C_Head"
+  },
+  "subpixel_parts": [],
+  "assets": [
+    {
+      "file": "spitter/e_spitter_idle.png",
+      "sha256": "9f6e4fed5368fc87488c6007f2ea96f4039295a3f343e30f301204d2580e826a"
+    },
+    {
+      "file": "spitter/e_spitter_idle@2x.png",
+      "sha256": "9b1d538d7582a36f83f261246876e2844b3af057b4470c35230d9295cc51876c"
+    },
+    {
+      "file": "spitter/e_spitter_idle_emit.png",
+      "sha256": "c95456817c893face8094db4cb8bf53b22f5fbb7dc7d83aa2b4abbc6e6fcd37a"
+    },
+    {
+      "file": "spitter/e_spitter_idle_emit@2x.png",
+      "sha256": "c9131ca08db8fa8570ae3690e33dbf52e1eb32a60315bfc96a9e2ba103ff29a0"
+    },
+    {
+      "file": "spitter/e_spitter_move.png",
+      "sha256": "c611e8c67c6c6aacfc3090936092db2a903af758812a19969ffca25933f52887"
+    },
+    {
+      "file": "spitter/e_spitter_move@2x.png",
+      "sha256": "07fe48bcfe447733867e64469b4e9bf017a3b56dc4ff6b067fb9565602a43bbe"
+    },
+    {
+      "file": "spitter/e_spitter_move_emit.png",
+      "sha256": "aa31df458d1d2dc6d268713c4fbc6d77898f96173c02effd15a5ac67fa02e8a9"
+    },
+    {
+      "file": "spitter/e_spitter_move_emit@2x.png",
+      "sha256": "0fc6c87ee950d154e7301e197c619d416c6532245c45c88abb07c496a9fce1ff"
+    },
+    {
+      "file": "spitter/e_spitter_attack.png",
+      "sha256": "ac4eca8e655597fbab7726cbb91e0fc8da550386456e0c9e04c07b691b424499"
+    },
+    {
+      "file": "spitter/e_spitter_attack@2x.png",
+      "sha256": "39aad0e056cf6dd3c0a2fc771e26de6b729c8d71b81aa9aab5330e4f6c5acee0"
+    },
+    {
+      "file": "spitter/e_spitter_attack_emit.png",
+      "sha256": "39f5ffc5882b69efdef0b596bf93f134dbd5951dcc28f046e3305a794b949b82"
+    },
+    {
+      "file": "spitter/e_spitter_attack_emit@2x.png",
+      "sha256": "93f91d5ce3be8623525fb23252cc5ed9348aab29eb2efd7d0e43a24f233201cc"
+    },
+    {
+      "file": "spitter/e_spitter_death.png",
+      "sha256": "b0f49159ebae62df37386d3670cfe0dad34b021e615a9c783d7c94d438a7e49c"
+    },
+    {
+      "file": "spitter/e_spitter_death@2x.png",
+      "sha256": "aff5af4f0cb69971caee84b009ece4cd99369272d6dcb5afb1c9fb616c21f9ba"
+    },
+    {
+      "file": "spitter/e_spitter_death_emit.png",
+      "sha256": "4a2f9a57ac2b3ec9df38a7004d69bb3a665738c233e8be9b29c7c79a4ba90f60"
+    },
+    {
+      "file": "spitter/e_spitter_death_emit@2x.png",
+      "sha256": "76b6b22dacce82ad6300a548661805477a29c3d311b4340166ddf4c6457ebcb3"
+    },
+    {
+      "file": "spitter/e_spitter_wound.png",
+      "sha256": "0b687b14b2d21b95e6732d70a603ae3b3f0a3b313f1c04b9486de3c4ce88111c"
+    },
+    {
+      "file": "spitter/e_spitter_wound@2x.png",
+      "sha256": "2f2c7a8f382056963d3c6801c9c6644315f10d454ef5466c04589546d1f11953"
+    },
+    {
+      "file": "spitter/e_spitter_wound_emit.png",
+      "sha256": "5a0231e8aafdde0d0f7c775eec609c1571c35b85cd4341ef9c1a4ed16baf3557"
+    },
+    {
+      "file": "spitter/e_spitter_wound_emit@2x.png",
+      "sha256": "294f010b0a9fd67fb648f9e03a09716de9652e39094ab5736be2430ee12c2127"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "d0a68e69e95fcfe2760b53a4ff470343903406f77dd838aa033f5b118c149fb8",
+    "atlas": "b7a9a73e2313c4fef3caa521a96b2fd608f26d34d41bf04bd9a6701adf9dd24f"
+  }
+}

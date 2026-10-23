@@ -1,0 +1,1032 @@
+[
+  {
+    "name": "swell_00",
+    "anim": "Idle",
+    "t": 0,
+    "bones": {
+      "C_Body": {
+        "scaleX": 1,
+        "scaleY": 1
+      }
+    },
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body",
+        "attachment": "C_Body",
+        "bone": "C_Body",
+        "parent": "C",
+        "draw_order": 0,
+        "file": "swell_00_slot_0.png",
+        "matrix": [
+          0.00017447926974331843,
+          -0.9999999847825418,
+          0.999999984770393,
+          0.00017450247484607597,
+          -5.17999936704884,
+          62.71999740600586
+        ],
+        "mesh": true,
+        "vertices": [
+          -35.04999923706055,
+          -191.24000549316406,
+          -33.810001373291016,
+          139.75,
+          358.19000244140625,
+          138.2899932861328,
+          356.95001220703125,
+          -192.7100067138672
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Body__C_Body.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_00_slot_0.png"
+      },
+      {
+        "slot": "C_Leg_05",
+        "attachment": "C_Leg_05",
+        "bone": "C_Leg_05",
+        "parent": "C",
+        "draw_order": 1,
+        "file": "swell_00_slot_1.png",
+        "matrix": [
+          0.9008498551855849,
+          0.43413076401206663,
+          -0.4341308267250077,
+          0.9008498451115335,
+          74.21999922720819,
+          84.78999710083006
+        ],
+        "mesh": true,
+        "vertices": [
+          134.52999877929688,
+          13.319999694824219,
+          30.030000686645508,
+          -37.040000915527344,
+          -47.2400016784668,
+          123.31999969482422,
+          57.2599983215332,
+          173.6699981689453
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_05__C_Leg_05.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_00_slot_1.png"
+      },
+      {
+        "slot": "C_Leg_03",
+        "attachment": "C_Leg_03",
+        "bone": "C_Leg_03",
+        "parent": "C",
+        "draw_order": 2,
+        "file": "swell_00_slot_2.png",
+        "matrix": [
+          -0.8296226746401318,
+          0.5583244927639311,
+          -0.5583244350094902,
+          -0.8296226875961076,
+          -44.94000002986604,
+          72.06999588012695
+        ],
+        "mesh": true,
+        "vertices": [
+          61.849998474121094,
+          33.939998626708984,
+          186.2899932861328,
+          -49.81999969482422,
+          84.0999984741211,
+          -201.63999938964844,
+          -40.33000183105469,
+          -117.87999725341797
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_03__C_Leg_03.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_00_slot_2.png"
+      },
+      {
+        "slot": "C_Leg_04",
+        "attachment": "C_Leg_04",
+        "bone": "C_Leg_04",
+        "parent": "C",
+        "draw_order": 3,
+        "file": "swell_00_slot_3.png",
+        "matrix": [
+          -0.47884508304206774,
+          0.8778994281557874,
+          -0.8778993948208365,
+          -0.47884510341381364,
+          -26.579999244547974,
+          68.29999542236328
+        ],
+        "mesh": true,
+        "vertices": [
+          53.349998474121094,
+          48.20000076293945,
+          130.9199981689453,
+          -94.0199966430664,
+          -92.05999755859375,
+          -215.63999938964844,
+          -169.6300048828125,
+          -73.41999816894531
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_04__C_Leg_04.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_00_slot_3.png"
+      },
+      {
+        "slot": "C_Leg_02",
+        "attachment": "C_Leg_02",
+        "bone": "C_Leg_02",
+        "parent": "C",
+        "draw_order": 4,
+        "file": "swell_00_slot_4.png",
+        "matrix": [
+          0.7224846468894977,
+          0.6913869479721885,
+          -0.6913869982681795,
+          0.7224846308457904,
+          53.019998836014594,
+          76.77999496459961
+        ],
+        "mesh": true,
+        "vertices": [
+          167.1300048828125,
+          55.560001373291016,
+          58.75,
+          -48.13999938964844,
+          -55.31999969482422,
+          71.08000183105469,
+          53.060001373291016,
+          174.77999877929688
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_02__C_Leg_02.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_00_slot_4.png"
+      },
+      {
+        "slot": "C_Leg_01",
+        "attachment": "C_Leg_01",
+        "bone": "C_Leg_01",
+        "parent": "C",
+        "draw_order": 5,
+        "file": "swell_00_slot_5.png",
+        "matrix": [
+          0.3346294187193955,
+          0.9423497957195199,
+          -0.9423498190148485,
+          0.3346293968520703,
+          2.0100002959447476,
+          60.93999481201172
+        ],
+        "mesh": true,
+        "vertices": [
+          87.54000091552734,
+          71.51000213623047,
+          49.04999923706055,
+          -36.86000061035156,
+          -140.35000610351562,
+          30.40999984741211,
+          -101.87000274658203,
+          138.77999877929688
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_01__C_Leg_01.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_00_slot_5.png"
+      }
+    ],
+    "glow": [
+      30.7,
+      25.075
+    ],
+    "source_crop_1x": [
+      0,
+      2,
+      55,
+      50
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "swell_01",
+    "anim": "Idle",
+    "t": 0.25,
+    "bones": {
+      "C_Body": {
+        "scaleX": 1.07,
+        "scaleY": 1.056
+      },
+      "C_Leg_02": {
+        "rotation": -4
+      },
+      "C_Leg_03": {
+        "rotation": 4
+      }
+    },
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body",
+        "attachment": "C_Body",
+        "bone": "C_Body",
+        "parent": "C",
+        "draw_order": 0,
+        "file": "swell_01_slot_0.png",
+        "matrix": [
+          -0.002516812651882562,
+          -1.0559970786922317,
+          1.069997040137979,
+          -0.0024838578883648655,
+          -5.179999253807935,
+          60.2799973487854
+        ],
+        "mesh": true,
+        "vertices": [
+          -35.04999923706055,
+          -191.24000549316406,
+          -33.810001373291016,
+          139.75,
+          358.19000244140625,
+          138.2899932861328,
+          356.95001220703125,
+          -192.7100067138672
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Body__C_Body.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_01_slot_0.png"
+      },
+      {
+        "slot": "C_Leg_05",
+        "attachment": "C_Leg_05",
+        "bone": "C_Leg_05",
+        "parent": "C",
+        "draw_order": 1,
+        "file": "swell_01_slot_1.png",
+        "matrix": [
+          0.9131901844243818,
+          0.4075336425365898,
+          -0.4075337061086068,
+          0.9131901749675195,
+          72.8149993644183,
+          82.44999718666077
+        ],
+        "mesh": true,
+        "vertices": [
+          134.52999877929688,
+          13.319999694824219,
+          30.030000686645508,
+          -37.040000915527344,
+          -47.2400016784668,
+          123.31999969482422,
+          57.2599983215332,
+          173.6699981689453
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_05__C_Leg_05.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_01_slot_1.png"
+      },
+      {
+        "slot": "C_Leg_03",
+        "attachment": "C_Leg_03",
+        "bone": "C_Leg_03",
+        "parent": "C",
+        "draw_order": 2,
+        "file": "swell_01_slot_2.png",
+        "matrix": [
+          -0.8018799061851892,
+          0.5974852619873517,
+          -0.597485206164232,
+          -0.8018799200498944,
+          -44.194999893524724,
+          69.23499584197998
+        ],
+        "mesh": true,
+        "vertices": [
+          61.849998474121094,
+          33.939998626708984,
+          186.2899932861328,
+          -49.81999969482422,
+          84.0999984741211,
+          -201.63999938964844,
+          -40.33000183105469,
+          -117.87999725341797
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_03__C_Leg_03.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_01_slot_2.png"
+      },
+      {
+        "slot": "C_Leg_04",
+        "attachment": "C_Leg_04",
+        "bone": "C_Leg_04",
+        "parent": "C",
+        "draw_order": 3,
+        "file": "swell_01_slot_3.png",
+        "matrix": [
+          -0.49667101858983465,
+          0.8679388914546081,
+          -0.8679388568786992,
+          -0.496671038730445,
+          -26.029999189233504,
+          67.3649954199791
+        ],
+        "mesh": true,
+        "vertices": [
+          53.349998474121094,
+          48.20000076293945,
+          130.9199981689453,
+          -94.0199966430664,
+          -92.05999755859375,
+          -215.63999938964844,
+          -169.6300048828125,
+          -73.41999816894531
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_04__C_Leg_04.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_01_slot_3.png"
+      },
+      {
+        "slot": "C_Leg_02",
+        "attachment": "C_Leg_02",
+        "bone": "C_Leg_02",
+        "parent": "C",
+        "draw_order": 4,
+        "file": "swell_01_slot_4.png",
+        "matrix": [
+          0.6813598775711104,
+          0.7319485597298262,
+          -0.7319486071629038,
+          0.6813598605861668,
+          52.14999889622051,
+          75.37999498844147
+        ],
+        "mesh": true,
+        "vertices": [
+          167.1300048828125,
+          55.560001373291016,
+          58.75,
+          -48.13999938964844,
+          -55.31999969482422,
+          71.08000183105469,
+          53.060001373291016,
+          174.77999877929688
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_02__C_Leg_02.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_01_slot_4.png"
+      },
+      {
+        "slot": "C_Leg_01",
+        "attachment": "C_Leg_01",
+        "bone": "C_Leg_01",
+        "parent": "C",
+        "draw_order": 5,
+        "file": "swell_01_slot_5.png",
+        "matrix": [
+          0.3561673371706865,
+          0.9344221810760553,
+          -0.9344222058707529,
+          0.35616731548732256,
+          1.585000362921173,
+          59.239994764328
+        ],
+        "mesh": true,
+        "vertices": [
+          87.54000091552734,
+          71.51000213623047,
+          49.04999923706055,
+          -36.86000061035156,
+          -140.35000610351562,
+          30.40999984741211,
+          -101.87000274658203,
+          138.77999877929688
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_01__C_Leg_01.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_01_slot_5.png"
+      }
+    ],
+    "glow": [
+      31.021653329787995,
+      24.17684210291459
+    ],
+    "source_crop_1x": [
+      0,
+      2,
+      55,
+      50
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "swell_02",
+    "anim": "Idle",
+    "t": 0.5,
+    "bones": {
+      "C_Body": {
+        "scaleX": 1.147,
+        "scaleY": 1.126
+      },
+      "C_Leg_02": {
+        "rotation": -8
+      },
+      "C_Leg_03": {
+        "rotation": 8
+      }
+    },
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body",
+        "attachment": "C_Body",
+        "bone": "C_Body",
+        "parent": "C",
+        "draw_order": 0,
+        "file": "swell_02_slot_0.png",
+        "matrix": [
+          0.006979336953799907,
+          -1.1259791545824531,
+          1.1469787653276935,
+          0.006851580975871865,
+          -5.179999140567027,
+          57.83999729156494
+        ],
+        "mesh": true,
+        "vertices": [
+          -35.04999923706055,
+          -191.24000549316406,
+          -33.810001373291016,
+          139.75,
+          358.19000244140625,
+          138.2899932861328,
+          356.95001220703125,
+          -192.7100067138672
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Body__C_Body.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_02_slot_0.png"
+      },
+      {
+        "slot": "C_Leg_05",
+        "attachment": "C_Leg_05",
+        "bone": "C_Leg_05",
+        "parent": "C",
+        "draw_order": 1,
+        "file": "swell_02_slot_1.png",
+        "matrix": [
+          0.9247454526627205,
+          0.3805861682270736,
+          -0.38058623260351415,
+          0.924745443831177,
+          71.4099995016284,
+          80.10999727249146
+        ],
+        "mesh": true,
+        "vertices": [
+          134.52999877929688,
+          13.319999694824219,
+          30.030000686645508,
+          -37.040000915527344,
+          -47.2400016784668,
+          123.31999969482422,
+          57.2599983215332,
+          173.6699981689453
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_05__C_Leg_05.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_02_slot_1.png"
+      },
+      {
+        "slot": "C_Leg_03",
+        "attachment": "C_Leg_03",
+        "bone": "C_Leg_03",
+        "parent": "C",
+        "draw_order": 2,
+        "file": "swell_02_slot_2.png",
+        "matrix": [
+          -0.7722902262008698,
+          0.6352698869646263,
+          -0.6352698332014011,
+          -0.7722902409423713,
+          -43.44999975718342,
+          66.39999580383301
+        ],
+        "mesh": true,
+        "vertices": [
+          61.849998474121094,
+          33.939998626708984,
+          186.2899932861328,
+          -49.81999969482422,
+          84.0999984741211,
+          -201.63999938964844,
+          -40.33000183105469,
+          -117.87999725341797
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_03__C_Leg_03.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_02_slot_2.png"
+      },
+      {
+        "slot": "C_Leg_04",
+        "attachment": "C_Leg_04",
+        "bone": "C_Leg_04",
+        "parent": "C",
+        "draw_order": 3,
+        "file": "swell_02_slot_3.png",
+        "matrix": [
+          -0.5142898541049938,
+          0.8576164448251391,
+          -0.8576164090226895,
+          -0.514289874006071,
+          -25.479999133919033,
+          66.42999541759491
+        ],
+        "mesh": true,
+        "vertices": [
+          53.349998474121094,
+          48.20000076293945,
+          130.9199981689453,
+          -94.0199966430664,
+          -92.05999755859375,
+          -215.63999938964844,
+          -169.6300048828125,
+          -73.41999816894531
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_04__C_Leg_04.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_02_slot_3.png"
+      },
+      {
+        "slot": "C_Leg_02",
+        "attachment": "C_Leg_02",
+        "bone": "C_Leg_02",
+        "parent": "C",
+        "draw_order": 4,
+        "file": "swell_02_slot_4.png",
+        "matrix": [
+          0.6379617572062843,
+          0.7700680317622239,
+          -0.7700680761741278,
+          0.6379617393367747,
+          51.279998956426425,
+          73.97999501228333
+        ],
+        "mesh": true,
+        "vertices": [
+          167.1300048828125,
+          55.560001373291016,
+          58.75,
+          -48.13999938964844,
+          -55.31999969482422,
+          71.08000183105469,
+          53.060001373291016,
+          174.77999877929688
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_02__C_Leg_02.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_02_slot_4.png"
+      },
+      {
+        "slot": "C_Leg_01",
+        "attachment": "C_Leg_01",
+        "bone": "C_Leg_01",
+        "parent": "C",
+        "draw_order": 5,
+        "file": "swell_02_slot_5.png",
+        "matrix": [
+          0.3775176519576253,
+          0.9260023791741675,
+          -0.9260024054551736,
+          0.3775176304696437,
+          1.1600004298975968,
+          57.53999471664429
+        ],
+        "mesh": true,
+        "vertices": [
+          87.54000091552734,
+          71.51000213623047,
+          49.04999923706055,
+          -36.86000061035156,
+          -140.35000610351562,
+          30.40999984741211,
+          -101.87000274658203,
+          138.77999877929688
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_01__C_Leg_01.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_02_slot_5.png"
+      }
+    ],
+    "glow": [
+      31.62402182128764,
+      23.247721815259954
+    ],
+    "source_crop_1x": [
+      0,
+      2,
+      55,
+      50
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "swell_03",
+    "anim": "Idle",
+    "t": 0.75,
+    "bones": {
+      "C_Body": {
+        "scaleX": 1.21,
+        "scaleY": 1.189
+      },
+      "C_Leg_02": {
+        "rotation": -12
+      },
+      "C_Leg_03": {
+        "rotation": 12
+      }
+    },
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body",
+        "attachment": "C_Body",
+        "bone": "C_Body",
+        "parent": "C",
+        "draw_order": 0,
+        "file": "swell_03_slot_0.png",
+        "matrix": [
+          0.010441686200499942,
+          -1.1889557281018188,
+          1.2099549454490426,
+          0.010260494443058517,
+          -5.179999253807935,
+          60.2799973487854
+        ],
+        "mesh": true,
+        "vertices": [
+          -35.04999923706055,
+          -191.24000549316406,
+          -33.810001373291016,
+          139.75,
+          358.19000244140625,
+          138.2899932861328,
+          356.95001220703125,
+          -192.7100067138672
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Body__C_Body.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_03_slot_0.png"
+      },
+      {
+        "slot": "C_Leg_05",
+        "attachment": "C_Leg_05",
+        "bone": "C_Leg_05",
+        "parent": "C",
+        "draw_order": 1,
+        "file": "swell_03_slot_1.png",
+        "matrix": [
+          0.9131901844243818,
+          0.4075336425365898,
+          -0.4075337061086068,
+          0.9131901749675195,
+          72.8149993644183,
+          82.44999718666077
+        ],
+        "mesh": true,
+        "vertices": [
+          134.52999877929688,
+          13.319999694824219,
+          30.030000686645508,
+          -37.040000915527344,
+          -47.2400016784668,
+          123.31999969482422,
+          57.2599983215332,
+          173.6699981689453
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_05__C_Leg_05.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_03_slot_1.png"
+      },
+      {
+        "slot": "C_Leg_03",
+        "attachment": "C_Leg_03",
+        "bone": "C_Leg_03",
+        "parent": "C",
+        "draw_order": 2,
+        "file": "swell_03_slot_2.png",
+        "matrix": [
+          -0.7109221905110346,
+          0.7032706891679328,
+          -0.7032706396768624,
+          -0.7109222068305019,
+          -44.194999893524724,
+          69.23499584197998
+        ],
+        "mesh": true,
+        "vertices": [
+          61.849998474121094,
+          33.939998626708984,
+          186.2899932861328,
+          -49.81999969482422,
+          84.0999984741211,
+          -201.63999938964844,
+          -40.33000183105469,
+          -117.87999725341797
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_03__C_Leg_03.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_03_slot_2.png"
+      },
+      {
+        "slot": "C_Leg_04",
+        "attachment": "C_Leg_04",
+        "bone": "C_Leg_04",
+        "parent": "C",
+        "draw_order": 3,
+        "file": "swell_03_slot_3.png",
+        "matrix": [
+          -0.49667101858983465,
+          0.8679388914546081,
+          -0.8679388568786992,
+          -0.496671038730445,
+          -26.029999189233504,
+          67.3649954199791
+        ],
+        "mesh": true,
+        "vertices": [
+          53.349998474121094,
+          48.20000076293945,
+          130.9199981689453,
+          -94.0199966430664,
+          -92.05999755859375,
+          -215.63999938964844,
+          -169.6300048828125,
+          -73.41999816894531
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_04__C_Leg_04.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_03_slot_3.png"
+      },
+      {
+        "slot": "C_Leg_02",
+        "attachment": "C_Leg_02",
+        "bone": "C_Leg_02",
+        "parent": "C",
+        "draw_order": 4,
+        "file": "swell_03_slot_4.png",
+        "matrix": [
+          0.572861375388336,
+          0.8196522572386454,
+          -0.8196522971185658,
+          0.5728613563682196,
+          52.14999889622051,
+          75.37999498844147
+        ],
+        "mesh": true,
+        "vertices": [
+          167.1300048828125,
+          55.560001373291016,
+          58.75,
+          -48.13999938964844,
+          -55.31999969482422,
+          71.08000183105469,
+          53.060001373291016,
+          174.77999877929688
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_02__C_Leg_02.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_03_slot_4.png"
+      },
+      {
+        "slot": "C_Leg_01",
+        "attachment": "C_Leg_01",
+        "bone": "C_Leg_01",
+        "parent": "C",
+        "draw_order": 5,
+        "file": "swell_03_slot_5.png",
+        "matrix": [
+          0.3561673371706865,
+          0.9344221810760553,
+          -0.9344222058707529,
+          0.35616731548732256,
+          1.585000362921173,
+          59.239994764328
+        ],
+        "mesh": true,
+        "vertices": [
+          87.54000091552734,
+          71.51000213623047,
+          49.04999923706055,
+          -36.86000061035156,
+          -140.35000610351562,
+          30.40999984741211,
+          -101.87000274658203,
+          138.77999877929688
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/swell/C_Leg_01__C_Leg_01.png",
+        "source_file": "build/enemy_actions_1023/pocket/swell_03_slot_5.png"
+      }
+    ],
+    "glow": [
+      32.08688193692537,
+      22.078702228416297
+    ],
+    "source_crop_1x": [
+      0,
+      2,
+      55,
+      50
+    ],
+    "glow_active": true
+  }
+]

@@ -1,0 +1,849 @@
+{
+  "id": "knight_boss",
+  "name": "最后的骑士",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    116,
+    96
+  ],
+  "origin": [
+    58,
+    85
+  ],
+  "source_crop_1x": [
+    0,
+    7,
+    116,
+    103
+  ],
+  "scale_fixed_across_actions": 0.10199307559110629,
+  "idle_height_target": 72,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B",
+    "#59485F",
+    "#8B7188",
+    "#B99DA8",
+    "#354853",
+    "#55737C",
+    "#405B58",
+    "#758980",
+    "#423941",
+    "#775C52",
+    "#9C7876",
+    "#C1A29B",
+    "#222D40",
+    "#52627D",
+    "#ADB8BD",
+    "#E1DACD",
+    "#5E6469"
+  ],
+  "color_cap": 32,
+  "actions": [
+    {
+      "action": "move",
+      "source_animation": "Move_2",
+      "frames": 6,
+      "duration_seconds": 1.1333333253860474,
+      "sample_times": [
+        0.0,
+        0.18888888756434122,
+        0.37777777512868244,
+        0.5666666626930237,
+        0.7555555502573649,
+        0.9444444378217061
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03",
+        "move_04",
+        "move_05"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 4,
+      "duration_seconds": 1.2999999523162842,
+      "sample_times": [
+        0.0,
+        0.4333333174387614,
+        0.8666666348775228,
+        1.2989999523162843
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03"
+      ],
+      "pose_times": [
+        0.0,
+        0.4333333174387614,
+        0.8666666348775228,
+        1.2989999523162843
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Move_2",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "charge_form",
+      "source_animation": "Move_2",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 0.64,
+      "sample_times": [
+        0.0,
+        0.16,
+        0.32,
+        0.48
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "charge_form_00",
+        "charge_form_01",
+        "charge_form_02",
+        "charge_form_03"
+      ],
+      "pose_times": [
+        0,
+        0.15,
+        0.3,
+        0.45
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "charge",
+      "source_animation": "Move_2",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 0.64,
+      "sample_times": [
+        0.0,
+        0.21333333333333335,
+        0.4266666666666667,
+        0.639
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "charge_00",
+        "charge_01",
+        "charge_02",
+        "charge_03"
+      ],
+      "pose_times": [
+        0,
+        0.1,
+        0.25,
+        0.4
+      ],
+      "release_frame": 2
+    },
+    {
+      "action": "attack",
+      "source_animation": "Move_2",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 0.64,
+      "sample_times": [
+        0.0,
+        0.21333333333333335,
+        0.4266666666666667,
+        0.639
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03"
+      ],
+      "pose_times": [
+        0,
+        0.1,
+        0.25,
+        0.4
+      ],
+      "release_frame": 2
+    },
+    {
+      "action": "thrust",
+      "source_animation": "Move_2",
+      "construction": "authored native bone pose",
+      "frames": 3,
+      "duration_seconds": 0.48,
+      "sample_times": [
+        0.0,
+        0.24,
+        0.479
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "thrust_00",
+        "thrust_01",
+        "thrust_02"
+      ],
+      "pose_times": [
+        0,
+        0.25,
+        0.45
+      ],
+      "release_frame": 1
+    },
+    {
+      "action": "spin",
+      "source_animation": "Move_2",
+      "construction": "authored native bone pose",
+      "frames": 6,
+      "duration_seconds": 0.96,
+      "sample_times": [
+        0.0,
+        0.192,
+        0.384,
+        0.576,
+        0.768,
+        0.959
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "spin_00",
+        "spin_01",
+        "spin_02",
+        "spin_03",
+        "spin_04",
+        "spin_05"
+      ],
+      "pose_times": [
+        0,
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5
+      ],
+      "release_frame": 2
+    },
+    {
+      "action": "plant",
+      "source_animation": "Move_2",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 0.64,
+      "sample_times": [
+        0.0,
+        0.21333333333333335,
+        0.4266666666666667,
+        0.639
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "plant_00",
+        "plant_01",
+        "plant_02",
+        "plant_03"
+      ],
+      "pose_times": [
+        0,
+        0.1,
+        0.2,
+        0.35
+      ],
+      "release_frame": 3
+    },
+    {
+      "action": "idle",
+      "source_animation": "Move_2",
+      "construction": "authored native bone pose",
+      "frames": 6,
+      "duration_seconds": 2.0,
+      "sample_times": [
+        0.0,
+        0.3333333333333333,
+        0.6666666666666666,
+        1.0,
+        1.3333333333333333,
+        1.6666666666666667
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03",
+        "idle_04",
+        "idle_05"
+      ],
+      "pose_times": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "C_Head",
+    "local": [
+      7.89819146717759,
+      -46.79778606061541
+    ],
+    "slot": "C_Head"
+  },
+  "subpixel_parts": [
+    {
+      "frame": "death_03",
+      "slot": "C_L_Thigh",
+      "attachment": "C_L_Thigh"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_L_Leg",
+      "attachment": "C_L_Leg"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_L_Horseshoe",
+      "attachment": "C_L_Horseshoe"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_B_Wings4",
+      "attachment": "C_B_Wings4"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_B_Wings3",
+      "attachment": "C_B_Wings3"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_B_Wings2",
+      "attachment": "C_B_Wings2"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_B_Wings1",
+      "attachment": "C_B_Wings1"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_B_Wings",
+      "attachment": "C_B_Wings"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Palm",
+      "attachment": "F_R_Palm"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Finger",
+      "attachment": "F_R_Finger"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Arm",
+      "attachment": "F_R_Arm"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Forearm",
+      "attachment": "F_R_Forearm"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Hairs",
+      "attachment": "F_R_Hairs"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Cloth",
+      "attachment": "F_R_Cloth"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Foot",
+      "attachment": "F_R_Foot"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Leg",
+      "attachment": "F_R_Leg"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Thigh",
+      "attachment": "F_R_Thigh"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_Hip",
+      "attachment": "F_Hip"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Tail_4",
+      "attachment": "C_Tail_4"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Tail_3",
+      "attachment": "C_Tail_3"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Tail_2",
+      "attachment": "C_Tail_2"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Body",
+      "attachment": "C_Body"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Tail_1",
+      "attachment": "C_Tail_1"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_B_Head",
+      "attachment": "F_B_Head"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_Hair",
+      "attachment": "F_Hair"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_Waist",
+      "attachment": "F_Waist"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Armor",
+      "attachment": "F_R_Armor"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Tengman1",
+      "attachment": "C_Tengman1"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Tengman2",
+      "attachment": "C_Tengman1"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Tengman3",
+      "attachment": "C_Tengman1"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Cloth",
+      "attachment": "F_L_Cloth"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Foot",
+      "attachment": "F_L_Foot"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Leg",
+      "attachment": "F_L_Leg"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Thigh",
+      "attachment": "F_L_Thigh"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_Cloth",
+      "attachment": "F_Cloth"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Skirt",
+      "attachment": "F_L_Skirt"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_Chest",
+      "attachment": "F_Chest"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_Belt",
+      "attachment": "F_Belt"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_Light",
+      "attachment": "F_Light"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Hair",
+      "attachment": "F_R_Hair"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_Head",
+      "attachment": "F_Head"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Hair",
+      "attachment": "F_L_Hair"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_Helmet",
+      "attachment": "F_Helmet"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Fin",
+      "attachment": "C_Fin"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Neck",
+      "attachment": "C_Neck"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Thumb",
+      "attachment": "F_L_Thumb"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_Weapon_s",
+      "attachment": "F_Weapon_s"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_R_Thigh",
+      "attachment": "C_R_Thigh"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_R_Leg",
+      "attachment": "C_R_Leg"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_R_Horseshoe",
+      "attachment": "C_R_Horseshoe"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_Weapon",
+      "attachment": "F_Weapon"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Hand",
+      "attachment": "F_L_Hand"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Arm",
+      "attachment": "F_L_Arm"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Forearm",
+      "attachment": "F_L_Forearm"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Wings_1",
+      "attachment": "F_L_Wings_1"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Wings",
+      "attachment": "F_L_Wings"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Wings_4",
+      "attachment": "C_Wings_4"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Wings_3",
+      "attachment": "C_Wings_3"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Wings_2",
+      "attachment": "C_Wings_2"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Wings_1",
+      "attachment": "C_Wings_1"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Wings",
+      "attachment": "C_Wings"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Tengman",
+      "attachment": "C_Tengman"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_B_Head",
+      "attachment": "C_B_Head"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Head",
+      "attachment": "C_Head"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Beard",
+      "attachment": "C_Beard"
+    }
+  ],
+  "assets": [
+    {
+      "file": "knight_boss/e_knight_boss_move.png",
+      "sha256": "11c54abef429586901252d79c3d6b021d7cb340d5d375a8b7056d97bd46a48c9"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_move@2x.png",
+      "sha256": "605d8adcb62595b844e7234ef5dc9c9a242dbfe1926cb97d7c45f60778e76449"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_move_emit.png",
+      "sha256": "89ec09f042a5227c135072b8bc41c04ae78dfaab227b530e1b1d2ca5b0796f48"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_move_emit@2x.png",
+      "sha256": "97cbde75b613d6f9e4271faf1dfb1146ac24290a87ab5a18df1680f2e3d75f04"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_death.png",
+      "sha256": "a291c1b9b3122530fce22becdea3bc413843f4509855637f6872c415f02d4a5d"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_death@2x.png",
+      "sha256": "84bd277144007f256d3f965437b1fd14bbe4e96debdc5014999089cb61cbcc7e"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_death_emit.png",
+      "sha256": "a205b04b56492013756d655f8d1fee59d3267c81b8d73ed67ffa746b7708438d"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_death_emit@2x.png",
+      "sha256": "f5b28288696027e897c135b2fbd23db234ba9e06bc28908f03ae5e3b5567d11a"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_wound.png",
+      "sha256": "52adb2edb8e3a3f62506d139ddff635007cba20d1481a2489d5b101420fca6b6"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_wound@2x.png",
+      "sha256": "a628662b188fb17dae922b1b2ec25a05de9932c97afdd02183856321ee5b7ec3"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_wound_emit.png",
+      "sha256": "9964e88e85ddc2395d4275c5181971cbf3db129c84dc438d85ab608247c55108"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_wound_emit@2x.png",
+      "sha256": "b4ac1b8614017f75dc628408cc624dedf739cfc5d9a1ffb681633334d8c21dd7"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_charge_form.png",
+      "sha256": "d481b43ab10a856602ce01963afa2835ba2792c51c9ff29994a9b60066059c1c"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_charge_form@2x.png",
+      "sha256": "a5bf43da5d7b1c92125bdfd6c6f5666e2872425c60af0ba42ca127c18396cb2a"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_charge_form_emit.png",
+      "sha256": "c8405a4b1f033979656ec96ab0837d77238405cfac03e2afa9eeb50dea33ebcc"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_charge_form_emit@2x.png",
+      "sha256": "7f91c31311934f28544a48c5ebd955851b670ff979e791202d4a8b4cec74b3d4"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_charge.png",
+      "sha256": "15dcbd2291523178c2959e836c78b5f67e6f6160ba32959b86514d01d88937eb"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_charge@2x.png",
+      "sha256": "e8e78ef311f2ecff8979cf52294b91fbcd2dfa8f82edd1642e462854d03d2470"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_charge_emit.png",
+      "sha256": "c8405a4b1f033979656ec96ab0837d77238405cfac03e2afa9eeb50dea33ebcc"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_charge_emit@2x.png",
+      "sha256": "7f91c31311934f28544a48c5ebd955851b670ff979e791202d4a8b4cec74b3d4"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_attack.png",
+      "sha256": "6d92a1483d7498d9593ccc62ccef66aa96a3a704849dbc633d4a60a3c9acf7f0"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_attack@2x.png",
+      "sha256": "d06daae487c19f479bc567be0b2f237135159271aca2ed089d30531e646c577c"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_attack_emit.png",
+      "sha256": "c8405a4b1f033979656ec96ab0837d77238405cfac03e2afa9eeb50dea33ebcc"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_attack_emit@2x.png",
+      "sha256": "7f91c31311934f28544a48c5ebd955851b670ff979e791202d4a8b4cec74b3d4"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_thrust.png",
+      "sha256": "a359f856b59f8c361fbe78ee665e00bc636ef0ebb2496542cd725718bc6af07b"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_thrust@2x.png",
+      "sha256": "2b1120a37bd0e7aeede5efb0373fbab2ef1a5d819a45114566b3bfb7be75d0e9"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_thrust_emit.png",
+      "sha256": "139749d966bcce8feb25d3115b7e6f849ee0e2afc4101a187a167135f725b8ab"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_thrust_emit@2x.png",
+      "sha256": "b8ed5d5bbefa9969a31d5a63e760b72580f433d0dd4de814b114fda19407f422"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_spin.png",
+      "sha256": "0b6124c7e94d344a737706e2bc34f7623c4139a62b3b41a5b843ab311fe4bfc8"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_spin@2x.png",
+      "sha256": "2e442b20e717ce07c529e2bd253d0a5ed46ceee6278e2da8e6dc9e568de92550"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_spin_emit.png",
+      "sha256": "e2cd0b6f03aa2152b56676fc568a53dfad54f14902cfddbf4bc7a18799267eb6"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_spin_emit@2x.png",
+      "sha256": "612d6593ca8fd3bdd48e4111a5ed6498123f5112054359411e89aba479314b14"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_plant.png",
+      "sha256": "2ec07899c4bd03bdef27f1af886a63ec870523618b2f9e42fa5e6161ad6410a1"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_plant@2x.png",
+      "sha256": "84c8d93161bb57725f03314c020cd0ce0a3d5157c2bc561d6314bf0b256db64d"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_plant_emit.png",
+      "sha256": "8fcd61f30a500cde8f7ab667601208f921873a0c122317b1e58c2d0a78c23923"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_plant_emit@2x.png",
+      "sha256": "8acf4f9b96e8998af90e1a614dbeb9f3757dce131ab96009b0f8d6a346f4eb21"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_idle.png",
+      "sha256": "8ec085fe1aea3576881751e0371a4cb78623482536272132b2a5a8acf5451b7f"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_idle@2x.png",
+      "sha256": "272c10dbe3d55bc8a8a2ffc13a4598dae3ffb631f070cca041e35c1741c7da4f"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_idle_emit.png",
+      "sha256": "d6b6b55391dc4480e3a60108319225f00315b213c642c97bc59994d6bfe25674"
+    },
+    {
+      "file": "knight_boss/e_knight_boss_idle_emit@2x.png",
+      "sha256": "8e2badeaa5d9ff21e5c939299221edf616bbf8a892ba9e739e94e2775c0dab67"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "2d226a0e956596382c9ba434a6dee2ce1b16fc17bad0d3d92d9e643777063650",
+    "atlas": "06450b03a59c130c09a04368e23facfdad50eece22696ccf0003739287d464cc"
+  }
+}

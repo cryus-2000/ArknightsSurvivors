@@ -1,0 +1,383 @@
+{
+  "id": "bishop",
+  "name": "接潮主教",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    64,
+    64
+  ],
+  "origin": [
+    32,
+    56
+  ],
+  "source_crop_1x": [
+    0,
+    4,
+    64,
+    68
+  ],
+  "scale_fixed_across_actions": 0.07053773179278457,
+  "idle_height_target": 40,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#152C2C",
+    "#254540",
+    "#3F6156",
+    "#688174",
+    "#4B4840",
+    "#777364",
+    "#A29A7E",
+    "#C4B391",
+    "#51414B",
+    "#76666C",
+    "#ABA59A"
+  ],
+  "color_cap": 28,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 6,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.22222222884496054,
+        0.4444444576899211,
+        0.6666666865348816,
+        0.8888889153798422,
+        1.1111111442248027
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03",
+        "idle_04",
+        "idle_05"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 6,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.16666666666666666,
+        0.3333333333333333,
+        0.5,
+        0.6666666666666666,
+        0.8333333333333333
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03",
+        "move_04",
+        "move_05"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack",
+      "frames": 8,
+      "duration_seconds": 1.2000000476837158,
+      "sample_times": [
+        0.0,
+        0.17142857824053084,
+        0.3428571564810617,
+        0.5,
+        0.6857143129621234,
+        0.8571428912026542,
+        1.0285714694431851,
+        1.199000047683716
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05",
+        "attack_06",
+        "attack_07"
+      ]
+    },
+    {
+      "action": "feign",
+      "source_animation": "Die_Idle",
+      "frames": 6,
+      "duration_seconds": 1.100000023841858,
+      "sample_times": [
+        0.0,
+        0.18333333730697632,
+        0.36666667461395264,
+        0.550000011920929,
+        0.7333333492279053,
+        0.9166666865348816
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "feign_00",
+        "feign_01",
+        "feign_02",
+        "feign_03",
+        "feign_04",
+        "feign_05"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 1.399999976158142,
+      "sample_times": [
+        0.0,
+        0.1999999965940203,
+        0.3999999931880406,
+        0.5999999897820609,
+        0.7999999863760812,
+        0.9999999829701015,
+        1.1999999795641219,
+        1.3989999761581422
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05",
+        "death_06",
+        "death_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.1999999965940203,
+        0.3999999931880406,
+        0.5999999897820609,
+        0.7999999863760812,
+        0.9999999829701015,
+        1.1999999795641219,
+        1.3989999761581422
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "revive",
+      "source_animation": "Die_Loop",
+      "construction": "original Spine animation",
+      "frames": 6,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.22222222884496054,
+        0.4444444576899211,
+        0.6666666865348816,
+        0.8888889153798422,
+        1.1111111442248027
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "revive_00",
+        "revive_01",
+        "revive_02",
+        "revive_03",
+        "revive_04",
+        "revive_05"
+      ],
+      "pose_times": [
+        0.0,
+        0.22222222884496054,
+        0.4444444576899211,
+        0.6666666865348816,
+        0.8888889153798422,
+        1.1111111442248027
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "C_Clothes_01",
+    "local": [
+      25.68433189382446,
+      1.8457897777616579
+    ],
+    "slot": "C_Clothes_01"
+  },
+  "subpixel_parts": [],
+  "assets": [
+    {
+      "file": "bishop/e_bishop_idle.png",
+      "sha256": "5015838f8b131f9954fede688a1638fcc570c305e2ddca420c6e522e9dae5d2b"
+    },
+    {
+      "file": "bishop/e_bishop_idle@2x.png",
+      "sha256": "c8e212b3f434119806b8868fa13ccc0c1a224e862366e7708e4be4b36121b0f2"
+    },
+    {
+      "file": "bishop/e_bishop_idle_emit.png",
+      "sha256": "b6d5168f7ab53d340e4b7692fcf8d1589fac0e6fd60f57afde88cb5148459b68"
+    },
+    {
+      "file": "bishop/e_bishop_idle_emit@2x.png",
+      "sha256": "7d579e7744b963c710da1c59691b800fd382e064f0446d121c8dba74809e9838"
+    },
+    {
+      "file": "bishop/e_bishop_move.png",
+      "sha256": "325b9dfdf83f4d830fcb5901e80409e7585570d476d2e153f5986ea5a5aed4d4"
+    },
+    {
+      "file": "bishop/e_bishop_move@2x.png",
+      "sha256": "fbad970ee915ef040b6fd2b9959959f3832c84403ede7ade4cc19f31f379e8d4"
+    },
+    {
+      "file": "bishop/e_bishop_move_emit.png",
+      "sha256": "768128fe48b0f58ade6bcf283e2691999dd08d188faf46981cb20abca34fec5d"
+    },
+    {
+      "file": "bishop/e_bishop_move_emit@2x.png",
+      "sha256": "72d662492ce995a66be1d5341e525b8ae699543f648ce7b5af3924e8d60c5fab"
+    },
+    {
+      "file": "bishop/e_bishop_attack.png",
+      "sha256": "e99f8c9d0f3dabcf81ed35ecf1b30638dd5e1591a7a3b2fb3dd3f628b8a54762"
+    },
+    {
+      "file": "bishop/e_bishop_attack@2x.png",
+      "sha256": "d305bf3cfd169c32ff2371f025b47839b858c3ef7b382069f991ebac049544f7"
+    },
+    {
+      "file": "bishop/e_bishop_attack_emit.png",
+      "sha256": "4d24971333e77eae634885196b57d44e032179d59fca152d1ea061640276a091"
+    },
+    {
+      "file": "bishop/e_bishop_attack_emit@2x.png",
+      "sha256": "a38f479e971899e1b327e9c106f4040d22107e8f55c541f32238140d7118b0ae"
+    },
+    {
+      "file": "bishop/e_bishop_feign.png",
+      "sha256": "01a667ba70067425389f14b1a87e1c8205750a5a94244ac24621b98372075831"
+    },
+    {
+      "file": "bishop/e_bishop_feign@2x.png",
+      "sha256": "214220bcbceae704401b0f891381a22fce779b2fe2efbbe87ea226945c0a0e1b"
+    },
+    {
+      "file": "bishop/e_bishop_feign_emit.png",
+      "sha256": "e3b01116b21e753bf9be45c6919f263816a266eb8bc04cda5c175055271c2d75"
+    },
+    {
+      "file": "bishop/e_bishop_feign_emit@2x.png",
+      "sha256": "146558f04194da4cae6be91be16be497511836102b9c86e61ef73e89d093cf2c"
+    },
+    {
+      "file": "bishop/e_bishop_death.png",
+      "sha256": "4c26ef395623a6cbe0ae01f95b3ad1425e97680a2a9e80611c3e2d9b3c51bee3"
+    },
+    {
+      "file": "bishop/e_bishop_death@2x.png",
+      "sha256": "c77a2def6d3d56c2e3ca7449f69a70bc6b0eb6d2e921f02ee25833dd50a3ba83"
+    },
+    {
+      "file": "bishop/e_bishop_death_emit.png",
+      "sha256": "1c7fc01e6f22c1cbb5f2dd835256bb6b94d87653887c1f7c4e03326cfef61a47"
+    },
+    {
+      "file": "bishop/e_bishop_death_emit@2x.png",
+      "sha256": "529e3edea68258264c21e337ef8c6ff5cb10997e0d478663b519f696b8ff546d"
+    },
+    {
+      "file": "bishop/e_bishop_revive.png",
+      "sha256": "6f8f892e4970171267044c9d7db123272b157fd17c3dd0e3692a18a88031453b"
+    },
+    {
+      "file": "bishop/e_bishop_revive@2x.png",
+      "sha256": "0f2d0bc631569c1e7d26156758610dbbe0791ce7206c433b874113e4ee833f81"
+    },
+    {
+      "file": "bishop/e_bishop_revive_emit.png",
+      "sha256": "71b26a316f78907c0861922d1cf7185b8f15b512f25403fb82b1fd3309d387bd"
+    },
+    {
+      "file": "bishop/e_bishop_revive_emit@2x.png",
+      "sha256": "5e8be0316cc6a42f98c90447c30453e8eeb512e8d41808e03f4c6d868fdeb04e"
+    },
+    {
+      "file": "bishop/e_bishop_wound.png",
+      "sha256": "2963d46991173c6fd6cadf49c221d0c33705450d3767427fedd1d9ba0dcc516b"
+    },
+    {
+      "file": "bishop/e_bishop_wound@2x.png",
+      "sha256": "9b3d1542653da39630635bda5abbea2ae916c97f643b450ed33cfa72f638464a"
+    },
+    {
+      "file": "bishop/e_bishop_wound_emit.png",
+      "sha256": "d6048360156ba2a50e1db7d4d06f06679043d80b45c2ff768d53bff6477da6cf"
+    },
+    {
+      "file": "bishop/e_bishop_wound_emit@2x.png",
+      "sha256": "9778683947e5aa774ef28ecc8909457f7be8124f66651fe7a9dd131bbd3d863c"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "ee158f2fcc4c99a1df5344ab0849da3d623a0cec623e999c5699fc7ea32f30e6",
+    "atlas": "2a58dd4d6371f159c5e9d66c4b4eac663e4d51a9a7cfff474e0401cde3f8fc1a"
+  }
+}

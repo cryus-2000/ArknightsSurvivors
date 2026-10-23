@@ -1,0 +1,378 @@
+{
+  "id": "tracer",
+  "name": "深溟引痕者",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    56,
+    48
+  ],
+  "origin": [
+    24,
+    44
+  ],
+  "source_crop_1x": [
+    0,
+    4,
+    56,
+    52
+  ],
+  "scale_fixed_across_actions": 0.05708102742629839,
+  "idle_height_target": 32,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B",
+    "#59485F",
+    "#8B7188",
+    "#B99DA8",
+    "#354853",
+    "#55737C",
+    "#405B58",
+    "#758980",
+    "#423941"
+  ],
+  "color_cap": 24,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 4,
+      "duration_seconds": 1.5,
+      "sample_times": [
+        0.0,
+        0.375,
+        0.75,
+        1.125
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 4,
+      "duration_seconds": 1.5,
+      "sample_times": [
+        0.0,
+        0.375,
+        0.75,
+        1.125
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack",
+      "frames": 6,
+      "duration_seconds": 2.5,
+      "sample_times": [
+        0.0,
+        0.5,
+        1.0,
+        1.399999976158142,
+        2.0,
+        2.499
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.399999976158142
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 6,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        0.999
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05"
+      ],
+      "pose_times": [
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        0.999
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "enraged",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 2,
+      "duration_seconds": 1.5,
+      "sample_times": [
+        0.0,
+        0.75
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "enraged_00",
+        "enraged_01"
+      ],
+      "pose_times": [
+        0.0,
+        0.75
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "Body",
+    "local": [
+      155.3203745733514,
+      -88.8432678619623
+    ],
+    "slot": "Body"
+  },
+  "subpixel_parts": [
+    {
+      "frame": "idle_00",
+      "slot": "L_Leg_a",
+      "attachment": "L_Leg_a"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "L_Leg_a",
+      "attachment": "L_Leg_a"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "L_Leg_a",
+      "attachment": "L_Leg_a"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "L_Leg_a",
+      "attachment": "L_Leg_a"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "L_Leg_a",
+      "attachment": "L_Leg_a"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "L_Leg_a",
+      "attachment": "L_Leg_a"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "L_Leg_a",
+      "attachment": "L_Leg_a"
+    },
+    {
+      "frame": "death_00",
+      "slot": "L_Leg_a",
+      "attachment": "L_Leg_a"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Hand",
+      "attachment": "Hand"
+    },
+    {
+      "frame": "death_05",
+      "slot": "L_Leg_a",
+      "attachment": "L_Leg_a"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "L_Leg_a",
+      "attachment": "L_Leg_a"
+    },
+    {
+      "frame": "enraged_00",
+      "slot": "L_Leg_a",
+      "attachment": "L_Leg_a"
+    },
+    {
+      "frame": "enraged_01",
+      "slot": "L_Leg_a",
+      "attachment": "L_Leg_a"
+    }
+  ],
+  "assets": [
+    {
+      "file": "tracer/e_tracer_idle.png",
+      "sha256": "bfb100022752128487faf203a024b107343e2636b1290c9bcaf06ad43264e05f"
+    },
+    {
+      "file": "tracer/e_tracer_idle@2x.png",
+      "sha256": "a118180285ff63fee9b4f8a8d435ee81271bdeb21bb599dc7dfc66b9e358d900"
+    },
+    {
+      "file": "tracer/e_tracer_idle_emit.png",
+      "sha256": "4d40cec7fbba9fc8f0de0298bbfbe50804cd657b689740da4b0ea7630f701485"
+    },
+    {
+      "file": "tracer/e_tracer_idle_emit@2x.png",
+      "sha256": "f0922452debced6b7513abab0e53eb526a6baf789b4e39897915f9f4d5a76478"
+    },
+    {
+      "file": "tracer/e_tracer_move.png",
+      "sha256": "d57dcd153762dc5f46bb5df96e469ed0a6c65923d4e5f80fc1ec672f47c0af81"
+    },
+    {
+      "file": "tracer/e_tracer_move@2x.png",
+      "sha256": "7c244c563367a0b855f754c6ca84bc07b7d5ea80258dcff8f5a3ca6dea5cf45b"
+    },
+    {
+      "file": "tracer/e_tracer_move_emit.png",
+      "sha256": "809413367d69263ae9257c02806aad0ac023971e144874b527b69fb8e4928dc7"
+    },
+    {
+      "file": "tracer/e_tracer_move_emit@2x.png",
+      "sha256": "2a1c017d2ba7b1e8db1b9d14255b9ec1fa3c5c182f108d24c813ee28d12d24f9"
+    },
+    {
+      "file": "tracer/e_tracer_attack.png",
+      "sha256": "fca0f72cb757827b1a6b7cff5373c002017932cb270183dab2f11ae520201336"
+    },
+    {
+      "file": "tracer/e_tracer_attack@2x.png",
+      "sha256": "65609cbfba3a2b6f8a6ba4c879d325fe11af07bdf6dd2029c6ac31368c307f41"
+    },
+    {
+      "file": "tracer/e_tracer_attack_emit.png",
+      "sha256": "16121eeb32b15110f4f34a722001393d5b2b652290805ce724be8a8207e6ad65"
+    },
+    {
+      "file": "tracer/e_tracer_attack_emit@2x.png",
+      "sha256": "4175d705f379594da49d408494a7b681caba15aef92423ac0e05ed7239de4e81"
+    },
+    {
+      "file": "tracer/e_tracer_death.png",
+      "sha256": "ffe5f4a575c58e8cd5c30d26918fd835486009d9aa60ccb324fb470387e130a5"
+    },
+    {
+      "file": "tracer/e_tracer_death@2x.png",
+      "sha256": "2491128cd9274000c022620c1551741eceb49d31ed76d83cc1503ed98d36571d"
+    },
+    {
+      "file": "tracer/e_tracer_death_emit.png",
+      "sha256": "0796ae8b893cab85282b9cd9f360251f8423c64c9ec4b962e2a156131f8bd9de"
+    },
+    {
+      "file": "tracer/e_tracer_death_emit@2x.png",
+      "sha256": "1fe341b8a77870536d0ad00b8dd12f9deee23b5909263394b8c5ff9ec2009990"
+    },
+    {
+      "file": "tracer/e_tracer_wound.png",
+      "sha256": "90cf3d3041f27a417f9911ccfa61e4071bbceedc0aa6cb9d1fd867a731edb5dd"
+    },
+    {
+      "file": "tracer/e_tracer_wound@2x.png",
+      "sha256": "44089ca71bfc3eb830d13057938e8fcb8d6560541d615bc5556db2ae74207f99"
+    },
+    {
+      "file": "tracer/e_tracer_wound_emit.png",
+      "sha256": "d18890f674a6bfa47933012aa63b78909851854b97f0b74d2ab229f60423a425"
+    },
+    {
+      "file": "tracer/e_tracer_wound_emit@2x.png",
+      "sha256": "db9e761657863137e117fbdaea9174ee68bde2d53aefa1a45bb0af9797a7c6b5"
+    },
+    {
+      "file": "tracer/e_tracer_enraged.png",
+      "sha256": "259cff01aa17394f4c08b9ac507890a95f3fe7912b224c0927336cb24ed52c5b"
+    },
+    {
+      "file": "tracer/e_tracer_enraged@2x.png",
+      "sha256": "1fca2b982aa7f222e6b4a0f14bd3ace8c40d9c9209f8056baf8825c3a770dd52"
+    },
+    {
+      "file": "tracer/e_tracer_enraged_emit.png",
+      "sha256": "a04353048b1525c0137d4488c652c2185a59215483413d79649d10a3aa53d365"
+    },
+    {
+      "file": "tracer/e_tracer_enraged_emit@2x.png",
+      "sha256": "9a4e6f78fd1850117c2f59645427fc939109e62bb0c01c1291cf5bf52720d991"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "2dd2416458099d26f1d970e5bf7ff7676268b65ae9e16d5681b1a96ea439ca4c",
+    "atlas": "24babb2e7c261358205495df37de5ef070e468ca8486730385a7a36c971f5995"
+  }
+}

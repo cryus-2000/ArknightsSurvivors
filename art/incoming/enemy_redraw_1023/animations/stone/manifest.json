@@ -1,0 +1,450 @@
+{
+  "id": "stone",
+  "name": "固海凿石者",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    52,
+    40
+  ],
+  "origin": [
+    28,
+    36
+  ],
+  "source_crop_1x": [
+    0,
+    0,
+    52,
+    40
+  ],
+  "scale_fixed_across_actions": 0.08882654913775039,
+  "idle_height_target": 25,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B",
+    "#59485F",
+    "#8B7188",
+    "#B99DA8",
+    "#354853"
+  ],
+  "color_cap": 20,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 4,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.3333333432674408,
+        0.6666666865348816,
+        1.0000000298023224
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 4,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.25,
+        0.5,
+        0.75
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack",
+      "frames": 6,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.26666667461395266,
+        0.5333333611488342,
+        0.800000023841858,
+        1.0666666984558106,
+        1.3323333730697633
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5333333611488342
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 6,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        0.999
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05"
+      ],
+      "pose_times": [
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        0.999
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "C_Head_01",
+    "local": [
+      23.789637329964513,
+      5.859178420734919
+    ],
+    "slot": "C_Head_01"
+  },
+  "subpixel_parts": [
+    {
+      "frame": "death_02",
+      "slot": "C_R_Foot_01",
+      "attachment": "C_R_Foot_01"
+    },
+    {
+      "frame": "death_02",
+      "slot": "C_Head_03",
+      "attachment": "C_Head_03"
+    },
+    {
+      "frame": "death_02",
+      "slot": "C_R_Pincers_01",
+      "attachment": "C_R_Pincers_01"
+    },
+    {
+      "frame": "death_02",
+      "slot": "C_Head_02",
+      "attachment": "C_Head_02"
+    },
+    {
+      "frame": "death_02",
+      "slot": "C_Head_01",
+      "attachment": "C_Head_01"
+    },
+    {
+      "frame": "death_02",
+      "slot": "C_L_Pincers_02",
+      "attachment": "C_L_Pincers_02"
+    },
+    {
+      "frame": "death_02",
+      "slot": "C_L_Pincers_01",
+      "attachment": "C_L_Pincers_01"
+    },
+    {
+      "frame": "death_02",
+      "slot": "C_L_Foot_02",
+      "attachment": "C_L_Foot_02"
+    },
+    {
+      "frame": "death_02",
+      "slot": "C_L_Foot_01",
+      "attachment": "C_L_Foot_01"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_R_Foot_01",
+      "attachment": "C_R_Foot_01"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Head_03",
+      "attachment": "C_Head_03"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_R_Pincers_01",
+      "attachment": "C_R_Pincers_01"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Head_02",
+      "attachment": "C_Head_02"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_Head_01",
+      "attachment": "C_Head_01"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_L_Pincers_02",
+      "attachment": "C_L_Pincers_02"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_L_Pincers_01",
+      "attachment": "C_L_Pincers_01"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_L_Foot_02",
+      "attachment": "C_L_Foot_02"
+    },
+    {
+      "frame": "death_03",
+      "slot": "C_L_Foot_01",
+      "attachment": "C_L_Foot_01"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_R_Foot_01",
+      "attachment": "C_R_Foot_01"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_Head_03",
+      "attachment": "C_Head_03"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_R_Pincers_01",
+      "attachment": "C_R_Pincers_01"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_Head_02",
+      "attachment": "C_Head_02"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_Head_01",
+      "attachment": "C_Head_01"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_L_Pincers_02",
+      "attachment": "C_L_Pincers_02"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_L_Pincers_01",
+      "attachment": "C_L_Pincers_01"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_L_Foot_02",
+      "attachment": "C_L_Foot_02"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_L_Foot_01",
+      "attachment": "C_L_Foot_01"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_R_Foot_01",
+      "attachment": "C_R_Foot_01"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_Head_03",
+      "attachment": "C_Head_03"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_R_Pincers_01",
+      "attachment": "C_R_Pincers_01"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_Head_02",
+      "attachment": "C_Head_02"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_Head_01",
+      "attachment": "C_Head_01"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_L_Pincers_02",
+      "attachment": "C_L_Pincers_02"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_L_Pincers_01",
+      "attachment": "C_L_Pincers_01"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_L_Foot_02",
+      "attachment": "C_L_Foot_02"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_L_Foot_01",
+      "attachment": "C_L_Foot_01"
+    }
+  ],
+  "assets": [
+    {
+      "file": "stone/e_stone_idle.png",
+      "sha256": "e8ecb394630bb26e48814ad91b392d8dcd1106509668e39153b957bea1aeb341"
+    },
+    {
+      "file": "stone/e_stone_idle@2x.png",
+      "sha256": "61863267c365496d43ca6a1adc064380fceeb9bce87e8725200fedacb82e6138"
+    },
+    {
+      "file": "stone/e_stone_idle_emit.png",
+      "sha256": "451378a4155fe1c1c830166141907a9473f049d309480f4b694440c2ef7e3163"
+    },
+    {
+      "file": "stone/e_stone_idle_emit@2x.png",
+      "sha256": "149926bd0ae85aa9d73d21b72f20ae049346ccb6cd2d37e8bf86e473684d44ab"
+    },
+    {
+      "file": "stone/e_stone_move.png",
+      "sha256": "bcf32b01b94a136ae233fb24bf38434bc3a29e72899450249f4aa0ccc019655e"
+    },
+    {
+      "file": "stone/e_stone_move@2x.png",
+      "sha256": "0504b6e87cc9f13de38be6c77c401e64378dcaa3ef90b24371a0dc102dd67ff7"
+    },
+    {
+      "file": "stone/e_stone_move_emit.png",
+      "sha256": "52c4e4b62dbf8240ace78f99b50447a606069b756fa818978c1b1a7869d843f2"
+    },
+    {
+      "file": "stone/e_stone_move_emit@2x.png",
+      "sha256": "ac727a663c0791cc65e5733dd839ba09f14a421a6cb984af1172819e8d410a1d"
+    },
+    {
+      "file": "stone/e_stone_attack.png",
+      "sha256": "80a71ad9d2f1ca0fd0664b1f7130329ca79d7d67340b71b3e1dffc85d149d319"
+    },
+    {
+      "file": "stone/e_stone_attack@2x.png",
+      "sha256": "bc00d1d721254c291e3a460d8570f88da4a50ccedd573ebcde19824664f560c8"
+    },
+    {
+      "file": "stone/e_stone_attack_emit.png",
+      "sha256": "d315f02fb4291c9ee34c9815d32318b2989b0c6ed592e6c0e6750138d1677134"
+    },
+    {
+      "file": "stone/e_stone_attack_emit@2x.png",
+      "sha256": "2a593c7060cc08342d927e1d40ac9f6e2b87c31fde4b263ef86a6a65fc636378"
+    },
+    {
+      "file": "stone/e_stone_death.png",
+      "sha256": "803281464343f5bdbbbb5d0311248cdd2988ba3b2093bff788afa18827e527e4"
+    },
+    {
+      "file": "stone/e_stone_death@2x.png",
+      "sha256": "c51b41691543a8fb33b6a36b8be07d873b48fbacf64349b2bf1b25cb06081141"
+    },
+    {
+      "file": "stone/e_stone_death_emit.png",
+      "sha256": "da869e0a33ba610f271ed4699a8785348a8978afbdb5cf12bee23ec4cd9dd9e4"
+    },
+    {
+      "file": "stone/e_stone_death_emit@2x.png",
+      "sha256": "ae47a8c6bd68ddb101c2afac110ec0fb602384b61fae04893208d0182ef1543f"
+    },
+    {
+      "file": "stone/e_stone_wound.png",
+      "sha256": "c58911fb0a37a3074332eca017aeba07612ececdd2e4886823495292049ce213"
+    },
+    {
+      "file": "stone/e_stone_wound@2x.png",
+      "sha256": "64b73d13f178fe94fc1538c097d3745c907b327e635669e00b0ac1600802070d"
+    },
+    {
+      "file": "stone/e_stone_wound_emit.png",
+      "sha256": "bb83486615781e9828da6dc8c0ecb311d4d292484799d0d4a7cda353f0e2aaa0"
+    },
+    {
+      "file": "stone/e_stone_wound_emit@2x.png",
+      "sha256": "0e23ef71e3a429350c3896161636844624140a72b3dfdcf62d0edfa585eb87f6"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "e996ef77dfbb22ba4fd7cb16581b4739d8aa4980b2152ed0a3f4c6dc5004221f",
+    "atlas": "ad133d2a98b8bb79b7f148f817276af393a777d3005f79128c530497e7fecfec"
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "id": "mimic_disguised",
+  "name": "箱形恐鱼",
+  "construction": "original-reference authored components; no standalone Spine",
+  "frame_size": [
+    32,
+    32
+  ],
+  "origin": [
+    16,
+    28
+  ],
+  "source_crop_1x": [
+    0,
+    0,
+    32,
+    32
+  ],
+  "scale_fixed_across_actions": 1,
+  "idle_height_target": 11,
+  "palette": [
+    "#080E18",
+    "#10243C",
+    "#236277",
+    "#287E84",
+    "#A885FF",
+    "#D9F4F2",
+    "#FFC46B",
+    "#FFE4A1"
+  ],
+  "color_cap": 16,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": null,
+      "construction": "original-reference authored components; no Spine",
+      "frames": 1,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00"
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": null,
+      "construction": "original-reference authored components; no Spine",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "reveal",
+      "source_animation": null,
+      "construction": "original-reference authored components; no Spine",
+      "frames": 4,
+      "duration_seconds": 0.64,
+      "sample_times": [
+        0.0,
+        0.21333333333333335,
+        0.4266666666666667,
+        0.64
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "reveal_00",
+        "reveal_01",
+        "reveal_02",
+        "reveal_03"
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": null,
+  "subpixel_parts": [],
+  "assets": [
+    {
+      "file": "mimic_disguised/e_mimic_disguised_idle.png",
+      "sha256": "626ad3b7f40662810e6562402a05d06bff15b57cde0dd090b315ddef856b31b2"
+    },
+    {
+      "file": "mimic_disguised/e_mimic_disguised_idle@2x.png",
+      "sha256": "f1a3480559b0639be498065929074e918c30f0bf5f9c1153e9ab7f63de88e6cc"
+    },
+    {
+      "file": "mimic_disguised/e_mimic_disguised_idle_emit.png",
+      "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+    },
+    {
+      "file": "mimic_disguised/e_mimic_disguised_idle_emit@2x.png",
+      "sha256": "8d447892b6efbc450beab391a7003090694cfcd0014d20766150112cab1675a0"
+    },
+    {
+      "file": "mimic_disguised/e_mimic_disguised_wound.png",
+      "sha256": "92f508f12eebef1a07ffbe3e3cfe2606317dbe8e46237e2098e92c2b83110bb3"
+    },
+    {
+      "file": "mimic_disguised/e_mimic_disguised_wound@2x.png",
+      "sha256": "edb29c67b58b7e69e197a87356b2b112a588f99ecf91544427f5ca7754ea676c"
+    },
+    {
+      "file": "mimic_disguised/e_mimic_disguised_wound_emit.png",
+      "sha256": "b0775cba09eadf2fde241b35daa28cdcd03af6d23e99e0decd32b42f13f6d220"
+    },
+    {
+      "file": "mimic_disguised/e_mimic_disguised_wound_emit@2x.png",
+      "sha256": "8d447892b6efbc450beab391a7003090694cfcd0014d20766150112cab1675a0"
+    },
+    {
+      "file": "mimic_disguised/e_mimic_disguised_reveal.png",
+      "sha256": "529085c5c8f72c4ca104a28ab82618b439dbdc1fb204418b3d744bd6719eb9ab"
+    },
+    {
+      "file": "mimic_disguised/e_mimic_disguised_reveal@2x.png",
+      "sha256": "4ff5951a2fb388bc47dc531170f9863adb3b038063d52331aa3ca09f62287ae6"
+    },
+    {
+      "file": "mimic_disguised/e_mimic_disguised_reveal_emit.png",
+      "sha256": "7c144b83e87d4af88b0091e7322beae43a35d69f467fed9edea0fe799913b56e"
+    },
+    {
+      "file": "mimic_disguised/e_mimic_disguised_reveal_emit@2x.png",
+      "sha256": "069daa9063ebb657a043756be1bd99f5f998628fb4012fef73b04b2b272c4269"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "art_source": "91ad77c6a21c09c70ce72c70ed6cb1c6ea2ae7c611d21817e30d25998d7adf1d"
+  }
+}

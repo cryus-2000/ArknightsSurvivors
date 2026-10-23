@@ -1,0 +1,1568 @@
+[
+  {
+    "name": "attack_00",
+    "anim": "Attack",
+    "t": 0,
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body_1",
+        "attachment": "C_Body_02",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 0,
+        "file": "attack_00_slot_0.png",
+        "matrix": [
+          -0.5333455164761798,
+          -0.8458974755350289,
+          0.8458975002877004,
+          -0.5333455164761777,
+          -3.345584800087967,
+          85.85002928192137
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Body_1__C_Body_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_00_slot_0.png"
+      },
+      {
+        "slot": "C_R_Foot_01",
+        "attachment": "C_R_Foot_01",
+        "bone": "C_R_Foot_01",
+        "parent": "Common2",
+        "draw_order": 1,
+        "file": "attack_00_slot_1.png",
+        "matrix": [
+          0.45892376944651286,
+          0.8884756355205204,
+          -0.888475646169887,
+          0.45892379006367845,
+          49.72139176913353,
+          129.3450591357057
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_R_Foot_01__C_R_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_00_slot_1.png"
+      },
+      {
+        "slot": "C_Head_03",
+        "attachment": "C_Head_03",
+        "bone": "C_Head_03",
+        "parent": "C_Head_2",
+        "draw_order": 2,
+        "file": "attack_00_slot_2.png",
+        "matrix": [
+          0.9454057348440803,
+          -0.3258957085866421,
+          0.325895642189107,
+          0.9454057404368166,
+          20.59439890915355,
+          161.336244514917
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_03__C_Head_03.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_00_slot_2.png"
+      },
+      {
+        "slot": "C_R_Pincers_01",
+        "attachment": "C_R_Pincers_01",
+        "bone": "C_R_Pincers_01",
+        "parent": "C_Head_01",
+        "draw_order": 3,
+        "file": "attack_00_slot_3.png",
+        "matrix": [
+          0.6107415625614158,
+          0.7918299825820564,
+          -0.7918300109266998,
+          0.610741562561417,
+          84.43436032675393,
+          121.83525600138302
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_R_Pincers_01__C_R_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_00_slot_3.png"
+      },
+      {
+        "slot": "C_Body_01",
+        "attachment": "C_Body_01",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 4,
+        "file": "attack_00_slot_4.png",
+        "matrix": [
+          -0.5333455164761798,
+          -0.8458974755350289,
+          0.8458975002877004,
+          -0.5333455164761777,
+          -3.345584800087967,
+          85.85002928192137
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Body_01__C_Body_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_00_slot_4.png"
+      },
+      {
+        "slot": "C_Head_02",
+        "attachment": "C_Head_02",
+        "bone": "C_Head_02",
+        "parent": "C_Head_2",
+        "draw_order": 5,
+        "file": "attack_00_slot_5.png",
+        "matrix": [
+          0.9980629398676235,
+          -0.06221232190330443,
+          0.06221225238591688,
+          0.9980629392574741,
+          15.008430483149276,
+          140.58823798893403
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_02__C_Head_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_00_slot_5.png"
+      },
+      {
+        "slot": "C_Head_01",
+        "attachment": "C_Head_01",
+        "bone": "C_Head_01",
+        "parent": "Common2",
+        "draw_order": 6,
+        "file": "attack_00_slot_6.png",
+        "matrix": [
+          0.9999999999999795,
+          1.967008028307056e-07,
+          -2.1990590605181402e-07,
+          0.9999999999999762,
+          5.033422190471468,
+          131.0122677858489
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_01__C_Head_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_00_slot_6.png"
+      },
+      {
+        "slot": "C_L_Pincers_02",
+        "attachment": "C_L_Pincers_02",
+        "bone": "C_L_Pincers_02",
+        "parent": "C_Head_01",
+        "draw_order": 7,
+        "file": "attack_00_slot_7.png",
+        "matrix": [
+          0.6726877668136503,
+          0.7399264458573362,
+          -0.7399264770769156,
+          0.6726877668136515,
+          6.629403866855855,
+          131.41126951007843
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Pincers_02__C_L_Pincers_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_00_slot_7.png"
+      },
+      {
+        "slot": "C_L_Pincers_01",
+        "attachment": "C_L_Pincers_01",
+        "bone": "C_L_Pincers_01",
+        "parent": "C_L_Pincers_02",
+        "draw_order": 8,
+        "file": "attack_00_slot_8.png",
+        "matrix": [
+          0.25656464034005705,
+          0.9665270563819378,
+          -0.966527090050631,
+          0.2565646483970485,
+          26.396674556825623,
+          109.71951029504893
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Pincers_01__C_L_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_00_slot_8.png"
+      },
+      {
+        "slot": "C_L_Foot_02",
+        "attachment": "C_L_Foot_02",
+        "bone": "C_L_Foot_02",
+        "parent": "Common2",
+        "draw_order": 9,
+        "file": "attack_00_slot_9.png",
+        "matrix": [
+          -0.4748543957546979,
+          0.8800643852738199,
+          -0.8800643742547676,
+          -0.4748543753327085,
+          -32.47254570997621,
+          126.55208034974515
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Foot_02__C_L_Foot_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_00_slot_9.png"
+      },
+      {
+        "slot": "C_L_Foot_01",
+        "attachment": "C_L_Foot_01",
+        "bone": "C_L_Foot_01",
+        "parent": "Common2",
+        "draw_order": 10,
+        "file": "attack_00_slot_10.png",
+        "matrix": [
+          -0.1578691872463275,
+          0.9874600381549906,
+          -0.9874600344916121,
+          -0.15786916433221315,
+          -12.123573009117134,
+          132.53706440827804
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Foot_01__C_L_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_00_slot_10.png"
+      }
+    ],
+    "glow": [
+      29.525,
+      23.8375
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      52,
+      40
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "attack_01",
+    "anim": "Attack",
+    "t": 0.26666667461395266,
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body_1",
+        "attachment": "C_Body_02",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 0,
+        "file": "attack_01_slot_0.png",
+        "matrix": [
+          -0.8135171473800442,
+          -0.5815409091046584,
+          0.581540946860154,
+          -0.8135171473800401,
+          -25.972338338564168,
+          85.85003124474358
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Body_1__C_Body_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_01_slot_0.png"
+      },
+      {
+        "slot": "C_R_Foot_01",
+        "attachment": "C_R_Foot_01",
+        "bone": "C_R_Foot_01",
+        "parent": "Common2",
+        "draw_order": 1,
+        "file": "attack_01_slot_1.png",
+        "matrix": [
+          0.6418381909415719,
+          0.8170468816505163,
+          -0.9095353412611271,
+          0.5765712386038426,
+          25.17948010938154,
+          129.34506126466377
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_R_Foot_01__C_R_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_01_slot_1.png"
+      },
+      {
+        "slot": "C_Head_03",
+        "attachment": "C_Head_03",
+        "bone": "C_Head_03",
+        "parent": "C_Head_2",
+        "draw_order": 2,
+        "file": "attack_01_slot_2.png",
+        "matrix": [
+          0.5113974469322046,
+          -0.8593443462935458,
+          0.8593442899015513,
+          0.5113974356389952,
+          -25.200202729771014,
+          162.80239538315712
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_03__C_Head_03.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_01_slot_2.png"
+      },
+      {
+        "slot": "C_R_Pincers_01",
+        "attachment": "C_R_Pincers_01",
+        "bone": "C_R_Pincers_01",
+        "parent": "C_Head_01",
+        "draw_order": 3,
+        "file": "attack_01_slot_3.png",
+        "matrix": [
+          0.9983637479688725,
+          0.05718249503881456,
+          -0.05718253616296626,
+          0.9983637345980931,
+          25.688483617372256,
+          148.55393176657626
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_R_Pincers_01__C_R_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_01_slot_3.png"
+      },
+      {
+        "slot": "C_Body_01",
+        "attachment": "C_Body_01",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 4,
+        "file": "attack_01_slot_4.png",
+        "matrix": [
+          -0.8135171473800442,
+          -0.5815409091046584,
+          0.581540946860154,
+          -0.8135171473800401,
+          -25.972338338564168,
+          85.85003124474358
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Body_01__C_Body_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_01_slot_4.png"
+      },
+      {
+        "slot": "C_Head_02",
+        "attachment": "C_Head_02",
+        "bone": "C_Head_02",
+        "parent": "C_Head_2",
+        "draw_order": 5,
+        "file": "attack_01_slot_5.png",
+        "matrix": [
+          0.6953689410258358,
+          -0.44552851186766645,
+          0.5791130251102407,
+          0.8952677525746906,
+          -41.27006860188477,
+          140.22833894996384
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_02__C_Head_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_01_slot_5.png"
+      },
+      {
+        "slot": "C_Head_01",
+        "attachment": "C_Head_01",
+        "bone": "C_Head_01",
+        "parent": "Common2",
+        "draw_order": 6,
+        "file": "attack_01_slot_6.png",
+        "matrix": [
+          0.9509972087632244,
+          -0.3091994866932743,
+          0.30919946462528347,
+          0.950997201588211,
+          -26.21165955430812,
+          131.01227034074478
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_01__C_Head_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_01_slot_6.png"
+      },
+      {
+        "slot": "C_L_Pincers_02",
+        "attachment": "C_L_Pincers_02",
+        "bone": "C_L_Pincers_02",
+        "parent": "C_Head_01",
+        "draw_order": 7,
+        "file": "attack_01_slot_7.png",
+        "matrix": [
+          0.9269546336512146,
+          0.3751734327738979,
+          -0.3751734665612134,
+          0.926954622665874,
+          -24.81725674630732,
+          131.885196853306
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Pincers_02__C_L_Pincers_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_01_slot_7.png"
+      },
+      {
+        "slot": "C_L_Pincers_01",
+        "attachment": "C_L_Pincers_01",
+        "bone": "C_L_Pincers_01",
+        "parent": "C_L_Pincers_02",
+        "draw_order": 8,
+        "file": "attack_01_slot_8.png",
+        "matrix": [
+          0.9543576131374899,
+          0.29866625273842784,
+          -0.2986663094521449,
+          0.9543576118625211,
+          2.3995119987373172,
+          120.90681321855212
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Pincers_01__C_L_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_01_slot_8.png"
+      },
+      {
+        "slot": "C_L_Foot_02",
+        "attachment": "C_L_Foot_02",
+        "bone": "C_L_Foot_02",
+        "parent": "Common2",
+        "draw_order": 9,
+        "file": "attack_01_slot_9.png",
+        "matrix": [
+          -0.4989672167716006,
+          0.8693984597426441,
+          -0.8779418786423786,
+          -0.494111645478146,
+          -57.014457369728206,
+          126.55208247870323
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Foot_02__C_L_Foot_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_01_slot_9.png"
+      },
+      {
+        "slot": "C_L_Foot_01",
+        "attachment": "C_L_Foot_01",
+        "bone": "C_L_Foot_01",
+        "parent": "Common2",
+        "draw_order": 10,
+        "file": "attack_01_slot_10.png",
+        "matrix": [
+          -0.007976169996737437,
+          0.9999681900352398,
+          -0.9999681898501444,
+          -0.007976146792371751,
+          -36.66548466886913,
+          132.53706653723611
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Foot_01__C_L_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_01_slot_10.png"
+      }
+    ],
+    "glow": [
+      26.48513373399459,
+      23.209617565961775
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      52,
+      40
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "attack_02",
+    "anim": "Attack",
+    "t": 0.5333333611488342,
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body_1",
+        "attachment": "C_Body_02",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 0,
+        "file": "attack_02_slot_0.png",
+        "matrix": [
+          -0.38128018002793007,
+          -0.924459522077247,
+          0.9244595397725344,
+          -0.3812801800279285,
+          9.17940909639641,
+          85.85002819540509
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Body_1__C_Body_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_02_slot_0.png"
+      },
+      {
+        "slot": "C_R_Foot_01",
+        "attachment": "C_R_Foot_01",
+        "bone": "C_R_Foot_01",
+        "parent": "Common2",
+        "draw_order": 1,
+        "file": "attack_02_slot_1.png",
+        "matrix": [
+          0.40356279415655333,
+          0.9149519408340698,
+          -0.9149519501987791,
+          0.40356281538810473,
+          56.79341325350855,
+          129.34505868633005
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_R_Foot_01__C_R_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_02_slot_1.png"
+      },
+      {
+        "slot": "C_Head_03",
+        "attachment": "C_Head_03",
+        "bone": "C_Head_03",
+        "parent": "C_Head_2",
+        "draw_order": 2,
+        "file": "attack_02_slot_2.png",
+        "matrix": [
+          0.9991333513953018,
+          0.04162386637019842,
+          -0.0416239357489222,
+          0.9991333483828667,
+          55.81534661128907,
+          161.33624025706678
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_03__C_Head_03.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_02_slot_2.png"
+      },
+      {
+        "slot": "C_R_Pincers_01",
+        "attachment": "C_R_Pincers_01",
+        "bone": "C_R_Pincers_01",
+        "parent": "C_Head_01",
+        "draw_order": 3,
+        "file": "attack_02_slot_3.png",
+        "matrix": [
+          0.06270070271866793,
+          0.9980323737105702,
+          -0.9980323766205245,
+          0.06270070271866827,
+          102.30331975363384,
+          121.83525486594024
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_R_Pincers_01__C_R_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_02_slot_3.png"
+      },
+      {
+        "slot": "C_Body_01",
+        "attachment": "C_Body_01",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 4,
+        "file": "attack_02_slot_4.png",
+        "matrix": [
+          -0.38128018002793007,
+          -0.924459522077247,
+          0.9244595397725344,
+          -0.3812801800279285,
+          9.17940909639641,
+          85.85002819540509
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Body_01__C_Body_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_02_slot_4.png"
+      },
+      {
+        "slot": "C_Head_02",
+        "attachment": "C_Head_02",
+        "bone": "C_Head_02",
+        "parent": "C_Head_2",
+        "draw_order": 5,
+        "file": "attack_02_slot_5.png",
+        "matrix": [
+          0.9900724772216223,
+          -0.14055781144748608,
+          0.14055774232485688,
+          0.9900724784387626,
+          56.24135635134502,
+          140.58822698190951
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_02__C_Head_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_02_slot_5.png"
+      },
+      {
+        "slot": "C_Head_01",
+        "attachment": "C_Head_01",
+        "bone": "C_Head_01",
+        "parent": "Common2",
+        "draw_order": 6,
+        "file": "attack_02_slot_6.png",
+        "matrix": [
+          0.9999999999999795,
+          1.967008028307056e-07,
+          -2.1990590605181402e-07,
+          0.9999999999999762,
+          22.90238161735138,
+          131.01226665040613
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_01__C_Head_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_02_slot_6.png"
+      },
+      {
+        "slot": "C_L_Pincers_02",
+        "attachment": "C_L_Pincers_02",
+        "bone": "C_L_Pincers_02",
+        "parent": "C_Head_01",
+        "draw_order": 7,
+        "file": "attack_02_slot_7.png",
+        "matrix": [
+          0.6726877668136503,
+          0.7399264458573362,
+          -0.7399264770769156,
+          0.6726877668136515,
+          24.498363293735768,
+          131.41126837463565
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Pincers_02__C_L_Pincers_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_02_slot_7.png"
+      },
+      {
+        "slot": "C_L_Pincers_01",
+        "attachment": "C_L_Pincers_01",
+        "bone": "C_L_Pincers_01",
+        "parent": "C_L_Pincers_02",
+        "draw_order": 8,
+        "file": "attack_02_slot_8.png",
+        "matrix": [
+          -0.09957105537231709,
+          0.995030444976432,
+          -0.9950304635601771,
+          -0.09957105547930578,
+          44.26563398370554,
+          109.71950915960616
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Pincers_01__C_L_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_02_slot_8.png"
+      },
+      {
+        "slot": "C_L_Foot_02",
+        "attachment": "C_L_Foot_02",
+        "bone": "C_L_Foot_02",
+        "parent": "Common2",
+        "draw_order": 9,
+        "file": "attack_02_slot_9.png",
+        "matrix": [
+          -0.5279412188228796,
+          0.8492809254167798,
+          -0.849280913165843,
+          -0.527941199115224,
+          -25.4005242256012,
+          126.5520799003695
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Foot_02__C_L_Foot_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_02_slot_9.png"
+      },
+      {
+        "slot": "C_L_Foot_01",
+        "attachment": "C_L_Foot_01",
+        "bone": "C_L_Foot_01",
+        "parent": "Common2",
+        "draw_order": 10,
+        "file": "attack_02_slot_10.png",
+        "matrix": [
+          -0.2181402464185636,
+          0.9759174364527865,
+          -0.975917431390812,
+          -0.21814022377229697,
+          -5.051548663719174,
+          132.5370639589022
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Foot_01__C_L_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_02_slot_10.png"
+      }
+    ],
+    "glow": [
+      31.112238002572216,
+      23.83750010085746
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      52,
+      40
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "attack_03",
+    "anim": "Attack",
+    "t": 0.800000023841858,
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body_1",
+        "attachment": "C_Body_02",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 0,
+        "file": "attack_03_slot_0.png",
+        "matrix": [
+          -0.6233799315110964,
+          -0.7819190740526631,
+          0.7819191029838508,
+          -0.6233799315110937,
+          -3.0484878756658444,
+          85.85002925614886
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Body_1__C_Body_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_03_slot_0.png"
+      },
+      {
+        "slot": "C_R_Foot_01",
+        "attachment": "C_R_Foot_01",
+        "bone": "C_R_Foot_01",
+        "parent": "Common2",
+        "draw_order": 1,
+        "file": "attack_03_slot_1.png",
+        "matrix": [
+          0.4561111357010282,
+          0.8899228129739399,
+          -0.889922823558039,
+          0.4561111563517757,
+          50.08585914313456,
+          129.34505911254644
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_R_Foot_01__C_R_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_03_slot_1.png"
+      },
+      {
+        "slot": "C_Head_03",
+        "attachment": "C_Head_03",
+        "bone": "C_Head_03",
+        "parent": "C_Head_2",
+        "draw_order": 2,
+        "file": "attack_03_slot_2.png",
+        "matrix": [
+          0.9201425580870857,
+          -0.3915835690772167,
+          0.39158350430128985,
+          0.9201425652499863,
+          21.882907474508215,
+          161.33624432894743
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_03__C_Head_03.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_03_slot_2.png"
+      },
+      {
+        "slot": "C_R_Pincers_01",
+        "attachment": "C_R_Pincers_01",
+        "bone": "C_R_Pincers_01",
+        "parent": "C_Head_01",
+        "draw_order": 3,
+        "file": "attack_03_slot_3.png",
+        "matrix": [
+          0.6219571217181935,
+          0.7830512857668505,
+          -0.7830513146320102,
+          0.6219571217181947,
+          84.82860780786955,
+          121.83525597633144
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_R_Pincers_01__C_R_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_03_slot_3.png"
+      },
+      {
+        "slot": "C_Body_01",
+        "attachment": "C_Body_01",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 4,
+        "file": "attack_03_slot_4.png",
+        "matrix": [
+          -0.6233799315110964,
+          -0.7819190740526631,
+          0.7819191029838508,
+          -0.6233799315110937,
+          -3.0484878756658444,
+          85.85002925614886
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Body_01__C_Body_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_03_slot_4.png"
+      },
+      {
+        "slot": "C_Head_02",
+        "attachment": "C_Head_02",
+        "bone": "C_Head_02",
+        "parent": "C_Head_2",
+        "draw_order": 5,
+        "file": "attack_03_slot_5.png",
+        "matrix": [
+          0.9896328106517184,
+          -0.14362071135478643,
+          0.14362064225643925,
+          0.9896328119405573,
+          16.606775479229817,
+          140.58823745513547
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_02__C_Head_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_03_slot_5.png"
+      },
+      {
+        "slot": "C_Head_01",
+        "attachment": "C_Head_01",
+        "bone": "C_Head_01",
+        "parent": "Common2",
+        "draw_order": 6,
+        "file": "attack_03_slot_6.png",
+        "matrix": [
+          0.9999999999999795,
+          1.967008028307056e-07,
+          -2.1990590605181402e-07,
+          0.9999999999999762,
+          5.427669671587077,
+          131.01226776079733
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_01__C_Head_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_03_slot_6.png"
+      },
+      {
+        "slot": "C_L_Pincers_02",
+        "attachment": "C_L_Pincers_02",
+        "bone": "C_L_Pincers_02",
+        "parent": "C_Head_01",
+        "draw_order": 7,
+        "file": "attack_03_slot_7.png",
+        "matrix": [
+          0.6950580310890164,
+          0.7189536217495563,
+          -0.7189536540073443,
+          0.6950580310890178,
+          7.023651347971464,
+          131.41126948502685
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Pincers_02__C_L_Pincers_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_03_slot_7.png"
+      },
+      {
+        "slot": "C_L_Pincers_01",
+        "attachment": "C_L_Pincers_01",
+        "bone": "C_L_Pincers_01",
+        "parent": "C_L_Pincers_02",
+        "draw_order": 8,
+        "file": "attack_03_slot_8.png",
+        "matrix": [
+          0.2977021601584909,
+          0.9546587806410972,
+          -0.9546588163644053,
+          0.29770216781127534,
+          27.44670901096911,
+          110.33578315271903
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Pincers_01__C_L_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_03_slot_8.png"
+      },
+      {
+        "slot": "C_L_Foot_02",
+        "attachment": "C_L_Foot_02",
+        "bone": "C_L_Foot_02",
+        "parent": "Common2",
+        "draw_order": 9,
+        "file": "attack_03_slot_9.png",
+        "matrix": [
+          -0.4776357524671007,
+          0.8785579704494978,
+          -0.878557959365904,
+          -0.47763573208006815,
+          -32.10807833597518,
+          126.55208032658591
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Foot_02__C_L_Foot_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_03_slot_9.png"
+      },
+      {
+        "slot": "C_L_Foot_01",
+        "attachment": "C_L_Foot_01",
+        "bone": "C_L_Foot_01",
+        "parent": "Common2",
+        "draw_order": 10,
+        "file": "attack_03_slot_10.png",
+        "matrix": [
+          -0.16099183300046477,
+          0.9869557422100341,
+          -0.9869557384741943,
+          -0.1609918100980527,
+          -11.75910548766894,
+          132.53706438511875
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Foot_01__C_L_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_03_slot_10.png"
+      }
+    ],
+    "glow": [
+      29.56001964325375,
+      23.83750000222524
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      52,
+      40
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "attack_04",
+    "anim": "Attack",
+    "t": 1.0666666984558106,
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body_1",
+        "attachment": "C_Body_02",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 0,
+        "file": "attack_04_slot_0.png",
+        "matrix": [
+          -0.5690380488205835,
+          -0.822311180319171,
+          0.8223112067283405,
+          -0.5690380488205812,
+          -3.345584800087967,
+          85.85002928192137
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Body_1__C_Body_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_04_slot_0.png"
+      },
+      {
+        "slot": "C_R_Foot_01",
+        "attachment": "C_R_Foot_01",
+        "bone": "C_R_Foot_01",
+        "parent": "Common2",
+        "draw_order": 1,
+        "file": "attack_04_slot_1.png",
+        "matrix": [
+          0.45892376944651286,
+          0.8884756355205204,
+          -0.888475646169887,
+          0.45892379006367845,
+          49.72139176913353,
+          129.3450591357057
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_R_Foot_01__C_R_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_04_slot_1.png"
+      },
+      {
+        "slot": "C_Head_03",
+        "attachment": "C_Head_03",
+        "bone": "C_Head_03",
+        "parent": "C_Head_2",
+        "draw_order": 2,
+        "file": "attack_04_slot_2.png",
+        "matrix": [
+          0.9359587433875107,
+          -0.3521097102091011,
+          0.3521096444145685,
+          0.9359587496055486,
+          20.59439890915355,
+          161.336244514917
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_03__C_Head_03.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_04_slot_2.png"
+      },
+      {
+        "slot": "C_R_Pincers_01",
+        "attachment": "C_R_Pincers_01",
+        "bone": "C_R_Pincers_01",
+        "parent": "C_Head_01",
+        "draw_order": 3,
+        "file": "attack_04_slot_3.png",
+        "matrix": [
+          0.6233994600483111,
+          0.7819035046534595,
+          -0.7819035335855585,
+          0.6233994600483124,
+          84.43436032675393,
+          121.83525600138302
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_R_Pincers_01__C_R_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_04_slot_3.png"
+      },
+      {
+        "slot": "C_Body_01",
+        "attachment": "C_Body_01",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 4,
+        "file": "attack_04_slot_4.png",
+        "matrix": [
+          -0.5690380488205835,
+          -0.822311180319171,
+          0.8223112067283405,
+          -0.5690380488205812,
+          -3.345584800087967,
+          85.85002928192137
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Body_01__C_Body_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_04_slot_4.png"
+      },
+      {
+        "slot": "C_Head_02",
+        "attachment": "C_Head_02",
+        "bone": "C_Head_02",
+        "parent": "C_Head_2",
+        "draw_order": 5,
+        "file": "attack_04_slot_5.png",
+        "matrix": [
+          0.9959421479425551,
+          -0.08999580081011968,
+          0.08999573138316422,
+          0.9959421479789504,
+          15.008430483149276,
+          140.58823798893403
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_02__C_Head_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_04_slot_5.png"
+      },
+      {
+        "slot": "C_Head_01",
+        "attachment": "C_Head_01",
+        "bone": "C_Head_01",
+        "parent": "Common2",
+        "draw_order": 6,
+        "file": "attack_04_slot_6.png",
+        "matrix": [
+          0.9999999999999795,
+          1.967008028307056e-07,
+          -2.1990590605181402e-07,
+          0.9999999999999762,
+          5.033422190471468,
+          131.0122677858489
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_01__C_Head_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_04_slot_6.png"
+      },
+      {
+        "slot": "C_L_Pincers_02",
+        "attachment": "C_L_Pincers_02",
+        "bone": "C_L_Pincers_02",
+        "parent": "C_Head_01",
+        "draw_order": 7,
+        "file": "attack_04_slot_7.png",
+        "matrix": [
+          0.6807816983761392,
+          0.7324863521001802,
+          -0.7324863836954009,
+          0.6807816983761406,
+          6.629403866855855,
+          131.41126951007843
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Pincers_02__C_L_Pincers_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_04_slot_7.png"
+      },
+      {
+        "slot": "C_L_Pincers_01",
+        "attachment": "C_L_Pincers_01",
+        "bone": "C_L_Pincers_01",
+        "parent": "C_L_Pincers_02",
+        "draw_order": 8,
+        "file": "attack_04_slot_8.png",
+        "matrix": [
+          0.27775289820451055,
+          0.9606525344850582,
+          -0.960652569137103,
+          0.2777529062615021,
+          26.633954249149234,
+          109.9381381033288
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Pincers_01__C_L_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_04_slot_8.png"
+      },
+      {
+        "slot": "C_L_Foot_02",
+        "attachment": "C_L_Foot_02",
+        "bone": "C_L_Foot_02",
+        "parent": "Common2",
+        "draw_order": 9,
+        "file": "attack_04_slot_9.png",
+        "matrix": [
+          -0.4748543957546979,
+          0.8800643852738199,
+          -0.8800643742547676,
+          -0.4748543753327085,
+          -32.47254570997621,
+          126.55208034974515
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Foot_02__C_L_Foot_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_04_slot_9.png"
+      },
+      {
+        "slot": "C_L_Foot_01",
+        "attachment": "C_L_Foot_01",
+        "bone": "C_L_Foot_01",
+        "parent": "Common2",
+        "draw_order": 10,
+        "file": "attack_04_slot_10.png",
+        "matrix": [
+          -0.1578691872463275,
+          0.9874600381549906,
+          -0.9874600344916121,
+          -0.15786916433221315,
+          -12.123573009117134,
+          132.53706440827804
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Foot_01__C_L_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_04_slot_10.png"
+      }
+    ],
+    "glow": [
+      29.525,
+      23.8375
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      52,
+      40
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "attack_05",
+    "anim": "Attack",
+    "t": 1.3323333730697633,
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body_1",
+        "attachment": "C_Body_02",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 0,
+        "file": "attack_05_slot_0.png",
+        "matrix": [
+          -0.5333807875895001,
+          -0.8458752357714158,
+          0.8458752605257243,
+          -0.5333807875894978,
+          -3.345584800087967,
+          85.85002928192137
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Body_1__C_Body_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_05_slot_0.png"
+      },
+      {
+        "slot": "C_R_Foot_01",
+        "attachment": "C_R_Foot_01",
+        "bone": "C_R_Foot_01",
+        "parent": "Common2",
+        "draw_order": 1,
+        "file": "attack_05_slot_1.png",
+        "matrix": [
+          0.45892376944651286,
+          0.8884756355205204,
+          -0.888475646169887,
+          0.45892379006367845,
+          49.72139176913353,
+          129.3450591357057
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_R_Foot_01__C_R_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_05_slot_1.png"
+      },
+      {
+        "slot": "C_Head_03",
+        "attachment": "C_Head_03",
+        "bone": "C_Head_03",
+        "parent": "C_Head_2",
+        "draw_order": 2,
+        "file": "attack_05_slot_2.png",
+        "matrix": [
+          0.9453968842093784,
+          -0.32592138266682796,
+          0.32592131626985565,
+          0.9453968898027262,
+          20.59439890915355,
+          161.336244514917
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_03__C_Head_03.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_05_slot_2.png"
+      },
+      {
+        "slot": "C_R_Pincers_01",
+        "attachment": "C_R_Pincers_01",
+        "bone": "C_R_Pincers_01",
+        "parent": "C_Head_01",
+        "draw_order": 3,
+        "file": "attack_05_slot_3.png",
+        "matrix": [
+          0.6107539761330107,
+          0.7918204077904235,
+          -0.7918204361356429,
+          0.6107539761330119,
+          84.43436032675393,
+          121.83525600138302
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_R_Pincers_01__C_R_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_05_slot_3.png"
+      },
+      {
+        "slot": "C_Body_01",
+        "attachment": "C_Body_01",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 4,
+        "file": "attack_05_slot_4.png",
+        "matrix": [
+          -0.5333807875895001,
+          -0.8458752357714158,
+          0.8458752605257243,
+          -0.5333807875894978,
+          -3.345584800087967,
+          85.85002928192137
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Body_01__C_Body_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_05_slot_4.png"
+      },
+      {
+        "slot": "C_Head_02",
+        "attachment": "C_Head_02",
+        "bone": "C_Head_02",
+        "parent": "C_Head_2",
+        "draw_order": 5,
+        "file": "attack_05_slot_5.png",
+        "matrix": [
+          0.9980612500123213,
+          -0.06223942608103783,
+          0.062239356563712225,
+          0.9980612494028019,
+          15.008430483149276,
+          140.58823798893403
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_02__C_Head_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_05_slot_5.png"
+      },
+      {
+        "slot": "C_Head_01",
+        "attachment": "C_Head_01",
+        "bone": "C_Head_01",
+        "parent": "Common2",
+        "draw_order": 6,
+        "file": "attack_05_slot_6.png",
+        "matrix": [
+          0.9999999999999795,
+          1.967008028307056e-07,
+          -2.1990590605181402e-07,
+          0.9999999999999762,
+          5.033422190471468,
+          131.0122677858489
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_Head_01__C_Head_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_05_slot_6.png"
+      },
+      {
+        "slot": "C_L_Pincers_02",
+        "attachment": "C_L_Pincers_02",
+        "bone": "C_L_Pincers_02",
+        "parent": "C_Head_01",
+        "draw_order": 7,
+        "file": "attack_05_slot_7.png",
+        "matrix": [
+          0.6726956947183075,
+          0.7399192383005133,
+          -0.7399192695204607,
+          0.6726956947183087,
+          6.629403866855855,
+          131.41126951007843
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Pincers_02__C_L_Pincers_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_05_slot_7.png"
+      },
+      {
+        "slot": "C_L_Pincers_01",
+        "attachment": "C_L_Pincers_01",
+        "bone": "C_L_Pincers_01",
+        "parent": "C_L_Pincers_02",
+        "draw_order": 8,
+        "file": "attack_05_slot_8.png",
+        "matrix": [
+          0.2565853519929308,
+          0.9665215582349467,
+          -0.966521591904601,
+          0.2565853600499221,
+          26.3969069720753,
+          109.71972209274247
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Pincers_01__C_L_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_05_slot_8.png"
+      },
+      {
+        "slot": "C_L_Foot_02",
+        "attachment": "C_L_Foot_02",
+        "bone": "C_L_Foot_02",
+        "parent": "Common2",
+        "draw_order": 9,
+        "file": "attack_05_slot_9.png",
+        "matrix": [
+          -0.4748543957546979,
+          0.8800643852738199,
+          -0.8800643742547676,
+          -0.4748543753327085,
+          -32.47254570997621,
+          126.55208034974515
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Foot_02__C_L_Foot_02.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_05_slot_9.png"
+      },
+      {
+        "slot": "C_L_Foot_01",
+        "attachment": "C_L_Foot_01",
+        "bone": "C_L_Foot_01",
+        "parent": "Common2",
+        "draw_order": 10,
+        "file": "attack_05_slot_10.png",
+        "matrix": [
+          -0.1578691872463275,
+          0.9874600381549906,
+          -0.9874600344916121,
+          -0.15786916433221315,
+          -12.123573009117134,
+          132.53706440827804
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/attack/C_L_Foot_01__C_L_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/attack_05_slot_10.png"
+      }
+    ],
+    "glow": [
+      29.525,
+      23.8375
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      52,
+      40
+    ],
+    "glow_active": true
+  }
+]

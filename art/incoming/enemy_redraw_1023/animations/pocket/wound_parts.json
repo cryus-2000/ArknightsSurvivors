@@ -1,0 +1,254 @@
+[
+  {
+    "name": "wound_00",
+    "anim": "Idle",
+    "t": 0,
+    "bones": {
+      "C_Body": {
+        "rotation": 6
+      }
+    },
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body",
+        "attachment": "C_Body",
+        "bone": "C_Body",
+        "parent": "C",
+        "draw_order": 0,
+        "file": "wound_00_slot_0.png",
+        "matrix": [
+          -0.10435493976108558,
+          -0.9945401156970847,
+          0.9945401229617837,
+          -0.10435491668267918,
+          -5.17999936704884,
+          62.71999740600586
+        ],
+        "mesh": true,
+        "vertices": [
+          -35.04999923706055,
+          -191.24000549316406,
+          -33.810001373291016,
+          139.75,
+          358.19000244140625,
+          138.2899932861328,
+          356.95001220703125,
+          -192.7100067138672
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/wound/C_Body__C_Body.png",
+        "source_file": "build/enemy_actions_1023/pocket/wound_00_slot_0.png"
+      },
+      {
+        "slot": "C_Leg_05",
+        "attachment": "C_Leg_05",
+        "bone": "C_Leg_05",
+        "parent": "C",
+        "draw_order": 1,
+        "file": "wound_00_slot_1.png",
+        "matrix": [
+          0.9008498551855849,
+          0.43413076401206663,
+          -0.4341308267250077,
+          0.9008498451115335,
+          74.21999922720819,
+          84.78999710083006
+        ],
+        "mesh": true,
+        "vertices": [
+          134.52999877929688,
+          13.319999694824219,
+          30.030000686645508,
+          -37.040000915527344,
+          -47.2400016784668,
+          123.31999969482422,
+          57.2599983215332,
+          173.6699981689453
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/wound/C_Leg_05__C_Leg_05.png",
+        "source_file": "build/enemy_actions_1023/pocket/wound_00_slot_1.png"
+      },
+      {
+        "slot": "C_Leg_03",
+        "attachment": "C_Leg_03",
+        "bone": "C_Leg_03",
+        "parent": "C",
+        "draw_order": 2,
+        "file": "wound_00_slot_2.png",
+        "matrix": [
+          -0.8296226746401318,
+          0.5583244927639311,
+          -0.5583244350094902,
+          -0.8296226875961076,
+          -44.94000002986604,
+          72.06999588012695
+        ],
+        "mesh": true,
+        "vertices": [
+          61.849998474121094,
+          33.939998626708984,
+          186.2899932861328,
+          -49.81999969482422,
+          84.0999984741211,
+          -201.63999938964844,
+          -40.33000183105469,
+          -117.87999725341797
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/wound/C_Leg_03__C_Leg_03.png",
+        "source_file": "build/enemy_actions_1023/pocket/wound_00_slot_2.png"
+      },
+      {
+        "slot": "C_Leg_04",
+        "attachment": "C_Leg_04",
+        "bone": "C_Leg_04",
+        "parent": "C",
+        "draw_order": 3,
+        "file": "wound_00_slot_3.png",
+        "matrix": [
+          -0.47884508304206774,
+          0.8778994281557874,
+          -0.8778993948208365,
+          -0.47884510341381364,
+          -26.579999244547974,
+          68.29999542236328
+        ],
+        "mesh": true,
+        "vertices": [
+          53.349998474121094,
+          48.20000076293945,
+          130.9199981689453,
+          -94.0199966430664,
+          -92.05999755859375,
+          -215.63999938964844,
+          -169.6300048828125,
+          -73.41999816894531
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/wound/C_Leg_04__C_Leg_04.png",
+        "source_file": "build/enemy_actions_1023/pocket/wound_00_slot_3.png"
+      },
+      {
+        "slot": "C_Leg_02",
+        "attachment": "C_Leg_02",
+        "bone": "C_Leg_02",
+        "parent": "C",
+        "draw_order": 4,
+        "file": "wound_00_slot_4.png",
+        "matrix": [
+          0.7224846468894977,
+          0.6913869479721885,
+          -0.6913869982681795,
+          0.7224846308457904,
+          53.019998836014594,
+          76.77999496459961
+        ],
+        "mesh": true,
+        "vertices": [
+          167.1300048828125,
+          55.560001373291016,
+          58.75,
+          -48.13999938964844,
+          -55.31999969482422,
+          71.08000183105469,
+          53.060001373291016,
+          174.77999877929688
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/wound/C_Leg_02__C_Leg_02.png",
+        "source_file": "build/enemy_actions_1023/pocket/wound_00_slot_4.png"
+      },
+      {
+        "slot": "C_Leg_01",
+        "attachment": "C_Leg_01",
+        "bone": "C_Leg_01",
+        "parent": "C",
+        "draw_order": 5,
+        "file": "wound_00_slot_5.png",
+        "matrix": [
+          0.3346294187193955,
+          0.9423497957195199,
+          -0.9423498190148485,
+          0.3346293968520703,
+          2.0100002959447476,
+          60.93999481201172
+        ],
+        "mesh": true,
+        "vertices": [
+          87.54000091552734,
+          71.51000213623047,
+          49.04999923706055,
+          -36.86000061035156,
+          -140.35000610351562,
+          30.40999984741211,
+          -101.87000274658203,
+          138.77999877929688
+        ],
+        "triangles": [
+          1,
+          2,
+          3,
+          1,
+          3,
+          0
+        ],
+        "deform": [],
+        "pixel_component": "components/wound/C_Leg_01__C_Leg_01.png",
+        "source_file": "build/enemy_actions_1023/pocket/wound_00_slot_5.png"
+      }
+    ],
+    "glow": [
+      29.03572290267758,
+      24.48136643768325
+    ],
+    "source_crop_1x": [
+      0,
+      2,
+      55,
+      50
+    ],
+    "glow_active": true
+  }
+]

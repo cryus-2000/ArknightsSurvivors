@@ -1,0 +1,598 @@
+{
+  "brief_commit": "d20605b7",
+  "size_approval_version": "e6ea0d63",
+  "authorization": "user: 可以开始正式重画了",
+  "scope": "all 32 static candidates; motion and integration pending",
+  "generation_mode": "built-in imagegen",
+  "jobs": [
+    {
+      "id": "bone",
+      "name": "骨海漂流体",
+      "canvas_1x": [
+        32,
+        32
+      ],
+      "visible_height_1x": 20,
+      "color_cap": 16,
+      "frames": 1,
+      "fps": 0,
+      "action": "idle_f0",
+      "loop": false,
+      "event_frame": null,
+      "anchor_status": "foot or projected center to be measured after export",
+      "reference": "art\\incoming\\ci_enemy_native_pilot_1018\\rendered\\bone\\full.png",
+      "reference_sha256": "b72aacc2a29508b9b86951d9e5e935a0bc9e760121aa1ed5da71afffa703399b",
+      "source_inventory": {
+        "id": "bone",
+        "name": "骨海漂流体",
+        "page": "骨海漂流体",
+        "files": [
+          {
+            "path": "sources\\bone\\enemy_2021_syfish.skel",
+            "url": "https://torappu.prts.wiki/assets/enemy_spine/enemy_2021_syfish/enemy_2021_syfish.skel",
+            "sha256": "94f2f07b97a37dec4ab210362afe0c6c5952164547c4b71b29d6607122fd5567"
+          },
+          {
+            "path": "sources\\bone\\enemy_2021_syfish.atlas",
+            "url": "https://torappu.prts.wiki/assets/enemy_spine/enemy_2021_syfish/enemy_2021_syfish.atlas",
+            "sha256": "db9375297e9afd0765a7a0786cc236cdff1dbf30326b0b1cf5c6c1ed9ea8c805"
+          },
+          {
+            "path": "sources\\bone\\enemy_2021_syfish.png",
+            "url": "https://torappu.prts.wiki/assets/enemy_spine/enemy_2021_syfish/enemy_2021_syfish.png",
+            "sha256": "69d4c28b47f4cdba81010f5ea71e4b64ac198f7f4603232ba5c29240581fa2a0"
+          }
+        ],
+        "errors": [],
+        "variants": [
+          {
+            "labels": [
+              "默认",
+              "战斗"
+            ],
+            "stem": "enemy_2021_syfish"
+          }
+        ],
+        "page_images": [
+          "头像_敌人_骨海漂流体.png"
+        ],
+        "animations": [
+          "Attack",
+          "Default",
+          "Die",
+          "Idle",
+          "Move"
+        ],
+        "status": "Spine downloaded and rendered"
+      },
+      "status": "idle_f0_candidate_exported",
+      "native_static_review": "pending user review",
+      "animations": "not started",
+      "generated_source": "art\\incoming\\enemy_redraw_1023\\generated\\bone.png",
+      "generated_sha256": "214a55daf1b478e670b6f34faa6a1d22bd90dd2b34bbe22cdef68d5bd158e403",
+      "generated_source_size": [
+        1402,
+        1122
+      ],
+      "alpha128_bbox": [
+        209,
+        197,
+        1342,
+        1012
+      ],
+      "prompt": "prompt_bone.txt",
+      "prompt_sha256": "8533949d0fe3b06413485ca99f2f057a9b035e9844b74784a3724804839e0460",
+      "engine_integration": "not started",
+      "head_emission": "separate layer only, 5px"
+    },
+    {
+      "id": "stone",
+      "name": "固海凿石者",
+      "canvas_1x": [
+        40,
+        40
+      ],
+      "visible_height_1x": 25,
+      "color_cap": 20,
+      "frames": 1,
+      "fps": 0,
+      "action": "idle_f0",
+      "loop": false,
+      "event_frame": null,
+      "anchor_status": "foot or projected center to be measured after export",
+      "reference": "art\\incoming\\ci_enemy_native_pilot_1018\\rendered\\stone\\full.png",
+      "reference_sha256": "d110617f08498acd5347adb47eb81d3c984001696a00b115aa7d46852ae4578f",
+      "source_inventory": {
+        "id": "stone",
+        "name": "固海凿石者",
+        "page": "固海凿石者",
+        "files": [
+          {
+            "path": "sources\\stone\\enemy_2022_syzeni.skel",
+            "url": "https://torappu.prts.wiki/assets/enemy_spine/enemy_2022_syzeni/enemy_2022_syzeni.skel",
+            "sha256": "e996ef77dfbb22ba4fd7cb16581b4739d8aa4980b2152ed0a3f4c6dc5004221f"
+          },
+          {
+            "path": "sources\\stone\\enemy_2022_syzeni.atlas",
+            "url": "https://torappu.prts.wiki/assets/enemy_spine/enemy_2022_syzeni/enemy_2022_syzeni.atlas",
+            "sha256": "ad133d2a98b8bb79b7f148f817276af393a777d3005f79128c530497e7fecfec"
+          },
+          {
+            "path": "sources\\stone\\enemy_2022_syzeni.png",
+            "url": "https://torappu.prts.wiki/assets/enemy_spine/enemy_2022_syzeni/enemy_2022_syzeni.png",
+            "sha256": "fe6654e88a179c2dfc7c67516e5d3269dd3008f94a4c8cef46de35154eb337c8"
+          }
+        ],
+        "errors": [],
+        "variants": [
+          {
+            "labels": [
+              "默认",
+              "战斗"
+            ],
+            "stem": "enemy_2022_syzeni"
+          }
+        ],
+        "page_images": [
+          "头像_敌人_固海凿石者.png"
+        ],
+        "animations": [
+          "Attack",
+          "Default",
+          "Die",
+          "Idle",
+          "Move"
+        ],
+        "status": "Spine downloaded and rendered"
+      },
+      "status": "idle_f0_candidate_exported",
+      "native_static_review": "pending user review",
+      "animations": "not started",
+      "generated_source": "art\\incoming\\enemy_redraw_1023\\generated\\stone.png",
+      "generated_sha256": "92f83a26998c48b25b083501a660fbab1cf4a8d45419b8ddf60b863eba044afe",
+      "generated_source_size": [
+        1402,
+        1122
+      ],
+      "alpha128_bbox": [
+        285,
+        218,
+        1220,
+        970
+      ],
+      "prompt": "prompt_stone.txt",
+      "prompt_sha256": "01966e19b409372df1a7b47d4255284d10bbd272943a8e45f775d5a0a28f0ea6",
+      "engine_integration": "not started",
+      "head_emission": "separate layer only, 5px"
+    },
+    {
+      "id": "carmen",
+      "name": "圣徒卡门",
+      "canvas_1x": [
+        64,
+        64
+      ],
+      "visible_height_1x": 40,
+      "color_cap": 28,
+      "frames": 1,
+      "fps": 0,
+      "action": "idle_f0",
+      "loop": false,
+      "event_frame": null,
+      "anchor_status": "foot or projected center to be measured after export",
+      "reference": "art\\incoming\\ci_enemy_native_pilot_1018\\rendered\\carmen\\full.png",
+      "reference_sha256": "f7ef88cb05811b89a6429d7e733345c55c07b3ee2f62b0b7fd29bc76fde9020c",
+      "source_inventory": {
+        "id": "carmen",
+        "name": "圣徒卡门",
+        "page": "圣徒卡门",
+        "files": [
+          {
+            "path": "sources\\carmen\\enemy_2026_syudg.skel",
+            "url": "https://torappu.prts.wiki/assets/enemy_spine/enemy_2026_syudg/enemy_2026_syudg.skel",
+            "sha256": "60e23727bf8e3aec26f428f0bc12230f3eedb0b11d716c6bc9336651517030a7"
+          },
+          {
+            "path": "sources\\carmen\\enemy_2026_syudg.atlas",
+            "url": "https://torappu.prts.wiki/assets/enemy_spine/enemy_2026_syudg/enemy_2026_syudg.atlas",
+            "sha256": "b967f28b697596b708e79abf6921849c05cab3291db6bf93ebc061caa5e41053"
+          },
+          {
+            "path": "sources\\carmen\\enemy_2026_syudg.png",
+            "url": "https://torappu.prts.wiki/assets/enemy_spine/enemy_2026_syudg/enemy_2026_syudg.png",
+            "sha256": "e6bb0ed1950bcffa78cf96a3edd197003c214ae7f0219270cc213579dec93e3f"
+          }
+        ],
+        "errors": [],
+        "variants": [
+          {
+            "labels": [
+              "默认",
+              "战斗"
+            ],
+            "stem": "enemy_2026_syudg"
+          }
+        ],
+        "page_images": [
+          "Avg_avg_npc_447_1-1$1.png",
+          "头像_敌人_圣徒卡门.png",
+          "图标_领袖_黑.png"
+        ],
+        "animations": [
+          "Attack_1",
+          "Attack_2",
+          "Default",
+          "Die",
+          "Idle",
+          "Move",
+          "Skill"
+        ],
+        "status": "Spine downloaded and rendered"
+      },
+      "status": "idle_f0_candidate_exported",
+      "native_static_review": "pending user review",
+      "animations": "not started",
+      "generated_source": "art\\incoming\\enemy_redraw_1023\\generated\\carmen.png",
+      "generated_sha256": "c2247e5c33ea404ac140acd0b140db066eb49a0fe04e0033962af752d0863eb1",
+      "generated_source_size": [
+        1402,
+        1122
+      ],
+      "alpha128_bbox": [
+        473,
+        193,
+        1159,
+        1021
+      ],
+      "prompt": "prompt_carmen.txt",
+      "prompt_sha256": "3d842349b8af30ba3960fea53ab587e31d5035f7e1a1ce80de7fc6a7e63501ae",
+      "engine_integration": "not started",
+      "head_emission": "separate layer only, 5px"
+    },
+    {
+      "id": "brood",
+      "name": "注亡拟嗣",
+      "canvas_1x": [
+        32,
+        32
+      ],
+      "visible_height_1x": 18,
+      "color_cap": 16,
+      "frames": 1,
+      "fps": 0,
+      "action": "idle_f0",
+      "loop": false,
+      "event_frame": null,
+      "anchor_status": "projected center to be measured after export",
+      "reference": "art\\incoming\\ci_enemy_native_pilot_1018\\rendered\\brood\\full.png",
+      "reference_sha256": "9782a0e3a3631ab0d8155c582e0b706d7e6fad155ccbd04d843fce04555119c7",
+      "source_inventory": {
+        "id": "brood",
+        "name": "注亡拟嗣",
+        "page": "注亡拟嗣",
+        "files": [
+          {
+            "path": "sources\\brood\\enemy_2024_synut.skel",
+            "url": "https://torappu.prts.wiki/assets/enemy_spine/enemy_2024_synut/enemy_2024_synut.skel",
+            "sha256": "22657dd991c60f83c5d7de23ec8c3cf9020efa1a7ced4ada5876d5ab3cdca97d"
+          },
+          {
+            "path": "sources\\brood\\enemy_2024_synut.atlas",
+            "url": "https://torappu.prts.wiki/assets/enemy_spine/enemy_2024_synut/enemy_2024_synut.atlas",
+            "sha256": "9ffae9538a7dad1380a1ef2a037c72123cddfe0dca0aae92c34b1413dfe94d21"
+          },
+          {
+            "path": "sources\\brood\\enemy_2024_synut.png",
+            "url": "https://torappu.prts.wiki/assets/enemy_spine/enemy_2024_synut/enemy_2024_synut.png",
+            "sha256": "8e709126071d8576ded64fa2e05e13e23fdf5fe4d42d2ce2907f292b046188a1"
+          }
+        ],
+        "errors": [],
+        "variants": [
+          {
+            "labels": [
+              "默认",
+              "战斗"
+            ],
+            "stem": "enemy_2024_synut"
+          }
+        ],
+        "page_images": [
+          "头像_敌人_注亡拟嗣.png"
+        ],
+        "animations": [
+          "Attack",
+          "Default",
+          "Die",
+          "Idle"
+        ],
+        "status": "Spine downloaded and rendered"
+      },
+      "status": "idle_f0_candidate_exported",
+      "native_static_review": "pending user review",
+      "animations": "not started",
+      "generated_source": "art\\incoming\\enemy_redraw_1023\\generated\\brood.png",
+      "generated_sha256": "737b9e2aede20c4268372cb28e1996ed820541bde9c4a072f57cc1e84968acf6",
+      "generated_source_size": [
+        1294,
+        1216
+      ],
+      "alpha128_bbox": [
+        255,
+        182,
+        1091,
+        1067
+      ],
+      "prompt": "prompt_brood.txt",
+      "prompt_sha256": "4b8daae152d238fa9016ef8f699811116c5006b1bac16b8061ea9088b271d96b",
+      "engine_integration": "not started",
+      "head_emission": "original core layer unchanged, 34px"
+    }
+  ],
+  "color_rule_source": "art/incoming/codex_task_size_compare_1023.md",
+  "palette_status": "working palette, not user-approved exact HEX values",
+  "integration": "not started",
+  "full_scope": [
+    {
+      "id": "bone",
+      "target_screen_height": 40,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "runner",
+      "target_screen_height": 38,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "brood",
+      "target_screen_height": 36,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "slider",
+      "target_screen_height": 46,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "stone",
+      "target_screen_height": 50,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "spitter",
+      "target_screen_height": 50,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "floater",
+      "target_screen_height": 48,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "offspring",
+      "target_screen_height": 46,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "reaper",
+      "target_screen_height": 60,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "founder",
+      "target_screen_height": 64,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "tracer",
+      "target_screen_height": 64,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "nest",
+      "target_screen_height": 62,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "fractal",
+      "target_screen_height": 36,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "tear",
+      "target_screen_height": 32,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "pocket",
+      "target_screen_height": 72,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "skimmer",
+      "target_screen_height": 60,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "mother",
+      "target_screen_height": 92,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "mimic_disguised",
+      "target_screen_height": 22,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "mimic",
+      "target_screen_height": 48,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "knight",
+      "target_screen_height": 128,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "iberia",
+      "target_screen_height": 80,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "carmen",
+      "target_screen_height": 80,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "bishop",
+      "target_screen_height": 80,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "archon",
+      "target_screen_height": 96,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "immortal",
+      "target_screen_height": 96,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "ishar",
+      "target_screen_height": 96,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "knight_boss",
+      "target_screen_height": 144,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "path",
+      "target_screen_height": 128,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "izumik",
+      "target_screen_height": 168,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "paranoia",
+      "target_screen_height": 160,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "paranoia_phase2",
+      "target_screen_height": 144,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    },
+    {
+      "id": "ishar_phase2",
+      "target_screen_height": 176,
+      "status": "static and animation candidates delivered; not integrated",
+      "animations": "candidate assets delivered in animations"
+    }
+  ],
+  "progress": {
+    "f0_candidates": 32,
+    "total_states": 32,
+    "animation_sets_completed": 199,
+    "engine_integrations": 0,
+    "animation_sets_exported": 199,
+    "animation_states": 32,
+    "wound_sets": 32,
+    "death_sets": 31
+  },
+  "head_revision": {
+    "user_requests": [
+      "发光得加上，加在头部附近我觉得就行",
+      "光点应该是单独的一个图层而不是一起的，卡门的颜色不太对",
+      "卡门的不要放在脑门上好奇怪"
+    ],
+    "baseline_body_commit": "ab3c6195",
+    "effective_mode": "new head marks only in independent _emit; main body unchanged",
+    "effective_palette": [
+      "#54172F",
+      "#87304B",
+      "#B44D68"
+    ],
+    "carmen_colour": "same crimson-magenta; orange highlight rejected",
+    "guides": {
+      "bone": {
+        "file": "generated/head_guides/bone.png",
+        "sha256": "b24145dc80a3419310e74d6658264489c8eb8213dd74aef835224ba6f703ccf3",
+        "prompt": "prompt_head_bone.txt",
+        "prompt_sha256": "7dd63a08d4ee675d75760fd0850309ae23aa97a9029ad28bcaaa0d55004af5fd",
+        "purpose": "placement only; body and guide colours are NOT copied to final asset"
+      },
+      "stone": {
+        "file": "generated/head_guides/stone.png",
+        "sha256": "4c78c8f8ab742118139067bda747af6eddb244ca66f6a5fdb12f42dbb4587308",
+        "prompt": "prompt_head_stone.txt",
+        "prompt_sha256": "06bee1dc4fde26cedb7b8f0f2e7f0ad05a5d11a385dd63a28997b4c0db9c26b8",
+        "purpose": "placement only; body and guide colours are NOT copied to final asset"
+      },
+      "carmen": {
+        "file": "generated/head_guides/carmen.png",
+        "sha256": "b506b85397345974d620032ad2f00ace4b70404590a4256ef0bb17d8c90a6685",
+        "prompt": "prompt_head_carmen.txt",
+        "prompt_sha256": "d1ca4c8703c0b942ce68ea7cba2267836b027ccd1c143f1e29b4af2d4948d8bc",
+        "purpose": "historical guide only; front placement and orange highlight superseded by explicit native hat-side placement"
+      }
+    },
+    "carmen_placement": {
+      "location": "rear side of hat band, not frontal emblem or forehead",
+      "previous_commit": "7297b8e1",
+      "previous_center_1x": [
+        29,
+        27
+      ],
+      "center_1x": [
+        22,
+        26
+      ],
+      "translation_1x": [
+        -7,
+        -1
+      ],
+      "method": "translate existing independent light on native grid; no whole-sprite regeneration"
+    }
+  },
+  "current_delivery": "remaining/manifest.json",
+  "current_brief_commit": "9d0bc4ec",
+  "animation_delivery": "animations/integration_map.json",
+  "animation_status": "candidate assets produced; continuous motion approval pending; not integrated"
+}

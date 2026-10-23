@@ -1,0 +1,361 @@
+{
+  "kind": "first f0 checkpoint; not runtime strips",
+  "brief_commit": "d20605b7",
+  "size_approval_version": "e6ea0d63",
+  "method": "built-in imagegen redraw sources -> registered 1x material-palette export and coloured contour cleanup -> exact x2",
+  "rig_status": "static image only; not a pixel Spine rig; original pose parts archived separately",
+  "working_palette": "new candidate HEX palette; not a user-approved exact colour chart",
+  "head_emission_contract": "user revision: new head marks only in independent _emit; body pixels identical to ab3c6195; carmen uses same crimson-magenta palette",
+  "export_script_sha256": "a5962d8c38cd1995648c54fcb46e5cd0a79577407dfd3f1ee583371723bcae07",
+  "jobs_sha256": "31314fb16aca8cd04d55aced7bf93877a7b5cd60caf646a023a4444df918e5e4",
+  "assets": [
+    {
+      "file": "f0/e_bone_idle_f0.png",
+      "character": "bone",
+      "action": "idle_f0",
+      "frame_width": 32,
+      "frame_height": 32,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive projected center",
+      "density": 1,
+      "color_cap": 16,
+      "sha256": "7196728f04799f4390d0e30bae14c5e48f0aac11088beae8a7531c133f7da176"
+    },
+    {
+      "file": "f0/e_bone_idle_f0@2x.png",
+      "character": "bone",
+      "action": "idle_f0",
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive projected center",
+      "density": 2,
+      "color_cap": 16,
+      "sha256": "42ae657167fc5225a30f9fb273b8d1a1d21578326996883b45912855a42f205d"
+    },
+    {
+      "file": "f0/e_bone_idle_f0_emit.png",
+      "character": "bone",
+      "action": "idle_f0_emit",
+      "frame_width": 32,
+      "frame_height": 32,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive projected center",
+      "density": 1,
+      "color_cap": 16,
+      "sha256": "55101bf1750c84d1356e3deaf7a5f4ec54bee660817431a4557b87bfa4441582",
+      "emission_contract": "independent RGB overlay; use layer RGB, not body RGB"
+    },
+    {
+      "file": "f0/e_bone_idle_f0_emit@2x.png",
+      "character": "bone",
+      "action": "idle_f0_emit",
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive projected center",
+      "density": 2,
+      "color_cap": 16,
+      "sha256": "78f5708532260e57fad8d932b058d1f4c10a2a59d416e8910f311bd66226ea9c",
+      "emission_contract": "independent RGB overlay; use layer RGB, not body RGB"
+    },
+    {
+      "file": "f0/e_stone_idle_f0.png",
+      "character": "stone",
+      "action": "idle_f0",
+      "frame_width": 40,
+      "frame_height": 40,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        20,
+        36
+      ],
+      "anchor_convention": "bottom-exclusive foot center",
+      "density": 1,
+      "color_cap": 20,
+      "sha256": "bbbe3033c3a7c3e6e1dc596f7268f8911cf4e58d369529693280cf5cb015d847"
+    },
+    {
+      "file": "f0/e_stone_idle_f0@2x.png",
+      "character": "stone",
+      "action": "idle_f0",
+      "frame_width": 80,
+      "frame_height": 80,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        40,
+        72
+      ],
+      "anchor_convention": "bottom-exclusive foot center",
+      "density": 2,
+      "color_cap": 20,
+      "sha256": "3452e03458d2793e2e06f949d5257bce0d2c71d6ce2cec969f4984193e38cb8a"
+    },
+    {
+      "file": "f0/e_stone_idle_f0_emit.png",
+      "character": "stone",
+      "action": "idle_f0_emit",
+      "frame_width": 40,
+      "frame_height": 40,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        20,
+        36
+      ],
+      "anchor_convention": "bottom-exclusive foot center",
+      "density": 1,
+      "color_cap": 20,
+      "sha256": "9a1ddae9678b9d0546e25f58d622ae45c8109caa551e811df2b1cf49acc9866d",
+      "emission_contract": "independent RGB overlay; use layer RGB, not body RGB"
+    },
+    {
+      "file": "f0/e_stone_idle_f0_emit@2x.png",
+      "character": "stone",
+      "action": "idle_f0_emit",
+      "frame_width": 80,
+      "frame_height": 80,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        40,
+        72
+      ],
+      "anchor_convention": "bottom-exclusive foot center",
+      "density": 2,
+      "color_cap": 20,
+      "sha256": "6c010b6dee7df5f4bb1e5fb95fe8c7344983567c264635c9b1b67058941478c5",
+      "emission_contract": "independent RGB overlay; use layer RGB, not body RGB"
+    },
+    {
+      "file": "f0/e_carmen_idle_f0.png",
+      "character": "carmen",
+      "action": "idle_f0",
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot center",
+      "density": 1,
+      "color_cap": 28,
+      "sha256": "638e0ce9fffdecdc52087d4491860a3c22e1003629862efda66e645a88c3ac02"
+    },
+    {
+      "file": "f0/e_carmen_idle_f0@2x.png",
+      "character": "carmen",
+      "action": "idle_f0",
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot center",
+      "density": 2,
+      "color_cap": 28,
+      "sha256": "48c0b051ed147296c89ffd0b58f262b71322cede542598bf1389043088b55ad2"
+    },
+    {
+      "file": "f0/e_carmen_idle_f0_emit.png",
+      "character": "carmen",
+      "action": "idle_f0_emit",
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot center",
+      "density": 1,
+      "color_cap": 28,
+      "sha256": "1075312eeb12f8e49b8a7117584d22583c10868da10a2f743fbb744e01e1a91b",
+      "emission_contract": "independent RGB overlay; use layer RGB, not body RGB"
+    },
+    {
+      "file": "f0/e_carmen_idle_f0_emit@2x.png",
+      "character": "carmen",
+      "action": "idle_f0_emit",
+      "frame_width": 128,
+      "frame_height": 128,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot center",
+      "density": 2,
+      "color_cap": 28,
+      "sha256": "40ded94d8d2bfd2ccd0a30935bc0de761dc36916f1b67bb82f1bf9dcbec524fa",
+      "emission_contract": "independent RGB overlay; use layer RGB, not body RGB"
+    },
+    {
+      "file": "f0/e_brood_idle_f0.png",
+      "character": "brood",
+      "action": "idle_f0",
+      "frame_width": 32,
+      "frame_height": 32,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive projected center",
+      "density": 1,
+      "color_cap": 16,
+      "sha256": "feff7df39b700650252537913b29201691be1ca60197e7fc8bc6a5e01edad303"
+    },
+    {
+      "file": "f0/e_brood_idle_f0@2x.png",
+      "character": "brood",
+      "action": "idle_f0",
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive projected center",
+      "density": 2,
+      "color_cap": 16,
+      "sha256": "691b8b3323363ddd752b6f8a6fae5fbafb98d6d2f6952cb4b7dca49e1cb94451"
+    },
+    {
+      "file": "f0/e_brood_idle_f0_emit.png",
+      "character": "brood",
+      "action": "idle_f0_emit",
+      "frame_width": 32,
+      "frame_height": 32,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive projected center",
+      "density": 1,
+      "color_cap": 16,
+      "sha256": "b595a2a0a2c6cac52df104b0e4429c4ceb77c2981a7a28e2bdfbac235fbe6ead",
+      "emission_contract": "independent RGB overlay; use layer RGB, not body RGB"
+    },
+    {
+      "file": "f0/e_brood_idle_f0_emit@2x.png",
+      "character": "brood",
+      "action": "idle_f0_emit",
+      "frame_width": 64,
+      "frame_height": 64,
+      "frame_count": 1,
+      "fps": 1,
+      "static": true,
+      "loop": false,
+      "event_frame_zero_based": null,
+      "anchor": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive projected center",
+      "density": 2,
+      "color_cap": 16,
+      "sha256": "82533bd0d6d63f35d021e0fa1e92ccd3361804a6748d17f4f5134c3e00f3be4b",
+      "emission_contract": "independent RGB overlay; use layer RGB, not body RGB"
+    }
+  ],
+  "head_layout_sha256": "0d0383c2a84e4e13784ec494f297c4ae78ad41de43bb3fbd0a043243d05f311b",
+  "carmen_light_placement": {
+    "location": "rear side of hat band, not frontal emblem or forehead",
+    "previous_commit": "7297b8e1",
+    "previous_center_1x": [
+      29,
+      27
+    ],
+    "center_1x": [
+      22,
+      26
+    ],
+    "translation_1x": [
+      -7,
+      -1
+    ],
+    "method": "translate existing independent light on native grid; no whole-sprite regeneration"
+  },
+  "superseded_by": "remaining/manifest.json",
+  "status": "historical first-batch assets; current colour revision in remaining"
+}

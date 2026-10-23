@@ -1,0 +1,716 @@
+{
+  "id": "path",
+  "name": "塑路者",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    121,
+    96
+  ],
+  "origin": [
+    55,
+    93
+  ],
+  "source_crop_1x": [
+    0,
+    4,
+    121,
+    100
+  ],
+  "scale_fixed_across_actions": 0.1312115548510853,
+  "idle_height_target": 64,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#1A2944",
+    "#2F4668",
+    "#46628B",
+    "#6582AD",
+    "#6C6272",
+    "#A49CA3",
+    "#C8C1B5",
+    "#33515A",
+    "#4F7B85",
+    "#91B5BC",
+    "#51434F"
+  ],
+  "color_cap": 32,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 6,
+      "duration_seconds": 1.5,
+      "sample_times": [
+        0.0,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        1.25
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03",
+        "idle_04",
+        "idle_05"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 6,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.22222222884496054,
+        0.4444444576899211,
+        0.6666666865348816,
+        0.8888889153798422,
+        1.1111111442248027
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03",
+        "move_04",
+        "move_05"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack",
+      "frames": 8,
+      "duration_seconds": 2,
+      "sample_times": [
+        0.0,
+        0.2857142857142857,
+        0.5714285714285714,
+        0.8999999761581421,
+        1.1428571428571428,
+        1.4285714285714284,
+        1.7142857142857142,
+        1.999
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8999999761581421
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05",
+        "attack_06",
+        "attack_07"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original death with authored neck clearance for fixed canvas",
+      "frames": 8,
+      "duration_seconds": 1.8333333730697632,
+      "sample_times": [
+        0.0,
+        0.26190476758139475,
+        0.5238095351627895,
+        0.7857143027441842,
+        1.047619070325579,
+        1.3095238379069738,
+        1.5714286054883684,
+        1.8323333730697633
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05",
+        "death_06",
+        "death_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.26190476758139475,
+        0.5238095351627895,
+        0.7857143027441842,
+        1.047619070325579,
+        1.3095238379069738,
+        1.5714286054883684,
+        1.8323333730697633
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "skill",
+      "source_animation": "Skill",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 2,
+      "sample_times": [
+        0.0,
+        0.2857142857142857,
+        0.5714285714285714,
+        0.8999999761581421,
+        1.1428571428571428,
+        1.4285714285714286,
+        1.7142857142857142,
+        1.999
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8999999761581421
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "loop": false,
+      "frame_names": [
+        "skill_00",
+        "skill_01",
+        "skill_02",
+        "skill_03",
+        "skill_04",
+        "skill_05",
+        "skill_06",
+        "skill_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.2857142857142857,
+        0.5714285714285714,
+        0.8999999761581421,
+        1.1428571428571428,
+        1.4285714285714286,
+        1.7142857142857142,
+        1.999
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "charge",
+      "source_animation": "Move",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 0.64,
+      "sample_times": [
+        0.0,
+        0.16,
+        0.32,
+        0.48
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "charge_00",
+        "charge_01",
+        "charge_02",
+        "charge_03"
+      ],
+      "pose_times": [
+        0,
+        0.2,
+        0.4,
+        0.6
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "slam",
+      "source_animation": "Skill",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 0.64,
+      "sample_times": [
+        0.0,
+        0.21333333333333335,
+        0.4266666666666667,
+        0.639
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "slam_00",
+        "slam_01",
+        "slam_02",
+        "slam_03"
+      ],
+      "pose_times": [
+        0,
+        0.65,
+        1.3,
+        1.7
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "Neck",
+    "local": [
+      31.534801918426584,
+      85.60966210913644
+    ],
+    "slot": "Head_A"
+  },
+  "subpixel_parts": [
+    {
+      "frame": "death_06",
+      "slot": "Line_f",
+      "attachment": "Line_f"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Line_e",
+      "attachment": "Line_e"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Line_d",
+      "attachment": "Line_d"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Arm_R",
+      "attachment": "Arm_R"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Forearm_R",
+      "attachment": "Forearm_R"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Hand_R",
+      "attachment": "Hand_R"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Leg_R",
+      "attachment": "Leg_R"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Leg_R_a",
+      "attachment": "Leg_R_a"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Calf_R",
+      "attachment": "Calf_R"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Foot_R",
+      "attachment": "Foot_R"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Waist",
+      "attachment": "Waist"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Chest",
+      "attachment": "Chest"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Tail",
+      "attachment": "Tail"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Leg_L",
+      "attachment": "Leg_L"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Leg_L_a",
+      "attachment": "Leg_L_a"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Calf_L",
+      "attachment": "Calf_L"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Foot_L",
+      "attachment": "Foot_L"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Arm_L",
+      "attachment": "Arm_L"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Mouth",
+      "attachment": "Mouth"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Neck",
+      "attachment": "Neck"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Head",
+      "attachment": "Head"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Line_c",
+      "attachment": "Line_c"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Line_b",
+      "attachment": "Line_b"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Line_a",
+      "attachment": "Line_a"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Head_A",
+      "attachment": "Head_A"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Forearm_L",
+      "attachment": "Forearm_L"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Hand_L",
+      "attachment": "Hand_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Line_f",
+      "attachment": "Line_f"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Line_e",
+      "attachment": "Line_e"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Line_d",
+      "attachment": "Line_d"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Arm_R",
+      "attachment": "Arm_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Forearm_R",
+      "attachment": "Forearm_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hand_R",
+      "attachment": "Hand_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Leg_R",
+      "attachment": "Leg_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Leg_R_a",
+      "attachment": "Leg_R_a"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Calf_R",
+      "attachment": "Calf_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Foot_R",
+      "attachment": "Foot_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Waist",
+      "attachment": "Waist"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Chest",
+      "attachment": "Chest"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Tail",
+      "attachment": "Tail"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Leg_L",
+      "attachment": "Leg_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Leg_L_a",
+      "attachment": "Leg_L_a"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Calf_L",
+      "attachment": "Calf_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Foot_L",
+      "attachment": "Foot_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Arm_L",
+      "attachment": "Arm_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Mouth",
+      "attachment": "Mouth"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Neck",
+      "attachment": "Neck"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Head",
+      "attachment": "Head"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Line_c",
+      "attachment": "Line_c"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Line_b",
+      "attachment": "Line_b"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Line_a",
+      "attachment": "Line_a"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Head_A",
+      "attachment": "Head_A"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Forearm_L",
+      "attachment": "Forearm_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hand_L",
+      "attachment": "Hand_L"
+    }
+  ],
+  "assets": [
+    {
+      "file": "path/e_path_idle.png",
+      "sha256": "53e6f550142289efa280193360b0c2f7f6a3e2da1d3963c396874d1659b16454"
+    },
+    {
+      "file": "path/e_path_idle@2x.png",
+      "sha256": "c369be8eb5b85b08acb6d080872137a9245bde7f00e65c66dd30e875b3162ee3"
+    },
+    {
+      "file": "path/e_path_idle_emit.png",
+      "sha256": "61b3392eed8b0f2f68af50c730df496ba7e26af8491125aab29d7910ae1daa65"
+    },
+    {
+      "file": "path/e_path_idle_emit@2x.png",
+      "sha256": "62c328a2d04df1b4fc5cb811c4cb27a5e76b936dd2295c7a85aea87d581f8531"
+    },
+    {
+      "file": "path/e_path_move.png",
+      "sha256": "d3b7de6c3c1cb5f5193a8dd338ac995f3c24a21130b8b6c5bfe9aed46e9a8b0c"
+    },
+    {
+      "file": "path/e_path_move@2x.png",
+      "sha256": "6a56fd408284eab29fb3b550565a5a15d7da5df461e867907a0c55aa3c58db82"
+    },
+    {
+      "file": "path/e_path_move_emit.png",
+      "sha256": "9e2a13a820bf04d8f66759e97e494b9144f6d5fd86e8743767b0586b160a6a6c"
+    },
+    {
+      "file": "path/e_path_move_emit@2x.png",
+      "sha256": "1a4a23fc50b915c329a2bf5e2c665b506329e324104c2777ecabd1136d1b623d"
+    },
+    {
+      "file": "path/e_path_attack.png",
+      "sha256": "18a48d108018c39ae1abb227f36689748c46c9191d554d7e3c86b1589269602b"
+    },
+    {
+      "file": "path/e_path_attack@2x.png",
+      "sha256": "c13582c48b7df28b3f0bc07e10ad9564dfe190571758bb2777eb06fd04d59616"
+    },
+    {
+      "file": "path/e_path_attack_emit.png",
+      "sha256": "ffd9d92a5b2e0bc51a51ecc588d17d8c33600a393fb8575b785b1d6ae7c4671d"
+    },
+    {
+      "file": "path/e_path_attack_emit@2x.png",
+      "sha256": "6f563934079ff661ce7a101b464f660e2105ae41bee2cddd04ccf9aa5318d364"
+    },
+    {
+      "file": "path/e_path_death.png",
+      "sha256": "9985d61a045c367cdf0c2bffd1580c6ada27e84a48b3a9a69f4d304c498af704"
+    },
+    {
+      "file": "path/e_path_death@2x.png",
+      "sha256": "b52328301acdaf31048194ca7c0bc0fb98bc24bd157dde567bd591b57ef78d76"
+    },
+    {
+      "file": "path/e_path_death_emit.png",
+      "sha256": "c44951cf1afde7e4b098e877a2848f1cfe0b244ebf056a722b2960427384e727"
+    },
+    {
+      "file": "path/e_path_death_emit@2x.png",
+      "sha256": "e235edf2c6b7ca27ce9bab22337a19bb372a6c83f6ea46faa8280dd4ffdfdde5"
+    },
+    {
+      "file": "path/e_path_skill.png",
+      "sha256": "8277640e4b069142ef80d3846334d0f14adf21828d6fbb694ca4a047a8d83770"
+    },
+    {
+      "file": "path/e_path_skill@2x.png",
+      "sha256": "b3096393e0f6b5361d50ae9a05a610168ba05872652ba4b6af9afffcb0506a44"
+    },
+    {
+      "file": "path/e_path_skill_emit.png",
+      "sha256": "6e72321ab799b892b5dfd4a5f189f2f90533fde0b1da919bc758f25b143b193d"
+    },
+    {
+      "file": "path/e_path_skill_emit@2x.png",
+      "sha256": "18a5d58c5305607b67679b3d7afd09c528eb0858afc009e73debff3db48328c4"
+    },
+    {
+      "file": "path/e_path_wound.png",
+      "sha256": "fd4ab2d44d8e60c329d92a02aa886da1fe6ae58ea941a495197b8bb887410b0b"
+    },
+    {
+      "file": "path/e_path_wound@2x.png",
+      "sha256": "e075791e635c8e5c9a3b3fbb36872aa4fb63e5ec4d051857085ea3b1c7528b3f"
+    },
+    {
+      "file": "path/e_path_wound_emit.png",
+      "sha256": "2000e62a2b0f17596a87d266c396d7db8e11c24d34a5f9349a9150b4c69e4c0f"
+    },
+    {
+      "file": "path/e_path_wound_emit@2x.png",
+      "sha256": "6756aa0259ec68b661e35a13134fb9001110c9258c2f2beec9f154bbd35386be"
+    },
+    {
+      "file": "path/e_path_charge.png",
+      "sha256": "9a20b4231b212c0e4e677ffe3ae8d5fb37eeffc435c008f941de7b0d1fb394bb"
+    },
+    {
+      "file": "path/e_path_charge@2x.png",
+      "sha256": "9fd0a6d4dce287f443073289cd8ba289d749cf234ce7ab5f4cfd8c389a37a0bd"
+    },
+    {
+      "file": "path/e_path_charge_emit.png",
+      "sha256": "389b2384b924c163d0f72bab2d96b024ad1a19d1aa9527f343904115581ad273"
+    },
+    {
+      "file": "path/e_path_charge_emit@2x.png",
+      "sha256": "c3ec5e02824f3de8dcd368ff1bc66ac1eca79ddad3ecbbd5d289d5d1918a9faf"
+    },
+    {
+      "file": "path/e_path_slam.png",
+      "sha256": "f51c594cb028eff25b89f9c73f5e506c5af8a617a689edce19bb196e5dbd07d0"
+    },
+    {
+      "file": "path/e_path_slam@2x.png",
+      "sha256": "c791e85da1d999e838d0bf845d1e2bd9a31b29035a7118ebd5b3255a173cac42"
+    },
+    {
+      "file": "path/e_path_slam_emit.png",
+      "sha256": "b14cce12f0ccb6f921ece73cf5cf6a611060eed4283d7845812d048459b5f364"
+    },
+    {
+      "file": "path/e_path_slam_emit@2x.png",
+      "sha256": "18e6f243ea1c6592ef915c8d765e98b90e236a0086d79e75dc49d54b9b24a920"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "85b9df77b48f34cc5af0a2c04116c4e328729d14b6fbaf1afb9f537fc75ba266",
+    "atlas": "753a4dfaed65146a588c3f7bb366710f1ac6ed1dadb1501f5b22130f0138bf80"
+  }
+}

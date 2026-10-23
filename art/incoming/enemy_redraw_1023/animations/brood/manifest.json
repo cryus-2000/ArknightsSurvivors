@@ -1,0 +1,273 @@
+{
+  "id": "brood",
+  "name": "注亡拟嗣",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    41,
+    32
+  ],
+  "origin": [
+    17,
+    28
+  ],
+  "source_crop_1x": [
+    0,
+    0,
+    41,
+    32
+  ],
+  "scale_fixed_across_actions": 0.06771367715429454,
+  "idle_height_target": 18,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B"
+  ],
+  "color_cap": 16,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 4,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.25,
+        0.5,
+        0.75
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack",
+      "frames": 6,
+      "duration_seconds": 0.9333333373069763,
+      "sample_times": [
+        0.0,
+        0.18666666746139526,
+        0.4333333373069763,
+        0.5600000023841858,
+        0.746666669845581,
+        0.9323333373069763
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.4333333373069763
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 6,
+      "duration_seconds": 0.6000000238418579,
+      "sample_times": [
+        0.0,
+        0.12000000476837158,
+        0.24000000953674316,
+        0.36000001430511475,
+        0.48000001907348633,
+        0.5990000238418579
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05"
+      ],
+      "pose_times": [
+        0.0,
+        0.12000000476837158,
+        0.24000000953674316,
+        0.36000001430511475,
+        0.48000001907348633,
+        0.5990000238418579
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "move",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.25,
+        0.5,
+        0.75
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03"
+      ],
+      "pose_times": [
+        0.0,
+        0.25,
+        0.5,
+        0.75
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "C_Weapon",
+    "local": [
+      36.266396945729156,
+      -34.98352735194607
+    ],
+    "slot": "C_Weapon"
+  },
+  "subpixel_parts": [],
+  "assets": [
+    {
+      "file": "brood/e_brood_idle.png",
+      "sha256": "c1175b4744940a3855a185a1d77db90e6f2424376cf971d84c9da39e60b7b8b4"
+    },
+    {
+      "file": "brood/e_brood_idle@2x.png",
+      "sha256": "1555b125ebdec964cb608e397d258c929b6496ce075d4595c27f8989c91d1dc2"
+    },
+    {
+      "file": "brood/e_brood_idle_emit.png",
+      "sha256": "e3c8d7fc9e0795ecec2f52ec8d33613cc8dfbdfe3edece0b121106bab4d4df09"
+    },
+    {
+      "file": "brood/e_brood_idle_emit@2x.png",
+      "sha256": "89101d7116f5bf3af8c7a3c1a6ec15cea24de8a4dfddaa51b0619a0f8fe3d082"
+    },
+    {
+      "file": "brood/e_brood_attack.png",
+      "sha256": "9170eef445fbe9abf5d62540c064d9c0c870e618b0319fb820169b51a5725d91"
+    },
+    {
+      "file": "brood/e_brood_attack@2x.png",
+      "sha256": "9ca97ea48f405b9cf46a2f24532577065c185c6c88ff760b1c843fbf263d85c1"
+    },
+    {
+      "file": "brood/e_brood_attack_emit.png",
+      "sha256": "e1b4feb218ba75087298c66d25ee4dd64f1a9c471db028cd988c5809b99132c5"
+    },
+    {
+      "file": "brood/e_brood_attack_emit@2x.png",
+      "sha256": "91dd38098535d4bc18a88e0aeb03eef2214a9991f88ad4db8f1d6700e83079d8"
+    },
+    {
+      "file": "brood/e_brood_death.png",
+      "sha256": "7d30ccd774b84f11d2ebbc5f855680b9025f999dbd74493d9794dd4d3a2af5d6"
+    },
+    {
+      "file": "brood/e_brood_death@2x.png",
+      "sha256": "b6f96a632e9046fa02597b7e3175e2014200fabd59751b39130c56331bddb8a2"
+    },
+    {
+      "file": "brood/e_brood_death_emit.png",
+      "sha256": "9361f6f5466e4a38c4d4d27b92da3fda679da9272520b492e43a5857c667d9be"
+    },
+    {
+      "file": "brood/e_brood_death_emit@2x.png",
+      "sha256": "fc4dc0c8c94dd7a807d798388c6dcf51b109d20fd8b335fad733cf70d3c06fc0"
+    },
+    {
+      "file": "brood/e_brood_wound.png",
+      "sha256": "fc923155d8e4319c16d96b25d0dec0a9de9df6a086289809cbdeca0bb885f1dc"
+    },
+    {
+      "file": "brood/e_brood_wound@2x.png",
+      "sha256": "7fba22c8fc8c0759296183301197635de4db7fdc9996a3d000b398277400300a"
+    },
+    {
+      "file": "brood/e_brood_wound_emit.png",
+      "sha256": "c18b448e7d06e2af3d016e825402854d976668918310a802b86f0f9523108f54"
+    },
+    {
+      "file": "brood/e_brood_wound_emit@2x.png",
+      "sha256": "45d37137e1816c31075565f3ba05b5b5bc4fa174199e8eaf4fd126c580e2d6d6"
+    },
+    {
+      "file": "brood/e_brood_move.png",
+      "sha256": "872b0986cc9e2b77543971a1ec6a64b53510aea49acb8a3ca4860acc5acc4e5c"
+    },
+    {
+      "file": "brood/e_brood_move@2x.png",
+      "sha256": "d093c68fe2980c0c9b717d8863922b50ad8a57d77bf84ea930563ad2a4f51d8d"
+    },
+    {
+      "file": "brood/e_brood_move_emit.png",
+      "sha256": "b0b88521482623cfa771ef34f2b65cf0c6894a908d9de4a5341301906a545d14"
+    },
+    {
+      "file": "brood/e_brood_move_emit@2x.png",
+      "sha256": "c9452f1a8c3621544fbf7fe4c9f2e79978fa39a01c4fdd4f43fbb3eca85a1c7a"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "22657dd991c60f83c5d7de23ec8c3cf9020efa1a7ced4ada5876d5ab3cdca97d",
+    "atlas": "9ffae9538a7dad1380a1ef2a037c72123cddfe0dca0aae92c34b1413dfe94d21"
+  }
+}

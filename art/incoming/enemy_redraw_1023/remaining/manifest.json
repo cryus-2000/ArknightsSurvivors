@@ -1,0 +1,2570 @@
+{
+  "brief_commit": "9d0bc4ec",
+  "scope": "32 static f0 states; no animation/integration claim",
+  "emission_contract": "same canvas/origin, independent RGB overlay; never sample body RGB for glow",
+  "assets": [
+    {
+      "file": "f0/e_bone_idle_f0.png",
+      "id": "bone",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "7196728f04799f4390d0e30bae14c5e48f0aac11088beae8a7531c133f7da176"
+    },
+    {
+      "file": "f0/e_bone_idle_f0@2x.png",
+      "id": "bone",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "42ae657167fc5225a30f9fb273b8d1a1d21578326996883b45912855a42f205d"
+    },
+    {
+      "file": "f0/e_bone_idle_f0_emit.png",
+      "id": "bone",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "0e0a74411c28b008d1a3187a9effee3112a2c71561e61eaf6fc068496e494a0c"
+    },
+    {
+      "file": "f0/e_bone_idle_f0_emit@2x.png",
+      "id": "bone",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "ca8ae144331111a448662eeee759993812fa7e0bc0ceca5264a8c4edf5cc05ed"
+    },
+    {
+      "file": "f0/e_runner_idle_f0.png",
+      "id": "runner",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "9f30384b8f456b89d1d9a2b95c445a3ee0f9137f60d473757e80ba28ce882726"
+    },
+    {
+      "file": "f0/e_runner_idle_f0@2x.png",
+      "id": "runner",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "f98528fadedf1b1bcdbb99bd49da47b20378fe966a8054f39faef58a4abfecf7"
+    },
+    {
+      "file": "f0/e_runner_idle_f0_emit.png",
+      "id": "runner",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "fcfb657e3181416b6099da0e68c79572836ca58675e19461d5a5ab046f1ac2e5"
+    },
+    {
+      "file": "f0/e_runner_idle_f0_emit@2x.png",
+      "id": "runner",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "6cbb1e9a40acae006efbb18ac4f84e59aed052f90ad5a9213ee728eba1582c63"
+    },
+    {
+      "file": "f0/e_brood_idle_f0.png",
+      "id": "brood",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "72b90628e6f29096c84927d6ff3a964246004cd4c1848645c87f4a968b505c57"
+    },
+    {
+      "file": "f0/e_brood_idle_f0@2x.png",
+      "id": "brood",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "899794ffcc86c0fea95a312aca7a97a6c2a22b0e921b66fc6e30bac71e763515"
+    },
+    {
+      "file": "f0/e_brood_idle_f0_emit.png",
+      "id": "brood",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "84a1f03cfb1a7624cdc17a1c7db0a38d01b1f7dfe48ffa476a90f827c1be85de"
+    },
+    {
+      "file": "f0/e_brood_idle_f0_emit@2x.png",
+      "id": "brood",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "c730755582a5db7538e2040af521f81f20c311bc264053b94876f2475d80ffad"
+    },
+    {
+      "file": "f0/e_slider_idle_f0.png",
+      "id": "slider",
+      "frame_size": [
+        44,
+        40
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        22,
+        36
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "34a15839699ad46b139a3cb89fb5993ce0e417224db7c40fb8b2ef33e6664bb9"
+    },
+    {
+      "file": "f0/e_slider_idle_f0@2x.png",
+      "id": "slider",
+      "frame_size": [
+        88,
+        80
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        44,
+        72
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "a0944826fca61008e06eed0723b7e433984aef374e029eb9f21aaa6a91aca3bb"
+    },
+    {
+      "file": "f0/e_slider_idle_f0_emit.png",
+      "id": "slider",
+      "frame_size": [
+        44,
+        40
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        22,
+        36
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "7d8c195bd28795897d243457899b6267e17362229e646f14605a2ad84c6f9430"
+    },
+    {
+      "file": "f0/e_slider_idle_f0_emit@2x.png",
+      "id": "slider",
+      "frame_size": [
+        88,
+        80
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        44,
+        72
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "598b246909308e1329465e713f57dc744580d42607936b119f2dfa9b3291c35a"
+    },
+    {
+      "file": "f0/e_stone_idle_f0.png",
+      "id": "stone",
+      "frame_size": [
+        40,
+        40
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        20,
+        36
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "bbbe3033c3a7c3e6e1dc596f7268f8911cf4e58d369529693280cf5cb015d847"
+    },
+    {
+      "file": "f0/e_stone_idle_f0@2x.png",
+      "id": "stone",
+      "frame_size": [
+        80,
+        80
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        40,
+        72
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "3452e03458d2793e2e06f949d5257bce0d2c71d6ce2cec969f4984193e38cb8a"
+    },
+    {
+      "file": "f0/e_stone_idle_f0_emit.png",
+      "id": "stone",
+      "frame_size": [
+        40,
+        40
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        20,
+        36
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "24c8e30b9fe0fdde652b4f69bf49edfa5a6b210789040dbd74e4620434248b67"
+    },
+    {
+      "file": "f0/e_stone_idle_f0_emit@2x.png",
+      "id": "stone",
+      "frame_size": [
+        80,
+        80
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        40,
+        72
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "02e5fc7ff2c81985e9cd0d88479eb9e47654dca6190cbd747205ab00e4385eb5"
+    },
+    {
+      "file": "f0/e_spitter_idle_f0.png",
+      "id": "spitter",
+      "frame_size": [
+        40,
+        40
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        20,
+        36
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "b9207cc0d76efb3e3f6bb670a21ccf7082856e1335bf6533a91323dc0d9a6ddf"
+    },
+    {
+      "file": "f0/e_spitter_idle_f0@2x.png",
+      "id": "spitter",
+      "frame_size": [
+        80,
+        80
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        40,
+        72
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "fd0222a2237f05d66d3fea03e3923ad5e10cb758b951e7e159939ad7b58e6e3a"
+    },
+    {
+      "file": "f0/e_spitter_idle_f0_emit.png",
+      "id": "spitter",
+      "frame_size": [
+        40,
+        40
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        20,
+        36
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "f43200c4ab674f2d2ec6e3ca8870986d8c2ed9a61b7dff3c3474cae9809d5e5f"
+    },
+    {
+      "file": "f0/e_spitter_idle_f0_emit@2x.png",
+      "id": "spitter",
+      "frame_size": [
+        80,
+        80
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        40,
+        72
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "a85d2e5bbdf2d68f035e638983d21bca7d87c29e5275bd539a2ada3a50f2ec80"
+    },
+    {
+      "file": "f0/e_floater_idle_f0.png",
+      "id": "floater",
+      "frame_size": [
+        56,
+        40
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        28,
+        36
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "5357ea9e52398322de9ea7a416fc363501d9012cb0aa9f928909a6acf68c2170"
+    },
+    {
+      "file": "f0/e_floater_idle_f0@2x.png",
+      "id": "floater",
+      "frame_size": [
+        112,
+        80
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        56,
+        72
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "cb66a77cfc0c3e982b209598f989a26438c4481f753d708783c7e80916333b8d"
+    },
+    {
+      "file": "f0/e_floater_idle_f0_emit.png",
+      "id": "floater",
+      "frame_size": [
+        56,
+        40
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        28,
+        36
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "48c36045cbd8e755fa95c199e511453e72314ea089830f392f6440675bee8939"
+    },
+    {
+      "file": "f0/e_floater_idle_f0_emit@2x.png",
+      "id": "floater",
+      "frame_size": [
+        112,
+        80
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        56,
+        72
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "a4b98965223456e632d15dc9c57fba5b5cd2b70af559cb414e5ceb564d274de8"
+    },
+    {
+      "file": "f0/e_offspring_idle_f0.png",
+      "id": "offspring",
+      "frame_size": [
+        40,
+        40
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        20,
+        36
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "96600931e8eded7fad28578012e8a5bfa243911bbed5327959438f81f69fdf04"
+    },
+    {
+      "file": "f0/e_offspring_idle_f0@2x.png",
+      "id": "offspring",
+      "frame_size": [
+        80,
+        80
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        40,
+        72
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "bb46d04418c4a0d8a6be50da27bd675e2d7a162ab531f1ac2df0a504e3f07fbf"
+    },
+    {
+      "file": "f0/e_offspring_idle_f0_emit.png",
+      "id": "offspring",
+      "frame_size": [
+        40,
+        40
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        20,
+        36
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "c96c1a334e01eb42721cf5c1909214f8017fbeb42cc7e13004cfaad7dfaa58d2"
+    },
+    {
+      "file": "f0/e_offspring_idle_f0_emit@2x.png",
+      "id": "offspring",
+      "frame_size": [
+        80,
+        80
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        40,
+        72
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "75454631313b49048a6d4e0b1f9f2084d8330e621975a5c94cb9a2fbb953d9b4"
+    },
+    {
+      "file": "f0/e_reaper_idle_f0.png",
+      "id": "reaper",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        24,
+        44
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "b7df359c0d106e8eb80e9ec3f3031f6da970527a3af5bb7d3f35c8ecae525024"
+    },
+    {
+      "file": "f0/e_reaper_idle_f0@2x.png",
+      "id": "reaper",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        48,
+        88
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "4e33968a07124b1c046da9abfd73f2f34ffb3f1995a432f9d18852c96c4d187f"
+    },
+    {
+      "file": "f0/e_reaper_idle_f0_emit.png",
+      "id": "reaper",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        24,
+        44
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "74f978770907b97dfb6e90c86ff1ed4d44c89a6ac6c055955e051e549949c82a"
+    },
+    {
+      "file": "f0/e_reaper_idle_f0_emit@2x.png",
+      "id": "reaper",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        48,
+        88
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "d577b9cd567238ba266e98e9ee38ed8fa0eca956425bcc71a74e1fcabaaccbd6"
+    },
+    {
+      "file": "f0/e_founder_idle_f0.png",
+      "id": "founder",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        24,
+        44
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "29e11df726ef78fa0d8059e5fb63a768192f594d83c2145863fcd878e3401443"
+    },
+    {
+      "file": "f0/e_founder_idle_f0@2x.png",
+      "id": "founder",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        48,
+        88
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "554fd6fcbb3206a6779a2bc3cd037fc4527320035b342a9418d7d75b79bb14d6"
+    },
+    {
+      "file": "f0/e_founder_idle_f0_emit.png",
+      "id": "founder",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        24,
+        44
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "fed4b1fb50b358f0b554a04dc8ab7295cd40f8fcf5aaaeee1b71ae027172782a"
+    },
+    {
+      "file": "f0/e_founder_idle_f0_emit@2x.png",
+      "id": "founder",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        48,
+        88
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "67f1764f518a09139a56ff2b49be2ef84c55572742d0245f6590bfa59bafa521"
+    },
+    {
+      "file": "f0/e_tracer_idle_f0.png",
+      "id": "tracer",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        24,
+        44
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "3922d15765d3b564d3e67f7ab2d1a8a6a604880f50383756d8dd627b6a275923"
+    },
+    {
+      "file": "f0/e_tracer_idle_f0@2x.png",
+      "id": "tracer",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        48,
+        88
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "acd76afae4f63a28b2bfc32abfe47869fddc2044d49daa55c7413b68ef74542f"
+    },
+    {
+      "file": "f0/e_tracer_idle_f0_emit.png",
+      "id": "tracer",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        24,
+        44
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "94580ca453d68fd1a6e140812f1ffb8541c8ab367bd80d33c1435df6fe51a899"
+    },
+    {
+      "file": "f0/e_tracer_idle_f0_emit@2x.png",
+      "id": "tracer",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        48,
+        88
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "9867d015bfbf4dcb27fa650dc67a4a263bd665c552ba41afdead20f0d0e38939"
+    },
+    {
+      "file": "f0/e_nest_idle_f0.png",
+      "id": "nest",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        24,
+        44
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "6e11fdbac69a0f580031aaad4d9bd1ae010406913c167f0b330d71e1b93076f6"
+    },
+    {
+      "file": "f0/e_nest_idle_f0@2x.png",
+      "id": "nest",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        48,
+        88
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "a155986718fac1d7cc17ddbcc341107692fc1060460458cf39390eadb232cfbf"
+    },
+    {
+      "file": "f0/e_nest_idle_f0_emit.png",
+      "id": "nest",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        24,
+        44
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "2bbf314bd63b2d1e19749df825128311867f712e38e02646b7ef9425b7d0920b"
+    },
+    {
+      "file": "f0/e_nest_idle_f0_emit@2x.png",
+      "id": "nest",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        48,
+        88
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "cff2086226024394ee3399ea8c282cb62d47180f89bceefa6363ffaaebeaa7d6"
+    },
+    {
+      "file": "f0/e_fractal_idle_f0.png",
+      "id": "fractal",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "a5d19a5c5312422ca74df7f268f21c3d317bc6d6d977d1b37ace524fdb88b10c"
+    },
+    {
+      "file": "f0/e_fractal_idle_f0@2x.png",
+      "id": "fractal",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "75482bee3e8d7120d67a4831e0123241064d4890ac66e9278ccd6b69ef02cd9e"
+    },
+    {
+      "file": "f0/e_fractal_idle_f0_emit.png",
+      "id": "fractal",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "412a35e5464087f94eb464c82434166ddedc6a98e901f3b4492ec44047b2d322"
+    },
+    {
+      "file": "f0/e_fractal_idle_f0_emit@2x.png",
+      "id": "fractal",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "23d0e4db3a06d646e815f2e0b10c88d438f9bbc5d58f4398a93a20576c0a53d0"
+    },
+    {
+      "file": "f0/e_tear_idle_f0.png",
+      "id": "tear",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "e2160410b083522f45872eec79d9d20b20010a8f7c06a960c66944c5dd2431ce"
+    },
+    {
+      "file": "f0/e_tear_idle_f0@2x.png",
+      "id": "tear",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "a120856fecb0e2d20ee3dfd1fcfef68d08ddeec7dca3901be85e110f695c7367"
+    },
+    {
+      "file": "f0/e_tear_idle_f0_emit.png",
+      "id": "tear",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "2b585d5ea9378757295c551ae86b35af6f0644783e50613fd9fae6ef16d69c85"
+    },
+    {
+      "file": "f0/e_tear_idle_f0_emit@2x.png",
+      "id": "tear",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "2db288d12e1961045ee579535c2065cb5b883f8cf8fe9412aede489eac5b2465"
+    },
+    {
+      "file": "f0/e_pocket_idle_f0.png",
+      "id": "pocket",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        24,
+        44
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "db4f17ae1c84bd4bde65194e6de61f45fa439283c8fa868ccd2c28c56ed25713"
+    },
+    {
+      "file": "f0/e_pocket_idle_f0@2x.png",
+      "id": "pocket",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        48,
+        88
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "3d50d264aa2d618e687af1201016cb484a4f8516f1c4944218fd6e3790a48774"
+    },
+    {
+      "file": "f0/e_pocket_idle_f0_emit.png",
+      "id": "pocket",
+      "frame_size": [
+        48,
+        48
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        24,
+        44
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "9ea098502ee92f76140e83c376414ef7dd4b4cfc41c46b3ec7f56d1938204bbd"
+    },
+    {
+      "file": "f0/e_pocket_idle_f0_emit@2x.png",
+      "id": "pocket",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        48,
+        88
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "fb6f9a0efbc778306714148e51542ac2402e9adfda9b2d22e272460313cbabcb"
+    },
+    {
+      "file": "f0/e_skimmer_idle_f0.png",
+      "id": "skimmer",
+      "frame_size": [
+        56,
+        48
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        28,
+        44
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "d66912026a73b4f5368f34bc7baff273ffe1895150b96d91d75ff345e1900d84"
+    },
+    {
+      "file": "f0/e_skimmer_idle_f0@2x.png",
+      "id": "skimmer",
+      "frame_size": [
+        112,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        56,
+        88
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "4e713354d4df2b2720f9c636d0716a2d1e8a7d9488f5241f1cfc8ba4f56bf9f1"
+    },
+    {
+      "file": "f0/e_skimmer_idle_f0_emit.png",
+      "id": "skimmer",
+      "frame_size": [
+        56,
+        48
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        28,
+        44
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "6be4b5924194eab84cebf635412f21dd44a615d3fe26921f737d0fce2c2916d6"
+    },
+    {
+      "file": "f0/e_skimmer_idle_f0_emit@2x.png",
+      "id": "skimmer",
+      "frame_size": [
+        112,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        56,
+        88
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "41f5df48aa9885beb975d52382e97a481e9f5b3cdaafb006ec92aa2eb1e15cbb"
+    },
+    {
+      "file": "f0/e_mother_idle_f0.png",
+      "id": "mother",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "c0a82c1a9f10ff0d4c034840b894218815afd17aac2238ff009302ca751ee4a1"
+    },
+    {
+      "file": "f0/e_mother_idle_f0@2x.png",
+      "id": "mother",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "e5c1b09885d478fa40226240454630083a119e034159143dd35e8e79ad3eca0a"
+    },
+    {
+      "file": "f0/e_mother_idle_f0_emit.png",
+      "id": "mother",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "d35d43fae92ea6405d7bc22bb9ccc748167f529238e585d0d15f0a9bef4cf448"
+    },
+    {
+      "file": "f0/e_mother_idle_f0_emit@2x.png",
+      "id": "mother",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "b3c96cc67d81c275cf554901dcd4f7c03dec58569f69ec03d0f618fc44d900e3"
+    },
+    {
+      "file": "f0/e_mimic_disguised_idle_f0.png",
+      "id": "mimic_disguised",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "0b2285d430870fd6eb2449584aec0028e0afc00f1ec4a7b9a545636dc18b49ce"
+    },
+    {
+      "file": "f0/e_mimic_disguised_idle_f0@2x.png",
+      "id": "mimic_disguised",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "76de3430a42c83ca87a2dbfe24dc373bba6a47940309d5bcb85121c8944a7dba"
+    },
+    {
+      "file": "f0/e_mimic_disguised_idle_f0_emit.png",
+      "id": "mimic_disguised",
+      "frame_size": [
+        32,
+        32
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        16,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "70812615ff19a0d62fd55ff57a426b6a7dfdff603ddc4c843ce3cec5921fa3b5"
+    },
+    {
+      "file": "f0/e_mimic_disguised_idle_f0_emit@2x.png",
+      "id": "mimic_disguised",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "776345677ecba8338caad5fbbc94a0cf1aee73cc3209b4c092c247fd3f5d108b"
+    },
+    {
+      "file": "f0/e_mimic_idle_f0.png",
+      "id": "mimic",
+      "frame_size": [
+        36,
+        32
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        18,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "e0de8537b01568f689fe02dd7cc31dc16a18b0058bb71f3b4d45717f1396b3ea"
+    },
+    {
+      "file": "f0/e_mimic_idle_f0@2x.png",
+      "id": "mimic",
+      "frame_size": [
+        72,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        36,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "ae3d3a875aaff6dc1541f5df8df2ac0dcba03e572aba3c302e826ca0fb6543ee"
+    },
+    {
+      "file": "f0/e_mimic_idle_f0_emit.png",
+      "id": "mimic",
+      "frame_size": [
+        36,
+        32
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        18,
+        28
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "c6aae59905ed38fb73eb9fba9072d0c3276b53255ceaacadf978fef801794c70"
+    },
+    {
+      "file": "f0/e_mimic_idle_f0_emit@2x.png",
+      "id": "mimic",
+      "frame_size": [
+        72,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        36,
+        56
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "249a4e67fd00cbfd4ca606e4527ed63fce85caed25fbe8d15ed057b3929e8054"
+    },
+    {
+      "file": "f0/e_knight_idle_f0.png",
+      "id": "knight",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        48,
+        92
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "0320584cea78fed41de5758401da74bdaaa1a60803d41d0da1509a9235f916fd"
+    },
+    {
+      "file": "f0/e_knight_idle_f0@2x.png",
+      "id": "knight",
+      "frame_size": [
+        192,
+        192
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        96,
+        184
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "1f2ff20a540d2137e83884f11544c1af2ffb63128024ed2b66cc10a730f36c92"
+    },
+    {
+      "file": "f0/e_knight_idle_f0_emit.png",
+      "id": "knight",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        48,
+        92
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "f97467cb561419737dce418a89fddcf4ff42cfdcec006c5d272dff740790c3a0"
+    },
+    {
+      "file": "f0/e_knight_idle_f0_emit@2x.png",
+      "id": "knight",
+      "frame_size": [
+        192,
+        192
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        96,
+        184
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "33b422bfd3cda5fadd13d8ed48ecf96c1cd0198c8e5ae4b4a965f05bfb2ead77"
+    },
+    {
+      "file": "f0/e_iberia_idle_f0.png",
+      "id": "iberia",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "114c0c1965220a824a7d329f6b55cbc63021dbd9cef5bdbe610116f9bbabdc39"
+    },
+    {
+      "file": "f0/e_iberia_idle_f0@2x.png",
+      "id": "iberia",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "d9b5dc4d39027ca63347270995aebcd86164e14e384a77e530e00e14c85cfcb3"
+    },
+    {
+      "file": "f0/e_iberia_idle_f0_emit.png",
+      "id": "iberia",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "ff047823d4057e29fc5c80a379e43bd3c011e0599a71cf851fb4822ae2120df0"
+    },
+    {
+      "file": "f0/e_iberia_idle_f0_emit@2x.png",
+      "id": "iberia",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "f065622c66b29236257161661aed46e63ce35312625d55fab1633c3513426ffc"
+    },
+    {
+      "file": "f0/e_carmen_idle_f0.png",
+      "id": "carmen",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "638e0ce9fffdecdc52087d4491860a3c22e1003629862efda66e645a88c3ac02"
+    },
+    {
+      "file": "f0/e_carmen_idle_f0@2x.png",
+      "id": "carmen",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "48c0b051ed147296c89ffd0b58f262b71322cede542598bf1389043088b55ad2"
+    },
+    {
+      "file": "f0/e_carmen_idle_f0_emit.png",
+      "id": "carmen",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "ff047823d4057e29fc5c80a379e43bd3c011e0599a71cf851fb4822ae2120df0"
+    },
+    {
+      "file": "f0/e_carmen_idle_f0_emit@2x.png",
+      "id": "carmen",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "f065622c66b29236257161661aed46e63ce35312625d55fab1633c3513426ffc"
+    },
+    {
+      "file": "f0/e_bishop_idle_f0.png",
+      "id": "bishop",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "77bfe4d88bdfd05d23d614f5c2282726f453cc40561dd04d34f986ead9366d89"
+    },
+    {
+      "file": "f0/e_bishop_idle_f0@2x.png",
+      "id": "bishop",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "117617a2f7bedbf11c625662ecd1d020c0af7f5f26e08cbbd0dad9d17d1b2268"
+    },
+    {
+      "file": "f0/e_bishop_idle_f0_emit.png",
+      "id": "bishop",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "ba91625e871cb9f9165fae638711276ee4347cf8354a8015da63ccc00993081e"
+    },
+    {
+      "file": "f0/e_bishop_idle_f0_emit@2x.png",
+      "id": "bishop",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "ad9d209be6a7de6b757424eae80a43e1cf174bf28da26360ab54acf4ac572db9"
+    },
+    {
+      "file": "f0/e_archon_idle_f0.png",
+      "id": "archon",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "51851036bc7f937972cf49720cd9e276c0cc3718abf6563b0e682eacd893a9d0"
+    },
+    {
+      "file": "f0/e_archon_idle_f0@2x.png",
+      "id": "archon",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "8470b896e44417e16486769603eaa5b9fbd5820495d0e3ce8d2e7feb74afbe19"
+    },
+    {
+      "file": "f0/e_archon_idle_f0_emit.png",
+      "id": "archon",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "3e0d760abd859479b0924c866e37f7524c6a2f262a1ada4095f15503314050a9"
+    },
+    {
+      "file": "f0/e_archon_idle_f0_emit@2x.png",
+      "id": "archon",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "c806eff9df170e94e35b4b206a8358870f795a67295f3ac8a6ec7a6f111a3e75"
+    },
+    {
+      "file": "f0/e_immortal_idle_f0.png",
+      "id": "immortal",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "a2308295580f9ea3a936150d6cb13937da7183e73c260e2cba4f49335ae3269a"
+    },
+    {
+      "file": "f0/e_immortal_idle_f0@2x.png",
+      "id": "immortal",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "ee4af41c2e5fea8b3411fff208269b9420282dc0263f7c3b0d9facbc2f0c76b4"
+    },
+    {
+      "file": "f0/e_immortal_idle_f0_emit.png",
+      "id": "immortal",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "31d5c51702a64c40b869ce044792f530fa3724252ee35dac9e8a1024d69f083d"
+    },
+    {
+      "file": "f0/e_immortal_idle_f0_emit@2x.png",
+      "id": "immortal",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "8f6cac5f44bb2065704267c6955b80704a181f19144e5a847a453f209baae959"
+    },
+    {
+      "file": "f0/e_ishar_idle_f0.png",
+      "id": "ishar",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "effdb24035121959fda84d1d0cd1a92d8d927032cd1495a4b296c0b001c8e5f2"
+    },
+    {
+      "file": "f0/e_ishar_idle_f0@2x.png",
+      "id": "ishar",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "e29dff739bdd83b4a81fd1ba3bf0e01a172dc92455ac234fcc19c46efc1abeb5"
+    },
+    {
+      "file": "f0/e_ishar_idle_f0_emit.png",
+      "id": "ishar",
+      "frame_size": [
+        64,
+        64
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        32,
+        60
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "1c223640b384972799c70e7e99173941cecba2ef5913d3ad697f1f8e82c3496c"
+    },
+    {
+      "file": "f0/e_ishar_idle_f0_emit@2x.png",
+      "id": "ishar",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        120
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "85d85dd5eb62c3f26b06c4d6c20ecba5f17cc8f9fd5731fdeb4d4ffc7bcd34b2"
+    },
+    {
+      "file": "f0/e_knight_boss_idle_f0.png",
+      "id": "knight_boss",
+      "frame_size": [
+        116,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        58,
+        92
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "611d1a0f444f7b2f56a49f052482747b1934efdb04133efb5c0dc9a048240e52"
+    },
+    {
+      "file": "f0/e_knight_boss_idle_f0@2x.png",
+      "id": "knight_boss",
+      "frame_size": [
+        232,
+        192
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        116,
+        184
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "ac5ff8985bdb1576d5a3ab88b81d5c3404fb4ae05b6519dbfec209bf8fd97583"
+    },
+    {
+      "file": "f0/e_knight_boss_idle_f0_emit.png",
+      "id": "knight_boss",
+      "frame_size": [
+        116,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        58,
+        92
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "05045acb82cba55759232b0276cf4ce3e3151e89f1c23c16de80b5093bc7e62c"
+    },
+    {
+      "file": "f0/e_knight_boss_idle_f0_emit@2x.png",
+      "id": "knight_boss",
+      "frame_size": [
+        232,
+        192
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        116,
+        184
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "f5c41da9d3de563ad03c8c2010f8bf8ce8324329e6855a19f92dfee23dba44c3"
+    },
+    {
+      "file": "f0/e_path_idle_f0.png",
+      "id": "path",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        48,
+        92
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "9d02d7686f4227a37c810c1b735f6f121bd6d943276dd432f3fe93da3295692a"
+    },
+    {
+      "file": "f0/e_path_idle_f0@2x.png",
+      "id": "path",
+      "frame_size": [
+        192,
+        192
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        96,
+        184
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "733cf83c6d05150ae3332847513b361106ace6e3f5110223967b164335bebd5a"
+    },
+    {
+      "file": "f0/e_path_idle_f0_emit.png",
+      "id": "path",
+      "frame_size": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        48,
+        92
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "c6b3d615f9b6d2f4f54220189ec8303d119983207083903a6c6400082c687f84"
+    },
+    {
+      "file": "f0/e_path_idle_f0_emit@2x.png",
+      "id": "path",
+      "frame_size": [
+        192,
+        192
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        96,
+        184
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "089caa5fae88c6ff63214fb3407128f9c6069105f1d0c2af8a6a32a70ffa37e6"
+    },
+    {
+      "file": "f0/e_izumik_idle_f0.png",
+      "id": "izumik",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        124
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "3b3c65a7540cc3b200391b49a6809b1e2956e753542d26a168d70e1e6963a79a"
+    },
+    {
+      "file": "f0/e_izumik_idle_f0@2x.png",
+      "id": "izumik",
+      "frame_size": [
+        256,
+        256
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        128,
+        248
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "16ae233c2a33ba4e4678ceeb30f1363124be8d0ca3bc00f20ca08e68097120fa"
+    },
+    {
+      "file": "f0/e_izumik_idle_f0_emit.png",
+      "id": "izumik",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        124
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "cb1fd4fcc6563c2698dd97e1137824c8017d1bf10d55590e93009b424471f71d"
+    },
+    {
+      "file": "f0/e_izumik_idle_f0_emit@2x.png",
+      "id": "izumik",
+      "frame_size": [
+        256,
+        256
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        128,
+        248
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "f7143becda8d94ce0da61dbaea8ecdfb770aa28868a6b60b4f108fc42e97e5cc"
+    },
+    {
+      "file": "f0/e_paranoia_idle_f0.png",
+      "id": "paranoia",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        124
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "6fb199d084d771aaef16c0b66a7f64eae4d488c63423cd2d87923ec2c7255177"
+    },
+    {
+      "file": "f0/e_paranoia_idle_f0@2x.png",
+      "id": "paranoia",
+      "frame_size": [
+        256,
+        256
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        128,
+        248
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "19e65ed7a6911568b04d15eaaa39b1ea008c0e6654af6e36733ed73b440d3830"
+    },
+    {
+      "file": "f0/e_paranoia_idle_f0_emit.png",
+      "id": "paranoia",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        124
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "0d8fe2de87c527dddb1e288279b38645f8c2ff239e0622114e6862105f70b100"
+    },
+    {
+      "file": "f0/e_paranoia_idle_f0_emit@2x.png",
+      "id": "paranoia",
+      "frame_size": [
+        256,
+        256
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        128,
+        248
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "1f0b10ec47e39c1c020dd9f5b199e7768a316b26a0fcc9ae18769be4c0061cf4"
+    },
+    {
+      "file": "f0/e_paranoia_phase2_idle_f0.png",
+      "id": "paranoia_phase2",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        124
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "c51bc24418bb682f50b89399fe9fb378501ee665f1807cbbd65809fa08f74d3e"
+    },
+    {
+      "file": "f0/e_paranoia_phase2_idle_f0@2x.png",
+      "id": "paranoia_phase2",
+      "frame_size": [
+        256,
+        256
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        128,
+        248
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "5f03b086c68a57e5488c5412b65f0e9d357f11c4664fd7e8c72b4c1cd174940e"
+    },
+    {
+      "file": "f0/e_paranoia_phase2_idle_f0_emit.png",
+      "id": "paranoia_phase2",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        124
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "0497a662e2c028f1de98509c46c4147775964327eab1c3e25e53822c7169772d"
+    },
+    {
+      "file": "f0/e_paranoia_phase2_idle_f0_emit@2x.png",
+      "id": "paranoia_phase2",
+      "frame_size": [
+        256,
+        256
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        128,
+        248
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "1be73098fe3b3cbbe402754d1ff38b7bf374e609eb2c5020ad75eb612cf7b4cd"
+    },
+    {
+      "file": "f0/e_ishar_phase2_idle_f0.png",
+      "id": "ishar_phase2",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        124
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "body",
+      "sha256": "ad035031085ee4f904a2e21232a97c479f4defd848fb4026fa623f8c848a9d39"
+    },
+    {
+      "file": "f0/e_ishar_phase2_idle_f0@2x.png",
+      "id": "ishar_phase2",
+      "frame_size": [
+        256,
+        256
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        128,
+        248
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "body",
+      "sha256": "02454e5245b630b1be2d30640babdd7e32c84b240cdbfd752910d343e41b15d0"
+    },
+    {
+      "file": "f0/e_ishar_phase2_idle_f0_emit.png",
+      "id": "ishar_phase2",
+      "frame_size": [
+        128,
+        128
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        64,
+        124
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 1,
+      "layer": "independent RGB emission",
+      "sha256": "a9804052847e1fca8723bebc7b7e942a3701421ea34777805a0c831a0aaee5c0"
+    },
+    {
+      "file": "f0/e_ishar_phase2_idle_f0_emit@2x.png",
+      "id": "ishar_phase2",
+      "frame_size": [
+        256,
+        256
+      ],
+      "frames": 1,
+      "static": true,
+      "fps": null,
+      "event_frame": null,
+      "origin": [
+        128,
+        248
+      ],
+      "anchor_convention": "bottom-exclusive foot/projected center",
+      "density": 2,
+      "layer": "independent RGB emission",
+      "sha256": "2e76881c3cc4c23f897e67f3f3fd6fbb5cd1b493969be17c6b48971a20b4288a"
+    }
+  ],
+  "job_sha256": "2fd1c69268b2765600704462f09b45e8049e9fe3f96953a9e13b454cfe7ee868",
+  "export_sha256": "3e9159a06bd0a83aed43bed103749f3f109c151b65eb435390ae0f5d00550c93",
+  "review_sha256": "d30872d932ec4874360efe7ede49325ab595e63f84ea87f3b017b3cd3c41c716"
+}

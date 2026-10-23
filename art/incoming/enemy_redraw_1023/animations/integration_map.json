@@ -1,0 +1,5650 @@
+{
+  "states": 32,
+  "action_sets": 199,
+  "wound_sets": 32,
+  "death_sets": 31,
+  "coverage_passed": true,
+  "coverage_errors": [],
+  "coverage": [
+    {
+      "id": "archon",
+      "actions": [
+        "attack",
+        "death",
+        "feign",
+        "idle",
+        "move",
+        "revive",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "bishop",
+      "actions": [
+        "attack",
+        "death",
+        "feign",
+        "idle",
+        "move",
+        "revive",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "bone",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "brood",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "carmen",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "melee",
+        "move",
+        "saint_reload",
+        "skill",
+        "spin",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "floater",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "founder",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "fractal",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "skill",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "iberia",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "melee",
+        "move",
+        "saint_dark_lob",
+        "saint_dark_reload",
+        "skill",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "immortal",
+      "actions": [
+        "attack",
+        "death",
+        "feign",
+        "idle",
+        "move",
+        "revive",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "ishar",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "skill",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "ishar_phase2",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "t_sing",
+        "transform",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "izumik",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "revive",
+        "root_begin",
+        "root_end",
+        "root_loop",
+        "rooting",
+        "share",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "knight",
+      "actions": [
+        "attack",
+        "charge",
+        "death",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "knight_boss",
+      "actions": [
+        "attack",
+        "charge",
+        "charge_form",
+        "death",
+        "idle",
+        "move",
+        "plant",
+        "spin",
+        "thrust",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "mimic",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "reveal",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "mimic_disguised",
+      "actions": [
+        "idle",
+        "reveal",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": [
+        "move",
+        "attack",
+        "death: use revealed form"
+      ]
+    },
+    {
+      "id": "mother",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "nest",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "offspring",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "paranoia",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "revive",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "paranoia_phase2",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "revive",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "path",
+      "actions": [
+        "attack",
+        "charge",
+        "death",
+        "idle",
+        "move",
+        "skill",
+        "slam",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "pocket",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "swell",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "reaper",
+      "actions": [
+        "attack",
+        "awaken",
+        "death",
+        "dormant",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "runner",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "skimmer",
+      "actions": [
+        "attack",
+        "change",
+        "death",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "slider",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "spitter",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "stone",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "tear",
+      "actions": [
+        "attack",
+        "death",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    },
+    {
+      "id": "tracer",
+      "actions": [
+        "attack",
+        "death",
+        "enraged",
+        "idle",
+        "move",
+        "wound"
+      ],
+      "missing": [],
+      "not_applicable": []
+    }
+  ],
+  "main_reference_commit": "c72aa86abf95989f0f0aa44c4e103f283f8cde2b",
+  "integration_status": "not integrated; filenames are delivery candidates, no game files changed",
+  "motion_status": "static frame evidence inspected; continuous playback not certified",
+  "files": [
+    {
+      "id": "archon",
+      "action": "idle",
+      "body": "archon/e_archon_idle@2x.png",
+      "emit": "archon/e_archon_idle_emit@2x.png",
+      "frame_size_2x": [
+        172,
+        128
+      ],
+      "origin_2x": [
+        90,
+        118
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_archon",
+      "existing_runtime_key": "e_archon",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "archon",
+      "action": "move",
+      "body": "archon/e_archon_move@2x.png",
+      "emit": "archon/e_archon_move_emit@2x.png",
+      "frame_size_2x": [
+        172,
+        128
+      ],
+      "origin_2x": [
+        90,
+        118
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_archon_move",
+      "existing_runtime_key": "e_archon_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "archon",
+      "action": "attack",
+      "body": "archon/e_archon_attack@2x.png",
+      "emit": "archon/e_archon_attack_emit@2x.png",
+      "frame_size_2x": [
+        172,
+        128
+      ],
+      "origin_2x": [
+        90,
+        118
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_archon_attack",
+      "existing_runtime_key": "e_archon_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.4333333373069763
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.4333333373069763
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "archon",
+      "action": "feign",
+      "body": "archon/e_archon_feign@2x.png",
+      "emit": "archon/e_archon_feign_emit@2x.png",
+      "frame_size_2x": [
+        172,
+        128
+      ],
+      "origin_2x": [
+        90,
+        118
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_archon_feign",
+      "existing_runtime_key": "e_archon_feign",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "archon",
+      "action": "death",
+      "body": "archon/e_archon_death@2x.png",
+      "emit": "archon/e_archon_death_emit@2x.png",
+      "frame_size_2x": [
+        172,
+        128
+      ],
+      "origin_2x": [
+        90,
+        118
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_archon_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "archon",
+      "action": "revive",
+      "body": "archon/e_archon_revive@2x.png",
+      "emit": "archon/e_archon_revive_emit@2x.png",
+      "frame_size_2x": [
+        172,
+        128
+      ],
+      "origin_2x": [
+        90,
+        118
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_archon_revive",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "archon",
+      "action": "wound",
+      "body": "archon/e_archon_wound@2x.png",
+      "emit": "archon/e_archon_wound_emit@2x.png",
+      "frame_size_2x": [
+        172,
+        128
+      ],
+      "origin_2x": [
+        90,
+        118
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_archon_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "bishop",
+      "action": "idle",
+      "body": "bishop/e_bishop_idle@2x.png",
+      "emit": "bishop/e_bishop_idle_emit@2x.png",
+      "frame_size_2x": [
+        128,
+        128
+      ],
+      "origin_2x": [
+        64,
+        112
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_bishop",
+      "existing_runtime_key": "e_bishop",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "bishop",
+      "action": "move",
+      "body": "bishop/e_bishop_move@2x.png",
+      "emit": "bishop/e_bishop_move_emit@2x.png",
+      "frame_size_2x": [
+        128,
+        128
+      ],
+      "origin_2x": [
+        64,
+        112
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_bishop_move",
+      "existing_runtime_key": "e_bishop_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "bishop",
+      "action": "attack",
+      "body": "bishop/e_bishop_attack@2x.png",
+      "emit": "bishop/e_bishop_attack_emit@2x.png",
+      "frame_size_2x": [
+        128,
+        128
+      ],
+      "origin_2x": [
+        64,
+        112
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_bishop_attack",
+      "existing_runtime_key": "e_bishop_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "bishop",
+      "action": "feign",
+      "body": "bishop/e_bishop_feign@2x.png",
+      "emit": "bishop/e_bishop_feign_emit@2x.png",
+      "frame_size_2x": [
+        128,
+        128
+      ],
+      "origin_2x": [
+        64,
+        112
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_bishop_feign",
+      "existing_runtime_key": "e_bishop_feign",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "bishop",
+      "action": "death",
+      "body": "bishop/e_bishop_death@2x.png",
+      "emit": "bishop/e_bishop_death_emit@2x.png",
+      "frame_size_2x": [
+        128,
+        128
+      ],
+      "origin_2x": [
+        64,
+        112
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_bishop_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "bishop",
+      "action": "revive",
+      "body": "bishop/e_bishop_revive@2x.png",
+      "emit": "bishop/e_bishop_revive_emit@2x.png",
+      "frame_size_2x": [
+        128,
+        128
+      ],
+      "origin_2x": [
+        64,
+        112
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_bishop_revive",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "bishop",
+      "action": "wound",
+      "body": "bishop/e_bishop_wound@2x.png",
+      "emit": "bishop/e_bishop_wound_emit@2x.png",
+      "frame_size_2x": [
+        128,
+        128
+      ],
+      "origin_2x": [
+        64,
+        112
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_bishop_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "bone",
+      "action": "idle",
+      "body": "bone/e_bone_idle@2x.png",
+      "emit": "bone/e_bone_idle_emit@2x.png",
+      "frame_size_2x": [
+        96,
+        64
+      ],
+      "origin_2x": [
+        48,
+        56
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_bone",
+      "existing_runtime_key": "e_bone",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "bone",
+      "action": "move",
+      "body": "bone/e_bone_move@2x.png",
+      "emit": "bone/e_bone_move_emit@2x.png",
+      "frame_size_2x": [
+        96,
+        64
+      ],
+      "origin_2x": [
+        48,
+        56
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_bone_move",
+      "existing_runtime_key": "e_bone_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "bone",
+      "action": "attack",
+      "body": "bone/e_bone_attack@2x.png",
+      "emit": "bone/e_bone_attack_emit@2x.png",
+      "frame_size_2x": [
+        96,
+        64
+      ],
+      "origin_2x": [
+        48,
+        56
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_bone_attack",
+      "existing_runtime_key": "e_bone_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.4333333373069763
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.4333333373069763
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "bone",
+      "action": "death",
+      "body": "bone/e_bone_death@2x.png",
+      "emit": "bone/e_bone_death_emit@2x.png",
+      "frame_size_2x": [
+        96,
+        64
+      ],
+      "origin_2x": [
+        48,
+        56
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_bone_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "bone",
+      "action": "wound",
+      "body": "bone/e_bone_wound@2x.png",
+      "emit": "bone/e_bone_wound_emit@2x.png",
+      "frame_size_2x": [
+        96,
+        64
+      ],
+      "origin_2x": [
+        48,
+        56
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_bone_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "brood",
+      "action": "idle",
+      "body": "brood/e_brood_idle@2x.png",
+      "emit": "brood/e_brood_idle_emit@2x.png",
+      "frame_size_2x": [
+        82,
+        64
+      ],
+      "origin_2x": [
+        34,
+        56
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_brood",
+      "existing_runtime_key": "e_brood",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "brood",
+      "action": "attack",
+      "body": "brood/e_brood_attack@2x.png",
+      "emit": "brood/e_brood_attack_emit@2x.png",
+      "frame_size_2x": [
+        82,
+        64
+      ],
+      "origin_2x": [
+        34,
+        56
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_brood_attack",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.4333333373069763
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.4333333373069763
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "brood",
+      "action": "death",
+      "body": "brood/e_brood_death@2x.png",
+      "emit": "brood/e_brood_death_emit@2x.png",
+      "frame_size_2x": [
+        82,
+        64
+      ],
+      "origin_2x": [
+        34,
+        56
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_brood_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "brood",
+      "action": "wound",
+      "body": "brood/e_brood_wound@2x.png",
+      "emit": "brood/e_brood_wound_emit@2x.png",
+      "frame_size_2x": [
+        82,
+        64
+      ],
+      "origin_2x": [
+        34,
+        56
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_brood_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "brood",
+      "action": "move",
+      "body": "brood/e_brood_move@2x.png",
+      "emit": "brood/e_brood_move_emit@2x.png",
+      "frame_size_2x": [
+        82,
+        64
+      ],
+      "origin_2x": [
+        34,
+        56
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_brood_move",
+      "existing_runtime_key": "e_brood_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "carmen",
+      "action": "idle",
+      "body": "carmen/e_carmen_idle@2x.png",
+      "emit": "carmen/e_carmen_idle_emit@2x.png",
+      "frame_size_2x": [
+        134,
+        128
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_saint",
+      "existing_runtime_key": "e_saint",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "carmen",
+      "action": "move",
+      "body": "carmen/e_carmen_move@2x.png",
+      "emit": "carmen/e_carmen_move_emit@2x.png",
+      "frame_size_2x": [
+        134,
+        128
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_saint_move",
+      "existing_runtime_key": "e_saint_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "carmen",
+      "action": "attack",
+      "body": "carmen/e_carmen_attack@2x.png",
+      "emit": "carmen/e_carmen_attack_emit@2x.png",
+      "frame_size_2x": [
+        134,
+        128
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_saint_attack",
+      "existing_runtime_key": "e_saint_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8666666746139526
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8666666746139526
+        }
+      ],
+      "event_frames": [
+        4
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "carmen",
+      "action": "melee",
+      "body": "carmen/e_carmen_melee@2x.png",
+      "emit": "carmen/e_carmen_melee_emit@2x.png",
+      "frame_size_2x": [
+        134,
+        128
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_saint_melee",
+      "existing_runtime_key": "e_saint_melee",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8666666746139526
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8666666746139526
+        }
+      ],
+      "event_frames": [
+        4
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "carmen",
+      "action": "death",
+      "body": "carmen/e_carmen_death@2x.png",
+      "emit": "carmen/e_carmen_death_emit@2x.png",
+      "frame_size_2x": [
+        134,
+        128
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_saint_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "carmen",
+      "action": "skill",
+      "body": "carmen/e_carmen_skill@2x.png",
+      "emit": "carmen/e_carmen_skill_emit@2x.png",
+      "frame_size_2x": [
+        134,
+        128
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_saint_skill",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.5
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.5
+        }
+      ],
+      "event_frames": [
+        5
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "carmen",
+      "action": "wound",
+      "body": "carmen/e_carmen_wound@2x.png",
+      "emit": "carmen/e_carmen_wound_emit@2x.png",
+      "frame_size_2x": [
+        134,
+        128
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_saint_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "carmen",
+      "action": "saint_reload",
+      "body": "carmen/e_carmen_saint_reload@2x.png",
+      "emit": "carmen/e_carmen_saint_reload_emit@2x.png",
+      "frame_size_2x": [
+        134,
+        128
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_saint_reload",
+      "existing_runtime_key": "e_saint_reload",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "carmen",
+      "action": "spin",
+      "body": "carmen/e_carmen_spin@2x.png",
+      "emit": "carmen/e_carmen_spin_emit@2x.png",
+      "frame_size_2x": [
+        134,
+        128
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_saint_spin",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "floater",
+      "action": "idle",
+      "body": "floater/e_floater_idle@2x.png",
+      "emit": "floater/e_floater_idle_emit@2x.png",
+      "frame_size_2x": [
+        112,
+        80
+      ],
+      "origin_2x": [
+        56,
+        72
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_floater",
+      "existing_runtime_key": "e_floater",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "floater",
+      "action": "move",
+      "body": "floater/e_floater_move@2x.png",
+      "emit": "floater/e_floater_move_emit@2x.png",
+      "frame_size_2x": [
+        112,
+        80
+      ],
+      "origin_2x": [
+        56,
+        72
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_floater_move",
+      "existing_runtime_key": "e_floater_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "floater",
+      "action": "attack",
+      "body": "floater/e_floater_attack@2x.png",
+      "emit": "floater/e_floater_attack_emit@2x.png",
+      "frame_size_2x": [
+        112,
+        80
+      ],
+      "origin_2x": [
+        56,
+        72
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_floater_attack",
+      "existing_runtime_key": "e_floater_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.4000000059604645
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.4000000059604645
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "floater",
+      "action": "death",
+      "body": "floater/e_floater_death@2x.png",
+      "emit": "floater/e_floater_death_emit@2x.png",
+      "frame_size_2x": [
+        112,
+        80
+      ],
+      "origin_2x": [
+        56,
+        72
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_floater_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "floater",
+      "action": "wound",
+      "body": "floater/e_floater_wound@2x.png",
+      "emit": "floater/e_floater_wound_emit@2x.png",
+      "frame_size_2x": [
+        112,
+        80
+      ],
+      "origin_2x": [
+        56,
+        72
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_floater_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "founder",
+      "action": "idle",
+      "body": "founder/e_founder_idle@2x.png",
+      "emit": "founder/e_founder_idle_emit@2x.png",
+      "frame_size_2x": [
+        96,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_founder",
+      "existing_runtime_key": "e_founder",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "founder",
+      "action": "move",
+      "body": "founder/e_founder_move@2x.png",
+      "emit": "founder/e_founder_move_emit@2x.png",
+      "frame_size_2x": [
+        96,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_founder_move",
+      "existing_runtime_key": "e_founder_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "founder",
+      "action": "attack",
+      "body": "founder/e_founder_attack@2x.png",
+      "emit": "founder/e_founder_attack_emit@2x.png",
+      "frame_size_2x": [
+        96,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_founder_attack",
+      "existing_runtime_key": "e_founder_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "founder",
+      "action": "death",
+      "body": "founder/e_founder_death@2x.png",
+      "emit": "founder/e_founder_death_emit@2x.png",
+      "frame_size_2x": [
+        96,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_founder_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "founder",
+      "action": "wound",
+      "body": "founder/e_founder_wound@2x.png",
+      "emit": "founder/e_founder_wound_emit@2x.png",
+      "frame_size_2x": [
+        96,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_founder_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "fractal",
+      "action": "idle",
+      "body": "fractal/e_fractal_idle@2x.png",
+      "emit": "fractal/e_fractal_idle_emit@2x.png",
+      "frame_size_2x": [
+        68,
+        64
+      ],
+      "origin_2x": [
+        34,
+        56
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_fractal",
+      "existing_runtime_key": "e_fractal",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "fractal",
+      "action": "move",
+      "body": "fractal/e_fractal_move@2x.png",
+      "emit": "fractal/e_fractal_move_emit@2x.png",
+      "frame_size_2x": [
+        68,
+        64
+      ],
+      "origin_2x": [
+        34,
+        56
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_fractal_move",
+      "existing_runtime_key": "e_fractal_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "fractal",
+      "action": "attack",
+      "body": "fractal/e_fractal_attack@2x.png",
+      "emit": "fractal/e_fractal_attack_emit@2x.png",
+      "frame_size_2x": [
+        68,
+        64
+      ],
+      "origin_2x": [
+        34,
+        56
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_fractal_attack",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8999999761581421
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8999999761581421
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "fractal",
+      "action": "death",
+      "body": "fractal/e_fractal_death@2x.png",
+      "emit": "fractal/e_fractal_death_emit@2x.png",
+      "frame_size_2x": [
+        68,
+        64
+      ],
+      "origin_2x": [
+        34,
+        56
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_fractal_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "fractal",
+      "action": "skill",
+      "body": "fractal/e_fractal_skill@2x.png",
+      "emit": "fractal/e_fractal_skill_emit@2x.png",
+      "frame_size_2x": [
+        68,
+        64
+      ],
+      "origin_2x": [
+        34,
+        56
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_fractal_skill",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8999999761581421
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8999999761581421
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "fractal",
+      "action": "wound",
+      "body": "fractal/e_fractal_wound@2x.png",
+      "emit": "fractal/e_fractal_wound_emit@2x.png",
+      "frame_size_2x": [
+        68,
+        64
+      ],
+      "origin_2x": [
+        34,
+        56
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_fractal_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "iberia",
+      "action": "idle",
+      "body": "iberia/e_iberia_idle@2x.png",
+      "emit": "iberia/e_iberia_idle_emit@2x.png",
+      "frame_size_2x": [
+        138,
+        128
+      ],
+      "origin_2x": [
+        64,
+        110
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_saint_dark",
+      "existing_runtime_key": "e_saint_dark",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "iberia",
+      "action": "move",
+      "body": "iberia/e_iberia_move@2x.png",
+      "emit": "iberia/e_iberia_move_emit@2x.png",
+      "frame_size_2x": [
+        138,
+        128
+      ],
+      "origin_2x": [
+        64,
+        110
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_saint_dark_move",
+      "existing_runtime_key": "e_saint_dark_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "iberia",
+      "action": "attack",
+      "body": "iberia/e_iberia_attack@2x.png",
+      "emit": "iberia/e_iberia_attack_emit@2x.png",
+      "frame_size_2x": [
+        138,
+        128
+      ],
+      "origin_2x": [
+        64,
+        110
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_saint_dark_attack",
+      "existing_runtime_key": "e_saint_dark_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8666666746139526
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8666666746139526
+        }
+      ],
+      "event_frames": [
+        4
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "iberia",
+      "action": "melee",
+      "body": "iberia/e_iberia_melee@2x.png",
+      "emit": "iberia/e_iberia_melee_emit@2x.png",
+      "frame_size_2x": [
+        138,
+        128
+      ],
+      "origin_2x": [
+        64,
+        110
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_saint_dark_melee",
+      "existing_runtime_key": "e_saint_dark_melee",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8666666746139526
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8666666746139526
+        }
+      ],
+      "event_frames": [
+        4
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "iberia",
+      "action": "death",
+      "body": "iberia/e_iberia_death@2x.png",
+      "emit": "iberia/e_iberia_death_emit@2x.png",
+      "frame_size_2x": [
+        138,
+        128
+      ],
+      "origin_2x": [
+        64,
+        110
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_saint_dark_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "iberia",
+      "action": "skill",
+      "body": "iberia/e_iberia_skill@2x.png",
+      "emit": "iberia/e_iberia_skill_emit@2x.png",
+      "frame_size_2x": [
+        138,
+        128
+      ],
+      "origin_2x": [
+        64,
+        110
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_saint_dark_skill",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.5
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.5
+        }
+      ],
+      "event_frames": [
+        5
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "iberia",
+      "action": "wound",
+      "body": "iberia/e_iberia_wound@2x.png",
+      "emit": "iberia/e_iberia_wound_emit@2x.png",
+      "frame_size_2x": [
+        138,
+        128
+      ],
+      "origin_2x": [
+        64,
+        110
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_saint_dark_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "iberia",
+      "action": "saint_dark_reload",
+      "body": "iberia/e_iberia_saint_dark_reload@2x.png",
+      "emit": "iberia/e_iberia_saint_dark_reload_emit@2x.png",
+      "frame_size_2x": [
+        138,
+        128
+      ],
+      "origin_2x": [
+        64,
+        110
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_saint_dark_reload",
+      "existing_runtime_key": "e_saint_dark_reload",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "iberia",
+      "action": "saint_dark_lob",
+      "body": "iberia/e_iberia_saint_dark_lob@2x.png",
+      "emit": "iberia/e_iberia_saint_dark_lob_emit@2x.png",
+      "frame_size_2x": [
+        138,
+        128
+      ],
+      "origin_2x": [
+        64,
+        110
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_saint_dark_lob",
+      "existing_runtime_key": "e_saint_dark_lob",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "immortal",
+      "action": "idle",
+      "body": "immortal/e_immortal_idle@2x.png",
+      "emit": "immortal/e_immortal_idle_emit@2x.png",
+      "frame_size_2x": [
+        172,
+        128
+      ],
+      "origin_2x": [
+        90,
+        118
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_immortal",
+      "existing_runtime_key": "e_immortal",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "immortal",
+      "action": "move",
+      "body": "immortal/e_immortal_move@2x.png",
+      "emit": "immortal/e_immortal_move_emit@2x.png",
+      "frame_size_2x": [
+        172,
+        128
+      ],
+      "origin_2x": [
+        90,
+        118
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_immortal_move",
+      "existing_runtime_key": "e_immortal_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "immortal",
+      "action": "attack",
+      "body": "immortal/e_immortal_attack@2x.png",
+      "emit": "immortal/e_immortal_attack_emit@2x.png",
+      "frame_size_2x": [
+        172,
+        128
+      ],
+      "origin_2x": [
+        90,
+        118
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_immortal_attack",
+      "existing_runtime_key": "e_immortal_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.4333333373069763
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.4333333373069763
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "immortal",
+      "action": "feign",
+      "body": "immortal/e_immortal_feign@2x.png",
+      "emit": "immortal/e_immortal_feign_emit@2x.png",
+      "frame_size_2x": [
+        172,
+        128
+      ],
+      "origin_2x": [
+        90,
+        118
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_immortal_feign",
+      "existing_runtime_key": "e_immortal_feign",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "immortal",
+      "action": "death",
+      "body": "immortal/e_immortal_death@2x.png",
+      "emit": "immortal/e_immortal_death_emit@2x.png",
+      "frame_size_2x": [
+        172,
+        128
+      ],
+      "origin_2x": [
+        90,
+        118
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_immortal_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "immortal",
+      "action": "revive",
+      "body": "immortal/e_immortal_revive@2x.png",
+      "emit": "immortal/e_immortal_revive_emit@2x.png",
+      "frame_size_2x": [
+        172,
+        128
+      ],
+      "origin_2x": [
+        90,
+        118
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_immortal_revive",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "immortal",
+      "action": "wound",
+      "body": "immortal/e_immortal_wound@2x.png",
+      "emit": "immortal/e_immortal_wound_emit@2x.png",
+      "frame_size_2x": [
+        172,
+        128
+      ],
+      "origin_2x": [
+        90,
+        118
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_immortal_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "ishar",
+      "action": "idle",
+      "body": "ishar/e_ishar_idle@2x.png",
+      "emit": "ishar/e_ishar_idle_emit@2x.png",
+      "frame_size_2x": [
+        146,
+        128
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_ishar",
+      "existing_runtime_key": "e_ishar",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "ishar",
+      "action": "move",
+      "body": "ishar/e_ishar_move@2x.png",
+      "emit": "ishar/e_ishar_move_emit@2x.png",
+      "frame_size_2x": [
+        146,
+        128
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_ishar_move",
+      "existing_runtime_key": "e_ishar_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "ishar",
+      "action": "attack",
+      "body": "ishar/e_ishar_attack@2x.png",
+      "emit": "ishar/e_ishar_attack_emit@2x.png",
+      "frame_size_2x": [
+        146,
+        128
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_ishar_attack",
+      "existing_runtime_key": "e_ishar_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.1666666269302368
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.1666666269302368
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "ishar",
+      "action": "death",
+      "body": "ishar/e_ishar_death@2x.png",
+      "emit": "ishar/e_ishar_death_emit@2x.png",
+      "frame_size_2x": [
+        146,
+        128
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_ishar_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "ishar",
+      "action": "skill",
+      "body": "ishar/e_ishar_skill@2x.png",
+      "emit": "ishar/e_ishar_skill_emit@2x.png",
+      "frame_size_2x": [
+        146,
+        128
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_ishar_skill",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.3333333730697632
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.3333333730697632
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "ishar",
+      "action": "wound",
+      "body": "ishar/e_ishar_wound@2x.png",
+      "emit": "ishar/e_ishar_wound_emit@2x.png",
+      "frame_size_2x": [
+        146,
+        128
+      ],
+      "origin_2x": [
+        64,
+        120
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_ishar_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "ishar_phase2",
+      "action": "idle",
+      "body": "ishar_phase2/e_ishar_phase2_idle@2x.png",
+      "emit": "ishar_phase2/e_ishar_phase2_idle_emit@2x.png",
+      "frame_size_2x": [
+        318,
+        256
+      ],
+      "origin_2x": [
+        186,
+        244
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_ishar_t",
+      "existing_runtime_key": "e_ishar_t",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "ishar_phase2",
+      "action": "move",
+      "body": "ishar_phase2/e_ishar_phase2_move@2x.png",
+      "emit": "ishar_phase2/e_ishar_phase2_move_emit@2x.png",
+      "frame_size_2x": [
+        318,
+        256
+      ],
+      "origin_2x": [
+        186,
+        244
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_ishar_t_move",
+      "existing_runtime_key": "e_ishar_t_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "ishar_phase2",
+      "action": "attack",
+      "body": "ishar_phase2/e_ishar_phase2_attack@2x.png",
+      "emit": "ishar_phase2/e_ishar_phase2_attack_emit@2x.png",
+      "frame_size_2x": [
+        318,
+        256
+      ],
+      "origin_2x": [
+        186,
+        244
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_ishar_t_attack",
+      "existing_runtime_key": "e_ishar_t_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.6666666865348816
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.6666666865348816
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "ishar_phase2",
+      "action": "death",
+      "body": "ishar_phase2/e_ishar_phase2_death@2x.png",
+      "emit": "ishar_phase2/e_ishar_phase2_death_emit@2x.png",
+      "frame_size_2x": [
+        318,
+        256
+      ],
+      "origin_2x": [
+        186,
+        244
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_ishar_t_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "ishar_phase2",
+      "action": "transform",
+      "body": "ishar_phase2/e_ishar_phase2_transform@2x.png",
+      "emit": "ishar_phase2/e_ishar_phase2_transform_emit@2x.png",
+      "frame_size_2x": [
+        318,
+        256
+      ],
+      "origin_2x": [
+        186,
+        244
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_ishar_transform",
+      "existing_runtime_key": "e_ishar_transform",
+      "existing_frame_count": 6,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnStart",
+          "t": 1.1666666269302368
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnStart",
+          "t": 0.8333333730697632
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "ishar_phase2",
+      "action": "wound",
+      "body": "ishar_phase2/e_ishar_phase2_wound@2x.png",
+      "emit": "ishar_phase2/e_ishar_phase2_wound_emit@2x.png",
+      "frame_size_2x": [
+        318,
+        256
+      ],
+      "origin_2x": [
+        186,
+        244
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_ishar_t_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "ishar_phase2",
+      "action": "t_sing",
+      "body": "ishar_phase2/e_ishar_phase2_t_sing@2x.png",
+      "emit": "ishar_phase2/e_ishar_phase2_t_sing_emit@2x.png",
+      "frame_size_2x": [
+        318,
+        256
+      ],
+      "origin_2x": [
+        186,
+        244
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_ishar_t_sing",
+      "existing_runtime_key": "e_ishar_t_sing",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "izumik",
+      "action": "idle",
+      "body": "izumik/e_izumik_idle@2x.png",
+      "emit": "izumik/e_izumik_idle_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        232
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_izumik",
+      "existing_runtime_key": "e_izumik",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "izumik",
+      "action": "move",
+      "body": "izumik/e_izumik_move@2x.png",
+      "emit": "izumik/e_izumik_move_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        232
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_izumik_move",
+      "existing_runtime_key": "e_izumik_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "izumik",
+      "action": "attack",
+      "body": "izumik/e_izumik_attack@2x.png",
+      "emit": "izumik/e_izumik_attack_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        232
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_izumik_attack",
+      "existing_runtime_key": "e_izumik_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.9333333373069763
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.9333333373069763
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "izumik",
+      "action": "death",
+      "body": "izumik/e_izumik_death@2x.png",
+      "emit": "izumik/e_izumik_death_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        232
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_izumik_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "izumik",
+      "action": "root_begin",
+      "body": "izumik/e_izumik_root_begin@2x.png",
+      "emit": "izumik/e_izumik_root_begin_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        232
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_izumik_root_begin",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "izumik",
+      "action": "root_loop",
+      "body": "izumik/e_izumik_root_loop@2x.png",
+      "emit": "izumik/e_izumik_root_loop_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        232
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_izumik_root_loop",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "izumik",
+      "action": "root_end",
+      "body": "izumik/e_izumik_root_end@2x.png",
+      "emit": "izumik/e_izumik_root_end_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        232
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_izumik_root_end",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "izumik",
+      "action": "share",
+      "body": "izumik/e_izumik_share@2x.png",
+      "emit": "izumik/e_izumik_share_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        232
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_izumik_share",
+      "existing_runtime_key": "e_izumik_share",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.6666666269302368
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.6666666269302368
+        }
+      ],
+      "event_frames": [
+        4
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "izumik",
+      "action": "revive",
+      "body": "izumik/e_izumik_revive@2x.png",
+      "emit": "izumik/e_izumik_revive_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        232
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_izumik_revive",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "izumik",
+      "action": "wound",
+      "body": "izumik/e_izumik_wound@2x.png",
+      "emit": "izumik/e_izumik_wound_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        232
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_izumik_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "izumik",
+      "action": "rooting",
+      "body": "izumik/e_izumik_rooting@2x.png",
+      "emit": "izumik/e_izumik_rooting_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        232
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_izumik_rooting",
+      "existing_runtime_key": "e_izumik_rooting",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight",
+      "action": "idle",
+      "body": "knight/e_knight_idle@2x.png",
+      "emit": "knight/e_knight_idle_emit@2x.png",
+      "frame_size_2x": [
+        286,
+        192
+      ],
+      "origin_2x": [
+        106,
+        176
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_knight_walk",
+      "existing_runtime_key": "e_knight_walk",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight",
+      "action": "move",
+      "body": "knight/e_knight_move@2x.png",
+      "emit": "knight/e_knight_move_emit@2x.png",
+      "frame_size_2x": [
+        286,
+        192
+      ],
+      "origin_2x": [
+        106,
+        176
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_knight_walk_move",
+      "existing_runtime_key": "e_knight_walk_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight",
+      "action": "attack",
+      "body": "knight/e_knight_attack@2x.png",
+      "emit": "knight/e_knight_attack_emit@2x.png",
+      "frame_size_2x": [
+        286,
+        192
+      ],
+      "origin_2x": [
+        106,
+        176
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_knight_walk_attack",
+      "existing_runtime_key": "e_knight_walk_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5333333611488342
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5333333611488342
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight",
+      "action": "wound",
+      "body": "knight/e_knight_wound@2x.png",
+      "emit": "knight/e_knight_wound_emit@2x.png",
+      "frame_size_2x": [
+        286,
+        192
+      ],
+      "origin_2x": [
+        106,
+        176
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_knight_walk_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight",
+      "action": "charge",
+      "body": "knight/e_knight_charge@2x.png",
+      "emit": "knight/e_knight_charge_emit@2x.png",
+      "frame_size_2x": [
+        286,
+        192
+      ],
+      "origin_2x": [
+        106,
+        176
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_knight_walk_charge",
+      "existing_runtime_key": "e_knight_walk_charge",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": 2,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight",
+      "action": "death",
+      "body": "knight/e_knight_death@2x.png",
+      "emit": "knight/e_knight_death_emit@2x.png",
+      "frame_size_2x": [
+        286,
+        192
+      ],
+      "origin_2x": [
+        106,
+        176
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_knight_walk_death",
+      "existing_runtime_key": "e_knight_walk_death",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight_boss",
+      "action": "move",
+      "body": "knight_boss/e_knight_boss_move@2x.png",
+      "emit": "knight_boss/e_knight_boss_move_emit@2x.png",
+      "frame_size_2x": [
+        232,
+        192
+      ],
+      "origin_2x": [
+        116,
+        170
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_knight_move",
+      "existing_runtime_key": "e_knight_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight_boss",
+      "action": "death",
+      "body": "knight_boss/e_knight_boss_death@2x.png",
+      "emit": "knight_boss/e_knight_boss_death_emit@2x.png",
+      "frame_size_2x": [
+        232,
+        192
+      ],
+      "origin_2x": [
+        116,
+        170
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_knight_death",
+      "existing_runtime_key": "e_knight_death",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight_boss",
+      "action": "wound",
+      "body": "knight_boss/e_knight_boss_wound@2x.png",
+      "emit": "knight_boss/e_knight_boss_wound_emit@2x.png",
+      "frame_size_2x": [
+        232,
+        192
+      ],
+      "origin_2x": [
+        116,
+        170
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_knight_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight_boss",
+      "action": "charge_form",
+      "body": "knight_boss/e_knight_boss_charge_form@2x.png",
+      "emit": "knight_boss/e_knight_boss_charge_form_emit@2x.png",
+      "frame_size_2x": [
+        232,
+        192
+      ],
+      "origin_2x": [
+        116,
+        170
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_knight_charge_form",
+      "existing_runtime_key": "e_knight_charge_form",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight_boss",
+      "action": "charge",
+      "body": "knight_boss/e_knight_boss_charge@2x.png",
+      "emit": "knight_boss/e_knight_boss_charge_emit@2x.png",
+      "frame_size_2x": [
+        232,
+        192
+      ],
+      "origin_2x": [
+        116,
+        170
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_knight_charge",
+      "existing_runtime_key": "e_knight_charge",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": 2,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight_boss",
+      "action": "attack",
+      "body": "knight_boss/e_knight_boss_attack@2x.png",
+      "emit": "knight_boss/e_knight_boss_attack_emit@2x.png",
+      "frame_size_2x": [
+        232,
+        192
+      ],
+      "origin_2x": [
+        116,
+        170
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_knight_attack",
+      "existing_runtime_key": "e_knight_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": 2,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight_boss",
+      "action": "thrust",
+      "body": "knight_boss/e_knight_boss_thrust@2x.png",
+      "emit": "knight_boss/e_knight_boss_thrust_emit@2x.png",
+      "frame_size_2x": [
+        232,
+        192
+      ],
+      "origin_2x": [
+        116,
+        170
+      ],
+      "frames": 3,
+      "candidate_runtime_key": "e_knight_thrust",
+      "existing_runtime_key": "e_knight_thrust",
+      "existing_frame_count": 3,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": 1,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight_boss",
+      "action": "spin",
+      "body": "knight_boss/e_knight_boss_spin@2x.png",
+      "emit": "knight_boss/e_knight_boss_spin_emit@2x.png",
+      "frame_size_2x": [
+        232,
+        192
+      ],
+      "origin_2x": [
+        116,
+        170
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_knight_spin",
+      "existing_runtime_key": "e_knight_spin",
+      "existing_frame_count": 6,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": 2,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight_boss",
+      "action": "plant",
+      "body": "knight_boss/e_knight_boss_plant@2x.png",
+      "emit": "knight_boss/e_knight_boss_plant_emit@2x.png",
+      "frame_size_2x": [
+        232,
+        192
+      ],
+      "origin_2x": [
+        116,
+        170
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_knight_plant",
+      "existing_runtime_key": "e_knight_plant",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": 3,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "knight_boss",
+      "action": "idle",
+      "body": "knight_boss/e_knight_boss_idle@2x.png",
+      "emit": "knight_boss/e_knight_boss_idle_emit@2x.png",
+      "frame_size_2x": [
+        232,
+        192
+      ],
+      "origin_2x": [
+        116,
+        170
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_knight",
+      "existing_runtime_key": "e_knight",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "mimic",
+      "action": "idle",
+      "body": "mimic/e_mimic_idle@2x.png",
+      "emit": "mimic/e_mimic_idle_emit@2x.png",
+      "frame_size_2x": [
+        92,
+        64
+      ],
+      "origin_2x": [
+        46,
+        56
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_mimic",
+      "existing_runtime_key": "e_mimic",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "mimic",
+      "action": "move",
+      "body": "mimic/e_mimic_move@2x.png",
+      "emit": "mimic/e_mimic_move_emit@2x.png",
+      "frame_size_2x": [
+        92,
+        64
+      ],
+      "origin_2x": [
+        46,
+        56
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_mimic_move",
+      "existing_runtime_key": "e_mimic_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "mimic",
+      "action": "attack",
+      "body": "mimic/e_mimic_attack@2x.png",
+      "emit": "mimic/e_mimic_attack_emit@2x.png",
+      "frame_size_2x": [
+        92,
+        64
+      ],
+      "origin_2x": [
+        46,
+        56
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_mimic_attack",
+      "existing_runtime_key": "e_mimic_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5
+        }
+      ],
+      "event_frames": [
+        4
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "mimic",
+      "action": "death",
+      "body": "mimic/e_mimic_death@2x.png",
+      "emit": "mimic/e_mimic_death_emit@2x.png",
+      "frame_size_2x": [
+        92,
+        64
+      ],
+      "origin_2x": [
+        46,
+        56
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_mimic_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "mimic",
+      "action": "reveal",
+      "body": "mimic/e_mimic_reveal@2x.png",
+      "emit": "mimic/e_mimic_reveal_emit@2x.png",
+      "frame_size_2x": [
+        92,
+        64
+      ],
+      "origin_2x": [
+        46,
+        56
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_mimic_reveal",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "mimic",
+      "action": "wound",
+      "body": "mimic/e_mimic_wound@2x.png",
+      "emit": "mimic/e_mimic_wound_emit@2x.png",
+      "frame_size_2x": [
+        92,
+        64
+      ],
+      "origin_2x": [
+        46,
+        56
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_mimic_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "mimic_disguised",
+      "action": "idle",
+      "body": "mimic_disguised/e_mimic_disguised_idle@2x.png",
+      "emit": "mimic_disguised/e_mimic_disguised_idle_emit@2x.png",
+      "frame_size_2x": [
+        64,
+        64
+      ],
+      "origin_2x": [
+        32,
+        56
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_mimic_disguised",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "mimic_disguised",
+      "action": "wound",
+      "body": "mimic_disguised/e_mimic_disguised_wound@2x.png",
+      "emit": "mimic_disguised/e_mimic_disguised_wound_emit@2x.png",
+      "frame_size_2x": [
+        64,
+        64
+      ],
+      "origin_2x": [
+        32,
+        56
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_mimic_disguised_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "mimic_disguised",
+      "action": "reveal",
+      "body": "mimic_disguised/e_mimic_disguised_reveal@2x.png",
+      "emit": "mimic_disguised/e_mimic_disguised_reveal_emit@2x.png",
+      "frame_size_2x": [
+        64,
+        64
+      ],
+      "origin_2x": [
+        32,
+        56
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_mimic_disguised_reveal",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "mother",
+      "action": "idle",
+      "body": "mother/e_mother_idle@2x.png",
+      "emit": "mother/e_mother_idle_emit@2x.png",
+      "frame_size_2x": [
+        136,
+        128
+      ],
+      "origin_2x": [
+        72,
+        120
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_mother",
+      "existing_runtime_key": "e_mother",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "mother",
+      "action": "move",
+      "body": "mother/e_mother_move@2x.png",
+      "emit": "mother/e_mother_move_emit@2x.png",
+      "frame_size_2x": [
+        136,
+        128
+      ],
+      "origin_2x": [
+        72,
+        120
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_mother_move",
+      "existing_runtime_key": "e_mother_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "mother",
+      "action": "attack",
+      "body": "mother/e_mother_attack@2x.png",
+      "emit": "mother/e_mother_attack_emit@2x.png",
+      "frame_size_2x": [
+        136,
+        128
+      ],
+      "origin_2x": [
+        72,
+        120
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_mother_attack",
+      "existing_runtime_key": "e_mother_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.1333333253860474
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.1333333253860474
+        }
+      ],
+      "event_frames": [
+        4
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "mother",
+      "action": "death",
+      "body": "mother/e_mother_death@2x.png",
+      "emit": "mother/e_mother_death_emit@2x.png",
+      "frame_size_2x": [
+        136,
+        128
+      ],
+      "origin_2x": [
+        72,
+        120
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_mother_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "mother",
+      "action": "wound",
+      "body": "mother/e_mother_wound@2x.png",
+      "emit": "mother/e_mother_wound_emit@2x.png",
+      "frame_size_2x": [
+        136,
+        128
+      ],
+      "origin_2x": [
+        72,
+        120
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_mother_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "nest",
+      "action": "idle",
+      "body": "nest/e_nest_idle@2x.png",
+      "emit": "nest/e_nest_idle_emit@2x.png",
+      "frame_size_2x": [
+        96,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_nest",
+      "existing_runtime_key": "e_nest",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "nest",
+      "action": "move",
+      "body": "nest/e_nest_move@2x.png",
+      "emit": "nest/e_nest_move_emit@2x.png",
+      "frame_size_2x": [
+        96,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_nest_move",
+      "existing_runtime_key": "e_nest_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "nest",
+      "action": "attack",
+      "body": "nest/e_nest_attack@2x.png",
+      "emit": "nest/e_nest_attack_emit@2x.png",
+      "frame_size_2x": [
+        96,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_nest_attack",
+      "existing_runtime_key": "e_nest_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "nest",
+      "action": "death",
+      "body": "nest/e_nest_death@2x.png",
+      "emit": "nest/e_nest_death_emit@2x.png",
+      "frame_size_2x": [
+        96,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_nest_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "nest",
+      "action": "wound",
+      "body": "nest/e_nest_wound@2x.png",
+      "emit": "nest/e_nest_wound_emit@2x.png",
+      "frame_size_2x": [
+        96,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_nest_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "offspring",
+      "action": "idle",
+      "body": "offspring/e_offspring_idle@2x.png",
+      "emit": "offspring/e_offspring_idle_emit@2x.png",
+      "frame_size_2x": [
+        80,
+        80
+      ],
+      "origin_2x": [
+        40,
+        72
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_offspring",
+      "existing_runtime_key": "e_offspring",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "offspring",
+      "action": "move",
+      "body": "offspring/e_offspring_move@2x.png",
+      "emit": "offspring/e_offspring_move_emit@2x.png",
+      "frame_size_2x": [
+        80,
+        80
+      ],
+      "origin_2x": [
+        40,
+        72
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_offspring_move",
+      "existing_runtime_key": "e_offspring_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "offspring",
+      "action": "death",
+      "body": "offspring/e_offspring_death@2x.png",
+      "emit": "offspring/e_offspring_death_emit@2x.png",
+      "frame_size_2x": [
+        80,
+        80
+      ],
+      "origin_2x": [
+        40,
+        72
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_offspring_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "offspring",
+      "action": "wound",
+      "body": "offspring/e_offspring_wound@2x.png",
+      "emit": "offspring/e_offspring_wound_emit@2x.png",
+      "frame_size_2x": [
+        80,
+        80
+      ],
+      "origin_2x": [
+        40,
+        72
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_offspring_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "offspring",
+      "action": "attack",
+      "body": "offspring/e_offspring_attack@2x.png",
+      "emit": "offspring/e_offspring_attack_emit@2x.png",
+      "frame_size_2x": [
+        80,
+        80
+      ],
+      "origin_2x": [
+        40,
+        72
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_offspring_attack",
+      "existing_runtime_key": "e_offspring_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": 2,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "paranoia",
+      "action": "idle",
+      "body": "paranoia/e_paranoia_idle@2x.png",
+      "emit": "paranoia/e_paranoia_idle_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        210
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_paranoia",
+      "existing_runtime_key": "e_paranoia",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "paranoia",
+      "action": "move",
+      "body": "paranoia/e_paranoia_move@2x.png",
+      "emit": "paranoia/e_paranoia_move_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        210
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_paranoia_move",
+      "existing_runtime_key": "e_paranoia_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "paranoia",
+      "action": "attack",
+      "body": "paranoia/e_paranoia_attack@2x.png",
+      "emit": "paranoia/e_paranoia_attack_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        210
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_paranoia_gaze",
+      "existing_runtime_key": "e_paranoia_gaze",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.7666666507720947
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.7666666507720947
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "paranoia",
+      "action": "death",
+      "body": "paranoia/e_paranoia_death@2x.png",
+      "emit": "paranoia/e_paranoia_death_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        210
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_paranoia_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "paranoia",
+      "action": "revive",
+      "body": "paranoia/e_paranoia_revive@2x.png",
+      "emit": "paranoia/e_paranoia_revive_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        210
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_paranoia_revive",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "paranoia",
+      "action": "wound",
+      "body": "paranoia/e_paranoia_wound@2x.png",
+      "emit": "paranoia/e_paranoia_wound_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        210
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_paranoia_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "paranoia_phase2",
+      "action": "idle",
+      "body": "paranoia_phase2/e_paranoia_phase2_idle@2x.png",
+      "emit": "paranoia_phase2/e_paranoia_phase2_idle_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        248
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_paranoia_phase2",
+      "existing_runtime_key": "e_paranoia_phase2",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "paranoia_phase2",
+      "action": "move",
+      "body": "paranoia_phase2/e_paranoia_phase2_move@2x.png",
+      "emit": "paranoia_phase2/e_paranoia_phase2_move_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        248
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_paranoia_phase2_move",
+      "existing_runtime_key": "e_paranoia_phase2_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "paranoia_phase2",
+      "action": "attack",
+      "body": "paranoia_phase2/e_paranoia_phase2_attack@2x.png",
+      "emit": "paranoia_phase2/e_paranoia_phase2_attack_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        248
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_paranoia_phase2_howl",
+      "existing_runtime_key": "e_paranoia_phase2_howl",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.7666666507720947
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.7666666507720947
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "paranoia_phase2",
+      "action": "death",
+      "body": "paranoia_phase2/e_paranoia_phase2_death@2x.png",
+      "emit": "paranoia_phase2/e_paranoia_phase2_death_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        248
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_paranoia_phase2_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "paranoia_phase2",
+      "action": "revive",
+      "body": "paranoia_phase2/e_paranoia_phase2_revive@2x.png",
+      "emit": "paranoia_phase2/e_paranoia_phase2_revive_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        248
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_paranoia_phase2_revive",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "paranoia_phase2",
+      "action": "wound",
+      "body": "paranoia_phase2/e_paranoia_phase2_wound@2x.png",
+      "emit": "paranoia_phase2/e_paranoia_phase2_wound_emit@2x.png",
+      "frame_size_2x": [
+        256,
+        256
+      ],
+      "origin_2x": [
+        128,
+        248
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_paranoia_phase2_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "path",
+      "action": "idle",
+      "body": "path/e_path_idle@2x.png",
+      "emit": "path/e_path_idle_emit@2x.png",
+      "frame_size_2x": [
+        242,
+        192
+      ],
+      "origin_2x": [
+        110,
+        186
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_path",
+      "existing_runtime_key": "e_path",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "path",
+      "action": "move",
+      "body": "path/e_path_move@2x.png",
+      "emit": "path/e_path_move_emit@2x.png",
+      "frame_size_2x": [
+        242,
+        192
+      ],
+      "origin_2x": [
+        110,
+        186
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_path_move",
+      "existing_runtime_key": "e_path_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "path",
+      "action": "attack",
+      "body": "path/e_path_attack@2x.png",
+      "emit": "path/e_path_attack_emit@2x.png",
+      "frame_size_2x": [
+        242,
+        192
+      ],
+      "origin_2x": [
+        110,
+        186
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_path_attack",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8999999761581421
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8999999761581421
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "path",
+      "action": "death",
+      "body": "path/e_path_death@2x.png",
+      "emit": "path/e_path_death_emit@2x.png",
+      "frame_size_2x": [
+        242,
+        192
+      ],
+      "origin_2x": [
+        110,
+        186
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_path_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "path",
+      "action": "skill",
+      "body": "path/e_path_skill@2x.png",
+      "emit": "path/e_path_skill_emit@2x.png",
+      "frame_size_2x": [
+        242,
+        192
+      ],
+      "origin_2x": [
+        110,
+        186
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_path_skill",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8999999761581421
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8999999761581421
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "path",
+      "action": "wound",
+      "body": "path/e_path_wound@2x.png",
+      "emit": "path/e_path_wound_emit@2x.png",
+      "frame_size_2x": [
+        242,
+        192
+      ],
+      "origin_2x": [
+        110,
+        186
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_path_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "path",
+      "action": "charge",
+      "body": "path/e_path_charge@2x.png",
+      "emit": "path/e_path_charge_emit@2x.png",
+      "frame_size_2x": [
+        242,
+        192
+      ],
+      "origin_2x": [
+        110,
+        186
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_path_charge",
+      "existing_runtime_key": "e_path_charge",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "path",
+      "action": "slam",
+      "body": "path/e_path_slam@2x.png",
+      "emit": "path/e_path_slam_emit@2x.png",
+      "frame_size_2x": [
+        242,
+        192
+      ],
+      "origin_2x": [
+        110,
+        186
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_path_slam",
+      "existing_runtime_key": "e_path_slam",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "pocket",
+      "action": "idle",
+      "body": "pocket/e_pocket_idle@2x.png",
+      "emit": "pocket/e_pocket_idle_emit@2x.png",
+      "frame_size_2x": [
+        110,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_pocket",
+      "existing_runtime_key": "e_pocket",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "pocket",
+      "action": "move",
+      "body": "pocket/e_pocket_move@2x.png",
+      "emit": "pocket/e_pocket_move_emit@2x.png",
+      "frame_size_2x": [
+        110,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_pocket_move",
+      "existing_runtime_key": "e_pocket_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "pocket",
+      "action": "death",
+      "body": "pocket/e_pocket_death@2x.png",
+      "emit": "pocket/e_pocket_death_emit@2x.png",
+      "frame_size_2x": [
+        110,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_pocket_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "pocket",
+      "action": "wound",
+      "body": "pocket/e_pocket_wound@2x.png",
+      "emit": "pocket/e_pocket_wound_emit@2x.png",
+      "frame_size_2x": [
+        110,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_pocket_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "pocket",
+      "action": "attack",
+      "body": "pocket/e_pocket_attack@2x.png",
+      "emit": "pocket/e_pocket_attack_emit@2x.png",
+      "frame_size_2x": [
+        110,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_pocket_attack",
+      "existing_runtime_key": "e_pocket_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": 2,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "pocket",
+      "action": "swell",
+      "body": "pocket/e_pocket_swell@2x.png",
+      "emit": "pocket/e_pocket_swell_emit@2x.png",
+      "frame_size_2x": [
+        110,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_pocket_swell",
+      "existing_runtime_key": "e_pocket_swell",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "reaper",
+      "action": "idle",
+      "body": "reaper/e_reaper_idle@2x.png",
+      "emit": "reaper/e_reaper_idle_emit@2x.png",
+      "frame_size_2x": [
+        116,
+        96
+      ],
+      "origin_2x": [
+        60,
+        88
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_reaper",
+      "existing_runtime_key": "e_reaper",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "reaper",
+      "action": "move",
+      "body": "reaper/e_reaper_move@2x.png",
+      "emit": "reaper/e_reaper_move_emit@2x.png",
+      "frame_size_2x": [
+        116,
+        96
+      ],
+      "origin_2x": [
+        60,
+        88
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_reaper_move",
+      "existing_runtime_key": "e_reaper_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "reaper",
+      "action": "attack",
+      "body": "reaper/e_reaper_attack@2x.png",
+      "emit": "reaper/e_reaper_attack_emit@2x.png",
+      "frame_size_2x": [
+        116,
+        96
+      ],
+      "origin_2x": [
+        60,
+        88
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_reaper_attack",
+      "existing_runtime_key": "e_reaper_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.6000000238418579
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.6000000238418579
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "reaper",
+      "action": "dormant",
+      "body": "reaper/e_reaper_dormant@2x.png",
+      "emit": "reaper/e_reaper_dormant_emit@2x.png",
+      "frame_size_2x": [
+        116,
+        96
+      ],
+      "origin_2x": [
+        60,
+        88
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_reaper_dormant",
+      "existing_runtime_key": "e_reaper_dormant",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "reaper",
+      "action": "awaken",
+      "body": "reaper/e_reaper_awaken@2x.png",
+      "emit": "reaper/e_reaper_awaken_emit@2x.png",
+      "frame_size_2x": [
+        116,
+        96
+      ],
+      "origin_2x": [
+        60,
+        88
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_reaper_awaken",
+      "existing_runtime_key": "e_reaper_awaken",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "reaper",
+      "action": "death",
+      "body": "reaper/e_reaper_death@2x.png",
+      "emit": "reaper/e_reaper_death_emit@2x.png",
+      "frame_size_2x": [
+        116,
+        96
+      ],
+      "origin_2x": [
+        60,
+        88
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_reaper_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "reaper",
+      "action": "wound",
+      "body": "reaper/e_reaper_wound@2x.png",
+      "emit": "reaper/e_reaper_wound_emit@2x.png",
+      "frame_size_2x": [
+        116,
+        96
+      ],
+      "origin_2x": [
+        60,
+        88
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_reaper_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "runner",
+      "action": "idle",
+      "body": "runner/e_runner_idle@2x.png",
+      "emit": "runner/e_runner_idle_emit@2x.png",
+      "frame_size_2x": [
+        100,
+        64
+      ],
+      "origin_2x": [
+        56,
+        56
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_runner",
+      "existing_runtime_key": "e_runner",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "runner",
+      "action": "move",
+      "body": "runner/e_runner_move@2x.png",
+      "emit": "runner/e_runner_move_emit@2x.png",
+      "frame_size_2x": [
+        100,
+        64
+      ],
+      "origin_2x": [
+        56,
+        56
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_runner_move",
+      "existing_runtime_key": "e_runner_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "runner",
+      "action": "attack",
+      "body": "runner/e_runner_attack@2x.png",
+      "emit": "runner/e_runner_attack_emit@2x.png",
+      "frame_size_2x": [
+        100,
+        64
+      ],
+      "origin_2x": [
+        56,
+        56
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_runner_attack",
+      "existing_runtime_key": "e_runner_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.46666666865348816
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.46666666865348816
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "runner",
+      "action": "death",
+      "body": "runner/e_runner_death@2x.png",
+      "emit": "runner/e_runner_death_emit@2x.png",
+      "frame_size_2x": [
+        100,
+        64
+      ],
+      "origin_2x": [
+        56,
+        56
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_runner_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "runner",
+      "action": "wound",
+      "body": "runner/e_runner_wound@2x.png",
+      "emit": "runner/e_runner_wound_emit@2x.png",
+      "frame_size_2x": [
+        100,
+        64
+      ],
+      "origin_2x": [
+        56,
+        56
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_runner_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "skimmer",
+      "action": "idle",
+      "body": "skimmer/e_skimmer_idle@2x.png",
+      "emit": "skimmer/e_skimmer_idle_emit@2x.png",
+      "frame_size_2x": [
+        124,
+        96
+      ],
+      "origin_2x": [
+        68,
+        88
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_skimmer",
+      "existing_runtime_key": "e_skimmer",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "skimmer",
+      "action": "move",
+      "body": "skimmer/e_skimmer_move@2x.png",
+      "emit": "skimmer/e_skimmer_move_emit@2x.png",
+      "frame_size_2x": [
+        124,
+        96
+      ],
+      "origin_2x": [
+        68,
+        88
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_skimmer_move",
+      "existing_runtime_key": "e_skimmer_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "skimmer",
+      "action": "attack",
+      "body": "skimmer/e_skimmer_attack@2x.png",
+      "emit": "skimmer/e_skimmer_attack_emit@2x.png",
+      "frame_size_2x": [
+        124,
+        96
+      ],
+      "origin_2x": [
+        68,
+        88
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_skimmer_attack",
+      "existing_runtime_key": "e_skimmer_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.6666666865348816
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.6666666865348816
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "skimmer",
+      "action": "death",
+      "body": "skimmer/e_skimmer_death@2x.png",
+      "emit": "skimmer/e_skimmer_death_emit@2x.png",
+      "frame_size_2x": [
+        124,
+        96
+      ],
+      "origin_2x": [
+        68,
+        88
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_skimmer_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "skimmer",
+      "action": "change",
+      "body": "skimmer/e_skimmer_change@2x.png",
+      "emit": "skimmer/e_skimmer_change_emit@2x.png",
+      "frame_size_2x": [
+        124,
+        96
+      ],
+      "origin_2x": [
+        68,
+        88
+      ],
+      "frames": 8,
+      "candidate_runtime_key": "e_skimmer_change",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "skimmer",
+      "action": "wound",
+      "body": "skimmer/e_skimmer_wound@2x.png",
+      "emit": "skimmer/e_skimmer_wound_emit@2x.png",
+      "frame_size_2x": [
+        124,
+        96
+      ],
+      "origin_2x": [
+        68,
+        88
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_skimmer_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "slider",
+      "action": "idle",
+      "body": "slider/e_slider_idle@2x.png",
+      "emit": "slider/e_slider_idle_emit@2x.png",
+      "frame_size_2x": [
+        102,
+        80
+      ],
+      "origin_2x": [
+        50,
+        72
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_slider",
+      "existing_runtime_key": "e_slider",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "slider",
+      "action": "move",
+      "body": "slider/e_slider_move@2x.png",
+      "emit": "slider/e_slider_move_emit@2x.png",
+      "frame_size_2x": [
+        102,
+        80
+      ],
+      "origin_2x": [
+        50,
+        72
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_slider_move",
+      "existing_runtime_key": "e_slider_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "slider",
+      "action": "attack",
+      "body": "slider/e_slider_attack@2x.png",
+      "emit": "slider/e_slider_attack_emit@2x.png",
+      "frame_size_2x": [
+        102,
+        80
+      ],
+      "origin_2x": [
+        50,
+        72
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_slider_attack",
+      "existing_runtime_key": "e_slider_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.7333333492279053
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.7333333492279053
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "slider",
+      "action": "death",
+      "body": "slider/e_slider_death@2x.png",
+      "emit": "slider/e_slider_death_emit@2x.png",
+      "frame_size_2x": [
+        102,
+        80
+      ],
+      "origin_2x": [
+        50,
+        72
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_slider_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "slider",
+      "action": "wound",
+      "body": "slider/e_slider_wound@2x.png",
+      "emit": "slider/e_slider_wound_emit@2x.png",
+      "frame_size_2x": [
+        102,
+        80
+      ],
+      "origin_2x": [
+        50,
+        72
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_slider_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "spitter",
+      "action": "idle",
+      "body": "spitter/e_spitter_idle@2x.png",
+      "emit": "spitter/e_spitter_idle_emit@2x.png",
+      "frame_size_2x": [
+        88,
+        80
+      ],
+      "origin_2x": [
+        40,
+        72
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_spitter",
+      "existing_runtime_key": "e_spitter",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "spitter",
+      "action": "move",
+      "body": "spitter/e_spitter_move@2x.png",
+      "emit": "spitter/e_spitter_move_emit@2x.png",
+      "frame_size_2x": [
+        88,
+        80
+      ],
+      "origin_2x": [
+        40,
+        72
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_spitter_move",
+      "existing_runtime_key": "e_spitter_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "spitter",
+      "action": "attack",
+      "body": "spitter/e_spitter_attack@2x.png",
+      "emit": "spitter/e_spitter_attack_emit@2x.png",
+      "frame_size_2x": [
+        88,
+        80
+      ],
+      "origin_2x": [
+        40,
+        72
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_spitter_attack",
+      "existing_runtime_key": "e_spitter_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "spitter",
+      "action": "death",
+      "body": "spitter/e_spitter_death@2x.png",
+      "emit": "spitter/e_spitter_death_emit@2x.png",
+      "frame_size_2x": [
+        88,
+        80
+      ],
+      "origin_2x": [
+        40,
+        72
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_spitter_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "spitter",
+      "action": "wound",
+      "body": "spitter/e_spitter_wound@2x.png",
+      "emit": "spitter/e_spitter_wound_emit@2x.png",
+      "frame_size_2x": [
+        88,
+        80
+      ],
+      "origin_2x": [
+        40,
+        72
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_spitter_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "stone",
+      "action": "idle",
+      "body": "stone/e_stone_idle@2x.png",
+      "emit": "stone/e_stone_idle_emit@2x.png",
+      "frame_size_2x": [
+        104,
+        80
+      ],
+      "origin_2x": [
+        56,
+        72
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_stone",
+      "existing_runtime_key": "e_stone",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "stone",
+      "action": "move",
+      "body": "stone/e_stone_move@2x.png",
+      "emit": "stone/e_stone_move_emit@2x.png",
+      "frame_size_2x": [
+        104,
+        80
+      ],
+      "origin_2x": [
+        56,
+        72
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_stone_move",
+      "existing_runtime_key": "e_stone_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "stone",
+      "action": "attack",
+      "body": "stone/e_stone_attack@2x.png",
+      "emit": "stone/e_stone_attack_emit@2x.png",
+      "frame_size_2x": [
+        104,
+        80
+      ],
+      "origin_2x": [
+        56,
+        72
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_stone_attack",
+      "existing_runtime_key": "e_stone_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5333333611488342
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5333333611488342
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "stone",
+      "action": "death",
+      "body": "stone/e_stone_death@2x.png",
+      "emit": "stone/e_stone_death_emit@2x.png",
+      "frame_size_2x": [
+        104,
+        80
+      ],
+      "origin_2x": [
+        56,
+        72
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_stone_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "stone",
+      "action": "wound",
+      "body": "stone/e_stone_wound@2x.png",
+      "emit": "stone/e_stone_wound_emit@2x.png",
+      "frame_size_2x": [
+        104,
+        80
+      ],
+      "origin_2x": [
+        56,
+        72
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_stone_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "tear",
+      "action": "idle",
+      "body": "tear/e_tear_idle@2x.png",
+      "emit": "tear/e_tear_idle_emit@2x.png",
+      "frame_size_2x": [
+        64,
+        64
+      ],
+      "origin_2x": [
+        32,
+        56
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_tear",
+      "existing_runtime_key": "e_tear",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "tear",
+      "action": "move",
+      "body": "tear/e_tear_move@2x.png",
+      "emit": "tear/e_tear_move_emit@2x.png",
+      "frame_size_2x": [
+        64,
+        64
+      ],
+      "origin_2x": [
+        32,
+        56
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_tear_move",
+      "existing_runtime_key": "e_tear_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "tear",
+      "action": "attack",
+      "body": "tear/e_tear_attack@2x.png",
+      "emit": "tear/e_tear_attack_emit@2x.png",
+      "frame_size_2x": [
+        64,
+        64
+      ],
+      "origin_2x": [
+        32,
+        56
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_tear_attack",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": 3,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "tear",
+      "action": "wound",
+      "body": "tear/e_tear_wound@2x.png",
+      "emit": "tear/e_tear_wound_emit@2x.png",
+      "frame_size_2x": [
+        64,
+        64
+      ],
+      "origin_2x": [
+        32,
+        56
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_tear_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "tear",
+      "action": "death",
+      "body": "tear/e_tear_death@2x.png",
+      "emit": "tear/e_tear_death_emit@2x.png",
+      "frame_size_2x": [
+        64,
+        64
+      ],
+      "origin_2x": [
+        32,
+        56
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_tear_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "tracer",
+      "action": "idle",
+      "body": "tracer/e_tracer_idle@2x.png",
+      "emit": "tracer/e_tracer_idle_emit@2x.png",
+      "frame_size_2x": [
+        112,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_tracer",
+      "existing_runtime_key": "e_tracer",
+      "existing_frame_count": 2,
+      "requires_selector_update": true,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "tracer",
+      "action": "move",
+      "body": "tracer/e_tracer_move@2x.png",
+      "emit": "tracer/e_tracer_move_emit@2x.png",
+      "frame_size_2x": [
+        112,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 4,
+      "candidate_runtime_key": "e_tracer_move",
+      "existing_runtime_key": "e_tracer_move",
+      "existing_frame_count": 4,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "tracer",
+      "action": "attack",
+      "body": "tracer/e_tracer_attack@2x.png",
+      "emit": "tracer/e_tracer_attack_emit@2x.png",
+      "frame_size_2x": [
+        112,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_tracer_attack",
+      "existing_runtime_key": "e_tracer_attack",
+      "existing_frame_count": 4,
+      "requires_selector_update": true,
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.399999976158142
+        }
+      ],
+      "playback_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.399999976158142
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "tracer",
+      "action": "death",
+      "body": "tracer/e_tracer_death@2x.png",
+      "emit": "tracer/e_tracer_death_emit@2x.png",
+      "frame_size_2x": [
+        112,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 6,
+      "candidate_runtime_key": "e_tracer_death",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "tracer",
+      "action": "wound",
+      "body": "tracer/e_tracer_wound@2x.png",
+      "emit": "tracer/e_tracer_wound_emit@2x.png",
+      "frame_size_2x": [
+        112,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 1,
+      "candidate_runtime_key": "e_tracer_wound",
+      "existing_runtime_key": null,
+      "existing_frame_count": null,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    },
+    {
+      "id": "tracer",
+      "action": "enraged",
+      "body": "tracer/e_tracer_enraged@2x.png",
+      "emit": "tracer/e_tracer_enraged_emit@2x.png",
+      "frame_size_2x": [
+        112,
+        96
+      ],
+      "origin_2x": [
+        48,
+        88
+      ],
+      "frames": 2,
+      "candidate_runtime_key": "e_tracer_enraged",
+      "existing_runtime_key": "e_tracer_enraged",
+      "existing_frame_count": 2,
+      "requires_selector_update": false,
+      "source_events": [],
+      "playback_events": [],
+      "event_frames": [],
+      "release_frame": null,
+      "timing_policy": "keep current gameplay anticipation/release/recovery; preview duration is not an attack period"
+    }
+  ]
+}

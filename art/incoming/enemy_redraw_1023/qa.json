@@ -1,0 +1,240 @@
+{
+  "status": "pass",
+  "failures": [],
+  "reports": [
+    {
+      "id": "bone",
+      "bbox_1x": [
+        2,
+        8,
+        30,
+        28
+      ],
+      "body_size_1x": [
+        28,
+        20
+      ],
+      "screen_height": 40,
+      "opaque_colors": 10,
+      "color_cap": 16,
+      "opaque_pixels": 294,
+      "emit_pixels": 5,
+      "body_identical_to_ab3c6195": true,
+      "new_head_light_in_body": false,
+      "new_head_light_layer_only": true,
+      "emission_layer_is_separate_png": true,
+      "emission_bbox_1x": [
+        21,
+        17,
+        24,
+        20
+      ],
+      "palette_hex": [
+        "#080E18",
+        "#1B2940",
+        "#263348",
+        "#30445F",
+        "#4B4D5A",
+        "#50617B",
+        "#75737A",
+        "#7A8294",
+        "#AAA7A5",
+        "#D1CABD"
+      ],
+      "isolated_alpha_pixels": [],
+      "origin": [
+        16,
+        28
+      ],
+      "binary_alpha": true,
+      "exact_x2": true,
+      "lighting_review": "source-directed top-left; visual acceptance pending",
+      "static_shape_review": "pending user review",
+      "motion_review": "not started",
+      "engine_review": "not performed"
+    },
+    {
+      "id": "stone",
+      "bbox_1x": [
+        5,
+        11,
+        36,
+        36
+      ],
+      "body_size_1x": [
+        31,
+        25
+      ],
+      "screen_height": 50,
+      "opaque_colors": 14,
+      "color_cap": 20,
+      "opaque_pixels": 508,
+      "emit_pixels": 5,
+      "body_identical_to_ab3c6195": true,
+      "new_head_light_in_body": false,
+      "new_head_light_layer_only": true,
+      "emission_layer_is_separate_png": true,
+      "emission_bbox_1x": [
+        26,
+        22,
+        29,
+        25
+      ],
+      "palette_hex": [
+        "#080E18",
+        "#202637",
+        "#263348",
+        "#35435F",
+        "#3A4257",
+        "#3D1A2B",
+        "#4B4D5A",
+        "#596782",
+        "#606679",
+        "#633547",
+        "#8F96A5",
+        "#91546A",
+        "#A6A4A0",
+        "#D9D0BE"
+      ],
+      "isolated_alpha_pixels": [],
+      "origin": [
+        20,
+        36
+      ],
+      "binary_alpha": true,
+      "exact_x2": true,
+      "lighting_review": "source-directed top-left; visual acceptance pending",
+      "static_shape_review": "pending user review",
+      "motion_review": "not started",
+      "engine_review": "not performed"
+    },
+    {
+      "id": "carmen",
+      "bbox_1x": [
+        16,
+        20,
+        49,
+        60
+      ],
+      "body_size_1x": [
+        33,
+        40
+      ],
+      "screen_height": 80,
+      "opaque_colors": 20,
+      "color_cap": 28,
+      "opaque_pixels": 711,
+      "emit_pixels": 5,
+      "body_identical_to_ab3c6195": true,
+      "new_head_light_in_body": false,
+      "new_head_light_layer_only": true,
+      "emission_layer_is_separate_png": true,
+      "emission_bbox_1x": [
+        21,
+        25,
+        24,
+        28
+      ],
+      "palette_hex": [
+        "#080E18",
+        "#1C202A",
+        "#263348",
+        "#333844",
+        "#3D1A2B",
+        "#47283D",
+        "#4B4D5A",
+        "#575B66",
+        "#634D48",
+        "#666F7D",
+        "#75445E",
+        "#777B82",
+        "#8E9298",
+        "#98667B",
+        "#9CA6AF",
+        "#A48375",
+        "#BDC0BC",
+        "#C7AD91",
+        "#C8CBD0",
+        "#DFD9C9"
+      ],
+      "isolated_alpha_pixels": [],
+      "origin": [
+        32,
+        60
+      ],
+      "binary_alpha": true,
+      "exact_x2": true,
+      "lighting_review": "source-directed top-left; visual acceptance pending",
+      "static_shape_review": "pending user review",
+      "motion_review": "not started",
+      "engine_review": "not performed"
+    },
+    {
+      "id": "brood",
+      "bbox_1x": [
+        8,
+        10,
+        25,
+        28
+      ],
+      "body_size_1x": [
+        17,
+        18
+      ],
+      "screen_height": 36,
+      "opaque_colors": 12,
+      "color_cap": 16,
+      "opaque_pixels": 179,
+      "emit_pixels": 34,
+      "body_identical_to_ab3c6195": true,
+      "new_head_light_in_body": false,
+      "new_head_light_layer_only": null,
+      "emission_layer_is_separate_png": true,
+      "emission_bbox_1x": [
+        13,
+        17,
+        20,
+        25
+      ],
+      "palette_hex": [
+        "#080E18",
+        "#263348",
+        "#362C3A",
+        "#3D1A2B",
+        "#4B4D5A",
+        "#54172F",
+        "#71717D",
+        "#87304B",
+        "#96939B",
+        "#B44D68",
+        "#BDB6AE",
+        "#D9CFBF"
+      ],
+      "isolated_alpha_pixels": [],
+      "origin": [
+        16,
+        28
+      ],
+      "binary_alpha": true,
+      "exact_x2": true,
+      "lighting_review": "source-directed top-left; visual acceptance pending",
+      "static_shape_review": "pending user review",
+      "motion_review": "not started",
+      "engine_review": "not performed"
+    }
+  ],
+  "scope": "4 static poses only; no claim that all enemies or animations are finished",
+  "head_light_revision": "user requested head-area light even without original emissive organs; all 3 are separate layers; carmen orange highlight removed",
+  "all_main_bodies_identical_to_ab3c6195": true,
+  "carmen_light_only_translation_from_7297b8e1": [
+    -7,
+    -1
+  ],
+  "not_certified": [
+    "native attachment motion reconstruction",
+    "all animation slots",
+    "per-material lighting and contour artistic approval",
+    "engine integration"
+  ],
+  "technical_check": "dimensions, height, alpha, per-frame palette, lower/dark outline, isolated alpha, exact x2, emit/body alignment, hashes"
+}

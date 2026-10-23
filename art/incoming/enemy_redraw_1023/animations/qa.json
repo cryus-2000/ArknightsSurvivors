@@ -1,0 +1,266 @@
+{
+  "passed": true,
+  "strips_1x": 398,
+  "errors": [],
+  "warnings": [
+    "bone: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "carmen: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "fractal: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "iberia: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "ishar: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "ishar_phase2: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "izumik: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "knight_boss: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "mimic: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "offspring: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "path: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "reaper: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "runner: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "skimmer: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "stone: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "tear: subpixel attachments are preserved in metadata and source evidence, see manifest",
+    "tracer: subpixel attachments are preserved in metadata and source evidence, see manifest"
+  ],
+  "characters": [
+    {
+      "id": "archon",
+      "actions": 7,
+      "body_colors": 21,
+      "subpixel_part_samples": 0,
+      "unavailable": []
+    },
+    {
+      "id": "bishop",
+      "actions": 7,
+      "body_colors": 20,
+      "subpixel_part_samples": 0,
+      "unavailable": []
+    },
+    {
+      "id": "bone",
+      "actions": 5,
+      "body_colors": 12,
+      "subpixel_part_samples": 3,
+      "unavailable": []
+    },
+    {
+      "id": "brood",
+      "actions": 5,
+      "body_colors": 12,
+      "subpixel_part_samples": 0,
+      "unavailable": []
+    },
+    {
+      "id": "carmen",
+      "actions": 9,
+      "body_colors": 20,
+      "subpixel_part_samples": 386,
+      "unavailable": []
+    },
+    {
+      "id": "floater",
+      "actions": 5,
+      "body_colors": 15,
+      "subpixel_part_samples": 0,
+      "unavailable": []
+    },
+    {
+      "id": "founder",
+      "actions": 5,
+      "body_colors": 12,
+      "subpixel_part_samples": 0,
+      "unavailable": []
+    },
+    {
+      "id": "fractal",
+      "actions": 6,
+      "body_colors": 12,
+      "subpixel_part_samples": 43,
+      "unavailable": []
+    },
+    {
+      "id": "iberia",
+      "actions": 9,
+      "body_colors": 21,
+      "subpixel_part_samples": 414,
+      "unavailable": []
+    },
+    {
+      "id": "immortal",
+      "actions": 7,
+      "body_colors": 21,
+      "subpixel_part_samples": 0,
+      "unavailable": []
+    },
+    {
+      "id": "ishar",
+      "actions": 6,
+      "body_colors": 25,
+      "subpixel_part_samples": 473,
+      "unavailable": []
+    },
+    {
+      "id": "ishar_phase2",
+      "actions": 7,
+      "body_colors": 29,
+      "subpixel_part_samples": 349,
+      "unavailable": []
+    },
+    {
+      "id": "izumik",
+      "actions": 11,
+      "body_colors": 25,
+      "subpixel_part_samples": 34,
+      "unavailable": []
+    },
+    {
+      "id": "knight",
+      "actions": 6,
+      "body_colors": 23,
+      "subpixel_part_samples": 0,
+      "unavailable": []
+    },
+    {
+      "id": "knight_boss",
+      "actions": 10,
+      "body_colors": 26,
+      "subpixel_part_samples": 66,
+      "unavailable": []
+    },
+    {
+      "id": "mimic",
+      "actions": 6,
+      "body_colors": 13,
+      "subpixel_part_samples": 4,
+      "unavailable": []
+    },
+    {
+      "id": "mimic_disguised",
+      "actions": 3,
+      "body_colors": 8,
+      "subpixel_part_samples": 0,
+      "unavailable": []
+    },
+    {
+      "id": "mother",
+      "actions": 5,
+      "body_colors": 21,
+      "subpixel_part_samples": 0,
+      "unavailable": []
+    },
+    {
+      "id": "nest",
+      "actions": 5,
+      "body_colors": 15,
+      "subpixel_part_samples": 0,
+      "unavailable": []
+    },
+    {
+      "id": "offspring",
+      "actions": 5,
+      "body_colors": 11,
+      "subpixel_part_samples": 12,
+      "unavailable": []
+    },
+    {
+      "id": "paranoia",
+      "actions": 6,
+      "body_colors": 21,
+      "subpixel_part_samples": 0,
+      "unavailable": []
+    },
+    {
+      "id": "paranoia_phase2",
+      "actions": 6,
+      "body_colors": 21,
+      "subpixel_part_samples": 0,
+      "unavailable": []
+    },
+    {
+      "id": "path",
+      "actions": 8,
+      "body_colors": 18,
+      "subpixel_part_samples": 54,
+      "unavailable": []
+    },
+    {
+      "id": "pocket",
+      "actions": 6,
+      "body_colors": 19,
+      "subpixel_part_samples": 0,
+      "unavailable": []
+    },
+    {
+      "id": "reaper",
+      "actions": 7,
+      "body_colors": 18,
+      "subpixel_part_samples": 1,
+      "unavailable": []
+    },
+    {
+      "id": "runner",
+      "actions": 5,
+      "body_colors": 12,
+      "subpixel_part_samples": 17,
+      "unavailable": []
+    },
+    {
+      "id": "skimmer",
+      "actions": 6,
+      "body_colors": 21,
+      "subpixel_part_samples": 1,
+      "unavailable": []
+    },
+    {
+      "id": "slider",
+      "actions": 5,
+      "body_colors": 15,
+      "subpixel_part_samples": 0,
+      "unavailable": []
+    },
+    {
+      "id": "spitter",
+      "actions": 5,
+      "body_colors": 15,
+      "subpixel_part_samples": 0,
+      "unavailable": []
+    },
+    {
+      "id": "stone",
+      "actions": 5,
+      "body_colors": 16,
+      "subpixel_part_samples": 36,
+      "unavailable": []
+    },
+    {
+      "id": "tear",
+      "actions": 5,
+      "body_colors": 4,
+      "subpixel_part_samples": 2,
+      "unavailable": []
+    },
+    {
+      "id": "tracer",
+      "actions": 6,
+      "body_colors": 19,
+      "subpixel_part_samples": 13,
+      "unavailable": []
+    }
+  ],
+  "checks": [
+    "hash",
+    "dimensions",
+    "binary alpha",
+    "exact nearest 2x",
+    "no edge clipping",
+    "palette cap",
+    "exact attachment recomposition",
+    "fixed reference scale",
+    "original event samples"
+  ],
+  "static_review": "contact sheets inspected separately; not blanket approved",
+  "motion_review": "browser review supplied; real-time playback not certified",
+  "engine": "not integrated",
+  "user_approval": "pending animation review",
+  "legacy_verifier_note": "uniform external outline and fixed per-frame ground baseline assumptions do not match original Spine airborne/attack poses; independent checks used"
+}

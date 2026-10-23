@@ -1,0 +1,382 @@
+[
+  {
+    "name": "move_00",
+    "anim": "authored_move",
+    "t": 0,
+    "parts": [
+      {
+        "slot": "ray_0",
+        "attachment": "ray_0",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 0,
+        "file": "move_00_ray_0.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_0__ray_0.png",
+        "source_file": "build/enemy_actions_1023/tear/move_00_ray_0.png"
+      },
+      {
+        "slot": "ray_1",
+        "attachment": "ray_1",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 1,
+        "file": "move_00_ray_1.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_1__ray_1.png",
+        "source_file": "build/enemy_actions_1023/tear/move_00_ray_1.png"
+      },
+      {
+        "slot": "ray_2",
+        "attachment": "ray_2",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 2,
+        "file": "move_00_ray_2.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_2__ray_2.png",
+        "source_file": "build/enemy_actions_1023/tear/move_00_ray_2.png"
+      },
+      {
+        "slot": "ray_3",
+        "attachment": "ray_3",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 3,
+        "file": "move_00_ray_3.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_3__ray_3.png",
+        "source_file": "build/enemy_actions_1023/tear/move_00_ray_3.png"
+      },
+      {
+        "slot": "ray_4",
+        "attachment": "ray_4",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 4,
+        "file": "move_00_ray_4.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_4__ray_4.png",
+        "source_file": "build/enemy_actions_1023/tear/move_00_ray_4.png"
+      },
+      {
+        "slot": "ray_5",
+        "attachment": "ray_5",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 5,
+        "file": "move_00_ray_5.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_5__ray_5.png",
+        "source_file": "build/enemy_actions_1023/tear/move_00_ray_5.png"
+      },
+      {
+        "slot": "core",
+        "attachment": "core",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 6,
+        "file": "move_00_core.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/core__core.png",
+        "source_file": "build/enemy_actions_1023/tear/move_00_core.png"
+      }
+    ],
+    "glow": [
+      16,
+      20.0
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      32,
+      32
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "move_01",
+    "anim": "authored_move",
+    "t": 0,
+    "parts": [
+      {
+        "slot": "ray_0",
+        "attachment": "ray_0",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 0,
+        "file": "move_01_ray_0.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_0__ray_0.png",
+        "source_file": "build/enemy_actions_1023/tear/move_01_ray_0.png"
+      },
+      {
+        "slot": "ray_1",
+        "attachment": "ray_1",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 1,
+        "file": "move_01_ray_1.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_1__ray_1.png",
+        "source_file": "build/enemy_actions_1023/tear/move_01_ray_1.png"
+      },
+      {
+        "slot": "ray_2",
+        "attachment": "ray_2",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 2,
+        "file": "move_01_ray_2.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_2__ray_2.png",
+        "source_file": "build/enemy_actions_1023/tear/move_01_ray_2.png"
+      },
+      {
+        "slot": "ray_3",
+        "attachment": "ray_3",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 3,
+        "file": "move_01_ray_3.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_3__ray_3.png",
+        "source_file": "build/enemy_actions_1023/tear/move_01_ray_3.png"
+      },
+      {
+        "slot": "ray_4",
+        "attachment": "ray_4",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 4,
+        "file": "move_01_ray_4.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_4__ray_4.png",
+        "source_file": "build/enemy_actions_1023/tear/move_01_ray_4.png"
+      },
+      {
+        "slot": "ray_5",
+        "attachment": "ray_5",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 5,
+        "file": "move_01_ray_5.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_5__ray_5.png",
+        "source_file": "build/enemy_actions_1023/tear/move_01_ray_5.png"
+      },
+      {
+        "slot": "core",
+        "attachment": "core",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 6,
+        "file": "move_01_core.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/core__core.png",
+        "source_file": "build/enemy_actions_1023/tear/move_01_core.png"
+      }
+    ],
+    "glow": [
+      16,
+      20.65
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      32,
+      32
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "move_02",
+    "anim": "authored_move",
+    "t": 0,
+    "parts": [
+      {
+        "slot": "ray_0",
+        "attachment": "ray_0",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 0,
+        "file": "move_02_ray_0.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_0__ray_0.png",
+        "source_file": "build/enemy_actions_1023/tear/move_02_ray_0.png"
+      },
+      {
+        "slot": "ray_1",
+        "attachment": "ray_1",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 1,
+        "file": "move_02_ray_1.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_1__ray_1.png",
+        "source_file": "build/enemy_actions_1023/tear/move_02_ray_1.png"
+      },
+      {
+        "slot": "ray_2",
+        "attachment": "ray_2",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 2,
+        "file": "move_02_ray_2.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_2__ray_2.png",
+        "source_file": "build/enemy_actions_1023/tear/move_02_ray_2.png"
+      },
+      {
+        "slot": "ray_3",
+        "attachment": "ray_3",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 3,
+        "file": "move_02_ray_3.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_3__ray_3.png",
+        "source_file": "build/enemy_actions_1023/tear/move_02_ray_3.png"
+      },
+      {
+        "slot": "ray_4",
+        "attachment": "ray_4",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 4,
+        "file": "move_02_ray_4.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_4__ray_4.png",
+        "source_file": "build/enemy_actions_1023/tear/move_02_ray_4.png"
+      },
+      {
+        "slot": "ray_5",
+        "attachment": "ray_5",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 5,
+        "file": "move_02_ray_5.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_5__ray_5.png",
+        "source_file": "build/enemy_actions_1023/tear/move_02_ray_5.png"
+      },
+      {
+        "slot": "core",
+        "attachment": "core",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 6,
+        "file": "move_02_core.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/core__core.png",
+        "source_file": "build/enemy_actions_1023/tear/move_02_core.png"
+      }
+    ],
+    "glow": [
+      16,
+      20.0
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      32,
+      32
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "move_03",
+    "anim": "authored_move",
+    "t": 0,
+    "parts": [
+      {
+        "slot": "ray_0",
+        "attachment": "ray_0",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 0,
+        "file": "move_03_ray_0.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_0__ray_0.png",
+        "source_file": "build/enemy_actions_1023/tear/move_03_ray_0.png"
+      },
+      {
+        "slot": "ray_1",
+        "attachment": "ray_1",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 1,
+        "file": "move_03_ray_1.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_1__ray_1.png",
+        "source_file": "build/enemy_actions_1023/tear/move_03_ray_1.png"
+      },
+      {
+        "slot": "ray_2",
+        "attachment": "ray_2",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 2,
+        "file": "move_03_ray_2.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_2__ray_2.png",
+        "source_file": "build/enemy_actions_1023/tear/move_03_ray_2.png"
+      },
+      {
+        "slot": "ray_3",
+        "attachment": "ray_3",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 3,
+        "file": "move_03_ray_3.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_3__ray_3.png",
+        "source_file": "build/enemy_actions_1023/tear/move_03_ray_3.png"
+      },
+      {
+        "slot": "ray_4",
+        "attachment": "ray_4",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 4,
+        "file": "move_03_ray_4.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_4__ray_4.png",
+        "source_file": "build/enemy_actions_1023/tear/move_03_ray_4.png"
+      },
+      {
+        "slot": "ray_5",
+        "attachment": "ray_5",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 5,
+        "file": "move_03_ray_5.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/ray_5__ray_5.png",
+        "source_file": "build/enemy_actions_1023/tear/move_03_ray_5.png"
+      },
+      {
+        "slot": "core",
+        "attachment": "core",
+        "bone": null,
+        "parent": "core",
+        "draw_order": 6,
+        "file": "move_03_core.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/move/core__core.png",
+        "source_file": "build/enemy_actions_1023/tear/move_03_core.png"
+      }
+    ],
+    "glow": [
+      16,
+      19.35
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      32,
+      32
+    ],
+    "glow_active": true
+  }
+]
