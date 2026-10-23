@@ -127,6 +127,8 @@ func draw_ground(vs: Vector2) -> void:
 	# 地形区域块已合成进区块贴图；区块贴图缺失（没有地砖图）时退回逐块画
 	if tex.get(theme.tiles.tex) == null:
 		_draw_patches(vs)
+	if g.optical_on and Bal.v("render/optical_ground", 1.0) > 0.0:
+		_draw_ground_noise(vs, ppos)
 	sort_props.clear()
 	collect_big_props(vs)
 	# 平铺在地上的小道具互不遮挡：按贴图（再按翻转）排序后连续画，同贴图才能合批（性能 9/30：原来按格子顺序画，贴图几乎每次都换）
@@ -137,6 +139,60 @@ func draw_ground(vs: Vector2) -> void:
 			sort_props.append([pr[0], pr[1], pr[2]])
 		else:
 			_spr(pr[0], 1, 0, pr[1], pr[2] % 2 == 0, Color.WHITE)
+
+
+## 光学观感原型 ⑨ 地面程序噪点材质：可平铺的值噪声（两层八度）按 4×4 Bayer 抖动量化到 4 档深海色（围绕地面原平均色），
+## 每 1 美术像素 = 2 世界像素，盖在地砖区块上（半透明，地形块与道具的形状仍看得见）。开局后第一次用到时生成一次
+const NOISE_N := 128
+var _noise_tex: ImageTexture = null
+
+func _ground_noise() -> ImageTexture:
+	if _noise_tex != null:
+		return _noise_tex
+	var m: Color = ground_mean()
+	# 4 档围绕地面原平均色上下浮动（10-23 用户：画面不要变暗），平均下来和原地面一样亮；暗处由光照本身压
+	var pal := [m.darkened(0.3), m.darkened(0.1), m.lightened(0.08), m.lightened(0.2).lerp(Color(0.3, 0.6, 0.65), 0.2)]
+	var bayer := [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5]
+	var img := Image.create(NOISE_N, NOISE_N, false, Image.FORMAT_RGBA8)
+	var lat := {}
+	for oc in [8, 32]:
+		for y in range(0, NOISE_N, oc):
+			for x in range(0, NOISE_N, oc):
+				lat[Vector3i(x, y, oc)] = float(abs(hash(Vector3i(x, y, oc * 7))) % 1000) / 1000.0   # 固定散列，不碰随机数
+	for y in NOISE_N:
+		for x in NOISE_N:
+			var v := 0.0
+			var wsum := 0.0
+			for oc in [8, 32]:
+				var x0: int = (x / oc) * oc
+				var y0: int = (y / oc) * oc
+				var x1: int = (x0 + oc) % NOISE_N
+				var y1: int = (y0 + oc) % NOISE_N
+				var fx: float = smoothstep(0.0, 1.0, float(x - x0) / oc)
+				var fy: float = smoothstep(0.0, 1.0, float(y - y0) / oc)
+				var a: float = lerpf(lat[Vector3i(x0, y0, oc)], lat[Vector3i(x1, y0, oc)], fx)
+				var b: float = lerpf(lat[Vector3i(x0, y1, oc)], lat[Vector3i(x1, y1, oc)], fx)
+				var w: float = 1.0 if oc == 32 else 0.5
+				v += lerpf(a, b, fy) * w
+				wsum += w
+			v /= wsum
+			var th: float = (bayer[(y % 4) * 4 + (x % 4)] + 0.5) / 16.0
+			var lv: int = clampi(int(v * 3.0 + th - 0.5), 0, 3)
+			var c: Color = pal[lv]
+			img.set_pixel(x, y, Color(c.r, c.g, c.b, 1.0))
+	_noise_tex = ImageTexture.create_from_image(img)
+	return _noise_tex
+
+
+func _draw_ground_noise(vs: Vector2, cp: Vector2) -> void:
+	var nt := _ground_noise()
+	var S: float = NOISE_N * px
+	var a: float = Bal.v("render/optical_ground", 1.0) * 0.55
+	var x0 := floori((cp.x - vs.x / 2.0) / S) - 1
+	var y0 := floori((cp.y - vs.y / 2.0) / S) - 1
+	for ix in range(x0, x0 + int(vs.x / S) + 3):
+		for iy in range(y0, y0 + int(vs.y / S) + 3):
+			g.draw_texture_rect(nt, Rect2(Vector2(ix, iy) * S, Vector2(S, S)), false, Color(1, 1, 1, a))
 
 
 ## 地面的平均色（后期降噪 render/declutter ground_veil 用：拥挤时在地面上盖一层同色薄纱，压地砖 / 小道具的纹理对比，不改明暗）。

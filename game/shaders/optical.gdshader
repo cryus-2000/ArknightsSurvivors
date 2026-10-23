@@ -15,7 +15,14 @@ uniform float pixel_on = 1.0;
 uniform vec2 lamp_px = vec2(640.0, 360.0);   // 灯火在窗口里的像素坐标
 uniform float lamp_r = 300.0;           // 光池半径（窗口像素）
 uniform float pool_dark = 1.0;          // 光池外的亮度（10-23 用户：原本亮度没问题，缺省 1 = 不压暗；旋钮 render/optical_pool_dark）
-uniform vec3 pool_warm = vec3(1.05, 1.0, 0.92);   // 光池里只偏一点暖，不提亮
+uniform vec3 pool_warm = vec3(1.0, 1.0, 1.0);    // 光池里的色（10-23 用户嫌发黄：改中性，暖色只留给灯火本身）
+// 深海滤镜（10-23 用户：「深海的色调，清淡、不要浓稠感，画面不要太暗」）：色相往青蓝偏、再把亮度按原值拉回（只改色不改明暗）；
+// 屏幕上方略深一点蓝（远处的水）；极淡的水纹焦散（缓慢流动、只在中间调上 ±2%）
+uniform vec3 sea_tint = vec3(0.86, 1.0, 1.12);
+uniform float sea_amt = 0.55;
+uniform float sea_depth = 0.06;
+uniform float caustics = 0.02;
+uniform float time = 0.0;
 uniform float emissive_th = 0.72;       // 亮度高于此（且偏饱和或近白）当发光体：不压暗、散辉光
 uniform float glow = 0.9;
 uniform float lut_on = 1.0;
@@ -82,7 +89,19 @@ void fragment() {
 	g += m5 * emissive(m5 * 1.3) * 0.25;
 	g *= glow;
 	base = 1.0 - (1.0 - base) * (1.0 - clamp(g, 0.0, 1.0));   // 屏幕混合：越亮越收，不会硬截成白
-	// ⑤ 暗角 / 受伤 / 去色
+	// ⑤ 深海滤镜：偏青蓝但保持亮度
+	float l0 = luma(base);
+	vec3 tinted = base * mix(vec3(1.0), sea_tint, sea_amt);
+	float l1 = luma(tinted);
+	base = tinted * (l1 > 0.0001 ? l0 / l1 : 1.0);
+	base = mix(base, base * vec3(0.92, 1.0, 1.1), sea_depth * (1.0 - SCREEN_UV.y));
+	if (caustics > 0.0001) {
+		vec2 w = (p - grid_origin) / max(cell, 1.0) * 0.06;
+		float cs = sin(w.x * 1.7 + time * 0.6) * sin(w.y * 1.3 - time * 0.45) + sin((w.x + w.y) * 0.9 + time * 0.3) * 0.5;
+		float mid = smoothstep(0.08, 0.35, l0) * (1.0 - smoothstep(0.6, 0.9, l0));
+		base *= 1.0 + caustics * cs * mid;
+	}
+	// ⑥ 暗角 / 受伤 / 去色
 	vec2 c = SCREEN_UV - 0.5;
 	base *= 1.0 - dot(c, c) * vignette * 2.0;
 	if (desat > 0.001) {

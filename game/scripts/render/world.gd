@@ -775,6 +775,8 @@ func _sorted_fast(evr: Rect2) -> bool:
 	objs.append(null)
 	kind.append(2)
 	for o in g.squad.ops:
+		if g.optical_lo:
+			break   # 光学观感低分辨率层：干员本体改由 render/optical.gd 的高清干员层画（全分辨率，统一压在怪物上面）
 		if o.pos != Vector2.INF:
 			ka.append(o.pos.y + 4.0)
 			objs.append(o)
@@ -2420,16 +2422,19 @@ func _draw_enemy_full(e: Dictionary) -> void:
 
 ## 在任意位置绘制水月（残影、倒影用）
 ## 以脚底为锚点画一帧（干员本体 / 分身 / 残影）：foot_off = 帧内脚底距底边的像素（贴图像素）
+var draw_target: CanvasItem = null   # 光学观感的高清干员层：干员本体临时画到这里（render/optical.gd _draw_ops 设，画完清回 null）
+
 func draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D, hf: int, foot_off: float) -> void:
 	if tx == null:
 		return
+	var ci: CanvasItem = draw_target if draw_target != null else g
 	var fw := tx.get_width() / hf
 	var fh := tx.get_height()
 	var src := Rect2(fw * (frame % hf), 0, fw, fh)
 	var pk: float = Game.PX / A.hires_of(tx)
-	g.draw_set_transform((pos + g.draw_off).round(), 0.0, Vector2(-pk if flip else pk, pk))
-	g.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + foot_off), Vector2(fw, fh)), src, Look.op_mod(g, pos, col))
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	ci.draw_set_transform((pos + g.draw_off).round(), 0.0, Vector2(-pk if flip else pk, pk))
+	ci.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + foot_off), Vector2(fw, fh)), src, Look.op_mod(g, pos, col))
+	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 func draw_player_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D = null, hf: int = 0) -> void:

@@ -4,6 +4,7 @@
 extends CanvasLayer
 
 const Bal = preload("res://scripts/core/balance.gd")
+const D = preload("res://scripts/data.gd")
 
 var g
 var rect: ColorRect
@@ -12,6 +13,15 @@ var force := -1        # --opticalab 同局轮换用：-1 = 按 balance，0 / 1 
 var glow_layer: CanvasLayer   # 发光层（layer 1，跟随镜头）：敌人发光点、荧光颗粒；不受 CanvasModulate 环境暗色与灯光影响
 var glow_node: Node2D
 var particles   # render/optical_particles.gd：击杀碎屑 / 荧光孢子 / 灯火余烬 / 命中迸溅
+## ① 低分辨率世界层（render/optical_lowres，缺省开）：另开一个与主视口共享 World2D 的 SubViewport，按「1 像素 = 2 世界像素」
+## （镜头 100% 时 = 1 美术像素）渲染世界画布，最近邻放大铺在 layer −1；主视口剔除世界层（可见层 2），只画高清干员层与界面。
+## 镜头平移：低分辨率画布的平移取整数，余下的小数在放大后的贴图上补（亚像素补偿，滚动不顿挫）
+const VIS_LO := 2           # 世界画布的可见层位（第 2 位）
+var lo_vp: SubViewport
+var lo_layer: CanvasLayer
+var lo_rect: TextureRect
+var op_node: Node2D         # 高清干员层（可见层 1，主视口画；squad.cv 合批画布在它的 draw 回调里临时改指到这里）
+var _lo_on := false
 var _was_on := false
 
 
@@ -39,15 +49,131 @@ func _ready() -> void:
 func _attach_glow() -> void:
 	if g != null:
 		g.add_child(glow_layer)
+		lo_layer = CanvasLayer.new()
+		lo_layer.layer = -1
+		lo_layer.visible = false
+		g.add_child(lo_layer)
+		lo_vp = SubViewport.new()
+		lo_vp.world_2d = g.get_viewport().world_2d
+		lo_vp.transparent_bg = false
+		lo_vp.canvas_cull_mask = VIS_LO
+		lo_vp.render_target_update_mode = SubViewport.UPDATE_DISABLED
+		lo_vp.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST
+		lo_layer.add_child(lo_vp)
+		lo_rect = TextureRect.new()
+		lo_rect.texture = lo_vp.get_texture()
+		lo_rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		lo_rect.stretch_mode = TextureRect.STRETCH_SCALE
+		lo_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		lo_layer.add_child(lo_rect)
+		op_node = Node2D.new()
+		op_node.z_index = 1
+		op_node.visible = false
+		op_node.draw.connect(_draw_ops)
+		g.get_parent().add_child.call_deferred(op_node)   # 挂在 game 节点外面：game 在主视口里被剔除时，子节点会一起被剔除
 		particles = preload("res://scripts/render/optical_particles.gd").new()
 		add_child(particles)
 		particles.setup(g, g, glow_node)
 
 
-## 发光层：上一帧世界绘制排好的敌人发光点（孢子 / 余烬 / 体液 / 迸溅是同层的 GPUParticles2D）
+## 低分辨率层开 / 关：世界节点的可见层在 1 ↔ 2 之间切，主视口剔除第 2 位；灯光与环境色两边都要（1 | 2）
+func _set_lo(on: bool) -> void:
+	_lo_on = on
+	g.optical_lo = on
+	lo_layer.visible = on
+	op_node.visible = on
+	lo_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS if on else SubViewport.UPDATE_DISABLED
+	g.get_viewport().set_canvas_cull_mask_bit(VIS_LO - 1, not on)
+	var lay: int = VIS_LO if on else 1
+	g.visibility_layer = lay
+	for c in g.get_children():
+		if c == op_node or not (c is CanvasItem):
+			continue
+		(c as CanvasItem).visibility_layer = (1 | VIS_LO) if (c is Light2D or c is CanvasModulate) else lay
+	if g.material != null:
+		op_node.material = g.material   # 白色保护 / 朝灯亮线的角色材质（render/look.make_actor_mat）
+
+
+## 每帧：低分辨率画布跟着主视口的镜头，平移取整、小数补在放大后的贴图上
+func _lo_step() -> void:
+	var vp: Viewport = g.get_viewport()
+	var vs: Vector2 = vp.get_visible_rect().size
+	var lsz := Vector2i(ceili(vs.x / 2.0) + 2, ceili(vs.y / 2.0) + 2)
+	if lo_vp.size != lsz:
+		lo_vp.size = lsz
+	var xf: Transform2D = vp.get_canvas_transform()
+	var t := Transform2D(xf.x * 0.5, xf.y * 0.5, xf.origin * 0.5)
+	var o: Vector2 = t.origin
+	var of := o.floor()
+	t.origin = of
+	lo_vp.canvas_transform = t
+	lo_rect.position = (of - o) * 2.0
+	lo_rect.size = Vector2(lsz) * 2.0
+	op_node.queue_redraw()
+
+
+## 高清干员层：按脚底 y 排序画干员本体与额外身体；合批画布临时改指到 op_node
+func _draw_ops() -> void:
+	var sq = g.squad
+	if sq == null:
+		return
+	var bc = sq.cv
+	var old = bc.g
+	bc.g = op_node
+	g.world.draw_target = op_node
+	var ops: Array = []
+	for o in sq.ops:
+		if o.pos != Vector2.INF:
+			ops.append(o)
+	ops.sort_custom(func(a, b): return a.pos.y < b.pos.y)
+	if Cfg.dev_args().has("--opticaldbg") and Engine.get_process_frames() % 60 == 0:
+		print("OPTICAL ops=%d in_tree=%s vis=%s layer=%d parent=%s" % [ops.size(), op_node.is_inside_tree(), op_node.is_visible_in_tree(), op_node.visibility_layer, op_node.get_parent()])
+	for o in ops:
+		o.draw_body()
+		for xb in o.extra_bodies():
+			o.draw_extra(xb)
+	bc.flush()
+	bc.g = old
+	g.world.draw_target = null
+
+
+## 发光层：上一帧世界绘制排好的敌人发光点（孢子 / 余烬 / 体液 / 迸溅是同层的 GPUParticles2D）+ ⑧ 投射物拖尾
 func _draw_glow() -> void:
 	for p in g.glow_cur:
 		glow_node.draw_rect(Rect2(p[0], Vector2(p[1], p[1])), p[2])
+	if Bal.v("render/optical_trail", 1.0) > 0.0:
+		_draw_trails(g.bullets, false)
+		_draw_trails(g.ebullets, true)
+
+
+## ⑧ 投射物发光像素拖尾：每颗弹沿速度反方向 5 个 2 px 像素、由亮到灭，吸附到 2 世界像素格；
+## 我方取弹体颜色（没有就青白），敌方取发射怪的 ecol（没有就敌方洋红）。最多画 300 颗
+func _draw_trails(list: Array, enemy: bool) -> void:
+	var n := 0
+	for b in list:
+		if n >= 300:
+			break
+		var v: Vector2 = b.get("vel", Vector2.ZERO)
+		var sp := v.length()
+		if sp < 40.0:
+			continue
+		n += 1
+		var col: Color
+		if enemy:
+			var ed: Dictionary = D.ENEMIES.get(str(b.get("src_type", "")), {})
+			var ec = ed.get("ecol")
+			col = Color(ec[0], ec[1], ec[2]) if ec is Array else Color(1.0, 0.35, 0.75)
+		else:
+			var bc = b.get("col")
+			col = bc if bc is Color else Color(0.7, 0.95, 1.0)
+		var dirn: Vector2 = -v / sp
+		var gap: float = clampf(sp * 0.012, 3.0, 9.0)
+		var p0: Vector2 = b.pos
+		for i in range(1, 6):
+			var q: Vector2 = p0 + dirn * gap * i
+			q = (q / 2.0).floor() * 2.0
+			var a: float = 0.75 * (1.0 - i / 6.0)
+			glow_node.draw_rect(Rect2(q, Vector2(2, 2)), Color(col.r, col.g, col.b, a))
 
 
 func wanted() -> bool:
@@ -63,6 +189,11 @@ func _process(_dt: float) -> void:
 	g.optical_on = on
 	visible = on
 	glow_layer.visible = on
+	var lo_want: bool = on and Bal.v("render/optical_lowres", 1.0) > 0.0 and lo_vp != null
+	if lo_want != _lo_on:
+		_set_lo(lo_want)
+	if _lo_on:
+		_lo_step()
 	g.glow_cur = g.glow_next
 	g.glow_next = []
 	if particles != null:
@@ -83,7 +214,7 @@ func _process(_dt: float) -> void:
 	var xf: Transform2D = vp.get_final_transform() * vp.get_canvas_transform()
 	var k: float = xf.get_scale().x
 	mat.set_shader_parameter("cell", g.PX * k)
-	mat.set_shader_parameter("pixel_on", Bal.v("render/optical_pixel", 1.0))
+	mat.set_shader_parameter("pixel_on", 0.0 if _lo_on else Bal.v("render/optical_pixel", 1.0))   # 低分辨率层开着时世界本来就是 2 px 格，干员要保持高清，不再按格取样
 	mat.set_shader_parameter("grid_origin", xf * Vector2.ZERO)
 	var L: PointLight2D = g.lamp_light
 	if L != null and L.visible and L.enabled:
@@ -96,6 +227,9 @@ func _process(_dt: float) -> void:
 	mat.set_shader_parameter("emissive_th", Bal.v("render/optical_emissive_th", 0.72))
 	mat.set_shader_parameter("lut_on", Bal.v("render/optical_lut", 1.0))
 	mat.set_shader_parameter("brightness", Cfg.brightness * Bal.v("render/ambient_gain", 1.0))
+	mat.set_shader_parameter("sea_amt", Bal.v("render/optical_sea", 0.55))
+	mat.set_shader_parameter("caustics", Bal.v("render/optical_caustics", 0.02))
+	mat.set_shader_parameter("time", Time.get_ticks_msec() / 1000.0)
 	if Cfg.dev_args().has("--opticaldbg") and Engine.get_process_frames() % 60 == 0:
 		print("OPTICAL cell=%.2f origin=%s lamp=%s r=%.1f scale=%s" % [g.PX * k, str(xf * Vector2.ZERO), str(xf * L.global_position) if L != null else "-", 64.0 * (L.texture_scale if L != null else 0.0) * k, str(L.texture_scale if L != null else 0.0)])
 	if g.post != null:
