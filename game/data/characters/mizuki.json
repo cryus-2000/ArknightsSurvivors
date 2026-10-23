@@ -266,7 +266,8 @@
   },
   "base": {
     "umbrella_dmg": 15,
-    "swing_radius": 132,
+    "swing_radius": 112,
+    "swing_skill": 132,
     "swing_interval": 0.9,
     "swing_arc": 150,
     "tentacle_mult": 0.6,
@@ -879,7 +880,7 @@
           {
             "shape": "circle",
             "center": "self",
-            "r": "$swing_radius",
+            "r": "$swing_skill",
             "atk_key": "umbrella_dmg",
             "mult": "$bind2_mult",
             "power": true,
