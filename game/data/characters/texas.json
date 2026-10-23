@@ -83,7 +83,8 @@
   "s3_need": 230,
   "talent_atk_sp": 0.15,
   "slash_wide": 0.15,
-  "_rework": "10-23 用户定「自动冲刺太晕」重设计（docs/129）：队长普攻原地两连斩（扇形 slash_r）、每 wave_every 次出手朝 wave_aim 内最近敌人甩一道短剑气（没有敌人就不甩）；队友另有每 step_cd 秒一次 ≤ step_len 的短突进（敌人在 step_min_d 以外才上前）；删除天赋的定时自动冲刺；剑雨 / 剑雨滂沱自动释放需要射程内有敌人"
+  "_rework": "10-23 用户定「自动冲刺太晕」重设计（docs/129）：队长普攻原地两连斩（扇形 slash_r）、每 wave_every 次出手朝 wave_aim 内最近敌人甩一道短剑气（没有敌人就不甩）；队友另有每 step_cd 秒一次 ≤ step_len 的短突进（敌人在 step_min_d 以外才上前）；删除天赋的定时自动冲刺；剑雨 / 剑雨滂沱自动释放需要射程内有敌人",
+  "dash_mult": 1.0
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1986 / 防御 441 / 法抗 0%，近战主控有效生命 ×1.06",
@@ -454,6 +455,16 @@
    ]
   },
   "突进": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "pierce"
+   ]
+  },
+  "冲刺斩": {
    "emitter": "operator",
    "origin": "core",
    "range": "近战",
@@ -867,6 +878,18 @@
       }
      }
     ]
+   },
+   {
+    "trig": "on_dash_end",
+    "src": "冲刺斩",
+    "min_hits": 1,
+    "_doc": "专属冲刺穿过敌人全队技力 +hit_sp 秒（同原疾行斩）",
+    "do": [
+     {
+      "verb": "sp_secs",
+      "seconds": "$hit_sp"
+     }
+    ]
    }
   ],
   "skills": [
@@ -1253,6 +1276,30 @@
   "response": [
    {
     "trig": "on_leader_dash",
+    "cond": "is_leader && elite < 1",
+    "hint": "专属冲刺",
+    "_doc": "10-23 用户：德克萨斯的冲刺换成她专属的冲刺，对路上的敌人造成伤害，间隔不变（仍是队长冲刺键的冷却）。精零队长：自己按冲刺，路径上的敌人受 冲刺斩（×dash_mult）；精一起由下一块「战术快递」接手（同样 ride 扫沿途，另给全队技力）",
+    "do": [
+     {
+      "shape": "dash_line",
+      "aim": "leader_dir",
+      "r": "$dash_len",
+      "w": "$dash_w",
+      "t": "$dash_t",
+      "hold": "$dash_hold",
+      "mult": "$dash_mult",
+      "src": "冲刺斩",
+      "tags": [
+       "basic",
+       "pierce"
+      ],
+      "strip": "fx_texas_dash",
+      "sfx": "atk"
+     }
+    ]
+   },
+   {
+    "trig": "on_leader_dash",
     "cond": "elite >= 1",
     "hint": "同向疾行",
     "_doc": "响应动作（docs/118 §4.1）：队长冲刺时她沿同一方向冲刺。10-23 用户定：天赋原来的定时自动冲刺（兜底）已删，冲刺手感只由这条承担；她当队长时 aim leader_dir 跟着队长这次冲刺扫过沿途（ride），不另位移",
@@ -1318,8 +1365,8 @@
   ]
  },
  "response": {
-  "name": "同向疾行",
+  "name": "专属冲刺",
   "trigger": "队长冲刺",
-  "desc": "精英一起：队长每次冲刺，她沿同一方向冲刺，穿过的敌人受到伤害，并为全队回复技力（她不再自己定时冲刺）"
+  "desc": "她当队长时，自己按冲刺，路径上的敌人受到冲刺斩伤害（精零起）；精英一起改为「同向疾行」：队长每次冲刺她同向冲刺，穿过的敌人受到伤害并为全队回复技力；队友时只在精英一起跟队长冲刺"
  }
 }

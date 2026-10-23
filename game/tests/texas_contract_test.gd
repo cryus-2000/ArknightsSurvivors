@@ -35,6 +35,7 @@ func _process(_d: float) -> void:
 		test_s3(o)
 		test_s2(o)
 		test_dash(o)
+		test_leader_dash(o)
 	print("%d checks, %d failed" % [n, fails])
 	print("TEXAS CONTRACT failures=%d" % fails)
 	get_tree().quit(1 if fails > 0 else 0)
@@ -95,6 +96,31 @@ func test_s2(o) -> void:
 
 
 ## 冲刺换播（10-20，docs/108 §3.5）：伪造一次冲刺 / 回马剑等待，只看画面槽与帧，不推进玩法
+## 专属冲刺（10-23 用户）：队长精零自己按冲刺，路径上的敌人受冲刺斩伤害；响应块 cond is_leader && elite < 1
+func test_leader_dash(o) -> void:
+	var g = game
+	for e in g.enemies: e.dead = true
+	g.enemies.clear()
+	var e1: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2(70, 0))
+	e1.hp = 100000.0
+	e1.max_hp = e1.hp
+	e1.spd = 0.0
+	g.enemies_sys.build_grid()
+	o.elite = 0
+	o.refresh_stats()
+	g.dash_dir = Vector2.RIGHT
+	g.dash_t = 0.0
+	o.update(DT)
+	g.dash_t = 0.18
+	var hp0: float = e1.hp
+	for i in 20:
+		g.ppos += Vector2.RIGHT * 7.0
+		o.pos = g.ppos
+		o.update(DT)
+	ok(e1.hp < hp0, "专属冲刺：精零队长自己冲刺，路径上的敌人受伤（%.0f → %.0f）" % [hp0, e1.hp])
+	e1.dead = true
+
+
 func test_dash(o) -> void:
 	var tags := {"basic": ["basic"], "skill": ["skill"], "reverse": ["follow_up"]}
 	var want := {"basic": ["attack", 2, 7], "skill": ["s3_dash", 0, 7], "reverse": ["back_native", 3, 7]}

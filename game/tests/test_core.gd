@@ -609,7 +609,8 @@ func test_blocks_texas() -> void:
 	ok(str(B.trait[1].get("_tag", "")) == "trig.every_n" and int(B.trait[1].n) == 3 and str(B.trait[1].do[0].get("_tag", "")) == "shape.wave" and bool(B.trait[1].do[0].need_target) and int(B.trait[1].do[0].max_hits) == 1, "短剑气：每第 3 次出手、shape.wave、need_target、命中第一名即消失")
 	ok(float(B.skills[0].need_enemy) == 130.0 and float(B.skills[2].need_enemy) == 230.0 and not B.skills[1].has("need_enemy"), "剑雨 / 剑雨滂沱自动释放需要敌人（130 / 230），可靠伙伴（永久增益）不要")
 	# 响应动作（docs/118 §4.1）：队长冲刺 → 同向冲刺（aim leader_dir，来源同战术快递，精英一起）
-	ok(B.has("response") and str(B.response[0].get("_tag", "")) == "trig.on_leader_dash" and str(B.response[0].do[0].aim) == "leader_dir" and str(B.response[0].do[0].src) == "战术快递", "响应：队长冲刺 → dash_line leader_dir（来源战术快递）")
+	ok(B.has("response") and str(B.response[1].get("_tag", "")) == "trig.on_leader_dash" and str(B.response[1].do[0].aim) == "leader_dir" and str(B.response[1].do[0].src) == "战术快递", "响应：队长冲刺 → dash_line leader_dir（来源战术快递）")
+	ok(str(B.response[0].do[0].aim) == "leader_dir" and str(B.response[0].do[0].src) == "冲刺斩" and str(B.response[0].get("hint", "")) == "专属冲刺", "响应：她当队长精零自己冲刺 → 专属冲刺（leader_dir，来源冲刺斩）")
 	ok(str(B.attack.get("_tag", "")) == "shape.cone" and float(B.attack.r) == 112.0 and B.attack.combo.size() == 2, "普攻编译成 shape.cone（原地扇形 112）+ 2 段 combo（第二斩 / 回马剑）")
 	# 常驻累计：S2 冲刺长度 +40%、节点「阔剑」宽度 ×1.3；不写主控属性
 	var fake := {"tx": {}}
