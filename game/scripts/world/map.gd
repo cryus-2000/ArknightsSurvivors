@@ -642,8 +642,8 @@ func draw_foreground(ci: CanvasItem, vs: Vector2, cp: Vector2) -> void:
 	var fd: Dictionary = theme.get("foreground", {})
 	if fd.is_empty() or fg_tex.is_empty():
 		return
-	# 光学观感下的前景（render/optical_fg_px，docs/130 A3）：1 = 像素剪影（缺省）、0 = 不画、-1 = 原虚化剪影；光学关（低档）照旧虚化
-	var fg_mode: float = Bal.v("render/optical_fg_px", 1.0)
+	# 光学观感下的前景（render/optical_fg_px，docs/130 A3）：1 = 像素剪影、0 = 不画（缺省，用户 10-24「看不出来区别」）、-1 = 原虚化剪影；光学关（低档）照旧虚化
+	var fg_mode: float = Bal.v("render/optical_fg_px", 0.0)
 	if g.optical_on and fg_mode == 0.0:
 		return
 	var par: float = float(fd.get("parallax", 1.35))
