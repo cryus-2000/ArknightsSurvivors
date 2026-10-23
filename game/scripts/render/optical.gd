@@ -79,6 +79,8 @@ func _attach_glow() -> void:
 ## 低分辨率层开 / 关：世界节点的可见层在 1 ↔ 2 之间切，主视口剔除第 2 位；灯光与环境色两边都要（1 | 2）
 func _set_lo(on: bool) -> void:
 	_lo_on = on
+	if not on and g.has_method("_apply_zoom"):
+		g._apply_zoom()   # 关掉时镜头缩放回到设置里的「战斗画面缩放」
 	g.optical_lo = on
 	lo_layer.visible = on
 	op_node.visible = on
@@ -94,21 +96,32 @@ func _set_lo(on: bool) -> void:
 		op_node.material = g.material   # 白色保护 / 朝灯亮线的角色材质（render/look.make_actor_mat）
 
 
-## 每帧：低分辨率画布跟着主视口的镜头，平移取整、小数补在放大后的贴图上
+## 每帧：整数像素镜头（10-23 用户：「走动时屏幕有点抖」「镜头能不能拉远一点，从像素整数的角度想」）。
+## 1 美术像素在窗口上恒占 k 个物理像素（k 为整数）：按窗口实际高度和目标可见高度（桌面 render/optical_view_h 450、手机 360 美术像素）
+## 取最接近的整数 k（至少 2），镜头缩放反推成 z = k / (2 × 拉伸倍率)；720p 窗口 k = 2（同现在），1080p k = 2（视野 1.5 倍），1440p k = 3。
+## 低分辨率画布固定 1 像素 = 1 美术像素（= 2 世界像素），只在整格上平移；剩下的小数换算成整数物理像素摆在放大后的贴图上，
+## 世界层、高清干员层、界面三者用同一套取整，平移时不再互相错开 1 像素来回跳
+var view_k := 2
 func _lo_step() -> void:
 	var vp: Viewport = g.get_viewport()
 	var vs: Vector2 = vp.get_visible_rect().size
-	var lsz := Vector2i(ceili(vs.x / 2.0) + 2, ceili(vs.y / 2.0) + 2)
+	var sx: float = maxf(0.01, vp.get_final_transform().x.x)   # 窗口物理像素 / 设计单位
+	var target: float = Bal.v("render/optical_view_h_phone", 360.0) if Cfg.phone_ui() else Bal.v("render/optical_view_h", 450.0)
+	view_k = maxi(2, roundi(vs.y * sx / target))
+	var zw: float = view_k / (2.0 * sx)
+	if g.cam != null and absf(g.cam.zoom.x - zw) > 0.0001:
+		g.cam.zoom = Vector2(zw, zw)
+	var xf: Transform2D = vp.get_canvas_transform()
+	var z: float = xf.x.x   # 本帧实际生效的镜头缩放（改了缩放的那一帧还是旧值，下一帧对齐）
+	var cellw: float = 2.0 * z   # 1 个低分辨率像素 = 多少设计单位
+	var lsz := Vector2i(ceili(vs.x / cellw) + 3, ceili(vs.y / cellw) + 3)
 	if lo_vp.size != lsz:
 		lo_vp.size = lsz
-	var xf: Transform2D = vp.get_canvas_transform()
-	var t := Transform2D(xf.x * 0.5, xf.y * 0.5, xf.origin * 0.5)
-	var o: Vector2 = t.origin
-	var of := o.floor()
-	t.origin = of
-	lo_vp.canvas_transform = t
-	lo_rect.position = (of - o) * 2.0
-	lo_rect.size = Vector2(lsz) * 2.0
+	var lo_off: Vector2 = (xf.origin / cellw).floor() + Vector2.ONE
+	lo_vp.canvas_transform = Transform2D(Vector2(0.5, 0), Vector2(0, 0.5), lo_off)
+	var rp: Vector2 = xf.origin - lo_off * cellw
+	lo_rect.position = (rp * sx).round() / sx
+	lo_rect.size = Vector2(lsz) * cellw
 	op_node.queue_redraw()
 
 
