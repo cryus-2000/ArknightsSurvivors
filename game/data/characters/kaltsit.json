@@ -582,7 +582,7 @@
    "id": "wide_arc",
    "name": "清创",
    "icon": "growth_u_area",
-   "desc": "Mon3tr 爪击的扇面扩大 {$m_arc_wide*100-100}%，一爪扫到更多敌人"
+   "desc": "Mon3tr 爪击的扇面扩大 {$m_arc_wide*100-100}%"
   },
   {
    "type": "elite",
@@ -599,22 +599,22 @@
    "id": "s1_shell",
    "name": "结构加固",
    "icon": "skill_kaltsit_s1",
-   "desc": "「指令：结构加固」同时给队长罩上 {$shell_dur} 秒绿色护壳：受到的伤害 -{$shell_red*100}%",
+   "desc": "「指令：结构加固」同时使队长受到的伤害 -{$shell_red*100}%，持续 {$shell_dur} 秒",
    "branch": {
     "shell": {
      "id": "s1_shell",
      "name": "结构加固",
      "icon": "skill_kaltsit_s1",
-     "desc": "「指令：结构加固」同时给队长罩上 {$shell_dur} 秒绿色护壳：受到的伤害 -{$shell_red*100}%"
+     "desc": "「指令：结构加固」同时使队长受到的伤害 -{$shell_red*100}%，持续 {$shell_dur} 秒"
     },
     "melt": {
      "id": "melt_triple",
      "name": "不毁重构",
      "icon": "skill_kaltsit_s3",
-     "desc": "「指令：结构加固」施放时 Mon3tr 就地重构外壳：三连爆（半径逐次扩大，Mon3tr 攻击 {$rebuild_mult*100}% / {$rebuild_mult*50}% / {$rebuild_mult*50}% 真实伤害）并眩晕 {$rebuild_stun} 秒；精英二后「指令：熔毁」收尾同样三连爆（间隔 {$melt_echo_gap} 秒、后 2 次 {$melt_echo_mult*100}% 伤害）并眩晕 {$melt_stun} 秒（精英减半，Boss 免疫）"
+     "desc": "「指令：结构加固」施放时 Mon3tr 就地重构外壳：连续爆炸三次（半径逐次扩大，Mon3tr 攻击 {$rebuild_mult*100}% / {$rebuild_mult*50}% / {$rebuild_mult*50}% 真实伤害）并眩晕 {$rebuild_stun} 秒；精英二后「指令：熔毁」结束时同样连续爆炸三次（间隔 {$melt_echo_gap} 秒、后 2 次 {$melt_echo_mult*100}% 伤害）并眩晕 {$melt_stun} 秒（精英减半，Boss 免疫）"
     }
    },
-   "branch_desc": "「结构加固」施放时队长罩护壳；「不毁重构」Mon3tr三连爆+熔毁三连爆；后续沿路线强化",
+   "branch_desc": "「结构加固」使一技能同时保护队长；「不毁重构」使 Mon3tr 在一技能释放时及精英二后三技能结束时连续爆炸三次",
    "bot": "shell"
   },
   {
@@ -622,7 +622,7 @@
    "id": "melt_triple",
    "name": "不毁重构",
    "icon": "skill_kaltsit_s3",
-   "desc": "「指令：结构加固」施放时 Mon3tr 就地重构外壳：三连爆（半径逐次扩大，Mon3tr 攻击 {$rebuild_mult*100}% / {$rebuild_mult*50}% / {$rebuild_mult*50}% 真实伤害）并眩晕 {$rebuild_stun} 秒；精英二后「指令：熔毁」收尾同样三连爆（间隔 {$melt_echo_gap} 秒、后 2 次 {$melt_echo_mult*100}% 伤害）并眩晕 {$melt_stun} 秒（精英减半，Boss 免疫）",
+   "desc": "「指令：结构加固」施放时 Mon3tr 就地重构外壳：连续爆炸三次（半径逐次扩大，Mon3tr 攻击 {$rebuild_mult*100}% / {$rebuild_mult*50}% / {$rebuild_mult*50}% 真实伤害）并眩晕 {$rebuild_stun} 秒；精英二后「指令：熔毁」结束时同样连续爆炸三次（间隔 {$melt_echo_gap} 秒、后 2 次 {$melt_echo_mult*100}% 伤害）并眩晕 {$melt_stun} 秒（精英减半，Boss 免疫）",
    "routes": {
     "shell": {
      "id": "s1_shell2",
@@ -634,7 +634,7 @@
      "id": "melt_triple2",
      "name": "不毁重构·余焰",
      "icon": "skill_kaltsit_s3",
-     "desc": "「指令：熔毁」三连爆后，爆心留下 {$melt4_dur} 秒熔渣：每 {$melt4_every} 秒对半径 {$melt_r} 内的敌人造成 Mon3tr 攻击 {$melt4_mult*100}% 真实伤害"
+     "desc": "「指令：熔毁」连续爆炸三次后，爆心留下 {$melt4_dur} 秒熔渣：每 {$melt4_every} 秒对半径 {$melt_r} 内的敌人造成 Mon3tr 攻击 {$melt4_mult*100}% 真实伤害"
     }
    }
   },
@@ -642,7 +642,7 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "天赋「指挥」治疗量提升至 +{$e2_heal*100-100}%；解锁三技能「指令：熔毁」：Mon3tr {$s3_dur} 秒内爪击改为真实伤害且伤害 ×{$s3_mult}；结束时熔毁：周围 {$melt_r} 内造成 {$melt_mult} 倍真实伤害；普攻质变「八面展开」：Mon3tr 前后同时出爪（身后一爪 {$m_back_mult*100}%）；「回防」：队长受到攻击时，Mon3tr 跃回队长身边，对周围半径 {$leap_r} 内的敌人造成 ×{$leap_mult} 伤害并击退（每 {$guard_cd} 秒至多一次）",
+   "desc": "天赋「指挥」治疗量提升至 +{$e2_heal*100-100}%；解锁三技能「指令：熔毁」：Mon3tr {$s3_dur} 秒内爪击改为真实伤害且伤害 ×{$s3_mult}；结束时熔毁：周围 {$melt_r} 内造成 {$melt_mult} 倍真实伤害；普通攻击强化「八面展开」：Mon3tr 前后同时出爪（身后一爪 {$m_back_mult*100}%）；「回防」：队长受到攻击时，Mon3tr 跃回队长身边，对周围半径 {$leap_r} 内的敌人造成 ×{$leap_mult} 伤害并击退（每 {$guard_cd} 秒至多一次）",
    "attack": {
     "name": "回防",
     "desc": "队长受到攻击时，Mon3tr 跃回队长身边，落地对周围半径 {$leap_r} 内的敌人造成 ×{$leap_mult} 伤害并击退（每 {$guard_cd} 秒至多一次）；「八面展开」前后同时出爪照旧（身后一爪 {$m_back_mult*100}%）"

@@ -574,7 +574,7 @@
      "desc": "替身唱起阿戈尔挽歌：每 {$elegy_every} 秒一圈水纹外扩，减速范围 ×{$elegy_r_mult}（{$doll_r*$elegy_r_mult}）"
     }
    },
-   "branch_desc": "「困兽」生存的技巧期间环斩更大；「阿戈尔挽歌」替身水纹减速翻倍；后续沿路线强化",
+   "branch_desc": "「困兽」扩大「生存的技巧」期间的环斩范围；「阿戈尔挽歌」扩大替身的减速范围",
    "bot": "beast"
   },
   {
@@ -588,7 +588,7 @@
      "id": "beast2",
      "name": "困兽·反噬",
      "icon": "skill_specter_s1",
-     "desc": "「生存的技巧」期间每次环斩起手把周围 {$reach*$beast2_r_k:0} 内的敌人拉近 {$beast2_dist}（精英减半，Boss 不动）"
+     "desc": "「生存的技巧」期间每次环斩起手把周围 {$reach*$beast2_r_k:0} 内的敌人拉近 {$beast2_dist}（精英减半，Boss 免疫拉拽）"
     },
     "elegy": {
      "id": "elegy2",
@@ -602,7 +602,7 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「生存的重压」：环斩间隔 ×{$s3_cd_mult}、每斩 ×{$s3_mult}，对生命低于 50% 的敌人再 ×{$s3_low_mult}；普攻质变「替身闪现」：每第 3 次环斩，替身在附近敌群最密处现身，释放 {$flash_spins} 次法术脉冲（半径 {$flash_r}，每次命中最近 {$flash_n} 个，{$flash_mult*100}% 伤害）后碎成泡沫消失",
+   "desc": "解锁三技能「生存的重压」：环斩间隔 ×{$s3_cd_mult}、每斩 ×{$s3_mult}，对生命低于 50% 的敌人再 ×{$s3_low_mult}；普通攻击强化「替身闪现」：每第 3 次环斩，替身在附近敌群最密处现身，释放 {$flash_spins} 次法术脉冲（半径 {$flash_r}，每次命中最近 {$flash_n} 个，{$flash_mult*100}% 伤害）后碎成泡沫消失",
    "attack": {
     "name": "替身闪现",
     "desc": "每第 3 次环斩，替身在 {$flash_range} 内敌群最密处从水花里现身，以自身为中心释放 {$flash_spins} 次法术脉冲（半径 {$flash_r}，每次命中最近的 {$flash_n} 个敌人，优先首领与精英，为环斩的 {$flash_mult*100}% 伤害），随后碎成泡沫消失；同时最多 1 个，替身跟随队长期间不出现"

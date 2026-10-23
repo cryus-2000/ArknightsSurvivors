@@ -602,7 +602,7 @@ func _draw_entry() -> void:
 	if pool.size() >= 2:
 		_brackets(Rect2(840, _p(250, 176), 200, _p(300, 270)), Color(1, 1, 1, 0.85))
 	HS.para(ci, Rect2(840, _p(210, 138), 210, 36), UI.fa(UI.VIOLET, 0.9))
-	UI.text_at(ci, f, Vector2(945, _p(228, 156)), "卡池 · 未解锁 %d 名" % locked.size(), 15, Color.WHITE, "mm", true)
+	UI.text_at(ci, f, Vector2(945, _p(228, 156)), "寻访范围 · %d 名" % locked.size(), 15, Color.WHITE, "mm", true)
 	var r1 := Rect2(620, D.y - 84, 300, 62)
 	var r0 := Rect2(940, D.y - 88, 310, 68)
 	HS.ghost_btn(ci, f, r1, "定向寻访  （%d 张）" % _cost_pick(), "", 1.0)
@@ -735,7 +735,7 @@ func _draw_pick() -> void:
 			ci.draw_line(Vector2(876, y + 44), Vector2(1060, y + 44), UI.fa(HS.INK, 0.2), 1.0)
 		_figure(od2, Vector2(1160, D.y - 130), 3.0, Color(0.16, 0.17, 0.21))
 		if not _phone:
-			UI.text_at(ci, f, Vector2(820, D.y - 112), "指定 1 名未解锁干员加入名册，解锁后显示立绘。", 14, HS.INK, "lm")
+			UI.text_at(ci, f, Vector2(820, D.y - 112), "指定 1 名未招募干员加入名册，招募后显示干员立绘。", 14, HS.INK, "lm")
 		HS.reveal = 1.0
 	_bottom()
 	var bb := Rect2(D.x - 560, D.y - 72, 210, 56)
@@ -1021,7 +1021,7 @@ func _draw_summary() -> void:
 	HS.bottom_bar(ci, D, 88)
 	var left := _vouchers()
 	var more: bool = (left > 0 or _can_direct()) and not Roster.locked_ids().is_empty()
-	UI.text_at(ci, f, Vector2(64, D.y - 44), "已加入名册。新干员可在选人页选为队长。" + ("   剩余寻访凭证 × %d" % left if more else ""), 16, UI.TEXT, "lm")
+	UI.text_at(ci, f, Vector2(64, D.y - 44), "已加入名册。新干员可在编队界面设为队长。" + ("   剩余寻访凭证 × %d" % left if more else ""), 16, UI.TEXT, "lm")
 	var br := Rect2(D.x - 330, D.y - 74, 310, 60)
 	HS.main_btn(ci, f, br, "继续寻访" if more else "完成", "")
 	_btn(br, "ok")
