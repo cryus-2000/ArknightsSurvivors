@@ -9,6 +9,7 @@ extends Node
 
 const Game = preload("res://scripts/game.gd")
 const Meta = preload("res://scripts/core/meta.gd")
+const Bal = preload("res://scripts/core/balance.gd")   # 质变旋钮从 balance.json meta 段读，调数值不用改测试
 
 var game: Node
 var c
@@ -52,13 +53,13 @@ func _process(_d: float) -> void:
 		game.hp = -5.0
 	elif frames == 6:
 		ok(game.state != game.S.DEAD and game.hp >= 1.0 and game.rfx.rule("last_stand") == 0, "濒死免死：保留 1 点生命并用掉（state %d hp %.1f）" % [game.state, game.hp])
-		ok(game.invuln >= 1.0, "濒死免死：1.5 秒无敌（%.2f）" % game.invuln)
+		ok(game.invuln >= Bal.v("meta/last_stand_inv", 1.5) - 0.5, "濒死免死：无敌（%.2f）" % game.invuln)
 		# 绝处逢生：免死用掉后再次致命，复活并回到 50% 最大生命、3 秒无敌
 		game.invuln = 0.0
 		game.hp = -5.0
 	elif frames == 7:
-		ok(game.state != game.S.DEAD and game.rfx.rule("revive") == 0 and game.hp >= game.max_hp * 0.45, "绝处逢生：复活并回到约 50%% 最大生命（state %d hp %.1f / %.1f）" % [game.state, game.hp, game.max_hp])
-		ok(game.invuln >= 2.0, "绝处逢生：3 秒无敌（%.2f）" % game.invuln)
+		ok(game.state != game.S.DEAD and game.rfx.rule("revive") == 0 and game.hp >= game.max_hp * (Bal.v("meta/revive_hp", 0.5) - 0.05), "绝处逢生：复活并回到设定比例的最大生命（state %d hp %.1f / %.1f）" % [game.state, game.hp, game.max_hp])
+		ok(game.invuln >= Bal.v("meta/revive_inv", 3.0) - 0.5, "绝处逢生：无敌（%.2f）" % game.invuln)
 		game.hp = game.max_hp
 	elif frames == 120:
 		ok(relic_seen or game.relics.size() > 0, "战利品意识：开局 1 秒后打开首个藏品三选一（见过 %s，藏品 %d）" % [relic_seen, game.relics.size()])
@@ -112,7 +113,7 @@ func test_low_regen() -> void:
 	var full: float = c.regen_per_sec()
 	game.hp = game.max_hp * 0.2
 	var low: float = c.regen_per_sec()
-	ok(full > 0.0 and is_equal_approx(low, full * 2.0), "生命感悟Ⅲ：生命低于 35%% 时回复翻倍（%.2f → %.2f）" % [full, low])
+	ok(full > 0.0 and is_equal_approx(low, full * Bal.v("meta/low_regen_mult", 2.0)), "生命感悟Ⅲ：生命低于 35%% 时回复放大（%.2f → %.2f）" % [full, low])
 	game.hp = game.max_hp * 0.5
 	ok(is_equal_approx(c.regen_per_sec(), full), "生命感悟Ⅲ：生命 50% 时不翻倍")
 	game.hp = game.max_hp
@@ -121,9 +122,9 @@ func test_low_regen() -> void:
 func test_execute() -> void:
 	var hd: Dictionary = c.make_hit("test")
 	var e: Dictionary = spawn("stone", Vector2(300, 0))
-	e.hp = e.maxhp * 0.14
+	e.hp = e.maxhp * Bal.v("meta/execute_pct", 0.15) * 0.9
 	c.damage(e, 0.5, hd)
-	ok(e.dead, "处决：普通敌人 < 15% 直接击杀")
+	ok(e.dead, "处决：普通敌人低于阈值直接击杀")
 	var e2: Dictionary = spawn("stone", Vector2(300, 100))
 	e2.hp = e2.maxhp * 0.5
 	c.damage(e2, 0.5, hd)
@@ -132,12 +133,12 @@ func test_execute() -> void:
 	c.kill(e2)
 	var el: Dictionary = spawn("stone", Vector2(300, -100))
 	el.elite = true
-	el.hp = el.maxhp * 0.12
+	el.hp = el.maxhp * Bal.v("meta/execute_elite_pct", 0.08) * 1.6
 	c.damage(el, 0.5, hd)
-	ok(not el.dead, "处决：精英 12% 不处决（阈值 8%）")
-	el.hp = el.maxhp * 0.07
+	ok(not el.dead, "处决：精英高于阈值不处决")
+	el.hp = el.maxhp * Bal.v("meta/execute_elite_pct", 0.08) * 0.9
 	c.damage(el, 0.5, hd)
-	ok(el.dead, "处决：精英 < 8% 直接击杀")
+	ok(el.dead, "处决：精英低于阈值直接击杀")
 	var b: Dictionary = game.spawner.spawn_enemy("knight_boss", game.ppos + Vector2(2000, 0))
 	game.bosses.append(b)
 	b.hp = b.maxhp * 0.05
@@ -162,7 +163,7 @@ func test_calm() -> void:
 	game.rfx.calm_t = 6.0
 	c.enemy_hit(20.0, {}, true, true)
 	var lost_c: float = game.max_hp - game.hp
-	ok(lost_n > 0.0 and lost_c < lost_n * 0.6, "静守：5 秒未受伤后下一击减半（%.1f → %.1f）" % [lost_n, lost_c])
+	ok(lost_n > 0.0 and lost_c < lost_n * (Bal.v("meta/calm_mult", 0.5) + 0.1), "静守：5 秒未受伤后下一击减伤（%.1f → %.1f）" % [lost_n, lost_c])
 	game.hp = game.max_hp
 
 
