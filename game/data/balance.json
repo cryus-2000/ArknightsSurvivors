@@ -442,7 +442,7 @@
   "_doc": "入队加成（docs/83，用户 10-13 定）：编队每多 1 名干员（开局干员不算，最多算 hp_member_cap 人），主控最大生命 ×(1 + hp_per_member × 人数)（docs/46 §6，每人 +15%），主控生命回复 + regen_per_member × 人数（生命 / 秒，加在 regen 上，吃 heal_mult）。招募卡与属性面板的数字都从这里读。regen_per_member 0 = 关",
   "hp_per_member": 0.15,
   "hp_member_cap": 3,
-  "regen_per_member": 0.2,
+  "regen_per_member": 0.15,
   "leader_hp_mult": 0.9,
   "op_atk_base": 0.9,
   "_base_trim": "基础砍（docs/109 §14 v4，用户 10-22「局外树满点数值太碎，砍干员基础数值，把差值留给树」）：leader_hp_mult 乘队长最大生命的基础值（JSON leader 段 / 博士），op_atk_base 是干员攻击倍率 op_atk 的基础值（全员攻击同比）；入队回复 0.6 → 0.2（r3，用户 10-22：基础砍优先放在入队回复和攻击，队长生命 ×0.85 偏多回到 ×0.9；攻击不砍超 10%）。都是基础值，不在属性面板里另列来源",
@@ -457,7 +457,7 @@
   "_regen_card": "博士被动「自愈」每级加的生命回复（生命 / 秒；docs/83）",
   "regen_card": 0.6,
   "_base_regen_mult": "队长自带基础回复（干员 leader 段 regen）的倍率，缺省 1；不影响入队台阶、「自愈」、藏品",
-  "base_regen_mult": 1
+  "base_regen_mult": 0.7
  },
  "growth": {
   "_doc": "被动卡数值（docs/83）。armor_pct：生存卡「硬化」每级让队长受到的物理伤害 ×(1 − armor_pct)，乘算（4 级 ×0.92^4 ≈ 0.716，即 −28.4%）；10-13 用户选方案 B，取代原来每级物理减伤 +2（固定值跟不上后期敌人攻击，docs/83 §4）。作用于所有物理伤害（含不吃护甲的冲击环），在固定减伤之前算",
@@ -487,6 +487,21 @@
   "_doc": "任意来源 2 秒合计掉血上限（docs/46 §6）：超过最大生命 × any_2s_cap 的部分乘 any_excess_mult",
   "any_2s_cap": 0.55,
   "any_excess_mult": 0.6
+ },
+ "crate": {
+  "_doc": "补给箱回血（docs/133，用户 10-24：参照吸血鬼幸存者靠打可破坏道具回血，基础回复同步下调：sustain/base_regen_mult 1 → 0.7、squad/regen_per_member 0.2 → 0.15）。补给箱（run/spawner.gd spawn_chest，hp 22，机器人 / 真人打碎）刷出间隔前松后紧：early_until 秒前 early_lo–early_hi，mid_until 秒前 mid_lo–mid_hi，之后 late_lo–late_hi；场上同时最多 3 个。打碎（run/combat.gd kill）：pack_p 掉应急补给（拾取回 pack_pct 最大生命，不吃 heal_mult），magnet_p 掉磁铁，shield_p 直接 +1 层临时护盾（最多到护盾上限 +1）；源石锭 / 灯油照旧。15% 伪装成箱形恐鱼的不掉。pack_p 0 = 关，回到旧行为",
+  "pack_p": 0.85,
+  "pack_pct": 0.25,
+  "magnet_p": 0.1,
+  "shield_p": 0.1,
+  "early_until": 300,
+  "early_lo": 55,
+  "early_hi": 75,
+  "mid_until": 480,
+  "mid_lo": 40,
+  "mid_hi": 55,
+  "late_lo": 28,
+  "late_hi": 40
  },
  "pickup": {
   "_doc": "掉落拾取（run/pickups.gd）：场上宝石超过 gem_overflow 颗时，新掉的经验直接入账（数值 9/30 协调人定 350 → 150：高手无感、扫图差的玩家中后期不再被饿着，场上宝石上限减半利于性能）；磁铁 / 回复药剂（run/combat.gd kill）：精英与 Boss 必掉其一，磁铁占 elite_magnet_share；小怪在场上道具 < item_cap 时按 magnet_kill_chance / heal_kill_chance 掉（两个区间独立）；magnet_cap 2（协调人 9/30 定：小怪掉磁铁只看场上磁铁数，不再被满血不捡的回复药剂占位；magnet_kill_chance 0.0025 → 0.00375）",

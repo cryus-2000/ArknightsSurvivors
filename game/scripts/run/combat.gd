@@ -1171,6 +1171,20 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 			g.pickups.drop(e.pos + Vector2.from_angle(g.rng_drop.randf() * TAU) * g.rng_drop.randf_range(4.0, 18.0), "ingot", 1.0)
 		if g.rng_drop.randf() < 0.3:
 			g.pickups.drop(e.pos + Vector2(10, 6), "oil", 15.0)
+		# 补给箱回血（docs/133，用户 10-24：参照吸血鬼幸存者靠打可破坏道具回血）：箱子里主要是应急补给（回 crate/pack_pct 最大生命，不吃 heal_mult），
+		# 少量磁铁 / 临时护盾；伪装箱形恐鱼（现形）和祭坛不走这里。crate/pack_p 0 = 关（旧行为：只有源石锭 / 灯油）
+		var cpk: float = Bal.v("crate/pack_p", 0.0)
+		if cpk > 0.0:
+			if g.rng_drop.randf() < cpk:
+				g.pickups.drop(e.pos + Vector2(-10, -4), "pack", Bal.v("crate/pack_pct", 0.25))
+				g.pickups.item_log["pack_drop"] += 1
+			if g.rng_drop.randf() < Bal.v("crate/magnet_p", 0.0):
+				g.pickups.drop(e.pos + Vector2(14, -6), "magnet", 1.0)
+			if g.rng_drop.randf() < Bal.v("crate/shield_p", 0.0):
+				g.shield = mini(g.shield + 1, maxi(g.shield_max, 1) + 1)
+				g.shield_pop = 0.4
+				g.vfx.add_text(e.pos + Vector2(0, -30), "护盾 +1", Color(0.55, 0.85, 1.0), 16)
+				g.pickups.item_log["crate_shield"] += 1
 		return
 	if e.type != "tear":
 		g.kills += 1

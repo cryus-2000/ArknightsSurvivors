@@ -45,7 +45,7 @@ func drop(pos: Vector2, kind: String, val: float) -> void:
 	# 2.5D：掉落物带高度，从敌人位置弹出并落地回弹。弹出随机走独立随机流（局种子派生，§8.13）：掉落怎么改都不影响对局 g.rng 的序列
 	var r := _drop_rng()
 	var sp := Vector2.from_angle(r.randf() * TAU) * r.randf_range(20.0, 70.0)
-	var special := kind == "magnet" or kind == "heal" or kind == "chest"
+	var special := kind == "magnet" or kind == "heal" or kind == "chest" or kind == "pack"
 	g.gems.append({"pos": pos, "kind": kind, "val": val, "dead": false, "mag": false, "mag_t": 0.0,
 		"z": 6.0, "vz": r.randf_range(260.0, 300.0) if special else r.randf_range(190.0, 260.0), "vel": sp * (0.5 if special else 1.1),
 		"special": special, "landed": false, "age": 0.0, "seed": r.randf() * TAU, "out_t": 0.0})
@@ -228,6 +228,17 @@ func _collect(g_item: Dictionary) -> void:
 			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 420.0, "life": 0.6, "max": 0.6, "col": Color(1.0, 0.45, 0.5)})
 			g.vfx.add_text(g.ppos + Vector2(0, -90), "磁铁：吸取全场掉落", Color(1.0, 0.55, 0.6), 17)
 			Sfx.play("relic", -4.0, 1.2, 0.0)
+		"pack":
+			# 补给箱的应急补给（docs/133）：回 val × 最大生命，走独立路径：不吃 heal_mult（有医疗 / 无医疗的编队拿到一样多），照吃侵蚀创口
+			item_log["pack_pick"] += 1
+			var pv: float = g.max_hp * g_item.val * maxf(0.0, 1.0 - Bal.v("enemy/wound_heal_cut", 0.10) * g.wound)
+			var got: float = minf(pv, maxf(0.0, g.max_hp - g.hp))
+			g.heal_log["补给"] = float(g.heal_log.get("补给", 0.0)) + got
+			g.hp = minf(g.max_hp, g.hp + pv)
+			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 90.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.65)})
+			g.vfx.sparks(g.ppos + Vector2(0, -20), Vector2.ZERO, Color(0.5, 1.0, 0.65), 16, 200.0)
+			g.vfx.add_text(g.ppos + Vector2(0, -90), "+%d 生命" % int(pv), Color(0.5, 1.0, 0.65), 18)
+			Sfx.play("relic", -4.0, 1.5, 0.0)
 		"heal":
 			item_log.heal_pick += 1
 			var hv := g.max_hp * 0.3
@@ -242,7 +253,7 @@ func item_col(kind: String) -> Color:
 	match kind:
 		"magnet":
 			return Color(1.0, 0.5, 0.55)
-		"heal":
+		"heal", "pack":
 			return Color(0.5, 1.0, 0.65)
 		"chest":
 			return UI.GOLD
@@ -250,7 +261,7 @@ func item_col(kind: String) -> Color:
 
 
 func item_name(kind: String) -> String:
-	return {"magnet": "磁铁", "heal": "回复药剂"}.get(kind, "")
+	return {"magnet": "磁铁", "heal": "回复药剂", "pack": "应急补给"}.get(kind, "")
 
 
 ## 前 12 级保持原曲线，之后逐级增加费用，至 30 级达到后期倍率。
@@ -264,7 +275,7 @@ func xp_required(level: int) -> float:
 
 ## 平衡输出（telemetry）：一局经验总量、其中溢出直接入账的量、按分钟分段的溢出量
 var xp_total := 0.0
-var item_log := {"magnet_mob": 0, "magnet_elite": 0, "heal_mob": 0, "heal_elite": 0, "magnet_pick": 0, "heal_pick": 0, "mob_rolled": 0, "mob_capped": 0, "heal_low": 0}   # 磁铁 / 回复药剂的掉落（按小怪 / 精英 Boss）与拾取次数（平衡输出）
+var item_log := {"magnet_mob": 0, "magnet_elite": 0, "heal_mob": 0, "heal_elite": 0, "magnet_pick": 0, "heal_pick": 0, "mob_rolled": 0, "mob_capped": 0, "heal_low": 0, "pack_drop": 0, "pack_pick": 0, "crate_shield": 0}   # 磁铁 / 回复药剂的掉落（按小怪 / 精英 Boss）与拾取次数（平衡输出）
 ## 经验分来源（docs/38 §8.13）：walk 走近捡、magnet 磁铁吸回、recall 视野外回收（含兜底直接入账）；守恒：
 ## xp_dropped = walk + magnet + recall + xp_on_ground()（BALANCE 逐局，tools/check.py 断言）
 var xp_src := {"walk": 0.0, "magnet": 0.0, "recall": 0.0}

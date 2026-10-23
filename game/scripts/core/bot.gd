@@ -233,7 +233,7 @@ func _expert_goal(p: Vector2, near: Array) -> Vector2:
 		var w := d
 		if gm.kind == "oil":
 			w *= 0.25 if g.lamp < 60.0 else 0.8
-		elif gm.kind == "chest" or gm.kind == "heal":
+		elif gm.kind == "chest" or gm.kind == "heal" or gm.kind == "pack":
 			w *= 0.4
 		if w < best_w:
 			best_w = w

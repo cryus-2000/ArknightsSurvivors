@@ -679,8 +679,8 @@ func _pq_item(g_item: Dictionary, pos: Vector2, gz: float, kind: String, t: floa
 			_pq_sprite("chest", pos)
 		"ingot":
 			_pq_sprite("ingot", pos + Vector2(0, sin(t * 3.0 + pos.y) * 1.5 if gz <= 1.0 else 0.0))
-		"magnet", "heal":
-			_pq_sprite("pickup_" + kind, pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
+		"magnet", "heal", "pack":
+			_pq_sprite("pickup_" + ("heal" if kind == "pack" else kind), pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))   # 应急补给先用回复药剂的贴图占位（素材单 art/incoming/codex_order_supply_crate.md）
 	g.draw_off = Vector2.ZERO
 
 
