@@ -888,7 +888,7 @@ func op_idle(cid: String) -> Dictionary:
 func load_op_tex(cid: String) -> void:
 	var cdef: Dictionary = Character.load_def(cid)
 	var csp: Dictionary = cdef.get("sprites", {})
-	for kind in ["idle", "run", "attack", "skill"] + cdef.get("extra_sprites", []):
+	for kind in ["idle", "run", "attack", "skill", "move_attack"] + cdef.get("extra_sprites", []):
 		if csp.has(kind):
 			var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
 			if g.tex.get(tn) == null:
