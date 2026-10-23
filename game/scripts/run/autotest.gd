@@ -685,6 +685,7 @@ func step() -> void:
 			if not g.fx.is_empty() and g.fx[-1].get("kind", "") == "marc":
 				g.fx[-1].tier = t
 				g.fx[-1].t = -1.0   # 不让同帧命中再改它
+				g.fx[-1].op = ""   # 演示刀光固定在原处，不跟主控
 			g.vfx._tier_fx({"pos": hp, "r": 14.0}, {"op": g.ch.id}, t)
 	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--elite2") and g.at_frames == 20:
 		# 特效连拍（docs/50 §25 特效处理）：队友直接精二（三个技能都解锁）
