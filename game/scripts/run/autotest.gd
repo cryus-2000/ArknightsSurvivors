@@ -54,6 +54,7 @@ var perf_dump: FileAccess = null   # --perfdump=<路径>：逐帧 CSV（帧时�
 const PERF_DUMP_KEYS := ["engine", "draw_world", "draw_hud", "draw_fxadd", "draw_fg", "autotest", "pre", "spawn", "grid", "enemies", "squad", "bullets", "ebullets",
 	"relic", "misc", "fx", "cleanup", "visuals", "tail", "dw_sorted_entities", "dw_gems", "dw_ground", "dw_mire", "dw_zone", "dw_fx", "dw_bullets", "dw_shadows", "dw_warns_auras", "dw_ebullets_lobs_shocks", "dw_tells_outlines", "dw_snow_tail", "dw_shield_drones"]
 var opticalab := -1           # --opticalab=N（docs/50 §25）：每 N 帧轮换光学观感原型开 / 关；-1 = 还没读参数
+var fx1ab := 0                # --fx1ab=N（docs/50 §25.2）：每 N 帧轮换特效处理第 1 步开 / 关（光学观感开着时）
 var vfxab := -1               # --vfxab=N（docs/54）：每 N 帧轮换 vfx.p2；-1 = 还没读参数
 var vfxdemo := false           # --vfxdemo：按固定时刻强制灯标点燃 / 升级 / 灯火暗淡 / 精英 / 拾取 / 商人（录对照片段用）
 var _vd_step := 0
@@ -364,6 +365,8 @@ func step() -> void:
 		for a in Cfg.dev_args():
 			if a.begins_with("--opticalab="):
 				opticalab = int(a.substr(12))
+			if a.begins_with("--fx1ab="):
+				fx1ab = int(a.substr(8))
 			if a == "--optical":
 				g.optical.force = 1   # 截图 / 录像：强制开光学观感（不改 balance）
 			if a == "--nooptical":
@@ -378,6 +381,8 @@ func step() -> void:
 	Dc.ab_step(g.at_frames)   # --clutterab=N：每 N 帧在降噪 0 档与当前档之间轮换（--perf 分 /d0 /dN 两桶）
 	if opticalab > 0 and g.at_frames % opticalab == 0 and g.optical != null:
 		g.optical.force = 0 if g.optical.force == 1 else 1   # --opticalab=N：同局轮换光学观感开 / 关（--perf 分 /opt /base 两桶）
+	if fx1ab > 0 and g.at_frames % fx1ab == 0 and g.optical != null:
+		g.optical.fx1_force = 0 if g.optical.fx1_force == 1 else 1   # --fx1ab=N：同局轮换特效处理第 1 步（--perf 分 /fx1 /fx0 两桶）
 	if vfxab > 0 and g.at_frames % vfxab == 0:
 		g.vfx.p2 = not g.vfx.p2   # --vfxab=N：每 N 帧轮换画面特效二轮开 / 关（docs/54 同局对照测量；--perf 分 /on /off 两桶）
 	if vfxdemo:
@@ -662,9 +667,24 @@ func step() -> void:
 				while not o.next_node().is_empty() and guard < 12:
 					o.advance("")
 					guard += 1
-	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--sptest") and g.at_frames % 45 == 0:
+	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--elite2") and g.at_frames == 20:
+		# 特效连拍（docs/50 §25 特效处理）：队友直接精二（三个技能都解锁）
 		for o in g.squad.ops:
-			o.fill_sp()
+			if o != g.ch:
+				var guard := 0
+				while not o.next_node().is_empty() and guard < 12:
+					o.advance("")
+					guard += 1
+	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--sptest") and g.at_frames % 45 == 0:
+		var only := -1
+		for a in Cfg.dev_args():
+			if a.begins_with("--onlyskill="):
+				only = int(a.substr(12))   # 特效连拍：只给队友充第 only 个技能（队长不充）
+		for o in g.squad.ops:
+			if only < 0:
+				o.fill_sp()
+			elif o != g.ch and o.skill_unlocked(only):
+				o.sp[only] = o.sp_need(only)
 	if g.mode == g.Mode.BALANCE:
 		if g.trace_every > 0.0 and g.state == g.S.PLAY and int(g.t / g.trace_every) != trace_last:
 			trace_last = int(g.t / g.trace_every)
@@ -1131,6 +1151,8 @@ func _perf_sample() -> void:
 		var w := "0-8" if g.t < 480.0 else ("8-10" if g.t < 600.0 else "10+")
 		if perf_min:
 			w = "m%02d" % int(g.t / 60.0) + ("F" if g.final_boss != null and not g.final_boss.dead else "")   # --perfmin：按游戏分钟分段，F = 最终 Boss 在场
+		if fx1ab > 0:
+			w += "/fx1" if g.optical.fx1 else "/fx0"   # --fx1ab：上一帧的特效处理开关（轮换在采样之后）
 		if opticalab > 0:
 			w += "/opt" if g.optical_on else "/base"   # --opticalab：上一帧是否在光学观感下画的（轮换在采样之后）
 		if vfxab > 0:

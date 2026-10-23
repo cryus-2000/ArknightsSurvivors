@@ -579,7 +579,7 @@ func spr_rot(name: String, frame: int, pos: Vector2, ang: float, scale := Game.P
 	var an := anchor_px if anchor_px.x >= 0.0 else Vector2(fw, fh) / 2.0
 	scale /= A.hires_of(tx)   # @2x 高清帧条（Codex fx30）：同一逻辑尺寸，像素密度加倍
 	g.draw_set_transform(pos + g.draw_off, ang, Vector2(-scale if flip else scale, scale))
-	g.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), col)
+	g.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (frame % frames), 0, fw, fh), FD.capc(col))
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -608,6 +608,8 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 	elif anchor_px.x >= 0.0:
 		f["anchor"] = anchor_px * A.hires_of(g.tex[name])
 	g.fx.append(f)
+	if g.optical_on and g.optical.fx1 and not ground:
+		g.optical.particles.fx_burst(name, pos, scale)   # 光学观感 ③：按这条帧条的本色补火星 / 碎片（限频、有上限）
 	return true
 
 

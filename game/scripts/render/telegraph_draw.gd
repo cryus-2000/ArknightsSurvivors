@@ -15,6 +15,55 @@ static func quiet(w: Dictionary) -> bool:
 	return o is Dictionary and not o.get("boss", false) and str(w.get("act", "")) in ["shot", "extra_volley"]
 
 
+## 预警形状的多边形（世界坐标；圆按贴地透视压扁）
+static func _poly(g, w: Dictionary, scale_k := 1.0) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	match w.shape:
+		"circle":
+			for q in 28:
+				var a: float = TAU * q / 28.0
+				pts.append(w.pos + Vector2(cos(a) * w.r, sin(a) * w.r * g.combat.GROUND_Y) * scale_k)
+		"line":
+			var d := Vector2.from_angle(w.ang)
+			var n: Vector2 = d.orthogonal() * float(w.wid) * scale_k
+			pts.append_array([w.pos + n, w.pos + d * w.len + n, w.pos + d * w.len - n, w.pos - n])
+		"cone":
+			pts.append(w.pos)
+			for q in 17:
+				pts.append(w.pos + Vector2.from_angle(w.ang - w.half + w.half * 2.0 * q / 16.0) * w.r * scale_k)
+	return pts
+
+
+## 斜线填充：45° 斜线按 2 世界像素格对齐、随时间缓慢流动，裁进预警形状；进度 k 用内层更密的斜线表示（结算前填满）
+static func _hatch(g, w: Dictionary, c: Color, a: float, k: float) -> void:
+	var poly := _poly(g, w)
+	if poly.size() < 3:
+		return
+	var bb := Rect2(poly[0], Vector2.ZERO)
+	for p in poly:
+		bb = bb.expand(p)
+	var gap: float = maxf(10.0, roundf(maxf(bb.size.x, bb.size.y) / 40.0 / 2.0) * 2.0)
+	var off: float = fmod(g.t * 12.0, gap)
+	var col := Color(c.r, c.g, c.b, a)
+	var x: float = bb.position.x - bb.size.y + off
+	while x < bb.end.x:
+		var a0 := Vector2(x, bb.position.y)
+		var a1 := Vector2(x + bb.size.y, bb.end.y)
+		for seg in Geometry2D.intersect_polyline_with_polygon(PackedVector2Array([a0, a1]), poly):
+			g.draw_polyline(seg, col, 2.0)
+		x += gap
+	if k > 0.05:
+		var inner := _poly(g, w, k) if w.shape != "line" else _poly_line_k(w, k)
+		if inner.size() >= 3:
+			g.draw_colored_polygon(inner, Color(c.r, c.g, c.b, a * 0.35))
+
+
+static func _poly_line_k(w: Dictionary, k: float) -> PackedVector2Array:
+	var d := Vector2.from_angle(w.ang)
+	var n: Vector2 = d.orthogonal() * float(w.wid)
+	return PackedVector2Array([w.pos + n, w.pos + d * w.len * k + n, w.pos + d * w.len * k - n, w.pos - n])
+
+
 static func draw_fills(g) -> void:
 	for w in g.warns:
 		if w.get("dim", false) or quiet(w):
@@ -43,51 +92,56 @@ static func draw_fills(g) -> void:
 		elif st == 3:
 			fa *= 0.45
 		fa *= g.world.tell_fill   # 后期降噪（render/declutter tell_fill_k，缺省 1）：填充减淡、轮廓（world.draw_warn_outlines）加粗
+		var hatched: bool = g.optical_on and g.optical.fx1 and not w.done
+		if hatched:
+			if st != 0 and st != 4:
+				_hatch(g, w, c, clampf(fa * 3.2, 0.25, 0.75), k)   # 光学观感 ④（10-23）：地面预警一律斜线填充 + 闪烁描边（world.draw_warn_outlines），危险色
 		var fill := Color(c.r, c.g, c.b, fa * 1.3)
 		var line := Color(c.r, c.g, c.b, oa)
 		var bright := Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, oa)
-		match w.shape:
-			"circle":
-				g.draw_set_transform(w.pos, 0.0, Vector2(1.0, g.combat.GROUND_Y))
-				if st == 4 and not w.done:
-					# ④ 空心环：只画线；进度用一圈从内向外长的细环表示
-					g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 48, line, 2.5)
-					g.draw_arc(Vector2.ZERO, maxf(2.0, w.r * k), 0.0, TAU, 40, Color(c.r, c.g, c.b, oa * 0.5), 1.5)
-				else:
-					g.draw_circle(Vector2.ZERO, w.r, fill)
-					g.draw_circle(Vector2.ZERO, w.r * k, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
-					g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 40, line, 2.5)
-				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-			"line":
-				g.draw_set_transform(w.pos, w.ang, Vector2.ONE)
-				g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), fill)
-				if st == 2 and not w.done:
-					# ② 斜条纹：间距 28，随结算进度向终点流动；总数按线长封顶（820 长约 30 条）
-					var sc := Color(c.r, c.g, c.b, fa * 1.4)
-					var off: float = fmod(k * 140.0 + g.t * 40.0, 28.0)
-					var x: float = off - w.wid
-					while x < w.len:
-						g.draw_line(Vector2(x, -w.wid), Vector2(x + w.wid, w.wid), sc, 3.0)
-						x += 28.0
-				else:
-					g.draw_rect(Rect2(0.0, -w.wid * k, w.len, w.wid * 2.0 * k), Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
-				g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), line, false, 2.0)
-				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-			"cone":
-				var pts := PackedVector2Array([w.pos])
-				var pts2 := PackedVector2Array([w.pos])
-				for q in 17:
-					var a: float = w.ang - w.half + w.half * 2.0 * q / 16.0
-					var dv := Vector2.from_angle(a)
-					pts.append(w.pos + dv * w.r)
-					pts2.append(w.pos + dv * w.r * k)
-				g.draw_colored_polygon(pts, fill)
-				if k > 0.05:
-					g.draw_colored_polygon(pts2, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * (1.0 if st == 3 else 1.6)))
-				pts.append(w.pos)
-				g.draw_polyline(pts, line, 2.5)
-				if st == 3 and not w.done:
-					g.draw_arc(w.pos, w.r, w.ang - w.half, w.ang + w.half, 20, bright, 3.5)   # ③ 亮边：外弧 130% 亮
+		if not hatched:
+			match w.shape:
+				"circle":
+					g.draw_set_transform(w.pos, 0.0, Vector2(1.0, g.combat.GROUND_Y))
+					if st == 4 and not w.done:
+						# ④ 空心环：只画线；进度用一圈从内向外长的细环表示
+						g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 48, line, 2.5)
+						g.draw_arc(Vector2.ZERO, maxf(2.0, w.r * k), 0.0, TAU, 40, Color(c.r, c.g, c.b, oa * 0.5), 1.5)
+					else:
+						g.draw_circle(Vector2.ZERO, w.r, fill)
+						g.draw_circle(Vector2.ZERO, w.r * k, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
+						g.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 40, line, 2.5)
+					g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				"line":
+					g.draw_set_transform(w.pos, w.ang, Vector2.ONE)
+					g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), fill)
+					if st == 2 and not w.done:
+						# ② 斜条纹：间距 28，随结算进度向终点流动；总数按线长封顶（820 长约 30 条）
+						var sc := Color(c.r, c.g, c.b, fa * 1.4)
+						var off: float = fmod(k * 140.0 + g.t * 40.0, 28.0)
+						var x: float = off - w.wid
+						while x < w.len:
+							g.draw_line(Vector2(x, -w.wid), Vector2(x + w.wid, w.wid), sc, 3.0)
+							x += 28.0
+					else:
+						g.draw_rect(Rect2(0.0, -w.wid * k, w.len, w.wid * 2.0 * k), Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * 1.6))
+					g.draw_rect(Rect2(0.0, -w.wid, w.len, w.wid * 2.0), line, false, 2.0)
+					g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				"cone":
+					var pts := PackedVector2Array([w.pos])
+					var pts2 := PackedVector2Array([w.pos])
+					for q in 17:
+						var a: float = w.ang - w.half + w.half * 2.0 * q / 16.0
+						var dv := Vector2.from_angle(a)
+						pts.append(w.pos + dv * w.r)
+						pts2.append(w.pos + dv * w.r * k)
+					g.draw_colored_polygon(pts, fill)
+					if k > 0.05:
+						g.draw_colored_polygon(pts2, Color(c.r * 1.7, c.g * 1.7, c.b * 1.7, fa * (1.0 if st == 3 else 1.6)))
+					pts.append(w.pos)
+					g.draw_polyline(pts, line, 2.5)
+					if st == 3 and not w.done:
+						g.draw_arc(w.pos, w.r, w.ang - w.half, w.ang + w.half, 20, bright, 3.5)   # ③ 亮边：外弧 130% 亮
 		# 连发序号（凝视 1 / 2 / 3、叠影圈号）：circle 画在圈心上方，line / cone 画在起点
 		var sq: int = int(w.get("seq_no", 0))
 		if sq > 0 and not w.done:

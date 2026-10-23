@@ -617,6 +617,8 @@ func draw_god_rays(ci: CanvasItem, vs: Vector2, cp: Vector2) -> void:
 	var col: Array = gr.get("color", [1.8, 2.4, 2.8])
 	var a0: float = float(gr.get("alpha", 0.05))
 	var gk: float = Look.p("god") * Dc.at("god_k", g.world.dcrowd)   # 观感预设 render/look ≥ 3 减淡远景光束（加法层叠出的乳白雾感）；后期降噪 render/declutter god_k
+	if g.optical_on and g.optical.fx1:
+		return   # 光学观感 · 防油腻 ④（10-23）：环境雾只压暗不加白，加法远景光束（乳白雾）不画
 	var t: float = g.t
 	for k in int(gr.get("count", 6)):
 		var base := fposmod(k * 331.0 - cp.x * 0.5 + t * 6.0, span) - span / 2.0

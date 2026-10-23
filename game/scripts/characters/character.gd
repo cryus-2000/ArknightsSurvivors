@@ -622,6 +622,11 @@ func draw_pfx(floor_layer: bool) -> void:
 			"glow":
 				# 发光团：先胀后缩
 				var k2: float = sin(a * PI)
+				if g.optical_on and g.optical.fx1 and f.r >= 24.0 and c.r > 1.2 * maxf(c.g, c.b) and c.r > 0.6:
+					# 光学观感 ④（10-23）：大块红色发光团（凯尔希 / 维什戴尔原作红）不画整块地面填充（与敌方预警同形），改成描边 + 亮芯
+					cv.draw_arc(f.pos, f.r * (0.4 + 0.6 * k2), 0.0, TAU, 32, Color(c.r, c.g, c.b, minf(1.0, f.get("alpha", 0.35) * 1.6) * a), 2.0)
+					cv.draw_circle(f.pos, f.r * 0.18 * k2, Color(c.r, c.g, c.b, 0.8 * a))
+					continue
 				cv.draw_circle(f.pos, f.r * (0.4 + 0.6 * k2), Color(c.r, c.g, c.b, f.get("alpha", 0.35) * a))
 				cv.draw_circle(f.pos, f.r * 0.35 * k2, Color(c.r * 1.8, c.g * 1.8, c.b * 1.8, 0.7 * a))
 			"shard":

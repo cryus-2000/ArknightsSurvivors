@@ -584,6 +584,8 @@
   "optical_col_lamp_h": 0.075, "optical_col_lamp_s": 0.75, "optical_col_lamp_v": 1.0,
   "optical_col_loot_h": 0.13, "optical_col_loot_s": 0.25, "optical_col_loot_v": 1.0,
   "optical_ground_glow": 0.06,
+  "_optical_fx1_doc": "光学观感 · 特效处理第 1 步（10-23 用户定，render/optical.gd）：optical_fx1 总开关（0 = 回到上一版）；optical_fxq 压阶帧条（tools/optical_fx_quant.py 生成 art/incoming/optical_fx/）；optical_fx_cap 特效绘制色通道上限（0 = 不限）；optical_glow_budget 全屏发光总量预算（屏幕平均发光度，超出按比例压辉光与亮部）；optical_dl_max 特效动态照明同时最多几盏（≤ 12，着色器数组，不用 Light2D）；optical_dl_gain 动态照明强度；防油腻：optical_steps 辉光 / 光池 / 特效照明分几阶硬边环（0 = 平滑）、optical_local_r 队长周围局部预算半径（世界像素）、optical_local_budget 局部发光度上限（着色器）、optical_local_light 局部特效光强度总和上限、optical_local_bursts 局部喷发次数上限（0.5 秒衰减，超出新粒子压暗）；fx1 开着时加法远景光束（乳白雾）不画",
+  "optical_fx1": 1, "optical_fxq": 1, "optical_fx_cap": 1.4, "optical_glow_budget": 0.06, "optical_dl_max": 12, "optical_dl_gain": 1.3, "optical_steps": 3, "optical_local_r": 120, "optical_local_budget": 0.5, "optical_local_light": 1.6, "optical_local_bursts": 4,
   "_look_doc": "观感预设（用户 10-12「整体都有点白灰」，scripts/render/look.gd）：0 现状；1 角色受光封顶（灯火 × 亮度在主控身上封到 ×1.12 软膝）；2 + 设置亮度缺省 100%；3 + 暗部伽马 1.15 / 高光软肩 / 远景光束 60%；4 + 鲜艳度 +18%；5 + 白色不偏黄发灰（actor_neutral 0.7 只去暖 + white_lift 1 白色保护，用户 10-12「浊心斯卡蒂偏黄发灰」）。只改画面；单项可用 render/look_<键> 覆盖。10-12 缺省切到 4，同日再切到 5（各自单独提交；改回 4 即回退白色修正）",
   "look": 5,
   "_bright_b_doc": "亮度 B（用户 10-21「全局亮度再提高，还是有点暗」，对照 docs/112 §2）：look_toe 1.0 撤掉 L4 的暗部压缩（暗部 / 中间调回提，高光软肩、角色受光封顶不动）+ ambient_mult 1.3 灯火圈外环境光（map.gd，CanvasModulate 与角色受光同一份）。战场中间调约 +40–65%，截白占比不变。回退：两项删掉（toe 回到预设 1.15、ambient_mult 回到 1）",

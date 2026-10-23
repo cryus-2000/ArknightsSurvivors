@@ -25,6 +25,15 @@ uniform float caustics = 0.02;
 uniform float time = 0.0;
 uniform float emissive_th = 0.72;       // 亮度高于此（且偏饱和或近白）当发光体：不压暗、散辉光
 uniform float glow = 0.9;
+uniform vec4 dl_pos[12];               // ⑥ 特效动态照明（render/optical.gd _dyn_lights）：xy 窗口像素、z 半径（窗口像素）
+uniform vec4 dl_col[12];               // rgb = 颜色 × 强度（随寿命衰减）
+uniform int dl_n = 0;
+// 防油腻（10-23 用户同意，特效处理第 1 步）：辉光 / 光池 / 特效照明一律 steps 阶硬边环（不平滑），在美术像素格上算；
+// 以队长（灯火）为中心 local_r 窗口像素内的发光单独限量（local_budget），中心不糊
+uniform float steps = 0.0;              // 0 = 平滑（旧）；3 = 三阶硬边
+uniform float local_budget = 0.5;
+uniform float local_r = 240.0;
+uniform float glow_budget = 0.06;      // 全屏发光总量预算（屏幕平均发光度）：超出按比例压辉光与亮部（多个大招叠加不过曝，10-23 特效处理 ②）
 uniform float lut_on = 1.0;
 uniform float vignette = 0.12;
 uniform float hurt = 0.0;
@@ -66,11 +75,44 @@ void fragment() {
 	}
 	vec3 base = textureLod(screen_px, uv, 0.0).rgb;   // 显式取第 0 级：格子边上 uv 跳变会让自动 mip 选到高层级而发糊
 	float em = emissive(base);
+	// 全屏发光总量：mip 6 级上取 4×3 个点的发光度均值（≈ 屏幕平均），超预算的倍数决定压多少
+	float tot = 0.0;
+	for (int iy = 0; iy < 3; iy++) {
+		for (int ix = 0; ix < 4; ix++) {
+			tot += emissive(textureLod(screen_mip, vec2((float(ix) + 0.5) / 4.0, (float(iy) + 0.5) / 3.0), 6.0).rgb * 1.3);
+		}
+	}
+	tot /= 12.0;
+	float over = clamp(glow_budget / max(tot, 0.0001), 0.35, 1.0);
+	base *= 1.0 - em * (1.0 - over) * 0.45;   // 超预算时亮部按比例压暗（最多约 30%）
 	// ② 光池
-	float d = length(p - lamp_px) / max(lamp_r, 1.0);
+	vec2 pc = p;   // 光照 / 辉光取样位置：开阶梯时吸附到美术像素格中心（硬边环落在 2 px 格上）
+	if (steps > 0.5) {
+		pc = floor((p - grid_origin) / max(cell, 1.0)) * max(cell, 1.0) + grid_origin + max(cell, 1.0) * 0.5;
+	}
+	float d = length(pc - lamp_px) / max(lamp_r, 1.0);
 	float pool = 1.0 - smoothstep(0.4, 1.3, d);
+	if (steps > 0.5) {
+		pool = ceil(pool * steps - 0.001) / steps;
+	}
 	vec3 lit = base * mix(vec3(pool_dark), pool_warm, pool);
 	base = mix(lit, base, em);
+	// ⑥ 特效临时光：柔和半径（平方衰减），照亮已有的颜色（乘）+ 极淡的本色（加），发光体本身不再加
+	vec3 dla = vec3(0.0);
+	for (int i = 0; i < 12; i++) {
+		if (i >= dl_n) {
+			break;
+		}
+		float dd = length(pc - dl_pos[i].xy) / max(dl_pos[i].z, 1.0);
+		float f = 1.0 - smoothstep(0.0, 1.0, dd);
+		f *= f;
+		if (steps > 0.5) {
+			f = floor(f * steps + 0.35) / steps;   // 三阶硬边环
+		}
+		dla += dl_col[i].rgb * f;
+	}
+	dla = min(dla, vec3(1.2));
+	base += base * dla * 0.9 * (1.0 - em);   // 只照亮已有颜色，不加白（防油腻 ④）
 	// ③ LUT
 	if (lut_on > 0.5) {
 		base = lut_apply(base * brightness);
@@ -79,16 +121,30 @@ void fragment() {
 	}
 	// ④ 辉光：mip 2–5（多级模糊），只取发光部分
 	vec3 g = vec3(0.0);
-	vec3 m2 = textureLod(screen_mip, SCREEN_UV, 2.0).rgb;
-	vec3 m3 = textureLod(screen_mip, SCREEN_UV, 3.0).rgb;
-	vec3 m4 = textureLod(screen_mip, SCREEN_UV, 4.0).rgb;
-	vec3 m5 = textureLod(screen_mip, SCREEN_UV, 5.0).rgb;
+	vec2 guv = pc * SCREEN_PIXEL_SIZE;
+	vec3 m2 = textureLod(screen_mip, guv, 2.0).rgb;
+	vec3 m3 = textureLod(screen_mip, guv, 3.0).rgb;
+	vec3 m4 = textureLod(screen_mip, guv, 4.0).rgb;
+	vec3 m5 = textureLod(screen_mip, guv, 5.0).rgb;
 	g += m2 * emissive(m2) * 0.30;
 	g += m3 * emissive(m3) * 0.30;
 	g += m4 * emissive(m4 * 1.15) * 0.25;
 	g += m5 * emissive(m5 * 1.3) * 0.25;
-	g *= glow;
-	base = 1.0 - (1.0 - base) * (1.0 - clamp(g, 0.0, 1.0));   // 屏幕混合：越亮越收，不会硬截成白
+	g *= glow * over;
+	// 局部预算：队长周围 local_r 内的发光度超过 local_budget 时按比例压（辉光与亮部都压）
+	float loc_d = length(pc - lamp_px) / max(local_r, 1.0);
+	if (loc_d < 1.0) {
+		vec2 luv = clamp(lamp_px * SCREEN_PIXEL_SIZE, vec2(0.0), vec2(1.0));
+		float eloc = emissive(textureLod(screen_mip, luv, 4.0).rgb * 1.3);
+		float kl = clamp(local_budget / max(eloc, 0.0001), 0.4, 1.0);
+		float w = 1.0 - smoothstep(0.7, 1.0, loc_d);
+		g *= mix(1.0, kl, w);
+	}
+	if (steps > 0.5) {
+		float gm = max(g.r, max(g.g, g.b));
+		float gq = floor(gm * steps * 2.0 + 0.3) / (steps * 2.0);   // 辉光分阶（硬边环）
+		g *= gm > 0.0001 ? gq / gm : 0.0;
+	}	base = 1.0 - (1.0 - base) * (1.0 - clamp(g, 0.0, 1.0));   // 屏幕混合：越亮越收，不会硬截成白
 	// ⑤ 深海滤镜：偏青蓝但保持亮度
 	float l0 = luma(base);
 	vec3 tinted = base * mix(vec3(1.0), sea_tint, sea_amt);

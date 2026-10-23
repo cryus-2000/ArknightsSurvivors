@@ -5,6 +5,8 @@ extends CanvasLayer
 
 const Bal = preload("res://scripts/core/balance.gd")
 const D = preload("res://scripts/data.gd")
+const A = preload("res://scripts/art.gd")
+const FD = preload("res://scripts/render/frame_dst.gd")
 
 var g
 var rect: ColorRect
@@ -36,6 +38,24 @@ var col_boss := Color(1.0, 0.4, 0.15)
 var col_lamp := Color(1.0, 0.62, 0.25)
 var col_loot := Color(1.0, 0.95, 0.75)
 var _tide_k := 0.0
+## 特效处理第 1 步（10-23 用户定）：
+##   ① 压阶帧条（render/optical_fxq，缺省 1）：tools/optical_fx_quant.py 离线生成 art/incoming/optical_fx/<名>.png（3 阶 alpha、每色相 3 阶明度，
+##      形状与色相不变；维什戴尔炮击的落点标记 / 地面红盘帧掏成描边）。开着时把 g.tex 里同名贴图换成压阶版（每帧最多 FXQ_PER_FRAME 条，开局几帧换完），关掉换回
+##   ② 亮度上限（render/optical_fx_cap，缺省 1.4）：特效绘制色的通道上限（FD.col_cap，原来常见 ×2–2.8 的过曝色）；
+##      全屏发光总量预算（render/optical_glow_budget，缺省 0.06 = 屏幕平均发光度）：超出按比例压辉光、压亮部（着色器）
+const FXQ_PER_FRAME := 16
+var fx1 := true   # 特效处理第 1 步总开关（render/optical_fx1，缺省 1；0 = 回到上一版，前后对照用）
+var fx1_force := -1   # --fx1ab 同局轮换用：-1 = 按 balance，0 / 1 = 强制关 / 开
+## ⑥ 特效动态照明（10-23）：发光特效 / 投射物 / 爆炸在地面投临时光，不用 Light2D 节点（兼容渲染器下每盏灯重画受光物体）：
+## 每帧在 CPU 上挑出最亮的 render/optical_dl_max（缺省 12）个，作为数组传给全屏着色器，和灯火光池同一处算（柔和半径、随寿命衰减）
+const DL_MAX := 12
+var _dl_pos := PackedVector4Array()
+var _dl_col := PackedVector4Array()
+var _fxsz := {}   # 帧条名 → 1x 帧高（世界像素换算用）
+var _fxq_names: Array = []
+var _fxq_orig := {}
+var _fxq_i := 0
+var _fxq_miss := {}
 
 
 func _hsv(key: String, h: float, s: float, v: float) -> Color:
@@ -53,6 +73,105 @@ func _update_cols(dt: float) -> void:
 	col_elite = Color.from_hsv(eh, Bal.v("render/optical_col_elite_s", 0.35), Bal.v("render/optical_col_elite_v", 1.0))
 	var dh: float = fposmod(lerpf(Bal.v("render/optical_col_danger_h", 0.95), Bal.v("render/optical_col_horde_h", 1.0), _tide_k), 1.0)
 	col_danger = Color.from_hsv(dh, Bal.v("render/optical_col_danger_s", 0.85), Bal.v("render/optical_col_danger_v", 1.0))
+
+
+## ⑥ 动态照明：候选 = 一次性帧条特效（按剩余寿命衰减、半径随帧高）+ 我方弹 + 敌弹（危险色、弱）；按亮度取前 N 个
+func _dyn_lights(xf: Transform2D, k: float) -> void:
+	var nmax: int = mini(DL_MAX, int(Bal.v("render/optical_dl_max", 12.0))) if fx1 else 0
+	var cand: Array = []
+	if nmax > 0:
+		var cc: Vector2 = g.cam.get_screen_center_position() if g.cam != null else g.ppos
+		var vr := Rect2(cc - Vector2(900, 560), Vector2(1800, 1120))
+		for f in g.fx:
+			var kd: String = str(f.get("kind", ""))
+			if kd != "sprite" and kd != "anim":
+				continue
+			var p: Vector2 = f.get("pos", Vector2.INF)
+			if not vr.has_point(p):
+				continue
+			var nm: String = str(f.get("name", ""))
+			if nm == "" or nm == "fx_death_dissolve" or g.tex.get(nm) == null:
+				continue
+			var life: float = clampf(float(f.life) / maxf(0.001, float(f.max)), 0.0, 1.0)
+			if not _fxsz.has(nm):
+				_fxsz[nm] = g.tex[nm].get_height() / A.hires_of(g.tex[nm])
+			var r: float = clampf(float(_fxsz[nm]) * float(f.get("scale", g.PX)) * 0.9, 32.0, 170.0)
+			var inten: float = life * (0.6 + r / 170.0)
+			cand.append([inten, p, r, particles.fx_color(nm)])
+		var nb := 0
+		for b in g.bullets:
+			if nb >= 60:
+				break
+			if b.life <= 0.0 or b.get("hidden", false) or not vr.has_point(b.pos):
+				continue
+			nb += 1
+			cand.append([0.7, b.pos, 84.0, particles._bullet_col(b)])
+		var ne := 0
+		for b in g.ebullets:
+			if ne >= 40:
+				break
+			if b.life <= 0.0 or not vr.has_point(b.pos):
+				continue
+			ne += 1
+			cand.append([0.3, b.pos + Vector2(0, -16), 44.0, col_danger])
+		if cand.size() > nmax:
+			cand.sort_custom(func(a, b): return a[0] > b[0])
+		# 局部预算（防油腻 ②）：队长 render/optical_local_r（120）内入选的光强度总和封顶 render/optical_local_light（1.6），超出按比例压
+		var lr: float = Bal.v("render/optical_local_r", 120.0)
+		var lsum := 0.0
+		for i in mini(nmax, cand.size()):
+			if (cand[i][1] as Vector2).distance_to(g.ppos) < lr:
+				lsum += float(cand[i][0])
+		var lcap: float = Bal.v("render/optical_local_light", 1.6)
+		if lsum > lcap:
+			for i in mini(nmax, cand.size()):
+				if (cand[i][1] as Vector2).distance_to(g.ppos) < lr:
+					cand[i][0] = float(cand[i][0]) * lcap / lsum
+	_dl_pos.resize(DL_MAX)
+	_dl_col.resize(DL_MAX)
+	var n: int = mini(nmax, cand.size())
+	var gain: float = Bal.v("render/optical_dl_gain", 1.3)
+	for i in DL_MAX:
+		if i < n:
+			var c: Array = cand[i]
+			var sp: Vector2 = xf * (c[1] as Vector2)
+			var col: Color = c[3]
+			_dl_pos[i] = Vector4(sp.x, sp.y, float(c[2]) * k, 0.0)
+			_dl_col[i] = Vector4(col.r * c[0] * gain, col.g * c[0] * gain, col.b * c[0] * gain, 0.0)
+		else:
+			_dl_pos[i] = Vector4(0, 0, 1, 0)
+			_dl_col[i] = Vector4.ZERO
+	mat.set_shader_parameter("dl_n", n)
+	mat.set_shader_parameter("dl_pos", _dl_pos)
+	mat.set_shader_parameter("dl_col", _dl_col)
+
+
+## ① 压阶帧条换入 / 换回（g.tex 同名替换：所有绘制路径都读 g.tex，不用逐处改）
+func _fxq_step(on: bool) -> void:
+	if on:
+		if _fxq_names.is_empty():
+			for k in g.tex:
+				var s: String = str(k)
+				if s.begins_with("fx_") or s.begins_with("proj_"):
+					_fxq_names.append(s)
+		var n := 0
+		while _fxq_i < _fxq_names.size() and n < FXQ_PER_FRAME:
+			var nm: String = _fxq_names[_fxq_i]
+			_fxq_i += 1
+			if _fxq_orig.has(nm) or _fxq_miss.has(nm) or g.tex.get(nm) == null:
+				continue
+			n += 1
+			var q: Texture2D = A.tex("optical_fx/" + nm)
+			if q == null or q.get_width() != g.tex[nm].get_width():
+				_fxq_miss[nm] = true   # 没有压阶版（敌方特效 / 寻访），或尺寸对不上（原图换过、压阶版过期）就用原图
+				continue
+			_fxq_orig[nm] = g.tex[nm]
+			g.tex[nm] = q
+	elif not _fxq_orig.is_empty():
+		for nm in _fxq_orig:
+			g.tex[nm] = _fxq_orig[nm]
+		_fxq_orig.clear()
+		_fxq_i = 0
 
 
 ## 某只怪的本体发光色：Boss 专属暖色、精英更亮、普通怪统一海嗣青蓝
@@ -211,14 +330,15 @@ func _draw_trails(list: Array, enemy: bool) -> void:
 			break
 		var v: Vector2 = b.get("vel", Vector2.ZERO)
 		var sp := v.length()
-		if sp < 40.0:
-			continue
+		if enemy and fx1 and b.get("life", 1.0) > 0.0:
+			var c0: Vector2 = ((b.pos + Vector2(0, -16)) / 2.0).floor() * 2.0   # 敌弹红核心（危险色，所有敌弹，不只快的）
+			glow_node.draw_rect(Rect2(c0 - Vector2(1, 1), Vector2(4, 4)), Color(col_danger.r, col_danger.g, col_danger.b, 0.95))
+		if sp < 40.0 or fx1:
+			continue   # fx1 开着时拖尾改由 GPU 粒子簇画（optical_particles.step_trails），这里只留敌弹红核心
 		n += 1
 		var col: Color
 		if enemy:
-			col = col_danger   # 颜色语言：敌弹一律危险色（不再取各怪 ecol）；弹芯另点一颗亮像素
-			var c0: Vector2 = ((b.pos + Vector2(0, -16)) / 2.0).floor() * 2.0
-			glow_node.draw_rect(Rect2(c0 - Vector2(1, 1), Vector2(4, 4)), Color(col.r, col.g, col.b, 0.9))
+			col = col_danger   # 颜色语言：敌弹一律危险色（不再取各怪 ecol）
 		else:
 			var bc = b.get("col")
 			col = bc if bc is Color else Color(0.7, 0.95, 1.0)
@@ -278,6 +398,9 @@ func _process(_dt: float) -> void:
 	if g == null:
 		return
 	_update_cols(_dt)
+	fx1 = (fx1_force == 1) if fx1_force >= 0 else Bal.v("render/optical_fx1", 1.0) > 0.0
+	_fxq_step(fx1 and wanted() and DisplayServer.get_name() != "headless" and Bal.v("render/optical_fxq", 1.0) > 0.0)
+	FD.col_cap = Bal.v("render/optical_fx_cap", 1.4) if g.optical_on and fx1 else 0.0
 	var on := wanted() and DisplayServer.get_name() != "headless"
 	g.optical_on = on
 	visible = on
@@ -317,6 +440,13 @@ func _process(_dt: float) -> void:
 		mat.set_shader_parameter("lamp_r", 1.0)
 	mat.set_shader_parameter("pool_dark", Bal.v("render/optical_pool_dark", 1.0))
 	mat.set_shader_parameter("glow", Bal.v("render/optical_glow", 0.9))
+	mat.set_shader_parameter("glow_budget", Bal.v("render/optical_glow_budget", 0.06) if fx1 else 99.0)
+	mat.set_shader_parameter("steps", Bal.v("render/optical_steps", 3.0) if fx1 else 0.0)
+	mat.set_shader_parameter("local_budget", Bal.v("render/optical_local_budget", 0.5) if fx1 else 99.0)
+	mat.set_shader_parameter("local_r", Bal.v("render/optical_local_r", 120.0) * k)
+	_dyn_lights(xf, k)
+	if particles != null:
+		particles.step_trails(col_danger, fx1)
 	mat.set_shader_parameter("emissive_th", Bal.v("render/optical_emissive_th", 0.72))
 	mat.set_shader_parameter("lut_on", Bal.v("render/optical_lut", 1.0))
 	mat.set_shader_parameter("brightness", Cfg.brightness * Bal.v("render/ambient_gain", 1.0))
