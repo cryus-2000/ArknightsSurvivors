@@ -641,7 +641,10 @@ async function main() {
   }
   const idle = pixelize(base).canvas;
   fs.writeFileSync(path.join(OUT, 'idle_t0.png'), idle.toBuffer('image/png'));
-  fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify({ id: cfg.id, scale: SCALE, anchor: ANCHOR, params: P, gait: GAIT, bob: BOB, frames: report }, null, 1));
+  // 头骨原点在待机首帧（idle_t0.png）里的像素位置：1 倍头像素替换（docs/128 §3）的对位锚点
+  const hb = cfg.body?.head && base.findBone(cfg.body.head);
+  const idleHead = hb ? [+(ANCHOR[0] + hb.worldX * SCALE).toFixed(2), +(ANCHOR[1] - hb.worldY * SCALE).toFixed(2)] : null;
+  fs.writeFileSync(path.join(OUT, 'report.json'), JSON.stringify({ id: cfg.id, scale: SCALE, anchor: ANCHOR, idle_head_px: idleHead, params: P, gait: GAIT, bob: BOB, frames: report }, null, 1));
   if (arg('--editor-ops')) writeEditorOps(frames, arg('--editor-ops'));
   if (N === 8) writePack(frames); else console.log('帧数', N, '≠ 8：不写编辑台数据包');
   // 透视缩短：把武器骨（及子骨）沿剑身方向的轴按比例压短，绕握点；表现剑指向镜头 / 远离镜头
