@@ -272,6 +272,18 @@ static func _hw4_anchor(o, dt: float) -> void:
 			if k >= 1.0:
 				_hw_reel_slam(o)
 				h.anchor = {}
+		"zip":
+			# 冲锋（10-24）：本干员沿锁链冲向落点，整条路径对沿途敌人各结算一次（path_w 宽、path_mult 倍率），到点再落地砸
+			var from_p: Vector2 = o.pos
+			o.pos = (an.start as Vector2).lerp(an.land, k * k)
+			o.face = signf(an.land.x - an.start.x) if absf(an.land.x - an.start.x) > 1.0 else o.face
+			_hw_charge_sweep(o, an, from_p, o.pos)
+			an.trail.push_front(o.pos)
+			if an.trail.size() > 5:
+				an.trail.pop_back()
+			if k >= 1.0:
+				_hw_zip_land(o)
+				h.anchor = {}
 
 
 static func _hw_anchor_bite(o) -> void:
@@ -293,11 +305,54 @@ static func _hw_anchor_bite(o) -> void:
 		if rf is Dictionary and hw_face_ok(o, rf.get("cond", true)):
 			_hw_open_rift(o, rf, o.pos, to)
 		return
-	# 钩不到 / 钩到 Boss / mode zip：锚在落点原地砸下（10-22 用户：去掉顺锁链弹射，本干员不再位移）
 	an.start = o.pos
+	if b.has("path_w"):
+		# mode zip 且写了 path_w：冲锋（10-24 用户：S3 跳跃改冲锋，沿途伤害 + 落地 AOE）
+		var land: Vector2 = to - dir * 18.0
+		an.phase = "zip"
+		an.t = 0.0
+		an.dur = clampf(o.pos.distance_to(land) / 1100.0, 0.14, 0.34)
+		an.land = land
+		an.hit = {}
+		an.trail = []
+		o.melee_tgt = null
+		_hw_sfx_op(o, "atk", 2.0, 0.85)
+		return
+	# 钩不到 / 钩到 Boss / 没写 path_w：锚在落点原地砸下（10-22 用户：S1 去掉顺锁链弹射）
 	an.land = to
 	_hw_zip_land(o)
 	h.anchor = {}
+
+
+## 冲锋沿途结算：本帧位移线段 a→c 两侧 path_w / 2（+ 敌人半径）内、这次冲锋还没吃过的敌人各吃一次 path_mult 倍率；
+## 画面：脚下留一段锚链拖痕（floor 线）+ 间隔扬起拖拽尘（帧条特效，光学观感自动给粒子与动态光）
+static func _hw_charge_sweep(o, an: Dictionary, a: Vector2, c: Vector2) -> void:
+	var g = o.g
+	var b: Dictionary = an.b
+	var w: float = float(b.get("path_w", 50.0))
+	var seg: Vector2 = c - a
+	var L: float = seg.length()
+	if L < 0.01:
+		return
+	var mid: Vector2 = (a + c) * 0.5
+	var dmg: float = o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.get("path_mult", 1.2)) * o._dmg_bonus() * o.skill_power()
+	var src: String = str(b.get("src", ""))
+	for j in o.query_ids(mid, L * 0.5 + w * 0.5 + 40.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead or an.hit.has(e.id):
+			continue
+		var q: Vector2 = a + seg * clampf((e.pos - a).dot(seg) / (L * L), 0.0, 1.0)
+		if e.pos.distance_to(q) > w * 0.5 + float(e.r):
+			continue
+		an.hit[e.id] = true
+		o.log_hit(src)
+		o.deal_damage(e, dmg)
+		o.fx({"kind": "spark", "pos": e.pos + Vector2(0, -float(e.r) * 0.5), "vel": seg.normalized().orthogonal() * g.vrng.randf_range(-120.0, 120.0), "life": 0.2, "col": HW_CHAIN, "sz": 2.5})
+	o.fx({"kind": "line", "pos": a, "to": c, "w": 5.0, "life": 0.35, "col": Color(HW_CHAIN.r, HW_CHAIN.g, HW_CHAIN.b, 0.6), "floor": true})
+	an.dust = float(an.get("dust", 0.0)) + L
+	if an.dust >= 36.0:
+		an.dust = 0.0
+		o.spawn_fx_sprite("fx_ulpianus_drag_dust", c + Vector2(0, 4), g.PX, seg.angle(), false, true)
 
 
 static func _hw_start_reel(o, to: Vector2, dir: Vector2) -> bool:
@@ -691,6 +746,15 @@ static func hw_draw_tether(o) -> void:
 			var off3: Vector2 = d.orthogonal() * (s - 1) * 9.0
 			if an.phase == "reel":
 				cv.draw_line(p + d * 24.0 + off3, p + d * (58.0 + s * 12.0) + off3, Color(1.3, 1.5, 1.8, 0.35), 1.5)
+	elif not throwing:
+		# 冲锋：本体残影 + 身后三道锚链拖痕
+		var tr: Array = an.trail
+		var mv_d: Vector2 = ((an.land as Vector2) - (an.start as Vector2)).normalized()
+		for i in range(tr.size() - 1, 0, -1):
+			o.draw_body_at(tr[i], o.face < 0.0, Color(HW_EDGE.r, HW_EDGE.g, HW_EDGE.b, 0.35 * (1.0 - float(i) / tr.size())))
+		for s in 3:
+			var off: Vector2 = mv_d.orthogonal() * (s - 1) * 10.0 + Vector2(0, -20)
+			cv.draw_line(o.pos - mv_d * 16.0 + off, o.pos - mv_d * (56.0 + s * 14.0) + off, Color(1.3, 1.5, 1.8, 0.4), 1.5)
 	_hw_draw_chain(o, hand, p, 1.0)
 	if throwing:
 		var tr2: Array = an.trail
@@ -864,6 +928,8 @@ static func _hw4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 			_num(b, "mult", p, ctx, true, 0.0, 20.0)
 			_num(b, "stun", p, ctx, false, 0.0, 10.0)
 			_num(b, "hold_frame", p, ctx, false, 0.0, 30.0)
+			_num(b, "path_w", p, ctx, false, 1.0, 300.0)
+			_num(b, "path_mult", p, ctx, false, 0.0, 20.0)
 			for k in ["drag", "rift", "hook_more"]:
 				if b.has(k) and not (b[k] is Dictionary):
 					errs.append("%s.%s 必须是对象" % [p, k])
@@ -897,6 +963,7 @@ static func hw_hook_start(o, b: Dictionary) -> void:
 		return
 	var rr: float = float(b.get("range", 160.0)) * o.stat(&"op_range")
 	var md: float = float(b.get("min_d", 160.0)) * o.stat(&"op_range")
+	var tgt_e: Dictionary = {}   # 钩索瞄准的那名敌人（拖拽时无论落在不在一线都算在内，歌蕾蒂娅「钩中的人一定被拉动」）
 	var to: Vector2
 	if str(b.get("at", "")) == "leader":   # 响应动作（docs/118 §4.1）：掷向队长（冲刺落点），超出 range 就掷到 range 处；不找敌人
 		var dv: Vector2 = o.g.ppos - o.pos
@@ -919,12 +986,13 @@ static func hw_hook_start(o, b: Dictionary) -> void:
 				return
 			best = ts[0]
 		to = best.pos
+		tgt_e = best
 	var hv = b.get("hand", [33, -33])
 	var hand: Vector2 = o.pos + Vector2(float(hv[0]) * float(o.face), float(hv[1]))
 	if absf(to.x - o.pos.x) > 2.0:
 		o._set_face(signf(to.x - o.pos.x), true)
 	var dur: float = clampf(hand.distance_to(to) / float(b.get("speed", 900.0)), 0.1, 0.24)
-	h.hooks.append({"b": b, "phase": "fly", "t": 0.0, "dur": dur, "from": hand, "to": to, "head": hand, "drag": [], "dmg": hw_basis(o, str(b.get("basis", "atk")))})
+	h.hooks.append({"b": b, "phase": "fly", "t": 0.0, "dur": dur, "from": hand, "to": to, "head": hand, "drag": [], "dmg": hw_basis(o, str(b.get("basis", "atk"))), "tgt": tgt_e})
 	if b.has("fx"):
 		fx_play(o, b.fx, hand, 20.0, [], (to - hand).angle())
 
@@ -1002,6 +1070,9 @@ static func _hw5_hook_drag_start(o, hk: Dictionary) -> void:
 		if str(b.get("drag_only", "all")) == "ranged" and str(e.get("ai", "")) != "ranged":
 			continue   # 歌蕾蒂娅（docs/123 §2.1，10-22）：只把远程怪拖回身前，近战怪本来就会贴上来，拉过来只会把队长埋进怪堆
 		got.append(e)
+	var te: Dictionary = hk.get("tgt", {})
+	if not te.is_empty() and not te.dead and _movable(te) and not got.has(te) and str(b.get("drag_only", "all")) != "ranged" and (te.pos.distance_to(a) > float(b.get("front", 60.0)) or bool(b.get("push_out", false))):
+		got.append(te)   # 钩中的那一名：落地后 0.12–0.34 秒里队长位置 / 敌人位置变了、掉出一线的窄走廊也照样拖（10-24 歌蕾蒂娅「拉不动人」）
 	got.sort_custom(func(x, y): return x.pos.distance_squared_to(a) < y.pos.distance_squared_to(a) if x.pos.distance_squared_to(a) != y.pos.distance_squared_to(a) else int(x.id) < int(y.id))
 	var mx: int = int(b.get("max_n", 12))
 	for i in mini(mx, got.size()):

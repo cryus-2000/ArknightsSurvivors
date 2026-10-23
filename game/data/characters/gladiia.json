@@ -21,10 +21,10 @@
   "hook_min": 70,
   "hook_r": 90,
   "hook_back": 0.6,
-  "hook_w": 40,
+  "hook_w": 52,
   "hook_taut": 0.12,
   "hook_drag": 0.22,
-  "hook_front": 230,
+  "hook_front": 110,
   "hook_speed": 900,
   "hook_n": 2,
   "first_cd": 0.4,
@@ -72,8 +72,8 @@
   "brute2_back": 0.9,
   "arrive_stun": 0.9,
   "arrive_stun_e1": 1.4,
-  "_leader": "用户 10-22 定：队长 / 队友同一套——拖回落点离她 hook_front 230（不拉到面前），到位眩晕 arrive_stun 0.9 秒，精一「锚定」延长到 arrive_stun_e1 1.4 秒",
-  "_range": "10-22 第 8 轮：射程回 240（第 7 轮 360 让钩掷得太远、身边的怪打不到，op4h 22.9%）；落点 230 靠 push_out 把线上更近的敌人也推到 230"
+  "_leader": "用户 10-22 定：队长 / 队友同一套——拖回落点离她 hook_front（10-22 是 230、不拉到面前；10-24 用户实玩「钩索拉不动人」：射程 240 而落点 230，被钩的人几乎没动、更近的还被推出去，改 110 并去掉 push_out），到位眩晕 arrive_stun 0.9 秒，精一「锚定」延长到 arrive_stun_e1 1.4 秒",
+  "_range": "10-22 第 8 轮：射程回 240（第 7 轮 360 让钩掷得太远、身边的怪打不到，op4h 22.9%）；（10-24 已去掉 push_out：更近的敌人不再被推出去）"
  },
  "leader": {
   "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 2309 / 防御 331 / 法抗 0（character_table）；有天赋自疗，regen 取 1.2（远程与小额自疗 1.1 口径略上浮，她的自疗精一才有）",
@@ -452,14 +452,14 @@
  "attack": {
   "mode": "auto",
   "name": "钩索",
-  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害，随后把钩索与她之间一线的敌人（至多 {$hook_n} 名，Boss 除外）拖到或推到身前 {$hook_front} 处，到位再受 {$hook_back*100}% 伤害并眩晕 {$arrive_stun} 秒（精英减半）"
+  "desc": "每 {$cd} 秒把钩索掷向 {$range} 内离她最远的敌人（{$hook_min} 以内的不选）：落地半径 {$hook_r} 内造成物理伤害，随后把钩索与她之间一线的敌人（至多 {$hook_n} 名，Boss 除外）拖到身前 {$hook_front} 处，到位再受 {$hook_back*100}% 伤害并眩晕 {$arrive_stun} 秒（精英减半）"
  },
  "skills": [
   {
    "name": "缺水的大洋裂断",
    "en": "WATERLESS PARTING OF THE GREAT OCEAN",
    "sp": 7,
-   "desc": "立刻掷出重钩：{$s1_range} 内最远的敌人处半径 {$s1_r} 内 ×{$s1_mult} 伤害，把一线上至多 {$s1_n} 名敌人拖到或推到身前 {$hook_front} 处，到位再受 ×{$s1_back} 伤害并眩晕 {$arrive_stun} 秒（精英减半，Boss 除外）",
+   "desc": "立刻掷出重钩：{$s1_range} 内最远的敌人处半径 {$s1_r} 内 ×{$s1_mult} 伤害，把一线上至多 {$s1_n} 名敌人拖到身前 {$hook_front} 处，到位再受 ×{$s1_back} 伤害并眩晕 {$arrive_stun} 秒（精英减半，Boss 除外）",
    "icon": "skill_ulpianus_s1"
   },
   {
@@ -701,7 +701,6 @@
       ],
       "arrive_stun": "$arrive_stun",
       "arrive_stun_elite1": "$arrive_stun_e1",
-      "push_out": true,
       "thin_chain": true
      }
     ]
@@ -938,7 +937,6 @@
       "drag_only": "all",
       "arrive_stun": "$arrive_stun",
       "arrive_stun_elite1": "$arrive_stun_e1",
-      "push_out": true,
       "thin_chain": true
      }
     ]
@@ -971,7 +969,6 @@
       "drag_only": "all",
       "arrive_stun": "$arrive_stun",
       "arrive_stun_elite1": "$arrive_stun_e1",
-      "push_out": true,
       "thin_chain": true
      }
     ]
@@ -1004,7 +1001,6 @@
       "drag_only": "all",
       "arrive_stun": "$arrive_stun",
       "arrive_stun_elite1": "$arrive_stun_e1",
-      "push_out": true,
       "thin_chain": true
      }
     ]

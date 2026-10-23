@@ -963,6 +963,8 @@ SCENE_REGRESSIONS = {
     "wisadel_cannon": ("维什戴尔炮击", "wisadel_cannon_test", r"WISADEL CANNON failures=0", ["--op=wisadel"]),
     "mon3tr_fx": ("Mon3tr 熔毁效果", "mon3tr_fx_test", r"MON3TR FX failures=0", ["--op=kaltsit"]),
     "relic_impl": ("藏品第二批原语（docs/57）", "relic_impl_test", r"RELIC IMPL failures=0", ["--balance", "--op=siege", "--squad=saria,wisadel"]),
+    "gladiia_hook": ("歌蕾蒂娅钩索把人拉到身前（10-24）", "gladiia_hook_test", r"GLADIIA HOOK failures=0", ["--balance", "--op=gladiia"]),
+    "ulpianus_charge": ("乌尔比安 S3 冲锋：沿途 + 落地伤害（10-24）", "ulpianus_charge_test", r"ULPIANUS CHARGE failures=0", ["--balance", "--op=ulpianus"]),
     "exusiai_blocks": ("能天使积木（docs/61 §14）", "exusiai_blocks_test", r"EXUSIAI BLOCKS failures=0", ["--balance", "--op=exusiai"]),
     "suzuran_skill_anim": ("多条技能帧条 + 循环状态（docs/87 §3.5，铃兰）", "suzuran_skill_anim_test", r"SUZURAN SKILL ANIM failures=0", ["--balance", "--op=suzuran", "--squad=lumen"]),
     "angelina_skill_anim": ("统一技能动画契约（安洁莉娜）", "angelina_skill_anim_test", r"ANGELINA SKILL ANIM failures=0", ["--balance", "--op=angelina", "--squad=lumen"]),
