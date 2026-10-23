@@ -19,6 +19,7 @@ const SPARK_GAP := 0.05       # 命中迸溅最短间隔（秒，真实时间）
 const SKILL_POOL := 24        # 技能点缀（火星 / 碎片 / 余烬）同时在飞的组数（中画质 12）
 const SKILL_GAP := 0.03
 const SMOKE_POOL := 10        # 爆炸少量烟（中画质 5）
+const TIER_POOL := 14         # 特效第 2 步：命中三档迸溅，每档同时在飞的组数（中画质 7）
 const TRAIL_PTS := 256        # ⑤ 投射物粒子簇：每帧汇总的发射点上限（我方弹 + 敌弹）
 const TRAIL_AMOUNT := 700     # 拖尾颗粒总数（中画质 350）；全局颗粒上限 ≈ 碎屑 800 + 点缀 288 + 烟 60 + 拖尾 700 + 环境 86
 
@@ -44,6 +45,8 @@ var _fx_col := {}             # 帧条名 → 本色（最亮且饱和的像素�
 var skill_mat: ParticleProcessMaterial
 var ember_mat: ParticleProcessMaterial
 var smoke: Array = []
+var tiers: Array = [[], [], []]   # 轻 / 中 / 重三个池（每颗组 3 / 6 / 12 颗，fx/hit_n*）
+var _tii := [0, 0, 0]
 var _mi := 0
 var smoke_mat: ParticleProcessMaterial
 var trails: GPUParticles2D    # ⑤ 一个节点包下全部投射物拖尾：每帧把弹的位置 / 颜色写进发射点贴图（EMISSION_SHAPE_POINTS），不逐颗 emit、不新建节点
@@ -96,6 +99,12 @@ func setup(game, wp: Node2D, gp: Node2D) -> void:
 		p.modulate = Color(0.16, 0.17, 0.2, 0.55)
 		smoke.append(p)
 	_setup_trails()
+	for ti in 3:
+		var amt: int = maxi(1, int(round(Bal.vi("fx/hit_n%d" % (ti + 1), [3, 6, 12][ti]) * k_amount)))
+		for i in int(TIER_POOL * k_amount):
+			var p := _one_shot(glow_parent, amt, 0.35)
+			p.process_material = spark_mat
+			tiers[ti].append(p)
 	spores = _ambient(glow_parent, int(70 * k_amount), 9.0, Color.WHITE)   # 颜色由 modulate 给（step）
 	var sm: ParticleProcessMaterial = spores.process_material
 	sm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
@@ -189,7 +198,7 @@ func set_active(on: bool) -> void:
 	if not active:
 		trails.emitting = false
 		trails.visible = false
-		for p in debris + fluid + sparks + skill + smoke:
+		for p in debris + fluid + sparks + skill + smoke + tiers[0] + tiers[1] + tiers[2]:
 			p.visible = false
 			p.emitting = false
 
@@ -421,6 +430,26 @@ func fx_burst(name: String, pos: Vector2, scale: float) -> void:
 			m.global_position = pos + Vector2(0, -6)
 			m.visible = true
 			m.restart()
+
+
+## 特效第 2 步：命中三档迸溅（vfx._tier_fx 调）。按档取池轮转；队长周围局部预算超了就压暗（同 fx_burst）
+func tier_burst(pos: Vector2, col: Color, tier: int) -> void:
+	if not active or tier < 1 or tiers[tier - 1].is_empty():
+		return
+	var pool: Array = tiers[tier - 1]
+	var p: GPUParticles2D = pool[_tii[tier - 1] % pool.size()]
+	_tii[tier - 1] += 1
+	var a := 1.0
+	if pos.distance_to(g.ppos) < Bal.v("render/optical_local_r", 120.0):
+		var now := Time.get_ticks_msec() / 1000.0
+		_near_load = _near_load * exp(-(now - _near_t) / 0.5) + tier * 0.34
+		_near_t = now
+		if _near_load > Bal.v("render/optical_local_bursts", 4.0):
+			a = 0.4
+	p.global_position = pos
+	p.modulate = Color(col.r, col.g, col.b, a)
+	p.visible = true
+	p.restart()
 
 
 ## 命中迸溅（vfx.hit_react 调）：限频，几颗被打者发光色 / 白色像素

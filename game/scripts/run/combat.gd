@@ -1109,7 +1109,7 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	if e.hits == 0:
 		e["h0"] = g.t   # 首次受击时刻（遥测 kill_hits 的实际 TTK，docs/116 §6）
 	e.hits += 1
-	g.vfx.hit_react(e, g.crit_hit, weak_hit, h)   # 白闪 / 形变 / 命中粒子按普攻、技能、暴击、弱点、破绽分档（纯画面，界面与美术；参数 balance.json fx 段）
+	g.vfx.hit_react(e, g.crit_hit, weak_hit, h, dmg)   # 白闪 / 形变 / 命中粒子按普攻、技能、暴击、弱点、破绽分档（纯画面，界面与美术；参数 balance.json fx 段）
 	# 伤害数字的位置抖动是纯画面，用 g.vrng：飘字数量取决于画面随机数（上面的「无效」），设置里还能关掉伤害数字，
 	# 用 g.rng 会让机器负载 / 玩家设置改变对局随机数（docs/36 §3）
 	if g.crit_hit:

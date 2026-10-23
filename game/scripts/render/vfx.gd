@@ -121,7 +121,78 @@ func contact(oid: String, e: Dictionary, origin: Vector2, source := "") -> void:
 const WEAK_SPARK := {"物理": Color(1.0, 0.75, 0.3), "法术": Color(0.7, 0.55, 1.0)}
 var _break_fx_at := {}
 
-func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}) -> void:
+## 特效第 2 步（10-23 用户定）：普攻命中统一「轻 / 中 / 重」三档模板（fx/hit_tiers，缺省 1；0 = 旧样子）。
+## 分档：单发伤害相对该干员普攻基准（按干员滑动平均，暴击 / 弱点不进基准）< fx/hit_mid（1.2）倍轻、< fx/hit_heavy（2.5）倍中、
+## 以上或暴击 / 弱点重；召唤物、追加打击（follow_up / aftershock）一律轻。只认带 basic 标签的普攻与召唤物，技能 / 持续伤害照旧。
+## 每档：迸溅颗粒 fx/hit_n（3 / 6 / 12，干员本色）、白闪时长、命中闪光大小与亮度、顿帧（轻 0 / 中 fx/hit_pause_m / 重 fx/hit_pause_h，
+## 走 impact_pause 的共享限频）、命中音（三档音量 / 音高，Sfx 自带限流）。纯画面：粒子用 g.vrng / GPU，不碰模拟随机数，TRACE 不变
+var _hit_base := {}   # 干员 id → 普攻单发伤害基准
+var tier_off := false   # --tierab 同局轮换：true = 这一段按旧样子（不分档）
+var _tier_force := -2   # --hittier=N 截图对照：普攻一律按第 N 档；-1 = 不强制（-2 = 还没读参数）
+var _open_arcs := {}    # 干员 id → 这一帧刚画的刀光（同帧命中按三档更新它的粗细亮度）
+var arc_dbg := -1       # --arcdbg：刀光旁边再画判定圈与扇形边（核对用）
+
+
+## 近战刀光（character.arc_targets 调）：同一干员同一模拟时刻同一判定只画一道；粗细亮度先按轻档，命中后由 hit_react 升档
+func melee_arc(o, origin: Vector2, ang: float, half: float, radius: float) -> void:
+	if tier_off or Bal.v("fx/melee_arc", 1.0) <= 0.0 or g.fx.size() > 420:
+		return
+	var key: String = str(o.id)
+	var prev = _open_arcs.get(key)
+	if prev != null and float(prev.t) == g.t and (prev.pos as Vector2).distance_to(origin) < 1.0 and absf(float(prev.r) - radius) < 0.5 and absf(float(prev.half) - half) < 0.01 and absf(angle_difference(float(prev.ang), ang)) < 0.01:
+		return
+	var c: Color = o.col()
+	var mx: float = maxf(c.r, maxf(c.g, c.b))
+	if mx > 1.0:
+		c = Color(c.r / mx, c.g / mx, c.b / mx)
+	var life: float = Bal.v("fx/melee_arc_life", 0.12)
+	if arc_dbg < 0:
+		arc_dbg = 1 if Cfg.dev_args().has("--arcdbg") else 0
+	if arc_dbg == 1:
+		life *= 5.0   # 核对截图：刀光多留一会儿，和判定圈叠在一起好看清
+	var f := {"kind": "marc", "pos": origin, "ang": ang, "half": half, "r": radius, "col": c, "tier": 1, "life": life, "max": life, "t": g.t}
+	g.fx.append(f)
+	_open_arcs[key] = f
+
+
+func hit_tier(h: Dictionary, dmg: float, crit: bool, weak: bool) -> int:
+	if tier_off or Bal.v("fx/hit_tiers", 1.0) <= 0.0:
+		return 0
+	if _tier_force == -2:
+		_tier_force = -1
+		for a in Cfg.dev_args():
+			if a.begins_with("--hittier="):
+				_tier_force = clampi(int(a.substr(10)), 1, 3)
+	var tags: Array = h.get("tags", [])
+	if "dot" in tags:
+		return 0
+	var summon: bool = h.get("emitter", "") == "summon"
+	if not summon and not ("basic" in tags):
+		return 0
+	if _tier_force > 0:
+		return _tier_force
+	if summon or "follow_up" in tags or "aftershock" in tags:
+		return 1
+	var key: String = str(h.get("op", "")) if str(h.get("op", "")) != "" else str(h.get("src", ""))
+	var base: float = float(_hit_base.get(key, dmg))
+	if not (crit or weak):
+		_hit_base[key] = lerpf(base, dmg, 0.08)
+	var ratio: float = dmg / maxf(base, 0.001)
+	if crit or weak or ratio >= Bal.v("fx/hit_heavy", 2.5):
+		return 3
+	if ratio >= Bal.v("fx/hit_mid", 1.2):
+		return 2
+	return 1
+
+
+func _op_col(h: Dictionary) -> Color:
+	var o = g.squad.get_op(str(h.get("op", ""))) if g.squad != null and str(h.get("op", "")) != "" else null
+	var c: Color = o.col() if o != null else Color(0.8, 0.95, 1.0)
+	var mx: float = maxf(c.r, maxf(c.g, c.b))
+	return Color(c.r / mx, c.g / mx, c.b / mx) if mx > 1.0 else c
+
+
+func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg := 0.0) -> void:
 	var h: Dictionary = hd if not hd.is_empty() else g.hit   # combat.damage 显式传这一下的描述符（docs/101 B7 ⑤）
 	var dot: bool = "dot" in h.get("tags", [])
 	var skill: bool = h.get("origin", "") == "skill" and not dot
@@ -136,9 +207,17 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}) -> vo
 		sq = maxf(sq, Bal.v("fx/squash_skill", 0.18))
 	if brk and not dot:
 		fl = maxf(fl, Bal.v("fx/flash_break", 0.14))
+	var tier: int = hit_tier(h, dmg, crit, weak)
+	if tier > 0:
+		fl = maxf(fl, [0.0, 0.06, 0.09, 0.13][tier])
 	e.flash = maxf(float(e.get("flash", 0.0)), fl)
 	e.squash = maxf(float(e.get("squash", 0.0)), sq)
-	if g.optical_on and g.optical.particles != null and not dot:
+	if tier > 0:
+		_tier_fx(e, h, tier)
+		var arc = _open_arcs.get(str(h.get("op", "")))
+		if arc != null and float(arc.t) == g.t:
+			arc.tier = maxi(int(arc.tier), tier)   # 同一挥砍里打出的最高档决定刀光粗细亮度
+	elif g.optical_on and g.optical.particles != null and not dot:
 		g.optical.particles.hit_spark(e.pos + Vector2(0, -e.r * 0.6), Color(1.0, 0.95, 0.85) if not (crit or weak) else Color(1.0, 0.8, 0.35))   # 光学观感原型：命中迸溅（限频，纯画面）
 	# 受击后坐（docs/53，纯画面）：本体沿「远离主控」的方向顶开 fx/recoil_px，fx/recoil_t 秒内回位；技能 / 暴击 / 弱点 ×fx/recoil_skill_k。
 	# 只写 rc_at / rc_dir / rc_k 三个字段，位移在 render/world.gd 的 _eoff 里按 g.t 算（缓存路径和原路径同一个表达式，不进签名）。
@@ -164,6 +243,28 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}) -> vo
 		sparks(head, Vector2.ZERO, UI.GOLD, Bal.vi("fx/break_sparks", 6), 240.0)
 		g.fx.append({"kind": "ring", "pos": head, "r": float(e.get("r", 20.0)) * 0.9 + 14.0, "life": 0.22, "max": 0.22, "col": Color(1.6, 1.25, 0.45), "op_hit": true})
 		impact_pause(Bal.v("fx/break_pause", 0.035))
+
+
+## 三档命中的画面 / 声音（hit_tier 定档后调；远处 / 特效过多时只留白闪）
+func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
+	if tier >= 2:
+		impact_pause(Bal.v("fx/hit_pause_h", 0.03) if tier == 3 else Bal.v("fx/hit_pause_m", 0.014))
+	Sfx.play("hit", [0.0, -17.0, -12.0, -8.0][tier], [1.0, 1.25, 1.05, 0.85][tier])
+	if (e.pos as Vector2).distance_to(g.ppos) > 700.0 or g.fx.size() > 380:
+		return
+	var col: Color = _op_col(h)
+	var head: Vector2 = e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6)
+	var n: int = [0, Bal.vi("fx/hit_n1", 3), Bal.vi("fx/hit_n2", 6), Bal.vi("fx/hit_n3", 12)][tier]
+	if g.optical_on and g.optical.particles != null:
+		g.optical.particles.tier_burst(head, col, tier)   # GPU 颗粒（池化、局部预算、中画质减半）
+	else:
+		sparks(head, Vector2.ZERO, col, n, [0.0, 90.0, 140.0, 200.0][tier])
+	if tier >= 2:
+		var k: float = 1.3 if tier == 2 else 1.7
+		glow(head, [0.0, 6.0, 10.0, 16.0][tier], Color(col.r * k, col.g * k, col.b * k, 0.8), [0.0, 0.06, 0.09, 0.14][tier])
+		# 像素命中星（中 4 臂、重 8 臂，2 px 线、亮芯，三阶跳着消失）：小颗粒在后期满屏时读不出档位，靠它分轻重
+		var sl: float = [0.0, 0.0, 0.08, 0.13][tier]
+		g.fx.append({"kind": "hstar", "pos": head.round(), "r": [0.0, 0.0, 8.0, 14.0][tier], "col": col, "n": 4 if tier == 2 else 8, "life": sl, "max": sl})
 
 
 ## 击杀爆点按体型分档（docs/53，combat.kill 调用；纯画面 + 音效，粒子用 g.vrng，不碰 g.rng）：
