@@ -261,7 +261,7 @@ NOCACHE = False
 SCOPES = {}            # {"logic": 哈希, "full": 哈希}，main 里算一次
 CACHE_STAT = {"hit": 0, "miss": 0}
 ASSET_EXT = (".png", ".jpg", ".jpeg", ".webp", ".svg", ".ogg", ".wav", ".mp3", ".ttf", ".otf", ".woff", ".woff2", ".fnt", ".import")
-LOGIC_TAGS = ("冒烟", "自然流程", "nodes_", "prot", "复现", "blocks_eq_")
+LOGIC_TAGS = ("冒烟", "自然流程", "nodes_", "prot", "复现", "blocks_eq_", "manual_all_")
 
 
 def _blobs(rel):
@@ -546,6 +546,28 @@ def check_nodes(godot, only=None):
             bad.append("%s：%s" % (op, "超时" if to else (errs[0][:120] if errs else ("节点行数 %d" % len(lines) if len(lines) != 6 else "选下当场没变化的节点 " + "、".join(empty)))))
     bad_logs = [LOG_DIR and os.path.join(LOG_DIR, "nodes_" + op + ".log") for op, lines, empty, errs, to in res if to or errs or len(lines) != 6 or empty]
     return {"log": "、".join(p for p in bad_logs if p), "name": "成长节点当场生效", "ok": not bad, "detail": "%d 名干员 × 6 节点" % len(ids) if not bad else "%d 名干员有问题" % len(bad), "errors": bad[:6]}
+
+
+def check_manual_all(godot, only=None):
+    """手动普攻全员验收（tests/manual_all_test.tscn，10-24 用户「星熊这种手动的时候攻击打不出来」）：每名干员当队长、打开手动普攻，
+    走真实键盘 / 触屏输入：空按、有敌人、边移动边按、轻点 3 次（有敌人 / 空场）都必须出招（攻击事件 + 动画），有敌人时敌人掉血。
+    only：只测这些干员（--auto 按改动选）"""
+    ids = [o for o in op_ids() if only is None or o in only]
+
+    def one(op):
+        out, err, to, log = _run([godot, "--headless", "--audio-driver", "Dummy", "--path", GAME, "res://tests/manual_all_test.tscn", "--", "--regression", "--balance", "--seed=1", "--op=" + op, "--manualatk"], 600, "manual_all_" + op)
+        fails = re.findall(r"^FAIL: (.*)$", out + chr(10) + err, re.M)
+        return op, ("MANUAL ALL %s failures=0" % op) in out, fails, GR.script_errors(out, err), to
+
+    with ThreadPoolExecutor(max(1, len(ids))) as ex:
+        res = list(ex.map(one, ids))
+    bad = []
+    bad_logs = []
+    for op, passed, fails, errs, to in res:
+        if to or errs or fails or not passed:
+            bad.append("%s：%s" % (op, "超时" if to else (errs[0][:120] if errs else (fails[0][:120] if fails else "没有通过标记"))))
+            bad_logs.append(os.path.join(LOG_DIR, "manual_all_" + op + ".log") if LOG_DIR else "")
+    return {"log": "、".join(p for p in bad_logs if p), "name": "手动普攻全员验收", "ok": not bad, "detail": "%d 名干员 × 6 场景" % len(ids) if not bad else "%d 名干员有问题" % len(bad), "errors": bad[:6]}
 
 
 def check_prot(godot):
@@ -1105,7 +1127,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "px_lint", "enemy_art"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "manual_all", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "px_lint", "enemy_art"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1166,6 +1188,7 @@ def main():
         if level == "ops":
             jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in smoke_cases() if c[0].split(" · ")[-1] in ops]
             jobs.append(lambda: check_nodes(godot, ops))
+            jobs.append(lambda: check_manual_all(godot, ops))
             jobs.append(lambda: check_repro(godot))
         if level == "full":
             a.auto = False
@@ -1176,6 +1199,8 @@ def main():
             jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in smoke_cases()]
         if a.only in (None, "nodes"):
             jobs.append(lambda: check_nodes(godot))
+        if a.only in (None, "manual_all"):
+            jobs.append(lambda: check_manual_all(godot))
         if a.only in (None, "prot"):
             jobs.append(lambda: check_prot(godot))
         if a.only in (None, "repro"):

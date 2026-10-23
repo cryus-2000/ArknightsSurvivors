@@ -4,6 +4,52 @@ extends Node
 ## 跑 probe 秒后打印：普攻出手次数 atk_n、队长子弹 / 弹体数、木桩掉血（应为 0 = 没吸附到背后的敌人）。
 ## 用法：tools/probes/manual_aim_probe.py [--ops a,b] [--t 6]
 
+var _keys := {}
+func _key(code: int, down: bool) -> void:
+	if _keys.get(code, false) == down:
+		return
+	_keys[code] = down
+	var ev := InputEventKey.new()
+	ev.keycode = code
+	ev.physical_keycode = code
+	ev.pressed = down
+	Input.parse_input_event(ev)
+
+
+func _mouse(g, down: bool, world_off: Vector2) -> void:
+	var vp: Viewport = g.get_viewport()
+	var scr: Vector2 = vp.get_canvas_transform() * (g.ppos + world_off)
+	var mm := InputEventMouseMotion.new()
+	mm.position = scr
+	mm.global_position = scr
+	Input.parse_input_event(mm)
+	if _keys.get("mouse", false) != down:
+		_keys["mouse"] = down
+		var mb := InputEventMouseButton.new()
+		mb.button_index = MOUSE_BUTTON_LEFT
+		mb.position = scr
+		mb.global_position = scr
+		mb.pressed = down
+		Input.parse_input_event(mb)
+
+
+## 真实输入路径：kb = J 攻击 + WASD 移动；mouse = 左键 + 光标在队长右边 200；touch = 触屏攻击键（touch_atk）
+func _drive_input(g, inp: String, mode: String, move: Vector2, k: int) -> void:
+	var press: bool = mode == "hold" or (k % 90 >= 10 and k % 90 < 14)
+	_key(KEY_D, move.x > 0.5)
+	_key(KEY_A, move.x < -0.5)
+	_key(KEY_S, move.y > 0.5)
+	_key(KEY_W, move.y < -0.5)
+	match inp:
+		"kb":
+			_key(KEY_J, press)
+		"mouse":
+			_mouse(g, press, Vector2(200, 0))
+		"touch":
+			g.doctor.touch_atk = press
+			g.doctor.touch_atk_dir = Vector2.ZERO
+
+
 func _ready() -> void:
 	var id := "exusiai"
 	var probe_t := 6.0
@@ -12,6 +58,9 @@ func _ready() -> void:
 	var dy := 0.0         # 木桩线每只的 y 递增（让木桩排在枪口到第一只的弹道上：能天使约 17、流明约 22）
 	var card := 0         # 先选几次「贯穿」卡
 	var relic := ""       # 先给的藏品编号（穿甲弹 265）
+	var mode := "hold"    # hold = 一直按住攻击键；tap = 每 1.5 秒轻点一次（atk_buf 缓冲）
+	var inp := "sim"      # sim = 直接写 doctor.sim_atk / atk_buf；kb = 真实键盘事件（J 攻击、WASD 移动）；mouse = 真实鼠标左键 + 光标位置；touch = 触屏攻击键模拟
+	var move := Vector2.ZERO   # 移动输入（手动攻击方向取它）
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--probe-op="): id = arg.get_slice("=", 1)
 		if arg.begins_with("--probe-t="): probe_t = float(arg.get_slice("=", 1))
@@ -20,6 +69,11 @@ func _ready() -> void:
 		if arg.begins_with("--probe-dy="): dy = float(arg.get_slice("=", 1))
 		if arg.begins_with("--probe-card="): card = int(arg.get_slice("=", 1))
 		if arg.begins_with("--probe-relic="): relic = arg.get_slice("=", 1)
+		if arg.begins_with("--probe-mode="): mode = arg.get_slice("=", 1)
+		if arg.begins_with("--probe-input="): inp = arg.get_slice("=", 1)
+		if arg.begins_with("--probe-move="):
+			var mv := arg.get_slice("=", 1).split(",")
+			move = Vector2(float(mv[0]), float(mv[1]))
 	var g = load("res://game.tscn").instantiate()
 	add_child(g)
 	for i in 5: await get_tree().process_frame
@@ -46,15 +100,25 @@ func _ready() -> void:
 	if relic != "":
 		g.progression.gain_relic(relic)
 	g.doctor.manual_attack = true
-	g.doctor.sim_atk = true
-	g.move_in = Vector2.ZERO
+	g.doctor.sim_atk = mode == "hold" and inp == "sim"
+	g.move_in = move
 	g.facing = 1.0
 	var hp0: float = dummies[0].hp
 	var steps := int(probe_t * 60.0)
 	var bul_max := 0
+	var anim_frames := 0
+	var ppos0: Vector2 = g.ppos
 	var atk0: int = int(o.get("atk_n")) if o.get("atk_n") != null else 0
 	for k in steps:
 		o.sp = [-100000.0, -100000.0, -100000.0]   # 不放技能，只看普攻
+		if inp == "sim":
+			g.move_in = move
+			if mode == "tap" and k % 90 == 10:
+				g.doctor.atk_buf = 0.3
+				g.doctor.atk_edge = true
+		else:
+			_drive_input(g, inp, mode, move, k)
+			await get_tree().process_frame   # 真实输入事件要过一帧才生效（按下和松开不能挤在同一帧里）
 		for i in dummies.size():
 			dummies[i].pos = g.ppos + Vector2(dx + 60.0 * i, dy * i)
 			dummies[i].kb = Vector2.ZERO
@@ -74,11 +138,14 @@ func _ready() -> void:
 		var lm = st.lm if st is Dictionary and st.has("lm") else null
 		if lm is Dictionary and lm.has("bolts"): n_b += lm.bolts.size()
 		bul_max = maxi(bul_max, n_b)
+		var ast: Dictionary = o.anim_state()
+		if float(o.attack_t) > 0.0 and str(ast.get("kind", "")) != "idle" and str(ast.get("kind", "")) != "run":
+			anim_frames += 1
 		if k % 120 == 0:
 			await get_tree().process_frame
 	var atk_n: int = (int(o.get("atk_n")) if o.get("atk_n") != null else 0) - atk0
 	var dmgs := []
 	for dm in dummies:
 		dmgs.append(snappedf(hp0 - float(dm.hp), 0.1))
-	print("MANUALPROBE op=%s atk_n=%d bullets_max=%d dummy_dmg=%s face=%d" % [id, atk_n, bul_max, str(dmgs), int(o.face)])
+	print("MANUALPROBE op=%s atk_n=%d anim=%d bullets_max=%d dummy_dmg=%s face=%d moved=%d" % [id, atk_n, anim_frames, bul_max, str(dmgs), int(o.face), int(g.ppos.distance_to(ppos0))])
 	get_tree().quit()
