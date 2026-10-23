@@ -139,18 +139,27 @@ func melee_arc(o, origin: Vector2, ang: float, half: float, radius: float) -> vo
 		return
 	var key: String = str(o.id)
 	var prev = _open_arcs.get(key)
-	if prev != null and float(prev.t) == g.t and (prev.pos as Vector2).distance_to(origin) < 1.0 and absf(float(prev.r) - radius) < 0.5 and absf(float(prev.half) - half) < 0.01 and absf(angle_difference(float(prev.ang), ang)) < 0.01:
+	if prev != null and float(prev.t) == g.t and (prev.org as Vector2).distance_to(origin) < 1.0 and absf(float(prev.r) - radius) < 0.5 and absf(float(prev.half) - half) < 0.01 and absf(angle_difference(float(prev.ang), ang)) < 0.01:
 		return
 	var c: Color = o.col()
 	var mx: float = maxf(c.r, maxf(c.g, c.b))
 	if mx > 1.0:
 		c = Color(c.r / mx, c.g / mx, c.b / mx)
-	var life: float = Bal.v("fx/melee_arc_life", 0.12)
+	# 跟着挥刀走（10-24 用户「近战刀光跟着挥刀的动作走」）：时长 = 这名干员出手帧之后剩余动作的六成（夹在 fx/melee_arc_life 与 0.22 秒之间），
+	# 刀光从挥刀起点一侧扫到另一侧；起点取屏幕上更高的那一端（自上而下劈），全圆（旋身斩）按朝向转一圈
+	var life: float = clampf((float(o.attack_dur) - float(o.attack_fire_at)) * 0.6, Bal.v("fx/melee_arc_life", 0.12), 0.22)
+	var sdir := 1.0
+	if half >= PI - 0.01:
+		sdir = 1.0 if float(o.face) >= 0.0 else -1.0
+	elif sin(ang + half) < sin(ang - half):
+		sdir = -1.0   # +half 那一端更高：从 +half 扫向 −half
 	if arc_dbg < 0:
 		arc_dbg = 1 if Cfg.dev_args().has("--arcdbg") else 0
 	if arc_dbg == 1:
 		life *= 5.0   # 核对截图：刀光多留一会儿，和判定圈叠在一起好看清
-	var f := {"kind": "marc", "pos": origin, "ang": ang, "half": half, "r": radius, "col": c, "tier": 1, "life": life, "max": life, "t": g.t}
+	# off：判定原点相对干员脚底的偏移，绘制时按干员当前位置算（移动攻击时刀光跟着人走）；org 只用于同帧去重
+	var f := {"kind": "marc", "pos": origin, "org": origin, "op": key, "off": origin - (o.pos as Vector2), "sdir": sdir,
+		"ang": ang, "half": half, "r": radius, "col": c, "tier": 1, "life": life, "max": life, "t": g.t}
 	g.fx.append(f)
 	_open_arcs[key] = f
 
