@@ -602,6 +602,7 @@ const EXEC_SEG := {
 	"verb.negate_next": 0,   # _ext_exec
 	"shape.dash_line": 1,   # tx_exec
 	"verb.fx_rain": 1,   # tx_exec
+	"verb.emit_path": 1,   # tx_exec
 	"verb.fx_scatter": 1,   # tx_exec
 	"verb.sp_secs": 1,   # tx_exec
 	"verb.trail": 1,   # tx_exec
@@ -802,7 +803,10 @@ func _release_body() -> void:
 				else:
 					_exec_list(t.get("do", []), hw.atk_c if not hw.is_empty() and str(t.get("at", "")) == "attack" else Vector2.INF)
 	if not hw.is_empty():
-		ObHw.hw_combo_start(self)   # 手写迁移段：attack.combo 连斩 / trig.on_combo_end
+		if not rp.is_empty() and rp.get("no_combo", false):
+			ObHw.hw_combo_end(self)   # replace 的 every_n 带 no_combo（德克萨斯疾刃三连）：这一次出手自己连斩，不再接 attack.combo 的第二斩
+		else:
+			ObHw.hw_combo_start(self)   # 手写迁移段：attack.combo 连斩 / trig.on_combo_end
 
 
 ## 精英化段：第 n 次普攻是否被 trig.every_n replace 换掉（第一块成立的；没有 = {}）

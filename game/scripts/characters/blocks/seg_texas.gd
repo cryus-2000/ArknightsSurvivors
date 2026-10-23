@@ -9,7 +9,7 @@ const TxArt = preload("res://scripts/art.gd")
 ## 校验（由 _block 转来；cond 与 $ 表达式已在 _block 里查过）
 static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: Dictionary) -> void:
 	var errs: Array = ctx.errs
-	var instant: bool = tag in ["shape.dash_line", "verb.sp_secs", "verb.trail", "verb.fx_scatter", "verb.fx_rain"]
+	var instant: bool = tag in ["shape.dash_line", "verb.sp_secs", "verb.trail", "verb.fx_scatter", "verb.fx_rain", "verb.emit_path"]
 	var is_trig: bool = tag.begins_with("trig.")
 	match kind:
 		"attack":
@@ -56,6 +56,10 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
 		"verb.sp_secs":
 			_num(b, "seconds", p, ctx, true, 0.0, 10.0)
+		"verb.emit_path":
+			_num(b, "len", p, ctx, true, 10.0, 600.0)
+			_num(b, "w", p, ctx, false, 4.0, 200.0)
+			_src(b, p, ctx, true)
 		"verb.dash_mod":
 			if not (b.has("len_add") or b.has("len_mult") or b.has("w_add") or b.has("w_mult") or b.has("on_hit")):
 				errs.append(p + "：verb.dash_mod 至少写 len_add / len_mult / w_add / w_mult / on_hit 之一")
@@ -401,6 +405,13 @@ static func tx_exec(o, b: Dictionary, at: Vector2) -> void:
 					var lc = b.get("line_col", null)
 					o.fx({"kind": "line", "pos": c.from, "to": c.to, "w": float(c.w) * lw, "life": float(b.life),
 						"col": Color(float(lc[0]), float(lc[1]), float(lc[2]), float(lc[3]) if lc.size() > 3 else 1.0) if lc is Array and lc.size() >= 3 else o.col(), "floor": true})
+		"verb.emit_path":   # 把「自身朝最近敌人（没有就朝向 / 手动指向）、长 len」的路径当作一次冲刺结束，触发 src 匹配的 trig.on_dash_end（精二余像挂在疾刃三连上，10-23）
+			var elen: float = float(b.len) * o.stat(&"op_range")
+			var ets: Array = o.nearest_enemies(1, elen + 30.0, o.pos)
+			var eang: float = (ets[0].pos - o.pos).angle() if not ets.is_empty() else o.facing_angle()
+			if o.manual_attack() and o.atk_aim != Vector2.ZERO:
+				eang = o.atk_aim.angle()
+			tx_emit_path(o, str(b.get("src", "")), o.pos, o.pos + Vector2.from_angle(eang) * elen, float(b.get("w", 44.0)))
 		"verb.fx_scatter":
 			var cc: Vector2 = o.pos if str(b.get("center", "self")) == "self" or at == Vector2.INF else at
 			var n: int = int(b.n)

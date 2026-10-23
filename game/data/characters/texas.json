@@ -66,13 +66,6 @@
   "slash_mult": 0.75,
   "slash2_mult": 0.75,
   "slash2_delay": 0.2,
-  "wave_every": 3,
-  "wave_mult": 0.85,
-  "wave_dist": 170,
-  "wave_w": 44,
-  "wave_speed": 520,
-  "wave_kb": 20,
-  "wave_aim": 220,
   "step_len": 60,
   "step_w": 44,
   "step_t": 0.14,
@@ -83,8 +76,13 @@
   "s3_need": 230,
   "talent_atk_sp": 0.15,
   "slash_wide": 0.15,
-  "_rework": "10-23 用户定「自动冲刺太晕」重设计（docs/129）：队长普攻原地两连斩（扇形 slash_r）、每 wave_every 次出手朝 wave_aim 内最近敌人甩一道短剑气（没有敌人就不甩）；队友另有每 step_cd 秒一次 ≤ step_len 的短突进（敌人在 step_min_d 以外才上前）；删除天赋的定时自动冲刺；剑雨 / 剑雨滂沱自动释放需要射程内有敌人",
-  "dash_mult": 1.0
+  "_rework": "10-23 用户定「自动冲刺太晕」重设计（docs/129）：队长普攻原地两连斩（扇形 slash_r），每第 tri_every 次出手改为「疾刃三连」（原地 tri_gap×2 秒内连斩三下、扇形 tri_half、每下 tri_mult，没有敌人照常两连斩）；队友另有每 step_cd 秒一次 ≤ step_len 的短突进（敌人在 step_min_d 以外才上前）；删除天赋的定时自动冲刺；剑雨 / 剑雨滂沱自动释放需要射程内有敌人",
+  "dash_mult": 1.0,
+  "tri_every": 3,
+  "tri_half": 1.35,
+  "tri_mult": 0.45,
+  "tri_gap": 0.125,
+  "tri_w": 44
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1986 / 防御 441 / 法抗 0%，近战主控有效生命 ×1.06",
@@ -338,7 +336,7 @@
  "attack": {
   "mode": "auto",
   "name": "双连斩",
-  "desc": "原地快速两连斩：每 {$cd} 秒朝最近敌人挥出两刀扇形斩（半径 {$slash_r}，物理，各 {$slash_mult*100}%）；每第 {$wave_every} 次出手再朝 {$wave_aim} 内最近的敌人甩一道短剑气（{$wave_mult*100}%，飞出 {$wave_dist}，命中第一名敌人即消失，范围内没有敌人就不甩）；每次出手为全队技力 +{$hit_sp} 秒。当队友时，每 {$step_cd} 秒还会朝 {$step_min_d}–{$step_aim} 内的敌人突进一小步（≤ {$step_len}）"
+  "desc": "原地快速两连斩：每 {$cd} 秒朝最近敌人挥出两刀扇形斩（半径 {$slash_r}，物理，各 {$slash_mult*100}%）；每第 {$tri_every} 次出手改为「疾刃三连」：{$tri_gap*2} 秒内连斩三下（扇形更宽，每下 {$tri_mult*100}%），没有敌人时照常两连斩；每次出手为全队技力 +{$hit_sp} 秒。当队友时，每 {$step_cd} 秒还会朝 {$step_min_d}–{$step_aim} 内的敌人突进一小步（≤ {$step_len}）"
  },
  "skills": [
   {
@@ -444,16 +442,6 @@
     "area"
    ]
   },
-  "剑气": {
-   "emitter": "operator",
-   "origin": "core",
-   "range": "近战",
-   "kind": "物理",
-   "tags": [
-    "basic",
-    "projectile"
-   ]
-  },
   "突进": {
    "emitter": "operator",
    "origin": "core",
@@ -472,6 +460,16 @@
    "tags": [
     "basic",
     "pierce"
+   ]
+  },
+  "疾刃三连": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area"
    ]
   }
  },
@@ -494,10 +492,10 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「可靠伙伴」；解锁天赋「战术快递」：队长每次冲刺，她同向冲刺一次；穿过敌人时为全队回技力，双连斩每次出手再回一点；普通攻击强化「钉剑」：短剑气命中的第一名敌人身上插一柄源石剑，停顿 {$pin_dur} 秒（精英减半，Boss 除外）",
+   "desc": "解锁二技能「可靠伙伴」；解锁天赋「战术快递」：队长每次冲刺，她同向冲刺一次；穿过敌人时为全队回技力，双连斩每次出手再回一点；普通攻击强化「钉剑」：疾刃三连第一下命中的第一名敌人身上插一柄源石剑，停顿 {$pin_dur} 秒（精英减半，Boss 除外）",
    "attack": {
     "name": "钉剑",
-    "desc": "短剑气命中的第一名敌人身上插一柄源石剑，停顿 {$pin_dur} 秒（精英减半，Boss 除外）"
+    "desc": "疾刃三连第一下命中的第一名敌人身上插一柄源石剑，停顿 {$pin_dur} 秒（精英减半，Boss 除外）"
    }
   },
   {
@@ -548,10 +546,10 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「剑雨滂沱」；普通攻击强化「余像」：短剑气飞过的路径上留下 {$trail_life} 秒剑气残像，踩进的敌人受 {$trail_mult*100}% 伤害并减速；残像消散时沿路径每 {$rain_step} 落下一柄剑（{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒，精英减半，Boss 除外）",
+   "desc": "解锁三技能「剑雨滂沱」；普通攻击强化「余像」：疾刃三连出手时前方留下 {$trail_life} 秒剑气残像，踩进的敌人受 {$trail_mult*100}% 伤害并减速；残像消散时沿路径每 {$rain_step} 落下一柄剑（{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒，精英减半，Boss 除外）",
    "attack": {
     "name": "余像·剑雨",
-    "desc": "短剑气飞过的路径上留下 {$trail_life} 秒剑气残像（{$trail_mult*100}% 伤害并减速）；残像消散时沿路径每 {$rain_step} 落下一柄源石剑：{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒（精英减半，Boss 除外）"
+    "desc": "疾刃三连出手时前方留下 {$trail_life} 秒剑气残像（{$trail_mult*100}% 伤害并减速）；残像消散时沿路径每 {$rain_step} 落下一柄源石剑：{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒（精英减半，Boss 除外）"
    }
   }
  ],
@@ -719,35 +717,52 @@
    },
    {
     "trig": "every_n",
-    "n": "$wave_every",
-    "_doc": "短剑气：每第 wave_every 次出手朝 wave_aim 内最近敌人甩一道（没有敌人就不甩；命中第一名即消失，贯穿卡 / 穿甲弹加在上面）",
+    "n": "$tri_every",
+    "replace": true,
+    "no_combo": true,
+    "cond": "enemy_near",
+    "_doc": "疾刃三连（10-23 用户定，取代短剑气）：每第 tri_every 次出手改为原地朝最近敌人连斩三下（0 / tri_gap / 2×tri_gap 秒，扇形比普攻宽 20°、半径同普攻，每下 tri_mult）；范围内没有敌人就照常两连斩。第一下带精一钉剑、精二余像",
     "do": [
      {
-      "shape": "wave",
-      "from": "self",
-      "aim": "nearest",
-      "aim_r": "$wave_aim",
-      "need_target": true,
-      "fan": [
-       0
-      ],
-      "basis": "attack",
-      "mult": "$wave_mult",
-      "dist": "$wave_dist",
-      "speed": "$wave_speed",
-      "w": "$wave_w",
-      "depth": 14,
-      "kb": "$wave_kb",
-      "cap": 6,
-      "max_hits": 1,
-      "off": [
+      "shape": "cone",
+      "origin_off": [
        0,
-       -8
+       -10
       ],
-      "src": "剑气",
+      "aim_pad": 40,
+      "ring": false,
+      "src": "疾刃三连",
+      "r": "$slash_r",
+      "half": "$tri_half",
+      "kb": "$slash_kb",
+      "face": true,
+      "basis": "attack",
+      "mult": "$tri_mult",
       "tags": [
        "basic",
-       "projectile"
+       "area"
+      ],
+      "fx": [
+       {
+        "blade": {
+         "strip": "fx_slash_heavy_steel",
+         "fit": 28,
+         "k": 1.0,
+         "along": 0.5,
+         "col": [
+          1.0,
+          0.82,
+          0.55
+         ],
+         "edge": [
+          1.0,
+          1.0,
+          1.0
+         ],
+         "life": 0.15,
+         "half": 1.35
+        }
+       }
       ],
       "on_hit": [
        {
@@ -786,8 +801,116 @@
         ],
         "cond": "elite >= 1"
        }
+      ]
+     },
+     {
+      "verb": "emit_path",
+      "len": "$slash_r",
+      "w": "$tri_w",
+      "src": "疾刃三连",
+      "cond": "elite >= 2"
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": "$tri_every",
+    "delay": "$tri_gap",
+    "cond": "enemy_near",
+    "_doc": "疾刃三连第二下",
+    "do": [
+     {
+      "shape": "cone",
+      "origin_off": [
+       0,
+       -10
       ],
-      "path_event": true
+      "aim_pad": 40,
+      "ring": false,
+      "src": "疾刃三连",
+      "r": "$slash_r",
+      "half": "$tri_half",
+      "kb": "$slash_kb",
+      "face": true,
+      "basis": "attack",
+      "mult": "$tri_mult",
+      "tags": [
+       "basic",
+       "area"
+      ],
+      "fx": [
+       {
+        "blade": {
+         "strip": "fx_slash_heavy_steel",
+         "fit": 28,
+         "k": 1.0,
+         "along": 0.5,
+         "col": [
+          1.0,
+          0.82,
+          0.55
+         ],
+         "edge": [
+          1.0,
+          1.0,
+          1.0
+         ],
+         "life": 0.15,
+         "half": 1.35
+        }
+       }
+      ]
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": "$tri_every",
+    "delay": "$tri_gap*2",
+    "cond": "enemy_near",
+    "_doc": "疾刃三连第三下",
+    "do": [
+     {
+      "shape": "cone",
+      "origin_off": [
+       0,
+       -10
+      ],
+      "aim_pad": 40,
+      "ring": false,
+      "src": "疾刃三连",
+      "r": "$slash_r",
+      "half": "$tri_half",
+      "kb": "$slash_kb",
+      "face": true,
+      "basis": "attack",
+      "mult": "$tri_mult",
+      "tags": [
+       "basic",
+       "area"
+      ],
+      "fx": [
+       {
+        "blade": {
+         "strip": "fx_slash_heavy_steel",
+         "fit": 28,
+         "k": 1.0,
+         "along": 0.5,
+         "col": [
+          1.0,
+          0.82,
+          0.55
+         ],
+         "edge": [
+          1.0,
+          1.0,
+          1.0
+         ],
+         "life": 0.15,
+         "half": 1.35
+        }
+       }
+      ]
      }
     ]
    },
@@ -1088,7 +1211,7 @@
    "elite1": {
     "trig": "passive",
     "do": [],
-    "_doc": "钉剑（docs/91 §16，10-23 改挂短剑气）：标记节点，效果在短剑气 wave 的 on_hit（cond elite >= 1，first_only）"
+    "_doc": "钉剑（docs/91 §16，10-23 改挂疾刃三连）：标记节点，效果在三连第一下的 on_hit（cond elite >= 1，first_only）"
    },
    "elite2": {
     "trig": "on_dash_end",
@@ -1194,8 +1317,8 @@
       "line_w": 0.0
      }
     ],
-    "src": "剑气",
-    "_doc2": "10-23 改挂短剑气：src 剑气（wave path_event 把飞行路径当一次冲刺结束）；冲刺不再留残像"
+    "src": "疾刃三连",
+    "_doc2": "10-23 改挂疾刃三连：三连出手时 verb.emit_path 把「前方长 slash_r」的路径当一次冲刺结束，src 疾刃三连；冲刺不再留残像"
    },
    "back2": {
     "trig": "passive",

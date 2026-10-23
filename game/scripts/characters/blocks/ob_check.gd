@@ -378,6 +378,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 			# 精英化段：replace = 这一次普攻整个换成 do（不再出普攻形状）；anim = 这一次起手播的帧条（sprites 里的键，缺图退回 attack）
 			if b.has("replace") and not (b.replace is bool):
 				errs.append(p + ".replace 只能是 true / false")
+			if b.has("no_combo") and (not (b.no_combo is bool) or not b.get("replace", false)):
+				errs.append(p + ".no_combo 只配 replace: true，且是 true / false（这一次出手不接 attack.combo 的连斩）")
 			if b.has("anim"):
 				if not b.get("replace", false):
 					errs.append(p + ".anim 只配 replace: true（换掉的那一次普攻播别的帧条）")

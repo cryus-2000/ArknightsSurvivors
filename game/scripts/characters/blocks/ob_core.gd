@@ -566,7 +566,7 @@ static func orbit_tick(o, b: Dictionary, st: Dictionary, dt: float) -> void:
 const FX_VORTEX_FADE := 0.4
 
 ## 无参数条件
-const EXT_CONDS := ["beacon_charging"]   # 主控正在给灯标读条（run/beacon.gd charging）
+const EXT_CONDS := ["beacon_charging", "enemy_near"]   # 主控正在给灯标读条（run/beacon.gd charging）
 
 const FIELD_CENTERS := ["self", "leader", "target", "zone", "last_hit"]
 
@@ -756,7 +756,7 @@ static func _v_shared(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 
 const TX_IMPL := {
 	"shape": ["dash_line"],
-	"verb": ["sp_secs", "dash_mod", "trail", "fx_scatter", "fx_rain"],   # verb.buff_leader 在「共用积木」段
+	"verb": ["sp_secs", "dash_mod", "trail", "fx_scatter", "fx_rain", "emit_path"],   # verb.buff_leader 在「共用积木」段
 	"trig": ["on_dash_end", "on_leader_dash", "on_skill_start", "on_skill_end"],
 }
 

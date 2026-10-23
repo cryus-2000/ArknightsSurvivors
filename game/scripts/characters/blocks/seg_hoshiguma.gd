@@ -29,6 +29,8 @@ static func ext_cond_true(o, k: String) -> bool:
 	match k:
 		"beacon_charging":
 			return o.g.beacon_sys != null and o.g.beacon_sys.charging != null
+		"enemy_near":   # 普攻范围（形状半径 + 30，同起手的找目标半径）内有敌人（德克萨斯疾刃三连：没有敌人就照常两连斩，10-23）
+			return not o.nearest_enemies(1, shape_radius(o, o.cur_attack()) + 30.0, o.pos).is_empty()
 	return false
 
 

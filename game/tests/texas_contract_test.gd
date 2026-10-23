@@ -36,7 +36,7 @@ func _process(_d: float) -> void:
 		test_s2(o)
 		test_dash(o)
 		test_leader_dash(o)
-		test_wave_elite(o)
+		test_triple(o)
 	print("%d checks, %d failed" % [n, fails])
 	print("TEXAS CONTRACT failures=%d" % fails)
 	get_tree().quit(1 if fails > 0 else 0)
@@ -122,22 +122,30 @@ func test_leader_dash(o) -> void:
 	e1.dead = true
 
 
-## 钉剑 / 余像挂短剑气（10-23）：直接放一道短剑气（trait[1] 的 do），精一起命中第一名敌人 → 停顿；精二起飞行路径上留下余像（来源「余像」伤害）
-func test_wave_elite(o) -> void:
+## 疾刃三连（10-23，取代短剑气）：每第 3 次出手原地连斩三下（replace + no_combo + 两个 delay 的追加段）；没有敌人照常两连斩；
+## 钉剑 / 余像挂在三连上——直接放三连第一下的 do，精一起命中第一名敌人停顿、精二起前方留下余像
+func test_triple(o) -> void:
 	var g = game
 	for e in g.enemies: e.dead = true
 	g.enemies.clear()
-	var e1: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2(110, 0))
-	e1.hp = 100000.0
-	e1.max_hp = e1.hp
-	e1.spd = 0.0
-	g.enemies_sys.build_grid()
 	o.s_t = [0.0, 0.0, 0.0]
 	o.no_attack = false
 	o.attack_t = 0.0
 	o.fire_t = -1.0
 	o.tx.erase("dash")
-	var wave_do: Array = o.B.trait[1].do
+	o.pos = g.ppos
+	o.elite = 0
+	o.refresh_stats()
+	g.enemies_sys.build_grid()
+	ok(o._replace_trig(3).is_empty(), "疾刃三连：场上没有敌人 → 第 3 次出手照常两连斩（不 replace）")
+	var e1: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2(90, 0))
+	e1.hp = 100000.0
+	e1.max_hp = e1.hp
+	e1.spd = 0.0
+	g.enemies_sys.build_grid()
+	ok(not o._replace_trig(3).is_empty() and bool(o._replace_trig(3).no_combo), "疾刃三连：普攻范围内有敌人 → 第 3 次出手 replace（no_combo）")
+	ok(o._replace_trig(1).is_empty() and o._replace_trig(2).is_empty() and o._replace_trig(4).is_empty() and not o._replace_trig(6).is_empty(), "疾刃三连：只在第 3 / 6 … 次出手")
+	var tri_do: Array = o.B.trait[1].do
 	for el in [0, 1, 2]:
 		o.elite = el
 		o.refresh_stats()
@@ -145,20 +153,20 @@ func test_wave_elite(o) -> void:
 		e1.hp = e1.max_hp
 		o.pos = g.ppos
 		o.tx["trails"] = []
-		o._exec_list(wave_do)
-		var max_stun := 0.0
-		var trails := 0
-		for i in 90:
-			o.pos = g.ppos
-			e1.pos = g.ppos + Vector2(110, 0)
-			e1.kb = Vector2.ZERO
-			o.sp = [-100000.0, -100000.0, -100000.0]
-			g.enemies_sys.build_grid()
-			o.update(DT)
-			max_stun = maxf(max_stun, float(e1.get("stun", 0.0)))
-			trails = maxi(trails, o.tx.get("trails", []).size())
-		ok((max_stun > 0.0) == (el >= 1), "钉剑：精英 %d 短剑气命中 → %s（最大眩晕 %.2f）" % [el, "停顿" if el >= 1 else "不停顿", max_stun])
-		ok((trails > 0) == (el >= 2), "余像：精英 %d 短剑气飞行路径 → %s（残像最多 %d 道）" % [el, "留残像" if el >= 2 else "没有残像", trails])
+		o._exec_list(tri_do)
+		var max_stun := float(e1.get("stun", 0.0))
+		var trails: int = o.tx.get("trails", []).size()
+		ok((max_stun > 0.0) == (el >= 1), "钉剑：精英 %d 疾刃三连第一下命中 → %s（眩晕 %.2f）" % [el, "停顿" if el >= 1 else "不停顿", max_stun])
+		ok((trails > 0) == (el >= 2), "余像：精英 %d 疾刃三连出手 → %s（残像 %d 道）" % [el, "留残像" if el >= 2 else "没有残像", trails])
+	# 三下：追加段 delay 0.125 / 0.25 各一次，入排队列
+	o.elite = 0
+	o.refresh_stats()
+	o.pending.clear()
+	var before: float = float(e1.max_hp) - float(e1.hp)
+	o.atk_n = 2
+	o.cd = 0.0
+	o._release()
+	ok(o.atk_n == 3 and o.pending.size() == 2 and absf(float(o.pending[0].t) - 0.125) < 0.0001 and absf(float(o.pending[1].t) - 0.25) < 0.0001, "疾刃三连：第 3 次出手排了两个追加斩（0.125 / 0.25 秒），没有接第二斩的 combo（排队 %d 个）" % o.pending.size())
 	e1.dead = true
 
 

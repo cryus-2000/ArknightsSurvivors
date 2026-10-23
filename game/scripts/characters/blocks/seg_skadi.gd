@@ -13,8 +13,6 @@ static func hw_wave_start(o, b: Dictionary) -> void:
 		if o.pos == Vector2.INF:
 			return
 		var ang: float = o.facing_angle()
-		if b.get("need_target", false) and o.nearest_enemies(1, float(b.get("aim_r", 260.0)), o.pos).is_empty():
-			return   # need_target（德克萨斯「短剑气」，10-23）：aim_r 内没有敌人就不甩（手动普攻也一样，只是方向取玩家指向）
 		if o.manual_attack() and o.get("in_release") == true and o.atk_aim != Vector2.ZERO:
 			ang = o.atk_aim.angle()   # 手动普攻（10-23 用户定）：普攻里放出的剑气 / 潮刃沿玩家指向，不吸附最近敌人；技能里的照旧找最近
 		elif str(b.get("aim", "")) == "nearest":
@@ -30,8 +28,6 @@ static func hw_wave_start(o, b: Dictionary) -> void:
 			var r: Dictionary = b.release_pose
 			if o.sq_ph == 2 and o.sq_i == int(r.skill) and o.skill_active_left(int(r.skill)) > 0.0 and not (o.act_kind == "skill" and o.attack_t > 0.0):
 				o.native_motion["wave_pose"] = {"slot": str(r.slot), "skill": int(r.skill), "cycle": float(r.cycle), "elapsed": 0.0, "angle": ang}
-		if b.get("path_event", false):   # 德克萨斯精二「余像」（10-23 改挂短剑气）：这道剑气的飞行路径当作一次冲刺结束，触发 src 匹配的 trig.on_dash_end
-			o.SegTexas.tx_emit_path(o, str(b.get("src", "")), from0, from0 + Vector2.from_angle(ang) * float(b.get("dist", 200.0)), float(b.get("w", 44.0)))
 		var shared := {}   # fan_once：同一轮的几道共用命中表，一名敌人每轮只吃一道
 		for fd in b.get("fan", [0]):
 			var d2 := Vector2.from_angle(ang + deg_to_rad(float(fd)))
@@ -71,8 +67,6 @@ static func _hw_waves(o, dt: float) -> void:
 				o.apply_kb(e, w.dir * float(b.get("kb", 0.0)) * (0.3 if e.elite else 1.0))
 			if b.has("hit_fx"):   # 精英化第 2 批段：潮刃命中的浪花
 				fx_play(o, b.hit_fx, e.pos + Vector2(0, -float(e.r) * 0.5), float(e.r), [e], w.dir.angle())
-			for st in b.get("on_hit", _EA):   # 命中状态（10-23，德克萨斯钉剑）：cond / first_only（本道剑气的第一名）/ fx 都在 apply_status 里
-				apply_status(o, e, st, Vector2.INF, -1.0, 0.0, w.hit.size() - 1)
 			if b.has("max_hits") and w.hit.size() >= o.atk_pierce(int(b.max_hits)):   # 10-23 用户定：远程普攻取消穿透——命中 max_hits 名即消失（缺省不限）；贯穿卡 / 穿甲弹加在上面
 				w.dist = w.max
 				break
@@ -364,12 +358,6 @@ static func _hw_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			_num(b, "depth", p, ctx, false, 1.0, 100.0)
 			_num(b, "cap", p, ctx, false, 1.0, 16.0)
 			_num(b, "max_hits", p, ctx, false, 1.0, 99.0)   # 命中几名敌人后消失（缺省不限；普攻剑气 1）
-			if b.has("need_target") and not b.need_target is bool:
-				errs.append(p + ".need_target 应是 true / false（from: self 时 aim_r 内没有敌人就不放出）")
-			if b.has("path_event") and not b.path_event is bool:
-				errs.append(p + ".path_event 应是 true / false（from: self 时把飞行路径当一次冲刺结束，触发 trig.on_dash_end）")
-			if b.has("on_hit"):
-				_list(b.on_hit, p + ".on_hit", "on_hit", ctx)   # 命中状态：st.stun / st.slow（可带 cond / first_only / fx）
 			_num(b, "aim_r", p, ctx, false, 1.0, 1000.0)
 			if b.has("from") and not str(b.from) in ["prev", "self"]:
 				errs.append(p + ".from 只能是 prev / self")
