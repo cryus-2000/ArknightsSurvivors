@@ -48,8 +48,9 @@ const UI_PCT_MAX := 120
 ## 镜头 zoom 百分比 80–140（< 100 = 拉远、看得更多）；-1 = 按设备缺省（手机横屏 120，其余 100）
 var cam_zoom_pct := -1
 const ZOOM_PCT_MIN := 80
-const ZOOM_PCT_MAX := 140
+const ZOOM_PCT_MAX := 150
 const ZOOM_PHONE_DEF := 120
+const ZOOM_DESK_DEF := 115   # 桌面战斗镜头缺省（用户 10-24「镜头稍微拉近一点」；100 = 原镜头，docs/134）；玩家在设置里自选的值优先
 ## 手机横屏的界面放大缺省（原 1.3 → 1.15，界面整体收到约 88%）；平板 / 16:9 触屏仍按宽度 1.0–1.3
 const UI_K_PHONE := 1.15
 ## 界面逻辑高度下限：界面大小调到 120% 时也不低于手机版式设计高度（原手机 481）
@@ -176,8 +177,12 @@ func phone_ui() -> bool:
 
 ## 战斗镜头缩放（Camera2D.zoom）：玩家设过用玩家的，否则手机横屏 1.2、其余 1.0。只改画面，玩法不读视口
 func cam_zoom() -> float:
-	var pct: int = cam_zoom_pct if cam_zoom_pct > 0 else (ZOOM_PHONE_DEF if phone_ui() else 100)
-	return clampi(pct, ZOOM_PCT_MIN, ZOOM_PCT_MAX) / 100.0
+	return clampi(cam_zoom_pct if cam_zoom_pct > 0 else zoom_default_pct(), ZOOM_PCT_MIN, ZOOM_PCT_MAX) / 100.0
+
+
+## 本设备的战斗镜头缺省百分比（手机横屏 ZOOM_PHONE_DEF、其余 ZOOM_DESK_DEF）
+func zoom_default_pct() -> int:
+	return ZOOM_PHONE_DEF if phone_ui() else ZOOM_DESK_DEF
 
 
 ## 系统安全边距（UI 逻辑像素，[左, 上, 右, 下]）：刘海 / 灵动岛 / 圆角 / 底部横条。

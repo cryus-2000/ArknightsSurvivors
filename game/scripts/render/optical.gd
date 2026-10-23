@@ -268,7 +268,10 @@ func _lo_step() -> void:
 	var sx: float = maxf(0.01, vp.get_final_transform().x.x)   # 窗口物理像素 / 设计单位
 	var target: float = Bal.v("render/optical_view_h_phone", 360.0) if Cfg.phone_ui() else Bal.v("render/optical_view_h", 450.0)
 	view_k = maxi(2, roundi(vs.y * sx / target))
-	var zw: float = view_k / (2.0 * sx)
+	# 设置里的「战斗画面缩放」叠在整数像素镜头上（相对本设备缺省：手机缺省那档 = 不变；桌面缺省 ZOOM_DESK_DEF 把视野拉近；
+	# 非整数倍时 1 美术像素占的屏幕像素不再恒为整数，用户 10-24 要求先看 ×1.15 再定）
+	var rel: float = Cfg.cam_zoom() / (Cfg.ZOOM_PHONE_DEF / 100.0 if Cfg.phone_ui() else 1.0)
+	var zw: float = view_k / (2.0 * sx) * rel
 	if g.cam != null and absf(g.cam.zoom.x - zw) > 0.0001:
 		g.cam.zoom = Vector2(zw, zw)
 	var xf: Transform2D = vp.get_canvas_transform()
