@@ -18,17 +18,52 @@ uniform float white_sh = 0.8;
 uniform float white_gain = 1.0;
 uniform float use_nm = 0.0;
 uniform float lamp_on = 0.0;
+// 朝灯边缘亮线（docs/127，10-23 原型，替代法线光照的立体感）：灯火圈内，贴着「朝向灯那一侧轮廓」的不透明像素提亮、偏灯色。
+// 只看贴图 alpha：沿灯的方向往外 rim_px 个贴图像素是透明 = 这一格是朝灯的边。翻转的帧用 UV 的屏幕导数判方向。
+// rim = 0 关（缺省）；干员（RGB 取负标记）与敌人（alpha 取负标记，world.gd 在 rim 开时打）都走
+uniform float rim = 0.0;
+uniform float rim_px = 2.0;
+uniform float rim_floor = 0.15;
 
 varying float actor;
+varying float rim_only;
 varying vec2 wpos;
 
 void vertex() {
 	actor = 0.0;
+	rim_only = 0.0;
 	if (COLOR.r < 0.0 || COLOR.g < 0.0 || COLOR.b < 0.0) {
 		actor = 1.0;
 		COLOR.rgb = abs(COLOR.rgb);
 	}
+	if (COLOR.a < 0.0) {
+		rim_only = 1.0;
+		COLOR.a = -COLOR.a;
+	}
 	wpos = (MODEL_MATRIX * vec4(VERTEX, 0.0, 1.0)).xy;
+}
+
+// 灯火衰减（0..1，贴图 alpha × 红通道 × 能量），圈外 0
+float lamp_a(vec2 rel) {
+	vec2 luv = vec2(0.5) + rel / (max(lamp_scale, 0.001) * 128.0);
+	if (luv.x > 0.0 && luv.x < 1.0 && luv.y > 0.0 && luv.y < 1.0) {
+		vec4 lt = texture(lamp_tex, luv);
+		return lt.a * lt.r * lamp_energy;
+	}
+	return 0.0;
+}
+
+// 朝灯边：返回 0..1 的亮线强度
+float rim_k(sampler2D tex, vec2 uv, vec2 px, vec2 rel) {
+	float d = length(rel);
+	if (d < 1.0) {
+		return 0.0;
+	}
+	vec2 dir = -rel / d;   // 从像素指向灯
+	vec2 sgn = vec2(sign(dFdx(uv.x)), sign(dFdy(uv.y)));
+	vec2 step_uv = vec2(dir.x * sgn.x, dir.y * sgn.y) * px * rim_px;
+	float a_out = texture(tex, uv + step_uv).a;
+	return 1.0 - smoothstep(0.2, 0.6, a_out);
 }
 
 float knee_scale(float mx) {
@@ -40,6 +75,18 @@ float knee_scale(float mx) {
 }
 
 void fragment() {
+	if (rim > 0.001 && lamp_on > 0.5 && (actor > 0.5 || rim_only > 0.5)) {
+		vec4 t0 = texture(TEXTURE, UV);
+		if (t0.a > 0.5) {
+			vec2 rel = wpos - lamp_pos;
+			float la = clamp(lamp_a(rel), 0.0, 1.0);
+			float k = rim_k(TEXTURE, UV, TEXTURE_PIXEL_SIZE, rel) * max(la, rim_floor) * rim;
+			if (k > 0.0) {
+				vec3 rc = mix(vec3(1.0), lamp_col, 0.6);
+				COLOR.rgb = mix(COLOR.rgb, max(COLOR.rgb, rc * 0.95), clamp(k, 0.0, 1.0));
+			}
+		}
+	}
 	if (actor > 0.5 && lamp_on > 0.5) {
 		vec4 tx = texture(TEXTURE, UV);
 		vec2 rel = wpos - lamp_pos;

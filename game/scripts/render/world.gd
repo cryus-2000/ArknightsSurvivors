@@ -34,6 +34,7 @@ var dcrowd := 0.0                 # 降噪用的拥挤度：max(crowd, ecrowd ×
 var mate_dim := 1.0               # 队友（非主控）特效再乘的系数（declutter mate_k；squad 绘制时按干员临时乘进 fx_dim）
 var lead_dim := 1.0               # 主控自己的特效再乘的系数（declutter lead_k）
 var ol_mul := 1.0                 # 普通怪描边透明度系数（随 ecrowd 降到 declutter ol_floor；原来写死 0.4）
+var _lamp_rim := false              # 朝灯边缘亮线原型（balance render/rim > 0 且白色保护材质在）：敌人本体绘制的 alpha 取负作标记，actor_light.gdshader 认
 var flash_a := 0.9                # 普通怪受击白闪透明度（随 ecrowd 从 0.9 降到 declutter flash_a）
 var gem_qa := 0.7                 # 远处安静结晶的透明度（declutter gem_quiet_a 随拥挤度插值；缺省 0.7 = 不变）
 var tell_fill := 1.0              # 预警填充透明度系数（declutter tell_fill_k；只压填充，轮廓不动）
@@ -192,6 +193,7 @@ func update_visuals(dt: float) -> void:
 		fx_dim = 0.0   # --clutterdbg=nofriend：友方特效全透明（代码照跑、随机数照抽）
 	ol_mul = lerpf(1.0, Dc.p("ol_floor"), ecrowd)
 	flash_a = lerpf(0.9, Dc.p("flash_a"), ecrowd)
+	_lamp_rim = Bal.v("render/rim", 0.0) > 0.0 and g.get("actor_mat") != null
 	# 集体白闪封顶（docs/127 FX-A1，10-23）：同一帧在白闪的普通怪超过 fx/flash_group（缺省 6）只时，白闪按 6 / 只数 压淡（最低 fx/flash_group_floor），
 	# 群伤技能不再把一整片怪刷成白块盖住技能本体与队长；精英 / Boss 不受影响（纯画面）
 	var nfl := 0
@@ -1973,13 +1975,13 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 		if flip:
 			g.draw_set_transform(p.round(), 0.0, Vector2(-1, 1))
 			var rf := Rect2(-size * anc, size)
-			g.draw_texture_rect_region(ra[0], rf, src, c[11] * _act_mod)
+			g.draw_texture_rect_region(ra[0], rf, src, _rimc(c[11] * _act_mod))
 			if rw != null:
 				g.draw_texture_rect_region(rw[0], rf, src, Color(1, 1, 1, 0.9 if e.elite else flash_a) * _act_mod)
 			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		else:
 			var rn := Rect2((p - size * anc).round(), size)
-			g.draw_texture_rect_region(ra[0], rn, src, c[11] * _act_mod)
+			g.draw_texture_rect_region(ra[0], rn, src, _rimc(c[11] * _act_mod))
 			if rw != null:
 				g.draw_texture_rect_region(rw[0], rn, src, Color(1, 1, 1, 0.9 if e.elite else flash_a) * _act_mod)
 	else:
@@ -2007,12 +2009,20 @@ func _espr(name: String, frames: int, frame: int, pos: Vector2, sc: float, flip:
 		return
 	if _dbg_enemy:
 		col.a = 0.0   # --clutterdbg=noenemy（量测）
+	var cm: Color = col * _act_mod if name.ends_with("_white") else _rimc(col * _act_mod)
 	if atlas != null:
 		var r = atlas.reg.get(name)
 		if r != null:
-			EnemyAtlas.spr(g, r, frames, frame, pos + g.draw_off, sc, flip, col * _act_mod, anc, sq)
+			EnemyAtlas.spr(g, r, frames, frame, pos + g.draw_off, sc, flip, cm, anc, sq)
 			return
-	g.vfx.spr(name, frames, frame, pos, sc, flip, col * _act_mod, anc, sq)
+	g.vfx.spr(name, frames, frame, pos, sc, flip, cm, anc, sq)
+
+
+## 朝灯边缘亮线标记：开着时把 alpha 取负（着色器 vertex() 认、还原），关着原样返回
+func _rimc(c: Color) -> Color:
+	if _lamp_rim:
+		c.a = -c.a
+	return c
 
 
 ## 普通怪 / 精英帧条图集（docs/50 §12 B）：开局贴图载完后建一次。Boss（大帧条、网页版推迟加载）和骑士（专用帧条）不进；

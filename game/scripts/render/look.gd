@@ -261,6 +261,9 @@ static func make_actor_mat() -> ShaderMaterial:
 	m.set_shader_parameter("white_sh", p("white_sh"))
 	m.set_shader_parameter("white_gain", p("white_gain"))
 	m.set_shader_parameter("use_nm", 1.0 if A.normal_maps else 0.0)
+	m.set_shader_parameter("rim", Bal.v("render/rim", 0.0))   # 朝灯边缘亮线原型（docs/127，缺省 0 = 关）
+	m.set_shader_parameter("rim_px", Bal.v("render/rim_px", 2.0))
+	m.set_shader_parameter("rim_floor", Bal.v("render/rim_floor", 0.15))
 	return m
 
 
