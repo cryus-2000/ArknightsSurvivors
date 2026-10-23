@@ -642,6 +642,10 @@ func draw_foreground(ci: CanvasItem, vs: Vector2, cp: Vector2) -> void:
 	var fd: Dictionary = theme.get("foreground", {})
 	if fd.is_empty() or fg_tex.is_empty():
 		return
+	# 光学观感下的前景（render/optical_fg_px，docs/130 A3）：1 = 像素剪影（缺省）、0 = 不画、-1 = 原虚化剪影；光学关（低档）照旧虚化
+	var fg_mode: float = Bal.v("render/optical_fg_px", 1.0)
+	if g.optical_on and fg_mode == 0.0:
+		return
 	var par: float = float(fd.get("parallax", 1.35))
 	var cell: float = float(fd.get("cell", 520))
 	var col: Array = fd.get("color", [0.10, 0.30, 0.34])
@@ -662,7 +666,7 @@ func draw_foreground(ci: CanvasItem, vs: Vector2, cp: Vector2) -> void:
 				continue
 			var big := 0.8 + 0.25 * float(h % 3)
 			var sway := sin(g.t * 0.7 + float(h % 10)) * 0.06
-			if g.optical_on and not fg_px.is_empty() and Bal.v("render/optical_fg_px", 1.0) > 0.0:
+			if g.optical_on and not fg_px.is_empty() and fg_mode > 0.0:
 				# 像素风（docs/130 A3，用户 10-24）：硬边剪影、整数倍放大（每个原图像素 = PX_FG 档里最近的偶数世界像素，落在低分辨率层 2 px 格上），
 				# 不旋转（转了像素会歪），摆动改成按 2 px 步进的横向平移；大小档与虚化版同一套（约 0.8 / 1.05 / 1.3 倍）
 				var pt: Texture2D = fg_px[(0 if h % 3 != 0 else 1) % fg_px.size()]

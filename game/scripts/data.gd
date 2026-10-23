@@ -280,7 +280,7 @@ static func enemy_offset(e: Dictionary, t: float, rc_px: float, rc_t: float) -> 
 	var off := Vector2(0, -minf(e.kb.length() * 0.03, 14.0))
 	if rc_px > 0.0:
 		var ra: float = e.get("rc_at", -99.0)
-		var k: float = (t - ra) / rc_t
+		var k: float = (t - ra) / float(e.get("rc_t", rc_t))   # 三档后坐自带回弹时长（vfx.hit_react）
 		if k >= 0.0 and k < 1.0:
 			off += (e.rc_dir as Vector2) * (rc_px * float(e.rc_k) * (1.0 - k))
 	return off
