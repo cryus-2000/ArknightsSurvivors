@@ -58,6 +58,7 @@ const PERF_DUMP_KEYS := ["engine", "draw_world", "draw_hud", "draw_fxadd", "draw
 	"relic", "misc", "fx", "cleanup", "visuals", "tail", "dw_sorted_entities", "dw_gems", "dw_ground", "dw_mire", "dw_zone", "dw_fx", "dw_bullets", "dw_shadows", "dw_warns_auras", "dw_ebullets_lobs_shocks", "dw_tells_outlines", "dw_snow_tail", "dw_shield_drones"]
 var opticalab := -1           # --opticalab=N（docs/50 §25）：每 N 帧轮换光学观感原型开 / 关；-1 = 还没读参数
 var fx1ab := 0                # --fx1ab=N（docs/50 §25.2）：每 N 帧轮换特效处理第 1 步开 / 关（光学观感开着时）
+var tierab := 0               # --tierab=N（docs/50 §25.3）：每 N 帧轮换命中三档开 / 关
 var vfxab := -1               # --vfxab=N（docs/54）：每 N 帧轮换 vfx.p2；-1 = 还没读参数
 var vfxdemo := false           # --vfxdemo：按固定时刻强制灯标点燃 / 升级 / 灯火暗淡 / 精英 / 拾取 / 商人（录对照片段用）
 var _vd_step := 0
@@ -370,6 +371,8 @@ func step() -> void:
 				opticalab = int(a.substr(12))
 			if a.begins_with("--fx1ab="):
 				fx1ab = int(a.substr(8))
+			if a.begins_with("--tierab="):
+				tierab = int(a.substr(9))
 			if a == "--optical":
 				g.optical.force = 1   # 截图 / 录像：强制开光学观感（不改 balance）
 			if a == "--nooptical":
@@ -384,6 +387,8 @@ func step() -> void:
 	Dc.ab_step(g.at_frames)   # --clutterab=N：每 N 帧在降噪 0 档与当前档之间轮换（--perf 分 /d0 /dN 两桶）
 	if opticalab > 0 and g.at_frames % opticalab == 0 and g.optical != null:
 		g.optical.force = 0 if g.optical.force == 1 else 1   # --opticalab=N：同局轮换光学观感开 / 关（--perf 分 /opt /base 两桶）
+	if tierab > 0 and g.at_frames % tierab == 0:
+		g.vfx.tier_off = not g.vfx.tier_off   # --tierab=N：同局轮换命中三档（--perf 分 /t1 /t0 两桶）
 	if fx1ab > 0 and g.at_frames % fx1ab == 0 and g.optical != null:
 		g.optical.fx1_force = 0 if g.optical.fx1_force == 1 else 1   # --fx1ab=N：同局轮换特效处理第 1 步（--perf 分 /fx1 /fx0 两桶）
 	if vfxab > 0 and g.at_frames % vfxab == 0:
@@ -670,6 +675,15 @@ func step() -> void:
 				while not o.next_node().is_empty() and guard < 12:
 					o.advance("")
 					guard += 1
+	if Cfg.dev_args().has("--tierdemo") and g.at_frames % 30 == 10 and g.ch != null and g.ch.pos != Vector2.INF:
+		# 特效第 2 步对照图：主控面前从左到右同时放一次轻 / 中 / 重命中 + 同档刀光（纯画面，不扣血、不碰随机数）
+		for t in [1, 2, 3]:
+			var hp: Vector2 = g.ppos + Vector2(-150.0 + 150.0 * (t - 1), -70.0)
+			g.vfx.melee_arc(g.ch, hp + Vector2(0, 30), -PI / 2.0, 0.7, 46.0)
+			if not g.fx.is_empty() and g.fx[-1].get("kind", "") == "marc":
+				g.fx[-1].tier = t
+				g.fx[-1].t = -1.0   # 不让同帧命中再改它
+			g.vfx._tier_fx({"pos": hp, "r": 14.0}, {"op": g.ch.id}, t)
 	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--elite2") and g.at_frames == 20:
 		# 特效连拍（docs/50 §25 特效处理）：队友直接精二（三个技能都解锁）
 		for o in g.squad.ops:
@@ -1186,6 +1200,8 @@ func _perf_sample() -> void:
 		var w := "0-8" if g.t < 480.0 else ("8-10" if g.t < 600.0 else "10+")
 		if perf_min:
 			w = "m%02d" % int(g.t / 60.0) + ("F" if g.final_boss != null and not g.final_boss.dead else "")   # --perfmin：按游戏分钟分段，F = 最终 Boss 在场
+		if tierab > 0:
+			w += "/t0" if g.vfx.tier_off else "/t1"   # --tierab：上一帧的命中三档开关
 		if fx1ab > 0:
 			w += "/fx1" if g.optical.fx1 else "/fx0"   # --fx1ab：上一帧的特效处理开关（轮换在采样之后）
 		if opticalab > 0:

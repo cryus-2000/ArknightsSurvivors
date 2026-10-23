@@ -508,6 +508,8 @@
   "heal_low_cap": 2
  },
  "fx": {
+  "_hit_tiers_doc": "特效第 2 步（10-23）：普攻命中三档模板（render/vfx.gd hit_tier / _tier_fx）。hit_tiers 总开关；hit_mid / hit_heavy 相对干员普攻基准的倍数门槛（暴击 / 弱点直接重档，召唤物 / 追加打击一律轻）；hit_n1–3 每档迸溅颗粒数；hit_pause_m / hit_pause_h 中 / 重档顿帧（走 impact_pause 共享限频）；melee_arc 近战刀光开关（半径 / 半角读实际判定）、melee_arc_life 刀光时长（秒）",
+  "hit_tiers": 1, "hit_mid": 1.2, "hit_heavy": 2.5, "hit_n1": 3, "hit_n2": 6, "hit_n3": 12, "hit_pause_m": 0.014, "hit_pause_h": 0.03, "melee_arc": 1, "melee_arc_life": 0.12,
   "_doc": "命中反馈（界面与美术，打击感审查 9/30；vfx.hit_react）：白闪 flash_* 秒、受击形变 squash_* 秒（形变幅度固定，数值越大持续越久）、粒子个数、破绽短顿帧 break_pause 秒（上限 0.075，共享 0.28 秒限频）；飘字（1.1.1 可读性）：text_merge_t / text_merge_r 内同色同字号同前缀（纯数字 / 弱点 / 破绽）的数字合并，新飘字与 text_nudge_t 秒内冒出的重叠就往上错一行（最多 text_nudge_max 行），场上飘字超过 text_crowd 个时普通白字不飘；敌方预警密度（1.1.1）：杂兵预警与主控（半径 tell_lead_r + 余量 tell_margin）相交才全强度，打不到的只画 tell_dim_alpha 淡边框，会打到的冲刺线最多 tell_full_max 条全强度（按离主控由近到远），Boss 预警不受影响；outline_max：10-13 起普通怪 / 精英一律不画描边（用户「怪物取消描边」，docs/50 §12 A），这个满屏降级门槛只在同局对照的旧写法（--optold 位 32）里用",
   "flash_basic": 0.08,
   "flash_dot": 0.05,
