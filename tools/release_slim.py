@@ -40,6 +40,13 @@ def is_review_art(name):
     return any(fnmatch.fnmatchcase(n, g) for g in REVIEW_ART_GLOBS)
 
 
+def is_fallback_2x(name, siblings):
+    """干员 @2x 回退条（docs/128）：同名 @1x 存在时，render/op_1x 缺省开、游戏读 1x，@2x 只在 op_1x=0 时回退用。
+    对外包与网页包不带（Toy 50 MB 上限），对内包保留以便对照。siblings = 同目录文件名集合"""
+    n = os.path.basename(name)
+    return n.lower().endswith("@2x.png") and (n[:-7] + "@1x.png") in siblings
+
+
 def preset_excludes():
     """两个导出预设 exclude_filter 里应有的项（art/incoming 前缀 + 开发目录）"""
     return ["art/incoming/" + g for g in REVIEW_ART_GLOBS] + list(DEV_EXCLUDES)

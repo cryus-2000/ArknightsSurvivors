@@ -216,15 +216,20 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
         preset_path.write_text(encrypted_release.encrypted_preset(preset_path.read_text(encoding="utf-8"), encrypted_template), encoding="utf-8")
         packed_art = Path(gpath) / "art" / "incoming"
         packed_art.mkdir(parents=True, exist_ok=True)
-        skipped = 0
+        skipped = fallback = 0
+        sib = set(os.listdir(os.path.join(src, "art", "incoming")))
         for pat in ["*.png"] + [d + "/*.png" for d in ART_SUBDIRS]:
             for png in sorted((Path(src) / "art" / "incoming").glob(pat)):
                 if release_slim.is_review_art(png.name):
                     skipped += png.stat().st_size
+                elif not a.ea and release_slim.is_fallback_2x(png.name, sib):
+                    fallback += png.stat().st_size   # 对外包：干员 @2x 回退条不带（docs/128，游戏读 @1x）
                 else:
                     (packed_art / png.parent.name if png.parent.name in ART_SUBDIRS else packed_art).mkdir(parents=True, exist_ok=True)
                     shutil.copy2(png, (packed_art / png.parent.name if png.parent.name in ART_SUBDIRS else packed_art) / png.name)
         print("[瘦身] 审阅用拼图不进包：%.2f MB（PNG 原图）" % (skipped / 1e6), flush=True)
+        if fallback:
+            print("[瘦身] 干员 @2x 回退条不进对外包：%.2f MB（PNG 原图）" % (fallback / 1e6), flush=True)
         # Preserve editor/external-art workflow; public binaries only read their packed resources.
         art_loader = Path(gpath) / "scripts" / "art.gd"
         loader = art_loader.read_text(encoding="utf-8")
@@ -258,12 +263,13 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
     if not a.encrypted:
         os.makedirs(art_dst)
     n = 0
+    sib = set(os.listdir(art_src)) if os.path.isdir(art_src) else set()
     for sub in [""] + ART_SUBDIRS:
         sdir = os.path.join(art_src, sub) if sub else art_src
         if not os.path.isdir(sdir):
             continue
         for f in sorted(os.listdir(sdir)):
-            if f.lower().endswith(".png") and not release_slim.is_review_art(f):
+            if f.lower().endswith(".png") and not release_slim.is_review_art(f) and not (not a.ea and not sub and release_slim.is_fallback_2x(f, sib)):
                 if not a.encrypted:
                     os.makedirs(os.path.join(art_dst, sub) if sub else art_dst, exist_ok=True)
                     shutil.copy2(os.path.join(sdir, f), os.path.join(art_dst, sub) if sub else art_dst)
