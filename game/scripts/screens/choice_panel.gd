@@ -767,7 +767,7 @@ func card_tag(o: Dictionary) -> Array:
 	elif o.kind == "recruit":
 		cat = "招募 · " + o.get("cls", "") + "  RECRUIT"
 	elif o.kind == "prog":
-		cat = ("精英化  ELITE" if o.get("elite", 0) > 0 else "干员深度  OPERATOR")
+		cat = ("精英化  ELITE" if o.get("elite", 0) > 0 else "干员培养  OPERATOR")
 	elif o.kind == "weapon":
 		cat = "支援  " + D.WEAPONS[o.id].en
 	# 「中文  ENGLISH」拆成两段；没有英文的整段当中文

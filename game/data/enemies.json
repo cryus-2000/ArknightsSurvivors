@@ -978,7 +978,7 @@
     "en": "ISHAR-MLA, CORRUPTED HEART",
     "sub": "最终 · 替大群发声",
     "portrait": "portraits/boss_ishar",
-    "line": "转化完成后，她才会攻击队长。"
+    "line": "伊莎玛拉，腐化之心。"
    },
    "portrait_crop": [16, 8, 48, 48],
    "draw_full": true,
@@ -1040,7 +1040,7 @@
     "en": "THE LAST KNIGHT",
     "sub": "最终 · 堂吉诃德",
     "portrait": "portraits/boss_knight_boss",
-    "line": "曾经护送旅人穿越海嗣领地的猎潮骑士，如今站到了海嗣那一边。"
+    "line": "曾经同行的猎潮骑士。"
    },
    "portrait_crop": [52, 40, 56, 56]
   }
