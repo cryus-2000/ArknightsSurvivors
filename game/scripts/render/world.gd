@@ -1713,6 +1713,10 @@ func boss_strip_animation(e: Dictionary) -> Dictionary:
 				var sla = e.get("last_act")
 				if sla is Dictionary and str(sla.get("act", "")) == "pattern_ring" and g.t - float(sla.get("t", -1.0)) < 0.42:
 					return {"name": "e_carmen_spin", "frames": 6, "frame": clampi(1 + int((g.t - float(sla.t)) / 0.084), 1, 5)}
+			if e.get("gate_hold", false) and _lazy_tex(e.tex + "_skill") != null:
+				# 过卡点阶段护盾（重画 *_skill，8 帧）：起势一次后停在后三帧循环
+				var sn: int = A.enemy_frames(e.tex + "_skill", 8)
+				return {"name": e.tex + "_skill", "frames": sn, "frame": sn - 3 + int(g.t * 4.0) % 3}
 			var seg: int = (0 if pk > 0.5 else 1) if winding else (2 if e.pose > 0.17 else 3)
 			if e.get("sword_t", 0.0) > 0.0 and posing:
 				return {"name": e.tex + "_melee", "frames": 4, "frame": seg}
@@ -1722,6 +1726,15 @@ func boss_strip_animation(e: Dictionary) -> Dictionary:
 				return {"name": e.tex + "_attack", "frames": 4, "frame": seg}
 		"izumik":
 			# 学习期（phase 1）扎根：进学习期先播 f0–f1 一次，之后 f2–f3 循环；地波蓄力按进度 f0 → f2，结算释放 f3
+			if e.phase == 1 and e.has("learn_t") and _lazy_tex("e_izumik_root_begin") != null and _lazy_tex("e_izumik_root_loop") != null:
+				# 重画扎根（10-23）：起势 root_begin 播一次 → 学习期 root_loop 循环；收势 root_end 由 vis_act 在进阐释阶段时播
+				var el0: float = float(e.get("count_max", 20.0)) - float(e.learn_t)
+				var bd: float = float(A.enemy_redraw("e_izumik_root_begin").get("duration", 1.0))
+				if el0 < bd:
+					var bn: int = A.enemy_frames("e_izumik_root_begin", 8)
+					return {"name": "e_izumik_root_begin", "frames": bn, "frame": clampi(int(el0 / bd * bn), 0, bn - 1)}
+				var ln: int = A.enemy_frames("e_izumik_root_loop", 6)
+				return {"name": "e_izumik_root_loop", "frames": ln, "frame": int(g.t * A.enemy_loop_fps("e_izumik_root_loop", 6.0)) % ln}
 			if e.phase == 1 and e.has("learn_t"):
 				var el: float = float(e.get("count_max", 20.0)) - float(e.learn_t)
 				var f3: int = mini(int(el * 6.0), 1) if el < 0.34 else 2 + int(g.t * 3.0) % 2
@@ -1737,7 +1750,9 @@ func boss_strip_animation(e: Dictionary) -> Dictionary:
 				return {"name": "e_izumik_attack", "frames": 4, "frame": 3}
 		"path":
 			# 震地 / 分形塑路共用 e_path_slam（docs/95 §5.4：f0 刃肢高举 → f1 压低随预警进度，结算 f2 劈地、f3 回弹）；缺图沿用原帧条
-			var ps := _boss_warn_strip(e, ["slam", "sweep"], "e_path_slam", 4)
+			var ps := _boss_warn_strip(e, ["sweep"], "e_path_skill", 4)   # 分形塑路（sweep）用重画 skill 帧条（10-23），旧图没有时走 slam
+			if ps.is_empty():
+				ps = _boss_warn_strip(e, ["slam", "sweep"], "e_path_slam", 4)
 			if not ps.is_empty():
 				return ps
 			# 冲撞预警段播 f0 → f1（冲出后的 f2 / f3 走现成的 _charge 挂点）
@@ -1758,6 +1773,31 @@ func boss_strip_animation(e: Dictionary) -> Dictionary:
 			if not pa.is_empty():
 				return pa
 	return {}
+
+
+## 重画新增动作（10-23）的一次性画面：现形 reveal / 复苏 revive / 落地变身 change / 扎根收势 root_end，由触发点写 e.vis_act / e.vis_t0（纯画面字段）。
+## 条名 = 基础帧条名 + "_" + 动作；时长取原作动画时长，播完清掉。没有这条帧条返回 {}
+func _vis_anim(e: Dictionary) -> Dictionary:
+	var act: String = e.get("vis_act", "")
+	if act == "":
+		return {}
+	var base: String = e.tex
+	if e.type == "paranoia" and e.phase == 2:
+		base = "e_paranoia_phase2"
+	elif e.type == "ishar" and e.phase == 2:
+		base = "e_ishar_t"
+	var strip: String = base + "_" + act
+	var rd := A.enemy_redraw(strip)
+	if rd.is_empty() or _lazy_tex(strip) == null:
+		e.erase("vis_act")
+		return {}
+	var d: float = maxf(0.2, float(rd.get("duration", 1.0)))
+	var k: float = (g.t - float(e.get("vis_t0", -99.0))) / d
+	if k < 0.0 or k >= 1.0:
+		e.erase("vis_act")
+		return {}
+	var n: int = int(rd.frames)
+	return {"name": strip, "frames": n, "frame": clampi(int(k * n), 0, n - 1)}
 
 
 ## Codex 出招帧条的通用挂点（docs/95 第 1 批，4 帧单次：f0 → f1 蓄力随预警进度，结算后 0.2 秒内 f2 出手、再 0.2 秒 f3 收势）：
@@ -1889,6 +1929,8 @@ func _dc_ok(e: Dictionary) -> bool:
 		return false
 	if e.get("part", false) or e.get("under", false) or e.get("gate_hold", false) or e.get("sword_t", 0.0) > 0.0 or e.get("break_t", 0.0) > 0.0:
 		return false
+	if e.has("vis_act"):
+		return false   # 现形 / 复苏 / 落地变身一次性帧条在播（_vis_anim）：走原路径
 	if e.get("bstag", 0.0) > 0.0 or float(e.get("hatch_until", 0.0)) > g.t:
 		return false
 	if e.tex_attack and (g.t < e.atk_until or e.get("attack_preparing", false) or float(e.get("shot_wind_until", 0.0)) > g.t):
@@ -2427,6 +2469,11 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			name = ia.name
 			frames = ia.frames
 			frame = ia.frame
+	var va := _vis_anim(e)
+	if not va.is_empty():
+		name = va.name
+		frames = va.frames
+		frame = va.frame
 	# 重画受击姿态（10-23 *_wound，1 帧）：受击闪白那几帧，待机 / 移动 / 攻击 / 专用动作都换它（白剪影同姿态）；死亡、伪装等不换
 	if e.flash > 0.0 and not e.chest and (name == e.tex or name == e.tex + "_move" or name.ends_with("_attack") or name == tbase or name == "e_paranoia2" or name.begins_with("e_knight")):
 		var wb: String = "e_paranoia_phase2" if name == "e_paranoia2" else (tbase if tbase != e.tex else e.tex)
