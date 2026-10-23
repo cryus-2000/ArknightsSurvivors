@@ -23,6 +23,42 @@ var lo_rect: TextureRect
 var op_node: Node2D         # 高清干员层（可见层 1，主视口画；squad.cv 合批画布在它的 draw 回调里临时改指到这里）
 var _lo_on := false
 var _was_on := false
+## 发光颜色语言（10-23 用户定，art/incoming/codex_task_size_compare_1023.md）：每类一组 render/optical_col_<类>_h / _s / _v（色相 0–1）。
+##   env 环境（孢子、地面荧光斑、怪死后体液）青 / 青绿，比原孢子色降饱和、降亮度约 30%；enemy 敌方（发光点、敌弹、敌方预警）洋红偏深红，
+##   不再取各怪自带的 ecol / 帧条亮色；elite 精英同色系更亮（并多一处发光点）；boss 限暖色专属色；
+##   horde 黑潮（缩圈开始后 1.5 秒内渐变）敌方色相往正红偏，紫色调下可读；lamp 我方灯火余烬琥珀暖橙；loot 经验结晶与掉落淡金白。
+##   干员技能保留原作色（不经过这里）
+var col_env := Color(0.39, 0.7, 0.7)
+var col_enemy := Color(1.0, 0.15, 0.4)
+var col_elite := Color(1.0, 0.45, 0.6)
+var col_boss := Color(1.0, 0.4, 0.15)
+var col_lamp := Color(1.0, 0.62, 0.25)
+var col_loot := Color(1.0, 0.95, 0.75)
+var _tide_k := 0.0
+
+
+func _hsv(key: String, h: float, s: float, v: float) -> Color:
+	return Color.from_hsv(Bal.v("render/optical_col_%s_h" % key, h), Bal.v("render/optical_col_%s_s" % key, s), Bal.v("render/optical_col_%s_v" % key, v))
+
+
+func _update_cols(dt: float) -> void:
+	_tide_k = move_toward(_tide_k, 1.0 if g.zone_state > 0 else 0.0, dt / 1.5)
+	col_env = _hsv("env", 0.5, 0.45, 0.7)
+	col_lamp = _hsv("lamp", 0.075, 0.75, 1.0)
+	col_loot = _hsv("loot", 0.13, 0.25, 1.0)
+	col_boss = _hsv("boss", 0.05, 0.85, 1.0)
+	var h: float = fposmod(lerpf(Bal.v("render/optical_col_enemy_h", 0.95), Bal.v("render/optical_col_horde_h", 1.0), _tide_k), 1.0)
+	col_enemy = Color.from_hsv(h, Bal.v("render/optical_col_enemy_s", 0.85), Bal.v("render/optical_col_enemy_v", 1.0))
+	col_elite = Color.from_hsv(h, Bal.v("render/optical_col_elite_s", 0.5), Bal.v("render/optical_col_elite_v", 1.0))
+
+
+## 某只怪的发光色：Boss 专属暖色、精英更亮、普通怪统一敌方色
+func enemy_glow(e: Dictionary) -> Color:
+	if e.get("boss", false):
+		return col_boss
+	if e.get("elite", false):
+		return col_elite
+	return col_enemy
 
 
 func _ready() -> void:
@@ -154,15 +190,17 @@ func _draw_ops() -> void:
 
 ## 发光层：上一帧世界绘制排好的敌人发光点（孢子 / 余烬 / 体液 / 迸溅是同层的 GPUParticles2D）+ ⑧ 投射物拖尾
 func _draw_glow() -> void:
+	_draw_ground_glow()
 	for p in g.glow_cur:
 		glow_node.draw_rect(Rect2(p[0], Vector2(p[1], p[1])), p[2])
+	_draw_loot()
 	if Bal.v("render/optical_trail", 1.0) > 0.0:
 		_draw_trails(g.bullets, false)
 		_draw_trails(g.ebullets, true)
 
 
 ## ⑧ 投射物发光像素拖尾：每颗弹沿速度反方向 5 个 2 px 像素、由亮到灭，吸附到 2 世界像素格；
-## 我方取弹体颜色（没有就青白），敌方取发射怪的 ecol（没有就敌方洋红）。最多画 300 颗
+## 我方取弹体颜色（没有就青白），敌方一律敌方色（颜色语言）。最多画 300 颗
 func _draw_trails(list: Array, enemy: bool) -> void:
 	var n := 0
 	for b in list:
@@ -175,9 +213,9 @@ func _draw_trails(list: Array, enemy: bool) -> void:
 		n += 1
 		var col: Color
 		if enemy:
-			var ed: Dictionary = D.ENEMIES.get(str(b.get("src_type", "")), {})
-			var ec = ed.get("ecol")
-			col = Color(ec[0], ec[1], ec[2]) if ec is Array else Color(1.0, 0.35, 0.75)
+			col = col_enemy   # 颜色语言：敌弹一律敌方色（不再取各怪 ecol）；弹芯另点一颗亮像素
+			var c0: Vector2 = ((b.pos + Vector2(0, -16)) / 2.0).floor() * 2.0
+			glow_node.draw_rect(Rect2(c0 - Vector2(1, 1), Vector2(4, 4)), Color(col.r, col.g, col.b, 0.9))
 		else:
 			var bc = b.get("col")
 			col = bc if bc is Color else Color(0.7, 0.95, 1.0)
@@ -191,6 +229,42 @@ func _draw_trails(list: Array, enemy: bool) -> void:
 			glow_node.draw_rect(Rect2(q, Vector2(2, 2)), Color(col.r, col.g, col.b, a))
 
 
+## 地面荧光斑（环境色）：按 64 世界像素一格哈希，约 render/optical_ground_glow（缺省 0.06）的格子有一颗 2 px 斑，各自慢慢明灭。
+## 只看格坐标，镜头怎么走都固定在地上；只画镜头内（约 500 格）
+func _draw_ground_glow() -> void:
+	var dens: float = Bal.v("render/optical_ground_glow", 0.06)
+	if dens <= 0.0 or g.cam == null:
+		return
+	var vs: Vector2 = g.get_viewport().get_visible_rect().size / g.cam.zoom
+	var c: Vector2 = g.cam.get_screen_center_position()
+	var x0: int = floori((c.x - vs.x * 0.5) / 64.0)
+	var y0: int = floori((c.y - vs.y * 0.5) / 64.0)
+	var t: float = Time.get_ticks_msec() / 1000.0
+	for cy in range(y0, y0 + ceili(vs.y / 64.0) + 1):
+		for cx in range(x0, x0 + ceili(vs.x / 64.0) + 1):
+			var hsh: int = (cx * 73856093) ^ (cy * 19349663)
+			var r: float = float(hsh & 1023) / 1024.0
+			if r >= dens:
+				continue
+			var ox: float = float((hsh >> 10) & 31) * 2.0
+			var oy: float = float((hsh >> 15) & 31) * 2.0
+			var a: float = 0.25 + 0.45 * (0.5 + 0.5 * sin(t * 0.7 + float((hsh >> 20) & 63)))
+			glow_node.draw_rect(Rect2(Vector2(cx * 64.0 + ox, cy * 64.0 + oy), Vector2(2, 2)), Color(col_env.r, col_env.g, col_env.b, a))
+
+
+## 经验结晶与掉落：中心一颗淡金白发光像素（辉光由全屏 pass 的发光门限散出）
+func _draw_loot() -> void:
+	var n := 0
+	for gm in g.gems:
+		if n >= 400:
+			break
+		if gm.get("dead", false):
+			continue
+		n += 1
+		var q: Vector2 = ((gm.pos + Vector2(0, -4)) / 2.0).floor() * 2.0
+		glow_node.draw_rect(Rect2(q, Vector2(2, 2)), Color(col_loot.r, col_loot.g, col_loot.b, 0.85))
+
+
 func wanted() -> bool:
 	if force >= 0:
 		return force == 1
@@ -200,6 +274,7 @@ func wanted() -> bool:
 func _process(_dt: float) -> void:
 	if g == null:
 		return
+	_update_cols(_dt)
 	var on := wanted() and DisplayServer.get_name() != "headless"
 	g.optical_on = on
 	visible = on
@@ -215,7 +290,7 @@ func _process(_dt: float) -> void:
 		if on != _was_on:
 			particles.set_active(on)
 		if on and g.cam != null and g.lamp_light != null:
-			particles.step(g.cam.get_screen_center_position(), g.lamp_light.global_position)
+			particles.step(g.cam.get_screen_center_position(), g.lamp_light.global_position, col_env, col_lamp)
 	_was_on = on
 	if on:
 		glow_node.queue_redraw()
