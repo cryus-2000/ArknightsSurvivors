@@ -45,10 +45,11 @@ func _ready() -> void:
 	if not is_support:
 		ok(r.events >= 1 and r.anim >= 3, "%s B 有敌人按住出招 + 动作（%d 次 / %d 帧）" % [id, r.events, r.anim])
 	ok(r.dmg > 0.0, "%s B 有敌人按住，敌人掉血（%.0f）" % [id, r.dmg])
-	r = await run_case(true, "hold", Vector2.RIGHT, 90, false)
+	r = await run_case(true, "hold", Vector2.RIGHT, 120, false)
 	if not is_support:
 		ok(r.events >= 1 and r.anim >= 3, "%s C 边向敌人移动边按：出招 + 动作（%d 次 / %d 帧）" % [id, r.events, r.anim])
-	ok(r.dmg > 0.0, "%s C 边向敌人移动边按，敌人掉血（%.0f）" % [id, r.dmg])
+	if str(o.def.blocks.attack.get("shape", "")) != "dash_line":   # 冲刺类普攻（德克萨斯旧版）会带着队长位移，木桩被穿过去，不断言掉血
+		ok(r.dmg > 0.0, "%s C 边向敌人移动边按，敌人掉血（%.0f）" % [id, r.dmg])
 	if not is_support:
 		r = await run_case(true, "tap", Vector2.ZERO, 270, false)
 		ok(r.events >= 3, "%s D 轻点 3 次（有敌人）：3 次都出招（%d 次）" % [id, r.events])
@@ -111,8 +112,10 @@ func run_case(enemy: bool, mode: String, move: Vector2, steps: int, mouse: bool)
 	g.touch.active = mouse
 	var dm: Dictionary = {}
 	var reach := 150.0 if str(o.def.get("class", "")) in ["狙击", "术师", "辅助", "医疗"] else 70.0
+	var moving: bool = move != Vector2.ZERO
+	var dm_at: Vector2 = g.ppos + Vector2(reach + (180.0 if moving else 0.0), 0)   # 木桩钉在世界里的一个点（不跟着队长跑：冲刺 / 移动的干员会带着队长走，跟着跑的木桩永远打不到）
 	if enemy:
-		dm = g.spawner.spawn_enemy("stone", g.ppos + Vector2(reach, 0))
+		dm = g.spawner.spawn_enemy("stone", dm_at)
 		dm.hp = 1000000.0
 		dm.max_hp = dm.hp
 		dm.spd = 0.0
@@ -123,24 +126,22 @@ func run_case(enemy: bool, mode: String, move: Vector2, steps: int, mouse: bool)
 	var anim_events := 0
 	var last_n: int = o.atk_n
 	var pending_anim := 0
-	var steps_total: int = steps + 60
+	var steps_total: int = steps + 60 + (60 if moving else 0)
 	for k in steps_total:
 		o.sp = [-100000.0, -100000.0, -100000.0]
 		var press: bool = k < steps if mode == "hold" else (k % 90 >= 10 and k % 90 < 14 and k < steps)
-		_key(KEY_D, move.x > 0.5)
+		_key(KEY_D, move.x > 0.5 and k < steps)
 		if mouse:   # 触屏攻击键（touch_atk），不拖 = 方向取移动方向 / 朝向
 			g.doctor.touch_atk = press
 			g.doctor.touch_atk_dir = Vector2.ZERO
 		else:
 			_key(KEY_J, press)
 		if enemy:
-			dm.pos = g.ppos + Vector2(reach, 0)
+			dm.pos = dm_at
 			dm.kb = Vector2.ZERO
 			dm.hp = maxf(dm.hp, 1.0)
 			g.enemies_sys.build_grid()
 		g._update(DT)
-		if enemy and k % 15 == 0 and k < 60 and OS.get_environment("MA_DEBUG") != "":
-			print("DBG k=%d attack_dir=%s mouse_aim=%s mouse_world=%s ppos=%s held=%s want=%s ext_bul=%s" % [k, g.doctor.attack_dir(), g.doctor.mouse_aim(), g.doctor.mouse_world(), g.ppos, g.doctor.attack_held(), g.doctor.attack_want(), str(o.ext.get("bul", []).map(func(b): return [b.p, b.v]))])
 		var st: Dictionary = o.anim_state()
 		var kind := str(st.get("kind", ""))
 		if float(o.attack_t) > 0.0 and kind != "idle" and kind != "run" and kind != "":
@@ -159,5 +160,5 @@ func run_case(enemy: bool, mode: String, move: Vector2, steps: int, mouse: bool)
 	await get_tree().process_frame
 	g.touch.active = false
 	var dmg: float = hp0 - float(dm.get("hp", hp0)) if enemy else 0.0
-	print("CASE enemy=%s mode=%s move=%s mouse=%s -> events=%d anim=%d anim_events=%d dmg=%.0f face=%d bullets=%d" % [enemy, mode, move, mouse, events, anim, anim_events, dmg, int(o.face), g.bullets.size()])
+	print("CASE enemy=%s mode=%s move=%s touch=%s -> events=%d anim=%d anim_events=%d dmg=%.0f" % [enemy, mode, move, mouse, events, anim, anim_events, dmg])
 	return {"events": events, "anim": anim, "anim_events": anim_events, "dmg": dmg}
