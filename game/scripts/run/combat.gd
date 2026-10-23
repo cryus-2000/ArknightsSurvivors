@@ -1182,7 +1182,12 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 			hl.t80 = int(g.t) - hl.t
 	var col: Color = D.ENEMIES.get(e.type, {}).get("ecol", Color(0.6, 0.9, 0.9))   # ecol：enemies.json（受击 / 击杀碎屑色）
 	g.vfx.kill_burst(e, col, g.crit_hit)   # 击杀爆点 / 击杀音按体型分档 + 大体型或暴击击杀的短顿帧（docs/53，纯画面与音效）
-	if e.get("tex_death", false) and g.V6_FRAMES.has(e.tex + "_death"):
+	# 光学观感下击杀的「身体消失」（docs/130 C5，10-24 对比中）：render/optical_kill_body 0 = 光学开时不画死亡帧条 / 溶解（只留碎屑），
+	# render/optical_kill_debris 0 = 不喷光学碎屑（只留帧条）；缺省都 1 = 两套都画。纯画面
+	var body_on: bool = not g.optical_on or Bal.v("render/optical_kill_body", 1.0) > 0.0
+	if not body_on:
+		pass
+	elif e.get("tex_death", false) and g.V6_FRAMES.has(e.tex + "_death"):
 		var dtx: Texture2D = g.tex[e.tex + "_death"]
 		var foot: Vector2 = e.pos + Vector2(0, e.r * 0.8 + 3.0 * g.PX)
 		var dsc: float = g.PX * float(e.get("sc", 1.0))   # 怪物体型（spawner.escale）放大过的按同一倍数画
@@ -1198,7 +1203,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 			g.vfx.fx_sprite(death_name, foot + Vector2(0, -(dtx.get_height() - 3) * dsc * 0.5), dsc, 0.0)
 	elif not g.vfx.fx_sprite("fx_death_dissolve", e.pos, g.PX * max(1.0, e.r / 12.0)):
 		g.vfx.anim("fx_death", e.pos, 0.3, g.PX * max(1.0, e.r / 12.0))
-	if g.optical_on and g.optical.particles != null:
+	if g.optical_on and g.optical.particles != null and Bal.v("render/optical_kill_debris", 1.0) > 0.0:
 		g.optical.particles.kill_burst(e)   # 光学观感原型：击杀碎屑（纯画面，GPU 随机，不碰模拟随机数）
 	if e.elite:
 		g.elites_killed += 1

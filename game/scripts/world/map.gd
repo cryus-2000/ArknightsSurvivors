@@ -15,6 +15,7 @@ var tex := {}                      # 主题用到的贴图
 var sort_props: Array = []         # 2.5D：需要与人物前后遮挡的道具 [tex_name, pos, hash]
 var big_cache := {}
 var fg_tex: Array = []             # 前景虚化剪影
+var fg_px: Array = []              # 前景像素剪影（光学观感下用，docs/130 A3）：原图第一帧的硬边剪影，整数倍放大、最近邻
 var snow: Array = []
 var ambient := Color(0.16, 0.22, 0.32)
 var tile_size := 32.0
@@ -72,10 +73,12 @@ func load_theme(theme_id: String) -> void:
 	if theme.has("mire"):
 		_load(theme.mire.tex)
 	fg_tex.clear()
+	fg_px.clear()
 	for n in theme.get("foreground", {}).get("tex", []):
 		_load(n)
 		if tex[n] != null:
 			fg_tex.append(_blur_silhouette(tex[n], _frames_of(n)))
+			fg_px.append(_px_silhouette(tex[n], _frames_of(n)))
 	snow.clear()
 	var sn: Dictionary = theme.get("snow", {})
 	for i in int(sn.get("count", 0)):
@@ -657,13 +660,45 @@ func draw_foreground(ci: CanvasItem, vs: Vector2, cp: Vector2) -> void:
 			var a := clampf((dc - 0.45) / 0.5, 0.0, 1.0) * 0.8
 			if a <= 0.01:
 				continue
-			var tx: Texture2D = fg_tex[(0 if h % 3 != 0 else 1) % fg_tex.size()]
 			var big := 0.8 + 0.25 * float(h % 3)
 			var sway := sin(g.t * 0.7 + float(h % 10)) * 0.06
+			if g.optical_on and not fg_px.is_empty() and Bal.v("render/optical_fg_px", 1.0) > 0.0:
+				# 像素风（docs/130 A3，用户 10-24）：硬边剪影、整数倍放大（每个原图像素 = PX_FG 档里最近的偶数世界像素，落在低分辨率层 2 px 格上），
+				# 不旋转（转了像素会歪），摆动改成按 2 px 步进的横向平移；大小档与虚化版同一套（约 0.8 / 1.05 / 1.3 倍）
+				var pt: Texture2D = fg_px[(0 if h % 3 != 0 else 1) % fg_px.size()]
+				var k: float = 2.0 * roundf(4.0 * big)
+				var ps := Vector2(pt.get_width(), pt.get_height()) * k
+				var sx: float = 2.0 * roundf(sway * ps.y * 0.25)
+				var o := (wp + Vector2(sx - ps.x / 2.0, -ps.y)).snapped(Vector2(2.0, 2.0))
+				if h % 2 == 0:
+					ci.draw_set_transform(o + Vector2(ps.x, 0.0), 0.0, Vector2(-1.0, 1.0))
+					ci.draw_texture_rect(pt, Rect2(Vector2.ZERO, ps), false, Color(col[0], col[1], col[2], a))
+					ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				else:
+					ci.draw_texture_rect(pt, Rect2(o, ps), false, Color(col[0], col[1], col[2], a))
+				continue
+			var tx: Texture2D = fg_tex[(0 if h % 3 != 0 else 1) % fg_tex.size()]
 			var size := Vector2(tx.get_width(), tx.get_height()) * big
 			ci.draw_set_transform(wp, sway, Vector2(-1.0 if h % 2 == 0 else 1.0, 1.0))
 			ci.draw_texture_rect(tx, Rect2(Vector2(-size.x / 2.0, -size.y), size), false, Color(col[0], col[1], col[2], a))
 			ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 像素剪影（光学观感用）：取第一帧，alpha > 0.5 的像素填白、其余透明，原尺寸（放大交给绘制时整数倍 + 最近邻）
+static func _px_silhouette(src: Texture2D, frames: int) -> Texture2D:
+	var img := src.get_image()
+	if img.is_compressed():
+		img.decompress()
+	img.convert(Image.FORMAT_RGBA8)
+	var fw := img.get_width() / frames
+	var fh := img.get_height()
+	var out := Image.create(fw, fh, false, Image.FORMAT_RGBA8)
+	out.fill(Color(0, 0, 0, 0))
+	for y in fh:
+		for x in fw:
+			if img.get_pixel(x, y).a > 0.5:
+				out.set_pixel(x, y, Color(1, 1, 1, 1))
+	return ImageTexture.create_from_image(out)
 
 
 ## 把像素图变成柔和的剪影（取第一帧 -> 放大 -> 缩小再放大模拟高斯模糊）

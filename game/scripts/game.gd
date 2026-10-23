@@ -708,7 +708,8 @@ func _ready() -> void:
 	A.mark("squad_add")
 	next_mire = float(map.mire_cfg().get("first_at", 100))
 	# 无界面运行（批跑 / 冒烟）不画任何东西，法线图纯属浪费：一局启动要多花十几秒
-	A.normal_maps = Cfg.normal_maps and DisplayServer.get_name() != "headless"
+	# 光学观感开着时也不生成（docs/130 A4，用户 10-24 定）：朝灯亮线已取代法线的立体感，法线在半分辨率世界层里细节大多丢失
+	A.normal_maps = Cfg.normal_maps and DisplayServer.get_name() != "headless" and not (Bal.v("render/optical", 1.0) > 0.0 and Cfg.quality != "low")
 	rfx = RelicFx.new(self)
 	endg = Endings.new(self)
 	knight = Knight.new(self)
@@ -1138,7 +1139,8 @@ func _process(delta: float) -> void:
 		queue_redraw()
 		fx_add.queue_redraw()
 		fg.queue_redraw()
-		dof_layer.visible = Cfg.dof
+		dof_layer.visible = Cfg.dof and not optical_on   # 光学开时景深由光学 pass 取代（原来这里开、optical.gd 再关，一帧翻两次）
+		fg.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if optical_on else CanvasItem.TEXTURE_FILTER_LINEAR   # 前景剪影：光学下像素风（map.draw_foreground）
 		hud.queue_redraw()
 	world.present_step()   # 表现事件步骤（Boss 换幕 / 倒下演出；docs/101 B3）：每帧一次，在本帧绘制之前，无头也走
 	_pm("tail")
