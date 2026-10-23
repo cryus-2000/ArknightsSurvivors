@@ -167,7 +167,15 @@
 
 ### 5.1 本地不进 git 的目录
 
-（后台统计中，补在下一次提交；量级上 build/ 与 .claude/worktrees/ 各有若干 GB，`python tools/clean_local.py` 已管 build/ 的一部分。）
+10-24 用 robocopy 统计（不含 .git）：**合计约 54.6 GB**。
+
+| 目录 | 大小 | 说明 |
+|---|---|---|
+| .worktrees/ | 10.97 GB | 旧式工作树目录（Codex 等） |
+| build/ | 9.50 GB | 三包、检查日志、截图、TRACE 缓存、PRTS 参照；`tools/clean_local.py` 管其中一部分 |
+| .claude/worktrees/（51 个） | 约 34.1 GB | 最大 optimistic-dhawan-7e67e2 6.70 GB；1–2 GB 的 9 个（agent-a15c1f36819d13d7b、suspicious-aryabhata-40115b、confident-hopper-080e16、ecstatic-lichterman-f81c72、interesting-kilby-98da4d、blissful-keller-3f9eaa、jovial-franklin-5e6711、confident-hertz-223da6、quirky-turing-39a39f）；其余 40 个 0.05–0.9 GB（gameplay-*、gem-base、sfxa、agent-* 等临时树） |
+
+建议：已合入分支的工作树用 `git worktree remove` + `git worktree prune` 清（归属会话确认后；在跑的会话的树别动）；build/ 用 clean_local.py。这些都不影响仓库与换账号克隆。
 
 ## 6. 删除计划（分三批）
 
@@ -197,4 +205,4 @@
 4. 本机 .git：删 `refs/codex/*` 快照 + gc（约 0.13 GB）；Spine 源 zip 所在的 codex/* 分支迁出存档（约 1.25 GB）。
 5. promo_* 等改名方案相关工具：改名定了再处理。
 
-**可省合计（工作树）**：第一批约 **92 MiB**（其中进包约 1 MiB）；第二批再约 **165 MiB**（进包约 2.7 MiB）；第三批再约 **41 MiB**。本机 .git 另可省 0.13–1.4 GB（第三批 4）。
+**可省合计（工作树）**：第一批约 **92 MiB**（其中进包约 1 MiB）；第二批再约 **165 MiB**（进包约 2.7 MiB）；第三批再约 **41 MiB**。本机 .git 另可省 0.13–1.4 GB（第三批 4）；本地工作树 / build 另约 54.6 GB（不进 git，按会话确认清）。
