@@ -457,9 +457,8 @@ func _op_entry(cid: String, cd: Dictionary) -> Dictionary:
 	var sp: Dictionary = cd.get("sprites", {})
 	var forms: Array = []
 	# 专属动作（docs/32 验收 §2 接线的新帧条）：有就列出来，没有就跳过
-	for kind in [["待机", "idle", 4.0], ["跑步", "run", 10.0], ["攻击", "attack", 8.0], ["技能", "skill", 12.0],
-			["号令", "command", 12.0], ["治疗", "skill_heal", 12.0], ["旋斩", "attack_spin", 12.0], ["倒下", "fall", 10.0],
-			["受击", "hurt", 6.0], ["倒下", "death", 5.0]]:
+	# 10-23 用户「图鉴里面只保留待机和演示」：动作帧条只列待机，其余动作看「演示」（实机）
+	for kind in [["待机", "idle", 4.0]]:
 		if not sp.has(kind[1]):
 			continue
 		var fm: Dictionary = _sprite_form(kind[0], sp[kind[1]], kind[2], kind[1] != "death" and kind[1] != "fall")
@@ -488,7 +487,7 @@ func _op_entry(cid: String, cd: Dictionary) -> Dictionary:
 	# 名册卡 / 立绘：待机帧条（同选人页 title._open_op_pick）
 	var idle = sp.get("idle", "")
 	var tn: String = idle if idle is String else str(idle.get("tex", ""))
-	var tx: Texture2D = A.tex(tn) if tn != "" else null
+	var tx: Texture2D = A.tex_hi(tn) if tn != "" else null   # 名册卡 / 立绘用 @2x 精细版；动作演示（forms）照旧 1 倍（10-23 用户）
 	var frames := 1
 	if idle is Dictionary and idle.has("frames"):
 		frames = int(idle.frames)

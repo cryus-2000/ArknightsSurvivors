@@ -11,6 +11,7 @@ const CardMotion = preload("res://scripts/screens/card_motion.gd")   # 各种面
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
+var _bb_cache := {}   # 干员待机帧并集区（界面立绘统一按脚底对齐用），按帧条名缓存
 var motion: CardMotion          # 选卡 / 商人 / 事件面板的入场动效（按种类分派，screens/card_motion.gd）
 var panel_band: ColorRect      # 选卡 / 商人 / 事件背后的灰阶压暗带（ui_band.gdshader）
 var panel_sub_text := ""       # 面板标题下的一行说明（事件：剧情一句）
@@ -707,16 +708,21 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var opid: String = o.id if o.kind == "recruit" else o.get("op", "")
 	var idle: Dictionary = op_idle(opid) if ic == null and opid != "" else {}
 	if not idle.is_empty():
-		var wn: Rect2 = idle.win   # 64 画布取脚底为准的 48 范围（UI.op_win），版式同 48 画布
-		var ks: float = ((1.0 if compact else 2.0) if wn.size.y <= 48 else (64.0 if compact else 96.0) / wn.size.y)
-		var asz := wn.size * ks
-		# 招募卡的部署落地（card_motion）：脚底画部署格 / 落地环，待机帧按 icon_off 从上方落下、落地按 icon_scale 压扁（以脚底为基点）
-		var feet := c + Vector2(0, asz.y / 2.0 + bob + 4)
+		# 统一规则（10-23 用户：三张卡里乌尔比安很小、斯卡蒂很大）：@2x 精细版，所有人同一倍率（1 屏幕像素 = 1 个 @2x 像素，
+		# 不按画布 / 取景窗缩放），脚底对齐到同一条线；身高差只来自人物本身（同一 Spine 尺度，约 70–80 像素）
+		var hi: float = A.hires_of(idle.tex)
+		var ks: float = 2.0 / hi   # 1 美术像素 = 2 屏幕像素（@2x 帧 1:1，1 倍帧 ×2）
+		var bb: Rect2 = idle.bb
+		var ft = idle.foot
+		var foot2 := Vector2(float(ft[0]), float(ft[1])) * hi if ft is Array and ft.size() >= 2 else Vector2(idle.fw / 2.0, UI.foot_row(idle.fh, hi))
+		var feet := c + Vector2(0, (40.0 if compact else 44.0) + bob)
 		if o.kind == "recruit":
 			motion.draw_deploy(card, i, feet.round())
 		if motion.icon_a > 0.0:
-			var isz := asz * motion.icon_scale
-			card.draw_texture_rect_region(idle.tex, Rect2(feet - Vector2(isz.x / 2.0, isz.y) + motion.icon_off, isz), wn)
+			var sc = motion.icon_scale * ks
+			var dst := Rect2(feet - (foot2 - bb.position) * sc + motion.icon_off, bb.size * sc)
+			dst.position = dst.position.round()
+			card.draw_texture_rect_region(idle.tex, dst, bb)
 	elif o.kind == "swap_keep" or o.kind == "branch_back":
 		UI.icon(card, "exit", c + Vector2(0, bob), 40.0 if compact else 56.0, Color(0.8, 0.83, 0.86))   # 不替换 / 返回上一步
 	elif ic != null:
@@ -842,10 +848,7 @@ func op_idle(cid: String) -> Dictionary:
 	if sp == null:
 		return {}
 	var tn: String = sp if sp is String else sp.get("tex", "")
-	var tx: Texture2D = g.tex.get(tn)
-	if tx == null:
-		tx = A.tex(tn)
-		g.tex[tn] = tx
+	var tx: Texture2D = A.tex_hi(tn)   # 界面位用 @2x 精细版（10-23 用户「选人和图鉴放精细版」；局内 g.tex 是 1 倍，不共用）
 	if tx == null:
 		return {}
 	var frames: int = int(sp.get("frames", 0)) if sp is Dictionary else 0
@@ -857,7 +860,11 @@ func op_idle(cid: String) -> Dictionary:
 	var ft = (sp.get("foot") if sp is Dictionary else null)
 	if ft == null:
 		ft = cdef.get("sprites", {}).get("foot", null)
-	return {"tex": tx, "fw": fw0, "fh": tx.get_height(), "win": UI.op_win(fw0, tx.get_height(), A.hires_of(tx), ft)}
+	var out := {"tex": tx, "fw": fw0, "fh": tx.get_height(), "win": UI.op_win(fw0, tx.get_height(), A.hires_of(tx), ft), "foot": ft, "frames": frames}
+	if not _bb_cache.has(tn):
+		_bb_cache[tn] = UI.idle_bb(tx, frames)
+	out["bb"] = _bb_cache[tn]
+	return out
 
 
 ## 干员贴图集（运行中招募 / 测试编入时补加载）

@@ -97,7 +97,7 @@ func _open_op_pick(for_cover := false) -> void:
 			var sp: Dictionary = d.get("sprites", {})
 			var idle = sp.get("idle", "")
 			var tn: String = idle if idle is String else idle.get("tex", "")
-			var tx: Texture2D = A.tex(tn) if tn != "" else null
+			var tx: Texture2D = A.tex_hi(tn) if tn != "" else null   # 立绘 / 名册用 @2x 精细版（10-23 用户，art.gd tex_hi）
 			var frames: int = 1
 			if idle is Dictionary and idle.has("frames"):
 				frames = int(idle.frames)

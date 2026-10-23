@@ -10,12 +10,15 @@ var step := 0
 var dir := "res://../build/build_cards_shots"
 var wait := 0
 var tag := "desktop"
+var recruit_ids: Array = ["wisadel", "exusiai", "irene"]   # --recruit=a,b,c 换招募卡三人（10-23 招募卡大小统一验收：ulpianus,skadi,mizuki）
 
 
 func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--shot_dir="):
 			dir = a.substr(11)
+		if a.begins_with("--recruit="):
+			recruit_ids = a.substr(10).split(",")
 		if a == "--touch":
 			tag = "phone"
 	DirAccess.make_dir_recursive_absolute(dir)
@@ -51,7 +54,7 @@ func _process(_d: float) -> void:
 			pg.gain_relic("130")
 			var opts: Array = []
 			for c in pg.recruit_cards():
-				if str(c.id) in ["wisadel", "exusiai", "irene"]:
+				if recruit_ids.has(str(c.id)):
 					opts.append(c)
 			g.panel_ui.show_choices("招募干员", opts, "level")
 			g.panel_ui.motion.skip()

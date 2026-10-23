@@ -104,6 +104,40 @@ static var _hires_rid := {}
 ## 像素密度 1（1 美术像素 = 1 贴图像素，与怪物同密度），锚点 / 帧数 / 判定与 @2x 版相同。由 tools/op_1x/make_op_1x.py 生成：
 ## 待机 / 跑步 / 普攻 / 移动攻击从原作 Spine 逐部件 1 倍像素化，其余帧条由 @2x 2×2 合并 + 本人调色板
 static var _op1x := -1
+## 界面立绘读 @2x 精细版（10-23 用户「选人和图鉴放之前的精细版，演示用粗糙版」）：选人 / 图鉴立绘 / 招募卡等界面位
+## 用 tex_hi / hi_of 取同名 @2x（op_1x 关或没有 @2x 时同 tex）；局内战斗与图鉴动作演示照旧走 tex（1 倍）
+static var _name_rid := {}
+static func tex_hi(name: String) -> Texture2D:
+	var key := "#hi:" + name
+	if _cache.has(key):
+		return _cache[key]
+	var t: Texture2D = null
+	if op_1x_on() and (_incoming_path(name + "@1x") != "" or _packed_path(name + "@1x") != ""):
+		var p2 := _incoming_path(name + "@2x")
+		if p2 != "":
+			var img2 := Image.load_from_file(p2)
+			if img2 != null and not img2.is_empty():
+				t = ImageTexture.create_from_image(img2)
+		else:
+			var q2 := _packed_path(name + "@2x")
+			if q2 != "":
+				t = load(q2)
+		if t != null:
+			_hires_rid[t.get_rid()] = 2.0
+	if t == null:
+		t = tex(name)
+	_cache[key] = t
+	return t
+
+
+## 已载入贴图（tex 取到的）换成同名的界面精细版；不认识的原样返回
+static func hi_of(t: Texture2D) -> Texture2D:
+	if t == null:
+		return null
+	var n: String = _name_rid.get(t.get_rid(), "")
+	return tex_hi(n) if n != "" else t
+
+
 static func op_1x_on() -> bool:
 	if _op1x < 0:
 		var Bal = load("res://scripts/core/balance.gd")
@@ -265,6 +299,7 @@ static func tex(name: String) -> Texture2D:
 	if t != null:
 		_hires[name] = density
 		_hires_rid[t.get_rid()] = density
+		_name_rid[t.get_rid()] = name
 	_cache[name] = t
 	return t
 

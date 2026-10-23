@@ -42,9 +42,11 @@ def is_review_art(name):
 
 def is_fallback_2x(name, siblings):
     """干员 @2x 回退条（docs/128）：同名 @1x 存在时，render/op_1x 缺省开、游戏读 1x，@2x 只在 op_1x=0 时回退用。
-    对外包与网页包不带（Toy 50 MB 上限），对内包保留以便对照。siblings = 同目录文件名集合"""
+    对外包与网页包不带（Toy 50 MB 上限），对内包保留以便对照。siblings = 同目录文件名集合。
+    10-23 用户「选人和图鉴放之前的精细版（@2x）」：界面立绘位（选人 / 图鉴 / 招募卡 / 属性面板，art.gd tex_hi）只用待机条，
+    所以名字含 idle 的 @2x 照样进包；其余动作的 @2x 只是 op_1x=0 的回退"""
     n = os.path.basename(name)
-    return n.lower().endswith("@2x.png") and (n[:-7] + "@1x.png") in siblings
+    return n.lower().endswith("@2x.png") and (n[:-7] + "@1x.png") in siblings and "idle" not in n.lower()
 
 
 def preset_excludes():
