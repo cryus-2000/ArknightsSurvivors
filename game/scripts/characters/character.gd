@@ -1534,6 +1534,16 @@ func draw_extra_shadows() -> void:
 	pass
 
 
+## 近战刀光（特效第 2 步，10-23 用户「判定不动、画面补齐」）：近战干员普攻出手时，每次扇形 / 圆形判定（melee_hit、area_hit、
+## 各段直接调 arc_targets 的都经过这里）在同一处画一道像素刀光弧，半径与半角 = 这次判定的实际值（数值改判定会自动跟随）。
+## 只画画面（g.vfx.melee_arc），不改判定；远程职业与技能不画
+const MELEE_CLASS := ["近卫", "重装", "特种", "先锋"]
+func arc_targets(origin: Vector2, ang: float, half: float, radius: float) -> Array:
+	if act_kind == "attack" and attack_t > 0.0 and g.vfx != null and not g.headless_batch and (cls in MELEE_CLASS or id == "skalter"):
+		g.vfx.melee_arc(self, origin, ang, half, radius)
+	return super(origin, ang, half, radius)
+
+
 ## 近战扇形命中：对 origin 周围 radius、朝 ang ±half 的敌人造成伤害；返回命中的敌人。
 ## max_n > 0：最多打 max_n 个（cap_targets 的顺序：Boss → 精英 → 其余，同档按离 origin 由近到远、再按 id；docs/61 §3.3 max_n）
 func melee_hit(src: String, origin: Vector2, ang: float, half: float, radius: float, dmg: float, kb := 0.0, stun := 0.0, tags: Array = [], max_n := 0) -> Array:
