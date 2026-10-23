@@ -35,6 +35,7 @@ func _init() -> void:
 	test_voice_interrupt()
 	test_blocks_angelina()
 	test_blocks_texas()
+	test_need_enemy_data()
 	test_fx_hold()
 	test_operator_sheet()
 	test_op_text_fill()
@@ -568,6 +569,29 @@ func test_blocks_angelina() -> void:
 
 
 ## 德克萨斯段积木（docs/61 §13，op_blocks.gd 末尾）：texas.json 通过校验；改坏一处就不通过；冲刺长度 / 宽度倍率与主控属性修正的累计
+## 自动技能需要敌人（10-23 用户定全员统一）：blocks.skills[i].need_enemy 只给进攻 / 限时窗口技能（瞬发 AoE、持续强化窗口），
+## 不给治疗 / 护盾 / 永久 / 「接下来 N 发」类，也不给手动技能（mode manual）；共 31 个（texas 2 + 其余 14 人 29）
+func test_need_enemy_data() -> void:
+	var Ch = preload("res://scripts/characters/character.gd")
+	var total := 0
+	var bad: Array = []
+	for id in ["angelina", "exusiai", "eyjafjalla", "gladiia", "hoshiguma", "irene", "kaltsit", "lappland", "logos", "lumen", "mizuki", "saria", "siege", "skadi", "skalter", "specter_unchained", "suzuran", "texas", "ulpianus", "wisadel"]:
+		var d: Dictionary = Ch.load_def(id)
+		var sk: Array = d.blocks.skills
+		for i in sk.size():
+			if not sk[i].has("need_enemy"):
+				continue
+			total += 1
+			if str(d.skills[i].get("mode", "auto")) == "manual" or sk[i].get("dur", 0) is String and str(sk[i].dur) == "permanent" or d.skills[i].get("permanent", false):
+				bad.append("%s S%d" % [id, i + 1])
+	ok(total == 31, "need_enemy 共 31 个技能（实得 %d）" % total)
+	ok(bad.is_empty(), "need_enemy 不给手动技能 / 永久技能：%s" % str(bad))
+	for id in ["lumen", "saria", "skalter", "suzuran"]:
+		var d2: Dictionary = Ch.load_def(id)
+		for i in d2.blocks.skills.size():
+			ok(not d2.blocks.skills[i].has("need_enemy"), "%s S%d 是治疗 / 护盾 / 光域类，不加 need_enemy" % [id, i + 1])
+
+
 func test_blocks_texas() -> void:
 	var Ch = preload("res://scripts/characters/character.gd")
 	var OB = preload("res://scripts/characters/op_blocks.gd")

@@ -15,11 +15,11 @@
  "base": {
   "_doc": "基础数值",
   "atk": 52,
-    "quake_r": 150,
-    "quake_mult": 0.5,
-    "quake_kb": 110,
-    "quake_r_e2": 180,
-    "quake_mult_e2": 0.6,
+  "quake_r": 150,
+  "quake_mult": 0.5,
+  "quake_kb": 110,
+  "quake_r_e2": 180,
+  "quake_mult_e2": 0.6,
   "cd": 1.4,
   "reach": 105,
   "s1_mult": 1.7,
@@ -109,8 +109,35 @@
   "regen": 2.0
  },
  "sprites": {
-  "move_attack": {"tex": "op_ulpianus_move_attack", "frames": 8, "foot": [32, 60], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},
-  "entry": {"tex": "op_ulpianus_entry", "frames": 8, "fps": 12.8, "foot": [32, 60], "frame_durations": [0.0781, 0.0781, 0.0782, 0.0781, 0.0781, 0.0782, 0.0781, 0.0781], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/ulpianus_entry.json），64 画布 @2x；落下由代码补"},
+  "move_attack": {
+   "tex": "op_ulpianus_move_attack",
+   "frames": 8,
+   "foot": [
+    32,
+    60
+   ],
+   "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"
+  },
+  "entry": {
+   "tex": "op_ulpianus_entry",
+   "frames": 8,
+   "fps": 12.8,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.0781,
+    0.0781,
+    0.0782,
+    0.0781,
+    0.0781,
+    0.0782,
+    0.0781,
+    0.0781
+   ],
+   "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/ulpianus_entry.json），64 画布 @2x；落下由代码补"
+  },
   "idle": {
    "tex": "op_ulpianus_idle",
    "frames": 8,
@@ -421,7 +448,17 @@
   "desc": "击杀精英 +1 层、Boss +{$stack_boss} 层，每层攻击 +{$stack_atk*100}%（上限 {$stack_cap} 层）；编队里其他深海猎人获得一半"
  },
  "hit_sources": {
-  "钩与锚": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["area", "basic", "follow_up"]},
+  "钩与锚": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "area",
+    "basic",
+    "follow_up"
+   ]
+  },
   "锚击": {
    "emitter": "operator",
    "origin": "core",
@@ -464,7 +501,16 @@
     "area"
    ]
   },
-  "撼地": {"emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["basic", "area"]},
+  "撼地": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
   "锁链回旋": {
    "emitter": "operator",
    "origin": "core",
@@ -758,7 +804,8 @@
        "src": "通路洞开"
       }
      }
-    ]
+    ],
+    "need_enemy": "$aim_range"
    },
    {
     "dur": "permanent",
@@ -907,9 +954,45 @@
    }
   ],
   "trait": [
-   {"trig": "on_mate_hook", "op": "gladiia", "cd": "$combo_cd", "range": "$combo_range", "knob": "combo/hook_anchor",
+   {
+    "trig": "on_mate_hook",
+    "op": "gladiia",
+    "cd": "$combo_cd",
+    "range": "$combo_range",
+    "knob": "combo/hook_anchor",
     "_doc": "钩与锚（docs/123 §2.7）：歌蕾蒂娅把敌人拖回到位 → 以落点为中心补一次锚击（半径同锚击，× combo_mult，击退同锚击）；击杀照常算他的（血脉的哺养叠层）",
-    "do": [{"shape": "circle", "center": "target", "r": "$reach", "mult": "$combo_mult", "kb": "$slam_kb", "src": "钩与锚", "ring": false, "fx": [{"sprite": {"name": "fx_slash_heavy_steel", "scale_r": 0.04643, "rot_ang": true, "flip_side": false}, "along": -0.1, "off": [0, -16]}, {"slam": {"k": 1.0}}]}]},
+    "do": [
+     {
+      "shape": "circle",
+      "center": "target",
+      "r": "$reach",
+      "mult": "$combo_mult",
+      "kb": "$slam_kb",
+      "src": "钩与锚",
+      "ring": false,
+      "fx": [
+       {
+        "sprite": {
+         "name": "fx_slash_heavy_steel",
+         "scale_r": 0.04643,
+         "rot_ang": true,
+         "flip_side": false
+        },
+        "along": -0.1,
+        "off": [
+         0,
+         -16
+        ]
+       },
+       {
+        "slam": {
+         "k": 1.0
+        }
+       }
+      ]
+     }
+    ]
+   },
    {
     "trig": "passive",
     "cond": "timer:haste",
@@ -939,8 +1022,32 @@
       "src": "撼地",
       "ring": false,
       "fx": [
-       {"pfx": {"kind": "ulp_wave", "r": 1.0, "life": 0.36, "floor": true, "alpha": 0.7}, "r_scale": ["r"]},
-       {"pfx": {"kind": "crack", "r": 60.0, "life": 0.35, "col": [0.45, 0.62, 0.8], "floor": true, "n": 8}}
+       {
+        "pfx": {
+         "kind": "ulp_wave",
+         "r": 1.0,
+         "life": 0.36,
+         "floor": true,
+         "alpha": 0.7
+        },
+        "r_scale": [
+         "r"
+        ]
+       },
+       {
+        "pfx": {
+         "kind": "crack",
+         "r": 60.0,
+         "life": 0.35,
+         "col": [
+          0.45,
+          0.62,
+          0.8
+         ],
+         "floor": true,
+         "n": 8
+        }
+       }
       ]
      }
     ]
@@ -961,8 +1068,32 @@
       "src": "撼地",
       "ring": false,
       "fx": [
-       {"pfx": {"kind": "ulp_wave", "r": 1.0, "life": 0.4, "floor": true, "alpha": 0.8}, "r_scale": ["r"]},
-       {"pfx": {"kind": "crack", "r": 72.0, "life": 0.4, "col": [0.9, 0.35, 0.4], "floor": true, "n": 10}}
+       {
+        "pfx": {
+         "kind": "ulp_wave",
+         "r": 1.0,
+         "life": 0.4,
+         "floor": true,
+         "alpha": 0.8
+        },
+        "r_scale": [
+         "r"
+        ]
+       },
+       {
+        "pfx": {
+         "kind": "crack",
+         "r": 72.0,
+         "life": 0.4,
+         "col": [
+          0.9,
+          0.35,
+          0.4
+         ],
+         "floor": true,
+         "n": 10
+        }
+       }
       ]
      }
     ]
@@ -1374,7 +1505,8 @@
    }
   ]
  },
- "extra_sprites": ["entry", 
+ "extra_sprites": [
+  "entry",
   "throw",
   "tether_native",
   "zip_native",
@@ -1382,7 +1514,12 @@
   "attack_s2",
   "anchor_native"
  ],
- "combo": {"with": "gladiia", "name": "钩与锚", "knob": "combo/hook_anchor", "desc": "歌蕾蒂娅的钩索把敌人拖回到位时，乌尔比安在 {$combo_range} 内就朝落点补一次锚击（{$combo_mult*100}% 伤害，每 {$combo_cd} 秒至多一次，不占普攻冷却）"},
+ "combo": {
+  "with": "gladiia",
+  "name": "钩与锚",
+  "knob": "combo/hook_anchor",
+  "desc": "歌蕾蒂娅的钩索把敌人拖回到位时，乌尔比安在 {$combo_range} 内就朝落点补一次锚击（{$combo_mult*100}% 伤害，每 {$combo_cd} 秒至多一次，不占普攻冷却）"
+ },
  "native_motion": {
   "_doc": "原生动作覆盖层（docs/108 §3.5，native_motion.gd）：clips = 起手后整条播的秒数；variants = S2 永久生效时普攻换 attack_s2；states 按序取第一条；exits = 信号族结束后的收势",
   "clips": {

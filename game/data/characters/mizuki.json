@@ -1,929 +1,959 @@
 {
-  "id": "mizuki",
-  "name": "水月",
-  "en": "MIZUKI",
-  "class": "特种",
-  "script": "res://scripts/characters/data_operator.gd",
-  "sprites": {
-  "move_attack": {"tex": "op_mizuki_move_attack", "frames": 8, "foot": [48, 75.50702040908614], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},
-  "entry": {"tex": "op_mizuki_entry", "frames": 8, "fps": 11.9994, "foot": [32, 60], "frame_durations": [0.0833, 0.0834, 0.0833, 0.0833, 0.0834, 0.0833, 0.0834, 0.0833], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/mizuki_entry.json），64 画布 @2x；落下由代码补"},
-    "base": "mizuki_runtime_idle",
-    "size": 96,
-    "foot_exempt": "整套 96 画布 + draw_scale 0.9（docs/103 10-16 试验值沿用），不是 64 主规格；重画时回到 64（docs/108 §5）",
-    "foot": [
-      48,
-      75.50702040908614
-    ],
-    "draw_scale": 0.9,
-    "idle": {
-      "tex": "mizuki_runtime_idle",
-      "frames": 36,
-      "fps": 6.750000080466272,
-      "foot": [
-        48,
-        75.50702040908614
-      ],
-      "frame_durations": [
-        0.16666666666666666,
-        0.16666666666666666,
-        0.16666666666666666,
-        0.16666666666666666,
-        0.16666666666666666,
-        0.16666666666666666,
-        0.16666666666666666,
-        0.16666666666666666,
-        0.16666666666666666,
-        0.16666666666666666,
-        0.16666666666666666,
-        0.16666666666666666,
-        0.16666666666666666,
-        0.16666666666666666,
-        0.16666666666666666,
-        0.16666666666666666,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895,
-        0.13333333015441895
-      ]
-    },
-    "run": {
-      "tex": "mizuki_runtime_run",
-      "frames": 8,
-      "fps": 10,
-      "foot": [
-        48,
-        75.50702040908614
-      ]
-    },
-    "attack": {
-      "tex": "mizuki_runtime_attack",
-      "frames": 8,
-      "fps": 11.11111111111111,
-      "foot": [
-        48,
-        75.50702040908614
-      ],
-      "fire": 3,
-      "attack_timing": {
-       "duration": 0.72,
-       "fire_time": 0.27,
-       "active_ratio": 0.8,
-       "windup_ratio": 0.37500000000000006,
-       "min_duration": 0.36,
-       "frame_durations": [
-        0.09000000000000001,
-        0.09000000000000001,
-        0.09,
-        0.09,
-        0.09,
-        0.09,
-        0.09,
-        0.08999999999999997
-       ],
-       "min_rest": 0.09
-      }
-    },
-    "hurt": {
-      "tex": "mizuki_runtime_hurt",
-      "frames": 4,
-      "fps": 10,
-      "foot": [
-        48,
-        75.50702040908614
-      ]
-    },
-    "death": {
-      "tex": "mizuki_runtime_death",
-      "frames": 8,
-      "fps": 8,
-      "foot": [
-        48,
-        75.50702040908614
-      ]
-    },
-    "skill": {
-      "tex": "mizuki_runtime_s1_attack",
-      "frames": 8,
-      "fps": 11.11111111111111,
-      "foot": [
-        48,
-        75.50702040908614
-      ],
-      "fire": 3,
-      "attack_timing": {
-        "duration": 0.72,
-        "fire_time": 0.27,
-        "active_ratio": 0.8,
-        "windup_ratio": 0.375,
-        "min_duration": 0.36,
-        "min_rest": 0.09
-      }
-    },
-    "skill_s1_attack": {
-      "tex": "mizuki_runtime_s1_attack",
-      "frames": 8,
-      "fps": 11.11111111111111,
-      "foot": [
-        48,
-        75.50702040908614
-      ],
-      "fire": 3,
-      "attack_timing": {
-        "duration": 0.72,
-        "fire_time": 0.27,
-        "active_ratio": 0.8,
-        "windup_ratio": 0.375,
-        "min_duration": 0.36,
-        "min_rest": 0.09
-      }
-    },
-    "skill_s2": {
-      "tex": "mizuki_runtime_skill_start",
-      "frames": 8,
-      "fps": 16,
-      "foot": [
-        48,
-        75.50702040908614
-      ],
-      "fire": 3
-    },
-    "skill_s2_loop": {
-      "tex": "mizuki_runtime_skill_loop",
-      "frames": 8,
-      "fps": 8,
-      "foot": [
-        48,
-        75.50702040908614
-      ]
-    },
-    "skill_s2_attack": {
-      "tex": "mizuki_runtime_skill_attack",
-      "frames": 8,
-      "fps": 11.11111111111111,
-      "foot": [
-        48,
-        75.50702040908614
-      ],
-      "fire": 3,
-      "attack_timing": {
-        "duration": 0.72,
-        "fire_time": 0.27,
-        "active_ratio": 0.8,
-        "windup_ratio": 0.375,
-        "min_duration": 0.36,
-        "min_rest": 0.09
-      }
-    },
-    "skill_s2_end": {
-      "tex": "mizuki_runtime_skill_end",
-      "frames": 8,
-      "fps": 16,
-      "foot": [
-        48,
-        75.50702040908614
-      ]
-    },
-    "skill_s3": {
-      "tex": "mizuki_runtime_skill_start",
-      "frames": 8,
-      "fps": 16,
-      "foot": [
-        48,
-        75.50702040908614
-      ],
-      "fire": 3
-    },
-    "skill_s3_loop": {
-      "tex": "mizuki_runtime_skill_loop",
-      "frames": 8,
-      "fps": 8,
-      "foot": [
-        48,
-        75.50702040908614
-      ]
-    },
-    "skill_s3_attack": {
-      "tex": "mizuki_runtime_skill_attack",
-      "frames": 8,
-      "fps": 11.11111111111111,
-      "foot": [
-        48,
-        75.50702040908614
-      ],
-      "fire": 3,
-      "attack_timing": {
-        "duration": 0.72,
-        "fire_time": 0.27,
-        "active_ratio": 0.8,
-        "windup_ratio": 0.375,
-        "min_duration": 0.36,
-        "min_rest": 0.09
-      }
-    },
-    "skill_s3_end": {
-      "tex": "mizuki_runtime_skill_end",
-      "frames": 8,
-      "fps": 16,
-      "foot": [
-        48,
-        75.50702040908614
-      ]
-    },
-    "skills": {
-      "s1": {
-        "anim": "skill"
-      },
-      "s2": {
-        "start": "skill_s2",
-        "loop": "skill_s2_loop",
-        "attack": "skill_s2_attack",
-        "end": "skill_s2_end"
-      },
-      "s3": {
-        "start": "skill_s3",
-        "loop": "skill_s3_loop",
-        "attack": "skill_s3_attack",
-        "end": "skill_s3_end"
-      }
-    },
-    "_doc": "Native Spine pixels:192 @2x, logical96, common foot; source durations recorded in mizuki_runtime_manifest.json. Runtime attack uses full anticipation/fire/recovery with readable floor; S2/S3 share documented reference family."
+ "id": "mizuki",
+ "name": "水月",
+ "en": "MIZUKI",
+ "class": "特种",
+ "script": "res://scripts/characters/data_operator.gd",
+ "sprites": {
+  "move_attack": {
+   "tex": "op_mizuki_move_attack",
+   "frames": 8,
+   "foot": [
+    48,
+    75.50702040908614
+   ],
+   "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"
   },
-  "base": {
-    "umbrella_dmg": 15,
-    "swing_radius": 132,
-    "swing_interval": 0.9,
-    "swing_arc": 150,
-    "tentacle_mult": 0.6,
-    "awaken_swings": 7,
-    "s1_mult": 3.0,
-    "s1_radius": 1.3,
-    "s1_burst_r": 80,
-    "s1_burst_mult": 0.6,
-    "s1_kb": 360,
-    "s1_stack": 3,
-    "s2_dur": 12.0,
-    "s2_interval": 0.5,
-    "s2_bind": 1.0,
-    "s3_dur": 14.0,
-    "s3_radius": 1.45,
-    "s3_mult": 1.8,
-    "s3_stun": 0.6,
-    "half_base": 75,
-    "aim_pad": 60,
-    "min_cd": 0.18,
-    "kb": 240,
-    "stake_life": 1.5,
-    "stake_every": 0.5,
-    "stake_r": 60,
-    "stake_max": 6,
-    "stake_mult": 0.4,
-    "talent_mult": 1.22,
-    "talent_r": 160,
-    "kill_heal": 0.01,
-    "kill_regen": 0.05,
-    "kill_cap": 0.05,
-    "drag_dist": 20,
-    "jelly_every": 1.2,
-    "jelly_r": 200,
-    "jelly_mult": 0.4,
-    "jelly_bind": 0.3,
-    "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 惊跳反射 / 病理性依恋，节点 5：awk2_* 惊跳反射·余悸（唤醒后触手再抽一圈），bind2_* 病理性依恋·缠缚（囚徒困境期间身边减速 + 伤害）。数值为待试验参数",
-    "awk2_delay": 0.5,
-    "awk2_r_k": 1.5,
-    "awk2_mult": 0.6,
-    "bind2_slow": 1.0,
-    "bind2_mult": 0.2
+  "entry": {
+   "tex": "op_mizuki_entry",
+   "frames": 8,
+   "fps": 11.9994,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.0833,
+    0.0834,
+    0.0833,
+    0.0833,
+    0.0834,
+    0.0833,
+    0.0834,
+    0.0833
+   ],
+   "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/mizuki_entry.json），64 画布 @2x；落下由代码补"
   },
-  "leader": {
-    "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1758 / 防御 356 / 法抗 30%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
-    "max_hp": 125,
-    "armor": 2.5,
-    "arts_res": 0.3,
-    "regen": 1.5
+  "base": "mizuki_runtime_idle",
+  "size": 96,
+  "foot_exempt": "整套 96 画布 + draw_scale 0.9（docs/103 10-16 试验值沿用），不是 64 主规格；重画时回到 64（docs/108 §5）",
+  "foot": [
+   48,
+   75.50702040908614
+  ],
+  "draw_scale": 0.9,
+  "idle": {
+   "tex": "mizuki_runtime_idle",
+   "frames": 36,
+   "fps": 6.750000080466272,
+   "foot": [
+    48,
+    75.50702040908614
+   ],
+   "frame_durations": [
+    0.16666666666666666,
+    0.16666666666666666,
+    0.16666666666666666,
+    0.16666666666666666,
+    0.16666666666666666,
+    0.16666666666666666,
+    0.16666666666666666,
+    0.16666666666666666,
+    0.16666666666666666,
+    0.16666666666666666,
+    0.16666666666666666,
+    0.16666666666666666,
+    0.16666666666666666,
+    0.16666666666666666,
+    0.16666666666666666,
+    0.16666666666666666,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895,
+    0.13333333015441895
+   ]
+  },
+  "run": {
+   "tex": "mizuki_runtime_run",
+   "frames": 8,
+   "fps": 10,
+   "foot": [
+    48,
+    75.50702040908614
+   ]
   },
   "attack": {
-    "mode": "auto",
-    "name": "伞击",
-    "desc": "持伞扇形挥砍前方的敌人（物理，{$half_base*2}°），并用触手追击其中生命最低的敌人（法术）"
+   "tex": "mizuki_runtime_attack",
+   "frames": 8,
+   "fps": 11.11111111111111,
+   "foot": [
+    48,
+    75.50702040908614
+   ],
+   "fire": 3,
+   "attack_timing": {
+    "duration": 0.72,
+    "fire_time": 0.27,
+    "active_ratio": 0.8,
+    "windup_ratio": 0.37500000000000006,
+    "min_duration": 0.36,
+    "frame_durations": [
+     0.09000000000000001,
+     0.09000000000000001,
+     0.09,
+     0.09,
+     0.09,
+     0.09,
+     0.09,
+     0.08999999999999997
+    ],
+    "min_rest": 0.09
+   }
+  },
+  "hurt": {
+   "tex": "mizuki_runtime_hurt",
+   "frames": 4,
+   "fps": 10,
+   "foot": [
+    48,
+    75.50702040908614
+   ]
+  },
+  "death": {
+   "tex": "mizuki_runtime_death",
+   "frames": 8,
+   "fps": 8,
+   "foot": [
+    48,
+    75.50702040908614
+   ]
+  },
+  "skill": {
+   "tex": "mizuki_runtime_s1_attack",
+   "frames": 8,
+   "fps": 11.11111111111111,
+   "foot": [
+    48,
+    75.50702040908614
+   ],
+   "fire": 3,
+   "attack_timing": {
+    "duration": 0.72,
+    "fire_time": 0.27,
+    "active_ratio": 0.8,
+    "windup_ratio": 0.375,
+    "min_duration": 0.36,
+    "min_rest": 0.09
+   }
+  },
+  "skill_s1_attack": {
+   "tex": "mizuki_runtime_s1_attack",
+   "frames": 8,
+   "fps": 11.11111111111111,
+   "foot": [
+    48,
+    75.50702040908614
+   ],
+   "fire": 3,
+   "attack_timing": {
+    "duration": 0.72,
+    "fire_time": 0.27,
+    "active_ratio": 0.8,
+    "windup_ratio": 0.375,
+    "min_duration": 0.36,
+    "min_rest": 0.09
+   }
+  },
+  "skill_s2": {
+   "tex": "mizuki_runtime_skill_start",
+   "frames": 8,
+   "fps": 16,
+   "foot": [
+    48,
+    75.50702040908614
+   ],
+   "fire": 3
+  },
+  "skill_s2_loop": {
+   "tex": "mizuki_runtime_skill_loop",
+   "frames": 8,
+   "fps": 8,
+   "foot": [
+    48,
+    75.50702040908614
+   ]
+  },
+  "skill_s2_attack": {
+   "tex": "mizuki_runtime_skill_attack",
+   "frames": 8,
+   "fps": 11.11111111111111,
+   "foot": [
+    48,
+    75.50702040908614
+   ],
+   "fire": 3,
+   "attack_timing": {
+    "duration": 0.72,
+    "fire_time": 0.27,
+    "active_ratio": 0.8,
+    "windup_ratio": 0.375,
+    "min_duration": 0.36,
+    "min_rest": 0.09
+   }
+  },
+  "skill_s2_end": {
+   "tex": "mizuki_runtime_skill_end",
+   "frames": 8,
+   "fps": 16,
+   "foot": [
+    48,
+    75.50702040908614
+   ]
+  },
+  "skill_s3": {
+   "tex": "mizuki_runtime_skill_start",
+   "frames": 8,
+   "fps": 16,
+   "foot": [
+    48,
+    75.50702040908614
+   ],
+   "fire": 3
+  },
+  "skill_s3_loop": {
+   "tex": "mizuki_runtime_skill_loop",
+   "frames": 8,
+   "fps": 8,
+   "foot": [
+    48,
+    75.50702040908614
+   ]
+  },
+  "skill_s3_attack": {
+   "tex": "mizuki_runtime_skill_attack",
+   "frames": 8,
+   "fps": 11.11111111111111,
+   "foot": [
+    48,
+    75.50702040908614
+   ],
+   "fire": 3,
+   "attack_timing": {
+    "duration": 0.72,
+    "fire_time": 0.27,
+    "active_ratio": 0.8,
+    "windup_ratio": 0.375,
+    "min_duration": 0.36,
+    "min_rest": 0.09
+   }
+  },
+  "skill_s3_end": {
+   "tex": "mizuki_runtime_skill_end",
+   "frames": 8,
+   "fps": 16,
+   "foot": [
+    48,
+    75.50702040908614
+   ]
+  },
+  "skills": {
+   "s1": {
+    "anim": "skill"
+   },
+   "s2": {
+    "start": "skill_s2",
+    "loop": "skill_s2_loop",
+    "attack": "skill_s2_attack",
+    "end": "skill_s2_end"
+   },
+   "s3": {
+    "start": "skill_s3",
+    "loop": "skill_s3_loop",
+    "attack": "skill_s3_attack",
+    "end": "skill_s3_end"
+   }
+  },
+  "_doc": "Native Spine pixels:192 @2x, logical96, common foot; source durations recorded in mizuki_runtime_manifest.json. Runtime attack uses full anticipation/fire/recovery with readable floor; S2/S3 share documented reference family."
+ },
+ "base": {
+  "umbrella_dmg": 15,
+  "swing_radius": 132,
+  "swing_interval": 0.9,
+  "swing_arc": 150,
+  "tentacle_mult": 0.6,
+  "awaken_swings": 7,
+  "s1_mult": 3.0,
+  "s1_radius": 1.3,
+  "s1_burst_r": 80,
+  "s1_burst_mult": 0.6,
+  "s1_kb": 360,
+  "s1_stack": 3,
+  "s2_dur": 12.0,
+  "s2_interval": 0.5,
+  "s2_bind": 1.0,
+  "s3_dur": 14.0,
+  "s3_radius": 1.45,
+  "s3_mult": 1.8,
+  "s3_stun": 0.6,
+  "half_base": 75,
+  "aim_pad": 60,
+  "min_cd": 0.18,
+  "kb": 240,
+  "stake_life": 1.5,
+  "stake_every": 0.5,
+  "stake_r": 60,
+  "stake_max": 6,
+  "stake_mult": 0.4,
+  "talent_mult": 1.22,
+  "talent_r": 160,
+  "kill_heal": 0.01,
+  "kill_regen": 0.05,
+  "kill_cap": 0.05,
+  "drag_dist": 20,
+  "jelly_every": 1.2,
+  "jelly_r": 200,
+  "jelly_mult": 0.4,
+  "jelly_bind": 0.3,
+  "_branch": "分支培养（docs/119 §4.1 / docs/120，10-22）：节点 4 二选一 惊跳反射 / 病理性依恋，节点 5：awk2_* 惊跳反射·余悸（唤醒后触手再抽一圈），bind2_* 病理性依恋·缠缚（囚徒困境期间身边减速 + 伤害）。数值为待试验参数",
+  "awk2_delay": 0.5,
+  "awk2_r_k": 1.5,
+  "awk2_mult": 0.6,
+  "bind2_slow": 1.0,
+  "bind2_mult": 0.2
+ },
+ "leader": {
+  "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1758 / 防御 356 / 法抗 30%，按本作玩法补正——近战主控有效生命 ×1.06，原作生命高低只占 ±8%，减伤 / 法抗越高生命越低",
+  "max_hp": 125,
+  "armor": 2.5,
+  "arts_res": 0.3,
+  "regen": 1.5
+ },
+ "attack": {
+  "mode": "auto",
+  "name": "伞击",
+  "desc": "持伞扇形挥砍前方的敌人（物理，{$half_base*2}°），并用触手追击其中生命最低的敌人（法术）"
+ },
+ "skills": [
+  {
+   "name": "唤醒",
+   "en": "AWAKEN",
+   "sp": 7,
+   "desc": "充能后下一次伞击强化：伤害 ×{$s1_mult}、范围 ×{$s1_radius}，命中处引发范围冲击（法术），触手追击同样强化",
+   "icon": "skill_s1"
+  },
+  {
+   "name": "囚徒困境",
+   "en": "PRISONER'S DILEMMA",
+   "sp": 16,
+   "desc": "{$s2_dur} 秒高速状态：挥伞间隔 ×{$s2_interval}，触手追击目标 +1 并附带 {$s2_bind} 秒束缚",
+   "dur": 12.0,
+   "icon": "skill_s2"
+  },
+  {
+   "name": "镜花水月",
+   "en": "MOON IN THE WATER",
+   "sp": 30,
+   "desc": "{$s3_dur} 秒内攻击覆盖自身周围全范围，范围 ×{$s3_radius}、伤害 ×{$s3_mult}；触手额外攻击目标 +2，优先命中生命最低的敌人，并眩晕 {$s3_stun} 秒",
+   "dur": 14.0,
+   "icon": "skill_s3"
+  }
+ ],
+ "talent": {
+  "name": "反移情",
+  "desc": "附近有半血敌人时自身伤害 +{$talent_mult*100-100}%；击杀时为队长回复 {$kill_heal*100}% 最大生命（每秒有上限）"
+ },
+ "hit_sources": {
+  "伞击": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic"
+   ]
+  },
+  "技能": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill"
+   ]
+  },
+  "技能·法术": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "skill",
+    "aftershock",
+    "area"
+   ]
+  },
+  "触手": {
+   "emitter": "operator",
+   "origin": "talent",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "follow_up"
+   ]
+  },
+  "触手桩": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "area"
+   ]
+  },
+  "触须阵": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "area",
+    "control"
+   ]
+  },
+  "巨触": {
+   "emitter": "summon",
+   "origin": "route",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "area",
+    "control"
+   ]
+  },
+  "水刃": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "远程",
+   "kind": "物理",
+   "tags": [
+    "projectile"
+   ]
+  },
+  "潮汐弹": {
+   "emitter": "operator",
+   "origin": "route",
+   "range": "远程",
+   "kind": "法术",
+   "tags": [
+    "projectile",
+    "ricochet"
+   ]
+  },
+  "深蓝之籽": {
+   "emitter": "summon",
+   "origin": "core",
+   "range": "近战",
+   "kind": "法术",
+   "tags": [
+    "entity",
+    "control"
+   ]
+  }
+ },
+ "progression": [
+  {
+   "type": "custom",
+   "id": "tentacle_a",
+   "name": "强迫性重复",
+   "icon": "growth_t_count",
+   "desc": "追击的触手 +1（挥伞打中的敌人不够时，追向附近的敌人）"
+  },
+  {
+   "type": "custom",
+   "id": "tentacle_b",
+   "name": "群体性癔症",
+   "icon": "growth_t_count",
+   "desc": "追击的触手再 +1（同样会追向附近的敌人）"
+  },
+  {
+   "type": "elite",
+   "level": 1,
+   "name": "精英一",
+   "desc": "解锁二技能「囚徒困境」；解锁天赋「反移情」：附近有半血敌人时自身伤害 +{$talent_mult*100-100}%；击杀时为队长回复 {$kill_heal*100}% 最大生命（每秒有上限）；普攻「拖拽」：触手追击命中后把目标拖向水月 {$drag_dist}（精英减半，Boss 除外）",
+   "attack": {
+    "name": "拖拽",
+    "desc": "触手追击命中后，把目标拖向水月 {$drag_dist}（精英减半，Boss 除外）"
+   }
+  },
+  {
+   "type": "custom",
+   "id": "awaken_burst",
+   "name": "惊跳反射",
+   "icon": "skill_s1",
+   "desc": "「唤醒」强化的那一击，身边再钻出 2 根触手抽打附近的敌人",
+   "branch": {
+    "awaken": {
+     "id": "awaken_burst",
+     "name": "惊跳反射",
+     "icon": "skill_s1",
+     "desc": "「唤醒」强化的那一击，身边再钻出 2 根触手抽打附近的敌人"
+    },
+    "bind": {
+     "id": "bind_drag",
+     "name": "病理性依恋",
+     "icon": "skill_s2",
+     "desc": "「囚徒困境」期间，触手把束缚住的敌人拖到水月身边"
+    }
+   },
+   "branch_desc": "「惊跳反射」使「唤醒」的强化攻击追加触手攻击；「病理性依恋」使「囚徒困境」期间的触手将敌人拖向水月",
+   "bot": "awaken"
+  },
+  {
+   "type": "custom",
+   "id": "bind_drag",
+   "name": "病理性依恋",
+   "icon": "skill_s2",
+   "desc": "「囚徒困境」期间，触手把束缚住的敌人拖到水月身边",
+   "routes": {
+    "awaken": {
+     "id": "awaken_burst2",
+     "name": "惊跳反射·余悸",
+     "icon": "skill_mizuki_s1",
+     "desc": "「唤醒」{$awk2_delay} 秒后，身边触手再抽打一圈（半径 {$s1_burst_r*$awk2_r_k:0}，伞击 {$awk2_mult*100}% 伤害，击退）"
+    },
+    "bind": {
+     "id": "bind_drag2",
+     "name": "病理性依恋·缠缚",
+     "icon": "skill_mizuki_s2",
+     "desc": "「囚徒困境」期间每秒，身边 {$swing_radius} 内的敌人被触手缠住：减速 {$bind2_slow} 秒并受伞击 {$bind2_mult*100}% 伤害"
+    }
+   }
+  },
+  {
+   "type": "elite",
+   "level": 2,
+   "name": "精英二",
+   "desc": "解锁三技能「镜花水月」：{$s3_dur} 秒内攻击覆盖自身周围全范围，范围 ×{$s3_radius}、伤害 ×{$s3_mult}；触手额外攻击目标 +2，优先命中生命最低的敌人，并眩晕 {$s3_stun} 秒；普通攻击强化「深蓝之籽」：身后的小水母（数量同触手追击数）每 {$jelly_every} 秒各自飞向附近一名敌人，造成伞击 {$jelly_mult*100}% 的法术伤害并束缚 {$jelly_bind} 秒（精英减半，Boss 除外）；「镜花水月」期间间隔减半",
+   "attack": {
+    "name": "深蓝之籽",
+    "desc": "身后的小水母（数量同触手追击数）离身游猎：每 {$jelly_every} 秒各自飞向 {$jelly_r} 内一名敌人（优先被触手打过的），造成伞击 {$jelly_mult*100}% 的法术伤害并束缚 {$jelly_bind} 秒（精英减半，Boss 除外），再飘回身后；「镜花水月」期间间隔减半"
+   }
+  }
+ ],
+ "gallery": {
+  "tags": [
+   "近战",
+   "追击",
+   "控制",
+   "范围"
+  ],
+  "desc": "特种干员，持伞作战，触手随同出击；挥伞攻击前方敌人，触手追击生命最低的目标"
+ },
+ "stat_defs": {
+  "mizuki_umbrella_dmg": {
+   "base": 1.0,
+   "name": "伞击伤害倍率"
+  },
+  "mizuki_umbrella_area": {
+   "base": 1.0,
+   "name": "伞击范围倍率"
+  },
+  "mizuki_umbrella_interval": {
+   "base": 1.0,
+   "min": 0.2,
+   "name": "挥伞间隔倍率（越小越快）"
+  },
+  "mizuki_umbrella_arc": {
+   "base": 0.0,
+   "name": "挥砍角度加成（度）"
+  },
+  "mizuki_tentacle_mult": {
+   "base": 0.6,
+   "name": "触手追击伤害系数"
+  },
+  "mizuki_tentacle_targets": {
+   "base": 1.0,
+   "min": 1.0,
+   "name": "触手追击目标数"
+  },
+  "mizuki_s1_swings": {
+   "base": 7.0,
+   "min": 5.0,
+   "name": "唤醒所需挥伞次数"
+  }
+ },
+ "blocks": {
+  "_doc": "水月：公共起手→命中→收势；S1最多叠3次，S2高速束缚，S3自身周围全范围攻击、额外触手目标+2并眩晕；持续状态绑定公共生命周期，不消耗自身生命。",
+  "dmg_bonus": {
+   "ally": false,
+   "mults": [
+    {
+     "cond": "elite >= 1",
+     "near_low_hp": {
+      "r": "$talent_r",
+      "below": 0.5
+     },
+     "mult": "$talent_mult",
+     "_doc": "天赋反移情：附近有半血敌人时自身伤害 +22%"
+    }
+   ]
+  },
+  "attack": {
+   "shape": "umbrella",
+   "src": "伞击",
+   "atk_key": "umbrella_dmg",
+   "r": "$swing_radius",
+   "half_deg": "$half_base",
+   "every": "$swing_interval",
+   "first": 0,
+   "idle": 0.1,
+   "aim_pad": "$aim_pad",
+   "min_cd": "$min_cd",
+   "slow_mult": 1.5,
+   "kb": "$kb",
+   "stats": {
+    "dmg": "mizuki_umbrella_dmg",
+    "area": "mizuki_umbrella_area",
+    "interval": "mizuki_umbrella_interval",
+    "arc": "mizuki_umbrella_arc",
+    "t_mult": "mizuki_tentacle_mult",
+    "t_n": "mizuki_tentacle_targets"
+   },
+   "r_mults": [
+    {
+     "cond": "skill_active:2",
+     "mult": "$s3_radius"
+    },
+    {
+     "cond": "response_on && resp_idle < 3",
+     "mult": 1.5,
+     "_doc": "响应动作「伞开」：切到突击后 3 秒内伞击范围 ×1.5"
+    }
+   ],
+   "dmg_mults": [
+    {
+     "cond": "skill_active:2",
+     "mult": "$s3_mult"
+    }
+   ],
+   "interval_mults": [
+    {
+     "cond": "skill_active:1",
+     "mult": "$s2_interval"
+    }
+   ],
+   "tentacle": {
+    "src": "触手",
+    "n_add": [
+     {
+      "cond": "skill_active:1 && !skill_active:2",
+      "n": 1
+     },
+     {
+      "cond": "skill_active:2",
+      "n": 2
+     },
+     {
+      "cond": "response_on && resp_idle < 3",
+      "n": 1,
+      "_doc": "响应动作「伞开」：切到突击后 3 秒内触手追击 +1 名"
+     }
+    ],
+    "stun": [
+     {
+      "cond": "skill_active:2",
+      "dur": "$s3_stun"
+     },
+     {
+      "cond": "skill_active:1",
+      "dur": "$s2_bind"
+     }
+    ],
+    "stun_min": 0.25,
+    "more_r": 1.6,
+    "drag": {
+     "cond": "node:bind_drag && skill_active:1",
+     "kb": 320,
+     "kb_elite": 160
+    },
+    "pull": {
+     "cond": "elite >= 1",
+     "dir": "pull",
+     "dist": "$drag_dist",
+     "elite_mult": 0.5,
+     "_doc": "精一拖拽：触手命中后把目标拖向水月 40（精英减半、重型 ×0.3、Boss 不动）"
+    }
+   },
+   "look": {
+    "deep": [
+     0.22,
+     0.34,
+     0.88
+    ],
+    "deep_rej": [
+     0.62,
+     0.34,
+     1.0
+    ],
+    "pale": [
+     0.62,
+     0.9,
+     1.35
+    ],
+    "pale_rej": [
+     1.25,
+     0.7,
+     1.6
+    ],
+    "jelly_glow": {
+     "cond": "elite >= 2"
+    }
+   },
+   "jelly": {
+    "cond": "elite >= 2",
+    "every": "$jelly_every",
+    "every_mults": [
+     {
+      "cond": "skill_active:2",
+      "mult": 0.5
+     }
+    ],
+    "r": "$jelly_r",
+    "speed": 420,
+    "back": 160,
+    "mult": "$jelly_mult",
+    "stun": "$jelly_bind",
+    "src": "深蓝之籽",
+    "_doc": "精二深蓝之籽（取代固着）：身后的小水母（数量同触手追击数）每 1.2 秒各自飞向 200 内一名敌人（优先被触手打过的），伞击 40% 法伤 + 束缚 0.3 秒，再飘回；镜花水月期间间隔减半"
+   },
+   "full_circle": {
+    "cond": "skill_active:2"
+   }
   },
   "skills": [
-    {
-      "name": "唤醒",
-      "en": "AWAKEN",
-      "sp": 7,
-      "desc": "充能后下一次伞击强化：伤害 ×{$s1_mult}、范围 ×{$s1_radius}，命中处引发范围冲击（法术），触手追击同样强化",
-      "icon": "skill_s1"
+   {
+    "cast": "instant",
+    "dur": {
+     "next_attacks": 1
     },
-    {
-      "name": "囚徒困境",
-      "en": "PRISONER'S DILEMMA",
-      "sp": 16,
-      "desc": "{$s2_dur} 秒高速状态：挥伞间隔 ×{$s2_interval}，触手追击目标 +1 并附带 {$s2_bind} 秒束缚",
-      "dur": 12.0,
-      "icon": "skill_s2"
+    "stack_max": "$s1_stack",
+    "attack_patch": {
+     "mult": "$s1_mult",
+     "r_mult": "$s1_radius",
+     "kb": "$s1_kb",
+     "burst": {
+      "n": 3,
+      "gap": 0.06,
+      "mult": "$s1_burst_mult",
+      "r": "$s1_burst_r",
+      "kb": 200,
+      "src": "技能·法术"
+     },
+     "swarm": {
+      "cond": "node:awaken_burst",
+      "n": 2,
+      "r_mult": 1.6,
+      "stun": 0.4
+     },
+     "anim": "skill_s1_attack"
     },
-    {
-      "name": "镜花水月",
-      "en": "MOON IN THE WATER",
-      "sp": 30,
-      "desc": "{$s3_dur} 秒内攻击覆盖自身周围全范围，范围 ×{$s3_radius}、伤害 ×{$s3_mult}；触手额外攻击目标 +2，优先命中生命最低的敌人，并眩晕 {$s3_stun} 秒",
-      "dur": 14.0,
-      "icon": "skill_s3"
-    }
-  ],
-  "talent": {
-    "name": "反移情",
-    "desc": "附近有半血敌人时自身伤害 +{$talent_mult*100-100}%；击杀时为队长回复 {$kill_heal*100}% 最大生命（每秒有上限）"
-  },
-  "hit_sources": {
-    "伞击": {
-      "emitter": "operator",
-      "origin": "core",
-      "range": "近战",
-      "kind": "物理",
-      "tags": [
-        "basic"
+    "fx": [
+     {
+      "text": {
+       "s": "唤醒",
+       "col": [
+        0.957,
+        0.753,
+        0.306
+       ],
+       "size": 15
+      },
+      "at": "self",
+      "off": [
+       0,
+       -80
       ]
-    },
-    "技能": {
-      "emitter": "operator",
-      "origin": "skill",
-      "range": "近战",
-      "kind": "物理",
-      "tags": [
-        "skill"
-      ]
-    },
-    "技能·法术": {
-      "emitter": "operator",
-      "origin": "skill",
-      "range": "近战",
-      "kind": "法术",
-      "tags": [
-        "skill",
-        "aftershock",
-        "area"
-      ]
-    },
-    "触手": {
-      "emitter": "operator",
-      "origin": "talent",
-      "range": "近战",
-      "kind": "法术",
-      "tags": [
-        "follow_up"
-      ]
-    },
-    "触手桩": {
-      "emitter": "summon",
-      "origin": "route",
-      "range": "近战",
-      "kind": "法术",
-      "tags": [
-        "entity",
-        "area"
-      ]
-    },
-    "触须阵": {
-      "emitter": "summon",
-      "origin": "route",
-      "range": "近战",
-      "kind": "法术",
-      "tags": [
-        "entity",
-        "area",
-        "control"
-      ]
-    },
-    "巨触": {
-      "emitter": "summon",
-      "origin": "route",
-      "range": "近战",
-      "kind": "法术",
-      "tags": [
-        "entity",
-        "area",
-        "control"
-      ]
-    },
-    "水刃": {
-      "emitter": "operator",
-      "origin": "route",
-      "range": "远程",
-      "kind": "物理",
-      "tags": [
-        "projectile"
-      ]
-    },
-    "潮汐弹": {
-      "emitter": "operator",
-      "origin": "route",
-      "range": "远程",
-      "kind": "法术",
-      "tags": [
-        "projectile",
-        "ricochet"
-      ]
-    },
-    "深蓝之籽": {
-      "emitter": "summon",
-      "origin": "core",
-      "range": "近战",
-      "kind": "法术",
-      "tags": [
-        "entity",
-        "control"
-      ]
-    }
-  },
-  "progression": [
-    {
-      "type": "custom",
-      "id": "tentacle_a",
-      "name": "强迫性重复",
-      "icon": "growth_t_count",
-      "desc": "追击的触手 +1（挥伞打中的敌人不够时，追向附近的敌人）"
-    },
-    {
-      "type": "custom",
-      "id": "tentacle_b",
-      "name": "群体性癔症",
-      "icon": "growth_t_count",
-      "desc": "追击的触手再 +1（同样会追向附近的敌人）"
-    },
-    {
-      "type": "elite",
-      "level": 1,
-      "name": "精英一",
-      "desc": "解锁二技能「囚徒困境」；解锁天赋「反移情」：附近有半血敌人时自身伤害 +{$talent_mult*100-100}%；击杀时为队长回复 {$kill_heal*100}% 最大生命（每秒有上限）；普攻「拖拽」：触手追击命中后把目标拖向水月 {$drag_dist}（精英减半，Boss 除外）",
-      "attack": {
-        "name": "拖拽",
-        "desc": "触手追击命中后，把目标拖向水月 {$drag_dist}（精英减半，Boss 除外）"
-      }
-    },
-    {
-      "type": "custom",
-      "id": "awaken_burst",
-      "name": "惊跳反射",
-      "icon": "skill_s1",
-      "desc": "「唤醒」强化的那一击，身边再钻出 2 根触手抽打附近的敌人",
-      "branch": {
-        "awaken": {
-          "id": "awaken_burst",
-          "name": "惊跳反射",
-          "icon": "skill_s1",
-          "desc": "「唤醒」强化的那一击，身边再钻出 2 根触手抽打附近的敌人"
-        },
-        "bind": {
-          "id": "bind_drag",
-          "name": "病理性依恋",
-          "icon": "skill_s2",
-          "desc": "「囚徒困境」期间，触手把束缚住的敌人拖到水月身边"
-        }
-      },
-      "branch_desc": "「惊跳反射」使「唤醒」的强化攻击追加触手攻击；「病理性依恋」使「囚徒困境」期间的触手将敌人拖向水月",
-      "bot": "awaken"
-    },
-    {
-      "type": "custom",
-      "id": "bind_drag",
-      "name": "病理性依恋",
-      "icon": "skill_s2",
-      "desc": "「囚徒困境」期间，触手把束缚住的敌人拖到水月身边",
-      "routes": {
-        "awaken": {
-          "id": "awaken_burst2",
-          "name": "惊跳反射·余悸",
-          "icon": "skill_mizuki_s1",
-          "desc": "「唤醒」{$awk2_delay} 秒后，身边触手再抽打一圈（半径 {$s1_burst_r*$awk2_r_k:0}，伞击 {$awk2_mult*100}% 伤害，击退）"
-        },
-        "bind": {
-          "id": "bind_drag2",
-          "name": "病理性依恋·缠缚",
-          "icon": "skill_mizuki_s2",
-          "desc": "「囚徒困境」期间每秒，身边 {$swing_radius} 内的敌人被触手缠住：减速 {$bind2_slow} 秒并受伞击 {$bind2_mult*100}% 伤害"
-        }
-      }
-    },
-    {
-      "type": "elite",
-      "level": 2,
-      "name": "精英二",
-      "desc": "解锁三技能「镜花水月」：{$s3_dur} 秒内攻击覆盖自身周围全范围，范围 ×{$s3_radius}、伤害 ×{$s3_mult}；触手额外攻击目标 +2，优先命中生命最低的敌人，并眩晕 {$s3_stun} 秒；普通攻击强化「深蓝之籽」：身后的小水母（数量同触手追击数）每 {$jelly_every} 秒各自飞向附近一名敌人，造成伞击 {$jelly_mult*100}% 的法术伤害并束缚 {$jelly_bind} 秒（精英减半，Boss 除外）；「镜花水月」期间间隔减半",
-      "attack": {
-        "name": "深蓝之籽",
-        "desc": "身后的小水母（数量同触手追击数）离身游猎：每 {$jelly_every} 秒各自飞向 {$jelly_r} 内一名敌人（优先被触手打过的），造成伞击 {$jelly_mult*100}% 的法术伤害并束缚 {$jelly_bind} 秒（精英减半，Boss 除外），再飘回身后；「镜花水月」期间间隔减半"
-      }
-    }
-  ],
-  "gallery": {
-    "tags": [
-      "近战",
-      "追击",
-      "控制",
-      "范围"
-    ],
-    "desc": "特种干员，持伞作战，触手随同出击；挥伞攻击前方敌人，触手追击生命最低的目标"
-  },
-  "stat_defs": {
-    "mizuki_umbrella_dmg": {
-      "base": 1.0,
-      "name": "伞击伤害倍率"
-    },
-    "mizuki_umbrella_area": {
-      "base": 1.0,
-      "name": "伞击范围倍率"
-    },
-    "mizuki_umbrella_interval": {
-      "base": 1.0,
-      "min": 0.2,
-      "name": "挥伞间隔倍率（越小越快）"
-    },
-    "mizuki_umbrella_arc": {
-      "base": 0.0,
-      "name": "挥砍角度加成（度）"
-    },
-    "mizuki_tentacle_mult": {
-      "base": 0.6,
-      "name": "触手追击伤害系数"
-    },
-    "mizuki_tentacle_targets": {
-      "base": 1.0,
-      "min": 1.0,
-      "name": "触手追击目标数"
-    },
-    "mizuki_s1_swings": {
-      "base": 7.0,
-      "min": 5.0,
-      "name": "唤醒所需挥伞次数"
-    }
-  },
-  "blocks": {
-    "_doc": "水月：公共起手→命中→收势；S1最多叠3次，S2高速束缚，S3自身周围全范围攻击、额外触手目标+2并眩晕；持续状态绑定公共生命周期，不消耗自身生命。",
-    "dmg_bonus": {
-      "ally": false,
-      "mults": [
-        {
-          "cond": "elite >= 1",
-          "near_low_hp": {
-            "r": "$talent_r",
-            "below": 0.5
-          },
-          "mult": "$talent_mult",
-          "_doc": "天赋反移情：附近有半血敌人时自身伤害 +22%"
-        }
-      ]
-    },
-    "attack": {
-      "shape": "umbrella",
-      "src": "伞击",
-      "atk_key": "umbrella_dmg",
-      "r": "$swing_radius",
-      "half_deg": "$half_base",
-      "every": "$swing_interval",
-      "first": 0,
-      "idle": 0.1,
-      "aim_pad": "$aim_pad",
-      "min_cd": "$min_cd",
-      "slow_mult": 1.5,
-      "kb": "$kb",
-      "stats": {
-        "dmg": "mizuki_umbrella_dmg",
-        "area": "mizuki_umbrella_area",
-        "interval": "mizuki_umbrella_interval",
-        "arc": "mizuki_umbrella_arc",
-        "t_mult": "mizuki_tentacle_mult",
-        "t_n": "mizuki_tentacle_targets"
-      },
-      "r_mults": [
-        {
-          "cond": "skill_active:2",
-          "mult": "$s3_radius"
-        },
-        {
-         "cond": "response_on && resp_idle < 3",
-         "mult": 1.5,
-         "_doc": "响应动作「伞开」：切到突击后 3 秒内伞击范围 ×1.5"
-        }
-      ],
-      "dmg_mults": [
-        {
-          "cond": "skill_active:2",
-          "mult": "$s3_mult"
-        }
-      ],
-      "interval_mults": [
-        {
-          "cond": "skill_active:1",
-          "mult": "$s2_interval"
-        }
-      ],
-      "tentacle": {
-        "src": "触手",
-        "n_add": [
-          {
-            "cond": "skill_active:1 && !skill_active:2",
-            "n": 1
-          },
-          {
-            "cond": "skill_active:2",
-            "n": 2
-          },
-          {
-           "cond": "response_on && resp_idle < 3",
-           "n": 1,
-           "_doc": "响应动作「伞开」：切到突击后 3 秒内触手追击 +1 名"
-          }
-        ],
-        "stun": [
-          {
-            "cond": "skill_active:2",
-            "dur": "$s3_stun"
-          },
-          {
-            "cond": "skill_active:1",
-            "dur": "$s2_bind"
-          }
-        ],
-        "stun_min": 0.25,
-        "more_r": 1.6,
-        "drag": {
-          "cond": "node:bind_drag && skill_active:1",
-          "kb": 320,
-          "kb_elite": 160
-        },
-        "pull": {
-          "cond": "elite >= 1",
-          "dir": "pull",
-          "dist": "$drag_dist",
-          "elite_mult": 0.5,
-          "_doc": "精一拖拽：触手命中后把目标拖向水月 40（精英减半、重型 ×0.3、Boss 不动）"
-        }
-      },
-      "look": {
-        "deep": [
-          0.22,
-          0.34,
-          0.88
-        ],
-        "deep_rej": [
-          0.62,
-          0.34,
-          1.0
-        ],
-        "pale": [
-          0.62,
-          0.9,
-          1.35
-        ],
-        "pale_rej": [
-          1.25,
-          0.7,
-          1.6
-        ],
-        "jelly_glow": {
-          "cond": "elite >= 2"
-        }
-      },
-      "jelly": {
-        "cond": "elite >= 2",
-        "every": "$jelly_every",
-        "every_mults": [
-          {
-            "cond": "skill_active:2",
-            "mult": 0.5
-          }
-        ],
-        "r": "$jelly_r",
-        "speed": 420,
-        "back": 160,
-        "mult": "$jelly_mult",
-        "stun": "$jelly_bind",
-        "src": "深蓝之籽",
-        "_doc": "精二深蓝之籽（取代固着）：身后的小水母（数量同触手追击数）每 1.2 秒各自飞向 200 内一名敌人（优先被触手打过的），伞击 40% 法伤 + 束缚 0.3 秒，再飘回；镜花水月期间间隔减半"
-      },
-      "full_circle": {
-        "cond": "skill_active:2"
-      }
-    },
-    "skills": [
-      {
-        "cast": "instant",
-        "dur": {
-          "next_attacks": 1
-        },
-        "stack_max": "$s1_stack",
-        "attack_patch": {
-          "mult": "$s1_mult",
-          "r_mult": "$s1_radius",
-          "kb": "$s1_kb",
-          "burst": {
-            "n": 3,
-            "gap": 0.06,
-            "mult": "$s1_burst_mult",
-            "r": "$s1_burst_r",
-            "kb": 200,
-            "src": "技能·法术"
-          },
-          "swarm": {
-            "cond": "node:awaken_burst",
-            "n": 2,
-            "r_mult": 1.6,
-            "stun": 0.4
-          },
-          "anim": "skill_s1_attack"
-        },
-        "fx": [
-          {
-            "text": {
-              "s": "唤醒",
-              "col": [
-                0.957,
-                0.753,
-                0.306
-              ],
-              "size": 15
-            },
-            "at": "self",
-            "off": [
-              0,
-              -80
-            ]
-          }
-        ]
-      },
-      {
-        "dur": "$s2_dur",
-        "do": [
-          {
-            "verb": "cast_push",
-            "r": 140,
-            "kb": 420,
-            "col": [
-              0.45,
-              0.8,
-              1.0
-            ]
-          }
-        ]
-      },
-      {
-        "dur": "$s3_dur",
-        "do": [
-          {
-            "verb": "cast_push",
-            "r": 140,
-            "kb": 420,
-            "col": [
-              0.66,
-              0.52,
-              1.0
-            ],
-            "big": true
-          }
-        ]
-      }
-    ],
-    "talent": [
-      {
-        "trig": "on_kill",
-        "do": [
-          {
-            "verb": "kill_heal",
-            "pct": "$kill_heal",
-            "regen": "$kill_regen",
-            "cap": "$kill_cap",
-            "_doc": "反移情：击杀时为队长回复 1% 最大生命（每秒预算 5%）；伤害加成写在 blocks.dmg_bonus"
-          }
-        ]
-      }
-    ],
-    "progression": {
-      "tentacle_a": {
-        "verb": "buff_self",
-        "stat": "mizuki_tentacle_targets",
-        "op": "flat",
-        "value": 1,
-        "_doc": "强迫性重复：追击目标 +1"
-      },
-      "tentacle_b": {
-        "verb": "buff_self",
-        "stat": "mizuki_tentacle_targets",
-        "op": "flat",
-        "value": 1,
-        "_doc": "群体性癔症：追击目标 +1"
-      },
-      "awaken_burst": {
-        "trig": "passive",
-        "do": [],
-        "_doc": "唤醒·涌：写在 S1 attack_patch.swarm（cond node:awaken_burst）"
-      },
-      "bind_drag": {
-        "trig": "passive",
-        "do": [],
-        "_doc": "囚徒·缚：写在 attack.tentacle.drag（cond node:bind_drag）"
-      },
-      "elite1": {
-        "trig": "passive",
-        "do": [],
-        "_doc": "精一拖拽：写在 attack.tentacle.pull（cond elite >= 1）"
-      },
-      "elite2": {
-        "trig": "passive",
-        "do": [],
-        "_doc": "精二深蓝之籽：写在 attack.jelly（cond elite >= 2）"
-      },
-      "awaken_burst2": {
-        "trig": "on_skill_start",
-        "skill": 0,
-        "delay": "$awk2_delay",
-        "_doc": "惊跳反射·余悸（路线 awaken 节点 5）",
-        "do": [
-          {
-            "shape": "circle",
-            "center": "self",
-            "r": "$s1_burst_r*$awk2_r_k",
-            "atk_key": "umbrella_dmg",
-            "mult": "$awk2_mult",
-            "power": true,
-            "kb": "$kb",
-            "src": "触手",
-            "tags": [
-              "skill"
-            ]
-          }
-        ]
-      },
-      "bind_drag2": {
-        "trig": "tick",
-        "every": 1.0,
-        "cond": "skill_active:1",
-        "_doc": "病理性依恋·缠缚（路线 bind 节点 5）",
-        "do": [
-          {
-            "shape": "circle",
-            "center": "self",
-            "r": "$swing_radius",
-            "atk_key": "umbrella_dmg",
-            "mult": "$bind2_mult",
-            "power": true,
-            "src": "触手",
-            "tags": [
-              "skill",
-              "dot"
-            ],
-            "on_hit": [
-              {
-                "st": "slow",
-                "dur": "$bind2_slow"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    "response": [
-      {
-        "trig": "on_stance",
-        "to": "roam",
-        "hint": "伞开",
-        "do": [],
-        "_doc": "响应动作（docs/118 §4.4）：切到突击时触发；效果写在 attack.r_mults / tentacle.n_add（cond response_on && resp_idle < 3）：之后 3 秒伞击范围 ×1.5、触手追击 +1 名。拉怪不是位移，不受 §1.4 限制"
-      }
+     }
     ]
-  },
-  "extra_sprites": ["entry", 
-    "skill_s2",
-    "skill_s2_attack",
-    "skill_s2_loop",
-    "skill_s3",
-    "skill_s1_attack",
-    "skill_s2_end",
-    "skill_s3_loop",
-    "skill_s3_attack",
-    "skill_s3_end"
+   },
+   {
+    "dur": "$s2_dur",
+    "do": [
+     {
+      "verb": "cast_push",
+      "r": 140,
+      "kb": 420,
+      "col": [
+       0.45,
+       0.8,
+       1.0
+      ]
+     }
+    ],
+    "need_enemy": 160
+   },
+   {
+    "dur": "$s3_dur",
+    "do": [
+     {
+      "verb": "cast_push",
+      "r": 140,
+      "kb": 420,
+      "col": [
+       0.66,
+       0.52,
+       1.0
+      ],
+      "big": true
+     }
+    ],
+    "need_enemy": 160
+   }
   ],
-  "response": {
-    "name": "伞开",
-    "trigger": "指挥：突击",
-    "desc": "切换至突击后 3 秒内，水月的伞击范围扩大 50%，触手多追击 1 名敌人"
+  "talent": [
+   {
+    "trig": "on_kill",
+    "do": [
+     {
+      "verb": "kill_heal",
+      "pct": "$kill_heal",
+      "regen": "$kill_regen",
+      "cap": "$kill_cap",
+      "_doc": "反移情：击杀时为队长回复 1% 最大生命（每秒预算 5%）；伤害加成写在 blocks.dmg_bonus"
+     }
+    ]
+   }
+  ],
+  "progression": {
+   "tentacle_a": {
+    "verb": "buff_self",
+    "stat": "mizuki_tentacle_targets",
+    "op": "flat",
+    "value": 1,
+    "_doc": "强迫性重复：追击目标 +1"
+   },
+   "tentacle_b": {
+    "verb": "buff_self",
+    "stat": "mizuki_tentacle_targets",
+    "op": "flat",
+    "value": 1,
+    "_doc": "群体性癔症：追击目标 +1"
+   },
+   "awaken_burst": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "唤醒·涌：写在 S1 attack_patch.swarm（cond node:awaken_burst）"
+   },
+   "bind_drag": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "囚徒·缚：写在 attack.tentacle.drag（cond node:bind_drag）"
+   },
+   "elite1": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "精一拖拽：写在 attack.tentacle.pull（cond elite >= 1）"
+   },
+   "elite2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "精二深蓝之籽：写在 attack.jelly（cond elite >= 2）"
+   },
+   "awaken_burst2": {
+    "trig": "on_skill_start",
+    "skill": 0,
+    "delay": "$awk2_delay",
+    "_doc": "惊跳反射·余悸（路线 awaken 节点 5）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$s1_burst_r*$awk2_r_k",
+      "atk_key": "umbrella_dmg",
+      "mult": "$awk2_mult",
+      "power": true,
+      "kb": "$kb",
+      "src": "触手",
+      "tags": [
+       "skill"
+      ]
+     }
+    ]
+   },
+   "bind_drag2": {
+    "trig": "tick",
+    "every": 1.0,
+    "cond": "skill_active:1",
+    "_doc": "病理性依恋·缠缚（路线 bind 节点 5）",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$swing_radius",
+      "atk_key": "umbrella_dmg",
+      "mult": "$bind2_mult",
+      "power": true,
+      "src": "触手",
+      "tags": [
+       "skill",
+       "dot"
+      ],
+      "on_hit": [
+       {
+        "st": "slow",
+        "dur": "$bind2_slow"
+       }
+      ]
+     }
+    ]
+   }
   },
-  "hit_feel": "melee",
-  "list_first": true
+  "response": [
+   {
+    "trig": "on_stance",
+    "to": "roam",
+    "hint": "伞开",
+    "do": [],
+    "_doc": "响应动作（docs/118 §4.4）：切到突击时触发；效果写在 attack.r_mults / tentacle.n_add（cond response_on && resp_idle < 3）：之后 3 秒伞击范围 ×1.5、触手追击 +1 名。拉怪不是位移，不受 §1.4 限制"
+   }
+  ]
+ },
+ "extra_sprites": [
+  "entry",
+  "skill_s2",
+  "skill_s2_attack",
+  "skill_s2_loop",
+  "skill_s3",
+  "skill_s1_attack",
+  "skill_s2_end",
+  "skill_s3_loop",
+  "skill_s3_attack",
+  "skill_s3_end"
+ ],
+ "response": {
+  "name": "伞开",
+  "trigger": "指挥：突击",
+  "desc": "切换至突击后 3 秒内，水月的伞击范围扩大 50%，触手多追击 1 名敌人"
+ },
+ "hit_feel": "melee",
+ "list_first": true
 }

@@ -37,6 +37,7 @@ func _process(_d: float) -> void:
 		test_dash(o)
 		test_leader_dash(o)
 		test_triple(o)
+		test_gate(o)
 	print("%d checks, %d failed" % [n, fails])
 	print("TEXAS CONTRACT failures=%d" % fails)
 	get_tree().quit(1 if fails > 0 else 0)
@@ -168,6 +169,33 @@ func test_triple(o) -> void:
 	o._release()
 	ok(o.atk_n == 3 and o.pending.size() == 2 and absf(float(o.pending[0].t) - 0.125) < 0.0001 and absf(float(o.pending[1].t) - 0.25) < 0.0001, "疾刃三连：第 3 次出手排了两个追加斩（0.125 / 0.25 秒），没有接第二斩的 combo（排队 %d 个）" % o.pending.size())
 	e1.dead = true
+
+
+## 自动技能需要敌人（10-23）：剑雨（S1）技力满了，没有敌人不放、技力保留；有敌人才放
+func test_gate(o) -> void:
+	var g = game
+	for e in g.enemies: e.dead = true
+	g.enemies.clear()
+	g.enemies_sys.build_grid()
+	o.elite = 0
+	o.refresh_stats()
+	o.s_t = [0.0, 0.0, 0.0]
+	o.perm = [false, false, false]
+	o.pos = g.ppos
+	o.sp = [o.sp_need(0) + 1.0, 0.0, 0.0]
+	ok(o.charge_skills(DT) == -1, "剑雨：技力满、没有敌人 → 不放")
+	ok(o.sp[0] >= o.sp_need(0), "剑雨：没敌人时技力保留满格（%.1f / %.1f）" % [o.sp[0], o.sp_need(0)])
+	var e1: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2(100, 0))
+	e1.hp = 100000.0
+	e1.max_hp = e1.hp
+	e1.spd = 0.0
+	g.enemies_sys.build_grid()
+	ok(o.charge_skills(DT) == 0, "剑雨：射程内有敌人 → 放")
+	e1.pos = g.ppos + Vector2(400, 0)
+	g.enemies_sys.build_grid()
+	ok(o.charge_skills(DT) == -1, "剑雨：敌人在射程（130）外 → 不放")
+	e1.dead = true
+	o.sp = [0.0, 0.0, 0.0]
 
 
 func test_dash(o) -> void:
