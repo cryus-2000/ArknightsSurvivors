@@ -586,9 +586,22 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 			card.set_meta("compact", compact)
 			# 作用对象标签（影响编队里的哪些干员）；一行放不下会收成「+N」，悬停提示里列全
 			var chips := Affects.chips(g, o)
+			if o.kind == "recruit" and not o.get("swap", false):
+				var nl: int = g.progression.affinity.recruit_link_count(str(o.id))
+				if nl > 0:
+					chips = [["联动 %d" % nl, UI.GOLD]] + chips   # 和已持有藏品 / 在队干员的联动，详情在悬停提示
+					card.set_meta("links", g.progression.affinity.recruit_lines(str(o.id)))
 			card.set_meta("affects", chips)
 			card.set_meta("chips_cut", not UI.chip_fits(g.font, chips, card_w - (2.0 * PAD_X_PHONE if row_h > 0.0 else 32.0)))
 		(g.panel_col if ev else g.panel_box).add_child(card)
+	# 同一组卡统一版式（10-23 用户：三张招募卡并排时小人同高）：有一张要紧凑，全组都用紧凑，图标 / 脚底在同一高度
+	if not ev and not L.touch:
+		var cards: Array = g.panel_box.get_children().filter(func(c): return c is Button and c.has_meta("compact"))
+		if cards.any(func(c): return c.get_meta("compact")):
+			for c in cards:
+				if not c.get_meta("compact"):
+					c.set_meta("compact", true)
+					c.set_meta("fit", UI.fit(g.font, c.get_meta("full_desc", ""), card_w - 40.0, 108.0, [15, 14, 13, 12, 11] if Pad.touch_ui() else [13, 12, 11]))
 	g.panel.visible = true
 	g.panel_fg.queue_redraw()
 
@@ -600,8 +613,12 @@ func option_description(option: Dictionary) -> String:
 	# 构筑可读性（docs/119 §4.3 / §4.4，build_affinity）：招募卡写与已持有藏品的互动（入队即生效 / 培养后生效）；
 	# 藏品卡写当前受益干员、触发条件、与已持有相近藏品的关系。换人卡的在 progression.open_swap 里。开关关时为空
 	var extra := ""
+	if kind == "recruit":
+		# 10-23 用户「前面重复的介绍就不需要了」：卡头已写「招募 · 职业」，正文去掉开头的「X干员，」
+		var re := RegEx.create_from_string("^[^，,]{1,3}干员[，,]\\s*")
+		description = re.sub(description, "")
 	if kind == "recruit" and not option.get("swap", false):
-		extra = g.progression.affinity.recruit_lines(str(option.get("id", "")))
+		extra = ""   # 10-23 用户：招募卡正文不写联动，改为标签行「联动 N」+ 悬停提示（draw_panel_tip）
 	elif kind == "relic":
 		extra = g.progression.affinity.relic_lines(str(option.get("id", "")))
 	if extra != "":
@@ -887,7 +904,8 @@ func draw_panel_tip() -> void:
 			continue
 		var fd: Dictionary = card.get_meta("fit", {})
 		var cut: bool = card.get_meta("chips_cut", false)
-		if ((fd.is_empty() or fd.get("fit", true)) and not cut) or not g.panel_ui.card_hot(card, card.get_index()):
+		var links: String = card.get_meta("links", "")
+		if ((fd.is_empty() or fd.get("fit", true)) and not cut and links == "") or not g.panel_ui.card_hot(card, card.get_index()):
 			continue
 		var gr: Rect2 = card.get_global_rect()
 		var it: Dictionary = card.get_meta("item", {})
@@ -896,5 +914,9 @@ func draw_panel_tip() -> void:
 		var desc: String = card.get_meta("full_desc", fallback)
 		if cut:
 			desc += "\n影响：" + "、".join(PackedStringArray(card.get_meta("affects", []).map(func(c): return c[0])))
-		g.hud_view.draw_tooltip(vs, Rect2(gr.position - g.panel_tip.get_global_rect().position, gr.size), title, "完整说明", desc, "", UI.CYAN, g.panel_tip)
+		var sub := "完整说明"
+		if links != "":
+			desc = links   # 10-23 用户：招募卡提示框只列生效的藏品 / 联动，不重复干员介绍
+			sub = "联动"
+		g.hud_view.draw_tooltip(vs, Rect2(gr.position - g.panel_tip.get_global_rect().position, gr.size), title, sub, desc, "", UI.CYAN, g.panel_tip)
 		return
