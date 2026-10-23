@@ -23,6 +23,7 @@ var stick_origin := Vector2.ZERO
 var stick_pos := Vector2.ZERO
 var vec := Vector2.ZERO
 var btn_rects: Array = []   # [Rect2, action]
+var card_rects: Array = []  # [编队卡 Rect2, 干员]：点卡切换队长（hud_squad 每帧填，10-23）
 var flash := {}             # action -> 剩余高亮时间
 ## 手动技能键（主控有已解锁的手动技能时，冲刺键上方）：按下记触点，松手释放。
 ## 带方向的技能（JSON "aim": true）按住时拖出方向 skill_aim，场上画落点圈（hud.draw_manual_aim）；拖动不到 AIM_DEAD = 点一下 = 自动瞄准
@@ -81,6 +82,13 @@ func handle(event: InputEvent) -> bool:
 				skill_origin = p
 				skill_aim = Vector2.ZERO
 				return true
+			# 编队卡（切换队长）：只在对局里、点到非队长卡时；点到队长卡 / 冷却中 / 倒地的吞掉不穿透到摇杆
+			if g.state == g.S.PLAY:
+				for cd in card_rects:
+					if (cd[0] as Rect2).has_point(p):
+						if g.squad.swap_leader(cd[1]):
+							Sfx.play("ui_ok", -8.0)
+						return true
 			# 按钮优先；点击区互相挨着时取中心最近的那个
 			var hit_b: Array = []
 			var hit_d := INF
