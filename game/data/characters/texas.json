@@ -63,11 +63,11 @@
   "slash_r": 112,
   "slash_half": 1.0,
   "slash_kb": 30,
-  "slash_mult": 0.6,
-  "slash2_mult": 0.6,
+  "slash_mult": 0.75,
+  "slash2_mult": 0.75,
   "slash2_delay": 0.2,
   "wave_every": 3,
-  "wave_mult": 0.7,
+  "wave_mult": 0.85,
   "wave_dist": 170,
   "wave_w": 44,
   "wave_speed": 520,
@@ -494,10 +494,10 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「可靠伙伴」；解锁天赋「战术快递」：队长每次冲刺，她同向冲刺一次；穿过敌人时为全队回技力，双连斩每次出手再回一点；普攻「钉剑」：冲刺穿过的第一名敌人停顿 {$pin_dur} 秒（精英减半，Boss 除外）",
+   "desc": "解锁二技能「可靠伙伴」；解锁天赋「战术快递」：队长每次冲刺，她同向冲刺一次；穿过敌人时为全队回技力，双连斩每次出手再回一点；普通攻击强化「钉剑」：短剑气命中的第一名敌人身上插一柄源石剑，停顿 {$pin_dur} 秒（精英减半，Boss 除外）",
    "attack": {
     "name": "钉剑",
-    "desc": "每次冲刺穿过的第一名敌人身上插一柄源石剑，停顿 {$pin_dur} 秒（精英减半，Boss 除外）"
+    "desc": "短剑气命中的第一名敌人身上插一柄源石剑，停顿 {$pin_dur} 秒（精英减半，Boss 除外）"
    }
   },
   {
@@ -548,10 +548,10 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「剑雨滂沱」；普通攻击强化「余像」：每次冲刺的路径上留下 {$trail_life} 秒剑气残像，踩进的敌人受 {$trail_mult*100}% 伤害并减速；残像消散时沿路径每 {$rain_step} 落下一柄剑（{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒，精英减半，Boss 除外）",
+   "desc": "解锁三技能「剑雨滂沱」；普通攻击强化「余像」：短剑气飞过的路径上留下 {$trail_life} 秒剑气残像，踩进的敌人受 {$trail_mult*100}% 伤害并减速；残像消散时沿路径每 {$rain_step} 落下一柄剑（{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒，精英减半，Boss 除外）",
    "attack": {
     "name": "余像·剑雨",
-    "desc": "冲刺路径上留下 {$trail_life} 秒剑气残像（{$trail_mult*100}% 伤害并减速）；残像消散时沿路径每 {$rain_step} 落下一柄源石剑：{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒（精英减半，Boss 除外）。「剑雨滂沱」期间每柄 {$rain_mult_s3*100}%"
+    "desc": "短剑气飞过的路径上留下 {$trail_life} 秒剑气残像（{$trail_mult*100}% 伤害并减速）；残像消散时沿路径每 {$rain_step} 落下一柄源石剑：{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒（精英减半，Boss 除外）"
    }
   }
  ],
@@ -748,7 +748,46 @@
       "tags": [
        "basic",
        "projectile"
-      ]
+      ],
+      "on_hit": [
+       {
+        "st": "stun",
+        "dur": "$pin_dur",
+        "first_only": true,
+        "fx": [
+         {
+          "strip": "fx_texas_pin_sword",
+          "anchor": [
+           6,
+           22
+          ],
+          "off": [
+           0,
+           -5
+          ],
+          "scale": 0.767,
+          "stay": "$pin_dur"
+         },
+         {
+          "strip": "fx_texas_pin_shatter",
+          "off": [
+           0,
+           -12
+          ],
+          "delay": "$pin_dur",
+          "scale": 0.667
+         },
+         {
+          "strip": "fx_texas_rain_mark",
+          "if_tex": "!fx_texas_pin_sword",
+          "layer": "floor",
+          "scale": 0.8
+         }
+        ],
+        "cond": "elite >= 1"
+       }
+      ],
+      "path_event": true
      }
     ]
    },
@@ -1047,45 +1086,9 @@
     ]
    },
    "elite1": {
-    "verb": "dash_mod",
-    "_doc": "钉剑（docs/91 §16）：每次冲刺（普攻 / 战术快递 / 剑雨滂沱 / 回马剑）扫到的第一名敌人停顿，身上插一柄源石剑，消失时碎成红光；10-22 钉剑 / 碎裂按剑雨统一缩到约 2/3（1.15 → 0.767、碎裂 1 → 0.667，偏移同比例）",
-    "on_hit": [
-     {
-      "st": "stun",
-      "dur": "$pin_dur",
-      "first_only": true,
-      "fx": [
-       {
-        "strip": "fx_texas_pin_sword",
-        "anchor": [
-         6,
-         22
-        ],
-        "off": [
-         0,
-         -5
-        ],
-        "scale": 0.767,
-        "stay": "$pin_dur"
-       },
-       {
-        "strip": "fx_texas_pin_shatter",
-        "off": [
-         0,
-         -12
-        ],
-        "delay": "$pin_dur",
-        "scale": 0.667
-       },
-       {
-        "strip": "fx_texas_rain_mark",
-        "if_tex": "!fx_texas_pin_sword",
-        "layer": "floor",
-        "scale": 0.8
-       }
-      ]
-     }
-    ]
+    "trig": "passive",
+    "do": [],
+    "_doc": "钉剑（docs/91 §16，10-23 改挂短剑气）：标记节点，效果在短剑气 wave 的 on_hit（cond elite >= 1，first_only）"
    },
    "elite2": {
     "trig": "on_dash_end",
@@ -1190,7 +1193,9 @@
       ],
       "line_w": 0.0
      }
-    ]
+    ],
+    "src": "剑气",
+    "_doc2": "10-23 改挂短剑气：src 剑气（wave path_event 把飞行路径当一次冲刺结束）；冲刺不再留残像"
    },
    "back2": {
     "trig": "passive",

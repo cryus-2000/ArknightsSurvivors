@@ -950,10 +950,10 @@ func test_blocks_elite1() -> void:
 		["hoshiguma", "every_n 的 anim 不是帧条键", func(d): d.blocks.progression.elite2[0]["anim"] = "throw_x"],
 		["hoshiguma", "every_n 的 anim 没配 replace", func(d): d.blocks.progression.elite2[0].erase("replace")],
 		["hoshiguma", "延迟起播写在贴身层", func(d): d.blocks.progression.elite1.do[0].fx[0]["delay"] = 0.2],
-		["texas", "first_only 不是布尔", func(d): d.blocks.progression.elite1.on_hit[0]["first_only"] = "yes"],
+		["texas", "first_only 不是布尔", func(d): d.blocks.trait[1].do[0].on_hit[0]["first_only"] = "yes"],   # 钉剑 10-23 起挂在短剑气 wave 的 on_hit 上
 		["texas", "路径落点缺 step", func(d): d.blocks.progression.elite2.do[0].on_expire[0].erase("step")],
 		["texas", "fx_rain along 写错", func(d): d.blocks.progression.elite2.do[0].on_expire[2]["along"] = "line"],
-		["texas", "stay 超范围", func(d): d.blocks.progression.elite1.on_hit[0].fx[0]["stay"] = 9.0],
+		["texas", "stay 超范围", func(d): d.blocks.trait[1].do[0].on_hit[0].fx[0]["stay"] = 9.0],
 		["texas", "on_expire 里放常驻积木", func(d): d.blocks.progression.elite2.do[0].on_expire.append({"verb": "dash_mod", "len_add": 0.1})],
 		["angelina", "only 取值写错", func(d): d.blocks.attack.then[1].do[1]["only"] = ["stunned"]],
 		["angelina", "失重井 cap 超范围", func(d): d.blocks.attack.then[1]["cap"] = 40],

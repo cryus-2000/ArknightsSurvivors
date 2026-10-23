@@ -186,6 +186,31 @@ static func _tx_densest(o, rr: float) -> Vector2:
 	return best
 
 
+## 路径事件（10-23）：把一条有起点终点的路径当作「src 这次冲刺结束了、扫到 0 名」，触发匹配的 trig.on_dash_end（德克萨斯精二余像挂在短剑气上：
+## 残像沿剑气路径、消散落剑；min_hits > 0 的块不触发）。ctx 同 _tx_dash_end
+static func tx_emit_path(o, src: String, from: Vector2, to: Vector2, w: float) -> void:
+	var tx: Dictionary = o.tx
+	var dir: Vector2 = (to - from).normalized()
+	var ctx := {"from": from, "to": to, "dir": dir, "n": 0, "src": src, "w": w}
+	tx["last_to"] = to
+	tx["last_dir"] = dir
+	for t in o._trigs():
+		if str(t.get("_tag", "")) != "trig.on_dash_end" or not cond_true(o, t.get("cond", _ED)):
+			continue
+		if t.has("src") and str(t.src) != src:
+			continue
+		if int(t.get("min_hits", 0)) > 0:
+			continue
+		var dl: float = float(t.get("delay", 0.0))
+		if dl > 0.0:
+			var q: Array = tx.get("queue", [])
+			q.append({"t": dl, "t0": dl, "do": t.get("do", []), "ctx": ctx})
+			tx["queue"] = q
+		else:
+			tx["ctx"] = ctx
+			o._exec_list(t.get("do", []), ctx.to)
+
+
 ## 每帧（data_operator.update 在常驻积木之后调）：主控冲刺 / 技能结束的触发、延迟队列、残像、冲刺推进与扫线。
 ## 返回 true = 正在冲刺（这一帧不起手普攻 / 技能）
 static func tx_update(o, dt: float) -> bool:
