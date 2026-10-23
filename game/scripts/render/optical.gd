@@ -240,8 +240,8 @@ func _set_lo(on: bool) -> void:
 	if not on and g.has_method("_apply_zoom"):
 		g._apply_zoom()   # 关掉时镜头缩放回到设置里的「战斗画面缩放」
 	g.optical_lo = on
-	# 10-23 用户：高清干员层「果然还是怪」、干员不再按站位前后遮挡 → 缺省干员也进低分辨率层（与怪物同一像素格、同一次 y 排序）
-	g.optical_ops_hi = on and Bal.v("render/optical_ops_hi", 1.0) > 0.0
+	# 10-23 干员 1 倍帧条合入（claude/op-1x）后缺省 0：干员进低分辨率层，与怪物同一像素格、同一次脚底 y 排序（恢复前后遮挡）；1 = 旧的高清干员层
+	g.optical_ops_hi = on and Bal.v("render/optical_ops_hi", 0.0) > 0.0
 	lo_layer.visible = on
 	op_node.visible = g.optical_ops_hi
 	lo_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS if on else SubViewport.UPDATE_DISABLED
