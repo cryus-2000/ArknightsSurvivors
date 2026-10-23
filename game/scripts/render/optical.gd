@@ -82,8 +82,10 @@ func _set_lo(on: bool) -> void:
 	if not on and g.has_method("_apply_zoom"):
 		g._apply_zoom()   # 关掉时镜头缩放回到设置里的「战斗画面缩放」
 	g.optical_lo = on
+	# 10-23 用户：高清干员层「果然还是怪」、干员不再按站位前后遮挡 → 缺省干员也进低分辨率层（与怪物同一像素格、同一次 y 排序）
+	g.optical_ops_hi = on and Bal.v("render/optical_ops_hi", 1.0) > 0.0
 	lo_layer.visible = on
-	op_node.visible = on
+	op_node.visible = g.optical_ops_hi
 	lo_vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS if on else SubViewport.UPDATE_DISABLED
 	g.get_viewport().set_canvas_cull_mask_bit(VIS_LO - 1, not on)
 	var lay: int = VIS_LO if on else 1

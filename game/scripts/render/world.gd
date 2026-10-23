@@ -775,8 +775,8 @@ func _sorted_fast(evr: Rect2) -> bool:
 	objs.append(null)
 	kind.append(2)
 	for o in g.squad.ops:
-		if g.optical_lo:
-			break   # 光学观感低分辨率层：干员本体改由 render/optical.gd 的高清干员层画（全分辨率，统一压在怪物上面）
+		if g.optical_ops_hi:
+			break   # 光学观感高清干员层（render/optical_ops_hi）：干员本体改由 render/optical.gd 画（全分辨率，统一压在怪物上面）
 		if o.pos != Vector2.INF:
 			ka.append(o.pos.y + 4.0)
 			objs.append(o)
