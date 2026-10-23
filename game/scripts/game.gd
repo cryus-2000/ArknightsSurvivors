@@ -327,6 +327,10 @@ var foot_anchor := {}       # 美术交付的 Boss 图以脚底为锚点 # 2.5D�
 var fg: Node2D               # 2.5D：前景视差层
 var post: CanvasLayer          # 全屏后期（辉光 / 水下滤镜 / 亮度 / 受伤红边）
 var dof_layer: CanvasLayer   # 2.5D：景深 / 远景水雾
+var optical                  # 光学观感原型（render/optical.gd，balance render/optical，缺省关）
+var glow_next: Array = []    # 光学观感：这一帧世界绘制排进来的发光点 [位置, 边长, 颜色]（render/world._glow_pts）
+var glow_cur: Array = []     # 上一帧排好的，发光层这一帧画
+var optical_on := false      # 光学观感这一帧开着（optical.gd 写）：world / look 据此开朝灯亮线、敌人发光点、荧光颗粒（纯画面）
 var lvup_delay := 0.0     # 升级演出：延迟弹出选择面板
 var lvup_show := 0.0      # 角色头顶 LEVEL UP 字样
 var hud_lv_flash := 0.0   # 左上角等级闪光
@@ -857,6 +861,9 @@ func _ready() -> void:
 	post = PostFx.new()
 	post.world = true   # 观感曲线只叠在对局画面（render/look.gd）
 	add_child(post)
+	optical = preload("res://scripts/render/optical.gd").new()
+	optical.g = self
+	add_child(optical)
 
 	var ul := CanvasLayer.new()
 	ul.layer = 10

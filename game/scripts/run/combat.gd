@@ -1196,6 +1196,8 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 			g.vfx.fx_sprite(death_name, foot + Vector2(0, -(dtx.get_height() - 3) * dsc * 0.5), dsc, 0.0)
 	elif not g.vfx.fx_sprite("fx_death_dissolve", e.pos, g.PX * max(1.0, e.r / 12.0)):
 		g.vfx.anim("fx_death", e.pos, 0.3, g.PX * max(1.0, e.r / 12.0))
+	if g.optical_on and g.optical.particles != null:
+		g.optical.particles.kill_burst(e)   # 光学观感原型：击杀碎屑（纯画面，GPU 随机，不碰模拟随机数）
 	if e.elite:
 		g.elites_killed += 1
 	if e.elite or e.boss:

@@ -53,6 +53,7 @@ var perf_ab := 0               # --perfab=N：每 N 帧轮换 g.perf_alt，分 /
 var perf_dump: FileAccess = null   # --perfdump=<路径>：逐帧 CSV（帧时间、各列表长度、--prof 分段）
 const PERF_DUMP_KEYS := ["engine", "draw_world", "draw_hud", "draw_fxadd", "draw_fg", "autotest", "pre", "spawn", "grid", "enemies", "squad", "bullets", "ebullets",
 	"relic", "misc", "fx", "cleanup", "visuals", "tail", "dw_sorted_entities", "dw_gems", "dw_ground", "dw_mire", "dw_zone", "dw_fx", "dw_bullets", "dw_shadows", "dw_warns_auras", "dw_ebullets_lobs_shocks", "dw_tells_outlines", "dw_snow_tail", "dw_shield_drones"]
+var opticalab := -1           # --opticalab=N（docs/50 §25）：每 N 帧轮换光学观感原型开 / 关；-1 = 还没读参数
 var vfxab := -1               # --vfxab=N（docs/54）：每 N 帧轮换 vfx.p2；-1 = 还没读参数
 var vfxdemo := false           # --vfxdemo：按固定时刻强制灯标点燃 / 升级 / 灯火暗淡 / 精英 / 拾取 / 商人（录对照片段用）
 var _vd_step := 0
@@ -359,6 +360,14 @@ func step() -> void:
 			if a.begins_with("--vfxab="):
 				vfxab = int(a.substr(8))
 		vfxdemo = Cfg.dev_args().has("--vfxdemo")
+		opticalab = 0
+		for a in Cfg.dev_args():
+			if a.begins_with("--opticalab="):
+				opticalab = int(a.substr(12))
+			if a == "--optical":
+				g.optical.force = 1   # 截图 / 录像：强制开光学观感（不改 balance）
+			if a == "--nooptical":
+				g.optical.force = 0
 	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--perf"):
 		_perf_sample()
 	if g.mode == g.Mode.BALANCE and g.t >= sfx_win_t + 30.0 and Cfg.dev_args().has("--sfxstat"):
@@ -367,6 +376,8 @@ func step() -> void:
 	_cmd_step()
 	_opt_ab()   # 在 --perf 采样之后轮换：采样记的是上一帧所走的实现
 	Dc.ab_step(g.at_frames)   # --clutterab=N：每 N 帧在降噪 0 档与当前档之间轮换（--perf 分 /d0 /dN 两桶）
+	if opticalab > 0 and g.at_frames % opticalab == 0 and g.optical != null:
+		g.optical.force = 0 if g.optical.force == 1 else 1   # --opticalab=N：同局轮换光学观感开 / 关（--perf 分 /opt /base 两桶）
 	if vfxab > 0 and g.at_frames % vfxab == 0:
 		g.vfx.p2 = not g.vfx.p2   # --vfxab=N：每 N 帧轮换画面特效二轮开 / 关（docs/54 同局对照测量；--perf 分 /on /off 两桶）
 	if vfxdemo:
@@ -1120,6 +1131,8 @@ func _perf_sample() -> void:
 		var w := "0-8" if g.t < 480.0 else ("8-10" if g.t < 600.0 else "10+")
 		if perf_min:
 			w = "m%02d" % int(g.t / 60.0) + ("F" if g.final_boss != null and not g.final_boss.dead else "")   # --perfmin：按游戏分钟分段，F = 最终 Boss 在场
+		if opticalab > 0:
+			w += "/opt" if g.optical_on else "/base"   # --opticalab：上一帧是否在光学观感下画的（轮换在采样之后）
 		if vfxab > 0:
 			w += "/on" if g.vfx.p2 else "/off"   # --vfxab：上一帧是在哪个模式下画的（轮换在采样之后）
 		if Dc.ab_every > 0:

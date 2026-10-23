@@ -138,6 +138,8 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}) -> vo
 		fl = maxf(fl, Bal.v("fx/flash_break", 0.14))
 	e.flash = maxf(float(e.get("flash", 0.0)), fl)
 	e.squash = maxf(float(e.get("squash", 0.0)), sq)
+	if g.optical_on and g.optical.particles != null and not dot:
+		g.optical.particles.hit_spark(e.pos + Vector2(0, -e.r * 0.6), Color(1.0, 0.95, 0.85) if not (crit or weak) else Color(1.0, 0.8, 0.35))   # 光学观感原型：命中迸溅（限频，纯画面）
 	# 受击后坐（docs/53，纯画面）：本体沿「远离主控」的方向顶开 fx/recoil_px，fx/recoil_t 秒内回位；技能 / 暴击 / 弱点 ×fx/recoil_skill_k。
 	# 只写 rc_at / rc_dir / rc_k 三个字段，位移在 render/world.gd 的 _eoff 里按 g.t 算（缓存路径和原路径同一个表达式，不进签名）。
 	# 持续伤害不顶；Boss 不顶（韧性的观感，Boss 的受击反馈走破绽）

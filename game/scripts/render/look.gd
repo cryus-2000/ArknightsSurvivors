@@ -275,6 +275,7 @@ static func update_actor_mat(g) -> void:
 	var L: PointLight2D = g.lamp_light
 	var on: bool = L != null and L.visible and L.enabled
 	m.set_shader_parameter("lamp_on", 1.0 if on else 0.0)
+	m.set_shader_parameter("rim", maxf(Bal.v("render/rim", 0.0), 1.0 if g.get("optical_on") == true else 0.0))   # 光学观感开着时朝灯亮线一起开
 	if not on:
 		return
 	m.set_shader_parameter("lamp_tex", L.texture)
