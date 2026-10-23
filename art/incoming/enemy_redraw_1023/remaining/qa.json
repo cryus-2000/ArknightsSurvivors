@@ -1,0 +1,964 @@
+{
+  "technical_status": "pass",
+  "failures": [],
+  "reports": [
+    {
+      "id": "bone",
+      "name": "骨海漂流体",
+      "visible_height_1x": 20,
+      "screen_height": 40,
+      "canvas_1x": [
+        32,
+        32
+      ],
+      "body_colors": 10,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true,
+        "body_unchanged": true
+      }
+    },
+    {
+      "id": "runner",
+      "name": "壳海狂奔者",
+      "visible_height_1x": 19,
+      "screen_height": 38,
+      "canvas_1x": [
+        32,
+        32
+      ],
+      "body_colors": 10,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "brood",
+      "name": "注亡拟嗣",
+      "visible_height_1x": 18,
+      "screen_height": 36,
+      "canvas_1x": [
+        32,
+        32
+      ],
+      "body_colors": 12,
+      "emit_pixels": 34,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "slider",
+      "name": "底海滑动者",
+      "visible_height_1x": 23,
+      "screen_height": 46,
+      "canvas_1x": [
+        44,
+        40
+      ],
+      "body_colors": 16,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "stone",
+      "name": "固海凿石者",
+      "visible_height_1x": 25,
+      "screen_height": 50,
+      "canvas_1x": [
+        40,
+        40
+      ],
+      "body_colors": 14,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true,
+        "body_unchanged": true
+      }
+    },
+    {
+      "id": "spitter",
+      "name": "脊海喷吐者",
+      "visible_height_1x": 25,
+      "screen_height": 50,
+      "canvas_1x": [
+        40,
+        40
+      ],
+      "body_colors": 15,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "floater",
+      "name": "浮海飘航者",
+      "visible_height_1x": 24,
+      "screen_height": 48,
+      "canvas_1x": [
+        56,
+        40
+      ],
+      "body_colors": 16,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "offspring",
+      "name": "伊祖米克的子代",
+      "visible_height_1x": 23,
+      "screen_height": 46,
+      "canvas_1x": [
+        40,
+        40
+      ],
+      "body_colors": 14,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "reaper",
+      "name": "钵海收割者",
+      "visible_height_1x": 30,
+      "screen_height": 60,
+      "canvas_1x": [
+        48,
+        48
+      ],
+      "body_colors": 15,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "founder",
+      "name": "深溟奠基者",
+      "visible_height_1x": 32,
+      "screen_height": 64,
+      "canvas_1x": [
+        48,
+        48
+      ],
+      "body_colors": 20,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "tracer",
+      "name": "深溟引痕者",
+      "visible_height_1x": 32,
+      "screen_height": 64,
+      "canvas_1x": [
+        48,
+        48
+      ],
+      "body_colors": 18,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "nest",
+      "name": "深溟巢涌者",
+      "visible_height_1x": 31,
+      "screen_height": 62,
+      "canvas_1x": [
+        48,
+        48
+      ],
+      "body_colors": 19,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "fractal",
+      "name": "塑路者分形",
+      "visible_height_1x": 18,
+      "screen_height": 36,
+      "canvas_1x": [
+        32,
+        32
+      ],
+      "body_colors": 12,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "tear",
+      "name": "伊莎玛拉之泪",
+      "visible_height_1x": 16,
+      "screen_height": 32,
+      "canvas_1x": [
+        32,
+        32
+      ],
+      "body_colors": 11,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "pocket",
+      "name": "囊海爬行者",
+      "visible_height_1x": 36,
+      "screen_height": 72,
+      "canvas_1x": [
+        48,
+        48
+      ],
+      "body_colors": 19,
+      "emit_pixels": 10,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "skimmer",
+      "name": "掠海漂移体",
+      "visible_height_1x": 30,
+      "screen_height": 60,
+      "canvas_1x": [
+        56,
+        48
+      ],
+      "body_colors": 20,
+      "emit_pixels": 10,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "mother",
+      "name": "投嗣育母",
+      "visible_height_1x": 46,
+      "screen_height": 92,
+      "canvas_1x": [
+        64,
+        64
+      ],
+      "body_colors": 19,
+      "emit_pixels": 10,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "mimic_disguised",
+      "name": "箱形恐鱼",
+      "visible_height_1x": 11,
+      "screen_height": 22,
+      "canvas_1x": [
+        32,
+        32
+      ],
+      "body_colors": 8,
+      "emit_pixels": 0,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true,
+        "exact_chest": true
+      }
+    },
+    {
+      "id": "mimic",
+      "name": "箱形恐鱼",
+      "visible_height_1x": 24,
+      "screen_height": 48,
+      "canvas_1x": [
+        36,
+        32
+      ],
+      "body_colors": 13,
+      "emit_pixels": 10,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "knight",
+      "name": "最后的骑士",
+      "visible_height_1x": 64,
+      "screen_height": 128,
+      "canvas_1x": [
+        96,
+        96
+      ],
+      "body_colors": 22,
+      "emit_pixels": 10,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "iberia",
+      "name": "圣徒伊比利亚",
+      "visible_height_1x": 40,
+      "screen_height": 80,
+      "canvas_1x": [
+        64,
+        64
+      ],
+      "body_colors": 23,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "carmen",
+      "name": "圣徒卡门",
+      "visible_height_1x": 40,
+      "screen_height": 80,
+      "canvas_1x": [
+        64,
+        64
+      ],
+      "body_colors": 20,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true,
+        "body_unchanged": true,
+        "rear_hat_position_unchanged": true
+      }
+    },
+    {
+      "id": "bishop",
+      "name": "接潮主教",
+      "visible_height_1x": 40,
+      "screen_height": 80,
+      "canvas_1x": [
+        64,
+        64
+      ],
+      "body_colors": 17,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "archon",
+      "name": "接潮蔑死体",
+      "visible_height_1x": 48,
+      "screen_height": 96,
+      "canvas_1x": [
+        64,
+        64
+      ],
+      "body_colors": 20,
+      "emit_pixels": 10,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "immortal",
+      "name": "接潮斥亡体",
+      "visible_height_1x": 48,
+      "screen_height": 96,
+      "canvas_1x": [
+        64,
+        64
+      ],
+      "body_colors": 21,
+      "emit_pixels": 10,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "ishar",
+      "name": "伊莎玛拉，腐化之心",
+      "visible_height_1x": 48,
+      "screen_height": 96,
+      "canvas_1x": [
+        64,
+        64
+      ],
+      "body_colors": 24,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "knight_boss",
+      "name": "最后的骑士",
+      "visible_height_1x": 72,
+      "screen_height": 144,
+      "canvas_1x": [
+        116,
+        96
+      ],
+      "body_colors": 26,
+      "emit_pixels": 10,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "path",
+      "name": "塑路者",
+      "visible_height_1x": 64,
+      "screen_height": 128,
+      "canvas_1x": [
+        96,
+        96
+      ],
+      "body_colors": 18,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "izumik",
+      "name": "伊祖米克，生态泉源",
+      "visible_height_1x": 84,
+      "screen_height": 168,
+      "canvas_1x": [
+        128,
+        128
+      ],
+      "body_colors": 26,
+      "emit_pixels": 5,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "paranoia",
+      "name": "\"偏执泡影\"",
+      "visible_height_1x": 80,
+      "screen_height": 160,
+      "canvas_1x": [
+        128,
+        128
+      ],
+      "body_colors": 21,
+      "emit_pixels": 10,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "paranoia_phase2",
+      "name": "\"偏执泡影\"",
+      "visible_height_1x": 72,
+      "screen_height": 144,
+      "canvas_1x": [
+        128,
+        128
+      ],
+      "body_colors": 21,
+      "emit_pixels": 10,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    },
+    {
+      "id": "ishar_phase2",
+      "name": "伊莎玛拉，腐化之心",
+      "visible_height_1x": 88,
+      "screen_height": 176,
+      "canvas_1x": [
+        128,
+        128
+      ],
+      "body_colors": 29,
+      "emit_pixels": 10,
+      "checks": {
+        "canvas": true,
+        "height": true,
+        "origin": true,
+        "border": true,
+        "palette": true,
+        "emission_inside_body": true,
+        "emission_colour": true,
+        "emission_present": true,
+        "reference_hash": true,
+        "generated_source_hash": true,
+        "prompt_hash": true,
+        "no_alpha_islands": true,
+        "binary_alpha": true,
+        "exact_x2": true,
+        "_emitbinary_alpha": true,
+        "_emitexact_x2": true
+      }
+    }
+  ],
+  "visual_status": "candidate for user review",
+  "motion_status": "not started",
+  "engine_status": "not integrated"
+}

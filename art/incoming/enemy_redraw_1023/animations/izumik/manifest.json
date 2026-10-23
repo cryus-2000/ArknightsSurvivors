@@ -1,0 +1,801 @@
+{
+  "id": "izumik",
+  "name": "伊祖米克，生态泉源",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    128,
+    128
+  ],
+  "origin": [
+    64,
+    116
+  ],
+  "source_crop_1x": [
+    0,
+    8,
+    128,
+    136
+  ],
+  "scale_fixed_across_actions": 0.09978843037526304,
+  "idle_height_target": 84,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B",
+    "#59485F",
+    "#8B7188",
+    "#B99DA8",
+    "#354853",
+    "#55737C",
+    "#405B58",
+    "#758980",
+    "#423941",
+    "#775C52",
+    "#9C7876",
+    "#C1A29B",
+    "#222D40",
+    "#52627D",
+    "#ADB8BD",
+    "#E1DACD",
+    "#5E6469"
+  ],
+  "color_cap": 32,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 6,
+      "duration_seconds": 4,
+      "sample_times": [
+        0.0,
+        0.6666666666666666,
+        1.3333333333333333,
+        2.0,
+        2.6666666666666665,
+        3.333333333333333
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03",
+        "idle_04",
+        "idle_05"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 6,
+      "duration_seconds": 4,
+      "sample_times": [
+        0.0,
+        0.6666666666666666,
+        1.3333333333333333,
+        2.0,
+        2.6666666666666665,
+        3.333333333333333
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03",
+        "move_04",
+        "move_05"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack",
+      "frames": 8,
+      "duration_seconds": 2.6666667461395264,
+      "sample_times": [
+        0.0,
+        0.38095239230564665,
+        0.9333333373069763,
+        1.14285717691694,
+        1.5238095692225866,
+        1.9047619615282332,
+        2.28571435383388,
+        2.6656667461395265
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.9333333373069763
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05",
+        "attack_06",
+        "attack_07"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 2.1666667461395264,
+      "sample_times": [
+        0.0,
+        0.3095238208770752,
+        0.6190476417541504,
+        0.9285714626312256,
+        1.2380952835083008,
+        1.547619104385376,
+        1.8571429252624512,
+        2.1656667461395265
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05",
+        "death_06",
+        "death_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.3095238208770752,
+        0.6190476417541504,
+        0.9285714626312256,
+        1.2380952835083008,
+        1.547619104385376,
+        1.8571429252624512,
+        2.1656667461395265
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "root_begin",
+      "source_animation": "Skill_1_Begin",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 0.3333333432674408,
+      "sample_times": [
+        0.0,
+        0.04761904903820583,
+        0.09523809807641166,
+        0.14285714711461747,
+        0.19047619615282332,
+        0.23809524519102915,
+        0.28571429422923494,
+        0.3323333432674408
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "root_begin_00",
+        "root_begin_01",
+        "root_begin_02",
+        "root_begin_03",
+        "root_begin_04",
+        "root_begin_05",
+        "root_begin_06",
+        "root_begin_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.04761904903820583,
+        0.09523809807641166,
+        0.14285714711461747,
+        0.19047619615282332,
+        0.23809524519102915,
+        0.28571429422923494,
+        0.3323333432674408
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "root_loop",
+      "source_animation": "Skill_1_Loop",
+      "construction": "original Spine animation",
+      "frames": 6,
+      "duration_seconds": 2.1666667461395264,
+      "sample_times": [
+        0.0,
+        0.3611111243565877,
+        0.7222222487131754,
+        1.0833333730697632,
+        1.4444444974263508,
+        1.8055556217829387
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "root_loop_00",
+        "root_loop_01",
+        "root_loop_02",
+        "root_loop_03",
+        "root_loop_04",
+        "root_loop_05"
+      ],
+      "pose_times": [
+        0.0,
+        0.3611111243565877,
+        0.7222222487131754,
+        1.0833333730697632,
+        1.4444444974263508,
+        1.8055556217829387
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "root_end",
+      "source_animation": "Skill_1_End",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 0.3333333432674408,
+      "sample_times": [
+        0.0,
+        0.04761904903820583,
+        0.09523809807641166,
+        0.14285714711461747,
+        0.19047619615282332,
+        0.23809524519102915,
+        0.28571429422923494,
+        0.3323333432674408
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "root_end_00",
+        "root_end_01",
+        "root_end_02",
+        "root_end_03",
+        "root_end_04",
+        "root_end_05",
+        "root_end_06",
+        "root_end_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.04761904903820583,
+        0.09523809807641166,
+        0.14285714711461747,
+        0.19047619615282332,
+        0.23809524519102915,
+        0.28571429422923494,
+        0.3323333432674408
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "share",
+      "source_animation": "Skill_2",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 3.2333333492279053,
+      "sample_times": [
+        0.0,
+        0.46190476417541504,
+        0.9238095283508301,
+        1.3857142925262451,
+        1.6666666269302368,
+        2.309523820877075,
+        2.7714285850524902,
+        3.2323333492279054
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.6666666269302368
+        }
+      ],
+      "event_frames": [
+        4
+      ],
+      "loop": false,
+      "frame_names": [
+        "share_00",
+        "share_01",
+        "share_02",
+        "share_03",
+        "share_04",
+        "share_05",
+        "share_06",
+        "share_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.46190476417541504,
+        0.9238095283508301,
+        1.3857142925262451,
+        1.6666666269302368,
+        2.309523820877075,
+        2.7714285850524902,
+        3.2323333492279054
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "revive",
+      "source_animation": "Revive",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 5,
+      "sample_times": [
+        0.0,
+        0.7142857142857143,
+        1.4285714285714286,
+        2.142857142857143,
+        2.857142857142857,
+        3.5714285714285716,
+        4.285714285714286,
+        4.999
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "revive_00",
+        "revive_01",
+        "revive_02",
+        "revive_03",
+        "revive_04",
+        "revive_05",
+        "revive_06",
+        "revive_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.7142857142857143,
+        1.4285714285714286,
+        2.142857142857143,
+        2.857142857142857,
+        3.5714285714285716,
+        4.285714285714286,
+        4.999
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "rooting",
+      "source_animation": "Skill_1_Begin",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 0.64,
+      "sample_times": [
+        0.0,
+        0.21333333333333335,
+        0.4266666666666667,
+        0.639
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "rooting_00",
+        "rooting_01",
+        "rooting_02",
+        "rooting_03"
+      ],
+      "pose_times": [
+        0,
+        0.3,
+        0.5,
+        1.5
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "C_Head_11",
+    "local": [
+      115.13700413072843,
+      -81.27482431354744
+    ],
+    "slot": "C_Head_01"
+  },
+  "subpixel_parts": [
+    {
+      "frame": "death_06",
+      "slot": "C_Hand_08",
+      "attachment": "C_Hand_08"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Hand_07",
+      "attachment": "C_Hand_07"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Hand_06",
+      "attachment": "C_Hand_06"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Hand_05",
+      "attachment": "C_Hand_05"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Body_05",
+      "attachment": "C_Body_05"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Body_04",
+      "attachment": "C_Body_04"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Body_03",
+      "attachment": "C_Body_03"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Body_02",
+      "attachment": "C_Body_02"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Body_01",
+      "attachment": "C_Body_01"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Hand_04",
+      "attachment": "C_Hand_04"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Hand_03",
+      "attachment": "C_Hand_03"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Hand_02",
+      "attachment": "C_Hand_02"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Hand_01",
+      "attachment": "C_Hand_01"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Head_04",
+      "attachment": "C_Head_04"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Head_03",
+      "attachment": "C_Head_03"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Head_02",
+      "attachment": "C_Head_02"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Head_01",
+      "attachment": "C_Head_01"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Hand_08",
+      "attachment": "C_Hand_08"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Hand_07",
+      "attachment": "C_Hand_07"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Hand_06",
+      "attachment": "C_Hand_06"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Hand_05",
+      "attachment": "C_Hand_05"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Body_05",
+      "attachment": "C_Body_05"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Body_04",
+      "attachment": "C_Body_04"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Body_03",
+      "attachment": "C_Body_03"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Body_02",
+      "attachment": "C_Body_02"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Body_01",
+      "attachment": "C_Body_01"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Hand_04",
+      "attachment": "C_Hand_04"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Hand_03",
+      "attachment": "C_Hand_03"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Hand_02",
+      "attachment": "C_Hand_02"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Hand_01",
+      "attachment": "C_Hand_01"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Head_04",
+      "attachment": "C_Head_04"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Head_03",
+      "attachment": "C_Head_03"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Head_02",
+      "attachment": "C_Head_02"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Head_01",
+      "attachment": "C_Head_01"
+    }
+  ],
+  "assets": [
+    {
+      "file": "izumik/e_izumik_idle.png",
+      "sha256": "014fe71ad741ddb1faa8e18919f26746bcd8060967adc7bd6275b7a3d1468100"
+    },
+    {
+      "file": "izumik/e_izumik_idle@2x.png",
+      "sha256": "f749320e7996ef0b9c238b2de81031d5dd69087e2a45e4f84ea8abf1e5906b6c"
+    },
+    {
+      "file": "izumik/e_izumik_idle_emit.png",
+      "sha256": "9c515805b4ae302c39f030687a51348571320eddf022cf3f25199a4986a23ab6"
+    },
+    {
+      "file": "izumik/e_izumik_idle_emit@2x.png",
+      "sha256": "382dc1004a9375c29b50c64f62f3b44d8add526628939f8f4fab4af8969da517"
+    },
+    {
+      "file": "izumik/e_izumik_move.png",
+      "sha256": "fafa7f16b0f124dd2af1af99b7199f9ad30508c21de78946bb02133c3c54ba7a"
+    },
+    {
+      "file": "izumik/e_izumik_move@2x.png",
+      "sha256": "37d6db331a61b5f59983a47be49b99b5bc5e96671127523806e5793c3c9cb343"
+    },
+    {
+      "file": "izumik/e_izumik_move_emit.png",
+      "sha256": "0df70f6f9b8671d2aaeb5235c5d4b5a8c7dbde99b652506b5a49d8cb64f6cbc3"
+    },
+    {
+      "file": "izumik/e_izumik_move_emit@2x.png",
+      "sha256": "e0b684738a1e0577cf6cf9e58cadf16499a20416418aa33efb4405db71dba39f"
+    },
+    {
+      "file": "izumik/e_izumik_attack.png",
+      "sha256": "8cd59b761ed2e2631cb408a8722865ee52197fe28ec4cc7f6cc5baa0c5c4eab5"
+    },
+    {
+      "file": "izumik/e_izumik_attack@2x.png",
+      "sha256": "c9012f5f22c5ae34267a70d9127ecdf01a0d69ae0c8315ee22e30a9c02c8e403"
+    },
+    {
+      "file": "izumik/e_izumik_attack_emit.png",
+      "sha256": "bd09f032d60448b8302f3af351560f5c6b129619102fc8a421aa9d4ace10808d"
+    },
+    {
+      "file": "izumik/e_izumik_attack_emit@2x.png",
+      "sha256": "93f6c5e9a6d017f055be98024a02725f020b5fff6ab58ff8755dba38675fb883"
+    },
+    {
+      "file": "izumik/e_izumik_death.png",
+      "sha256": "7911c1632bf2f094591f4224b19e08734df0f6e8fd31d879f935f393a81b718f"
+    },
+    {
+      "file": "izumik/e_izumik_death@2x.png",
+      "sha256": "88a69c2a1c484454a3df295e27ee57a750448613efe5e9253016885cfd04b2b8"
+    },
+    {
+      "file": "izumik/e_izumik_death_emit.png",
+      "sha256": "bd5eabef7f881ce23283597e07a7b62e2ee3e038f823ab4b053f43fe16378da3"
+    },
+    {
+      "file": "izumik/e_izumik_death_emit@2x.png",
+      "sha256": "5f359ac840270d2bcff4d9f1f61b5f7b17c0f4a75691264362e1e8e8a7cb314f"
+    },
+    {
+      "file": "izumik/e_izumik_root_begin.png",
+      "sha256": "968f83e6a873a71df316e9388e2f4f7d5ca6e05c1bb7ad3a7bef1bc56831c6b8"
+    },
+    {
+      "file": "izumik/e_izumik_root_begin@2x.png",
+      "sha256": "61593b557198db77a9311d4e7bbbafc65c443a4f3bb82c334b817bfe4a3a6f00"
+    },
+    {
+      "file": "izumik/e_izumik_root_begin_emit.png",
+      "sha256": "91036781680ec1f77977685cc7a48c15e812efd01deb43413721555c0dbcf5a8"
+    },
+    {
+      "file": "izumik/e_izumik_root_begin_emit@2x.png",
+      "sha256": "d3224725111f946600ab9fc53d5832678511517f10bc3a8d3f50b170211731b8"
+    },
+    {
+      "file": "izumik/e_izumik_root_loop.png",
+      "sha256": "ee75ef8c961802ad69448e258e02c032eb68ebdad98b50c04a4a56708e4f59af"
+    },
+    {
+      "file": "izumik/e_izumik_root_loop@2x.png",
+      "sha256": "e1cbe7e7a93c6675c6dd57f20ef84e3a25c3e1fa2469b7291f93b4588418dd46"
+    },
+    {
+      "file": "izumik/e_izumik_root_loop_emit.png",
+      "sha256": "e6c6974fb717cdb79ee55e50c4ff37dab211f2a9dbfcffd2550d585cbaa90403"
+    },
+    {
+      "file": "izumik/e_izumik_root_loop_emit@2x.png",
+      "sha256": "497dbacdf930ceafbb84a02381ba8e560db304241d1f4f039bfd1068ba091d55"
+    },
+    {
+      "file": "izumik/e_izumik_root_end.png",
+      "sha256": "6ae2bc1d7f789b05dc85af63a9e431e4c4f599513c9fc13c656bd01606dcf9e2"
+    },
+    {
+      "file": "izumik/e_izumik_root_end@2x.png",
+      "sha256": "15415f4af892013943ed74b2eaeef9c71480a1e61b84adef1b4d82b5f0f62006"
+    },
+    {
+      "file": "izumik/e_izumik_root_end_emit.png",
+      "sha256": "214b49026d6de24bafcd4123c0ea5a44d1c99924465caefd30397f0dff319306"
+    },
+    {
+      "file": "izumik/e_izumik_root_end_emit@2x.png",
+      "sha256": "e8b8986d3bb49ccd13a77402da96a15112b7196911aee88c3d4b3ca38c0a9861"
+    },
+    {
+      "file": "izumik/e_izumik_share.png",
+      "sha256": "ba56ea46bc56fbcf7c66abaa0ea343b1aa83e65052b13b26164506f0418229fc"
+    },
+    {
+      "file": "izumik/e_izumik_share@2x.png",
+      "sha256": "5824d44fa05718536c9a5103840e6a5cfb49a824646e8281410615cf9d379a51"
+    },
+    {
+      "file": "izumik/e_izumik_share_emit.png",
+      "sha256": "fbf04ad0bc9c51f42bb88fbe09ca6d1d82f8cc5cf39b45979d44d07ed9aa3f06"
+    },
+    {
+      "file": "izumik/e_izumik_share_emit@2x.png",
+      "sha256": "d1acd522ccdfb47ab097cfe29f77e536fa72889fba556ba328052d6989f53108"
+    },
+    {
+      "file": "izumik/e_izumik_revive.png",
+      "sha256": "3302b12d3989edb19caa0950d7ca551c0625bb52640ac2be363ad881bf04421f"
+    },
+    {
+      "file": "izumik/e_izumik_revive@2x.png",
+      "sha256": "ff11209c1cde5ff6819520d455884a280ece847d0682d7546e86db4d03aeb214"
+    },
+    {
+      "file": "izumik/e_izumik_revive_emit.png",
+      "sha256": "2bc44dba32599ee861abe9254a7772e0747764d6b9b5daff33d94b4b0178880c"
+    },
+    {
+      "file": "izumik/e_izumik_revive_emit@2x.png",
+      "sha256": "c88cb4d0de6b3908b519280e6b1baeba4a5936d2521290093df6da7d125f73fc"
+    },
+    {
+      "file": "izumik/e_izumik_wound.png",
+      "sha256": "3d87753871c23b6cfc9967aa70306d5bd1a5613dcb3895e640b8a87e8fbb897c"
+    },
+    {
+      "file": "izumik/e_izumik_wound@2x.png",
+      "sha256": "7f3e6472d38d2e9d38a2a2aab6022e60f32bb536d88494d195c9d8a93b0f0612"
+    },
+    {
+      "file": "izumik/e_izumik_wound_emit.png",
+      "sha256": "526c958a99188c0e0a1e39e9da64c8e9774f0ca9561c18cfa0b3e2c2a254ebd3"
+    },
+    {
+      "file": "izumik/e_izumik_wound_emit@2x.png",
+      "sha256": "5540432852eca4f2fff73f93dd02838b6b72a390de9cdfb6f53e12f30f010944"
+    },
+    {
+      "file": "izumik/e_izumik_rooting.png",
+      "sha256": "dad1f2ee8de1e546243fb5fd118997c95322b9778043b50d9310efccd8854947"
+    },
+    {
+      "file": "izumik/e_izumik_rooting@2x.png",
+      "sha256": "b54879923d3d0b7662afb67072b06faed45e82a0f709d4d6fb25ff9da620d68d"
+    },
+    {
+      "file": "izumik/e_izumik_rooting_emit.png",
+      "sha256": "452a90a8683165bbf3ba75c0013d7a0951b06be0bd464a12c89492035d1a2015"
+    },
+    {
+      "file": "izumik/e_izumik_rooting_emit@2x.png",
+      "sha256": "1475988eb88ffda533724498fffbb61e0b94539c6c1298e4d9788061a0c23692"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "d1b4e2462e1b659bb3200bb1ab7486a03114680d950730add341e3ad1d3ff712",
+    "atlas": "2a4a68b6c75d708826bb690f0beeae64d5f31a9638db597cb54e577b7f65b959"
+  }
+}

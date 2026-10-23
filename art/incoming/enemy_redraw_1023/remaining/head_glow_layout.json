@@ -1,0 +1,257 @@
+[
+  {
+    "centers": [
+      21,
+      21
+    ],
+    "id": "runner"
+  },
+  {
+    "centers": [
+      22,
+      22
+    ],
+    "id": "slider"
+  },
+  {
+    "centers": [
+      21,
+      17
+    ],
+    "id": "spitter"
+  },
+  {
+    "centers": [
+      33,
+      22
+    ],
+    "id": "floater"
+  },
+  {
+    "centers": [
+      19,
+      19
+    ],
+    "id": "offspring"
+  },
+  {
+    "centers": [
+      29,
+      26
+    ],
+    "id": "reaper"
+  },
+  {
+    "id": "founder",
+    "centers": [
+      24,
+      19
+    ]
+  },
+  {
+    "centers": [
+      22,
+      29
+    ],
+    "id": "tracer"
+  },
+  {
+    "centers": [
+      24,
+      31
+    ],
+    "id": "nest"
+  },
+  {
+    "centers": [
+      15,
+      20
+    ],
+    "id": "tear"
+  },
+  {
+    "centers": [
+      [
+        24,
+        27
+      ],
+      [
+        26,
+        31
+      ]
+    ],
+    "id": "pocket"
+  },
+  {
+    "id": "skimmer",
+    "centers": [
+      [
+        34,
+        27
+      ],
+      [
+        34,
+        35
+      ]
+    ]
+  },
+  {
+    "centers": [
+      [
+        37,
+        24
+      ],
+      [
+        35,
+        31
+      ]
+    ],
+    "id": "mother"
+  },
+  {
+    "centers": [
+      [
+        15,
+        16
+      ],
+      [
+        19,
+        16
+      ]
+    ],
+    "id": "mimic"
+  },
+  {
+    "centers": [
+      [
+        45,
+        42
+      ],
+      [
+        43,
+        58
+      ]
+    ],
+    "id": "knight"
+  },
+  {
+    "centers": [
+      22,
+      26
+    ],
+    "id": "iberia"
+  },
+  {
+    "id": "bishop",
+    "centers": [
+      30,
+      29
+    ]
+  },
+  {
+    "id": "archon",
+    "centers": [
+      [
+        45,
+        32
+      ],
+      [
+        18,
+        30
+      ]
+    ]
+  },
+  {
+    "id": "immortal",
+    "centers": [
+      [
+        46,
+        32
+      ],
+      [
+        18,
+        30
+      ]
+    ]
+  },
+  {
+    "id": "ishar",
+    "centers": [
+      43,
+      23
+    ]
+  },
+  {
+    "centers": [
+      [
+        53,
+        37
+      ],
+      [
+        94,
+        41
+      ]
+    ],
+    "id": "knight_boss"
+  },
+  {
+    "id": "path",
+    "centers": [
+      68,
+      55
+    ]
+  },
+  {
+    "centers": [
+      64,
+      65
+    ],
+    "id": "izumik"
+  },
+  {
+    "id": "paranoia",
+    "centers": [
+      [
+        70,
+        72
+      ],
+      [
+        80,
+        80
+      ]
+    ]
+  },
+  {
+    "id": "paranoia_phase2",
+    "centers": [
+      [
+        69,
+        78
+      ],
+      [
+        77,
+        84
+      ]
+    ]
+  },
+  {
+    "centers": [
+      [
+        109,
+        77
+      ],
+      [
+        117,
+        81
+      ]
+    ],
+    "id": "ishar_phase2"
+  },
+  {
+    "centers": [
+      21,
+      18
+    ],
+    "id": "fractal"
+  }
+]

@@ -70,6 +70,7 @@
   "regen": 1.5
  },
  "sprites": {
+  "move_attack": {"tex": "op_irene_move_attack", "frames": 8, "foot": [32, 60], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},
   "entry": {"tex": "op_irene_entry", "frames": 8, "fps": 10.6667, "foot": [32, 60], "frame_durations": [0.0938, 0.0937, 0.0937, 0.0938, 0.0938, 0.0937, 0.0937, 0.0938], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/irene_entry.json），64 画布 @2x；落下由代码补"},
   "death": {"tex": "op_irene_death", "frames": 8, "fps": 8.0, "foot": [48, 76], "frame_durations": [0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125, 0.125], "_doc": "10-21 原作 Die 轨逐部件像素化（tools/spine_run_trial cfg/irene_death.json），96 画布 @2x"},
   "idle": {

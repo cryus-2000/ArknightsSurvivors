@@ -1,0 +1,348 @@
+{
+  "id": "paranoia_phase2",
+  "name": "\"偏执泡影\"",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    128,
+    128
+  ],
+  "origin": [
+    64,
+    124
+  ],
+  "source_crop_1x": [
+    0,
+    0,
+    128,
+    128
+  ],
+  "scale_fixed_across_actions": 0.13498635879327833,
+  "idle_height_target": 72,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#21354C",
+    "#3D5672",
+    "#617F98",
+    "#4C435D",
+    "#796784",
+    "#A58A9D",
+    "#8C6259",
+    "#BA8C75",
+    "#D8B99B",
+    "#E4D1B0",
+    "#768A9B"
+  ],
+  "color_cap": 32,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "C2_Idle",
+      "frames": 6,
+      "duration_seconds": 2.6666667461395264,
+      "sample_times": [
+        0.0,
+        0.4444444576899211,
+        0.8888889153798422,
+        1.3333333730697632,
+        1.7777778307596843,
+        2.2222222884496055
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03",
+        "idle_04",
+        "idle_05"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "C2_Move",
+      "frames": 6,
+      "duration_seconds": 1.6666666269302368,
+      "sample_times": [
+        0.0,
+        0.2777777711550395,
+        0.555555542310079,
+        0.8333333134651184,
+        1.111111084620158,
+        1.3888888557751975
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03",
+        "move_04",
+        "move_05"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "C2_Attack",
+      "frames": 8,
+      "duration_seconds": 2.933333396911621,
+      "sample_times": [
+        0.0,
+        0.4190476281302316,
+        0.7666666507720947,
+        1.2571428843906949,
+        1.6761905125209264,
+        2.095238140651158,
+        2.5142857687813898,
+        2.932333396911621
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.7666666507720947
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05",
+        "attack_06",
+        "attack_07"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "C2_Die",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.14285714285714285,
+        0.2857142857142857,
+        0.42857142857142855,
+        0.5714285714285714,
+        0.7142857142857143,
+        0.8571428571428571,
+        0.999
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05",
+        "death_06",
+        "death_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.14285714285714285,
+        0.2857142857142857,
+        0.42857142857142855,
+        0.5714285714285714,
+        0.7142857142857143,
+        0.8571428571428571,
+        0.999
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "revive",
+      "source_animation": "C1_Revive2",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 1.1666666269302368,
+      "sample_times": [
+        0.0,
+        0.16666666099003383,
+        0.33333332198006765,
+        0.4999999829701015,
+        0.6666666439601353,
+        0.8333333049501691,
+        0.999999965940203,
+        1.165666626930237
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "revive_00",
+        "revive_01",
+        "revive_02",
+        "revive_03",
+        "revive_04",
+        "revive_05",
+        "revive_06",
+        "revive_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.16666666099003383,
+        0.33333332198006765,
+        0.4999999829701015,
+        0.6666666439601353,
+        0.8333333049501691,
+        0.999999965940203,
+        1.165666626930237
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "C2_Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "F_A_a5",
+    "local": [
+      -91.25417296666669,
+      76.58752726383054
+    ],
+    "slot": "F_A_a"
+  },
+  "subpixel_parts": [],
+  "assets": [
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_idle.png",
+      "sha256": "f0646a8febf88ddba7596b2698dbdcb846254656e17bccbf736f5cfb78e6481c"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_idle@2x.png",
+      "sha256": "3a673007fc4f2db119db11b42b33ca194eaa4ec19f7d4e840cad38acf6dc2d95"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_idle_emit.png",
+      "sha256": "a26c12359f430ef9c2b6809556e1d315687af940d5073085d22e038d1d042f22"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_idle_emit@2x.png",
+      "sha256": "ccbbb4aab8bb231fd36a7c6e2ff9d90809eeb1349333abc6c228c6658e8ed1e2"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_move.png",
+      "sha256": "34666722f160b0f4d3e744b90e272a6bc015401cca27ca0f8b897f2b77da7a93"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_move@2x.png",
+      "sha256": "e9f2cb3358c730a862d6141a2c86f47a43b1d9b70f62928761813e15934accce"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_move_emit.png",
+      "sha256": "2518c8c13b5d244a3d573627a4bbf47c1707ce8bc89e10021e6f0fd734a080e3"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_move_emit@2x.png",
+      "sha256": "31dfd576b2ba1b0fa86559d318d1e635a4fd9b902c4dfca114024fde0dad6206"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_attack.png",
+      "sha256": "a9a965c9b1dc385d700d4d49a0714432e24f835e7366aa854260a59f2ffa8adc"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_attack@2x.png",
+      "sha256": "98836574a92e9926293e036e4341e897ec7d4cf8fb521dfcdec7bd21659bf9df"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_attack_emit.png",
+      "sha256": "f345ce28aa5e69cf3573cd64acb870a798bd75c633e8c650191070adc3d84740"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_attack_emit@2x.png",
+      "sha256": "f8fd01601c19fe48ff86637f0b77a8a7f816efbd3334edbbf5e03d1c1f38ff2d"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_death.png",
+      "sha256": "d3ed20c0e67905040893d95c1b9af2c8e65ee52794d898d7201f84077fdb6999"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_death@2x.png",
+      "sha256": "b00f5d05dd567afb7ec300f43dfeda4ce0ac40bf1db1aff790a34817876cd6a9"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_death_emit.png",
+      "sha256": "5981479fcab11cf8dbf227ef4d608c42aaba082b40d6a334b05d521f9033cb62"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_death_emit@2x.png",
+      "sha256": "a02f7ea08046e27bbba021c9ab651811e6b52d7aed131d2b67072329a7770fd9"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_revive.png",
+      "sha256": "7889af48185ed068d96e195d9e56225dd35bc51e419395d001640413b29ac126"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_revive@2x.png",
+      "sha256": "44cc3fb911d84624d74c9b495f0bb6b7c829b7b0c463817aa75844ca6dca6a7e"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_revive_emit.png",
+      "sha256": "e9c64a11547ca59f59ba18438bf4a6bc55136b4766bfa243de4751484748cf50"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_revive_emit@2x.png",
+      "sha256": "5b2709f6f3819ecf5bec3dbe2e7a0457b4f154705e319ef1fa0dcea33ed3d89e"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_wound.png",
+      "sha256": "52ac855cc7e7dc1b6dc7808b90c0f9734849f64fa8d4174ee80ee5c3f29187ff"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_wound@2x.png",
+      "sha256": "215bae56458ed287275f6ab1c8d964eeffe4cfd2cb1368977562ed0ccf0d97fd"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_wound_emit.png",
+      "sha256": "08e0e52c5e1d65b863c2dddd7451df69a48600a737a81c52b946050873370bb6"
+    },
+    {
+      "file": "paranoia_phase2/e_paranoia_phase2_wound_emit@2x.png",
+      "sha256": "ab72c4749aa4685a12e6f70d6868d26d42e3bee43cf7e5e598667f0ced2fe2f8"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "e23693b5ee2cf6d6b98e179c38d923dc863f6a17a5980ec94a29d48877725f75",
+    "atlas": "8b7fe596639265f0c084de53cce4cf91906655f82d0dfce0bedf2d7fbaef920b"
+  }
+}

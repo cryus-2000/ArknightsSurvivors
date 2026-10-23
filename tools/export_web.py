@@ -84,14 +84,18 @@ def main():
     art_dst = os.path.join(src, "game", "art", "incoming")
     os.makedirs(art_dst, exist_ok=True)
     art_src = os.path.join(src, "art", "incoming")
-    skipped = 0
+    skipped = fallback = 0
+    sib = set(os.listdir(art_src))
     for f in os.listdir(art_src):
         if f.lower().endswith(".png") and os.path.isfile(os.path.join(art_src, f)):
             if release_slim.is_review_art(f):
                 skipped += os.path.getsize(os.path.join(art_src, f))
                 continue
+            if release_slim.is_fallback_2x(f, sib):
+                fallback += os.path.getsize(os.path.join(art_src, f))   # 网页包（Toy 50 MB）：干员 @2x 回退条不带，游戏读 @1x（docs/128）
+                continue
             shutil.copy2(os.path.join(art_src, f), art_dst)
-    print("[瘦身] 审阅用拼图不进包：%.2f MB（PNG 原图）" % (skipped / 1e6))
+    print("[瘦身] 审阅用拼图不进包：%.2f MB（PNG 原图）；干员 @2x 回退条不进网页包：%.2f MB" % (skipped / 1e6, fallback / 1e6))
     print("源码：%s @ %s" % (a.ref, commit))
     # 构建信息（同 export_build.py）：局内记录的版本号、发布对象；演练入口与全部解锁按 audience 判断
     bj = os.path.join(src, "game", "data", "build.json")

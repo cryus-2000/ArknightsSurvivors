@@ -1,0 +1,269 @@
+{
+  "id": "slider",
+  "name": "底海滑动者",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    51,
+    40
+  ],
+  "origin": [
+    25,
+    36
+  ],
+  "source_crop_1x": [
+    0,
+    0,
+    51,
+    40
+  ],
+  "scale_fixed_across_actions": 0.07770286869980952,
+  "idle_height_target": 23,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B",
+    "#59485F",
+    "#8B7188",
+    "#B99DA8",
+    "#354853"
+  ],
+  "color_cap": 20,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 4,
+      "duration_seconds": 4,
+      "sample_times": [
+        0.0,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 4,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.25,
+        0.5,
+        0.75
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack",
+      "frames": 6,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.26666667461395266,
+        0.5333333492279053,
+        0.7333333492279053,
+        1.0666666984558106,
+        1.3323333730697633
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.7333333492279053
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 6,
+      "duration_seconds": 1.6666666269302368,
+      "sample_times": [
+        0.0,
+        0.3333333253860474,
+        0.6666666507720947,
+        0.9999999761581421,
+        1.3333333015441895,
+        1.665666626930237
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05"
+      ],
+      "pose_times": [
+        0.0,
+        0.3333333253860474,
+        0.6666666507720947,
+        0.9999999761581421,
+        1.3333333015441895,
+        1.665666626930237
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "Petal_B",
+    "local": [
+      62.672389380324105,
+      -21.22660377358245
+    ],
+    "slot": "Petal_B"
+  },
+  "subpixel_parts": [],
+  "assets": [
+    {
+      "file": "slider/e_slider_idle.png",
+      "sha256": "f2134f6dd0f90e3968ca59df9aab667a9f60dd964c321ee4372200fc8ad191d0"
+    },
+    {
+      "file": "slider/e_slider_idle@2x.png",
+      "sha256": "eea6a4f38acd7d588098cf8f08de24f85072af5e742d3f51a6b4891fbf231a13"
+    },
+    {
+      "file": "slider/e_slider_idle_emit.png",
+      "sha256": "7bb24be960fc3493271d6d4e6b0c23cd32f190f66bdb1d27f372a5c8f0cc5869"
+    },
+    {
+      "file": "slider/e_slider_idle_emit@2x.png",
+      "sha256": "c1d3444693f1f717c5f97b63dc2e9fd1d8b9d2fd1bfa42a42f1e753ddd9e5b3d"
+    },
+    {
+      "file": "slider/e_slider_move.png",
+      "sha256": "f4bedcf44afd412d66529629b093692d75edb5d2044bd3ceba5033e841e3ca78"
+    },
+    {
+      "file": "slider/e_slider_move@2x.png",
+      "sha256": "03abc2737912912663005381f2dcef4f128433228370af6b5fe36c9fafb07c06"
+    },
+    {
+      "file": "slider/e_slider_move_emit.png",
+      "sha256": "70147bc2d874d89ae3842c89841e9be45936b97eb3f0011d242e7cf6af39732c"
+    },
+    {
+      "file": "slider/e_slider_move_emit@2x.png",
+      "sha256": "65cf80a7479ff20e6e36ee0fafc976cbe427808d7f93ee0123efd7b3c2e4d0db"
+    },
+    {
+      "file": "slider/e_slider_attack.png",
+      "sha256": "5f445ac709f4d27145a5ed69772ed512d71df00e319661ef98711c93cb156bae"
+    },
+    {
+      "file": "slider/e_slider_attack@2x.png",
+      "sha256": "77050eb8c56f2bfb31d42accb662b4c558a691cd240cab142acfdbafa034984d"
+    },
+    {
+      "file": "slider/e_slider_attack_emit.png",
+      "sha256": "4a04f958129ca42c4242b235e98937b8ec8ca1a359a66e27667b2154e22ca439"
+    },
+    {
+      "file": "slider/e_slider_attack_emit@2x.png",
+      "sha256": "8bf1a7faee3a6f459eeeeb82c539c2686c84f5450b073f1c10a27c1608c875fc"
+    },
+    {
+      "file": "slider/e_slider_death.png",
+      "sha256": "e4ba3d6b3f79b18cd65c8d763926b01cbdcba66ded092a6fbaabed47a69ff552"
+    },
+    {
+      "file": "slider/e_slider_death@2x.png",
+      "sha256": "6934f01f8845ee243f90e4654697ef542b1f8e55f581dcd96924648105615de9"
+    },
+    {
+      "file": "slider/e_slider_death_emit.png",
+      "sha256": "b426292e6b1778fc3dab7d1c140c6493d16bda993dc87c3bfb8f85b3e640c1f6"
+    },
+    {
+      "file": "slider/e_slider_death_emit@2x.png",
+      "sha256": "82748f75427b346860be2e641e1ab7511fe87bd9ed07daeb8980d6d73d5aec27"
+    },
+    {
+      "file": "slider/e_slider_wound.png",
+      "sha256": "b1024c855bdca15dd50c0c2670aa13ddd4ea9a350defa7ed7ebc005e33dbaeec"
+    },
+    {
+      "file": "slider/e_slider_wound@2x.png",
+      "sha256": "2924ce1f81dfa412859f5fdcf332cbe1e08ae4d8304b85bc6d351aa4cc22c6ff"
+    },
+    {
+      "file": "slider/e_slider_wound_emit.png",
+      "sha256": "330b56d31ae1868d9908421cf5c65ff8cbc728961b7ef22941faa6e89b3f4e45"
+    },
+    {
+      "file": "slider/e_slider_wound_emit@2x.png",
+      "sha256": "c36014ae0890ccb143d2c802c41021916145f3f8e3e662460bc96d82f62d3eec"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "95a5031280939ad56383ad60062ca22fccb7e601d5a31bbddbbb2f1315f095c3",
+    "atlas": "12bd26524f6382433f36c9a19ff39020c4de486a38ce46b5cc7d411533a6d1b6"
+  }
+}

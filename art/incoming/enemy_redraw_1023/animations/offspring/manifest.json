@@ -1,0 +1,327 @@
+{
+  "id": "offspring",
+  "name": "伊祖米克的子代",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    40,
+    40
+  ],
+  "origin": [
+    20,
+    36
+  ],
+  "source_crop_1x": [
+    0,
+    1,
+    40,
+    41
+  ],
+  "scale_fixed_across_actions": 0.08910180476680153,
+  "idle_height_target": 23,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B",
+    "#59485F",
+    "#8B7188",
+    "#B99DA8",
+    "#354853"
+  ],
+  "color_cap": 20,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 4,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.3333333432674408,
+        0.6666666865348816,
+        1.0000000298023224
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 4,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.3333333432674408,
+        0.6666666865348816,
+        1.0000000298023224
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 6,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        0.999
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05"
+      ],
+      "pose_times": [
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        0.999
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "attack",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 0.8,
+      "sample_times": [
+        0.0,
+        0.26666666666666666,
+        0.5333333333333333,
+        0.799
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03"
+      ],
+      "pose_times": [
+        0.0,
+        0.3333333432674408,
+        0.6666666865348816,
+        1.0000000298023224
+      ],
+      "release_frame": 2
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "C_Head_04",
+    "local": [
+      17.550585222128866,
+      -4.661290058743364
+    ],
+    "slot": "C_Head_01"
+  },
+  "subpixel_parts": [
+    {
+      "frame": "death_04",
+      "slot": "C_Hand_04",
+      "attachment": "C_Hand_04"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_Hand_03",
+      "attachment": "C_Hand_03"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_Hand_02",
+      "attachment": "C_Hand_02"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_Hand_01",
+      "attachment": "C_Hand_01"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_Head_02",
+      "attachment": "C_Head_02"
+    },
+    {
+      "frame": "death_04",
+      "slot": "C_Head_01",
+      "attachment": "C_Head_01"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_Hand_04",
+      "attachment": "C_Hand_04"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_Hand_03",
+      "attachment": "C_Hand_03"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_Hand_02",
+      "attachment": "C_Hand_02"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_Hand_01",
+      "attachment": "C_Hand_01"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_Head_02",
+      "attachment": "C_Head_02"
+    },
+    {
+      "frame": "death_05",
+      "slot": "C_Head_01",
+      "attachment": "C_Head_01"
+    }
+  ],
+  "assets": [
+    {
+      "file": "offspring/e_offspring_idle.png",
+      "sha256": "845d0da998d3c5f1600720e584c06fe39abfe387c1175b9f8944a72c369af523"
+    },
+    {
+      "file": "offspring/e_offspring_idle@2x.png",
+      "sha256": "d5037811f88eb297750d02284560f8b215b08611791653a4e200acae0a4ef0e9"
+    },
+    {
+      "file": "offspring/e_offspring_idle_emit.png",
+      "sha256": "340e3ca3216a118171590b1d741417dcdb6775b53f5151fa433457bffbb9897d"
+    },
+    {
+      "file": "offspring/e_offspring_idle_emit@2x.png",
+      "sha256": "60c3f818a7e73214fe15b379e731542cfe19599a211c80440d060c1a7651c7fb"
+    },
+    {
+      "file": "offspring/e_offspring_move.png",
+      "sha256": "bea81a98fa934a8a2d7e33da5f6c2b50302dc02d62659204684456d89fea8b15"
+    },
+    {
+      "file": "offspring/e_offspring_move@2x.png",
+      "sha256": "b8f59c63000d86d62031d849877086aae7047e71301960006ce1efc47a623be0"
+    },
+    {
+      "file": "offspring/e_offspring_move_emit.png",
+      "sha256": "b94bf4bb81bb30c2aebc67f651455215b9847b624e8bafbf5dfbf1e6e18fe306"
+    },
+    {
+      "file": "offspring/e_offspring_move_emit@2x.png",
+      "sha256": "ba48339433e38e1090e24557b74a54fd9ef4df13198d50aac0656bb3b34b9482"
+    },
+    {
+      "file": "offspring/e_offspring_death.png",
+      "sha256": "83489c34376096337d88b90a4a9739277e60d15f1edd4b826e33066f88a850fb"
+    },
+    {
+      "file": "offspring/e_offspring_death@2x.png",
+      "sha256": "bf721a3ce10fc6558906ccd58968e82f4af98f4c1d186a4fc5a5f3fe625279bb"
+    },
+    {
+      "file": "offspring/e_offspring_death_emit.png",
+      "sha256": "90895fba23598d934477f9bed2b5e30df8f1f3b2d2b28bc28bf70801fde6f3ac"
+    },
+    {
+      "file": "offspring/e_offspring_death_emit@2x.png",
+      "sha256": "1af1c681af69eb55f333b3f7824b359c50b852c44629cd7880a484336fc0f23c"
+    },
+    {
+      "file": "offspring/e_offspring_wound.png",
+      "sha256": "e46594df57eba61bfb3db120fa61d094ffe99512290667c3f54fcc5fe2888ef0"
+    },
+    {
+      "file": "offspring/e_offspring_wound@2x.png",
+      "sha256": "e6cfaf314d51cff4bd06d71b752af539a22dc2ded0f2d4ce3a8b0e01e14e4f2c"
+    },
+    {
+      "file": "offspring/e_offspring_wound_emit.png",
+      "sha256": "6656a3344e4f13086b9832711b50f4ee97555a97b01c3fef31ede6bf938aac0c"
+    },
+    {
+      "file": "offspring/e_offspring_wound_emit@2x.png",
+      "sha256": "42271f2b5dd6cc7b59749e17119c9163562381df6b372df5e1d1404be9f4e077"
+    },
+    {
+      "file": "offspring/e_offspring_attack.png",
+      "sha256": "c1e98773daa1d6fe473c4b2734bd104b052623d863c0610035649c74ef0b35fc"
+    },
+    {
+      "file": "offspring/e_offspring_attack@2x.png",
+      "sha256": "b8303b746a41a831e0c26dafcb1c6cfe02fef6cabecd561863fedfd3902775a2"
+    },
+    {
+      "file": "offspring/e_offspring_attack_emit.png",
+      "sha256": "f865a95d2531d5a80d39027cab0b6cb2f45a5296f61b03f75804decf1dc10fc7"
+    },
+    {
+      "file": "offspring/e_offspring_attack_emit@2x.png",
+      "sha256": "d0954a4ef455dbca595de6fddbc0e00f3462bcec7cf1bc1fee7fed0a713eae81"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "4b226effa4297f42bfa5660d6676c9ca43aafb7119d2409e402fe78ad5469738",
+    "atlas": "8517a0345ac051a28ab3b86abb512f215aac635b4905fa66103884776f34a904"
+  }
+}

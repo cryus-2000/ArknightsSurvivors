@@ -1,0 +1,329 @@
+{
+  "id": "pocket",
+  "name": "囊海爬行者",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    55,
+    48
+  ],
+  "origin": [
+    24,
+    44
+  ],
+  "source_crop_1x": [
+    0,
+    2,
+    55,
+    50
+  ],
+  "scale_fixed_across_actions": 0.0859957293755948,
+  "idle_height_target": 36,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B",
+    "#59485F",
+    "#8B7188",
+    "#B99DA8",
+    "#354853",
+    "#55737C",
+    "#405B58",
+    "#758980",
+    "#423941"
+  ],
+  "color_cap": 24,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 6,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.16666666666666666,
+        0.3333333333333333,
+        0.5,
+        0.6666666666666666,
+        0.8333333333333333
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03",
+        "idle_04",
+        "idle_05"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 6,
+      "duration_seconds": 0.5333333611488342,
+      "sample_times": [
+        0.0,
+        0.08888889352480571,
+        0.17777778704961142,
+        0.2666666805744171,
+        0.35555557409922284,
+        0.44444446762402856
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03",
+        "move_04",
+        "move_05"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.14285714285714285,
+        0.2857142857142857,
+        0.42857142857142855,
+        0.5714285714285714,
+        0.7142857142857143,
+        0.8571428571428571,
+        0.999
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05",
+        "death_06",
+        "death_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.14285714285714285,
+        0.2857142857142857,
+        0.42857142857142855,
+        0.5714285714285714,
+        0.7142857142857143,
+        0.8571428571428571,
+        0.999
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "attack",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 0.8,
+      "sample_times": [
+        0.0,
+        0.26666666666666666,
+        0.5333333333333333,
+        0.799
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03"
+      ],
+      "pose_times": [
+        0.0,
+        0.25,
+        0.5,
+        0.75
+      ],
+      "release_frame": 2
+    },
+    {
+      "action": "swell",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 0.8,
+      "sample_times": [
+        0.0,
+        0.26666666666666666,
+        0.5333333333333333,
+        0.799
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "swell_00",
+        "swell_01",
+        "swell_02",
+        "swell_03"
+      ],
+      "pose_times": [
+        0.0,
+        0.25,
+        0.5,
+        0.75
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "C_Body",
+    "local": [
+      181.20045622903265,
+      -75.50398873521016
+    ],
+    "slot": "C_Body"
+  },
+  "subpixel_parts": [],
+  "assets": [
+    {
+      "file": "pocket/e_pocket_idle.png",
+      "sha256": "7eab31f8b84ca4fd03df4a561eeb04e232717d20fbdea14d58d5217c890ae588"
+    },
+    {
+      "file": "pocket/e_pocket_idle@2x.png",
+      "sha256": "4a42b660a325028e2ddc06f9f0d1e41ffb56f3478b4075cc4287d2c0a26ffad6"
+    },
+    {
+      "file": "pocket/e_pocket_idle_emit.png",
+      "sha256": "2f0940c9ec4164c4a0a8172ed593fd68418142814f2c109181e8733d4e3fc1f8"
+    },
+    {
+      "file": "pocket/e_pocket_idle_emit@2x.png",
+      "sha256": "4107e91192f4967638446aadd748d156d001bd9264ea733a14e96cb71dcbebd8"
+    },
+    {
+      "file": "pocket/e_pocket_move.png",
+      "sha256": "25df62f594b7518ea66cebd3d6653dec348e9420fef5fc94e27a2b221e3fa38e"
+    },
+    {
+      "file": "pocket/e_pocket_move@2x.png",
+      "sha256": "d3426bc16e9446fb793dfbb7c03cfc01cbff988b21d36e660b1d7f30756bc785"
+    },
+    {
+      "file": "pocket/e_pocket_move_emit.png",
+      "sha256": "43069d010c5cc463c9222a0edd39303a38d0359259301cbbbddeedab27d01f45"
+    },
+    {
+      "file": "pocket/e_pocket_move_emit@2x.png",
+      "sha256": "06dcd433879c4259a9ccc05da01083f48ff4d4969a7b8955289ec7dacbafd724"
+    },
+    {
+      "file": "pocket/e_pocket_death.png",
+      "sha256": "391fbe6f61a34a9d0177c680b8819483eedb0450b9c4c8a0c942f6e570f61a8a"
+    },
+    {
+      "file": "pocket/e_pocket_death@2x.png",
+      "sha256": "e9eed5cff3d0e993a94aa241a4b5e02bf648d9ca9dc6bc7b1b26d184de863db4"
+    },
+    {
+      "file": "pocket/e_pocket_death_emit.png",
+      "sha256": "533dcf1adee303b2095116281ef0ef2abbfc4b3ce5d9e24025daebb4bf3eb687"
+    },
+    {
+      "file": "pocket/e_pocket_death_emit@2x.png",
+      "sha256": "f58db174eafdb12679984a9f67086d67a5ec53513fadc3b50f00e0bdeeef00eb"
+    },
+    {
+      "file": "pocket/e_pocket_wound.png",
+      "sha256": "c5ab58ffee71d2e13480f308d94e3b200c748690c83bd31a377b1e9dde558fb0"
+    },
+    {
+      "file": "pocket/e_pocket_wound@2x.png",
+      "sha256": "b2635c5104aff5908666df898030fe7db1f9c22661884e0b974eeb8e36a19b87"
+    },
+    {
+      "file": "pocket/e_pocket_wound_emit.png",
+      "sha256": "00d6502d2c30f2c4e4656864115ca29228d20f29349f3a09d8d71c2ea3ecf100"
+    },
+    {
+      "file": "pocket/e_pocket_wound_emit@2x.png",
+      "sha256": "5c9076ec1306cabda77208a7a6ddafc8de4918fbfd445cdca739104eb97ca258"
+    },
+    {
+      "file": "pocket/e_pocket_attack.png",
+      "sha256": "2175b67b2539050813b881d6260d6bc3e1e7ab19fba51f40dccd6fb3972a92af"
+    },
+    {
+      "file": "pocket/e_pocket_attack@2x.png",
+      "sha256": "90ea7d672cdccd33479ec071d4e9845345c166e7ddcdd66e1f1ab931cd28b361"
+    },
+    {
+      "file": "pocket/e_pocket_attack_emit.png",
+      "sha256": "805b9a1cbdda30ffefb2dcf9049239299a9a7443d54cd3c850567f7d83079816"
+    },
+    {
+      "file": "pocket/e_pocket_attack_emit@2x.png",
+      "sha256": "d8812df987e6e2c4204e379915fe3ffe173aa68046a75d82441f0a75a6fad96d"
+    },
+    {
+      "file": "pocket/e_pocket_swell.png",
+      "sha256": "ab385675ab18ac8c73327c74c64490183768d1161dd895425bb76ed562d21223"
+    },
+    {
+      "file": "pocket/e_pocket_swell@2x.png",
+      "sha256": "f4728f4aa93af59175f4dd18cc6f192e553fa25d5f0e6c7378191788007129b6"
+    },
+    {
+      "file": "pocket/e_pocket_swell_emit.png",
+      "sha256": "153500f89f579f4ae2fb6dd0528f3fb7ac885aa74341abdc09d11f78bebbad1f"
+    },
+    {
+      "file": "pocket/e_pocket_swell_emit@2x.png",
+      "sha256": "6fa280bbc6505b07d4ed3e9bda80605cf58bf3afe0a3b65219039f5f391d3cf9"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "aab4a34df17df5604371a7e9b82d1d11688bbff351d2c92c35dc7fc7ba166339",
+    "atlas": "307b1f169867849e8461c2e827f0bed2f1a286de602b441c52a0b343c4cc4e63"
+  }
+}

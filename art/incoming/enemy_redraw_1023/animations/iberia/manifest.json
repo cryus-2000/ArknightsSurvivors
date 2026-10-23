@@ -1,0 +1,2572 @@
+{
+  "id": "iberia",
+  "name": "圣徒伊比利亚",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    69,
+    64
+  ],
+  "origin": [
+    32,
+    55
+  ],
+  "source_crop_1x": [
+    0,
+    5,
+    69,
+    69
+  ],
+  "scale_fixed_across_actions": 0.0825991684807986,
+  "idle_height_target": 40,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B",
+    "#59485F",
+    "#8B7188",
+    "#B99DA8",
+    "#354853",
+    "#55737C",
+    "#405B58",
+    "#758980",
+    "#423941",
+    "#775C52",
+    "#9C7876",
+    "#C1A29B",
+    "#222D40"
+  ],
+  "color_cap": 28,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 6,
+      "duration_seconds": 2,
+      "sample_times": [
+        0.0,
+        0.3333333333333333,
+        0.6666666666666666,
+        1.0,
+        1.3333333333333333,
+        1.6666666666666665
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03",
+        "idle_04",
+        "idle_05"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 6,
+      "duration_seconds": 1.2000000476837158,
+      "sample_times": [
+        0.0,
+        0.20000000794728598,
+        0.40000001589457196,
+        0.6000000238418579,
+        0.8000000317891439,
+        1.00000003973643
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03",
+        "move_04",
+        "move_05"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack_1",
+      "frames": 8,
+      "duration_seconds": 1.5,
+      "sample_times": [
+        0.0,
+        0.21428571428571427,
+        0.42857142857142855,
+        0.6428571428571428,
+        0.8666666746139526,
+        1.0714285714285714,
+        1.2857142857142856,
+        1.499
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8666666746139526
+        }
+      ],
+      "event_frames": [
+        4
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05",
+        "attack_06",
+        "attack_07"
+      ]
+    },
+    {
+      "action": "melee",
+      "source_animation": "Attack_2",
+      "frames": 8,
+      "duration_seconds": 1.5,
+      "sample_times": [
+        0.0,
+        0.21428571428571427,
+        0.42857142857142855,
+        0.6428571428571428,
+        0.8666666746139526,
+        1.0714285714285714,
+        1.2857142857142856,
+        1.499
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8666666746139526
+        }
+      ],
+      "event_frames": [
+        4
+      ],
+      "loop": false,
+      "frame_names": [
+        "melee_00",
+        "melee_01",
+        "melee_02",
+        "melee_03",
+        "melee_04",
+        "melee_05",
+        "melee_06",
+        "melee_07"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 2.3333332538604736,
+      "sample_times": [
+        0.0,
+        0.33333332198006765,
+        0.6666666439601353,
+        0.999999965940203,
+        1.3333332879202706,
+        1.6666666099003382,
+        1.999999931880406,
+        2.3323332538604737
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05",
+        "death_06",
+        "death_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.33333332198006765,
+        0.6666666439601353,
+        0.999999965940203,
+        1.3333332879202706,
+        1.6666666099003382,
+        1.999999931880406,
+        2.3323332538604737
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "skill",
+      "source_animation": "Skill",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 2,
+      "sample_times": [
+        0.0,
+        0.2857142857142857,
+        0.5714285714285714,
+        0.8571428571428571,
+        1.1428571428571428,
+        1.5,
+        1.7142857142857142,
+        1.999
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.5
+        }
+      ],
+      "event_frames": [
+        5
+      ],
+      "loop": false,
+      "frame_names": [
+        "skill_00",
+        "skill_01",
+        "skill_02",
+        "skill_03",
+        "skill_04",
+        "skill_05",
+        "skill_06",
+        "skill_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.2857142857142857,
+        0.5714285714285714,
+        0.8571428571428571,
+        1.1428571428571428,
+        1.5,
+        1.7142857142857142,
+        1.999
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "saint_dark_reload",
+      "source_animation": "Skill",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 0.64,
+      "sample_times": [
+        0.0,
+        0.21333333333333335,
+        0.4266666666666667,
+        0.639
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "saint_dark_reload_00",
+        "saint_dark_reload_01",
+        "saint_dark_reload_02",
+        "saint_dark_reload_03"
+      ],
+      "pose_times": [
+        0,
+        0.4,
+        0.8,
+        1.5
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "saint_dark_lob",
+      "source_animation": "Attack_1",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 0.64,
+      "sample_times": [
+        0.0,
+        0.21333333333333335,
+        0.4266666666666667,
+        0.639
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "saint_dark_lob_00",
+        "saint_dark_lob_01",
+        "saint_dark_lob_02",
+        "saint_dark_lob_03"
+      ],
+      "pose_times": [
+        0,
+        0.5,
+        0.8,
+        1.2
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "Hair_back",
+    "local": [
+      -28.762498803892807,
+      80.60696617538598
+    ],
+    "slot": "Head"
+  },
+  "subpixel_parts": [
+    {
+      "frame": "idle_00",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "Eye_w_R",
+      "attachment": "Eye_w_R"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "Eye_w_L",
+      "attachment": "Eye_w_L"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "move_00",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "move_00",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "move_00",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "move_00",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "move_00",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "move_00",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "move_00",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "move_01",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "move_01",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "move_01",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "move_01",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "move_01",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "move_01",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "move_02",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "move_02",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "move_02",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "move_02",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "move_02",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "move_02",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "move_03",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "move_03",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "move_03",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "move_03",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "move_03",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "move_04",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "move_04",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "move_04",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "move_04",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "move_04",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "move_04",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "move_05",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "move_05",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "move_05",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "move_05",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "move_05",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "move_05",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "Hand_L2",
+      "attachment": "Hand_L"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "Eyeball",
+      "attachment": "Eyeball"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "Hair_B",
+      "attachment": "Hair_B"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "melee_00",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "melee_00",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "melee_00",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "melee_00",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "melee_00",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "melee_00",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "melee_00",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "melee_01",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "melee_01",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "melee_01",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "melee_01",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "melee_01",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "melee_01",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "melee_02",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "melee_02",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "melee_02",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "melee_02",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "melee_02",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "melee_03",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "melee_03",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "melee_03",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "melee_03",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "melee_03",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "melee_03",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "melee_04",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "melee_04",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "melee_04",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "melee_04",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "melee_04",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "melee_04",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "melee_05",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "melee_05",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "melee_05",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "melee_05",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "melee_05",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "melee_05",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "melee_06",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "melee_06",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "melee_06",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "melee_06",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "melee_06",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "melee_06",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "melee_07",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "melee_07",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "melee_07",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "melee_07",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "melee_07",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "melee_07",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "melee_07",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "death_00",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "death_00",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "death_00",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "death_00",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "death_00",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "death_00",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "death_00",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "death_01",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "death_01",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "death_01",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "death_01",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "death_01",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "death_01",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "death_02",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "death_02",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "death_02",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "death_02",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "death_02",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "death_02",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "death_02",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "death_03",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "death_03",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "death_03",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "death_03",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "death_03",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "death_03",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "death_03",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "death_04",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Hair_B",
+      "attachment": "Hair_B"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "death_05",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Weapon_a",
+      "attachment": "Weapon_a"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Hair_braids",
+      "attachment": "Hair_braids"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Foot_L",
+      "attachment": "Foot_L"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Belly",
+      "attachment": "Belly"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Belt_u",
+      "attachment": "Belt_u"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Belt",
+      "attachment": "Belt"
+    },
+    {
+      "frame": "death_06",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Gun_a",
+      "attachment": "Gun_a"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Hand_L2",
+      "attachment": "Hand_L"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Hair_F",
+      "attachment": "Hair_F"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Coat_L_Sa",
+      "attachment": "Coat_L_Sa"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Coat_R_S",
+      "attachment": "Coat_R_S"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Coat_A",
+      "attachment": "Coat_A"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Hair_E",
+      "attachment": "Hair_E"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Eye_w_R",
+      "attachment": "Eye_w_R"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Eye_w_L",
+      "attachment": "Eye_w_L"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Eyeball",
+      "attachment": "Eyeball"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Eyeball_L",
+      "attachment": "Eyeball_L"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Eyebrow_l",
+      "attachment": "Eyebrow_l"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Hair_D",
+      "attachment": "Hair_D"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Hair_C",
+      "attachment": "Hair_C"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Hair_B",
+      "attachment": "Hair_B"
+    },
+    {
+      "frame": "death_06",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Cloth",
+      "attachment": "Cloth"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Weapon_a",
+      "attachment": "Weapon_a"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hair_braids",
+      "attachment": "Hair_braids"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hair_Back",
+      "attachment": "Hair_Back"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hand_R",
+      "attachment": "Hand_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Weapon",
+      "attachment": "Weapon"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Finger_R",
+      "attachment": "Finger_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Forearm_R",
+      "attachment": "Forearm_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Arm_R",
+      "attachment": "Arm_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Skirt_R",
+      "attachment": "Skirt_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Foot_R",
+      "attachment": "Foot_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Calf_R",
+      "attachment": "Calf_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Leg_R",
+      "attachment": "Leg_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Foot_L",
+      "attachment": "Foot_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Calf_L",
+      "attachment": "Calf_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Leg_L",
+      "attachment": "Leg_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Belly",
+      "attachment": "Belly"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Waist",
+      "attachment": "Waist"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Chest",
+      "attachment": "Chest"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Belt_u",
+      "attachment": "Belt_u"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Belt",
+      "attachment": "Belt"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Skirt_L",
+      "attachment": "Skirt_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Light_a",
+      "attachment": "Light_a"
+    },
+    {
+      "frame": "death_07",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Gun_b",
+      "attachment": "Gun_b"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Gun",
+      "attachment": "Gun"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Gun_a",
+      "attachment": "Gun_a"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hand_L",
+      "attachment": "Hand_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hand_L2",
+      "attachment": "Hand_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Forearm_L",
+      "attachment": "Forearm_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Arm_L",
+      "attachment": "Arm_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hair_F",
+      "attachment": "Hair_F"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Coat_L_S",
+      "attachment": "Coat_L_S"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Coat_L_Sa",
+      "attachment": "Coat_L_Sa"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Coat_R_S",
+      "attachment": "Coat_R_S"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Coat_A",
+      "attachment": "Coat_A"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hair_E",
+      "attachment": "Hair_E"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hat_back_A",
+      "attachment": "Hat_back_A"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hat_back",
+      "attachment": "Hat_back"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Eye_w_R",
+      "attachment": "Eye_w_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Eye_w_L",
+      "attachment": "Eye_w_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Eyeball",
+      "attachment": "Eyeball"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Eyeball_L",
+      "attachment": "Eyeball_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Head",
+      "attachment": "Head"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Eyebrow_l",
+      "attachment": "Eyebrow_l"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hair_D",
+      "attachment": "Hair_D"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hair_C",
+      "attachment": "Hair_C"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Ear",
+      "attachment": "Ear"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hair_B",
+      "attachment": "Hair_B"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "death_07",
+      "slot": "Hat_A",
+      "attachment": "Hat_A"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "Eyeball",
+      "attachment": "Eyeball"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "Hair_B",
+      "attachment": "Hair_B"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "saint_dark_reload_00",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "saint_dark_reload_00",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "saint_dark_reload_00",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "saint_dark_reload_00",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "saint_dark_reload_00",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "saint_dark_reload_00",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "saint_dark_reload_00",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "saint_dark_reload_01",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "saint_dark_reload_01",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "saint_dark_reload_01",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "saint_dark_reload_01",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "saint_dark_reload_01",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "saint_dark_reload_01",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "saint_dark_reload_01",
+      "slot": "Hair_B",
+      "attachment": "Hair_B"
+    },
+    {
+      "frame": "saint_dark_reload_02",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "saint_dark_reload_02",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "saint_dark_reload_02",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "saint_dark_reload_02",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "saint_dark_reload_02",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "saint_dark_reload_02",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "saint_dark_reload_02",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "saint_dark_reload_03",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "saint_dark_reload_03",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "saint_dark_reload_03",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "saint_dark_reload_03",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "saint_dark_reload_03",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "saint_dark_reload_03",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "saint_dark_lob_00",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "saint_dark_lob_00",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "saint_dark_lob_00",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "saint_dark_lob_00",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "saint_dark_lob_00",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "saint_dark_lob_00",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "saint_dark_lob_00",
+      "slot": "Hair_A",
+      "attachment": "Hair_A"
+    },
+    {
+      "frame": "saint_dark_lob_01",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "saint_dark_lob_01",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "saint_dark_lob_01",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "saint_dark_lob_01",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "saint_dark_lob_01",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "saint_dark_lob_02",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "saint_dark_lob_02",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "saint_dark_lob_02",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "saint_dark_lob_02",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "saint_dark_lob_02",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    },
+    {
+      "frame": "saint_dark_lob_02",
+      "slot": "Eyebrow_r",
+      "attachment": "Eyebrow_r"
+    },
+    {
+      "frame": "saint_dark_lob_03",
+      "slot": "light_e",
+      "attachment": "light_e"
+    },
+    {
+      "frame": "saint_dark_lob_03",
+      "slot": "Eye_R_d",
+      "attachment": "Eye_R_d"
+    },
+    {
+      "frame": "saint_dark_lob_03",
+      "slot": "Eye_R",
+      "attachment": "Eye_R"
+    },
+    {
+      "frame": "saint_dark_lob_03",
+      "slot": "Eye_L_d",
+      "attachment": "Eye_L_d"
+    },
+    {
+      "frame": "saint_dark_lob_03",
+      "slot": "Eye_L",
+      "attachment": "Eye_L"
+    }
+  ],
+  "assets": [
+    {
+      "file": "iberia/e_iberia_idle.png",
+      "sha256": "41c8477651c2ed4a6a0ca1d6b50e928be15631d1ba1c30768ec4f781c5cb4a4e"
+    },
+    {
+      "file": "iberia/e_iberia_idle@2x.png",
+      "sha256": "cc02d16c0ae36c8ae8f1c9032776d67c582a9b93467820d6e6771f87311f449d"
+    },
+    {
+      "file": "iberia/e_iberia_idle_emit.png",
+      "sha256": "54576cd276084c0423df237611130619be9f7d846ef9dbaafaa8dea767583a9d"
+    },
+    {
+      "file": "iberia/e_iberia_idle_emit@2x.png",
+      "sha256": "3402db9ef5d2acd16bf4607cdbcab9105b520e13731fc36bca48ec63a09a57ea"
+    },
+    {
+      "file": "iberia/e_iberia_move.png",
+      "sha256": "93ae0cb1284c6c5bbccb5525ae4e4d3ab0cad2097af559b98bcbd115f7a0e073"
+    },
+    {
+      "file": "iberia/e_iberia_move@2x.png",
+      "sha256": "66c51e6551df388620ddb5951f81b65a3d077ab308faf276e9d5ad62440b417f"
+    },
+    {
+      "file": "iberia/e_iberia_move_emit.png",
+      "sha256": "be3d314eeef86ea568e044a1a655d6d48b05f42fbeb1b51a75b18789f0278a68"
+    },
+    {
+      "file": "iberia/e_iberia_move_emit@2x.png",
+      "sha256": "cc479093eee20a8b98dc0e64c5f45e26efeb197b41016e68ec22981c799ab284"
+    },
+    {
+      "file": "iberia/e_iberia_attack.png",
+      "sha256": "a67c6e922968b228677eca36a711b202f169ca9ea685e6503c05154880361f66"
+    },
+    {
+      "file": "iberia/e_iberia_attack@2x.png",
+      "sha256": "95c9cc8cb6813fa6d432bdf564647151d177747ffc6affbc1c56cb6e8fb401ec"
+    },
+    {
+      "file": "iberia/e_iberia_attack_emit.png",
+      "sha256": "c23b89846fc999bceb8c5ab2a68c90c6ea0e9ee3df98720f1299361e6a8a63cf"
+    },
+    {
+      "file": "iberia/e_iberia_attack_emit@2x.png",
+      "sha256": "52d8398e6bb42e669f6f3eafe62872cb9dabaaf47d268fd71dea0850008f12d3"
+    },
+    {
+      "file": "iberia/e_iberia_melee.png",
+      "sha256": "bd9c8424dd238aa79f98381971caf0a30797cf881191bb6f1e70ecf569757012"
+    },
+    {
+      "file": "iberia/e_iberia_melee@2x.png",
+      "sha256": "1a0175f9282b34d9800dab5fa8edb2219878c30908d0b323b3e1901e6c1fc37d"
+    },
+    {
+      "file": "iberia/e_iberia_melee_emit.png",
+      "sha256": "d48b083d3f573820cdee5b3b0a67639facdd5ced7aab187af94c6363730cd76e"
+    },
+    {
+      "file": "iberia/e_iberia_melee_emit@2x.png",
+      "sha256": "4d0515c07982adef7b82792141942b415ad5b35d289c5f7f180699fa95e13dc0"
+    },
+    {
+      "file": "iberia/e_iberia_death.png",
+      "sha256": "0b9a793572bfdabb9b9f7310fe60e7ddad348570314e03236024853d02b726a9"
+    },
+    {
+      "file": "iberia/e_iberia_death@2x.png",
+      "sha256": "be9d1b74f2734f34a3ad4280c403b4e149a060b6b156ee67c92ca92b0ac34faf"
+    },
+    {
+      "file": "iberia/e_iberia_death_emit.png",
+      "sha256": "fe880493aaade91e402b5b0151176eac78622a1bfa1aad4dc63419e255f14e79"
+    },
+    {
+      "file": "iberia/e_iberia_death_emit@2x.png",
+      "sha256": "9daf9ce036d9ec3a3bc929379a9e9130d0d2c3c6ba3cd7b2c5feb214ae053257"
+    },
+    {
+      "file": "iberia/e_iberia_skill.png",
+      "sha256": "e37ac2d01324cfa35e89c7e3cf61956d7af14e7189d17294674d216e4175fc4a"
+    },
+    {
+      "file": "iberia/e_iberia_skill@2x.png",
+      "sha256": "6e59354df68822043e4a01b3ce89c6d8efee0399080d8a56f524426dcac13c2f"
+    },
+    {
+      "file": "iberia/e_iberia_skill_emit.png",
+      "sha256": "e38ea3b4125ebc545614d7c3b94350857c2f30f420f1eb4a25126076d3b733dc"
+    },
+    {
+      "file": "iberia/e_iberia_skill_emit@2x.png",
+      "sha256": "326ac1079632ea906dad64c8f0ed14772970f5fca42740a32ca1def13d1fb278"
+    },
+    {
+      "file": "iberia/e_iberia_wound.png",
+      "sha256": "91e92c2045a0ebacd38f4af58af36cd184d444ab6dbb85348c5a585b95a39fc5"
+    },
+    {
+      "file": "iberia/e_iberia_wound@2x.png",
+      "sha256": "d2027dcc86e79ff32169bbd2a5ec7340530d7074abfe11657e0d5863cc0367cf"
+    },
+    {
+      "file": "iberia/e_iberia_wound_emit.png",
+      "sha256": "2496273a46d1db5ba7360432d8d718c025ab19874b87009cedfc7de636250afa"
+    },
+    {
+      "file": "iberia/e_iberia_wound_emit@2x.png",
+      "sha256": "6a43812c6115433f6b874420615de303464cc79e362d60398a6084acdbb47d25"
+    },
+    {
+      "file": "iberia/e_iberia_saint_dark_reload.png",
+      "sha256": "5ab4286b08a083333f3adc9f415db29e82f706df10e0b6dedb48d6cefc9291bc"
+    },
+    {
+      "file": "iberia/e_iberia_saint_dark_reload@2x.png",
+      "sha256": "560d5d026f0f3e5372f9b27753452fc77c813f780de39d64bb2b54f4d53cbb86"
+    },
+    {
+      "file": "iberia/e_iberia_saint_dark_reload_emit.png",
+      "sha256": "35e68979249671caeb12bbe7bb398af2c9ed3c8b86baaf94c47bce6d991b3dd6"
+    },
+    {
+      "file": "iberia/e_iberia_saint_dark_reload_emit@2x.png",
+      "sha256": "f98fd7c1f2ef258930bbe7eb0a102d2bf58ad364510f1297aa0503203fbb7c2f"
+    },
+    {
+      "file": "iberia/e_iberia_saint_dark_lob.png",
+      "sha256": "fd5bb9539a63b9145999a5367c1684926dd647b1b383c129ed37093b3b28ec7f"
+    },
+    {
+      "file": "iberia/e_iberia_saint_dark_lob@2x.png",
+      "sha256": "0f9281e0aec235082d0bcea5938b98d2828888eb0d8ac921ca5ec971e0345913"
+    },
+    {
+      "file": "iberia/e_iberia_saint_dark_lob_emit.png",
+      "sha256": "02f339df91f180c37fa92a2dc808173ad6fa58ab51b4c11e946a0e95f4268b63"
+    },
+    {
+      "file": "iberia/e_iberia_saint_dark_lob_emit@2x.png",
+      "sha256": "f2d065322f471900e27f0786829f282456c24d7efdbd4c2cc41e4a9257119d45"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "ddef03142732c6afdc1013b40c2368b1e6c98fd16374690dec434687d0d75674",
+    "atlas": "c5e2462bbbe49f965764ad7b38bd37d84e36604e85629cb538c7ac61141f3f7c"
+  }
+}

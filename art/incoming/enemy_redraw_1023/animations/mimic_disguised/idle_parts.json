@@ -1,0 +1,39 @@
+[
+  {
+    "name": "idle_00",
+    "anim": "authored_idle",
+    "t": 0,
+    "parts": [
+      {
+        "slot": "chest_base",
+        "attachment": "chest_base",
+        "bone": null,
+        "parent": null,
+        "draw_order": 0,
+        "file": "idle_00_chest_base.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/idle/chest_base__chest_base.png",
+        "source_file": "build/enemy_actions_1023/mimic_disguised/idle_00_chest_base.png"
+      },
+      {
+        "slot": "chest_lid",
+        "attachment": "chest_lid",
+        "bone": null,
+        "parent": null,
+        "draw_order": 1,
+        "file": "idle_00_chest_lid.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/idle/chest_lid__chest_lid.png",
+        "source_file": "build/enemy_actions_1023/mimic_disguised/idle_00_chest_lid.png"
+      }
+    ],
+    "glow": null,
+    "source_crop_1x": [
+      0,
+      0,
+      32,
+      32
+    ],
+    "glow_active": false
+  }
+]

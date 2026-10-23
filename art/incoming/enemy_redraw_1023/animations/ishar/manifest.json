@@ -1,0 +1,2725 @@
+{
+  "id": "ishar",
+  "name": "伊莎玛拉，腐化之心",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    73,
+    64
+  ],
+  "origin": [
+    32,
+    60
+  ],
+  "source_crop_1x": [
+    0,
+    0,
+    73,
+    64
+  ],
+  "scale_fixed_across_actions": 0.09261845986084218,
+  "idle_height_target": 48,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#17343B",
+    "#285864",
+    "#457D85",
+    "#71A3A3",
+    "#4D3839",
+    "#76584C",
+    "#A47E63",
+    "#C6AB8B",
+    "#E1CDB1",
+    "#59303B",
+    "#874B59",
+    "#A46E7A",
+    "#B3BBC0",
+    "#767F89",
+    "#D7D9D5"
+  ],
+  "color_cap": 28,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 6,
+      "duration_seconds": 9,
+      "sample_times": [
+        0.0,
+        1.5,
+        3.0,
+        4.5,
+        6.0,
+        7.5
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03",
+        "idle_04",
+        "idle_05"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 6,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.22222222884496054,
+        0.4444444576899211,
+        0.6666666865348816,
+        0.8888889153798422,
+        1.1111111442248027
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03",
+        "move_04",
+        "move_05"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack",
+      "frames": 8,
+      "duration_seconds": 2.6666667461395264,
+      "sample_times": [
+        0.0,
+        0.38095239230564665,
+        0.7619047846112933,
+        1.1666666269302368,
+        1.5238095692225866,
+        1.9047619615282332,
+        2.28571435383388,
+        2.6656667461395265
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.1666666269302368
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05",
+        "attack_06",
+        "attack_07"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.14285714285714285,
+        0.2857142857142857,
+        0.42857142857142855,
+        0.5714285714285714,
+        0.7142857142857143,
+        0.8571428571428571,
+        0.999
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05",
+        "death_06",
+        "death_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.14285714285714285,
+        0.2857142857142857,
+        0.42857142857142855,
+        0.5714285714285714,
+        0.7142857142857143,
+        0.8571428571428571,
+        0.999
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "skill",
+      "source_animation": "Skill",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 2.6666667461395264,
+      "sample_times": [
+        0.0,
+        0.38095239230564665,
+        0.7619047846112933,
+        1.3333333730697632,
+        1.5238095692225866,
+        1.9047619615282332,
+        2.2857143538338796,
+        2.6656667461395265
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 1.3333333730697632
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "loop": false,
+      "frame_names": [
+        "skill_00",
+        "skill_01",
+        "skill_02",
+        "skill_03",
+        "skill_04",
+        "skill_05",
+        "skill_06",
+        "skill_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.38095239230564665,
+        0.7619047846112933,
+        1.3333333730697632,
+        1.5238095692225866,
+        1.9047619615282332,
+        2.2857143538338796,
+        2.6656667461395265
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "F_Head",
+    "local": [
+      56.680931668791416,
+      -18.025206332565755
+    ],
+    "slot": "F_Head"
+  },
+  "subpixel_parts": [
+    {
+      "frame": "idle_00",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "idle_00",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "idle_01",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "idle_02",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "idle_03",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "B_R_Finger_IV",
+      "attachment": "B_L_Finger_5"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "B_R_Finger_III",
+      "attachment": "B_L_Finger_4"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "B_R_Finger_I",
+      "attachment": "B_L_Finger_2"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "idle_04",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "F_R_Eye",
+      "attachment": "F_R_Eye"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "idle_05",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "move_00",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "move_00",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "move_00",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "move_00",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "move_00",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "move_00",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "move_00",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "move_00",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "move_00",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "move_00",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "move_00",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "move_01",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "move_01",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "move_01",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "move_01",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "move_01",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "move_01",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "move_01",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "move_01",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "move_01",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "move_01",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "move_01",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "move_01",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "move_01",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "move_02",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "move_02",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "move_02",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "move_02",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "move_02",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "move_02",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "move_02",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "move_02",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "move_02",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "move_02",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "move_02",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "move_02",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "move_02",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "move_03",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "move_03",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "move_03",
+      "slot": "F_R_Finger_IV",
+      "attachment": "F_R_Finger_4"
+    },
+    {
+      "frame": "move_03",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "move_03",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "move_03",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "move_03",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "move_03",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "move_03",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "move_03",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "move_03",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "move_03",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "move_04",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "move_04",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "move_04",
+      "slot": "F_L_Skirt",
+      "attachment": "F_L_Skirt"
+    },
+    {
+      "frame": "move_04",
+      "slot": "F_R_Finger_IV",
+      "attachment": "F_R_Finger_4"
+    },
+    {
+      "frame": "move_04",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "move_04",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "move_04",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "move_04",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "move_04",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "move_04",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "move_04",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "move_04",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "move_04",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "move_04",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "move_05",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "move_05",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "move_05",
+      "slot": "F_L_Skirt",
+      "attachment": "F_L_Skirt"
+    },
+    {
+      "frame": "move_05",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "move_05",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "move_05",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "move_05",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "move_05",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "move_05",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "move_05",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "move_05",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "move_05",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "move_05",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "attack_00",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "B_L_Finger_II",
+      "attachment": "B_L_Finger_3"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "attack_01",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "F_L_Skirt",
+      "attachment": "F_L_Skirt"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "F_R_Finger_IV",
+      "attachment": "F_R_Finger_4"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "attack_02",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "B_R_Finger_IV",
+      "attachment": "B_L_Finger_5"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "attack_04",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "attack_05",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "B_R_Finger_IV",
+      "attachment": "B_L_Finger_5"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "attack_06",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "attack_07",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "death_00",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "death_00",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "death_00",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "death_00",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "death_00",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "death_00",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "death_00",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "death_00",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "death_00",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "death_00",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "death_00",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "death_00",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "death_00",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "death_01",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "death_01",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "death_01",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "death_01",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "death_01",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "death_01",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "death_01",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "death_01",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "death_01",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "death_01",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "death_01",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "death_01",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "death_01",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "death_02",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "death_02",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "death_02",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "death_02",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "death_02",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "death_02",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "death_02",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "death_02",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "death_02",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "death_02",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "death_02",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "death_02",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "death_02",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Skirt",
+      "attachment": "F_L_Skirt"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "death_03",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "death_04",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "death_04",
+      "slot": "F_R_Finger_IV",
+      "attachment": "F_R_Finger_4"
+    },
+    {
+      "frame": "death_04",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "death_04",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "death_04",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "death_04",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "death_04",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "death_04",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "death_04",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "death_04",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "death_04",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "death_05",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "death_05",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "death_05",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "death_05",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "death_05",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "death_05",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "death_05",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "death_05",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "death_05",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "death_05",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "death_05",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "death_06",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "death_06",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "death_06",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "death_06",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "death_06",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "death_06",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "death_06",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "death_06",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "death_06",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "death_06",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "death_06",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "death_06",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "death_07",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "death_07",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "death_07",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "death_07",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "death_07",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "death_07",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "death_07",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "death_07",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "death_07",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "death_07",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "death_07",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "skill_00",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "B_L_Finger_IV",
+      "attachment": "B_L_Finger_5"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "B_L_Finger_IV",
+      "attachment": "B_L_Finger_5"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "skill_02",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "F_L_Dress_I",
+      "attachment": "F_L_Dress_1"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "skill_04",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "F_L_Skirt",
+      "attachment": "F_L_Skirt"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "skill_05",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "F_R_Finger_IV",
+      "attachment": "F_R_Finger_4"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "skill_06",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "skill_07",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "F_Skirt_4",
+      "attachment": "F_Skirt_4"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "F_Skirt_3",
+      "attachment": "F_Skirt_3"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "F_R_Skirt",
+      "attachment": "F_R_Skirt"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "F_R_Tape",
+      "attachment": "F_R_Tape"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "F_R_Eye_Highlight",
+      "attachment": "F_R_Eye_Highlight"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "F_L_Eye_Highlight",
+      "attachment": "F_L_Eye_Highlight"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "F_Face_L",
+      "attachment": "F_Face_L"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "F_Mouth",
+      "attachment": "F_Mouth_A"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "F_R_Eyelash",
+      "attachment": "F_R_Eyelash"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "F_R_Eyebrow",
+      "attachment": "F_R_Eyebrow"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "F_L_Eyelash",
+      "attachment": "F_L_Eyelash"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "F_L_Eyebrow",
+      "attachment": "F_L_Eyebrow"
+    },
+    {
+      "frame": "wound_00",
+      "slot": "F_L_Tape",
+      "attachment": "F_L_Tape"
+    }
+  ],
+  "assets": [
+    {
+      "file": "ishar/e_ishar_idle.png",
+      "sha256": "6c2e99a6cfa7f3da613d061b35039b7b1dbeaad2f537c743fd0e01a46c4589e3"
+    },
+    {
+      "file": "ishar/e_ishar_idle@2x.png",
+      "sha256": "3e5c00cdb07a2565fe095b143d4299d359e2ccc0335ff8b6c1029e9996767e61"
+    },
+    {
+      "file": "ishar/e_ishar_idle_emit.png",
+      "sha256": "1d4c45c545b2b72a20e83d91a59d6512f875cbe64e5caa4f6bbc0b5a320f2e56"
+    },
+    {
+      "file": "ishar/e_ishar_idle_emit@2x.png",
+      "sha256": "080bad04aeac818bd4a212cc06d06bea422e3ddd7bc3e6cedd007258c88d8751"
+    },
+    {
+      "file": "ishar/e_ishar_move.png",
+      "sha256": "e8679ddd9957191dd1b3412b1b06e6f0ed485b6711f2de9b07d6798bdf7fd8cc"
+    },
+    {
+      "file": "ishar/e_ishar_move@2x.png",
+      "sha256": "771b1574d795f419aa8d85ef1e13abe0a8e2b734fd95c84032aca2548b4bd4cf"
+    },
+    {
+      "file": "ishar/e_ishar_move_emit.png",
+      "sha256": "dc473e187633d939e182de9cedd09c414ee9a4554b9c32a4b3600ec2d03b3535"
+    },
+    {
+      "file": "ishar/e_ishar_move_emit@2x.png",
+      "sha256": "a353cb7525a53a6c83589f8f5c25e592a09cab9fd3e5144f7b41cee3bbf6ccb5"
+    },
+    {
+      "file": "ishar/e_ishar_attack.png",
+      "sha256": "31524856e82880133a9edfbf344673d612766eb160dbb75f704c109c7b66503f"
+    },
+    {
+      "file": "ishar/e_ishar_attack@2x.png",
+      "sha256": "252b24ff848598ebb80f12adf3bbe39d521e67f4748c3509085477b2a29e7ecf"
+    },
+    {
+      "file": "ishar/e_ishar_attack_emit.png",
+      "sha256": "2cecb88bca5f50eed4b21aa5cbecb732ee0de0606943dc047c9be180e8a8aa29"
+    },
+    {
+      "file": "ishar/e_ishar_attack_emit@2x.png",
+      "sha256": "68783cfc14785679da9d88db3123672a0f6ee7aa5d0b1a4a363d40e807d713e1"
+    },
+    {
+      "file": "ishar/e_ishar_death.png",
+      "sha256": "880756a525c456a0b3efdc07127d088f6a89e7999fedf9a71abfd05e2e02c90e"
+    },
+    {
+      "file": "ishar/e_ishar_death@2x.png",
+      "sha256": "955aad556903b802355f9b9daa910c1c9c6e708a93c775d33ff3315db8adcdce"
+    },
+    {
+      "file": "ishar/e_ishar_death_emit.png",
+      "sha256": "e4ff112975d4e78eb049b3f870e641d72af96af2e21c0a611c4689cb34cf0d90"
+    },
+    {
+      "file": "ishar/e_ishar_death_emit@2x.png",
+      "sha256": "abf73ae089e87d95f2395fcf55ba5aab0dd3e3958d818ac319a15f28accdf3fa"
+    },
+    {
+      "file": "ishar/e_ishar_skill.png",
+      "sha256": "48fae1251544b8ebd496c81630313adfe3d990f8a519ad75361580a46adfb6fe"
+    },
+    {
+      "file": "ishar/e_ishar_skill@2x.png",
+      "sha256": "292b4c9a9e67447bae34b789674c182d0e319de13d027e801829c0600db1507f"
+    },
+    {
+      "file": "ishar/e_ishar_skill_emit.png",
+      "sha256": "6727f5714b8cbc0f85a6d8ac6909aa688a4c2745b53edfb348c613c06db8e167"
+    },
+    {
+      "file": "ishar/e_ishar_skill_emit@2x.png",
+      "sha256": "6cad98e7895d13a5b08ed78ee7ac8925dbe62fde4496dae93225d46fa78ac6c5"
+    },
+    {
+      "file": "ishar/e_ishar_wound.png",
+      "sha256": "9965eb6c0070bfe1074cab8953375d9bae64e645c0d4aeaeaa0cab0df6d60c30"
+    },
+    {
+      "file": "ishar/e_ishar_wound@2x.png",
+      "sha256": "8a33451ef951af3d5244242caf7988fab9b7ecf3d977431f6396b4f2f7172a85"
+    },
+    {
+      "file": "ishar/e_ishar_wound_emit.png",
+      "sha256": "b174f49f80d8a7b960f4b8c87f08af4edaa3606b1841807e560bd3d66b0a571b"
+    },
+    {
+      "file": "ishar/e_ishar_wound_emit@2x.png",
+      "sha256": "8341c476fa8bc38f3efc01062258d09af1669f1f0a361d3285c5a232623d3c4e"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "ccfe6d047f4f21149153e672ca5846b8d557a3a7d16dc9a02227beb2eb8fd059",
+    "atlas": "daeaebfcc456076d073d813249361383c9aaa11d3e7fc1a22472d3e3caeceb17"
+  }
+}

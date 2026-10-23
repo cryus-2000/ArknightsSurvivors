@@ -1,0 +1,1046 @@
+[
+  {
+    "name": "idle_00",
+    "anim": "Idle",
+    "t": 0,
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body_1",
+        "attachment": "C_Body_02",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 0,
+        "file": "idle_00_slot_0.png",
+        "matrix": [
+          -0.5333455164761798,
+          -0.8458974755350289,
+          0.8458975002877004,
+          -0.5333455164761777,
+          -3.345584800087967,
+          85.85002928192137
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Body_1__C_Body_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_00_slot_0.png"
+      },
+      {
+        "slot": "C_R_Foot_01",
+        "attachment": "C_R_Foot_01",
+        "bone": "C_R_Foot_01",
+        "parent": "Common2",
+        "draw_order": 1,
+        "file": "idle_00_slot_1.png",
+        "matrix": [
+          0.45892376944651286,
+          0.8884756355205204,
+          -0.888475646169887,
+          0.45892379006367845,
+          49.72139176913353,
+          129.3450591357057
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_R_Foot_01__C_R_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_00_slot_1.png"
+      },
+      {
+        "slot": "C_Head_03",
+        "attachment": "C_Head_03",
+        "bone": "C_Head_03",
+        "parent": "C_Head_2",
+        "draw_order": 2,
+        "file": "idle_00_slot_2.png",
+        "matrix": [
+          0.9454057348440803,
+          -0.3258957085866421,
+          0.325895642189107,
+          0.9454057404368166,
+          20.59439890915355,
+          161.336244514917
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Head_03__C_Head_03.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_00_slot_2.png"
+      },
+      {
+        "slot": "C_R_Pincers_01",
+        "attachment": "C_R_Pincers_01",
+        "bone": "C_R_Pincers_01",
+        "parent": "C_Head_01",
+        "draw_order": 3,
+        "file": "idle_00_slot_3.png",
+        "matrix": [
+          0.6107415625614158,
+          0.7918299825820564,
+          -0.7918300109266998,
+          0.610741562561417,
+          84.43436032675393,
+          121.83525600138302
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_R_Pincers_01__C_R_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_00_slot_3.png"
+      },
+      {
+        "slot": "C_Body_01",
+        "attachment": "C_Body_01",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 4,
+        "file": "idle_00_slot_4.png",
+        "matrix": [
+          -0.5333455164761798,
+          -0.8458974755350289,
+          0.8458975002877004,
+          -0.5333455164761777,
+          -3.345584800087967,
+          85.85002928192137
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Body_01__C_Body_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_00_slot_4.png"
+      },
+      {
+        "slot": "C_Head_02",
+        "attachment": "C_Head_02",
+        "bone": "C_Head_02",
+        "parent": "C_Head_2",
+        "draw_order": 5,
+        "file": "idle_00_slot_5.png",
+        "matrix": [
+          0.9980629398676235,
+          -0.06221232190330443,
+          0.06221225238591688,
+          0.9980629392574741,
+          15.008430483149276,
+          140.58823798893403
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Head_02__C_Head_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_00_slot_5.png"
+      },
+      {
+        "slot": "C_Head_01",
+        "attachment": "C_Head_01",
+        "bone": "C_Head_01",
+        "parent": "Common2",
+        "draw_order": 6,
+        "file": "idle_00_slot_6.png",
+        "matrix": [
+          0.9999999999999795,
+          1.967008028307056e-07,
+          -2.1990590605181402e-07,
+          0.9999999999999762,
+          5.033422190471468,
+          131.0122677858489
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Head_01__C_Head_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_00_slot_6.png"
+      },
+      {
+        "slot": "C_L_Pincers_02",
+        "attachment": "C_L_Pincers_02",
+        "bone": "C_L_Pincers_02",
+        "parent": "C_Head_01",
+        "draw_order": 7,
+        "file": "idle_00_slot_7.png",
+        "matrix": [
+          0.6726877668136503,
+          0.7399264458573362,
+          -0.7399264770769156,
+          0.6726877668136515,
+          6.629403866855855,
+          131.41126951007843
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Pincers_02__C_L_Pincers_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_00_slot_7.png"
+      },
+      {
+        "slot": "C_L_Pincers_01",
+        "attachment": "C_L_Pincers_01",
+        "bone": "C_L_Pincers_01",
+        "parent": "C_L_Pincers_02",
+        "draw_order": 8,
+        "file": "idle_00_slot_8.png",
+        "matrix": [
+          0.25656464034005705,
+          0.9665270563819378,
+          -0.966527090050631,
+          0.2565646483970485,
+          26.396674556825623,
+          109.71951029504893
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Pincers_01__C_L_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_00_slot_8.png"
+      },
+      {
+        "slot": "C_L_Foot_02",
+        "attachment": "C_L_Foot_02",
+        "bone": "C_L_Foot_02",
+        "parent": "Common2",
+        "draw_order": 9,
+        "file": "idle_00_slot_9.png",
+        "matrix": [
+          -0.4748543957546979,
+          0.8800643852738199,
+          -0.8800643742547676,
+          -0.4748543753327085,
+          -32.47254570997621,
+          126.55208034974515
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Foot_02__C_L_Foot_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_00_slot_9.png"
+      },
+      {
+        "slot": "C_L_Foot_01",
+        "attachment": "C_L_Foot_01",
+        "bone": "C_L_Foot_01",
+        "parent": "Common2",
+        "draw_order": 10,
+        "file": "idle_00_slot_10.png",
+        "matrix": [
+          -0.1578691872463275,
+          0.9874600381549906,
+          -0.9874600344916121,
+          -0.15786916433221315,
+          -12.123573009117134,
+          132.53706440827804
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Foot_01__C_L_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_00_slot_10.png"
+      }
+    ],
+    "glow": [
+      29.525,
+      23.8375
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      52,
+      40
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "idle_01",
+    "anim": "Idle",
+    "t": 0.3333333432674408,
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body_1",
+        "attachment": "C_Body_02",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 0,
+        "file": "idle_01_slot_0.png",
+        "matrix": [
+          -0.5333455164761798,
+          -0.8458974755350289,
+          0.8458975002877004,
+          -0.5333455164761777,
+          -3.3455847027279484,
+          86.40595250213242
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Body_1__C_Body_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_01_slot_0.png"
+      },
+      {
+        "slot": "C_R_Foot_01",
+        "attachment": "C_R_Foot_01",
+        "bone": "C_R_Foot_01",
+        "parent": "Common2",
+        "draw_order": 1,
+        "file": "idle_01_slot_1.png",
+        "matrix": [
+          0.45892376944651286,
+          0.8884756355205204,
+          -0.888475646169887,
+          0.45892379006367845,
+          49.72139176913353,
+          129.3450591357057
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_R_Foot_01__C_R_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_01_slot_1.png"
+      },
+      {
+        "slot": "C_Head_03",
+        "attachment": "C_Head_03",
+        "bone": "C_Head_03",
+        "parent": "C_Head_2",
+        "draw_order": 2,
+        "file": "idle_01_slot_2.png",
+        "matrix": [
+          0.9495874911239868,
+          -0.3135021731490486,
+          0.31350210648621246,
+          0.9495874964216752,
+          20.594398997113853,
+          161.33624518141758
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Head_03__C_Head_03.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_01_slot_2.png"
+      },
+      {
+        "slot": "C_R_Pincers_01",
+        "attachment": "C_R_Pincers_01",
+        "bone": "C_R_Pincers_01",
+        "parent": "C_Head_01",
+        "draw_order": 3,
+        "file": "idle_01_slot_3.png",
+        "matrix": [
+          0.5229483677262053,
+          0.8523643493280857,
+          -0.8523643735982289,
+          0.5229483677262063,
+          84.43436041471423,
+          121.83525666788358
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_R_Pincers_01__C_R_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_01_slot_3.png"
+      },
+      {
+        "slot": "C_Body_01",
+        "attachment": "C_Body_01",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 4,
+        "file": "idle_01_slot_4.png",
+        "matrix": [
+          -0.5333455164761798,
+          -0.8458974755350289,
+          0.8458975002877004,
+          -0.5333455164761777,
+          -3.3455847027279484,
+          86.40595250213242
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Body_01__C_Body_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_01_slot_4.png"
+      },
+      {
+        "slot": "C_Head_02",
+        "attachment": "C_Head_02",
+        "bone": "C_Head_02",
+        "parent": "C_Head_2",
+        "draw_order": 5,
+        "file": "idle_01_slot_5.png",
+        "matrix": [
+          0.9987912820223955,
+          -0.049152612205204,
+          0.04915254266397885,
+          0.9987912811088869,
+          15.008430571109578,
+          140.5882386554346
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Head_02__C_Head_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_01_slot_5.png"
+      },
+      {
+        "slot": "C_Head_01",
+        "attachment": "C_Head_01",
+        "bone": "C_Head_01",
+        "parent": "Common2",
+        "draw_order": 6,
+        "file": "idle_01_slot_6.png",
+        "matrix": [
+          0.9999999999999795,
+          1.967008028307056e-07,
+          -2.1990590605181402e-07,
+          0.9999999999999762,
+          5.033422278431768,
+          131.01226845234947
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Head_01__C_Head_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_01_slot_6.png"
+      },
+      {
+        "slot": "C_L_Pincers_02",
+        "attachment": "C_L_Pincers_02",
+        "bone": "C_L_Pincers_02",
+        "parent": "C_Head_01",
+        "draw_order": 7,
+        "file": "idle_01_slot_7.png",
+        "matrix": [
+          0.687176098673452,
+          0.7264908714104364,
+          -0.7264909033024224,
+          0.6871760986734533,
+          6.629403954816155,
+          131.411270176579
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Pincers_02__C_L_Pincers_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_01_slot_7.png"
+      },
+      {
+        "slot": "C_L_Pincers_01",
+        "attachment": "C_L_Pincers_01",
+        "bone": "C_L_Pincers_01",
+        "parent": "C_L_Pincers_02",
+        "draw_order": 8,
+        "file": "idle_01_slot_8.png",
+        "matrix": [
+          0.3181787053012042,
+          0.9480307349048801,
+          -0.9480307712264169,
+          0.31817871389583197,
+          26.82140692837762,
+          110.1143120757926
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Pincers_01__C_L_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_01_slot_8.png"
+      },
+      {
+        "slot": "C_L_Foot_02",
+        "attachment": "C_L_Foot_02",
+        "bone": "C_L_Foot_02",
+        "parent": "Common2",
+        "draw_order": 9,
+        "file": "idle_01_slot_9.png",
+        "matrix": [
+          -0.4748543957546979,
+          0.8800643852738199,
+          -0.8800643742547676,
+          -0.4748543753327085,
+          -32.47254570997621,
+          126.55208034974515
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Foot_02__C_L_Foot_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_01_slot_9.png"
+      },
+      {
+        "slot": "C_L_Foot_01",
+        "attachment": "C_L_Foot_01",
+        "bone": "C_L_Foot_01",
+        "parent": "Common2",
+        "draw_order": 10,
+        "file": "idle_01_slot_10.png",
+        "matrix": [
+          -0.1578691872463275,
+          0.9874600381549906,
+          -0.9874600344916121,
+          -0.15786916433221315,
+          -12.123573009117134,
+          132.53706440827804
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Foot_01__C_L_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_01_slot_10.png"
+      }
+    ],
+    "glow": [
+      29.525000007813208,
+      23.837499940797052
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      52,
+      40
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "idle_02",
+    "anim": "Idle",
+    "t": 0.6666666865348816,
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body_1",
+        "attachment": "C_Body_02",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 0,
+        "file": "idle_02_slot_0.png",
+        "matrix": [
+          -0.5333455164761798,
+          -0.8458974755350289,
+          0.8458975002877004,
+          -0.5333455164761777,
+          -3.3455846012100614,
+          83.29319273523227
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Body_1__C_Body_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_02_slot_0.png"
+      },
+      {
+        "slot": "C_R_Foot_01",
+        "attachment": "C_R_Foot_01",
+        "bone": "C_R_Foot_01",
+        "parent": "Common2",
+        "draw_order": 1,
+        "file": "idle_02_slot_1.png",
+        "matrix": [
+          0.45892376944651286,
+          0.8884756355205204,
+          -0.888475646169887,
+          0.45892379006367845,
+          49.72139176913353,
+          129.3450591357057
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_R_Foot_01__C_R_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_02_slot_1.png"
+      },
+      {
+        "slot": "C_Head_03",
+        "attachment": "C_Head_03",
+        "bone": "C_Head_03",
+        "parent": "C_Head_2",
+        "draw_order": 2,
+        "file": "idle_02_slot_2.png",
+        "matrix": [
+          0.9376371510800097,
+          -0.3476155780362694,
+          0.3476155121342688,
+          0.937637157190725,
+          20.59439905330222,
+          157.4848489063187
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Head_03__C_Head_03.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_02_slot_2.png"
+      },
+      {
+        "slot": "C_R_Pincers_01",
+        "attachment": "C_R_Pincers_01",
+        "bone": "C_R_Pincers_01",
+        "parent": "C_Head_01",
+        "draw_order": 3,
+        "file": "idle_02_slot_3.png",
+        "matrix": [
+          0.6107415939115352,
+          0.7918299584015854,
+          -0.7918299867462303,
+          0.6107415939115364,
+          84.4343604709026,
+          117.9838603927847
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_R_Pincers_01__C_R_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_02_slot_3.png"
+      },
+      {
+        "slot": "C_Body_01",
+        "attachment": "C_Body_01",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 4,
+        "file": "idle_02_slot_4.png",
+        "matrix": [
+          -0.5333455164761798,
+          -0.8458974755350289,
+          0.8458975002877004,
+          -0.5333455164761777,
+          -3.3455846012100614,
+          83.29319273523227
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Body_01__C_Body_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_02_slot_4.png"
+      },
+      {
+        "slot": "C_Head_02",
+        "attachment": "C_Head_02",
+        "bone": "C_Head_02",
+        "parent": "C_Head_2",
+        "draw_order": 5,
+        "file": "idle_02_slot_5.png",
+        "matrix": [
+          0.99636242408599,
+          -0.08521693412784254,
+          0.08521686468147428,
+          0.996362424011063,
+          15.008430627297944,
+          136.7368423803357
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Head_02__C_Head_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_02_slot_5.png"
+      },
+      {
+        "slot": "C_Head_01",
+        "attachment": "C_Head_01",
+        "bone": "C_Head_01",
+        "parent": "Common2",
+        "draw_order": 6,
+        "file": "idle_02_slot_6.png",
+        "matrix": [
+          0.9999999999999795,
+          1.967008028307056e-07,
+          -2.1990590605181402e-07,
+          0.9999999999999762,
+          5.033422334620136,
+          127.1608721772506
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Head_01__C_Head_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_02_slot_6.png"
+      },
+      {
+        "slot": "C_L_Pincers_02",
+        "attachment": "C_L_Pincers_02",
+        "bone": "C_L_Pincers_02",
+        "parent": "C_Head_01",
+        "draw_order": 7,
+        "file": "idle_02_slot_7.png",
+        "matrix": [
+          0.646499948747823,
+          0.7629140144068907,
+          -0.7629140444110881,
+          0.6464999487478243,
+          6.629404011004523,
+          127.55987390148012
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Pincers_02__C_L_Pincers_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_02_slot_7.png"
+      },
+      {
+        "slot": "C_L_Pincers_01",
+        "attachment": "C_L_Pincers_01",
+        "bone": "C_L_Pincers_01",
+        "parent": "C_L_Pincers_02",
+        "draw_order": 8,
+        "file": "idle_02_slot_8.png",
+        "matrix": [
+          0.22273457185916112,
+          0.9748791091877043,
+          -0.9748791409924157,
+          0.22273458066944196,
+          25.628921640694614,
+          105.1925822005342
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Pincers_01__C_L_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_02_slot_8.png"
+      },
+      {
+        "slot": "C_L_Foot_02",
+        "attachment": "C_L_Foot_02",
+        "bone": "C_L_Foot_02",
+        "parent": "Common2",
+        "draw_order": 9,
+        "file": "idle_02_slot_9.png",
+        "matrix": [
+          -0.4748543957546979,
+          0.8800643852738199,
+          -0.8800643742547676,
+          -0.4748543753327085,
+          -32.47254570997621,
+          126.55208034974515
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Foot_02__C_L_Foot_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_02_slot_9.png"
+      },
+      {
+        "slot": "C_L_Foot_01",
+        "attachment": "C_L_Foot_01",
+        "bone": "C_L_Foot_01",
+        "parent": "Common2",
+        "draw_order": 10,
+        "file": "idle_02_slot_10.png",
+        "matrix": [
+          -0.1578691872463275,
+          0.9874600381549906,
+          -0.9874600344916121,
+          -0.15786916433221315,
+          -12.123573009117134,
+          132.53706440827804
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Foot_01__C_L_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_02_slot_10.png"
+      }
+    ],
+    "glow": [
+      29.525000012804227,
+      24.17960618127607
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      52,
+      40
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "idle_03",
+    "anim": "Idle",
+    "t": 1.0000000298023224,
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body_1",
+        "attachment": "C_Body_02",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 0,
+        "file": "idle_03_slot_0.png",
+        "matrix": [
+          -0.5333455164761798,
+          -0.8458974755350289,
+          0.8458975002877004,
+          -0.5333455164761777,
+          -3.345584603152942,
+          82.7411566163824
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Body_1__C_Body_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_03_slot_0.png"
+      },
+      {
+        "slot": "C_R_Foot_01",
+        "attachment": "C_R_Foot_01",
+        "bone": "C_R_Foot_01",
+        "parent": "Common2",
+        "draw_order": 1,
+        "file": "idle_03_slot_1.png",
+        "matrix": [
+          0.45892376944651286,
+          0.8884756355205204,
+          -0.888475646169887,
+          0.45892379006367845,
+          49.72139176913353,
+          129.3450591357057
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_R_Foot_01__C_R_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_03_slot_1.png"
+      },
+      {
+        "slot": "C_Head_03",
+        "attachment": "C_Head_03",
+        "bone": "C_Head_03",
+        "parent": "C_Head_2",
+        "draw_order": 2,
+        "file": "idle_03_slot_2.png",
+        "matrix": [
+          0.9329879476917623,
+          -0.3599076368988063,
+          0.3599075712948142,
+          0.9329879540961393,
+          20.59439903311374,
+          157.49392142921616
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Head_03__C_Head_03.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_03_slot_2.png"
+      },
+      {
+        "slot": "C_R_Pincers_01",
+        "attachment": "C_R_Pincers_01",
+        "bone": "C_R_Pincers_01",
+        "parent": "C_Head_01",
+        "draw_order": 3,
+        "file": "idle_03_slot_3.png",
+        "matrix": [
+          0.6915894179599194,
+          0.7222908373935161,
+          -0.7222908694903251,
+          0.6915894179599206,
+          84.43436045071412,
+          117.99293291568216
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_R_Pincers_01__C_R_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_03_slot_3.png"
+      },
+      {
+        "slot": "C_Body_01",
+        "attachment": "C_Body_01",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 4,
+        "file": "idle_03_slot_4.png",
+        "matrix": [
+          -0.5333455164761798,
+          -0.8458974755350289,
+          0.8458975002877004,
+          -0.5333455164761777,
+          -3.345584603152942,
+          82.7411566163824
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Body_01__C_Body_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_03_slot_4.png"
+      },
+      {
+        "slot": "C_Head_02",
+        "attachment": "C_Head_02",
+        "bone": "C_Head_02",
+        "parent": "C_Head_2",
+        "draw_order": 5,
+        "file": "idle_03_slot_5.png",
+        "matrix": [
+          0.9951564947830067,
+          -0.09830339507612601,
+          0.09830332568674457,
+          0.9951564950130375,
+          15.008430607109464,
+          136.74591490323317
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Head_02__C_Head_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_03_slot_5.png"
+      },
+      {
+        "slot": "C_Head_01",
+        "attachment": "C_Head_01",
+        "bone": "C_Head_01",
+        "parent": "Common2",
+        "draw_order": 6,
+        "file": "idle_03_slot_6.png",
+        "matrix": [
+          0.9999999999999795,
+          1.967008028307056e-07,
+          -2.1990590605181402e-07,
+          0.9999999999999762,
+          5.033422314431656,
+          127.16994470014805
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_Head_01__C_Head_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_03_slot_6.png"
+      },
+      {
+        "slot": "C_L_Pincers_02",
+        "attachment": "C_L_Pincers_02",
+        "bone": "C_L_Pincers_02",
+        "parent": "C_Head_01",
+        "draw_order": 7,
+        "file": "idle_03_slot_7.png",
+        "matrix": [
+          0.6312273930405841,
+          0.7755978052790905,
+          -0.7755978345744854,
+          0.6312273930405854,
+          6.6294039908160425,
+          127.56894642437757
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Pincers_02__C_L_Pincers_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_03_slot_7.png"
+      },
+      {
+        "slot": "C_L_Pincers_01",
+        "attachment": "C_L_Pincers_01",
+        "bone": "C_L_Pincers_01",
+        "parent": "C_L_Pincers_02",
+        "draw_order": 8,
+        "file": "idle_03_slot_8.png",
+        "matrix": [
+          0.15949943811220085,
+          0.9871980040563338,
+          -0.987198033137573,
+          0.159499446388971,
+          25.181148350649266,
+          104.82888949261877
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Pincers_01__C_L_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_03_slot_8.png"
+      },
+      {
+        "slot": "C_L_Foot_02",
+        "attachment": "C_L_Foot_02",
+        "bone": "C_L_Foot_02",
+        "parent": "Common2",
+        "draw_order": 9,
+        "file": "idle_03_slot_9.png",
+        "matrix": [
+          -0.4748543957546979,
+          0.8800643852738199,
+          -0.8800643742547676,
+          -0.4748543753327085,
+          -32.47254570997621,
+          126.55208034974515
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Foot_02__C_L_Foot_02.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_03_slot_9.png"
+      },
+      {
+        "slot": "C_L_Foot_01",
+        "attachment": "C_L_Foot_01",
+        "bone": "C_L_Foot_01",
+        "parent": "Common2",
+        "draw_order": 10,
+        "file": "idle_03_slot_10.png",
+        "matrix": [
+          -0.1578691872463275,
+          0.9874600381549906,
+          -0.9874600344916121,
+          -0.15786916433221315,
+          -12.123573009117134,
+          132.53706440827804
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/idle/C_L_Foot_01__C_L_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/idle_03_slot_10.png"
+      }
+    ],
+    "glow": [
+      29.525000011010953,
+      24.178800300375116
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      52,
+      40
+    ],
+    "glow_active": true
+  }
+]

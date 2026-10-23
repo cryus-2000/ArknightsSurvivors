@@ -1,0 +1,383 @@
+{
+  "id": "immortal",
+  "name": "接潮斥亡体",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    86,
+    64
+  ],
+  "origin": [
+    45,
+    59
+  ],
+  "source_crop_1x": [
+    0,
+    1,
+    86,
+    65
+  ],
+  "scale_fixed_across_actions": 0.10253464479449848,
+  "idle_height_target": 48,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#293C5A",
+    "#45628C",
+    "#6A89AD",
+    "#463346",
+    "#71556F",
+    "#98758F",
+    "#683A49",
+    "#94636C",
+    "#B39AA3",
+    "#354957",
+    "#536674"
+  ],
+  "color_cap": 28,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 6,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.22222222884496054,
+        0.4444444576899211,
+        0.6666666865348816,
+        0.8888889153798422,
+        1.1111111442248027
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03",
+        "idle_04",
+        "idle_05"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 6,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.22222222884496054,
+        0.4444444576899211,
+        0.6666666865348816,
+        0.8888889153798422,
+        1.1111111442248027
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03",
+        "move_04",
+        "move_05"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack",
+      "frames": 8,
+      "duration_seconds": 1.2999999523162842,
+      "sample_times": [
+        0.0,
+        0.1857142789023263,
+        0.4333333373069763,
+        0.557142836706979,
+        0.7428571156093052,
+        0.9285713945116315,
+        1.114285673413958,
+        1.2989999523162843
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.4333333373069763
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05",
+        "attack_06",
+        "attack_07"
+      ]
+    },
+    {
+      "action": "feign",
+      "source_animation": "Die_Idle",
+      "frames": 6,
+      "duration_seconds": 1.2333333492279053,
+      "sample_times": [
+        0.0,
+        0.20555555820465088,
+        0.41111111640930176,
+        0.6166666746139526,
+        0.8222222328186035,
+        1.0277777910232544
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "feign_00",
+        "feign_01",
+        "feign_02",
+        "feign_03",
+        "feign_04",
+        "feign_05"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.14285714285714285,
+        0.2857142857142857,
+        0.42857142857142855,
+        0.5714285714285714,
+        0.7142857142857143,
+        0.8571428571428571,
+        0.999
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05",
+        "death_06",
+        "death_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.14285714285714285,
+        0.2857142857142857,
+        0.42857142857142855,
+        0.5714285714285714,
+        0.7142857142857143,
+        0.8571428571428571,
+        0.999
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "revive",
+      "source_animation": "Die_Loop",
+      "construction": "original Spine animation",
+      "frames": 6,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.22222222884496054,
+        0.4444444576899211,
+        0.6666666865348816,
+        0.8888889153798422,
+        1.1111111442248027
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "revive_00",
+        "revive_01",
+        "revive_02",
+        "revive_03",
+        "revive_04",
+        "revive_05"
+      ],
+      "pose_times": [
+        0.0,
+        0.22222222884496054,
+        0.4444444576899211,
+        0.6666666865348816,
+        0.8888889153798422,
+        1.1111111442248027
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "C_Head",
+    "local": [
+      34.19581602313773,
+      -1.7050134152233147
+    ],
+    "slot": "C_Head"
+  },
+  "subpixel_parts": [],
+  "assets": [
+    {
+      "file": "immortal/e_immortal_idle.png",
+      "sha256": "d390b3d56531c9ee8d1fe594e171f3e4e116ac849f4a6008df9e05e43f525432"
+    },
+    {
+      "file": "immortal/e_immortal_idle@2x.png",
+      "sha256": "1d984af06b7139b73f97eee89adbdced03b5bab43c173abc2b8cb396d13e717b"
+    },
+    {
+      "file": "immortal/e_immortal_idle_emit.png",
+      "sha256": "29dc47aa691b4f31cc4a10f0c9899d061da35f035e8025e1c95a9bcda5914acb"
+    },
+    {
+      "file": "immortal/e_immortal_idle_emit@2x.png",
+      "sha256": "6948fd4ac82cc95a0118d75480795f7f0abfcca7e92d8a07060fb3fcf37c0df3"
+    },
+    {
+      "file": "immortal/e_immortal_move.png",
+      "sha256": "a904eb7037bd57efb7414d7910ddf1164157776bc462289d4bf9357c782fff45"
+    },
+    {
+      "file": "immortal/e_immortal_move@2x.png",
+      "sha256": "38f08dbd437d07fa3e89175cbb36727d1dc9b7e14b9a6a787bfb6273913b14f9"
+    },
+    {
+      "file": "immortal/e_immortal_move_emit.png",
+      "sha256": "86295469b14a3118ca844a6885b49148326e008ed7325611e7c600c9be87dcf4"
+    },
+    {
+      "file": "immortal/e_immortal_move_emit@2x.png",
+      "sha256": "c5a086cec247a62b3c6a93b51be7f8845784b5520aecf4b9f87818ae6f6e0ab1"
+    },
+    {
+      "file": "immortal/e_immortal_attack.png",
+      "sha256": "57ecb2753692e177a74081ebfe1b73f49c697eb8c6de75fd8d390dfdd75bc1e1"
+    },
+    {
+      "file": "immortal/e_immortal_attack@2x.png",
+      "sha256": "01a44fa0f021e0a3f3667b961b4092e4bf8510d1578fe8d2bd4380173aa2cecd"
+    },
+    {
+      "file": "immortal/e_immortal_attack_emit.png",
+      "sha256": "9b5acb081b662bd65bee588a814e73736cc082cfd6dd3afeb32427dd6fb27e93"
+    },
+    {
+      "file": "immortal/e_immortal_attack_emit@2x.png",
+      "sha256": "d856b0f59ada3b0834d74a70596364cc22c295ded3a9b41d2688abf6681ebe22"
+    },
+    {
+      "file": "immortal/e_immortal_feign.png",
+      "sha256": "8eb254b4eba64805e7d22de7596eaf5bbef7addcd9369d11ac11e1dc0aecf8a6"
+    },
+    {
+      "file": "immortal/e_immortal_feign@2x.png",
+      "sha256": "f25cc1953a556982ad6ab84b87dd922c63259555719dab54fa5b95d4d26879bd"
+    },
+    {
+      "file": "immortal/e_immortal_feign_emit.png",
+      "sha256": "88a30573ee56c4f626b719cafcd089aa472b7fd9495b633fd7030a96e046501e"
+    },
+    {
+      "file": "immortal/e_immortal_feign_emit@2x.png",
+      "sha256": "c75ff9c15bf0effab049dfce820f3e80f8972b13bc9a922de557738560fefa15"
+    },
+    {
+      "file": "immortal/e_immortal_death.png",
+      "sha256": "4cb32e4d011e04495a6af42e30a5047f25b706582cfd1de3f609c091cb9cbe5f"
+    },
+    {
+      "file": "immortal/e_immortal_death@2x.png",
+      "sha256": "d0449983beb39bd6b507217d6ce233ca40b70699aaf548e0bf6fff23c7d74ae0"
+    },
+    {
+      "file": "immortal/e_immortal_death_emit.png",
+      "sha256": "969f81ad1eb0e7080594f526d072d2e4dbe6967db1a59a9c89f54c7456a4b49e"
+    },
+    {
+      "file": "immortal/e_immortal_death_emit@2x.png",
+      "sha256": "70ce66ba5ae1f5338d5fda4104a2730b806f961c7c39d08a5c08a79d806c7ed7"
+    },
+    {
+      "file": "immortal/e_immortal_revive.png",
+      "sha256": "7ee19660c4b80569099c52da4565e1528864047cf456591c5b1358a3b1cba440"
+    },
+    {
+      "file": "immortal/e_immortal_revive@2x.png",
+      "sha256": "f9e048af17a4a255610c804f4b532869fbb31a2c679ce0f3eaf149632ecb1190"
+    },
+    {
+      "file": "immortal/e_immortal_revive_emit.png",
+      "sha256": "b08131a1f78f721b7ecb95470ca07e081e2f8889f8923c54b8906f81c67fdc9e"
+    },
+    {
+      "file": "immortal/e_immortal_revive_emit@2x.png",
+      "sha256": "5fb5172e51dd2349ae5fd3c6d6c7169b0a05720ea84e13353fec9e570d049155"
+    },
+    {
+      "file": "immortal/e_immortal_wound.png",
+      "sha256": "42bba9952b7b0b290273041d4e715223757a36927fa6819ed8869a77c71680a6"
+    },
+    {
+      "file": "immortal/e_immortal_wound@2x.png",
+      "sha256": "1de79fd0d248b5426063715f099e9698d6b738f52ac1c4408b1805ab528a4f8a"
+    },
+    {
+      "file": "immortal/e_immortal_wound_emit.png",
+      "sha256": "534ccd1d4719b74c657c596d7972b1330bdface2b3756f612ce12eb02df45471"
+    },
+    {
+      "file": "immortal/e_immortal_wound_emit@2x.png",
+      "sha256": "a8b50f035e149a769ff2220e2951d2271c8558f83be42291d2255568b97c8e07"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "d37dd0f9c1d28c38a7855aa5acde7633a450427c5cf0a360504402d84327671a",
+    "atlas": "78e57543f066e0446b7c04a0642e2a2dda191eca2b707ff9269946c6e0368c3b"
+  }
+}

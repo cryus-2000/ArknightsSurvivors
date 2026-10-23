@@ -1,0 +1,361 @@
+{
+  "id": "mimic",
+  "name": "箱形恐鱼",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    46,
+    32
+  ],
+  "origin": [
+    23,
+    28
+  ],
+  "source_crop_1x": [
+    0,
+    0,
+    46,
+    32
+  ],
+  "scale_fixed_across_actions": 0.0765702098116124,
+  "idle_height_target": 24,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B"
+  ],
+  "color_cap": 16,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 6,
+      "duration_seconds": 2,
+      "sample_times": [
+        0.0,
+        0.3333333333333333,
+        0.6666666666666666,
+        1.0,
+        1.3333333333333333,
+        1.6666666666666665
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03",
+        "idle_04",
+        "idle_05"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 6,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.22222222884496054,
+        0.4444444576899211,
+        0.6666666865348816,
+        0.8888889153798422,
+        1.1111111442248027
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03",
+        "move_04",
+        "move_05"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack",
+      "frames": 8,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.14285714285714285,
+        0.2857142857142857,
+        0.42857142857142855,
+        0.5,
+        0.7142857142857142,
+        0.8571428571428571,
+        0.999
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5
+        }
+      ],
+      "event_frames": [
+        4
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05",
+        "attack_06",
+        "attack_07"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.14285714285714285,
+        0.2857142857142857,
+        0.42857142857142855,
+        0.5714285714285714,
+        0.7142857142857143,
+        0.8571428571428571,
+        0.999
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05",
+        "death_06",
+        "death_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.14285714285714285,
+        0.2857142857142857,
+        0.42857142857142855,
+        0.5714285714285714,
+        0.7142857142857143,
+        0.8571428571428571,
+        0.999
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "reveal",
+      "source_animation": "Start",
+      "construction": "original Spine animation",
+      "frames": 8,
+      "duration_seconds": 1.2666666507720947,
+      "sample_times": [
+        0.0,
+        0.1809523786817278,
+        0.3619047573634556,
+        0.5428571360451835,
+        0.7238095147269112,
+        0.9047618934086391,
+        1.085714272090367,
+        1.2656666507720948
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "reveal_00",
+        "reveal_01",
+        "reveal_02",
+        "reveal_03",
+        "reveal_04",
+        "reveal_05",
+        "reveal_06",
+        "reveal_07"
+      ],
+      "pose_times": [
+        0.0,
+        0.1809523786817278,
+        0.3619047573634556,
+        0.5428571360451835,
+        0.7238095147269112,
+        0.9047618934086391,
+        1.085714272090367,
+        1.2656666507720948
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "C_Box_02_02",
+    "local": [
+      12.446041914748937,
+      11.64134358963006
+    ],
+    "slot": "C_Box_Open_02"
+  },
+  "subpixel_parts": [
+    {
+      "frame": "death_05",
+      "slot": "C_Coin",
+      "attachment": "C_Coin"
+    },
+    {
+      "frame": "death_06",
+      "slot": "C_Coin",
+      "attachment": "C_Coin"
+    },
+    {
+      "frame": "death_07",
+      "slot": "C_Coin",
+      "attachment": "C_Coin"
+    },
+    {
+      "frame": "reveal_01",
+      "slot": "c_2",
+      "attachment": "c_2"
+    }
+  ],
+  "assets": [
+    {
+      "file": "mimic/e_mimic_idle.png",
+      "sha256": "bd4503c6f0a3d284c104160767eb70eae7eda8bb5aadfd1ca0523975d5c84973"
+    },
+    {
+      "file": "mimic/e_mimic_idle@2x.png",
+      "sha256": "a8a7df94468ec681b1c770697293513b8324910d22658b4a114954b5808832dc"
+    },
+    {
+      "file": "mimic/e_mimic_idle_emit.png",
+      "sha256": "636176e0edb26b1f132bba7f90ab9fe4ebf4dc23dd37981b18dc107315c12dbf"
+    },
+    {
+      "file": "mimic/e_mimic_idle_emit@2x.png",
+      "sha256": "02a36787079a3dc3692913f4cf3ecb502815028b99707691ed35c7451c6dbd5a"
+    },
+    {
+      "file": "mimic/e_mimic_move.png",
+      "sha256": "61e7f5ad899e4c9243277e2f5809ec7b0fb88e8f7a9b3b4e863b9a10430ab682"
+    },
+    {
+      "file": "mimic/e_mimic_move@2x.png",
+      "sha256": "12a05fc98928a43d006a664eb112e70f1b48a14158641b0fcd7127555f4433a3"
+    },
+    {
+      "file": "mimic/e_mimic_move_emit.png",
+      "sha256": "636176e0edb26b1f132bba7f90ab9fe4ebf4dc23dd37981b18dc107315c12dbf"
+    },
+    {
+      "file": "mimic/e_mimic_move_emit@2x.png",
+      "sha256": "02a36787079a3dc3692913f4cf3ecb502815028b99707691ed35c7451c6dbd5a"
+    },
+    {
+      "file": "mimic/e_mimic_attack.png",
+      "sha256": "80edaa45917afd518bd5ecd29f31b6446a169101201389fa50f75e3f264db264"
+    },
+    {
+      "file": "mimic/e_mimic_attack@2x.png",
+      "sha256": "1beb109e2abcd4ad8a18d48ed6fd768d73cc2b861be07c6031113aa586ba6388"
+    },
+    {
+      "file": "mimic/e_mimic_attack_emit.png",
+      "sha256": "6d35a49e7c00d3afc3ba57ee3849d2ad5192fd53da76d35a98fa8d9985924f8e"
+    },
+    {
+      "file": "mimic/e_mimic_attack_emit@2x.png",
+      "sha256": "9da1c015afe9d6baeed155e5d4a6cfe3a3e3651dd37cb54eab8443cda965538c"
+    },
+    {
+      "file": "mimic/e_mimic_death.png",
+      "sha256": "9edb542ae8c2fca3872da87cd7f416d819e15938c84b3fe54625f9c39dda14f2"
+    },
+    {
+      "file": "mimic/e_mimic_death@2x.png",
+      "sha256": "00658e02740da5ac76501e81af6540f9b9713809bd9753a6724dbbcf6ba69779"
+    },
+    {
+      "file": "mimic/e_mimic_death_emit.png",
+      "sha256": "c841828aeabad4013191a74f1d0a128e24cd8f8e64d15586ebbe0dc73c9d7439"
+    },
+    {
+      "file": "mimic/e_mimic_death_emit@2x.png",
+      "sha256": "8e725120c48012bedebcc45c3dd406afb4c3b5560c1a93022807d5a9e26cbd1d"
+    },
+    {
+      "file": "mimic/e_mimic_reveal.png",
+      "sha256": "c27bc4ed1595470b87f63028b228ab72c6cd02bc376eb83ddcfdc1fbd7527181"
+    },
+    {
+      "file": "mimic/e_mimic_reveal@2x.png",
+      "sha256": "f0a57bb4999743f3fc4157310e19b194c97f8a441b81282dfc7498c11b3ca348"
+    },
+    {
+      "file": "mimic/e_mimic_reveal_emit.png",
+      "sha256": "a62c85e4f50505ff93dfd9f16670ce358bf0dfa2189685988f00ceb6d2461ac1"
+    },
+    {
+      "file": "mimic/e_mimic_reveal_emit@2x.png",
+      "sha256": "2e6b450411151a20f4e5540a5b4f25ed3b3abcfba86358fca0758f2a721a023f"
+    },
+    {
+      "file": "mimic/e_mimic_wound.png",
+      "sha256": "92a126b91cf8efc335bb30a4aae858b8f0fb6f4fa5ee0a403989ce2af35801cc"
+    },
+    {
+      "file": "mimic/e_mimic_wound@2x.png",
+      "sha256": "c7d79786bf91effbd012cff6ea2d0e0b6dda277bad6c9e31ca93eb107f206ed6"
+    },
+    {
+      "file": "mimic/e_mimic_wound_emit.png",
+      "sha256": "3331a664b6dc9189a5f1a846e279f3fccbe93da1b5a73f751492236020f4a9f8"
+    },
+    {
+      "file": "mimic/e_mimic_wound_emit@2x.png",
+      "sha256": "21abeedad3bd39e7c93c7ee92e764f1c41f1267e3abda4d2ce25744e305426dd"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "9bc978dd6b723e95100aa5f8ee9a21d4a5097afba87777b4dcb8f86ff74b2eb7",
+    "atlas": "34c81fa4d3384e3c01c73adb1d72a0f3e31e50b2cf73455a06a96c55b5decc29"
+  }
+}

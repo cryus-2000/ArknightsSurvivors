@@ -1,0 +1,539 @@
+{
+  "id": "fractal",
+  "name": "塑路者分形",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    34,
+    32
+  ],
+  "origin": [
+    17,
+    28
+  ],
+  "source_crop_1x": [
+    0,
+    2,
+    34,
+    34
+  ],
+  "scale_fixed_across_actions": 0.03690324980186774,
+  "idle_height_target": 18,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#24334E",
+    "#3B5373",
+    "#5C789A"
+  ],
+  "color_cap": 16,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 4,
+      "duration_seconds": 1.5,
+      "sample_times": [
+        0.0,
+        0.375,
+        0.75,
+        1.125
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 4,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.3333333432674408,
+        0.6666666865348816,
+        1.0000000298023224
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack",
+      "frames": 6,
+      "duration_seconds": 2,
+      "sample_times": [
+        0.0,
+        0.4,
+        0.8999999761581421,
+        1.2000000000000002,
+        1.6,
+        1.999
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8999999761581421
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 6,
+      "duration_seconds": 1.3333333730697632,
+      "sample_times": [
+        0.0,
+        0.26666667461395266,
+        0.5333333492279053,
+        0.8000000238418579,
+        1.0666666984558106,
+        1.3323333730697633
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05"
+      ],
+      "pose_times": [
+        0.0,
+        0.26666667461395266,
+        0.5333333492279053,
+        0.8000000238418579,
+        1.0666666984558106,
+        1.3323333730697633
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "skill",
+      "source_animation": "Skill",
+      "construction": "original Spine animation",
+      "frames": 6,
+      "duration_seconds": 2,
+      "sample_times": [
+        0.0,
+        0.4,
+        0.8999999761581421,
+        1.2,
+        1.6,
+        1.999
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.8999999761581421
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "loop": false,
+      "frame_names": [
+        "skill_00",
+        "skill_01",
+        "skill_02",
+        "skill_03",
+        "skill_04",
+        "skill_05"
+      ],
+      "pose_times": [
+        0.0,
+        0.4,
+        0.8999999761581421,
+        1.2,
+        1.6,
+        1.999
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "Neck",
+    "local": [
+      33.219105864711395,
+      83.63523964530937
+    ],
+    "slot": "Head_A"
+  },
+  "subpixel_parts": [
+    {
+      "frame": "move_01",
+      "slot": "Line_c",
+      "attachment": "Line_c"
+    },
+    {
+      "frame": "move_03",
+      "slot": "Line_c",
+      "attachment": "Line_c"
+    },
+    {
+      "frame": "attack_03",
+      "slot": "Line_c",
+      "attachment": "Line_c"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Line_f",
+      "attachment": "Line_f"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Line_e",
+      "attachment": "Line_e"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Line_d",
+      "attachment": "Line_d"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Calf_R",
+      "attachment": "Calf_R"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Foot_R",
+      "attachment": "Foot_R"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Tail",
+      "attachment": "Tail"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Leg_L_a",
+      "attachment": "Leg_L_a"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Calf_L",
+      "attachment": "Calf_L"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Line_c",
+      "attachment": "Line_c"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Line_b",
+      "attachment": "Line_b"
+    },
+    {
+      "frame": "death_04",
+      "slot": "Line_a",
+      "attachment": "Line_a"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Line_f",
+      "attachment": "Line_f"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Line_e",
+      "attachment": "Line_e"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Line_d",
+      "attachment": "Line_d"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Arm_R",
+      "attachment": "Arm_R"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Forearm_R",
+      "attachment": "Forearm_R"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Hand_R",
+      "attachment": "Hand_R"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Leg_R",
+      "attachment": "Leg_R"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Leg_R_a",
+      "attachment": "Leg_R_a"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Calf_R",
+      "attachment": "Calf_R"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Foot_R",
+      "attachment": "Foot_R"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Waist",
+      "attachment": "Waist"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Chest",
+      "attachment": "Chest"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Tail",
+      "attachment": "Tail"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Leg_L",
+      "attachment": "Leg_L"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Leg_L_a",
+      "attachment": "Leg_L_a"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Calf_L",
+      "attachment": "Calf_L"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Foot_L",
+      "attachment": "Foot_L"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Arm_L",
+      "attachment": "Arm_L"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Mouth",
+      "attachment": "Mouth"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Neck",
+      "attachment": "Neck"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Head",
+      "attachment": "Head"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Line_c",
+      "attachment": "Line_c"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Line_b",
+      "attachment": "Line_b"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Line_a",
+      "attachment": "Line_a"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Head_A",
+      "attachment": "Head_A"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Forearm_L",
+      "attachment": "Forearm_L"
+    },
+    {
+      "frame": "death_05",
+      "slot": "Hand_L",
+      "attachment": "Hand_L"
+    },
+    {
+      "frame": "skill_01",
+      "slot": "Line_c",
+      "attachment": "Line_c"
+    },
+    {
+      "frame": "skill_03",
+      "slot": "Line_c",
+      "attachment": "Line_c"
+    }
+  ],
+  "assets": [
+    {
+      "file": "fractal/e_fractal_idle.png",
+      "sha256": "8ad36ae8f0256f7050ffe928149c9602ff1bf4244274b682b877c31079269b8d"
+    },
+    {
+      "file": "fractal/e_fractal_idle@2x.png",
+      "sha256": "4ec13c9fd329306e3fc435d43bc9eb135e9213c6ff0d2f75cbdbed4a340eea6a"
+    },
+    {
+      "file": "fractal/e_fractal_idle_emit.png",
+      "sha256": "01496bb73ce4773a8561b39bc817bcf987519f1dadd8d17d7a3c9eef974cbe36"
+    },
+    {
+      "file": "fractal/e_fractal_idle_emit@2x.png",
+      "sha256": "52e69078a0dab4582d51b80199feef86a937583ad1a262f42545a99f738c28cc"
+    },
+    {
+      "file": "fractal/e_fractal_move.png",
+      "sha256": "77832a11355bb27d0369d078bb372eceba0f05342785f285d6e47d5c5ed79249"
+    },
+    {
+      "file": "fractal/e_fractal_move@2x.png",
+      "sha256": "d20d1ab7b8b0722ac2abc53227c4ea55606bfdf241c6e53a926fa03de63b9c6b"
+    },
+    {
+      "file": "fractal/e_fractal_move_emit.png",
+      "sha256": "1b1a3c766d032d0cf59aadcb284bae2e6cfe0a854655d15db4390a734f5cecc9"
+    },
+    {
+      "file": "fractal/e_fractal_move_emit@2x.png",
+      "sha256": "9a71cc678f30456ddfd06c72702db47752db641e944abf0e6aa1cf33b9caf0d2"
+    },
+    {
+      "file": "fractal/e_fractal_attack.png",
+      "sha256": "27a6001bdd8a8ba21ec8e54b05dad970d5a3e23ba3f41f805877eeb7ca7dffe6"
+    },
+    {
+      "file": "fractal/e_fractal_attack@2x.png",
+      "sha256": "8fbb0b3873a08768aa836f27f71c2668960e39bc39d10d4a33435957ff58778e"
+    },
+    {
+      "file": "fractal/e_fractal_attack_emit.png",
+      "sha256": "9360ce61945a3c328bc64c4b3366232658a33d2969c7f88b501e95202a7938c7"
+    },
+    {
+      "file": "fractal/e_fractal_attack_emit@2x.png",
+      "sha256": "eb0e90dccf31fb8b053bb03f837ea6b3a4f9c9c1d0b510e01aa147b01dac2d8b"
+    },
+    {
+      "file": "fractal/e_fractal_death.png",
+      "sha256": "6daf092a55b13b281c86bd1f0e2076bc0faa48225442cdb4612ecde2f427188c"
+    },
+    {
+      "file": "fractal/e_fractal_death@2x.png",
+      "sha256": "dc0364626324f83aa6ebcbe6f6375bfab80d13b9afb6bd5d2c276c2a7a2524c8"
+    },
+    {
+      "file": "fractal/e_fractal_death_emit.png",
+      "sha256": "914e6f934cdadb0256052ced77128be3be435cfc55d531773e29a4478526c2f8"
+    },
+    {
+      "file": "fractal/e_fractal_death_emit@2x.png",
+      "sha256": "d252cfe3e256c0e56e13a92a6d5718c2be9cf83edfb0dc3697eda5fd3e45343d"
+    },
+    {
+      "file": "fractal/e_fractal_skill.png",
+      "sha256": "92857e43a8cf86b158f1dd334d5fbac9f710faa53bc083124a4073bbdd247664"
+    },
+    {
+      "file": "fractal/e_fractal_skill@2x.png",
+      "sha256": "d68cd4c675b02bf9f8400f0c327c6ff41538f31481514390e6afbbf2b8bbe219"
+    },
+    {
+      "file": "fractal/e_fractal_skill_emit.png",
+      "sha256": "d8244d4e7cc90bd84618f7280505e822b750c4dde011aae9c9fd4ec570675dac"
+    },
+    {
+      "file": "fractal/e_fractal_skill_emit@2x.png",
+      "sha256": "29e5097ecaa314130d7fb4fe0e3e461bab06fa346ab4308135cd9fa11489fa74"
+    },
+    {
+      "file": "fractal/e_fractal_wound.png",
+      "sha256": "13fe424fa565b40d65531c131458fe50a4821bd5cfd261a7ce2f8f289ccd0a53"
+    },
+    {
+      "file": "fractal/e_fractal_wound@2x.png",
+      "sha256": "4311a11a4d0ff398a2d428ed97e4cccfb206d08265f56fe8049728630936083f"
+    },
+    {
+      "file": "fractal/e_fractal_wound_emit.png",
+      "sha256": "6c927ce321a25d1ed7edf78710bc428432c4f255cdf4b6d738fecc66699af06f"
+    },
+    {
+      "file": "fractal/e_fractal_wound_emit@2x.png",
+      "sha256": "56faf66f22357fa6a1acb906f59311b1b3c669c6f1b6ea7db7eb1773eabe18ce"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "44a7cb8da72dc2932caaa6d35f8b0c9c3d026852f75b776c44eaa473f5601a86",
+    "atlas": "f6373fa1ca611fd4694af7512ca2d4b16324eba66f6db8d918c15c630f622c88"
+  }
+}

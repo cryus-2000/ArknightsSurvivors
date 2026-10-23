@@ -1,0 +1,357 @@
+{
+  "id": "reaper",
+  "name": "钵海收割者",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    58,
+    48
+  ],
+  "origin": [
+    30,
+    44
+  ],
+  "source_crop_1x": [
+    0,
+    0,
+    58,
+    48
+  ],
+  "scale_fixed_across_actions": 0.06226140528742454,
+  "idle_height_target": 30,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B",
+    "#59485F",
+    "#8B7188",
+    "#B99DA8",
+    "#354853",
+    "#55737C",
+    "#405B58",
+    "#758980",
+    "#423941"
+  ],
+  "color_cap": 24,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Skill_Idle",
+      "frames": 4,
+      "duration_seconds": 2,
+      "sample_times": [
+        0.0,
+        0.5,
+        1.0,
+        1.5
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Skill_Move",
+      "frames": 4,
+      "duration_seconds": 2,
+      "sample_times": [
+        0.0,
+        0.5,
+        1.0,
+        1.5
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Skill_Attack",
+      "frames": 6,
+      "duration_seconds": 1.2000000476837158,
+      "sample_times": [
+        0.0,
+        0.24000000953674316,
+        0.6000000238418579,
+        0.7200000286102295,
+        0.9600000381469727,
+        1.199000047683716
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.6000000238418579
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05"
+      ]
+    },
+    {
+      "action": "dormant",
+      "source_animation": "Idle",
+      "frames": 4,
+      "duration_seconds": 4,
+      "sample_times": [
+        0.0,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "dormant_00",
+        "dormant_01",
+        "dormant_02",
+        "dormant_03"
+      ]
+    },
+    {
+      "action": "awaken",
+      "source_animation": "Skill_Begin",
+      "frames": 6,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.2,
+        0.4,
+        0.6000000000000001,
+        0.8,
+        0.999
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "awaken_00",
+        "awaken_01",
+        "awaken_02",
+        "awaken_03",
+        "awaken_04",
+        "awaken_05"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 6,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        0.999
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05"
+      ],
+      "pose_times": [
+        0.0,
+        0.2,
+        0.4,
+        0.6,
+        0.8,
+        0.999
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Skill_Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "bone",
+    "local": [
+      8.301401285439312,
+      119.74309921547491
+    ],
+    "slot": "Body"
+  },
+  "subpixel_parts": [
+    {
+      "frame": "attack_04",
+      "slot": "R_Paw_2",
+      "attachment": "R_Paw_2"
+    }
+  ],
+  "assets": [
+    {
+      "file": "reaper/e_reaper_idle.png",
+      "sha256": "66443ecad47eb51055c12860bd877420535137c6f47e20a7a8f3a8cc9167a87b"
+    },
+    {
+      "file": "reaper/e_reaper_idle@2x.png",
+      "sha256": "b5e21fe46ed96786aeaa4530b770b708b806f6940002f6f7cfd386d0e38c8520"
+    },
+    {
+      "file": "reaper/e_reaper_idle_emit.png",
+      "sha256": "73d2cc5d2c51ed728b75c5fee9da0b74f956418eda97c68e6c3578ca47841b7d"
+    },
+    {
+      "file": "reaper/e_reaper_idle_emit@2x.png",
+      "sha256": "979d59b85aea017663981c146d21219a1c44661b3f6248ab2c09e084eb0b9859"
+    },
+    {
+      "file": "reaper/e_reaper_move.png",
+      "sha256": "ec17c69764e53d4f6b33fd54528f9d182054cf25f8a1320ff208729011ce1808"
+    },
+    {
+      "file": "reaper/e_reaper_move@2x.png",
+      "sha256": "57944537297ab9ed0fb8f54a2c30d93a433f2423717f98a1a9153f081640d115"
+    },
+    {
+      "file": "reaper/e_reaper_move_emit.png",
+      "sha256": "cfa7a1b61b0217cc5ee8ea95e84b9fea4b06d4dd8610c1c6ff48f0f884367318"
+    },
+    {
+      "file": "reaper/e_reaper_move_emit@2x.png",
+      "sha256": "b8cc6ddb28850d36aa000868191cb42a8329439e62f5c9ba30b7c172df9b2f51"
+    },
+    {
+      "file": "reaper/e_reaper_attack.png",
+      "sha256": "067f209a13d4b072ebc9af2f3db9f2f918b99ae7b1a86e30de4842ecd5966cd0"
+    },
+    {
+      "file": "reaper/e_reaper_attack@2x.png",
+      "sha256": "72df115cab5cd8c5dd6e9087c1206f871268a2442af2e2e72ee8952585ea4d6b"
+    },
+    {
+      "file": "reaper/e_reaper_attack_emit.png",
+      "sha256": "c69d1d5a692d4375030a742d74f153fe721f3a979e41ad0a26a51453b2516f55"
+    },
+    {
+      "file": "reaper/e_reaper_attack_emit@2x.png",
+      "sha256": "344fa76daa8e67166f6fc057e79a0b4c01209f7af0ae20f5b49f8e33a118e78e"
+    },
+    {
+      "file": "reaper/e_reaper_dormant.png",
+      "sha256": "c698db13a03202829173122e5e586f85d1666d7c8511dc680d5d4ddb3e31c50d"
+    },
+    {
+      "file": "reaper/e_reaper_dormant@2x.png",
+      "sha256": "0040315886082d580882001dab0359b049586b5930cacaa5346f8993fe2fd062"
+    },
+    {
+      "file": "reaper/e_reaper_dormant_emit.png",
+      "sha256": "73d2cc5d2c51ed728b75c5fee9da0b74f956418eda97c68e6c3578ca47841b7d"
+    },
+    {
+      "file": "reaper/e_reaper_dormant_emit@2x.png",
+      "sha256": "979d59b85aea017663981c146d21219a1c44661b3f6248ab2c09e084eb0b9859"
+    },
+    {
+      "file": "reaper/e_reaper_awaken.png",
+      "sha256": "a30210c34bc0ba5a67fc67ed3d133ca1c5122f366156cfa808983d92d6303c9f"
+    },
+    {
+      "file": "reaper/e_reaper_awaken@2x.png",
+      "sha256": "8c5ce99ef14bc535d41016399f5ea20d6ad37ad414f639d915db8d2a48d2655c"
+    },
+    {
+      "file": "reaper/e_reaper_awaken_emit.png",
+      "sha256": "c69d1d5a692d4375030a742d74f153fe721f3a979e41ad0a26a51453b2516f55"
+    },
+    {
+      "file": "reaper/e_reaper_awaken_emit@2x.png",
+      "sha256": "344fa76daa8e67166f6fc057e79a0b4c01209f7af0ae20f5b49f8e33a118e78e"
+    },
+    {
+      "file": "reaper/e_reaper_death.png",
+      "sha256": "f54f139a8e3cac105c62ea888951c5b00aae405c3d2baf91a224b11911f3ca17"
+    },
+    {
+      "file": "reaper/e_reaper_death@2x.png",
+      "sha256": "69e8a5c1bba95ec7116efe91670561bc6a184959c72975d8ff90ce9897bae128"
+    },
+    {
+      "file": "reaper/e_reaper_death_emit.png",
+      "sha256": "27a2a88e3c533054648df3becbb0c29fb793a7841c64a9ee4af4b63f204f7031"
+    },
+    {
+      "file": "reaper/e_reaper_death_emit@2x.png",
+      "sha256": "4faa71d4bc91700b19dbaa6f948891117a99dd664eaa98a0497dce632736df33"
+    },
+    {
+      "file": "reaper/e_reaper_wound.png",
+      "sha256": "36acadef7290719fda3fa60045c3048f4d35fa7315eb589951af4dee529d01c2"
+    },
+    {
+      "file": "reaper/e_reaper_wound@2x.png",
+      "sha256": "a94664723c9b6c3388d1fe00451278aaefa64febd21486f75a9bece034173806"
+    },
+    {
+      "file": "reaper/e_reaper_wound_emit.png",
+      "sha256": "860c1a2fc65ab94dd08357b3a50092174d954ffb42f41fad9c09a2422b35c7e2"
+    },
+    {
+      "file": "reaper/e_reaper_wound_emit@2x.png",
+      "sha256": "910cecd86b76ac70215efc3da43bdf00e88455e8cef4a03248ec88b1afd752bc"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "263e5eef100427463043e103188cd5b670289cd67fb74796684d294b81693eb9",
+    "atlas": "e58d7f44abb0c35cba552449f362cd551b13be9c12366c68494b3d58cbd76db7"
+  }
+}

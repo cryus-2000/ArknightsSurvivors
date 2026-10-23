@@ -1,0 +1,258 @@
+{
+  "id": "tear",
+  "name": "伊莎玛拉之泪",
+  "construction": "original-reference authored components; no standalone Spine",
+  "frame_size": [
+    32,
+    32
+  ],
+  "origin": [
+    16,
+    28
+  ],
+  "source_crop_1x": [
+    0,
+    0,
+    32,
+    32
+  ],
+  "scale_fixed_across_actions": 1,
+  "idle_height_target": 16,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B"
+  ],
+  "color_cap": 16,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": null,
+      "construction": "original-reference authored components; no Spine",
+      "frames": 4,
+      "duration_seconds": 1.6,
+      "sample_times": [
+        0.0,
+        0.4,
+        0.8,
+        1.2000000000000002
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03"
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "move",
+      "source_animation": null,
+      "construction": "original-reference authored components; no Spine",
+      "frames": 4,
+      "duration_seconds": 0.8,
+      "sample_times": [
+        0.0,
+        0.2,
+        0.4,
+        0.6000000000000001
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03"
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "attack",
+      "source_animation": null,
+      "construction": "original-reference authored components; no Spine",
+      "frames": 6,
+      "duration_seconds": 0.8,
+      "sample_times": [
+        0.0,
+        0.16,
+        0.32,
+        0.4800000000000001,
+        0.64,
+        0.8
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05"
+      ],
+      "release_frame": 3
+    },
+    {
+      "action": "wound",
+      "source_animation": null,
+      "construction": "original-reference authored components; no Spine",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "death",
+      "source_animation": null,
+      "construction": "original-reference authored components; no Spine",
+      "frames": 6,
+      "duration_seconds": 0.8,
+      "sample_times": [
+        0.0,
+        0.16,
+        0.32,
+        0.4800000000000001,
+        0.64,
+        0.8
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05"
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "component": "core"
+  },
+  "subpixel_parts": [
+    {
+      "frame": "death_04",
+      "slot": "core",
+      "attachment": "core"
+    },
+    {
+      "frame": "death_05",
+      "slot": "core",
+      "attachment": "core"
+    }
+  ],
+  "assets": [
+    {
+      "file": "tear/e_tear_idle.png",
+      "sha256": "4880d2097e715f10a54323cfb3c7db7a0e13a374cad156ea0f10ae086dd20058"
+    },
+    {
+      "file": "tear/e_tear_idle@2x.png",
+      "sha256": "a6fac7c0c070e48ea7fa864de7a21a5504bd30821102c75d75d63ebc48067d79"
+    },
+    {
+      "file": "tear/e_tear_idle_emit.png",
+      "sha256": "f46ef061006bf7dd1050f064f9cae72b504644ee87a74f682f346454765671e5"
+    },
+    {
+      "file": "tear/e_tear_idle_emit@2x.png",
+      "sha256": "b817743556ac33593ebcd3d37910285e3249dbd830f77cff58fc2d86b6d46394"
+    },
+    {
+      "file": "tear/e_tear_move.png",
+      "sha256": "23450084c3752b5b9517879ea4a8eaa428a15687c8b598cb08f066e44c6960cc"
+    },
+    {
+      "file": "tear/e_tear_move@2x.png",
+      "sha256": "bf6c5950c8a8db58410331ee10dc81ad64ddc520091509991f542ebb5c1148b8"
+    },
+    {
+      "file": "tear/e_tear_move_emit.png",
+      "sha256": "ff9065bba865be2f29588b5b185d94477408befbb99d7f463b029102fcebdb59"
+    },
+    {
+      "file": "tear/e_tear_move_emit@2x.png",
+      "sha256": "62f81291efea7d7bcb8b7ea6c7280a05b8cba10da9c66037dd82a5c4248e11c0"
+    },
+    {
+      "file": "tear/e_tear_attack.png",
+      "sha256": "074d5ae13ffac865faa9059c7f66cf269142441e40666a0d8fbbbefc6f76f59d"
+    },
+    {
+      "file": "tear/e_tear_attack@2x.png",
+      "sha256": "4d3959ef8b925993f48aa941cd2adee516a8d918b8cd47f5f65b7d111df803c8"
+    },
+    {
+      "file": "tear/e_tear_attack_emit.png",
+      "sha256": "2113ef9f90ecb516e6e5b3914b37e198a21691c05b2d8186a0ddbdf1d0f3652c"
+    },
+    {
+      "file": "tear/e_tear_attack_emit@2x.png",
+      "sha256": "42a2bb97aaa0fd83561b0c51a88daf74e90c1682a4ae76f681837401d6a3bc40"
+    },
+    {
+      "file": "tear/e_tear_wound.png",
+      "sha256": "94a3e2bd1c5d7eebcc5bc0d8cc30acd2f73e60c9ab2fbf15aa4be3c33dbea14b"
+    },
+    {
+      "file": "tear/e_tear_wound@2x.png",
+      "sha256": "072e56f5f090c87d1bc57f88d95503e76324e4797d8aef50934762843de34907"
+    },
+    {
+      "file": "tear/e_tear_wound_emit.png",
+      "sha256": "b2bcd8cc65f57439a45f2916dfecf3589114baddcad50d16bd044df535019ab6"
+    },
+    {
+      "file": "tear/e_tear_wound_emit@2x.png",
+      "sha256": "a25cc77e6a5653533783eebe135731291111f97ca85d3155155fc5d4ca6ae5ef"
+    },
+    {
+      "file": "tear/e_tear_death.png",
+      "sha256": "12a22049be4da306feedd07242a8a9e41fbbe936a7af58335d3c39464e2d2823"
+    },
+    {
+      "file": "tear/e_tear_death@2x.png",
+      "sha256": "b5a7ec307e4da0aeb5bf79766b24d197358f754b10467fa01e0c5fa5b83a7f01"
+    },
+    {
+      "file": "tear/e_tear_death_emit.png",
+      "sha256": "a5b1709280b6b885ab94f463df9965b88cb852e03896673cff7d4385743960a0"
+    },
+    {
+      "file": "tear/e_tear_death_emit@2x.png",
+      "sha256": "8b3f7b60887e447a511e0e48158ab41f87e645c668f6bd198deed58244c90c42"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "art_source": "11f54d3d0b3407649bef6480ecacd204de06aa675f99da09d6cd581b60792b78"
+  }
+}

@@ -1,0 +1,150 @@
+[
+  {
+    "name": "reveal_00",
+    "anim": "authored_reveal",
+    "t": 0,
+    "parts": [
+      {
+        "slot": "chest_base",
+        "attachment": "chest_base",
+        "bone": null,
+        "parent": null,
+        "draw_order": 0,
+        "file": "reveal_00_chest_base.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/reveal/chest_base__chest_base.png",
+        "source_file": "build/enemy_actions_1023/mimic_disguised/reveal_00_chest_base.png"
+      },
+      {
+        "slot": "chest_lid",
+        "attachment": "chest_lid",
+        "bone": null,
+        "parent": null,
+        "draw_order": 1,
+        "file": "reveal_00_chest_lid.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/reveal/chest_lid__chest_lid.png",
+        "source_file": "build/enemy_actions_1023/mimic_disguised/reveal_00_chest_lid.png"
+      }
+    ],
+    "glow": null,
+    "source_crop_1x": [
+      0,
+      0,
+      32,
+      32
+    ],
+    "glow_active": false
+  },
+  {
+    "name": "reveal_01",
+    "anim": "authored_reveal",
+    "t": 0,
+    "parts": [
+      {
+        "slot": "chest_base",
+        "attachment": "chest_base",
+        "bone": null,
+        "parent": null,
+        "draw_order": 0,
+        "file": "reveal_01_chest_base.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/reveal/chest_base__chest_base.png",
+        "source_file": "build/enemy_actions_1023/mimic_disguised/reveal_01_chest_base.png"
+      },
+      {
+        "slot": "chest_lid",
+        "attachment": "chest_lid",
+        "bone": null,
+        "parent": null,
+        "draw_order": 1,
+        "file": "reveal_01_chest_lid.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/reveal/chest_lid__chest_lid.png",
+        "source_file": "build/enemy_actions_1023/mimic_disguised/reveal_01_chest_lid.png"
+      }
+    ],
+    "glow": null,
+    "source_crop_1x": [
+      0,
+      0,
+      32,
+      32
+    ],
+    "glow_active": false
+  },
+  {
+    "name": "reveal_02",
+    "anim": "authored_reveal",
+    "t": 0,
+    "parts": [
+      {
+        "slot": "chest_base",
+        "attachment": "chest_base",
+        "bone": null,
+        "parent": null,
+        "draw_order": 0,
+        "file": "reveal_02_chest_base.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/reveal/chest_base__chest_base.png",
+        "source_file": "build/enemy_actions_1023/mimic_disguised/reveal_02_chest_base.png"
+      },
+      {
+        "slot": "chest_lid",
+        "attachment": "chest_lid",
+        "bone": null,
+        "parent": null,
+        "draw_order": 1,
+        "file": "reveal_02_chest_lid.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/reveal/chest_lid__chest_lid.png",
+        "source_file": "build/enemy_actions_1023/mimic_disguised/reveal_02_chest_lid.png"
+      }
+    ],
+    "glow": null,
+    "source_crop_1x": [
+      0,
+      0,
+      32,
+      32
+    ],
+    "glow_active": false
+  },
+  {
+    "name": "reveal_03",
+    "anim": "authored_reveal",
+    "t": 0,
+    "parts": [
+      {
+        "slot": "chest_base",
+        "attachment": "chest_base",
+        "bone": null,
+        "parent": null,
+        "draw_order": 0,
+        "file": "reveal_03_chest_base.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/reveal/chest_base__chest_base.png",
+        "source_file": "build/enemy_actions_1023/mimic_disguised/reveal_03_chest_base.png"
+      },
+      {
+        "slot": "chest_lid",
+        "attachment": "chest_lid",
+        "bone": null,
+        "parent": null,
+        "draw_order": 1,
+        "file": "reveal_03_chest_lid.png",
+        "construction": "authored original-reference component; no Spine",
+        "pixel_component": "components/reveal/chest_lid__chest_lid.png",
+        "source_file": "build/enemy_actions_1023/mimic_disguised/reveal_03_chest_lid.png"
+      }
+    ],
+    "glow": null,
+    "source_crop_1x": [
+      0,
+      0,
+      32,
+      32
+    ],
+    "glow_active": false
+  }
+]

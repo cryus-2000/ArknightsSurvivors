@@ -1,0 +1,269 @@
+{
+  "id": "floater",
+  "name": "浮海飘航者",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    56,
+    40
+  ],
+  "origin": [
+    28,
+    36
+  ],
+  "source_crop_1x": [
+    0,
+    0,
+    56,
+    40
+  ],
+  "scale_fixed_across_actions": 0.06663428107983131,
+  "idle_height_target": 24,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B",
+    "#59485F",
+    "#8B7188",
+    "#B99DA8",
+    "#354853"
+  ],
+  "color_cap": 20,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 4,
+      "duration_seconds": 2,
+      "sample_times": [
+        0.0,
+        0.5,
+        1.0,
+        1.5
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 4,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.25,
+        0.5,
+        0.75
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack",
+      "frames": 6,
+      "duration_seconds": 1,
+      "sample_times": [
+        0.0,
+        0.2,
+        0.4000000059604645,
+        0.6000000000000001,
+        0.8,
+        0.999
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.4000000059604645
+        }
+      ],
+      "event_frames": [
+        2
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05"
+      ]
+    },
+    {
+      "action": "death",
+      "source_animation": "Die",
+      "construction": "original Spine animation",
+      "frames": 6,
+      "duration_seconds": 1.2000000476837158,
+      "sample_times": [
+        0.0,
+        0.24000000953674316,
+        0.48000001907348633,
+        0.7200000286102295,
+        0.9600000381469727,
+        1.199000047683716
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03",
+        "death_04",
+        "death_05"
+      ],
+      "pose_times": [
+        0.0,
+        0.24000000953674316,
+        0.48000001907348633,
+        0.7200000286102295,
+        0.9600000381469727,
+        1.199000047683716
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "Body5",
+    "local": [
+      48.76429015129064,
+      -11.655421059688457
+    ],
+    "slot": "Body"
+  },
+  "subpixel_parts": [],
+  "assets": [
+    {
+      "file": "floater/e_floater_idle.png",
+      "sha256": "2d2c755cedc2bcc80792a4f7151241e093aaad90acc788ec32a77fbbc5cbe218"
+    },
+    {
+      "file": "floater/e_floater_idle@2x.png",
+      "sha256": "e8a9ac55d36e263e85903a629319401987d763a86824f789c77d38f606691c5c"
+    },
+    {
+      "file": "floater/e_floater_idle_emit.png",
+      "sha256": "58151ce14213288e658357ddd57e98af70ae79c9ad9f05be88781ba6337081aa"
+    },
+    {
+      "file": "floater/e_floater_idle_emit@2x.png",
+      "sha256": "0682cf7c79f0beff432fc86beaf94d87bb359adac14c9386600a829646c53d99"
+    },
+    {
+      "file": "floater/e_floater_move.png",
+      "sha256": "5f1a2a2d90fc917231fae04af0daf6ed15545c6cc29ae1d8ce2fee156c5b3e07"
+    },
+    {
+      "file": "floater/e_floater_move@2x.png",
+      "sha256": "1ea349497c5a973e03e383fa5034eeac0368e69443937cb276eadfcf459c39eb"
+    },
+    {
+      "file": "floater/e_floater_move_emit.png",
+      "sha256": "afa5eca183dd167fa69e4afeb6a70d3779ca4e3909530927e668e674698ed547"
+    },
+    {
+      "file": "floater/e_floater_move_emit@2x.png",
+      "sha256": "180453d065e82e95fbee5c66769738febdfa61c6235a5b36875fce310fbce5d9"
+    },
+    {
+      "file": "floater/e_floater_attack.png",
+      "sha256": "d790fd499cace8196df18dfe7c17902d23bc9a2d4ec31c4ffaebf49584a4cd65"
+    },
+    {
+      "file": "floater/e_floater_attack@2x.png",
+      "sha256": "5a0d04f02a90f42f1f4965af71d7401a43d470dbbb31dc2e1f8a4a5916d2cebe"
+    },
+    {
+      "file": "floater/e_floater_attack_emit.png",
+      "sha256": "ea877e3163c65d5371e6cbdb446837b95bef0c507608eccd0bcdf3d12803738b"
+    },
+    {
+      "file": "floater/e_floater_attack_emit@2x.png",
+      "sha256": "ab67f86b201e921185c8fddbea5b1c647b46c04540d8925854f0cc505fd1ce8e"
+    },
+    {
+      "file": "floater/e_floater_death.png",
+      "sha256": "1aed42c453ca515d2c19715747e4c4e3caf3f64a7972fcabbb164850644395f9"
+    },
+    {
+      "file": "floater/e_floater_death@2x.png",
+      "sha256": "d161abedd7c005d094603b5e683eac144dda34c22c984f82aebce8ebfffa63a7"
+    },
+    {
+      "file": "floater/e_floater_death_emit.png",
+      "sha256": "ce9d8e2a97739697842d60a2ad722a2b64854fc01804b293104192543446d18f"
+    },
+    {
+      "file": "floater/e_floater_death_emit@2x.png",
+      "sha256": "7071d4bae6d210a57c059b20f6bf533259d4c601bcc541b7bcd0ac70ed77785f"
+    },
+    {
+      "file": "floater/e_floater_wound.png",
+      "sha256": "c8a6043e3a9ae611623a8220916f09024efe3cafa25187445b8b4ae3b20a7a1d"
+    },
+    {
+      "file": "floater/e_floater_wound@2x.png",
+      "sha256": "7da79b241294267812b813072023d4c9861470e000154ce0239daa8c9839170c"
+    },
+    {
+      "file": "floater/e_floater_wound_emit.png",
+      "sha256": "9ef9bb3484340952112e79ea5a5a0e3fd7a498401e3ed995d81a37f851f9d4ec"
+    },
+    {
+      "file": "floater/e_floater_wound_emit@2x.png",
+      "sha256": "c7619618f2de73343a75a16d4772e3306568da528324abd9436db558d4d99807"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "cb43b25572fcfa688023f9ed741592188d9d15cef8a1ad094c68823ec2070a02",
+    "atlas": "70a639aa9b8afc4655dc223caaf972ec6dc6ebe384a43cca47c01bc1424167bd"
+  }
+}

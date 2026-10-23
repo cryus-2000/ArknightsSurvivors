@@ -1,0 +1,328 @@
+{
+  "id": "knight",
+  "name": "最后的骑士",
+  "construction": "original Spine attachments",
+  "frame_size": [
+    143,
+    96
+  ],
+  "origin": [
+    53,
+    88
+  ],
+  "source_crop_1x": [
+    0,
+    4,
+    143,
+    100
+  ],
+  "scale_fixed_across_actions": 0.11676031898203461,
+  "idle_height_target": 64,
+  "palette": [
+    "#080E18",
+    "#263348",
+    "#4B4D5A",
+    "#3D2838",
+    "#1C2433",
+    "#3B4C65",
+    "#6C7B91",
+    "#9C9FA5",
+    "#C3C3BC",
+    "#DED6C5",
+    "#655D58",
+    "#9B8870",
+    "#BEA18B",
+    "#59485F",
+    "#8B7188",
+    "#B99DA8",
+    "#354853",
+    "#55737C",
+    "#405B58",
+    "#758980",
+    "#423941",
+    "#775C52",
+    "#9C7876",
+    "#C1A29B",
+    "#222D40"
+  ],
+  "color_cap": 28,
+  "actions": [
+    {
+      "action": "idle",
+      "source_animation": "Idle",
+      "frames": 6,
+      "duration_seconds": 1.6666666269302368,
+      "sample_times": [
+        0.0,
+        0.2777777711550395,
+        0.555555542310079,
+        0.8333333134651184,
+        1.111111084620158,
+        1.3888888557751975
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "idle_00",
+        "idle_01",
+        "idle_02",
+        "idle_03",
+        "idle_04",
+        "idle_05"
+      ]
+    },
+    {
+      "action": "move",
+      "source_animation": "Move",
+      "frames": 6,
+      "duration_seconds": 1.6666666269302368,
+      "sample_times": [
+        0.0,
+        0.2777777711550395,
+        0.555555542310079,
+        0.8333333134651184,
+        1.111111084620158,
+        1.3888888557751975
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": true,
+      "frame_names": [
+        "move_00",
+        "move_01",
+        "move_02",
+        "move_03",
+        "move_04",
+        "move_05"
+      ]
+    },
+    {
+      "action": "attack",
+      "source_animation": "Attack",
+      "frames": 8,
+      "duration_seconds": 1.4666666984558105,
+      "sample_times": [
+        0.0,
+        0.2095238140651158,
+        0.4190476281302316,
+        0.5333333611488342,
+        0.8380952562604632,
+        1.047619070325579,
+        1.2571428843906949,
+        1.4656666984558107
+      ],
+      "source_events": [
+        {
+          "name": "OnAttack",
+          "t": 0.5333333611488342
+        }
+      ],
+      "event_frames": [
+        3
+      ],
+      "loop": false,
+      "frame_names": [
+        "attack_00",
+        "attack_01",
+        "attack_02",
+        "attack_03",
+        "attack_04",
+        "attack_05",
+        "attack_06",
+        "attack_07"
+      ]
+    },
+    {
+      "action": "wound",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 1,
+      "duration_seconds": 0.12,
+      "sample_times": [
+        0.0
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "wound_00"
+      ],
+      "pose_times": [
+        0
+      ],
+      "release_frame": null
+    },
+    {
+      "action": "charge",
+      "source_animation": "Skill_1_Begin",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 0.72,
+      "sample_times": [
+        0.0,
+        0.24,
+        0.48,
+        0.719
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "charge_00",
+        "charge_01",
+        "charge_02",
+        "charge_03"
+      ],
+      "pose_times": [
+        0,
+        0.8,
+        0.416667,
+        1.25
+      ],
+      "release_frame": 2
+    },
+    {
+      "action": "death",
+      "source_animation": "Idle",
+      "construction": "authored native bone pose",
+      "frames": 4,
+      "duration_seconds": 0.667,
+      "sample_times": [
+        0.0,
+        0.22233333333333336,
+        0.4446666666666667,
+        0.666
+      ],
+      "source_events": [],
+      "event_frames": [],
+      "loop": false,
+      "frame_names": [
+        "death_00",
+        "death_01",
+        "death_02",
+        "death_03"
+      ],
+      "pose_times": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "release_frame": null
+    }
+  ],
+  "unavailable": [],
+  "glow_binding": {
+    "bone": "F_Head",
+    "local": [
+      50.31038986556162,
+      63.9200820490443
+    ],
+    "slot": "F_Head"
+  },
+  "subpixel_parts": [],
+  "assets": [
+    {
+      "file": "knight/e_knight_idle.png",
+      "sha256": "bde287794312dee22a2baae571d9a3c8b9307a70258f6241087c26a0e2585990"
+    },
+    {
+      "file": "knight/e_knight_idle@2x.png",
+      "sha256": "adc21f1cddce5bc91f302da6cb41c890738a3db47150e973b95b5eb86faf4151"
+    },
+    {
+      "file": "knight/e_knight_idle_emit.png",
+      "sha256": "1629dcd2b2f89a38869fd8665d340c21c447f5a19bfda9e723c5dd10461999a9"
+    },
+    {
+      "file": "knight/e_knight_idle_emit@2x.png",
+      "sha256": "268a556ee0b540b1391f3f36049320166da58ce7cb20e716cead6f466dd44655"
+    },
+    {
+      "file": "knight/e_knight_move.png",
+      "sha256": "011d068b47d77404753d90defd82a1ef90804eb4b7314a0095e5d790745ba838"
+    },
+    {
+      "file": "knight/e_knight_move@2x.png",
+      "sha256": "4bd2e04cb4b3f514354d03ebe8c4843bfb9fae26314a0dc2233bd3fc307a291e"
+    },
+    {
+      "file": "knight/e_knight_move_emit.png",
+      "sha256": "00e48315deb1eaf858cd5c7b73dcc592490f69ed28aa8cacca4c9511691ff8b7"
+    },
+    {
+      "file": "knight/e_knight_move_emit@2x.png",
+      "sha256": "e3d53c3612cc99bbcc07692efb90991e870bec9c6d4ebf2c617bedf2f72aaae8"
+    },
+    {
+      "file": "knight/e_knight_attack.png",
+      "sha256": "e305fe6127485b32ecd5691653e268d01e0cb797849cc422b6bff6e59e0c7127"
+    },
+    {
+      "file": "knight/e_knight_attack@2x.png",
+      "sha256": "0ceb997d288a49016f740896eb0210024649820a8ad179e2af191684a45070c4"
+    },
+    {
+      "file": "knight/e_knight_attack_emit.png",
+      "sha256": "f1e6bdfa1623a05efefaa9d60aa300ef71062f529b5d3c5e0162a8d951c9c5aa"
+    },
+    {
+      "file": "knight/e_knight_attack_emit@2x.png",
+      "sha256": "5f71dce6ca93686acc008f3acb82d32d51f5549d2427c933d64405d2ec87c8bd"
+    },
+    {
+      "file": "knight/e_knight_wound.png",
+      "sha256": "af86892a07928151e0dc8cdeae31807a3080ad237a86f169bb09dd434e176098"
+    },
+    {
+      "file": "knight/e_knight_wound@2x.png",
+      "sha256": "ed207dd2adc98bfd03bc550300e6ea1883b80c5936586924f49d246c19d1c6b8"
+    },
+    {
+      "file": "knight/e_knight_wound_emit.png",
+      "sha256": "4b4c2bf3597b6dcf2c5cceb354d39a39151f412a30dbfccf833a8380379ad90a"
+    },
+    {
+      "file": "knight/e_knight_wound_emit@2x.png",
+      "sha256": "ba1cf9e2b961ca8fbcc2b9f4e51b4b4bad6590c6f026e2a277002ff0d2c12ba7"
+    },
+    {
+      "file": "knight/e_knight_charge.png",
+      "sha256": "8fd418acb66761889b7eb06a3ee8762098dafa61ed6686d8cf38025f9f9b43bf"
+    },
+    {
+      "file": "knight/e_knight_charge@2x.png",
+      "sha256": "bdf34bcbae5a833132871cb5906e6552a54e27bc67566510ab9ee4faadd18f1f"
+    },
+    {
+      "file": "knight/e_knight_charge_emit.png",
+      "sha256": "1c9dc8f370cbf9edc724fe0c451cfa2b6e0b650925f855acacdbfde967a5eae0"
+    },
+    {
+      "file": "knight/e_knight_charge_emit@2x.png",
+      "sha256": "4648e02d382700deb7f73aa85b502f1574beb54959c99589daec0f1862c0395b"
+    },
+    {
+      "file": "knight/e_knight_death.png",
+      "sha256": "6c86a7ebca7ffb2f8435ca72b56e342dda6a1596918b737447793c4f9b000aa3"
+    },
+    {
+      "file": "knight/e_knight_death@2x.png",
+      "sha256": "101569c24a3a6de73ebebfb2532eba58f076cafff31eedaf0f2b827123ba5c61"
+    },
+    {
+      "file": "knight/e_knight_death_emit.png",
+      "sha256": "40611723d9b1e07970d0450683db0692a19b123b8c9cd5573971b82e8c93f7b8"
+    },
+    {
+      "file": "knight/e_knight_death_emit@2x.png",
+      "sha256": "ffcc124bdeb117e5e907f51f50c942dd8cc74438fb15d2865e4beb62c44cc236"
+    }
+  ],
+  "status": "review candidate; not integrated",
+  "source_hashes": {
+    "skel": "2d226a0e956596382c9ba434a6dee2ce1b16fc17bad0d3d92d9e643777063650",
+    "atlas": "06450b03a59c130c09a04368e23facfdad50eece22696ccf0003739287d464cc"
+  }
+}

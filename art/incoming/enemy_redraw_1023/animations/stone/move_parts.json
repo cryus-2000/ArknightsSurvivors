@@ -1,0 +1,1046 @@
+[
+  {
+    "name": "move_00",
+    "anim": "Move",
+    "t": 0,
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body_1",
+        "attachment": "C_Body_02",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 0,
+        "file": "move_00_slot_0.png",
+        "matrix": [
+          -0.5333455164761798,
+          -0.8458974755350289,
+          0.8458975002877004,
+          -0.5333455164761777,
+          12.987377236044578,
+          85.85002357353761
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Body_1__C_Body_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_00_slot_0.png"
+      },
+      {
+        "slot": "C_R_Foot_01",
+        "attachment": "C_R_Foot_01",
+        "bone": "C_R_Foot_01",
+        "parent": "Common2",
+        "draw_order": 1,
+        "file": "move_00_slot_1.png",
+        "matrix": [
+          0.3032403527660257,
+          0.9406354280179873,
+          -0.8403741954635137,
+          0.3394186081484389,
+          49.15339687994888,
+          102.19605709660242
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_R_Foot_01__C_R_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_00_slot_1.png"
+      },
+      {
+        "slot": "C_Head_03",
+        "attachment": "C_Head_03",
+        "bone": "C_Head_03",
+        "parent": "C_Head_2",
+        "draw_order": 2,
+        "file": "move_00_slot_2.png",
+        "matrix": [
+          0.9625514395336621,
+          -0.2710991339240735,
+          0.2710990664469424,
+          0.9625514438246351,
+          25.292407902580532,
+          153.50624238533794
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Head_03__C_Head_03.png",
+        "source_file": "build/enemy_actions_1023/stone/move_00_slot_2.png"
+      },
+      {
+        "slot": "C_R_Pincers_01",
+        "attachment": "C_R_Pincers_01",
+        "bone": "C_R_Pincers_01",
+        "parent": "C_Head_01",
+        "draw_order": 3,
+        "file": "move_00_slot_3.png",
+        "matrix": [
+          0.8100396301325854,
+          0.5863751150674905,
+          -0.5863751526615981,
+          0.8100396301325868,
+          89.13236932018091,
+          114.00525387180394
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_R_Pincers_01__C_R_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_00_slot_3.png"
+      },
+      {
+        "slot": "C_Body_01",
+        "attachment": "C_Body_01",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 4,
+        "file": "move_00_slot_4.png",
+        "matrix": [
+          -0.5333455164761798,
+          -0.8458974755350289,
+          0.8458975002877004,
+          -0.5333455164761777,
+          12.987377236044578,
+          85.85002357353761
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Body_01__C_Body_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_00_slot_4.png"
+      },
+      {
+        "slot": "C_Head_02",
+        "attachment": "C_Head_02",
+        "bone": "C_Head_02",
+        "parent": "C_Head_2",
+        "draw_order": 5,
+        "file": "move_00_slot_5.png",
+        "matrix": [
+          0.9992339665202014,
+          0.03913413330563404,
+          -0.03913420269646233,
+          0.9992339635651081,
+          19.706439476576257,
+          132.75823585935495
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Head_02__C_Head_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_00_slot_5.png"
+      },
+      {
+        "slot": "C_Head_01",
+        "attachment": "C_Head_01",
+        "bone": "C_Head_01",
+        "parent": "Common2",
+        "draw_order": 6,
+        "file": "move_00_slot_6.png",
+        "matrix": [
+          0.9999999999999795,
+          1.967008028307056e-07,
+          -2.1990590605181402e-07,
+          0.9999999999999762,
+          9.73143118389845,
+          123.18226565626983
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Head_01__C_Head_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_00_slot_6.png"
+      },
+      {
+        "slot": "C_L_Pincers_02",
+        "attachment": "C_L_Pincers_02",
+        "bone": "C_L_Pincers_02",
+        "parent": "C_Head_01",
+        "draw_order": 7,
+        "file": "move_00_slot_7.png",
+        "matrix": [
+          0.6325299547491711,
+          0.7745358827116098,
+          -0.7745359120674569,
+          0.6325299547491723,
+          11.327412860282838,
+          123.58126738049936
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Pincers_02__C_L_Pincers_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_00_slot_7.png"
+      },
+      {
+        "slot": "C_L_Pincers_01",
+        "attachment": "C_L_Pincers_01",
+        "bone": "C_L_Pincers_01",
+        "parent": "C_L_Pincers_02",
+        "draw_order": 8,
+        "file": "move_00_slot_8.png",
+        "matrix": [
+          0.7811795723064251,
+          0.6243063594421795,
+          -0.624306406269781,
+          0.7811795929629202,
+          29.6259417461754,
+          105.2025973047079
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Pincers_01__C_L_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_00_slot_8.png"
+      },
+      {
+        "slot": "C_L_Foot_02",
+        "attachment": "C_L_Foot_02",
+        "bone": "C_L_Foot_02",
+        "parent": "Common2",
+        "draw_order": 9,
+        "file": "move_00_slot_9.png",
+        "matrix": [
+          0.046709920782133256,
+          0.8522149326648736,
+          -0.8266681239772691,
+          0.04815343333038164,
+          -32.472544967112206,
+          108.22607632142484
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Foot_02__C_L_Foot_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_00_slot_9.png"
+      },
+      {
+        "slot": "C_L_Foot_01",
+        "attachment": "C_L_Foot_01",
+        "bone": "C_L_Foot_01",
+        "parent": "Common2",
+        "draw_order": 10,
+        "file": "move_00_slot_10.png",
+        "matrix": [
+          -0.13277364496294378,
+          0.9874600381549906,
+          -0.8304892824342801,
+          -0.15786916433221315,
+          -12.12357252919062,
+          110.07309803864916
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Foot_01__C_L_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_00_slot_10.png"
+      }
+    ],
+    "glow": [
+      29.942307926704235,
+      24.533012068911745
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      52,
+      40
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "move_01",
+    "anim": "Move",
+    "t": 0.25,
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body_1",
+        "attachment": "C_Body_02",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 0,
+        "file": "move_01_slot_0.png",
+        "matrix": [
+          -0.5088251654728032,
+          -0.8608698685936282,
+          0.8608698922083051,
+          -0.5088251654728011,
+          12.987377758036093,
+          94.06483243154219
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Body_1__C_Body_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_01_slot_0.png"
+      },
+      {
+        "slot": "C_R_Foot_01",
+        "attachment": "C_R_Foot_01",
+        "bone": "C_R_Foot_01",
+        "parent": "Common2",
+        "draw_order": 1,
+        "file": "move_01_slot_1.png",
+        "matrix": [
+          -0.17190834735022031,
+          0.981313069188884,
+          -0.8767160430024802,
+          -0.19241793117872147,
+          49.15339687994888,
+          102.19605709660242
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_R_Foot_01__C_R_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_01_slot_1.png"
+      },
+      {
+        "slot": "C_Head_03",
+        "attachment": "C_Head_03",
+        "bone": "C_Head_03",
+        "parent": "C_Head_2",
+        "draw_order": 2,
+        "file": "move_01_slot_2.png",
+        "matrix": [
+          0.9817325213739321,
+          -0.19026630599736602,
+          0.19026623735255982,
+          0.9817325237571584,
+          25.29240747280404,
+          161.43075045692018
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Head_03__C_Head_03.png",
+        "source_file": "build/enemy_actions_1023/stone/move_01_slot_2.png"
+      },
+      {
+        "slot": "C_R_Pincers_01",
+        "attachment": "C_R_Pincers_01",
+        "bone": "C_R_Pincers_01",
+        "parent": "C_Head_01",
+        "draw_order": 3,
+        "file": "move_01_slot_3.png",
+        "matrix": [
+          0.9095437907450117,
+          0.4156080788116314,
+          -0.4156081210237473,
+          0.9095437907450132,
+          89.13236889040442,
+          121.92976194338618
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_R_Pincers_01__C_R_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_01_slot_3.png"
+      },
+      {
+        "slot": "C_Body_01",
+        "attachment": "C_Body_01",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 4,
+        "file": "move_01_slot_4.png",
+        "matrix": [
+          -0.5088251654728032,
+          -0.8608698685936282,
+          0.8608698922083051,
+          -0.5088251654728011,
+          12.987377758036093,
+          94.06483243154219
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Body_01__C_Body_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_01_slot_4.png"
+      },
+      {
+        "slot": "C_Head_02",
+        "attachment": "C_Head_02",
+        "bone": "C_Head_02",
+        "parent": "C_Head_2",
+        "draw_order": 5,
+        "file": "move_01_slot_5.png",
+        "matrix": [
+          0.997839149841762,
+          0.06570410985948517,
+          -0.06570417909881521,
+          0.9978391462753876,
+          19.706439046799765,
+          140.6827439309372
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Head_02__C_Head_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_01_slot_5.png"
+      },
+      {
+        "slot": "C_Head_01",
+        "attachment": "C_Head_01",
+        "bone": "C_Head_01",
+        "parent": "Common2",
+        "draw_order": 6,
+        "file": "move_01_slot_6.png",
+        "matrix": [
+          0.9999999999999795,
+          1.967008028307056e-07,
+          -2.1990590605181402e-07,
+          0.9999999999999762,
+          9.731430754121956,
+          131.10677372785207
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Head_01__C_Head_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_01_slot_6.png"
+      },
+      {
+        "slot": "C_L_Pincers_02",
+        "attachment": "C_L_Pincers_02",
+        "bone": "C_L_Pincers_02",
+        "parent": "C_Head_01",
+        "draw_order": 7,
+        "file": "move_01_slot_7.png",
+        "matrix": [
+          0.5797886496274725,
+          0.8147668990817624,
+          -0.8147669259898749,
+          0.5797886496274735,
+          11.327412430506342,
+          131.5057754520816
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Pincers_02__C_L_Pincers_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_01_slot_7.png"
+      },
+      {
+        "slot": "C_L_Pincers_01",
+        "attachment": "C_L_Pincers_01",
+        "bone": "C_L_Pincers_01",
+        "parent": "C_L_Pincers_02",
+        "draw_order": 8,
+        "file": "move_01_slot_8.png",
+        "matrix": [
+          0.6362420650777747,
+          0.7714894619637321,
+          -0.7714895035678313,
+          0.6362420848931168,
+          28.36129675665056,
+          118.93570535160154
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Pincers_01__C_L_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_01_slot_8.png"
+      },
+      {
+        "slot": "C_L_Foot_02",
+        "attachment": "C_L_Foot_02",
+        "bone": "C_L_Foot_02",
+        "parent": "Common2",
+        "draw_order": 9,
+        "file": "move_01_slot_9.png",
+        "matrix": [
+          -0.2621227992855027,
+          0.8126531216968197,
+          -0.8157721924673861,
+          -0.26112056294920805,
+          -32.472544967112206,
+          108.22607632142484
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Foot_02__C_L_Foot_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_01_slot_9.png"
+      },
+      {
+        "slot": "C_L_Foot_01",
+        "attachment": "C_L_Foot_01",
+        "bone": "C_L_Foot_01",
+        "parent": "Common2",
+        "draw_order": 10,
+        "file": "move_01_slot_10.png",
+        "matrix": [
+          0.151276567028353,
+          0.9837472264041441,
+          -0.8287973031582332,
+          0.17955888878627074,
+          -12.123572515501339,
+          112.16458242487775
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Foot_01__C_L_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_01_slot_10.png"
+      }
+    ],
+    "glow": [
+      29.94230788852867,
+      23.829105363298844
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      52,
+      40
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "move_02",
+    "anim": "Move",
+    "t": 0.5,
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body_1",
+        "attachment": "C_Body_02",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 0,
+        "file": "move_02_slot_0.png",
+        "matrix": [
+          -0.4838848199249208,
+          -0.8751316823159978,
+          0.8751317047731879,
+          -0.4838848199249188,
+          12.987377236044495,
+          85.85002226223543
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Body_1__C_Body_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_02_slot_0.png"
+      },
+      {
+        "slot": "C_R_Foot_01",
+        "attachment": "C_R_Foot_01",
+        "bone": "C_R_Foot_01",
+        "parent": "Common2",
+        "draw_order": 1,
+        "file": "move_02_slot_1.png",
+        "matrix": [
+          0.3032403527660257,
+          0.9406354280179873,
+          -0.8403741954635137,
+          0.3394186081484389,
+          49.15339687994888,
+          102.19605709660242
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_R_Foot_01__C_R_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_02_slot_1.png"
+      },
+      {
+        "slot": "C_Head_03",
+        "attachment": "C_Head_03",
+        "bone": "C_Head_03",
+        "parent": "C_Head_2",
+        "draw_order": 2,
+        "file": "move_02_slot_2.png",
+        "matrix": [
+          0.9690411059808776,
+          -0.2468994695728931,
+          0.24689940169423236,
+          0.9690411096991774,
+          25.292407902580532,
+          153.50624238533794
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Head_03__C_Head_03.png",
+        "source_file": "build/enemy_actions_1023/stone/move_02_slot_2.png"
+      },
+      {
+        "slot": "C_R_Pincers_01",
+        "attachment": "C_R_Pincers_01",
+        "bone": "C_R_Pincers_01",
+        "parent": "C_Head_01",
+        "draw_order": 3,
+        "file": "move_02_slot_3.png",
+        "matrix": [
+          0.7985305952977868,
+          0.6019542059533718,
+          -0.6019542430133427,
+          0.7985305952977884,
+          89.13236932018091,
+          114.00525387180394
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_R_Pincers_01__C_R_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_02_slot_3.png"
+      },
+      {
+        "slot": "C_Body_01",
+        "attachment": "C_Body_01",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 4,
+        "file": "move_02_slot_4.png",
+        "matrix": [
+          -0.4838848199249208,
+          -0.8751316823159978,
+          0.8751317047731879,
+          -0.4838848199249188,
+          12.987377236044495,
+          85.85002226223543
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Body_01__C_Body_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_02_slot_4.png"
+      },
+      {
+        "slot": "C_Head_02",
+        "attachment": "C_Head_02",
+        "bone": "C_Head_02",
+        "parent": "C_Head_2",
+        "draw_order": 5,
+        "file": "move_02_slot_5.png",
+        "matrix": [
+          0.9997563610925888,
+          -0.022073095188089205,
+          0.02207302563533782,
+          0.9997563595511789,
+          19.706439476576257,
+          132.75823585935495
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Head_02__C_Head_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_02_slot_5.png"
+      },
+      {
+        "slot": "C_Head_01",
+        "attachment": "C_Head_01",
+        "bone": "C_Head_01",
+        "parent": "Common2",
+        "draw_order": 6,
+        "file": "move_02_slot_6.png",
+        "matrix": [
+          0.9999999999999795,
+          1.967008028307056e-07,
+          -2.1990590605181402e-07,
+          0.9999999999999762,
+          9.73143118389845,
+          123.18226565626983
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Head_01__C_Head_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_02_slot_6.png"
+      },
+      {
+        "slot": "C_L_Pincers_02",
+        "attachment": "C_L_Pincers_02",
+        "bone": "C_L_Pincers_02",
+        "parent": "C_Head_01",
+        "draw_order": 7,
+        "file": "move_02_slot_7.png",
+        "matrix": [
+          0.6375444575171061,
+          0.7704135525117535,
+          -0.7704135821003247,
+          0.6375444575171074,
+          11.327412860282838,
+          123.58126738049936
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Pincers_02__C_L_Pincers_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_02_slot_7.png"
+      },
+      {
+        "slot": "C_L_Pincers_01",
+        "attachment": "C_L_Pincers_01",
+        "bone": "C_L_Pincers_01",
+        "parent": "C_L_Pincers_02",
+        "draw_order": 8,
+        "file": "move_02_slot_8.png",
+        "matrix": [
+          0.7852157418249687,
+          0.6192222488162973,
+          -0.6192222959650852,
+          0.7852157624123954,
+          29.74485968051197,
+          105.32176777710828
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Pincers_01__C_L_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_02_slot_8.png"
+      },
+      {
+        "slot": "C_L_Foot_02",
+        "attachment": "C_L_Foot_02",
+        "bone": "C_L_Foot_02",
+        "parent": "Common2",
+        "draw_order": 9,
+        "file": "move_02_slot_9.png",
+        "matrix": [
+          0.046709920782133256,
+          0.8522149326648736,
+          -0.8266681239772691,
+          0.04815343333038164,
+          -32.472544967112206,
+          108.22607632142484
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Foot_02__C_L_Foot_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_02_slot_9.png"
+      },
+      {
+        "slot": "C_L_Foot_01",
+        "attachment": "C_L_Foot_01",
+        "bone": "C_L_Foot_01",
+        "parent": "Common2",
+        "draw_order": 10,
+        "file": "move_02_slot_10.png",
+        "matrix": [
+          -0.13277364496294378,
+          0.9874600381549906,
+          -0.8304892824342801,
+          -0.15786916433221315,
+          -12.12357252919062,
+          110.07309803864916
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Foot_01__C_L_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_02_slot_10.png"
+      }
+    ],
+    "glow": [
+      29.942307926704235,
+      24.533012068911745
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      52,
+      40
+    ],
+    "glow_active": true
+  },
+  {
+    "name": "move_03",
+    "anim": "Move",
+    "t": 0.75,
+    "registration_y_1x": 0,
+    "parts": [
+      {
+        "slot": "C_Body_1",
+        "attachment": "C_Body_02",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 0,
+        "file": "move_03_slot_0.png",
+        "matrix": [
+          -0.5088251654728032,
+          -0.8608698685936282,
+          0.8608698922083051,
+          -0.5088251654728011,
+          12.98737775803611,
+          94.0648327038624
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Body_1__C_Body_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_03_slot_0.png"
+      },
+      {
+        "slot": "C_R_Foot_01",
+        "attachment": "C_R_Foot_01",
+        "bone": "C_R_Foot_01",
+        "parent": "Common2",
+        "draw_order": 1,
+        "file": "move_03_slot_1.png",
+        "matrix": [
+          -0.17190836465465162,
+          0.9813130653909804,
+          -0.8767160396093903,
+          -0.19241795054766603,
+          49.15339687994888,
+          102.19605709660242
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_R_Foot_01__C_R_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_03_slot_1.png"
+      },
+      {
+        "slot": "C_Head_03",
+        "attachment": "C_Head_03",
+        "bone": "C_Head_03",
+        "parent": "C_Head_2",
+        "draw_order": 2,
+        "file": "move_03_slot_2.png",
+        "matrix": [
+          0.9470508648961,
+          -0.32108359575691586,
+          0.32108352925487904,
+          0.9470508703742321,
+          25.292407472804022,
+          161.43075074661306
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Head_03__C_Head_03.png",
+        "source_file": "build/enemy_actions_1023/stone/move_03_slot_2.png"
+      },
+      {
+        "slot": "C_R_Pincers_01",
+        "attachment": "C_R_Pincers_01",
+        "bone": "C_R_Pincers_01",
+        "parent": "C_Head_01",
+        "draw_order": 3,
+        "file": "move_03_slot_3.png",
+        "matrix": [
+          0.6501949411668715,
+          0.7597674088525421,
+          -0.7597674390282251,
+          0.6501949411668727,
+          89.13236889040441,
+          121.92976223307906
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_R_Pincers_01__C_R_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_03_slot_3.png"
+      },
+      {
+        "slot": "C_Body_01",
+        "attachment": "C_Body_01",
+        "bone": "C_Body_01",
+        "parent": "Common",
+        "draw_order": 4,
+        "file": "move_03_slot_4.png",
+        "matrix": [
+          -0.5088251654728032,
+          -0.8608698685936282,
+          0.8608698922083051,
+          -0.5088251654728011,
+          12.98737775803611,
+          94.0648327038624
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Body_01__C_Body_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_03_slot_4.png"
+      },
+      {
+        "slot": "C_Head_02",
+        "attachment": "C_Head_02",
+        "bone": "C_Head_02",
+        "parent": "C_Head_2",
+        "draw_order": 5,
+        "file": "move_03_slot_5.png",
+        "matrix": [
+          0.9988204613509589,
+          -0.048556053068657186,
+          0.04855598352662762,
+          0.9988204604236013,
+          19.706439046799748,
+          140.68274422063007
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Head_02__C_Head_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_03_slot_5.png"
+      },
+      {
+        "slot": "C_Head_01",
+        "attachment": "C_Head_01",
+        "bone": "C_Head_01",
+        "parent": "Common2",
+        "draw_order": 6,
+        "file": "move_03_slot_6.png",
+        "matrix": [
+          0.9999999999999795,
+          1.967008028307056e-07,
+          -2.1990590605181402e-07,
+          0.9999999999999762,
+          9.73143075412194,
+          131.10677401754495
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_Head_01__C_Head_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_03_slot_6.png"
+      },
+      {
+        "slot": "C_L_Pincers_02",
+        "attachment": "C_L_Pincers_02",
+        "bone": "C_L_Pincers_02",
+        "parent": "C_Head_01",
+        "draw_order": 7,
+        "file": "move_03_slot_7.png",
+        "matrix": [
+          0.6918406459576404,
+          0.7220502042219685,
+          -0.722050236330437,
+          0.6918406459576416,
+          11.327412430506326,
+          131.50577574177447
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Pincers_02__C_L_Pincers_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_03_slot_7.png"
+      },
+      {
+        "slot": "C_L_Pincers_01",
+        "attachment": "C_L_Pincers_01",
+        "bone": "C_L_Pincers_01",
+        "parent": "C_L_Pincers_02",
+        "draw_order": 8,
+        "file": "move_03_slot_8.png",
+        "matrix": [
+          0.8555023270527398,
+          0.5177989230045857,
+          -0.5177989738652992,
+          0.855502347399866,
+          31.615684363448963,
+          110.61373255223192
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Pincers_01__C_L_Pincers_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_03_slot_8.png"
+      },
+      {
+        "slot": "C_L_Foot_02",
+        "attachment": "C_L_Foot_02",
+        "bone": "C_L_Foot_02",
+        "parent": "Common2",
+        "draw_order": 9,
+        "file": "move_03_slot_9.png",
+        "matrix": [
+          -0.2621228337627948,
+          0.8126531109768483,
+          -0.8157721847773927,
+          -0.26112059631164186,
+          -32.472544967112206,
+          108.22607632142484
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Foot_02__C_L_Foot_02.png",
+        "source_file": "build/enemy_actions_1023/stone/move_03_slot_9.png"
+      },
+      {
+        "slot": "C_L_Foot_01",
+        "attachment": "C_L_Foot_01",
+        "bone": "C_L_Foot_01",
+        "parent": "Common2",
+        "draw_order": 10,
+        "file": "move_03_slot_10.png",
+        "matrix": [
+          0.15127657686376111,
+          0.983747224178466,
+          -0.8287972988848568,
+          0.1795589009800672,
+          -12.123572515501314,
+          112.16457970328038
+        ],
+        "mesh": false,
+        "vertices": null,
+        "triangles": null,
+        "deform": [],
+        "pixel_component": "components/move/C_L_Foot_01__C_L_Foot_01.png",
+        "source_file": "build/enemy_actions_1023/stone/move_03_slot_10.png"
+      }
+    ],
+    "glow": [
+      29.94230788852867,
+      23.829105337566425
+    ],
+    "source_crop_1x": [
+      0,
+      0,
+      52,
+      40
+    ],
+    "glow_active": true
+  }
+]
