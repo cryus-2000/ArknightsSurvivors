@@ -48,6 +48,10 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 				errs.append(p + ".strip 必须是帧条名（fx_* / proj_*）")
 			if kind == "attack" and str(b.get("aim", "nearest")) != "nearest":
 				errs.append(p + ".aim：普攻冲刺只能朝最近敌人（nearest）")
+			_num(b, "aim_r", p, ctx, false, 10.0, 1200.0)   # 找目标的半径（缺省 冲刺长度 × 1.3）
+			_num(b, "min_d", p, ctx, false, 0.0, 1200.0)    # aim nearest：最近的敌人比这近就不冲（够得着了）
+			if b.has("need_target") and not b.need_target is bool:
+				errs.append(p + ".need_target 应是 true / false（aim nearest：aim_r 内没有敌人就不冲）")
 			_src(b, p, ctx, true)
 			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
 		"verb.sp_secs":
@@ -126,12 +130,18 @@ static func tx_dash_start(o, b: Dictionary, dmg: float) -> Array:
 		pd = _tx_densest(o, len * 1.6)
 		if pd == Vector2.INF:
 			return []
+	var aim_r: float = float(b.aim_r) * o.stat(&"op_range") if b.has("aim_r") else len * 1.3
+	if aim == "nearest" and (b.get("need_target", false) or b.has("min_d")):
+		# 队友短突进（德克萨斯，10-23）：aim_r 内没有敌人、或最近的敌人已经比 min_d 近（够得着了）就不冲
+		var ts0: Array = o.nearest_enemies(1, aim_r, o.pos)
+		if ts0.is_empty() or ts0[0].pos.distance_to(o.pos) < float(b.get("min_d", 0.0)):
+			return []
 	if o.tx.has("dash"):
 		_tx_dash_end(o)
 	var dir := Vector2.ZERO
 	match aim:
 		"nearest":
-			var ts: Array = o.nearest_enemies(1, len * 1.3, o.pos)
+			var ts: Array = o.nearest_enemies(1, aim_r, o.pos)
 			var ang: float = (ts[0].pos - o.pos).angle() if not ts.is_empty() else o.facing_angle()
 			dir = Vector2.from_angle(o.atk_angle(ang))
 		"densest":

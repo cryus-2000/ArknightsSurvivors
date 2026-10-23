@@ -73,7 +73,7 @@ static func validate(cid: String, d: Dictionary) -> bool:
 				elif ev[1] < 0.0:
 					errs.append("%s.dur 不能为负" % p)
 			for k in sb:
-				if not k in ["dur", "do", "fx", "aim", "status", "status_col", "attack_phases", "attack_effect"] + EXU_SKILL_KEYS + HW_SKILL_KEYS:
+				if not k in ["dur", "do", "fx", "aim", "status", "status_col", "attack_phases", "attack_effect", "need_enemy"] + EXU_SKILL_KEYS + HW_SKILL_KEYS:
 					errs.append("%s.%s：技能积木只有 dur / do / fx / aim / aim_r / status / status_col / attack_patch / end 这几个字段" % [p, k])
 				elif k == "aim" and not (str(sb.aim) in ["leader", "nearest", "los", "range", "tether", "elite", "cluster"] or (str(sb.aim).begins_with("summon:") and ctx.summons is Dictionary and ctx.summons.has(str(sb.aim).substr(7)))):
 					errs.append("%s.aim 只能是 leader / nearest / summon:<blocks.summons 里的种类>" % p)
@@ -88,6 +88,7 @@ static func validate(cid: String, d: Dictionary) -> bool:
 					if not sw is Dictionary or not str(sw.get("shape", "")) in ["circle", "cone"] or sw.has("armed") or sw.has("combo"):
 						errs.append(p + ".attack_phases：本干员其他技能的 swap_attack 换上的普攻须是 circle / cone")
 			_num(sb, "aim_r", p, ctx, false, 1.0, 2000.0)
+			_num(sb, "need_enemy", p, ctx, false, 1.0, 2000.0)   # 自动释放的前提：这个半径（× op_range）内有敌人，没有就保留技力不放（10-23）
 			if sb.has("fx"):
 				_F()._fx(sb.fx, p + ".fx", ctx, "cast")
 			_list(sb.get("do", []), p + ".do", "skill", ctx)

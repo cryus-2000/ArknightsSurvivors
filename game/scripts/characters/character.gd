@@ -196,9 +196,14 @@ func charge_skills(_dt: float) -> int:
 		var need := sp_need(i)
 		if need <= 0.0 or skill_active_left(i) > 0.0 or perm[i]:
 			continue
-		if sp[i] >= need and not is_manual(i):
+		if sp[i] >= need and not is_manual(i) and skill_gate_ok(i):
 			ready = i
 	return ready
+
+
+## 自动技能的放出条件（10-23 用户定：德克萨斯「射程内没有敌人就不放，技力保留到有敌人再放」）。基类恒真，数据干员读 blocks.skills[i].need_enemy
+func skill_gate_ok(_i: int) -> bool:
+	return true
 
 
 ## 技能充能（每帧，不论是否在出手）：生效中的持续型技能与永久型不充

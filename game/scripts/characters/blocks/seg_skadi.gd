@@ -13,6 +13,8 @@ static func hw_wave_start(o, b: Dictionary) -> void:
 		if o.pos == Vector2.INF:
 			return
 		var ang: float = o.facing_angle()
+		if b.get("need_target", false) and o.nearest_enemies(1, float(b.get("aim_r", 260.0)), o.pos).is_empty():
+			return   # need_target（德克萨斯「短剑气」，10-23）：aim_r 内没有敌人就不甩（手动普攻也一样，只是方向取玩家指向）
 		if o.manual_attack() and o.get("in_release") == true and o.atk_aim != Vector2.ZERO:
 			ang = o.atk_aim.angle()   # 手动普攻（10-23 用户定）：普攻里放出的剑气 / 潮刃沿玩家指向，不吸附最近敌人；技能里的照旧找最近
 		elif str(b.get("aim", "")) == "nearest":
@@ -358,6 +360,8 @@ static func _hw_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			_num(b, "depth", p, ctx, false, 1.0, 100.0)
 			_num(b, "cap", p, ctx, false, 1.0, 16.0)
 			_num(b, "max_hits", p, ctx, false, 1.0, 99.0)   # 命中几名敌人后消失（缺省不限；普攻剑气 1）
+			if b.has("need_target") and not b.need_target is bool:
+				errs.append(p + ".need_target 应是 true / false（from: self 时 aim_r 内没有敌人就不放出）")
 			_num(b, "aim_r", p, ctx, false, 1.0, 1000.0)
 			if b.has("from") and not str(b.from) in ["prev", "self"]:
 				errs.append(p + ".from 只能是 prev / self")

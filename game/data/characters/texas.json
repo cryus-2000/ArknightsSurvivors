@@ -16,26 +16,24 @@
  "base": {
   "_doc": "基础数值（docs/59 §2 / §8.2）；纯数据干员，行为在 blocks 段（docs/61 §13）。精英化形态（docs/91 §16）：pin_* 精一「钉剑」，rain_* 精二「余像·剑雨」（残像 30% → 15% 配合下调；每柄 35% 按木桩表 +33% 再按 docs/91 收到 25%）。普攻是朝最近敌人的冲刺穿行，穿过敌人给全队回技力；精一天赋「战术快递」= 她自己按 talent_cd 自动冲向附近敌群（10-12 用户「改成自动冲刺」，不再跟主控的冲刺键）；S2 把这个间隔 × s2_cd_mult",
   "atk": 32,
-  "cd": 1.1,
+  "cd": 0.9,
   "dash_len": 140,
   "dash_w": 44,
   "dash_t": 0.24,
   "dash_hold": 0.2,
-  "hit_sp": 0.6,
+  "hit_sp": 0.5,
   "s1_r": 130,
   "s1_mult": 1.6,
   "s1_stun": 0.5,
   "s1_sp": 0.1,
   "s2_len": 0.4,
   "s2_mult": 1.3,
-  "s2_cd_mult": 0.8,
   "s3_dur": 8.0,
   "s3_every": 0.5,
   "s3_mult": 0.9,
   "s3_stun": 0.3,
   "s3_sp": 0.4,
   "s3_end_mult": 1.6,
-  "talent_cd": 2.5,
   "talent_sp": 0.8,
   "talent_many": 3,
   "talent_many_sp": 0.3,
@@ -61,7 +59,31 @@
   "back2_many_sp": 0.4,
   "rain3_echo": 0.4,
   "rain3_r": 90,
-  "rain3_mult": 0.35
+  "rain3_mult": 0.35,
+  "slash_r": 112,
+  "slash_half": 1.0,
+  "slash_kb": 30,
+  "slash_mult": 0.6,
+  "slash2_mult": 0.6,
+  "slash2_delay": 0.2,
+  "wave_every": 3,
+  "wave_mult": 0.7,
+  "wave_dist": 170,
+  "wave_w": 44,
+  "wave_speed": 520,
+  "wave_kb": 20,
+  "wave_aim": 220,
+  "step_len": 60,
+  "step_w": 44,
+  "step_t": 0.14,
+  "step_cd": 2.0,
+  "step_min_d": 100,
+  "step_aim": 260,
+  "step_mult": 0.5,
+  "s3_need": 230,
+  "talent_atk_sp": 0.15,
+  "slash_wide": 0.15,
+  "_rework": "10-23 用户定「自动冲刺太晕」重设计（docs/129）：队长普攻原地两连斩（扇形 slash_r）、每 wave_every 次出手朝 wave_aim 内最近敌人甩一道短剑气（没有敌人就不甩）；队友另有每 step_cd 秒一次 ≤ step_len 的短突进（敌人在 step_min_d 以外才上前）；删除天赋的定时自动冲刺；剑雨 / 剑雨滂沱自动释放需要射程内有敌人"
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1986 / 防御 441 / 法抗 0%，近战主控有效生命 ×1.06",
@@ -71,8 +93,35 @@
   "regen": 1.6
  },
  "sprites": {
-  "move_attack": {"tex": "op_texas_move_attack", "frames": 8, "foot": [48, 76], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},
-  "entry": {"tex": "op_texas_entry", "frames": 8, "fps": 11.236, "foot": [32, 60], "frame_durations": [0.089, 0.089, 0.089, 0.089, 0.089, 0.089, 0.089, 0.089], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/texas_entry.json），64 画布 @2x；落下由代码补"},
+  "move_attack": {
+   "tex": "op_texas_move_attack",
+   "frames": 8,
+   "foot": [
+    48,
+    76
+   ],
+   "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"
+  },
+  "entry": {
+   "tex": "op_texas_entry",
+   "frames": 8,
+   "fps": 11.236,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.089,
+    0.089,
+    0.089,
+    0.089,
+    0.089,
+    0.089,
+    0.089,
+    0.089
+   ],
+   "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/texas_entry.json），64 画布 @2x；落下由代码补"
+  },
   "idle": {
    "tex": "op_texas_idle",
    "frames": 7,
@@ -278,7 +327,8 @@
    ]
   }
  },
- "extra_sprites": ["entry", 
+ "extra_sprites": [
+  "entry",
   "death",
   "back_native",
   "s3_start",
@@ -286,15 +336,15 @@
  ],
  "attack": {
   "mode": "auto",
-  "name": "疾行斩",
-  "desc": "每 {$cd} 秒朝最近敌人方向冲刺 {$dash_len}（宽 {$dash_w}，穿透），沿途全部敌人受物理伤害；穿过敌人时全队技力 +{$hit_sp} 秒（即 {$hit_sp} 秒的自然回复量）"
+  "name": "双连斩",
+  "desc": "原地快速两连斩：每 {$cd} 秒朝最近敌人挥出两刀扇形斩（半径 {$slash_r}，物理，各 {$slash_mult*100}%）；每第 {$wave_every} 次出手再朝 {$wave_aim} 内最近的敌人甩一道短剑气（{$wave_mult*100}%，飞出 {$wave_dist}，命中第一名敌人即消失，范围内没有敌人就不甩）；每次出手为全队技力 +{$hit_sp} 秒。当队友时，每 {$step_cd} 秒还会朝 {$step_min_d}–{$step_aim} 内的敌人突进一小步（≤ {$step_len}）"
  },
  "skills": [
   {
    "name": "剑雨",
    "en": "SWORD RAIN",
    "sp": 6,
-   "desc": "以自身为中心半径 {$s1_r} 落下剑雨，×{$s1_mult} 并眩晕 {$s1_stun} 秒（精英减半，Boss 除外），全队技力 +{$s1_sp*100}%",
+   "desc": "以自身为中心半径 {$s1_r} 落下剑雨，×{$s1_mult} 并眩晕 {$s1_stun} 秒（精英减半，Boss 除外），全队技力 +{$s1_sp*100}%（自动释放需要射程内有敌人，否则技力保留到有敌人再放）",
    "icon": "skill_texas_s1"
   },
   {
@@ -302,7 +352,7 @@
    "en": "RELIABLE PARTNER",
    "sp": 14,
    "permanent": true,
-   "desc": "充能一次后永久生效：冲刺距离 +{$s2_len*100}%、伤害 ×{$s2_mult}；「战术快递」自动冲刺的间隔 -{(1-$s2_cd_mult)*100}%（{$talent_cd} → {$talent_cd*$s2_cd_mult} 秒）",
+   "desc": "充能一次后永久生效：冲刺距离 +{$s2_len*100}%、伤害 ×{$s2_mult}",
    "icon": "skill_texas_s2"
   },
   {
@@ -310,25 +360,15 @@
    "en": "TORRENTIAL SWORD RAIN",
    "sp": 20,
    "dur": 8.0,
-   "desc": "{$s3_dur} 秒内每 {$s3_every} 秒向敌群最密处冲刺一次（×{$s3_mult}），穿过的敌人眩晕 {$s3_stun} 秒、全队技力 +{$s3_sp} 秒；结束时在最后的落点落下剑雨 ×{$s3_end_mult}",
+   "desc": "{$s3_dur} 秒内每 {$s3_every} 秒向敌群最密处冲刺一次（×{$s3_mult}），穿过的敌人眩晕 {$s3_stun} 秒、全队技力 +{$s3_sp} 秒；结束时在最后的落点落下剑雨 ×{$s3_end_mult}（自动释放需要附近有敌人）",
    "icon": "skill_texas_s3"
   }
  ],
  "talent": {
   "name": "战术快递",
-  "desc": "队长每次冲刺，她沿同一方向冲刺一次（她当队长时，冲刺路径上的敌人一同被斩）；队长 {$talent_cd} 秒没有冲刺时，她自己朝附近敌群最密处冲刺一次。穿过敌人时全队技力 +{$talent_sp} 秒；一次冲刺穿过 {$talent_many} 名以上敌人时额外 +{$talent_many_sp} 秒"
+  "desc": "队长每次冲刺，她沿同一方向冲刺一次（她当队长时，冲刺路径上的敌人一同被斩）；穿过敌人时全队技力 +{$talent_sp} 秒；一次冲刺穿过 {$talent_many} 名以上敌人时额外 +{$talent_many_sp} 秒；双连斩每次出手再为全队技力 +{$talent_atk_sp} 秒"
  },
  "hit_sources": {
-  "疾行斩": {
-   "emitter": "operator",
-   "origin": "core",
-   "range": "近战",
-   "kind": "物理",
-   "tags": [
-    "pierce",
-    "basic"
-   ]
-  },
   "剑雨": {
    "emitter": "operator",
    "origin": "skill",
@@ -392,6 +432,36 @@
     "area",
     "stun"
    ]
+  },
+  "双连斩": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area"
+   ]
+  },
+  "剑气": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "projectile"
+   ]
+  },
+  "突进": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "pierce"
+   ]
   }
  },
  "progression": [
@@ -400,7 +470,7 @@
    "id": "wide",
    "name": "阔剑",
    "icon": "growth_b_range",
-   "desc": "冲刺宽度 +{$n1_w*100-100}%"
+   "desc": "冲刺宽度 +{$n1_w*100-100}%，扇形斩半径 +{$slash_wide*100}%"
   },
   {
    "type": "custom",
@@ -413,7 +483,7 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「可靠伙伴」；解锁天赋「战术快递」：队长每次冲刺，她同向冲刺一次；队长 {$talent_cd} 秒没冲刺时她自己冲进敌群；穿过敌人时为全队回技力；普攻「钉剑」：冲刺穿过的第一名敌人停顿 {$pin_dur} 秒（精英减半，Boss 除外）",
+   "desc": "解锁二技能「可靠伙伴」；解锁天赋「战术快递」：队长每次冲刺，她同向冲刺一次；穿过敌人时为全队回技力，双连斩每次出手再回一点；普攻「钉剑」：冲刺穿过的第一名敌人停顿 {$pin_dur} 秒（精英减半，Boss 除外）",
    "attack": {
     "name": "钉剑",
     "desc": "每次冲刺穿过的第一名敌人身上插一柄源石剑，停顿 {$pin_dur} 秒（精英减半，Boss 除外）"
@@ -424,7 +494,7 @@
    "id": "back",
    "name": "回马剑",
    "icon": "growth_b_echo",
-   "desc": "疾行斩冲到头 {$back_delay} 秒后原路反冲一次（{$back_mult*100}% 伤害）",
+   "desc": "双连斩后 {$back_delay} 秒，身后再斩一圈（{$back_mult*100}% 伤害）",
    "branch": {
     "back": {
      "id": "back",
@@ -485,29 +555,238 @@
  },
  "blocks": {
   "attack": {
-   "shape": "dash_line",
-   "aim": "nearest",
-   "r": "$dash_len",
-   "w": "$dash_w",
-   "t": "$dash_t",
-   "hold": "$dash_hold",
-   "every": "$cd",
-   "mult": 1.0,
-   "src": "疾行斩",
-   "tags": [
-    "basic"
+   "shape": "cone",
+   "origin_off": [
+    0,
+    -10
    ],
-   "strip": "fx_texas_dash"
+   "aim_pad": 40,
+   "ring": false,
+   "src": "双连斩",
+   "r": "$slash_r",
+   "half": "$slash_half",
+   "kb": "$slash_kb",
+   "face": true,
+   "fx": [
+    {
+     "blade": {
+      "strip": "fx_slash_heavy_steel",
+      "fit": 28,
+      "k": 1.0,
+      "along": 0.5,
+      "col": [
+       1.0,
+       0.82,
+       0.55
+      ],
+      "edge": [
+       1.0,
+       1.0,
+       1.0
+      ],
+      "life": 0.2,
+      "half": 1.0
+     }
+    }
+   ],
+   "every": "$cd",
+   "mult": "$slash_mult",
+   "tags": [
+    "basic",
+    "area"
+   ],
+   "combo": [
+    {
+     "delay": "$slash2_delay",
+     "_doc": "第二斩：同一扇形再斩一次",
+     "do": [
+      {
+       "shape": "cone",
+       "origin_off": [
+        0,
+        -10
+       ],
+       "aim_pad": 40,
+       "ring": false,
+       "src": "双连斩",
+       "r": "$slash_r",
+       "half": "$slash_half",
+       "kb": "$slash_kb",
+       "face": true,
+       "fx": [
+        {
+         "blade": {
+          "strip": "fx_slash_heavy_steel",
+          "fit": 28,
+          "k": 1.0,
+          "along": 0.5,
+          "col": [
+           1.0,
+           0.82,
+           0.55
+          ],
+          "edge": [
+           1.0,
+           1.0,
+           1.0
+          ],
+          "life": 0.2,
+          "half": 1.0
+         }
+        }
+       ],
+       "basis": "attack",
+       "mult": "$slash2_mult",
+       "tags": [
+        "basic",
+        "area"
+       ]
+      }
+     ]
+    },
+    {
+     "cond": "node:back",
+     "delay": "$back_delay",
+     "_doc": "回马剑（路线 back 节点 4）：两连斩后身后再斩一圈",
+     "do": [
+      {
+       "shape": "circle",
+       "center": "self",
+       "r": "$slash_r",
+       "basis": "attack",
+       "mult": "$back_mult",
+       "ring": false,
+       "src": "回马剑",
+       "tags": [
+        "follow_up",
+        "area"
+       ],
+       "fx": [
+        {
+         "blade": {
+          "strip": "fx_slash_heavy_steel",
+          "fit": 28,
+          "k": 0.9,
+          "along": 0.5,
+          "col": [
+           1.0,
+           0.82,
+           0.55
+          ],
+          "edge": [
+           1.0,
+           1.0,
+           1.0
+          ],
+          "life": 0.2,
+          "half": 1.3
+         }
+        }
+       ]
+      },
+      {
+       "verb": "sp_secs",
+       "seconds": "$back2_sp",
+       "exclude_self": false,
+       "cond": "node:back2"
+      }
+     ]
+    }
+   ]
   },
   "trait": [
    {
-    "trig": "on_dash_end",
-    "src": "疾行斩",
-    "min_hits": 1,
+    "trig": "every_n",
+    "n": 1,
+    "_doc": "先锋回技力（原疾行斩穿过敌人 +hit_sp）：每次双连斩出手全队技力 +hit_sp 秒",
     "do": [
      {
       "verb": "sp_secs",
       "seconds": "$hit_sp"
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": "$wave_every",
+    "_doc": "短剑气：每第 wave_every 次出手朝 wave_aim 内最近敌人甩一道（没有敌人就不甩；命中第一名即消失，贯穿卡 / 穿甲弹加在上面）",
+    "do": [
+     {
+      "shape": "wave",
+      "from": "self",
+      "aim": "nearest",
+      "aim_r": "$wave_aim",
+      "need_target": true,
+      "fan": [
+       0
+      ],
+      "basis": "attack",
+      "mult": "$wave_mult",
+      "dist": "$wave_dist",
+      "speed": "$wave_speed",
+      "w": "$wave_w",
+      "depth": 14,
+      "kb": "$wave_kb",
+      "cap": 6,
+      "max_hits": 1,
+      "off": [
+       0,
+       -8
+      ],
+      "src": "剑气",
+      "tags": [
+       "basic",
+       "projectile"
+      ]
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": 1,
+    "cond": "elite >= 1",
+    "_doc": "天赋「战术快递」精一：每次出手额外 +talent_atk_sp 秒（补回删掉的定时自动冲刺的技力）",
+    "do": [
+     {
+      "verb": "sp_secs",
+      "seconds": "$talent_atk_sp"
+     }
+    ]
+   },
+   {
+    "trig": "tick",
+    "every": "$step_cd",
+    "cond": "!is_leader",
+    "_doc": "队友短突进（队长时不位移）：敌人在 step_min_d 以外、step_aim 以内才上前一步，≤ step_len、间隔 ≥ step_cd",
+    "do": [
+     {
+      "shape": "dash_line",
+      "aim": "nearest",
+      "need_target": true,
+      "aim_r": "$step_aim",
+      "min_d": "$step_min_d",
+      "r": "$step_len",
+      "w": "$step_w",
+      "t": "$step_t",
+      "hold": 0.0,
+      "mult": "$step_mult",
+      "src": "突进",
+      "tags": [
+       "basic",
+       "pierce"
+      ],
+      "strip": "fx_texas_dash"
+     }
+    ]
+   },
+   {
+    "trig": "on_dash_end",
+    "src": "突进",
+    "min_hits": "$talent_many",
+    "do": [
+     {
+      "verb": "sp_secs",
+      "seconds": "$talent_many_sp"
      }
     ]
    },
@@ -631,7 +910,8 @@
       "scale": 0.467,
       "streak": 2
      }
-    ]
+    ],
+    "need_enemy": "$s1_r"
    },
    {
     "dur": "permanent",
@@ -655,54 +935,11 @@
       "verb": "mode",
       "no_attack": true
      }
-    ]
+    ],
+    "need_enemy": "$s3_need"
    }
   ],
   "talent": [
-   {
-    "trig": "tick",
-    "every": "$talent_cd",
-    "cond": "!skill_active:1 && resp_idle >= $talent_cd",
-    "do": [
-     {
-      "shape": "dash_line",
-      "aim": "densest",
-      "r": "$dash_len",
-      "w": "$dash_w",
-      "t": "$dash_t",
-      "hold": "$dash_hold",
-      "mult": 1.0,
-      "src": "战术快递",
-      "tags": [
-       "basic"
-      ],
-      "strip": "fx_texas_dash",
-      "sfx": "atk"
-     }
-    ]
-   },
-   {
-    "trig": "tick",
-    "every": "$talent_cd*$s2_cd_mult",
-    "cond": "skill_active:1 && resp_idle >= $talent_cd*$s2_cd_mult",
-    "do": [
-     {
-      "shape": "dash_line",
-      "aim": "densest",
-      "r": "$dash_len",
-      "w": "$dash_w",
-      "t": "$dash_t",
-      "hold": "$dash_hold",
-      "mult": 1.0,
-      "src": "战术快递",
-      "tags": [
-       "basic"
-      ],
-      "strip": "fx_texas_dash",
-      "sfx": "atk"
-     }
-    ]
-   },
    {
     "trig": "on_dash_end",
     "src": "战术快递",
@@ -711,17 +948,6 @@
      {
       "verb": "sp_secs",
       "seconds": "$talent_sp"
-     }
-    ]
-   },
-   {
-    "trig": "on_dash_end",
-    "src": "疾行斩",
-    "min_hits": "$talent_many",
-    "do": [
-     {
-      "verb": "sp_secs",
-      "seconds": "$talent_many_sp"
      }
     ]
    },
@@ -738,10 +964,18 @@
    }
   ],
   "progression": {
-   "wide": {
-    "verb": "dash_mod",
-    "w_mult": "$n1_w"
-   },
+   "wide": [
+    {
+     "verb": "dash_mod",
+     "w_mult": "$n1_w"
+    },
+    {
+     "verb": "buff_self",
+     "stat": "op_range",
+     "op": "add",
+     "value": "$slash_wide"
+    }
+   ],
    "sharp": {
     "verb": "buff_self",
     "stat": "dmg",
@@ -749,25 +983,9 @@
     "value": "$n2_mult"
    },
    "back": {
-    "trig": "on_dash_end",
-    "src": "疾行斩",
-    "delay": "$back_delay",
-    "do": [
-     {
-      "shape": "dash_line",
-      "aim": "reverse",
-      "r": "$dash_len",
-      "w": "$dash_w",
-      "t": "$dash_t",
-      "hold": "$dash_hold",
-      "mult": "$back_mult",
-      "src": "回马剑",
-      "tags": [
-       "follow_up"
-      ],
-      "strip": "fx_texas_dash"
-     }
-    ]
+    "trig": "passive",
+    "do": [],
+    "_doc": "回马剑（docs/119 路线 back 节点 4）：标记节点，效果在 attack.combo 第 2 段（cond node:back）"
    },
    "rain2": {
     "trig": "on_skill_start",
@@ -951,33 +1169,11 @@
      }
     ]
    },
-   "back2": [
-    {
-     "trig": "on_dash_end",
-     "src": "回马剑",
-     "min_hits": 1,
-     "do": [
-      {
-       "verb": "sp_secs",
-       "seconds": "$back2_sp",
-       "exclude_self": false
-      }
-     ],
-     "_doc": "回马剑·回技（docs/119 §4.1 路线 back 节点 5）：回马剑扫到 ≥1 名 → 全队技能 +back2_sp 秒"
-    },
-    {
-     "trig": "on_dash_end",
-     "src": "回马剑",
-     "min_hits": "$talent_many",
-     "do": [
-      {
-       "verb": "sp_secs",
-       "seconds": "$back2_many_sp",
-       "exclude_self": false
-      }
-     ]
-    }
-   ],
+   "back2": {
+    "trig": "passive",
+    "do": [],
+    "_doc": "回马剑·回技（路线 back 节点 5）：标记节点，效果在 attack.combo 第 2 段（cond node:back2）"
+   },
    "rain3": [
     {
      "trig": "on_skill_start",
@@ -1059,7 +1255,7 @@
     "trig": "on_leader_dash",
     "cond": "elite >= 1",
     "hint": "同向疾行",
-    "_doc": "响应动作（docs/118 §4.1）：队长冲刺时她沿同一方向冲刺。天赋原来的定时自动冲刺保留为兜底：条件 resp_idle >= talent_cd（队长这么久没冲刺才自己冲；响应关闭时恒成立 = 原行为），保证不触发不吃亏、冲刺间隔不短于队长。她当队长时 aim leader_dir 改为跟着队长这次冲刺扫过沿途（ride），不另位移",
+    "_doc": "响应动作（docs/118 §4.1）：队长冲刺时她沿同一方向冲刺。10-23 用户定：天赋原来的定时自动冲刺（兜底）已删，冲刺手感只由这条承担；她当队长时 aim leader_dir 跟着队长这次冲刺扫过沿途（ride），不另位移",
     "do": [
      {
       "shape": "dash_line",
@@ -1105,15 +1301,15 @@
     "rate": 8
    },
    {
-     "on": "dash.attack",
-     "slot": "attack",
-     "attack_clock": true,
-     "from": 2,
-     "to": 7,
-     "rate": 6
-    },
-    {
-     "on": "dash",
+    "on": "dash.attack",
+    "slot": "attack",
+    "attack_clock": true,
+    "from": 2,
+    "to": 7,
+    "rate": 6
+   },
+   {
+    "on": "dash",
     "slot": "attack",
     "from": 2,
     "to": 7,
@@ -1124,6 +1320,6 @@
  "response": {
   "name": "同向疾行",
   "trigger": "队长冲刺",
-  "desc": "精英一起：队长每次冲刺，她沿同一方向冲刺，穿过的敌人受到疾行斩伤害，并为全队回复技力；队长一阵子不冲刺时，她照旧自己冲进敌群"
+  "desc": "精英一起：队长每次冲刺，她沿同一方向冲刺，穿过的敌人受到伤害，并为全队回复技力（她不再自己定时冲刺）"
  }
 }

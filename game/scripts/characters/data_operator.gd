@@ -1246,6 +1246,14 @@ func _far_wanted(a: Dictionary, far: Dictionary) -> bool:
 	return fr > 0.0 and not nearest_enemies(1, fr, pos).is_empty()
 
 
+## blocks.skills[i].need_enemy（半径，× op_range）：自动释放前 pos 周围这个半径内要有敌人，没有就先不放（技力保留满格，有敌人那一帧再放）
+func skill_gate_ok(i: int) -> bool:
+	var sk: Array = B.get("skills", _EA)
+	if i >= sk.size() or not sk[i].has("need_enemy"):
+		return true
+	return not nearest_enemies(1, float(sk[i].need_enemy) * stat(&"op_range"), pos).is_empty()
+
+
 ## 当前普攻形状：verb.swap_attack 生效时用它，否则 blocks.attack
 func cur_attack() -> Dictionary:
 	return swap_atk if not swap_atk.is_empty() else B.get("attack", {})
