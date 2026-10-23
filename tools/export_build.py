@@ -37,7 +37,7 @@ NAME = "方舟幸存者"
 PRESET = "Windows Desktop"
 INTERNAL_USER_DIR = "ArknightsSurvivors_Internal"   # 对内包存档目录：%APPDATA%\ArknightsSurvivors_Internal
 # art/incoming 里只给玩家带游戏用到的 PNG：交接文档、清单、审阅用拼图不带（规则在 release_slim.REVIEW_ART_GLOBS，网页包共用）
-ART_SUBDIRS = ["portraits"]   # art/incoming 下随包带走的子目录（Boss 名片头像，art.gd 按 "portraits/boss_<id>" 取）
+ART_SUBDIRS = ["portraits", "optical_fx"]   # art/incoming 下随包带走的子目录（Boss 名片头像，art.gd 按 "portraits/boss_<id>" 取；光学观感压阶特效帧条 optical_fx/，tools/optical_fx_quant.py）
 
 README = """方舟幸存者（明日方舟同人，非商业）
 版本：{channel}{ver}（{date}）

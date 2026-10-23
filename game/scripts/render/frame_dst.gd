@@ -17,7 +17,18 @@ static func dst(pos: Vector2, size: Vector2, anchor: Vector2) -> Rect2:
 
 
 ## 画一帧到 ci：不翻转画 dst(pos, size, anchor)；翻转时以锚点为轴水平镜像（变换用完复位成单位矩阵）
+## 光学观感 ② 特效亮度上限（render/optical.gd 每帧写；0 = 不限）：绘制色各通道封顶，原来 ×2–2.8 的过曝色压到上限
+static var col_cap := 0.0
+
+
+static func capc(col: Color) -> Color:
+	if col_cap <= 0.0:
+		return col
+	return Color(minf(col.r, col_cap), minf(col.g, col_cap), minf(col.b, col_cap), col.a)
+
+
 static func blit(ci: CanvasItem, tx: Texture2D, src_r: Rect2, pos: Vector2, size: Vector2, anchor: Vector2, flip: bool, col: Color) -> void:
+	col = capc(col)
 	if flip:
 		ci.draw_set_transform(pos.round(), 0.0, Vector2(-1, 1))
 		ci.draw_texture_rect_region(tx, Rect2(-size * anchor, size), src_r, col)

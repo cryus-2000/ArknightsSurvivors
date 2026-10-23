@@ -3730,6 +3730,9 @@ func draw_warn_outlines() -> void:
 		var lk: float = w.t - tr
 		var lock_flash: float = (1.0 - lk / 0.15) if tr > 0.0 and lk >= 0.0 and lk < 0.15 else 0.0
 		var core := Color(WARN_CORE.r, WARN_CORE.g, WARN_CORE.b, 0.7 + 0.3 * k)
+		if g.optical_on and g.optical.fx1:
+			var dc: Color = g.optical.col_danger   # 光学观感 ④：描边危险色、闪烁（越近结算越快）
+			core = Color(minf(1.0, dc.r * 1.15), minf(1.0, dc.g * 1.15 + 0.1), minf(1.0, dc.b * 1.15 + 0.1), 0.55 + 0.45 * absf(sin(g.t * (8.0 + 10.0 * k))))
 		var edge := Color(WARN_EDGE.r, WARN_EDGE.g, WARN_EDGE.b, 0.7)
 		var da: float = 1.0
 		if w.get("dim", false):
