@@ -28,11 +28,13 @@ func _verify():
             var pixels = resource.get_image()
             if pixels == null or pixels.is_empty():
                 failures.append("texture_pixels:" + item[0])
-        var base = str(item[0]).trim_suffix("@2x")
+        var base = str(item[0]).trim_suffix("@2x").trim_suffix("@1x")
         var texture = Art.tex(base)
         if texture == null:
             failures.append("art_tex:" + base)
-        if str(item[0]).ends_with("@2x") and Art.hires(base) != 2.0:
+        # 按实际选中的变体核密度：render/op_1x 开且包里有同名 @1x → 1.0（干员 1 倍帧条，docs/128），否则 @2x → 2.0
+        var want_d := 1.0 if Art.op_1x_on() and Art._packed_path(base + "@1x") != "" else (2.0 if str(item[0]).ends_with("@2x") else -1.0)
+        if want_d > 0.0 and Art.hires(base) != want_d:
             failures.append("hires_density:" + base)
         if Art._incoming_path(base) != "":
             failures.append("external_override:" + base)
