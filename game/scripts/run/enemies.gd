@@ -377,7 +377,7 @@ func update(dt: float) -> void:
 				else:
 					e.dead = true
 			continue
-		if dist > 1300.0 and not e.boss:
+		if dist > 1300.0 and not e.boss and not e.get("enc", false):   # 围猎的海嗣（enc）由 hunt.gd 管：屏幕外出生，不按「远处静止敌人清掉」处理
 			if e.ai == "static" or e.get("dormant", false):
 				e.dead = true
 			else:
