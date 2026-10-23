@@ -11,6 +11,9 @@ const MotionShot = preload("res://scripts/run/motion_shot.gd")   # --motionshot 
 var g: Game
 var mshot: MotionShot
 var winshot := false
+const KILL_TYPES := ["bone", "stone", "offspring", "runner", "floater", "reaper", "spitter", "tracer"]   # --killshot 一行 8 只
+const KILL_SHOTS := [-1, 3, 8, 14, 22]   # --killshot 截图帧（相对击杀那一帧；-1 = 击杀前一帧）
+var _kill_row: Array = []
 var hunt_rec_end := 0  # --huntrec：进寻访结果后又录了几张
 var touchtest_p0 := Vector2.ZERO
 var bal_done := false
@@ -778,6 +781,38 @@ func step() -> void:
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_touch.png")
 		if g.at_frames == 130:
 			g.get_tree().quit()
+	# --killshot（docs/130 C5 击杀观感对比）：第 360 帧在队长下方排一行 8 只怪（开场横幅已退）、同帧击杀，之后按 KILL_SHOTS 帧截 shot_kill_<帧>.png 并退出
+	if Cfg.dev_args().has("--killshot"):
+		if g.at_frames >= 300:
+			g.speed = 0.0   # 队长定住，镜头不动
+		if g.at_frames == 360:
+			for o in g.enemies:
+				o.pos += Vector2(4000, 0)   # 其余怪挪出画面（截图摆拍）
+			var row: Array = []
+			for i in KILL_TYPES.size():
+				var e: Dictionary = g.spawner.spawn_enemy(KILL_TYPES[i], g.ppos + Vector2(-224 + i * 64, 70))
+				e.hidden = false
+				row.append(e)
+			_kill_row = row
+		if g.at_frames == 366:
+			for e in _kill_row:
+				if not e.get("dead", false):
+					g.combat.kill(e)
+		if g.at_frames - 366 in KILL_SHOTS and DisplayServer.get_name() != "headless":
+			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_kill_%02d.png" % (g.at_frames - 366))
+		if g.at_frames - 366 > KILL_SHOTS[-1]:
+			g.get_tree().quit()
+	# --fgshot（docs/130 A3 前景剪影对照）：第 60 帧起每 20 帧把队长挪到下一处取景点并截 shot_fg_<n>.png，8 处后退出
+	if Cfg.dev_args().has("--fgshot"):
+		if g.at_frames >= 60 and (g.at_frames - 60) % 20 == 0:
+			var n: int = (g.at_frames - 60) / 20
+			if n > 0 and DisplayServer.get_name() != "headless":
+				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_fg_%d.png" % n)
+			if n >= 8:
+				g.get_tree().quit()
+			else:
+				g.ppos = g.map.push_out(Vector2(1500 + n * 430, 900 + (n % 3) * 380), 12.0)
+				g.cam.position = g.ppos
 	if Cfg.dev_args().has("--gemshot"):
 		if g.at_frames == 60:
 			for k in 14:

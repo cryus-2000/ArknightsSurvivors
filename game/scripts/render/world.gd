@@ -23,6 +23,22 @@ var p_dust_t := 0.0
 var p_swing_prev := 0.0
 var p_hurt_prev := 0.0
 var cam_kick := Vector2.ZERO
+## 开火微震（vfx._leader_kick）：方向（远离目标）、美术像素、剩余 / 总时长；cam.offset 按阶梯取整（1 px → 0；2 px → 1 → 0），不动 cam.position
+var _kick_dir := Vector2.ZERO
+var _kick_px := 0
+var _kick_t := 0.0
+var _kick_dur := 0.06
+
+
+func kick(to_target: Vector2, px: int, dur: float) -> void:
+	if px <= 0 or (_kick_t > 0.0 and px <= _kick_px):
+		return
+	var d: Vector2 = -to_target
+	# 八方向取整：斜向时两轴各挪同样的整像素
+	_kick_dir = Vector2(signf(d.x) if absf(d.x) > absf(d.y) * 0.4 else 0.0, signf(d.y) if absf(d.y) > absf(d.x) * 0.4 else 0.0)
+	_kick_px = px
+	_kick_dur = maxf(0.01, dur)
+	_kick_t = _kick_dur
 var heart_cd := 0.0
 var anim_name := ""
 var anim_t := 0.0
@@ -144,7 +160,13 @@ func update_visuals(dt: float) -> void:
 			Sfx.play("heartbeat_hi", -0.7, 1.0, 0.0)   # 高频层：原心跳 99% 在 120 Hz 以下，手机 / 笔记本外放听不到（音频 10/1）
 	# 镜头震动已整体移除（见 _shake）。干员脚本里还有直接写 g.shake 的（2.5–5，按 10·shake² 就是 ±250 像素），
 	# 在这里统一不用它，图鉴演示 / 精英化演出 / 实战都不再震；shake 变量只留给以后可能的非镜头用途
-	g.cam.offset = cam_kick.round()
+	var kick_off := Vector2.ZERO
+	if _kick_t > 0.0:
+		_kick_t = maxf(0.0, _kick_t - rd)
+		kick_off = _kick_dir * float(ceili(_kick_px * _kick_t / _kick_dur)) * Game.PX
+		if _kick_t <= 0.0:
+			_kick_px = 0
+	g.cam.offset = cam_kick.round() + kick_off
 	# 灯火光源：半径随灯火变化，快熄灭时闪烁
 	var radius: float = lerp(150.0, 520.0, g.lamp / 100.0) * g.squad.light_radius_mult()
 	if g.state == Game.S.DEAD:
@@ -1235,7 +1257,7 @@ func _draw_fx() -> void:
 				g.vfx.spr("tentacle", 5, fr, f.pos + Vector2(48, 22), Game.PX * 2.4, false, tc * Color(0.9, 0.9, 0.9, 1.0), Vector2(0.5, 1.0))
 			"sprite":
 				var spec: Array = Game.V6_FRAMES[f.name]
-				var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
+				var fr := mini(int((f.max - f.life) * float(f.get("fps", spec[1]))), spec[0] - 1)   # fps：加快过的死亡帧条（vfx.death_shatter）
 				var scol: Color = f.get("col", Color.WHITE)
 				scol.a *= fdim
 				g.vfx.spr_rot(f.name, fr, f.pos, f.ang, f.scale, scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))

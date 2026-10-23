@@ -155,6 +155,38 @@ func melee_arc(o, origin: Vector2, ang: float, half: float, radius: float) -> vo
 	_open_arcs[key] = f
 
 
+## ① 光学新击杀：刚加进 g.fx 的死亡帧条按帧等比加快（普通 ≤ fx/death_max、精英 ≤ fx/death_max_elite、Boss 不变），
+## 并挂上「播完那一刻按最后一帧碎成像素碎屑」（vfx.update → _shatter → optical_particles.kill_burst_frame）。返回是否挂上
+func death_shatter(e: Dictionary, name: String, origin: Vector2, sc: float, anchor: Vector2) -> bool:
+	if g.fx.is_empty() or g.fx[-1].get("name", "") != name:
+		return false
+	var f: Dictionary = g.fx[-1]
+	var spec: Array = Game.V6_FRAMES[name]
+	var cap: float = 99.0 if e.get("boss", false) else (Bal.v("fx/death_max_elite", 0.5) if e.get("elite", false) else Bal.v("fx/death_max", 0.3))
+	var k: float = maxf(1.0, float(f.max) / maxf(0.05, cap))
+	f.fps = float(spec[1]) * k
+	f.max = float(f.max) / k
+	f.life = f.max
+	f.shatter = {"e": e, "origin": origin, "sc": sc, "anchor": anchor, "frame": int(spec[0]) - 1, "flip": f.get("flip", false)}
+	return true
+
+
+func _shatter(f: Dictionary) -> void:
+	var s: Dictionary = f.shatter
+	f.erase("shatter")
+	if g.optical_on and g.optical.particles != null:
+		g.optical.particles.kill_burst_frame(s.e, f.name, s.frame, s.origin, s.sc, s.anchor, s.flip)
+
+
+## ② 开火微震（用户 10-24）：只给队长自己的普攻按命中档轻 0 / 中 fx/kick_px2 / 重 fx/kick_px3 美术像素，fx/kick_t 秒内阶梯回位；
+## 写 world.leader_kick（只进 cam.offset，不动 cam.position、不进模拟）；同一帧多段命中取最大档；「减少动态效果」开时不震
+func _leader_kick(h: Dictionary, e: Dictionary, tier: int) -> void:
+	if tier < 2 or Cfg.reduce_motion or Bal.v("fx/leader_kick", 1.0) <= 0.0 or g.ch == null or str(h.get("op", "")) != str(g.ch.id):
+		return
+	var px: int = Bal.vi("fx/kick_px3", 2) if tier == 3 else Bal.vi("fx/kick_px2", 1)
+	g.world.kick(((e.pos as Vector2) - g.ppos), px, Bal.v("fx/kick_t", 0.06))
+
+
 func hit_tier(h: Dictionary, dmg: float, crit: bool, weak: bool) -> int:
 	if tier_off or Bal.v("fx/hit_tiers", 1.0) <= 0.0:
 		return 0
@@ -214,6 +246,7 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 	e.squash = maxf(float(e.get("squash", 0.0)), sq)
 	if tier > 0:
 		_tier_fx(e, h, tier)
+		_leader_kick(h, e, tier)
 		var arc = _open_arcs.get(str(h.get("op", "")))
 		if arc != null and float(arc.t) == g.t:
 			arc.tier = maxi(int(arc.tier), tier)   # 同一挥砍里打出的最高档决定刀光粗细亮度
@@ -227,6 +260,16 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 		e.rc_dir = d.normalized() if d.length_squared() > 1.0 else Vector2(1.0, 0.0)
 		e.rc_at = g.t
 		e.rc_k = Bal.v("fx/recoil_skill_k", 1.6) if (skill or crit or weak) else 1.0
+		# ③ 分档后坐（用户 10-24）：三档普攻按 轻 fx/recoil_px1 / 中 fx/recoil_px2 / 重 fx/recoil_px3 美术像素顶开、fx/recoil_tier_t 秒回弹（只挪画面）
+		if tier > 0:
+			var tpx: float = [0.0, Bal.v("fx/recoil_px1", 2.0), Bal.v("fx/recoil_px2", 3.0), Bal.v("fx/recoil_px3", 5.0)][tier]
+			e.rc_k = tpx * Game.PX / maxf(0.01, g.world.rc_px)
+			e.rc_t = Bal.v("fx/recoil_tier_t", 0.08)
+		else:
+			e.erase("rc_t")
+		# 重击真实击退（开关 fx/heavy_knockback，缺省 0 = 关；开了会改玩法）：重档普攻沿远离队长方向加击退速度
+		if tier == 3 and Bal.v("fx/heavy_knockback", 0.0) > 0.0 and not e.get("elite", false):
+			g.enemies_sys.apply_kb(e, e.rc_dir * Bal.v("fx/heavy_knockback", 0.0))   # 统一入口（cc_lint）：含失重倍率
 	if (e.pos as Vector2).distance_to(g.ppos) > 700.0 or g.fx.size() > 380:
 		return
 	var head: Vector2 = e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6)
@@ -272,7 +315,8 @@ func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 ## - 大体型（e.r ≥ fx/kill_big_r）：再加一圈慢扩散的外环 + 脚下尘土 + 材质层音（甲壳 fx/kill_shell_sfx = kill_shell，其余 fx/kill_big_sfx = kill_big）
 ## - 击杀音 kill 的音高按体型降（fx/kill_pitch_r：r 越大越低），同屏一片小怪倒下时也听得出大小
 ## - 顿帧：大体型或暴击击杀 impact_pause(fx/kill_pause)，走共享预算（0.28 秒最多一次，受「命中顿帧」设置）
-func kill_burst(e: Dictionary, col: Color, crit: bool) -> void:
+## lean：光学观感新击杀（combat.kill，render/kill_style）——只留击杀音、材质层音与顿帧，火花 / 冲击环 / 尘土交给像素碎屑
+func kill_burst(e: Dictionary, col: Color, crit: bool, lean := false) -> void:
 	var r: float = float(e.get("r", 12.0))
 	var rb: float = r / float(e.get("sc", 1.0))   # 怪物体型（spawner.escale）放大的按原体型判大小 / 火花数 / 音高 / 顿帧，爆点环按实际半径
 	var big: bool = rb >= Bal.v("fx/kill_big_r", 20.0)
@@ -282,14 +326,16 @@ func kill_burst(e: Dictionary, col: Color, crit: bool) -> void:
 	var plain: bool = not big and not e.get("elite", false) and not e.get("boss", false)
 	if plain:
 		n = maxi(1, int(round(n * Dc.at("kill_k", g.world.dcrowd))))
-	sparks(e.pos, Vector2.ZERO, col, n, 160.0 + r * 3.0)
-	if not plain or Dc.p("kill_ring") > 0.0 or g.world.dcrowd < 0.5:
+	if not lean:
+		sparks(e.pos, Vector2.ZERO, col, n, 160.0 + r * 3.0)
+	if not lean and (not plain or Dc.p("kill_ring") > 0.0 or g.world.dcrowd < 0.5):
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 1.2, "life": 0.18, "max": 0.18, "col": col, "op_hit": true})
 	var pitch: float = clampf(1.15 - rb / maxf(1.0, Bal.v("fx/kill_pitch_r", 60.0)), 0.75, 1.15)
 	Sfx.play("kill", -8.0 + (2.0 if big else 0.0), pitch)
 	if big:
-		g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 2.0, "life": 0.3, "max": 0.3, "col": Color(col.r, col.g, col.b, 0.6), "op_hit": true})
-		ground_dust(e.pos + Vector2(0, r * 0.6), r * 0.9, 7)
+		if not lean:
+			g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 2.0, "life": 0.3, "max": 0.3, "col": Color(col.r, col.g, col.b, 0.6), "op_hit": true})
+			ground_dust(e.pos + Vector2(0, r * 0.6), r * 0.9, 7)
 		var shell: bool = HIT_SHELL.has(e.get("type", ""))
 		var fxs: Dictionary = Bal.sec("fx")
 		var layer: String = str(fxs.get("kill_shell_sfx", "hit")) if shell else str(fxs.get("kill_big_sfx", "mire_splat"))
@@ -531,6 +577,8 @@ func update(dt: float) -> void:
 	g.xp_flash = maxf(0.0, g.xp_flash - dt * 3.0)
 	for f in g.fx:
 		f.life -= dt
+		if f.has("shatter") and f.life <= 0.0:
+			_shatter(f)
 		if f.kind == "spark" or f.kind == "shard":
 			f.pos += f.vel * dt
 			f.vel *= 0.9
@@ -709,7 +757,7 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 	elif anchor_px.x >= 0.0:
 		f["anchor"] = anchor_px * A.hires_of(g.tex[name])
 	g.fx.append(f)
-	if g.optical_on and g.optical.fx1 and not ground:
+	if g.optical_on and g.optical.fx1 and not ground and g.optical.particles != null and not name.ends_with("_death"):   # 死亡帧条不喷（docs/130 C1：击杀吃掉技能火星的限频）
 		g.optical.particles.fx_burst(name, pos, scale)   # 光学观感 ③：按这条帧条的本色补火星 / 碎片（限频、有上限）
 	return true
 

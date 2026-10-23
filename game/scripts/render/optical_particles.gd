@@ -215,27 +215,29 @@ func step(cam_center: Vector2, lamp_pos: Vector2, env: Color, lamp: Color) -> vo
 
 
 ## 某种怪的碎屑材质：首帧像素（1 美术像素取 1 个）均匀抽 DEBRIS_PTS 个，位置相对锚点、按画面缩放
-func _debris_mat(e: Dictionary, sc: float, anc: Vector2) -> Array:
-	var key := "%s@%.2f" % [e.tex, sc]
+func _debris_mat(e: Dictionary, sc: float, anc: Vector2, src := "", frame := 0) -> Array:
+	var tn: String = src if src != "" else str(e.tex)
+	var key := "%s#%d@%.2f" % [tn, frame, sc]
 	if _mat_cache.has(key):
 		return _mat_cache[key]
 	var out: Array = [null, Color(0.5, 1.0, 1.0)]
-	var tx: Texture2D = g.tex.get(e.tex)
+	var tx: Texture2D = g.tex.get(tn)
 	if tx != null:
 		var img: Image = tx.get_image()
 		if img != null and not img.is_empty():
 			if img.is_compressed():
 				img.decompress()
 			var fh: int = img.get_height()
-			var frames: int = maxi(1, int(round(img.get_width() / float(fh))))
+			var frames: int = int(g.V6_FRAMES[tn][0]) if src != "" and g.V6_FRAMES.has(tn) else maxi(1, int(round(img.get_width() / float(fh))))
 			var fw: int = img.get_width() / frames
+			var x0: int = clampi(frame, 0, frames - 1) * fw
 			var dens: float = A.hires_of(tx)
 			var st: int = maxi(1, int(dens))
 			var pts: Array = []
 			var best := -1.0
 			for y in range(0, fh, st):
 				for x in range(0, fw, st):
-					var c: Color = img.get_pixel(x, y)
+					var c: Color = img.get_pixel(x0 + x, y)
 					if c.a < 0.6:
 						continue
 					pts.append([Vector2(x, y), c])
@@ -260,6 +262,30 @@ func _debris_mat(e: Dictionary, sc: float, anc: Vector2) -> Array:
 				out[0] = m
 	_mat_cache[key] = out
 	return out
+
+
+## 新击杀（vfx.death_shatter / _shatter）：死亡帧条播完那一刻，按它最后一帧的像素碎开（位置 / 缩放 / 锚点 / 朝向与帧条绘制一致）
+func kill_burst_frame(e: Dictionary, src: String, frame: int, origin: Vector2, sc: float, anc: Vector2, flip: bool) -> void:
+	if not active or debris.is_empty() or e.get("chest", false):
+		return
+	var mc: Array = _debris_mat(e, sc, anc, src, frame)
+	if mc[0] == null:
+		kill_burst(e)
+		return
+	var p: GPUParticles2D = debris[_di % debris.size()]
+	_di += 1
+	p.process_material = mc[0]
+	p.global_position = origin
+	p.scale = Vector2(-1 if flip else 1, 1)
+	p.visible = true
+	p.restart()
+	if not fluid.is_empty():
+		var f: GPUParticles2D = fluid[_fi % fluid.size()]
+		_fi += 1
+		f.global_position = e.pos
+		f.modulate = env_col
+		f.visible = true
+		f.restart()
 
 
 ## ⑦ 击杀碎屑（combat.kill 在光学观感开着时调；只做画面）
