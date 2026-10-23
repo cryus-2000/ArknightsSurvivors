@@ -81,6 +81,7 @@
   "regen": 1.6
  },
  "sprites": {
+  "move_attack": {"tex": "op_skadi_move_attack", "frames": 9, "foot": [48, 76], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},
   "entry": {"tex": "op_skadi_entry", "frames": 8, "fps": 9.1429, "foot": [32, 60], "frame_durations": [0.1094, 0.1094, 0.1093, 0.1094, 0.1094, 0.1093, 0.1094, 0.1094], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/skadi_entry.json），64 画布 @2x；落下由代码补"},
   "idle": {
    "tex": "op_skadi_idle",
@@ -102,45 +103,7 @@
    ],
    "_doc": "Claude 步态脚本（tools/spine_run_trial cfg/skadi.json）8 帧 0.6 秒循环；右手拖剑在身后"
   },
-  "attack": {
-   "tex": "op_skadi_attack",
-   "frames": 8,
-   "fps": 14,
-   "foot": [
-    48,
-    76
-   ],
-   "fire": 2,
-   "frame_durations": [
-    0.08928571428571429,
-    0.08928571428571429,
-    0.029761904761904764,
-    0.029761904761904764,
-    0.029761904761904764,
-    0.029761904761904764,
-    0.029761904761904764,
-    0.029761904761904764
-   ],
-   "fire_time": 0.17857142857142858,
-   "_doc": "Codex cz 原生 Attack 8 帧（96 画布）；动作窗口沿用旧条 5 帧 / 14fps：总长 5/14 秒、出手 2.5/14 秒（同 seed 不变）",
-   "attack_timing": {
-    "duration": 0.6,
-    "fire_time": 0.28,
-    "active_ratio": 0.9,
-    "windup_ratio": 0.46666666666666673,
-    "min_duration": 0.13333333333333333,
-    "frame_durations": [
-     0.084,
-     0.196,
-     0.03742690058479532,
-     0.043789473684210524,
-     0.05015204678362572,
-     0.056514619883040934,
-     0.06287719298245613,
-     0.06923976608187138
-    ]
-   }
-  },
+  "attack": {"tex": "op_skadi_attack_v2", "frames": 9, "fps": 14, "foot": [48, 76], "fire": 5, "frame_durations": [0.033482, 0.061384, 0.039062, 0.022321, 0.022321, 0.053089, 0.03861, 0.043436, 0.043436], "fire_time": 0.17857142857142858, "_doc": "10-23 用户逐版定的「侧向劈砍」（tools/spine_run_trial cfg/skadi_sideslash_power.json）：从跑步拖剑位起手、剑不过肩不挡脸，预备后仰 → 两帧快挥重心前冲 → 出手定格 → 冲过头回收；9 帧 96 画布，出手第 5 帧；动作窗口沿用旧条（同 seed 不变）", "attack_timing": {"duration": 0.6, "fire_time": 0.28, "active_ratio": 0.9, "windup_ratio": 0.46666666666666673, "min_duration": 0.13333333333333333, "frame_durations": [0.0525, 0.09625, 0.06125, 0.035, 0.035, 0.095135, 0.069189, 0.077838, 0.077838]}},
   "skill": {
    "tex": "op_skadi_leap_strike",
    "frames": 8,

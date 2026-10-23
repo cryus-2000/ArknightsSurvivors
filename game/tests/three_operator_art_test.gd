@@ -1,4 +1,5 @@
 extends Node
+const A = preload("res://scripts/art.gd")
 var fails := 0
 
 func check(ok: bool, label: String) -> void:
@@ -24,7 +25,8 @@ func _ready() -> void:
 			check(int(spec.get("frames", 0)) == 8, id + " " + slot + " uses eight native poses")
 			var foot: Array = spec.get("foot", [])
 			check(foot.size() == 2 and float(foot[0]) == (48.0 if id == "eyjafjalla" and slot == "death" else 32.0) and float(foot[1]) == (76.0 if id == "eyjafjalla" and slot == "death" else 60.0), id + " " + slot + " shares the runtime foot anchor")
-			check(tx != null and tx.get_height() == (192 if id == "eyjafjalla" and slot == "death" else 128) and tx.get_width() == tx.get_height() * 8, id + " " + slot + " loads the packaged @2x strip")
+			var hk: float = A.hires_of(tx) / 2.0 if tx != null else 1.0   # render/op_1x（docs/128）开着时读 1 倍条：画布减半、帧数 / 脚底不变
+			check(tx != null and tx.get_height() == int((192 if id == "eyjafjalla" and slot == "death" else 128) * hk) and tx.get_width() == tx.get_height() * 8, id + " " + slot + " loads the packaged strip (@2x or op_1x)")
 		var before: Array = g.rng_states()
 		o.cd=approved[id].cycle
 		o.start_attack(o.pos + Vector2(200, 0))

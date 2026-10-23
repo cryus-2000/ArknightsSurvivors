@@ -569,6 +569,8 @@ def lint_op(op, acts, art=ART, prev=None):
     derived = set()   # 只交了 @2x 的动作（1x 由 derive_1x 推出，只供比对）
     for act, cfg in acts.items():
         lo, hi = load_strip(art, cfg["tex"], False), load_strip(art, cfg["tex"], True)
+        if hi is None and os.path.exists(os.path.join(art, cfg["tex"] + "@1x.png")):
+            continue   # 只有 1 倍版的槽（10-23 移动攻击 move_attack，docs/128）：没有 @2x 可比，不查
         if hi is None:
             missing.append(cfg["tex"] + "@2x.png")
             continue
