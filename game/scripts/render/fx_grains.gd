@@ -1,6 +1,6 @@
 ## 像素粒子模板（10-24 协调人单 / 用户「先做能稳做的，考虑网页端性能」，docs/136）：特效「粒子化」的可复用积木。
 ## CPU 颗粒 + 一个画布批绘（本节点 _draw 里 draw_rect，2×2 世界像素 = 640×360 世界格上的 1 格），挂在世界节点下进低分辨率层。
-## 不用 GPUParticles2D：它在光学观感的低分辨率层（共享 World2D 的 SubViewport）里不画（实测，docs/136 §2），网页 / 桌面行为也不必再分别核。
+## 复用 CPU 池；GPU 可见层问题已在 main 修复。网页 / 桌面性能仍需分别验证。
 ## 模板参数（TEMPLATES）：ramp 颜色阶（硬边：按年龄落在哪一段就用哪一段的色，不插值；值 > 1 = 发光）、life 寿命 / life_rand 散布、
 ##   speed 初速区间、spread 散射角（度）、grav 重力、drag 阻力（惯性：越小飘越远）、per_frame 单帧新增上限；
 ##   budget 每档画质同屏上限（高 / 中；低画质不开，调用方退回非粒子画法）。超预算时新颗粒直接丢（不挤掉旧的），单帧超上限均匀抽稀由调用方做。
@@ -15,16 +15,37 @@ const TEMPLATES := {
 	"slash": {"ramp": [[0.0, Color(2.0, 2.0, 2.0, 1)], [0.12, Color(1.35, 1.35, 1.35, 1)], [0.38, Color(0.9, 0.9, 0.9, 1)], [0.7, Color(0.45, 0.45, 0.5, 0.9)]],
 		"life": 0.3, "life_rand": 0.45, "speed": Vector2(10, 46), "spread": 26.0, "grav": 80.0, "drag": 5.0, "per_frame": 140, "budget": [900, 450]},
 }
+# 材质仅改变颗粒运动与冷却，所有材质共享 slash 的总预算。
+const MATERIALS := {
+	"blade": {"life": 0.42, "life_rand": 0.2, "speed": Vector2(90, 175), "spread": 9.0, "grav": 35.0, "drag": 2.8, "per_frame": 144,
+		"ramp": [[0.0, Color(1.2, 1.2, 1.2)], [0.25, Color(0.85, 0.95, 1)], [0.6, Color(0.4, 0.55, 0.65, 0.8)], [0.85, Color(0.2, 0.3, 0.35, 0.35)]]},
+	"lava": {"life": 0.4, "life_rand": 0.2, "speed": Vector2(25, 65), "spread": 60.0, "grav": 220.0, "drag": 3.0, "per_frame": 96,
+		"ramp": [[0.0, Color(1.2, 1.0, 0.8)], [0.3, Color(0.8, 0.45, 0.25)], [0.7, Color(0.25, 0.15, 0.12, 0.7)]]},
+	"fire": {"life": 0.38, "life_rand": 0.3, "speed": Vector2(8, 22), "spread": 22.0, "grav": -40.0, "drag": 6.0, "per_frame": 96,
+		"ramp": [[0.0, Color(1.4, 1.3, 1.1)], [0.18, Color(1, 0.8, 0.6)], [0.55, Color(0.55, 0.35, 0.3)], [0.8, Color(0.25, 0.25, 0.25, 0.6)]]},
+	"water": {"life": 0.34, "life_rand": 0.3, "speed": Vector2(8, 24), "spread": 40.0, "grav": 95.0, "drag": 5.5, "per_frame": 96,
+		"ramp": [[0.0, Color(1.2, 1.2, 1.2)], [0.2, Color(0.9, 0.95, 1)], [0.7, Color(0.45, 0.55, 0.65, 0.65)]]},
+	"electric": {"life": 0.1, "life_rand": 0.2, "speed": Vector2.ZERO, "spread": 0.0, "grav": 0.0, "drag": 0.0, "per_frame": 96,
+		"ramp": [[0.0, Color(1.5, 1.5, 1.5)], [0.3, Color(1, 1, 1)], [0.7, Color(0.5, 0.55, 0.65, 0.7)]]},
+	"fluid": {"life": 0.36, "life_rand": 0.25, "speed": Vector2(8, 24), "spread": 50.0, "grav": 95.0, "drag": 6.0, "per_frame": 96,
+		"ramp": [[0.0, Color(1, 1.1, 1.1)], [0.25, Color(0.8, 0.9, 0.95)], [0.7, Color(0.35, 0.45, 0.5, 0.65)]]},
+}
+# 只替换短命中效果，不接管地面预警、持续领域或触手本体。
+const MATERIAL_FX := {"fx_flam_hit": "fire", "fx_water_splash": "water", "fx_corrode_hit": "fluid", "fx_eyja_lava_splash": "lava", "fx_eyja_ignite_hit": "fire", "fx_eyja_ignite_boom": "fire"}
+var templates: Dictionary = TEMPLATES.duplicate(true)
+var _samples := {}
 const SPARK_MAX := [0, 120, 240]
 
 var g
 var level := 2      # 2 高 / 1 中 / 0 低（低 = 不开）
 var off := false    # --grainab 同局轮换：true = 这一段退回第二版画法
+var mat_off := false   # --matab 同局轮换：true = 这一段材质颗粒关（只关材质，刀光第四版照旧）
 # 颗粒（结构数组）：位置、速度、剩余寿命、总寿命、颜色、模板序号
 var pos := PackedVector2Array()
 var vel := PackedVector2Array()
 var life := PackedFloat32Array()
 var lmax := PackedFloat32Array()
+var delay := PackedFloat32Array()   # 待发射颗粒也占总预算，防止延迟队列绕过上限
 var col := PackedColorArray()
 var tpl := PackedInt32Array()
 var _names: Array = []
@@ -37,13 +58,19 @@ var _drawn := false
 func setup(game) -> void:
 	g = game
 	level = {"high": 2, "mid": 1, "low": 0}.get(Cfg.quality, 2)
-	for name in TEMPLATES:
+	templates.merge(MATERIALS)
+	for name in templates:
 		_names.append(name)
-		_ramps.append(TEMPLATES[name].ramp)
+		_ramps.append(templates[name].ramp)
 
 
 func on() -> bool:
 	return level > 0 and g != null and g.optical_on and Bal.v("fx/grains", 1.0) > 0.0
+
+
+## 材质颗粒（fx/material_grains，缺省关）：模板开着、未被 --grainab / --matab 轮换关掉
+func material_on() -> bool:
+	return on() and not off and not mat_off and Bal.v("fx/material_grains", 0.0) > 0.0
 
 
 func budget() -> int:
@@ -51,8 +78,8 @@ func budget() -> int:
 
 
 ## 生成一颗：p 世界坐标、dir 初速基准方向（单位向量；模板 spread 内散开）、c 颜色（乘在颜色阶上）
-func push(name: String, p: Vector2, dir: Vector2, c: Color) -> void:
-	var t: Dictionary = TEMPLATES.get(name, {})
+func push(name: String, p: Vector2, dir: Vector2, c: Color, emit_delay := 0.0) -> void:
+	var t: Dictionary = templates.get(name, {})
 	if t.is_empty() or pos.size() >= budget():
 		return
 	var fn: int = int(_frame_n.get(name, 0))
@@ -65,6 +92,7 @@ func push(name: String, p: Vector2, dir: Vector2, c: Color) -> void:
 	vel.append(Vector2.from_angle(a) * g.vrng.randf_range(float(t.speed.x), float(t.speed.y)))
 	life.append(l)
 	lmax.append(l)
+	delay.append(maxf(0.0, emit_delay))
 	col.append(c)
 	tpl.append(_names.find(name))
 
@@ -86,20 +114,24 @@ func step(dt: float) -> void:
 	if g != null and visibility_layer != g.visibility_layer:
 		visibility_layer = g.visibility_layer   # 跟世界节点同一可见层（光学观感低分辨率层开着时 = 第 2 位；本节点比 _set_lo 晚挂上）
 	_frame_n.clear()
+	_lappland_step()
 	var n: int = pos.size()
 	var k := 0
 	for i in n:
-		var l: float = life[i] - dt
+		var active_dt: float = maxf(0.0, dt - delay[i])
+		var wait: float = maxf(0.0, delay[i] - dt)
+		var l: float = life[i] - active_dt
 		if l <= 0.0:
 			continue
-		var t: Dictionary = TEMPLATES[_names[tpl[i]]]
+		var t: Dictionary = templates[_names[tpl[i]]]
 		var v: Vector2 = vel[i]
-		v.y += float(t.grav) * dt
-		v *= maxf(0.0, 1.0 - float(t.drag) * dt)
-		pos[k] = pos[i] + v * dt
+		v.y += float(t.grav) * active_dt
+		v *= maxf(0.0, 1.0 - float(t.drag) * active_dt)
+		pos[k] = pos[i] + v * active_dt
 		vel[k] = v
 		life[k] = l
 		lmax[k] = lmax[i]
+		delay[k] = wait
 		col[k] = col[i]
 		tpl[k] = tpl[i]
 		k += 1
@@ -108,6 +140,7 @@ func step(dt: float) -> void:
 		vel.resize(k)
 		life.resize(k)
 		lmax.resize(k)
+		delay.resize(k)
 		col.resize(k)
 		tpl.resize(k)
 	var m := 0
@@ -136,15 +169,14 @@ func _draw() -> void:
 	_drawn = pos.size() > 0 or sparks.size() > 0
 	var sz := Vector2(2, 2)
 	for i in pos.size():
-		var age: float = 1.0 - life[i] / lmax[i]   # 0 → 1
-		var rp: Array = _ramps[tpl[i]]
-		var rc: Color = rp[0][1]
-		for st in rp:
-			if age >= float(st[0]):
-				rc = st[1]
-		var c: Color = col[i]
-		var hot: float = maxf(0.0, rc.r - 1.0) * 0.5   # 热阶往白里提
-		draw_rect(Rect2((pos[i] * 0.5).floor() * 2.0, sz), Color(c.r * rc.r + hot, c.g * rc.g + hot, c.b * rc.b + hot, rc.a))
+		if delay[i] > 0.0:
+			continue
+		var p: Vector2 = (pos[i] * 0.5).floor() * 2.0
+		if _names[tpl[i]] == "blade" and life[i] / lmax[i] > 0.45:
+			var tail: Vector2 = ((pos[i] - vel[i] * 0.045) * 0.5).floor() * 2.0
+			draw_line(tail, p, grain_color(i), 2.0, false)
+		else:
+			draw_rect(Rect2(p, sz), grain_color(i))
 	for s in sparks:
 		var u: float = float(s[3]) / float(s[4])   # 1 → 0
 		var c: Color = s[5]
@@ -159,3 +191,131 @@ func _draw() -> void:
 ## 兼容旧调用：GPU 版要在这里写贴图，CPU 版颗粒在 push 时就生成
 func flush() -> void:
 	pass
+
+
+## 首次缓存固定最多 16×16 个采样点；不逐帧读贴图，不建立新节点。
+## 整个效果先验收预算：失败时调用方完整保留帧条，成功时不叠加原帧条/GPU爆发。
+func material_burst(name: String, tx: Texture2D, frames: int, at: Vector2, angle: float, sc: float, anchor: Vector2, flip: bool, tint: Color) -> bool:
+	if not material_on() or not MATERIAL_FX.has(name):
+		return false
+	var kind: String = MATERIAL_FX[name]
+	if not _samples.has(name):
+		var img: Image = tx.get_image()
+		if img == null or img.is_empty() or img.is_compressed():
+			return false
+		var fw: int = tx.get_width() / frames
+		var fh: int = tx.get_height()
+		var points: Array = []
+		# 从前半段选可见采样最多的一帧，保留原贴图色和形状。
+		for frame in mini(frames, 4):
+			var candidate: Array = []
+			for y in 16:
+				for x in 16:
+					var px := mini(fw - 1, int((x + 0.5) * fw / 16.0))
+					var py := mini(fh - 1, int((y + 0.5) * fh / 16.0))
+					var color: Color = img.get_pixel(frame * fw + px, py)
+					if color.a >= 0.5:
+						candidate.append([Vector2(px, py), color])
+			if candidate.size() > points.size():
+				points = candidate
+		_samples[name] = points
+	var source: Array = _samples[name]
+	var count := mini(source.size(), 48 if level >= 2 else 32)
+	if count < 8 or pos.size() + count > budget() or int(_frame_n.get(kind, 0)) + count > int(templates[kind].per_frame):
+		return false
+	var cell: float = float(tx.get_width() / frames) / 16.0   # 采样格（贴图像素）：格内随机抖开，否则颗粒排成 16×16 点阵（10-24 验收录像可见）
+	for i in count:
+		var sample: Array = source[int(float(i) * source.size() / count)]
+		var jit := Vector2(g.vrng.randf_range(-0.5, 0.5), g.vrng.randf_range(-0.5, 0.5)) * cell
+		var offset: Vector2 = (sample[0] + jit - anchor) * sc
+		if kind == "water":
+			offset *= 0.72
+		elif kind == "fire":
+			offset *= 0.7
+		if flip:
+			offset.x = -offset.x
+		offset = offset.rotated(angle)
+		var direction := offset.normalized()
+		if kind == "fire":
+			direction = Vector2.UP
+		push(kind, at + offset, direction, sample[1] * tint, float(i % 6) * 0.05 if kind == "fire" else 0.0)
+	return true
+
+
+## 新生材质颗粒进入现有辉光层；不另建发光节点或粒子池。
+func draw_material_glow(ci: CanvasItem) -> void:
+	if not on() or off:
+		return
+	for i in pos.size():
+		if delay[i] > 0.0 or _names[tpl[i]] == "slash":
+			continue
+		var age: float = 1.0 - life[i] / lmax[i]
+		if age >= 0.4:
+			continue
+		var c: Color = col[i]
+		c.a *= 0.5 * (1.0 - age / 0.4)
+		ci.draw_rect(Rect2((pos[i] * 0.5).floor() * 2.0, Vector2(2, 2)), c)
+
+
+func grain_color(i: int) -> Color:
+	var age: float = 1.0 - life[i] / lmax[i]
+	var rp: Array = _ramps[tpl[i]]
+	var rc: Color = rp[0][1]
+	for st in rp:
+		if age >= float(st[0]):
+			rc = st[1]
+	var c: Color = col[i]
+	if _names[tpl[i]] == "fire" and age >= 0.8:
+		# 最后转成无辉光的灰烬，不一直维持橙色发亮。
+		var ash: float = (c.r + c.g + c.b) / 3.0 * 0.22
+		return Color(ash, ash, ash, c.a * 0.6)
+	var hot: float = maxf(0.0, rc.r - 1.0) * 0.5
+	return Color(c.r * rc.r + hot, c.g * rc.g + hot, c.b * rc.b + hot, c.a * rc.a)
+
+
+func _lappland_step() -> void:
+	if not material_on() or not "squad" in g or g.squad == null:
+		return
+	var o = g.squad.get_op("lappland")
+	if o == null:
+		return
+	for f in o.pfx:
+		if str(f.get("name", "")) != "fx_lappland_slash" or f.get("material_preview_old", false) or f.get("slash_emitted", false):
+			continue
+		var elapsed: float = float(f.max) - float(f.life) - float(f.get("dly", 0.0))
+		if elapsed < 0.16 or float(f.life) <= 0.0:
+			continue
+		f.slash_emitted = true
+		var tx: Texture2D = g.tex.get("fx_lappland_slash")
+		if tx == null:
+			continue
+		var key := "lappland_break"
+		var fw: int = tx.get_width() / int(f.fr)
+		var fh: int = tx.get_height()
+		if not _samples.has(key):
+			var img := tx.get_image()
+			if img == null or img.is_compressed():
+				continue
+			var points: Array = []
+			# 64格采样一次，取出手帧本身，避免凭空拼出另一道弧线。
+			for y in 64:
+				for x in 64:
+					var px: int = mini(fw - 1, int((x + 0.5) * fw / 64.0))
+					var py: int = mini(fh - 1, int((y + 0.5) * fh / 64.0))
+					var c: Color = img.get_pixel(fw + px, py)
+					if c.a >= 0.35:
+						points.append([Vector2(px, py), c])
+			_samples[key] = points
+		var points: Array = _samples[key]
+		var count: int = mini(points.size(), 72 if level >= 2 else 40)
+		# 预算不足保留完整原帧条，不能先隐藏本体再漏发碎片。
+		if count < 8 or pos.size() + count > budget() or int(_frame_n.get("blade", 0)) + count > int(templates.blade.per_frame):
+			continue
+		f.slash_material = true
+		f.slash_break_at = elapsed
+		for i in count:
+			var sample: Array = points[int(float(i) * points.size() / count)]
+			var local: Vector2 = (sample[0] / Vector2(fw, fh) - Vector2(0.5, 0.5)) * 64.0
+			var offset: Vector2 = (local * float(f.sc)).rotated(float(f.ang))
+			var dir: Vector2 = Vector2(1.0, local.y * 0.025).normalized().rotated(float(f.ang))
+			push("blade", f.pos + offset, dir, sample[1] * Color(0.75, 0.85, 0.9, 1.0), float(i % 3) * 0.02)

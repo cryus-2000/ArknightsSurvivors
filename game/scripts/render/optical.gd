@@ -85,7 +85,7 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 		var vr := Rect2(cc - Vector2(900, 560), Vector2(1800, 1120))
 		for f in g.fx:
 			var kd: String = str(f.get("kind", ""))
-			if kd != "sprite" and kd != "anim":
+			if kd != "sprite" and kd != "anim" and kd != "grain_light":
 				continue
 			var p: Vector2 = f.get("pos", Vector2.INF)
 			if not vr.has_point(p):
@@ -311,7 +311,7 @@ func _lo_step() -> void:
 	var rel: float = Cfg.cam_zoom() / (Cfg.ZOOM_PHONE_DEF / 100.0 if Cfg.phone_ui() else 1.0)
 	var zw: float = view_k / (2.0 * sx) * rel
 	if Bal.v("render/optical_int_zoom", 0.0) > 0.0:
-		# docs/137 试验旋钮：把「战斗画面缩放」并进整数倍率（1 美术像素恒占整数个物理像素），不再出现 2.3 / 3.45 这种非整数放大
+		# docs/139 试验旋钮：把「战斗画面缩放」并进整数倍率（1 美术像素恒占整数个物理像素），不再出现 2.3 / 3.45 这种非整数放大
 		zw = maxi(2, roundi(vs.y * sx * rel / target)) / (2.0 * sx)
 	if g.cam != null and absf(g.cam.zoom.x - zw) > 0.0001:
 		g.cam.zoom = Vector2(zw, zw)
@@ -356,6 +356,8 @@ func _draw_ops() -> void:
 
 ## 发光层：上一帧世界绘制排好的敌人发光点（孢子 / 余烬 / 体液 / 迸溅是同层的 GPUParticles2D）+ ⑧ 投射物拖尾
 func _draw_glow() -> void:
+	if grains != null:
+		grains.draw_material_glow(glow_node)
 	_draw_ground_glow()
 	for p in g.glow_cur:
 		glow_node.draw_rect(Rect2(p[0], Vector2(p[1], p[1])), p[2])

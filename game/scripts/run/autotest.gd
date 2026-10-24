@@ -59,6 +59,7 @@ const PERF_DUMP_KEYS := ["engine", "draw_world", "draw_hud", "draw_fxadd", "draw
 var opticalab := -1           # --opticalab=N（docs/50 §25）：每 N 帧轮换光学观感原型开 / 关；-1 = 还没读参数
 var fx1ab := 0                # --fx1ab=N（docs/50 §25.2）：每 N 帧轮换特效处理第 1 步开 / 关（光学观感开着时）
 var partab := 0               # --partab=N（docs/136 §2 排查）：每 N 帧轮换光学 GPU 粒子开 / 关（--perf 分 /p1 /p0 两桶）
+var matab := 0                # --matab=N：每 N 帧轮换材质颗粒（fx/material_grains）开 / 关（--perf 分 /m1 /m0；要同时 --bal=fx/material_grains=1）
 var grainab := 0              # --grainab=N：每 N 帧轮换刀光第四版（粒子）开 / 关（--perf 分 /g1 /g0）
 var tierab := 0               # --tierab=N（docs/50 §25.3）：每 N 帧轮换命中三档开 / 关
 var vfxab := -1               # --vfxab=N（docs/54）：每 N 帧轮换 vfx.p2；-1 = 还没读参数
@@ -313,7 +314,7 @@ func _rec_step() -> void:
 			g.get_tree().quit()
 
 
-## --camlog=<起始秒>（docs/137 画面眩晕排查，仅测试）：游戏时间过了起始秒后每帧打印一行 CAMLOG：镜头位置 / 偏移、
+## --camlog=<起始秒>（docs/139 画面眩晕排查，仅测试）：游戏时间过了起始秒后每帧打印一行 CAMLOG：镜头位置 / 偏移、
 ## 画布变换原点（窗口像素）、镜头缩放、低分辨率贴图位置、本帧是否顿帧、正在后坐 / 形变的敌人数、敌人总数；
 ## --nohitstop：整局关命中顿帧（同设置「命中顿帧」关）
 var _camlog_t0 := -2.0
@@ -344,6 +345,66 @@ func _camlog_step() -> void:
 	var lr: Vector2 = g.optical.lo_rect.position if g.optical != null and g.optical.lo_rect != null and g.optical_lo else Vector2.ZERO
 	print("CAMLOG %d %.4f %.1f %.1f %.1f %.1f %.3f %.3f %.4f %.3f %.3f %d %d %d %d %.1f %.1f" % [Engine.get_process_frames(), g.t, g.cam.position.x, g.cam.position.y,
 		g.cam.offset.x, g.cam.offset.y, xf.origin.x, xf.origin.y, xf.x.x, lr.x, lr.y, 1 if (g.hitstop > 0.0 and Cfg.hitstop) else 0, nrc, nsq, g.enemies.size(), g.ppos.x, g.ppos.y])
+
+
+## --flashrec=<起始秒>,<帧数>[,<宽>]（docs/137 Boss 频闪测量，配 --balance --realtime --fixed-fps 30）：游戏时间过了起始秒后每帧
+## 存一张缩到 <宽>（缺省 480）的 fr_<帧>.png 到 --shotdir，并在同目录 flashrec.csv 记同一帧的画面状态（Boss 白闪 / 阶段 / 茧、
+## 震屏、全屏闪光、顿帧、命中星、预警数、登场演出），tools/boss_flash_measure.py 统计亮度跳变。
+## --flashspawn=<boss>[2|_cocoon]：第 20 帧在主控旁刷出该 Boss（二阶段加 2，同 --bosstest；paranoia_cocoon 直接结茧），但时间照常走、自测不扣 Boss 血
+var _fr_t0 := -2.0
+var _fr_left := 0
+var _fr_w := 480
+var _fr_i := 0
+var _fr_csv: FileAccess = null
+var _fr_spawn := ""
+func _flashrec_step() -> void:
+	if _fr_t0 < -1.0:
+		_fr_t0 = -1.0
+		for a in Cfg.dev_args():
+			if a.begins_with("--flashrec="):
+				var p: PackedStringArray = a.substr(11).split(",")
+				_fr_t0 = float(p[0])
+				_fr_left = int(p[1])
+				if p.size() > 2:
+					_fr_w = int(p[2])
+			if a.begins_with("--flashspawn="):
+				_fr_spawn = a.substr(13)
+	if _fr_spawn != "" and g.at_frames == 20:
+		var b: Dictionary = g.spawner.spawn_enemy(_fr_spawn.trim_suffix("2").trim_suffix("_cocoon"), g.ppos + Vector2(230, -40))
+		b.age = 5.0
+		if _fr_spawn.ends_with("2"):
+			g.bai.setup_preview_phase2(b)
+		if _fr_spawn.ends_with("_cocoon"):
+			g.bai.boss(b.type).paranoia_cocoon(b)   # 泡影茧（外壳白闪 +「抵抗」）
+		g.bosses.append(b)
+		g.boss = b
+		if g.final_boss == null and g.spawner.is_final_boss_type(b.type):
+			g.final_boss = b
+	if _fr_t0 < 0.0 or _fr_left <= 0 or g.t < _fr_t0 or DisplayServer.get_name() == "headless":
+		return
+	if _fr_csv == null:
+		_fr_csv = FileAccess.open(g.shot_dir + "/flashrec.csv", FileAccess.WRITE)
+		_fr_csv.store_line("i,frame,t,state,boss,hp,phase,cocoon,bflash,shake,gflash,hitstop,hstar,warns,intro,bx,by,br")
+	var img: Image = g.get_viewport().get_texture().get_image()
+	img.resize(_fr_w, int(_fr_w * img.get_height() / float(img.get_width())), Image.INTERPOLATE_BILINEAR)
+	img.save_png(g.shot_dir + "/fr_%05d.png" % _fr_i)
+	var bb = g.final_boss if g.final_boss != null else (g.bosses[0] if not g.bosses.is_empty() else null)
+	var hs := 0
+	for f in g.fx:
+		if f.get("kind", "") == "hstar":
+			hs += 1
+	var vs: Vector2 = g.get_viewport().get_visible_rect().size
+	var bs: Vector2 = (g.get_canvas_transform() * (bb.pos as Vector2)) / vs if bb != null else Vector2(-1, -1)
+	var brr: float = float(bb.get("r", 0.0)) * g.get_canvas_transform().get_scale().y / vs.y if bb != null else 0.0
+	_fr_csv.store_line("%d,%d,%.4f,%d,%s,%.0f,%d,%.3f,%.3f,%.3f,%.3f,%.3f,%d,%d,%d,%.4f,%.4f,%.4f" % [_fr_i, g.at_frames, g.t, g.state,
+		bb.type if bb != null else "", bb.hp if bb != null else 0.0, int(bb.get("phase", 0)) if bb != null else 0,
+		float(bb.get("cocoon_t", 0.0)) if bb != null else 0.0, float(bb.get("flash", 0.0)) if bb != null else 0.0,
+		g.shake, g.flash, g.hitstop, hs, g.warns.size(), 0 if g.boss_intro.cur.is_empty() else 1, bs.x, bs.y, brr])
+	_fr_i += 1
+	_fr_left -= 1
+	if _fr_left == 0:
+		_fr_csv.close()
+		g.get_tree().quit()
 
 
 ## --optab=N / --optmask=位 / --optold=位（docs/50 §11，仅测试）：每 N 帧在新 / 旧实现之间轮换 g.opt_old（只在真实步长段轮换）；
@@ -416,6 +477,8 @@ func step() -> void:
 				tierab = int(a.substr(9))
 			if a.begins_with("--partab="):
 				partab = int(a.substr(9))
+			if a.begins_with("--matab="):
+				matab = int(a.substr(8))
 			if a.begins_with("--grainab="):
 				grainab = int(a.substr(10))
 			if a == "--nohud" and g.hud != null and g.hud.get_parent() is CanvasLayer:
@@ -430,6 +493,7 @@ func step() -> void:
 		_sfx_win()
 	_rec_step()
 	_camlog_step()
+	_flashrec_step()
 	_cmd_step()
 	_opt_ab()   # 在 --perf 采样之后轮换：采样记的是上一帧所走的实现
 	Dc.ab_step(g.at_frames)   # --clutterab=N：每 N 帧在降噪 0 档与当前档之间轮换（--perf 分 /d0 /dN 两桶）
@@ -439,6 +503,8 @@ func step() -> void:
 		g.optical.particles.set_active(not g.optical.particles.active)   # --partab=N：同局轮换 GPU 粒子（--perf 分 /p1 /p0）
 	if grainab > 0 and g.at_frames % grainab == 0 and g.optical != null and g.optical.grains != null:
 		g.optical.grains.off = not g.optical.grains.off   # --grainab=N：同局轮换刀光第四版
+	if matab > 0 and g.at_frames % matab == 0 and g.optical != null and g.optical.grains != null:
+		g.optical.grains.mat_off = not g.optical.grains.mat_off   # --matab=N：同局轮换材质颗粒
 	if tierab > 0 and g.at_frames % tierab == 0:
 		g.vfx.tier_off = not g.vfx.tier_off   # --tierab=N：同局轮换命中三档（--perf 分 /t1 /t0 两桶）
 	if fx1ab > 0 and g.at_frames % fx1ab == 0 and g.optical != null:
@@ -683,6 +749,25 @@ func step() -> void:
 			if a.begins_with("--lampat=") and g.t >= float(a.substr(9).split(":")[0]):
 				_lampat_done = true
 				g.lamp = float(a.substr(9).split(":")[1])
+	if Cfg.dev_args().has("--materialmovie") and not g.has_node("MaterialMovie"):
+		var movie = load("res://tests/material_movie.gd").new()
+		movie.name = "MaterialMovie"
+		movie.g = g
+		g.add_child(movie)
+	# 短时人工验收：同一场景左原版、右材质颗粒，沿用实际光照后处理。
+	if Cfg.dev_args().has("--materialshots") and g.at_frames in [40, 65, 90] and g.optical.grains != null:
+		var names := ["fx_flam_hit", "fx_water_splash", "fx_corrode_hit"]
+		var index: int = int((g.at_frames - 40) / 25)
+		var pool = g.optical.grains
+		g.fx.clear()   # 仅验收模式：隔离上一组帧条，避免实时模拟步长造成混图
+		pool.step(2.0)
+		var previous: bool = pool.off
+		pool.off = true
+		g.vfx.fx_sprite(names[index], g.ppos + Vector2(-90, -50), g.PX)
+		pool.off = false
+		g.vfx.fx_sprite(names[index], g.ppos + Vector2(90, -50), g.PX)
+		pool.off = previous
+		print("MATERIALSHOT %s particles=%d optical=%s" % [names[index], pool.pos.size(), g.optical_on])
 	# --shots 在平衡模式下也生效（平衡分支会提前 return）：特效连拍用 --balance --nodeath 跳过精英化演出
 	if g.mode == g.Mode.BALANCE and g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_%d.png" % g.at_frames)
@@ -996,7 +1081,7 @@ func step() -> void:
 	if g.at_frames % 1200 == 0:
 		print("t=%d lv=%d E%d hp=%d enemies=%d mires=%d kills=%d lamp=%d growth=%s relics=%s squad=%s fps=%d" % [g.t, g.level, g.ch.elite, g.hp, g.enemies.size(), g.mires.size(), g.kills, g.lamp, g.growth, g.relics, g.squad.ops.map(func(o): return "%s%d/%d" % [o.id, o.elite, o.prog]), Engine.get_frames_per_second()])
 	for bb in g.bosses:
-		if not bb.dead and not bb.invuln and not bosstest:
+		if not bb.dead and not bb.invuln and not bosstest and _fr_spawn == "":
 			bb.hp -= 4.0 if bosstest else 40.0
 			if bb.hp <= 0.0:
 				g.combat.kill(bb)
@@ -1344,6 +1429,8 @@ func _perf_sample() -> void:
 			w = "m%02d" % int(g.t / 60.0) + ("F" if g.final_boss != null and not g.final_boss.dead else "")   # --perfmin：按游戏分钟分段，F = 最终 Boss 在场
 		if partab > 0:
 			w += "/p1" if g.optical.particles.active else "/p0"
+		if matab > 0:
+			w += "/m0" if g.optical.grains.mat_off else "/m1"
 		if grainab > 0:
 			w += "/g0" if g.optical.grains.off else "/g1"
 		if tierab > 0:

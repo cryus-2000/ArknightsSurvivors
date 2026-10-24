@@ -62,7 +62,7 @@ func load_theme(theme_id: String) -> void:
 	# render/ambient_mult：灯火圈外的环境光（CanvasModulate）整体倍率，角色受光同一份（Look 读 map.ambient）；1 = 主题原值（用户 10-21 定亮度 B：缺省 1.3，见 balance render/_bright_b_doc）
 	var am: float = Bal.v("render/ambient_mult", 1.0)
 	ambient = Color(amb[0] * am, amb[1] * am, amb[2] * am)
-	# docs/137 试验旋钮 render/ambient_desat（缺省 0）：环境光往同亮度的灰拉（0–1），暗部不再一片高饱和青蓝
+	# docs/139 试验旋钮 render/ambient_desat（缺省 0）：环境光往同亮度的灰拉（0–1），暗部不再一片高饱和青蓝
 	var ad: float = Bal.v("render/ambient_desat", 0.0)
 	if ad > 0.0:
 		var lu: float = ambient.r * 0.2126 + ambient.g * 0.7152 + ambient.b * 0.0722
@@ -849,7 +849,7 @@ func mire_cells(ins: Dictionary) -> Array:
 
 ## 按格画一组溟痕（内区先画、围边后画，各自同一张图集连续合批）；col 的 alpha = 淡入淡出
 func draw_mire_cells(cells: Array, f: int, col: Color) -> void:
-	# docs/137 §6 试验旋钮：render/mire_anim（1 = 两帧每 0.5 秒交替，缺省；0 = 定格第 1 帧）、render/mire_alpha（溟痕本体不透明度倍率，缺省 1）
+	# docs/139 §6 试验旋钮：render/mire_anim（1 = 两帧每 0.5 秒交替，缺省；0 = 定格第 1 帧）、render/mire_alpha（溟痕本体不透明度倍率，缺省 1）
 	if Bal.v("render/mire_anim", 1.0) <= 0.0:
 		f = 0
 	col.a *= Bal.v("render/mire_alpha", 1.0)
@@ -876,7 +876,7 @@ func draw_mire_cells(cells: Array, f: int, col: Color) -> void:
 			g.glow_tex_next.append([_mire_edge_e, dst, src, gc])
 
 
-## docs/137 §6 试验旋钮 render/mire_tint_r / _g / _b（缺省 1, 1, 1）：溟痕本体与判定圈乘色，靛紫往深海青灰移（保留蓝调）
+## docs/139 §6 试验旋钮 render/mire_tint_r / _g / _b（缺省 1, 1, 1）：溟痕本体与判定圈乘色，靛紫往深海青灰移（保留蓝调）
 func mire_tint() -> Color:
 	return Color(Bal.v("render/mire_tint_r", 1.0), Bal.v("render/mire_tint_g", 1.0), Bal.v("render/mire_tint_b", 1.0), 1.0)
 

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""水月肉鸽配色对照（docs/137 §6）：截本作现状四景（满灯 / 弱灯 / 溟痕 / Boss），对原作参照与本作截图做同一套取色统计，出三列对照图。
+"""水月肉鸽配色对照（docs/139 §6）：截本作现状四景（满灯 / 弱灯 / 溟痕 / Boss），对原作参照与本作截图做同一套取色统计，出三列对照图。
 
 用法：
     python tools/probes/look_palette.py shots [--var base,palette]     # 截图到 build/look_nausea/palette/<变体>/<景>/

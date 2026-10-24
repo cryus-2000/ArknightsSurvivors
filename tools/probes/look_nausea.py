@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""画面眩晕 / 粘腻排查（docs/137）：同 seed、同一段局，逐项关掉嫌疑项各录一段，量镜头步长、像素蠕动、发光漂移、顿帧 / 后坐频率。
+"""画面眩晕 / 粘腻排查（docs/139）：同 seed、同一段局，逐项关掉嫌疑项各录一段，量镜头步长、像素蠕动、发光漂移、顿帧 / 后坐频率。
 
 用法：
     python tools/probes/look_nausea.py rec [--only base,zoom100] [--seg early|late] [--res 1280x720]
@@ -42,7 +42,7 @@ VARIANTS = {
     "nohitstop": ["--nohitstop"],
     "nopop": ["--bal=render/enemy_pop=0"],
     "nokillstyle": ["--bal=render/kill_style=0"],
-    # 推荐组合（docs/137 §4）：整数镜头 + 关微震 / 后坐 / 形变 + 发光世界锁定前的临时替代（去阶梯、减辉光）
+    # 推荐组合（docs/139 §4）：整数镜头 + 关微震 / 后坐 / 形变 + 发光世界锁定前的临时替代（去阶梯、减辉光）
     "reco": ["--bal=render/nausea_safe=1"],
     "ambdesat": ["--bal=render/ambient_desat=0.5"],
     "ambdesat_nosea": ["--bal=render/ambient_desat=0.5", "--bal=render/optical_sea=0"],

@@ -33,7 +33,7 @@ static func _load() -> void:
 	_preset("palette_trial", PALETTE_TRIAL)
 
 
-## docs/137 画面眩晕排查的「推荐组合」试验开关 render/nausea_safe（缺省 0 = 不动）：1 时把 NAUSEA_SAFE 里的旋钮一次套上，
+## docs/139 画面眩晕排查的「推荐组合」试验开关 render/nausea_safe（缺省 0 = 不动）：1 时把 NAUSEA_SAFE 里的旋钮一次套上，
 ## 命令行 --bal= 单独写过的键优先。给用户同局对照用，缺省值等用户看过对照再定
 const NAUSEA_SAFE := {
 	"render/cam_round": 0.0,
@@ -46,7 +46,7 @@ const NAUSEA_SAFE := {
 }
 
 
-## docs/137 §6 水月肉鸽配色对照的「调色方案」试验开关 render/palette_trial（缺省 0）：同上，只管颜色
+## docs/139 §6 水月肉鸽配色对照的「调色方案」试验开关 render/palette_trial（缺省 0）：同上，只管颜色
 const PALETTE_TRIAL := {
 	"render/optical_sat": 0.5,
 	"render/ambient_desat": 0.6,
