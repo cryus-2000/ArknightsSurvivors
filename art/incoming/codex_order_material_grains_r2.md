@@ -20,7 +20,7 @@
 
 ## 验收标准（粒子化会话按此验）
 
-- 同帧对照（左原版右材质）+ 1/3 速 gif：用 `--materialmovie --lapplandmovie`（`tests/material_movie.gd`），交 `build/` 下的 png 序列即可，不进 git。
+- 同帧对照（左原版右材质）+ 1/3 速 gif：用 `--materialmovie --lapplandmovie --bal=fx/material_lappland=1`（`tests/material_movie.gd`；10-24 起拉普兰德另有开关 `fx/material_lappland`，缺省关，第 2 轮用户认可后再开），交 `build/` 下的 png 序列即可，不进 git。
 - `python tools/material_grains_contract.py` 通过；`python tools/check.py --auto --jobs 3` 除金样过期外全过。
 - 同 seed：`--bal=fx/material_grains=1` 开窗口局与关时 TRACE 逐行相同（粒子化会话跑）。
 - 交付说明写清：改了哪几个数、为什么；用户是否已看过。

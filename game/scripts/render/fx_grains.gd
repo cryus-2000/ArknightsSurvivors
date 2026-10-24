@@ -68,7 +68,7 @@ func on() -> bool:
 	return level > 0 and g != null and g.optical_on and Bal.v("fx/grains", 1.0) > 0.0
 
 
-## 材质颗粒（fx/material_grains，缺省关）：模板开着、未被 --grainab / --matab 轮换关掉
+## 材质颗粒（fx/material_grains，10-24 起缺省开；拉普兰德 / 体液各自另有开关，缺省关）：模板开着、未被 --grainab / --matab 轮换关掉
 func material_on() -> bool:
 	return on() and not off and not mat_off and Bal.v("fx/material_grains", 0.0) > 0.0
 
@@ -199,6 +199,8 @@ func material_burst(name: String, tx: Texture2D, frames: int, at: Vector2, angle
 	if not material_on() or not MATERIAL_FX.has(name):
 		return false
 	var kind: String = MATERIAL_FX[name]
+	if kind == "fluid" and Bal.v("fx/material_fluid", 0.0) <= 0.0:
+		return false   # 体液单独一道开关（缺省关，balance.json fx._material_doc）
 	if not _samples.has(name):
 		var img: Image = tx.get_image()
 		if img == null or img.is_empty() or img.is_compressed():
@@ -274,7 +276,7 @@ func grain_color(i: int) -> Color:
 
 
 func _lappland_step() -> void:
-	if not material_on() or not "squad" in g or g.squad == null:
+	if not material_on() or Bal.v("fx/material_lappland", 0.0) <= 0.0 or not "squad" in g or g.squad == null:
 		return
 	var o = g.squad.get_op("lappland")
 	if o == null:
