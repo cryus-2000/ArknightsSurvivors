@@ -205,14 +205,14 @@ func test_rift(o) -> void:
 	ok(not o._replace_trig(1).is_empty() and str(o._replace_trig(1).do[0].get("_tag", "")) == "verb.rift_slash", "次元斩：S3 期间每次普攻 replace 成 verb.rift_slash")
 	ok(o._replace_trig(4).do[0].get("_tag", "") == "verb.rift_slash", "次元斩：S3 期间第 4 次也是次元斩（骤雨让位）")
 	o._exec_list(o.B.trait[8].do)
-	ok(o.tx.has("rift") and o.tx.rift.s.size() == 5, "次元斩：出手排了 5 道斩（敌人不足 5 个补空位）")
+	ok(o.tx.has("rift") and int(o.tx.rift.n) == 5, "次元斩：出手排了 5 刀")
 	for i in 90:
 		o.update(DT)
 	var hurt: int = es.filter(func(e): return e.hp < e.max_hp).size()
 	ok(hurt >= 1, "次元斩：路径上的敌人受伤（%d / 3 个）" % hurt)
 	ok(o.pos.distance_to(p0) < 1.0, "次元斩：本体逻辑位置不动")
 	ok(not o.tx.has("rift"), "次元斩：序列结束，本体现身")
-	ok(o.tx.get("scars", []).size() == 5 or o.tx.get("scars", []).size() > 0, "次元斩：留下刀痕（%d 道）" % o.tx.get("scars", []).size())
+	ok(o.tx.get("scars", []).size() == 5, "次元斩：3 名敌人轮着斩满 5 刀、都留刀痕（%d 道）" % o.tx.get("scars", []).size())
 	o.s_t = [0.0, 0.0, 0.0]
 	o.tx["scars"] = []
 	for e in es: e.dead = true

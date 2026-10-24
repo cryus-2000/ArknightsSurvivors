@@ -814,45 +814,38 @@ static func tx_rain_draw(ci, o, f: Dictionary) -> void:   # ci：干员的 cv（
 const RIFT_CELL := 2.0   # 刀痕像素格（世界像素；低分辨率层上 1 格）
 
 
-## 出手（瞬时）：排好整段闪现
+## 出手（瞬时）：定方向、排好 n 个出手时刻；每一刀斩谁在到点那一刻再挑（追着活的敌人打，10-25 用户「追踪敌人去打，而不是打虚空」）
 static func tx_rift_start(o, b: Dictionary) -> void:
-	var tx: Dictionary = o.tx
-	var n: int = int(b.n)
 	var r: float = float(b.r) * o.stat(&"op_range")
-	var half: float = float(b.get("half", 1.1))
 	var ts: Array = o.nearest_enemies(1, r + 30.0, o.pos)
 	var dir_a: float = (ts[0].pos - o.pos).angle() if not ts.is_empty() else o.facing_angle()
 	if o.manual_attack() and o.atk_aim != Vector2.ZERO:
 		dir_a = o.atk_aim.angle()
-	var cands: Array = []
-	for e in o.nearest_enemies(24, r, o.pos):
-		if absf(angle_difference((e.pos - o.pos).angle(), dir_a)) <= half:
-			cands.append(e)
-	var len: float = float(b.len)
-	var lead: float = float(b.get("lead", 0.06))
-	var slashes: Array = []
-	for k in n:
-		var ctr: Vector2
-		if k < cands.size():
-			ctr = cands[k].pos
-		else:
-			var fa: float = dir_a + (float(k) - float(n - 1) * 0.5) * 0.42
-			ctr = o.pos + Vector2.from_angle(fa) * r * (0.55 + 0.15 * float(k % 2))
-		var sgn: float = 1.0 if k % 2 == 0 else -1.0
-		var u: Vector2 = Vector2.from_angle(dir_a + sgn * (0.6 + 0.12 * float(k)))
-		var p0: Vector2 = ctr - u * len * 0.5
-		var p1: Vector2 = ctr + u * len * 0.5
-		if k % 2 == 1:
-			var sw: Vector2 = p0
-			p0 = p1
-			p1 = sw
-		slashes.append({"a": p0, "c": p1, "t": lead + float(k) * float(b.gap), "done": false})
+	var lead: float = float(b.get("lead", 0.03))
+	var n: int = int(b.n)
 	var dmg: float = o.base("atk", 0.0) * float(b.mult) * float(o.loc.dmg) * o._dmg_bonus() * o.skill_power()
-	tx["rift"] = {"t": 0.0, "s": slashes, "b": b, "dmg": dmg, "end": lead + float(n) * float(b.gap) + 0.12, "flash": {}}
+	o.tx["rift"] = {"t": 0.0, "k": 0, "n": n, "lead": lead, "b": b, "dmg": dmg, "dir": dir_a, "r": r, "hit": {}, "from": o.pos,
+		"end": lead + float(n) * float(b.gap) + 0.12, "flash": {}, "any": not ts.is_empty()}
 	o._sfx_op("atk")
 
 
-## 每帧：到点的斩出手（判定 + 刀痕 + 颗粒）；序列结束本体现身；刀痕到期碎成颗粒
+## 这一刀斩谁：她 r 内、优先前方扇形（半角 half）里，离上一刀落点最近的、这一轮还没斩过的活敌人；都斩过就从头再轮；没有敌人返回 {}
+static func _tx_rift_pick(o, rf: Dictionary) -> Dictionary:
+	var half: float = float(rf.b.get("half", 1.1))
+	var best: Dictionary = {}
+	var bk := INF
+	for e in o.nearest_enemies(24, float(rf.r), o.pos):
+		if e.dead:
+			continue
+		var front: bool = absf(angle_difference((e.pos - o.pos).angle(), float(rf.dir))) <= half
+		var key: float = (rf.from as Vector2).distance_squared_to(e.pos) + (0.0 if front else 1.0e7) + (1.0e8 if rf.hit.has(e.id) else 0.0)
+		if key < bk:
+			bk = key
+			best = e
+	return best
+
+
+## 每帧：到点的那一刀挑目标、判定、留刀痕；斩完回原位；刀痕到期碎成颗粒
 static func tx_rift_update(o, dt: float) -> void:
 	var tx: Dictionary = o.tx
 	var g = o.g
@@ -860,20 +853,42 @@ static func tx_rift_update(o, dt: float) -> void:
 		var rf: Dictionary = tx.rift
 		rf.t += dt
 		var b: Dictionary = rf.b
-		for sl in rf.s:
-			if sl.done or rf.t < sl.t:
-				continue
-			sl.done = true
+		while int(rf.k) < int(rf.n) and rf.t >= float(rf.lead) + float(rf.k) * float(b.gap):
+			var k: int = rf.k
+			rf.k = k + 1
+			var e: Dictionary = _tx_rift_pick(o, rf)
+			var ctr: Vector2
+			if e.is_empty():
+				if k > 0 or rf.any:
+					rf.k = rf.n   # 没有活敌人了：不斩空，直接收刀
+					rf.end = minf(float(rf.end), rf.t + 0.12)
+					break
+				ctr = o.pos + Vector2.from_angle(float(rf.dir)) * float(rf.r) * 0.5   # 出手时一个敌人都没有（手动空挥）：朝指向斩一刀
+			else:
+				ctr = e.pos
+				if rf.hit.size() >= 24:
+					rf.hit.clear()
+				rf.hit[e.id] = true
+			var len: float = float(b.len)
+			var sgn: float = 1.0 if k % 2 == 0 else -1.0
+			var u: Vector2 = Vector2.from_angle(float(rf.dir) + sgn * (0.6 + 0.12 * float(k)))
+			var p0: Vector2 = ctr - u * len * 0.5
+			var p1: Vector2 = ctr + u * len * 0.5
+			if k % 2 == 1:
+				var sw: Vector2 = p0
+				p0 = p1
+				p1 = sw
 			var sb := {"src": str(b.get("src", "")), "tags": b.get("tags", ["skill", "pierce"]),
 				"on_hit": [{"st": "stun", "dur": float(b.get("stun", 0.0))}] if float(b.get("stun", 0.0)) > 0.0 else []}
-			_tx_sweep(o, sl.a, sl.c, float(b.get("w", 40.0)), {}, rf.dmg, sb)
+			_tx_sweep(o, p0, p1, float(b.get("w", 40.0)), {}, rf.dmg, sb)
 			var life: float = float(b.get("scar", 1.3))
-			o.fx({"kind": "tx_scar", "a": sl.a, "c": sl.c, "life": life, "col": o.col()})
+			o.fx({"kind": "tx_scar", "a": p0, "c": p1, "life": life, "col": o.col()})
 			var sc: Array = tx.get("scars", [])
-			sc.append({"a": sl.a, "c": sl.c, "until": g.t + life})
+			sc.append({"a": p0, "c": p1, "until": g.t + life})
 			tx["scars"] = sc
-			rf.flash = {"p": sl.c, "from": sl.a, "t": rf.t}
-			_tx_rift_grains(o, sl.a, sl.c, 10.0)
+			rf.flash = {"p": p1, "from": p0, "t": rf.t}
+			rf.from = p1
+			_tx_rift_grains(o, p0, p1, 10.0)
 			o._sfx_op("hit")
 		if rf.t >= rf.end:
 			tx.erase("rift")
@@ -916,9 +931,9 @@ static func tx_rift_draw_body(o) -> bool:
 	if rf == null:
 		return false
 	var fl: Dictionary = rf.flash
-	if not fl.is_empty() and float(rf.t) - float(fl.t) < 0.2:
+	if not fl.is_empty() and float(rf.t) - float(fl.t) < 0.12:
 		var dv: Vector2 = (fl.p as Vector2) - (fl.from as Vector2)
-		var k: float = 1.0 - (float(rf.t) - float(fl.t)) / 0.2
+		var k: float = 1.0 - (float(rf.t) - float(fl.t)) / 0.12
 		o.draw_body_at(fl.p, dv.x < 0.0, Color(1.0, 1.0, 1.0, 0.35 + 0.65 * k))
 	return true
 
