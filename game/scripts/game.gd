@@ -335,6 +335,8 @@ var dof_layer: CanvasLayer   # 2.5D：景深 / 远景水雾
 var optical                  # 光学观感原型（render/optical.gd，balance render/optical，缺省关）
 var glow_next: Array = []    # 光学观感：这一帧世界绘制排进来的发光点 [位置, 边长, 颜色]（render/world._glow_pts）
 var glow_cur: Array = []     # 上一帧排好的，发光层这一帧画
+var glow_tex_next: Array = []   # 光学观感：这一帧排进来的发光贴图 [贴图, 目标矩形, 源矩形, 颜色]（_emit 层：溟痕、经验结晶、溟痕退散）
+var glow_tex_cur: Array = []
 var optical_ops_hi := false  # 光学观感：干员本体画在高清层（render/optical_ops_hi，缺省关 = 干员和怪物同在低分辨率层、按脚底 y 前后遮挡）
 var optical_lo := false      # 光学观感的低分辨率世界层这一帧开着（干员本体改画在高清层）
 var optical_on := false      # 光学观感这一帧开着（optical.gd 写）：world / look 据此开朝灯亮线、敌人发光点、荧光颗粒（纯画面）

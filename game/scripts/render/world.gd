@@ -590,8 +590,8 @@ func _draw_pickups_fast() -> void:
 	_gem_sprites("ingot", Game.PX, ing_p, wc1)
 	_gem_sprites("oil", Game.PX, oil_p, wc1)
 	_gt_flush()
-	_gem_sprites("gem_big", Game.PX * 1.9 * GEM_VIS, big_p, big_c)
-	_gem_sprites("gem_small", Game.PX * 1.45 * GEM_VIS, small_p, small_c)
+	_gem_sprites("gem_big", Game.PX, big_p, big_c)
+	_gem_sprites("gem_small", Game.PX, small_p, small_c)
 	for sk in spark:
 		var gp2: Vector2 = sk[0]
 		var sp3: float = sk[1]
@@ -612,8 +612,8 @@ func _draw_pickups_fast() -> void:
 	var qc := PackedColorArray()
 	qc.resize(maxi(mp_s.size(), mp_b.size()))
 	qc.fill(quiet_col)
-	_gem_sprites("gem_small", Game.PX * 1.45 * GEM_VIS, mp_s, qc)
-	_gem_sprites("gem_big", Game.PX * 1.9 * GEM_VIS, mp_b, qc)
+	_gem_sprites("gem_small", Game.PX, mp_s, qc)
+	_gem_sprites("gem_big", Game.PX, mp_b, qc)
 
 
 ## ---- 掉落物剩余断点合批（docs/50 §13，OPT_PICKB）：空中影子（每颗一个椭圆）、特殊掉落（宝箱 / 磁铁 / 回复药剂）的光柱、
@@ -710,6 +710,18 @@ func _pq_item(g_item: Dictionary, pos: Vector2, gz: float, kind: String, t: floa
 ## 经验结晶显示倍率（10-21 用户实玩「结晶画得太大」）：贴图、光晕、暗底、闪光、吸附拖尾一起缩；拾取判定不读它
 const GEM_VIS := 0.75
 
+## 经验结晶 / 源石锭 / 灯油的贴图（同贴图连续合批）。左上角吸附到美术像素格（PX 世界单位；奇数宽的大结晶不落半像素，Codex world_spec_1024）。
+## 结晶带 _emit 发光层（gem_small_emit / gem_big_emit，只有主高光像素）时，光学观感下同位置 1:1 排进发光层，取代 optical._draw_loot 的单个发光点
+var gem_emit := false
+var _gem_e := {}
+var _mde = 0   # fx_mire_dissolve_emit 贴图（0 = 还没查）
+
+
+func _mire_dissolve_emit() -> Texture2D:
+	if typeof(_mde) == TYPE_INT:
+		_mde = A.tex("fx_mire_dissolve_emit") if A.has_override("fx_mire_dissolve_emit") else null
+	return _mde
+
 func _gem_sprites(name: String, sc: float, ps: PackedVector2Array, cs: PackedColorArray) -> void:
 	if ps.is_empty():
 		return
@@ -721,8 +733,15 @@ func _gem_sprites(name: String, sc: float, ps: PackedVector2Array, cs: PackedCol
 	var src := Rect2(0, 0, fw, fh)
 	var size := Vector2(fw, fh) * sc
 	var half: Vector2 = size * Vector2(0.5, 0.5)
+	if not _gem_e.has(name):
+		_gem_e[name] = A.tex(name + "_emit") if A.has_override(name + "_emit") else null
+		gem_emit = _gem_e.get("gem_small") != null or _gem_e.get("gem_big") != null
+	var etx: Texture2D = _gem_e[name] if g.optical_on else null
 	for i in ps.size():
-		g.draw_texture_rect_region(tx, Rect2((ps[i] - half).round(), size), src, cs[i])
+		var dst := Rect2(((ps[i] - half) / Game.PX).round() * Game.PX, size)
+		g.draw_texture_rect_region(tx, dst, src, cs[i])
+		if etx != null:
+			g.glow_tex_next.append([etx, dst, src, cs[i]])
 
 
 ## Boss 登场聚光、博士 / 敌人 / 干员 / 骑士的影子、干员脚下层；evr：ENTITY_MARGIN 视野矩形（排序层共用）
@@ -905,7 +924,7 @@ func _draw_overlays_shield_drones() -> void:
 		elif dr.get("beam", 0.0) > 0.0:
 			dfr = 3
 		if g.tex.get("drone_laser") != null:
-			g.vfx.spr("drone_laser", 4, dfr, dr.pos, 1.0, dr.get("face", 1.0) < 0.0, Color(0.85, 1.25, 0.95))
+			g.vfx.spr("drone_laser", 4, dfr, (dr.pos / Game.PX).round() * Game.PX, Game.PX / A.hires_of(g.tex.drone_laser), dr.get("face", 1.0) < 0.0, Color(0.85, 1.25, 0.95))   # 24×20 × 4 原生 1x，按 PX 1:1（world_spec_1024）
 		elif g.tex.get("drone") != null:
 			g.vfx.spr("drone", 2, int(g.t * 20.0) % 2, dr.pos, Game.PX, false, Color(1.2, 1.7, 1.4))
 	for dr in g.drones:
@@ -1107,10 +1126,26 @@ func _draw_fx() -> void:
 			"mire_recoil":
 				# 灯标点燃时被清掉的溟痕退散（docs/54）：每片一圈紫环向中心收缩、深色底渐隐，再一道从灯标推出去的淡光弧
 				if g.vfx.p2 and f.get("tex", false):
-					# 溟痕退散帧条 fx_mire_dissolve（64×64 × 6，和 terrain_mire 同尺寸：按判定半径 ×2.3 画）
+					# 溟痕退散帧条 fx_mire_dissolve（64×64 × 6 原生 1x，world_spec_1024）：按 PX 1:1，不按半径拉伸；
+					# 一块 64 美术像素 = 128 世界单位，大溟痕在圆内按 96 世界单位间距多点铺（块与块叠一圈、格心离圆心 ≤ 半径）；_emit 层进光学发光层
 					var mfr: int = clampi(int((1.0 - a) * 6.0), 0, 5)
+					var dtx: Texture2D = g.tex.get("fx_mire_dissolve")
+					var dhs: float = A.hires_of(dtx) if dtx != null else 1.0
+					var dcol := Color(1.0, 1.0, 1.0, minf(1.0, a * 2.0))
+					var detx: Texture2D = _mire_dissolve_emit() if g.optical_on else null
+					var step: float = 64.0 * Game.PX
+					var pitch: float = 48.0 * Game.PX
 					for c in f.pts:
-						g.vfx.spr_rot("fx_mire_dissolve", mfr, c[0], 0.0, float(c[1]) * 2.3 / 64.0, Color(1.0, 1.0, 1.0, minf(1.0, a * 2.0)))
+						var nn: int = maxi(0, ceili((float(c[1]) - step * 0.5) / pitch))
+						for iy in range(-nn, nn + 1):
+							for ix in range(-nn, nn + 1):
+								var off := Vector2(ix, iy) * pitch
+								if off.length() > float(c[1]) and (ix != 0 or iy != 0):
+									continue
+								var dp: Vector2 = ((c[0] + off) / Game.PX).round() * Game.PX
+								g.vfx.spr_rot("fx_mire_dissolve", mfr, dp, 0.0, Game.PX / dhs, dcol)
+								if detx != null:
+									g.glow_tex_next.append([detx, Rect2(dp - Vector2(step, step) * 0.5, Vector2(step, step)), Rect2(mfr * 64, 0, 64, 64), Color(1, 1, 1, dcol.a * Bal.v("render/optical_mire_emit", 0.35))])
 				elif g.vfx.p2:
 					var k := 1.0 - a
 					var gy: float = ground_y()
@@ -4035,7 +4070,26 @@ func draw_zone_band(pulse: float) -> void:
 		crests.append(crest)
 	# 溟痕贴图沿圈边密铺：每 26 像素弧长一块（贴图约 60 像素宽，互相叠一半以上，连成一整条），两帧脉动和地上的溟痕一致；
 	# 大小、左右翻转、前后位置按序号取固定的伪随机，看不出重复；只画视野内的块（后期同屏元素多，一屏约五六十块）
-	var mt: Texture2D = g.tex.get("terrain_mire")
+	# 溟痕 v2（world_spec_1024）：圈边改用同一套 1:1 平铺 + 围边——环带 [r − 4, r + 36]（世界单位）按溟痕格栅格化，只取镜头附近那段弧
+	var mt: Texture2D = null if g.map.mire_v2 else g.tex.get("terrain_mire")
+	if g.map.mire_v2:
+		var cw: float = g.map.MIRE_CELL * Game.PX
+		var nb2: int = clampi(int(TAU * r / (cw * 0.5)), 24, 4000)
+		var rj: Vector2i = _arc_range(nb2, c, r, vc, view)
+		if rj.y >= rj.x:
+			var ins := {}
+			for jr in range(rj.x - 1, rj.y + 2):
+				var d3 := Vector2.from_angle(TAU * float(posmod(jr, nb2)) / nb2)
+				var rr := r - 4.0
+				while rr <= r + 36.0:
+					var q := Vector2i(floori((c.x + d3.x * rr) / cw), floori((c.y + d3.y * rr) / cw))
+					if not ins.has(q):
+						var dd: float = ((Vector2(q) + Vector2(0.5, 0.5)) * cw).distance_to(c)
+						if dd >= r - 4.0 and dd <= r + 36.0:
+							ins[q] = true
+					rr += cw * 0.5
+			if not ins.is_empty():
+				g.map.draw_mire_cells(g.map.mire_cells(ins), int(t * 2.0) % 2, Color(1, 1, 1, 0.95))
 	if mt != null:
 		var fw: int = mt.get_width() / 2
 		var nb: int = clampi(int(TAU * r / 26.0), 24, 900)

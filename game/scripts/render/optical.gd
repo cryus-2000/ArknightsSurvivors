@@ -318,7 +318,10 @@ func _draw_glow() -> void:
 	_draw_ground_glow()
 	for p in g.glow_cur:
 		glow_node.draw_rect(Rect2(p[0], Vector2(p[1], p[1])), p[2])
-	_draw_loot()
+	for q in g.glow_tex_cur:
+		glow_node.draw_texture_rect_region(q[0], q[1], q[2], q[3])   # _emit 发光层（溟痕 / 结晶 / 退散，同位置 1:1）
+	if not g.world.gem_emit:
+		_draw_loot()   # 没有结晶 _emit 图（旧结晶）时退回每颗一个发光点
 	if Bal.v("render/optical_trail", 1.0) > 0.0:
 		_draw_trails(g.bullets, false)
 		_draw_trails(g.ebullets, true)
@@ -416,6 +419,8 @@ func _process(_dt: float) -> void:
 		_lo_step()
 	g.glow_cur = g.glow_next
 	g.glow_next = []
+	g.glow_tex_cur = g.glow_tex_next
+	g.glow_tex_next = []
 	if particles != null:
 		if on != _was_on:
 			particles.set_active(on)

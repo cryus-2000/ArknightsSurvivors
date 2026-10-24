@@ -820,6 +820,41 @@ func step() -> void:
 			else:
 				g.ppos = g.map.push_out(Vector2(1500 + n * 430, 900 + (n % 3) * 380), 12.0)
 				g.cam.position = g.ppos
+	# --worldspec（world_spec_1024 接入验收）：第 60 帧在队长周围摆 溟痕 ×3（大中小）、商人、经验结晶大小各几颗、无人机、黑潮圈边，
+	# 第 100 帧截 shot_ws_scene.png；第 101 帧让两块溟痕播退散，第 104 / 110 帧截 shot_ws_dissolve_<帧>.png，之后退出
+	if Cfg.dev_args().has("--worldspec"):
+		if g.at_frames >= 60:
+			g.speed = 0.0
+			g.hp = g.max_hp
+			g.pickup = 0.0   # 结晶留在地上（不吸、不升级）
+		if g.at_frames == 60:
+			g.ppos = g.map.push_out(Vector2(1500, 900), 12.0)
+			g.cam.position = g.ppos
+			for o in g.enemies:
+				o.pos += Vector2(4000, 0)
+			g.mires.clear()
+			for q in [[Vector2(-330, -120), 110.0], [Vector2(-170, 150), 70.0], [Vector2(230, -170), 40.0]]:
+				g.mires.append({"pos": g.ppos + q[0], "r": q[1], "maxr": q[1], "life": 999.0, "seed": 1.7})
+			g.merchant = {"pos": g.ppos + Vector2(150, 70), "life": 60.0, "near": false}
+			for k in 10:
+				g.pickups.drop(g.ppos + Vector2(-60 + (k % 5) * 26, 120 + (k / 5) * 26), "xp", 8.0 if k % 3 == 0 else 1.0)
+			g.drones.append({"pos": g.ppos + Vector2(70, -60), "cd": 99.0, "ang": 0.0, "beam": 0.0, "face": 1.0})
+			g.zone_c = g.ppos + Vector2(-200, 0)
+			g.zone_r = 560.0   # 队长在安全区内，圈边从画面右侧穿过
+			g.zone_state = 3
+			g.zone_t = -999.0
+		if g.at_frames == 100 and DisplayServer.get_name() != "headless":
+			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_ws_scene.png")
+		if g.at_frames == 101:
+			var pts: Array = []
+			for mm in g.mires.slice(0, 2):
+				pts.append([mm.pos, mm.r])
+			g.mires = g.mires.slice(2)
+			g.fx.append({"kind": "mire_recoil", "pts": pts, "from": g.ppos, "life": 0.75, "max": 0.75, "tex": true})
+		if g.at_frames in [104, 110] and DisplayServer.get_name() != "headless":
+			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_ws_dissolve_%d.png" % g.at_frames)
+		if g.at_frames > 112:
+			g.get_tree().quit()
 	if Cfg.dev_args().has("--gemshot"):
 		if g.at_frames == 60:
 			for k in 14:

@@ -72,6 +72,7 @@ func load_theme(theme_id: String) -> void:
 		_load(n)
 	if theme.has("mire"):
 		_load(theme.mire.tex)
+	_mire_v2_load()
 	fg_tex.clear()
 	fg_px.clear()
 	for n in theme.get("foreground", {}).get("tex", []):
@@ -755,9 +756,145 @@ func mire_new(pos: Vector2, t: float, endless: bool) -> Dictionary:
 	return d
 
 
+## ---- 溟痕 v2（Codex art/incoming/world_spec_1024，用户 10-24 验收；tools/install_world_spec.py 装成两张图集）：
+## 底图 mire_tile_ab（A / B 变体 × 2 帧，各 64×64 美术像素）按全局美术像素格 1:1 平铺，不再按 r × 2.3 拉伸；
+## 判定圆按 MIRE_CELL（16 美术像素 = 32 世界单位）一格栅格化（格心在圆内 = 内区），圈外紧邻的格按邻接画 12 片围边
+## （mire_edge_atlas：边片遮罩 × 同相位底图，任意格位与内区脉络连续）；每 64 格块按坐标哈希取 A / B。
+## _emit 层排进光学发光层（g.glow_tex_next，光学观感开时）。纯画面；栅格按半径 4 单位一档缓存在溟痕字典的 _mc 里
+const MIRE_CELL := 16
+var mire_v2 := false
+var _mire_ab: Texture2D
+var _mire_ab_e: Texture2D
+var _mire_edge: Texture2D
+var _mire_edge_e: Texture2D
+
+
+func _mire_v2_load() -> void:
+	mire_v2 = A.has_override("mire_tile_ab") and A.has_override("mire_edge_atlas")
+	if mire_v2:
+		_mire_ab = A.tex("mire_tile_ab")
+		_mire_edge = A.tex("mire_edge_atlas")
+		_mire_ab_e = A.tex("mire_tile_ab_emit") if A.has_override("mire_tile_ab_emit") else null
+		_mire_edge_e = A.tex("mire_edge_atlas_emit") if A.has_override("mire_edge_atlas_emit") else null
+
+
+## 一组内区格（Dictionary Vector2i → true）补洞后求围边：[内区格 Array, 围边 Array[Vector3i(格 x, 格 y, 片号)]]。
+## 补洞：圈外格四邻有对边一对或三面以上在内区的并进内区（否则没有对应边片）。片号同 HANDOFF：0 N 1 E 2 S 3 W、4–7 外角 NW NE SE SW、8–11 内角 NW NE SE SW
+func mire_cells(ins: Dictionary) -> Array:
+	for _pass in 3:
+		var add: Array = []
+		for c in ins:
+			for d in [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]:
+				var q: Vector2i = c + d
+				if ins.has(q):
+					continue
+				var n: bool = ins.has(q + Vector2i(0, -1))
+				var s: bool = ins.has(q + Vector2i(0, 1))
+				var e: bool = ins.has(q + Vector2i(1, 0))
+				var w: bool = ins.has(q + Vector2i(-1, 0))
+				if (n and s) or (e and w) or int(n) + int(s) + int(e) + int(w) >= 3:
+					add.append(q)
+		if add.is_empty():
+			break
+		for q in add:
+			ins[q] = true
+	var border: Array = []
+	var seen := {}
+	for c in ins:
+		for dy in range(-1, 2):
+			for dx in range(-1, 2):
+				var q: Vector2i = c + Vector2i(dx, dy)
+				if ins.has(q) or seen.has(q):
+					continue
+				seen[q] = true
+				var n: bool = ins.has(q + Vector2i(0, -1))
+				var s: bool = ins.has(q + Vector2i(0, 1))
+				var e: bool = ins.has(q + Vector2i(1, 0))
+				var w: bool = ins.has(q + Vector2i(-1, 0))
+				var t := -1
+				if s and e:
+					t = 8
+				elif s and w:
+					t = 9
+				elif n and w:
+					t = 10
+				elif n and e:
+					t = 11
+				elif s:
+					t = 0
+				elif w:
+					t = 1
+				elif n:
+					t = 2
+				elif e:
+					t = 3
+				if t >= 0:
+					border.append(Vector3i(q.x, q.y, t))
+					continue
+				if ins.has(q + Vector2i(1, 1)):
+					border.append(Vector3i(q.x, q.y, 4))
+				if ins.has(q + Vector2i(-1, 1)):
+					border.append(Vector3i(q.x, q.y, 5))
+				if ins.has(q + Vector2i(-1, -1)):
+					border.append(Vector3i(q.x, q.y, 6))
+				if ins.has(q + Vector2i(1, -1)):
+					border.append(Vector3i(q.x, q.y, 7))
+	return [ins.keys(), border]
+
+
+## 按格画一组溟痕（内区先画、围边后画，各自同一张图集连续合批）；col 的 alpha = 淡入淡出
+func draw_mire_cells(cells: Array, f: int, col: Color) -> void:
+	var cw: float = MIRE_CELL * g.PX
+	var glow: bool = g.optical_on and _mire_ab_e != null
+	var gc := Color(col.r, col.g, col.b, col.a * Bal.v("render/optical_mire_emit", 0.35))   # 发光层强度（全亮会盖掉紫色底）
+	for c in cells[0]:
+		var gx: int = c.x * MIRE_CELL
+		var gy: int = c.y * MIRE_CELL
+		var src := Rect2((_mire_var(gx, gy) * 2 + f) * 64 + posmod(gx, 64), posmod(gy, 64), MIRE_CELL, MIRE_CELL)
+		var dst := Rect2(Vector2(c) * cw, Vector2(cw, cw))
+		g.draw_texture_rect_region(_mire_ab, dst, src, col)
+		if glow:
+			g.glow_tex_next.append([_mire_ab_e, dst, src, gc])
+	for b in cells[1]:
+		var gx: int = b.x * MIRE_CELL
+		var gy: int = b.y * MIRE_CELL
+		var ph: int = (posmod(gx, 64) / MIRE_CELL) * 4 + posmod(gy, 64) / MIRE_CELL
+		var src := Rect2(ph * MIRE_CELL, ((_mire_var(gx, gy) * 12 + b.z) * 2 + f) * MIRE_CELL, MIRE_CELL, MIRE_CELL)
+		var dst := Rect2(Vector2(b.x, b.y) * cw, Vector2(cw, cw))
+		g.draw_texture_rect_region(_mire_edge, dst, src, col)
+		if glow and _mire_edge_e != null:
+			g.glow_tex_next.append([_mire_edge_e, dst, src, gc])
+
+
+## 64 格块取 A / B 变体（约三分之一 B，减轻 64 像素周期感）
+func _mire_var(gx: int, gy: int) -> int:
+	return 1 if posmod(hash(Vector2i(floori(gx / 64.0), floori(gy / 64.0))), 3) == 0 else 0
+
+
+func _mire_disc(m: Dictionary) -> Array:
+	var key := int(m.r * 0.25)
+	var c = m.get("_mc")
+	if c != null and int(c[0]) == key:
+		return c[1]
+	var cw: float = MIRE_CELL * g.PX
+	var r: float = m.r
+	var ins := {}
+	for cy in range(floori((m.pos.y - r) / cw), floori((m.pos.y + r) / cw) + 1):
+		for cx in range(floori((m.pos.x - r) / cw), floori((m.pos.x + r) / cw) + 1):
+			if (Vector2(cx + 0.5, cy + 0.5) * cw).distance_to(m.pos) <= r:
+				ins[Vector2i(cx, cy)] = true
+	var cells := mire_cells(ins)
+	m["_mc"] = [key, cells]
+	return cells
+
+
 func draw_mire(m: Dictionary) -> void:
 	var a: float = clamp(m.life / 3.0, 0.0, 1.0)
 	var t: float = g.t
+	if mire_v2:
+		draw_mire_cells(_mire_disc(m), int(t * 2.0 + m.seed) % 2, Color(1, 1, 1, a))
+		g.world.tb_ring(m.pos, m.r, 1.5, Color(0.7, 0.4, 1.2, 0.35 * a), 36)
+		return
 	var mt: Texture2D = tex.get(mire_cfg().get("tex", "terrain_mire"))
 	if mt != null:
 		# 溟痕贴图（2 帧脉动）：按判定半径缩放，外圈画判定提示
