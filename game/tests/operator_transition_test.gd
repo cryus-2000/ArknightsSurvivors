@@ -61,6 +61,12 @@ func _ready():
 					o._tick_sq_atk(0.0)
 					o.anim_kind=o.sq_atk if o.sq_atk!="" else o._sq_kind()
 					st=o.anim_state()
+					# 10-24 docs/140：出手帧播完前不让位（原来出手那一刻就切跑动，出手姿势看不到）
+					ok(st.kind==o.sq_atk or o.sq_atk=="","moving shows release frame "+id+" s"+str(skill+1))
+					o.attack_t=(o.attack_dur-o.attack_fire_at)*0.4
+					o._tick_sq_atk(0.0)
+					o.anim_kind=o.sq_atk if o.sq_atk!="" else o._sq_kind()
+					st=o.anim_state()
 					ok(st.kind==o.seq_anim(seq.run),"moving recovery "+id+" s"+str(skill+1))
 					var variant: String=o.seq_anim(seq.attack)
 					ok(o.sq_atk==variant,"moving keeps variant clock "+id)

@@ -79,6 +79,8 @@
   "regen": 1.1
  },
  "sprites": {
+  "hover_attack": true,
+  "_hover_attack_doc": "10-24 docs/140：浊心斯卡蒂跑步是悬浮飘行（腿不交替，art_lint 设计例外），普攻 / 技能动作移动时照播完，不让给跑步条（原来出手帧就切跑步，移动中普攻 56/58 次看不到出手）",
   "entry": {"tex": "op_skalter_entry", "frames": 8, "fps": 8.3481, "foot": [32, 60], "frame_durations": [0.1198, 0.1198, 0.1198, 0.1198, 0.1197, 0.1198, 0.1198, 0.1198], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/skalter_entry.json），64 画布 @2x；落下由代码补"},
   "idle": {
    "tex": "op_skalter_idle",

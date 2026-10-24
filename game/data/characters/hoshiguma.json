@@ -667,11 +667,20 @@
     0.16
    ]
   },
+  "s1_guard_move": {
+   "tex": "op_hoshiguma_s1_guard_move",
+   "frames": 8,
+   "fps": 13.333333,
+   "foot": [32, 60],
+   "frame_durations": [0.075, 0.075, 0.075, 0.075, 0.075, 0.075, 0.075, 0.075],
+   "_doc": "10-24 格挡窗口里移动（docs/140）：原生 Skill t=0 举盾上半身 + 跑步步态腿（tools/op_1x/native_extra.py），与跑步条共用相位；原来移动时播单帧定格 s1_guard 原地滑行"
+  },
   "skills": {
    "_doc": "S1 举盾 → 窗口内定格 → 格挡（技能随即结束）或窗口到点都收势播反手重斩；S2 盾斧斩落；S3 原作起手 / 持盾切割循环 / 收势",
    "s1": {
     "start": "s1",
     "loop": "s1_guard",
+    "run": "s1_guard_move",
     "end": "s1_counter"
    },
    "s2": {
@@ -688,6 +697,7 @@
   "death",
   "s1",
   "s1_guard",
+  "s1_guard_move",
   "s1_counter",
   "s3_start",
   "s3_loop",

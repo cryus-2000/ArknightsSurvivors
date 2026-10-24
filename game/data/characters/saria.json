@@ -190,6 +190,14 @@
     75.57669522183915
    ]
   },
+  "skill_s3_run": {
+   "foot_exempt": "同跑步条用整数脚底 (32, 60)，与小数顶层 foot 相差不到 1px（docs/108 §5）",
+   "tex": "op_saria_skill_s3_run",
+   "frames": 8,
+   "fps": 13.333333333333334,
+   "foot": [32, 60],
+   "_doc": "10-24 钙质化期间移动（docs/140）：原生 Skill_Loop 空手上半身 + 跑步腿（tools/op_1x/native_extra.py），与跑步条共用相位；盾 / 武器放在地上只在站定的循环条里画"
+  },
   "skills": {
    "s1": {
     "anim": "skill_heal"
@@ -202,6 +210,7 @@
      "anim": "skill"
     },
     "loop": "skill_s3_loop",
+    "run": "skill_s3_run",
     "end": {
      "anim": "skill_s3_end"
     }
@@ -212,7 +221,8 @@
   "death",
   "skill_heal",
   "skill_s3_end",
-  "skill_s3_loop"
+  "skill_s3_loop",
+  "skill_s3_run"
  ],
  "attack": {
   "mode": "auto",
