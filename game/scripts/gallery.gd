@@ -75,18 +75,6 @@ var demo_mode := -1
 ## 干员详情的信息页：档案 / 技能 / 成长（docs/58 §11，10-11 用户定：不要藏品契合、不要战绩；旧「数值」页并进技能页顶部的大数字）
 var info_tab := 0
 const INFO_TABS := ["档案", "属性", "技能", "成长"]   # 属性：主控数值表（与选人「属性」页同源，InitialStats.sheet）
-## 敌人图鉴的附加形态（标签, 贴图, 帧数, 帧率, 循环）：说明里写了第二形态的 Boss（docs/48 验收 P2-6）
-const EXTRA_FORMS := {
-	"ishar": [["变身", "e_ishar_transform", 6, 7.0, false], ["变身移动", "e_ishar_t_move", 4, 5.0, true], ["变身攻击", "e_ishar_t_attack", 4, 8.0, true]],
-	"knight_boss": [["冲刺", "e_knight_charge", 4, 8.0, true], ["插枪", "e_knight_plant", 4, 8.0, false], ["冲锋形态", "e_knight_charge_form", 4, 8.0, true]],
-	# Codex V13（art/requests/v13_codex_boss_p2.md）；伊比利亚射击、伊祖米克地波蓄力是 _attack，已由上面的通用「攻击」行展示
-	"carmen": [["炮身近战", "e_saint_melee", 4, 12.0, true], ["装弹", "e_saint_reload", 4, 6.0, true]],   # V15 圣徒统一造型
-	"iberia": [["炮身近战", "e_saint_dark_melee", 4, 12.0, true], ["装弹", "e_saint_dark_reload", 4, 6.0, true]],
-	"izumik": [["扎根", "e_izumik_rooting", 4, 3.0, true]],
-	"path": [["冲撞", "e_path_charge", 4, 10.0, true]],
-}
-
-
 func _ready() -> void:
 	var lf := FileAccess.open("res://data/lore.json", FileAccess.READ)
 	if lf != null:
@@ -344,32 +332,12 @@ func _build() -> void:
 				var e: Dictionary = D.ENEMIES[k]
 				if e.get("role", "") != role:
 					continue
-				var forms: Array = [_anim_n("常态", e.tex, 2, 2.0 if role == "boss" else 5.0)]
-				if k == "paranoia" and A.tex("e_paranoia2") != null:
-					forms[0].label = "一阶段"
-					forms.append(_anim_n("二阶段", "e_paranoia2", 2, 2.0))
-				if A.tex(e.tex + "_feign") != null:
-					forms.append(_anim_n("假死", e.tex + "_feign", 2, 2.0))
-				if k == "ishar" and A.tex("e_ishar_t") != null:
-					forms.append(_anim_n("转化后", "e_ishar_t", 2, 2.0))   # 转化形态素材已交付（docs/38 §6.2），实战接入在伊莎玛拉纵切
-				# 美术 V8 新敌人：另列移动 / 攻击与附加帧条（休眠 / 唤醒 / 狂暴）；普通怪一律列（注亡拟嗣 / 碎片 / 泪只有移动帧条，docs/94）
-				if e.get("atk_anim", false) or role == "boss" or role == "":
-					for fm in [["移动", "_move", 4, float(e.get("move_fps", 6.0))], ["攻击", "_attack", 4, 10.0], ["休眠", "_dormant", 2, 3.0], ["唤醒", "_awaken", 4, 10.0], ["狂暴", "_enraged", 2, 5.0]]:
-						if A.tex(e.tex + fm[1]) != null:
-							forms.append(_anim_n(fm[0], e.tex + fm[1], fm[2], fm[3]))
-				# 说明里写了第二形态的 Boss：把已交付的形态帧条列出来（伊莎玛拉变身 / 骑士插枪、冲锋形态）
-				for fm in EXTRA_FORMS.get(k, []):
-					if A.tex(fm[1]) != null:
-						forms.append(_anim_n(fm[0], fm[1], fm[2], fm[3], fm[4]))
+				# 敌人 / Boss 页签只留「待机」和「演示」（用户 10-24）：移动 / 攻击 / 变身等帧条不再单列，演示里的实机 AI 会演出来
+				var forms: Array = [_anim_n("待机", e.tex, 2, 2.0 if role == "boss" else 5.0)]
 				# 换色复用贴图的怪（撕裂者 / 潜地者 / 吐酸者 / 巨骸）：展示台按 enemies.json 的 tint 染色、按 draw_scale 放大（和实战一致）
-				var tint: Color = e.get("tint", Color.WHITE)
-				var dsc: float = float(e.get("draw_scale", 1.0))
-				for fm in forms:
-					fm.tint = tint
-					fm.dscale = float(e.get("transformed_draw_scale", 1.0)) if k == "ishar" and fm.label in ["转化后", "变身", "变身移动", "变身攻击"] else dsc
-					if fm.label == "二阶段" and k == "paranoia":
-						pass   # 同实战：V13 终稿自带洋红配色和 ×1.10 体量，不再染色、不放大
-				forms.append({"label": "攻击演示", "tex": null, "frames": 1, "fps": 1.0, "loop": true, "enemy_demo": k})
+				forms[0].tint = e.get("tint", Color.WHITE)
+				forms[0].dscale = float(e.get("draw_scale", 1.0))
+				forms.append({"label": "演示", "tex": null, "frames": 1, "fps": 1.0, "loop": true, "enemy_demo": k})
 				var ai: String = {"melee": "近战", "ranged": "远程", "static": "固定"}.get(e.ai, "")
 				var st := [["生命", str(int(e.hp))], ["伤害", str(int(e.dmg))], ["移速", str(int(e.spd))], ["类型", ai]]
 				if e.has("range"):

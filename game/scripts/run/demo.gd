@@ -31,6 +31,8 @@ const WALK_MV := 0.7             # 摇杆量（匀速）
 const WALK_SLACK := 28.0         # 停下后，最近的怪要比出手距离再远这么多才重新起步（滞后，免得走一步停一步）
 const WALK_MAX_X := 110.0        # 最远走到出发点右边这么远（固定机位，别走出画面）
 const DEMO_DY := 40.0            # 主控和怪海整体下移：图鉴演示框上沿压着标题与两排按钮（约 70 像素），飘字 / 炸点 / Mon3tr / 跃空锤（跳高 42）别钻到下面
+const DEMO_OP_DX := -180.0       # 主控出发点在演示中心左边多远（原 150；用户 10-24「图鉴里干员和怪物离开得远一点」，镜头同时拉远到 ×0.8，两者都在框里）
+const DEMO_HORDE_DX := 115.0     # 怪海中心在演示中心右边多远（原 85）
 const DEMO_BITE_KB := 240.0      # 贴身的怪「扑一口」后弹开的冲量：enemies.gd 按 900/s 衰减，240 ≈ 弹开 32，再以 spd 16 走回来约 2 秒
 const DEMO_BITE_CD := 1.2        # 同一只怪两次扑击至少隔这么久（弹开 + 走回来的时间里不会再扑）
 
@@ -216,7 +218,7 @@ func next_phase() -> void:
 	g.hitstop = 0.0
 	g.dash_t = 0.0
 	g.doc_pos = Vector2.INF
-	g.ppos = g.demo_origin + Vector2(-150, 10 + DEMO_DY)
+	g.ppos = g.demo_origin + Vector2(DEMO_OP_DX, 10 + DEMO_DY)
 	new_op()
 	# 推成长节点到精英化时，新解锁的技能会被充满（character.gd 解锁即满）：重建后同一帧就会放出最高的技能，
 	# 每段开头都先来一发三技能。这里全部清零，本段的技能由 step 在 DEMO_FILL_AT 时替它充满
@@ -293,7 +295,7 @@ func horde(n: int) -> void:
 		var a: float = g.rng.randf() * TAU
 		var r: float = sqrt(g.rng.randf())
 		# 前排离主控约 140（近战干员的前压范围 150 以内），一开场就能接敌
-		var p: Vector2 = g.demo_origin + Vector2(85 + cos(a) * r * 90.0, DEMO_DY + sin(a) * r * 72.0)
+		var p: Vector2 = g.demo_origin + Vector2(DEMO_HORDE_DX + cos(a) * r * 90.0, DEMO_DY + sin(a) * r * 72.0)
 		var ne := g.spawner.spawn_enemy("bone", p)
 		ne.spd = 16.0
 		ne.dmg = 0.0
