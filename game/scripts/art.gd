@@ -821,7 +821,7 @@ static func mirror_strip(src: Texture2D, frames: int) -> Texture2D:
 ## 开局固定预载的贴图（_ready；标题页预热法线图也按这份名单 + preload_tex_names）
 const BASE_TEX := ["e_knight_walk", "e_knight_walk_move", "e_knight_walk_attack", "e_knight_walk_charge", "e_knight_walk_death", "drifter", "dart", "crawler", "shell", "boss", "tiles", "seaweed", "coral", "shell_prop", "rock",
 			"gem_small", "gem_big", "oil", "chest", "slash", "tentacle", "jelly", "light", "shadow", "player",
-			"ally_sniper", "ally_caster", "ally_medic", "ally_support", "orb", "doctor",
+			"ally_sniper", "ally_caster", "ally_medic", "ally_support", "orb",
 			"e_bone", "e_slider", "e_stone", "e_offspring", "e_brood", "e_pocket", "e_skimmer", "e_mother", "e_chest", "e_mimic", "e_event",
 			"e_path", "e_fractal", "e_izumik", "e_ishar", "e_tear", "e_iberia", "e_carmen", "e_bishop", "e_archon", "e_immortal", "e_paranoia", "e_paranoia2", "e_bishop_feign", "e_archon_feign", "e_immortal_feign", "ebullet", "ingot", "merchant", "pickup_magnet", "pickup_heal", "drone", "drone_laser",
 			"terrain_patches", "prop_pillar", "prop_wall", "prop_wreck", "terrain_ridge", "terrain_peak", "terrain_mire"]

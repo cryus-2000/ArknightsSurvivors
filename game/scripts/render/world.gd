@@ -1655,7 +1655,7 @@ func _draw_tells_outlines() -> void:
 
 ## 主角帧动画（美术交付 player_*.png 后自动启用；帧为正方形，帧数 = 宽 / 高）
 func update_player_anim(dt: float) -> void:
-	if g.tex.get("doctor") != null:
+	if g.tex.get(str(g.doctor.def.get("sprites", {}).get("idle", ""))) != null:
 		update_doctor_anim(dt)
 		return
 	if g.tex.get("player_attack_48") != null:
@@ -1692,8 +1692,8 @@ func update_player_anim(dt: float) -> void:
 			g.sprite.frame = int(anim_t * (12.0 if anim_name == "player_run" else 6.0)) % n
 
 
-## 博士动画：data/doctor.json 的 sprites（idle 4 / run 8 / hurt 2 / death 4 帧）；
-## 某个动作没有贴图时退回旧 2 帧待机条（doctor）：跑步 = 加快切帧 + 颠簸，倒下 = 侧倒
+## 博士动画：data/doctor.json 的 sprites（idle 4 / run 8 / hurt 2 / death 4 帧，10-24 起 doctor_*@1x 1 倍帧条，64 画布脚底 (32,60)）；
+## 某个动作没有贴图时退回待机条：跑步 = 加快切帧 + 颠簸，倒下 = 侧倒
 func update_doctor_anim(dt: float) -> void:
 	# 博士是挂件：不受击，只有待机 / 跑步；主控倒下时一起倒下
 	var want := "idle"
@@ -1705,7 +1705,7 @@ func update_doctor_anim(dt: float) -> void:
 	var tx: Texture2D = g.tex.get(sp.get(want, ""), null) if sp.has(want) else null
 	var fallback := tx == null
 	if fallback:
-		tx = g.tex["doctor"]
+		tx = g.tex[sp.idle]
 	var key := want + ("_fb" if fallback else "")
 	if key != anim_name:
 		anim_name = key
@@ -1713,8 +1713,8 @@ func update_doctor_anim(dt: float) -> void:
 		g.sprite.texture = tx
 		g.sprite.scale = Vector2(g.PX, g.PX)
 		g.sprite.hframes = max(1, tx.get_width() / tx.get_height())
-		# 各动作从数据取脚底；缺图回退始终使用旧 doctor 的原点。
-		var foot_y: float = 45.0 if fallback else float(sp.get(want + "_foot", sp.get("foot", [24, 45]))[1])
+		# 各动作从数据取脚底；缺图回退用待机条的脚底。
+		var foot_y: float = float(sp.get(("idle" if fallback else want) + "_foot", sp.get("foot", [32, 60]))[1])
 		g.sprite.offset = Vector2(0, -tx.get_height() / 2.0 + (tx.get_height() / A.hires_of(tx) - foot_y) * A.hires_of(tx))   # 帧高按贴图算（48 / 64 画布）
 	anim_t += dt
 	var n := g.sprite.hframes
@@ -1728,7 +1728,7 @@ func update_doctor_anim(dt: float) -> void:
 				g.sprite.frame = int(anim_t * 7.0) % n
 				g.sprite.position.y -= Game.PX * absf(sin(anim_t * 11.0)) * 1.5
 			_:
-				g.sprite.frame = int(anim_t * 2.0) % n
+				g.sprite.frame = int(anim_t * 4.0) % n
 	else:
 		var spec: Array = P48.get(want, [4.0, true])
 		var f := int(anim_t * spec[0])

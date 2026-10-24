@@ -268,10 +268,7 @@ func _draw_wave(i: int) -> void:
 func _load_figures() -> void:
 	var dd: Dictionary = _json("res://data/doctor.json").get("sprites", {})
 	var dt: Texture2D = A.tex(str(dd.get("idle", "doctor_idle")))
-	var doctor_foot: Array = dd.get("foot", [24,46])
-	if dt == null:
-		dt = A.tex("doctor")
-		doctor_foot = [24,45]
+	var doctor_foot: Array = dd.get("foot", [32,60])
 	if dt != null:
 		doctor = {"idle": dt, "fi": maxi(1, dt.get_width() / dt.get_height()), "fps": 4.0, "foot": Vector2(doctor_foot[0], doctor_foot[1])}
 	reload_guest()

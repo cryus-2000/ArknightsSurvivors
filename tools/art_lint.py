@@ -170,6 +170,9 @@ WAIVERS = {
     ("specter_unchained", "outline"): "10-20 用户批准原生像素整套接入（cb_18 原作条 + run_trial 逐附件像素化）：附件自身暗色边缘，不改成旧黑壳（skalter_specter_native_sources.json）",
     ("specter_unchained", "skill_end"): "10-20 技能条取原作 Skill_1 / Skill_3_Begin 重排（关键姿势在出手帧），末帧为原生姿势，逻辑结束切 Idle（同上）",
     ("specter_unchained", "ground"): "10-20 统一脚根锚点：cb_18 / run_trial 地面行映射到 @2x 120（最后一行 119），1x 最低行 59 与脚底边界 60 相差 1，同能天使口径；普攻锯盘低扫越过脚底行属动作",
+    ("doctor", "outline"): "10-24 博士 1 倍帧条（codex/art a732d70f，art/incoming/doctor_1x_1023）：材质自然边缘、不加外壳，qa.json outline_policy 记为用户已批",
+    ("doctor", "idle"): "10-24 同上：4 帧 4 fps 待机呼吸幅度小（剪影 0.029 / 起伏 0.1px）；qa.json user_motion_approved=false，待用户动作观感验收后删此条或返修",
+    ("doctor", "run"): "10-24 同上：兜帽稳定，头部起伏 0.8px（与能天使 / 推进之王同级）；待用户动作观感验收",
     # 单条帧条豁免（op, check, 动作）：只豁免这条帧条的这一项，同一干员其他帧条照常检查
     ("angelina", "ground", "float_in"): "设计例外（docs/92）：S3 起飞，f1–f7 逐帧离地 1–9 像素属造型",
     ("angelina", "ground", "float"): "设计例外（docs/92）：S3 浮空待机，离地 9–10 像素（64 口径最低行约 50）属造型",
