@@ -11,10 +11,11 @@ static func position_at(from: Vector2, to: Vector2, k: float, height: float) -> 
 
 static func draw_fireball(o, p: Vector2, direction: Vector2, size: float, age: float) -> void:
 	var dim: float = o.g.world.fx_dim
-	o.cv.draw_circle(p, 8.0 * size, Color(HOT, dim * 0.15))
+	if not material_on(o):
+		o.cv.draw_circle(p, 8.0 * size, Color(HOT, dim * 0.15))
 	if o.g.tex.get("proj_lavaball") != null and o.g.V6_FRAMES.has("proj_lavaball"):
 		var spec: Array = o.g.V6_FRAMES.proj_lavaball
-		o.draw_spr_rot("proj_lavaball", int(age * float(spec[1])) % int(spec[0]), p, direction.angle(), o.g.PX * size, Color(1, 1, 1, dim))
+		o.draw_spr_rot("proj_lavaball", int(age * float(spec[1])) % int(spec[0]), p, direction.angle(), o.g.PX * size * (0.78 if material_on(o) else 1.0), Color(1, 1, 1, dim))
 	else:
 		o.cv.draw_circle(p, 5.0 * size, Color(HOT, dim))
 		o.cv.draw_circle(p, 2.0 * size, Color(1.0, 0.85, 0.35, dim))
@@ -25,7 +26,8 @@ static func draw(o, p: Vector2, direction: Vector2, size: float, age: float, spi
 	var d: Vector2 = direction.normalized() if direction.length_squared() > 0.01 else Vector2.RIGHT
 	var tail: Vector2 = p - d * (14.0 + 2.0 * sin(age * 12.0)) * size
 	var side: Vector2 = d.orthogonal() * 5.0 * size
-	o.cv.draw_colored_polygon(PackedVector2Array([_snap(p + side), _snap(tail), _snap(p - side)]), Color(0.7, 0.15, 0.03, dim * 0.7))
+	if not material_on(o):
+		o.cv.draw_colored_polygon(PackedVector2Array([_snap(p + side), _snap(tail), _snap(p - side)]), Color(0.7, 0.15, 0.03, dim * 0.7))
 	o.cv.draw_line(_snap(p - d * 4.0 * size), _snap(tail + d * 5.0 * size), Color(HOT, dim * 0.8), 2.0)
 	var angle: float = age * 1.4 * spin
 	_poly(o, [Vector2(-8, -6), Vector2(-2, -10), Vector2(6, -8), Vector2(10, -2), Vector2(8, 6), Vector2(2, 10), Vector2(-6, 8), Vector2(-10, 2)], p, angle, scale, Color(CRUST, dim))
@@ -39,21 +41,39 @@ static func draw(o, p: Vector2, direction: Vector2, size: float, age: float, spi
 			o.cv.draw_line(_snap(xf * crack[i]), _snap(xf * crack[i + 1]), Color(1.0, 0.72, 0.28, dim), 2.0)
 
 static func impact(o, p: Vector2, radius: float, size: float) -> void:
+	if material_on(o) and o._fx_tex("fx_eyja_lava_splash") != null:
+		o.spawn_fx_sprite("fx_eyja_lava_splash", p + Vector2(0, -4), o.g.PX * 0.6 * sqrt(size))
 	o.fx({"kind": "lava_spot", "mass": true, "pos": p, "r": clampf(radius * 0.42, 14.0, 32.0) * sqrt(size), "life": 0.4, "floor": true})
 
 static func fireball_impact(o, p: Vector2, radius: float, size: float) -> void:
+	if material_on(o) and o._fx_tex("fx_flam_hit") != null:
+		if o.spawn_fx_sprite("fx_flam_hit", p + Vector2(0, -5), o.g.PX * 0.65 * sqrt(size)):
+			return
 	o.fx({"kind": "fireball_burst", "pos": p + Vector2(0, -5), "r": clampf(radius * 0.3, 12.0, 24.0) * sqrt(size), "life": 0.24})
 
 ## S2 点燃弹命中爆燃（10-22 用户「命中几乎没表现」）：短促火焰炸开 + 向外火星 + 地面焦痕 / 余烬。纯画面，随机只用 g.vrng。
 ## 有 Codex 帧条 fx_eyja_ignite_hit（单子见 art/incoming/codex_order_eyja_handoff.md）时炸开用它，否则用旧 fx_eyja_ignite_boom 占位
 static func ignite_hit(o, p: Vector2, radius: float, size: float) -> void:
 	var r: float = clampf(radius * 0.5, 18.0, 40.0) * sqrt(size)
+	var material := false
+	if material_on(o):
+		var name := "fx_eyja_ignite_hit" if o._fx_tex("fx_eyja_ignite_hit") != null else "fx_eyja_ignite_boom"
+		var tx: Texture2D = o._fx_tex(name)
+		if tx != null and o.g.V6_FRAMES.has(name):
+			var frames: int = o.g.V6_FRAMES[name][0]
+			var density: float = A.hires_of(tx)
+			var fw: float = float(tx.get_width()) / frames
+			var origin: Vector2 = Vector2(32, 44) * density if name == "fx_eyja_ignite_hit" else Vector2(fw, tx.get_height()) * 0.5
+			var at: Vector2 = p + Vector2(0, -4 if name == "fx_eyja_ignite_hit" else -r * 0.35)
+			material = o.g.optical.grains.material_burst(name, tx, frames, at, 0.0, r * 1.7 * 0.78 / fw, origin, false, Color.WHITE)
+			if material:
+				o.g.fx.append({"kind": "grain_light", "name": name, "pos": p, "scale": r * 1.3 / (fw / density), "life": 0.24, "max": 0.24})
 	var sparks := []
-	for i in 10:
+	for i in (0 if material else 10):
 		var ang: float = -PI * 0.5 + (float(i) / 10.0 - 0.5) * PI * 1.7 + o.g.vrng.randf_range(-0.15, 0.15)
 		sparks.append([Vector2.from_angle(ang), o.g.vrng.randf_range(0.7, 1.25)])
-	o.fx({"kind": "ignite_scorch", "pos": p, "r": r, "life": 1.1, "floor": true})
-	o.fx({"kind": "ignite_hit", "pos": p, "r": r, "life": 0.42, "sparks": sparks})
+	o.fx({"kind": "ignite_scorch", "pos": p, "r": r, "life": 1.1, "floor": true, "material": material})
+	o.fx({"kind": "ignite_hit", "pos": p, "r": r, "life": 0.42, "sparks": sparks, "material": material})
 
 static func draw_ignite_hit(o, f: Dictionary) -> void:
 	var age: float = float(f.max) - float(f.life)
@@ -63,14 +83,17 @@ static func draw_ignite_hit(o, f: Dictionary) -> void:
 	var p: Vector2 = f.pos
 	var flash: float = maxf(0.0, 1.0 - age / 0.07) * dim
 	if flash > 0.0:
-		o.cv.draw_circle(p + Vector2(0, -6), r * 0.55, Color(1.0, 0.9, 0.6, flash * 0.8))
+		if f.get("material", false):
+			_poly(o, [Vector2(-3, 0), Vector2(0, -4), Vector2(3, 0), Vector2(0, 2)], p + Vector2(0, -6), 0.0, Vector2.ONE * r / 12.0, Color(1.0, 0.8, 0.35, flash * 0.65))
+		else:
+			o.cv.draw_circle(p + Vector2(0, -6), r * 0.55, Color(1.0, 0.9, 0.6, flash * 0.8))
 	var tex := "fx_eyja_ignite_hit" if o._fx_tex("fx_eyja_ignite_hit") != null and o.g.V6_FRAMES.has("fx_eyja_ignite_hit") else "fx_eyja_ignite_boom"   # 懒加载：g.tex 只预载 json 引用过的贴图
 	if o._fx_tex(tex) != null and o.g.V6_FRAMES.has(tex):
 		var spec: Array = o.g.V6_FRAMES[tex]
 		var fr: int = mini(int(age / float(f.max) * float(spec[0])), int(spec[0]) - 1)   # 整条压进 life 播完
 		var fw: float = float(o.g.tex[tex].get_width()) / float(spec[0]) / A.hires_of(o.g.tex[tex])
 		var own: bool = tex == "fx_eyja_ignite_hit"   # Codex 版原点 (32,44)（爆心偏下），占位条按中心
-		o.draw_spr_rot(tex, fr, p + (Vector2(0, -4) if own else Vector2(0, -r * 0.35)), 0.0, r * 1.7 / fw, Color(1, 1, 1, dim * clampf((float(f.life)) / 0.12, 0.0, 1.0)), Vector2(32, 44) * A.hires_of(o.g.tex[tex]) if own else Vector2(-1, -1))
+		o.draw_spr_rot(tex, fr, p + (Vector2(0, -4) if own else Vector2(0, -r * 0.35)), 0.0, r * 1.7 / fw * (0.78 if f.get("material", false) else 1.0), Color(1, 1, 1, dim * (0.75 if f.get("material", false) else 1.0) * clampf((float(f.life)) / 0.12, 0.0, 1.0)), Vector2(32, 44) * A.hires_of(o.g.tex[tex]) if own else Vector2(-1, -1))
 	else:
 		var scale := Vector2.ONE * r / 10.0 * (0.7 + 0.5 * k)
 		_poly(o, [Vector2(-10, 0), Vector2(-6, -5), Vector2(-3, -11), Vector2(0, -6), Vector2(3, -13), Vector2(6, -5), Vector2(10, 0), Vector2(4, 3), Vector2(-4, 3)], p, 0.0, scale, Color(HOT, (1.0 - k) * dim))
@@ -93,7 +116,7 @@ static func draw_ignite_scorch(o, f: Dictionary) -> void:
 	_poly(o, [Vector2(-6, 0), Vector2(-3, -4), Vector2(3, -4), Vector2(7, 0), Vector2(3, 4), Vector2(-3, 4)], f.pos, 0.0, scale, Color(0.75, 0.18, 0.04, fade * (0.25 + 0.55 * heat)))
 	for i in 6:
 		var e: Vector2 = Vector2.from_angle(float(i) * TAU / 6.0 + 0.4) * Vector2(r * 0.7, r * 0.35) * (0.5 + 0.5 * float(i % 2))
-		var tw: float = 0.6 + 0.4 * sin(age * 18.0 + float(i) * 1.7)
+		var tw: float = clampf(1.0 - age / (0.35 + float(i) * 0.08), 0.0, 1.0) if f.get("material", false) else 0.6 + 0.4 * sin(age * 18.0 + float(i) * 1.7)
 		o.cv.draw_rect(Rect2(_snap(f.pos + e), Vector2(2, 2)), Color(1.0, 0.5 + 0.3 * heat, 0.12, fade * tw))
 
 static func draw_fireball_impact(o, f: Dictionary) -> void:
@@ -128,11 +151,19 @@ static func draw_pool(o, l: Dictionary) -> void:
 	var scale := Vector2(float(l.r) / 10.0, float(l.r) / 24.0)
 	_poly(o, [Vector2(-10, 0), Vector2(-8, -6), Vector2(-2, -8), Vector2(6, -6), Vector2(10, 0), Vector2(6, 6), Vector2(-2, 8), Vector2(-8, 4)], l.pos, 0.0, scale, Color(CRUST, fade * 0.7))
 	_poly(o, [Vector2(-8, 0), Vector2(-4, -4), Vector2(2, -6), Vector2(8, -2), Vector2(6, 4), Vector2(0, 6), Vector2(-6, 4)], l.pos, 0.0, scale, Color(0.7, 0.16, 0.04, fade * 0.65))
+	if material_on(o):
+		var age: float = float(l.dur) - float(l.t)
+		for i in 8:
+			var a: float = float(i) * TAU / 8.0
+			var q: Vector2 = l.pos + Vector2(cos(a) * float(l.r) * 0.55, sin(a) * float(l.r) * 0.22)
+			var phase: float = fposmod(age * 1.5 + float(i) * 0.37, 1.0)
+			var heat: Color = HOT if phase < 0.35 else Color(0.42, 0.1, 0.035)
+			o.cv.draw_rect(Rect2(_snap(q), Vector2(2, 2)), Color(heat, fade))
 	var texture := "fx_eyja_lava_pool"
 	if o.g.tex.get(texture) != null and o.g.V6_FRAMES.has(texture):
 		var spec: Array = o.g.V6_FRAMES[texture]
 		var frame: int = int((float(l.dur) - float(l.t)) * float(spec[1])) % int(spec[0])
-		o.draw_spr_rot(texture, frame, l.pos, 0.0, minf(float(l.r) / 26.0, 3.2), Color(1, 1, 1, fade * 0.75))
+		o.draw_spr_rot(texture, frame, l.pos, 0.0, minf(float(l.r) / 26.0, 3.2), Color(1, 1, 1, fade * (0.5 if material_on(o) else 0.75)))
 		return
 	var pulse: float = 0.45 + 0.05 * sin((float(l.dur) - float(l.t)) * 3.0)
 	_poly(o, [Vector2(-6, 0), Vector2(-2, -2), Vector2(4, -4), Vector2(6, 0), Vector2(2, 2), Vector2(-4, 2)], l.pos, 0.0, scale, Color(HOT, fade * pulse))
@@ -148,3 +179,21 @@ static func _poly(o, points: Array, p: Vector2, angle: float, scale: Vector2, co
 
 static func _snap(p: Vector2) -> Vector2:
 	return (p / 2.0).round() * 2.0
+
+
+static func material_on(o) -> bool:
+	var opt = o.g.get("optical")   # 契约测试的假 g 可能是 Dictionary（eyja_volcanic_weight），不能直接 .optical
+	return opt != null and opt.grains != null and opt.grains.material_on()
+
+## 仅画面计时；不读取玩法 RNG，不改变弹体位置或碰撞。
+static func material_trail(o, item: Dictionary, p: Vector2, direction: Vector2, dt: float, fire: bool) -> void:
+	if not material_on(o):
+		return
+	item["grain_tail"] = float(item.get("grain_tail", 0.0)) - dt
+	if float(item.grain_tail) > 0.0:
+		return
+	item.grain_tail = 0.07 if fire else 0.1
+	var back: Vector2 = -direction.normalized()
+	for i in 3:
+		var q: Vector2 = p + back * (4.0 + float(i) * 2.0)
+		o.g.optical.grains.push("fire" if fire else "lava", q, Vector2.UP if fire else back, HOT)

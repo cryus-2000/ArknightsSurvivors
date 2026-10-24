@@ -59,6 +59,7 @@ const PERF_DUMP_KEYS := ["engine", "draw_world", "draw_hud", "draw_fxadd", "draw
 var opticalab := -1           # --opticalab=N（docs/50 §25）：每 N 帧轮换光学观感原型开 / 关；-1 = 还没读参数
 var fx1ab := 0                # --fx1ab=N（docs/50 §25.2）：每 N 帧轮换特效处理第 1 步开 / 关（光学观感开着时）
 var partab := 0               # --partab=N（docs/136 §2 排查）：每 N 帧轮换光学 GPU 粒子开 / 关（--perf 分 /p1 /p0 两桶）
+var matab := 0                # --matab=N：每 N 帧轮换材质颗粒（fx/material_grains）开 / 关（--perf 分 /m1 /m0；要同时 --bal=fx/material_grains=1）
 var grainab := 0              # --grainab=N：每 N 帧轮换刀光第四版（粒子）开 / 关（--perf 分 /g1 /g0）
 var tierab := 0               # --tierab=N（docs/50 §25.3）：每 N 帧轮换命中三档开 / 关
 var vfxab := -1               # --vfxab=N（docs/54）：每 N 帧轮换 vfx.p2；-1 = 还没读参数
@@ -443,6 +444,8 @@ func step() -> void:
 				tierab = int(a.substr(9))
 			if a.begins_with("--partab="):
 				partab = int(a.substr(9))
+			if a.begins_with("--matab="):
+				matab = int(a.substr(8))
 			if a.begins_with("--grainab="):
 				grainab = int(a.substr(10))
 			if a == "--nohud" and g.hud != null and g.hud.get_parent() is CanvasLayer:
@@ -466,6 +469,8 @@ func step() -> void:
 		g.optical.particles.set_active(not g.optical.particles.active)   # --partab=N：同局轮换 GPU 粒子（--perf 分 /p1 /p0）
 	if grainab > 0 and g.at_frames % grainab == 0 and g.optical != null and g.optical.grains != null:
 		g.optical.grains.off = not g.optical.grains.off   # --grainab=N：同局轮换刀光第四版
+	if matab > 0 and g.at_frames % matab == 0 and g.optical != null and g.optical.grains != null:
+		g.optical.grains.mat_off = not g.optical.grains.mat_off   # --matab=N：同局轮换材质颗粒
 	if tierab > 0 and g.at_frames % tierab == 0:
 		g.vfx.tier_off = not g.vfx.tier_off   # --tierab=N：同局轮换命中三档（--perf 分 /t1 /t0 两桶）
 	if fx1ab > 0 and g.at_frames % fx1ab == 0 and g.optical != null:
@@ -710,6 +715,25 @@ func step() -> void:
 			if a.begins_with("--lampat=") and g.t >= float(a.substr(9).split(":")[0]):
 				_lampat_done = true
 				g.lamp = float(a.substr(9).split(":")[1])
+	if Cfg.dev_args().has("--materialmovie") and not g.has_node("MaterialMovie"):
+		var movie = load("res://tests/material_movie.gd").new()
+		movie.name = "MaterialMovie"
+		movie.g = g
+		g.add_child(movie)
+	# 短时人工验收：同一场景左原版、右材质颗粒，沿用实际光照后处理。
+	if Cfg.dev_args().has("--materialshots") and g.at_frames in [40, 65, 90] and g.optical.grains != null:
+		var names := ["fx_flam_hit", "fx_water_splash", "fx_corrode_hit"]
+		var index: int = int((g.at_frames - 40) / 25)
+		var pool = g.optical.grains
+		g.fx.clear()   # 仅验收模式：隔离上一组帧条，避免实时模拟步长造成混图
+		pool.step(2.0)
+		var previous: bool = pool.off
+		pool.off = true
+		g.vfx.fx_sprite(names[index], g.ppos + Vector2(-90, -50), g.PX)
+		pool.off = false
+		g.vfx.fx_sprite(names[index], g.ppos + Vector2(90, -50), g.PX)
+		pool.off = previous
+		print("MATERIALSHOT %s particles=%d optical=%s" % [names[index], pool.pos.size(), g.optical_on])
 	# --shots 在平衡模式下也生效（平衡分支会提前 return）：特效连拍用 --balance --nodeath 跳过精英化演出
 	if g.mode == g.Mode.BALANCE and g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_%d.png" % g.at_frames)
@@ -1371,6 +1395,8 @@ func _perf_sample() -> void:
 			w = "m%02d" % int(g.t / 60.0) + ("F" if g.final_boss != null and not g.final_boss.dead else "")   # --perfmin：按游戏分钟分段，F = 最终 Boss 在场
 		if partab > 0:
 			w += "/p1" if g.optical.particles.active else "/p0"
+		if matab > 0:
+			w += "/m0" if g.optical.grains.mat_off else "/m1"
 		if grainab > 0:
 			w += "/g0" if g.optical.grains.off else "/g1"
 		if tierab > 0:
