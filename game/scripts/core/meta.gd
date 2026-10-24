@@ -93,7 +93,7 @@ static func run_shape() -> Dictionary:
 
 # ---------------------------------------------------------------- 生机细胞（docs/109 §3.1 v3）
 ## 探索评分：存活每分钟 10（10:00 封顶 100）+ 中期 Boss 每个 20 + 通关 60，× 潮位系数（每级 +0.05，10 级起封顶 ×1.5）；
-## 结局首达 +40（不乘系数）。生机细胞 = 评分 ÷ 8；首通某一潮位另给 5 + 潮位。
+## 结局首达 +40（不乘系数）。生机细胞 = 评分 ÷ 6（10-24 起，原 ÷ 8，用户要成长更快）；首通某一潮位另给 5 + 潮位。
 
 ## 本局潮位（g.tier，0–15）
 static func tide_of(g) -> int:
@@ -115,7 +115,7 @@ static func run_reward(g, won: bool) -> Dictionary:
 	var f := tide_factor(tide)
 	var score := int(round(base * f)) + (40 if won and g.ending_new else 0)
 	var bounty := (5 + tide) if won and not Cfg.meta_bounty.has(tide) else 0
-	return {"base": base, "factor": f, "score": score, "cells": score / 8 + bounty, "bounty": bounty, "tide": tide}
+	return {"base": base, "factor": f, "score": score, "cells": score / 6 + bounty, "bounty": bounty, "tide": tide}
 
 
 static func earned_total() -> int:
@@ -179,6 +179,7 @@ static func buy_recommended() -> void:
 static func apply_run(g) -> int:
 	var shape := run_shape()
 	g.meta_cells = spent(shape)
+	var scale: float = load("res://scripts/core/balance.gd").v("meta/stat_scale", 1.0)   # 局外成长数值总旋钮（云端校准用，缺省 1）
 	if shape.is_empty() or g.demo_op != "":
 		return 0
 	for id in shape:
@@ -186,7 +187,7 @@ static func apply_run(g) -> int:
 			continue
 		for ef in nodes()[id].get("effects", []):
 			if ef.has("stat"):
-				g.stats.add(StringName(ef.stat), str(ef.get("op", "add")), float(ef.value), "meta")
+				g.stats.add(StringName(ef.stat), str(ef.get("op", "add")), float(ef.value) * scale, "meta")
 			elif ef.has("rule"):
 				g.rfx.rules[ef.rule] = int(g.rfx.rules.get(ef.rule, 0)) + int(ef.get("value", 1))
 			elif ef.has("start_ingots"):
