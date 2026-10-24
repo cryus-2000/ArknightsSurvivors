@@ -303,16 +303,14 @@ func _sprite_form(label: String, v, fps: float, loop: bool) -> Dictionary:
 	return result
 
 
-## 博士动画预览：data/doctor.json 的 sprites（没有就用旧 2 帧待机条）
+## 博士动画预览：data/doctor.json 的 sprites
 func _doctor_forms(dd: Dictionary) -> Array:
 	var sp: Dictionary = dd.get("sprites", {})
 	var out: Array = []
-	for kind in [["待机", "idle", 4, 4.0], ["跑步", "run", 6, 10.0], ["受击", "hurt", 2, 10.0], ["倒下", "death", 4, 6.0]]:
+	for kind in [["待机", "idle", 4, 4.0], ["跑步", "run", 8, 10.0], ["受击", "hurt", 2, 10.0], ["倒下", "death", 4, 6.0]]:
 		var n = sp.get(kind[1], "")
 		if n is String and n != "" and A.tex(n) != null:
 			out.append(_anim_n(kind[0], n, kind[2], kind[3], kind[1] != "death"))   # 倒下播一次停在末帧
-	if out.is_empty():
-		out.append(_anim_n("待机", "doctor", 2, 2.0))
 	return out
 
 
