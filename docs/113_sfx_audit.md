@@ -316,3 +316,24 @@
 2. `sfx.gd`：`OP_SFX["ulpianus"]` 加 `launch` `rush`，`OP_VOL` 登记 launch −3、rush −5；能天使 atk 变体轮换（请求名 `op_exusiai_atk` 随机取 `_b` `_c`，`OP_GAP["op_exusiai_atk"] = 0.045` 合并同帧多发）。
 3. `seg_ulpianus.gd`：`_hw_anchor_bite` 冲锋分支把 `atk` 换成 `launch` + `rush`（`rush` 音高 = 文件时长 / 冲锋时长，夹在 0.8–1.5）；`_hw_zip_land` 冲锋分支落地播新的撞击；S3 发动音改播 `chain_throw` 变体。
 4. 备选：歌蕾蒂娅钩索、德克萨斯冲刺借用同一批音（`OP_ALT`）。
+
+## 14. 锁链 / 落锚的 CC0 现成录音候选（10-24 用户：「出钩出锚的都太难听了，去网上看看有没有相关的素材」）
+
+§13 的合成版锁链放弃，改找现成录音。`game/tools/gen_sfx_review_cc0_1024.py`：只用 Freesound 上许可为 CC0 的条目（脚本逐条在原页面核对 `publicdomain/zero/1.0`，不是就停），下载页面公开的 HQ 试听 mp3 到主仓库 `build/sfx_candidates_1024/freesound/`（不进 git、不进包，`meta.json` 记来源 URL / 作者 / 许可 / 时长），截取并统一处理（50 Hz 高通、5.5 kHz 4 阶低通、5 ms 淡入 30 ms 淡出、100 ms RMS 对齐现用文件：出钩 / 收拉 −15.6、落地 −9 dBFS、峰值软限幅 −1 dBFS）后追加到试听页 `build/sfx_review_1024/index.html` 的第四节，和现用版、合成版并排。
+
+| 角色 | 候选 | 来源（Freesound，全部 CC0 1.0） | 截取 |
+|---|---|---|---|
+| 出钩 / 出锚 | t1 / t2 | 733608 C_Sander「chains_whipAndTighten」 | 4.00–4.68 s 整下甩链 / 2.25–2.60 s 短抖 |
+| | t3 | 792318 randbsoundbites「Grappling hook/gun extending & retracting」 | 0.72–1.15 s 钩爪射出 |
+| | t4 | 541975 16bitstudios「grappling hook」 | 整段 0.58 s |
+| | t5 | 675781 craigsmith「S29-28 Anchor drops over side of boat」 | 0.55–1.60 s 锁链往外放 |
+| 收拉 | r1 | 733608 C_Sander（同上后半「收紧」） | 6.06–7.34 s |
+| | r2 | 792318 randbsoundbites（收回） | 2.25–2.93 s |
+| | r3 | 386174 ldezem「Chain pulley 750kg - Chain pull」 | 0.30–1.40 s |
+| | r4 / r5 | 235959 mffm「Chain Drag」/ 405417 Mrthenoronha「Pulling Chain」 | 0.75–1.80 s / 0–1.00 s |
+| 落锚 / 砸地 | i1 | 819711 DaVoiceActor「Chain Impact」 | 1.75–2.30 s |
+| | i2 | 871034 funkysandwich「metal_chain_drop2」 | 整段 0.6 s |
+| | i3 | 235959 mffm（拖链到头的磕碰） | 1.25–1.75 s |
+| | i4 | 167916 ani_music「Steel chain hard clicking」 | 1.45–2.05 s |
+
+截取起止点是按能量包络与频谱挑的，没有人耳试听过，试听页上由用户选；录音原频谱偏亮（733608 重心 8–14 kHz），低通后 4 kHz 以上仍占 16–42%，若仍刺耳，选 t5 / r4 / i3 / i4（重心 1.4–2.2 kHz）。CC0 不强制署名，接入时仍在 `data/credits.json`「音乐与音效」写明作者与 URL。
