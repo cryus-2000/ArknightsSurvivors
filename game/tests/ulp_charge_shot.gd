@@ -141,7 +141,10 @@ func _stat(a: Array) -> Dictionary:
 
 func _finish() -> void:
 	if perf > 0:
-		print("ULPPERF " + JSON.stringify({"enemies": n_alive, "frame_g1": _stat(buckets.g1), "frame_g0": _stat(buckets.g0),
-			"grains_g1": _stat(gbuckets.g1), "grains_g0": _stat(gbuckets.g0)}))
+		var line := "ULPPERF " + JSON.stringify({"enemies": n_alive, "frame_g1": _stat(buckets.g1), "frame_g0": _stat(buckets.g0),
+			"grains_g1": _stat(gbuckets.g1), "grains_g0": _stat(gbuckets.g0)})
+		print(line)
+		if OS.has_feature("web"):
+			printerr(line)   # 网页测量副本（perf_web.py）只回传 console.error 与 PERF / BALANCE 开头的行
 	print("ULPSHOT done frames=%d rec=%d" % [frames, rec_i])
 	get_tree().quit(0)
