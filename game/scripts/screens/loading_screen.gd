@@ -93,6 +93,18 @@ func finish() -> void:
 		count = Vector2i.ZERO
 
 
+## 进局后的接续层（game.gd cover_begin）：直接显示压暗的「展开战场 100%」，不淡入、浪头不动
+func hold() -> void:
+	begin()
+	fade_in = 0.0
+	target = 1.0
+	shown = 1.0
+	stage = "展开战场"
+	out_t = OUT_LEN
+	set_process(false)
+	queue_redraw()
+
+
 func done() -> bool:
 	return out_t >= OUT_LEN and (wave_t < 0.0 or out_t > 1.0)   # 等浪头推到满格
 

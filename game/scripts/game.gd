@@ -506,6 +506,30 @@ var entry_voice_hold := true   # 开局编队的登场语音先不播：等第�
 var first_frame_ms := -1       # 第一帧局内画面画完的时刻（--loadprof 打语音相对它的时差）
 
 
+## 进局接续层：对局最初几帧仍盖着载入页最后那一帧（压暗的「展开战场 100%」），画满 COVER_FRAMES 帧再撤，下面是开场演出的黑场。
+## 网页第一帧之后还有一段十几秒的卡顿（10-25 实测，疑似首次用到的着色器在编译），以前这段停在一帧没盖住的战场上
+const COVER_FRAMES := 4
+var _cover: CanvasLayer
+var _cover_n := 0
+
+func _cover_begin() -> void:
+	_cover = CanvasLayer.new()
+	_cover.layer = 120
+	add_child(_cover)
+	var ls = preload("res://scripts/screens/loading_screen.gd").new()
+	_cover.add_child(ls)
+	ls.hold()
+	RenderingServer.frame_post_draw.connect(_cover_tick)
+
+
+func _cover_tick() -> void:
+	_cover_n += 1
+	if _cover_n >= COVER_FRAMES and _cover != null:
+		RenderingServer.frame_post_draw.disconnect(_cover_tick)
+		_cover.queue_free()
+		_cover = null
+
+
 ## 放开开局编队的登场语音（每人一次，entry_started 自己去重）：开场演出里编队着地 / 跳过开场时，其余模式在第一帧画完后
 func release_entry_voices() -> void:
 	if not entry_voice_hold:
@@ -631,6 +655,9 @@ static func loading_warm_lists() -> Array:
 			for suffix in ENEMY_SUFFIXES:
 				if suffix != "_death":
 					whites.append(tn + suffix)
+	for n in V6_FRAMES:
+		if str(n).begins_with("e_") and not skip.has(str(n)):
+			whites.append(n)   # V6 敌人附加帧条（休眠 / 唤醒 / 狂暴）的白色剪影，_ready 的 tex_v6 段也要
 	var names: Array = []
 	for n in preload_tex_names() + demo_warm_names():
 		var base := str(n)
@@ -990,6 +1017,8 @@ func _ready() -> void:
 	elif mode == Mode.PLAY or Cfg.dev_args().has("--openshot"):
 		intro_screen.start_opening.call_deferred()
 	A.mark("ready_end")
+	if mode == Mode.PLAY and demo_op == "" and not trial.active:
+		_cover_begin()
 	RenderingServer.frame_post_draw.connect(func():
 		first_frame_ms = Time.get_ticks_msec()
 		if state != S.OPENING:
@@ -1903,6 +1932,8 @@ var doc_face := 1.0
 
 ## 离开对局（回标题 / 关游戏）：还没记过的这一局按「中途退出」写进本地记录
 func _exit_tree() -> void:
+	if RenderingServer.frame_post_draw.is_connected(_cover_tick):
+		RenderingServer.frame_post_draw.disconnect(_cover_tick)
 	if demo_op == "":
 		UI.fk = 1.0
 	if trial.active:

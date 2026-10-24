@@ -261,4 +261,6 @@ func _draw_panels(vs: Vector2, compact: bool) -> void:
 		y += lh
 	# 提示：自动换行
 	var ta := 1.0 if Cfg.reduce_motion else clampf(tip_t / 0.22, 0.0, 1.0) * clampf((4.0 - tip_t) / 0.22, 0.0, 1.0)
-	draw_multiline_string(font, Vector2(vs.x - mx - pw + 12, by + 26 + lh), Tips.TIPS[tip_i], HORIZONTAL_ALIGNMENT_LEFT, pw - 24, fs, -1, Color(0.71, 0.78, 0.8, ta))
+	# 网页包没有中文断词数据（只按空格断，整句不换行冲出面板）：允许按字断（ADAPTIVE：放得下的词不拆）
+	var brk := TextServer.BREAK_MANDATORY | TextServer.BREAK_WORD_BOUND | TextServer.BREAK_GRAPHEME_BOUND | TextServer.BREAK_ADAPTIVE
+	draw_multiline_string(font, Vector2(vs.x - mx - pw + 12, by + 26 + lh), Tips.TIPS[tip_i], HORIZONTAL_ALIGNMENT_LEFT, pw - 24, fs, -1, Color(0.71, 0.78, 0.8, ta), brk)
