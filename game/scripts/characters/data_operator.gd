@@ -325,6 +325,9 @@ func update(dt: float) -> void:
 					at = atk_point(nearest_enemies(1, r, c), r)   # 手动普攻（v2.5）：不分方向，只受闸门
 		"cone":
 			var r2: float = ObCore.shape_radius(self, a)
+			var sr = a.get("skill_reach")   # 技能期间起手距离换成 r（德克萨斯剑雨滂沱·次元斩：前方 rift_r 内有敌人就出手）
+			if sr is Dictionary and s_t[int(sr.skill)] > 0.0:
+				r2 = float(sr.r) * stat(&"op_range")
 			var fp0: Dictionary = _far_pick(a)
 			if fp0.is_empty():
 				at = atk_point(nearest_enemies(1, r2 + 30.0, pos), r2)   # 手动普攻 A 类

@@ -96,6 +96,8 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 			_num(b, "mult", p, ctx, true, 0.0, 20.0)
 			_num(b, "stun", p, ctx, false, 0.0, 5.0)
 			_num(b, "scar", p, ctx, false, 0.1, 5.0)
+			_num(b, "lead", p, ctx, false, 0.0, 1.0)
+			_num(b, "hold", p, ctx, false, 0.0, 1.0)
 			_src(b, p, ctx, true)
 		"verb.fx_rain":
 			_tx_rain_validate(b, p, ctx)
@@ -821,12 +823,17 @@ static func tx_rift_start(o, b: Dictionary) -> void:
 	var dir_a: float = (ts[0].pos - o.pos).angle() if not ts.is_empty() else o.facing_angle()
 	if o.manual_attack() and o.atk_aim != Vector2.ZERO:
 		dir_a = o.atk_aim.angle()
-	var lead: float = float(b.get("lead", 0.03))
+	var lead: float = float(b.get("lead", 0.12))
 	var n: int = int(b.n)
 	var dmg: float = o.base("atk", 0.0) * float(b.mult) * float(o.loc.dmg) * o._dmg_bonus() * o.skill_power()
 	o.tx["rift"] = {"t": 0.0, "k": 0, "n": n, "lead": lead, "b": b, "dmg": dmg, "dir": dir_a, "r": r, "hit": {}, "from": o.pos,
-		"end": lead + float(n) * float(b.gap) + 0.12, "flash": {}, "any": not ts.is_empty()}
+		"end": _tx_rift_at(b, lead, n, n - 1) + 0.16, "flash": {}, "any": not ts.is_empty()}
 	o._sfx_op("atk")
+
+
+## 第 k 刀的出手时刻：首刀前停 lead（拔刀前一拍），中间每 gap 一刀，末刀前再停 hold（收刀前一拍）
+static func _tx_rift_at(b: Dictionary, lead: float, n: int, k: int) -> float:
+	return lead + float(k) * float(b.gap) + (float(b.get("hold", 0.0)) if k == n - 1 and n > 1 else 0.0)
 
 
 ## 这一刀斩谁：她 r 内、优先前方扇形（半角 half）里，离上一刀落点最近的、这一轮还没斩过的活敌人；都斩过就从头再轮；没有敌人返回 {}
@@ -853,7 +860,7 @@ static func tx_rift_update(o, dt: float) -> void:
 		var rf: Dictionary = tx.rift
 		rf.t += dt
 		var b: Dictionary = rf.b
-		while int(rf.k) < int(rf.n) and rf.t >= float(rf.lead) + float(rf.k) * float(b.gap):
+		while int(rf.k) < int(rf.n) and rf.t >= _tx_rift_at(b, float(rf.lead), int(rf.n), int(rf.k)):
 			var k: int = rf.k
 			rf.k = k + 1
 			var e: Dictionary = _tx_rift_pick(o, rf)
@@ -869,7 +876,8 @@ static func tx_rift_update(o, dt: float) -> void:
 				if rf.hit.size() >= 24:
 					rf.hit.clear()
 				rf.hit[e.id] = true
-			var len: float = float(b.len)
+			var last: bool = k == int(rf.n) - 1 and int(rf.n) > 1
+			var len: float = float(b.len) * (1.3 if last else 1.0)   # 末刀更长
 			var sgn: float = 1.0 if k % 2 == 0 else -1.0
 			var u: Vector2 = Vector2.from_angle(float(rf.dir) + sgn * (0.6 + 0.12 * float(k)))
 			var p0: Vector2 = ctr - u * len * 0.5
@@ -882,7 +890,7 @@ static func tx_rift_update(o, dt: float) -> void:
 				"on_hit": [{"st": "stun", "dur": float(b.get("stun", 0.0))}] if float(b.get("stun", 0.0)) > 0.0 else []}
 			_tx_sweep(o, p0, p1, float(b.get("w", 40.0)), {}, rf.dmg, sb)
 			var life: float = float(b.get("scar", 1.3))
-			o.fx({"kind": "tx_scar", "a": p0, "c": p1, "life": life, "col": o.col()})
+			o.fx({"kind": "tx_scar", "a": p0, "c": p1, "life": life, "col": o.col(), "bow": (0.07 if k % 2 == 0 else -0.07) * (1.4 if last else 1.0), "wmax": 4.0 if last else 3.0})
 			var sc: Array = tx.get("scars", [])
 			sc.append({"a": p0, "c": p1, "until": g.t + life})
 			tx["scars"] = sc
@@ -938,7 +946,8 @@ static func tx_rift_draw_body(o) -> bool:
 	return true
 
 
-## 刀痕（kind = tx_scar）：像素直线——2 px 格、白芯 + 她的色阶梯硬边；0.07 秒内从起点扫到终点，最后 35% 寿命逐格碎掉
+## 刀痕（kind = tx_scar）：像素刀口——2 px 格，两头尖、中间宽（宽度按 sin 起伏，最宽 wmax 格），整条略带弧度（bow × 长度，向一侧鼓）；
+## 中心一条白芯（只在够宽的那段）、外面她本色压红的阶梯硬边、边缘按下标错开一格做毛边；0.07 秒内从起点划到终点，刀尖一格更亮；最后 35% 寿命逐格碎掉
 static func tx_scar_draw(o, f: Dictionary, a: float) -> bool:
 	var cv = o.cv
 	var p0: Vector2 = f.a
@@ -948,25 +957,46 @@ static func tx_scar_draw(o, f: Dictionary, a: float) -> bool:
 	if L < 1.0:
 		return true
 	var d: Vector2 = seg / L
+	var nv: Vector2 = d.orthogonal()
 	var el: float = float(f.max) - float(f.life)
-	var reach: float = clampf(el / 0.07, 0.0, 1.0) * L
+	var reach: float = clampf(el / 0.07, 0.0, 1.0)
 	var frac: float = float(f.life) / float(f.max)
 	var melt: float = clampf((0.35 - frac) / 0.35, 0.0, 1.0)
 	var edge: Color = f.col
 	edge = Color(maxf(edge.r, 0.9), edge.g * 0.45, edge.b * 0.4)
+	var dark := Color(edge.r * 0.55, edge.g * 0.4, edge.b * 0.4)
 	var cell: float = RIFT_CELL
-	var nv: Vector2 = d.orthogonal()
-	var steps: int = int(reach / cell)
+	var bow: float = float(f.get("bow", 0.07)) * L
+	var wmax: float = float(f.get("wmax", 3.0)) * (1.0 if frac < 0.85 else 1.25)
+	var steps: int = int(L / cell)
+	var lit: int = int(reach * float(steps))
 	var al: float = a * (0.45 + 0.55 * clampf(frac * 3.0, 0.0, 1.0))
-	var seed: float = float(int(f.a.x) % 7) * 0.13
-	for i in steps:
+	var seed: float = float(int(absf(p0.x)) % 7) * 0.13
+	var seen := {}
+	for i in lit:
 		if melt > 0.0 and fposmod(float(i) * 0.6180339 + seed, 1.0) < melt:
 			continue
-		var q: Vector2 = p0 + d * (float(i) * cell)
-		var core := Vector2(floorf(q.x / cell) * cell, floorf(q.y / cell) * cell)
-		var thick: float = 1.0 if frac < 0.8 else 2.0
-		for side in [-1.0, 1.0]:
-			var e: Vector2 = q + nv * side * cell * thick
-			cv.draw_rect(Rect2(Vector2(floorf(e.x / cell) * cell, floorf(e.y / cell) * cell), Vector2(cell, cell)), Color(edge.r, edge.g, edge.b, 0.85 * al))
-		cv.draw_rect(Rect2(core, Vector2(cell, cell)), Color(2.0, 2.0, 2.0, al))
+		var u: float = float(i) / float(maxi(1, steps))
+		var prof: float = pow(sin(PI * u), 0.7)
+		var q: Vector2 = p0 + d * (u * L) + nv * (bow * sin(PI * u))
+		var hw: int = int(round(prof * wmax * 0.5 + (0.5 if (i * 7) % 5 == 0 else 0.0)))   # 毛边：每隔几格多出半格
+		for w in range(-hw, hw + 1):
+			var e: Vector2 = q + nv * (float(w) * cell)
+			var key := Vector2i(int(floorf(e.x / cell)), int(floorf(e.y / cell)))
+			if seen.has(key):
+				continue
+			seen[key] = true
+			var c: Color
+			var aw: int = absi(w)
+			if aw == 0 and hw >= 1:
+				c = Color(2.0, 2.0, 2.0, al)
+			elif aw < hw:
+				c = Color(edge.r * 1.3, edge.g * 1.3, edge.b * 1.3, al)
+			else:
+				c = Color(dark.r, dark.g, dark.b, 0.8 * al)
+			cv.draw_rect(Rect2(Vector2(key) * cell, Vector2(cell, cell)), c)
+	if reach < 1.0 and lit > 0:   # 刀尖：正在划的那一格更亮
+		var ut: float = float(lit) / float(maxi(1, steps))
+		var tip: Vector2 = p0 + d * (ut * L) + nv * (bow * sin(PI * ut))
+		cv.draw_rect(Rect2(Vector2(floorf(tip.x / cell), floorf(tip.y / cell)) * cell - Vector2(cell, cell) * 0.5, Vector2(cell, cell) * 2.0), Color(2.4, 2.4, 2.4, a))
 	return true

@@ -82,12 +82,14 @@
   "rift_r": 240,
   "rift_half": 1.1,
   "rift_len": 170,
-  "rift_gap": 0.09,
+  "rift_gap": 0.075,
   "rift_w": 40,
   "rift_mult": 0.8,
   "rift_stun": 0.3,
   "rift_scar": 1.3,
-  "_s3_rift": "10-24 用户定「次元斩」（docs/129 §14）：剑雨滂沱期间普攻整个换成次元斩——出手瞬间本体隐去，在前方 rift_r 的扇形（半角 rift_half）里每 rift_gap 秒闪现一次、追着 rift_r 内最近的活敌人各斩一道长 rift_len 的直线，共 rift_n 刀（优先前方扇形、离上一刀最近、这一轮没斩过的；敌人少就轮着斩，没有敌人就收刀，不斩空），路径上的敌人各吃一次 rift_mult（眩晕 rift_stun 秒），刀痕留 rift_scar 秒后碎成颗粒；本体逻辑位置全程不动（镜头不动）"
+  "_s3_rift": "10-24 用户定「次元斩」（docs/129 §14）：剑雨滂沱期间普攻整个换成次元斩——出手瞬间本体隐去，在前方 rift_r 的扇形（半角 rift_half）里每 rift_gap 秒闪现一次、追着 rift_r 内最近的活敌人各斩一道长 rift_len 的直线，共 rift_n 刀（优先前方扇形、离上一刀最近、这一轮没斩过的；敌人少就轮着斩，没有敌人就收刀，不斩空），路径上的敌人各吃一次 rift_mult（眩晕 rift_stun 秒），刀痕留 rift_scar 秒后碎成颗粒；本体逻辑位置全程不动（镜头不动）；节奏：首刀前停 rift_lead、中间每 rift_gap 一刀、末刀前再停 rift_hold，末刀长 ×1.3（10-25 用户「首尾有停顿感」）",
+  "rift_lead": 0.12,
+  "rift_hold": 0.16
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1986 / 防御 441 / 法抗 0%，近战主控有效生命 ×1.06",
@@ -678,7 +680,11 @@
      ],
      "_doc": "精一钉剑：被阻挡的敌人各插一柄源石剑，定住时间延长到 pin_dur"
     }
-   ]
+   ],
+   "skill_reach": {
+    "skill": 2,
+    "r": "$rift_r"
+   }
   },
   "trait": [
    {
@@ -857,7 +863,9 @@
       "tags": [
        "skill",
        "pierce"
-      ]
+      ],
+      "lead": "$rift_lead",
+      "hold": "$rift_hold"
      }
     ]
    },
