@@ -95,7 +95,8 @@ func load_theme(theme_id: String) -> void:
 
 func _load(n: String) -> void:
 	if not tex.has(n):
-		tex[n] = A.tex(n)
+		# docs/139 §6.6 试验旋钮 render/env_sat / render/env_bright（缺省 1 / 1）：只给地图贴图（地砖 / 斑块 / 道具 / 大道具）降饱和，干员 / 怪物 / 特效颜色不变
+		tex[n] = A.desat_of(A.tex(n), Bal.v("render/env_sat", 1.0), Bal.v("render/env_bright", 1.0))
 
 
 func _frames_of(n: String) -> int:

@@ -29,6 +29,15 @@ SCENES = {
 VARS = {
     "base": [],
     "palette": ["--bal=render/palette_trial=1"],
+    # 只给环境去色 + 暖色兜底（用户 10-24：全套调色显灰、干员不能掉色）
+    "warm": ["--bal=render/warm_trial=1"],
+    # 不用蓝色环境光（用户 10-24「蓝色环境光是不是可以先不用了」）：环境光改同亮度中性灰，ambient_mult 补亮，其余不动
+    "noblue": ["--bal=render/ambient_desat=1", "--bal=render/ambient_mult=1.45"],
+    # 掩码用：地图贴图全灰（干员 / 怪物 / 特效之外的颜色全没了），量干员像素在 base / warm 之间有没有变
+    "noblue16": ["--bal=render/ambient_desat=1", "--bal=render/ambient_mult=1.65"],
+    "noblue19": ["--bal=render/ambient_desat=1", "--bal=render/ambient_mult=1.9"],
+    "new": [],   # 当前缺省（10-24 起无蓝色环境光 + 溟痕改色）；base 目录保留改前的图作对照
+    "gray": ["--bal=render/env_sat=0"],
     # 只改溟痕 / 圈外（用户 10-24「保留海洋感的同时调整溟痕的颜色」）：其余画面不动
     "mireonly": ["--bal=render/mire_tint_r=0.5", "--bal=render/mire_tint_g=0.95", "--bal=render/mire_tint_b=0.8", "--bal=render/mire_anim=0",
                  "--bal=render/mire_alpha=0.8", "--bal=render/zone_dark_r=0.03", "--bal=render/zone_dark_g=0.08", "--bal=render/zone_dark_b=0.12"],

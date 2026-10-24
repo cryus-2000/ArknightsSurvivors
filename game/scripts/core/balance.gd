@@ -31,6 +31,7 @@ static func _load() -> void:
 			cur[keys[keys.size() - 1]] = float(kv[1])
 	_preset("nausea_safe", NAUSEA_SAFE)
 	_preset("palette_trial", PALETTE_TRIAL)
+	_preset("warm_trial", WARM_TRIAL)
 
 
 ## docs/139 画面眩晕排查的「推荐组合」试验开关 render/nausea_safe（缺省 0 = 不动）：1 时把 NAUSEA_SAFE 里的旋钮一次套上，
@@ -42,22 +43,31 @@ const NAUSEA_SAFE := {
 	"fx/recoil_px1": 0.0, "fx/recoil_px2": 1.0, "fx/recoil_px3": 2.0, "fx/recoil_px": 1.0,
 	"fx/squash_basic": 0.0, "fx/squash_dot": 0.0, "fx/squash_skill": 0.06,
 	"fx/hitstop_gap": 1.5, "fx/hit_pause_m": 0.0,
-	"render/ambient_desat": 0.4, "render/optical_sea": 0.3,
+	"render/optical_sea": 0.3,
 }
 
 
 ## docs/139 §6 水月肉鸽配色对照的「调色方案」试验开关 render/palette_trial（缺省 0）：同上，只管颜色
 const PALETTE_TRIAL := {
 	"render/optical_sat": 0.5,
-	"render/ambient_desat": 0.6,
 	"render/optical_sea": 0.2,
-	"render/ambient_mult": 1.6,
 	"render/ambient_gain": 1.35,
 	"render/mire_alpha": 0.6,
 	"render/mire_anim": 0.0,
 	"render/optical_mire_emit": 0.2,
 	"render/mire_tint_r": 0.5, "render/mire_tint_g": 0.95, "render/mire_tint_b": 0.8,
 	"render/zone_dark_r": 0.03, "render/zone_dark_g": 0.08, "render/zone_dark_b": 0.12,
+}
+
+
+## docs/139 §6.6「只给环境去色 + 暖色兜底」试验开关 render/warm_trial（缺省 0）：干员 / 怪物 / 特效颜色不动
+const WARM_TRIAL := {
+	"render/env_sat": 0.55,
+	"render/env_bright": 1.15,
+	"render/ground_glow": 0.1,
+	"render/ground_glow_warm": 0.4,
+	"render/warm_spores": 26.0,
+	"render/ember_n": 32.0,
 }
 
 

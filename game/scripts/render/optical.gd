@@ -412,6 +412,7 @@ func _draw_ground_glow() -> void:
 	var x0: int = floori((c.x - vs.x * 0.5) / 64.0)
 	var y0: int = floori((c.y - vs.y * 0.5) / 64.0)
 	var t: float = Time.get_ticks_msec() / 1000.0
+	var warm: float = Bal.v("render/ground_glow_warm", 0.0)
 	for cy in range(y0, y0 + ceili(vs.y / 64.0) + 1):
 		for cx in range(x0, x0 + ceili(vs.x / 64.0) + 1):
 			var hsh: int = (cx * 73856093) ^ (cy * 19349663)
@@ -421,7 +422,9 @@ func _draw_ground_glow() -> void:
 			var ox: float = float((hsh >> 10) & 31) * 2.0
 			var oy: float = float((hsh >> 15) & 31) * 2.0
 			var a: float = 0.25 + 0.45 * (0.5 + 0.5 * sin(t * 0.7 + float((hsh >> 20) & 63)))
-			glow_node.draw_rect(Rect2(Vector2(cx * 64.0 + ox, cy * 64.0 + oy), Vector2(2, 2)), Color(col_env.r, col_env.g, col_env.b, a))
+			# docs/139 §6.6 试验旋钮 render/ground_glow_warm（缺省 0）：这一比例的斑改用灯火琥珀色（暖色兜底，小面积点缀）
+			var gc: Color = col_lamp if r < dens * warm else col_env
+			glow_node.draw_rect(Rect2(Vector2(cx * 64.0 + ox, cy * 64.0 + oy), Vector2(2, 2)), Color(gc.r, gc.g, gc.b, a))
 
 
 ## 经验结晶与掉落：中心一颗淡金白发光像素（辉光由全屏 pass 的发光门限散出）
