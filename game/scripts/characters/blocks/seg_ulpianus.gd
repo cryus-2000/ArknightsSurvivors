@@ -2,6 +2,7 @@
 extends "res://scripts/characters/blocks/seg_logos.gd"
 
 const UlpImpact = preload("res://scripts/characters/ulpianus_impact.gd")
+const UlpCharge = preload("res://scripts/characters/ulpianus_charge_fx.gd")
 
 const HW_STEEL := Color(0.55, 0.75, 0.95)
 
@@ -251,6 +252,8 @@ static func _hw4_anchor(o, dt: float) -> void:
 			an.trail.push_front(_hw_anchor_pos(an, k))
 			if an.trail.size() > 4:
 				an.trail.pop_back()
+			if an.b.has("path_w"):
+				UlpCharge.windup(o, _hw_anchor_pos(an, k) + Vector2(0, -6), k)   # S3 起冲：颗粒向锚尖收拢（docs/138）
 			if k >= 1.0:
 				_hw_anchor_bite(o)
 		"reel":
@@ -317,6 +320,9 @@ static func _hw_anchor_bite(o) -> void:
 		an.trail = []
 		o.melee_tgt = null
 		_hw_sfx_op(o, "atk", 2.0, 0.85)
+		if UlpCharge.on(o):
+			UlpCharge.launch(o, o.pos, to, dir)
+			o.spawn_fx_sprite("fx_ulpianus_drag_dust", o.pos + Vector2(0, 4), g.PX, dir.angle(), false, true)   # 起冲照明：光学观感把这团尘登记成动态灯；颗粒版沿途不再扬尘（每团一盏灯，一次冲锋 6–9 团会占满 12 灯预算）
 		return
 	# 钩不到 / 钩到 Boss / 没写 path_w：锚在落点原地砸下（10-22 用户：S1 去掉顺锁链弹射）
 	an.land = to
@@ -337,6 +343,7 @@ static func _hw_charge_sweep(o, an: Dictionary, a: Vector2, c: Vector2) -> void:
 	var mid: Vector2 = (a + c) * 0.5
 	var dmg: float = o.base(str(b.get("atk_key", "atk")), 0.0) * float(b.get("path_mult", 1.2)) * o._dmg_bonus() * o.skill_power()
 	var src: String = str(b.get("src", ""))
+	var grains: bool = UlpCharge.on(o)
 	for j in o.query_ids(mid, L * 0.5 + w * 0.5 + 40.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or an.hit.has(e.id):
@@ -347,7 +354,13 @@ static func _hw_charge_sweep(o, an: Dictionary, a: Vector2, c: Vector2) -> void:
 		an.hit[e.id] = true
 		o.log_hit(src)
 		o.deal_damage(e, dmg)
-		o.fx({"kind": "spark", "pos": e.pos + Vector2(0, -float(e.r) * 0.5), "vel": seg.normalized().orthogonal() * g.vrng.randf_range(-120.0, 120.0), "life": 0.2, "col": HW_CHAIN, "sz": 2.5})
+		if grains:
+			UlpCharge.hit(o, e, 2)   # 命中三档·中档（颗粒火星落到脚底冷却 + 命中星）
+		else:
+			o.fx({"kind": "spark", "pos": e.pos + Vector2(0, -float(e.r) * 0.5), "vel": seg.normalized().orthogonal() * g.vrng.randf_range(-120.0, 120.0), "life": 0.2, "col": HW_CHAIN, "sz": 2.5})
+	if grains:
+		UlpCharge.path(o, a, c)   # 颗粒版：脚下拖出深海水体颗粒，逐颗熄灭，不画 0.35 秒锚链拖痕
+		return
 	o.fx({"kind": "line", "pos": a, "to": c, "w": 5.0, "life": 0.35, "col": Color(HW_CHAIN.r, HW_CHAIN.g, HW_CHAIN.b, 0.6), "floor": true})
 	an.dust = float(an.get("dust", 0.0)) + L
 	if an.dust >= 36.0:
@@ -455,18 +468,25 @@ static func _hw_zip_land(o) -> void:
 	var sb: float = float(b.get("stun_boss", 0.5))
 	var se: float = float(b.get("stun_elite", 0.5))
 	var kb_boss: bool = b.get("kb_boss", false)
+	var charge: bool = b.has("path_w") and UlpCharge.on(o)
+	var heavy := 0
 	for j in o.query_ids(c, r + 30.0):
 		var e: Dictionary = g.enemies[j]
 		if e.dead or e.pos.distance_to(c) > r + e.r:
 			continue
 		o.log_hit(src)
 		o.deal_damage(e, dmg)
+		if charge and heavy < 6:
+			heavy += 1
+			UlpCharge.hit(o, e, 3)   # 冲锋落地：命中三档·重档（前 6 名，防满屏火星）
 		if not e.dead:
 			o.add_cc(e, float(b.get("stun", 0.6)) * (sb if e.boss else (se if e.elite else 1.0)))
 			if kb_boss or not e.boss:
 				o.apply_kb(e, (e.pos - c).normalized() * float(b.get("land_kb", 50.0)))
 	var big: bool = b.get("big", false)
 	_hw_slam_fx(o, c, r, 1.6 if big else 1.0)
+	if charge:
+		UlpCharge.land(o, c, r)   # 冲锋终点：冲击颗粒环 + 落地冷却的水花与碎屑（docs/138）
 	h.prev_dmg = dmg
 	h.prev_c = c
 	h.prev_r = r
@@ -750,9 +770,15 @@ static func hw_draw_tether(o) -> void:
 		# 冲锋：本体残影 + 身后三道锚链拖痕
 		var tr: Array = an.trail
 		var mv_d: Vector2 = ((an.land as Vector2) - (an.start as Vector2)).normalized()
-		for i in range(tr.size() - 1, 0, -1):
-			o.draw_body_at(tr[i], o.face < 0.0, Color(HW_EDGE.r, HW_EDGE.g, HW_EDGE.b, 0.35 * (1.0 - float(i) / tr.size())))
-		for s in 3:
+		var gz: bool = UlpCharge.on(o)
+		if gz:
+			# 颗粒版（docs/138）：残影只留上一帧一张、压暗不发光——4 张 HW_EDGE（分量 > 1）残影经发光层连成一大团白，读作「粘腻」；运动感交给水体颗粒
+			if tr.size() > 1:
+				o.draw_body_at(tr[1], o.face < 0.0, Color(0.45, 0.62, 0.85, 0.22))
+		else:
+			for i in range(tr.size() - 1, 0, -1):
+				o.draw_body_at(tr[i], o.face < 0.0, Color(HW_EDGE.r, HW_EDGE.g, HW_EDGE.b, 0.35 * (1.0 - float(i) / tr.size())))
+		for s in (0 if gz else 3):   # 颗粒版不画身后三道实线拖痕（水体颗粒代替）
 			var off: Vector2 = mv_d.orthogonal() * (s - 1) * 10.0 + Vector2(0, -20)
 			cv.draw_line(o.pos - mv_d * 16.0 + off, o.pos - mv_d * (56.0 + s * 14.0) + off, Color(1.3, 1.5, 1.8, 0.4), 1.5)
 	_hw_draw_chain(o, hand, p, 1.0)
