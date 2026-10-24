@@ -514,6 +514,10 @@
 "界面"
 ],
 [
+"res://scripts/screens/loading_tips.gd",
+"界面"
+],
+[
 "res://scripts/screens/loading_screen.gd",
 "界面"
 ],
