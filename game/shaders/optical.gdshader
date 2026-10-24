@@ -39,6 +39,7 @@ uniform float vignette = 0.12;
 uniform float hurt = 0.0;
 uniform float desat = 0.0;
 uniform float brightness = 1.0;
+uniform float sat = 1.0;               // docs/137 §6 试验旋钮 render/optical_sat：LUT 之后整体饱和度（1 = 不变）
 
 vec3 lut_apply(vec3 c) {
 	c = clamp(c, 0.0, 1.0);
@@ -119,6 +120,7 @@ void fragment() {
 	} else {
 		base *= brightness;
 	}
+	base = mix(vec3(luma(base)), base, sat);
 	// ④ 辉光：mip 2–5（多级模糊），只取发光部分
 	vec3 g = vec3(0.0);
 	vec2 guv = pc * SCREEN_PIXEL_SIZE;

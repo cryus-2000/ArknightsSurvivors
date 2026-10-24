@@ -502,6 +502,7 @@ func _process(_dt: float) -> void:
 		particles.step_trails(col_danger, fx1)
 	mat.set_shader_parameter("emissive_th", Bal.v("render/optical_emissive_th", 0.72))
 	mat.set_shader_parameter("lut_on", Bal.v("render/optical_lut", 1.0))
+	mat.set_shader_parameter("sat", Bal.v("render/optical_sat", 1.0))
 	mat.set_shader_parameter("brightness", Cfg.brightness * Bal.v("render/ambient_gain", 1.0))
 	mat.set_shader_parameter("sea_amt", Bal.v("render/optical_sea", 0.55))
 	mat.set_shader_parameter("caustics", Bal.v("render/optical_caustics", 0.02))

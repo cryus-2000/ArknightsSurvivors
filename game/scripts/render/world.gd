@@ -4214,7 +4214,8 @@ func _zone_dark_fast(seg: int, far: float, outer: float) -> void:
 	tb_flush()
 	var cs := PackedColorArray()
 	cs.resize(k)
-	cs.fill(Color(0.16, 0.03, 0.22, 0.55))
+	# docs/137 §6 试验旋钮 render/zone_dark_r / _g / _b：黑潮圈外压暗色（缺省原值紫 0.16, 0.03, 0.22）
+	cs.fill(Color(Bal.v("render/zone_dark_r", 0.16), Bal.v("render/zone_dark_g", 0.03), Bal.v("render/zone_dark_b", 0.22), 0.55))
 	RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), PackedInt32Array(), out, cs)
 
 
