@@ -354,6 +354,8 @@ func draw_world() -> void:
 	tell_fill = Dc.p("tell_fill_k")
 	tell_edge = Dc.p("tell_edge_k")
 	_draw_warns_auras()
+	if not _dbg_foe:
+		_draw_ground_foe_fx()
 	_pk("warns_auras")
 	if not _dbg_gem:   # --clutterdbg=nogem（量测）
 		_draw_pickups()
@@ -413,6 +415,21 @@ func _draw_ground_sprites() -> void:
 		var spec: Array = Game.V6_FRAMES[f.name]
 		var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
 		g.vfx.spr_rot(f.name, fr, f.pos, f.ang, g.vfx.int_scale(f.scale), f.get("col", Color.WHITE), f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
+
+
+## 地面层敌方特效（ground 标记，用户 10-24：奠基者踏地「浮在最上面」）：小怪踏地的地裂与冲击环画在地面预警之上、单位之下，
+## 不盖住干员和其他单位。纯画面
+func _draw_ground_foe_fx() -> void:
+	for f in g.fx:
+		if f.kind == "gcrack" and f.get("ground", false) and f.life > 0.0:
+			if not f.has("cd"):
+				f["cd"] = GroundCrack.build(f.pos, f.r, f.get("ang"), f.get("opts", {}))
+			GroundCrack.draw(f.cd, f.max - f.life, clampf(f.life / f.max, 0.0, 1.0), f.col, _gc_sink, float(f.get("grow_t", 0.06)), float(f.get("hot", 1.0)))
+	tb_flush()
+	for sh in g.shocks:
+		if sh.get("ground", false):
+			_draw_shock(sh)
+	draw_warn_outlines(true)
 
 
 ## 预警分类 → Boss 招式预警填充（render/telegraph_draw）→ 巢涌者光环 → 灯标 → 藏品特效 → 商人
@@ -1003,8 +1020,8 @@ func _draw_fx() -> void:
 				ns += 1
 		skip_sparks = maxi(0, ns - spark_left)
 	for f in g.fx:
-		if f.life <= 0.0:
-			continue   # 到期还没被 _cleanup 回收的特效不画：最终 Boss 击破的慢动作（victory_flow）走 g.vfx.update 但不跑 game._update/_cleanup，
+		if f.life <= 0.0 or f.get("ground", false):
+			continue   # ground：地面层敌方特效（奠基者地裂）已在 _draw_ground_foe_fx 画过；到期还没被 _cleanup 回收的特效不画：最终 Boss 击破的慢动作（victory_flow）走 g.vfx.update 但不跑 game._update/_cleanup，
 			# 到期特效会一直留在 g.fx 里；"sprite" 类按已播时间取帧，life ≤ 0 后会被夹在末帧一直画（骑士死亡原地留下冰晶/冰砖残留）
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
 		var foe: bool = f.get("enemy", false) or FOE_KINDS.has(f.kind)
@@ -1624,37 +1641,43 @@ func _draw_ebullets_lobs_shocks() -> void:
 	# 冲击环（docs/48 全局 ④⑤、P0 伊祖米克）：原来写死成治疗同款的绿色、越扩越淡，到主控这里几乎看不见。
 	# 改成敌方危险色：深色外描边 + 洋红紫主色 + 白芯，透明度下限 0.6，扩到最大也看得清
 	for sh in g.shocks:
-		var a: float = maxf(0.6, 1.0 - sh.r / sh.maxr)
-		var tc: Color = sh.get("col", ENEMY_TELL)   # 缺口环（大群之歌）用 Boss 主题色，普通冲击环洋红
-		g.draw_set_transform(sh.pos, 0.0, Vector2(1.0, ground_y()))   # 地面椭圆，和判定一致（docs/48 ①）
-		var gh: float = float(sh.get("gap_half", 0.0))
-		var gaps: Array = sh.get("gaps", []) if gh > 0.0 else []
-		if gaps.is_empty():
-			g.draw_arc(Vector2.ZERO, sh.r - 8.0, 0.0, TAU, 48, Color(tc.r, tc.g, tc.b, 0.18 * a * tell_fill), 10.0)
-			g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(0, 0, 0, 0.55 * a), 7.0)
-			g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(tc.r, tc.g, tc.b, a), 4.0)
-			g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(1, 1, 1, 0.9 * a), 1.5)
-		else:
-			# 缺口环：按缺口切成几段弧画，缺口处不画，两侧亮色「出口」短线（docs/95 §12 song_ring；判定在 enemies.update）
-			var starts: Array = []
-			for ga in gaps:
-				starts.append(fposmod(float(ga) + gh, TAU))
-			starts.sort()
-			for i in starts.size():
-				var a0: float = starts[i]
-				var a1: float = starts[(i + 1) % starts.size()] - gh * 2.0
-				if a1 <= a0:
-					a1 += TAU
-				g.draw_arc(Vector2.ZERO, sh.r - 8.0, a0, a1, 32, Color(tc.r, tc.g, tc.b, 0.18 * a * tell_fill), 10.0)
-				g.draw_arc(Vector2.ZERO, sh.r, a0, a1, 32, Color(0, 0, 0, 0.55 * a), 7.0)
-				g.draw_arc(Vector2.ZERO, sh.r, a0, a1, 32, Color(tc.r, tc.g, tc.b, a), 4.0)
-				g.draw_arc(Vector2.ZERO, sh.r, a0, a1, 32, Color(1, 1, 1, 0.9 * a), 1.5)
-			for ga in gaps:
-				for side in [-1.0, 1.0]:
-					var v := Vector2.from_angle(float(ga) + side * gh)
-					g.draw_line(v * (sh.r - 16.0), v * (sh.r + 16.0), Color(0, 0, 0, 0.7), 5.0)
-					g.draw_line(v * (sh.r - 16.0), v * (sh.r + 16.0), Color(1.0, 0.85, 0.35, 0.9), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		if not sh.get("ground", false):
+			_draw_shock(sh)
+
+
+## 一道冲击环：地面椭圆，深色外描边 + 危险色主色 + 白芯；缺口环按缺口分段（ground 环由 _draw_ground_foe_fx 在单位之下画）
+func _draw_shock(sh: Dictionary) -> void:
+	var a: float = maxf(0.6, 1.0 - sh.r / sh.maxr)
+	var tc: Color = sh.get("col", ENEMY_TELL)   # 缺口环（大群之歌）用 Boss 主题色，普通冲击环洋红
+	g.draw_set_transform(sh.pos, 0.0, Vector2(1.0, ground_y()))   # 地面椭圆，和判定一致（docs/48 ①）
+	var gh: float = float(sh.get("gap_half", 0.0))
+	var gaps: Array = sh.get("gaps", []) if gh > 0.0 else []
+	if gaps.is_empty():
+		g.draw_arc(Vector2.ZERO, sh.r - 8.0, 0.0, TAU, 48, Color(tc.r, tc.g, tc.b, 0.18 * a * tell_fill), 10.0)
+		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(0, 0, 0, 0.55 * a), 7.0)
+		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(tc.r, tc.g, tc.b, a), 4.0)
+		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(1, 1, 1, 0.9 * a), 1.5)
+	else:
+		# 缺口环：按缺口切成几段弧画，缺口处不画，两侧亮色「出口」短线（docs/95 §12 song_ring；判定在 enemies.update）
+		var starts: Array = []
+		for ga in gaps:
+			starts.append(fposmod(float(ga) + gh, TAU))
+		starts.sort()
+		for i in starts.size():
+			var a0: float = starts[i]
+			var a1: float = starts[(i + 1) % starts.size()] - gh * 2.0
+			if a1 <= a0:
+				a1 += TAU
+			g.draw_arc(Vector2.ZERO, sh.r - 8.0, a0, a1, 32, Color(tc.r, tc.g, tc.b, 0.18 * a * tell_fill), 10.0)
+			g.draw_arc(Vector2.ZERO, sh.r, a0, a1, 32, Color(0, 0, 0, 0.55 * a), 7.0)
+			g.draw_arc(Vector2.ZERO, sh.r, a0, a1, 32, Color(tc.r, tc.g, tc.b, a), 4.0)
+			g.draw_arc(Vector2.ZERO, sh.r, a0, a1, 32, Color(1, 1, 1, 0.9 * a), 1.5)
+		for ga in gaps:
+			for side in [-1.0, 1.0]:
+				var v := Vector2.from_angle(float(ga) + side * gh)
+				g.draw_line(v * (sh.r - 16.0), v * (sh.r + 16.0), Color(0, 0, 0, 0.7), 5.0)
+				g.draw_line(v * (sh.r - 16.0), v * (sh.r + 16.0), Color(1.0, 0.85, 0.35, 0.9), 2.0)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 敌人出招提示 → 精英登场（docs/54 ④）→ 主控异常 → 预警轮廓 → 主控标记（压在所有敌方预警之上）
@@ -2562,7 +2585,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		e.squash = maxf(e.squash, 0.14 * xk * (0.6 + 0.4 * sin(g.t * 40.0)))
 	if e.get("burst_w", 0.0) > 0.0:
 		if g.tex.get(e.tex + "_swell") != null:
-			# 囊海爬行者鼓胀（Codex docs/96 §1.3 e_pocket_swell）：10fps 不循环，播到 f3 后停住直到 0.8 秒蓄压结束；
+			# 囊海爬行者鼓胀（Codex docs/96 §1.3 e_pocket_swell）：10fps 不循环，播到 f3 后停住直到蓄压结束（burst_fuse，囊海爬行者 1.1 秒）；
 			# 首帧 = 本体 f0，鼓胀画在帧里，不再程序放大 / 提亮本体；范围圈仍在覆盖层画（draw_enemy_tells）
 			name = e.tex + "_swell"
 			frames = 4
@@ -2796,7 +2819,7 @@ func draw_enemy_tells() -> void:
 			var xk: float = clampf(1.0 - e.blast_w / float(xd.get("blast_fuse", 0.55)), 0.0, 1.0)
 			_tell_circle(e.pos, float(xd.get("blast_r", 62)), xk, ENEMY_TELL)
 		if e.get("burst_w", 0.0) > 0.0:
-			_tell_circle(e.pos, 80.0, clampf(1.0 - e.burst_w / float(e.get("burst_dur", 0.4)), 0.0, 1.0), TELL_BURST)
+			_tell_circle(e.pos, float(D.ENEMIES.get(e.type, {}).get("burst_r", 80.0)), clampf(1.0 - e.burst_w / float(e.get("burst_dur", 0.4)), 0.0, 1.0), TELL_BURST)
 		# 冲刺预警线（滑动者 / 撕裂者 / 骑士精英）：长度按实际冲刺距离算（速度 × dash_speed × 0.35 秒），
 		# 不再写死 230（docs/48 P1：实际只冲 80–135）；只朝前画
 		if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir") and Bal.v("render/dash_tell", 1.0) > 0.0:   # render/dash_tell 0 = 不画（docs/139 §7 量测用）
@@ -3927,10 +3950,10 @@ func _warn_dash_arc(r: float, a0: float, a1: float, col: Color, wdt: float) -> v
 		a += seg
 
 
-func draw_warn_outlines() -> void:
+func draw_warn_outlines(ground := false) -> void:
 	for w in g.warns:
-		if w.done or TeleDraw.quiet(w):
-			continue
+		if w.done or TeleDraw.quiet(w) or bool(w.get("ground", false)) != ground:
+			continue   # ground：小怪踏地的轮廓在地面层画（_draw_ground_foe_fx），不压在单位上
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var tr: float = float(w.get("track", 0.0))
 		var tracking: bool = tr > 0.0 and w.t < tr
