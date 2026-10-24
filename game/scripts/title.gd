@@ -281,8 +281,10 @@ func _ready() -> void:
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_diff_%d_%d.png" % [diff_sel, Cfg.diff_unlocked])
 				get_tree().quit())
 	if Cfg.dev_args().has("--loadingshot"):
-		# 出发后「载入中…」面板的截图（预热通常不到 1 秒就完成，截图时强制画出来）
+		# 出发后载入页的截图（预读完也停在载入页，截图时强制画出来）；带 --reducemotion 截静态版
 		leaving = 0.0
+		if Cfg.dev_args().has("--reducemotion"):
+			Cfg.reduce_motion = true
 		get_tree().create_timer(1.3).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_loading.png")
 			get_tree().quit())

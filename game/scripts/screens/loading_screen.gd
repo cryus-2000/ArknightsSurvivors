@@ -1,13 +1,13 @@
 extends Control
 ## 选人出发 → 进局的载入页「潮汐航标」（用户 10-25 定：对照图方向 A 的第一张）。
 ## 深海底图 + 水母随呼吸浮沉 + 标志；进度是一道涨潮浪线：进度每涨一截就有一道浪头推过去，先冲过头一点再退回真实进度（docs/62 §3.7）；
-## 下方提示每 3.5 秒换一句（T2 淡入淡出）。「减少动态效果」：水母不动、浪线平直、提示直接替换。
+## 下方提示（loading_tips.gd）每 3.5 秒换一句（T2 淡入淡出）。「减少动态效果」：水母不动、浪线平直、提示直接替换。
 ## 只管画面：进度、阶段文字由 title.gd 每帧 set_progress 喂进来；finish() 后压暗到 OUT_DIM 并显示「展开战场」，title.gd 等 done() 再切场景。
 ## 切场景时对局 _ready 还要同步建局几秒（画面停在最后一帧），所以不淡到全黑——停在压暗的载入页上，对局开场从黑里亮起。素材全用标题页已有的 art/ui/title_deep（不加包体）。
 
 const UI = preload("res://scripts/ui.gd")
 const UM = preload("res://scripts/ui_motion.gd")
-const D = preload("res://scripts/data.gd")
+const Tips = preload("res://scripts/screens/loading_tips.gd")
 const DIR := "res://art/ui/title_deep/"
 
 var font: Font
@@ -61,7 +61,7 @@ func _ready() -> void:
 	m.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	glow_ci.material = m
 	glow_ci.draw.connect(_draw_glow)
-	tip_i = randi() % D.LOADING_TIPS.size()
+	tip_i = randi() % Tips.TIPS.size()
 	visible = false
 
 
@@ -122,7 +122,7 @@ func _process(delta: float) -> void:
 	tip_t += delta
 	if tip_t >= TIP_EVERY:
 		tip_t = 0.0
-		tip_i = (tip_i + 1) % D.LOADING_TIPS.size()
+		tip_i = (tip_i + 1) % Tips.TIPS.size()
 	queue_redraw()
 	glow_ci.queue_redraw()
 
@@ -179,7 +179,7 @@ func _draw() -> void:
 	var ta := a
 	if not Cfg.reduce_motion:
 		ta *= clampf(tip_t / UM.T2, 0.0, 1.0) * clampf((TIP_EVERY - tip_t) / UM.T2, 0.0, 1.0)
-	var tip: String = D.LOADING_TIPS[tip_i]
+	var tip: String = Tips.TIPS[tip_i]
 	var tw: float = font.get_string_size(tip, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 52.0
 	var tx := vs.x / 2.0 - tw / 2.0
 	var ty := vs.y * 0.935

@@ -7,9 +7,10 @@
 //    JS 峰值 ≈ 原文件大小（pck + wasm 共约 65 MiB），给 2–3 GB 内存的老手机留余量。
 //    浏览器若自作主张解压（Content-Encoding: gzip 被服务器改写），读到的就是原始字节，照样按位置写入。
 //    没有 DecompressionStream 的老浏览器（Safari 16.3 以前）：收齐 gz 字节再 inflate（纯 JS，下面的 inflate）。
-// 2. 加载画面「声呐测绘」（用户 10-25 定，样式在 loader.css）：声呐进度环 = 下载字节进度占 70%，下载解压完以后是引擎启动（拿不到真实进度），
-//    环按已等秒数向 97% 渐近、日志行显示已等秒数；扫描扇面是 CSS 动画，主线程被引擎占住时也在转。左下日志：下载资源 → 解压校验 → 启动引擎；
-//    右下提示每 4 秒换一句（同 game/scripts/data.gd LOADING_TIPS，改机制时一起核对）。
+// 2. 加载画面「声呐测绘」（用户 10-25 定，样式在 loader.css）：声呐进度环 = 下载字节进度占 0–60%，下载解压完以后是引擎启动（拿不到真实进度），
+//    环按已等秒数向 80% 渐近、日志行显示已等秒数；引擎起来后游戏内启动页（game/scripts/screens/boot_screen.gd，同一版式）从 80% 接着走，
+//    逐个编译脚本、显示真实进度与正在读的类别；扫描扇面是 CSS 动画，主线程被引擎占住时也在转。左下日志：下载资源 → 解压校验 → 启动引擎；
+//    右下提示每 4 秒换一句（同 game/scripts/screens/loading_tips.gd，改机制时一起核对）。
 //    引擎移除自带的 #status 后撤掉；引擎报错（#status-notice 显示）时也撤掉，让报错露出来。
 (function () {
   var M = /*SHUIYUE_MANIFEST*/null;
@@ -33,11 +34,11 @@
   function upd() {
     if (!el.ring) return;
     var f, busy = false;
-    if (!done) f = 0.7 * Math.min(got / total, 1);
+    if (!done) f = 0.6 * Math.min(got / total, 1);
     else {
       if (!bootT0) bootT0 = performance.now();
       var s = (performance.now() - bootT0) / 1000;
-      f = 0.7 + 0.27 * (1 - Math.exp(-s / 9));
+      f = 0.6 + 0.2 * (1 - Math.exp(-s / 6));   // 引擎启动：拿不到真实进度，按已等秒数向 80% 渐近；之后游戏内启动页（boot_screen.gd）从 80% 接着走
       busy = true;
     }
     el.ring.style.strokeDashoffset = String(C * (1 - f));
