@@ -62,6 +62,11 @@ func load_theme(theme_id: String) -> void:
 	# render/ambient_mult：灯火圈外的环境光（CanvasModulate）整体倍率，角色受光同一份（Look 读 map.ambient）；1 = 主题原值（用户 10-21 定亮度 B：缺省 1.3，见 balance render/_bright_b_doc）
 	var am: float = Bal.v("render/ambient_mult", 1.0)
 	ambient = Color(amb[0] * am, amb[1] * am, amb[2] * am)
+	# docs/137 试验旋钮 render/ambient_desat（缺省 0）：环境光往同亮度的灰拉（0–1），暗部不再一片高饱和青蓝
+	var ad: float = Bal.v("render/ambient_desat", 0.0)
+	if ad > 0.0:
+		var lu: float = ambient.r * 0.2126 + ambient.g * 0.7152 + ambient.b * 0.0722
+		ambient = ambient.lerp(Color(lu, lu, lu), clampf(ad, 0.0, 1.0))
 	tex.clear()
 	_load(theme.tiles.tex)
 	if theme.has("patches"):

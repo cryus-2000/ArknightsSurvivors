@@ -67,6 +67,8 @@ static func apply_test_args(g) -> void:
 			DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 			Engine.max_fps = 0
 		for a in Cfg.dev_args():
+			if a.begins_with("--maxfps=") and g.playclock_test:
+				Engine.max_fps = int(a.substr(9))   # docs/137 帧间隔实测：同玩家设置「最高帧率」（垂直同步开着时的 60 帧上限）
 			if a.begins_with("--maxt="):
 				g.bal_maxt = float(a.substr(7))
 		g.prof_on = Cfg.dev_args().has("--prof")

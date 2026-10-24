@@ -29,6 +29,37 @@ static func _load() -> void:
 					cur[keys[i]] = {}
 				cur = cur[keys[i]]
 			cur[keys[keys.size() - 1]] = float(kv[1])
+	_nausea_safe()
+
+
+## docs/137 画面眩晕排查的「推荐组合」试验开关 render/nausea_safe（缺省 0 = 不动）：1 时把 NAUSEA_SAFE 里的旋钮一次套上，
+## 命令行 --bal= 单独写过的键优先。给用户同局对照用，缺省值等用户看过对照再定
+const NAUSEA_SAFE := {
+	"render/cam_round": 0.0,
+	"render/optical_int_zoom": 1.0,
+	"fx/leader_kick": 0.0,
+	"fx/recoil_px1": 0.0, "fx/recoil_px2": 1.0, "fx/recoil_px3": 2.0, "fx/recoil_px": 1.0,
+	"fx/squash_basic": 0.0, "fx/squash_dot": 0.0, "fx/squash_skill": 0.06,
+	"fx/hitstop_gap": 1.5, "fx/hit_pause_m": 0.0,
+	"render/ambient_desat": 0.4, "render/optical_sea": 0.3,
+}
+
+
+static func _nausea_safe() -> void:
+	var r = _data.get("render")
+	if not (r is Dictionary) or float(r.get("nausea_safe", 0.0)) <= 0.0:
+		return
+	var given := {}
+	for a in (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()):
+		if a.begins_with("--bal=") and a.count("=") == 2:
+			given[a.substr(6).split("=")[0]] = true
+	for path in NAUSEA_SAFE:
+		if given.has(path):
+			continue
+		var keys: PackedStringArray = str(path).split("/")
+		if not (_data.get(keys[0]) is Dictionary):
+			_data[keys[0]] = {}
+		_data[keys[0]][keys[1]] = NAUSEA_SAFE[path]
 
 
 ## 按「段/键」路径取数值

@@ -295,6 +295,9 @@ func _lo_step() -> void:
 	# 非整数倍时 1 美术像素占的屏幕像素不再恒为整数，用户 10-24 要求先看 ×1.15 再定）
 	var rel: float = Cfg.cam_zoom() / (Cfg.ZOOM_PHONE_DEF / 100.0 if Cfg.phone_ui() else 1.0)
 	var zw: float = view_k / (2.0 * sx) * rel
+	if Bal.v("render/optical_int_zoom", 0.0) > 0.0:
+		# docs/137 试验旋钮：把「战斗画面缩放」并进整数倍率（1 美术像素恒占整数个物理像素），不再出现 2.3 / 3.45 这种非整数放大
+		zw = maxi(2, roundi(vs.y * sx * rel / target)) / (2.0 * sx)
 	if g.cam != null and absf(g.cam.zoom.x - zw) > 0.0001:
 		g.cam.zoom = Vector2(zw, zw)
 	var xf: Transform2D = vp.get_canvas_transform()

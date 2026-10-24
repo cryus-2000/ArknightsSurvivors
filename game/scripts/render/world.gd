@@ -140,7 +140,11 @@ func update_visuals(dt: float) -> void:
 		g.sprite.modulate = Color.WHITE
 	var rd := g.get_process_delta_time()
 	g.glance_step(rd)   # 镜头一瞥（game.camera_glance：骑士入潮 / 寒冰重生时看一眼黑潮中心；只动镜头）
-	g.cam.position = g.cam_center().round()
+	# docs/137 试验旋钮 render/cam_round：1 = 取整到 1 世界像素（缺省，现状）；0 = 不取整（低分辨率层靠 lo_rect 亚像素补偿，地面匀速）；
+	# 2 = 取整到 1 美术像素（= 低分辨率格，与队长绘制同一格）
+	var cround: float = Bal.v("render/cam_round", 1.0)
+	var ccen: Vector2 = g.cam_center()
+	g.cam.position = ccen.round() if cround == 1.0 else ((ccen / Game.PX).round() * Game.PX if cround >= 2.0 else ccen)
 	g.shake = move_toward(g.shake, 0.0, rd * 2.5)
 	cam_kick = cam_kick.move_toward(Vector2.ZERO, rd * 60.0)
 	g.hurt_vignette = move_toward(g.hurt_vignette, 0.0, rd * 1.5)
