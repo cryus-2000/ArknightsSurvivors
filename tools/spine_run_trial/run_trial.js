@@ -177,7 +177,7 @@ async function main() {
     // base：起始姿势（缺省原生 Idle t=0；如安洁莉娜浮空移动用 Skill2_Loop 举杖姿势）
     const MA = cfg.mode === 'move_attack';
     if (SAVED) { cfg.legs = SAVED.legs; cfg.body = SAVED.body; SAVED = null; BACKV = false; }
-    const sk = MA ? pose(cfg.sample.anim, cfg.sample.times[i]) : pose(cfg.base?.anim || 'Idle', cfg.base?.t || 0), f = P.facing, phi = i / 8 * 2 * Math.PI;
+    const sk = MA ? (cfg.poses ? posedFrame(i, cfg.poses[i], true) : pose(cfg.sample.anim, cfg.sample.times[i])) : pose(cfg.base?.anim || 'Idle', cfg.base?.t || 0), f = P.facing, phi = i / 8 * 2 * Math.PI;
     if (MA && bottom(sk, 'L') === Infinity && bottom(sk, 'R') === Infinity) {
       const bk = n => n.replace(/^F_/, 'B_');
       if (sk.findBone(bk(cfg.legs.L[0])) && sk.findBone(bk(cfg.body.hip))) {
@@ -188,7 +188,7 @@ async function main() {
     }
     const hip = get(sk, cfg.body.hip);
     if (cfg.mode === 'float') return floatFrame(sk, i, phi);
-    if (cfg.poses) return posedFrame(i, cfg.poses[i]);
+    if (cfg.poses && !MA) return posedFrame(i, cfg.poses[i]);
     if (cfg.keys) return keyedFrame(sk, i, cfg.keys[i], phi);
     // 1) 躯干：前倾 + 起伏；胸再前倾一点，头部回正一部分（保持脸可读）
     // crouch：整体压低髋（腿长单位），支撑腿膝盖随之更弯
@@ -232,7 +232,8 @@ async function main() {
 
   // 姿势关键帧（新动作）：每帧取一条原生动画的某一时刻（可再叠第二条动画按比例混合），再在骨骼局部量上加转角 / 位移 / 缩放，
   // 最后 updateWorldTransform（IK、变换约束照常生效，道具跟手）。rot / x / y / sx 均为相对原值的增量；单位：度 / 骨骼局部单位
-  function posedFrame(i, k) {
+  // raw：只返回摆好的骨架（move_attack 模式拿它当上半身底稿，再接跑步腿；10-24 塞雷娅跑动拳击）
+  function posedFrame(i, k, raw) {
     const sk = new sp.Skeleton(data); sk.setToSetupPose();
     const apply = (name, t, alpha, first) => {
       const a = data.findAnimation(name); if (!a) throw Error('缺动画 ' + name);
@@ -284,6 +285,7 @@ async function main() {
     for (const n of k.hide || []) { const s = sk.findSlot(n); if (s) s.attachment = null; }
     // only：只画这些槽（量道具像素位置用）
     if (k.only || process.env.ONLY) { const keep = k.only || process.env.ONLY.split(','); for (const s of sk.slots) if (!keep.includes(s.data.name)) s.attachment = null; }
+    if (raw) return sk;
     // mark：记录某骨在 @2x 画布上的像素位置（核对道具 / 炮口与游戏出手点）
     const marks = {}; for (const n of k.mark || []) { const b = get(sk, n); marks[n] = [+(ANCHOR[0] + b.worldX * SCALE).toFixed(1), +(ANCHOR[1] - b.worldY * SCALE).toFixed(1)]; }
     return finish(sk, [{ pose: k.anim || 'Idle', t: k.t || 0, marks }]);

@@ -1778,10 +1778,11 @@ func anim_state() -> Dictionary:
 ## 移动攻击（10-23 用户「边跑边攻击」，docs/128 §3）：出手动作期间在移动、且有 sprites.move_<动作> 帧条（帧数相同）时，
 ## 只换贴图：上半身同一动作、腿是跑步步态。帧序号 / 脚底 / kind 不变，所以出手点、炮口等玩法读数与原动作一致；纯画面
 func _move_swap(st: Dictionary) -> Dictionary:
-	if st.is_empty() or attack_t <= 0.0 or mv <= RUN_ENTER:
+	if st.is_empty() or mv <= RUN_ENTER:
 		return st
 	var k := str(st.get("kind", ""))
-	if k == "" or k != act_anim:
+	# 普攻 / 技能动作（出手窗口内），或技能循环里的普攻变体（sq_atk，播到末帧；10-24 塞雷娅跑动拳击）
+	if k == "" or not ((attack_t > 0.0 and k == act_anim) or (sq_atk != "" and k == sq_atk)):
 		return st
 	var mtx: Texture2D = anim_tex("move_" + k)
 	if mtx == null or anim_hframes(mtx, "move_" + k) != int(st.get("hf", 0)):
@@ -2201,6 +2202,8 @@ func _tick_sq_atk(dt: float) -> void:
 func _sq_atk_yield() -> bool:
 	if sq_atk == "" or sq_ph != 2 or not sq.has("run") or sq_atk_t < attack_fire_at:
 		return false
+	if anim_tex("move_" + sq_atk) != null:
+		return false   # 变体有跑动版：不让位，_move_swap 换上（10-24 塞雷娅跑动拳击）
 	var spec := sprite_spec(sq_atk)
 	if _sq_atk_frame(int(spec.get("frames", anim_hframes(anim_tex(sq_atk), sq_atk)))) <= int(spec.get("fire", 0)):
 		return false   # 出手帧播完再让（10-24 docs/140，同 act_anim_yield）

@@ -67,11 +67,16 @@ func _ready():
 					o._tick_sq_atk(0.0)
 					o.anim_kind=o.sq_atk if o.sq_atk!="" else o._sq_kind()
 					st=o.anim_state()
-					ok(st.kind==o.seq_anim(seq.run),"moving recovery "+id+" s"+str(skill+1))
 					var variant: String=o.seq_anim(seq.attack)
+					var mv_tex = o.anim_tex("move_"+variant)
+					if mv_tex != null:   # 变体有跑动版（10-24 塞雷娅跑动拳击）：不让位，换跑动贴图
+						ok(st.kind==variant and st.tex==mv_tex,"moving recovery swaps to move variant "+id+" s"+str(skill+1))
+					else:
+						ok(st.kind==o.seq_anim(seq.run),"moving recovery "+id+" s"+str(skill+1))
 					ok(o.sq_atk==variant,"moving keeps variant clock "+id)
 					o.follow(0.0,o.pos)
-					ok(o.anim_state().kind==o.seq_anim(seq.run),"follow yields to skill movement "+id)
+					if mv_tex == null:
+						ok(o.anim_state().kind==o.seq_anim(seq.run),"follow yields to skill movement "+id)
 					o.mv=0.0
 					o.follow(0.0,o.pos)
 					st=o.anim_state()

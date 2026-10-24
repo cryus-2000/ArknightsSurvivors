@@ -678,6 +678,7 @@ python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot mas
 | `verb.displace` | 瞬时 | `center: self/leader/target/last_hit, r, kb, on_hit` | r 内非 Boss 敌人沿离心方向 `e.kb += kb`（负 = 拉），精英 ×0.3；**不造成伤害、不登记命中**（不触发命中类藏品） |
 | `verb.field` | 瞬时（生成） | `center, r, dur, every, do, fx` | 地面区域：每 `every` 秒以区域中心为 `target` 执行一次 `do`，共 round(dur / every) 次（按次数计，不靠浮点累加）；每名干员同时 ≤ 16 个；`fx` 在生成时以区域中心 / 半径播，没写 `life` 的条目循环到区域结束 |
 | `verb.negate_next` | 只能放技能 do | `on_block, on_miss, fx, text` | 技能持续期间主控下一次受到的攻击完全格挡并执行 `on_block`、技能随即结束；持续结束仍没挨打执行 `on_miss` |
+| `verb.taunt_guard` | 只能放技能 do | `r, per, on_end, fx, text` | 10-24（docs/140）：技能持续期间本干员站定（队员时；队长照常移动），半径 r 内近战杂兵（非 Boss / 宝箱）每帧改追本干员；结束时执行 `on_end`，其中伤害形状的 `mult` + `per` × 期间拉到的不同敌人数 |
 | `verb.dr` | 常驻 | `value` | 主控受到的伤害 × (1 − value)（经 `dmg_taken_mult`） |
 | `verb.negate_chance` | 常驻 | `add, mult` | 本干员 `negate: true` 的 `trig.on_hurt` 概率 = (chance + Σadd) × Πmult |
 | `verb.swap_attack` | 常驻 | `attack`（circle / cone / line） | 生效期间普攻换形状，节奏仍按 `blocks.attack.every` |
@@ -695,7 +696,7 @@ python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot mas
 - 画面：格挡 / 热砂 / 鬼面·力之锯 三条帧条都走通用 `fx` 字段（§5.6）。合入 main 前分支上的专用字段 `fx_strip / fx_r / fx_y` 已撤掉：格挡 `{strip: fx_hoshiguma_block, off: [0, -26], scale: 1.4}`（中心 = 主控）、热砂 `{layer: floor, fit: 23}`（余烬 fit 30）、直线斩 `{fit: 32, rot: true, off: [0, -30]}`。
 - **盾心锚点与无盾画面**（10-15，用户：盾「变红」不在盾上、掷盾后手上还有盾）：`sprites.<动作>.shield` = 每帧盾心（1x 帧内像素，null = 盾离手）；fx 条目新字段 `on_sprite: shield` 把格挡闪光（一次性帧条）/ 反击架势红光（贴身层，scale 0.6 与盾同大）锚到当前帧的盾心（`character.sprite_point`：朝左镜像、@2x 按 foot 口径自然折算；这一帧没有就退回原锚点 / 贴身层不画）。`sprites.noshield`：往返弹体在外面（`data_operator.prop_out`）时本体换无盾画面——有 Codex 无盾帧条（docs/97 H 批，`art`）就用，否则播 throw 的 f2 / f3（`fallback`）。纯画面：同 seed `--maxprog --sptest` 240 秒 TRACE 逐行相同。
 - 普攻 `shape.cone`（r 110、半角 70、kb 220，`slash: true` 画刀光）。
-- S1 战意（3 秒）：`verb.negate_next`，on_block = 主控周围 r120 ×2.0 kb 360「举盾反击」；on_miss = 前方扇形 ×1.5。
+- S1 战意（3 秒）：`verb.taunt_guard`（10-24 起，docs/140），r 200，结束时自身周围 r120 ×(2.0 + 0.1 × 拉到的敌人数) kb 360「举盾反击」。旧版 `verb.negate_next`（格挡下一击）积木保留可用。
 - S2 荆棘（8 秒）：`buff_self op_atk +0.4`、`verb.dr 0.2`、`verb.negate_chance ×2`；热砂 = 特性里 `trig.every_n n 1 cond skill_active:1` → `verb.field center last_hit`（r80、2 秒、每 0.5 秒 ×0.15 = 每秒 ×0.3）。
 - S3 力之锯（10 秒）：`buff_self op_atk +0.6`、`verb.dr 0.3`、`verb.swap_attack` → `shape.line`（220 × 50，kb 220 × 1.5）；震退 = 特性里 `trig.on_hurt cond skill_active:2` → `verb.displace r120 kb300`（含被格挡的那一下）。
 - 天赋 战术装甲：`trig.on_hurt chance 0.25 / boss_chance 0.1 / max_chance 0.8 negate` → `verb.displace r90 kb200`；`trig.passive cond beacon_charging` → `verb.negate_chance add 0.15`。

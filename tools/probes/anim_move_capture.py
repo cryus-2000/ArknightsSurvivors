@@ -19,10 +19,13 @@ ap.add_argument('--walk', default='45,30')
 ap.add_argument('--speed', type=float, default=150.0)
 ap.add_argument('--game', default=str(ROOT / 'game'))
 ap.add_argument('--zoom', type=int, default=2)
+ap.add_argument('--lead', default='', help='另一名队长（录这名干员当队员时的样子）')
+ap.add_argument('--atk', action='store_true', help='技能期间照常普攻')
+ap.add_argument('--mobs', type=int, default=0, help='起手前在周围刷几只近战杂兵')
 a = ap.parse_args()
 game = Path(a.game).resolve()
 args = [gr.find_godot(), '--audio-driver', 'Dummy', '--path', str(game), '--fixed-fps', '60', '--resolution', '960x540',
-        'res://tests/anim_move_capture.tscn', '--', '--regression', '--balance', '--seed=1', '--op=' + a.op,
+        'res://tests/anim_move_capture.tscn', '--', '--regression', '--balance', '--seed=1', '--op=' + (a.lead or a.op)] + (['--squad=' + a.op] if a.lead else []) + ['--capture-atk'] * a.atk + ['--capture-mobs=%d' % a.mobs, 
         '--capture-op=' + a.op, '--capture-what=' + a.what, '--capture-total=%d' % a.total, '--capture-skill-at=%d' % a.skill_at,
         '--capture-walk=' + a.walk, '--capture-speed=%g' % a.speed, '--capture-out=' + a.out]
 o, e, timeout = gr.run_godot(args, 600)
@@ -30,8 +33,14 @@ assert not timeout and not gr.script_errors(o, e) and 'failures=0' in o, (o[-800
 d = game.parent / 'build' / a.out / ('%s_%s' % (a.op, a.what))
 fs = sorted(d.glob('f_*.png'))
 w, h = Image.open(fs[0]).size
-box = (w // 2 - 120, h // 2 - 110, w // 2 + 120, h // 2 + 50)   # 镜头跟随队长：画面中心附近
-frames = [Image.open(f).convert('RGB').crop(box).resize(((box[2] - box[0]) * a.zoom, (box[3] - box[1]) * a.zoom), Image.NEAREST) for f in fs]
+import json
+log = json.load(open(d / 'log.json'))
+def box_of(i):   # 镜头跟随队长：队长在画面中心；队员按记录的相对位置裁（世界 1 px = 屏幕 1 px）
+    ox, oy = log[i].get('off', [0, 0]) if a.lead else (0, 0)
+    cx, cy = int(w // 2 + ox), int(h // 2 + oy)
+    return (cx - 120, cy - 110, cx + 120, cy + 50)
+box = box_of(0)
+frames = [Image.open(f).convert("RGB").crop(box_of(i)).resize(((box[2] - box[0]) * a.zoom, (box[3] - box[1]) * a.zoom), Image.NEAREST) for i, f in enumerate(fs)]
 gif = d.parent / ('%s_%s.gif' % (a.op, a.what))
 frames[0].save(gif, save_all=True, append_images=frames[1:], duration=50, loop=0)
 print(gif)

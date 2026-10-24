@@ -14,6 +14,8 @@ func _ready() -> void:
 	var walk := 45
 	var stop := 30
 	var speed := 150.0
+	var atk := false   # --capture-atk：技能期间照常普攻（录技能循环里的普攻变体）
+	var mobs := 0      # --capture-mobs=N：起手前在周围一圈刷 N 只近战杂兵（录嘲讽拉怪）
 	for arg in OS.get_cmdline_user_args():
 		var v := arg.get_slice("=", 1)
 		if arg.begins_with("--capture-op="): id = v
@@ -26,6 +28,8 @@ func _ready() -> void:
 			walk = int(v.get_slice(",", 0))
 			stop = int(v.get_slice(",", 1))
 		if arg.begins_with("--capture-speed="): speed = float(v)
+		if arg == "--capture-atk": atk = true
+		if arg.begins_with("--capture-mobs="): mobs = int(v)
 	var output := ProjectSettings.globalize_path("res://../build/" + out_dir + "/" + id + "_" + what)
 	DirAccess.make_dir_recursive_absolute(output)
 	var g = load("res://game.tscn").instantiate()
@@ -46,10 +50,15 @@ func _ready() -> void:
 	o.cd = 0.0 if basic else 10000.0
 	for enemy in g.enemies: enemy.dead = true
 	g.enemies.clear()
-	var target: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2(110, 0))
+	var target: Dictionary = g.spawner.spawn_enemy("stone", (g.ppos if o.is_leader else o.pos) + Vector2(110, 0))
 	target.hp = 10000000.0
 	target.max_hp = target.hp
 	target.spd = 0.0
+	for k in mobs:
+		var m: Dictionary = g.spawner.spawn_enemy("runner", o.pos + Vector2.from_angle(TAU * k / maxf(1, mobs)) * 190.0)
+		m.hp = 10000000.0
+		m.max_hp = m.hp
+		m.dmg = 0.0
 	var log := []
 	var dir := 1.0
 	for frame in total:
@@ -60,7 +69,8 @@ func _ready() -> void:
 			o.start_skill(target.pos, int(what))
 		if not basic:
 			o.sp = [-100000.0, -100000.0, -100000.0]
-			if frame >= skill_at - 10: o.cd = maxf(o.cd, 0.5)
+			if frame >= skill_at - 10 and not (atk and frame > skill_at): o.cd = maxf(o.cd, 0.5)
+			if atk and frame == skill_at + 1: o.cd = 0.0
 		# 走 – 停：围着靶子左右来回，靶子跟着保持在攻击距离内
 		var ph := frame % (2 * (walk + stop))
 		var moving := frame >= skill_at + 8 and (ph < walk or (ph >= walk + stop and ph < 2 * walk + stop))
@@ -68,14 +78,14 @@ func _ready() -> void:
 			dir = -dir
 		if moving:
 			g.ppos += Vector2(dir * speed / 60.0, 0)
-		target.pos = g.ppos + Vector2(110 * dir, 0)
+		target.pos = (g.ppos if o.is_leader else o.pos) + Vector2(50 * dir if not o.is_leader else 110 * dir, 0)
 		target.kb = Vector2.ZERO
 		g.enemies_sys.build_grid()
 		g._update(1.0 / 60.0)
 		g.world.update_visuals(1.0 / 60.0)
 		g.world.present_step()
 		var st: Dictionary = o.anim_state()
-		log.append({"frame": frame, "kind": st.get("kind", ""), "pose": st.get("frame", -1), "mv": o.mv, "moving": moving, "attack_t": o.attack_t, "sq_ph": o.sq_ph})
+		log.append({"frame": frame, "kind": st.get("kind", ""), "pose": st.get("frame", -1), "mv": o.mv, "moving": moving, "attack_t": o.attack_t, "sq_ph": o.sq_ph, "off": [o.pos.x - g.ppos.x, o.pos.y - g.ppos.y]})
 		g.queue_redraw()
 		g.fx_add.queue_redraw()
 		g.fg.queue_redraw()
