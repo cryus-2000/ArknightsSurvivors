@@ -762,7 +762,7 @@ func _draw_guide(vs: Vector2) -> void:
 		if not touch and rows[i][2] != "":
 			UI.text_at(self, font, Vector2(px, y + step / 2.0 - 3.0), rows[i][2], 18, Color8(200, 210, 222), "lm")
 	HS.bottom_bar(self, vs, 52.0)
-	UI.text_at(self, font, Vector2(x0, vs.y - 26.0), "编队、灯火、溟痕、寻访、藏品、商人、结局：见开局指南", 14, HS.MUTE, "lm")
+	UI.text_at(self, font, Vector2(x0, vs.y - 26.0), "编队、灯火、溟痕、指挥、藏品、商人：见开局指南", 14, HS.MUTE, "lm")
 	HS.ghost_btn(self, font, Rect2(vs.x - 196, vs.y - 44, 168, 36), "返回", Pad.hint("Esc", "Ⓑ", ""))
 
 

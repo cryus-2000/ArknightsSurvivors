@@ -130,7 +130,8 @@ func _verify():
             if page == 0 and audience != "internal" and n_open != roster.STARTERS.size() + (gallery.entries.size() - roster_ids.size()):
                 failures.append("gallery_roster_open:" + str(n_open))
         gallery.queue_free()
-    var result = {"user_dir": str(ProjectSettings.get_setting("application/config/custom_user_dir_name", "")), "unlock_all": cfg != null and cfg.unlock_all, "runs_log": cfg != null and cfg.runs_log_enabled(), "packed_png_count": images.size(), "alias_count": Art.ALIAS.size(), "audio_count": audio_paths.size(), "json_count": json_paths.size(), "audience": audience, "failures": failures}
+    var rost = load("res://scripts/core/roster.gd")
+    var result = {"roster_count": (rost.all_ids().size() - rost.locked_ids().size()) if cfg != null else 0, "tickets": rost.tickets() if cfg != null else 0, "user_dir": str(ProjectSettings.get_setting("application/config/custom_user_dir_name", "")), "unlock_all": cfg != null and cfg.unlock_all, "runs_log": cfg != null and cfg.runs_log_enabled(), "packed_png_count": images.size(), "alias_count": Art.ALIAS.size(), "audio_count": audio_paths.size(), "json_count": json_paths.size(), "audience": audience, "failures": failures}
     Art._cache.clear()
     Art._hires.clear()
     Art._hires_rid.clear()
