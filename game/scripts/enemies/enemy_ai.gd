@@ -92,7 +92,7 @@ func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool
 			data.merge({"act": "bite", "follow": true, "half": 0.72, "r": reach}, true)
 		"pulse":
 			shape = "circle"
-			data.merge({"act": "burst", "follow": true, "r": minf(reach, 110.0)}, true)
+			data.merge({"act": "burst", "follow": true, "r": reach}, true)   # 按 json 范围（囊壳震爆 135、酸蚀脉冲 100）；原 110 截断去掉（docs/145 §2.3）
 		"pierce":
 			shape = "line"
 			dur = 0.85
