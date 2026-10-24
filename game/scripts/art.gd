@@ -15,7 +15,7 @@ static func enemy_pixel_spec(name: String) -> Dictionary:
 			var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
 			if parsed is Dictionary:
 				enemy_pixels = parsed
-	return enemy_pixels.get(name.trim_suffix("_white"), {})
+	return _by_file(enemy_pixels, name)
 
 ## 10-23 怪物重画（tools/install_enemy_redraw.py 生成 data/enemy_redraw.json）：帧条真实帧数、攻击出手帧 event_frames、循环时长。
 ## 没登记的帧条（图鉴旧图、特效）返回 {}，调用方按旧口径
@@ -30,7 +30,16 @@ static func enemy_redraw(name: String) -> Dictionary:
 			var parsed = JSON.parse_string(FileAccess.get_file_as_string(path))
 			if parsed is Dictionary:
 				_redraw = parsed
-	return _redraw.get(name.trim_suffix("_white"), {})
+	return _by_file(_redraw, name)
+
+
+## 按贴图名查重画表；名字是别名（ALIAS，例如 e_paranoia2 → 文件 e_paranoia_phase2）时按文件名查。
+## 10-24 修（docs/137 §7）：原来别名查不到，偏执泡影二阶段 6 帧条按缺省 2 帧切，一「帧」里并排画出 3 只泡影（挨打时的「重影」）
+static func _by_file(table: Dictionary, name: String) -> Dictionary:
+	var k := name.trim_suffix("_white")
+	if table.has(k):
+		return table[k]
+	return table.get(ALIAS.get(k, ""), {})
 
 ## 帧条真实帧数（重画帧条读 enemy_redraw.json，其余用 fallback）
 static func enemy_frames(name: String, fallback: int) -> int:
