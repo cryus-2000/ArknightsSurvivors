@@ -5,6 +5,7 @@ extends RefCounted
 const Character = preload("res://scripts/characters/character.gd")
 const BatchCanvas = preload("res://scripts/characters/batch_canvas.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const UI = preload("res://scripts/ui.gd")
 
 const REGULAR_MAX := 3
 ## 编队位相对主控的偏移（主控朝右时；朝左镜像 x）。0 号位是主控本人（不用），跟随者从 1 号位起，拉开到能分清谁是谁；
@@ -20,6 +21,10 @@ var side := 1.0                # 编队站位的左右（-1..1），主控转身
 ## 指挥模式（docs/114）：全队站位。一个键循环 随行 → 突击 → 归队；归队归位完自动回随行（下一次按键进突击）
 enum { GUARD, ROAM, RECALL }
 const STANCE_NAMES := ["随行", "突击", "归队"]
+## 索敌优先级（指挥圆盘，docs/114 §13）：只影响队友自动索敌（op_api.nearest_enemies），队长不受影响；机器人缺省 0
+const PRIO_NAMES := ["就近", "清杂优先", "Boss 优先"]
+const PRIO_SHORT := ["就近", "清杂", "Boss"]
+var priority := 0
 var stance := GUARD
 var recall_t := 0.0
 var gather_t := -1.0          # 归队：全员到位后站定的剩余秒数（-1 = 还在往回跑）
@@ -347,7 +352,42 @@ static func cmd_on() -> bool:
 	return Bal.v("command/on", 1.0) > 0.0
 
 
-## 玩家按「指挥」键：随行 → 突击 → 归队；归队途中再按 = 突击。返回是否切换了
+## 指挥圆盘选中一项（command_wheel.confirm）：队形三项直接设，优先级三项设 priority；重复选当前项只出提示音，不换语音
+func apply_command(id: String) -> void:
+	if not cmd_on():
+		return
+	match id:
+		"guard":
+			if stance != GUARD:
+				set_stance(GUARD)
+		"roam":
+			if stance != ROAM:
+				if can_roam():
+					set_stance(ROAM)
+				elif g.get("vfx") != null:
+					g.vfx.add_text(g.ppos + Vector2(0, -70), "作战时限未恢复", UI.SUB, 14)
+		"recall":
+			if stance != RECALL:
+				set_stance(RECALL)
+		"mob":
+			set_priority(1)
+		"near":
+			set_priority(0)
+		"boss":
+			set_priority(2)
+
+
+func set_priority(p: int) -> void:
+	if p == priority:
+		return
+	priority = p
+	stance_log.append([g.t, 10 + p])   # 与队形切换同表记录（>= 10 = 优先级），回放 / 对照用
+	_stance_voice(ROAM)   # 复用指挥语音轮换（同一套「出击」回应，仍受 command/voice_gap 节流）
+	if g.get("trace_every") != null and g.trace_every > 0.0:
+		print("CMD t=%.2f priority=%d" % [g.t, p])
+
+
+## 玩家按「指挥」键：随行 → 突击 → 归队；归队途中再按 = 突击。返回是否切换了（圆盘上线后键盘不再走这条，保留给测试钩子 --cmdat）
 func cycle_stance() -> bool:
 	if not cmd_on():
 		return false

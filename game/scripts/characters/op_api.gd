@@ -24,6 +24,9 @@ var cv:
 ## Boss 优先（2026-09-29 协调人：普通档打不动 3:30 的第一个 Boss，输出被身边小怪抢走）：balance ai/boss_focus（缺省 1 = 开）时，
 ## max_dist 内有可受击的 Boss 就排到第一个；部件（e.part）优先照旧；主控 ai/boss_focus_guard（60）内有小怪贴脸时不强制
 func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
+	var sq = g.get("squad")
+	if sq != null and sq.priority != 0 and not bool(get("is_leader")):
+		return _prio_enemies(n, max_dist, origin, sq.priority)   # 指挥圆盘的索敌优先级（docs/114 §13）：只给队友自动索敌，队长不受影响
 	var out: Array = g.enemies_sys.nearest(n, max_dist, origin)
 	if out.is_empty() or out[0].boss or out[0].get("part", false):
 		return out
@@ -47,6 +50,49 @@ func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> 
 		return out   # 小怪贴着主控：先护主，不强制打 Boss
 	out.erase(best)
 	out.push_front(best)
+	if out.size() > n:
+		out.resize(n)
+	return out
+
+
+## 索敌优先级（指挥圆盘，只对队友）：1 清杂优先 = 先杂兵（非精英 / Boss），杂兵里按周围 PRIO_DENSE_R 内的同伴数由多到少（密集处），再按离 origin 近远；
+## 2 Boss 优先 = Boss / 精英 / 部件排前面（按远近），没有就退回原顺序；没有杂兵可选时清杂也退回原顺序。
+## 候选池 = 范围内最近的 max(6n, 14) 个（上限 24）；不抽随机数，稳定排序（同分按原来的远近次序）
+const PRIO_DENSE_R := 90.0
+
+func _prio_enemies(n: int, max_dist: float, origin: Vector2, mode: int) -> Array:
+	var pool: Array = g.enemies_sys.nearest(mini(maxi(n * 6, 14), 24), max_dist, origin)
+	if pool.size() <= 1:
+		return pool
+	var first: Array = []
+	var rest: Array = []
+	if mode == 2:
+		for e in pool:
+			if e.boss or e.elite or e.get("part", false):
+				first.append(e)
+			else:
+				rest.append(e)
+	else:
+		var mobs: Array = []
+		for e in pool:
+			if e.boss or e.elite or e.get("part", false):
+				rest.append(e)
+			else:
+				mobs.append(e)
+		if mobs.is_empty():
+			return pool.slice(0, n)
+		var r2: float = PRIO_DENSE_R * PRIO_DENSE_R
+		var sc: Array = []
+		for i in mobs.size():
+			var c := 0
+			for j in mobs.size():
+				if mobs[i].pos.distance_squared_to(mobs[j].pos) <= r2:
+					c += 1
+			sc.append([c, i])
+		sc.sort_custom(func(a, b): return a[0] > b[0] or (a[0] == b[0] and a[1] < b[1]))
+		for s in sc:
+			first.append(mobs[s[1]])
+	var out: Array = first + rest
 	if out.size() > n:
 		out.resize(n)
 	return out
