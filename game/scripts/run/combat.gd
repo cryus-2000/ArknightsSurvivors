@@ -623,6 +623,17 @@ func freeze_zone(r: float) -> void:
 	g.zone_state = 3
 	g.zone_t = 0.0
 	g.zone_frozen = true
+	# 场地整理仅作后台规则，不暴露禁生成区域或播放净化演出。
+	var remaining: Array = []
+	for m in g.mires:
+		if not mire_blocked(m.pos, float(m.get("maxr", m.r))):
+			remaining.append(m)
+	g.mires = remaining
+
+
+## 最终 Boss 场地是禁生成圆区；最大半径与圆区相交（含相切）就禁止整片生成。
+func mire_blocked(pos: Vector2, radius: float = 0.0) -> bool:
+	return g.zone_frozen and pos.distance_squared_to(g.zone_next_c) <= pow(maxf(0.0, g.zone_next_r) + maxf(0.0, radius), 2.0)
 
 
 func _arena_step(dt: float) -> void:
@@ -1259,7 +1270,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 						kill(o)
 	# 深溟奠基者（V8）：死亡时留下一片溟痕（death_mire = 最大半径）
 	var dmire := float(D.ENEMIES.get(e.type, {}).get("death_mire", 0.0))
-	if dmire > 0.0 and g.mires.size() < 32:
+	if dmire > 0.0 and g.mires.size() < 32 and not mire_blocked(e.pos + Vector2(0, 8), dmire):
 		g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 10.0, "maxr": dmire, "life": 12.0, "seed": g.vrng.randf() * 100.0, "boss": false})
 	if e.xp > 0.0:
 		g.pickups.drop(e.pos, "xp", e.xp * g.xp_mult)

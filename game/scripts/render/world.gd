@@ -12,6 +12,7 @@ const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落�
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 const EnemyAtlas = preload("res://scripts/render/enemy_atlas.gd")
 const TeleDraw = preload("res://scripts/render/telegraph_draw.gd")   # 预警填充层（docs/101 B2，原 boss_ai.draw_warns）
+const LAMP_READ_EXT := 1.6   # 可读灯圈（render/lamp_readable）：余光延到灯半径的倍数，game.gd 的灯光贴图按它生成
 const TriBatch = preload("res://scripts/render/tri_batch.gd")   # 引擎同款几何的无贴图三角形批（docs/50 §13）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -181,6 +182,10 @@ func update_visuals(dt: float) -> void:
 	g.lamp_light.position = g.ppos + Vector2(0, -20)
 	g.lamp_light.texture_scale = radius / 64.0 * flicker
 	g.lamp_light.color = Color(1.0, 0.86, 0.62) if g.lamp >= 30.0 else Color(1.0, 0.6, 0.5)
+	if Bal.v("render/lamp_readable", 0.0) > 0.0:
+		# 可读灯圈（缺省开，balance render/lamp_readable）：圈内亮度固定、不闪、低灯不变红，灯火变弱只缩半径
+		g.lamp_light.texture_scale = radius * LAMP_READ_EXT / 64.0
+		g.lamp_light.color = Color(1.0, 0.98, 0.94)
 	# 骑士入潮点临时暖光：入潮演出期间亮在沉入处，随进度淡出（纯画面；10:00 重生不用）
 	if g.knight_light != null:
 		var sinking: bool = g.knight != null and g.knight.alive and g.knight.state == "sink"
@@ -1082,7 +1087,11 @@ func _draw_fx() -> void:
 				var hd: float = clampf(pr / 0.25, 0.0, 1.0)
 				var tl: float = clampf((pr - 0.25) / 0.75, 0.0, 1.0)
 				var cc: Color = f.col
-				if hd - tl > 0.02:
+				var gr = g.optical.grains if g.optical != null else null
+				if gr != null and gr.on() and not gr.off and hd > 0.0:
+					# 刀光第四版（docs/136「slash」粒子模板）：月牙本体由像素颗粒在这一帧扫过的那一段上生成，前沿只留一道热白细线
+					_marc_grains(f, gr, ap, rc, tw, s0, sd * span, hd, cc, kb, aq)
+				elif hd - tl > 0.02:
 					var sw: float = sd * span
 					_crescent(ap, rc + 1.0, s0, sw, tl, hd, tw + 2.0, Color(cc.r * 0.35, cc.g * 0.35, cc.b * 0.4, 0.75 * aq), 1.0)   # 暗边（内沿收边）
 					_crescent(ap, rc, s0, sw, tl, hd, tw, Color(cc.r * kb, cc.g * kb, cc.b * kb, aq), 1.0)   # 本色刀身
@@ -3832,6 +3841,39 @@ func _tell_circle(p: Vector2, r: float, k: float, c: Color) -> void:
 ## ⑤ 全场·必须冲刺：must_dash —— 白色双描边 + 冲刺图标（屏幕级提示在 hud.draw_field_wave）
 const WARN_CORE := Color(1, 1, 1)
 const WARN_EDGE := Color(0.02, 0.02, 0.05)
+
+## 刀光第四版：把这一帧前沿新扫过的角度段 [上帧前沿, 本帧前沿] 按月牙剖面（外沿到内沿，2 世界像素一格）取样成颗粒发射点，
+## 初速沿挥刀切线（惯性），颜色 = 干员本色（模板颜色阶乘在上面：热白 → 本色 → 冷暗）；单帧点数超模板上限时均匀抽稀。
+## 前沿另画一道 2 px 热白细线，读出「刀口」；尾部不画实体，由颗粒自己冷却熄灭
+func _marc_grains(f: Dictionary, gr, ap: Vector2, rc: float, tw: float, s0: float, sw: float, hd: float, cc: Color, kb: float, aq: float) -> void:
+	var u0: float = float(f.get("gu", 0.0))
+	if hd > u0 + 0.001:
+		var cells: Array = []
+		var nu: int = maxi(1, int(absf(sw) * (hd - u0) * rc / 2.0))
+		for i in nu:
+			var u: float = lerpf(u0, hd, (float(i) + 0.5) / float(nu))
+			var uu: float = clampf(u, 0.0, 1.0)
+			var th: float = tw * pow(sin(PI * uu), 0.6) * (0.35 + 0.65 * uu)
+			var ang: float = s0 + sw * u
+			var dv := Vector2.from_angle(ang)
+			var tg := dv.orthogonal() * signf(sw)   # 挥刀切线方向
+			var nr: int = maxi(1, int(th / 2.0))
+			for j in nr:
+				cells.append([ap + dv * (rc - float(j) * 2.0), tg])
+		var cap: int = int(gr.TEMPLATES.slash.per_frame)
+		var stride: float = maxf(1.0, float(cells.size()) / float(cap))
+		var k: float = 0.0
+		var col := Color(minf(1.0, cc.r * kb), minf(1.0, cc.g * kb), minf(1.0, cc.b * kb))
+		while int(k) < cells.size():
+			var c: Array = cells[int(k)]
+			gr.push("slash", c[0], c[1], col)
+			k += stride
+		f["gu"] = hd
+	if hd < 1.0:
+		var e0: float = s0 + sw * maxf(0.0, hd - 0.06)
+		var e1: float = s0 + sw * hd
+		g.draw_arc(ap, rc - 1.0, minf(e0, e1), maxf(e0, e1), 6, Color(2.0, 2.0, 2.0, aq), 2.0)   # 刀口热白线
+
 
 ## 近战刀光月牙（"marc"）：外沿在半径 r 的圆上，内沿离外沿 thick × sin(π u)；u 是整次挥刀上的位置（0 起点 / 1 终点），
 ## 只画 [u0, u1] 那一段（跟着挥刀扫）。起点角 s0，扫过 sweep（带方向的弧度）
