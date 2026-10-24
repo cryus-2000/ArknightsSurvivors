@@ -991,9 +991,13 @@ func _font_k() -> void:
 
 
 ## 战斗镜头缩放（设置「战斗画面缩放」，手机横屏缺省 1.2）：只改 Camera2D.zoom，刷怪 / 索敌 / 机器人都不读视口（pickups 用的是项目设置里的固定尺寸）。
-## 图鉴演示（demo_op）的镜头由演示自己管
+## 图鉴演示（demo_op）的镜头固定为 balance.json gallery/demo_zoom（缺省 0.8：用户 10-24「图鉴里镜头缩小一点」），不跟设置走
 func _apply_zoom() -> void:
-	if cam == null or demo_op != "":
+	if cam == null:
+		return
+	if demo_op != "":
+		var dz: float = Bal.v("gallery/demo_zoom", 0.8)
+		cam.zoom = Vector2(dz, dz)
 		return
 	var z: float = Cfg.cam_zoom()
 	cam.zoom = Vector2(z, z)

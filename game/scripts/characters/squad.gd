@@ -163,8 +163,8 @@ func remove(cid: String) -> void:
 const LEAVE_JUMP := 0.5
 
 func _leave_fx(o) -> void:
-	if o.pos == Vector2.INF or g.get("fx") == null:
-		return
+	if o.pos == Vector2.INF or g.get("fx") == null or g.demo_op != "":
+		return   # 图鉴演示每段重建干员：旧实例直接消失，不播跳出屏幕（用户 10-24：切换会出现离场效果）
 	var st: Dictionary = o.anim_state()
 	if st.is_empty():
 		return

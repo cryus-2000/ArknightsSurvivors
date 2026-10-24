@@ -2539,7 +2539,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		g.draw_arc(Vector2.ZERO, e.r + 10.0 + 6.0 * sin(g.t * 9.0 + e.id), 0.0, TAU, 20, Color(0.7, 0.5, 1.0, 0.5), 2.0)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		return
-	if e.invuln:
+	if e.invuln and e.type != "ishar":   # 伊莎玛拉一阶段人形（friendly + invuln）画本色：蓝灰半透明会把白金配色洗成灰（用户 10-24「一阶段人形态是灰色的」）
 		col = Color(0.7, 0.85, 1.0, 0.75)
 	if e.chest:
 		frame = 0
