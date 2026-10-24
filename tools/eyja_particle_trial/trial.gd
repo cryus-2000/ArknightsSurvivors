@@ -3,6 +3,10 @@ extends Node2D
 ## Baseline reproduces the large-effect 10+10+3 GPU burst, not the complete in-game compositing pass.
 var mode := "compare"
 var effect := "eyja"
+var body_trial := false
+var body_points: ImageTexture
+var body_colors: ImageTexture
+var body_count := 0
 var frames := 6
 var fps := 18.0
 var frame_size := Vector2(80, 56)
@@ -33,6 +37,7 @@ func ramp(colors: Array, stops: PackedFloat32Array) -> GradientTexture1D:
 
 func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
+		if arg == "--body": body_trial = true
 		if arg.begins_with("--effect="): effect = arg.get_slice("=", 1)
 		if arg.begins_with("--mode="): mode = arg.get_slice("=", 1)
 		if arg.begins_with("--out="): outdir = arg.substr(6)
@@ -59,6 +64,9 @@ func _ready() -> void:
 				best = score
 				base_color = Color.from_hsv(c.h, clampf(c.s, 0.25, 0.9), 1.0) if c.s > 0.12 else Color.WHITE
 	splash = ImageTexture.create_from_image(im)
+	if body_trial:
+		assert(effect == "lappland")
+		prepare_body(im)
 	var px := Image.create(2, 2, false, Image.FORMAT_RGBA8)
 	px.fill(Color.WHITE)
 	point = ImageTexture.create_from_image(px)
@@ -74,7 +82,26 @@ func _ready() -> void:
 			groups.append(group)
 			clocks.append(-float(i) * 0.031 - 0.25)
 	last_usec = Time.get_ticks_usec()
-	print("TRIAL_READY mode=", mode, " groups=", groups.size(), " particles_per_burst=23")
+	print("TRIAL_READY mode=", mode, " groups=", groups.size(), " body_particles=", body_count)
+
+## Sample the actual slash's second frame once. Its own pixels become moving fragments.
+func prepare_body(im: Image) -> void:
+	var pixels: Array = []
+	for y in range(0, int(frame_size.y), 2):
+		for x in range(0, int(frame_size.x), 2):
+			var c := im.get_pixel(int(frame_size.x) + x, y)
+			if c.a > 0.5: pixels.append([Vector2(x,y),c])
+	body_count = mini(192, pixels.size())
+	assert(body_count > 30)
+	var pts := Image.create(body_count,1,false,Image.FORMAT_RGBF)
+	var cols := Image.create(body_count,1,false,Image.FORMAT_RGBA8)
+	for i in body_count:
+		var sample: Array = pixels[int(float(i)*pixels.size()/body_count)]
+		var v: Vector2 = (sample[0]-frame_size*.5)*display_size/frame_size
+		pts.set_pixel(i,0,Color(v.x,v.y,0))
+		cols.set_pixel(i,0,sample[1])
+	body_points = ImageTexture.create_from_image(pts)
+	body_colors = ImageTexture.create_from_image(cols)
 
 func make_particle(proposed: bool, kind: int, center: Vector2, index: int) -> GPUParticles2D:
 	var p := GPUParticles2D.new()
@@ -121,12 +148,32 @@ func make_particle(proposed: bool, kind: int, center: Vector2, index: int) -> GP
 			m.color_ramp = ramp([Color(.22,.23,.23,0),Color(.30,.29,.26,.7),Color(.18,.21,.22,0)],PackedFloat32Array([0,.25,1]))
 	elif proposed:
 		material_identity(m, p, kind)
+	if proposed and body_trial and kind == 0:
+		p.amount = body_count
+		p.lifetime = 0.65
+		m.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_POINTS
+		m.emission_point_count = body_count
+		m.emission_point_texture = body_points
+		m.emission_color_texture = body_colors
+		m.direction = Vector3(1,-.12,0)
+		m.spread = 24
+		m.initial_velocity_min = 45
+		m.initial_velocity_max = 175
+		m.damping_min = 45
+		m.damping_max = 75
+		m.gravity = Vector3(0,55,0)
+		m.color_ramp = ramp([Color.WHITE,Color(.8,.85,.9,.85),Color(.25,.35,.45,0)],PackedFloat32Array([0,.35,1]))
+		p.set_meta("body",true)
 	if effect == "gladiia":
 		p.one_shot = false
 		p.explosiveness = 0.0
 	p.process_material = m
 	add_child(p)
 	return p
+
+func restart_group(group: Array) -> void:
+	for p in group:
+		if not p.has_meta("body"): p.restart()
 
 ## Fixed point textures give each material a spatial source without CPU updates per particle.
 func material_identity(m: ParticleProcessMaterial, p: GPUParticles2D, kind: int) -> void:
@@ -189,10 +236,13 @@ func _process(dt: float) -> void:
 		var old := clocks[i]
 		clocks[i] += dt
 		if old < 0 and clocks[i] >= 0:
-			for p in groups[i]: p.restart()
+			restart_group(groups[i])
+		if old < .1 and clocks[i] >= .1:
+			for p in groups[i]:
+				if p.has_meta("body"): p.restart()
 		if clocks[i] >= PERIOD: clocks[i] -= PERIOD
 		if old > clocks[i]:
-			for p in groups[i]: p.restart()
+			restart_group(groups[i])
 		if effect == "gladiia" and clocks[i] > 1.3:
 			for p in groups[i]: p.emitting = false
 	queue_redraw()
@@ -207,7 +257,7 @@ func _process(dt: float) -> void:
 		var mean := 0.0
 		for v in samples: mean += v
 		mean /= max(1, samples.size())
-		print("PERF ", JSON.stringify({"mode":mode,"groups":count,"frames":samples.size(),"mean_ms":mean,"p95_ms":samples[int(samples.size()*.95)],"p99_ms":samples[int(samples.size()*.99)],"gpu":RenderingServer.get_video_adapter_name()}))
+		print("PERF ", JSON.stringify({"mode":mode,"groups":count,"particles_per_burst":body_count+13 if body_trial and mode=="trial" else 23,"frames":samples.size(),"mean_ms":mean,"p95_ms":samples[int(samples.size()*.95)],"p99_ms":samples[int(samples.size()*.99)],"gpu":RenderingServer.get_video_adapter_name()}))
 		get_tree().quit()
 
 func _draw() -> void:
@@ -222,6 +272,9 @@ func _draw() -> void:
 		draw_line(center+Vector2(-75,28),center+Vector2(75,28),Color(.14,.19,.20),2)
 		var age := clocks[i]
 		var duration := 1.3 if effect == "gladiia" else float(frames)/fps
+		var shattering: bool = groups[i][0].has_meta("body")
+		if shattering: duration = .15
 		if not particles_only and age >= 0 and age < duration:
 			var fr := int(age*fps) % frames
-			draw_texture_rect_region(splash,Rect2(center-display_size*.5,display_size),Rect2(Vector2(fr*frame_size.x,0),frame_size))
+			var alpha := clampf((.15-age)/.05,0,1) if shattering else 1.0
+			draw_texture_rect_region(splash,Rect2(center-display_size*.5,display_size),Rect2(Vector2(fr*frame_size.x,0),frame_size),Color(1,1,1,alpha))
