@@ -253,7 +253,7 @@ static func _hw4_anchor(o, dt: float) -> void:
 			if an.trail.size() > 4:
 				an.trail.pop_back()
 			if an.b.has("path_w"):
-				UlpCharge.windup(o, _hw_anchor_pos(an, k) + Vector2(0, -6), k)   # S3 起冲：颗粒向锚尖收拢（docs/140）
+				UlpCharge.windup(o, _hw_anchor_pos(an, k) + Vector2(0, -6), k)   # S3 起冲：颗粒向锚尖收拢（docs/143）
 			if k >= 1.0:
 				_hw_anchor_bite(o)
 		"reel":
@@ -488,7 +488,7 @@ static func _hw_zip_land(o) -> void:
 	var big: bool = b.get("big", false)
 	_hw_slam_fx(o, c, r, 1.6 if big else 1.0)
 	if charge:
-		UlpCharge.land(o, c, r)   # 冲锋终点：冲击颗粒环 + 落地冷却的水花与碎屑（docs/140）
+		UlpCharge.land(o, c, r)   # 冲锋终点：冲击颗粒环 + 落地冷却的水花与碎屑（docs/143）
 	h.prev_dmg = dmg
 	h.prev_c = c
 	h.prev_r = r
@@ -774,7 +774,7 @@ static func hw_draw_tether(o) -> void:
 		var mv_d: Vector2 = ((an.land as Vector2) - (an.start as Vector2)).normalized()
 		var gz: bool = UlpCharge.on(o)
 		if gz:
-			# 颗粒版（docs/140）：残影只留上一帧一张、压暗不发光——4 张 HW_EDGE（分量 > 1）残影经发光层连成一大团白，读作「粘腻」；运动感交给水体颗粒
+			# 颗粒版（docs/143）：残影只留上一帧一张、压暗不发光——4 张 HW_EDGE（分量 > 1）残影经发光层连成一大团白，读作「粘腻」；运动感交给水体颗粒
 			if tr.size() > 1:
 				o.draw_body_at(tr[1], o.face < 0.0, Color(0.45, 0.62, 0.85, 0.22))
 		else:
