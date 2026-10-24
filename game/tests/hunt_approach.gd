@@ -58,8 +58,12 @@ func _process(_dt: float) -> void:
 	var hp0: float = game.hp
 	step(0.1)
 	check(h.broke, "leaving through a gap breaks out")
-	step(25.0)
-	check(h.state == 3, "hunt ends after its duration")
+	check(h.state == 3 and h.vis().is_empty(), "the hunt ends the moment the leader breaks out")
+	check(h.ring.all(func(e): return e.dead), "ring members disperse after the breakout")
+	var gx: Vector2 = game.ppos
+	game.ppos = h.c + Vector2(0.0, 40.0)
+	h.clamp_player()
+	check(game.ppos == h.c + Vector2(0.0, 40.0), "no clamping after the hunt ended")
 	# 第二局：合拢途中打穿一侧提前突围
 	var h2 = load("res://scripts/run/hunt.gd").new(game)
 	game.hunt = h2
@@ -74,5 +78,21 @@ func _process(_dt: float) -> void:
 		step(0.05)
 		guard += 1
 	check(h2.broke and not h2.settled, "breaking through during the approach counts as an early breakout")
+	check(h2.state == 3 and h2.vis().is_empty(), "an early breakout ends the hunt too")
+	# 肃清路线不变：不突围、把圈上与圈内都打死，仍然走到肃清并正常散去
+	var h3 = load("res://scripts/run/hunt.gd").new(game)
+	game.hunt = h3
+	game.enemies.clear()
+	game.ppos = Vector2.ZERO
+	game.t = h3.start_at
+	h3.update(0.05)
+	step(h3.approach_t() + 0.1)
+	step(10.1)
+	for e in h3.ring + h3.inner:
+		e.dead = true
+	step(0.1)
+	check(h3.cleared and not h3.broke, "clearing the whole ring still pays out without a breakout")
+	step(25.0)
+	check(h3.state == 3, "hunt ends after its duration")
 	print("HUNT APPROACH: %d failures" % fails)
 	get_tree().quit(1 if fails > 0 else 0)
