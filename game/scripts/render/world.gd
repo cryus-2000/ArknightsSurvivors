@@ -1522,6 +1522,11 @@ func _draw_fx() -> void:
 
 
 ## 敌方弹幕三遍（无贴图底 → 贴图 → 弹芯描边）+ Boss 刀刃 → 抛射碎石 → 冲击环
+## Boss 弹画原色弹体（optical._eb_step 换色相时把原图留在 g.tex[名 + "@boss"]；docs/139 §7.3）
+func _eb_tex(b: Dictionary, nm: String) -> String:
+	return nm + "@boss" if b.get("boss", false) and g.tex.has(nm + "@boss") and Bal.v("render/ebullet_boss_danger", 1.0) > 0.0 else nm
+
+
 func _draw_ebullets_lobs_shocks() -> void:
 	# 敌方弹幕分三遍画（性能 9/30：原来每颗子弹影子 / 底圈 / 光晕 / 贴图 / 描边交替，有贴图和无贴图来回切，每颗约 5 次绘制调用；
 	# 分遍后同类连续提交能合批）：① 无贴图：影子椭圆、深色底圈、光晕；② 贴图：弹体；③ 无贴图：弹芯、亮描边
@@ -1540,7 +1545,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 		# 敌方弹幕高对比：深色外圈垫底，画完再描一圈亮洋红边，压在友方特效上也一眼看得出
 		tb_circle(bp, b.r + 3.0, Color(0.02, 0.0, 0.05, 0.85))
 		if g.optical_on:
-			var ec: Color = g.optical.col_ebullet   # 光学观感颜色语言：敌弹光晕统一敌弹色（10-24 起与预警危险色分开，docs/139 §6.7）
+			var ec: Color = g.optical.eb_col(b)   # 光学观感颜色语言：杂兵弹敌弹色、Boss 弹危险色（docs/139 §6.7 / §7.3）
 			tb_circle(bp, b.r + 4.0, Color(ec.r, ec.g, ec.b, 0.3))
 			continue
 		match b.get("kind", "orb"):
@@ -1565,13 +1570,13 @@ func _draw_ebullets_lobs_shocks() -> void:
 			g.vfx.spr_rot(btex, int(g.t * float(bspec[1]) + b.pos.x * 0.01) % int(bspec[0]), bp, b.vel.angle(), Game.PX)
 		elif kd == "nerve" and g.tex.get("proj_floater_nerve") != null:
 			# 浮海飘航者神经弹（V8 proj_floater_nerve，朝右绘制按速度方向旋转）
-			g.vfx.spr_rot("proj_floater_nerve", int(g.t * 12.0 + b.pos.x * 0.01) % 4, bp, b.vel.angle(), Game.PX)
+			g.vfx.spr_rot(_eb_tex(b, "proj_floater_nerve"), int(g.t * 12.0 + b.pos.x * 0.01) % 4, bp, b.vel.angle(), Game.PX)
 		elif kd == "acid" and g.tex.get("proj_acid") != null:
 			g.vfx.spr("proj_acid", 2, int(g.t * 8.0 + b.pos.x * 0.01) % 2, bp, _hpx("proj_acid"), false, Color(1.5, 1.5, 1.5))   # Codex v14 酸团（暗橄榄，避开友方黄绿）；×1.5 提亮，压过地图暗环境光（原程序圆也是过曝色）
 		elif kd == "nova" and g.tex.get("proj_nova") != null:
-			g.vfx.spr("proj_nova", 4, int(g.t * 10.0 + b.pos.x * 0.01) % 4, bp, _hpx("proj_nova"), false, Color(1.5, 1.5, 1.5))   # Codex v14 新星弹；×1.5 提亮同上
+			g.vfx.spr(_eb_tex(b, "proj_nova"), 4, int(g.t * 10.0 + b.pos.x * 0.01) % 4, bp, _hpx("proj_nova"), false, Color(1.5, 1.5, 1.5))   # Codex v14 新星弹；×1.5 提亮同上
 		elif kd != "acid" and kd != "nova" and kd != "nerve" and kd != "boss_blade":
-			g.vfx.spr("ebullet", 1, 0, bp, Game.PX * b.r / 5.0)
+			g.vfx.spr(_eb_tex(b, "ebullet"), 1, 0, bp, Game.PX * b.r / 5.0)
 	var eb_ow: float = Bal.v("render/ebullet_outline", 0.0) if g.optical_on else 0.0
 	for b in g.ebullets:
 		var kd: String = b.get("kind", "orb")
@@ -1595,7 +1600,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 				if g.tex.get("proj_floater_nerve") == null:
 					tb_circle(bp, b.r, Color(1.8, 1.6, 0.5))
 		if g.optical_on:
-			var ebc: Color = g.optical.col_ebullet
+			var ebc: Color = g.optical.eb_col(b)
 			tb_ring(bp, b.r + 2.0, 1.5, Color(ebc.r * 2.0, ebc.g * 2.0, ebc.b * 2.0, 0.9))   # 亮描边改敌弹色（原亮洋红）
 			var ow: float = eb_ow
 			if ow > 0.0:
@@ -2607,6 +2612,13 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	if g.foot_anchor.has(e.tex):
 		anc = Vector2(0.5, 1.0)
 		bpos = e.pos + Vector2(0, (31.0 if e.type == "ishar" else e.r) * 0.8 + 3.0 * Game.PX)
+	# 冲刺蓄力的身体表现（docs/139 §7.4，render/dash_tell_style ≥ 1）：往冲刺反方向缩 render/dash_pull 美术像素、按蓄力进度渐变到危险色（不闪）
+	if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir") and not e.boss and Bal.vi("render/dash_tell_style", 0) >= 1:
+		var dwk: float = clampf(1.0 - e.dash_w / float(D.ENEMIES.get(e.type, {}).get("dash_wind", 0.5)), 0.0, 1.0)
+		bpos -= (e.dash_dir as Vector2) * Bal.v("render/dash_pull", 3.0) * Game.PX * dwk
+		var dfl: float = dwk * Bal.v("render/dash_flash", 0.6)   # 随蓄力进度平滑变色，不闪（10-24 Boss 频闪教训）
+		var dc: Color = g.optical.col_danger if g.optical_on else ENEMY_TELL
+		col = col.lerp(Color(dc.r * 1.6, dc.g * 1.6, dc.b * 1.6, col.a), clampf(dfl, 0.0, 1.0))
 	var k: float = clamp(e.squash / 0.14, 0.0, 1.0)
 	var sq := Vector2(1.0 + 0.3 * k, 1.0 - 0.25 * k)
 	# Boss 攻击姿态：蓄力时后仰变亮，出手瞬间前倾拉伸；有 _attack 帧条时改用帧条
@@ -2830,7 +2842,16 @@ func draw_enemy_tells() -> void:
 		if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir") and Bal.v("render/dash_tell", 1.0) > 0.0:   # render/dash_tell 0 = 不画（docs/139 §7 量测用）
 			var dd: Dictionary = D.ENEMIES.get(e.type, {})
 			var wk: float = clampf(1.0 - e.dash_w / float(dd.get("dash_wind", 0.5)), 0.0, 1.0)
-			_tell_line(e.pos, e.pos + e.dash_dir * _dash_len(e), Bal.v("render/dash_tell_half", 10.0), wk, ENEMY_TELL, e.get("tell_dim", false), true)   # render/dash_tell_half 半宽
+			match Bal.vi("render/dash_tell_style", 0):
+				1:
+					_dash_chevrons(e, wk, not e.get("tell_dim", false))
+				2:
+					if not e.get("tell_dim", false):   # 只给会冲到队长的画：冲刺距离前 45% 的短箭 + 箭头
+						var sb: Vector2 = e.pos + e.dash_dir * _dash_len(e) * Bal.v("render/dash_short", 0.45)
+						_tell_line(e.pos, sb, Bal.v("render/dash_tell_half", 10.0), wk, ENEMY_TELL, false, true)
+						_dash_head(sb, e.dash_dir, wk)
+				_:
+					_tell_line(e.pos, e.pos + e.dash_dir * _dash_len(e), Bal.v("render/dash_tell_half", 10.0), wk, ENEMY_TELL, e.get("tell_dim", false), true)   # render/dash_tell_half 半宽
 		# 灯边硬直（docs/56 §10）：头顶一颗暖色小光点 + 绕着转的两粒光屑，读作「被灯光震住」，随剩余时间淡出
 		var bst: float = e.get("bstag", 0.0)
 		if bst > 0.0:
@@ -3814,6 +3835,33 @@ func update_beacon_lights() -> void:
 
 
 ## 冲刺预警线长度：按实际冲刺距离（速度 × dash_speed × 0.35 秒）；Boss与怪物 给了 dash_len 就用它
+## 冲刺预警风格 1（docs/139 §7.4）：怪物脚前 3 个「›」箭头沿冲刺方向依次点亮（蓄力 0–⅓–⅔–1），深色底 + 危险色线；
+## 打不到队长的只亮最近一个、半透明。不画整条线
+func _dash_chevrons(e: Dictionary, wk: float, threat: bool) -> void:
+	var dv: Vector2 = e.dash_dir
+	var nv: Vector2 = dv.orthogonal()
+	var c: Color = ENEMY_TELL
+	var n: int = 3 if threat else 1
+	for i in n:
+		var lit: float = clampf(wk * 3.0 - float(i), 0.0, 1.0)
+		if lit <= 0.0 and i > 0:
+			continue
+		var a: float = (0.35 + 0.6 * lit) * (1.0 if threat else 0.4)
+		var tip: Vector2 = e.pos + dv * (float(e.get("r", 10.0)) + 10.0 + 11.0 * i)
+		var pts := PackedVector2Array([tip - dv * 6.0 + nv * 6.0, tip, tip - dv * 6.0 - nv * 6.0])
+		g.draw_polyline(pts, Color(0, 0, 0, 0.6 * a), 5.0)
+		g.draw_polyline(pts, Color(c.r, c.g, c.b, a), 2.5)
+
+
+## 风格 2 的箭头
+func _dash_head(p: Vector2, dv: Vector2, wk: float) -> void:
+	var nv: Vector2 = dv.orthogonal()
+	var c: Color = ENEMY_TELL
+	var pts := PackedVector2Array([p - dv * 9.0 + nv * 8.0, p + dv * 3.0, p - dv * 9.0 - nv * 8.0])
+	g.draw_polyline(pts, Color(0, 0, 0, 0.6), 5.0)
+	g.draw_polyline(pts, Color(c.r, c.g, c.b, 0.55 + 0.4 * wk), 2.5)
+
+
 func _dash_len(e: Dictionary) -> float:
 	var dd: Dictionary = D.ENEMIES.get(e.type, {})
 	return float(e.get("dash_len", clampf(e.spd * float(dd.get("dash_speed", 3.8)) * 0.35, 60.0, 400.0)))
