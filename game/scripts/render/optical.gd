@@ -234,6 +234,27 @@ func _attach_glow() -> void:
 		particles.setup(g, g, glow_node)
 
 
+## 世界子树（game 节点下、不跨进 CanvasLayer——发光层 / 低分辨率层 / 界面各有自己的画布）的可见层：灯光与环境色 1 | 2，其余 lay
+func _lay_tree(n: Node, lay: int) -> void:
+	for c in n.get_children():
+		if c == op_node or c is CanvasLayer:
+			continue
+		if c is CanvasItem:
+			(c as CanvasItem).visibility_layer = (1 | VIS_LO) if (c is Light2D or c is CanvasModulate) else lay
+		_lay_tree(c, lay)
+
+
+func _on_node_added(n: Node) -> void:
+	if not _lo_on or not (n is CanvasItem) or n == op_node or g == null or not g.is_ancestor_of(n) or Bal.v("render/optical_layer_follow", 1.0) <= 0.0:
+		return
+	var p: Node = n.get_parent()
+	while p != null and p != g:
+		if p is CanvasLayer or p == op_node:
+			return
+		p = p.get_parent()
+	(n as CanvasItem).visibility_layer = (1 | VIS_LO) if (n is Light2D or n is CanvasModulate) else VIS_LO
+
+
 ## 低分辨率层开 / 关：世界节点的可见层在 1 ↔ 2 之间切，主视口剔除第 2 位；灯光与环境色两边都要（1 | 2）
 func _set_lo(on: bool) -> void:
 	_lo_on = on
@@ -248,10 +269,12 @@ func _set_lo(on: bool) -> void:
 	g.get_viewport().set_canvas_cull_mask_bit(VIS_LO - 1, not on)
 	var lay: int = VIS_LO if on else 1
 	g.visibility_layer = lay
-	for c in g.get_children():
-		if c == op_node or not (c is CanvasItem):
-			continue
-		(c as CanvasItem).visibility_layer = (1 | VIS_LO) if (c is Light2D or c is CanvasModulate) else lay
+	# 10-24（docs/136 §2 排查）：画布剔除按「本节点 + 每一层父节点」的可见层都要在掩码里，所以整棵世界子树都要切，
+	# 之后才挂进来的节点（新发射器、新画布）也要跟着切（_on_node_added）——原来只切 game 的直接子节点、只在开关那一刻切，
+	# 后挂的 GPUParticles2D / 子画布留在第 1 层，低分辨率层（掩码 2）和主视口（父节点 game 被剔）都不画
+	_lay_tree(g, lay)
+	if on and not g.get_tree().node_added.is_connected(_on_node_added):
+		g.get_tree().node_added.connect(_on_node_added)
 	if g.material != null:
 		op_node.material = g.material   # 白色保护 / 朝灯亮线的角色材质（render/look.make_actor_mat）
 

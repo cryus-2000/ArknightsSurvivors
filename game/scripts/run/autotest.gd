@@ -58,6 +58,7 @@ const PERF_DUMP_KEYS := ["engine", "draw_world", "draw_hud", "draw_fxadd", "draw
 	"relic", "misc", "fx", "cleanup", "visuals", "tail", "dw_sorted_entities", "dw_gems", "dw_ground", "dw_mire", "dw_zone", "dw_fx", "dw_bullets", "dw_shadows", "dw_warns_auras", "dw_ebullets_lobs_shocks", "dw_tells_outlines", "dw_snow_tail", "dw_shield_drones"]
 var opticalab := -1           # --opticalab=N（docs/50 §25）：每 N 帧轮换光学观感原型开 / 关；-1 = 还没读参数
 var fx1ab := 0                # --fx1ab=N（docs/50 §25.2）：每 N 帧轮换特效处理第 1 步开 / 关（光学观感开着时）
+var partab := 0               # --partab=N（docs/136 §2 排查）：每 N 帧轮换光学 GPU 粒子开 / 关（--perf 分 /p1 /p0 两桶）
 var tierab := 0               # --tierab=N（docs/50 §25.3）：每 N 帧轮换命中三档开 / 关
 var vfxab := -1               # --vfxab=N（docs/54）：每 N 帧轮换 vfx.p2；-1 = 还没读参数
 var vfxdemo := false           # --vfxdemo：按固定时刻强制灯标点燃 / 升级 / 灯火暗淡 / 精英 / 拾取 / 商人（录对照片段用）
@@ -379,6 +380,8 @@ func step() -> void:
 				fx1ab = int(a.substr(8))
 			if a.begins_with("--tierab="):
 				tierab = int(a.substr(9))
+			if a.begins_with("--partab="):
+				partab = int(a.substr(9))
 			if a == "--nohud" and g.hud != null and g.hud.get_parent() is CanvasLayer:
 				(g.hud.get_parent() as CanvasLayer).visible = false   # 概念样图底图（tools/probes/map_concept.py）：只要世界画面，界面层整层不画
 			if a == "--optical":
@@ -395,6 +398,8 @@ func step() -> void:
 	Dc.ab_step(g.at_frames)   # --clutterab=N：每 N 帧在降噪 0 档与当前档之间轮换（--perf 分 /d0 /dN 两桶）
 	if opticalab > 0 and g.at_frames % opticalab == 0 and g.optical != null:
 		g.optical.force = 0 if g.optical.force == 1 else 1   # --opticalab=N：同局轮换光学观感开 / 关（--perf 分 /opt /base 两桶）
+	if partab > 0 and g.at_frames % partab == 0 and g.optical != null and g.optical.particles != null:
+		g.optical.particles.set_active(not g.optical.particles.active)   # --partab=N：同局轮换 GPU 粒子（--perf 分 /p1 /p0）
 	if tierab > 0 and g.at_frames % tierab == 0:
 		g.vfx.tier_off = not g.vfx.tier_off   # --tierab=N：同局轮换命中三档（--perf 分 /t1 /t0 两桶）
 	if fx1ab > 0 and g.at_frames % fx1ab == 0 and g.optical != null:
@@ -855,6 +860,58 @@ func step() -> void:
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_ws_dissolve_%d.png" % g.at_frames)
 		if g.at_frames > 112:
 			g.get_tree().quit()
+	# --gpuprobe（docs/136 §2 排查，10-24）：第 360 帧（低分辨率层早已打开）才往世界节点下挂两个持续发射的 GPUParticles2D
+	# （红：game 直接子节点；绿：再套一层 Node2D），第 400 帧截 shot_gpu.png 并列出世界子树里各画布的可见层后退出
+	if Cfg.dev_args().has("--gpuprobe"):
+		g.pickup = 0.0   # 不拾取、不升级（升级面板会暂停并盖住画面）
+		if g.at_frames >= 340:
+			g.speed = 0.0
+		g.hp = g.max_hp
+		if g.at_frames == 360:
+			var holder := Node2D.new()
+			holder.name = "probe_holder"
+			g.add_child(holder)
+			for k in 2:
+				var p := GPUParticles2D.new()
+				p.name = "probe_gpu_%d" % k
+				p.amount = 64
+				p.lifetime = 2.0
+				p.local_coords = false
+				var img := Image.create(2, 2, false, Image.FORMAT_RGBA8)
+				img.fill(Color.WHITE)
+				p.texture = ImageTexture.create_from_image(img)
+				var m := ParticleProcessMaterial.new()
+				m.gravity = Vector3.ZERO
+				m.spread = 180.0
+				m.initial_velocity_min = 10.0
+				m.initial_velocity_max = 30.0
+				m.scale_min = 3.0
+				m.scale_max = 3.0
+				p.process_material = m
+				p.modulate = Color(2.0, 0.2, 0.2) if k == 0 else Color(0.2, 2.0, 0.2)
+				(g if k == 0 else holder).add_child(p)
+				p.global_position = g.ppos + Vector2(-90 if k == 0 else 90, -60)
+				p.process_mode = Node.PROCESS_MODE_ALWAYS
+				p.emitting = true
+		if g.at_frames == 400:
+			var rows: Array = []
+			var stack: Array = [[g, 0]]
+			while not stack.is_empty():
+				var it: Array = stack.pop_back()
+				for c in (it[0] as Node).get_children():
+					if c is CanvasLayer:
+						continue
+					if c is CanvasItem and int(it[1]) >= 1:
+						rows.append("%s:%s:L%d" % [c.get_parent().name, c.name, (c as CanvasItem).visibility_layer])
+					stack.append([c, int(it[1]) + 1])
+			print("GPUPROBE lo=%s nested=%s" % [str(g.get("optical_lo")), str(rows)])
+			for pn in ["probe_gpu_0", "probe_holder/probe_gpu_1"]:
+				var pp: GPUParticles2D = g.get_node_or_null(pn)
+				if pp != null:
+					print("GPUPROBE %s emit=%s vis=%s gpos=%s ppos=%s cam=%s layer=%d g_layer=%d" % [pn, pp.emitting, pp.is_visible_in_tree(), pp.global_position.round(), g.ppos.round(), g.cam.get_screen_center_position().round(), pp.visibility_layer, g.visibility_layer])
+			if DisplayServer.get_name() != "headless":
+				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_gpu.png")
+			g.get_tree().quit()
 	if Cfg.dev_args().has("--gemshot"):
 		if g.at_frames == 60:
 			for k in 14:
@@ -1246,6 +1303,8 @@ func _perf_sample() -> void:
 		var w := "0-8" if g.t < 480.0 else ("8-10" if g.t < 600.0 else "10+")
 		if perf_min:
 			w = "m%02d" % int(g.t / 60.0) + ("F" if g.final_boss != null and not g.final_boss.dead else "")   # --perfmin：按游戏分钟分段，F = 最终 Boss 在场
+		if partab > 0:
+			w += "/p1" if g.optical.particles.active else "/p0"
 		if tierab > 0:
 			w += "/t0" if g.vfx.tier_off else "/t1"   # --tierab：上一帧的命中三档开关
 		if fx1ab > 0:
