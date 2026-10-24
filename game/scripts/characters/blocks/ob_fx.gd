@@ -32,14 +32,14 @@ const FX_AT := ["center", "self", "leader", "zone", "hits", "orbit", "members", 
 
 ## 只播一次的 fx 宿主（瞬时积木 / 技能发动 / 触发积木）：不能写 every、贴身层、漩涡（§8 第 9 条）。第三批新积木追加在这里
 const FX_INSTANT_OWNERS := ["shape.circle", "shape.cone", "cast", "verb.sp_team",
-	"shape.line", "verb.displace", "verb.field", "verb.negate_next", "trig.on_hurt", "trig.on_negate", "verb.summon", "verb.shield", "verb.guard",
+	"shape.line", "verb.displace", "verb.field", "verb.negate_next", "verb.taunt_guard", "trig.on_hurt", "trig.on_negate", "verb.summon", "verb.shield", "verb.guard",
 	"st.stun", "st.slow", "st.airborne", "st.weightless", "st.pause", "shape.boomerang", "verb.summon_cmd", "trig.on_mate_attack"]   # 精英化段（docs/91 第 1 批）
 
 ## 能写 at = hits 的宿主（带命中列表的伤害形状）
 const FX_HITS_OWNERS := ["shape.circle", "shape.cone", "shape.line"]
 
 ## 自己在合适的位置播 fx 的积木：data_operator._exec_list 不再按区域中心替它们播
-const FX_SELF_PLAY := ["shape.circle", "shape.cone", "shape.line", "verb.displace", "verb.field", "verb.negate_next", "verb.summon", "verb.shield", "verb.heal", "verb.guard",
+const FX_SELF_PLAY := ["shape.circle", "shape.cone", "shape.line", "verb.displace", "verb.field", "verb.negate_next", "verb.taunt_guard", "verb.summon", "verb.shield", "verb.heal", "verb.guard",
 	"shape.boomerang", "verb.summon_cmd"]
 
 const ArtS = preload("res://scripts/art.gd")

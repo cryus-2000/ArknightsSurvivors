@@ -84,7 +84,8 @@ func _ready() -> void:
 			# variant (character._move_swap, covered by move_attack_test); without one it yields to run. Logical clock unchanged.
 			o.attack_t=duration*0.1
 			o.mv=100.0
-			ok(o.act_anim_yield() == (o.anim_tex("move_" + o.act_anim) == null), "%s moving recovery yields unless a move_attack strip plays" % id)
+			# hover_attack（悬浮移动，浊心斯卡蒂，docs/140）：移动时照播不让
+			ok(o.act_anim_yield() == (o.anim_tex("move_" + o.act_anim) == null and not o.def.get("sprites", {}).get("hover_attack", false) == true), "%s moving recovery yields unless a move_attack strip plays" % id)
 			var before: float=o.attack_t
 			o.anim_kind="run"
 			NM.state(o,o._anim_state_raw())

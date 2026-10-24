@@ -190,6 +190,70 @@
     75.57669522183915
    ]
   },
+  "skill_s3_attack": {
+   "tex": "op_saria_skill_s3_attack",
+   "frames": 8,
+   "fps": 12.307692307692307,
+   "foot": [
+    31.75,
+    59.57669522183914
+   ],
+   "fire": 3,
+   "attack_timing": {
+    "duration": 0.6499999999999999,
+    "fire_time": 0.17857142857142858,
+    "active_ratio": 0.9,
+    "windup_ratio": 0.27472527472527475,
+    "min_duration": 0.2,
+    "frame_durations": [
+     0.05952380952380953,
+     0.05952380952380953,
+     0.05952380952380952,
+     0.06616541353383458,
+     0.08022556390977442,
+     0.09428571428571429,
+     0.10834586466165413,
+     0.12240601503759396
+    ]
+   },
+   "_doc": "10-24 钙质化期间普攻换空手拳击（docs/140，tools/op_1x/native_extra.py PUNCH）：盾和武器放在地上，原生 Skill_Loop 空手站姿逐帧转左臂；时序抄普攻 attack_timing"
+  },
+  "move_skill_s3_attack": {
+   "tex": "op_saria_move_skill_s3_attack",
+   "frames": 8,
+   "fps": 12.307692307692307,
+   "foot": [
+    31.75,
+    59.57669522183914
+   ],
+   "fire": 3,
+   "attack_timing": {
+    "duration": 0.6499999999999999,
+    "fire_time": 0.17857142857142858,
+    "active_ratio": 0.9,
+    "windup_ratio": 0.27472527472527475,
+    "min_duration": 0.2,
+    "frame_durations": [
+     0.05952380952380953,
+     0.05952380952380953,
+     0.05952380952380952,
+     0.06616541353383458,
+     0.08022556390977442,
+     0.09428571428571429,
+     0.10834586466165413,
+     0.12240601503759396
+    ]
+   },
+   "_doc": "同上的跑动版：拳击上半身 + 跑步腿（run_trial move_attack + poses），移动中出拳时换上（character._move_swap）"
+  },
+  "skill_s3_run": {
+   "foot_exempt": "同跑步条用整数脚底 (32, 60)，与小数顶层 foot 相差不到 1px（docs/108 §5）",
+   "tex": "op_saria_skill_s3_run",
+   "frames": 8,
+   "fps": 13.333333333333334,
+   "foot": [32, 60],
+   "_doc": "10-24 钙质化期间移动（docs/140）：原生 Skill_Loop 空手上半身 + 跑步腿（tools/op_1x/native_extra.py），与跑步条共用相位；循环期间全程空手（盾 / 武器起手时放下）"
+  },
   "skills": {
    "s1": {
     "anim": "skill_heal"
@@ -202,6 +266,8 @@
      "anim": "skill"
     },
     "loop": "skill_s3_loop",
+    "run": "skill_s3_run",
+    "attack": "skill_s3_attack",
     "end": {
      "anim": "skill_s3_end"
     }
@@ -212,7 +278,10 @@
   "death",
   "skill_heal",
   "skill_s3_end",
-  "skill_s3_loop"
+  "skill_s3_loop",
+  "skill_s3_run",
+  "skill_s3_attack",
+  "move_skill_s3_attack"
  ],
  "attack": {
   "mode": "auto",
