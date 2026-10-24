@@ -4,7 +4,7 @@ var g
 var tick := -20
 var saving := false
 const NAMES := ["fx_flam_hit", "fx_water_splash", "fx_corrode_hit"]
-var names: Array = NAMES   # --materialnames=a,b,…：换成任意帧条（docs/137 §7 第 2 批对照）
+var names: Array = NAMES   # --materialnames=a,b,…：换成任意帧条（docs/138 §7 第 2 批对照）
 
 func _process(_dt: float) -> void:
 	Engine.max_fps = 20

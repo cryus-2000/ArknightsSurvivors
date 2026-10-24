@@ -943,7 +943,7 @@ func boss_blade(b: Dictionary, pos: Vector2) -> void:
 # 各项各有开关；低画质 / 触屏不画常驻环境粒子（ambient_ok），一次性事件粒子按 Cfg.fx_density 减半。
 # 新增的 fx 种类：mote（光尘，tb 批）、glow（加色层的柔光，light 贴图）、mire_recoil（溟痕退散的收缩环）
 # =====================================================================
-var _fxc = null                # --fxcensus（docs/137 §7）：本局经 fx_sprite 播过的帧条名 → 次数，局终 / 每 30 秒打印 FXCENSUS（盘点可粒子化的一次性特效）
+var _fxc = null                # --fxcensus（docs/138 §7）：本局经 fx_sprite 播过的帧条名 → 次数，局终 / 每 30 秒打印 FXCENSUS（盘点可粒子化的一次性特效）
 var _fxc_t := 0.0
 var p2 := true                 # 运行时总开关（--vfxab=N 同局轮换测量用；缺省开）
 var _k2: Dictionary = {}       # fx 段快照（每帧读的旋钮不走 Bal.v 的字符串拆分）

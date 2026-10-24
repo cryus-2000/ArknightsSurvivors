@@ -532,7 +532,7 @@
   "heal_low_cap": 2
  },
  "fx": {
-  "_material_doc": "材质颗粒（docs/136 / 137，render/fx_grains.gd）：material_grains 总开关（10-24 用户定缺省开：火 / 水 / 艾雅法拉火球·熔岩·点燃）；material_lappland 拉普兰德剑气转碎片、material_fluid 海嗣体液命中（fx_corrode_hit）各自再开一道，缺省关（拉普兰德等 Codex 第 2 轮，体液未经用户看）。纯画面，只用 vrng；低画质 / 关光学观感时不开",
+  "_material_doc": "材质颗粒（docs/136 / 138，render/fx_grains.gd）：material_grains 总开关（10-24 用户定缺省开：火 / 水 / 艾雅法拉火球·熔岩·点燃）；material_lappland 拉普兰德剑气转碎片、material_fluid 海嗣体液命中（fx_corrode_hit）各自再开一道，缺省关（拉普兰德等 Codex 第 2 轮，体液未经用户看）。纯画面，只用 vrng；低画质 / 关光学观感时不开",
   "material_grains": 1, "material_lappland": 0, "material_fluid": 0,
   "_hit_tiers_doc": "特效第 2 步（10-23）：普攻命中三档模板（render/vfx.gd hit_tier / _tier_fx）。hit_tiers 总开关；hit_mid / hit_heavy 相对干员普攻基准的倍数门槛（暴击 / 弱点直接重档，召唤物 / 追加打击一律轻）；hit_n1–3 每档迸溅颗粒数；hit_pause_m / hit_pause_h 中 / 重档顿帧（走 impact_pause 共享限频）；melee_arc 近战刀光开关（半径 / 半角读实际判定）、melee_arc_life 刀光时长（秒）",
   "hit_tiers": 1, "hit_mid": 1.2, "hit_heavy": 2.5, "hit_n1": 3, "hit_n2": 6, "hit_n3": 12, "hit_pause_m": 0.014, "hit_pause_h": 0.03, "melee_arc": 1, "melee_arc_life": 0.12,

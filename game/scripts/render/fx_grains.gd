@@ -31,7 +31,7 @@ const MATERIALS := {
 		"ramp": [[0.0, Color(1, 1.1, 1.1)], [0.25, Color(0.8, 0.9, 0.95)], [0.7, Color(0.35, 0.45, 0.5, 0.65)]]},
 }
 # 只替换短命中效果，不接管地面预警、持续领域或触手本体。
-# 10-24 第 2 批（docs/137 §7，按 --fxcensus 盘点）：火 = 炮弹爆炸 / 日炎 / 维什戴尔炮击；水 = 蓝水花；体液 = 水月水母刺 / 血肉命中（体液整类走 fx/material_fluid，缺省关）
+# 10-24 第 2 批（docs/138 §7，按 --fxcensus 盘点）：火 = 炮弹爆炸 / 日炎 / 维什戴尔炮击；水 = 蓝水花；体液 = 水月水母刺 / 血肉命中（体液整类走 fx/material_fluid，缺省关）
 const MATERIAL_FX := {"fx_flam_hit": "fire", "fx_water_splash": "water", "fx_corrode_hit": "fluid", "fx_eyja_lava_splash": "lava", "fx_eyja_ignite_hit": "fire", "fx_eyja_ignite_boom": "fire",
 	"fx_cannon_burst": "fire", "fx_sunburst": "fire", "fx_wisadel_cannon": "fire", "fx_splash_blue": "water",
 	"fx_mizuki_jelly_sting": "fluid", "fx_hit_flesh": "fluid"}   # 归溟血锯试过：锯环形状散成点就认不出了，不接
@@ -56,6 +56,8 @@ var _names: Array = []
 var _ramps: Array = []   # 模板序号 → [[阈值（年龄比例）, 颜色], …]
 var _frame_n := {}
 var sparks: Array = []   # CPU 火星：[pos, vel, ground_y, life, max, col]
+var lights: Array = []   # 颗粒簇登记的灯（docs/138 §8）：[pos, r, col, life, max]；optical._dyn_lights 当候选，同 12 灯预算
+const LIGHT_MAX := 16
 var _drawn := false
 
 
@@ -99,6 +101,13 @@ func push(name: String, p: Vector2, dir: Vector2, c: Color, emit_delay := 0.0) -
 	delay.append(maxf(0.0, emit_delay))
 	col.append(c)
 	tpl.append(_names.find(name))
+
+
+## 颗粒簇登记一盏短灯（乌尔比安冲锋前沿等，docs/138 §8）：p 世界坐标、r 半径（世界像素）、c 颜色、life 秒；按剩余寿命线性变暗。纯画面
+func light(p: Vector2, r: float, c: Color, life: float) -> void:
+	if not on() or lights.size() >= LIGHT_MAX:
+		return
+	lights.append([p, r, c, life, life])
 
 
 ## CPU 火星：从 p 带重力迸出，落到 ground_y 停住、冷却变暗后熄灭（同屏上限 SPARK_MAX）
@@ -147,6 +156,13 @@ func step(dt: float) -> void:
 		delay.resize(k)
 		col.resize(k)
 		tpl.resize(k)
+	var lk := 0
+	for L in lights:
+		L[3] = float(L[3]) - dt
+		if float(L[3]) > 0.0:
+			lights[lk] = L
+			lk += 1
+	lights.resize(lk)
 	var m := 0
 	for s in sparks:
 		var p: Vector2 = s[0]
