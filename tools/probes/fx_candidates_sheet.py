@@ -264,6 +264,65 @@ def guns():
     render("Boss 枪击候选：枪口火光 / 弹体 / 命中 / 余韵（现有素材库；右侧按专属色换色）", rows, os.path.join(OUT, "guns.png"))
 
 
+KP_DIRS = [os.path.join(r, "lasers", "kanpelle_ultimate_laser_pack", "Ultimate Laser Pack")
+           for r in (os.path.join(ROOT, "art", "third_party"), TP)]
+
+
+def kp_sheet(color):
+    """Kanpelle Ultimate Laser Pack：192×288，4 列 × 6 行、每格 48；行 = 起点持续 / 起点开启 / 中段持续 / 中段开启 / 命中持续 / 命中开启，
+    每段只占格子里 x 16–31 这一条（16 宽）"""
+    d = next(x for x in KP_DIRS if os.path.isdir(x))
+    im = Image.open(os.path.join(d, f"Laser_Beam_Spritesheet_{color}.png")).convert("RGBA")
+    cell = lambda r, c: im.crop((c * 48 + 16, r * 48, c * 48 + 32, r * 48 + 48))
+    return {k: [cell(r, c) for c in range(4)] for k, r in (("src", 0), ("src_on", 1), ("mid", 2), ("mid_on", 3), ("hit", 4), ("hit_on", 5))}
+
+
+def kp_beam(parts, f, n_mid, col=None, k=2):
+    """拼一条：起点 + 中段 × n_mid + 命中端，第 f 帧；k = 放大倍数（游戏里按 2 倍显示）"""
+    src, mid, hit = parts[0][f], parts[1][f], parts[2][f]
+    seg = [src] + [mid] * n_mid + [hit]
+    seg = [recolor(x, col) if col else x for x in seg]
+    w = sum(x.width for x in seg)
+    im = Image.new("RGBA", (w, 48), BG + (255,))
+    x = 0
+    for t in seg:
+        im.alpha_composite(t, (x, 0))
+        x += t.width
+    bb = im.getbbox()
+    im = im.crop((0, 8, w, 40))
+    return im.resize((im.width * k, im.height * k), Image.NEAREST)
+
+
+def kanpelle():
+    rows = []
+    W = kp_sheet("WHITE")
+    flow = (W["src"], W["mid"], W["hit"])
+    on = (W["src_on"], W["mid_on"], W["hit_on"])
+    for nm in ("伊比利亚", "卡门", "泡影", "伊祖米克", "伊莎玛拉", "骑士", "主教", "蔑死体", "斥亡体", "塑路者"):
+        c = BOSS[nm]
+        rows.append((f"{nm}（白色版换专属色）", "持续帧 × 2 倍；右边 3 倍粗（重炮）", [
+            ("持续", kp_beam(flow, 0, 12, c)), ("持续 3 倍粗", kp_beam(flow, 1, 8, c, 3))]))
+    anim = [kp_beam(on, f, 8, BOSS["伊比利亚"]) for f in range(4)] + [kp_beam(flow, f, 8, BOSS["伊比利亚"]) for f in range(2)]
+    col = Image.new("RGBA", (max(a.width for a in anim), sum(a.height + 4 for a in anim)), BG + (255,))
+    y = 0
+    for a in anim:
+        col.alpha_composite(a, (0, y))
+        y += a.height + 4
+    rows.insert(0, ("开启 4 帧 → 持续（伊比利亚 橙）", "关闭 = 开启倒放", [("从上到下逐帧", col)]))
+    native = []
+    for c in ("ORANGE", "WHITE", "PURPLE", "BLUE", "GREEN", "CYAN"):
+        S = kp_sheet(c)
+        native.append((f"包内原色 {c}", kp_beam((S["src"], S["mid"], S["hit"]), 0, 6)))
+    rows.insert(1, ("包内原色（对照）", "10 种颜色里挑 6 种", native[:3]))
+    rows.insert(2, ("包内原色（续）", "", native[3:]))
+    render("Kanpelle · Ultimate Laser Pack（起点 + 中段平铺 + 命中端；按 docs/142b §8.4 专属色换色）", rows, os.path.join(OUT, "kanpelle.png"))
+
+
 if __name__ == "__main__":
-    lasers()
-    guns()
+    import sys
+    if "--kanpelle" in sys.argv:
+        kanpelle()
+    else:
+        lasers()
+        guns()
+        kanpelle()
