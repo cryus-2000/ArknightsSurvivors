@@ -29,6 +29,8 @@ var dark_dmg := 0.0             # 熄灯每秒 3 点的持续掉血（不进 dmg
 var hits := 0                   # 受击次数
 var taken_last := 0.0
 var taken_window := 0.0         # 当前采样窗口内的承伤
+var mire_win := 0.0             # 当前采样窗口内站在溟痕里的秒数（g.in_mire ≥ 0.5；难度曲线审计 docs/146，只读）
+var hpmin_win := 100            # 当前采样窗口内主控最低生命百分比（同上）
 var win_src: Dictionary = {}    # 当前采样窗口内按来源的承伤（docs/82：6–9 分钟承伤来源）
 var heal_last: Dictionary = {}  # 上一个采样点的 heal_log（窗口治疗 = 增量）
 var last_src := ""              # 最近一次掉血的来源（死因）
@@ -141,6 +143,9 @@ func tick(dt: float) -> void:
 	last_pos = g.ppos
 	if g.hp < g.max_hp * 0.35:
 		low_hp_s += dt
+	if g.in_mire >= 0.5:
+		mire_win += dt
+	hpmin_win = mini(hpmin_win, int(100.0 * g.hp / maxf(1.0, g.max_hp)))
 	lamp_s[lamp_tier(g.lamp)] += dt
 	if g.lamp <= 0.0:
 		dark_s += dt
@@ -295,8 +300,12 @@ func tick(dt: float) -> void:
 			"zone": g.zone_state, "boss": int(_boss_alive()), "mhp": int(g.max_hp), "dsrc": dsrc, "hsrc": hsrc,
 			# 曲线审计（docs/116）：累计全队输出 outc、普通怪生命倍率 hpm（时间 × 难度 × 全局，不含密度换算）、主控每秒回复 rg
 			"outc": int(out_last), "hpm": snappedf(g.combat.enemy_hp_time_mult() * float(g.dmod.enemy_hp) * g.enemy_hp_mult, 0.01),
-			"rg": snappedf(g.combat.regen_per_sec(), 0.01)})
+			"rg": snappedf(g.combat.regen_per_sec(), 0.01),
+			# 难度曲线审计（docs/146，只读）：窗口内最低生命 %、站溟痕秒数，采样时的溟痕片数、在场精英数、敌弹数
+			"hpmin": hpmin_win, "mire_s": snappedf(mire_win, 0.1), "mires": g.mires.size(), "elites": _elites_alive(), "ebul": g.ebullets.size() + g.lobs.size()})
 		taken_window = 0.0
+		mire_win = 0.0
+		hpmin_win = 100
 		win_src = {}
 
 
@@ -537,6 +546,14 @@ func end_ctx() -> Dictionary:
 	var out: float = g.ppos.distance_to(g.zone_c) - g.zone_r
 	return {"t": int(g.t), "src": last_src, "zone_state": g.zone_state, "zone_phase": g.combat.zone_phase if g.zone_state > 0 else -1,
 		"zone_out": out > 0.0, "boss": _boss_alive(), "hp": int(g.hp), "last15": ring_snapshot()}
+
+
+func _elites_alive() -> int:
+	var n := 0
+	for e in g.enemies:
+		if e.elite and not e.dead and not e.boss:
+			n += 1
+	return n
 
 
 ## 最后一个不满 30 秒的采样窗口（死前那一段，docs/82）：承伤 / 按来源承伤 / 按来源治疗，字段同 curve
