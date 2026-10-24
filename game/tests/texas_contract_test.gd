@@ -196,6 +196,16 @@ func test_clone(o) -> void:
 	o.s_t = [0.0, 0.0, 8.0]
 	for i in 60:
 		o.update(DT)
+	ok(o.tx.get("trails", []).is_empty(), "分身：场上没有敌人 → 一道分身都不放")
+	for k in 12:
+		var ce: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2.from_angle(k * TAU / 12.0) * 120.0)
+		ce.hp = 100000.0
+		ce.max_hp = ce.hp
+		ce.spd = 0.0
+	g.enemies_sys.build_grid()
+	o.s_t = [0.0, 0.0, 8.0]
+	for i in 60:
+		o.update(DT)
 	var trails: Array = o.tx.get("trails", [])
 	ok(trails.size() >= 6, "分身：技能期间放出分身残像（%d 道，一次 6 个方向）" % trails.size())
 	ok(o.pos.distance_to(p0) < 1.0 and not o.tx.has("dash"), "分身：本体不动、没有冲刺")
@@ -205,6 +215,7 @@ func test_clone(o) -> void:
 	ok(dirs.size() >= 6, "分身：方向不重合（%d 个不同方向）" % dirs.size())
 	o.s_t = [0.0, 0.0, 0.0]
 	o.tx["trails"] = []
+	for e in g.enemies: e.dead = true
 
 
 ## 自动技能需要敌人（10-23）：剑雨（S1）技力满了，没有敌人不放、技力保留；有敌人才放

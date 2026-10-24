@@ -1032,7 +1032,8 @@
         "tilt": 3
        }
       ],
-      "line_w": 0.0
+      "line_w": 0.0,
+      "need_hit": true
      }
     ]
    }

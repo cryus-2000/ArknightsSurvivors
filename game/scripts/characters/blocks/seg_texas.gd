@@ -75,6 +75,8 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 			_num(b, "line_w", p, ctx, false, 0.0, 1.0)
 			if b.has("line_col") and not (b.line_col is Array and b.line_col.size() in [3, 4]):
 				errs.append(p + ".line_col 要写 [r, g, b] 或 [r, g, b, a]")
+			if b.has("need_hit") and not b.need_hit is bool:
+				errs.append(p + ".need_hit 应是 true / false（残像没打到敌人就不执行 on_expire）")
 			_src(b, p, ctx, true)
 			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
 			if b.has("on_expire"):   # 精英化段：残像消散时执行（do 里的 center: path 沿这道残像）
@@ -264,6 +266,8 @@ static func tx_update(o, dt: float) -> bool:
 				gone.append(tr)
 		tx["trails"] = trails.filter(func(tr): return tr.life > 0.0)
 		for tr in gone:   # 精英化段：残像消散 → on_expire（路径 = 这道残像）
+			if tr.b.get("need_hit", false) and tr.hit.is_empty():   # need_hit：这道残像一个敌人都没打到就不落剑（剑雨滂沱·分身）
+				continue
 			tx["ctx"] = {"from": tr.from, "to": tr.to, "dir": (tr.to - tr.from).normalized(), "w": tr.w, "n": 0, "src": ""}
 			o._exec_list(tr.b.on_expire, tr.to)
 	# 冲刺
@@ -281,6 +285,21 @@ static func tx_update(o, dt: float) -> bool:
 		_tx_dash_end(o)
 		return false
 	return true
+
+
+## 线段 a→c 两侧 w/2（+ 敌人半径）内有没有活着的敌人
+static func _tx_corridor_has_enemy(o, a: Vector2, c: Vector2, w: float) -> bool:
+	var g = o.g
+	var seg: Vector2 = c - a
+	var L: float = seg.length()
+	for j in o.query_ids((a + c) * 0.5, L * 0.5 + w * 0.5 + 40.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead:
+			continue
+		var q: Vector2 = a if L < 0.5 else a + seg * clampf((e.pos - a).dot(seg) / (L * L), 0.0, 1.0)
+		if e.pos.distance_to(q) <= w * 0.5 + float(e.r):
+			return true
+	return false
 
 
 ## 扫一段线段：线段两侧 w/2（+ 敌人半径）内、hit 里没有的敌人各吃一次 dmg（对精英 / Boss 乘 vs_elite）与 on_hit 状态
@@ -420,6 +439,8 @@ static func tx_exec(o, b: Dictionary, at: Vector2) -> void:
 				for di in nd:
 					var ca: float = a0 + TAU * float(di) / float(nd)
 					var to: Vector2 = o.pos + Vector2.from_angle(ca) * elen
+					if not _tx_corridor_has_enemy(o, o.pos, to, float(b.get("w", 44.0)) + 60.0):   # 这个方向上没有敌人就不放（分身只往有敌人的路上去）
+						continue
 					if b.has("strip"):
 						var cfr: Array = o.g.V6_FRAMES.get(str(b.strip), [4, 20.0])
 						o.fx({"kind": "tx_strip", "strip": str(b.strip), "frames": int(cfr[0]), "fps": float(cfr[1]), "pos": to, "ang": ca, "sx": elen / 128.0,
