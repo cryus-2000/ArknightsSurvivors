@@ -1009,6 +1009,10 @@ func view_center() -> Vector2:
 ## 都不看它，回程回到队长当前位置。HUD 在界面层不动；暂停 / 面板时镜头冻结（_glance_step 只在 PLAY / DEAD / WIN 走）。
 ## 目标本来就在屏幕中央区（render/camera_glance_near × 半视野以内，缺省 0.6）时跳过：对已经看得见的点再摆一下镜头只会像误抖，入潮 / 重生环本身就把视线带过去了。
 ## 图鉴演示、无头批跑不做；开关 balance.json render/camera_glance（0 关，对照用）。
+## 切换队长（squad.swap_leader，10-23）：镜头偏移，从「原来看的位置 − 新队长位置」缓动归零；只动镜头，模拟读 ppos
+var swap_off := Vector2.ZERO
+var swap_t := 0.0
+var swap_ease := 0.25
 var glance_pos := Vector2.INF
 var glance_t := 0.0
 var glance_hold := 0.6
@@ -1030,6 +1034,10 @@ func camera_glance(pos: Vector2, hold: float = 0.6, ease_t: float = 0.35) -> voi
 
 ## 每渲染帧（render/world.update_visuals）：rd 为真实帧间隔；只在 PLAY / DEAD / WIN 推进，暂停 / 选卡 / 面板时镜头停在原处
 func glance_step(rd: float) -> void:
+	if swap_off != Vector2.ZERO and (state == S.PLAY or state == S.DEAD or state == S.WIN):
+		swap_t += rd
+		if swap_t >= swap_ease:
+			swap_off = Vector2.ZERO
 	if glance_pos == Vector2.INF:
 		return
 	if state != S.PLAY and state != S.DEAD and state != S.WIN:
@@ -1042,6 +1050,8 @@ func glance_step(rd: float) -> void:
 ## 镜头实际看着的位置 = view_center 加上一瞥的偏移；只给镜头与铺满视野的地面 / 地纹 / 大道具用，玩法一律读 view_center / ppos
 func cam_center() -> Vector2:
 	var c: Vector2 = view_center()
+	if swap_off != Vector2.ZERO:
+		c += swap_off * (1.0 - smoothstep(0.0, 1.0, clampf(swap_t / swap_ease, 0.0, 1.0)))   # 切队长：镜头从原位置缓动到新队长（0.25 秒，整数像素在 world.gd 取整）
 	if glance_pos == Vector2.INF:
 		return c
 	var k: float
@@ -1328,7 +1338,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	# 手动技能：Q / E（手柄 Ⓐ / Ⓨ 注入 Q）；没开手动普攻时 J 仍兼作手动技能键，开了 J 让给攻击（契约 v2.5，攻击键由 doctor 每帧直接读）
-	if (k == KEY_Q or k == KEY_E or (k == KEY_J and not doctor.get("manual_attack"))) and state == S.PLAY:
+	if k == KEY_Q and state == S.PLAY:   # 切换队长（10-23）：Q / 手柄 RB / 触屏点编队卡；技能键只剩 E / J
+		if squad.cycle_leader():
+			Sfx.play("ui_ok", -8.0)
+		get_viewport().set_input_as_handled()
+		return
+	if (k == KEY_E or (k == KEY_J and not doctor.get("manual_attack"))) and state == S.PLAY:
 		# 唯一的手动技能入口：路由到角色已解锁的 manual 技能（三自动角色无动作）
 		if doctor.try_manual_skill():
 			get_viewport().set_input_as_handled()

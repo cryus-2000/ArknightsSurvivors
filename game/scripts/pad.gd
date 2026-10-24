@@ -36,8 +36,9 @@ const MAP := {
 		JOY_BUTTON_X: KEY_Z, JOY_BUTTON_Y: KEY_X,
 	},
 	"play": {
-		JOY_BUTTON_A: KEY_Q, JOY_BUTTON_Y: KEY_Q, JOY_BUTTON_X: KEY_J, JOY_BUTTON_START: KEY_ESCAPE, JOY_BUTTON_BACK: KEY_TAB,   # Ⓐ / Ⓨ 手动技能（Q），Ⓧ = J（手动普攻时是攻击，否则兼作手动技能）
-		JOY_BUTTON_B: KEY_K, JOY_BUTTON_RIGHT_SHOULDER: KEY_K,   # 冲刺
+		JOY_BUTTON_A: KEY_E, JOY_BUTTON_Y: KEY_E, JOY_BUTTON_X: KEY_J, JOY_BUTTON_START: KEY_ESCAPE, JOY_BUTTON_BACK: KEY_TAB,   # Ⓐ / Ⓨ 手动技能（E），Ⓧ = J（手动普攻时是攻击，否则兼作手动技能）
+		JOY_BUTTON_B: KEY_K,   # 冲刺
+		JOY_BUTTON_RIGHT_SHOULDER: KEY_Q,   # 切换队长（10-23：Q / RB / 触屏点编队卡）
 		JOY_BUTTON_LEFT_SHOULDER: KEY_F,   # 指挥模式（docs/114）：LB / LT 循环 随行 → 突击 → 归队
 	},
 	"game_menu": {
@@ -114,7 +115,8 @@ func _input(event: InputEvent) -> void:
 			_trig[event.axis] = on
 			# 开了手动普攻时 RT 是攻击键（doctor 每帧读扳机轴），对局中不再当 RB 冲刺；RB 照旧冲刺
 			if on and not was and not (context == "play" and event.axis == JOY_AXIS_TRIGGER_RIGHT and Cfg.manual_attack):
-				_press_button(TRIGGER_AS[event.axis])
+				# 对局里 RT 仍是冲刺（原来 RT 当 RB 按 = 冲刺；RB 现在是切换队长，10-23）
+				_press_button(JOY_BUTTON_B if (context == "play" and event.axis == JOY_AXIS_TRIGGER_RIGHT) else TRIGGER_AS[event.axis])
 	elif event is InputEventKey or event is InputEventScreenTouch:
 		_set_using(false)
 	elif event is InputEventMouseMotion:

@@ -672,7 +672,7 @@ func voice(cid: String, key: String, queue := false, urgent := false) -> void:
 		return
 	var now := _vnow()
 	var lk := cid + ":" + key
-	if now - float(voice_last.get(lk, -999.0)) < float(VOICE_CD.get(key, 8.0)):
+	if not urgent and now - float(voice_last.get(lk, -999.0)) < float(VOICE_CD.get(key, 8.0)):
 		return
 	if key != "entry" and not urgent and now - float(voice_op_last.get(cid, -999.0)) < VOICE_OP_GAP:
 		return

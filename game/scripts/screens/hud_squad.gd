@@ -167,6 +167,21 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 			fg.frame(cr, Color(1, 1, 1, 0.16), 1.0)
 		if Dn:
 			fg.rect(Rect2(cr.position + Vector2(0, cr.size.y - 2), Vector2(cr.size.x, 2)), Color(ocol.r, ocol.g, ocol.b, 0.9))
+		if Dn:
+			# 切换队长（10-23）：触屏点卡切人（touch.card_rects）；冷却中非队长卡从上往下盖一层暗幕，倒地的灰暗；下一名（Q / RB 会切到的）卡左上角标键
+			if i == 0 and g.touch != null:
+				g.touch.card_rects.clear()
+			if g.touch != null and g.touch.active:
+				g.touch.card_rects.append([cr, o])
+			if not o.is_leader:
+				var sqd = g.squad
+				if o.cmd_down > 0.0:
+					fg.rect(cr, Color(0.0, 0.0, 0.0, 0.55))
+				elif sqd.swap_cd > 0.0:
+					fg.rect(Rect2(cr.position, Vector2(cr.size.x, cr.size.y * clampf(sqd.swap_cd / sqd.swap_cd_max(), 0.0, 1.0))), Color(0.0, 0.0, 0.0, 0.5))
+				elif o == sqd.next_leader() and not (g.touch != null and g.touch.active):
+					var kc: String = Pad.GLYPH.RB if Pad.using else "Q"
+					txt.append(func(): UI.keycap(g.hud, g.font, cr.position + Vector2(4, 4), kc, UI.SUB, 10))
 		if o == g.ch and Dn:
 			var lt := Rect2(Vector2(cr.position.x + 18, card_y - 11), Vector2(cr.size.x - 36, 14))
 			fg.rect(lt, UI.VIOLET)
@@ -275,7 +290,7 @@ func draw_manual_hint() -> void:
 			manual_hinted = true
 			manual_hint_t = 3.5
 			var nm: String = ld.skill_def(i).get("name", "技能")
-			manual_hint_text = ("点技能键释放「%s」" % nm) if g.touch.active else ("按 %s 释放「%s」" % [Pad.hint("Q / E", "Ⓐ / Ⓨ"), nm])
+			manual_hint_text = ("点技能键释放「%s」" % nm) if g.touch.active else ("按 %s 释放「%s」" % [Pad.hint("E / J", "Ⓐ / Ⓨ"), nm])
 	if manual_hint_t <= 0.0:
 		return
 	manual_hint_t -= g.get_process_delta_time()

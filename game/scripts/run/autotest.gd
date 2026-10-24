@@ -334,10 +334,13 @@ func _opt_ab() -> void:
 var _cmd_at: Array = []
 var _cmd_read := false
 var _cmd_down_at := -1.0
+var _swap_at: Array = []   # --swapat=<秒>,…（录片 / 复现，10-23）：到点各按一次 Q（切换队长）
 func _cmd_step() -> void:
 	if not _cmd_read:
 		_cmd_read = true
 		for a in Cfg.dev_args():
+			if a.begins_with("--swapat="):
+				_swap_at = Array(a.substr(9).split(",")).map(func(x): return float(x))
 			if a.begins_with("--cmddown="):
 				_cmd_down_at = float(a.substr(10))
 			if a.begins_with("--cmdat="):
@@ -350,6 +353,9 @@ func _cmd_step() -> void:
 				o.cmd_down = Bal.v("command/revive_secs", 25.0)
 				o.cmd_down_age = 0.0
 				print("CMD t=%.2f down %s at %.0f,%.0f" % [g.t, o.id, o.pos.x, o.pos.y])
+	if not _swap_at.is_empty() and g.state == g.S.PLAY and g.t >= float(_swap_at[0]):
+		_swap_at.pop_front()
+		g.squad.cycle_leader()
 	if not _cmd_at.is_empty() and g.state == g.S.PLAY and g.t >= float(_cmd_at[0]):
 		_cmd_at.pop_front()
 		g.toggle_command()
