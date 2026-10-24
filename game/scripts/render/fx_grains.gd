@@ -9,7 +9,6 @@
 extends Node2D
 
 const Bal = preload("res://scripts/core/balance.gd")
-const ArtG = preload("res://scripts/art.gd")
 # 形状颗粒化（10-24 用户「斯卡蒂的那个能不能根据形状改成粒子的」，docs/138 §13）：这些帧条不画贴图，每换一帧按这一帧的
 # 可见像素在 2 px 世界格上生成颗粒（刀光模板：热白 → 本色冷却散开），形状由颗粒拼出来。开关 fx/grain_body
 const GRAIN_BODY := {"fx_slash_heavy_deep": true}
@@ -45,6 +44,7 @@ const MAT_HANDOFF := {"fx_skadi_surge_release": 0.5, "fx_skadi_surge_hit": 0.4, 
 const MAT_SHARE := 0.6   # 材质颗粒最多占共用预算的六成：留四成给刀光第四版，大混战时材质先退回帧条，刀光不被挤掉
 var templates: Dictionary = TEMPLATES.duplicate(true)
 var _samples := {}
+var _art = null
 const SPARK_MAX := [0, 120, 240]
 
 var g
@@ -365,7 +365,9 @@ func body_frame(f: Dictionary, fr: int, frames: int) -> bool:
 	var tx: Texture2D = g.tex.get(str(f.name))
 	if tx == null:
 		return false
-	var h: float = ArtG.hires_of(tx)
+	if _art == null:
+		_art = load("res://scripts/art.gd")   # 运行时取：契约测试把本文件单独拷进最小工程，不能 preload art.gd
+	var h: float = _art.hires_of(tx)
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
 	var sc: float = absf(float(f.scale)) / h   # 每个贴图像素的世界像素数
