@@ -312,7 +312,9 @@ func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 	var col: Color = _op_col(h)
 	var head: Vector2 = e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6)
 	var n: int = [0, Bal.vi("fx/hit_n1", 3), Bal.vi("fx/hit_n2", 6), Bal.vi("fx/hit_n3", 12)][tier]
-	if g.optical_on and g.optical.particles != null:
+	if g.optical_on and g.optical.grains != null and g.optical.grains.on() and not g.optical.grains.off:
+		g.optical.grains.spark(head, (e.pos as Vector2).y + float(e.get("r", 12.0)) * 0.8, col, n)   # 刀光第四版：带重力、落到脚底高度停住冷却的火星（docs/136）
+	elif g.optical_on and g.optical.particles != null:
 		g.optical.particles.tier_burst(head, col, tier)   # GPU 颗粒（池化、局部预算、中画质减半）
 	else:
 		sparks(head, Vector2.ZERO, col, n, [0.0, 90.0, 140.0, 200.0][tier])
