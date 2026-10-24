@@ -23,13 +23,14 @@ LAYERS = "60:0,1,2,4,8,16,32"
 DESK = [
     ("c100_mid_new", "c100", "mid", "new", "--stackab=" + LAYERS),
     ("c100_mid_base", "c100", "mid", "base", "--stackab=" + LAYERS),
+    ("c100_high_base", "c100", "high", "base", "--stackab=" + LAYERS),
     ("late_mid_new", "late", "mid", "new", ""),
+    ("late_high_base", "late", "high", "base", ""),
     ("late_mid_base", "late", "mid", "base", ""),
-    ("c100_high_new", "c100", "high", "new", "--stackab=" + LAYERS),
     ("skills_mid_new", "skills", "mid", "new", ""),
     ("skills2_mid_new", "skills2", "mid", "new", ""),
     ("c100_mid_noadapt", "c100", "mid", "new", "--more=--bal=fx/grains_adapt=0"),
-    ("c100_high_base", "c100", "high", "base", "--stackab=" + LAYERS),
+    ("c100_high_new", "c100", "high", "new", "--stackab=" + LAYERS),
 ]
 WEB_C100 = ["--balance", "--nodeath", "--bot=expert", "--realtime", "--perf", "--perfmin", "--seed=1", "--op=mizuki", "--norecruit",
             "--rtfrom=360", "--maxt=600", "--bal=enemy/max_alive=250", "--quality=mid"]
@@ -80,7 +81,7 @@ def run(base, only, skipweb):
     for name, which, args in WEB:
         if only and name not in only:
             continue
-        log = pw.run(base if which == "base" else "HEAD", "w_" + name, ["--fixed-fps", "60", "--"] + args, 1800)
+        log = pw.run(base if which == "base" else os.environ.get("PW_NEW", "HEAD"), "w_" + name, ["--fixed-fps", "60", "--"] + args, 1800)
         perf = [l for l in open(log, encoding="utf-8").read().splitlines() if l.startswith("PERF ")]
         if perf:
             d = os.path.join(OUT, "w_" + name)
