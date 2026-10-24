@@ -59,6 +59,7 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 		"verb.emit_path":
 			_num(b, "len", p, ctx, true, 10.0, 600.0)
 			_num(b, "w", p, ctx, false, 4.0, 200.0)
+			_num(b, "dirs", p, ctx, false, 1.0, 16.0)   # 分身：本体不动，向 dirs 个均分方向各放一道路径
 			_src(b, p, ctx, true)
 		"verb.dash_mod":
 			if not (b.has("len_add") or b.has("len_mult") or b.has("w_add") or b.has("w_mult") or b.has("on_hit")):
@@ -411,6 +412,20 @@ static func tx_exec(o, b: Dictionary, at: Vector2) -> void:
 			var eang: float = (ets[0].pos - o.pos).angle() if not ets.is_empty() else o.facing_angle()
 			if o.manual_attack() and o.atk_aim != Vector2.ZERO:
 				eang = o.atk_aim.angle()
+			if b.has("dirs"):   # 分身（剑雨滂沱，10-24）：本体不动，向 dirs 个均分方向各放一道路径；每次调用整体错开半格，方向轮流覆盖
+				var nd: int = int(b.dirs)
+				var k0: int = int(o.tx.get("clone_k", 0))
+				o.tx["clone_k"] = k0 + 1
+				var a0: float = float(k0 % 2) * PI / float(nd)
+				for di in nd:
+					var ca: float = a0 + TAU * float(di) / float(nd)
+					var to: Vector2 = o.pos + Vector2.from_angle(ca) * elen
+					if b.has("strip"):
+						var cfr: Array = o.g.V6_FRAMES.get(str(b.strip), [4, 20.0])
+						o.fx({"kind": "tx_strip", "strip": str(b.strip), "frames": int(cfr[0]), "fps": float(cfr[1]), "pos": to, "ang": ca, "sx": elen / 128.0,
+							"anchor": Vector2(63.0 / 64.0, 0.5), "life": float(cfr[0]) / float(cfr[1]), "delay": 0.0})
+					tx_emit_path(o, str(b.get("src", "")), o.pos, to, float(b.get("w", 44.0)))
+				return
 			tx_emit_path(o, str(b.get("src", "")), o.pos, o.pos + Vector2.from_angle(eang) * elen, float(b.get("w", 44.0)))
 		"verb.fx_scatter":
 			var cc: Vector2 = o.pos if str(b.get("center", "self")) == "self" or at == Vector2.INF else at

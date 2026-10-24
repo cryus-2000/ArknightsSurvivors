@@ -29,7 +29,7 @@
   "s2_len": 0.4,
   "s2_mult": 1.3,
   "s3_dur": 8.0,
-  "s3_every": 0.5,
+  "s3_every": 0.8,
   "s3_mult": 0.9,
   "s3_stun": 0.3,
   "s3_sp": 0.4,
@@ -82,7 +82,13 @@
   "storm_r": 100,
   "storm_mult": 0.55,
   "storm_gap": 0.2,
-  "storm_w": 44
+  "storm_w": 44,
+  "s3_len": 200,
+  "s3_dirs": 6,
+  "s3_w": 44,
+  "s3_trail_life": 0.5,
+  "s3_trail_mult": 0.5,
+  "_s3_clone": "10-24 用户选「分身」（docs/129 §13）：剑雨滂沱期间本体不动，每 s3_every 秒向 s3_dirs 个均分方向（每次错开半格）各放一道分身路径（长 s3_len），沿路径扫 s3_trail_mult、消散时沿路每 rain_step 落一柄剑；s3_mult / s3_stun / dash_* 不再用于 S3"
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1986 / 防御 441 / 法抗 0%，近战主控有效生命 ×1.06",
@@ -359,7 +365,7 @@
    "en": "TORRENTIAL SWORD RAIN",
    "sp": 20,
    "dur": 8.0,
-   "desc": "{$s3_dur} 秒内每 {$s3_every} 秒向敌群最密处冲刺一次（×{$s3_mult}），穿过的敌人眩晕 {$s3_stun} 秒、全队技力 +{$s3_sp} 秒；结束时在最后的落点落下剑雨 ×{$s3_end_mult}（自动释放需要附近有敌人）",
+   "desc": "{$s3_dur} 秒内本体不动，每 {$s3_every} 秒向 {$s3_dirs} 个方向放出分身冲出 {$s3_len}，沿途斩击（×{$s3_trail_mult}）并减速，分身消散时沿路落下剑雨（眩晕 {$rain_stun} 秒，精英减半，Boss 除外），全队技力 +{$s3_sp} 秒；结束时在她脚下落下大剑雨 ×{$s3_end_mult}（自动释放需要附近有敌人）",
    "icon": "skill_texas_s3"
   }
  ],
@@ -471,6 +477,17 @@
    "tags": [
     "basic",
     "area"
+   ]
+  },
+  "分身": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area",
+    "stun"
    ]
   }
  },
@@ -862,32 +879,19 @@
     "cond": "skill_active:2",
     "do": [
      {
-      "shape": "dash_line",
-      "aim": "densest",
-      "r": "$dash_len",
-      "w": "$dash_w",
-      "t": "$dash_t",
-      "hold": "$dash_hold",
-      "mult": "$s3_mult",
-      "power": true,
-      "src": "剑雨滂沱",
-      "tags": [
-       "skill"
-      ],
-      "strip": "fx_texas_dash",
-      "sfx": "atk",
-      "on_hit": [
-       {
-        "st": "stun",
-        "dur": "$s3_stun"
-       }
-      ]
+      "verb": "emit_path",
+      "len": "$s3_len",
+      "w": "$s3_w",
+      "dirs": "$s3_dirs",
+      "src": "分身",
+      "strip": "fx_texas_dash"
      },
      {
       "verb": "sp_secs",
       "seconds": "$s3_sp"
      }
-    ]
+    ],
+    "_doc": "剑雨滂沱·分身：本体不动，每 s3_every 秒向 s3_dirs 个方向各放一道分身路径（verb.emit_path dirs），到头由下面 on_dash_end「分身」块接手"
    },
    {
     "trig": "on_skill_end",
@@ -895,7 +899,7 @@
     "do": [
      {
       "shape": "circle",
-      "center": "target",
+      "center": "self",
       "r": "$s1_r",
       "mult": "$s3_end_mult",
       "power": true,
@@ -909,7 +913,7 @@
       "strip": "fx_texas_blade",
       "mark": "fx_texas_rain_mark",
       "r": "$s1_r",
-      "center": "target",
+      "center": "self",
       "density": 6.5,
       "n_max": 56,
       "on_enemies": 0.4,
@@ -943,6 +947,92 @@
      {
       "verb": "sp_secs",
       "seconds": "$hit_sp"
+     }
+    ]
+   },
+   {
+    "trig": "on_dash_end",
+    "src": "分身",
+    "_doc": "剑雨滂沱分身到头：沿路径留残像（扫 s3_trail_mult、减速），消散时沿路落剑（rain_mult_s3，眩晕 rain_stun）",
+    "do": [
+     {
+      "verb": "trail",
+      "life": "$s3_trail_life",
+      "mult": "$s3_trail_mult",
+      "src": "分身",
+      "tags": [
+       "skill",
+       "dot"
+      ],
+      "on_hit": [
+       {
+        "st": "slow",
+        "dur": "$trail_slow"
+       }
+      ],
+      "_doc": "余像·剑雨（docs/91 §16）：残像消散时沿路径每 rain_step 落一柄剑，从起点到终点间隔 rain_gap 秒；伤害在各自落地时结算",
+      "on_expire": [
+       {
+        "shape": "circle",
+        "center": "path",
+        "step": "$rain_step",
+        "r": "$rain_r",
+        "delay": "$rain_fall",
+        "stagger": "$rain_gap",
+        "mult": "$rain_mult_s3",
+        "ring": false,
+        "src": "分身",
+        "tags": [
+         "basic"
+        ],
+        "on_hit": [
+         {
+          "st": "stun",
+          "dur": "$rain_stun"
+         }
+        ]
+       },
+       {
+        "verb": "fx_rain",
+        "along": "path",
+        "step": "$rain_step",
+        "if_tex": "fx_texas_sword_drop",
+        "strip": "fx_texas_sword_drop",
+        "anchor": [
+         6,
+         38
+        ],
+        "fall_frames": 4,
+        "stagger": "$rain_gap",
+        "fall": 70,
+        "fall_t": "$rain_fall",
+        "stick": 0.2,
+        "scorch": 0.0,
+        "streak": 1,
+        "scale": 0.6,
+        "tilt": 3,
+        "_doc": "10-21 用户：剑太大显廉价 → 0.9 倍改 0.6 倍、去落地火花（hit）；残像地面光带 line_w 0 关掉（纯画面）"
+       },
+       {
+        "verb": "fx_rain",
+        "along": "path",
+        "step": "$rain_step",
+        "if_tex": "!fx_texas_sword_drop",
+        "strip": "fx_texas_blade",
+        "mark": "fx_texas_rain_mark",
+        "stagger": "$rain_gap",
+        "fall": 70,
+        "fall_t": "$rain_fall",
+        "fall_frames": 2,
+        "mark_frames": 3,
+        "stick": 0.3,
+        "scorch": 0.0,
+        "streak": 1,
+        "scale": 0.4,
+        "tilt": 3
+       }
+      ],
+      "line_w": 0.0
      }
     ]
    }
@@ -1258,12 +1348,12 @@
     },
     {
      "trig": "on_dash_end",
-     "src": "剑雨滂沱",
-     "_doc": "S3 每次冲刺到头：落点小剑雨",
+     "src": "分身",
+     "_doc": "S3 每道分身到头：落点小剑雨",
      "do": [
       {
        "shape": "circle",
-       "center": "self",
+       "center": "target",
        "r": "$rain3_r",
        "mult": "$rain3_mult",
        "power": true,
@@ -1277,7 +1367,7 @@
        "strip": "fx_texas_blade",
        "mark": "fx_texas_rain_mark",
        "r": "$rain3_r",
-       "center": "self",
+       "center": "target",
        "density": 1.5,
        "on_enemies": 0.5,
        "stagger": 0.3,
