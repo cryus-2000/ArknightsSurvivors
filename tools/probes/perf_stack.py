@@ -7,7 +7,8 @@
 场景（都是 --balance --nodeath --bot=expert --fixed-fps 60 --realtime，快进到 rtfrom 后按真实步长）：
   c100   docs/50 §24：水月单人 seed 1，同屏上限压到 ~100（enemy/max_alive=250），360–600 秒
   late   seed 13 浊心斯卡蒂 + 德克萨斯 + 能天使，540–660 秒（9:00 后满屏 + 10:00 最终 Boss）
-  skills seed 13 浊心斯卡蒂 + 艾雅法拉 + 维什戴尔 + 乌尔比安（水 / 火 / 爆炸 / 冲锋颗粒齐放），--prog=8，360–600 秒，同屏上限 ~100
+  skills  seed 13 乌尔比安 + 浊心斯卡蒂 + 维什戴尔（冲锋 / 水 / 连环爆颗粒齐放），--prog=8，360–600 秒，同屏上限 ~100
+  skills2 seed 13 艾雅法拉 + 拉普兰德 + 德克萨斯（火 / 熔岩颗粒 + 两名近战刀光），其余同 skills（编队上限 3 人）
 输出：<主仓库>/build/perf_stack/<标签>/out.txt、perf.json、load.txt（每 5 秒全机 Godot 数）。开测前等全机 Godot ≤ --maxother 个（缺省 0，最多等 20 分钟）。
 """
 import json, os, sys, threading, time
@@ -22,7 +23,8 @@ COMMON = ["--balance", "--nodeath", "--bot=expert", "--realtime", "--perf", "--p
 SCEN = {
     "c100": ["--seed=1", "--op=mizuki", "--norecruit", "--rtfrom=360", "--maxt=600", "--bal=enemy/max_alive=250"],
     "late": ["--seed=13", "--op=skalter", "--squad=texas,exusiai", "--rtfrom=540", "--maxt=660"],
-    "skills": ["--seed=13", "--op=skalter", "--squad=eyjafjalla,wisadel,ulpianus", "--prog=8", "--rtfrom=360", "--maxt=600", "--bal=enemy/max_alive=250"],
+    "skills": ["--seed=13", "--op=ulpianus", "--squad=skalter,wisadel", "--prog=8", "--rtfrom=360", "--maxt=600", "--bal=enemy/max_alive=250"],
+    "skills2": ["--seed=13", "--op=eyjafjalla", "--squad=lappland,texas", "--prog=8", "--rtfrom=360", "--maxt=600", "--bal=enemy/max_alive=250"],
 }
 
 
@@ -38,7 +40,9 @@ def run(scen, tag, quality, stackab, prof, more, maxother, res):
         args.append("--stackab=" + stackab)
     if prof:
         args.append("--prof")
-    args += [x for x in more.split(" ") if x]
+    extra = [x for x in more.split(" ") if x]
+    keys = {x.split("=", 1)[0] for x in extra if x.startswith("--") and "=" in x and not x.startswith("--bal=")}
+    args = [x for x in args if not (x.startswith("--") and x.split("=", 1)[0] in keys and "=" in x)] + extra   # --more 里同名参数替换场景缺省（游戏里先出现的生效）
     load, stop = [], threading.Event()
 
     def watch():
