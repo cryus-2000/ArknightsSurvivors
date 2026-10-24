@@ -3,7 +3,7 @@ extends Node
 ##   godot --fixed-fps 60 --path game res://tests/ulp_charge_shot.tscn -- --op=ulpianus --ulpn=100 --shotdir=<目录> [--ulprec] [--ulpperf=N] [--ulpold]
 ## 第 30 帧清场（停刷怪）、在队长周围摆 --ulpn 只不动的高血量小怪（路径上另摆 5 只），第 40 帧起每 120 帧放一次 S3（前摇约 20 帧 + 掷锚 13 帧 + 冲锋约 15 帧）（左右来回）。
 ## --ulprec：第一次放技能起连存 90 帧 rec_<帧>.png；--ulpold：冲锋颗粒关（旋钮 fx/ulp_charge_grains = 0，= 旧版 / 低画质画法；刀光第四版照常）。
-## --ulpperf=N：放 N 次，单数次冲锋颗粒开、双数次关（同局轮换，只切 fx/ulp_charge_grains），关垂直同步不锁帧，量每次冲锋窗口（放技能后第 16–75 帧：掷锚 → 冲锋 → 落地颗粒散尽）的真实帧间隔与同屏颗粒数（Performance 的 process 监视器是采样保持值，不可用），打印 ULPPERF {json}
+## --ulpperf=N：放 N 次（前 2 次只预热不计：首次冲锋有着色器编译尖峰，网页实测 4 秒），单数次冲锋颗粒开、双数次关（同局轮换，只切 fx/ulp_charge_grains），关垂直同步不锁帧，量每次冲锋窗口（放技能后第 16–75 帧：掷锚 → 冲锋 → 落地颗粒散尽）的真实帧间隔与同屏颗粒数（Performance 的 process 监视器是采样保持值，不可用），打印 ULPPERF {json}
 
 const Bal = preload("res://scripts/core/balance.gd")
 
@@ -78,7 +78,7 @@ func _process(_d: float) -> void:
 	if rec and casts == 1 and frames - cast_at < 90 and shot_dir != "":
 		get_viewport().get_texture().get_image().save_png(shot_dir + "/rec_%03d.png" % rec_i)
 		rec_i += 1
-	if perf > 0 and cast_at > 0 and frames - cast_at > 15 and frames - cast_at <= 75:
+	if perf > 0 and casts > 2 and cast_at > 0 and frames - cast_at > 15 and frames - cast_at <= 75:
 		if frames - cast_at == 16:
 			n_alive = game.enemies.filter(func(e): return not e.dead).size()
 		var key := "g1" if Bal.v("fx/ulp_charge_grains", 1.0) > 0.0 else "g0"
