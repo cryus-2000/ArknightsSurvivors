@@ -99,7 +99,8 @@ PARANOIA = ("“偏执泡影” · 合并版（主轴：冲刺穿身）", [
      "lines": ["主轴：光环 −35%，冲刺穿身 = 光环散掉 5 秒（窗口期停火）。", "弹幕：泡影环 2 波错位（冲进去要连穿两道缺口，拦路）；呼号声波扇（光环在时每 6 秒一次，惩罚）。"]},
 ])
 
-TEAL, BT2, WT = (0.2, 1.0, 0.85), (1.0, 0.3, 0.38), (0.75, 1.0, 0.95)
+TEAL, BT2, WT = (0.25, 1.0, 0.6), (0.35, 0.75, 0.4), (0.8, 1.0, 0.85)   # 伊莎玛拉青绿系（用户 10-25）；二幕的红只放在预警外缘和地面血斑
+BLOOD = (1.0, 0.3, 0.38)
 RING = [(CX + math.cos(a) * 250, CY + 50 + math.sin(a) * 120) for a in (0.3, 1.2, 2.0, 2.9, 3.8, 5.4)]
 ISHAR = ("伊莎玛拉 · 合并版（主轴：破网）", [
     {"name": "一 · 大群：绕一圈拆网", "col": TEAL, "draw": [
@@ -113,17 +114,19 @@ ISHAR = ("伊莎玛拉 · 合并版（主轴：破网）", [
         lambda im, d: txt(d, (20, 96), "歌环从她往外扩，正好扫过连线海嗣那一圈"),
     ], "P": [(CX + 200, CY + 135), (CX + 160, CY + 160), (CX + 240, CY + 160)],
      "lines": ["主轴：连线海嗣在 220–320 一圈，绕着走过去让自动攻击拆。", "弹幕：大群之歌缺口环正好扫过那一圈（拆网时要穿缺口，拦路）；三线扫射；撕咬（贴她太近才出，惩罚）。"]},
-    {"name": "二 · 濒死强化：先打碎泪", "col": BT2, "ground": "blood", "draw": [
+    {"name": "二 · 濒死强化：先打碎泪", "col": BT2, "draw": [
+        lambda im, d: B.ground(d, "blood", BLOOD, CX, CY + 40, random.Random(3)),
         lambda im, d: B.beam(d, CX, CY + 40, CX - 170, CY + 80, 10, BT2),
         lambda im, d: B.beam(d, CX, CY + 40, CX + 170, CY + 80, 10, BT2),
         lambda im, d: [B.circle(d, CX - 170 + i * 45, CY + 140 + abs(i - 2) * 18 - 30, 18, BT2) for i in range(5)],
+        lambda im, d: [d.ellipse((CX - 170 + i * 45 - 21, CY + 140 + abs(i - 2) * 18 - 30 - 11, CX - 170 + i * 45 + 21, CY + 140 + abs(i - 2) * 18 - 30 + 11), outline=B.rgb(BLOOD, 1.1), width=2) for i in range(5)],
         lambda im, d: [put(im, "e_tear", 0.7, x, CY + 100) for x in (CX - 170, CX + 170)],
         lambda im, d: [gold(d, x, CY + 96, 24) for x in (CX - 170, CX + 170)],
-        lambda im, d: put(im, "e_ishar_t", 0.36, CX, CY + 40, tint=(1.2, 0.8, 0.85)),
+        lambda im, d: put(im, "e_ishar_t", 0.36, CX, CY + 40, tint=(0.95, 1.05, 0.95)),
         lambda im, d: tag(d, (CX - 60, CY + 205), "拦路"),
         lambda im, d: txt(d, (20, 96), "共鸣直线：从侧面接近泪，别走连线"),
     ], "P": [(CX - 120, CY + 200), (CX - 160, CY + 215), (CX - 80, CY + 220)],
-     "lines": ["主轴：泪在场时断线会自动接回，先打碎泪。", "弹幕：泪落——5 个小落点沿弧线落在去泪的路上；泪与她之间的共鸣直线每 6 秒结算（拦路）；撕咬改 X 交叉剪。"]},
+     "lines": ["主轴：泪在场时断线会自动接回，先打碎泪。暗绿主色，「濒死强化」的红只在预警外缘和地面血斑。", "弹幕：泪落——5 个小落点沿弧线落在去泪的路上；泪与她之间的共鸣直线每 6 秒结算（拦路）；撕咬改 X 交叉剪。"]},
     {"name": "三 · 回声：拆网 + 音圈", "col": WT, "ground": "sound", "draw": [
         lambda im, d: B.gap_ring(d, CX, CY + 40, 150, 1.2, 0.6, WT, 22, "scale"),
         lambda im, d: B.gap_ring(d, CX, CY + 40, 230, 2.25, 0.6, WT, 30, "scale", 0.1),
@@ -136,7 +139,7 @@ ISHAR = ("伊莎玛拉 · 合并版（主轴：破网）", [
      "lines": ["主轴：拆网；被杀的连线海嗣留音圈，1 秒后爆。", "弹幕：三线分锁三人（之后 2 秒空档，定拍）；大群之歌 2 圈鳞片弹（拦路）。"]},
 ])
 
-G1, G2, G3 = (0.55, 1.0, 0.65), (0.9, 1.0, 0.4), (0.85, 1.0, 0.85)
+G1, G2, G3 = (0.3, 0.5, 1.0), (0.5, 0.75, 1.0), (0.82, 0.9, 1.0)   # 伊祖米克群青系（用户 10-25），比小怪青蓝深、偏紫
 IZUMIK = ("伊祖米克 · 合并版（主轴：拦截子代）", [
     {"name": "一 · 阐释：场边截杀", "col": G1, "ground": "roots", "draw": [
         lambda im, d: [B.circle(d, 210 - i * 30, CY + 60 + i * 30, 24, G1) for i in range(4)],
@@ -150,7 +153,7 @@ IZUMIK = ("伊祖米克 · 合并版（主轴：拦截子代）", [
      "lines": ["主轴：子代从场边走向她，迎上去让自动攻击在半路打掉。", "弹幕：潮汐坠落弧排落点落在你和子代之间（拦路）；回中间贴她时分享扇形（惩罚）。"]},
     {"name": "二 · 学习：两路 + 脚下的茧", "col": G2, "ground": "roots", "draw": [
         lambda im, d: B.spiral(d, CX, CY + 40, G2, 2),
-        lambda im, d: put(im, "e_izumik", 0.42, CX, CY + 70, tint=(1.1, 1.1, 0.8)),
+        lambda im, d: put(im, "e_izumik", 0.42, CX, CY + 70, tint=(0.9, 1.0, 1.15)),
         lambda im, d: [d.ellipse((x - 14, y - 10, x + 14, y + 10), fill=B.rgb(G2, 0.6, 220), outline=(255, 255, 255)) for x, y in ((CX - 55, CY + 85), (CX + 50, CY + 90))],
         lambda im, d: [cring(d, x, y, 24, 0.45) for x, y in ((CX - 55, CY + 85), (CX + 50, CY + 90))],
         lambda im, d: arrow(d, 16, CY + 130, 0.0, X.GOLD, 18),
@@ -163,7 +166,7 @@ IZUMIK = ("伊祖米克 · 合并版（主轴：拦截子代）", [
         lambda im, d: B.circle(d, PW - 110, CY + 170, 52, (0.4, 0.4, 0.4), "ring"),
         lambda im, d: [B.fan(d, CX, CY + 40, 190, math.pi / 2 + k, 0.3, G3) for k in (-0.9, 0.0, 0.9)],
         lambda im, d: put(im, "e_izumik", 0.42, CX, CY + 70),
-        lambda im, d: tag(d, (CX - 110, CY + 210), "拦路"),
+        lambda im, d: tag(d, (CX - 17, CY + 150), "拦路"),
         lambda im, d: txt(d, (130, 96), "全场分享：预告 2–4.5 秒 + 蓄力 1.6 秒"),
     ], "P": [(110, CY + 170), (85, CY + 160), (135, CY + 160)],
      "lines": ["主轴：全场分享时躲进灯柱（灯柱内不受伤、留缓冲），每次分享后用过的灯柱熄灭。", "弹幕：分享扇形改三叶扇，挡在去下一根灯柱的路上（拦路）。"]},
