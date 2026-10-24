@@ -1,0 +1,6 @@
+[skipped] 未跑(tri)：诊断探针 tools/probes/melee_diag.py + game/tests/melee_diag.gd（取自 8181e8387）本身有 bug——
+melee_diag.gd:37 的循环条件引用了 g.S.LEVELUP，但 game.gd 的 enum S 从未有过 LEVELUP 这个成员
+（enum S { PLAY, CHOICE, PAUSE, DEAD, WIN, SHOP, SHOW, STATS, INTRO, OPENING }，8181e8387 / 04607ca76 / 2a6cf7029 / origin/main 四个提交的 game.gd 此处完全一致）。
+在 main 配置上已经用 texas/lappland/mizuki 三个 op 实测验证：每个 seed 都因为这一行每帧报一次 SCRIPT ERROR（Invalid access to property or key 'LEVELUP' on a base object of type 'Dictionary'）而把原本 ~7s 就能跑完的单局拖到超过 900s 超时，8 个 seed 全部返回 None（n=0，详见 main.log / NOTES.md）。
+由于 v1(04607ca76) / tri(2a6cf7029) 两个提交的 game.gd enum S 与 main 完全相同，且探针三个文件（melee_diag.gd/.tscn/melee_diag.py）在三个配置里都是原样从同一个 8181e8387 检出、未作任何改动，这个 bug 会 100% 原样重现——已用本地去掉该引用的对照实验证实（去掉后同一局 7.5s 跑完，但因为探针本身状态覆盖不全在 t=51.7s 提前退出，说明探针代码与当前 main 的状态机已经不匹配，这不是我们环境的问题）。
+为避免重复烧两个 ~30-60 分钟的云端批跑去确认同一个已经验证过的确定性 bug，这两个配置未再跑。按指示不重试超过一次：这就是失败后的唯一一次尝试结果。

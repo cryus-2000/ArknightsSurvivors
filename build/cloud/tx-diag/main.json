@@ -1,0 +1,92 @@
+{
+ "label": "main",
+ "summary": {
+  "texas": {
+   "act_frac": 0.0,
+   "atk_per_min": 0.0,
+   "move_frac": 0.0,
+   "still_frac": 0.0,
+   "near_at_atk": 0.0,
+   "zero_target_frac": 0.0,
+   "sur3_frac": 0.0,
+   "sur3_dmg_frac": 0.0,
+   "contact_avg": 0.0,
+   "dmg_taken_pm": 0.0,
+   "kills_pm": 0.0,
+   "t": 0.0,
+   "lv": 0.0,
+   "n": 0,
+   "dead": 0,
+   "win": 0
+  },
+  "lappland": {
+   "act_frac": 0.0,
+   "atk_per_min": 0.0,
+   "move_frac": 0.0,
+   "still_frac": 0.0,
+   "near_at_atk": 0.0,
+   "zero_target_frac": 0.0,
+   "sur3_frac": 0.0,
+   "sur3_dmg_frac": 0.0,
+   "contact_avg": 0.0,
+   "dmg_taken_pm": 0.0,
+   "kills_pm": 0.0,
+   "t": 0.0,
+   "lv": 0.0,
+   "n": 0,
+   "dead": 0,
+   "win": 0
+  },
+  "mizuki": {
+   "act_frac": 0.0,
+   "atk_per_min": 0.0,
+   "move_frac": 0.0,
+   "still_frac": 0.0,
+   "near_at_atk": 0.0,
+   "zero_target_frac": 0.0,
+   "sur3_frac": 0.0,
+   "sur3_dmg_frac": 0.0,
+   "contact_avg": 0.0,
+   "dmg_taken_pm": 0.0,
+   "kills_pm": 0.0,
+   "t": 0.0,
+   "lv": 0.0,
+   "n": 0,
+   "dead": 0,
+   "win": 0
+  }
+ },
+ "runs": {
+  "texas": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "lappland": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ],
+  "mizuki": [
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null,
+   null
+  ]
+ },
+ "note": "skadi/hoshiguma/saria not run; texas/lappland/mizuki all n=0 due to probe bug (g.S.LEVELUP does not exist in game.gd enum S) causing per-frame SCRIPT ERROR spam and 900s timeout on every seed. See NOTES.md."
+}
