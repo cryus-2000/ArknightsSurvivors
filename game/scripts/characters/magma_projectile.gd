@@ -3,7 +3,6 @@ extends RefCounted
 
 const A = preload("res://scripts/art.gd")
 const CRUST := Color(0.18, 0.09, 0.07)
-const Bal = preload("res://scripts/core/balance.gd")
 const HOT := Color(1.0, 0.43, 0.08)
 
 static func position_at(from: Vector2, to: Vector2, k: float, height: float) -> Vector2:
@@ -183,7 +182,8 @@ static func _snap(p: Vector2) -> Vector2:
 
 
 static func material_on(o) -> bool:
-	return o.g.optical != null and o.g.optical.grains != null and o.g.optical.grains.on() and not o.g.optical.grains.off and Bal.v("fx/material_grains", 0.0) > 0.0
+	var opt = o.g.get("optical")   # 契约测试的假 g 可能是 Dictionary（eyja_volcanic_weight），不能直接 .optical
+	return opt != null and opt.grains != null and opt.grains.material_on()
 
 ## 仅画面计时；不读取玩法 RNG，不改变弹体位置或碰撞。
 static func material_trail(o, item: Dictionary, p: Vector2, direction: Vector2, dt: float, fire: bool) -> void:

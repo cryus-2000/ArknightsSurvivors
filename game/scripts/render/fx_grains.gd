@@ -39,6 +39,7 @@ const SPARK_MAX := [0, 120, 240]
 var g
 var level := 2      # 2 高 / 1 中 / 0 低（低 = 不开）
 var off := false    # --grainab 同局轮换：true = 这一段退回第二版画法
+var mat_off := false   # --matab 同局轮换：true = 这一段材质颗粒关（只关材质，刀光第四版照旧）
 # 颗粒（结构数组）：位置、速度、剩余寿命、总寿命、颜色、模板序号
 var pos := PackedVector2Array()
 var vel := PackedVector2Array()
@@ -65,6 +66,11 @@ func setup(game) -> void:
 
 func on() -> bool:
 	return level > 0 and g != null and g.optical_on and Bal.v("fx/grains", 1.0) > 0.0
+
+
+## 材质颗粒（fx/material_grains，缺省关）：模板开着、未被 --grainab / --matab 轮换关掉
+func material_on() -> bool:
+	return on() and not off and not mat_off and Bal.v("fx/material_grains", 0.0) > 0.0
 
 
 func budget() -> int:
@@ -190,7 +196,7 @@ func flush() -> void:
 ## 首次缓存固定最多 16×16 个采样点；不逐帧读贴图，不建立新节点。
 ## 整个效果先验收预算：失败时调用方完整保留帧条，成功时不叠加原帧条/GPU爆发。
 func material_burst(name: String, tx: Texture2D, frames: int, at: Vector2, angle: float, sc: float, anchor: Vector2, flip: bool, tint: Color) -> bool:
-	if not on() or off or Bal.v("fx/material_grains", 0.0) <= 0.0 or not MATERIAL_FX.has(name):
+	if not material_on() or not MATERIAL_FX.has(name):
 		return false
 	var kind: String = MATERIAL_FX[name]
 	if not _samples.has(name):
@@ -217,9 +223,11 @@ func material_burst(name: String, tx: Texture2D, frames: int, at: Vector2, angle
 	var count := mini(source.size(), 48 if level >= 2 else 32)
 	if count < 8 or pos.size() + count > budget() or int(_frame_n.get(kind, 0)) + count > int(templates[kind].per_frame):
 		return false
+	var cell: float = float(tx.get_width() / frames) / 16.0   # 采样格（贴图像素）：格内随机抖开，否则颗粒排成 16×16 点阵（10-24 验收录像可见）
 	for i in count:
 		var sample: Array = source[int(float(i) * source.size() / count)]
-		var offset: Vector2 = (sample[0] - anchor) * sc
+		var jit := Vector2(g.vrng.randf_range(-0.5, 0.5), g.vrng.randf_range(-0.5, 0.5)) * cell
+		var offset: Vector2 = (sample[0] + jit - anchor) * sc
 		if kind == "water":
 			offset *= 0.72
 		elif kind == "fire":
@@ -266,7 +274,7 @@ func grain_color(i: int) -> Color:
 
 
 func _lappland_step() -> void:
-	if not on() or off or Bal.v("fx/material_grains", 0.0) <= 0.0 or not "squad" in g or g.squad == null:
+	if not material_on() or not "squad" in g or g.squad == null:
 		return
 	var o = g.squad.get_op("lappland")
 	if o == null:

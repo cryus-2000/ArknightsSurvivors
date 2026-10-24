@@ -1,6 +1,6 @@
 """Particle pool contract only. One silent headless process; no asset import."""
 from pathlib import Path
-import os, sys, msvcrt
+import os, sys
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "build/material_grains_check"
 OUT.mkdir(parents=True, exist_ok=True)
@@ -12,19 +12,8 @@ for name, content in FILES.items():
     (OUT / name).write_text(content, encoding="utf-8")
 source = (ROOT / "game/scripts/render/fx_grains.gd").read_text(encoding="utf-8")
 (OUT / "grains.gd").write_text(source.replace("res://scripts/core/balance.gd", "res://balance.gd"), encoding="utf-8")
-os.environ["GODOT_MAX_PROCS"] = "1"
 os.environ["TEMP"] = os.environ["TMP"] = str(OUT)
-import godot_runner as gr
-with open(gr._LOCK, "a+b") as lock:
-    lock.seek(0)
-    try:
-        msvcrt.locking(lock.fileno(), msvcrt.LK_NBLCK, 1)
-    except OSError:
-        sys.exit("Runner busy; retry later")
-    lock.seek(0)
-    msvcrt.locking(lock.fileno(), msvcrt.LK_UNLCK, 1)
-if gr.count_godot():
-    sys.exit("Godot busy; retry later")
+import godot_runner as gr   # 全机并发上限由 run_godot 自己排队（原先「有任何 Godot 在跑就退出」在多会话下永远跑不了）
 exe = os.environ.get("GODOT_EXE", gr.find_godot())
 out, err, timeout = gr.run_godot([exe, "--headless", "--audio-driver", "Dummy", "--path", str(OUT), "--script", "test.gd"], 20)
 print(out, err)
