@@ -947,6 +947,8 @@ func boss_blade(b: Dictionary, pos: Vector2) -> void:
 # =====================================================================
 var _fxc = null                # --fxcensus（docs/138 §7）：本局经 fx_sprite 播过的帧条名 → 次数，局终 / 每 30 秒打印 FXCENSUS（盘点可粒子化的一次性特效）
 var _fxc_t := 0.0
+var _int_on := false            # 低分辨率层整数格（docs/138 §10）：每帧按 render/fx_int_scale + 光学低分辨率层是否开着刷新一次
+var _int_f := -1
 var p2 := true                 # 运行时总开关（--vfxab=N 同局轮换测量用；缺省开）
 var _k2: Dictionary = {}       # fx 段快照（每帧读的旋钮不走 Bal.v 的字符串拆分）
 var _lamp_prev := -1.0         # 灯火观察（update_visuals 调 watch_lamp）
@@ -1275,3 +1277,19 @@ func _fx_census(name: String, ground: bool) -> void:
 	if g.t - _fxc_t >= 30.0:
 		_fxc_t = g.t
 		print("FXCENSUS ", JSON.stringify(_fxc))
+
+
+## 特效缩放取整到低分辨率层整数格（docs/138 §10，用户 10-24 定）：s = 每个 1x 美术像素的世界像素数（低分辨率层 1 格 = 2 世界像素）。
+## 美术像素 ≥ 0.75 格的取整到最近整数格（至少 1 格），像素宽度均匀、不再一宽一窄；< 0.75 格的不动（画布过大，列重画名单）。
+## 只在光学观感低分辨率层开着时生效；按半径拟合（fit）的区域 / 扩散件不走这里（取整会让范围画错）。纯画面
+func int_scale(s: float) -> float:
+	var fn: int = Engine.get_process_frames()
+	if fn != _int_f:
+		_int_f = fn
+		_int_on = g.optical_on and g.optical != null and g.optical._lo_on and Bal.v("render/fx_int_scale", 1.0) > 0.0
+	if not _int_on:
+		return s
+	var cells: float = absf(s) * 0.5
+	if cells < 0.75:
+		return s
+	return signf(s) * maxf(1.0, roundf(cells)) * 2.0
