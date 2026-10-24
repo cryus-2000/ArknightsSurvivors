@@ -1333,7 +1333,10 @@ func _draw_fx() -> void:
 				g.vfx.spr("tentacle", 5, fr, f.pos + Vector2(48, 22), Game.PX * 2.4, false, tc * Color(0.9, 0.9, 0.9, 1.0), Vector2(0.5, 1.0))
 			"sprite":
 				var spec: Array = Game.V6_FRAMES[f.name]
-				var fr := mini(int((f.max - f.life) * float(f.get("fps", spec[1]))), spec[0] - 1)   # fps：加快过的死亡帧条（vfx.death_shatter）
+				var el: float = f.max - f.life - float(f.get("delay", 0.0))   # delay：延后开播（vfx.fx_sprite）
+				if el < 0.0:
+					continue
+				var fr := mini(int(el * float(f.get("fps", spec[1]))), spec[0] - 1)   # fps：加快过的死亡帧条（vfx.death_shatter）
 				var scol: Color = f.get("col", Color.WHITE)
 				scol.a *= fdim
 				g.vfx.spr_rot(f.name, fr, f.pos, f.ang, g.vfx.int_scale(f.scale), scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))

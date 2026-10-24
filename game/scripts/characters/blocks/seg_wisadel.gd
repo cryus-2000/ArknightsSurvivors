@@ -567,17 +567,28 @@ static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src:
 			o.fx({"kind": "h4_shade", "pos": killed[k], "life": 0.3, "col": H4_DARK})
 
 
-## 炮击帧条按爆炸半径放大（10-24 范围 ×2 / ×1.5 后）：倍率取整数（像素块整齐，不糊）并受 vfx.FX_SCALE_MAX 封顶；
-## 帧条盖不住真实半径时（S1 / S2 / S3 大爆炸）另画一圈贴地冲击环到真实半径，看得出打到多远。
-## 返回帧条实际盖住的半径（焦痕按它画，不按真实半径铺一大片黑）；缺图返回 0
+## 炮击帧条按爆炸半径放大（10-24 范围改版，docs/137 §8）：倍率取整数（像素块整齐，不糊）并受 vfx.FX_SCALE_MAX 封顶。
+## 一团盖不住真实半径时（S3 巨炮）改成「连环爆」：外圈再补 n 团同像素尺度的炮击帧条，外沿落在真实半径，依次延后约 0.035 秒开播（最多 6 团、外圈略淡，不连成一片闪），
+## 画面覆盖真实范围而像素不变粗；外圈另画一道贴地冲击环收边。返回中心一团盖住的半径（焦痕按它画，不铺一大片黑）；缺图返回 0
 static func _h4_cannon_sprite(o, c: Vector2, r: float, k: float) -> float:
+	var g = o.g
+	var cap: float = floorf(g.vfx.FX_SCALE_MAX)
 	var want: float = r * k / 96.0
-	var sc: float = clampf(roundf(want), 1.0, floorf(o.g.vfx.FX_SCALE_MAX))
+	var sc: float = clampf(roundf(want), 1.0, cap)
 	if not o.spawn_fx_sprite("fx_wisadel_cannon", c, sc):
 		return 0.0
+	var rv: float = sc * 96.0 / k
 	if want > sc * 1.15:
-		o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.35, "life": 0.32, "col": H4_RED, "w": 3.0, "floor": true, "alpha": 0.8})
-	return minf(r, sc * 96.0 / k)
+		var ss: float = clampf(roundf((r - rv * 0.6) * 0.5 * k / 96.0), 1.0, cap)   # 外圈每团的倍率：约占外圈环带宽度
+		var rs: float = ss * 96.0 / k
+		var d: float = maxf(rv * 0.55, r - rs)   # 外圈中心到圆心的距离：外沿 ≈ 真实半径
+		var n: int = clampi(ceili(TAU * d / (rs * 1.7)), 3, 6)
+		var a0: float = g.vrng.randf() * TAU
+		for i in n:
+			var p: Vector2 = c + Vector2.from_angle(a0 + TAU * i / n) * d
+			g.vfx.fx_sprite("fx_wisadel_cannon", p, ss, 0.0, i % 2 == 1, false, Color(1, 1, 1, 0.8), false, Vector2(-1, -1), 0.04 + 0.035 * i)
+		o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.5, "life": 0.4, "col": H4_RED, "w": 2.0, "floor": true, "alpha": 0.6})
+	return minf(r, rv)
 
 
 ## 落地：Codex 炮击帧条（fx_wisadel_cannon）；缺图保留程序特效（闪光 / 黑烟 / 红环 / 碎片 / 焦痕）
