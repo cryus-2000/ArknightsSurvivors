@@ -42,9 +42,10 @@ def hoshiguma():
 # 不拉长、不放大（用户：放大显得奇怪）；蓄力只收到腰前，不抬过胸（用户：举过头奇怪）。
 # 帧数 / 出手帧与普攻条相同（8 帧，第 4 帧出手），时序由 json 抄普攻的 attack_timing。
 # 每帧：(前手上臂, 前手前臂, 后手上臂, 胸, 前手提到上层) ；角度为转角增量（度）
-PUNCH = [(0, 0, 0, 0, False), (10, 35, 15, 4, False), (-8, 20, 25, 0, True),
+PUNCH = [(-45, 55, 0, 0, False), (-40, 62, 15, 4, False), (-8, 20, 25, 0, True),   # 起势：前手放到腰前（原生 Loop 站姿双手抬在脸侧，用户 10-24「第一帧还是举着双手」）
          (-38, -2, 30, -14, True), (-36, -2, 30, -12, True), (-15, 15, 20, -5, True),
-         (-5, 10, 8, 0, False), (0, 5, 0, 0, False)]
+         (-30, 40, 8, 0, False), (-45, 55, 0, 0, False)]
+GUARD = (-45, 55)   # 前手放到腰前的转角（上臂, 前臂）
 SARIA_HIDE = ["F_Shield", "F_Weapon", "F_Pinhead"]   # 盾 / 武器已放下
 SARIA_FRONT_ARM = ["F_L_Arm", "F_L_Shoulder", "F_L_Wrap", "F_L_Ring", "F_L_Hand_C", "F_L_Hand_B", "F_L_Hand", "F_L_Finger", "F_L_Finger_2"]
 
@@ -73,9 +74,11 @@ def saria():
     end = [round(0.49 * i / 7, 4) for i in range(8)]
     # 起手按原作放下盾和武器；循环 / 收势 / 拳击都空手（地上的盾不画：区域跟着队长走，停走之间盾会一闪一闪，用户 10-24 定全程空手打）
     db, anc = render("saria", "idle_stand.json", "s3_begin", "Skill_Begin", begin)
-    dl, _ = render("saria", "idle_stand.json", "s3_loop_raw", "Skill_Loop", loop)
+    # 循环 / 空手跑也把前手放到腰前（同冲拳起势 GUARD），出拳前后不跳
+    guard = [{"anim": "Skill_Loop", "t": t, "rot": {"F_L_Arm": GUARD[0], "F_L_Shoulder": GUARD[1]}, "hide": SARIA_HIDE} for t in loop]
+    dl, _ = render_poses("saria", "attack_move.json", "s3_loop_raw", guard)
     de, _ = render("saria", "idle_stand.json", "s3_end_raw", "Skill_End", end)
-    dr, _ = render("saria", "attack_move.json", "s3_run", "Skill_Loop", loop, "move_attack")
+    dr, _ = render_poses("saria", "attack_move.json", "s3_run", guard, "move_attack")
     poses = punch_poses()
     dp, _ = render_poses("saria", "attack_move.json", "s3_punch", poses)
     dm, _ = render_poses("saria", "attack_move.json", "s3_punch_move", poses, "move_attack")
