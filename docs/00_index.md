@@ -143,6 +143,7 @@
 | [132_handoff_1024](132_handoff_1024.md) | 交接手册（10-24 晚版，Claude / GPT 通用）：换账号 / 换模型接手先读——接手第一步、工作方式、合入流程、当前状态、在飞分支、待拍板、已定口径 | 现行 |
 | [135_leader_swap](135_leader_swap.md) | 切换队长（原型） | 进行中 | 10-23：Q / RB / 触屏点卡轮流切队长，谁都不瞬移、镜头 0.25 秒缓动、冷却 2 秒、倒地者不能切、生命共用、切换播出击语音；技能键改 E / J | 41、114 |
 | [137_boss_flash](137_boss_flash.md) | 最终 Boss 战频闪：测量与修复 | 已实施记录 | 10-24：主因 Boss 受击白闪每下命中都续（起闪 6–7 次/秒、六七成时间是白的），命中三档次要；改为白闪间隔 ≥ 0.4 秒、0.09 秒淡出、Boss 不换受击姿态、去蓄力 sin 振荡；修后起闪 1.6–2.1 次/秒，框内超 3 次/秒的窗口 18–137 → 0–6；附录像 / 统计工具 tools/boss_flash_rec.py、boss_flash_measure.py；§7 Boss 重影：泡影二阶段别名帧条查不到重画表、按 2 帧切出 3 只并排，已修 | 53、127 |
+| [139_look_nausea](139_look_nausea.md) | 画面「恶心 / 粘腻」排查：镜头取整节拍、非整数放大蠕动、高刷屏锁 60、顿帧频率、色调（暗而浓的青蓝 + 溟痕靛紫网纹）量化与旋钮方案 | 调查 / 待拍板 | 10-24：同 seed 逐项开关录帧（tools/probes/look_nausea.py）；试验开关 render/nausea_safe（缺省关） | 130、132、136 |
 | [136_pixel_particle_template](136_pixel_particle_template.md) | 像素粒子模板（特效粒子化规范，样板：刀光第四版） | 现行 | 10-24：CPU 颗粒 + 一次批绘、2 px 世界格、只用 vrng、高 900 / 中 450、低画质回退；火 / 水 / 电 / 体液模板做法 | 50 §25.4、137 |
 | [138_material_grains_review](138_material_grains_review.md) | Codex 材质颗粒（艾雅 / 拉普兰德）验收：能合、缺省关、修了什么、帧时、同 seed | 一次性审阅 | 10-24：fx/material_grains 关时 / 开时同 seed 逐行相同；桌面 +0.5–0.7 ms；拉普兰德返工 | 136、50 |
 | [131_cleanup_inventory](131_cleanup_inventory.md) | 交接前清理盘点（art/incoming、game、tools、docs、仓库体积） | 一次性审阅 | 10-24：art/incoming 276 MiB 里在用约 21；三批删除计划（零风险约 92 MiB → 需验证约 165 → 需用户定约 41）；.git 2.9 GB 里 1.25 GB 是 codex/* 分支的 Spine 源 zip；查出 move_attack 帧条从未加载（bug） | 55、108、130 |

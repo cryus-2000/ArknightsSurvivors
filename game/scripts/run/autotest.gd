@@ -314,6 +314,39 @@ func _rec_step() -> void:
 			g.get_tree().quit()
 
 
+## --camlog=<起始秒>（docs/139 画面眩晕排查，仅测试）：游戏时间过了起始秒后每帧打印一行 CAMLOG：镜头位置 / 偏移、
+## 画布变换原点（窗口像素）、镜头缩放、低分辨率贴图位置、本帧是否顿帧、正在后坐 / 形变的敌人数、敌人总数；
+## --nohitstop：整局关命中顿帧（同设置「命中顿帧」关）
+var _camlog_t0 := -2.0
+func _camlog_step() -> void:
+	if _camlog_t0 < -1.0:
+		_camlog_t0 = -1.0
+		for a in Cfg.dev_args():
+			if a.begins_with("--camlog="):
+				_camlog_t0 = float(a.substr(9))
+			if a == "--nohitstop":
+				Cfg.hitstop = false
+			if a.begins_with("--perfdump=") and DisplayServer.get_name() != "headless":
+				var sc: int = DisplayServer.window_get_current_screen()
+				print("SCREEN idx=%d refresh=%.2f size=%s win=%s vsync=%d max_fps=%d" % [sc, DisplayServer.screen_get_refresh_rate(sc), str(DisplayServer.screen_get_size(sc)),
+					str(DisplayServer.window_get_size()), DisplayServer.window_get_vsync_mode(), Engine.max_fps])
+	if _camlog_t0 < 0.0 or g.t < _camlog_t0 or g.state != g.S.PLAY or g.cam == null:
+		return
+	var vp: Viewport = g.get_viewport()
+	var xf: Transform2D = vp.get_final_transform() * vp.get_canvas_transform()
+	var nrc := 0
+	var nsq := 0
+	for e in g.enemies:
+		var rt: float = float(e.get("rc_t", g.world.rc_t))
+		if g.t - float(e.get("rc_at", -99.0)) < rt:
+			nrc += 1
+		if float(e.get("squash", 0.0)) > 0.0:
+			nsq += 1
+	var lr: Vector2 = g.optical.lo_rect.position if g.optical != null and g.optical.lo_rect != null and g.optical_lo else Vector2.ZERO
+	print("CAMLOG %d %.4f %.1f %.1f %.1f %.1f %.3f %.3f %.4f %.3f %.3f %d %d %d %d %.1f %.1f" % [Engine.get_process_frames(), g.t, g.cam.position.x, g.cam.position.y,
+		g.cam.offset.x, g.cam.offset.y, xf.origin.x, xf.origin.y, xf.x.x, lr.x, lr.y, 1 if (g.hitstop > 0.0 and Cfg.hitstop) else 0, nrc, nsq, g.enemies.size(), g.ppos.x, g.ppos.y])
+
+
 ## --flashrec=<起始秒>,<帧数>[,<宽>]（docs/137 Boss 频闪测量，配 --balance --realtime --fixed-fps 30）：游戏时间过了起始秒后每帧
 ## 存一张缩到 <宽>（缺省 480）的 fr_<帧>.png 到 --shotdir，并在同目录 flashrec.csv 记同一帧的画面状态（Boss 白闪 / 阶段 / 茧、
 ## 震屏、全屏闪光、顿帧、命中星、预警数、登场演出），tools/boss_flash_measure.py 统计亮度跳变。
@@ -501,6 +534,7 @@ func step() -> void:
 	if g.mode == g.Mode.BALANCE and g.t >= sfx_win_t + 30.0 and Cfg.dev_args().has("--sfxstat"):
 		_sfx_win()
 	_rec_step()
+	_camlog_step()
 	_flashrec_step()
 	_bossdup_step()
 	_cmd_step()

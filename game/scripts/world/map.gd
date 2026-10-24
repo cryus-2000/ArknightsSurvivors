@@ -62,6 +62,11 @@ func load_theme(theme_id: String) -> void:
 	# render/ambient_mult：灯火圈外的环境光（CanvasModulate）整体倍率，角色受光同一份（Look 读 map.ambient）；1 = 主题原值（用户 10-21 定亮度 B：缺省 1.3，见 balance render/_bright_b_doc）
 	var am: float = Bal.v("render/ambient_mult", 1.0)
 	ambient = Color(amb[0] * am, amb[1] * am, amb[2] * am)
+	# docs/139 试验旋钮 render/ambient_desat（缺省 0）：环境光往同亮度的灰拉（0–1），暗部不再一片高饱和青蓝
+	var ad: float = Bal.v("render/ambient_desat", 0.0)
+	if ad > 0.0:
+		var lu: float = ambient.r * 0.2126 + ambient.g * 0.7152 + ambient.b * 0.0722
+		ambient = ambient.lerp(Color(lu, lu, lu), clampf(ad, 0.0, 1.0))
 	tex.clear()
 	_load(theme.tiles.tex)
 	if theme.has("patches"):
@@ -90,7 +95,8 @@ func load_theme(theme_id: String) -> void:
 
 func _load(n: String) -> void:
 	if not tex.has(n):
-		tex[n] = A.tex(n)
+		# docs/139 §6.6 试验旋钮 render/env_sat / render/env_bright（缺省 1 / 1）：只给地图贴图（地砖 / 斑块 / 道具 / 大道具）降饱和，干员 / 怪物 / 特效颜色不变
+		tex[n] = A.desat_of(A.tex(n), Bal.v("render/env_sat", 1.0), Bal.v("render/env_bright", 1.0))
 
 
 func _frames_of(n: String) -> int:
@@ -844,6 +850,11 @@ func mire_cells(ins: Dictionary) -> Array:
 
 ## 按格画一组溟痕（内区先画、围边后画，各自同一张图集连续合批）；col 的 alpha = 淡入淡出
 func draw_mire_cells(cells: Array, f: int, col: Color) -> void:
+	# docs/139 §6 试验旋钮：render/mire_anim（1 = 两帧每 0.5 秒交替，缺省；0 = 定格第 1 帧）、render/mire_alpha（溟痕本体不透明度倍率，缺省 1）
+	if Bal.v("render/mire_anim", 1.0) <= 0.0:
+		f = 0
+	col.a *= Bal.v("render/mire_alpha", 1.0)
+	col *= mire_tint()
 	var cw: float = MIRE_CELL * g.PX
 	var glow: bool = g.optical_on and _mire_ab_e != null
 	var gc := Color(col.r, col.g, col.b, col.a * Bal.v("render/optical_mire_emit", 0.35))   # 发光层强度（全亮会盖掉紫色底）
@@ -864,6 +875,11 @@ func draw_mire_cells(cells: Array, f: int, col: Color) -> void:
 		g.draw_texture_rect_region(_mire_edge, dst, src, col)
 		if glow and _mire_edge_e != null:
 			g.glow_tex_next.append([_mire_edge_e, dst, src, gc])
+
+
+## docs/139 §6 试验旋钮 render/mire_tint_r / _g / _b（缺省 1, 1, 1）：溟痕本体与判定圈乘色，靛紫往深海青灰移（保留蓝调）
+func mire_tint() -> Color:
+	return Color(Bal.v("render/mire_tint_r", 1.0), Bal.v("render/mire_tint_g", 1.0), Bal.v("render/mire_tint_b", 1.0), 1.0)
 
 
 ## 64 格块取 A / B 变体（约三分之一 B，减轻 64 像素周期感）
@@ -893,15 +909,15 @@ func draw_mire(m: Dictionary) -> void:
 	var t: float = g.t
 	if mire_v2:
 		draw_mire_cells(_mire_disc(m), int(t * 2.0 + m.seed) % 2, Color(1, 1, 1, a))
-		g.world.tb_ring(m.pos, m.r, 1.5, Color(0.7, 0.4, 1.2, 0.35 * a), 36)
+		g.world.tb_ring(m.pos, m.r, 1.5, Color(0.7, 0.4, 1.2, 0.35 * a) * mire_tint(), 36)
 		return
 	var mt: Texture2D = tex.get(mire_cfg().get("tex", "terrain_mire"))
 	if mt != null:
 		# 溟痕贴图（2 帧脉动）：按判定半径缩放，外圈画判定提示
 		var fw := mt.get_width() / 2
 		var sz := Vector2(m.r * 2.3, m.r * 2.3)
-		g.draw_texture_rect_region(mt, Rect2(m.pos - sz / 2.0, sz), Rect2(fw * (int(t * 2.0 + m.seed) % 2), 0, fw, mt.get_height()), Color(1, 1, 1, a))
-		g.world.tb_ring(m.pos, m.r, 1.5, Color(0.7, 0.4, 1.2, 0.35 * a), 36)   # 判定圈进 world 的无贴图合批，调用方画完所有溟痕后一次提交（性能 9/30）
+		g.draw_texture_rect_region(mt, Rect2(m.pos - sz / 2.0, sz), Rect2(fw * (int(t * 2.0 + m.seed) % 2), 0, fw, mt.get_height()), Color(1, 1, 1, a) * mire_tint())
+		g.world.tb_ring(m.pos, m.r, 1.5, Color(0.7, 0.4, 1.2, 0.35 * a) * mire_tint(), 36)   # 判定圈进 world 的无贴图合批，调用方画完所有溟痕后一次提交（性能 9/30）
 		return
 	for k in 7:
 		var off: Vector2 = Vector2.from_angle(k * 0.9 + m.seed) * m.r * 0.45

@@ -34,6 +34,12 @@ var _was_on := false
 var col_env := Color(0.34, 0.42, 0.42)
 var col_enemy := Color(0.3, 0.75, 1.0)
 var col_danger := Color(1.0, 0.15, 0.4)
+## 敌弹色（10-24 用户「怪物的子弹能改成蓝色吗」，docs/139 §6.7）：敌弹本体 / 弹芯 / 拖尾 / 描边 / 地面临时光从危险色里拆出来，
+## render/optical_col_ebullet_h / _s / _v；攻击预警仍用危险色。render/ebullet_recolor（1）把粉 / 紫弹体贴图换成这个色相
+var col_ebullet := Color(0.3, 0.85, 1.0)
+const EB_RECOLOR := ["ebullet", "proj_nova", "proj_floater_nerve"]
+var _eb_orig := {}
+var _eb_hue := -1.0
 var col_elite := Color(1.0, 0.45, 0.6)
 var col_boss := Color(1.0, 0.4, 0.15)
 var col_lamp := Color(1.0, 0.62, 0.25)
@@ -74,6 +80,7 @@ func _update_cols(dt: float) -> void:
 	col_elite = Color.from_hsv(eh, Bal.v("render/optical_col_elite_s", 0.35), Bal.v("render/optical_col_elite_v", 1.0))
 	var dh: float = fposmod(lerpf(Bal.v("render/optical_col_danger_h", 0.95), Bal.v("render/optical_col_horde_h", 1.0), _tide_k), 1.0)
 	col_danger = Color.from_hsv(dh, Bal.v("render/optical_col_danger_s", 0.85), Bal.v("render/optical_col_danger_v", 1.0))
+	col_ebullet = Color.from_hsv(Bal.v("render/optical_col_ebullet_h", 0.95), Bal.v("render/optical_col_ebullet_s", 0.85), Bal.v("render/optical_col_ebullet_v", 1.0))
 
 
 ## ⑥ 动态照明：候选 = 一次性帧条特效（按剩余寿命衰减、半径随帧高）+ 我方弹 + 敌弹（危险色、弱）；按亮度取前 N 个
@@ -125,7 +132,7 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 			if b.life <= 0.0 or not vr.has_point(b.pos):
 				continue
 			ne += 1
-			cand.append([0.3, b.pos + Vector2(0, -16), 44.0, col_danger])
+			cand.append([0.3, b.pos + Vector2(0, -16), 44.0, col_ebullet])
 		if grains != null:
 			for L in grains.lights:   # 颗粒簇登记的灯（fx_grains.light）
 				if vr.has_point(L[0]):
@@ -188,6 +195,24 @@ func _fxq_step(on: bool) -> void:
 			g.tex[nm] = _fxq_orig[nm]
 		_fxq_orig.clear()
 		_fxq_i = 0
+
+
+## 敌弹弹体换色相（g.tex 同名替换，同压阶帧条的做法；关掉或色相变了换回原图再重做）：粉 / 紫（240–345°）→ 敌弹色色相
+func _eb_step(on: bool) -> void:
+	var hue: float = col_ebullet.h * 360.0
+	if not _eb_orig.is_empty() and (not on or absf(hue - _eb_hue) > 0.5):
+		for nm in _eb_orig:
+			g.tex[nm] = _eb_orig[nm]
+		_eb_orig.clear()
+	if not on or not _eb_orig.is_empty():
+		return
+	_eb_hue = hue
+	for nm in EB_RECOLOR:
+		var t: Texture2D = g.tex.get(nm)
+		if t == null:
+			continue
+		_eb_orig[nm] = t
+		g.tex[nm] = A.hue_to(t, hue, 240.0, 345.0)
 
 
 ## 某只怪的本体发光色：Boss 专属暖色、精英更亮、普通怪统一海嗣青蓝
@@ -314,6 +339,9 @@ func _lo_step() -> void:
 	# 非整数倍时 1 美术像素占的屏幕像素不再恒为整数，用户 10-24 要求先看 ×1.15 再定）
 	var rel: float = Cfg.cam_zoom() / (Cfg.ZOOM_PHONE_DEF / 100.0 if Cfg.phone_ui() else 1.0)
 	var zw: float = view_k / (2.0 * sx) * rel
+	if Bal.v("render/optical_int_zoom", 0.0) > 0.0:
+		# docs/139 试验旋钮：把「战斗画面缩放」并进整数倍率（1 美术像素恒占整数个物理像素），不再出现 2.3 / 3.45 这种非整数放大
+		zw = maxi(2, roundi(vs.y * sx * rel / target)) / (2.0 * sx)
 	if g.cam != null and absf(g.cam.zoom.x - zw) > 0.0001:
 		g.cam.zoom = Vector2(zw, zw)
 	var xf: Transform2D = vp.get_canvas_transform()
@@ -382,13 +410,13 @@ func _draw_trails(list: Array, enemy: bool) -> void:
 		var sp := v.length()
 		if enemy and fx1 and b.get("life", 1.0) > 0.0:
 			var c0: Vector2 = ((b.pos + Vector2(0, -16)) / 2.0).floor() * 2.0   # 敌弹红核心（危险色，所有敌弹，不只快的）
-			glow_node.draw_rect(Rect2(c0 - Vector2(1, 1), Vector2(4, 4)), Color(col_danger.r, col_danger.g, col_danger.b, 0.95))
+			glow_node.draw_rect(Rect2(c0 - Vector2(1, 1), Vector2(4, 4)), Color(col_ebullet.r, col_ebullet.g, col_ebullet.b, 0.95))
 		if sp < 40.0 or fx1:
 			continue   # fx1 开着时拖尾改由 GPU 粒子簇画（optical_particles.step_trails），这里只留敌弹红核心
 		n += 1
 		var col: Color
 		if enemy:
-			col = col_danger   # 颜色语言：敌弹一律危险色（不再取各怪 ecol）
+			col = col_ebullet   # 颜色语言：敌弹一律敌弹色（不再取各怪 ecol；10-24 起与预警的危险色分开）
 		else:
 			var bc = b.get("col")
 			col = bc if bc is Color else Color(0.7, 0.95, 1.0)
@@ -413,6 +441,7 @@ func _draw_ground_glow() -> void:
 	var x0: int = floori((c.x - vs.x * 0.5) / 64.0)
 	var y0: int = floori((c.y - vs.y * 0.5) / 64.0)
 	var t: float = Time.get_ticks_msec() / 1000.0
+	var warm: float = Bal.v("render/ground_glow_warm", 0.0)
 	for cy in range(y0, y0 + ceili(vs.y / 64.0) + 1):
 		for cx in range(x0, x0 + ceili(vs.x / 64.0) + 1):
 			var hsh: int = (cx * 73856093) ^ (cy * 19349663)
@@ -422,7 +451,9 @@ func _draw_ground_glow() -> void:
 			var ox: float = float((hsh >> 10) & 31) * 2.0
 			var oy: float = float((hsh >> 15) & 31) * 2.0
 			var a: float = 0.25 + 0.45 * (0.5 + 0.5 * sin(t * 0.7 + float((hsh >> 20) & 63)))
-			glow_node.draw_rect(Rect2(Vector2(cx * 64.0 + ox, cy * 64.0 + oy), Vector2(2, 2)), Color(col_env.r, col_env.g, col_env.b, a))
+			# docs/139 §6.6 试验旋钮 render/ground_glow_warm（缺省 0）：这一比例的斑改用灯火琥珀色（暖色兜底，小面积点缀）
+			var gc: Color = col_lamp if r < dens * warm else col_env
+			glow_node.draw_rect(Rect2(Vector2(cx * 64.0 + ox, cy * 64.0 + oy), Vector2(2, 2)), Color(gc.r, gc.g, gc.b, a))
 
 
 ## 经验结晶与掉落：中心一颗淡金白发光像素（辉光由全屏 pass 的发光门限散出）
@@ -455,6 +486,7 @@ func _process(_dt: float) -> void:
 	fx1 = (fx1_force == 1) if fx1_force >= 0 else Bal.v("render/optical_fx1", 1.0) > 0.0
 	_fxq_step(fx1 and wanted() and DisplayServer.get_name() != "headless" and Bal.v("render/optical_fxq", 1.0) > 0.0)
 	FD.col_cap = Bal.v("render/optical_fx_cap", 1.4) if g.optical_on and fx1 else 0.0
+	_eb_step(Bal.v("render/ebullet_recolor", 0.0) > 0.0 and wanted() and DisplayServer.get_name() != "headless")
 	var on := wanted() and DisplayServer.get_name() != "headless"
 	g.optical_on = on
 	visible = on
@@ -502,9 +534,10 @@ func _process(_dt: float) -> void:
 	mat.set_shader_parameter("local_r", Bal.v("render/optical_local_r", 120.0) * k)
 	_dyn_lights(xf, k)
 	if particles != null:
-		particles.step_trails(col_danger, fx1)
+		particles.step_trails(col_ebullet, fx1)
 	mat.set_shader_parameter("emissive_th", Bal.v("render/optical_emissive_th", 0.72))
 	mat.set_shader_parameter("lut_on", Bal.v("render/optical_lut", 1.0))
+	mat.set_shader_parameter("sat", Bal.v("render/optical_sat", 1.0))
 	mat.set_shader_parameter("brightness", Cfg.brightness * Bal.v("render/ambient_gain", 1.0))
 	mat.set_shader_parameter("sea_amt", Bal.v("render/optical_sea", 0.55))
 	mat.set_shader_parameter("caustics", Bal.v("render/optical_caustics", 0.02))

@@ -141,7 +141,11 @@ func update_visuals(dt: float) -> void:
 		g.sprite.modulate = Color.WHITE
 	var rd := g.get_process_delta_time()
 	g.glance_step(rd)   # 镜头一瞥（game.camera_glance：骑士入潮 / 寒冰重生时看一眼黑潮中心；只动镜头）
-	g.cam.position = g.cam_center().round()
+	# docs/139 试验旋钮 render/cam_round：1 = 取整到 1 世界像素（缺省，现状）；0 = 不取整（低分辨率层靠 lo_rect 亚像素补偿，地面匀速）；
+	# 2 = 取整到 1 美术像素（= 低分辨率格，与队长绘制同一格）
+	var cround: float = Bal.v("render/cam_round", 1.0)
+	var ccen: Vector2 = g.cam_center()
+	g.cam.position = ccen.round() if cround == 1.0 else ((ccen / Game.PX).round() * Game.PX if cround >= 2.0 else ccen)
 	g.shake = move_toward(g.shake, 0.0, rd * 2.5)
 	cam_kick = cam_kick.move_toward(Vector2.ZERO, rd * 60.0)
 	g.hurt_vignette = move_toward(g.hurt_vignette, 0.0, rd * 1.5)
@@ -1511,7 +1515,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 		# 敌方弹幕高对比：深色外圈垫底，画完再描一圈亮洋红边，压在友方特效上也一眼看得出
 		tb_circle(bp, b.r + 3.0, Color(0.02, 0.0, 0.05, 0.85))
 		if g.optical_on:
-			var ec: Color = g.optical.col_danger   # 光学观感颜色语言：敌弹光晕统一危险色
+			var ec: Color = g.optical.col_ebullet   # 光学观感颜色语言：敌弹光晕统一敌弹色（10-24 起与预警危险色分开，docs/139 §6.7）
 			tb_circle(bp, b.r + 4.0, Color(ec.r, ec.g, ec.b, 0.3))
 			continue
 		match b.get("kind", "orb"):
@@ -1559,7 +1563,11 @@ func _draw_ebullets_lobs_shocks() -> void:
 			"nerve":
 				if g.tex.get("proj_floater_nerve") == null:
 					tb_circle(bp, b.r, Color(1.8, 1.6, 0.5))
-		tb_ring(bp, b.r + 2.0, 1.5, Color(2.4, 0.8, 1.8, 0.9))
+		if g.optical_on:
+			var ebc: Color = g.optical.col_ebullet
+			tb_ring(bp, b.r + 2.0, 1.5, Color(ebc.r * 2.0, ebc.g * 2.0, ebc.b * 2.0, 0.9))   # 亮描边改敌弹色（原亮洋红）
+		else:
+			tb_ring(bp, b.r + 2.0, 1.5, Color(2.4, 0.8, 1.8, 0.9))
 	tb_flush()
 	for b in blades:
 		g.vfx.boss_blade(b, b.pos + Vector2(0, -16))
@@ -4066,9 +4074,11 @@ func draw_zone_band(pulse: float) -> void:
 	var prev_out := Vector2.ZERO
 	var prev_vis := false
 	# 溟痕配色（2026-09-27 用户要求：圈边要是溟痕本身的样子——深色黏液 + 青黑纹理，和地上的溟痕一致；不再用粉紫潮线）
-	var c_in := Color(0.06, 0.03, 0.1, 0.92)
-	var c_mid := Color(0.05, 0.03, 0.08, 0.8)
-	var c_out := Color(0.05, 0.02, 0.08, 0.0)
+	# 10-24 用户「直接改溟痕颜色」（docs/139 §6.4 方案 A）：带色、贴图块与地上溟痕同乘 render/mire_tint，靛紫 → 深海青蓝
+	var mtn: Color = g.map.mire_tint()
+	var c_in := Color(0.06, 0.03, 0.1, 0.92) * mtn
+	var c_mid := Color(0.05, 0.03, 0.08, 0.8) * mtn
+	var c_out := Color(0.05, 0.02, 0.08, 0.0) * mtn
 	# 性能（测试与验收 9/30：黑潮每帧 2.3 毫秒）：只遍历镜头附近那段圆弧的序号（原来整圈 420 段、贴图 900 块逐个算三角函数再判可见）
 	var rng_i: Vector2i = _arc_range(n, c, r, vc, view)
 	var run_mid := PackedVector2Array()
@@ -4158,10 +4168,10 @@ func draw_zone_band(pulse: float) -> void:
 			var fr: int = (int(t * 2.0) + j) % 2
 			if fl:
 				g.draw_set_transform(bp, 0.0, Vector2(-1, 1))
-				g.draw_texture_rect_region(mt, Rect2(-sz / 2.0, sz), Rect2(fw * fr, 0, fw, mt.get_height()), Color(1, 1, 1, 0.95))
+				g.draw_texture_rect_region(mt, Rect2(-sz / 2.0, sz), Rect2(fw * fr, 0, fw, mt.get_height()), Color(1, 1, 1, 0.95) * mtn)
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			else:
-				g.draw_texture_rect_region(mt, Rect2(bp - sz / 2.0, sz), Rect2(fw * fr, 0, fw, mt.get_height()), Color(1, 1, 1, 0.95))
+				g.draw_texture_rect_region(mt, Rect2(bp - sz / 2.0, sz), Rect2(fw * fr, 0, fw, mt.get_height()), Color(1, 1, 1, 0.95) * mtn)
 	for cr in crests:
 		_zone_crest(cr, pulse)
 
@@ -4212,7 +4222,8 @@ func _zone_dark_fast(seg: int, far: float, outer: float) -> void:
 	tb_flush()
 	var cs := PackedColorArray()
 	cs.resize(k)
-	cs.fill(Color(0.16, 0.03, 0.22, 0.55))
+	# docs/139 §6 试验旋钮 render/zone_dark_r / _g / _b：黑潮圈外压暗色（缺省原值紫 0.16, 0.03, 0.22）
+	cs.fill(Color(Bal.v("render/zone_dark_r", 0.16), Bal.v("render/zone_dark_g", 0.03), Bal.v("render/zone_dark_b", 0.22), 0.55))
 	RenderingServer.canvas_item_add_triangle_array(g.get_canvas_item(), PackedInt32Array(), out, cs)
 
 
