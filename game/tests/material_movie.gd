@@ -50,10 +50,16 @@ func _process(_dt: float) -> void:
 				g.ch.fx({"kind": "strip", "name": nm, "pos": g.ppos + Vector2(-110 if k == 0 else 110, -40), "life": float(spec[0]) / float(spec[1]), "sc": g.PX, "col": Color.WHITE,
 					"ang": 0.0, "anc": Vector2(-1, -1), "no_fade": false, "fr": int(spec[0]), "fps": float(spec[1]), "loop": false, "ph": 0, "floor": false, "add": false, "mat_skip": k == 0})
 		else:
+			var msc: float = g.PX
+			for a in Cfg.dev_args():
+				if a.begins_with("--materialscale="):
+					msc = float(a.substr(16))
 			pool.off = true
-			g.vfx.fx_sprite(names[group], g.ppos + Vector2(-90, -50), g.PX)
+			g.vfx.fx_sprite(names[group], g.ppos + Vector2(-90, -50), msc)
+			if not g.fx.is_empty():
+				g.fx[-1]["gb_skip"] = true   # 左边原版：形状颗粒化也不接
 			pool.off = false
-			g.vfx.fx_sprite(names[group], g.ppos + Vector2(90, -50), g.PX)
+			g.vfx.fx_sprite(names[group], g.ppos + Vector2(90, -50), msc)
 		pool.off = previous
 		print("MATERIAL_MOVIE %s grains=%d" % [names[group], pool.pos.size()])
 	if frame < 24:
