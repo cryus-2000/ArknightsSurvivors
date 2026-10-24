@@ -12,15 +12,18 @@
  "base": {
   "_doc": "基础数值（docs/27 §3）：干员脚本用 base(key, 默认值) 读取；改这里即可调数值",
   "atk": 30,
+  "_atk": "10-24 降伤试过 −10% / −15% / −25% / −35%（atk 27 / 25.5 / 22.5 / 19.5），云端胜率 94.6 / 89.1 / 87.5 / 90.9%，与不降（87.5%）无差别：范围翻倍后小怪一发秒，单发伤害不是杠杆。已回到 30，等用户定（cloud-results/wis-atk-*）",
   "cd": 1.4,
   "range": 340,
-  "aoe": 52,
+  "aoe": 104,
+  "_aoe": "10-24 用户：普攻爆炸半径 ×2（52 → 104）；技能在新普攻基础上再 ×1.5：S1 三发 s1_size 1.1 → 1.65、S2 s2_size 1.0 → 1.5、S3 s3_size 2.0 → 3.0。伤害倍率不动",
   "s1_mult": 1.5,
+  "s1_size": 1.65,
   "s2_mult": 1.35,
-  "s2_size": 1.0,
+  "s2_size": 1.5,
   "s3_mult": 1.6,
   "s3_ammo": 8,
-  "s3_size": 2.0,
+  "s3_size": 3.0,
   "s3_cd": 0.6,
   "quake": 0.4,
   "quake_e1": 0.6,
@@ -233,6 +236,7 @@
      "anim": "s2_start"
     },
     "loop": "s2_idle",
+    "run": "s2_run",
     "attack": "s2_attack",
     "end": {
      "anim": "s2_end"
@@ -240,12 +244,14 @@
     "phases": [
      {
       "loop": "s2_idle",
+      "run": "s2_run",
       "attack": "s2_attack",
       "end": "s2_end"
      },
      {
       "transition": "s2_over_start",
       "loop": "s2_over_idle",
+      "run": "s2_over_run",
       "attack": "s2_over_attack",
       "end": "s2_over_end"
      }
@@ -312,6 +318,26 @@
     0.04285714285714286,
     0.04
    ]
+  },
+  "s2_run": {
+   "tex": "op_wisadel_s2_run",
+   "frames": 8,
+   "fps": 13.333333333333334,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ],
+   "_doc": "10-24 S2 跑动（用户「二技能的跑动动作得加上」「没看到腿」）：普通跑步同一套步态，底稿换成原作 Skill_2_Idle 首帧，步幅放大、浮游武器上抬露出腿，逐部件 1 倍像素化（tools/op_1x/make_wisadel_s2_run.py），帧格 / 脚底同 s2_idle"
+  },
+  "s2_over_run": {
+   "tex": "op_wisadel_s2_over_run",
+   "frames": 8,
+   "fps": 13.333333333333334,
+   "foot": [
+    48.25,
+    75.86072405963687
+   ],
+   "_doc": "10-24 S2 跑动（用户「二技能的跑动动作得加上」「没看到腿」）：普通跑步同一套步态，底稿换成原作 Skill_2_Overload_Idle 首帧，步幅放大、浮游武器上抬露出腿，逐部件 1 倍像素化（tools/op_1x/make_wisadel_s2_run.py），帧格 / 脚底同 s2_over_idle"
   },
   "s2_idle": {
    "tex": "op_wisadel_s2_idle",
@@ -799,14 +825,14 @@
    "name": "定点清算",
    "en": "LOCALIZED LIQUIDATION",
    "sp": 7,
-   "desc": "接下来 3 发炮击伤害 ×{$s1_mult}，落点必定余震",
+   "desc": "接下来 3 发炮击伤害 ×{$s1_mult}、爆炸范围 ×{$s1_size}，落点必定余震",
    "icon": "skill_wisadel_s1"
   },
   {
    "name": "饱和复仇",
    "en": "SATURATED VENGEANCE",
    "sp": 12,
-   "desc": "持续 {$s2_dur} 秒，炮击伤害 ×{$s2_mult}、攻击间隔 ×{$s2_interval}，爆炸范围内的敌人均受到伤害；后半段改为随机索敌的 {$s2_burst} 连发，每发伤害为强化炮击的 {$s2_over_mult*100}%，保留余震",
+   "desc": "持续 {$s2_dur} 秒，炮击伤害 ×{$s2_mult}、爆炸范围 ×{$s2_size}、攻击间隔 ×{$s2_interval}，爆炸范围内的敌人均受到伤害；后半段改为随机索敌的 {$s2_burst} 连发，每发伤害为强化炮击的 {$s2_over_mult*100}%，保留余震",
    "icon": "skill_wisadel_s2",
    "dur": 8.0
   },
@@ -1016,7 +1042,7 @@
     "size": "$quake2_size"
    },
    "ash": {
-    "size": 1.1,
+    "size": "$s1_size",
     "rings": {
      "cond": "node:ash_rings"
     },
@@ -1276,6 +1302,8 @@
   "skill_s3_loop",
   "s2_start",
   "s2_idle",
+  "s2_run",
+  "s2_over_run",
   "s2_attack",
   "s2_over_start",
   "s2_over_idle",

@@ -112,7 +112,7 @@ static func _h4_cannon_release(o, a: Dictionary) -> void:
 			var ash: Dictionary = a.get("ash", {})
 			var rings: bool = not _h4_sub(o, ash.get("rings", null)).is_empty()
 			var d1: float = atk * float(patch.get("mult", 1.0)) * (o.skill_power() if patch.get("power", false) else 1.0)
-			_h4_fire(o, a, tgt.pos, d1, str(a.get("src", "")), float(ash.get("size", 1.1)), true, 0.0, false, rings)
+			_h4_fire(o, a, tgt.pos, d1, str(a.get("src", "")), float(ash.get("size", 1.65)), true, 0.0, false, rings)
 			_h4_twin(o, a, tgt, d1, rings)
 		else:
 			_h4_fire(o, a, tgt.pos, atk, str(a.get("src", "")), 1.0, true, 0.0)
@@ -567,11 +567,25 @@ static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src:
 			o.fx({"kind": "h4_shade", "pos": killed[k], "life": 0.3, "col": H4_DARK})
 
 
+## 炮击帧条按爆炸半径放大（10-24 范围 ×2 / ×1.5 后）：倍率取整数（像素块整齐，不糊）并受 vfx.FX_SCALE_MAX 封顶；
+## 帧条盖不住真实半径时（S1 / S2 / S3 大爆炸）另画一圈贴地冲击环到真实半径，看得出打到多远。
+## 返回帧条实际盖住的半径（焦痕按它画，不按真实半径铺一大片黑）；缺图返回 0
+static func _h4_cannon_sprite(o, c: Vector2, r: float, k: float) -> float:
+	var want: float = r * k / 96.0
+	var sc: float = clampf(roundf(want), 1.0, floorf(o.g.vfx.FX_SCALE_MAX))
+	if not o.spawn_fx_sprite("fx_wisadel_cannon", c, sc):
+		return 0.0
+	if want > sc * 1.15:
+		o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.35, "life": 0.32, "col": H4_RED, "w": 3.0, "floor": true, "alpha": 0.8})
+	return minf(r, sc * 96.0 / k)
+
+
 ## 落地：Codex 炮击帧条（fx_wisadel_cannon）；缺图保留程序特效（闪光 / 黑烟 / 红环 / 碎片 / 焦痕）
 static func h4_impact_fx(o, c: Vector2, r: float, light: bool) -> void:
 	var g = o.g
-	if o.spawn_fx_sprite("fx_wisadel_cannon", c, r * (1.8 if light else 2.2) / 96.0):
-		o.fx({"kind": "h4_scorch", "pos": c, "r": r * 0.7, "life": 1.2, "floor": true})
+	var rv: float = _h4_cannon_sprite(o, c, r, 1.8 if light else 2.2)
+	if rv > 0.0:
+		o.fx({"kind": "h4_scorch", "pos": c, "r": rv * 0.7, "life": 1.2, "floor": true})
 		return
 	o.fx({"kind": "h4_flash", "pos": c, "r": r * 0.7, "life": 0.1})
 	o.fx({"kind": "h4_smoke", "pos": c, "r": r * (0.75 if light else 1.0), "life": 0.5, "col": H4_DARK})
@@ -589,8 +603,9 @@ static func h4_impact_fx(o, c: Vector2, r: float, light: bool) -> void:
 static func h4_burst_fx(o, c: Vector2, r: float, small := false) -> void:
 	var g = o.g
 	var sc: float = 0.7 if small else 1.0
-	if o.spawn_fx_sprite("fx_wisadel_cannon", c, r * 2.8 * sc / 96.0):
-		o.fx({"kind": "h4_scorch", "pos": c, "r": r * 0.9 * sc, "life": 2.0, "floor": true})
+	var rv: float = _h4_cannon_sprite(o, c, r, 2.8 * sc)
+	if rv > 0.0:
+		o.fx({"kind": "h4_scorch", "pos": c, "r": rv * 0.9 * sc, "life": 2.0, "floor": true})
 		return
 	o.fx({"kind": "h4_burst", "pos": c, "r": r * 1.6 * sc, "life": 0.5 if small else 0.55, "seed": g.vrng.randf() * TAU, "n": 8 if small else 12})
 	o.fx({"kind": "ring", "pos": c, "r": r * 1.45 * sc, "r0": r * 0.3, "life": 0.28, "col": H4_RED, "floor": true, "w": 2.5, "alpha": 0.75})
