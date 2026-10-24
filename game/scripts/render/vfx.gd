@@ -235,6 +235,24 @@ func _op_col(h: Dictionary) -> Color:
 	return Color(c.r / mx, c.g / mx, c.b / mx) if mx > 1.0 else c
 
 
+## Boss 受击白闪限频（docs/137，10-24）：两次白闪的起点至少隔 fx/boss_flash_gap 秒（缺省 0.4 → 每秒最多 2.5 次，低于光敏安全的 3 次），
+## 每次持续 fx/boss_flash_t 秒、线性淡出；间隔内的命中不续时、不重启。持续伤害不闪。原来每一下命中都续白闪，多人围打时 Boss 每秒闪 6–7 次、
+## 六七成时间是白的。只管画面：e.flash 只有绘制在读，boss_flash_at 记的是 g.t
+static func boss_hit_flash(e: Dictionary, now: float, dot := false) -> void:
+	if dot:
+		return
+	var last: float = e.get("boss_flash_at", -1000.0)
+	if now >= last and now - last < Bal.v("fx/boss_flash_gap", 0.4):
+		return
+	e.boss_flash_at = now
+	e.flash = Bal.v("fx/boss_flash_t", 0.09)
+
+
+## Boss 白闪当前透明度：峰值 peak 随剩余时间线性淡出
+static func boss_flash_alpha(e: Dictionary, peak: float) -> float:
+	return peak * clampf(float(e.get("flash", 0.0)) / maxf(0.001, Bal.v("fx/boss_flash_t", 0.09)), 0.0, 1.0)
+
+
 func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg := 0.0) -> void:
 	var h: Dictionary = hd if not hd.is_empty() else g.hit   # combat.damage 显式传这一下的描述符（docs/101 B7 ⑤）
 	var dot: bool = "dot" in h.get("tags", [])
@@ -253,7 +271,10 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 	var tier: int = hit_tier(h, dmg, crit, weak)
 	if tier > 0:
 		fl = maxf(fl, [0.0, 0.06, 0.09, 0.13][tier])
-	e.flash = maxf(float(e.get("flash", 0.0)), fl)
+	if e.get("boss", false):
+		boss_hit_flash(e, g.t, dot)   # Boss 白闪限频（docs/137）；普通怪 / 精英照旧
+	else:
+		e.flash = maxf(float(e.get("flash", 0.0)), fl)
 	e.squash = maxf(float(e.get("squash", 0.0)), sq)
 	if tier > 0:
 		_tier_fx(e, h, tier)
