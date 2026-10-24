@@ -14,6 +14,7 @@ OUT = os.path.join(B.ROOT, "build", "boss_combo_sheets")
 PW, PH = B.PW, B.PH
 CX, CY = PW // 2, 150
 put, gold, cring, dash, arrow, bar, pips, path = X.put, X.gold_mark, X.cyan_ring, X.dash_mark, X.arrow, X.bar, X.pips, X.path_line
+fire, node = X.fire_line, X.node
 W = (1, 1, 1)
 
 
@@ -210,15 +211,16 @@ KNIGHT = ("最后的骑士 · 合并版（主轴：斗牛）", [
 
 S1, S2 = (0.7, 0.8, 0.95), (0.55, 0.65, 1.0)
 PATH = ("塑路者 · 合并版（主轴：截路）", [
-    {"name": "一 · 探路：冲撞沿着路线冲", "col": S1, "P": [(CX + 120, CY + 160), (CX + 40, CY + 185), (CX + 200, CY + 180)], "draw": [
+    {"name": "一 · 探路：跑过路标，冲撞沿路线冲", "col": S1, "P": [(CX + 120, CY + 160), (CX + 40, CY + 185), (CX + 200, CY + 180)], "draw": [
         lambda im, d: path(d, [(CX, CY + 60), (CX + 80, CY + 110), (CX + 120, CY + 160), (CX + 230, CY + 190)], S1, cut=(CX + 120, CY + 160)),
+        lambda im, d: [node(d, x, y) for x, y in ((CX + 40, CY + 85), (CX + 175, CY + 175))],
         lambda im, d: B.beam(d, CX, CY + 60, CX + 120, CY + 160, 26, S1),
         lambda im, d: put(im, "e_path", 0.5, CX, CY + 70),
         lambda im, d: put(im, "e_fractal", 0.45, CX + 185, CY + 192, tint=(0.8, 0.9, 1.2)),
         lambda im, d: gold(d, CX + 185, CY + 190),
         lambda im, d: tag(d, (CX + 140, CY + 110), "拦路"),
-        lambda im, d: txt(d, (20, 96), "截路 = 站在冲撞道上：锁定时先让开再回去"),
-    ], "lines": ["主轴：站上路线 1 秒截断，断口外分形变金色目标；全断 = 迷路 3 秒。", "弹幕：冲撞沿着它自己铺的路线冲（截路就是站在冲撞道上，拦路）；震地（贴脸，惩罚）。"]},
+        lambda im, d: txt(d, (20, 96), "去碰路标 = 跑进冲撞道：锁定时先让开再回去"),
+    ], "lines": ["主轴：跑过路线上的金色路标就截断（不用停），断口外分形变金色目标；全断 = 迷路 3 秒。", "弹幕：冲撞沿着它自己铺的路线冲（去碰路标就是跑进冲撞道，拦路）；震地（贴脸，惩罚）。"]},
     {"name": "二 · 订正：断口放刃环", "col": S2, "ground": "fractal", "draw": [
         lambda im, d: path(d, [(CX - 230, CY + 60), (CX - 150, CY + 130), (CX - 30, CY + 120), (CX, CY + 70)], S2, cut=(CX - 150, CY + 130)),
         lambda im, d: B.gap_ring(d, CX - 150, CY + 130, 60, 0.4, 0.8, S2, 12, "blade"),
@@ -258,27 +260,26 @@ IBERIA = ("圣徒伊比利亚 · 合并版（主轴：打断装填）", [
      "lines": ["主轴：装填 1.4 秒，只认冲刺穿身；靠近时它先抡一下。", "弹幕：轰击三连曲射、落点排成三角围住它，从缝里穿进去（拦路）；没打断时放清膛缺口环接手炮三连（惩罚）。"]},
 ])
 
-C1, C2 = (1.0, 0.76, 0.3), (1.0, 0.9, 0.65)
-CARMEN = ("圣徒卡门 · 合并版（主轴：掩体）", [
-    {"name": "一 · 圣徒：躲掩体，熬三枪", "col": C1, "P": [(CX + 150, CY + 175), (CX + 110, CY + 195), (CX + 200, CY + 190)], "draw": [
-        lambda im, d: put(im, "e_saint", 0.8, 80, CY + 40),
-        lambda im, d: put(im, "prop_wall", 1.2, CX + 90, CY + 165),
-        lambda im, d: B.beam(d, 80, CY + 20, CX + 60, CY + 140, 10, C1),
-        lambda im, d: gold(d, CX + 90, CY + 160, 34),
-        lambda im, d: B.gap_ring(d, CX + 150, CY + 175, 70, math.pi, 0.9, C1, 12),
-        lambda im, d: pips(d, 59, CY - 70, 3, 2, C1),
-        lambda im, d: tag(d, (CX + 200, CY + 110), "拦路"),
-        lambda im, d: txt(d, (CX - 60, 96), "在掩体后躲满 4 秒 → 曲射环射越过掩体"),
-    ], "lines": ["主轴：狙击被景物挡；三枪后装填 3 秒压上去。", "弹幕：你在掩体后躲满 4 秒她就放环射，曲射越过掩体落地，从缺口里走一步（拦路）。"]},
-    {"name": "二 · 守誓：两侧交叉狙击", "col": C2, "ground": "cross_cracks", "P": [(CX - 20, CY + 180), (CX - 60, CY + 200), (CX + 20, CY + 205)], "draw": [
-        lambda im, d: put(im, "e_saint", 0.8, 60, CY + 40),
-        lambda im, d: put(im, "e_saint", 0.8, PW - 60, CY + 40, alpha=0.35),
-        lambda im, d: put(im, "prop_pillar", 1.2, CX - 70, CY + 150),
-        lambda im, d: B.beam(d, 60, CY + 20, CX - 80, CY + 120, 10, C2),
-        lambda im, d: B.beam(d, PW - 60, CY + 20, CX - 20, CY + 175, 10, C2),
-        lambda im, d: tag(d, (CX + 60, CY + 100), "定拍"),
-        lambda im, d: txt(d, (20, 96), "一块掩体挡不住两个方向：两枪之间换位"),
-    ], "lines": ["主轴：掩体挡一枪就碎，她跳侧面。", "弹幕：狙击三连改两侧交叉（一块掩体挡不住，两枪之间换位，定拍）；环射 2 波；近战段炮身砸击（惩罚）。"]},
+C1, C2 = (1.0, 0.94, 0.82), (1.0, 0.9, 0.65)
+CARMEN = ("圣徒卡门 · 合并版（主轴：封锁线）", [
+    {"name": "一 · 圣徒：三条平行火线", "col": C1, "P": [(CX - 40, CY + 205), (CX - 80, CY + 195), (CX, CY + 215)], "draw": [
+        lambda im, d: [fire(d, 20, CY + 60 + k * 70, PW - 20, CY + 20 + k * 70, C1, gap=g) for k, g in ((0, 0.78), (1, 0.3), (2, 0.62))],
+        lambda im, d: B.gap_ring(d, CX + 40, CY + 150, 90, 0.5, 0.7, C1, 16),
+        lambda im, d: put(im, "e_saint", 0.8, PW - 70, CY + 20),
+        lambda im, d: pips(d, PW - 91, CY - 90, 3, 0, C1),
+        lambda im, d: tag(d, (CX + 120, CY + 185), "拦路"),
+        lambda im, d: txt(d, (20, 96), "跑道里也要穿环射的缺口"),
+    ], "lines": ["主轴：三枪留三条火线，每条留一处缺口、缺口错开，S 形穿过去绕到她身边；装填 3 秒压上去。", "弹幕：狙击（主轴本身，打完变火线）；环射缺口环的缺口落在某条跑道上（拦路）。"]},
+    {"name": "二 · 守誓：交叉成格", "col": C2, "ground": "cross_cracks", "P": [(CX + 40, CY + 160), (CX, CY + 175), (CX + 80, CY + 180)], "draw": [
+        lambda im, d: fire(d, 20, CY + 40, PW - 20, CY + 90, C2, gap=0.75),
+        lambda im, d: fire(d, 20, CY + 150, PW - 20, CY + 200, C2, gap=0.2),
+        lambda im, d: fire(d, CX - 120, 40, CX - 60, PH - 10, C2, gap=0.55),
+        lambda im, d: B.beam(d, PW - 20, CY + 130, 20, CY + 160, 10, C2),
+        lambda im, d: put(im, "e_saint", 0.8, 70, CY + 110),
+        lambda im, d: B.circle(d, 110, CY + 170, 32, C2),
+        lambda im, d: tag(d, (CX + 120, CY + 100), "定拍"),
+        lambda im, d: txt(d, (20, 96), "第三枪锁你所在的跑道：1 秒里换格"),
+    ], "lines": ["主轴：火线交叉成格，最后一枪锁你那条跑道；装填时她退避跳。", "弹幕：狙击分两个方向（第三枪锁你，定拍）；环射 2 波；追上去时炮身砸击（惩罚）。"]},
 ])
 
 T1, T2, T3 = (0.25, 0.85, 0.9), (0.5, 0.95, 0.6), (0.65, 0.75, 1.0)

@@ -88,6 +88,28 @@ def pips(d, x, y, n, full, col):
         d.rectangle((x + i * 14, y, x + i * 14 + 10, y + 10), fill=f, outline=(230, 230, 230))
 
 
+def fire_line(d, x0, y0, x1, y1, col, w=16, fading=False, gap=None, gap_len=70):
+    """卡门的封锁线：打完留下的火线（低亮度填充 + 危险色细描边，不闪）；gap = 缺口在线上的位置（0–1），白圈标出"""
+    def seg(ax, ay, bx, by):
+        ang = math.atan2(by - ay, bx - ax); nx, ny = -math.sin(ang) * w / 2, math.cos(ang) * w / 2
+        a = 70 if fading else 140
+        d.polygon([(ax + nx, ay + ny), (bx + nx, by + ny), (bx - nx, by - ny), (ax - nx, ay - ny)], fill=B.rgb(col, 0.6, a), outline=(255, 60, 110, 200 if not fading else 90))
+    if gap is None:
+        seg(x0, y0, x1, y1)
+        return
+    L = math.hypot(x1 - x0, y1 - y0); h = gap_len / 2 / L
+    ga, gb = gap - h, gap + h
+    seg(x0, y0, x0 + (x1 - x0) * ga, y0 + (y1 - y0) * ga)
+    seg(x0 + (x1 - x0) * gb, y0 + (y1 - y0) * gb, x1, y1)
+    gx, gy = x0 + (x1 - x0) * gap, y0 + (y1 - y0) * gap
+    d.ellipse((gx - 10, gy - 6, gx + 10, gy + 6), outline=(255, 255, 255), width=2)
+
+
+def node(d, x, y):
+    """塑路者路线上的路标（金色小菱形）"""
+    d.polygon([(x, y - 9), (x + 7, y), (x, y + 9), (x - 7, y)], fill=B.rgb(GOLD, 1.2), outline=(255, 255, 255))
+
+
 def panel(act, rng):
     im = Image.new("RGBA", (PW, PH), B.BG + (255,))
     d = ImageDraw.Draw(im, "RGBA")
@@ -156,14 +178,15 @@ KNIGHT = ("最后的骑士 · 斗牛（方案 B）", [
 
 STEEL, FRACT = (0.7, 0.8, 0.95), (0.55, 0.65, 1.0)
 PATH = ("塑路者 · 截路（方案 B）", [
-    {"name": "主轴：站上路线截断", "col": STEEL, "P": [(CX + 120, CY + 160), (CX + 40, CY + 180), (CX + 200, CY + 175)], "draw": [
+    {"name": "主轴：跑过路标截断", "col": STEEL, "P": [(CX + 120, CY + 160), (CX + 40, CY + 180), (CX + 200, CY + 175)], "draw": [
         L(lambda im, d: path_line(d, [(CX, CY + 60), (CX + 80, CY + 110), (CX + 120, CY + 160), (CX + 230, CY + 190)], STEEL, cut=(CX + 120, CY + 160))),
+        L(lambda im, d: [node(d, x, y) for x, y in ((CX + 40, CY + 85), (CX - 45, CY + 80), (CX - 120, CY + 135), (CX - 195, CY + 185), (CX + 175, CY + 175))]),
         L(lambda im, d: path_line(d, [(CX, CY + 60), (CX - 90, CY + 100), (CX - 150, CY + 170), (CX - 240, CY + 200)], STEEL)),
         L(lambda im, d: put(im, "e_path", 0.5, CX, CY + 70)),
         L(lambda im, d: [put(im, "e_fractal", 0.45, x, y, tint=(0.8, 0.9, 1.2)) for x, y in ((CX + 175, CY + 190), (CX - 120, CY + 150), (CX - 200, CY + 200))]),
         L(lambda im, d: gold_mark(d, CX + 175, CY + 188)),
         L(lambda im, d: d.text((20, 96), "分形沿路走到尽头 = 塑路者 +1 层强化", font=B.font(15), fill=(255, 255, 255))),
-    ], "lines": ["每 10 秒铺一条「生路」，分形沿路往外走。站在路上 1 秒截断：断口以外的分形停住、变成金色目标。", "全部截断那一刻它「迷路」：硬直 3 秒、受伤 ×1.5。"]},
+    ], "lines": ["每 10 秒铺一条「生路」，分形沿路往外走。路线上每段有个金色路标，跑过去碰到就截断（不用停）：断口以外的分形停住、变成金色目标。", "全部截断那一刻它「迷路」：硬直 3 秒、受伤 ×1.5。"]},
     {"name": "二幕 · 订正：分形往回走", "col": FRACT, "ground": "fractal", "draw": [
         L(lambda im, d: path_line(d, [(CX - 230, CY + 60), (CX - 150, CY + 130), (CX - 30, CY + 120), (CX, CY + 70)], FRACT)),
         L(lambda im, d: path_line(d, [(CX + 240, CY + 200), (CX + 160, CY + 130), (CX + 60, CY + 140), (CX, CY + 70)], FRACT)),
@@ -199,25 +222,24 @@ IBERIA = ("圣徒伊比利亚 · 打断（方案 B）", [
 ])
 
 GOLDC = (1.0, 0.76, 0.3)
-CARMEN = ("圣徒卡门 · 掩体（方案 B）", [
-    {"name": "主轴：躲在景物后挡狙击", "col": GOLDC, "P": [(CX + 150, CY + 175), (CX + 110, CY + 195), (CX + 200, CY + 190)], "draw": [
-        L(lambda im, d: put(im, "e_saint", 0.8, 80, CY + 40)),
-        L(lambda im, d: put(im, "prop_wall", 1.2, CX + 90, CY + 165)),
-        L(lambda im, d: put(im, "prop_pillar", 1.2, CX - 90, CY + 120)),
-        L(lambda im, d: B.beam(d, 80, CY + 20, CX + 60, CY + 140, 10, GOLDC)),
-        L(lambda im, d: gold_mark(d, CX + 90, CY + 160, 34)),
-        L(lambda im, d: pips(d, 59, CY - 70, 3, 2, GOLDC)),
-        L(lambda im, d: d.text((CX - 40, 96), "狙击线画到被挡的地方为止", font=B.font(15), fill=(255, 255, 255))),
-    ], "lines": ["连开 3 枪（头顶 3 格），贯穿全场的细直线，被残柱、断墙、沉船碎片挡住；挡住你的那块描金边。", "3 枪打完装填 3 秒：压上去打（×1.5），冲刺穿身打断 = 晕眩 4 秒。"]},
-    {"name": "二幕 · 守誓：掩体会碎", "col": (1.0, 0.9, 0.65), "ground": "cross_cracks", "P": [(CX - 110, CY + 150), (CX - 160, CY + 175), (CX - 60, CY + 180)], "draw": [
-        L(lambda im, d: put(im, "e_saint", 0.8, CX + 180, CY + 60)),
-        L(lambda im, d: put(im, "prop_wall", 1.2, CX + 60, CY + 165, alpha=0.35)),
-        L(lambda im, d: d.text((CX + 30, CY + 170), "碎了", font=B.font(14), fill=(255, 200, 200))),
-        L(lambda im, d: put(im, "prop_pillar", 1.2, CX - 60, CY + 120)),
-        L(lambda im, d: B.beam(d, CX + 160, CY + 20, CX - 45, CY + 95, 10, (1.0, 0.9, 0.65))),
-        L(lambda im, d: arrow(d, CX - 90, CY + 150, math.pi, (1, 1, 1))),
-        L(lambda im, d: d.text((30, 96), "每块景物挡一枪就碎；她跳到侧面逼你换掩体", font=B.font(15), fill=(255, 255, 255))),
-    ], "lines": ["狙击会打碎挡住它的景物，每 3 枪后「退避跳」到你掩体的侧面——要不停换掩体。", "依赖新判定：敌方直线被景物截断（现在景物只挡玩家移动）；附近景物不足 3 块时她身边立 3 块断墙。"]},
+CARMEN = ("圣徒卡门 · 封锁线（方案 B）", [
+    {"name": "主轴：三条火线切出跑道", "col": GOLDC, "P": [(CX - 40, CY + 205), (CX - 80, CY + 195), (CX, CY + 215)], "draw": [
+        L(lambda im, d: [fire_line(d, 20, CY + 60 + k * 70, PW - 20, CY + 20 + k * 70, GOLDC, gap=g) for k, g in ((0, 0.78), (1, 0.3), (2, 0.62))]),
+        L(lambda im, d: put(im, "e_saint", 0.8, PW - 70, CY + 20)),
+        L(lambda im, d: pips(d, PW - 91, CY - 90, 3, 0, GOLDC)),
+        L(lambda im, d: d.line((CX - 40, CY + 205, 20 + (PW - 40) * 0.62, CY + 160 - 0.62 * 40, 20 + (PW - 40) * 0.3, CY + 130 - 0.3 * 40 - 12, 20 + (PW - 40) * 0.78, CY + 60 - 0.78 * 40, PW - 80, CY + 5), fill=(255, 255, 255), width=3, joint="curve")),
+        L(lambda im, d: arrow(d, PW - 80, CY + 5, -0.6, (1, 1, 1))),
+        L(lambda im, d: d.text((20, 96), "每条火线留一处缺口，缺口错开：S 形穿过去", font=B.font(15), fill=(255, 255, 255))),
+    ], "lines": ["她连开 3 枪，每枪打完留一条火线 6 秒（碰到掉血 + 减速），每条线上留一处缺口（白圈），三条的缺口错开——边跑边 S 形穿过缺口绕到她身边。", "3 枪后装填 3 秒：火线消退、她站定、受伤 ×1.5，压上去打。"]},
+    {"name": "二幕 · 守誓：交叉成格", "col": (1.0, 0.9, 0.65), "ground": "cross_cracks", "P": [(CX + 40, CY + 160), (CX, CY + 175), (CX + 80, CY + 180)], "draw": [
+        L(lambda im, d: fire_line(d, 20, CY + 40, PW - 20, CY + 90, (1.0, 0.9, 0.65), gap=0.75)),
+        L(lambda im, d: fire_line(d, 20, CY + 150, PW - 20, CY + 200, (1.0, 0.9, 0.65), gap=0.2)),
+        L(lambda im, d: fire_line(d, CX - 120, 40, CX - 60, PH - 10, (1.0, 0.9, 0.65), gap=0.55)),
+        L(lambda im, d: B.beam(d, PW - 20, CY + 130, 20, CY + 160, 10, (1.0, 0.9, 0.65))),
+        L(lambda im, d: put(im, "e_saint", 0.8, 70, CY + 110)),
+        L(lambda im, d: arrow(d, CX + 40, CY + 135, -math.pi / 2, (1, 1, 1))),
+        L(lambda im, d: d.text((20, 96), "第三枪锁你所在的跑道：1 秒里换格", font=B.font(15), fill=(255, 255, 255))),
+    ], "lines": ["三枪分两个方向，火线交叉把场地切成格子；最后一枪锁定的是你所在的那条跑道，要在锁定的 1 秒里换到隔壁格子。", "装填时她退避跳到场地另一边——窗口还在，但要多跑一段。"]},
 ])
 
 PURPLE = (0.8, 0.4, 1.0)
