@@ -666,6 +666,11 @@ func voice_can_cut(key: String, now: float) -> bool:
 var voice_urgent: Array = []          # [干员, 事件, 截止时刻]：等当前这条播完立即补播的指挥回应
 var voice_log := false                 # --voicelog（测试）：真正开播时打印 VOICEPLAY <干员> <事件>
 
+## 这名干员有没有这条语音素材（指挥喊话缺素材时退到通用音效）
+func has_voice(cid: String, key: String) -> bool:
+	return _voice_stream(cid, key) != null
+
+
 func voice(cid: String, key: String, queue := false, urgent := false) -> void:
 	var st := _voice_stream(cid, key)
 	if st == null:

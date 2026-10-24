@@ -1125,6 +1125,7 @@ func follow(dt: float, target: Vector2) -> void:
 			_cmd_waypoint = Vector2.INF
 			_cmd_stall = 0.0
 			_cmd_failed = null
+			rush_t = 0.0   # 离开突击：冲锋作废
 		if st == 2 and sq.gather_t >= 0.0:
 			target = pos   # 归队集合：到位后站定一下（squad._tick_recall）
 		var d: float = pos.distance_to(target)
@@ -1137,9 +1138,12 @@ func follow(dt: float, target: Vector2) -> void:
 			fp_moving = true   # 突击 / 归队不停顿；回到随行时从「在走」开始
 			# 突击 / 归队：限速（随行原样不限）——突击按队长移速 × command/roam_speed 跑过去，归队 × command/recall_speed 快速归位
 			var step: Vector2 = (target - pos) * k
-			var vmax: float = g.speed * CmdBal.v("command/roam_speed" if st == 1 else "command/recall_speed", 1.3 if st == 1 else 4.0) * dt
-			if step.length() > vmax:
-				step = step.normalized() * vmax
+			if st == 1 and rush_t > 0.0:
+				step = _rush_step(dt)   # 爆发窗口的第一下冲锋：不受突击限速，冲到目标面前或撞上怪就停（docs/114 §14）
+			else:
+				var vmax: float = g.speed * CmdBal.v("command/roam_speed" if st == 1 else "command/recall_speed", 1.3 if st == 1 else 4.0) * dt
+				if step.length() > vmax:
+					step = step.normalized() * vmax
 			pos += step
 		if g.tex.get("prop_pillar") != null:
 			pos = g.map.push_out(pos, 10.0)
@@ -1147,6 +1151,7 @@ func follow(dt: float, target: Vector2) -> void:
 		_cmd_progress(prev, target, dt)
 	var vel: Vector2 = (pos - prev) / maxf(dt, 0.0001)
 	_sample_motion(vel, dt)
+	_rush_age(dt)
 	var sp_now: float = vel.length()
 	mv = lerpf(mv, sp_now, clampf(dt * (10.0 if sp_now > mv else 20.0), 0.0, 1.0))   # 停下衰减快一倍，不再停住后多跑 0.15–0.27 秒
 	if attack_t <= 0.0:
@@ -1608,6 +1613,131 @@ func _cmd_progress(previous: Vector2, target: Vector2, dt: float) -> void:
 		roam_tgt = null
 		_cmd_waypoint = Vector2.INF
 		_cmd_stall = 0.0
+
+
+## ---- 爆发窗口的第一下冲锋（10-24 用户定，docs/114 §14）：切到突击那一刻，每名出击的队友朝自己的目标冲一段（限距离 / 速度，
+## 镜头不动），撞上怪（或冲到位）时把身边的怪推开一下：精英减半、Boss / 部件 / 宝箱不受（沿用 apply_kb 口径）。冲锋期间短暂无敌。
+## 身后拖金色轨迹：2 px 网格方块、短寿命、三阶硬边淡出，不走随机数（序号哈希摆位），同时往光学发光层排发光点
+var rush_t := 0.0
+var rush_goal := Vector2.INF
+var rush_trail: Array = []   # [{p, a（年龄）, n（序号）, big（撞击迸射）}]
+var _rush_seq := 0
+var _rush_emit_t := 0.0
+
+
+func begin_rush() -> void:
+	rush_t = 0.0
+	if is_leader or pos == Vector2.INF or cmd_down > 0.0:
+		return
+	roam_target(pos)   # 先选好目标（同每帧的突击选敌，roam_tgt）
+	var e = roam_tgt
+	if e == null:
+		return
+	var dv: Vector2 = e.pos - pos
+	var dist: float = dv.length()
+	var run: float = dist - (float(e.r) + 16.0)
+	if run < CmdBal.v("command/rush_min", 60.0):
+		_rush_impact(pos)   # 已经贴着怪：原地顶一下
+		return
+	var goal: Vector2 = pos + dv.normalized() * minf(run, CmdBal.v("command/rush_dist", 260.0))
+	goal = g.ppos + (goal - g.ppos).limit_length(CmdBal.v("command/roam_r", 380.0))
+	if g.get("map") != null and g.map.segment_blocked(pos, goal):
+		return
+	rush_goal = goal
+	rush_t = CmdBal.v("command/rush_max_t", 0.5)
+	cmd_inv = maxf(cmd_inv, CmdBal.v("command/rush_inv", 0.6))
+	_rush_sfx("dodge", -8.0)
+
+
+func _rush_step(dt: float) -> Vector2:
+	rush_t -= dt
+	var to: Vector2 = rush_goal - pos
+	var sv: Vector2 = to.limit_length(CmdBal.v("command/rush_speed", 780.0) * dt)
+	var np: Vector2 = pos + sv
+	var hit := false
+	for j in query_ids(np, 44.0):
+		var en: Dictionary = g.enemies[j]
+		if not en.dead and not en.chest and en.pos.distance_to(np) < float(en.r) + 20.0:
+			hit = true
+			break
+	_rush_emit_t -= dt
+	if _rush_emit_t <= 0.0:
+		_rush_emit_t = 0.03
+		_rush_push(np, false)
+	if hit or rush_t <= 0.0 or sv.length() >= to.length() - 0.5:
+		rush_t = 0.0
+		_rush_impact(np)
+	return sv
+
+
+## 撞击：身边 command/rush_hit_r 内的怪被推开（精英 ×rush_kb_elite，Boss / 部件 / 宝箱免疫）
+func _rush_impact(p: Vector2) -> void:
+	var hr: float = CmdBal.v("command/rush_hit_r", 56.0)
+	var kb: float = CmdBal.v("command/rush_kb", 340.0)
+	var n := 0
+	for j in query_ids(p, hr + 24.0):
+		var en: Dictionary = g.enemies[j]
+		if en.dead or en.boss or en.chest or en.get("part", false) or en.pos.distance_to(p) > hr + float(en.r):
+			continue
+		var dv: Vector2 = en.pos - p
+		if dv.length_squared() < 1.0:
+			dv = Vector2(face if face != 0.0 else 1.0, 0.0)
+		apply_kb(en, dv.normalized() * kb * (CmdBal.v("command/rush_kb_elite", 0.5) if en.elite else 1.0))
+		n += 1
+	if n > 0 or rush_goal != Vector2.INF:
+		_rush_push(p, true)
+		_rush_sfx("swing_heavy", -7.0)
+	if g.get("trace_every") != null and g.trace_every > 0.0:
+		print("CMD t=%.2f rush %s kb=%d" % [g.t, id, n])
+	rush_goal = Vector2.INF
+
+
+func _rush_sfx(name: String, vol: float) -> void:
+	if g.headless_batch:
+		return
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g != null and g.is_inside_tree() else null
+	if sfx != null:
+		sfx.play(name, vol)
+
+
+func _rush_push(p: Vector2, big: bool) -> void:
+	if g.headless_batch:
+		return   # 纯画面：无头批跑不记
+	_rush_seq += 1
+	rush_trail.append({"p": p, "a": 0.0, "n": _rush_seq, "big": big})
+
+
+func _rush_age(dt: float) -> void:
+	if rush_trail.is_empty():
+		return
+	var life: float = CmdBal.v("command/rush_trail_life", 0.22)
+	for tp in rush_trail:
+		tp.a += dt
+	rush_trail = rush_trail.filter(func(tp): return tp.a < life)
+
+
+## 金色轨迹：每个点 3 颗 2 / 4 像素的方块（序号哈希摆位），撞击点向外迸 8 颗；三阶透明度；新点带白芯。全部落在 2 px 网格上
+func _draw_rush_trail() -> void:
+	var life: float = CmdBal.v("command/rush_trail_life", 0.22)
+	var optical: bool = g.optical_on
+	for tp in rush_trail:
+		var u: float = clampf(float(tp.a) / life, 0.0, 0.999)
+		var q: float = [1.0, 0.6, 0.3][int(u * 3.0)]
+		var base: Vector2 = tp.p + Vector2(0, -10)
+		var n: int = tp.n
+		var cnt: int = 8 if tp.big else 3
+		for i in cnt:
+			var off: Vector2
+			if tp.big:
+				off = Vector2.from_angle(TAU * i / 8.0 + float(n % 3) * 0.2) * (8.0 + u * 30.0)
+			else:
+				off = Vector2(float((n * 7 + i * 5) % 9 - 4) * 2.0, float((n * 3 + i * 11) % 9 - 4) * 2.0)
+			var pt := Vector2(snappedf(base.x + off.x, 2.0), snappedf(base.y + off.y, 2.0))
+			var s: float = 4.0 if u < 0.4 else 2.0
+			var col := Color(1.0, 0.82, 0.3, q) if u > 0.33 else Color(1.0, 0.95, 0.7, q)
+			cv.draw_rect(Rect2(pt, Vector2(s, s)), col)
+			if optical and u < 0.5 and i == 0:
+				g.glow_next.append([pt, 4.0, Color(1.0, 0.78, 0.3)])
 
 
 var _cmd_waypoint := Vector2.INF
@@ -2354,6 +2484,8 @@ func draw_body() -> void:
 		return
 	# 残影（动态模糊，用户选定方案 A，2026-09-25）：突然冲刺时身后 3–4 个带职业色的渐隐分身，先画在本体下面
 	var c: Color = col().lerp(Color.WHITE, 0.35)
+	if not rush_trail.is_empty():
+		_draw_rush_trail()
 	for gh in ghosts:
 		var a: float = GHOST_ALPHA * (1.0 - gh.age / GHOST_LIFE)
 		draw_sprite_at(gh.p + Vector2(foot_dx(gh.st), 0), gh.st.flip, Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, a), gh.st.frame, gh.st.tex, gh.st.hf, foot_off(gh.st.tex, gh.st.get("kind", "")))

@@ -2,7 +2,7 @@ extends Node
 
 class TestGame extends RefCounted:
 	var ppos := Vector2.ZERO
-	var squad = {"lead_dir": Vector2.RIGHT}
+	var squad = {"lead_dir": Vector2.RIGHT, "priority": 0}
 	var enemies: Array = []
 	var rng := RandomNumberGenerator.new()
 	var stats = preload("res://scripts/core/stat_block.gd").new()
