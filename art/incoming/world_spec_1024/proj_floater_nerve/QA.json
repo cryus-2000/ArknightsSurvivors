@@ -1,0 +1,94 @@
+{
+  "source": "art/incoming/proj_floater_nerve.png",
+  "source_sha256": "12b41de5ca00feeb203354e286d40bbedb273171b714e28b95178669289cfe47",
+  "output": "proj_floater_nerve.png",
+  "sha256": "f56dbd533bd6070561b78293fae20b6ce4dbcb56ed9493da557723fa0bb950a4",
+  "sheet_size": [
+    48,
+    12
+  ],
+  "frame_size": [
+    12,
+    12
+  ],
+  "frames": 4,
+  "fps": 12,
+  "anchor_px": [
+    6.0,
+    6.0
+  ],
+  "anchor_space": "source frame edges; exact legacy renderer anchor",
+  "opaque_colors_before": 40,
+  "opaque_colors_after": 19,
+  "total_rgba_colors": 20,
+  "alpha_values": [
+    0,
+    255
+  ],
+  "changed_alpha_pixels": 0,
+  "changed_rgb_pixels": 36,
+  "source_opaque_bbox": [
+    2,
+    3,
+    48,
+    10
+  ],
+  "output_opaque_bbox": [
+    2,
+    3,
+    48,
+    10
+  ],
+  "palette": [
+    "#001010",
+    "#001020",
+    "#080E18",
+    "#102050",
+    "#203070",
+    "#5090FF",
+    "#50B0FF",
+    "#50C0FF",
+    "#50D0FF",
+    "#50E0FF",
+    "#50F0FF",
+    "#6050F0",
+    "#60F0FF",
+    "#7050FF",
+    "#7060FF",
+    "#7070FF",
+    "#8060FF",
+    "#80FFFF",
+    "#FFFFFF"
+  ],
+  "method": "explicit per-source-color material mapping; no automatic quantization; no resampling of asset",
+  "visual_review": "Reviewed all four frames side by side at 2x and 8x: original pulse sizes/positions and cyan/violet balance preserved; repeat bright shades consolidated, white core in last frame deliberately retained.",
+  "engine_validation": "not run; asset-only delivery",
+  "user_approval": "pending",
+  "status": "technical checks passed; visually reviewed; awaiting user approval and Claude integration",
+  "frame_opaque_bboxes": [
+    [
+      2,
+      3,
+      12,
+      10
+    ],
+    [
+      2,
+      3,
+      12,
+      10
+    ],
+    [
+      3,
+      3,
+      12,
+      10
+    ],
+    [
+      2,
+      3,
+      12,
+      10
+    ]
+  ]
+}

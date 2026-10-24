@@ -1,0 +1,66 @@
+{
+  "asset": "proj_floater_nerve",
+  "frame_size": [
+    12,
+    12
+  ],
+  "frames": 4,
+  "fps": 12,
+  "anchor_px": [
+    6.0,
+    6.0
+  ],
+  "palette": [
+    "#001010",
+    "#001020",
+    "#080E18",
+    "#102050",
+    "#203070",
+    "#5090FF",
+    "#50B0FF",
+    "#50C0FF",
+    "#50D0FF",
+    "#50E0FF",
+    "#50F0FF",
+    "#6050F0",
+    "#60F0FF",
+    "#7050FF",
+    "#7060FF",
+    "#7070FF",
+    "#8060FF",
+    "#80FFFF",
+    "#FFFFFF"
+  ],
+  "files": [
+    {
+      "file": "compare.png",
+      "sha256": "8ce5ae2da2e4bba825cdac3224a7d6ae8bb2a99d89b129c7739f772b97318312",
+      "bytes": 4214
+    },
+    {
+      "file": "compare_8x.png",
+      "sha256": "ad2b7cc6a66ee5512b15fba758427855896a762fa1e61c9a15050b7f86f06bb6",
+      "bytes": 5116
+    },
+    {
+      "file": "HANDOFF.md",
+      "sha256": "b8c12c072cd480ae715aba8d935ccb1e0d58226827c9e3cee380c82377280ad7",
+      "bytes": 1448
+    },
+    {
+      "file": "palette_map.json",
+      "sha256": "f7b1ce083883116cc2e6910c3ce617d4379ba4621d70e898829ea63a83e7bb93",
+      "bytes": 1005
+    },
+    {
+      "file": "proj_floater_nerve.png",
+      "sha256": "f56dbd533bd6070561b78293fae20b6ce4dbcb56ed9493da557723fa0bb950a4",
+      "bytes": 436
+    },
+    {
+      "file": "QA.json",
+      "sha256": "01df57da3e80afb56adc1b1306e6d78636fbc711e912f2a9bf564779bf5acf84",
+      "bytes": 1926
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "method": "revision 2: small original alpha and facet layout retained by explicit pixel rows; large silhouette manually extended; original pale gold-white palette retained",
+  "transparent": ".",
+  "palette": {
+    "o": "#343633",
+    "H": "#FFF9E9",
+    "L": "#F2E9D2",
+    "M": "#DDD1B4",
+    "S": "#A49A81",
+    "B": "#706E62"
+  },
+  "gem_small": [
+    ".oooo...",
+    "ooHLoo..",
+    "oLHMLoo.",
+    "oLHMSLo.",
+    "oLLMMLo.",
+    "oLSMMLo.",
+    "oLLMMLo.",
+    "oLLLLoo.",
+    "oooooo..",
+    "........"
+  ],
+  "gem_big": [
+    ".oooooo....",
+    "ooHHLMoo...",
+    "oLHHLMMLoo.",
+    "oLHHLMMSLoo",
+    "oLLHLMMMSLo",
+    "oLLHLMMMSLo",
+    "oLLMLMMMSLo",
+    "oLLMLMMHSLo",
+    "oLLMLMMHSLo",
+    "oLLSLMMMSLo",
+    "oLLMLMMMSLo",
+    "oLLMLMMMSLo",
+    "oLLLLLLLooo",
+    "ooooooooo.."
+  ],
+  "emit_symbols": [
+    "H"
+  ]
+}

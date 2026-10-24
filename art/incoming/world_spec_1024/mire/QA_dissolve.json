@@ -1,0 +1,46 @@
+{
+  "status": "PASS",
+  "frame_size": [
+    64,
+    64
+  ],
+  "sheet_size": [
+    384,
+    64
+  ],
+  "frames": 6,
+  "fps": 8,
+  "anchor": [
+    32,
+    32
+  ],
+  "alpha": [
+    0,
+    255
+  ],
+  "colors_including_transparency": 22,
+  "opaque_colors": 21,
+  "opaque_pixels_by_frame": [
+    2271,
+    1903,
+    1058,
+    622,
+    268,
+    37
+  ],
+  "colors_by_frame": [
+    21,
+    21,
+    21,
+    20,
+    18,
+    7
+  ],
+  "alpha_monotonic": true,
+  "f0_matches_tile_at_visible_pixels": true,
+  "emit_exact_cyan_subset": true,
+  "integer_2x_verified": true,
+  "visual_review": "Viewed six frames at 2x; rough outside-in retreat; no bright purple ring. User visual approval pending.",
+  "engine_validation": "not integrated",
+  "sha256": "2e5c4350a6cd40a94d830bc9746a2712de19fa7cd046eea8b61fde1541ee0c8a"
+}

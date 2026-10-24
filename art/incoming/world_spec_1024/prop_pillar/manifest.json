@@ -1,0 +1,77 @@
+{
+  "asset": "prop_pillar",
+  "frame_size": [
+    32,
+    56
+  ],
+  "frames": 1,
+  "fps": 0,
+  "anchor_px": [
+    16.0,
+    56
+  ],
+  "palette": [
+    "#080E18",
+    "#102030",
+    "#203040",
+    "#204050",
+    "#304060",
+    "#305060",
+    "#307080",
+    "#405070",
+    "#406070",
+    "#408090",
+    "#506070",
+    "#507080",
+    "#5090A0",
+    "#607080",
+    "#608090",
+    "#60A0B0",
+    "#708090",
+    "#709090",
+    "#7090A0",
+    "#70B0C0",
+    "#8090A0",
+    "#80A0A0",
+    "#80C0D0",
+    "#90A0B0",
+    "#90B0B0",
+    "#90C0D0",
+    "#A0B0B0",
+    "#A0B0C0",
+    "#A0C0C0",
+    "#B0C0C0"
+  ],
+  "files": [
+    {
+      "file": "compare.png",
+      "sha256": "50891a04fb9b520bf8ecc2251ca7d57a1cee834904de4321baf23e570c0100a9",
+      "bytes": 6613
+    },
+    {
+      "file": "compare_8x.png",
+      "sha256": "e880cbed00a8c459e0ac6036024755f4396c017d25d5bccbdf322a01313d41bb",
+      "bytes": 9160
+    },
+    {
+      "file": "HANDOFF.md",
+      "sha256": "a92cc8b093d198297e7e7ae4fbf330296cd7b8549f61653a8dd81271a2265f6a",
+      "bytes": 1503
+    },
+    {
+      "file": "palette_map.json",
+      "sha256": "b89cd38fd730b943c103b640c03ef87bd94f2ce7dd47b56aecb99ff0e9c4a006",
+      "bytes": 1805
+    },
+    {
+      "file": "prop_pillar.png",
+      "sha256": "394c2656caa5f8c8499e0b8f902e7b0f058ee3412e033b08801efa886b528747",
+      "bytes": 1390
+    },
+    {
+      "file": "QA.json",
+      "sha256": "db8e1d8b4543d6a4b97e9979e749470fa0a0ef1ff43d236da2a99f021f840f01",
+      "bytes": 1883
+    }
+  ]
+}

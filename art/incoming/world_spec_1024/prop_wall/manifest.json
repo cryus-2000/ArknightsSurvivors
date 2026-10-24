@@ -1,0 +1,71 @@
+{
+  "asset": "prop_wall",
+  "frame_size": [
+    56,
+    40
+  ],
+  "frames": 1,
+  "fps": 0,
+  "anchor_px": [
+    28.0,
+    40
+  ],
+  "palette": [
+    "#001020",
+    "#080E18",
+    "#102030",
+    "#103040",
+    "#203040",
+    "#204050",
+    "#205050",
+    "#206060",
+    "#304060",
+    "#305060",
+    "#306050",
+    "#405070",
+    "#406070",
+    "#407050",
+    "#407080",
+    "#507080",
+    "#508050",
+    "#508090",
+    "#6090A0",
+    "#70A0B0",
+    "#70B0B0",
+    "#80B0B0",
+    "#80C0C0",
+    "#90D0D0"
+  ],
+  "files": [
+    {
+      "file": "compare.png",
+      "sha256": "66b5121925dbe6c0dc987b808d3d0bfafeefcac08dd0e30ddfa2b5c536995d72",
+      "bytes": 7737
+    },
+    {
+      "file": "compare_8x.png",
+      "sha256": "59e5b55d0f4dba65e8ef74ea9ac4afab47848720ec436a7d54e3ad83256be0d9",
+      "bytes": 10862
+    },
+    {
+      "file": "HANDOFF.md",
+      "sha256": "64b16194f1d16a07549f61788c5b706b72363939140d8799975c58687c5055eb",
+      "bytes": 1427
+    },
+    {
+      "file": "palette_map.json",
+      "sha256": "17b0fbd18fe9d521a9f4cb6e0ae4cd7b7c195f21c4364b82638d19d2077a731b",
+      "bytes": 2055
+    },
+    {
+      "file": "prop_wall.png",
+      "sha256": "f15e5e478cf2c2729a2af05ad0919c2051c83f2e2cb579d5486475343f5ddcab",
+      "bytes": 1870
+    },
+    {
+      "file": "QA.json",
+      "sha256": "1372131b35eba30e359d81c98104ed8ec0b75a3a6d73aa9feb7180affc47a18b",
+      "bytes": 1775
+    }
+  ]
+}

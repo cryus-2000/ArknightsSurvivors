@@ -1,0 +1,245 @@
+{
+  "status": "candidate_visual_review_pending",
+  "branch": "codex/world-spec-1024",
+  "base_commit": "15becc9c8",
+  "native_pixel_size": 1,
+  "screen_pixel_size": 2,
+  "runtime_scale": 1,
+  "frames": 2,
+  "frame_duration_seconds": 0.5,
+  "playback_note": "Suggested visual preview only; integration may retain current pulse cadence.",
+  "tile": {
+    "size": [
+      64,
+      64
+    ],
+    "sheet_size": [
+      128,
+      64
+    ],
+    "variants": [
+      "mire_tile",
+      "mire_tile_b"
+    ],
+    "shared_perimeter": 12
+  },
+  "edge": {
+    "frame_size": [
+      288,
+      64
+    ],
+    "sheet_size": [
+      576,
+      64
+    ],
+    "frame_stride_x": 288,
+    "slices": [
+      {
+        "name": "N",
+        "x": 0,
+        "y": 0,
+        "w": 64,
+        "h": 16,
+        "phase": [
+          0,
+          48
+        ]
+      },
+      {
+        "name": "E",
+        "x": 64,
+        "y": 0,
+        "w": 16,
+        "h": 64,
+        "phase": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "S",
+        "x": 80,
+        "y": 0,
+        "w": 64,
+        "h": 16,
+        "phase": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "W",
+        "x": 144,
+        "y": 0,
+        "w": 16,
+        "h": 64,
+        "phase": [
+          48,
+          0
+        ]
+      },
+      {
+        "name": "outer_NW",
+        "x": 160,
+        "y": 0,
+        "w": 16,
+        "h": 16,
+        "phase": [
+          48,
+          48
+        ]
+      },
+      {
+        "name": "outer_NE",
+        "x": 176,
+        "y": 0,
+        "w": 16,
+        "h": 16,
+        "phase": [
+          0,
+          48
+        ]
+      },
+      {
+        "name": "outer_SE",
+        "x": 192,
+        "y": 0,
+        "w": 16,
+        "h": 16,
+        "phase": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "outer_SW",
+        "x": 208,
+        "y": 0,
+        "w": 16,
+        "h": 16,
+        "phase": [
+          48,
+          0
+        ]
+      },
+      {
+        "name": "inner_NW",
+        "x": 224,
+        "y": 0,
+        "w": 16,
+        "h": 16,
+        "phase": [
+          48,
+          48
+        ]
+      },
+      {
+        "name": "inner_NE",
+        "x": 240,
+        "y": 0,
+        "w": 16,
+        "h": 16,
+        "phase": [
+          0,
+          48
+        ]
+      },
+      {
+        "name": "inner_SE",
+        "x": 256,
+        "y": 0,
+        "w": 16,
+        "h": 16,
+        "phase": [
+          0,
+          0
+        ]
+      },
+      {
+        "name": "inner_SW",
+        "x": 272,
+        "y": 0,
+        "w": 16,
+        "h": 16,
+        "phase": [
+          48,
+          0
+        ]
+      }
+    ]
+  },
+  "palette": [
+    "#080b1b",
+    "#101020",
+    "#101030",
+    "#001020",
+    "#102030",
+    "#102040",
+    "#202040",
+    "#302850",
+    "#403060",
+    "#403070",
+    "#504080",
+    "#605090",
+    "#103040",
+    "#104050",
+    "#205060",
+    "#206070",
+    "#308080",
+    "#309090",
+    "#30a0a0",
+    "#40b0b0",
+    "#40c0c0",
+    "#60d0d0",
+    "#70e0e0"
+  ],
+  "emit_palette": [
+    "#206070",
+    "#308080",
+    "#309090",
+    "#30a0a0",
+    "#40b0b0",
+    "#40c0c0",
+    "#60d0d0",
+    "#70e0e0"
+  ],
+  "preview": {
+    "inner_size": [
+      192,
+      192
+    ],
+    "outer_size": [
+      224,
+      224
+    ],
+    "scale": 2
+  },
+  "integration": "Not integrated; no gameplay or runtime code changes.",
+  "delivery_scope": "world_spec_1024/mire",
+  "dissolve": {
+    "sheet_size": [
+      384,
+      64
+    ],
+    "frame_size": [
+      64,
+      64
+    ],
+    "frames": 6,
+    "fps": 8,
+    "anchor": [
+      32,
+      32
+    ],
+    "opaque_pixels": [
+      2271,
+      1903,
+      1058,
+      622,
+      268,
+      37
+    ],
+    "source_note": "Existing old 1x and @2x are both present; new version reconstructs v2 material at 1x.",
+    "usage": "64px local patch. Keep texture pixel pitch; do not stretch this strip to the mire radius. Claude owns coverage/masking and visual integration."
+  }
+}

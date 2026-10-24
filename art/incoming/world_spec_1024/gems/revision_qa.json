@@ -1,0 +1,7 @@
+{
+  "revision": 2,
+  "small_silhouette": "exact 7x9 original alpha; right column and bottom row transparent in 8x10 canvas",
+  "small_original_alpha_mismatches": 0,
+  "big_silhouette": "hand-extended asymmetric top bevel, straight sides and flat base; no resampling",
+  "visual_status": "revised after rejection; pending user review"
+}

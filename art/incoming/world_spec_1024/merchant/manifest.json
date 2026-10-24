@@ -1,0 +1,127 @@
+{
+  "asset": "merchant",
+  "version": "world-spec-1024",
+  "frame_size": [
+    48,
+    48
+  ],
+  "frame_count": 2,
+  "layout": "horizontal",
+  "foot": [
+    24,
+    45
+  ],
+  "foot_normalized": [
+    0.5,
+    0.9375
+  ],
+  "fps": 2,
+  "loop": true,
+  "frame_order": [
+    "neutral inhale",
+    "gentle exhale / head-shoulder one native pixel down"
+  ],
+  "source": "art/incoming/merchant@2x.png",
+  "source_sha256": "2fee226417cfc5e05d2949d67c49f31c3e2b1186128b3bbb608808ce116f1e72",
+  "comparison_operator": "art/incoming/mizuki_runtime_idle@1x.png (first 96x96 frame, crop [17,30,48,48], no downscale)",
+  "palette": {
+    "o": "#080E18",
+    "b": "#292630",
+    "c": "#3C3642",
+    "d": "#514754",
+    "e": "#6A5E67",
+    "f": "#877B85",
+    "g": "#A3979E",
+    "h": "#BBB0AD",
+    "i": "#D5C7BD",
+    "j": "#EBE0D1",
+    "k": "#36282A",
+    "l": "#654238",
+    "m": "#8D6050",
+    "n": "#4B2825",
+    "p": "#844737",
+    "q": "#B2694A",
+    "r": "#9A6C57"
+  },
+  "files": [
+    {
+      "file": "merchant@1x.png",
+      "sha256": "d0f70752af00bee256663fd675669256d62d7ec96d9055f3cc360e20407e80fa"
+    },
+    {
+      "file": "compare.png",
+      "sha256": "93c0b3f8903b3b4225b0ebdbb101ad243e61bb2f04f65633c638bb94809020b4"
+    },
+    {
+      "file": "frames_8x.png",
+      "sha256": "c6831528b27001546aae89472c46b88d866b14e64548d56368efe5c2be195c87"
+    },
+    {
+      "file": "frame_0.png",
+      "sha256": "4d10763bba9282793642e43dc7945c0465b08ba6ceca91e9257a782df0280b95"
+    },
+    {
+      "file": "frame_1.png",
+      "sha256": "e6f56de4b253c2a34faee3ac12028602dd45f75c15a7ab09bc98d0e8f0283ee3"
+    },
+    {
+      "file": "reference_check.png",
+      "sha256": "fe0e33356dc843aa7f466a2b1d99d8f98861f5730714404ec615bce7b9e11b68"
+    }
+  ],
+  "animation_layers": {
+    "fixed": [
+      "boots",
+      "lower coat",
+      "lower cape",
+      "goods",
+      "rear tentacle loop",
+      "front coiled tentacles"
+    ],
+    "offset_y_frame_0_frame_1": {
+      "head": [
+        0,
+        1
+      ],
+      "neck": [
+        0,
+        1
+      ],
+      "mantle": [
+        0,
+        1
+      ],
+      "arms": [
+        0,
+        1
+      ]
+    }
+  },
+  "status": "candidate; user visual approval pending; not integrated",
+  "reference": {
+    "official_portrait_url": "https://arknights.wiki.gg/images/5/57/Cannot_Goodenough.png",
+    "official_portrait_sha256": "0240200aafa519a14cb72e33657fa79a757732ba7ad298584077c470044bc026",
+    "prts_identity_page": "https://prts.wiki/w/坎诺特",
+    "prts_portrait_fetch": "403 / page viewer unavailable; official portrait image verified from Terra Wiki mirror",
+    "materials_checked": [
+      "silver-gray bucket helmet",
+      "dark gray cloth without olive cast",
+      "red-brown leather and rust straps",
+      "face, eye color, hair and skin concealed"
+    ]
+  },
+  "revision": {
+    "number": 3,
+    "change": "restore three rust-brown organic coils around cargo, retaining revision 2 palette",
+    "changed_pixels": 182,
+    "changed_bbox_each_frame": [
+      27,
+      27,
+      46,
+      42
+    ],
+    "all_changes_confined_to_cargo_area": true,
+    "tentacles_fixed_between_idle_frames": true,
+    "visual_acceptance": "pending"
+  }
+}
