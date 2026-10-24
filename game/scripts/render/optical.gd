@@ -132,7 +132,7 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 			if b.life <= 0.0 or not vr.has_point(b.pos):
 				continue
 			ne += 1
-			cand.append([0.3, b.pos + Vector2(0, -16), 44.0, col_ebullet])
+			cand.append([0.3, b.pos + Vector2(0, -16), 44.0, eb_col(b)])
 		if grains != null:
 			for L in grains.lights:   # 颗粒簇登记的灯（fx_grains.light）
 				if vr.has_point(L[0]):
@@ -197,12 +197,19 @@ func _fxq_step(on: bool) -> void:
 		_fxq_i = 0
 
 
+## 某颗敌弹的颜色（docs/139 §7.3，用户 10-24「子弹颜色就先不用换了，就把 Boss 的换成洋红色」）：Boss 弹（b.boss）用危险色、
+## 杂兵弹用敌弹色；render/ebullet_boss_danger 0 = Boss 弹也用敌弹色
+func eb_col(b: Dictionary) -> Color:
+	return col_danger if b.get("boss", false) and Bal.v("render/ebullet_boss_danger", 1.0) > 0.0 else col_ebullet
+
+
 ## 敌弹弹体换色相（g.tex 同名替换，同压阶帧条的做法；关掉或色相变了换回原图再重做）：粉 / 紫（240–345°）→ 敌弹色色相
 func _eb_step(on: bool) -> void:
 	var hue: float = col_ebullet.h * 360.0
 	if not _eb_orig.is_empty() and (not on or absf(hue - _eb_hue) > 0.5):
 		for nm in _eb_orig:
 			g.tex[nm] = _eb_orig[nm]
+			g.tex.erase(nm + "@boss")
 		_eb_orig.clear()
 	if not on or not _eb_orig.is_empty():
 		return
@@ -213,6 +220,7 @@ func _eb_step(on: bool) -> void:
 			continue
 		_eb_orig[nm] = t
 		g.tex[nm] = A.hue_to(t, hue, 240.0, 345.0)
+		g.tex[nm + "@boss"] = t   # Boss 弹仍画原色（粉 / 紫）弹体
 
 
 ## 某只怪的本体发光色：Boss 专属暖色、精英更亮、普通怪统一海嗣青蓝
@@ -410,13 +418,14 @@ func _draw_trails(list: Array, enemy: bool) -> void:
 		var sp := v.length()
 		if enemy and fx1 and b.get("life", 1.0) > 0.0:
 			var c0: Vector2 = ((b.pos + Vector2(0, -16)) / 2.0).floor() * 2.0   # 敌弹红核心（危险色，所有敌弹，不只快的）
-			glow_node.draw_rect(Rect2(c0 - Vector2(1, 1), Vector2(4, 4)), Color(col_ebullet.r, col_ebullet.g, col_ebullet.b, 0.95))
+			var ecc: Color = eb_col(b)
+			glow_node.draw_rect(Rect2(c0 - Vector2(1, 1), Vector2(4, 4)), Color(ecc.r, ecc.g, ecc.b, 0.95))
 		if sp < 40.0 or fx1:
 			continue   # fx1 开着时拖尾改由 GPU 粒子簇画（optical_particles.step_trails），这里只留敌弹红核心
 		n += 1
 		var col: Color
 		if enemy:
-			col = col_ebullet   # 颜色语言：敌弹一律敌弹色（不再取各怪 ecol；10-24 起与预警的危险色分开）
+			col = eb_col(b)   # 颜色语言：杂兵弹敌弹色、Boss 弹危险色（不再取各怪 ecol；docs/139 §7.3）
 		else:
 			var bc = b.get("col")
 			col = bc if bc is Color else Color(0.7, 0.95, 1.0)
