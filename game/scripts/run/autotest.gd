@@ -53,6 +53,8 @@ const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设�
 var perf_upd := 0
 var perf_min := false          # --perfmin：按游戏分钟分段（docs/50 §10）
 var perf_ab := 0               # --perfab=N：每 N 帧轮换 g.perf_alt，分 /a /b 两桶
+var perf_line_buf := PackedStringArray()
+var perf_line := false         # --perfline（docs/50 §26.9）：逐帧打印 PF 行（帧时、敌人数、绘制调用、--stackab 掩码），按敌人数分档算帧时曲线
 var perf_dump: FileAccess = null   # --perfdump=<路径>：逐帧 CSV（帧时间、各列表长度、--prof 分段）
 const PERF_DUMP_KEYS := ["engine", "draw_world", "draw_hud", "draw_fxadd", "draw_fg", "autotest", "pre", "spawn", "grid", "enemies", "squad", "bullets", "ebullets",
 	"relic", "misc", "fx", "cleanup", "visuals", "tail", "dw_sorted_entities", "dw_gems", "dw_ground", "dw_mire", "dw_zone", "dw_fx", "dw_bullets", "dw_shadows", "dw_warns_auras", "dw_ebullets_lobs_shocks", "dw_tells_outlines", "dw_snow_tail", "dw_shield_drones"]
@@ -1474,6 +1476,8 @@ func _perf_sample() -> void:
 				perf_min = true
 			elif a.begins_with("--perfab="):
 				perf_ab = int(a.substr(9))
+			elif a == "--perfline":
+				perf_line = true
 			elif a.begins_with("--perfdump="):
 				perf_dump = FileAccess.open(a.substr(11), FileAccess.WRITE)
 				if perf_dump != null:
@@ -1537,6 +1541,12 @@ func _perf_sample() -> void:
 			for k in PERF_DUMP_KEYS:
 				row.append(str(snappedf(float(br.get(k, 0.0)), 0.01)))
 			perf_dump.store_line(",".join(row))
+		if perf_line:
+			# --perfline：逐帧「帧号,游戏秒,帧时,敌人数,最终 Boss 在场,绘制调用,掩码」，攒 60 帧打一行 PF（网页没有 --perfdump 的文件，走控制台；每帧一次 print 在网页上本身就贵）
+			perf_line_buf.append("%d,%.1f,%.2f,%d,%d,%d,%d" % [g.at_frames, g.t, ft, g.enemies.size(), int(g.final_boss != null and not g.final_boss.dead), int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)), g.optical.ab_mask if g.optical != null else 0])
+			if perf_line_buf.size() >= 60:
+				print("PF " + " ".join(perf_line_buf))
+				perf_line_buf.clear()
 		if ft >= 33.3:
 			d.slow_n += 1
 			perf_slow.append({"t": snappedf(g.t, 0.1), "ft": snappedf(ft, 0.1), "en": g.enemies.size(), "kills": g.kills - perf_kills,
