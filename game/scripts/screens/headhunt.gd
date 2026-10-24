@@ -584,7 +584,9 @@ func _draw_entry() -> void:
 	UI.text_at(ci, f, vr.position + Vector2(110, 38), "寻访凭证", 20, HS.INK, "lm", true)
 	UI.text_at(ci, f, Vector2(vr.end.x - 20, vr.position.y + 38), "× %d" % n, 30, HS.INK, "rm", true)
 	var rules := ["每次探索结算获得 %d 张，通关获得 %d 张" % [_per_run(), _per_clear()], "未解锁 %d 名 · 不会抽到重复干员" % locked.size()]
-	if Cfg.roster_draws == 0:
+	if locked.is_empty():
+		rules = ["干员已全部入职", "此后获得的凭证每张折算为 %d 生机细胞" % Roster.CELLS_PER_TICKET]
+	elif Cfg.roster_draws == 0:
 		rules.append("首次寻访必定获得医疗干员")
 	for j in rules.size():
 		ci.draw_rect(Rect2(40, _p(506, 418) + j * 28, 6, 6), HS.INK)
@@ -610,8 +612,15 @@ func _draw_entry() -> void:
 				_figure(_card(pool[pj]), Vector2(cx - 84 + j * 56, _p(600.0, 514.0) if big else _p(580.0, 498.0)), 0.7, Color(0.45, 0.47, 0.52))
 	if pool.size() >= 2:
 		_brackets(Rect2(840, _p(250, 176), 200, _p(300, 270)), Color(1, 1, 1, 0.85))
-	HS.para(ci, Rect2(840, _p(210, 138), 210, 36), UI.fa(UI.VIOLET, 0.9))
-	UI.text_at(ci, f, Vector2(945, _p(228, 156)), "寻访范围 · %d 名" % locked.size(), 15, Color.WHITE, "mm", true)
+	if pool.is_empty():
+		# 名册已满（10-24 用户问「全有了显示什么」）：卡池位置换成「全员入职」签，不留空场
+		_brackets(Rect2(700, _p(270, 196), 480, _p(200, 180)), Color(1, 1, 1, 0.5))
+		UI.text_at(ci, f, Vector2(940, _p(340, 262)), "全员已入职", int(_p(44, 38)), Color.WHITE, "mm", true)
+		HS.solid_px(ci, Vector2(940, _p(392, 308)), "ALL OPERATORS ON BOARD", 2.0, Color(1, 1, 1, 0.6), 1)
+		UI.text_at(ci, f, Vector2(940, _p(430, 344)), "罗德岛人事部已无待寻访的干员", 15, UI.fa(Color.WHITE, 0.55), "mm")
+	else:
+		HS.para(ci, Rect2(840, _p(210, 138), 210, 36), UI.fa(UI.VIOLET, 0.9))
+		UI.text_at(ci, f, Vector2(945, _p(228, 156)), "寻访范围 · %d 名" % locked.size(), 15, Color.WHITE, "mm", true)
 	var r1 := Rect2(620, D.y - 84, 300, 62)
 	var r0 := Rect2(940, D.y - 88, 310, 68)
 	HS.ghost_btn(ci, f, r1, "定向寻访  （%d 张）" % _cost_pick(), "", 1.0)
