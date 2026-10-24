@@ -189,33 +189,47 @@ func draw(vs: Vector2) -> void:
 	var top := r.position.y + 142
 	var avail := r.end.y - 62.0 - top
 	var touch: bool = Cfg.touch_device()
-	var fsz := 18 if touch else 15   # 触屏（手机）正文先试 18，放不下再缩到 13；桌面 15 → 12 不变（手机局内再乘 UI.fk，量字画字都用 UI.fs）
+	var fsz := 19 if touch else 17   # 正文先试大字，放不下逐号缩小（手机 19 → 13，桌面 17 → 12；手机局内再乘 UI.fk，量字画字都用 UI.fs）
 	var fsz_min := 13 if touch else 12
-	var paras: Array = []
 	var src: Dictionary = _g().touch_controls if Pad.touch_ui() and g.intro_page == pages().size() - 1 else pg
 	var src_lines: Array = page_lines(src, full_guide(), g.intro_page == pages().size() - 1)
+	# 每条 =「标签｜正文」：标签列（青色小字）+ 正文列，条与条之间一条淡分隔线；没有「｜」的整行通栏（精简版末页的提示）
+	var rows: Array = []
+	for ln in src_lines:
+		var txt: String = touch_line(fill_numbers(ln))
+		var cut: int = txt.find("｜")
+		rows.append({"label": txt.substr(0, cut) if cut > 0 else "", "text": txt.substr(cut + 1) if cut > 0 else txt})
+	var lbl_w := 92.0 if touch else 78.0
+	var row_gap := 12.0 if touch else 16.0
+	var lhh := 0.0
+	var asc := 0.0
 	while true:
-		paras.clear()
+		lhh = g.font.get_height(UI.fs(fsz)) + 2.0
+		asc = g.font.get_ascent(UI.fs(fsz))
 		var tot := 0.0
-		for ln in src_lines:
-			ln = touch_line(fill_numbers(ln))
-			var ls: PackedStringArray = UI.wrap_lines(g.font, ln, fsz, tw)
-			paras.append(ls)
-			tot += ls.size() * (g.font.get_height(UI.fs(fsz)) + 1.0) + 14.0
-		if tot - 14.0 <= avail or fsz <= fsz_min:
+		for row in rows:
+			row["lines"] = UI.wrap_lines(g.font, row.text, fsz, tw - (lbl_w if row.label != "" else 0.0))
+			tot += maxf(row.lines.size() * lhh, lhh) + row_gap
+		if tot - row_gap <= avail or fsz <= fsz_min:
 			break
 		fsz -= 1
-	var lhh: float = g.font.get_height(UI.fs(fsz)) + 1.0
-	var asc: float = g.font.get_ascent(UI.fs(fsz))
+	var lbl_sz := clampi(fsz - 3, 12, 15)
 	var y := top
-	for ls in paras:
-		UI.diamond(g.hud, Vector2(r.position.x + 340, y + asc - 6), 4.0, UI.CYAN)
-		for ln2 in ls:
+	for ri in rows.size():
+		var row: Dictionary = rows[ri]
+		if y + lhh > r.end.y - 58.0:
+			break   # 整条放不下就不画（不让标签孤零零露出来）
+		if ri > 0:
+			g.hud.draw_line(Vector2(tx, y - row_gap / 2.0 - 1.0), Vector2(tx + tw, y - row_gap / 2.0 - 1.0), Color(0.45, 0.8, 0.85, 0.12 * ea), 1.0)
+		if row.label != "":
+			g.hud.draw_string(g.font, Vector2(tx, y + asc), row.label, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(lbl_sz), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ea))
+		var y0 := y
+		for ln2 in row.lines:
 			if y + lhh > r.end.y - 58.0:
 				break
-			g.hud.draw_string(g.font, Vector2(tx, y + asc), ln2, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.85, 0.93, 0.95, ea))
+			g.hud.draw_string(g.font, Vector2(tx + (lbl_w if row.label != "" else 0.0), y + asc), ln2, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.9, 0.96, 0.98, ea))
 			y += lhh
-		y += 14.0
+		y = maxf(y, y0 + lhh) + row_gap
 	# 页码点（可点击）
 	g.intro_panel = r
 	g.intro_dots.clear()
