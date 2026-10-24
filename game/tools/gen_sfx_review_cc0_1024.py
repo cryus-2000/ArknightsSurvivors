@@ -61,7 +61,7 @@ def fetch(sid):
         return meta[str(sid)]
     s = get("https://freesound.org/search/?" + urllib.parse.urlencode({"q": str(sid), "advanced": 0, "g": 1}))
     user = re.search(r'data-sound-id="%s"\s+data-username="([^"]*)"' % sid, s).group(1)
-    pg = get("https://freesound.org/people/%s/sounds/%s/" % (user, sid))
+    pg = get("https://freesound.org/people/%s/sounds/%s/" % (urllib.parse.quote(user), sid))
     if "publicdomain/zero/1.0" not in pg:
         raise SystemExit("%s 不是 CC0，停" % sid)
     title = html.unescape(re.search(r'og:title" content="(.*?) by ', pg).group(1))
@@ -143,5 +143,20 @@ def page(rows):
     open(p, "w", encoding="utf-8").write(s + "\n".join(h))
 
 
+def apply_chain():
+    """用户 10-24 定：出钩 = t4（541975 grappling hook）→ op_ulpianus_s1；收拉 = i1（819711 Chain Impact）→ op_ulpianus_s3（响度 −13 dBFS，比出钩高 2.6 dB，原收链是 −16.6）；落地 big 与抡锚 atk 不动"""
+    import wave
+    for name, sid, a, b, game, tgt in (("t4", 541975, 0.0, 0.58, "op_ulpianus_s1", -15.6), ("i1", 819711, 1.75, 2.30, "op_ulpianus_s3", -13.0)):
+        fetch(sid)
+        x = process(load(sid)[int(a * SR):int(b * SR)].copy(), tgt)
+        with wave.open(os.path.join(SFX, game + ".wav"), "wb") as w:
+            w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
+            w.writeframes((np.clip(x, -1, 1) * 32767).astype(np.int16).tobytes())
+        print("写入", game, name, "%.2fs" % (len(x) / SR))
+
+
 if __name__ == "__main__":
-    page(build())
+    if "--apply-chain" in sys.argv:
+        apply_chain()
+    else:
+        page(build())

@@ -350,3 +350,11 @@
 - CC0 起冲 d1 521999 Kastenfrosch「Whoosh / Dash」、d2 803773 Logicogonist「whoosh 1 short」、d3 507466 Danjocross「Clean fast Swoosh」、d4 60004 qubodup「Fast Sword Swing Sound」、d5 522701 julianmateo_「Metal sword swing fast impact」；收势 e1 426322 MTJohnson「Single Sword Hit」、e2 434896 TheBuilder15「Sword Impact」、e3 417035 FunWithSound「Quick Sword Draw」。
 - 处理同 §14（50 Hz 高通、5.5 kHz 低通、响度对齐现用 `op_texas_atk` / 艾丽妮命中）。整段对照：两次冲刺（间隔 1.05 s）按代码时序和 sfx.gd 音量摆好。
 - 起冲节奏每秒约 1 次，文件都在 0.5 s 以内；接入时 `OP_SFX["texas"]` 加 `go`、`end`（或直接替换 `op_texas_atk` / 给 `op_texas_hit` 专属文件），`seg_texas._tx_dash_end` 的 `hit` 改播 `end`，一次冲刺只响一次起冲。
+
+### 14.1 用户定（10-24 试听后）
+
+i1（819711 DaVoiceActor「Chain Impact」1.75–2.30 s）「挺好听」→ 作**收拉**，写进 `op_ulpianus_s3.wav`（响度 −13 dBFS，比出钩高 2.6 dB）；t4（541975 16bitstudios「grappling hook」整段 0.58 s）作**出钩**，写进 `op_ulpianus_s1.wav`（−15.6 dBFS）；出锚（t5）不用；落地 `op_ulpianus_big` 与抡锚 `op_ulpianus_atk` 不动。由 `python game/tools/gen_sfx_review_cc0_1024.py --apply-chain` 写入；`data/credits.json` 的 CC0 来源去掉不再使用的 klakmart、nettimato，加入 16bitstudios、DaVoiceActor。
+
+## 16. 能天使枪声第二轮：CC0 单发录音（10-24 用户：「枪声再找找」）
+
+§13 的合成枪声没被选中，改找录音。`game/tools/gen_sfx_review_gun_1024.py`：Freesound CC0 单发枪声 14 条（g1–g14，来源页 / 作者 / 许可在试听页第六节与 `build/sfx_candidates_1024/freesound/meta.json`），自动找第一声枪响，取 0.14 s（g8 取 0.2 s 带科幻尾音），100 Hz 高通 + 7 kHz 低通，响度对齐现用 `op_exusiai_atk`；每条另有「8 连发」试听（0.11 s 间隔 + ±9% 音高随机，约等于过载连射）看累不累。偏 Arknights 的方向：消音 / 短促 / 带一点科幻金属（g2 g3 g5 g8 g13 为消音枪，g11 为实验性科幻枪）；g1 g12 重心 250–400 Hz，偏低沉。选定后：能天使 atk 用 2–3 条轮换（`op_exusiai_atk` / `_b` / `_c`），`OP_GAP["op_exusiai_atk"] = 0.045` 合并同帧多发，接入时 credits 补作者。
