@@ -1,6 +1,6 @@
 extends RefCounted
 ## 标题页菜单·深海水母（docs/67 §13，10-24 用户定：Codex 47-C「探索徽记」构图 + 方向二「青光航标」精修；对照图 art/incoming/title_jelly_1024/）。
-## 左侧四个入口（寻访 / 图鉴 / 认知塑造 / 试炼）+ 刻度圆盘「集结出发」+ 底部一行（设置 / 操作说明 / 退出）。
+## 左侧入口（寻访 / 图鉴 / 认知塑造 / 蚀刻章（未开放）/ 试炼）+ 刻度圆盘「集结出发」+ 底部一行（设置 / 操作说明 / 退出）。
 ## 选中态：深色半透明斜切底条 + 青色左边标 + 青下划线 + 实心圆环图标；青色只给「可操作 / 选中」。
 ## 版式两套：桌面（UI 逻辑高 ≥ 712，设计坐标 1280×720，多出的高度给下半部）；紧凑（手机横屏 / 矮窗口：缩小、「集结出发」挪到右下拇指区）。
 ## 都按 Cfg.safe_insets() 让开刘海 / 圆角。导航按几何方向找最近的一项（不循环），Tab 按可见顺序线性走。
@@ -14,6 +14,7 @@ const MENU := [
 	{"id": 7, "cn": "寻访", "en": "HEADHUNT", "slot": "list", "icon": "headhunt"},
 	{"id": 1, "cn": "图鉴", "en": "ARCHIVE", "slot": "list", "icon": "gallery"},
 	{"id": 6, "cn": "认知塑造", "en": "COGNITION", "slot": "list", "icon": "cognition"},
+	{"id": 8, "cn": "蚀刻章", "en": "MEDALS", "slot": "list", "icon": "medals", "tag": "未开放"},   # 10-25 用户：主界面留蚀刻章入口（docs/134，系统未做）
 	{"id": 2, "cn": "试炼", "en": "TRIAL", "slot": "list", "icon": "trial", "tag": "测试版"},
 	{"id": 4, "cn": "设置", "en": "SETTINGS", "slot": "foot"},
 	{"id": 3, "cn": "操作说明", "en": "GUIDE", "slot": "foot"},
@@ -28,7 +29,7 @@ const INK := Color(0.075, 0.153, 0.204)        # #132734
 const RING := Color(0.361, 0.494, 0.561)       # #5c7e8f
 const GLYPH := Color(0.792, 0.851, 0.882)      # #cad9e1
 const STRIP := Color(0.094, 0.204, 0.267, 0.84)
-const ROW := 62.0                               # 入口行距（设计坐标）
+const ROW := 56.0                               # 入口行距（设计坐标；10-25 加蚀刻章后 5 行）
 const STRIP_W := 292.0
 const EDGE := 40.0                              # 桌面版式整体离左边再收进来的量（设计坐标）
 
@@ -120,7 +121,7 @@ static func layout(vs: Vector2, ids: Array, ins: Array, touch: bool, font: Font)
 		var x0 := EDGE + maxf(0.0, il)   # 10-24 用户：字别太靠边
 		lo = Vector2(68 + x0, 52 + it)
 		lk = 1.0
-		lay.list = {"o": Vector2(64 + x0, 216 + dy * 0.55), "k": 1.0, "ids": list_ids}
+		lay.list = {"o": Vector2(64 + x0, 182 + dy * 0.55), "k": 1.0, "ids": list_ids}
 		dO = Vector2(64 + x0, 466 + dy - ib)
 		dk = 1.0
 		fo = Vector2(68 + x0, 648 + dy - ib)
@@ -132,7 +133,7 @@ static func layout(vs: Vector2, ids: Array, ins: Array, touch: bool, font: Font)
 		var rm := vs.x - maxf(48.0, ir + 26.0)
 		lk = 0.86
 		lo = Vector2(lm, tm)
-		var k := clampf((vs.y - 150.0) / (ROW * 4.0 + 70.0), 0.72, 1.0)
+		var k := clampf((vs.y - 150.0) / (ROW * list_ids.size() + 70.0), 0.66, 1.0)
 		var ly := tm + 86.0 * lk
 		lay.list = {"o": Vector2(lm - 4.0, ly), "k": k, "ids": list_ids}
 		dk = clampf(vs.y / 600.0, 0.7, 0.92)
@@ -276,7 +277,7 @@ static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dicti
 
 ## 线框图标（同 Codex 41 版 icon()，尺寸统一到同一光学大小）
 static func _icon(ci: CanvasItem, c: Vector2, kind: String, col: Color, k: float) -> void:
-	var s: float = {"headhunt": 0.82, "gallery": 0.74, "cognition": 0.78, "trial": 0.78}.get(kind, 0.8) * k
+	var s: float = {"headhunt": 0.82, "gallery": 0.74, "cognition": 0.78, "trial": 0.78, "medals": 0.8}.get(kind, 0.8) * k
 	var lw := maxf(1.0, 1.3 * k)
 	var ln := func(pts: Array) -> void:
 		var pv := PackedVector2Array()
@@ -298,6 +299,11 @@ static func _icon(ci: CanvasItem, c: Vector2, kind: String, col: Color, k: float
 			ln.call([[0, 5], [13, 12]])
 			for p in [[-12, -6], [0, 5], [10, -11], [13, 12]]:
 				ln.call([[p[0], p[1] - 3], [p[0] + 3, p[1]], [p[0], p[1] + 3], [p[0] - 3, p[1]], [p[0], p[1] - 3]])
+		"medals":
+			ln.call([[-7, -13], [-3, -4]])
+			ln.call([[7, -13], [3, -4]])
+			ci.draw_arc(c + Vector2(0, 4) * s, 8.0 * s, 0.0, TAU, 28, col, lw, true)
+			ci.draw_arc(c + Vector2(0, 4) * s, 3.5 * s, 0.0, TAU, 16, col, lw, true)
 		"trial":
 			ln.call([[-11, -10], [11, 10]])
 			ln.call([[-11, 10], [11, -10]])
