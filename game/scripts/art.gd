@@ -108,12 +108,24 @@ const ALIAS := {
 }
 
 
+## 别名对应的文件名，带 @1x / @2x 后缀也认（10-24：被 @2x 遮蔽的 1x 基础条删掉后，e_paranoia2 只剩 e_paranoia_phase2@2x，
+## 原来只按基础名查别名，tex 先试的 e_paranoia2@2x 落空 → 泡影二阶段整只画不出、加密包校验 alias 失败）
+static func _alias_file(name: String) -> String:
+	if ALIAS.has(name):
+		return ALIAS[name]
+	for suf in ["@2x", "@1x"]:
+		if name.ends_with(suf) and ALIAS.has(name.trim_suffix(suf)):
+			return ALIAS[name.trim_suffix(suf)] + suf
+	return ""
+
+
 static func _incoming_path(name: String) -> String:
 	var p := incoming_dir().path_join(name + ".png")
 	if FileAccess.file_exists(p):
 		return p
-	if ALIAS.has(name):
-		var a := incoming_dir().path_join(ALIAS[name] + ".png")
+	var al := _alias_file(name)
+	if al != "":
+		var a := incoming_dir().path_join(al + ".png")
 		if FileAccess.file_exists(a):
 			return a
 	return ""
@@ -134,8 +146,9 @@ static func _packed_path(name: String) -> String:
 	var p := "res://art/incoming/%s.png" % name
 	if ResourceLoader.exists(p):
 		return p
-	if ALIAS.has(name):
-		var a := "res://art/incoming/%s.png" % ALIAS[name]
+	var al := _alias_file(name)
+	if al != "":
+		var a := "res://art/incoming/%s.png" % al
 		if ResourceLoader.exists(a):
 			return a
 	return ""
