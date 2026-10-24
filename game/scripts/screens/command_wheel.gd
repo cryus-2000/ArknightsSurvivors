@@ -11,12 +11,12 @@ const Bal = preload("res://scripts/core/balance.gd")
 
 ## 圆盘选项：id / 名 / 说明 / 颜色 / 分组（0 队形，1 优先级）。顺序 = 从左上起顺时针，角度见 ANG（度，0 = 向右，顺时针为正）
 const ITEMS := [
-	{"id": "guard", "name": "随行", "sub": "跟在队长身边", "col": Color(0.212, 0.886, 0.863)},
-	{"id": "roam", "name": "突击", "sub": "离队索敌，限时行动", "col": Color(0.957, 0.753, 0.306)},
-	{"id": "recall", "name": "归队", "sub": "立即回到队长身边", "col": Color(0.184, 0.827, 0.627)},
-	{"id": "mob", "name": "清杂优先", "sub": "优先杂兵，向密集处开火", "col": Color(1.0, 0.62, 0.3)},
-	{"id": "near", "name": "就近", "sub": "不指定，打最近的目标", "col": Color(0.72, 0.78, 0.86)},
-	{"id": "boss", "name": "Boss 优先", "sub": "优先 Boss 与精英，没有则就近", "col": Color(1.0, 0.239, 0.545)},
+	{"id": "guard", "name": "随行", "en": "ESCORT", "sub": "跟在队长身边", "col": Color(0.212, 0.886, 0.863)},
+	{"id": "roam", "name": "突击", "en": "ASSAULT", "sub": "离队索敌，限时行动", "col": Color(0.957, 0.753, 0.306)},
+	{"id": "recall", "name": "归队", "en": "REGROUP", "sub": "立即回到队长身边", "col": Color(0.184, 0.827, 0.627)},
+	{"id": "mob", "name": "清杂优先", "en": "SWARM", "sub": "优先杂兵，向密集处开火", "col": Color(1.0, 0.62, 0.3)},
+	{"id": "near", "name": "就近", "en": "NEAREST", "sub": "不指定，打最近的目标", "col": Color(0.72, 0.78, 0.86)},
+	{"id": "boss", "name": "Boss 优先", "en": "BOSS", "sub": "优先 Boss 与精英，没有则就近", "col": Color(1.0, 0.239, 0.545)},
 ]
 const ANG := [-150.0, -90.0, -30.0, 30.0, 90.0, 150.0]
 const TAP := 0.25          # 轻点 / 按住的分界（真实秒）
@@ -35,6 +35,11 @@ var origin := Vector2.ZERO # 按住模式：打开时鼠标的 UI 坐标
 var mouse := Vector2.ZERO  # 鼠标当前 UI 坐标（跟着 InputEventMouseMotion 走，比轮询视口位置可靠，测试里也能合成）
 var center := Vector2.ZERO
 var _last_hover := -1
+var sel_t := 0.0           # 悬停项换了之后的真实秒数（选中填色从内往外推）
+var _ptr_a := 0.0          # 指针游标的角度（弧度，沿环滑向悬停项）
+var _ptr_v := 0.0          # 指针游标的显隐（0–1）
+var _out_t := -1.0         # 收起动效的真实秒数（< 0 = 不在收起）
+var _out_i := -1           # 收起时确认的项（-1 = 取消）
 var _plan: Array = []      # 测试：[[秒, 命令, 参数], …]（--wheelplan=open@40,sel@41:0,ok@44）
 var _plan_read := false
 
@@ -57,6 +62,8 @@ func open(from_event: InputEvent = null, touch := false) -> void:
 	hover = -1
 	forced = -1
 	_last_hover = -1
+	_ptr_v = 0.0
+	_out_t = -1.0
 	var vs: Vector2 = g.hud.size
 	center = vs / 2.0
 	origin = g.hud.get_local_mouse_position()
@@ -69,6 +76,9 @@ func open(from_event: InputEvent = null, touch := false) -> void:
 
 
 func close() -> void:
+	if is_open:
+		_out_t = 0.0
+		_out_i = hover
 	is_open = false
 	hover = -1
 	forced = -1
@@ -78,12 +88,14 @@ func close() -> void:
 
 func cancel() -> void:
 	Sfx.play("ui_move", -10.0)
+	hover = -1
 	close()
 
 
 func confirm(i: int) -> void:
 	if g.trace_every > 0.0:
 		print("WHEEL confirm ", i)
+	hover = i   # 收起动效留影用（触屏点选时没有悬停）
 	close()
 	if i < 0 or i >= ITEMS.size():
 		return
@@ -146,9 +158,14 @@ func _held() -> bool:
 func update(rd: float) -> void:
 	_run_plan()
 	if not is_open:
+		if _out_t >= 0.0:
+			_out_t += rd
+			if _out_t > OUT_T:
+				_out_t = -1.0
 		return
 	if g.state != g.S.PLAY:
 		close()
+		_out_t = -1.0
 		return
 	t_open += rd
 	if forced >= 0:
@@ -164,10 +181,21 @@ func update(rd: float) -> void:
 				hover = _pick(pv, 0.5)
 		elif not (g.touch != null and g.touch.active):
 			hover = _hit(mouse)
+	sel_t += rd
 	if hover != _last_hover:
+		sel_t = 0.0
 		if hover >= 0:
 			Sfx.play("ui_move", -14.0)
 		_last_hover = hover
+	if hover >= 0:   # 指针游标：第一次出现直接到位，之后沿环滑过去（减少动态效果直接跳）
+		var ta: float = deg_to_rad(float(ANG[hover]))
+		if _ptr_v <= 0.0 or Cfg.reduce_motion:
+			_ptr_a = ta
+		else:
+			_ptr_a += wrapf(ta - _ptr_a, -PI, PI) * (1.0 - exp(-rd * 28.0))
+		_ptr_v = minf(1.0, _ptr_v + rd / 0.08)
+	else:
+		_ptr_v = maxf(0.0, _ptr_v - rd / 0.08)
 	if src != "" and forced < 0 and not _held():
 		if t_open < TAP:
 			latched = true   # 轻点：圆盘留着
@@ -234,71 +262,232 @@ func input(event: InputEvent) -> bool:
 	return false
 
 
-# ---------------------------------------------------------------- 绘制
+# ---------------------------------------------------------------- 绘制（终末地风格，docs/144）
+## 表盘式，从下往上叠：压暗 → 底盘 + 准线 → 刻度环（细刻度慢转）+ 斜纹带（慢走）→ 扇区（投影 / 内外两层 / 顶边高光 / 内沿属性色条）
+## → 选中块（蓝色从内往外推 + 外沿亮带 + 外推虚框）→ 指针游标 → 中心三层圆。
+## 动效一律用真实秒：打开（底盘放大淡入、刻度环顺时针画开、扇区错开推出、取景框收拢）、常驻（细刻度 / 中心刻度慢转、斜纹带走动）、
+## 悬停（填色内→外、虚框外扩、指针沿环滑过去、中心名字上浮）、确认（选中块虚框外扩淡出，整盘 0.16 秒收起）。
+## 减少动态效果：只留 ≤ 120 ms 淡入淡出，其余直接到终态、不转不走。整套不做明暗闪烁。
+const C_ACC := Color(0.122, 0.659, 0.941)      # 终末地蓝 #1FA8F0（用户 10-24：黄换蓝）
+const C_ACC_HI := Color(0.49, 0.82, 0.98)      # 选中块外沿亮带
+const C_INK := Color(0.03, 0.07, 0.11)         # 蓝底上的深色字
+const C_PLATE := Color(0.055, 0.06, 0.068)     # 底盘 / 中心外圈
+const C_FILL := Color(0.118, 0.122, 0.13)      # 扇区外层
+const C_FILL_IN := Color(0.078, 0.082, 0.09)   # 扇区内层（靠圆心一圈）
+const C_LINE := Color(0.62, 0.63, 0.65)
+const C_TEXT := Color(0.94, 0.94, 0.93)
+const C_DIAL := Color(0.86, 0.87, 0.88)
+const GAP := 2.2       # 扇区之间的缝（每边，度）
+const OUT_T := 0.16    # 收起时长（秒）
+
 
 func draw(vs: Vector2) -> void:
-	if not is_open:
-		return
+	if is_open:
+		_draw_ef(vs, hover, 0.0)
+	elif _out_t >= 0.0 and _out_t < OUT_T and not Cfg.reduce_motion and g.state == g.S.PLAY:
+		_draw_ef(vs, _out_i, _out_t / OUT_T)
+
+
+func _draw_ef(vs: Vector2, hov: int, out: float) -> void:
 	var hud: CanvasItem = g.hud
 	var font: Font = g.font
 	var k: float = _k()
-	var a: float = clampf(t_open / 0.12, 0.0, 1.0)
-	var e: float = 1.0 - pow(1.0 - a, 3.0)   # 展开缓动
+	var rm: bool = Cfg.reduce_motion
+	var t: float = t_open
+	var e: float = clampf(t / 0.12, 0.0, 1.0) * (1.0 - _ease(out))
 	center = vs / 2.0
-	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.01, 0.03, 0.05, 0.42 * e))
-	var r_in: float = R_IN * k * (0.8 + 0.2 * e)
-	var r_out: float = R_OUT * k * (0.8 + 0.2 * e)
+	var c: Vector2 = center
+	var r_in: float = R_IN * k
+	var r_out: float = R_OUT * k
+	var r_dial: float = r_out + 16.0 * k
+	var spin: float = 0.0 if rm else t
+	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.01, 0.015, 0.02, 0.5 * e))
+	# 底盘：0.9 → 1 放大淡入
+	var pg: float = 1.0 if rm else _ease(clampf(t / 0.18, 0.0, 1.0))
+	var r_plate: float = (r_dial + 10.0 * k) * lerpf(0.9, 1.0, pg)
+	hud.draw_circle(c, r_plate, _ca(C_PLATE, 0.6 * e * pg))
+	hud.draw_arc(c, r_plate, 0.0, TAU, 96, _ca(C_DIAL, 0.14 * e * pg), 1.0)
+	hud.draw_arc(c, r_out + 4.0 * k, 0.0, TAU, 96, _ca(C_DIAL, 0.1 * e), 1.0)
+	# 取景框（从外往里收拢）+ 上下准线
+	var bh: float = r_dial + 26.0 * k + (0.0 if rm else (1.0 - _ease(clampf(t / 0.2, 0.0, 1.0))) * 16.0 * k)
+	var bl: float = 20.0 * k
+	for sx in [-1.0, 1.0]:
+		for sy in [-1.0, 1.0]:
+			var q: Vector2 = c + Vector2(sx, sy) * bh
+			hud.draw_polyline(PackedVector2Array([q - Vector2(0, sy * bl), q, q - Vector2(sx * bl, 0)]), _ca(C_DIAL, 0.5 * e), 2.0)
+		hud.draw_line(Vector2(c.x, c.y + sx * (r_plate + 4.0 * k)), Vector2(c.x, c.y + sx * (bh - 4.0 * k)), _ca(C_DIAL, 0.3 * e), 1.0)
+	# 刻度环：从正上方顺时针画开（0.22 秒）；细刻度每 5° 一根、慢转（4°/秒），扇区分界（每 60°）长刻度不动
+	var sweep: float = 1.0 if rm else _ease(clampf(t / 0.22, 0.0, 1.0))
+	var a_top := -PI / 2.0
+	hud.draw_arc(c, r_dial, a_top, a_top + TAU * sweep, 96, _ca(C_DIAL, 0.32 * e), 1.0)
+	var fine := PackedVector2Array()
+	var rot: float = deg_to_rad(4.0) * spin
+	for i in 72:
+		var ang: float = deg_to_rad(i * 5.0 + 2.5) + rot
+		if fposmod(ang - a_top, TAU) > TAU * sweep:
+			continue
+		var dv: Vector2 = Vector2.from_angle(ang)
+		fine.append(c + dv * r_dial)
+		fine.append(c + dv * (r_dial + 3.5 * k))
+	if not fine.is_empty():
+		hud.draw_multiline(fine, _ca(C_DIAL, 0.3 * e), 1.0)
+	for i in 6:
+		if fposmod(deg_to_rad(i * 60.0) - a_top, TAU) > TAU * sweep + 0.001:
+			continue
+		var dv: Vector2 = Vector2.from_angle(deg_to_rad(i * 60.0))
+		hud.draw_line(c + dv * r_dial, c + dv * (r_dial + 9.0 * k), _ca(C_DIAL, 0.7 * e), 1.0)
+	# 斜纹带（终末地的 //////）：外沿与刻度环之间，慢慢往前走；悬停项那一段描蓝
+	var hatch := PackedVector2Array()
+	var hatch_hi := PackedVector2Array()
+	var ha: float = r_out + 6.0 * k
+	var hb: float = r_dial - 3.0 * k
+	var drift: float = deg_to_rad(3.0) * spin
+	var hov_a: float = deg_to_rad(float(ANG[hov])) if hov >= 0 else 0.0
+	for i in 120:
+		var ang: float = deg_to_rad(i * 3.0) + fposmod(drift, deg_to_rad(3.0))
+		var p0: Vector2 = c + Vector2.from_angle(ang) * ha
+		var p1: Vector2 = c + Vector2.from_angle(ang + deg_to_rad(1.6)) * hb
+		if hov >= 0 and absf(wrapf(ang - hov_a, -PI, PI)) < PI / 6.0 - deg_to_rad(GAP):
+			hatch_hi.append(p0)
+			hatch_hi.append(p1)
+		else:
+			hatch.append(p0)
+			hatch.append(p1)
+	hud.draw_multiline(hatch, _ca(C_DIAL, 0.14 * e * sweep), 1.0)
+	if not hatch_hi.is_empty():
+		hud.draw_multiline(hatch_hi, _ca(C_ACC, 0.85 * e), 1.4)
+	# 分组线：0° / 180° 的缝里穿过，左端标上半圈「队形」、下半圈「索敌」
+	for sx in [-1.0, 1.0]:
+		hud.draw_line(Vector2(c.x + sx * (r_in - 4.0 * k), c.y), Vector2(c.x + sx * (r_dial + 44.0 * k), c.y), _ca(C_DIAL, 0.38 * e), 1.0)
+		hud.draw_rect(Rect2(Vector2(c.x + sx * (r_dial + 44.0 * k) - 2.0 * k, c.y - 2.0 * k), Vector2(4.0, 4.0) * k), _ca(C_ACC, 0.9 * e))
+	var lx: float = c.x - r_dial - 104.0 * k
+	UI.text(hud, font, Vector2(lx, c.y - 8.0 * k), "队形", int(round(13.0 * k)), _ca(C_DIAL, 0.9 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
+	UI.ctext(hud, font, Vector2(lx, c.y - 25.0 * k), "FORMATION", int(round(9.0 * k)), _ca(C_DIAL, 0.5 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
+	UI.text(hud, font, Vector2(lx, c.y + 20.0 * k), "索敌", int(round(13.0 * k)), _ca(C_DIAL, 0.9 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
+	UI.ctext(hud, font, Vector2(lx, c.y + 33.0 * k), "TARGETING", int(round(9.0 * k)), _ca(C_DIAL, 0.5 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
+	# 扇区
+	var gap: float = deg_to_rad(GAP)
+	var ch: float = 9.0 * k
+	var depth: float = r_out - r_in
 	for i in ITEMS.size():
 		var it: Dictionary = ITEMS[i]
-		var col: Color = it.col
-		var sel: bool = i == hover
-		var a0: float = deg_to_rad(float(ANG[i]) - 29.0)
-		var a1: float = deg_to_rad(float(ANG[i]) + 29.0)
-		var ro: float = r_out + (10.0 * k if sel else 0.0)
-		var pts := PackedVector2Array()
-		var n := 14
-		for s in n + 1:
-			pts.append(center + Vector2.from_angle(lerpf(a0, a1, float(s) / n)) * ro)
-		for s in n + 1:
-			pts.append(center + Vector2.from_angle(lerpf(a1, a0, float(s) / n)) * r_in)
-		var fill: Color = Color(0.085, 0.13, 0.17, 0.93 * e)
-		if sel:
-			fill = Color(col.r * 0.55 + 0.04, col.g * 0.55 + 0.05, col.b * 0.55 + 0.07, 0.97 * e)
-		hud.draw_colored_polygon(pts, fill)
-		# 扇区之间的分隔线（沿两条半径边）
-		for aa in [a0, a1]:
-			hud.draw_line(center + Vector2.from_angle(aa) * r_in, center + Vector2.from_angle(aa) * ro, Color(col.r, col.g, col.b, (0.6 if sel else 0.22) * e), 1.5)
-		var edge := PackedVector2Array()
-		for s in n + 1:
-			edge.append(center + Vector2.from_angle(lerpf(a0, a1, float(s) / n)) * ro)
-		hud.draw_polyline(edge, Color(col.r, col.g, col.b, (1.0 if sel else 0.55) * e), 3.0 if sel else 1.6)
+		var sel: bool = i == hov
 		var am: float = deg_to_rad(float(ANG[i]))
 		var dirv: Vector2 = Vector2.from_angle(am)
-		# 图标（程序画）、名字、说明
-		var ic: Vector2 = center + dirv * (r_in + (ro - r_in) * 0.34)
-		_glyph(hud, str(it.id), ic, 15.0 * k, Color(col.r, col.g, col.b, e))
-		var tc: Vector2 = center + dirv * (r_in + (ro - r_in) * 0.66)
-		var nfs: int = int(round(17.0 * k))
-		UI.text(hud, font, tc + Vector2(-70.0 * k, 4.0 * k), str(it.name), nfs, Color(1, 1, 1, e) if sel else Color(0.92, 0.95, 0.97, 0.92 * e), HORIZONTAL_ALIGNMENT_CENTER, 140.0 * k)
-		if is_current(i):
-			var tag_p: Vector2 = tc + Vector2(-20.0 * k, 10.0 * k)
-			hud.draw_rect(Rect2(tag_p, Vector2(40.0 * k, 14.0 * k)), Color(col.r, col.g, col.b, 0.85 * e))
-			UI.text(hud, font, tag_p + Vector2(0, 11.0 * k), "当前", int(round(10.0 * k)), Color(0.03, 0.05, 0.07, e), HORIZONTAL_ALIGNMENT_CENTER, 40.0 * k)
-	# 中心圆：标题、悬停项说明、操作提示
+		# 展开：按顺时针序错开 0.025 秒，从里往外推 18 px + 淡入
+		var si: float = 1.0 if rm else _ease(clampf((t - 0.025 * i) / 0.14, 0.0, 1.0))
+		var ea: float = e * si
+		var cc: Vector2 = c + dirv * ((6.0 * k if sel else 0.0) - (1.0 - si) * 18.0 * k)
+		var a0: float = am - PI / 6.0 + gap
+		var a1: float = am + PI / 6.0 - gap
+		var poly: PackedVector2Array = _wedge(cc, r_in, r_out, a0, a1, ch)
+		var sh := PackedVector2Array()
+		for v in poly:
+			sh.append(v + Vector2(0, 4.0 * k))
+		hud.draw_colored_polygon(sh, Color(0, 0, 0, 0.4 * ea))   # 投影
+		hud.draw_colored_polygon(poly, _ca(C_FILL, 0.94 * ea))
+		hud.draw_colored_polygon(_wedge(cc, r_in, r_in + depth * 0.24, a0, a1, 0.0), _ca(C_FILL_IN, 0.96 * ea))
+		hud.draw_arc(cc, r_out - 2.5 * k, a0 + ch / r_out, a1 - ch / r_out, 12, _ca(C_TEXT, 0.12 * ea), 1.0)   # 顶边高光
+		if sel:
+			var f: float = 1.0 if rm else _ease(clampf(sel_t / 0.09, 0.0, 1.0))
+			var ro: float = lerpf(r_in + 2.0, r_out, f)
+			hud.draw_colored_polygon(_wedge(cc, r_in, ro, a0, a1, ch * f), _ca(C_ACC, ea))
+			if f > 0.85:
+				hud.draw_colored_polygon(_wedge(cc, r_out - depth * 0.12, ro, a0, a1, ch * f), _ca(C_ACC_HI, ea))
+			# 外推虚框：选中后从扇区外沿推出 9 px（out_back），确认收起时继续外扩淡出
+			var go: float = 9.0 * k if rm else 9.0 * k * _back(clampf(sel_t / 0.16, 0.0, 1.0))
+			go += 26.0 * k * _ease(out)
+			var gp: PackedVector2Array = _wedge(cc + dirv * go, r_out - depth * 0.3, r_out, a0, a1, ch)
+			gp.append(gp[0])
+			hud.draw_polyline(gp, _ca(C_ACC, 0.6 * ea), 1.2)
+		var ol: PackedVector2Array = poly.duplicate()
+		ol.append(poly[0])
+		hud.draw_polyline(ol, _ca(C_ACC if sel else C_LINE, (1.0 if sel else 0.45) * ea), 1.5 if sel else 1.0)
+		if not sel:   # 内沿属性色条（终末地技能按钮底部的属性色）
+			hud.draw_arc(cc, r_in + 3.0 * k, a0 + 0.02, a1 - 0.02, 12, _ca(it.col, 0.9 * ea), 3.0 * k)
+		var tx: Color = C_INK if sel else C_TEXT
+		var tc: Vector2 = cc + dirv * (r_in + depth * 0.52)   # 不画图标（用户 10-24），名字 + 英文行居扇区中部
+		UI.text(hud, font, tc + Vector2(-70.0 * k, 1.0 * k), str(it.name), int(round(17.0 * k)), _ca(tx, ea), HORIZONTAL_ALIGNMENT_CENTER, 140.0 * k)
+		UI.ctext(hud, font, tc + Vector2(-70.0 * k, 14.0 * k), "0%d // %s" % [i + 1, it.en], int(round(9.0 * k)), _ca(tx, 0.62 * ea), HORIZONTAL_ALIGNMENT_CENTER, 140.0 * k)
+		if is_current(i):   # 「当前」：黑底蓝字小标签，左端一道蓝条，放在英文行下方
+			var tp: Vector2 = tc + Vector2(-20.0, 19.0) * k
+			hud.draw_rect(Rect2(tp, Vector2(40.0, 15.0) * k), Color(0.03, 0.035, 0.04, 0.94 * ea))
+			hud.draw_rect(Rect2(tp, Vector2(3.0, 15.0) * k), _ca(C_ACC, ea))
+			UI.text(hud, font, tp + Vector2(1.5 * k, 12.0 * k), "当前", int(round(10.0 * k)), _ca(C_ACC, ea), HORIZONTAL_ALIGNMENT_CENTER, 40.0 * k)
+	# 指针游标：刻度环上一段蓝弧 + 外侧三角，沿环滑到悬停项
+	if _ptr_v > 0.0:
+		var pv: Vector2 = Vector2.from_angle(_ptr_a)
+		var pe: float = e * _ptr_v
+		hud.draw_arc(c, r_dial, _ptr_a - deg_to_rad(11.0), _ptr_a + deg_to_rad(11.0), 10, _ca(C_ACC, pe), 3.0 * k)
+		var side: Vector2 = pv.orthogonal() * 6.0 * k
+		var bp: Vector2 = c + pv * (r_dial + 15.0 * k)
+		hud.draw_colored_polygon(PackedVector2Array([c + pv * (r_dial + 5.0 * k), bp + side, bp - side]), _ca(C_ACC, pe))
+	# 中心：外圈底盘 + 反向慢转的刻度圈 + 内圆 + 朝悬停方向的一段蓝弧
 	var rc: float = r_in - 8.0 * k
-	hud.draw_circle(center, rc, Color(0.03, 0.05, 0.07, 0.94 * e))
-	hud.draw_arc(center, rc, 0.0, TAU, 48, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.7 * e), 2.0)
-	UI.text(hud, font, center + Vector2(-50.0 * k, -rc * 0.42), "指挥", int(round(15.0 * k)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, e), HORIZONTAL_ALIGNMENT_CENTER, 100.0 * k)
-	if hover >= 0:
-		var hc: Color = ITEMS[hover].col
-		UI.text(hud, font, center + Vector2(-60.0 * k, 4.0 * k), str(ITEMS[hover].name), int(round(18.0 * k)), Color(hc.r, hc.g, hc.b, e), HORIZONTAL_ALIGNMENT_CENTER, 120.0 * k)
+	var ri: float = rc * 0.8
+	hud.draw_circle(c, rc, _ca(C_PLATE, 0.97 * e))
+	hud.draw_arc(c, rc, 0.0, TAU, 48, _ca(C_LINE, 0.5 * e), 1.0)
+	var cticks := PackedVector2Array()
+	var crot: float = -deg_to_rad(8.0) * spin
+	for i in 36:
+		var dv: Vector2 = Vector2.from_angle(deg_to_rad(i * 10.0) + crot)
+		cticks.append(c + dv * (rc - 2.0 * k))
+		cticks.append(c + dv * (rc - (6.0 if i % 9 == 0 else 4.0) * k))
+	hud.draw_multiline(cticks, _ca(C_DIAL, 0.35 * e), 1.0)
+	hud.draw_circle(c, ri, _ca(C_FILL, 0.96 * e))
+	for q in 4:
+		var q0: float = q * PI / 2.0 - PI / 4.0 + 0.3
+		hud.draw_arc(c, ri, q0, q0 + PI / 2.0 - 0.6, 10, _ca(C_ACC, 0.45 * e), 1.5)
+	if _ptr_v > 0.0:
+		hud.draw_arc(c, ri, _ptr_a - 0.42, _ptr_a + 0.42, 12, _ca(C_ACC, e * _ptr_v), 3.0 * k)
+	UI.text(hud, font, c + Vector2(-50.0 * k, -ri * 0.42), "指挥", int(round(12.0 * k)), _ca(C_DIAL, 0.7 * e), HORIZONTAL_ALIGNMENT_CENTER, 100.0 * k)
+	var nf: float = 1.0 if rm else _ease(clampf(sel_t / 0.12, 0.0, 1.0))   # 换项时名字从下往上浮 6 px
+	if hov >= 0:
+		UI.text(hud, font, c + Vector2(-60.0 * k, (7.0 + 6.0 * (1.0 - nf)) * k), str(ITEMS[hov].name), int(round(18.0 * k)), _ca(C_ACC, e * nf), HORIZONTAL_ALIGNMENT_CENTER, 120.0 * k)
 	else:
-		UI.text(hud, font, center + Vector2(-60.0 * k, 4.0 * k), "选择指令", int(round(14.0 * k)), Color(0.75, 0.8, 0.85, 0.8 * e), HORIZONTAL_ALIGNMENT_CENTER, 120.0 * k)
-	var sub: String = str(ITEMS[hover].sub) if hover >= 0 else ""
-	if sub != "":
-		UI.text(hud, font, Vector2(center.x - 160.0 * k, center.y + r_out + 34.0 * k), sub, int(round(14.0 * k)), Color(0.9, 0.94, 0.97, e), HORIZONTAL_ALIGNMENT_CENTER, 320.0 * k)
-	var tip: String = _tip()
-	UI.text(hud, font, Vector2(center.x - 200.0 * k, center.y + r_out + 58.0 * k), tip, int(round(12.0 * k)), Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, e), HORIZONTAL_ALIGNMENT_CENTER, 400.0 * k)
+		UI.text(hud, font, c + Vector2(-60.0 * k, 6.0 * k), "选择指令", int(round(14.0 * k)), _ca(C_DIAL, 0.75 * e), HORIZONTAL_ALIGNMENT_CENTER, 120.0 * k)
+	UI.ctext(hud, font, c + Vector2(-50.0 * k, ri * 0.66), "COMMAND", int(round(8.0 * k)), _ca(C_DIAL, 0.5 * e), HORIZONTAL_ALIGNMENT_CENTER, 100.0 * k)
+	# 说明 + 操作提示：垫一块底板（盖住开局操作提示等底部 HUD 字），左端蓝条
+	var py: float = c.y + r_out + 28.0 * k
+	var pw: float = 420.0 * k
+	hud.draw_rect(Rect2(Vector2(c.x - pw / 2.0, py), Vector2(pw, 48.0 * k)), _ca(C_PLATE, 0.92 * e))
+	hud.draw_rect(Rect2(Vector2(c.x - pw / 2.0, py), Vector2(3.0 * k, 48.0 * k)), _ca(C_ACC, e))
+	hud.draw_line(Vector2(c.x - pw / 2.0, py + 48.0 * k), Vector2(c.x + pw / 2.0, py + 48.0 * k), _ca(C_DIAL, 0.25 * e), 1.0)
+	if hov >= 0:
+		UI.text(hud, font, Vector2(c.x - 160.0 * k, c.y + r_out + 46.0 * k), str(ITEMS[hov].sub), int(round(14.0 * k)), _ca(C_TEXT, e * nf), HORIZONTAL_ALIGNMENT_CENTER, 320.0 * k)
+	UI.text(hud, font, Vector2(c.x - 200.0 * k, c.y + r_out + 68.0 * k), _tip(), int(round(12.0 * k)), Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, e), HORIZONTAL_ALIGNMENT_CENTER, 400.0 * k)
+
+
+## 扇环（外沿两角切角 ch）；ch ≈ 0 时不切
+func _wedge(c: Vector2, ri: float, ro: float, a0: float, a1: float, ch: float) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	var cut: bool = ch > 0.5
+	var da: float = ch / ro if cut else 0.0
+	if cut:
+		pts.append(c + Vector2.from_angle(a0) * (ro - ch))
+	var n := 12
+	for s in n + 1:
+		pts.append(c + Vector2.from_angle(lerpf(a0 + da, a1 - da, float(s) / n)) * ro)
+	if cut:
+		pts.append(c + Vector2.from_angle(a1) * (ro - ch))
+	for s in n + 1:
+		pts.append(c + Vector2.from_angle(lerpf(a1, a0, float(s) / n)) * ri)
+	return pts
+
+
+static func _ca(col: Color, a: float) -> Color:
+	return Color(col.r, col.g, col.b, col.a * a)
+
+
+static func _ease(x: float) -> float:
+	return 1.0 - pow(1.0 - x, 3.0)
+
+
+## out_back(1.4)：略冲过头再回来
+static func _back(x: float) -> float:
+	var s := 1.4
+	var y: float = x - 1.0
+	return 1.0 + (s + 1.0) * y * y * y + s * y * y
 
 
 func _tip() -> String:
@@ -307,34 +496,6 @@ func _tip() -> String:
 	if src != "":
 		return Pad.hint("按住移动鼠标选择，松开确认 · Esc 取消", "按住 LB，推摇杆选择，松开确认 · Ⓑ 取消")
 	return Pad.hint("点选指令，或 Enter 确认 · Esc / F 取消", "推摇杆选择，Ⓐ 确认 · Ⓑ 取消")
-
-
-## 选项图标（程序画，不用素材）：随行 = 队长点 + 身后两点；突击 = 向外的箭头；归队 = 向内的箭头；
-## 清杂 = 一团小点；就近 = 圆环里一个点；Boss = 菱形 + 内点
-func _glyph(ci: CanvasItem, id: String, c: Vector2, r: float, col: Color) -> void:
-	var dim := Color(col.r, col.g, col.b, col.a * 0.55)
-	match id:
-		"guard":
-			ci.draw_circle(c + Vector2(r * 0.5, 0), r * 0.32, col)
-			ci.draw_circle(c + Vector2(-r * 0.35, -r * 0.3), r * 0.22, dim)
-			ci.draw_circle(c + Vector2(-r * 0.7, r * 0.25), r * 0.18, dim)
-		"roam":
-			for s in [-1.0, 1.0]:
-				ci.draw_polyline(PackedVector2Array([c + Vector2(r * 0.15, s * r * 0.55), c + Vector2(r * 0.7, 0), c + Vector2(r * 0.15, -s * r * 0.55)]), col, 2.4)
-			ci.draw_line(c + Vector2(-r * 0.8, 0), c + Vector2(r * 0.55, 0), col, 2.4)
-		"recall":
-			ci.draw_line(c + Vector2(r * 0.8, 0), c + Vector2(-r * 0.5, 0), col, 2.4)
-			ci.draw_polyline(PackedVector2Array([c + Vector2(-r * 0.1, r * 0.55), c + Vector2(-r * 0.65, 0), c + Vector2(-r * 0.1, -r * 0.55)]), col, 2.4)
-		"mob":
-			for p in [Vector2(-0.5, -0.3), Vector2(0.0, -0.55), Vector2(0.5, -0.2), Vector2(-0.2, 0.15), Vector2(0.35, 0.4), Vector2(-0.6, 0.5)]:
-				ci.draw_circle(c + p * r, r * 0.2, col)
-		"near":
-			ci.draw_arc(c, r * 0.7, 0.0, TAU, 24, dim, 2.0)
-			ci.draw_circle(c, r * 0.28, col)
-		"boss":
-			ci.draw_colored_polygon(PackedVector2Array([c + Vector2(0, -r * 0.85), c + Vector2(r * 0.7, 0), c + Vector2(0, r * 0.85), c + Vector2(-r * 0.7, 0)]), dim)
-			ci.draw_polyline(PackedVector2Array([c + Vector2(0, -r * 0.85), c + Vector2(r * 0.7, 0), c + Vector2(0, r * 0.85), c + Vector2(-r * 0.7, 0), c + Vector2(0, -r * 0.85)]), col, 2.2)
-			ci.draw_circle(c, r * 0.22, col)
 
 
 # ---------------------------------------------------------------- 测试计划（只在 autotest / 录片里用）
