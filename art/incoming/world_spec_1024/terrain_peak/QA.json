@@ -1,0 +1,84 @@
+{
+  "source": "art/incoming/terrain_peak.png",
+  "source_sha256": "4ebb69c331f5e27995cf33f6a81026f2f1f9215b7bb5c2a3442a75fa37541c19",
+  "output": "terrain_peak.png",
+  "sha256": "724edeb411410f04cb3d158e6ac695372735adf208aa0d653ed5305ccc656629",
+  "sheet_size": [
+    96,
+    96
+  ],
+  "frame_size": [
+    96,
+    96
+  ],
+  "frames": 1,
+  "fps": 0,
+  "anchor_px": [
+    48.0,
+    96
+  ],
+  "anchor_space": "source frame edges; exact legacy renderer anchor",
+  "opaque_colors_before": 44,
+  "opaque_colors_after": 27,
+  "total_rgba_colors": 28,
+  "alpha_values": [
+    0,
+    255
+  ],
+  "changed_alpha_pixels": 0,
+  "changed_rgb_pixels": 146,
+  "source_opaque_bbox": [
+    2,
+    7,
+    94,
+    94
+  ],
+  "output_opaque_bbox": [
+    2,
+    7,
+    94,
+    94
+  ],
+  "palette": [
+    "#001010",
+    "#001020",
+    "#080E18",
+    "#102030",
+    "#102040",
+    "#103040",
+    "#203040",
+    "#203050",
+    "#204050",
+    "#204060",
+    "#304060",
+    "#305060",
+    "#305070",
+    "#306070",
+    "#406070",
+    "#406080",
+    "#407080",
+    "#408080",
+    "#408090",
+    "#508080",
+    "#508090",
+    "#509090",
+    "#609090",
+    "#6090A0",
+    "#60A0A0",
+    "#70A0A0",
+    "#70B0B0"
+  ],
+  "method": "explicit per-source-color material mapping; no automatic quantization; no resampling of asset",
+  "visual_review": "Reviewed 2x and 8x: stepped peak ridge, upper-left lit facets and lower rocks preserved; small incidental dark and middle shades folded into matching ramps. No outline added.",
+  "engine_validation": "not run; asset-only delivery",
+  "user_approval": "pending",
+  "status": "technical checks passed; visually reviewed; awaiting user approval and Claude integration",
+  "frame_opaque_bboxes": [
+    [
+      2,
+      7,
+      94,
+      94
+    ]
+  ]
+}

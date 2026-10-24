@@ -1,0 +1,87 @@
+{
+  "source": "art/incoming/prop_pillar.png",
+  "source_sha256": "9a38233ea3759ed9642b73cca1b833887d394a8377a145b43772d08b9ff4106f",
+  "output": "prop_pillar.png",
+  "sha256": "394c2656caa5f8c8499e0b8f902e7b0f058ee3412e033b08801efa886b528747",
+  "sheet_size": [
+    32,
+    56
+  ],
+  "frame_size": [
+    32,
+    56
+  ],
+  "frames": 1,
+  "fps": 0,
+  "anchor_px": [
+    16.0,
+    56
+  ],
+  "anchor_space": "source frame edges; exact legacy renderer anchor",
+  "opaque_colors_before": 72,
+  "opaque_colors_after": 30,
+  "total_rgba_colors": 31,
+  "alpha_values": [
+    0,
+    255
+  ],
+  "changed_alpha_pixels": 0,
+  "changed_rgb_pixels": 244,
+  "source_opaque_bbox": [
+    5,
+    2,
+    27,
+    54
+  ],
+  "output_opaque_bbox": [
+    5,
+    2,
+    27,
+    54
+  ],
+  "palette": [
+    "#080E18",
+    "#102030",
+    "#203040",
+    "#204050",
+    "#304060",
+    "#305060",
+    "#307080",
+    "#405070",
+    "#406070",
+    "#408090",
+    "#506070",
+    "#507080",
+    "#5090A0",
+    "#607080",
+    "#608090",
+    "#60A0B0",
+    "#708090",
+    "#709090",
+    "#7090A0",
+    "#70B0C0",
+    "#8090A0",
+    "#80A0A0",
+    "#80C0D0",
+    "#90A0B0",
+    "#90B0B0",
+    "#90C0D0",
+    "#A0B0B0",
+    "#A0B0C0",
+    "#A0C0C0",
+    "#B0C0C0"
+  ],
+  "method": "explicit per-source-color material mapping; no automatic quantization; no resampling of asset",
+  "visual_review": "Reviewed 2x and 8x: broken upper cap, column grooves, green deposits and rounded base retain exact placement; near-color speckles merged within stone/algae groups.",
+  "engine_validation": "not run; asset-only delivery",
+  "user_approval": "pending",
+  "status": "technical checks passed; visually reviewed; awaiting user approval and Claude integration",
+  "frame_opaque_bboxes": [
+    [
+      5,
+      2,
+      27,
+      54
+    ]
+  ]
+}

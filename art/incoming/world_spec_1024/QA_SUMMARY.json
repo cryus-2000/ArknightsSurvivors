@@ -1,0 +1,400 @@
+{
+  "status": "PASS",
+  "branch": "codex/world-spec-1024",
+  "native_asset_count": 15,
+  "files": [
+    {
+      "folder": "mire",
+      "file": "mire_tile.png",
+      "size": [
+        128,
+        64
+      ],
+      "frames": 2,
+      "opaque_colors": 22,
+      "colors_with_transparency": 22,
+      "alpha": [
+        255
+      ],
+      "visible_pixels": 8192,
+      "emit_pixels": 578,
+      "outline": null,
+      "checks": {
+        "size": true,
+        "binary_alpha": true,
+        "palette": true,
+        "distinct_frames": true,
+        "emit_matches_source": true
+      },
+      "sha256": "0c5c8373aaa744ca975dc5bfd74c230691177b2155ed3377122ac1b321dc8ac3"
+    },
+    {
+      "folder": "mire",
+      "file": "mire_tile_b.png",
+      "size": [
+        128,
+        64
+      ],
+      "frames": 2,
+      "opaque_colors": 22,
+      "colors_with_transparency": 22,
+      "alpha": [
+        255
+      ],
+      "visible_pixels": 8192,
+      "emit_pixels": 584,
+      "outline": null,
+      "checks": {
+        "size": true,
+        "binary_alpha": true,
+        "palette": true,
+        "distinct_frames": true,
+        "emit_matches_source": true
+      },
+      "sha256": "189d3abeb40a0e90411e80bdab453617dca2d17de1ea9c35204aab31c7e25fb0"
+    },
+    {
+      "folder": "mire",
+      "file": "mire_edge.png",
+      "size": [
+        576,
+        64
+      ],
+      "frames": 2,
+      "opaque_colors": 22,
+      "colors_with_transparency": 23,
+      "alpha": [
+        0,
+        255
+      ],
+      "visible_pixels": 7078,
+      "emit_pixels": 546,
+      "outline": null,
+      "checks": {
+        "size": true,
+        "binary_alpha": true,
+        "palette": true,
+        "distinct_frames": true,
+        "emit_matches_source": true
+      },
+      "sha256": "cbe83b8de611f43d170a0295b7e53fa2962e8734d8d732c7888eefe3eff6eab1"
+    },
+    {
+      "folder": "mire",
+      "file": "fx_mire_dissolve.png",
+      "size": [
+        384,
+        64
+      ],
+      "frames": 6,
+      "opaque_colors": 21,
+      "colors_with_transparency": 22,
+      "alpha": [
+        0,
+        255
+      ],
+      "visible_pixels": 6159,
+      "emit_pixels": 421,
+      "outline": null,
+      "checks": {
+        "size": true,
+        "binary_alpha": true,
+        "palette": true,
+        "distinct_frames": true,
+        "emit_matches_source": true
+      },
+      "sha256": "2e5c4350a6cd40a94d830bc9746a2712de19fa7cd046eea8b61fde1541ee0c8a"
+    },
+    {
+      "folder": "merchant",
+      "file": "merchant@1x.png",
+      "size": [
+        96,
+        48
+      ],
+      "frames": 2,
+      "opaque_colors": 17,
+      "colors_with_transparency": 18,
+      "alpha": [
+        0,
+        255
+      ],
+      "visible_pixels": 1816,
+      "emit_pixels": null,
+      "outline": {
+        "boundary": 316,
+        "dark": 316,
+        "non_dark_colors": {}
+      },
+      "checks": {
+        "size": true,
+        "binary_alpha": true,
+        "palette": true,
+        "distinct_frames": true,
+        "foot_anchor_y45": true
+      },
+      "sha256": "d0f70752af00bee256663fd675669256d62d7ec96d9055f3cc360e20407e80fa"
+    },
+    {
+      "folder": "prop_pillar",
+      "file": "prop_pillar.png",
+      "size": [
+        32,
+        56
+      ],
+      "frames": 1,
+      "opaque_colors": 30,
+      "colors_with_transparency": 31,
+      "alpha": [
+        0,
+        255
+      ],
+      "visible_pixels": 823,
+      "emit_pixels": null,
+      "outline": null,
+      "checks": {
+        "size": true,
+        "binary_alpha": true,
+        "palette": true,
+        "exact_original_alpha": true
+      },
+      "sha256": "394c2656caa5f8c8499e0b8f902e7b0f058ee3412e033b08801efa886b528747"
+    },
+    {
+      "folder": "prop_wall",
+      "file": "prop_wall.png",
+      "size": [
+        56,
+        40
+      ],
+      "frames": 1,
+      "opaque_colors": 24,
+      "colors_with_transparency": 25,
+      "alpha": [
+        0,
+        255
+      ],
+      "visible_pixels": 1080,
+      "emit_pixels": null,
+      "outline": null,
+      "checks": {
+        "size": true,
+        "binary_alpha": true,
+        "palette": true,
+        "exact_original_alpha": true
+      },
+      "sha256": "f15e5e478cf2c2729a2af05ad0919c2051c83f2e2cb579d5486475343f5ddcab"
+    },
+    {
+      "folder": "prop_wreck",
+      "file": "prop_wreck.png",
+      "size": [
+        64,
+        48
+      ],
+      "frames": 1,
+      "opaque_colors": 28,
+      "colors_with_transparency": 29,
+      "alpha": [
+        0,
+        255
+      ],
+      "visible_pixels": 1074,
+      "emit_pixels": null,
+      "outline": null,
+      "checks": {
+        "size": true,
+        "binary_alpha": true,
+        "palette": true,
+        "exact_original_alpha": true
+      },
+      "sha256": "8eb8fe2b658307602cb60a021bf03a7271216e9cd8c9b43b01256fe0376f15a4"
+    },
+    {
+      "folder": "terrain_ridge",
+      "file": "terrain_ridge.png",
+      "size": [
+        128,
+        80
+      ],
+      "frames": 1,
+      "opaque_colors": 28,
+      "colors_with_transparency": 29,
+      "alpha": [
+        0,
+        255
+      ],
+      "visible_pixels": 4085,
+      "emit_pixels": null,
+      "outline": null,
+      "checks": {
+        "size": true,
+        "binary_alpha": true,
+        "palette": true,
+        "exact_original_alpha": true
+      },
+      "sha256": "b8b881ddc6aac5d5ea1211ef6d4612e42a2aca54d7faace2e2714d7d32965b1e"
+    },
+    {
+      "folder": "terrain_peak",
+      "file": "terrain_peak.png",
+      "size": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "opaque_colors": 27,
+      "colors_with_transparency": 28,
+      "alpha": [
+        0,
+        255
+      ],
+      "visible_pixels": 4331,
+      "emit_pixels": null,
+      "outline": null,
+      "checks": {
+        "size": true,
+        "binary_alpha": true,
+        "palette": true,
+        "exact_original_alpha": true
+      },
+      "sha256": "724edeb411410f04cb3d158e6ac695372735adf208aa0d653ed5305ccc656629"
+    },
+    {
+      "folder": "coral",
+      "file": "coral.png",
+      "size": [
+        20,
+        20
+      ],
+      "frames": 1,
+      "opaque_colors": 31,
+      "colors_with_transparency": 32,
+      "alpha": [
+        0,
+        255
+      ],
+      "visible_pixels": 152,
+      "emit_pixels": null,
+      "outline": null,
+      "checks": {
+        "size": true,
+        "binary_alpha": true,
+        "palette": true,
+        "exact_original_alpha": true
+      },
+      "sha256": "83425d07855ac9f65326128f5ca8448a76514e52f4f3df50e744ddbc796ef2b9"
+    },
+    {
+      "folder": "proj_floater_nerve",
+      "file": "proj_floater_nerve.png",
+      "size": [
+        48,
+        12
+      ],
+      "frames": 4,
+      "opaque_colors": 19,
+      "colors_with_transparency": 20,
+      "alpha": [
+        0,
+        255
+      ],
+      "visible_pixels": 208,
+      "emit_pixels": null,
+      "outline": null,
+      "checks": {
+        "size": true,
+        "binary_alpha": true,
+        "palette": true,
+        "distinct_frames": true,
+        "exact_original_alpha": true
+      },
+      "sha256": "f56dbd533bd6070561b78293fae20b6ce4dbcb56ed9493da557723fa0bb950a4"
+    },
+    {
+      "folder": "gems",
+      "file": "gem_small.png",
+      "size": [
+        8,
+        10
+      ],
+      "frames": 1,
+      "opaque_colors": 5,
+      "colors_with_transparency": 6,
+      "alpha": [
+        0,
+        255
+      ],
+      "visible_pixels": 58,
+      "emit_pixels": 3,
+      "outline": null,
+      "checks": {
+        "size": true,
+        "binary_alpha": true,
+        "palette": true,
+        "emit_matches_source": true
+      },
+      "sha256": "a08e32cc9422250e6ae49830bd0f595c471f86f5efdc75a6dce5106db1201cb5"
+    },
+    {
+      "folder": "gems",
+      "file": "gem_big.png",
+      "size": [
+        11,
+        14
+      ],
+      "frames": 1,
+      "opaque_colors": 5,
+      "colors_with_transparency": 6,
+      "alpha": [
+        0,
+        255
+      ],
+      "visible_pixels": 143,
+      "emit_pixels": 10,
+      "outline": null,
+      "checks": {
+        "size": true,
+        "binary_alpha": true,
+        "palette": true,
+        "emit_matches_source": true
+      },
+      "sha256": "291da045dbaec789b4f3f659996f238af3567070bb58044925091876ab013adb"
+    },
+    {
+      "folder": "drone_laser",
+      "file": "drone_laser.png",
+      "size": [
+        96,
+        20
+      ],
+      "frames": 4,
+      "opaque_colors": 10,
+      "colors_with_transparency": 11,
+      "alpha": [
+        0,
+        255
+      ],
+      "visible_pixels": 986,
+      "emit_pixels": null,
+      "outline": {
+        "boundary": 301,
+        "dark": 289,
+        "non_dark_colors": {
+          "#36b6bf": 12
+        }
+      },
+      "checks": {
+        "size": true,
+        "binary_alpha": true,
+        "palette": true,
+        "distinct_frames": true
+      },
+      "sha256": "b6549307c1f285ba2d6448fec6315a202b941d8bf28ec2c7f7b45b97e29be155"
+    }
+  ],
+  "mire_suite_colors_with_transparency": 23,
+  "user_visual_acceptance": "pending",
+  "engine_integration": "not performed",
+  "unchanged_scope": "No tracked source files edited; all delivery files live in art/incoming/world_spec_1024."
+}

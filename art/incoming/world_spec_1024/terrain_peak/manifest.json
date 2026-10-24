@@ -1,0 +1,74 @@
+{
+  "asset": "terrain_peak",
+  "frame_size": [
+    96,
+    96
+  ],
+  "frames": 1,
+  "fps": 0,
+  "anchor_px": [
+    48.0,
+    96
+  ],
+  "palette": [
+    "#001010",
+    "#001020",
+    "#080E18",
+    "#102030",
+    "#102040",
+    "#103040",
+    "#203040",
+    "#203050",
+    "#204050",
+    "#204060",
+    "#304060",
+    "#305060",
+    "#305070",
+    "#306070",
+    "#406070",
+    "#406080",
+    "#407080",
+    "#408080",
+    "#408090",
+    "#508080",
+    "#508090",
+    "#509090",
+    "#609090",
+    "#6090A0",
+    "#60A0A0",
+    "#70A0A0",
+    "#70B0B0"
+  ],
+  "files": [
+    {
+      "file": "compare.png",
+      "sha256": "6c21abe18babe75d77327d893960eb672f97ec3b764725e198bd9fb9b093664d",
+      "bytes": 11452
+    },
+    {
+      "file": "compare_8x.png",
+      "sha256": "1d2a6f54237954e34c63968528eb7de8ed9eccd832fc7dfb70fa34d8179493ec",
+      "bytes": 21228
+    },
+    {
+      "file": "HANDOFF.md",
+      "sha256": "1a9f3b7a10e672377cbc49279b85ccb0bbf5256109dd5dcd60fa4025dd2af7b9",
+      "bytes": 1464
+    },
+    {
+      "file": "palette_map.json",
+      "sha256": "ea0a6fcc315e4c343fa0e7008b272409141d736c81183078af515f0bbc9bb8fa",
+      "bytes": 1105
+    },
+    {
+      "file": "QA.json",
+      "sha256": "2995c27debdce6e18e20f1bdca173062d8b5b60c57b178a51bbafae508bc83cd",
+      "bytes": 1848
+    },
+    {
+      "file": "terrain_peak.png",
+      "sha256": "724edeb411410f04cb3d158e6ac695372735adf208aa0d653ed5305ccc656629",
+      "bytes": 4954
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "status": "candidate_visual_review_pending",
+  "engine_integration": "not_performed",
+  "native_grid": true,
+  "resampling_used_for_delivery": false,
+  "assets": [
+    {
+      "file": "drone_laser.png",
+      "width": 96,
+      "height": 20,
+      "frame_width": 24,
+      "frame_height": 20,
+      "frames": 4,
+      "anchor": [
+        12,
+        10
+      ],
+      "palette": [
+        "#080E18",
+        "#E9E8D9",
+        "#C7C8BA",
+        "#90958F",
+        "#182532",
+        "#59666C",
+        "#30404E",
+        "#B98E58",
+        "#36B6BF",
+        "#BDF3E9"
+      ],
+      "opaque_color_count": 10,
+      "alpha_values": [
+        0,
+        255
+      ],
+      "opaque_pixels": 986,
+      "sha256": "b6549307c1f285ba2d6448fec6315a202b941d8bf28ec2c7f7b45b97e29be155",
+      "emit": false
+    }
+  ]
+}

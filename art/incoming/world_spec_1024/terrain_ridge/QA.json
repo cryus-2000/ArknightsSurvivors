@@ -1,0 +1,85 @@
+{
+  "source": "art/incoming/terrain_ridge.png",
+  "source_sha256": "d2de2b1c15fb3fcb0a53c481545dce38c594528f5dcd90854ad4f734b53049a7",
+  "output": "terrain_ridge.png",
+  "sha256": "b8b881ddc6aac5d5ea1211ef6d4612e42a2aca54d7faace2e2714d7d32965b1e",
+  "sheet_size": [
+    128,
+    80
+  ],
+  "frame_size": [
+    128,
+    80
+  ],
+  "frames": 1,
+  "fps": 0,
+  "anchor_px": [
+    64.0,
+    80
+  ],
+  "anchor_space": "source frame edges; exact legacy renderer anchor",
+  "opaque_colors_before": 106,
+  "opaque_colors_after": 28,
+  "total_rgba_colors": 29,
+  "alpha_values": [
+    0,
+    255
+  ],
+  "changed_alpha_pixels": 0,
+  "changed_rgb_pixels": 877,
+  "source_opaque_bbox": [
+    2,
+    20,
+    126,
+    78
+  ],
+  "output_opaque_bbox": [
+    2,
+    20,
+    126,
+    78
+  ],
+  "palette": [
+    "#001020",
+    "#002030",
+    "#080E18",
+    "#102040",
+    "#103040",
+    "#103050",
+    "#104060",
+    "#105070",
+    "#204060",
+    "#205070",
+    "#206080",
+    "#207090",
+    "#305060",
+    "#306070",
+    "#307090",
+    "#3080A0",
+    "#406070",
+    "#407080",
+    "#4090A0",
+    "#507080",
+    "#50A0B0",
+    "#608080",
+    "#60B0B0",
+    "#708080",
+    "#70C0C0",
+    "#80A090",
+    "#80D0C0",
+    "#A0E0D0"
+  ],
+  "method": "explicit per-source-color material mapping; no automatic quantization; no resampling of asset",
+  "visual_review": "Reviewed 2x and 8x: three platforms, vertical striations, saddle and foreground rubble unchanged; stone-top warm-gray ramp remains separate from blue walls. No outline added.",
+  "engine_validation": "not run; asset-only delivery",
+  "user_approval": "pending",
+  "status": "technical checks passed; visually reviewed; awaiting user approval and Claude integration",
+  "frame_opaque_bboxes": [
+    [
+      2,
+      20,
+      126,
+      78
+    ]
+  ]
+}

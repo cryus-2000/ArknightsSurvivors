@@ -1,0 +1,117 @@
+{
+  "status": "candidate_visual_review_pending",
+  "engine_integration": "not_performed",
+  "native_grid": true,
+  "resampling_used_for_delivery": false,
+  "assets": [
+    {
+      "file": "gem_small.png",
+      "width": 8,
+      "height": 10,
+      "frame_width": 8,
+      "frame_height": 10,
+      "frames": 1,
+      "anchor": [
+        4,
+        5
+      ],
+      "palette": [
+        "#343633",
+        "#FFF9E9",
+        "#F2E9D2",
+        "#DDD1B4",
+        "#A49A81"
+      ],
+      "opaque_color_count": 5,
+      "alpha_values": [
+        0,
+        255
+      ],
+      "opaque_pixels": 58,
+      "sha256": "a08e32cc9422250e6ae49830bd0f595c471f86f5efdc75a6dce5106db1201cb5",
+      "emit": false
+    },
+    {
+      "file": "gem_small_emit.png",
+      "width": 8,
+      "height": 10,
+      "frame_width": 8,
+      "frame_height": 10,
+      "frames": 1,
+      "anchor": [
+        4,
+        5
+      ],
+      "palette": [
+        "#FFF9E9"
+      ],
+      "opaque_color_count": 1,
+      "alpha_values": [
+        0,
+        255
+      ],
+      "opaque_pixels": 3,
+      "sha256": "bc02973463d7ca5d05183ab9304120eea21eebd9e9b024247df69392650b67f1",
+      "emit": true,
+      "emit_pixel_mismatch": 0
+    },
+    {
+      "file": "gem_big.png",
+      "width": 11,
+      "height": 14,
+      "frame_width": 11,
+      "frame_height": 14,
+      "frames": 1,
+      "anchor": [
+        5.5,
+        7
+      ],
+      "palette": [
+        "#343633",
+        "#FFF9E9",
+        "#F2E9D2",
+        "#DDD1B4",
+        "#A49A81"
+      ],
+      "opaque_color_count": 5,
+      "alpha_values": [
+        0,
+        255
+      ],
+      "opaque_pixels": 143,
+      "sha256": "291da045dbaec789b4f3f659996f238af3567070bb58044925091876ab013adb",
+      "emit": false
+    },
+    {
+      "file": "gem_big_emit.png",
+      "width": 11,
+      "height": 14,
+      "frame_width": 11,
+      "frame_height": 14,
+      "frames": 1,
+      "anchor": [
+        5.5,
+        7
+      ],
+      "palette": [
+        "#FFF9E9"
+      ],
+      "opaque_color_count": 1,
+      "alpha_values": [
+        0,
+        255
+      ],
+      "opaque_pixels": 10,
+      "sha256": "5c309326fd422f3af4f3746e5381283ec8c5de46a91837be8dd4b4d9ae2d2d8c",
+      "emit": true,
+      "emit_pixel_mismatch": 0
+    }
+  ],
+  "revision": {
+    "revision": 2,
+    "small_silhouette": "exact 7x9 original alpha; right column and bottom row transparent in 8x10 canvas",
+    "small_original_alpha_mismatches": 0,
+    "big_silhouette": "hand-extended asymmetric top bevel, straight sides and flat base; no resampling",
+    "visual_status": "revised after rejection; pending user review"
+  }
+}
