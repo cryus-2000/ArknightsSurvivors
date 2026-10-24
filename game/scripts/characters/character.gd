@@ -1186,8 +1186,8 @@ func follow(dt: float, target: Vector2) -> void:
 		vis_anim = ""   # 播完回待机（末帧 = 待机 f0，收招不跳）
 	_tick_sq_shadow(dt)
 	# 跑步帧率按实际移动速度缩放（原固定 fps：快速前压的近战队友脚步打滑 3 倍以上）；帧条按主控基础移速 RUN_REF 画
-	if anim_kind == "run":
-		advance_run_phase(dt)
+	if anim_kind == "run" or (sq_ph == 2 and sq.has("run") and anim_kind == seq_anim(sq.run)):
+		advance_run_phase(dt)   # 技能跑动（维什戴尔 S2 等专用帧条）也走同一速度时钟
 
 
 ## 原生画面让位跑步时也使用同一速度时钟；不被攻击起手重置。
@@ -2066,7 +2066,7 @@ func _sq_kind() -> String:
 func _sq_frame(n: int) -> int:
 	var seg = _sq_seg()
 	var k := seq_anim(seg)
-	if sq_ph == 2 and k == "run":
+	if sq_ph == 2 and (k == "run" or (sq.has("run") and k == seq_anim(sq.run))):
 		return int(run_ph) % n   # 普通跑步与技能跑步共享相位，不随技能计时重启。
 	var frs: Array = [0] if (sq_ph == 1 and sq.has("hold") and not (seg is Dictionary)) else _seq_frames(seg, k)
 	if frs.is_empty():
@@ -2418,6 +2418,9 @@ func set_attack_phase(stage: Dictionary, transition: bool) -> float:
 	sq = sq.duplicate(true)
 	for key in ["loop", "attack", "end"]:
 		sq[key] = stage[key]
+	if stage.has("run"):
+		sq["run"] = stage.run   # 各阶段自己的技能跑动（维什戴尔 S2 / 过载各一套，10-24）；没写的阶段沿用序列级 run
+
 	if not transition:
 		return 0.0
 	sq_t = 0.0
