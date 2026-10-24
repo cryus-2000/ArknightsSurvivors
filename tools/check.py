@@ -933,6 +933,7 @@ def check_blocks_eq(godot):
 SCENE_REGRESSIONS = {
     "command_ai": ("指挥接敌、站定、护主", "command_ai_test", r"COMMAND_AI checks=\d+ failures=0", []),
     "voice_command": ("指挥语音轮换、节流、登场去重", "voice_command_test", r"VOICE COMMAND checks=\d+ failures=0", []),
+    "command_wheel": ("指挥圆盘索敌优先级（队友按优先级重排、队长不受影响）", "command_wheel_test", r"COMMAND WHEEL checks=\d+ failures=0", []),
     "eyja_volcanic_weight": ("熔岩弹连续起落点与浮空持续投弹", "eyja_volcanic_weight_test", r"EYJA VOLCANIC WEIGHT failures=0", ["--balance", "--seed=1", "--op=eyjafjalla", "--route=eyjafjalla:meteor"]),
     "siege_ulpianus_art": ("推进之王与乌尔比安原生美术", "siege_ulpianus_art_test", r"SIEGE ULPIANUS ART failures=0", ["--balance", "--seed=1", "--op=siege", "--squad=ulpianus"]),
     "doctor_run": ("博士八帧跑步与混合画布切换", "doctor_run_test", r"DOCTOR RUN failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),

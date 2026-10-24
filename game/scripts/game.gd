@@ -270,6 +270,7 @@ var ending := "standard"
 var endg: RefCounted = null        # 结局与事件箱（scripts/endings.gd）
 var knight: RefCounted = null      # 猎潮的骑士同伴（scripts/allies/knight.gd）
 var touch: RefCounted = null       # 触屏操作（scripts/touch.gd）
+var wheel = preload("res://scripts/screens/command_wheel.gd").new(self)   # 指挥圆盘（docs/114 §13）
 var frost := 0.0                   # 冰霜：移速 -40%
 # 小怪控制（用户 9/29，combat.gd「小怪控制」段；玩法系统的净化按这些字段清除）
 var cold := 0                      # 寒霜层数：每层移速 / 攻速减益，满层冻结
@@ -1100,6 +1101,7 @@ func _quality_probe(delta: float) -> void:
 func _process(delta: float) -> void:
 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
+	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）
 	var dt: float = min(delta, 0.05)
 	var simulated_dt := 0.0
 	if state != _last_state:
@@ -1122,6 +1124,8 @@ func _process(delta: float) -> void:
 		autotest_sys.step()
 		_pm("autotest")
 		dt = (minf(delta, 0.05) if realtime else bal_dt) if mode == Mode.BALANCE else 0.05
+	if wheel.is_open:
+		dt *= wheel.slow()   # 圆盘打开：局内放慢（不全停）
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	_quality_probe(delta)
 	if victory.active and state == S.PLAY:
@@ -1208,6 +1212,9 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		return
 	if _motion_skip(event):
+		get_viewport().set_input_as_handled()
+		return
+	if wheel.input(event):   # 指挥圆盘打开时吞掉按键 / 点选（移动是轮询的，不受影响）
 		get_viewport().set_input_as_handled()
 		return
 	if touch.handle(event):
@@ -1371,8 +1378,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		vfx.show_banner("移动粘滞（试验）：%s · F8 切换" % ("开" if sticky_on else "关"), 2)
 		get_viewport().set_input_as_handled()
 		return
-	if k == KEY_F and state == S.PLAY:   # 指挥模式（docs/114）：F / 手柄 LB / 触屏「指挥」键循环 随行 → 突击 → 归队
-		toggle_command()
+	if k == KEY_F and state == S.PLAY:   # 指挥模式（docs/114 §13）：F / 手柄 LB / 触屏「指挥」键打开指挥圆盘（按住选、松开确认；轻点则点选）
+		wheel.open(event)
 		get_viewport().set_input_as_handled()
 		return
 	if k == KEY_TAB or k == KEY_C:
