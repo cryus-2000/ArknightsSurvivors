@@ -2,6 +2,11 @@ extends Node2D
 ## Disposable isolated visual study. No game simulation, damage or production resources are changed.
 ## Baseline reproduces the large-effect 10+10+3 GPU burst, not the complete in-game compositing pass.
 var mode := "compare"
+var effect := "eyja"
+var frames := 6
+var fps := 18.0
+var frame_size := Vector2(80, 56)
+var display_size := Vector2(160, 112)
 var outdir := ""
 var count := 1
 var capture := false
@@ -28,6 +33,7 @@ func ramp(colors: Array, stops: PackedFloat32Array) -> GradientTexture1D:
 
 func _ready() -> void:
 	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--effect="): effect = arg.get_slice("=", 1)
 		if arg.begins_with("--mode="): mode = arg.get_slice("=", 1)
 		if arg.begins_with("--out="): outdir = arg.substr(6)
 		if arg.begins_with("--count="): count = int(arg.get_slice("=", 1))
@@ -35,11 +41,18 @@ func _ready() -> void:
 		if arg == "--particles-only": particles_only = true
 	AudioServer.set_bus_mute(0, true)
 	var root := ProjectSettings.globalize_path("res://").path_join("../..")
-	var im := Image.load_from_file(root.path_join("art/incoming/optical_fx/fx_eyja_lava_splash@2x.png"))
-	assert(im != null and im.get_width() == 480 and im.get_height() == 56)
+	var recipes := {"eyja": ["fx_eyja_lava_splash",6,18.0,Vector2(160,112)], "lappland": ["fx_lappland_slash",4,10.0,Vector2(176,176)], "gladiia": ["fx_gladiia_tornado_loop",6,12.0,Vector2(160,160)], "mizuki": ["fx_mizuki_jelly_sting",5,18.0,Vector2(120,120)]}
+	assert(recipes.has(effect))
+	var recipe: Array = recipes[effect]
+	frames = recipe[1]
+	fps = recipe[2]
+	display_size = recipe[3]
+	var im := Image.load_from_file(root.path_join("art/incoming/optical_fx/" + recipe[0] + "@2x.png"))
+	assert(im != null and im.get_width() % frames == 0)
+	frame_size = Vector2(im.get_width() / frames, im.get_height())
 	var best := -1.0
-	for y in range(56):
-		for x in range(80):
+	for y in range(0, int(frame_size.y), maxi(1, int(frame_size.y / 48))):
+		for x in range(0, int(frame_size.x), maxi(1, int(frame_size.y / 48))):
 			var c := im.get_pixel(x, y)
 			var score := c.v * (0.3 + c.s)
 			if c.a >= 0.6 and score > best:
@@ -88,7 +101,7 @@ func make_particle(proposed: bool, kind: int, center: Vector2, index: int) -> GP
 	m.gravity = [Vector3(0, 160, 0), Vector3(0, -30, 0), Vector3(0, -18, 0)][kind]
 	m.color_ramp = ramp([Color.WHITE, Color(1,1,1,0.9), Color(0.5,0.5,0.5,0)], PackedFloat32Array([0,0.55,1]))
 	p.modulate = base_color if kind < 2 else Color(0.16,0.17,0.2,0.55)
-	if proposed:
+	if proposed and effect == "eyja":
 		# Same 23 particles and three emitters; material identity comes from trajectories and cooling.
 		m.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
 		m.emission_sphere_radius = [10.0, 16.0, 12.0][kind]
@@ -106,9 +119,66 @@ func make_particle(proposed: bool, kind: int, center: Vector2, index: int) -> GP
 			m.color_ramp = ramp([Color(1,.86,.46),Color(1,.46,.12),Color(.46,.18,.08),Color(.18,.13,.10,0)],PackedFloat32Array([0,.2,.65,1]))
 		else:
 			m.color_ramp = ramp([Color(.22,.23,.23,0),Color(.30,.29,.26,.7),Color(.18,.21,.22,0)],PackedFloat32Array([0,.25,1]))
+	elif proposed:
+		material_identity(m, p, kind)
+	if effect == "gladiia":
+		p.one_shot = false
+		p.explosiveness = 0.0
 	p.process_material = m
 	add_child(p)
 	return p
+
+## Fixed point textures give each material a spatial source without CPU updates per particle.
+func material_identity(m: ParticleProcessMaterial, p: GPUParticles2D, kind: int) -> void:
+	var positions := Image.create(32, 1, false, Image.FORMAT_RGBF)
+	for i in 32:
+		var a := float(i) / 31.0
+		var pt := Vector2.ZERO
+		if effect == "lappland":
+			var angle := lerpf(-1.1, 1.1, a)
+			pt = Vector2(cos(angle) * 48 - 18, sin(angle) * 48)
+		elif effect == "gladiia":
+			var angle := a * TAU
+			pt = Vector2(cos(angle) * (34 + kind * 5), sin(angle) * 20 - kind * 12)
+		else:
+			var angle := a * TAU
+			pt = Vector2(cos(angle) * 30, sin(angle) * 18)
+		positions.set_pixel(i, 0, Color(pt.x, pt.y, 0))
+	m.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_POINTS
+	m.emission_point_texture = ImageTexture.create_from_image(positions)
+	m.emission_point_count = 32
+	m.damping_min = 12
+	m.damping_max = 30
+	p.modulate = Color.WHITE
+	if effect == "lappland":
+		m.direction = Vector3(1, -.2, 0)
+		m.spread = 18
+		m.initial_velocity_min = [100.0,45.0,12.0][kind]
+		m.initial_velocity_max = [210.0,100.0,35.0][kind]
+		m.gravity = Vector3(0, [55.0,20.0,0.0][kind],0)
+		m.color_ramp = ramp([Color(.78,.86,.78),Color(.39,.55,.45),Color(.15,.21,.20,0)],PackedFloat32Array([0,.2,1]))
+	elif effect == "gladiia":
+		m.direction = Vector3(1,0,0)
+		m.spread = 180
+		m.initial_velocity_min = 8
+		m.initial_velocity_max = 24
+		m.gravity = Vector3(0, -12, 0)
+		m.tangential_accel_min = 100
+		m.tangential_accel_max = 160
+		m.radial_accel_min = -25
+		m.radial_accel_max = -10
+		m.color_ramp = ramp([Color(.66,.83,.86,.6),Color(.45,.67,.71),Color(.16,.29,.33,0)],PackedFloat32Array([0,.25,1]))
+	else:
+		m.direction = Vector3(0,-1,0)
+		m.spread = 35
+		m.initial_velocity_min = 4
+		m.initial_velocity_max = 18
+		m.gravity = Vector3(0,-14,0)
+		m.radial_accel_min = -75
+		m.radial_accel_max = -35
+		m.tangential_accel_min = 12
+		m.tangential_accel_max = 24
+		m.color_ramp = ramp([Color(.36,.53,.67,0),Color(.66,.85,.91,.9),Color(.29,.45,.62,.6),Color(.12,.20,.32,0)],PackedFloat32Array([0,.15,.6,1]))
 
 func _process(dt: float) -> void:
 	var now := Time.get_ticks_usec()
@@ -123,6 +193,8 @@ func _process(dt: float) -> void:
 		if clocks[i] >= PERIOD: clocks[i] -= PERIOD
 		if old > clocks[i]:
 			for p in groups[i]: p.restart()
+		if effect == "gladiia" and clocks[i] > 1.3:
+			for p in groups[i]: p.emitting = false
 	queue_redraw()
 	if capture:
 		await RenderingServer.frame_post_draw
@@ -149,6 +221,7 @@ func _draw() -> void:
 		var center: Vector2 = groups[i][0].position
 		draw_line(center+Vector2(-75,28),center+Vector2(75,28),Color(.14,.19,.20),2)
 		var age := clocks[i]
-		if not particles_only and age >= 0 and age < 6.0/18.0:
-			var fr := mini(5,int(age*18))
-			draw_texture_rect_region(splash,Rect2(center-Vector2(80,56),Vector2(160,112)),Rect2(fr*80,0,80,56))
+		var duration := 1.3 if effect == "gladiia" else float(frames)/fps
+		if not particles_only and age >= 0 and age < duration:
+			var fr := int(age*fps) % frames
+			draw_texture_rect_region(splash,Rect2(center-display_size*.5,display_size),Rect2(Vector2(fr*frame_size.x,0),frame_size))
