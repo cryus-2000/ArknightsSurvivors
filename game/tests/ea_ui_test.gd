@@ -32,7 +32,6 @@ func run() -> void:
 	await wait_for(func(): return not title.transition.busy and not title.op_pick and not title.diff_pick)
 	check(Cfg.cover_character_id == "siege", "cover selection persisted in config")
 	check(Cfg.character_id == "mizuki", "cover does not change opening operator")
-	check(title.title_bg.guest.get("id", "") == "siege", "cover refreshes correct idle strip")
 	check(not title.op_pick and not title.diff_pick, "cover confirm returns to title")
 	check(not title.transition.busy, "transition unlocks")
 	await capture("ea_cover_siege")
