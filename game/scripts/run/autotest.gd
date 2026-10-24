@@ -62,6 +62,12 @@ var partab := 0               # --partab=N（docs/136 §2 排查）：每 N 帧�
 var matab := 0                # --matab=N：每 N 帧轮换材质颗粒（fx/material_grains）开 / 关（--perf 分 /m1 /m0；要同时 --bal=fx/material_grains=1）
 var grainab := 0              # --grainab=N：每 N 帧轮换刀光第四版（粒子）开 / 关（--perf 分 /g1 /g0）
 var tierab := 0               # --tierab=N（docs/50 §25.3）：每 N 帧轮换命中三档开 / 关
+# --stackab=N:m1,m2,…（docs/50 §26）：每 N 帧换下一个掩码（optical.ab_mask：1 CPU 颗粒 / 2 GPU 粒子 / 4 特效照明 / 8 发光层 / 16 低分辨率层 / 32 整套光学），
+# --perf 分 /s<掩码> 桶；切换后 3 帧记进 /sx 不算（低分辨率层重挂、粒子重启）
+var stackab := 0
+var stack_masks: Array = [0]
+var stack_i := 0
+var stack_sw := -99
 var vfxab := -1               # --vfxab=N（docs/54）：每 N 帧轮换 vfx.p2；-1 = 还没读参数
 var vfxdemo := false           # --vfxdemo：按固定时刻强制灯标点燃 / 升级 / 灯火暗淡 / 精英 / 拾取 / 商人（录对照片段用）
 var _vd_step := 0
@@ -523,6 +529,11 @@ func step() -> void:
 				matab = int(a.substr(8))
 			if a.begins_with("--grainab="):
 				grainab = int(a.substr(10))
+			if a.begins_with("--stackab="):
+				var sp: PackedStringArray = a.substr(10).split(":")
+				stackab = int(sp[0])
+				stack_masks = Array(sp[1].split(",")).map(func(x): return int(x)) if sp.size() > 1 else [0, 1]
+				g.optical.ab_mask = int(stack_masks[0])
 			if a == "--nohud" and g.hud != null and g.hud.get_parent() is CanvasLayer:
 				(g.hud.get_parent() as CanvasLayer).visible = false   # 概念样图底图（tools/probes/map_concept.py）：只要世界画面，界面层整层不画
 			if a == "--optical":
@@ -546,6 +557,10 @@ func step() -> void:
 		g.optical.particles.set_active(not g.optical.particles.active)   # --partab=N：同局轮换 GPU 粒子（--perf 分 /p1 /p0）
 	if grainab > 0 and g.at_frames % grainab == 0 and g.optical != null and g.optical.grains != null:
 		g.optical.grains.off = not g.optical.grains.off   # --grainab=N：同局轮换刀光第四版
+	if stackab > 0 and g.at_frames % stackab == 0 and g.optical != null:
+		stack_i = (stack_i + 1) % stack_masks.size()   # --stackab：换下一个逐层关闭掩码
+		g.optical.ab_mask = int(stack_masks[stack_i])
+		stack_sw = g.at_frames
 	if matab > 0 and g.at_frames % matab == 0 and g.optical != null and g.optical.grains != null:
 		g.optical.grains.mat_off = not g.optical.grains.mat_off   # --matab=N：同局轮换材质颗粒
 	if tierab > 0 and g.at_frames % tierab == 0:
@@ -1476,6 +1491,8 @@ func _perf_sample() -> void:
 			w += "/m0" if g.optical.grains.mat_off else "/m1"
 		if grainab > 0:
 			w += "/g0" if g.optical.grains.off else "/g1"
+		if stackab > 0:
+			w += "/sx" if g.at_frames - stack_sw <= 3 else "/s%d" % g.optical.ab_mask   # 采样在轮换之前：记的是上一帧所用掩码
 		if tierab > 0:
 			w += "/t0" if g.vfx.tier_off else "/t1"   # --tierab：上一帧的命中三档开关
 		if fx1ab > 0:

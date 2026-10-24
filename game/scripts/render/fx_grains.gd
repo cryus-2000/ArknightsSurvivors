@@ -46,6 +46,7 @@ const SPARK_MAX := [0, 120, 240]
 var g
 var level := 2      # 2 高 / 1 中 / 0 低（低 = 不开）
 var off := false    # --grainab 同局轮换：true = 这一段退回第二版画法
+var kill := false   # --stackab 第 1 位（docs/50 §26，仅测试）：整套 CPU 颗粒关，调用方退回非粒子画法
 var mat_off := false   # --matab 同局轮换：true = 这一段材质颗粒关（只关材质，刀光第四版照旧）
 # 颗粒（结构数组）：位置、速度、剩余寿命、总寿命、颜色、模板序号
 var pos := PackedVector2Array()
@@ -74,7 +75,7 @@ func setup(game) -> void:
 
 
 func on() -> bool:
-	return level > 0 and g != null and g.optical_on and Bal.v("fx/grains", 1.0) > 0.0
+	return level > 0 and not kill and g != null and g.optical_on and Bal.v("fx/grains", 1.0) > 0.0
 
 
 ## 材质颗粒（fx/material_grains，10-24 起缺省开；拉普兰德 / 体液各自另有开关，缺省关）：模板开着、未被 --grainab / --matab 轮换关掉
@@ -130,6 +131,16 @@ func step(dt: float) -> void:
 	if g != null and visibility_layer != g.visibility_layer:
 		visibility_layer = g.visibility_layer   # 跟世界节点同一可见层（光学观感低分辨率层开着时 = 第 2 位；本节点比 _set_lo 晚挂上）
 	_frame_n.clear()
+	if kill and (pos.size() > 0 or sparks.size() > 0):
+		pos.clear()
+		vel.clear()
+		life.clear()
+		lmax.clear()
+		delay.clear()
+		col.clear()
+		tpl.clear()
+		sparks.clear()
+		lights.clear()
 	_lappland_step()
 	var n: int = pos.size()
 	var k := 0
@@ -189,6 +200,7 @@ func step(dt: float) -> void:
 
 
 func _draw() -> void:
+	var pt: int = Time.get_ticks_usec() if g != null and g.prof_on else 0
 	_drawn = pos.size() > 0 or sparks.size() > 0
 	var sz := Vector2(2, 2)
 	for i in pos.size():
@@ -209,6 +221,8 @@ func _draw() -> void:
 		var a: float = 1.0 if u > 0.15 else u / 0.15
 		var add: float = 0.6 if kk > 1.5 else 0.0
 		draw_rect(Rect2(((s[0] as Vector2) * 0.5).floor() * 2.0, sz), Color(minf(2.0, c.r * kk + add), minf(2.0, c.g * kk + add), minf(2.0, c.b * kk + add), a))
+	if pt > 0:
+		g.prof["op_grains_draw"] = int(g.prof.get("op_grains_draw", 0)) + Time.get_ticks_usec() - pt
 
 
 ## 兼容旧调用：GPU 版要在这里写贴图，CPU 版颗粒在 push 时就生成
