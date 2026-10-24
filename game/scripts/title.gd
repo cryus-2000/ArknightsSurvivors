@@ -510,6 +510,9 @@ func _menu_set(i: int, _remember: bool) -> void:
 func _activate(i: int) -> void:
 	if transition.busy:
 		return
+	if i == 8:
+		Sfx.play("ui_move", -4.0, 0.6)   # 蚀刻章（docs/134）还没做：入口先留着、灰显，点了只响一声
+		return
 	Sfx.play("ui_ok")
 	match i:
 		0:
@@ -605,7 +608,7 @@ func _draw_menu(vs: Vector2) -> void:
 	const R = preload("res://scripts/core/roster.gd")
 	Tiles.draw(self, menu_lay, {"font": font, "sel": sel, "water": menu_water, "now": t, "rm": Cfg.reduce_motion,
 		"a_logo": 0.0, "logo_tex": null, "a_list": a_list, "a_deploy": _item_a(0), "a_foot": _seg(2.0, 0.4),
-		"slide": 0.0 if Cfg.reduce_motion else 16.0, "dim": [] if R.active() else [7], "tickets": R.tickets() if R.active() else -1})   # 10-24 用户：没有凭证也能点进寻访看卡池
+		"slide": 0.0 if Cfg.reduce_motion else 16.0, "dim": [8] if R.active() else [7, 8], "tickets": R.tickets() if R.active() else -1})   # 8 = 蚀刻章（未开放）恒灰；10-24 用户：没有凭证也能点进寻访看卡池
 	# 声明（同人 · 非商业 · 与鹰角网络无关 · 致谢与声明）+ 版本：桌面右下，手机跟在底部一行后面
 	var ff := _seg(2.0, 0.4)
 	var lg: Dictionary = menu_lay.legal

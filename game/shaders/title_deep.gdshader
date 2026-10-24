@@ -50,7 +50,7 @@ vec2 jelly_uv(vec2 p, vec4 rect, vec4 pose, vec2 axis, vec2 drift, float c, floa
 	} else {
 		along = A + bell * (1.0 - sy);
 		float s = clamp((along - bell) / (bell * 2.2), 0.0, 1.0);
-		float sway = pose.w * s * sqrt(s) * sin(t * 6.2831853 / 7.0 + ph - along * 0.11) + 0.8 * pose.w * s * c;
+		float sway = pose.w * s * sqrt(s) * sin(t * 6.2831853 / 7.0 + ph - along * 0.06) + 0.8 * pose.w * s * c;
 		across = X - sway;
 	}
 	vec2 q = pose.xy + axis * along + perp * across;   // 图层未变形时的位置（底图坐标）
@@ -62,10 +62,19 @@ void layer(inout vec3 col, sampler2D tex, sampler2D gl, vec4 rect, vec2 uv) {
 	if (g.x > 0.0 && g.y > 0.0 && g.x < 1.0 && g.y < 1.0) {
 		col += vec3(0.47, 0.78, 0.92) * texture(gl, g).r * glow_k;
 	}
-	if (uv.x >= 0.0 && uv.y >= 0.0 && uv.x < rect.z && uv.y < rect.w) {
-		vec4 j = texelFetch(tex, ivec2(floor(uv)), 0);
-		col = mix(col, j.rgb, j.a);
+	// 保覆盖取样：中心 + 四个斜角各取一次，用最实的那个。变形后相邻两行的取整位移不一样时，1 像素细触须也不会断成一段段
+	vec4 best = vec4(0.0);
+	for (int k = 0; k < 5; k++) {
+		vec2 o = k == 0 ? vec2(0.0) : vec2(k < 3 ? -0.35 : 0.35, k % 2 == 0 ? -0.35 : 0.35);
+		vec2 q = floor(uv + o);
+		if (q.x >= 0.0 && q.y >= 0.0 && q.x < rect.z && q.y < rect.w) {
+			vec4 j = texelFetch(tex, ivec2(q), 0);
+			if (j.a > best.a + 0.01) {
+				best = j;
+			}
+		}
 	}
+	col = mix(col, best.rgb, best.a);
 }
 
 void fragment() {
