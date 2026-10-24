@@ -112,7 +112,7 @@ static func _h4_cannon_release(o, a: Dictionary) -> void:
 			var ash: Dictionary = a.get("ash", {})
 			var rings: bool = not _h4_sub(o, ash.get("rings", null)).is_empty()
 			var d1: float = atk * float(patch.get("mult", 1.0)) * (o.skill_power() if patch.get("power", false) else 1.0)
-			_h4_fire(o, a, tgt.pos, d1, str(a.get("src", "")), float(ash.get("size", 1.1)), true, 0.0, false, rings)
+			_h4_fire(o, a, tgt.pos, d1, str(a.get("src", "")), float(ash.get("size", 1.65)), true, 0.0, false, rings)
 			_h4_twin(o, a, tgt, d1, rings)
 		else:
 			_h4_fire(o, a, tgt.pos, atk, str(a.get("src", "")), 1.0, true, 0.0)
@@ -245,7 +245,7 @@ static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
 			var me = s.get("mark_e", null)   # 魂炮（follow）：命中时给它的目标挂残影标记（目标还活着、在爆炸范围内）
 			if me != null and not me.dead and me.pos.distance_to(s.to) < float(s.r) + float(me.r):
 				_h4_mark(o, a, me)
-			o.fx({"kind": "line", "pos": s.from, "to": s.to, "life": 0.09, "col": H4_RED, "w": 2.0 * float(s.get("size", 1.0))})
+			o.fx({"kind": "line", "pos": s.from, "to": s.to, "life": 0.09, "col": H4_RED, "w": 2.0 * float(s.get("size", 1.0)), "laser": true})
 			if s.quake:
 				var qd: float = s.dmg * _h4_first_val(o, a.get("quakes", []), float(a.get("quake", 0.4)))
 				var qs: float = float(a.get("ash", _ED).get("stun", 0.8)) if s.rings else 0.0
@@ -567,11 +567,39 @@ static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src:
 			o.fx({"kind": "h4_shade", "pos": killed[k], "life": 0.3, "col": H4_DARK})
 
 
+## 炮击帧条按爆炸半径放大（10-24 范围改版，docs/137 §8）。fx_wisadel_cannon 最亮那帧的实心部分（不透明像素 90 分位）离中心约 37 美术像素，
+## 尖刺到 59：倍率 = 判定半径 × fill ÷ 37（实心边落在判定圈上、尖刺伸出圈外），小数部分 > 0.3 就进位（宁大勿小），取整（像素块整齐）
+## 并受 vfx.FX_SCALE_MAX 封顶。一团盖不住时（S3 巨炮）改「连环爆」：外圈补 n 团同像素尺度的帧条，实心边到判定圈、几乎同时炸开
+## （依次晚 0.02 秒，外圈略淡），再加一道贴地冲击环收边。返回中心一团的实心半径（焦痕按它画）；缺图返回 0。
+## 10-24 用户「特效还变小了」：原来按 r × k / 96 换算，实心部分只到判定圈的六七成（S2 约 0.66），改成按实测 37 换算
+const H4_BOOM_CORE := 37.0
+static func _h4_cannon_sprite(o, c: Vector2, r: float, fill: float) -> float:
+	var g = o.g
+	var cap: float = floorf(g.vfx.FX_SCALE_MAX)
+	var want: float = r * fill / H4_BOOM_CORE
+	var sc: float = clampf(ceilf(want - 0.3), 1.0, cap)
+	if not o.spawn_fx_sprite("fx_wisadel_cannon", c, sc):
+		return 0.0
+	var rv: float = sc * H4_BOOM_CORE
+	if want > sc * 1.15:
+		var ss: float = clampf(ceilf((r * fill - rv) * 0.5 / H4_BOOM_CORE - 0.3), 1.0, cap)   # 外圈每团：实心直径 ≈ 外圈环带宽度
+		var rs: float = ss * H4_BOOM_CORE
+		var d: float = maxf(rv * 0.6, r * fill - rs)   # 外圈中心到圆心：实心外沿 ≈ 判定圈
+		var n: int = clampi(ceili(TAU * d / (rs * 1.8)), 3, 8)
+		var a0: float = g.vrng.randf() * TAU
+		for i in n:
+			var p: Vector2 = c + Vector2.from_angle(a0 + TAU * i / n) * d
+			g.vfx.fx_sprite("fx_wisadel_cannon", p, ss, 0.0, i % 2 == 1, false, Color(1, 1, 1, 0.85), false, Vector2(-1, -1), 0.02 + 0.02 * i)
+		o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.5, "life": 0.4, "col": H4_RED, "w": 2.0, "floor": true, "alpha": 0.6})
+	return minf(r, rv)
+
+
 ## 落地：Codex 炮击帧条（fx_wisadel_cannon）；缺图保留程序特效（闪光 / 黑烟 / 红环 / 碎片 / 焦痕）
 static func h4_impact_fx(o, c: Vector2, r: float, light: bool) -> void:
 	var g = o.g
-	if o.spawn_fx_sprite("fx_wisadel_cannon", c, r * (1.8 if light else 2.2) / 96.0):
-		o.fx({"kind": "h4_scorch", "pos": c, "r": r * 0.7, "life": 1.2, "floor": true})
+	var rv: float = _h4_cannon_sprite(o, c, r, 0.82 if light else 1.0)
+	if rv > 0.0:
+		o.fx({"kind": "h4_scorch", "pos": c, "r": rv * 0.7, "life": 1.2, "floor": true})
 		return
 	o.fx({"kind": "h4_flash", "pos": c, "r": r * 0.7, "life": 0.1})
 	o.fx({"kind": "h4_smoke", "pos": c, "r": r * (0.75 if light else 1.0), "life": 0.5, "col": H4_DARK})
@@ -589,8 +617,9 @@ static func h4_impact_fx(o, c: Vector2, r: float, light: bool) -> void:
 static func h4_burst_fx(o, c: Vector2, r: float, small := false) -> void:
 	var g = o.g
 	var sc: float = 0.7 if small else 1.0
-	if o.spawn_fx_sprite("fx_wisadel_cannon", c, r * 2.8 * sc / 96.0):
-		o.fx({"kind": "h4_scorch", "pos": c, "r": r * 0.9 * sc, "life": 2.0, "floor": true})
+	var rv: float = _h4_cannon_sprite(o, c, r, 1.0)
+	if rv > 0.0:
+		o.fx({"kind": "h4_scorch", "pos": c, "r": rv * 0.8, "life": 2.0, "floor": true})
 		return
 	o.fx({"kind": "h4_burst", "pos": c, "r": r * 1.6 * sc, "life": 0.5 if small else 0.55, "seed": g.vrng.randf() * TAU, "n": 8 if small else 12})
 	o.fx({"kind": "ring", "pos": c, "r": r * 1.45 * sc, "r0": r * 0.3, "life": 0.28, "col": H4_RED, "floor": true, "w": 2.5, "alpha": 0.75})

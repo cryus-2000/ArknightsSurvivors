@@ -678,6 +678,7 @@ python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot mas
 | `verb.displace` | 瞬时 | `center: self/leader/target/last_hit, r, kb, on_hit` | r 内非 Boss 敌人沿离心方向 `e.kb += kb`（负 = 拉），精英 ×0.3；**不造成伤害、不登记命中**（不触发命中类藏品） |
 | `verb.field` | 瞬时（生成） | `center, r, dur, every, do, fx` | 地面区域：每 `every` 秒以区域中心为 `target` 执行一次 `do`，共 round(dur / every) 次（按次数计，不靠浮点累加）；每名干员同时 ≤ 16 个；`fx` 在生成时以区域中心 / 半径播，没写 `life` 的条目循环到区域结束 |
 | `verb.negate_next` | 只能放技能 do | `on_block, on_miss, fx, text` | 技能持续期间主控下一次受到的攻击完全格挡并执行 `on_block`、技能随即结束；持续结束仍没挨打执行 `on_miss` |
+| `verb.taunt_guard` | 只能放技能 do | `r, per, on_end, fx, text` | 10-24（docs/140）：技能持续期间本干员站定（队员时；队长照常移动），半径 r 内近战杂兵（非 Boss / 宝箱）每帧改追本干员；结束时执行 `on_end`，其中伤害形状的 `mult` + `per` × 期间拉到的不同敌人数 |
 | `verb.dr` | 常驻 | `value` | 主控受到的伤害 × (1 − value)（经 `dmg_taken_mult`） |
 | `verb.negate_chance` | 常驻 | `add, mult` | 本干员 `negate: true` 的 `trig.on_hurt` 概率 = (chance + Σadd) × Πmult |
 | `verb.swap_attack` | 常驻 | `attack`（circle / cone / line） | 生效期间普攻换形状，节奏仍按 `blocks.attack.every` |
@@ -695,7 +696,7 @@ python tools/balance_run.py --game game --jobs 4 --preset skalter_mate --bot mas
 - 画面：格挡 / 热砂 / 鬼面·力之锯 三条帧条都走通用 `fx` 字段（§5.6）。合入 main 前分支上的专用字段 `fx_strip / fx_r / fx_y` 已撤掉：格挡 `{strip: fx_hoshiguma_block, off: [0, -26], scale: 1.4}`（中心 = 主控）、热砂 `{layer: floor, fit: 23}`（余烬 fit 30）、直线斩 `{fit: 32, rot: true, off: [0, -30]}`。
 - **盾心锚点与无盾画面**（10-15，用户：盾「变红」不在盾上、掷盾后手上还有盾）：`sprites.<动作>.shield` = 每帧盾心（1x 帧内像素，null = 盾离手）；fx 条目新字段 `on_sprite: shield` 把格挡闪光（一次性帧条）/ 反击架势红光（贴身层，scale 0.6 与盾同大）锚到当前帧的盾心（`character.sprite_point`：朝左镜像、@2x 按 foot 口径自然折算；这一帧没有就退回原锚点 / 贴身层不画）。`sprites.noshield`：往返弹体在外面（`data_operator.prop_out`）时本体换无盾画面——有 Codex 无盾帧条（docs/97 H 批，`art`）就用，否则播 throw 的 f2 / f3（`fallback`）。纯画面：同 seed `--maxprog --sptest` 240 秒 TRACE 逐行相同。
 - 普攻 `shape.cone`（r 110、半角 70、kb 220，`slash: true` 画刀光）。
-- S1 战意（3 秒）：`verb.negate_next`，on_block = 主控周围 r120 ×2.0 kb 360「举盾反击」；on_miss = 前方扇形 ×1.5。
+- S1 战意（3 秒）：`verb.taunt_guard`（10-24 起，docs/140），r 200，结束时自身周围 r120 ×(2.0 + 0.1 × 拉到的敌人数) kb 360「举盾反击」。旧版 `verb.negate_next`（格挡下一击）积木保留可用。
 - S2 荆棘（8 秒）：`buff_self op_atk +0.4`、`verb.dr 0.2`、`verb.negate_chance ×2`；热砂 = 特性里 `trig.every_n n 1 cond skill_active:1` → `verb.field center last_hit`（r80、2 秒、每 0.5 秒 ×0.15 = 每秒 ×0.3）。
 - S3 力之锯（10 秒）：`buff_self op_atk +0.6`、`verb.dr 0.3`、`verb.swap_attack` → `shape.line`（220 × 50，kb 220 × 1.5）；震退 = 特性里 `trig.on_hurt cond skill_active:2` → `verb.displace r120 kb300`（含被格挡的那一下）。
 - 天赋 战术装甲：`trig.on_hurt chance 0.25 / boss_chance 0.1 / max_chance 0.8 negate` → `verb.displace r90 kb200`；`trig.passive cond beacon_charging` → `verb.negate_chance add 0.15`。
@@ -1458,6 +1459,12 @@ data_operator 的挂钩：`update` 在技能计时之后先跑 `hw_tick`（按�
 | `blocks.look [fx…]` | 顶层 | 按 `cond` 常驻的画面：`aura_ring`（脚下圈）/ `outline`（本体轮廓光，当前帧白色剪影向 8 个方向偏移染色） |
 | `attack.first` / `idle` | 普攻 | 首击冷却 / 没目标时的重试间隔（缺省 0.5 / 0.2；手写干员各自的初值） |
 | `attack.anim` / `turn` | 普攻（含 swap_attack 换上的） | 这一下播的帧条 / `false` = 起手不转身 |
+| `shape.dash_line.need_target / min_d / aim_r` | 冲刺 | `aim nearest`：`aim_r`（缺省 冲刺长度 × 1.3）内没有敌人、或最近的敌人比 `min_d` 还近就不冲（德克萨斯队友短突进，10-23） |
+| `blocks.skills[i].need_enemy` | 技能 | 自动释放的前提：`pos` 周围这个半径（× op_range）内有敌人，没有就不放、技力保留满格（`character.skill_gate_ok`，10-23 起 15 名干员 31 个进攻 / 限时窗口技能，docs/129 §6）；手动技能不受影响 |
+| `st.*.nearest_n` | 任何 `st.*`（on_hit） | 这块状态只给本次命中里离本干员最近的 n 名（同距按 id）；德克萨斯「阻挡」（拔刀命中最近两名定住，10-24） |
+| `trig.every_n.no_combo` | 触发 | 只配 `replace: true`：这一次出手自己连斩，不再接 `attack.combo`（德克萨斯骤雨，10-24） |
+| 条件 `enemy_near` | cond | 普攻范围（形状半径 + 30）内有敌人（骤雨：没有敌人就照常拔刀，10-24） |
+| `verb.emit_path {len, w, src}` | 德克萨斯段瞬时 | 把「自身朝最近敌人、长 len」的路径当一次冲刺结束，触发 src 匹配的 `trig.on_dash_end`（精二余像挂在骤雨第一下，10-24） |
 | `shape.wave.max_hits` | 剑气 / 潮刃 | 命中几名敌人后消失（缺省不限）。10-23 用户定远程普攻取消穿透：拉普兰德普攻剑气（领主 / 远掷 / 双生刃）写 1；实际上限 = `character.atk_pierce(max_hits)`（贯穿卡 +1 / 次、穿甲弹 = 全部） |
 | 属性 `op_pierce` / 规则 `atk_pierce_all` | 远程普攻穿透 | `stat_defs` 新属性（基础 0，flat 加，升级卡「贯穿」火力类，全队 +2 / 张可叠两次，不减伤）与藏品「穿甲弹」#265 的规则（全穿，每穿过一名 −15%、最低 40%，`character.atk_pierce_mult`；与卡同在按藏品）；`character.atk_pierce(base)` 统一换算，只接到普攻子弹：能天使弹道 `pierce`、拉普兰德普攻剑气 `max_hits`、流明普攻光弹（新加 pierce / hit 表）；技能弹幕不读。卡的 `requires: ranged_basic` 由 `data_operator.pierce_atk` 判（编队里有弹道 / 光弹 / 带 `max_hits` 普攻剑气的人才出卡） |
 | `attack.far {shape …}` | 普攻 | 近战 / 远程切换（10-22 拉普兰德；10-24 升级）：近战锥普攻带 `far`（一个形状对象，或一组带 `cond` 的形状对象，第一块成立的）。起手时近战触及 + 30 内有敌人 → 近战；否则 `far.aim_r`（缺省 `dist`）内有 → 这一下改执行 `far`（通常 `shape.wave from self aim nearest`），手动普攻看指向锥里近战触及内有无敌人。`far` 可带 `every`（远程自己的间隔，缺省同近战）、`anim`（远程帧条名）、`count: false`（不数近战次数：every_n / replace / 连斩都跳过，缺省 true）。`last_hit_pos` 这一下不记 |

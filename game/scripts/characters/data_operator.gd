@@ -609,8 +609,10 @@ const EXEC_SEG := {
 	"shape.line": 0,   # _ext_exec
 	"verb.field": 0,   # _ext_exec
 	"verb.negate_next": 0,   # _ext_exec
+	"verb.taunt_guard": 0,   # _ext_exec
 	"shape.dash_line": 1,   # tx_exec
 	"verb.fx_rain": 1,   # tx_exec
+	"verb.emit_path": 1,   # tx_exec
 	"verb.fx_scatter": 1,   # tx_exec
 	"verb.sp_secs": 1,   # tx_exec
 	"verb.trail": 1,   # tx_exec
@@ -818,7 +820,10 @@ func _release_body() -> void:
 				else:
 					_exec_list(t.get("do", []), hw.atk_c if not hw.is_empty() and str(t.get("at", "")) == "attack" else Vector2.INF)
 	if not hw.is_empty():
-		ObHw.hw_combo_start(self)   # 手写迁移段：attack.combo 连斩 / trig.on_combo_end
+		if not rp.is_empty() and rp.get("no_combo", false):
+			ObHw.hw_combo_end(self)   # replace 的 every_n 带 no_combo（德克萨斯疾刃三连）：这一次出手自己连斩，不再接 attack.combo 的第二斩
+		else:
+			ObHw.hw_combo_start(self)   # 手写迁移段：attack.combo 连斩 / trig.on_combo_end
 
 
 ## 精英化段：第 n 次普攻是否被 trig.every_n replace 换掉（第一块成立的；没有 = {}）
@@ -982,6 +987,9 @@ func _sfx_op(kind: String) -> void:
 
 ## 手写迁移段：近战前压（blocks.follow {leash, gap}）；没写 = 编队位
 func follow_target(slot_pos: Vector2) -> Vector2:
+	var ta := taunt_anchor()
+	if ta != Vector2.INF:
+		return ta
 	var fw: Dictionary = B.get("follow", {})
 	if fw.is_empty() or (not hw.is_empty() and SegSpecter.h3_away(self)):   # 手写迁移段第 3 批：本体离场（替身在场）时回编队位
 		return slot_pos
@@ -1262,6 +1270,7 @@ const FIELD_CAP := 16                   # 每名干员同时存在的地面区�
 
 var last_hit_pos := Vector2.INF        # 上一次普攻命中的第一个敌人（verb.field center: last_hit）
 var neg_armed: Dictionary = {}         # 待命的 verb.negate_next：技能序号 → 积木
+var taunt: Dictionary = {}             # 进行中的 verb.taunt_guard：{i 技能序号, b 积木, anchor 站定点（队长时 INF）, ids 拉到过的敌人}
 var fields: Array = []                 # 地面区域：{pos, r, t, dur, every, n, done, do, fx}
 var ext_dr := 1.0                      # 本帧 verb.dr 的乘积
 var neg_add := 0.0                     # 本帧 verb.negate_chance 的 Σadd
@@ -1324,6 +1333,14 @@ func _far_wanted(a: Dictionary, far: Dictionary) -> bool:
 	return fr > 0.0 and not nearest_enemies(1, fr, pos).is_empty()
 
 
+## blocks.skills[i].need_enemy（半径，× op_range）：自动释放前 pos 周围这个半径内要有敌人，没有就先不放（技力保留满格，有敌人那一帧再放）
+func skill_gate_ok(i: int) -> bool:
+	var sk: Array = B.get("skills", _EA)
+	if i >= sk.size() or not sk[i].has("need_enemy"):
+		return true
+	return not nearest_enemies(1, float(sk[i].need_enemy) * stat(&"op_range"), pos).is_empty()
+
+
 ## 当前普攻形状：verb.swap_attack 生效时用它，否则 blocks.attack
 func cur_attack() -> Dictionary:
 	return swap_atk if not swap_atk.is_empty() else B.get("attack", {})
@@ -1361,6 +1378,8 @@ func _ext_sustain(act: Array, dt: float) -> void:
 	neg_add = add
 	neg_mul = mul
 	swap_atk = sw
+	if not taunt.is_empty():
+		_taunt_tick()
 	# 技能结束仍没挨打：negate_next 执行 on_miss（不白放）
 	if not neg_armed.is_empty():
 		var ks: Array = neg_armed.keys()
@@ -1432,6 +1451,49 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 		"verb.negate_next":
 			if cur_skill >= 0:
 				neg_armed[cur_skill] = b
+		"verb.taunt_guard":
+			if cur_skill >= 0:
+				taunt = {"i": cur_skill, "b": b, "anchor": Vector2.INF if is_leader else pos, "ids": {}}
+				if b.has("fx"):
+					ObFx.fx_play(self, b.fx, pos, 30.0)
+				float_text(pos + Vector2(0, -88), str(b.get("text", "嘲讽")), Color(1.0, 0.85, 0.4), 16)
+				_sfx_op("big")
+
+
+## verb.taunt_guard 每帧：技能还在 → 半径内近战杂兵（非 Boss / 宝箱）本帧改追本干员（同召唤物诱饵的 e.aggro，每帧重标），记下拉到过的敌人；
+## 技能结束 → on_end，伤害形状倍率 + per × min(拉到的敌人数, cap)（cap 缺省不限；10-24 协调人定星熊设上限）
+func _taunt_tick() -> void:
+	var b: Dictionary = taunt.b
+	if skill_on(int(taunt.i)):
+		var r: float = float(b.r) * stat(&"op_range")
+		for j in query_ids(pos, r):
+			var e: Dictionary = g.enemies[j]
+			if e.dead or e.chest or e.boss or e.ai != "melee" or e.pos.distance_to(pos) > r:
+				continue
+			set_aggro(e, pos)
+			taunt.ids[e.id] = true
+		return
+	var n: int = taunt.ids.size()
+	taunt = {}
+	var per: float = float(b.get("per", 0.0))
+	var nk: int = mini(n, int(b.cap)) if b.has("cap") else n
+	var lst: Array = []
+	for x in b.get("on_end", []):
+		var y: Dictionary = x
+		if per > 0.0 and y.has("mult") and str(y.get("_tag", "")).begins_with("shape."):
+			y = y.duplicate()
+			y.mult = float(y.mult) + per * nk
+		lst.append(y)
+	if n > 0:
+		float_text(pos + Vector2(0, -96), "反击 ×%d" % n, Color(1.0, 0.85, 0.4), 14)
+	_exec_list(lst)
+
+
+## 站定（verb.taunt_guard，队员时）：技能期间跟随目标钉在起手处
+func taunt_anchor() -> Vector2:
+	if taunt.is_empty() or is_leader or taunt.anchor == Vector2.INF or not skill_on(int(taunt.i)):
+		return Vector2.INF
+	return taunt.anchor
 
 
 ## 主控受击询问（combat.gd enemy_hit）：先用待命的 negate_next，再按固定顺序过 trig.on_hurt；格挡了返回 0，否则返回 verb.dr 的乘积。
@@ -1502,6 +1564,13 @@ func draw_entities_floor() -> void:
 		var cc: Color = col()
 		cv.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.5))
 		cv.draw_circle(Vector2.ZERO, float(f.r), Color(cc.r, cc.g, cc.b, 0.16 * a))
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if not taunt.is_empty() and skill_on(int(taunt.i)):   # 嘲讽圈：本干员脚下一圈金色虚环（范围 = 拉仇恨半径）
+		var tr: float = float(taunt.b.r) * stat(&"op_range")
+		var ka: float = 0.35 + 0.2 * sin(g.t * 6.0)
+		cv.draw_set_transform(pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
+		cv.draw_arc(Vector2.ZERO, tr, 0.0, TAU, 48, Color(1.0, 0.82, 0.35, ka), 2.0)
+		cv.draw_arc(Vector2.ZERO, 30.0, 0.0, TAU, 32, Color(1.0, 0.82, 0.35, ka + 0.25), 2.5)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	if not neg_armed.is_empty() and g.ppos != Vector2.INF:
 		var k: float = 0.55 + 0.25 * sin(g.t * 8.0)

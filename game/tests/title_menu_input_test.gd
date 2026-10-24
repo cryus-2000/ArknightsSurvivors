@@ -1,8 +1,8 @@
 extends Node
-## 标题页 T5s 磁贴群与难度页（docs/67 §12）输入回归：
-## - 四种菜单组（内部 / 对外 × 桌面 / 网页）：没有空格子（每行铺满整宽、编号连号）、方向键能走到每一块；
-## - 二维导航邻接（10-22 四行：[集结出发] / [寻访][认知塑造][图鉴] / [操作说明][设置][退出] / [试炼（测试版）]，上下同列、记住列）；
-## - 键盘 ↑↓←→ / WASD、Tab / Shift+Tab、手柄十字键（经 Pad 翻译）、Esc 跳到退出、鼠标悬停 / 点击、选中涨潮；
+## 标题页菜单（深海水母版，docs/67 §13）与难度页输入回归：
+## - 四种菜单组（内部 / 对外 × 桌面 / 网页）：每项一个命中区、互不重叠、都在屏幕里（触屏至少 44 高）、方向键能走到每一项；
+## - 分组导航（左侧 寻访 / 认知塑造 / 图鉴 / 蚀刻章 / 试炼 → 集结出发 → 底部 设置 / 操作说明 / 退出；紧凑版式集结出发在右下）；
+## - 键盘 ↑↓←→ / WASD、Tab / Shift+Tab、手柄十字键（经 Pad 翻译）、Esc 跳到退出、鼠标悬停 / 点击、选中底条展开；
 ## - 难度页：↑↓ 换档（不越界）、点档位卡换档、未解锁档不能出发、Esc 返回；桌面与触屏版式都查一遍。
 var failures := 0
 var title: Control
@@ -84,13 +84,9 @@ func center(i: int) -> Vector2:
 
 ## 只走导航表（不经输入）：从 a 出发按方向序列，返回落点
 func walk(from: int, dirs: Array) -> int:
-	var Tiles = title.Tiles
 	var s := from
-	var mem: float = (title.menu_lay.rects[from] as Rect2).get_center().x
 	for d in dirs:
-		var r: Array = Tiles.nav(title.menu_lay, s, d, mem)
-		s = r[0]
-		mem = r[1]
+		s = title.Tiles.nav(title.menu_lay, s, d)
 	return s
 
 
@@ -98,48 +94,39 @@ func menu_set(tag: String, boss: bool, ex: bool) -> void:
 	title.menu_boss = boss
 	title.menu_exit = ex
 	title.sel = 0
-	title.menu_mem_x = -1.0
 	await frames(3)
 	var ids: Array = title._menu_ids()
 	var lay: Dictionary = title.menu_lay
-	check(lay.rects.size() == ids.size(), tag + ": one tile per visible item (%d / %d)" % [lay.rects.size(), ids.size()])
-	check(lay.rows.size() == (4 if boss else 3), tag + ": %d rows" % (4 if boss else 3))
-	# 没有空格子：每行左端齐、右端齐（铺满整宽）
-	var w: float = lay.w
-	var x0: float = (lay.rects[0] as Rect2).position.x
-	for row in lay.rows:
-		var l: Rect2 = lay.rects[row[0]]
-		var r: Rect2 = lay.rects[row[row.size() - 1]]
-		check(absf(l.position.x - x0) < 0.5 and absf(r.end.x - (x0 + w)) < 0.5, tag + ": row %s spans full width" % str(row))
-		for k in row.size() - 1:
-			check((lay.rects[row[k]] as Rect2).end.x < (lay.rects[row[k + 1]] as Rect2).position.x, tag + ": tiles don't overlap")
-	# 编号连号 01…n（按可见顺序）
-	for k in ids.size():
-		check(int(lay.num[ids[k]]) == k + 1, tag + ": item %d numbered %d" % [ids[k], k + 1])
-	# 方向键能走到每一块（BFS）
+	check(lay.rects.size() == ids.size(), tag + ": one hit area per visible item (%d / %d)" % [lay.rects.size(), ids.size()])
+	check(lay.list.ids.size() == (5 if boss else 4), tag + ": %d side entries" % (5 if boss else 4))
+	check(lay.foot.ids.size() == (3 if ex else 2), tag + ": %d footer entries" % (3 if ex else 2))
+	for i in ids:
+		for j in ids:
+			if i < j:
+				check(not (lay.rects[i] as Rect2).intersects(lay.rects[j]), tag + ": items %d / %d don't overlap" % [i, j])
+	# 方向键能走到每一项（BFS）
 	var seen := {0: true}
 	var q: Array = [0]
 	while not q.is_empty():
 		var s: int = q.pop_front()
 		for d in [Vector2i(0, -1), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(1, 0)]:
-			for mem in [center(s).x, x0, x0 + w]:
-				var n: int = title.Tiles.nav(lay, s, d, mem)[0]
-				if not seen.has(n):
-					seen[n] = true
-					q.append(n)
+			var n: int = title.Tiles.nav(lay, s, d)
+			if not seen.has(n):
+				seen[n] = true
+				q.append(n)
 	for i in ids:
-		check(seen.has(i), tag + ": tile %d reachable by arrows" % i)
+		check(seen.has(i), tag + ": item %d reachable by arrows" % i)
 	# Tab 走一圈回到起点
 	var s2 := 0
 	for k in ids.size():
 		s2 = title.Tiles.linear(ids, s2, 1)
 	check(s2 == 0, tag + ": tab cycles through all")
-	# 命中区在可视区内、触屏时小号磁贴至少 44 高
+	# 命中区在可视区内、触屏时至少 44 高
 	for i in ids:
 		var rr: Rect2 = lay.rects[i]
-		check(Rect2(Vector2.ZERO, title.size).encloses(rr), tag + ": tile %d inside screen" % i)
+		check(Rect2(Vector2.ZERO, title.size).encloses(rr), tag + ": item %d inside screen" % i)
 		if Pad.touch_ui():
-			check(rr.size.y >= 44.0, tag + ": tile %d tall enough to tap (%.0f)" % [i, rr.size.y])
+			check(rr.size.y >= 44.0, tag + ": item %d tall enough to tap (%.0f)" % [i, rr.size.y])
 
 
 func one_layout(tag: String) -> void:
@@ -148,64 +135,61 @@ func one_layout(tag: String) -> void:
 	await menu_set(tag + " public desktop", false, true)
 	await menu_set(tag + " internal web", true, false)
 	await menu_set(tag + " public web", false, false)
-	# 全组：邻接表（docs/67 §10.3）
+	# 全组：分组导航
 	title.menu_boss = true
 	title.menu_exit = true
 	title.sel = 0
 	await frames(3)
+	var cp: bool = title.menu_lay.compact
 	var D := Vector2i(0, 1)
 	var U := Vector2i(0, -1)
 	var R := Vector2i(1, 0)
 	var L := Vector2i(-1, 0)
-	# 10-22 用户：第二行 寻访(7) / 认知塑造(6) / 图鉴(1)，第三行 操作说明(3) / 设置(4) / 退出(5)，第四行 试炼（测试版）(2)
-	check(walk(0, [D]) == 6, tag + ": 01 down -> 03（正中）")
-	check(walk(7, [D]) == 3, tag + ": 02 down -> 05")
-	check(walk(6, [D]) == 4, tag + ": 03 down -> 06")
-	check(walk(1, [D]) == 5, tag + ": 04 down -> 07")
-	check(walk(3, [U]) == 7, tag + ": 05 up -> 02")
-	check(walk(4, [U]) == 6, tag + ": 06 up -> 03")
-	check(walk(5, [U]) == 1, tag + ": 07 up -> 04")
-	check(walk(4, [D]) == 2 and walk(3, [D]) == 2, tag + ": row 3 down -> trial")
-	check(walk(6, [U, D]) == 6, tag + ": 03 up down returns to 03 (column memory)")
-	check(walk(3, [U, D]) == 3, tag + ": 05 up down returns to 05")
-	check(walk(5, [D, U]) == 5, tag + ": 07 down up returns to 07")
-	check(walk(0, [U]) == 0 and walk(2, [D]) == 2 and walk(3, [L]) == 3 and walk(5, [R]) == 5, tag + ": no wrap at edges")
+	check(walk(7, [D]) == 6 and walk(6, [D]) == 1 and walk(1, [D]) == 8 and walk(8, [D]) == 2, tag + ": side entries go down in order")
+	check(walk(2, [U, U, U, U]) == 7 and walk(7, [U]) == 7, tag + ": side entries go up, no wrap")
+	check(walk(0, [U]) == 2, tag + ": deploy up -> trial")
+	check(walk(4, [R]) == 3 and walk(3, [R]) == 5 and walk(5, [L, L]) == 4 and walk(4, [L]) == 4, tag + ": footer left / right")
+	if cp:
+		check(walk(2, [D]) == 4 and walk(4, [U]) == 2, tag + ": compact trial <-> footer")
+		check(walk(6, [R]) == 0 and walk(5, [R]) == 0 and walk(0, [L]) == 5 and walk(0, [D]) == 0, tag + ": compact deploy sits bottom-right")
+	else:
+		check(walk(2, [D]) == 0 and walk(0, [D]) == 4 and walk(3, [U]) == 0 and walk(5, [D]) == 5, tag + ": desktop list -> deploy -> footer")
 	# 键盘
 	title.sel = 0
-	title.menu_mem_x = -1.0
-	await key(KEY_DOWN)
-	check(title.sel == 6, tag + ": key down 01 -> 03 (got %d)" % title.sel)
-	await key(KEY_D)
-	check(title.sel == 1, tag + ": key D 03 -> 04")
+	await key(KEY_UP)
+	check(title.sel == 2, tag + ": key up deploy -> trial (got %d)" % title.sel)
+	await key(KEY_W)
+	check(title.sel == 8, tag + ": key W trial -> medals")
 	await key(KEY_S)
-	check(title.sel == 5, tag + ": key S 04 -> 07")
+	await key(KEY_DOWN)
+	check(title.sel == (4 if cp else 0), tag + ": key down past trial")
+	title.sel = 4
+	await key(KEY_D)
+	check(title.sel == 3, tag + ": key D settings -> guide")
 	await key(KEY_LEFT)
-	check(title.sel == 4, tag + ": key left 07 -> 06")
-	await key(KEY_W)
-	await key(KEY_W)
-	check(title.sel == 0, tag + ": key W twice -> 01")
+	check(title.sel == 4, tag + ": key left guide -> settings")
+	title.sel = 0
 	await key(KEY_TAB)
-	check(title.sel == 7, tag + ": tab -> 02")
+	check(title.sel == 4, tag + ": tab deploy -> settings")
 	await key(KEY_TAB, true)
-	check(title.sel == 0, tag + ": shift+tab -> 01")
+	check(title.sel == 0, tag + ": shift+tab -> deploy")
 	await key(KEY_ESCAPE)
 	check(title.sel == 5, tag + ": esc jumps to exit (doesn't quit)")
 	# 手柄十字键（Pad 翻译成方向键）
 	title.sel = 0
-	title.menu_mem_x = -1.0
-	await pad(JOY_BUTTON_DPAD_DOWN)
-	check(title.sel == 6, tag + ": dpad down 01 -> 03")
-	await pad(JOY_BUTTON_DPAD_RIGHT)
-	check(title.sel == 1, tag + ": dpad right 03 -> 04")
-	# 选中涨潮：一会儿后新选中块水位满、其余退潮
+	await pad(JOY_BUTTON_DPAD_UP)
+	check(title.sel == 2, tag + ": dpad up deploy -> trial")
+	await pad(JOY_BUTTON_DPAD_UP)
+	check(title.sel == 8, tag + ": dpad up trial -> medals")
+	# 选中底条：一会儿后新选中项展开、其余收起
 	var t0 := Time.get_ticks_msec()
-	while title.menu_water[1] < 0.99 and Time.get_ticks_msec() - t0 < 2000:
+	while title.menu_water[8] < 0.99 and Time.get_ticks_msec() - t0 < 2000:
 		await get_tree().process_frame
-	check(title.menu_water[1] >= 0.99, tag + ": selected tile water rises")
+	check(title.menu_water[8] >= 0.99, tag + ": selected strip opens")
 	t0 = Time.get_ticks_msec()
-	while title.menu_water[6] > 0.0 and Time.get_ticks_msec() - t0 < 2000:
+	while title.menu_water[2] > 0.0 and Time.get_ticks_msec() - t0 < 2000:
 		await get_tree().process_frame
-	check(title.menu_water[6] == 0.0, tag + ": previous tile drains")
+	check(title.menu_water[2] == 0.0, tag + ": previous strip closes")
 	# 网页组：Esc 不动（没有退出）
 	title.menu_exit = false
 	title.sel = 1

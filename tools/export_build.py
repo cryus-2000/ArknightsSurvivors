@@ -35,7 +35,7 @@ WORK = os.path.join(ROOT, "build", "_export")
 OUT = os.path.join(ROOT, "build", "release")
 NAME = "方舟幸存者"
 PRESET = "Windows Desktop"
-INTERNAL_USER_DIR = "ArknightsSurvivors_Internal"   # 对内包存档目录：%APPDATA%\ArknightsSurvivors_Internal
+INTERNAL_USER_DIR = "ArknightsSurvivors_Internal"   # 对内包存档目录前缀；实际目录带提交号：%APPDATA%\ArknightsSurvivors_Internal_<短 sha>（每个新包从干净存档开始）
 # art/incoming 里只给玩家带游戏用到的 PNG：交接文档、清单、审阅用拼图不带（规则在 release_slim.REVIEW_ART_GLOBS，网页包共用）
 ART_SUBDIRS = ["portraits", "optical_fx"]   # art/incoming 下随包带走的子目录（Boss 名片头像，art.gd 按 "portraits/boss_<id>" 取；光学观感压阶特效帧条 optical_fx/，tools/optical_fx_quant.py）
 
@@ -47,7 +47,7 @@ README = """方舟幸存者（明日方舟同人，非商业）
 不要把 game 文件夹单独拿出来运行——美术资源在旁边的 art 文件夹里，两个文件夹要放在一起。
 
 【操作】
-WASD / 方向键 移动；空格 冲刺（冲刺中无敌）；Q / E 手动技能（目前只有乌尔比安三技能）；Tab 属性；Esc 暂停；M 开关音乐。设置里可把普通攻击改为手动：左键 / J 攻击，朝光标方向。支持手柄。
+WASD / 方向键 移动；空格 冲刺（冲刺中无敌）；E / J 队长手动技能（目前只有乌尔比安三技能）；Q 切换队长；F 指挥圆盘；Tab 属性；Esc 暂停；M 开关音乐。设置里可把普通攻击改为手动：左键 / J 攻击，朝光标方向。支持手柄。
 V 或右上角倍速按钮：1× / 1.5× / 2×。菜单、音乐不加速。
 
 【检查与展示】
@@ -201,7 +201,7 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
         key = 'config/custom_user_dir_name="ArknightsSurvivors"'
         if text.count(key) != 1:
             sys.exit("project.godot 的 custom_user_dir_name 不是预期值，无法给对内包隔离存档目录")
-        open(pg, "wb").write(text.replace(key, 'config/custom_user_dir_name="%s"' % INTERNAL_USER_DIR).encode("utf-8"))
+        open(pg, "wb").write(text.replace(key, 'config/custom_user_dir_name="%s_%s"' % (INTERNAL_USER_DIR, commit)).encode("utf-8"))
 
     # 字体按实际用字子集化（release_slim，docs/33 §包体瘦身）：只换打包副本里的 fonts/ui.ttf、serif.ttf，仓库原字体不动
     release_slim.print_font_rows(release_slim.subset_fonts(os.path.join(src, "game")))
@@ -279,10 +279,10 @@ def build(a, commit, date, audience, label, encrypted_template, encryption_key):
         fh.write('@echo off\r\ncd /d "%~dp0game"\r\nstart "" "ArknightsSurvivors.exe"\r\n')
     with open(os.path.join(pkg, "说明.txt"), "w", encoding="utf-8-sig") as fh:
         readme = README
-        readme += {"public": "\n用途：对外公开试玩，加密资源版。\n", "internal": "\n用途：内部 EA 验证，请勿作为公开正式包分发。存档与对外版分开（%APPDATA%\\" + INTERNAL_USER_DIR + "），内测进度不会带到对外版。\n", "diagnostic": "\n用途：仅本地诊断，未加密；不可作为公开发布包。\n"}[audience]
+        readme += {"public": "\n用途：对外公开试玩，加密资源版。\n", "internal": "\n用途：内部 EA 验证，请勿作为公开正式包分发。存档与对外版分开，且每个新包从干净存档开始（%APPDATA%\\" + INTERNAL_USER_DIR + "_" + commit + "），不会读旧包的进度，也不会带到对外版。\n", "diagnostic": "\n用途：仅本地诊断，未加密；不可作为公开发布包。\n"}[audience]
         if a.encrypted:
             readme = readme.replace("不要把 game 文件夹单独拿出来运行——美术资源在旁边的 art 文件夹里，两个文件夹要放在一起。", "美术、音频与脚本已打包加密。请保留 game 文件夹中的 exe 与 pck 文件。")
-        fh.write(readme.format(ver=commit, date=date, channel="EA " if a.ea else "", ea_note="对内测试版启动即全部解锁：难度三档、图鉴、结局线全开，只在本次运行生效、不写入存档。\nEA 版主页「Boss 演练」可选对手、队长、成长及形态；观察模式不会倒下，演练不记录通关进度。\n对内测试版会在本机记录每局的对局摘要（胜负、用时、等级、死因等，不含任何个人信息，不上传）：\n设置 → 游戏 → 对局记录「打开记录文件夹」，把 runs.jsonl 发给我就能帮忙校准难度。" if a.ea else "").replace("\n", "\r\n"))
+        fh.write(readme.format(ver=commit, date=date, channel="EA " if a.ea else "", ea_note="对内测试版启动即全部解锁：难度三档、图鉴、结局线全开，只在本次运行生效、不写入存档。\n名册开局 10 人（先锋 / 重装 / 术师 / 辅助 / 狙击 / 医疗 / 近卫 / 特种全覆盖）并发 20 张寻访凭证；这份进度存在本包自己的存档里，换新包从头开始。\nEA 版主页「Boss 演练」可选对手、队长、成长及形态；观察模式不会倒下，演练不记录通关进度。\n对内测试版会在本机记录每局的对局摘要（胜负、用时、等级、死因等，不含任何个人信息，不上传）：\n设置 → 游戏 → 对局记录「打开记录文件夹」，把 runs.jsonl 发给我就能帮忙校准难度。" if a.ea else "").replace("\n", "\r\n"))
 
     if a.encrypted:
         pck_info = encrypted_release.check_encrypted_pck(Path(game_dir) / "ArknightsSurvivors.pck")

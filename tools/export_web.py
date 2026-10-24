@@ -156,7 +156,7 @@ def main():
     html = html.replace(MARK, "<style>\n%s</style>\n<script>\n%s</script>" % (css, js))
     with open(html_p, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(html)
-    shutil.copy2(os.path.join(src, "art", "incoming", "doctor_run@2x.png"), os.path.join(tmp, "loader_doctor.png"))
+    shutil.copy2(os.path.join(src, "game", "art", "ui", "title_deep", "logo_mark.png"), os.path.join(tmp, "loader_logo.png"))   # 启动加载页左上标志（loader.css）
     with open(os.path.join(tmp, "build.txt"), "w", encoding="utf-8") as fh:
         fh.write(commit + "\n")
 

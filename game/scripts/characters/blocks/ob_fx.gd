@@ -7,6 +7,7 @@ extends "res://scripts/characters/blocks/ob_check.gd"
 ## 不写 fx 的干员画法与原来逐像素相同；fx 只往干员自己的 pfx 里加粒子、散布只用 g.vrng，不碰 g.rng / 玩法状态（同 seed TRACE / BALANCE 不变）。
 ## 缺图（g.tex 没有这条）时静默跳过，程序画法照旧作底。
 
+
 const FX_KEYS := ["strip", "vortex", "cond", "at", "layer", "fit", "scale", "max_scale", "n", "spread", "rise", "life", "every", "tint", "anchor", "off", "ang", "rot",
 	"hold", "fade", "no_fade", "inward", "if_tex", "ease", "grow", "grow0", "grow_to", "wake", "xfade",
 	"delay", "stay", "once", "face_x", "flash", "along", "play", "on_sprite"]   # on_sprite（10-15）：锚到本干员当前帧的定位点（character.sprite_point，星熊盾心），这一帧没有就退回原锚点 / 贴身层不画；play：精英化第 5 批段（扩散缓动的帧号按 fps 播）；精英化段（docs/91 第 1 批）：延迟起播、末帧停留、区域里不循环、偏移随朝向、开火时提亮
@@ -31,14 +32,14 @@ const FX_AT := ["center", "self", "leader", "zone", "hits", "orbit", "members", 
 
 ## 只播一次的 fx 宿主（瞬时积木 / 技能发动 / 触发积木）：不能写 every、贴身层、漩涡（§8 第 9 条）。第三批新积木追加在这里
 const FX_INSTANT_OWNERS := ["shape.circle", "shape.cone", "cast", "verb.sp_team",
-	"shape.line", "verb.displace", "verb.field", "verb.negate_next", "trig.on_hurt", "trig.on_negate", "verb.summon", "verb.shield", "verb.guard",
+	"shape.line", "verb.displace", "verb.field", "verb.negate_next", "verb.taunt_guard", "trig.on_hurt", "trig.on_negate", "verb.summon", "verb.shield", "verb.guard",
 	"st.stun", "st.slow", "st.airborne", "st.weightless", "st.pause", "shape.boomerang", "verb.summon_cmd", "trig.on_mate_attack"]   # 精英化段（docs/91 第 1 批）
 
 ## 能写 at = hits 的宿主（带命中列表的伤害形状）
 const FX_HITS_OWNERS := ["shape.circle", "shape.cone", "shape.line"]
 
 ## 自己在合适的位置播 fx 的积木：data_operator._exec_list 不再按区域中心替它们播
-const FX_SELF_PLAY := ["shape.circle", "shape.cone", "shape.line", "verb.displace", "verb.field", "verb.negate_next", "verb.summon", "verb.shield", "verb.heal", "verb.guard",
+const FX_SELF_PLAY := ["shape.circle", "shape.cone", "shape.line", "verb.displace", "verb.field", "verb.negate_next", "verb.taunt_guard", "verb.summon", "verb.shield", "verb.heal", "verb.guard",
 	"shape.boomerang", "verb.summon_cmd"]
 
 const ArtS = preload("res://scripts/art.gd")
@@ -93,6 +94,8 @@ static func fx_tick(o, entries, c: Vector2, r: float, ts: Array, dt: float) -> A
 static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: float) -> void:
 	var g = o.g
 	var name: String = str(f.get("strip", ""))
+	if g != null and g.vfx != null and g.vfx._fxc != null:   # --fxcensus：@ob = 干员数据特效，L = 循环件 / 扩散件（不粒子化）
+		g.vfx._fx_census(name + ("@obL" if (f.has("life") and not f.get("once", false)) or str(f.get("ease", "")) != "" else "@ob"), false)
 	if g == null or g.tex.get(name) == null or not g.V6_FRAMES.has(name) or o.pfx.size() > 220:
 		return
 	var spec: Array = g.V6_FRAMES[name]
@@ -115,6 +118,8 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 	var fit: float = float(f.get("fit", 0.0))
 	sc *= r / fit if fit > 0.0 and r > 0.0 else g.PX
 	sc = minf(sc, float(f.get("max_scale", FX_SCALE_MAX)))
+	if g.vfx != null and g.vfx._fxc != null:
+		g.vfx._fx_census("SC|%s|%.3f" % [name, sc / ArtS.hires_of(g.tex[name])], false)
 	var loop: bool = f.has("life") and not f.get("once", false)
 	var life: float = float(f.life) if loop else frames / fps
 	if f.has("stay"):   # 精英化段：一次性帧条播完停在末帧，共 stay 秒（钉剑插在敌人身上）
@@ -167,7 +172,7 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 			var angle: float = (c + off - q).angle() if f.get("inward", false) else rot
 			var px := {"kind": "strip", "name": name, "pos": q, "life": life, "sc": sc, "col": tint, "ang": angle, "anc": anc, "no_fade": bool(f.get("no_fade", false)),
 				"fr": frames, "fps": fps, "loop": loop, "ph": g.vrng.randi_range(0, frames - 1) if loop else 0,
-				"floor": layer == "floor", "add": layer == "add"}
+				"floor": layer == "floor", "add": layer == "add", "fit": fit > 0.0}
 			if dly > 0.0:
 				px["life"] = life + dly
 				px["dly"] = dly
@@ -217,7 +222,12 @@ static func fx_draw(ci, g, f: Dictionary, dim: float) -> void:
 			a *= clampf(float(f.life) / maxf(0.01, float(f.max) * 0.3), 0.0, 1.0) * clampf(el / 0.08, 0.0, 1.0)   # 循环件：进场 0.08 秒、最后三成淡出
 	else:
 		fr = mini(int(f.get("first_frame", 0)) + int(el * float(f.fps)), frames - 1)
-	fx_frame(ci, g, str(f.name), frames, fr, f.pos, float(f.sc), Color(f.col.r, f.col.g, f.col.b, f.col.a * a), f.anc, float(f.ang))
+	if f.get("slash_material", false):
+		a *= clampf(1.0 - (el - float(f.slash_break_at)) / 0.08, 0.0, 1.0)
+	if not f.loop:
+		a *= _mat_handoff(g, f, el, frames, fr)
+	var sc: float = float(f.sc) if f.get("fit", false) or not ("vfx" in g) or g.vfx == null else g.vfx.int_scale(float(f.sc))   # 低分辨率层整数格（docs/138 §10）；按半径拟合的不取整
+	fx_frame(ci, g, str(f.name), frames, fr, f.pos, sc, Color(f.col.r, f.col.g, f.col.b, f.col.a * a), f.anc, float(f.ang))
 
 
 ## 帧条的第 fr 帧：sc = 每个 1x 美术像素的世界像素数；anc = 1x 帧内锚点（(-1,-1) = 帧中心），@2x 贴图自动换算（docs/25 §6 的 ×A.hires 规则）
@@ -573,3 +583,26 @@ static func fx_has_vortex(entries) -> bool:
 			if f is Dictionary and f.has("vortex"):
 				return true
 	return false
+
+
+## 帧条后半段换颗粒（docs/138 §11，fx_grains.MAT_HANDOFF）：播到交接比例那一刻从当前帧迸出材质颗粒，之后返回帧条的淡出系数；
+## 颗粒没生成（材质关 / 预算满 / 低画质）就返回 1，帧条照原样播完。只在画的时候算，随机只走 g.vrng
+static func _mat_handoff(g, f: Dictionary, el: float, frames: int, fr: int) -> float:
+	var grains = g.optical.grains if "optical" in g and g.optical != null else null
+	if grains == null or f.get("mat_skip", false) or not grains.MAT_HANDOFF.has(str(f.name)):
+		return 1.0
+	var at: float = float(grains.MAT_HANDOFF[str(f.name)]) * float(frames) / maxf(1.0, float(f.fps))
+	if not f.has("mat_t"):
+		if el < at:
+			return 1.0
+		f["mat_t"] = el
+		f["mat_ok"] = false
+		var tx: Texture2D = g.tex.get(str(f.name))
+		if tx != null:
+			var h: float = ArtS.hires_of(tx)
+			var fw: float = float(tx.get_width()) / float(frames)
+			var an: Vector2 = f.anc * h if f.anc.x >= 0.0 else Vector2(fw, tx.get_height()) / 2.0
+			f["mat_ok"] = grains.material_burst(str(f.name), tx, frames, f.pos, float(f.ang), float(f.sc) / h, an, false, f.col, fr)
+	if not f.mat_ok:
+		return 1.0
+	return clampf(1.0 - (el - float(f.mat_t)) / 0.08, 0.0, 1.0)

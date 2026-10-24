@@ -1,7 +1,7 @@
 """玩家局内数据汇总（docs/40）：读 game/scripts/run/telemetry.gd 写下的本地记录，套用 balance_run 的汇总表。
 
 记录在哪：Godot 的用户目录下 runs/runs.jsonl，每局一行 {"schema", "meta": {版本, 提交, 平台, 时间, 种子, 难度, 地图, 开局干员, 结果}, "run": 整局记录}。
-  Windows：开发试玩 %APPDATA%\\ArknightsSurvivors\\runs\\runs.jsonl；对内测试包 %APPDATA%\\ArknightsSurvivors_Internal\\runs\\runs.jsonl
+  Windows：开发试玩 %APPDATA%\\ArknightsSurvivors\\runs\\runs.jsonl；对内测试包 %APPDATA%\\ArknightsSurvivors_Internal_<短 sha>\\runs\\runs.jsonl
   （对外包不记录；project.godot 固定了 custom_user_dir_name，没固定时是 %APPDATA%\\Godot\\app_userdata\\<项目名>）
 「run」和平衡测试打印的 BALANCE 同一格式，所以胜率 / 存活 / 伤害构成 / 死因 / 藏品拿取这些表可以直接复用。
 
@@ -14,7 +14,7 @@
   python tools/runs_report.py 某个.jsonl --out build/runs_report.md
 输出：总览、按难度 × 开局干员的胜率 / 用时 / 等级、死因、Boss 用时（中期 / 最终）、等级曲线、藏品、再加逐局一行的清单。
 """
-import argparse, collections, json, os, statistics, sys
+import argparse, collections, glob, json, os, statistics, sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import balance_run as BR   # noqa: E402  复用汇总表
@@ -36,7 +36,9 @@ def user_dirs():
     base = os.environ.get("APPDATA") or os.path.expanduser("~/.local/share")
     if kv.get("config/use_custom_user_dir") == "true" and kv.get("config/custom_user_dir_name"):
         name = kv["config/custom_user_dir_name"]
-        return [os.path.join(base, name), os.path.join(base, name + "_Internal")]
+        # 对内包存档目录带提交号（_Internal_<短 sha>，10-24）：旧版的 _Internal 也算，按修改时间新的在后
+        internals = sorted(glob.glob(os.path.join(base, name + "_Internal*")), key=os.path.getmtime)
+        return [os.path.join(base, name)] + internals
     return [os.path.join(base, "Godot", "app_userdata", kv.get("config/name", "方舟幸存者"))]
 
 

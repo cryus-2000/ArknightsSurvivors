@@ -9,7 +9,7 @@ const TxArt = preload("res://scripts/art.gd")
 ## 校验（由 _block 转来；cond 与 $ 表达式已在 _block 里查过）
 static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: Dictionary) -> void:
 	var errs: Array = ctx.errs
-	var instant: bool = tag in ["shape.dash_line", "verb.sp_secs", "verb.trail", "verb.fx_scatter", "verb.fx_rain"]
+	var instant: bool = tag in ["shape.dash_line", "verb.sp_secs", "verb.trail", "verb.fx_scatter", "verb.fx_rain", "verb.emit_path"]
 	var is_trig: bool = tag.begins_with("trig.")
 	match kind:
 		"attack":
@@ -48,10 +48,19 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 				errs.append(p + ".strip 必须是帧条名（fx_* / proj_*）")
 			if kind == "attack" and str(b.get("aim", "nearest")) != "nearest":
 				errs.append(p + ".aim：普攻冲刺只能朝最近敌人（nearest）")
+			_num(b, "aim_r", p, ctx, false, 10.0, 1200.0)   # 找目标的半径（缺省 冲刺长度 × 1.3）
+			_num(b, "min_d", p, ctx, false, 0.0, 1200.0)    # aim nearest：最近的敌人比这近就不冲（够得着了）
+			if b.has("need_target") and not b.need_target is bool:
+				errs.append(p + ".need_target 应是 true / false（aim nearest：aim_r 内没有敌人就不冲）")
 			_src(b, p, ctx, true)
 			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
 		"verb.sp_secs":
 			_num(b, "seconds", p, ctx, true, 0.0, 10.0)
+		"verb.emit_path":
+			_num(b, "len", p, ctx, true, 10.0, 600.0)
+			_num(b, "w", p, ctx, false, 4.0, 200.0)
+			_num(b, "dirs", p, ctx, false, 1.0, 16.0)   # 分身：本体不动，向 dirs 个均分方向各放一道路径
+			_src(b, p, ctx, true)
 		"verb.dash_mod":
 			if not (b.has("len_add") or b.has("len_mult") or b.has("w_add") or b.has("w_mult") or b.has("on_hit")):
 				errs.append(p + "：verb.dash_mod 至少写 len_add / len_mult / w_add / w_mult / on_hit 之一")
@@ -66,6 +75,8 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 			_num(b, "line_w", p, ctx, false, 0.0, 1.0)
 			if b.has("line_col") and not (b.line_col is Array and b.line_col.size() in [3, 4]):
 				errs.append(p + ".line_col 要写 [r, g, b] 或 [r, g, b, a]")
+			if b.has("need_hit") and not b.need_hit is bool:
+				errs.append(p + ".need_hit 应是 true / false（残像没打到敌人就不执行 on_expire）")
 			_src(b, p, ctx, true)
 			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
 			if b.has("on_expire"):   # 精英化段：残像消散时执行（do 里的 center: path 沿这道残像）
@@ -126,12 +137,18 @@ static func tx_dash_start(o, b: Dictionary, dmg: float) -> Array:
 		pd = _tx_densest(o, len * 1.6)
 		if pd == Vector2.INF:
 			return []
+	var aim_r: float = float(b.aim_r) * o.stat(&"op_range") if b.has("aim_r") else len * 1.3
+	if aim == "nearest" and (b.get("need_target", false) or b.has("min_d")):
+		# 队友短突进（德克萨斯，10-23）：aim_r 内没有敌人、或最近的敌人已经比 min_d 近（够得着了）就不冲
+		var ts0: Array = o.nearest_enemies(1, aim_r, o.pos)
+		if ts0.is_empty() or ts0[0].pos.distance_to(o.pos) < float(b.get("min_d", 0.0)):
+			return []
 	if o.tx.has("dash"):
 		_tx_dash_end(o)
 	var dir := Vector2.ZERO
 	match aim:
 		"nearest":
-			var ts: Array = o.nearest_enemies(1, len * 1.3, o.pos)
+			var ts: Array = o.nearest_enemies(1, aim_r, o.pos)
 			var ang: float = (ts[0].pos - o.pos).angle() if not ts.is_empty() else o.facing_angle()
 			dir = Vector2.from_angle(o.atk_angle(ang))
 		"densest":
@@ -174,6 +191,31 @@ static func _tx_densest(o, rr: float) -> Vector2:
 			bn = n
 			best = e.pos
 	return best
+
+
+## 路径事件（10-23）：把一条有起点终点的路径当作「src 这次冲刺结束了、扫到 0 名」，触发匹配的 trig.on_dash_end（德克萨斯精二余像挂在短剑气上：
+## 残像沿剑气路径、消散落剑；min_hits > 0 的块不触发）。ctx 同 _tx_dash_end
+static func tx_emit_path(o, src: String, from: Vector2, to: Vector2, w: float) -> void:
+	var tx: Dictionary = o.tx
+	var dir: Vector2 = (to - from).normalized()
+	var ctx := {"from": from, "to": to, "dir": dir, "n": 0, "src": src, "w": w}
+	tx["last_to"] = to
+	tx["last_dir"] = dir
+	for t in o._trigs():
+		if str(t.get("_tag", "")) != "trig.on_dash_end" or not cond_true(o, t.get("cond", _ED)):
+			continue
+		if t.has("src") and str(t.src) != src:
+			continue
+		if int(t.get("min_hits", 0)) > 0:
+			continue
+		var dl: float = float(t.get("delay", 0.0))
+		if dl > 0.0:
+			var q: Array = tx.get("queue", [])
+			q.append({"t": dl, "t0": dl, "do": t.get("do", []), "ctx": ctx})
+			tx["queue"] = q
+		else:
+			tx["ctx"] = ctx
+			o._exec_list(t.get("do", []), ctx.to)
 
 
 ## 每帧（data_operator.update 在常驻积木之后调）：主控冲刺 / 技能结束的触发、延迟队列、残像、冲刺推进与扫线。
@@ -224,6 +266,8 @@ static func tx_update(o, dt: float) -> bool:
 				gone.append(tr)
 		tx["trails"] = trails.filter(func(tr): return tr.life > 0.0)
 		for tr in gone:   # 精英化段：残像消散 → on_expire（路径 = 这道残像）
+			if tr.b.get("need_hit", false) and tr.hit.is_empty():   # need_hit：这道残像一个敌人都没打到就不落剑（剑雨滂沱·分身）
+				continue
 			tx["ctx"] = {"from": tr.from, "to": tr.to, "dir": (tr.to - tr.from).normalized(), "w": tr.w, "n": 0, "src": ""}
 			o._exec_list(tr.b.on_expire, tr.to)
 	# 冲刺
@@ -241,6 +285,21 @@ static func tx_update(o, dt: float) -> bool:
 		_tx_dash_end(o)
 		return false
 	return true
+
+
+## 线段 a→c 两侧 w/2（+ 敌人半径）内有没有活着的敌人
+static func _tx_corridor_has_enemy(o, a: Vector2, c: Vector2, w: float) -> bool:
+	var g = o.g
+	var seg: Vector2 = c - a
+	var L: float = seg.length()
+	for j in o.query_ids((a + c) * 0.5, L * 0.5 + w * 0.5 + 40.0):
+		var e: Dictionary = g.enemies[j]
+		if e.dead:
+			continue
+		var q: Vector2 = a if L < 0.5 else a + seg * clampf((e.pos - a).dot(seg) / (L * L), 0.0, 1.0)
+		if e.pos.distance_to(q) <= w * 0.5 + float(e.r):
+			return true
+	return false
 
 
 ## 扫一段线段：线段两侧 w/2（+ 敌人半径）内、hit 里没有的敌人各吃一次 dmg（对精英 / Boss 乘 vs_elite）与 on_hit 状态
@@ -366,6 +425,29 @@ static func tx_exec(o, b: Dictionary, at: Vector2) -> void:
 					var lc = b.get("line_col", null)
 					o.fx({"kind": "line", "pos": c.from, "to": c.to, "w": float(c.w) * lw, "life": float(b.life),
 						"col": Color(float(lc[0]), float(lc[1]), float(lc[2]), float(lc[3]) if lc.size() > 3 else 1.0) if lc is Array and lc.size() >= 3 else o.col(), "floor": true})
+		"verb.emit_path":   # 把「自身朝最近敌人（没有就朝向 / 手动指向）、长 len」的路径当作一次冲刺结束，触发 src 匹配的 trig.on_dash_end（精二余像挂在疾刃三连上，10-23）
+			var elen: float = float(b.len) * o.stat(&"op_range")
+			var ets: Array = o.nearest_enemies(1, elen + 30.0, o.pos)
+			var eang: float = (ets[0].pos - o.pos).angle() if not ets.is_empty() else o.facing_angle()
+			if o.manual_attack() and o.atk_aim != Vector2.ZERO:
+				eang = o.atk_aim.angle()
+			if b.has("dirs"):   # 分身（剑雨滂沱，10-24）：本体不动，向 dirs 个均分方向各放一道路径；每次调用整体错开半格，方向轮流覆盖
+				var nd: int = int(b.dirs)
+				var k0: int = int(o.tx.get("clone_k", 0))
+				o.tx["clone_k"] = k0 + 1
+				var a0: float = float(k0 % 2) * PI / float(nd)
+				for di in nd:
+					var ca: float = a0 + TAU * float(di) / float(nd)
+					var to: Vector2 = o.pos + Vector2.from_angle(ca) * elen
+					if not _tx_corridor_has_enemy(o, o.pos, to, float(b.get("w", 44.0)) + 60.0):   # 这个方向上没有敌人就不放（分身只往有敌人的路上去）
+						continue
+					if b.has("strip"):
+						var cfr: Array = o.g.V6_FRAMES.get(str(b.strip), [4, 20.0])
+						o.fx({"kind": "tx_strip", "strip": str(b.strip), "frames": int(cfr[0]), "fps": float(cfr[1]), "pos": to, "ang": ca, "sx": elen / 128.0,
+							"anchor": Vector2(63.0 / 64.0, 0.5), "life": float(cfr[0]) / float(cfr[1]), "delay": 0.0})
+					tx_emit_path(o, str(b.get("src", "")), o.pos, to, float(b.get("w", 44.0)))
+				return
+			tx_emit_path(o, str(b.get("src", "")), o.pos, o.pos + Vector2.from_angle(eang) * elen, float(b.get("w", 44.0)))
 		"verb.fx_scatter":
 			var cc: Vector2 = o.pos if str(b.get("center", "self")) == "self" or at == Vector2.INF else at
 			var n: int = int(b.n)

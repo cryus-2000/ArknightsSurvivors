@@ -34,11 +34,20 @@ func _ready() -> void:
 	var taken := 0.0
 	var taken_sur := 0.0
 	var bal_dt: float = g.bal_dt
-	while g.state == g.S.PLAY or g.state == g.S.CHOICE or g.state == g.S.LEVELUP:
+	var idle_guard := 0
+	while true:
+		if g.state == g.S.DEAD or g.state == g.S.WIN:
+			break
+		if g.state != g.S.PLAY:
+			# 选卡 / 商人 / 展示 / 开场等非战斗状态：走一整帧 _process（它自己跑 autotest 并推进计时），不能提前退出（10-24 前只采到前 40 秒）
+			g._process(bal_dt)
+			idle_guard += 1
+			if idle_guard > 20000:
+				break
+			continue
+		idle_guard = 0
 		g.autotest_sys.step()
 		if g.state != g.S.PLAY:
-			if g.state == g.S.DEAD or g.state == g.S.WIN:
-				break
 			continue
 		g._update(bal_dt)
 		o = g.ch

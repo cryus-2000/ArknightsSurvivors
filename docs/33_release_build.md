@@ -89,7 +89,7 @@ python tools/export_build.py
 
 “未解锁”指首次启动的默认进度，不是每次启动清空玩家已有存档。对内版启动即「全部解锁」（1.1.1，用户 09-30 改）：难度三档、图鉴、结局线全开，与调试版同一套 `Cfg._apply_unlock_all`，只在内存、不写入存档（存档里仍是真实进度），标题右上角显示「测试版 · 已全部解锁（不写入存档）」；对外版恒不解锁。`check_release.py` 静态断言对外分支、`verify_encrypted_game.py` 在打包后实测（对内：`unlock_all` 为真、图鉴全开、写一次存档后文件里进度仍为空；对外：`unlock_all` 为假、图鉴干员页只开名册里的开局 5 人与博士，其余页全锁）。
 
-**对内版名册（2026-10-22，用户要在对内包里测寻访）**：「全部解锁」不再包含干员名册。对内发布包（非调试版、`audience = internal`，`Cfg.internal_roster()`）新存档名册与对外版一样只有开局 5 人，每份存档首次启动发 20 张寻访凭证（`Cfg.INTERNAL_TICKETS`，`[roster] int_grant` 记已发，只发一次），寻访与局终发券照常写进存档（对内包存档目录与对外包隔离）；图鉴干员页仍全可看，难度 / 图鉴 / 结局全开、Boss 演练、对局记录不变；标题右上角改为「测试版 · 图鉴与难度全开（不写入存档）」。调试版（源码运行）的全部解锁仍包含名册（`Cfg.roster_all_open()`）。`verify_encrypted_game.py` 对内实测：名册开局 5 人、凭证 20 张且已写进存档（`internal_roster_start5` / `internal_roster_tickets*`）。
+**对内版名册（2026-10-22，用户要在对内包里测寻访）**：「全部解锁」不再包含干员名册。对内发布包（非调试版、`audience = internal`，`Cfg.internal_roster()`）新存档名册开局 10 人（10-24 用户改：开局 5 人 + `Roster.INTERNAL_START` 5 人，先锋 / 重装 / 术师 / 辅助 / 狙击 / 医疗 / 近卫 / 特种 8 个职业全覆盖：流明、斯卡蒂、归溟幽灵鲨、推进之王、乌尔比安），每份存档首次启动补齐这 5 人并发 20 张寻访凭证（`Cfg.INTERNAL_TICKETS`，`[roster] int_grant` 记已发，只发一次），寻访与局终发券照常写进存档（对内包存档目录与对外包隔离）；图鉴干员页仍全可看，难度 / 图鉴 / 结局全开、Boss 演练、对局记录不变；标题右上角改为「测试版 · 图鉴与难度全开（不写入存档）」。调试版（源码运行）的全部解锁仍包含名册（`Cfg.roster_all_open()`）。`verify_encrypted_game.py` 对内实测：名册开局 10 人且 5 名补发干员已写进存档、凭证 20 张且已写进存档（`internal_roster_start10` / `internal_roster_member` / `internal_roster_saved` / `internal_roster_tickets*`）。
 
 EA 是开发阶段标记，不等于内测权限。不能仅凭 EA 标记向对外包开放 Boss 演练。构建信息应显式区分 Public / Internal；导出器、主页可见性和演练入口校验统一使用该标记。
 
@@ -99,8 +99,8 @@ EA 是开发阶段标记，不等于内测权限。不能仅凭 EA 标记向对�
 
 **落实情况（2026-09-30，架构 / 部署）**：
 - 演练入口按 `build.json` 的 `audience == "internal"` 放开（`settings.gd` `Cfg.can_boss_trial()`；主页入口、演练设置窗、`run/boss_trial.gd` 开局都走它）。原来按 `channel == "EA"` 判断，与本节「EA 标记不等于内测权限」不符。调试版（编辑器 / 源码运行）仍一律开放。
-- 对内包存档目录改为 `%APPDATA%\ArknightsSurvivors_Internal`（`export_build.py` 只改打包副本的 `project.godot`），对外包仍是 `%APPDATA%\ArknightsSurvivors`。同一台机器两个包都装时，对内包的正常游玩不会解锁对外包的图鉴 / 难度；对内包说明.txt 写明。
-- 对内包一次性迁移（`settings.gd` `_migrate_internal_save`）：对内包启动时，`_Internal` 目录还没有 `settings.cfg`、旧目录 `ArknightsSurvivors` 有，就复制过来（不移动、不删旧的，`_Internal` 已有存档不覆盖），标准输出记一行「[Cfg] 对内包存档迁移」。已经在玩 1.0 内测包的人换新包后进度不丢。对外包 / 调试版不迁移。
+- 对内包存档目录改为 `%APPDATA%\ArknightsSurvivors_Internal_<短 sha>`（10-24 起带提交号，`export_build.py` 只改打包副本的 `project.godot`；此前是不带后缀的 `_Internal`），**每个新的对内包从干净存档开始，不读旧包存档**（用户 10-24）；同一个包里的进度照常保存。对外包仍是 `%APPDATA%\ArknightsSurvivors`。同一台机器两个包都装时，对内包的正常游玩不会解锁对外包的图鉴 / 难度；对内包说明.txt 写明。
+- 对内包不再迁移存档（10-24 删除 `_migrate_internal_save`）：新包只读自己的 `_Internal_<sha>` 目录。`verify_encrypted_game.py` 的 `check_migration` 改为「放旧存档（开发目录 / 别的提交的 _Internal_*）启动，旧的原样不动、内容不得混进新目录」。`runs_report.py` 会找所有 `_Internal*` 目录。
 - `verify_encrypted_game.py` 另起隔离的 APPDATA 放一份旧目录存档启动打包游戏：对内包必须复制成功、旧存档原样、日志有那一行，`_Internal` 已有存档时不被覆盖；对外包不得建 `_Internal` 目录。
 - 本地对局记录（docs/40，2026-10-10）：对内包写 `%APPDATA%\ArknightsSurvivors_Internal\runs\runs.jsonl`（`Cfg.runs_log_enabled()`），标题页脚与设置页有「测试版：本地记录对局摘要（不上传）」提示和「打开记录文件夹」按钮，`说明.txt` 写明；对外包恒不写。`check_release.py` 第 6 项静态断言，`verify_encrypted_game.py` 实测 `runs_log_audience`。
 - `verify_encrypted_game.py` 在加密包里实测：全新存档（图鉴 / 藏品 / 结局为空、难度 0）、发布版屏蔽开发参数、`can_boss_trial()` 与 audience 一致、存档目录与 audience 一致、对外包图鉴只有干员页开放、普通模板读不了加密 PCK、zip 与验证过的目录逐文件一致。

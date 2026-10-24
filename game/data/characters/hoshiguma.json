@@ -30,7 +30,9 @@
   "s1_mult": 2.0,
   "s1_r": 120,
   "s1_kb": 360,
-  "s1_miss_mult": 1.5,
+  "s1_taunt_r": 200,
+  "s1_per": 0.1,
+  "s1_cap": 20,
   "s2_dur": 8.0,
   "s2_atk": 0.4,
   "s2_dr": 0.1,
@@ -77,8 +79,35 @@
   "regen": 1.0
  },
  "sprites": {
-  "move_attack": {"tex": "op_hoshiguma_move_attack", "frames": 8, "foot": [48, 76], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},
-  "entry": {"tex": "op_hoshiguma_entry", "frames": 8, "fps": 9.1429, "foot": [32, 60], "frame_durations": [0.042, 0.119, 0.119, 0.119, 0.119, 0.119, 0.119, 0.119], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/hoshiguma_entry.json），64 画布 @2x；落下由代码补"},
+  "move_attack": {
+   "tex": "op_hoshiguma_move_attack",
+   "frames": 8,
+   "foot": [
+    48,
+    76
+   ],
+   "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"
+  },
+  "entry": {
+   "tex": "op_hoshiguma_entry",
+   "frames": 8,
+   "fps": 9.1429,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.042,
+    0.119,
+    0.119,
+    0.119,
+    0.119,
+    0.119,
+    0.119,
+    0.119
+   ],
+   "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/hoshiguma_entry.json），64 画布 @2x；落下由代码补"
+  },
   "_doc": "10-20 换 64 画布 @2x（docs/108 §5）：待机 / 普攻 / S3 / 死亡取原作动作条（cb_18），跑步 / S1 / 掷盾 / 接盾在原生骨架上出（tools/spine_run_trial），打包脚本 tools/probes/package_texas_hoshiguma.py。shield = 每帧盾心（1x 帧内像素，同 foot 口径，null = 盾已离手），格挡闪光 / 反击架势红光锚在这里（fx 的 on_sprite）",
   "idle": {
    "tex": "op_hoshiguma_idle",
@@ -354,7 +383,8 @@
    "art": {
     "idle": "op_hoshiguma_idle_noshield",
     "run": "op_hoshiguma_run_noshield",
-    "attack": "op_hoshiguma_attack_noshield", "skill": "op_hoshiguma_attack_noshield",
+    "attack": "op_hoshiguma_attack_noshield",
+    "skill": "op_hoshiguma_attack_noshield",
     "throw": "op_hoshiguma_throw_noshield"
    },
    "fallback": {
@@ -667,11 +697,20 @@
     0.16
    ]
   },
+  "s1_guard_move": {
+   "tex": "op_hoshiguma_s1_guard_move",
+   "frames": 8,
+   "fps": 13.333333,
+   "foot": [32, 60],
+   "frame_durations": [0.075, 0.075, 0.075, 0.075, 0.075, 0.075, 0.075, 0.075],
+   "_doc": "10-24 格挡窗口里移动（docs/140）：原生 Skill t=0 举盾上半身 + 跑步步态腿（tools/op_1x/native_extra.py），与跑步条共用相位；原来移动时播单帧定格 s1_guard 原地滑行"
+  },
   "skills": {
-   "_doc": "S1 举盾 → 窗口内定格 → 格挡（技能随即结束）或窗口到点都收势播反手重斩；S2 盾斧斩落；S3 原作起手 / 持盾切割循环 / 收势",
+   "_doc": "S1 举盾 → 窗口内定格（队长移动时播举盾跑动）→ 窗口到点收势播反手重斩（10-24 起站定嘲讽，docs/140）；S2 盾斧斩落；S3 原作起手 / 持盾切割循环 / 收势",
    "s1": {
     "start": "s1",
     "loop": "s1_guard",
+    "run": "s1_guard_move",
     "end": "s1_counter"
    },
    "s2": {
@@ -684,10 +723,12 @@
    }
   }
  },
- "extra_sprites": ["entry", 
+ "extra_sprites": [
+  "entry",
   "death",
   "s1",
   "s1_guard",
+  "s1_guard_move",
   "s1_counter",
   "s3_start",
   "s3_loop",
@@ -706,7 +747,7 @@
    "en": "WARPATH",
    "sp": 6,
    "dur": 3.0,
-   "desc": "{$s1_window} 秒内队长下一次受到的攻击被完全格挡（不损失生命与灯火），格挡瞬间在队长身边反手重斩（半径 {$s1_r}，×{$s1_mult}）并击退；{$s1_window} 秒内未受到攻击时，向前发动一次 ×{$s1_miss_mult} 伤害的斩击",
+   "desc": "{$s1_window} 秒内举盾坚守原地，吸引半径 {$s1_taunt_r} 内近战敌人的仇恨（作为队长时可照常移动）；结束时向周围反手重斩（半径 {$s1_r}，×{$s1_mult}，每吸引一名敌人再 +{$s1_per}，至多 +{$s1_per*$s1_cap}）并击退",
    "icon": "skill_hoshiguma_s1"
   },
   {
@@ -880,10 +921,11 @@
   "tags": [
    "近战",
    "格挡",
+   "嘲讽",
    "击退",
    "护卫"
   ],
-  "desc": "重装干员，持盾斧，一定概率完全格挡攻击（不掉灯火）并反手斩击周遭敌人；力之锯状态下攻击可贯穿一整列"
+  "desc": "重装干员，持盾斧，一定概率完全格挡攻击（不掉灯火）并反手斩击周遭敌人；战意期间举盾坚守，吸引周遭敌人后反击；力之锯状态下攻击可贯穿一整列"
  },
  "blocks": {
   "attack": {
@@ -967,7 +1009,11 @@
     "dur": "$s1_window",
     "do": [
      {
-      "verb": "negate_next",
+      "verb": "taunt_guard",
+      "_doc": "10-24 用户定（docs/140）：原「格挡下一击」改为站定嘲讽 + 防御反击；队员时原地站定，队长时照常移动",
+      "r": "$s1_taunt_r",
+      "per": "$s1_per",
+      "cap": "$s1_cap",
       "fx": [
        {
         "strip": "fx_hoshiguma_block",
@@ -980,27 +1026,13 @@
        }
       ],
       "text": "战意",
-      "on_block": [
+      "on_end": [
        {
         "shape": "circle",
-        "center": "leader",
+        "center": "self",
         "r": "$s1_r",
         "mult": "$s1_mult",
         "kb": "$s1_kb",
-        "src": "举盾反击",
-        "tags": [
-         "skill"
-        ],
-        "power": true
-       }
-      ],
-      "on_miss": [
-       {
-        "shape": "cone",
-        "r": "$reach_skill",
-        "half_deg": "$half_deg",
-        "mult": "$s1_miss_mult",
-        "kb": "$kb",
         "src": "举盾反击",
         "tags": [
          "skill"
@@ -1029,7 +1061,8 @@
       "verb": "negate_chance",
       "mult": "$s2_block_x"
      }
-    ]
+    ],
+    "need_enemy": 140
    },
    {
     "dur": "$s3_dur",
@@ -1070,7 +1103,8 @@
        ]
       }
      }
-    ]
+    ],
+    "need_enemy": 140
    }
   ],
   "talent": [

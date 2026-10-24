@@ -35,6 +35,10 @@ func _process(_d: float) -> void:
 		test_s3(o)
 		test_s2(o)
 		test_dash(o)
+		test_leader_dash(o)
+		test_storm(o)
+		test_clone(o)
+		test_gate(o)
 	print("%d checks, %d failed" % [n, fails])
 	print("TEXAS CONTRACT failures=%d" % fails)
 	get_tree().quit(1 if fails > 0 else 0)
@@ -95,6 +99,152 @@ func test_s2(o) -> void:
 
 
 ## 冲刺换播（10-20，docs/108 §3.5）：伪造一次冲刺 / 回马剑等待，只看画面槽与帧，不推进玩法
+## 专属冲刺（10-23 用户）：队长精零自己按冲刺，路径上的敌人受冲刺斩伤害；响应块 cond is_leader && elite < 1
+func test_leader_dash(o) -> void:
+	var g = game
+	for e in g.enemies: e.dead = true
+	g.enemies.clear()
+	var e1: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2(70, 0))
+	e1.hp = 100000.0
+	e1.max_hp = e1.hp
+	e1.spd = 0.0
+	g.enemies_sys.build_grid()
+	o.elite = 0
+	o.refresh_stats()
+	g.dash_dir = Vector2.RIGHT
+	g.dash_t = 0.0
+	o.update(DT)
+	g.dash_t = 0.18
+	var hp0: float = e1.hp
+	for i in 20:
+		g.ppos += Vector2.RIGHT * 7.0
+		o.pos = g.ppos
+		o.update(DT)
+	ok(e1.hp < hp0, "专属冲刺：精零队长自己冲刺，路径上的敌人受伤（%.0f → %.0f）" % [hp0, e1.hp])
+	e1.dead = true
+
+
+## 方案 A「阻挡」（10-24 用户拍板，取代疾刃三连）：拔刀命中里离她最近的两名被阻挡（精英减半 / Boss 免疫沿用 st.stun）；
+## 每第 4 次出手改为骤雨（replace + no_combo + 三个 delay 的追加段，360° 连斩 4 下）；没有敌人照常拔刀。
+## 钉剑挂在阻挡上（精一起定住延长）、余像挂在骤雨第一下（精二起前方留下残像）
+func test_storm(o) -> void:
+	var g = game
+	for e in g.enemies: e.dead = true
+	g.enemies.clear()
+	o.s_t = [0.0, 0.0, 0.0]
+	o.no_attack = false
+	o.attack_t = 0.0
+	o.fire_t = -1.0
+	o.tx.erase("dash")
+	o.pos = g.ppos
+	o.elite = 0
+	o.refresh_stats()
+	g.enemies_sys.build_grid()
+	ok(o._replace_trig(4).is_empty(), "骤雨：场上没有敌人 → 第 4 次出手照常拔刀（不 replace）")
+	var es: Array = []
+	for dx in [50, 80, 105]:
+		var e1: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2(dx, 0))
+		e1.hp = 100000.0
+		e1.max_hp = e1.hp
+		e1.spd = 0.0
+		es.append(e1)
+	g.enemies_sys.build_grid()
+	ok(not o._replace_trig(4).is_empty() and bool(o._replace_trig(4).no_combo), "骤雨：普攻范围内有敌人 → 第 4 次出手 replace（no_combo）")
+	ok(o._replace_trig(1).is_empty() and o._replace_trig(2).is_empty() and o._replace_trig(3).is_empty() and o._replace_trig(5).is_empty() and not o._replace_trig(8).is_empty(), "骤雨：只在第 4 / 8 … 次出手")
+	var storm_do: Array = o.B.trait[1].do
+	for el in [0, 1, 2]:
+		o.elite = el
+		o.refresh_stats()
+		for e in es:
+			e.stun = 0.0
+			e.hp = e.max_hp
+			e.pos = g.ppos + Vector2([50, 80, 105][es.find(e)], 0)
+		g.enemies_sys.build_grid()
+		o.pos = g.ppos
+		o.tx["trails"] = []
+		o._exec_list([o.B.attack])
+		var st: Array = es.map(func(e): return float(e.get("stun", 0.0)))
+		var want := 0.4 if el < 1 else 0.7
+		ok(st[0] > 0.0 and st[1] > 0.0 and st[2] == 0.0 and absf(st[0] - want) < 0.05, "阻挡：精英 %d 拔刀只定住离她最近的两名，时长 %.2f（实得 %s）" % [el, want, str(st)])
+		o.tx["trails"] = []
+		o._exec_list(storm_do)
+		var trails: int = o.tx.get("trails", []).size()
+		ok((trails > 0) == (el >= 2), "余像：精英 %d 骤雨出手 → %s（残像 %d 道）" % [el, "留残像" if el >= 2 else "没有残像", trails])
+	# 四下：追加段 delay 0.2 / 0.4 / 0.6 各一次，入排队列
+	o.elite = 0
+	o.refresh_stats()
+	o.pending.clear()
+	o.atk_n = 3
+	o.cd = 0.0
+	o._release()
+	ok(o.atk_n == 4 and o.pending.size() == 3 and absf(float(o.pending[0].t) - 0.2) < 0.0001 and absf(float(o.pending[2].t) - 0.6) < 0.0001, "骤雨：第 4 次出手排了三个追加斩（0.2 / 0.4 / 0.6 秒），没有接回马剑（排队 %d 个）" % o.pending.size())
+	for e in es: e.dead = true
+
+
+## 剑雨滂沱·分身（10-24 用户选）：技能期间本体不动，每 s3_every 秒向 6 个方向各放一道分身路径（残像），到头不再有冲刺
+func test_clone(o) -> void:
+	var g = game
+	for e in g.enemies: e.dead = true
+	g.enemies.clear()
+	g.enemies_sys.build_grid()
+	o.elite = 0
+	o.refresh_stats()
+	o.tx.erase("dash")
+	o.tx["trails"] = []
+	o.pos = g.ppos
+	var p0: Vector2 = o.pos
+	o.s_t = [0.0, 0.0, 8.0]
+	for i in 60:
+		o.update(DT)
+	ok(o.tx.get("trails", []).is_empty(), "分身：场上没有敌人 → 一道分身都不放")
+	for k in 12:
+		var ce: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2.from_angle(k * TAU / 12.0) * 120.0)
+		ce.hp = 100000.0
+		ce.max_hp = ce.hp
+		ce.spd = 0.0
+	g.enemies_sys.build_grid()
+	o.s_t = [0.0, 0.0, 8.0]
+	for i in 60:
+		o.update(DT)
+	var trails: Array = o.tx.get("trails", [])
+	ok(trails.size() >= 6, "分身：技能期间放出分身残像（%d 道，一次 6 个方向）" % trails.size())
+	ok(o.pos.distance_to(p0) < 1.0 and not o.tx.has("dash"), "分身：本体不动、没有冲刺")
+	var dirs := {}
+	for tr in trails:
+		dirs[snappedf((tr.to - tr.from).angle(), 0.1)] = true
+	ok(dirs.size() >= 6, "分身：方向不重合（%d 个不同方向）" % dirs.size())
+	o.s_t = [0.0, 0.0, 0.0]
+	o.tx["trails"] = []
+	for e in g.enemies: e.dead = true
+
+
+## 自动技能需要敌人（10-23）：剑雨（S1）技力满了，没有敌人不放、技力保留；有敌人才放
+func test_gate(o) -> void:
+	var g = game
+	for e in g.enemies: e.dead = true
+	g.enemies.clear()
+	g.enemies_sys.build_grid()
+	o.elite = 0
+	o.refresh_stats()
+	o.s_t = [0.0, 0.0, 0.0]
+	o.perm = [false, false, false]
+	o.pos = g.ppos
+	o.sp = [o.sp_need(0) + 1.0, 0.0, 0.0]
+	ok(o.charge_skills(DT) == -1, "剑雨：技力满、没有敌人 → 不放")
+	ok(o.sp[0] >= o.sp_need(0), "剑雨：没敌人时技力保留满格（%.1f / %.1f）" % [o.sp[0], o.sp_need(0)])
+	var e1: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2(100, 0))
+	e1.hp = 100000.0
+	e1.max_hp = e1.hp
+	e1.spd = 0.0
+	g.enemies_sys.build_grid()
+	ok(o.charge_skills(DT) == 0, "剑雨：射程内有敌人 → 放")
+	e1.pos = g.ppos + Vector2(400, 0)
+	g.enemies_sys.build_grid()
+	ok(o.charge_skills(DT) == -1, "剑雨：敌人在射程（130）外 → 不放")
+	e1.dead = true
+	o.sp = [0.0, 0.0, 0.0]
+
+
 func test_dash(o) -> void:
 	var tags := {"basic": ["basic"], "skill": ["skill"], "reverse": ["follow_up"]}
 	var want := {"basic": ["attack", 2, 7], "skill": ["s3_dash", 0, 7], "reverse": ["back_native", 3, 7]}

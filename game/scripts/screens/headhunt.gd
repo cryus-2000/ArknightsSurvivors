@@ -51,6 +51,7 @@ const TR_DUR := {"enter": 0.6, "slide": 0.3, "cut": 0.15, "wipe": 0.4}
 
 var g   # Game，或标题页的 screens/hunt_host.gd（只用 hud / font / kb_nav）
 var open := false
+var browse := false     # 标题页进入（10-24 用户：没有凭证也能点进去看卡池；按钮灰显）
 var mode := "entry"       # entry 入口 / class 定向选职业 / pick 定向选干员 / bag 拉包 / op 揭示 / summary 本次寻访
 var results: Array = []   # Roster.redeem_* 的返回值（只留解出干员的）
 var idx := 0              # 揭示到第几名
@@ -133,6 +134,7 @@ func tick() -> void:
 func maybe_open() -> void:
 	if open or not Roster.active():
 		return
+	browse = false
 	if not _can_random() and not _can_direct():
 		return
 	if Roster.locked_ids().is_empty():
@@ -143,11 +145,23 @@ func maybe_open() -> void:
 	_trans("enter")
 
 
+## 标题页入口：没有凭证 / 名册已满也打开（只能看，寻访按钮灰显）；返回是否打开了
+func open_browse() -> bool:
+	if open or not Roster.active():
+		return open
+	browse = true
+	open = true
+	_entry()
+	if open:
+		_trans("enter")
+	return open
+
+
 func _entry() -> void:
 	results.clear()
-	if (not _can_random() and not _can_direct()) or Roster.locked_ids().is_empty():
-		if Roster.locked_ids().is_empty():
-			_spill()
+	if Roster.locked_ids().is_empty():
+		_spill()
+	if not browse and ((not _can_random() and not _can_direct()) or Roster.locked_ids().is_empty()):
 		open = false
 		return
 	mode = "entry"
@@ -230,13 +244,13 @@ func _act(a) -> void:
 			if a is int:
 				sel = a
 				a = "one" if a == 0 else "directed"
-			if a == "one" and _can_random():
+			if a == "one" and _can_random() and not Roster.locked_ids().is_empty():
 				Sfx.play("ui_ok")
 				var r := _redeem_random()
 				if str(r.get("id", "")) != "":
 					results = [r]
 				_play()
-			elif a == "directed" and _can_direct():
+			elif a == "directed" and _can_direct() and not Roster.locked_ids().is_empty():
 				Sfx.play("ui_ok")
 				mode = "class"
 				_trans("slide")
@@ -250,15 +264,13 @@ func _act(a) -> void:
 			elif a == "back":
 				Sfx.play("ui_ok")
 				open = false
+			else:
+				Sfx.play("ui_move", -4.0, 0.6)   # 凭证不够 / 没有可寻访的干员：灰显按钮只响一声
 		"class":
 			if a is int and a >= 0 and a < choices.size():
 				if not Roster.locked_classes().has(choices[a]):
 					return
-				var again: bool = sel == a or Pad.touch
-				sel = a
-				Sfx.play("ui_move")
-				if not again:
-					return
+				sel = a   # 点一下就进（10-24 用户：抽卡界面点击就抽）
 				a = "ok"
 			if a == "ok" and Roster.locked_classes().has(choices[sel]):
 				Sfx.play("ui_ok")
@@ -274,11 +286,8 @@ func _act(a) -> void:
 				_trans("slide")
 		"pick":
 			if a is int and a >= 0 and a < choices.size():
-				if sel != a:
-					_mode_t0 = _now()   # 换人：档案重新解码
 				sel = a
-				Sfx.play("ui_move")
-				return
+				a = "ok"   # 点一下就寻访（10-24 用户）
 			if a == "ok" and sel < choices.size():
 				Sfx.play("ui_ok")
 				var r := _redeem_directed(choices[sel])
@@ -575,7 +584,9 @@ func _draw_entry() -> void:
 	UI.text_at(ci, f, vr.position + Vector2(110, 38), "寻访凭证", 20, HS.INK, "lm", true)
 	UI.text_at(ci, f, Vector2(vr.end.x - 20, vr.position.y + 38), "× %d" % n, 30, HS.INK, "rm", true)
 	var rules := ["每次探索结算获得 %d 张，通关获得 %d 张" % [_per_run(), _per_clear()], "未解锁 %d 名 · 不会抽到重复干员" % locked.size()]
-	if Cfg.roster_draws == 0:
+	if locked.is_empty():
+		rules = ["干员已全部入职", "此后获得的凭证每张折算为 %d 生机细胞" % Roster.CELLS_PER_TICKET]
+	elif Cfg.roster_draws == 0:
 		rules.append("首次寻访必定获得医疗干员")
 	for j in rules.size():
 		ci.draw_rect(Rect2(40, _p(506, 418) + j * 28, 6, 6), HS.INK)
@@ -601,17 +612,26 @@ func _draw_entry() -> void:
 				_figure(_card(pool[pj]), Vector2(cx - 84 + j * 56, _p(600.0, 514.0) if big else _p(580.0, 498.0)), 0.7, Color(0.45, 0.47, 0.52))
 	if pool.size() >= 2:
 		_brackets(Rect2(840, _p(250, 176), 200, _p(300, 270)), Color(1, 1, 1, 0.85))
-	HS.para(ci, Rect2(840, _p(210, 138), 210, 36), UI.fa(UI.VIOLET, 0.9))
-	UI.text_at(ci, f, Vector2(945, _p(228, 156)), "寻访范围 · %d 名" % locked.size(), 15, Color.WHITE, "mm", true)
+	if pool.is_empty():
+		# 名册已满（10-24 用户问「全有了显示什么」）：卡池位置换成「全员入职」签，不留空场
+		_brackets(Rect2(700, _p(270, 196), 480, _p(200, 180)), Color(1, 1, 1, 0.5))
+		UI.text_at(ci, f, Vector2(940, _p(340, 262)), "全员已入职", int(_p(44, 38)), Color.WHITE, "mm", true)
+		HS.solid_px(ci, Vector2(940, _p(392, 308)), "ALL OPERATORS ON BOARD", 2.0, Color(1, 1, 1, 0.6), 1)
+		UI.text_at(ci, f, Vector2(940, _p(430, 344)), "罗德岛人事部已无待寻访的干员", 15, UI.fa(Color.WHITE, 0.55), "mm")
+	else:
+		HS.para(ci, Rect2(840, _p(210, 138), 210, 36), UI.fa(UI.VIOLET, 0.9))
+		UI.text_at(ci, f, Vector2(945, _p(228, 156)), "寻访范围 · %d 名" % locked.size(), 15, Color.WHITE, "mm", true)
 	var r1 := Rect2(620, D.y - 84, 300, 62)
 	var r0 := Rect2(940, D.y - 88, 310, 68)
 	HS.ghost_btn(ci, f, r1, "定向寻访  （%d 张）" % _cost_pick(), "", 1.0)
-	if not _can_direct():
+	if not _can_direct() or locked.is_empty():
 		HS.para(ci, r1, Color(0, 0, 0, 0.55))
 	elif _hot(1, r1):
 		HS.para(ci, r1.grow(3), Color(0, 0, 0, 0), HS.CYB, 2.0)
 	HS.main_btn(ci, f, r0, "寻访一次  （1 张）", "")
-	if _hot(0, r0):
+	if not _can_random() or locked.is_empty():
+		HS.para(ci, r0, Color(0, 0, 0, 0.55))
+	elif _hot(0, r0):
 		HS.para(ci, r0.grow(4), Color(0, 0, 0, 0), Color.WHITE, 2.0)
 	_btn(r1, 1)
 	_btn(r0, 0)

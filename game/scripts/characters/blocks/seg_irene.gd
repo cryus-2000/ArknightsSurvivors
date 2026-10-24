@@ -238,7 +238,7 @@ static func _h3_cannon(o, cb: Dictionary, c: Vector2, dmg: float) -> void:
 	o.area_hit(str(cb.get("src", "")), c, float(cb.get("r", 40.0)), dmg, 0.0, 0.0)
 	var muzzle: Vector2 = o.pos + Vector2(12.0 * o.face, -30)
 	o.spawn_fx_sprite(str(cb.get("muzzle", "fx_muzzle_flash")), muzzle, g.PX * 0.7)
-	o.fx({"kind": "line", "pos": muzzle, "to": c + Vector2(0, -10), "life": 0.08, "col": Color(1.0, 0.8, 0.6), "w": 2.0})
+	o.fx({"kind": "line", "pos": muzzle, "to": c + Vector2(0, -10), "life": 0.08, "col": Color(1.0, 0.8, 0.6), "w": 2.0, "laser": true})
 	if not o.spawn_fx_sprite(str(cb.get("burst", "fx_cannon_burst")), c + Vector2(0, 6), g.PX * 1.2, 0.0, false, true):
 		o.fx({"kind": "glow", "pos": c + Vector2(0, -10), "r": 18.0, "life": 0.2, "col": H3_LAMP, "alpha": 0.6})
 	o.fx({"kind": "ring", "pos": c, "r": 34.0, "r0": 6.0, "life": 0.25, "col": H3_LAMP, "floor": true})

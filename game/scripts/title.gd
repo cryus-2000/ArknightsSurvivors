@@ -1,7 +1,11 @@
 extends "res://scripts/screens/title_diff_pick.gd"
-## 标题界面：「方舟幸存者」Logo + 地图副标题 + 菜单；背景按地图（现为蓝眼泪银河沙滩 title_bg.gd，博士与水月站在浪边）
+## 标题界面：「方舟幸存者」Logo + 菜单；背景是深海沉船与水母（title_deep.gd，10-24 用户定，docs/67 §13）
 const HS = preload("res://scripts/screens/hh_style.gd")
 func _ready() -> void:
+	if Cfg.dev_args().has("--loadprof"):
+		# 启动计时（docs/36 §5）：引擎启动 → 标题页 _ready → 标题页首帧画完（毫秒，从引擎启动算）
+		print("BOOTPROF title_ready=%d" % Time.get_ticks_msec())
+		RenderingServer.frame_post_draw.connect(func(): print("BOOTPROF title_first_frame=%d" % Time.get_ticks_msec()), CONNECT_ONE_SHOT)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	# 触屏：标题页（含图鉴 / 设置 / Boss 演练子面板）整体放大 Cfg.ui_k（手机 1.3）；背景 / 转场在各自的 CanvasLayer 不受影响
 	Cfg.ui_k = Cfg.ui_scale()
@@ -21,27 +25,22 @@ func _ready() -> void:
 		tex_player = A.tex("player_idle")
 		player_frames = max(1, tex_player.get_width() / tex_player.get_height())
 	tex_light = A.tex("light")
-	tex_tiles = A.tex("tiles")
-	tex_bg = A.tex("title_bg")
-	tex_logo = A.tex("logo")
+	# Logo 主体（像素徽记 + 像素中文；拉丁小字由菜单模块矢量画）：缩小显示，用带多级纹理的线性取样，免得最近邻缩小丢像素
+	var lg_img: Image = preload("res://art/ui/title_deep/logo_mark.png").get_image()
+	lg_img.generate_mipmaps()
+	tex_logo = ImageTexture.create_from_image(lg_img)
 	_prewarm()   # 标题页自己的几张图先取，预热名单里就不用再算
-	var mf := FileAccess.open("res://data/maps/%s.json" % Cfg.map_id, FileAccess.READ)
-	if mf != null:
-		var md = JSON.parse_string(mf.get_as_text())
-		if md is Dictionary:
-			map_title = str(md.get("title", md.get("name", "")))
-			map_title_en = str(md.get("title_en", ""))
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 20260923
-	_grow(rng, Vector2(900, 700), -PI / 2, 150.0, 14.0, 0)
-	for i in 90:
-		motes.append([Vector2(rng.randf_range(0, 1280), rng.randf_range(0, 720)), rng.randf_range(6, 22), rng.randf() * TAU])
-	# 封面背景：蓝眼泪银河沙滩（放在更底层的 CanvasLayer，菜单画在它上面）
+	# 封面背景：深海沉船与水母（放在更底层的 CanvasLayer，菜单画在它上面）
 	var bg_layer := CanvasLayer.new()
 	bg_layer.layer = -1
 	add_child(bg_layer)
-	title_bg = preload("res://scripts/title_bg.gd").new()
+	title_bg = preload("res://scripts/title_deep.gd").new()
 	bg_layer.add_child(title_bg)
+	logo_ci = Control.new()   # Logo 单独一层：线性 + 多级纹理取样（标题页其余贴图沿用项目缺省的最近邻）
+	logo_ci.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	logo_ci.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	logo_ci.draw.connect(_draw_logo_layer)
+	add_child(logo_ci)
 	var cf := FileAccess.open("res://data/credits.json", FileAccess.READ)
 	if cf != null:
 		var cd = JSON.parse_string(cf.get_as_text())
@@ -74,6 +73,11 @@ func _ready() -> void:
 	add_child(transition_layer)
 	transition = preload("res://scripts/screens/scene_transition.gd").new()
 	transition_layer.add_child(transition)
+	var loading_layer := CanvasLayer.new()
+	loading_layer.layer = 80   # 盖住标题 Logo 层、选人 / 难度页与后期层；转场遮罩（90）仍在它上面
+	add_child(loading_layer)
+	loading = preload("res://scripts/screens/loading_screen.gd").new()
+	loading_layer.add_child(loading)
 	for a in Cfg.dev_args():
 		if a.begins_with("--compareshot="):
 			_compare_shot(a.substr(14))
@@ -277,16 +281,18 @@ func _ready() -> void:
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_diff_%d_%d.png" % [diff_sel, Cfg.diff_unlocked])
 				get_tree().quit())
 	if Cfg.dev_args().has("--loadingshot"):
-		# 出发后「载入中…」面板的截图（预热通常不到 1 秒就完成，截图时强制画出来）
+		# 出发后载入页的截图（预读完也停在载入页，截图时强制画出来）；带 --reducemotion 截静态版
 		leaving = 0.0
+		if Cfg.dev_args().has("--reducemotion"):
+			Cfg.reduce_motion = true
 		get_tree().create_timer(1.3).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_loading.png")
 			get_tree().quit())
 	if Cfg.dev_args().has("--titleshot"):
-		# 可选 --titlesel=<菜单项 0–5>（截选中别的磁贴）
+		# 可选 --titlesel=<菜单项 id 0–7>（截选中别的入口）
 		for a in Cfg.dev_args():
 			if a.begins_with("--titlesel="):
-				sel = clampi(int(a.substr(11)), 0, 5)
+				sel = clampi(int(a.substr(11)), 0, ITEMS.size() - 1)
 				if not _menu_ids().has(sel):
 					sel = 0
 			if a == "--reducemotion":
@@ -295,8 +301,8 @@ func _ready() -> void:
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_title.png")
 			get_tree().quit())
 	if Cfg.dev_args().has("--autotest") or Cfg.dev_args().has("--balance"):
-		if A.prewarm_busy() or Sfx.warm_busy():
-			auto_go = true   # 开窗口的自测：等法线图预热完（同玩家路径），黑屏时长才有可比性
+		if A.prewarm_busy() or Sfx.warm_busy() or Cfg.dev_args().has("--loadprof"):
+			auto_go = true   # 开窗口的自测：等法线图预热完（同玩家路径），黑屏时长才有可比性；--loadprof 一律走载入页（量玩家路径）
 		else:
 			A.mark("title_leave")
 			get_tree().change_scene_to_file.call_deferred("res://game.tscn")
@@ -315,27 +321,6 @@ func _ui_refit() -> void:
 
 func _exit_tree() -> void:
 	A.prewarm_join()
-
-
-## 递归生成巨树（像海嗣一样弯曲的枝干）
-func _grow(rng: RandomNumberGenerator, p: Vector2, ang: float, length: float, width: float, depth: int) -> void:
-	if depth > 6 or length < 10.0:
-		nodes.append([p, rng.randf() * TAU])
-		return
-	var pts := [p]
-	var a := ang
-	var q := p
-	for s in 6:
-		a += rng.randf_range(-0.22, 0.22)
-		q += Vector2.from_angle(a) * length / 6.0
-		pts.append(q)
-	for i in pts.size() - 1:
-		branches.append([pts[i], pts[i + 1], width * (1.0 - i * 0.08), depth])
-	var n := 2 if depth < 2 else rng.randi_range(1, 3)
-	for k in n:
-		_grow(rng, q, a + rng.randf_range(-0.9, 0.9), length * rng.randf_range(0.6, 0.8), width * 0.62, depth + 1)
-	if depth >= 3 and rng.randf() < 0.5:
-		nodes.append([q, rng.randf() * TAU])
 
 
 func _process(delta: float) -> void:
@@ -374,21 +359,34 @@ func _process(delta: float) -> void:
 			get_tree().quit()
 	if intro < INTRO_LEN:
 		intro = minf(intro + delta, INTRO_LEN)
-	# 背景：开场镜头下摇（整像素平移，不缩放）、脚印依次亮起、海嗣睁眼一瞬
+	# 背景：开场黑幕；被整屏界面盖住时停更（省网页帧时）；手机版式右下压暗（集结出发在那儿）
 	if title_bg != null:
-		title_bg.pan = 40.0 * (1.0 - _ease((intro - 0.4) / 1.8))
-		title_bg.reveal = clampf((intro - 1.6) / 0.9, 0.0, 1.0)
-		title_bg.eye_flash = maxf(0.0, 1.0 - absf(intro - 2.45) / 0.3) if intro < INTRO_LEN else 0.0
-	for m in motes:
-		m[0].y -= m[1] * delta
-		if m[0].y < -10:
-			m[0].y = size.y + 10
+		title_bg.fade = (1.0 - _ease((intro - 0.1) / 1.1)) if intro < INTRO_LEN else 0.0
+		title_bg.paused = gallery.visible or meta_ui.visible or hunt_ui.visible or diff_pick or op_pick or guide or credits or leaving >= 0.0
+		title_bg.corner = 1.0 if menu_lay.get("compact", false) else 0.0
+	if logo_ci != null:
+		logo_ci.size = size
+		logo_ci.queue_redraw()
 	A.prewarm_tick()
 	if leaving >= 0.0 or auto_go:
 		if not _op_warm_begun:
 			_op_warm_begun = true
 			A.warm_begin(_op_fx_names(), [])
-		_op_warm_more = A.warm_step(12000)   # 开局干员的技能 / 特效帧条先读进贴图缓存（10-22 网页开局掉帧：第一次放技能时现读）
+			var wl: Array = Game.loading_warm_lists()
+			A.warm_begin(wl[0], wl[1])   # 对局 _ready 要读的整批贴图也在这里分帧读完（以前在 _ready 里一口气读，网页冻住 ~32 秒，10-25）
+			for cid in _op_ids():
+				var sp: String = Character.script_path(cid)
+				if not _op_scripts.has(sp) and ResourceLoader.load_threaded_request(sp) == OK:
+					_op_scripts.append(sp)   # 干员脚本后台编译（data_operator.gd 首次加载约 1.4 秒，原来算在建局里）
+			loading.begin()
+		_op_warm_more = A.warm_step(24000)   # 开局干员的技能 / 特效帧条先读进贴图缓存（10-22 网页开局掉帧：第一次放技能时现读）
+		for sp in _op_scripts.duplicate():
+			if ResourceLoader.load_threaded_get_status(sp) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+				_op_warm_more = true
+			else:
+				if ResourceLoader.load_threaded_get_status(sp) == ResourceLoader.THREAD_LOAD_LOADED:
+					get_tree().set_meta("op_script_" + sp.get_file().get_basename(), ResourceLoader.load_threaded_get(sp))   # 挂在场景树上留住缓存，切场景后对局 load() 直接命中
+				_op_scripts.erase(sp)
 		if not _op_warm_more and not _grow_strips.is_empty():
 			# 扩散帧条的每帧半径（ob_fx.warm_frame_r，同一张贴图、同一算式）：一帧算一张
 			var sn: String = _grow_strips.pop_back()
@@ -397,19 +395,24 @@ func _process(delta: float) -> void:
 				load("res://scripts/characters/blocks/ob_fx.gd").warm_frame_r(sn, A.tex(sn), maxi(1, int(v6[sn][0])))
 			_op_warm_more = not _grow_strips.is_empty()
 		Sfx.warm_step(12000)   # 出发后的等待里逐条注册音频样本（网页；桌面队列为空）
+		_loading_progress()
 	if leaving >= 0.0:
 		leaving += delta
 		if leaving > 0.7:
-			# 法线图预热没完就画「载入中…」等它（以前这里直接切场景，game.gd _ready 同步算 10 秒法线图 = 黑屏），最多等 30 秒
-			if (A.prewarm_busy() or Sfx.warm_busy() or _op_warm_more or Cfg.dev_args().has("--loadingshot")) and wait_t < 30.0:
+			# 预热 / 预读没完就停在载入页等它（以前这里直接切场景，game.gd _ready 同步算 10 秒法线图 = 黑屏），最多等 60 秒
+			if (A.prewarm_busy() or Sfx.warm_busy() or _op_warm_more or Cfg.dev_args().has("--loadingshot")) and wait_t < 60.0:
 				wait_t += delta
 			else:
-				A.mark("title_leave")
-				get_tree().change_scene_to_file("res://game.tscn")
+				loading.finish()   # 淡到黑，开场演出从同一片黑里亮起
+				if loading.done():
+					A.mark("title_leave")
+					get_tree().change_scene_to_file("res://game.tscn")
 	elif auto_go and not A.prewarm_busy() and not Sfx.warm_busy() and not _op_warm_more and _op_warm_begun:
-		auto_go = false
-		A.mark("title_leave")
-		get_tree().change_scene_to_file("res://game.tscn")
+		loading.finish()
+		if loading.done():
+			auto_go = false
+			A.mark("title_leave")
+			get_tree().change_scene_to_file("res://game.tscn")
 	queue_redraw()
 
 
@@ -468,8 +471,6 @@ func _input(event: InputEvent) -> void:
 				# 致谢与声明：键盘 C、手柄 Ⓨ（标题页 Ⓨ 映射为 X）也能打开（原来只能鼠标点页脚）
 				transition.switch_page(_open_credits)
 				Sfx.play("ui_ok")
-			KEY_V:
-				transition.switch_page(_open_op_pick.bind(true))
 	elif event is InputEventMouseMotion:
 		for i in item_rects.size():
 			if item_rects[i].has_point(make_input_local(event).position) and sel != i:
@@ -481,10 +482,6 @@ func _input(event: InputEvent) -> void:
 		if credits_rect.has_point(make_input_local(event).position):
 			transition.switch_page(_open_credits)
 			Sfx.play("ui_ok")
-			return
-		if deploy_rect.has_point(make_input_local(event).position):
-			Sfx.play("ui_ok")
-			transition.switch_page(_open_op_pick.bind(true))
 			return
 		for i in item_rects.size():
 			if item_rects[i].has_point(make_input_local(event).position):
@@ -519,32 +516,32 @@ func _menu_ids() -> Array:
 	return ids
 
 
-## 磁贴群二维导航（title_tiles.nav）：↑↓ 换行落到最近的列（记住列），← → 行内，不循环
+## 菜单导航（title_jelly_menu.nav）：按几何方向找最近的一项，不循环
 func _menu_nav(d: Vector2i) -> void:
 	if menu_lay.is_empty():
-		menu_lay = Tiles.layout(_menu_ids(), 90.0, 304.0, 400.0, 354.0, false)
-	if menu_mem_x < 0.0 and menu_lay.rects.has(sel):
-		menu_mem_x = (menu_lay.rects[sel] as Rect2).get_center().x
-	var r: Array = Tiles.nav(menu_lay, sel, d, menu_mem_x)
-	menu_mem_x = r[1]
-	_menu_set(r[0], false)
+		menu_lay = _menu_layout()
+	_menu_set(Tiles.nav(menu_lay, sel, d), false)
 
 
-## 换选中：涨潮 + 涟漪从此刻开始；remember = 同时把记住的列改成新磁贴（悬停 / 点击 / Tab / 横移）
-func _menu_set(i: int, remember: bool) -> void:
+func _menu_layout() -> Dictionary:
+	return Tiles.layout(size, _menu_ids(), Cfg.safe_insets(), Pad.touch_ui() or Cfg.touch_device(), font)
+
+
+## 换选中：选中底条从此刻开始展开（remember 沿用旧接口，深海水母版不用）
+func _menu_set(i: int, _remember: bool) -> void:
 	if not _menu_ids().has(i):
 		return
-	if remember and menu_lay.has("rects") and menu_lay.rects.has(i):
-		menu_mem_x = (menu_lay.rects[i] as Rect2).get_center().x
 	if i == sel:
 		return
 	sel = i
-	menu_rip_t = t
 	Sfx.play("ui_move")
 
 
 func _activate(i: int) -> void:
 	if transition.busy:
+		return
+	if i == 8:
+		Sfx.play("ui_move", -4.0, 0.6)   # 蚀刻章（docs/134）还没做：入口先留着、灰显，点了只响一声
 		return
 	Sfx.play("ui_ok")
 	match i:
@@ -564,37 +561,26 @@ func _activate(i: int) -> void:
 		6:
 			transition.switch_page(meta_ui.open)
 		7:
-			if not _hunt_ready() or not hunt_ui.open():
-				Sfx.play("ui_move", -4.0, 0.6)   # 没有凭证：灰显，点了只响一声
+			if not hunt_ui.open():
+				Sfx.play("ui_move", -4.0, 0.6)   # 名册未启用：点了只响一声（10-24 起没有凭证也能进去看）
 
 
-## 磁贴入场（docs/62「每屏一个主动作」：标题菜单 = 磁贴从潮线下浮出）：开场 3.3 秒起按行错开 0.09 秒，每行 0.38 秒（T3）露出；
-## 减少动态效果：不浮出，整块 T1 淡入（_tile_text_a 管文字）
-const TILE_T0 := 3.3
-func _tile_row(i: int) -> int:
-	if menu_lay.has("rows"):
-		for r in menu_lay.rows.size():
-			if menu_lay.rows[r].has(i):
-				return r
-	return 0
+## 入口入场（docs/62「每屏一个主动作」）：1.25 秒起四个入口依次从左滑入（间隔 0.08 秒，每个 0.4 秒）、1.6 集结出发、2.0 底部一行；
+## 减少动态效果：不滑动，只淡入（滑动量在 _draw 里按 Cfg.reduce_motion 置 0）
+func _item_a(i: int) -> float:
+	var it: Dictionary = Tiles.item(i)
+	if it.is_empty():
+		return 0.0
+	if it.slot == "list":
+		var lst: Array = menu_lay.get("list", {}).get("ids", [])
+		return _seg(1.25 + 0.08 * maxi(0, lst.find(i)), 0.4)
+	return _seg(1.6, 0.5) if it.slot == "deploy" else _seg(2.0, 0.4)
 
 
-func _tile_rise(i: int) -> float:
-	var t0 := TILE_T0 + _tile_row(i) * 0.09
-	if Cfg.reduce_motion:
-		return 1.0 if intro >= t0 else 0.0
-	return _ease((intro - t0) / 0.38)
-
-
-func _tile_text_a(i: int) -> float:
-	var t0 := TILE_T0 + _tile_row(i) * 0.09 + (0.0 if Cfg.reduce_motion else 0.38)
-	return clampf((intro - t0) / 0.12, 0.0, 1.0)
-
-
-## 水位：选中块涨潮、其余退潮（T2 0.22 秒）；磁贴还没浮出水面时不涨；减少动态效果直接到位
+## 选中底条：选中项展开、其余收起（0.22 秒）；入口还没出现时不展开；减少动态效果直接到位
 func _menu_tick(delta: float) -> void:
 	for i in ITEMS.size():
-		var target := 1.0 if i == sel and _tile_rise(i) >= 1.0 else 0.0
+		var target := 1.0 if i == sel and _item_a(i) >= 1.0 else 0.0
 		if Cfg.reduce_motion:
 			menu_water[i] = target
 		else:
@@ -613,158 +599,29 @@ func _ease(x: float) -> float:
 
 func _draw() -> void:
 	var vs := size
-	var tx := 90.0
 	if diff_pick and not op_pick and not guide and not credits:
 		# 难度页（T5s）：整屏是它自己的版式，标题的 Logo / 磁贴 / 页脚都不画
 		_draw_diff(vs)
 		_draw_leaving(vs)
 		return
-	# 左侧柔和暗角：让标题与菜单浮在星空上，不与银河抢
-	var vg := _ease(intro / 1.6)
-	for i in 14:
-		var a := 0.42 * pow(1.0 - i / 14.0, 1.6) * vg
-		draw_rect(Rect2(i * 46.0, 0, 46.0, vs.y), Color(0.0, 0.01, 0.03, a))
-	# 顶部小标（方案 A）：本作徽记 + 英文
-	var hf0 := _seg(2.9, 0.4) * (0.0 if Pad.touch_ui() and (size.y < 520.0 or Cfg.phone_ui()) else 1.0)   # 手机：Logo 上移后会压住这行小标，不画
-	_draw_emblem(Vector2(tx + 8, 44), 8.0, _fa(Color(0.76, 0.79, 0.81), hf0))
-	UI.en(self, font, Vector2(tx + 24, 49), "ARKNIGHTS FAN GAME  ·  ROGUELIKE SURVIVORS", 11, _fa(Color(0.55, 0.59, 0.63), hf0), 2.5)
+	# 测试版提示（右上，暗底衬板）
 	if Cfg.unlock_all:
-		# 暗底衬板：右上角是明亮的巨树枝，金字直接压在上面看不清
 		# 对内发布包名册按新玩家走（测寻访），只有图鉴 / 难度 / 结局全开
 		var tb_txt: String = "测试版 · 图鉴与难度全开（不写入存档）" if Cfg.internal_roster() else "测试版 · 已全部解锁（不写入存档）"
 		var tbw: float = font.get_string_size(tb_txt, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
-		draw_rect(Rect2(vs.x - 30 - tbw - 12, 13, tbw + 24, 24), Color(0.02, 0.03, 0.05, 0.85))
-		draw_rect(Rect2(vs.x - 30 - tbw - 12, 13, 3, 24), UI.GOLD)
-		UI.text(self, font, Vector2(vs.x - 330, 30), tb_txt, 12, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 300)
-	# 标题（像素 Logo）：2.6s 起青色扫光从左往右「刷」出来（Logo 按扫光位置裁切），扫完右上菱形闪一下
-	var lg := _seg(2.6, 0.6)
-	var ly := 6.0 * (1.0 - lg)
-	# 手机（界面层放大后逻辑高约 481，手机端 UI 优化 r2）：Logo 缩到 420×104，副标题 / 分隔线上移 28，菜单行距 40
-	var ph: bool = Pad.touch_ui() and (size.y < 520.0 or Cfg.phone_ui())
-	if ph:
-		ly -= 50.0
-	if tex_logo != null:
-		var ls := Vector2(tex_logo.get_width(), tex_logo.get_height())
-		var k: float = min((360.0 if ph else 520.0) / ls.x, (90.0 if ph else 130.0) / ls.y)
-		if lg > 0.0:
-			draw_texture_rect_region(tex_logo, Rect2(Vector2(tx, 84 + ly), Vector2(ls.x * k * lg, ls.y * k)), Rect2(0, 0, ls.x * lg, ls.y))
-		if lg > 0.0 and lg < 1.0:
-			var sx := tx + ls.x * k * lg
-			draw_rect(Rect2(sx - 10, 80, 10, ls.y * k + 8), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.25))
-			draw_rect(Rect2(sx - 2, 78, 3, ls.y * k + 12), Color(0.85, 1.0, 1.0, 0.9))
-		var sp: float = maxf(0.0, 1.0 - absf(intro - 3.25) / 0.2)
-		if sp > 0.0 and intro < INTRO_LEN:
-			var dp := Vector2(tx + 262 * k * ls.x / 520.0, 84 + 14)
-			draw_line(dp + Vector2(-9, 0) * sp, dp + Vector2(9, 0) * sp, Color(1, 1, 1, sp), 2.0)
-			draw_line(dp + Vector2(0, -9) * sp, dp + Vector2(0, 9) * sp, Color(1, 1, 1, sp), 2.0)
-	else:
-		UI.text(self, font, Vector2(tx, 182 + ly), "方舟", 96, _fa(UI.TEXT, lg))
-		UI.text(self, font, Vector2(tx + 210, 180 + ly), "幸存者", 40, _fa(UI.CYAN, lg))
-	UI.en(self, font, Vector2(tx + 6, 242 + ly), "ARKNIGHTS  SURVIVORS", 15, _fa(Color(0.76, 0.79, 0.81), _seg(3.0, 0.4)), 5.0)
-	# 地图副标题：随地图变化，英文副标题下一行（菱形 + 中文名 + 英文名），和 Logo 组成一块
-	if map_title != "":
-		var mf2 := _seg(3.1, 0.4)
-		UI.diamond(self, Vector2(tx + 11, 257 + ly), 4.0, _fa(UI.CYAN, mf2))
-		UI.text(self, font, Vector2(tx + 22, 263 + ly), map_title, 15, _fa(UI.TEXT, mf2))
-		if map_title_en != "":
-			var mw: float = font.get_string_size(map_title, HORIZONTAL_ALIGNMENT_LEFT, -1, 15).x
-			UI.en(self, font, Vector2(tx + 34 + mw, 262 + ly), map_title_en, 10, _fa(Color(0.5, 0.54, 0.58), mf2), 2.5)
-	# 分隔线：1.6s 起从左向右划出，右端一个小方块
-	var rl := _seg(3.1, 0.5)
-	var ry := 282.0 + (ly if ph else 0.0)
-	if rl > 0.0:
-		UI.hairline(self, Vector2(tx, ry), Vector2(tx + 420 * rl, ry), Color(1, 1, 1), 0.32, 0.14)
-		draw_rect(Rect2(Vector2(tx + 420 * rl - 2, ry - 2), Vector2(5, 5)), Color(1, 1, 1, 0.55 * rl))
-
-	# 菜单：T5s 磁贴群（docs/67 §12）——Logo 下方、原纵向菜单的位置；keyart 与人物不动
+		var tr: float = vs.x - 30 - Cfg.safe_insets()[2]
+		draw_rect(Rect2(tr - tbw - 12, 13, tbw + 24, 24), Color(0.02, 0.03, 0.05, 0.85))
+		draw_rect(Rect2(tr - tbw - 12, 13, 3, 24), UI.GOLD)
+		UI.text(self, font, Vector2(tr - 300, 30), tb_txt, 12, UI.GOLD, HORIZONTAL_ALIGNMENT_RIGHT, 300)
+	# 菜单（深海水母版，docs/67 §13）：版式按当前尺寸 / 安全区算，命中区就是终态位置（docs/62 §2.5）
 	item_rects.clear()
 	item_rects.resize(ITEMS.size())
 	item_rects.fill(Rect2())
-	var menu_ids := _menu_ids()
-	var touch := Pad.touch_ui()
-	var my := ry + 22.0
-	var foot_h := 12.0 if ph else 40.0
-	var hint_h := 0.0 if touch else 24.0
-	menu_lay = Tiles.layout(menu_ids, tx, my, 400.0, vs.y - my - foot_h - hint_h, touch or Cfg.touch_device())
-	for i in menu_ids:
+	menu_lay = _menu_layout()
+	for i in menu_lay.rects:
 		item_rects[i] = menu_lay.rects[i]
-	if menu_mem_x < 0.0 and menu_lay.rects.has(sel):
-		menu_mem_x = (menu_lay.rects[sel] as Rect2).get_center().x
-	var rise := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-	var text_a := [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-	for i in menu_ids:
-		rise[i] = _tile_rise(i)
-		text_a[i] = _tile_text_a(i)
-	if not diff_pick and not op_pick:
-		Tiles.draw(self, menu_lay, {"sel": sel, "water": menu_water, "rip_t": menu_rip_t, "now": t, "rise": rise, "text_a": text_a,
-			"phase": 0.0 if Cfg.reduce_motion else t * 0.9, "font": font, "rm": Cfg.reduce_motion, "dim": [] if _hunt_ready() else [7]})
-		_draw_hunt_badge(rise[7], text_a[7])
-	var tc := TUI.ctx(self)
-	# 操作提示：一行暗色像素字（键鼠 / 手柄；触屏不画）
-	var hf := _seg(4.0, 0.4)
-	if hf > 0.0 and not diff_pick and not op_pick and not touch:
-		var hs: String = Pad.hint("WASD / ↑↓←→ SELECT   ENTER CONFIRM   TAB NEXT", "D-PAD SELECT   PAD A CONFIRM   PAD B EXIT", "")
-		TUI.ptext(self, tc, Vector2(tx + 2, menu_lay.bottom + 16), hs, 1.0, Color(0.35, 0.41, 0.47, hf))
-	# 右下「更换封面干员」（小号）：像素菱形 + 中文 + 像素键名 V；悬停下划线变长变青
-	var df := _seg(3.9, 0.4)
-	deploy_rect = Rect2()
-	if df > 0.0 and not diff_pick and not op_pick:
-		var cs := 16 if ph else 15
-		var x1 := vs.x - (24.0 if ph else 44.0)
-		var cy := vs.y - (44.0 if ph else 54.0)
-		var kw := 0.0 if touch else TUI.ptext_w(tc, "V", 1.0) + 10.0
-		var tw: float = font.get_string_size("更换封面干员", HORIZONTAL_ALIGNMENT_LEFT, -1, cs).x
-		var ix := x1 - kw - tw - 18.0
-		deploy_rect = Rect2(ix - 14.0, cy - 22.0, x1 - ix + 20.0, 44.0)
-		cover_hover = deploy_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN and not touch
-		var cc := Color(TUI.CY.r, TUI.CY.g, TUI.CY.b, df) if cover_hover else Color(TUI.TXT.r, TUI.TXT.g, TUI.TXT.b, df)
-		TUI.pdiamond(self, tc, Vector2(ix, cy), 3, TUI.cell(tc, 2.0 if not ph else 1.5), cc)
-		UI.text(self, font, Vector2(ix + 14.0, cy + cs * 0.36), "更换封面干员", cs, cc)
-		if not touch:
-			TUI.ptext(self, tc, Vector2(x1, cy), "V", 1.0, Color(TUI.CY.r, TUI.CY.g, TUI.CY.b, df), 1, 2)
-		var uy := cy + 15.0
-		draw_rect(Rect2(ix - 8.0, uy, x1 - ix + 8.0, 1.0), Color(1, 1, 1, 0.22 * df))
-		draw_rect(Rect2(ix - 8.0, uy - 1.0, 22.0 + (40.0 if cover_hover else 0.0), 2.0), Color(TUI.CY.r, TUI.CY.g, TUI.CY.b, df))
-
-	# 页脚：一行（同人声明 · 与鹰角网络无关 · 致谢与声明 · 版本），最后淡入；手机挪到右下（左下是磁贴群）
-	var ff := _seg(4.1, 0.4)
-	var ftxt: String = ("明日方舟同人作品 · 非商业 · 与鹰角网络无关 · 致谢与声明 %s" % Pad.hint("C", "Ⓨ", "")).strip_edges() if not ph else "同人作品 · 非商业 · 与鹰角网络无关 · 致谢与声明"
-	var fs := 12
-	var fw: float = font.get_string_size(ftxt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	var vk := 1.4 if ph else 1.0
-	var vw := TUI.ptext_w(tc, "V2.0", vk)
-	var fx: float = (vs.x - 24.0 - fw - 12.0 - vw) if ph else tx
-	var fy := vs.y - (12.0 if ph else 20.0)
-	credits_rect = Rect2(fx - 6, fy - 18, fw + 12, 26)
-	var cr_hover := credits_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
-	UI.text(self, font, Vector2(fx, fy), ftxt, fs, _fa(TUI.CY if cr_hover else Color(0.5, 0.54, 0.58), ff))
-	TUI.ptext(self, tc, Vector2(fx + fw + 12.0, fy - 4.0), "V2.0", vk, _fa(Color(0.5, 0.54, 0.58), ff))
-	# 对内包页脚提示（docs/40，用户 10-10）：右下；手机页脚已占满，手机只在设置页提示
-	if not ph and not OS.is_debug_build() and Cfg.runs_log_enabled():
-		UI.text(self, font, Vector2(vs.x - 440, vs.y - 20), "测试版：本地记录对局摘要（不上传）", 12, _fa(UI.GOLD, ff), HORIZONTAL_ALIGNMENT_RIGHT, 310)
-
-	# 开场：黑幕淡出 + 上下黑边收起
-	if intro < INTRO_LEN:
-		var dark := 1.0 - _ease((intro - 0.5) / 0.9)
-		if dark > 0.0:
-			draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.005, 0.015, dark))
-		var bar := 90.0 * (1.0 - _seg(0.5, 1.2))
-		if bar > 0.5:
-			draw_rect(Rect2(0, 0, vs.x, bar), Color(0, 0.005, 0.015))
-			draw_rect(Rect2(0, vs.y - bar, vs.x, bar), Color(0, 0.005, 0.015))
-		# 黑场里的一粒蓝眼泪：沙滩上亮起，荡开三圈涟漪（黑幕退去时一起淡掉）
-		if intro < 1.6 and title_bg != null:
-			var tp: Vector2 = Vector2(vs.x * 0.58, vs.y * 0.66).round()   # 固定在画面中下（不跟下摇的背景走，免得被下方黑边盖住）
-			var ta: float = clampf(intro / 0.25, 0.0, 1.0) * clampf((1.6 - intro) / 0.5, 0.0, 1.0)
-			draw_circle(tp, 3.0, Color(0.7, 1.0, 1.0, ta))
-			draw_circle(tp, 8.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.25 * ta))
-			for q in 3:
-				var rk: float = clampf((intro - 0.15 - q * 0.22) / 0.9, 0.0, 1.0)
-				if rk > 0.0:
-					draw_set_transform(tp, 0.0, Vector2(1.0, 0.4))
-					draw_arc(Vector2.ZERO, 12.0 + 90.0 * rk, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, (1.0 - rk) * 0.7 * ta), 1.5)
-					draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-
+	if not op_pick:
+		_draw_menu(vs)
 	if guide:
 		_draw_guide(vs)
 	if credits:
@@ -774,19 +631,72 @@ func _draw() -> void:
 	_draw_leaving(vs)
 
 
+func _draw_menu(vs: Vector2) -> void:
+	var a_list: Array = []
+	for i in menu_lay.list.ids:
+		a_list.append(_item_a(i))
+	const R = preload("res://scripts/core/roster.gd")
+	Tiles.draw(self, menu_lay, {"font": font, "sel": sel, "water": menu_water, "now": t, "rm": Cfg.reduce_motion,
+		"a_logo": 0.0, "logo_tex": null, "a_list": a_list, "a_deploy": _item_a(0), "a_foot": _seg(2.0, 0.4),
+		"slide": 0.0 if Cfg.reduce_motion else 16.0, "dim": [8] if R.active() else [7, 8], "tickets": R.tickets() if R.active() else -1})   # 8 = 蚀刻章（未开放）恒灰；10-24 用户：没有凭证也能点进寻访看卡池
+	# 声明（同人 · 非商业 · 与鹰角网络无关 · 致谢与声明）+ 版本：桌面右下，手机跟在底部一行后面
+	var ff := _seg(2.0, 0.4)
+	var lg: Dictionary = menu_lay.legal
+	var ph: bool = menu_lay.compact
+	var tc := TUI.ctx(self)
+	var ftxt: String = ("明日方舟同人作品 · 非商业 · 与鹰角网络无关 · 致谢与声明 %s" % Pad.hint("C", "Ⓨ", "")).strip_edges() if not ph else "同人作品 · 与鹰角网络无关 · 致谢与声明"
+	var fs := 12 if not ph else 11
+	var fw: float = font.get_string_size(ftxt, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	var vw := TUI.ptext_w(tc, "V2.0", 1.0)
+	var fx: float = lg.pos.x - fw - 12.0 - vw if lg.align == "r" else lg.pos.x
+	var fy: float = lg.pos.y
+	credits_rect = Rect2(fx - 6, fy - 18, fw + 12, 26)
+	if fx + fw + 12.0 + vw > lg.max_x:
+		credits_rect = Rect2()   # 窄屏放不下：只留键盘 C / 手柄 Ⓨ 入口（设置页也能进）
+	elif ff > 0.0:
+		var cr_hover := credits_rect.has_point(get_local_mouse_position()) and intro >= INTRO_LEN
+		UI.text(self, font, Vector2(fx, fy), ftxt, fs, _fa(Color(0.616, 0.898, 0.937) if cr_hover else Color(0.45, 0.53, 0.58), ff))
+		TUI.ptext(self, tc, Vector2(fx + fw + 12.0, fy - 4.0), "V2.0", 1.0, _fa(Color(0.45, 0.53, 0.58), ff))
+	# 对内包页脚提示（docs/40，用户 10-10）：声明上面一行；手机只在设置页提示
+	if not ph and not OS.is_debug_build() and Cfg.runs_log_enabled():
+		UI.text(self, font, Vector2(lg.pos.x - 310, fy - 20), "测试版：本地记录对局摘要（不上传）", 12, _fa(UI.GOLD, ff), HORIZONTAL_ALIGNMENT_RIGHT, 310)
+
+
+## Logo 层（logo_ci 的 draw）：难度页、选人页不画
+func _draw_logo_layer() -> void:
+	if (diff_pick or op_pick) or menu_lay.is_empty():
+		return
+	var a := _seg(1.0, 0.5)
+	if guide or credits:
+		a *= 0.25
+	Tiles._draw_logo(logo_ci, menu_lay.logo.o, menu_lay.logo.k, font, a, tex_logo)
+
+
 func _draw_leaving(vs: Vector2) -> void:
 	if leaving >= 0.0:
 		draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.01, 0.02, clamp(leaving / 0.6, 0.0, 1.0)))
-		if wait_t > 0.0:
-			_draw_loading(vs)
 
 
 ## 开局干员（选人 / --op；测试的 --squad 一并）JSON 里写到的帧条名（"tex" / "strip"）：出发后的等待里先读进 A.tex 缓存
 var _op_warm_begun := false
 var _op_warm_more := false
+var loading: Control   # 进局载入页（screens/loading_screen.gd，CanvasLayer 80）
 var _grow_strips: Array = []
 
+var _op_scripts: Array = []   # 后台编译中的干员脚本路径
+
+
 func _op_fx_names() -> Array:
+	var ids := _op_ids()
+	var out: Array = []
+	for cid in ids:
+		if Character.exists(cid):
+			_collect_tex(Character.load_def(cid), out)
+	return out
+
+
+## 开局干员 id（选人 / --op；测试的 --squad 一并）
+func _op_ids() -> Array:
 	var ids: Array = [Cfg.character_id]
 	for a in Cfg.dev_args():
 		if a.begins_with("--op="):
@@ -794,11 +704,7 @@ func _op_fx_names() -> Array:
 	for a in Cfg.dev_args():
 		if a.begins_with("--squad="):
 			ids.append_array(a.substr(8).split(","))
-	var out: Array = []
-	for cid in ids:
-		if Character.exists(cid):
-			_collect_tex(Character.load_def(cid), out)
-	return out
+	return ids.filter(func(c): return Character.exists(str(c)))
 
 
 func _collect_tex(x, out: Array, key := "") -> void:
@@ -814,18 +720,25 @@ func _collect_tex(x, out: Array, key := "") -> void:
 		out.append(x)
 
 
-## 出发后等法线图预热：潮汐航线风格的小面板 + 进度条（docs/37）
-func _draw_loading(vs: Vector2) -> void:
-	var pr := A.prewarm_progress()
-	var what := "准备光照贴图"
-	if Sfx.warm_busy() and pr.x >= pr.y:
-		pr = Sfx.warm_progress()
-		what = "准备作战数据"
-	var r := Rect2(vs.x / 2 - 170, vs.y / 2 - 44, 340, 88)
-	UI.frame(self, r, UI.CYAN)
-	UI.en(self, font, Vector2(r.position.x + 18, r.position.y + 24), "LOADING", 11, Color(0.55, 0.59, 0.63), 2.5)
-	UI.text(self, font, Vector2(r.position.x + 18, r.position.y + 46), "载入中…  %s %d / %d" % [what, pr.x, pr.y], 15, UI.TEXT)
-	UI.gbar(self, Rect2(r.position.x + 18, r.position.y + 62, r.size.x - 36, 6), float(pr.x) / maxf(1.0, float(pr.y)), UI.CYAN)
+## 载入页进度：法线图预热 + 贴图分帧预读 + 音频样本注册，按条数合计（三者都是单调的，合计也不会倒退）
+func _loading_progress() -> void:
+	var nm := A.prewarm_progress()
+	var tx := A.warm_progress()
+	var au: Vector2i = Sfx.warm_progress()
+	var done := nm.x + tx.x + au.x
+	var total := nm.y + tx.y + au.y
+	var what := "展开战场"
+	var n := Vector2i.ZERO
+	if A.prewarm_busy():
+		what = "准备光照贴图"
+		n = nm
+	elif _op_warm_more:
+		what = "读取干员与海嗣帧条"
+		n = tx
+	elif Sfx.warm_busy():
+		what = "准备作战音频"
+		n = au
+	loading.set_progress(float(done) / float(total) if total > 0 else 1.0, what, n)
 
 
 ## 本作徽记（菱形 + 一道浪）：标题页小标与主按钮用（不用原作的集成战略标志）
@@ -842,15 +755,17 @@ func _draw_emblem(c: Vector2, r: float, col: Color) -> void:
 ## 操作说明（10-22 用户：每条一行，只写键位 + 动作；页面换寻访 hh_style 模板）：[动作, 键鼠, 手柄]；触屏只用前两列
 const GUIDE_ROWS := [
 	["移动", "WASD / 方向键", "左摇杆"],
-	["冲刺", "空格", "Ⓑ / RB"],
+	["冲刺", "空格", "Ⓑ"],
 	["队长技能", "E / J", "Ⓐ / Ⓨ"],
 	["切换队长", "Q", "RB"],
+	["指挥圆盘", "F（按住选，松开确认）", "LB"],
 	["手动普攻", "左键 / J", "Ⓧ / RT"],
 	["瞄准", "鼠标", "右摇杆"],
 	["选卡", "数字键 / 点击", "Ⓐ"],
 	["暂停", "Esc", "START"],
 	["属性", "Tab / C", "SELECT"],
 	["重看指南", "暂停时 G", "暂停菜单"],
+	["倍速", "V", ""],
 	["音乐开关", "M", ""],
 	["重来 / 回标题", "R / T", ""],
 ]
@@ -859,6 +774,8 @@ const TOUCH_GUIDE := [
 	["冲刺", "冲刺键"],
 	["队长技能", "技能键 · 按住拖动瞄准"],
 	["手动普攻", "攻击键 · 按住拖动瞄准"],
+	["指挥圆盘", "指挥键 · 点选"],
+	["切换队长", "点编队栏头像"],
 	["选卡", "点卡片"],
 	["暂停 / 属性", "暂停键 / 属性键"],
 	["重看指南", "暂停菜单 · 指南"],
@@ -893,7 +810,7 @@ func _draw_guide(vs: Vector2) -> void:
 		if not touch and rows[i][2] != "":
 			UI.text_at(self, font, Vector2(px, y + step / 2.0 - 3.0), rows[i][2], 18, Color8(200, 210, 222), "lm")
 	HS.bottom_bar(self, vs, 52.0)
-	UI.text_at(self, font, Vector2(x0, vs.y - 26.0), "编队、灯火、藏品、商人、结局：见开局指南", 14, HS.MUTE, "lm")
+	UI.text_at(self, font, Vector2(x0, vs.y - 26.0), "编队、灯火、溟痕、指挥、藏品、商人：见开局指南", 14, HS.MUTE, "lm")
 	HS.ghost_btn(self, font, Rect2(vs.x - 196, vs.y - 44, 168, 36), "返回", Pad.hint("Esc", "Ⓑ", ""))
 
 
@@ -1188,23 +1105,7 @@ func _compare_shot(spec: String) -> void:
 		get_tree().quit())
 
 
-## 寻访磁贴：有凭证且还有没招募的干员才能进（没有就灰显，不隐藏）
+## 寻访入口：有凭证且还有没招募的干员才能进（没有就灰显，不隐藏）
 func _hunt_ready() -> bool:
 	const R = preload("res://scripts/core/roster.gd")
 	return R.active() and R.tickets() >= R.COST_RANDOM and not R.locked_ids().is_empty()
-
-
-## 寻访磁贴右上角的凭证数角标（黄底斜块 + 黑字；没有凭证时灰）
-func _draw_hunt_badge(rise: float, ta: float) -> void:
-	if not menu_lay.has("rects") or not menu_lay.rects.has(7) or rise < 1.0:
-		return
-	const R = preload("res://scripts/core/roster.gd")
-	var r: Rect2 = menu_lay.rects[7]
-	var s := "×%d" % R.tickets()
-	var w: float = font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 18.0
-	var br := Rect2(r.end.x - w + 8.0, r.position.y - 14.0, w, 20.0)
-	var col := Color8(255, 206, 0) if R.tickets() > 0 else Color8(110, 118, 128)
-	col.a = ta
-	var k := br.size.y * 0.18
-	draw_colored_polygon(PackedVector2Array([br.position + Vector2(k, 0), Vector2(br.end.x, br.position.y), br.end - Vector2(k, 0), Vector2(br.position.x, br.end.y)]), col)
-	UI.text(self, font, Vector2(br.position.x, br.position.y + 15.0), s, 14, Color(0.07, 0.07, 0.09, ta), HORIZONTAL_ALIGNMENT_CENTER, br.size.x)

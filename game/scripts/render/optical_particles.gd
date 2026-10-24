@@ -35,6 +35,7 @@ var _fi := 0
 var _si := 0
 var _spark_t := 0.0
 var spores: GPUParticles2D
+var warm_spores: GPUParticles2D   # docs/139 §6.6 暖色孢子（render/warm_spores > 0 时才建）
 var embers: GPUParticles2D
 var _mat_cache := {}          # 帧条名 → [ParticleProcessMaterial, 发光色]
 var fluid_mat: ParticleProcessMaterial
@@ -114,7 +115,19 @@ func setup(game, wp: Node2D, gp: Node2D) -> void:
 	sm.initial_velocity_min = 3.0
 	sm.initial_velocity_max = 9.0
 	spores.preprocess = 9.0
-	embers = _ambient(glow_parent, int(16 * k_amount), 1.6, Color.WHITE)
+	# docs/139 §6.6 试验旋钮：render/ember_n 灯火余烬数（缺省 16）；render/warm_spores 暖色孢子数（缺省 0 = 不开，琥珀色、与环境孢子同一套漂浮）
+	embers = _ambient(glow_parent, maxi(1, int(Bal.v("render/ember_n", 16.0) * k_amount)), 1.6, Color.WHITE)
+	var wn: int = int(Bal.v("render/warm_spores", 0.0) * k_amount)
+	if wn > 0:
+		warm_spores = _ambient(glow_parent, wn, 9.0, Color.WHITE)
+		var wm: ParticleProcessMaterial = warm_spores.process_material
+		wm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+		wm.emission_box_extents = Vector3(760, 440, 0)
+		wm.direction = Vector3(0, -1, 0)
+		wm.spread = 40.0
+		wm.initial_velocity_min = 3.0
+		wm.initial_velocity_max = 9.0
+		warm_spores.preprocess = 9.0
 	var em: ParticleProcessMaterial = embers.process_material
 	em.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
 	em.emission_sphere_radius = 10.0
@@ -193,6 +206,9 @@ func set_active(on: bool) -> void:
 	active = on and k_amount > 0.0 and Cfg.quality != "low"
 	spores.visible = active
 	spores.emitting = active
+	if warm_spores != null:
+		warm_spores.visible = active
+		warm_spores.emitting = active
 	embers.visible = active
 	embers.emitting = active
 	if not active:
@@ -209,6 +225,9 @@ func step(cam_center: Vector2, lamp_pos: Vector2, env: Color, lamp: Color) -> vo
 		return
 	spores.global_position = cam_center
 	embers.global_position = lamp_pos + Vector2(0, -6)
+	if warm_spores != null:
+		warm_spores.global_position = cam_center
+		warm_spores.modulate = lamp
 	spores.modulate = env
 	embers.modulate = lamp
 	env_col = env
@@ -379,7 +398,7 @@ func step_trails(danger: Color, on: bool) -> void:
 			if b.life <= 0.0:
 				continue
 			_tp_img.set_pixel(n, 0, Color(b.pos.x, b.pos.y - 16.0, 0, 1))
-			_tc_img.set_pixel(n, 0, danger)
+			_tc_img.set_pixel(n, 0, g.optical.eb_col(b) if g.optical != null else danger)   # Boss 弹危险色、杂兵弹敌弹色（docs/139 §7.3）
 			n += 1
 	trails.visible = n > 0
 	trails.emitting = n > 0

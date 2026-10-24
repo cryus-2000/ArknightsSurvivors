@@ -13,6 +13,8 @@ const EXT_BLOCKS := {
 	"shape.line": "instant",          # 直线斩：从自身朝最近目标（手动普攻按 A 方向）长 len、宽 width 的矩形，命中沿线全部
 	# verb.displace / verb.field 与安洁莉娜共用，合并时统一到文件末尾「共用积木」段（SHARED_TAGS）
 	"verb.negate_next": "skill",      # 技能持续期间，主控下一次受到的攻击完全格挡（on_block）；持续结束仍没挨打则执行 on_miss
+	"verb.taunt_guard": "skill",      # 10-24 星熊 S1（docs/140）：技能持续期间本干员站定（是队长时照常走）、把半径 r 内近战杂兵的仇恨拉到自己身上；
+	                                  # 结束时执行 on_end，其中伤害形状的倍率 + per × min(期间拉到的不同敌人数, cap)
 	"verb.dr": "sustain",             # 主控受到的伤害 × (1 - value)（经 dmg_taken_mult）
 	"verb.negate_chance": "sustain",  # 本干员带 negate 的 trig.on_hurt 概率：(chance + Σadd) × Πmult
 	"verb.swap_attack": "sustain",    # 生效期间普攻换成 attack 里的形状（节奏仍按 blocks.attack.every）
@@ -29,6 +31,8 @@ static func ext_cond_true(o, k: String) -> bool:
 	match k:
 		"beacon_charging":
 			return o.g.beacon_sys != null and o.g.beacon_sys.charging != null
+		"enemy_near":   # 普攻范围（形状半径 + 30，同起手的找目标半径）内有敌人（德克萨斯疾刃三连：没有敌人就照常两连斩，10-23）
+			return not o.nearest_enemies(1, shape_radius(o, o.cur_attack()) + 30.0, o.pos).is_empty()
 	return false
 
 
@@ -144,6 +148,11 @@ static func _ext_block(b: Dictionary, p: String, kind: String, tag: String, xk: 
 			_num(b, "stun", p, ctx, false, 0.0, 10.0)
 			_src(b, p, ctx, true)
 			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
+		"verb.taunt_guard":
+			_num(b, "r", p, ctx, true, 20.0, 600.0)
+			_num(b, "per", p, ctx, false, 0.0, 2.0)
+			_num(b, "cap", p, ctx, false, 1.0, 200.0)
+			_list(b.get("on_end", []), p + ".on_end", "instant", ctx)
 		"verb.negate_next":
 			_list(b.get("on_block", []), p + ".on_block", "instant", ctx)
 			_list(b.get("on_miss", []), p + ".on_miss", "instant", ctx)

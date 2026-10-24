@@ -60,8 +60,35 @@
   "regen": 1.4
  },
  "sprites": {
-  "move_attack": {"tex": "op_siege_move_attack", "frames": 8, "foot": [32, 60], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},
-  "entry": {"tex": "op_siege_entry", "frames": 8, "fps": 12.1747, "foot": [32, 60], "frame_durations": [0.0821, 0.0822, 0.0821, 0.0821, 0.0822, 0.0821, 0.0822, 0.0821], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/siege_entry.json），64 画布 @2x；落下由代码补"},
+  "move_attack": {
+   "tex": "op_siege_move_attack",
+   "frames": 8,
+   "foot": [
+    32,
+    60
+   ],
+   "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"
+  },
+  "entry": {
+   "tex": "op_siege_entry",
+   "frames": 8,
+   "fps": 12.1747,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.0821,
+    0.0822,
+    0.0821,
+    0.0821,
+    0.0822,
+    0.0821,
+    0.0822,
+    0.0821
+   ],
+   "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/siege_entry.json），64 画布 @2x；落下由代码补"
+  },
   "idle": {
    "tex": "op_siege_idle",
    "frames": 8,
@@ -205,7 +232,8 @@
    "fire": 3
   }
  },
- "extra_sprites": ["entry", 
+ "extra_sprites": [
+  "entry",
   "leap_native",
   "heavy_attack",
   "activation"
@@ -581,7 +609,8 @@
        "near": 0.6
       }
      }
-    ]
+    ],
+    "need_enemy": 150
    },
    {
     "dur": "$s3_dur",
@@ -630,7 +659,8 @@
       "banner": "碎颅击"
      }
     ],
-    "do": []
+    "do": [],
+    "need_enemy": 140
    }
   ],
   "talent": [

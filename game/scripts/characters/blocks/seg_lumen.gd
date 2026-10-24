@@ -682,7 +682,7 @@ static func _e3_refract(o, bt: Dictionary, e: Dictionary, dmg: float) -> void:
 	best["lit"] = float(bt.get("lit", 3.0))
 	var a: Vector2 = e.pos + Vector2(0, -e.r * 0.5)
 	var b: Vector2 = best.pos + Vector2(0, -best.r * 0.5)
-	o.fx({"kind": "line", "pos": a, "to": b, "life": 0.12, "col": Color(1.6, 1.45, 1.0), "w": 1.0})
+	o.fx({"kind": "line", "pos": a, "to": b, "life": 0.12, "col": Color(1.6, 1.45, 1.0), "w": 1.0, "laser": true})
 	if not o.spawn_fx_sprite(str(rf.get("hit", "fx_lumen_refract_hit")), b, g.PX):
 		o.spawn_fx_sprite("fx_holy_impact_lantern", b, g.PX * 0.5)
 

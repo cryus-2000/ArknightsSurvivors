@@ -5,6 +5,7 @@
 ## 干员调用 game.gd 的能力一律走 op_api.gd（本类的父类），不直接调用 g._ 开头的内部函数。
 extends "res://scripts/characters/op_api.gd"
 
+const LaserDraw = preload("res://scripts/render/laser_draw.gd")
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")   # 地裂共用画法
 const A = preload("res://scripts/art.gd")
 const OperatorContract = preload("res://scripts/characters/operator_contract.gd")   # 帧条 / 动画数据契约（docs/108 §10）
@@ -104,12 +105,18 @@ static func exists(cid: String) -> bool:
 	return OpDefs.exists(cid)
 
 
+## 干员脚本路径（定义里的 script 字段，缺省见 create）；进局载入页先在后台线程编译它（title.gd）
+static func script_path(cid: String) -> String:
+	var d := load_def(cid)
+	return d.get("script", "res://scripts/characters/data_operator.gd" if d.has("blocks") else "res://scripts/characters/%s.gd" % cid)
+
+
 ## 按 id 实例化角色（脚本路径来自定义里的 script 字段，默认 scripts/characters/<id>.gd；
 ## 有 blocks 而没写 script 的是数据干员，用 data_operator.gd，docs/61）。
 ## 测试开关 --opscript=<id>=<脚本路径>：同一个 id 改用别的脚本加载（积木等价测试用手写参照，tools/check.py blocks_eq）
 static func create(game, cid: String) -> RefCounted:
 	var d := load_def(cid)
-	var path: String = d.get("script", "res://scripts/characters/data_operator.gd" if d.has("blocks") else "res://scripts/characters/%s.gd" % cid)
+	var path := script_path(cid)
 	for a in (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()):   # 发布版不读命令行（check_release）；Cfg 在测试场景可能未加载，同 balance.gd 写法
 		if a.begins_with("--opscript=%s=" % cid):
 			path = a.substr(("--opscript=%s=" % cid).length())
@@ -196,9 +203,14 @@ func charge_skills(_dt: float) -> int:
 		var need := sp_need(i)
 		if need <= 0.0 or skill_active_left(i) > 0.0 or perm[i]:
 			continue
-		if sp[i] >= need and not is_manual(i):
+		if sp[i] >= need and not is_manual(i) and skill_gate_ok(i):
 			ready = i
 	return ready
+
+
+## 自动技能的放出条件（10-23 用户定：德克萨斯「射程内没有敌人就不放，技力保留到有敌人再放」）。基类恒真，数据干员读 blocks.skills[i].need_enemy
+func skill_gate_ok(_i: int) -> bool:
+	return true
 
 
 ## 技能充能（每帧，不论是否在出手）：生效中的持续型技能与永久型不充
@@ -634,7 +646,8 @@ func draw_pfx(floor_layer: bool) -> void:
 				var sv: Vector2 = Vector2.from_angle(f.get("ang", 0.0)) * f.get("sz", 6.0)
 				cv.draw_colored_polygon(PackedVector2Array([f.pos - sv, f.pos + sv.orthogonal() * 0.45, f.pos + sv]), Color(c.r * 1.5, c.g * 1.5, c.b * 1.5, a))
 			"line":
-				cv.draw_line(f.pos, f.get("to", f.pos), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a), f.get("w", 2.0))
+				if not (f.get("laser", false) and LaserDraw.draw(g, f, a, cv)):   # 激光 A（docs/138 §12）：只接管标了 laser 的瞬时激光线
+					cv.draw_line(f.pos, f.get("to", f.pos), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a), f.get("w", 2.0))
 			"flame":
 				# 火舌：底宽上尖，随时间抖动
 				var h: float = f.get("sz", 10.0) * (0.6 + 0.4 * a)
@@ -1186,8 +1199,8 @@ func follow(dt: float, target: Vector2) -> void:
 		vis_anim = ""   # 播完回待机（末帧 = 待机 f0，收招不跳）
 	_tick_sq_shadow(dt)
 	# 跑步帧率按实际移动速度缩放（原固定 fps：快速前压的近战队友脚步打滑 3 倍以上）；帧条按主控基础移速 RUN_REF 画
-	if anim_kind == "run":
-		advance_run_phase(dt)
+	if anim_kind == "run" or (sq_ph == 2 and sq.has("run") and anim_kind == seq_anim(sq.run)):
+		advance_run_phase(dt)   # 技能循环里的跑动段（sprites.skills.sN.run，如星熊格挡移动）也按移速推进同一相位
 
 
 ## 原生画面让位跑步时也使用同一速度时钟；不被攻击起手重置。
@@ -1321,9 +1334,22 @@ func act_anim_yield() -> bool:
 	var spec := sprite_spec(act_anim)
 	if spec.has("frame_durations") and not attack_phased and elapsed >= frames_seconds(act_anim, range(int(spec.get("frames", 0)))) - 0.000001:
 		return true
-	if elapsed >= attack_fire_at and anim_tex("run") != null and anim_tex("move_" + act_anim) == null and mv > (RUN_EXIT if anim_kind == "run" else RUN_ENTER):
+	if elapsed >= attack_fire_at and anim_tex("run") != null and anim_tex("move_" + act_anim) == null and mv > (RUN_EXIT if anim_kind == "run" else RUN_ENTER) and _act_frame(elapsed) > _act_frame(attack_fire_at) and not def.get("sprites", {}).get("hover_attack", false) == true:   # hover_attack：悬浮移动（腿不交替），出手动作移动时照播不让
 		return true   # 有移动攻击帧条时不再出手后就切跑步（收势被截），播完整个动作（_move_swap 换成跑动版）
 	return false
+
+
+## 出手动作在 elapsed 秒时的画面帧号（同 _anim_state_raw 的取帧算式）。让位要等出手帧播完（10-24 docs/140：原来出手那一帧就切跑步，
+## 移动中放技能 / 浊心斯卡蒂普攻的出手姿势一帧都看不到）
+func _act_frame(elapsed: float) -> int:
+	var spec := sprite_spec(act_anim)
+	var tx := anim_tex(act_anim)
+	var n := int(spec.get("frames", anim_hframes(tx, act_anim) if tx != null else 1))
+	if attack_phased:
+		return attack_phase_frame(n, int(spec.get("fire", 0)), elapsed, act_anim)
+	if spec.has("frame_durations"):
+		return timed_frame(act_anim, range(n), elapsed)
+	return clampi(int(elapsed / maxf(attack_dur, 0.000001) * n), 0, n - 1)
 
 
 ## 纯画面动作的时长：帧数 / fps（没写 fps 按 12）
@@ -1454,6 +1480,8 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 	var urgent = null
 	var score := INF
 	var urgent_d := guard
+	var prio: int = g.squad.priority   # 指挥圆盘的索敌优先级（docs/114 §13）：1 清杂优先 / 2 Boss 优先；0 = 原逻辑
+	var cands: Array = []   # [候选, 原得分]：优先级 ≠ 0 时再按优先级重排
 	for j in query_ids(g.ppos, radius):
 		var en: Dictionary = g.enemies[j]
 		if en.dead or en.pos.distance_to(g.ppos) > radius or (is_same(en, _cmd_failed) and g.t < _cmd_retry_at):
@@ -1465,12 +1493,18 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 		var d: float = en.pos.distance_to(rear)
 		if cls == "重装":
 			d += leader_d   # 重装优先近身威胁，但同样必须进入自己的攻击距离。
+		if prio != 0:
+			cands.append([en, d])
 		if d < score:
 			score = d
 			best = en
+	if prio != 0 and not cands.is_empty():
+		best = _cmd_prio_pick(cands, prio, best)
 	var e = roam_tgt
 	if e == null or e.dead or e.pos.distance_to(g.ppos) > radius or (is_same(e, _cmd_failed) and g.t < _cmd_retry_at):
 		e = best
+	elif prio != 0 and best != null and not is_same(e, best) and _cmd_prio_rank(e, prio) > _cmd_prio_rank(best, prio):
+		e = best   # 换了优先级：当前目标不符合、而圈里有符合的，就换过去（不然要等当前目标死了才换）
 	if urgent != null and (e == null or e.pos.distance_to(g.ppos) > guard + GUARD_MARGIN):
 		e = urgent
 	roam_tgt = e
@@ -1511,6 +1545,41 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 			toward = Vector2(-face, 0)
 		p = e.pos + toward.normalized() * reach
 	return g.ppos + (p - g.ppos).limit_length(radius)
+
+
+## 指挥圆盘优先级的目标档位：0 = 偏好的（Boss 优先时是 Boss / 精英 / 部件，清杂优先时是杂兵），1 = 其余
+func _cmd_prio_rank(en: Dictionary, prio: int) -> int:
+	var big: bool = en.boss or en.elite or en.get("part", false)
+	return 0 if (big if prio == 2 else not big) else 1
+
+
+## 在候选里按优先级挑一个：偏好档位里取原得分最小的（Boss 优先 / 清杂都先看档位）；清杂优先再让周围 90 像素内同类多的加分（密集处，最多 6 个，每个抵 30 像素）；
+## 偏好档位里一只都没有就沿用原来的最优（fallback）。不抽随机数
+func _cmd_prio_pick(cands: Array, prio: int, fallback):
+	var pick = null
+	var best_s := INF
+	var pref: Array = []
+	for c in cands:
+		if _cmd_prio_rank(c[0], prio) == 0:
+			pref.append(c)
+	if pref.is_empty():
+		return fallback
+	pref.sort_custom(func(a, b): return a[1] < b[1])
+	var top: int = mini(pref.size(), 16)   # 密集度只在原得分最小的 16 个里算，省开销
+	for i in top:
+		var sc: float = pref[i][1]
+		if prio == 1:
+			var cnt := 0
+			for k in pref.size():
+				if cnt >= 6:
+					break
+				if pref[i][0].pos.distance_squared_to(pref[k][0].pos) <= 8100.0:
+					cnt += 1
+			sc -= 30.0 * float(cnt)
+		if sc < best_s:
+			best_s = sc
+			pick = pref[i][0]
+	return pick
 
 
 ## 射程内也可能隔着景物；先找射线通畅的位置，行走路径交给局部绕行。
@@ -1632,8 +1701,9 @@ func draw_extra_shadows() -> void:
 ## 各段直接调 arc_targets 的都经过这里）在同一处画一道像素刀光弧，半径与半角 = 这次判定的实际值（数值改判定会自动跟随）。
 ## 只画画面（g.vfx.melee_arc），不改判定；远程职业与技能不画
 const MELEE_CLASS := ["近卫", "重装", "特种", "先锋"]
+const NO_ARC := ["specter_unchained"]   # 10-24 用户「归溟幽灵鲨不需要刀光特效」：只留她自己的帧条（血锯等）
 func arc_targets(origin: Vector2, ang: float, half: float, radius: float) -> Array:
-	if act_kind == "attack" and attack_t > 0.0 and g.vfx != null and not g.headless_batch and (cls in MELEE_CLASS or id == "skalter"):
+	if act_kind == "attack" and attack_t > 0.0 and g.vfx != null and not g.headless_batch and (cls in MELEE_CLASS or id == "skalter") and not id in NO_ARC:
 		g.vfx.melee_arc(self, origin, ang, half, radius)
 	return super(origin, ang, half, radius)
 
@@ -1765,10 +1835,11 @@ func anim_state() -> Dictionary:
 ## 移动攻击（10-23 用户「边跑边攻击」，docs/128 §3）：出手动作期间在移动、且有 sprites.move_<动作> 帧条（帧数相同）时，
 ## 只换贴图：上半身同一动作、腿是跑步步态。帧序号 / 脚底 / kind 不变，所以出手点、炮口等玩法读数与原动作一致；纯画面
 func _move_swap(st: Dictionary) -> Dictionary:
-	if st.is_empty() or attack_t <= 0.0 or mv <= RUN_ENTER:
+	if st.is_empty() or mv <= RUN_ENTER:
 		return st
 	var k := str(st.get("kind", ""))
-	if k == "" or k != act_anim:
+	# 普攻 / 技能动作（出手窗口内），或技能循环里的普攻变体（sq_atk，播到末帧；10-24 塞雷娅跑动拳击）
+	if k == "" or not ((attack_t > 0.0 and k == act_anim) or (sq_atk != "" and k == sq_atk)):
 		return st
 	var mtx: Texture2D = anim_tex("move_" + k)
 	if mtx == null or anim_hframes(mtx, "move_" + k) != int(st.get("hf", 0)):
@@ -2066,8 +2137,8 @@ func _sq_kind() -> String:
 func _sq_frame(n: int) -> int:
 	var seg = _sq_seg()
 	var k := seq_anim(seg)
-	if sq_ph == 2 and k == "run":
-		return int(run_ph) % n   # 普通跑步与技能跑步共享相位，不随技能计时重启。
+	if sq_ph == 2 and (k == "run" or (sq.has("run") and k == seq_anim(sq.run))):
+		return int(run_ph) % n   # 普通跑步与技能跑步段共享相位，不随技能计时重启；步频随移速（10-24 起非 run 帧条的跑动段也是）
 	var frs: Array = [0] if (sq_ph == 1 and sq.has("hold") and not (seg is Dictionary)) else _seq_frames(seg, k)
 	if frs.is_empty():
 		return 0
@@ -2188,6 +2259,11 @@ func _tick_sq_atk(dt: float) -> void:
 func _sq_atk_yield() -> bool:
 	if sq_atk == "" or sq_ph != 2 or not sq.has("run") or sq_atk_t < attack_fire_at:
 		return false
+	if anim_tex("move_" + sq_atk) != null:
+		return false   # 变体有跑动版：不让位，_move_swap 换上（10-24 塞雷娅跑动拳击）
+	var spec := sprite_spec(sq_atk)
+	if _sq_atk_frame(int(spec.get("frames", anim_hframes(anim_tex(sq_atk), sq_atk)))) <= int(spec.get("fire", 0)):
+		return false   # 出手帧播完再让（10-24 docs/140，同 act_anim_yield）
 	var run_slot := seq_anim(sq.run)
 	return anim_tex(run_slot) != null and mv > (RUN_EXIT if anim_kind == run_slot else RUN_ENTER)
 

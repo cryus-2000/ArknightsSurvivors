@@ -20,6 +20,8 @@
 
 ### 画面（走光学观感：粒子与特效照明，不用 Light2D）
 
+> 10-24 起高 / 中画质改走像素颗粒版（docs/143）；下面这套是低画质 / 关光学观感的回退画法。
+
 - 路径一道**锚链拖痕**：每帧在位移线段上留 0.35 秒 floor 线（钢蓝色）+ 本体残影与身后三道拖线（`hw_draw_tether` 冲锋段，沿用旧弹射画法）。
 - 每走 36 像素扬起一团 `fx_ulpianus_drag_dust` 帧条（`spawn_fx_sprite`，贴地）；一次性帧条特效会被光学观感自动认出：`optical_particles.fx_burst` 按它的本色喷火星 / 碎片，`optical._dyn_lights` 把它登记成动态灯（强度随剩余寿命）——**不另挂 Light2D、不另写粒子**。
 - 落地震地环沿用 `UlpImpact.spawn`（`ulp_wave` 水环 + `ulp_fracture` 地裂 + `fx_splash_blue` 帧条），同样自动得到粒子与灯。
