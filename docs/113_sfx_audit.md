@@ -337,3 +337,16 @@
 | | i4 | 167916 ani_music「Steel chain hard clicking」 | 1.45–2.05 s |
 
 截取起止点是按能量包络与频谱挑的，没有人耳试听过，试听页上由用户选；录音原频谱偏亮（733608 重心 8–14 kHz），低通后 4 kHz 以上仍占 16–42%，若仍刺耳，选 t5 / r4 / i3 / i4（重心 1.4–2.2 kHz）。CC0 不强制署名，接入时仍在 `data/credits.json`「音乐与音效」写明作者与 URL。
+
+## 15. 德克萨斯冲刺（10-24 用户：「冲锋说的是德克萨斯的冲锋」）
+
+§13 把「冲锋」当成乌尔比安 S3，用户纠正：指的是德克萨斯。她的冲刺有三个来源：普攻「冲刺斩」（≈ 每 1.05 s 一次）、天赋「战术快递」（队长冲刺时同向冲）、二技能「冲锋号令·γ型」（永久加长冲刺距离）。位移 0.24 s（先快后慢）+ 停留 0.2 s，沿途斩击（`seg_texas._tx_sweep`），画面是 `fx_texas_dash` 残影帧条。
+
+**现状**：数据里 `"sfx": "atk"` → `tx_dash_start` 起冲时播 `op_texas_atk`（§8 的 Kenney knifeSlice 刀划，0.22 s，−11 dB）；`_tx_dash_end` 在这次冲刺打到人时播 `op_texas_hit`（OP_ALT 借艾丽妮命中 ×1.1，−3 dB）。问题：只有一声刀划，**没有蹬地爆发、没有随位移衰减的呼啸、没有收势**；刀划是「挥」不是「冲」，和先快后慢的位移 / 残影对不上；起冲与收势隔 0.44 s，中间是空的。
+
+**候选**（`game/tools/gen_sfx_review_texas_1024.py`，试听页第五节，未接进游戏）：
+- 起冲 / 收势两类；每类一个现用版、一个合成版、若干 CC0 录音（全部 Freesound CC0 1.0，页面核对过，来源 URL / 作者见试听页与 `build/sfx_candidates_1024/freesound/meta.json`）。
+- 合成起冲：蹬地低频「嗒」+ 一丝刃鸣 + 3.2→0.7 kHz 下行扫频风声（先快后慢，0.3 s）；合成收势：靴底刹停摩擦 + 刃「嘶」+ 轻「咚」（0.2 s）。
+- CC0 起冲 d1 521999 Kastenfrosch「Whoosh / Dash」、d2 803773 Logicogonist「whoosh 1 short」、d3 507466 Danjocross「Clean fast Swoosh」、d4 60004 qubodup「Fast Sword Swing Sound」、d5 522701 julianmateo_「Metal sword swing fast impact」；收势 e1 426322 MTJohnson「Single Sword Hit」、e2 434896 TheBuilder15「Sword Impact」、e3 417035 FunWithSound「Quick Sword Draw」。
+- 处理同 §14（50 Hz 高通、5.5 kHz 低通、响度对齐现用 `op_texas_atk` / 艾丽妮命中）。整段对照：两次冲刺（间隔 1.05 s）按代码时序和 sfx.gd 音量摆好。
+- 起冲节奏每秒约 1 次，文件都在 0.5 s 以内；接入时 `OP_SFX["texas"]` 加 `go`、`end`（或直接替换 `op_texas_atk` / 给 `op_texas_hit` 专属文件），`seg_texas._tx_dash_end` 的 `hit` 改播 `end`，一次冲刺只响一次起冲。
