@@ -1106,8 +1106,10 @@ func bot_move() -> Vector2:
 	var pull := Vector2.ZERO
 	var best := 260.0
 	for g_item in g.gems:
+		if g_item.kind == "pack" and g.hp > g.max_hp * Bal.v("crate/bot_below", 0.75):
+			continue   # 应急补给：残血才去捡（docs/133 §6）
 		var gd: float = g_item.pos.distance_to(g.ppos)
-		var w: float = gd * (0.4 if (g_item.kind == "oil" and g.lamp < 60.0) or g_item.kind == "chest" else 1.0)
+		var w: float = gd * (0.4 if (g_item.kind == "oil" and g.lamp < 60.0) or g_item.kind == "chest" or g_item.kind == "pack" else 1.0)
 		if w < best:
 			best = w
 			pull = (g_item.pos - g.ppos).normalized() * 0.7

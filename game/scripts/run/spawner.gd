@@ -538,7 +538,13 @@ func update(dt: float) -> void:
 		_norm = false
 	# 补给箱
 	if g.t >= next_chest:
-		next_chest = g.t + g.rng_spawn.randf_range(35.0, 50.0)
+		# 刷出间隔前松后紧（docs/133）：crate/early_until 秒前 [early_lo, early_hi]，crate/mid_until 秒前 [mid_lo, mid_hi]，之后 [late_lo, late_hi]；
+		# crate/pack_p 0（关）时仍是原来的 35–50 秒
+		if Bal.v("crate/pack_p", 0.0) > 0.0:
+			var tier: String = "early" if g.t < Bal.v("crate/early_until", 300.0) else ("mid" if g.t < Bal.v("crate/mid_until", 480.0) else "late")
+			next_chest = g.t + g.rng_spawn.randf_range(Bal.v("crate/%s_lo" % tier, 35.0), Bal.v("crate/%s_hi" % tier, 50.0))
+		else:
+			next_chest = g.t + g.rng_spawn.randf_range(35.0, 50.0)
 		var nch := 0
 		for e in g.enemies:
 			if e.chest and e.get("event", "") == "":
