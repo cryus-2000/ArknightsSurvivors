@@ -266,12 +266,18 @@ static func _hw_attack(atk: Dictionary, ctx: Dictionary) -> void:
 	var errs: Array = ctx.errs
 	_num(atk, "first", "blocks.attack", ctx, false, 0.0, 30.0)
 	_num(atk, "idle", "blocks.attack", ctx, false, 0.0, 5.0)
-	if atk.has("far"):   # 远程兜底（docs/122 §2.1）：触及内没有敌人时这一下改掷远程形状
-		var fr = atk.far
-		if not (fr is Dictionary) or not str(fr.get("shape", "")) in ["wave", "circle", "cone"]:
-			errs.append("blocks.attack.far 必须是一个伤害形状对象（shape.wave / circle / cone），触及内没有敌人时替代这一下普攻")
-		else:
-			_list([fr], "blocks.attack.far", "skill", ctx)
+	if atk.has("far"):   # 远程形态（docs/61 §21.3）：一个形状对象，或一组带 cond 的形状对象（第一块 cond 成立的）
+		var fl = atk.far
+		for fr in (fl if fl is Array else [fl]):
+			if not (fr is Dictionary) or not str(fr.get("shape", "")) in ["wave", "circle", "cone"]:
+				errs.append("blocks.attack.far 必须是一个伤害形状对象（shape.wave / circle / cone）或这样的数组，远处的这一下替代近战普攻")
+			else:
+				_num(fr, "every", "blocks.attack.far", ctx, false, 0.1, 10.0)
+				if fr.has("anim") and not (fr.anim is String):
+					errs.append("blocks.attack.far.anim 必须是帧条名")
+				if fr.has("count") and not (fr.count is bool):
+					errs.append("blocks.attack.far.count 必须是 true / false")
+				_list([fr], "blocks.attack.far", "skill", ctx)
 	if atk.has("combo"):
 		var cb = atk.combo
 		if not (cb is Array) or cb.is_empty() or cb.size() > 6:
