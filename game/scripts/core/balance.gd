@@ -31,7 +31,6 @@ static func _load() -> void:
 			cur[keys[keys.size() - 1]] = float(kv[1])
 	_preset("nausea_safe", NAUSEA_SAFE)
 	_preset("palette_trial", PALETTE_TRIAL)
-	_preset("warm_trial", WARM_TRIAL)
 
 
 ## docs/139 画面眩晕排查的「推荐组合」试验开关 render/nausea_safe（缺省 0 = 不动）：1 时把 NAUSEA_SAFE 里的旋钮一次套上，
@@ -57,17 +56,6 @@ const PALETTE_TRIAL := {
 	"render/optical_mire_emit": 0.2,
 	"render/mire_tint_r": 0.5, "render/mire_tint_g": 0.95, "render/mire_tint_b": 0.8,
 	"render/zone_dark_r": 0.03, "render/zone_dark_g": 0.08, "render/zone_dark_b": 0.12,
-}
-
-
-## docs/139 §6.6「只给环境去色 + 暖色兜底」试验开关 render/warm_trial（缺省 0）：干员 / 怪物 / 特效颜色不动
-const WARM_TRIAL := {
-	"render/env_sat": 0.55,
-	"render/env_bright": 1.15,
-	"render/ground_glow": 0.1,
-	"render/ground_glow_warm": 0.4,
-	"render/warm_spores": 26.0,
-	"render/ember_n": 32.0,
 }
 
 

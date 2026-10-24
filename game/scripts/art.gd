@@ -745,6 +745,39 @@ static func desat_of(src: Texture2D, s: float, bright := 1.0) -> Texture2D:
 	return t
 
 
+## 换色相副本（docs/139 §6.7 敌弹改蓝）：色相落在 [lo, hi]（度，可跨 360）且饱和 > 0.15 的像素改成 hue（度），饱和 / 明度不变，
+## 深色描边（色相不在区间）原样；CanvasTexture 只换漫反射
+static func hue_to(src: Texture2D, hue: float, lo: float, hi: float) -> Texture2D:
+	if src == null:
+		return src
+	var base: Texture2D = src.diffuse_texture if src is CanvasTexture else src
+	var img := base.get_image() if base != null else null
+	if img == null:
+		return src
+	if img.is_compressed():
+		img.decompress()
+	img.convert(Image.FORMAT_RGBA8)
+	for y in img.get_height():
+		for x in img.get_width():
+			var c := img.get_pixel(x, y)
+			if c.a <= 0.0 or c.s <= 0.15:
+				continue
+			var h := c.h * 360.0
+			var inside := (h >= lo and h <= hi) if lo <= hi else (h >= lo or h <= hi)
+			if inside:
+				img.set_pixel(x, y, Color.from_hsv(hue / 360.0, c.s, c.v, c.a))
+	var t := ImageTexture.create_from_image(img)
+	_hires_rid[t.get_rid()] = hires_of(base)
+	if src is CanvasTexture:
+		var ct := CanvasTexture.new()
+		ct.diffuse_texture = t
+		ct.normal_texture = (src as CanvasTexture).normal_texture
+		ct.texture_filter = (src as CanvasTexture).texture_filter
+		_hires_rid[ct.get_rid()] = hires_of(src)
+		return ct
+	return t
+
+
 static var _white_cache := {}   # 原贴图 instance id → 白色剪影（10-21：每建一局都从显存读回重算，图鉴演示每点一次卡 1–2 秒）
 
 

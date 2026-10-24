@@ -30,9 +30,15 @@ VARS = {
     "base": [],
     "palette": ["--bal=render/palette_trial=1"],
     # 只给环境去色 + 暖色兜底（用户 10-24：全套调色显灰、干员不能掉色）
-    "warm": ["--bal=render/warm_trial=1"],
+    "warm": ["--bal=render/env_sat=0.55", "--bal=render/env_bright=1.15", "--bal=render/optical_ground_glow=0.1", "--bal=render/ground_glow_warm=0.4",
+             "--bal=render/warm_spores=26", "--bal=render/ember_n=32"],   # 10-24 起已是缺省，与 new 相同
     # 不用蓝色环境光（用户 10-24「蓝色环境光是不是可以先不用了」）：环境光改同亮度中性灰，ambient_mult 补亮，其余不动
     "noblue": ["--bal=render/ambient_desat=1", "--bal=render/ambient_mult=1.45"],
+    # 改前（10-24 环境去色 + 暖色并进缺省之前）的环境：对照用
+    "pre_warm": ["--bal=render/env_sat=1", "--bal=render/env_bright=1", "--bal=render/optical_ground_glow=0.06", "--bal=render/ground_glow_warm=0",
+                 "--bal=render/warm_spores=0", "--bal=render/ember_n=16"],
+    # 敌弹改蓝之前（10-24）：对照用
+    "pre_eb": ["--bal=render/ebullet_recolor=0", "--bal=render/optical_col_ebullet_h=0.95", "--bal=render/optical_col_ebullet_s=0.85"],
     # 掩码用：地图贴图全灰（干员 / 怪物 / 特效之外的颜色全没了），量干员像素在 base / warm 之间有没有变
     "noblue16": ["--bal=render/ambient_desat=1", "--bal=render/ambient_mult=1.65"],
     "noblue19": ["--bal=render/ambient_desat=1", "--bal=render/ambient_mult=1.9"],
