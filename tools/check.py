@@ -48,6 +48,7 @@ TEXT_KEYS = {"desc", "name", "en", "cn", "story", "lore", "flavor", "hint", "tit
 # 干员范围之外、但改了就要跑全量的角色脚本（基类 / 编队 / 主控）
 SHARED_CHAR = {"character", "op_api", "squad", "doctor"}
 LEVELS = ["none", "text", "ops", "full"]
+SMOKE_SAMPLE = 5   # 分支全量精简时冒烟按 HEAD 轮换抽几名干员（docs/36 §1.4）
 
 
 def _git(*args):
@@ -63,7 +64,8 @@ def changed_files():
     if base and base != _git("rev-parse", "HEAD").strip():
         files |= set(_git("diff", "--name-only", base, "HEAD").splitlines())
     files |= set(_git("diff", "--name-only", "HEAD").splitlines())
-    files |= set(_git("ls-files", "--others", "--exclude-standard").splitlines())
+    # 未跟踪的 .claude/ 下文件（主工作区的技能包、会话设置）不算改动：否则 main 上 --auto 永远被判成全量（10-24）
+    files |= set(f for f in _git("ls-files", "--others", "--exclude-standard").splitlines() if not f.startswith(".claude/"))
     return sorted(f.replace("\\", "/") for f in files if f), base
 
 
@@ -1141,7 +1143,7 @@ def main():
                     help="等价于 --only blocks_eq --eq-all --update-golden：重录积木等价金样（docs/36 §1.3；谁负责跑见该节）")
     ap.add_argument("--nocache", action="store_true", help="不读也不写结果缓存（build/check_cache，docs/36 §1.2）")
     ap.add_argument("--auto", action="store_true",
-                    help="按相对 main 改了哪些文件只跑相关项目（改的过程中用；合入 main 前仍跑全量）")
+                    help="按相对 main 改了哪些文件只跑相关项目；分支上判成全量时跑精简版（不跑积木等价 / 自然流程，冒烟抽样），在 main 上跑真全量（docs/36 §1.4）")
     a = ap.parse_args()
     if a.rerecord_golden:   # 等价于 --only blocks_eq --eq-all --update-golden（docs/36 §1.3）
         a.only = "blocks_eq"
@@ -1177,6 +1179,7 @@ def main():
         jobs.append(check_data_lint)   # 不开 Godot，约 1 秒；--auto 也跑（改数据表最容易静默出错的几类）
     if a.only in (None, "cc_lint"):
         jobs.append(check_cc_lint)   # 不开 Godot，约 1 秒；--auto 也跑（击退累加漏乘失重、干员绕过 add_cc / set_air）
+    branch_full, ops = False, set()
     if a.auto and not a.only:
         level, ops, why = plan_auto()
         print("按改动分级（--auto）：%s%s" % (level, "（干员：%s）" % "、".join(sorted(ops)) if ops else ""), flush=True)
@@ -1195,11 +1198,26 @@ def main():
             jobs.append(lambda: check_repro(godot))
         if level == "full":
             a.auto = False
+            if _git("branch", "--show-current").strip() != "main":
+                branch_full = True   # 分支上的全量：精简版（见下），main 上照旧真全量
+    if branch_full:
+        # 分支全量精简（用户 10-24「全改」，docs/36 §1.4）：积木等价不跑（分支改玩法后金样必然过期、只能报过期，合入后 main 统一重录比对）；
+        # 自然流程两局不跑；冒烟只跑改动涉及的干员 + 按 HEAD 轮换抽 SMOKE_SAMPLE 人。其余（核心契约、成长节点、复现、全部定向回归）照旧
+        head = _git("rev-parse", "HEAD").strip() or "0"
+        ids = op_ids()
+        k0 = int(head[:8], 16) % max(1, len(ids))
+        sample = set(ids[(k0 + i) % len(ids)] for i in range(min(SMOKE_SAMPLE, len(ids))))
+        smoke_ops = sample | ops
+        print("分支全量精简：不跑积木等价、自然流程；冒烟 %d / %d 人（改动涉及：%s；轮换抽样：%s）。合入 main 后跑真全量" % (
+            len(smoke_ops), len(ids), "、".join(sorted(ops)) or "无", "、".join(sorted(sample))), flush=True)
     if not a.auto:
         if a.only in (None, "core"):
             jobs.append(lambda: check_core(godot))
         if a.only in (None, "smoke"):
-            jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in smoke_cases()]
+            cases = smoke_cases()
+            if branch_full:
+                cases = [c for c in cases if c[0].startswith("冒烟 · ") and c[0].split(" · ")[-1] in smoke_ops]
+            jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in cases]
         if a.only in (None, "nodes"):
             jobs.append(lambda: check_nodes(godot))
         if a.only in (None, "manual_all"):
@@ -1210,7 +1228,7 @@ def main():
             jobs.append(lambda: check_repro(godot))
         if a.only in (None, "native_eq"):
             jobs.append(lambda: check_native_eq(godot))
-        if a.only in (None, "blocks_eq"):
+        if a.only in (None, "blocks_eq") and not branch_full:
             jobs.append(lambda: check_blocks_eq(godot))
         for key in SCENE_REGRESSIONS:
             if a.only in (None, "regressions", key):
