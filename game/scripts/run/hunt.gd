@@ -4,7 +4,7 @@ extends RefCounted
 ## 只有一条横幅 + 一声音效；整圈 4–6 秒（hunt/approach，缺省 5）同速往队长收，收到半径 260 就停住钉住，之后照旧规则：
 ## 主控从里往外走时，那个方位的海嗣还活着就被夹回圈内（冲刺也一样），打死它就成了缺口；停住后 20 秒整圈散去。
 ## 合拢途中可以迎着一侧打出去：圈心从出生点逐渐挪到主控身上，往一侧走会提前碰到那一侧；打穿一只、从缺口走出圈外算提前突围，照给补给，
-## 此后圈心不再跟着主控（人已经在圈外）。
+## 突围（含合拢途中提前冲出）之后包围圈立即结束：圈上海嗣就地散去，圈内小怪变回普通敌人，圈体 / 夹回 / 地面调子都停（10-24 用户）。
 ## 奖励：从缺口突围 → 补给（回复 20% 最大生命 + 灯火 20）；圈内的海嗣全部肃清 → 一圈经验结晶。没有额外惩罚。
 ## 防秒杀：圈上海嗣每 0.8 秒最多接触一次、每次最大生命的 4%；所有围猎敌人单次掉血 ≤ 最大生命 12%（e.hit_cap，前期伤害旋钮之后）；
 ## 圈内小怪是骨海漂流体，停住时刷在圈里、离主控 ≥ 150。
@@ -183,8 +183,8 @@ func _tick(dt: float) -> void:
 			_log("broke" if settled else "broke_early")
 			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 90.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.65)})
 			Sfx.play("hunt_break", -6.0, 1.0, 0.0)
-	elif not inside and d < cur_r - 40.0 and not frozen:
-		inside = true
+			_end(true)   # 突围后包围圈立即结束（10-24 用户）：圈上海嗣就地散去，圈体 / 夹回 / 地面调子都停；奖励已发
+			return
 	# 肃清：圈上与圈内的海嗣全部倒下（钉住后第二波刷出之后才算）
 	if not cleared and settled and el >= 10.0 and ring.all(func(e): return e.dead) and inner.all(func(e): return e.dead):
 		cleared = true
@@ -201,13 +201,17 @@ func _xp_burst() -> void:
 		g.pickups.drop(g.ppos + Vector2.from_angle(TAU * j / 10.0) * 40.0, "xp", total / 10.0)
 
 
-func _end() -> void:
-	_log("end")
+## 结束围猎。after_break：突围后立即结束——只散圈上的海嗣，圈内的小怪放回普通敌人（不再算围猎、不散）
+func _end(after_break := false) -> void:
+	_log("end_break" if after_break else "end")
 	state = 3
-	for e in ring + inner:
+	for e in ring + (inner if not after_break else []):
 		if not e.dead:
 			e.dead = true   # 散去：不走 kill，不掉落
 			g.vfx.sparks(e.pos, Vector2.UP, Color(0.75, 0.5, 1.0), 4, 90.0)
+	if after_break:
+		for e in inner:
+			e.erase("enc")
 	if not broke and not cleared:
 		g.vfx.show_banner("海嗣散入深处 —— 围猎结束")
 
