@@ -126,6 +126,10 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 				continue
 			ne += 1
 			cand.append([0.3, b.pos + Vector2(0, -16), 44.0, col_danger])
+		if grains != null:
+			for L in grains.lights:   # 颗粒簇登记的灯（fx_grains.light）
+				if vr.has_point(L[0]):
+					cand.append([0.6 * float(L[3]) / maxf(0.001, float(L[4])) + 0.3, L[0], float(L[1]), L[2]])
 		if cand.size() > nmax:
 			cand.sort_custom(func(a, b): return a[0] > b[0])
 		# 局部预算（防油腻 ②）：队长 render/optical_local_r（120）内入选的光强度总和封顶 render/optical_local_light（1.6），超出按比例压

@@ -92,3 +92,19 @@ python tools/boss_flash_rec.py fix knight           # 在本分支上
 D:/Anaconda/python.exe tools/boss_flash_measure.py build/boss_flash/fix_knight --plot build/boss_flash/fix_knight.png
 ```
 数据、逐帧图、各场面曲线在 `build/boss_flash/`（不进 git）。
+
+## 7. Boss 重影（同一只 Boss 画成好几只，10-24 用户追报）
+
+用户：「Boss 会出现多个同时出现的情况」，追问后确认是**同一只 Boss 有重影、挨打时一直有**。
+
+- **先排除「真的刷了多只」**：`autotest --bossdup` 每秒查场上活着的 Boss；seed 1–4 无头整局（到 12:00）0 次；把 Boss 时刻压到 20 / 25 秒时能抓到中期 Boss 重叠，说明探针有效。
+- **抓到的现象**：偏执泡影二阶段同屏画出 **3 只**泡影（并排，形态略有不同），但 `--enemydump` 显示场上只有 1 个泡影敌人；关光学观感照样 3 只。
+- **根因**：二阶段本体帧条在代码里叫 `e_paranoia2` / `e_paranoia2_move`，文件和重画表（`enemy_redraw.json` / `enemy_pixels.json`）登记的是别名对应的 `e_paranoia_phase2*`（`art.gd ALIAS`）。
+  `A.enemy_frames("e_paranoia2", 2)` 查不到 → 按缺省 2 帧切 6 帧条，一「帧」= 原来 3 帧并排 → 屏幕上 3 只；移动帧条按 4 帧切，切出 1.5 只。锚点、循环时长也一起查不到（锚点退回缺省）。
+  二阶段近战贴脸挨打时一直在播这两条帧条，所以用户看到「挨打时一直有」。
+- **修**：`art.gd` 的 `enemy_pixel_spec` / `enemy_redraw` 名字查不到时按 `ALIAS` 的文件名再查（`_by_file`）；只影响 `e_paranoia2*` 两条（其余别名 e_bone 等表里本来就登记的是新名）。
+  图鉴 `_anim_n` 原来对所有敌人写死 2 帧，重画帧条（泡影一阶段等 6 帧）在图鉴里同样会并排出好几只，改为按重画表取帧数 / 速度。
+- 对照图（上：修前一只敌人画成 3 只；下：修后 1 只）：`reference/boss_ghost_p2.png`。
+- 回归：`boss_boundary_test.gd` 加断言（`e_paranoia2` / `_move` / `_white` 帧数与 `e_paranoia_phase2*` 一致且 > 2、锚点一致、`e_paranoia` 6 帧）。
+- 顺带量过、不是原因的：Boss 朝向翻转（`e.fx` 每帧按主控左右取符号）在这些局里只有 0.25–0.38 次/秒，没改；骑士 / 泡影的 `*_white` 白剪影与本体尺寸一致、受击姿态 `*_wound` 与待机首帧 IoU 0.95 / 0.99，都不会错位。
+- 另：别名只指向 1 倍图（`e_paranoia_phase2.png`），二阶段没用上 `@2x`，比一阶段糊一档；尺寸正确，未改，记作后续。

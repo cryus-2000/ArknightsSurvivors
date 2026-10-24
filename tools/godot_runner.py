@@ -42,7 +42,18 @@ def common_root(root=ROOT):
 
 # ---------------------------------------------------------------- 全机并发上限
 
-MAX_PROCS = int(os.environ.get("GODOT_MAX_PROCS", max(2, (os.cpu_count() or 8) - 4)))
+# 全机并发上限（10-24 用户：给我的 CPU 留空间）：环境变量 GODOT_MAX_PROCS > 主仓库 build/godot_max_procs.txt（所有工作树共用，改它即时生效）
+# > 缺省 逻辑核数 / 4（24 核 = 6；原来是核数 - 4 = 20，多会话同时跑时把整机吃满）
+def _max_procs():
+    if os.environ.get("GODOT_MAX_PROCS"):
+        return int(os.environ["GODOT_MAX_PROCS"])
+    try:
+        return max(1, int(open(os.path.join(common_root(), "build", "godot_max_procs.txt"), encoding="utf-8").read().strip()))
+    except (OSError, ValueError):
+        return max(2, (os.cpu_count() or 8) // 4)
+
+
+MAX_PROCS = _max_procs()
 _LOCK = os.path.join(common_root(), "build", ".godot_launch.lock")
 
 
@@ -282,6 +293,9 @@ def _write_override(args):
 def run_godot(args, timeout):
     """在全机并发上限内启动一个 Godot，返回 (stdout, stderr, 是否超时)。缺省用临时用户目录 + 固定设置（见 TEST_SETTINGS）"""
     root, env = _test_userdir()
+    if "--audio-driver" not in args:
+        args = list(args)
+        args[1:1] = ["--audio-driver", "Dummy"]   # 测试一律静音（10-24 用户）：不靠设置里的音量 0，直接不开音频设备
     override = None
     if os.name == "nt" and "--headless" not in args and os.environ.get("ARK_SHOW_WINDOW") != "1":
         env = dict(env or os.environ)
@@ -294,7 +308,7 @@ def run_godot(args, timeout):
     while True:
         f = _lock()
         try:
-            if count_godot() < MAX_PROCS:
+            if count_godot() < _max_procs():
                 p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, **_no_focus_kwargs(args))
                 if override is not None or (env or {}).get("ARK_NO_FOCUS") == "1":
                     _hide_offscreen(p)

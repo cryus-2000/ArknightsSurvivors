@@ -39,6 +39,13 @@ func _ready() -> void:
 			starts += 1
 	expect(starts <= 26, "boss flash rate <= 2.5/s under constant hits (%d)" % starts)
 	expect(visual.hp == 100.0, "flash budget does not change health")
+	# 别名帧条（e_paranoia2 → 文件 e_paranoia_phase2）要读到真实帧数（docs/137 §7：原来按 2 帧切，一格里并排 3 只泡影）
+	var art = preload("res://scripts/art.gd")
+	for an in ["e_paranoia2", "e_paranoia2_move", "e_paranoia2_white"]:
+		expect(art.enemy_frames(an, 2) == art.enemy_frames(an.replace("e_paranoia2", "e_paranoia_phase2"), 2) and art.enemy_frames(an, 2) > 2, "alias strip frames " + an)
+	expect(art.enemy_pixel_anchor("e_paranoia2", Vector2.ZERO) == art.enemy_pixel_anchor("e_paranoia_phase2", Vector2.ONE), "alias strip anchor")
+	# 常态 / 二阶段图鉴帧数同样按重画表
+	expect(art.enemy_frames("e_paranoia", 2) == 6, "paranoia redraw frames")
 	g.zone_state = 3
 	g.zone_c = Vector2(100, 50)
 	g.zone_r = 250.0

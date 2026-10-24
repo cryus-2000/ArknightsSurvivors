@@ -124,7 +124,7 @@ func run_case(enemy: bool, mode: String, move: Vector2, steps: int, mouse: bool)
 	var events := 0
 	var anim := 0
 	var anim_events := 0
-	var last_n: int = o.atk_n
+	var last_n: int = o.atk_n + int(o.get("far_n"))
 	var pending_anim := 0
 	var steps_total: int = steps + 60 + (60 if moving else 0)
 	for k in steps_total:
@@ -147,11 +147,12 @@ func run_case(enemy: bool, mode: String, move: Vector2, steps: int, mouse: bool)
 		if float(o.attack_t) > 0.0 and kind != "idle" and kind != "run" and kind != "":
 			anim += 1
 			pending_anim += 1
-		if o.atk_n != last_n:
-			events += o.atk_n - last_n
+		var now_n: int = o.atk_n + int(o.get("far_n"))
+		if now_n != last_n:
+			events += now_n - last_n
 			if pending_anim >= 3:
 				anim_events += 1
-			last_n = o.atk_n
+			last_n = now_n
 			pending_anim = 0
 		if float(o.attack_t) <= 0.0:
 			pending_anim = 0

@@ -24,7 +24,7 @@ INCOMING = os.path.join(ROOT, "art", "incoming")
 REVIEW_ART_GLOBS = (
     "*preview*", "*overview*", "*_frames.png", "*reference*", "*_ref.*",
     "*contact*", "*compare*", "*comparison*", "*composite*", "*_qa.*", "*_qa_*",
-    "art_review_*", "elite_art_*", "run_rework_*", "idle_pose_*", "facing_*",
+    "art_review_*", "elite_art_*", "run_rework_*", "idle_pose_*", "facing_*", "*lineup*",
 )
 # 只在开发 / 测试时用的目录（相对 game/）
 DEV_EXCLUDES = ("tests/*", "tools/*")

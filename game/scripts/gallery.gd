@@ -277,6 +277,11 @@ func _anim(label: String, name: String, fps: float, loop := true) -> Dictionary:
 
 
 func _anim_n(label: String, name: String, frames: int, fps: float, loop := true) -> Dictionary:
+	# 重画帧条（10-23）的真实帧数以 enemy_redraw.json 为准（docs/137 §7：按旧的 2 帧切，一格里并排出现好几只）
+	var rd := A.enemy_redraw(name)
+	if not rd.is_empty():
+		frames = int(rd.frames)
+		fps = A.enemy_loop_fps(name, fps)
 	return {"label": label, "tex": A.tex(name), "frames": frames, "fps": fps, "loop": loop}
 
 

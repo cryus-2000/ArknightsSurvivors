@@ -347,15 +347,27 @@ func _flashrec_step() -> void:
 		g.boss = b
 		if g.final_boss == null and g.spawner.is_final_boss_type(b.type):
 			g.final_boss = b
+	if _fr_spawn != "" and g.at_frames == 25 and Cfg.dev_args().has("--texdump"):
+		for k in g.tex.keys():
+			var ks := str(k)
+			if (ks.begins_with("e_knight") or ks.begins_with("e_paranoia")) and not ks.ends_with("_white") and g.tex[k] != null:
+				var wt = g.tex.get(ks + "_white")
+				print("TEXDUMP %s %s white=%s same_src=%s" % [ks, g.tex[k].get_size(), wt.get_size() if wt != null else "none", str(wt == A_.white_of(g.tex[k])) if wt != null else "-"])
 	if _fr_t0 < 0.0 or _fr_left <= 0 or g.t < _fr_t0 or DisplayServer.get_name() == "headless":
 		return
 	if _fr_csv == null:
 		_fr_csv = FileAccess.open(g.shot_dir + "/flashrec.csv", FileAccess.WRITE)
-		_fr_csv.store_line("i,frame,t,state,boss,hp,phase,cocoon,bflash,shake,gflash,hitstop,hstar,warns,intro,bx,by,br")
+		_fr_csv.store_line("i,frame,t,state,boss,hp,phase,cocoon,bflash,shake,gflash,hitstop,hstar,warns,intro,bx,by,br,fx")
+	var bb = g.final_boss if g.final_boss != null else (g.bosses[0] if not g.bosses.is_empty() else null)
+	if Cfg.dev_args().has("--enemydump") and _fr_i % 10 == 0 and bb != null:
+		var near: Array = []
+		for e in g.enemies:
+			if not e.dead and (e.pos as Vector2).distance_to(bb.pos) < 700.0:
+				near.append("%s/%s#%d@%d,%d%s" % [e.type, e.tex, e.id, e.pos.x, e.pos.y, " B" if e.boss else ""])
+		print("ENEMYDUMP i=%d %s" % [_fr_i, " ".join(near)])
 	var img: Image = g.get_viewport().get_texture().get_image()
 	img.resize(_fr_w, int(_fr_w * img.get_height() / float(img.get_width())), Image.INTERPOLATE_BILINEAR)
 	img.save_png(g.shot_dir + "/fr_%05d.png" % _fr_i)
-	var bb = g.final_boss if g.final_boss != null else (g.bosses[0] if not g.bosses.is_empty() else null)
 	var hs := 0
 	for f in g.fx:
 		if f.get("kind", "") == "hstar":
@@ -363,15 +375,45 @@ func _flashrec_step() -> void:
 	var vs: Vector2 = g.get_viewport().get_visible_rect().size
 	var bs: Vector2 = (g.get_canvas_transform() * (bb.pos as Vector2)) / vs if bb != null else Vector2(-1, -1)
 	var brr: float = float(bb.get("r", 0.0)) * g.get_canvas_transform().get_scale().y / vs.y if bb != null else 0.0
-	_fr_csv.store_line("%d,%d,%.4f,%d,%s,%.0f,%d,%.3f,%.3f,%.3f,%.3f,%.3f,%d,%d,%d,%.4f,%.4f,%.4f" % [_fr_i, g.at_frames, g.t, g.state,
+	_fr_csv.store_line("%d,%d,%.4f,%d,%s,%.0f,%d,%.3f,%.3f,%.3f,%.3f,%.3f,%d,%d,%d,%.4f,%.4f,%.4f,%d" % [_fr_i, g.at_frames, g.t, g.state,
 		bb.type if bb != null else "", bb.hp if bb != null else 0.0, int(bb.get("phase", 0)) if bb != null else 0,
 		float(bb.get("cocoon_t", 0.0)) if bb != null else 0.0, float(bb.get("flash", 0.0)) if bb != null else 0.0,
-		g.shake, g.flash, g.hitstop, hs, g.warns.size(), 0 if g.boss_intro.cur.is_empty() else 1, bs.x, bs.y, brr])
+		g.shake, g.flash, g.hitstop, hs, g.warns.size(), 0 if g.boss_intro.cur.is_empty() else 1, bs.x, bs.y, brr,
+		int(bb.fx) if bb != null else 0])
 	_fr_i += 1
 	_fr_left -= 1
 	if _fr_left == 0:
 		_fr_csv.close()
 		g.get_tree().quit()
+
+
+## --bossdup（docs/137 §7，仅测试，可无头）：每秒查一次场上活着的 Boss（g.enemies 里 role = boss 的），
+## 不同组（不是接潮搭档）同时在场、或同一种 Boss 出现两只时打印 BOSSDUP t=… [类型#id@位置 …]
+var _bd_on := -1
+var _bd_last := -1
+func _bossdup_step() -> void:
+	if _bd_on < 0:
+		_bd_on = 1 if Cfg.dev_args().has("--bossdup") else 0
+	if _bd_on == 0 or int(g.t) == _bd_last:
+		return
+	_bd_last = int(g.t)
+	var alive: Array = []
+	for e in g.enemies:
+		if not e.dead and str(D.ENEMIES.get(e.type, {}).get("role", "")) == "boss":
+			alive.append(e)
+	if alive.size() < 2:
+		return
+	var types := {}
+	var dup := false
+	var groups := 0
+	for e in alive:
+		if types.has(e.type):
+			dup = true
+		types[e.type] = true
+		if e.get("partner") == null or not alive.has(e.partner) or int(e.id) < int(e.partner.id):
+			groups += 1
+	if dup or groups > 1:
+		print("BOSSDUP t=%d %s" % [int(g.t), " ".join(alive.map(func(x): return "%s#%d@%d,%d%s%s" % [x.type, x.id, x.pos.x, x.pos.y, "" if g.bosses.has(x) else "(不在bosses)", "(final)" if is_same(x, g.final_boss) else ""]))])
 
 
 ## --optab=N / --optmask=位 / --optold=位（docs/50 §11，仅测试）：每 N 帧在新 / 旧实现之间轮换 g.opt_old（只在真实步长段轮换）；
@@ -460,6 +502,7 @@ func step() -> void:
 		_sfx_win()
 	_rec_step()
 	_flashrec_step()
+	_bossdup_step()
 	_cmd_step()
 	_opt_ab()   # 在 --perf 采样之后轮换：采样记的是上一帧所走的实现
 	Dc.ab_step(g.at_frames)   # --clutterab=N：每 N 帧在降噪 0 档与当前档之间轮换（--perf 分 /d0 /dN 两桶）

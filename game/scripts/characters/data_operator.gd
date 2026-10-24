@@ -48,6 +48,7 @@ var s_dur: Array = [0.0, 0.0, 0.0]     # 持续型技能总时长（HUD）
 var perm_on: Array = [false, false, false]   # 永久型技能已放出（出手帧起生效）
 var taken: Array = []                  # 已选的 custom 节点 id（按选下顺序）
 var nodes_taken := ""                  # 同上的字符串（成长节点测试看「当场有变化」）
+var far_n := 0                         # 远程形态（attack.far count:false）出手次数，不进 every_n；测试数「出招」时与 atk_n 相加
 var atk_n := 0                         # 普攻出手次数（trig.every_n）
 var pending: Array = []                # 延迟执行：[{t, do}]
 var loc := {"zone": 1.0, "dmg": 1.0, "heal": 1.0, "interval": 1.0, "area": 1.0, "force": 1.0, "force_lit": 1.0, "atk": 1.0}   # 本干员局部倍率（docs/61 §5.1；area / force / force_lit 见安洁莉娜段；atk 只乘普攻，精英化段）
@@ -324,7 +325,11 @@ func update(dt: float) -> void:
 					at = atk_point(nearest_enemies(1, r, c), r)   # 手动普攻（v2.5）：不分方向，只受闸门
 		"cone":
 			var r2: float = ObCore.shape_radius(self, a)
-			at = atk_point(nearest_enemies(1, r2 + 30.0, pos), r2)   # 手动普攻 A 类
+			var fp0: Dictionary = _far_pick(a)
+			if fp0.is_empty():
+				at = atk_point(nearest_enemies(1, r2 + 30.0, pos), r2)   # 手动普攻 A 类
+			else:
+				at = _far_aim(a, fp0, r2)   # attack.far：按距离（手动 = 按指向）选近战 / 远程
 		"line":
 			var rl: float = float(a.get("len", 0.0)) * stat(&"op_range")
 			at = atk_point(nearest_enemies(1, rl, pos), rl)   # 手动普攻 A 类
@@ -341,13 +346,17 @@ func update(dt: float) -> void:
 		"bolt":   # 手写迁移段：飘飞咒文弹（手动普攻 B 类）
 			at = SegLogos.hw_bolt_aim(self, a)
 	if at == Vector2.INF:
+		atk_far = -1
 		cd = idle_cd(float(B.get("attack", _ED).get("idle", 0.2)))   # 手写迁移段：attack.idle（缺省 0.2）
 	else:
-		cd = float(B.get("attack", _ED).get("every", 1.0)) / stat(&"op_aspd") * float(loc.interval)
-		var rp := _replace_trig(atk_n + 1)   # 精英化段：这一次普攻被 trig.every_n replace 换掉时播它的帧条
+		var fp1: Dictionary = _far_pick(a) if atk_far == 1 else {}
+		cd = float(fp1.get("every", B.get("attack", _ED).get("every", 1.0))) / stat(&"op_aspd") * float(loc.interval)
+		var rp := _replace_trig(atk_n + 1) if fp1.is_empty() else {}   # 精英化段：这一次普攻被 trig.every_n replace 换掉时播它的帧条（远程形态不换）
 		var an: String = str(rp.get("anim", ""))
 		if an == "" and a.has("anim"):   # 手写迁移段：普攻（含 swap_attack 换上的形状）自己的帧条
 			an = str(a.anim)
+		if not fp1.is_empty() and fp1.has("anim"):
+			an = str(fp1.anim)   # 远程形态自己的帧条（拉普兰德 throw）
 		start_attack(at if a.get("turn", true) else Vector2.INF, 0.5, 0.25, an)
 
 
@@ -750,7 +759,10 @@ func _release_body() -> void:
 	if not hw.is_empty() and SegUlpianus.hw_armed_release(self, a):   # 手写迁移段：蓄势（attack.armed）的这一下整个换掉，不计普攻次数、不走 every_n
 		_sfx_op("atk")
 		return
-	var rp := _replace_trig(atk_n + 1)   # 精英化段：trig.every_n replace = 这一次普攻整个换成它的 do
+	var far_fp: Dictionary = _far_pick(a) if a.get("far", null) != null and atk_far != 0 else {}
+	if not far_fp.is_empty() and atk_far == -1 and not _far_wanted(a, far_fp):
+		far_fp = {}
+	var rp := _replace_trig(atk_n + 1) if far_fp.is_empty() else {}   # 精英化段：trig.every_n replace = 这一次普攻整个换成它的 do
 	atk_live = true
 	if not el.is_empty() or not rp.is_empty():
 		ObElite.el_st(self).fire_t = g.t
@@ -776,14 +788,18 @@ func _release_body() -> void:
 		SegIrene.h3_attack_fire(self, a)
 	elif str(a.get("shape", "")) in ObHw.H4_ATTACKS:   # 手写迁移段第 4 批：锤击 / 狐火 / 炮击 / 拳击（音效由形状自己播）
 		ObHw.h4_attack_fire(self, a)
-	elif a.get("far", null) is Dictionary and _far_wanted(a, a.far):   # 远程兜底（docs/122 §2.1 attack.far，10-22 用户）：触及内没人就改用远程形状
-		_exec_list([a.far])
+	elif not far_fp.is_empty():   # attack.far（docs/61 §21.3，拉普兰德「领主」）：远处这一下改用远程形状
+		_exec_list([far_fp])
 		last_hit_pos = Vector2.INF
 	else:
 		exec_any_shape(a, Vector2.INF, true)
 	atk_live = false
+	atk_far = -1
 	if not str(a.get("shape", "")) in ObHw.H4_ATTACKS + ["umbrella"]:
 		_sfx_op("atk")
+	if not far_fp.is_empty() and not far_fp.get("count", true):
+		far_n += 1
+		return   # count: false = 远程这一下不算近战的次数（every_n / 精英化替换 / 连斩都只数近战）
 	atk_n += 1
 	for t in _trigs():
 		if str(t.get("_tag", "")) == "trig.every_n" and not t.get("replace", false) and ObCore.cond_true(self, t.get("cond", _ED)):
@@ -1256,6 +1272,51 @@ var _hurt_cd: Dictionary = {}          # trig.on_hurt 的冷却（_uid → 下�
 
 
 ## attack.far（通用积木）：这一下普攻的触及范围（形状半径 × op_range）内没有敌人、而远程形状的瞄准范围（aim_r，缺省 dist）内有 → 改掷远程形状
+## 当前生效的 far 形态：attack.far 是一个形状对象，或一组带 cond 的形状对象（第一块 cond 成立的；缺省恒成立）；没有 = {}
+func _far_pick(a: Dictionary) -> Dictionary:
+	var f = a.get("far", null)
+	if f is Dictionary:
+		return f if ObCore.cond_true(self, f.get("cond", _ED)) else {}
+	if f is Array:
+		for x in f:
+			if ObCore.cond_true(self, x.get("cond", _ED)):
+				return x
+	return {}
+
+
+## 这一下普攻的形态（0 近战 / 1 远程 / -1 未判），起手时按目标距离定、出手帧沿用
+var atk_far := -1
+
+
+## 带 attack.far 的近战锥普攻起手：近战触及（半径 + 30）内有敌人 → 近战；否则远程瞄准范围内有 → 远程。
+## 手动普攻：看玩家指向的锥（半角 half）里近战触及内有没有敌人，有 = 近战，没有 = 朝指向掷远程（周围没敌人也照出手）
+func _far_aim(a: Dictionary, fp: Dictionary, r2: float) -> Vector2:
+	var fr: float = float(fp.get("aim_r", fp.get("dist", 0.0))) * stat(&"op_range")
+	atk_far = -1
+	if manual_attack():
+		if not g.doctor.attack_want():
+			return atk_point([], r2)
+		var d: Vector2 = g.doctor.attack_dir()
+		var c: float = cos(float(a.get("half", 1.3))) - 0.0001
+		var near := false
+		for e in nearest_raw(48, r2 + 30.0, pos):
+			var off: Vector2 = e.pos - pos
+			if off.length() < 1.0 or off.normalized().dot(d) >= c:
+				near = true
+				break
+		atk_far = 0 if near else 1
+		return atk_point([], r2 if near else fr)
+	var nt: Array = nearest_enemies(1, r2 + 30.0, pos)
+	if not nt.is_empty():
+		atk_far = 0
+		return atk_point(nt, r2)
+	var ft: Array = nearest_enemies(1, fr, pos) if fr > 0.0 else []
+	if ft.is_empty():
+		return Vector2.INF
+	atk_far = 1
+	return atk_point(ft, fr)
+
+
 func _far_wanted(a: Dictionary, far: Dictionary) -> bool:
 	if not nearest_enemies(1, ObCore.shape_radius(self, a), pos).is_empty():
 		return false
