@@ -37,26 +37,21 @@ def hoshiguma():
     return ["op_hoshiguma_s1_guard_move"]
 
 
-# 塞雷娅 S3 空手拳击（10-24 用户「技能期间改成跑动拳击」→「看不太出来双手，能不能手往前伸」）：原生 Skill_Loop t=0 的空手站姿上
-# 逐帧转双臂（左臂在前；右臂在身后，转约 -140° 才到身前）。手臂大半被白毛领挡住，出拳几帧把双臂提到毛领上层画（top），
-# 不拉长也不放大（10-24 用户：放大显得奇怪；拉长 / 放大两列保留为 1.0 方便以后试）。
+# 塞雷娅 S3 空手冲拳（10-24 用户「技能期间改成跑动拳击」…「拳击就改成冲拳」）：原生 Skill_Loop t=0 的空手站姿上逐帧转手臂。
+# 前手（左臂，面朝右时在前）直线打出、后手（右臂）收到腰侧，胸口顺势前倾；手臂大半被白毛领挡住，打出的几帧把前臂提到毛领上层画（top）。
+# 不拉长、不放大（用户：放大显得奇怪）；蓄力只收到腰前，不抬过胸（用户：举过头奇怪）。
 # 帧数 / 出手帧与普攻条相同（8 帧，第 4 帧出手），时序由 json 抄普攻的 attack_timing。
-# 每帧：(左上臂, 左前臂, 右上臂, 胸, 手臂拉长, 拳头放大, 提到上层) ；角度为转角增量（度）
-PUNCH = [(0, 0, 0, 0, 1.0, 1.0, False), (8, 20, 10, 3, 1.0, 1.0, False), (12, 30, 18, 4, 1.0, 1.0, False),   # 蓄力：收到胸前（10-24 用户：原来举过头、手盖住脸）
-         (-35, -5, -140, -10, 1.0, 1.0, True), (-33, -5, -135, -9, 1.0, 1.0, True), (-15, 10, -70, -4, 1.0, 1.0, True),
-         (-5, 10, -20, 0, 1.0, 1.0, False), (0, 5, 0, 0, 1.0, 1.0, False)]
+# 每帧：(前手上臂, 前手前臂, 后手上臂, 胸, 前手提到上层) ；角度为转角增量（度）
+PUNCH = [(0, 0, 0, 0, False), (10, 35, 15, 4, False), (-8, 20, 25, 0, True),
+         (-38, -2, 30, -14, True), (-36, -2, 30, -12, True), (-15, 15, 20, -5, True),
+         (-5, 10, 8, 0, False), (0, 5, 0, 0, False)]
 SARIA_HIDE = ["F_Shield", "F_Weapon", "F_Pinhead"]   # 盾 / 武器已放下
-SARIA_ARMS = ["F_R_Arm", "F_R_Shoulder", "F_R_Hand_C", "F_R_Hand_B", "F_R_Hand",
-              "F_L_Arm", "F_L_Shoulder", "F_L_Wrap", "F_L_Ring", "F_L_Hand_C", "F_L_Hand_B", "F_L_Hand", "F_L_Finger", "F_L_Finger_2"]
+SARIA_FRONT_ARM = ["F_L_Arm", "F_L_Shoulder", "F_L_Wrap", "F_L_Ring", "F_L_Hand_C", "F_L_Hand_B", "F_L_Hand", "F_L_Finger", "F_L_Finger_2"]
 
 
 def punch_poses():
-    out = []
-    for la, lf, ra, ch, k, h, top in PUNCH:
-        sc = {} if k == 1.0 else {"F_L_Arm": [k, 1], "F_L_Shoulder": [k, 1], "F_L_Hand": [h], "F_R_Arm": [k, 1], "F_R_Shoulder": [k, 1], "F_R_Hand": [h]}
-        out.append({"anim": "Skill_Loop", "t": 0, "rot": {"F_L_Arm": la, "F_L_Shoulder": lf, "F_R_Arm": ra, "F_Chest": ch},
-                    "scale": sc, "top": SARIA_ARMS if top else [], "hide": SARIA_HIDE})
-    return out
+    return [{"anim": "Skill_Loop", "t": 0, "rot": {"F_L_Arm": la, "F_L_Shoulder": lf, "F_R_Arm": ra, "F_Chest": ch},
+             "top": SARIA_FRONT_ARM if top else [], "hide": SARIA_HIDE} for la, lf, ra, ch, top in PUNCH]
 
 
 def render_poses(op, base_cfg, name, poses, mode=None):
