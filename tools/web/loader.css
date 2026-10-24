@@ -1,34 +1,62 @@
-/* 网页加载画面（视觉由「界面与美术」按 docs/37 方案 A 定：扁平、不圆角、青色表示进度） */
+/* 网页启动加载页「声呐测绘」（用户 10-25 定：对照图方向 C 第一张；视觉按 docs/37，接指挥圆盘 / 小地图的声呐样式）。
+   声呐圈 = 进度环 + 扫描扇面；左下终端日志逐行 [OK]；右下提示；左上标志（loader_logo.png = art/ui/title_deep/logo_mark.png）。
+   扫描扇面用 transform 动画（合成线程跑，引擎启动占住主线程时也在转）；系统「减少动态效果」时不转。 */
 #sy-load {
-  position: fixed; inset: 0; z-index: 9000;
-  background: radial-gradient(ellipse at 50% 42%, #0e1a22 0%, #070b10 55%, #03060a 100%);
-  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
+  position: fixed; inset: 0; z-index: 9000; overflow: hidden;
+  background: radial-gradient(ellipse at 50% 50%, #0d1820 0%, #070c11 70%, #04070a 100%);
+  font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif; color: #e6eef2;
   transition: opacity .4s;
 }
 #sy-load.sy-out { opacity: 0; pointer-events: none; }
-/* 进度条上沿在视口 55% 高处；文字挂在它上方 76px（给 96px 的博士留头顶空间） */
-#sy-load .sy-box { position: absolute; left: 50%; top: 55vh; width: min(520px, 72vw); transform: translateX(-50%); }
-#sy-load .sy-head { position: absolute; left: 0; right: 0; bottom: calc(100% + 76px); text-align: center; }
-#sy-load .sy-sub { margin-bottom: 8px; font-size: 12px; letter-spacing: 4px; color: #36e2dc; }
-#sy-load .sy-title { font-size: 18px; font-weight: 700; color: #f2f4f5; }
-#sy-load .sy-track {
-  position: relative; height: 6px; box-sizing: border-box;
-  background: rgba(126, 152, 184, .22); border: 1px solid rgba(255, 255, 255, .14);
+#sy-load .sy-grid {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(120, 170, 190, .05) 1px, transparent 1px), linear-gradient(90deg, rgba(120, 170, 190, .05) 1px, transparent 1px);
+  background-size: 24px 24px;
 }
-#sy-load .sy-fill {
-  width: 0; height: 100%; background: #36e2dc;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
-  transition: width .25s linear;
+#sy-load .sy-logo { position: absolute; left: 40px; top: 36px; width: min(300px, 38vw); image-rendering: pixelated; }
+#sy-load .sy-fan { position: absolute; right: 40px; top: 44px; font-size: 11px; letter-spacing: 4px; color: #7f98a2; }
+#sy-load .sy-en { font-size: 11px; letter-spacing: 3px; }
+/* 声呐圈：边长随视口，居中略偏上 */
+#sy-load .sy-sonar {
+  position: absolute; left: 50%; top: 45%; width: min(400px, 52vh, 60vw); aspect-ratio: 1;
+  transform: translate(-50%, -50%);
 }
-/* 博士：doctor_run@2x.png 六帧 96×96，1:1 显示（整数倍像素）；帧内脚底在 y=93，下移 3px 让脚贴住进度条上沿；
-   中心 = 进度位置，人物约 ±32px 宽，loader.js 把中心夹在两端 32px 内 */
-#sy-load .sy-doc {
-  position: absolute; left: 0; bottom: calc(100% - 3px); width: 96px; height: 96px;
-  transform: translateX(-50%);
-  background: url(loader_doctor.png) 0 0 / 576px 96px no-repeat;
-  image-rendering: pixelated; transition: left .25s linear;
-  animation: sy-run .6s steps(6) infinite;
+#sy-load .sy-sonar svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+#sy-load .sy-sweep { transform-origin: 0 0; animation: sy-spin 3.2s linear infinite; }
+@keyframes sy-spin { to { transform: rotate(360deg); } }
+#sy-load .sy-ring { transition: stroke-dashoffset .3s linear; }
+#sy-load .sy-blip { animation: sy-blip 3.2s linear infinite; opacity: 0; }
+@keyframes sy-blip { 0% { opacity: 0; } 4% { opacity: 1; } 60% { opacity: .15; } 100% { opacity: 0; } }
+#sy-load .sy-center { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; }
+#sy-load .sy-num { font-size: min(64px, 9vh); line-height: 1; font-variant-numeric: tabular-nums; font-weight: 700; }
+#sy-load .sy-num span { font-size: .38em; color: #5ee6e6; margin-left: 2px; }
+#sy-load .sy-num.sy-busy { font-size: min(26px, 5vh); letter-spacing: 4px; }
+#sy-load .sy-sub { margin-top: 10px; color: #5ee6e6; }
+/* 面板（日志 / 提示） */
+#sy-load .sy-panel { position: absolute; bottom: 50px; width: min(330px, 30vw); background: rgba(14, 22, 28, .82); border: 1px solid #263540; }
+#sy-load .sy-panel .hd { height: 26px; line-height: 26px; padding-left: 12px; color: #8fa6b0; border-bottom: 1px solid #263540; }
+#sy-load .sy-panel .bd { padding: 10px 12px 12px; font-size: 13px; line-height: 22px; color: #b6c6cc; min-height: 92px; }
+#sy-load .sy-log { left: 40px; }
+#sy-load .sy-log .bd div { color: #44545c; white-space: nowrap; font-variant-numeric: tabular-nums; }
+#sy-load .sy-log .bd div.now { color: #f2f6f8; }
+#sy-load .sy-log .bd div.ok { color: #9fb2ba; }
+#sy-load .sy-log .bd b { font-weight: 400; display: inline-block; width: 44px; }
+#sy-load .sy-log .bd div.ok b { color: #5ee6e6; }
+#sy-load .sy-tips { right: 40px; }
+#sy-load .sy-tips .bd { transition: opacity .22s; }
+#sy-load .sy-foot { position: absolute; left: 0; right: 0; bottom: 16px; text-align: center; font-size: 11px; color: #6f8590; }
+/* 矮屏（手机横屏）：面板收窄、标志变小 */
+@media (max-height: 520px) {
+  #sy-load .sy-logo { left: 20px; top: 16px; width: min(200px, 30vw); }
+  #sy-load .sy-fan { right: 20px; top: 20px; }
+  #sy-load .sy-panel { bottom: 30px; width: min(260px, 27vw); }
+  #sy-load .sy-log { left: 20px; } #sy-load .sy-tips { right: 20px; }
+  #sy-load .sy-panel .bd { font-size: 11px; line-height: 18px; min-height: 0; padding: 6px 10px 8px; }
+  #sy-load .sy-foot { bottom: 8px; }
 }
-@keyframes sy-run { to { background-position: -576px 0; } }
-#sy-load .sy-pct { margin-top: 6px; text-align: right; font-size: 12px; color: #9aa3ad; font-variant-numeric: tabular-nums; }
-#sy-load .sy-foot { position: absolute; left: 0; right: 0; bottom: 18px; text-align: center; font-size: 11px; color: #9aa3ad; }
+@media (max-width: 700px) { #sy-load .sy-fan { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  #sy-load .sy-sweep, #sy-load .sy-blip { animation: none; }
+  #sy-load .sy-blip { opacity: .6; }
+  #sy-load .sy-tips .bd { transition: none; }
+}

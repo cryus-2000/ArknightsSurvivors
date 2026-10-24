@@ -281,6 +281,12 @@ const GAP := 2.2       # 扇区之间的缝（每边，度）
 const OUT_T := 0.16    # 收起时长（秒）
 
 
+## 指南插图（screens/intro.gd「指挥圆盘」页）：把当前的圆盘画法缩小画在 c 处，t 秒起每 1.4 秒轮流悬停一项
+func draw_preview(c: Vector2, k: float, t: float) -> void:
+	var n: int = maxi(1, ITEMS.size())
+	_draw_ef(Vector2.ZERO, int(t / 1.4) % n, 0.0, c, k, t + 1.0, fmod(t, 1.4))
+
+
 func draw(vs: Vector2) -> void:
 	if is_open:
 		_draw_ef(vs, hover, 0.0)
@@ -288,20 +294,26 @@ func draw(vs: Vector2) -> void:
 		_draw_ef(vs, _out_i, _out_t / OUT_T)
 
 
-func _draw_ef(vs: Vector2, hov: int, out: float) -> void:
+## pc 不为 INF = 指南插图预览（docs/144：同一份画法缩小画在 pc 处；不画暗幕 / 侧标 / 说明板 / 指针 / 「当前」，选中动效由 pt / pst 驱动）
+func _draw_ef(vs: Vector2, hov: int, out: float, pc := Vector2.INF, pk := 0.0, pt := 0.0, pst := 0.0) -> void:
+	var prev: bool = pc != Vector2.INF
 	var hud: CanvasItem = g.hud
 	var font: Font = g.font
-	var k: float = _k()
+	var k: float = pk if prev else _k()
 	var rm: bool = Cfg.reduce_motion
-	var t: float = t_open
+	var t: float = pt if prev else t_open
+	var st: float = pst if prev else sel_t
+	var pvv: float = 0.0 if prev else _ptr_v
 	var e: float = clampf(t / 0.12, 0.0, 1.0) * (1.0 - _ease(out))
-	center = vs / 2.0
-	var c: Vector2 = center
+	var c: Vector2 = pc if prev else vs / 2.0
+	if not prev:
+		center = c
 	var r_in: float = R_IN * k
 	var r_out: float = R_OUT * k
 	var r_dial: float = r_out + 16.0 * k
 	var spin: float = 0.0 if rm else t
-	hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.01, 0.015, 0.02, 0.5 * e))
+	if not prev:
+		hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.01, 0.015, 0.02, 0.5 * e))
 	# 底盘：0.9 → 1 放大淡入
 	var pg: float = 1.0 if rm else _ease(clampf(t / 0.18, 0.0, 1.0))
 	var r_plate: float = (r_dial + 10.0 * k) * lerpf(0.9, 1.0, pg)
@@ -360,11 +372,12 @@ func _draw_ef(vs: Vector2, hov: int, out: float) -> void:
 	for sx in [-1.0, 1.0]:
 		hud.draw_line(Vector2(c.x + sx * (r_in - 4.0 * k), c.y), Vector2(c.x + sx * (r_dial + 44.0 * k), c.y), _ca(C_DIAL, 0.38 * e), 1.0)
 		hud.draw_rect(Rect2(Vector2(c.x + sx * (r_dial + 44.0 * k) - 2.0 * k, c.y - 2.0 * k), Vector2(4.0, 4.0) * k), _ca(C_ACC, 0.9 * e))
-	var lx: float = c.x - r_dial - 104.0 * k
-	UI.text(hud, font, Vector2(lx, c.y - 8.0 * k), "队形", int(round(13.0 * k)), _ca(C_DIAL, 0.9 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
-	UI.ctext(hud, font, Vector2(lx, c.y - 25.0 * k), "FORMATION", int(round(9.0 * k)), _ca(C_DIAL, 0.5 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
-	UI.text(hud, font, Vector2(lx, c.y + 20.0 * k), "索敌", int(round(13.0 * k)), _ca(C_DIAL, 0.9 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
-	UI.ctext(hud, font, Vector2(lx, c.y + 33.0 * k), "TARGETING", int(round(9.0 * k)), _ca(C_DIAL, 0.5 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
+	if not prev:
+		var lx: float = c.x - r_dial - 104.0 * k
+		UI.text(hud, font, Vector2(lx, c.y - 8.0 * k), "队形", int(round(13.0 * k)), _ca(C_DIAL, 0.9 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
+		UI.ctext(hud, font, Vector2(lx, c.y - 25.0 * k), "FORMATION", int(round(9.0 * k)), _ca(C_DIAL, 0.5 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
+		UI.text(hud, font, Vector2(lx, c.y + 20.0 * k), "索敌", int(round(13.0 * k)), _ca(C_DIAL, 0.9 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
+		UI.ctext(hud, font, Vector2(lx, c.y + 33.0 * k), "TARGETING", int(round(9.0 * k)), _ca(C_DIAL, 0.5 * e), HORIZONTAL_ALIGNMENT_RIGHT, 90.0 * k)
 	# 扇区
 	var gap: float = deg_to_rad(GAP)
 	var ch: float = 9.0 * k
@@ -389,13 +402,13 @@ func _draw_ef(vs: Vector2, hov: int, out: float) -> void:
 		hud.draw_colored_polygon(_wedge(cc, r_in, r_in + depth * 0.24, a0, a1, 0.0), _ca(C_FILL_IN, 0.96 * ea))
 		hud.draw_arc(cc, r_out - 2.5 * k, a0 + ch / r_out, a1 - ch / r_out, 12, _ca(C_TEXT, 0.12 * ea), 1.0)   # 顶边高光
 		if sel:
-			var f: float = 1.0 if rm else _ease(clampf(sel_t / 0.09, 0.0, 1.0))
+			var f: float = 1.0 if rm else _ease(clampf(st / 0.09, 0.0, 1.0))
 			var ro: float = lerpf(r_in + 2.0, r_out, f)
 			hud.draw_colored_polygon(_wedge(cc, r_in, ro, a0, a1, ch * f), _ca(C_ACC, ea))
 			if f > 0.85:
 				hud.draw_colored_polygon(_wedge(cc, r_out - depth * 0.12, ro, a0, a1, ch * f), _ca(C_ACC_HI, ea))
 			# 外推虚框：选中后从扇区外沿推出 9 px（out_back），确认收起时继续外扩淡出
-			var go: float = 9.0 * k if rm else 9.0 * k * _back(clampf(sel_t / 0.16, 0.0, 1.0))
+			var go: float = 9.0 * k if rm else 9.0 * k * _back(clampf(st / 0.16, 0.0, 1.0))
 			go += 26.0 * k * _ease(out)
 			var gp: PackedVector2Array = _wedge(cc + dirv * go, r_out - depth * 0.3, r_out, a0, a1, ch)
 			gp.append(gp[0])
@@ -409,15 +422,15 @@ func _draw_ef(vs: Vector2, hov: int, out: float) -> void:
 		var tc: Vector2 = cc + dirv * (r_in + depth * 0.52)   # 不画图标（用户 10-24），名字 + 英文行居扇区中部
 		UI.text(hud, font, tc + Vector2(-70.0 * k, 1.0 * k), str(it.name), int(round(17.0 * k)), _ca(tx, ea), HORIZONTAL_ALIGNMENT_CENTER, 140.0 * k)
 		UI.ctext(hud, font, tc + Vector2(-70.0 * k, 14.0 * k), "0%d // %s" % [i + 1, it.en], int(round(9.0 * k)), _ca(tx, 0.62 * ea), HORIZONTAL_ALIGNMENT_CENTER, 140.0 * k)
-		if is_current(i):   # 「当前」：黑底蓝字小标签，左端一道蓝条，放在英文行下方
+		if not prev and is_current(i):   # 「当前」：黑底蓝字小标签，左端一道蓝条，放在英文行下方
 			var tp: Vector2 = tc + Vector2(-20.0, 19.0) * k
 			hud.draw_rect(Rect2(tp, Vector2(40.0, 15.0) * k), Color(0.03, 0.035, 0.04, 0.94 * ea))
 			hud.draw_rect(Rect2(tp, Vector2(3.0, 15.0) * k), _ca(C_ACC, ea))
 			UI.text(hud, font, tp + Vector2(1.5 * k, 12.0 * k), "当前", int(round(10.0 * k)), _ca(C_ACC, ea), HORIZONTAL_ALIGNMENT_CENTER, 40.0 * k)
 	# 指针游标：刻度环上一段蓝弧 + 外侧三角，沿环滑到悬停项
-	if _ptr_v > 0.0:
+	if pvv > 0.0:
 		var pv: Vector2 = Vector2.from_angle(_ptr_a)
-		var pe: float = e * _ptr_v
+		var pe: float = e * pvv
 		hud.draw_arc(c, r_dial, _ptr_a - deg_to_rad(11.0), _ptr_a + deg_to_rad(11.0), 10, _ca(C_ACC, pe), 3.0 * k)
 		var side: Vector2 = pv.orthogonal() * 6.0 * k
 		var bp: Vector2 = c + pv * (r_dial + 15.0 * k)
@@ -438,15 +451,17 @@ func _draw_ef(vs: Vector2, hov: int, out: float) -> void:
 	for q in 4:
 		var q0: float = q * PI / 2.0 - PI / 4.0 + 0.3
 		hud.draw_arc(c, ri, q0, q0 + PI / 2.0 - 0.6, 10, _ca(C_ACC, 0.45 * e), 1.5)
-	if _ptr_v > 0.0:
-		hud.draw_arc(c, ri, _ptr_a - 0.42, _ptr_a + 0.42, 12, _ca(C_ACC, e * _ptr_v), 3.0 * k)
+	if pvv > 0.0:
+		hud.draw_arc(c, ri, _ptr_a - 0.42, _ptr_a + 0.42, 12, _ca(C_ACC, e * pvv), 3.0 * k)
 	UI.text(hud, font, c + Vector2(-50.0 * k, -ri * 0.42), "指挥", int(round(12.0 * k)), _ca(C_DIAL, 0.7 * e), HORIZONTAL_ALIGNMENT_CENTER, 100.0 * k)
-	var nf: float = 1.0 if rm else _ease(clampf(sel_t / 0.12, 0.0, 1.0))   # 换项时名字从下往上浮 6 px
+	var nf: float = 1.0 if rm else _ease(clampf(st / 0.12, 0.0, 1.0))   # 换项时名字从下往上浮 6 px
 	if hov >= 0:
 		UI.text(hud, font, c + Vector2(-60.0 * k, (7.0 + 6.0 * (1.0 - nf)) * k), str(ITEMS[hov].name), int(round(18.0 * k)), _ca(C_ACC, e * nf), HORIZONTAL_ALIGNMENT_CENTER, 120.0 * k)
 	else:
 		UI.text(hud, font, c + Vector2(-60.0 * k, 6.0 * k), "选择指令", int(round(14.0 * k)), _ca(C_DIAL, 0.75 * e), HORIZONTAL_ALIGNMENT_CENTER, 120.0 * k)
 	UI.ctext(hud, font, c + Vector2(-50.0 * k, ri * 0.66), "COMMAND", int(round(8.0 * k)), _ca(C_DIAL, 0.5 * e), HORIZONTAL_ALIGNMENT_CENTER, 100.0 * k)
+	if prev:
+		return
 	# 说明 + 操作提示：垫一块底板（盖住开局操作提示等底部 HUD 字），左端蓝条
 	var py: float = c.y + r_out + 28.0 * k
 	var pw: float = 420.0 * k

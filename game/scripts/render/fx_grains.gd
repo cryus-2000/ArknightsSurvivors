@@ -9,6 +9,9 @@
 extends Node2D
 
 const Bal = preload("res://scripts/core/balance.gd")
+# 形状颗粒化（10-24 用户「斯卡蒂的那个能不能根据形状改成粒子的」，docs/138 §13）：这些帧条不画贴图，每换一帧按这一帧的
+# 可见像素在 2 px 世界格上生成颗粒（刀光模板：热白 → 本色冷却散开），形状由颗粒拼出来。开关 fx/grain_body
+const GRAIN_BODY := {"fx_slash_heavy_deep": true}
 
 const TEMPLATES := {
 	# 刀光：热白 → 亮本色 → 本色 → 冷暗四阶，带挥刀惯性散开、轻微下落、逐颗熄灭
@@ -41,6 +44,7 @@ const MAT_HANDOFF := {"fx_skadi_surge_release": 0.5, "fx_skadi_surge_hit": 0.4, 
 const MAT_SHARE := 0.6   # 材质颗粒最多占共用预算的六成：留四成给刀光第四版，大混战时材质先退回帧条，刀光不被挤掉
 var templates: Dictionary = TEMPLATES.duplicate(true)
 var _samples := {}
+var _art = null
 const SPARK_MAX := [0, 120, 240]
 
 var g
@@ -347,3 +351,55 @@ func _lappland_step() -> void:
 			var offset: Vector2 = (local * float(f.sc)).rotated(float(f.ang))
 			var dir: Vector2 = Vector2(1.0, local.y * 0.025).normalized().rotated(float(f.ang))
 			push("blade", f.pos + offset, dir, sample[1] * Color(0.75, 0.85, 0.9, 1.0), float(i % 3) * 0.02)
+
+
+## 形状颗粒化（GRAIN_BODY）：world 画 "sprite" 前调。返回 true = 这一帧由颗粒负责、不画贴图；
+## 预算不够整帧颗粒时返回 false，照原样画贴图（不会出现半个形状）
+func body_frame(f: Dictionary, fr: int, frames: int) -> bool:
+	if not on() or off or f.get("gb_skip", false) or Bal.v("fx/grain_body", 0.0) <= 0.0 or not GRAIN_BODY.has(str(f.name)):
+		return false
+	if int(f.get("gb_fr", -1)) == fr:
+		return bool(f.get("gb_ok", false))
+	f["gb_fr"] = fr
+	f["gb_ok"] = false
+	var tx: Texture2D = g.tex.get(str(f.name))
+	if tx == null:
+		return false
+	if _art == null:
+		_art = load("res://scripts/art.gd")   # 运行时取：契约测试把本文件单独拷进最小工程，不能 preload art.gd
+	var h: float = _art.hires_of(tx)
+	var fw: int = tx.get_width() / frames
+	var fh: int = tx.get_height()
+	var sc: float = absf(float(f.scale)) / h   # 每个贴图像素的世界像素数
+	var step: int = maxi(1, int(round(2.0 / maxf(0.01, sc))))   # 每 2 世界像素取一个样
+	var key: String = "gb#%s#%d#%d" % [f.name, fr, step]
+	if not _samples.has(key):
+		var img: Image = tx.get_image()
+		if img == null or img.is_empty() or img.is_compressed():
+			return false
+		var pts: Array = []
+		for y in range(0, fh, step):
+			for x in range(0, fw, step):
+				var c: Color = img.get_pixel(fr * fw + x, y)
+				if c.a >= 0.4:
+					pts.append([Vector2(x, y), c])
+		_samples[key] = pts
+	var pts: Array = _samples[key]
+	var n: int = mini(pts.size(), 160 if level >= 2 else 90)
+	if n == 0:
+		f["gb_ok"] = true
+		return true
+	if pos.size() + n > int(budget() * MAT_SHARE):
+		return false
+	var an: Vector2 = f.get("anchor", Vector2(fw, fh) / 2.0)
+	var flip: bool = f.get("flip", false)
+	var tint: Color = f.get("col", Color.WHITE)
+	for i in n:
+		var s: Array = pts[int(float(i) * pts.size() / n)]
+		var o: Vector2 = (s[0] - an) * sc
+		if flip:
+			o.x = -o.x
+		o = o.rotated(float(f.ang))
+		push("slash", f.pos + o, o.normalized(), s[1] * tint)
+	f["gb_ok"] = true
+	return true

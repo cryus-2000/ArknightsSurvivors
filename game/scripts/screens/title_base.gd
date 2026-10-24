@@ -89,7 +89,7 @@ func _diff_step(_d: int) -> void:
 
 
 func _prewarm() -> void:
-	A.normal_maps = Cfg.normal_maps and DisplayServer.get_name() != "headless"
+	A.normal_maps = Game.wants_normal_maps()   # 和局内同一判断（光学观感下不生成法线）：以前这里只看设置，光学开着也在后台算整套法线、出发后还要等它
 	A.prewarm_start(Game.preload_tex_names())
 
 

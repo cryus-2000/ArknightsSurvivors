@@ -107,6 +107,7 @@ static func _read() -> void:
 	_tint = clampf(p("actor_tint"), 0.0, 1.0)
 	_neu = clampf(p("actor_neutral"), 0.0, 1.0)
 	_wl = p("white_lift")
+	_op_unlit = Bal.v("render/op_unlit", 1.0) > 0.0
 
 
 ## actor_tint > 0 时三通道不再同比例：每通道再乘 (ambient + 去暖灯色 × a) / (ambient + 灯色 × a)，软膝按去暖后的最大通道算。
@@ -234,11 +235,39 @@ static func _actor_mod_tail(a: float, amb: Color, lcol: Color, br: float, cap: f
 		s2 * tb / maxf(amb.b + lcol.b * a, 0.001), 1.0)
 
 
+## 干员不吃灯火（用户 10-24「干员身上的灯光附着取消掉」，选「受灯火提亮 / 染色」）：render/op_unlit 1（缺省）。
+## 引擎光照会把本体乘上 ambient + 灯色 × 衰减，这里乘回它的倒数 → 干员按贴图原色画（和 PRTS 立绘一致），不随离灯远近变亮 / 变暖，
+## 也没有朝灯亮线；敌人 / 博士以外的画面不动。0 = 回到原来的受光封顶 + 白色保护
+static var _op_unlit := false
+
+
+static func plain_mod(g, pos: Vector2) -> Color:   # 博士挂件等：开着 op_unlit 就按原色，否则照旧受光封顶
+	if _cap < 0.0:
+		_read()
+	return op_unlit_mod(g, pos) if _op_unlit else actor_mod(g, pos)
+
+
+static func op_unlit_mod(g, pos: Vector2) -> Color:
+	_fc_fill(g)
+	var amb: Color = g.map.ambient
+	if not _fc_on:
+		return Color(1.0 / maxf(amb.r, 0.001), 1.0 / maxf(amb.g, 0.001), 1.0 / maxf(amb.b, 0.001), 1.0)
+	var c := pos + Vector2(0, -16.0) - _fc_lpos
+	var d := c.length()
+	var a := _atten(_fc_ltex, d / maxf(_fc_lscale, 0.001)) * _fc_lenergy
+	if A.normal_maps:
+		a *= _fc_lh / sqrt(d * d + _fc_lh * _fc_lh)
+	return Color(1.0 / maxf(_fc_amb.r + _fc_lcol.r * a, 0.001), 1.0 / maxf(_fc_amb.g + _fc_lcol.g * a, 0.001),
+		1.0 / maxf(_fc_amb.b + _fc_lcol.b * a, 0.001), 1.0)
+
+
 ## 干员本体的最终 modulate：白色保护关 = col × actor_mod；开 = col × 去暖项，RGB 取负作「走逐像素受光」标记
 ## （actor_light.gdshader 的 vertex() 认负号、还原，再按像素位置算灯火倍率与软膝 / 白色软肩）。col 的 RGB 须 ≥ 0
 static func op_mod(g, pos: Vector2, col: Color) -> Color:
 	if _cap < 0.0:
 		_read()
+	if _op_unlit:
+		return col * op_unlit_mod(g, pos)
 	if _wl <= 0.0 or g.get("actor_mat") == null:
 		return col * actor_mod(g, pos)
 	var m: Color = col * actor_mod(g, pos, true)
