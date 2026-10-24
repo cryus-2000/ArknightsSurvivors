@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://c20oo3pmajtc"
-path="res://.godot/imported/glow.png-eb1330f515097b14743831e333a98bb1.ctex"
+uid="uid://86mwwt23q3cc"
+path="res://.godot/imported/jglow_0.png-de0c0d610d35ff9c3daa71c8f332fe6b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/ui/title_deep/glow.png"
-dest_files=["res://.godot/imported/glow.png-eb1330f515097b14743831e333a98bb1.ctex"]
+source_file="res://art/ui/title_deep/jglow_0.png"
+dest_files=["res://.godot/imported/jglow_0.png-de0c0d610d35ff9c3daa71c8f332fe6b.ctex"]
 
 [params]
 

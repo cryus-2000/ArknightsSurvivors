@@ -30,6 +30,7 @@ const GLYPH := Color(0.792, 0.851, 0.882)      # #cad9e1
 const STRIP := Color(0.094, 0.204, 0.267, 0.84)
 const ROW := 62.0                               # 入口行距（设计坐标）
 const STRIP_W := 292.0
+const EDGE := 40.0                              # 桌面版式整体离左边再收进来的量（设计坐标）
 
 
 static func item(id: int) -> Dictionary:
@@ -116,19 +117,19 @@ static func layout(vs: Vector2, ids: Array, ins: Array, touch: bool, font: Font)
 	var fk: float
 	if not compact:
 		var dy := vs.y - 720.0
-		var x0 := maxf(0.0, il)
-		lo = Vector2(68 + x0, 46 + it)
+		var x0 := EDGE + maxf(0.0, il)   # 10-24 用户：字别太靠边
+		lo = Vector2(68 + x0, 52 + it)
 		lk = 1.0
-		lay.list = {"o": Vector2(64 + x0, 224 + dy * 0.55), "k": 1.0, "ids": list_ids}
-		dO = Vector2(64 + x0, 480 + dy - ib)
+		lay.list = {"o": Vector2(64 + x0, 216 + dy * 0.55), "k": 1.0, "ids": list_ids}
+		dO = Vector2(64 + x0, 466 + dy - ib)
 		dk = 1.0
-		fo = Vector2(68 + x0, 662 + dy - ib)
+		fo = Vector2(68 + x0, 648 + dy - ib)
 		fk = 1.0
 	else:
-		var lm := maxf(36.0, il + 22.0)
-		var tm := maxf(16.0, it + 12.0)
+		var lm := maxf(64.0, il + 30.0)
+		var tm := maxf(22.0, it + 14.0)
 		var bm := vs.y - maxf(10.0, ib + 8.0)
-		var rm := vs.x - maxf(30.0, ir + 22.0)
+		var rm := vs.x - maxf(48.0, ir + 26.0)
 		lk = 0.86
 		lo = Vector2(lm, tm)
 		var k := clampf((vs.y - 150.0) / (ROW * 4.0 + 70.0), 0.72, 1.0)
@@ -163,7 +164,7 @@ static func layout(vs: Vector2, ids: Array, ins: Array, touch: bool, font: Font)
 	if compact:
 		lay.legal = {"pos": Vector2(maxf(fo.x + x * fk + 28.0, fo.x), fo.y + 30.0 * fk), "align": "l", "max_x": dO.x - 16.0}
 	else:
-		lay.legal = {"pos": Vector2(vs.x - 24.0 - ir, vs.y - 20.0 - ib), "align": "r", "max_x": vs.x}
+		lay.legal = {"pos": Vector2(vs.x - 48.0 - ir, vs.y - 24.0 - ib), "align": "r", "max_x": vs.x}
 	return lay
 
 
@@ -244,7 +245,7 @@ static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dicti
 		var rx := STRIP_W * w
 		ci.draw_colored_polygon(PackedVector2Array([P.call(0, 2), P.call(rx, 2), P.call(maxf(0.0, rx - 16.0), 52), P.call(0, 52)]), _fa(STRIP, a * w))
 		ci.draw_rect(Rect2(P.call(0, 2), Vector2(3, 50) * k), _fa(C, a))
-		ci.draw_line(P.call(60, 51), P.call(60 + 176.0 * w, 51), _fa(C, a * w), maxf(1.0, 1.4 * k))
+		ci.draw_line(P.call(60, 53), P.call(60 + 176.0 * w, 53), _fa(C, a * w), maxf(1.0, 1.4 * k))
 	var dm := 0.45 if dim else 1.0
 	var rc: Vector2 = P.call(26, 27)
 	if w > 0.0:
@@ -254,7 +255,7 @@ static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dicti
 	var fs := int(round(25 * k))
 	var tc: Color = Color(0.859, 0.898, 0.918).lerp(Color.WHITE, w)
 	var cw := _txt(ci, font, P.call(60, 7), m.cn, fs, _fa(tc, a * dm))
-	_en(ci, font, P.call(61, 40), m.en, int(round(9 * k)), _fa(M.lerp(C, w), a * dm), 2.4 * k)
+	_en(ci, font, P.call(61, 37), m.en, int(round(9 * k)), _fa(M.lerp(C, w), a * dm), 2.4 * k)
 	var tx: Vector2 = P.call(60, 0) + Vector2(cw + 10.0 * k, 0)
 	if m.has("tag"):
 		_txt(ci, font, tx + Vector2(0, 17.0 * k), m.tag, int(round(11 * k)), _fa(M, a))

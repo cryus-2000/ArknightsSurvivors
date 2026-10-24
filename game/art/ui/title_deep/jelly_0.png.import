@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dieraqr6x1dwn"
-path="res://.godot/imported/scene.png-2fd86d2c69d135aca29cef7d862d38ab.ctex"
+uid="uid://cf1ylhpxt141h"
+path="res://.godot/imported/jelly_0.png-366cdead9d73705f9d5bba92091c6b4a.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://art/ui/title_deep/scene.png"
-dest_files=["res://.godot/imported/scene.png-2fd86d2c69d135aca29cef7d862d38ab.ctex"]
+source_file="res://art/ui/title_deep/jelly_0.png"
+dest_files=["res://.godot/imported/jelly_0.png-366cdead9d73705f9d5bba92091c6b4a.ctex"]
 
 [params]
 

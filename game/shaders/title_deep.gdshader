@@ -1,109 +1,122 @@
-// 标题页·深海水母场景（docs/67 §13）：移植 Codex codex/ui-shell 46 版 motion.js 的片元着色器。
-// 画在 1280×720 的 SubViewport 里（原图 640×360 最近邻、半个原像素的位移步长），再整屏铺开，开销与屏幕分辨率无关。
-// 10-24 精修：循环 12 → 20 秒（节奏放慢）；加水母柔光（glow.png 线性取样，随形变一起走）；still = 1 时给减少动态用的静帧（无鱼群、气泡）。
+// 标题页·深海水母 v2（docs/67 §13.3，10-24 用户：按游戏像素精度、水母要能动）。
+// 画在 428×240 的 SubViewport 里（1 美术像素 = 3 逻辑像素），一个片元就是一个美术像素，所有运动都落在像素格上。
+// 底图 bg（水母已拆走）+ 三只水母图层：伞体收缩 → 沿身体轴推进、松开时缓缓回落，触须按离伞远近带相位差摆动；
+// 另有光柱带缓移、上升气泡、下落海雪、远处鱼群。整屏亮度不脉动，节奏都在 4 秒以上。still = 1：减少动态效果的静帧。
 shader_type canvas_item;
 
-uniform sampler2D image : filter_nearest, repeat_disable;
-uniform sampler2D glow : filter_linear, repeat_disable;
+uniform sampler2D bg : filter_nearest, repeat_disable;
+uniform sampler2D j0 : filter_nearest, repeat_disable;
+uniform sampler2D j1 : filter_nearest, repeat_disable;
+uniform sampler2D j2 : filter_nearest, repeat_disable;
+uniform sampler2D g0 : filter_linear, repeat_disable;
+uniform sampler2D g1 : filter_linear, repeat_disable;
+uniform sampler2D g2 : filter_linear, repeat_disable;
+// 每只水母：rect = 图层在底图上的左上角 / 尺寸；pose = 伞顶锚点 xy、伞体长度、触须摆幅；axis = 伞顶 → 触须方向
+uniform vec4 rect0; uniform vec4 rect1; uniform vec4 rect2;
+uniform vec4 pose0; uniform vec4 pose1; uniform vec4 pose2;
+uniform vec2 axis0; uniform vec2 axis1; uniform vec2 axis2;
+uniform float glow_pad = 12.0;
+uniform float glow_k = 0.42;
 uniform float time = 0.0;
 uniform float still = 0.0;
-uniform float glow_k = 0.55;
 
-const vec2 SIZE = vec2(640.0, 360.0);
-const float LOOP = 20.0;
-
-float ellipse(vec2 p, vec2 c, vec2 r) {
-	return 1.0 - smoothstep(0.8, 1.35, length((p - c) / r));
-}
+const vec2 SIZE = vec2(428.0, 240.0);
 
 float hash(float x) {
 	return fract(sin(x * 43.132 + 5.31) * 213.41);
 }
 
-vec3 lit(vec2 q) {
-	return texture(image, q / SIZE).rgb + vec3(0.47, 0.78, 0.90) * texture(glow, q / SIZE).r * glow_k;
+// 收缩曲线：周期 per，前 22% 快收、其余慢放（0 = 舒张，1 = 收紧）
+float pulse(float t, float per) {
+	float u = fract(t / per);
+	return u < 0.22 ? smoothstep(0.0, 1.0, u / 0.22) : 1.0 - smoothstep(0.0, 1.0, (u - 0.22) / 0.78);
+}
+
+// 输出像素 p 在水母图层里的取样位置（逆变换）：伞体段按收缩缩放，触须段跟着伞底平移、再按相位差横摆
+vec2 jelly_uv(vec2 p, vec4 rect, vec4 pose, vec2 axis, vec2 drift, float c, float t, float ph) {
+	vec2 perp = vec2(-axis.y, axis.x);
+	float bell = pose.z;
+	float sy = 1.0 - 0.11 * c;
+	float sx = 1.0 + 0.07 * c;
+	vec2 anchor = pose.xy + drift - axis * (2.4 * c * bell / 40.0);
+	vec2 d = p - anchor;
+	float A = dot(d, axis);
+	float X = dot(d, perp);
+	float along;
+	float across;
+	if (A < bell * sy) {
+		along = A / sy;
+		across = X / mix(sx, 1.0, smoothstep(bell * 0.7, bell, along));
+	} else {
+		along = A + bell * (1.0 - sy);
+		float s = clamp((along - bell) / (bell * 2.2), 0.0, 1.0);
+		float sway = pose.w * s * sqrt(s) * sin(t * 6.2831853 / 7.0 + ph - along * 0.11) + 0.8 * pose.w * s * c;
+		across = X - sway;
+	}
+	vec2 q = pose.xy + axis * along + perp * across;   // 图层未变形时的位置（底图坐标）
+	return q - rect.xy;
+}
+
+void layer(inout vec3 col, sampler2D tex, sampler2D gl, vec4 rect, vec2 uv) {
+	vec2 g = (uv + glow_pad) / (rect.zw + 2.0 * glow_pad);
+	if (g.x > 0.0 && g.y > 0.0 && g.x < 1.0 && g.y < 1.0) {
+		col += vec3(0.47, 0.78, 0.92) * texture(gl, g).r * glow_k;
+	}
+	if (uv.x >= 0.0 && uv.y >= 0.0 && uv.x < rect.z && uv.y < rect.w) {
+		vec4 j = texelFetch(tex, ivec2(floor(uv)), 0);
+		col = mix(col, j.rgb, j.a);
+	}
 }
 
 void fragment() {
-	vec2 p = UV * SIZE;
-	if (still > 0.5) {
-		COLOR = vec4(lit(p), 1.0);
-	} else {
-		float tm = mod(time, LOOP);
-		float phase = TAU * tm / LOOP;
-		vec2 q = p;
-		// 主水母：伞体与细触须共用一个包络，整体漂移 + 弯曲，不分段（无断层）
-		vec2 ml = p - vec2(386.0, 175.0);
-		vec2 along_axis = vec2(-0.56, 0.82849);
-		vec2 across_axis = vec2(0.82849, 0.56);
-		float across = dot(ml, across_axis);
-		float along = dot(ml, along_axis);
-		float mw = 1.0 - smoothstep(1.05, 1.70, length(vec2(across / 64.0, along / 111.0)));
-		mw *= smoothstep(294.0, 338.0, p.x + 0.45 * (p.y - 160.0));
-		mw *= 1.0 - smoothstep(264.0, 296.0, p.y);
-		float bend = smoothstep(-70.0, 110.0, along);
-		vec2 drift = vec2(1.65 * sin(phase), -2.15 * sin(phase));
-		vec2 flex = across_axis * (1.25 * bend * bend * sin(phase * 2.0 - bend * 2.4));
-		vec2 stroke = across_axis * (across * 0.012 * sin(phase * 3.0) * (1.0 - bend));
-		q -= (drift + flex + stroke) * mw;
-		// 两只小水母错相
-		float near_j = ellipse(p, vec2(274.0, 223.0), vec2(20.0, 27.0));
-		q -= vec2(1.4 * sin(phase + 1.3), 2.1 * sin(phase + 0.4)) * near_j;
-		q.x += sin(phase * 2.0 - (p.y - 209.0) * 0.13) * near_j * clamp((p.y - 211.0) / 28.0, 0.0, 1.0);
-		float far_j = ellipse(p, vec2(520.0, 109.0), vec2(12.0, 20.0));
-		q -= vec2(0.9 * sin(phase + 2.1), 1.4 * sin(phase + 1.7)) * far_j;
-		// 光柱纹理缓慢横移（不整屏变亮）；水面波纹与悬垂物各走各的节奏
-		float upper = smoothstep(337.0, 398.0, p.x) * (1.0 - smoothstep(540.0, 577.0, p.x)) * (1.0 - smoothstep(65.0, 84.0, p.y));
-		q.x += 1.7 * sin(phase) * upper;
-		float surface = smoothstep(320.0, 376.0, p.x) * (1.0 - smoothstep(555.0, 587.0, p.x)) * (1.0 - smoothstep(23.0, 45.0, p.y));
-		q.x += 1.4 * sin(p.y * 0.17 - phase * 2.0) * surface;
-		q.y += 0.55 * sin(p.x * 0.055 - phase * 2.0) * surface;
-		float ropes = ellipse(p, vec2(294.0, 72.0), vec2(36.0, 54.0));
-		float tip = smoothstep(30.0, 119.0, p.y);
-		q.x += 0.8 * sin(phase * 2.0) * tip * tip * ropes;
-		q = clamp(q, vec2(0.25), SIZE - 0.25);
-		vec3 color = lit(q);
-		// 水中光带缓慢迁移（局部、幅度 ≤ 2%）
-		float water = smoothstep(310.0, 365.0, p.x) * (1.0 - smoothstep(555.0, 590.0, p.x)) * (1.0 - smoothstep(180.0, 266.0, p.y));
-		float light = 0.012 * sin(p.x * 0.065 + p.y * 0.037 - phase) + 0.007 * sin(p.x * 0.12 + p.y * 0.046 - phase * 2.0);
-		color += vec3(0.45, 0.78, 1.0) * light * water * (1.0 - 0.75 * mw);
-		// 前景水草剪影
-		for (int j = 0; j < 5; j++) {
-			float id = float(j);
-			float root_x = 550.0 + id * 13.0;
-			float hgt = 28.0 + hash(id + 80.0) * 29.0;
-			float h = (353.0 - p.y) / hgt;
-			float sh = clamp(h, 0.0, 1.0);
-			float cx = root_x - 6.0 * sh + 3.4 * sh * sh * sin(phase + id * 0.6);
-			float w = mix(1.8, 0.45, sh);
-			float stem = (1.0 - step(w, abs(p.x - cx))) * step(0.0, h) * (1.0 - step(1.0, h));
-			float ly = fract(sh * 4.0);
-			float lx = cx + sin(floor(sh * 4.0) * 2.3) * 5.0 * (1.0 - ly);
-			float leaf = (1.0 - step(1.1, abs(p.x - lx))) * step(0.1, ly) * (1.0 - step(0.66, ly)) * step(0.12, h) * (1.0 - step(0.88, h));
-			color = mix(color, vec3(0.021, 0.045, 0.057), max(stem, leaf));
-		}
-		// 远处小鱼群：单向穿行，循环边界前隐入水色
-		float age = fract(tm / LOOP + 0.25);
-		float sf = smoothstep(0.0, 0.18, age) * (1.0 - smoothstep(0.78, 1.0, age));
-		for (int k = 0; k < 6; k++) {
-			float id = float(k);
-			vec2 fish = vec2(420.0 + id * 8.0 + 70.0 * age, 181.0 + mod(id, 3.0) * 4.0 + 1.7 * sin(phase * 2.0 + id));
-			vec2 f = p - fish;
-			float body = 1.0 - step(1.0, length(f / vec2(2.1, 0.8)));
-			float tail = step(-4.0, f.x) * (1.0 - step(-1.9, f.x)) * (1.0 - step((-f.x - 1.8) * 0.55, abs(f.y)));
-			color = mix(color, vec3(0.035, 0.085, 0.111), max(body, tail) * 0.65 * sf);
-		}
-		// 原像素气泡：固定种子，淡入淡出
-		for (int i = 0; i < 20; i++) {
-			float id = float(i);
-			float ba = fract(tm / LOOP + hash(id + 4.0));
-			vec2 b = vec2(346.0 + hash(id + 17.0) * 196.0, 188.0 + hash(id + 29.0) * 61.0 - ba * 96.0);
-			b.x += 2.5 * sin(phase + id * 1.7);
-			vec2 d = abs(floor(p) + 0.5 - (floor(b) + 0.5));
-			float dot_px = 1.0 - step(0.6, max(d.x, d.y));
-			float fade = smoothstep(0.0, 0.15, ba) * (1.0 - smoothstep(0.75, 1.0, ba));
-			color = mix(color, vec3(0.43, 0.67, 0.77), dot_px * fade * 0.5);
-		}
-		COLOR = vec4(color, 1.0);
+	vec2 p = floor(UV * SIZE) + 0.5;
+	float t = still > 0.5 ? 0.0 : time;
+	float mv = still > 0.5 ? 0.0 : 1.0;
+	vec3 col = texelFetch(bg, ivec2(p), 0).rgb;
+	// 光柱：从右上斜下的几条宽带，带位置 40 秒一个来回、亮度只分两档（不闪）
+	float band = sin((p.x - p.y * 0.62) * 0.05 + 0.6 * sin(t * 6.2831853 / 40.0));
+	float top = 1.0 - smoothstep(20.0, 170.0, p.y);
+	float zone = smoothstep(150.0, 230.0, p.x) * (1.0 - smoothstep(380.0, 420.0, p.x));
+	col += vec3(0.30, 0.52, 0.66) * step(0.55, band) * 0.045 * top * zone;
+	// 远处鱼群：一队从左往右穿过中景，约 46 秒一趟，进出时淡入淡出
+	float age = fract(t / 46.0 + 0.3);
+	float sf = mv * smoothstep(0.0, 0.12, age) * (1.0 - smoothstep(0.85, 1.0, age));
+	for (int k = 0; k < 7; k++) {
+		float id = float(k);
+		vec2 fish = vec2(130.0 + id * 6.0 + mod(id, 2.0) * 3.0 + 190.0 * age, 118.0 + mod(id * 5.0, 7.0) * 2.0 + 1.5 * sin(t * 0.9 + id));
+		vec2 f = floor(p) - floor(fish);
+		float body = step(abs(f.y), 0.0) * step(-2.0, f.x) * step(f.x, 1.0);
+		float tail = step(abs(f.y), 1.0) * step(f.x, -3.0) * step(-3.0, f.x);
+		col = mix(col, vec3(0.05, 0.10, 0.13), max(body, tail) * 0.7 * sf);
 	}
+	// 三只水母（远 → 近）：各自的游泳周期与漂移
+	float c2 = mv * pulse(t + 1.7, 4.6);
+	vec2 d2 = mv * vec2(3.0 * sin(t * 6.2831853 / 29.0 + 1.0), 4.0 * sin(t * 6.2831853 / 19.0));
+	layer(col, j2, g2, rect2, jelly_uv(p, rect2, pose2, axis2, d2, c2, t, 2.0));
+	float c1 = mv * pulse(t + 0.6, 5.2);
+	vec2 d1 = mv * vec2(5.0 * sin(t * 6.2831853 / 33.0 + 2.0), 6.0 * sin(t * 6.2831853 / 21.0 + 0.5));
+	layer(col, j1, g1, rect1, jelly_uv(p, rect1, pose1, axis1, d1, c1, t, 1.0));
+	float c0 = mv * pulse(t, 6.0);
+	vec2 d0 = mv * vec2(7.0 * sin(t * 6.2831853 / 37.0), 6.0 * sin(t * 6.2831853 / 26.0 + 1.2));
+	layer(col, j0, g0, rect0, jelly_uv(p, rect0, pose0, axis0, d0, c0, t, 0.0));
+	// 上升气泡（1 像素，偶尔 2 像素）与下落海雪（暗、慢）
+	for (int i = 0; i < 16; i++) {
+		float id = float(i);
+		float ba = fract(t / 16.0 + hash(id + 4.0));
+		vec2 b = vec2(230.0 + hash(id + 17.0) * 140.0 + 2.0 * sin(t * 0.8 + id * 1.7), 170.0 + hash(id + 29.0) * 40.0 - ba * 110.0);
+		vec2 dd = abs(floor(p) - floor(b));
+		float big = step(0.8, hash(id + 51.0));
+		float dot_px = step(max(dd.x, dd.y), big * 0.5 + 0.1);
+		float fade = smoothstep(0.0, 0.15, ba) * (1.0 - smoothstep(0.75, 1.0, ba));
+		col = mix(col, vec3(0.55, 0.78, 0.86), dot_px * fade * 0.55 * mv);
+	}
+	for (int i = 0; i < 26; i++) {
+		float id = float(i);
+		float sa = fract(t / 38.0 + hash(id + 90.0));
+		vec2 s = vec2(160.0 + hash(id + 61.0) * 260.0 + 3.0 * sin(t * 0.35 + id), -4.0 + sa * 200.0);
+		vec2 dd = abs(floor(p) - floor(s));
+		float fade = smoothstep(0.0, 0.1, sa) * (1.0 - smoothstep(0.8, 1.0, sa));
+		col = mix(col, vec3(0.32, 0.46, 0.54), step(max(dd.x, dd.y), 0.1) * fade * 0.5 * mv);
+	}
+	COLOR = vec4(col, 1.0);
 }
