@@ -11,7 +11,7 @@
  ],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
-  "_doc": "基础数值（docs/27 §3、§9；设计稿 docs/122）：近卫 · 领主。普攻「双刃」近身横扫（cone），特性「领主」每第 blade_every 次普攻追加一道剑气（远程 80%）；天赋「精神摧毁」命中封印；S1「日晷」永久（攻击 + 队长受击格挡概率）；S2「狼魂」限时（攻击 + 法术剑气）；S3「群狼之噬」（本作自创名）限时每 s3_every 秒三道剑气 + 封印环；精一「狼之舞」每第 dance_n 次改为旋身斩；精二「双生刃」剑气改为每次双刃；节点 4 二选一「断喝」/「狼魂·狂」（docs/119 §4.1）",
+  "_doc": "基础数值（docs/27 §3、§9；设计稿 docs/122）：近卫 · 领主。普攻「双刃」近身横扫（cone），特性「领主」远处（近战触及外）改掷剑气（远程 far_mult 80%、间隔 far_every，狼魂期间 far_s2_mult 100%），近处照常横扫（10-24 用户定，attack.far）；天赋「精神摧毁」命中封印；S1「日晷」永久（攻击 + 队长受击格挡概率）；S2「狼魂」限时（攻击 + 法术剑气）；S3「群狼之噬」（本作自创名）限时每 s3_every 秒三道剑气 + 封印环；精一「狼之舞」每第 dance_n 次改为旋身斩；精二「双生刃」横扫附带两道交叉剑气；节点 4 二选一「断喝」/「狼魂·狂」（docs/119 §4.1）",
   "atk": 35,
   "cd": 0.8,
   "reach": 100,
@@ -23,8 +23,6 @@
   "idle_cd": 0.1,
   "leash": 200,
   "gap": 30,
-  "blade_every": 2,
-  "blade_mult": 0.8,
   "blade_dist": 200,
   "blade_w": 50,
   "blade_spd": 500,
@@ -68,7 +66,9 @@
   "bark2_seal": 3.0,
   "rage_atk": 0.25,
   "rage2_aspd": 0.2,
-  "far_mult": 0.8
+  "far_mult": 0.8,
+  "far_every": 1.0,
+  "far_s2_mult": 1.0
  },
  "leader": {
   "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 2350 / 防御 365 / 法抗 15（character_table）；近战无自疗 regen 1.4–1.7 口径取 1.5，防御高于斯卡蒂故生命略低、护甲略高",
@@ -78,7 +78,15 @@
   "regen": 1.5
  },
  "sprites": {
-  "move_attack": {"tex": "op_lappland_move_attack", "frames": 8, "foot": [48, 76], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},
+  "move_attack": {
+   "tex": "op_lappland_move_attack",
+   "frames": 8,
+   "foot": [
+    48,
+    76
+   ],
+   "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"
+  },
   "entry": {
    "tex": "op_lappland_entry",
    "frames": 8,
@@ -241,7 +249,24 @@
    ],
    "fire": 3,
    "fire_time": 0.601,
-   "_doc": "Codex 199d7b73 原作 Attack 28 帧 1.333 秒重采样为 8 帧（源帧 [0, 4, 9, 13, 16, 19, 22, 25]，出手帧 = 源第 13 帧 → 第 3 帧；tools/probes/package_lappland_gladiia.py）"
+   "_doc": "Codex 199d7b73 原作 Attack 28 帧 1.333 秒重采样为 8 帧（源帧 [0, 4, 9, 13, 16, 19, 22, 25]，出手帧 = 源第 13 帧 → 第 3 帧；tools/probes/package_lappland_gladiia.py）；10-24 领主远程：作为远程形态普攻帧条，attack_timing 压到 0.7 秒、出手 0.3 秒（原作 1.18 / 0.6 偏慢）",
+   "attack_timing": {
+    "duration": 0.7,
+    "fire_time": 0.3,
+    "active_ratio": 0.9,
+    "windup_ratio": 0.45,
+    "min_duration": 0.2,
+    "frame_durations": [
+     0.098765,
+     0.123457,
+     0.077778,
+     0.076768,
+     0.080808,
+     0.080808,
+     0.080808,
+     0.080808
+    ]
+   }
   },
   "skills": {
    "_doc": "S1 单条 skill；S2 单条 throw（原作 Attack 掷刃）；S3 起手 skill → 持续期由实际剑气事件驱动 throw（与 S2 同一掷刃动作，用户 10-22），等待事件时保持准备姿势、普攻也播 throw、移动 run",
@@ -271,7 +296,7 @@
  "attack": {
   "mode": "auto",
   "name": "双刃",
-  "desc": "每 {$cd} 秒在队长身边挥出双刃横扫（物理，扇形约 150°，半径 {$reach}）；触及内没有敌人时，这一下改为朝 {$blade_aim} 内最近的敌人掷出一道剑气（攻击 {$far_mult*100}%，飞出 {$blade_dist}，命中第一名敌人即消失）；特性「领主」：每第 {$blade_every} 次横扫额外掷出一道剑气，飞出 {$blade_dist}，命中第一名敌人即消失，造成横扫 {$blade_mult*100}% 的伤害"
+  "desc": "每 {$cd} 秒在队长身边挥出双刃横扫（物理，扇形约 150°，半径 {$reach}）；特性「领主」：敌人离得远（超出横扫触及）时，改为每 {$far_every} 秒朝 {$blade_aim} 内最近的敌人掷出一道剑气，造成攻击 {$far_mult*100}% 的伤害，飞出 {$blade_dist}，命中第一名敌人即消失；「狼魂」期间远程不再削弱"
  },
  "skills": [
   {
@@ -312,17 +337,6 @@
    "tags": [
     "basic",
     "area"
-   ]
-  },
-  "领主": {
-   "emitter": "operator",
-   "origin": "core",
-   "range": "近战",
-   "kind": "物理",
-   "tags": [
-    "basic",
-    "area",
-    "projectile"
    ]
   },
   "狼魂": {
@@ -381,7 +395,7 @@
   "远掷": {
    "emitter": "operator",
    "origin": "core",
-   "range": "近战",
+   "range": "远程",
    "kind": "物理",
    "tags": [
     "basic",
@@ -463,7 +477,7 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「群狼之噬」：{$s3_dur} 秒内每 {$s3_every} 秒掷出 3 道剑气并封印周围敌人；普通攻击强化「双生刃」：每次横扫都掷出两道交叉剑气（各 {$twin_blade_mult*100}% 伤害，±{$twin_fan}°，每名敌人每轮只受一道），取代「领主」的单道剑气",
+   "desc": "解锁三技能「群狼之噬」：{$s3_dur} 秒内每 {$s3_every} 秒掷出 3 道剑气并封印周围敌人；普通攻击强化「双生刃」：每次横扫都掷出两道交叉剑气（各 {$twin_blade_mult*100}% 伤害，±{$twin_fan}°，每名敌人每轮只受一道），离得远时掷出的「领主」剑气照旧",
    "attack": {
     "name": "双生刃",
     "desc": "每次横扫都掷出两道交叉剑气（各横扫 {$twin_blade_mult*100}% 伤害，±{$twin_fan}°，飞出 {$blade_dist}，命中第一名敌人即消失；每名敌人每轮只受一道）"
@@ -477,7 +491,7 @@
    "封印",
    "剑气"
   ],
-  "desc": "近卫干员，领主。贴身双刃横扫，隔两刀掷出穿透剑气；晋升至精英一后每次斩击封印敌人的特殊招式，三技能连续释放剑气并封印周围敌人"
+  "desc": "近卫干员，领主。敌人贴近时双刃横扫，离得远则掷出剑气；晋升至精英一后每次斩击封印敌人的特殊招式，三技能连续释放剑气并封印周围敌人"
  },
  "blocks": {
   "_doc": "拉普兰德（docs/122）：纯数据干员。普攻 cone（斯卡蒂同款写法），剑气用 shape.wave from self（斯卡蒂精二潮刃的写法），封印用 st.seal（docs/61 §15.3）。waves 不支持 on_hit，封印一律挂在 cone / circle 的 on_hit 或 verb.affect 上。技能备注——S1：日晷：永久攻击 +25%；队长受击 15% 概率格挡写在 trait（trig.on_hurt cond skill_active:0）；S2：狼魂：攻击 +40%；每次横扫追加法术剑气写在 trait（every_n 1 cond skill_active:1）；S3：群狼之噬：期间每 s3_every 秒三道剑气 + 封印环，写在 trait（trig.tick cond skill_active:2）；普攻照常",
@@ -637,33 +651,128 @@
      ]
     }
    ],
-   "far": {
-    "shape": "wave",
-    "from": "self",
-    "aim": "nearest",
-    "aim_r": "$blade_aim",
-    "fan": [
-     0
-    ],
-    "basis": "atk",
-    "mult": "$far_mult",
-    "dist": "$blade_dist",
-    "speed": "$blade_spd",
-    "w": "$blade_w",
-    "depth": 14,
-    "kb": "$blade_kb",
-    "cap": 9,
-    "off": [
-     0,
-     -6
-    ],
-    "src": "远掷",
-    "proj": "proj_lappland_sword",
-    "_doc": "远近切换（10-22 用户）：触及 reach 内没有敌人时，这一下横扫改为朝 260 内最近敌人掷一道剑气（攻击 80%，飞 200，穿透）；「领主」每第 2 刀附带剑气照旧",
-    "proj_hold": 1,
-    "proj_front": true,
-    "max_hits": 1
-   }
+   "far": [
+    {
+     "cond": "skill_active:1 && node:far",
+     "shape": "wave",
+     "from": "self",
+     "aim": "nearest",
+     "aim_r": "$blade_aim",
+     "fan": [
+      0
+     ],
+     "basis": "atk",
+     "mult": "$far_s2_mult",
+     "dist": "$far_dist",
+     "speed": "$blade_spd",
+     "w": "$far_w",
+     "depth": 14,
+     "kb": "$blade_kb",
+     "cap": 9,
+     "off": [
+      0,
+      -6
+     ],
+     "src": "远掷",
+     "proj": "proj_lappland_sword",
+     "proj_hold": 1,
+     "proj_front": true,
+     "max_hits": 1,
+     "every": "$far_every",
+     "anim": "throw",
+     "count": false
+    },
+    {
+     "cond": "skill_active:1",
+     "shape": "wave",
+     "from": "self",
+     "aim": "nearest",
+     "aim_r": "$blade_aim",
+     "fan": [
+      0
+     ],
+     "basis": "atk",
+     "mult": "$far_s2_mult",
+     "dist": "$blade_dist",
+     "speed": "$blade_spd",
+     "w": "$blade_w",
+     "depth": 14,
+     "kb": "$blade_kb",
+     "cap": 9,
+     "off": [
+      0,
+      -6
+     ],
+     "src": "远掷",
+     "proj": "proj_lappland_sword",
+     "proj_hold": 1,
+     "proj_front": true,
+     "max_hits": 1,
+     "every": "$far_every",
+     "anim": "throw",
+     "count": false
+    },
+    {
+     "cond": "node:far",
+     "shape": "wave",
+     "from": "self",
+     "aim": "nearest",
+     "aim_r": "$blade_aim",
+     "fan": [
+      0
+     ],
+     "basis": "atk",
+     "mult": "$far_mult",
+     "dist": "$far_dist",
+     "speed": "$blade_spd",
+     "w": "$far_w",
+     "depth": 14,
+     "kb": "$blade_kb",
+     "cap": 9,
+     "off": [
+      0,
+      -6
+     ],
+     "src": "远掷",
+     "proj": "proj_lappland_sword",
+     "proj_hold": 1,
+     "proj_front": true,
+     "max_hits": 1,
+     "every": "$far_every",
+     "anim": "throw",
+     "count": false
+    },
+    {
+     "shape": "wave",
+     "from": "self",
+     "aim": "nearest",
+     "aim_r": "$blade_aim",
+     "fan": [
+      0
+     ],
+     "basis": "atk",
+     "mult": "$far_mult",
+     "dist": "$blade_dist",
+     "speed": "$blade_spd",
+     "w": "$blade_w",
+     "depth": 14,
+     "kb": "$blade_kb",
+     "cap": 9,
+     "off": [
+      0,
+      -6
+     ],
+     "src": "远掷",
+     "proj": "proj_lappland_sword",
+     "proj_hold": 1,
+     "proj_front": true,
+     "max_hits": 1,
+     "every": "$far_every",
+     "anim": "throw",
+     "count": false,
+     "_doc": "领主（原作特性：可进行远程攻击，攻击力降至 80%）：近战触及（reach）内没有敌人、而 blade_aim 内有 → 这一下改为掷一道剑气（攻击 far_mult、间隔 far_every、帧条 throw，命中第一名即消失）；手动攻击按指向的锥里近战触及内有无敌人选形态；count:false = 远程不数近战的次数。狼魂期间远程不再降攻击（far_s2_mult，原作 S2）；节点 2「远掷」换 far_dist / far_w。前面的先匹配"
+    }
+   ]
   },
   "skills": [
    {
@@ -776,73 +885,6 @@
    }
   ],
   "trait": [
-   {
-    "trig": "every_n",
-    "n": "$blade_every",
-    "cond": "elite < 2 && !node:far",
-    "_doc": "领主：每第 2 次横扫掷一道剑气（80%），精二起由「双生刃」取代",
-    "do": [
-     {
-      "shape": "wave",
-      "from": "self",
-      "aim": "nearest",
-      "aim_r": "$blade_aim",
-      "fan": [
-       0
-      ],
-      "basis": "attack",
-      "mult": "$blade_mult",
-      "dist": "$blade_dist",
-      "speed": "$blade_spd",
-      "w": "$blade_w",
-      "depth": 14,
-      "kb": "$blade_kb",
-      "cap": 9,
-      "off": [
-       0,
-       -6
-      ],
-      "src": "领主",
-      "proj": "proj_lappland_sword",
-      "proj_hold": 1,
-      "proj_front": true,
-      "max_hits": 1
-     }
-    ]
-   },
-   {
-    "trig": "every_n",
-    "n": "$blade_every",
-    "cond": "elite < 2 && node:far",
-    "do": [
-     {
-      "shape": "wave",
-      "from": "self",
-      "aim": "nearest",
-      "aim_r": "$blade_aim",
-      "fan": [
-       0
-      ],
-      "basis": "attack",
-      "mult": "$blade_mult",
-      "dist": "$far_dist",
-      "speed": "$blade_spd",
-      "w": "$far_w",
-      "depth": 14,
-      "kb": "$blade_kb",
-      "cap": 9,
-      "off": [
-       0,
-       -6
-      ],
-      "src": "领主",
-      "proj": "proj_lappland_sword",
-      "proj_hold": 1,
-      "proj_front": true,
-      "max_hits": 1
-     }
-    ]
-   },
    {
     "trig": "on_hurt",
     "chance": "$s1_resist",
@@ -1051,7 +1093,7 @@
      "trig": "every_n",
      "n": 1,
      "cond": "!node:far",
-     "_doc": "精二双生刃：每次横扫两道交叉剑气（各 55%，±12°，每名敌人每轮一道），取代领主单刃",
+     "_doc": "精二双生刃：每次横扫两道交叉剑气（各 55%，±12°，每名敌人每轮一道）（近处横扫附带；远处仍是领主单道剑气）",
      "do": [
       {
        "shape": "wave",
