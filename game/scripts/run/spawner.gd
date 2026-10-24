@@ -148,12 +148,9 @@ func retreat_mid_bosses() -> void:
 		g.vfx.add_text(b.pos + Vector2(0, -b.r - 30.0), "%s 撤离" % b.name, Color(0.75, 0.8, 0.95), 16)
 
 
-## 最终 Boss 登场：冻结场地（半径 enemies.json 的 arena_r，缺省 boss/arena_r 520），已有的自然溟痕在 20 秒内退潮（docs/38 §1.7）
+## 最终 Boss 登场：冻结场地并净化禁生成圆区内的溟痕；圈外溟痕长期保留。
 func enter_arena(type: String) -> void:
 	g.combat.freeze_zone(float(D.ENEMIES.get(type, {}).get("arena_r", Bal.v("boss/arena_r", 520.0))))
-	for m in g.mires:
-		if not m.get("boss", false):
-			m.life = minf(m.life, 20.0)
 
 
 ## 后期词条（用户 9/29「后期小怪太容易被秒」，数值旋钮，缺省 enemy/affix_start = 永不 = 关）：普通怪（非精英 / Boss / 固定 / 箱子）
@@ -551,8 +548,8 @@ func update(dt: float) -> void:
 				nch += 1
 		if nch < 3:
 			spawn_chest(g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(260.0, 420.0))
-	# 溟痕（最终 Boss 场地冻结后停刷自然溟痕，docs/38 §1.7）
-	if g.t >= g.next_mire and not g.zone_frozen:
+	# 溟痕：先照常采样，再排除最终 Boss 禁生成区域，区域外仍可生成。
+	if g.t >= g.next_mire:
 		# 溟痕随时间越来越多、越来越大；缩圈后多出现在圈边
 		g.next_mire = g.t + g.map.mire_next_interval(g.t)
 		var mp := g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(160.0, 380.0)
@@ -560,7 +557,9 @@ func update(dt: float) -> void:
 			var ang := (g.ppos - g.zone_c).angle() + g.rng_spawn.randf_range(-0.8, 0.8)
 			mp = g.zone_c + Vector2.from_angle(ang) * (g.zone_r - g.rng_spawn.randf_range(20.0, 120.0))
 		if g.mires.size() < int(g.map.mire_cfg().get("max_count", 24)):
-			g.mires.append(g.map.mire_new(mp, g.t, int(g.dmod.mire_permanent) > 0))
+			var mire: Dictionary = g.map.mire_new(mp, g.t, true)
+			if not g.combat.mire_blocked(mire.pos, float(mire.maxr)):
+				g.mires.append(mire)
 	# 商人
 	if g.merchant.is_empty() and g.merchant_idx < g.MERCHANT_TIMES.size() and g.t >= g.MERCHANT_TIMES[g.merchant_idx]:
 		g.merchant_idx += 1

@@ -356,9 +356,9 @@
   }
  },
  "boss": {
-  "_doc": "Boss 血量与受伤旋钮（docs/42 §8，EA v2，云端 ea-v1 验证）。hp_mid：3:30 / 7:00 中期 Boss；hp_final：10:00 最终 Boss；hp_x_<id>：单只再乘；hit_cap_pct：Boss 单次受伤最多为最大生命的该比例（0 = 关）。其余 boss/* 旋钮仍用代码缺省值（docs/38）",
+  "_doc": "Boss 血量与受伤旋钮（docs/42 §8，EA v2，云端 ea-v1 验证）。hp_mid：3:30 / 7:00 中期 Boss；hp_final：10:00 最终 Boss（10-24 用户：直接缩血 15%，2.35 → 2.0）；hp_x_<id>：单只再乘；hit_cap_pct：Boss 单次受伤最多为最大生命的该比例（0 = 关）。其余 boss/* 旋钮仍用代码缺省值（docs/38）",
   "hp_mid": 1.3,
-  "hp_final": 2.35,
+  "hp_final": 2.0,
   "hp_x_path": 1.6,
   "hp_x_paranoia": 1.6,
   "hp_x_knight_boss": 3.0,
@@ -384,7 +384,7 @@
   "_escort": "终局护卫波（docs/116 §9，10-22 协调人「终局 10:00 后不平」）：少量补怪期间每 escort_every 秒一波分股小群 escort_n 只（实际只数，不乘密度、不受 trickle_cap），登场后 escort_first 秒第一波，Boss 生命低于 escort_stop_frac 后停；escort_every 0 = 关"
  },
  "difficulty": {
-  "_doc": "1.1 难度 3 档各自的修正表（data.gd DMOD_DEFAULT / dmod_for_tier）：倍率 1.0 = 不变，horde_in_boss / mire_permanent 为 0/1；没写的键按该档 level（旧累计难度 0 / 4 / 8）拼出。当前取值与旧累计难度 0 / 4 / 8 逐局相同，等数值按基线校准；final_boss_hp 只乘最终 Boss 生命（停刷补偿，缺省 1.0，docs/38 §8.14），云端可用 --bal=difficulty/<key>/final_boss_hp=X 试",
+  "_doc": "1.1 难度 3 档各自的修正表（data.gd DMOD_DEFAULT / dmod_for_tier）：倍率 1.0 = 不变，horde_in_boss 为 0/1；没写的键按该档 level（旧累计难度 0 / 4 / 8）拼出。当前取值与旧累计难度 0 / 4 / 8 逐局相同，等数值按基线校准；final_boss_hp 只乘最终 Boss 生命（停刷补偿，缺省 1.0，docs/38 §8.14），云端可用 --bal=difficulty/<key>/final_boss_hp=X 试",
   "standard": {},
   "hard": {
    "hunt_dur": 0.85,
@@ -400,7 +400,6 @@
    "boss_warn": 0.85,
    "horde": 1.2,
    "horde_in_boss": 0,
-   "mire_permanent": 0,
    "max_hp": 1.0,
    "beacon_every": 0.8,
    "ctrl_start": 300,
@@ -420,7 +419,6 @@
    "boss_warn": 0.8,
    "horde": 1.6,
    "horde_in_boss": 1,
-   "mire_permanent": 1,
    "max_hp": 0.9,
    "beacon_every": 0.6,
    "boss_fight_enemy_hp": 1.0
@@ -547,6 +545,8 @@
   "flash_group": 6,
   "flash_group_floor": 0.35,
   "flash_boss": 0.5,
+  "boss_flash_gap": 0.4,
+  "boss_flash_t": 0.09,
   "squash_basic": 0.14,
   "squash_dot": 0.08,
   "squash_skill": 0.18,
@@ -628,6 +628,9 @@
   "optical_normals": 0.0,
   "_doc_optical_mire_emit": "溟痕 v2（world_spec_1024）的 _emit 青色脉络在光学发光层里的强度（0–1，乘 alpha；1 = 全亮，会盖掉紫色底）；溟痕退散同用",
   "optical_mire_emit": 0.35,
+  "_doc_lamp_readable": "可读灯圈（Codex 10-24 草稿，用户 10-24 看对照后定）：1 = 灯圈 70% 半径内固定光强、不闪、低灯不变红，灯火变弱只缩半径；圈缘降到 lamp_readable_tail 的余光，再延到 1.6 倍半径淡到环境光（圈外别全黑）；0 = 旧灯光（径向渐变 + 闪烁 + 低灯红）",
+  "lamp_readable": 1.0,
+  "lamp_readable_tail": 0.22,
   "_doc": "画面（界面与美术 10-01）：ambient_gain 全局亮度增益，乘在后期 brightness（玩家亮度设置）上，正常灯与低灯同比例；beacon/lit_glow_gain 点亮灯标的暖色光域强度（0 = 关，半径 = clear_r）",
   "ambient_gain": 1.05,
   "_optical_col_doc": "光学观感发光颜色语言（10-23 用户定，同日按原作改，render/optical.gd）：每类 h / s / v（色相 0–1）。enemy 海嗣本体发光点（原作青蓝）；elite 精英同色相更亮（另多一处发光点、大一号）；boss 专属暖色；danger 危险（敌方预警、敌弹与拖尾）洋红偏深红；horde_h 黑潮（缩圈开始后）危险色偏移到的色相（1.0 = 正红）；env 环境（孢子、地面荧光斑、怪死后体液）暗青灰，退到背景；lamp 我方灯火余烬；loot 经验结晶光晕与掉落；optical_ground_glow 地面荧光斑密度（每 64 格的概率，0 = 关）",

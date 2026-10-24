@@ -12,6 +12,7 @@ const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落�
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 const EnemyAtlas = preload("res://scripts/render/enemy_atlas.gd")
 const TeleDraw = preload("res://scripts/render/telegraph_draw.gd")   # 预警填充层（docs/101 B2，原 boss_ai.draw_warns）
+const LAMP_READ_EXT := 1.6   # 可读灯圈（render/lamp_readable）：余光延到灯半径的倍数，game.gd 的灯光贴图按它生成
 const TriBatch = preload("res://scripts/render/tri_batch.gd")   # 引擎同款几何的无贴图三角形批（docs/50 §13）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -177,6 +178,10 @@ func update_visuals(dt: float) -> void:
 	g.lamp_light.position = g.ppos + Vector2(0, -20)
 	g.lamp_light.texture_scale = radius / 64.0 * flicker
 	g.lamp_light.color = Color(1.0, 0.86, 0.62) if g.lamp >= 30.0 else Color(1.0, 0.6, 0.5)
+	if Bal.v("render/lamp_readable", 0.0) > 0.0:
+		# 可读灯圈（缺省开，balance render/lamp_readable）：圈内亮度固定、不闪、低灯不变红，灯火变弱只缩半径
+		g.lamp_light.texture_scale = radius * LAMP_READ_EXT / 64.0
+		g.lamp_light.color = Color(1.0, 0.98, 0.94)
 	# 骑士入潮点临时暖光：入潮演出期间亮在沉入处，随进度淡出（纯画面；10:00 重生不用）
 	if g.knight_light != null:
 		var sinking: bool = g.knight != null and g.knight.alive and g.knight.state == "sink"
@@ -2565,7 +2570,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			var wk: float = minf(1.0, (1.0 - pk) * 2.0)
 			sq *= Vector2(1.0 - 0.06 * wk, 1.0 + 0.08 * wk)
 			bpos.x -= e.fx * 4.0 * wk
-			col = col.lerp(Color(1.8, 1.5, 1.4), 0.35 * wk + 0.25 * wk * sin(g.t * 30.0))
+			col = col.lerp(Color(1.8, 1.5, 1.4), 0.35 * wk)   # 蓄力逐渐提亮（原来叠 sin(t×30) 约 5 Hz 明暗振荡，docs/137 去掉）
 		else:
 			var rk: float = e.pose / 0.3
 			sq *= Vector2(1.0 + 0.22 * rk, 1.0 - 0.14 * rk)
@@ -2595,8 +2600,9 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		name = va.name
 		frames = va.frames
 		frame = va.frame
-	# 重画受击姿态（10-23 *_wound，1 帧）：受击闪白那几帧，待机 / 移动 / 攻击 / 专用动作都换它（白剪影同姿态）；死亡、伪装等不换
-	if e.flash > 0.0 and not e.chest and (name == e.tex or name == e.tex + "_move" or name.ends_with("_attack") or name == tbase or name == "e_paranoia2" or name.begins_with("e_knight")):
+	# 重画受击姿态（10-23 *_wound，1 帧）：受击闪白那几帧，待机 / 移动 / 攻击 / 专用动作都换它（白剪影同姿态）；死亡、伪装等不换。
+	# Boss 不换（docs/137）：白剪影跟当前动作走，密集命中时不在当前动作和单帧受击姿态之间来回跳
+	if e.flash > 0.0 and not e.boss and not e.chest and (name == e.tex or name == e.tex + "_move" or name.ends_with("_attack") or name == tbase or name == "e_paranoia2" or name.begins_with("e_knight")):
 		var wb: String = "e_paranoia_phase2" if name == "e_paranoia2" else (tbase if tbase != e.tex else e.tex)
 		if name.begins_with("e_knight_walk"):
 			wb = "e_knight_walk"
@@ -2654,7 +2660,8 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		_glow_pts(name, frames, bpos + g.draw_off, sc * sq.x, flip, anc, e, frame)
 	if e.flash > 0.0:
 		# 受击白闪：普通怪随 ecrowd 降到 declutter flash_a（缺省 0.9 = 不变）；精英 / Boss 照旧
-		_espr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, (Bal.v("fx/flash_boss", 0.5) if e.boss else 0.9) if (e.elite or e.boss) else flash_a), anc, sq)   # Boss 白闪 50%（docs/127 C3：大体型整块变白刺眼）
+		var hit_a: float = g.vfx.boss_flash_alpha(e, Bal.v("fx/flash_boss", 0.5)) if e.boss else (0.9 if e.elite else flash_a)   # Boss 白闪 50%（docs/127 C3：大体型整块变白刺眼）、限频淡出（docs/137）
+		_espr(name + "_white", frames, frame, bpos, sc, flip, Color(1, 1, 1, hit_a), anc, sq)
 	elif e.boss and _rec == null and g.tex.has(name + "_white"):
 		# Boss 登场：先是白剪影、0.15–0.7 秒亮成本体（screens/boss_intro.gd；Boss 不进画法缓存，docs/50 §9.9）
 		var sk: float = g.boss_intro.silhouette_k(e)
@@ -3203,7 +3210,7 @@ func _cocoon_fx(e: Dictionary, top: Vector2, foot: Vector2) -> void:
 	g.draw_arc(c, rr * 0.82, -2.5, -1.6, 10, Color(1.8, 1.5, 2.0, 0.8), 2.5)
 	if e.flash > 0.0:
 		# 外壳受伤速度有上限（每秒最多 1/4）：挨打时壳面白闪 +「抵抗」，提示打得再快也要等
-		g.draw_arc(c, rr * wob, 0.0, TAU, 48, Color(2.0, 2.0, 2.0, 0.8), 4.0)
+		g.draw_arc(c, rr * wob, 0.0, TAU, 48, Color(2.0, 2.0, 2.0, g.vfx.boss_flash_alpha(e, 0.8)), 4.0)
 		UI.text(g, g.font, c + Vector2(-40, -rr - 8.0), "抵抗", 13, Color(1.0, 0.9, 1.0), HORIZONTAL_ALIGNMENT_CENTER, 80, 3)
 	# 裂纹：最多 6 道，从壳面往里，按外壳损失依次出现
 	var n: int = int(ceil(dmg * 6.0))

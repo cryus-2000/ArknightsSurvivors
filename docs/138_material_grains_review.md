@@ -1,4 +1,4 @@
-# 137 材质颗粒验收（Codex codex/particle-materials @ 7289a73dc，10-24）
+# 138 材质颗粒验收（Codex codex/particle-materials @ 7289a73dc，10-24）
 
 粒子化会话（分支 `claude/particles-8d10a8`）验收 Codex 的「材质颗粒」未验收草稿：共享材质颗粒池、艾雅法拉火球 / 熔岩 / 点燃爆燃、拉普兰德剑气转碎片。模板规范见 docs/136，Codex 交接说明 `art/incoming/codex_material_grains_1024.md`。
 

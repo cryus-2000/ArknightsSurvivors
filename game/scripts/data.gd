@@ -55,7 +55,7 @@ const DIFFICULTY_TIERS := [
 	{"name": "潮位 5 · 搁浅", "short": "搁浅", "en": "STRANDED", "desc": "队长初始最大生命 -10%；灯油掉落加重到 -40%，源石锭加重到 -25%。", "level": 5},
 	{"name": "潮位 6 · 渊影", "short": "渊影", "en": "ABYSSAL SHADOW", "desc": "Boss 生命加重到 +35%，预警缩短加重到 20%；Boss 造成的伤害再 +15%。", "level": 6},
 	{"name": "潮位 7 · 甲潮", "short": "甲潮", "en": "HARD SHELL", "desc": "敌人生命加重到 +70%，造成的伤害加重到 +25%。", "level": 7},
-	{"name": "潮位 8 · 漫灌", "short": "漫灌", "en": "FLOOD", "desc": "自然溟痕常驻，只有引航灯标能驱散；大群加重到 +60%，Boss 在场时照常来袭。", "key": "extreme", "level": 8},
+	{"name": "潮位 8 · 漫灌", "short": "漫灌", "en": "FLOOD", "desc": "大群加重到 +60%，Boss 在场时照常来袭。", "key": "extreme", "level": 8},
 	{"name": "潮位 9 · 夜潮", "short": "夜潮", "en": "NIGHT TIDE", "desc": "后期敌人伤害的成长上限提高到 +50%；敌人造成的伤害加重到 +35%。", "level": 9},
 	{"name": "潮位 10 · 残烛", "short": "残烛", "en": "GUTTERING", "desc": "受击时灯火损失加重到 +60%，灯油掉落加重到 -60%。", "level": 10},
 	{"name": "潮位 11 · 领潮者", "short": "领潮者", "en": "TIDE LORDS", "desc": "敌人生命加重到 +100%。", "level": 11},
@@ -130,7 +130,7 @@ const DMOD_DEFAULT := {
 	"enemy_hp": 1.0, "enemy_dmg": 1.0, "boss_hp": 1.0, "boss_dmg": 1.0,   # 小怪与 Boss 生命 / 攻击（Boss 攻击另乘 enemy_dmg）
 	"lamp_hit": 1.0, "oil_drop": 1.0, "ingot": 1.0,                      # 受击灯火损失、小怪灯油掉落率、源石锭掉落
 	"elite_interval": 1.0, "boss_warn": 1.0, "horde": 1.0,               # 精英出现间隔、Boss 招式预警时间、大群规模
-	"horde_in_boss": 0, "mire_permanent": 0, "max_hp": 1.0,              # Boss 在场时大群照常来袭、溟痕不消散、主控初始最大生命
+	"horde_in_boss": 0, "max_hp": 1.0,              # Boss 在场时大群照常来袭、主控初始最大生命（溟痕 10-24 起各档都常驻，原 mire_permanent 删）
 	"mire_dmg": 1.0, "nerve_rate": 1.0,                                   # 溟痕伤害（run/enemies.gd）；溟痕里神经损伤累积速度（combat.update_nerve）
 	"hunt_dur": 1.0, "hunt_ring_hp": 1.0,                                 # 围猎持续时间、圈上海嗣生命（run/hunt.gd；高难度下放宽，避免成为硬门槛）
 	"beacon_every": 1.0,                                                  # 引航灯标刷新间隔倍率（run/beacon.gd；< 1 更频繁，数值按档填）
@@ -153,7 +153,7 @@ const DMOD_TEXT := [
 	["enemy_hp", "敌人生命 +%d%%", "up"], ["enemy_dmg", "敌人造成的伤害 +%d%%", "up"], ["boss_hp", "Boss 生命 +%d%%", "up"], ["boss_dmg", "Boss 造成的伤害再 +%d%%", "up"], ["final_boss_hp", "最终 Boss 生命再 +%d%%", "up"],
 	["max_hp", "队长初始最大生命 -%d%%", "down"], ["lamp_hit", "受击时灯火损失 +%d%%", "up"], ["oil_drop", "灯油掉落 -%d%%", "down"], ["ingot", "源石锭掉落 -%d%%", "down"],
 	["elite_interval", "精英出现间隔 -%d%%", "down"], ["boss_warn", "Boss 预警最多缩短 %d%%（≥ 0.6 秒）", "down"], ["horde", "大群规模 +%d%%", "up"],
-	["horde_in_boss", "Boss 在场时大群照常来袭", "flag"], ["mire_permanent", "自然溟痕常驻，只有引航灯标能驱散", "flag"], ["mire_dmg", "溟痕伤害 +%d%%", "up"], ["nerve_rate", "神经损伤累积 +%d%%", "up"],
+	["horde_in_boss", "Boss 在场时大群照常来袭", "flag"], ["mire_dmg", "溟痕伤害 +%d%%", "up"], ["nerve_rate", "神经损伤累积 +%d%%", "up"],
 	["ctrl_start", "小怪控制提前到 %d:%02d", "time"], ["frost_max", "寒霜 %d 层即冻结", "count"],
 	["affix_start", "词条提前到 %d:%02d", "time"], ["affix_max", "词条概率上限 %d%%", "pct"],
 ]
@@ -174,7 +174,6 @@ static func dmod_for_level(L: int) -> Dictionary:
 	m.boss_warn = 0.75 if L >= 6 else 1.0
 	m.horde = 1.4 if L >= 7 else 1.0
 	m.horde_in_boss = 1 if L >= 7 else 0
-	m.mire_permanent = 1 if L >= 8 else 0
 	m.max_hp = 0.8 if L >= 9 else 1.0
 	m.boss_dmg = 1.25 if L >= 10 else 1.0
 	return m
