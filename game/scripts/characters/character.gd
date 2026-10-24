@@ -1115,7 +1115,11 @@ func follow(dt: float, target: Vector2) -> void:
 	if is_leader:
 		pos = target   # 主控：位置就是玩家位置（g.ppos），不走编队跟随 / 近战前压
 	else:
-		target = roam_target(target) if st == 1 else follow_target(target)
+		target = _cmd_walk(roam_target(target)) if st == 1 else follow_target(target)
+		if st != 1:
+			_cmd_waypoint = Vector2.INF
+			_cmd_stall = 0.0
+			_cmd_failed = null
 		if st == 2 and sq.gather_t >= 0.0:
 			target = pos   # 归队集合：到位后站定一下（squad._tick_recall）
 		var d: float = pos.distance_to(target)
@@ -1134,6 +1138,8 @@ func follow(dt: float, target: Vector2) -> void:
 			pos += step
 		if g.tex.get("prop_pillar") != null:
 			pos = g.map.push_out(pos, 10.0)
+	if st == 1:
+		_cmd_progress(prev, target, dt)
 	var vel: Vector2 = (pos - prev) / maxf(dt, 0.0001)
 	_sample_motion(vel, dt)
 	var sp_now: float = vel.length()
@@ -1418,19 +1424,17 @@ func cmd_reach() -> float:
 	return 30.0
 
 
-## 突击站位：自己身边 command/search 内最近的敌人（离队长不超过 command/leash），站到它朝自己一侧 cmd_reach 处；
-## 现目标死亡 / 出圈才换，身边出现明显更近的（近 GUARD_MARGIN 以上）也换。没怪 = 回编队位。只读 op_api 索敌，不抽随机数
+## 突击接敌：近战 / 远程两套行为，重装只修正选敌偏好，不再站在射程外的群心比例点。
 const CmdBal = preload("res://scripts/core/balance.gd")
 var roam_tgt = null
-var cmd_d := 0.0   # 本帧到跟随目标的距离（归队是否归位完由 squad 读）
+var cmd_d := 0.0
 
-## 突击站位按职业（10-22 原型，docs/114 §7）：重装 wall 站到怪群与队长之间；狙击 / 术师 kite 保持射程绕圈；其余 melee 贴怪群边缘
 func cmd_role() -> String:
-	if cls == "重装":
-		return "wall"
-	if cls in ["狙击", "术师"]:
-		return "kite"
-	return "melee"
+	return "ranged" if cls in ["狙击", "术师"] else "melee"
+
+## 敌人圆心的保守有效距离；数据干员按当前普攻形状提供，不含起手宽限。
+func cmd_attack_range() -> float:
+	return cmd_reach()
 
 
 ## 突击生命（squad._tick_hp）：cmd_hp 0–1；cmd_down > 0 = 倒地剩余秒数；cmd_inv 无敌剩余；cmd_show 血条显示剩余
@@ -1440,57 +1444,145 @@ var cmd_down_age := 0.0
 var cmd_inv := 0.0
 var cmd_show := 0.0
 
-## 断后站位（10-22 用户：别跑太远、要有留下来断后的感觉）：活动圈 = 队长周围 command/roam_r（约 0.5–0.7 屏，屏内）；
-## 只在圈内挑怪，优先队长身后（移动方向反侧 command/rear_d 处，队长不动时取圈内怪群中心）最近的；队长往前走时不跟着冲，
-## 守着目标直到它出圈（滞回 ×1.15）或被圈边拉回，看起来就是「拖住一段再追上」。重装站在队长与身后怪群之间；近战贴在怪朝队长那一侧；
-## 远程在目标外沿 reach 处绕圈（仍在圈内，即队长侧后方）
+## 只在队长活动圈里选目标；移动选敌不沿用攻击侧的 Boss 强制优先。
 func roam_target(slot_pos: Vector2) -> Vector2:
-	var R: float = CmdBal.v("command/roam_r", 380.0)
-	var role := cmd_role()
-	var sq = g.squad
-	var ld: Vector2 = sq.lead_dir if sq != null else Vector2.ZERO
-	var rear: Vector2 = g.ppos - ld * CmdBal.v("command/rear_d", 160.0) if ld != Vector2.ZERO else g.ppos
-	if role == "wall":
-		var ns: Array = nearest_enemies(6, R, rear).filter(func(en): return en.pos.distance_to(g.ppos) <= R)
-		if ns.is_empty():
-			return slot_pos
-		var c := Vector2.ZERO
-		for en in ns:
-			c += en.pos
-		c /= float(ns.size())
-		var tw: Vector2 = c - g.ppos
-		if tw.length() < 1.0:
-			return slot_pos
-		return g.ppos + tw.normalized() * clampf(tw.length() * 0.6, 50.0, R * 0.7)
+	var radius: float = CmdBal.v("command/roam_r", 380.0)
+	var ld: Vector2 = g.squad.lead_dir
+	var rear: Vector2 = g.ppos - ld * CmdBal.v("command/rear_d", 160.0)
+	var guard: float = CmdBal.v("command/guard_r", 80.0)
+	var best = null
+	var urgent = null
+	var score := INF
+	var urgent_d := guard
+	for j in query_ids(g.ppos, radius):
+		var en: Dictionary = g.enemies[j]
+		if en.dead or en.pos.distance_to(g.ppos) > radius or (is_same(en, _cmd_failed) and g.t < _cmd_retry_at):
+			continue
+		var leader_d: float = en.pos.distance_to(g.ppos)
+		if leader_d < urgent_d:
+			urgent = en
+			urgent_d = leader_d
+		var d: float = en.pos.distance_to(rear)
+		if cls == "重装":
+			d += leader_d   # 重装优先近身威胁，但同样必须进入自己的攻击距离。
+		if d < score:
+			score = d
+			best = en
 	var e = roam_tgt
-	if e == null or e.dead or e.pos.distance_to(g.ppos) > R * 1.15:
-		e = null
-		for en in nearest_enemies(4, R, rear):
-			if en.pos.distance_to(g.ppos) <= R:
-				e = en
-				break
+	if e == null or e.dead or e.pos.distance_to(g.ppos) > radius or (is_same(e, _cmd_failed) and g.t < _cmd_retry_at):
+		e = best
+	if urgent != null and (e == null or e.pos.distance_to(g.ppos) > guard + GUARD_MARGIN):
+		e = urgent
 	roam_tgt = e
 	if e == null:
 		return slot_pos
-	var reach: float = cmd_reach() + e.r
+	var attack_range: float = cmd_attack_range()
+	var reach: float = minf(cmd_reach() + float(e.r), attack_range * CmdBal.v("command/stop_range_k", 0.85))
+	var distance: float = pos.distance_to(e.pos)
 	var p: Vector2 = pos
-	if role == "kite":
-		# 远程放风筝：站在离目标 reach 的圆上，沿圆周往前挪（编队位单双号决定顺 / 逆时针），被贴近就后退
-		var dv: Vector2 = pos - e.pos
-		if dv.length() < 1.0:
-			dv = Vector2(-face, 0)
-		p = e.pos + dv.normalized().rotated(CmdBal.v("command/kite_step", 0.5) * (1.0 if slot % 2 == 0 else -1.0)) * reach
+	if cmd_role() == "ranged":
+		# 安全射程带内停稳；只在贴近或够不到时移动，不再持续绕圈。
+		var threat = e
+		var nearest_d := distance
+		for j in query_ids(pos, reach):
+			var en: Dictionary = g.enemies[j]
+			if not en.dead and pos.distance_to(en.pos) < nearest_d:
+				nearest_d = pos.distance_to(en.pos)
+				threat = en
+		if nearest_d < reach * CmdBal.v("command/retreat_k", 0.65):
+			var away: Vector2 = pos - threat.pos
+			if away.length_squared() < 1.0:
+				away = g.ppos - threat.pos
+			if away.length_squared() < 1.0:
+				away = Vector2(-face, 0)
+			p = threat.pos + away.normalized() * reach
+		elif g.get("map") != null and g.map.segment_blocked(pos, e.pos):
+			p = _cmd_firing_pos(e.pos, reach, radius)
+			if p == Vector2.INF:
+				_cmd_failed = e
+				_cmd_retry_at = g.t + CmdBal.v("command/retry_secs", 2.0)
+				roam_tgt = null
+				return slot_pos
+		elif distance > attack_range * CmdBal.v("command/stop_range_k", 0.85):
+			p = e.pos + (pos - e.pos).normalized() * reach
+	elif distance > reach:
+		var toward: Vector2 = g.ppos - e.pos
+		if toward.length_squared() < 1.0:
+			toward = Vector2(-face, 0)
+		p = e.pos + toward.normalized() * reach
+	return g.ppos + (p - g.ppos).limit_length(radius)
+
+
+## 射程内也可能隔着景物；先找射线通畅的位置，行走路径交给局部绕行。
+func _cmd_firing_pos(enemy_pos: Vector2, reach: float, radius: float) -> Vector2:
+	var direction: Vector2 = (pos - enemy_pos).normalized()
+	var best := Vector2.INF
+	var cost := INF
+	for angle in [0.0, PI / 4.0, -PI / 4.0, PI / 2.0, -PI / 2.0, PI * 0.75, -PI * 0.75, PI]:
+		var p: Vector2 = enemy_pos + direction.rotated(angle) * reach
+		if p.distance_to(g.ppos) > radius or g.map.segment_blocked(p, enemy_pos):
+			continue
+		var d: float = pos.distance_to(p)
+		if g.map.segment_blocked(pos, p):
+			d += radius
+		if d < cost:
+			cost = d
+			best = p
+	return best
+
+
+var _cmd_stall := 0.0
+var _cmd_failed = null
+var _cmd_retry_at := 0.0
+
+## 只检测有位移意图却没有进展；站定输出、冷却、蓄力都不会触发。
+func _cmd_progress(previous: Vector2, target: Vector2, dt: float) -> void:
+	if pos.distance_to(target) > 12.0 and pos.distance_to(previous) < dt * 2.0:
+		_cmd_stall += dt
 	else:
-		# 近战：贴在怪朝队长的那一侧（挡在队长和追兵之间）；已经够得着就原地打
-		if pos.distance_to(e.pos) > reach + 14.0:
-			var tl: Vector2 = g.ppos - e.pos
-			if tl.length() < 1.0:
-				tl = Vector2(-face, 0)
-			p = e.pos + tl.normalized() * reach
-	var off: Vector2 = p - g.ppos
-	if off.length() > R:
-		p = g.ppos + off.normalized() * R   # 超出活动圈往回收
-	return p
+		_cmd_stall = 0.0
+	if _cmd_stall >= CmdBal.v("command/stall_secs", 0.8):
+		_cmd_failed = roam_tgt
+		_cmd_retry_at = g.t + CmdBal.v("command/retry_secs", 2.0)
+		roam_tgt = null
+		_cmd_waypoint = Vector2.INF
+		_cmd_stall = 0.0
+
+
+var _cmd_waypoint := Vector2.INF
+var _cmd_walk_goal := Vector2.INF
+
+## shortcut: 局部绕行只处理可绕过的景物，不是全图寻路；复杂封闭地形需要导航网格时再升级。
+func _cmd_walk(target: Vector2) -> Vector2:
+	var map = g.get("map")
+	if map == null or pos.distance_to(target) < 1.0:
+		_cmd_waypoint = Vector2.INF
+		return target
+	if not map.segment_blocked(pos, target):
+		_cmd_waypoint = Vector2.INF
+		return target
+	if _cmd_waypoint != Vector2.INF and target.distance_to(_cmd_walk_goal) < 32.0 and pos.distance_to(_cmd_waypoint) > 10.0 and not map.segment_blocked(pos, _cmd_waypoint):
+		return _cmd_waypoint
+	_cmd_waypoint = Vector2.INF
+	_cmd_walk_goal = target
+	var direction: Vector2 = (target - pos).normalized()
+	var best := INF
+	var radius: float = CmdBal.v("command/roam_r", 380.0)
+	var step: float = CmdBal.v("command/detour_step", 80.0)
+	for scale in [1.0, 2.0, 3.0]:
+		for angle in [PI / 3.0, -PI / 3.0, PI / 2.0, -PI / 2.0, PI * 2.0 / 3.0, -PI * 2.0 / 3.0]:
+			var p: Vector2 = pos + direction.rotated(angle) * step * scale
+			p = g.ppos + (p - g.ppos).limit_length(radius)
+			p = map.push_out(p, 10.0)
+			if p.distance_to(g.ppos) > radius or p.distance_to(pos) < 10.0 or map.segment_blocked(pos, p):
+				continue
+			var cost: float = pos.distance_to(p) + p.distance_to(target)
+			if map.segment_blocked(p, target):
+				cost += radius
+			if cost < best:
+				best = cost
+				_cmd_waypoint = p
+	return _cmd_waypoint if _cmd_waypoint != Vector2.INF else target
 
 
 ## 近战前压：主控 leash 范围内最近的敌人；返回站位点（敌人朝主控一侧、身前 gap 处）或 INF。

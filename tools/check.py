@@ -929,6 +929,7 @@ def check_blocks_eq(godot):
 
 # 场景专项回归：默认快检执行全部；--only <key> 可单独复查，仍使用公共日志和错误扫描。
 SCENE_REGRESSIONS = {
+    "command_ai": ("指挥接敌、站定、护主", "command_ai_test", r"COMMAND_AI checks=\d+ failures=0", []),
     "voice_command": ("指挥语音轮换、节流、登场去重", "voice_command_test", r"VOICE COMMAND checks=\d+ failures=0", []),
     "eyja_volcanic_weight": ("熔岩弹连续起落点与浮空持续投弹", "eyja_volcanic_weight_test", r"EYJA VOLCANIC WEIGHT failures=0", ["--balance", "--seed=1", "--op=eyjafjalla", "--route=eyjafjalla:meteor"]),
     "siege_ulpianus_art": ("推进之王与乌尔比安原生美术", "siege_ulpianus_art_test", r"SIEGE ULPIANUS ART failures=0", ["--balance", "--seed=1", "--op=siege", "--squad=ulpianus"]),
