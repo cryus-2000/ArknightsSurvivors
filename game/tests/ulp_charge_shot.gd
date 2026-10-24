@@ -1,5 +1,5 @@
 extends Node
-## 乌尔比安 S3 冲锋特效录帧 / 帧时探针（docs/138；不进快检）：开窗口跑，tools/probes/ulp_charge_shot.py 调。
+## 乌尔比安 S3 冲锋特效录帧 / 帧时探针（docs/140；不进快检）：开窗口跑，tools/probes/ulp_charge_shot.py 调。
 ##   godot --fixed-fps 60 --path game res://tests/ulp_charge_shot.tscn -- --op=ulpianus --ulpn=100 --shotdir=<目录> [--ulprec] [--ulpperf=N] [--ulpold]
 ## 第 30 帧清场（停刷怪）、在队长周围摆 --ulpn 只不动的高血量小怪（路径上另摆 5 只），第 40 帧起每 120 帧放一次 S3（前摇约 20 帧 + 掷锚 13 帧 + 冲锋约 15 帧）（左右来回）。
 ## --ulprec：第一次放技能起连存 90 帧 rec_<帧>.png；--ulpold：冲锋颗粒关（旋钮 fx/ulp_charge_grains = 0，= 旧版 / 低画质画法；刀光第四版照常）。

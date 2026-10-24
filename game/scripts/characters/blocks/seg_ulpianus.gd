@@ -253,7 +253,7 @@ static func _hw4_anchor(o, dt: float) -> void:
 			if an.trail.size() > 4:
 				an.trail.pop_back()
 			if an.b.has("path_w"):
-				UlpCharge.windup(o, _hw_anchor_pos(an, k) + Vector2(0, -6), k)   # S3 起冲：颗粒向锚尖收拢（docs/138）
+				UlpCharge.windup(o, _hw_anchor_pos(an, k) + Vector2(0, -6), k)   # S3 起冲：颗粒向锚尖收拢（docs/140）
 			if k >= 1.0:
 				_hw_anchor_bite(o)
 		"reel":
@@ -322,7 +322,9 @@ static func _hw_anchor_bite(o) -> void:
 		_hw_sfx_op(o, "atk", 2.0, 0.85)
 		if UlpCharge.on(o):
 			UlpCharge.launch(o, o.pos, to, dir)
-			o.spawn_fx_sprite("fx_ulpianus_drag_dust", o.pos + Vector2(0, 4), g.PX, dir.angle(), false, true)   # 起冲照明：光学观感把这团尘登记成动态灯；颗粒版沿途不再扬尘（每团一盏灯，一次冲锋 6–9 团会占满 12 灯预算）
+			# 起冲照明：模板有颗粒簇灯就在起点挂一盏，否则扬一团拖拽尘（光学观感把帧条登记成动态灯）；颗粒版沿途不再扬尘（每团一盏灯，一次冲锋 6–9 团会占满 12 灯预算）
+			if not UlpCharge.lamp(o, o.pos + Vector2(0, -8), 80.0, 0.16):
+				o.spawn_fx_sprite("fx_ulpianus_drag_dust", o.pos + Vector2(0, 4), g.PX, dir.angle(), false, true)
 		return
 	# 钩不到 / 钩到 Boss / 没写 path_w：锚在落点原地砸下（10-22 用户：S1 去掉顺锁链弹射）
 	an.land = to
@@ -359,7 +361,7 @@ static func _hw_charge_sweep(o, an: Dictionary, a: Vector2, c: Vector2) -> void:
 		else:
 			o.fx({"kind": "spark", "pos": e.pos + Vector2(0, -float(e.r) * 0.5), "vel": seg.normalized().orthogonal() * g.vrng.randf_range(-120.0, 120.0), "life": 0.2, "col": HW_CHAIN, "sz": 2.5})
 	if grains:
-		UlpCharge.path(o, a, c)   # 颗粒版：脚下拖出深海水体颗粒，逐颗熄灭，不画 0.35 秒锚链拖痕
+		UlpCharge.path(o, an, a, c)   # 颗粒版：脚下拖出深海水体颗粒，逐颗熄灭，不画 0.35 秒锚链拖痕
 		return
 	o.fx({"kind": "line", "pos": a, "to": c, "w": 5.0, "life": 0.35, "col": Color(HW_CHAIN.r, HW_CHAIN.g, HW_CHAIN.b, 0.6), "floor": true})
 	an.dust = float(an.get("dust", 0.0)) + L
@@ -486,7 +488,7 @@ static func _hw_zip_land(o) -> void:
 	var big: bool = b.get("big", false)
 	_hw_slam_fx(o, c, r, 1.6 if big else 1.0)
 	if charge:
-		UlpCharge.land(o, c, r)   # 冲锋终点：冲击颗粒环 + 落地冷却的水花与碎屑（docs/138）
+		UlpCharge.land(o, c, r)   # 冲锋终点：冲击颗粒环 + 落地冷却的水花与碎屑（docs/140）
 	h.prev_dmg = dmg
 	h.prev_c = c
 	h.prev_r = r
@@ -772,7 +774,7 @@ static func hw_draw_tether(o) -> void:
 		var mv_d: Vector2 = ((an.land as Vector2) - (an.start as Vector2)).normalized()
 		var gz: bool = UlpCharge.on(o)
 		if gz:
-			# 颗粒版（docs/138）：残影只留上一帧一张、压暗不发光——4 张 HW_EDGE（分量 > 1）残影经发光层连成一大团白，读作「粘腻」；运动感交给水体颗粒
+			# 颗粒版（docs/140）：残影只留上一帧一张、压暗不发光——4 张 HW_EDGE（分量 > 1）残影经发光层连成一大团白，读作「粘腻」；运动感交给水体颗粒
 			if tr.size() > 1:
 				o.draw_body_at(tr[1], o.face < 0.0, Color(0.45, 0.62, 0.85, 0.22))
 		else:

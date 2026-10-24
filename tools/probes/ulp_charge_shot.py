@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""乌尔比安 S3 冲锋特效（docs/138）：录帧对照 / 同局轮换量帧时。走 tools/godot_runner（并发上限、窗口放副屏 / 屏幕外、静音）。
+"""乌尔比安 S3 冲锋特效（docs/140）：录帧对照 / 同局轮换量帧时。走 tools/godot_runner（并发上限、窗口放副屏 / 屏幕外、静音）。
 用法：
-  python tools/probes/ulp_charge_shot.py rec  <输出目录> [old] [mid] [n=100]   第一次冲锋起连存 60 帧 rec_*.png（old = 颗粒关 / 旧画法；mid = 中画质）
-  python tools/probes/ulp_charge_shot.py perf <输出目录> [casts=24] [n=100]     同局轮换：单数次颗粒开 / 双数次关，打印 ULPPERF
+  python tools/probes/ulp_charge_shot.py rec  <输出目录> [old] [mid] [n=100]   第一次放技能起连存 90 帧 rec_*.png（old = 冲锋颗粒关 / 旧画法；mid = 中画质）
+  python tools/probes/ulp_charge_shot.py perf <输出目录> [casts=24] [n=100]     同局轮换：单数次冲锋颗粒开 / 双数次关（前 2 次预热不计），打印 ULPPERF
 缺省 1280x720、高画质、--fixed-fps 60（录帧逐帧确定）；perf 不加 --fixed-fps 也照样按真实帧间隔记
 """
 import os, sys, json, shutil, tempfile

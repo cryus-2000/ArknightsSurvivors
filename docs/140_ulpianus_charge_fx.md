@@ -1,17 +1,17 @@
-# 138 · 乌尔比安 S3 冲锋特效（像素颗粒，10-24）
+# 140 · 乌尔比安 S3 冲锋特效（像素颗粒，10-24）
 
-> 状态：已实现（分支 `claude/ulp-charge-fx-736928`），待用户看 gif 拍板。依据：用户 10-24「乌尔比安的三技能的冲锋特效也可以做一下」；docs/129（冲锋玩法）、docs/136（像素颗粒模板，样板 = 刀光第四版）、docs/132（粒子化口径）。
+> 状态：已实现（分支 `claude/ulp-charge-fx-736928`），待用户看 gif 拍板。原号 138 与 main 的材质颗粒验收撞号，10-24 改为 140。依据：用户 10-24「乌尔比安的三技能的冲锋特效也可以做一下」；docs/129（冲锋玩法）、docs/136（像素颗粒模板，样板 = 刀光第四版）、docs/132（粒子化口径）。
 > 原作：PRTS「必须开辟的通路」——向前方投出船锚，船锚撞到目标或到最远距离停下，对周围敌人造成伤害并晕眩；锚停处可部署时乌尔比安移动过去。本作的冲锋 = 「移动到锚处」，特效色取乌尔比安本色（深海蓝 0.45 / 0.7 / 0.95）。
 
 ## 1. 三段
 
-代码：`game/scripts/characters/ulpianus_charge_fx.gd`（新文件，静态函数），挂钩点全在 `blocks/seg_ulpianus.gd`。只调用 `fx_grains` 现有的 `push("slash", …)` / `spark(…)` 和 `vfx._tier_fx`，**没有改** `fx_grains.gd` / `optical.gd` / `vfx.gd` / `world.gd`。
+代码：`game/scripts/characters/ulpianus_charge_fx.gd`（新文件，静态函数），挂钩点全在 `blocks/seg_ulpianus.gd`。只调用 `fx_grains` 现有的 `push` / `spark` / `light`（有才用）和 `vfx._tier_fx`，**没有改** `fx_grains.gd` / `optical.gd` / `vfx.gd` / `world.gd`。
 
 | 段 | 时机 | 画法 |
 |---|---|---|
 | 起冲 | 掷锚飞行（`s3_throw` 0.22 秒） | 锚尖周围 10–16 px 一圈颗粒朝锚尖收拢（每帧 2–6 颗，越近咬地越密）= 蓄力 / 锚尖聚光 |
-| 起冲 | 咬地一刻 | 锚处 20 颗一圈向外；起点脚下 12 颗向身后蹬出 + 4 颗落地水花（spark）；起点一团 `fx_ulpianus_drag_dust` 帧条 = 起冲照明 |
-| 路径 | 冲锋每帧 | 本帧位移线段每 4 px 取样、脚下 3 排（中线 ±6 px），初速沿冲锋方向（惯性）两侧偏外；身前两侧各 2 颗分水。模板 `slash` 寿命 0.165–0.3 秒、硬边四阶冷却 → 逐颗熄灭，**不留长拖尾**。单帧 ≤ 36 颗 |
+| 起冲 | 咬地一刻 | 锚处 20 颗一圈向外；起点脚下 12 颗向身后蹬出 + 4 颗落地水花（spark）；起冲照明：模板有 `light()` 时在起点挂一盏 0.16 秒的颗粒簇灯，没有时扬一团 `fx_ulpianus_drag_dust` 帧条（帧条自动登记成灯） |
+| 路径 | 冲锋每帧 | 本帧位移线段每 4 px 取样、脚下 3 排（中线 ±6 px），初速沿冲锋方向（惯性）两侧偏外：材质模板 `water`（docs/138，重力 95、散射 40、热阶 1.2 不发白，寿命 ≤ 0.34 秒，逐颗熄灭，**不留长拖尾**；没有 `water` 时退回 `slash`）；身前两侧各 2 颗分水用 `slash`（亮一阶）。单帧 ≤ 36 颗。前沿每 0.06 秒挂一盏 0.12 秒的灯（有 `light()` 才挂，同时 ≤ 2 盏） |
 | 路径 | 撞到的敌人 | 命中三档·中档（`vfx._tier_fx` 档 2：颗粒火星落到脚底冷却 + 4 臂命中星 + 中档顿帧 / 命中音，走原有共享限频） |
 | 终点 | 落地 | 原有 `UlpImpact`（水环 + 地裂 + `fx_splash_blue`）之外：两圈向外的冲击颗粒（扁椭圆 0.42，与水环同比例，28 + 36 颗）+ 8 处落到地面冷却的水花与 4 处碎屑（spark）；半径内前 6 名敌人命中三档·重档 |
 
@@ -19,7 +19,7 @@
 
 颗粒版同时**去掉**：0.35 秒 floor 锚链拖痕线、身后三道实线速度线、沿途每 36 px 一团拖拽尘（每团是一盏动态灯，一次冲锋 6–9 团）；本体残影由 4 张（HW_EDGE 分量 > 1，经发光层连成一团白）减为上一帧 1 张、压暗不发光。
 
-照明：不另挂灯。光学观感自动把一次性帧条登记成动态灯，这次冲锋共 ≤ 3 盏（起点拖拽尘、咬地 `fx_splash_blue`、落地 `fx_splash_blue`），在 12 灯预算内。
+照明：模板有 `light()`（particles 分支 aa0eeafc，进 12 灯预算）时，起点一盏 + 前沿跟着走（同时 ≤ 2 盏）+ 咬地 / 落地 `fx_splash_blue` 帧条；没有 `light()`（当前 main）时退回起点拖拽尘帧条，共 ≤ 3 盏。
 
 ## 2. 开关与回退
 
@@ -37,7 +37,7 @@
 探针：`tools/probes/ulp_charge_shot.py` + `game/tests/ulp_charge_shot.tscn`（不进快检）：清场停刷怪，队长四周摆 N 只不动的高血量「骨」（路径上另摆 5 只），每 120 帧放一次 S3 左右来回。
 
 - **对照图 / gif**（1280×720、高画质、`--fixed-fps 60` 逐帧确定，放大 2 倍、1/3 速）：主仓库 `build/ulp_charge_fx/`
-  - `ulp_charge_old_new_third_n20.gif`（20 只，看得清特效）、`ulp_charge_old_new_third_n100.gif`（100 只）、`ulp_charge_old_new_frames_n20.png`（同帧对照）、`frame45_new_n100.png` / `frame45_mid_n100.png`（高 / 中画质同一帧）。
+  - `ulp_charge_old_new_third_n20_water.gif` / `ulp_charge_old_new_frames_n20_water.png`（路径改 water 后，现行版）；`ulp_charge_old_new_third_n20.gif`（20 只，slash 版）、`ulp_charge_old_new_third_n100.gif`（100 只）、`ulp_charge_old_new_frames_n20.png`（同帧对照）、`frame45_new_n100.png` / `frame45_mid_n100.png`（高 / 中画质同一帧）。
   - 路径上那几条白色长条是被撞到的「骨」的受击白闪 + 挤压（旧版一样），不是本特效。
 - **帧时**（桌面，100 只 + 路径 5 只、关垂直同步不锁帧，`perf casts=24`：同局单 / 双次轮换 `fx/ulp_charge_grains` 1 / 0，每次取放技能后第 16–75 帧 = 掷锚 → 冲锋 → 落地颗粒散尽，各 720 帧）：
 
@@ -65,7 +65,7 @@
 
 冲锋窗口平均 +0.9 毫秒（桌面 +0.3，约 3 倍），P50 持平，P95 +3.9。只发生在放 S3 的约 1 秒里；S3 每 20–30 秒一次。测量产物在主仓库 `build/_perfweb_ulp/b6b884314/out_ulp26.txt`。
 
-## 7. 对粒子化模板的需求（给 particles 会话，未改模板）
+## 7. 对粒子化模板的需求（已由 particles 会话提供）
 
-- 冲锋路径用的是 `slash` 模板（硬边四阶、寿命 0.3、重力 80）。particles 分支的 `MATERIALS.water`（重力 95、散射 40、热阶 1.2 不发白）合入后可以把路径颗粒换成 `water`、浪尖仍用 `slash`，水体会更「湿」、前沿不那么白；调用处只改模板名。
-- 动态灯目前只认帧条 / 刀光 / 弹，冲锋本体没有一盏跟着走的灯；若模板以后提供「颗粒簇登记成一盏灯」的接口，冲锋前沿可以挂一盏 0.2 秒的灯，替掉起点那团拖拽尘。
+- 路径水体换成材质 `water`：main 已有，已接（10-24 晚，合 main a4b85efb 后）。
+- 颗粒簇登记成灯 `fx_grains.light(位置, 半径, 颜色, 秒)`：particles 分支 `claude/particles-8d10a8` @ aa0eeafc，**未合 main**。本分支按 `has_method("light")` 判断，两边先后合入都能跑；挂灯那条路径要等 light 进 main 后再开窗口看一次（本分支没合它，没实跑过）。
