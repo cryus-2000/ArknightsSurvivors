@@ -270,6 +270,14 @@
 - 数据：`enemies.json` mimic 的 `scream_r` 150、`scream_delay` 0.4、`scream_t` 2.5、`scream_wake_r` 260、`scream_ingot_mult` 1.5、`bite2_delay` 0.35、`bite2_mult` 0.6、`bite_cd` 3.0。
 - 代码：`enemy_ai.gd` 新增 `_scream` / `start_scream`，`_bite` 加第二口；`spawner.reveal_mimic` 现形即开始尖叫；`combat.kill` 源石锭加成；`world._scream_aura` 画尖叫光环；图鉴机制行同步。
 - 录屏：图鉴演示同款场景 `game/tests/mimic_moves_capture.tscn`，`build/mimic_moves.gif`（15 fps，7 秒）。演示里队长站桩，2.5 秒尖叫内神经损伤涨到约 30 / 100。
+- 云端复测（10-24 16:15 UTC，同 seed 配对）：基线 main 7fbe5f23a 对新招 a3e87a0f8；常规档、无局外成长、高手机器人、starts 7 开局 × 8 seed × 3 份实现。结果分支 `cloud-results/mm-base-p0/1/2`、`mm-new-p0/1/2`。
+
+  | | 基线 | 新招 |
+  |---|---|---|
+  | 胜率（合计） | 59.9%（100/167） | 63.7%（107/168） |
+  | 三份实现 | 47.3 / 66.1 / 66.1 | 62.5 / 58.9 / 69.6 |
+
+  配对 167 对：只基线赢 26、只新招赢 33；差 +4.2 点，配对 95% 区间 [−4.2, +13.2]，McNemar p = 0.435，不显著；连续指标的配对差区间都含 0。**结论**：箱形恐鱼是低频精英，新招对胜率没有可测影响，可以合入。另注意：main 常规档本身已到约 60%（§2.5 那次加强分支是 53%，之后 main 又合了别的改动），贴着 45–60 的上沿，需不需要收紧由数值口径另定，不在本项范围。
 
 ## 5. 10-24 追加（已做）
 
