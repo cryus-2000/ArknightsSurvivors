@@ -31,7 +31,10 @@ const MATERIALS := {
 		"ramp": [[0.0, Color(1, 1.1, 1.1)], [0.25, Color(0.8, 0.9, 0.95)], [0.7, Color(0.35, 0.45, 0.5, 0.65)]]},
 }
 # 只替换短命中效果，不接管地面预警、持续领域或触手本体。
-const MATERIAL_FX := {"fx_flam_hit": "fire", "fx_water_splash": "water", "fx_corrode_hit": "fluid", "fx_eyja_lava_splash": "lava", "fx_eyja_ignite_hit": "fire", "fx_eyja_ignite_boom": "fire"}
+# 10-24 第 2 批（docs/138 §7）：盘点后只加蓝水花。炮弹爆炸 / 日炎 / 维什戴尔炮击试过，用户看后定退回原版（原版更有冲击感、更省帧）；体液另两条（水母刺 / 血肉命中）也不加
+const MATERIAL_FX := {"fx_flam_hit": "fire", "fx_water_splash": "water", "fx_corrode_hit": "fluid", "fx_eyja_lava_splash": "lava", "fx_eyja_ignite_hit": "fire", "fx_eyja_ignite_boom": "fire",
+	"fx_splash_blue": "water"}
+const MAT_SHARE := 0.6   # 材质颗粒最多占共用预算的六成：留四成给刀光第四版，大混战时材质先退回帧条，刀光不被挤掉
 var templates: Dictionary = TEMPLATES.duplicate(true)
 var _samples := {}
 const SPARK_MAX := [0, 120, 240]
@@ -52,6 +55,8 @@ var _names: Array = []
 var _ramps: Array = []   # 模板序号 → [[阈值（年龄比例）, 颜色], …]
 var _frame_n := {}
 var sparks: Array = []   # CPU 火星：[pos, vel, ground_y, life, max, col]
+var lights: Array = []   # 颗粒簇登记的灯（docs/138 §8）：[pos, r, col, life, max]；optical._dyn_lights 当候选，同 12 灯预算
+const LIGHT_MAX := 16
 var _drawn := false
 
 
@@ -68,7 +73,7 @@ func on() -> bool:
 	return level > 0 and g != null and g.optical_on and Bal.v("fx/grains", 1.0) > 0.0
 
 
-## 材质颗粒（fx/material_grains，缺省关）：模板开着、未被 --grainab / --matab 轮换关掉
+## 材质颗粒（fx/material_grains，10-24 起缺省开；拉普兰德 / 体液各自另有开关，缺省关）：模板开着、未被 --grainab / --matab 轮换关掉
 func material_on() -> bool:
 	return on() and not off and not mat_off and Bal.v("fx/material_grains", 0.0) > 0.0
 
@@ -95,6 +100,13 @@ func push(name: String, p: Vector2, dir: Vector2, c: Color, emit_delay := 0.0) -
 	delay.append(maxf(0.0, emit_delay))
 	col.append(c)
 	tpl.append(_names.find(name))
+
+
+## 颗粒簇登记一盏短灯（乌尔比安冲锋前沿等，docs/138 §8）：p 世界坐标、r 半径（世界像素）、c 颜色、life 秒；按剩余寿命线性变暗。纯画面
+func light(p: Vector2, r: float, c: Color, life: float) -> void:
+	if not on() or lights.size() >= LIGHT_MAX:
+		return
+	lights.append([p, r, c, life, life])
 
 
 ## CPU 火星：从 p 带重力迸出，落到 ground_y 停住、冷却变暗后熄灭（同屏上限 SPARK_MAX）
@@ -143,6 +155,13 @@ func step(dt: float) -> void:
 		delay.resize(k)
 		col.resize(k)
 		tpl.resize(k)
+	var lk := 0
+	for L in lights:
+		L[3] = float(L[3]) - dt
+		if float(L[3]) > 0.0:
+			lights[lk] = L
+			lk += 1
+	lights.resize(lk)
 	var m := 0
 	for s in sparks:
 		var p: Vector2 = s[0]
@@ -199,6 +218,8 @@ func material_burst(name: String, tx: Texture2D, frames: int, at: Vector2, angle
 	if not material_on() or not MATERIAL_FX.has(name):
 		return false
 	var kind: String = MATERIAL_FX[name]
+	if kind == "fluid" and Bal.v("fx/material_fluid", 0.0) <= 0.0:
+		return false   # 体液单独一道开关（缺省关，balance.json fx._material_doc）
 	if not _samples.has(name):
 		var img: Image = tx.get_image()
 		if img == null or img.is_empty() or img.is_compressed():
@@ -221,7 +242,7 @@ func material_burst(name: String, tx: Texture2D, frames: int, at: Vector2, angle
 		_samples[name] = points
 	var source: Array = _samples[name]
 	var count := mini(source.size(), 48 if level >= 2 else 32)
-	if count < 8 or pos.size() + count > budget() or int(_frame_n.get(kind, 0)) + count > int(templates[kind].per_frame):
+	if count < 8 or pos.size() + count > int(budget() * MAT_SHARE) or int(_frame_n.get(kind, 0)) + count > int(templates[kind].per_frame):
 		return false
 	var cell: float = float(tx.get_width() / frames) / 16.0   # 采样格（贴图像素）：格内随机抖开，否则颗粒排成 16×16 点阵（10-24 验收录像可见）
 	for i in count:
@@ -274,7 +295,7 @@ func grain_color(i: int) -> Color:
 
 
 func _lappland_step() -> void:
-	if not material_on() or not "squad" in g or g.squad == null:
+	if not material_on() or Bal.v("fx/material_lappland", 0.0) <= 0.0 or not "squad" in g or g.squad == null:
 		return
 	var o = g.squad.get_op("lappland")
 	if o == null:
@@ -309,7 +330,7 @@ func _lappland_step() -> void:
 		var points: Array = _samples[key]
 		var count: int = mini(points.size(), 72 if level >= 2 else 40)
 		# 预算不足保留完整原帧条，不能先隐藏本体再漏发碎片。
-		if count < 8 or pos.size() + count > budget() or int(_frame_n.get("blade", 0)) + count > int(templates.blade.per_frame):
+		if count < 8 or pos.size() + count > int(budget() * MAT_SHARE) or int(_frame_n.get("blade", 0)) + count > int(templates.blade.per_frame):
 			continue
 		f.slash_material = true
 		f.slash_break_at = elapsed
