@@ -420,6 +420,8 @@
    "ai": "melee",
    "role": "elite",
    "burst": true,
+   "burst_r": 160.0,
+   "burst_fuse": 1.1,
    "burst_fx": "fx_pocket_burst",
    "puddle_fx": "fx_pocket_puddle",
    "elite_after": 0,
