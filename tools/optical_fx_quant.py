@@ -111,6 +111,8 @@ def main():
         base = fn[:-4].replace("@2x", "")
         if not wanted(base):
             continue
+        if "@2x" not in fn and os.path.exists(os.path.join(INC, base + "@2x.png")):
+            continue   # 有 @2x 时 A.tex() 永远读不到 1x，不出被遮蔽的压阶版（docs/131 §1.3）
         files.append((base, fn, p))
     names = sorted({b for b, _, _ in files})
     if check:
