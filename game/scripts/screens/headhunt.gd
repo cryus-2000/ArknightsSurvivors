@@ -51,6 +51,7 @@ const TR_DUR := {"enter": 0.6, "slide": 0.3, "cut": 0.15, "wipe": 0.4}
 
 var g   # Game，或标题页的 screens/hunt_host.gd（只用 hud / font / kb_nav）
 var open := false
+var browse := false     # 标题页进入（10-24 用户：没有凭证也能点进去看卡池；按钮灰显）
 var mode := "entry"       # entry 入口 / class 定向选职业 / pick 定向选干员 / bag 拉包 / op 揭示 / summary 本次寻访
 var results: Array = []   # Roster.redeem_* 的返回值（只留解出干员的）
 var idx := 0              # 揭示到第几名
@@ -133,6 +134,7 @@ func tick() -> void:
 func maybe_open() -> void:
 	if open or not Roster.active():
 		return
+	browse = false
 	if not _can_random() and not _can_direct():
 		return
 	if Roster.locked_ids().is_empty():
@@ -143,11 +145,23 @@ func maybe_open() -> void:
 	_trans("enter")
 
 
+## 标题页入口：没有凭证 / 名册已满也打开（只能看，寻访按钮灰显）；返回是否打开了
+func open_browse() -> bool:
+	if open or not Roster.active():
+		return open
+	browse = true
+	open = true
+	_entry()
+	if open:
+		_trans("enter")
+	return open
+
+
 func _entry() -> void:
 	results.clear()
-	if (not _can_random() and not _can_direct()) or Roster.locked_ids().is_empty():
-		if Roster.locked_ids().is_empty():
-			_spill()
+	if Roster.locked_ids().is_empty():
+		_spill()
+	if not browse and ((not _can_random() and not _can_direct()) or Roster.locked_ids().is_empty()):
 		open = false
 		return
 	mode = "entry"
@@ -230,13 +244,13 @@ func _act(a) -> void:
 			if a is int:
 				sel = a
 				a = "one" if a == 0 else "directed"
-			if a == "one" and _can_random():
+			if a == "one" and _can_random() and not Roster.locked_ids().is_empty():
 				Sfx.play("ui_ok")
 				var r := _redeem_random()
 				if str(r.get("id", "")) != "":
 					results = [r]
 				_play()
-			elif a == "directed" and _can_direct():
+			elif a == "directed" and _can_direct() and not Roster.locked_ids().is_empty():
 				Sfx.play("ui_ok")
 				mode = "class"
 				_trans("slide")
@@ -250,15 +264,13 @@ func _act(a) -> void:
 			elif a == "back":
 				Sfx.play("ui_ok")
 				open = false
+			else:
+				Sfx.play("ui_move", -4.0, 0.6)   # 凭证不够 / 没有可寻访的干员：灰显按钮只响一声
 		"class":
 			if a is int and a >= 0 and a < choices.size():
 				if not Roster.locked_classes().has(choices[a]):
 					return
-				var again: bool = sel == a or Pad.touch
-				sel = a
-				Sfx.play("ui_move")
-				if not again:
-					return
+				sel = a   # 点一下就进（10-24 用户：抽卡界面点击就抽）
 				a = "ok"
 			if a == "ok" and Roster.locked_classes().has(choices[sel]):
 				Sfx.play("ui_ok")
@@ -274,11 +286,8 @@ func _act(a) -> void:
 				_trans("slide")
 		"pick":
 			if a is int and a >= 0 and a < choices.size():
-				if sel != a:
-					_mode_t0 = _now()   # 换人：档案重新解码
 				sel = a
-				Sfx.play("ui_move")
-				return
+				a = "ok"   # 点一下就寻访（10-24 用户）
 			if a == "ok" and sel < choices.size():
 				Sfx.play("ui_ok")
 				var r := _redeem_directed(choices[sel])
@@ -606,12 +615,14 @@ func _draw_entry() -> void:
 	var r1 := Rect2(620, D.y - 84, 300, 62)
 	var r0 := Rect2(940, D.y - 88, 310, 68)
 	HS.ghost_btn(ci, f, r1, "定向寻访  （%d 张）" % _cost_pick(), "", 1.0)
-	if not _can_direct():
+	if not _can_direct() or locked.is_empty():
 		HS.para(ci, r1, Color(0, 0, 0, 0.55))
 	elif _hot(1, r1):
 		HS.para(ci, r1.grow(3), Color(0, 0, 0, 0), HS.CYB, 2.0)
 	HS.main_btn(ci, f, r0, "寻访一次  （1 张）", "")
-	if _hot(0, r0):
+	if not _can_random() or locked.is_empty():
+		HS.para(ci, r0, Color(0, 0, 0, 0.55))
+	elif _hot(0, r0):
 		HS.para(ci, r0.grow(4), Color(0, 0, 0, 0), Color.WHITE, 2.0)
 	_btn(r1, 1)
 	_btn(r0, 0)

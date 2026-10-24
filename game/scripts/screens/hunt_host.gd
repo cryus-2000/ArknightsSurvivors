@@ -20,10 +20,10 @@ func _ready() -> void:
 	hide()
 
 
-## 有凭证且还有没招募的干员才打开；返回是否打开了
+## 标题页入口：没有凭证也打开（浏览模式，按钮灰显，10-24 用户）；返回是否打开了
 func open() -> bool:
 	kb_nav = Pad.using
-	hh.maybe_open()
+	hh.open_browse()
 	visible = hh.open
 	return visible
 
