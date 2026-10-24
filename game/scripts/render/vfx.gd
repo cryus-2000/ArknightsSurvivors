@@ -791,6 +791,8 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 		col = DISSOLVE_TINT
 	var spec: Array = Game.V6_FRAMES[name]
 	var dur: float = spec[0] / spec[1]
+	if _fxc != null:
+		_fx_census("SC|%s|%.3f" % [name, scale / A.hires_of(g.tex[name])], ground)   # 每个贴图像素占几个世界像素（÷2 = 低分辨率层格数）
 	var f := {"kind": "gsprite" if ground else "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur, "max": dur, "flip": flip, "col": col}
 	if bottom:
 		var tx: Texture2D = g.tex[name]
