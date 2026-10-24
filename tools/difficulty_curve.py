@@ -147,6 +147,56 @@ def boss_stats(recs):
     return out
 
 
+LAMP_BANDS = ["通明 ≥70", "摇曳 30–69", "暗淡 <30", "寂灭 0"]
+
+
+def lamp_section(rs):
+    """灯火统计（docs/146 §6）：需要 52ac39f8b 起的 bot.lamp_s / lamp_gain / lamp_loss / lamp_taken / lamp_end；旧数据只出 curve 的 lamp 中位"""
+    md = []
+    ts = sorted({c["t"] for r in rs for c in r["data"]["bot"].get("curve", []) if c["t"] > 0})
+    med = []
+    for t in ts:
+        v = [c.get("lamp") for r in rs for c in r["data"]["bot"].get("curve", []) if c["t"] == t]
+        lm = [c.get("lampmin") for r in rs for c in r["data"]["bot"].get("curve", []) if c["t"] == t and c.get("lampmin") is not None]
+        if len(v) >= 5 and t % 60 == 0:
+            med.append("%d:00 %.0f（P10 %.0f%s）" % (t // 60, q(v, .5), q(v, .1), "，窗口最低 P10 %.0f" % q(lm, .1) if lm else ""))
+    md.append("灯火中位（每分钟采样，P10）：" + "；".join(med))
+    have = [r for r in rs if "lamp_s" in r["data"]["bot"]]
+    if not have:
+        md.append("（这批数据没有灯火分档统计）")
+        return md
+    tot = [0.0] * 4
+    for r in have:
+        for i, v in enumerate(r["data"]["bot"]["lamp_s"]):
+            tot[i] += v
+    T = sum(tot) or 1.0
+    md.append("各档停留时间：" + "；".join("%s %.1f%%" % (LAMP_BANDS[i], 100 * tot[i] / T) for i in range(4)))
+    dark_runs = sum(1 for r in have if r["data"]["bot"].get("dark_s", 0) > 0)
+    md.append("出现过熄灯（=0）的局：%d / %d；熄灯总秒数中位 %s" % (dark_runs, len(have), "%.0f" % q([r["data"]["bot"].get("dark_s", 0) for r in have if r["data"]["bot"].get("dark_s", 0) > 0], .5) if dark_runs else "-"))
+    mins = sum(r["data"]["t"] for r in have) / 60.0
+    for key, title in (("lamp_gain", "回补"), ("lamp_loss", "损失")):
+        acc = Counter()
+        for r in have:
+            for k, v in (r["data"]["bot"].get(key) or {}).items():
+                acc[k] += v
+        s = sum(acc.values()) or 1
+        md.append("%s（每分钟平均 / 占比）：%s" % (title, "；".join("%s %.1f / %.0f%%" % (k, v / mins, 100.0 * v / s) for k, v in acc.most_common())))
+    # 各档承伤：每分钟承伤占最大生命 %
+    tk = [0.0] * 4
+    for r in have:
+        mhp = max([c.get("mhp", 100) for c in r["data"]["bot"].get("curve", [])] or [100])
+        for i, v in enumerate(r["data"]["bot"].get("lamp_taken", [0, 0, 0, 0])):
+            tk[i] += 100.0 * v / mhp
+    md.append("各档压力（每分钟承伤 % 最大生命）：" + "；".join("%s %s" % (LAMP_BANDS[i], "%.0f" % (tk[i] / (tot[i] / 60.0)) if tot[i] > 30 else "-") for i in range(4)))
+    deaths = [r for r in have if not r["data"]["win"] and r["data"]["t"] < 690]
+    band = Counter()
+    for r in deaths:
+        le = r["data"]["bot"].get("lamp_end", 100)
+        band[0 if le >= 70 else 1 if le >= 30 else 2 if le > 0 else 3] += 1
+    md.append("阵亡时灯火所在档（%d 局）：%s；对比停留时间占比可看「暗时死得多不多」" % (len(deaths), "；".join("%s %d（%.0f%%）" % (LAMP_BANDS[i], band[i], 100.0 * band[i] / max(1, len(deaths))) for i in range(4))))
+    return md
+
+
 def plot(name, groups, path):
     import matplotlib
     matplotlib.use("Agg")
@@ -229,6 +279,8 @@ def main():
                     t // 60, t % 60, s["n"], f(s["pres_med"]), f(s["pres_p75"]), f(s["hp_med"]), f(s["hpmin_p10"]), f(s["enemies"]), f(s["elites"]),
                     f(s["ebul"]), f(s["kpm"]), f(s["lamp"]), f(s["mires"]), f(s["mire_s"], "%.1f"), f(100 * s["boss"]) + "%", s["deaths"],
                     "、".join("%s×%d" % kv for kv in s["cause"]) or "-", "、".join("%s %d%%" % kv for kv in s["dsrc"]) or "-"))
+            md.append("\n灯火：\n")
+            md += ["- " + x for x in lamp_section(rs)]
             bs = boss_stats(rs)
             md.append("\nBoss 段：" + "；".join("%s 出场 %d、击破 %d、用时中位 %s 秒、段内压力中位 %s" % (
                 k, len(v), sum(1 for x in v if x[3]), f(q([x[0] for x in v if x[3]], .5)), f(q([x[1] for x in v], .5))) for k, v in sorted(bs.items())) + "\n")
