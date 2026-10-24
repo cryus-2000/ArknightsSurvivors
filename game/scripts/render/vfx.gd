@@ -381,6 +381,8 @@ func rock_chip(p: Vector2, vel: Vector2) -> void:
 
 func _init(game: Game) -> void:
 	g = game
+	if Cfg.dev_args().has("--fxcensus"):
+		_fxc = {}
 
 
 ## 播放美术交付的帧动画特效；素材不存在时返回 false，由调用方使用程序效果
@@ -757,6 +759,8 @@ const DISSOLVE_TINT := Color(1.0, 0.72, 1.05)
 ## ground=true：地面层帧条（kind "gsprite"，world._draw_ground_sprites 在溟痕之后、预警之前画；敌方落点溅射 / 囊液残留，docs/96）；
 ## anchor_px：帧内原点（1x 美术像素，按贴图密度换算；manifest 的 origin_1x），缺省帧中心
 func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE, ground := false, anchor_px := Vector2(-1, -1)) -> bool:
+	if _fxc != null:
+		_fx_census(name, ground)
 	if g.tex.get(name) == null:
 		return false
 	if name.begins_with("fx_slash") or name.begins_with("fx_claw"):
@@ -776,11 +780,12 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 		var texture: Texture2D = g.tex[name]
 		var origin: Vector2 = f.get("anchor", Vector2(texture.get_width() / spec[0], texture.get_height()) / 2.0)
 		if g.optical.grains.material_burst(name, texture, int(spec[0]), pos, ang, scale / A.hires_of(texture), origin, flip, col):
-			if name == "fx_water_splash":
+			var kind: String = g.optical.grains.MATERIAL_FX[name]
+			if kind == "water":
 				# 水体保留紧凑半透明核心，外围由颗粒承担；不再追加 GPU 爆发。
 				f["scale"] = scale * 0.72
 				f["col"] = Color(col.r, col.g, col.b, col.a * 0.6)
-			elif name == "fx_flam_hit" or name == "fx_eyja_lava_splash":
+			elif kind == "fire" or kind == "lava":
 				# 保留火焰核心；外围余烬收拢，不增加粒子数。
 				f["scale"] = scale * 0.78
 				f["col"] = Color(col.r, col.g, col.b, col.a * 0.65)
@@ -917,6 +922,8 @@ func boss_blade(b: Dictionary, pos: Vector2) -> void:
 # 各项各有开关；低画质 / 触屏不画常驻环境粒子（ambient_ok），一次性事件粒子按 Cfg.fx_density 减半。
 # 新增的 fx 种类：mote（光尘，tb 批）、glow（加色层的柔光，light 贴图）、mire_recoil（溟痕退散的收缩环）
 # =====================================================================
+var _fxc = null                # --fxcensus（docs/137 §7）：本局经 fx_sprite 播过的帧条名 → 次数，局终 / 每 30 秒打印 FXCENSUS（盘点可粒子化的一次性特效）
+var _fxc_t := 0.0
 var p2 := true                 # 运行时总开关（--vfxab=N 同局轮换测量用；缺省开）
 var _k2: Dictionary = {}       # fx 段快照（每帧读的旋钮不走 Bal.v 的字符串拆分）
 var _lamp_prev := -1.0         # 灯火观察（update_visuals 调 watch_lamp）
@@ -1237,3 +1244,11 @@ func draw_glows(ci: CanvasItem) -> void:
 		var rr: float = f.r * lerpf(f.grow, 1.0, 1.0 - pow(1.0 - k, 2.0))
 		var c: Color = f.col
 		ci.draw_texture_rect(lt, Rect2(f.pos - Vector2(rr, rr), Vector2(rr * 2.0, rr * 2.0)), false, Color(c.r, c.g, c.b, c.a * a * a))
+
+
+func _fx_census(name: String, ground: bool) -> void:
+	var k: String = name + ("@g" if ground else "")
+	_fxc[k] = int(_fxc.get(k, 0)) + 1
+	if g.t - _fxc_t >= 30.0:
+		_fxc_t = g.t
+		print("FXCENSUS ", JSON.stringify(_fxc))

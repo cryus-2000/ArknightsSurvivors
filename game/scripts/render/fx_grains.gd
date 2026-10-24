@@ -31,7 +31,11 @@ const MATERIALS := {
 		"ramp": [[0.0, Color(1, 1.1, 1.1)], [0.25, Color(0.8, 0.9, 0.95)], [0.7, Color(0.35, 0.45, 0.5, 0.65)]]},
 }
 # 只替换短命中效果，不接管地面预警、持续领域或触手本体。
-const MATERIAL_FX := {"fx_flam_hit": "fire", "fx_water_splash": "water", "fx_corrode_hit": "fluid", "fx_eyja_lava_splash": "lava", "fx_eyja_ignite_hit": "fire", "fx_eyja_ignite_boom": "fire"}
+# 10-24 第 2 批（docs/137 §7，按 --fxcensus 盘点）：火 = 炮弹爆炸 / 日炎 / 维什戴尔炮击；水 = 蓝水花；体液 = 水月水母刺 / 血肉命中（体液整类走 fx/material_fluid，缺省关）
+const MATERIAL_FX := {"fx_flam_hit": "fire", "fx_water_splash": "water", "fx_corrode_hit": "fluid", "fx_eyja_lava_splash": "lava", "fx_eyja_ignite_hit": "fire", "fx_eyja_ignite_boom": "fire",
+	"fx_cannon_burst": "fire", "fx_sunburst": "fire", "fx_wisadel_cannon": "fire", "fx_splash_blue": "water",
+	"fx_mizuki_jelly_sting": "fluid", "fx_hit_flesh": "fluid"}   # 归溟血锯试过：锯环形状散成点就认不出了，不接
+const MAT_SHARE := 0.6   # 材质颗粒最多占共用预算的六成：留四成给刀光第四版，大混战时材质先退回帧条，刀光不被挤掉
 var templates: Dictionary = TEMPLATES.duplicate(true)
 var _samples := {}
 const SPARK_MAX := [0, 120, 240]
@@ -223,7 +227,7 @@ func material_burst(name: String, tx: Texture2D, frames: int, at: Vector2, angle
 		_samples[name] = points
 	var source: Array = _samples[name]
 	var count := mini(source.size(), 48 if level >= 2 else 32)
-	if count < 8 or pos.size() + count > budget() or int(_frame_n.get(kind, 0)) + count > int(templates[kind].per_frame):
+	if count < 8 or pos.size() + count > int(budget() * MAT_SHARE) or int(_frame_n.get(kind, 0)) + count > int(templates[kind].per_frame):
 		return false
 	var cell: float = float(tx.get_width() / frames) / 16.0   # 采样格（贴图像素）：格内随机抖开，否则颗粒排成 16×16 点阵（10-24 验收录像可见）
 	for i in count:
@@ -311,7 +315,7 @@ func _lappland_step() -> void:
 		var points: Array = _samples[key]
 		var count: int = mini(points.size(), 72 if level >= 2 else 40)
 		# 预算不足保留完整原帧条，不能先隐藏本体再漏发碎片。
-		if count < 8 or pos.size() + count > budget() or int(_frame_n.get("blade", 0)) + count > int(templates.blade.per_frame):
+		if count < 8 or pos.size() + count > int(budget() * MAT_SHARE) or int(_frame_n.get("blade", 0)) + count > int(templates.blade.per_frame):
 			continue
 		f.slash_material = true
 		f.slash_break_at = elapsed

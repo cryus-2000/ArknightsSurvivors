@@ -4,6 +4,7 @@ var g
 var tick := -20
 var saving := false
 const NAMES := ["fx_flam_hit", "fx_water_splash", "fx_corrode_hit"]
+var names: Array = NAMES   # --materialnames=a,b,…：换成任意帧条（docs/137 §7 第 2 批对照）
 
 func _process(_dt: float) -> void:
 	Engine.max_fps = 20
@@ -21,9 +22,12 @@ func _process(_dt: float) -> void:
 	if Cfg.dev_args().has("--eyjamovie"):
 		_eyja_movie()
 		return
+	for a in Cfg.dev_args():
+		if a.begins_with("--materialnames="):
+			names = Array(a.substr(16).split(","))
 	var group: int = tick / 32
 	var frame: int = tick % 32
-	if group >= (1 if Cfg.dev_args().has("--materialmovie-fire") else NAMES.size()):
+	if group >= (1 if Cfg.dev_args().has("--materialmovie-fire") else names.size()):
 		print("MATERIAL_MOVIE_COMPLETE")
 		get_tree().quit()
 		return
@@ -33,11 +37,11 @@ func _process(_dt: float) -> void:
 		pool.step(2.0)
 		var previous: bool = pool.off
 		pool.off = true
-		g.vfx.fx_sprite(NAMES[group], g.ppos + Vector2(-90, -50), g.PX)
+		g.vfx.fx_sprite(names[group], g.ppos + Vector2(-90, -50), g.PX)
 		pool.off = false
-		g.vfx.fx_sprite(NAMES[group], g.ppos + Vector2(90, -50), g.PX)
+		g.vfx.fx_sprite(names[group], g.ppos + Vector2(90, -50), g.PX)
 		pool.off = previous
-		print("MATERIAL_MOVIE %s grains=%d" % [NAMES[group], pool.pos.size()])
+		print("MATERIAL_MOVIE %s grains=%d" % [names[group], pool.pos.size()])
 	if frame < 24:
 		saving = true
 		await RenderingServer.frame_post_draw
