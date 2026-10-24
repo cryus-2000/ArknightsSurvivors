@@ -1,7 +1,7 @@
 extends Node
 ## 标题页菜单（深海水母版，docs/67 §13）与难度页输入回归：
 ## - 四种菜单组（内部 / 对外 × 桌面 / 网页）：每项一个命中区、互不重叠、都在屏幕里（触屏至少 44 高）、方向键能走到每一项；
-## - 分组导航（左侧 寻访 / 图鉴 / 认知塑造 / 蚀刻章 / 试炼 → 集结出发 → 底部 设置 / 操作说明 / 退出；紧凑版式集结出发在右下）；
+## - 分组导航（左侧 寻访 / 认知塑造 / 图鉴 / 蚀刻章 / 试炼 → 集结出发 → 底部 设置 / 操作说明 / 退出；紧凑版式集结出发在右下）；
 ## - 键盘 ↑↓←→ / WASD、Tab / Shift+Tab、手柄十字键（经 Pad 翻译）、Esc 跳到退出、鼠标悬停 / 点击、选中底条展开；
 ## - 难度页：↑↓ 换档（不越界）、点档位卡换档、未解锁档不能出发、Esc 返回；桌面与触屏版式都查一遍。
 var failures := 0
@@ -145,7 +145,7 @@ func one_layout(tag: String) -> void:
 	var U := Vector2i(0, -1)
 	var R := Vector2i(1, 0)
 	var L := Vector2i(-1, 0)
-	check(walk(7, [D]) == 1 and walk(1, [D]) == 6 and walk(6, [D]) == 8 and walk(8, [D]) == 2, tag + ": side entries go down in order")
+	check(walk(7, [D]) == 6 and walk(6, [D]) == 1 and walk(1, [D]) == 8 and walk(8, [D]) == 2, tag + ": side entries go down in order")
 	check(walk(2, [U, U, U, U]) == 7 and walk(7, [U]) == 7, tag + ": side entries go up, no wrap")
 	check(walk(0, [U]) == 2, tag + ": deploy up -> trial")
 	check(walk(4, [R]) == 3 and walk(3, [R]) == 5 and walk(5, [L, L]) == 4 and walk(4, [L]) == 4, tag + ": footer left / right")
