@@ -493,7 +493,7 @@
   "pack_p": 0.9,
   "pack_pct": 0.3,
   "pick_below": 0.9,
-  "bot_below": 0.75,
+  "bot_below": 0.85,
   "magnet_p": 0.1,
   "shield_p": 0.1,
   "early_until": 300,
