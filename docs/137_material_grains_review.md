@@ -85,3 +85,21 @@
 - main 退出时 15 个 GL 贴图 / 36 个资源泄漏（开窗口局）。
 - main 上 7 个测试脚本缺 `.gd.uid`（altar_not_target、gladiia_hook_test、hunt_approach、manual_all_test、melee_diag、move_attack_test、ulpianus_charge_test）。
 - `tools/perf_web.py`（本分支新增）：网页帧时测量的可复用版，原 §17 / §16.6 的脚本随 scratchpad 清理丢了。
+
+## 7. 第 2 批（10-24，用户「还有哪些特效先一起做了再跑快检」）
+
+**盘点**：`--fxcensus`（vfx.fx_sprite 记本局播过的帧条名，每 30 秒打印 `FXCENSUS`）无头跑 7 局（20 名干员各上场一次、5 种中期 Boss + 最终 Boss、`--relics=all --maxprog --sptest`、150 秒），经 `fx_sprite` 播过的一次性帧条共 78 种（含 21 种死亡帧条，死亡由光学碎屑负责，不接）。按材质能归进四套模板的只有下面几条；其余是刀光 / 冲刺（刀光第四版、拉普兰德第 2 轮）、圣光 / 墨 / 岩石（不属四套模板，之后另开）、太小（采样 < 8 颗，自动退回原帧条，如能天使弹着点 12×12、枪口火 16×16）。**电**：现有特效里没有电属性的一次性帧条，模板（Codex 版 `MATERIALS.electric`）暂无调用点。
+
+| 帧条 | 7 局播放次数 | 材质 | 缺省 | 观感 |
+|---|---|---|---|---|
+| `fx_wisadel_cannon`（维什戴尔炮击） | 519 | 火 | 开 | 核心缩到 0.78、外围红色碎屑飞散冷却；整体比原版暗一档，**请用户看** |
+| `fx_cannon_burst`（炮弹爆炸） | 310 | 火 | 开 | 与原版接近，余烬上飘 |
+| `fx_sunburst`（日炎） | 12 | 火 | 开 | 核心缩小，外圈碎成火星 |
+| `fx_splash_blue`（蓝水花） | 548 | 水 | 开 | 核心半透明 + 水珠下落 |
+| `fx_mizuki_jelly_sting`（水母刺） | 106 | 体液 | 关 | 本体换成颗粒 + 短光 |
+| `fx_hit_flesh`（血肉命中） | 35 | 体液 | 关 | 同上 |
+| `fx_specter_saw_blood`（归溟血锯） | 270 | — | 不接 | 试过：锯环散成点就认不出了 |
+
+- **预算**：材质颗粒最多占共用预算六成（`MAT_SHARE`，高 540 / 中 270），其余四成留给刀光第四版：大混战时材质先整条退回原帧条，刀光不会被挤回第二版。
+- `vfx.fx_sprite` 保核心的规则改为按材质：水 0.72 / α 0.6、火与熔岩 0.78 / α 0.65、其余（体液）只留一盏短光。
+- 同帧对照：`tests/material_movie.gd` 加 `--materialnames=a,b,…`。
