@@ -72,7 +72,15 @@
   "entry"
  ],
  "sprites": {
-  "move_attack": {"tex": "op_exusiai_move_attack", "frames": 8, "foot": [32.0, 60.0], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},
+  "move_attack": {
+   "tex": "op_exusiai_move_attack",
+   "frames": 8,
+   "foot": [
+    32.0,
+    60.0
+   ],
+   "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"
+  },
   "entry": {
    "tex": "op_exusiai_entry",
    "frames": 8,
@@ -493,7 +501,8 @@
      "tex": "proj_exusiai_bullet_s2",
      "muzzle_fx": "fx_exusiai_muzzle_s2",
      "hit_fx": "fx_exusiai_hit_s2"
-    }
+    },
+    "need_enemy": "$range"
    },
    {
     "dur": "$s3_dur",
@@ -514,7 +523,8 @@
      "tex": "proj_exusiai_bullet_s3",
      "muzzle_fx": "fx_exusiai_muzzle_s3",
      "hit_fx": "fx_exusiai_hit_s3"
-    }
+    },
+    "need_enemy": "$range"
    }
   ],
   "talent": [

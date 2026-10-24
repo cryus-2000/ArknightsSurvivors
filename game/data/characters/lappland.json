@@ -844,7 +844,8 @@
       "value": "$s2_atk",
       "power": true
      }
-    ]
+    ],
+    "need_enemy": 150
    },
    {
     "dur": "$s3_dur",
@@ -881,7 +882,8 @@
       "op": "mult",
       "value": 1.0
      }
-    ]
+    ],
+    "need_enemy": 200
    }
   ],
   "trait": [

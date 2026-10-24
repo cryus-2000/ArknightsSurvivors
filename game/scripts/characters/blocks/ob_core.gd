@@ -383,8 +383,12 @@ static func exec_shape(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Array:
 		"projectile":   # 能天使段：弹体自推进，命中在 exu_tick 里结算，这里返回空
 			_F().exu_fire(o, b)
 	for s in b.get("on_hit", _EA):
-		for i in hits.size():
-			apply_status(o, hits[i], s, Vector2.INF, -1.0, 0.0, i)
+		var hs: Array = hits
+		if s.has("nearest_n"):   # st.* 的 nearest_n：序号按离本干员由近到远排（同距按 id），只给最近的 n 名（德克萨斯「阻挡」）
+			hs = hits.duplicate()
+			hs.sort_custom(func(a, c): return a.pos.distance_squared_to(o.pos) < c.pos.distance_squared_to(o.pos) if a.pos.distance_squared_to(o.pos) != c.pos.distance_squared_to(o.pos) else int(a.id) < int(c.id))
+		for i in hs.size():
+			apply_status(o, hs[i], s, Vector2.INF, -1.0, 0.0, i)
 	if b.has("fx") and fx_c != Vector2.INF:
 		_F().fx_play(o, b.fx, fx_c, fx_r, hits, fx_a)
 	return hits
@@ -409,7 +413,7 @@ static func apply_status(o, e: Dictionary, s: Dictionary, c := Vector2.INF, ring
 		return
 	if s.get("boss_only", false) and not e.boss:
 		return
-	if (s.has("first_only") or s.has("cd")) and not _F().el_status_gate(o, s, idx):   # 精英化段：只对这次命中的第一个敌人 / 冷却
+	if (s.has("first_only") or s.has("cd") or s.has("nearest_n")) and not _F().el_status_gate(o, s, idx):   # 精英化段：只对这次命中的第一个敌人 / 冷却
 		return
 	if s.has("fx"):   # 精英化段：状态自带画面（中心 = 这名敌人脚底，半径 = 敌人半径）
 		_F().fx_play(o, s.fx, e.pos, float(e.r), [e])
@@ -566,7 +570,7 @@ static func orbit_tick(o, b: Dictionary, st: Dictionary, dt: float) -> void:
 const FX_VORTEX_FADE := 0.4
 
 ## 无参数条件
-const EXT_CONDS := ["beacon_charging"]   # 主控正在给灯标读条（run/beacon.gd charging）
+const EXT_CONDS := ["beacon_charging", "enemy_near"]   # 主控正在给灯标读条（run/beacon.gd charging）
 
 const FIELD_CENTERS := ["self", "leader", "target", "zone", "last_hit"]
 
@@ -756,7 +760,7 @@ static func _v_shared(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 
 const TX_IMPL := {
 	"shape": ["dash_line"],
-	"verb": ["sp_secs", "dash_mod", "trail", "fx_scatter", "fx_rain"],   # verb.buff_leader 在「共用积木」段
+	"verb": ["sp_secs", "dash_mod", "trail", "fx_scatter", "fx_rain", "emit_path"],   # verb.buff_leader 在「共用积木」段
 	"trig": ["on_dash_end", "on_leader_dash", "on_skill_start", "on_skill_end"],
 }
 

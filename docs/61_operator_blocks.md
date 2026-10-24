@@ -1459,6 +1459,12 @@ data_operator 的挂钩：`update` 在技能计时之后先跑 `hw_tick`（按�
 | `blocks.look [fx…]` | 顶层 | 按 `cond` 常驻的画面：`aura_ring`（脚下圈）/ `outline`（本体轮廓光，当前帧白色剪影向 8 个方向偏移染色） |
 | `attack.first` / `idle` | 普攻 | 首击冷却 / 没目标时的重试间隔（缺省 0.5 / 0.2；手写干员各自的初值） |
 | `attack.anim` / `turn` | 普攻（含 swap_attack 换上的） | 这一下播的帧条 / `false` = 起手不转身 |
+| `shape.dash_line.need_target / min_d / aim_r` | 冲刺 | `aim nearest`：`aim_r`（缺省 冲刺长度 × 1.3）内没有敌人、或最近的敌人比 `min_d` 还近就不冲（德克萨斯队友短突进，10-23） |
+| `blocks.skills[i].need_enemy` | 技能 | 自动释放的前提：`pos` 周围这个半径（× op_range）内有敌人，没有就不放、技力保留满格（`character.skill_gate_ok`，10-23 起 15 名干员 31 个进攻 / 限时窗口技能，docs/129 §6）；手动技能不受影响 |
+| `st.*.nearest_n` | 任何 `st.*`（on_hit） | 这块状态只给本次命中里离本干员最近的 n 名（同距按 id）；德克萨斯「阻挡」（拔刀命中最近两名定住，10-24） |
+| `trig.every_n.no_combo` | 触发 | 只配 `replace: true`：这一次出手自己连斩，不再接 `attack.combo`（德克萨斯骤雨，10-24） |
+| 条件 `enemy_near` | cond | 普攻范围（形状半径 + 30）内有敌人（骤雨：没有敌人就照常拔刀，10-24） |
+| `verb.emit_path {len, w, src}` | 德克萨斯段瞬时 | 把「自身朝最近敌人、长 len」的路径当一次冲刺结束，触发 src 匹配的 `trig.on_dash_end`（精二余像挂在骤雨第一下，10-24） |
 | `shape.wave.max_hits` | 剑气 / 潮刃 | 命中几名敌人后消失（缺省不限）。10-23 用户定远程普攻取消穿透：拉普兰德普攻剑气（领主 / 远掷 / 双生刃）写 1；实际上限 = `character.atk_pierce(max_hits)`（贯穿卡 +1 / 次、穿甲弹 = 全部） |
 | 属性 `op_pierce` / 规则 `atk_pierce_all` | 远程普攻穿透 | `stat_defs` 新属性（基础 0，flat 加，升级卡「贯穿」火力类，全队 +2 / 张可叠两次，不减伤）与藏品「穿甲弹」#265 的规则（全穿，每穿过一名 −15%、最低 40%，`character.atk_pierce_mult`；与卡同在按藏品）；`character.atk_pierce(base)` 统一换算，只接到普攻子弹：能天使弹道 `pierce`、拉普兰德普攻剑气 `max_hits`、流明普攻光弹（新加 pierce / hit 表）；技能弹幕不读。卡的 `requires: ranged_basic` 由 `data_operator.pierce_atk` 判（编队里有弹道 / 光弹 / 带 `max_hits` 普攻剑气的人才出卡） |
 | `attack.far {shape …}` | 普攻 | 近战 / 远程切换（10-22 拉普兰德；10-24 升级）：近战锥普攻带 `far`（一个形状对象，或一组带 `cond` 的形状对象，第一块成立的）。起手时近战触及 + 30 内有敌人 → 近战；否则 `far.aim_r`（缺省 `dist`）内有 → 这一下改执行 `far`（通常 `shape.wave from self aim nearest`），手动普攻看指向锥里近战触及内有无敌人。`far` 可带 `every`（远程自己的间隔，缺省同近战）、`anim`（远程帧条名）、`count: false`（不数近战次数：every_n / replace / 连斩都跳过，缺省 true）。`last_hit_pos` 这一下不记 |

@@ -612,6 +612,7 @@ const EXEC_SEG := {
 	"verb.taunt_guard": 0,   # _ext_exec
 	"shape.dash_line": 1,   # tx_exec
 	"verb.fx_rain": 1,   # tx_exec
+	"verb.emit_path": 1,   # tx_exec
 	"verb.fx_scatter": 1,   # tx_exec
 	"verb.sp_secs": 1,   # tx_exec
 	"verb.trail": 1,   # tx_exec
@@ -819,7 +820,10 @@ func _release_body() -> void:
 				else:
 					_exec_list(t.get("do", []), hw.atk_c if not hw.is_empty() and str(t.get("at", "")) == "attack" else Vector2.INF)
 	if not hw.is_empty():
-		ObHw.hw_combo_start(self)   # 手写迁移段：attack.combo 连斩 / trig.on_combo_end
+		if not rp.is_empty() and rp.get("no_combo", false):
+			ObHw.hw_combo_end(self)   # replace 的 every_n 带 no_combo（德克萨斯疾刃三连）：这一次出手自己连斩，不再接 attack.combo 的第二斩
+		else:
+			ObHw.hw_combo_start(self)   # 手写迁移段：attack.combo 连斩 / trig.on_combo_end
 
 
 ## 精英化段：第 n 次普攻是否被 trig.every_n replace 换掉（第一块成立的；没有 = {}）
@@ -1327,6 +1331,14 @@ func _far_wanted(a: Dictionary, far: Dictionary) -> bool:
 		return false
 	var fr: float = float(far.get("aim_r", far.get("dist", 0.0))) * stat(&"op_range")
 	return fr > 0.0 and not nearest_enemies(1, fr, pos).is_empty()
+
+
+## blocks.skills[i].need_enemy（半径，× op_range）：自动释放前 pos 周围这个半径内要有敌人，没有就先不放（技力保留满格，有敌人那一帧再放）
+func skill_gate_ok(i: int) -> bool:
+	var sk: Array = B.get("skills", _EA)
+	if i >= sk.size() or not sk[i].has("need_enemy"):
+		return true
+	return not nearest_enemies(1, float(sk[i].need_enemy) * stat(&"op_range"), pos).is_empty()
 
 
 ## 当前普攻形状：verb.swap_attack 生效时用它，否则 blocks.attack

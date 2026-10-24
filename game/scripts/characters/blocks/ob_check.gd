@@ -73,7 +73,7 @@ static func validate(cid: String, d: Dictionary) -> bool:
 				elif ev[1] < 0.0:
 					errs.append("%s.dur 不能为负" % p)
 			for k in sb:
-				if not k in ["dur", "do", "fx", "aim", "status", "status_col", "attack_phases", "attack_effect"] + EXU_SKILL_KEYS + HW_SKILL_KEYS:
+				if not k in ["dur", "do", "fx", "aim", "status", "status_col", "attack_phases", "attack_effect", "need_enemy"] + EXU_SKILL_KEYS + HW_SKILL_KEYS:
 					errs.append("%s.%s：技能积木只有 dur / do / fx / aim / aim_r / status / status_col / attack_patch / end 这几个字段" % [p, k])
 				elif k == "aim" and not (str(sb.aim) in ["leader", "nearest", "los", "range", "tether", "elite", "cluster"] or (str(sb.aim).begins_with("summon:") and ctx.summons is Dictionary and ctx.summons.has(str(sb.aim).substr(7)))):
 					errs.append("%s.aim 只能是 leader / nearest / summon:<blocks.summons 里的种类>" % p)
@@ -88,6 +88,7 @@ static func validate(cid: String, d: Dictionary) -> bool:
 					if not sw is Dictionary or not str(sw.get("shape", "")) in ["circle", "cone"] or sw.has("armed") or sw.has("combo"):
 						errs.append(p + ".attack_phases：本干员其他技能的 swap_attack 换上的普攻须是 circle / cone")
 			_num(sb, "aim_r", p, ctx, false, 1.0, 2000.0)
+			_num(sb, "need_enemy", p, ctx, false, 1.0, 2000.0)   # 自动释放的前提：这个半径（× op_range）内有敌人，没有就保留技力不放（10-23）
 			if sb.has("fx"):
 				_F()._fx(sb.fx, p + ".fx", ctx, "cast")
 			_list(sb.get("do", []), p + ".do", "skill", ctx)
@@ -377,6 +378,8 @@ static func _block(b, p: String, kind: String, ctx: Dictionary) -> void:
 			# 精英化段：replace = 这一次普攻整个换成 do（不再出普攻形状）；anim = 这一次起手播的帧条（sprites 里的键，缺图退回 attack）
 			if b.has("replace") and not (b.replace is bool):
 				errs.append(p + ".replace 只能是 true / false")
+			if b.has("no_combo") and (not (b.no_combo is bool) or not b.get("replace", false)):
+				errs.append(p + ".no_combo 只配 replace: true，且是 true / false（这一次出手不接 attack.combo 的连斩）")
 			if b.has("anim"):
 				if not b.get("replace", false):
 					errs.append(p + ".anim 只配 replace: true（换掉的那一次普攻播别的帧条）")

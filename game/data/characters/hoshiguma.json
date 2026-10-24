@@ -78,8 +78,35 @@
   "regen": 1.0
  },
  "sprites": {
-  "move_attack": {"tex": "op_hoshiguma_move_attack", "frames": 8, "foot": [48, 76], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},
-  "entry": {"tex": "op_hoshiguma_entry", "frames": 8, "fps": 9.1429, "foot": [32, 60], "frame_durations": [0.042, 0.119, 0.119, 0.119, 0.119, 0.119, 0.119, 0.119], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/hoshiguma_entry.json），64 画布 @2x；落下由代码补"},
+  "move_attack": {
+   "tex": "op_hoshiguma_move_attack",
+   "frames": 8,
+   "foot": [
+    48,
+    76
+   ],
+   "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"
+  },
+  "entry": {
+   "tex": "op_hoshiguma_entry",
+   "frames": 8,
+   "fps": 9.1429,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.042,
+    0.119,
+    0.119,
+    0.119,
+    0.119,
+    0.119,
+    0.119,
+    0.119
+   ],
+   "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/hoshiguma_entry.json），64 画布 @2x；落下由代码补"
+  },
   "_doc": "10-20 换 64 画布 @2x（docs/108 §5）：待机 / 普攻 / S3 / 死亡取原作动作条（cb_18），跑步 / S1 / 掷盾 / 接盾在原生骨架上出（tools/spine_run_trial），打包脚本 tools/probes/package_texas_hoshiguma.py。shield = 每帧盾心（1x 帧内像素，同 foot 口径，null = 盾已离手），格挡闪光 / 反击架势红光锚在这里（fx 的 on_sprite）",
   "idle": {
    "tex": "op_hoshiguma_idle",
@@ -355,7 +382,8 @@
    "art": {
     "idle": "op_hoshiguma_idle_noshield",
     "run": "op_hoshiguma_run_noshield",
-    "attack": "op_hoshiguma_attack_noshield", "skill": "op_hoshiguma_attack_noshield",
+    "attack": "op_hoshiguma_attack_noshield",
+    "skill": "op_hoshiguma_attack_noshield",
     "throw": "op_hoshiguma_throw_noshield"
    },
    "fallback": {
@@ -694,7 +722,8 @@
    }
   }
  },
- "extra_sprites": ["entry", 
+ "extra_sprites": [
+  "entry",
   "death",
   "s1",
   "s1_guard",
@@ -1029,7 +1058,8 @@
       "verb": "negate_chance",
       "mult": "$s2_block_x"
      }
-    ]
+    ],
+    "need_enemy": 140
    },
    {
     "dur": "$s3_dur",
@@ -1070,7 +1100,8 @@
        ]
       }
      }
-    ]
+    ],
+    "need_enemy": 140
    }
   ],
   "talent": [

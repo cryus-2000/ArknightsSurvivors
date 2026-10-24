@@ -83,8 +83,35 @@
   "regen": 1.6
  },
  "sprites": {
-  "move_attack": {"tex": "op_gladiia_move_attack", "frames": 8, "foot": [48, 76], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},
-  "entry": {"tex": "op_gladiia_entry", "frames": 8, "fps": 9.4118, "foot": [32, 60], "frame_durations": [0.1, 0.1, 0.1, 0.1, 0.15, 0.1, 0.1, 0.1], "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/gladiia_entry.json），64 画布 @2x；落下由代码补"},
+  "move_attack": {
+   "tex": "op_gladiia_move_attack",
+   "frames": 8,
+   "foot": [
+    48,
+    76
+   ],
+   "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"
+  },
+  "entry": {
+   "tex": "op_gladiia_entry",
+   "frames": 8,
+   "fps": 9.4118,
+   "foot": [
+    32,
+    60
+   ],
+   "frame_durations": [
+    0.1,
+    0.1,
+    0.1,
+    0.1,
+    0.15,
+    0.1,
+    0.1,
+    0.1
+   ],
+   "_doc": "10-22 入场：原作 Start 轨着地前一帧 + 着地到收势（tools/spine_run_trial cfg/gladiia_entry.json），64 画布 @2x；落下由代码补"
+  },
   "_doc": "Codex 交付 199d7b73（原生像素 @2x、整数 foot；192 画布槽 foot = 顶层 + (16,16)）。跑步条未交，暂借乌尔比安 run。attack 走 attack_timing（B 步改出手时刻）；Skill_1_Loop / Skill_1_End 已交未用（S1 是瞬发）",
   "size": 64,
   "foot": [
@@ -436,7 +463,8 @@
    }
   }
  },
- "extra_sprites": ["entry", 
+ "extra_sprites": [
+  "entry",
   "s1_begin",
   "s2_start",
   "s2_enter",
@@ -703,7 +731,8 @@
       "arrive_stun_elite1": "$arrive_stun_e1",
       "thin_chain": true
      }
-    ]
+    ],
+    "need_enemy": "$s1_range"
    },
    {
     "dur": "$s2_dur",
@@ -747,7 +776,8 @@
       "op": "add",
       "value": "$s2_range"
      }
-    ]
+    ],
+    "need_enemy": "$range"
    },
    {
     "dur": "$s3_dur",
@@ -905,7 +935,8 @@
        ]
       }
      }
-    ]
+    ],
+    "need_enemy": "$range"
    }
   ],
   "trait": [

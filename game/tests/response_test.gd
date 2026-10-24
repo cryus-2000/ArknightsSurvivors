@@ -105,13 +105,16 @@ func test_texas(g, o) -> void:
 	g.dash_t = 0.0
 	o.elite = 1
 	o.refresh_stats()
-	# 兜底：响应刚触发过，天赋定时冲刺不该成立；距上次触发超过 talent_cd 才成立
-	var C = o.ObCore
-	var cond0 = o.B.talent[0].cond
-	o.rsp["last"] = g.t
-	ok(not C.cond_true(o, cond0), "德克萨斯：队长刚冲刺过，天赋定时冲刺不触发（resp_idle 未到）")
+	# 10-23 用户改口：天赋的定时自动冲刺（兜底）已删——天赋里不该再有任何 tick；队友短突进另在特性里（trait tick，需要 !is_leader + 敌人）
+	var has_tick := false
+	for t in o.B.talent:
+		if str(t.get("_tag", "")) == "trig.tick":
+			has_tick = true
+	ok(not has_tick, "德克萨斯：天赋里没有定时自动冲刺（队长很久没冲刺她也不自己冲）")
 	o.rsp["last"] = g.t - 100.0
-	ok(C.cond_true(o, cond0), "德克萨斯：队长很久没冲刺，天赋定时冲刺照旧（不触发不吃亏）")
+	o.tx.erase("dash")
+	tick(o)
+	ok(not o.tx.has("dash"), "德克萨斯：队长很久没冲刺、场上没敌人，她不冲")
 
 
 func test_hoshiguma(g, o) -> void:
