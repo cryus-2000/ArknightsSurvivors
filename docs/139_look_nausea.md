@@ -376,4 +376,4 @@ godot --path game -- --bal=render/nausea_safe=1
 
 9:05 满屏同一帧（`late9` 第 69 帧，3 只滑动者同时蓄力冲向队长）：现状（收敛后的线）/ 方案 1 / 方案 2。图：`build/look_nausea/dash_styles_cmp.png`（整屏 + 放大）。洋红像素（2 秒平均，屏幕占比）：现状 0.163% / 方案 1 0.127% / 方案 2 0.149%；方案 1 视觉面积最小（只剩脚前一小串「›」+ 变红的本体），方案 2 保留方向和大致距离。
 Boss 弹洋红确认：`build/look_nausea/boss_bullets_check.png`（`--bosstest` 卡门 / 伪人 / 伊比利亚；左上卡门弹幕为洋红，杂兵弹青蓝）。
-缺省仍是 0（线），等用户挑。
+**用户 10-24 定方案 2，已成缺省**（`balance.json` render `dash_tell_style` 2）。回退：0。
