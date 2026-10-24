@@ -22,8 +22,15 @@ except OSError:
 OUT = os.path.join(ROOT, "build", "sfx_review_1024")
 
 
+BASE = "d872886cc"   # 换音前的基线提交：「改前」从这里读，接入新文件之后工作树里的 wav 已经是「改后」
+
+
 def read_wav(name):
-    with wave.open(os.path.join(SFX, name + ".wav")) as w:
+    import io
+    r = subprocess.run(["git", "show", "%s:game/audio/sfx/%s.wav" % (BASE, name)], cwd=HERE, capture_output=True)
+    if r.returncode != 0:
+        raise SystemExit("基线提交 %s 里没有 %s.wav" % (BASE, name))
+    with wave.open(io.BytesIO(r.stdout)) as w:
         return np.frombuffer(w.readframes(w.getnframes()), np.int16).astype(np.float64) / 32768.0
 
 

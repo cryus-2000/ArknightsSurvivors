@@ -358,3 +358,9 @@ i1（819711 DaVoiceActor「Chain Impact」1.75–2.30 s）「挺好听」→ 作
 ## 16. 能天使枪声第二轮：CC0 单发录音（10-24 用户：「枪声再找找」）
 
 §13 的合成枪声没被选中，改找录音。`game/tools/gen_sfx_review_gun_1024.py`：Freesound CC0 单发枪声 14 条（g1–g14，来源页 / 作者 / 许可在试听页第六节与 `build/sfx_candidates_1024/freesound/meta.json`），自动找第一声枪响，取 0.14 s（g8 取 0.2 s 带科幻尾音），100 Hz 高通 + 7 kHz 低通，响度对齐现用 `op_exusiai_atk`；每条另有「8 连发」试听（0.11 s 间隔 + ±9% 音高随机，约等于过载连射）看累不累。偏 Arknights 的方向：消音 / 短促 / 带一点科幻金属（g2 g3 g5 g8 g13 为消音枪，g11 为实验性科幻枪）；g1 g12 重心 250–400 Hz，偏低沉。选定后：能天使 atk 用 2–3 条轮换（`op_exusiai_atk` / `_b` / `_c`），`OP_GAP["op_exusiai_atk"] = 0.045` 合并同帧多发，接入时 credits 补作者。
+
+### 15.1 / 16.1 用户定（10-24 再次试听后）
+
+- **德克萨斯冲刺用合成版**：`op_texas_atk.wav` ← 合成起冲（蹬地 + 一丝刃鸣 + 下行呼啸，0.3 s，替换 Kenney 刀划）；`op_texas_hit.wav` 新增 ← 合成收势（靴底刹停摩擦 + 刃「嘶」+ 轻「咚」，0.2 s，原来借艾丽妮命中 ×1.1）。由 `python game/tools/gen_sfx_review_texas_1024.py --apply` 写入。`sfx.gd`：`OP_SFX["texas"]` 加 `hit`，删 `OP_ALT["op_texas_hit"]`，`OP_DB["op_texas_hit"] = -3`（等于原来借用时的 −3 dB，文件响度同艾丽妮命中）。
+- **能天使枪声不换**：继续用 `op_exusiai_atk`（DarkShroom M9，CC0）。第六节 14 条候选不接；§13 的合成枪声也不接。
+- **试听页「改前」修正**：10-24 接入乌尔比安出钩 / 收拉后重跑生成脚本，页面里的「改前」读到了工作树里已经是新文件，改前改后读反了。现在「改前」固定读换音前的基线提交 `d872886cc`（`git show`），不随工作树变。

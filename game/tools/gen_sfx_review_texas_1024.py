@@ -20,8 +20,10 @@ os.makedirs(OUT, exist_ok=True)
 
 
 def read_wav(name):
-    import wave
-    with wave.open(os.path.join(cc.SFX, name + ".wav")) as w:
+    """「现用」读换音前的基线提交 d872886cc（接入合成版之后工作树里的 op_texas_atk 已经是新文件）"""
+    import io, wave, subprocess
+    r = subprocess.run(["git", "show", "d872886cc:game/audio/sfx/%s.wav" % name], cwd=HERE, capture_output=True)
+    with wave.open(io.BytesIO(r.stdout)) as w:
         return np.frombuffer(w.readframes(w.getnframes()), np.int16).astype(np.float64) / 32768.0
 
 
@@ -77,6 +79,13 @@ def main():
     sg, se = fit(cc.process(synth_go(), r_go), r_go), fit(cc.process(synth_end(), r_end), r_end)
     wr(os.path.join(OUT, "synth_go.ogg"), sg)
     wr(os.path.join(OUT, "synth_end.ogg"), se)
+    if "--apply" in sys.argv:   # 用户 10-24 定：冲刺用合成版。起冲 -> op_texas_atk（替换 Kenney 刀划），收势 -> op_texas_hit（新增专属文件，原借艾丽妮命中）
+        import wave
+        for nm, x in (("op_texas_atk", sg), ("op_texas_hit", se)):
+            with wave.open(os.path.join(cc.SFX, nm + ".wav"), "wb") as w:
+                w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR)
+                w.writeframes((np.clip(x, -1, 1) * 32767).astype(np.int16).tobytes())
+            print("写入", nm, "%.2fs" % (len(x) / SR))
     rows, waves = [], {}
     for name, role, sid, a, b, note in CC0:
         m = cc.fetch(sid)
