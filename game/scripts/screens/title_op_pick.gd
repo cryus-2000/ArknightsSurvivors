@@ -420,7 +420,8 @@ func _op_go() -> void:
 		transition.switch_page(func():
 			Cfg.cover_character_id = cid
 			Cfg.save()
-			title_bg.reload_guest()
+			if title_bg.has_method("reload_guest"):
+				title_bg.reload_guest()   # 旧沙滩封面；深海水母版不画封面干员（10-24）
 			op_pick = false)
 	else:
 		# 出击：按钮下沉 + 闪白 160 ms，140 ms 起深海浪幕 700 ms，过半换到难度页（浪幕期间锁输入，同页面切换）
