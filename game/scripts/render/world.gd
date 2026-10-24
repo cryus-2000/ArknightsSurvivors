@@ -4070,9 +4070,11 @@ func draw_zone_band(pulse: float) -> void:
 	var prev_out := Vector2.ZERO
 	var prev_vis := false
 	# 溟痕配色（2026-09-27 用户要求：圈边要是溟痕本身的样子——深色黏液 + 青黑纹理，和地上的溟痕一致；不再用粉紫潮线）
-	var c_in := Color(0.06, 0.03, 0.1, 0.92)
-	var c_mid := Color(0.05, 0.03, 0.08, 0.8)
-	var c_out := Color(0.05, 0.02, 0.08, 0.0)
+	# 10-24 用户「直接改溟痕颜色」（docs/139 §6.4 方案 A）：带色、贴图块与地上溟痕同乘 render/mire_tint，靛紫 → 深海青蓝
+	var mtn: Color = g.map.mire_tint()
+	var c_in := Color(0.06, 0.03, 0.1, 0.92) * mtn
+	var c_mid := Color(0.05, 0.03, 0.08, 0.8) * mtn
+	var c_out := Color(0.05, 0.02, 0.08, 0.0) * mtn
 	# 性能（测试与验收 9/30：黑潮每帧 2.3 毫秒）：只遍历镜头附近那段圆弧的序号（原来整圈 420 段、贴图 900 块逐个算三角函数再判可见）
 	var rng_i: Vector2i = _arc_range(n, c, r, vc, view)
 	var run_mid := PackedVector2Array()
@@ -4162,10 +4164,10 @@ func draw_zone_band(pulse: float) -> void:
 			var fr: int = (int(t * 2.0) + j) % 2
 			if fl:
 				g.draw_set_transform(bp, 0.0, Vector2(-1, 1))
-				g.draw_texture_rect_region(mt, Rect2(-sz / 2.0, sz), Rect2(fw * fr, 0, fw, mt.get_height()), Color(1, 1, 1, 0.95))
+				g.draw_texture_rect_region(mt, Rect2(-sz / 2.0, sz), Rect2(fw * fr, 0, fw, mt.get_height()), Color(1, 1, 1, 0.95) * mtn)
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 			else:
-				g.draw_texture_rect_region(mt, Rect2(bp - sz / 2.0, sz), Rect2(fw * fr, 0, fw, mt.get_height()), Color(1, 1, 1, 0.95))
+				g.draw_texture_rect_region(mt, Rect2(bp - sz / 2.0, sz), Rect2(fw * fr, 0, fw, mt.get_height()), Color(1, 1, 1, 0.95) * mtn)
 	for cr in crests:
 		_zone_crest(cr, pulse)
 

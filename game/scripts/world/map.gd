@@ -915,7 +915,7 @@ func draw_mire(m: Dictionary) -> void:
 		# 溟痕贴图（2 帧脉动）：按判定半径缩放，外圈画判定提示
 		var fw := mt.get_width() / 2
 		var sz := Vector2(m.r * 2.3, m.r * 2.3)
-		g.draw_texture_rect_region(mt, Rect2(m.pos - sz / 2.0, sz), Rect2(fw * (int(t * 2.0 + m.seed) % 2), 0, fw, mt.get_height()), Color(1, 1, 1, a))
+		g.draw_texture_rect_region(mt, Rect2(m.pos - sz / 2.0, sz), Rect2(fw * (int(t * 2.0 + m.seed) % 2), 0, fw, mt.get_height()), Color(1, 1, 1, a) * mire_tint())
 		g.world.tb_ring(m.pos, m.r, 1.5, Color(0.7, 0.4, 1.2, 0.35 * a) * mire_tint(), 36)   # 判定圈进 world 的无贴图合批，调用方画完所有溟痕后一次提交（性能 9/30）
 		return
 	for k in 7:
