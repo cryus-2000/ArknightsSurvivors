@@ -11,6 +11,10 @@ const Character = preload("res://scripts/characters/character.gd")
 
 ## 开局固定的 5 人（用户 10-22：德克萨斯 / 星熊 / 艾雅法拉 / 铃兰 / 能天使 = 先锋 / 重装 / 术师 / 辅助 / 狙击）
 const STARTERS := ["texas", "hoshiguma", "eyjafjalla", "suzuran", "exusiai"]
+## 对内发布包（Cfg.internal_roster()）首次启动再补的 5 人 → 开局共 10 人（用户 10-24）：
+## 在开局 5 人（先锋 / 重装 / 术师 / 辅助 / 狙击）之外补齐医疗 / 近卫 / 特种——流明、斯卡蒂、归溟幽灵鲨正是各职业「上手快」的首位，
+## 再加第二位先锋推进之王与带手动技能的近卫乌尔比安；8 个职业全覆盖，其余 10 人靠 20 张凭证与局终发券去寻访
+const INTERNAL_START := ["lumen", "skadi", "specter_unchained", "siege", "ulpianus"]
 ## 同职业里先出「上手快」的那位：权重 2（其余 1）；后加入的干员排在同职业第二人之后：权重 0.5
 ## （10-22 拉普兰德 近卫、歌蕾蒂娅 特种，协调人定）
 const PRIORITY := {"lumen": 2.0, "skadi": 2.0, "specter_unchained": 2.0, "lappland": 0.5, "gladiia": 0.5}

@@ -107,7 +107,7 @@ func draw_opening_hud(vs: Vector2) -> void:
 
 
 ## 指南文字在 data/guide.json（文案维护；10-15 从 game.gd INTRO_PAGES 与本文件的 TOUCH_SUBS / TOUCH_CONTROLS / MORE_HINT 原样搬去，docs/101 S5）：
-## pages 9 页（title / en / icon / lines / more）；touch_subs 触屏版逐句替换 [键鼠说法, 触屏说法]；touch_controls 触屏版最后一页「操作」整页；
+## pages 13 页（title / en / icon / lines / more）；touch_subs 触屏版逐句替换 [键鼠说法, 触屏说法]；touch_controls 触屏版最后一页「操作」整页；
 ## more_hint 精简版（首次自动打开）最后一页末尾的提示
 static var _guide: Dictionary = {}
 
@@ -410,6 +410,40 @@ func draw_icon(kind: String, c: Vector2) -> void:
 				var ec: Color = ends[k][1]
 				UI.diamond(g.hud, c + Vector2(-66 + k * 44, 92), 9.0, Color(ec.r, ec.g, ec.b, 0.35), ec)
 				UI.text(g.hud, g.font, c + Vector2(-86 + k * 44, 122), ends[k][0], 13, ec, HORIZONTAL_ALIGNMENT_CENTER, 40)
+		"command":
+			# 指挥圆盘示意：六个扇区取 command_wheel.gd 的选项色 / 角度（上半队形、下半索敌偏好），中心一颗菱形，整盘缓慢呼吸
+			var CW = preload("res://scripts/screens/command_wheel.gd")
+			var wc := c + Vector2(0, 6)
+			var breathe := 1.0 + 0.03 * sin(g.intro_t * 2.0)
+			g.hud.draw_arc(wc, 52.0 * breathe, 0.0, TAU, 48, Color(0.15, 0.3, 0.34, 0.8), 1.5)
+			for k in mini(CW.ITEMS.size(), CW.ANG.size()):
+				var wa: float = deg_to_rad(float(CW.ANG[k]))
+				var wcol: Color = CW.ITEMS[k].col
+				g.hud.draw_arc(wc, 78.0 * breathe, wa - 0.46, wa + 0.46, 14, Color(wcol.r, wcol.g, wcol.b, 0.85), 16.0)
+				var wnm: String = CW.ITEMS[k].name
+				wnm = wnm.get_slice(" ", 0) if wnm.contains(" ") else wnm.left(2)
+				UI.text(g.hud, g.font, wc + Vector2.from_angle(wa) * 78.0 * breathe + Vector2(-24, 5), wnm, 12, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 48)
+			UI.diamond(g.hud, wc, 10.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35), UI.CYAN)
+			UI.text(g.hud, g.font, c + Vector2(-70, 118), "指挥圆盘 · F", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 140)
+		"hunt":
+			# 寻访凭证示意：金边凭证卡 + 两张叠在后面的影子
+			for k in 2:
+				var sh := Rect2(c + Vector2(-96 + (2 - k) * 10, -70 + (2 - k) * 10), Vector2(180, 100))
+				UI.panel(g.hud, sh, Color(0.03, 0.07, 0.09), Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.3), 8.0)
+			var tk := Rect2(c + Vector2(-96, -70), Vector2(180, 100))
+			UI.panel(g.hud, tk, Color(0.04, 0.09, 0.11), UI.GOLD, 8.0)
+			UI.diamond(g.hud, tk.position + Vector2(30, 50), 12.0 + 1.5 * sin(g.intro_t * 3.0), Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.3), UI.GOLD)
+			UI.text(g.hud, g.font, tk.position + Vector2(52, 44), "寻访凭证", 20, UI.GOLD)
+			UI.text(g.hud, g.font, tk.position + Vector2(52, 66), "HEADHUNTING", 11, UI.SUB)
+			UI.text(g.hud, g.font, c + Vector2(-96, 76), "寻访 · 认知塑造", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 180)
+		"tide":
+			# 三档难度示意：三根逐级升高的潮柱（常规青 / 高压金 / 深潮紫红），柱顶随潮微微起伏
+			var tcols := [UI.CYAN, UI.GOLD, Color(1.0, 0.35, 0.6)]
+			for k in 3:
+				var th: float = 36.0 + 38.0 * k + 3.0 * sin(g.intro_t * 2.5 + k)
+				var tr2 := Rect2(c + Vector2(-96 + k * 68, 56 - th), Vector2(48, th))
+				UI.panel(g.hud, tr2, Color(tcols[k].r, tcols[k].g, tcols[k].b, 0.16), tcols[k], 4.0)
+				UI.text(g.hud, g.font, Vector2(tr2.position.x - 6, c.y + 78), ["常规", "高压", "深潮"][k], 14, tcols[k], HORIZONTAL_ALIGNMENT_CENTER, 60)
 		"keys":
 			if Pad.touch_ui():
 				_draw_touch_keys(c)
@@ -424,13 +458,31 @@ func draw_icon(kind: String, c: Vector2) -> void:
 
 ## 指南正文里的数值占位（docs/83 入队加成读 balance.json squad 段；docs/88 灯火暗淡 / 受击灯火读 lamp 段、暗淡刷新读 enemy 段；不写死）。
 ## 缺省值与读取处一致：combat.gd（lamp/dark_taken、hit_base、hit_scale）、enemies.gd（lamp/dark_enemy）、spawner.gd（enemy/spawn_dark_mult）
+## 10-24 增补：灯标（run/beacon.gd）、宝箱 / 补给箱（combat.gd、docs/133）、指挥与切换队长（docs/114、135）、寻访（core/roster.gd）、难度说明（data.gd DIFF_PRESETS）
 static func fill_numbers(ln: String) -> String:
 	if not ln.contains("{"):
 		return ln
 	var Bal = preload("res://scripts/core/balance.gd")
 	var Sq = preload("res://scripts/characters/squad.gd")
+	var Roster = preload("res://scripts/core/roster.gd")
 	var pct := func(mult: float) -> String: return str(int(round((mult - 1.0) * 100.0)))
-	return ln.replace("{hp_per_member}", str(int(round(Bal.v("squad/hp_per_member", 0.0) * 100.0)))).replace("{regen_per_member}", Sq.regen_steps_text()) \
-		.replace("{dark_taken}", pct.call(Bal.v("lamp/dark_taken", 1.15))).replace("{dark_enemy}", pct.call(Bal.v("lamp/dark_enemy", 1.2))) \
-		.replace("{dark_spawn}", pct.call(Bal.v("enemy/spawn_dark_mult", 1.15))) \
-		.replace("{lamp_hit_10}", Sq._num(Bal.v("lamp/hit_scale", 30.0) * 0.1)).replace("{lamp_hit}", Sq._num(Bal.v("lamp/hit_base", 4.0)))
+	var pc100 := func(key: String, dflt: float) -> String: return str(int(round(Bal.v(key, dflt) * 100.0)))
+	var vals := {
+		"{hp_per_member}": str(int(round(Bal.v("squad/hp_per_member", 0.0) * 100.0))), "{regen_per_member}": Sq.regen_steps_text(),
+		"{dark_taken}": pct.call(Bal.v("lamp/dark_taken", 1.15)), "{dark_enemy}": pct.call(Bal.v("lamp/dark_enemy", 1.2)),
+		"{dark_spawn}": pct.call(Bal.v("enemy/spawn_dark_mult", 1.15)),
+		"{lamp_hit_10}": Sq._num(Bal.v("lamp/hit_scale", 30.0) * 0.1), "{lamp_hit}": Sq._num(Bal.v("lamp/hit_base", 4.0)),
+		"{beacon_need}": Sq._num(Bal.v("beacon/need", 2.5)), "{beacon_lamp}": Sq._num(Bal.v("beacon/lamp", 5.0)), "{beacon_block}": Sq._num(Bal.v("beacon/block_t", 30.0)),
+		"{elite_chest}": pc100.call("relic/elite_drop_chance", 0.3),
+		"{pack_p}": pc100.call("crate/pack_p", 0.9), "{pack_pct}": pc100.call("crate/pack_pct", 0.3), "{pack_below}": pc100.call("crate/pick_below", 0.9),
+		"{crate_magnet}": pc100.call("crate/magnet_p", 0.1), "{crate_shield}": pc100.call("crate/shield_p", 0.1),
+		"{cmd_stamina}": Sq._num(Bal.v("command/stamina_secs", 25.0)), "{cmd_min}": pc100.call("command/min_start", 0.3),
+		"{cmd_revive}": Sq._num(Bal.v("command/revive_secs", 25.0)), "{swap_cd}": Sq._num(Bal.v("leader_swap/cd", 2.0)),
+		"{ticket_run}": str(Roster.RUN_TICKETS), "{ticket_win}": str(Roster.WIN_BONUS), "{cost_random}": str(Roster.COST_RANDOM), "{cost_pick}": str(Roster.COST_PICK),
+		"{cells_per_ticket}": str(Roster.CELLS_PER_TICKET),
+		"{diff_hard}": str(D.DIFF_PRESETS[1].desc), "{diff_deep}": str(D.DIFF_PRESETS[2].desc),
+		"{factor_hard}": Sq._num(float(D.DIFF_PRESETS[1].factor)), "{factor_deep}": Sq._num(float(D.DIFF_PRESETS[2].factor)),
+	}
+	for k in vals:
+		ln = ln.replace(k, vals[k])
+	return ln

@@ -75,10 +75,17 @@ func _verify():
                 failures.append("internal_save_missing")
             elif int(saved.get_value("progress", "diff_unlocked", 0)) != 0 or not saved.get_value("progress", "seen_relics", []).is_empty() or not saved.get_value("progress", "endings_cleared", []).is_empty() or not saved.get_value("progress", "gallery_seen", []).is_empty():
                 failures.append("unlock_written_to_save")
-            # 对内包名册（用户 10-22 要测寻访）：新存档只有开局 5 人，首次启动发 INTERNAL_TICKETS 张寻访凭证并写进存档
+            # 对内包名册（用户 10-22 要测寻访，10-24 改开局 10 人）：新存档只有开局 5 人 + INTERNAL_START 5 人，首次启动发 INTERNAL_TICKETS 张寻访凭证并写进存档
             var roster = load("res://scripts/core/roster.gd")
-            if cfg.roster_all_open() or not roster.active() or roster.locked_ids().size() != roster.all_ids().size() - roster.STARTERS.size():
-                failures.append("internal_roster_start5")
+            var start_n: int = roster.STARTERS.size() + roster.INTERNAL_START.size()
+            if cfg.roster_all_open() or not roster.active() or start_n != 10 or roster.locked_ids().size() != roster.all_ids().size() - start_n:
+                failures.append("internal_roster_start10")
+            var saved_ops = saved.get_value("roster", "unlocked", [])
+            for cid in roster.INTERNAL_START:
+                if not roster.is_unlocked(cid) or roster.STARTERS.has(cid):
+                    failures.append("internal_roster_member:" + str(cid))
+                elif not saved_ops.has(cid):
+                    failures.append("internal_roster_saved:" + str(cid))
             if roster.tickets() != cfg.INTERNAL_TICKETS or not cfg.roster_int_grant:
                 failures.append("internal_roster_tickets:" + str(roster.tickets()))
             elif saved.load("user://settings.cfg") != OK or int(saved.get_value("roster", "tickets", {}).get("hunt", 0)) != cfg.INTERNAL_TICKETS or not bool(saved.get_value("roster", "int_grant", false)):
@@ -92,7 +99,9 @@ func _verify():
             failures.append("runs_log_audience")
     # 对内包存档目录与对外包隔离（docs/33 §双版本）
     var user_dir = str(ProjectSettings.get_setting("application/config/custom_user_dir_name", ""))
-    if user_dir != ("ArknightsSurvivors_Internal" if audience == "internal" else "ArknightsSurvivors"):
+    # 对内包存档目录带提交号（每个新包从干净存档开始，用户 10-24）：ArknightsSurvivors_Internal_<build.json 的 commit>
+    var want_dir = "ArknightsSurvivors_Internal_" + str(info.get("commit", "?")) if audience == "internal" else "ArknightsSurvivors"
+    if user_dir != want_dir:
         failures.append("user_dir_isolation:" + user_dir)
     # 图鉴：对内包全部解锁（干员页也全可看，名册虽按开局 5 人）；对外包新存档其余页全锁，干员页按名册（docs/109 §12：开局 5 人解锁、其余锁定，博士不锁）
     if cfg != null:
@@ -177,31 +186,30 @@ def isolated_run(arguments,timeout,seed=None,inspect=None):
                 if value is None: os.environ.pop(name,None)
                 else: os.environ[name]=value
 
-# 对内包存档一次性迁移（settings.gd _migrate_internal_save，docs/33 §双版本）：在隔离的 APPDATA 里放一份「旧目录存档」启动打包游戏，
-# 对内包应复制到 _Internal（旧的原样保留）、_Internal 已有存档时不覆盖；对外包不建 _Internal 目录。
+# 对内包不继承存档（10-24，取代原「一次性迁移」）：在隔离的 APPDATA 里放一份旧存档（开发目录 ArknightsSurvivors）启动打包游戏，
+# 对内包只在自己的 _Internal_<commit> 目录里建全新存档，旧的原样保留、内容不得混进来；对外包不建任何 _Internal* 目录。
 LEGACY_SAVE='[progress]\n\ndiff_ver=2\nendings_cleared=["migrate_probe"]\n\n[video]\n\nquality="low"\n'
 KEEP_SAVE='[progress]\n\ndiff_ver=2\nendings_cleared=["keep_probe"]\n\n[video]\n\nquality="low"\n'
 
-def check_migration(exe,audience):
+def check_migration(exe,audience,commit):
     def read(appdata,relative):
         path=appdata/relative
         return path.read_text(encoding='utf-8') if path.is_file() else None
+    def inspect(appdata):
+        dirs=sorted(p.name for p in appdata.iterdir() if p.name.startswith('ArknightsSurvivors_Internal')) if appdata.is_dir() else []
+        return {'legacy':read(appdata,'ArknightsSurvivors/settings.cfg'),'old_internal':read(appdata,'ArknightsSurvivors_Internal_oldsha/settings.cfg'),
+                'own':read(appdata,'ArknightsSurvivors_Internal_'+commit+'/settings.cfg'),'internal_dirs':dirs}
     boot=[str(exe),'--headless','--audio-driver','Dummy','--quit-after','30','--','--pack-smoke']
-    out,err,timeout,first=isolated_run(boot,120,{'ArknightsSurvivors/settings.cfg':LEGACY_SAVE},
-        lambda a:{'legacy':read(a,'ArknightsSurvivors/settings.cfg'),'internal':read(a,'ArknightsSurvivors_Internal/settings.cfg'),'internal_dir':(a/'ArknightsSurvivors_Internal').exists()})
+    out,err,timeout,first=isolated_run(boot,120,{'ArknightsSurvivors/settings.cfg':LEGACY_SAVE,'ArknightsSurvivors_Internal_oldsha/settings.cfg':KEEP_SAVE},inspect)
     if timeout: raise RuntimeError('Migration boot timed out')
     failures=[]
+    if first['legacy']!=LEGACY_SAVE: failures.append('legacy_changed')
+    if first['old_internal']!=KEEP_SAVE: failures.append('old_internal_changed')
     if audience=='internal':
-        if first['legacy']!=LEGACY_SAVE: failures.append('migration_legacy_changed')
-        if not first['internal'] or 'migrate_probe' not in first['internal']: failures.append('migration_not_copied')
-        if '对内包存档迁移' not in out+err: failures.append('migration_not_logged')
-        out,err,timeout,second=isolated_run(boot,120,{'ArknightsSurvivors/settings.cfg':LEGACY_SAVE,'ArknightsSurvivors_Internal/settings.cfg':KEEP_SAVE},
-            lambda a:{'legacy':read(a,'ArknightsSurvivors/settings.cfg'),'internal':read(a,'ArknightsSurvivors_Internal/settings.cfg')})
-        if timeout: raise RuntimeError('Migration boot timed out')
-        if not second['internal'] or 'keep_probe' not in second['internal'] or 'migrate_probe' in second['internal']: failures.append('migration_overwrote_existing')
-        if second['legacy']!=LEGACY_SAVE: failures.append('migration_legacy_changed_2')
+        if first['own'] and ('migrate_probe' in first['own'] or 'keep_probe' in first['own']): failures.append('save_inherited')
+        if [d for d in first['internal_dirs'] if d not in ('ArknightsSurvivors_Internal_oldsha','ArknightsSurvivors_Internal_'+commit)]: failures.append('unexpected_internal_dir')
     else:
-        if first['internal_dir']: failures.append('public_created_internal_dir')
+        if first['internal_dirs']!=['ArknightsSurvivors_Internal_oldsha']: failures.append('public_created_internal_dir')
     return failures
 
 def main():
@@ -254,7 +262,7 @@ def main():
     result['packaged_game_boot']=True
     result['boot_shutdown_warning']='2 resources still in use at exit' in out+err
     result['boot_log']=str(log)
-    migration=check_migration(exe,manifest['audience'])
+    migration=check_migration(exe,manifest['audience'],manifest['commit'])
     if migration: raise RuntimeError('Save migration check failed: '+', '.join(migration))
     result['save_migration_checked']=True
     with tempfile.TemporaryDirectory(prefix='ordinary_probe_',dir=ROOT/'build') as directory:
