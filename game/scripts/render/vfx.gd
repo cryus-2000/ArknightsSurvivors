@@ -779,7 +779,8 @@ const DISSOLVE_TINT := Color(1.0, 0.72, 1.05)
 
 ## ground=true：地面层帧条（kind "gsprite"，world._draw_ground_sprites 在溟痕之后、预警之前画；敌方落点溅射 / 囊液残留，docs/96）；
 ## anchor_px：帧内原点（1x 美术像素，按贴图密度换算；manifest 的 origin_1x），缺省帧中心
-func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE, ground := false, anchor_px := Vector2(-1, -1)) -> bool:
+## delay：晚这么多秒才开始播（期间不画、不补光学火星；维什戴尔大爆炸的连环外圈，docs/137 §8）
+func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE, ground := false, anchor_px := Vector2(-1, -1), delay := 0.0) -> bool:
 	if _fxc != null:
 		_fx_census(name, ground)
 	if g.tex.get(name) == null:
@@ -793,13 +794,15 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 	var dur: float = spec[0] / spec[1]
 	if _fxc != null:
 		_fx_census("SC|%s|%.3f" % [name, scale / A.hires_of(g.tex[name])], ground)   # 每个贴图像素占几个世界像素（÷2 = 低分辨率层格数）
-	var f := {"kind": "gsprite" if ground else "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur, "max": dur, "flip": flip, "col": col}
+	var f := {"kind": "gsprite" if ground else "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur + delay, "max": dur + delay, "flip": flip, "col": col}
+	if delay > 0.0:
+		f["delay"] = delay
 	if bottom:
 		var tx: Texture2D = g.tex[name]
 		f["anchor"] = Vector2(tx.get_width() / spec[0] / 2.0, tx.get_height() - 1.0)
 	elif anchor_px.x >= 0.0:
 		f["anchor"] = anchor_px * A.hires_of(g.tex[name])
-	if not ground and g.optical_on and g.optical != null and g.optical.grains != null:
+	if not ground and delay <= 0.0 and g.optical_on and g.optical != null and g.optical.grains != null:
 		var texture: Texture2D = g.tex[name]
 		var origin: Vector2 = f.get("anchor", Vector2(texture.get_width() / spec[0], texture.get_height()) / 2.0)
 		if g.optical.grains.material_burst(name, texture, int(spec[0]), pos, ang, scale / A.hires_of(texture), origin, flip, col):
@@ -819,7 +822,7 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 			g.fx.append(f)
 			return true
 	g.fx.append(f)
-	if g.optical_on and g.optical.fx1 and not ground and g.optical.particles != null and not name.ends_with("_death"):   # 死亡帧条不喷（docs/130 C1：击杀吃掉技能火星的限频）
+	if g.optical_on and g.optical.fx1 and not ground and delay <= 0.0 and g.optical.particles != null and not name.ends_with("_death"):   # 死亡帧条不喷（docs/130 C1：击杀吃掉技能火星的限频）
 		g.optical.particles.fx_burst(name, pos, scale)   # 光学观感 ③：按这条帧条的本色补火星 / 碎片（限频、有上限）
 	return true
 
