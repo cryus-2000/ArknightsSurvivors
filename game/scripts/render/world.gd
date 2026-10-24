@@ -2592,7 +2592,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		frames = va.frames
 		frame = va.frame
 	# 重画受击姿态（10-23 *_wound，1 帧）：受击闪白那几帧，待机 / 移动 / 攻击 / 专用动作都换它（白剪影同姿态）；死亡、伪装等不换。
-	# Boss 不换（docs/137）：密集命中时剪影在当前动作和单帧受击姿态之间来回跳，是频闪的第二来源
+	# Boss 不换（docs/137）：白剪影跟当前动作走，密集命中时不在当前动作和单帧受击姿态之间来回跳
 	if e.flash > 0.0 and not e.boss and not e.chest and (name == e.tex or name == e.tex + "_move" or name.ends_with("_attack") or name == tbase or name == "e_paranoia2" or name.begins_with("e_knight")):
 		var wb: String = "e_paranoia_phase2" if name == "e_paranoia2" else (tbase if tbase != e.tex else e.tex)
 		if name.begins_with("e_knight_walk"):
