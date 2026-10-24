@@ -1461,7 +1461,7 @@ func _ext_exec(b: Dictionary, at: Vector2) -> void:
 
 
 ## verb.taunt_guard 每帧：技能还在 → 半径内近战杂兵（非 Boss / 宝箱）本帧改追本干员（同召唤物诱饵的 e.aggro，每帧重标），记下拉到过的敌人；
-## 技能结束 → on_end，伤害形状倍率 + per × 拉到的敌人数（不设上限，半径与窗口长度就是软限制）
+## 技能结束 → on_end，伤害形状倍率 + per × min(拉到的敌人数, cap)（cap 缺省不限；10-24 协调人定星熊设上限）
 func _taunt_tick() -> void:
 	var b: Dictionary = taunt.b
 	if skill_on(int(taunt.i)):
@@ -1476,12 +1476,13 @@ func _taunt_tick() -> void:
 	var n: int = taunt.ids.size()
 	taunt = {}
 	var per: float = float(b.get("per", 0.0))
+	var nk: int = mini(n, int(b.cap)) if b.has("cap") else n
 	var lst: Array = []
 	for x in b.get("on_end", []):
 		var y: Dictionary = x
 		if per > 0.0 and y.has("mult") and str(y.get("_tag", "")).begins_with("shape."):
 			y = y.duplicate()
-			y.mult = float(y.mult) + per * n
+			y.mult = float(y.mult) + per * nk
 		lst.append(y)
 	if n > 0:
 		float_text(pos + Vector2(0, -96), "反击 ×%d" % n, Color(1.0, 0.85, 0.4), 14)
