@@ -121,5 +121,5 @@ python -X utf8 tools/op_1x/native_extra.py --only hoshiguma,saria               
 - **新帧条**：`op_saria_skill_s3_attack`、`op_saria_move_skill_s3_attack`。json 里时序抄普攻的 `attack_timing`，序列加 `"attack": "skill_s3_attack"`。
 - **代码**：`character._move_swap` 允许技能循环里的普攻变体（`sq_atk`）在移动中换跑动版；`_sq_atk_yield` 在变体有跑动版时不让位。
 - **结果**：录像（`build/anim_move/v2/saria_2.gif`，技能期间照常普攻、走停来回）里循环段的出拳 205 帧，其中移动中 112 帧换成跑动拳击；不出拳时站着播循环、移动播空手跑。
-- **局限**：塞雷娅的手臂大半被白色毛领遮住，出拳在 1 倍下只有约 6 px 的前伸，能看出来但不夸张。要更明显，可以在 spine 编辑器里再加大胸部前倾和后摆。
+- **第二版（用户「看不太出来双手，能不能手往前伸」）**：改成双拳前推。后臂转约 -140° 到身前；出拳几帧把双臂提到白毛领上层画，上臂 / 前臂拉长 1.3 倍、拳头放大 1.4 倍（像素画的夸张手法），1 倍下双手前伸约 14 px。实机里技能晶柱特效较密，站在队长身前的博士也会挡一部分。
 

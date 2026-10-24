@@ -37,10 +37,26 @@ def hoshiguma():
     return ["op_hoshiguma_s1_guard_move"]
 
 
-# 塞雷娅 S3 空手拳击（10-24 用户「技能期间改成跑动拳击」）：原生 Skill_Loop t=0 的空手站姿上逐帧转左臂（面朝右时在前的那只）。
-# 帧数 / 出手帧与普攻条相同（8 帧，第 4 帧出手），时序由 json 抄普攻的 attack_timing。[上臂, 前臂, 胸] 转角增量（度，负 = 向前下）
-PUNCH = [(0, 0, 0), (20, 45, 4), (28, 70, 6), (-42, -18, -8), (-40, -15, -6), (-20, 15, -2), (0, 30, 0), (5, 15, 0)]
+# 塞雷娅 S3 空手拳击（10-24 用户「技能期间改成跑动拳击」→「看不太出来双手，能不能手往前伸」）：原生 Skill_Loop t=0 的空手站姿上
+# 逐帧转双臂（左臂在前；右臂在身后，转约 -140° 才到身前）。手臂大半被白毛领挡住，出拳几帧把双臂提到毛领上层画（top），
+# 上臂 / 前臂沿骨长方向拉长、拳头放大（像素画的夸张手法），1 倍下才看得出双手前推。
+# 帧数 / 出手帧与普攻条相同（8 帧，第 4 帧出手），时序由 json 抄普攻的 attack_timing。
+# 每帧：(左上臂, 左前臂, 右上臂, 胸, 手臂拉长, 拳头放大, 提到上层) ；角度为转角增量（度）
+PUNCH = [(0, 0, 0, 0, 1.0, 1.0, False), (20, 45, 20, 4, 1.0, 1.0, False), (28, 70, 35, 6, 1.0, 1.0, True),
+         (-35, -5, -140, -10, 1.3, 1.4, True), (-33, -5, -135, -9, 1.25, 1.35, True), (-15, 15, -70, -4, 1.1, 1.15, True),
+         (0, 25, -20, 0, 1.0, 1.0, True), (5, 10, 0, 0, 1.0, 1.0, False)]
 SARIA_HIDE = ["F_Shield", "F_Weapon", "F_Pinhead"]   # 盾 / 武器已放下
+SARIA_ARMS = ["F_R_Arm", "F_R_Shoulder", "F_R_Hand_C", "F_R_Hand_B", "F_R_Hand",
+              "F_L_Arm", "F_L_Shoulder", "F_L_Wrap", "F_L_Ring", "F_L_Hand_C", "F_L_Hand_B", "F_L_Hand", "F_L_Finger", "F_L_Finger_2"]
+
+
+def punch_poses():
+    out = []
+    for la, lf, ra, ch, k, h, top in PUNCH:
+        sc = {} if k == 1.0 else {"F_L_Arm": [k, 1], "F_L_Shoulder": [k, 1], "F_L_Hand": [h], "F_R_Arm": [k, 1], "F_R_Shoulder": [k, 1], "F_R_Hand": [h]}
+        out.append({"anim": "Skill_Loop", "t": 0, "rot": {"F_L_Arm": la, "F_L_Shoulder": lf, "F_R_Arm": ra, "F_Chest": ch},
+                    "scale": sc, "top": SARIA_ARMS if top else [], "hide": SARIA_HIDE})
+    return out
 
 
 def render_poses(op, base_cfg, name, poses, mode=None):
@@ -65,7 +81,7 @@ def saria():
     dl, _ = render("saria", "idle_stand.json", "s3_loop_raw", "Skill_Loop", loop)
     de, _ = render("saria", "idle_stand.json", "s3_end_raw", "Skill_End", end)
     dr, _ = render("saria", "attack_move.json", "s3_run", "Skill_Loop", loop, "move_attack")
-    poses = [{"anim": "Skill_Loop", "t": 0, "rot": {"F_L_Arm": a, "F_L_Shoulder": f, "F_Chest": c, "F_R_Arm": 12 if a < 0 else 0}, "hide": SARIA_HIDE} for a, f, c in PUNCH]
+    poses = punch_poses()
     dp, _ = render_poses("saria", "attack_move.json", "s3_punch", poses)
     dm, _ = render_poses("saria", "attack_move.json", "s3_punch_move", poses, "move_attack")
     foot = [31.75, 59.57669522183914]
