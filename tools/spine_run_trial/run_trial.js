@@ -197,7 +197,7 @@ async function main() {
     rotate(sk, hip, -f * P.lean); }
     // carry：不挂在身体骨链上、但该跟着身体走的部件（维什戴尔四件浮游武器挂在 Front 下）——随起伏 / 前倾绕髋转，
     // 再按配置抬起 / 后收 / 转角，[dx, dy, 度] 像素单位（@2x），带一点滞后摆动
-    for (const [n, off] of Object.entries(MA ? {} : (cfg.carry || {}))) {
+    for (const [n, off] of Object.entries(MA ? (cfg.maCarry || {}) : (cfg.carry || {}))) {   // maCarry：移动攻击 / 技能跑动里也带着浮游部件走（维什戴尔 S2 跑动，武器别挡腿）
       const b = get(sk, n); move(sk, b, 0, BOB[i % 8] * L * P.bob - (P.crouch || 0) * L); rotate(sk, b, -f * P.lean * (P.carryLean ?? 1), [hip.worldX, hip.worldY]);
       move(sk, b, f * (off[0] || 0) / SCALE, (off[1] || 0) / SCALE + (off[3] || 1.5) / SCALE * Math.sin(2 * phi - 1.2));
       if (off[2]) rotate(sk, b, f * off[2]);
