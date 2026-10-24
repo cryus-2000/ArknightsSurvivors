@@ -42,6 +42,11 @@ static func draw(o, p: Vector2, direction: Vector2, size: float, age: float, spi
 			o.cv.draw_line(_snap(xf * crack[i]), _snap(xf * crack[i + 1]), Color(1.0, 0.72, 0.28, dim), 2.0)
 
 static func impact(o, p: Vector2, radius: float, size: float) -> void:
+	if material_on(o) and BalM.v("fx/eyja_grains", 0.0) > 0.0:   # 落点岩屑（docs/138 §14）：带重力的熔岩碎块颗粒 + 短灯
+		var gr = o.g.optical.grains
+		for k in 10:
+			gr.push("lava", p + Vector2(0, -4), Vector2.from_angle(-PI * 0.5 + (float(k) / 9.0 - 0.5) * 2.4), HOT)
+		gr.light(p, clampf(radius, 30.0, 70.0), HOT, 0.12)
 	if material_on(o) and o._fx_tex("fx_eyja_lava_splash") != null:
 		o.spawn_fx_sprite("fx_eyja_lava_splash", p + Vector2(0, -4), o.g.PX * 0.6 * sqrt(size))
 	o.fx({"kind": "lava_spot", "mass": true, "pos": p, "r": clampf(radius * 0.42, 14.0, 32.0) * sqrt(size), "life": 0.4, "floor": true})

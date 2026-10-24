@@ -76,12 +76,12 @@ static func hw_shell_fire(o, b: Dictionary, is_atk: bool) -> void:
 	if b.has("lob") and cond_true(o, b.lob.get("cond", _ED)):   # 精英化第 2 批段：低弧抛射三角落点 + 熔池（取代直线弹与后续弹）
 		hw_lob_volley(o, b, hw_tip(o, b), ts[0].pos, pre, aoe, oe)
 		if b.has("fire_fx"):
-			fx_play(o, b.fire_fx, hw_tip(o, b), 10.0)
+			_eg_fx(o, b.fire_fx, hw_tip(o, b), 10.0)
 		return
 	_hw_cast(o, b, hw_tip(o, b), ts[0].pos, pre, aoe, 1.0, oe, not is_atk)
 	var tip: Vector2 = hw_tip(o, b)   # 发射时可能转了身：后续弹与出手光按转身后的出手点（同手写）
 	if b.has("fire_fx"):
-		fx_play(o, b.fire_fx, tip, 10.0)
+		_eg_fx(o, b.fire_fx, tip, 10.0)
 	for f in b.get("follow", _EA):
 		if not cond_true(o, f.get("cond", _ED)):
 			continue
@@ -202,6 +202,14 @@ static func hw_lob(o, b: Dictionary, at: Vector2) -> void:
 ## 熔岩块喷起的原点（10-14 用户「火山喷发的感觉」，纯画面，g.vrng）：白热闪光 + 一束向上猛喷的火星 + 几缕黑烟
 static func _hw_lob_burst(o, at: Vector2, sz: float) -> void:
 	var g = o.g
+	var gr = _eg(o)
+	if gr != null:   # 颗粒版（docs/138 §14）：白热软圆 → 短灯；火星 → 带重力落地的颗粒；黑烟 → 上飘冷却成灰的火星；喷口形状保留
+		gr.light(at + Vector2(0, -6), 52.0 * sz, MagmaProjectile.HOT, 0.14)
+		o.fx({"kind": "lava_spout", "pos": at, "r": 9.0 * sz, "h": 54.0 * sz, "life": 0.22})
+		gr.spark(at + Vector2(0, -4), at.y + 2.0, HW_ORANGE, 7)
+		for k in 5:
+			gr.push("fire", at + Vector2(g.vrng.randf_range(-6, 6), -8), Vector2.UP, Color(1.0, 0.6, 0.3))
+		return
 	o.fx({"kind": "glow", "pos": at + Vector2(0, -6), "r": 16.0 * sz, "life": 0.14, "col": Color(2.4, 1.4, 0.5), "alpha": 0.85})
 	o.fx({"kind": "lava_spout", "pos": at, "r": 9.0 * sz, "h": 54.0 * sz, "life": 0.22})
 	for k in 7:
@@ -330,7 +338,11 @@ static func _hw2_tick(o, dt: float) -> bool:
 			if bu.e.dead:
 				bu.t = 0.0
 				continue
-			if bu.ft <= 0.0:   # 火舌（画面）
+			if bu.ft <= 0.0 and _eg(o) != null:   # 灼烧颗粒版（docs/138 §14）：敌人身上往上飘的火星，最后 0.6 秒变稀
+				bu.ft = 0.14
+				for k in (2 if bu.t > 0.6 else 1):
+					_eg(o).push("fire", bu.e.pos + Vector2(g.vrng.randf_range(-bu.e.r * 0.5, bu.e.r * 0.5), -bu.e.r * 0.4), Vector2.UP, HW_ORANGE)
+			elif bu.ft <= 0.0:   # 火舌（画面）
 				bu.ft = 0.14
 				o.fx({"kind": "flame", "pos": bu.e.pos + Vector2(g.vrng.randf_range(-bu.e.r * 0.5, bu.e.r * 0.5), -bu.e.r * 0.4), "vel": Vector2(0, -20), "life": 0.3, "col": HW_ORANGE, "sz": 9.0})
 			var ev: float = float(s.get("every", 0.5))
@@ -405,6 +417,11 @@ static func _hw2_tick(o, dt: float) -> bool:
 		h.shells = h.shells.filter(func(q): return q.t > 0.0)
 	if not h.erupts.is_empty():
 		for p in h.erupts:
+			if p.has("shot") and _eg(o) != null:   # S3 喷发弹补熔岩拖尾（docs/138 §14）
+				var kk: float = clampf(1.0 - float(p.t) / float(p.shot.dur), 0.0, 1.0)
+				var sp0: Vector2 = MagmaProjectile.position_at(p.shot.from, p.pos, kk, float(p.shot.get("apex", 24.0)))
+				var sp1: Vector2 = MagmaProjectile.position_at(p.shot.from, p.pos, minf(1.0, kk + 0.04), float(p.shot.get("apex", 24.0)))
+				MagmaProjectile.material_trail(o, p, sp0, sp1 - sp0, dt, false)
 			p.t -= dt
 			if p.t <= 0.0:
 				o._exec_list(p.do, p.pos)
@@ -447,7 +464,7 @@ static func _hw2_tick(o, dt: float) -> bool:
 			h.erupts.append(event)
 			o._exec_list(sp.get("launch", []), at)
 			if sp.has("fx"):
-				fx_play(o, sp.fx, at, 40.0, [], at.x * 0.02)
+				_eg_fx(o, sp.fx, at, 40.0, at.x * 0.02)
 		return true
 	return false
 
@@ -502,7 +519,7 @@ static func hw_instant(o, i: int) -> bool:
 	if dv is Dictionary and dv.has("next_attacks"):
 		o.load_skill_attacks(i, int(dv.next_attacks))
 	if sb.has("fx"):
-		fx_play(o, sb.fx, o.pos, 30.0)
+		_eg_fx(o, sb.fx, o.pos, 30.0)
 	o.effect_skill = i
 	o._exec_list(sb.get("do", []))
 	o.effect_skill = -1
@@ -628,11 +645,22 @@ static func hw_draw_pools(o) -> void:
 
 ## 喷发期间脚下热浪环（draw_auras）
 static func hw_draw_pulse_ring(o) -> void:
-	if not o.hw.has("pulse") or o.hw.pulse.is_empty() or o.pos == Vector2.INF:
+	if o.pos == Vector2.INF:
 		return
 	var g = o.g
+	var on: bool = o.hw.has("pulse") and not o.hw.pulse.is_empty()
+	var ra := 1.0
+	if _eg(o) != null:   # 颗粒版（docs/138 §14）：0.15 秒淡入淡出，不再随喷发开始 / 结束瞬间出现消失
+		var dtr: float = clampf(g.t - float(o.hw.get("ring_t", g.t)), 0.0, 0.1)
+		o.hw["ring_t"] = g.t
+		ra = move_toward(float(o.hw.get("ring_a", 0.0)), 1.0 if on else 0.0, dtr / 0.15)
+		o.hw["ring_a"] = ra
+		if ra <= 0.0:
+			return
+	elif not on:
+		return
 	o.cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-	o.cv.draw_arc(Vector2.ZERO, 56.0 + 6.0 * sin(g.t * 6.0), 0.0, TAU, 32, Color(HW_ORANGE.r, HW_ORANGE.g, HW_ORANGE.b, 0.35), 2.0)
+	o.cv.draw_arc(Vector2.ZERO, 56.0 + 6.0 * sin(g.t * 6.0), 0.0, TAU, 32, Color(HW_ORANGE.r, HW_ORANGE.g, HW_ORANGE.b, 0.35 * ra), 2.0)
 	o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
@@ -981,3 +1009,31 @@ static func _s2v2_tick(o, bl: Dictionary, dt: float) -> void:
 		for i in 16:
 			gr.push("fire", bl.pos, Vector2.from_angle(float(i) * TAU / 16.0), MagmaProjectile.HOT)
 		gr.light(bl.pos, 48.0, MagmaProjectile.HOT, 0.1)
+
+
+
+## 艾雅其余特效颗粒化（10-24 用户「艾雅法拉的所有特效也需要粒子画一下」，docs/138 §14，开关 fx/eyja_grains）：颗粒池可用时返回它，否则 null（照原画法）
+static func _eg(o):
+	return o.g.optical.grains if MagmaProjectile.material_on(o) and BalE.v("fx/eyja_grains", 0.0) > 0.0 else null
+
+
+## fx 列表里的白色软圆光（pfx kind glow，HDR 核心）换成一小圈火星 + 一盏短灯，其余条目照原样播
+static func _eg_fx(o, list: Array, at: Vector2, r: float, ang := 0.0) -> void:
+	var gr = _eg(o)
+	if gr == null:
+		fx_play(o, list, at, r, [], ang)
+		return
+	var rest: Array = []
+	for e in list:
+		if e is Dictionary and e.get("pfx", {}) is Dictionary and str(e.get("pfx", {}).get("kind", "")) == "glow":
+			var gr_r: float = float(e.pfx.get("r", 12.0))
+			var n: int = clampi(int(gr_r * 0.5), 4, 12)
+			var c: Color = _mf_col(e.pfx.get("col", []), MagmaProjectile.HOT)
+			var p: Vector2 = at + (Vector2(float(e.pfx.off[0]), float(e.pfx.off[1])) if e.pfx.get("off", null) is Array else Vector2.ZERO)
+			for k in n:
+				gr.push("fire", p, Vector2.from_angle(float(k) * TAU / float(n)), c)
+			gr.light(p, gr_r * 3.5, c, float(e.pfx.get("life", 0.15)))
+		else:
+			rest.append(e)
+	if not rest.is_empty():
+		fx_play(o, rest, at, r, [], ang)
