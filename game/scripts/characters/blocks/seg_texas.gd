@@ -177,9 +177,14 @@ static func tx_dash_start(o, b: Dictionary, dmg: float) -> Array:
 	return []
 
 
-## 敌群最密处：半径 rr 内最近的 24 个敌人里，80 像素内邻居最多的那个（并列取近的）；没有敌人返回 INF
+## 敌群最密处：半径 rr 内最近的 24 个敌人里，80 像素内邻居最多的那个（并列取近的）；没有敌人返回 INF。
+## 队友在「清杂优先」（docs/114 §13）下只数杂兵（非 Boss / 精英 / 部件），没有杂兵时照旧数全部
 static func _tx_densest(o, rr: float) -> Vector2:
 	var cand: Array = o.g.enemies_sys.nearest(24, rr, o.pos)
+	if o.prio_mode() == 1:
+		var mobs: Array = cand.filter(func(e): return o.prio_rank(e, 1) == 0)
+		if not mobs.is_empty():
+			cand = mobs
 	var best := Vector2.INF
 	var bn := -1
 	for e in cand:

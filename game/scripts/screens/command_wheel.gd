@@ -1,6 +1,6 @@
 extends RefCounted
 ## 指挥圆盘（用户 10-24：「点击指挥模式出来一个类似于圆盘的指挥系统，玩家可以选择清杂优先或者 Boss 优先」，docs/114 §13）。
-## 按指挥键（键盘 F / 手柄 LB / 触屏「指挥」键）打开：上半圈是队形（随行 / 突击 / 归队），下半圈是索敌优先级（清杂优先 / 就近 / Boss 优先）。
+## 按指挥键（键盘 F / 手柄 LB / 触屏「指挥」键）打开：上半圈是队形（随行 / 突击 / 归队，各 60°），下半圈是索敌优先级（清杂优先 / Boss 优先，各 90°）。
 ## 打开时局内放慢（command/wheel_slow，缺省 0.2，不全停）。
 ## 操作：按住键（> 0.25 秒）→ 往目标方向移鼠标（相对按下时的位置）/ 推摇杆，松开确认，没选中松开 = 取消；
 ##       轻点一下（< 0.25 秒）→ 圆盘留着，鼠标 / 点按直接点选项，Enter / Ⓐ 确认悬停项，Esc / 再按一次指挥键 / 点空白处取消。
@@ -9,16 +9,16 @@ extends RefCounted
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 
-## 圆盘选项：id / 名 / 说明 / 颜色 / 分组（0 队形，1 优先级）。顺序 = 从左上起顺时针，角度见 ANG（度，0 = 向右，顺时针为正）
+## 圆盘选项：id / 名 / 说明 / 颜色。顺序 = 从左上起顺时针，中心角见 ANG、半宽见 HALF（度，0 = 向右，顺时针为正）
 const ITEMS := [
 	{"id": "guard", "name": "随行", "en": "ESCORT", "sub": "跟在队长身边", "col": Color(0.212, 0.886, 0.863)},
 	{"id": "roam", "name": "突击", "en": "ASSAULT", "sub": "离队索敌，限时行动", "col": Color(0.957, 0.753, 0.306)},
 	{"id": "recall", "name": "归队", "en": "REGROUP", "sub": "立即回到队长身边", "col": Color(0.184, 0.827, 0.627)},
 	{"id": "mob", "name": "清杂优先", "en": "SWARM", "sub": "优先杂兵，向密集处开火", "col": Color(1.0, 0.62, 0.3)},
-	{"id": "near", "name": "就近", "en": "NEAREST", "sub": "不指定，打最近的目标", "col": Color(0.72, 0.78, 0.86)},
-	{"id": "boss", "name": "Boss 优先", "en": "BOSS", "sub": "优先 Boss 与精英，没有则就近", "col": Color(1.0, 0.239, 0.545)},
+	{"id": "boss", "name": "Boss 优先", "en": "BOSS", "sub": "优先 Boss；小怪贴近队长时先护主", "col": Color(1.0, 0.239, 0.545)},
 ]
-const ANG := [-150.0, -90.0, -30.0, 30.0, 90.0, 150.0]
+const ANG := [-150.0, -90.0, -30.0, 45.0, 135.0]
+const HALF := [30.0, 30.0, 30.0, 45.0, 45.0]
 const TAP := 0.25          # 轻点 / 按住的分界（真实秒）
 const DEAD := 30.0         # 按住模式：鼠标 / 摇杆离起点多远才算选中（像素 / 摇杆 0.5 比例见 _pad_vec）
 const R_IN := 70.0
@@ -115,10 +115,8 @@ func is_current(i: int) -> bool:
 			return sq.stance == sq.RECALL
 		"mob":
 			return sq.priority == 1
-		"near":
-			return sq.priority == 0
 		"boss":
-			return sq.priority == 2
+			return sq.priority == 0
 	return false
 
 
@@ -128,10 +126,10 @@ func _pick(v: Vector2, dead: float) -> int:
 		return -1
 	var a: float = rad_to_deg(v.angle())
 	var best := -1
-	var bd := 31.0
+	var bd := INF
 	for i in ANG.size():
 		var d: float = absf(wrapf(a - float(ANG[i]) + 180.0, 0.0, 360.0) - 180.0)
-		if d < bd:
+		if d <= float(HALF[i]) + 1.0 and d < bd:
 			bd = d
 			best = i
 	return best
@@ -316,7 +314,7 @@ func _draw_ef(vs: Vector2, hov: int, out: float) -> void:
 			var q: Vector2 = c + Vector2(sx, sy) * bh
 			hud.draw_polyline(PackedVector2Array([q - Vector2(0, sy * bl), q, q - Vector2(sx * bl, 0)]), _ca(C_DIAL, 0.5 * e), 2.0)
 		hud.draw_line(Vector2(c.x, c.y + sx * (r_plate + 4.0 * k)), Vector2(c.x, c.y + sx * (bh - 4.0 * k)), _ca(C_DIAL, 0.3 * e), 1.0)
-	# 刻度环：从正上方顺时针画开（0.22 秒）；细刻度每 5° 一根、慢转（4°/秒），扇区分界（每 60°）长刻度不动
+	# 刻度环：从正上方顺时针画开（0.22 秒）；细刻度每 5° 一根、慢转（4°/秒），扇区分界（每块起始边）长刻度不动
 	var sweep: float = 1.0 if rm else _ease(clampf(t / 0.22, 0.0, 1.0))
 	var a_top := -PI / 2.0
 	hud.draw_arc(c, r_dial, a_top, a_top + TAU * sweep, 96, _ca(C_DIAL, 0.32 * e), 1.0)
@@ -331,10 +329,11 @@ func _draw_ef(vs: Vector2, hov: int, out: float) -> void:
 		fine.append(c + dv * (r_dial + 3.5 * k))
 	if not fine.is_empty():
 		hud.draw_multiline(fine, _ca(C_DIAL, 0.3 * e), 1.0)
-	for i in 6:
-		if fposmod(deg_to_rad(i * 60.0) - a_top, TAU) > TAU * sweep + 0.001:
+	for i in ANG.size():   # 扇区分界：每块的起始边
+		var ab: float = deg_to_rad(float(ANG[i]) - float(HALF[i]))
+		if fposmod(ab - a_top, TAU) > TAU * sweep + 0.001:
 			continue
-		var dv: Vector2 = Vector2.from_angle(deg_to_rad(i * 60.0))
+		var dv: Vector2 = Vector2.from_angle(ab)
 		hud.draw_line(c + dv * r_dial, c + dv * (r_dial + 9.0 * k), _ca(C_DIAL, 0.7 * e), 1.0)
 	# 斜纹带（终末地的 //////）：外沿与刻度环之间，慢慢往前走；悬停项那一段描蓝
 	var hatch := PackedVector2Array()
@@ -347,7 +346,7 @@ func _draw_ef(vs: Vector2, hov: int, out: float) -> void:
 		var ang: float = deg_to_rad(i * 3.0) + fposmod(drift, deg_to_rad(3.0))
 		var p0: Vector2 = c + Vector2.from_angle(ang) * ha
 		var p1: Vector2 = c + Vector2.from_angle(ang + deg_to_rad(1.6)) * hb
-		if hov >= 0 and absf(wrapf(ang - hov_a, -PI, PI)) < PI / 6.0 - deg_to_rad(GAP):
+		if hov >= 0 and absf(wrapf(ang - hov_a, -PI, PI)) < deg_to_rad(float(HALF[hov]) - GAP):
 			hatch_hi.append(p0)
 			hatch_hi.append(p1)
 		else:
@@ -378,8 +377,8 @@ func _draw_ef(vs: Vector2, hov: int, out: float) -> void:
 		var si: float = 1.0 if rm else _ease(clampf((t - 0.025 * i) / 0.14, 0.0, 1.0))
 		var ea: float = e * si
 		var cc: Vector2 = c + dirv * ((6.0 * k if sel else 0.0) - (1.0 - si) * 18.0 * k)
-		var a0: float = am - PI / 6.0 + gap
-		var a1: float = am + PI / 6.0 - gap
+		var a0: float = am - deg_to_rad(float(HALF[i])) + gap
+		var a1: float = am + deg_to_rad(float(HALF[i])) - gap
 		var poly: PackedVector2Array = _wedge(cc, r_in, r_out, a0, a1, ch)
 		var sh := PackedVector2Array()
 		for v in poly:

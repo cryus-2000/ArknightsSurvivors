@@ -1462,7 +1462,7 @@ var cmd_down_age := 0.0
 var cmd_inv := 0.0
 var cmd_show := 0.0
 
-## 只在队长活动圈里选目标；移动选敌不沿用攻击侧的 Boss 强制优先。
+## 只在队长活动圈里选目标；按指挥优先级挑（op_api.prio_order，与攻击选敌同一套口径：Boss 优先 / 清杂优先）。
 func roam_target(slot_pos: Vector2) -> Vector2:
 	var radius: float = CmdBal.v("command/roam_r", 380.0)
 	var ld: Vector2 = g.squad.lead_dir
@@ -1472,8 +1472,8 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 	var urgent = null
 	var score := INF
 	var urgent_d := guard
-	var prio: int = g.squad.priority   # 指挥圆盘的索敌优先级（docs/114 §13）：1 清杂优先 / 2 Boss 优先；0 = 原逻辑
-	var cands: Array = []   # [候选, 原得分]：优先级 ≠ 0 时再按优先级重排
+	var prio: int = prio_mode()   # 指挥圆盘的索敌优先级（docs/114 §13）：0 Boss 优先 / 1 清杂优先
+	var cands: Array = []   # [候选, 原得分]：再按优先级重排
 	for j in query_ids(g.ppos, radius):
 		var en: Dictionary = g.enemies[j]
 		if en.dead or en.pos.distance_to(g.ppos) > radius or (is_same(en, _cmd_failed) and g.t < _cmd_retry_at):
@@ -1485,17 +1485,25 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 		var d: float = en.pos.distance_to(rear)
 		if cls == "重装":
 			d += leader_d   # 重装优先近身威胁，但同样必须进入自己的攻击距离。
-		if prio != 0:
-			cands.append([en, d])
+		cands.append([en, d])
 		if d < score:
 			score = d
 			best = en
-	if prio != 0 and not cands.is_empty():
-		best = _cmd_prio_pick(cands, prio, best)
+	if not cands.is_empty():
+		if prio == 1:
+			cands.sort_custom(func(a, b): return a[1] < b[1] or (a[1] == b[1] and int(a[0].id) < int(b[0].id)))
+		else:
+			for k in cands.size():   # Boss 优先只看第一个与最小得分的 Boss，不必整表排序：把得分最小的换到最前
+				if is_same(cands[k][0], best):
+					var t0 = cands[0]
+					cands[0] = cands[k]
+					cands[k] = t0
+					break
+		best = prio_order(cands, prio)[0]
 	var e = roam_tgt
 	if e == null or e.dead or e.pos.distance_to(g.ppos) > radius or (is_same(e, _cmd_failed) and g.t < _cmd_retry_at):
 		e = best
-	elif prio != 0 and best != null and not is_same(e, best) and _cmd_prio_rank(e, prio) > _cmd_prio_rank(best, prio):
+	elif best != null and not is_same(e, best) and prio_rank(e, prio) > prio_rank(best, prio):
 		e = best   # 换了优先级：当前目标不符合、而圈里有符合的，就换过去（不然要等当前目标死了才换）
 	if urgent != null and (e == null or e.pos.distance_to(g.ppos) > guard + GUARD_MARGIN):
 		e = urgent
@@ -1537,41 +1545,6 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 			toward = Vector2(-face, 0)
 		p = e.pos + toward.normalized() * reach
 	return g.ppos + (p - g.ppos).limit_length(radius)
-
-
-## 指挥圆盘优先级的目标档位：0 = 偏好的（Boss 优先时是 Boss / 精英 / 部件，清杂优先时是杂兵），1 = 其余
-func _cmd_prio_rank(en: Dictionary, prio: int) -> int:
-	var big: bool = en.boss or en.elite or en.get("part", false)
-	return 0 if (big if prio == 2 else not big) else 1
-
-
-## 在候选里按优先级挑一个：偏好档位里取原得分最小的（Boss 优先 / 清杂都先看档位）；清杂优先再让周围 90 像素内同类多的加分（密集处，最多 6 个，每个抵 30 像素）；
-## 偏好档位里一只都没有就沿用原来的最优（fallback）。不抽随机数
-func _cmd_prio_pick(cands: Array, prio: int, fallback):
-	var pick = null
-	var best_s := INF
-	var pref: Array = []
-	for c in cands:
-		if _cmd_prio_rank(c[0], prio) == 0:
-			pref.append(c)
-	if pref.is_empty():
-		return fallback
-	pref.sort_custom(func(a, b): return a[1] < b[1])
-	var top: int = mini(pref.size(), 16)   # 密集度只在原得分最小的 16 个里算，省开销
-	for i in top:
-		var sc: float = pref[i][1]
-		if prio == 1:
-			var cnt := 0
-			for k in pref.size():
-				if cnt >= 6:
-					break
-				if pref[i][0].pos.distance_squared_to(pref[k][0].pos) <= 8100.0:
-					cnt += 1
-			sc -= 30.0 * float(cnt)
-		if sc < best_s:
-			best_s = sc
-			pick = pref[i][0]
-	return pick
 
 
 ## 射程内也可能隔着景物；先找射线通畅的位置，行走路径交给局部绕行。
