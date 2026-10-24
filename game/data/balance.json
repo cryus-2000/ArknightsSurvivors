@@ -656,6 +656,8 @@
   "env_sat": 0.55, "env_bright": 1.15, "ground_glow_warm": 0.4, "warm_spores": 26, "ember_n": 32,
   "_doc_ebullet_col": "敌弹改蓝（用户 10-24「怪物的子弹能改成蓝色吗，满屏幕紫色子弹是不是也是原因之一」，docs/139 §6.7）：optical_col_ebullet_h / _s / _v 敌弹色（弹芯、光晕、亮描边、拖尾、地面临时光），从危险色里拆出来，攻击预警仍是危险色（洋红偏红）；ebullet_recolor 1 = 普通弹 ebullet、新星弹 proj_nova、神经弹 proj_floater_nerve 贴图里粉 / 紫（240–345°）像素换成敌弹色色相（饱和 / 明度不变）。回退：ebullet_recolor 0、optical_col_ebullet_h 0.95",
   "optical_col_ebullet_h": 0.54, "optical_col_ebullet_s": 0.8, "optical_col_ebullet_v": 1.0, "ebullet_recolor": 1,
+  "_doc_dash_tell": "杂兵冲刺预警线收敛（用户 10-24「后期冲刺的那些太着眼」→ 用户确认指怪物冲刺，docs/139 §7）：dash_tell_alpha 整体透明度倍率、dash_tell_flow 0 = 不铺流动水纹与终点漩涡、dash_tell_white 0 = 去中线白芯、dash_tell_half 半宽（原 10）；dash_tell 0 = 整条不画（仅量测）。全强度条数仍是 fx/tell_full_max。回退：1 / 1 / 1 / 10。ebullet_outline：敌弹外描边宽（世界像素，2 = 1 个低分辨率格，危险色，不闪；0 = 不画，等用户挑）",
+  "dash_tell_alpha": 0.55, "dash_tell_flow": 0, "dash_tell_white": 0, "dash_tell_half": 6, "ebullet_outline": 0,
   "_declutter_doc": "后期降噪预设（用户 10-12「后期画面是不是太乱了，容易看不清」，scripts/render/declutter.gd，量测 tools/late_clutter.py）：0 现状；1 轻；2 中；3 强。只在拥挤时（特效数 / 敌人数）按比例生效：队友 / 自己的特效与投射物退后、白字伤害数字限量、普通怪描边 / 白闪变淡、击杀火花减少、地面纹理薄纱、远处结晶压暗；敌方弹幕 / 预警轮廓加粗、填充减淡；主控、灯火、特殊掉落不降。只改画面；单项可用 render/declutter_<键> 覆盖。10-12 推荐缺省切到 3（单独提交，可整条回退）",
   "declutter": 3,
   "_hit_rings_doc": "干员攻击 / 技能命中的装饰圆圈（用户 10-13「艾雅法拉的攻击特效的圆圈可以不用加，保留火焰特效就可以；其余干员也是」，scripts/render/declutter.gd hit_rings）：0 不画（缺省），1 照旧画（回退）。只在绘制时跳过，主体特效（火焰 / 斩击 / 光弹 / 帧条）、持续区域边界、敌方预警、拾取 / 灯标范围不受影响；对照截图用 --bal=render/hit_rings=1",

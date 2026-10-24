@@ -1547,11 +1547,17 @@ func _draw_ebullets_lobs_shocks() -> void:
 			g.vfx.spr("proj_nova", 4, int(g.t * 10.0 + b.pos.x * 0.01) % 4, bp, _hpx("proj_nova"), false, Color(1.5, 1.5, 1.5))   # Codex v14 新星弹；×1.5 提亮同上
 		elif kd != "acid" and kd != "nova" and kd != "nerve" and kd != "boss_blade":
 			g.vfx.spr("ebullet", 1, 0, bp, Game.PX * b.r / 5.0)
+	var eb_ow: float = Bal.v("render/ebullet_outline", 0.0) if g.optical_on else 0.0
 	for b in g.ebullets:
 		var kd: String = b.get("kind", "orb")
-		if kd == "boss_blade" or _bullet_tex(b) != "" or b.life <= 0.0:
+		if kd == "boss_blade" or b.life <= 0.0:
 			continue
 		var bp: Vector2 = b.pos + Vector2(0, -16)
+		if _bullet_tex(b) != "":
+			if eb_ow > 0.0:   # 专属弹体（漂移体侵蚀弹）也加同一圈外描边
+				var dc0: Color = g.optical.col_danger
+				tb_ring(bp, b.r + 3.0 + eb_ow * 0.5, eb_ow, Color(dc0.r, dc0.g, dc0.b, 1.0))
+			continue
 		match kd:
 			"acid":
 				if g.tex.get("proj_acid") == null:
@@ -1566,6 +1572,11 @@ func _draw_ebullets_lobs_shocks() -> void:
 		if g.optical_on:
 			var ebc: Color = g.optical.col_ebullet
 			tb_ring(bp, b.r + 2.0, 1.5, Color(ebc.r * 2.0, ebc.g * 2.0, ebc.b * 2.0, 0.9))   # 亮描边改敌弹色（原亮洋红）
+			var ow: float = eb_ow
+			if ow > 0.0:
+				# docs/139 §7 敌弹外描边（用户 10-24「敌方子弹加一个描边看一下」）：危险色、不闪，宽 ow 世界像素（2 = 1 个低分辨率格），压在亮描边外侧
+				var dc: Color = g.optical.col_danger
+				tb_ring(bp, b.r + 3.0 + ow * 0.5, ow, Color(dc.r, dc.g, dc.b, 1.0))
 		else:
 			tb_ring(bp, b.r + 2.0, 1.5, Color(2.4, 0.8, 1.8, 0.9))
 	tb_flush()
@@ -2527,7 +2538,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		g.draw_circle(Vector2.ZERO, e.r * 1.3, Color(1.6, 0.25, 0.2, 0.18 + 0.12 * rp))
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	# 冲刺预警线改在特效之上的覆盖层画（draw_enemy_tells，docs/48 ②）
-	if e.get("dash_t", 0.0) > 0.0:
+	if e.get("dash_t", 0.0) > 0.0 and Bal.v("render/enemy_dash_sparks", 1.0) > 0.0:   # docs/139 §7：0 = 冲刺途中不喷火花
 		g.vfx.sparks(e.pos, -e.dash_dir, Color(0.8, 0.9, 1.0), 1, 80.0)
 	if e.get("nova_w", 0.0) > 0.0:
 		var nk: float = 1.0 - e.nova_w / 0.6
@@ -2785,10 +2796,10 @@ func draw_enemy_tells() -> void:
 			_tell_circle(e.pos, 80.0, clampf(1.0 - e.burst_w / float(e.get("burst_dur", 0.4)), 0.0, 1.0), TELL_BURST)
 		# 冲刺预警线（滑动者 / 撕裂者 / 骑士精英）：长度按实际冲刺距离算（速度 × dash_speed × 0.35 秒），
 		# 不再写死 230（docs/48 P1：实际只冲 80–135）；只朝前画
-		if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir"):
+		if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir") and Bal.v("render/dash_tell", 1.0) > 0.0:   # render/dash_tell 0 = 不画（docs/139 §7 量测用）
 			var dd: Dictionary = D.ENEMIES.get(e.type, {})
 			var wk: float = clampf(1.0 - e.dash_w / float(dd.get("dash_wind", 0.5)), 0.0, 1.0)
-			_tell_line(e.pos, e.pos + e.dash_dir * _dash_len(e), 10.0, wk, ENEMY_TELL, e.get("tell_dim", false))
+			_tell_line(e.pos, e.pos + e.dash_dir * _dash_len(e), Bal.v("render/dash_tell_half", 10.0), wk, ENEMY_TELL, e.get("tell_dim", false), true)   # render/dash_tell_half 半宽
 		# 灯边硬直（docs/56 §10）：头顶一颗暖色小光点 + 绕着转的两粒光屑，读作「被灯光震住」，随剩余时间淡出
 		var bst: float = e.get("bstag", 0.0)
 		if bst > 0.0:
@@ -3697,15 +3708,18 @@ func _wtex(n: String) -> Texture2D:
 	return _warn_tex[n]
 
 
-func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color, dim := false) -> void:
+## dash = 杂兵冲刺预警（docs/139 §7，用户 10-24「后期冲刺的那些太着眼」）：render/dash_tell_alpha 整体透明度倍率、
+## render/dash_tell_flow 0 = 不铺流动水纹 / 终点漩涡（只留填充 + 边框），render/dash_tell_white 0 = 不画中线白芯，render/dash_tell_half 半宽（缺省 10）
+func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color, dim := false, dash := false) -> void:
 	var d: Vector2 = b - a
 	var n: Vector2 = d.normalized().orthogonal() * half
+	var ta: float = Bal.v("render/dash_tell_alpha", 1.0) if dash else 1.0
 	if dim:
 		# 打不到主控的冲刺线：只画淡边框（预警不藏，但不再整片盖住主控）
-		g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, Bal.v("fx/tell_dim_alpha", 0.35)), 1.5)
+		g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, Bal.v("fx/tell_dim_alpha", 0.35) * ta), 1.5)
 		return
-	g.draw_colored_polygon(PackedVector2Array([a + n, a + d * k + n, a + d * k - n, a - n]), Color(c.r, c.g, c.b, (0.22 + 0.12 * k) * tell_fill))
-	var lt: Texture2D = _wtex("fx_warn_line")
+	g.draw_colored_polygon(PackedVector2Array([a + n, a + d * k + n, a + d * k - n, a - n]), Color(c.r, c.g, c.b, (0.22 + 0.12 * k) * tell_fill * ta))
+	var lt: Texture2D = _wtex("fx_warn_line") if not dash or Bal.v("render/dash_tell_flow", 1.0) > 0.0 else null
 	if lt != null:
 		# 沿线平铺流动水纹（16px 一段，按线宽缩放），终点放漩涡
 		var fr: int = int(g.t * 12.0) % 4
@@ -3716,18 +3730,19 @@ func _tell_line(a: Vector2, b: Vector2, half: float, k: float, c: Color, dim := 
 		while x < L - 1.0:
 			var w: float = minf(seg, L - x)
 			g.draw_set_transform(a + d.normalized() * x, ang, Vector2(half * 2.0 / 16.0, half * 2.0 / 16.0))
-			g.draw_texture_rect_region(lt, Rect2(0, -8, w / (half * 2.0 / 16.0), 16), Rect2(16 * fr, 0, w / (half * 2.0 / 16.0), 16), Color(c.r, c.g, c.b, 0.55 * tell_fill))
+			g.draw_texture_rect_region(lt, Rect2(0, -8, w / (half * 2.0 / 16.0), 16), Rect2(16 * fr, 0, w / (half * 2.0 / 16.0), 16), Color(c.r, c.g, c.b, 0.55 * tell_fill * ta))
 			x += seg
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		var et: Texture2D = _wtex("fx_warn_end")
 		if et != null:
 			var es: float = half * 2.4 / 32.0 * 2.0
 			g.draw_set_transform(b, 0.0, Vector2(es, es * ground_y()))
-			g.draw_texture_rect_region(et, Rect2(-16, -16, 32, 32), Rect2(32 * fr, 0, 32, 32), Color(c.r, c.g, c.b, 0.8))
+			g.draw_texture_rect_region(et, Rect2(-16, -16, 32, 32), Rect2(32 * fr, 0, 32, 32), Color(c.r, c.g, c.b, 0.8 * ta))
 			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(0, 0, 0, 0.55), 4.0 * tell_edge)
-	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, 0.85), 2.0 * tell_edge)
-	g.draw_line(a, b, Color(1, 1, 1, 0.5 + 0.4 * k), 1.0)
+	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(0, 0, 0, 0.55 * ta), 4.0 * tell_edge)
+	g.draw_polyline(PackedVector2Array([a + n, b + n, b - n, a - n, a + n]), Color(c.r, c.g, c.b, 0.85 * ta), 2.0 * tell_edge)
+	if not dash or Bal.v("render/dash_tell_white", 1.0) > 0.0:
+		g.draw_line(a, b, Color(1, 1, 1, (0.5 + 0.4 * k) * ta), 1.0)
 
 
 ## （10-23 用户定：手动普攻的方向 / 目标箭头指示已去掉——方向就是玩家的指向，不再画线与箭头；原 draw_attack_dir 删除）
