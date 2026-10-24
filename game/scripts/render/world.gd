@@ -2913,6 +2913,10 @@ func draw_nest_auras() -> void:
 		var ed: Dictionary = D.ENEMIES.get(e.type, _NO_DEF)
 		if ed.has("aura_arts_mult") and (float(e.get("seal_t", 0.0)) > g.t or e.stun > 0.0):
 			continue
+		if ed.has("scream_r") and not ed.has("aura_r"):
+			if g.t >= float(e.get("scream_t0", INF)) and g.t < float(e.get("scream_t1", -1.0)):
+				_scream_aura(e, float(ed.scream_r))
+			continue
 		if not ed.has("aura_r"):
 			continue
 		var ar: float = ed.aura_r
@@ -2937,6 +2941,24 @@ func draw_nest_auras() -> void:
 
 	tb_flush()
 
+
+
+## 箱形恐鱼尖叫光环（docs/145 §4 A；画法按画面观感会话 10-25「圆圈收敛」口径）：随它移动、地面层；
+## 常亮淡底 + 不转的 18 段虚线边界（起始角按 e.id 固定），不加涟漪 / 脉动 / 贴图；危险色；
+## 尖叫开始 0.2 秒内边界 0.7 → 0.45（一次性），队长在圈内时边界 0.6。判定同 enemy_ai._scream（直线距离 < r）
+func _scream_aura(e: Dictionary, r: float) -> void:
+	if not view_rect(r + 20.0).has_point(e.pos):
+		return
+	var c: Color = g.optical.col_danger if g.optical_on else ENEMY_TELL
+	var since: float = g.t - float(e.scream_t0)
+	var ea: float = lerpf(0.7, 0.45, clampf(since / 0.2, 0.0, 1.0))
+	if g.ppos.distance_to(e.pos) < r:
+		ea = maxf(ea, 0.6)
+	tb_circle(e.pos, r, Color(c.r, c.g, c.b, 0.05), 1.0, 40)
+	var a0: float = float(e.id) * 0.37
+	for q in 18:
+		var s0: float = a0 + q * TAU / 18.0
+		tb_arc(e.pos, r, s0, s0 + TAU / 36.0, 2.0, Color(c.r, c.g, c.b, ea), 3)
 
 
 ## ---- 主控身上的小怪控制（combat.gd「小怪控制」段，用户 9/29）：画在实体之上、预警轮廓之下

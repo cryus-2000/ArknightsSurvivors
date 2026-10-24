@@ -535,7 +535,14 @@
    "ingots": 10,
    "pattern": "bite",
    "bite_range": 76,
-   "bite_cd": 2.6,
+   "bite_cd": 3.0,
+   "bite2_delay": 0.35,
+   "bite2_mult": 0.6,
+   "scream_r": 150,
+   "scream_delay": 0.4,
+   "scream_t": 2.5,
+   "scream_wake_r": 260,
+   "scream_ingot_mult": 1.5,
    "no_contact": true,
    "extra": {
     "name": "箱舌突刺",
@@ -545,7 +552,7 @@
     "damage_mult": 0.42,
     "first_delay": 1.0
    },
-   "desc": "另会使用「箱舌突刺」进行预警攻击。",
+   "desc": "现形后尖叫 2.5 秒：周围 150 内累积神经损伤，期间照常追击、不啃咬；尖叫结束前击倒，源石锭 ×1.5。啃咬两连，第二口伤害 ×0.6。另会使用「箱舌突刺」进行预警攻击。",
    "ecol": [1.0, 0.75, 0.4]
   },
   "path": {
