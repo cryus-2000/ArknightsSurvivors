@@ -43,18 +43,20 @@ def hoshiguma():
 # 帧数 / 出手帧与普攻条相同（8 帧，第 4 帧出手），时序由 json 抄普攻的 attack_timing。
 # 每帧：(前手上臂, 前手前臂, 后手上臂, 胸, 前手提到上层) ；角度为转角增量（度）
 # 直拳轨迹（10-24 用户「现在像是捶，不像是直拳」）：手腕沿肩高水平线直线推出，按两节 IK 反算（肩 (96, 128.4)、上臂 4.35 px、前臂 3.83 px，
-# 肘在下；转角换算见 docs/140 §7.2）。手腕 x：100.7 起势 → 99.5 收拳 → 101.6 → 104.0 打满 → 回收
-PUNCH = [(-45, 55, 0, 0, False), (-52, 75, 15, 2, False), (-33, 39, 25, -2, True),
-         (0, -30, 30, -5, True), (-5, -20, 30, -4, True), (-28, 27, 20, -2, True),
-         (-42, 51, 8, 0, False), (-45, 55, 0, 0, False)]
+# 肘在下；转角换算见 docs/140 §7.2）。用户「第一帧应该是手变成拳击的准备工作，然后才是冲拳」：先抬手成拳击架势
+# （前拳在下巴前 (100.6, 126.2)，画在毛领上层；后手转到胸前、留在身后层，免得大白袖子盖住脸），再收拳、直拳打出、回架势、放下。
+# 每帧：(前手上臂, 前手前臂, 后手上臂, 后手前臂, 胸, 前手提到上层)
+PUNCH = [(-28, 52, -60, -20, 0, False), (-10, 48, -120, -40, 0, True), (-20, 60, -120, -40, 2, True),
+         (0, -30, -120, -40, -5, True), (-5, -20, -120, -40, -4, True), (-15, 35, -120, -40, -2, True),
+         (-10, 48, -120, -40, 0, True), (-30, 52, -60, -20, 0, False)]
 GUARD = (-45, 55)   # 前手放到腰前的转角（上臂, 前臂）
 SARIA_HIDE = ["F_Shield", "F_Weapon", "F_Pinhead"]   # 盾 / 武器已放下
 SARIA_FRONT_ARM = ["F_L_Arm", "F_L_Shoulder", "F_L_Wrap", "F_L_Ring", "F_L_Hand_C", "F_L_Hand_B", "F_L_Hand", "F_L_Finger", "F_L_Finger_2"]
 
 
 def punch_poses():
-    return [{"anim": "Skill_Loop", "t": 0, "rot": {"F_L_Arm": la, "F_L_Shoulder": lf, "F_R_Arm": ra, "F_Chest": ch},
-             "top": SARIA_FRONT_ARM if top else [], "hide": SARIA_HIDE} for la, lf, ra, ch, top in PUNCH]
+    return [{"anim": "Skill_Loop", "t": 0, "rot": {"F_L_Arm": la, "F_L_Shoulder": lf, "F_R_Arm": ra, "F_R_Shoulder": rf, "F_Chest": ch},
+             "top": SARIA_FRONT_ARM if top else [], "hide": SARIA_HIDE} for la, lf, ra, rf, ch, top in PUNCH]
 
 
 def render_poses(op, base_cfg, name, poses, mode=None):
