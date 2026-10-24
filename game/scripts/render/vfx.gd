@@ -158,6 +158,8 @@ func melee_arc(o, origin: Vector2, ang: float, half: float, radius: float) -> vo
 	if arc_dbg == 1:
 		life *= 5.0   # 核对截图：刀光多留一会儿，和判定圈叠在一起好看清
 	# off：判定原点相对干员脚底的偏移，绘制时按干员当前位置算（移动攻击时刀光跟着人走）；org 只用于同帧去重
+	if half >= PI - 0.01:
+		ang = 0.0 if float(o.face) >= 0.0 else PI   # 360° 判定没命中时朝面向画（命中后改朝被打中的敌人）
 	var f := {"kind": "marc", "pos": origin, "org": origin, "op": key, "off": origin - (o.pos as Vector2), "sdir": sdir,
 		"ang": ang, "half": half, "r": radius, "col": c, "tier": 1, "life": life, "max": life, "t": g.t}
 	g.fx.append(f)
@@ -259,6 +261,9 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 		var arc = _open_arcs.get(str(h.get("op", "")))
 		if arc != null and float(arc.t) == g.t:
 			arc.tier = maxi(int(arc.tier), tier)   # 同一挥砍里打出的最高档决定刀光粗细亮度
+			if float(arc.half) * 2.0 > deg_to_rad(Bal.v("fx/melee_arc_span", 105.0)) and not arc.get("aimed", false):
+				arc.ang = ((e.pos as Vector2) - (arc.org as Vector2)).angle()   # 宽扇形 / 360°：月牙只画在第一个被打中的敌人那一侧
+				arc.aimed = true
 	elif g.optical_on and g.optical.particles != null and not dot:
 		g.optical.particles.hit_spark(e.pos + Vector2(0, -e.r * 0.6), Color(1.0, 0.95, 0.85) if not (crit or weak) else Color(1.0, 0.8, 0.35))   # 光学观感原型：命中迸溅（限频，纯画面）
 	# 受击后坐（docs/53，纯画面）：本体沿「远离主控」的方向顶开 fx/recoil_px，fx/recoil_t 秒内回位；技能 / 暴击 / 弱点 ×fx/recoil_skill_k。

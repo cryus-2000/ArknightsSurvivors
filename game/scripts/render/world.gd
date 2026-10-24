@@ -1034,41 +1034,49 @@ func _draw_fx() -> void:
 					g.draw_line(f.pos, f.pos + dv, Color(hc.r * 1.4, hc.g * 1.4, hc.b * 1.4, hq), 2.0)
 				g.draw_rect(Rect2(f.pos - Vector2(2, 2), Vector2(4, 4)), Color(1.8, 1.8, 1.8, hq))
 			"marc":
-				# 近战刀光（vfx.melee_arc）：半径 / 半角 = 实际判定；干员本色、2–3 阶硬边（外层暗带 + 亮芯，重档再加白芯），
-				# 透明度按三阶跳着消失（不平滑淡出）。粗细亮度按这一下的命中档（轻 / 中 / 重）
-				# 跟着挥刀走：前端在前 55% 寿命里从起点扫到终点，尾端从 35% 起追上来；前端一小段更亮（刀尖）。
-				# 位置按干员当前脚底 + 出手时的偏移（移动攻击时刀光随人移动）
+				# 近战刀光（vfx.melee_arc，10-24 用户嫌「沿判定圈的细弧像雷达」改样）：贴着武器的月牙——中间厚两头尖，
+				# 半径 = 判定半径 × fx/melee_arc_reach（0.7，贴近身体），扫过角度最多 fx/melee_arc_span（105°）；
+				# 判定扇形更宽 / 360° 时只画命中一侧（hit_react 把中心转到第一个被打中的敌人方向）。
+				# 三阶硬边：外沿暗带 → 干员本色 → 靠外缘的亮芯（重档加白芯）；厚度按命中档（轻 / 中 / 重）。
+				# 跟着挥刀走：前端在前 55% 寿命里扫到终点，尾端从 35% 起追上；位置按干员当前脚底 + 出手时偏移
 				var tr: int = int(f.tier)
 				var aq: float = ceilf(a * 3.0) / 3.0
-				var wd: float = [0.0, 2.0, 3.0, 4.0][tr]
+				var tk: float = [0.0, 0.8, 1.0, 1.25][tr]   # 厚度按命中档
 				var kb: float = [0.0, 1.0, 1.25, 1.6][tr]
 				var full: bool = float(f.half) >= PI - 0.01
 				var ap: Vector2 = f.pos
 				var aop = g.squad.get_op(str(f.get("op", ""))) if g.squad != null else null
 				if aop != null and aop.pos != Vector2.INF:
 					ap = aop.pos + f.get("off", Vector2.ZERO)
-				var span: float = TAU if full else float(f.half) * 2.0
+				var rc: float = maxf(18.0, float(f.r) * Bal.v("fx/melee_arc_reach", 0.7))
+				var span: float = minf(float(f.half) * 2.0, deg_to_rad(Bal.v("fx/melee_arc_span", 105.0)))
 				var sd: float = float(f.get("sdir", 1.0))
-				var s0: float = (float(f.ang) - PI if full else float(f.ang) - float(f.half) * sd)   # 挥刀起点
+				var s0: float = float(f.ang) - span * 0.5 * sd   # 挥刀起点（以刀光中心方向对称）
+				# 10-24 用户「还不够像刀光」：厚月牙（厚度 ≈ 半径 30%）、前粗后尖（彗星形）、外沿白刃 → 本色 → 内沿暗边；
+				# 前 25% 寿命里一下扫满（拖影帧），之后尾端从起点吃回去；外侧 2–3 道速度线，刀尖迸几颗火星
+				var tw: float = clampf(rc * 0.3, 7.0, 26.0) * tk
 				var pr: float = 1.0 - a
-				var hd: float = clampf(pr / 0.55, 0.0, 1.0)
-				var tl: float = clampf((pr - 0.35) / 0.65, 0.0, 1.0)
-				var e0: float = s0 + sd * span * tl
-				var e1: float = s0 + sd * span * hd
-				var a0: float = minf(e0, e1)
-				var a1: float = maxf(e0, e1)
+				var hd: float = clampf(pr / 0.25, 0.0, 1.0)
+				var tl: float = clampf((pr - 0.25) / 0.75, 0.0, 1.0)
 				var cc: Color = f.col
-				if a1 - a0 > 0.02:
-					var nseg: int = clampi(int((a1 - a0) * float(f.r) / 6.0), 4, 64)
-					g.draw_arc(ap, f.r - wd * 0.5, a0, a1, nseg, Color(cc.r * 0.5, cc.g * 0.5, cc.b * 0.5, 0.55 * aq), wd + 4.0)
-					g.draw_arc(ap, f.r - wd * 0.5, a0, a1, nseg, Color(cc.r * kb, cc.g * kb, cc.b * kb, aq), wd)
-					if tr == 3:
-						g.draw_arc(ap, f.r - wd * 0.5, a0, a1, nseg, Color(1.6, 1.6, 1.6, aq), 1.0)
-					var tip: float = minf(0.25, (a1 - a0))   # 刀尖：前端约 14° 更亮更粗
-					var t0: float = e1 - sd * tip
-					g.draw_arc(ap, f.r - wd * 0.5, minf(t0, e1), maxf(t0, e1), 4, Color(cc.r * kb * 1.5 + 0.3, cc.g * kb * 1.5 + 0.3, cc.b * kb * 1.5 + 0.3, aq), wd + 2.0)
-				a0 = 0.0 if full else float(f.ang) - float(f.half)
-				a1 = TAU if full else float(f.ang) + float(f.half)
+				if hd - tl > 0.02:
+					var sw: float = sd * span
+					_crescent(ap, rc + 1.0, s0, sw, tl, hd, tw + 2.0, Color(cc.r * 0.35, cc.g * 0.35, cc.b * 0.4, 0.75 * aq), 1.0)   # 暗边（内沿收边）
+					_crescent(ap, rc, s0, sw, tl, hd, tw, Color(cc.r * kb, cc.g * kb, cc.b * kb, aq), 1.0)   # 本色刀身
+					_crescent(ap, rc, s0, sw, tl, hd, tw * 0.5, Color(minf(1.6, cc.r * kb * 1.4 + 0.4), minf(1.6, cc.g * kb * 1.4 + 0.4), minf(1.6, cc.b * kb * 1.4 + 0.4), aq), 1.0)   # 亮带
+					_crescent(ap, rc, s0, sw, tl, hd, maxf(2.0, tw * 0.18), Color(1.9, 1.9, 1.9, aq), 1.0)   # 白刃（外沿）
+					for q in (2 if tr < 3 else 3):   # 速度线：外沿外侧几道短细线，越往外越短
+						var lr: float = rc + 4.0 + 4.0 * q
+						var lu0: float = maxf(tl, hd - 0.45 + 0.12 * q)
+						if hd - lu0 > 0.05:
+							g.draw_arc(ap, lr, minf(s0 + sw * lu0, s0 + sw * hd), maxf(s0 + sw * lu0, s0 + sw * hd), 8, Color(cc.r * kb + 0.3, cc.g * kb + 0.3, cc.b * kb + 0.3, 0.55 * aq), 2.0)
+					if hd < 1.0 or pr < 0.4:
+						var tip: Vector2 = ap + Vector2.from_angle(s0 + sw * hd) * (rc - tw * 0.3)
+						for q in 3:   # 刀尖火星（2 px，确定性摆位，不用随机数）
+							var sv := Vector2.from_angle(s0 + sw * hd + sd * (0.6 + 0.5 * q)) * (4.0 + 5.0 * q)
+							g.draw_rect(Rect2((tip + sv).round(), Vector2(2, 2)), Color(1.8, 1.8, 1.8, aq))
+				var a0: float = 0.0 if full else float(f.ang) - float(f.half)
+				var a1: float = TAU if full else float(f.ang) + float(f.half)
 				if g.vfx.arc_dbg < 0:
 					g.vfx.arc_dbg = 1 if Cfg.dev_args().has("--arcdbg") else 0
 				if g.vfx.arc_dbg == 1:
@@ -3785,6 +3793,26 @@ func _tell_circle(p: Vector2, r: float, k: float, c: Color) -> void:
 ## ⑤ 全场·必须冲刺：must_dash —— 白色双描边 + 冲刺图标（屏幕级提示在 hud.draw_field_wave）
 const WARN_CORE := Color(1, 1, 1)
 const WARN_EDGE := Color(0.02, 0.02, 0.05)
+
+## 近战刀光月牙（"marc"）：外沿在半径 r 的圆上，内沿离外沿 thick × sin(π u)；u 是整次挥刀上的位置（0 起点 / 1 终点），
+## 只画 [u0, u1] 那一段（跟着挥刀扫）。起点角 s0，扫过 sweep（带方向的弧度）
+func _crescent(c: Vector2, r: float, s0: float, sweep: float, u0: float, u1: float, thick: float, col: Color, _k: float) -> void:
+	var n: int = clampi(int(absf(sweep) * (u1 - u0) * r / 4.0), 3, 40)
+	var outer := PackedVector2Array()
+	var inner := PackedVector2Array()
+	for i in n + 1:
+		var u: float = lerpf(u0, u1, float(i) / float(n))
+		var ang: float = s0 + sweep * u
+		var uu: float = clampf(u, 0.0, 1.0)
+		var th: float = thick * pow(sin(PI * uu), 0.6) * (0.35 + 0.65 * uu)   # 前粗后尖（彗星形）：靠挥刀终点一侧最厚
+		var dv := Vector2.from_angle(ang)
+		outer.append(c + dv * r)
+		inner.append(c + dv * maxf(0.0, r - th))
+	inner.reverse()
+	outer.append_array(inner)
+	if outer.size() >= 3:
+		g.draw_colored_polygon(outer, col)
+
 
 func _warn_dash_arc(r: float, a0: float, a1: float, col: Color, wdt: float) -> void:
 	var seg: float = 0.22
