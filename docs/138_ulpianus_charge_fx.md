@@ -30,7 +30,7 @@
 ## 3. 纯画面
 
 - 随机只用 `g.vrng`；命中三档的顿帧只在玩家局走（批跑不消耗 `g.hitstop`，docs/50 §10）。
-- 同 seed：`tools/trace_base.py 1 ulpianus 240 --here --ref HEAD --extra=--sptest`（无界面，颗粒不开）逐行相同；另开窗口（光学观感 + 颗粒开）`--bal=fx/ulp_charge_grains=0 / 1` 同 seed 60 秒 TRACE 逐行相同（§5）。
+- 同 seed：无界面 TRACE 241 行、开窗口颗粒开 / 关 TRACE 61 行都逐行相同（§5）。
 
 ## 4. 验收
 
@@ -47,15 +47,23 @@
 | 新（1） | 21.24 | 20.70 | 28.59 | 174 / 666 / 855 |
 
   冲锋窗口平均 +0.3 毫秒、P95 持平。同屏颗粒的大头是她落地后普攻的刀光第四版（旧桶也有 781），冲锋本身每次约 300 颗；峰值贴近 900 时超出的新颗粒直接丢（模板规则），不会掉帧。
-- **网页**：见 §6。
+- **网页**：见 §6（+0.9 毫秒）。
 
-## 5. 开窗口同 seed
+## 5. 同 seed（纯画面核对）
 
-见提交说明（`--balance --realtime --fixed-fps 60 --seed=1 --op=ulpianus --sptest --bot=expert --maxt=60 --trace=1`，`--bal=fx/ulp_charge_grains=0` 与 `=1` 两局 TRACE 逐行比）。
+- 无界面：`tools/trace_base.py 1 ulpianus 240 --here --ref HEAD --extra=--sptest`：TRACE 241 行逐行相同（无界面时光学观感关、颗粒不开，只证明回退路径没动玩法）。
+- 开窗口、光学观感 + 颗粒开（高画质 1280×720、`--fixed-fps 60 -- --balance --realtime --seed=1 --op=ulpianus --sptest --maxprog --bot=expert --maxt=60 --trace=1`），`--bal=fx/ulp_charge_grains=0` 与 `=1` 两局：TRACE 61 行逐行相同；`=1` 那局实际放了 3 次冲锋（临时打点核实后删掉）。
 
 ## 6. 网页颗粒开销
 
-待补（§4 桌面同局轮换 +0.3 毫秒；按 docs/50 §17.3「网页 ≈ 桌面 × 1.7」估 +0.5 毫秒）。
+`perf_web.py`（particles 分支 `claude/particles-8d10a8` 的网页测量副本工具，临时拷来用、未提交；副本主场景换成探针场景、导出不排除 tests/）：独立 Edge、MessageChannel 代替 requestAnimationFrame（量真实帧耗时）、高画质、100 只 + 路径 5 只、`--ulpperf=26`（前 2 次预热不计，首次冲锋有约 4 秒的着色器编译尖峰），同局轮换，每桶 720 帧：
+
+| 桶 | 帧均值 | P50 | P95 | 最大 | 同屏颗粒均值 / P95 / 峰值 |
+|---|---|---|---|---|---|
+| 旧（0） | 27.79 | 25.0 | 46.8 | 151.3 | 146 / 605 / 781 |
+| 新（1） | 28.69 | 24.4 | 50.7 | 174.2 | 188 / 706 / 856 |
+
+冲锋窗口平均 +0.9 毫秒（桌面 +0.3，约 3 倍），P50 持平，P95 +3.9。只发生在放 S3 的约 1 秒里；S3 每 20–30 秒一次。测量产物在主仓库 `build/_perfweb_ulp/b6b884314/out_ulp26.txt`。
 
 ## 7. 对粒子化模板的需求（给 particles 会话，未改模板）
 
