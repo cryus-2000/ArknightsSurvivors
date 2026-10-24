@@ -33,7 +33,11 @@ const MATERIALS := {
 # 只替换短命中效果，不接管地面预警、持续领域或触手本体。
 # 10-24 第 2 批（docs/138 §7）：盘点后只加蓝水花。炮弹爆炸 / 日炎 / 维什戴尔炮击试过，用户看后定退回原版（原版更有冲击感、更省帧）；体液另两条（水母刺 / 血肉命中）也不加
 const MATERIAL_FX := {"fx_flam_hit": "fire", "fx_water_splash": "water", "fx_corrode_hit": "fluid", "fx_eyja_lava_splash": "lava", "fx_eyja_ignite_hit": "fire", "fx_eyja_ignite_boom": "fire",
-	"fx_splash_blue": "water"}
+	"fx_splash_blue": "water",
+	"fx_skadi_surge_release": "water", "fx_skadi_surge_hit": "water", "fx_skadi_surge": "water", "fx_skadi_leap_splash": "water"}
+# 帧条后半段换颗粒（10-24 协调人转用户「斯卡蒂旧特效 Noita 重置」，docs/138 §11）：ob_fx 一次性帧条播到 [比例] 时，从当时那一帧迸出材质颗粒、
+# 帧条 0.08 秒内淡出——形状由帧条前半段交代，原来的棋盘格抖动消散改由真颗粒做
+const MAT_HANDOFF := {"fx_skadi_surge_release": 0.5, "fx_skadi_surge_hit": 0.4, "fx_skadi_surge": 0.67, "fx_skadi_leap_splash": 0.4}
 const MAT_SHARE := 0.6   # 材质颗粒最多占共用预算的六成：留四成给刀光第四版，大混战时材质先退回帧条，刀光不被挤掉
 var templates: Dictionary = TEMPLATES.duplicate(true)
 var _samples := {}
@@ -214,13 +218,14 @@ func flush() -> void:
 
 ## 首次缓存固定最多 16×16 个采样点；不逐帧读贴图，不建立新节点。
 ## 整个效果先验收预算：失败时调用方完整保留帧条，成功时不叠加原帧条/GPU爆发。
-func material_burst(name: String, tx: Texture2D, frames: int, at: Vector2, angle: float, sc: float, anchor: Vector2, flip: bool, tint: Color) -> bool:
+func material_burst(name: String, tx: Texture2D, frames: int, at: Vector2, angle: float, sc: float, anchor: Vector2, flip: bool, tint: Color, frame_at := -1) -> bool:
 	if not material_on() or not MATERIAL_FX.has(name):
 		return false
 	var kind: String = MATERIAL_FX[name]
 	if kind == "fluid" and Bal.v("fx/material_fluid", 0.0) <= 0.0:
 		return false   # 体液单独一道开关（缺省关，balance.json fx._material_doc）
-	if not _samples.has(name):
+	var skey: String = name if frame_at < 0 else "%s#%d" % [name, frame_at]   # frame_at：指定从哪一帧取形状（帧条交接用）
+	if not _samples.has(skey):
 		var img: Image = tx.get_image()
 		if img == null or img.is_empty() or img.is_compressed():
 			return false
@@ -228,7 +233,7 @@ func material_burst(name: String, tx: Texture2D, frames: int, at: Vector2, angle
 		var fh: int = tx.get_height()
 		var points: Array = []
 		# 从前半段选可见采样最多的一帧，保留原贴图色和形状。
-		for frame in mini(frames, 4):
+		for frame in ([frame_at] if frame_at >= 0 else range(mini(frames, 4))):
 			var candidate: Array = []
 			for y in 16:
 				for x in 16:
@@ -239,8 +244,8 @@ func material_burst(name: String, tx: Texture2D, frames: int, at: Vector2, angle
 						candidate.append([Vector2(px, py), color])
 			if candidate.size() > points.size():
 				points = candidate
-		_samples[name] = points
-	var source: Array = _samples[name]
+		_samples[skey] = points
+	var source: Array = _samples[skey]
 	var count := mini(source.size(), 48 if level >= 2 else 32)
 	if count < 8 or pos.size() + count > int(budget() * MAT_SHARE) or int(_frame_n.get(kind, 0)) + count > int(templates[kind].per_frame):
 		return false
@@ -249,7 +254,9 @@ func material_burst(name: String, tx: Texture2D, frames: int, at: Vector2, angle
 		var sample: Array = source[int(float(i) * source.size() / count)]
 		var jit := Vector2(g.vrng.randf_range(-0.5, 0.5), g.vrng.randf_range(-0.5, 0.5)) * cell
 		var offset: Vector2 = (sample[0] + jit - anchor) * sc
-		if kind == "water":
+		if frame_at >= 0:
+			pass   # 帧条交接：颗粒就落在当时看得到的像素上，不往里收
+		elif kind == "water":
 			offset *= 0.72
 		elif kind == "fire":
 			offset *= 0.7

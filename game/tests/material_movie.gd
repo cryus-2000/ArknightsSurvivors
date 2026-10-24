@@ -22,9 +22,13 @@ func _process(_dt: float) -> void:
 	if Cfg.dev_args().has("--eyjamovie"):
 		_eyja_movie()
 		return
+	var ob := false   # --obnames=a,b,…：干员数据帧条（ob_fx strip，帧条后半段换颗粒的对照，docs/138 §11）
 	for a in Cfg.dev_args():
 		if a.begins_with("--materialnames="):
 			names = Array(a.substr(16).split(","))
+		if a.begins_with("--obnames="):
+			names = Array(a.substr(10).split(","))
+			ob = true
 	var group: int = tick / 32
 	var frame: int = tick % 32
 	if group >= (1 if Cfg.dev_args().has("--materialmovie-fire") else names.size()):
@@ -36,10 +40,17 @@ func _process(_dt: float) -> void:
 		g.fx.clear()
 		pool.step(2.0)
 		var previous: bool = pool.off
-		pool.off = true
-		g.vfx.fx_sprite(names[group], g.ppos + Vector2(-90, -50), g.PX)
-		pool.off = false
-		g.vfx.fx_sprite(names[group], g.ppos + Vector2(90, -50), g.PX)
+		if ob:
+			for k in 2:
+				var nm: String = names[group]
+				var spec: Array = g.V6_FRAMES[nm]
+				g.ch.fx({"kind": "strip", "name": nm, "pos": g.ppos + Vector2(-110 if k == 0 else 110, -40), "life": float(spec[0]) / float(spec[1]), "sc": g.PX, "col": Color.WHITE,
+					"ang": 0.0, "anc": Vector2(-1, -1), "no_fade": false, "fr": int(spec[0]), "fps": float(spec[1]), "loop": false, "ph": 0, "floor": false, "add": false, "mat_skip": k == 0})
+		else:
+			pool.off = true
+			g.vfx.fx_sprite(names[group], g.ppos + Vector2(-90, -50), g.PX)
+			pool.off = false
+			g.vfx.fx_sprite(names[group], g.ppos + Vector2(90, -50), g.PX)
 		pool.off = previous
 		print("MATERIAL_MOVIE %s grains=%d" % [names[group], pool.pos.size()])
 	if frame < 24:
