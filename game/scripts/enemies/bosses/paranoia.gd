@@ -173,7 +173,8 @@ func absorb_damage(e: Dictionary, dmg: float) -> bool:
 	dmg = minf(dmg, room)
 	e.shell_room = room - dmg
 	e.shell_hp -= dmg
-	e.flash = 0.08
+	if dmg > 0.0:
+		g.vfx.boss_hit_flash(e, g.t)   # 壳面白闪与本体共用限频（docs/137）；零壳伤不闪
 	if e.shell_hp <= 0.0:
 		paranoia_hatch(e, true)
 	return true

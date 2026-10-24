@@ -312,6 +312,66 @@ func _rec_step() -> void:
 			g.get_tree().quit()
 
 
+## --flashrec=<起始秒>,<帧数>[,<宽>]（docs/137 Boss 频闪测量，配 --balance --realtime --fixed-fps 30）：游戏时间过了起始秒后每帧
+## 存一张缩到 <宽>（缺省 480）的 fr_<帧>.png 到 --shotdir，并在同目录 flashrec.csv 记同一帧的画面状态（Boss 白闪 / 阶段 / 茧、
+## 震屏、全屏闪光、顿帧、命中星、预警数、登场演出），tools/boss_flash_measure.py 统计亮度跳变。
+## --flashspawn=<boss>[2|_cocoon]：第 20 帧在主控旁刷出该 Boss（二阶段加 2，同 --bosstest；paranoia_cocoon 直接结茧），但时间照常走、自测不扣 Boss 血
+var _fr_t0 := -2.0
+var _fr_left := 0
+var _fr_w := 480
+var _fr_i := 0
+var _fr_csv: FileAccess = null
+var _fr_spawn := ""
+func _flashrec_step() -> void:
+	if _fr_t0 < -1.0:
+		_fr_t0 = -1.0
+		for a in Cfg.dev_args():
+			if a.begins_with("--flashrec="):
+				var p: PackedStringArray = a.substr(11).split(",")
+				_fr_t0 = float(p[0])
+				_fr_left = int(p[1])
+				if p.size() > 2:
+					_fr_w = int(p[2])
+			if a.begins_with("--flashspawn="):
+				_fr_spawn = a.substr(13)
+	if _fr_spawn != "" and g.at_frames == 20:
+		var b: Dictionary = g.spawner.spawn_enemy(_fr_spawn.trim_suffix("2").trim_suffix("_cocoon"), g.ppos + Vector2(230, -40))
+		b.age = 5.0
+		if _fr_spawn.ends_with("2"):
+			g.bai.setup_preview_phase2(b)
+		if _fr_spawn.ends_with("_cocoon"):
+			g.bai.boss(b.type).paranoia_cocoon(b)   # 泡影茧（外壳白闪 +「抵抗」）
+		g.bosses.append(b)
+		g.boss = b
+		if g.final_boss == null and g.spawner.is_final_boss_type(b.type):
+			g.final_boss = b
+	if _fr_t0 < 0.0 or _fr_left <= 0 or g.t < _fr_t0 or DisplayServer.get_name() == "headless":
+		return
+	if _fr_csv == null:
+		_fr_csv = FileAccess.open(g.shot_dir + "/flashrec.csv", FileAccess.WRITE)
+		_fr_csv.store_line("i,frame,t,state,boss,hp,phase,cocoon,bflash,shake,gflash,hitstop,hstar,warns,intro,bx,by,br")
+	var img: Image = g.get_viewport().get_texture().get_image()
+	img.resize(_fr_w, int(_fr_w * img.get_height() / float(img.get_width())), Image.INTERPOLATE_BILINEAR)
+	img.save_png(g.shot_dir + "/fr_%05d.png" % _fr_i)
+	var bb = g.final_boss if g.final_boss != null else (g.bosses[0] if not g.bosses.is_empty() else null)
+	var hs := 0
+	for f in g.fx:
+		if f.get("kind", "") == "hstar":
+			hs += 1
+	var vs: Vector2 = g.get_viewport().get_visible_rect().size
+	var bs: Vector2 = (g.get_canvas_transform() * (bb.pos as Vector2)) / vs if bb != null else Vector2(-1, -1)
+	var brr: float = float(bb.get("r", 0.0)) * g.get_canvas_transform().get_scale().y / vs.y if bb != null else 0.0
+	_fr_csv.store_line("%d,%d,%.4f,%d,%s,%.0f,%d,%.3f,%.3f,%.3f,%.3f,%.3f,%d,%d,%d,%.4f,%.4f,%.4f" % [_fr_i, g.at_frames, g.t, g.state,
+		bb.type if bb != null else "", bb.hp if bb != null else 0.0, int(bb.get("phase", 0)) if bb != null else 0,
+		float(bb.get("cocoon_t", 0.0)) if bb != null else 0.0, float(bb.get("flash", 0.0)) if bb != null else 0.0,
+		g.shake, g.flash, g.hitstop, hs, g.warns.size(), 0 if g.boss_intro.cur.is_empty() else 1, bs.x, bs.y, brr])
+	_fr_i += 1
+	_fr_left -= 1
+	if _fr_left == 0:
+		_fr_csv.close()
+		g.get_tree().quit()
+
+
 ## --optab=N / --optmask=位 / --optold=位（docs/50 §11，仅测试）：每 N 帧在新 / 旧实现之间轮换 g.opt_old（只在真实步长段轮换）；
 ## --perf 分 /new /old 两桶
 var _optab := -1
@@ -393,6 +453,7 @@ func step() -> void:
 	if g.mode == g.Mode.BALANCE and g.t >= sfx_win_t + 30.0 and Cfg.dev_args().has("--sfxstat"):
 		_sfx_win()
 	_rec_step()
+	_flashrec_step()
 	_cmd_step()
 	_opt_ab()   # 在 --perf 采样之后轮换：采样记的是上一帧所走的实现
 	Dc.ab_step(g.at_frames)   # --clutterab=N：每 N 帧在降噪 0 档与当前档之间轮换（--perf 分 /d0 /dN 两桶）
@@ -957,7 +1018,7 @@ func step() -> void:
 	if g.at_frames % 1200 == 0:
 		print("t=%d lv=%d E%d hp=%d enemies=%d mires=%d kills=%d lamp=%d growth=%s relics=%s squad=%s fps=%d" % [g.t, g.level, g.ch.elite, g.hp, g.enemies.size(), g.mires.size(), g.kills, g.lamp, g.growth, g.relics, g.squad.ops.map(func(o): return "%s%d/%d" % [o.id, o.elite, o.prog]), Engine.get_frames_per_second()])
 	for bb in g.bosses:
-		if not bb.dead and not bb.invuln and not bosstest:
+		if not bb.dead and not bb.invuln and not bosstest and _fr_spawn == "":
 			bb.hp -= 4.0 if bosstest else 40.0
 			if bb.hp <= 0.0:
 				g.combat.kill(bb)

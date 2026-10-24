@@ -545,6 +545,8 @@
   "flash_group": 6,
   "flash_group_floor": 0.35,
   "flash_boss": 0.5,
+  "boss_flash_gap": 0.4,
+  "boss_flash_t": 0.09,
   "squash_basic": 0.14,
   "squash_dot": 0.08,
   "squash_skill": 0.18,
