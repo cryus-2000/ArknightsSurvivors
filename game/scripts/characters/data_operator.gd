@@ -979,7 +979,24 @@ func follow_target(slot_pos: Vector2) -> Vector2:
 	return p if p != Vector2.INF else slot_pos
 
 
-## 指挥模式突击（docs/114）：近战按 blocks.follow.gap 贴身；普攻带 range 的远程站到射程 × command/range_k
+## 指挥走位按攻击方式分近远程；医疗 / 辅助的 command.roam:false 仍保持随行。
+func cmd_role() -> String:
+	return "ranged" if str(cur_attack().get("shape", "")) in ["projectile", "shell", "bolt", "cannon", "point_aoe", "foxfire", "lantern"] else "melee"
+
+
+func cmd_attack_range() -> float:
+	var a: Dictionary = cur_attack()
+	if str(a.get("shape", "")) == "circle" and str(a.get("center", "")) == "front":
+		return ObCore.shape_radius(self, a)
+	if a.has("range"):
+		return float(a.range) * stat(&"op_range")
+	if a.has("len"):
+		return float(a.len) * stat(&"op_range")
+	if a.has("r"):
+		return ObCore.shape_radius(self, a)
+	return super()
+
+
 func cmd_reach() -> float:
 	var fw: Dictionary = B.get("follow", {})
 	if fw.has("gap"):

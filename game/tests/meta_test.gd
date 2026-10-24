@@ -1,5 +1,5 @@
 extends Node
-## 认知塑造单元测试（docs/109 §4，check.py 场景回归 meta）：节点数据完整（总量 665、前置存在、推荐顺序覆盖全部节点）、
+## 认知塑造单元测试（docs/109 §4，check.py 场景回归 meta）：节点数据完整（总量 609、前置存在、推荐顺序覆盖全部节点）、
 ## 推荐点法按预算点（前置 / 大节点门槛 / 余额）、--meta=full 点满、测试局缺省不带局外成长。
 const Meta = preload("res://scripts/core/meta.gd")
 const Pack = preload("res://scripts/core/cloud_pack.gd")
@@ -39,7 +39,7 @@ func _ready() -> void:
 func run() -> void:
 	var nodes := Meta.nodes()
 	check(nodes.size() >= 25, "节点数 %d" % nodes.size())
-	check(Meta.total_cost() == 665, "总量应为 665，实为 %d" % Meta.total_cost())
+	check(Meta.total_cost() == 609, "总量应为 609，实为 %d" % Meta.total_cost())
 	var order: Array = Meta.data().get("order", [])
 	for id in nodes:
 		check(order.has(id), "推荐顺序缺 " + id)
@@ -49,16 +49,16 @@ func run() -> void:
 		check(nd.has("name") and nd.has("desc") and int(nd.get("cost", 0)) > 0, "%s 缺名字 / 说明 / 价格" % id)
 	check(Meta.shape_for(0).is_empty(), "预算 0 不点")
 	var full := Meta.shape_for(Meta.total_cost())
-	check(full.size() == nodes.size() and Meta.spent(full) == 665, "满预算应点满：%d 个 / %d" % [full.size(), Meta.spent(full)])
-	for b in [30, 75, 150, 220, 360, 559, 664]:
+	check(full.size() == nodes.size() and Meta.spent(full) == 609, "满预算应点满：%d 个 / %d" % [full.size(), Meta.spent(full)])
+	for b in [30, 75, 150, 220, 360, 540, 608]:
 		var sh := Meta.shape_for(b)
 		check(Meta.spent(sh) <= b, "预算 %d 超支 %d" % [b, Meta.spent(sh)])
 		for id in sh:
 			var nd: Dictionary = nodes[id]
 			if nd.has("req"):
 				check(sh.has(str(nd.req)), "预算 %d：%s 没有前置 %s" % [b, id, nd.req])
-	check(Meta.shape_for(40).has("sh1"), "推荐点法第一个应是危机感Ⅰ")
-	check(not Meta.shape_for(40).has("atk2"), "预算 40 只点危机感Ⅰ")
+	check(Meta.shape_for(35).has("sh1"), "推荐点法第一个应是危机感Ⅰ")
+	check(not Meta.shape_for(35).has("atk1"), "预算 35 只点危机感Ⅰ")
 	check(Meta.run_shape().is_empty(), "测试局缺省不带局外成长")
 	# 生机细胞（§3.1）
 	Cfg.meta_earned = {}
@@ -68,24 +68,24 @@ func run() -> void:
 	var fg := FakeG.new()
 	fg.t = 400.0
 	var r := Meta.run_reward(fg, false)
-	check(r.base == 66 and r.cells == 8 and r.bounty == 0, "撤离 6:40 无 Boss：%s" % [r])
+	check(r.base == 66 and r.cells == 11 and r.bounty == 0, "撤离 6:40 无 Boss：%s" % [r])
 	fg.t = 640.0
 	fg.tier = 8   # 潮位 8
 	fg.bosses = [{"dead": true}, {"dead": true}, {"dead": true}]
 	fg.final_boss = fg.bosses[2]
 	fg.ending_new = true
 	r = Meta.run_reward(fg, true)
-	check(r.base == 200 and r.score == 320 and r.bounty == 13 and r.cells == 53, "Ⅷ 首通 + 新结局：%s" % [r])
+	check(r.base == 200 and r.score == 320 and r.bounty == 13 and r.cells == 66, "Ⅷ 首通 + 新结局：%s" % [r])
 	Meta.on_run_end(fg, true)
-	check(Meta.earned_total() == 53 and Cfg.meta_bounty.has(8) and fg.meta_result.cells == 53, "局终记账 %s" % [Cfg.meta_earned])
+	check(Meta.earned_total() == 66 and Cfg.meta_bounty.has(8) and fg.meta_result.cells == 66, "局终记账 %s" % [Cfg.meta_earned])
 	r = Meta.run_reward(fg, true)
 	check(r.bounty == 0, "同一潮位第二次通关没有首通赏金")
-	check(Meta.buy("sh1") and Meta.available() == 13, "点危机感Ⅰ（40）后余额 13，实为 %d" % Meta.available())
+	check(Meta.buy("sh1") and Meta.available() == 31, "点危机感Ⅰ（35）后余额 31，实为 %d" % Meta.available())
 	check(not Meta.buy("atk2"), "没点攻击性Ⅰ不能点攻击性Ⅱ")
 	Meta.buy_recommended()
 	check(Meta.available() >= 0 and Meta.available() < 5, "推荐点完余额 %d" % Meta.available())
 	Meta.reset()
-	check(Cfg.meta_shape.is_empty() and Meta.available() == 53, "重置后全部退回")
+	check(Cfg.meta_shape.is_empty() and Meta.available() == 66, "重置后全部退回")
 	# 云存档合并
 	var a := {"earned": {"d1": 100, "d2": 30}, "bounty": [0], "shape": {"sh1": true}, "t": 10}
 	var b := {"earned": {"d1": 80, "d3": 50}, "bounty": [4], "shape": {"atk1": true}, "t": 20}

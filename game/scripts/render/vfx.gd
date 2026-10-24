@@ -121,7 +121,121 @@ func contact(oid: String, e: Dictionary, origin: Vector2, source := "") -> void:
 const WEAK_SPARK := {"物理": Color(1.0, 0.75, 0.3), "法术": Color(0.7, 0.55, 1.0)}
 var _break_fx_at := {}
 
-func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}) -> void:
+## 特效第 2 步（10-23 用户定）：普攻命中统一「轻 / 中 / 重」三档模板（fx/hit_tiers，缺省 1；0 = 旧样子）。
+## 分档：单发伤害相对该干员普攻基准（按干员滑动平均，暴击 / 弱点不进基准）< fx/hit_mid（1.2）倍轻、< fx/hit_heavy（2.5）倍中、
+## 以上或暴击 / 弱点重；召唤物、追加打击（follow_up / aftershock）一律轻。只认带 basic 标签的普攻与召唤物，技能 / 持续伤害照旧。
+## 每档：迸溅颗粒 fx/hit_n（3 / 6 / 12，干员本色）、白闪时长、命中闪光大小与亮度、顿帧（轻 0 / 中 fx/hit_pause_m / 重 fx/hit_pause_h，
+## 走 impact_pause 的共享限频）、命中音（三档音量 / 音高，Sfx 自带限流）。纯画面：粒子用 g.vrng / GPU，不碰模拟随机数，TRACE 不变
+var _hit_base := {}   # 干员 id → 普攻单发伤害基准
+var tier_off := false   # --tierab 同局轮换：true = 这一段按旧样子（不分档）
+var _tier_force := -2   # --hittier=N 截图对照：普攻一律按第 N 档；-1 = 不强制（-2 = 还没读参数）
+var _open_arcs := {}    # 干员 id → 这一帧刚画的刀光（同帧命中按三档更新它的粗细亮度）
+var arc_dbg := -1       # --arcdbg：刀光旁边再画判定圈与扇形边（核对用）
+
+
+## 近战刀光（character.arc_targets 调）：同一干员同一模拟时刻同一判定只画一道；粗细亮度先按轻档，命中后由 hit_react 升档
+func melee_arc(o, origin: Vector2, ang: float, half: float, radius: float) -> void:
+	if tier_off or Bal.v("fx/melee_arc", 1.0) <= 0.0 or g.fx.size() > 420:
+		return
+	var key: String = str(o.id)
+	var prev = _open_arcs.get(key)
+	if prev != null and float(prev.t) == g.t and (prev.org as Vector2).distance_to(origin) < 1.0 and absf(float(prev.r) - radius) < 0.5 and absf(float(prev.half) - half) < 0.01 and absf(angle_difference(float(prev.ang), ang)) < 0.01:
+		return
+	var c: Color = o.col()
+	var mx: float = maxf(c.r, maxf(c.g, c.b))
+	if mx > 1.0:
+		c = Color(c.r / mx, c.g / mx, c.b / mx)
+	# 跟着挥刀走（10-24 用户「近战刀光跟着挥刀的动作走」）：时长 = 这名干员出手帧之后剩余动作的六成（夹在 fx/melee_arc_life 与 0.22 秒之间），
+	# 刀光从挥刀起点一侧扫到另一侧；起点取屏幕上更高的那一端（自上而下劈），全圆（旋身斩）按朝向转一圈
+	var life: float = clampf((float(o.attack_dur) - float(o.attack_fire_at)) * 0.6, Bal.v("fx/melee_arc_life", 0.12), 0.22)
+	var sdir := 1.0
+	if half >= PI - 0.01:
+		sdir = 1.0 if float(o.face) >= 0.0 else -1.0
+	elif sin(ang + half) < sin(ang - half):
+		sdir = -1.0   # +half 那一端更高：从 +half 扫向 −half
+	if arc_dbg < 0:
+		arc_dbg = 1 if Cfg.dev_args().has("--arcdbg") else 0
+	if arc_dbg == 1:
+		life *= 5.0   # 核对截图：刀光多留一会儿，和判定圈叠在一起好看清
+	# off：判定原点相对干员脚底的偏移，绘制时按干员当前位置算（移动攻击时刀光跟着人走）；org 只用于同帧去重
+	if half >= PI - 0.01:
+		ang = 0.0 if float(o.face) >= 0.0 else PI   # 360° 判定没命中时朝面向画（命中后改朝被打中的敌人）
+	var f := {"kind": "marc", "pos": origin, "org": origin, "op": key, "off": origin - (o.pos as Vector2), "sdir": sdir,
+		"ang": ang, "half": half, "r": radius, "col": c, "tier": 1, "life": life, "max": life, "t": g.t}
+	g.fx.append(f)
+	_open_arcs[key] = f
+
+
+## ① 光学新击杀：刚加进 g.fx 的死亡帧条按帧等比加快（普通 ≤ fx/death_max、精英 ≤ fx/death_max_elite、Boss 不变），
+## 并挂上「播完那一刻按最后一帧碎成像素碎屑」（vfx.update → _shatter → optical_particles.kill_burst_frame）。返回是否挂上
+func death_shatter(e: Dictionary, name: String, origin: Vector2, sc: float, anchor: Vector2) -> bool:
+	if g.fx.is_empty() or g.fx[-1].get("name", "") != name:
+		return false
+	var f: Dictionary = g.fx[-1]
+	var spec: Array = Game.V6_FRAMES[name]
+	var cap: float = 99.0 if e.get("boss", false) else (Bal.v("fx/death_max_elite", 0.5) if e.get("elite", false) else Bal.v("fx/death_max", 0.3))
+	var k: float = maxf(1.0, float(f.max) / maxf(0.05, cap))
+	f.fps = float(spec[1]) * k
+	f.max = float(f.max) / k
+	f.life = f.max
+	f.shatter = {"e": e, "origin": origin, "sc": sc, "anchor": anchor, "frame": int(spec[0]) - 1, "flip": f.get("flip", false)}
+	return true
+
+
+func _shatter(f: Dictionary) -> void:
+	var s: Dictionary = f.shatter
+	f.erase("shatter")
+	if g.optical_on and g.optical.particles != null:
+		g.optical.particles.kill_burst_frame(s.e, f.name, s.frame, s.origin, s.sc, s.anchor, s.flip)
+
+
+## ② 开火微震（用户 10-24）：只给队长自己的普攻按命中档轻 0 / 中 fx/kick_px2 / 重 fx/kick_px3 美术像素，fx/kick_t 秒内阶梯回位；
+## 写 world.leader_kick（只进 cam.offset，不动 cam.position、不进模拟）；同一帧多段命中取最大档；「减少动态效果」开时不震
+func _leader_kick(h: Dictionary, e: Dictionary, tier: int) -> void:
+	if tier < 2 or Cfg.reduce_motion or Bal.v("fx/leader_kick", 1.0) <= 0.0 or g.ch == null or str(h.get("op", "")) != str(g.ch.id):
+		return
+	var px: int = Bal.vi("fx/kick_px3", 2) if tier == 3 else Bal.vi("fx/kick_px2", 1)
+	g.world.kick(((e.pos as Vector2) - g.ppos), px, Bal.v("fx/kick_t", 0.06))
+
+
+func hit_tier(h: Dictionary, dmg: float, crit: bool, weak: bool) -> int:
+	if tier_off or Bal.v("fx/hit_tiers", 1.0) <= 0.0:
+		return 0
+	if _tier_force == -2:
+		_tier_force = -1
+		for a in Cfg.dev_args():
+			if a.begins_with("--hittier="):
+				_tier_force = clampi(int(a.substr(10)), 1, 3)
+	var tags: Array = h.get("tags", [])
+	if "dot" in tags:
+		return 0
+	var summon: bool = h.get("emitter", "") == "summon"
+	if not summon and not ("basic" in tags):
+		return 0
+	if _tier_force > 0:
+		return _tier_force
+	if summon or "follow_up" in tags or "aftershock" in tags:
+		return 1
+	var key: String = str(h.get("op", "")) if str(h.get("op", "")) != "" else str(h.get("src", ""))
+	var base: float = float(_hit_base.get(key, dmg))
+	if not (crit or weak):
+		_hit_base[key] = lerpf(base, dmg, 0.08)
+	var ratio: float = dmg / maxf(base, 0.001)
+	if crit or weak or ratio >= Bal.v("fx/hit_heavy", 2.5):
+		return 3
+	if ratio >= Bal.v("fx/hit_mid", 1.2):
+		return 2
+	return 1
+
+
+func _op_col(h: Dictionary) -> Color:
+	var o = g.squad.get_op(str(h.get("op", ""))) if g.squad != null and str(h.get("op", "")) != "" else null
+	var c: Color = o.col() if o != null else Color(0.8, 0.95, 1.0)
+	var mx: float = maxf(c.r, maxf(c.g, c.b))
+	return Color(c.r / mx, c.g / mx, c.b / mx) if mx > 1.0 else c
+
+
+func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg := 0.0) -> void:
 	var h: Dictionary = hd if not hd.is_empty() else g.hit   # combat.damage 显式传这一下的描述符（docs/101 B7 ⑤）
 	var dot: bool = "dot" in h.get("tags", [])
 	var skill: bool = h.get("origin", "") == "skill" and not dot
@@ -136,9 +250,21 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}) -> vo
 		sq = maxf(sq, Bal.v("fx/squash_skill", 0.18))
 	if brk and not dot:
 		fl = maxf(fl, Bal.v("fx/flash_break", 0.14))
+	var tier: int = hit_tier(h, dmg, crit, weak)
+	if tier > 0:
+		fl = maxf(fl, [0.0, 0.06, 0.09, 0.13][tier])
 	e.flash = maxf(float(e.get("flash", 0.0)), fl)
 	e.squash = maxf(float(e.get("squash", 0.0)), sq)
-	if g.optical_on and g.optical.particles != null and not dot:
+	if tier > 0:
+		_tier_fx(e, h, tier)
+		_leader_kick(h, e, tier)
+		var arc = _open_arcs.get(str(h.get("op", "")))
+		if arc != null and float(arc.t) == g.t:
+			arc.tier = maxi(int(arc.tier), tier)   # 同一挥砍里打出的最高档决定刀光粗细亮度
+			if float(arc.half) * 2.0 > deg_to_rad(Bal.v("fx/melee_arc_span", 105.0)) and not arc.get("aimed", false):
+				arc.ang = ((e.pos as Vector2) - (arc.org as Vector2)).angle()   # 宽扇形 / 360°：月牙只画在第一个被打中的敌人那一侧
+				arc.aimed = true
+	elif g.optical_on and g.optical.particles != null and not dot:
 		g.optical.particles.hit_spark(e.pos + Vector2(0, -e.r * 0.6), Color(1.0, 0.95, 0.85) if not (crit or weak) else Color(1.0, 0.8, 0.35))   # 光学观感原型：命中迸溅（限频，纯画面）
 	# 受击后坐（docs/53，纯画面）：本体沿「远离主控」的方向顶开 fx/recoil_px，fx/recoil_t 秒内回位；技能 / 暴击 / 弱点 ×fx/recoil_skill_k。
 	# 只写 rc_at / rc_dir / rc_k 三个字段，位移在 render/world.gd 的 _eoff 里按 g.t 算（缓存路径和原路径同一个表达式，不进签名）。
@@ -148,6 +274,16 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}) -> vo
 		e.rc_dir = d.normalized() if d.length_squared() > 1.0 else Vector2(1.0, 0.0)
 		e.rc_at = g.t
 		e.rc_k = Bal.v("fx/recoil_skill_k", 1.6) if (skill or crit or weak) else 1.0
+		# ③ 分档后坐（用户 10-24）：三档普攻按 轻 fx/recoil_px1 / 中 fx/recoil_px2 / 重 fx/recoil_px3 美术像素顶开、fx/recoil_tier_t 秒回弹（只挪画面）
+		if tier > 0:
+			var tpx: float = [0.0, Bal.v("fx/recoil_px1", 2.0), Bal.v("fx/recoil_px2", 3.0), Bal.v("fx/recoil_px3", 5.0)][tier]
+			e.rc_k = tpx * Game.PX / maxf(0.01, g.world.rc_px)
+			e.rc_t = Bal.v("fx/recoil_tier_t", 0.08)
+		else:
+			e.erase("rc_t")
+		# 重击真实击退（开关 fx/heavy_knockback，缺省 0 = 关；开了会改玩法）：重档普攻沿远离队长方向加击退速度
+		if tier == 3 and Bal.v("fx/heavy_knockback", 0.0) > 0.0 and not e.get("elite", false):
+			g.enemies_sys.apply_kb(e, e.rc_dir * Bal.v("fx/heavy_knockback", 0.0))   # 统一入口（cc_lint）：含失重倍率
 	if (e.pos as Vector2).distance_to(g.ppos) > 700.0 or g.fx.size() > 380:
 		return
 	var head: Vector2 = e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6)
@@ -166,12 +302,37 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}) -> vo
 		impact_pause(Bal.v("fx/break_pause", 0.035))
 
 
+## 三档命中的画面 / 声音（hit_tier 定档后调；远处 / 特效过多时只留白闪）
+func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
+	if tier >= 2:
+		impact_pause(Bal.v("fx/hit_pause_h", 0.03) if tier == 3 else Bal.v("fx/hit_pause_m", 0.014))
+	Sfx.play("hit", [0.0, -17.0, -12.0, -8.0][tier], [1.0, 1.25, 1.05, 0.85][tier])
+	if (e.pos as Vector2).distance_to(g.ppos) > 700.0 or g.fx.size() > 380:
+		return
+	var col: Color = _op_col(h)
+	var head: Vector2 = e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6)
+	var n: int = [0, Bal.vi("fx/hit_n1", 3), Bal.vi("fx/hit_n2", 6), Bal.vi("fx/hit_n3", 12)][tier]
+	if g.optical_on and g.optical.grains != null and g.optical.grains.on() and not g.optical.grains.off:
+		g.optical.grains.spark(head, (e.pos as Vector2).y + float(e.get("r", 12.0)) * 0.8, col, n)   # 刀光第四版：带重力、落到脚底高度停住冷却的火星（docs/136）
+	elif g.optical_on and g.optical.particles != null:
+		g.optical.particles.tier_burst(head, col, tier)   # GPU 颗粒（池化、局部预算、中画质减半）
+	else:
+		sparks(head, Vector2.ZERO, col, n, [0.0, 90.0, 140.0, 200.0][tier])
+	if tier >= 2:
+		var k: float = 1.3 if tier == 2 else 1.7
+		glow(head, [0.0, 6.0, 10.0, 16.0][tier], Color(col.r * k, col.g * k, col.b * k, 0.8), [0.0, 0.06, 0.09, 0.14][tier])
+		# 像素命中星（中 4 臂、重 8 臂，2 px 线、亮芯，三阶跳着消失）：小颗粒在后期满屏时读不出档位，靠它分轻重
+		var sl: float = [0.0, 0.0, 0.08, 0.13][tier]
+		g.fx.append({"kind": "hstar", "pos": head.round(), "r": [0.0, 0.0, 8.0, 14.0][tier], "col": col, "n": 4 if tier == 2 else 8, "life": sl, "max": sl})
+
+
 ## 击杀爆点按体型分档（docs/53，combat.kill 调用；纯画面 + 音效，粒子用 g.vrng，不碰 g.rng）：
 ## - 火花数 = fx/kill_sparks + e.r × fx/kill_sparks_per_r，速度随体型略增；冲击环照旧 e.r × 1.2
 ## - 大体型（e.r ≥ fx/kill_big_r）：再加一圈慢扩散的外环 + 脚下尘土 + 材质层音（甲壳 fx/kill_shell_sfx = kill_shell，其余 fx/kill_big_sfx = kill_big）
 ## - 击杀音 kill 的音高按体型降（fx/kill_pitch_r：r 越大越低），同屏一片小怪倒下时也听得出大小
 ## - 顿帧：大体型或暴击击杀 impact_pause(fx/kill_pause)，走共享预算（0.28 秒最多一次，受「命中顿帧」设置）
-func kill_burst(e: Dictionary, col: Color, crit: bool) -> void:
+## lean：光学观感新击杀（combat.kill，render/kill_style）——只留击杀音、材质层音与顿帧，火花 / 冲击环 / 尘土交给像素碎屑
+func kill_burst(e: Dictionary, col: Color, crit: bool, lean := false) -> void:
 	var r: float = float(e.get("r", 12.0))
 	var rb: float = r / float(e.get("sc", 1.0))   # 怪物体型（spawner.escale）放大的按原体型判大小 / 火花数 / 音高 / 顿帧，爆点环按实际半径
 	var big: bool = rb >= Bal.v("fx/kill_big_r", 20.0)
@@ -181,14 +342,16 @@ func kill_burst(e: Dictionary, col: Color, crit: bool) -> void:
 	var plain: bool = not big and not e.get("elite", false) and not e.get("boss", false)
 	if plain:
 		n = maxi(1, int(round(n * Dc.at("kill_k", g.world.dcrowd))))
-	sparks(e.pos, Vector2.ZERO, col, n, 160.0 + r * 3.0)
-	if not plain or Dc.p("kill_ring") > 0.0 or g.world.dcrowd < 0.5:
+	if not lean:
+		sparks(e.pos, Vector2.ZERO, col, n, 160.0 + r * 3.0)
+	if not lean and (not plain or Dc.p("kill_ring") > 0.0 or g.world.dcrowd < 0.5):
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 1.2, "life": 0.18, "max": 0.18, "col": col, "op_hit": true})
 	var pitch: float = clampf(1.15 - rb / maxf(1.0, Bal.v("fx/kill_pitch_r", 60.0)), 0.75, 1.15)
 	Sfx.play("kill", -8.0 + (2.0 if big else 0.0), pitch)
 	if big:
-		g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 2.0, "life": 0.3, "max": 0.3, "col": Color(col.r, col.g, col.b, 0.6), "op_hit": true})
-		ground_dust(e.pos + Vector2(0, r * 0.6), r * 0.9, 7)
+		if not lean:
+			g.fx.append({"kind": "ring", "pos": e.pos, "r": r * 2.0, "life": 0.3, "max": 0.3, "col": Color(col.r, col.g, col.b, 0.6), "op_hit": true})
+			ground_dust(e.pos + Vector2(0, r * 0.6), r * 0.9, 7)
 		var shell: bool = HIT_SHELL.has(e.get("type", ""))
 		var fxs: Dictionary = Bal.sec("fx")
 		var layer: String = str(fxs.get("kill_shell_sfx", "hit")) if shell else str(fxs.get("kill_big_sfx", "mire_splat"))
@@ -430,6 +593,8 @@ func update(dt: float) -> void:
 	g.xp_flash = maxf(0.0, g.xp_flash - dt * 3.0)
 	for f in g.fx:
 		f.life -= dt
+		if f.has("shatter") and f.life <= 0.0:
+			_shatter(f)
 		if f.kind == "spark" or f.kind == "shard":
 			f.pos += f.vel * dt
 			f.vel *= 0.9
@@ -608,7 +773,7 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 	elif anchor_px.x >= 0.0:
 		f["anchor"] = anchor_px * A.hires_of(g.tex[name])
 	g.fx.append(f)
-	if g.optical_on and g.optical.fx1 and not ground:
+	if g.optical_on and g.optical.fx1 and not ground and g.optical.particles != null and not name.ends_with("_death"):   # 死亡帧条不喷（docs/130 C1：击杀吃掉技能火星的限频）
 		g.optical.particles.fx_burst(name, pos, scale)   # 光学观感 ③：按这条帧条的本色补火星 / 碎片（限频、有上限）
 	return true
 

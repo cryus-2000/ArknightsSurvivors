@@ -80,10 +80,11 @@ func _ready() -> void:
 			o.anim_kind="idle"
 			var idle: Dictionary=o._anim_state_raw()
 			ok(NM.state(o,idle).kind=="idle", "%s no lingering recovery" % id)
-			# Moving after release yields to run without changing the logical clock.
+			# Moving after release: with a move_attack strip (docs/128) the recovery keeps playing as the running
+			# variant (character._move_swap, covered by move_attack_test); without one it yields to run. Logical clock unchanged.
 			o.attack_t=duration*0.1
 			o.mv=100.0
-			ok(o.act_anim_yield(), "%s moving recovery yields" % id)
+			ok(o.act_anim_yield() == (o.anim_tex("move_" + o.act_anim) == null), "%s moving recovery yields unless a move_attack strip plays" % id)
 			var before: float=o.attack_t
 			o.anim_kind="run"
 			NM.state(o,o._anim_state_raw())

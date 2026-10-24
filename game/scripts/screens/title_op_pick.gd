@@ -1111,7 +1111,7 @@ func _op_skills(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: b
 		y += rs
 	if sks.size() > op_skill and m.rows[2] >= 1.0:
 		var sk: Dictionary = sks[op_skill]
-		var txt: String = ("队长按 Q 释放；作为队友自动。" if sk.get("mode", "auto") == "manual" else "") + str(sk.get("desc", ""))
+		var txt: String = ("队长按 E 释放；作为队友自动。" if sk.get("mode", "auto") == "manual" else "") + str(sk.get("desc", ""))
 		var room := (box.end.y - y) if ph else maxf(52.0, box.end.y - y - (34.0 if d.has("talent") else 4.0))
 		var f := UI.fit(font, txt, box.size.x - 8.0, room, [11, 10] if not ph else [10, 9])
 		UI.draw_fit(ci, font, Vector2(box.position.x + 2, y - 2), f, UI.B_SUB)

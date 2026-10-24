@@ -10,6 +10,7 @@ extends SceneTree
 ## 每秒记一次屏内敌人数（视口内、不含边距），结束打印 CZ {json}
 var g: Node = null
 var z := 1.0
+var cz_force := false
 var out := "."
 var shots: Array = []
 var rec_t0 := -1.0
@@ -24,13 +25,18 @@ var ab_i := 0
 var frames := 0
 var last_us := 0
 var drawn_z := -1.0   # 上一帧画面用的镜头档
-var buckets := {}     # "z|分钟" -> {ft, rcpu, gpu, on}
+var buckets := {}
+var multi: Array = []     # --cz_multi=100,115,150 --cz_multi_t=180：到点冻结模拟，逐档改设置里的缩放存同一帧
+var multi_t := 180.0
+var multi_i := -1
+var multi_w := 0     # "z|分钟" -> {ft, rcpu, gpu, on}
 
 
 func _initialize() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--cz="):
 			z = float(a.substr(5))
+			cz_force = true
 		elif a.begins_with("--cz_out="):
 			out = a.substr(9)
 		elif a.begins_with("--cz_shots="):
@@ -45,6 +51,11 @@ func _initialize() -> void:
 				ab.append(float(s))
 		elif a.begins_with("--cz_ab_n="):
 			ab_n = int(a.substr(10))
+		elif a.begins_with("--cz_multi="):
+			for v in a.substr(11).split(","):
+				multi.append(int(v))
+		elif a.begins_with("--cz_multi_t="):
+			multi_t = float(a.substr(13))
 		elif a.begins_with("--cz_maxt="):
 			maxt = float(a.substr(10))
 	DirAccess.make_dir_recursive_absolute(out + "/rec")
@@ -104,7 +115,30 @@ func _process(_dt: float) -> bool:
 		z = float(ab[(frames / ab_n) % ab.size()])
 		# 换档后头 5 帧不计（新露出的地面区块首次烘焙）
 		drawn_z = -1.0 if frames % ab_n < 5 else z
-	g.cam.zoom = Vector2(z, z)
+	if not multi.is_empty():
+		if multi_i < 0 and g.t >= multi_t:
+			multi_i = 0
+			Engine.time_scale = 0.0001   # 冻结模拟（固定帧步长 × 比例），画面照常渲染
+			multi_w = 0
+		if multi_i >= 0:
+			var cfg: Node = get_root().get_node("Cfg")
+			if multi_w == 0:
+				cfg.cam_zoom_pct = int(multi[multi_i])
+				cfg.view_changed.emit()
+			multi_w += 1
+			if multi_w >= 12:
+				var fn2 := "%s/multi_%d.png" % [out, int(multi[multi_i])]
+				g.get_viewport().get_texture().get_image().save_png(fn2)
+				print("CZSHOT ", fn2, " zoom=", g.cam.zoom.x, " view_k=", g.optical.view_k if "optical" in g else -1, " t=", g.t)
+				multi_i += 1
+				multi_w = 0
+				if multi_i >= multi.size():
+					Engine.time_scale = 1.0
+					print("CZ ", JSON.stringify({"multi": multi}))
+					quit()
+		return false
+	if cz_force:
+		g.cam.zoom = Vector2(z, z)
 	if not shots.is_empty() and g.t >= float(shots[0]):
 		var fn := "%s/shot_t%04d.png" % [out, int(shots[0])]
 		shots.pop_front()

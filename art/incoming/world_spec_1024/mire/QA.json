@@ -1,0 +1,150 @@
+{
+  "status": "PASS",
+  "assertions": 679071,
+  "opaque_colors_combined": 22,
+  "colors_including_transparency": 23,
+  "original_mean_opaque_luma": 26.253,
+  "variant_different_pixels": 1268,
+  "files": [
+    {
+      "file": "mire_tile.png",
+      "size": [
+        128,
+        64
+      ],
+      "frames": 2,
+      "colors": 22,
+      "alpha": [
+        255
+      ],
+      "opaque_pixels": 8192,
+      "mean_opaque_luma": 26.34,
+      "changed_pixels_between_frames": 289,
+      "sha256": "0c5c8373aaa744ca975dc5bfd74c230691177b2155ed3377122ac1b321dc8ac3"
+    },
+    {
+      "file": "mire_tile_emit.png",
+      "size": [
+        128,
+        64
+      ],
+      "frames": 2,
+      "colors": 7,
+      "alpha": [
+        0,
+        255
+      ],
+      "opaque_pixels": 578,
+      "mean_opaque_luma": 136.794,
+      "changed_pixels_between_frames": 289,
+      "sha256": "0018d89fde21ba9347f9c16284c136730629fe046e72297821d54763f2ecdf8f"
+    },
+    {
+      "file": "mire_tile_b.png",
+      "size": [
+        128,
+        64
+      ],
+      "frames": 2,
+      "colors": 22,
+      "alpha": [
+        255
+      ],
+      "opaque_pixels": 8192,
+      "mean_opaque_luma": 26.353,
+      "changed_pixels_between_frames": 292,
+      "sha256": "189d3abeb40a0e90411e80bdab453617dca2d17de1ea9c35204aab31c7e25fb0"
+    },
+    {
+      "file": "mire_tile_b_emit.png",
+      "size": [
+        128,
+        64
+      ],
+      "frames": 2,
+      "colors": 7,
+      "alpha": [
+        0,
+        255
+      ],
+      "opaque_pixels": 584,
+      "mean_opaque_luma": 135.989,
+      "changed_pixels_between_frames": 292,
+      "sha256": "f7034ead7fe51e486e59ee09c3e6a4a41bfe4b9fd164a07f68949c78d999c913"
+    },
+    {
+      "file": "mire_edge.png",
+      "size": [
+        576,
+        64
+      ],
+      "frames": 2,
+      "colors": 22,
+      "alpha": [
+        0,
+        255
+      ],
+      "opaque_pixels": 7078,
+      "mean_opaque_luma": 26.977,
+      "changed_pixels_between_frames": 273,
+      "sha256": "cbe83b8de611f43d170a0295b7e53fa2962e8734d8d732c7888eefe3eff6eab1"
+    },
+    {
+      "file": "mire_edge_emit.png",
+      "size": [
+        576,
+        64
+      ],
+      "frames": 2,
+      "colors": 7,
+      "alpha": [
+        0,
+        255
+      ],
+      "opaque_pixels": 546,
+      "mean_opaque_luma": 135.316,
+      "changed_pixels_between_frames": 273,
+      "sha256": "1316abde111f617beb4299557d640e3d6aa99787beee7e4088439bdc8caa10c4"
+    }
+  ],
+  "seam_contrast": [
+    {
+      "name": "mire_tile",
+      "frame": 0,
+      "wrap_x": 24.51,
+      "interior_x_p95": 32.354,
+      "wrap_y": 19.698,
+      "interior_y_p95": 26.573
+    },
+    {
+      "name": "mire_tile",
+      "frame": 1,
+      "wrap_x": 27.177,
+      "interior_x_p95": 35.938,
+      "wrap_y": 21.198,
+      "interior_y_p95": 29.25
+    },
+    {
+      "name": "mire_tile_b",
+      "frame": 0,
+      "wrap_x": 24.51,
+      "interior_x_p95": 29.292,
+      "wrap_y": 19.698,
+      "interior_y_p95": 29.74
+    },
+    {
+      "name": "mire_tile_b",
+      "frame": 1,
+      "wrap_x": 27.177,
+      "interior_x_p95": 31.927,
+      "wrap_y": 21.198,
+      "interior_y_p95": 32.323
+    }
+  ],
+  "notes": [
+    "Visual acceptance remains with user.",
+    "Wrap contrast is supporting evidence, not proof of artistic seamlessness.",
+    "Preview images include unchanged 110-color original and text; 32-color limit applies to runtime sprites.",
+    "Engine integration not tested."
+  ]
+}

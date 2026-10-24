@@ -261,7 +261,7 @@ NOCACHE = False
 SCOPES = {}            # {"logic": 哈希, "full": 哈希}，main 里算一次
 CACHE_STAT = {"hit": 0, "miss": 0}
 ASSET_EXT = (".png", ".jpg", ".jpeg", ".webp", ".svg", ".ogg", ".wav", ".mp3", ".ttf", ".otf", ".woff", ".woff2", ".fnt", ".import")
-LOGIC_TAGS = ("冒烟", "自然流程", "nodes_", "prot", "复现", "blocks_eq_")
+LOGIC_TAGS = ("冒烟", "自然流程", "nodes_", "prot", "复现", "blocks_eq_", "manual_all_")
 
 
 def _blobs(rel):
@@ -546,6 +546,28 @@ def check_nodes(godot, only=None):
             bad.append("%s：%s" % (op, "超时" if to else (errs[0][:120] if errs else ("节点行数 %d" % len(lines) if len(lines) != 6 else "选下当场没变化的节点 " + "、".join(empty)))))
     bad_logs = [LOG_DIR and os.path.join(LOG_DIR, "nodes_" + op + ".log") for op, lines, empty, errs, to in res if to or errs or len(lines) != 6 or empty]
     return {"log": "、".join(p for p in bad_logs if p), "name": "成长节点当场生效", "ok": not bad, "detail": "%d 名干员 × 6 节点" % len(ids) if not bad else "%d 名干员有问题" % len(bad), "errors": bad[:6]}
+
+
+def check_manual_all(godot, only=None):
+    """手动普攻全员验收（tests/manual_all_test.tscn，10-24 用户「星熊这种手动的时候攻击打不出来」）：每名干员当队长、打开手动普攻，
+    走真实键盘 / 触屏输入：空按、有敌人、边移动边按、轻点 3 次（有敌人 / 空场）都必须出招（攻击事件 + 动画），有敌人时敌人掉血。
+    only：只测这些干员（--auto 按改动选）"""
+    ids = [o for o in op_ids() if only is None or o in only]
+
+    def one(op):
+        out, err, to, log = _run([godot, "--headless", "--audio-driver", "Dummy", "--path", GAME, "res://tests/manual_all_test.tscn", "--", "--regression", "--balance", "--seed=1", "--op=" + op, "--manualatk"], 600, "manual_all_" + op)
+        fails = re.findall(r"^FAIL: (.*)$", out + chr(10) + err, re.M)
+        return op, ("MANUAL ALL %s failures=0" % op) in out, fails, GR.script_errors(out, err), to
+
+    with ThreadPoolExecutor(max(1, len(ids))) as ex:
+        res = list(ex.map(one, ids))
+    bad = []
+    bad_logs = []
+    for op, passed, fails, errs, to in res:
+        if to or errs or fails or not passed:
+            bad.append("%s：%s" % (op, "超时" if to else (errs[0][:120] if errs else (fails[0][:120] if fails else "没有通过标记"))))
+            bad_logs.append(os.path.join(LOG_DIR, "manual_all_" + op + ".log") if LOG_DIR else "")
+    return {"log": "、".join(p for p in bad_logs if p), "name": "手动普攻全员验收", "ok": not bad, "detail": "%d 名干员 × 6 场景" % len(ids) if not bad else "%d 名干员有问题" % len(bad), "errors": bad[:6]}
 
 
 def check_prot(godot):
@@ -907,6 +929,7 @@ def check_blocks_eq(godot):
 
 # 场景专项回归：默认快检执行全部；--only <key> 可单独复查，仍使用公共日志和错误扫描。
 SCENE_REGRESSIONS = {
+    "command_ai": ("指挥接敌、站定、护主", "command_ai_test", r"COMMAND_AI checks=\d+ failures=0", []),
     "voice_command": ("指挥语音轮换、节流、登场去重", "voice_command_test", r"VOICE COMMAND checks=\d+ failures=0", []),
     "eyja_volcanic_weight": ("熔岩弹连续起落点与浮空持续投弹", "eyja_volcanic_weight_test", r"EYJA VOLCANIC WEIGHT failures=0", ["--balance", "--seed=1", "--op=eyjafjalla", "--route=eyjafjalla:meteor"]),
     "siege_ulpianus_art": ("推进之王与乌尔比安原生美术", "siege_ulpianus_art_test", r"SIEGE ULPIANUS ART failures=0", ["--balance", "--seed=1", "--op=siege", "--squad=ulpianus"]),
@@ -927,6 +950,8 @@ SCENE_REGRESSIONS = {
     "touch_move": ("触屏摇杆移动：桌面 --touch / 手机比例、大 / 负触点编号（iOS Safari）、两指", "touch_move_test", r"TOUCH MOVE: 0 failures", ["--touch"]),
     "touch_layout": ("触屏按键布局：存档往返 / 换比例锚点 / 越界夹进安全区 / 局内按新位置点击 / 编辑页拖动推开调大小 / 选卡让位 / 转屏重算 ui_k", "touch_layout_test", r"TOUCH LAYOUT failures=0", ["--touch"]),
     "economy": ("经济与收藏品上限", "economy_regression", r"ECONOMY REGRESSION: 0 failures", []),
+    "altar_not_target": ("海嗣祭坛不是索敌对象：祭坛在场且无敌人时干员不出手", "altar_not_target", r"ALTAR NOT TARGET: 0 failures", []),
+    "hunt_approach": ("围猎从屏幕外压过来：屏外出生、同速合拢到 260 钉住、提前突围、旧规则不变", "hunt_approach", r"HUNT APPROACH: 0 failures", []),
     "friendly_target": ("中立单位索敌与治疗", "friendly_target_regression", r"FRIENDLY TARGET REGRESSION: 0 failures", []),
     "ishar_p2": ("伊莎玛拉敌对二阶段", "ishar_p2_test", r"ISHAR P2 failures=0", ["--balance", "--bosstest=ishar2"]),
     "enemy_demo": ("图鉴敌人攻击演示", "enemy_demo_test", r"ENEMY DEMO failures=0", []),
@@ -963,6 +988,8 @@ SCENE_REGRESSIONS = {
     "wisadel_cannon": ("维什戴尔炮击", "wisadel_cannon_test", r"WISADEL CANNON failures=0", ["--op=wisadel"]),
     "mon3tr_fx": ("Mon3tr 熔毁效果", "mon3tr_fx_test", r"MON3TR FX failures=0", ["--op=kaltsit"]),
     "relic_impl": ("藏品第二批原语（docs/57）", "relic_impl_test", r"RELIC IMPL failures=0", ["--balance", "--op=siege", "--squad=saria,wisadel"]),
+    "gladiia_hook": ("歌蕾蒂娅钩索把人拉到身前（10-24）", "gladiia_hook_test", r"GLADIIA HOOK failures=0", ["--balance", "--op=gladiia"]),
+    "ulpianus_charge": ("乌尔比安 S3 冲锋：沿途 + 落地伤害（10-24）", "ulpianus_charge_test", r"ULPIANUS CHARGE failures=0", ["--balance", "--op=ulpianus"]),
     "exusiai_blocks": ("能天使积木（docs/61 §14）", "exusiai_blocks_test", r"EXUSIAI BLOCKS failures=0", ["--balance", "--op=exusiai"]),
     "suzuran_skill_anim": ("多条技能帧条 + 循环状态（docs/87 §3.5，铃兰）", "suzuran_skill_anim_test", r"SUZURAN SKILL ANIM failures=0", ["--balance", "--op=suzuran", "--squad=lumen"]),
     "angelina_skill_anim": ("统一技能动画契约（安洁莉娜）", "angelina_skill_anim_test", r"ANGELINA SKILL ANIM failures=0", ["--balance", "--op=angelina", "--squad=lumen"]),
@@ -972,6 +999,7 @@ SCENE_REGRESSIONS = {
     "gladiia_presentation": ("歌蕾蒂娅牵引、水柱锚点与场特效收尾", "gladiia_presentation_test", r"GLADIIA PRESENTATION .* 0 failed", ["--balance", "--op=gladiia"]),
     "operator_transitions": ("全员技能起手、移动接续与强化重锤", "operator_transition_test", r"OPERATOR TRANSITIONS .* 0 failed", ["--balance", "--op=mizuki"]),
     "attack_rhythm": ("20 人确认节奏、攻速压缩、逐帧映射、移动让位与技能接管", "attack_rhythm_test", r"ATTACK RHYTHM .* 0 failed", ["--balance", "--seed=1", "--op=mizuki"]),
+    "move_attack": ("移动攻击：帧条加载、移动中出手换 move_attack 且出手帧对齐、站定不换、收势不被跑步截掉（docs/128）", "move_attack_test", r"MOVE ATTACK \d+ checks, 0 failed", ["--balance", "--seed=1", "--op=mizuki"]),
     "mizuki_skill_anim": ("水月原生像素起手、命中、收势和持续变体", "mizuki_skill_anim_test", r"MIZUKI SKILL ANIM failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
     "settlement": ("结算：历史编队滚动、评级与视觉 RNG", "settlement_test", r"SETTLEMENT failures=0", []),
     "run_stats": ("作战记录：统计守恒（占比合计 100%、来源相加、按干员拆 = dmg_out）+ 界面打开 / 导航 / 桌面与手机排版", "run_stats_test", r"RUN STATS failures=0", ["--balance", "--op=mizuki", "--squad=skadi"]),
@@ -984,9 +1012,9 @@ SCENE_REGRESSIONS = {
                  ["--balance", "--bot=afk", "--nodeath", "--op=hoshiguma", "--squad=wisadel", "--dummy_op=wisadel", "--dummy_role=mate",
                   "--dummy_scene=horde", "--dummy_stage=2", "--dummy_secs=5", "--dummy_warm=2", "--dummy_check"]),
     "tide": ("潮位阶梯 0–15（docs/109 §5）：16 级、锚点 0 / 4 / 8 与旧三档逐键、严格累加", "tide_test", r"TIDE failures=0", []),
-    "meta": ("认知塑造（docs/109 §4）：节点数据完整（总量 665、前置、推荐顺序）、推荐点法按预算点、--meta=full 点满、测试局缺省不带", "meta_test", r"META failures=0", ["--roster=start5"]),
-    "meta_mech": ("认知塑造质变 / 非数值节点（docs/109 §14 v5）：护盾反震、低血回复翻倍、处决、濒死免死、静守、升级再升、开局四选一、免费刷新、首个藏品三选一", "meta_mech_test", r"META MECH checks=\d+ failures=0",
-        ["--balance", "--seed=1", "--op=wisadel", "--metanodes=sh1,reg3,atk5,hp5,def4,xp4,disp1,disp2,disp3"]),
+    "meta": ("认知塑造（docs/109 §4）：节点数据完整（总量 609、前置、推荐顺序）、推荐点法按预算点、--meta=full 点满、测试局缺省不带", "meta_test", r"META failures=0", ["--roster=start5"]),
+    "meta_mech": ("认知塑造质变 / 非数值节点（docs/109 §14 v5）：护盾反震、低血回复翻倍、处决、濒死免死、静守、升级再升、开局四选一、免费刷新、首个藏品三选一、绝处逢生复活", "meta_mech_test", r"META MECH checks=\d+ failures=0",
+        ["--balance", "--seed=1", "--op=wisadel", "--metanodes=sh1,reg3,atk5,hp5,def4,xp4,disp1,disp2,disp3,disp4"]),
     "roster": ("干员解锁（docs/109 §12）：开局 5 人、随机寻访先补齐职业、不重复、定向寻访 2 张、旧券折算、局终 3 / 4 张、满员折细胞、云存档并集", "roster_test", r"ROSTER failures=0", ["--roster=start5"]),
     "save_migrate": ("存档迁移样本（docs/126 R1）：难度 diff_ver 1–5、旧倍速、旧亮度缺省、三种旧券、没有 [roster] 段的老存档", "save_migrate_test", r"SAVE MIGRATE failures=0", []),
     "cloud_save": ("B站云存档：打包 / 分片 / 平台限制 / 校验 / 版本 / 合并规则 / Cfg 往返 / 非网页不启用（docs/89）", "cloud_save_test", r"CLOUD SAVE failures=0", []),
@@ -1102,7 +1130,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "px_lint", "enemy_art"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "manual_all", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "px_lint", "enemy_art"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1163,6 +1191,7 @@ def main():
         if level == "ops":
             jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in smoke_cases() if c[0].split(" · ")[-1] in ops]
             jobs.append(lambda: check_nodes(godot, ops))
+            jobs.append(lambda: check_manual_all(godot, ops))
             jobs.append(lambda: check_repro(godot))
         if level == "full":
             a.auto = False
@@ -1173,6 +1202,8 @@ def main():
             jobs += [(lambda c=c: run_case(godot, c[0], c[1])) for c in smoke_cases()]
         if a.only in (None, "nodes"):
             jobs.append(lambda: check_nodes(godot))
+        if a.only in (None, "manual_all"):
+            jobs.append(lambda: check_manual_all(godot))
         if a.only in (None, "prot"):
             jobs.append(lambda: check_prot(godot))
         if a.only in (None, "repro"):

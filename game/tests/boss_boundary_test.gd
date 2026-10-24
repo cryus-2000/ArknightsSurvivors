@@ -14,6 +14,18 @@ func _ready() -> void:
 	g.zone_c = Vector2(100, 50)
 	g.zone_r = 250.0
 	g.zone_frozen = false
+	# Final arena blocks non-boss mire whose growth touches it; boss shots still leave mire inside.
+	expect(not g.combat.mire_blocked(Vector2(100, 50), 40.0), "no mire exclusion before arena")
+	g.zone_next_c = Vector2(100, 50)
+	g.zone_next_r = 250.0
+	g.zone_frozen = true
+	expect(g.combat.mire_blocked(Vector2(100, 50), 40.0), "arena center rejects mire")
+	expect(g.combat.mire_blocked(Vector2(390, 50), 40.0), "growth touching arena is rejected")
+	expect(not g.combat.mire_blocked(Vector2(391, 50), 40.0), "mire beyond arena stays permitted")
+	g.mires.clear()
+	expect(g.shots._boss_mire_ok({"boss": true, "pos": Vector2(100, 50)}), "boss shot mire allowed inside arena")
+	expect(not g.shots._boss_mire_ok({"boss": true, "pos": Vector2(300, 50)}), "boss shot mire kept off arena edge")
+	g.zone_frozen = false
 	g.ppos = Vector2(1000, 50)
 	for mode in ["walk", "knockback", "charge", "transition"]:
 		g.enemies.clear()

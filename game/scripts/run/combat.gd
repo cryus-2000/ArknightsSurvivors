@@ -623,6 +623,17 @@ func freeze_zone(r: float) -> void:
 	g.zone_state = 3
 	g.zone_t = 0.0
 	g.zone_frozen = true
+	# 场地整理仅作后台规则，不暴露禁生成区域或播放净化演出。
+	var remaining: Array = []
+	for m in g.mires:
+		if not mire_blocked(m.pos, float(m.get("maxr", m.r))):
+			remaining.append(m)
+	g.mires = remaining
+
+
+## 最终 Boss 场地是禁生成圆区；最大半径与圆区相交（含相切）就禁止整片生成。
+func mire_blocked(pos: Vector2, radius: float = 0.0) -> bool:
+	return g.zone_frozen and pos.distance_squared_to(g.zone_next_c) <= pow(maxf(0.0, g.zone_next_r) + maxf(0.0, radius), 2.0)
 
 
 func _arena_step(dt: float) -> void:
@@ -1109,7 +1120,7 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	if e.hits == 0:
 		e["h0"] = g.t   # 首次受击时刻（遥测 kill_hits 的实际 TTK，docs/116 §6）
 	e.hits += 1
-	g.vfx.hit_react(e, g.crit_hit, weak_hit, h)   # 白闪 / 形变 / 命中粒子按普攻、技能、暴击、弱点、破绽分档（纯画面，界面与美术；参数 balance.json fx 段）
+	g.vfx.hit_react(e, g.crit_hit, weak_hit, h, dmg)   # 白闪 / 形变 / 命中粒子按普攻、技能、暴击、弱点、破绽分档（纯画面，界面与美术；参数 balance.json fx 段）
 	# 伤害数字的位置抖动是纯画面，用 g.vrng：飘字数量取决于画面随机数（上面的「无效」），设置里还能关掉伤害数字，
 	# 用 g.rng 会让机器负载 / 玩家设置改变对局随机数（docs/36 §3）
 	if g.crit_hit:
@@ -1171,6 +1182,20 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 			g.pickups.drop(e.pos + Vector2.from_angle(g.rng_drop.randf() * TAU) * g.rng_drop.randf_range(4.0, 18.0), "ingot", 1.0)
 		if g.rng_drop.randf() < 0.3:
 			g.pickups.drop(e.pos + Vector2(10, 6), "oil", 15.0)
+		# 补给箱回血（docs/133，用户 10-24：参照吸血鬼幸存者靠打可破坏道具回血）：箱子里主要是应急补给（回 crate/pack_pct 最大生命，不吃 heal_mult），
+		# 少量磁铁 / 临时护盾；伪装箱形恐鱼（现形）和祭坛不走这里。crate/pack_p 0 = 关（旧行为：只有源石锭 / 灯油）
+		var cpk: float = Bal.v("crate/pack_p", 0.0)
+		if cpk > 0.0:
+			if g.rng_drop.randf() < cpk:
+				g.pickups.drop(e.pos + Vector2(-10, -4), "pack", Bal.v("crate/pack_pct", 0.25))
+				g.pickups.item_log["pack_drop"] += 1
+			if g.rng_drop.randf() < Bal.v("crate/magnet_p", 0.0):
+				g.pickups.drop(e.pos + Vector2(14, -6), "magnet", 1.0)
+			if g.rng_drop.randf() < Bal.v("crate/shield_p", 0.0):
+				g.shield = mini(g.shield + 1, maxi(g.shield_max, 1) + 1)
+				g.shield_pop = 0.4
+				g.vfx.add_text(e.pos + Vector2(0, -30), "护盾 +1", Color(0.55, 0.85, 1.0), 16)
+				g.pickups.item_log["crate_shield"] += 1
 		return
 	if e.type != "tear":
 		g.kills += 1
@@ -1181,8 +1206,16 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 		if hl.t80 < 0 and hl.killed >= int(hl.n * 0.8):
 			hl.t80 = int(g.t) - hl.t
 	var col: Color = D.ENEMIES.get(e.type, {}).get("ecol", Color(0.6, 0.9, 0.9))   # ecol：enemies.json（受击 / 击杀碎屑色）
-	g.vfx.kill_burst(e, col, g.crit_hit)   # 击杀爆点 / 击杀音按体型分档 + 大体型或暴击击杀的短顿帧（docs/53，纯画面与音效）
-	if e.get("tex_death", false) and g.V6_FRAMES.has(e.tex + "_death"):
+	# 光学观感下的击杀（docs/130 C5，用户 10-24 定 render/kill_style 1）：所有怪统一「死亡动作（按帧等比加快到普通 ≤ fx/death_max、
+	# 精英 ≤ fx/death_max_elite、Boss 不变）→ 最后一帧碎成像素碎屑」，不画溶解帧条、不叠老 CPU 火花 / 冲击环 / 尘土（击杀音与顿帧照旧）；
+	# 没有死亡帧条的怪当帧碎。光学关（低档）或 kill_style 0 走原来的帧条 / 溶解 + 火花。纯画面
+	var lean: bool = g.optical_on and g.optical.particles != null and Bal.v("render/kill_style", 1.0) > 0.0
+	g.vfx.kill_burst(e, col, g.crit_hit, lean)   # 击杀爆点 / 击杀音按体型分档 + 大体型或暴击击杀的短顿帧（docs/53，纯画面与音效）
+	var body_on: bool = not g.optical_on or lean or Bal.v("render/optical_kill_body", 1.0) > 0.0
+	var shattered := false   # 碎屑已交给死亡帧条最后一帧（vfx.update 到点喷）
+	if not body_on:
+		pass
+	elif e.get("tex_death", false) and g.V6_FRAMES.has(e.tex + "_death"):
 		var dtx: Texture2D = g.tex[e.tex + "_death"]
 		var foot: Vector2 = e.pos + Vector2(0, e.r * 0.8 + 3.0 * g.PX)
 		var dsc: float = g.PX * float(e.get("sc", 1.0))   # 怪物体型（spawner.escale）放大过的按同一倍数画
@@ -1193,12 +1226,17 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 			var anchor := A.enemy_pixel_anchor(death_name, Vector2(0.5, 1.0))
 			var origin: Vector2 = foot if g.foot_anchor.has(e.tex) else e.pos
 			dsc = D.enemy_scale(e, g.t, g.PX) * A.enemy_pixel_scale(death_name)
-			g.vfx.fx_sprite(death_name, origin, dsc, 0.0, e.fx < 0.0, false, Color.WHITE, false, anchor * size)
+			if g.vfx.fx_sprite(death_name, origin, dsc, 0.0, e.fx < 0.0, false, Color.WHITE, false, anchor * size) and lean:
+				shattered = g.vfx.death_shatter(e, death_name, origin, dsc, anchor)
 		else:
-			g.vfx.fx_sprite(death_name, foot + Vector2(0, -(dtx.get_height() - 3) * dsc * 0.5), dsc, 0.0)
+			var dp: Vector2 = foot + Vector2(0, -(dtx.get_height() - 3) * dsc * 0.5)
+			if g.vfx.fx_sprite(death_name, dp, dsc, 0.0) and lean:
+				shattered = g.vfx.death_shatter(e, death_name, dp, dsc, Vector2(0.5, 0.5))
+	elif lean:
+		pass   # 光学 + 新击杀：没有死亡帧条的怪不画溶解，下面当帧碎
 	elif not g.vfx.fx_sprite("fx_death_dissolve", e.pos, g.PX * max(1.0, e.r / 12.0)):
 		g.vfx.anim("fx_death", e.pos, 0.3, g.PX * max(1.0, e.r / 12.0))
-	if g.optical_on and g.optical.particles != null:
+	if not shattered and g.optical_on and g.optical.particles != null and (lean or Bal.v("render/optical_kill_debris", 1.0) > 0.0):
 		g.optical.particles.kill_burst(e)   # 光学观感原型：击杀碎屑（纯画面，GPU 随机，不碰模拟随机数）
 	if e.elite:
 		g.elites_killed += 1
@@ -1232,7 +1270,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 						kill(o)
 	# 深溟奠基者（V8）：死亡时留下一片溟痕（death_mire = 最大半径）
 	var dmire := float(D.ENEMIES.get(e.type, {}).get("death_mire", 0.0))
-	if dmire > 0.0 and g.mires.size() < 32:
+	if dmire > 0.0 and g.mires.size() < 32 and not mire_blocked(e.pos + Vector2(0, 8), dmire):
 		g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 10.0, "maxr": dmire, "life": 12.0, "seed": g.vrng.randf() * 100.0, "boss": false})
 	if e.xp > 0.0:
 		g.pickups.drop(e.pos, "xp", e.xp * g.xp_mult)

@@ -233,6 +233,11 @@ func _expert_goal(p: Vector2, near: Array) -> Vector2:
 		var w := d
 		if gm.kind == "oil":
 			w *= 0.25 if g.lamp < 60.0 else 0.8
+		elif gm.kind == "pack":
+			# 应急补给：机器人残血（< crate/bot_below × 最大生命）才去捡，满血不绕路（docs/133 §6）
+			if g.hp > g.max_hp * g.Bal.v("crate/bot_below", 0.75):
+				continue
+			w *= 0.4
 		elif gm.kind == "chest" or gm.kind == "heal":
 			w *= 0.4
 		if w < best_w:
@@ -472,7 +477,8 @@ func _move_master(_dt: float) -> Vector2:
 	if bg != Vector2.INF:
 		goal = bg
 		beacon_hold = Vector2.INF   # 目标换成 Boss 站位，灯标不再加权
-	var in_hunt: bool = g.hunt.active() and g.hunt.inside
+	# 围猎合拢途中整圈还在屏幕外：最近的圈上海嗣到 420 内才转入围猎走位（迎上去打穿 / 找缺口），之前照常打
+	var in_hunt: bool = g.hunt.active() and g.hunt.inside and (g.hunt.settled or g.hunt.nearest_ring_dist(p) < 420.0)
 	var gap_dir := Vector2.ZERO if in_hunt else _master_gap(p, near)
 	if gap_dir != Vector2.ZERO:
 		goal = gap_dir if goal == Vector2.ZERO else (goal * 0.4 + gap_dir).normalized()

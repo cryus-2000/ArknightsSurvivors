@@ -15,6 +15,7 @@ var force := -1        # --opticalab 同局轮换用：-1 = 按 balance，0 / 1 
 var glow_layer: CanvasLayer   # 发光层（layer 1，跟随镜头）：敌人发光点、荧光颗粒；不受 CanvasModulate 环境暗色与灯光影响
 var glow_node: Node2D
 var particles   # render/optical_particles.gd：击杀碎屑 / 荧光孢子 / 灯火余烬 / 命中迸溅
+var grains      # render/fx_grains.gd：像素粒子模板（刀光第四版等，docs/136）
 ## ① 低分辨率世界层（render/optical_lowres，缺省开）：另开一个与主视口共享 World2D 的 SubViewport，按「1 像素 = 2 世界像素」
 ## （镜头 100% 时 = 1 美术像素）渲染世界画布，最近邻放大铺在 layer −1；主视口剔除世界层（可见层 2），只画高清干员层与界面。
 ## 镜头平移：低分辨率画布的平移取整数，余下的小数在放大后的贴图上补（亚像素补偿，滚动不顿挫）
@@ -98,6 +99,17 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 			var r: float = clampf(float(_fxsz[nm]) * float(f.get("scale", g.PX)) * 0.9, 32.0, 170.0)
 			var inten: float = life * (0.6 + r / 170.0)
 			cand.append([inten, p, r, particles.fx_color(nm)])
+		for f in g.fx:   # 刀光：挥刀瞬间短暂打亮脚下与附近怪（刀光寿命前段 ≈ 0.08–0.12 秒）
+			if str(f.get("kind", "")) != "marc":
+				continue
+			var lf: float = float(f.life) / maxf(0.001, float(f.max))
+			if lf < 0.35:
+				continue
+			var mo = g.squad.get_op(str(f.get("op", ""))) if g.squad != null else null
+			var mp: Vector2 = (mo.pos + f.get("off", Vector2.ZERO)) if mo != null and mo.pos != Vector2.INF else f.pos
+			if not vr.has_point(mp):
+				continue
+			cand.append([0.55 + 0.25 * int(f.tier), mp + Vector2.from_angle(float(f.ang)) * float(f.r) * 0.45, float(f.r) * 0.9, f.col])
 		var nb := 0
 		for b in g.bullets:
 			if nb >= 60:
@@ -232,6 +244,30 @@ func _attach_glow() -> void:
 		particles = preload("res://scripts/render/optical_particles.gd").new()
 		add_child(particles)
 		particles.setup(g, g, glow_node)
+		grains = preload("res://scripts/render/fx_grains.gd").new()
+		g.add_child(grains)   # 挂在世界节点下：进低分辨率层，颗粒落在 2 px 世界格上
+		grains.setup(g)
+
+
+## 世界子树（game 节点下、不跨进 CanvasLayer——发光层 / 低分辨率层 / 界面各有自己的画布）的可见层：灯光与环境色 1 | 2，其余 lay
+func _lay_tree(n: Node, lay: int) -> void:
+	for c in n.get_children():
+		if c == op_node or c is CanvasLayer:
+			continue
+		if c is CanvasItem:
+			(c as CanvasItem).visibility_layer = (1 | VIS_LO) if (c is Light2D or c is CanvasModulate) else lay
+		_lay_tree(c, lay)
+
+
+func _on_node_added(n: Node) -> void:
+	if not _lo_on or not (n is CanvasItem) or n == op_node or g == null or not g.is_ancestor_of(n) or Bal.v("render/optical_layer_follow", 1.0) <= 0.0:
+		return
+	var p: Node = n.get_parent()
+	while p != null and p != g:
+		if p is CanvasLayer or p == op_node:
+			return
+		p = p.get_parent()
+	(n as CanvasItem).visibility_layer = (1 | VIS_LO) if (n is Light2D or n is CanvasModulate) else VIS_LO
 
 
 ## 低分辨率层开 / 关：世界节点的可见层在 1 ↔ 2 之间切，主视口剔除第 2 位；灯光与环境色两边都要（1 | 2）
@@ -248,10 +284,12 @@ func _set_lo(on: bool) -> void:
 	g.get_viewport().set_canvas_cull_mask_bit(VIS_LO - 1, not on)
 	var lay: int = VIS_LO if on else 1
 	g.visibility_layer = lay
-	for c in g.get_children():
-		if c == op_node or not (c is CanvasItem):
-			continue
-		(c as CanvasItem).visibility_layer = (1 | VIS_LO) if (c is Light2D or c is CanvasModulate) else lay
+	# 10-24（docs/136 §2 排查）：画布剔除按「本节点 + 每一层父节点」的可见层都要在掩码里，所以整棵世界子树都要切，
+	# 之后才挂进来的节点（新发射器、新画布）也要跟着切（_on_node_added）——原来只切 game 的直接子节点、只在开关那一刻切，
+	# 后挂的 GPUParticles2D / 子画布留在第 1 层，低分辨率层（掩码 2）和主视口（父节点 game 被剔）都不画
+	_lay_tree(g, lay)
+	if on and not g.get_tree().node_added.is_connected(_on_node_added):
+		g.get_tree().node_added.connect(_on_node_added)
 	if g.material != null:
 		op_node.material = g.material   # 白色保护 / 朝灯亮线的角色材质（render/look.make_actor_mat）
 
@@ -268,7 +306,10 @@ func _lo_step() -> void:
 	var sx: float = maxf(0.01, vp.get_final_transform().x.x)   # 窗口物理像素 / 设计单位
 	var target: float = Bal.v("render/optical_view_h_phone", 360.0) if Cfg.phone_ui() else Bal.v("render/optical_view_h", 450.0)
 	view_k = maxi(2, roundi(vs.y * sx / target))
-	var zw: float = view_k / (2.0 * sx)
+	# 设置里的「战斗画面缩放」叠在整数像素镜头上（相对本设备缺省：手机缺省那档 = 不变；桌面缺省 ZOOM_DESK_DEF 把视野拉近；
+	# 非整数倍时 1 美术像素占的屏幕像素不再恒为整数，用户 10-24 要求先看 ×1.15 再定）
+	var rel: float = Cfg.cam_zoom() / (Cfg.ZOOM_PHONE_DEF / 100.0 if Cfg.phone_ui() else 1.0)
+	var zw: float = view_k / (2.0 * sx) * rel
 	if g.cam != null and absf(g.cam.zoom.x - zw) > 0.0001:
 		g.cam.zoom = Vector2(zw, zw)
 	var xf: Transform2D = vp.get_canvas_transform()
@@ -315,7 +356,10 @@ func _draw_glow() -> void:
 	_draw_ground_glow()
 	for p in g.glow_cur:
 		glow_node.draw_rect(Rect2(p[0], Vector2(p[1], p[1])), p[2])
-	_draw_loot()
+	for q in g.glow_tex_cur:
+		glow_node.draw_texture_rect_region(q[0], q[1], q[2], q[3])   # _emit 发光层（溟痕 / 结晶 / 退散，同位置 1:1）
+	if not g.world.gem_emit:
+		_draw_loot()   # 没有结晶 _emit 图（旧结晶）时退回每颗一个发光点
 	if Bal.v("render/optical_trail", 1.0) > 0.0:
 		_draw_trails(g.bullets, false)
 		_draw_trails(g.ebullets, true)
@@ -399,6 +443,9 @@ func _process(_dt: float) -> void:
 	if g == null:
 		return
 	_update_cols(_dt)
+	if grains != null:
+		grains.step(_dt)
+		grains.flush()
 	fx1 = (fx1_force == 1) if fx1_force >= 0 else Bal.v("render/optical_fx1", 1.0) > 0.0
 	_fxq_step(fx1 and wanted() and DisplayServer.get_name() != "headless" and Bal.v("render/optical_fxq", 1.0) > 0.0)
 	FD.col_cap = Bal.v("render/optical_fx_cap", 1.4) if g.optical_on and fx1 else 0.0
@@ -413,6 +460,8 @@ func _process(_dt: float) -> void:
 		_lo_step()
 	g.glow_cur = g.glow_next
 	g.glow_next = []
+	g.glow_tex_cur = g.glow_tex_next
+	g.glow_tex_next = []
 	if particles != null:
 		if on != _was_on:
 			particles.set_active(on)

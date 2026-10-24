@@ -15,6 +15,7 @@ var tex := {}                      # 主题用到的贴图
 var sort_props: Array = []         # 2.5D：需要与人物前后遮挡的道具 [tex_name, pos, hash]
 var big_cache := {}
 var fg_tex: Array = []             # 前景虚化剪影
+var fg_px: Array = []              # 前景像素剪影（光学观感下用，docs/130 A3）：原图第一帧的硬边剪影，整数倍放大、最近邻
 var snow: Array = []
 var ambient := Color(0.16, 0.22, 0.32)
 var tile_size := 32.0
@@ -71,11 +72,14 @@ func load_theme(theme_id: String) -> void:
 		_load(n)
 	if theme.has("mire"):
 		_load(theme.mire.tex)
+	_mire_v2_load()
 	fg_tex.clear()
+	fg_px.clear()
 	for n in theme.get("foreground", {}).get("tex", []):
 		_load(n)
 		if tex[n] != null:
 			fg_tex.append(_blur_silhouette(tex[n], _frames_of(n)))
+			fg_px.append(_px_silhouette(tex[n], _frames_of(n)))
 	snow.clear()
 	var sn: Dictionary = theme.get("snow", {})
 	for i in int(sn.get("count", 0)):
@@ -639,6 +643,10 @@ func draw_foreground(ci: CanvasItem, vs: Vector2, cp: Vector2) -> void:
 	var fd: Dictionary = theme.get("foreground", {})
 	if fd.is_empty() or fg_tex.is_empty():
 		return
+	# 光学观感下的前景（render/optical_fg_px，docs/130 A3）：1 = 像素剪影、0 = 不画（缺省，用户 10-24「看不出来区别」）、-1 = 原虚化剪影；光学关（低档）照旧虚化
+	var fg_mode: float = Bal.v("render/optical_fg_px", 0.0)
+	if g.optical_on and fg_mode == 0.0:
+		return
 	var par: float = float(fd.get("parallax", 1.35))
 	var cell: float = float(fd.get("cell", 520))
 	var col: Array = fd.get("color", [0.10, 0.30, 0.34])
@@ -657,13 +665,45 @@ func draw_foreground(ci: CanvasItem, vs: Vector2, cp: Vector2) -> void:
 			var a := clampf((dc - 0.45) / 0.5, 0.0, 1.0) * 0.8
 			if a <= 0.01:
 				continue
-			var tx: Texture2D = fg_tex[(0 if h % 3 != 0 else 1) % fg_tex.size()]
 			var big := 0.8 + 0.25 * float(h % 3)
 			var sway := sin(g.t * 0.7 + float(h % 10)) * 0.06
+			if g.optical_on and not fg_px.is_empty() and fg_mode > 0.0:
+				# 像素风（docs/130 A3，用户 10-24）：硬边剪影、整数倍放大（每个原图像素 = PX_FG 档里最近的偶数世界像素，落在低分辨率层 2 px 格上），
+				# 不旋转（转了像素会歪），摆动改成按 2 px 步进的横向平移；大小档与虚化版同一套（约 0.8 / 1.05 / 1.3 倍）
+				var pt: Texture2D = fg_px[(0 if h % 3 != 0 else 1) % fg_px.size()]
+				var k: float = 2.0 * roundf(4.0 * big)
+				var ps := Vector2(pt.get_width(), pt.get_height()) * k
+				var sx: float = 2.0 * roundf(sway * ps.y * 0.25)
+				var o := (wp + Vector2(sx - ps.x / 2.0, -ps.y)).snapped(Vector2(2.0, 2.0))
+				if h % 2 == 0:
+					ci.draw_set_transform(o + Vector2(ps.x, 0.0), 0.0, Vector2(-1.0, 1.0))
+					ci.draw_texture_rect(pt, Rect2(Vector2.ZERO, ps), false, Color(col[0], col[1], col[2], a))
+					ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+				else:
+					ci.draw_texture_rect(pt, Rect2(o, ps), false, Color(col[0], col[1], col[2], a))
+				continue
+			var tx: Texture2D = fg_tex[(0 if h % 3 != 0 else 1) % fg_tex.size()]
 			var size := Vector2(tx.get_width(), tx.get_height()) * big
 			ci.draw_set_transform(wp, sway, Vector2(-1.0 if h % 2 == 0 else 1.0, 1.0))
 			ci.draw_texture_rect(tx, Rect2(Vector2(-size.x / 2.0, -size.y), size), false, Color(col[0], col[1], col[2], a))
 			ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+## 像素剪影（光学观感用）：取第一帧，alpha > 0.5 的像素填白、其余透明，原尺寸（放大交给绘制时整数倍 + 最近邻）
+static func _px_silhouette(src: Texture2D, frames: int) -> Texture2D:
+	var img := src.get_image()
+	if img.is_compressed():
+		img.decompress()
+	img.convert(Image.FORMAT_RGBA8)
+	var fw := img.get_width() / frames
+	var fh := img.get_height()
+	var out := Image.create(fw, fh, false, Image.FORMAT_RGBA8)
+	out.fill(Color(0, 0, 0, 0))
+	for y in fh:
+		for x in fw:
+			if img.get_pixel(x, y).a > 0.5:
+				out.set_pixel(x, y, Color(1, 1, 1, 1))
+	return ImageTexture.create_from_image(out)
 
 
 ## 把像素图变成柔和的剪影（取第一帧 -> 放大 -> 缩小再放大模拟高斯模糊）
@@ -716,9 +756,145 @@ func mire_new(pos: Vector2, t: float, endless: bool) -> Dictionary:
 	return d
 
 
+## ---- 溟痕 v2（Codex art/incoming/world_spec_1024，用户 10-24 验收；tools/install_world_spec.py 装成两张图集）：
+## 底图 mire_tile_ab（A / B 变体 × 2 帧，各 64×64 美术像素）按全局美术像素格 1:1 平铺，不再按 r × 2.3 拉伸；
+## 判定圆按 MIRE_CELL（16 美术像素 = 32 世界单位）一格栅格化（格心在圆内 = 内区），圈外紧邻的格按邻接画 12 片围边
+## （mire_edge_atlas：边片遮罩 × 同相位底图，任意格位与内区脉络连续）；每 64 格块按坐标哈希取 A / B。
+## _emit 层排进光学发光层（g.glow_tex_next，光学观感开时）。纯画面；栅格按半径 4 单位一档缓存在溟痕字典的 _mc 里
+const MIRE_CELL := 16
+var mire_v2 := false
+var _mire_ab: Texture2D
+var _mire_ab_e: Texture2D
+var _mire_edge: Texture2D
+var _mire_edge_e: Texture2D
+
+
+func _mire_v2_load() -> void:
+	mire_v2 = A.has_override("mire_tile_ab") and A.has_override("mire_edge_atlas")
+	if mire_v2:
+		_mire_ab = A.tex("mire_tile_ab")
+		_mire_edge = A.tex("mire_edge_atlas")
+		_mire_ab_e = A.tex("mire_tile_ab_emit") if A.has_override("mire_tile_ab_emit") else null
+		_mire_edge_e = A.tex("mire_edge_atlas_emit") if A.has_override("mire_edge_atlas_emit") else null
+
+
+## 一组内区格（Dictionary Vector2i → true）补洞后求围边：[内区格 Array, 围边 Array[Vector3i(格 x, 格 y, 片号)]]。
+## 补洞：圈外格四邻有对边一对或三面以上在内区的并进内区（否则没有对应边片）。片号同 HANDOFF：0 N 1 E 2 S 3 W、4–7 外角 NW NE SE SW、8–11 内角 NW NE SE SW
+func mire_cells(ins: Dictionary) -> Array:
+	for _pass in 3:
+		var add: Array = []
+		for c in ins:
+			for d in [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]:
+				var q: Vector2i = c + d
+				if ins.has(q):
+					continue
+				var n: bool = ins.has(q + Vector2i(0, -1))
+				var s: bool = ins.has(q + Vector2i(0, 1))
+				var e: bool = ins.has(q + Vector2i(1, 0))
+				var w: bool = ins.has(q + Vector2i(-1, 0))
+				if (n and s) or (e and w) or int(n) + int(s) + int(e) + int(w) >= 3:
+					add.append(q)
+		if add.is_empty():
+			break
+		for q in add:
+			ins[q] = true
+	var border: Array = []
+	var seen := {}
+	for c in ins:
+		for dy in range(-1, 2):
+			for dx in range(-1, 2):
+				var q: Vector2i = c + Vector2i(dx, dy)
+				if ins.has(q) or seen.has(q):
+					continue
+				seen[q] = true
+				var n: bool = ins.has(q + Vector2i(0, -1))
+				var s: bool = ins.has(q + Vector2i(0, 1))
+				var e: bool = ins.has(q + Vector2i(1, 0))
+				var w: bool = ins.has(q + Vector2i(-1, 0))
+				var t := -1
+				if s and e:
+					t = 8
+				elif s and w:
+					t = 9
+				elif n and w:
+					t = 10
+				elif n and e:
+					t = 11
+				elif s:
+					t = 0
+				elif w:
+					t = 1
+				elif n:
+					t = 2
+				elif e:
+					t = 3
+				if t >= 0:
+					border.append(Vector3i(q.x, q.y, t))
+					continue
+				if ins.has(q + Vector2i(1, 1)):
+					border.append(Vector3i(q.x, q.y, 4))
+				if ins.has(q + Vector2i(-1, 1)):
+					border.append(Vector3i(q.x, q.y, 5))
+				if ins.has(q + Vector2i(-1, -1)):
+					border.append(Vector3i(q.x, q.y, 6))
+				if ins.has(q + Vector2i(1, -1)):
+					border.append(Vector3i(q.x, q.y, 7))
+	return [ins.keys(), border]
+
+
+## 按格画一组溟痕（内区先画、围边后画，各自同一张图集连续合批）；col 的 alpha = 淡入淡出
+func draw_mire_cells(cells: Array, f: int, col: Color) -> void:
+	var cw: float = MIRE_CELL * g.PX
+	var glow: bool = g.optical_on and _mire_ab_e != null
+	var gc := Color(col.r, col.g, col.b, col.a * Bal.v("render/optical_mire_emit", 0.35))   # 发光层强度（全亮会盖掉紫色底）
+	for c in cells[0]:
+		var gx: int = c.x * MIRE_CELL
+		var gy: int = c.y * MIRE_CELL
+		var src := Rect2((_mire_var(gx, gy) * 2 + f) * 64 + posmod(gx, 64), posmod(gy, 64), MIRE_CELL, MIRE_CELL)
+		var dst := Rect2(Vector2(c) * cw, Vector2(cw, cw))
+		g.draw_texture_rect_region(_mire_ab, dst, src, col)
+		if glow:
+			g.glow_tex_next.append([_mire_ab_e, dst, src, gc])
+	for b in cells[1]:
+		var gx: int = b.x * MIRE_CELL
+		var gy: int = b.y * MIRE_CELL
+		var ph: int = (posmod(gx, 64) / MIRE_CELL) * 4 + posmod(gy, 64) / MIRE_CELL
+		var src := Rect2(ph * MIRE_CELL, ((_mire_var(gx, gy) * 12 + b.z) * 2 + f) * MIRE_CELL, MIRE_CELL, MIRE_CELL)
+		var dst := Rect2(Vector2(b.x, b.y) * cw, Vector2(cw, cw))
+		g.draw_texture_rect_region(_mire_edge, dst, src, col)
+		if glow and _mire_edge_e != null:
+			g.glow_tex_next.append([_mire_edge_e, dst, src, gc])
+
+
+## 64 格块取 A / B 变体（约三分之一 B，减轻 64 像素周期感）
+func _mire_var(gx: int, gy: int) -> int:
+	return 1 if posmod(hash(Vector2i(floori(gx / 64.0), floori(gy / 64.0))), 3) == 0 else 0
+
+
+func _mire_disc(m: Dictionary) -> Array:
+	var key := int(m.r * 0.25)
+	var c = m.get("_mc")
+	if c != null and int(c[0]) == key:
+		return c[1]
+	var cw: float = MIRE_CELL * g.PX
+	var r: float = m.r
+	var ins := {}
+	for cy in range(floori((m.pos.y - r) / cw), floori((m.pos.y + r) / cw) + 1):
+		for cx in range(floori((m.pos.x - r) / cw), floori((m.pos.x + r) / cw) + 1):
+			if (Vector2(cx + 0.5, cy + 0.5) * cw).distance_to(m.pos) <= r:
+				ins[Vector2i(cx, cy)] = true
+	var cells := mire_cells(ins)
+	m["_mc"] = [key, cells]
+	return cells
+
+
 func draw_mire(m: Dictionary) -> void:
-	var a: float = clamp(m.life / 3.0, 0.0, 1.0)
+	var a: float = clamp(m.life / 3.0, 0.0, 1.0) if m.get("boss", false) else (1.0 if m.life > 0.0 else 0.0)   # 常驻溟痕不淡出；Boss 溟痕到期前 3 秒淡出
 	var t: float = g.t
+	if mire_v2:
+		draw_mire_cells(_mire_disc(m), int(t * 2.0 + m.seed) % 2, Color(1, 1, 1, a))
+		g.world.tb_ring(m.pos, m.r, 1.5, Color(0.7, 0.4, 1.2, 0.35 * a), 36)
+		return
 	var mt: Texture2D = tex.get(mire_cfg().get("tex", "terrain_mire"))
 	if mt != null:
 		# 溟痕贴图（2 帧脉动）：按判定半径缩放，外圈画判定提示

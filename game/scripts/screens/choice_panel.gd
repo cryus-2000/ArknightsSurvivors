@@ -635,7 +635,7 @@ func option_description(option: Dictionary) -> String:
 		var sk: Dictionary = op.skill_def(i)
 		if i > stage or sk.get("mode", "auto") != "manual":
 			continue
-		var use: String = (("队长点技能键释放" if Pad.touch_ui() else "队长按 Q 释放") if op.is_leader else "作为队友自动释放")
+		var use: String = (("队长点技能键释放" if Pad.touch_ui() else "队长按 E 释放") if op.is_leader else "作为队友自动释放")
 		var timing: String = "解锁后" if not op.skill_unlocked(i) else "技力满后"
 		return "%s%s「%s」。\n%s" % [timing, use, sk.get("name", "技能"), description]
 	return description
@@ -888,7 +888,7 @@ func op_idle(cid: String) -> Dictionary:
 func load_op_tex(cid: String) -> void:
 	var cdef: Dictionary = Character.load_def(cid)
 	var csp: Dictionary = cdef.get("sprites", {})
-	for kind in ["idle", "run", "attack", "skill"] + cdef.get("extra_sprites", []):
+	for kind in ["idle", "run", "attack", "skill", "move_attack"] + cdef.get("extra_sprites", []):
 		if csp.has(kind):
 			var tn: String = csp[kind] if csp[kind] is String else csp[kind].tex
 			if g.tex.get(tn) == null:

@@ -11,6 +11,9 @@ const MotionShot = preload("res://scripts/run/motion_shot.gd")   # --motionshot 
 var g: Game
 var mshot: MotionShot
 var winshot := false
+const KILL_TYPES := ["bone", "stone", "offspring", "runner", "floater", "reaper", "spitter", "tracer"]   # --killshot 一行 8 只
+const KILL_SHOTS := [-1, 3, 8, 14, 22]   # --killshot 截图帧（相对击杀那一帧；-1 = 击杀前一帧）
+var _kill_row: Array = []
 var hunt_rec_end := 0  # --huntrec：进寻访结果后又录了几张
 var touchtest_p0 := Vector2.ZERO
 var bal_done := false
@@ -55,6 +58,9 @@ const PERF_DUMP_KEYS := ["engine", "draw_world", "draw_hud", "draw_fxadd", "draw
 	"relic", "misc", "fx", "cleanup", "visuals", "tail", "dw_sorted_entities", "dw_gems", "dw_ground", "dw_mire", "dw_zone", "dw_fx", "dw_bullets", "dw_shadows", "dw_warns_auras", "dw_ebullets_lobs_shocks", "dw_tells_outlines", "dw_snow_tail", "dw_shield_drones"]
 var opticalab := -1           # --opticalab=N（docs/50 §25）：每 N 帧轮换光学观感原型开 / 关；-1 = 还没读参数
 var fx1ab := 0                # --fx1ab=N（docs/50 §25.2）：每 N 帧轮换特效处理第 1 步开 / 关（光学观感开着时）
+var partab := 0               # --partab=N（docs/136 §2 排查）：每 N 帧轮换光学 GPU 粒子开 / 关（--perf 分 /p1 /p0 两桶）
+var grainab := 0              # --grainab=N：每 N 帧轮换刀光第四版（粒子）开 / 关（--perf 分 /g1 /g0）
+var tierab := 0               # --tierab=N（docs/50 §25.3）：每 N 帧轮换命中三档开 / 关
 var vfxab := -1               # --vfxab=N（docs/54）：每 N 帧轮换 vfx.p2；-1 = 还没读参数
 var vfxdemo := false           # --vfxdemo：按固定时刻强制灯标点燃 / 升级 / 灯火暗淡 / 精英 / 拾取 / 商人（录对照片段用）
 var _vd_step := 0
@@ -330,10 +336,13 @@ func _opt_ab() -> void:
 var _cmd_at: Array = []
 var _cmd_read := false
 var _cmd_down_at := -1.0
+var _swap_at: Array = []   # --swapat=<秒>,…（录片 / 复现，10-23）：到点各按一次 Q（切换队长）
 func _cmd_step() -> void:
 	if not _cmd_read:
 		_cmd_read = true
 		for a in Cfg.dev_args():
+			if a.begins_with("--swapat="):
+				_swap_at = Array(a.substr(9).split(",")).map(func(x): return float(x))
 			if a.begins_with("--cmddown="):
 				_cmd_down_at = float(a.substr(10))
 			if a.begins_with("--cmdat="):
@@ -346,6 +355,9 @@ func _cmd_step() -> void:
 				o.cmd_down = Bal.v("command/revive_secs", 25.0)
 				o.cmd_down_age = 0.0
 				print("CMD t=%.2f down %s at %.0f,%.0f" % [g.t, o.id, o.pos.x, o.pos.y])
+	if not _swap_at.is_empty() and g.state == g.S.PLAY and g.t >= float(_swap_at[0]):
+		_swap_at.pop_front()
+		g.squad.cycle_leader()
 	if not _cmd_at.is_empty() and g.state == g.S.PLAY and g.t >= float(_cmd_at[0]):
 		_cmd_at.pop_front()
 		g.toggle_command()
@@ -367,6 +379,14 @@ func step() -> void:
 				opticalab = int(a.substr(12))
 			if a.begins_with("--fx1ab="):
 				fx1ab = int(a.substr(8))
+			if a.begins_with("--tierab="):
+				tierab = int(a.substr(9))
+			if a.begins_with("--partab="):
+				partab = int(a.substr(9))
+			if a.begins_with("--grainab="):
+				grainab = int(a.substr(10))
+			if a == "--nohud" and g.hud != null and g.hud.get_parent() is CanvasLayer:
+				(g.hud.get_parent() as CanvasLayer).visible = false   # 概念样图底图（tools/probes/map_concept.py）：只要世界画面，界面层整层不画
 			if a == "--optical":
 				g.optical.force = 1   # 截图 / 录像：强制开光学观感（不改 balance）
 			if a == "--nooptical":
@@ -381,6 +401,12 @@ func step() -> void:
 	Dc.ab_step(g.at_frames)   # --clutterab=N：每 N 帧在降噪 0 档与当前档之间轮换（--perf 分 /d0 /dN 两桶）
 	if opticalab > 0 and g.at_frames % opticalab == 0 and g.optical != null:
 		g.optical.force = 0 if g.optical.force == 1 else 1   # --opticalab=N：同局轮换光学观感开 / 关（--perf 分 /opt /base 两桶）
+	if partab > 0 and g.at_frames % partab == 0 and g.optical != null and g.optical.particles != null:
+		g.optical.particles.set_active(not g.optical.particles.active)   # --partab=N：同局轮换 GPU 粒子（--perf 分 /p1 /p0）
+	if grainab > 0 and g.at_frames % grainab == 0 and g.optical != null and g.optical.grains != null:
+		g.optical.grains.off = not g.optical.grains.off   # --grainab=N：同局轮换刀光第四版
+	if tierab > 0 and g.at_frames % tierab == 0:
+		g.vfx.tier_off = not g.vfx.tier_off   # --tierab=N：同局轮换命中三档（--perf 分 /t1 /t0 两桶）
 	if fx1ab > 0 and g.at_frames % fx1ab == 0 and g.optical != null:
 		g.optical.fx1_force = 0 if g.optical.fx1_force == 1 else 1   # --fx1ab=N：同局轮换特效处理第 1 步（--perf 分 /fx1 /fx0 两桶）
 	if vfxab > 0 and g.at_frames % vfxab == 0:
@@ -667,6 +693,16 @@ func step() -> void:
 				while not o.next_node().is_empty() and guard < 12:
 					o.advance("")
 					guard += 1
+	if Cfg.dev_args().has("--tierdemo") and g.at_frames % 30 == 10 and g.ch != null and g.ch.pos != Vector2.INF:
+		# 特效第 2 步对照图：主控面前从左到右同时放一次轻 / 中 / 重命中 + 同档刀光（纯画面，不扣血、不碰随机数）
+		for t in [1, 2, 3]:
+			var hp: Vector2 = g.ppos + Vector2(-150.0 + 150.0 * (t - 1), -70.0)
+			g.vfx.melee_arc(g.ch, hp + Vector2(0, 30), -PI / 2.0, 0.7, 46.0)
+			if not g.fx.is_empty() and g.fx[-1].get("kind", "") == "marc":
+				g.fx[-1].tier = t
+				g.fx[-1].t = -1.0   # 不让同帧命中再改它
+				g.fx[-1].op = ""   # 演示刀光固定在原处，不跟主控
+			g.vfx._tier_fx({"pos": hp, "r": 14.0}, {"op": g.ch.id}, t)
 	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--elite2") and g.at_frames == 20:
 		# 特效连拍（docs/50 §25 特效处理）：队友直接精二（三个技能都解锁）
 		for o in g.squad.ops:
@@ -761,6 +797,125 @@ func step() -> void:
 		if g.at_frames == 90 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_touch.png")
 		if g.at_frames == 130:
+			g.get_tree().quit()
+	# --killshot（docs/130 C5 击杀观感对比）：第 360 帧在队长下方排一行 8 只怪（开场横幅已退）、同帧击杀，之后按 KILL_SHOTS 帧截 shot_kill_<帧>.png 并退出
+	if Cfg.dev_args().has("--killshot"):
+		if g.at_frames >= 300:
+			g.speed = 0.0   # 队长定住，镜头不动
+		if g.at_frames == 360:
+			for o in g.enemies:
+				o.pos += Vector2(4000, 0)   # 其余怪挪出画面（截图摆拍）
+			var row: Array = []
+			for i in KILL_TYPES.size():
+				var e: Dictionary = g.spawner.spawn_enemy(KILL_TYPES[i], g.ppos + Vector2(-224 + i * 64, 70))
+				e.hidden = false
+				row.append(e)
+			_kill_row = row
+		if g.at_frames == 366:
+			for e in _kill_row:
+				if not e.get("dead", false):
+					g.combat.kill(e)
+		if g.at_frames - 366 in KILL_SHOTS and DisplayServer.get_name() != "headless":
+			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_kill_%02d.png" % (g.at_frames - 366))
+		if g.at_frames - 366 > KILL_SHOTS[-1]:
+			g.get_tree().quit()
+	# --fgshot（docs/130 A3 前景剪影对照）：第 60 帧起每 20 帧把队长挪到下一处取景点并截 shot_fg_<n>.png，8 处后退出
+	if Cfg.dev_args().has("--fgshot"):
+		if g.at_frames >= 60 and (g.at_frames - 60) % 20 == 0:
+			var n: int = (g.at_frames - 60) / 20
+			if n > 0 and DisplayServer.get_name() != "headless":
+				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_fg_%d.png" % n)
+			if n >= 8:
+				g.get_tree().quit()
+			else:
+				g.ppos = g.map.push_out(Vector2(1500 + n * 430, 900 + (n % 3) * 380), 12.0)
+				g.cam.position = g.ppos
+	# --worldspec（world_spec_1024 接入验收）：第 60 帧在队长周围摆 溟痕 ×3（大中小）、商人、经验结晶大小各几颗、无人机、黑潮圈边，
+	# 第 100 帧截 shot_ws_scene.png；第 101 帧让两块溟痕播退散，第 104 / 110 帧截 shot_ws_dissolve_<帧>.png，之后退出
+	if Cfg.dev_args().has("--worldspec"):
+		if g.at_frames >= 60:
+			g.speed = 0.0
+			g.hp = g.max_hp
+			g.pickup = 0.0   # 结晶留在地上（不吸、不升级）
+		if g.at_frames == 60:
+			g.ppos = g.map.push_out(Vector2(1500, 900), 12.0)
+			g.cam.position = g.ppos
+			for o in g.enemies:
+				o.pos += Vector2(4000, 0)
+			g.mires.clear()
+			for q in [[Vector2(-330, -120), 110.0], [Vector2(-170, 150), 70.0], [Vector2(230, -170), 40.0]]:
+				g.mires.append({"pos": g.ppos + q[0], "r": q[1], "maxr": q[1], "life": 999.0, "seed": 1.7})
+			g.merchant = {"pos": g.ppos + Vector2(150, 70), "life": 60.0, "near": false}
+			for k in 10:
+				g.pickups.drop(g.ppos + Vector2(-60 + (k % 5) * 26, 120 + (k / 5) * 26), "xp", 8.0 if k % 3 == 0 else 1.0)
+			g.drones.append({"pos": g.ppos + Vector2(70, -60), "cd": 99.0, "ang": 0.0, "beam": 0.0, "face": 1.0})
+			g.zone_c = g.ppos + Vector2(-200, 0)
+			g.zone_r = 560.0   # 队长在安全区内，圈边从画面右侧穿过
+			g.zone_state = 3
+			g.zone_t = -999.0
+		if g.at_frames == 100 and DisplayServer.get_name() != "headless":
+			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_ws_scene.png")
+		if g.at_frames == 101:
+			var pts: Array = []
+			for mm in g.mires.slice(0, 2):
+				pts.append([mm.pos, mm.r])
+			g.mires = g.mires.slice(2)
+			g.fx.append({"kind": "mire_recoil", "pts": pts, "from": g.ppos, "life": 0.75, "max": 0.75, "tex": true})
+		if g.at_frames in [104, 110] and DisplayServer.get_name() != "headless":
+			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_ws_dissolve_%d.png" % g.at_frames)
+		if g.at_frames > 112:
+			g.get_tree().quit()
+	# --gpuprobe（docs/136 §2 排查，10-24）：第 360 帧（低分辨率层早已打开）才往世界节点下挂两个持续发射的 GPUParticles2D
+	# （红：game 直接子节点；绿：再套一层 Node2D），第 400 帧截 shot_gpu.png 并列出世界子树里各画布的可见层后退出
+	if Cfg.dev_args().has("--gpuprobe"):
+		g.pickup = 0.0   # 不拾取、不升级（升级面板会暂停并盖住画面）
+		if g.at_frames >= 340:
+			g.speed = 0.0
+		g.hp = g.max_hp
+		if g.at_frames == 360:
+			var holder := Node2D.new()
+			holder.name = "probe_holder"
+			g.add_child(holder)
+			for k in 2:
+				var p := GPUParticles2D.new()
+				p.name = "probe_gpu_%d" % k
+				p.amount = 64
+				p.lifetime = 2.0
+				p.local_coords = false
+				var img := Image.create(2, 2, false, Image.FORMAT_RGBA8)
+				img.fill(Color.WHITE)
+				p.texture = ImageTexture.create_from_image(img)
+				var m := ParticleProcessMaterial.new()
+				m.gravity = Vector3.ZERO
+				m.spread = 180.0
+				m.initial_velocity_min = 10.0
+				m.initial_velocity_max = 30.0
+				m.scale_min = 3.0
+				m.scale_max = 3.0
+				p.process_material = m
+				p.modulate = Color(2.0, 0.2, 0.2) if k == 0 else Color(0.2, 2.0, 0.2)
+				(g if k == 0 else holder).add_child(p)
+				p.global_position = g.ppos + Vector2(-90 if k == 0 else 90, -60)
+				p.process_mode = Node.PROCESS_MODE_ALWAYS
+				p.emitting = true
+		if g.at_frames == 400:
+			var rows: Array = []
+			var stack: Array = [[g, 0]]
+			while not stack.is_empty():
+				var it: Array = stack.pop_back()
+				for c in (it[0] as Node).get_children():
+					if c is CanvasLayer:
+						continue
+					if c is CanvasItem and int(it[1]) >= 1:
+						rows.append("%s:%s:L%d" % [c.get_parent().name, c.name, (c as CanvasItem).visibility_layer])
+					stack.append([c, int(it[1]) + 1])
+			print("GPUPROBE lo=%s nested=%s" % [str(g.get("optical_lo")), str(rows)])
+			for pn in ["probe_gpu_0", "probe_holder/probe_gpu_1"]:
+				var pp: GPUParticles2D = g.get_node_or_null(pn)
+				if pp != null:
+					print("GPUPROBE %s emit=%s vis=%s gpos=%s ppos=%s cam=%s layer=%d g_layer=%d" % [pn, pp.emitting, pp.is_visible_in_tree(), pp.global_position.round(), g.ppos.round(), g.cam.get_screen_center_position().round(), pp.visibility_layer, g.visibility_layer])
+			if DisplayServer.get_name() != "headless":
+				g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_gpu.png")
 			g.get_tree().quit()
 	if Cfg.dev_args().has("--gemshot"):
 		if g.at_frames == 60:
@@ -1054,8 +1209,10 @@ func bot_move() -> Vector2:
 	var pull := Vector2.ZERO
 	var best := 260.0
 	for g_item in g.gems:
+		if g_item.kind == "pack" and g.hp > g.max_hp * Bal.v("crate/bot_below", 0.75):
+			continue   # 应急补给：残血才去捡（docs/133 §6）
 		var gd: float = g_item.pos.distance_to(g.ppos)
-		var w: float = gd * (0.4 if (g_item.kind == "oil" and g.lamp < 60.0) or g_item.kind == "chest" else 1.0)
+		var w: float = gd * (0.4 if (g_item.kind == "oil" and g.lamp < 60.0) or g_item.kind == "chest" or g_item.kind == "pack" else 1.0)
 		if w < best:
 			best = w
 			pull = (g_item.pos - g.ppos).normalized() * 0.7
@@ -1151,6 +1308,12 @@ func _perf_sample() -> void:
 		var w := "0-8" if g.t < 480.0 else ("8-10" if g.t < 600.0 else "10+")
 		if perf_min:
 			w = "m%02d" % int(g.t / 60.0) + ("F" if g.final_boss != null and not g.final_boss.dead else "")   # --perfmin：按游戏分钟分段，F = 最终 Boss 在场
+		if partab > 0:
+			w += "/p1" if g.optical.particles.active else "/p0"
+		if grainab > 0:
+			w += "/g0" if g.optical.grains.off else "/g1"
+		if tierab > 0:
+			w += "/t0" if g.vfx.tier_off else "/t1"   # --tierab：上一帧的命中三档开关
 		if fx1ab > 0:
 			w += "/fx1" if g.optical.fx1 else "/fx0"   # --fx1ab：上一帧的特效处理开关（轮换在采样之后）
 		if opticalab > 0:

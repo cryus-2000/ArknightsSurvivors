@@ -35,6 +35,8 @@ func build_grid() -> void:
 		_gcell[i * 3 + 2] = 0
 		if e.dead or e.get("friendly", false):
 			continue
+		if e.chest and e.get("event", "") != "":
+			continue   # 海嗣祭坛不进索敌网格：干员的普攻 / 技能 / 召唤物 / 吸附都查这张网格，不把祭坛当目标（只在主控走近时打开，endings.update 直接扫 g.enemies）
 		if e.r > mr:
 			mr = e.r
 		var k := Vector2i(floori(e.pos.x / CELL), floori(e.pos.y / CELL))
@@ -377,7 +379,7 @@ func update(dt: float) -> void:
 				else:
 					e.dead = true
 			continue
-		if dist > 1300.0 and not e.boss:
+		if dist > 1300.0 and not e.boss and not e.get("enc", false):   # 围猎的海嗣（enc）由 hunt.gd 管：屏幕外出生，不按「远处静止敌人清掉」处理
 			if e.ai == "static" or e.get("dormant", false):
 				e.dead = true
 			else:
@@ -601,7 +603,11 @@ func update_status(dt: float) -> void:
 	var mire_nat := false   # 站在自然溟痕里（不是 Boss 子弹留下的）：这一跳不算 Boss 来源
 	var sanct: bool = g.squad.in_sanctuary(g.ppos)   # 流明灯塔：区内溟痕失效
 	for m in g.mires:
-		m.life -= dt
+		# 溟痕常驻、只能净化（用户 10-24）；Boss 溟痕是招式残留，照旧按 life 到期。life <= 0 = 移除标记
+		if m.get("boss", false):
+			m.life -= dt
+		if m.life <= 0.0:
+			continue
 		m.r = min(m.maxr, m.r + 5.0 * dt)
 		if g.combat.ground_d(g.ppos, m.pos) < m.r and not sanct:
 			mired = true

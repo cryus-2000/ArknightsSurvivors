@@ -1,0 +1,81 @@
+{
+  "source": "art/incoming/prop_wall.png",
+  "source_sha256": "eda73c9349c02e7ca91ce30448a2e30ab116b4513b12f841a6c8a953250fbe3e",
+  "output": "prop_wall.png",
+  "sha256": "f15e5e478cf2c2729a2af05ad0919c2051c83f2e2cb579d5486475343f5ddcab",
+  "sheet_size": [
+    56,
+    40
+  ],
+  "frame_size": [
+    56,
+    40
+  ],
+  "frames": 1,
+  "fps": 0,
+  "anchor_px": [
+    28.0,
+    40
+  ],
+  "anchor_space": "source frame edges; exact legacy renderer anchor",
+  "opaque_colors_before": 82,
+  "opaque_colors_after": 24,
+  "total_rgba_colors": 25,
+  "alpha_values": [
+    0,
+    255
+  ],
+  "changed_alpha_pixels": 0,
+  "changed_rgb_pixels": 370,
+  "source_opaque_bbox": [
+    2,
+    3,
+    54,
+    38
+  ],
+  "output_opaque_bbox": [
+    2,
+    3,
+    54,
+    38
+  ],
+  "palette": [
+    "#001020",
+    "#080E18",
+    "#102030",
+    "#103040",
+    "#203040",
+    "#204050",
+    "#205050",
+    "#206060",
+    "#304060",
+    "#305060",
+    "#306050",
+    "#405070",
+    "#406070",
+    "#407050",
+    "#407080",
+    "#507080",
+    "#508050",
+    "#508090",
+    "#6090A0",
+    "#70A0B0",
+    "#70B0B0",
+    "#80B0B0",
+    "#80C0C0",
+    "#90D0D0"
+  ],
+  "method": "explicit per-source-color material mapping; no automatic quantization; no resampling of asset",
+  "visual_review": "Reviewed 2x and 8x: three broken wall masses and algae stems preserved; wall crack values and top-left highlights readable after material-specific merging.",
+  "engine_validation": "not run; asset-only delivery",
+  "user_approval": "pending",
+  "status": "technical checks passed; visually reviewed; awaiting user approval and Claude integration",
+  "frame_opaque_bboxes": [
+    [
+      2,
+      3,
+      54,
+      38
+    ]
+  ]
+}

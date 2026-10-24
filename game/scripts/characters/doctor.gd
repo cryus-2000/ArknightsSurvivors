@@ -275,7 +275,7 @@ func _touching() -> bool:
 
 
 func _skill_key_held() -> bool:
-	if Pad.key_down(KEY_Q) or Pad.key_down(KEY_E) or (not manual_attack and Pad.key_down(KEY_J)):
+	if Pad.key_down(KEY_E) or (not manual_attack and Pad.key_down(KEY_J)):
 		return true
 	for dev in Input.get_connected_joypads():
 		if Input.is_joy_button_pressed(dev, JOY_BUTTON_A) or Input.is_joy_button_pressed(dev, JOY_BUTTON_Y) \

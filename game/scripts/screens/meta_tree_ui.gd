@@ -21,10 +21,10 @@ const BAR_H := 48.0
 const COL_GAP := 86.0
 const STEP := 92.0
 ## 链的列序（左 → 右）：根节点 id；数据里新增的根接在最后
-const ROOT_ORDER := ["disp1", "shop1", "gold1", "xp1", "sh1", "atk1", "hp1", "def1", "reg1"]
+const ROOT_ORDER := ["disp1", "shop1", "gold1", "pick1", "xp1", "sh1", "atk1", "hp1", "def1", "reg1"]
 ## 末节的质变 / 汇总短句（链顶小斜块）：取自各末节 desc 的规则部分
-const RULE_TAG := {"atk5": "处决", "hp5": "濒死免死", "def4": "久守减伤", "reg3": "低血翻倍", "sh1": "碎盾反震",
-	"xp4": "升级再升", "gold3": "源石锭 +10", "shop3": "行商 -15%", "disp3": "开局藏品"}
+const RULE_TAG := {"atk5": "处决", "hp5": "濒死免死", "def4": "久守减伤", "reg5": "回复 +1.0", "sh2": "碎盾反震",
+	"xp4": "升级再升", "gold3": "源石锭 +12", "shop3": "行商 -18%", "disp4": "绝处逢生", "pick4": "拾取 +52"}
 
 const BASE := Color8(19, 23, 30)
 const LINE_ON := Color8(232, 246, 255)

@@ -1,0 +1,22 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>艾雅法拉 · 熔岩弹粒子对照</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#11191c;color:#e2e8e6;font:15px/1.7 system-ui,"Microsoft YaHei",sans-serif}main{max-width:1120px;margin:40px auto;padding:0 24px}h1{font-size:28px;margin:6px 0 12px;font-weight:550}small,.muted{color:#9dacab}.tag{color:#f4ba6b;letter-spacing:2px;font-size:12px}.bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:20px 0}button,select{font:inherit;background:#233136;border:1px solid #405054;color:#e2e8e6;padding:8px 15px;border-radius:5px;cursor:pointer}button.active{border-color:#e5b567;color:#f5ca8c}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.panel{border:1px solid #344247;border-radius:7px;overflow:hidden}.heading{padding:14px 18px;background:#1a262b}.stage{aspect-ratio:480/220;overflow:hidden;background:#0d1418}video{display:block;width:100%;height:100%;image-rendering:pixelated;transform:scale(1);transform-origin:center}body.zoom video{transform:scale(2)}.caption{padding:14px 18px;color:#aab8b7;min-height:78px}.time{width:100%;accent-color:#e6b46b}.notes{border-top:1px solid #344247;margin-top:28px;padding-top:16px;color:#aab8b7}table{border-collapse:collapse;width:100%;margin-top:12px}td,th{text-align:left;border-bottom:1px solid #344247;padding:8px}a{color:#efc486}@media(max-width:700px){.grid{grid-template-columns:1fr}main{margin:20px auto}}
+</style><main><div class="tag">视觉试验 · 01 / EYJAFJALLA</div><h1>熔岩弹：让火星、熔渣各自运动</h1>
+<p class="muted">同一技能主体、相同 23 颗 GPU 粒子、相同 3 个发射器。先看爆发之后的运动与冷却。</p>
+<div class="bar"><button id="full" class="active">主体 + 粒子</button><button id="only">仅看粒子</button><button id="play">暂停</button><button id="reset">重播</button><select id="speed"><option value="1">正常速度</option><option value="0.5">半速</option><option value="0.25">四分之一速度</option></select><button id="zoom">放大 2 倍</button></div>
+<div class="grid"><section class="panel"><div class="heading">A · 当前通用参数（隔离复现）</div><div class="stage"><video id="a" src="compare_left.mp4" muted playsinline loop autoplay></video></div><div class="caption">同色喷发、通用阻尼和淡出；大特效的火星、余烬、烟同时出现。</div></section><section class="panel"><div class="heading">B · 熔岩材质试验</div><div class="stage"><video id="b" src="compare_right.mp4" muted playsinline loop autoplay></video></div><div class="caption">熔渣向下落并冷却变暗；细火星向上漂；烟灰在尾段保留少量层次。</div></section></div>
+<input id="seek" class="time" type="range" min="0" max="2.49" step="0.0167" value="0" aria-label="逐帧查看"><small id="clock">0.00 秒</small>
+<div class="notes"><b>这版比较什么</b><p>只比较熔岩弹落地时的通用 GPU 点缀层。两边保留现有 6 帧 / 18 fps 的技能帧条，发射数量、节点数和寿命相同。未包含整局光学后期、动态照明、其他技能专属粒子与敌人；无地面碰撞、无持久残留。正式游戏尚未接入。</p>
+<b>本机独立场景测量</b><div id="perf">测量记录尚未载入。</div><p>相同 960×540、Compatibility 渲染、关闭垂直同步；每次预热 2 秒、采样 6 秒，顺序 A/B/B/A。捕帧与性能测量分开进行。本机有其他会话负载，这不是整局帧率保证，也不是网页端结果。</p></div></main>
+<script>
+const a=document.querySelector('#a'),b=document.querySelector('#b'),play=document.querySelector('#play');let playing=true,kind='compare';
+function sync(){b.currentTime=a.currentTime}function toggle(){playing=!playing;for(const v of[a,b])playing?v.play().catch(()=>{}):v.pause();play.textContent=playing?'暂停':'播放'}
+play.onclick=toggle;document.querySelector('#reset').onclick=()=>{a.currentTime=b.currentTime=0;};
+document.querySelector('#seek').oninput=e=>{if(playing)toggle();a.currentTime=b.currentTime=+e.target.value;};
+document.querySelector('#speed').onchange=e=>{a.playbackRate=b.playbackRate=+e.target.value;sync();};
+document.querySelector('#zoom').onclick=e=>{document.body.classList.toggle('zoom');e.target.textContent=document.body.classList.contains('zoom')?'恢复原尺寸':'放大 2 倍';};
+function source(k){kind=k;for(const [i,v] of[a,b].entries()){v.src=k+(i?'_right.mp4':'_left.mp4');v.playbackRate=+document.querySelector('#speed').value;if(playing)v.play().catch(()=>{});}document.querySelector('#full').classList.toggle('active',k==='compare');document.querySelector('#only').classList.toggle('active',k==='particles');}
+document.querySelector('#full').onclick=()=>source('compare');document.querySelector('#only').onclick=()=>source('particles');
+setInterval(()=>{if(playing&&Math.abs(a.currentTime-b.currentTime)>.06)sync();document.querySelector('#seek').value=a.currentTime;document.querySelector('#clock').textContent=a.currentTime.toFixed(2)+' 秒';},100);
+window.addEventListener('error',e=>console.error(e.message));
+</script><script src="perf.js"></script></html>

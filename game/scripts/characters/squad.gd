@@ -51,6 +51,17 @@ func size() -> int:
 	return ops.size()
 
 
+## 编队位分配：队长恒为 0 号位（站在玩家位置），其余按入队顺序占 1.. 号位（切队长后不再等于数组下标，10-23）
+func assign_slots() -> void:
+	var k := 1
+	for o in ops:
+		if o.is_leader:
+			o.slot = 0
+		else:
+			o.slot = k
+			k += 1
+
+
 func cap() -> int:
 	return REGULAR_MAX + (1 if extra_slot else 0)
 
@@ -133,13 +144,12 @@ func remove(cid: String) -> void:
 				ops[i].on_leave()
 			ops.remove_at(i)
 			break
-	for i in ops.size():
-		ops[i].slot = i
-	if not _hold_size:
-		_apply_size_hp()
 	if not ops.is_empty() and not ops.any(func(o): return o.is_leader):
 		ops[0].is_leader = true
 		_apply_leader_regen(ops[0])
+	assign_slots()
+	if not _hold_size:
+		_apply_size_hp()
 	if g.get("rfx") != null:
 		g.rfx.refresh_squad()
 
@@ -178,8 +188,7 @@ func replace(old_id: String, new_id: String, route := ""):
 		return null
 	ops.erase(op)
 	ops.insert(mini(idx, ops.size()), op)
-	for i in ops.size():
-		ops[i].slot = i
+	assign_slots()
 	op.pos = g.ppos + _slot_offset(op.slot)
 	op.arrive_t = 0.0   # 等被换下的跳出屏幕后从上方落下（纯画面，character.arrive_dy）
 	op.play_entry(op.ARRIVE_WAIT + op.ARRIVE_FALL)   # 着地接入场条
@@ -326,6 +335,7 @@ func update(dt: float) -> void:
 	if stance == RECALL:
 		_tick_recall(dt)
 	_tick_lead(dt)
+	swap_cd = maxf(0.0, swap_cd - dt)
 	_tick_stamina(dt)
 	_tick_hp(dt)
 	for o in ops:
@@ -340,6 +350,78 @@ func update(dt: float) -> void:
 			g.invuln = maxf(g.invuln, 0.12)
 			g.invuln_move_until = g.t + 0.12
 		o._tick_pfx(dt)
+
+
+## ---------------------------------------------------------------- 切换队长（10-23 用户定，docs/128）
+## Q / 手柄 RB / 触屏点编队卡：谁都不瞬移，被切到的干员原地成为队长（玩家位置 = 他的位置），原队长原地变回队友；镜头 0.25 秒缓动过去
+## （game.swap_off）；冷却 2 秒、不给无敌；队长生命整局共用，不换血条；倒地的队友不能被切。不按切换键时本段不执行任何代码，同 seed 不变
+var swap_cd := 0.0
+var swap_n := 0
+
+
+func swap_cd_max() -> float:
+	return Bal.v("leader_swap/cd", 2.0)
+
+
+func can_swap_to(o) -> bool:
+	return o != null and not o.is_leader and o.cmd_down <= 0.0 and o.pos != Vector2.INF and swap_cd <= 0.0 and g.state == g.S.PLAY and g.demo_op == ""
+
+
+## 下一名能当队长的干员（按编队栏从左到右，绕回开头）；没有返回 null（HUD 在它的卡上标 Q）
+func next_leader():
+	if ops.size() < 2:
+		return null
+	var cur: int = ops.find(leader())
+	for k in range(1, ops.size()):
+		var o = ops[(cur + k) % ops.size()]
+		if o.cmd_down <= 0.0 and not o.is_leader:
+			return o
+	return null
+
+
+## 轮流切到下一名（Q / RB）
+func cycle_leader() -> bool:
+	var o = next_leader()
+	return o != null and swap_leader(o)
+
+
+func swap_leader(o) -> bool:
+	if not can_swap_to(o):
+		return false
+	var old = leader()
+	if old == null or old == o:
+		return false
+	var old_p: Vector2 = g.ppos
+	old.is_leader = false
+	o.is_leader = true
+	g.ch = o
+	assign_slots()
+	g.ppos = o.pos
+	g.facing = o.face if o.face != 0.0 else g.facing
+	g.swap_off = old_p - g.ppos   # 镜头从原来的位置缓动到新队长（game.cam_center）
+	g.swap_t = 0.0
+	old.roam_tgt = null
+	old.cmd_hp = 1.0
+	old.cmd_inv = 0.0
+	o.roam_tgt = null
+	o.cmd_hp = 1.0
+	o.fp_moving = true
+	if g.get("doctor") != null:
+		g.doctor.charge = {}
+		Sfx.loop_stop("ulp_charge_loop")
+	swap_cd = swap_cd_max()
+	swap_n += 1
+	if g.get("rfx") != null:
+		g.rfx.refresh_squad()
+	if g.has_method("sync_stats"):
+		g.sync_stats()
+	g.fx.append({"kind": "ring", "pos": g.ppos, "r": 40.0, "life": 0.3, "max": 0.3, "col": o.col()})
+	var sfx: Node = g.get_node_or_null("/root/Sfx")
+	if sfx != null:
+		sfx.voice(o.id, "command", false, true)   # 出击语音（指挥语音同一套，不受节流）
+	if g.get("trace_every") != null and g.trace_every > 0.0:
+		print("SWAP t=%.2f %s -> %s" % [g.t, old.id, o.id])
+	return true
 
 
 ## 指挥模式总开关（balance command/on）

@@ -12,6 +12,7 @@ const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落�
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 const EnemyAtlas = preload("res://scripts/render/enemy_atlas.gd")
 const TeleDraw = preload("res://scripts/render/telegraph_draw.gd")   # 预警填充层（docs/101 B2，原 boss_ai.draw_warns）
+const LAMP_READ_EXT := 1.6   # 可读灯圈（render/lamp_readable）：余光延到灯半径的倍数，game.gd 的灯光贴图按它生成
 const TriBatch = preload("res://scripts/render/tri_batch.gd")   # 引擎同款几何的无贴图三角形批（docs/50 §13）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -23,6 +24,22 @@ var p_dust_t := 0.0
 var p_swing_prev := 0.0
 var p_hurt_prev := 0.0
 var cam_kick := Vector2.ZERO
+## 开火微震（vfx._leader_kick）：方向（远离目标）、美术像素、剩余 / 总时长；cam.offset 按阶梯取整（1 px → 0；2 px → 1 → 0），不动 cam.position
+var _kick_dir := Vector2.ZERO
+var _kick_px := 0
+var _kick_t := 0.0
+var _kick_dur := 0.06
+
+
+func kick(to_target: Vector2, px: int, dur: float) -> void:
+	if px <= 0 or (_kick_t > 0.0 and px <= _kick_px):
+		return
+	var d: Vector2 = -to_target
+	# 八方向取整：斜向时两轴各挪同样的整像素
+	_kick_dir = Vector2(signf(d.x) if absf(d.x) > absf(d.y) * 0.4 else 0.0, signf(d.y) if absf(d.y) > absf(d.x) * 0.4 else 0.0)
+	_kick_px = px
+	_kick_dur = maxf(0.01, dur)
+	_kick_t = _kick_dur
 var heart_cd := 0.0
 var anim_name := ""
 var anim_t := 0.0
@@ -144,7 +161,13 @@ func update_visuals(dt: float) -> void:
 			Sfx.play("heartbeat_hi", -0.7, 1.0, 0.0)   # 高频层：原心跳 99% 在 120 Hz 以下，手机 / 笔记本外放听不到（音频 10/1）
 	# 镜头震动已整体移除（见 _shake）。干员脚本里还有直接写 g.shake 的（2.5–5，按 10·shake² 就是 ±250 像素），
 	# 在这里统一不用它，图鉴演示 / 精英化演出 / 实战都不再震；shake 变量只留给以后可能的非镜头用途
-	g.cam.offset = cam_kick.round()
+	var kick_off := Vector2.ZERO
+	if _kick_t > 0.0:
+		_kick_t = maxf(0.0, _kick_t - rd)
+		kick_off = _kick_dir * float(ceili(_kick_px * _kick_t / _kick_dur)) * Game.PX
+		if _kick_t <= 0.0:
+			_kick_px = 0
+	g.cam.offset = cam_kick.round() + kick_off
 	# 灯火光源：半径随灯火变化，快熄灭时闪烁
 	var radius: float = lerp(150.0, 520.0, g.lamp / 100.0) * g.squad.light_radius_mult()
 	if g.state == Game.S.DEAD:
@@ -155,6 +178,10 @@ func update_visuals(dt: float) -> void:
 	g.lamp_light.position = g.ppos + Vector2(0, -20)
 	g.lamp_light.texture_scale = radius / 64.0 * flicker
 	g.lamp_light.color = Color(1.0, 0.86, 0.62) if g.lamp >= 30.0 else Color(1.0, 0.6, 0.5)
+	if Bal.v("render/lamp_readable", 0.0) > 0.0:
+		# 可读灯圈（缺省开，balance render/lamp_readable）：圈内亮度固定、不闪、低灯不变红，灯火变弱只缩半径
+		g.lamp_light.texture_scale = radius * LAMP_READ_EXT / 64.0
+		g.lamp_light.color = Color(1.0, 0.98, 0.94)
 	# 骑士入潮点临时暖光：入潮演出期间亮在沉入处，随进度淡出（纯画面；10:00 重生不用）
 	if g.knight_light != null:
 		var sinking: bool = g.knight != null and g.knight.alive and g.knight.state == "sink"
@@ -568,8 +595,8 @@ func _draw_pickups_fast() -> void:
 	_gem_sprites("ingot", Game.PX, ing_p, wc1)
 	_gem_sprites("oil", Game.PX, oil_p, wc1)
 	_gt_flush()
-	_gem_sprites("gem_big", Game.PX * 1.9 * GEM_VIS, big_p, big_c)
-	_gem_sprites("gem_small", Game.PX * 1.45 * GEM_VIS, small_p, small_c)
+	_gem_sprites("gem_big", Game.PX, big_p, big_c)
+	_gem_sprites("gem_small", Game.PX, small_p, small_c)
 	for sk in spark:
 		var gp2: Vector2 = sk[0]
 		var sp3: float = sk[1]
@@ -590,8 +617,8 @@ func _draw_pickups_fast() -> void:
 	var qc := PackedColorArray()
 	qc.resize(maxi(mp_s.size(), mp_b.size()))
 	qc.fill(quiet_col)
-	_gem_sprites("gem_small", Game.PX * 1.45 * GEM_VIS, mp_s, qc)
-	_gem_sprites("gem_big", Game.PX * 1.9 * GEM_VIS, mp_b, qc)
+	_gem_sprites("gem_small", Game.PX, mp_s, qc)
+	_gem_sprites("gem_big", Game.PX, mp_b, qc)
 
 
 ## ---- 掉落物剩余断点合批（docs/50 §13，OPT_PICKB）：空中影子（每颗一个椭圆）、特殊掉落（宝箱 / 磁铁 / 回复药剂）的光柱、
@@ -679,14 +706,26 @@ func _pq_item(g_item: Dictionary, pos: Vector2, gz: float, kind: String, t: floa
 			_pq_sprite("chest", pos)
 		"ingot":
 			_pq_sprite("ingot", pos + Vector2(0, sin(t * 3.0 + pos.y) * 1.5 if gz <= 1.0 else 0.0))
-		"magnet", "heal":
-			_pq_sprite("pickup_" + kind, pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))
+		"magnet", "heal", "pack":
+			_pq_sprite("pickup_" + ("heal" if kind == "pack" else kind), pos + Vector2(0, -2 + (sin(t * 3.5) * 2.0 if gz <= 1.0 else 0.0)))   # 应急补给先用回复药剂的贴图占位（素材单 art/incoming/codex_order_supply_crate.md）
 	g.draw_off = Vector2.ZERO
 
 
 ## 同一张结晶贴图连续画（FrameDst.dst 的同一套算式：单帧、锚点居中、取整；热循环内联，docs/50 §11）
 ## 经验结晶显示倍率（10-21 用户实玩「结晶画得太大」）：贴图、光晕、暗底、闪光、吸附拖尾一起缩；拾取判定不读它
 const GEM_VIS := 0.75
+
+## 经验结晶 / 源石锭 / 灯油的贴图（同贴图连续合批）。左上角吸附到美术像素格（PX 世界单位；奇数宽的大结晶不落半像素，Codex world_spec_1024）。
+## 结晶带 _emit 发光层（gem_small_emit / gem_big_emit，只有主高光像素）时，光学观感下同位置 1:1 排进发光层，取代 optical._draw_loot 的单个发光点
+var gem_emit := false
+var _gem_e := {}
+var _mde = 0   # fx_mire_dissolve_emit 贴图（0 = 还没查）
+
+
+func _mire_dissolve_emit() -> Texture2D:
+	if typeof(_mde) == TYPE_INT:
+		_mde = A.tex("fx_mire_dissolve_emit") if A.has_override("fx_mire_dissolve_emit") else null
+	return _mde
 
 func _gem_sprites(name: String, sc: float, ps: PackedVector2Array, cs: PackedColorArray) -> void:
 	if ps.is_empty():
@@ -699,8 +738,15 @@ func _gem_sprites(name: String, sc: float, ps: PackedVector2Array, cs: PackedCol
 	var src := Rect2(0, 0, fw, fh)
 	var size := Vector2(fw, fh) * sc
 	var half: Vector2 = size * Vector2(0.5, 0.5)
+	if not _gem_e.has(name):
+		_gem_e[name] = A.tex(name + "_emit") if A.has_override(name + "_emit") else null
+		gem_emit = _gem_e.get("gem_small") != null or _gem_e.get("gem_big") != null
+	var etx: Texture2D = _gem_e[name] if g.optical_on else null
 	for i in ps.size():
-		g.draw_texture_rect_region(tx, Rect2((ps[i] - half).round(), size), src, cs[i])
+		var dst := Rect2(((ps[i] - half) / Game.PX).round() * Game.PX, size)
+		g.draw_texture_rect_region(tx, dst, src, cs[i])
+		if etx != null:
+			g.glow_tex_next.append([etx, dst, src, cs[i]])
 
 
 ## Boss 登场聚光、博士 / 敌人 / 干员 / 骑士的影子、干员脚下层；evr：ENTITY_MARGIN 视野矩形（排序层共用）
@@ -883,7 +929,7 @@ func _draw_overlays_shield_drones() -> void:
 		elif dr.get("beam", 0.0) > 0.0:
 			dfr = 3
 		if g.tex.get("drone_laser") != null:
-			g.vfx.spr("drone_laser", 4, dfr, dr.pos, 1.0, dr.get("face", 1.0) < 0.0, Color(0.85, 1.25, 0.95))
+			g.vfx.spr("drone_laser", 4, dfr, (dr.pos / Game.PX).round() * Game.PX, Game.PX / A.hires_of(g.tex.drone_laser), dr.get("face", 1.0) < 0.0, Color(0.85, 1.25, 0.95))   # 24×20 × 4 原生 1x，按 PX 1:1（world_spec_1024）
 		elif g.tex.get("drone") != null:
 			g.vfx.spr("drone", 2, int(g.t * 20.0) % 2, dr.pos, Game.PX, false, Color(1.2, 1.7, 1.4))
 	for dr in g.drones:
@@ -1002,6 +1048,70 @@ func _draw_fx() -> void:
 				g.draw_circle(Vector2.ZERO, f.r, Color(0.6, 0.85, 1.3, 0.28 * a))
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				g.draw_line(f.pos + Vector2(-5, 1), f.pos + Vector2(5, -1), Color(1.2, 1.5, 2.0, 0.6 * a), 1.5)
+			"hstar":
+				# 命中星（vfx._tier_fx）：中档 4 臂、重档 8 臂；臂长随寿命先长后缩，2 px 线 + 白芯，三阶跳着消失
+				var hq: float = ceilf(a * 3.0) / 3.0
+				var hl: float = float(f.r) * (0.6 + 0.4 * sin((1.0 - a) * PI))
+				var hc: Color = f.col
+				for q in int(f.n):
+					var dv := Vector2.from_angle(TAU * q / float(f.n)) * (hl if q % 2 == 0 else hl * 0.6)
+					g.draw_line(f.pos, f.pos + dv, Color(hc.r * 1.4, hc.g * 1.4, hc.b * 1.4, hq), 2.0)
+				g.draw_rect(Rect2(f.pos - Vector2(2, 2), Vector2(4, 4)), Color(1.8, 1.8, 1.8, hq))
+			"marc":
+				# 近战刀光（vfx.melee_arc，10-24 用户嫌「沿判定圈的细弧像雷达」改样）：贴着武器的月牙——中间厚两头尖，
+				# 半径 = 判定半径 × fx/melee_arc_reach（0.7，贴近身体），扫过角度最多 fx/melee_arc_span（105°）；
+				# 判定扇形更宽 / 360° 时只画命中一侧（hit_react 把中心转到第一个被打中的敌人方向）。
+				# 三阶硬边：外沿暗带 → 干员本色 → 靠外缘的亮芯（重档加白芯）；厚度按命中档（轻 / 中 / 重）。
+				# 跟着挥刀走：前端在前 55% 寿命里扫到终点，尾端从 35% 起追上；位置按干员当前脚底 + 出手时偏移
+				var tr: int = int(f.tier)
+				var aq: float = ceilf(a * 3.0) / 3.0
+				var tk: float = [0.0, 0.8, 1.0, 1.25][tr]   # 厚度按命中档
+				var kb: float = [0.0, 1.0, 1.25, 1.6][tr]
+				var full: bool = float(f.half) >= PI - 0.01
+				var ap: Vector2 = f.pos
+				var aop = g.squad.get_op(str(f.get("op", ""))) if g.squad != null else null
+				if aop != null and aop.pos != Vector2.INF:
+					ap = aop.pos + f.get("off", Vector2.ZERO)
+				var rc: float = maxf(18.0, float(f.r) * Bal.v("fx/melee_arc_reach", 0.7))
+				var span: float = minf(float(f.half) * 2.0, deg_to_rad(Bal.v("fx/melee_arc_span", 105.0)))
+				var sd: float = float(f.get("sdir", 1.0))
+				var s0: float = float(f.ang) - span * 0.5 * sd   # 挥刀起点（以刀光中心方向对称）
+				# 10-24 用户「还不够像刀光」：厚月牙（厚度 ≈ 半径 30%）、前粗后尖（彗星形）、外沿白刃 → 本色 → 内沿暗边；
+				# 前 25% 寿命里一下扫满（拖影帧），之后尾端从起点吃回去；外侧 2–3 道速度线，刀尖迸几颗火星
+				var tw: float = clampf(rc * 0.3, 7.0, 26.0) * tk
+				var pr: float = 1.0 - a
+				var hd: float = clampf(pr / 0.25, 0.0, 1.0)
+				var tl: float = clampf((pr - 0.25) / 0.75, 0.0, 1.0)
+				var cc: Color = f.col
+				var gr = g.optical.grains if g.optical != null else null
+				if gr != null and gr.on() and not gr.off and hd > 0.0:
+					# 刀光第四版（docs/136「slash」粒子模板）：月牙本体由像素颗粒在这一帧扫过的那一段上生成，前沿只留一道热白细线
+					_marc_grains(f, gr, ap, rc, tw, s0, sd * span, hd, cc, kb, aq)
+				elif hd - tl > 0.02:
+					var sw: float = sd * span
+					_crescent(ap, rc + 1.0, s0, sw, tl, hd, tw + 2.0, Color(cc.r * 0.35, cc.g * 0.35, cc.b * 0.4, 0.75 * aq), 1.0)   # 暗边（内沿收边）
+					_crescent(ap, rc, s0, sw, tl, hd, tw, Color(cc.r * kb, cc.g * kb, cc.b * kb, aq), 1.0)   # 本色刀身
+					_crescent(ap, rc, s0, sw, tl, hd, tw * 0.5, Color(minf(1.6, cc.r * kb * 1.4 + 0.4), minf(1.6, cc.g * kb * 1.4 + 0.4), minf(1.6, cc.b * kb * 1.4 + 0.4), aq), 1.0)   # 亮带
+					_crescent(ap, rc, s0, sw, tl, hd, maxf(2.0, tw * 0.18), Color(1.9, 1.9, 1.9, aq), 1.0)   # 白刃（外沿）
+					for q in (2 if tr < 3 else 3):   # 速度线：外沿外侧几道短细线，越往外越短
+						var lr: float = rc + 4.0 + 4.0 * q
+						var lu0: float = maxf(tl, hd - 0.45 + 0.12 * q)
+						if hd - lu0 > 0.05:
+							g.draw_arc(ap, lr, minf(s0 + sw * lu0, s0 + sw * hd), maxf(s0 + sw * lu0, s0 + sw * hd), 8, Color(cc.r * kb + 0.3, cc.g * kb + 0.3, cc.b * kb + 0.3, 0.55 * aq), 2.0)
+					if hd < 1.0 or pr < 0.4:
+						var tip: Vector2 = ap + Vector2.from_angle(s0 + sw * hd) * (rc - tw * 0.3)
+						for q in 3:   # 刀尖火星（2 px，确定性摆位，不用随机数）
+							var sv := Vector2.from_angle(s0 + sw * hd + sd * (0.6 + 0.5 * q)) * (4.0 + 5.0 * q)
+							g.draw_rect(Rect2((tip + sv).round(), Vector2(2, 2)), Color(1.8, 1.8, 1.8, aq))
+				var a0: float = 0.0 if full else float(f.ang) - float(f.half)
+				var a1: float = TAU if full else float(f.ang) + float(f.half)
+				if g.vfx.arc_dbg < 0:
+					g.vfx.arc_dbg = 1 if Cfg.dev_args().has("--arcdbg") else 0
+				if g.vfx.arc_dbg == 1:
+					g.draw_arc(f.pos, f.r, 0.0, TAU, 64, Color(1, 1, 1, 0.5), 1.0)   # 判定圈（核对，画在出手那一刻的判定原点）
+					if not full:
+						g.draw_line(f.pos, f.pos + Vector2.from_angle(a0) * float(f.r), Color(1, 1, 0.3, 0.7), 1.0)
+						g.draw_line(f.pos, f.pos + Vector2.from_angle(a1) * float(f.r), Color(1, 1, 0.3, 0.7), 1.0)
 			"ring":
 				# op_hit：干员攻击 / 技能命中的装饰环（水月），render/hit_rings 缺省不画；其余（敌方、拾取、藏品……）照画
 				if f.get("op_hit", false) and not Dc.hit_rings():
@@ -1025,10 +1135,26 @@ func _draw_fx() -> void:
 			"mire_recoil":
 				# 灯标点燃时被清掉的溟痕退散（docs/54）：每片一圈紫环向中心收缩、深色底渐隐，再一道从灯标推出去的淡光弧
 				if g.vfx.p2 and f.get("tex", false):
-					# 溟痕退散帧条 fx_mire_dissolve（64×64 × 6，和 terrain_mire 同尺寸：按判定半径 ×2.3 画）
+					# 溟痕退散帧条 fx_mire_dissolve（64×64 × 6 原生 1x，world_spec_1024）：按 PX 1:1，不按半径拉伸；
+					# 一块 64 美术像素 = 128 世界单位，大溟痕在圆内按 96 世界单位间距多点铺（块与块叠一圈、格心离圆心 ≤ 半径）；_emit 层进光学发光层
 					var mfr: int = clampi(int((1.0 - a) * 6.0), 0, 5)
+					var dtx: Texture2D = g.tex.get("fx_mire_dissolve")
+					var dhs: float = A.hires_of(dtx) if dtx != null else 1.0
+					var dcol := Color(1.0, 1.0, 1.0, minf(1.0, a * 2.0))
+					var detx: Texture2D = _mire_dissolve_emit() if g.optical_on else null
+					var step: float = 64.0 * Game.PX
+					var pitch: float = 48.0 * Game.PX
 					for c in f.pts:
-						g.vfx.spr_rot("fx_mire_dissolve", mfr, c[0], 0.0, float(c[1]) * 2.3 / 64.0, Color(1.0, 1.0, 1.0, minf(1.0, a * 2.0)))
+						var nn: int = maxi(0, ceili((float(c[1]) - step * 0.5) / pitch))
+						for iy in range(-nn, nn + 1):
+							for ix in range(-nn, nn + 1):
+								var off := Vector2(ix, iy) * pitch
+								if off.length() > float(c[1]) and (ix != 0 or iy != 0):
+									continue
+								var dp: Vector2 = ((c[0] + off) / Game.PX).round() * Game.PX
+								g.vfx.spr_rot("fx_mire_dissolve", mfr, dp, 0.0, Game.PX / dhs, dcol)
+								if detx != null:
+									g.glow_tex_next.append([detx, Rect2(dp - Vector2(step, step) * 0.5, Vector2(step, step)), Rect2(mfr * 64, 0, 64, 64), Color(1, 1, 1, dcol.a * Bal.v("render/optical_mire_emit", 0.35))])
 				elif g.vfx.p2:
 					var k := 1.0 - a
 					var gy: float = ground_y()
@@ -1203,7 +1329,7 @@ func _draw_fx() -> void:
 				g.vfx.spr("tentacle", 5, fr, f.pos + Vector2(48, 22), Game.PX * 2.4, false, tc * Color(0.9, 0.9, 0.9, 1.0), Vector2(0.5, 1.0))
 			"sprite":
 				var spec: Array = Game.V6_FRAMES[f.name]
-				var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
+				var fr := mini(int((f.max - f.life) * float(f.get("fps", spec[1]))), spec[0] - 1)   # fps：加快过的死亡帧条（vfx.death_shatter）
 				var scol: Color = f.get("col", Color.WHITE)
 				scol.a *= fdim
 				g.vfx.spr_rot(f.name, fr, f.pos, f.ang, f.scale, scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
@@ -3712,6 +3838,59 @@ func _tell_circle(p: Vector2, r: float, k: float, c: Color) -> void:
 const WARN_CORE := Color(1, 1, 1)
 const WARN_EDGE := Color(0.02, 0.02, 0.05)
 
+## 刀光第四版：把这一帧前沿新扫过的角度段 [上帧前沿, 本帧前沿] 按月牙剖面（外沿到内沿，2 世界像素一格）取样成颗粒发射点，
+## 初速沿挥刀切线（惯性），颜色 = 干员本色（模板颜色阶乘在上面：热白 → 本色 → 冷暗）；单帧点数超模板上限时均匀抽稀。
+## 前沿另画一道 2 px 热白细线，读出「刀口」；尾部不画实体，由颗粒自己冷却熄灭
+func _marc_grains(f: Dictionary, gr, ap: Vector2, rc: float, tw: float, s0: float, sw: float, hd: float, cc: Color, kb: float, aq: float) -> void:
+	var u0: float = float(f.get("gu", 0.0))
+	if hd > u0 + 0.001:
+		var cells: Array = []
+		var nu: int = maxi(1, int(absf(sw) * (hd - u0) * rc / 2.0))
+		for i in nu:
+			var u: float = lerpf(u0, hd, (float(i) + 0.5) / float(nu))
+			var uu: float = clampf(u, 0.0, 1.0)
+			var th: float = tw * pow(sin(PI * uu), 0.6) * (0.35 + 0.65 * uu)
+			var ang: float = s0 + sw * u
+			var dv := Vector2.from_angle(ang)
+			var tg := dv.orthogonal() * signf(sw)   # 挥刀切线方向
+			var nr: int = maxi(1, int(th / 2.0))
+			for j in nr:
+				cells.append([ap + dv * (rc - float(j) * 2.0), tg])
+		var cap: int = int(gr.TEMPLATES.slash.per_frame)
+		var stride: float = maxf(1.0, float(cells.size()) / float(cap))
+		var k: float = 0.0
+		var col := Color(minf(1.0, cc.r * kb), minf(1.0, cc.g * kb), minf(1.0, cc.b * kb))
+		while int(k) < cells.size():
+			var c: Array = cells[int(k)]
+			gr.push("slash", c[0], c[1], col)
+			k += stride
+		f["gu"] = hd
+	if hd < 1.0:
+		var e0: float = s0 + sw * maxf(0.0, hd - 0.06)
+		var e1: float = s0 + sw * hd
+		g.draw_arc(ap, rc - 1.0, minf(e0, e1), maxf(e0, e1), 6, Color(2.0, 2.0, 2.0, aq), 2.0)   # 刀口热白线
+
+
+## 近战刀光月牙（"marc"）：外沿在半径 r 的圆上，内沿离外沿 thick × sin(π u)；u 是整次挥刀上的位置（0 起点 / 1 终点），
+## 只画 [u0, u1] 那一段（跟着挥刀扫）。起点角 s0，扫过 sweep（带方向的弧度）
+func _crescent(c: Vector2, r: float, s0: float, sweep: float, u0: float, u1: float, thick: float, col: Color, _k: float) -> void:
+	var n: int = clampi(int(absf(sweep) * (u1 - u0) * r / 4.0), 3, 40)
+	var outer := PackedVector2Array()
+	var inner := PackedVector2Array()
+	for i in n + 1:
+		var u: float = lerpf(u0, u1, float(i) / float(n))
+		var ang: float = s0 + sweep * u
+		var uu: float = clampf(u, 0.0, 1.0)
+		var th: float = thick * pow(sin(PI * uu), 0.6) * (0.35 + 0.65 * uu)   # 前粗后尖（彗星形）：靠挥刀终点一侧最厚
+		var dv := Vector2.from_angle(ang)
+		outer.append(c + dv * r)
+		inner.append(c + dv * maxf(0.0, r - th))
+	inner.reverse()
+	outer.append_array(inner)
+	if outer.size() >= 3:
+		g.draw_colored_polygon(outer, col)
+
+
 func _warn_dash_arc(r: float, a0: float, a1: float, col: Color, wdt: float) -> void:
 	var seg: float = 0.22
 	var a: float = a0
@@ -3933,7 +4112,26 @@ func draw_zone_band(pulse: float) -> void:
 		crests.append(crest)
 	# 溟痕贴图沿圈边密铺：每 26 像素弧长一块（贴图约 60 像素宽，互相叠一半以上，连成一整条），两帧脉动和地上的溟痕一致；
 	# 大小、左右翻转、前后位置按序号取固定的伪随机，看不出重复；只画视野内的块（后期同屏元素多，一屏约五六十块）
-	var mt: Texture2D = g.tex.get("terrain_mire")
+	# 溟痕 v2（world_spec_1024）：圈边改用同一套 1:1 平铺 + 围边——环带 [r − 4, r + 36]（世界单位）按溟痕格栅格化，只取镜头附近那段弧
+	var mt: Texture2D = null if g.map.mire_v2 else g.tex.get("terrain_mire")
+	if g.map.mire_v2:
+		var cw: float = g.map.MIRE_CELL * Game.PX
+		var nb2: int = clampi(int(TAU * r / (cw * 0.5)), 24, 4000)
+		var rj: Vector2i = _arc_range(nb2, c, r, vc, view)
+		if rj.y >= rj.x:
+			var ins := {}
+			for jr in range(rj.x - 1, rj.y + 2):
+				var d3 := Vector2.from_angle(TAU * float(posmod(jr, nb2)) / nb2)
+				var rr := r - 4.0
+				while rr <= r + 36.0:
+					var q := Vector2i(floori((c.x + d3.x * rr) / cw), floori((c.y + d3.y * rr) / cw))
+					if not ins.has(q):
+						var dd: float = ((Vector2(q) + Vector2(0.5, 0.5)) * cw).distance_to(c)
+						if dd >= r - 4.0 and dd <= r + 36.0:
+							ins[q] = true
+					rr += cw * 0.5
+			if not ins.is_empty():
+				g.map.draw_mire_cells(g.map.mire_cells(ins), int(t * 2.0) % 2, Color(1, 1, 1, 0.95))
 	if mt != null:
 		var fw: int = mt.get_width() / 2
 		var nb: int = clampi(int(TAU * r / 26.0), 24, 900)

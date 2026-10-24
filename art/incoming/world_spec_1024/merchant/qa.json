@@ -1,0 +1,111 @@
+{
+  "file": "merchant@1x.png",
+  "width": 96,
+  "height": 48,
+  "frame_width": 48,
+  "frame_height": 48,
+  "frames": 2,
+  "opaque_colors": 17,
+  "alpha_values": [
+    0,
+    255
+  ],
+  "palette": [
+    "#080E18",
+    "#292630",
+    "#36282A",
+    "#3C3642",
+    "#4B2825",
+    "#514754",
+    "#654238",
+    "#6A5E67",
+    "#844737",
+    "#877B85",
+    "#8D6050",
+    "#9A6C57",
+    "#A3979E",
+    "#B2694A",
+    "#BBB0AD",
+    "#D5C7BD",
+    "#EBE0D1"
+  ],
+  "foot_anchor": [
+    24,
+    45
+  ],
+  "method": "hand-authored native pixel clusters and layers; no image resampling or automatic quantization used for sprite",
+  "frame_metrics": [
+    {
+      "frame": 0,
+      "opaque_pixels": 921,
+      "bbox": [
+        6,
+        4,
+        46,
+        44
+      ],
+      "boundary_pixels": 159,
+      "boundary_outline_pixels": 159
+    },
+    {
+      "frame": 1,
+      "opaque_pixels": 895,
+      "bbox": [
+        6,
+        5,
+        46,
+        44
+      ],
+      "boundary_pixels": 157,
+      "boundary_outline_pixels": 157
+    }
+  ],
+  "technical_status": "pass: native dimensions, <=32 colors, binary alpha, fixed feet, 1px silhouette outline",
+  "visual_status": "local candidate inspected, user approval pending",
+  "engine_status": "not integrated or verified",
+  "independent_verification": {
+    "actual_dimensions": [
+      96,
+      48
+    ],
+    "opaque_colors": 17,
+    "half_alpha_pixels": 0,
+    "changed_pixels_between_frames": 270,
+    "changed_pixels_on_fixed_feet_rows41_47": 0,
+    "connected_components_8way": [
+      [
+        921
+      ],
+      [
+        895
+      ]
+    ],
+    "sha256": "d0f70752af00bee256663fd675669256d62d7ec96d9055f3cc360e20407e80fa"
+  },
+  "reference_verification": {
+    "official_portrait_url": "https://arknights.wiki.gg/images/5/57/Cannot_Goodenough.png",
+    "official_portrait_sha256": "0240200aafa519a14cb72e33657fa79a757732ba7ad298584077c470044bc026",
+    "prts_identity_page": "https://prts.wiki/w/坎诺特",
+    "prts_portrait_fetch": "403 / page viewer unavailable; official portrait image verified from Terra Wiki mirror",
+    "materials_checked": [
+      "silver-gray bucket helmet",
+      "dark gray cloth without olive cast",
+      "red-brown leather and rust straps",
+      "face, eye color, hair and skin concealed"
+    ]
+  },
+  "revision": {
+    "number": 3,
+    "change": "restore three rust-brown organic coils around cargo, retaining revision 2 palette",
+    "changed_pixels": 182,
+    "changed_bbox_each_frame": [
+      27,
+      27,
+      46,
+      42
+    ],
+    "all_changes_confined_to_cargo_area": true,
+    "tentacles_fixed_between_idle_frames": true,
+    "visual_acceptance": "pending"
+  }
+}

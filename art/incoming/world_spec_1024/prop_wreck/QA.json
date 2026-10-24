@@ -1,0 +1,85 @@
+{
+  "source": "art/incoming/prop_wreck.png",
+  "source_sha256": "f89cbde9a2ef29279be69709df085fd81f70ca9d09746ee73f43c673d6c084af",
+  "output": "prop_wreck.png",
+  "sha256": "8eb8fe2b658307602cb60a021bf03a7271216e9cd8c9b43b01256fe0376f15a4",
+  "sheet_size": [
+    64,
+    48
+  ],
+  "frame_size": [
+    64,
+    48
+  ],
+  "frames": 1,
+  "fps": 0,
+  "anchor_px": [
+    32.0,
+    48
+  ],
+  "anchor_space": "source frame edges; exact legacy renderer anchor",
+  "opaque_colors_before": 90,
+  "opaque_colors_after": 28,
+  "total_rgba_colors": 29,
+  "alpha_values": [
+    0,
+    255
+  ],
+  "changed_alpha_pixels": 0,
+  "changed_rgb_pixels": 406,
+  "source_opaque_bbox": [
+    9,
+    2,
+    55,
+    45
+  ],
+  "output_opaque_bbox": [
+    9,
+    2,
+    55,
+    45
+  ],
+  "palette": [
+    "#002030",
+    "#004050",
+    "#080E18",
+    "#102030",
+    "#103040",
+    "#105060",
+    "#202030",
+    "#203040",
+    "#205060",
+    "#2090A0",
+    "#303040",
+    "#304040",
+    "#304050",
+    "#307070",
+    "#309090",
+    "#404040",
+    "#405050",
+    "#405060",
+    "#407080",
+    "#409090",
+    "#506060",
+    "#509090",
+    "#50A0A0",
+    "#50C0B0",
+    "#605040",
+    "#607070",
+    "#60D0D0",
+    "#806040"
+  ],
+  "method": "explicit per-source-color material mapping; no automatic quantization; no resampling of asset",
+  "visual_review": "Reviewed 2x and 8x: dark rib silhouette, warm rusty remnant and teal deposits remain readable; isolated near-gray color variants merged. Existing pinpoint cyan details retained deliberately.",
+  "engine_validation": "not run; asset-only delivery",
+  "user_approval": "pending",
+  "status": "technical checks passed; visually reviewed; awaiting user approval and Claude integration",
+  "frame_opaque_bboxes": [
+    [
+      9,
+      2,
+      55,
+      45
+    ]
+  ]
+}

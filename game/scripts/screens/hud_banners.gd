@@ -347,22 +347,30 @@ func draw_hunt_ring(vs: Vector2, ct: Transform2D) -> void:
 
 func draw_hunt_pointer(vs: Vector2, ct: Transform2D) -> void:
 	var hu = g.hunt
-	if g.state != Game.S.PLAY or hu == null or (hu.state != 1 and hu.state != 2):
+	if g.state != Game.S.PLAY or hu == null or hu.state != 2:
 		return
 	var pz := 0.5 + 0.5 * sin(g.t * 6.0)
 	var zy := (126.0 if g.touch.active else 116.0) + 54.0 * mini(h.bars.boss_bars().size(), Bars.BOSS_BARS_MAX)   # 触屏的威胁字号大一号，再往下让 10
 	if g.zone_state != 0:
 		zy += 22.0   # 黑潮提示在场时让到它下面
-	if hu.state == 1:
-		UI.text(g.hud, g.font, Vector2(0, zy), "围猎将至  %d" % int(ceil(maxf(0.0, hu.start_at - g.t))), 15, Color(HUNT_COL.r, HUNT_COL.g, HUNT_COL.b, 0.7 + 0.3 * pz), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
-		return
 	var dur: float = Bal.v("hunt/dur", 20.0) * float(g.dmod.get("hunt_dur", 1.0))
-	var rem: int = int(ceil(maxf(0.0, dur - (g.t - hu.start_at))))
-	UI.text(g.hud, g.font, Vector2(0, zy), "围猎 · 包围圈收缩  %d" % rem, 15, Color(HUNT_COL.r, HUNT_COL.g, HUNT_COL.b, 0.7 + 0.3 * pz), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
-	# 离主控最近的圈上一点
-	var v: Vector2 = g.ppos - hu.c
-	var d: Vector2 = v.normalized() if v.length() > 1.0 else Vector2.RIGHT
-	var near: Vector2 = hu.c + d * hu.radius()
+	var near: Vector2
+	if not hu.settled:
+		# 合拢中：整圈从屏幕外压过来，箭头指向离主控最近的一只，顶栏倒计时到钉住
+		UI.text(g.hud, g.font, Vector2(0, zy), "围猎 · 海嗣合拢  %d" % int(ceil(maxf(0.0, hu.settle_at - g.t))), 15, Color(HUNT_COL.r, HUNT_COL.g, HUNT_COL.b, 0.7 + 0.3 * pz), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+		var nd := INF
+		near = hu.c
+		for e in hu.ring:
+			if not e.dead and e.pos.distance_to(g.ppos) < nd:
+				nd = e.pos.distance_to(g.ppos)
+				near = e.pos
+	else:
+		var rem: int = int(ceil(maxf(0.0, dur - (g.t - hu.settle_at))))
+		UI.text(g.hud, g.font, Vector2(0, zy), "围猎 · 包围圈收缩  %d" % rem, 15, Color(HUNT_COL.r, HUNT_COL.g, HUNT_COL.b, 0.7 + 0.3 * pz), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
+		# 离主控最近的圈上一点
+		var v: Vector2 = g.ppos - hu.c
+		var d: Vector2 = v.normalized() if v.length() > 1.0 else Vector2.RIGHT
+		near = hu.c + d * hu.radius()
 	var sp: Vector2 = ct * near
 	var seen: bool = Rect2(Vector2(40, 40), vs - Vector2(80, 80)).has_point(sp)
 	if not (g.hp < g.max_hp * 0.3 and g.hp > 0.0):

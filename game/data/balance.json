@@ -1,8 +1,12 @@
 {
  "version": "p5.0",
  "_doc": "docs/27_balance_framework.md。所有全局数值旋钮集中在这里；干员各自的基础数值在 data/characters/<id>.json 的 base 段。",
+ "leader_swap": {
+  "_doc": "切换队长（10-23，docs/128）：cd 切换冷却秒数；镜头缓动 0.25 秒写在 game.swap_ease。",
+  "cd": 2.0
+ },
  "command": {
-  "_doc": "指挥模式（docs/114，10-21 原型）：on 总开关（0 = 关，不显示按钮、按键无效）；roam_r 突击活动圈半径（离队长，屏内，约 0.5–0.7 屏；10-22 断后版，只在圈内挑怪、出圈回收）；rear_d 断后锚点在队长身后多远（按队长移动方向反侧）；leash 只剩瞬移阈值（× 1.6，首版的活动半径）；search 已不用（首版找怪半径）；roam_speed / recall_speed 突击 / 归队限速（× 队长移速）；recall_done 归队归位判定距离；recall_max 归队最长秒数；gather 归队到位后站定秒数（集合完毕再回随行）；recall_inv 按下归队后队友无敌秒数（离站位远的直接闪回队长身边）；voice_gap 突击 / 归队语音最短间隔秒数；stamina_secs 突击耐力满→空秒数（只按时间扣，耗尽自动归队）；regen_secs 不突击时空→满秒数；min_start 耐力低于它不能发起突击（耗尽后的冷却线）；range_k 远程突击站位 = 普攻射程 × 它；stamina 耐力开关；aggro 仇恨开关（突击中 aggro_r 内 aggro_share 比例的怪改追最近的突击队友，rng_enemy 每只掷一次）；kite_step 远程绕圈每帧超前角（弧度）；hp 队友生命开关（上限 = 队长生命上限 × 职业系数 HP_K_DEF × hp_mul，hp_k_<职业> 可覆盖；突击中被近战怪碰到掉 敌伤 × op_dmg_k，间隔 op_inv 秒；不突击 hp_regen_secs 回满；血空倒地 revive_secs 秒原地复活或归队集合时在队长身边复活，复活 revive_hp 生命 + revive_inv 秒无敌；倒地的留在倒地点不跟随、归队也不带走，队长站到 revive_near 内复活计时 × revive_near_k）；bot_roam_at 机器人耐力回到多少才再突击（缺省 1.0 = 回满，每次都是完整作战时限）；bot_roam 机器人局突击常开（耐力够就突击，耗尽归队后回到 min_start 再突击；对照用）。",
+  "_doc": "指挥模式（docs/114，10-21 原型）：on 总开关（0 = 关，不显示按钮、按键无效）；roam_r 突击活动圈半径（离队长，屏内，约 0.5–0.7 屏；10-22 断后版，只在圈内挑怪、出圈回收）；rear_d 断后锚点在队长身后多远（按队长移动方向反侧）；leash 只剩瞬移阈值（× 1.6，首版的活动半径）；search 已不用（首版找怪半径）；roam_speed / recall_speed 突击 / 归队限速（× 队长移速）；recall_done 归队归位判定距离；recall_max 归队最长秒数；gather 归队到位后站定秒数（集合完毕再回随行）；recall_inv 按下归队后队友无敌秒数（离站位远的直接闪回队长身边）；voice_gap 突击 / 归队语音最短间隔秒数；stamina_secs 突击耐力满→空秒数（只按时间扣，耗尽自动归队）；regen_secs 不突击时空→满秒数；min_start 耐力低于它不能发起突击（耗尽后的冷却线）；range_k 远程突击站位 = 普攻射程 × 它；stamina 耐力开关；aggro 仇恨开关（突击中 aggro_r 内 aggro_share 比例的怪改追最近的突击队友，rng_enemy 每只掷一次）；detour_step 局部绕行采样步长；stall_secs 有位移目标却持续停滞的判定时长；retry_secs 暂时跳过卡住目标的时长；guard_r 队长近身紧急护卫半径；stop_range_k 站定距离不超过当前普攻有效距离的比例；retreat_k 远程低于期望距离此比例时后撤；hp 队友生命开关（上限 = 队长生命上限 × 职业系数 HP_K_DEF × hp_mul，hp_k_<职业> 可覆盖；突击中被近战怪碰到掉 敌伤 × op_dmg_k，间隔 op_inv 秒；不突击 hp_regen_secs 回满；血空倒地 revive_secs 秒原地复活或归队集合时在队长身边复活，复活 revive_hp 生命 + revive_inv 秒无敌；倒地的留在倒地点不跟随、归队也不带走，队长站到 revive_near 内复活计时 × revive_near_k）；bot_roam_at 机器人耐力回到多少才再突击（缺省 1.0 = 回满，每次都是完整作战时限）；bot_roam 机器人局突击常开（耐力够就突击，耗尽归队后回到 min_start 再突击；对照用）。",
   "on": 1,
   "roam_r": 380,
   "rear_d": 160,
@@ -22,7 +26,12 @@
   "aggro": 1,
   "aggro_r": 240,
   "aggro_share": 0.4,
-  "kite_step": 0.5,
+  "stall_secs": 0.8,
+  "retry_secs": 2.0,
+  "detour_step": 80,
+  "guard_r": 80,
+  "stop_range_k": 0.85,
+  "retreat_k": 0.65,
   "hp": 1,
   "hp_mul": 4.0,
   "hp_regen_secs": 30,
@@ -375,7 +384,7 @@
   "_escort": "终局护卫波（docs/116 §9，10-22 协调人「终局 10:00 后不平」）：少量补怪期间每 escort_every 秒一波分股小群 escort_n 只（实际只数，不乘密度、不受 trickle_cap），登场后 escort_first 秒第一波，Boss 生命低于 escort_stop_frac 后停；escort_every 0 = 关"
  },
  "difficulty": {
-  "_doc": "1.1 难度 3 档各自的修正表（data.gd DMOD_DEFAULT / dmod_for_tier）：倍率 1.0 = 不变，horde_in_boss / mire_permanent 为 0/1；没写的键按该档 level（旧累计难度 0 / 4 / 8）拼出。当前取值与旧累计难度 0 / 4 / 8 逐局相同，等数值按基线校准；final_boss_hp 只乘最终 Boss 生命（停刷补偿，缺省 1.0，docs/38 §8.14），云端可用 --bal=difficulty/<key>/final_boss_hp=X 试",
+  "_doc": "1.1 难度 3 档各自的修正表（data.gd DMOD_DEFAULT / dmod_for_tier）：倍率 1.0 = 不变，horde_in_boss 为 0/1；没写的键按该档 level（旧累计难度 0 / 4 / 8）拼出。当前取值与旧累计难度 0 / 4 / 8 逐局相同，等数值按基线校准；final_boss_hp 只乘最终 Boss 生命（停刷补偿，缺省 1.0，docs/38 §8.14），云端可用 --bal=difficulty/<key>/final_boss_hp=X 试",
   "standard": {},
   "hard": {
    "hunt_dur": 0.85,
@@ -391,7 +400,6 @@
    "boss_warn": 0.85,
    "horde": 1.2,
    "horde_in_boss": 0,
-   "mire_permanent": 0,
    "max_hp": 1.0,
    "beacon_every": 0.8,
    "ctrl_start": 300,
@@ -411,7 +419,6 @@
    "boss_warn": 0.8,
    "horde": 1.6,
    "horde_in_boss": 1,
-   "mire_permanent": 1,
    "max_hp": 0.9,
    "beacon_every": 0.6,
    "boss_fight_enemy_hp": 1.0
@@ -442,7 +449,7 @@
   "_doc": "入队加成（docs/83，用户 10-13 定）：编队每多 1 名干员（开局干员不算，最多算 hp_member_cap 人），主控最大生命 ×(1 + hp_per_member × 人数)（docs/46 §6，每人 +15%），主控生命回复 + regen_per_member × 人数（生命 / 秒，加在 regen 上，吃 heal_mult）。招募卡与属性面板的数字都从这里读。regen_per_member 0 = 关",
   "hp_per_member": 0.15,
   "hp_member_cap": 3,
-  "regen_per_member": 0.2,
+  "regen_per_member": 0.15,
   "leader_hp_mult": 0.9,
   "op_atk_base": 0.9,
   "_base_trim": "基础砍（docs/109 §14 v4，用户 10-22「局外树满点数值太碎，砍干员基础数值，把差值留给树」）：leader_hp_mult 乘队长最大生命的基础值（JSON leader 段 / 博士），op_atk_base 是干员攻击倍率 op_atk 的基础值（全员攻击同比）；入队回复 0.6 → 0.2（r3，用户 10-22：基础砍优先放在入队回复和攻击，队长生命 ×0.85 偏多回到 ×0.9；攻击不砍超 10%）。都是基础值，不在属性面板里另列来源",
@@ -457,7 +464,7 @@
   "_regen_card": "博士被动「自愈」每级加的生命回复（生命 / 秒；docs/83）",
   "regen_card": 0.6,
   "_base_regen_mult": "队长自带基础回复（干员 leader 段 regen）的倍率，缺省 1；不影响入队台阶、「自愈」、藏品",
-  "base_regen_mult": 1
+  "base_regen_mult": 0.8
  },
  "growth": {
   "_doc": "被动卡数值（docs/83）。armor_pct：生存卡「硬化」每级让队长受到的物理伤害 ×(1 − armor_pct)，乘算（4 级 ×0.92^4 ≈ 0.716，即 −28.4%）；10-13 用户选方案 B，取代原来每级物理减伤 +2（固定值跟不上后期敌人攻击，docs/83 §4）。作用于所有物理伤害（含不吃护甲的冲击环），在固定减伤之前算",
@@ -488,6 +495,23 @@
   "any_2s_cap": 0.55,
   "any_excess_mult": 0.6
  },
+ "crate": {
+  "_doc": "补给箱回血（docs/133，用户 10-24：参照吸血鬼幸存者靠打可破坏道具回血，基础回复同步下调：sustain/base_regen_mult 1 → 0.7、squad/regen_per_member 0.2 → 0.15）。补给箱（run/spawner.gd spawn_chest，hp 22，机器人 / 真人打碎）刷出间隔前松后紧：early_until 秒前 early_lo–early_hi，mid_until 秒前 mid_lo–mid_hi，之后 late_lo–late_hi；场上同时最多 3 个。打碎（run/combat.gd kill）：pack_p 掉应急补给（拾取回 pack_pct 最大生命，不吃 heal_mult），magnet_p 掉磁铁，shield_p 直接 +1 层临时护盾（最多到护盾上限 +1）；源石锭 / 灯油照旧。15% 伪装成箱形恐鱼的不掉。pack_p 0 = 关，回到旧行为",
+  "pack_p": 0.9,
+  "pack_pct": 0.3,
+  "pick_below": 0.9,
+  "bot_below": 0.85,
+  "magnet_p": 0.1,
+  "shield_p": 0.1,
+  "early_until": 300,
+  "early_lo": 45,
+  "early_hi": 60,
+  "mid_until": 480,
+  "mid_lo": 35,
+  "mid_hi": 48,
+  "late_lo": 25,
+  "late_hi": 35
+ },
  "pickup": {
   "_doc": "掉落拾取（run/pickups.gd）：场上宝石超过 gem_overflow 颗时，新掉的经验直接入账（数值 9/30 协调人定 350 → 150：高手无感、扫图差的玩家中后期不再被饿着，场上宝石上限减半利于性能）；磁铁 / 回复药剂（run/combat.gd kill）：精英与 Boss 必掉其一，磁铁占 elite_magnet_share；小怪在场上道具 < item_cap 时按 magnet_kill_chance / heal_kill_chance 掉（两个区间独立）；magnet_cap 2（协调人 9/30 定：小怪掉磁铁只看场上磁铁数，不再被满血不捡的回复药剂占位；magnet_kill_chance 0.0025 → 0.00375）",
   "_doc_recall": "经验来源方案 A（docs/38 §8.13，数值 10-01）：落地未被吸起的经验结晶持续在逻辑视野（view_center ± 640×360，外扩 recall_margin）之外累计满 recall_after 秒就自动回收入账，每 recall_tick 秒判定一次；recall_after = 0 关闭回收、走旧的溢出逻辑（对照用，同时把 gem_overflow 设回 150）。gem_overflow 改作性能兜底（150 → 400），超出时新掉的经验直接入账、计入回收。拾取范围随等级 × (1 + range_per_level × (等级 − 1))，封顶 +range_level_cap，属性系统独立乘区（来源「等级」）",
@@ -508,6 +532,8 @@
   "heal_low_cap": 2
  },
  "fx": {
+  "_hit_tiers_doc": "特效第 2 步（10-23）：普攻命中三档模板（render/vfx.gd hit_tier / _tier_fx）。hit_tiers 总开关；hit_mid / hit_heavy 相对干员普攻基准的倍数门槛（暴击 / 弱点直接重档，召唤物 / 追加打击一律轻）；hit_n1–3 每档迸溅颗粒数；hit_pause_m / hit_pause_h 中 / 重档顿帧（走 impact_pause 共享限频）；melee_arc 近战刀光开关（半径 / 半角读实际判定）、melee_arc_life 刀光时长（秒）",
+  "hit_tiers": 1, "hit_mid": 1.2, "hit_heavy": 2.5, "hit_n1": 3, "hit_n2": 6, "hit_n3": 12, "hit_pause_m": 0.014, "hit_pause_h": 0.03, "melee_arc": 1, "melee_arc_life": 0.12,
   "_doc": "命中反馈（界面与美术，打击感审查 9/30；vfx.hit_react）：白闪 flash_* 秒、受击形变 squash_* 秒（形变幅度固定，数值越大持续越久）、粒子个数、破绽短顿帧 break_pause 秒（上限 0.075，共享 0.28 秒限频）；飘字（1.1.1 可读性）：text_merge_t / text_merge_r 内同色同字号同前缀（纯数字 / 弱点 / 破绽）的数字合并，新飘字与 text_nudge_t 秒内冒出的重叠就往上错一行（最多 text_nudge_max 行），场上飘字超过 text_crowd 个时普通白字不飘；敌方预警密度（1.1.1）：杂兵预警与主控（半径 tell_lead_r + 余量 tell_margin）相交才全强度，打不到的只画 tell_dim_alpha 淡边框，会打到的冲刺线最多 tell_full_max 条全强度（按离主控由近到远），Boss 预警不受影响；outline_max：10-13 起普通怪 / 精英一律不画描边（用户「怪物取消描边」，docs/50 §12 A），这个满屏降级门槛只在同局对照的旧写法（--optold 位 32）里用",
   "flash_basic": 0.08,
   "flash_dot": 0.05,
@@ -541,6 +567,18 @@
   "recoil_px": 3.0,
   "recoil_t": 0.1,
   "recoil_skill_k": 1.6,
+  "_doc_feel_1024": "《黎明前 20 分钟》四点（用户 10-24，纯画面，同 seed 不变）：三档普攻受击后坐 recoil_px1 / 2 / 3（美术像素，只挪画面）、recoil_tier_t 秒回弹；heavy_knockback > 0 时重档普攻另加真实击退速度（会改玩法，缺省 0 = 关）；队长普攻开火微震 leader_kick（1 = 开）中档 kick_px2 / 重档 kick_px3 美术像素、kick_t 秒阶梯回位（减少动态效果开时不震）；光学新击杀（render/kill_style）死亡帧条整段压到普通 ≤ death_max 秒、精英 ≤ death_max_elite 秒，Boss 不变",
+  "recoil_px1": 2.0,
+  "recoil_px2": 3.0,
+  "recoil_px3": 5.0,
+  "recoil_tier_t": 0.08,
+  "heavy_knockback": 0.0,
+  "leader_kick": 1.0,
+  "kick_px2": 1,
+  "kick_px3": 2,
+  "kick_t": 0.06,
+  "death_max": 0.3,
+  "death_max_elite": 0.5,
   "kill_sparks": 7,
   "kill_sparks_per_r": 0.3,
   "kill_big_r": 16,
@@ -571,7 +609,24 @@
   "merchant_fx": 1,
   "merchant_motes": 1.5, "first_sight": 1
  },
+ "feel": {
+  "_doc": "移动粘滞（用户 10-24 试，缺省关 = 同 seed 不变）：move_sticky 1 = 开；队长普攻出手瞬间 fire_slow_t 秒移速 −fire_slow；起步 / 停步 accel_t 秒线性加减速",
+  "move_sticky": 0.0,
+  "fire_slow": 0.25,
+  "fire_slow_t": 0.08,
+  "accel_t": 0.06
+ },
  "render": {
+  "_doc_kill_style": "光学观感下的击杀（docs/130 C5，用户 10-24 定）：1 = 死亡动作加快后最后一帧碎成像素碎屑、不画溶解与老火花；0 = 旧样子（帧条 / 溶解 + 碎屑 + 火花）",
+  "kill_style": 1.0,
+  "_doc_optical_fg": "光学观感下的前景海草（docs/130 A3）：optical_fg_px 1 = 像素剪影、0 = 不画（缺省，用户 10-24 定）、-1 = 原虚化；optical_normals 1 = 光学下也生成法线光照（对照用，缺省 0 = 高档也关，用户 10-24 定）",
+  "optical_fg_px": 0.0,
+  "optical_normals": 0.0,
+  "_doc_optical_mire_emit": "溟痕 v2（world_spec_1024）的 _emit 青色脉络在光学发光层里的强度（0–1，乘 alpha；1 = 全亮，会盖掉紫色底）；溟痕退散同用",
+  "optical_mire_emit": 0.35,
+  "_doc_lamp_readable": "可读灯圈（Codex 10-24 草稿，用户 10-24 看对照后定）：1 = 灯圈 70% 半径内固定光强、不闪、低灯不变红，灯火变弱只缩半径；圈缘降到 lamp_readable_tail 的余光，再延到 1.6 倍半径淡到环境光（圈外别全黑）；0 = 旧灯光（径向渐变 + 闪烁 + 低灯红）",
+  "lamp_readable": 1.0,
+  "lamp_readable_tail": 0.22,
   "_doc": "画面（界面与美术 10-01）：ambient_gain 全局亮度增益，乘在后期 brightness（玩家亮度设置）上，正常灯与低灯同比例；beacon/lit_glow_gain 点亮灯标的暖色光域强度（0 = 关，半径 = clear_r）",
   "ambient_gain": 1.05,
   "_optical_col_doc": "光学观感发光颜色语言（10-23 用户定，同日按原作改，render/optical.gd）：每类 h / s / v（色相 0–1）。enemy 海嗣本体发光点（原作青蓝）；elite 精英同色相更亮（另多一处发光点、大一号）；boss 专属暖色；danger 危险（敌方预警、敌弹与拖尾）洋红偏深红；horde_h 黑潮（缩圈开始后）危险色偏移到的色相（1.0 = 正红）；env 环境（孢子、地面荧光斑、怪死后体液）暗青灰，退到背景；lamp 我方灯火余烬；loot 经验结晶光晕与掉落；optical_ground_glow 地面荧光斑密度（每 64 格的概率，0 = 关）",
@@ -628,7 +683,7 @@
   "merchant_preview": 1
  },
  "meta": {
-  "_doc": "认知塑造质变节点旋钮（docs/109 §14 v5，data/meta_tree.json 节点 effects 的 rule）：shatter_* 危机感末节护盾反震（半径 / 队长攻击倍率 / 击退），leader_atk_fallback 没有 base.atk 的队长的攻击基数；low_regen_* 生命感悟Ⅲ低血回复翻倍；execute_* 攻击性Ⅴ处决阈值（普通 / 精英，占最大生命）；last_stand_inv 生存本能Ⅴ免死后的无敌秒数；calm_* 自我保护Ⅳ静守（未受伤秒数 / 下一击倍率）；double_level_chance 领导欲Ⅳ升级再升概率",
+  "_doc": "认知塑造质变节点旋钮（docs/109 §14 v5，data/meta_tree.json 节点 effects 的 rule）：shatter_* 危机感末节护盾反震（半径 / 队长攻击倍率 / 击退），leader_atk_fallback 没有 base.atk 的队长的攻击基数；low_regen_* 生命感悟Ⅲ低血回复翻倍；execute_* 攻击性Ⅴ处决阈值（普通 / 精英，占最大生命）；last_stand_inv 生存本能Ⅴ免死后的无敌秒数；calm_* 自我保护Ⅳ静守（未受伤秒数 / 下一击倍率）；double_level_chance 领导欲Ⅳ升级再升概率；stat_scale 局外成长数值总旋钮（apply_run 里所有 stat 类节点的值 ×它，缺省 1，云端校准用）；revive_hp / revive_inv 调度线末节「绝处逢生」复活的生命比例 / 无敌秒数",
   "shatter_r": 140.0,
   "shatter_mult": 2.0,
   "shatter_kb": 420.0,
@@ -640,6 +695,9 @@
   "last_stand_inv": 1.5,
   "calm_t": 5.0,
   "calm_mult": 0.5,
-  "double_level_chance": 0.1
+  "double_level_chance": 0.1,
+  "stat_scale": 1.0,
+  "revive_hp": 0.5,
+  "revive_inv": 3.0
  }
 }
