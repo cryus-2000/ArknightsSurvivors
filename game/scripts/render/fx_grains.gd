@@ -31,10 +31,9 @@ const MATERIALS := {
 		"ramp": [[0.0, Color(1, 1.1, 1.1)], [0.25, Color(0.8, 0.9, 0.95)], [0.7, Color(0.35, 0.45, 0.5, 0.65)]]},
 }
 # 只替换短命中效果，不接管地面预警、持续领域或触手本体。
-# 10-24 第 2 批（docs/138 §7，按 --fxcensus 盘点）：火 = 炮弹爆炸 / 日炎 / 维什戴尔炮击；水 = 蓝水花；体液 = 水月水母刺 / 血肉命中（体液整类走 fx/material_fluid，缺省关）
+# 10-24 第 2 批（docs/138 §7）：盘点后只加蓝水花。炮弹爆炸 / 日炎 / 维什戴尔炮击试过，用户看后定退回原版（原版更有冲击感、更省帧）；体液另两条（水母刺 / 血肉命中）也不加
 const MATERIAL_FX := {"fx_flam_hit": "fire", "fx_water_splash": "water", "fx_corrode_hit": "fluid", "fx_eyja_lava_splash": "lava", "fx_eyja_ignite_hit": "fire", "fx_eyja_ignite_boom": "fire",
-	"fx_cannon_burst": "fire", "fx_sunburst": "fire", "fx_wisadel_cannon": "fire", "fx_splash_blue": "water",
-	"fx_mizuki_jelly_sting": "fluid", "fx_hit_flesh": "fluid"}   # 归溟血锯试过：锯环形状散成点就认不出了，不接
+	"fx_splash_blue": "water"}
 const MAT_SHARE := 0.6   # 材质颗粒最多占共用预算的六成：留四成给刀光第四版，大混战时材质先退回帧条，刀光不被挤掉
 var templates: Dictionary = TEMPLATES.duplicate(true)
 var _samples := {}
