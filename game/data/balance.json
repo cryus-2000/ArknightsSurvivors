@@ -532,6 +532,8 @@
  "fx": {
   "_material_doc": "材质颗粒（docs/136 / 138，render/fx_grains.gd）：material_grains 总开关（10-24 用户定缺省开：火命中 / 水花 / 蓝水花 / 艾雅法拉火球·熔岩·点燃）；material_lappland 拉普兰德剑气转碎片、material_fluid 海嗣体液命中（fx_corrode_hit）各自再开一道，缺省关（拉普兰德用户 10-24 定先用原版，体液未经用户看）。纯画面，只用 vrng；低画质 / 关光学观感时不开",
   "material_grains": 1, "material_lappland": 0, "material_fluid": 0,
+  "_grains_adapt_doc": "颗粒帧时自适应（docs/50 §26，render/fx_grains.gd _adapt）：1 = 真实帧间隔平滑后超过目标间隔（60 帧 / 玩家 30 帧上限 / 低于 60 Hz 显示器取最长）× 1.08 时，CPU 颗粒与火星的同屏上限每秒最多降 1.2 倍、最低 0.35，回到 × 1.03 以下每秒升 0.15；0 = 上限固定",
+  "grains_adapt": 1,
   "_hit_tiers_doc": "特效第 2 步（10-23）：普攻命中三档模板（render/vfx.gd hit_tier / _tier_fx）。hit_tiers 总开关；hit_mid / hit_heavy 相对干员普攻基准的倍数门槛（暴击 / 弱点直接重档，召唤物 / 追加打击一律轻）；hit_n1–3 每档迸溅颗粒数；hit_pause_m / hit_pause_h 中 / 重档顿帧（走 impact_pause 共享限频）；melee_arc 近战刀光开关（半径 / 半角读实际判定）、melee_arc_life 刀光时长（秒）",
   "hit_tiers": 1, "hit_mid": 1.2, "hit_heavy": 2.5, "hit_n1": 3, "hit_n2": 6, "hit_n3": 12, "hit_pause_m": 0.014, "hit_pause_h": 0.03, "melee_arc": 1, "melee_arc_life": 0.12,
   "_doc": "命中反馈（界面与美术，打击感审查 9/30；vfx.hit_react）：白闪 flash_* 秒、受击形变 squash_* 秒（形变幅度固定，数值越大持续越久）、粒子个数、破绽短顿帧 break_pause 秒（上限 0.075，共享 0.28 秒限频）；飘字（1.1.1 可读性）：text_merge_t / text_merge_r 内同色同字号同前缀（纯数字 / 弱点 / 破绽）的数字合并，新飘字与 text_nudge_t 秒内冒出的重叠就往上错一行（最多 text_nudge_max 行），场上飘字超过 text_crowd 个时普通白字不飘；敌方预警密度（1.1.1）：杂兵预警与主控（半径 tell_lead_r + 余量 tell_margin）相交才全强度，打不到的只画 tell_dim_alpha 淡边框，会打到的冲刺线最多 tell_full_max 条全强度（按离主控由近到远），Boss 预警不受影响",
@@ -616,6 +618,8 @@
   "accel_t": 0.06
  },
  "render": {
+  "_doc_mid_full_fx": "中档颗粒量（docs/50 §26，10-25 用户「以现在高档的画质作为中档的画质来保障」）：1 = 中档的 CPU 颗粒（fx_grains 上限 900 / 火星 240 / 材质 48）与 GPU 粒子池（optical_particles k_amount 1）同高档；0 = 旧的中档减半。满帧时由 fx/grains_adapt 帧时自适应往下收",
+  "mid_full_fx": 1,
   "_doc_fx_int_scale": "特效缩放取整到低分辨率层整数格（docs/138 §10，用户 10-24 定）：1 = 每个美术像素 ≥ 0.75 格的帧条特效取整到最近整数格（像素宽度均匀），< 0.75 格的不动；0 = 原样。只在光学低分辨率层开着时生效；按半径拟合的区域 / 扩散件不取整",
   "fx_int_scale": 1,
   "_doc_kill_style": "光学观感下的击杀（docs/130 C5，用户 10-24 定）：1 = 死亡动作加快后最后一帧碎成像素碎屑、不画溶解与老火花；0 = 旧样子（帧条 / 溶解 + 碎屑 + 火花）",

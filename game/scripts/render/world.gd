@@ -3871,7 +3871,9 @@ const WARN_EDGE := Color(0.02, 0.02, 0.05)
 ## 前沿另画一道 2 px 热白细线，读出「刀口」；尾部不画实体，由颗粒自己冷却熄灭
 func _marc_grains(f: Dictionary, gr, ap: Vector2, rc: float, tw: float, s0: float, sw: float, hd: float, cc: Color, kb: float, aq: float) -> void:
 	var u0: float = float(f.get("gu", 0.0))
-	if hd > u0 + 0.001:
+	if hd > u0 + 0.001 and (gr.pos.size() >= gr.budget() or not gr.view.has_point(ap)):
+		f["gu"] = hd   # 颗粒已满 / 挥刀点在屏外（docs/50 §26）：这段不取样（push 反正全丢），刀口线照画
+	elif hd > u0 + 0.001:
 		var cells: Array = []
 		var nu: int = maxi(1, int(absf(sw) * (hd - u0) * rc / 2.0))
 		for i in nu:
