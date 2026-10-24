@@ -151,7 +151,7 @@ func draw(host: Control, vs: Vector2) -> void:
 	host.draw_set_transform(offset+Vector2(302,218)*k,0,Vector2(k*2,k*2))
 	ocean.draw(host,tier,depth,0.0 if Cfg.reduce_motion else clock,change,col)
 	host.draw_set_transform(offset,0,Vector2(k,k))
-	var hint: String = "通关「%s」后解锁" % D.DIFF_PRESETS[maxi(0,tier-1)].name if locked else ["没有额外规则。","通关「%s」后解锁%s" % [D.DIFF_PRESETS[1].name, D.DIFF_PRESETS[2].name],"自然溟痕常驻，灯标可驱散。"][tier]
+	var hint: String = "通关「%s」后解锁" % D.DIFF_PRESETS[maxi(0,tier-1)].name if locked else ["没有额外规则。","通关「%s」后解锁%s" % [D.DIFF_PRESETS[1].name, D.DIFF_PRESETS[2].name],"Boss 在场时大群照常来袭。"][tier]
 	text(host,font,305,562,hint,15,MUTED)
 	text(host,font,305,602,"结算系数",13,MUTED)
 	text(host,font,410,586,"×%.2f" % float(preset.factor),29,col)
