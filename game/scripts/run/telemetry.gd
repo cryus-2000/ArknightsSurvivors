@@ -31,6 +31,12 @@ var taken_last := 0.0
 var taken_window := 0.0         # 当前采样窗口内的承伤
 var mire_win := 0.0             # 当前采样窗口内站在溟痕里的秒数（g.in_mire ≥ 0.5；难度曲线审计 docs/146，只读）
 var hpmin_win := 100            # 当前采样窗口内主控最低生命百分比（同上）
+var lampmin_win := 100.0        # 当前采样窗口内最低灯火（docs/146 §6 灯火统计，只读）
+var lamp_gain: Dictionary = {}  # 灯火回补按来源累计（实际加上的量）：灯油 / 精英灯油 / 灯标 / 围猎 / 商人 / 其他（帧间净增减去已记的）
+var lamp_loss: Dictionary = {}  # 灯火损失按来源累计：受击 / 圈外 / 冲撞吸灯 / 其他
+var lamp_taken: Array = [0.0, 0.0, 0.0, 0.0]   # 各灯火档（通明 / 摇曳 / 暗淡 / 寂灭）里的承伤
+var _lamp_prev := -1.0
+var _lamp_noted := 0.0          # 本帧已按来源记过的净变化（+ 回补 / − 损失），tick 里用来算「其他」
 var win_src: Dictionary = {}    # 当前采样窗口内按来源的承伤（docs/82：6–9 分钟承伤来源）
 var heal_last: Dictionary = {}  # 上一个采样点的 heal_log（窗口治疗 = 增量）
 var last_src := ""              # 最近一次掉血的来源（死因）
@@ -145,6 +151,15 @@ func tick(dt: float) -> void:
 		low_hp_s += dt
 	if g.in_mire >= 0.5:
 		mire_win += dt
+	lampmin_win = minf(lampmin_win, g.lamp)
+	if _lamp_prev >= 0.0:
+		var rest: float = g.lamp - _lamp_prev - _lamp_noted
+		if rest > 0.01:
+			lamp_gain["其他"] = float(lamp_gain.get("其他", 0.0)) + rest
+		elif rest < -0.01:
+			lamp_loss["其他"] = float(lamp_loss.get("其他", 0.0)) - rest
+	_lamp_prev = g.lamp
+	_lamp_noted = 0.0
 	hpmin_win = mini(hpmin_win, int(100.0 * g.hp / maxf(1.0, g.max_hp)))
 	lamp_s[lamp_tier(g.lamp)] += dt
 	if g.lamp <= 0.0:
@@ -170,6 +185,7 @@ func tick(dt: float) -> void:
 	if tot > taken_last + 0.01:
 		hits += 1
 		taken_window += tot - taken_last
+		lamp_taken[lamp_tier(g.lamp)] += tot - taken_last
 	taken_last = tot
 	ring_ctx.append([t, dt, g.corrode_pool, g.in_mire, g.enemies.size(), g.ebullets.size() + g.lobs.size(), 1 if g.lamp <= 0.0 else 0])
 	while not ring.is_empty() and ring[0].t < t - RING_S:
@@ -302,10 +318,11 @@ func tick(dt: float) -> void:
 			"outc": int(out_last), "hpm": snappedf(g.combat.enemy_hp_time_mult() * float(g.dmod.enemy_hp) * g.enemy_hp_mult, 0.01),
 			"rg": snappedf(g.combat.regen_per_sec(), 0.01),
 			# 难度曲线审计（docs/146，只读）：窗口内最低生命 %、站溟痕秒数，采样时的溟痕片数、在场精英数、敌弹数
-			"hpmin": hpmin_win, "mire_s": snappedf(mire_win, 0.1), "mires": g.mires.size(), "elites": _elites_alive(), "ebul": g.ebullets.size() + g.lobs.size()})
+			"hpmin": hpmin_win, "lampmin": int(lampmin_win), "mire_s": snappedf(mire_win, 0.1), "mires": g.mires.size(), "elites": _elites_alive(), "ebul": g.ebullets.size() + g.lobs.size()})
 		taken_window = 0.0
 		mire_win = 0.0
 		hpmin_win = 100
+		lampmin_win = g.lamp
 		win_src = {}
 
 
@@ -548,6 +565,24 @@ func end_ctx() -> Dictionary:
 		"zone_out": out > 0.0, "boss": _boss_alive(), "hp": int(g.hp), "last15": ring_snapshot()}
 
 
+static func _rounded(d: Dictionary) -> Dictionary:
+	var o := {}
+	for k in d:
+		o[k] = int(d[k])
+	return o
+
+
+## 灯火增减按来源记账（docs/146 §6，只读）：调用方传实际变化量（夹到 0 / 上限之后的差）
+func lamp_note(src: String, delta: float) -> void:
+	if absf(delta) < 0.001:
+		return
+	_lamp_noted += delta
+	if delta > 0.0:
+		lamp_gain[src] = float(lamp_gain.get(src, 0.0)) + delta
+	else:
+		lamp_loss[src] = float(lamp_loss.get(src, 0.0)) - delta
+
+
 func _elites_alive() -> int:
 	var n := 0
 	for e in g.enemies:
@@ -575,6 +610,7 @@ func metrics(profile: String) -> Dictionary:
 	var t: float = maxf(1.0, g.t)
 	return {"profile": profile, "hits": hits, "hits_pm": snappedf(hits / t * 60.0, 0.1), "taken": int(taken_last),
 		"taken_pm": int(taken_last / t * 60.0), "low_hp_s": int(low_hp_s), "dark_s": int(dark_s), "dark_dmg": int(dark_dmg), "death_src": last_src,
+		"lamp_s": lamp_s.map(func(v): return int(v)), "lamp_gain": _rounded(lamp_gain), "lamp_loss": _rounded(lamp_loss), "lamp_taken": lamp_taken.map(func(v): return int(v)), "lamp_end": int(g.lamp),
 		"moved_pm": int(dist_moved / t * 60.0), "still_pct": int(100.0 * still_s / t),
 		"bosses": boss_seen.values(), "elite_t": elite_t, "recruit_t": recruit_t, "curve": curve, "curve_tail": curve_tail(),
 		"peak": peak, "peak_min": peak_min, "end": end_ctx(), "floors": floor_snaps, "reaper_drain_deaths": reaper_drain_deaths}

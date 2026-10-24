@@ -539,7 +539,9 @@ func update(dt: float) -> void:
 			if g.invuln <= 0.0:
 				# 冲刺撞击熄灭灯火（enemies.json dash_lamp_drain；底海滑动者）
 				if e.get("dash_t", 0.0) > 0.0 and D.ENEMIES[e.type].has("dash_lamp_drain"):
+					var ld: float = g.lamp
 					g.lamp = maxf(0.0, g.lamp - float(D.ENEMIES[e.type].dash_lamp_drain) * g.lamp_loss_mult)
+					g.telemetry.lamp_note("冲撞吸灯", g.lamp - ld)
 					g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -8", Color(1.0, 0.6, 0.4), 14)
 				g.combat.enemy_hit(e.dmg * dark_mod, e, false, false, ["近战", "物理"], "contact_" + e.type)
 				e.atk_until = g.t + 0.2   # 近战出手：atk_anim 的敌人播攻击帧条第 3、4 帧
