@@ -206,3 +206,35 @@
 5. promo_* 等改名方案相关工具：改名定了再处理。
 
 **可省合计（工作树）**：第一批约 **92 MiB**（其中进包约 1 MiB）；第二批再约 **165 MiB**（进包约 2.7 MiB）；第三批再约 **41 MiB**。本机 .git 另可省 0.13–1.4 GB（第三批 4）；本地工作树 / build 另约 54.6 GB（不进 git，按会话确认清）。
+
+## 7. 10-24 执行记录（低风险项，分支 claude/great-bassi-990e2b）
+
+| 提交 | 内容 | 删除 |
+|---|---|---|
+| 789b6a9b9 | art/incoming 根目录审稿产物 405 个（preview / gif / qa json / review html / compare·contact / lineup / art_review_0926 json）+ 9 个小目录（codex_order_ui_ref、ui_shell_1022、codex_op1x_heads、bosses、v13_qa、v15_qa、_trial_icons、cm_enemy_scale_runtime_1018、codex_order_headhunt_ref）；`*lineup*` 加进 REVIEW_ART_GLOBS 与两个导出预设 | 612 个 / 73.4 MiB |
+| 52677a2ce | 被同名 @2x 遮蔽的 1x 基础帧条：根目录 577 + optical_fx/ 153（10 个 Boss 1x 留）；install_enemy_redraw.py 只给 Boss 本体装 1x，optical_fx_quant.py 有 @2x 不出 1x | 730 个 / 2.88 MiB |
+| 012f9faa9 | art/px 被覆盖的回退图 44 + `*_white` 25（留 e_chest / e_event 及白版）；**`A.has_override` 改成基础名或 @2x**（原来只查基础名，删 1x 后敌人白闪、`_emit` 发光层、落脚锚点会失效；删前素材里没有会被它问到的「只有 @2x」名字，行为不变） | 69 个（+ .import）/ 0.40 MiB |
+| def72df19 | 只登记不播的特效 32 条（§1.4 列表，实为 33 条；`fx_mizuki_tentacle_mass` 留，promo_cover_pal / promo_xhs 直接读） | 57 个 / 0.23 MiB |
+| 9043163a8 | balance.json 6 个死键 + `_doc` 同步 | — |
+| d28c0130d | 7 个测试的 .gd.uid（Godot 导入生成） | — |
+
+合计删 1537 个文件、**77.0 MiB**（git 对象大小）。快检 `--auto --jobs 3` 两次（删完 1x / px 后、删完特效 / 键后）：126 项只挂积木等价金样过期 14 份（改了 art.gd，按约定在 main 统一重录），其余全过。
+
+包体（同机实测，清理前 = main 0e0de9e22）：
+
+| 包 | 清理前 | 清理后 | 省 |
+|---|---|---|---|
+| B站 Toy 网页包（上限 50 MB） | 37.7 MiB，zip 39.24 MB，pck 32.70 MB | 35.8 MiB，zip 37.25 MB，pck 30.41 MB | 1.9 MiB |
+| 对内 Windows 包（--ea） | 108.1 MiB，pck 39.13 MB | 105.8 MiB，pck 36.63 MB | 2.4 MiB |
+
+顺带发现（未处理）：
+- `install_enemy_redraw.py` 改 art.gd 那一步早已失效（art.gd 里没有 `# >>> enemy_redraw` 标记块了，重跑在 patch_art_gd 报错；json 两份照常写出、与仓库一致）。
+- `game/scripts/render/fx_grains.gd.uid` 未跟踪（particles 会话的文件，随它提交）。
+
+### 7.1 待用户定（本次未动）
+
+1. 大号源素材移出仓库存档：`enemy_redraw_1023/` 安装子集外约 141 MiB、`headhunt_reference_fx_1022/` 20.2 MiB、语音母带 `game/audio/voice/masters` 20.7 MiB + `voice_batch5_1012/`、`voice_batch6_1022/` 10.5 MiB。
+2. 干员 @2x 回退帧条 183 个（9.75 MiB，只进对内包）：是否还保留 `render/op_1x=0` 开关。
+3. 本机 .git：删 `refs/codex/*` 快照 + gc（约 0.13 GB）；Spine 源 zip 所在的 codex/* 分支迁出存档（约 1.25 GB，影响 Codex 分支）。
+4. docs/archive 25 个零引用旧文档移出仓库（与「不删除，只归档」冲突）。
+5. §6 第二批其余项（portraits/、op_skadi_attack、旧怪 BASE_TEX 小图、e_carmen / e_iberia、tools 的 concept_* 组等）不在本次低风险范围。
