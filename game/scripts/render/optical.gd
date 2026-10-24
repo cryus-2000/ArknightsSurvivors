@@ -338,6 +338,8 @@ func _lo_step() -> void:
 	# 设置里的「战斗画面缩放」叠在整数像素镜头上（相对本设备缺省：手机缺省那档 = 不变；桌面缺省 ZOOM_DESK_DEF 把视野拉近；
 	# 非整数倍时 1 美术像素占的屏幕像素不再恒为整数，用户 10-24 要求先看 ×1.15 再定）
 	var rel: float = Cfg.cam_zoom() / (Cfg.ZOOM_PHONE_DEF / 100.0 if Cfg.phone_ui() else 1.0)
+	if g.demo_op != "":
+		rel *= Bal.v("gallery/demo_zoom", 0.8)   # 图鉴演示小窗再拉远（用户 10-24），视野更大
 	var zw: float = view_k / (2.0 * sx) * rel
 	if Bal.v("render/optical_int_zoom", 0.0) > 0.0:
 		# docs/139 试验旋钮：把「战斗画面缩放」并进整数倍率（1 美术像素恒占整数个物理像素），不再出现 2.3 / 3.45 这种非整数放大
