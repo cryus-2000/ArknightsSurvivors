@@ -1,0 +1,1 @@
+texas [tx-block-a] {"act_frac": 0.416, "atk_per_min": 30.9, "move_frac": 0.966, "still_frac": 0.032, "near_at_atk": 0.486, "zero_target_frac": 0.64, "sur3_frac": 0.075, "sur3_dmg_frac": 0.22, "contact_avg": 0.729, "dmg_taken_pm": 78.087, "kills_pm": 147.45, "t": 300.0, "lv": 15.5, "n": 8, "dead": 0, "win": 0}
