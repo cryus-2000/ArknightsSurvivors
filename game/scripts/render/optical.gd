@@ -85,7 +85,7 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 		var vr := Rect2(cc - Vector2(900, 560), Vector2(1800, 1120))
 		for f in g.fx:
 			var kd: String = str(f.get("kind", ""))
-			if kd != "sprite" and kd != "anim":
+			if kd != "sprite" and kd != "anim" and kd != "grain_light":
 				continue
 			var p: Vector2 = f.get("pos", Vector2.INF)
 			if not vr.has_point(p):
@@ -353,6 +353,8 @@ func _draw_ops() -> void:
 
 ## 发光层：上一帧世界绘制排好的敌人发光点（孢子 / 余烬 / 体液 / 迸溅是同层的 GPUParticles2D）+ ⑧ 投射物拖尾
 func _draw_glow() -> void:
+	if grains != null:
+		grains.draw_material_glow(glow_node)
 	_draw_ground_glow()
 	for p in g.glow_cur:
 		glow_node.draw_rect(Rect2(p[0], Vector2(p[1], p[1])), p[2])
