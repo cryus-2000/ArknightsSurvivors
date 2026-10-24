@@ -15,6 +15,7 @@ var force := -1        # --opticalab 同局轮换用：-1 = 按 balance，0 / 1 
 var glow_layer: CanvasLayer   # 发光层（layer 1，跟随镜头）：敌人发光点、荧光颗粒；不受 CanvasModulate 环境暗色与灯光影响
 var glow_node: Node2D
 var particles   # render/optical_particles.gd：击杀碎屑 / 荧光孢子 / 灯火余烬 / 命中迸溅
+var grains      # render/fx_grains.gd：像素粒子模板（刀光第四版等，docs/136）
 ## ① 低分辨率世界层（render/optical_lowres，缺省开）：另开一个与主视口共享 World2D 的 SubViewport，按「1 像素 = 2 世界像素」
 ## （镜头 100% 时 = 1 美术像素）渲染世界画布，最近邻放大铺在 layer −1；主视口剔除世界层（可见层 2），只画高清干员层与界面。
 ## 镜头平移：低分辨率画布的平移取整数，余下的小数在放大后的贴图上补（亚像素补偿，滚动不顿挫）
@@ -84,7 +85,7 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 		var vr := Rect2(cc - Vector2(900, 560), Vector2(1800, 1120))
 		for f in g.fx:
 			var kd: String = str(f.get("kind", ""))
-			if kd != "sprite" and kd != "anim":
+			if kd != "sprite" and kd != "anim" and kd != "grain_light":
 				continue
 			var p: Vector2 = f.get("pos", Vector2.INF)
 			if not vr.has_point(p):
@@ -98,6 +99,17 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 			var r: float = clampf(float(_fxsz[nm]) * float(f.get("scale", g.PX)) * 0.9, 32.0, 170.0)
 			var inten: float = life * (0.6 + r / 170.0)
 			cand.append([inten, p, r, particles.fx_color(nm)])
+		for f in g.fx:   # 刀光：挥刀瞬间短暂打亮脚下与附近怪（刀光寿命前段 ≈ 0.08–0.12 秒）
+			if str(f.get("kind", "")) != "marc":
+				continue
+			var lf: float = float(f.life) / maxf(0.001, float(f.max))
+			if lf < 0.35:
+				continue
+			var mo = g.squad.get_op(str(f.get("op", ""))) if g.squad != null else null
+			var mp: Vector2 = (mo.pos + f.get("off", Vector2.ZERO)) if mo != null and mo.pos != Vector2.INF else f.pos
+			if not vr.has_point(mp):
+				continue
+			cand.append([0.55 + 0.25 * int(f.tier), mp + Vector2.from_angle(float(f.ang)) * float(f.r) * 0.45, float(f.r) * 0.9, f.col])
 		var nb := 0
 		for b in g.bullets:
 			if nb >= 60:
@@ -232,6 +244,9 @@ func _attach_glow() -> void:
 		particles = preload("res://scripts/render/optical_particles.gd").new()
 		add_child(particles)
 		particles.setup(g, g, glow_node)
+		grains = preload("res://scripts/render/fx_grains.gd").new()
+		g.add_child(grains)   # 挂在世界节点下：进低分辨率层，颗粒落在 2 px 世界格上
+		grains.setup(g)
 
 
 ## 世界子树（game 节点下、不跨进 CanvasLayer——发光层 / 低分辨率层 / 界面各有自己的画布）的可见层：灯光与环境色 1 | 2，其余 lay
@@ -338,6 +353,8 @@ func _draw_ops() -> void:
 
 ## 发光层：上一帧世界绘制排好的敌人发光点（孢子 / 余烬 / 体液 / 迸溅是同层的 GPUParticles2D）+ ⑧ 投射物拖尾
 func _draw_glow() -> void:
+	if grains != null:
+		grains.draw_material_glow(glow_node)
 	_draw_ground_glow()
 	for p in g.glow_cur:
 		glow_node.draw_rect(Rect2(p[0], Vector2(p[1], p[1])), p[2])
@@ -428,6 +445,9 @@ func _process(_dt: float) -> void:
 	if g == null:
 		return
 	_update_cols(_dt)
+	if grains != null:
+		grains.step(_dt)
+		grains.flush()
 	fx1 = (fx1_force == 1) if fx1_force >= 0 else Bal.v("render/optical_fx1", 1.0) > 0.0
 	_fxq_step(fx1 and wanted() and DisplayServer.get_name() != "headless" and Bal.v("render/optical_fxq", 1.0) > 0.0)
 	FD.col_cap = Bal.v("render/optical_fx_cap", 1.4) if g.optical_on and fx1 else 0.0

@@ -342,6 +342,7 @@ static func _hw2_tick(o, dt: float) -> bool:
 		if bl.life <= 0.0 or bl.get("op", "") != o.id or bl.kind != "fire" or not bl.has("hw_b"):
 			continue
 		if bl.hw_b.get("look", {}).get("weighted", false):
+			MagmaProjectile.material_trail(o, bl, bl.pos, bl.vel, dt, bl.get("hw_fireball", false))
 			continue
 		bl.etrail = float(bl.get("etrail", 0.0)) - dt
 		if bl.etrail <= 0.0:
@@ -352,6 +353,9 @@ static func _hw2_tick(o, dt: float) -> bool:
 			l.t += dt
 			l.trail -= dt
 			var lk = l.b.get("look", null)
+			if lk is Dictionary and lk.get("weighted", false) and l.t < l.dur:
+				var lp: Vector2 = _hw_lob_pos(l)
+				MagmaProjectile.material_trail(o, l, lp, lp - _hw_lob_pos_at(l, maxf(0.0, l.t - 0.02)), dt, l.get("fireball", false))
 			if l.trail <= 0.0 and l.t < l.dur and not (lk is Dictionary and lk.get("weighted", false)):
 				if lk is Dictionary:   # 熔岩块：贴着块身的短火星拖尾（往飞行反方向甩、很快熄灭）
 					l.trail = 0.09 if lk.get("weighted", false) else 0.035
