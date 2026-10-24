@@ -132,8 +132,13 @@ static func _packed_path(name: String) -> String:
 	return ""
 
 
+## art/incoming 里有没有这张图（基础名或 @2x）。10-24 起被 @2x 遮蔽的 1x 基础帧条已删（docs/131 §1.3），
+## 只查基础名会让敌人白闪 / _emit 发光层 / 落脚锚点误判为「没有新图」
 static func has_override(name: String) -> bool:
-	return _incoming_path(name) != "" or _packed_path(name) != ""
+	for n in [name, name + "@2x"]:
+		if _incoming_path(n) != "" or _packed_path(n) != "":
+			return true
+	return false
 
 
 ## 是否为贴图生成法线图（2D 法线光照）；由 game.gd 按 Cfg.normal_maps 在加载前设置
