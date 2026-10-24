@@ -9,7 +9,7 @@ const TxArt = preload("res://scripts/art.gd")
 ## 校验（由 _block 转来；cond 与 $ 表达式已在 _block 里查过）
 static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: Dictionary) -> void:
 	var errs: Array = ctx.errs
-	var instant: bool = tag in ["shape.dash_line", "verb.sp_secs", "verb.trail", "verb.fx_scatter", "verb.fx_rain", "verb.emit_path"]
+	var instant: bool = tag in ["shape.dash_line", "verb.sp_secs", "verb.trail", "verb.fx_scatter", "verb.fx_rain", "verb.emit_path", "verb.rift_slash"]
 	var is_trig: bool = tag.begins_with("trig.")
 	match kind:
 		"attack":
@@ -59,7 +59,6 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 		"verb.emit_path":
 			_num(b, "len", p, ctx, true, 10.0, 600.0)
 			_num(b, "w", p, ctx, false, 4.0, 200.0)
-			_num(b, "dirs", p, ctx, false, 1.0, 16.0)   # 分身：本体不动，向 dirs 个均分方向各放一道路径
 			_src(b, p, ctx, true)
 		"verb.dash_mod":
 			if not (b.has("len_add") or b.has("len_mult") or b.has("w_add") or b.has("w_mult") or b.has("on_hit")):
@@ -75,8 +74,6 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 			_num(b, "line_w", p, ctx, false, 0.0, 1.0)
 			if b.has("line_col") and not (b.line_col is Array and b.line_col.size() in [3, 4]):
 				errs.append(p + ".line_col 要写 [r, g, b] 或 [r, g, b, a]")
-			if b.has("need_hit") and not b.need_hit is bool:
-				errs.append(p + ".need_hit 应是 true / false（残像没打到敌人就不执行 on_expire）")
 			_src(b, p, ctx, true)
 			_list(b.get("on_hit", []), p + ".on_hit", "on_hit", ctx)
 			if b.has("on_expire"):   # 精英化段：残像消散时执行（do 里的 center: path 沿这道残像）
@@ -89,6 +86,17 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 			_num(b, "stagger", p, ctx, false, 0.0, 2.0)
 			if not str(b.get("center", "self")) in ["self", "target"]:
 				errs.append(p + ".center 只能是 self / target")
+		"verb.rift_slash":
+			_num(b, "n", p, ctx, true, 1.0, 12.0)
+			_num(b, "r", p, ctx, true, 30.0, 800.0)
+			_num(b, "half", p, ctx, false, 0.2, 3.2)
+			_num(b, "len", p, ctx, true, 20.0, 600.0)
+			_num(b, "gap", p, ctx, true, 0.03, 1.0)
+			_num(b, "w", p, ctx, false, 4.0, 200.0)
+			_num(b, "mult", p, ctx, true, 0.0, 20.0)
+			_num(b, "stun", p, ctx, false, 0.0, 5.0)
+			_num(b, "scar", p, ctx, false, 0.1, 5.0)
+			_src(b, p, ctx, true)
 		"verb.fx_rain":
 			_tx_rain_validate(b, p, ctx)
 		"trig.on_dash_end":
@@ -223,6 +231,7 @@ static func tx_emit_path(o, src: String, from: Vector2, to: Vector2, w: float) -
 static func tx_update(o, dt: float) -> bool:
 	var g = o.g
 	var tx: Dictionary = o.tx
+	tx_rift_update(o, dt)   # 次元斩：闪现序列 / 刀痕消散（没有时立即返回）
 	# 主控冲刺上升沿
 	var ld: float = float(g.dash_t)
 	if ld > 0.0 and float(tx.get("prev_ld", 0.0)) <= 0.0 and g.demo_op == "":
@@ -266,8 +275,6 @@ static func tx_update(o, dt: float) -> bool:
 				gone.append(tr)
 		tx["trails"] = trails.filter(func(tr): return tr.life > 0.0)
 		for tr in gone:   # 精英化段：残像消散 → on_expire（路径 = 这道残像）
-			if tr.b.get("need_hit", false) and tr.hit.is_empty():   # need_hit：这道残像一个敌人都没打到就不落剑（剑雨滂沱·分身）
-				continue
 			tx["ctx"] = {"from": tr.from, "to": tr.to, "dir": (tr.to - tr.from).normalized(), "w": tr.w, "n": 0, "src": ""}
 			o._exec_list(tr.b.on_expire, tr.to)
 	# 冲刺
@@ -285,21 +292,6 @@ static func tx_update(o, dt: float) -> bool:
 		_tx_dash_end(o)
 		return false
 	return true
-
-
-## 线段 a→c 两侧 w/2（+ 敌人半径）内有没有活着的敌人
-static func _tx_corridor_has_enemy(o, a: Vector2, c: Vector2, w: float) -> bool:
-	var g = o.g
-	var seg: Vector2 = c - a
-	var L: float = seg.length()
-	for j in o.query_ids((a + c) * 0.5, L * 0.5 + w * 0.5 + 40.0):
-		var e: Dictionary = g.enemies[j]
-		if e.dead:
-			continue
-		var q: Vector2 = a if L < 0.5 else a + seg * clampf((e.pos - a).dot(seg) / (L * L), 0.0, 1.0)
-		if e.pos.distance_to(q) <= w * 0.5 + float(e.r):
-			return true
-	return false
 
 
 ## 扫一段线段：线段两侧 w/2（+ 敌人半径）内、hit 里没有的敌人各吃一次 dmg（对精英 / Boss 乘 vs_elite）与 on_hit 状态
@@ -431,22 +423,6 @@ static func tx_exec(o, b: Dictionary, at: Vector2) -> void:
 			var eang: float = (ets[0].pos - o.pos).angle() if not ets.is_empty() else o.facing_angle()
 			if o.manual_attack() and o.atk_aim != Vector2.ZERO:
 				eang = o.atk_aim.angle()
-			if b.has("dirs"):   # 分身（剑雨滂沱，10-24）：本体不动，向 dirs 个均分方向各放一道路径；每次调用整体错开半格，方向轮流覆盖
-				var nd: int = int(b.dirs)
-				var k0: int = int(o.tx.get("clone_k", 0))
-				o.tx["clone_k"] = k0 + 1
-				var a0: float = float(k0 % 2) * PI / float(nd)
-				for di in nd:
-					var ca: float = a0 + TAU * float(di) / float(nd)
-					var to: Vector2 = o.pos + Vector2.from_angle(ca) * elen
-					if not _tx_corridor_has_enemy(o, o.pos, to, float(b.get("w", 44.0)) + 60.0):   # 这个方向上没有敌人就不放（分身只往有敌人的路上去）
-						continue
-					if b.has("strip"):
-						var cfr: Array = o.g.V6_FRAMES.get(str(b.strip), [4, 20.0])
-						o.fx({"kind": "tx_strip", "strip": str(b.strip), "frames": int(cfr[0]), "fps": float(cfr[1]), "pos": to, "ang": ca, "sx": elen / 128.0,
-							"anchor": Vector2(63.0 / 64.0, 0.5), "life": float(cfr[0]) / float(cfr[1]), "delay": 0.0})
-					tx_emit_path(o, str(b.get("src", "")), o.pos, to, float(b.get("w", 44.0)))
-				return
 			tx_emit_path(o, str(b.get("src", "")), o.pos, o.pos + Vector2.from_angle(eang) * elen, float(b.get("w", 44.0)))
 		"verb.fx_scatter":
 			var cc: Vector2 = o.pos if str(b.get("center", "self")) == "self" or at == Vector2.INF else at
@@ -465,6 +441,8 @@ static func tx_exec(o, b: Dictionary, at: Vector2) -> void:
 				var dl: float = st * fposmod(k * 0.381966 + u, 1.0)
 				o.fx({"kind": "tx_strip", "strip": str(b.strip), "frames": int(fr[0]), "fps": float(fr[1]), "pos": p, "anchor": Vector2(0.5, 30.0 / 32.0),
 					"life": life0 + dl, "delay": dl})
+		"verb.rift_slash":
+			tx_rift_start(o, b)
 		"verb.fx_rain":
 			tx_rain(o, b, at)
 
@@ -826,3 +804,154 @@ static func tx_rain_draw(ci, o, f: Dictionary) -> void:   # ci：干员的 cv（
 		if e3 >= 0.0 and fr4 < hn:
 			var kf2: float = px * float(fin2.scale) / float(hs[6])
 			ci.draw_texture_rect_region(htx, Rect2((q.c as Vector2).round() - (hs[5] as Vector2) * kf2, Vector2(hw, hh) * kf2), Rect2(hw * fr4, 0, hw, hh), Color(1, 1, 1, base))
+
+
+# ================================================================ 次元斩（剑雨滂沱，10-24 用户定，docs/129 §14）
+# 技能期间普攻整个换成这一段：出手瞬间本体隐去，在前方扇形里依次闪现到 n 个敌人身边各斩一道直线（没有那么多敌人就斩空位补足），
+# 每道线是一次线段判定（路径上的敌人各吃一次、可带短定身），留下像素刀痕 scar 秒后碎成颗粒。本体的逻辑位置（pos / g.ppos / 镜头 / 受击）全程不动，
+# 闪现只是画面上的残影。纯画面部分只用 g.vrng；玩法部分不取随机数（落点、角度都由下标算出）
+
+const RIFT_CELL := 2.0   # 刀痕像素格（世界像素；低分辨率层上 1 格）
+
+
+## 出手（瞬时）：排好整段闪现
+static func tx_rift_start(o, b: Dictionary) -> void:
+	var tx: Dictionary = o.tx
+	var n: int = int(b.n)
+	var r: float = float(b.r) * o.stat(&"op_range")
+	var half: float = float(b.get("half", 1.1))
+	var ts: Array = o.nearest_enemies(1, r + 30.0, o.pos)
+	var dir_a: float = (ts[0].pos - o.pos).angle() if not ts.is_empty() else o.facing_angle()
+	if o.manual_attack() and o.atk_aim != Vector2.ZERO:
+		dir_a = o.atk_aim.angle()
+	var cands: Array = []
+	for e in o.nearest_enemies(24, r, o.pos):
+		if absf(angle_difference((e.pos - o.pos).angle(), dir_a)) <= half:
+			cands.append(e)
+	var len: float = float(b.len)
+	var lead: float = float(b.get("lead", 0.06))
+	var slashes: Array = []
+	for k in n:
+		var ctr: Vector2
+		if k < cands.size():
+			ctr = cands[k].pos
+		else:
+			var fa: float = dir_a + (float(k) - float(n - 1) * 0.5) * 0.42
+			ctr = o.pos + Vector2.from_angle(fa) * r * (0.55 + 0.15 * float(k % 2))
+		var sgn: float = 1.0 if k % 2 == 0 else -1.0
+		var u: Vector2 = Vector2.from_angle(dir_a + sgn * (0.6 + 0.12 * float(k)))
+		var p0: Vector2 = ctr - u * len * 0.5
+		var p1: Vector2 = ctr + u * len * 0.5
+		if k % 2 == 1:
+			var sw: Vector2 = p0
+			p0 = p1
+			p1 = sw
+		slashes.append({"a": p0, "c": p1, "t": lead + float(k) * float(b.gap), "done": false})
+	var dmg: float = o.base("atk", 0.0) * float(b.mult) * float(o.loc.dmg) * o._dmg_bonus() * o.skill_power()
+	tx["rift"] = {"t": 0.0, "s": slashes, "b": b, "dmg": dmg, "end": lead + float(n) * float(b.gap) + 0.12, "flash": {}}
+	o._sfx_op("atk")
+
+
+## 每帧：到点的斩出手（判定 + 刀痕 + 颗粒）；序列结束本体现身；刀痕到期碎成颗粒
+static func tx_rift_update(o, dt: float) -> void:
+	var tx: Dictionary = o.tx
+	var g = o.g
+	if tx.has("rift"):
+		var rf: Dictionary = tx.rift
+		rf.t += dt
+		var b: Dictionary = rf.b
+		for sl in rf.s:
+			if sl.done or rf.t < sl.t:
+				continue
+			sl.done = true
+			var sb := {"src": str(b.get("src", "")), "tags": b.get("tags", ["skill", "pierce"]),
+				"on_hit": [{"st": "stun", "dur": float(b.get("stun", 0.0))}] if float(b.get("stun", 0.0)) > 0.0 else []}
+			_tx_sweep(o, sl.a, sl.c, float(b.get("w", 40.0)), {}, rf.dmg, sb)
+			var life: float = float(b.get("scar", 1.3))
+			o.fx({"kind": "tx_scar", "a": sl.a, "c": sl.c, "life": life, "col": o.col()})
+			var sc: Array = tx.get("scars", [])
+			sc.append({"a": sl.a, "c": sl.c, "until": g.t + life})
+			tx["scars"] = sc
+			rf.flash = {"p": sl.c, "from": sl.a, "t": rf.t}
+			_tx_rift_grains(o, sl.a, sl.c, 10.0)
+			o._sfx_op("hit")
+		if rf.t >= rf.end:
+			tx.erase("rift")
+	var sc2: Array = tx.get("scars", [])
+	if not sc2.is_empty():
+		var keep: Array = []
+		for s in sc2:
+			if g.t >= float(s.until):
+				_tx_rift_grains(o, s.a, s.c, 6.0)
+			else:
+				keep.append(s)
+		tx["scars"] = keep
+
+
+## 沿线撒刀光颗粒（光学开 + 粒子开才有；缺则什么都不画）
+static func _tx_rift_grains(o, a: Vector2, c: Vector2, step: float) -> void:
+	var g = o.g
+	if g == null or not g.get("optical_on") or g.optical == null or g.optical.grains == null:
+		return
+	var gr = g.optical.grains
+	if not gr.on() or gr.off:
+		return
+	var seg: Vector2 = c - a
+	var L: float = seg.length()
+	if L < 1.0:
+		return
+	var d: Vector2 = seg / L
+	var nv: Vector2 = d.orthogonal()
+	var cols: Array = [Color(1.0, 1.0, 1.0), Color(1.0, 0.35, 0.28), Color(1.0, 0.6, 0.45)]
+	var m: int = maxi(2, int(L / step))
+	for i in m:
+		var q: Vector2 = a.lerp(c, (float(i) + g.vrng.randf()) / float(m))
+		var side: float = -1.0 if g.vrng.randf() < 0.5 else 1.0
+		gr.push("slash", q, (nv * side + d * 0.3).normalized(), cols[int(g.vrng.randf() * 3.0) % 3])
+
+
+## 画本体：闪现序列里本体隐去，只在斩出手后的 0.2 秒里在落点画一份（朝向 = 斩的方向）。返回 true = 已处理（不画原位的本体）
+static func tx_rift_draw_body(o) -> bool:
+	var rf = o.tx.get("rift")
+	if rf == null:
+		return false
+	var fl: Dictionary = rf.flash
+	if not fl.is_empty() and float(rf.t) - float(fl.t) < 0.2:
+		var dv: Vector2 = (fl.p as Vector2) - (fl.from as Vector2)
+		var k: float = 1.0 - (float(rf.t) - float(fl.t)) / 0.2
+		o.draw_body_at(fl.p, dv.x < 0.0, Color(1.0, 1.0, 1.0, 0.35 + 0.65 * k))
+	return true
+
+
+## 刀痕（kind = tx_scar）：像素直线——2 px 格、白芯 + 她的色阶梯硬边；0.07 秒内从起点扫到终点，最后 35% 寿命逐格碎掉
+static func tx_scar_draw(o, f: Dictionary, a: float) -> bool:
+	var cv = o.cv
+	var p0: Vector2 = f.a
+	var p1: Vector2 = f.c
+	var seg: Vector2 = p1 - p0
+	var L: float = seg.length()
+	if L < 1.0:
+		return true
+	var d: Vector2 = seg / L
+	var el: float = float(f.max) - float(f.life)
+	var reach: float = clampf(el / 0.07, 0.0, 1.0) * L
+	var frac: float = float(f.life) / float(f.max)
+	var melt: float = clampf((0.35 - frac) / 0.35, 0.0, 1.0)
+	var edge: Color = f.col
+	edge = Color(maxf(edge.r, 0.9), edge.g * 0.45, edge.b * 0.4)
+	var cell: float = RIFT_CELL
+	var nv: Vector2 = d.orthogonal()
+	var steps: int = int(reach / cell)
+	var al: float = a * (0.45 + 0.55 * clampf(frac * 3.0, 0.0, 1.0))
+	var seed: float = float(int(f.a.x) % 7) * 0.13
+	for i in steps:
+		if melt > 0.0 and fposmod(float(i) * 0.6180339 + seed, 1.0) < melt:
+			continue
+		var q: Vector2 = p0 + d * (float(i) * cell)
+		var core := Vector2(floorf(q.x / cell) * cell, floorf(q.y / cell) * cell)
+		var thick: float = 1.0 if frac < 0.8 else 2.0
+		for side in [-1.0, 1.0]:
+			var e: Vector2 = q + nv * side * cell * thick
+			cv.draw_rect(Rect2(Vector2(floorf(e.x / cell) * cell, floorf(e.y / cell) * cell), Vector2(cell, cell)), Color(edge.r, edge.g, edge.b, 0.85 * al))
+		cv.draw_rect(Rect2(core, Vector2(cell, cell)), Color(2.0, 2.0, 2.0, al))
+	return true

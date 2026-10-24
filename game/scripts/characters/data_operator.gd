@@ -613,6 +613,7 @@ const EXEC_SEG := {
 	"shape.dash_line": 1,   # tx_exec
 	"verb.fx_rain": 1,   # tx_exec
 	"verb.emit_path": 1,   # tx_exec
+	"verb.rift_slash": 1,   # tx_exec
 	"verb.fx_scatter": 1,   # tx_exec
 	"verb.sp_secs": 1,   # tx_exec
 	"verb.trail": 1,   # tx_exec
@@ -1074,6 +1075,8 @@ func draw_auras() -> void:
 
 ## 贴身层（docs/61 §5.6 layer = behind / front）：本体前后各画一遍
 func draw_body() -> void:
+	if SegTexas.tx_rift_draw_body(self):   # 德克萨斯次元斩：闪现序列里本体隐去
+		return
 	if not hw.is_empty() and SegSpecter.h3_away(self):   # 手写迁移段第 3 批：本体离场（替身在场）不画
 		return
 	if not hw.is_empty() and SegSiege.h4_draw_body(self):   # 手写迁移段第 4 批：跃空锤在空中（翻转的本体 + 扫光）
@@ -1123,6 +1126,8 @@ func draw_ground_fx() -> void:
 func _draw_pfx(f: Dictionary, a: float) -> bool:
 	if str(f.kind) == "tx_strip":
 		return SegTexas.tx_draw_pfx(self, f, a)
+	if str(f.kind) == "tx_scar":
+		return SegTexas.tx_scar_draw(self, f, a)
 	if str(f.kind) == "tx_rain":   # verb.fx_rain（docs/61 §13.5）：加色层的在 draw_fx_add 画
 		if not f.get("add", false):
 			SegTexas.tx_rain_draw(cv, self, f)
