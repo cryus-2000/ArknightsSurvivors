@@ -2,6 +2,7 @@ extends RefCounted
 ## 世界绘制（2.5D）：地图之上按纵深排序画敌人 / 主控 / 编队 / 博士挂件 / 特效，缩圈与护盾；主控与博士的动画状态、手感（压缩 / 拉伸 / 扬尘）。
 ## game.gd 的 _draw 只转发到这里。地图本身在 world/map.gd，HUD 在 screens/hud.gd。2026-09-26 从 game.gd 拆出。
 
+const LaserDraw = preload("res://scripts/render/laser_draw.gd")
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
@@ -1033,6 +1034,8 @@ func _draw_fx() -> void:
 		if skip_sparks > 0 and f.kind == "spark" and not f.get("enemy", false):
 			skip_sparks -= 1
 			continue
+		if (f.kind == "beam" or f.kind == "bbeam" or f.kind == "tracer") and LaserDraw.draw(g, f, a):
+			continue   # 激光改版原型（fx/laser_style，缺省 0 = 原画法，docs/138 §12）
 		match f.kind:
 			"leave_jump":   # 队友离队 / 换人：原地一蹲后向上跳出屏幕（squad._leave_fx，10-22）
 				var jt: float = (f.max - f.life) / f.max
@@ -1356,6 +1359,8 @@ func _draw_fx() -> void:
 				var fr := mini(int(el * float(f.get("fps", spec[1]))), spec[0] - 1)   # fps：加快过的死亡帧条（vfx.death_shatter）
 				var scol: Color = f.get("col", Color.WHITE)
 				scol.a *= fdim
+				if g.optical != null and g.optical.grains != null and g.optical.grains.body_frame(f, fr, int(spec[0])):
+					continue   # 形状颗粒化（fx_grains.GRAIN_BODY，docs/138 §13）：这一帧由颗粒拼出形状
 				g.vfx.spr_rot(f.name, fr, f.pos, f.ang, g.vfx.int_scale(f.scale), scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
 				if f.get("ring", 0.0) > 0.0 and fr == 0:
 					g.draw_arc(f.pos, f.ring, 0.0, TAU, 40, Color(2.2, 2.0, 1.6, 0.6), 1.5)

@@ -5,6 +5,7 @@
 ## 干员调用 game.gd 的能力一律走 op_api.gd（本类的父类），不直接调用 g._ 开头的内部函数。
 extends "res://scripts/characters/op_api.gd"
 
+const LaserDraw = preload("res://scripts/render/laser_draw.gd")
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")   # 地裂共用画法
 const A = preload("res://scripts/art.gd")
 const OperatorContract = preload("res://scripts/characters/operator_contract.gd")   # 帧条 / 动画数据契约（docs/108 §10）
@@ -639,7 +640,8 @@ func draw_pfx(floor_layer: bool) -> void:
 				var sv: Vector2 = Vector2.from_angle(f.get("ang", 0.0)) * f.get("sz", 6.0)
 				cv.draw_colored_polygon(PackedVector2Array([f.pos - sv, f.pos + sv.orthogonal() * 0.45, f.pos + sv]), Color(c.r * 1.5, c.g * 1.5, c.b * 1.5, a))
 			"line":
-				cv.draw_line(f.pos, f.get("to", f.pos), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a), f.get("w", 2.0))
+				if not (f.get("laser", false) and LaserDraw.draw(g, f, a, cv)):   # 激光 A（docs/138 §12）：只接管标了 laser 的瞬时激光线
+					cv.draw_line(f.pos, f.get("to", f.pos), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a), f.get("w", 2.0))
 			"flame":
 				# 火舌：底宽上尖，随时间抖动
 				var h: float = f.get("sz", 10.0) * (0.6 + 0.4 * a)
