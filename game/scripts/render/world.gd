@@ -12,6 +12,7 @@ const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落�
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 const EnemyAtlas = preload("res://scripts/render/enemy_atlas.gd")
 const TeleDraw = preload("res://scripts/render/telegraph_draw.gd")   # 预警填充层（docs/101 B2，原 boss_ai.draw_warns）
+const LAMP_READ_EXT := 1.6   # 可读灯圈（render/lamp_readable）：余光延到灯半径的倍数，game.gd 的灯光贴图按它生成
 const TriBatch = preload("res://scripts/render/tri_batch.gd")   # 引擎同款几何的无贴图三角形批（docs/50 §13）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -177,6 +178,10 @@ func update_visuals(dt: float) -> void:
 	g.lamp_light.position = g.ppos + Vector2(0, -20)
 	g.lamp_light.texture_scale = radius / 64.0 * flicker
 	g.lamp_light.color = Color(1.0, 0.86, 0.62) if g.lamp >= 30.0 else Color(1.0, 0.6, 0.5)
+	if Bal.v("render/lamp_readable", 0.0) > 0.0:
+		# 可读灯圈（缺省开，balance render/lamp_readable）：圈内亮度固定、不闪、低灯不变红，灯火变弱只缩半径
+		g.lamp_light.texture_scale = radius * LAMP_READ_EXT / 64.0
+		g.lamp_light.color = Color(1.0, 0.98, 0.94)
 	# 骑士入潮点临时暖光：入潮演出期间亮在沉入处，随进度淡出（纯画面；10:00 重生不用）
 	if g.knight_light != null:
 		var sinking: bool = g.knight != null and g.knight.alive and g.knight.state == "sink"

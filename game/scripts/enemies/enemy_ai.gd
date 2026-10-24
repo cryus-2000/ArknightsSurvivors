@@ -228,7 +228,7 @@ func _thrust(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float)
 		g.vfx.add_text(e.pos + Vector2(0, -e.r - 20.0), "狂暴", Color(1.0, 0.4, 0.5), 14)
 	if e.enraged and d.get("trail_mire", false):
 		e.trail_t -= dt
-		if e.trail_t <= 0.0 and g.mires.size() < 32:
+		if e.trail_t <= 0.0 and g.mires.size() < 32 and not g.combat.mire_blocked(e.pos + Vector2(0, 8), 30.0):
 			e.trail_t = 0.7
 			g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 8.0, "maxr": 30.0, "life": 5.0, "seed": g.vrng.randf() * 100.0, "boss": false})
 	var tr := float(d.get("thrust_range", 170))

@@ -184,12 +184,11 @@ func _light(b: Dictionary) -> void:
 	for m in g.mires:
 		if m.pos.distance_to(b.pos) > cr:
 			continue
-		if m.get("boss", false):
-			m.life = minf(m.life, _k("boss_life", 2.0))   # Boss 溟痕属于招式：只缩短剩余寿命，不删
-		else:
-			m.life = 0.0
-			cleared += 1
-			cleared_pts.append([m.pos, float(m.r)])
+		if m.life <= 0.0:
+			continue
+		m.life = 0.0   # 各来源都净化（含 Boss 溟痕）
+		cleared += 1
+		cleared_pts.append([m.pos, float(m.r)])
 	b["cleared"] = cleared_pts
 	if cleared > 0:
 		Sfx.play("mire_clear", -10.2, 1.0, 0.0)   # 清掉溟痕：溶解嘶声，叠在点亮光爆下（tools/gen_sfx_events.py）
