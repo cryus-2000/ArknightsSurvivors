@@ -94,8 +94,19 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 	if nmax > 0:
 		var cc: Vector2 = g.cam.get_screen_center_position() if g.cam != null else g.ppos
 		var vr := Rect2(cc - Vector2(900, 560), Vector2(1800, 1120))
-		for f in g.fx:
+		for f in g.fx:   # 一遍扫完：帧条特效 + 刀光（docs/50 §26：原来两遍、每项两次取 kind 字符串）
 			var kd: String = str(f.get("kind", ""))
+			if kd == "marc":
+				# 刀光：挥刀瞬间短暂打亮脚下与附近怪（刀光寿命前段 ≈ 0.08–0.12 秒）
+				var lf: float = float(f.life) / maxf(0.001, float(f.max))
+				if lf < 0.35:
+					continue
+				var mo = g.squad.get_op(str(f.get("op", ""))) if g.squad != null else null
+				var mp: Vector2 = (mo.pos + f.get("off", Vector2.ZERO)) if mo != null and mo.pos != Vector2.INF else f.pos
+				if not vr.has_point(mp):
+					continue
+				cand.append([0.55 + 0.25 * int(f.tier), mp + Vector2.from_angle(float(f.ang)) * float(f.r) * 0.45, float(f.r) * 0.9, f.col])
+				continue
 			if kd != "sprite" and kd != "anim" and kd != "grain_light":
 				continue
 			var p: Vector2 = f.get("pos", Vector2.INF)
@@ -110,17 +121,6 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 			var r: float = clampf(float(_fxsz[nm]) * float(f.get("scale", g.PX)) * 0.9, 32.0, 170.0)
 			var inten: float = life * (0.6 + r / 170.0)
 			cand.append([inten, p, r, particles.fx_color(nm)])
-		for f in g.fx:   # 刀光：挥刀瞬间短暂打亮脚下与附近怪（刀光寿命前段 ≈ 0.08–0.12 秒）
-			if str(f.get("kind", "")) != "marc":
-				continue
-			var lf: float = float(f.life) / maxf(0.001, float(f.max))
-			if lf < 0.35:
-				continue
-			var mo = g.squad.get_op(str(f.get("op", ""))) if g.squad != null else null
-			var mp: Vector2 = (mo.pos + f.get("off", Vector2.ZERO)) if mo != null and mo.pos != Vector2.INF else f.pos
-			if not vr.has_point(mp):
-				continue
-			cand.append([0.55 + 0.25 * int(f.tier), mp + Vector2.from_angle(float(f.ang)) * float(f.r) * 0.45, float(f.r) * 0.9, f.col])
 		var nb := 0
 		for b in g.bullets:
 			if nb >= 60:
@@ -142,7 +142,7 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 				if vr.has_point(L[0]):
 					cand.append([0.6 * float(L[3]) / maxf(0.001, float(L[4])) + 0.3, L[0], float(L[1]), L[2]])
 		if cand.size() > nmax:
-			cand.sort_custom(func(a, b): return a[0] > b[0])
+			cand = _top_n(cand, nmax)
 		# 局部预算（防油腻 ②）：队长 render/optical_local_r（120）内入选的光强度总和封顶 render/optical_local_light（1.6），超出按比例压
 		var lr: float = Bal.v("render/optical_local_r", 120.0)
 		var lsum := 0.0
@@ -171,6 +171,22 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 	mat.set_shader_parameter("dl_n", n)
 	mat.set_shader_parameter("dl_pos", _dl_pos)
 	mat.set_shader_parameter("dl_col", _dl_col)
+
+
+## 按强度（[0]）从大到小取前 n 个：插入选择，代替整表 sort_custom（候选上百个时多数一次比较就被拒，docs/50 §26）
+static func _top_n(cand: Array, n: int) -> Array:
+	var top: Array = []
+	for c in cand:
+		var v: float = c[0]
+		if top.size() == n and v <= float(top[n - 1][0]):
+			continue
+		var j: int = top.size()
+		while j > 0 and float(top[j - 1][0]) < v:
+			j -= 1
+		top.insert(j, c)
+		if top.size() > n:
+			top.pop_back()
+	return top
 
 
 ## ① 压阶帧条换入 / 换回（g.tex 同名替换：所有绘制路径都读 g.tex，不用逐处改）
@@ -408,6 +424,8 @@ func _draw_glow() -> void:
 ## ⑧ 投射物发光像素拖尾：每颗弹沿速度反方向 5 个 2 px 像素、由亮到灭，吸附到 2 世界像素格；
 ## 我方取弹体颜色（没有就青白），敌方一律危险色（颜色语言）。最多画 300 颗
 func _draw_trails(list: Array, enemy: bool) -> void:
+	if fx1 and not enemy:
+		return   # fx1 开着时我方弹拖尾全由 GPU 粒子簇画，这里原来逐颗取速度后 continue，什么也不画（docs/50 §26）
 	var n := 0
 	for b in list:
 		if n >= 300:

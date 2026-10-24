@@ -120,12 +120,26 @@ func setup(game) -> void:
 
 
 func on() -> bool:
-	return level > 0 and not kill and g != null and g.optical_on and Bal.v("fx/grains", 1.0) > 0.0
+	_knobs()
+	return level > 0 and not kill and g != null and g.optical_on and _k_grains
 
 
 ## 材质颗粒（fx/material_grains，10-24 起缺省开；拉普兰德 / 体液各自另有开关，缺省关）：模板开着、未被 --grainab / --matab 轮换关掉
 func material_on() -> bool:
-	return on() and not off and not mat_off and Bal.v("fx/material_grains", 0.0) > 0.0
+	return on() and not off and not mat_off and _k_mat
+
+
+## fx/grains、fx/material_grains 每帧读一次（on() 每帧被调十几次；docs/50 §26）
+var _k_frame := -1
+var _k_grains := true
+var _k_mat := false
+func _knobs() -> void:
+	var fr: int = Engine.get_process_frames()
+	if fr == _k_frame:
+		return
+	_k_frame = fr
+	_k_grains = Bal.v("fx/grains", 1.0) > 0.0
+	_k_mat = Bal.v("fx/material_grains", 0.0) > 0.0
 
 
 func budget() -> int:

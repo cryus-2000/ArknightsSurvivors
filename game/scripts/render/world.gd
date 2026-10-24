@@ -1148,6 +1148,7 @@ func _draw_fx() -> void:
 					var detx: Texture2D = _mire_dissolve_emit() if g.optical_on else null
 					var step: float = 64.0 * Game.PX
 					var pitch: float = 48.0 * Game.PX
+					var me: float = Bal.v("render/optical_mire_emit", 0.35)   # 每格都用，循环外读一次（docs/50 §26）
 					for c in f.pts:
 						var nn: int = maxi(0, ceili((float(c[1]) - step * 0.5) / pitch))
 						for iy in range(-nn, nn + 1):
@@ -1158,7 +1159,7 @@ func _draw_fx() -> void:
 								var dp: Vector2 = ((c[0] + off) / Game.PX).round() * Game.PX
 								g.vfx.spr_rot("fx_mire_dissolve", mfr, dp, 0.0, Game.PX / dhs, dcol)
 								if detx != null:
-									g.glow_tex_next.append([detx, Rect2(dp - Vector2(step, step) * 0.5, Vector2(step, step)), Rect2(mfr * 64, 0, 64, 64), Color(1, 1, 1, dcol.a * Bal.v("render/optical_mire_emit", 0.35))])
+									g.glow_tex_next.append([detx, Rect2(dp - Vector2(step, step) * 0.5, Vector2(step, step)), Rect2(mfr * 64, 0, 64, 64), Color(1, 1, 1, dcol.a * me)])
 				elif g.vfx.p2:
 					var k := 1.0 - a
 					var gy: float = ground_y()
@@ -4064,6 +4065,32 @@ func draw_zone() -> void:
 	_zone_next_ring()
 
 
+## 黑潮圈边的溟痕格（栅格化 + 补洞求围边）按「圆心、半径、弧段」记住（docs/50 §26：后期每帧重算约占一帧 5%）：
+## 弧段两端按 4 个采样取整（多出的格子在视野外扩 80 像素之外，屏内画面不变），圈不动时镜头走动多数帧直接复用；缩圈时半径每帧在变照旧重算
+var _zc_key: Array = []
+var _zc_val: Array = []
+func _zone_cells(c: Vector2, r: float, cw: float, nb2: int, rj: Vector2i) -> Array:
+	var a0: int = floori((rj.x - 1) / 4.0) * 4
+	var a1: int = ceili((rj.y + 2) / 4.0) * 4
+	var key: Array = [c, r, nb2, a0, a1]
+	if key == _zc_key:
+		return _zc_val
+	var ins := {}
+	for jr in range(a0, a1):
+		var d3 := Vector2.from_angle(TAU * float(posmod(jr, nb2)) / nb2)
+		var rr := r - 4.0
+		while rr <= r + 36.0:
+			var q := Vector2i(floori((c.x + d3.x * rr) / cw), floori((c.y + d3.y * rr) / cw))
+			if not ins.has(q):
+				var dd: float = ((Vector2(q) + Vector2(0.5, 0.5)) * cw).distance_to(c)
+				if dd >= r - 4.0 and dd <= r + 36.0:
+					ins[q] = true
+			rr += cw * 0.5
+	_zc_key = key
+	_zc_val = g.map.mire_cells(ins) if not ins.is_empty() else []
+	return _zc_val
+
+
 ## 下一圈预告（虚线）
 func _zone_next_ring() -> void:
 	if g.zone_state == 1:
@@ -4151,19 +4178,9 @@ func draw_zone_band(pulse: float) -> void:
 		var nb2: int = clampi(int(TAU * r / (cw * 0.5)), 24, 4000)
 		var rj: Vector2i = _arc_range(nb2, c, r, vc, view)
 		if rj.y >= rj.x:
-			var ins := {}
-			for jr in range(rj.x - 1, rj.y + 2):
-				var d3 := Vector2.from_angle(TAU * float(posmod(jr, nb2)) / nb2)
-				var rr := r - 4.0
-				while rr <= r + 36.0:
-					var q := Vector2i(floori((c.x + d3.x * rr) / cw), floori((c.y + d3.y * rr) / cw))
-					if not ins.has(q):
-						var dd: float = ((Vector2(q) + Vector2(0.5, 0.5)) * cw).distance_to(c)
-						if dd >= r - 4.0 and dd <= r + 36.0:
-							ins[q] = true
-					rr += cw * 0.5
-			if not ins.is_empty():
-				g.map.draw_mire_cells(g.map.mire_cells(ins), int(t * 2.0) % 2, Color(1, 1, 1, 0.95))
+			var zc: Array = _zone_cells(c, r, cw, nb2, rj)
+			if not zc.is_empty():
+				g.map.draw_mire_cells(zc, int(t * 2.0) % 2, Color(1, 1, 1, 0.95))
 	if mt != null:
 		var fw: int = mt.get_width() / 2
 		var nb: int = clampi(int(TAU * r / 26.0), 24, 900)
