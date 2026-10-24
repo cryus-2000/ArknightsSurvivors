@@ -67,6 +67,8 @@ static func el_atk_mult(o) -> float:
 static func el_status_gate(o, s: Dictionary, idx: int) -> bool:
 	if s.get("first_only", false) and idx != 0:
 		return false
+	if s.has("nearest_n") and idx >= int(s.nearest_n):
+		return false
 	if s.has("cd"):
 		var st := el_st(o)
 		var u: int = int(s.get("_uid", 0))
@@ -492,6 +494,7 @@ static func _el_st_common(b: Dictionary, p: String, ctx: Dictionary) -> void:
 	if b.has("first_only") and not (b.first_only is bool):
 		ctx.errs.append(p + ".first_only 只能是 true / false")
 	_num(b, "cd", p, ctx, false, 0.0, 60.0)
+	_num(b, "nearest_n", p, ctx, false, 1.0, 20.0)
 
 
 static func _el_lunge_check(v, p: String, ctx: Dictionary) -> void:

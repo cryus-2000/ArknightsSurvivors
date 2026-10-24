@@ -16,7 +16,7 @@
  "base": {
   "_doc": "基础数值（docs/59 §2 / §8.2）；纯数据干员，行为在 blocks 段（docs/61 §13）。精英化形态（docs/91 §16）：pin_* 精一「钉剑」，rain_* 精二「余像·剑雨」（残像 30% → 15% 配合下调；每柄 35% 按木桩表 +33% 再按 docs/91 收到 25%）。普攻是朝最近敌人的冲刺穿行，穿过敌人给全队回技力；精一天赋「战术快递」= 她自己按 talent_cd 自动冲向附近敌群（10-12 用户「改成自动冲刺」，不再跟主控的冲刺键）；S2 把这个间隔 × s2_cd_mult",
   "atk": 32,
-  "cd": 0.9,
+  "cd": 1.05,
   "dash_len": 140,
   "dash_w": 44,
   "dash_t": 0.24,
@@ -46,7 +46,7 @@
   "trail_life": 0.6,
   "trail_mult": 0.15,
   "trail_slow": 0.5,
-  "pin_dur": 0.4,
+  "pin_dur": 0.7,
   "rain_step": 40,
   "rain_r": 30,
   "rain_mult": 0.25,
@@ -61,11 +61,9 @@
   "rain3_r": 90,
   "rain3_mult": 0.35,
   "slash_r": 112,
-  "slash_half": 1.0,
+  "slash_half": 1.2,
   "slash_kb": 30,
-  "slash_mult": 0.75,
-  "slash2_mult": 0.75,
-  "slash2_delay": 0.2,
+  "slash_mult": 1.3,
   "step_len": 60,
   "step_w": 44,
   "step_t": 0.14,
@@ -76,13 +74,15 @@
   "s3_need": 230,
   "talent_atk_sp": 0.15,
   "slash_wide": 0.15,
-  "_rework": "10-23 用户定「自动冲刺太晕」重设计（docs/129）：队长普攻原地两连斩（扇形 slash_r），每第 tri_every 次出手改为「疾刃三连」（原地 tri_gap×2 秒内连斩三下、扇形 tri_half、每下 tri_mult，没有敌人照常两连斩）；队友另有每 step_cd 秒一次 ≤ step_len 的短突进（敌人在 step_min_d 以外才上前）；删除天赋的定时自动冲刺；剑雨 / 剑雨滂沱自动释放需要射程内有敌人",
+  "_rework": "10-24 用户拍板方案 A「阻挡」（docs/129 §11.4）：队长普攻原地每 cd 秒一刀「拔刀」（宽扇形 slash_r / slash_half，×slash_mult），命中里离她最近的 block_n 名被阻挡 block_dur 秒（精英减半，Boss 免疫）；每第 storm_every 次出手改为「骤雨」（原地 storm_gap×3 秒内 360° 连斩 4 下，半径 storm_r，每下 ×storm_mult，没有敌人照常拔刀）；队友另有每 step_cd 秒一次 ≤ step_len 的短突进；删除天赋的定时自动冲刺；剑雨 / 剑雨滂沱自动释放需要射程内有敌人",
   "dash_mult": 1.0,
-  "tri_every": 3,
-  "tri_half": 1.35,
-  "tri_mult": 0.45,
-  "tri_gap": 0.125,
-  "tri_w": 44
+  "block_n": 2,
+  "block_dur": 0.4,
+  "storm_every": 4,
+  "storm_r": 100,
+  "storm_mult": 0.55,
+  "storm_gap": 0.2,
+  "storm_w": 44
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1986 / 防御 441 / 法抗 0%，近战主控有效生命 ×1.06",
@@ -335,8 +335,8 @@
  ],
  "attack": {
   "mode": "auto",
-  "name": "双连斩",
-  "desc": "原地快速两连斩：每 {$cd} 秒朝最近敌人挥出两刀扇形斩（半径 {$slash_r}，物理，各 {$slash_mult*100}%）；每第 {$tri_every} 次出手改为「疾刃三连」：{$tri_gap*2} 秒内连斩三下（扇形更宽，每下 {$tri_mult*100}%），没有敌人时照常两连斩；每次出手为全队技力 +{$hit_sp} 秒。当队友时，每 {$step_cd} 秒还会朝 {$step_min_d}–{$step_aim} 内的敌人突进一小步（≤ {$step_len}）"
+  "name": "拔刀",
+  "desc": "原地一刀「拔刀」：每 {$cd} 秒朝最近敌人挥出宽扇形斩（半径 {$slash_r}，物理，{$slash_mult*100}%），命中里离她最近的 {$block_n} 名敌人被「阻挡」，原地定住 {$block_dur} 秒（精英减半，Boss 免疫）；每第 {$storm_every} 次出手改为「骤雨」：{$storm_gap*3} 秒内原地 360° 连斩 4 下（半径 {$storm_r}，每下 {$storm_mult*100}%），没有敌人时照常拔刀；每次出手为全队技力 +{$hit_sp} 秒。当队友时，每 {$step_cd} 秒还会朝 {$step_min_d}–{$step_aim} 内的敌人突进一小步（≤ {$step_len}）"
  },
  "skills": [
   {
@@ -347,11 +347,11 @@
    "icon": "skill_texas_s1"
   },
   {
-   "name": "可靠伙伴",
-   "en": "RELIABLE PARTNER",
+   "name": "冲锋号令·γ型",
+   "en": "CHARGE ORDER γ",
    "sp": 14,
    "permanent": true,
-   "desc": "充能一次后永久生效：冲刺距离 +{$s2_len*100}%、伤害 ×{$s2_mult}",
+   "desc": "充能一次后永久生效：冲刺距离 +{$s2_len*100}%、伤害 ×{$s2_mult}（本作改写：原作为立即获得部署费用）",
    "icon": "skill_texas_s2"
   },
   {
@@ -365,7 +365,7 @@
  ],
  "talent": {
   "name": "战术快递",
-  "desc": "队长每次冲刺，她沿同一方向冲刺一次（她当队长时，冲刺路径上的敌人一同被斩）；穿过敌人时全队技力 +{$talent_sp} 秒；一次冲刺穿过 {$talent_many} 名以上敌人时额外 +{$talent_many_sp} 秒；双连斩每次出手再为全队技力 +{$talent_atk_sp} 秒"
+  "desc": "队长每次冲刺，她沿同一方向冲刺一次（她当队长时，冲刺路径上的敌人一同被斩）；穿过敌人时全队技力 +{$talent_sp} 秒；一次冲刺穿过 {$talent_many} 名以上敌人时额外 +{$talent_many_sp} 秒；拔刀每次出手再为全队技力 +{$talent_atk_sp} 秒"
  },
  "hit_sources": {
   "剑雨": {
@@ -432,16 +432,6 @@
     "stun"
    ]
   },
-  "双连斩": {
-   "emitter": "operator",
-   "origin": "core",
-   "range": "近战",
-   "kind": "物理",
-   "tags": [
-    "basic",
-    "area"
-   ]
-  },
   "突进": {
    "emitter": "operator",
    "origin": "core",
@@ -462,7 +452,18 @@
     "pierce"
    ]
   },
-  "疾刃三连": {
+  "拔刀": {
+   "emitter": "operator",
+   "origin": "core",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "basic",
+    "area",
+    "stun"
+   ]
+  },
+  "骤雨": {
    "emitter": "operator",
    "origin": "core",
    "range": "近战",
@@ -479,7 +480,7 @@
    "id": "wide",
    "name": "阔剑",
    "icon": "growth_b_range",
-   "desc": "冲刺宽度 +{$n1_w*100-100}%，扇形斩半径 +{$slash_wide*100}%"
+   "desc": "冲刺宽度 +{$n1_w*100-100}%，拔刀与骤雨范围 +{$slash_wide*100}%"
   },
   {
    "type": "custom",
@@ -492,10 +493,10 @@
    "type": "elite",
    "level": 1,
    "name": "精英一",
-   "desc": "解锁二技能「可靠伙伴」；解锁天赋「战术快递」：队长每次冲刺，她同向冲刺一次；穿过敌人时为全队回技力，双连斩每次出手再回一点；普通攻击强化「钉剑」：疾刃三连第一下命中的第一名敌人身上插一柄源石剑，停顿 {$pin_dur} 秒（精英减半，Boss 除外）",
+   "desc": "解锁二技能「冲锋号令·γ型」；解锁天赋「战术快递」：队长每次冲刺，她同向冲刺一次；穿过敌人时为全队回技力，拔刀每次出手再回一点；普通攻击强化「钉剑」：被阻挡的敌人各插一柄源石剑，定住时间延长到 {$pin_dur} 秒（精英减半，Boss 除外）",
    "attack": {
     "name": "钉剑",
-    "desc": "疾刃三连第一下命中的第一名敌人身上插一柄源石剑，停顿 {$pin_dur} 秒（精英减半，Boss 除外）"
+    "desc": "被拔刀阻挡的敌人各插一柄源石剑，定住时间延长到 {$pin_dur} 秒（精英减半，Boss 除外）"
    }
   },
   {
@@ -503,13 +504,13 @@
    "id": "back",
    "name": "回马剑",
    "icon": "growth_b_echo",
-   "desc": "双连斩后 {$back_delay} 秒，身后再斩一圈（{$back_mult*100}% 伤害）",
+   "desc": "拔刀后 {$back_delay} 秒，身后再斩一圈（{$back_mult*100}% 伤害）",
    "branch": {
     "back": {
      "id": "back",
      "name": "回马剑",
      "icon": "growth_b_echo",
-     "desc": "疾行斩冲到头 {$back_delay} 秒后原路反冲一次（{$back_mult*100}% 伤害）"
+     "desc": "拔刀后 {$back_delay} 秒，身后再斩一圈（{$back_mult*100}% 伤害）"
     },
     "rain": {
      "id": "rain2",
@@ -518,7 +519,7 @@
      "desc": "「剑雨」{$rain2_delay} 秒后在她脚下再落一次（{$rain2_mult*100}% 伤害）"
     }
    },
-   "branch_desc": "「回马剑」在疾行斩结束后沿原路追加一次冲刺；「剑雨·连」使「剑雨」追加一次攻击",
+   "branch_desc": "「回马剑」在拔刀后追加身后一圈斩；「剑雨·连」使「剑雨」追加一次攻击",
    "bot": "back"
   },
   {
@@ -546,10 +547,10 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「剑雨滂沱」；普通攻击强化「余像」：疾刃三连出手时前方留下 {$trail_life} 秒剑气残像，踩进的敌人受 {$trail_mult*100}% 伤害并减速；残像消散时沿路径每 {$rain_step} 落下一柄剑（{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒，精英减半，Boss 除外）",
+   "desc": "解锁三技能「剑雨滂沱」；普通攻击强化「余像」：骤雨出手时前方留下 {$trail_life} 秒剑气残像，踩进的敌人受 {$trail_mult*100}% 伤害并减速；残像消散时沿路径每 {$rain_step} 落下一柄剑（{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒，精英减半，Boss 除外）",
    "attack": {
     "name": "余像·剑雨",
-    "desc": "疾刃三连出手时前方留下 {$trail_life} 秒剑气残像（{$trail_mult*100}% 伤害并减速）；残像消散时沿路径每 {$rain_step} 落下一柄源石剑：{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒（精英减半，Boss 除外）"
+    "desc": "骤雨出手时前方留下 {$trail_life} 秒剑气残像（{$trail_mult*100}% 伤害并减速）；残像消散时沿路径每 {$rain_step} 落下一柄源石剑：{$rain_mult*100}% 伤害，眩晕 {$rain_stun} 秒（精英减半，Boss 除外）"
    }
   }
  ],
@@ -560,7 +561,7 @@
    "穿透",
    "技力"
   ],
-  "desc": "先锋干员，冲刺攻击沿途敌人并为全队回复技力。晋升至精英一后，随队长同向冲刺；队长未冲刺时，定期主动突击"
+  "desc": "先锋干员，原地拔刀阻挡身前最近的两名敌人，被围时以骤雨一圈清场，并为全队回复技力。晋升至精英一后，随队长同向冲刺"
  },
  "blocks": {
   "attack": {
@@ -571,7 +572,7 @@
    ],
    "aim_pad": 40,
    "ring": false,
-   "src": "双连斩",
+   "src": "拔刀",
    "r": "$slash_r",
    "half": "$slash_half",
    "kb": "$slash_kb",
@@ -594,7 +595,7 @@
        1.0
       ],
       "life": 0.2,
-      "half": 1.0
+      "half": 1.2
      }
     }
    ],
@@ -605,54 +606,6 @@
     "area"
    ],
    "combo": [
-    {
-     "delay": "$slash2_delay",
-     "_doc": "第二斩：同一扇形再斩一次",
-     "do": [
-      {
-       "shape": "cone",
-       "origin_off": [
-        0,
-        -10
-       ],
-       "aim_pad": 40,
-       "ring": false,
-       "src": "双连斩",
-       "r": "$slash_r",
-       "half": "$slash_half",
-       "kb": "$slash_kb",
-       "face": true,
-       "fx": [
-        {
-         "blade": {
-          "strip": "fx_slash_heavy_steel",
-          "fit": 28,
-          "k": 1.0,
-          "along": 0.5,
-          "col": [
-           1.0,
-           0.82,
-           0.55
-          ],
-          "edge": [
-           1.0,
-           1.0,
-           1.0
-          ],
-          "life": 0.2,
-          "half": 1.0
-         }
-        }
-       ],
-       "basis": "attack",
-       "mult": "$slash2_mult",
-       "tags": [
-        "basic",
-        "area"
-       ]
-      }
-     ]
-    },
     {
      "cond": "node:back",
      "delay": "$back_delay",
@@ -701,13 +654,59 @@
       }
      ]
     }
+   ],
+   "on_hit": [
+    {
+     "st": "stun",
+     "dur": "$block_dur",
+     "nearest_n": "$block_n",
+     "cond": "elite < 1",
+     "_doc": "阻挡（原作特性：能够阻挡两个敌人 / 优先攻击阻挡者）：命中的敌人里离她最近的 block_n 名原地定住 block_dur 秒（精英减半、Boss 免疫）"
+    },
+    {
+     "st": "stun",
+     "dur": "$pin_dur",
+     "nearest_n": "$block_n",
+     "cond": "elite >= 1",
+     "fx": [
+      {
+       "strip": "fx_texas_pin_sword",
+       "anchor": [
+        6,
+        22
+       ],
+       "off": [
+        0,
+        -5
+       ],
+       "scale": 0.767,
+       "stay": "$pin_dur"
+      },
+      {
+       "strip": "fx_texas_pin_shatter",
+       "off": [
+        0,
+        -12
+       ],
+       "delay": "$pin_dur",
+       "scale": 0.667
+      },
+      {
+       "strip": "fx_texas_rain_mark",
+       "if_tex": "!fx_texas_pin_sword",
+       "layer": "floor",
+       "scale": 0.8
+      }
+     ],
+     "_doc": "精一钉剑：被阻挡的敌人各插一柄源石剑，定住时间延长到 pin_dur"
+    }
    ]
   },
   "trait": [
    {
     "trig": "every_n",
     "n": 1,
-    "_doc": "先锋回技力（原疾行斩穿过敌人 +hit_sp）：每次双连斩出手全队技力 +hit_sp 秒",
+    "_doc": "先锋回技力（原疾行斩穿过敌人 +hit_sp）：每次拔刀出手全队技力 +hit_sp 秒",
     "do": [
      {
       "verb": "sp_secs",
@@ -717,199 +716,93 @@
    },
    {
     "trig": "every_n",
-    "n": "$tri_every",
+    "n": "$storm_every",
+    "cond": "enemy_near",
     "replace": true,
     "no_combo": true,
-    "cond": "enemy_near",
-    "_doc": "疾刃三连（10-23 用户定，取代短剑气）：每第 tri_every 次出手改为原地朝最近敌人连斩三下（0 / tri_gap / 2×tri_gap 秒，扇形比普攻宽 20°、半径同普攻，每下 tri_mult）；范围内没有敌人就照常两连斩。第一下带精一钉剑、精二余像",
+    "_doc": "骤雨（原作档案「暴风骤雨」）：每第 storm_every 次出手改为原地 360° 连斩 4 下（0 / storm_gap / 2×storm_gap / 3×storm_gap 秒），半径 storm_r、每下 storm_mult；范围内没有敌人就照常拔刀",
     "do": [
      {
-      "shape": "cone",
-      "origin_off": [
-       0,
-       -10
-      ],
-      "aim_pad": 40,
-      "ring": false,
-      "src": "疾刃三连",
-      "r": "$slash_r",
-      "half": "$tri_half",
+      "shape": "circle",
+      "center": "self",
+      "r": "$storm_r",
       "kb": "$slash_kb",
-      "face": true,
-      "basis": "attack",
-      "mult": "$tri_mult",
+      "mult": "$storm_mult",
+      "ring": false,
+      "src": "骤雨",
       "tags": [
        "basic",
        "area"
-      ],
-      "fx": [
-       {
-        "blade": {
-         "strip": "fx_slash_heavy_steel",
-         "fit": 28,
-         "k": 1.0,
-         "along": 0.5,
-         "col": [
-          1.0,
-          0.82,
-          0.55
-         ],
-         "edge": [
-          1.0,
-          1.0,
-          1.0
-         ],
-         "life": 0.15,
-         "half": 1.35
-        }
-       }
-      ],
-      "on_hit": [
-       {
-        "st": "stun",
-        "dur": "$pin_dur",
-        "first_only": true,
-        "fx": [
-         {
-          "strip": "fx_texas_pin_sword",
-          "anchor": [
-           6,
-           22
-          ],
-          "off": [
-           0,
-           -5
-          ],
-          "scale": 0.767,
-          "stay": "$pin_dur"
-         },
-         {
-          "strip": "fx_texas_pin_shatter",
-          "off": [
-           0,
-           -12
-          ],
-          "delay": "$pin_dur",
-          "scale": 0.667
-         },
-         {
-          "strip": "fx_texas_rain_mark",
-          "if_tex": "!fx_texas_pin_sword",
-          "layer": "floor",
-          "scale": 0.8
-         }
-        ],
-        "cond": "elite >= 1"
-       }
       ]
      },
      {
       "verb": "emit_path",
       "len": "$slash_r",
-      "w": "$tri_w",
-      "src": "疾刃三连",
+      "w": "$storm_w",
+      "src": "骤雨",
       "cond": "elite >= 2"
      }
     ]
    },
    {
     "trig": "every_n",
-    "n": "$tri_every",
-    "delay": "$tri_gap",
+    "n": "$storm_every",
     "cond": "enemy_near",
-    "_doc": "疾刃三连第二下",
+    "delay": "$storm_gap",
     "do": [
      {
-      "shape": "cone",
-      "origin_off": [
-       0,
-       -10
-      ],
-      "aim_pad": 40,
-      "ring": false,
-      "src": "疾刃三连",
-      "r": "$slash_r",
-      "half": "$tri_half",
+      "shape": "circle",
+      "center": "self",
+      "r": "$storm_r",
       "kb": "$slash_kb",
-      "face": true,
-      "basis": "attack",
-      "mult": "$tri_mult",
+      "mult": "$storm_mult",
+      "ring": false,
+      "src": "骤雨",
       "tags": [
        "basic",
        "area"
-      ],
-      "fx": [
-       {
-        "blade": {
-         "strip": "fx_slash_heavy_steel",
-         "fit": 28,
-         "k": 1.0,
-         "along": 0.5,
-         "col": [
-          1.0,
-          0.82,
-          0.55
-         ],
-         "edge": [
-          1.0,
-          1.0,
-          1.0
-         ],
-         "life": 0.15,
-         "half": 1.35
-        }
-       }
       ]
      }
     ]
    },
    {
     "trig": "every_n",
-    "n": "$tri_every",
-    "delay": "$tri_gap*2",
+    "n": "$storm_every",
     "cond": "enemy_near",
-    "_doc": "疾刃三连第三下",
+    "delay": "$storm_gap*2",
     "do": [
      {
-      "shape": "cone",
-      "origin_off": [
-       0,
-       -10
-      ],
-      "aim_pad": 40,
-      "ring": false,
-      "src": "疾刃三连",
-      "r": "$slash_r",
-      "half": "$tri_half",
+      "shape": "circle",
+      "center": "self",
+      "r": "$storm_r",
       "kb": "$slash_kb",
-      "face": true,
-      "basis": "attack",
-      "mult": "$tri_mult",
+      "mult": "$storm_mult",
+      "ring": false,
+      "src": "骤雨",
       "tags": [
        "basic",
        "area"
-      ],
-      "fx": [
-       {
-        "blade": {
-         "strip": "fx_slash_heavy_steel",
-         "fit": 28,
-         "k": 1.0,
-         "along": 0.5,
-         "col": [
-          1.0,
-          0.82,
-          0.55
-         ],
-         "edge": [
-          1.0,
-          1.0,
-          1.0
-         ],
-         "life": 0.15,
-         "half": 1.35
-        }
-       }
+      ]
+     }
+    ]
+   },
+   {
+    "trig": "every_n",
+    "n": "$storm_every",
+    "cond": "enemy_near",
+    "delay": "$storm_gap*3",
+    "do": [
+     {
+      "shape": "circle",
+      "center": "self",
+      "r": "$storm_r",
+      "kb": "$slash_kb",
+      "mult": "$storm_mult",
+      "ring": false,
+      "src": "骤雨",
+      "tags": [
+       "basic",
+       "area"
       ]
      }
     ]
@@ -1211,7 +1104,7 @@
    "elite1": {
     "trig": "passive",
     "do": [],
-    "_doc": "钉剑（docs/91 §16，10-23 改挂疾刃三连）：标记节点，效果在三连第一下的 on_hit（cond elite >= 1，first_only）"
+    "_doc": "钉剑（docs/91 §16，10-24 改挂拔刀的阻挡）：标记节点，效果在拔刀 on_hit 的第二块（cond elite >= 1）：被阻挡的敌人定住时间延长并插剑"
    },
    "elite2": {
     "trig": "on_dash_end",
@@ -1317,8 +1210,8 @@
       "line_w": 0.0
      }
     ],
-    "src": "疾刃三连",
-    "_doc2": "10-23 改挂疾刃三连：三连出手时 verb.emit_path 把「前方长 slash_r」的路径当一次冲刺结束，src 疾刃三连；冲刺不再留残像"
+    "src": "骤雨",
+    "_doc2": "10-24 方案 A：挂在骤雨第一下（verb.emit_path 把「前方长 slash_r」的路径当一次冲刺结束，src 骤雨）；冲刺不再留残像"
    },
    "back2": {
     "trig": "passive",

@@ -36,7 +36,7 @@ func _process(_d: float) -> void:
 		test_s2(o)
 		test_dash(o)
 		test_leader_dash(o)
-		test_triple(o)
+		test_storm(o)
 		test_gate(o)
 	print("%d checks, %d failed" % [n, fails])
 	print("TEXAS CONTRACT failures=%d" % fails)
@@ -123,9 +123,10 @@ func test_leader_dash(o) -> void:
 	e1.dead = true
 
 
-## 疾刃三连（10-23，取代短剑气）：每第 3 次出手原地连斩三下（replace + no_combo + 两个 delay 的追加段）；没有敌人照常两连斩；
-## 钉剑 / 余像挂在三连上——直接放三连第一下的 do，精一起命中第一名敌人停顿、精二起前方留下余像
-func test_triple(o) -> void:
+## 方案 A「阻挡」（10-24 用户拍板，取代疾刃三连）：拔刀命中里离她最近的两名被阻挡（精英减半 / Boss 免疫沿用 st.stun）；
+## 每第 4 次出手改为骤雨（replace + no_combo + 三个 delay 的追加段，360° 连斩 4 下）；没有敌人照常拔刀。
+## 钉剑挂在阻挡上（精一起定住延长）、余像挂在骤雨第一下（精二起前方留下残像）
+func test_storm(o) -> void:
 	var g = game
 	for e in g.enemies: e.dead = true
 	g.enemies.clear()
@@ -138,37 +139,45 @@ func test_triple(o) -> void:
 	o.elite = 0
 	o.refresh_stats()
 	g.enemies_sys.build_grid()
-	ok(o._replace_trig(3).is_empty(), "疾刃三连：场上没有敌人 → 第 3 次出手照常两连斩（不 replace）")
-	var e1: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2(90, 0))
-	e1.hp = 100000.0
-	e1.max_hp = e1.hp
-	e1.spd = 0.0
+	ok(o._replace_trig(4).is_empty(), "骤雨：场上没有敌人 → 第 4 次出手照常拔刀（不 replace）")
+	var es: Array = []
+	for dx in [50, 80, 105]:
+		var e1: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2(dx, 0))
+		e1.hp = 100000.0
+		e1.max_hp = e1.hp
+		e1.spd = 0.0
+		es.append(e1)
 	g.enemies_sys.build_grid()
-	ok(not o._replace_trig(3).is_empty() and bool(o._replace_trig(3).no_combo), "疾刃三连：普攻范围内有敌人 → 第 3 次出手 replace（no_combo）")
-	ok(o._replace_trig(1).is_empty() and o._replace_trig(2).is_empty() and o._replace_trig(4).is_empty() and not o._replace_trig(6).is_empty(), "疾刃三连：只在第 3 / 6 … 次出手")
-	var tri_do: Array = o.B.trait[1].do
+	ok(not o._replace_trig(4).is_empty() and bool(o._replace_trig(4).no_combo), "骤雨：普攻范围内有敌人 → 第 4 次出手 replace（no_combo）")
+	ok(o._replace_trig(1).is_empty() and o._replace_trig(2).is_empty() and o._replace_trig(3).is_empty() and o._replace_trig(5).is_empty() and not o._replace_trig(8).is_empty(), "骤雨：只在第 4 / 8 … 次出手")
+	var storm_do: Array = o.B.trait[1].do
 	for el in [0, 1, 2]:
 		o.elite = el
 		o.refresh_stats()
-		e1.stun = 0.0
-		e1.hp = e1.max_hp
+		for e in es:
+			e.stun = 0.0
+			e.hp = e.max_hp
+			e.pos = g.ppos + Vector2([50, 80, 105][es.find(e)], 0)
+		g.enemies_sys.build_grid()
 		o.pos = g.ppos
 		o.tx["trails"] = []
-		o._exec_list(tri_do)
-		var max_stun := float(e1.get("stun", 0.0))
+		o._exec_list([o.B.attack])
+		var st: Array = es.map(func(e): return float(e.get("stun", 0.0)))
+		var want := 0.4 if el < 1 else 0.7
+		ok(st[0] > 0.0 and st[1] > 0.0 and st[2] == 0.0 and absf(st[0] - want) < 0.05, "阻挡：精英 %d 拔刀只定住离她最近的两名，时长 %.2f（实得 %s）" % [el, want, str(st)])
+		o.tx["trails"] = []
+		o._exec_list(storm_do)
 		var trails: int = o.tx.get("trails", []).size()
-		ok((max_stun > 0.0) == (el >= 1), "钉剑：精英 %d 疾刃三连第一下命中 → %s（眩晕 %.2f）" % [el, "停顿" if el >= 1 else "不停顿", max_stun])
-		ok((trails > 0) == (el >= 2), "余像：精英 %d 疾刃三连出手 → %s（残像 %d 道）" % [el, "留残像" if el >= 2 else "没有残像", trails])
-	# 三下：追加段 delay 0.125 / 0.25 各一次，入排队列
+		ok((trails > 0) == (el >= 2), "余像：精英 %d 骤雨出手 → %s（残像 %d 道）" % [el, "留残像" if el >= 2 else "没有残像", trails])
+	# 四下：追加段 delay 0.2 / 0.4 / 0.6 各一次，入排队列
 	o.elite = 0
 	o.refresh_stats()
 	o.pending.clear()
-	var before: float = float(e1.max_hp) - float(e1.hp)
-	o.atk_n = 2
+	o.atk_n = 3
 	o.cd = 0.0
 	o._release()
-	ok(o.atk_n == 3 and o.pending.size() == 2 and absf(float(o.pending[0].t) - 0.125) < 0.0001 and absf(float(o.pending[1].t) - 0.25) < 0.0001, "疾刃三连：第 3 次出手排了两个追加斩（0.125 / 0.25 秒），没有接第二斩的 combo（排队 %d 个）" % o.pending.size())
-	e1.dead = true
+	ok(o.atk_n == 4 and o.pending.size() == 3 and absf(float(o.pending[0].t) - 0.2) < 0.0001 and absf(float(o.pending[2].t) - 0.6) < 0.0001, "骤雨：第 4 次出手排了三个追加斩（0.2 / 0.4 / 0.6 秒），没有接回马剑（排队 %d 个）" % o.pending.size())
+	for e in es: e.dead = true
 
 
 ## 自动技能需要敌人（10-23）：剑雨（S1）技力满了，没有敌人不放、技力保留；有敌人才放
