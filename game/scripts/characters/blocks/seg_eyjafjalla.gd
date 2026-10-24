@@ -2,6 +2,7 @@
 extends "res://scripts/characters/blocks/seg_skadi.gd"
 
 const MagmaProjectile = preload("res://scripts/characters/magma_projectile.gd")
+const BalE = preload("res://scripts/core/balance.gd")
 
 const HW_LOB_MAX := 12
 
@@ -342,7 +343,10 @@ static func _hw2_tick(o, dt: float) -> bool:
 		if bl.life <= 0.0 or bl.get("op", "") != o.id or bl.kind != "fire" or not bl.has("hw_b"):
 			continue
 		if bl.hw_b.get("look", {}).get("weighted", false):
-			MagmaProjectile.material_trail(o, bl, bl.pos, bl.vel, dt, bl.get("hw_fireball", false))
+			var s2v2: bool = _s2v2(o, bl)
+			if s2v2:
+				_s2v2_tick(o, bl, dt)
+			MagmaProjectile.material_trail(o, bl, bl.pos, bl.vel, dt, bl.get("hw_fireball", false) or s2v2)   # S2 火焰弹拖火星，不再拖暗色岩浆
 			continue
 		bl.etrail = float(bl.get("etrail", 0.0)) - dt
 		if bl.etrail <= 0.0:
@@ -535,8 +539,16 @@ static func hw_draw_shells(o) -> void:
 				MagmaProjectile.draw(o, bl.pos, bl.vel, sz, age)
 			continue
 		var fl := 1.0 + 0.15 * sin(g.t * 40.0 + bl.pos.x)
-		cv.draw_circle(bl.pos, float(lk.get("glow", 13.0)) * fl * sz, Color(1.6, 0.6, 0.15, 0.22))
 		var big: String = str(lk.get("big_tex", ""))
+		if _s2v2(o, bl) and big != "" and g.tex.get(big) != null:
+			# S2 改版（docs/138 §14）：前 0.1 秒从 0.4 倍缓入、不抖、只留一圈小光（≤ 1 色），火焰弹本体在光心上、缩到 0.65 倍
+			var age2: float = maxf(0.0, float(bl.hw_b.get("life", 1.3)) - float(bl.life))
+			var e: float = clampf(age2 / 0.1, 0.0, 1.0)
+			var ez: float = lerpf(0.4, 1.0, 1.0 - (1.0 - e) * (1.0 - e))
+			cv.draw_circle(bl.pos, 9.0 * ez * sz, Color(1.0, 0.55, 0.15, 0.2 * e))
+			o.draw_spr_rot(big, int(g.t * 14.0) % int(g.V6_FRAMES.get(big, [5])[0]), bl.pos - bl.vel.normalized() * 4.0 * ez, bl.vel.angle(), g.PX * float(lk.get("big_scale", 1.5)) * 0.65 * ez)   # 火球缩到 0.65：原来比艾雅本人还大、落地却只炸一小团
+			continue
+		cv.draw_circle(bl.pos, float(lk.get("glow", 13.0)) * fl * sz, Color(1.6, 0.6, 0.15, 0.22))
 		if big != "" and g.tex.get(big) != null:
 			cv.draw_circle(bl.pos, float(lk.get("glow2", 26.0)) * fl, Color(1.6, 0.5, 0.1, 0.25))
 			o.draw_spr_rot(big, int(g.t * 14.0) % int(g.V6_FRAMES.get(big, [5])[0]), bl.pos - bl.vel.normalized() * float(lk.get("back", 14.0)), bl.vel.angle(), g.PX * float(lk.get("big_scale", 1.5)))
@@ -948,3 +960,24 @@ static func hw_draw_lobs(o) -> void:
 				o.cv.draw_circle(p, 9.0 * float(s.sz), Color(1.6, 0.55, 0.12, 0.3))
 				o.cv.draw_circle(p, 5.5 * float(s.sz), Color(2.2, 0.8, 0.2, 0.95))
 				o.cv.draw_circle(p, 2.5 * float(s.sz), Color(2.8, 2.3, 1.4))
+
+
+
+## S2 点燃改版（10-24 用户「二技能有点突兀」，docs/138 §14，开关 fx/eyja_s2_v2）：只对带 big_tex 的火焰弹（S2 点燃弹）
+static func _s2v2(o, bl: Dictionary) -> bool:
+	return bl.hw_b.get("look", {}).has("big_tex") and MagmaProjectile.material_on(o) and BalE.v("fx/eyja_s2_v2", 0.0) > 0.0
+
+
+## 出手那一刻在弹口迸一圈火星（起手提示）；快到寿命还没炸（落空）时原地散成一团火星 + 一盏短灯，不再凭空消失。纯画面
+static func _s2v2_tick(o, bl: Dictionary, dt: float) -> void:
+	var gr = o.g.optical.grains
+	if not bl.get("s2_cue", false):
+		bl["s2_cue"] = true
+		for i in 12:
+			gr.push("fire", bl.pos, Vector2.from_angle(float(i) * TAU / 12.0), MagmaProjectile.HOT)
+		gr.light(bl.pos, 56.0, MagmaProjectile.HOT, 0.12)
+	if float(bl.life) <= dt * 1.5 and not bl.get("s2_fizz", false):
+		bl["s2_fizz"] = true
+		for i in 16:
+			gr.push("fire", bl.pos, Vector2.from_angle(float(i) * TAU / 16.0), MagmaProjectile.HOT)
+		gr.light(bl.pos, 48.0, MagmaProjectile.HOT, 0.1)
