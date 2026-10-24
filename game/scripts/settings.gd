@@ -312,6 +312,8 @@ func _ready() -> void:
 			meta_shape = {}
 			meta_earned = {}
 			meta_bounty = []
+		elif a == "--roster=full":   # 截图：名册全满（寻访「全员已入职」页），只在内存
+			roster_unlocked = preload("res://scripts/core/roster.gd").all_ids()
 		elif a.begins_with("--metacells="):
 			meta_earned = {"test": int(a.substr(12))}   # 截图 / 测试：预置累计生机细胞（只在内存）
 		elif a.begins_with("--rostertickets="):

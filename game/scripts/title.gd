@@ -564,8 +564,8 @@ func _activate(i: int) -> void:
 		6:
 			transition.switch_page(meta_ui.open)
 		7:
-			if not _hunt_ready() or not hunt_ui.open():
-				Sfx.play("ui_move", -4.0, 0.6)   # 没有凭证：灰显，点了只响一声
+			if not hunt_ui.open():
+				Sfx.play("ui_move", -4.0, 0.6)   # 名册未启用：点了只响一声（10-24 起没有凭证也能进去看）
 
 
 ## 磁贴入场（docs/62「每屏一个主动作」：标题菜单 = 磁贴从潮线下浮出）：开场 3.3 秒起按行错开 0.09 秒，每行 0.38 秒（T3）露出；
@@ -697,7 +697,7 @@ func _draw() -> void:
 		text_a[i] = _tile_text_a(i)
 	if not diff_pick and not op_pick:
 		Tiles.draw(self, menu_lay, {"sel": sel, "water": menu_water, "rip_t": menu_rip_t, "now": t, "rise": rise, "text_a": text_a,
-			"phase": 0.0 if Cfg.reduce_motion else t * 0.9, "font": font, "rm": Cfg.reduce_motion, "dim": [] if _hunt_ready() else [7]})
+			"phase": 0.0 if Cfg.reduce_motion else t * 0.9, "font": font, "rm": Cfg.reduce_motion, "dim": [] if preload("res://scripts/core/roster.gd").active() else [7]})
 		_draw_hunt_badge(rise[7], text_a[7])
 	var tc := TUI.ctx(self)
 	# 操作提示：一行暗色像素字（键鼠 / 手柄；触屏不画）
