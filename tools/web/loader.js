@@ -7,7 +7,9 @@
 //    JS 峰值 ≈ 原文件大小（pck + wasm 共约 65 MiB），给 2–3 GB 内存的老手机留余量。
 //    浏览器若自作主张解压（Content-Encoding: gzip 被服务器改写），读到的就是原始字节，照样按位置写入。
 //    没有 DecompressionStream 的老浏览器（Safari 16.3 以前）：收齐 gz 字节再 inflate（纯 JS，下面的 inflate）。
-// 2. 加载画面：进度 = 已下载字节 / 分片总字节（真实进度），博士沿进度条跑；下载完显示「正在启动」，
+// 2. 加载画面「声呐测绘」（用户 10-25 定，样式在 loader.css）：声呐进度环 = 下载字节进度占 70%，下载解压完以后是引擎启动（拿不到真实进度），
+//    环按已等秒数向 97% 渐近、日志行显示已等秒数；扫描扇面是 CSS 动画，主线程被引擎占住时也在转。左下日志：下载资源 → 解压校验 → 启动引擎；
+//    右下提示每 4 秒换一句（同 game/scripts/data.gd LOADING_TIPS，改机制时一起核对）。
 //    引擎移除自带的 #status 后撤掉；引擎报错（#status-notice 显示）时也撤掉，让报错露出来。
 (function () {
   var M = /*SHUIYUE_MANIFEST*/null;
@@ -15,26 +17,74 @@
   var total = 0, got = 0, done = false;
   Object.keys(M).forEach(function (k) { M[k].parts.forEach(function (p) { total += p[1]; }); });
 
-  var el = {};
+  var el = {}, bootT0 = 0;
+  var TIPS = [
+    '「大群来袭」前 3 秒有紫色预警。包围圈总留一个缺口，没有箭头的一侧就是突围方向。',
+    '冲刺中无敌。',
+    '灯火只在受击时损失，拾取灯油补充。灯火 ≥ 70 时技力回复 +30%。',
+    '商人在 2:00、5:00、8:00 出现，只停留 60 秒。',
+    '2:30 起安全区分 4 轮收缩。看到「黑潮将至」就往白色虚线圈里走。',
+    '伪装成补给箱的箱形恐鱼会现形扑来，击败后掉落 10 枚源石锭。',
+    '同一件藏品再次拿到会升级。',
+    '精英一解锁二技能与天赋，精英二解锁三技能。'
+  ];
+  var R = 192, C = 2 * Math.PI * R;
+  function mb(x) { return (x / 1048576).toFixed(1); }
   function upd() {
-    if (!el.fill) return;
-    var f = done ? 1 : Math.min(got / total, 0.999);
-    var pct = (f * 100).toFixed(1) + '%';
-    el.fill.style.width = pct;
-    el.doc.style.left = 'clamp(32px, ' + pct + ', calc(100% - 32px))';
-    el.pct.textContent = done ? '正在启动…' : Math.floor(f * 100) + '%  ·  ' + (got / 1048576).toFixed(1) + ' / ' + (total / 1048576).toFixed(1) + ' MB';
+    if (!el.ring) return;
+    var f, busy = false;
+    if (!done) f = 0.7 * Math.min(got / total, 1);
+    else {
+      if (!bootT0) bootT0 = performance.now();
+      var s = (performance.now() - bootT0) / 1000;
+      f = 0.7 + 0.27 * (1 - Math.exp(-s / 9));
+      busy = true;
+    }
+    el.ring.style.strokeDashoffset = String(C * (1 - f));
+    el.num.innerHTML = Math.floor(f * 100) + '<span>%</span>';
+    var dl = got >= total;
+    el.l1.className = dl ? 'ok' : 'now';
+    el.l1.innerHTML = (dl ? '<b>[ OK ]</b>' : '<b>[ .. ]</b>') + '下载资源　' + mb(Math.min(got, total)) + ' / ' + mb(total) + ' MB';
+    el.l2.className = done ? 'ok' : (dl ? 'now' : '');
+    el.l2.innerHTML = (done ? '<b>[ OK ]</b>' : (dl ? '<b>[ .. ]</b>' : '<b>[ -- ]</b>')) + '解压校验';
+    el.l3.className = busy ? 'now' : '';
+    el.l3.innerHTML = (busy ? '<b>[ .. ]</b>' : '<b>[ -- ]</b>') + '启动引擎' + (busy ? '　' + Math.floor((performance.now() - bootT0) / 1000) + ' s' : '');
   }
 
   function build() {
     var d = document.createElement('div');
     d.id = 'sy-load';
-    d.innerHTML = '<div class="sy-box"><div class="sy-head"><div class="sy-sub">LOADING</div><div class="sy-title">加载中，请耐心等待</div></div>' +
-      '<div class="sy-track"><div class="sy-fill"></div><div class="sy-doc"></div></div><div class="sy-pct"></div></div>' +
-      '<div class="sy-foot">明日方舟同人作品 · 非商业</div>';
+    var blips = '';
+    [[70, -96, 0], [-110, 40, 1.1], [30, 130, 2.0], [-60, -120, 2.6]].forEach(function (b) {
+      blips += '<circle class="sy-blip" cx="' + b[0] + '" cy="' + b[1] + '" r="3" fill="#5ee6e6" style="animation-delay:' + b[2] + 's"/>';
+    });
+    d.innerHTML = '<div class="sy-grid"></div><img class="sy-logo" src="loader_logo.png" alt=""><div class="sy-fan">ARKNIGHTS FAN GAME · 非商业</div>' +
+      '<div class="sy-sonar"><svg viewBox="-210 -210 420 420"><defs><linearGradient id="sy-sw" x1="0" y1="0" x2="1" y2="0">' +
+      '<stop offset="0" stop-color="#5ee6e6" stop-opacity="0"/><stop offset="1" stop-color="#5ee6e6" stop-opacity=".35"/></linearGradient></defs>' +
+      '<circle r="180" fill="none" stroke="#2a3c46"/><circle r="120" fill="none" stroke="#1f2e36"/><circle r="60" fill="none" stroke="#1f2e36"/>' +
+      '<line x1="-190" y1="0" x2="190" y2="0" stroke="#1a272e"/><line x1="0" y1="-190" x2="0" y2="190" stroke="#1a272e"/>' +
+      '<path class="sy-sweep" d="M0 0 L180 0 A180 180 0 0 0 127 -127 Z" fill="url(#sy-sw)"/>' + blips +
+      '<circle r="' + R + '" fill="none" stroke="#1d2a32" stroke-width="6"/>' +
+      '<circle class="sy-ring" r="' + R + '" fill="none" stroke="#5ee6e6" stroke-width="6" stroke-dasharray="' + C + '" stroke-dashoffset="' + C + '" transform="rotate(-90)"/>' +
+      '<g stroke="#3b4f5a" stroke-width="1.5"><line x1="0" y1="-200" x2="0" y2="-210"/><line x1="200" y1="0" x2="210" y2="0"/><line x1="0" y1="200" x2="0" y2="210"/><line x1="-200" y1="0" x2="-210" y2="0"/></g>' +
+      '</svg><div class="sy-center"><div class="sy-num">0<span>%</span></div><div class="sy-sub sy-en">SONAR · BOOT</div></div></div>' +
+      '<div class="sy-panel sy-log"><div class="hd sy-en">TERMINAL LOG</div><div class="bd"><div></div><div></div><div></div></div></div>' +
+      '<div class="sy-panel sy-tips"><div class="hd sy-en">TIPS</div><div class="bd"></div></div>' +
+      '<div class="sy-foot">明日方舟同人作品 · 非商业 · 与鹰角网络无关</div>';
     document.body.appendChild(d);
-    el = { root: d, fill: d.querySelector('.sy-fill'), doc: d.querySelector('.sy-doc'), pct: d.querySelector('.sy-pct') };
+    var lines = d.querySelectorAll('.sy-log .bd div');
+    el = { root: d, ring: d.querySelector('.sy-ring'), num: d.querySelector('.sy-num'), l1: lines[0], l2: lines[1], l3: lines[2], tip: d.querySelector('.sy-tips .bd') };
+    var ti = Math.floor(Math.random() * TIPS.length);
+    el.tip.textContent = TIPS[ti];
     upd();
+    var tick = 0;
     var t = setInterval(function () {
+      upd();   // 启动阶段没有字节进度：靠这里按时间推进
+      if (++tick % 27 === 0) {
+        ti = (ti + 1) % TIPS.length;
+        el.tip.style.opacity = '0';
+        setTimeout(function () { el.tip.textContent = TIPS[ti]; el.tip.style.opacity = '1'; }, 220);
+      }
       var st = document.getElementById('status'), nt = document.getElementById('status-notice');
       if (!st || (nt && nt.style.display === 'block')) {
         clearInterval(t);

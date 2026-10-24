@@ -6,6 +6,9 @@ config/name="方舟幸存者"
 config/use_custom_user_dir=true
 config/custom_user_dir_name="ArknightsSurvivors"
 run/main_scene="res://main.tscn"
+boot_splash/bg_color=Color(0.027, 0.047, 0.067, 1)
+boot_splash/image="res://art/ui/boot_splash.png"
+boot_splash/use_filter=true
 config/features=PackedStringArray("4.4", "GL Compatibility")
 
 [audio]

@@ -17,7 +17,7 @@
 | 图鉴 | `gallery.gd` | 只有精灵动作帧循环（`form_t`）；换页签、换条目无动效 | `--galleryshot=` |
 | 干员选择 | `title.gd` `_draw_op_pick` | 名册平滑滚动（`op_scroll_f`） | `--opshot`（**归 docs/58**） |
 | Boss 演练菜单 | `screens/boss_trial_menu.gd` | 无 | — |
-| 载入中 | `title.gd` `_draw_loading` | 静态面板 + 进度条（法线图预热，通常 < 1 秒） | `--loadingshot` |
+| 载入中 | `screens/loading_screen.gd`（10-25 起，潮汐航标） | 深海底图 + 水母浮沉 + 涨潮浪线进度 + 提示轮换（见 §3.7） | `--loadingshot` |
 | 开局演出 | `screens/intro.gd` `update_opening`（3.6 秒） | 主控从上方落下、上下黑边、标题字 | `--openshot` |
 | 新手教程 / 操作说明 | `screens/intro.gd` `draw`；`title.gd` `_draw_guide` | 翻页 0.25 秒淡入；示意图里的小动画循环 | `--guideshot` |
 | HUD 横幅 / 小字通知 | `screens/hud_banners.gd` `draw_banner` / `draw_notices` | 透明度随 `banner_t` 淡入淡出；小字 0.6 秒淡入 | — |
@@ -179,6 +179,8 @@
 - 减少动态：普通进度条，提示文字直接替换。
 - 实现：`title.gd` `_draw_loading`，显示进度 `load_f` 追真实进度；提示文本表放 `data.gd`。
 - 工时：1 h。
+- **10-25 落地（用户定对照图方向 A「潮汐航标」第一张）**：`screens/loading_screen.gd`，CanvasLayer 80 盖住标题与选人 / 难度页。标题页深海底图（`art/ui/title_deep/bg.png`）压暗 + 暗角，主水母（`jelly_0` + 叠加辉光 `jglow_0`）随呼吸上下浮沉、伞体轻微收缩，远处两只小水母；中下标志；底部潮线：灰底线 + 青色水线，进度每涨一截起一道浪（0.5 秒 `out_back(1.2)` 冲过头再回落）、浪头带白沫；潮线下「LOADING + 阶段 + 百分比 + 条数」；最下提示（`data.gd LOADING_TIPS`，3.5 秒一换，T2 淡入淡出）。阶段：准备光照贴图（法线预热，光学观感下不做）→ 读取干员与海嗣帧条（对局 `_ready` 要读的整批贴图，`Game.loading_warm_lists`，每帧 24 ms）→ 准备作战音频（网页样本注册）→ 展开战场。读完后压暗 45% 再切场景：对局 `_ready` 仍要同步建局 2–4 秒，这段停在压暗的载入页上而不是黑屏。减少动态效果：水母不动、浪线平直、提示直接替换。
+- 同时把干员脚本放到后台线程编译（`ResourceLoader.load_threaded_request`，`data_operator.gd` 首次加载约 1.4 秒）。10-25 桌面 `--loadprof`（本机有其他测试在跑）：对局 `_ready` 从约 10–12 秒降到 3.5–5.5 秒，其中读贴图从约 9 秒降到 1–2.6 秒。
 
 ### 3.8 开局演出（保留，只调）
 
@@ -406,7 +408,7 @@
 | 14 | 精英化 · 徽记 | 每局数次，但已有演出 | 2 h | |
 | 15 | 设置 · 档案夹 | 偶尔 | 2 h | |
 | 16 | 标题菜单 · 灯标光束 | 每次会话 | 1 h | |
-| 17 | 载入中 · 涨潮 | 通常 < 1 秒 | 1 h | 只有慢机器看得到 |
+| 17 | 载入中 · 涨潮 | 桌面数秒、网页十几秒（10-25 实测） | 已做 | 10-25 用户定方向 A「潮汐航标」 |
 | 18 | 图鉴非干员页 · 启辉 | 偶尔 | 1.5 h | 等 docs/58 C4 落地后一起做 |
 | 19 | 教程 / 操作说明 · 描线 | 新玩家一次 | 3 h | |
 | 20 | Boss 演练 · 靶框 / 制作人员 · 上卷 | 少 | 2 h | |

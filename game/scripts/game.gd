@@ -502,6 +502,20 @@ var headless_batch := false      # --balance 且无界面：跳过所有重绘
 var demo_elite := 0            # 演示时把干员直接推到这个精英化阶段（精英化演出用）
 var demo_stage := -1           # 三联对照（--compareshot）：0 = 精一前（N1 N2）/ 1 = 精二前（到 N5）/ 2 = 全部；-1 不用
 var demo_basic := false        # 只普攻、不放技能（三联对照看普攻形态的成长）
+var entry_voice_hold := true   # 开局编队的登场语音先不播：等第一帧局内画面画出来（开场演出则等编队着地）再放（release_entry_voices，用户 10-25）
+var first_frame_ms := -1       # 第一帧局内画面画完的时刻（--loadprof 打语音相对它的时差）
+
+
+## 放开开局编队的登场语音（每人一次，entry_started 自己去重）：开场演出里编队着地 / 跳过开场时，其余模式在第一帧画完后
+func release_entry_voices() -> void:
+	if not entry_voice_hold:
+		return
+	entry_voice_hold = false
+	A.mark("entry_voice")
+	if Cfg.dev_args().has("--loadprof"):
+		print("LOADPROF_VOICE entry_voice=+%d after first_frame_drawn" % (Time.get_ticks_msec() - first_frame_ms) if first_frame_ms >= 0 else "LOADPROF_VOICE entry_voice before first_frame_drawn")
+	for o in squad.ops:
+		o.entry_started()
 
 
 ## 图鉴「演示」分帧预载的补充名单（10-21）：_ready 里 preload_tex_names 之外的小图——技能图标、特效帧条、
@@ -595,8 +609,42 @@ func _load_enemy_tex(n: String) -> void:
 				tex[mn + "_white"] = A.white_of(tex[mn])
 
 
+## 本局是否给贴图生成法线图：无界面运行不画，光学观感开着时也不生成（docs/130 A4，用户 10-24 定：朝灯亮线已取代法线的立体感）。
+## render/optical_normals 1 = 光学下也开（对照用）。标题页预热 / 载入页读图按同一判断（title_base._prewarm），缓存的贴图与局内一致
+static func wants_normal_maps() -> bool:
+	return Cfg.normal_maps and DisplayServer.get_name() != "headless" and (Bal.v("render/optical_normals", 0.0) > 0.0 or not (Bal.v("render/optical", 1.0) > 0.0 and Cfg.quality != "low"))
+
+
+## 进局载入页分帧预读的贴图（title.gd → A.warm_begin）：[名字, 要白色剪影的名字]。和 _ready 读的同一批（preload_tex_names + 图鉴演示补充名单），
+## 读进 A 的缓存后 _ready 直接命中，进局不再冻住一整段（10-25 实测网页 ~32 秒、桌面 ~9 秒）。网页推迟加载的敌人（Boss 等）照旧不读
+static func loading_warm_lists() -> Array:
+	var early: Dictionary = _web_early_enemy_tex() if OS.has_feature("web") else {}
+	var skip := {}
+	var whites: Array = []
+	for k in D.ENEMIES:
+		var tn: String = D.ENEMIES[k].tex
+		if not early.is_empty() and not early.has(tn):
+			skip[tn] = true
+			continue
+		if not whites.has(tn):
+			whites.append(tn)
+			for suffix in ENEMY_SUFFIXES:
+				if suffix != "_death":
+					whites.append(tn + suffix)
+	var names: Array = []
+	for n in preload_tex_names() + demo_warm_names():
+		var base := str(n)
+		for suffix in ENEMY_SUFFIXES:
+			if base.ends_with(suffix):
+				base = base.trim_suffix(suffix)
+				break
+		if not skip.has(base):
+			names.append(n)
+	return [names, whites]
+
+
 ## 网页版开局要预载的敌人贴图名：威胁表 WEB_EARLY_T 秒内各档的池子、elite_after ≤ WEB_EARLY_T 的精英（含拟态箱）、同伴骑士（开局就在场上画）
-func _web_early_enemy_tex() -> Dictionary:
+static func _web_early_enemy_tex() -> Dictionary:
 	var early := {}
 	for i in D.THREAT.size():
 		if float(D.THREAT[i].get("t", 0.0)) <= WEB_EARLY_T:
@@ -717,7 +765,7 @@ func _ready() -> void:
 	next_mire = float(map.mire_cfg().get("first_at", 100))
 	# 无界面运行（批跑 / 冒烟）不画任何东西，法线图纯属浪费：一局启动要多花十几秒
 	# 光学观感开着时也不生成（docs/130 A4，用户 10-24 定）：朝灯亮线已取代法线的立体感，法线在半分辨率世界层里细节大多丢失
-	A.normal_maps = Cfg.normal_maps and DisplayServer.get_name() != "headless" and (Bal.v("render/optical_normals", 0.0) > 0.0 or not (Bal.v("render/optical", 1.0) > 0.0 and Cfg.quality != "low"))   # render/optical_normals 1 = 光学下也开（对照用）
+	A.normal_maps = wants_normal_maps()
 	rfx = RelicFx.new(self)
 	endg = Endings.new(self)
 	knight = Knight.new(self)
@@ -942,6 +990,11 @@ func _ready() -> void:
 	elif mode == Mode.PLAY or Cfg.dev_args().has("--openshot"):
 		intro_screen.start_opening.call_deferred()
 	A.mark("ready_end")
+	RenderingServer.frame_post_draw.connect(func():
+		first_frame_ms = Time.get_ticks_msec()
+		if state != S.OPENING:
+			release_entry_voices()   # 没有开场演出（测试 / Boss 演练 / 指南截图）：第一帧画完就放；有开场演出的由 intro.gd 在编队着地时放
+		, CONNECT_ONE_SHOT)
 	if Cfg.dev_args().has("--loadprof"):
 		RenderingServer.frame_pre_draw.connect(func(): A.mark("first_frame_pre_draw"), CONNECT_ONE_SHOT)
 		RenderingServer.frame_post_draw.connect(func():

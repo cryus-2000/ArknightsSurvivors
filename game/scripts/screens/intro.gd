@@ -52,6 +52,7 @@ func update_opening(dt: float) -> void:
 		Sfx.play("boom", -14.0, 1.4, 0.0)
 		for o in g.squad.ops:
 			o.play_entry()   # 编队着地接入场条（10-22）
+		g.release_entry_voices()   # 登场语音在编队着地、黑场已褪时才播（以前在建局时就响，画面还没出来，用户 10-25）
 	if opening_t >= 1.7:
 		for o in g.squad.ops:
 			if o.vis_anim == "entry":
@@ -79,6 +80,7 @@ func end_opening() -> void:
 	g.p_lean = 0.0
 	g.lamp_light.energy = 1.15
 	g.state = Game.S.PLAY
+	g.release_entry_voices()   # 跳过开场：没等到着地也放
 	# 指南只在第一次自动打开（协调人 10-01 定）；看过以后直接进局，暂停菜单「指南」可随时重看
 	if not Cfg.seen_intro:
 		open(Game.S.PLAY)
