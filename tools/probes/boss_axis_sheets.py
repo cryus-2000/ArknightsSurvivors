@@ -236,14 +236,17 @@ PARANOIA = ("“偏执泡影” · 打落（方案 B）", [
         L(lambda im, d: put(im, "e_paranoia", 0.5, CX + 150, CY + 40, alpha=0.75)),
         L(lambda im, d: d.text((CX - 34, CY + 132), "影子", font=B.font(14), fill=(255, 255, 255))),
         L(lambda im, d: d.text((20, PH - 30), "冲错 = 幻影炸开 + 丢一次冲刺", font=B.font(15), fill=(255, 255, 255))),
-    ], "lines": ["分出 2 个幻影一起漂；地上只有真身投下影子（同类游戏 HoloCure 的影子语言）。认错的代价是丢一次冲刺。"]},
-    {"name": "三幕 · 失声：落地，光环外扩", "col": (0.55, 0.25, 0.8), "ground": "cracks", "draw": [
-        L(lambda im, d: [d.ellipse((CX - r, CY + 40 - r * 0.5, CX + r, CY + 40 + r * 0.5), outline=B.rgb((0.55, 0.25, 0.8), 1.2 - i * 0.25, 220), width=3) for i, r in enumerate((120, 175, 230))]),
+    ], "lines": ["分出 2 个幻影一起漂；地上只有真身投下影子（同类游戏 HoloCure 的影子语言）。自动攻击打最近的那只，所以要站得离真身最近；幻影挨 3 下就散。冲刺认错 = 丢一次冲刺。"]},
+    {"name": "三幕 · 失声：冲刺打散光环", "col": (0.55, 0.25, 0.8), "ground": "cracks", "draw": [
+        L(lambda im, d: [d.ellipse((CX - r, CY + 40 - r * 0.5, CX + r, CY + 40 + r * 0.5), fill=B.rgb((0.55, 0.25, 0.8), 0.35, 60 + i * 20)) for i, r in enumerate((240, 180, 120))]),
+        L(lambda im, d: d.ellipse((CX - 240, CY + 40 - 120, CX + 240, CY + 40 + 120), outline=B.rgb((0.55, 0.25, 0.8), 1.2), width=3)),
         L(lambda im, d: put(im, "e_paranoia_phase2", 0.5, CX, CY + 60)),
-        L(lambda im, d: d.arc((CX - 230, CY + 40 - 115, CX + 230, CY + 40 + 115), 60, 90, fill=B.BG + (255,), width=6)),
-        L(lambda im, d: d.text((CX - 20, CY + 162), "出口", font=B.font(14), fill=(255, 255, 255))),
-    ], "P": [(CX + 200, CY + 120), (CX + 150, CY + 160), (CX + 240, CY + 80)],
-     "lines": ["原作第二形态落地，不再悬浮。规则换成空间：光环每 10 秒扩大一圈（圈内攻速 −15%），边上留一道出口；要在光环边上打、被逼着往外绕。", "最终战清场单挑：登场时杂兵消散，之后不刷。"]},
+        L(lambda im, d: dash_mark(d, CX, CY + 60, 46)),
+        L(lambda im, d: d.line((CX - 230, CY + 175, CX + 60, CY + 30), fill=(255, 255, 255), width=3)),
+        L(lambda im, d: arrow(d, CX + 60, CY + 30, -0.47, (1, 1, 1))),
+        L(lambda im, d: d.text((CX - 20, PH - 30), "光环内攻速 −35%；穿身 = 光环散掉 5 秒", font=B.font(15), fill=(255, 255, 255))),
+    ], "P": [(CX - 230, CY + 175), (CX - 270, CY + 150), (CX - 190, CY + 195)],
+     "lines": ["原作第二形态落地，不再悬浮。冲刺的用处换成打散光环：光环加重（攻速 −35%，近战必须进去、远程站外够不着），冲刺穿身 = 光环散掉 5 秒，这 5 秒正常输出。", "最终战清场单挑：登场时杂兵消散，之后不刷。"]},
 ])
 
 TEAL = (0.2, 1.0, 0.85)
