@@ -5,7 +5,8 @@ extends Control
 ## 同时显示正在读哪一类（干员积木 / 海嗣 / 战场渲染 …）和文件名。全部读完再读 main.tscn（此时都在缓存里），淡到黑后切到标题页。
 ## 以前这一段（桌面调试版 8–12 秒、网页十几秒）全在 Godot 静态启动图下面，没有进度。
 ## 引擎初始化与自动加载（Sfx / Cfg …）在本页之前，仍由静态启动图（art/ui/boot_splash.png，同一版式）盖着。
-## 网页：前面还有 HTML 加载页（tools/web/loader.js，下载占 0–60%、引擎启动 60–80%），这里从 80% 接着走，不倒退。
+## 网页：前面还有 HTML 加载页（tools/web/loader.js，下载占 0–60%、引擎启动 60–80%），这里接着它的百分比走、不倒退；
+## 本页第一帧画完就通知它淡出（__syBootUp），不再等引擎自带的 #status 撤掉（那要到标题页出来以后）。
 ## 测试（带命令行参数、无界面）直接切标题页，不走本页；--bootshot / --loadprof 才走（--bootshot 在读到一半时截图退出）。
 
 const Tips = preload("res://scripts/screens/loading_tips.gd")
@@ -57,7 +58,11 @@ func _ready() -> void:
 	g.set_color(1, Color8(4, 7, 10))
 	g.add_point(0.7, Color8(7, 12, 17))
 	bg.gradient = g
-	base = 0.8 if OS.has_feature("web") else 0.0
+	if OS.has_feature("web"):
+		# 接着 HTML 加载页的进度走（loader.js 的 __syPct，缺省 80%），第一帧画完后让它淡出，露出这一页
+		var v = JavaScriptBridge.eval("window.__syPct || 0.8", true)
+		base = clampf(float(v) if v != null else 0.8, 0.0, 0.95)
+		RenderingServer.frame_post_draw.connect(func(): JavaScriptBridge.eval("window.__syBootUp && window.__syBootUp()", true), CONNECT_ONE_SHOT)
 	var f := FileAccess.open(ORDER, FileAccess.READ)
 	if f != null:
 		var d = JSON.parse_string(f.get_as_text())

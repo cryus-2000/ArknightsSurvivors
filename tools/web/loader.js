@@ -41,6 +41,7 @@
       f = 0.6 + 0.2 * (1 - Math.exp(-s / 6));   // 引擎启动：拿不到真实进度，按已等秒数向 80% 渐近；之后游戏内启动页（boot_screen.gd）从 80% 接着走
       busy = true;
     }
+    window.__syPct = f;   // 游戏内启动页从这里接着走（boot_screen.gd）
     el.ring.style.strokeDashoffset = String(C * (1 - f));
     el.num.innerHTML = Math.floor(f * 100) + '<span>%</span>';
     var dl = got >= total;
@@ -79,6 +80,13 @@
     el.tip.textContent = TIPS[ti];
     upd();
     var tick = 0;
+    var out = function () {
+      clearInterval(t);
+      d.classList.add('sy-out');
+      setTimeout(function () { d.remove(); }, 400);
+    };
+    // 游戏内启动页（同一版式）画出第一帧后调用：交给它显示真实的编译进度。以前要等引擎自带 #status 撤掉（标题页都出来了）才撤
+    window.__syBootUp = function () { if (d.parentNode) out(); };
     var t = setInterval(function () {
       upd();   // 启动阶段没有字节进度：靠这里按时间推进
       if (++tick % 27 === 0) {
@@ -87,11 +95,7 @@
         setTimeout(function () { el.tip.textContent = TIPS[ti]; el.tip.style.opacity = '1'; }, 220);
       }
       var st = document.getElementById('status'), nt = document.getElementById('status-notice');
-      if (!st || (nt && nt.style.display === 'block')) {
-        clearInterval(t);
-        d.classList.add('sy-out');
-        setTimeout(function () { d.remove(); }, 400);
-      }
+      if (!st || (nt && nt.style.display === 'block')) out();
     }, 150);
   }
   if (document.body) build(); else document.addEventListener('DOMContentLoaded', build);
