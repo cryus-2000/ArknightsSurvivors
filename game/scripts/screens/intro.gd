@@ -179,6 +179,16 @@ func draw(vs: Vector2) -> void:
 	UI.en(g.hud, g.font, r.position + Vector2(40, 46), "GUIDE  %d / %d  ·  %s" % [g.intro_page + 1, pages().size(), pg.en], 12, UI.CYAN, 3.0)
 	UI.text(g.hud, g.font, r.position + Vector2(40, 90), pg.title, 30, UI.TEXT)
 	g.hud.draw_line(r.position + Vector2(40, 108), r.position + Vector2(r.size.x - 40, 108), UI.CYAN_DIM, 1.0)
+	# 装饰：大号页码水印（右上，极淡）+ 插图区取景框四角（终末地的取景框角标）
+	if not Cfg.touch_device():   # 手机上右上角是「跳过」，不叠水印
+		UI.text(g.hud, g.font, Vector2(r.end.x - 230, r.position.y + 104), "%02d" % (g.intro_page + 1), 88, Color(0.6, 0.9, 0.95, 0.07 * ea), HORIZONTAL_ALIGNMENT_RIGHT, 190)
+	var fr0 := Rect2(r.position + Vector2(36, 132), Vector2(292, r.size.y - 132.0 - 76.0))
+	for sx in [0.0, 1.0]:
+		for sy in [0.0, 1.0]:
+			var q := Vector2(fr0.position.x + sx * fr0.size.x, fr0.position.y + sy * fr0.size.y)
+			var dx := -16.0 if sx > 0.5 else 16.0
+			var dy := -16.0 if sy > 0.5 else 16.0
+			g.hud.draw_polyline(PackedVector2Array([q + Vector2(0, dy), q, q + Vector2(dx, 0)]), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.4 * ea), 1.5)
 	# 插图区
 	var ic := r.position + Vector2(170, 270)
 	draw_icon(pg.icon, ic)
@@ -222,7 +232,13 @@ func draw(vs: Vector2) -> void:
 		if ri > 0:
 			g.hud.draw_line(Vector2(tx, y - row_gap / 2.0 - 1.0), Vector2(tx + tw, y - row_gap / 2.0 - 1.0), Color(0.45, 0.8, 0.85, 0.12 * ea), 1.0)
 		if row.label != "":
-			g.hud.draw_string(g.font, Vector2(tx, y + asc), row.label, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(lbl_sz), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ea))
+			# 标签芯片：淡青底 + 左端一道青条，字居中（终末地的标签牌）
+			var la: float = g.font.get_ascent(UI.fs(lbl_sz))
+			var lh: float = g.font.get_height(UI.fs(lbl_sz))
+			var chip := Rect2(tx, y + (lhh - lh - 8.0) / 2.0, lbl_w - 14.0, lh + 8.0)
+			g.hud.draw_rect(chip, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.1 * ea))
+			g.hud.draw_rect(Rect2(chip.position, Vector2(2.0, chip.size.y)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ea))
+			g.hud.draw_string(g.font, Vector2(chip.position.x, chip.position.y + 4.0 + la), row.label, HORIZONTAL_ALIGNMENT_CENTER, chip.size.x, UI.fs(lbl_sz), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ea))
 		var y0 := y
 		for ln2 in row.lines:
 			if y + lhh > r.end.y - 58.0:
@@ -425,20 +441,8 @@ func draw_icon(kind: String, c: Vector2) -> void:
 				UI.diamond(g.hud, c + Vector2(-66 + k * 44, 92), 9.0, Color(ec.r, ec.g, ec.b, 0.35), ec)
 				UI.text(g.hud, g.font, c + Vector2(-86 + k * 44, 122), ends[k][0], 13, ec, HORIZONTAL_ALIGNMENT_CENTER, 40)
 		"command":
-			# 指挥圆盘示意：六个扇区取 command_wheel.gd 的选项色 / 角度（上半队形、下半索敌偏好），中心一颗菱形，整盘缓慢呼吸
-			var CW = preload("res://scripts/screens/command_wheel.gd")
-			var wc := c + Vector2(0, 6)
-			var breathe := 1.0 + 0.03 * sin(g.intro_t * 2.0)
-			g.hud.draw_arc(wc, 52.0 * breathe, 0.0, TAU, 48, Color(0.15, 0.3, 0.34, 0.8), 1.5)
-			for k in mini(CW.ITEMS.size(), CW.ANG.size()):
-				var wa: float = deg_to_rad(float(CW.ANG[k]))
-				var wcol: Color = CW.ITEMS[k].col
-				g.hud.draw_arc(wc, 78.0 * breathe, wa - 0.46, wa + 0.46, 14, Color(wcol.r, wcol.g, wcol.b, 0.85), 16.0)
-				var wnm: String = CW.ITEMS[k].name
-				wnm = wnm.get_slice(" ", 0) if wnm.contains(" ") else wnm.left(2)
-				UI.text(g.hud, g.font, wc + Vector2.from_angle(wa) * 78.0 * breathe + Vector2(-24, 5), wnm, 12, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, 48)
-			UI.diamond(g.hud, wc, 10.0, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35), UI.CYAN)
-			UI.text(g.hud, g.font, c + Vector2(-70, 118), "指挥圆盘 · F", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 140)
+			# 指挥圆盘：直接缩小画当前的圆盘（终末地风格，command_wheel.gd 同一份画法），每 1.4 秒轮流悬停一项
+			g.wheel.draw_preview(c + Vector2(0, 4), 0.56, g.intro_t)
 		"keys":
 			if Pad.touch_ui():
 				_draw_touch_keys(c)
