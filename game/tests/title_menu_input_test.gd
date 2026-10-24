@@ -1,7 +1,7 @@
 extends Node
 ## 标题页菜单（深海水母版，docs/67 §13）与难度页输入回归：
 ## - 四种菜单组（内部 / 对外 × 桌面 / 网页）：每项一个命中区、互不重叠、都在屏幕里（触屏至少 44 高）、方向键能走到每一项；
-## - 分组导航（左侧 寻访 / 图鉴 / 认知塑造 / 试炼 → 集结出发 → 底部 设置 / 操作说明 / 退出；紧凑版式集结出发在右下）；
+## - 分组导航（左侧 寻访 / 认知塑造 / 图鉴 / 蚀刻章 / 试炼 → 集结出发 → 底部 设置 / 操作说明 / 退出；紧凑版式集结出发在右下）；
 ## - 键盘 ↑↓←→ / WASD、Tab / Shift+Tab、手柄十字键（经 Pad 翻译）、Esc 跳到退出、鼠标悬停 / 点击、选中底条展开；
 ## - 难度页：↑↓ 换档（不越界）、点档位卡换档、未解锁档不能出发、Esc 返回；桌面与触屏版式都查一遍。
 var failures := 0
@@ -98,7 +98,7 @@ func menu_set(tag: String, boss: bool, ex: bool) -> void:
 	var ids: Array = title._menu_ids()
 	var lay: Dictionary = title.menu_lay
 	check(lay.rects.size() == ids.size(), tag + ": one hit area per visible item (%d / %d)" % [lay.rects.size(), ids.size()])
-	check(lay.list.ids.size() == (4 if boss else 3), tag + ": %d side entries" % (4 if boss else 3))
+	check(lay.list.ids.size() == (5 if boss else 4), tag + ": %d side entries" % (5 if boss else 4))
 	check(lay.foot.ids.size() == (3 if ex else 2), tag + ": %d footer entries" % (3 if ex else 2))
 	for i in ids:
 		for j in ids:
@@ -145,8 +145,8 @@ func one_layout(tag: String) -> void:
 	var U := Vector2i(0, -1)
 	var R := Vector2i(1, 0)
 	var L := Vector2i(-1, 0)
-	check(walk(7, [D]) == 1 and walk(1, [D]) == 6 and walk(6, [D]) == 2, tag + ": side entries go down in order")
-	check(walk(2, [U, U, U]) == 7 and walk(7, [U]) == 7, tag + ": side entries go up, no wrap")
+	check(walk(7, [D]) == 6 and walk(6, [D]) == 1 and walk(1, [D]) == 8 and walk(8, [D]) == 2, tag + ": side entries go down in order")
+	check(walk(2, [U, U, U, U]) == 7 and walk(7, [U]) == 7, tag + ": side entries go up, no wrap")
 	check(walk(0, [U]) == 2, tag + ": deploy up -> trial")
 	check(walk(4, [R]) == 3 and walk(3, [R]) == 5 and walk(5, [L, L]) == 4 and walk(4, [L]) == 4, tag + ": footer left / right")
 	if cp:
@@ -159,7 +159,7 @@ func one_layout(tag: String) -> void:
 	await key(KEY_UP)
 	check(title.sel == 2, tag + ": key up deploy -> trial (got %d)" % title.sel)
 	await key(KEY_W)
-	check(title.sel == 6, tag + ": key W trial -> cognition")
+	check(title.sel == 8, tag + ": key W trial -> medals")
 	await key(KEY_S)
 	await key(KEY_DOWN)
 	check(title.sel == (4 if cp else 0), tag + ": key down past trial")
@@ -180,12 +180,12 @@ func one_layout(tag: String) -> void:
 	await pad(JOY_BUTTON_DPAD_UP)
 	check(title.sel == 2, tag + ": dpad up deploy -> trial")
 	await pad(JOY_BUTTON_DPAD_UP)
-	check(title.sel == 6, tag + ": dpad up trial -> cognition")
+	check(title.sel == 8, tag + ": dpad up trial -> medals")
 	# 选中底条：一会儿后新选中项展开、其余收起
 	var t0 := Time.get_ticks_msec()
-	while title.menu_water[6] < 0.99 and Time.get_ticks_msec() - t0 < 2000:
+	while title.menu_water[8] < 0.99 and Time.get_ticks_msec() - t0 < 2000:
 		await get_tree().process_frame
-	check(title.menu_water[6] >= 0.99, tag + ": selected strip opens")
+	check(title.menu_water[8] >= 0.99, tag + ": selected strip opens")
 	t0 = Time.get_ticks_msec()
 	while title.menu_water[2] > 0.0 and Time.get_ticks_msec() - t0 < 2000:
 		await get_tree().process_frame

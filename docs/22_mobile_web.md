@@ -37,7 +37,7 @@
 
 ## Toy 接入（10-22，分支 claude/toy-sdk；SDK 能力见 .claude/skills/bilibili-toy-sdk，官方 FAQ 见 docs/99 §0）
 
-**同一份网页壳**：itch 包与 Toy 包用同一个 `index.html` 模板（Godot Web 预设的 `head_include` + `export_web.py` 内联的 gl_state / fps_meter / loader / container / cloud），加载进度页（博士沿进度条跑、真实字节进度、「正在启动…」）与说明页脚两边一样。差异只有 `python tools/export_web.py --toy` 做的两件事：
+**同一份网页壳**：itch 包与 Toy 包用同一个 `index.html` 模板（Godot Web 预设的 `head_include` + `export_web.py` 内联的 gl_state / fps_meter / loader / container / cloud），加载进度页（「声呐测绘」：声呐进度环 + 终端日志 + 提示）与说明页脚两边一样。差异只有 `python tools/export_web.py --toy` 做的两件事：
 
 1. `container.js` 之前写 `window.__SY_TOY = 1` → 一律加载 Toy JS SDK（`//s1.hdslb.com/bfs/seed/toy/app/sdk/toy-sdk.js`）；itch / 本地包仍只在域名含 bilibili / hdslb 或 UA 含 Bili 时加载。
 2. 分片文件名不带 `.gz`：`index.00.pck` / `index.00.wasm`（内容仍是 gzip，`loader.js` 按魔数识别，不改加载器）。原因：Toy 只发布白名单后缀的文件（docs/99 一-16），`.pck` / `.wasm` 是 Godot 网页包必有的后缀，`.gz` 是否在白名单里没有官方清单可查。
@@ -144,7 +144,9 @@ python tools/export_web.py        # 导出 HEAD 到 build/web/（改了 Web 预�
 
 - **分片**（2026-09-26，绕开 25 MB 单文件上限）：`index.pck` / `index.wasm` 按原始字节每 10 MiB 切一片（`--part-mib`），每片 `gzip -9` 成 `index.pck.00.gz` …，删掉原文件；脚本最后逐个检查，有文件超 25 MB 就报错。
 - **加载器** `tools/web/loader.js` + `loader.css`：导出时内联到 Web 预设 `html/head_include` 里的 `<!--SHUIYUE_LOADER-->` 处，分片清单（每片字节数、原文件大小）写进脚本。它拦截引擎对 `index.pck` / `index.wasm` 的 fetch，并行下载全部分片、逐片 DecompressionStream 解压、拼回并核对大小后交给引擎（2026-10-11 起改为边下边解压、直接写进整块缓冲，见 docs/33 网页内存一节，9ee13e45）；每片失败自动重试 2 次。游戏代码不动。取代了原来 head_include 里只管 `.wasm.gz` 的拦截脚本。
-- **加载画面**：「加载中，请耐心等待」+ 进度条，博士（`doctor_run@2x.png` 复制为 `loader_doctor.png`，6 帧 CSS 动画）跟着进度跑。进度 = 已下载字节 / 分片总字节，真实平滑；下载完显示「正在启动…」，引擎移除自带 `#status` 后淡出；引擎报错（`#status-notice`）时也撤掉让报错露出来。视觉按 docs/37，由「界面与美术」定。
+- **加载画面**（10-25 用户定「声呐测绘」，对照图方向 C 第一张）：网格深底，左上标志（`game/art/ui/title_deep/logo_mark.png` 复制为 `loader_logo.png`，1 KB），中间声呐圈（三道同心圆 + 十字 + 扫描扇面 + 回波点，扇面是 CSS transform 动画，引擎占住主线程时也在转），外圈是进度环、圈心百分比；左下「TERMINAL LOG」逐行 `[ OK ]`：下载资源（x / y MB）→ 解压校验 → 启动引擎（显示已等秒数）；右下「TIPS」4 秒换一句（与 `screens/loading_tips.gd` 同一批）。进度环：下载字节占 0–60%（真实）；下载解压完以后是引擎启动，拿不到真实进度，按已等秒数向 80% 渐近（τ = 6 秒）；引擎起来后由游戏内启动页接着走 80–100%（见下）。引擎移除自带 `#status` 后淡出；引擎报错（`#status-notice`）时也撤掉让报错露出来。矮屏（高 ≤ 520，手机横屏）面板与标志缩小；系统「减少动态效果」时扇面不转。
+- **游戏内启动页**（10-25 用户「启动中要加入百分比，然后说明在渲染什么」）：主场景改为 `boot.tscn`（`screens/boot_screen.gd`，只依赖字体、标志、提示表），同一「声呐测绘」版式。启动最慢的一段是读入标题页——`title.gd` 经 preload / extends 一路带出 `game.gd` 与几乎全部脚本（10-25 桌面调试版实测约 12 秒，本机负载高），以前全压在 Godot 静态启动图下。现在启动页按 `game/data/boot_order.json`（`tools/gen_boot_order.py` 生成，叶子在前；GDScript 的 `ResourceLoader.get_dependencies` 不列 preload、导出包里没有源码，所以离线生成）每帧 30 ms 逐个 `load()`，每个只编译它自己，百分比是真实的；圈下写「读取 · 干员积木 / 海嗣 / 战场渲染 …」和当前文件名、条数，左下日志「编译脚本 n / m → 打开标题页」。读完再读 `main.tscn`（都在缓存里）、淡到黑、切标题页。桌面 0–100%；网页接着 HTML 加载页的百分比走（`window.__syPct`），本页第一帧画完就调 `window.__syBootUp()` 让 HTML 加载页淡出（以前要等引擎自带 `#status` 撤掉，那时标题页都出来了，游戏内这一页根本看不到）。新增 / 删改 preload 后跑一次 `python tools/gen_boot_order.py`（`--check` 只比对）；表过期只会让进度粗一点，漏掉的在最后读 `main.tscn` 时一并编译。测试（带命令行参数或无界面）直接进标题页；`--bootshot` 读到一半截 `shot_boot.png` 退出。
+- **桌面启动图**：引擎初始化与自动加载（Sfx / Cfg / Pad / Cloud）在启动页之前，拿不到进度，仍由静态启动图盖着：同一版式的静态帧 `game/art/ui/boot_splash.png`（20 KB，256 色，圈心「启动中」），`project.godot` 的 `application/boot_splash/*`，底色 `#070c11`。10-25 前是 Godot 默认启动图。
 - 本地试玩要走 HTTP（不能双击 index.html）：`python -m http.server -d build/web 8000`。
 
 云端已跑通：Chromium 手机模拟（844×390，触屏）从标题 → 选难度 → 指南 → 对局 → 摇杆移动全流程正常。产物在 `build/web/`，本地试玩说明见 `build/web/本地试玩.md`。

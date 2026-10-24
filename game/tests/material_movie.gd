@@ -22,6 +22,9 @@ func _process(_dt: float) -> void:
 	if Cfg.dev_args().has("--eyjamovie"):
 		_eyja_movie()
 		return
+	if Cfg.dev_args().has("--lasermovie"):
+		_laser_movie()
+		return
 	var ob := false   # --obnames=a,b,…：干员数据帧条（ob_fx strip，帧条后半段换颗粒的对照，docs/138 §11）
 	for a in Cfg.dev_args():
 		if a.begins_with("--materialnames="):
@@ -47,10 +50,16 @@ func _process(_dt: float) -> void:
 				g.ch.fx({"kind": "strip", "name": nm, "pos": g.ppos + Vector2(-110 if k == 0 else 110, -40), "life": float(spec[0]) / float(spec[1]), "sc": g.PX, "col": Color.WHITE,
 					"ang": 0.0, "anc": Vector2(-1, -1), "no_fade": false, "fr": int(spec[0]), "fps": float(spec[1]), "loop": false, "ph": 0, "floor": false, "add": false, "mat_skip": k == 0})
 		else:
+			var msc: float = g.PX
+			for a in Cfg.dev_args():
+				if a.begins_with("--materialscale="):
+					msc = float(a.substr(16))
 			pool.off = true
-			g.vfx.fx_sprite(names[group], g.ppos + Vector2(-90, -50), g.PX)
+			g.vfx.fx_sprite(names[group], g.ppos + Vector2(-90, -50), msc)
+			if not g.fx.is_empty():
+				g.fx[-1]["gb_skip"] = true   # 左边原版：形状颗粒化也不接
 			pool.off = false
-			g.vfx.fx_sprite(names[group], g.ppos + Vector2(90, -50), g.PX)
+			g.vfx.fx_sprite(names[group], g.ppos + Vector2(90, -50), msc)
 		pool.off = previous
 		print("MATERIAL_MOVIE %s grains=%d" % [names[group], pool.pos.size()])
 	if frame < 24:
@@ -156,3 +165,26 @@ func _lappland_movie() -> void:
 	await RenderingServer.frame_post_draw
 	assert(g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/lappland_%02d.png" % tick) == OK)
 	saving = false
+
+
+## --lasermovie（docs/138 §12 激光两个方向对照）：每 32 帧同时放三种光束（Boss 粗光束 / 治疗连线 / 狙击弹道），录 24 帧；
+## 配 --bal=fx/laser_style=0/1/2 各录一遍拼三列
+func _laser_movie() -> void:
+	var group: int = tick / 32
+	var frame: int = tick % 32
+	if group >= 2:
+		print("LASER_MOVIE_COMPLETE")
+		get_tree().quit()
+		return
+	if frame == 0:
+		g.fx.clear()
+		g.optical.grains.step(2.0)
+		var o: Vector2 = g.ppos
+		g.fx.append({"kind": "bbeam", "a": o + Vector2(-230, -120), "b": o + Vector2(230, -150), "wid": 22.0, "col": Color(1.0, 0.35, 0.75), "life": 0.5, "max": 0.5, "enemy": true})
+		g.fx.append({"kind": "beam", "a": o + Vector2(-200, -40), "b": o + Vector2(-20, -24), "w": 3.0, "col": Color(0.55, 1.0, 0.5), "life": 0.3, "max": 0.3})
+		g.fx.append({"kind": "tracer", "a": o + Vector2(40, 60), "b": o + Vector2(240, -10), "wid": 10.0, "col": Color(1.0, 0.6, 0.3), "life": 0.35, "max": 0.35, "enemy": true})
+	if frame < 24:
+		saving = true
+		await RenderingServer.frame_post_draw
+		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/laser_%d_%02d.png" % [group, frame])
+		saving = false

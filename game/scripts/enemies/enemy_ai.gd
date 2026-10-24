@@ -31,6 +31,8 @@ func pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) ->
 		return _reap(e, d, dir, dist, dt)   # 受伤形态切换先于额外招式，避免同帧被直刺抢走
 	if d.get("pattern", "") == "thrust" and not e.enraged and e.hp <= e.maxhp * float(d.get("enrage_at", 0.5)):
 		return _thrust(e, d, dir, dist, dt)
+	if d.has("scream_r") and _scream(e, d, dist):
+		return Vector2.INF   # 箱形恐鱼尖叫期间照常移动，不啃咬、不出额外招式
 	if _secondary(e, d, dir, dist):
 		return Vector2.ZERO
 	match d.get("pattern", ""):
@@ -92,7 +94,7 @@ func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool
 			data.merge({"act": "bite", "follow": true, "half": 0.72, "r": reach}, true)
 		"pulse":
 			shape = "circle"
-			data.merge({"act": "burst", "follow": true, "r": minf(reach, 110.0)}, true)
+			data.merge({"act": "burst", "follow": true, "r": reach}, true)   # 按 json 范围（囊壳震爆 135、酸蚀脉冲 100）；原 110 截断去掉（docs/145 §2.3）
 		"pierce":
 			shape = "line"
 			dur = 0.85
@@ -115,15 +117,49 @@ func _stag(e: Dictionary) -> bool:
 	return g.beacon_sys.stagger != null and g.beacon_sys.melee_stagger(e)
 
 
+## 箱形恐鱼现形尖叫（docs/145 §4 A，用户 10-25：尖叫期间照常移动）：现形或第一次走到 scream_wake_r 内时开始，
+## 张口 scream_delay 秒后尖叫 scream_t 秒——队长在 scream_r 内就累积神经损伤（同巢涌者光环，走 g.nerve_aura_t），光环随它移动；
+## 画面 world._scream_aura（地面层常亮淡底 + 不转的虚线边界、危险色、不闪）。返回 true = 尖叫中（含张口），这一帧不啃咬、不出额外招式。
+## 原作「宝箱恐鱼」：惊醒后尖叫，周围持续神经损伤
+func _scream(e: Dictionary, d: Dictionary, dist: float) -> bool:
+	if not e.has("scream_t0"):
+		if dist >= float(d.get("scream_wake_r", 260.0)):
+			return false
+		start_scream(e, d)
+	if g.t >= float(e.scream_t1):
+		return false
+	if g.t >= float(e.scream_t0) and dist < float(d.get("scream_r", 150.0)) and g.invuln <= 0.0:
+		g.telemetry.aura_type = str(e.type)
+		g.nerve_aura_t = 0.6
+	return true
+
+
+## 尖叫起点（现形时由 spawner.reveal_mimic 调，刷出来的在第一次靠近时由 _scream 调）
+func start_scream(e: Dictionary, d: Dictionary) -> void:
+	e["scream_t0"] = g.t + float(d.get("scream_delay", 0.4))
+	e["scream_t1"] = float(e.scream_t0) + float(d.get("scream_t", 2.5))
+	Sfx.enemy("screech", e.pos.distance_to(g.ppos))
+	g.vfx.add_text(e.pos + Vector2(0, -e.r - 24.0), "尖叫", Color(0.55, 0.85, 1.0), 14)
+
+
 ## 箱形恐鱼现形后张口蓄势再啃咬，用现有预警/命中机制；不再无动作地接触扣血。
+## 连咬（docs/145 §4 B）：第一口起手后 bite_dur + bite2_delay 秒朝队长补第二口（扇形同第一口、伤害 × bite2_mult），第二口单独出预警
 func _bite(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> Vector2:
 	var reach := float(d.get("bite_range", 76.0))
+	if e.has("bite2_at") and g.t >= float(e.bite2_at):
+		e.erase("bite2_at")
+		if e.stun <= 0.0 and dist < reach + 60.0:
+			g.tele.warn(e, "cone", float(d.get("bite2_delay", 0.35)), {"ang": dir.angle(), "half": 0.9, "r": reach, "track": 0.1, "act": "bite", "dmg": e.dmg * float(d.get("bite2_mult", 0.6)),
+				"atk_fx": str(d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})
+		return Vector2.INF
 	if dist < reach and e.wind <= 0.0 and g.bai.cd_ready(e, "bite", float(d.get("bite_cd", 2.6))):
 		if _stag(e):
 			return Vector2.INF
 		Sfx.enemy("screech", dist)
 		g.tele.warn(e, "cone", 0.6, {"ang": dir.angle(), "half": 0.9, "r": reach, "track": 0.2, "act": "bite", "dmg": e.dmg,
 			"atk_fx": str(d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})   # 出手帧条（docs/96 §3 箱形恐鱼 fx_mimic_bite，缺图只有刀光）
+		if d.has("bite2_mult"):
+			e["bite2_at"] = g.t + 0.6
 	return Vector2.INF
 
 
@@ -288,7 +324,7 @@ func _stomp(e: Dictionary, d: Dictionary, dist: float) -> Vector2:
 		if _stag(e):
 			return Vector2.INF
 		Sfx.enemy("screech", dist)
-		g.tele.warn(e, "circle", 0.9, {"follow": true, "r": float(d.get("stomp_r", 135)), "act": "slam", "col": Color(1.0, 0.8, 0.5), "dmg": e.dmg * 1.2})
+		g.tele.warn(e, "circle", 0.9, {"follow": true, "r": float(d.get("stomp_r", 135)), "act": "slam", "col": Color(1.0, 0.8, 0.5), "dmg": e.dmg * 1.2, "ground": true})   # ground：轮廓画在地面层，不盖住单位（用户 10-24）
 	return Vector2.INF
 
 

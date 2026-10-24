@@ -65,6 +65,12 @@ func _ready() -> void:
 	if Look.p("actor_neutral") > 0.0:
 		# 只去暖：R 缩放不变（软膝照旧按最大通道），G / B 只往上补、不超过把它们补满到 R 的量
 		check(near.g >= near.r - 0.0001 and near.b >= near.g - 0.0001, "去暖应只抬 G / B（%.3f %.3f %.3f）" % [near.r, near.g, near.b])
+	# 干员不吃灯火（render/op_unlit，缺省 1）：op_mod = 原色 × 引擎光照倍率的倒数，灯下灯外抵消后都是 1；关掉才走下面的旧口径
+	check(Look._op_unlit, "render/op_unlit 缺省应为 1")
+	var um: Color = Look.op_mod(g, Vector2(100, 136), Color.WHITE)
+	check(um.r > 0.0 and um.g > 0.0 and um.b > 0.0 and um.a == 1.0, "op_unlit：op_mod 应为正的倒数倍率")
+	check(Look.op_mod(g, Vector2(3000, 3000), Color.WHITE).is_equal_approx(Color(1.0 / g.map.ambient.r, 1.0 / g.map.ambient.g, 1.0 / g.map.ambient.b, 1.0)), "op_unlit：灯外应等于 1 / ambient")
+	Look._op_unlit = false   # 以下沿用旧口径的检查
 	# 白色保护：材质挂在 game 节点上；干员 modulate 走负号标记，灯外 / 关掉时原样
 	if Look.p("white_lift") > 0.0:
 		check(g.actor_mat != null and g.material == g.actor_mat, "白色保护开着却没挂材质")

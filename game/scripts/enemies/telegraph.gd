@@ -340,11 +340,12 @@ func warn_resolve(w: Dictionary) -> void:
 			Sfx.play("skill", -4.0, 0.7)
 			warn_damage(w)
 		"slam":
-			g.shocks.append({"pos": w.pos, "r": e.r, "maxr": w.r, "dmg": w.dmg, "hit": false, "boss": e.boss, "src_type": e.type})
+			# 小怪踏地（奠基者）的冲击环与地裂画在地面层（单位之下，用户 10-24「浮在最上面」）；Boss 的仍压在单位之上
+			g.shocks.append({"pos": w.pos, "r": e.r, "maxr": w.r, "dmg": w.dmg, "hit": false, "boss": e.boss, "src_type": e.type, "ground": not e.boss})
 			# 地裂（界面与美术 10-01，协调人定）：塑路者锈红、奠基者土黄暗色（起宽加粗），同干员的共用地裂画法（render/ground_crack.gd）；其他仍走旧放射线
 			var gc_col = {"path": Color(0.95, 0.38, 0.22), "founder": Color(0.62, 0.46, 0.22)}.get(e.type)
 			if gc_col != null:
-				g.fx.append({"kind": "gcrack", "pos": w.pos, "r": w.r, "life": 0.7, "max": 0.7, "col": gc_col, "enemy": true,
+				g.fx.append({"kind": "gcrack", "pos": w.pos, "r": w.r, "life": 0.7, "max": 0.7, "col": gc_col, "enemy": true, "ground": not e.boss,
 					"opts": {"n": 10} if e.type == "path" else {"n": 11, "w0": Vector2(5.0, 7.0)}})
 			else:
 				g.fx.append({"kind": "quake", "pos": w.pos, "r": w.r, "life": 0.6, "max": 0.6, "col": c})

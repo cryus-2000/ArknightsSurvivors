@@ -71,7 +71,8 @@ func setup(game, wp: Node2D, gp: Node2D) -> void:
 	var img := Image.create(2, 2, false, Image.FORMAT_RGBA8)
 	img.fill(Color.WHITE)
 	px_tex = ImageTexture.create_from_image(img)
-	k_amount = 0.5 if Cfg.quality == "mid" else 1.0
+	# 中档颗粒量同高档（render/mid_full_fx，缺省 1；10-25 用户「以现在高档的画质作为中档的画质来保障」，docs/50 §26）；0 = 旧的中档减半
+	k_amount = 0.5 if Cfg.quality == "mid" and Bal.v("render/mid_full_fx", 1.0) <= 0.0 else 1.0
 	var dn := int(DEBRIS_POOL * k_amount)
 	for i in dn:
 		debris.append(_one_shot(world_parent, DEBRIS_PTS, 0.9))

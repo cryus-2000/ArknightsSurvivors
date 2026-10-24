@@ -26,6 +26,10 @@ var lo_rect: TextureRect
 var op_node: Node2D         # 高清干员层（可见层 1，主视口画；squad.cv 合批画布在它的 draw 回调里临时改指到这里）
 var _lo_on := false
 var _was_on := false
+var _pa_last := false   # GPU 粒子上次 set_active 的值（光学开关 + --stackab 第 2 位）
+## --stackab（docs/50 §26，仅测试）：同局逐层关闭的位掩码，只关画面。1 CPU 颗粒（fx_grains 全关，调用方退回非粒子画法）、2 GPU 粒子、
+## 4 特效动态照明、8 发光层、16 低分辨率世界层、32 整套光学观感
+var ab_mask := 0
 ## 发光颜色语言（10-23 用户定，同日按原作改：原作海嗣发光以青蓝为主）：每类一组 render/optical_col_<类>_h / _s / _v（色相 0–1）。
 ##   enemy 海嗣本体发光点（眼睛 / 核心 / 发光器官）原作青蓝，不再取各怪 ecol / 帧条亮色；elite 精英同色相更亮（并多一处发光点、大一号）；
 ##   boss 专属暖色；danger「危险」洋红偏深红：敌方攻击预警、敌方弹幕与拖尾，horde_h 黑潮（缩圈开始后 1.5 秒内渐变）往正红偏，紫色调下可读；
@@ -85,13 +89,24 @@ func _update_cols(dt: float) -> void:
 
 ## ⑥ 动态照明：候选 = 一次性帧条特效（按剩余寿命衰减、半径随帧高）+ 我方弹 + 敌弹（危险色、弱）；按亮度取前 N 个
 func _dyn_lights(xf: Transform2D, k: float) -> void:
-	var nmax: int = mini(DL_MAX, int(Bal.v("render/optical_dl_max", 12.0))) if fx1 else 0
+	var nmax: int = mini(DL_MAX, int(Bal.v("render/optical_dl_max", 12.0))) if fx1 and (ab_mask & 4) == 0 else 0
 	var cand: Array = []
 	if nmax > 0:
 		var cc: Vector2 = g.cam.get_screen_center_position() if g.cam != null else g.ppos
 		var vr := Rect2(cc - Vector2(900, 560), Vector2(1800, 1120))
-		for f in g.fx:
+		for f in g.fx:   # 一遍扫完：帧条特效 + 刀光（docs/50 §26：原来两遍、每项两次取 kind 字符串）
 			var kd: String = str(f.get("kind", ""))
+			if kd == "marc":
+				# 刀光：挥刀瞬间短暂打亮脚下与附近怪（刀光寿命前段 ≈ 0.08–0.12 秒）
+				var lf: float = float(f.life) / maxf(0.001, float(f.max))
+				if lf < 0.35:
+					continue
+				var mo = g.squad.get_op(str(f.get("op", ""))) if g.squad != null else null
+				var mp: Vector2 = (mo.pos + f.get("off", Vector2.ZERO)) if mo != null and mo.pos != Vector2.INF else f.pos
+				if not vr.has_point(mp):
+					continue
+				cand.append([0.55 + 0.25 * int(f.tier), mp + Vector2.from_angle(float(f.ang)) * float(f.r) * 0.45, float(f.r) * 0.9, f.col])
+				continue
 			if kd != "sprite" and kd != "anim" and kd != "grain_light":
 				continue
 			var p: Vector2 = f.get("pos", Vector2.INF)
@@ -106,17 +121,6 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 			var r: float = clampf(float(_fxsz[nm]) * float(f.get("scale", g.PX)) * 0.9, 32.0, 170.0)
 			var inten: float = life * (0.6 + r / 170.0)
 			cand.append([inten, p, r, particles.fx_color(nm)])
-		for f in g.fx:   # 刀光：挥刀瞬间短暂打亮脚下与附近怪（刀光寿命前段 ≈ 0.08–0.12 秒）
-			if str(f.get("kind", "")) != "marc":
-				continue
-			var lf: float = float(f.life) / maxf(0.001, float(f.max))
-			if lf < 0.35:
-				continue
-			var mo = g.squad.get_op(str(f.get("op", ""))) if g.squad != null else null
-			var mp: Vector2 = (mo.pos + f.get("off", Vector2.ZERO)) if mo != null and mo.pos != Vector2.INF else f.pos
-			if not vr.has_point(mp):
-				continue
-			cand.append([0.55 + 0.25 * int(f.tier), mp + Vector2.from_angle(float(f.ang)) * float(f.r) * 0.45, float(f.r) * 0.9, f.col])
 		var nb := 0
 		for b in g.bullets:
 			if nb >= 60:
@@ -138,7 +142,7 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 				if vr.has_point(L[0]):
 					cand.append([0.6 * float(L[3]) / maxf(0.001, float(L[4])) + 0.3, L[0], float(L[1]), L[2]])
 		if cand.size() > nmax:
-			cand.sort_custom(func(a, b): return a[0] > b[0])
+			cand = _top_n(cand, nmax)
 		# 局部预算（防油腻 ②）：队长 render/optical_local_r（120）内入选的光强度总和封顶 render/optical_local_light（1.6），超出按比例压
 		var lr: float = Bal.v("render/optical_local_r", 120.0)
 		var lsum := 0.0
@@ -167,6 +171,22 @@ func _dyn_lights(xf: Transform2D, k: float) -> void:
 	mat.set_shader_parameter("dl_n", n)
 	mat.set_shader_parameter("dl_pos", _dl_pos)
 	mat.set_shader_parameter("dl_col", _dl_col)
+
+
+## 按强度（[0]）从大到小取前 n 个：插入选择，代替整表 sort_custom（候选上百个时多数一次比较就被拒，docs/50 §26）
+static func _top_n(cand: Array, n: int) -> Array:
+	var top: Array = []
+	for c in cand:
+		var v: float = c[0]
+		if top.size() == n and v <= float(top[n - 1][0]):
+			continue
+		var j: int = top.size()
+		while j > 0 and float(top[j - 1][0]) < v:
+			j -= 1
+		top.insert(j, c)
+		if top.size() > n:
+			top.pop_back()
+	return top
 
 
 ## ① 压阶帧条换入 / 换回（g.tex 同名替换：所有绘制路径都读 g.tex，不用逐处改）
@@ -346,6 +366,8 @@ func _lo_step() -> void:
 	# 设置里的「战斗画面缩放」叠在整数像素镜头上（相对本设备缺省：手机缺省那档 = 不变；桌面缺省 ZOOM_DESK_DEF 把视野拉近；
 	# 非整数倍时 1 美术像素占的屏幕像素不再恒为整数，用户 10-24 要求先看 ×1.15 再定）
 	var rel: float = Cfg.cam_zoom() / (Cfg.ZOOM_PHONE_DEF / 100.0 if Cfg.phone_ui() else 1.0)
+	if g.demo_op != "":
+		rel *= Bal.v("gallery/demo_zoom", 0.8)   # 图鉴演示小窗再拉远（用户 10-24），视野更大
 	var zw: float = view_k / (2.0 * sx) * rel
 	if Bal.v("render/optical_int_zoom", 0.0) > 0.0:
 		# docs/139 试验旋钮：把「战斗画面缩放」并进整数倍率（1 美术像素恒占整数个物理像素），不再出现 2.3 / 3.45 这种非整数放大
@@ -393,6 +415,7 @@ func _draw_ops() -> void:
 
 ## 发光层：上一帧世界绘制排好的敌人发光点（孢子 / 余烬 / 体液 / 迸溅是同层的 GPUParticles2D）+ ⑧ 投射物拖尾
 func _draw_glow() -> void:
+	var pt: int = Time.get_ticks_usec() if g.prof_on else 0
 	if grains != null:
 		grains.draw_material_glow(glow_node)
 	_draw_ground_glow()
@@ -405,11 +428,14 @@ func _draw_glow() -> void:
 	if Bal.v("render/optical_trail", 1.0) > 0.0:
 		_draw_trails(g.bullets, false)
 		_draw_trails(g.ebullets, true)
+	_pt("op_glow_draw", pt)
 
 
 ## ⑧ 投射物发光像素拖尾：每颗弹沿速度反方向 5 个 2 px 像素、由亮到灭，吸附到 2 世界像素格；
 ## 我方取弹体颜色（没有就青白），敌方一律危险色（颜色语言）。最多画 300 颗
 func _draw_trails(list: Array, enemy: bool) -> void:
+	if fx1 and not enemy:
+		return   # fx1 开着时我方弹拖尾全由 GPU 粒子簇画，这里原来逐颗取速度后 continue，什么也不画（docs/50 §26）
 	var n := 0
 	for b in list:
 		if n >= 300:
@@ -478,7 +504,18 @@ func _draw_loot() -> void:
 		glow_node.draw_rect(Rect2(q, Vector2(2, 2)), Color(col_loot.r, col_loot.g, col_loot.b, 0.85))
 
 
+## --prof：把 t0 到现在的耗时记到 g.prof[k]（光学观感各段，docs/50 §26；不在 --prof 下直接返回 0）
+func _pt(k: String, t0: int) -> int:
+	if not g.prof_on:
+		return 0
+	var now := Time.get_ticks_usec()
+	g.prof[k] = int(g.prof.get(k, 0)) + (now - t0)
+	return now
+
+
 func wanted() -> bool:
+	if ab_mask & 32:
+		return false
 	if force >= 0:
 		return force == 1
 	# 10-23 用户：光学观感正式打开（render/optical 缺省 1）；画质「低」时自动关（低配兜底），中 / 高开
@@ -489,9 +526,12 @@ func _process(_dt: float) -> void:
 	if g == null:
 		return
 	_update_cols(_dt)
+	var pt: int = Time.get_ticks_usec() if g.prof_on else 0
 	if grains != null:
+		grains.kill = (ab_mask & 1) != 0
 		grains.step(_dt)
 		grains.flush()
+	pt = _pt("op_grains", pt)
 	fx1 = (fx1_force == 1) if fx1_force >= 0 else Bal.v("render/optical_fx1", 1.0) > 0.0
 	_fxq_step(fx1 and wanted() and DisplayServer.get_name() != "headless" and Bal.v("render/optical_fxq", 1.0) > 0.0)
 	FD.col_cap = Bal.v("render/optical_fx_cap", 1.4) if g.optical_on and fx1 else 0.0
@@ -499,8 +539,8 @@ func _process(_dt: float) -> void:
 	var on := wanted() and DisplayServer.get_name() != "headless"
 	g.optical_on = on
 	visible = on
-	glow_layer.visible = on
-	var lo_want: bool = on and Bal.v("render/optical_lowres", 1.0) > 0.0 and lo_vp != null
+	glow_layer.visible = on and (ab_mask & 8) == 0
+	var lo_want: bool = on and Bal.v("render/optical_lowres", 1.0) > 0.0 and lo_vp != null and (ab_mask & 16) == 0
 	if lo_want != _lo_on:
 		_set_lo(lo_want)
 	if _lo_on:
@@ -509,13 +549,17 @@ func _process(_dt: float) -> void:
 	g.glow_next = []
 	g.glow_tex_cur = g.glow_tex_next
 	g.glow_tex_next = []
+	pt = _pt("op_lowres", pt)
 	if particles != null:
-		if on != _was_on:
-			particles.set_active(on)
-		if on and g.cam != null and g.lamp_light != null:
+		var pa: bool = on and (ab_mask & 2) == 0
+		if pa != _pa_last:
+			particles.set_active(pa)
+			_pa_last = pa
+		if pa and g.cam != null and g.lamp_light != null:
 			particles.step(g.cam.get_screen_center_position(), g.lamp_light.global_position, col_env, col_lamp)
 	_was_on = on
-	if on:
+	pt = _pt("op_particles", pt)
+	if glow_layer.visible:
 		glow_node.queue_redraw()
 	if g.post != null:
 		g.post.visible = not on
@@ -541,9 +585,12 @@ func _process(_dt: float) -> void:
 	mat.set_shader_parameter("steps", Bal.v("render/optical_steps", 3.0) if fx1 else 0.0)
 	mat.set_shader_parameter("local_budget", Bal.v("render/optical_local_budget", 0.5) if fx1 else 99.0)
 	mat.set_shader_parameter("local_r", Bal.v("render/optical_local_r", 120.0) * k)
+	pt = _pt("op_shader", pt)
 	_dyn_lights(xf, k)
+	pt = _pt("op_dynlights", pt)
 	if particles != null:
 		particles.step_trails(col_ebullet, fx1)
+	pt = _pt("op_trails", pt)
 	mat.set_shader_parameter("emissive_th", Bal.v("render/optical_emissive_th", 0.72))
 	mat.set_shader_parameter("lut_on", Bal.v("render/optical_lut", 1.0))
 	mat.set_shader_parameter("sat", Bal.v("render/optical_sat", 1.0))

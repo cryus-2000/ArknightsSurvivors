@@ -840,9 +840,12 @@ static func white_of(src: Texture2D) -> Texture2D:
 ## 敌人的白色剪影一并算好；法线预热线程没做完时不读（否则主线程当场算法线）。不在标题页启动时跑。
 static var _warm_q: Array = []
 static var _warm_white := {}
+static var _warm_n := 0   # 本轮入队总数（warm_progress）
 
 
 static func warm_begin(names: Array, white_names: Array) -> void:
+	if _warm_q.is_empty():
+		_warm_n = 0
 	var seen := {}
 	for n in _warm_q:
 		seen[n] = true
@@ -850,8 +853,14 @@ static func warm_begin(names: Array, white_names: Array) -> void:
 		if n is String and n != "" and not seen.has(n) and not _cache.has(n):
 			seen[n] = true
 			_warm_q.append(n)
+			_warm_n += 1
 	for n in white_names:
 		_warm_white[n] = true
+
+
+## 分帧预读的进度（进局载入页用）：(已读, 入队总数)；队列读空后再入队时重新计数
+static func warm_progress() -> Vector2i:
+	return Vector2i(_warm_n - _warm_q.size(), _warm_n)
 
 
 ## 每帧调一次：budget_usec 微秒内尽量多读；返回是否还有剩

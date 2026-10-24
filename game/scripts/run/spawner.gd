@@ -967,6 +967,8 @@ func reveal_mimic(e: Dictionary) -> void:
 	e.flash = 0.2
 	e.vis_act = "reveal"   # 重画 e_mimic_reveal 现形帧条（纯画面）
 	e.vis_t0 = g.t
+	if D.ENEMIES["mimic"].has("scream_r"):
+		g.eai.start_scream(e, D.ENEMIES["mimic"])   # 现形尖叫（docs/145 §4 A）
 	g.vfx.show_banner("箱形恐鱼！")
 	g.vfx.add_text(e.pos + Vector2(0, -30), "伪装！", UI.RED, 20)
 	Sfx.play("roar", -2.0, 1.3)

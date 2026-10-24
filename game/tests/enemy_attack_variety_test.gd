@@ -39,6 +39,9 @@ func run_checks() -> void:
 		e.dormant = false
 		e.wake_t = 0.0
 		e.extra_next = 0.0
+		if d.has("scream_r"):
+			e["scream_t0"] = g.t - 3.0   # 箱形恐鱼：尖叫已结束（尖叫期间不出额外招式，见下方专项）
+			e["scream_t1"] = g.t - 0.5
 		g.warns.clear()
 		g.ebullets.clear()
 		g.ppos = Vector2(minf(float(d.extra.range) - 10.0, 140.0), 0.0)
@@ -208,10 +211,32 @@ func run_checks() -> void:
 	var mi: Dictionary = g.spawner.new_enemy("mimic", Vector2.ZERO)
 	mi.age = 5.0
 	mi.dormant = false
+	mi.extra_next = INF   # 只看尖叫与啃咬，箱舌突刺上面已测
 	g.warns.clear()
 	g.ppos = Vector2(40, 0)
+	# 现形尖叫（docs/145 §4 A）：第一次靠近即开始；张口 + 尖叫期间不咬、照常移动、圈内累积神经损伤
+	var md: Dictionary = D.ENEMIES["mimic"]
+	g.nerve_aura_t = 0.0
+	check(g.eai.pattern(mi, Vector2.RIGHT, 40.0, 0.05, mi.spd) == Vector2.INF and mi.has("scream_t0"), "mimic starts screaming on first approach and keeps normal movement")
+	check(g.warns.is_empty(), "mimic does not bite while screaming")
+	g.t = float(mi.scream_t0) + 0.1
+	g.invuln = 0.0
+	g.eai.pattern(mi, Vector2.RIGHT, 40.0, 0.05, mi.spd)
+	check(g.nerve_aura_t > 0.0 and g.warns.is_empty(), "mimic scream builds nerve inside its radius without biting")
+	g.nerve_aura_t = 0.0
+	g.eai.pattern(mi, Vector2.RIGHT, float(md.scream_r) + 20.0, 0.05, mi.spd)
+	check(g.nerve_aura_t <= 0.0, "mimic scream does not reach outside its radius")
+	g.t = float(mi.scream_t1) + 0.01
 	g.eai.pattern(mi, Vector2.RIGHT, 40.0, 0.05, mi.spd)
 	check(g.warns.any(func(w): return w.get("act", "") == "bite" and str(w.get("atk_fx", "")) == "fx_mimic_bite"), "mimic bite carries atk_fx")
+	# 连咬（docs/145 §4 B）：第一口结算时补第二口，单独预警、伤害 × bite2_mult
+	var b1: Dictionary = g.warns.filter(func(w): return w.get("act", "") == "bite")[0]
+	g.warns.clear()
+	mi.wind = 0.0
+	g.t = float(mi.bite2_at) + 0.01
+	g.eai.pattern(mi, Vector2.RIGHT, 40.0, 0.05, mi.spd)
+	var b2: Array = g.warns.filter(func(w): return w.get("act", "") == "bite")
+	check(b2.size() == 1 and is_equal_approx(float(b2[0].dmg), float(b1.dmg) * float(md.bite2_mult)) and is_equal_approx(float(b2[0].dur), float(md.bite2_delay)), "mimic second bite has its own warning and reduced damage")
 	g.warns.clear()
 	var st_e: Dictionary = g.spawner.new_enemy("stone", Vector2.ZERO)
 	g.lobs.clear()
