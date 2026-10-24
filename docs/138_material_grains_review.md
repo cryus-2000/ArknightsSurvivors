@@ -199,3 +199,5 @@
 - 快检 `--auto --jobs 2`（全机上限 6）：110 项，失败 0 项（机器负载高，耗时 84 分钟）。契约 `MATERIAL_CONTRACT_PASS`（期间修了一处：形状颗粒化 preload `art.gd` 在契约的最小工程里不存在，改为运行时加载，7cccdd62）。
 - 同 seed（开窗口，全关 = `eyja_s2_v2 / eyja_grains / laser_style / grain_body / material_grains / fx_int_scale` 都 0，对比缺省）：艾雅 E1 seed 2 181 行、艾雅满成长 + Boss 40 / 80 / 120 秒 seed 1 174 行、斯卡蒂 seed 1 181 行，全部逐行相同。归溟 / 德克萨斯 / 斯卡蒂对 main d872886c 无头 181 行逐行相同（§11）。
 - 帧时：本次没测成。艾雅 + 斯卡蒂 + 维什戴尔满成长 `--grainab=60`（整个颗粒池同局开 / 关），测量时全机另有 5 个以上 Godot 加网页包导入，平均 52–74 ms、P95 > 150 ms，两桶差 −2.0 / +6.2 ms 方向相反，属噪声；敌人中位也只有 34–42。需在机器空闲时重测（桌面 + 网页，`tools/perf_web.py` 包已导出 `build/_perfweb/ac53810fa`）。上一次可信数字仍是 §4（材质颗粒桌面 +0.5–0.7、网页 +0.8–0.9 ms）。
+
+**10-25 用户「激光就选 A」**：`fx/laser_style` 缺省 1；另把干员画布上的瞬时激光线（艾琳枪线、维什戴尔炮线、流明折射，`"line"` 加 `laser` 标记）接进 A（`LaserDraw.draw` 加画布参数，`character.gd` "line" 分支）。逻各斯连线、乌尔比安锁链、精英化跳跃拖尾等不是激光，照旧。流明灯塔光柱是 Codex 帧条（`fx_lumen_beam`）、灯塔旋转光是扫光多边形，都不是瞬时激光线，保留。

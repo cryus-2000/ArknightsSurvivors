@@ -245,7 +245,7 @@ static func _h4wd_tick(o, wd: Dictionary, dt: float) -> void:
 			var me = s.get("mark_e", null)   # 魂炮（follow）：命中时给它的目标挂残影标记（目标还活着、在爆炸范围内）
 			if me != null and not me.dead and me.pos.distance_to(s.to) < float(s.r) + float(me.r):
 				_h4_mark(o, a, me)
-			o.fx({"kind": "line", "pos": s.from, "to": s.to, "life": 0.09, "col": H4_RED, "w": 2.0 * float(s.get("size", 1.0))})
+			o.fx({"kind": "line", "pos": s.from, "to": s.to, "life": 0.09, "col": H4_RED, "w": 2.0 * float(s.get("size", 1.0)), "laser": true})
 			if s.quake:
 				var qd: float = s.dmg * _h4_first_val(o, a.get("quakes", []), float(a.get("quake", 0.4)))
 				var qs: float = float(a.get("ash", _ED).get("stun", 0.8)) if s.rings else 0.0
