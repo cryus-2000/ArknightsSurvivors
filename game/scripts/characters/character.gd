@@ -1186,8 +1186,8 @@ func follow(dt: float, target: Vector2) -> void:
 		vis_anim = ""   # 播完回待机（末帧 = 待机 f0，收招不跳）
 	_tick_sq_shadow(dt)
 	# 跑步帧率按实际移动速度缩放（原固定 fps：快速前压的近战队友脚步打滑 3 倍以上）；帧条按主控基础移速 RUN_REF 画
-	if anim_kind == "run":
-		advance_run_phase(dt)
+	if anim_kind == "run" or (sq_ph == 2 and sq.has("run") and anim_kind == seq_anim(sq.run)):
+		advance_run_phase(dt)   # 技能循环里的跑动段（sprites.skills.sN.run，如星熊格挡移动）也按移速推进同一相位
 
 
 ## 原生画面让位跑步时也使用同一速度时钟；不被攻击起手重置。
@@ -1321,9 +1321,22 @@ func act_anim_yield() -> bool:
 	var spec := sprite_spec(act_anim)
 	if spec.has("frame_durations") and not attack_phased and elapsed >= frames_seconds(act_anim, range(int(spec.get("frames", 0)))) - 0.000001:
 		return true
-	if elapsed >= attack_fire_at and anim_tex("run") != null and anim_tex("move_" + act_anim) == null and mv > (RUN_EXIT if anim_kind == "run" else RUN_ENTER):
+	if elapsed >= attack_fire_at and anim_tex("run") != null and anim_tex("move_" + act_anim) == null and mv > (RUN_EXIT if anim_kind == "run" else RUN_ENTER) and _act_frame(elapsed) > _act_frame(attack_fire_at) and not def.get("sprites", {}).get("hover_attack", false) == true:   # hover_attack：悬浮移动（腿不交替），出手动作移动时照播不让
 		return true   # 有移动攻击帧条时不再出手后就切跑步（收势被截），播完整个动作（_move_swap 换成跑动版）
 	return false
+
+
+## 出手动作在 elapsed 秒时的画面帧号（同 _anim_state_raw 的取帧算式）。让位要等出手帧播完（10-24 docs/140：原来出手那一帧就切跑步，
+## 移动中放技能 / 浊心斯卡蒂普攻的出手姿势一帧都看不到）
+func _act_frame(elapsed: float) -> int:
+	var spec := sprite_spec(act_anim)
+	var tx := anim_tex(act_anim)
+	var n := int(spec.get("frames", anim_hframes(tx, act_anim) if tx != null else 1))
+	if attack_phased:
+		return attack_phase_frame(n, int(spec.get("fire", 0)), elapsed, act_anim)
+	if spec.has("frame_durations"):
+		return timed_frame(act_anim, range(n), elapsed)
+	return clampi(int(elapsed / maxf(attack_dur, 0.000001) * n), 0, n - 1)
 
 
 ## 纯画面动作的时长：帧数 / fps（没写 fps 按 12）
@@ -1765,10 +1778,11 @@ func anim_state() -> Dictionary:
 ## 移动攻击（10-23 用户「边跑边攻击」，docs/128 §3）：出手动作期间在移动、且有 sprites.move_<动作> 帧条（帧数相同）时，
 ## 只换贴图：上半身同一动作、腿是跑步步态。帧序号 / 脚底 / kind 不变，所以出手点、炮口等玩法读数与原动作一致；纯画面
 func _move_swap(st: Dictionary) -> Dictionary:
-	if st.is_empty() or attack_t <= 0.0 or mv <= RUN_ENTER:
+	if st.is_empty() or mv <= RUN_ENTER:
 		return st
 	var k := str(st.get("kind", ""))
-	if k == "" or k != act_anim:
+	# 普攻 / 技能动作（出手窗口内），或技能循环里的普攻变体（sq_atk，播到末帧；10-24 塞雷娅跑动拳击）
+	if k == "" or not ((attack_t > 0.0 and k == act_anim) or (sq_atk != "" and k == sq_atk)):
 		return st
 	var mtx: Texture2D = anim_tex("move_" + k)
 	if mtx == null or anim_hframes(mtx, "move_" + k) != int(st.get("hf", 0)):
@@ -2066,8 +2080,8 @@ func _sq_kind() -> String:
 func _sq_frame(n: int) -> int:
 	var seg = _sq_seg()
 	var k := seq_anim(seg)
-	if sq_ph == 2 and k == "run":
-		return int(run_ph) % n   # 普通跑步与技能跑步共享相位，不随技能计时重启。
+	if sq_ph == 2 and (k == "run" or (sq.has("run") and k == seq_anim(sq.run))):
+		return int(run_ph) % n   # 普通跑步与技能跑步段共享相位，不随技能计时重启；步频随移速（10-24 起非 run 帧条的跑动段也是）
 	var frs: Array = [0] if (sq_ph == 1 and sq.has("hold") and not (seg is Dictionary)) else _seq_frames(seg, k)
 	if frs.is_empty():
 		return 0
@@ -2188,6 +2202,11 @@ func _tick_sq_atk(dt: float) -> void:
 func _sq_atk_yield() -> bool:
 	if sq_atk == "" or sq_ph != 2 or not sq.has("run") or sq_atk_t < attack_fire_at:
 		return false
+	if anim_tex("move_" + sq_atk) != null:
+		return false   # 变体有跑动版：不让位，_move_swap 换上（10-24 塞雷娅跑动拳击）
+	var spec := sprite_spec(sq_atk)
+	if _sq_atk_frame(int(spec.get("frames", anim_hframes(anim_tex(sq_atk), sq_atk)))) <= int(spec.get("fire", 0)):
+		return false   # 出手帧播完再让（10-24 docs/140，同 act_anim_yield）
 	var run_slot := seq_anim(sq.run)
 	return anim_tex(run_slot) != null and mv > (RUN_EXIT if anim_kind == run_slot else RUN_ENTER)
 

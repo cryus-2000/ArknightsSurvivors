@@ -32,14 +32,14 @@ const FX_AT := ["center", "self", "leader", "zone", "hits", "orbit", "members", 
 
 ## 只播一次的 fx 宿主（瞬时积木 / 技能发动 / 触发积木）：不能写 every、贴身层、漩涡（§8 第 9 条）。第三批新积木追加在这里
 const FX_INSTANT_OWNERS := ["shape.circle", "shape.cone", "cast", "verb.sp_team",
-	"shape.line", "verb.displace", "verb.field", "verb.negate_next", "trig.on_hurt", "trig.on_negate", "verb.summon", "verb.shield", "verb.guard",
+	"shape.line", "verb.displace", "verb.field", "verb.negate_next", "verb.taunt_guard", "trig.on_hurt", "trig.on_negate", "verb.summon", "verb.shield", "verb.guard",
 	"st.stun", "st.slow", "st.airborne", "st.weightless", "st.pause", "shape.boomerang", "verb.summon_cmd", "trig.on_mate_attack"]   # 精英化段（docs/91 第 1 批）
 
 ## 能写 at = hits 的宿主（带命中列表的伤害形状）
 const FX_HITS_OWNERS := ["shape.circle", "shape.cone", "shape.line"]
 
 ## 自己在合适的位置播 fx 的积木：data_operator._exec_list 不再按区域中心替它们播
-const FX_SELF_PLAY := ["shape.circle", "shape.cone", "shape.line", "verb.displace", "verb.field", "verb.negate_next", "verb.summon", "verb.shield", "verb.heal", "verb.guard",
+const FX_SELF_PLAY := ["shape.circle", "shape.cone", "shape.line", "verb.displace", "verb.field", "verb.negate_next", "verb.taunt_guard", "verb.summon", "verb.shield", "verb.heal", "verb.guard",
 	"shape.boomerang", "verb.summon_cmd"]
 
 const ArtS = preload("res://scripts/art.gd")
@@ -118,6 +118,8 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 	var fit: float = float(f.get("fit", 0.0))
 	sc *= r / fit if fit > 0.0 and r > 0.0 else g.PX
 	sc = minf(sc, float(f.get("max_scale", FX_SCALE_MAX)))
+	if g.vfx != null and g.vfx._fxc != null:
+		g.vfx._fx_census("SC|%s|%.3f" % [name, sc / ArtS.hires_of(g.tex[name])], false)
 	var loop: bool = f.has("life") and not f.get("once", false)
 	var life: float = float(f.life) if loop else frames / fps
 	if f.has("stay"):   # 精英化段：一次性帧条播完停在末帧，共 stay 秒（钉剑插在敌人身上）
@@ -170,7 +172,7 @@ static func fx_spawn(o, f: Dictionary, c: Vector2, r: float, hits: Array, ang: f
 			var angle: float = (c + off - q).angle() if f.get("inward", false) else rot
 			var px := {"kind": "strip", "name": name, "pos": q, "life": life, "sc": sc, "col": tint, "ang": angle, "anc": anc, "no_fade": bool(f.get("no_fade", false)),
 				"fr": frames, "fps": fps, "loop": loop, "ph": g.vrng.randi_range(0, frames - 1) if loop else 0,
-				"floor": layer == "floor", "add": layer == "add"}
+				"floor": layer == "floor", "add": layer == "add", "fit": fit > 0.0}
 			if dly > 0.0:
 				px["life"] = life + dly
 				px["dly"] = dly
@@ -222,7 +224,8 @@ static func fx_draw(ci, g, f: Dictionary, dim: float) -> void:
 		fr = mini(int(f.get("first_frame", 0)) + int(el * float(f.fps)), frames - 1)
 	if f.get("slash_material", false):
 		a *= clampf(1.0 - (el - float(f.slash_break_at)) / 0.08, 0.0, 1.0)
-	fx_frame(ci, g, str(f.name), frames, fr, f.pos, float(f.sc), Color(f.col.r, f.col.g, f.col.b, f.col.a * a), f.anc, float(f.ang))
+	var sc: float = float(f.sc) if f.get("fit", false) or not ("vfx" in g) or g.vfx == null else g.vfx.int_scale(float(f.sc))   # 低分辨率层整数格（docs/138 §10）；按半径拟合的不取整
+	fx_frame(ci, g, str(f.name), frames, fr, f.pos, sc, Color(f.col.r, f.col.g, f.col.b, f.col.a * a), f.anc, float(f.ang))
 
 
 ## 帧条的第 fr 帧：sc = 每个 1x 美术像素的世界像素数；anc = 1x 帧内锚点（(-1,-1) = 帧中心），@2x 贴图自动换算（docs/25 §6 的 ×A.hires 规则）

@@ -30,7 +30,8 @@
   "s1_mult": 2.0,
   "s1_r": 120,
   "s1_kb": 360,
-  "s1_miss_mult": 1.5,
+  "s1_taunt_r": 200,
+  "s1_per": 0.1,
   "s2_dur": 8.0,
   "s2_atk": 0.4,
   "s2_dr": 0.1,
@@ -667,11 +668,20 @@
     0.16
    ]
   },
+  "s1_guard_move": {
+   "tex": "op_hoshiguma_s1_guard_move",
+   "frames": 8,
+   "fps": 13.333333,
+   "foot": [32, 60],
+   "frame_durations": [0.075, 0.075, 0.075, 0.075, 0.075, 0.075, 0.075, 0.075],
+   "_doc": "10-24 格挡窗口里移动（docs/140）：原生 Skill t=0 举盾上半身 + 跑步步态腿（tools/op_1x/native_extra.py），与跑步条共用相位；原来移动时播单帧定格 s1_guard 原地滑行"
+  },
   "skills": {
-   "_doc": "S1 举盾 → 窗口内定格 → 格挡（技能随即结束）或窗口到点都收势播反手重斩；S2 盾斧斩落；S3 原作起手 / 持盾切割循环 / 收势",
+   "_doc": "S1 举盾 → 窗口内定格（队长移动时播举盾跑动）→ 窗口到点收势播反手重斩（10-24 起站定嘲讽，docs/140）；S2 盾斧斩落；S3 原作起手 / 持盾切割循环 / 收势",
    "s1": {
     "start": "s1",
     "loop": "s1_guard",
+    "run": "s1_guard_move",
     "end": "s1_counter"
    },
    "s2": {
@@ -688,6 +698,7 @@
   "death",
   "s1",
   "s1_guard",
+  "s1_guard_move",
   "s1_counter",
   "s3_start",
   "s3_loop",
@@ -706,7 +717,7 @@
    "en": "WARPATH",
    "sp": 6,
    "dur": 3.0,
-   "desc": "{$s1_window} 秒内队长下一次受到的攻击被完全格挡（不损失生命与灯火），格挡瞬间在队长身边反手重斩（半径 {$s1_r}，×{$s1_mult}）并击退；{$s1_window} 秒内未受到攻击时，向前发动一次 ×{$s1_miss_mult} 伤害的斩击",
+   "desc": "{$s1_window} 秒内举盾坚守原地，吸引半径 {$s1_taunt_r} 内近战敌人的仇恨（作为队长时可照常移动）；结束时向周围反手重斩（半径 {$s1_r}，×{$s1_mult}，每吸引一名敌人再 +{$s1_per}）并击退",
    "icon": "skill_hoshiguma_s1"
   },
   {
@@ -967,7 +978,10 @@
     "dur": "$s1_window",
     "do": [
      {
-      "verb": "negate_next",
+      "verb": "taunt_guard",
+      "_doc": "10-24 用户定（docs/140）：原「格挡下一击」改为站定嘲讽 + 防御反击；队员时原地站定，队长时照常移动",
+      "r": "$s1_taunt_r",
+      "per": "$s1_per",
       "fx": [
        {
         "strip": "fx_hoshiguma_block",
@@ -980,27 +994,13 @@
        }
       ],
       "text": "战意",
-      "on_block": [
+      "on_end": [
        {
         "shape": "circle",
-        "center": "leader",
+        "center": "self",
         "r": "$s1_r",
         "mult": "$s1_mult",
         "kb": "$s1_kb",
-        "src": "举盾反击",
-        "tags": [
-         "skill"
-        ],
-        "power": true
-       }
-      ],
-      "on_miss": [
-       {
-        "shape": "cone",
-        "r": "$reach_skill",
-        "half_deg": "$half_deg",
-        "mult": "$s1_miss_mult",
-        "kb": "$kb",
         "src": "举盾反击",
         "tags": [
          "skill"
