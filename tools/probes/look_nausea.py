@@ -53,6 +53,10 @@ VARIANTS = {
     "dash_notell": ["--bal=render/dash_tell=0"],
     "dash_nosparks": ["--bal=render/enemy_dash_sparks=0"],
     "dash_noflow": ["--bal=render/dash_tell_flow=0"],
+    # docs/139 §8 怪物攻击圈环分类量测（只隐藏）
+    "hide_warn": ["--clutterdbg=nowarn"], "hide_tell": ["--clutterdbg=notell"], "hide_foefx": ["--clutterdbg=nofoefx"],
+    "hide_shock": ["--clutterdbg=noshock"], "hide_aura": ["--clutterdbg=noaura"], "hide_foe": ["--clutterdbg=nofoe"],
+    "foe_calm": ["--bal=render/foe_calm=1"],
     "dash_style1": ["--bal=render/dash_tell_style=1"],
     "dash_style2": ["--bal=render/dash_tell_style=2"],
     "dash_calm": ["--bal=render/dash_tell_alpha=0.55", "--bal=render/dash_tell_flow=0", "--bal=render/dash_tell_white=0", "--bal=render/dash_tell_half=6",
