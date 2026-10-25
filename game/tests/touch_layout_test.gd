@@ -193,6 +193,19 @@ func in_game() -> void:
 	game.progression.open_relic_choice()
 	await frames(2)
 	check(game.state != game.S.CHOICE or game.hud_view.panel_over_top(), "触屏选卡时 panel_over_top 应为真")
+	# 手机选卡排版（10-26 iPhone 实机「挤得太满」，docs/37 最小字号）：每张卡整张在面板里、只写一句（brief）、
+	# 这一句不截断且字号 ≥ 18（整排缩 0.9 后约 17 界面像素）；选卡时四周 HUD 收起（phone_quiet）
+	if game.state == game.S.CHOICE:
+		var pr: Rect2 = game.panel.get_global_rect().grow(1.0)
+		for c in game.panel_box.get_children():
+			if not (c is Button):
+				continue
+			var cr: Rect2 = c.get_global_rect()
+			check(pr.encloses(cr), "手机选卡：卡片应整张在面板内（%s ⊄ %s）" % [cr, pr])
+			check(c.has_meta("brief"), "手机选卡：卡上应只写一句（%s）" % c.get_meta("full_desc", ""))
+			var fd: Dictionary = c.get_meta("fit", {})
+			check(fd.get("fit", false) and int(fd.get("size", 0)) >= 18, "手机选卡：一句话应放得下且字号 ≥ 18（%s, %d）" % [str(c.get_meta("brief", "")), int(fd.get("size", 0))])
+		check(game.hud_view.phone_quiet(), "手机选卡时声呐 / 藏品栏 / 编队栏应收起")
 	game.panel.visible = false
 	game.state = game.S.PLAY
 	check(not game.hud_view.panel_over_top(), "对局中 panel_over_top 应为假")

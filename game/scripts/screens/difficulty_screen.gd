@@ -83,9 +83,13 @@ static func input(host: Control, event: InputEvent) -> void:
 			host._diff_step(int(str(key).substr(4)) - host.diff_sel)
 		return
 
+## 手机横屏（10-26 用户 iPhone 实机，docs/37 最小字号）：整页按 1280×720 缩到约 0.87，10–13 号的小标只剩 6–7 pt；小字抬到 PHONE_MIN_FS
+const PHONE_MIN_FS := 15
+
 static func text(c: CanvasItem, font: Font, x: float, y: float, value: String, sz: int = 18, col: Color = WHITE, width: float = -1.0) -> void:
-	var size := sz
-	while width > 0 and size > 11 and font.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > width:
+	var ph: bool = Cfg.phone_ui()
+	var size := maxi(sz, PHONE_MIN_FS) if ph else sz
+	while width > 0 and size > (13 if ph else 11) and font.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x > width:
 		size -= 1
 	c.draw_string(font, Vector2(x,y+size), value, HORIZONTAL_ALIGNMENT_LEFT, width, size, col)
 

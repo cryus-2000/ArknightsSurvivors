@@ -284,6 +284,12 @@ func _ready() -> void:
 		# 测试局（godot_runner 设的环境变量 + game/override.cfg no_focus）：窗口不抢焦点；位置由 runner 用 Win32 挪到屏幕外
 		# （用户 10-06：别让弹窗打扰）。不能最小化——最小化后画布不渲染，截图全黑
 		get_window().unfocusable = true
+	for a in dev_args():
+		if a.begins_with("--winsize=") and DisplayServer.get_name() != "headless":
+			# 截图自测（分辨率矩阵 tools/ui_matrix.py）：无边框窗口设成任意尺寸，可以比本机屏幕大（--resolution 会被标题栏 / 屏幕裁掉）
+			var wp := a.substr(10).split("x")
+			get_window().borderless = true
+			get_window().size = Vector2i(int(wp[0]), int(wp[1]))
 	if dev_args().has("--ftrec"):
 		get_tree().root.add_child.call_deferred(preload("res://scripts/core/frame_rec.gd").new())   # 界面帧时记录（docs/50 §27），只在测试参数下
 	_ui_font = load("res://fonts/ui.ttf")
