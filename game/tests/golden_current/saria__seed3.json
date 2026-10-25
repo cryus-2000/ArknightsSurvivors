@@ -11,10 +11,10 @@
 "--trace=1",
 "--sptest"
 ],
-"own": "582f8b71ee9626f0afb65f4ac7ff4a325c452f2e02640ca93d5c02603a028e2d",
-"other": "a5f43b809090be9fb92f46c0851e0bc1f06725666332100c95b3308cdf7cfead",
-"commit": "9f52d54d",
-"time": "2026-10-25 00:58:44",
+"own": "60f634f4fa639a00fd8f78dbedd5291e97906093dff0a8599d590f7fdabb8c15",
+"other": "99e256b56c943ba073dec91511dc581ac7dc64417c9ed2d1e8cc5083e782860c",
+"commit": "e9442d17",
+"time": "2026-10-25 03:36:23",
 "trace": [
 "TRACE t=0.00 lv=1 k=0 hp=140.40 n=0 rng=-174589854303943223/902404325571654243/1231418626397784201/5159219129543269846/-7141095578072418168 pos=0.00,0.00 h=0.000",
 "TRACE t=1.06 lv=1 k=0 hp=140.40 n=0 rng=-174589854303943223/902404325571654243/1231418626397784201/5159219129543269846/-7141095578072418168 pos=158.40,0.00 h=0.000",
@@ -101,14 +101,20 @@
 {
 "boss": 0,
 "dsrc": {},
+"ebul": 0,
+"elites": 0,
 "enemies": 0,
 "hp": 100,
 "hpm": 1.0,
+"hpmin": 100,
 "hsrc": {},
 "kills": 0,
 "lamp": 100,
+"lampmin": 100,
 "lv": 1,
 "mhp": 140,
+"mire_s": 0.0,
+"mires": 0,
 "outc": 0,
 "rg": 1.1,
 "squad": 3,
@@ -121,16 +127,22 @@
 "dsrc": {
 "bullet": 5
 },
+"ebul": 0,
+"elites": 0,
 "enemies": 13,
 "hp": 100,
 "hpm": 1.27,
+"hpmin": 96,
 "hsrc": {
 "塞雷娅": 5
 },
 "kills": 19,
 "lamp": 100,
+"lampmin": 97,
 "lv": 2,
 "mhp": 140,
+"mire_s": 0.0,
+"mires": 0,
 "outc": 400,
 "rg": 1.1,
 "squad": 3,
@@ -141,14 +153,20 @@
 {
 "boss": 0,
 "dsrc": {},
+"ebul": 0,
+"elites": 1,
 "enemies": 18,
 "hp": 100,
 "hpm": 1.55,
+"hpmin": 100,
 "hsrc": {},
 "kills": 56,
 "lamp": 100,
+"lampmin": 100,
 "lv": 4,
 "mhp": 140,
+"mire_s": 0.0,
+"mires": 0,
 "outc": 1239,
 "rg": 1.1,
 "squad": 3,
@@ -194,6 +212,25 @@
 "floors": [],
 "hits": 1,
 "hits_pm": 1.0,
+"lamp_end": 100,
+"lamp_gain": {
+"灯油": 2
+},
+"lamp_loss": {
+"受击": 2
+},
+"lamp_s": [
+59,
+0,
+0,
+0
+],
+"lamp_taken": [
+5,
+0,
+0,
+0
+],
 "low_hp_s": 0,
 "moved_pm": 8989,
 "profile": "expert",

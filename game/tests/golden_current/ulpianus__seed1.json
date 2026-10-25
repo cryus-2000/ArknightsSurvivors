@@ -10,10 +10,10 @@
 "--trace=1",
 "--sptest"
 ],
-"own": "19ef43081f538d6b42c82230dcfd0d3b20ebda222250c42ae1d450fcbbad7baf",
-"other": "d64dcd797613c98bcc69ddf8236b2e25c4f8370e9f9391c9f8bd6d3e74299f66",
-"commit": "9f52d54d",
-"time": "2026-10-25 00:58:44",
+"own": "d39a0bc69853b158293e10df4811f219c89998e3838dec300a1cfad71da29ed5",
+"other": "78421457764ca1dfa84473bfc61345a4c4b7849b82649f308a412c9da0797721",
+"commit": "e9442d17",
+"time": "2026-10-25 03:36:23",
 "trace": [
 "TRACE t=0.00 lv=1 k=0 hp=126.00 n=0 rng=1254182217022189551/-3354552597471257016/1304877216402051367/7096428374354212531/6495007508610584553 pos=0.00,0.00 h=0.000",
 "TRACE t=1.06 lv=1 k=0 hp=126.00 n=0 rng=1254182217022189551/-3354552597471257016/1304877216402051367/7096428374354212531/6495007508610584553 pos=158.40,0.00 h=0.000",
@@ -85,14 +85,20 @@
 {
 "boss": 0,
 "dsrc": {},
+"ebul": 0,
+"elites": 0,
 "enemies": 0,
 "hp": 100,
 "hpm": 1.0,
+"hpmin": 100,
 "hsrc": {},
 "kills": 0,
 "lamp": 100,
+"lampmin": 100,
 "lv": 1,
 "mhp": 126,
+"mire_s": 0.0,
+"mires": 0,
 "outc": 0,
 "rg": 1.6,
 "squad": 1,
@@ -106,16 +112,22 @@
 "contact_bone": 10,
 "corrode": 2
 },
+"ebul": 0,
+"elites": 0,
 "enemies": 13,
 "hp": 93,
 "hpm": 1.27,
+"hpmin": 91,
 "hsrc": {
 "自身回复": 4
 },
 "kills": 19,
 "lamp": 96,
+"lampmin": 96,
 "lv": 2,
 "mhp": 126,
+"mire_s": 0.0,
+"mires": 0,
 "outc": 361,
 "rg": 1.6,
 "squad": 1,
@@ -161,6 +173,24 @@
 "floors": [],
 "hits": 22,
 "hits_pm": 29.3,
+"lamp_end": 88,
+"lamp_gain": {},
+"lamp_loss": {
+"冲撞吸灯": 8,
+"受击": 3
+},
+"lamp_s": [
+44,
+0,
+0,
+0
+],
+"lamp_taken": [
+12,
+0,
+0,
+0
+],
 "low_hp_s": 0,
 "moved_pm": 8940,
 "profile": "expert",
