@@ -262,11 +262,20 @@ func _thrust(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float)
 		e.enraged = true
 		e.spd *= float(d.get("enrage_spd", 1.35))
 		g.vfx.add_text(e.pos + Vector2(0, -e.r - 20.0), "狂暴", Color(1.0, 0.4, 0.5), 14)
+	# 拖痕（docs/155）：原来每 0.7 秒铺一片、常驻且共用 32 片总上限，一追就是一长串，顶满后全图溟痕都不再生成。
+	# 现在每走 enemy/trail_spacing 铺一片（站着不动不铺），每只最多留 trail_max 片，更旧的淡出；怪物溟痕总量另有上限（combat.add_enemy_mire）
 	if e.enraged and d.get("trail_mire", false):
-		e.trail_t -= dt
-		if e.trail_t <= 0.0 and g.mires.size() < 32 and not g.combat.mire_blocked(e.pos + Vector2(0, 8), 30.0):
-			e.trail_t = 0.7
-			g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 8.0, "maxr": 30.0, "life": 5.0, "seed": g.vrng.randf() * 100.0, "boss": false})
+		var lp = e.get("trail_last")
+		var tp: Vector2 = e.pos + Vector2(0, 8)
+		if (lp == null or tp.distance_to(lp) >= Bal.v("enemy/trail_spacing", 40.0)) and not g.combat.mire_blocked(tp, 30.0):
+			e["trail_last"] = tp
+			var tm := {"pos": tp, "r": 12.0, "maxr": 30.0, "life": 5.0, "seed": g.vrng.randf() * 100.0, "boss": false}
+			g.combat.add_enemy_mire(tm, "trail")
+			if not e.has("trail_list"):
+				e["trail_list"] = []
+			e.trail_list.append(tm)
+			if e.trail_list.size() > int(Bal.v("enemy/trail_max", 8.0)):
+				g.combat.fade_mire(e.trail_list.pop_front())
 	var tr := float(d.get("thrust_range", 170))
 	if dist < tr and dist > 30.0 and e.wind <= 0.0 and g.bai.cd_ready(e, "thrust", float(d.get("thrust_cd", 3.2))):
 		if _stag(e):

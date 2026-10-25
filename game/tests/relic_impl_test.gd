@@ -334,7 +334,7 @@ func test_batch_general() -> void:
 	near(game.enemy_ranged_cd_mult, 1.35, "捕鳞蓑：远程开火间隔 ×1.35")
 	grant("194")
 	ok(rfx.rule("chest_keys") == 3, "三钥协定：钥匙 3 把")
-	ok(not game.spawner._mimic_roll(""), "三钥协定：钥匙期间不出箱形恐鱼")
+	ok(not game.spawner._mimic_roll(), "三钥协定：钥匙期间不出箱形恐鱼")
 	grant("249")
 	near(game.lamp_loss_mult, 0.6, "凝固灯油：灯火流失 ×0.6")
 	grant("247")

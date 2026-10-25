@@ -27,6 +27,11 @@ var bossintro_kill_at := -1   # --bossintro：登场演完后击杀 Boss 的帧�
 # --bossmoves=<type>[2][+<搭档>]（docs/95 §12 验收开关）：在主控旁刷出该 Boss（后缀 2 = 二阶段；+搭档 = 接潮组另一具，停在左上不出招），按 bosses/<type>.gd demo_moves 的顺序
 # 逐招 force_move，预警进度 60% 截 shot_bossmove_<type>_<招>.png、结算后 8 帧截 _hit.png；全部放完退出
 var bm_boss: Dictionary = {}
+var ba_boss: Dictionary = {}   # --bossacts（docs/142b §9 逐幕演示 gif）：演示中的 Boss / 搭档 / 下一次过卡点的时刻
+var ba_mate: Dictionary = {}
+var ba_next := 0.0
+var ba_ft := {"a": [], "b": []}   # --bossacts --perfab：每帧用时（微秒），a = 新画法、b = g.perf_alt 旧画法
+var ba_us := 0
 var bm_mate: Dictionary = {}   # --bossmoves=<type>[2]+<搭档>：接潮组的搭档（停在主控左上、不出招、不死，供「统一」等两体招式验收）
 var bm_list: Array = []
 var bm_i := 0
@@ -719,6 +724,9 @@ func step() -> void:
 		if a.begins_with("--bossmoves="):
 			bosstest = true
 			_bossmoves_step(a.substr(12))
+		if a.begins_with("--bossacts="):
+			bosstest = true
+			_bossacts_step(a.substr(11))
 		if a.begins_with("--bossintro="):
 			# Boss 登场演出测试（docs/36 §5）：第 20 帧在主控旁刷出指定 Boss（逗号分隔 = 同组登场）并走一遍登场，
 			# 登场进行到 0.35 / 0.6 / 0.85 / 1.1 秒各截一张；演完后把 Boss 击杀，击破一拍 0.12 / 0.35 秒再各截一张，然后退出
@@ -1214,11 +1222,116 @@ func step() -> void:
 			o.fill_sp()
 	if g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_%d.png" % g.at_frames)
-	if bosstest and g.at_frames > 610 and bm_boss.is_empty():   # --bossmoves 自己数招、放完才退
+	if bosstest and g.at_frames > 610 and bm_boss.is_empty() and ba_boss.is_empty():   # --bossmoves / --bossacts 自己数、放完才退
 		g.get_tree().quit()
 	if (g.state == g.S.WIN and not winshot) or g.at_frames > 14000:
 		print("AUTOTEST END state=%d t=%d" % [g.state, g.t])
 		g.get_tree().quit()
+
+
+## --bossacts=<type>[+<搭档>]（docs/142b §9 逐幕演示，tools/probes/boss_act_gifs.py 拼 gif）：第 20 帧在队长右侧刷出 Boss（伊莎玛拉直接变身、
+## 伊祖米克直接扎根），按自己的 AI 出招；每 boss/acts_demo_len（7）秒把血放到下一道刻度并过卡点，最后一幕放满后退出。
+## 队长不死、绕圈慢走，Boss 血不低于当前刻度（自动攻击照打，打不进下一幕）；第 30 帧起每 3 帧截一张 shot_acts_<tag>_<帧>.png
+func _bossacts_step(spec: String) -> void:
+	var act_len: float = Bal.v("boss/acts_demo_len", 7.0)
+	if g.at_frames == 20:
+		var parts: PackedStringArray = spec.split("+")
+		g.ppos = Vector2(1500, 900)
+		g.max_hp = 900.0
+		g.hp = 900.0
+		g.t = 150.0
+		g.hunt.state = 3   # 「围猎」（约 1:30）不在演示里触发：时间直接跳到 2:30 会让包围圈和 Boss 同场（正式局 Boss 最早 3:30，碰不到）
+		var b := g.spawner.spawn_enemy(parts[0], g.ppos + Vector2(260, -40))
+		b.age = 5.0
+		g.bosses.append(b)
+		g.boss = b
+		if g.final_boss == null and g.spawner.is_final_boss_type(b.type):
+			g.final_boss = b
+		if parts.size() > 1:
+			var m := g.spawner.spawn_enemy(parts[1], g.ppos + Vector2(-260, -60))
+			m.age = 5.0
+			b.partner = m
+			m.partner = b
+			g.bosses.append(m)
+			ba_mate = m
+		if b.type in ["ishar", "izumik"]:
+			g.bai.setup_preview_phase2(b)
+			b.invuln = false
+		ba_boss = b
+		ba_next = g.t + act_len
+		print("BOSSACTS %s gates=%s" % [spec, str(b.get("gates", []))])
+		return
+	if g.at_frames < 20 or ba_boss.is_empty():
+		return
+	g.hp = g.max_hp
+	# 队长绕 (1500, 900) 半径 230 慢走（约 100 像素 / 秒）：站着不动时 Boss 会贴脸近战，远程招和主轴画面（火线、路线）都看不到
+	g.ppos = Vector2(1500, 900) + Vector2.from_angle((g.t - 150.0) * 0.45) * 230.0
+	# 演示只看 Boss 自己：普通波次的杂兵每帧清掉（不掉经验、不计击杀）；机制小怪（部件、连线海嗣、幻影、子代、分形、骑士重生波）留着
+	for o in g.enemies:
+		if not o.dead and not o.boss and not o.chest and not o.get("part", false) and not o.has("web_of") and not o.has("decoy_of") and not o.feed and not o.get("song_eye", false) and not o.has("izu_dir") and o.type != "fractal" and o.age > 0.05 and not o.has("ba_keep"):
+			o.dead = true
+	for e in [ba_boss, ba_mate]:
+		if e.is_empty() or e.dead:
+			continue
+		var gl: Array = e.get("gates", [])
+		e.hp = maxf(e.hp, e.maxhp * ((float(gl[0]) + 0.02) if not gl.is_empty() else 0.12))
+	if g.t >= ba_next:
+		ba_next = g.t + act_len
+		var passed := false
+		for e in [ba_boss, ba_mate]:
+			if e.is_empty() or e.dead or e.get("gates", []).is_empty():
+				continue
+			e.hp = e.maxhp * float(e.gates[0])
+			g.combat.gate_pass(e)
+			passed = true
+		print("BOSSACTS gate t=%.1f passed=%s phase=%d" % [g.t, str(passed), int(ba_boss.phase)])
+		if not passed:
+			for k in ["a", "b"]:
+				var v: Array = ba_ft[k]
+				if v.size() > 10:
+					v.sort()
+					print("BOSSACTS PERF %s n=%d p50=%.2f p95=%.2f ms" % [k, v.size(), v[v.size() / 2] / 1000.0, v[int(v.size() * 0.95)] / 1000.0])
+			print("BOSSACTS END %s" % spec)
+			g.get_tree().quit()
+			return
+	if g.at_frames % 60 == 0:
+		print("BOSSACTS state t=%.1f %s" % [g.t, _ba_state(ba_boss)])
+	_ba_perf()
+	if g.at_frames >= 30 and g.at_frames % 3 == 0 and DisplayServer.get_name() != "headless" and not Cfg.dev_args().has("--noshots"):
+		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_acts_%s_%04d.png" % [spec.replace("+", "_"), g.at_frames])
+
+
+## --bossacts 帧时（协调人 10-25：每只 Boss 改完同局轮换量 P50 / P95）：记上一帧到这一帧的真实用时，按上一帧所用画法分桶；
+## 轮换（--perfab=N，每 N 帧切 g.perf_alt）后的头 2 帧不记（切换那一帧混着两种画法）
+var ba_sw := 0
+func _ba_perf() -> void:
+	var ab: int = 0
+	for a in Cfg.dev_args():
+		if a.begins_with("--perfab="):
+			ab = int(a.substr(9))
+	if ab <= 0:
+		return
+	var now: int = Time.get_ticks_usec()
+	if ba_us > 0 and g.at_frames - ba_sw > 2 and g.at_frames > 80:
+		ba_ft["b" if g.perf_alt else "a"].append(now - ba_us)
+	ba_us = now
+	if g.at_frames % ab == 0:
+		g.perf_alt = not g.perf_alt
+		ba_sw = g.at_frames
+
+
+## 演示日志：主轴状态的个数（火线 / 路线 / 幻影 / 网 / 泪 / 子代 / 强化层 / 冰柱 / 同步护盾），核对 gif 里该出现的东西有没有出现
+func _ba_state(e: Dictionary) -> String:
+	var out: Array = ["act=%d" % int(e.get("gates_passed", 0)), "phase=%d" % int(e.phase)]
+	for k in ["fire_lines", "paths", "stakes", "batch", "eyes"]:
+		if e.has(k):
+			out.append("%s=%d" % [k, e[k].size()])
+	for k in ["web_n", "izu_stacks", "absorb_n", "pair_shield", "drop_until", "aura_off_until", "kcold", "brk_label"]:
+		if e.has(k):
+			out.append("%s=%s" % [k, str(e[k])])
+	if g.has_meta("boss_decoys"):
+		out.append("decoys=%d" % g.get_meta("boss_decoys").size())
+	return " ".join(out)
 
 
 ## --bossmoves=<type>[2]：逐招验收（docs/95 §12）。主控不动（autotest 模式没有移动输入），每招：force_move → 预警 60% 截图 → 结算后 8 帧截图

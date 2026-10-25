@@ -10,7 +10,11 @@ const TINT2 := Color(0.88, 0.98, 1.18)   # 第二幕常驻淡蓝（docs/95 §10.
 
 
 ## 每帧（boss_ai._boss_ai 公共段之后）：ready = 本帧可以出招；mate = 接潮搭档（没有则 null）
-func step(e: Dictionary, _dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
+func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
+	_pair_spread(e, dt)
+	if not e.get("light_rage", false):
+		e.light_rage = true
+		e.spd *= Bal.v("boss/immortal_light_rage", 1.2)   # 常驻轻狂暴（PRTS 描述「更弱小，更狂暴」，docs/142b §3.8）
 	var p2: bool = _pair_p2(e)
 	if p2:
 		_tint2(e, TINT2)
@@ -93,3 +97,8 @@ func _erupt(e: Dictionary) -> void:
 func _fan(e: Dictionary, dir: Vector2, dist: float) -> void:
 	e.pattern_force = "掠海飞刃"
 	g.bai.patterns.try_attack(e, dir, dist)
+
+
+## 同步护盾（docs/142b §3.8）：血量比搭档低出门槛时受伤 × 0.4
+func taken_mult(e: Dictionary) -> float:
+	return _pair_shield(e)

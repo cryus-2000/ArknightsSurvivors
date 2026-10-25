@@ -10,7 +10,8 @@ const TINT2 := Color(0.86, 1.14, 0.95)   # 第二幕常驻绿色亮边（docs/95
 
 
 ## 每帧（boss_ai._boss_ai 公共段之后）：ready = 本帧可以出招；mate = 接潮搭档（没有则 null）
-func step(e: Dictionary, _dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
+func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mate) -> void:
+	_pair_spread(e, dt)
 	var p2: bool = _pair_p2(e)
 	if p2:
 		_tint2(e, TINT2)
@@ -98,5 +99,10 @@ func _leap(e: Dictionary, rift: bool) -> void:
 ## C · 蚀潮吐息（本作原创，取材 PRTS「攻击附带攻击力 50% 侵蚀损伤」）：口部射出 320 × 30 条纹线，追踪 0.4 秒后锁定，总 1.0 秒；
 ## e.dmg × 1.0 法术、侵蚀 0.5，命中后 3 秒内侵蚀结算 +25%（boss_ai _warn_damage → combat.drain_corrode，仍受 Boss 持续伤害上限）
 func _breath(e: Dictionary, dir: Vector2) -> void:
-	_warn(e, "line", 1.0, {"ang": dir.angle(), "len": 320.0, "wid": 30.0, "track": 0.4, "act": "breath", "name": "蚀潮吐息", "col": COL, "dmg": e.dmg * 1.0,
+	_warn(e, "line", 1.0, {"ang": dir.angle(), "len": 320.0, "wid": 30.0, "track": 0.4, "act": "breath", "kp": "archon", "kp_k": 2.0, "name": "蚀潮吐息", "col": COL, "dmg": e.dmg * 1.0,
 		"corrode": 0.5, "corrode_amp": 0.25, "corrode_amp_t": 3.0, "arts": true})
+
+
+## 同步护盾（docs/142b §3.8）：血量比搭档低出门槛时受伤 × 0.4
+func taken_mult(e: Dictionary) -> float:
+	return _pair_shield(e)

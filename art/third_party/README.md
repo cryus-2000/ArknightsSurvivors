@@ -20,6 +20,7 @@
 | `generic_fx/oga_pixel_art_spells` | OGA · Pixel Art Spells | 16px 弹道帧条：Fireball、Light Bolt、Arcane Bolt、Bolt of Purity、Magic Ray… + 48px Shield | CC0 | 小弹道底稿（狐火 / 熔岩弹 / 炮弹） |
 | `particles/kenney_particle_pack` | Kenney · Particle Pack（Calinou 打包） | 80 张柔光 / 烟 / 火花粒子（非像素） | CC0 | 加法发光层的柔光、烟雾底 |
 | `icons/pixelboy_ninja_adventure` | pixel-boy · Ninja Adventure | 16px：FX（Slash / Claw / Explosion / Flam / Aura / Circle / Shield / Spirit / Smoke / Projectile）、Items 技能图标、粒子 | CC0 | **HUD 技能小图标**、爪痕 / 斩击参考；已删掉两个 Godot 工程包 |
+| `lasers/kanpelle_ultimate_laser_pack` | Kanpelle · Ultimate Laser Pack（2026-10-25 用户购买） | 激光三段（起点 / 中段可平铺 / 命中端），每段持续 4 帧 + 开启 4 帧（关闭 = 开启倒放），16 宽、48 格；10 种颜色（含白色版，换色用它） | 可改、可商用；**不得再分发 / 转卖素材包本身**；署名不强制；**不得用于 NFT / AI 训练** | **Boss 激光**（docs/142b §8.4 专属色）：凝视、统一连线、封锁线、手炮光束；对照图 `tools/probes/fx_candidates_sheet.py --kanpelle` |
 
 ## ansimuz 爆炸与魔法合集（2026-09-26 加入，用户购买）
 
@@ -46,7 +47,7 @@
 | 16 / 17 Warped Explosions 7 / 8 | 黑烟红火星爆炸、蓝色能量爆、白色冰爆、小爆 | 维什戴尔（黑红烟）、法术命中（蓝）、通用 |
 | 18 Magic 12 | 金色十字闪 AirSlash、**龙息 DragonBreath**（8f 256×176）、**火焰 Flames**（7f 48×64）、绿色新月斩 GroundSlash、**毒云 Venom Cloud**（8f 128×80） | Flames → 推进之王落地火（替换程序火苗）、艾雅法拉；毒云调紫 → 溟痕 / 侵蚀；GroundSlash 调钢蓝 → 乌尔比安 |
 
-**没有的**：地裂（仍用程序生成）、水母触手、锯盘、钩锚、光束 / 光柱（圣光仍用 Pimen）。
+**没有的**：地裂（仍用程序生成）、水母触手、锯盘、钩锚、光束 / 光柱（圣光仍用 Pimen；10-25 起 Boss 激光用 Kanpelle，见上表）。
 
 ## 下一步（接入方式）
 

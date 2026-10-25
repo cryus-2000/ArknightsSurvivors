@@ -619,6 +619,11 @@ func update_status(dt: float) -> void:
 			m.life -= dt
 		if m.life <= 0.0:
 			continue
+		if m.has("fade"):
+			m.fade -= dt   # 淡出中（docs/155）：不伤人、不长、不随灯火变化，到 0 移除
+			if m.fade <= 0.0:
+				m.life = 0.0
+			continue
 		if not m.get("boss", false) and (lk.x > 0.0 or lk.y > 0.0):
 			_lamp_mire(m, lk, dt)
 			if m.life <= 0.0:
@@ -669,7 +674,7 @@ func lamp_mire_k() -> Vector2:
 ##   挪进最终 Boss 禁生成区或点燃灯标的禁刷区时不挪；中心离队长不到半径一半就不再挪（盖住队长后不跟着走）
 func _lamp_mire(m: Dictionary, lk: Vector2, dt: float) -> void:
 	var d: float = m.pos.distance_to(g.ppos)
-	if lk.x > 0.0 and d < Bal.v("lamp/mire_ward_r", 0.0) + m.r:
+	if lk.x > 0.0 and d < Bal.v("lamp/mire_ward_r", 0.0) + m.r and g.t - float(m.get("t0", -INF)) >= Bal.v("lamp/mire_ward_grace", 3.0):
 		m.maxr = maxf(0.0, minf(float(m.maxr), float(m.r)) - Bal.v("lamp/mire_recede", 10.0) * lk.x * dt)
 		m.r = m.maxr
 		if m.r < 10.0:
@@ -891,6 +896,11 @@ func part_add(e: Dictionary) -> void:
 		if is_same(o, e):
 			return
 	_parts.append(e)
+
+
+## 现存部件，不重排顺序（索敌每次都调，只要「有哪些」，docs/142b §1.0 主轴目标）
+func parts_live() -> Array:
+	return _parts.filter(func(o): return not o.dead and o.get("part", false))
 
 
 ## 现存部件（未死且 part 仍为 true），顺序与 g.enemies 一致（两只以上时按 g.enemies 重排，击杀吸取的结算顺序和原来的全表扫描相同）

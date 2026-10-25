@@ -51,6 +51,11 @@ func absorb_damage(_e: Dictionary, _dmg: float) -> bool:
 	return false
 
 
+## combat.damage 弱点 / 灯光等加成之后、破绽加成之前：受伤倍率（骑士「斗牛」重甲 ×0.4、破绽期 ×2.0，docs/142b §3.1）。缺省 1
+func taken_mult(_e: Dictionary) -> float:
+	return 1.0
+
+
 ## combat.damage 扣血、飘伤害数字之后：dmg = 扣完潮盾的伤害，eff = 实际掉的血（最后的骑士寒冷滑窗、圣徒装填打断）
 func on_damaged(_e: Dictionary, _dmg: float, _eff: float) -> void:
 	pass
@@ -103,6 +108,33 @@ func _first_tell(e: Dictionary, key: String, name: String) -> bool:
 ## 二阶段常驻着色（docs/95 §0.2「阶段切换一眼可见」②）：低幅度乘色，render/world 画本体时乘上；不改帧条
 func _tint2(e: Dictionary, col: Color) -> void:
 	e["tint2"] = col
+
+
+## 冲刺穿身（docs/142b §1.0 公共判定，10-25）：主控正在冲刺、且离本体中心 < 半径 + pad。圣徒装填打断、泡影打落 / 打散光环 / 戳破幻影共用
+func _dash_through(e: Dictionary, pad: float = 24.0) -> bool:
+	return g.dash_t > 0.0 and g.ppos.distance_to(e.pos) < float(e.r) + pad
+
+
+## 接潮组「同步」（docs/142b §3.8，10-25；取材深岩银河：幸存者的无畏舰双子，原作没有）：两具血量比例差超过门槛（一幕 pair_shield_gap 0.25、
+## 二幕 0.15）时，血少的那具出护盾、受伤 × pair_shield_mult（0.4）——自动攻击打射程内最近的 Boss，玩家靠站位决定打谁，要把两具拉平再一起打进假死
+func _pair_shield(e: Dictionary) -> float:
+	var m = e.get("partner")
+	if m == null or m.dead or m.get("coma", false) or e.get("coma", false):
+		e.pair_shield = false
+		return 1.0
+	var gap: float = Bal.v("boss/pair_shield_gap2", 0.15) if _pair_p2(e) else Bal.v("boss/pair_shield_gap", 0.25)
+	e.pair_shield = e.hp / maxf(1.0, e.maxhp) < m.hp / maxf(1.0, m.maxhp) - gap
+	return Bal.v("boss/pair_shield_mult", 0.4) if e.pair_shield else 1.0
+
+
+## 接潮组一幕两具保持 ≥ pair_sep（360，比大多数干员射程远）的距离：近了每秒互相推开 60 像素（站位分得开，才分得出打谁）
+func _pair_spread(e: Dictionary, dt: float) -> void:
+	var m = e.get("partner")
+	if m == null or m.dead or m.get("coma", false) or e.get("coma", false) or _pair_p2(e):
+		return
+	var d: float = e.pos.distance_to(m.pos)
+	if d < Bal.v("boss/pair_sep", 360.0) and d > 1.0:
+		e.pos = g.combat.arena_clamp(e.pos + (e.pos - m.pos).normalized() * 60.0 * dt, 80.0)
 
 
 ## 接潮组的「第二幕」（docs/95 §8–§10「合计 50% 卡点后」）：两具各有自己的 50% 卡点，任一具过了就算整组进第二幕

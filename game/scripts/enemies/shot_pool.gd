@@ -35,8 +35,8 @@ func update_lobs(dt: float) -> void:
 				if not landed:
 					g.fx.append({"kind": "explode", "pos": l.to, "r": l.r, "life": 0.35, "max": 0.35, "col": Color(0.5, 0.9, 0.5) if l.get("mire", false) else Color(0.8, 0.7, 0.55)})
 				# 最终 Boss 禁生成区域按溟痕最大半径检查，区域外照常留痕。
-				if l.get("mire", false) and g.mires.size() < 32 and not g.combat.mire_blocked(l.to, 44.0):
-					g.mires.append({"pos": l.to, "r": 12.0, "maxr": 44.0, "life": 7.0, "seed": g.vrng.randf() * 100.0})
+				if l.get("mire", false) and not g.combat.mire_blocked(l.to, 44.0):
+					g.combat.add_enemy_mire({"pos": l.to, "r": 12.0, "maxr": 44.0, "life": 7.0, "seed": g.vrng.randf() * 100.0}, "lob")
 				if not landed:
 					g.vfx.sparks(l.to, Vector2.ZERO, Color(0.75, 0.7, 0.6), 8, 200.0)
 				Sfx.play("boom", -14.0, 1.6, 0.1)
@@ -114,11 +114,15 @@ func update_ebullets(dt: float) -> void:
 		var hitp: bool = not rock and b.pos.distance_to(g.ppos + Vector2(0, -14)) < b.r + 12.0
 		if b.get("kind", "") == "acid" and (hitp or b.life <= 0.0):
 			g.vfx.fx_sprite("fx_acid_splash", b.pos + Vector2(0, 6), Game.PX, 0.0, false, true)   # Codex v14 酸团落地 / 命中溅开
-		if b.get("mire", false) and (hitp or b.life <= 0.0) and g.mires.size() < 32 and _boss_mire_ok(b) and (b.get("boss", false) or not g.combat.mire_blocked(b.pos + Vector2(0, 10), float(b.get("mire_r", 52.0)))):
+		if b.get("mire", false) and (hitp or b.life <= 0.0) and (not b.get("boss", false) or g.mires.size() < 48) and _boss_mire_ok(b) and (b.get("boss", false) or not g.combat.mire_blocked(b.pos + Vector2(0, 10), float(b.get("mire_r", 52.0)))):
 			var bm: bool = b.get("boss", false)
 			# Boss 溟痕（docs/38 §1.7）：每块最多 6 秒（原来 10 秒）
 			# 小怪子弹留的溟痕按来源定大小 / 时长（浮海飘航者的神经弹：半径 30、5 秒，协调人 9/29 定 A；站进去累积神经损伤）
-			g.mires.append({"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": float(b.get("mire_r", 52.0)), "life": 6.0 if bm else float(b.get("mire_life", 10.0)), "seed": g.vrng.randf() * 100.0, "boss": bm})
+			var bmire := {"pos": b.pos + Vector2(0, 10), "r": 10.0, "maxr": float(b.get("mire_r", 52.0)), "life": 6.0 if bm else float(b.get("mire_life", 10.0)), "seed": g.vrng.randf() * 100.0, "boss": bm}
+			if bm:
+				g.mires.append(bmire)   # Boss 溟痕是招式残留，照旧按 life 到期，不进怪物溟痕计数
+			else:
+				g.combat.add_enemy_mire(bmire, "shot")
 			if not bm and b.has("mire_r"):
 				Sfx.play("mire_splat", -10.0, 1.0, 0.1)   # 神经弹落地留溟痕
 		if hitp:

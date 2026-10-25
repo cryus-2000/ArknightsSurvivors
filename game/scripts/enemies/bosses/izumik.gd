@@ -3,9 +3,16 @@
 ## 4 招：A 潮汐坠落（① 弧形 5 圈，patterns 数据）/ B 解读旋涡（④ 缺口环 2 波，patterns 数据）/ C 分享（③ 扇形；学习期吸收即放小扇、阐释阶段正式招，手写，原作技能名）
 ##      / D 震撼（⑤ 全场·必须冲刺；66% 后 25 秒、33% 后 20 秒并带 4 秒持续法伤，原作技能名）
 ## 机制不占名额：学习期 / 子代 / 吸收 / 灯柱
+## 主轴「拦截」（docs/142b §3.7 / §8.2，10-25；取材 PRTS「学习」召唤子代、吸收 5 次强化 1 层并回血、「震撼」75 / 50 / 25% 强制触发）：
+##   一幕「阐释」（阐释阶段 100–66）：每 izumik_batch_cd（12）秒一批子代（4–6 只）从场边一个方向走向她（每秒 70），主轴目标；
+##     走到她身边被吸收：每 5 只强化 1 层（伤害 +15%，最多 4 层）并回 5% 生命；队长身边的金色箭头指向这一批的来向
+##   二幕「学习」（66–33）：一次两个方向；走到她身边的子代在她脚下结茧 4 秒（主轴目标，青色倒计时环），茧没打掉才被吸收
+##   三幕「分享」（33–0）：不再来子代；4 根灯柱全部点亮；每 12 秒「分享·全场」（预告 3 秒 + 蓄力 1.6 秒），站在灯柱光圈里或冲刺无敌不受伤，
+##     每次分享后你躲进的那根灯柱熄灭（不能再点）；分享扇形改三叶扇
+##   震撼：原来 66% / 33% 后的周期地波改成按原作阈值 75 / 50 / 25% 各强制一次（izumik_shock_at）
 extends "res://scripts/enemies/bosses/boss_base.gd"
 
-const COL := Color(0.5, 1.0, 0.7)
+const COL := Color(0.4, 0.6, 1.0)   # 群青蓝（docs/142b §8.4）
 const MOVES := ["潮汐坠落", "解读旋涡", "分享", "震撼"]
 
 
@@ -49,10 +56,14 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		var gp: int = int(e.get("gates_passed", 0))
 		if gp >= 2 and not e.has("tint2"):
 			_tint2(e, Color(0.82, 1.1, 1.0))   # 33% 后常驻青绿着色（docs/95 §3.2 D）
-		if gp >= 1 and not e.has("wave_next"):
-			e.wave_next = g.t + 0.8   # 66% 卡点后先安静 0.8 秒
-		if ready and gp >= 1 and g.t >= float(e.get("wave_next", INF)):
+		_batch_step(e)
+		var shock: Array = [0.75, 0.5, 0.25]
+		var si: int = int(e.get("shock_i", 0))
+		if ready and si < shock.size() and e.hp < e.maxhp * float(shock[si]):
+			e.shock_i = si + 1
 			_wave(e)
+		elif ready and gp >= 2 and g.t >= float(e.get("share_all_next", INF)):
+			_share_all(e)
 		elif ready and dist < 320.0 and _cd(e, "share", 10.0):
 			_share(e, dir, false)
 
@@ -97,6 +108,11 @@ func _share(e: Dictionary, dir: Vector2, small: bool) -> void:
 	if small:
 		_warn(e, "cone", 0.7, {"ang": dir.angle(), "r": 200.0, "half": 0.5, "act": "sweep", "name": "分享", "col": COL,
 			"dmg": e.dmg * Bal.v("boss/izumik_share_small", 0.5), "arts": true, "lock": false})
+	elif int(e.get("gates_passed", 0)) >= 2:
+		# 三幕三叶扇（docs/142b §8.2「拦路」：在去下一根灯柱的路上）：三片窄扇（半角 0.35）互成 120°，第一片追踪你
+		for k in 3:
+			_warn(e, "cone", 1.6, {"ang": dir.angle() + TAU * k / 3.0, "r": 300.0, "half": 0.35, "track": 0.3 if k == 0 else 0.0, "act": "sweep",
+				"name": "分享" if k == 0 else "", "col": COL, "dmg": e.dmg * Bal.v("boss/izumik_share_mult", 1.2), "arts": true, "lock": k == 0})
 	else:
 		_warn(e, "cone", 1.6, {"ang": dir.angle(), "r": 300.0, "half": 1.0, "track": 0.3, "act": "sweep", "name": "分享", "col": COL,
 			"dmg": e.dmg * Bal.v("boss/izumik_share_mult", 1.2), "arts": true})
@@ -158,6 +174,8 @@ func _izumik_lamps(e: Dictionary) -> void:
 func _izumik_lamp_step(e: Dictionary, dt: float) -> void:
 	var touch: float = Bal.v("boss/izumik_lamp_touch", 40.0)
 	for l in e.get("lamps", []):
+		if l.get("out", false):
+			continue   # 三幕分享后熄灭的灯柱不能再点（docs/142b §3.7）
 		if not l.lit:
 			if g.ppos.distance_to(l.pos) < touch:
 				l.prog += dt
@@ -175,6 +193,122 @@ func _izumik_lamp_step(e: Dictionary, dt: float) -> void:
 			var o: Dictionary = g.enemies[j]
 			if o.type == "offspring" and not o.dead:
 				g.enemies_sys.add_cc(o, -INF, 0.2)
+
+
+## ---- 主轴「拦截」（docs/142b §3.7）
+## 子代批次 e.batch：spawn_enemy("offspring")，feed 走向她（enemies.gd 的喂食移动；引擎只在学习期吸收，阐释阶段由这里判到身边），part = 主轴目标
+func _batch_step(e: Dictionary) -> void:
+	var gp: int = int(e.get("gates_passed", 0))
+	var live: Array = []
+	for o in e.get("batch", []):
+		if o.dead:
+			continue
+		if o.get("izu_cocoon", false):
+			if g.t >= float(o.cocoon_until):
+				o.dead = true
+				g.fx.append({"kind": "ring", "pos": o.pos, "r": 30.0, "life": 0.4, "max": 0.4, "col": COL, "enemy": true})
+				_absorb2(e)
+			else:
+				live.append(o)
+			continue
+		if o.pos.distance_to(e.pos) < e.r + o.r + 10.0:
+			if gp >= 1:
+				_cocoon(e, o)
+				live.append(o)
+			else:
+				o.dead = true
+				_absorb2(e)
+			continue
+		live.append(o)
+	e.batch = live
+	if gp >= 2:
+		return
+	if not e.has("batch_next"):
+		e.batch_next = g.t + 2.0
+	if g.t < float(e.batch_next):
+		return
+	e.batch_next = g.t + Bal.v("boss/izumik_batch_cd", 12.0)
+	var a0: float = g.rng_enemy.randf() * TAU
+	var dirs: Array = [a0]
+	if gp >= 1:
+		dirs.append(a0 + PI + g.rng_enemy.randf_range(-0.7, 0.7))
+	for di in dirs.size():
+		var a: float = dirs[di]
+		var n: int = g.rng_enemy.randi_range(4, 6) if dirs.size() == 1 else g.rng_enemy.randi_range(3, 4)
+		var c: Vector2 = g.combat.arena_clamp(e.pos + Vector2.from_angle(a) * Bal.v("boss/izumik_batch_dist", 700.0), 60.0)
+		for k in n:
+			var p: Vector2 = g.combat.arena_clamp(c + Vector2.from_angle(a + PI * 0.5) * (float(k) - (n - 1) * 0.5) * 34.0, 60.0)
+			var o: Dictionary = g.spawner.spawn_enemy("offspring", p)
+			o.feed = true
+			o.feed_to_id = e.id
+			o.spd = Bal.v("boss/izumik_batch_spd", 70.0)
+			o.part = true
+			o.izu_dir = di
+			g.enemies_sys.part_add(o)
+			live.append(o)
+	e.batch = live
+	e.batch_t = g.t
+	g.vfx.add_text(e.pos + Vector2(0, -60), "子代来袭", COL, 16)
+	Sfx.play("tentacle", -5.0, 0.8)
+
+
+## 二幕：走到她身边的子代原地结茧 izumik_cocoon_t（4）秒（不再走、不打人），茧没被打掉就吸收
+func _cocoon(e: Dictionary, o: Dictionary) -> void:
+	o.izu_cocoon = true
+	o.cocoon_until = g.t + Bal.v("boss/izumik_cocoon_t", 4.0)
+	o.feed = false
+	o.ai = "static"
+	o.spd = 0.0
+	o.dmg = 0.0
+	o.extra_next = INF
+	o.pos = g.combat.arena_clamp(e.pos + (o.pos - e.pos).normalized() * (e.r + 30.0), 60.0)
+	g.vfx.add_text(o.pos + Vector2(0, -36), "结茧", COL, 13)
+
+
+## 阐释阶段的吸收：每 izumik_absorb_need（5）只强化 1 层（伤害 × (1 + izumik_stack_dmg 0.15)，最多 izumik_stack_max 4 层）并回 izumik_stack_heal（5%）生命
+func _absorb2(e: Dictionary) -> void:
+	Sfx.play("izu_absorb", -9.5, 1.0, 0.0)
+	e.absorb_n = int(e.get("absorb_n", 0)) + 1
+	var need: int = maxi(1, int(Bal.v("boss/izumik_absorb_need", 5.0)))
+	if e.absorb_n % need == 0 and int(e.get("izu_stacks", 0)) < int(Bal.v("boss/izumik_stack_max", 4.0)):
+		e.izu_stacks = int(e.get("izu_stacks", 0)) + 1
+		e.dmg *= 1.0 + Bal.v("boss/izumik_stack_dmg", 0.15)
+		e.hp = minf(e.maxhp, e.hp + e.maxhp * Bal.v("boss/izumik_stack_heal", 0.05))
+		g.vfx.add_text(e.pos + Vector2(0, -60), "吸收 · 强化 %d 层" % int(e.izu_stacks), Color(0.5, 1.0, 0.6), 18)
+		g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.6), "enemy": true})
+	else:
+		g.vfx.add_text(e.pos + Vector2(0, -50), "吸收 %d / %d" % [e.absorb_n % need, need], Color(0.5, 1.0, 0.6), 14)
+
+
+## 三幕「分享·全场」：借震撼的全场判定（telegraph izu_wave：冲刺无敌或灯柱光圈里不受伤），带 share_all——结算后你躲进的那根灯柱熄灭
+func _share_all(e: Dictionary) -> void:
+	e.share_all_next = g.t + Bal.v("boss/izumik_share_all_cd", 12.0)
+	var dur: float = Bal.v("boss/izumik_share_all_warn", 3.0) + Bal.v("boss/izumik_share_all_charge", 1.6)
+	_warn(e, "circle", dur, {"follow": true, "r": 2400.0, "act": "izu_wave", "name": "分享·全场", "must_dash": true, "col": COL,
+		"dmg": minf(e.dmg * 1.5, g.max_hp * Bal.v("boss/izumik_share_all_cap", 0.2)), "share_all": true, "arts": true})
+	Sfx.play("skill", -2.0, 0.8)
+
+
+## 过卡点：二幕横幅；三幕灯柱重排成 4 根全亮、4 秒后第一次全场分享
+func on_gate(e: Dictionary) -> void:
+	if e.phase != 2:
+		return
+	var gp: int = int(e.get("gates_passed", 0))
+	if gp >= 2:
+		e.lamp_r = Bal.v("boss/izumik_lamp_r", 120.0)
+		e.lamps = []
+		var a0: float = g.rng_enemy.randf() * TAU
+		for k in 4:
+			var p: Vector2 = g.combat.arena_clamp(e.pos + Vector2.from_angle(a0 + TAU * k / 4.0) * 280.0, 90.0)
+			e.lamps.append({"pos": p, "lit": true, "prog": 1.0})
+			g.fx.append({"kind": "ring", "pos": p, "r": e.lamp_r, "life": 0.6, "max": 0.6, "col": Color(1.4, 1.1, 0.5), "enemy": true})
+		e.share_all_next = g.t + 4.0
+
+
+## 本体倒下：茧一起散（还在走的子代由 combat 的喂食清理带走）
+func on_kill(e: Dictionary) -> void:
+	for o in e.get("batch", []):
+		o.dead = true
 
 
 func izumik_safe(e: Dictionary) -> bool:

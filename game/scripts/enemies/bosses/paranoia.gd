@@ -2,6 +2,13 @@
 ## Boss 行为脚本（docs/55 §6 拆分，10-10）：状态仍在敌人字典 e 上，预警 / 冷却 / 迫近经基类转给 boss_ai.gd。本文件只有这只 Boss 自己的招式与阶段逻辑。
 ## 4 招：A 凝视（② 直线，手写）/ B 泡影环（④ 缺口环，patterns 数据）/ C 叠影（① 序列落点圈，patterns stack）/ D 呼号（③ 扇形，二阶段，手写）
 ## 机制不占名额：认知负担光环、茧 / 破茧、漂近
+## 主轴「打落」（docs/142b §3.5 / §8.2，10-25）：三幕都靠冲刺穿身，只是每幕冲刺的用处不同
+##   一幕「凝望」：悬浮时受伤 × paranoia_hover_taken（0.5）；冲刺穿过她 → 坠地 paranoia_drop_t（4）秒（破绽，合计受伤 × paranoia_drop_taken 1.8），
+##     起身后 paranoia_drop_cd（2）秒内不能再打落。凝视 = 两道平行光束；泡影环缺口朝着你（缺口就是冲进去的路）
+##   二幕「狂望」：分出 2 个幻影（_decoy_step）一起漂，只有真身在地上有影子；幻影也吃自动攻击（op_api._focus_bosses），挨 3 下散、6 秒后重新分出；
+##     冲刺穿过幻影 = 幻影炸开（小伤害 + 减速 1 秒），丢一次冲刺。凝视改 X 交叉（交点在你脚下）
+##   三幕「失声」（落地二阶段，茧后同）：光环张开时她受伤 × paranoia_aura_taken（0.5，取代原作的重攻速减益——攻速削减上限 −15%，§1.11）；
+##     冲刺穿身 = 光环散掉 paranoia_aura_off（5）秒，正常受伤；呼号只在光环张开时放（每 6 秒）；泡影环 2 波错位缺口
 extends "res://scripts/enemies/bosses/boss_base.gd"
 
 const COL := Color(0.9, 0.4, 1.0)
@@ -13,15 +20,17 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	if e.get("cocoon_t", 0.0) > 0.0:
 		_paranoia_cocoon_step(e, dt)
 		return
+	_drop_step(e)
+	_decoy_step(e, dt)
 	_paranoia_aura(e, dist)
 	if not ready:
 		return
 	# 一阶段悬浮远程时的迫近（泡影漂近，协调人 9/30 定 b；close6b：落地前 on_boss 0.01–0.10，用时一一对应）
 	if e.phase == 1 and _close_in(e, dir, dist, "paranoia", "泡影漂近", Color(0.85, 0.45, 1.0)) >= 0.0:
 		return
-	# D 呼号：落地后、主控在 260 内，howl 8 秒；第一次先亮招式名 0.6 秒（§0.2）
-	if e.phase == 2 and dist < 260.0 and float(e.get("cds", {}).get("howl", 0.0)) <= g.t:
-		if _first_tell(e, "howl", "呼号") and _cd(e, "howl", 8.0):
+	# D 呼号：落地后、光环张开、主控在 260 内，howl 6 秒（docs/142b §8.2「惩罚」：光环散掉的 5 秒里不放）；第一次先亮招式名 0.6 秒（§0.2）
+	if e.phase == 2 and not _aura_off(e) and dist < 260.0 and float(e.get("cds", {}).get("howl", 0.0)) <= g.t:
+		if _first_tell(e, "howl", "呼号") and _cd(e, "howl", Bal.v("boss/paranoia_howl_cd", 6.0)):
 			_howl(e, dir)
 		return
 	# A 凝视：gaze 11 秒（第二幕 ×0.9）；一阶段 2 道、二阶段 3 道、茧未打破 +1
@@ -54,12 +63,27 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 	return false
 
 
-## A · 凝视（保留）：直线 820 × 26 条纹，每道从眼位射出、起点标 1 / 2 / 3，追踪 0.65 秒后锁定，每道间隔 0.6 秒；e.dmg × 2.0，侵蚀 0.5
+## A · 凝视：直线 820 × 26，e.dmg × 2.0，侵蚀 0.5，Kanpelle 淡紫光束（docs/142b §8.5）。按幕换形（§8.2）：
+##   一幕两道平行——第一道追踪 0.65 秒瞄你，第二道 0.3 秒后在它旁边 90 像素（随机一侧）平行落下：往另一侧横移；
+##   二幕 X 交叉——两道以你脚下为交点、与「她 → 你」各成 ±0.6 弧度，出手即锁定：斜着离开交点；
+##   三幕 / 茧后（落地）——原来的 3 道依次追踪（每道间隔 0.6 秒）。茧没打破 +1 道（依次追踪接在后面）
 func _gaze(e: Dictionary, dir: Vector2) -> void:
-	var ng: int = (2 if e.phase == 1 else 3) + int(e.get("gaze_bonus", 0))
-	for k in ng:
-		_warn(e, "line", 1.3 + 0.6 * k, {"ang": dir.angle(), "len": 820.0, "wid": 26.0, "track": 0.65 + 0.6 * k, "act": "beam", "seq_no": k + 1,
-			"name": "凝视" if k == 0 else "", "col": COL, "dmg": e.dmg * 2.0, "corrode": 0.5, "lock": k == 0})
+	var base: Dictionary = {"len": 820.0, "wid": 26.0, "act": "beam", "col": COL, "dmg": e.dmg * Bal.v("boss/paranoia_gaze_mult", 1.56), "corrode": 0.5, "kp": "paranoia", "kp_k": 2.0}   # 原 2.0（10-25 加密 ×0.78）
+	var ng: int = 4   # 落地后依次 4 道（10-25 加密：原 3）
+	if e.phase == 1 and int(e.get("gates_passed", 0)) >= 1:
+		ng = 0
+		# 二幕交叉：两斜线 + 一道沿「她 → 你」的直线（米字，10-25 加密：原 X 两道），交点都在你脚下
+		for s in [-1.0, 1.0, 0.0]:
+			var a: float = dir.angle() + 0.6 * s
+			_warn(e, "line", 1.3 if s != 0.0 else 1.6, base.merged({"pos": g.ppos - Vector2.from_angle(a) * 410.0, "ang": a, "track": 0.0, "no_eye": true,
+				"name": "凝视" if s < 0.0 else "", "seq_no": 1 if s < 0.0 else (2 if s > 0.0 else 3), "lock": s < 0.0}))
+	elif e.phase == 1:
+		ng = 1
+		# 一幕：瞄你的一道 + 两侧各一道平行（10-25 加密：原只一侧），中间那条跑道 1.6 秒后才落
+		for side in [-1.0, 1.0]:
+			_warn(e, "line", 1.6, base.merged({"pos": e.pos + dir.orthogonal() * 90.0 * side, "ang": dir.angle(), "track": 0.0, "seq_no": 2, "name": "", "lock": false}))
+	for k in ng + int(e.get("gaze_bonus", 0)):
+		_warn(e, "line", 1.3 + 0.6 * k, base.merged({"ang": dir.angle(), "track": 0.65 + 0.6 * k, "seq_no": k + 1, "name": "凝视" if k == 0 and ng != 0 else "", "lock": k == 0 and ng != 0}))
 
 
 ## D · 呼号（二阶段，新；PRTS「大群的祈望堵住了她的喉咙，她发不出声音」→ 张口无声、只喷泡沫）：
@@ -84,11 +108,134 @@ func _paranoia_p2(e: Dictionary) -> void:
 	_tint2(e, Color(0.92, 0.82, 1.12))
 
 
+## ---- 主轴「打落」（docs/142b §3.5）
+## 一 / 二幕（悬浮）：冲刺穿过真身 → 坠地 4 秒（借破绽：不出招、受伤 × break_mult，taken_mult 再补到合计 1.8）；三幕起（落地）：冲刺穿身 = 光环散掉 5 秒
+func _drop_step(e: Dictionary) -> void:
+	if e.phase == 1:
+		if float(e.get("break_t", 0.0)) > 0.0 or g.t < float(e.get("drop_ok_at", 0.0)) or not _dash_through(e):
+			return
+		var t: float = Bal.v("boss/paranoia_drop_t", 4.0)
+		g.combat.start_break(e, t)
+		e.drop_until = g.t + t
+		e.drop_ok_at = g.t + t + Bal.v("boss/paranoia_drop_cd", 2.0)
+		g.warns = g.warns.filter(func(w): return not is_same(w.owner, e) or w.done)
+		g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.4, "life": 0.5, "max": 0.5, "col": Color(0.45, 0.95, 1.0), "enemy": true})
+		g.vfx.add_text(e.pos + Vector2(0, -70), "坠地", Color(0.45, 0.95, 1.0), 20)
+		g.vfx.shake_screen(0.6)
+		Sfx.play("shell_break", -6.0, 1.3, 0.0)
+	elif not _aura_off(e) and e.get("cocoon_t", 0.0) <= 0.0 and _dash_through(e):
+		var t2: float = Bal.v("boss/paranoia_aura_off", 5.0)
+		e.aura_off_until = g.t + t2
+		e.aura_off_max = t2
+		g.fx.append({"kind": "ring", "pos": e.pos, "r": float(e.get("burden_r", 300.0)), "life": 0.6, "max": 0.6, "col": Color(0.45, 0.95, 1.0), "enemy": true})
+		g.vfx.add_text(e.pos + Vector2(0, -70), "光环散开", Color(0.45, 0.95, 1.0), 18)
+		Sfx.play("shell_break", -6.0, 1.1, 0.0)
+
+
+func _aura_off(e: Dictionary) -> bool:
+	return float(e.get("aura_off_until", 0.0)) > g.t
+
+
+## 二幕「狂望」叠影：2 个幻影（敌人字典，借 bone 的底子（ai static、伤害 0 = 无接触伤害、extra_next INF = 不出额外招），贴图换成泡影一阶段、不画影子 no_shadow、不走画法缓存），
+## 绕真身 170 漂（每秒最多 160 像素）；血量不掉（挨打只计次数 hits），挨 paranoia_decoy_hits（3）下散，散后 paranoia_decoy_respawn（6）秒在原位重新分出；
+## 冲刺穿过幻影 = 炸开（e.dmg × 0.3 + 减速 1 秒）。离开二幕（落地 / 结茧）全部散掉。自动索敌把它们当 Boss 一起比远近（op_api._focus_bosses 读 boss_decoys）
+func _decoy_step(e: Dictionary, dt: float) -> void:
+	var on: bool = e.phase == 1 and int(e.get("gates_passed", 0)) == 1 and e.get("cocoon_t", 0.0) <= 0.0
+	var slots: Array = e.get("decoys", [])
+	if not on:
+		if not slots.is_empty():
+			for sl in slots:
+				if sl.o != null and not sl.o.dead:
+					_decoy_pop(e, sl, false)
+			e.decoys = []
+			g.remove_meta("boss_decoys")
+		return
+	if slots.is_empty():
+		for k in 2:
+			slots.append({"k": k, "o": null, "next": g.t + 0.6 * k})
+		e.decoys = slots
+	var live: Array = []
+	for sl in slots:
+		if sl.o == null or sl.o.dead:
+			sl.o = null
+			if g.t >= float(sl.next):
+				sl.o = _decoy_make(e, int(sl.k))
+		var o = sl.o
+		if o == null:
+			continue
+		var want: Vector2 = g.combat.arena_clamp(e.pos + Vector2.from_angle(g.t * 0.4 + TAU * (int(sl.k) + 1) / 3.0) * 170.0, 60.0)
+		o.pos = o.pos.move_toward(want, 160.0 * dt)
+		o.kb = Vector2.ZERO
+		o.hp = o.maxhp
+		o.phase = 1
+		if int(o.hits) >= int(Bal.v("boss/paranoia_decoy_hits", 3.0)):
+			_decoy_pop(e, sl, false)
+		elif _dash_through(o):
+			_decoy_pop(e, sl, true)
+		else:
+			live.append(o)
+	g.set_meta("boss_decoys", live)
+
+
+func _decoy_make(e: Dictionary, k: int) -> Dictionary:
+	var o: Dictionary = g.spawner.spawn_enemy("bone", e.pos)
+	o.name = e.name
+	o.tex = e.tex
+	o.tex_move = false
+	o.tex_attack = false
+	o.tex_charge = false
+	o.tex_feign = false
+	o.tex_death = false
+	o.r = e.r
+	o.r0 = e.r
+	o.xp = 0.0
+	o.dmg = 0.0
+	o.spd = 0.0
+	o.ai = "static"
+	o.extra_next = INF
+	o.affix = ""
+	o.shield_hp = 0.0
+	o.maxhp = 1.0e9
+	o.hp = o.maxhp
+	o.decoy_of = e
+	o.no_shadow = true
+	o["dcs"] = true   # 不走画法缓存（world._dc_ok）
+	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 1.6, "life": 0.4, "max": 0.4, "col": COL, "enemy": true})
+	return o
+
+
+func _decoy_pop(e: Dictionary, sl: Dictionary, dashed: bool) -> void:
+	var o: Dictionary = sl.o
+	o.dead = true
+	sl.o = null
+	sl.next = g.t + Bal.v("boss/paranoia_decoy_respawn", 6.0)
+	g.fx.append({"kind": "ring", "pos": o.pos, "r": o.r * 2.0, "life": 0.45, "max": 0.45, "col": COL, "enemy": true})
+	g.vfx.sparks(o.pos, Vector2.UP, COL, 14, 160.0)
+	if dashed:
+		g.combat.enemy_hit(e.dmg * 0.3, {"boss": true, "src_type": e.type}, false, true, ["法术"], "boss_" + e.type)
+		g.combat.slow_leader("paranoia_decoy", 1.0, 0.7)
+		g.vfx.add_text(o.pos + Vector2(0, -50), "幻影", Color(0.85, 0.7, 1.0), 16)
+		Sfx.play("shell_break", -8.0, 1.6, 0.0)
+
+
+## 主轴受伤倍率（combat.damage，乘在破绽倍率之前）：茧期 1；悬浮 0.5 / 坠地合计 1.8；落地光环张开 0.5、散开 1
+func taken_mult(e: Dictionary) -> float:
+	if e.get("cocoon_t", 0.0) > 0.0:
+		return 1.0
+	if e.phase == 1:
+		if float(e.get("break_t", 0.0)) > 0.0:
+			return Bal.v("boss/paranoia_drop_taken", 1.8) / maxf(0.01, Bal.v("boss/break_mult", 1.4))
+		return Bal.v("boss/paranoia_hover_taken", 0.5)
+	return 1.0 if _aura_off(e) else Bal.v("boss/paranoia_aura_taken", 0.5)
+
+
 ## 认知负担光环：主控站在 boss/paranoia_aura_r（220；二阶段 paranoia_aura_r2 300）内时，全队攻速 ×(1 − paranoia_aura_aspd)（一阶段 0.10、二阶段 paranoia_aura_aspd2 0.15；
 ## 合计攻速削减上限 −15%，§1.11；stats 来源 "paranoia_aura"）
 func _paranoia_aura(e: Dictionary, dist: float) -> void:
 	var p2: bool = e.phase == 2
 	e.burden_r = Bal.v("boss/paranoia_aura_r2", 300.0) if p2 else Bal.v("boss/paranoia_aura_r", 220.0)   # 画面读这个半径画地面符文圈
+	if p2 and _aura_off(e):
+		e.burden_r = 0.0   # 三幕冲刺打散：光环散开期间不画、不减攻速（docs/142b §3.5）
 	var inside: bool = dist < e.burden_r
 	var want_k: int = (2 if p2 else 1) if inside else 0
 	if want_k != int(e.get("burden_k", 0)):
@@ -136,8 +283,8 @@ func _paranoia_cocoon_step(e: Dictionary, dt: float) -> void:
 	e.shell_shot -= dt
 	if e.shell_shot <= 0.0:
 		e.shell_shot = 2.0
-		for k in 8:
-			g.ebullets.append({"pos": e.pos, "vel": Vector2.from_angle(TAU * k / 8.0 + g.t) * 120.0, "dmg": e.dmg * 0.4, "slow": false, "r": 7.0,
+		for k in 11:   # 10-25 加密：原 8 发、e.dmg × 0.4
+			g.ebullets.append({"pos": e.pos, "vel": Vector2.from_angle(TAU * k / 11.0 + g.t) * 120.0, "dmg": e.dmg * 0.31, "slow": false, "r": 7.0,
 				"life": 3.0, "corrode": 0.0, "nerve": 0.0, "true": false, "kind": "nova", "home": false, "boss": true, "src_type": e.type})
 	if e.cocoon_t <= 0.0:
 		paranoia_hatch(e, false)
@@ -188,8 +335,12 @@ func on_lethal(e: Dictionary) -> bool:
 	return super.on_lethal(e)
 
 
-## 认知负担光环随本体撤掉
-func on_kill(_e: Dictionary) -> void:
+## 认知负担光环、幻影随本体撤掉
+func on_kill(e: Dictionary) -> void:
+	for sl in e.get("decoys", []):
+		if sl.o != null and not sl.o.dead:
+			sl.o.dead = true
+	g.remove_meta("boss_decoys")
 	g.stats.remove_source("paranoia_aura")
 	g.sync_stats()
 

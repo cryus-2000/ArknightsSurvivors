@@ -171,10 +171,6 @@ func _ishar_haste(e: Dictionary) -> float:
 	return boss("ishar")._ishar_haste(e)
 
 
-func _path_core(e: Dictionary) -> void:
-	boss("path")._path_core(e)
-
-
 func saint_interrupt(e: Dictionary) -> void:
 	boss("iberia").saint_interrupt(e)
 

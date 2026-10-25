@@ -925,6 +925,8 @@ func _mire_disc(m: Dictionary) -> Array:
 
 func draw_mire(m: Dictionary) -> void:
 	var a: float = clamp(m.life / 3.0, 0.0, 1.0) if m.get("boss", false) else (1.0 if m.life > 0.0 else 0.0)   # 常驻溟痕不淡出；Boss 溟痕到期前 3 秒淡出
+	if m.has("fade"):
+		a *= clampf(float(m.fade) / maxf(0.01, Bal.v("enemy/mire_fade", 1.5)), 0.0, 1.0)   # 被挤掉的溟痕慢慢淡出（docs/155）
 	var t: float = g.t
 	if mire_v2:
 		draw_mire_cells(_mire_disc(m), int(t * 2.0 + m.seed) % 2, Color(1, 1, 1, a))

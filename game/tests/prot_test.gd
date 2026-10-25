@@ -823,6 +823,8 @@ func test_retreat() -> void:
 
 ## 最终 Boss 在场时的存活杂兵上限（boss/final_mob_cap，协调人 9/30）：只在最终 Boss 活着时生效；泪滴等友方、宝箱、Boss 不计数
 func test_final_mob_cap() -> void:
+	var keep_duel = Bal._data["boss"].get("final_duel")   # 这组测的是旧的少量补怪：先关掉最终 Boss 停刷（docs/142b §1.5）
+	Bal._data["boss"]["final_duel"] = 0.0
 	var sp = game.spawner
 	var keep_e: Array = game.enemies
 	var keep_f = game.final_boss
@@ -867,7 +869,13 @@ func test_final_mob_cap() -> void:
 ## 中期 Boss 不停；Boss 召唤物照常；旋钮关 = 旧行为；难度表 final_stop_mobs 按档覆盖；clear_mobs_s > 0 时现有杂兵由远到近逐只消散，
 ## 不掉经验、不计击杀；停刷那一帧 spawner.update 不掷随机数。
 ## 10-12 少量补怪（final/trickle_mult / trickle_cap / trickle_fresh_w）：普通怪按低倍率补、不超上限，新种类权重降低，无精英 / 大群 / 威胁那一小波
+	if keep_duel == null:
+		Bal._data["boss"].erase("final_duel")
+	else:
+		Bal._data["boss"]["final_duel"] = keep_duel
 func test_final_stop_mobs() -> void:
+	var keep_duel = Bal._data["boss"].get("final_duel")   # 这组测的是旧的少量补怪：先关掉最终 Boss 停刷（docs/142b §1.5）
+	Bal._data["boss"]["final_duel"] = 0.0
 	var D = preload("res://scripts/data.gd")
 	var sp = game.spawner
 	var keep_e: Array = game.enemies
@@ -1068,6 +1076,10 @@ func test_final_stop_mobs() -> void:
 
 
 ## 伊莎玛拉提速（协调人 9/30）：离远了带预警冲近（潮涌迫近，② 直线），落地给破绽；人形阶段充能 ×ishar_p1_scale
+	if keep_duel == null:
+		Bal._data["boss"].erase("final_duel")
+	else:
+		Bal._data["boss"]["final_duel"] = keep_duel
 func test_ishar_close() -> void:
 	var keep: Array = game.bosses.duplicate()
 	var e: Dictionary = game.spawner.spawn_enemy("ishar", game.ppos + Vector2(500, 0))
@@ -1708,32 +1720,26 @@ func test_lore1() -> void:
 	var sp = game.spawner
 	var bai = game.bai
 	c.hit("test")
+	# 塑路者「截路」（docs/142b §3.2）：铺路 → 沿路刷分形 → 跑过路标截断（分形停下、成部件、优先索敌）→ 全部截断迷路
 	var pa: Dictionary = sp.spawn_enemy("path", game.ppos + Vector2(1500, 0))
-	pa.gates_passed = 1
-	bai._path_core(pa)
-	var core = pa.get("core")
-	var owned := 0
-	for o in game.enemies:
-		if o.type == "fractal" and not o.dead and is_same(o.get("owner"), pa):
-			owned += 1
-	ok(core != null and core.part and core.spd == 0.0 and owned >= 3, "塑路者第二幕出核心部件（场上碎片 %d）" % owned)
+	var ph = bai.boss("path")
+	ph._paths_step(pa, 0.01, false)
+	ok(pa.get("paths", []).size() == 1 and pa.paths[0].pts.size() == 5, "塑路者铺一条生路（4 段、4 个路标）")
+	pa.paths[0].next_spawn = 0.0
+	ph._paths_step(pa, 0.01, false)
+	ok(pa.paths[0].frs.size() == 1, "沿生路刷出分形")
+	var fr0: Dictionary = pa.paths[0].frs[0].o
+	var p_keep: Vector2 = game.ppos
+	game.ppos = pa.paths[0].pts[2]
 	var near: Dictionary = sp.spawn_enemy("bone", game.ppos + Vector2(20, 0))
+	ph._paths_step(pa, 0.01, false)
+	ok(pa.break_t > 0.0 and fr0.part, "跑过路标截断：分形停下成主轴目标；唯一一条路断了 → 迷路破绽 %.1f 秒" % pa.break_t)
 	game.enemies_sys.build_grid()   # 空间网格每帧重建；刚刷出的单位要先进网格
 	var first: Array = game.enemies_sys.nearest(1, 5000.0)
-	ok(not first.is_empty() and is_same(first[0], core), "部件在射程内优先被索敌")
+	ok(not first.is_empty() and is_same(first[0], fr0), "截停的分形（部件）在射程内优先被索敌")
 	near.dead = true
-	core.dead = true
-	bai._path_core(pa)
-	var left := 0
-	for o in game.enemies:
-		if o.type == "fractal" and not o.dead and is_same(o.get("owner"), pa):
-			left += 1
-	ok(pa.break_t > 0.0 and left == 0 and pa.get("core") == null, "打碎核心：碎片崩解、Boss 破绽 %.1f 秒" % pa.break_t)
-	pa.core_next = 0.0
-	bai._path_core(pa)
-	pa.core_until = game.t - 1.0
-	bai._path_core(pa)
-	ok(int(pa.get("dash_bonus", 0)) >= 3, "核心超时：碎片回流，下次冲撞 +%d 段" % int(pa.get("dash_bonus", 0)))
+	fr0.dead = true
+	game.ppos = p_keep
 	pa.dead = true
 	# 接潮假死赛跑
 	var bi: Dictionary = sp.spawn_enemy("bishop", game.ppos + Vector2(1600, 0))
@@ -1782,8 +1788,13 @@ func test_lore2() -> void:
 		c.damage(ib, ib.maxhp * 0.01)
 		k += 1
 	ok(ib.channel <= 0.0 and ib.break_t > 0.0 and ib.ammo == 0, "读条中打掉约 5%% 被打断：破绽 %.1f 秒" % ib.break_t)
-	# 冲刺穿身打断
+	# 起身补弹（docs/142b §3.3）：破绽结束直接补满弹药、转回远程，不再装填
 	ib.break_t = 0.0
+	go.call(ib, 0.01)
+	var rose_ok: bool = not ib.get("refill_on_rise", false) and ib.channel <= 0.0 and (ib.ammo == 1 or game.warns.any(func(w): return is_same(w.owner, ib) and w.name == "轰击"))
+	ok(rose_ok, "打断后起身：直接补满弹药（同帧可能立刻放轰击），不再装填")   # 起身那一帧离主控 500 正好够轰击
+	# 冲刺穿身打断
+	ib.ammo = 0
 	ib.reload_t = 0.0
 	go.call(ib, 0.01)
 	var p0: Vector2 = game.ppos
@@ -1795,6 +1806,8 @@ func test_lore2() -> void:
 	game.ppos = p0
 	# 没打断：三连瞄准
 	ib.break_t = 0.0
+	ib.refill_on_rise = false
+	ib.ammo = 0
 	ib.reload_t = 0.0
 	go.call(ib, 0.01)
 	var nw: int = game.warns.size()
@@ -1809,10 +1822,8 @@ func test_lore2() -> void:
 	cm.ammo = 0
 	cm.reload_t = 0.0
 	go.call(cm, 0.01)
-	ok(cm.get("sword_t", 0.0) > 0.0 and cm.ai == "melee" and cm.channel <= 0.0, "卡门第二幕弹药打空先炮身近战")
-	go.call(cm, Bal.v("boss/carmen_sword", 8.0) + 0.1)
-	go.call(cm, 0.01)
-	ok(absf(cm.channel - Bal.v("boss/carmen_reload", 3.0)) < 0.05, "剑形态结束后装填 %.1f 秒" % cm.channel)
+	# docs/142b §3.4：炮身近战段由封锁线取代——二幕弹药打空直接装填，装填一开始退避跳开
+	ok(absf(cm.channel - Bal.v("boss/carmen_reload", 3.0)) < 0.05 and cm.kb.length() > 100.0, "卡门第二幕弹药打空直接装填 %.1f 秒并退避跳开" % cm.channel)
 	cm.dead = true
 	game.warns.clear()
 

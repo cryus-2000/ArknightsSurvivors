@@ -204,7 +204,11 @@ def check_migration(exe,audience,commit):
     out,err,timeout,first=isolated_run(boot,120,{'ArknightsSurvivors/settings.cfg':LEGACY_SAVE,'ArknightsSurvivors_Internal_oldsha/settings.cfg':KEEP_SAVE},inspect)
     if timeout: raise RuntimeError('Migration boot timed out')
     failures=[]
-    if first['legacy']!=LEGACY_SAVE: failures.append('legacy_changed')
+    # 旧目录 ArknightsSurvivors：对内包不得动它（逐字不变）；对外包它就是自己的存档，启动时升级版本号 / 补写新键、首次开场写 opening_seen
+    # 都是正常改写（10-26：对外包首次在 10-24 之后出包时误报 legacy_changed），只要求原有进度还在
+    if audience=='internal':
+        if first['legacy']!=LEGACY_SAVE: failures.append('legacy_changed')
+    elif not first['legacy'] or 'migrate_probe' not in first['legacy']: failures.append('legacy_progress_lost')
     if first['old_internal']!=KEEP_SAVE: failures.append('old_internal_changed')
     if audience=='internal':
         if first['own'] and ('migrate_probe' in first['own'] or 'keep_probe' in first['own']): failures.append('save_inherited')
