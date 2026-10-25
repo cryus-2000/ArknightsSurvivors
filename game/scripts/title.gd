@@ -11,7 +11,7 @@ func _ready() -> void:
 		FR.mark("title_ready")
 		RenderingServer.frame_post_draw.connect(func(): FR.mark("title"), CONNECT_ONE_SHOT)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_bg_game.call_deferred()   # 启动页盖着时（boot_cover 紧接着调）不做，揭开时再做
+	_bg_game.call_deferred()
 	# 触屏：标题页（含图鉴 / 设置 / Boss 演练子面板）整体放大 Cfg.ui_k（手机 1.3）；背景 / 转场在各自的 CanvasLayer 不受影响
 	Cfg.ui_k = Cfg.ui_scale()
 	if Cfg.ui_k != 1.0:
@@ -344,12 +344,13 @@ func boot_reveal() -> void:
 	_bg_game()
 
 
-## 桌面：标题页露出来以后，后台线程把对局场景（game.gd 那一圈 41 个脚本）编译好，出发 / 图鉴演示时直接命中缓存。
+## 桌面：标题页一建好（启动页还盖着时就开始）就在后台线程把对局场景（game.gd 那一圈 41 个脚本）编译好，出发 / 图鉴演示时直接命中缓存；
+## 出发时还没编完，载入页照常动着等（_wl_pending）。
 ## 网页没有线程，照旧在第一次用到时编译（载入页 / 第一次开图鉴）。启动页不再读这一圈（docs/50 §29）
 var _bg_game_started := false
 
 func _bg_game() -> void:
-	if _bg_game_started or _intro0 >= 0.0 or OS.has_feature("web") or not OS.has_feature("threads") or DisplayServer.get_name() == "headless":
+	if _bg_game_started or OS.has_feature("web") or not OS.has_feature("threads") or DisplayServer.get_name() == "headless":
 		return
 	_bg_game_started = true
 	if not ResourceLoader.has_cached("res://game.tscn"):
@@ -434,8 +435,7 @@ func _process_main(delta: float) -> void:
 		if not _op_warm_begun:
 			_op_warm_begun = true
 			A.warm_begin(_op_fx_names(), [])
-			var wl: Array = _game().loading_warm_lists()
-			A.warm_begin(wl[0], wl[1])   # 对局 _ready 要读的整批贴图也在这里分帧读完（以前在 _ready 里一口气读，网页冻住 ~32 秒，10-25）
+			_wl_pending = true   # 对局贴图名单要 game.gd：桌面后台还在编译就先等（载入页照常动），编完再取（下面）
 			for cid in _op_ids():
 				var sp: String = Character.script_path(cid)
 				if not _op_scripts.has(sp) and ResourceLoader.load_threaded_request(sp) == OK:
@@ -445,8 +445,12 @@ func _process_main(delta: float) -> void:
 				_game_warm = preload("res://scripts/render/shader_warm.gd").new()
 				_game_warm.parts = 1   # 光学 GPU 粒子的处理材质（render/shader_warm.gd PARTS_GAME，网页才有；桌面启动页已画过就是空的）：在载入页编译，不留到进局后
 				add_child(_game_warm)
+		if _wl_pending and not (_bg_game_started and ResourceLoader.load_threaded_get_status("res://game.tscn") == ResourceLoader.THREAD_LOAD_IN_PROGRESS):
+			_wl_pending = false
+			var wl: Array = _game().loading_warm_lists()   # 网页（无后台编译）：game.gd 那一圈在这一帧编译，载入页停一下（以前在启动页）
+			A.warm_begin(wl[0], wl[1])   # 对局 _ready 要读的整批贴图也在这里分帧读完（以前在 _ready 里一口气读，网页冻住 ~32 秒，10-25）
 		var wt0 := Time.get_ticks_usec()
-		_op_warm_more = A.warm_step(LOAD_BUDGET_USEC)   # 开局干员的技能 / 特效帧条先读进贴图缓存（10-22 网页开局掉帧：第一次放技能时现读）
+		_op_warm_more = A.warm_step(LOAD_BUDGET_USEC) or _wl_pending   # 开局干员的技能 / 特效帧条先读进贴图缓存（10-22 网页开局掉帧：第一次放技能时现读）
 		for sp in _op_scripts.duplicate():
 			if ResourceLoader.load_threaded_get_status(sp) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 				_op_warm_more = true
@@ -766,6 +770,7 @@ func _draw_leaving(vs: Vector2) -> void:
 ## 开局干员（选人 / --op；测试的 --squad 一并）JSON 里写到的帧条名（"tex" / "strip"）：出发后的等待里先读进 A.tex 缓存
 var _op_warm_begun := false
 var _game_warm: Node   # 载入页里的着色器预热视口（光学粒子）
+var _wl_pending := false   # 对局贴图名单还没取（等 game.gd 编译完）
 ## 载入页每帧预读预算（读图 + 注册音频合计）：原来 24 + 12 毫秒，载入页动画只有 20–25 帧；10-25「帧率稳定优先」压到 12 毫秒（加一帧渲染不超 16.7），
 ## 总读取时间约长两成（单张超预算的照样一帧读一张）
 const LOAD_BUDGET_USEC := 12000
