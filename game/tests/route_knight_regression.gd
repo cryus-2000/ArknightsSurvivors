@@ -26,39 +26,40 @@ func _process(_dt: float) -> void:
 	game.show_queue.clear()
 	# 路线测试显式提供结局一通关前置，不依赖本机存档或 --balance 隐式解锁。
 	game.endg.all_unlocked = true
-	game.t = 160.0
+	game.t = 250.0
 	choose("madness", ":0")
 	check(game.knight.alive and game.relics.has("222"), "madness choice summons living knight")
-	game.t = 245.0
-	choose("resolve1", ":1")
-	check(game.relics.has("239"), "first choice grants observation")
 	game.t = 450.0
-	choose("resolve2", ":2")
-	check(game.relics.has("240"), "second choice grants hesitation")
-	game.t = 535.0
-	game.endg.open("resolve3")
-	check(game.choices.size() == 2, "third choice offers resolve and leave")
-	choose("resolve3", ":-2")
-	check(game.state == game.S.PLAY and not game.panel.visible, "leave closes event and resumes play")
-	check(not game.relics.has("238") and game.pending_chests == 0, "leave grants no resolve or chest")
-	check(game.endg.cur == "knight", "knight route remains without resolve")
-	# 独立验证另一条合法选择序列，不能在同一局重开已消耗的祭坛。
-	game.queue_free()
-	game = load("res://game.tscn").instantiate()
-	add_child(game)
-	game.set_process(false)
-	game.pending_levelups = 0
-	game.pending_chests = 0
-	game.show_queue.clear()
-	game.endg.all_unlocked = true
-	game.t = 160.0
-	choose("madness", ":0")
-	game.t = 245.0
-	choose("resolve1", ":0")
-	game.t = 450.0
-	choose("resolve2", ":0")
-	check(game.rfx.lv.get("238", 0) == 2, "two separate choices grant level-two resolve")
-	check(game.endg.cur == "knight", "living knight takes priority over resolve")
+	choose("knight_stay", ":1")
+	check(game.relics.has("225") and game.state == game.S.PLAY and not game.panel.visible, "knight_stay grants bone blood and closes")
+	check(game.endg.cur == "knight", "knight route with living knight")
+	# 深蓝之心线（docs/154）：开端 → 深蓝之心（房间付源石锭、可连选）→ 园林 → 赞歌
+	_fresh_game()
+	game.ingots = 30
+	choose("opening", ":0")
+	check(game.relics.has("220") and game.endg.cur == "standard", "opening: bishop's research does not change the ending yet")
+	choose("heart", ":2")
+	check(game.state == game.S.CHOICE and game.endg.opened_id == "heart" and game.ingots == 22, "a room costs 8 ingots and the lab stays open")
+	check(not game.choices.any(func(o): return o.id == "heart:2"), "a searched room is not offered again")
+	var garden := -1
+	for i in game.choices.size():
+		if game.choices[i].id == "heart:5":
+			garden = i
+	game.progression.pick(garden)
+	check(game.relics.has("221") and game.endg.opened_id == "hymn", "garden grants the heart and opens the hymn")
+	choose("hymn", ":1")
+	check(game.endg.cur == "deep" and game.state == game.S.PLAY, "deep line ends at ending three")
+	# 升华线：开端 → 深蓝仪式 → 升华（三句都可选，灯火不限）
+	_fresh_game()
+	game.lamp = 5.0
+	choose("opening", ":1")
+	check(game.relics.has("242") and game.endg.cur == "standard", "opening: blue memory starts the ascension line")
+	choose("ritual", ":0")
+	check(game.endg.opened_id == "ascend" and game.choices.size() == 3, "ritual leads to ascend with three answers")
+	choose("ascend", ":0")
+	check(game.relics.has("238") and game.endg.cur == "resolve", "resolve at lamp 5 still reaches ending four")
+	choose("madness", ":0")   # 下面的骑士出圈检查要一名在场的骑士
+	check(game.endg.cur == "resolve", "ascension token outranks the knight (priority)")
 	game.zone_state = 2
 	game.zone_c = Vector2.ZERO
 	game.zone_r = 400.0
@@ -119,6 +120,18 @@ func _process(_dt: float) -> void:
 			player.queue_free()
 	await get_tree().create_timer(0.2, true, false, true).timeout
 	get_tree().quit(fails)
+
+
+## 新开一局（结局线已解锁、无待开面板）
+func _fresh_game() -> void:
+	game.queue_free()
+	game = load("res://game.tscn").instantiate()
+	add_child(game)
+	game.set_process(false)
+	game.pending_levelups = 0
+	game.pending_chests = 0
+	game.show_queue.clear()
+	game.endg.all_unlocked = true
 
 
 ## 新开一局骑士路线（狂徒妄念 → 骑士加入），黑潮已启动，队长在原点

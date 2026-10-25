@@ -2637,11 +2637,6 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		var wob := 0.0
 		if e.hidden and fmod(g.t + e.id, 3.0) < 0.25:
 			wob = sin(g.t * 60.0) * 1.5
-		if e.get("event", "") != "":
-			frame = int(g.t * 2.0) % 2
-			g.draw_set_transform(e.pos + Vector2(0, 14), 0.0, Vector2(1.0, 0.45))
-			g.draw_circle(Vector2.ZERO, 34.0 + 4.0 * sin(g.t * 3.0), Color(0.3, 0.6, 1.4, 0.18))
-			g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		g.vfx.spr(name, 2, frame, e.pos + Vector2(wob, 0), Game.PX, false, col)
 		if e.flash > 0.0:
 			g.vfx.spr(name + "_white", 2, 0, e.pos, Game.PX, false, Color(1, 1, 1, 0.9))

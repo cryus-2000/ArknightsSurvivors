@@ -846,21 +846,6 @@ func step() -> void:
 			if o.manual_ready(mi) and o.bot_wants_manual(mi):
 				o.cast_manual(mi)
 				break
-	# --evignore=<事件 id,…|all>[@秒]：机器人打不开这些海嗣祭坛（生命锁住），到「秒」之后恢复 22 点、可以打开；
-	# 用来复现「祭坛晾着不开」（EA 验收 P0-1 / P1-2，原为测试与验收的 probe.gd --pk_ignore / --pk_ign_t）
-	for a in Cfg.dev_args():
-		if a.begins_with("--evignore="):
-			var spec: PackedStringArray = a.substr(11).split("@")
-			var ids: PackedStringArray = spec[0].split(",")
-			var until: float = float(spec[1]) if spec.size() > 1 else 1.0e9
-			for e in g.enemies:
-				if e.chest and not e.dead and e.get("event", "") != "" and (ids.has(e.event) or spec[0] == "all"):
-					if g.t < until:
-						e.hp = 1.0e9
-						e.maxhp = 1.0e9
-					elif e.hp > 22.0:
-						e.hp = 1.0
-						e.maxhp = 22.0
 	# --relics=id,id… 或 --relics=all（仅 --balance）：开局第 20 帧直接获得这些藏品，冒烟测试藏品效果（docs/35 / docs/36）
 	# --maxprog（仅 --balance）：同一帧把编队里每名干员推到成长线末端（精二 + 全部节点），让所有技能与成长钩子都跑一遍
 	if g.mode == g.Mode.BALANCE and g.at_frames == 20:
@@ -918,6 +903,8 @@ func step() -> void:
 		if false:
 			print("dbg t=%d state=%d lv=%d hp=%d en=%d" % [g.t, g.state, g.level, g.hp, g.enemies.size()])
 		if g.state == g.S.CHOICE:
+			if g.choice_kind == "cross" and g.endg.flipped >= 0:
+				return   # 翻面中（有画面时等计时器兑现）
 			var pi := bot_pick()
 			for a in Cfg.dev_args():
 				# --evpick=1 或 --evpick=madness:0,knight_stay:0,default:1
@@ -949,14 +936,15 @@ func step() -> void:
 	if g.lvup_show > 1.05 and g.lvup_show < 1.12 and g.level == 3 and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_lvup.png")
 	for a in Cfg.dev_args():
-		if a.begins_with("--eventtest=") and g.at_frames == 30:
-			for ev in g.endg.events:
-				if ev.id == a.substr(12):
-					g.endg._spawn_box(ev)
-					g.endg.done.append(ev.id)
-					for e in g.enemies:
-						if e.chest and e.get("event", "") != "":
-							e.pos = g.ppos + Vector2(120, 0)
+		# --eventtest=<事件 id>：第 30 帧直接弹这件事件（截图 / 文案检查）；--eventtest=cross1 / cross2：直接发路口一 / 二的牌
+		if a.begins_with("--eventtest=") and g.at_frames == 30 and g.state == g.S.PLAY:
+			var want: String = a.substr(12)
+			if want.begins_with("cross"):
+				g.endg.enabled = true
+				g.endg._checked = true
+				g.endg._deal(int(want.substr(5)))
+			elif g.endg.ev_by_id.has(want):
+				g.endg.open(want)
 	if Cfg.dev_args().has("--touchtest") and g.state == g.S.PLAY:
 		# 模拟：第 60 帧按下左半屏，拖到右上，第 120 帧松开；第 90 帧截图
 		if g.at_frames == 60:
@@ -1137,7 +1125,11 @@ func step() -> void:
 			for ci in ok_i:
 				if g.choices[ci].kind == "prog":
 					deep.append(ci)
-			if g.choice_kind == "swap":
+			if g.choice_kind == "cross" and g.endg.flipped >= 0:
+				pass   # 翻面中：等计时器兑现
+			elif g.choice_kind == "cross" or g.choice_kind == "event":
+				g.progression.pick(g.endg.bot_choice())   # 翻节点卡与事件：按路线选（docs/154，--route）
+			elif g.choice_kind == "swap":
 				g.progression.pick(g.progression.auto_swap_pick())
 			elif not deep.is_empty() and g.rng.randf() < 0.7:
 				g.progression.pick(deep[g.rng.randi() % deep.size()])
@@ -1408,10 +1400,8 @@ func bot_move() -> Vector2:
 	if not g.merchant.is_empty() and g.merchant.pos.distance_to(g.ppos) < 500.0 and not g.merchant.near:
 		pull = (g.merchant.pos - g.ppos).normalized() * 0.9
 	for e in g.enemies:
-		# 海嗣祭坛只有走近才打开、又刷在 520–650 外：像真人看方位指示那样走过去（同 bot.gd 高手的 1600）
-		var reach: float = 1600.0 if e.get("event", "") != "" else 400.0
-		if e.chest and not e.dead and e.pos.distance_to(g.ppos) < reach:
-			pull = (e.pos - g.ppos).normalized() * (1.0 if e.get("event", "") != "" else 0.8)
+		if e.chest and not e.dead and e.pos.distance_to(g.ppos) < 400.0:
+			pull = (e.pos - g.ppos).normalized() * 0.8
 			break
 	# 引航灯标：没点燃、血量还行就过去站着（光圈半径 70，站到离中心 40 以内就不再拉，免得来回抖）
 	for b in g.beacons:

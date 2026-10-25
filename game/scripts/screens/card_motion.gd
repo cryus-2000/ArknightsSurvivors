@@ -67,6 +67,8 @@ func start(panel_kind: String, opts: Array) -> void:
 		kind = "event"
 	elif panel_kind == "relic":
 		kind = "relic"
+	elif panel_kind == "cross":
+		kind = "cross"   # 翻节点卡（docs/154）：背面朝上从下方依次升起，翻面由 choice_panel.draw_node_card 画
 	elif not opts.is_empty() and opts.all(func(o): return o.get("kind", "") == "recruit"):
 		kind = "recruit"
 	else:
@@ -153,6 +155,10 @@ func update(dt: float) -> void:
 						oy = roundf(40.0 * (1.0 - UM.out_cubic((t - s) / RL_CARD)))
 					"recruit":
 						a = clampf((t - UM.stagger(i, RC_S)) / UM.T1, 0.0, 1.0)
+					"cross":
+						var cs := UM.stagger(i, 0.09)
+						a = clampf((t - cs) / 0.12, 0.0, 1.0)
+						oy = roundf(70.0 * (1.0 - UM.out_cubic((t - cs) / 0.32)))
 			card.modulate.a = a
 			card.set_meta("oy", oy + lift)
 		card.queue_redraw()

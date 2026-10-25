@@ -204,7 +204,7 @@ func draw(vs: Vector2, title: String, en_title: String, col: Color, opts: Array,
 			mtxt += "  首通 +%d" % int(mr.bounty)
 		stats.append(["生机细胞", mtxt])
 	if ending_panel:
-		var ep: String = D.ENDINGS.get(g.ending, {}).get("gallery", {}).get("epilogue", "")
+		var ep: String = g.endg.epilogue()   # 结局四按升华选的信物分三版（docs/154 §4）
 		UI.text(g.hud, g.font, Vector2(r.position.x + 40, r.position.y + 132), ep, 15 if touch else 14, Color(col.r * 0.9 + 0.1, col.g * 0.9 + 0.1, col.b * 0.9 + 0.1, 0.9), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 80)
 		if g.ending_new:
 			UI.chip(g.hud, g.font, Vector2(r.position.x + 30, r.position.y + 30), "新结局达成", col, 12)

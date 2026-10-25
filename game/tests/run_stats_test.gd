@@ -108,7 +108,7 @@ func test_fake_details() -> void:
 	near(float(sv["造成伤害"].v), float(m.total), "统计表：造成伤害 = 全队伤害", 0.0001)
 	ok(int(sv["技能发动"].v) == 60, "统计表：技能发动 = 各干员合计（%d）" % int(sv["技能发动"].v))
 	ok(int(sv["藏品"].v) == 5 and int(sv["Boss 击破"].v) == 3 and int(sv["打开补给箱"].v) == 6, "统计表：藏品 / Boss 击破 / 补给箱")
-	ok(sv.has("源石锭熔铸") and sv.has("海嗣祭坛") and int(sv["点亮引航灯标"].v) == 4, "统计表：熔铸、祭坛、灯标")
+	ok(sv.has("源石锭熔铸") and sv.has("翻开节点卡") and int(sv["点亮引航灯标"].v) == 4, "统计表：熔铸、节点卡、灯标")
 	near(float(sv["受到的伤害"].v), float(m.leader.taken), "统计表：受到伤害 = 主控承伤", 0.0001)
 	# 受到伤害与生命回复是两份独立记录（dmg_log / heal_log）：假记录里两者不同，统计表也必须不同
 	near(float(sv["生命回复"].v), 6680.0, "统计表：生命回复 = heal 记录合计", 0.0001)

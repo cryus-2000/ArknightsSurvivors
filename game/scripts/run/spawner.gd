@@ -1056,15 +1056,15 @@ func check_enemy(e: Dictionary, where: String) -> void:
 
 
 ## 补给箱；约 15% 是伪装的箱形恐鱼
-func spawn_chest(pos: Vector2, event_id := "") -> void:
+func spawn_chest(pos: Vector2) -> void:
 	next_id += 1
 	g.enemies_sys.admit({
-		"id": next_id, "type": "chest", "name": "补给箱" if event_id == "" else "海嗣祭坛", "tex": "e_chest" if event_id == "" else "e_event", "pos": pos, "hp": 22.0, "maxhp": 22.0,
-		"event": event_id,
+		"id": next_id, "type": "chest", "name": "补给箱", "tex": "e_chest", "pos": pos, "hp": 22.0, "maxhp": 22.0,
+		"event": "",
 		"spd": 0.0, "dmg": 0.0, "r": 13.0, "r0": 13.0, "xp": 0.0, "age": 0.0, "evo": false, "elite": false, "boss": false,
 		"stun": 0.0, "kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
 		"ai": "static", "range": 0.0, "cd": 0.0, "cdt": 0.0, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "def": 1.0, "set_t": 0.0, "set_done": true,
-		"chest": true, "hidden": _mimic_roll(event_id), "invuln": false, "friendly": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
+		"chest": true, "hidden": _mimic_roll(), "invuln": false, "friendly": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
 		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "burst_w": 0.0, "burst_cd": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
 		"tex_move": false, "tex_feign": false, "tex_attack": false, "tex_charge": false, "tex_death": false,
@@ -1077,9 +1077,7 @@ func spawn_chest(pos: Vector2, event_id := "") -> void:
 
 
 ## 是否伪装成箱形恐鱼：约 15%；持有补给箱钥匙（docs/57 P17）期间不出。随机数先抽再判断，钥匙不改变 g.rng 的消耗
-func _mimic_roll(event_id: String) -> bool:
-	if event_id != "":
-		return false
+func _mimic_roll() -> bool:
 	var roll: bool = g.rng_spawn.randf() < 0.15
 	return roll and g.rfx.rule("chest_keys") <= 0
 

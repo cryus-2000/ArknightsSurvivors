@@ -241,3 +241,16 @@
 余项（实装中按实测定，不需要再问用户）：
 1. 代价数值：愤怒的最大生命 −10%、深蓝之心房间源石锭 8、主教的研究售价 +15% 是起点，数值会话按云端结果改。
 2. 三件抉择信物都可选后是否有一件明显最优：看云端「选哪句」与胜率的关系，必要时调效果，不加门槛。
+
+---
+
+## 9. 实装记录（10-25，分支 claude/route-choice）
+
+- 代码：`endings.gd` 重写（路口调度、`build_deck`、`flip` / `_resolve`、多段事件、按 priority 判定、`bot_choice`）；`screens/node_icons.gd`（六枚 16×16 像素图标，自画）；`choice_panel.gd` 新增 `kind = "cross"` 卡面（`draw_node_card`，翻面用界面时钟 `UM.now()`）、事件插画的祭坛换成节点图标、买不起的选项压暗；`card_motion.gd` 加 `cross` 入场；`progression.pick` 转发翻卡 / 多段事件；`shop.gd` 诡意行商加格与首件折扣；`result.gd` 结局四三句后日谈。
+- 删除：祭坛实体（`spawn_chest` 事件分支、`combat.kill` 打开分支、`enemies.gd` 索敌跳过与挪位、`world.gd` 祭坛光晕）、HUD 祭坛指示、`--evignore`、`tests/altar_not_target`。
+- 数据：`waves.json` 新增 `cross_deck`，`events` 按 §3 重写（9 件结局线事件 + 9 件普通事件），`endings` 加 `priority`、结局四 `any_relic` 与 `epilogue_by_relic`；`relic_effects.json` 220 / 221 / 238 / 242 去掉灯火代价与两级；220 只从开端得到（`source: event`、不进商店）。
+- 与 §3 的出入：骑士仍在「反抗」直接给源石锭 +20（不新做「荒诞命运」藏品）；深蓝之心「储藏室」改为回复 30% 最大生命（护盾层数要另接系统）；图鉴结局四页「三句点亮」未做，结算页已按信物显示三版后日谈。
+- 作战记录：`telemetry.altars` 改 `nodes`（翻开的节点卡数），局终统计行「翻开节点卡」。
+- 开发参数：`--route=knight|heart|memory|none|rand`、`--nocross`、`--eventtest=<事件 id | cross1 | cross2>`。
+- 测试：新 `node_cards`（§6 八条）；`route_knight` 改为三条结局线事件链；`economy` 改路口留位；`run_stats` 改统计行名。本地跑过 node_cards / route_knight / economy / run_stats / ea_ui / touch_layout / core / repro / data_lint / relic_reclassification / public_gallery / medals / boss_trial / smoke，全部通过；积木等价金样按 docs/132 §1 合入后在 main 重录。
+- 演示录像：`tools/probes/node_cards_capture.py`（场景 `tests/node_cards_capture.tscn`），输出 `build/node_cards_rec.mp4`。

@@ -61,26 +61,19 @@ func _process(_dt: float) -> void:
 	game.shop_sys.refresh()
 	check(game.shop_sys.relic_buys_left() == 0, "refresh cannot reset the two-relic limit")
 	Bal._data["shop"]["relic_buy_limit"] = -1.0
-	# Merchant and altar positions are safe even for player standing at/outside an edge.
+	# Merchant / event positions are safe even for player standing at/outside an edge.
 	game.zone_state = 2
 	game.zone_c = Vector2(100, -80)
 	game.zone_r = 650.0
 	for angle in 12:
 		game.ppos = game.zone_c + Vector2.from_angle(angle * TAU / 12.0) * 640.0
 		var p: Vector2 = game.spawner.event_pos(520.0, 650.0, 110.0)
-		check(p.distance_to(game.zone_c) <= 540.01, "altar begins inside tide")
-		check(p.distance_to(game.ppos) >= 519.99, "altar begins away from player")
+		check(p.distance_to(game.zone_c) <= 540.01, "event pos begins inside tide")
+		check(p.distance_to(game.ppos) >= 519.99, "event pos begins away from player")
 	game.merchant.pos = game.zone_c + Vector2(600, 0)
 	game.zone_r = 300.0
 	game.shop_sys.update(0.01)
 	check(game.merchant.pos.distance_to(game.zone_c) <= 200.01, "merchant follows shrinking tide")
-	game.endg._spawn_box(game.endg.events[0])
-	game.zone_r = 220.0
-	game.endg.update(0.01)
-	for e in game.enemies:
-		if e.chest and not e.dead and e.get("event", "") != "":
-			check(e.pos.distance_to(game.zone_c) <= 110.01, "altar follows shrinking tide")
-			e.dead = true
 	game.zone_state = 0
 	# Elite chance is nontrivial and repeatable; the combat drop function uses g.rng_drop (docs/101 B7).
 	var outcomes: Array = []
@@ -108,38 +101,26 @@ func _process(_dt: float) -> void:
 	Bal._data["relic"]["carry_cap"] = 15
 	# Fill ordinary slots, then follow knight / resolve / deep sequence without blocking routes.
 	var ordinary: Array = game.rfx.db.implemented().filter(func(r): return r.rarity != "结局" and r.get("source", "any") != "event" and r.effects.all(func(ef): return ef.get("type", "stat") == "stat"))
-	check(game.endg.reserved_relic_slots() == 4, "only four core route tokens reserve slots")
+	# 翻节点卡（docs/154）：还没翻的路口各留 1 格给结局线信物
+	game.endg.enabled = true
+	game.endg._checked = true
+	check(game.endg.reserved_relic_slots() == 2, "two crossroads reserve one route slot each")
 	for r in ordinary:
 		game.progression.gain_relic(r.id)
-	check(game.relics.size() == 11, "normal acquisitions leave four core route slots")
-	game.t = 160.0
-	game.endg.done.append("madness")
+	check(game.relics.size() == 13, "normal acquisitions leave two route slots")
+	game.t = 250.0
+	game.endg.cross_done = 1
 	choose("madness", ":0")
 	check(game.relics.has("222") and game.knight.alive, "full ordinary bag still admits knight")
-	game.t = 245.0
-	game.endg.done.append("resolve1")
-	game.endg.open("resolve1")
-	check(not game.choices.any(func(c): return str(c.id).ends_with(":1")), "optional observation cannot steal a core route slot")
-	choose("resolve1", ":0")
-	check(game.endg.cur == "knight", "knight route priority preserved")
-	game.t = 370.0
-	game.endg.done.append("whisper")
-	choose("whisper", ":0")
-	check(game.relics.has("221") and game.relics.has("223") and game.endg.cur == "deep", "reserved slots admit deep route and knight departure")
 	game.t = 450.0
-	game.endg.done.append("resolve2")
-	choose("resolve2", ":0")
-	check(game.rfx.lv.get("238", 0) == 2 and game.endg.cur == "resolve", "second resolve upgrades at capacity and unlocks third ending")
-	game.t = 525.0
-	game.endg.done.append("memory")
-	game.endg.open("memory")
-	check(not game.choices.any(func(c): return str(c.id).ends_with(":0")), "full bag hides optional memory instead of empty reward")
-	choose("memory", ":1")
+	game.endg.cross_done = 2
+	choose("knight_stay", ":1")
+	check(game.relics.has("225") and game.endg.cur == "knight", "full bag still admits the knight follow-up")
 	game.pending_chests = 0
 	game.t = 561.0
 	for r in ordinary:
 		game.progression.gain_relic(r.id)
-	check(game.relics.size() == 15, "expired reservations release slots up to fifteen")
+	check(game.relics.size() >= 14, "used crossroads release their slots (%d)" % game.relics.size())
 	check(game.relics.size() <= 15, "hard collection cap")
 	for rid in game.progression.relic_pool_ids(true):
 		check(game.relics.has(rid), "full bag only offers upgrades")

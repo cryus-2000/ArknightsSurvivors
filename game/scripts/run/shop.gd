@@ -48,7 +48,9 @@ func price_mult() -> float:
 	var visit: int = clampi(g.merchant_idx, 1, 3)
 	var wave: float = [1.0, Bal.v("shop/second_visit_mult", 1.5), Bal.v("shop/third_visit_mult", 2.0)][visit - 1]
 	var bought: int = int(g.merchant.get("purchases", 0))
-	return g.shop_price_mult * wave * (1.0 + bought * Bal.v("shop/purchase_step", 0.2))
+	# 翻节点卡「诡意行商」（docs/154）：这位商人第一件打折（没买过时全部按折扣价，买一件后照常重算）
+	var disc: float = float(g.endg.deck_cfg.get("shop_disc", 0.7)) if g.merchant_idx == g.endg.shop_visit and bought == 0 else 1.0
+	return g.shop_price_mult * wave * (1.0 + bought * Bal.v("shop/purchase_step", 0.2)) * disc
 
 
 ## 每次商人可买藏品件数；balance shop/relic_buy_limit < 0 = 不限（用户 10-11：取消硬上限，只靠「每购一件余货 +20%」和藏品栏容量软限制）
@@ -84,7 +86,8 @@ func price(kind: String) -> int:
 func roll(first := false) -> void:
 	g.shop_items.clear()
 	var pool: Array = g.progression.relic_pool_ids(true)
-	for i in min(3, pool.size()):
+	var slots: int = 3 + (int(g.endg.deck_cfg.get("shop_extra", 1)) if g.merchant_idx == g.endg.shop_visit else 0)   # 诡意行商卡：货架 +1（docs/154）
+	for i in min(slots, pool.size()):
 		var r: Dictionary = g.RL[pool[i]]
 		g.shop_items.append({"kind": "relic", "id": pool[i], "name": ("【遭诅】" if r.rarity == "遭诅古物" else "") + g.rfx.display_name(pool[i]), "desc": g.rfx.display_desc(pool[i]), "price": g.rfx.db.price(pool[i], price_mult()), "sold": false})
 	if first:

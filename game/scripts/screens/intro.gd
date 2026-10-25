@@ -6,6 +6,7 @@ const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const NodeIcons = preload("res://scripts/screens/node_icons.gd")   # 节点卡图标（docs/154）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -427,17 +428,16 @@ func draw_icon(kind: String, c: Vector2) -> void:
 			UI.text(g.hud, g.font, c + Vector2(-80, 74), "商人  ·  停留 60 秒", 14, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 160)
 			for k in 3:
 				UI.chip(g.hud, g.font, c + Vector2(-118 + k * 84, 90), ["2:00", "5:00", "8:00"][k], UI.GOLD, 12)
-		"altar":
-			var atx: Texture2D = g.tex.get("e_event")
-			if atx != null:
-				var fw4: int = atx.get_width() / 2
-				var fr4: int = int(g.intro_t * 2.0) % 2
-				var sz4 := Vector2(fw4, atx.get_height()) * 4.0 / A.hires_of(atx)
-				g.hud.draw_set_transform(c + Vector2(0, 46), 0.0, Vector2(1.0, 0.45))
-				g.hud.draw_circle(Vector2.ZERO, 70.0 + 6.0 * sin(g.intro_t * 3.0), Color(0.3, 0.6, 1.4, 0.18))
-				g.hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-				g.hud.draw_texture_rect_region(atx, Rect2(c - Vector2(sz4.x / 2.0, sz4.y - 50), sz4), Rect2(fw4 * fr4, 0, fw4, atx.get_height()))
-			var ends := [["Ⅰ", Color(0.8, 0.6, 1.0)], ["Ⅱ", Color(0.6, 0.85, 1.0)], ["Ⅲ", UI.GOLD], ["Ⅳ", Color(0.35, 0.55, 1.0)]]
+		"nodes":
+			# 三张背面朝上的节点卡（docs/154）：中间那张「不期而遇」每 1.6 秒抬起一次；左右是随机填充的卡
+			var kinds := ["wish", "incident", "rest"]
+			for k in 3:
+				var up: float = 10.0 * maxf(0.0, sin(g.intro_t * 3.9)) if k == 1 else 0.0
+				var cr := Rect2(c + Vector2(-112 + k * 76 - 32, -64 - up), Vector2(64, 90))
+				g.hud.draw_rect(cr, Color(0.06, 0.11, 0.15, 0.96))
+				g.hud.draw_rect(cr, NodeIcons.COLS[kinds[k]] if k == 1 else Color(1, 1, 1, 0.16), false, 2.0 if k == 1 else 1.0)
+				NodeIcons.draw(g.hud, kinds[k], cr.get_center(), 2.0, NodeIcons.COLS[kinds[k]])
+			var ends := [["Ⅰ", g.endg.ending_col("standard")], ["Ⅱ", g.endg.ending_col("knight")], ["Ⅲ", g.endg.ending_col("deep")], ["Ⅳ", g.endg.ending_col("resolve")]]
 			for k in 4:
 				var ec: Color = ends[k][1]
 				UI.diamond(g.hud, c + Vector2(-66 + k * 44, 92), 9.0, Color(ec.r, ec.g, ec.b, 0.35), ec)
