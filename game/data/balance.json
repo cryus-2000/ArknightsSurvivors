@@ -249,7 +249,14 @@
   "hit_scale": 18,
   "oil_kill_chance": 0.006,
   "elite_oil_chance": 0.65,
-  "elite_oil_amount": 25.0
+  "_elite_oil_amount": "10-25 用户（docs/147）：25 → 15，让常规档灯火不再长期满格",
+  "elite_oil_amount": 15.0,
+  "_mire": "灯火与溟痕（docs/147，10-25 用户方案 B）：灯火 ≥ mire_hi 时退散强度 1、≤ mire_lo 时 0（中间线性）；逼近强度在灯火 mire_lo → 0 线性 0 → 1。退散：边缘进入队长 mire_ward_r 内的自然溟痕每秒收缩 mire_recede × 强度，站在自然溟痕里伤害与神经损伤 × (1 − mire_ward_dmg × 强度)。逼近：mire_creep_r 内的溟痕每秒朝队长挪 mire_creep_spd × 强度、上限长 mire_creep_grow × 强度（≤ 原上限 × mire_creep_cap）；新溟痕刷新间隔 × (1 − mire_spawn_iv × 强度)、离队长距离 × (1 − mire_spawn_near × 强度)。mire_hint_cd：进出通明 / 暗淡档的小字提示间隔。mire_ward_r 与 mire_creep_r 都写 0 = 改动前",
+  "mire_hi": 70, "mire_lo": 30,
+  "mire_ward_r": 200, "mire_recede": 10, "mire_ward_dmg": 0.8,
+  "mire_creep_r": 380, "mire_creep_spd": 14, "mire_creep_grow": 6, "mire_creep_cap": 1.3,
+  "mire_spawn_iv": 0.4, "mire_spawn_near": 0.4,
+  "mire_hint_cd": 10
  },
  "xp": {
   "_doc": "升级所需经验：first 为 Lv1→2；基础 a + b·L + c·L²，Lv12前不变，Lv12→30平滑增至late_mult倍，延长后半程成长",

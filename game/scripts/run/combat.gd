@@ -175,13 +175,14 @@ func add_nerve(v: float) -> void:
 
 
 ## 每帧（enemies.update_status）：in_src = 站在溟痕里（不含流明光域）；sanct = 在流明光域里
-func update_nerve(dt: float, in_src: bool, sanct: bool) -> void:
+## mire_mult：只站在溟痕里（没有神经光环）时的累积倍率（灯火高时自然溟痕减免，docs/147；缺省 1）
+func update_nerve(dt: float, in_src: bool, sanct: bool, mire_mult := 1.0) -> void:
 	g.nerve_lock = maxf(0.0, g.nerve_lock - dt)
 	var aura: bool = g.nerve_aura_t > 0.0 and not sanct
 	g.nerve_aura_t = maxf(0.0, g.nerve_aura_t - dt)
 	if ((in_src and not sanct) or aura) and g.nerve_lock <= 0.0:
 		g.telemetry.on_status("nerve", "" if in_src else g.telemetry.aura_type, dt)   # 溟痕 = 环境；神经光环 = 放光环的敌人
-		add_nerve(Bal.v("enemy/nerve_mire", 12.0) * float(g.dmod.get("nerve_rate", 1.0)) * g.nerve_taken_mult * dt)
+		add_nerve(Bal.v("enemy/nerve_mire", 12.0) * float(g.dmod.get("nerve_rate", 1.0)) * g.nerve_taken_mult * (1.0 if aura else mire_mult) * dt)
 	else:
 		g.nerve = maxf(0.0, g.nerve - Bal.v("enemy/nerve_decay", 10.0) * (2.0 if sanct else 1.0) * dt)
 

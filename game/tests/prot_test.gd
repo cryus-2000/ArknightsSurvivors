@@ -422,11 +422,23 @@ func test_non_boss() -> void:
 	tick = minf(pool0, (pool0 * 0.5 + 1.0) * dt)
 	ok(absf((hp0 - game.hp) - tick) < EPS and c.loss_log.is_empty(), "净化后普通侵蚀照原公式流出、不进 Boss 的 2 秒合计")
 	reset()
+	var lamp0: float = game.lamp
+	game.lamp = 30.0   # 灯火与溟痕（docs/147）：灯火在 mire_lo 时既不退散也不逼近，按原数值
 	game.mires.append({"pos": game.ppos, "r": 80.0, "maxr": 80.0, "life": 9.0, "seed": 0.0})
 	game.enemies_sys.mire_tick = 0.0
 	hp0 = game.hp
 	game.enemies_sys.update_status(dt)
 	ok(absf((hp0 - game.hp) - (3.0 + game.max_hp * 0.015)) < EPS, "自然溟痕照原数值结算（%s）" % pct(hp0 - game.hp))
+	# 灯火满：自然溟痕伤害 × (1 − lamp/mire_ward_dmg)，脚下的溟痕开始收缩
+	reset()
+	game.lamp = 100.0
+	game.mires.append({"pos": game.ppos, "r": 80.0, "maxr": 80.0, "life": 9.0, "seed": 0.0})
+	game.enemies_sys.mire_tick = 0.0
+	hp0 = game.hp
+	game.enemies_sys.update_status(dt)
+	var wk: float = 1.0 - Bal.v("lamp/mire_ward_dmg", 0.0)
+	ok(absf((hp0 - game.hp) - (3.0 + game.max_hp * 0.015) * wk) < EPS and float(game.mires[0].r) < 80.0, "灯火满时自然溟痕伤害 × %.2f 且溟痕收缩（扣 %s）" % [wk, pct(hp0 - game.hp)])
+	game.lamp = lamp0
 	# 预警 / 冲击环系统精英也在用（钻地咬击、踏地震荡）：按放招的敌人是不是 Boss 决定截不截
 	for is_boss in [false, true]:
 		reset()
