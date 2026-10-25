@@ -156,9 +156,9 @@ func update(dt: float) -> void:
 					"recruit":
 						a = clampf((t - UM.stagger(i, RC_S)) / UM.T1, 0.0, 1.0)
 					"cross":
-						var cs := UM.stagger(i, 0.09)
-						a = clampf((t - cs) / 0.12, 0.0, 1.0)
-						oy = roundf(70.0 * (1.0 - UM.out_cubic((t - cs) / 0.32)))
+						a = 1.0   # 发牌 / 悬停 / 翻牌由 node_cards_ui.draw_card 自己画（docs/154）
+						lift = 0.0
+						card.set_meta("lift", 0.0)
 			card.modulate.a = a
 			card.set_meta("oy", oy + lift)
 		card.queue_redraw()

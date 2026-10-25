@@ -71,24 +71,22 @@ static func draw_bg(ci: CanvasItem, vs: Vector2, cards: Array, flipped: int, t: 
 			x += 160.0
 	if cards.is_empty():
 		return
-	# 航点：标题下方一个小菱形，分三路虚线到每张卡顶边
-	var hub := Vector2(vs.x / 2.0, top_y - 18.0)
+	# 航线：一条横穿各卡中线的虚线海流（卡与卡之间、两侧露出），流向右；每张卡左右各一个小节点，翻开后选中卡两侧变亮、其余熄灭
+	var y: float = roundf((cards[0] as Rect2).get_center().y)
+	var seg := 10.0
+	var s := fposmod(t * 30.0, seg * 2.0) + 40.0
+	while s < vs.x - 40.0:
+		ci.draw_rect(Rect2(roundf(s), y - 1.0, seg, 3.0), Color(0.38, 0.88, 0.91, 0.32))
+		s += seg * 2.0
+	# 两端航点
+	for x in [40.0, vs.x - 40.0]:
+		UI.diamond(ci, Vector2(x, y), 7.0, Color(0.05, 0.12, 0.18, 0.95), Color(0.38, 0.88, 0.91, 0.75))
 	for i in cards.size():
 		var cr: Rect2 = cards[i]
-		var to := Vector2(cr.get_center().x, cr.position.y - 10.0)
 		var on: bool = flipped < 0 or flipped == i
-		var col := Color(0.38, 0.88, 0.91, 0.55 if flipped == i else (0.28 if on else 0.08))
-		var seg := 7.0
-		var dist := hub.distance_to(to)
-		var dir := (to - hub) / maxf(1.0, dist)
-		var s := fposmod(t * 22.0, seg * 2.0)
-		while s < dist:
-			var a := hub + dir * s
-			var b := hub + dir * minf(dist, s + seg)
-			ci.draw_line(a.round(), b.round(), col, 2.0)
-			s += seg * 2.0
-		ci.draw_rect(Rect2(to - Vector2(3, 3), Vector2(6, 6)), col)
-	UI.diamond(ci, hub, 7.0, Color(0.05, 0.12, 0.18, 0.95), Color(0.38, 0.88, 0.91, 0.9))
+		var col := Color(0.38, 0.88, 0.91, 0.95 if flipped == i else (0.6 if on else 0.12))
+		for x in [cr.position.x - 12.0, cr.end.x + 12.0]:
+			ci.draw_rect(Rect2(Vector2(x - 4.0, y - 4.0), Vector2(8.0, 8.0)), col)
 
 
 ## ---------- 卡片 ----------
@@ -118,6 +116,8 @@ static func draw_card(ci: CanvasItem, size: Vector2, c: Dictionary, st: Dictiona
 		sc = 1.0 + 0.06 * lift
 		var fe := clampf((flip_age - LIFT_T) / FLIP_T, 0.0, 1.0)
 		face = fe >= 0.5
+		# 翻转同时滑到整排中央，揭示在正中
+		off.x += (float(st.center_x) - ctr.x) * UM.in_out_cubic(clampf((flip_age - LIFT_T * 0.5) / (FLIP_T + LIFT_T * 0.5), 0.0, 1.0))
 		sx = maxf(0.04, absf(1.0 - 2.0 * UM.in_out_cubic(fe)))
 		reveal = clampf((flip_age - LIFT_T - FLIP_T * 0.5) / REVEAL_T, 0.0, 1.0)
 	elif fl >= 0:
@@ -131,17 +131,28 @@ static func draw_card(ci: CanvasItem, size: Vector2, c: Dictionary, st: Dictiona
 		sc = 1.02
 	if a <= 0.01:
 		return
+	# 选中卡起手时脚下一道光（压在卡下）
+	if fl == i and flip_age < LIFT_T + FLIP_T + REVEAL_T:
+		var gk := clampf(flip_age / LIFT_T, 0.0, 1.0) * (1.0 - clampf((flip_age - LIFT_T - FLIP_T) / REVEAL_T, 0.0, 1.0))
+		for k in 3:
+			var gw := size.x * (0.9 - k * 0.2)
+			ci.draw_rect(Rect2(ctr.x - gw / 2.0, size.y + 4.0 + k * 4.0 + off.y * 0.2, gw, 4.0), Color(col.r, col.g, col.b, 0.35 * gk * (1.0 - k * 0.3)))
 	ci.draw_set_transform_matrix(Transform2D(rot, Vector2(sc * sx, sc), 0.0, ctr + off) * Transform2D(0.0, Vector2.ONE, 0.0, -ctr))
 	ci.self_modulate.a = 1.0
 	if face:
 		_face(ci, r, c, st, font, serif, col, reveal, flip_age)
 	else:
 		_back(ci, r, c, st, font, serif, col, t, now, a)
-	# 翻转中线闪光
+	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+	# 翻转中线闪光（不随卡片压扁）：竖亮线 + 两侧台阶光
 	if fl == i and flip_age > LIFT_T and flip_age < LIFT_T + FLIP_T:
 		var k := 1.0 - absf((flip_age - LIFT_T) / FLIP_T - 0.5) * 2.0
-		ci.draw_rect(Rect2(ctr.x - 3.0, r.position.y - 6.0, 6.0, r.size.y + 12.0), Color(0.85, 1.0, 1.0, 0.9 * k))
-	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
+		var cx := ctr.x + off.x
+		var y0 := off.y + (1.0 - sc) * ctr.y - 8.0
+		var hh := size.y * sc + 16.0
+		for q in 3:
+			var ww := 4.0 + q * 8.0
+			ci.draw_rect(Rect2(cx - ww / 2.0, y0 + q * 6.0, ww, hh - q * 12.0), Color(0.85, 1.0, 1.0, (0.9 - q * 0.3) * k))
 
 
 static func _back(ci: CanvasItem, r: Rect2, c: Dictionary, st: Dictionary, font: Font, serif: Font, col: Color, t: String, now: float, a: float) -> void:
@@ -160,9 +171,9 @@ static func _back(ci: CanvasItem, r: Rect2, c: Dictionary, st: Dictionary, font:
 	step_line(ci, r.grow(-1.0), Color(col.r, col.g, col.b, (0.95 if hot else 0.5) * a), 2.0)
 	step_line(ci, inner, Color(col.r, col.g, col.b, 0.18 * a), 1.0, 2)
 	for corner in [Vector2(0, 0), Vector2(1, 0), Vector2(0, 1), Vector2(1, 1)]:
-		var cp := inner.position + inner.size * corner
-		var sxn := 1.0 if corner.x == 0 else -1.0
-		var syn := 1.0 if corner.y == 0 else -1.0
+		var cp: Vector2 = inner.position + inner.size * corner
+		var sxn: float = 1.0 if corner.x == 0 else -1.0
+		var syn: float = 1.0 if corner.y == 0 else -1.0
 		var cc := Color(col.r, col.g, col.b, 0.9 * a)
 		ci.draw_rect(Rect2(cp + Vector2(0 if sxn > 0 else -4.0 * P, 0 if syn > 0 else -P), Vector2(4.0 * P, P)), cc)
 		ci.draw_rect(Rect2(cp + Vector2(0 if sxn > 0 else -P, 0 if syn > 0 else -4.0 * P), Vector2(P, 4.0 * P)), cc)
@@ -217,7 +228,7 @@ static func _pattern(ci: CanvasItem, ir: Rect2, t: String, col: Color, now: floa
 					var p := ir.position + Vector2(x, y) * P * 6.0 + Vector2(P * 3.0, P * 3.0)
 					var cc := Color(col.r, col.g, col.b, (0.12 + 0.3 * tw) * a)
 					ci.draw_rect(Rect2(p - Vector2(P, 0), Vector2(P * 3.0, P)), cc)
-					ci.draw_rect(Rect2(p - Vector2(0, P) + Vector2(P, 0), Vector2(P, P * 3.0)) , cc)
+					ci.draw_rect(Rect2(p - Vector2(0, P), Vector2(P, P * 3.0)), cc)
 		"shop":
 			# 货架：横向层板 + 架上的钱币点
 			var y := ir.position.y + 30.0
@@ -306,12 +317,13 @@ static func _ending_edge(ci: CanvasItem, r: Rect2, cols: Array, ends: Array, now
 		ci.draw_rect(Rect2(p, Vector2(bw, bw)), Color(1, 1, 1, 0.08 * k * a))
 	# 徽记：顶边中央暗底小牌，写通向的结局罗马数字
 	var txt := " ".join(ends.map(func(e): return ROMAN.get(e, "")))
-	var tw := float(maxi(1, ends.size())) * 22.0 + 14.0
-	var tr := Rect2(Vector2(r.get_center().x - tw / 2.0, r.position.y - 10.0), Vector2(tw, 22.0))
-	ci.draw_colored_polygon(step_poly(tr, 2, 2.0), Color(0.02, 0.04, 0.07, 0.95 * a))
+	var tw := float(maxi(1, ends.size())) * 30.0 + 18.0
+	var tr := Rect2(Vector2(r.get_center().x - tw / 2.0, r.position.y + 8.0), Vector2(tw, 30.0))   # 放在卡内顶边：手机上卡片紧贴标题，跨边会压字
+	ci.draw_colored_polygon(step_poly(tr, 2, 3.0), Color(0.02, 0.04, 0.07, 0.97 * a))
 	for k in ends.size():
 		var cc: Color = cols[mini(k, cols.size() - 1)]
-		UI.ctext(ci, font, Vector2(tr.position.x + 7.0 + k * 22.0, tr.position.y + 16.0), ROMAN.get(ends[k], ""), 14, Color(cc.r, cc.g, cc.b, a), HORIZONTAL_ALIGNMENT_CENTER, 22.0)
+		ci.draw_rect(Rect2(tr.position.x + 9.0 + k * 30.0, tr.end.y - 6.0, 30.0, 3.0), Color(cc.r, cc.g, cc.b, a))
+		UI.ctext(ci, font, Vector2(tr.position.x + 9.0 + k * 30.0, tr.position.y + 21.0), ROMAN.get(ends[k], ""), 19, Color(cc.r, cc.g, cc.b, a), HORIZONTAL_ALIGNMENT_CENTER, 30.0)
 
 
 ## 正面：顶部类型色带（图标 + 节点名）、标题（衬线）、说明；正文自上而下显出，开头迸一圈像素颗粒
