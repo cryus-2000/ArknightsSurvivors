@@ -1501,7 +1501,7 @@ func _perf_sample() -> void:
 		if grainab > 0:
 			w += "/g0" if g.optical.grains.off else "/g1"
 		if stackab > 0:
-			w += "/sx" if g.at_frames - stack_sw <= 3 else "/s%d" % g.optical.ab_mask   # 采样在轮换之前：记的是上一帧所用掩码
+			w += "/sx" if g.at_frames - stack_sw <= 3 else "/s%d" % (g.optical.ab_mask | (128 if Cfg.render_scaled else 0))   # 采样在轮换之前：记的是上一帧所用掩码
 		if tierab > 0:
 			w += "/t0" if g.vfx.tier_off else "/t1"   # --tierab：上一帧的命中三档开关
 		if fx1ab > 0:
