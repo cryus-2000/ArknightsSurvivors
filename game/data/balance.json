@@ -661,6 +661,12 @@
   "merchant_fx": 1,
   "merchant_motes": 1.5, "first_sight": 1
  },
+ "atkspeed": {
+  "_doc": "整条攻击条按攻速等比缩放（用户 10-25「攻速高了动作跟不上，整个攻击条一起加速」）：动作窗口 = min(帧条时长, 出手间隔 × active_ratio)，前摇 / 出手帧 / 收势、动画播放都按它等比，不再被 attack_timing.min_duration / min_rest 与水月 min_cd 卡住，实际出手频率 = 面板攻速；min_window 只是防零长度的硬下限；动画播放倍率（帧条时长 ÷ 窗口）超过 anim_k_cap 后画面隔帧抽取（动作略跳帧，出手帧一定显示），判定时间轴照样按攻速缩短；legacy_floor = 1 恢复旧 min_duration / min_rest 下限（对照用）",
+  "min_window": 0.03,
+  "anim_k_cap": 3.0,
+  "legacy_floor": 0
+ },
  "feel": {
   "_doc": "移动粘滞（用户 10-24 试，缺省关 = 同 seed 不变）：move_sticky 1 = 开；队长普攻出手瞬间 fire_slow_t 秒移速 −fire_slow；起步 / 停步 accel_t 秒线性加减速",
   "move_sticky": 0.0,

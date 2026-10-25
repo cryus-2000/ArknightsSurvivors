@@ -1803,7 +1803,7 @@ func start_attack(aim: Vector2, dur: float = 0.5, fire_at: float = 0.25, anim :=
 	# 普攻各形状都在起手前设置 cd；让无显式 interval 的近战 / 治疗也使用攻速压缩。
 	super(aim, dur, fire_at, "" if not phases.is_empty() else anim, cd if interval <= 0.0 or not phases.is_empty() else interval)
 	var timing: Dictionary = sprite_spec(act_anim).get("attack_timing", {})
-	if timing.has("min_rest"):
+	if timing.has("min_rest") and BranchBal.v("atkspeed/legacy_floor", 0.0) > 0.0:   # 旧：间隔不低于动作窗口 + min_rest；整条缩放后窗口 ≤ 间隔 × active_ratio，不再需要
 		cd = maxf(cd, attack_dur + float(timing.min_rest))
 
 func phase_shot(round_: Dictionary, shot: int) -> void:
