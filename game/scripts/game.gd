@@ -640,7 +640,7 @@ func _load_enemy_tex(n: String) -> void:
 ## 本局是否给贴图生成法线图：无界面运行不画，光学观感开着时也不生成（docs/130 A4，用户 10-24 定：朝灯亮线已取代法线的立体感）。
 ## render/optical_normals 1 = 光学下也开（对照用）。标题页预热 / 载入页读图按同一判断（title_base._prewarm），缓存的贴图与局内一致
 static func wants_normal_maps() -> bool:
-	return Cfg.normal_maps and DisplayServer.get_name() != "headless" and (Bal.v("render/optical_normals", 0.0) > 0.0 or not (Bal.v("render/optical", 1.0) > 0.0 and Cfg.quality != "low"))
+	return Cfg.wants_normal_maps()   # 判断搬到 settings.gd（标题页用，不带出对局那一圈，docs/50 §29）
 
 
 ## 进局载入页分帧预读的贴图（title.gd → A.warm_begin）：[名字, 要白色剪影的名字]。和 _ready 读的同一批（preload_tex_names + 图鉴演示补充名单），
@@ -1181,14 +1181,17 @@ func cam_center() -> Vector2:
 ## 整局都看真实帧间隔，每 AQ_WIN 秒一窗；连续 AQ_NEED 窗平均帧时超过一帧预算 × AQ_OVER（60 帧时约 44 帧以下）才降一级（低于 30 帧一窗就降），降完 AQ_HOLD 秒不判。
 ## 只降不升，本次启动内一直有效（Cfg.auto_level，不存档：下次启动从头测，偶尔一次卡顿不会永久降低观感）。高配机不掉帧就一级都不降。
 ## 各级按「省得多、看着差得少」排（docs/50 §28 实测）：
-##   1 关光学 GPU 粒子 + 特效动态照明    2 再关发光层（CPU 颗粒不关：退回帧条画法更慢；颗粒密度已由 fx_grains 按帧时自动收到最低 0.35）
-##   3 分辨率缩放（只在高像素密度屏：手机网页；普通桌面跳过这级）    4 画质「低」（光学整套关、后期全关、粒子减半）
+##   1 关光学 GPU 粒子 + 特效动态照明
+##   2 同屏普通怪上限 65（满了合并进后来的怪，生命 / 伤害 / 经验按补偿放大，docs/50 §26.13；后期满屏 −21%，是各级里省得最多的）
+##   3 再关发光层（CPU 颗粒不关：退回帧条画法更慢；颗粒密度已由 fx_grains 按帧时自动收到最低 0.35）
+##   4 分辨率缩放（只在高像素密度屏：手机网页；普通桌面跳过这级）    5 画质「低」（光学整套关、后期全关、粒子减半）
 ## 只在真人局 + 自动档时启用（测试加 --autoq 才开；都是纯画面，同 seed 结果不变）
 const AQ_WIN := 2.0
 const AQ_NEED := 2
 const AQ_OVER := 1.35
 const AQ_HOLD := 3.0
-const AQ_MAX := 4
+const AQ_MAX := 5
+const AQ_CAP := 65   # 第 2 级的同屏上限（帧率会话 10-26 定的低配档参数）
 
 func _auto_quality(delta: float) -> void:
 	quality_note_t = maxf(0.0, quality_note_t - delta)
@@ -1216,8 +1219,8 @@ func _auto_quality(delta: float) -> void:
 		return
 	aq_win = Vector3.ZERO
 	Cfg.auto_level += 1
-	if Cfg.auto_level == 3 and not Cfg.hidpi_render():
-		Cfg.auto_level = 4   # 普通桌面：分辨率缩放没收益，直接下一级
+	if Cfg.auto_level == 4 and not Cfg.hidpi_render():
+		Cfg.auto_level = 5   # 普通桌面：分辨率缩放没收益，直接下一级
 	aq_hold = AQ_HOLD
 	_apply_auto_level()
 	if not Cfg.dev_args().is_empty():
@@ -1231,10 +1234,12 @@ func _auto_quality(delta: float) -> void:
 func _apply_auto_level() -> void:
 	var lv: int = Cfg.auto_level
 	if optical != null:
-		optical.auto_mask = (6 if lv >= 1 else 0) | (8 if lv >= 2 else 0)   # 2 GPU 粒子 + 4 动态照明；8 发光层（CPU 颗粒不关：关了退回帧条画法反而慢 0.8–1 ms，docs/50 §28；颗粒量由 fx_grains 帧时自适应自己往下收）
-	if lv >= 3 and Cfg.hidpi_render():
+		optical.auto_mask = (6 if lv >= 1 else 0) | (8 if lv >= 3 else 0)   # 2 GPU 粒子 + 4 动态照明；8 发光层（CPU 颗粒不关：关了退回帧条画法反而慢 0.8–1 ms，docs/50 §28；颗粒量由 fx_grains 帧时自适应自己往下收）
+	if spawner != null:
+		spawner.auto_cap = AQ_CAP if lv >= 2 else 0
+	if lv >= 4 and Cfg.hidpi_render():
 		Cfg.set_render_scale(true)
-	if lv >= 4 and Cfg.quality != "low":
+	if lv >= 5 and Cfg.quality != "low":
 		Cfg.set_quality("low")
 
 

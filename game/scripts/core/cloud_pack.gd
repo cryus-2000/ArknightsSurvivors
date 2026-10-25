@@ -250,13 +250,21 @@ static func merge_meta(l: Dictionary, c: Dictionary) -> Dictionary:
 	var l2: Dictionary = l if l is Dictionary else {}
 	var c2: Dictionary = c if c is Dictionary else {}
 	var earned := {}
+	var bought := {}   # 兑换寻访凭证花掉的细胞：同 earned，逐设备取较大值（只增不减）
 	for src in [l2.get("earned", {}), c2.get("earned", {})]:
 		if src is Dictionary:
 			for k in src:
 				earned[k] = maxi(int(src[k]), int(earned.get(k, 0)))
+	for src in [l2.get("bought", {}), c2.get("bought", {})]:
+		if src is Dictionary:
+			for k in src:
+				bought[k] = maxi(int(src[k]), int(bought.get(k, 0)))
 	var newer: Dictionary = c2 if int(c2.get("t", 0)) > int(l2.get("t", 0)) else l2
-	return {"earned": earned, "bounty": union(l2.get("bounty", []), c2.get("bounty", [])),
+	var out := {"earned": earned, "bounty": union(l2.get("bounty", []), c2.get("bounty", [])),
 		"shape": (newer.get("shape", {}) as Dictionary).duplicate() if newer.get("shape") is Dictionary else {}, "t": int(newer.get("t", 0))}
+	if not bought.is_empty():
+		out["bought"] = bought
+	return out
 
 
 ## 蚀刻章合并：已获得的章取并集（获得后永久保留），获得时刻取两边较早的非 0 值；最好进度逐键取较大值。本版不认识的章 key 原样保留

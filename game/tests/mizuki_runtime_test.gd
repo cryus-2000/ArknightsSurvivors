@@ -63,7 +63,10 @@ func test_attacks() -> void:
   ok(o.act_anim=="skill_s1_attack","S1 uses empowered attack pixels")
   var duration: float=o.attack_dur
   var cycle: float=o.cd
-  ok(duration>=0.36-0.0001 and cycle>=duration+0.09-0.0001,"bounded full action plus visible rest")
+  if rate==1.0:   # 10-25 攻速整条缩放（docs/153）：1× 仍有完整动作 + 可见休息段；高攻速整条等比缩短，可以没有休息段，但窗口不超过出手间隔、频率 = 面板
+   ok(duration>=0.36-0.0001 and cycle>=duration+0.09-0.0001,"bounded full action plus visible rest")
+  else:
+   ok(duration>0.0 and duration<=cycle+0.0001,"scaled action fits inside the attack interval")
   var fire_steps := int(ceil(o.fire_t/DT))
   step(o,fire_steps-1)
   ok(e.hp==1000000.0 and o.ammo[0]==2,"damage/charge wait for actual fire event")

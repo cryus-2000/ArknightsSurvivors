@@ -68,7 +68,11 @@ func _process(_dt: float) -> void:
 				if frame == 3 and previous != 3:
 					release_entries += 1
 				previous = frame
-			ok(seen.size() == 8 and release_entries == 1, id + " eight poses, one release")
+			var kk: float = expected[1] / dur   # 动画倍率超过 3 后隔帧抽取（atkspeed/anim_k_cap）：仍要完整走完前摇 → 出手帧 → 收势，出手帧只进入一次
+			if kk <= 3.0 + 0.0001:
+				ok(seen.size() == 8 and release_entries == 1, id + " eight poses, one release")
+			else:
+				ok(seen.has(3) and release_entries == 1 and seen.size() >= int(8.0 / (kk / 3.0)) - 1, id + " skipped poses, one release")
 			o.attack_t = 0.001
 			ok(o.acting(), id + " recovery remains locked")
 			o.attack_t = 0.0
