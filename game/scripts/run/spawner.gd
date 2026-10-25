@@ -635,12 +635,18 @@ var _samp_s := -1
 
 
 func alive_cap() -> int:
-	return _plat_knob("alive_cap")
+	var v := _plat_knob("alive_cap")
+	return v if v > 0 else auto_cap
 
 
 ## 普通怪硬上限（docs/50 §26.10）：强制放出时普通怪已到这个数就合并进后来的怪（owed），0 = 不合并（原行为：排满就放）
 func alive_hard() -> int:
-	return _plat_knob("alive_hard")
+	var v := _plat_knob("alive_hard")
+	return v if v > 0 else auto_cap
+
+
+## 画质自动档第 2 级开的同屏上限（game._apply_auto_level，docs/50 §28；0 = 没开）：上限与硬上限都取它，合并补偿照 balance.json（§26.13）
+var auto_cap := 0
 
 
 ## 同屏上限按平台单独覆盖（enemy/<键>_web，缺省 0 = 不覆盖，桌面 / 网页同一套）
