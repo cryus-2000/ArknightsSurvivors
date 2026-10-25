@@ -325,6 +325,9 @@ func update(dt: float) -> void:
 					at = atk_point(nearest_enemies(1, r, c), r)   # 手动普攻（v2.5）：不分方向，只受闸门
 		"cone":
 			var r2: float = ObCore.shape_radius(self, a)
+			var sr = a.get("skill_reach")   # 技能期间起手距离换成 r（德克萨斯剑雨滂沱·次元斩：前方 rift_r 内有敌人就出手）
+			if sr is Dictionary and s_t[int(sr.skill)] > 0.0:
+				r2 = float(sr.r) * stat(&"op_range")
 			var fp0: Dictionary = _far_pick(a)
 			if fp0.is_empty():
 				at = atk_point(nearest_enemies(1, r2 + 30.0, pos), r2)   # 手动普攻 A 类
@@ -613,6 +616,7 @@ const EXEC_SEG := {
 	"shape.dash_line": 1,   # tx_exec
 	"verb.fx_rain": 1,   # tx_exec
 	"verb.emit_path": 1,   # tx_exec
+	"verb.rift_slash": 1,   # tx_exec
 	"verb.fx_scatter": 1,   # tx_exec
 	"verb.sp_secs": 1,   # tx_exec
 	"verb.trail": 1,   # tx_exec
@@ -1074,6 +1078,8 @@ func draw_auras() -> void:
 
 ## 贴身层（docs/61 §5.6 layer = behind / front）：本体前后各画一遍
 func draw_body() -> void:
+	if SegTexas.tx_rift_draw_body(self):   # 德克萨斯次元斩：闪现序列里本体隐去
+		return
 	if not hw.is_empty() and SegSpecter.h3_away(self):   # 手写迁移段第 3 批：本体离场（替身在场）不画
 		return
 	if not hw.is_empty() and SegSiege.h4_draw_body(self):   # 手写迁移段第 4 批：跃空锤在空中（翻转的本体 + 扫光）
@@ -1123,6 +1129,8 @@ func draw_ground_fx() -> void:
 func _draw_pfx(f: Dictionary, a: float) -> bool:
 	if str(f.kind) == "tx_strip":
 		return SegTexas.tx_draw_pfx(self, f, a)
+	if str(f.kind) == "tx_scar":
+		return SegTexas.tx_scar_draw(self, f, a)
 	if str(f.kind) == "tx_rain":   # verb.fx_rain（docs/61 §13.5）：加色层的在 draw_fx_add 画
 		if not f.get("add", false):
 			SegTexas.tx_rain_draw(cv, self, f)
@@ -1333,12 +1341,18 @@ func _far_wanted(a: Dictionary, far: Dictionary) -> bool:
 	return fr > 0.0 and not nearest_enemies(1, fr, pos).is_empty()
 
 
-## blocks.skills[i].need_enemy（半径，× op_range）：自动释放前 pos 周围这个半径内要有敌人，没有就先不放（技力保留满格，有敌人那一帧再放）
+## 自动技能放出门槛（10-25 用户「范围内没有敌人就不开技能」）：pos 周围 ObCore.skill_gate_base（技能 need_enemy → 伤害积木作用半径 → 普攻射程）× op_range 内要有敌人，
+## 没有就先不放（技力保留满格，有敌人那一帧再放）。手动技能不走这里（charge_skills 先判 is_manual）
 func skill_gate_ok(i: int) -> bool:
 	var sk: Array = B.get("skills", _EA)
-	if i >= sk.size() or not sk[i].has("need_enemy"):
+	if i >= sk.size():
 		return true
-	return not nearest_enemies(1, float(sk[i].need_enemy) * stat(&"op_range"), pos).is_empty()
+	var atk: Dictionary = B.get("attack", _ED)
+	var fb: float = ObCore.GATE_DEFAULT
+	if str(atk.get("r", "")) == "zone":   # 普攻是区域圈（斯卡蒂等）：推不出别的时用区域半径
+		fb = zone_r() / maxf(0.01, stat(&"op_range"))
+	var d: float = ObCore.skill_gate_base(sk[i], atk, {}, fb) * stat(&"op_range")
+	return d <= 0.0 or not nearest_enemies(1, d, pos).is_empty()
 
 
 ## 当前普攻形状：verb.swap_attack 生效时用它，否则 blocks.attack
@@ -1741,6 +1755,8 @@ func bullet_exploded(b: Dictionary) -> void:
 ## 精英化第 2 批段：本干员造成伤害之后（咒文链上的传递）
 func deal_damage(e: Dictionary, dmg: float) -> void:
 	super(e, dmg)
+	if not sm.is_empty() and not sm.get("mark_b", _ED).is_empty():
+		ObSummon.mark_hit(self, e)   # 召唤 / 封印段：verb.mark 叠层（拉普兰德 S3）
 	if not hw.is_empty():
 		SegLogos.hw_dealt(self, e, dmg)
 
@@ -1793,7 +1809,7 @@ func start_attack(aim: Vector2, dur: float = 0.5, fire_at: float = 0.25, anim :=
 	# 普攻各形状都在起手前设置 cd；让无显式 interval 的近战 / 治疗也使用攻速压缩。
 	super(aim, dur, fire_at, "" if not phases.is_empty() else anim, cd if interval <= 0.0 or not phases.is_empty() else interval)
 	var timing: Dictionary = sprite_spec(act_anim).get("attack_timing", {})
-	if timing.has("min_rest"):
+	if timing.has("min_rest") and BranchBal.v("atkspeed/legacy_floor", 0.0) > 0.0:   # 旧：间隔不低于动作窗口 + min_rest；整条缩放后窗口 ≤ 间隔 × active_ratio，不再需要
 		cd = maxf(cd, attack_dur + float(timing.min_rest))
 
 func phase_shot(round_: Dictionary, shot: int) -> void:

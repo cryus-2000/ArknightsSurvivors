@@ -20,82 +20,115 @@ var cv:
 
 # ---------------------------------------------------------------- 索敌
 
-## 离 origin（缺省为主控位置）最近的 n 个活着的敌人，max_dist 以内。
-## Boss 优先（2026-09-29 协调人：普通档打不动 3:30 的第一个 Boss，输出被身边小怪抢走）：balance ai/boss_focus（缺省 1 = 开）时，
-## max_dist 内有可受击的 Boss 就排到第一个；部件（e.part）优先照旧；主控 ai/boss_focus_guard（60）内有小怪贴脸时不强制
+## 离 origin（缺省为主控位置）最近的 n 个活着的敌人，max_dist 以内，按指挥优先级排序（prio_order；队长恒为 Boss 优先）。
+## Boss 优先（缺省；2026-09-29 协调人：普通档打不动 3:30 的第一个 Boss，输出被身边小怪抢走）：balance ai/boss_focus（缺省 1 = 开）时，
+## max_dist 内有可受击的 Boss 就排到第一个；部件（e.part）优先照旧；主控 ai/boss_focus_guard（60）内有小怪贴脸时不强制（护主）
 func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
-	var sq = g.get("squad")
-	if sq != null and sq.priority != 0 and not bool(get("is_leader")):
-		return _prio_enemies(n, max_dist, origin, sq.priority)   # 指挥圆盘的索敌优先级（docs/114 §13）：只给队友自动索敌，队长不受影响
-	var out: Array = g.enemies_sys.nearest(n, max_dist, origin)
-	if out.is_empty() or out[0].boss or out[0].get("part", false):
-		return out
-	var BalS = preload("res://scripts/core/balance.gd")
-	if BalS.v("ai/boss_focus", 1.0) <= 0.0:
-		return out
 	var o: Vector2 = g.ppos if origin == Vector2.INF else origin
-	var best = null
+	var cands: Array = []
+	if prio_mode() == 1:
+		for e in g.enemies_sys.nearest(mini(maxi(n * 6, 14), 24), max_dist, origin):
+			cands.append([e, e.pos.distance_to(o)])
+		var out1: Array = prio_order(cands, 1)
+		if out1.size() > n:
+			out1.resize(n)
+		return out1
+	var near: Array = g.enemies_sys.nearest(n, max_dist, origin)
+	if near.is_empty() or near[0].boss or near[0].get("part", false):
+		return near
+	for e in near:
+		cands.append([e, e.pos.distance_to(o)])
 	var bd: float = max_dist * max_dist
-	for e in _focus_bosses():
-		if e.dead:
-			continue
-		var d: float = e.pos.distance_squared_to(o)
-		if d < bd:
-			bd = d
-			best = e
-	if best == null:
-		return out
-	var guard: Array = g.enemies_sys.nearest(1, BalS.v("ai/boss_focus_guard", 60.0), g.ppos)
-	if not guard.is_empty() and not guard[0].boss:
-		return out   # 小怪贴着主控：先护主，不强制打 Boss
-	out.erase(best)
-	out.push_front(best)
+	for e in _focus_bosses():   # 不在最近 n 个里、但在 max_dist 内的 Boss 也进候选（排在后面，得分 = 距离）
+		if not e.dead and e.pos.distance_squared_to(o) < bd and not near.has(e):
+			cands.append([e, e.pos.distance_to(o)])
+	var out: Array = prio_order(cands, 0)
 	if out.size() > n:
 		out.resize(n)
 	return out
 
 
-## 索敌优先级（指挥圆盘，只对队友）：1 清杂优先 = 先杂兵（非精英 / Boss），杂兵里按周围 PRIO_DENSE_R 内的同伴数由多到少（密集处），再按离 origin 近远；
-## 2 Boss 优先 = Boss / 精英 / 部件排前面（按远近），没有就退回原顺序；没有杂兵可选时清杂也退回原顺序。
-## 候选池 = 范围内最近的 max(6n, 14) 个（上限 24）；不抽随机数，稳定排序（同分按原来的远近次序）
+## 指挥优先级（docs/114 §13，指挥圆盘下半圈）：0 = Boss 优先（缺省，也是改动前的逻辑）/ 1 = 清杂优先。只对队友；队长与没有编队时恒为 0
+func prio_mode() -> int:
+	if bool(get("is_leader")):
+		return 0
+	var sq = g.get("squad")
+	return int(sq.priority) if sq != null else 0
+
+
+## 指挥优先级的统一排序：攻击选敌（nearest_enemies）与突击走位选敌（character.roam_target）共用，两边口径一致。
+## cands = [[敌人, 得分], …]，得分越小越优先、按得分升序排好（攻击侧 = 离 origin 的距离，走位侧 = 离队尾的距离等）；返回重排后的敌人数组。
+## 0 Boss 优先：第一个是 Boss / 部件就不动；否则得分最小的可受击 Boss 提到最前；ai/boss_focus 关、或队长 ai/boss_focus_guard 内有非 Boss 贴脸（护主）时不提。
+## 1 清杂优先：杂兵（非 Boss / 精英 / 部件）在前，按周围 PRIO_DENSE_R 内的杂兵数（含自己，封顶 PRIO_DENSE_CAP）由多到少、同数按得分；
+##   密集度只在得分最小的 PRIO_POOL 个杂兵里算；没有杂兵保持原顺序。不抽随机数，同分按原次序（稳定）
 const PRIO_DENSE_R := 90.0
+const PRIO_DENSE_CAP := 6
+const PRIO_POOL := 24
 
-func _prio_enemies(n: int, max_dist: float, origin: Vector2, mode: int) -> Array:
-	var pool: Array = g.enemies_sys.nearest(mini(maxi(n * 6, 14), 24), max_dist, origin)
-	if pool.size() <= 1:
-		return pool
-	var first: Array = []
+func prio_order(cands: Array, mode: int) -> Array:
+	var out: Array = []
+	for c in cands:
+		out.append(c[0])
+	if out.size() <= 1:
+		return out
+	if mode == 0:
+		if out[0].boss or out[0].get("part", false):
+			return out
+		var BalS = preload("res://scripts/core/balance.gd")
+		if BalS.v("ai/boss_focus", 1.0) <= 0.0:
+			return out
+		var best = null
+		var bs := INF
+		for c in cands:
+			if c[1] < bs and focusable_boss(c[0]):
+				bs = c[1]
+				best = c[0]
+		if best == null:
+			return out
+		var guard: Array = g.enemies_sys.nearest(1, BalS.v("ai/boss_focus_guard", 60.0), g.ppos)
+		if not guard.is_empty() and not guard[0].boss:
+			return out   # 小怪贴着主控：先护主，不强制打 Boss
+		out.erase(best)
+		out.push_front(best)
+		return out
+	var mobs: Array = []   # [敌人, 得分, 原次序]
 	var rest: Array = []
-	if mode == 2:
-		for e in pool:
-			if e.boss or e.elite or e.get("part", false):
-				first.append(e)
-			else:
-				rest.append(e)
-	else:
-		var mobs: Array = []
-		for e in pool:
-			if e.boss or e.elite or e.get("part", false):
-				rest.append(e)
-			else:
-				mobs.append(e)
-		if mobs.is_empty():
-			return pool.slice(0, n)
-		var r2: float = PRIO_DENSE_R * PRIO_DENSE_R
-		var sc: Array = []
-		for i in mobs.size():
-			var c := 0
-			for j in mobs.size():
-				if mobs[i].pos.distance_squared_to(mobs[j].pos) <= r2:
-					c += 1
-			sc.append([c, i])
-		sc.sort_custom(func(a, b): return a[0] > b[0] or (a[0] == b[0] and a[1] < b[1]))
-		for s in sc:
-			first.append(mobs[s[1]])
-	var out: Array = first + rest
-	if out.size() > n:
-		out.resize(n)
-	return out
+	for i in cands.size():
+		var e = cands[i][0]
+		if prio_rank(e, 1) == 0 and mobs.size() < PRIO_POOL:
+			mobs.append([e, cands[i][1], i])
+		else:
+			rest.append(e)
+	if mobs.is_empty():
+		return out
+	var r2: float = PRIO_DENSE_R * PRIO_DENSE_R
+	var keyed: Array = []
+	for m in mobs:
+		var c := 0
+		for m2 in mobs:
+			if m[0].pos.distance_squared_to(m2[0].pos) <= r2:
+				c += 1
+				if c >= PRIO_DENSE_CAP:
+					break
+		keyed.append([c, m[1], m[2], m[0]])
+	keyed.sort_custom(func(a, b): return a[0] > b[0] or (a[0] == b[0] and (a[1] < b[1] or (a[1] == b[1] and a[2] < b[2]))))
+	var res: Array = []
+	for k in keyed:
+		res.append(k[3])
+	return res + rest
+
+
+## 该敌人在优先级 mode 下是不是偏好档位（0 = 偏好）：Boss 优先 = 可受击的 Boss；清杂优先 = 杂兵（非 Boss / 精英 / 部件）
+func prio_rank(e: Dictionary, mode: int) -> int:
+	if mode == 0:
+		return 0 if focusable_boss(e) else 1
+	return 1 if (e.boss or e.elite or e.get("part", false)) else 0
+
+
+## Boss 优先认的 Boss：活着、没假死、不无敌、没在潜地 / 闸门无敌
+func focusable_boss(e: Dictionary) -> bool:
+	return e.boss and not e.dead and not e.get("coma", false) and not e.get("invuln", false) \
+			and e.get("gate_inv", 0.0) <= 0.0 and not e.get("under", false)
 
 
 ## 射程内随机一名敌人（docs/108 F4，持续攻击 target: random）：入选条件同 nearest_enemies（活着、距离 < max_dist），
@@ -144,8 +177,7 @@ func _focus_bosses() -> Array:
 	_fb_frame = g.frame_n
 	_fb_list = []
 	for e in g.enemies:
-		if e.boss and not e.dead and not e.get("coma", false) and not e.get("invuln", false) \
-				and e.get("gate_inv", 0.0) <= 0.0 and not e.get("under", false):
+		if focusable_boss(e):
 			_fb_list.append(e)
 	return _fb_list
 

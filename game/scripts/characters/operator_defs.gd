@@ -4,14 +4,17 @@ extends RefCounted
 ## 全是静态函数，不碰局内状态
 
 
+## 目录内容运行中不变：第一次扫完记住（10-25 帧率：界面每帧经 op_idle 调到，每次都是一次目录扫描）。返回副本，调用方改了不影响缓存
+static var _ids: Array = []
+
 static func list_ids() -> Array:
-	var out: Array = []
-	var d := DirAccess.open("res://data/characters")
-	if d != null:
-		for f in d.get_files():
-			if f.ends_with(".json"):
-				out.append(f.get_basename())
-	return out
+	if _ids.is_empty():
+		var d := DirAccess.open("res://data/characters")
+		if d != null:
+			for f in d.get_files():
+				if f.ends_with(".json"):
+					_ids.append(f.get_basename())
+	return _ids.duplicate()
 
 
 static func load_def(cid: String) -> Dictionary:
@@ -197,3 +200,28 @@ static func seq_anim(seg) -> String:
 	if seg is Dictionary:
 		return str(seg.get("anim", ""))
 	return str(seg) if seg != null else ""
+
+
+## 奶位标签（docs/49e C 口径，用户 9/30 定）：普攻 / 技能 / 天赋 JSON 里写的 cleanse（能清的状态）与 heal（回复主控），
+## 汇总成「净化：侵蚀 · 神经损伤」「回复」。状态名与排序按 docs/37 §6。选人页和招募卡共用
+## （10-25 从 run/affects.gd 搬来：标题页引用 affects 会把对局那一圈 41 个脚本带进启动，docs/50 §29）
+const CLEANSE_ORDER := ["侵蚀", "神经损伤", "凋亡损伤", "寒冷", "束缚", "创口"]
+
+static func care_labels(def: Dictionary) -> Array:
+	var parts: Array = [def.get("attack", {}), def.get("talent", {})]
+	parts.append_array(def.get("skills", []))
+	var got := {}
+	var heal := false
+	for p in parts:
+		if not (p is Dictionary):
+			continue
+		heal = heal or bool(p.get("heal", false))
+		for st in p.get("cleanse", []):
+			got[st] = true
+	var out: Array = []
+	var cl: Array = CLEANSE_ORDER.filter(func(k): return got.has(k))
+	if not cl.is_empty():
+		out.append("净化：" + " · ".join(PackedStringArray(cl)))
+	if heal:
+		out.append("回复")
+	return out

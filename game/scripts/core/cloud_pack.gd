@@ -27,8 +27,9 @@ const KEY_LIMIT := 128
 const VALUE_LIMIT := 1024
 ## ops = 解锁过的干员、optier = 已首通的难度档（发过人事调度函），都取并集；opst = 名册的券与抽取状态（merge_opst）
 const LIST_KEYS := ["gal", "rel", "end", "shows", "ops", "optier"]
-const OPTIONAL_KEYS := ["ops", "optier", "opst", "meta", "dbest"]   # 只在正文里有时才规范化 / 合并
-const PROG_KEYS := ["diff", "gal", "rel", "end", "shows", "intro", "open", "ops", "optier", "opst", "meta", "dbest"]
+## med = 蚀刻章 {"got": {key: 获得时刻}, "best": {key: 最好进度}}（merge_med）
+const OPTIONAL_KEYS := ["ops", "optier", "opst", "meta", "dbest", "med"]   # 只在正文里有时才规范化 / 合并
+const PROG_KEYS := ["diff", "gal", "rel", "end", "shows", "intro", "open", "ops", "optier", "opst", "meta", "dbest", "med"]
 ## 格式迁移：{旧版本 v: 把 v 版正文改成 v+1 版的静态函数名}。目前只有 v1，没有迁移；以后改格式时在这里登记（单测覆盖）
 const MIGRATIONS := {}
 
@@ -182,6 +183,8 @@ static func normalize(b: Dictionary) -> Dictionary:
 	pr["open"] = bool(pr.get("open", false))
 	if pr.has("opst"):
 		pr["opst"] = (pr.opst as Dictionary).duplicate(true) if pr.opst is Dictionary else {}
+	if pr.has("med"):
+		pr["med"] = merge_med(pr.med, {})   # 规范化：两个子字典都在、值转 int
 	for k in LIST_KEYS:
 		if k in OPTIONAL_KEYS and not pr.has(k):
 			continue   # 名册字段（P1 之后才有）：旧正文里没有就不补，往返与旧版本逐字相同
@@ -247,13 +250,44 @@ static func merge_meta(l: Dictionary, c: Dictionary) -> Dictionary:
 	var l2: Dictionary = l if l is Dictionary else {}
 	var c2: Dictionary = c if c is Dictionary else {}
 	var earned := {}
+	var bought := {}   # 兑换寻访凭证花掉的细胞：同 earned，逐设备取较大值（只增不减）
 	for src in [l2.get("earned", {}), c2.get("earned", {})]:
 		if src is Dictionary:
 			for k in src:
 				earned[k] = maxi(int(src[k]), int(earned.get(k, 0)))
+	for src in [l2.get("bought", {}), c2.get("bought", {})]:
+		if src is Dictionary:
+			for k in src:
+				bought[k] = maxi(int(src[k]), int(bought.get(k, 0)))
 	var newer: Dictionary = c2 if int(c2.get("t", 0)) > int(l2.get("t", 0)) else l2
-	return {"earned": earned, "bounty": union(l2.get("bounty", []), c2.get("bounty", [])),
+	var out := {"earned": earned, "bounty": union(l2.get("bounty", []), c2.get("bounty", [])),
 		"shape": (newer.get("shape", {}) as Dictionary).duplicate() if newer.get("shape") is Dictionary else {}, "t": int(newer.get("t", 0))}
+	if not bought.is_empty():
+		out["bought"] = bought
+	return out
+
+
+## 蚀刻章合并：已获得的章取并集（获得后永久保留），获得时刻取两边较早的非 0 值；最好进度逐键取较大值。本版不认识的章 key 原样保留
+static func merge_med(l, c) -> Dictionary:
+	var got := {}
+	var best := {}
+	for src in [l, c]:
+		if not (src is Dictionary):
+			continue
+		var g = src.get("got", {})
+		if g is Dictionary:
+			for k in g:
+				if not (g[k] is int or g[k] is float):
+					continue
+				var t := int(g[k])
+				var o := int(got.get(str(k), 0))
+				got[str(k)] = t if not got.has(str(k)) or o <= 0 else (mini(o, t) if t > 0 else o)
+		var b = src.get("best", {})
+		if b is Dictionary:
+			for k in b:
+				if b[k] is int or b[k] is float:
+					best[str(k)] = maxi(int(b[k]), int(best.get(str(k), 0)))
+	return {"got": got, "best": best}
 
 
 ## 两份正文哪些字段不同（日志用）：["set.t", "set.d.master", "prog.rel", "ops"……]
@@ -328,6 +362,8 @@ static func merge(local: Dictionary, cloud: Dictionary) -> Dictionary:
 		p["dbest"] = merge_dbest(lp.get("dbest", {}), cp.get("dbest", {}))
 	if lp.has("meta") or cp.has("meta"):
 		p["meta"] = merge_meta(lp.get("meta", {}), cp.get("meta", {}))
+	if lp.has("med") or cp.has("med"):
+		p["med"] = merge_med(lp.get("med", {}), cp.get("med", {}))
 	var cloud_newer: bool = int(c.set.t) > int(l.set.t)
 	var win: Dictionary = c.set if cloud_newer else l.set
 	var lose: Dictionary = l.set if cloud_newer else c.set

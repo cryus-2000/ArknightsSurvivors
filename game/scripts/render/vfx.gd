@@ -198,6 +198,29 @@ func _leader_kick(h: Dictionary, e: Dictionary, tier: int) -> void:
 	g.world.kick(((e.pos as Vector2) - g.ppos), px, Bal.v("fx/kick_t", 0.06))
 
 
+## ── 突出队长（docs/139 §11，用户 10-25「队友特效不要降，想其它办法」）──
+## render/lead_hitmark 1：队长打中的敌人身上出四个像素角标（暖白，0.3 秒，同一只敌人重复命中只刷新寿命，不叠、不闪）；队友 / 召唤物命中没有
+## lead_hit_dir / lead_hit_t：队长最近一次命中方向（squad.draw_leader_mark 的朝向弧用，render/lead_dir）
+var lead_hit_dir := Vector2.ZERO
+var lead_hit_t := -10.0
+func lead_mark(e: Dictionary) -> void:
+	lead_hit_dir = ((e.pos as Vector2) - g.ppos).normalized()
+	lead_hit_t = g.t
+	if (Bal.vi("render/lead_hitmark", 0) <= 0 and g.world.lead_lv <= 0) or g.fx.size() > 400:
+		return
+	var f = e.get("_lead_mk")
+	if f is Dictionary and float(f.life) > 0.0:
+		f.life = f.max
+		return
+	var nf := {"kind": "lead_mark", "pos": e.pos, "e": e, "r": float(e.get("r", 12.0)), "life": 0.3, "max": 0.3}
+	e["_lead_mk"] = nf
+	g.fx.append(nf)
+
+
+func is_lead_hit(h: Dictionary) -> bool:
+	return g.ch != null and str(h.get("op", "")) == str(g.ch.id) and h.get("emitter", "") != "summon"   # 召唤物的命中不算队长本人出手
+
+
 func hit_tier(h: Dictionary, dmg: float, crit: bool, weak: bool) -> int:
 	if tier_off or Bal.v("fx/hit_tiers", 1.0) <= 0.0:
 		return 0
@@ -276,6 +299,8 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 	else:
 		e.flash = maxf(float(e.get("flash", 0.0)), fl)
 	e.squash = maxf(float(e.get("squash", 0.0)), sq)
+	if not dot and is_lead_hit(h):
+		lead_mark(e)
 	if tier > 0:
 		_tier_fx(e, h, tier)
 		_leader_kick(h, e, tier)
@@ -333,6 +358,13 @@ func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 	var col: Color = _op_col(h)
 	var head: Vector2 = e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6)
 	var n: int = [0, Bal.vi("fx/hit_n1", 3), Bal.vi("fx/hit_n2", 6), Bal.vi("fx/hit_n3", 12)][tier]
+	var lead: bool = g.ch != null and str(h.get("op", "")) == str(g.ch.id)
+	if lead and g.world.lead_lv > 0:
+		col = g.world.lead_col(col)   # 队长命中颗粒 / 命中星：提亮 / 暖色（docs/139 §11）
+	if not lead and g.world.mate_on:
+		col = g.world.mate_col(col)   # 队友命中颗粒：去饱和、压透明度（docs/139 §10；敌人身上的白闪不动）
+		col.a = g.world.mate_dim
+
 	if g.optical_on and g.optical.grains != null and g.optical.grains.on() and not g.optical.grains.off:
 		g.optical.grains.spark(head, (e.pos as Vector2).y + float(e.get("r", 12.0)) * 0.8, col, n)   # 刀光第四版：带重力、落到脚底高度停住冷却的火星（docs/136）
 	elif g.optical_on and g.optical.particles != null:
@@ -341,10 +373,10 @@ func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 		sparks(head, Vector2.ZERO, col, n, [0.0, 90.0, 140.0, 200.0][tier])
 	if tier >= 2:
 		var k: float = 1.3 if tier == 2 else 1.7
-		glow(head, [0.0, 6.0, 10.0, 16.0][tier], Color(col.r * k, col.g * k, col.b * k, 0.8), [0.0, 0.06, 0.09, 0.14][tier])
+		glow(head, [0.0, 6.0, 10.0, 16.0][tier], Color(col.r * k, col.g * k, col.b * k, 0.8 * col.a), [0.0, 0.06, 0.09, 0.14][tier])
 		# 像素命中星（中 4 臂、重 8 臂，2 px 线、亮芯，三阶跳着消失）：小颗粒在后期满屏时读不出档位，靠它分轻重
 		var sl: float = [0.0, 0.0, 0.08, 0.13][tier]
-		g.fx.append({"kind": "hstar", "pos": head.round(), "r": [0.0, 0.0, 8.0, 14.0][tier], "col": col, "n": 4 if tier == 2 else 8, "life": sl, "max": sl})
+		g.fx.append({"kind": "hstar", "pos": head.round(), "r": [0.0, 0.0, 8.0, 14.0][tier], "col": col, "n": 4 if tier == 2 else 8, "life": sl, "max": sl, "ka": col.a})
 
 
 ## 击杀爆点按体型分档（docs/53，combat.kill 调用；纯画面 + 音效，粒子用 g.vrng，不碰 g.rng）：
@@ -486,10 +518,29 @@ const TEXT_MERGE_T := 0.25
 const BOSS_SUM_T := 0.3
 var _boss_sum: Array = []   # [{e, dmg, t, weak}]，按 is_same 找（字典内容会变，不能当键）
 
-func dmg_number(e: Dictionary, dmg: float, crit: bool, weak: bool) -> void:
+## render/mate_numbers 1（docs/139 §11）：队友 / 召唤物的伤害数字改小号、偏灰；队长的原样。对 Boss 的合并数字不分
+func dmg_number(e: Dictionary, dmg: float, crit: bool, weak: bool, h := {}) -> void:
 	if not Cfg.dmg_numbers or g.texts.size() >= 80:
 		return
 	var jit := Vector2(g.vrng.randf_range(-6, 6), 0)
+	if Bal.vi("render/mate_numbers", 0) > 0 and not h.is_empty() and not is_lead_hit(h) and not e.boss:
+		if crit:
+			add_text(e.pos + jit + Vector2(0, -e.r - 10), str(int(round(dmg))), Color(0.85, 0.78, 0.6), 15)
+			return
+		if _boss_fight() or (not weak and g.texts.size() > _white_cap()):
+			return
+		add_text(e.pos + jit + Vector2(0, -e.r - 8), ("弱点 " if weak else "") + str(int(round(dmg))), Color(0.8, 0.72, 0.5) if weak else Color(0.72, 0.74, 0.78, 0.85), 13 if weak else 11)
+		return
+	var lk: float = g.world.lead_num_k if (g.world.lead_lv > 0 and not h.is_empty() and is_lead_hit(h)) else 1.0
+	if lk > 1.0 and not e.boss:
+		# 队长的伤害数字（docs/139 §11）：放大 lead_num_k、普通白字改暖白；暴击 / 弱点同样放大
+		if crit:
+			add_text(e.pos + jit + Vector2(0, -e.r - 12), str(int(round(dmg))), UI.GOLD, int(round(22 * lk)))
+			return
+		if _boss_fight() and not weak:
+			return
+		add_text(e.pos + jit + Vector2(0, -e.r - 10), ("弱点 " if weak else "") + str(int(round(dmg))), Color(1.0, 0.85, 0.35) if weak else Color(1.0, 0.93, 0.75), int(round((18.0 if weak else 15.0) * lk)))
+		return
 	if crit:
 		add_text(e.pos + jit + Vector2(0, -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
 		return
@@ -867,6 +918,8 @@ const DISSOLVE_TINT := Color(1.0, 0.72, 1.05)
 ## ground=true：地面层帧条（kind "gsprite"，world._draw_ground_sprites 在溟痕之后、预警之前画；敌方落点溅射 / 囊液残留，docs/96）；
 ## anchor_px：帧内原点（1x 美术像素，按贴图密度换算；manifest 的 origin_1x），缺省帧中心
 ## delay：晚这么多秒才开始播（期间不画、不补光学火星；维什戴尔大爆炸的连环外圈，docs/137 §8）
+var spawn_lead := false   # squad.update 在队长更新期间置真：这期间生成的帧条特效打上 lead（world 绘制时按突出队长档提亮，docs/139 §11）
+
 func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE, ground := false, anchor_px := Vector2(-1, -1), delay := 0.0) -> bool:
 	if _fxc != null:
 		_fx_census(name, ground)
@@ -882,6 +935,8 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 	if _fxc != null:
 		_fx_census("SC|%s|%.3f" % [name, scale / A.hires_of(g.tex[name])], ground)   # 每个贴图像素占几个世界像素（÷2 = 低分辨率层格数）
 	var f := {"kind": "gsprite" if ground else "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur + delay, "max": dur + delay, "flip": flip, "col": col}
+	if spawn_lead:
+		f["lead"] = true
 	if delay > 0.0:
 		f["delay"] = delay
 	if bottom:

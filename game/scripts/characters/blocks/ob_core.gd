@@ -441,6 +441,49 @@ static func apply_status(o, e: Dictionary, s: Dictionary, c := Vector2.INF, ring
 			_F().h3_launch(o, e, float(s.dur), float(s.get("h", 26.0)))
 
 
+## 自动技能的放出门槛（10-25 用户「范围内没有敌人就不开技能」）：返回「周围这个半径（未乘 op_range）内要有敌人才放」，0 = 推不出来（校验报错）。
+## 优先级：技能自己写的 need_enemy → 技能 do 里会打到敌人的积木（GATE_HIT_KINDS）的最大作用半径 + GATE_MARGIN（敌人体型）→ 该干员普攻的射程（range / r / len）→ GATE_DEFAULT。
+## 治疗类技能（纯治疗 / 回血 / 给血盾，以及治疗为主的混合增益）写 "no_gate": true，不加门槛（返回 0）；其余没有伤害积木的增益 / 召唤类走普攻射程。sb / atk 可以是原始 json（带 $ 表达式，传 base）或编译后的 B（数字，base 传空）
+const GATE_HIT_KINDS := ["cone", "cleave", "circle", "wave", "shell", "hookshot", "tether", "leap_slam", "fan", "lock", "barrage", "cast_push", "fx_rain", "mark", "followup", "taunt_guard"]
+const GATE_RADIUS_KEYS := ["r", "aim_r", "range", "wave_dist", "dist", "len"]
+const GATE_MARGIN := 20.0
+const GATE_DEFAULT := 180.0
+
+
+static func _gate_num(v, base: Dictionary) -> float:
+	var ev := eval_expr(v, base)
+	return float(ev[1]) if ev[0] else 0.0
+
+
+static func skill_gate_base(sb: Dictionary, atk: Dictionary, base: Dictionary, fallback: float = GATE_DEFAULT) -> float:
+	if sb.get("no_gate", false):   # 治疗类自动技能不加门槛（用户 10-25「治疗类的取消这么限制」）：技力满就放，0 = 恒放
+		return 0.0
+	if sb.has("need_enemy"):
+		return _gate_num(sb.need_enemy, base)
+	var best := 0.0
+	for x in sb.get("do", []):
+		if not x is Dictionary:
+			continue
+		var kind := str(x.get("shape", x.get("verb", "")))
+		if not kind in GATE_HIT_KINDS:
+			continue
+		for k in GATE_RADIUS_KEYS:
+			if x.has(k):
+				var r := _gate_num(x[k], base)
+				if r > 0.0:
+					best = maxf(best, r)
+					break
+	if best > 0.0:
+		return best + GATE_MARGIN
+	for k in ["range", "r", "len"]:
+		if atk.has(k):
+			var ar := _gate_num(atk[k], base)
+			if ar > 0.0:
+				return ar
+	return fallback
+
+
+
 static func shape_center(o, b: Dictionary, at: Vector2 = Vector2.INF) -> Vector2:
 	var cn: String = str(b.get("center", "zone"))
 	if cn.begins_with("summon"):   # 召唤物扩展段：summon:<种类> = 这种召唤物所在处
@@ -760,7 +803,7 @@ static func _v_shared(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 
 const TX_IMPL := {
 	"shape": ["dash_line"],
-	"verb": ["sp_secs", "dash_mod", "trail", "fx_scatter", "fx_rain", "emit_path"],   # verb.buff_leader 在「共用积木」段
+	"verb": ["sp_secs", "dash_mod", "trail", "fx_scatter", "fx_rain", "emit_path", "rift_slash"],   # verb.buff_leader 在「共用积木」段
 	"trig": ["on_dash_end", "on_leader_dash", "on_skill_start", "on_skill_end"],
 }
 

@@ -152,7 +152,12 @@ func _portrait_tex_1x_key(name: String) -> String:
 		return key
 	var p: String = A.incoming_dir().path_join(name + ".png")
 	var img: Image = Image.load_from_file(p) if FileAccess.file_exists(p) else null
-	g.tex[key] = ImageTexture.create_from_image(img) if img != null and not img.is_empty() else null
+	if img != null and not img.is_empty():
+		g.tex[key] = ImageTexture.create_from_image(img)
+	else:
+		# 网页版 / 包内读不到原始 PNG：改读导入后的 1x 基础图（art.gd _packed_path，同样是 1x，裁切框坐标不变）
+		var q: String = A._packed_path(name)
+		g.tex[key] = load(q) if q != "" else null
 	return key
 
 

@@ -500,7 +500,7 @@ func draw_open_hints(vs: Vector2) -> void:
 			else:
 				ohint = "按住左半屏拖动移动 · 攻击全自动" if g.touch.active else Pad.hint("WASD 移动 · 攻击全自动 · Esc 暂停", "左摇杆移动 · 攻击全自动 · START 暂停")
 			UI.text(g.hud, g.font, Vector2(0, vs.y - 60), ohint, 16, Color(0.7, 0.85, 0.9, 0.8), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
-		elif (g.t < 16.0 and not g.tab_used) or g.tab_hint > 0.0:
+		elif ((g.t < 16.0 and not g.tab_used) or g.tab_hint > 0.0) and not g.wheel.is_open:   # 指挥圆盘开着时底部是圆盘自己的操作提示，TAB 提示让开（10-24 叠字）
 			var ha := clampf(minf(g.t - 6.0, 16.0 - g.t) / 0.5, 0.0, 1.0) if g.tab_hint <= 0.0 else clampf(g.tab_hint / 0.5, 0.0, 1.0)
 			var pulse := 0.5 + 0.5 * sin(g.t * 5.0)
 			var cx := vs.x / 2.0

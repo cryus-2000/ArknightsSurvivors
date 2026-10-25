@@ -56,6 +56,8 @@ var frags: Array = []
 var marks: Array = []
 
 
+static var _re_head: RegEx
+
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -151,7 +153,7 @@ func _state(id: String) -> String:
 		return "lock"
 	if Meta.spent(shape) < int(nd.get("need", 0)):
 		return "lock"
-	return "ok" if Meta.can_buy(shape, id, Meta.earned_total()) else "poor"
+	return "ok" if Meta.can_buy(shape, id, Meta.budget()) else "poor"
 
 
 func _buy(id: String) -> void:
@@ -556,8 +558,9 @@ func _draw_left(ci: CanvasItem) -> void:
 	var desc := str(nd.desc)
 	var head := desc.get_slice("。", 0)
 	var rest := desc.substr(head.length() + 1) if desc.contains("。") else ""
-	var re := RegEx.create_from_string("^(.*?)\\s*([+\\-][0-9.]+%?)$")
-	var m := re.search(head)
+	if _re_head == null:
+		_re_head = RegEx.create_from_string("^(.*?)\\s*([+\\-][0-9.]+%?)$")   # 只编译一次（原来每帧编译，10-25 帧率审计）
+	var m := _re_head.search(head)
 	var y := 366.0
 	if m != null:
 		UI.text_at(ci, font, Vector2(30, y), m.get_string(1), 16, HS.INK)

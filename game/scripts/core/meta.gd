@@ -125,8 +125,38 @@ static func earned_total() -> int:
 	return n
 
 
+## 兑换寻访凭证花掉的细胞总数（各设备之和，云存档逐设备取大）
+static func bought_total() -> int:
+	var n := 0
+	for k in Cfg.meta_bought:
+		n += int(Cfg.meta_bought[k])
+	return n
+
+
+## 认知塑造可用的预算 = 累计获得 − 兑换凭证花掉的
+static func budget() -> int:
+	return earned_total() - bought_total()
+
+
 static func available() -> int:
-	return earned_total() - spent(Cfg.meta_shape)
+	return budget() - spent(Cfg.meta_shape)
+
+
+static func dev_id() -> String:
+	if Cfg.meta_dev == "":
+		var rr := RandomNumberGenerator.new()
+		rr.randomize()
+		Cfg.meta_dev = "d%08x" % rr.randi()
+	return Cfg.meta_dev
+
+
+## 花 n 个细胞（兑换用）：余额不够返回 false，记在本机设备号下
+static func pay(n: int) -> bool:
+	if n <= 0 or available() < n:
+		return false
+	var dev := dev_id()
+	Cfg.meta_bought[dev] = int(Cfg.meta_bought.get(dev, 0)) + n
+	return true
 
 
 ## 一次探索结束（game.gd _process 进入 WIN / DEAD 时，与寻访同一处）：记生机细胞。条件同 Roster.on_run_end
@@ -148,7 +178,7 @@ static func on_run_end(g, won: bool) -> void:
 
 ## 点 / 重置（认知塑造页）
 static func buy(id: String) -> bool:
-	if not can_buy(Cfg.meta_shape, id, earned_total()):
+	if not can_buy(Cfg.meta_shape, id, budget()):
 		return false
 	Cfg.meta_shape[id] = true
 	Cfg.meta_shape_t = int(Time.get_unix_time_from_system())
@@ -168,7 +198,7 @@ static func buy_recommended() -> void:
 	while changed:
 		changed = false
 		for id in data().get("order", []):
-			if can_buy(Cfg.meta_shape, str(id), earned_total()):
+			if can_buy(Cfg.meta_shape, str(id), budget()):
 				Cfg.meta_shape[str(id)] = true
 				changed = true
 	Cfg.meta_shape_t = int(Time.get_unix_time_from_system())

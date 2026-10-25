@@ -12,6 +12,8 @@ const CELL := 48.0
 const EVO_AGE := 35.0   # 进化：存活这么久的普通怪变精英（随时间缩短，见 update）
 const EVO_XP := 2.0     # 进化后经验倍率
 var mire_tick := 0.0
+var lamp_band := 0         # 灯火与溟痕（docs/147）提示用的档：0 通明（≥ mire_hi）/ 1 中段 / 2 暗淡（< mire_lo），带回差
+var lamp_hint_t := -INF    # 上一次灯火提示的时间（lamp/mire_hint_cd 内不重复）
 var nest_tick := 0.0
 
 
@@ -437,6 +439,13 @@ func update(dt: float) -> void:
 			move_dir = (ag.pos - e.pos).normalized()
 			if absf(move_dir.x) > 0.1 and e.ai != "static":
 				e.fx = signf(move_dir.x)
+		if e.has("wob") and e.ai == "melee":
+			# 大群「慢慢来」（docs/150）：走动时左右摆，离队长 horde_wob_r 内摆幅收到 0（spawner._horde_loose 写 e.wob = [摆幅弧度, 频率, 相位]）
+			var wk: float = clampf((dist - Bal.v("enemy/horde_wob_r", 260.0)) / 300.0, 0.0, 1.0)
+			if wk > 0.0:
+				move_dir = move_dir.rotated(float(e.wob[0]) * wk * sin(g.t * float(e.wob[1]) + float(e.wob[2])))
+			else:
+				e.erase("wob")
 		var held: bool = e.stun > 0.0 or bst > 0.0
 		# 封印（docs/61 §15 st.seal，干员积木）：非 Boss 敌人不起新的特殊招式（pattern：冲刺 / 吐酸 / 环弹 / 神经光环 / 额外招式……），
 		# 已经起手的蓄力 / 冲刺 / 自爆照常走完（enemy_ai.busy）；Boss 的封印在 boss_ai 的 ready 里。没有封印时 seal_t 不存在，这里恒为 false
@@ -509,10 +518,12 @@ func update(dt: float) -> void:
 		if e.dead:
 			continue
 		var dist: float = _seg_d[i]   # 接触 / 泪按本只移动前的距离判（与原来「一只走完再下一只」相同；B7 ③ 一度改成移动后，Ⅷ 熟练胜率 −20 点，10-15 改回）
-		# ---- 囊海爬行者：每失去 15% 生命爆发一次。有 0.8 秒鼓胀预警（docs/48 P0-6：原 0.4 秒低于 0.6 下限），爆发之间至少隔 1.2 秒（高输出下不会连爆秒人）
+		# ---- 囊海爬行者（用户 10-25）：生命每掉 1/3（66%、33% 两个节点）就进入无敌并鼓胀 1.1 秒（docs/48 P0-6 预警下限 0.6 秒）、原地爆裂一次，之后恢复可受伤继续扣血；
+		# 鼓胀期间 enemy_hit 直接挡掉，其余直接改血的路径由 burst_floor 兜底（生命不低于节点，无敌期间的伤害不累计）
 		if e.has("burst_at"):
 			e.burst_cd = maxf(0.0, e.get("burst_cd", 0.0) - dt)
 			if e.get("burst_w", 0.0) > 0.0:
+				e.hp = maxf(e.hp, float(e.get("burst_floor", 0.0)))
 				e.burst_w -= dt
 				if e.burst_w <= 0.0:
 					var br: float = float(D.ENEMIES[e.type].get("burst_r", 80.0))   # 爆裂半径（enemies.json burst_r；用户 10-24 囊海爬行者 ×2 = 160）
@@ -525,11 +536,12 @@ func update(dt: float) -> void:
 					Sfx.play("tentacle", -2.0, 0.7)
 					if g.combat.ground_d(g.ppos, e.pos) < br:   # 画即判（§1.9）
 						g.combat.enemy_hit(e.dmg * 0.5, {"corrode": 0.0, "nerve": 12.0}, true, false, ["近战", "法术"])
-			elif e.hp <= e.burst_at and e.burst_cd <= 0.0:
-				e.burst_at -= e.maxhp * 0.15
+			elif e.hp <= e.burst_at and e.hp > 0.0:
+				e.burst_floor = e.burst_at   # 节点生命：一次性大伤害越过节点也只掉到节点，爆裂后再继续扣
+				e.hp = maxf(e.hp, e.burst_at)
+				e.burst_at = e.burst_at - e.maxhp / 3.0 if e.burst_at - e.maxhp / 3.0 > e.maxhp * 0.1 else -1.0
 				e.burst_w = float(D.ENEMIES[e.type].get("burst_fuse", 0.8))   # 鼓胀时长随爆裂半径放大（enemies.json burst_fuse）
 				e.burst_dur = e.burst_w   # 画面按 burst_w / burst_dur 算鼓胀进度（界面与美术）
-				e.burst_cd = 1.2
 		# ---- 接触伤害
 		# 休眠中的收割者、自爆的狂奔者（V8）没有接触伤害；Boss 登场 2 秒内不造成接触伤害（docs/38 B0 第 6 项：边缘刷出贴脸）
 		if e.dmg > 0.0 and (e.ai == "melee" or D.ENEMIES[e.type].get("contact", false)) and dist < e.r + 12.0 and not e.get("coma", false) and not e.get("dormant", false) and not (e.get("wake_t", 0.0) > 0.0 and D.ENEMIES[e.type].get("wake_no_contact", false)) and not D.ENEMIES[e.type].get("no_contact", false) and not (e.boss and e.age < 2.0) and e.get("air", 0.0) <= 0.0 and not e.get("under", false) and float(e.get("hatch_until", 0.0)) <= g.t:
@@ -539,7 +551,9 @@ func update(dt: float) -> void:
 			if g.invuln <= 0.0:
 				# 冲刺撞击熄灭灯火（enemies.json dash_lamp_drain；底海滑动者）
 				if e.get("dash_t", 0.0) > 0.0 and D.ENEMIES[e.type].has("dash_lamp_drain"):
+					var ld: float = g.lamp
 					g.lamp = maxf(0.0, g.lamp - float(D.ENEMIES[e.type].dash_lamp_drain) * g.lamp_loss_mult)
+					g.telemetry.lamp_note("冲撞吸灯", g.lamp - ld)
 					g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -8", Color(1.0, 0.6, 0.4), 14)
 				g.combat.enemy_hit(e.dmg * dark_mod, e, false, false, ["近战", "物理"], "contact_" + e.type)
 				e.atk_until = g.t + 0.2   # 近战出手：atk_anim 的敌人播攻击帧条第 3、4 帧
@@ -603,12 +617,18 @@ func update_status(dt: float) -> void:
 	var mired := false
 	var mire_nat := false   # 站在自然溟痕里（不是 Boss 子弹留下的）：这一跳不算 Boss 来源
 	var sanct: bool = g.squad.in_sanctuary(g.ppos)   # 流明灯塔：区内溟痕失效
+	var lk: Vector2 = lamp_mire_k()
+	_lamp_hint()
 	for m in g.mires:
 		# 溟痕常驻、只能净化（用户 10-24）；Boss 溟痕是招式残留，照旧按 life 到期。life <= 0 = 移除标记
 		if m.get("boss", false):
 			m.life -= dt
 		if m.life <= 0.0:
 			continue
+		if not m.get("boss", false) and (lk.x > 0.0 or lk.y > 0.0):
+			_lamp_mire(m, lk, dt)
+			if m.life <= 0.0:
+				continue
 		m.r = min(m.maxr, m.r + 5.0 * dt)
 		if g.combat.ground_d(g.ppos, m.pos) < m.r and not sanct:
 			mired = true
@@ -617,7 +637,8 @@ func update_status(dt: float) -> void:
 	# 溟痕：减速 + 屏幕变暗 + 持续掉血；神经损伤在溟痕里累积（combat，Boss与怪物 419c84d）
 	g.in_mire = move_toward(g.in_mire, 1.0 if mired else 0.0, dt * (4.0 if mired else 2.5))
 	update_nest_aura(dt, sanct)
-	g.combat.update_nerve(dt, mired, sanct)   # 神经损伤：站在溟痕里累积（combat.gd）
+	var ward: float = 1.0 - Bal.v("lamp/mire_ward_dmg", 0.0) * lk.x if mire_nat else 1.0   # 灯火高：自然溟痕伤害 / 神经损伤减免（docs/147）
+	g.combat.update_nerve(dt, mired, sanct, ward)   # 神经损伤：站在溟痕里累积（combat.gd）
 	if mired:
 		# 溟痕侵蚀：每 0.5 秒结算一次（3 + 1.5% 最大生命），带飘字与轻微红闪
 		mire_tick -= dt
@@ -625,7 +646,7 @@ func update_status(dt: float) -> void:
 			mire_tick = 0.5
 			# 自然溟痕每跳（0.5 秒）：enemy/mire_flat + 最大生命 × enemy/mire_pct，再乘难度修正 mire_dmg（缺省 3 + 1.5%）；
 			# 只踩在 Boss 溟痕里时每跳 boss/mire_pct 1%（每秒 2%，不再有固定 +3，docs/38 §1.7）
-			var md: float = ((Bal.v("enemy/mire_flat", 3.0) + g.max_hp * Bal.v("enemy/mire_pct", 0.015)) * float(g.dmod.get("mire_dmg", 1.0))) if mire_nat else g.max_hp * Bal.v("boss/mire_pct", 0.01)
+			var md: float = ((Bal.v("enemy/mire_flat", 3.0) + g.max_hp * Bal.v("enemy/mire_pct", 0.015)) * float(g.dmod.get("mire_dmg", 1.0)) * ward) if mire_nat else g.max_hp * Bal.v("boss/mire_pct", 0.01)
 			md = g.combat.lose_hp(md, "mire", not mire_nat)
 			if md >= 1.0:   # Boss 溟痕这一跳被持续伤害上限截到不足 1 点时不闪、不飘「-0」（自然溟痕每跳 ≥3，照旧）
 				g.red_flash = maxf(g.red_flash, 0.08)
@@ -636,6 +657,62 @@ func update_status(dt: float) -> void:
 	else:
 		mire_tick = 0.0
 	g.mires = g.mires.filter(func(m): return m.life > 0.0)
+
+
+## 灯火与溟痕（docs/147，用户 10-25 方案 B）：x = 退散强度（灯火 lamp/mire_lo → mire_hi 线性 0 → 1），y = 逼近强度（灯火 mire_lo → 0 线性 0 → 1）。
+## 两个都是 0 时（lamp/mire_ward_r 与 mire_creep_r 都为 0）等于改动前
+func lamp_mire_k() -> Vector2:
+	var lo: float = Bal.v("lamp/mire_lo", 30.0)
+	var hi: float = Bal.v("lamp/mire_hi", 70.0)
+	var x: float = clampf((g.lamp - lo) / maxf(1.0, hi - lo), 0.0, 1.0) if Bal.v("lamp/mire_ward_r", 0.0) > 0.0 else 0.0
+	var y: float = clampf((lo - g.lamp) / maxf(1.0, lo), 0.0, 1.0) if Bal.v("lamp/mire_creep_r", 0.0) > 0.0 else 0.0
+	return Vector2(x, y)
+
+
+## 一片自然溟痕随灯火变化（每帧，Boss 溟痕不参与）：
+##   退散：边缘进入队长 lamp/mire_ward_r 内的溟痕每秒收缩 mire_recede × x（上限一并压低，不再长回），小于 10 就消失（不闪，慢慢褪）；
+##   逼近：中心在 lamp/mire_creep_r 内的溟痕每秒朝队长挪 mire_creep_spd × y、上限长 mire_creep_grow × y（最多原上限 × mire_creep_cap）；
+##   挪进最终 Boss 禁生成区或点燃灯标的禁刷区时不挪；中心离队长不到半径一半就不再挪（盖住队长后不跟着走）
+func _lamp_mire(m: Dictionary, lk: Vector2, dt: float) -> void:
+	var d: float = m.pos.distance_to(g.ppos)
+	if lk.x > 0.0 and d < Bal.v("lamp/mire_ward_r", 0.0) + m.r:
+		m.maxr = maxf(0.0, minf(float(m.maxr), float(m.r)) - Bal.v("lamp/mire_recede", 10.0) * lk.x * dt)
+		m.r = m.maxr
+		if m.r < 10.0:
+			m.life = 0.0
+		return
+	if lk.y > 0.0 and d < Bal.v("lamp/mire_creep_r", 0.0) and d > float(m.r) * 0.5:
+		if not m.has("maxr0"):
+			m["maxr0"] = float(m.maxr)
+		var np: Vector2 = m.pos.move_toward(g.ppos, Bal.v("lamp/mire_creep_spd", 14.0) * lk.y * dt)
+		if not g.combat.mire_blocked(np, float(m.maxr)) and not g.beacon_sys.blocks(np):
+			m.pos = np
+		m.maxr = minf(float(m.maxr) + Bal.v("lamp/mire_creep_grow", 6.0) * lk.y * dt, float(m.maxr0) * Bal.v("lamp/mire_creep_cap", 1.3))
+
+
+## 灯火进出通明 / 暗淡档时在队长头上给一行小字（不用横幅；lamp/mire_hint_cd 秒内不重复；带 5 点回差）
+func _lamp_hint() -> void:
+	if Bal.v("lamp/mire_ward_r", 0.0) <= 0.0 and Bal.v("lamp/mire_creep_r", 0.0) <= 0.0:
+		return
+	var lo: float = Bal.v("lamp/mire_lo", 30.0)
+	var hi: float = Bal.v("lamp/mire_hi", 70.0)
+	var nb: int = lamp_band
+	if g.lamp >= hi:
+		nb = 0
+	elif g.lamp < lo:
+		nb = 2
+	elif (lamp_band == 0 and g.lamp < hi - 5.0) or (lamp_band == 2 and g.lamp >= lo + 5.0):
+		nb = 1
+	if nb == lamp_band:
+		return
+	lamp_band = nb
+	if nb == 1 or g.t - lamp_hint_t < Bal.v("lamp/mire_hint_cd", 10.0):
+		return
+	lamp_hint_t = g.t
+	if nb == 0:
+		g.vfx.add_text(g.ppos + Vector2(0, -96), "灯火通明：身边溟痕消退", Color(1.0, 0.85, 0.5), 13)
+	else:
+		g.vfx.add_text(g.ppos + Vector2(0, -96), "灯火暗淡：溟痕向你蔓延", Color(0.7, 0.55, 1.0), 13)
 
 
 func evolve(e: Dictionary) -> void:

@@ -21,9 +21,10 @@ var side := 1.0                # 编队站位的左右（-1..1），主控转身
 ## 指挥模式（docs/114）：全队站位。一个键循环 随行 → 突击 → 归队；归队归位完自动回随行（下一次按键进突击）
 enum { GUARD, ROAM, RECALL }
 const STANCE_NAMES := ["随行", "突击", "归队"]
-## 索敌优先级（指挥圆盘，docs/114 §13）：只影响队友自动索敌（op_api.nearest_enemies），队长不受影响；机器人缺省 0
-const PRIO_NAMES := ["就近", "清杂优先", "Boss 优先"]
-const PRIO_SHORT := ["就近", "清杂", "Boss"]
+## 索敌优先级（指挥圆盘，docs/114 §13）：0 Boss 优先（缺省 = 改动前的逻辑）/ 1 清杂优先；只影响队友（op_api.prio_mode），队长恒为 0；机器人缺省 0
+## （10-24 用户定：去掉「就近」——它和 Boss 优先在有 Boss 时几乎一样）
+const PRIO_NAMES := ["Boss 优先", "清杂优先"]
+const PRIO_SHORT := ["Boss", "清杂"]
 var priority := 0
 var stance := GUARD
 var recall_t := 0.0
@@ -344,12 +345,15 @@ func update(dt: float) -> void:
 	swap_cd = maxf(0.0, swap_cd - dt)
 	_tick_stamina(dt)
 	_tick_hp(dt)
+	_tick_rush_buff()
 	for o in ops:
 		if o.cmd_down > 0.0:
 			continue   # 倒地：不充技力、不出手（docs/114 §7）
 		o.tick_sp(dt)
 		_battle_voice(o, dt)
+		g.vfx.spawn_lead = o.is_leader   # 这段里生成的帧条特效记为队长的（docs/139 §11 突出队长；纯画面标记）
 		o.update(dt)
+		g.vfx.spawn_lead = false
 		# 主控的技能位移（推进之王跃空锤）带着玩家一起走，位移中短暂无敌
 		if o.is_leader and o.pos != Vector2.INF and o.pos.distance_to(g.ppos) > 0.5:
 			g.ppos = o.pos
@@ -454,10 +458,8 @@ func apply_command(id: String) -> void:
 				set_stance(RECALL)
 		"mob":
 			set_priority(1)
-		"near":
-			set_priority(0)
 		"boss":
-			set_priority(2)
+			set_priority(0)
 
 
 func set_priority(p: int) -> void:
@@ -602,7 +604,7 @@ func _recall_blink() -> void:
 var _vo_i := 0
 var _vo_t := -999.0
 
-func _stance_voice(s: int) -> void:
+func _stance_voice(s: int, shout := false) -> void:
 	if g.demo_op != "" or g.t - _vo_t < Bal.v("command/voice_gap", 6.0):
 		return
 	var eligible: Array = ops.filter(func(o): return o.cmd_down <= 0.0 and (o.is_leader or o.cmd_roam()))
@@ -613,8 +615,15 @@ func _stance_voice(s: int) -> void:
 	_vo_i += 1
 	_vo_t = g.t
 	var sfx: Node = g.get_node_or_null("/root/Sfx")
+	var key: String = "command" if s == ROAM else "entry"
 	if sfx != null:
-		sfx.voice(o.id, "command" if s == ROAM else "entry", false, true)   # urgent：玩家指挥回应，不被闲聊 / 间隔吃掉（10-23）
+		sfx.voice(o.id, key, false, true)   # urgent：玩家指挥回应，不被闲聊 / 间隔吃掉（10-23）
+	if shout and o.pos != Vector2.INF:
+		# 爆发窗口喊话（10-24）：头顶短字「出击」；这名干员没有对应语音素材就补一声通用音效
+		if g.get("vfx") != null:
+			g.vfx.add_text(o.pos + Vector2(0, -78), "出击", Color(1.0, 0.82, 0.3), 16)
+		if sfx != null and not sfx.has_voice(o.id, key):
+			sfx.play("swing_heavy", -4.0)
 
 
 func _tick_lead(dt: float) -> void:
@@ -636,6 +645,47 @@ func _revive(o, p: Vector2) -> void:
 	o.cmd_inv = Bal.v("command/revive_inv", 1.0)
 	o.cmd_show = 3.0
 	o.pos = p
+
+
+## ---- 爆发窗口（10-24 用户定：突击 = 队友出击时攻速和技力回复明显加成 + 第一下冲锋带击退，耐力照旧限时）
+static func rush_on() -> bool:
+	return Bal.v("command/rush", 1.0) > 0.0
+
+
+var _rush_buffed: Array = []   # 当前挂着「command」加成的干员 id
+
+## 每帧对账：突击中、肯出击、没倒地的队友挂攻速 / 技力回复 mult（来源 command，作用域 op:<id>），其余撤掉；退出突击立即全撤
+func _tick_rush_buff() -> void:
+	var want: Array = []
+	if stance == ROAM and rush_on() and cmd_on():
+		for o in ops:
+			if roaming_op(o):
+				want.append(o.id)
+	if want == _rush_buffed:
+		return
+	_rush_buffed = want
+	g.stats.remove_source("command")
+	for cid in want:
+		if g.stats.has_stat(&"op_aspd"):
+			g.stats.add(&"op_aspd", "mult", 1.0 + Bal.v("command/rush_aspd", 0.25), "command", "op:" + cid)
+		if g.stats.has_stat(&"op_skill_sp"):
+			g.stats.add(&"op_skill_sp", "mult", Bal.v("command/rush_sp", 1.5), "command", "op:" + cid)
+
+
+## 加成说明（状态栏 / 属性面板）：不在爆发窗口里返回空串
+func rush_text() -> String:
+	if _rush_buffed.is_empty():
+		return ""
+	return "攻速 +%d%% · 技力回复 ×%s" % [roundi(Bal.v("command/rush_aspd", 0.25) * 100.0), _num(Bal.v("command/rush_sp", 1.5))]
+
+
+## 切到突击那一刻：每名出击的队友朝自己的目标冲一段（character.begin_rush）
+func _rush_start() -> void:
+	if not rush_on() or g.demo_op != "":
+		return
+	for o in ops:
+		if roaming_op(o):
+			o.begin_rush()
 
 
 ## 耐力：突击扣、其余回；耗尽 → 自动归队（走集合那套）+ 冷却。机器人突击常开（command/bot_roam）时随行中耐力够了就再突击
@@ -664,8 +714,10 @@ func set_stance(s: int) -> void:
 		_sortie_down = false
 	elif s == RECALL:
 		_recall_blink()
+	if s == ROAM:
+		_rush_start()
 	if s == ROAM or s == RECALL:
-		_stance_voice(s)
+		_stance_voice(s, s == ROAM)
 	recall_t = 0.0
 	gather_t = -1.0
 	stance_log.append([g.t, s])
@@ -771,15 +823,31 @@ func on_kill(e: Dictionary) -> void:
 
 # ---------------------------------------------------------------- 绘制分发（world 坐标）
 
+## 干员特效绘制顺序（docs/139 §11，render/lead_top 1）：队长排最后 = 画在队友特效上面；0 = 原顺序
+func _fx_order() -> Array:
+	if Bal.v("render/lead_top", 0.0) <= 0.0:
+		return ops
+	var out: Array = []
+	var ld = null
+	for o in ops:
+		if o.is_leader:
+			ld = o
+		else:
+			out.append(o)
+	if ld != null:
+		out.append(ld)
+	return out
+
+
 func draw_auras() -> void:
 	cv.begin()
 	var d0: float = g.world.fx_dim
-	for o in ops:
+	for o in _fx_order():
 		_op_dim(o, d0)
 		o.draw_auras()
 	g.world.fx_dim = d0
 	cv.mute = false
-	cv.amul = 1.0
+	cv.set_mod(1.0, 0.0)
 	cv.end()
 
 
@@ -787,32 +855,32 @@ func draw_auras() -> void:
 func draw_ground_fx() -> void:
 	cv.begin()
 	var d0: float = g.world.fx_dim
-	for o in ops:
+	for o in _fx_order():
 		if o.has_method("draw_ground_fx"):
 			_op_dim(o, d0)
 			o.draw_ground_fx()
 	g.world.fx_dim = d0
 	cv.mute = false
-	cv.amul = 1.0
+	cv.set_mod(1.0, 0.0)
 	cv.end()
 
 
 func draw_entities_floor() -> void:
 	cv.begin()   # 合批（性能 9/30）：几何图形攒成一批，画贴图前自动提交
 	var d0: float = g.world.fx_dim
-	for o in ops:
+	for o in _fx_order():
 		_op_dim(o, d0)
 		o.draw_entities_floor()
 		o.draw_pfx(true)
 	g.world.fx_dim = d0
 	cv.mute = false
-	cv.amul = 1.0
+	cv.set_mod(1.0, 0.0)
 	cv.end()
 
 
 func draw_shadows() -> void:
 	cv.begin()
-	for o in ops:
+	for o in _fx_order():
 		if o.pos != Vector2.INF:
 			cv.sync()
 			cv.touch()
@@ -857,32 +925,46 @@ func draw_leader_mark() -> void:
 	# 朝向小三角：先垫一个每边大 2 像素的深色三角
 	cv.draw_colored_polygon(PackedVector2Array([tip + Vector2(2.5 * fc, 0), tip + Vector2(-7.5 * fc, -6), tip + Vector2(-7.5 * fc, 6)]), dark)
 	cv.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * fc, -4), tip + Vector2(-6.0 * fc, 4)]), Color(c.r, c.g, c.b, 0.9))
+	# 出手方向弧（docs/139 §11，render/lead_dir 1）：脚下椭圆外沿一段 36° 暖白短弧指向当前出手方向——手动攻击 = 瞄准方向，
+	# 自动攻击 = 最近 0.8 秒内一次命中的方向（没有就不画）；常亮不闪
+	if Bal.v("render/lead_dir", 0.0) > 0.0 or g.world.lead_lv >= 2:
+		var adir := Vector2.ZERO
+		if Cfg.manual_attack and g.doctor != null:
+			adir = g.doctor.attack_dir()
+		elif g.t - g.vfx.lead_hit_t < 0.8:
+			adir = g.vfx.lead_hit_dir
+		if adir != Vector2.ZERO:
+			var aa: float = adir.angle()
+			cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
+			cv.draw_arc(Vector2.ZERO, 38.0, aa - 0.32, aa + 0.32, 10, dark, 5.0)
+			cv.draw_arc(Vector2.ZERO, 38.0, aa - 0.32, aa + 0.32, 10, Color(1.0, 0.82, 0.5, 0.95), 2.0)
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	cv.end()
 
 
 func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 	var d0: float = g.world.fx_dim
-	for o in ops:
+	for o in _fx_order():
 		_op_dim(o, d0)
 		g.world.fx_dim = d0 * cv.amul   # 加色层直接画在 ci（不经 cv）：读 fx_dim 的干员特效按同一系数降
 		o.draw_fx_add(ci, loop)
 	g.world.fx_dim = d0
 	cv.mute = false
-	cv.amul = 1.0
+	cv.set_mod(1.0, 0.0)
 
 
 func draw_skill_over() -> void:
 	cv.begin()
 	var d0: float = g.world.fx_dim
 	_pfx_cap_plan()
-	for o in ops:
+	for o in _fx_order():
 		_op_dim(o, d0)
 		o._draw_skill_over()
 		o.draw_pfx(false)
 		o.pfx_skip = 0
 	g.world.fx_dim = d0
 	cv.mute = false
-	cv.amul = 1.0
+	cv.set_mod(1.0, 0.0)
 	cv.end()
 
 
@@ -919,5 +1001,10 @@ func _pfx_cap_plan() -> void:
 ## 加色层不经 cv，改乘 fx_dim。画完由调用方恢复。缺省两个系数恒 1 = 不变
 func _op_dim(o, d0: float) -> void:
 	g.world.fx_dim = d0
-	cv.amul = g.world.lead_dim if o.is_leader else g.world.mate_dim   # 经 cv 的绘制统一乘（自定义干员脚本不读 fx_dim 的特效也算上）
+	# 经 cv 的绘制统一乘（自定义干员脚本不读 fx_dim 的特效也算上）：透明度（拥挤降噪）、队友去饱和（docs/139 §10，缺省关）、
+	# 队长提亮 / 暖色（docs/139 §11 render/lead_emph，缺省关）
+	if o.is_leader:
+		cv.set_mod(g.world.lead_dim, 0.0, g.world.lead_boost, g.world.lead_tint)
+	else:
+		cv.set_mod(g.world.mate_dim, g.world.mate_desat)
 	cv.mute = g.world._dbg_friend   # --clutterdbg=nofriend（量测）：这些阶段只有特效，整段不显示

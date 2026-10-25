@@ -954,7 +954,7 @@ SCENE_REGRESSIONS = {
     "touch_layout": ("触屏按键布局：存档往返 / 换比例锚点 / 越界夹进安全区 / 局内按新位置点击 / 编辑页拖动推开调大小 / 选卡让位 / 转屏重算 ui_k", "touch_layout_test", r"TOUCH LAYOUT failures=0", ["--touch"]),
     "economy": ("经济与收藏品上限", "economy_regression", r"ECONOMY REGRESSION: 0 failures", []),
     "altar_not_target": ("海嗣祭坛不是索敌对象：祭坛在场且无敌人时干员不出手", "altar_not_target", r"ALTAR NOT TARGET: 0 failures", []),
-    "hunt_approach": ("围猎从屏幕外压过来：屏外出生、同速合拢到 260 钉住、提前突围、旧规则不变", "hunt_approach", r"HUNT APPROACH: 0 failures", []),
+    # "hunt_approach" 停用（10-25 围猎并进大群，hunt/enabled 0，docs/150）：独立围猎事件不再触发，run/hunt.gd 与测试保留，恢复围猎时一起放回
     "friendly_target": ("中立单位索敌与治疗", "friendly_target_regression", r"FRIENDLY TARGET REGRESSION: 0 failures", []),
     "ishar_p2": ("伊莎玛拉敌对二阶段", "ishar_p2_test", r"ISHAR P2 failures=0", ["--balance", "--bosstest=ishar2"]),
     "enemy_demo": ("图鉴敌人攻击演示", "enemy_demo_test", r"ENEMY DEMO failures=0", []),
@@ -1021,6 +1021,7 @@ SCENE_REGRESSIONS = {
         ["--balance", "--seed=1", "--op=wisadel", "--metanodes=sh1,reg3,atk5,hp5,def4,xp4,disp1,disp2,disp3,disp4"]),
     "roster": ("干员解锁（docs/109 §12）：开局 5 人、随机寻访先补齐职业、不重复、定向寻访 2 张、旧券折算、局终 3 / 4 张、满员折细胞、云存档并集", "roster_test", r"ROSTER failures=0", ["--roster=start5"]),
     "save_migrate": ("存档迁移样本（docs/126 R1）：难度 diff_ver 1–5、旧倍速、旧亮度缺省、三种旧券、没有 [roster] 段的老存档", "save_migrate_test", r"SAVE MIGRATE failures=0", []),
+    "medals": ("蚀刻章「深蓝之下」（core/medals.gd）：章表、藏品 49 / 50 边界与去重、结局 / 协同晋升 / 认知首次与全部、认知重置不收回、套组、读档补录、云存档合并与往返", "medals_test", r"MEDALS failures=0", []),
     "cloud_save": ("B站云存档：打包 / 分片 / 平台限制 / 校验 / 版本 / 合并规则 / Cfg 往返 / 非网页不启用（docs/89）", "cloud_save_test", r"CLOUD SAVE failures=0", []),
     "look": ("观感预设 render/look（角色受光封顶 / 后期曲线 / 亮度缺省）", "look_test", r"LOOK TEST failures=0", []),
     "build_affinity": ("构筑匹配（docs/119 §4.3 / §4.4）：三条链的来源 / 门槛 / 浮空与永久技能不误算、卡面说明行、强制招募保底与开关", "build_affinity_test", r"BUILD AFFINITY failures=0", ["--balance", "--op=angelina", "--squad=skadi,kaltsit"]),

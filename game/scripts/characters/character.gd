@@ -93,6 +93,10 @@ static func load_def(cid: String) -> Dictionary:
 	return OpDefs.load_def(cid)
 
 
+static func care_labels(def: Dictionary) -> Array:
+	return OpDefs.care_labels(def)
+
+
 static func fill_line(s: String, base: Dictionary) -> String:
 	return OpDefs.fill_line(s, base)
 
@@ -909,6 +913,8 @@ func advance(choice: String = "") -> void:
 			refresh_stats()
 		"elite":
 			elite = int(n.level)
+			if elite >= 2:
+				load("res://scripts/core/medals.gd").note_elite(g)   # 蚀刻章「协同晋升」：只数编队里的精英二人数
 			on_elite(elite, choice)
 			# 新解锁的技能立即充满：选下精英化卡的当下就能看到新技能（原来从 0 充能，要等 15–30 秒）
 			if elite < 3 and skill_unlocked(elite) and not perm[elite]:
@@ -1125,6 +1131,7 @@ func follow(dt: float, target: Vector2) -> void:
 		mv = 0.0
 		return
 	var prev: Vector2 = pos
+	var slot: Vector2 = target   # 编队位（follow_target 之前的原值）：跟随冲刺时奔向它
 	if is_leader:
 		pos = target   # 主控：位置就是玩家位置（g.ppos），不走编队跟随 / 近战前压
 	else:
@@ -1133,21 +1140,30 @@ func follow(dt: float, target: Vector2) -> void:
 			_cmd_waypoint = Vector2.INF
 			_cmd_stall = 0.0
 			_cmd_failed = null
+			rush_t = 0.0   # 离开突击：冲锋作废
 		if st == 2 and sq.gather_t >= 0.0:
 			target = pos   # 归队集合：到位后站定一下（squad._tick_recall）
 		var d: float = pos.distance_to(target)
 		var k: float = clampf(dt * (3.0 if d < 20.0 else (9.0 if st == 2 else 6.0)), 0.0, 1.0)
 		cmd_d = d
-		if st == 0:
+		if st == 0 and g.dash_t > 0.0 and CmdBal.v("command/dash_follow", 1.0) > 0.0:
+			# 跟随冲刺（用户 10-25「冲锋的时候一起冲锋，平时就跑动攻击」）：队长冲刺期间队友不停顿、不前压追怪，快步贴着编队位一起冲；
+			# 平时队友只跑动（跑动中攻击），不再自动突进 / 冲刺
+			fp_moving = true
+			pos = pos.lerp(slot, clampf(dt * CmdBal.v("command/dash_follow_k", 22.0), 0.0, 1.0))
+		elif st == 0:
 			if not _follow_paused(dt, d):   # 随行：到位停 + 错开起步（10-21 用户定方案 C）
 				pos = pos.lerp(target, k)
 		else:
 			fp_moving = true   # 突击 / 归队不停顿；回到随行时从「在走」开始
 			# 突击 / 归队：限速（随行原样不限）——突击按队长移速 × command/roam_speed 跑过去，归队 × command/recall_speed 快速归位
 			var step: Vector2 = (target - pos) * k
-			var vmax: float = g.speed * CmdBal.v("command/roam_speed" if st == 1 else "command/recall_speed", 1.3 if st == 1 else 4.0) * dt
-			if step.length() > vmax:
-				step = step.normalized() * vmax
+			if st == 1 and rush_t > 0.0:
+				step = _rush_step(dt)   # 爆发窗口的第一下冲锋：不受突击限速，冲到目标面前或撞上怪就停（docs/114 §14）
+			else:
+				var vmax: float = g.speed * CmdBal.v("command/roam_speed" if st == 1 else "command/recall_speed", 1.3 if st == 1 else 4.0) * dt
+				if step.length() > vmax:
+					step = step.normalized() * vmax
 			pos += step
 		if g.tex.get("prop_pillar") != null:
 			pos = g.map.push_out(pos, 10.0)
@@ -1155,6 +1171,7 @@ func follow(dt: float, target: Vector2) -> void:
 		_cmd_progress(prev, target, dt)
 	var vel: Vector2 = (pos - prev) / maxf(dt, 0.0001)
 	_sample_motion(vel, dt)
+	_rush_age(dt)
 	var sp_now: float = vel.length()
 	mv = lerpf(mv, sp_now, clampf(dt * (10.0 if sp_now > mv else 20.0), 0.0, 1.0))   # 停下衰减快一倍，不再停住后多跑 0.15–0.27 秒
 	if attack_t <= 0.0:
@@ -1394,7 +1411,9 @@ func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim 
 		var timing: Dictionary = spec.attack_timing
 		dur = float(timing.duration)
 		if interval > 0.0:
-			dur = maxf(float(timing.get("min_duration", 0.0)), minf(dur, interval * float(timing.active_ratio)))
+			# 整条攻击条按攻速等比缩短（balance.json atkspeed）：不再卡 attack_timing.min_duration，只留防零长度的硬下限；legacy_floor = 1 恢复旧下限
+			var floor_w: float = float(timing.get("min_duration", 0.0)) if BranchBal.v("atkspeed/legacy_floor", 0.0) > 0.0 else BranchBal.v("atkspeed/min_window", 0.03)
+			dur = maxf(floor_w, minf(dur, interval * float(timing.active_ratio)))
 		fire_at = minf(float(timing.fire_time), dur * float(timing.windup_ratio))
 	attack_fire_at = fire_at
 	attack_dur = dur
@@ -1470,7 +1489,7 @@ var cmd_down_age := 0.0
 var cmd_inv := 0.0
 var cmd_show := 0.0
 
-## 只在队长活动圈里选目标；移动选敌不沿用攻击侧的 Boss 强制优先。
+## 只在队长活动圈里选目标；按指挥优先级挑（op_api.prio_order，与攻击选敌同一套口径：Boss 优先 / 清杂优先）。
 func roam_target(slot_pos: Vector2) -> Vector2:
 	var radius: float = CmdBal.v("command/roam_r", 380.0)
 	var ld: Vector2 = g.squad.lead_dir
@@ -1480,8 +1499,8 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 	var urgent = null
 	var score := INF
 	var urgent_d := guard
-	var prio: int = g.squad.priority   # 指挥圆盘的索敌优先级（docs/114 §13）：1 清杂优先 / 2 Boss 优先；0 = 原逻辑
-	var cands: Array = []   # [候选, 原得分]：优先级 ≠ 0 时再按优先级重排
+	var prio: int = prio_mode()   # 指挥圆盘的索敌优先级（docs/114 §13）：0 Boss 优先 / 1 清杂优先
+	var cands: Array = []   # [候选, 原得分]：再按优先级重排
 	for j in query_ids(g.ppos, radius):
 		var en: Dictionary = g.enemies[j]
 		if en.dead or en.pos.distance_to(g.ppos) > radius or (is_same(en, _cmd_failed) and g.t < _cmd_retry_at):
@@ -1493,17 +1512,25 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 		var d: float = en.pos.distance_to(rear)
 		if cls == "重装":
 			d += leader_d   # 重装优先近身威胁，但同样必须进入自己的攻击距离。
-		if prio != 0:
-			cands.append([en, d])
+		cands.append([en, d])
 		if d < score:
 			score = d
 			best = en
-	if prio != 0 and not cands.is_empty():
-		best = _cmd_prio_pick(cands, prio, best)
+	if not cands.is_empty():
+		if prio == 1:
+			cands.sort_custom(func(a, b): return a[1] < b[1] or (a[1] == b[1] and int(a[0].id) < int(b[0].id)))
+		else:
+			for k in cands.size():   # Boss 优先只看第一个与最小得分的 Boss，不必整表排序：把得分最小的换到最前
+				if is_same(cands[k][0], best):
+					var t0 = cands[0]
+					cands[0] = cands[k]
+					cands[k] = t0
+					break
+		best = prio_order(cands, prio)[0]
 	var e = roam_tgt
 	if e == null or e.dead or e.pos.distance_to(g.ppos) > radius or (is_same(e, _cmd_failed) and g.t < _cmd_retry_at):
 		e = best
-	elif prio != 0 and best != null and not is_same(e, best) and _cmd_prio_rank(e, prio) > _cmd_prio_rank(best, prio):
+	elif best != null and not is_same(e, best) and prio_rank(e, prio) > prio_rank(best, prio):
 		e = best   # 换了优先级：当前目标不符合、而圈里有符合的，就换过去（不然要等当前目标死了才换）
 	if urgent != null and (e == null or e.pos.distance_to(g.ppos) > guard + GUARD_MARGIN):
 		e = urgent
@@ -1547,41 +1574,6 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 	return g.ppos + (p - g.ppos).limit_length(radius)
 
 
-## 指挥圆盘优先级的目标档位：0 = 偏好的（Boss 优先时是 Boss / 精英 / 部件，清杂优先时是杂兵），1 = 其余
-func _cmd_prio_rank(en: Dictionary, prio: int) -> int:
-	var big: bool = en.boss or en.elite or en.get("part", false)
-	return 0 if (big if prio == 2 else not big) else 1
-
-
-## 在候选里按优先级挑一个：偏好档位里取原得分最小的（Boss 优先 / 清杂都先看档位）；清杂优先再让周围 90 像素内同类多的加分（密集处，最多 6 个，每个抵 30 像素）；
-## 偏好档位里一只都没有就沿用原来的最优（fallback）。不抽随机数
-func _cmd_prio_pick(cands: Array, prio: int, fallback):
-	var pick = null
-	var best_s := INF
-	var pref: Array = []
-	for c in cands:
-		if _cmd_prio_rank(c[0], prio) == 0:
-			pref.append(c)
-	if pref.is_empty():
-		return fallback
-	pref.sort_custom(func(a, b): return a[1] < b[1])
-	var top: int = mini(pref.size(), 16)   # 密集度只在原得分最小的 16 个里算，省开销
-	for i in top:
-		var sc: float = pref[i][1]
-		if prio == 1:
-			var cnt := 0
-			for k in pref.size():
-				if cnt >= 6:
-					break
-				if pref[i][0].pos.distance_squared_to(pref[k][0].pos) <= 8100.0:
-					cnt += 1
-			sc -= 30.0 * float(cnt)
-		if sc < best_s:
-			best_s = sc
-			pick = pref[i][0]
-	return pick
-
-
 ## 射程内也可能隔着景物；先找射线通畅的位置，行走路径交给局部绕行。
 func _cmd_firing_pos(enemy_pos: Vector2, reach: float, radius: float) -> Vector2:
 	var direction: Vector2 = (pos - enemy_pos).normalized()
@@ -1616,6 +1608,131 @@ func _cmd_progress(previous: Vector2, target: Vector2, dt: float) -> void:
 		roam_tgt = null
 		_cmd_waypoint = Vector2.INF
 		_cmd_stall = 0.0
+
+
+## ---- 爆发窗口的第一下冲锋（10-24 用户定，docs/114 §14）：切到突击那一刻，每名出击的队友朝自己的目标冲一段（限距离 / 速度，
+## 镜头不动），撞上怪（或冲到位）时把身边的怪推开一下：精英减半、Boss / 部件 / 宝箱不受（沿用 apply_kb 口径）。冲锋期间短暂无敌。
+## 身后拖金色轨迹：2 px 网格方块、短寿命、三阶硬边淡出，不走随机数（序号哈希摆位），同时往光学发光层排发光点
+var rush_t := 0.0
+var rush_goal := Vector2.INF
+var rush_trail: Array = []   # [{p, a（年龄）, n（序号）, big（撞击迸射）}]
+var _rush_seq := 0
+var _rush_emit_t := 0.0
+
+
+func begin_rush() -> void:
+	rush_t = 0.0
+	if is_leader or pos == Vector2.INF or cmd_down > 0.0:
+		return
+	roam_target(pos)   # 先选好目标（同每帧的突击选敌，roam_tgt）
+	var e = roam_tgt
+	if e == null:
+		return
+	var dv: Vector2 = e.pos - pos
+	var dist: float = dv.length()
+	var run: float = dist - (float(e.r) + 16.0)
+	if run < CmdBal.v("command/rush_min", 60.0):
+		_rush_impact(pos)   # 已经贴着怪：原地顶一下
+		return
+	var goal: Vector2 = pos + dv.normalized() * minf(run, CmdBal.v("command/rush_dist", 260.0))
+	goal = g.ppos + (goal - g.ppos).limit_length(CmdBal.v("command/roam_r", 380.0))
+	if g.get("map") != null and g.map.segment_blocked(pos, goal):
+		return
+	rush_goal = goal
+	rush_t = CmdBal.v("command/rush_max_t", 0.5)
+	cmd_inv = maxf(cmd_inv, CmdBal.v("command/rush_inv", 0.6))
+	_rush_sfx("dodge", -8.0)
+
+
+func _rush_step(dt: float) -> Vector2:
+	rush_t -= dt
+	var to: Vector2 = rush_goal - pos
+	var sv: Vector2 = to.limit_length(CmdBal.v("command/rush_speed", 780.0) * dt)
+	var np: Vector2 = pos + sv
+	var hit := false
+	for j in query_ids(np, 44.0):
+		var en: Dictionary = g.enemies[j]
+		if not en.dead and not en.chest and en.pos.distance_to(np) < float(en.r) + 20.0:
+			hit = true
+			break
+	_rush_emit_t -= dt
+	if _rush_emit_t <= 0.0:
+		_rush_emit_t = 0.03
+		_rush_push(np, false)
+	if hit or rush_t <= 0.0 or sv.length() >= to.length() - 0.5:
+		rush_t = 0.0
+		_rush_impact(np)
+	return sv
+
+
+## 撞击：身边 command/rush_hit_r 内的怪被推开（精英 ×rush_kb_elite，Boss / 部件 / 宝箱免疫）
+func _rush_impact(p: Vector2) -> void:
+	var hr: float = CmdBal.v("command/rush_hit_r", 56.0)
+	var kb: float = CmdBal.v("command/rush_kb", 340.0)
+	var n := 0
+	for j in query_ids(p, hr + 24.0):
+		var en: Dictionary = g.enemies[j]
+		if en.dead or en.boss or en.chest or en.get("part", false) or en.pos.distance_to(p) > hr + float(en.r):
+			continue
+		var dv: Vector2 = en.pos - p
+		if dv.length_squared() < 1.0:
+			dv = Vector2(face if face != 0.0 else 1.0, 0.0)
+		apply_kb(en, dv.normalized() * kb * (CmdBal.v("command/rush_kb_elite", 0.5) if en.elite else 1.0))
+		n += 1
+	if n > 0 or rush_goal != Vector2.INF:
+		_rush_push(p, true)
+		_rush_sfx("swing_heavy", -7.0)
+	if g.get("trace_every") != null and g.trace_every > 0.0:
+		print("CMD t=%.2f rush %s kb=%d" % [g.t, id, n])
+	rush_goal = Vector2.INF
+
+
+func _rush_sfx(name: String, vol: float) -> void:
+	if g.headless_batch:
+		return
+	var sfx: Node = g.get_node_or_null("/root/Sfx") if g != null and g.is_inside_tree() else null
+	if sfx != null:
+		sfx.play(name, vol)
+
+
+func _rush_push(p: Vector2, big: bool) -> void:
+	if g.headless_batch:
+		return   # 纯画面：无头批跑不记
+	_rush_seq += 1
+	rush_trail.append({"p": p, "a": 0.0, "n": _rush_seq, "big": big})
+
+
+func _rush_age(dt: float) -> void:
+	if rush_trail.is_empty():
+		return
+	var life: float = CmdBal.v("command/rush_trail_life", 0.22)
+	for tp in rush_trail:
+		tp.a += dt
+	rush_trail = rush_trail.filter(func(tp): return tp.a < life)
+
+
+## 金色轨迹：每个点 3 颗 2 / 4 像素的方块（序号哈希摆位），撞击点向外迸 8 颗；三阶透明度；新点带白芯。全部落在 2 px 网格上
+func _draw_rush_trail() -> void:
+	var life: float = CmdBal.v("command/rush_trail_life", 0.22)
+	var optical: bool = g.optical_on
+	for tp in rush_trail:
+		var u: float = clampf(float(tp.a) / life, 0.0, 0.999)
+		var q: float = [1.0, 0.6, 0.3][int(u * 3.0)]
+		var base: Vector2 = tp.p + Vector2(0, -10)
+		var n: int = tp.n
+		var cnt: int = 8 if tp.big else 3
+		for i in cnt:
+			var off: Vector2
+			if tp.big:
+				off = Vector2.from_angle(TAU * i / 8.0 + float(n % 3) * 0.2) * (8.0 + u * 30.0)
+			else:
+				off = Vector2(float((n * 7 + i * 5) % 9 - 4) * 2.0, float((n * 3 + i * 11) % 9 - 4) * 2.0)
+			var pt := Vector2(snappedf(base.x + off.x, 2.0), snappedf(base.y + off.y, 2.0))
+			var s: float = 4.0 if u < 0.4 else 2.0
+			var col := Color(1.0, 0.82, 0.3, q) if u > 0.33 else Color(1.0, 0.95, 0.7, q)
+			cv.draw_rect(Rect2(pt, Vector2(s, s)), col)
+			if optical and u < 0.5 and i == 0:
+				g.glow_next.append([pt, 4.0, Color(1.0, 0.78, 0.3)])
 
 
 var _cmd_waypoint := Vector2.INF
@@ -1888,6 +2005,22 @@ func _anim_state_raw() -> Dictionary:
 
 ## 每击完整经过前摇、出手、收势；伤害事件位于出手帧起点。
 func attack_phase_frame(n: int, release_frame: int, elapsed: float, slot := "") -> int:
+	var f: int = _attack_phase_frame_raw(n, release_frame, elapsed, slot)
+	# 动画播放倍率（帧条标称时长 ÷ 当前窗口）超过 anim_k_cap：隔帧抽取，前摇 / 收势各自按步长取整，出手帧本身一定显示（只影响画面，判定不动）
+	var tm: Dictionary = sprite_spec(slot if slot != "" else act_anim).get("attack_timing", {})
+	if tm.has("duration") and attack_dur > 0.0 and release_frame > 0 and release_frame < n:
+		var k: float = float(tm.duration) / attack_dur
+		var cap: float = BranchBal.v("atkspeed/anim_k_cap", 3.0)
+		if k > cap and cap > 0.0 and f != n - 1 and f != release_frame:   # 出手帧与末帧（收势定格）不抽掉
+			var step: float = k / cap
+			if f < release_frame:
+				f = clampi(int(floor(float(f) / step) * step), 0, release_frame - 1)
+			else:
+				f = clampi(release_frame + int(floor(float(f - release_frame) / step) * step), release_frame, n - 1)
+	return f
+
+
+func _attack_phase_frame_raw(n: int, release_frame: int, elapsed: float, slot := "") -> int:
 	var spec := sprite_spec(slot if slot != "" else act_anim)
 	var timing: Dictionary = spec.get("attack_timing", {})
 	var ds: Array = timing.get("frame_durations", spec.get("frame_durations", []))
@@ -2363,6 +2496,8 @@ func draw_body() -> void:
 		return
 	# 残影（动态模糊，用户选定方案 A，2026-09-25）：突然冲刺时身后 3–4 个带职业色的渐隐分身，先画在本体下面
 	var c: Color = col().lerp(Color.WHITE, 0.35)
+	if not rush_trail.is_empty():
+		_draw_rush_trail()
 	for gh in ghosts:
 		var a: float = GHOST_ALPHA * (1.0 - gh.age / GHOST_LIFE)
 		draw_sprite_at(gh.p + Vector2(foot_dx(gh.st), 0), gh.st.flip, Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, a), gh.st.frame, gh.st.tex, gh.st.hf, foot_off(gh.st.tex, gh.st.get("kind", "")))

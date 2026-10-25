@@ -489,6 +489,8 @@ static func _hw_zip_land(o) -> void:
 	_hw_slam_fx(o, c, r, 1.6 if big else 1.0)
 	if charge:
 		UlpCharge.land(o, c, r)   # 冲锋终点：冲击颗粒环 + 落地冷却的水花与碎屑（docs/143）
+	if b.has("path_w"):
+		UlpCharge.burst(o, c, r)   # 冲锋终点：大范围冲击环推到判定半径 r（低画质也画环，颗粒在 on 时）（docs/143 §8）
 	h.prev_dmg = dmg
 	h.prev_c = c
 	h.prev_r = r
@@ -581,6 +583,8 @@ static func _hw4_tick(o, dt: float) -> void:
 		h.timers[k] = maxf(0.0, float(h.timers[k]) - dt)
 	if not h.anchor.is_empty():
 		_hw4_anchor(o, dt)
+	if h.has("burst"):
+		UlpCharge.burst_tick(o, dt)
 	if not h.launched.is_empty():
 		_hw4_launched(o, dt)
 
@@ -798,7 +802,7 @@ static func hw_draw_tether(o) -> void:
 static func hw4_draw_pfx(o, f: Dictionary, a: float) -> bool:
 	var cv = o.cv
 	match str(f.kind):
-		"ulp_wave", "ulp_fracture":
+		"ulp_wave", "ulp_fracture", "ulp_burst":
 			return UlpImpact.draw(o, f, a)
 		"whirl":
 			if o.def.has("native_motion") and str(o.anim_state().get("kind", "")) == "whirl_native":

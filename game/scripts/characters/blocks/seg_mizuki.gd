@@ -505,7 +505,7 @@ static func _h3mz_status(o) -> Array:
 static func _h3mz_rows(o) -> Array:
 	var a: Dictionary = o.B.get("attack", {})
 	var timing: Dictionary = o.sprite_spec("attack").get("attack_timing", {})
-	var interval: float = maxf(h3_umbrella_interval(o, a), float(timing.get("min_duration", 0.0)) + float(timing.get("min_rest", 0.0)))
+	var interval: float = h3_umbrella_interval(o, a)   # 整条缩放后面板间隔 = 实际间隔（不再抬到 min_duration + min_rest）
 	var half: float = minf(180.0, float(a.get("half_deg", 75.0)) + _h3_st(o, "arc", 0.0))
 	return [
 		["伞击伤害", "%d" % int(o.base(str(a.get("atk_key", "atk")), 0.0) * _h3_st(o, "dmg", 1.0) * o.g.dmg_mult)], ["全局伤害", "×%.2f" % o.g.dmg_mult], ["挥伞间隔", "%.2f 秒" % max(float(a.get("min_cd", 0.18)), interval)],

@@ -178,7 +178,9 @@ func _tick(dt: float) -> void:
 		if not broke:
 			broke = true
 			g.combat.heal(g.max_hp * 0.2, "事件")
+			var l0: float = g.lamp
 			g.lamp = minf(g.lamp_cap, g.lamp + 20.0)
+			g.telemetry.lamp_note("围猎", g.lamp - l0)
 			g.vfx.show_banner("突围成功 —— 队长回复 20% 最大生命，灯火 +20")
 			_log("broke" if settled else "broke_early")
 			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 90.0, "life": 0.5, "max": 0.5, "col": Color(0.5, 1.0, 0.65)})

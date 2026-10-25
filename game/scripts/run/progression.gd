@@ -609,6 +609,7 @@ func apply_relic(id: String) -> void:
 	if not Cfg.seen_relics.has(id):
 		Cfg.seen_relics.append(id)
 		Cfg.save()
+	Cfg.note_real("seen_relics", id)   # 全部解锁时真实进度另记（蚀刻章「海中拾遗」用）
 
 
 ## 藏品携带上限：relic/carry_cap < 0 = 不限（缺省；用户 10-12 取消上限，爆率即软上限）。≥ 0 时恢复旧规则（含结局信物预留槽），只供对照测试

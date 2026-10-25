@@ -2,7 +2,7 @@
 """指挥圆盘终末地风格截图 / 动效录像（docs/144）。走 tools/godot_runner（并发上限、窗口放副屏 / 屏幕外、静音）。
 用法：
   python tools/probes/wheel_style_shots.py shot [hover=2] [res=desktop,phone] [rm]   打开圆盘、悬停某项，截终态 + 展开中段一帧
-  python tools/probes/wheel_style_shots.py rec  [res=desktop] [rm]                  打开 → 依次悬停 0–5 → 确认，逐帧存图并拼 30 帧 gif
+  python tools/probes/wheel_style_shots.py rec  [res=desktop] [rm]                  打开 → 依次悬停 0–4 → 确认，逐帧存图并拼 30 帧 gif
 输出到主仓库 build/wheel_style/；rm = 开「减少动态效果」
 """
 import os, sys, glob, shutil, tempfile
@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.join(ROOT, "tools"))
 import godot_runner as gr
 
 RES = {"desktop": ("1280x720", []), "phone": ("1560x720", ["--touch"])}
-REC_PLAN = "open@5,sel@0.45:0,sel@0.8:1,sel@1.15:2,sel@1.5:3,sel@1.85:4,sel@2.2:5,ok@2.7"
+REC_PLAN = "open@5,sel@0.45:0,sel@0.8:1,sel@1.15:2,sel@1.5:3,sel@1.85:4,ok@2.4"
 
 
 def run(d, res, rm, plan, nframes):

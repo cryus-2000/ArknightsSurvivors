@@ -39,7 +39,7 @@ func _ready():
 	var o = Op.new(g, Ch.load_def("lappland").duplicate(true))
 	o.pos = g.ppos
 	check_config(o.def)
-	ok(configured_waves==9, "base, skills and progression sword variants covered")
+	ok(configured_waves==8, "base, skills and progression sword variants covered")
 	var b = {"from":"self", "basis":"atk", "mult":1.0, "dist":220.0, "speed":500.0,
 		"w":60.0, "cap":9, "fan":[-18,0,18], "fan_once":true, "proj":"proj_lappland_sword", "proj_hold":1,
 		"release_pose":{"slot":"throw", "skill":2, "cycle":0.6}}
@@ -138,20 +138,32 @@ func _ready():
 	ok(NM.state(o,casting)==casting, "another skill takes visual priority")
 	NM.tick(o,0.01)
 	ok(not o.native_motion.has("wave_pose"), "another skill clears obsolete event")
-	# 走真实 follow/update，检查 JSON 中 S3 的实际事件驱动，而非只测人工构造事件。
+	# S3「噤声」（10-25，verb.mark）：走真实 follow/update，命中叠「观察」，叠满三层十字斩 + 封印；技能结束层数清空
+	enemy.pos=o.pos+Vector2(60,0)
+	g.enemies_sys.build_grid()
 	var live=Op.new(g,Ch.load_def("lappland").duplicate(true))
 	live.pos=g.ppos
 	live.elite=2
 	live.refresh_stats()
 	live.start_skill(enemy.pos,2)
-	var events:=0
-	for i in 180:
+	var max_layer:=0
+	var sealed_seen:=false
+	for i in 480:
+		enemy.pos=live.pos+Vector2(60,0)
+		enemy.hp=1000000.0
+		g.enemies_sys.build_grid()
 		live.follow(1.0/60.0,live.pos)
 		live.update(1.0/60.0)
-		var event: Dictionary=live.native_motion.get("wave_pose",{})
-		if not event.is_empty() and is_zero_approx(event.elapsed):
-			events+=1
-			ok(live.anim_state().kind=="throw" and live.anim_state().frame==3, "live S3 wave and throw release coincide")
-	ok(events>=2, "live S3 tick actually drives body events")
+		var mk: Dictionary=live.sm.get("marks",{})
+		if mk.has(int(enemy.id)):
+			max_layer=maxi(max_layer,int(mk[int(enemy.id)].n))
+		sealed_seen=sealed_seen or float(enemy.get("seal_t",0.0))>g.t
+	ok(not live.sm.get("mark_b",{}).is_empty() or live.skill_active_left(2)<=0.0, "S3 activates verb.mark")
+	ok(max_layer>=1 and max_layer<=2, "observe layers stack below the harvest count (%d)" % max_layer)
+	ok(live.sm.get("mark_fx",[]).size()>=1, "three observes trigger the cross cut (%d)" % live.sm.get("mark_fx",[]).size())
+	ok(sealed_seen, "cross cut seals the target")
+	for i in 120:
+		live.update(1.0/60.0)
+	ok(live.skill_active_left(2)<=0.0 and live.sm.get("mark_b",{}).is_empty() and live.sm.get("marks",{}).is_empty(), "skill end clears observe layers")
 	print("LAPPLAND PRESENTATION %d checks, %d failed" % [checks,failures])
 	get_tree().quit(0 if failures==0 else 1)

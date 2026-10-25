@@ -29,7 +29,7 @@ RAF_JS = """<script>
 window.requestAnimationFrame=function(cb){q.push(cb);if(q.length===1)ch.port2.postMessage(0);return q.length;};window.cancelAnimationFrame=function(){};
 var buf=[],send=function(){if(!buf.length)return;var b=buf.join("\\n");buf=[];fetch("/log",{method:"POST",body:b}).catch(function(){});};
 setInterval(send,1000);var wrap=function(k){var o=console[k];console[k]=function(){var s=Array.prototype.join.call(arguments," ");
-if(/^(PERF|PF |BALANCE|TRACE|SCRIPT ERROR|ERROR|USER ERROR)/.test(s)||k!=="log"){buf.push(s);if(/^(PERF|BALANCE)/.test(s))send();}return o.apply(console,arguments);};};
+if(/^(PERF|PF |BALANCE|TRACE|SCRIPT ERROR|ERROR|USER ERROR)/.test(s)||k!=="log"){buf.push(s);if(/^(PERF|BALANCE|PF FTDONE)/.test(s))send();}return o.apply(console,arguments);};};
 wrap("log");wrap("error");wrap("warn");})();
 </script>"""
 
@@ -90,7 +90,98 @@ def export(ref):
     return out
 
 
-def run(ref, tag, game_args, timeout):
+# ---------------------------------------------------------------- 低配模拟（docs/50 §28）：DevTools 协议（CPU 节流 / 手机视口 / 触屏）
+def _ws_connect(url):
+    """最小 WebSocket 客户端（只发文本帧、收文本帧，够 DevTools 用；不引第三方库）"""
+    import base64, struct
+    u = urllib.parse.urlparse(url)
+    s0 = socket.create_connection((u.hostname, u.port), timeout=10)
+    s = _Sock(fileno=s0.detach())   # 子类才能挂属性（cmd）
+    s.settimeout(30)
+    key = base64.b64encode(os.urandom(16)).decode()
+    s.sendall(("GET %s HTTP/1.1\r\nHost: %s:%d\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n"
+               % (u.path, u.hostname, u.port, key)).encode())
+    buf = b""
+    while b"\r\n\r\n" not in buf:
+        buf += s.recv(4096)
+
+    def send(obj):
+        data = json.dumps(obj).encode()
+        hdr = bytearray([0x81])
+        n = len(data)
+        if n < 126:
+            hdr.append(0x80 | n)
+        elif n < 65536:
+            hdr.append(0x80 | 126)
+            hdr += struct.pack(">H", n)
+        else:
+            hdr.append(0x80 | 127)
+            hdr += struct.pack(">Q", n)
+        mask = os.urandom(4)
+        hdr += mask
+        s.sendall(bytes(hdr) + bytes(b ^ mask[i % 4] for i, b in enumerate(data)))
+
+    def recv():
+        def rd(k):
+            out = b""
+            while len(out) < k:
+                c = s.recv(k - len(out))
+                if not c:
+                    raise OSError("closed")
+                out += c
+            return out
+        b0, b1 = rd(2)
+        n = b1 & 0x7F
+        if n == 126:
+            n = struct.unpack(">H", rd(2))[0]
+        elif n == 127:
+            n = struct.unpack(">Q", rd(8))[0]
+        return rd(n).decode("utf-8", "replace")
+    return s, send, recv
+
+
+class _Sock(socket.socket):
+    pass
+
+
+def _cdp_setup(port, url, throttle, mobile, throttle_late=False):
+    """等 Edge 起来，按需开 CPU 节流 / 手机视口 + 触屏，再导航到游戏页（先设好再加载，游戏启动时就认成触屏设备）"""
+    t0 = time.time()
+    tgt = None
+    while time.time() - t0 < 30 and tgt is None:
+        try:
+            import urllib.request
+            lst = json.loads(urllib.request.urlopen("http://127.0.0.1:%d/json" % port, timeout=2).read())
+            tgt = next((x for x in lst if x.get("type") == "page"), None)
+        except Exception:
+            time.sleep(0.5)
+    if tgt is None:
+        print("[网页] DevTools 连不上，按不节流跑")
+        return None
+    s, send, recv = _ws_connect(tgt["webSocketDebuggerUrl"])
+    mid = [0]
+
+    def cmd(method, params=None):
+        mid[0] += 1
+        send({"id": mid[0], "method": method, "params": params or {}})
+        while True:
+            m = json.loads(recv())
+            if m.get("id") == mid[0]:
+                return m
+    if throttle and throttle > 1 and not throttle_late:
+        cmd("Emulation.setCPUThrottlingRate", {"rate": throttle})
+    if mobile:
+        cmd("Emulation.setDeviceMetricsOverride", {"width": 844, "height": 390, "deviceScaleFactor": 3, "mobile": True,
+                                                    "screenOrientation": {"type": "landscapePrimary", "angle": 90}})
+        cmd("Emulation.setTouchEmulationEnabled", {"enabled": True, "maxTouchPoints": 5})
+        cmd("Emulation.setUserAgentOverride", {"userAgent": "Mozilla/5.0 (Linux; Android 13; Pixel 6a) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36",
+                                               "platform": "Linux armv8l"})
+    cmd("Page.navigate", {"url": url})
+    s.cmd = cmd
+    return s   # 连接留着：断开后节流会失效
+
+
+def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False):
     d = export(ref)
     log_p = os.path.join(d, "out_%s.txt" % tag)
     open(log_p, "w").close()
@@ -104,7 +195,7 @@ def run(ref, tag, game_args, timeout):
             body = self.rfile.read(int(self.headers.get("Content-Length", 0))).decode("utf-8", "replace")
             with open(log_p, "a", encoding="utf-8") as fh:
                 fh.write(body + "\n")
-            if "PERF " in body or "BALANCE " in body:
+            if "PERF " in body or "BALANCE " in body or "PF FTDONE" in body:
                 done.set()
             self.send_response(204)
             self.end_headers()
@@ -121,13 +212,29 @@ def run(ref, tag, game_args, timeout):
     ud = os.path.join(BASE, "_edge_" + tag)
     shutil.rmtree(ud, ignore_errors=True)
     px, py = gr._TEST_POS if gr._SEC else (-3000, 0)
-    p = subprocess.Popen([EDGE, "--user-data-dir=" + ud, "--app=" + url, "--window-position=%d,%d" % (px, py), "--window-size=1280,720",
+    emu = bool(throttle) or mobile
+    dbg = 0
+    if emu:
+        with socket.socket() as s2:
+            s2.bind(("127.0.0.1", 0))
+            dbg = s2.getsockname()[1]
+    p = subprocess.Popen([EDGE, "--user-data-dir=" + ud, "--app=" + ("about:blank" if emu else url), "--window-position=%d,%d" % (px, py),
+                          "--window-size=%s" % ("844,390" if mobile else "1280,720"),
                           "--no-first-run", "--no-default-browser-check", "--disable-background-timer-throttling", "--disable-renderer-backgrounding",
-                          "--disable-backgrounding-occluded-windows", "--disable-features=CalculateNativeWinOcclusion", "--mute-audio"])
+                          "--disable-backgrounding-occluded-windows", "--disable-features=CalculateNativeWinOcclusion", "--mute-audio"]
+                         + (["--remote-debugging-port=%d" % dbg] if emu else []) + (["--force_low_power_gpu"] if lowgpu else []))
+    late = bool(throttle) and "--rtfrom" in " ".join(game_args)   # 后期场景：快进段不节流，看到 PF RTFROM 再开
+    cdp = _cdp_setup(dbg, url, throttle, mobile, late) if emu else None
     t0 = time.time()
     while not done.is_set() and time.time() - t0 < timeout:
-        done.wait(5)
+        done.wait(2)
+        if late and cdp is not None and "PF RTFROM" in open(log_p, encoding="utf-8").read():
+            cdp.cmd("Emulation.setCPUThrottlingRate", {"rate": throttle})
+            print("[网页] 快进结束，开 CPU 节流 %gx" % throttle)
+            late = False
     time.sleep(2)
+    if cdp is not None:
+        cdp.close()
     subprocess.run(["taskkill", "/PID", str(p.pid), "/T", "/F"], capture_output=True)
     srv.shutdown()
     shutil.rmtree(ud, ignore_errors=True)
@@ -158,11 +265,14 @@ def main():
     ap.add_argument("--ref", default="HEAD")
     ap.add_argument("--tag", default="run")
     ap.add_argument("--timeout", type=float, default=1800)
+    ap.add_argument("--throttle", type=float, default=0, help="低配模拟：CPU 节流倍数（DevTools，4 / 6）")
+    ap.add_argument("--mobile", action="store_true", help="低配模拟：手机横屏视口 844×390、3 倍像素、触屏、安卓 UA")
+    ap.add_argument("--lowgpu", action="store_true", help="低配模拟：Edge 用核显（--force_low_power_gpu）")
     a = ap.parse_args(argv)
     if a.cmd == "export":
         print(export(a.ref))
     else:
-        run(a.ref, a.tag, game_args, a.timeout)
+        run(a.ref, a.tag, game_args, a.timeout, a.throttle, a.mobile, a.lowgpu)
 
 
 if __name__ == "__main__":

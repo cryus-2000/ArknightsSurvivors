@@ -20,7 +20,11 @@ OUT = os.path.join(GR.common_root(ROOT), "build", "look_nausea")
 
 # 段：起始秒、帧数（60 fps）
 SEGS = {"early": (6.0, 240), "late": (300.0, 300), "late9": (545.0, 120), "boss10": (612.0, 120)}
-SEG_EXTRA = {"late9": ["--nodeath"], "boss10": ["--nodeath"]}   # 后期段：不死，保证录到 9:00 后 / 最终 Boss 在场
+SEGS["late9w"] = (545.0, 120)   # 维什戴尔当队长（命中多，看队长标识用，配 --squad wisadel,siege,mizuki,kaltsit）
+SEGS["vid_late"] = (545.0, 270)   # 视频：9:05 起 9 秒（30 fps）
+SEGS["vid_boss"] = (612.0, 270)   # 视频：10:12 Boss 在场起 9 秒（30 fps）
+SEG_FPS = {"vid_late": 30, "vid_boss": 30}
+SEG_EXTRA = {"late9": ["--nodeath"], "boss10": ["--nodeath"], "late9w": ["--nodeath"], "vid_late": ["--nodeath"], "vid_boss": ["--nodeath"]}   # 后期段：不死，保证录到 9:00 后 / 最终 Boss 在场
 
 KILL_RECOIL = ["--bal=fx/recoil_px=0", "--bal=fx/recoil_px1=0", "--bal=fx/recoil_px2=0", "--bal=fx/recoil_px3=0"]
 KILL_SQUASH = ["--bal=fx/squash_basic=0", "--bal=fx/squash_dot=0", "--bal=fx/squash_skill=0"]
@@ -57,6 +61,16 @@ VARIANTS = {
     "hide_warn": ["--clutterdbg=nowarn"], "hide_tell": ["--clutterdbg=notell"], "hide_foefx": ["--clutterdbg=nofoefx"],
     "hide_shock": ["--clutterdbg=noshock"], "hide_aura": ["--clutterdbg=noaura"], "hide_foe": ["--clutterdbg=nofoe"],
     "foe_calm": ["--bal=render/foe_calm=1"],
+    # docs/139 §10 主次分层
+    "mate_off": ["--bal=render/mate_layer=0"],
+    "mate55": [],
+    # docs/139 §11 突出队长（带界面录，看得到伤害数字）
+    "lead_now": ["--withhud"],
+    "leadA": ["--withhud", "--bal=render/lead_hitmark=1", "--bal=render/mate_numbers=1"],
+    "leadB": ["--withhud", "--bal=render/lead_hitmark=1", "--bal=render/mate_numbers=1", "--bal=render/lead_top=1", "--bal=render/lead_dir=1"],
+    "emph1": ["--withhud", "--bal=render/lead_emph=1"],
+    "emph2": ["--withhud", "--bal=render/lead_emph=2"],
+    "leadC": ["--withhud", "--bal=render/mate_numbers=1", "--bal=render/lead_top=1", "--bal=render/lead_dir=1"],
     "dash_style1": ["--bal=render/dash_tell_style=1"],
     "dash_style2": ["--bal=render/dash_tell_style=2"],
     "dash_calm": ["--bal=render/dash_tell_alpha=0.55", "--bal=render/dash_tell_flow=0", "--bal=render/dash_tell_white=0", "--bal=render/dash_tell_half=6",
@@ -79,11 +93,13 @@ def rec_one(seg, name, res, squad, seed):
     shutil.rmtree(d, ignore_errors=True)
     os.makedirs(d, exist_ok=True)
     w, h = res.split("x")
-    args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "60",
+    args = [GR.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", str(SEG_FPS.get(seg, 60)),
             "--resolution", "%sx%s" % (w, h), "--",
             "--balance", "--seed=%d" % seed, "--op=" + squad[0], "--squad=" + ",".join(squad[1:]), "--bot=expert",
             "--realtime", "--playclock", "--rtfrom=%g" % max(0.0, t0 - 3.0), "--nohud",
-            "--recframes=%g,%d" % (t0, n), "--camlog=%g" % t0, "--shotdir=" + d.replace(os.sep, "/"), "--perf"] + SEG_EXTRA.get(seg, []) + VARIANTS[name]
+            "--recframes=%g,%d" % (t0, n), "--camlog=%g" % t0, "--shotdir=" + d.replace(os.sep, "/"), "--perf"] + SEG_EXTRA.get(seg, []) + [x for x in VARIANTS[name] if x != "--withhud"]
+    if "--withhud" in VARIANTS[name]:
+        args.remove("--nohud")
     out, err, to = GR.run_godot(args, 2400)
     cam = [l for l in out.splitlines() if l.startswith("CAMLOG ")]
     perf = [l for l in out.splitlines() if l.startswith("PERF ") or l.startswith("STOPSTAT")]

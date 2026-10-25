@@ -24,6 +24,11 @@
    ""
   ],
   [
+   "职业图标",
+   "寻访界面的八个职业标志为《明日方舟》原作线稿图标，取自社区整理的 PRTS Design 预览资源，未改动。图标版权归鹰角网络（Hypergryph）所有，该仓库声明游戏素材版权属鹰角、不在其 MIT 代码许可之内；本作仅在同人、非商业范围内使用。",
+   "https://github.com/MooncellWiki/prts-design"
+  ],
+  [
    "引擎",
    "Godot Engine 4.7（MIT 许可）。",
    "https://godotengine.org"
@@ -45,7 +50,7 @@
   ],
   [
    "音乐与音效",
-   "配乐与大部分音效由 AI 程序化合成：Claude（Anthropic）编写合成脚本生成旋律、编曲与音效，参考了《水月与深蓝之树》原声的氛围，不含原声音频。部分枪声、锁链、刀划与金属撞击剪辑自 CC0 公有领域录音：Freesound 用户 DarkShroom、Invisible_inks、Kp69606、16bitstudios、DaVoiceActor，Kenney「Impact Sounds」「RPG Sounds」。",
+   "配乐与大部分音效由 AI 程序化合成：Claude（Anthropic）编写合成脚本生成旋律、编曲与音效，参考了《水月与深蓝之树》原声的氛围，不含原声音频。部分枪声、锁链、刀划与金属撞击剪辑自 CC0 公有领域录音：Freesound 用户 DarkShroom、Invisible_inks、areniporgen、morganpurkis、Kp69606、16bitstudios、DaVoiceActor，Kenney「Impact Sounds」「RPG Sounds」。",
    "https://freesound.org  ·  https://kenney.nl"
   ],
   [

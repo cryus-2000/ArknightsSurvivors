@@ -13,6 +13,10 @@ var _pts := PackedVector2Array()
 var _cols := PackedColorArray()
 var _off := -1
 var mute := false   # --clutterdbg=nofriend 量测：干员特效阶段的绘制全部丢掉（代码照跑、随机数照抽），squad 设
+var boost := 1.0    # 队长特效提亮倍数（docs/139 §11 render/lead_emph；squad._op_dim 按干员设）：颜色 × boost，光学层里超过发光门限会自然泛光
+var tint := 0.0     # 队长特效往琥珀专属色偏的比例（同上，保持亮度）
+var mod_on := false # amul / dsat / boost / tint 任一生效（set_mod 维护；为假时绘制直接走原色，不多算）
+var dsat := 0.0     # 队友特效去饱和（docs/139 §10，render/mate_desat；squad._op_dim 按干员设）：颜色往同亮度灰拉，0 = 不变
 var amul := 1.0     # 后期降噪（render/declutter mate_k / lead_k）：squad 在干员特效阶段按「队友 / 主控」设的透明度系数，乘在每次绘制的颜色上；1 = 不变
 ## 合批写法（性能 docs/50 §14 OPT_CV；10-15 删掉逐点 _add 的旧写法，docs/101 S2）：批里是无索引三角形列表，圆 / 弧的顶点用单位方向表
 ## × Transform2D 整组生成（引擎原生运算，算式与逐点 _add 相同：c + d × r 再乘 xf，浮点结果逐位一致），不再每个顶点一次函数调用、
@@ -21,6 +25,30 @@ static var _fans := {}     # 段数 -> 单位扇形三角形表（圆心 + 第 q
 static var _adirs := {}    # 点数 -> 整圈弧（0 → TAU）的单位方向（算式同 _arc）
 static var _rings := {}    # Vector3(点数, 内半径, 外半径) -> 整圈弧以原点为心的三角形表（c + 表 = 旧写法的 c + d × r）
 static var _cbuf := {}     # 顶点数 -> 填色临时数组
+
+
+## 降噪 / 主次分层：透明度乘 amul、颜色往同亮度灰拉 dsat（亮度按 Rec.709）
+## squad 在每名干员的特效阶段设：透明度、去饱和、提亮、暖色偏移；全 = 中性值时 mod_on 为假
+func set_mod(a: float, d: float, b := 1.0, t := 0.0) -> void:
+	amul = a
+	dsat = d
+	boost = b
+	tint = t
+	mod_on = a < 1.0 or d > 0.0 or absf(b - 1.0) > 0.001 or t > 0.0
+
+
+const LEAD_TINT := Color(1.0, 0.78, 0.42)
+func _dim(c: Color) -> Color:
+	if tint > 0.0:
+		var m: float = maxf(c.r, maxf(c.g, c.b))
+		c = Color(lerpf(c.r, LEAD_TINT.r * m, tint), lerpf(c.g, LEAD_TINT.g * m, tint), lerpf(c.b, LEAD_TINT.b * m, tint), c.a)
+	if boost != 1.0:
+		c = Color(c.r * boost, c.g * boost, c.b * boost, c.a)
+	if dsat > 0.0:
+		var l: float = c.r * 0.2126 + c.g * 0.7152 + c.b * 0.0722
+		c = Color(lerpf(c.r, l, dsat), lerpf(c.g, l, dsat), lerpf(c.b, l, dsat), c.a)
+	c.a *= amul
+	return c
 
 
 func _init(game) -> void:
@@ -60,10 +88,10 @@ func flush() -> void:
 func add_tris(pts: PackedVector2Array, cols: PackedColorArray, idx: PackedInt32Array) -> void:
 	if mute:
 		return
-	if amul < 1.0:
+	if mod_on:
 		cols = cols.duplicate()
 		for i in cols.size():
-			cols[i].a *= amul
+			cols[i] = _dim(cols[i])
 	if xf != Transform2D.IDENTITY:
 		pts = xf * pts
 	if not active:
@@ -121,8 +149,8 @@ func draw_set_transform(p: Vector2, rot := 0.0, sc := Vector2.ONE) -> void:
 func draw_texture_rect_region(tex: Texture2D, rect: Rect2, src: Rect2, mod := Color.WHITE, transpose := false, clip := true) -> void:
 	if mute:
 		return
-	if amul < 1.0:
-		mod.a *= amul
+	if mod_on:
+		mod = _dim(mod)
 	if active:
 		sync()
 	g.draw_texture_rect_region(tex, rect, src, mod, transpose, clip)
@@ -131,8 +159,8 @@ func draw_texture_rect_region(tex: Texture2D, rect: Rect2, src: Rect2, mod := Co
 func draw_circle(p: Vector2, r: float, col: Color, filled := true, width := -1.0, aa := false) -> void:
 	if mute:
 		return
-	if amul < 1.0:
-		col.a *= amul
+	if mod_on:
+		col = _dim(col)
 	if not active:
 		g.draw_circle(p, r, col, filled, width, aa)
 		return
@@ -151,8 +179,8 @@ func draw_circle(p: Vector2, r: float, col: Color, filled := true, width := -1.0
 func draw_arc(c: Vector2, r: float, a0: float, a1: float, n: int, col: Color, width := -1.0, aa := false) -> void:
 	if mute:
 		return
-	if amul < 1.0:
-		col.a *= amul
+	if mod_on:
+		col = _dim(col)
 	if not active:
 		g.draw_arc(c, r, a0, a1, n, col, width, aa)
 		return
@@ -162,8 +190,8 @@ func draw_arc(c: Vector2, r: float, a0: float, a1: float, n: int, col: Color, wi
 func draw_line(a: Vector2, b: Vector2, col: Color, width := -1.0, aa := false) -> void:
 	if mute:
 		return
-	if amul < 1.0:
-		col.a *= amul
+	if mod_on:
+		col = _dim(col)
 	if not active:
 		g.draw_line(a, b, col, width, aa)
 		return
@@ -174,8 +202,8 @@ func draw_polyline(points: PackedVector2Array, col: Color, width := -1.0, aa := 
 	if mute:
 		return
 	var unbatched: bool = width > 2.0 or col.a < 1.0   # 按原色判断进不进批（降噪的 amul 不改变合批与否）
-	if amul < 1.0:
-		col.a *= amul
+	if mod_on:
+		col = _dim(col)
 	if not active:
 		g.draw_polyline(points, col, width, aa)
 		return
@@ -190,8 +218,8 @@ func draw_polyline(points: PackedVector2Array, col: Color, width := -1.0, aa := 
 func draw_colored_polygon(points: PackedVector2Array, col: Color, uvs := PackedVector2Array(), tex: Texture2D = null) -> void:
 	if mute:
 		return
-	if amul < 1.0:
-		col.a *= amul
+	if mod_on:
+		col = _dim(col)
 	if not active or tex != null:
 		if active:
 			sync()
@@ -211,8 +239,8 @@ func draw_colored_polygon(points: PackedVector2Array, col: Color, uvs := PackedV
 func draw_rect(rect: Rect2, col: Color, filled := true, width := -1.0, aa := false) -> void:
 	if mute:
 		return
-	if amul < 1.0:
-		col.a *= amul
+	if mod_on:
+		col = _dim(col)
 	if not active:
 		g.draw_rect(rect, col, filled, width, aa)
 		return

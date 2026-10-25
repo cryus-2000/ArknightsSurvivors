@@ -30,6 +30,7 @@ var _pa_last := false   # GPU 粒子上次 set_active 的值（光学开关 + --
 ## --stackab（docs/50 §26，仅测试）：同局逐层关闭的位掩码，只关画面。1 CPU 颗粒（fx_grains 全关，调用方退回非粒子画法）、2 GPU 粒子、
 ## 4 特效动态照明、8 发光层、16 低分辨率世界层、32 整套光学观感、64 GPU 粒子爆发隔一次发一次（近似池子减半）
 var ab_mask := 0
+var auto_mask := 0   # 画质自动档逐级降（game._auto_quality，docs/50 §28）：同 ab_mask 的位，正常游戏掉帧时才非 0
 ## 发光颜色语言（10-23 用户定，同日按原作改：原作海嗣发光以青蓝为主）：每类一组 render/optical_col_<类>_h / _s / _v（色相 0–1）。
 ##   enemy 海嗣本体发光点（眼睛 / 核心 / 发光器官）原作青蓝，不再取各怪 ecol / 帧条亮色；elite 精英同色相更亮（并多一处发光点、大一号）；
 ##   boss 专属暖色；danger「危险」洋红偏深红：敌方攻击预警、敌方弹幕与拖尾，horde_h 黑潮（缩圈开始后 1.5 秒内渐变）往正红偏，紫色调下可读；
@@ -89,7 +90,7 @@ func _update_cols(dt: float) -> void:
 
 ## ⑥ 动态照明：候选 = 一次性帧条特效（按剩余寿命衰减、半径随帧高）+ 我方弹 + 敌弹（危险色、弱）；按亮度取前 N 个
 func _dyn_lights(xf: Transform2D, k: float) -> void:
-	var nmax: int = mini(DL_MAX, int(Bal.v("render/optical_dl_max", 12.0))) if fx1 and (ab_mask & 4) == 0 else 0
+	var nmax: int = mini(DL_MAX, int(Bal.v("render/optical_dl_max", 12.0))) if fx1 and ((ab_mask | auto_mask) & 4) == 0 else 0
 	var cand: Array = []
 	if nmax > 0:
 		var cc: Vector2 = g.cam.get_screen_center_position() if g.cam != null else g.ppos
@@ -217,10 +218,16 @@ func _fxq_step(on: bool) -> void:
 		_fxq_i = 0
 
 
-## 某颗敌弹的颜色（docs/139 §7.3，用户 10-24「子弹颜色就先不用换了，就把 Boss 的换成洋红色」）：Boss 弹（b.boss）用危险色、
-## 杂兵弹用敌弹色；render/ebullet_boss_danger 0 = Boss 弹也用敌弹色
+## 某颗敌弹的光晕 / 弹芯 / 拖尾 / 地面光颜色（docs/139 §7.3）：杂兵弹 = 敌弹色（青蓝）；
+## Boss 弹（b.boss）= 这颗弹自带的 b.col（Boss 会话按每只 Boss 的专属色写，docs/142b），没有就用 Boss 专属暖色 col_boss。
+## render/ebullet_boss_danger 1 = 旧口径（Boss 弹统一危险洋红）；用户 10-25「Boss 子弹不是每个 Boss 专属颜色吗」「不要加描边」→ 缺省 0
 func eb_col(b: Dictionary) -> Color:
-	return col_danger if b.get("boss", false) and Bal.v("render/ebullet_boss_danger", 1.0) > 0.0 else col_ebullet
+	if not b.get("boss", false):
+		return col_ebullet
+	if Bal.v("render/ebullet_boss_danger", 0.0) > 0.0:
+		return col_danger
+	var bc = b.get("col")
+	return bc if bc is Color else col_boss
 
 
 ## 敌弹弹体换色相（g.tex 同名替换，同压阶帧条的做法；关掉或色相变了换回原图再重做）：粉 / 紫（240–345°）→ 敌弹色色相
@@ -367,7 +374,7 @@ func _lo_step() -> void:
 	# 非整数倍时 1 美术像素占的屏幕像素不再恒为整数，用户 10-24 要求先看 ×1.15 再定）
 	var rel: float = Cfg.cam_zoom() / (Cfg.ZOOM_PHONE_DEF / 100.0 if Cfg.phone_ui() else 1.0)
 	if g.demo_op != "":
-		rel *= Bal.v("gallery/demo_zoom", 0.8)   # 图鉴演示小窗再拉远（用户 10-24），视野更大
+		rel *= Bal.v("gallery/demo_zoom", 0.68)   # 图鉴演示小窗再拉远（用户 10-24），视野更大
 	var zw: float = view_k / (2.0 * sx) * rel
 	if Bal.v("render/optical_int_zoom", 0.0) > 0.0:
 		# docs/139 试验旋钮：把「战斗画面缩放」并进整数倍率（1 美术像素恒占整数个物理像素），不再出现 2.3 / 3.45 这种非整数放大
@@ -514,7 +521,7 @@ func _pt(k: String, t0: int) -> int:
 
 
 func wanted() -> bool:
-	if ab_mask & 32:
+	if (ab_mask | auto_mask) & 32:
 		return false
 	if force >= 0:
 		return force == 1
@@ -528,7 +535,7 @@ func _process(_dt: float) -> void:
 	_update_cols(_dt)
 	var pt: int = Time.get_ticks_usec() if g.prof_on else 0
 	if grains != null:
-		grains.kill = (ab_mask & 1) != 0
+		grains.kill = ((ab_mask | auto_mask) & 1) != 0
 		grains.step(_dt)
 		grains.flush()
 	pt = _pt("op_grains", pt)
@@ -539,8 +546,8 @@ func _process(_dt: float) -> void:
 	var on := wanted() and DisplayServer.get_name() != "headless"
 	g.optical_on = on
 	visible = on
-	glow_layer.visible = on and (ab_mask & 8) == 0
-	var lo_want: bool = on and Bal.v("render/optical_lowres", 1.0) > 0.0 and lo_vp != null and (ab_mask & 16) == 0
+	glow_layer.visible = on and ((ab_mask | auto_mask) & 8) == 0
+	var lo_want: bool = on and Bal.v("render/optical_lowres", 1.0) > 0.0 and lo_vp != null and ((ab_mask | auto_mask) & 16) == 0
 	if lo_want != _lo_on:
 		_set_lo(lo_want)
 	if _lo_on:
@@ -551,7 +558,7 @@ func _process(_dt: float) -> void:
 	g.glow_tex_next = []
 	pt = _pt("op_lowres", pt)
 	if particles != null:
-		var pa: bool = on and (ab_mask & 2) == 0
+		var pa: bool = on and ((ab_mask | auto_mask) & 2) == 0
 		if pa != _pa_last:
 			particles.set_active(pa)
 			_pa_last = pa
@@ -603,3 +610,7 @@ func _process(_dt: float) -> void:
 	if g.post != null:
 		mat.set_shader_parameter("hurt", g.post.hurt)
 		mat.set_shader_parameter("desat", g.post.desat)
+		mat.set_shader_parameter("zone_amt", g.post.zone_amt)
+		mat.set_shader_parameter("zone_c", g.post.zone_c)
+		mat.set_shader_parameter("zone_r", g.post.zone_r)
+		mat.set_shader_parameter("zone_hole", g.post.zone_hole)

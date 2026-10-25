@@ -37,7 +37,7 @@ const ENEMY_DESC := {
 	"fractal": "塑路者碎裂时放出的高速碎片。",
 	"spitter": "远程抛射酸液：落点先出预警，落地造成范围伤害并留下溟痕，命中附带侵蚀。",
 	"tear": "伊莎玛拉人形阶段用技能「抗争之泪」召唤，不会伤害队长；未被压制时为伊莎玛拉的转化充能。队长靠近即可压制，伊莎玛拉转化后消失。",
-	"pocket": "精英。背负气囊的爬行者，每失去 15% 最大生命就鼓胀 1.1 秒后爆裂一次（范围 160），两次爆裂至少间隔 1.2 秒；看到它发亮就离开。",
+	"pocket": "精英。背负气囊的爬行者，生命降到 2/3 和 1/3 时各鼓胀 1.1 秒后爆裂一次（范围 160），鼓胀期间不受伤害；看到它发亮就离开。",
 	"skimmer": "精英。低空悬浮的远程个体，射击附带侵蚀；被控制后坠落，改为近战。",
 	"mother": "精英。向队长投掷注亡拟嗣：落点先出预警，落地造成伤害并附加侵蚀，拟嗣随即在落点孵化（场上最多 6 只）。",
 	"mimic": "精英。伪装成补给箱，受到攻击后现形。现形后尖叫 2.5 秒：周围 150 内累积神经损伤，期间照常追击、不啃咬；尖叫结束前击倒，源石锭 ×1.5。啃咬两连，第二口伤害 ×0.6。免疫眩晕、寒冷和封印；击败后掉落源石锭。",
@@ -312,7 +312,7 @@ func _build() -> void:
 				var cdef: Dictionary = Character.load_def(cid)
 				var oe: Dictionary = _op_entry(cid, cdef)
 				oe["first"] = bool(cdef.get("list_first", false))   # list_first：干员 json（封面干员水月排第一）
-				if not Cfg.unlock_all and not Roster.is_unlocked(cid):   # 对内包图鉴全开（名册虽按新玩家走）
+				if not Roster.is_unlocked(cid):   # 干员页只认名册（Roster.is_unlocked 与寻访「未解锁 N 名」同一来源；调试版 / 测试局名册视为全开）
 					oe["locked"] = true
 					oe["locked_text"] = "未招募。\n\n探索结算后用寻访凭证解锁。"
 				ops.append(oe)
@@ -1356,7 +1356,11 @@ func _draw_top(ph: bool, vr: Rect2) -> void:
 	var W := _dsz().x
 	var ht := 0.0 if _still() else _now() * 30.0
 	var unl := 0
+	var total := 0
 	for en in entries:
+		if tab == 0 and not en.has("op"):
+			continue   # 干员页的收录数只数名册干员（博士不在寻访名册里），与寻访「未解锁 N 名」对得上
+		total += 1
 		if not en.get("locked", false):
 			unl += 1
 	if ph:
@@ -1386,7 +1390,7 @@ func _draw_top(ph: bool, vr: Rect2) -> void:
 		UI.text_at(self, font, Vector2(x + 22, 10), str(TABS[i].cn), 13, UI.C_HZ if on else UI.C_D_INK, "la", on)
 		UI.code(self, font, Vector2(x + 20, 28), str(TABS[i].en), 7, UI.C_HZ if on else UI.C_D_SUB)
 		hits.append([r, "cat", i])
-	UI.code(self, font, Vector2(W - 128, 20), "%d / %d" % [unl, entries.size()], 9, UI.C_D_SUB, "ra")
+	UI.code(self, font, Vector2(W - 128, 20), "%d / %d" % [unl, total], 9, UI.C_D_SUB, "ra")
 	var back := Rect2(W - 112, 10, 96, 28)
 	UI.para(self, back, 8, Color(0, 0, 0, 0), UI.C_D_INK)
 	UI.text_at(self, font, back.get_center() + Vector2(0, 1), Pad.hint("返回  Esc", "返回  Ⓑ", "返回"), 12, UI.C_D_INK, "mm")
