@@ -4,7 +4,10 @@
 ##   一幕：手炮（② Kanpelle 橙色光束 3 倍粗）/ 轰击（① 曲射）；装填完毕没被打断 = 手炮·三连
 ##   二幕「延生」：装填 1.4 秒、只认冲刺穿身；装填一开始打出三连曲射（落点三角围住自己）；靠近时先抡一下；散射 2 波错位（patterns，phase_min 1）；
 ##         没打断 = 清膛 + 手炮·三连
-## 卡门 4 招：A 狙击（②；装填完毕改狙击·三连）/ B 炮身横扫（③，两幕都有）/ C 环射（④ 三缺口环，patterns，耗 3 发）/ D 炮身砸击（① 落点圈，第二幕炮身近战段）
+## 卡门（docs/142b §3.4 / §8.2，10-25）：主轴「封锁线」——弹药 3 发，每枪狙击打完留一条带缺口的火线 6 秒（碰到掉血 + 减速），
+##   三枪把场地切成跑道，玩家边跑边 S 形穿缺口绕到她身边；三枪后装填 3 秒（火线消退）= 压上去的窗口；冲刺穿身 / 累计 5% 打断 → 破绽，起身补满弹药。
+##   一幕：第一枪瞄你，后两枪与它平行、左右各偏 carmen_lane_off；B 炮身横扫（贴脸）/ C 环射（④，patterns，不耗弹）/ 退避跳
+##   二幕「守誓」：第三枪改成垂直穿过你脚下（锁你所在的跑道，1 秒里穿缺口换格）；装填一开始退避跳到远处，追上去吃 D 炮身砸击
 ## 机制不占名额：弹药、装填 / 打断 / 跪地破绽、站定窗口、远程段超时转近战、退避跳、炮身近战段
 extends "res://scripts/enemies/bosses/boss_base.gd"
 
@@ -24,15 +27,19 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		_tint2(e, TINT2_IBERIA if e.type == "iberia" else TINT2_CARMEN)
 	if e.type == "iberia":
 		_rule_banner("iberia_intro", "圣徒伊比利亚：躲过手炮，趁装填冲刺穿过他打断")
-		# 打断后起身：直接补满弹药、转回远程，0.8 秒后开炮（不再装填——不然每次装填都能被打断，他永远开不了炮）
-		if e.get("refill_on_rise", false) and float(e.get("break_t", 0.0)) <= 0.0 and e.stun <= 0.0:
-			e.refill_on_rise = false
-			e.ammo = int(D.ENEMIES[e.type].get("ammo", 1))
-			e.ai = "ranged"
-			e.reload_t = 0.0
-			var cds: Dictionary = e.get("cds", {})
-			cds["judge"] = minf(float(cds.get("judge", 0.0)), g.t + Bal.v("boss/iberia_rise_shot", 0.8))
-			e.cds = cds
+	else:
+		_rule_banner("carmen_intro", "圣徒卡门：三枪留下火线，从缺口绕到她身边，趁装填压上去")
+		_fire_step(e, dt)
+	# 打断后起身：直接补满弹药、转回远程，0.8 秒后开火（不再装填——不然每次装填都能被打断，永远开不了火）
+	if e.get("refill_on_rise", false) and float(e.get("break_t", 0.0)) <= 0.0 and e.stun <= 0.0:
+		e.refill_on_rise = false
+		e.ammo = int(D.ENEMIES[e.type].get("ammo", 1))
+		e.ai = "ranged"
+		e.reload_t = 0.0
+		var cds: Dictionary = e.get("cds", {})
+		var key: String = "judge" if e.type == "iberia" else "snipe"
+		cds[key] = minf(float(cds.get(key, 0.0)), g.t + Bal.v("boss/iberia_rise_shot", 0.8))
+		e.cds = cds
 	if e.ai == "ranged" and e.channel <= 0.0:
 		e.ranged_t = e.get("ranged_t", 0.0) + dt
 		if e.ranged_t >= Bal.v("boss/saint_ranged_max", 6.0):
@@ -81,29 +88,33 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 				g.vfx.sparks(e.pos, dir, Color(0.8, 0.8, 0.7), 10, 160.0)
 				g.vfx.add_text(e.pos + Vector2(0, -50), "退避", Color(0.9, 0.9, 0.8), 14)
 				Sfx.play("dodge", -8.0)
-			elif dist > 150.0 and _cd(e, "snipe", 6.0 if p2 else 8.0):
-				_snipe(e, dir)
+			elif e.ammo > 0 and _cd(e, "snipe", Bal.v("boss/carmen_lane_gap", 1.3)):
+				_lane_shot(e, dir, int(D.ENEMIES[e.type].get("ammo", 3)) - int(e.ammo))
 	# 伊比利亚二幕：装填中主控靠近（iberia_swing_r 90 内）先抡一下（原作近战模式），每次装填一次；冲刺无敌可以穿过去
 	if e.type == "iberia" and p2 and e.channel > 0.0 and dist < Bal.v("boss/iberia_swing_r", 90.0) and not e.get("reload_swung", false):
 		e.reload_swung = true
 		_sweep(e, dir, "抡击", Bal.v("boss/iberia_swing_mult", 1.2))
+	# 卡门二幕：装填中主控追到 100–240 内，炮身砸击一次（docs/142b §8.2「惩罚」）
+	if e.type == "carmen" and p2 and e.channel > 0.0 and dist >= 100.0 and dist < 240.0 and not e.get("reload_smashed", false):
+		e.reload_smashed = true
+		_smash(e, dir)
 	if e.channel > 0.0:
 		e.channel -= dt
 		if e.channel <= 0.0:
-			# 没被打断：装填完毕。伊比利亚第二幕先清膛再三连，其余直接三连（间隔 0.6 秒，都可以走开躲）
+			# 没被打断：装填完毕。伊比利亚第二幕先清膛再三连，一幕直接三连（间隔 0.6 秒，都可以走开躲）；卡门直接回到封锁线三枪
 			e.ammo = int(D.ENEMIES[e.type].get("ammo", 3))   # 卡门 3 发、伊比利亚 1 发（数值 10-01）
 			e.ai = "ranged"
 			e.count_end = 0.0
 			g.vfx.add_text(e.pos + Vector2(0, -44), "装填完毕", Color(1.0, 0.8, 0.5), 14)
 			if e.type == "iberia" and p2:
 				e.reload_follow = true
-			else:
+			elif e.type == "iberia":
 				_volley(e, dir, 0.0)
 	else:
 		e.reload_t -= dt
 		# 弹药打空才装填（原来每 14 秒一次）；卡门第二幕先炮身近战
 		if e.ammo <= 0 and e.reload_t <= 0.0 and e.get("sword_t", 0.0) <= 0.0 and e.stun <= 0.0 and e.wind <= 0.0 and e.get("break_t", 0.0) <= 0.0:
-			if e.type == "carmen" and p2 and not e.get("sword_done", false):
+			if false and e.type == "carmen" and p2 and not e.get("sword_done", false):   # 炮身近战段由封锁线取代（docs/142b §3.4）
 				e.sword_t = Bal.v("boss/carmen_sword", 8.0)
 				e.sword_done = true
 				e.ai = "melee"
@@ -116,6 +127,16 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 					rt = Bal.v("boss/iberia_reload_p2", 1.4)   # 二幕「延生」装填更快（docs/142b §3.3）
 					_tri_lob(e)
 				e.reload_swung = false
+				e.reload_smashed = false
+				if e.type == "carmen":
+					# 装填开始：火线在装填时间里消退（窗口）；二幕退避跳到远处，压上去要多跑一段
+					for fl in e.get("fire_lines", []):
+						fl.until = minf(float(fl.until), g.t + rt)
+					if p2:
+						var away: Vector2 = (e.pos - g.ppos).normalized() if e.pos.distance_to(g.ppos) > 1.0 else Vector2.RIGHT
+						e.kb = away * Bal.v("boss/carmen_reload_hop", 720.0)
+						g.vfx.sparks(e.pos, away, Color(0.9, 0.9, 0.8), 12, 180.0)
+						g.vfx.add_text(e.pos + Vector2(0, -50), "退避", Color(0.95, 0.92, 0.85), 14)
 				e.channel = rt
 				e.reload_dmg = 0.0
 				e.count_end = g.t + rt   # 读条环（界面与美术读 count_end / count_max）
@@ -127,6 +148,8 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 func on_gate(e: Dictionary) -> void:
 	if e.type == "iberia":
 		_rule_banner("iberia_p2", "延生：装填更快，只有冲刺穿身能打断")
+	else:
+		_rule_banner("carmen_p2", "守誓：第三枪锁你所在的跑道，穿缺口换格；她装填时会跳开")
 
 
 ## 图鉴 / Boss 演练：直接进入第二幕（伊比利亚装填完毕放清膛、卡门炮身近战段）
@@ -165,7 +188,7 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 			_clear(e, dir, dist)
 			return true
 		"狙击":
-			_snipe(e, dir)
+			_lane_shot(e, dir, 0)
 			return true
 		"炮身横扫":
 			_sweep(e, dir)
@@ -241,6 +264,74 @@ func _snipe(e: Dictionary, dir: Vector2) -> void:
 	_warn(e, "line", 1.2, {"ang": dir.angle(), "len": 1100.0, "wid": 10.0, "track": 0.6, "act": "shot", "name": "狙击", "col": Color(1.0, 0.85, 0.4), "dmg": e.dmg * 2.6})
 
 
+## 卡门 · 封锁线（docs/142b §3.4，本作拟；取材 PRTS 弹药 3）：k = 这一轮第几枪（0–2），耗 1 发。
+## 第一枪瞄主控（追踪 0.6、总 1.2）；一幕后两枪与第一枪锁定的方向平行、起点左右偏 carmen_lane_off（150），不追踪（总 1.0）；
+## 二幕第三枪垂直于第一枪、穿过主控当前位置（追踪 0.3、总 1.0）。结算画 Kanpelle 象牙白光束，然后留一条火线（_fire_step）
+func _lane_shot(e: Dictionary, dir: Vector2, k: int) -> void:
+	var p2: bool = int(e.get("gates_passed", 0)) >= 1
+	var la: Dictionary = e.get("last_act", {})
+	var base_ang: float = float(e.get("lane_ang", dir.angle()))
+	if str(la.get("name", "")) == "狙击" and float(la.get("t", -1.0)) > float(e.get("lane_set_t", -1.0)) and k > 0:
+		base_ang = float(la.ang)
+	var pos: Vector2 = e.pos
+	var ang: float = dir.angle()
+	var track: float = 0.6
+	var dur: float = 1.2
+	if k == 0:
+		e.lane_ang = ang
+		e.lane_set_t = g.t
+	elif p2 and k == 2:
+		ang = base_ang + PI * 0.5
+		pos = g.ppos - Vector2.from_angle(ang) * 550.0
+		track = 0.3
+		dur = 1.0
+	else:
+		ang = base_ang
+		pos = e.pos + Vector2.from_angle(base_ang).orthogonal() * Bal.v("boss/carmen_lane_off", 150.0) * (1.0 if k == 1 else -1.0)
+		track = 0.0
+		dur = 1.0
+	var q: Array = e.get("lane_gaps", [])
+	q.append(g.rng_enemy.randf_range(0.3, 0.7))
+	e.lane_gaps = q
+	_warn(e, "line", dur, {"pos": pos, "ang": ang, "len": 1100.0, "wid": 10.0, "track": track, "act": "shot", "name": "狙击",
+		"col": Color(1.0, 0.94, 0.82), "dmg": e.dmg * Bal.v("boss/carmen_lane_mult", 2.0), "kp": "carmen", "kp_k": 2.0, "lock": k == 0})
+	_spend(e, 1)
+
+
+## 封锁线：每枪狙击结算后（last_act「狙击」、新的一次）沿线留一条火线 carmen_fire_life（6）秒，线上一处缺口（gap_t 处、长 carmen_fire_gap 80）；
+## 主控碰到（线宽内、不在缺口里、没有无敌）每 0.5 秒掉 e.dmg × carmen_fire_mult（0.35）、减速 0.8 一秒。火线画在 render/boss_beam.draw_ground
+func _fire_step(e: Dictionary, dt: float) -> void:
+	var la: Dictionary = e.get("last_act", {})
+	var lines: Array = e.get("fire_lines", [])
+	if str(la.get("name", "")) == "狙击" and float(la.get("t", -1.0)) > float(e.get("fire_last_t", -1.0)):
+		e.fire_last_t = float(la.t)
+		var q: Array = e.get("lane_gaps", [])
+		var gt: float = float(q.pop_front()) if not q.is_empty() else 0.5
+		e.lane_gaps = q
+		var a: Vector2 = la.pos
+		lines.append({"a": a, "b": a + Vector2.from_angle(float(la.ang)) * float(la.len), "gap_t": gt, "gap_len": Bal.v("boss/carmen_fire_gap", 80.0),
+			"until": g.t + Bal.v("boss/carmen_fire_life", 6.0), "born": g.t})
+	lines = lines.filter(func(fl): return g.t < float(fl.until))
+	e.fire_lines = lines
+	if g.invuln > 0.0 or g.t < float(e.get("fire_hit_at", 0.0)):
+		return
+	var pp: Vector2 = g.ppos
+	for fl in lines:
+		var ab: Vector2 = fl.b - fl.a
+		var L: float = ab.length()
+		if L < 1.0:
+			continue
+		var t: float = clampf((pp - fl.a).dot(ab) / (L * L), 0.0, 1.0)
+		if (fl.a + ab * t).distance_to(pp) > 14.0:
+			continue
+		if absf(t - float(fl.gap_t)) * L < float(fl.gap_len) * 0.5:
+			continue   # 站在缺口里
+		e.fire_hit_at = g.t + 0.5
+		g.combat.enemy_hit(e.dmg * Bal.v("boss/carmen_fire_mult", 0.35), {"boss": true, "src_type": e.type}, false, true, ["远程", "物理"], "boss_" + e.type)
+		g.combat.slow_leader("carmen_fire", 1.0, 0.8)
+		break
+
+
 ## 卡门 B · 炮身横扫（保留，两幕都有）：扇形 r110 半角 0.9，追踪 0.2 秒，总 0.8 秒（锁定 ≥ 0.51）；e.dmg × 1.4
 func _sweep(e: Dictionary, dir: Vector2, nm := "炮身横扫", mult := 1.4) -> void:
 	_warn(e, "cone", 0.8, {"ang": dir.angle(), "half": 0.9, "r": 110.0, "track": 0.2, "act": "bite", "name": nm, "col": g.vfx.boss_color(e.type), "dmg": e.dmg * mult,
@@ -277,8 +368,7 @@ func saint_interrupt(e: Dictionary) -> void:
 	e.ai = "melee"
 	e.count_end = 0.0
 	e.reload_t = Bal.v("boss/saint_reload_gap", 4.0)
-	if e.type == "iberia":
-		e.refill_on_rise = true   # 起身直接补满弹药再开炮（docs/142b §3.3），不再装填
+	e.refill_on_rise = true   # 起身直接补满弹药再开火（docs/142b §3.3 / §3.4），不再装填
 	g.combat.start_break(e, Bal.v("boss/saint_break", 5.0))
 	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e) or w.done)
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.4, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.85, 0.4), "enemy": true})

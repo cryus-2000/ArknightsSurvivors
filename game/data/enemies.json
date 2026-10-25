@@ -722,7 +722,7 @@
      "gap": 0.28,
      "gaps": 3,
      "blade": false,
-     "ammo_cost": 3,
+     "no_ammo": true,
      "min_dist": 120,
      "max_dist": 320,
      "ring_r": 60,
