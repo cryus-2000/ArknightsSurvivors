@@ -24,6 +24,10 @@ var serif: Font                # 事件标题用的衬线粗体（fonts/serif.tt
 ## 下方事件名（衬线粗体）+ 剧情一句；右边竖排选项条在 panel_col。插画的随机形状按事件名缓存
 var ev_art := {}
 var ink_tex: GradientTexture2D
+## 事件插画（docs/156，Codex 母稿 art/incoming/event_cg_1026 离线缩成运行时用图）：按事件 id 打开面板时才 load，
+## 换成别的面板 / 面板关掉就放掉引用（显存随之释放）。桌面读 art/event_cg/hi（1120×1000，2× 插画框），网页读 web（560×500）
+var ev_cg: Texture2D = null
+var ev_cg_key := ""
 ## 选卡卡片（A3，仿原作「选择支援」）：炭灰卡 + 左上节点标签条（英文分类 + 中文）+ 右上序号 + 图标光环 + 名称 + 说明 +
 ## 作用对象标签（影响当前编队里的哪些干员，run/affects.gd）+ 底部操作条。悬停 / 焦点：青色细边与外晕，标签条与操作条变青
 const CARD_W := 272.0
@@ -412,6 +416,20 @@ func draw_event_bg(vs: Vector2) -> void:
 	for q in pts:
 		tp.append(p0 + q)
 		uv.append(Vector2(clampf(q.x / 560.0, 0.0, 1.0), clampf(q.y / 500.0, 0.0, 1.0)))
+	var cg := event_cg()
+	if cg != null:
+		UI.fill_poly(g.panel_fg, tp, Color.WHITE, uv, cg)
+	else:
+		_draw_ink_art(art, p0, tp)
+	# 底部压暗，放事件名与剧情
+	_event_caption(art, p0)
+
+
+## 没有插画时的墨色底：灰阶渐变 + 墨点笔触 + 彩色节点图标（C 版式）
+func _draw_ink_art(art: Dictionary, p0: Vector2, tp: PackedVector2Array) -> void:
+	var uv := PackedVector2Array()
+	for q in art.panel:
+		uv.append(Vector2(clampf(q.x / 560.0, 0.0, 1.0), clampf(q.y / 500.0, 0.0, 1.0)))
 	UI.fill_poly(g.panel_fg, tp, Color.WHITE, uv, ink_grad())
 	for b in art.blobs:
 		UI.fill_poly(g.panel_fg, offset_poly(b, p0, tp), Color(0.047, 0.047, 0.05, 0.5))
@@ -425,7 +443,12 @@ func draw_event_bg(vs: Vector2) -> void:
 		g.panel_fg.draw_circle(ac, 120.0 - k * 20.0, Color(0.18, 0.72, 1.0, 0.05))
 	var nk := event_node_kind()
 	NodeIcons.draw(g.panel_fg, nk, ac + Vector2(0, roundf(2.0 * sin(g.t * 2.0))), 8.0, NodeIcons.COLS[nk])
-	# 底部压暗，放事件名与剧情
+
+
+## 插画框底部压暗带 + 事件名 / 剧情 + 右侧「选择一项」标题与提示
+func _event_caption(art: Dictionary, p0: Vector2) -> void:
+	var vs := g.panel_fg.size
+	var cx := vs.x / 2.0
 	var g0 := Color(0.04, 0.04, 0.043, 0.0)
 	var g1 := Color(0.04, 0.04, 0.043, 0.95)
 	g.panel_fg.draw_polygon(PackedVector2Array([p0 + Vector2(6, 300), p0 + Vector2(554, 300), p0 + Vector2(554, 492), p0 + Vector2(6, 492)]), PackedColorArray([g0, g0, g1, g1]))
@@ -457,10 +480,20 @@ func draw_event_bg(vs: Vector2) -> void:
 func _draw_event_bg_phone(vs: Vector2) -> void:
 	var x0 := 28.0
 	var nk := event_node_kind()
-	for k in 3:
-		g.panel_fg.draw_circle(Vector2(x0 + 24.0, 32.0), 40.0 - k * 10.0, Color(0.18, 0.72, 1.0, 0.05))
-	NodeIcons.draw(g.panel_fg, nk, Vector2(x0 + 24.0, 32.0), 3.0, NodeIcons.COLS[nk])
-	x0 += 62.0
+	var cg := event_cg()
+	if cg != null:
+		# 有插画：压暗铺满整屏当底（选项条横跨整屏，插画放不下左栏），左上再放一张小图
+		var ts := Vector2(cg.get_size())
+		var sz: Vector2 = ts * maxf(vs.x / ts.x, vs.y / ts.y)
+		g.panel_fg.draw_texture_rect(cg, Rect2(((vs - sz) / 2.0).round(), sz.round()), false, Color(0.36, 0.36, 0.38))
+		g.panel_fg.draw_texture_rect(cg, Rect2(x0, 6.0, 62.0, 55.0), false)
+		g.panel_fg.draw_rect(Rect2(x0, 6.0, 62.0, 55.0), Color(0.6, 0.85, 1.0, 0.6), false, 1.0)
+		x0 += 76.0
+	else:
+		for k in 3:
+			g.panel_fg.draw_circle(Vector2(x0 + 24.0, 32.0), 40.0 - k * 10.0, Color(0.18, 0.72, 1.0, 0.05))
+		NodeIcons.draw(g.panel_fg, nk, Vector2(x0 + 24.0, 32.0), 3.0, NodeIcons.COLS[nk])
+		x0 += 62.0
 	var ew0 := UI.en(g.panel_fg, g.font, Vector2(x0, 22), "EVENT", 11, Color(0.6, 0.59, 0.56), 3.0)
 	UI.text(g.panel_fg, g.font, Vector2(x0 + ew0 + 6, 22), "·  %s  ·  选择一项" % NodeIcons.NAMES[nk], 11, Color(0.6, 0.59, 0.56))
 	g.panel_fg.draw_string(serif, Vector2(x0, 52), g.panel_title_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
@@ -469,6 +502,23 @@ func _draw_event_bg_phone(vs: Vector2) -> void:
 		UI.text_fit(g.panel_fg, g.font, Vector2(x0 + tw + 18, 50), UI.soft(panel_sub_text), 15, Color(0.81, 0.79, 0.76), vs.x - x0 - tw - 46.0, 12)
 	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击选项" if Pad.touch else "点击选项，或按 1–%d" % g.choices.size())
 	UI.text(g.panel_fg, g.font, Vector2(24, g.panel_col.offset_top + ev_bars_h + 6), hint, 14, Color(0.55, 0.54, 0.52))
+
+
+## 当前事件的插画（没有对应图返回 null，退回墨色底 + 节点图标）
+func event_cg() -> Texture2D:
+	var key: String = g.endg.opened_id if g.endg != null else ""
+	if key != ev_cg_key:
+		ev_cg_key = key
+		ev_cg = null
+		var path := "res://art/event_cg/%s/%s.webp" % ["web" if OS.has_feature("web") else "hi", key]
+		if key != "" and ResourceLoader.exists(path):
+			ev_cg = load(path)
+	return ev_cg
+
+
+func release_event_cg() -> void:
+	ev_cg = null
+	ev_cg_key = ""
 
 
 ## 事件插画里的节点图标：安全屋是「安全的角落」，其余都是「不期而遇」
@@ -489,6 +539,8 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	g.choices = opts
 	g.choice_kind = kind
 	g.nav_sel = 0
+	if kind != "event":
+		release_event_cg()
 	g.state = Game.S.CHOICE
 	g.panel_title_text = title
 	panel_sub_text = sub
@@ -656,6 +708,8 @@ func option_description(option: Dictionary) -> String:
 ## 每帧：按面板种类推进入场动效（card_motion.update）；悬停抬起各种类共用
 func animate_cards(dt: float) -> void:
 	if not g.panel.visible:
+		if ev_cg != null:
+			release_event_cg()   # 面板关了：放掉事件插画
 		return
 	g.panel_fg.queue_redraw()
 	g.panel_tip.queue_redraw()
