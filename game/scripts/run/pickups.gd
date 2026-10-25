@@ -212,7 +212,9 @@ func _collect(g_item: Dictionary) -> void:
 			Sfx.play("pickup", -14.0, 1.0 + min(g.xp / g.xp_need, 1.0) * 0.4, 0.03)
 		"oil":
 			var add: float = g_item.val * g.oil_mult
+			var l0: float = g.lamp
 			g.lamp = min(g.lamp_cap, g.lamp + add)
+			g.telemetry.lamp_note("精英灯油" if g_item.val >= 25.0 else "灯油", g.lamp - l0)
 			Sfx.play("oil", -4.0)
 			g.vfx.add_text(g.ppos + Vector2(0, -90), "灯火 +%d" % int(add), UI.GOLD, 16)
 		"chest":

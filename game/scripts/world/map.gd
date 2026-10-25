@@ -907,9 +907,9 @@ func _mire_var(gx: int, gy: int) -> int:
 
 
 func _mire_disc(m: Dictionary) -> Array:
-	var key := int(m.r * 0.25)
+	var key := Vector3i(int(m.r * 0.25), floori(m.pos.x * 0.125), floori(m.pos.y * 0.125))   # 位置也进键：灯火低时溟痕会挪（docs/147）
 	var c = m.get("_mc")
-	if c != null and int(c[0]) == key:
+	if c != null and c[0] == key:
 		return c[1]
 	var cw: float = MIRE_CELL * g.PX
 	var r: float = m.r
