@@ -860,7 +860,7 @@
     "trig": "tick",
     "every": "$roam_dash_cd",
     "cond": "roaming",
-    "_doc": "突击模式低频冲刺（用户 10-26，docs/154）：指挥「突击」中的队友每 roam_dash_cd 秒朝 roam_aim 内最近的敌人冲一段 dash_len（带伤害，来源「突进」，吃天赋 on_dash_end 回技力）；roam_min_d 0 = 贴身也冲（穿过去扫一遍）；平时（随行）不触发",
+    "_doc": "突击模式低频冲刺（用户 10-26，docs/159）：指挥「突击」中的队友每 roam_dash_cd 秒朝 roam_aim 内最近的敌人冲一段 dash_len（带伤害，来源「突进」，吃天赋 on_dash_end 回技力）；roam_min_d 0 = 贴身也冲（穿过去扫一遍）；平时（随行）不触发",
     "do": [
      {
       "shape": "dash_line",

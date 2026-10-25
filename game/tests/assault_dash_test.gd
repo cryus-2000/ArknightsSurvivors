@@ -1,5 +1,5 @@
 extends Node
-## 10-26 突击模式低频自冲刺（docs/154）：随行时队友不自己冲；切「突击」后每名出击队友每 command/roam_dash_cd 秒冲一次（德克萨斯走自己的带伤害冲刺，更勤）；
+## 10-26 突击模式低频自冲刺（docs/159）：随行时队友不自己冲；切「突击」后每名出击队友每 command/roam_dash_cd 秒冲一次（德克萨斯走自己的带伤害冲刺，更勤）；
 ## 切回随行后又不冲。godot --headless --path game res://tests/assault_dash_test.tscn -- --regression --balance --seed=1 --op=skadi --squad=texas,lappland
 ## 全部通过时打印 "ASSAULT DASH checks=N failures=0"
 
