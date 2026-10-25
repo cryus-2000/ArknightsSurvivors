@@ -545,8 +545,22 @@ func mark_enemy_fx(from: int) -> void:
 		g.fx[i]["enemy"] = true
 
 
+## --textlog（docs/139 §9 量测，仅测试）：每条横幅请求 / 实播 / 左侧小字、每条非数字飘字打印一行 TEXTLOG <游戏秒> <类> <文字>
+var _textlog := -1
+func _tlog(kind: String, text: String) -> void:
+	if _textlog < 0:
+		_textlog = 1 if Cfg.dev_args().has("--textlog") else 0
+	if _textlog == 1:
+		print("TEXTLOG %.2f %s %s" % [g.t, kind, text.replace("
+", " ")])
+
+
 func add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
 	var pn: Array = _num_parts(text)
+	if pn.is_empty() and not text.is_valid_float():
+		if _text_calm() and not _word_ok(text):
+			return
+		_tlog("float", text)
 	if not pn.is_empty():
 		# 后期降噪（render/declutter num_merge_t / num_merge_r，缺省 = fx 段原值）：拥挤时合并窗口拉长、半径放大，同一片目标的数字并成一个
 		var mt: float = lerpf(Bal.v("fx/text_merge_t", TEXT_MERGE_T), maxf(Bal.v("fx/text_merge_t", TEXT_MERGE_T), Dc.p("num_merge_t")), g.world.dcrowd)
@@ -657,11 +671,19 @@ var banner_log: Array = []        # 本局请求过的横幅文字（按调用�
 var _boss_words: Array = []
 
 func show_banner(text: String, prio := -1) -> void:
+	_tlog("req%d" % (prio if prio >= 0 else _guess_prio(text)), text)
 	banner_log.append(text)
 	if banner_log.size() > 64:
 		banner_log.pop_front()
 	if prio < 0:
 		prio = _guess_prio(text)
+	if _text_calm():
+		match _calm_route(text, prio):
+			"drop":
+				return
+			"notice":
+				_notice(text)
+				return
 	if prio <= 1 and _boss_fight():
 		_notice(text)
 		return
@@ -672,7 +694,7 @@ func show_banner(text: String, prio := -1) -> void:
 	for q in banner_q:
 		if q.text == text:
 			return
-	if g.banner_t <= 0.0 or prio > banner_prio:
+	if (g.banner_t <= 0.0 and _gap_ok(prio)) or prio > banner_prio:
 		_banner_now(text, prio)
 		return
 	banner_q.append({"text": text, "prio": prio})
@@ -681,7 +703,71 @@ func show_banner(text: String, prio := -1) -> void:
 		banner_q.pop_back()
 
 
+## ── 文字提醒节流（docs/139 §9，用户 10-25「那些字提醒的时候也显得太频繁了」；render/text_calm，缺省 1，0 = 原行为）──
+## 横幅只给要玩家做事的（黑潮、Boss、商人到达、精英、灯标）；状态变化 / 干员提示改左侧小字（notices）或不显示；
+## 同类横幅有冷却（BANNER_CD，冷却中改小字），两条横幅之间至少 render/banner_gap 秒（黑潮 / Boss 横幅不受限；其余排队等）；
+## 头顶文字飘字（非数字）：同一句 render/word_gap 秒内只出一次、同屏最多 render/word_max 条，敌人「狂暴」「尖叫」不再飘字（本体已有变色 / 光环）
+const BANNER_CD := {"elite": 45.0, "beacon": 90.0, "tide": 25.0, "same": 60.0}
+const WORD_DROP := ["狂暴", "尖叫", "架起结束"]
+var _calm := -1
+var _cat_t := {}
+var _last_banner_ms := -100000.0
+var _word_t := {}
+
+func _text_calm() -> bool:
+	if _calm < 0:
+		_calm = 1 if Bal.v("render/text_calm", 1.0) > 0.0 else 0
+	return _calm == 1
+
+
+## 横幅分流：show（照常横幅）/ notice（左侧小字）/ drop（不显示）
+func _calm_route(text: String, prio: int) -> String:
+	if prio >= 2:
+		return "show"   # 黑潮 / 生命垂危 / Boss：要玩家立刻做事
+	if prio == 0:
+		for w in HINT_WORDS:
+			if w in text:
+				return "notice"   # 入队 / 升级 / 精英化 / 音乐：状态变化，左侧小字
+		return "drop"   # 干员技能名：头顶已有施放飘字
+	if text.begins_with("商人收好") or text.begins_with("威胁上升") or "熔铸" in text or text.begins_with("排异反应") or text.begins_with("探索的走向"):
+		return "notice"
+	var cat := "same:" + text
+	if text.begins_with("精英「"):
+		cat = "elite"
+	elif text.begins_with("引航灯标"):
+		cat = "beacon"
+	var cd: float = BANNER_CD.get(cat.split(":")[0], BANNER_CD.same)
+	var now: float = g.t
+	if now - float(_cat_t.get(cat, -1000.0)) < cd:
+		return "notice"
+	_cat_t[cat] = now
+	return "show"
+
+
+func _word_ok(text: String) -> bool:
+	if text in WORD_DROP:
+		return false
+	var now: float = g.t
+	if now - float(_word_t.get(text, -1000.0)) < Bal.v("render/word_gap", 15.0):
+		return false
+	var live := 0
+	for t in g.texts:
+		if t.life > 0.0 and _num_parts(str(t.text)).is_empty():
+			live += 1
+	if live >= Bal.vi("render/word_max", 4):
+		return false
+	_word_t[text] = now
+	return true
+
+
+## 两条横幅之间的最小间隔（游戏秒；text_calm 关时恒真；黑潮 / Boss 横幅不受限）
+func _gap_ok(prio: int) -> bool:
+	return not _text_calm() or prio >= 2 or g.t - _last_banner_ms >= Bal.v("render/banner_gap", 8.0)
+
+
 func _banner_now(text: String, prio: int) -> void:
+	_last_banner_ms = g.t
+	_tlog("show%d%s" % [prio, "s" if banner_seen.has(text) else ""], text)
 	g.banner = text
 	banner_serial += 1
 	banner_prio = prio
@@ -699,7 +785,7 @@ func _update_banner_queue(dt: float) -> void:
 		g.banner_t -= dt   # 平衡 / 自测模式每渲染帧跑多步模拟：横幅按游戏时间计时，截图里的停留和排队延迟才像真人（game.gd 按真实时间再减一次，影响很小）
 	if g.banner_t > 0.0 and horde_band_on() and banner_prio < 3:
 		g.banner_t += dt   # 大群横幅在场：普通横幅冻结，等大群横幅退场再播完
-	if g.banner_t <= 0.0 and not banner_q.is_empty():
+	if g.banner_t <= 0.0 and not banner_q.is_empty() and _gap_ok(int(banner_q[0].prio)):
 		var q: Dictionary = banner_q.pop_front()
 		_banner_now(q.text, q.prio)
 	for n in notices:
@@ -708,6 +794,7 @@ func _update_banner_queue(dt: float) -> void:
 
 
 func _notice(text: String) -> void:
+	_tlog("notice", text)
 	for n in notices:
 		if n.text == text:
 			n.t = NOTICE_LIFE
