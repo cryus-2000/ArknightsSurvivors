@@ -159,6 +159,31 @@ func _ready() -> void:
 		get_tree().create_timer(0.95 if Cfg.dev_args().has("--metalit") else 1.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_meta.png")
 			get_tree().quit())
+	if Cfg.dev_args().has("--metademo"):
+		# 认知塑造演示录像（10-25）：配 --write-movie <文件.avi> --fixed-fps 30 与 --metacells / --metabuy；可选 --metastyle=tree|sea。
+		# 0.5 秒从标题进入 → 按 --metademokeys（R/L/U/D 方向、E 塑造、W 停一拍；缺省见下）每 0.75 秒一个键（塑造后停 1.6 秒）→ 10 秒退出
+		intro = INTRO_LEN
+		for a in Cfg.dev_args():
+			if a.begins_with("--metabuy="):
+				Cfg.meta_shape = preload("res://scripts/core/meta.gd").shape_for(int(a.substr(10)))
+		var keys := "D,D,D,R,E,U,U,L"
+		for a in Cfg.dev_args():
+			if a.begins_with("--metademokeys="):
+				keys = a.substr(15)
+		get_tree().create_timer(0.5).timeout.connect(func(): _activate(6))
+		var kmap := {"R": KEY_RIGHT, "L": KEY_LEFT, "U": KEY_UP, "D": KEY_DOWN, "E": KEY_ENTER}
+		var at := 1.9
+		for kname in keys.split(","):
+			var kc: int = kmap.get(kname, 0)
+			if kc != 0:
+				get_tree().create_timer(at).timeout.connect(func():
+					for down in [true, false]:
+						var e := InputEventKey.new()
+						e.keycode = kc
+						e.pressed = down
+						Input.parse_input_event(e))
+			at += 1.6 if kname == "E" else 0.75
+		get_tree().create_timer(10.0).timeout.connect(func(): get_tree().quit())
 	if Cfg.dev_args().has("--titlehunt"):
 		# 标题页寻访入口截图（10-22）：配 --rostertickets=<n>；打开寻访入口 1.2 秒后截
 		intro = INTRO_LEN
