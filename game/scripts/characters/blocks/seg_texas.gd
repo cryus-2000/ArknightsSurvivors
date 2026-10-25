@@ -99,6 +99,7 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 			_num(b, "lead", p, ctx, false, 0.0, 1.0)
 			_num(b, "hold", p, ctx, false, 0.0, 1.0)
 			_num(b, "pose", p, ctx, false, 0.0, 1.0)
+			_num(b, "sweep", p, ctx, false, 0.01, 1.0)
 			_src(b, p, ctx, true)
 		"verb.fx_rain":
 			_tx_rain_validate(b, p, ctx)
@@ -235,6 +236,8 @@ static func tx_update(o, dt: float) -> bool:
 	var g = o.g
 	var tx: Dictionary = o.tx
 	tx_rift_update(o, dt)   # 次元斩：闪现序列 / 刀痕消散（没有时立即返回）
+	if tx.has("rift"):   # 一轮次元斩还没斩完：不起下一次手（一轮可能比普攻间隔长）
+		return true
 	# 主控冲刺上升沿
 	var ld: float = float(g.dash_t)
 	if ld > 0.0 and float(tx.get("prev_ld", 0.0)) <= 0.0 and g.demo_op == "":
@@ -891,7 +894,7 @@ static func tx_rift_update(o, dt: float) -> void:
 				"on_hit": [{"st": "stun", "dur": float(b.get("stun", 0.0))}] if float(b.get("stun", 0.0)) > 0.0 else []}
 			_tx_sweep(o, p0, p1, float(b.get("w", 40.0)), {}, rf.dmg, sb)
 			var life: float = float(b.get("scar", 1.3))
-			o.fx({"kind": "tx_scar", "a": p0, "c": p1, "life": life, "col": o.col(), "bow": (0.07 if k % 2 == 0 else -0.07) * (1.4 if last else 1.0), "wmax": 4.0 if last else 3.0})
+			o.fx({"kind": "tx_scar", "a": p0, "c": p1, "life": life, "col": o.col(), "sweep": float(b.get("sweep", 0.07)), "bow": (0.07 if k % 2 == 0 else -0.07) * (1.4 if last else 1.0), "wmax": 4.0 if last else 3.0})
 			var sc: Array = tx.get("scars", [])
 			sc.append({"a": p0, "c": p1, "until": g.t + life})
 			tx["scars"] = sc
@@ -961,7 +964,7 @@ static func tx_scar_draw(o, f: Dictionary, a: float) -> bool:
 	var d: Vector2 = seg / L
 	var nv: Vector2 = d.orthogonal()
 	var el: float = float(f.max) - float(f.life)
-	var reach: float = clampf(el / 0.07, 0.0, 1.0)
+	var reach: float = clampf(el / float(f.get("sweep", 0.07)), 0.0, 1.0)
 	var frac: float = float(f.life) / float(f.max)
 	var melt: float = clampf((0.35 - frac) / 0.35, 0.0, 1.0)
 	var edge: Color = f.col

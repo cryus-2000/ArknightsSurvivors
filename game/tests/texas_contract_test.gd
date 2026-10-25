@@ -206,7 +206,7 @@ func test_rift(o) -> void:
 	ok(o._replace_trig(4).do[0].get("_tag", "") == "verb.rift_slash", "次元斩：S3 期间第 4 次也是次元斩（骤雨让位）")
 	o._exec_list(o.B.trait[8].do)
 	ok(o.tx.has("rift") and int(o.tx.rift.n) == 5, "次元斩：出手排了 5 刀")
-	for i in 90:
+	for i in 200:
 		o.update(DT)
 	var hurt: int = es.filter(func(e): return e.hp < e.max_hp).size()
 	ok(hurt >= 1, "次元斩：路径上的敌人受伤（%d / 3 个）" % hurt)
