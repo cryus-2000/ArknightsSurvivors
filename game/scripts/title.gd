@@ -69,6 +69,8 @@ func _ready() -> void:
 	add_child(meta_ui)
 	hunt_ui = preload("res://scripts/screens/hunt_host.gd").new()
 	add_child(hunt_ui)
+	medals_ui = preload("res://scripts/screens/medals_ui.gd").new()
+	add_child(medals_ui)
 	if get_tree().has_meta("settlement_open_meta"):
 		get_tree().remove_meta("settlement_open_meta")
 		meta_ui.open.call_deferred()
@@ -159,6 +161,38 @@ func _ready() -> void:
 		get_tree().create_timer(0.95 if Cfg.dev_args().has("--metalit") else 1.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_meta.png")
 			get_tree().quit())
+	if Cfg.dev_args().has("--medalshot"):
+		# 蚀刻章页截图（10-25）：--medalsel=<key> 选中哪枚；--medalgif=<张数>,<间隔秒> 连拍（背景动态做 gif）；
+		# 已得章用 --medals=all / key,key 预置（settings.gd，只在内存）
+		medals_ui.open()
+		var shots := [1, 0.0]
+		for a in Cfg.dev_args():
+			if a.begins_with("--medalsel="):
+				medals_ui.sel = maxi(0, medals_ui._index_of(a.substr(11)))
+			if a.begins_with("--medalgif="):
+				var gp := a.substr(11).split(",")
+				shots = [int(gp[0]), float(gp[1]) if gp.size() > 1 else 0.5]
+		for i in int(shots[0]):
+			get_tree().create_timer(1.0 + i * float(shots[1])).timeout.connect(func():
+				print("MEDALSHOT size=%s k=%.3f" % [medals_ui.size, medals_ui.k])
+				var path: String = _shot_dir() + ("/shot_medals.png" if int(shots[0]) == 1 else "/shot_medals_%03d.png" % i)
+				get_viewport().get_texture().get_image().save_png(path)
+				if i == int(shots[0]) - 1:
+					get_tree().quit())
+	if Cfg.dev_args().has("--medalvideo"):
+		# 蚀刻章演示录像（10-25 用户要视频；配 Godot --write-movie + --fixed-fps 30）：标题页 1.2 秒 → 点「蚀刻章」→
+		# 依次选几枚章（每 1.3 秒一枚）→ 停在背景动态上，共 15 秒后退出
+		intro = INTRO_LEN
+		sel = 8
+		get_tree().create_timer(1.2).timeout.connect(func(): _activate(8))
+		var keys := ["ending_knight", "ending_standard", "elite_three", "cognition_complete", "cognition_first", "relic_fifty", "set_complete"]
+		for i in keys.size():
+			get_tree().create_timer(2.8 + 0.9 * i).timeout.connect(func(): medals_ui._pick(medals_ui._index_of(keys[i])))
+		get_tree().create_timer(15.0).timeout.connect(func(): get_tree().quit())
+	if Cfg.dev_args().has("--medalperf"):
+		intro = INTRO_LEN
+		medals_ui.open()
+		medals_ui.perf_t = 0.0   # 帧时测量（tools/perf_web.py run … -- --medalperf）：背景动 / 静轮换 24 秒
 	if Cfg.dev_args().has("--titlehunt"):
 		# 标题页寻访入口截图（10-22）：配 --rostertickets=<n>；打开寻访入口 1.2 秒后截
 		intro = INTRO_LEN
@@ -375,7 +409,7 @@ func _process_main(delta: float) -> void:
 	Pad.context = "title"
 	var overlay_open: bool = _overlay_open()
 	if post_fx != null:
-		post_fx.crisp = gallery.visible or diff_pick or settings.visible   # 局外终端：不叠辉光 / 水下色差
+		post_fx.crisp = gallery.visible or diff_pick or settings.visible or medals_ui.visible   # 局外终端 / 蚀刻章像素页：不叠辉光 / 水下色差
 	if overlay_was_open and not overlay_open and not transition.busy:
 		transition.reveal_page()
 	overlay_was_open = overlay_open
@@ -410,7 +444,7 @@ func _process_main(delta: float) -> void:
 	# 背景：开场黑幕；被整屏界面盖住时停更（省网页帧时）；手机版式右下压暗（集结出发在那儿）
 	if title_bg != null:
 		title_bg.fade = (1.0 - _ease((intro - 0.1) / 1.1)) if intro < INTRO_LEN else 0.0
-		title_bg.paused = gallery.visible or meta_ui.visible or hunt_ui.visible or diff_pick or op_pick or guide or credits or leaving >= 0.0
+		title_bg.paused = gallery.visible or meta_ui.visible or hunt_ui.visible or medals_ui.visible or diff_pick or op_pick or guide or credits or leaving >= 0.0
 		title_bg.corner = 1.0 if menu_lay.get("compact", false) else 0.0
 	if logo_ci != null:
 		logo_ci.size = size
@@ -549,7 +583,7 @@ func _close_info() -> void:
 
 ## 盖在标题上的界面（各自处理 Esc、关掉时 visible = false）：开着时标题不收输入，关掉那一帧 reveal_page。新的局外界面登记在这里
 func _overlays() -> Array:
-	return [settings, gallery, boss_trial, meta_ui, hunt_ui]
+	return [settings, gallery, boss_trial, meta_ui, hunt_ui, medals_ui]
 
 
 func _overlay_open() -> bool:
@@ -604,9 +638,6 @@ func _menu_set(i: int, _remember: bool) -> void:
 func _activate(i: int) -> void:
 	if transition.busy:
 		return
-	if i == 8:
-		Sfx.play("ui_move", -4.0, 0.6)   # 蚀刻章（docs/134）还没做：入口先留着、灰显，点了只响一声
-		return
 	Sfx.play("ui_ok")
 	match i:
 		0:
@@ -624,6 +655,8 @@ func _activate(i: int) -> void:
 			get_tree().quit()
 		6:
 			transition.switch_page(meta_ui.open)
+		8:
+			transition.switch_page(medals_ui.open)   # 蚀刻章「深蓝之下」（10-25）
 		7:
 			if not hunt_ui.open():
 				Sfx.play("ui_move", -4.0, 0.6)   # 名册未启用：点了只响一声（10-24 起没有凭证也能进去看）
@@ -708,7 +741,7 @@ func _draw_menu(vs: Vector2) -> void:
 	const R = preload("res://scripts/core/roster.gd")
 	Tiles.draw(self, menu_lay, {"font": font, "sel": sel, "water": menu_water, "now": t, "rm": Cfg.reduce_motion,
 		"a_logo": 0.0, "logo_tex": null, "a_list": a_list, "a_deploy": _item_a(0), "a_foot": _seg(2.0, 0.4),
-		"slide": 0.0 if Cfg.reduce_motion else 16.0, "dim": [8] if R.active() else [7, 8], "tickets": R.tickets() if R.active() else -1})   # 8 = 蚀刻章（未开放）恒灰；10-24 用户：没有凭证也能点进寻访看卡池
+		"slide": 0.0 if Cfg.reduce_motion else 16.0, "dim": [] if R.active() else [7], "tickets": R.tickets() if R.active() else -1})   # 10-24 用户：没有凭证也能点进寻访看卡池
 	# 声明（同人 · 非商业 · 与鹰角网络无关 · 致谢与声明）+ 版本：桌面右下，手机跟在底部一行后面
 	var ff := _seg(2.0, 0.4)
 	var lg: Dictionary = menu_lay.legal

@@ -1341,12 +1341,18 @@ func _far_wanted(a: Dictionary, far: Dictionary) -> bool:
 	return fr > 0.0 and not nearest_enemies(1, fr, pos).is_empty()
 
 
-## blocks.skills[i].need_enemy（半径，× op_range）：自动释放前 pos 周围这个半径内要有敌人，没有就先不放（技力保留满格，有敌人那一帧再放）
+## 自动技能放出门槛（10-25 用户「范围内没有敌人就不开技能」）：pos 周围 ObCore.skill_gate_base（技能 need_enemy → 伤害积木作用半径 → 普攻射程）× op_range 内要有敌人，
+## 没有就先不放（技力保留满格，有敌人那一帧再放）。手动技能不走这里（charge_skills 先判 is_manual）
 func skill_gate_ok(i: int) -> bool:
 	var sk: Array = B.get("skills", _EA)
-	if i >= sk.size() or not sk[i].has("need_enemy"):
+	if i >= sk.size():
 		return true
-	return not nearest_enemies(1, float(sk[i].need_enemy) * stat(&"op_range"), pos).is_empty()
+	var atk: Dictionary = B.get("attack", _ED)
+	var fb: float = ObCore.GATE_DEFAULT
+	if str(atk.get("r", "")) == "zone":   # 普攻是区域圈（斯卡蒂等）：推不出别的时用区域半径
+		fb = zone_r() / maxf(0.01, stat(&"op_range"))
+	var d: float = ObCore.skill_gate_base(sk[i], atk, {}, fb) * stat(&"op_range")
+	return d <= 0.0 or not nearest_enemies(1, d, pos).is_empty()
 
 
 ## 当前普攻形状：verb.swap_attack 生效时用它，否则 blocks.attack

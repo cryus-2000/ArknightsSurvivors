@@ -290,6 +290,19 @@ def _write_override(args):
         return None
 
 
+def _apply_affinity(p):
+    """低配模拟（docs/50 §28）：环境变量 ARK_CORES=N 时把这个 Godot 限在 N 个逻辑核上（从第 2 个核起，避开系统常用的 0 号）"""
+    n = int(os.environ.get("ARK_CORES", "0") or 0)
+    if n <= 0:
+        return
+    try:
+        import psutil
+        total = psutil.cpu_count() or 1
+        psutil.Process(p.pid).cpu_affinity([(2 + i) % total for i in range(n)])
+    except Exception as e:   # 没有 psutil / 无权限：照常跑，打印一行
+        print("ARK_CORES 设置失败：%s" % e)
+
+
 def run_godot(args, timeout):
     """在全机并发上限内启动一个 Godot，返回 (stdout, stderr, 是否超时)。缺省用临时用户目录 + 固定设置（见 TEST_SETTINGS）"""
     root, env = _test_userdir()
@@ -310,6 +323,7 @@ def run_godot(args, timeout):
         try:
             if count_godot() < _max_procs():
                 p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env, **_no_focus_kwargs(args))
+                _apply_affinity(p)
                 if override is not None or (env or {}).get("ARK_NO_FOCUS") == "1":
                     _hide_offscreen(p)
                 break

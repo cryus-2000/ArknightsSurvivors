@@ -909,6 +909,8 @@ func advance(choice: String = "") -> void:
 			refresh_stats()
 		"elite":
 			elite = int(n.level)
+			if elite >= 2:
+				load("res://scripts/core/medals.gd").note_elite(g)   # 蚀刻章「协同晋升」：只数编队里的精英二人数
 			on_elite(elite, choice)
 			# 新解锁的技能立即充满：选下精英化卡的当下就能看到新技能（原来从 0 充能，要等 15–30 秒）
 			if elite < 3 and skill_unlocked(elite) and not perm[elite]:
