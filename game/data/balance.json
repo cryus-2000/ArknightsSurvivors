@@ -784,8 +784,8 @@
  },
  "meta": {
   "_doc": "认知塑造质变节点旋钮（docs/109 §14 v5，data/meta_tree.json 节点 effects 的 rule）：shatter_* 危机感末节护盾反震（半径 / 队长攻击倍率 / 击退），leader_atk_fallback 没有 base.atk 的队长的攻击基数；low_regen_* 生命感悟Ⅲ低血回复翻倍；execute_* 攻击性Ⅴ处决阈值（普通 / 精英，占最大生命）；last_stand_inv 生存本能Ⅴ免死后的无敌秒数；calm_* 自我保护Ⅳ静守（未受伤秒数 / 下一击倍率）；double_level_chance 领导欲Ⅳ升级再升概率；stat_scale 局外成长数值总旋钮（apply_run 里所有 stat 类节点的值 ×它，缺省 1，云端校准用）；revive_hp / revive_inv 调度线末节「绝处逢生」复活的生命比例 / 无敌秒数",
-  "shatter_r": 140.0,
-  "shatter_mult": 3.0,
+  "shatter_r": 170.0,
+  "shatter_mult": 4.0,
   "shatter_kb": 420.0,
   "leader_atk_fallback": 15.0,
   "low_regen_at": 0.35,
