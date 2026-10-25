@@ -1,6 +1,7 @@
 """叠加后的帧时测量（docs/50 §26，10-25 帧率会话）：本机开窗口短局（godot_runner 屏幕外、静音），--perf 分桶，可选 --stackab 同局逐层关闭。
 
   python tools/probes/perf_stack.py run <场景> <标签> [--quality=mid|high] [--stackab=60:0,1,2] [--prof] [--more="--bal=x=y --foo"] [--gamedir=<另一份 game 目录>]
+      低配模拟（docs/50 §28）：--cores=2|4 限逻辑核；--driver="--rendering-driver opengl3_angle --gpu-index 1" 换渲染后端 / 显卡；--res=1366x768
   python tools/probes/perf_stack.py show <标签> [<标签> …]        # 打印各桶 平均 / P50 / P95 / P99 / 最长 / GPU / 绘制调用 / 敌人
   python tools/probes/perf_stack.py stages <标签> [桶前缀]          # --prof 分段（毫秒 / 帧，探针会把各段放大约 2 倍，只看相对大小）
 
@@ -28,13 +29,16 @@ SCEN = {
 }
 
 
-def run(scen, tag, quality, stackab, prof, more, maxother, res, gamedir=None):
+def run(scen, tag, quality, stackab, prof, more, maxother, res, gamedir=None, cores=0, driver=""):
     d = os.path.join(OUT, tag)
     os.makedirs(d, exist_ok=True)
     t0 = time.time()
     while gr.count_godot() > maxother and time.time() - t0 < 1200:
         time.sleep(15)
-    args = [gr.find_godot(), "--path", gamedir or os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "60", "--resolution", res, "--"]
+    args = [gr.find_godot(), "--path", gamedir or os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "60", "--resolution", res]
+    if driver:
+        args += driver.split(" ")   # 低配模拟：例如 "--rendering-driver opengl3_angle --gpu-index 1"（核显）
+    args += ["--"]
     args += COMMON + SCEN[scen] + ["--quality=" + quality]
     if stackab:
         args.append("--stackab=" + stackab)
@@ -51,7 +55,10 @@ def run(scen, tag, quality, stackab, prof, more, maxother, res, gamedir=None):
             stop.wait(5)
     th = threading.Thread(target=watch, daemon=True)
     th.start()
+    if cores:
+        os.environ["ARK_CORES"] = str(cores)   # 低配模拟：限核（godot_runner._apply_affinity）
     out, err, to = gr.run_godot(args, 3000)
+    os.environ.pop("ARK_CORES", None)
     stop.set()
     open(os.path.join(d, "out.txt"), "w", encoding="utf-8").write(" ".join(args) + "\n" + out + "\n--- stderr\n" + err)
     open(os.path.join(d, "load.txt"), "w", encoding="utf-8").write("\n".join("%d %d" % x for x in load))
@@ -96,7 +103,7 @@ if __name__ == "__main__":
     pos = [x for x in a if not x.startswith("--")]
     if pos[0] == "run":
         run(pos[1], pos[2], opt.get("--quality", "high"), opt.get("--stackab", ""), "--prof" in opt, opt.get("--more", ""), int(opt.get("--maxother", "0")),
-            opt.get("--res", "1280x720"), opt.get("--gamedir"))
+            opt.get("--res", "1280x720"), opt.get("--gamedir"), int(opt.get("--cores", "0")), opt.get("--driver", ""))
     elif pos[0] == "show":
         show(pos[1:])
     elif pos[0] == "stages":

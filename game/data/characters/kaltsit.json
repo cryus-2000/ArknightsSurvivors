@@ -1507,6 +1507,7 @@
   ],
   "skills": [
    {
+    "no_gate": true,
     "aim": "summon:mon3tr",
     "fx": [
      {
@@ -1644,6 +1645,7 @@
     ]
    },
    {
+    "no_gate": true,
     "dur": "permanent",
     "aim": "summon:mon3tr",
     "fx": [

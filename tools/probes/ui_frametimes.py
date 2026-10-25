@@ -18,12 +18,12 @@ import godot_runner as gr
 ROOT = os.path.dirname(TOOLS)
 OUT = os.path.join(gr.common_root(), "build", "uift")
 SCEN = {
-    # 启动页 → 标题页首帧后 10 秒（含开场动画）
-    "title": ["--ftrec", "--ftquit=title:10"],
-    # 标题页 4 秒后打开寻访，看 6 秒
-    "hunt": ["--ftrec", "--ftdo=title:4:hunt", "--ftquit=hunt:6"],
-    # 标题页 4 秒后开图鉴，2.5 秒后换条目，再 2.5 秒换页签，看 3 秒
-    "gallery": ["--ftrec", "--ftdo=title:4:gallery", "--ftdo=gallery:2.5:gal_next", "--ftdo=gal_next:2.5:gal_tab", "--ftquit=gal_tab:3"],
+    # 启动页 → 标题页揭开后 10 秒（含开场动画；10-25 起启动页盖到稳帧才揭开，改前版本没有 reveal 标记，要比改前用 git 历史里的 title:10 写法）
+    "title": ["--ftrec", "--ftquit=reveal:10"],
+    # 标题页揭开 3 秒后打开寻访，看 6 秒
+    "hunt": ["--ftrec", "--ftdo=reveal:3:hunt", "--ftquit=hunt:6"],
+    # 标题页揭开 3 秒后开图鉴，2.5 秒后换条目，再 2.5 秒换页签，看 3 秒
+    "gallery": ["--ftrec", "--ftdo=reveal:3:gallery", "--ftdo=gallery:2.5:gal_next", "--ftdo=gal_next:2.5:gal_tab", "--ftquit=gal_tab:3"],
     # 机器人打 20 秒直接胜利，停在结算页 6 秒
     "settle": ["--ftrec", "--autotest", "--statsshot=20,hold", "--ftquit=settle:6"],
     # 走玩家路径进局（载入页）：机器人按真实帧间隔打（--balance --realtime，不截图），对局第一帧后看 10 秒
@@ -45,11 +45,14 @@ def run(a):
             if a.web:
                 # 网页：perf_web 的测量副本（按提交导出），参数前要有 "--" 才算游戏参数
                 import perf_web
-                lp = perf_web.run(a.web, "%s_%s_%d" % (a.tag, sc, rep), ["--"] + SCEN[sc], 300)
+                lp = perf_web.run(a.web, "%s_%s_%d" % (a.tag, sc, rep), ["--"] + SCEN[sc] + a.more.split(), 300, throttle=a.throttle, mobile=a.mobile, lowgpu=a.lowgpu)
                 out, err, to = open(lp, encoding="utf-8").read(), "", "PF FTDONE" not in open(lp, encoding="utf-8").read()
             else:
-                args = [gr.find_godot(), "--path", gdir, "--audio-driver", "Dummy", "--resolution", a.res, "--max-fps", str(a.fps), "--"] + SCEN[sc]
+                args = [gr.find_godot(), "--path", gdir, "--audio-driver", "Dummy", "--resolution", a.res, "--max-fps", str(a.fps)] + (a.driver.split(" ") if a.driver else []) + ["--"] + SCEN[sc] + a.more.split()
+                if a.cores:
+                    os.environ["ARK_CORES"] = str(a.cores)   # 低配模拟：限核（godot_runner._apply_affinity）
                 out, err, to = gr.run_godot(args, 300)
+                os.environ.pop("ARK_CORES", None)
             p = os.path.join(OUT, "%s_%s_%d.txt" % (a.tag, sc, rep))
             open(p, "w", encoding="utf-8").write("# other_godot=%d timeout=%s\n%s\n--- stderr\n%s" % (busy, to, out, err))
             segs = SEG_RE.findall(out)
@@ -101,6 +104,12 @@ if __name__ == "__main__":
     ap.add_argument("--res", default="1280x720")
     ap.add_argument("--fps", type=int, default=60, help="桌面帧率上限（同玩家缺省设置「最高帧率 60」；0 = 不限，看余量）")
     ap.add_argument("--longs", action="store_true")
+    ap.add_argument("--cores", type=int, default=0, help="低配模拟：桌面限 N 个逻辑核")
+    ap.add_argument("--driver", default="", help='低配模拟：引擎参数，如 "--rendering-driver opengl3_angle --gpu-index 1"')
+    ap.add_argument("--more", default="", help="追加的游戏参数（空格分开），如 --quality=low")
+    ap.add_argument("--throttle", type=float, default=0, help="网页：CPU 节流倍数（DevTools，4 / 6）")
+    ap.add_argument("--mobile", action="store_true", help="网页：手机视口 + 触屏模拟（390×844、3 倍像素）")
+    ap.add_argument("--lowgpu", action="store_true", help="网页：Edge 用核显（--force_low_power_gpu）")
     ap.add_argument("--web", help="网页：测量副本的提交（tools/perf_web.py export 的 --ref）")
     a = ap.parse_args()
     if a.cmd == "run":

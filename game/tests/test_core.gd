@@ -35,6 +35,7 @@ func _init() -> void:
 	test_voice_interrupt()
 	test_blocks_angelina()
 	test_blocks_texas()
+	test_skill_gate()
 	test_need_enemy_data()
 	test_fx_hold()
 	test_operator_sheet()
@@ -569,27 +570,43 @@ func test_blocks_angelina() -> void:
 
 
 ## 德克萨斯段积木（docs/61 §13，op_blocks.gd 末尾）：texas.json 通过校验；改坏一处就不通过；冲刺长度 / 宽度倍率与主控属性修正的累计
-## 自动技能需要敌人（10-23 用户定全员统一）：blocks.skills[i].need_enemy 只给进攻 / 限时窗口技能（瞬发 AoE、持续强化窗口），
-## 不给治疗 / 护盾 / 永久 / 「接下来 N 发」类，也不给手动技能（mode manual）；共 31 个（texas 2 + 其余 14 人 29）
+## 自动技能需要敌人（10-23 用户定全员统一；10-25 扩到所有自动技能含治疗 / 增益 / 永久类）：blocks.skills[i].need_enemy 是显式门槛（可省，省了按伤害积木半径 / 普攻射程推，见 test_skill_gate），
+## 手动技能（mode manual）不写、不查门槛
 func test_need_enemy_data() -> void:
 	var Ch = preload("res://scripts/characters/character.gd")
-	var total := 0
 	var bad: Array = []
 	for id in ["angelina", "exusiai", "eyjafjalla", "gladiia", "hoshiguma", "irene", "kaltsit", "lappland", "logos", "lumen", "mizuki", "saria", "siege", "skadi", "skalter", "specter_unchained", "suzuran", "texas", "ulpianus", "wisadel"]:
 		var d: Dictionary = Ch.load_def(id)
 		var sk: Array = d.blocks.skills
 		for i in sk.size():
-			if not sk[i].has("need_enemy"):
-				continue
-			total += 1
-			if str(d.skills[i].get("mode", "auto")) == "manual" or sk[i].get("dur", 0) is String and str(sk[i].dur) == "permanent" or d.skills[i].get("permanent", false):
+			if sk[i].has("need_enemy") and str(d.skills[i].get("mode", "auto")) == "manual":
 				bad.append("%s S%d" % [id, i + 1])
-	ok(total == 31, "need_enemy 共 31 个技能（实得 %d）" % total)
-	ok(bad.is_empty(), "need_enemy 不给手动技能 / 永久技能：%s" % str(bad))
-	for id in ["lumen", "saria", "skalter", "suzuran"]:
-		var d2: Dictionary = Ch.load_def(id)
-		for i in d2.blocks.skills.size():
-			ok(not d2.blocks.skills[i].has("need_enemy"), "%s S%d 是治疗 / 护盾 / 光域类，不加 need_enemy" % [id, i + 1])
+	ok(bad.is_empty(), "need_enemy 不给手动技能：%s" % str(bad))
+
+
+## 自动技能「范围内没有敌人不放」门槛（10-25 用户）：每个干员的每个技能都能推出门槛距离（need_enemy → 伤害积木半径 → 普攻射程），且在合理范围；
+## 推进之王跃空锤只在周围 s2_r 内有敌人时放（不再是泛泛 150）。GATE_TABLE=1 时打印全表
+func test_skill_gate() -> void:
+	var Ch = preload("res://scripts/characters/character.gd")
+	var OB = preload("res://scripts/characters/op_blocks.gd")
+	var table := OS.get_environment("GATE_TABLE") == "1"
+	for id in Ch.list_ids():
+		var d: Dictionary = Ch.load_def(id)
+		if not d.has("blocks"):
+			continue
+		var B: Dictionary = OB.compile(d)
+		for i in B.skills.size():
+			if B.skills[i].get("no_gate", false):
+				ok(true, "%s S%d 治疗类不加门槛（no_gate）" % [id, i + 1])
+				if table:
+					print("GATE ", id, " S", i + 1, " none (heal)")
+				continue
+			var g: float = OB.skill_gate_base(B.skills[i], B.get("attack", {}), {}, 0.0)
+			if table:
+				print("GATE ", id, " S", i + 1, " ", snappedf(g, 1.0), " ", "need" if B.skills[i].has("need_enemy") else "derived")
+			ok(g >= 30.0 and g <= 700.0, "%s S%d 自动技能门槛距离可推出且合理（%s）" % [id, i + 1, g])
+	var sg: Dictionary = OB.compile(Ch.load_def("siege"))
+	near(OB.skill_gate_base(sg.skills[1], sg.attack, {}, 0.0), float(Ch.load_def("siege").base.s2_r) + 20.0, "推进之王 S2 门槛 = 跃空锤半径 + 20（原来 150）")
 
 
 func test_blocks_texas() -> void:

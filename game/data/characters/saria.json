@@ -581,6 +581,7 @@
   ],
   "skills": [
    {
+    "no_gate": true,
     "dur": 0,
     "do": [
      {
@@ -603,6 +604,7 @@
     ]
    },
    {
+    "no_gate": true,
     "dur": 0,
     "do": [
      {
@@ -618,6 +620,7 @@
     ]
    },
    {
+    "no_gate": true,
     "dur": 0,
     "do": [
      {

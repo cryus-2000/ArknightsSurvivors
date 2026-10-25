@@ -4,12 +4,14 @@ extends RefCounted
 
 const Roster = preload("res://scripts/core/roster.gd")
 const Meta = preload("res://scripts/core/meta.gd")
+const Medals = preload("res://scripts/core/medals.gd")
 
 
 static func settle(g) -> void:
 	var won: bool = g.state == g.S.WIN
 	Roster.on_run_end(g, won)   # 干员解锁：发寻访凭证（docs/109 §12；不碰 g.rng）
 	Meta.on_run_end(g, won)   # 局外成长：记生机细胞（docs/109 §3.1）
+	Medals.on_run_end(g)   # 蚀刻章：补判并写盘（只读记录）
 	if g.state == g.S.DEAD and g.mode == g.Mode.PLAY and g.preset >= 0 and g.demo_op == "" and not Cfg.practice_active:
 		Cfg.note_diff_best(g.preset, false, g.t)
 	Cloud.flush("run_end")   # B站云存档：一局结算时上传（只在 B站环境生效，docs/89）

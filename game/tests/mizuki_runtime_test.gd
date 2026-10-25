@@ -96,10 +96,9 @@ func test_matrix() -> void:
      if manual:
       ok(o.cast_manual(slot),"manual entry slot%d"%slot)
      else:
-      if slot>0:   # 10-23：S2 / S3 自动释放要射程内有敌人（need_enemy）；放一只近处的敌人
-       var ge: Dictionary=g.spawner.spawn_enemy("runner",o.pos+Vector2(80,0))
-       ge.spd=0.0
-       g.enemies_sys.build_grid()
+      var ge: Dictionary=g.spawner.spawn_enemy("runner",o.pos+Vector2(80,0))   # 10-23 起 S2 / S3、10-25 起 S1 也要射程内有敌人才自动放（docs/151）；放一只近处的敌人
+      ge.spd=0.0
+      g.enemies_sys.build_grid()
       ok(o.charge_skills(0.0)==slot,"automatic entry slot%d"%slot)
       o.update(0.0)
      if slot>0:
@@ -109,6 +108,11 @@ func test_matrix() -> void:
      if slot==0:
       while o.acting(): step(o,1)
       ok(o.ammo[0]==1,"S1 charges through real entry")
+      var foe: Dictionary=g.spawner.spawn_enemy("runner",o.pos+Vector2(80,0))   # 10-25 自动技能门槛：前面的敌人可能已被她打死，补一只不会死的
+      foe.spd=0.0
+      foe.hp=1000000.0
+      foe.maxhp=foe.hp
+      g.enemies_sys.build_grid()
       for repeat in 3:
        o.sp[0]=o.sp_need(0)
        o.update(0.0)

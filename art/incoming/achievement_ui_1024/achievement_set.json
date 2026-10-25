@@ -1,0 +1,119 @@
+{
+  "status": "design_proposal_not_integrated",
+  "set_id": "deep_blue_01",
+  "name": "深蓝之下",
+  "medals": [
+    {
+      "id": 1,
+      "key": "ending_standard",
+      "name": "泡影散尽",
+      "cat": "combat",
+      "type": "bubble",
+      "done": true,
+      "desc": "达成结局「平凡即是喜乐」。",
+      "cur": 1,
+      "max": 1,
+      "size": "large"
+    },
+    {
+      "id": 2,
+      "key": "ending_knight",
+      "name": "骑士归潮",
+      "cat": "combat",
+      "type": "knight",
+      "done": true,
+      "desc": "达成结局「静谧时代」。",
+      "cur": 1,
+      "max": 1,
+      "size": "large"
+    },
+    {
+      "id": 3,
+      "key": "set_complete",
+      "name": "深蓝之下",
+      "cat": "explore",
+      "type": "compass",
+      "done": false,
+      "hero": true,
+      "desc": "获得「深蓝之下」套组中的其余 8 枚蚀刻章。",
+      "cur": 3,
+      "max": 8,
+      "size": "master"
+    },
+    {
+      "id": 4,
+      "key": "ending_deep",
+      "name": "潮声止息",
+      "cat": "combat",
+      "type": "tide",
+      "done": false,
+      "desc": "达成结局「息潮的代价」。",
+      "cur": 0,
+      "max": 1,
+      "size": "large"
+    },
+    {
+      "id": 5,
+      "key": "ending_resolve",
+      "name": "深蓝之树",
+      "cat": "combat",
+      "type": "tree",
+      "done": false,
+      "desc": "达成结局「如星空般深蓝」。",
+      "cur": 0,
+      "max": 1,
+      "size": "large"
+    },
+    {
+      "id": 7,
+      "key": "elite_three",
+      "name": "协同晋升",
+      "cat": "squad",
+      "type": "chevrons",
+      "done": false,
+      "desc": "在一次探索中，使编队内 3 名干员同时达到精英二。",
+      "cur": 2,
+      "max": 3,
+      "size": "medium"
+    },
+    {
+      "id": 8,
+      "key": "relic_fifty",
+      "name": "海中拾遗",
+      "cat": "explore",
+      "type": "cabinet",
+      "done": true,
+      "desc": "累计获得 50 种不同的藏品。",
+      "cur": 50,
+      "max": 50,
+      "size": "small"
+    },
+    {
+      "id": 10,
+      "key": "cognition_complete",
+      "name": "认知深化",
+      "cat": "explore",
+      "type": "neural_tree",
+      "done": false,
+      "desc": "点亮认知塑造中所有已开放节点。",
+      "cur": 0,
+      "max": 39,
+      "size": "medium",
+      "requirement": "all_currently_available_cognition_nodes",
+      "sticky": true
+    },
+    {
+      "id": 11,
+      "key": "cognition_first",
+      "name": "初识深蓝",
+      "cat": "explore",
+      "type": "neural_seed",
+      "done": false,
+      "desc": "首次点亮认知塑造节点。",
+      "cur": 0,
+      "max": 1,
+      "size": "small",
+      "sticky": true
+    }
+  ]
+}
