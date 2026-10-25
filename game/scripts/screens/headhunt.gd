@@ -13,7 +13,6 @@ const A = preload("res://scripts/art.gd")
 const HS = preload("res://scripts/screens/hh_style.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const Roster = preload("res://scripts/core/roster.gd")
-const Game = preload("res://scripts/game.gd")
 
 ## 用户 10-25：寻访专用原作职业标志，来源见 art/incoming/headhunt_professions_1025/sources.json。
 const CLASS_ICONS := {
