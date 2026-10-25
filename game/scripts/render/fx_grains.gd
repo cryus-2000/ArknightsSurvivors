@@ -141,7 +141,7 @@ func setup(game) -> void:
 
 func on() -> bool:
 	_knobs()
-	return level > 0 and not kill and g != null and g.optical_on and _k_grains
+	return level > 0 and not kill and g != null and (g.optical_on or Cfg.quality == "low") and _k_grains
 
 
 ## 材质颗粒（fx/material_grains，10-24 起缺省开；拉普兰德 / 体液各自另有开关，缺省关）：模板开着、未被 --grainab / --matab 轮换关掉
@@ -157,6 +157,11 @@ func _knobs() -> void:
 	var fr: int = Engine.get_process_frames()
 	if fr == _k_frame:
 		return
+	# 档位每帧跟画质（10-26 晚：设置里换档要立刻生效）：高 2；中 2（render/mid_full_fx）或 1；低 1（用户「低档也要保留一点点粒子」，原来低 = 全关）
+	var lv0: int = {"high": 2, "mid": 1, "low": 1}.get(Cfg.quality, 2)
+	if Cfg.quality == "mid" and Bal.v("render/mid_full_fx", 1.0) > 0.0:
+		lv0 = 2
+	level = lv0
 	_k_frame = fr
 	_k_grains = Bal.v("fx/grains", 1.0) > 0.0
 	_k_mat = Bal.v("fx/material_grains", 0.0) > 0.0

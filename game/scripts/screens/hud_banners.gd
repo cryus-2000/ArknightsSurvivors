@@ -561,7 +561,7 @@ func draw_zone_hint(vs: Vector2) -> void:
 const CMD_COLS := [UI.CYAN, UI.GOLD, UI.GREEN]   # 随行 / 突击 / 归队
 
 func draw_command(vs: Vector2, ct: Transform2D) -> void:
-	if g.state != Game.S.PLAY or not g.squad.cmd_on():
+	if not g.hud_live() or not g.squad.cmd_on():
 		return
 	var st: int = g.squad.stance
 	var col: Color = CMD_COLS[st]

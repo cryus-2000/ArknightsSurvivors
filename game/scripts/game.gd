@@ -109,6 +109,7 @@ var enemies_sys = EnemiesSys.new(self)   # 敌人的逐帧更新
 var combat = Combat.new(self)   # 战斗结算
 var vfx = Vfx.new(self)   # 特效与提示
 var intro_screen = IntroScreen.new(self)   # 界面 · 开场与教程
+var tour = preload("res://scripts/screens/tour.gd").new(self)   # 界面 · 首局聚光框引导 + 到点小提示（取代开局自动弹出的翻页指南）
 var boss_intro = BossIntro.new(self)   # 界面 · Boss 登场 / 击破演出（纯覆盖层，不影响模拟；用户 10-10）
 var show_screen = EliteShowScreen.new(self)   # 界面 · 精英化 / 解锁演出（state SHOW）
 var stats_screen = StatsScreen.new(self)   # 界面 · 属性面板（Tab，state STATS）
@@ -1023,13 +1024,22 @@ func _ready() -> void:
 			ch.advance(chs.keys()[0] if not chs.is_empty() else "")
 	elif trial.active:
 		pass
+	elif tour.demo_active():
+		pass   # --tourdemo / --tipdemo=<id>：跳过开场，screens/tour.gd 第 25 帧起接管（录片 / 截图）
 	elif Cfg.dev_args().has("--introshot") or Cfg.dev_args().has("--guidepages"):
 		# --guidepages：只截局内指南各页（不带标题页 --introshot 的开场分镜截图与 5 秒退出）
 		intro_screen.open.call_deferred(S.PAUSE if Cfg.dev_args().has("--guidefull") else S.PLAY)   # --guidefull：截完整版（暂停菜单打开的 lines + more）
 	elif mode == Mode.PLAY or Cfg.dev_args().has("--openshot"):
 		intro_screen.start_opening.call_deferred()
 	A.mark("ready_end")
+	if Cfg.mobile_fonts_slim():
+		Cfg.slim_fonts(true)   # 手机网页：进局清掉标题页 / 载入页用过的字号缓存（docs/50 §30）
 	aq_on = demo_op == "" and ((mode == Mode.PLAY and Cfg.quality_mode == "auto" and Cfg.dev_args().is_empty()) or Cfg.dev_args().has("--autoq"))
+	if Cfg.dev_args().has("--fpsosd") and demo_op == "":
+		_fps_osd_add()
+	if Cfg.guard_lowered and Cfg.quality_mode != "auto":
+		Cfg.guard_lowered = false
+		Cfg.set_quality(Cfg.quality_mode)   # 上局护栏临时降过：这局开局恢复玩家手选的档
 	if aq_on:
 		_apply_auto_level()   # 同一次启动里前一局已经降过的，这局开局就沿用
 	if mode == Mode.PLAY and demo_op == "" and not trial.active:
@@ -1200,6 +1210,7 @@ func cam_center() -> Vector2:
 ## 局中后期新怪 / 新音效越积越多时兜底，不等 WebKit 杀页。纯画面 / 声音缓存，不碰对局
 const MG_EVERY := 5.0
 const MG_BUDGET_MB := 380.0
+const MG_MANUAL_EXTRA := 140.0
 var _mg_t := 0.0
 
 func _mem_guard(delta: float) -> void:
@@ -1215,11 +1226,17 @@ func _mem_guard(delta: float) -> void:
 	for a in Cfg.dev_args():
 		if a.begins_with("--memguard="):
 			budget = float(a.substr(11))
+	if Cfg.quality_mode != "auto":
+		budget += MG_MANUAL_EXTRA   # 玩家手选了档：只在真逼近时才临时降（10-26 晚用户「玩家手动选了某档就按它」）
 	if vid + aud <= budget:
 		return
+	Cfg.slim_fonts(true)   # 字形缓存清掉重建（按需栅格化，卡一下；docs/50 §30 字体缓存能到 60 MB）
 	var acted: bool = Cfg.quality != "low" or not Cfg.render_scaled
 	if Cfg.quality != "low":
 		Cfg.set_quality("low")
+		Cfg.guard_lowered = true
+		quality_note = "内存紧张，本局已临时降低画质" if Cfg.quality_mode != "auto" else "内存紧张，已自动降低画质（可在设置里改）"
+		quality_note_t = 5.0
 	Cfg.set_render_scale(true)
 	if acted and not Cfg.dev_args().is_empty():
 		print("PF MEMGUARD vid=%.0fMB audio=%.0fMB -> 低画质 + 分辨率缩放 t=%.0f" % [vid, aud, t])
@@ -1237,6 +1254,10 @@ func _auto_quality(delta: float) -> void:
 	var now := Time.get_ticks_usec()
 	var rd: float = (now - _aq_us) / 1e6 if _aq_us > 0 else 0.0   # 真实帧间隔（--fixed-fps 测量时 delta 是定值，看不出掉帧）
 	_aq_us = now
+	if aq_on and Cfg.quality_mode != "auto" and Cfg.dev_args().is_empty():
+		aq_on = false   # 对局里在设置里手选了档：自动降档停手、已关的层撤掉（10-26 晚用户「从低切到高没有反应」）
+		Cfg.auto_level = 0
+		_apply_auto_level()
 	if not aq_on or state != S.PLAY or t < 1.0 or Cfg.auto_level >= AQ_MAX or (rt_from >= 0.0 and not realtime):   # 测量的快进段不算
 		aq_win = Vector3(0, 0, aq_win.z)
 		return
@@ -1245,6 +1266,9 @@ func _auto_quality(delta: float) -> void:
 		return
 	if rd > 0.25 or rd <= 0.0:
 		aq_win = Vector3.ZERO   # 切窗口 / 读盘那种单次长停顿不算掉帧
+		return
+	if OS.has_feature("web") and Cfg.max_fps == 0 and not Cfg.fps_probed:
+		_fps_probe(rd)   # 网页帧率自动：先定 60 还是 30，定完再按那个预算判降档
 		return
 	aq_win.x += rd
 	aq_win.y += 1.0
@@ -1269,6 +1293,45 @@ func _auto_quality(delta: float) -> void:
 		quality_note_t = 5.0
 
 
+## 网页帧率自动（10-25 用户定）：先按 60 帧跑，开局 AQ_FPS_T 秒的平均帧率 ≥ 50 就保持 60，否则本次启动锁 30（Engine.max_fps = 30）；
+## 只测一次，不在两者之间来回跳；锁 30 之后降档按 30 帧预算判（_frame_budget_ms 读 Engine.max_fps）。桌面不锁。逻辑按 PlayClock 固定步长，与渲染帧率无关
+const AQ_FPS_T := 4.0
+var _fps_win := Vector2.ZERO
+
+func _fps_probe(rd: float) -> void:
+	_fps_win += Vector2(rd, 1.0)
+	if _fps_win.x < AQ_FPS_T:
+		return
+	var avg_ms: float = _fps_win.x / _fps_win.y * 1000.0
+	Cfg.fps_probed = true
+	if avg_ms > 1000.0 / 50.0:
+		Cfg.fps_lock30 = true
+		Engine.max_fps = Cfg.effective_max_fps()
+	if not Cfg.dev_args().is_empty():
+		print("AUTOFPS avg=%.1fms lock30=%s t=%.1f" % [avg_ms, Cfg.fps_lock30, t])
+
+
+## --fpsosd（仅测试）：左上角显示实际帧率 / 帧率上限 / 自动降档级（录网页锁 30 的证明片用；独立一层，不走 HUD 缓存）
+func _fps_osd_add() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 120
+	add_child(layer)
+	var lb := Label.new()
+	lb.position = Vector2(8, 6)
+	lb.add_theme_font_size_override("font_size", 18)
+	lb.add_theme_color_override("font_color", Color(0.6, 1.0, 0.95))
+	lb.add_theme_color_override("font_outline_color", Color.BLACK)
+	lb.add_theme_constant_override("outline_size", 4)
+	layer.add_child(lb)
+	var tm := Timer.new()
+	tm.wait_time = 0.25
+	tm.autostart = true
+	tm.timeout.connect(func(): lb.text = "FPS %.0f   上限 %d%s   降档 %d   %d:%02d" % [Engine.get_frames_per_second(), Engine.max_fps,
+		"（自动锁 30）" if Cfg.fps_lock30 else ("（自动 · 测量中）" if Cfg.max_fps == 0 and not Cfg.fps_probed and OS.has_feature("web") else ""),
+		Cfg.auto_level, int(t) / 60, int(t) % 60])
+	layer.add_child(tm)
+
+
 ## 按 Cfg.auto_level 关层（开局也调一次：同一次启动里前一局已经降过的，这局直接沿用）
 func _apply_auto_level() -> void:
 	var lv: int = Cfg.auto_level
@@ -1278,6 +1341,8 @@ func _apply_auto_level() -> void:
 		spawner.auto_cap = AQ_CAP if lv >= 2 else 0
 	if lv >= 4 and Cfg.hidpi_render():
 		Cfg.set_render_scale(true)
+	elif lv < 4 and not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_rscale", 1.0)):
+		Cfg.set_render_scale(false)
 	if lv >= 5 and Cfg.quality != "low":
 		Cfg.set_quality("low")
 
@@ -1296,6 +1361,7 @@ func _frame_budget_ms() -> float:
 func _process(delta: float) -> void:
 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
+	tour.update(delta)   # 聚光框引导 / 到点小提示：真实帧间隔（screens/tour.gd）
 	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）
 	var dt: float = min(delta, 0.05)
 	var simulated_dt := 0.0
@@ -1455,6 +1521,10 @@ func _input(event: InputEvent) -> void:
 		return
 	if wheel.input(event):   # 指挥圆盘打开时吞掉按键 / 点选（移动是轮询的，不受影响）
 		get_viewport().set_input_as_handled()
+		return
+	if state == S.INTRO and tour.active:   # 聚光框引导：点击 / 按键翻步，Esc / 「跳过引导」结束
+		if tour.input(event):
+			get_viewport().set_input_as_handled()
 		return
 	if touch.handle(event):
 		get_viewport().set_input_as_handled()
@@ -1763,6 +1833,11 @@ func toggle_command() -> void:
 		Sfx.play("ui_ok", -8.0)
 	elif Squad.cmd_on():
 		vfx.add_text(ppos + Vector2(0, -70), "作战时限未恢复", UI.SUB, 14)   # 突击耐力（玩家可见名「作战时限」，10-22 定）没回到 command/min_start
+
+
+## HUD 按「对局进行中」画的块（触屏按键、指挥状态）在聚光框引导期间（state INTRO、tour.active）也要画出来，让方框框得到
+func hud_live() -> bool:
+	return state == S.PLAY or tour.active
 
 
 func _try_dash() -> void:

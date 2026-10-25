@@ -241,7 +241,7 @@ func _ready() -> void:
 ## 一首三四分钟的 Boss 曲就六十多 MB、而且没法从脚本注销；流式边解码边放，不留整段（代价：没有线程时在主线程混音，卡帧时可能断续）。音效照旧按样本
 func _mobile_audio() -> void:
 	var cfg = get_node_or_null("/root/Cfg")
-	if cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_music_stream", 1.0):
+	if cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_music_stream", 0.0):   # 缺省关：polish-fx 实测手机流式配乐几乎无声（标题页电平 0.0009，桌面 0.022），改回样本 + 少放几首（MOBILE_MUSIC_MAP）
 		for n in find_children("*", "AudioStreamPlayer", true, false):
 			var pl := n as AudioStreamPlayer
 			if pl.bus == "Music":
@@ -516,7 +516,13 @@ func _seq_tick(tname: String) -> void:
 ## - Boss 登场：旧曲马上淡出，Boss 曲落在 boss_in 的太鼓重击上
 ## - Boss 倒下回到战斗：先让击破乐句响 1.2 秒，战斗曲再从头缓缓回来
 ## - 其余：新曲从头淡入，旧曲淡出后停止
+## 手机网页的配乐合并（10-26 晚：流式播放在无线程网页上几乎无声，退回样本播放；样本解码后注销不掉，就少放几首不同的曲子）：
+## 战斗二 / 三段沿用战斗一（只放底层）、最终 Boss 沿用 Boss 曲、出发 / 图鉴沿用标题曲。全部配乐解码后约 486 MB，合并后最多约 100 MB
+const MOBILE_MUSIC_MAP := {"battle2": "battle1", "battle3": "battle1", "final": "boss", "deploy": "title", "archive": "title"}
+
 func play_music(tname: String) -> void:
+	if _music_lite() and MOBILE_MUSIC_MAP.has(tname) and (seq.has(MOBILE_MUSIC_MAP[tname]) or groups.has(MOBILE_MUSIC_MAP[tname])):
+		tname = MOBILE_MUSIC_MAP[tname]
 	if not MENU_TRACKS.has(tname):
 		driven_t = 0.0
 	if not seq.has(tname) and (not groups.has(tname) or groups[tname].is_empty()):
@@ -1005,7 +1011,23 @@ func sfx_prio(name: String) -> int:
 	return 2
 
 
+## 寻访 / 十连音效（tools/gen_hh_sfx.py 程序合成，10-26）：不进开局预载表，第一次打开寻访时才读（网页包按需、不预解码）
+const HH_SFX := ["hh_drop", "hh_zip", "hh_hum", "hh_burst", "hh_star6", "hh_reveal", "hh_card", "hh_done"]
+## 录屏配音用（测试局主线照样静音）：trace_on 时把每次真正放出的音效记成 [渲染帧号, 名字, 音量 dB, 音高]，
+## 录屏脚本按记录离线混音再合进视频（tools/probes/first_tenpull_rec.py）；不改变任何播放行为
+var trace_on := false
+var trace: Array = []
+
+
+func ensure(names: Array) -> void:
+	for n in names:
+		if not streams.has(n):
+			streams[n] = _load_wav("res://audio/sfx/%s.wav" % n)
+
+
 func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
+	if not streams.has(name) and name.begins_with("hh_"):
+		ensure([name])
 	if not streams.has(name) or streams[name] == null:
 		if ALT.has(name) and streams.get(ALT[name][0]) != null:   # 缺文件：借近似音（docs/53）
 			var alt: Array = ALT[name]
@@ -1071,6 +1093,8 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 	p.set_meta("prio", prio)
 	p.set_meta("sname", name)
 	p.play()
+	if trace_on:
+		trace.append([Engine.get_process_frames(), name, p.volume_db, p.pitch_scale])
 	sfx_stat.plays += 1
 	_by(name, 1)
 	sfx_stat.voices_max = maxi(int(sfx_stat.voices_max), busy + 1)
