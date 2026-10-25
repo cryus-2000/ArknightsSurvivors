@@ -334,8 +334,13 @@ static func _halve(img: Image) -> Image:
 	var back: Image = half.duplicate()
 	back.resize(w, h, Image.INTERPOLATE_NEAREST)
 	if back.get_data() != img.get_data():
-		half_keep += 1
-		return null
+		# 包内贴图导入时 fix_alpha_border 会改全透明像素的 RGB（往外渗邻色），逐字节比会全部落空：预乘后再比（全透明像素归零，只比看得见的）
+		var pa: Image = img.duplicate()
+		pa.premultiply_alpha()
+		back.premultiply_alpha()
+		if back.get_data() != pa.get_data():
+			half_keep += 1
+			return null
 	half_n += 1
 	return half
 
