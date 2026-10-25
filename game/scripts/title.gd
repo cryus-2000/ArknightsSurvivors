@@ -183,7 +183,7 @@ func _ready() -> void:
 		get_tree().create_timer(1.2).timeout.connect(func(): _activate(8))
 		var keys := ["ending_knight", "ending_standard", "elite_three", "cognition_complete", "cognition_first", "relic_fifty", "set_complete"]
 		for i in keys.size():
-			get_tree().create_timer(2.8 + 1.3 * i).timeout.connect(func(): medals_ui._pick(medals_ui._index_of(keys[i])))
+			get_tree().create_timer(2.8 + 0.9 * i).timeout.connect(func(): medals_ui._pick(medals_ui._index_of(keys[i])))
 		get_tree().create_timer(15.0).timeout.connect(func(): get_tree().quit())
 	if Cfg.dev_args().has("--medalperf"):
 		intro = INTRO_LEN
