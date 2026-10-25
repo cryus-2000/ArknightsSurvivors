@@ -97,7 +97,8 @@ func integration():
     for e in g.enemies: e.dead = true
     g.enemies = []
     var enemy: Dictionary = g.spawner.spawn_enemy("runner",o.pos+Vector2(50,0))
-    enemy.dead = true
+    enemy.hp = 1000000.0   # 10-25 自动技能要射程内有敌人才放（docs/151）：活的敌人摆在门槛内
+    enemy.max_hp = enemy.hp
     g.enemies_sys.build_grid()
     o.sp[0] = o.sp_need(0)
     if manual:
@@ -147,6 +148,9 @@ func integration():
  ok(not p.perm_on[1] and not p.perm[1],"permanent clears for redeployment")
  p = null
  # Same adapters on another slot and an unrelated fixture identity.
+ for e in g.enemies: e.dead = true   # 10-25：上面为过自动技能门槛摆过活的敌人，这一段要的是「没有目标」
+ g.enemies = []
+ g.enemies_sys.build_grid()
  var moved = Fixture.new(g,definition)
  moved.pos = g.ppos
  moved.elite = 2
