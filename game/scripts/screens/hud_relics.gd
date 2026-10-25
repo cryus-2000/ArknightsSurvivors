@@ -103,15 +103,17 @@ const TRAY_MAX_ROWS := 3
 
 
 func tray_layout(n: int) -> Dictionary:
-	var compact: bool = n > 16
-	var per_row := 14 if compact else 8
-	var cell := 22.0 if compact else 38.0
-	var cap_cells: int = per_row * TRAY_MAX_ROWS
+	var ph: bool = Cfg.phone_ui()
+	var compact: bool = n > 16 and not ph
+	var per_row := 14 if compact else (6 if ph else 8)
+	var cell := 22.0 if compact else (32.0 if ph else 38.0)
+	# 手机（10-26 实机挤满）：只留一行 6 格，多的收成「+N」（全部藏品在属性面板里看）
+	var cap_cells: int = per_row * (1 if ph else TRAY_MAX_ROWS)
 	var more: int = 0 if n <= cap_cells else n - (cap_cells - 1)
 	var shown: int = mini(n, cap_cells)
 	var rows: int = maxi(1, int(ceil(shown / float(per_row))))
 	var w: float = maxf(mini(shown, per_row) * cell + 12.0, 132.0)
-	return {"compact": compact, "per_row": per_row, "cell": cell, "icon": 16.0 if compact else 32.0, "rows": rows,
+	return {"compact": compact, "per_row": per_row, "cell": cell, "icon": 16.0 if compact else (26.0 if ph else 32.0), "rows": rows,
 		"w": w, "h": rows * cell + 30.0, "more": more, "first": n - shown + (1 if more > 0 else 0)}
 
 
@@ -155,7 +157,7 @@ func draw_relic_tray(tr: Vector2) -> void:
 		under.rect(r0, Color(1, 1, 1, 0.10) if not hov0 else Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.22))
 		_frame(under, r0, Color(1, 1, 1, 0.22) if not hov0 else UI.CYAN)
 		var mt: String = "+%d" % L.more
-		texts.append(func(): UI.text(g.hud, g.font, c0 + Vector2(-cell / 2.0, 4), mt, 9, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cell))
+		texts.append(func(): UI.text(g.hud, g.font, c0 + Vector2(-cell / 2.0, 5), mt, 14 if Cfg.phone_ui() else 9, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cell))
 		slot = 1
 	for i in range(L.first, n):
 		var rd: Dictionary = g.RL[g.relics[i]]

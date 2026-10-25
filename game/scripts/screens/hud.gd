@@ -253,7 +253,8 @@ func _draw_body() -> void:
 		banners.draw_beacon_pointers(vs, ct)
 		banners.draw_hunt_ring(vs, ct)
 		banners.draw_hunt_pointer(vs, ct))
-	if not overlay_left():
+	var pq := phone_quiet()
+	if not overlay_left() and not pq:
 		# 小地图每 3 帧重画一次（20 次 / 秒；红点 300 个时逐个画是 HUD 里最贵的一块）
 		_layer("minimap", [Engine.get_process_frames() / 3, vs], func(): bars.draw_minimap(vs))
 	_layer("mid", null, func():
@@ -263,9 +264,11 @@ func _draw_body() -> void:
 	_layer("top", bars.top_sig(vs), func():
 		bars.draw_top_center(vs)   # 开合批段（顶部中央 + 右上暂停键共用一批）
 		relics.draw_right_top(vs))   # 收合批段：这两行必须相邻
-	relics.register_tray(vs)   # 藏品栏缓存层（藏品 / 等级 / 悬停格变了才重画）
+	if not pq:
+		relics.register_tray(vs)   # 藏品栏缓存层（藏品 / 等级 / 悬停格变了才重画）
 	_layer("boss", null, func(): bars.draw_boss_bars(vs))
-	squad.draw(vs)   # 登记编队栏静态层（squad）与每帧层（squad_fr）
+	if not pq:
+		squad.draw(vs)   # 登记编队栏静态层（squad）与每帧层（squad_fr）
 	_layer("front", null, func():
 		banners.draw_command(vs, ct)   # 指挥模式：屏外队友方向标记 + 当前模式（docs/114）；压在顶栏 / 编队栏之上
 		banners.draw_banner(vs)
@@ -273,7 +276,7 @@ func _draw_body() -> void:
 		banners.draw_open_hints(vs)
 		relics.draw_relic_tooltip(vs)
 		g.touch.draw_hud(vs))
-	if not overlay_left():
+	if not overlay_left() and not pq:
 		var sitems: Array = bars.status_items()
 		_layer("status", bars.status_sig(vs, sitems), func(): bars.draw_status(vs, sitems))
 	_layer("tail", null, func():
@@ -538,10 +541,12 @@ func edge_glow(vs: Vector2, col: Color, w: float) -> void:
 ## 通用提示卡：贴在格子下方（越界时贴上方 / 左移），图标 + 标题 + 副标题 + 折行说明
 func draw_tooltip(vs: Vector2, cr: Rect2, title: String, sub: String, desc: String, icon: String, col: Color, on: CanvasItem = null) -> void:
 	var ci: CanvasItem = g.hud if on == null else on
-	var w := 340.0
+	# 手机横屏（10-26 实机反馈）：框加宽、字放大到可读下限以上（正文 18 起，最小 16）
+	var ph: bool = Cfg.phone_ui()
+	var w := 460.0 if ph else 340.0
 	# 说明按像素宽度折行（旧版按 26 个字硬切，13 号字会超出框）；太长先缩字号，整屏都放不下才截断
-	var fd := UI.fit(g.font, desc, w - 28.0, vs.y - 24.0 - 74.0, [13, 12, 11], 3.0)
-	var h := 66.0 + float(fd.h) + 12.0
+	var fd := UI.fit(g.font, desc, w - 28.0, vs.y - 24.0 - 74.0, [18, 17, 16] if ph else [13, 12, 11], 3.0)
+	var h := (76.0 if ph else 66.0) + float(fd.h) + 12.0
 	var pos := Vector2(clampf(cr.position.x, 12.0, vs.x - w - 12.0), cr.end.y + 8)
 	if pos.y + h > vs.y - 12.0:
 		pos.y = cr.position.y - h - 8
@@ -554,9 +559,9 @@ func draw_tooltip(vs: Vector2, cr: Rect2, title: String, sub: String, desc: Stri
 	if ic != null:
 		ci.draw_texture_rect(ic, Rect2(pos + Vector2(12, 12), Vector2(40, 40)), false)
 		tx0 = 62.0
-	UI.text_fit(ci, g.font, pos + Vector2(tx0, 28), title, 16, Color.WHITE, w - tx0 - 12.0, 12)
-	UI.text_fit(ci, g.font, pos + Vector2(tx0, 48), sub, 12, col, w - tx0 - 12.0, 10)
-	UI.draw_fit(ci, g.font, pos + Vector2(14, 62), fd, Color(0.85, 0.92, 0.95))
+	UI.text_fit(ci, g.font, pos + Vector2(tx0, 30 if ph else 28), title, 20 if ph else 16, Color.WHITE, w - tx0 - 12.0, 12)
+	UI.text_fit(ci, g.font, pos + Vector2(tx0, 54 if ph else 48), sub, 15 if ph else 12, col, w - tx0 - 12.0, 10)
+	UI.draw_fit(ci, g.font, pos + Vector2(14, 72 if ph else 62), fd, Color(0.85, 0.92, 0.95))
 
 
 ## 精英标识（docs/48 P1 / 全局 ⑤）：原来只靠金色描边和脚下 alpha 0.12 的光晕，被灯光压暗、和友方金色撞色，
@@ -669,6 +674,12 @@ const DEATH_LAMP_T := 1.2
 ## 免得从标题背后透出来（10-13 用户反馈「获得藏品」标题与计时器重叠）
 func panel_over_top() -> bool:
 	return g.touch.active and (g.state == Game.S.CHOICE or g.state == Game.S.SHOP)
+
+
+## 手机横屏（10-26 用户 iPhone 实机「挤得太满」）：选卡 / 商店开着时，四周的声呐、藏品栏、编队栏、状态小牌都不画——
+## 面板已经压暗了战斗，这些从卡片四周露出来只会挤。生命 / 灯火条照常（选卡时也要看血量）
+func phone_quiet() -> bool:
+	return Cfg.phone_ui() and panel_over_top()
 
 
 func overlay_left() -> bool:

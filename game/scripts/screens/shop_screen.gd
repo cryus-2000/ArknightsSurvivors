@@ -48,6 +48,11 @@ func build(restart := false) -> void:
 	g.panel_box.add_theme_constant_override("separation", int(sep))
 	var cw: float = minf(160.0, (868.0 - sep * (n - 1)) / maxf(1.0, n))
 	g.panel_title_text = "流浪商人"
+	g.panel_ui.detail_i = -1
+	for a in Cfg.dev_args():   # --carddetail=<n>（截图验收）：直接展开第 n 张货品的详情
+		if a.begins_with("--carddetail="):
+			g.panel_ui.detail_i = int(a.substr(13))
+	var ph: bool = Cfg.phone_ui()   # 手机（10-26 实机挤满）：卡上一句核心效果、大字，完整说明点「详情」
 	for c in g.panel.get_children():
 		if c.has_meta("shopbtn"):
 			c.queue_free()
@@ -89,9 +94,17 @@ func build(restart := false) -> void:
 			g.panel_ui.motion.shop_card_post(card, i))
 		card.mouse_entered.connect(func(): card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
-		card.pressed.connect(g.shop_sys.buy.bind(i))
-		# 触屏说明字先试大 2 号（手机上 12 号只有约 6.5 pt），放不下再退回原字号；手机 18 起（说明区按卡高算）
+		if ph:
+			card.pressed.connect(func():
+				if not g.panel_ui.detail_tap(card, i):
+					g.panel_ui.detail_i = -1
+					g.shop_sys.buy(i))
+		else:
+			card.pressed.connect(g.shop_sys.buy.bind(i))
+		# 触屏说明字先试大 2 号（手机上 12 号只有约 6.5 pt），放不下再退回原字号；手机一句话 20 起、最小 17
 		var szs: Array = ([18, 17, 16, 15, 14] if touch else [14, 13, 12, 11]) if Pad.touch_ui() else [12, 11]
+		if ph:
+			szs = [20, 19, 18, 17]
 		var chips := Affects.chips(g, it)
 		# 触屏：说明区底边留到「影响」标签上方（标签行底在卡底上方 52，每行 22 高，最多 2 行）。原来固定留 60，
 		# 标签一行时压 10、两行时压 32（10-13 手机实测「炸裂之手」说明末行压在标签上）
@@ -104,6 +117,12 @@ func build(restart := false) -> void:
 			var bline: String = g.progression.affinity.relic_lines(str(it.id), true)
 			if bline != "":
 				sdesc += "\n" + bline
+		if ph:
+			card.set_meta("full_desc", sdesc)
+			var bf: String = g.panel_ui.brief(sdesc)
+			card.set_meta("brief", bf)
+			card.set_meta("more", bf != sdesc.strip_edges())
+			sdesc = bf
 		var fs0 := UI.fit(g.font, sdesc, cw - 20.0, (ch - 164.0 - bot) if touch else 64.0, szs)
 		var sc_compact: bool = not fs0.fit
 		if sc_compact:
@@ -146,7 +165,11 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	# 序号在底部价格条里（[ 1 ]）；标签条放不下就只留英文
 	if UI.strip_width(g.font, en_s, cn_s, 11) > r.size.x - 20.0:
 		cn_s = ""
+	if card.get_meta("more", false):
+		cn_s = ""   # 手机：右上有「详情」键，标签条只留英文
 	UI.strip(card, g.font, r.position + Vector2(10, 10), en_s, cn_s, sc, UI.TEXT, 11)
+	if card.get_meta("more", false) and not it.sold:
+		g.panel_ui.draw_detail_chip(card, r, i, true)
 	if it.get("deep", false):
 		UI.chip(card, g.font, r.position + Vector2(10, 36), "深海馈赠", Color(UI.PURPLE.r, UI.PURPLE.g, UI.PURPLE.b, a), 10)
 	var sc_compact: bool = card.get_meta("compact", false)
@@ -169,7 +192,8 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	UI.text(card, g.font, r.position + Vector2(0, 144.0 if sc_compact else 156.0), it.name, fs, Color(1, 1, 1, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 2)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
-		UI.draw_fit(card, g.font, r.position + Vector2(10, 152.0 if sc_compact else 164.0), fd, Color(0.655, 0.69, 0.725, a), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 20.0)
+		var dc := Color(0.86, 0.9, 0.93, a) if card.has_meta("brief") else Color(0.655, 0.69, 0.725, a)
+		UI.draw_fit(card, g.font, r.position + Vector2(10, 152.0 if sc_compact else 164.0), fd, dc, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 20.0)
 	# 作用对象（run/affects.gd）：卡窄，不带「影响」小字，放不下折到第二行；贴着价格条（说明区最多到 232）
 	var chips: Array = card.get_meta("affects", [])
 	if not chips.is_empty():

@@ -190,7 +190,7 @@ func _pointer(p: Vector2, pressed: bool) -> void:
 			drag_offset = offset
 		elif Rect2(28,638,884,14).has_point(p):
 			scroll(offset + (-STRIDE if p.x < 470 else STRIDE))
-		elif p.y >= 666:
+		elif p.y >= (656 if Cfg.phone_ui() else 666):
 			if p.x >= 910: _action("hunt")
 			elif p.x >= 642: _action("meta")
 			elif p.x >= 374: _action("title")
@@ -217,8 +217,14 @@ func _action(action: String) -> void:
 	elif action == "title":
 		g._do_action("title")
 
+## 手机横屏（10-26 用户 iPhone 实机）：整页按 1280×720 缩到约 0.87，11–13 号的小标只剩 6–7 pt；小字一律抬到 PHONE_MIN_FS，
+## 基线不动（字往上长），各标签之间的留白够
+const PHONE_MIN_FS := 15
+
+
 func _text(ci: CanvasItem, x: float, y: float, text: String, size := 18, color := HH.LIGHT, width := -1.0) -> void:
-	ci.draw_string(g.font, Vector2(x, y + size), text, HORIZONTAL_ALIGNMENT_LEFT, width, size, color)
+	var fs := maxi(size, PHONE_MIN_FS) if Cfg.phone_ui() else size
+	ci.draw_string(g.font, Vector2(x, y + size), text, HORIZONTAL_ALIGNMENT_LEFT, width, fs, color)
 
 func draw(ci: CanvasItem, vs: Vector2) -> void:
 	if model.is_empty():
@@ -270,9 +276,10 @@ func draw(ci: CanvasItem, vs: Vector2) -> void:
 	_text(ci,28,679,"作战数据  SELECT" if Pad.using else "作战数据  Tab",16,HH.MUTE)
 	if Cfg.runs_log_enabled():   # 对局记录（测试版 / 对内包）：从设置页挪到这里（10-22 用户），点一下打开记录文件夹
 		_text(ci,206,679,"对局记录",16,HH.MUTE)
-	for b in [[374,250,"返回主界面  B" if Pad.using else "返回主界面  Esc"],[642,250,"认知塑造  Y" if Pad.using else "认知塑造  X"],[910,342,("寻访 ×%d  A" if Pad.using else "寻访 ×%d  Enter") % Roster.tickets()]]:
-		ci.draw_rect(Rect2(b[0],666,b[1],40),HH.CYB if b[0]==910 and Roster.tickets()>0 else HH.DARK2)
-		_text(ci,b[0]+20,676,b[2],18,HH.INK if b[0]==910 and Roster.tickets()>0 else HH.LIGHT)
+	var ph: bool = Cfg.phone_ui()   # 手机：按钮 52 高、字 20，触屏不写键位
+	for b in [[374,250,"返回主界面  B" if Pad.using else ("返回主界面" if ph else "返回主界面  Esc")],[642,250,"认知塑造  Y" if Pad.using else ("认知塑造" if ph else "认知塑造  X")],[910,342,("寻访 ×%d  A" if Pad.using else ("寻访 ×%d" if ph else "寻访 ×%d  Enter")) % Roster.tickets()]]:
+		ci.draw_rect(Rect2(b[0],660 if ph else 666,b[1],52 if ph else 40),HH.CYB if b[0]==910 and Roster.tickets()>0 else HH.DARK2)
+		_text(ci,b[0]+20,673 if ph else 676,b[2],20 if ph else 18,HH.INK if b[0]==910 and Roster.tickets()>0 else HH.LIGHT)
 	ci.draw_set_transform(Vector2.ZERO)
 
 func draw_cards(ci: CanvasItem) -> void:
