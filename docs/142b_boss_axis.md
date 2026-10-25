@@ -416,6 +416,8 @@
 | 冲刺穿身 | 公共判定：正在冲刺，且离本体中心 < 半径 + 24 | `boss_base._dash_through` |
 | 规则横幅 | 每局每条只出一次 | `boss_base._rule_banner` |
 | Kanpelle 激光 | 结算播开启 → 持续 → 关闭。帧条由 `tools/gen_boss_laser.py` 生成，见 §8.5 | `render/boss_beam.gd`、`enemies/telegraph.gd` `_kp` |
+| 专属色表 | §8.4 的 10 色写进 `enemies.json` 的 `bcol`（协调人 10-25：专属色表写 json）。`vfx.boss_color` 和激光帧条脚本都读这一份 | `enemies/enemy_db.gd`、`render/vfx.gd` |
+| Boss 弹专属色 | 弹体换成灰度贴图，乘以专属色（×1.1）；亮描边 ×1.3；光学观感下的拖尾、地面光、光晕同色。不加危险色外圈（用户 10-25：「描边不要加」）。`render/ebullet_boss_own` 0 = 旧口径（整颗危险色） | `render/world.gd` `_eb_tex` / `_eb_mod` / `_eb_gray`、`render/optical.gd` `eb_col` |
 | 每幕一套颗粒 | 本体周围按这一幕的颜色和方向（上升、下落、流入）冒颗粒；换幕那一刻迸出一圈这一幕颜色的颗粒。不闪白（docs/137），只在光学观感颗粒开着时画 | `boss_beam.ACT_LOOK`、`fx_grains` 的 `mote_*` 模板 |
 | 逐幕演示 | `--autotest --bossacts=<type>[+搭档]`：每 7 秒过一道卡点、每 3 帧截一张；`tools/probes/boss_act_gifs.py` 拼 gif 和逐幕对照图 | `run/autotest.gd` |
 

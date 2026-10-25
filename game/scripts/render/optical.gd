@@ -199,8 +199,15 @@ func _fxq_step(on: bool) -> void:
 
 ## 某颗敌弹的颜色（docs/139 §7.3，用户 10-24「子弹颜色就先不用换了，就把 Boss 的换成洋红色」）：Boss 弹（b.boss）用危险色、
 ## 杂兵弹用敌弹色；render/ebullet_boss_danger 0 = Boss 弹也用敌弹色
+## Boss 弹（docs/142b §8.4）：render/ebullet_boss_own 1 = 弹体 / 拖尾 / 地面光用该 Boss 专属色（身份；不加危险色外圈，用户 10-25「描边不要加」）；
+## 0 = 旧口径（ebullet_boss_danger 1 时整颗危险色）
 func eb_col(b: Dictionary) -> Color:
-	return col_danger if b.get("boss", false) and Bal.v("render/ebullet_boss_danger", 1.0) > 0.0 else col_ebullet
+	if b.get("boss", false):
+		if Bal.v("render/ebullet_boss_own", 1.0) > 0.0:
+			return g.vfx.boss_color(str(b.get("src_type", "")))
+		if Bal.v("render/ebullet_boss_danger", 1.0) > 0.0:
+			return col_danger
+	return col_ebullet
 
 
 ## 敌弹弹体换色相（g.tex 同名替换，同压阶帧条的做法；关掉或色相变了换回原图再重做）：粉 / 紫（240–345°）→ 敌弹色色相

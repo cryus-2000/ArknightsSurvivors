@@ -4,7 +4,7 @@
 
 素材包本体不入库（art/third_party，许可见 art/third_party/README.md），本脚本只读它；导出的是加工后的游戏资源。
 
-    python tools/gen_boss_laser.py               # 全部（BOSSES 里列的）
+    python tools/gen_boss_laser.py               # 全部（LASER_BOSSES 里列的）
     python tools/gen_boss_laser.py iberia        # 只出一只
 """
 import os, sys
@@ -15,15 +15,15 @@ OUT = os.path.join(ROOT, "art", "incoming")
 CANDIDATES = [os.path.join(ROOT, "art", "third_party"), os.path.join(ROOT, "..", "..", "..", "art", "third_party")]   # 工作树里没有时用主仓库那份
 SUB = os.path.join("lasers", "kanpelle_ultimate_laser_pack", "Ultimate Laser Pack", "Laser_Beam_Spritesheet_WHITE.png")
 
-# docs/142b §8.4 专属色（近似 RGB 0–1）；§8.5 表里用激光的 6 只
-BOSSES = {
-    "iberia": (1.0, 0.5, 0.2),     # 圣徒伊比利亚 · 炮火橙（手炮）
-    "carmen": (1.0, 0.94, 0.82),   # 圣徒卡门 · 象牙白（狙击 → 封锁线）
-    "paranoia": (0.78, 0.62, 1.0), # “偏执泡影” · 淡紫（凝视）
-    "ishar": (0.25, 1.0, 0.6),     # 伊莎玛拉 · 青绿（三线扫射、泪的共鸣直线）
-    "bishop": (0.3, 0.35, 0.9),    # 接潮主教 · 深海靛蓝（统一 / 换位连线）
-    "archon": (0.35, 0.9, 0.45),   # 接潮蔑死体 · 翠绿（蚀潮吐息）
-}
+# §8.5 表里用激光的 6 只；颜色 = enemies.json 的 bcol（docs/142b §8.4 专属色，游戏里 vfx.boss_color 读同一份）
+LASER_BOSSES = ["iberia", "carmen", "paranoia", "ishar", "bishop", "archon"]   # 手炮 / 狙击 → 封锁线 / 凝视 / 三线扫射与共鸣 / 统一与换位 / 蚀潮吐息
+
+
+def boss_colors():
+    import json
+    d = json.load(open(os.path.join(ROOT, "game", "data", "enemies.json"), encoding="utf-8"))
+    d = d.get("enemies", d)
+    return {k: tuple(d[k]["bcol"]) for k in LASER_BOSSES}
 ROWS = {"src": 0, "src_on": 1, "mid": 2, "mid_on": 3, "hit": 4, "hit_on": 5}
 
 
@@ -54,9 +54,10 @@ def main():
     if src is None:
         sys.exit("找不到素材包白色版：art/third_party/" + SUB.replace(os.sep, "/"))
     sheet = Image.open(src).convert("RGBA")
-    want = sys.argv[1:] or list(BOSSES)
+    cols = boss_colors()
+    want = sys.argv[1:] or LASER_BOSSES
     for boss in want:
-        col = BOSSES[boss]
+        col = cols[boss]
         for seg, row in ROWS.items():
             strip = Image.new("RGBA", (64, 48), (0, 0, 0, 0))
             for f in range(4):

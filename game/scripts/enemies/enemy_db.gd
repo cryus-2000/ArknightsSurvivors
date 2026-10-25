@@ -24,6 +24,9 @@ static func load_enemies() -> Dictionary:
 		if e.has("ecol") and e.ecol is Array:   # 受击 / 击杀碎屑色（combat.gd）
 			var ec: Array = e.ecol
 			e.ecol = Color(ec[0], ec[1], ec[2])
+		if e.has("bcol") and e.bcol is Array:   # Boss 专属色（docs/142b §8.4）：弹体 / 激光本体 / 预警线 / 每幕颗粒，vfx.boss_color 读
+			var bc: Array = e.bcol
+			e.bcol = Color(bc[0], bc[1], bc[2])
 		# JSON 里的整数会读成 float，这几项在代码里按 int 用
 		for ik in ["ammo", "ingots"]:
 			if e.has(ik):

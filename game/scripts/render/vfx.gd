@@ -863,21 +863,22 @@ func spr_on(ci: CanvasItem, name: String, frames: int, frame: int, pos: Vector2,
 
 ## Boss 扩展招式只负责外观；伤害和弹幕由 BossPatterns 结算。
 # Purely cosmetic identity; warning geometry and damage stay in BossAI.
+## 出招签名特效；颜色 = Boss 专属色（enemies.json bcol，docs/142b §8.4，协调人 10-25：专属色表写 json）
 const BOSS_STYLE := {
-	"carmen": [Color(1.0, 0.94, 0.82), "fx_muzzle_flash"],   # 象牙白（原金色与主轴目标金相撞，docs/142b §8.4）
-	"iberia": [Color(1.0, 0.45, 0.2), "fx_muzzle_flash"],
-	"path": [Color(0.7, 0.8, 0.95), "fx_circle_steel"],
-	"bishop": [Color(0.25, 0.85, 0.9), "fx_water_splash"],
-	"archon": [Color(0.5, 0.95, 0.6), "fx_claw_double_green"],
-	"immortal": [Color(0.65, 0.75, 1.0), "fx_slash_arc_deep"],
-	"paranoia": [Color(0.8, 0.4, 1.0), "fx_circle_ghost"],
-	"knight_boss": [Color(0.55, 0.85, 1.0), "fx_knight_impact"],
-	"ishar": [Color(0.25, 1.0, 0.6), "fx_water_splash"],   # 青绿（docs/142b §8.4，用户 10-25 定）
-	"izumik": [Color(0.35, 0.55, 1.0), "fx_felspell"]   # 群青蓝（docs/142b §8.4，用户 10-25 定）
+	"carmen": "fx_muzzle_flash",
+	"iberia": "fx_muzzle_flash",
+	"path": "fx_circle_steel",
+	"bishop": "fx_water_splash",
+	"archon": "fx_claw_double_green",
+	"immortal": "fx_slash_arc_deep",
+	"paranoia": "fx_circle_ghost",
+	"knight_boss": "fx_knight_impact",
+	"ishar": "fx_water_splash",
+	"izumik": "fx_felspell",
 }
 
 func boss_color(type: String) -> Color:
-	return BOSS_STYLE.get(type, [Color(1.0, 0.3, 0.65)])[0]
+	return D.ENEMIES.get(type, {}).get("bcol", Color(1.0, 0.3, 0.65))
 
 func boss_signature(w: Dictionary) -> void:
 	var e: Dictionary = w.owner
@@ -887,7 +888,7 @@ func boss_signature(w: Dictionary) -> void:
 	var pos: Vector2 = w.pos
 	if e.type in ["carmen", "iberia"]:
 		pos = e.pos + Vector2.from_angle(w.get("ang", 0.0)) * 28.0 + Vector2(0, -18)
-	fx_sprite(BOSS_STYLE[e.type][1], pos, 2.0)
+	fx_sprite(BOSS_STYLE[e.type], pos, 2.0)
 	g.fx.append({"kind": "ring", "pos": pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": boss_color(e.type)})
 	for i in range(start, g.fx.size()):
 		g.fx[i]["enemy"] = true

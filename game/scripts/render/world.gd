@@ -1531,7 +1531,44 @@ func _draw_fx() -> void:
 ## 敌方弹幕三遍（无贴图底 → 贴图 → 弹芯描边）+ Boss 刀刃 → 抛射碎石 → 冲击环
 ## Boss 弹画原色弹体（optical._eb_step 换色相时把原图留在 g.tex[名 + "@boss"]；docs/139 §7.3）
 func _eb_tex(b: Dictionary, nm: String) -> String:
+	if b.get("boss", false) and _eb_own():
+		return _eb_gray(nm)
 	return nm + "@boss" if b.get("boss", false) and g.tex.has(nm + "@boss") and Bal.v("render/ebullet_boss_danger", 1.0) > 0.0 else nm
+
+
+## Boss 弹体用专属色（docs/142b §8.4，协调人 10-25；不加危险色外圈，用户 10-25「描边不要加」）：render/ebullet_boss_own 1 = 开
+func _eb_own() -> bool:
+	return Bal.v("render/ebullet_boss_own", 1.0) > 0.0
+
+
+## Boss 弹体的调色：专属色 × 1.1（只略提亮：再高光学辉光一叠色相就偏，炮火橙会变黄）；不是 Boss 弹 / 关掉时用 base
+func _eb_mod(b: Dictionary, base: Color) -> Color:
+	if not (b.get("boss", false) and _eb_own()):
+		return base
+	var c: Color = g.vfx.boss_color(str(b.get("src_type", "")))
+	return Color(c.r * 1.1, c.g * 1.1, c.b * 1.1)
+
+
+## 弹体贴图的灰度版 g.tex[名 + "@gray"]（第一次用时从原色版做：按最亮通道提到 0.35–1.0 的灰、保留透明度），画时乘专属色。纯画面
+func _eb_gray(nm: String) -> String:
+	var key: String = nm + "@gray"
+	if g.tex.has(key):
+		return key
+	var src: Texture2D = g.tex.get(nm + "@boss", g.tex.get(nm))
+	if src == null:
+		return nm
+	var im: Image = src.get_image()
+	if im.is_compressed():
+		im.decompress()
+	im.convert(Image.FORMAT_RGBA8)
+	for y in im.get_height():
+		for x in im.get_width():
+			var c: Color = im.get_pixel(x, y)
+			if c.a > 0.0:
+				var v: float = clampf(0.35 + maxf(c.r, maxf(c.g, c.b)) * 0.75, 0.0, 1.0)
+				im.set_pixel(x, y, Color(v, v, v, c.a))
+	g.tex[key] = ImageTexture.create_from_image(im)
+	return key
 
 
 func _draw_ebullets_lobs_shocks() -> void:
@@ -1577,13 +1614,13 @@ func _draw_ebullets_lobs_shocks() -> void:
 			g.vfx.spr_rot(btex, int(g.t * float(bspec[1]) + b.pos.x * 0.01) % int(bspec[0]), bp, b.vel.angle(), Game.PX)
 		elif kd == "nerve" and g.tex.get("proj_floater_nerve") != null:
 			# 浮海飘航者神经弹（V8 proj_floater_nerve，朝右绘制按速度方向旋转）
-			g.vfx.spr_rot(_eb_tex(b, "proj_floater_nerve"), int(g.t * 12.0 + b.pos.x * 0.01) % 4, bp, b.vel.angle(), Game.PX)
+			g.vfx.spr_rot(_eb_tex(b, "proj_floater_nerve"), int(g.t * 12.0 + b.pos.x * 0.01) % 4, bp, b.vel.angle(), Game.PX, _eb_mod(b, Color.WHITE))
 		elif kd == "acid" and g.tex.get("proj_acid") != null:
 			g.vfx.spr("proj_acid", 2, int(g.t * 8.0 + b.pos.x * 0.01) % 2, bp, _hpx("proj_acid"), false, Color(1.5, 1.5, 1.5))   # Codex v14 酸团（暗橄榄，避开友方黄绿）；×1.5 提亮，压过地图暗环境光（原程序圆也是过曝色）
 		elif kd == "nova" and g.tex.get("proj_nova") != null:
-			g.vfx.spr(_eb_tex(b, "proj_nova"), 4, int(g.t * 10.0 + b.pos.x * 0.01) % 4, bp, _hpx("proj_nova"), false, Color(1.5, 1.5, 1.5))   # Codex v14 新星弹；×1.5 提亮同上
+			g.vfx.spr(_eb_tex(b, "proj_nova"), 4, int(g.t * 10.0 + b.pos.x * 0.01) % 4, bp, _hpx("proj_nova"), false, _eb_mod(b, Color(1.5, 1.5, 1.5)))   # Codex v14 新星弹；×1.5 提亮同上；Boss 弹 = 专属色
 		elif kd != "acid" and kd != "nova" and kd != "nerve" and kd != "boss_blade":
-			g.vfx.spr(_eb_tex(b, "ebullet"), 1, 0, bp, Game.PX * b.r / 5.0)
+			g.vfx.spr(_eb_tex(b, "ebullet"), 1, 0, bp, Game.PX * b.r / 5.0, false, _eb_mod(b, Color.WHITE))
 	var eb_ow: float = Bal.v("render/ebullet_outline", 0.0) if g.optical_on else 0.0
 	for b in g.ebullets:
 		var kd: String = b.get("kind", "orb")
@@ -1608,12 +1645,16 @@ func _draw_ebullets_lobs_shocks() -> void:
 					tb_circle(bp, b.r, Color(1.8, 1.6, 0.5))
 		if g.optical_on:
 			var ebc: Color = g.optical.eb_col(b)
-			tb_ring(bp, b.r + 2.0, 1.5, Color(ebc.r * 2.0, ebc.g * 2.0, ebc.b * 2.0, 0.9))   # 亮描边改敌弹色（原亮洋红）
+			var bk: float = 1.3 if b.get("boss", false) and _eb_own() else 2.0   # Boss 弹专属色亮描边只提到 ×1.3（×2 叠辉光后色相偏）
+			tb_ring(bp, b.r + 2.0, 1.5, Color(ebc.r * bk, ebc.g * bk, ebc.b * bk, 0.9))   # 亮描边改敌弹色（原亮洋红）；Boss 弹 = 专属色
 			var ow: float = eb_ow
 			if ow > 0.0:
 				# docs/139 §7 敌弹外描边（用户 10-24「敌方子弹加一个描边看一下」）：危险色、不闪，宽 ow 世界像素（2 = 1 个低分辨率格），压在亮描边外侧
 				var dc: Color = g.optical.col_danger
 				tb_ring(bp, b.r + 3.0 + ow * 0.5, ow, Color(dc.r, dc.g, dc.b, 1.0))
+		elif b.get("boss", false) and _eb_own():
+			var bc: Color = g.vfx.boss_color(str(b.get("src_type", "")))
+			tb_ring(bp, b.r + 2.0, 1.5, Color(bc.r * 1.3, bc.g * 1.3, bc.b * 1.3, 0.9))   # Boss 弹亮描边 = 专属色（不加危险色外圈，用户 10-25「描边不要加」）
 		else:
 			tb_ring(bp, b.r + 2.0, 1.5, Color(2.4, 0.8, 1.8, 0.9))
 	tb_flush()
