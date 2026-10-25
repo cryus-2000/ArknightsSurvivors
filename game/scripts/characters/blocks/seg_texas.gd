@@ -962,7 +962,147 @@ static func tx_rift_draw_body(o) -> bool:
 ## 刀痕（kind = tx_scar）：像素刀口——2 px 格，两头尖、中间宽（宽度按 sin 起伏，最宽 wmax 格），整条略带弧度（bow × 长度，向一侧鼓）；
 ## 中心一条白芯（只在够宽的那段）、外面她本色压红的阶梯硬边、边缘按下标错开一格做毛边；0.07 秒内从起点划到终点，刀尖一格更亮；最后 35% 寿命逐格碎掉
 static func tx_scar_draw(o, f: Dictionary, a: float) -> bool:
-	var cv = o.cv
+	if o.g.opt_old & o.g.OPT_TXS:
+		return _tx_scar_draw_old(o.cv, o, f, a)
+	if _txs_check < 0:
+		_txs_check = 1 if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--txscheck") else 0   # 发布版不读命令行；不用 Cfg：核心契约测试无 autoload
+	if _txs_check == 1:
+		_tx_scar_verify(o, f, a)
+	return _tx_scar_draw_cached(o.cv, o, f, a)
+
+
+## --txscheck（docs/50 §31，仅测试）：每次画刀痕时新旧两种写法各画进一个新的合批画布（变换 / 调色同干员画布），逐位比攒下的顶点与颜色；
+## 次数进 BALANCE prof.txs_checked / txs_verts，不一致记 txs_bad 并报 SCRIPT ERROR
+static var _txs_check := -1
+
+
+static func _tx_scar_verify(o, f: Dictionary, a: float) -> void:
+	var g = o.g
+	var cvs: Array = []
+	for k in 2:
+		var bc = o.cv.get_script().new(g)
+		bc.active = true
+		bc.xf = o.cv.xf
+		bc.set_mod(o.cv.amul, o.cv.dsat, o.cv.boost, o.cv.tint)
+		cvs.append(bc)
+	_tx_scar_draw_old(cvs[0], o, f, a)
+	_tx_scar_draw_cached(cvs[1], o, f, a)
+	g.prof["txs_checked"] = int(g.prof.get("txs_checked", 0)) + 1
+	g.prof["txs_verts"] = int(g.prof.get("txs_verts", 0)) + cvs[0]._pts.size()
+	if cvs[0]._pts != cvs[1]._pts or cvs[0]._cols != cvs[1]._cols:
+		g.prof["txs_bad"] = int(g.prof.get("txs_bad", 0)) + 1
+		push_error("刀痕缓存与旧写法不一致：旧 %d 顶点 / 新 %d 顶点" % [cvs[0]._pts.size(), cvs[1]._pts.size()])
+
+
+## 刀痕格子表（docs/50 §31）：几何只由 a / c / bow / wmax 定，第一次画（及 wmax 换档）时按原算式把每一步的格子算好存在 f._scq[wmax]：
+## cs[i]..cs[i+1] 是第 i 步的格子，cp 左上角、ck 类别（0 刀芯白 / 1 刀身 / 2 暗边），dl[ds[c]..ds[c+1]] 是比它早、落在同一格的那些步号。
+## 逐帧只剩：第 i 步亮没亮、熔没熔；同格里最早一个没熔的那步画（与原来按顺序 seen 去重同一结果）
+static func _tx_scar_cells(f: Dictionary, wmax: float) -> Dictionary:
+	var qs: Dictionary = f.get("_scq", {})
+	if qs.has(wmax):
+		return qs[wmax]
+	var p0: Vector2 = f.a
+	var p1: Vector2 = f.c
+	var seg: Vector2 = p1 - p0
+	var L: float = seg.length()
+	var d: Vector2 = seg / L
+	var nv: Vector2 = d.orthogonal()
+	var cell: float = RIFT_CELL
+	var bow: float = float(f.get("bow", 0.07)) * L
+	var steps: int = int(L / cell)
+	var seed: float = float(int(absf(p0.x)) % 7) * 0.13
+	var cs := PackedInt32Array()
+	var cp := PackedVector2Array()
+	var v6 := PackedVector2Array()   # 每格 6 个顶点（batch_canvas.add_cells）
+	var ck := PackedByteArray()
+	var ds := PackedInt32Array()
+	var dl := PackedInt32Array()
+	var mv := PackedFloat64Array()
+	var owners := {}   # 格 → 落在这一格的步号（按出现顺序）
+	for i in steps:
+		cs.append(cp.size())
+		mv.append(fposmod(float(i) * 0.6180339 + seed, 1.0))
+		var u: float = float(i) / float(maxi(1, steps))
+		var prof: float = pow(sin(PI * u), 0.7)
+		var q: Vector2 = p0 + d * (u * L) + nv * (bow * sin(PI * u))
+		var hw: int = int(round(prof * wmax * 0.5 + (0.5 if (i * 7) % 5 == 0 else 0.0)))
+		for w in range(-hw, hw + 1):
+			var e: Vector2 = q + nv * (float(w) * cell)
+			var key := Vector2i(int(floorf(e.x / cell)), int(floorf(e.y / cell)))
+			var prev = owners.get(key)
+			if prev == null:
+				prev = PackedInt32Array()
+			ds.append(dl.size())
+			dl.append_array(prev)
+			prev.append(i)
+			owners[key] = prev
+			var r0 := Rect2(Vector2(key) * cell, Vector2(cell, cell))
+			cp.append(r0.position)
+			v6.append_array(PackedVector2Array([r0.position, r0.position + Vector2(r0.size.x, 0.0), r0.end, r0.position, r0.end, r0.position + Vector2(0.0, r0.size.y)]))
+			var aw: int = absi(w)
+			ck.append(0 if (aw == 0 and hw >= 1) else (1 if aw < hw else 2))
+	cs.append(cp.size())
+	ds.append(dl.size())
+	var out := {"cs": cs, "cp": cp, "v6": v6, "ck": ck, "ds": ds, "dl": dl, "mv": mv}
+	qs[wmax] = out
+	f["_scq"] = qs
+	return out
+
+
+static func _tx_scar_draw_cached(cv, o, f: Dictionary, a: float) -> bool:   # cv：干员画布（--txscheck 时是记录器）
+	var p0: Vector2 = f.a
+	var p1: Vector2 = f.c
+	var seg: Vector2 = p1 - p0
+	var L: float = seg.length()
+	if L < 1.0:
+		return true
+	var d: Vector2 = seg / L
+	var nv: Vector2 = d.orthogonal()
+	var el: float = float(f.max) - float(f.life)
+	var reach: float = clampf(el / float(f.get("sweep", 0.07)), 0.0, 1.0)
+	var frac: float = float(f.life) / float(f.max)
+	var melt: float = clampf((0.35 - frac) / 0.35, 0.0, 1.0)
+	var edge: Color = f.col
+	edge = Color(maxf(edge.r, 0.9), edge.g * 0.45, edge.b * 0.4)
+	var dark := Color(edge.r * 0.55, edge.g * 0.4, edge.b * 0.4)
+	var cell: float = RIFT_CELL
+	var bow: float = float(f.get("bow", 0.07)) * L
+	var wmax: float = float(f.get("wmax", 3.0)) * (1.0 if frac < 0.85 else 1.25)
+	var steps: int = int(L / cell)
+	var lit: int = int(reach * float(steps))
+	var al: float = a * (0.45 + 0.55 * clampf(frac * 3.0, 0.0, 1.0))
+	var cols := [Color(2.0, 2.0, 2.0, al), Color(edge.r * 1.3, edge.g * 1.3, edge.b * 1.3, al), Color(dark.r, dark.g, dark.b, 0.8 * al)]
+	var q: Dictionary = _tx_scar_cells(f, wmax)
+	var cs: PackedInt32Array = q.cs
+	var cp: PackedVector2Array = q.cp
+	var ck: PackedByteArray = q.ck
+	var ds: PackedInt32Array = q.ds
+	var dl: PackedInt32Array = q.dl
+	var mv: PackedFloat64Array = q.mv
+	var csz := Vector2(cell, cell)
+	var melting: bool = melt > 0.0
+	var sel := PackedInt32Array()
+	for i in lit:
+		if melting and mv[i] < melt:
+			continue
+		for c in range(cs[i], cs[i + 1]):
+			var taken := false
+			for k in range(ds[c], ds[c + 1]):
+				if not (melting and mv[dl[k]] < melt):
+					taken = true   # 更早的一步已经画了这一格
+					break
+			if not taken:
+				sel.append(c)
+	cv.add_cells(q.v6, cp, csz, sel, ck, cols)
+	if reach < 1.0 and lit > 0:   # 刀尖：正在划的那一格更亮
+		var ut: float = float(lit) / float(maxi(1, steps))
+		var tip: Vector2 = p0 + d * (ut * L) + nv * (bow * sin(PI * ut))
+		cv.draw_rect(Rect2(Vector2(floorf(tip.x / cell), floorf(tip.y / cell)) * cell - Vector2(cell, cell) * 0.5, Vector2(cell, cell) * 2.0), Color(2.4, 2.4, 2.4, a))
+	return true
+
+
+## 旧路径（--optold=8388608 对照）：逐帧按格重算 + 字典去重
+static func _tx_scar_draw_old(cv, o, f: Dictionary, a: float) -> bool:   # cv：干员画布（--txscheck 时是记录器）
 	var p0: Vector2 = f.a
 	var p1: Vector2 = f.c
 	var seg: Vector2 = p1 - p0

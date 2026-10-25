@@ -257,6 +257,38 @@ func draw_rect(rect: Rect2, col: Color, filled := true, width := -1.0, aa := fal
 		_strip(PackedVector2Array([p0, p1, p2, p3, p0]), col, width)   # 闭合带斜接：四个角是满的
 
 
+
+## 一批同尺寸的实心矩形一次并进批（德克萨斯刀痕格子，docs/50 §31）：v6 每格 6 个顶点（同 draw_rect → _quad 的 p0 p1 p2 p0 p2 p3），
+## sel 是要画的格子（按画的先后），cat[格] 选 cols 里的颜色。颜色按 _dim 换算一次（逐格换算结果相同），连号的格子整段切片并入；
+## 顶点与颜色和逐格 draw_rect(Rect2(cp[格], csz), cols[cat[格]]) 逐位相同。不在合批阶段时就逐格 draw_rect
+func add_cells(v6: PackedVector2Array, cp: PackedVector2Array, csz: Vector2, sel: PackedInt32Array, cat: PackedByteArray, cols: Array) -> void:
+	if mute:
+		return
+	if not active:
+		for c in sel:
+			draw_rect(Rect2(cp[c], csz), cols[cat[c]])
+		return
+	var blk: Array = []
+	for col in cols:
+		var b := PackedColorArray()
+		b.resize(6)
+		b.fill(_dim(col) if mod_on else col)
+		blk.append(b)
+	var q := PackedVector2Array()
+	var qc := PackedColorArray()
+	var n: int = sel.size()
+	var k := 0
+	while k < n:
+		var e := k + 1
+		while e < n and sel[e] == sel[e - 1] + 1:
+			e += 1
+		q.append_array(v6.slice(6 * sel[k], 6 * (sel[e - 1] + 1)))
+		for m in range(k, e):
+			qc.append_array(blk[cat[sel[m]]])
+		k = e
+	_pts.append_array(q if xf == Transform2D.IDENTITY else xf * q)
+	_cols.append_array(qc)
+
 # ---------------------------------------------------------------- 内部
 
 ## 圆周分段：和屏幕上的大小相称（小点 10 段，大圈到 48 段）

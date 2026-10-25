@@ -1,7 +1,8 @@
 """原生敌人绘制（docs/50 §30 EnemyRender）的画面对照：同一份代码、同 seed、同帧，--optold=OPT_NR（GDScript 原路径）跑两次（旧对旧 = 噪声底）、
 原生跑一次，逐像素比；另录 --autotest --worldspec / --fxtest 摆拍各一组。随机噪声源关掉（CPU 颗粒、GPU 粒子常关、焦散、地面荧光斑）。
 
-  python tools/probes/nr_pixcmp.py rec <标签> [--t=560] [--n=30] [--seed=13] [--squad=skalter,texas,exusiai] [--quality=mid] [--more="..."] [--groups=run,worldspec,fxtest]
+  python tools/probes/nr_pixcmp.py rec <标签> [--t=560] [--n=30] [--seed=13] [--squad=skalter,texas,exusiai] [--quality=mid] [--more="..."] [--groups=run,worldspec,fxtest] [--opt=4194304]
+  --opt：对照的优化位（缺省 OPT_NR；德克萨斯刀痕缓存 OPT_TXS = 8388608，docs/50 §31）
   D:/Anaconda/python.exe tools/probes/nr_pixcmp.py cmp <标签>      # 要 PIL：逐帧 旧对旧 / 旧对新 差异像素数，差异最大一帧另存三联图
 """
 import os
@@ -20,12 +21,12 @@ def out_dir(tag):
     return os.path.join(gr.common_root(), "build", "perf_stack", "nrpix_" + tag)
 
 
-def rec(tag, t, n, seed, squad, quality, more, groups):
+def rec(tag, t, n, seed, squad, quality, more, groups, opt=OPT_NR):
     import godot_runner as gr
     gr.ensure_imported(os.path.join(ROOT, "game"))
     out = out_dir(tag)
     sq = squad.split(",")
-    for name, extra in ((("old1", ["--optold=%d" % OPT_NR]), ("old2", ["--optold=%d" % OPT_NR]), ("new", [])) if "run" in groups else ()):
+    for name, extra in ((("old1", ["--optold=%d" % opt]), ("old2", ["--optold=%d" % opt]), ("new", [])) if "run" in groups else ()):
         d = os.path.join(out, "run", name)
         os.makedirs(d, exist_ok=True)
         args = [gr.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "60", "--resolution", "1280x720", "--",
@@ -34,7 +35,7 @@ def rec(tag, t, n, seed, squad, quality, more, groups):
         o, e, to = gr.run_godot(args, 2400)
         print(name, "超时" if to else "完成", len([f for f in os.listdir(d) if f.endswith(".png")]), "帧", gr.script_errors(o, e)[:3])
     for flag in [f for f in ("--worldspec", "--fxtest") if f[2:] in groups]:
-        for name, extra in (("old1", ["--optold=%d" % OPT_NR]), ("old2", ["--optold=%d" % OPT_NR]), ("new", [])):
+        for name, extra in (("old1", ["--optold=%d" % opt]), ("old2", ["--optold=%d" % opt]), ("new", [])):
             d = os.path.join(out, flag[2:], name)
             os.makedirs(d, exist_ok=True)
             args = [gr.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "60", "--resolution", "1280x720", "--",
@@ -87,6 +88,6 @@ if __name__ == "__main__":
     pos = [x for x in a if not x.startswith("--")]
     if pos[0] == "rec":
         rec(pos[1], float(opt.get("--t", "560")), int(opt.get("--n", "30")), int(opt.get("--seed", "13")), opt.get("--squad", "skalter,texas,exusiai"),
-            opt.get("--quality", "mid"), opt.get("--more", ""), opt.get("--groups", "run,worldspec,fxtest").split(","))
+            opt.get("--quality", "mid"), opt.get("--more", ""), opt.get("--groups", "run,worldspec,fxtest").split(","), int(opt.get("--opt", str(OPT_NR))))
     else:
         cmp(pos[1])

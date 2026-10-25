@@ -479,6 +479,7 @@ const OPT_CPP := 131072   # 原生代码对照位（docs/101 §4.7 / B8）：置
 ## docs/50 §21（10-21，网页为主基准）：
 const OPT_HUDSQ := 524288   # HUD 编队栏：各干员 skill_hud() / portrait() 每帧取一次共用，每帧层不再算名字 / 精英标签；置位走旧写法（每帧取 2–3 次）。画面相同
 const OPT_NR := 4194304     # 原生敌人绘制（docs/50 §30，ark_native EnemyRender）：置位走 GDScript 原路径；没有扩展时恒走 GDScript。画面相同
+const OPT_TXS := 8388608    # 德克萨斯刀痕（seg_texas tx_scar_draw，docs/50 §31）：格子几何按刀痕缓存；置位走旧写法（逐帧逐格重算 + 字典去重）。画面相同
 const OPT_HUDNC := 2097152   # HUD 块缓存（docs/126 §9.2）：置位时所有 HUD 块每帧画（同 --hudnocache），供 --optab 同局轮换量缓存的净收益。画面相同
 const OPT_TOUCHB := 1048576  # 触屏按钮（touch.gd draw_hud）：圆 / 弧 / 线进 TriBatch、图标与字随后成组画；置位走旧写法（逐个 draw_*）。画面相同（按钮互不重叠时）
 var bal_dt := 0.066             # --dt=<秒>（仅 --balance）：批跑每帧步长，缺省 0.066（9/30 起所有难度校准 / 云端基线的口径）；按位移判定的改动可用 --dt=0.016667 抽查（docs/36 §8.2）

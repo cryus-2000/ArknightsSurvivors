@@ -1135,7 +1135,7 @@ func _sorted_native() -> void:
 				var e: Dictionary = _vis_ent[int(af[j])]
 				_affix_fx(e, Vector2(af[j + 1], af[j + 2]), _enemy_top(e))
 		elif st == 1:
-			draw_enemy(_vis_ent[seg[i + 1]])
+			_se_draw(_vis_ent[seg[i + 1]], 0)
 		else:
 			_se_draw(objs[seg[i + 1]], kind[seg[i + 1]])
 		i += 3
@@ -1253,6 +1253,19 @@ func _sorted_fast(evr: Rect2) -> bool:
 
 
 func _se_draw(ob, kd: int) -> void:
+	if g.prof_on:   # --prof：排序实体按种类细分（se_<种类>，微秒累计进 g.prof；docs/50 §31）
+		var t0 := Time.get_ticks_usec()
+		_se_draw_k(ob, kd)
+		var k: String = SE_PROF_KEY[kd]
+		g.prof[k] = int(g.prof.get(k, 0)) + Time.get_ticks_usec() - t0
+		return
+	_se_draw_k(ob, kd)
+
+
+const SE_PROF_KEY := ["se_enemy", "se_1", "se_player", "se_prop", "se_knight", "se_op", "se_op_extra"]
+
+
+func _se_draw_k(ob, kd: int) -> void:
 	match kd:
 		0:
 			draw_enemy(ob)
@@ -1274,7 +1287,9 @@ func _se_draw(ob, kd: int) -> void:
 
 ## 敌人身上层（词条特效批、弱点菱形）→ 干员技能上层 → 护盾 → 无人机三遍（影子光晕 / 机体 / 核心）
 func _draw_overlays_shield_drones() -> void:
+	var t0: int = Time.get_ticks_usec() if g.prof_on else 0
 	_afx_flush()
+	t0 = _pq("so_afx", t0)
 	if _nr_on:
 		var wt: Array = _nr.weak_take()
 		var wps: PackedVector2Array = wt[0]
@@ -1290,8 +1305,11 @@ func _draw_overlays_shield_drones() -> void:
 			tb_line(t4[q], t4[(q + 1) % 4], wcc, 1.0)
 	weak_marks.clear()
 	tb_flush()
+	t0 = _pq("so_weak", t0)
 	g.squad.draw_skill_over()
+	t0 = _pq("so_skill_over", t0)
 	draw_shield()
+	t0 = _pq("so_shield", t0)
 	# 无人机：影子 + 光晕一批 → 机体贴图（同贴图连续，自动合批）→ 核心亮点一批（性能 docs/50 §9 ②：原来每架 4 次绘制调用）
 	for dr in g.drones:
 		tb_circle(dr.pos + Vector2(0, 96), 9.0, Color(0, 0, 0, 0.35), 0.4, 14)
@@ -1311,6 +1329,16 @@ func _draw_overlays_shield_drones() -> void:
 	for dr in g.drones:
 		tb_circle(dr.pos + Vector2(0, 8), 3.0, Color(1.2, 2.6, 1.6, 0.6 + 0.3 * sin(g.t * 8.0)), 1.0, 8)
 	tb_flush()
+	_pq("so_drones", t0)
+
+
+## --prof：段内细分计时（键 k 累计 now - t0 微秒，返回 now；不开 --prof 时什么都不做，返回 0）
+func _pq(k: String, t0: int) -> int:
+	if not g.prof_on:
+		return 0
+	var now := Time.get_ticks_usec()
+	g.prof[k] = int(g.prof.get(k, 0)) + now - t0
+	return now
 
 
 ## 友方投射物：V6 帧条按速度方向旋转（程序只画拖尾）；没贴图的按种类程序画
