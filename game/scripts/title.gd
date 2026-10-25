@@ -339,7 +339,11 @@ func _ready() -> void:
 		get_tree().create_timer(2.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_title.png")
 			get_tree().quit())
-	if Cfg.dev_args().has("--autotest") or Cfg.dev_args().has("--balance"):
+	var tour_demo := false   # --tourdemo / --tipdemo=<id>：真人局（不带机器人）直接进对局演引导 / 小提示（screens/tour.gd）
+	for a in Cfg.dev_args():
+		if a == "--tourdemo" or a.begins_with("--tipdemo="):
+			tour_demo = true
+	if Cfg.dev_args().has("--autotest") or Cfg.dev_args().has("--balance") or tour_demo:
 		if A.prewarm_busy() or Sfx.warm_busy() or Cfg.dev_args().has("--loadprof"):
 			auto_go = true   # 开窗口的自测：等法线图预热完（同玩家路径），黑屏时长才有可比性；--loadprof 一律走载入页（量玩家路径）
 		else:

@@ -82,9 +82,9 @@ func end_opening() -> void:
 	g.lamp_light.energy = 1.15
 	g.state = Game.S.PLAY
 	g.release_entry_voices()   # 跳过开场：没等到着地也放
-	# 指南只在第一次自动打开（协调人 10-01 定）；看过以后直接进局，暂停菜单「指南」可随时重看
+	# 首局改聚光框引导（协调人 10-26，screens/tour.gd）；翻页指南只在暂停菜单「指南」里重看
 	if not Cfg.seen_intro:
-		open(Game.S.PLAY)
+		g.tour.start()
 
 
 func draw_opening_hud(vs: Vector2) -> void:
@@ -172,6 +172,9 @@ func close() -> void:
 
 
 func draw(vs: Vector2) -> void:
+	if g.tour.active:
+		g.tour.draw(vs)
+		return
 	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.0, 0.02, 0.04, 0.88))
 	var pg: Dictionary = pages()[g.intro_page]
 	var rh: float = minf(570.0, vs.y - 16.0)
