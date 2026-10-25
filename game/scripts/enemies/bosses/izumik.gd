@@ -5,7 +5,7 @@
 ## 机制不占名额：学习期 / 子代 / 吸收 / 灯柱
 extends "res://scripts/enemies/bosses/boss_base.gd"
 
-const COL := Color(0.5, 1.0, 0.7)
+const COL := Color(0.4, 0.6, 1.0)   # 群青蓝（docs/142b §8.4）
 const MOVES := ["潮汐坠落", "解读旋涡", "分享", "震撼"]
 
 

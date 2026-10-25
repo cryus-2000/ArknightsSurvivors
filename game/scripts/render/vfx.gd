@@ -864,7 +864,7 @@ func spr_on(ci: CanvasItem, name: String, frames: int, frame: int, pos: Vector2,
 ## Boss 扩展招式只负责外观；伤害和弹幕由 BossPatterns 结算。
 # Purely cosmetic identity; warning geometry and damage stay in BossAI.
 const BOSS_STYLE := {
-	"carmen": [Color(1.0, 0.76, 0.3), "fx_muzzle_flash"],
+	"carmen": [Color(1.0, 0.94, 0.82), "fx_muzzle_flash"],   # 象牙白（原金色与主轴目标金相撞，docs/142b §8.4）
 	"iberia": [Color(1.0, 0.45, 0.2), "fx_muzzle_flash"],
 	"path": [Color(0.7, 0.8, 0.95), "fx_circle_steel"],
 	"bishop": [Color(0.25, 0.85, 0.9), "fx_water_splash"],
@@ -872,8 +872,8 @@ const BOSS_STYLE := {
 	"immortal": [Color(0.65, 0.75, 1.0), "fx_slash_arc_deep"],
 	"paranoia": [Color(0.8, 0.4, 1.0), "fx_circle_ghost"],
 	"knight_boss": [Color(0.55, 0.85, 1.0), "fx_knight_impact"],
-	"ishar": [Color(0.2, 1.0, 0.85), "fx_water_splash"],
-	"izumik": [Color(0.55, 1.0, 0.65), "fx_felspell"]
+	"ishar": [Color(0.25, 1.0, 0.6), "fx_water_splash"],   # 青绿（docs/142b §8.4，用户 10-25 定）
+	"izumik": [Color(0.35, 0.55, 1.0), "fx_felspell"]   # 群青蓝（docs/142b §8.4，用户 10-25 定）
 }
 
 func boss_color(type: String) -> Color:

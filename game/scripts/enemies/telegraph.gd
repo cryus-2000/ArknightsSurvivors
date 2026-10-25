@@ -249,12 +249,14 @@ func warn_resolve(w: Dictionary) -> void:
 			Sfx.play("hit", -9.0, 1.4)
 			warn_damage(w)
 		"tide_link":
-			g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.55, "max": 0.55, "col": c, "enemy": true})
+			if not _kp(w, w.pos, w.pos + dv * w.len):
+				g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.55, "max": 0.55, "col": c, "enemy": true})
 			g.vfx.fx_sprite("fx_water_splash", w.pos + dv * w.len, g.PX * 1.2)
 			Sfx.play("tentacle", -8.0, 1.1)
 			warn_damage(w)
 		"ishar_echo":
-			g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.55, "max": 0.55, "col": c, "enemy": true})
+			if not _kp(w, w.pos, w.pos + dv * w.len):
+				g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.55, "max": 0.55, "col": c, "enemy": true})
 			g.vfx.fx_sprite("fx_water_splash", w.pos, g.PX * 1.0)
 			Sfx.play("tentacle", -8.0, 1.25)
 			warn_damage(w)
@@ -282,7 +284,8 @@ func warn_resolve(w: Dictionary) -> void:
 			g.vfx.shake_screen(0.3)
 			warn_damage(w)
 		"ishar_line":
-			g.fx.append({"kind": "bbeam", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.28, "max": 0.28, "col": c, "wid": w.wid})
+			if not _kp(w, w.pos, w.pos + dv * w.len):
+				g.fx.append({"kind": "bbeam", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.28, "max": 0.28, "col": c, "wid": w.wid})
 			if g.vfx.fx_sprite("fx_ishar_line_muzzle", w.pos + dv * 30.0, g.PX * 1.2, w.ang):
 				g.fx[g.fx.size() - 1]["enemy"] = true   # 每条线起点的棘鳍闪光（Codex fx_ishar_line_muzzle；缺图只有光束）
 			Sfx.enemy("spit", e.pos.distance_to(g.ppos))
@@ -374,7 +377,8 @@ func warn_resolve(w: Dictionary) -> void:
 			warn_damage(w)
 		"beam":
 			var b2: Vector2 = w.pos + dv * w.len
-			g.fx.append({"kind": "bbeam", "a": w.pos + Vector2(0, -20), "b": b2, "life": 0.5, "max": 0.5, "col": c, "wid": w.wid})
+			if not _kp(w, w.pos + Vector2(0, -20), b2):
+				g.fx.append({"kind": "bbeam", "a": w.pos + Vector2(0, -20), "b": b2, "life": 0.5, "max": 0.5, "col": c, "wid": w.wid})
 			if e.type == "paranoia":
 				# 凝视命中端的紫白爆点（Codex fx_paranoia_gaze_hit；缺图只有光束）：画在主控被打到的位置，没打到画在线端
 				var hp: Vector2 = Geometry2D.get_closest_point_to_segment(g.ppos + Vector2(0, -14), w.pos, b2) if hits_leader(w) else b2
@@ -406,9 +410,10 @@ func warn_resolve(w: Dictionary) -> void:
 			warn_damage(w)
 		"breath":
 			# 蚀潮吐息（蔑死体，docs/95 §9.2 C）：口部射出的腐蚀流；Codex fx_archon_breath（左中原点朝右，按线长拉伸）缺图走程序光束
-			g.fx.append({"kind": "bbeam", "a": w.pos + Vector2(0, -16), "b": w.pos + dv * w.len, "life": 0.4, "max": 0.4, "col": c, "wid": w.wid, "enemy": true})
-			if g.vfx.fx_sprite("fx_archon_breath", w.pos + Vector2(0, -16), g.PX * w.len / 320.0, w.ang, false, false, Color.WHITE, false, Vector2(0, 24)):
-				g.fx[g.fx.size() - 1]["enemy"] = true
+			if not _kp(w, w.pos + Vector2(0, -16), w.pos + dv * w.len):
+				g.fx.append({"kind": "bbeam", "a": w.pos + Vector2(0, -16), "b": w.pos + dv * w.len, "life": 0.4, "max": 0.4, "col": c, "wid": w.wid, "enemy": true})
+				if g.vfx.fx_sprite("fx_archon_breath", w.pos + Vector2(0, -16), g.PX * w.len / 320.0, w.ang, false, false, Color.WHITE, false, Vector2(0, 24)):
+					g.fx[g.fx.size() - 1]["enemy"] = true
 			Sfx.play("tentacle", -6.0, 1.3)
 			g.vfx.shake_screen(0.3)
 			warn_damage(w)
@@ -477,6 +482,14 @@ func warn_resolve(w: Dictionary) -> void:
 			Sfx.play("swing", -6.0, 0.9)
 			warn_damage(w)
 
+
+
+## Boss 激光（Kanpelle 帧条，docs/142b §8.5）：预警带 kp（帧条里的 Boss 段名）就画 kp_beam，返回 true = 调用方跳过原来的光束画法；kp_k = 粗细
+func _kp(w: Dictionary, a: Vector2, b: Vector2) -> bool:
+	if str(w.get("kp", "")) == "":
+		return false
+	g.fx.append({"kind": "kp_beam", "a": a, "b": b, "life": 0.42, "max": 0.42, "boss": str(w.kp), "k": float(w.get("kp_k", 2.0)), "enemy": true})
+	return true
 
 
 ## 小怪器官攻击的出手特效（docs/96 §2.2，Codex 第 2 批：收割者镰肢 fx_reaper_scythe、引痕者触须刺击 fx_tracer_thrust（狂暴 _enraged）、巢涌者触须横扫 fx_nest_sweep）：

@@ -28,6 +28,22 @@ func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> 
 	if sq != null and sq.priority != 0 and not bool(get("is_leader")):
 		return _prio_enemies(n, max_dist, origin, sq.priority)   # 指挥圆盘的索敌优先级（docs/114 §13）：只给队友自动索敌，队长不受影响
 	var out: Array = g.enemies_sys.nearest(n, max_dist, origin)
+	# 主轴目标（docs/142b §1.0，10-25）：射程内有部件（泡影茧、伊莎玛拉连线海嗣、伊祖米克子代 / 茧、塑路者截停的分形……）就先打最近的部件，
+	# 再轮到 Boss 优先——自动攻击下玩家选不了目标，只管把它们带进射程
+	var po: Vector2 = g.ppos if origin == Vector2.INF else origin
+	var part = null
+	var pd: float = max_dist * max_dist
+	for o in g.enemies_sys.parts_live():
+		var d2: float = o.pos.distance_squared_to(po)
+		if d2 < pd:
+			pd = d2
+			part = o
+	if part != null:
+		out.erase(part)
+		out.push_front(part)
+		if out.size() > n:
+			out.resize(n)
+		return out
 	if out.is_empty() or out[0].boss or out[0].get("part", false):
 		return out
 	var BalS = preload("res://scripts/core/balance.gd")

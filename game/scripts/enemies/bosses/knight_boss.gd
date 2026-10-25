@@ -7,7 +7,7 @@
 ##   三幕「掷枪」（33%）：掷枪两连；冲锋后再转向冲一次（折线）；寒气圈 180、冻伤更久
 ##   重生「冲锋形态」（原作）：桩挡不住它（撞碎继续冲）；平时走得慢（× knight_reborn_spd 0.5），靠冲锋三连追人，连冲后喘气破绽；
 ##       重生时原作「释放当前波次」：刷一波 knight_rebirth_wave（16）只
-## 一到三幕清场单挑（spawner.trickling 看 knight_duel）
+## 最终 Boss 战清场、不刷普通小怪（spawner.final_duel，四只最终 Boss 共用）；重生那一波是它自己的机制小怪
 extends "res://scripts/enemies/bosses/boss_base.gd"
 
 const ICE := Color(0.6, 0.9, 1.4)
@@ -25,10 +25,6 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		e.channel -= dt
 		if e.channel <= 0.0:
 			e.invuln = false
-	if g.final_boss != null and is_same(g.final_boss, e) and not e.get("duel_cleared", false):
-		e.duel_cleared = true
-		if Bal.v("boss/knight_duel", 1.0) > 0.0:
-			g.spawner.queue_clear(Bal.v("boss/knight_duel_clear", 3.0))   # 清场单挑：现有杂兵 3 秒内由远到近消散（不算击杀）
 	_rule_banner("knight_intro", "最后的骑士：引它冲锋撞上冰柱 · 别在寒气圈里久留")
 	_knight_stakes(e, dt)
 	_cold_step(e, dt)

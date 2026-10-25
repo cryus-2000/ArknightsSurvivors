@@ -15,9 +15,14 @@ OUT = os.path.join(ROOT, "art", "incoming")
 CANDIDATES = [os.path.join(ROOT, "art", "third_party"), os.path.join(ROOT, "..", "..", "..", "art", "third_party")]   # 工作树里没有时用主仓库那份
 SUB = os.path.join("lasers", "kanpelle_ultimate_laser_pack", "Ultimate Laser Pack", "Laser_Beam_Spritesheet_WHITE.png")
 
-# docs/142b §8.4 专属色（近似 RGB 0–1）；样板阶段只出用得到的
+# docs/142b §8.4 专属色（近似 RGB 0–1）；§8.5 表里用激光的 6 只
 BOSSES = {
-    "iberia": (1.0, 0.5, 0.2),   # 圣徒伊比利亚 · 炮火橙（手炮）
+    "iberia": (1.0, 0.5, 0.2),     # 圣徒伊比利亚 · 炮火橙（手炮）
+    "carmen": (1.0, 0.94, 0.82),   # 圣徒卡门 · 象牙白（狙击 → 封锁线）
+    "paranoia": (0.78, 0.62, 1.0), # “偏执泡影” · 淡紫（凝视）
+    "ishar": (0.25, 1.0, 0.6),     # 伊莎玛拉 · 青绿（三线扫射、泪的共鸣直线）
+    "bishop": (0.3, 0.35, 0.9),    # 接潮主教 · 深海靛蓝（统一 / 换位连线）
+    "archon": (0.35, 0.9, 0.45),   # 接潮蔑死体 · 翠绿（蚀潮吐息）
 }
 ROWS = {"src": 0, "src_on": 1, "mid": 2, "mid_on": 3, "hit": 4, "hit_on": 5}
 

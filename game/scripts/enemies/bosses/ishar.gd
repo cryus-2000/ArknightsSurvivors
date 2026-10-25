@@ -4,7 +4,7 @@
 ## 人形 / 抗争之泪 / 压制 / 变身 / 泪滴共鸣 / 潮涌迫近是机制，不动（用户 10-14 定）
 extends "res://scripts/enemies/bosses/boss_base.gd"
 
-const COL := Color(0.35, 1.0, 0.9)
+const COL := Color(0.3, 1.0, 0.65)   # 青绿（docs/142b §8.4）
 const MOVES := ["三点落击", "三线扫射", "大群之歌", "撕咬"]
 
 

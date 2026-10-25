@@ -822,6 +822,11 @@ func part_add(e: Dictionary) -> void:
 	_parts.append(e)
 
 
+## 现存部件，不重排顺序（索敌每次都调，只要「有哪些」，docs/142b §1.0 主轴目标）
+func parts_live() -> Array:
+	return _parts.filter(func(o): return not o.dead and o.get("part", false))
+
+
 ## 现存部件（未死且 part 仍为 true），顺序与 g.enemies 一致（两只以上时按 g.enemies 重排，击杀吸取的结算顺序和原来的全表扫描相同）
 func parts() -> Array:
 	_parts = _parts.filter(func(o): return not o.dead and o.get("part", false))
