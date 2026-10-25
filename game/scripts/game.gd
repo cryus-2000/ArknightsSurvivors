@@ -630,7 +630,11 @@ func _wants_foot(n: String) -> bool:
 
 
 ## 一个敌人贴图名的整套加载：本体 + 白色剪影 + 脚底锚点 + ENEMY_SUFFIXES 帧条（_death 不要剪影）。_ready 的预载与网页版按需加载共用
+var _enemy_loaded := {}   # 经 _load_enemy_tex 读进来的敌人帧条本体名（手机网页释放只动这些）
+
 func _load_enemy_tex(n: String) -> void:
+	if not BASE_TEX.has(n):
+		_enemy_loaded[n] = true
 	if tex.get(n) == null:
 		tex[n] = A.tex(n)
 		if tex[n] != null and not lazy_white:
@@ -702,7 +706,10 @@ static func _web_early_enemy_tex() -> Dictionary:
 			early[d.tex] = true
 	if D.ENEMIES.has("knight"):
 		early[D.ENEMIES.knight.tex] = true
-	# 普通怪 / 精英（Boss 除外）全部预载（docs/50 §12）：帧条合计约 0.2 M 像素，开局要拼进敌人图集；推迟加载留给 Boss 的大帧条
+	# 普通怪 / 精英（Boss 除外）全部预载（docs/50 §12）：帧条合计约 0.2 M 像素，开局要拼进敌人图集；推迟加载留给 Boss 的大帧条。
+	# 手机网页不拼图集（docs/50 §30.3），这些也按需读，不在场的种类再释放（_enemy_evict）
+	if Cfg.mobile_web() and Cfg.mobile_knob("mobile_evict", 1.0):
+		return early
 	for k in D.ENEMIES:
 		var dk: Dictionary = D.ENEMIES[k]
 		if str(dk.get("role", "")) != "boss" and not dk.get("boss", false):
@@ -715,10 +722,27 @@ static func _web_early_enemy_tex() -> Dictionary:
 ## 白剪影按需建、不在场就释放（10-26，手机网页；docs/50 §30.6）：受击闪白 / 轮廓光用的白剪影是本体帧条的整份拷贝，
 ## 原来开局给每种敌人（含全部变体帧条）都建一份，手机一局约 48 MB。现在某种怪刷出来时才建（spawner.new_enemy → ensure_white），
 ## 场上没有这种怪满 WHITE_KEEP 秒就把它的白剪影丢掉（g.tex 里的键也删，画白闪处按 has() 判断，场上没有就不会去画）。画面不变
-var lazy_white: bool = Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_white", 1.0)
+var lazy_white: bool = (Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_white", 1.0)) or Cfg.dev_args().has("--evicttest")   # --evicttest：桌面上试按需建 / 释放
 var _white_alive := {}    # 帧条本体名 -> 最近一次在场的 g.t
 var _white_t := 0.0
 const WHITE_KEEP := 20.0
+const ENEMY_KEEP := 60.0
+var _evict_on: bool = (Cfg.mobile_web() and Cfg.mobile_knob("mobile_evict", 1.0)) or Cfg.dev_args().has("--evicttest")
+var _font_t := 0.0
+
+
+## 手机网页：场上没有这种怪满 ENEMY_KEEP 秒，把它的帧条（本体 + 移动 / 攻击 / 死亡等变体 + V6 附加帧条）从贴图表和 A 缓存里拿掉，
+## 记回推迟名单——再刷出来时 spawner.new_enemy → ensure_enemy_tex 重新读（会卡一下，换内存不涨；docs/50 §30.7）。
+## 只动经 _load_enemy_tex 读进来的敌人帧条（固定表 BASE_TEX、骑士等不动）
+func _enemy_evict(n: String) -> void:
+	if not _enemy_loaded.has(n):
+		return
+	_enemy_loaded.erase(n)
+	for nm in _white_names(n) + [n + "_death"]:
+		if tex.has(nm):
+			tex.erase(nm)
+			A.uncache(nm)
+	tex_deferred[n] = true
 
 func ensure_white(n: String) -> void:
 	if not lazy_white or n == "":
@@ -758,7 +782,13 @@ func _white_release(delta: float) -> void:
 					tex.erase(nm + "_white")
 					if tex.get(nm) != null:
 						A.white_drop(tex[nm])
+		if t - float(_white_alive[n]) > ENEMY_KEEP and _evict_on:
+			_enemy_evict(n)
 			_white_alive.erase(n)
+	_font_t += 5.0
+	if _font_t >= 60.0:
+		_font_t = 0.0
+		Cfg.slim_fonts(true)   # 手机网页：字形缓存每分钟清一次（局中各面板的字号会越攒越多，10 分钟约 80 个字号 / 18 MB，docs/50 §30.7）
 
 
 func ensure_enemy_tex(n: String) -> void:

@@ -810,6 +810,14 @@ static func hue_to(src: Texture2D, hue: float, lo: float, hi: float) -> Texture2
 static var _white_cache := {}   # 原贴图 instance id → 白色剪影（10-21：每建一局都从显存读回重算，图鉴演示每点一次卡 1–2 秒）
 
 
+## 帧条释放（手机网页 game._enemy_evict）：从缓存里拿掉，贴图在没人引用后释放；再要时 tex() 重新读
+static func uncache(name: String) -> void:
+	var t = _cache.get(name)
+	if t is Texture2D:
+		_white_cache.erase(t.get_instance_id())
+	_cache.erase(name)
+
+
 ## 白剪影释放（game._white_release）：从缓存里拿掉，贴图在没人引用后释放
 static func white_drop(src: Texture2D) -> void:
 	if src != null:
