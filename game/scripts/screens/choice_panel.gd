@@ -9,6 +9,7 @@ const Character = preload("res://scripts/characters/character.gd")
 const Affects = preload("res://scripts/run/affects.gd")
 const CardMotion = preload("res://scripts/screens/card_motion.gd")   # 各种面板的入场动效分派（docs/62 第一批）
 const NodeIcons = preload("res://scripts/screens/node_icons.gd")   # 节点卡图标（docs/154）
+const NodeCardsUI = preload("res://scripts/screens/node_cards_ui.gd")   # 翻节点卡卡面与演出（docs/154）
 const UM = preload("res://scripts/ui_motion.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -263,6 +264,9 @@ func layout(kind: String) -> void:
 	var dim := 0.5
 	if kind == "shop":
 		bot = vs.y - 56.0
+	elif kind == "cross":
+		desat = 0.6   # 翻节点卡（docs/154）：压暗但保留战场氛围
+		dim = 0.42
 	elif kind == "event":
 		top = 0.0
 		bot = vs.y
@@ -329,6 +333,13 @@ func draw_bg() -> void:
 					hint = "←→ 选择 · Ⓐ 翻开" if Pad.using else ("点击卡片翻开" if Pad.touch else "点击卡片翻开，或按 1–%d" % g.choices.size())
 				UI.text(g.panel_fg, g.font, Vector2(0, CARDS_TOP + CARD_H * row_k + 26), hint, 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 			motion.draw_under(g.panel_fg)   # 藏品光柱（压暗带之上、卡片之下）
+			if g.choice_kind == "cross":
+				var inv: Transform2D = g.panel_fg.get_global_transform().affine_inverse()
+				var rects: Array = []
+				for cd in g.panel_box.get_children():
+					if cd is Button:
+						rects.append(inv * (cd as Control).get_global_rect())
+				NodeCardsUI.draw_bg(g.panel_fg, vs, rects, g.endg.flipped, UM.now(), cards_top())
 
 
 ## 面板标题（原作「选择支援」）：英文小标签 + 大标题（两侧渐隐细线 + 靠近文字的短粗线）+ 一行说明
@@ -858,89 +869,39 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 		card.draw_rect(Rect2(base + Vector2(10, 22), Vector2(4, card.size.y - 44.0)), Color(0.18, 0.72, 1.0))
 
 
-## 翻节点卡（docs/154）：背面只露节点图标 + 名字（结局入口描已达成结局的色边）；选中的那张翻面（横向压扁再展开），
-## 正面写翻出来的事件名或效果，其余卡压暗
+## 翻节点卡（docs/154）：卡面与演出在 screens/node_cards_ui.gd（卡背纹样、结局色边、发牌 → 起手 → 翻转 → 揭示 → 退场）；
+## 这里只把卡片数据整理成绘制参数
 func draw_node_card(card: Button, o: Dictionary, i: int) -> void:
 	var c: Dictionary = o.get("node", {})
-	var fl: int = g.endg.flipped
-	var hov := card_hot(card, i) and fl < 0
-	var r := Rect2(Vector2(0, card.get_meta("oy", 0.0)), card.size)
-	var ctr := r.get_center()
-	var face := false
-	if fl == i:
-		var fe := clampf((UM.now() - g.endg.flip_t) / 0.36, 0.0, 1.0)
-		face = fe >= 0.5
-		var sx := maxf(0.03, absf(1.0 - 2.0 * fe))
-		card.draw_set_transform_matrix(Transform2D(0.0, Vector2(sx, 1.0), 0.0, ctr) * Transform2D(0.0, Vector2.ONE, 0.0, -ctr))
-	card.self_modulate.a = 0.35 if fl >= 0 and fl != i else 1.0
-	if hov:
-		for k in 3:
-			card.draw_rect(r.grow(2.0 + k * 3.0), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.12 - k * 0.035), false, 3.0)
-	var top := Color(0.075, 0.13, 0.18, 0.97) if not face else Color(0.13, 0.14, 0.16, 0.97)
-	var bot := Color(0.035, 0.06, 0.085, 0.97) if not face else Color(0.06, 0.065, 0.075, 0.97)
-	card.draw_polygon(PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]), PackedColorArray([top, top, bot, bot]))
-	var t: String = str(c.get("type", "incident"))
-	var col: Color = NodeIcons.COLS.get(t, UI.CYAN)
-	if not face:
-		# 卡背：细横纹 + 内框 + 中央图标
-		var y := r.position.y + 26.0
-		while y < r.end.y - 22.0:
-			card.draw_rect(Rect2(r.position.x + 16.0, y, r.size.x - 32.0, 1.0), Color(1, 1, 1, 0.035))
-			y += 18.0
-		card.draw_rect(r.grow(-8.0), Color(col.r, col.g, col.b, 0.22), false, 1.0)
-		var ends: Array = (c.get("ends", []) as Array).filter(func(e): return Cfg.endings_cleared.has(e))
-		if ends.size() == 1:
-			card.draw_rect(r.grow(-1.5), g.endg.ending_col(ends[0]), false, 3.0)
-		elif ends.size() >= 2:
-			# 两个结局都达成过：左半一色、右半一色
-			var hw := r.size.x / 2.0
-			var c0: Color = g.endg.ending_col(ends[0])
-			var c1: Color = g.endg.ending_col(ends[1])
-			for e in [[r.position.x, c0], [r.position.x + hw, c1]]:
-				card.draw_rect(Rect2(e[0], r.position.y, hw, 3.0), e[1])
-				card.draw_rect(Rect2(e[0], r.end.y - 3.0, hw, 3.0), e[1])
-			card.draw_rect(Rect2(r.position.x, r.position.y, 3.0, r.size.y), c0)
-			card.draw_rect(Rect2(r.end.x - 3.0, r.position.y, 3.0, r.size.y), c1)
-		else:
-			card.draw_rect(r, UI.CYAN if hov else Color(1, 1, 1, 0.13), false, 1.0)
-		var ic := Vector2(ctr.x, r.position.y + r.size.y * 0.4)
-		for k in 3:
-			card.draw_circle(ic, 70.0 - k * 18.0, Color(col.r, col.g, col.b, 0.04 + 0.02 * k + (0.03 if hov else 0.0)))
-		NodeIcons.draw(card, t, ic, 6.0, col)
-		var nm: String = NodeIcons.NAMES.get(t, "")
-		card.draw_string(serif, Vector2(r.position.x, r.end.y - 92.0), nm, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 26, Color.WHITE if hov else UI.TEXT)
-		var en: String = NodeIcons.EN.get(t, "")
-		var ew := UI.en_width(g.font, en, 11, 3.0)
-		UI.en(card, g.font, Vector2(ctr.x - ew / 2.0, r.end.y - 64.0), en, 11, Color(col.r, col.g, col.b, 0.85), 3.0)
-		UI.ctext(card, g.font, r.position + Vector2(r.size.x - 40, 32), str(i + 1), 17, UI.TEXT if hov else Color(0.43, 0.47, 0.51), HORIZONTAL_ALIGNMENT_RIGHT, 24)
-	else:
-		# 正面：小图标 +「迷雾散去 ·」节点名 + 事件名或效果
-		card.draw_rect(r, col, false, 2.0)
-		NodeIcons.draw(card, t, Vector2(ctr.x, r.position.y + 70.0), 3.0, col)
-		var sub: String = ("迷雾散去 · " if c.get("fog", false) else "") + str(NodeIcons.NAMES.get(t, ""))
-		UI.text(card, g.font, Vector2(r.position.x, r.position.y + 128.0), sub, 13, col, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-		var title := ""
-		var body := ""
+	var ends: Array = (c.get("ends", []) as Array).filter(func(e): return Cfg.endings_cleared.has(e))
+	var st := {
+		"i": i, "n": g.choices.size(), "hot": card_hot(card, i) and g.endg.flipped < 0, "flipped": g.endg.flipped,
+		"deal_t": motion.t0, "flip_t": g.endg.flip_t, "ends": ends, "ends_cols": ends.map(func(e): return g.endg.ending_col(e)),
+		"center_x": (card.get_global_transform().affine_inverse() * g.panel_box.get_global_rect().get_center()).x,
+	}
+	if g.endg.flipped == i:
+		var t: String = str(c.get("type", ""))
 		match t:
 			"incident":
 				var ev: Dictionary = g.endg.ev_by_id.get(str(c.get("event", "")), {})
-				title = str(ev.get("name", "不期而遇"))
-				body = str(ev.get("text", ""))
+				st.face_title = str(ev.get("name", "不期而遇"))
+				st.face_body = str(ev.get("text", ""))
+				if c.get("must", false):
+					st.face_tag = "结局线 · " + " / ".join((c.get("ends", []) as Array).map(func(e): return NodeCardsUI.ROMAN.get(e, "")))
 			"wish":
-				title = "消失的习俗"
-				body = "亮出三件藏品，选一件带走。"
+				st.face_title = "消失的习俗"
+				st.face_body = "亮出三件藏品，选一件带走。"
 			"rest":
-				title = "安全屋"
-				body = "休整、添加燃料，或重整编制。"
+				st.face_title = "安全屋"
+				st.face_body = "休整、添加燃料，或重整编制。"
 			"shop":
-				title = "诡意行商"
-				body = "下一位商人多带一件货，第一件打折。" if g.merchant_idx < g.MERCHANT_TIMES.size() else "商人已经走远，留下了一笔源石锭。"
+				st.face_title = "诡意行商"
+				st.face_body = "下一位商人多带一件货，第一件打折。" if g.merchant_idx < g.MERCHANT_TIMES.size() else "商人已经走远，留下了一笔源石锭。"
 			"elite":
-				title = "紧急作战"
-				body = "精英小队来袭。全部击败，多得一个宝箱。"
-		card.draw_string(serif, Vector2(r.position.x, r.position.y + 172.0), title, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 28, Color.WHITE)
-		card.draw_multiline_string(g.font, Vector2(r.position.x + 22.0, r.position.y + 210.0), UI.soft(body), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 44.0, 14, 6, Color(0.81, 0.79, 0.76), UI.BRK)
-	card.draw_set_transform_matrix(Transform2D.IDENTITY)
+				st.face_title = "紧急作战"
+				st.face_body = "精英小队来袭。全部击败，多得一个宝箱。"
+	card.self_modulate.a = 1.0
+	NodeCardsUI.draw_card(card, card.size, c, st, g.font, serif)
 
 
 ## 干员待机条的第一帧：{tex, fw, fh}（按 data/characters/<id>.json 的 sprites.idle；没有返回空）
