@@ -30,7 +30,7 @@ const OP_SFX := {
 	"specter_unchained": ["atk", "s1", "s2", "s3"],
 	"ulpianus": ["atk", "s1", "s2", "s3", "big"],
 	# 网上 CC0 录音截取（docs/113 §8，tools/import_sfx_cc0.py）：能天使枪声 / 命中 / 弹匣倾泻、德克萨斯刀划、星熊格挡；其余类别仍走 OP_ALT 借用
-	"exusiai": ["atk", "hit", "big"],
+	"exusiai": ["atk", "atk_b", "atk_c", "hit", "s1", "s2", "s3", "big"],   # 10-25 用户「能天使的音效没有替换」：三条枪声轮换 + 技能连射全换（docs/113 §17）
 	"texas": ["atk", "hit"],
 	"hoshiguma": ["hit"],
 }
@@ -42,9 +42,12 @@ const OP_LIMIT := {"atk": 0.06, "hit": 0.06, "quake": 0.08, "big": 0.1, "heal": 
 ## OP_DB 音量偏移（dB，叠在 OP_VOL 与调用处偏移上）；OP_GAP 最短间隔（秒，按请求名算，借用同一文件的干员各算各的）；
 ## OP_PVAR 音高随机（±，取它与调用处的较大值）。数字来自 docs/113 §2 实测：混音里最响的是长尾低频重击的高频连发
 const OP_DB := {"op_eyjafjalla_big": -3.0, "op_kaltsit_big": -2.0, "op_wisadel_quake": -3.0, "op_wisadel_hit": -1.5, "op_exusiai_hit": -2.0, "op_texas_hit": -3.0}
-const OP_GAP := {"op_exusiai_hit": 0.1, "op_exusiai_big": 0.3, "op_eyjafjalla_big": 0.2}
+const OP_GAP := {"op_exusiai_atk": 0.05, "op_exusiai_hit": 0.1, "op_exusiai_big": 0.3, "op_eyjafjalla_big": 0.2}
 const OP_PVAR := {"op_exusiai_atk": 0.09, "op_exusiai_hit": 0.1, "op_irene_atk": 0.08, "op_texas_atk": 0.08, "op_eyjafjalla_atk": 0.08, "op_lumen_atk": 0.07, "op_wisadel_quake": 0.12}
 var op_last := {}          # 请求名 -> 上次放行的墙钟秒（OP_GAP）
+## 轮换：同一请求名有多个录音时按次序轮着放（连射不像同一声复读）；次序只用于声音，不碰玩法随机
+const OP_ROT := {"op_exusiai_atk": ["op_exusiai_atk_b", "op_exusiai_atk_c"]}
+var op_rot := {}           # 请求名 -> 已放次数
 ## 缺文件时退回的通用音效（新干员还没配音时也有声音）
 const OP_FALLBACK := {"atk": "swing", "hit": "hit", "s1": "skill", "s2": "skill", "s3": "skill", "big": "boom", "heal": "oil", "quake": "boom"}
 ## 缺专属文件时优先借用的近似音（docs/53，比通用 hit 更贴角色；[音名, 音高倍率, 音量偏移 dB]）。正式音色见 docs/53 §5 的制作清单
@@ -62,8 +65,8 @@ const OP_ALT := {"op_logos_hit": ["op_mizuki_hit", 0.8, -4.0],
 	"op_texas_s1": ["op_irene_s1", 1.05, 0.0],
 	"op_texas_s2": ["op_siege_s2", 1.15, 0.0], "op_texas_s3": ["op_irene_s3", 1.1, 0.0],
 	# 能天使（docs/61 §14，数据干员）：技能借艾丽妮 / 维什戴尔；枪声 / 命中 / 弹匣倾泻已换 CC0 录音 op_exusiai_atk / hit / big（docs/113 §8）
-	"op_exusiai_s1": ["op_irene_s1", 1.15, 0.0],
-	"op_exusiai_s2": ["op_wisadel_s2", 1.3, 0.0], "op_exusiai_s3": ["op_wisadel_s3", 1.2, 0.0]}
+	# 技能 s1 / s2 / s3 也已换成枪声连射拼的专属音（docs/113 §17），借用表里不再有能天使
+	}
 ## 通用音缺文件时的借用（docs/53 §5 的三个材质 / 重击层，正式文件已由 tools/gen_sfx_hitfeel.py 合成；[音名, 音高倍率, 音量偏移 dB]，
 ## 偏移按调用处的音量算成和原顶替一样：kill_big −8 → mire_splat −9 ×0.85，kill_shell −6 → hit −6 ×0.6，hurt_heavy −8 → boom −10 ×0.7）
 const ALT := {"kill_big": ["mire_splat", 0.85, -1.0], "kill_shell": ["hit", 0.6, 0.0], "hurt_heavy": ["boom", 0.7, -2.0]}
@@ -190,8 +193,9 @@ func _ready() -> void:
 		for kind in OP_SFX[oid]:
 			var sn := "op_%s_%s" % [oid, kind]
 			streams[sn] = _load_wav("res://audio/sfx/%s.wav" % sn)
-			if OP_LIMIT.has(kind):
-				op_limit[sn] = OP_LIMIT[kind]
+			var lk: String = "atk" if kind.begins_with("atk_") else kind   # atk_b / atk_c 是普攻的轮换录音，限流同普攻
+			if OP_LIMIT.has(lk):
+				op_limit[sn] = OP_LIMIT[lk]
 	op_limit["op_siege_s1"] = SIEGE_S1_GAP   # 冲锋号令（见 VOICE_CAP 上方的实测）
 	for i in 32:
 		var p := AudioStreamPlayer.new()
@@ -1038,9 +1042,16 @@ func op(oid: String, kind: String, vol := 0.0, pitch := 1.0, pitch_var := 0.05) 
 		op_last[sn] = now
 	var v: float = float(OP_VOL.get(kind, -8.0)) + vol + float(OP_DB.get(sn, 0.0))
 	pitch_var = maxf(pitch_var, float(OP_PVAR.get(sn, 0.0)))
-	if streams.get(sn) != null:
-		_op_log(sn, sn, v, pitch, pitch_var)
-		play(sn, v, pitch, pitch_var)
+	var pn := sn
+	if OP_ROT.has(sn) and streams.get(OP_ROT[sn][0]) != null:
+		var vs: Array = OP_ROT[sn]
+		var k: int = int(op_rot.get(sn, 0))
+		op_rot[sn] = k + 1
+		k %= vs.size() + 1
+		pn = sn if k == 0 else str(vs[k - 1])
+	if streams.get(pn) != null:
+		_op_log(sn, pn, v, pitch, pitch_var)
+		play(pn, v, pitch, pitch_var)
 	elif OP_ALT.has(sn) and streams.get(OP_ALT[sn][0]) != null:
 		var alt: Array = OP_ALT[sn]
 		_op_log(sn, alt[0], v + float(alt[2]), pitch * float(alt[1]), pitch_var)

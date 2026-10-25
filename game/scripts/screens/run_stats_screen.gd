@@ -7,7 +7,7 @@ extends RefCounted
 ## 编队行上 Enter / 点击进干员详情（前 5 个伤害来源 + 主控生存）。手机：结果横幅 | 主控卡常驻，下面三页 编队 / 藏品 / 数据。
 ## 干员 / 敌人像一律按不透明包围盒缩放放进像框（_fit），不出框。风格：局外 T5s（docs/37 §8）。
 ## 动效（docs/62 §3.24）：主动作「藏品依次弹出」（每格 T2 out_back(1.4)，0.6 → 1 倍，间隔 ≤ 35 ms，整组 ≤ 0.6 秒）；
-##   统计数值计数、编队占比条注满（次要）。减少动态：直接终态，只留 T1 淡入。
+##   编队输出条逐条依次增长（0.6–0.9 秒一条、数字跟着滚、队长最后出，BAR_* 常量）、统计数值计数（次要）。减少动态：直接终态，只留 T1 淡入。
 ## 数据只读 run/run_stats.gd 的 model（不碰 g.rng、不改对局状态）。
 
 const UI = preload("res://scripts/ui.gd")
@@ -22,6 +22,16 @@ const SEG0 := 0.08      # 第一格 / 第一段开始
 const SEG_S := 0.07     # 占比条段间错开
 const SEG := UM.T2      # 每段滑入时长
 const TOP_SRC := 5      # 详情里列出的伤害来源条数（其余并成「其他」）
+## 输出条节奏（10-25 用户「干员的输出条出来的太短」，docs/62 §3.24）：逐条依次增长，单条 BAR_D0～BAR_D0+BAR_D1 秒（越长的条越久，按数值缓动），
+## 百分比数字跟着条滚；队长那条最后出、多等一拍、多长一点，落位后条加粗一格。条的起点：藏品弹出（SEG0 起）之后
+const BAR0 := 0.30      # 第一条开始
+const BAR_SPAN := 1.2   # 非队长各条的开始时刻最多铺开这么久（人多时间隔收紧）
+const BAR_GAP := 0.24   # 相邻两条的开始间隔上限
+const BAR_D0 := 0.60    # 单条最短时长（占比最小的）
+const BAR_D1 := 0.30    # 占比最大的比最短的多的时长
+const CAP_HOLD := 0.14  # 队长比最后一名队友多等的一拍
+const CAP_EXTRA := 0.15 # 队长这条再长的时长
+const STAT0 := 0.45     # 右侧数据行的数字开始滚动
 
 var g: Game
 var open := false
@@ -45,6 +55,9 @@ var _tex_miss := {}
 var _id_big := true
 var _pop_anchor := Rect2()   # 选中藏品格的位置（说明弹窗贴着它）
 var _rel_row0 := 0      # 藏品格滚动：最上面画第几行（藏品不设上限，压到 30 像素格仍放不下时才滚，10-12）
+var _bar_t0: Array = []   # 每个干员行的输出条开始时刻 / 时长（show_model 里按占比算好，不在每帧新建）
+var _bar_dur: Array = []
+var _bar_end := 0.0       # 最后一条落位的时刻
 var _rel_seen := -1     # 上一帧的选中藏品：选中变了才把它滚进视野，滚轮滚动不被拉回
 var _relic_rect := Rect2()   # 藏品格所在区域（滚轮落在这里滚藏品，否则滚数据）
 # 每帧绘制用
@@ -77,8 +90,45 @@ func show_model(m: Dictionary) -> void:
 	skipped = false
 	t_open = UM.now()
 	t_page = t_open
+	_calc_bars()
 	_last_mouse = Vector2(-1, -1)
 	g.ui_skip = true   # 结算面板自己的动效此时已经不需要了
+
+
+## 算每行输出条的开始 / 时长：非队长按行序依次出，队长最后；时长随占比（长的条走得久）
+func _calc_bars() -> void:
+	var rws: Array = rows()
+	var n := rws.size()
+	_bar_t0.resize(n)
+	_bar_dur.resize(n)
+	var vmax := 0.001
+	for rw in rws:
+		vmax = maxf(vmax, float(rw.share))
+	var others: Array = []
+	var lead := -1
+	for i in n:
+		if bool(rws[i].leader) and lead < 0:
+			lead = i
+		else:
+			others.append(i)
+	var gap: float = minf(BAR_GAP, BAR_SPAN / maxf(1.0, float(others.size())))
+	_bar_end = 0.0
+	for k in others.size():
+		var i: int = others[k]
+		_bar_t0[i] = BAR0 + k * gap
+		_bar_dur[i] = BAR_D0 + BAR_D1 * float(rws[i].share) / vmax
+		_bar_end = maxf(_bar_end, float(_bar_t0[i]) + float(_bar_dur[i]))
+	if lead >= 0:
+		_bar_t0[lead] = BAR0 + others.size() * gap + (CAP_HOLD if not others.is_empty() else 0.0)
+		_bar_dur[lead] = BAR_D0 + BAR_D1 + CAP_EXTRA
+		_bar_end = maxf(_bar_end, float(_bar_t0[lead]) + float(_bar_dur[lead]))
+
+
+## 第 i 行输出条的进度 0–1（out_cubic）；减少动态 / 终态 = 1
+func _bar_k(t: float, i: int) -> float:
+	if UM.rm() or t >= 90.0 or i >= _bar_t0.size():
+		return 1.0
+	return UM.out_cubic((t - float(_bar_t0[i])) / float(_bar_dur[i]))
 
 
 func close() -> void:
@@ -100,7 +150,7 @@ func _mt(t0: float) -> float:
 func motion_running() -> bool:
 	if not open or skipped or UM.rm() or UM.skip_all():
 		return false
-	return _mt(t_open) < 0.75 if page == 0 else _mt(t_page) < 0.4
+	return _mt(t_open) < maxf(0.75, _bar_end + 0.05) if page == 0 else _mt(t_page) < 0.7
 
 
 # ================================================================== 输入
@@ -745,10 +795,13 @@ func _squad_list(r: Rect2, t: float, title: bool) -> void:
 			_t(Vector2(nx, cy + 10.0), _join_text(row), 11, sub, 0, 110.0)
 		var bx := nx + 120.0
 		var bw := rr.end.x - 72.0 - bx
-		var fill := 1.0 if UM.rm() else UM.out_cubic((t - SEG0 - UM.stagger(i, SEG_S)) / UM.T2)
+		var fill := _bar_k(t, i)
 		if bw > 20.0:
-			_bar(Rect2(bx, cy - 4.0, bw, 8.0), [[1.0, row.col]], fill * float(row.share) / maxf(0.001, vmax))
-		_p(Vector2(rr.end.x - 12.0, cy), "%d%%" % int(round(float(row.pct) * _count_k(t, i))), 2.0, ink, 2)
+			var bh := 8.0
+			if bool(row.leader) and fill >= 1.0 and not UM.rm():
+				bh = 8.0 + 3.0 * UM.out_back((t - float(_bar_t0[i]) - float(_bar_dur[i])) / UM.T2, 1.4)   # 队长落位后条加粗一格
+			_bar(Rect2(bx, cy - bh * 0.5, bw, bh), [[1.0, row.col]], fill * float(row.share) / maxf(0.001, vmax))
+		_p(Vector2(rr.end.x - 12.0, cy), "%d%%" % int(round(float(row.pct) * fill)), 2.0, ink, 2)
 
 
 ## 藏品格（右上，按件数定高；放不下时缩格）：等级点、遭诅 / 升华角标；返回格子底边 y
@@ -883,7 +936,7 @@ func _stats(r: Rect2, t: float, cols_in: int) -> void:
 		var ry := y0 + (k % rows_fit) * rh + rh * 0.5
 		_ci().draw_rect(Rect2(cx, roundf(ry + rh * 0.5 - 1.0), cw, 1), Color(1, 1, 1, 0.07))
 		_t(Vector2(cx, ry), str(s.label), 13, TUI.TXT2)
-		var ck := 1.0 if UM.rm() else UM.linear((t - SEG0 - mini(i, 12) * 0.02) / UM.T3)
+		var ck := 1.0 if UM.rm() else UM.linear((t - STAT0 - mini(i, 12) * 0.03) / UM.T4)
 		var v: float = float(s.v) * ck
 		var txt: String
 		match str(s.fmt):
@@ -901,13 +954,6 @@ func _stats(r: Rect2, t: float, cols_in: int) -> void:
 			_t(Vector2(cx + cw - vw - 10, ry), str(s.sub), 11, TUI.CY_DIM, 2, cw - vw - lw0 - 24.0)
 	if st.size() > vis:
 		_p(Vector2(x0 + r.size.x, y), "%d-%d / %d" % [stat_scroll + 1, mini(stat_scroll + vis, st.size()), st.size()], 1.0, TUI.CY_DIM, 2)
-
-
-## 计数动画系数：第 i 段落位前 0.1 秒开始，T3 线性数到终值
-func _count_k(t: float, i: int) -> float:
-	if UM.rm() or t >= 90.0:
-		return 1.0
-	return UM.linear((t - (SEG0 + UM.stagger(i, SEG_S) + SEG) + 0.1) / UM.T3)
 
 
 # ------------------------------------------------------------------ 详情
@@ -1010,7 +1056,7 @@ func _sources(r: Rect2, row: Dictionary, t: float) -> void:
 		_t(Vector2(x0, y), str(s.name), 15 if not _ph else 13, TUI.TXT2 if other else TUI.TXT, 0, x1 - x0 - 150.0)
 		_p(Vector2(x1, y), "%d%%" % int(s.pct), 2.0, TUI.CY, 2)
 		_p(Vector2(x1 - (64.0 if not _ph else 44.0), y), fmt_n(float(s.v)), 1.0, TUI.TXT2, 2)
-		var e := 1.0 if UM.rm() else UM.out_cubic((t - UM.stagger(k, 0.06)) / UM.T2)
+		var e := 1.0 if UM.rm() else UM.out_cubic((t - k * 0.1) / 0.55)   # 来源条依次长出，单条 0.55 秒
 		_bar(Rect2(x0, y + (14.0 if not _ph else 11.0), x1 - x0, 6.0 if not _ph else 4.0), [[1.0, TUI.CY_DIM if other else row.col]], e * float(s.v) / vmax)
 		y += rh
 
