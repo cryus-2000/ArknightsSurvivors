@@ -51,6 +51,11 @@ func absorb_damage(_e: Dictionary, _dmg: float) -> bool:
 	return false
 
 
+## combat.damage 弱点 / 灯光等加成之后、破绽加成之前：受伤倍率（骑士「斗牛」重甲 ×0.4、破绽期 ×2.0，docs/142b §3.1）。缺省 1
+func taken_mult(_e: Dictionary) -> float:
+	return 1.0
+
+
 ## combat.damage 扣血、飘伤害数字之后：dmg = 扣完潮盾的伤害，eff = 实际掉的血（最后的骑士寒冷滑窗、圣徒装填打断）
 func on_damaged(_e: Dictionary, _dmg: float, _eff: float) -> void:
 	pass
@@ -98,6 +103,16 @@ func _first_tell(e: Dictionary, key: String, name: String) -> bool:
 		e[k] = -1.0
 		return true
 	return false
+
+
+## 规则横幅（docs/142b §1.3 / §1.4）：第一次见这只 Boss（本局）先亮一句「要做什么」；过卡点换幕时亮这一幕的新规则。
+## 同一 key 本局只亮一次（g 上记 meta）；Boss 战里走 vfx 的小通知（show_banner prio 2）
+func _rule_banner(key: String, text: String) -> void:
+	var mk: String = "boss_rule_" + key
+	if g.has_meta(mk):
+		return
+	g.set_meta(mk, true)
+	g.vfx.show_banner(text, 2)
 
 
 ## 二阶段常驻着色（docs/95 §0.2「阶段切换一眼可见」②）：低幅度乘色，render/world 画本体时乘上；不改帧条

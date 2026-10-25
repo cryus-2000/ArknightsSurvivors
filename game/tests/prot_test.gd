@@ -1770,8 +1770,13 @@ func test_lore2() -> void:
 		c.damage(ib, ib.maxhp * 0.01)
 		k += 1
 	ok(ib.channel <= 0.0 and ib.break_t > 0.0 and ib.ammo == 0, "读条中打掉约 5%% 被打断：破绽 %.1f 秒" % ib.break_t)
-	# 冲刺穿身打断
+	# 起身补弹（docs/142b §3.3）：破绽结束直接补满弹药、转回远程，不再装填
 	ib.break_t = 0.0
+	go.call(ib, 0.01)
+	var rose_ok: bool = not ib.get("refill_on_rise", false) and ib.channel <= 0.0 and (ib.ammo == 1 or game.warns.any(func(w): return is_same(w.owner, ib) and w.name == "轰击"))
+	ok(rose_ok, "打断后起身：直接补满弹药（同帧可能立刻放轰击），不再装填")   # 起身那一帧离主控 500 正好够轰击
+	# 冲刺穿身打断
+	ib.ammo = 0
 	ib.reload_t = 0.0
 	go.call(ib, 0.01)
 	var p0: Vector2 = game.ppos
@@ -1783,6 +1788,8 @@ func test_lore2() -> void:
 	game.ppos = p0
 	# 没打断：三连瞄准
 	ib.break_t = 0.0
+	ib.refill_on_rise = false
+	ib.ammo = 0
 	ib.reload_t = 0.0
 	go.call(ib, 0.01)
 	var nw: int = game.warns.size()

@@ -1080,6 +1080,9 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 			dmg *= 1.0 + g.low_hp_bonus
 		if e.boss and g.final_boss != null and is_same(e, g.final_boss):
 			dmg *= 1.0 + 0.01 * g.rfx.rule("final_taken") + (0.8 if g.rfx.rule("bone_blood") > 0 else 0.0)
+	# Boss 脚本自己的受伤倍率（骑士重甲、破绽期另算，docs/142b §3.1；缺省 1）
+	if bh != null:
+		dmg *= bh.taken_mult(e)
 	# 破绽受伤加成、伤害预算（§1.5 / §1.4）
 	if e.boss:
 		if e.get("break_t", 0.0) > 0.0:

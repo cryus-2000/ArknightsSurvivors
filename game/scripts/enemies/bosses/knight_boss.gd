@@ -1,11 +1,22 @@
-## 最后的骑士（type knight_boss，docs/38 §2.7 / §8.8；招式改版 docs/95 §4，10-14）
+## 最后的骑士（type knight_boss，docs/38 §2.7 / §8.8；招式改版 docs/95 §4，10-14；主轴改版 docs/142b §3.1 / §8.2 样板，10-25）
 ## Boss 行为脚本（docs/55 §6 拆分，10-10）：状态仍在敌人字典 e 上，预警 / 冷却 / 迫近经基类转给 boss_ai.gd。本文件只有这只 Boss 自己的招式与阶段逻辑。
-## 4 招：A 冲锋（②；冰线 → 寒冷追击是它的变体，用户 10-14 定保留）/ B 长枪连刺（③ 三段，第 3 段前刺）/ C 寒冷（① 受击触发：打他越勤越冷）/ D 长枪回旋（④ 二阶段缺口环）
-## 机制不占名额：冰枪桩 / 撞桩破绽、重生、喘气破绽
+## 主轴「斗牛」：平时重甲（受伤 × knight_armor 0.4），引它冲锋撞上冰枪桩 → 长枪脱手破绽（受伤 × knight_break_taken 2.0）。
+##   原作反冻（受到伤害时给来源附加寒冷）按自动攻击改成「寒气圈」：队长在它脚下 knight_cold_r 内寒冷条上涨，满了冻伤（减速 + 下一击 × 1.75，原作打冻结 175%）。
+##   一幕：开局 3 根桩、到期自动补；冲锋 / 冰线 + 寒冷追击（用户 10-14 定保留）/ 长枪连刺
+##   二幕「冰原」（66%）：桩撞一次就碎、不再自动补，靠新招「掷枪」落地立桩（最多 4 根）；冲锋路径留冰面 3 秒，站上去寒冷条照涨
+##   三幕「掷枪」（33%）：掷枪两连；冲锋后再转向冲一次（折线）；寒气圈 180、冻伤更久
+##   重生「冲锋形态」（原作）：桩挡不住它（撞碎继续冲）；平时走得慢（× knight_reborn_spd 0.5），靠冲锋三连追人，连冲后喘气破绽；
+##       重生时原作「释放当前波次」：刷一波 knight_rebirth_wave（16）只
+## 一到三幕清场单挑（spawner.trickling 看 knight_duel）
 extends "res://scripts/enemies/bosses/boss_base.gd"
 
 const ICE := Color(0.6, 0.9, 1.4)
-const MOVES := ["冲锋", "冰线", "长枪连刺", "寒冷", "长枪回旋"]
+const MOVES := ["冲锋", "冰线", "长枪连刺", "掷枪", "长枪回旋"]
+
+
+## 当前第几幕：0 = 一幕，1 = 二幕（66%），2 = 三幕（33%）；重生后按 phase 2 另算
+func _act(e: Dictionary) -> int:
+	return int(e.get("gates_passed", 0))
 
 
 ## 每帧（boss_ai._boss_ai 公共段之后）：ready = 本帧可以出招；mate = 接潮搭档（没有则 null）
@@ -14,16 +25,20 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		e.channel -= dt
 		if e.channel <= 0.0:
 			e.invuln = false
-	if e.get("frost_t", 0.0) > 0.0:
-		# 寒冷留下的冰面（r180，6 秒）：只减速（−20%，§1.9「只减速地形」）；控制遥测记为 Boss 来源
-		e.frost_t -= dt
-		if g.combat.ground_d(g.ppos, e.frost_pos) < 180.0:
-			g.combat.slow_leader("ice_floor", 0.2, 0.8, "boss")
+	if g.final_boss != null and is_same(g.final_boss, e) and not e.get("duel_cleared", false):
+		e.duel_cleared = true
+		if Bal.v("boss/knight_duel", 1.0) > 0.0:
+			g.spawner.queue_clear(Bal.v("boss/knight_duel_clear", 3.0))   # 清场单挑：现有杂兵 3 秒内由远到近消散（不算击杀）
+	_rule_banner("knight_intro", "最后的骑士：引它冲锋撞上冰枪桩 · 别在寒气圈里久留")
 	_knight_stakes(e, dt)
-	# 二阶段冲锋一组 1 + boss/knight_p2_chain 次（缺省 3 次一组），第一次全长、后两次 70%（docs/49d 11.8），组后喘气 2.5 秒（普通破绽，docs/38 §8.8）
+	_cold_step(e, dt)
+	_ice_step(e)
+	_spear_land(e)
+	# 连冲：重生后一组 1 + knight_p2_chain 次（第一次全长、后两次 70%，docs/49d 11.8）；三幕冲锋后再转向冲一次。连冲完喘气 2.5 秒（普通破绽，docs/38 §8.8）
 	if int(e.get("dash2", 0)) > 0 and e.get("dash_t", 0.0) <= 0.0 and e.get("wind", 0.0) <= 0.0:
 		e.dash2 = int(e.dash2) - 1
-		var rw := _warn(e, "line", 0.6, {"ang": dir.angle(), "len": 364.0, "wid": 34.0, "track": 0.3, "act": "dash", "fit_len": true, "name": "再冲锋", "col": ICE, "dmg": e.dmg * Bal.v("boss/knight_charge_mult", 1.7)})
+		var rw := _warn(e, "line", 0.6, {"ang": dir.angle(), "len": 364.0, "wid": 34.0, "track": 0.3, "act": "dash", "fit_len": true, "name": "再冲锋", "col": ICE,
+			"dmg": _bite(e, e.dmg * Bal.v("boss/knight_charge_mult", 1.7))})
 		if int(e.dash2) <= 0:
 			e.breath_at = g.t + rw.dur + 0.6
 	if e.has("breath_at") and g.t >= float(e.breath_at):
@@ -35,18 +50,19 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	if g.t >= float(e.get("hunt_follow_at", INF)):
 		e.hunt_follow_at = INF
 		_warn(e, "line", 0.7, {"ang": float(e.get("hunt_angle", dir.angle())), "len": 520.0, "wid": 32.0,
-			"fit_len": true, "act": "dash", "name": "寒冷追击", "col": Color(0.65, 0.95, 1.4), "dmg": e.dmg * 1.35})
+			"fit_len": true, "act": "dash", "name": "寒冷追击", "col": Color(0.65, 0.95, 1.4), "dmg": _bite(e, e.dmg * 1.35)})
 		if e.phase == 2:
 			e.dash2 = int(Bal.v("boss/knight_p2_chain", 2.0))
 		return
-	# C 寒冷（受击触发，插队）：8 秒窗口内累计受到 ≥ knight_frost_pct（6%）最大生命的伤害，且主控在 r180 内；frost 10 秒
-	if _frost_due(e, dist) and _cd(e, "frost", 10.0):
-		_frost(e)
-		return
 	if dist < 160.0 and e.phase == 2 and float(e.get("cds", {}).get("spin", 0.0)) <= g.t:
-		# D 长枪回旋：二阶段近身先回旋后连刺（和连刺互斥）；第一次先亮招式名 0.6 秒（§0.2）
+		# D 长枪回旋：二阶段近身先回旋后连刺（和连刺互斥）；第一次先亮招式名 0.6 秒（§0.2）——喘气结束时还贴着它就吃这一下
 		if _first_tell(e, "spin", "长枪回旋") and _cd(e, "spin", 7.0):
 			_spin(e, dir)
+		return
+	# 掷枪（二幕起，重生后不放）：桩少于 4 根、主控在 160–620 时；落点立一根新桩（_spear_land）
+	if e.phase == 1 and _act(e) >= 1 and dist >= 160.0 and dist <= 620.0 and e.get("stakes", []).size() < int(Bal.v("boss/knight_stakes_max", 4.0)) \
+			and _cd(e, "spear", Bal.v("boss/knight_spear_cd", 8.0)):
+		_spear(e, dir, dist)
 		return
 	if dist < 140.0 and _cd(e, "stab", 5.0):
 		_stab(e, dir)
@@ -62,12 +78,12 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 func setup_preview_phase2(e: Dictionary) -> void:
 	e.phase = 2
 	e.hp = e.maxhp * 0.5
-	e.spd *= 1.2
+	e.spd *= Bal.v("boss/knight_reborn_spd", 0.5)
 	e.invuln = true
 	e.channel = 1.5
 	e.stun = 0.0
 	e.kb = Vector2.ZERO
-	e.frost_taken = 0.0
+	e.stakes = []
 	_tint2(e, Color(0.82, 0.92, 1.25))
 	g.vfx.fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), g.PX * 1.4, 0.0)
 
@@ -84,8 +100,10 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 			_hunt(e, dir, dist)
 		"长枪连刺":
 			_stab(e, dir)
-		"寒冷":
-			_frost(e)
+		"掷枪":
+			if e.phase != 1:
+				return false
+			_spear(e, dir, dist)
 		"长枪回旋":
 			if e.phase != 2:
 				return false
@@ -95,11 +113,22 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 	return true
 
 
-## A · 冲锋：520 × 34 条纹线，追踪 0.4 秒后锁定，总 0.8 秒；e.dmg × 1.7（冲锋期间碰到结算一次）；二阶段带三连
+## 冻伤的下一击 × knight_frostbite_mult（1.75，原作「攻击冻结目标攻击力 175%」）：放招时消耗
+func _bite(e: Dictionary, dmg: float) -> float:
+	if e.get("frostbite_hit", false):
+		e.frostbite_hit = false
+		return dmg * Bal.v("boss/knight_frostbite_mult", 1.75)
+	return dmg
+
+
+## A · 冲锋：520 × 34 条纹线，追踪 0.4 秒后锁定，总 0.8 秒；e.dmg × 1.7（冲锋期间碰到结算一次）；重生后带三连；三幕后面再转向冲一次（折线）
 func _charge(e: Dictionary, dir: Vector2) -> void:
-	_warn(e, "line", 0.8, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.4, "act": "dash", "fit_len": true, "name": "冲锋", "col": ICE, "dmg": e.dmg * Bal.v("boss/knight_charge_mult", 1.7)})
+	_warn(e, "line", 0.8, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.4, "act": "dash", "fit_len": true, "name": "冲锋", "col": ICE,
+		"dmg": _bite(e, e.dmg * Bal.v("boss/knight_charge_mult", 1.7))})
 	if e.phase == 2:
 		e.dash2 = int(Bal.v("boss/knight_p2_chain", 2.0))
+	elif _act(e) >= 2:
+		e.dash2 = 1
 
 
 ## A 变体 · 冰线（用户 9/28 加、10-14 定保留）：细线 18 宽、追踪 0.25，结算留冰脊并标出追击方向，0.25 秒后「寒冷追击」沿线冲锋
@@ -110,46 +139,98 @@ func _hunt(e: Dictionary, dir: Vector2, dist: float) -> void:
 
 ## B · 长枪连刺：三段扇形，每段间隔 0.6 秒、锁定 0.4 秒；前两段 r125 半角 0.8，第 3 段改 r150 半角 0.5 的前刺（更长更窄，锁定 ≥0.44）；e.dmg × 1.1 / 段
 func _stab(e: Dictionary, dir: Vector2) -> void:
+	var m: float = _bite(e, e.dmg * 1.1)
 	for k in 3:
 		var thrust: bool = k == 2
 		_warn(e, "cone", 0.6 + 0.6 * k, {"ang": dir.angle(), "half": 0.5 if thrust else 0.8, "r": 150.0 if thrust else 125.0, "track": 0.2 + 0.6 * k,
-			"act": "bite", "name": "长枪连刺" if k == 0 else "", "col": ICE, "dmg": e.dmg * 1.1, "lock": k == 0, "thrust": thrust})
+			"act": "bite", "name": "长枪连刺" if k == 0 else "", "col": ICE, "dmg": m, "lock": k == 0, "thrust": thrust})
 	e.wind = 1.9
 
 
-## C · 寒冷（PRTS「受到伤害时给伤害来源附加寒冷 2 秒，生命低于 50% 延长到 4 秒」）：以骑士为心 r180 实填圈，前 0.4 秒跟随本体、后 0.8 秒锁定（总 1.2）；
-## e.dmg × 0.5，命中附寒冷（一阶段 2 秒、二阶段 4 秒；走冰霜，受移速下限 0.7）；留下 r180 冰面 6 秒（只减速 −20%）
-func _frost(e: Dictionary) -> void:
-	e.frost_taken = 0.0
-	e.frost_win_t = g.t
-	_warn(e, "circle", 1.2, {"track": 0.4, "track_pos": "self", "r": 180.0, "act": "frost", "name": "寒冷", "col": ICE, "dmg": e.dmg * 0.5,
-		"chill": 4.0 if e.phase == 2 else 2.0})
+## 掷枪（本作拟，docs/142b §3.1 / §8.2；二幕起）：朝主控掷出长枪，直线 14 宽、追踪 0.4 秒、总 1.0 秒；e.dmg × 1.0；
+## 落地处立一根新冰枪桩（_spear_land 读 last_act）——它是威胁，也是你下一次引它撞桩的资源。三幕两连（第二枪晚 0.6 秒，各自追踪）
+func _spear(e: Dictionary, dir: Vector2, dist: float) -> void:
+	var n: int = 2 if _act(e) >= 2 else 1
+	for k in n:
+		_warn(e, "line", 1.0 + 0.6 * k, {"ang": dir.angle(), "len": clampf(dist, 160.0, 520.0), "wid": 14.0, "track": 0.4 + 0.6 * k, "act": "shot",
+			"name": "掷枪", "col": Color(0.75, 0.95, 1.4), "dmg": e.dmg, "lock": k == 0, "spear": true})
 
 
 ## D · 长枪回旋（二阶段，本作原创）：以骑士为心 r150 的空心环（刀光轨迹），缺口在面向主控的反方向 ±40°（弧长 ≥80px），总 1.0 秒；
 ## 躲法：走进缺口（绕到他身后）或走出 r150；e.dmg × 1.3，附寒冷 2 秒
 func _spin(e: Dictionary, dir: Vector2) -> void:
 	_warn(e, "circle", 1.0, {"follow": true, "r": 150.0, "act": "spin_ring", "gap_ang": dir.angle() + PI, "gap_half": 0.7, "ang": dir.angle(),
-		"name": "长枪回旋", "col": ICE, "dmg": e.dmg * 1.3, "chill": 2.0})
+		"name": "长枪回旋", "col": ICE, "dmg": _bite(e, e.dmg * 1.3), "chill": 2.0})
 
 
-## 寒冷的受击条件（combat.damage 累计 e.frost_taken，8 秒滑窗）
-func _frost_due(e: Dictionary, dist: float) -> bool:
-	if dist >= 180.0:
-		return false
-	if g.t - float(e.get("frost_win_t", -99.0)) > Bal.v("boss/knight_frost_win", 8.0):
-		return false
-	return float(e.get("frost_taken", 0.0)) >= e.maxhp * Bal.v("boss/knight_frost_pct", 0.06)
-
-
-## ---- 最后的骑士：冰枪桩（docs/38 §8.8）。66% 卡点后长枪插地，场上立 boss/knight_stakes（3）根冰枪桩（r 22），离主控 ≥120、
-## 离场地边 ≥100，每根存在 12 秒，少于 2 根时补。冰枪桩只挡骑士：冲锋路径碰到桩 → 长枪脱手，5 秒大破绽，桩碎。
-## 主控和子弹都不受影响（不需要动态障碍表）。冲锋预警会标出这一冲会不会撞桩（w.stake_hit，画面画「破」字端盖）
-func _knight_stakes(e: Dictionary, dt: float) -> void:
-	if int(e.get("gates_passed", 0)) < 1:
+## 寒气圈与寒冷条（原作反冻，按自动攻击改，docs/142b §3.1）：队长在 kcold_r 内、或站在冲锋留下的冰面上 → 寒冷条每秒涨 1 / knight_cold_fill；
+## 不在 → 每秒落 1 / knight_cold_decay。破绽期间不涨。满了「冻伤」：knight_frostbite 秒减速（受 Boss 战移速下限 0.7）、下一击 × 1.75，然后清零
+func _cold_step(e: Dictionary, dt: float) -> void:
+	e.kcold_r = Bal.v("boss/knight_cold_r3", 180.0) if (_act(e) >= 2 and e.phase == 1) else Bal.v("boss/knight_cold_r", 140.0)
+	if e.phase == 2 or float(e.get("break_t", 0.0)) > 0.0 or e.get("invuln", false):
+		e.kcold = maxf(0.0, float(e.get("kcold", 0.0)) - dt / Bal.v("boss/knight_cold_decay", 2.5))
 		return
+	var near: bool = g.combat.ground_d(g.ppos, e.pos) < float(e.kcold_r)
+	var on_ice: bool = false
+	for s in e.get("ice_strips", []):
+		if Geometry2D.get_closest_point_to_segment(g.ppos, s.a, s.b).distance_to(g.ppos) < 26.0:
+			on_ice = true
+			break
+	if near or on_ice:
+		e.kcold = float(e.get("kcold", 0.0)) + dt / Bal.v("boss/knight_cold_fill", 3.0)
+	else:
+		e.kcold = maxf(0.0, float(e.get("kcold", 0.0)) - dt / Bal.v("boss/knight_cold_decay", 2.5))
+	if float(e.kcold) >= 1.0:
+		e.kcold = 0.0
+		var t: float = Bal.v("boss/knight_frostbite", 1.5) * (1.35 if _act(e) >= 2 else 1.0)
+		e.frostbite_until = g.t + t
+		e.frostbite_hit = true
+		g.combat.slow_leader("knight_frostbite", t, 0.5)
+		g.combat.frost_leader(t, "boss")
+		g.vfx.add_text(g.ppos + Vector2(0, -104), "冻伤！下一击加重", Color(0.75, 0.95, 1.4), 16)
+		g.vfx.sparks(g.ppos, Vector2.UP, Color(0.8, 1.2, 1.6), 12, 160.0)
+		Sfx.play("stake_shatter", -10.0, 1.3, 0.0)
+
+
+## 二幕起冲锋路径留冰面 3 秒（冰棱带）：读 last_act（warn_resolve 写），每次冲锋记一条
+func _ice_step(e: Dictionary) -> void:
+	var st: Array = e.get("ice_strips", [])
+	st = st.filter(func(s): return g.t < float(s.until))
+	var la: Dictionary = e.get("last_act", {})
+	if e.phase == 1 and _act(e) >= 1 and str(la.get("act", "")) == "dash" and float(la.get("t", -1.0)) > float(e.get("ice_last_t", -1.0)):
+		e.ice_last_t = float(la.t)
+		var a: Vector2 = la.pos
+		var b: Vector2 = a + Vector2.from_angle(float(la.ang)) * float(la.len)
+		st.append({"a": a, "b": b, "until": g.t + Bal.v("boss/knight_ice_life", 3.0)})
+		g.fx.append({"kind": "frost_track", "a": a, "b": b, "life": Bal.v("boss/knight_ice_life", 3.0), "max": Bal.v("boss/knight_ice_life", 3.0), "enemy": true})
+	e.ice_strips = st
+
+
+## 掷枪落地立桩（docs/142b §3.1）：last_act 是「掷枪」且是新的一次 → 线端立一根桩（离场地边 ≥100）
+func _spear_land(e: Dictionary) -> void:
+	var la: Dictionary = e.get("last_act", {})
+	if str(la.get("name", "")) != "掷枪" or float(la.get("t", -1.0)) <= float(e.get("spear_last_t", -1.0)):
+		return
+	e.spear_last_t = float(la.t)
 	if not e.has("stakes"):
 		e.stakes = []
+	if e.stakes.size() >= int(Bal.v("boss/knight_stakes_max", 4.0)):
+		return
+	var p: Vector2 = g.combat.arena_clamp(la.pos + Vector2.from_angle(float(la.ang)) * float(la.len), 100.0)
+	e.stakes.append({"pos": p, "until": INF})
+	g.fx.append({"kind": "frost", "pos": p, "r": 40.0, "life": 1.2, "max": 1.2, "col": ICE})   # 落点雪花冰面（六角纹）
+	g.fx.append({"kind": "gcrack", "pos": p, "r": 66.0, "life": 0.9, "max": 0.9, "col": Color(0.55, 0.85, 1.3), "enemy": true, "opts": {"n": 6, "w0": Vector2(3.0, 4.5)}})
+	g.vfx.sparks(p, Vector2.UP, Color(0.8, 1.2, 1.6), 12, 220.0)
+	Sfx.play("stake_hit", -6.0, 1.3, 0.0)
+
+
+## ---- 最后的骑士：冰枪桩（docs/38 §8.8；docs/142b §3.1 改为开局就有）。场上 boss/knight_stakes（3）根冰枪桩（r 22），离主控 ≥120、离场地边 ≥100。
+## 一幕：每根存在 12 秒，少于 2 根时补；二幕起不再自动补（只靠掷枪）。冰枪桩只挡骑士：冲锋路径碰到桩 → 长枪脱手，5 秒大破绽，桩碎；
+## 重生后（冲锋形态，原作不可阻挡）撞碎桩继续冲。主控和子弹都不受影响。冲锋预警会标出这一冲会不会撞桩（w.stake_hit，画面画「破」字端盖）
+func _knight_stakes(e: Dictionary, _dt: float) -> void:
+	if not e.has("stakes"):
+		e.stakes = []
+		_place_stakes(e, int(Bal.v("boss/knight_stakes", 3.0)))
 		g.vfx.add_text(e.pos + Vector2(0, -70), "长枪插地 · 冰枪桩", Color(0.6, 0.9, 1.4), 18)
 	if e.stakes.any(func(s): return float(s.until) > 0.0 and g.t >= float(s.until)):   # 冰枪桩到期碎裂（撞桩的 until 置 0，不算）
 		Sfx.play("stake_shatter", -6.4, 1.0, 0.0)
@@ -157,65 +238,92 @@ func _knight_stakes(e: Dictionary, dt: float) -> void:
 			if float(s.until) > 0.0 and g.t >= float(s.until):
 				g.vfx.fx_sprite("prop_ice_stake_break", s.pos, g.PX, 0.0, false, true, Color(1, 1, 1, 0.5))   # 自然到期：碎裂帧条半透明（v14）
 	e.stakes = e.stakes.filter(func(s): return g.t < float(s.until))
-	if e.stakes.size() < 2:
-		var want: int = int(Bal.v("boss/knight_stakes", 3.0))
-		var tries := 0
-		while e.stakes.size() < want and tries < 20:
-			tries += 1
-			var p: Vector2 = g.combat.arena_clamp(g.ppos + Vector2.from_angle(g.rng_enemy.randf() * TAU) * g.rng_enemy.randf_range(160.0, 320.0), 100.0)
-			if p.distance_to(g.ppos) < 120.0:
-				continue
-			e.stakes.append({"pos": p, "until": g.t + Bal.v("boss/knight_stake_life", 12.0)})
-			g.fx.append({"kind": "gcrack", "pos": p, "r": 66.0, "life": 0.9, "max": 0.9, "col": Color(0.55, 0.85, 1.3), "enemy": true, "opts": {"n": 6, "w0": Vector2(3.0, 4.5)}})   # 冰枪桩落地：小冰裂（纯画面，界面与美术 10-01）
+	if e.phase == 1 and _act(e) == 0 and e.stakes.size() < 2:
+		_place_stakes(e, int(Bal.v("boss/knight_stakes", 3.0)))
 	# 冲锋中撞桩
 	if e.get("kb_self", false) and e.kb.length() > 100.0:
 		for s in e.stakes:
 			if e.pos.distance_to(s.pos) < e.r + 22.0:
+				s.until = 0.0
+				g.vfx.fx_sprite("prop_ice_stake_break", s.pos, g.PX, 0.0, false, true)   # 撞桩碎裂（Codex v14 prop_ice_stake_break）
+				g.vfx.sparks(s.pos, Vector2.UP, Color(0.8, 1.2, 1.6), 16, 260.0)
+				if e.phase == 2:
+					# 冲锋形态：桩挡不住，撞碎继续冲
+					Sfx.play("stake_shatter", -4.0, 0.9, 0.0)
+					g.vfx.add_text(s.pos + Vector2(0, -40), "撞碎", Color(0.8, 0.95, 1.4), 14)
+					continue
 				e.kb = Vector2.ZERO
 				e.kb_self = false
 				e.dash_t = 0.0
 				e.dash2 = 0
 				e.erase("breath_at")
-				s.until = 0.0
-				g.vfx.fx_sprite("prop_ice_stake_break", s.pos, g.PX, 0.0, false, true)   # 撞桩碎裂（Codex v14 prop_ice_stake_break）
 				g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
 				g.combat.start_break(e, Bal.v("boss/knight_stake_break", 5.0))
 				Sfx.play("stake_hit", 2.0, 1.0, 0.0)   # 撞桩、长枪脱手
 				g.fx.append({"kind": "ring", "pos": s.pos, "r": 70.0, "life": 0.5, "max": 0.5, "col": Color(0.6, 0.9, 1.4), "enemy": true})
-				g.vfx.sparks(s.pos, Vector2.UP, Color(0.8, 1.2, 1.6), 16, 260.0)
 				g.vfx.add_text(e.pos + Vector2(0, -70), "长枪脱手！", Color(1.0, 0.85, 0.4), 22)
 				Sfx.play("boom", -4.0, 1.2, 0.0)
 				break
 
 
-## ---- 受击钩子（docs/101 B1c，10-15 从 combat.gd 搬来）
-## 「寒冷」受击滑窗（docs/95 §4.2 C，原作「受到伤害时给伤害来源附加寒冷」）：boss/knight_frost_win（8）秒窗口内累计实际掉血 eff，
-## _frost_due 判 ≥ knight_frost_pct（6%）且主控在 r180 内才放寒冷；窗口到期归零重计
-func on_damaged(e: Dictionary, _dmg: float, eff: float) -> void:
-	if g.t - float(e.get("frost_win_t", -99.0)) > Bal.v("boss/knight_frost_win", 8.0):
-		e.frost_win_t = g.t
-		e.frost_taken = 0.0
-	e.frost_taken = float(e.get("frost_taken", 0.0)) + eff
+func _place_stakes(e: Dictionary, want: int) -> void:
+	var tries := 0
+	while e.stakes.size() < want and tries < 20:
+		tries += 1
+		var p: Vector2 = g.combat.arena_clamp(g.ppos + Vector2.from_angle(g.rng_enemy.randf() * TAU) * g.rng_enemy.randf_range(160.0, 320.0), 100.0)
+		if p.distance_to(g.ppos) < 120.0:
+			continue
+		e.stakes.append({"pos": p, "until": g.t + Bal.v("boss/knight_stake_life", 12.0) if _act(e) == 0 else INF})
+		g.fx.append({"kind": "gcrack", "pos": p, "r": 66.0, "life": 0.9, "max": 0.9, "col": Color(0.55, 0.85, 1.3), "enemy": true, "opts": {"n": 6, "w0": Vector2(3.0, 4.5)}})   # 冰枪桩落地：小冰裂（纯画面，界面与美术 10-01）
 
 
-## 第一次归零不死，寒冰重生（二阶段）
+## ---- 受击钩子
+## 重甲（docs/142b §3.1）：平时受伤 × knight_armor（0.4）；破绽期（撞桩 / 喘气）合计 × knight_break_taken（2.0，除掉公共破绽加成 boss/break_mult）
+func taken_mult(e: Dictionary) -> float:
+	if float(e.get("break_t", 0.0)) > 0.0:
+		return Bal.v("boss/knight_break_taken", 2.0) / maxf(0.01, Bal.v("boss/break_mult", 1.4))
+	return Bal.v("boss/knight_armor", 0.4)
+
+
+## 过卡点换幕（docs/142b §1.4）：二幕把桩补到 3 根并改成不过期；横幅写这一幕的新规则
+func on_gate(e: Dictionary) -> void:
+	if e.phase != 1:
+		return
+	if _act(e) == 1:
+		for s in e.get("stakes", []):
+			s.until = INF
+		_place_stakes(e, int(Bal.v("boss/knight_stakes", 3.0)))
+		g.vfx.add_text(e.pos + Vector2(0, -70), "冰原 · 冰枪桩破土", Color(0.6, 0.9, 1.4), 18)
+		_rule_banner("knight_p2", "冰原：冰枪桩撞一次就碎，靠它掷枪补桩")
+	elif _act(e) == 2:
+		_rule_banner("knight_p3", "掷枪：冲锋会转弯，桩要挡在第二段上")
+
+
+## 第一次归零不死，寒冰重生（二阶段「冲锋形态」）
 func on_lethal(e: Dictionary) -> bool:
 	if e.phase != 1:
 		return super.on_lethal(e)
 	Sfx.play_cue("phase", e.type, "start")
 	e.phase = 2
 	e.hp = e.maxhp * 0.5
-	e.spd *= 1.2
+	e.spd *= Bal.v("boss/knight_reborn_spd", 0.5)   # 原作冲锋形态：移速 −50%，靠冲锋三连追人
 	e.invuln = true
 	e.channel = 1.5
 	e.stun = 0.0
 	e.kb = Vector2.ZERO
-	e.frost_taken = 0.0
+	e.kcold = 0.0
+	e.ice_strips = []
+	for s in e.get("stakes", []):
+		g.vfx.fx_sprite("prop_ice_stake_break", s.pos, g.PX, 0.0, false, true)
+	e.stakes = []
 	e["tint2"] = Color(0.82, 0.92, 1.25)   # 二阶段常驻冰蓝着色（docs/95 §4.2；render/world 乘色，不改帧条）
 	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))   # 重生清预警（§4.3 节奏表）
 	if not g.vfx.fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), g.PX * 1.4, 0.0):
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.9, 1.4)})
-	g.vfx.show_banner("寒冰重生 —— 最后的骑士 第二阶段")
+	g.vfx.show_banner("冲锋形态：冰枪桩挡不住了——躲过三连冲，趁喘气打")
 	Sfx.play("roar", 0.0, 0.9, 0.0)
 	g.vfx.shake_screen(1.2)
+	# 原作「释放当前波次」：刷一波普通海嗣（场地边缘）
+	for k in int(Bal.v("boss/knight_rebirth_wave", 16.0)):
+		g.spawner.spawn_enemy(g.spawner.pick_type(), g.combat.arena_clamp(g.spawner.edge_pos(), 60.0))   # 夹进场地圈内：别刷到够不着的地方
 	return true

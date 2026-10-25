@@ -3,6 +3,7 @@ extends RefCounted
 ## game.gd 的 _draw 只转发到这里。地图本身在 world/map.gd，HUD 在 screens/hud.gd。2026-09-26 从 game.gd 拆出。
 
 const LaserDraw = preload("res://scripts/render/laser_draw.gd")
+const BossBeam = preload("res://scripts/render/boss_beam.gd")   # Boss 改版样板：Kanpelle 光束、骑士寒气圈 / 寒冷条（docs/142b）
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
@@ -372,6 +373,7 @@ func draw_world() -> void:
 	_draw_bullets()
 	_pk("bullets")
 	_draw_fx()
+	BossBeam.draw_top(g)   # 主控寒冷条（骑士在场时）
 	_pk("fx")
 	if not _dbg_foe:   # --clutterdbg=nofoe：敌方弹幕 / 预警整层不画（量测）
 		_draw_ebullets_lobs_shocks()
@@ -430,6 +432,7 @@ func _draw_ground_foe_fx() -> void:
 	for sh in g.shocks:
 		if sh.get("ground", false):
 			_draw_shock(sh)
+	BossBeam.draw_ground(g)   # 骑士寒气圈（docs/142b §3.1）
 	draw_warn_outlines(true)
 
 
@@ -1033,6 +1036,9 @@ func _draw_fx() -> void:
 			a *= fdim
 		if skip_sparks > 0 and f.kind == "spark" and not f.get("enemy", false):
 			skip_sparks -= 1
+			continue
+		if f.kind == "kp_beam":
+			BossBeam.draw(g, f)   # Boss 激光（Kanpelle 帧条，docs/142b §8.5）；缺图不画（结算伤害不受影响）
 			continue
 		if (f.kind == "beam" or f.kind == "bbeam" or f.kind == "tracer") and LaserDraw.draw(g, f, a):
 			continue   # 激光改版原型（fx/laser_style，缺省 0 = 原画法，docs/138 §12）

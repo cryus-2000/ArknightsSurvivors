@@ -650,10 +650,11 @@
    "patterns": [
     {
      "name": "散射",
+     "phase_min": 1,
      "bullet": "orb",
      "mode": "fan",
      "count": 13,
-     "waves": 1,
+     "waves": 2,
      "spread": 2.0,
      "speed": 410,
      "blade": false,

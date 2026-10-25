@@ -225,7 +225,13 @@ func mobs_stopped() -> bool:
 ## final/trickle_cap；本级威胁新种类在补怪里的抽取权重 × final/trickle_fresh_w。精英 / 大群 / 威胁上升那一小波仍按 mobs_stopped() 不刷。
 ## trickle_mult 0（代码缺省）= 10-11 的全停
 func trickling() -> bool:
-	return mobs_stopped() and final_knob("trickle_mult") > 0.0
+	return mobs_stopped() and final_knob("trickle_mult") > 0.0 and not knight_duel()
+
+
+## 最后的骑士一到三幕清场单挑（docs/142b §3.1「斗牛」）：最终 Boss 是骑士、还没重生时不补怪、不来护卫波（重生后恢复）；boss/knight_duel 0 = 关
+func knight_duel() -> bool:
+	var fb = g.final_boss
+	return fb != null and not fb.get("dead", false) and str(fb.get("type", "")) == "knight_boss" and int(fb.get("phase", 1)) == 1 and Bal.v("boss/knight_duel", 1.0) > 0.0
 
 
 ## 最终 Boss 登场时 final/clear_mobs_s > 0：场上现有的普通杂兵（不含 Boss / 宝箱 / 友方 / 事件物件）在 N 秒内由远到近逐只消散。

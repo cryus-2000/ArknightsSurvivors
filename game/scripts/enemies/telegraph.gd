@@ -363,7 +363,11 @@ func warn_resolve(w: Dictionary) -> void:
 			warn_damage(w)
 		"shot":
 			var b: Vector2 = w.pos + dv * w.len
-			g.fx.append({"kind": "tracer", "a": w.pos + Vector2(0, -18), "b": b, "life": 0.35, "max": 0.35, "col": c, "wid": w.wid})
+			if str(w.get("kp", "")) != "":
+				# Boss 激光（Kanpelle 帧条，docs/142b §8.5）：w.kp = 帧条名里的 Boss 段，kp_k = 粗细（世界像素 / 美术像素）
+				g.fx.append({"kind": "kp_beam", "a": w.pos + Vector2(0, -18), "b": b, "life": 0.42, "max": 0.42, "boss": str(w.kp), "k": float(w.get("kp_k", 2.0)), "enemy": true})
+			else:
+				g.fx.append({"kind": "tracer", "a": w.pos + Vector2(0, -18), "b": b, "life": 0.35, "max": 0.35, "col": c, "wid": w.wid})
 			g.vfx.sparks(w.pos + dv * 24.0, dv, c if w.get("secondary", false) else Color(2.0, 1.6, 0.8), 8, 320.0)
 			Sfx.play("hit", 0.0, 0.5, 0.0)
 			g.vfx.shake_screen(0.4)
