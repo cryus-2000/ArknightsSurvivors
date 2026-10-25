@@ -1028,6 +1028,8 @@ func _ready() -> void:
 	elif mode == Mode.PLAY or Cfg.dev_args().has("--openshot"):
 		intro_screen.start_opening.call_deferred()
 	A.mark("ready_end")
+	if Cfg.mobile_fonts_slim():
+		Cfg.slim_fonts(true)   # 手机网页：进局清掉标题页 / 载入页用过的字号缓存（docs/50 §30）
 	aq_on = demo_op == "" and ((mode == Mode.PLAY and Cfg.quality_mode == "auto" and Cfg.dev_args().is_empty()) or Cfg.dev_args().has("--autoq"))
 	if aq_on:
 		_apply_auto_level()   # 同一次启动里前一局已经降过的，这局开局就沿用
@@ -1216,6 +1218,7 @@ func _mem_guard(delta: float) -> void:
 			budget = float(a.substr(11))
 	if vid + aud <= budget:
 		return
+	Cfg.slim_fonts(true)   # 字形缓存清掉重建（按需栅格化，卡一下；docs/50 §30 字体缓存能到 60 MB）
 	var acted: bool = Cfg.quality != "low" or not Cfg.render_scaled
 	if Cfg.quality != "low":
 		Cfg.set_quality("low")

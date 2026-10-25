@@ -176,7 +176,7 @@ func _layer_draw(key: String) -> void:
 
 
 func draw() -> void:
-	if not _glyphs_warm and g.demo_op == "":   # 图鉴演示不预热
+	if not _glyphs_warm and g.demo_op == "" and not Cfg.mobile_fonts_slim():   # 图鉴演示不预热；手机网页不预热（每个字号一份字形缓存，这批约 150 个字号、60 MB，docs/50 §30）
 		_warm_glyphs()
 	for k in _layers:
 		_layers[k].used = false
@@ -188,6 +188,15 @@ func draw() -> void:
 ## 字号逐帧变，局内每遇到一个新字号就要当帧栅格化一批字形、重传字体贴图（网页实测开局 0–15 秒几次 150–390 ms 的卡顿，
 ## 当帧几十到两百多次 texImage2D）。进局第一帧在屏幕外按局内同样的调用把这些字号各画一遍，缓存提前建好。只画在屏幕外，画面不变
 var _glyphs_warm := false
+var _qs_on := -1
+
+## 弹出放大的字号（飘字 / LEVEL UP / 大群横幅）：手机网页按 4 号一档取整，每个字号都要一份字形缓存，逐号放大会建出几十份（docs/50 §30）；其余平台原样
+func _qs(sz: int) -> int:
+	if _qs_on < 0:
+		_qs_on = 1 if Cfg.mobile_fonts_slim() else 0
+	if _qs_on == 0 or sz <= 16:
+		return sz
+	return 16 + int(round((sz - 16) / 4.0)) * 4
 const WARM_NUM := "0123456789弱点破绽 "
 
 func _warm_glyphs() -> void:
@@ -334,7 +343,7 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 			a *= 0.3
 		var sp: Vector2 = ct * f.pos
 		var pop: float = 1.0 + 0.7 * clamp((f.life - f.max + 0.12) / 0.12, 0.0, 1.0)
-		var sz := int(f.size * pop)
+		var sz := _qs(int(f.size * pop))
 		dn.append([sp - Vector2(60, 0), f.text, sz, Color(f.col.r, f.col.g, f.col.b, a)])
 	if not dn.is_empty():
 		_dmg_numbers(dn)
@@ -350,8 +359,8 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		var la := clampf(g.lvup_show / 0.35, 0.0, 1.0)
 		var lp: Vector2 = ct * (g.ppos + Vector2(0, -92 - age * 14.0))
 		var gold := Color(1.0, 0.86, 0.42, la)
-		UI.text(g.hud, g.font, lp - Vector2(150, 0), "LEVEL UP!", int(30 * pop), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 6)
-		UI.text(g.hud, g.font, lp + Vector2(-150, 26), "Lv.%d" % g.level, int(18 * pop), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
+		UI.text(g.hud, g.font, lp - Vector2(150, 0), "LEVEL UP!", _qs(int(30 * pop)), gold, HORIZONTAL_ALIGNMENT_CENTER, 300, 6)
+		UI.text(g.hud, g.font, lp + Vector2(-150, 26), "Lv.%d" % g.level, _qs(int(18 * pop)), Color(0.85, 1.0, 0.98, la), HORIZONTAL_ALIGNMENT_CENTER, 300, 4)
 
 	if g.flash > 0.0:
 		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(1.0, 0.97, 0.9, g.flash * 0.5))

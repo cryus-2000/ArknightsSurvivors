@@ -99,6 +99,30 @@ func _print_tex_breakdown() -> void:
 				if t6 is Texture2D:
 					gm += t6.get_width() * t6.get_height() * 4.0 / 1048576.0
 			groups["ground"] = gm
+	var fmb := 0.0
+	var fpages := 0
+	var fsizes := 0
+	for fp in ["res://fonts/ui.ttf", "res://fonts/ui_fallback.otf", "res://fonts/serif.ttf"]:
+		var ff = load(fp)
+		if not (ff is FontFile):
+			continue
+		for ci in ff.get_cache_count():
+			for sz in ff.get_size_cache_list(ci):
+				fsizes += 1
+				for ti in ff.get_texture_count(ci, sz):
+					var fimg: Image = ff.get_texture_image(ci, sz, ti)
+					if fimg != null:
+						fpages += 1
+						fmb += fimg.get_data_size() / 1048576.0
+	groups["font_cache(%d sizes, %d pages)" % [fsizes, fpages]] = fmb
+	var fl: Array = []
+	var f0 = load("res://fonts/ui.ttf")
+	if f0 is FontFile:
+		for ci in f0.get_cache_count():
+			for sz in f0.get_size_cache_list(ci):
+				fl.append(sz)
+	fl.sort()
+	print("PF MEMFONT ui sizes: " + " ".join(fl.map(func(v): return "%d/%d" % [v.x, v.y])))
 	tops.sort_custom(func(a, b): return a[0] > b[0])
 	var gs: Array = groups.keys()
 	gs.sort_custom(func(a, b): return groups[a] > groups[b])

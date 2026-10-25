@@ -136,6 +136,23 @@ func mobile_knob(key: String, dflt: float) -> bool:
 	return load("res://scripts/core/balance.gd").v("web/" + key, dflt) > 0.0
 
 
+## 字形缓存瘦身（docs/50 §30.4：桌面低画质一局下来字体缓存 173 个字号、161 张页、62 MB——引擎显存里最大的一块没对上的就是它）：
+## 关掉亚像素定位（每个字形不再按 1/4 像素存 4 份；像素风的界面字看不出差别），并清掉已有缓存。手机网页开局做、进局再清一次标题页用过的字号
+const FONT_PATHS := ["res://fonts/ui.ttf", "res://fonts/ui_fallback.otf", "res://fonts/serif.ttf"]
+
+func slim_fonts(clear_only := false) -> void:
+	for fp in FONT_PATHS:
+		var ff = load(fp)
+		if ff is FontFile:
+			if not clear_only:
+				ff.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+			ff.clear_cache()
+
+
+func mobile_fonts_slim() -> bool:
+	return (mobile_web() and mobile_knob("mobile_font_slim", 1.0)) or dev_args().has("--fontslim")
+
+
 func touch_device() -> bool:
 	if _touch < 0:
 		var t: bool = DisplayServer.is_touchscreen_available() or dev_args().has("--touch") or OS.has_feature("web_android") or OS.has_feature("web_ios")
@@ -362,6 +379,8 @@ func _ready() -> void:
 		elif a.begins_with("--camzoom="):
 			cam_zoom_pct = clampi(int(a.substr(10)), ZOOM_PCT_MIN, ZOOM_PCT_MAX)
 	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)   # 自动档：每次启动按本机检测；手选档：按档位统一开关后期
+	if mobile_fonts_slim():
+		slim_fonts()
 	if mobile_web() and mobile_knob("mobile_rscale", 1.0):
 		set_render_scale.call_deferred(true)   # 手机网页开局就按逻辑分辨率（约 1280×720）画再放大：iPhone 3 倍像素屏的画布 / 全屏层显存约降到 1/3–1/7
 	for a in dev_args():
