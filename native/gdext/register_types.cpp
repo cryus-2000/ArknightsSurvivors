@@ -1,4 +1,4 @@
-// ark_native 的 GDExtension 入口（docs/101 §4.7）：注册 EnemyCore。entry_symbol 与 game/bin/ark_native.gdextension 一致
+// ark_native 的 GDExtension 入口（docs/101 §4.7）：注册 EnemyCore、EnemyRender（docs/50 §28）。entry_symbol 与 game/bin/ark_native.gdextension 一致
 #include <gdextension_interface.h>
 
 #include <godot_cpp/core/class_db.hpp>
@@ -6,6 +6,7 @@
 #include <godot_cpp/godot.hpp>
 
 #include "enemy_core_bind.h"
+#include "enemy_render_bind.h"
 
 using namespace godot;
 
@@ -14,6 +15,7 @@ static void initialize_ark_native(ModuleInitializationLevel p_level) {
 		return;
 	}
 	GDREGISTER_CLASS(EnemyCore);
+	GDREGISTER_CLASS(EnemyRender);
 }
 
 static void uninitialize_ark_native(ModuleInitializationLevel p_level) {

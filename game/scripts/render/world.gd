@@ -14,6 +14,7 @@ const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 const EnemyAtlas = preload("res://scripts/render/enemy_atlas.gd")
 const TeleDraw = preload("res://scripts/render/telegraph_draw.gd")   # 预警填充层（docs/101 B2，原 boss_ai.draw_warns）
 const LAMP_READ_EXT := 1.6   # 可读灯圈（render/lamp_readable）：余光延到灯半径的倍数，game.gd 的灯光贴图按它生成
+const Native = preload("res://scripts/native/native.gd")   # 原生模块薄封装（docs/50 §28 EnemyRender）
 const TriBatch = preload("res://scripts/render/tri_batch.gd")   # 引擎同款几何的无贴图三角形批（docs/50 §13）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -379,6 +380,9 @@ func draw_world() -> void:
 	_pk("gems")
 	var evr: Rect2 = view_rect(ENTITY_MARGIN)   # 屏幕外的敌人不画影子、不进排序（性能，协调人 9/30；绘制只改画面，不影响模拟）
 	_build_vis(evr)
+	_pk("vis")
+	_nr_begin()
+	_pk("nr_begin")
 	_draw_shadows(evr)
 	_pk("shadows")
 	_draw_sorted_entities(evr)
@@ -809,7 +813,9 @@ func _draw_shadows(evr: Rect2) -> void:
 		var src := Rect2(0, 0, stx.get_width(), stx.get_height())
 		var scol := Color(1, 1, 1, 0.0 if _dbg_enemy else 1.0)
 		var doff: Vector2 = g.draw_off
-		for e in ens:
+		if _nr_on:
+			_nr.emit_shadows(g.get_canvas_item(), doff, sw, sh, scol.a)   # 原生：同一算式、同一画布命令（docs/50 §28）
+		for e in (_NR_NONE if _nr_on else ens):
 			var ep: Vector2 = e.pos
 			if not evr.has_point(ep):
 				continue
@@ -823,8 +829,323 @@ func _draw_shadows(evr: Rect2) -> void:
 	g.squad.draw_entities_floor()
 
 
+## ---- 原生敌人绘制（docs/50 §28，ark_native EnemyRender）：排序实体里普通怪的缓存路径、影子、发光点、弱点菱形的逐只计算交给 C++，
+## C++ 发出与 GDScript 同一种画布命令（贴图矩形 / 翻转变换 / 纯色矩形），画面逐像素相同。GDScript 每帧只按视野表收一遍列（_nr_begin），
+## 排序后按段调用：原生段一次画完；_dc_ok 不通过 / 精英冷色描边 / 种类未登记的敌人与干员 / 博士 / 景物照旧由 GDScript 画（段与段之间次序不变）。
+## 开关：没有扩展、OPT_NR（--optold / --optab）、--dccheck、图集未建、调试开关时整帧走 GDScript 原路径
+const _NR_NONE: Array = []
+const _NR_WEAK_COL: Array = [Color(1, 1, 1), Color(1.0, 0.75, 0.3), Color(0.7, 0.55, 1.0), Color(1.0, 0.5, 0.8)]
+const NR_BOSS := 1
+const NR_CHEST := 2
+const NR_ELITE := 4
+const NR_EVO := 8
+const NR_INVULN := 16
+const NR_STUN := 32
+const NR_COMA := 64
+const NR_DORMANT := 128
+const NR_TEXMOVE := 256
+const NR_SPECIAL := 512
+const NR_FEIGN := 1024
+const NR_AFFIX := 2048
+const NR_RC := 16384
+const NR_SKIP := 32768
+var _nr = null
+var _nr_tried := false
+var nr_drawn := 0               # 原生段累计画过的敌人只次
+var _nr_on := false
+var _nr_types := {}        # 种类 → 登记序号
+var _nr_tex: Array = []    # 登记序号 → 登记时的 e.tex（不符走 GDScript）
+var _nr_glows := {}        # "帧条名#帧数" → 发光点表序号
+var _nr_atlas = null       # 登记时的图集（换了就清表重登）
+var _nr_pos := PackedVector2Array()
+var _nr_r := PackedFloat64Array()
+var _nr_kb := PackedVector2Array()
+var _nr_fx := PackedFloat64Array()
+var _nr_fl := PackedFloat64Array()
+var _nr_id := PackedInt32Array()
+var _nr_ty := PackedInt32Array()
+var _nr_meta := PackedInt32Array()
+var _nr_dp := PackedVector2Array()
+var _nr_mv := PackedFloat64Array()
+var _nr_rc := PackedFloat64Array()
+var _nr_rcd := PackedVector2Array()
+
+
+func _nr_begin() -> void:
+	_nr_on = false
+	if _nr == null:
+		if _nr_tried:
+			return
+		_nr_tried = true
+		_nr = Native.enemy_render()
+		if _nr == null:
+			return
+	if (g.opt_old & Game.OPT_NR) or atlas == null or not _vis_on or dc_check or not dc_on or _rec != null or _dbg_enemy or _no_flash or not EnemyAtlas.xform_flip:
+		return
+	var stx: Texture2D = g.tex.get("shadow")
+	if stx == null:
+		return
+	if not is_same(_nr_atlas, atlas):
+		_nr_atlas = atlas
+		_nr.clear()
+		_nr_types.clear()
+		_nr_tex.clear()
+		_nr_glows.clear()
+	_afast = true
+	_am_mode = Look.actor_mod_begin(g)
+	if _am_mode == 2:
+		Look.actor_mod_lut_build()   # 受光封顶整屏统一算一次（docs/50 §15 D2）
+		_am_mode = 3
+	_nr.set_textures(atlas.tex_body.get_rid(), atlas.tex_white.get_rid(), stx.get_rid())
+	var gc := PackedColorArray()
+	if g.optical != null:
+		gc.append(g.optical.col_enemy)
+		gc.append(g.optical.col_elite)
+	_nr.frame_begin(PackedFloat64Array([g.t, flash_a, _am_mode, Look._lt_inv, Look._fc_lpos.x, Look._fc_lpos.y, 1.0 if _lamp_rim else 0.0,
+		1.0 if g.optical_on else 0.0, 1.0 if elite_rim > 0.0 else 0.0, rc_px, rc_t, Game.PX]), Look._lt if _am_mode == 3 else PackedColorArray(), gc)
+	var n: int = _vis_ent.size()
+	_nr_pos.resize(n)
+	_nr_r.resize(n)
+	_nr_kb.resize(n)
+	_nr_fx.resize(n)
+	_nr_fl.resize(n)
+	_nr_id.resize(n)
+	_nr_ty.resize(n)
+	_nr_meta.resize(n)
+	_nr_dp.resize(n)
+	_nr_mv.resize(n)
+	_nr_rc.resize(n * 3)
+	_nr_rcd.resize(n)
+	var t: float = g.t
+	var bfx: float = BURST_FX_FRAMES / BURST_FX_FPS
+	for k in n:
+		var e: Dictionary = _vis_ent[k]
+		var p: Vector2 = e.pos
+		_nr_pos[k] = p
+		_nr_r[k] = e.r
+		_nr_kb[k] = e.kb
+		var m := 0
+		if e.boss:
+			m |= NR_BOSS
+		if e.chest:
+			m |= NR_CHEST
+		var ti = _nr_types.get(e.type)
+		if ti == null:
+			ti = _nr_reg(e)
+		_nr_ty[k] = ti
+		if m != 0 or ti < 0 or e.tex != _nr_tex[ti]:
+			_nr_meta[k] = m | NR_SKIP
+			continue
+		_nr_fx[k] = e.fx
+		_nr_fl[k] = e.flash
+		_nr_id[k] = e.id
+		if e.elite:
+			m |= NR_ELITE
+		if e.evo:
+			m |= NR_EVO
+		if e.invuln:
+			m |= NR_INVULN
+		if e.stun > 0.0:
+			m |= NR_STUN
+		if e.coma:
+			m |= NR_COMA
+		if e.dormant:
+			m |= NR_DORMANT
+		if e.tex_move:
+			m |= NR_TEXMOVE
+		if e.tex_feign:
+			m |= NR_FEIGN
+		# 同 _dc_ok 的动态排除条件（不变项 dcs 由种类登记 + Boss / 宝箱位代替）
+		if e.squash > 0.0 or e.wind > 0.0 or e.dash_w > 0.0 or e.dash_t > 0.0 or e.enraged or e.wake_t > 0.0 \
+				or e.nova_w > 0.0 or e.blast_w > 0.0 or e.burst_w > 0.0 or e.air > 0.0 or e.pose > 0.0 \
+				or e.get("part", false) or e.get("under", false) or e.get("gate_hold", false) or e.get("sword_t", 0.0) > 0.0 or e.get("break_t", 0.0) > 0.0 \
+				or e.has("vis_act") or e.get("bstag", 0.0) > 0.0 or float(e.get("hatch_until", 0.0)) > t \
+				or (e.tex_attack and (t < e.atk_until or e.get("attack_preparing", false) or float(e.get("shot_wind_until", 0.0)) > t)) \
+				or t - float(e.get("burst_fx_t", -9.0)) < bfx:
+			m |= NR_SPECIAL
+		var af: String = e.affix
+		if af == "armor" or (af == "shield" and e.shield_hp > 0.0):
+			m |= NR_AFFIX
+		var wk: String = e.weak
+		if wk != "":
+			m |= (1 if wk == "物理" else (2 if wk == "法术" else 3)) << 12
+		var ra: float = e.get("rc_at", -99.0)
+		if t - ra >= 0.0 and t - ra < 5.0:   # 后坐窗口（rc_t 0.08–0.1 秒，留足余量）：读全后坐字段
+			m |= NR_RC
+			_nr_rc[k * 3] = ra
+			_nr_rc[k * 3 + 1] = float(e.get("rc_t", rc_t))
+			_nr_rc[k * 3 + 2] = float(e.rc_k)
+			_nr_rcd[k] = e.rc_dir
+		_nr_dp[k] = e.get("dpos", p)
+		_nr_mv[k] = e.mv_until
+		_nr_meta[k] = m
+	var res: Array = _nr.set_cols(_nr_pos, _nr_r, _nr_kb, _nr_fx, _nr_fl, _nr_id, _nr_ty, _nr_meta, _nr_dp, _nr_mv, _nr_rc, _nr_rcd)
+	var el: PackedByteArray = res[0]
+	var mo: PackedFloat64Array = res[1]
+	if el.size() != n:
+		return
+	# 移动判定写回（draw_enemy：e.dpos = e.pos；挪动过 0.2 像素就 e.mv_until = g.t + 0.2）——只写原生画的那几只，其余 draw_enemy 自己写
+	for k in n:
+		if el[k] != 0 and (_nr_meta[k] & NR_TEXMOVE):
+			var e: Dictionary = _vis_ent[k]
+			e.dpos = _nr_pos[k]
+			if mo[k] != _nr_mv[k]:
+				e.mv_until = mo[k]
+	_nr_on = true
+
+
+## 种类登记：四个画法变体（本体 / 假死 / 移动 / 休眠）按 _dc_compute 的同一段代码算好交给原生；返回登记序号
+func _nr_reg(e: Dictionary) -> int:
+	var ti: int = _nr_tex.size()
+	var tex: String = e.tex
+	_nr_types[e.type] = ti
+	_nr_tex.append(tex)
+	var ed: Dictionary = D.ENEMIES.get(e.type, _NO_DEF)
+	var full: bool = tex == "e_knight" or ed.get("draw_full", false) or e.boss or e.chest
+	var foot: bool = g.foot_anchor.has(tex)
+	_nr.set_type(ti, full, foot, ed.get("tint", Color.WHITE))
+	if full:
+		return ti
+	var base_sc: float = enemy_scale(e)
+	var names := [tex, tex + "_feign", tex + "_move", tex + "_dormant"]
+	for vb in 4:
+		var name: String = names[vb]
+		if vb > 0 and g.tex.get(name) == null:
+			continue
+		var frames: int
+		var fps: float
+		if vb == 2:
+			frames = A.enemy_frames(name, 4)
+			fps = A.enemy_loop_fps(name, float(ed.get("move_fps", 6.0)))
+		elif vb == 3:
+			frames = A.enemy_frames(name, 2)
+			fps = A.enemy_loop_fps(name, 3.0)
+		else:
+			frames = A.enemy_frames(name, 2)
+			fps = A.enemy_loop_fps(name, 5.0)
+		var wname: String = (tex + "_wound") if (g.tex.get(tex + "_wound") != null and (vb == 0 or vb == 2)) else ""
+		var sc: float = base_sc
+		var anc := Vector2(0.5, 1.0) if foot else Vector2(0.5, 0.5)
+		var hr: float = A.hires_of(g.tex.get(name)) if g.tex.get(name) != null else 1.0
+		if hr > 1.0:
+			sc /= hr
+		anc = A.enemy_pixel_anchor(name, anc)
+		sc *= A.enemy_pixel_scale(name)
+		var strip := _nr_strip(name)
+		var white: bool = strip >= 0 and _nr_strip_white(name)
+		var wound := -1
+		var wound_white := false
+		var wound_bad := false
+		var wglow := -1
+		if wname != "":
+			wound = _nr_strip(wname)
+			wound_bad = wound < 0   # 有受击姿态但不在图集本体贴图上：闪白那几帧 _dc_emit 走非图集画法 → 交回 GDScript
+			wound_white = wound >= 0 and _nr_strip_white(wname)
+			if wound >= 0:
+				wglow = _nr_glow(wname, 1)
+		_nr.set_variant(ti, vb, PackedFloat64Array([strip, 1.0 if white else 0.0, frames, fps, wound, 1.0 if wound_white else 0.0, 1.0 if wound_bad else 0.0,
+			anc.x, anc.y, sc, 1.0 if g.tex.has(name + "_white") else 0.0, _nr_glow(name, frames) if strip >= 0 else -1, wglow]))
+	return ti
+
+
+## 图集里的帧条 → 原生帧条序号（本体必须在 tex_body，否则 -1 = 这个变体走 GDScript）
+func _nr_strip(name: String) -> int:
+	var r = atlas.reg.get(name)
+	if r == null or not is_same(r[0], atlas.tex_body):
+		return -1
+	var o: Vector2i = r[1]
+	return _nr.add_strip(o.x, o.y, r[2], r[3])
+
+
+## 白剪影与本体同原点、同尺寸、在 tex_white（EnemyAtlas 的排布）
+func _nr_strip_white(name: String) -> bool:
+	var r = atlas.reg.get(name)
+	var w = atlas.reg.get(name + "_white")
+	return w != null and is_same(w[0], atlas.tex_white) and w[1] == r[1] and w[2] == r[2] and w[3] == r[3]
+
+
+func _nr_glow(name: String, frames: int) -> int:
+	var key := "%s#%d" % [name, frames]
+	if _nr_glows.has(key):
+		return _nr_glows[key]
+	var per: bool = _emit_pts(name, frames, 0) != null
+	var offs := PackedInt32Array([0])
+	var pts := PackedFloat64Array()
+	for f in (frames if per else 1):
+		for pt in _glow_table(name, frames, f):
+			var q: Vector2 = pt[0]
+			var fs: Vector2 = pt[2]
+			pts.append_array([q.x, q.y, fs.x, fs.y, float(pt[3])])
+		offs.append(pts.size() / 5)
+	var id: int = _nr.add_glow(per, offs, pts)
+	_nr_glows[key] = id
+	return id
+
+
+## 原生排序 + 分段绘制：其他物件的键与加入次序同 _sorted_fast；原生段由 C++ 一次画完，词条特效随后按同一次序补（_affix_fx 只往批表里追加）
+func _sorted_native() -> void:
+	var objs: Array = _se_objs
+	var kind: PackedByteArray = _se_kind
+	var ka: PackedFloat64Array = _se_keys
+	objs.clear()
+	kind.clear()
+	ka.clear()
+	ka.append(g.doc_pos.y + 6.0)
+	objs.append(null)
+	kind.append(2)
+	for o in g.squad.ops:
+		if g.optical_ops_hi:
+			break
+		if o.pos != Vector2.INF:
+			ka.append(o.pos.y + 4.0)
+			objs.append(o)
+			kind.append(5)
+		for xb in o.extra_bodies():
+			ka.append(xb.y)
+			objs.append([o, xb])
+			kind.append(6)
+	if g.knight.alive:
+		ka.append(g.knight.pos.y + 18.0)
+		objs.append(null)
+		kind.append(4)
+	for pr in g.map.sort_props:
+		ka.append(pr[1].y)
+		objs.append(pr)
+		kind.append(3)
+	var seg: PackedInt32Array = _nr.sort(ka)
+	var rid: RID = g.get_canvas_item()
+	var i := 0
+	var ns: int = seg.size()
+	while i < ns:
+		var st: int = seg[i]
+		if st == 0:
+			var af: PackedFloat32Array = _nr.emit_run(rid, seg[i + 1], seg[i + 2])
+			nr_drawn += seg[i + 2] - seg[i + 1]
+			for j in range(0, af.size(), 3):
+				var e: Dictionary = _vis_ent[int(af[j])]
+				_affix_fx(e, Vector2(af[j + 1], af[j + 2]), _enemy_top(e))
+		elif st == 1:
+			draw_enemy(_vis_ent[seg[i + 1]])
+		else:
+			_se_draw(objs[seg[i + 1]], kind[seg[i + 1]])
+		i += 3
+	g.prof["nr_drawn"] = nr_drawn   # 原生画过的敌人只次（BALANCE prof.nr_drawn）
+	objs.clear()
+
+
+func _weak_add(wp: Vector2, wc: Color, wk: String) -> void:
+	if _nr_on:
+		_nr.weak_add(wp, 1 if wk == "物理" else (2 if wk == "法术" else 3))
+	else:
+		weak_marks.append([wp, wc])
+
+
 ## 2.5D 前后遮挡：敌人 / 博士 / 干员（含额外身体）/ 骑士 / 排序道具按脚底 y 排序后依次绘制
 func _draw_sorted_entities(evr: Rect2) -> void:
+	if _nr_on:
+		_sorted_native()   # _nr_begin 已设好 _afast / _am_mode（受光表）
+		_am_mode = 0
+		return
 	_afast = atlas != null and not _dbg_enemy and not _no_flash and EnemyAtlas.xform_flip
 	_am_mode = Look.actor_mod_begin(g)
 	if _am_mode == 2:
@@ -944,6 +1265,12 @@ func _se_draw(ob, kd: int) -> void:
 ## 敌人身上层（词条特效批、弱点菱形）→ 干员技能上层 → 护盾 → 无人机三遍（影子光晕 / 机体 / 核心）
 func _draw_overlays_shield_drones() -> void:
 	_afx_flush()
+	if _nr_on:
+		var wt: Array = _nr.weak_take()
+		var wps: PackedVector2Array = wt[0]
+		var wks: PackedInt32Array = wt[1]
+		for k in wps.size():
+			weak_marks.append([wps[k], _NR_WEAK_COL[wks[k]]])
 	for wm in weak_marks:
 		var wpp: Vector2 = wm[0]
 		var wcc: Color = wm[1]
@@ -2303,7 +2630,7 @@ func _dc_emit(e: Dictionary, c: Array) -> void:
 	if _rec == null and wk != "":
 		var wc := Color(1.0, 0.75, 0.3) if wk == "物理" else (Color(0.7, 0.55, 1.0) if wk == "法术" else Color(1.0, 0.5, 0.8))
 		var wp: Vector2 = e.pos + Vector2(e.r * 0.8 + 6.0, -e.r - 4.0)
-		weak_marks.append([wp, wc])
+		_weak_add(wp, wc, wk)
 	g.draw_off = Vector2.ZERO
 
 
@@ -2330,7 +2657,8 @@ func _espr(name: String, frames: int, frame: int, pos: Vector2, sc: float, flip:
 var _glow_cache := {}
 ## 位置取帧条首帧最亮的几处像素；颜色按颜色语言统一（render/optical.gd enemy_glow：普通 / 精英 / Boss），不用像素自身颜色。
 ## 普通怪 3 处，精英 / Boss 多一处、大一号
-func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, anc: Vector2, e: Dictionary, frame: int = 0) -> void:
+## 发光点表：重画帧条有 _emit 层时按帧取（_emit_pts），否则取首帧最亮像素（_glow_cache，所有帧同一份）。原生敌人绘制登记时也调它（docs/50 §28）
+func _glow_table(name: String, frames: int, frame: int) -> Array:
 	var pts = _emit_pts(name, frames, frame)   # 重画帧条（10-23）带独立 _emit 发光层：读它，不再自动取最亮像素
 	if pts == null:
 		pts = _glow_cache.get(name)
@@ -2376,6 +2704,11 @@ func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, a
 					if far:
 						pts.append([q, cd[3], Vector2(fw, fh), dens])
 		_glow_cache[name] = pts
+	return pts
+
+
+func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, anc: Vector2, e: Dictionary, frame: int = 0) -> void:
+	var pts: Array = _glow_table(name, frames, frame)
 	var big: bool = e.get("elite", false) or e.get("boss", false)
 	var cc: Color = g.optical.enemy_glow(e)
 	var npt: int = mini(pts.size(), 4 if big else 3)
@@ -2387,7 +2720,11 @@ func _glow_pts(name: String, frames: int, pos: Vector2, sc: float, flip: bool, a
 		if flip:
 			d.x = -d.x
 		var sz: float = maxf(2.0, sc) * (1.5 if big else 1.0)
-		g.glow_next.append([(pos + d - Vector2(sz, sz) * 0.5).round(), sz, cc])
+		var gp: Vector2 = (pos + d - Vector2(sz, sz) * 0.5).round()
+		if _nr_on:
+			_nr.glow_add(gp, sz, cc)   # 原生敌人绘制开着时发光点统一由它登记（GDScript 画的那几只也走这里，次序不乱）
+		else:
+			g.glow_next.append([gp, sz, cc])
 
 
 ## 重画帧条的发光层（name_emit，同帧索引、同原点）：每帧取发光像素按 6 美术像素格归并，取像素最多的至多 4 团的重心。
@@ -2791,7 +3128,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	if _rec == null and wk != "" and not e.get("under", false):
 		var wc := Color(1.0, 0.75, 0.3) if wk == "物理" else (Color(0.7, 0.55, 1.0) if wk == "法术" else Color(1.0, 0.5, 0.8))
 		var wp: Vector2 = e.pos + Vector2(e.r * 0.8 + 6.0, -e.r - 4.0)
-		weak_marks.append([wp, wc])   # 弱点菱形攒到排序实体画完后一次合批（每只一个多边形会打断敌人贴图的合批，性能 9/30）
+		_weak_add(wp, wc, wk)   # 弱点菱形攒到排序实体画完后一次合批（每只一个多边形会打断敌人贴图的合批，性能 9/30）
 		if e.boss:
 			UI.text(g, g.font, wp + Vector2(-20, 16), ("弱" + wk.substr(0, 1)) if wk != "双" else "双弱", 10, wc, HORIZONTAL_ALIGNMENT_CENTER, 40)
 	# 精英血条与标识改到 HUD 层（hud.draw_elite_marks）：不受灯光压暗，也不受「怪物轮廓光」开关影响（docs/48 P1）

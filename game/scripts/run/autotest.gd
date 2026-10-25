@@ -321,6 +321,7 @@ func _rec_step() -> void:
 		_rec_i += 1
 		_rec_left -= 1
 		if _rec_left == 0:
+			print("RECDONE frames=%d nr_drawn=%d" % [_rec_i, g.world.nr_drawn])   # 快检 native_render_eq：原生敌人绘制真的画过（docs/50 §28）
 			g.get_tree().quit()
 
 

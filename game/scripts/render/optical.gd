@@ -427,6 +427,8 @@ func _draw_glow() -> void:
 	_draw_ground_glow()
 	for p in g.glow_cur:
 		glow_node.draw_rect(Rect2(p[0], Vector2(p[1], p[1])), p[2])
+	if g.world != null and g.world._nr != null:
+		g.world._nr.glow_emit(glow_node.get_canvas_item())   # 原生敌人绘制登记的发光点（同一顺序、同一画法）
 	for q in g.glow_tex_cur:
 		glow_node.draw_texture_rect_region(q[0], q[1], q[2], q[3])   # _emit 发光层（溟痕 / 结晶 / 退散，同位置 1:1）
 	if not g.world.gem_emit:
@@ -553,6 +555,8 @@ func _process(_dt: float) -> void:
 		_lo_step()
 	g.glow_cur = g.glow_next
 	g.glow_next = []
+	if g.world != null and g.world._nr != null:
+		g.world._nr.glow_swap()   # 原生敌人绘制的发光点（docs/50 §28）：同 glow_cur / glow_next 的换帧
 	g.glow_tex_cur = g.glow_tex_next
 	g.glow_tex_next = []
 	pt = _pt("op_lowres", pt)

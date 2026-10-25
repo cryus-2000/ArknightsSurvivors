@@ -623,6 +623,64 @@ def check_native_eq(godot):
     return {"name": name, "ok": True, "detail": "seed 13 三分钟 TRACE %d 行原生与 GDScript 逐行相同" % len(a), "errors": [], "log": logs}
 
 
+def check_native_render_eq(godot):
+    """原生敌人绘制对照（docs/50 §28 EnemyRender）：本机编过 ark_native 时，同 seed 开窗口（屏幕外、静音）截图，原生绘制与 --optold=4194304
+    （OPT_NR，走 GDScript 原路径）逐张比文件字节：一局 3:20 起 8 帧 + --worldspec 摆拍 + --fxtest 特效 / 演示屏。同样的像素 Godot 编出同样的 PNG，
+    所以字节相同即像素相同（旧对旧也是 0 差异，docs/50 §28）；录完一行 RECDONE nr_drawn > 0 确认原生真的画了。没有 dll 跳过（云端快检无头、也没 dll）"""
+    import glob as _glob
+    import hashlib
+    import shutil
+    name = "原生绘制对照"
+    if not sorted(_glob.glob(os.path.join(GAME, "bin", "ark_native.windows.template_*.x86_64.dll"))):
+        return {"name": name, "ok": True, "detail": "跳过（本机没编 ark_native）"}
+    root = os.path.join(GR.common_root(), "build", "check_native_render")
+    shutil.rmtree(root, ignore_errors=True)
+    quiet = ["--bal=fx/grains=0", "--stackab=1000000:2", "--bal=render/optical_caustics=0", "--bal=render/optical_ground_glow=0"]
+    win = [godot, "--path", GAME, "--audio-driver", "Dummy", "--fixed-fps", "60", "--resolution", "1280x720", "--"]
+    cases = {
+        "run": ["--balance", "--nodeath", "--bot=expert", "--seed=13", "--op=skalter", "--squad=texas,exusiai", "--quality=mid", "--maxt=205", "--recframes=200,8"],
+        "worldspec": ["--autotest", "--seed=1", "--op=skalter", "--squad=texas,exusiai", "--quality=mid", "--worldspec"],
+        "fxtest": ["--autotest", "--seed=1", "--op=skalter", "--squad=texas,exusiai", "--quality=mid", "--fxtest"],
+    }
+
+    def one(job):
+        grp, k = job
+        d = os.path.join(root, grp, k)
+        os.makedirs(d, exist_ok=True)
+        args = win + cases[grp] + quiet + ["--shotdir=" + d.replace(os.sep, "/")] + (["--optold=4194304"] if k == "gd" else [])
+        out, err, to = GR.run_godot(args, 900)
+        return grp, k, out, err, to
+    jobs = [(g_, k) for g_ in cases for k in ("native", "gd")]
+    with ThreadPoolExecutor(2) as ex:
+        res = list(ex.map(one, jobs))
+    drawn = 0
+    for grp, k, out, err, to in res:
+        se = GR.script_errors(out, err)
+        if to or se:
+            return {"name": name, "ok": False, "detail": "%s / %s %s" % (grp, k, "超时" if to else se[0][:160]), "errors": se[:3]}
+        if grp == "run" and k == "native":
+            m = re.search(r"^RECDONE frames=\d+ nr_drawn=(\d+)", out, re.M)   # --recframes 录完即退出，不打 BALANCE；退出前打这一行
+            drawn = int(m.group(1)) if m else 0
+    if drawn <= 0:
+        return {"name": name, "ok": False, "detail": "原生一只敌人都没画（RECDONE nr_drawn = 0 或没有这一行）：EnemyRender 没加载或没接上", "errors": []}
+
+    def digest(f):
+        return hashlib.sha1(open(f, "rb").read()).hexdigest()
+    n, bad = 0, []
+    for grp in cases:
+        fa = sorted(f for f in os.listdir(os.path.join(root, grp, "gd")) if f.endswith(".png"))
+        fb = sorted(f for f in os.listdir(os.path.join(root, grp, "native")) if f.endswith(".png"))
+        if not fa or fa != fb:
+            return {"name": name, "ok": False, "detail": "%s 截图张数 / 名字不同（GDScript %d / 原生 %d）" % (grp, len(fa), len(fb)), "errors": []}
+        for f in fa:
+            n += 1
+            if digest(os.path.join(root, grp, "gd", f)) != digest(os.path.join(root, grp, "native", f)):
+                bad.append("%s/%s" % (grp, f))
+    if bad:
+        return {"name": name, "ok": False, "detail": "%d / %d 张截图不同（%s）：python tools/probes/nr_pixcmp.py 看差异图" % (len(bad), n, root), "errors": bad[:5]}
+    return {"name": name, "ok": True, "detail": "%d 张截图原生与 GDScript 逐字节相同（原生画了 %d 只次）" % (n, drawn), "errors": []}
+
+
 def check_repro(godot):
     # 第 3 局加 --rngshift：画面随机流 g.vrng 与全局随机流换种子。它们的消耗次数随真实帧间隔变（脚下尘土等按真实时间生成），
     # 玩法读了它们就会「同 seed 偶尔不同」（10-20 逻各斯弹道摆动读 g.vrng，招募了逻各斯的维什戴尔 / 星熊局随机分叉）。
@@ -1134,7 +1192,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "manual_all", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "px_lint", "enemy_art"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "manual_all", "prot", "repro", "native_eq", "native_render_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "px_lint", "enemy_art"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1230,6 +1288,8 @@ def main():
             jobs.append(lambda: check_repro(godot))
         if a.only in (None, "native_eq"):
             jobs.append(lambda: check_native_eq(godot))
+        if a.only in (None, "native_render_eq"):
+            jobs.append(lambda: check_native_render_eq(godot))
         if a.only in (None, "blocks_eq") and not branch_full:
             jobs.append(lambda: check_blocks_eq(godot))
         for key in SCENE_REGRESSIONS:
