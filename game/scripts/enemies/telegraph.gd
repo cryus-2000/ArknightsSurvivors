@@ -251,6 +251,15 @@ func warn_resolve(w: Dictionary) -> void:
 		"tide_link":
 			if not _kp(w, w.pos, w.pos + dv * w.len):
 				g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.55, "max": 0.55, "col": c, "enemy": true})
+			var sw = w.get("b_owner")
+			if w.get("swap", false) and sw is Dictionary and not sw.dead and not e.dead:
+				# 接潮「换位」（docs/142b §3.8）：两具互换位置
+				var tmp: Vector2 = e.pos
+				e.pos = sw.pos
+				sw.pos = tmp
+				g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.2, "life": 0.4, "max": 0.4, "col": c, "enemy": true})
+				g.fx.append({"kind": "ring", "pos": sw.pos, "r": sw.r * 2.2, "life": 0.4, "max": 0.4, "col": c, "enemy": true})
+				Sfx.play("tentacle", -4.0, 0.7)
 			g.vfx.fx_sprite("fx_water_splash", w.pos + dv * w.len, g.PX * 1.2)
 			Sfx.play("tentacle", -8.0, 1.1)
 			warn_damage(w)

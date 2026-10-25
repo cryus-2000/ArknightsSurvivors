@@ -3,6 +3,7 @@ extends RefCounted
 ## 1. "kp_beam"：Kanpelle · Ultimate Laser Pack 光束（tools/gen_boss_laser.py 导出 fx_kp_<boss>_<段>，每段 16 × 48、4 帧）。
 ##    起点 + 中段平铺 + 命中端，沿 a → b 旋转；先播开启 4 帧，再循环持续帧，最后开启倒放 = 关闭。纯画面，不碰随机数。
 ## 2. 骑士「斗牛」的寒气圈（地面层）与主控的寒冷条（顶层）：读 e.kcold / e.kcold_r（knight_boss.gd 写）。
+## 3. 卡门火线、塑路者生路（地面层）、接潮组同步护盾（顶层）。
 const A = preload("res://scripts/art.gd")
 
 const SEG := 16.0     # 每段宽（美术像素）
@@ -130,8 +131,24 @@ static func draw_ground(g) -> void:
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-## 顶层：主控脚下的寒冷条（骑士在场且寒冷 > 0 时）；满了之后「冻伤」期间整条变白
+## 接潮组「同步」护盾（docs/142b §3.8）：血少的那具身上一圈六边形护盾（专属色、缓慢旋转），读法「这具现在打不动，去打另一具」
+static func _shields(g) -> void:
+	for e in g.bosses:
+		if e.dead or not e.get("pair_shield", false):
+			continue
+		var c: Color = g.vfx.boss_color(e.type)
+		var r: float = float(e.r) * 1.7 + 6.0
+		var rot: float = g.t * 0.6
+		var pts := PackedVector2Array()
+		for k in 7:
+			pts.append(e.pos + Vector2.from_angle(rot + TAU * k / 6.0) * r)
+		g.draw_colored_polygon(pts.slice(0, 6), Color(c.r, c.g, c.b, 0.10))
+		g.draw_polyline(pts, Color(c.r * 0.6 + 0.4, c.g * 0.6 + 0.4, c.b * 0.6 + 0.4, 0.75), 2.5)
+
+
+## 顶层：接潮护盾；主控脚下的寒冷条（骑士在场且寒冷 > 0 时）；满了之后「冻伤」期间整条变白
 static func draw_top(g) -> void:
+	_shields(g)
 	for e in g.bosses:
 		if e.dead or e.type != "knight_boss":
 			continue

@@ -120,6 +120,28 @@ func _tint2(e: Dictionary, col: Color) -> void:
 	e["tint2"] = col
 
 
+## 接潮组「同步」（docs/142b §3.8，10-25；取材深岩银河：幸存者的无畏舰双子，原作没有）：两具血量比例差超过门槛（一幕 pair_shield_gap 0.25、
+## 二幕 0.15）时，血少的那具出护盾、受伤 × pair_shield_mult（0.4）——自动攻击打射程内最近的 Boss，玩家靠站位决定打谁，要把两具拉平再一起打进假死
+func _pair_shield(e: Dictionary) -> float:
+	var m = e.get("partner")
+	if m == null or m.dead or m.get("coma", false) or e.get("coma", false):
+		e.pair_shield = false
+		return 1.0
+	var gap: float = Bal.v("boss/pair_shield_gap2", 0.15) if _pair_p2(e) else Bal.v("boss/pair_shield_gap", 0.25)
+	e.pair_shield = e.hp / maxf(1.0, e.maxhp) < m.hp / maxf(1.0, m.maxhp) - gap
+	return Bal.v("boss/pair_shield_mult", 0.4) if e.pair_shield else 1.0
+
+
+## 接潮组一幕两具保持 ≥ pair_sep（360，比大多数干员射程远）的距离：近了每秒互相推开 60 像素（站位分得开，才分得出打谁）
+func _pair_spread(e: Dictionary, dt: float) -> void:
+	var m = e.get("partner")
+	if m == null or m.dead or m.get("coma", false) or e.get("coma", false) or _pair_p2(e):
+		return
+	var d: float = e.pos.distance_to(m.pos)
+	if d < Bal.v("boss/pair_sep", 360.0) and d > 1.0:
+		e.pos = g.combat.arena_clamp(e.pos + (e.pos - m.pos).normalized() * 60.0 * dt, 80.0)
+
+
 ## 接潮组的「第二幕」（docs/95 §8–§10「合计 50% 卡点后」）：两具各有自己的 50% 卡点，任一具过了就算整组进第二幕
 func _pair_p2(e: Dictionary) -> bool:
 	var m = e.get("partner")
