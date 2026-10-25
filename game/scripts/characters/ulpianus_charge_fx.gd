@@ -17,6 +17,8 @@ const CREST := Color(0.55, 0.82, 1.0)    # 浪尖亮蓝
 const DEBRIS := Color(0.36, 0.4, 0.48)   # 碎屑（锚链钢灰压暗）
 const PATH_CAP := 36                     # 路径单帧颗粒上限（冲锋约 15 帧 × 36 ≈ 同屏峰值 400 内）
 const LIGHT_EVERY := 0.06                # 冲锋前沿挂灯间隔（秒）
+const BURST_FRONT := 0.34                # 落地冲击波从落点推到判定半径的时间（秒）
+const BURST_LIFE := 0.62                 # 冲击环（ulp_burst）总寿命，到点前半段推出去、后半段停在判定半径上淡出
 
 
 static func grains(o):
@@ -155,3 +157,60 @@ static func hit(o, e: Dictionary, tier: int) -> void:
 	if g == null or g.get("vfx") == null or not g.vfx.has_method("_tier_fx"):
 		return
 	g.vfx._tier_fx(e, {"op": str(o.id)}, tier)
+
+
+## 落地大范围冲击（10-25 用户「三技能冲锋结束需要有一个大 AoE 的视觉效果，现在看不出来」）：
+## 一圈真圆的地面冲击环从落点推到判定半径 r（与 _hw_zip_land 的伤害圈同一个数，draw 在 ulpianus_impact.gd 的 ulp_burst），
+## 颗粒版另沿环前沿逐帧撒水体颗粒、溅起水花（帧条 fx_splash_blue，光学观感下自动变材质颗粒）和中心喷起的水珠。
+## 环本身一直画（低画质也有）；颗粒只在 on(o) 时。总量约 330 颗（高）/ 150 颗（中），不超 docs/136 的预算
+static func burst(o, c: Vector2, r: float) -> void:
+	if Bal.v("fx/ulp_burst", 1.0) <= 0.0:   # 旋钮 fx/ulp_burst = 0：关掉整个落地冲击（录帧对照旧版用）
+		return
+	o.fx({"kind": "ulp_burst", "pos": c, "r": r, "life": BURST_LIFE, "floor": true})
+	var gr = grains(o)
+	if gr == null:
+		return
+	var g = o.g
+	lamp(o, c + Vector2(0, -6), minf(r * 0.7, 100.0), 0.22)
+	var full: bool = gr.level >= 2
+	for i in (6 if full else 3):   # 中心水柱：水珠从落点喷起，落到地面冷却
+		var p: Vector2 = c + Vector2(g.vrng.randf_range(-10.0, 10.0), g.vrng.randf_range(-3.0, 3.0))
+		gr.spark(p + Vector2(0, -8), p.y, CREST if i % 2 == 0 else WATER, 4)
+	o.hw["burst"] = {"c": c, "r": r, "t": 0.0, "f": 0, "sp": 0}
+
+
+## 每帧（_hw4_tick）：把环前沿的颗粒撒出去；冲击波到位就收
+static func burst_tick(o, dt: float) -> void:
+	var b: Dictionary = o.hw.get("burst", {})
+	if b.is_empty():
+		return
+	b.t = float(b.t) + dt
+	b.f = int(b.f) + 1
+	var gr = grains(o)
+	if gr == null or float(b.t) >= BURST_FRONT + dt:
+		o.hw.erase("burst")
+		return
+	var g = o.g
+	var full: bool = gr.level >= 2
+	if int(b.f) % (2 if full else 3) != 0:
+		return
+	var u: float = clampf(float(b.t) / BURST_FRONT, 0.0, 1.0)
+	var rf: float = float(b.r) * (1.0 - (1.0 - u) * (1.0 - u))
+	var c: Vector2 = b.c
+	var n: int = clampi(int(TAU * rf / (13.0 if full else 22.0)), 4, 40)
+	for i in n:
+		var a: float = TAU * (float(i) + g.vrng.randf()) / float(n)
+		var dv := Vector2(cos(a), sin(a))
+		gr.push("slash" if i % 3 == 0 else _body(gr), c + dv * rf + Vector2(0, 2), dv, CREST if i % 3 == 0 else _water(g))
+	var drops: int = 1 if full else 0
+	for i in drops + (1 if int(b.f) % 4 == 0 else 0):   # 溅起：落到地面冷却的水花
+		var a2: float = g.vrng.randf() * TAU
+		var p: Vector2 = c + Vector2(cos(a2), sin(a2)) * rf
+		gr.spark(p + Vector2(0, -4), p.y, CREST if i == 0 else WATER, 2)
+	# 帧条水花：冲击波推过 0.06 / 0.12 / 0.18 / 0.24 秒各溅起 2（中画质 1）处
+	var mark: int = int(float(b.t) / 0.06)
+	if mark > int(b.sp) and mark <= 4:
+		b.sp = mark
+		for i in (2 if full else 1):
+			var a3: float = g.vrng.randf() * TAU
+			o.spawn_fx_sprite("fx_splash_blue", c + Vector2(cos(a3), sin(a3)) * rf + Vector2(0, 6), g.PX * 1.0, 0.0, false, true)

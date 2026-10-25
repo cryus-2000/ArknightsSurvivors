@@ -48,6 +48,8 @@ func _input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseMotion:
 		kb_nav = false
+		if hh.input(event):   # 指定干员列表的拖动翻页要看鼠标移动
+			get_viewport().set_input_as_handled()
 		return
 	if hh.input(event):
 		get_viewport().set_input_as_handled()

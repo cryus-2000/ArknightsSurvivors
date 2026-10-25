@@ -217,10 +217,16 @@ func _fxq_step(on: bool) -> void:
 		_fxq_i = 0
 
 
-## 某颗敌弹的颜色（docs/139 §7.3，用户 10-24「子弹颜色就先不用换了，就把 Boss 的换成洋红色」）：Boss 弹（b.boss）用危险色、
-## 杂兵弹用敌弹色；render/ebullet_boss_danger 0 = Boss 弹也用敌弹色
+## 某颗敌弹的光晕 / 弹芯 / 拖尾 / 地面光颜色（docs/139 §7.3）：杂兵弹 = 敌弹色（青蓝）；
+## Boss 弹（b.boss）= 这颗弹自带的 b.col（Boss 会话按每只 Boss 的专属色写，docs/142b），没有就用 Boss 专属暖色 col_boss。
+## render/ebullet_boss_danger 1 = 旧口径（Boss 弹统一危险洋红）；用户 10-25「Boss 子弹不是每个 Boss 专属颜色吗」「不要加描边」→ 缺省 0
 func eb_col(b: Dictionary) -> Color:
-	return col_danger if b.get("boss", false) and Bal.v("render/ebullet_boss_danger", 1.0) > 0.0 else col_ebullet
+	if not b.get("boss", false):
+		return col_ebullet
+	if Bal.v("render/ebullet_boss_danger", 0.0) > 0.0:
+		return col_danger
+	var bc = b.get("col")
+	return bc if bc is Color else col_boss
 
 
 ## 敌弹弹体换色相（g.tex 同名替换，同压阶帧条的做法；关掉或色相变了换回原图再重做）：粉 / 紫（240–345°）→ 敌弹色色相
@@ -367,7 +373,7 @@ func _lo_step() -> void:
 	# 非整数倍时 1 美术像素占的屏幕像素不再恒为整数，用户 10-24 要求先看 ×1.15 再定）
 	var rel: float = Cfg.cam_zoom() / (Cfg.ZOOM_PHONE_DEF / 100.0 if Cfg.phone_ui() else 1.0)
 	if g.demo_op != "":
-		rel *= Bal.v("gallery/demo_zoom", 0.8)   # 图鉴演示小窗再拉远（用户 10-24），视野更大
+		rel *= Bal.v("gallery/demo_zoom", 0.68)   # 图鉴演示小窗再拉远（用户 10-24），视野更大
 	var zw: float = view_k / (2.0 * sx) * rel
 	if Bal.v("render/optical_int_zoom", 0.0) > 0.0:
 		# docs/139 试验旋钮：把「战斗画面缩放」并进整数倍率（1 美术像素恒占整数个物理像素），不再出现 2.3 / 3.45 这种非整数放大
@@ -603,3 +609,7 @@ func _process(_dt: float) -> void:
 	if g.post != null:
 		mat.set_shader_parameter("hurt", g.post.hurt)
 		mat.set_shader_parameter("desat", g.post.desat)
+		mat.set_shader_parameter("zone_amt", g.post.zone_amt)
+		mat.set_shader_parameter("zone_c", g.post.zone_c)
+		mat.set_shader_parameter("zone_r", g.post.zone_r)
+		mat.set_shader_parameter("zone_hole", g.post.zone_hole)

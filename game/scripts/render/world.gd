@@ -51,6 +51,8 @@ var fx_dim := 1.0                 # 友方特效的透明度系数（1 → 0.45�
 var dcrowd := 0.0                 # 降噪用的拥挤度：max(crowd, ecrowd × declutter crowd_mix)
 var mate_dim := 1.0               # 队友（非主控）特效再乘的系数（declutter mate_k；squad 绘制时按干员临时乘进 fx_dim）
 var lead_dim := 1.0               # 主控自己的特效再乘的系数（declutter lead_k）
+var mate_desat := 0.0             # 队友特效去饱和（docs/139 §10，render/mate_desat）
+var mate_on := false              # render/mate_layer 开着（缺省关）：子弹 / 刀光 / 命中颗粒才按队友另压
 var ol_mul := 1.0                 # 普通怪描边透明度系数（随 ecrowd 降到 declutter ol_floor；原来写死 0.4）
 var _lamp_rim := false              # 朝灯边缘亮线原型（balance render/rim > 0 且白色保护材质在）：敌人本体绘制的 alpha 取负作标记，actor_light.gdshader 认
 var flash_a := 0.9                # 普通怪受击白闪透明度（随 ecrowd 从 0.9 降到 declutter flash_a）
@@ -65,6 +67,13 @@ var _dbg_amb: bool = Dc.dbg("noamb")
 var _dbg_ground: bool = Dc.dbg("noground")
 var _dbg_gem: bool = Dc.dbg("nogem")
 var _dbg_mire: bool = Dc.dbg("nomire")
+# docs/139 §8 怪物攻击圈环盘点（量测，只隐藏不改逻辑）：nowarn 地面预警（填充 + 轮廓）、notell 敌人自带危险提示、nofoefx 敌方一次性特效、
+# noshock 冲击环、noaura 光环（巢涌者 / 伪人负担圈）
+var _dbg_warn: bool = Dc.dbg("nowarn")
+var _dbg_tell: bool = Dc.dbg("notell")
+var _dbg_foefx: bool = Dc.dbg("nofoefx")
+var _dbg_shock: bool = Dc.dbg("noshock")
+var _dbg_aura: bool = Dc.dbg("noaura")
 var boss_seen: Array = []        # Boss 换幕 / 倒下演出的观察表：[boss, 上次的 phase, 已演过倒下]（字典作键会因内容变化失效，按 is_same 找）
 var scr_flash := 0.0              # 全屏闪光剩余秒（hud 画）：换幕洋红、Boss 倒下白
 var scr_flash_max := 1.0
@@ -221,6 +230,13 @@ func update_visuals(dt: float) -> void:
 	fx_dim = lerpf(1.0, Dc.p("dim_floor"), dcrowd)
 	mate_dim = Dc.at("mate_k", dcrowd)
 	lead_dim = Dc.at("lead_k", dcrowd)
+	# 主次分层试验（docs/139 §10）：render/mate_layer 1 = 队友特效恒定压到 render/mate_fx（0.55）并去饱和 render/mate_desat；
+	# 用户 10-25「队友特效不要降，想其它办法」→ 缺省 0（只剩原来的拥挤降噪），改走 §11「突出队长」
+	mate_desat = 0.0
+	mate_on = Bal.v("render/mate_layer", 0.0) > 0.0 and g.demo_op == ""
+	if mate_on:
+		mate_dim = minf(mate_dim, Bal.v("render/mate_fx", 0.55))
+		mate_desat = Bal.v("render/mate_desat", 0.35)
 	if _dbg_friend:
 		fx_dim = 0.0   # --clutterdbg=nofriend：友方特效全透明（代码照跑、随机数照抽）
 	ol_mul = lerpf(1.0, Dc.p("ol_floor"), ecrowd)
@@ -427,7 +443,7 @@ func _draw_ground_foe_fx() -> void:
 				f["cd"] = GroundCrack.build(f.pos, f.r, f.get("ang"), f.get("opts", {}))
 			GroundCrack.draw(f.cd, f.max - f.life, clampf(f.life / f.max, 0.0, 1.0), f.col, _gc_sink, float(f.get("grow_t", 0.06)), float(f.get("hot", 1.0)))
 	tb_flush()
-	for sh in g.shocks:
+	for sh in (g.shocks if not _dbg_shock else []):
 		if sh.get("ground", false):
 			_draw_shock(sh)
 	draw_warn_outlines(true)
@@ -436,9 +452,10 @@ func _draw_ground_foe_fx() -> void:
 ## 预警分类 → Boss 招式预警填充（render/telegraph_draw）→ 巢涌者光环 → 灯标 → 藏品特效 → 商人
 func _draw_warns_auras() -> void:
 	classify_tells()   # 先判哪些预警会打到主控（可读性 1.1.1）：地面填充 / 轮廓 / 冲刺线都读这个结果
-	if not _dbg_foe:
+	if not _dbg_foe and not _dbg_warn:
 		TeleDraw.draw_fills(g)
-	draw_nest_auras()
+	if not _dbg_aura:
+		draw_nest_auras()
 	draw_beacons()
 	draw_hunt_ring()
 	if not _dbg_friend:
@@ -964,9 +981,11 @@ func _draw_bullets() -> void:
 	# 自己的投射物（render/declutter bullet_k / bullet_desat）：拥挤时略淡、略去饱和，让敌方弹幕更跳；缺省不变
 	_bk = 0.0 if _dbg_friend else Dc.at("bullet_k", dcrowd)
 	_bd = Dc.p("bullet_desat") * dcrowd
+	var lid: String = str(g.ch.id) if g.ch != null else ""
 	for b in g.bullets:
 		if b.life <= 0.0 or b.get("hidden", false):
 			continue
+		_bmate = mate_on and b.has("op") and str(b.op) != lid   # 队友的弹：再乘队友系数（docs/139 §10）
 		var n: Vector2 = b.vel.normalized()
 		# 美术 V6：投射物帧条（朝右绘制，按速度方向旋转）；程序只画拖尾
 		var ptex: String = PROJ_TEX.get(b.kind, "")
@@ -1001,13 +1020,24 @@ func _draw_bullets() -> void:
 
 var _bk := 1.0
 var _bd := 0.0
+var _bmate := false
+
+
+## 队友特效颜色：往同亮度灰拉 mate_desat（不改透明度，透明度由调用方乘 mate_dim）
+func mate_col(c: Color) -> Color:
+	if mate_desat <= 0.0:
+		return c
+	var l: float = c.r * 0.2126 + c.g * 0.7152 + c.b * 0.0722
+	return Color(lerpf(c.r, l, mate_desat), lerpf(c.g, l, mate_desat), lerpf(c.b, l, mate_desat), c.a)
 
 
 func _bc(c: Color) -> Color:
-	if _bk >= 1.0 and _bd <= 0.0:
+	var k: float = _bk * (mate_dim if _bmate else 1.0)
+	var dd: float = maxf(_bd, mate_desat if _bmate else 0.0)
+	if k >= 1.0 and dd <= 0.0:
 		return c
 	var l: float = (c.r + c.g + c.b) / 3.0
-	return Color(lerpf(c.r, l, _bd), lerpf(c.g, l, _bd), lerpf(c.b, l, _bd), c.a * _bk)
+	return Color(lerpf(c.r, l, dd), lerpf(c.g, l, dd), lerpf(c.b, l, dd), c.a * k)
 
 
 ## g.fx 特效按 kind 逐个画（频闪 / 爆炸 / 地裂 / 光束 / Boss 换幕……）；fx_dim 只压友方特效；写进 tb 批的（gcrack / mote / mire_recoil）末尾一次提交
@@ -1026,7 +1056,7 @@ func _draw_fx() -> void:
 			# 到期特效会一直留在 g.fx 里；"sprite" 类按已播时间取帧，life ≤ 0 后会被夹在末帧一直画（骑士死亡原地留下冰晶/冰砖残留）
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
 		var foe: bool = f.get("enemy", false) or FOE_KINDS.has(f.kind)
-		if (_dbg_foe and foe) or (_dbg_friend and not foe and not AMB_KINDS.has(f.kind)) or (_dbg_amb and AMB_KINDS.has(f.kind)):
+		if ((_dbg_foe or _dbg_foefx) and foe) or (_dbg_friend and not foe and not AMB_KINDS.has(f.kind)) or (_dbg_amb and AMB_KINDS.has(f.kind)):
 			continue   # --clutterdbg 量测：这一层不画
 		var fdim: float = 1.0 if f.get("enemy", false) else fx_dim   # 敌方特效不降噪（docs/48 ③）
 		if fdim < 1.0 and DIM_KINDS.has(f.kind):
@@ -1072,9 +1102,25 @@ func _draw_fx() -> void:
 				g.draw_circle(Vector2.ZERO, f.r, Color(0.6, 0.85, 1.3, 0.28 * a))
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				g.draw_line(f.pos + Vector2(-5, 1), f.pos + Vector2(5, -1), Color(1.2, 1.5, 2.0, 0.6 * a), 1.5)
+			"lead_mark":
+				# 队长命中记号（vfx.lead_mark，docs/139 §11）：敌人身上四个像素角标（暖白），跟着敌人走；前 70% 寿命满亮不闪，之后两阶熄灭
+				var me = f.get("e")
+				var mp: Vector2 = f.pos
+				if me is Dictionary and not me.get("dead", false):
+					mp = (me.pos as Vector2) + Vector2(0, -float(me.get("r", 12.0)) * 0.6)
+				var mq: float = 1.0 if a > 0.3 else (0.66 if a > 0.15 else 0.33)
+				var mr: float = clampf(float(f.get("r", 12.0)) * 0.8 + 4.0, 12.0, 24.0)
+				mp = (mp / 2.0).round() * 2.0
+				for sx in [-1.0, 1.0]:
+					for sy in [-1.0, 1.0]:
+						var cn: Vector2 = mp + Vector2(sx * mr, sy * mr)
+						g.draw_line(cn, cn - Vector2(sx * 7.0, 0), Color(0.05, 0.04, 0.03, 0.8 * mq), 4.0)
+						g.draw_line(cn, cn - Vector2(0, sy * 7.0), Color(0.05, 0.04, 0.03, 0.8 * mq), 4.0)
+						g.draw_line(cn, cn - Vector2(sx * 6.0, 0), Color(1.0, 0.82, 0.5, mq), 2.0)   # 琥珀白（不过 1，免得被截成纯白）
+						g.draw_line(cn, cn - Vector2(0, sy * 6.0), Color(1.0, 0.82, 0.5, mq), 2.0)
 			"hstar":
 				# 命中星（vfx._tier_fx）：中档 4 臂、重档 8 臂；臂长随寿命先长后缩，2 px 线 + 白芯，三阶跳着消失
-				var hq: float = ceilf(a * 3.0) / 3.0
+				var hq: float = ceilf(a * 3.0) / 3.0 * float(f.get("ka", 1.0))   # ka：队友命中压透明度（docs/139 §10）
 				var hl: float = float(f.r) * (0.6 + 0.4 * sin((1.0 - a) * PI))
 				var hc: Color = f.col
 				for q in int(f.n):
@@ -1107,6 +1153,10 @@ func _draw_fx() -> void:
 				var hd: float = clampf(pr / 0.25, 0.0, 1.0)
 				var tl: float = clampf((pr - 0.25) / 0.75, 0.0, 1.0)
 				var cc: Color = f.col
+				if mate_on and aop != null and not aop.is_leader:
+					cc = mate_col(cc)   # 队友刀光：去饱和、压透明度（颗粒走 cc.a，docs/139 §10）
+					cc.a = mate_dim
+					aq *= mate_dim
 				var gr = g.optical.grains if g.optical != null else null
 				if gr != null and gr.on() and not gr.off and hd > 0.0:
 					# 刀光第四版（docs/136「slash」粒子模板）：月牙本体由像素颗粒在这一帧扫过的那一段上生成，前沿只留一道热白细线
@@ -1140,6 +1190,8 @@ func _draw_fx() -> void:
 				# op_hit：干员攻击 / 技能命中的装饰环（水月），render/hit_rings 缺省不画；其余（敌方、拾取、藏品……）照画
 				if f.get("op_hit", false) and not Dc.hit_rings():
 					continue
+				if f.get("enemy", false) and Bal.v("render/foe_ring_fx", 1.0) <= 0.0:
+					continue   # docs/139 §8：敌方结算后的装饰环（伤害已结算，不是预警）不画
 				var rr: float = f.r * (1.15 - a * 0.3)
 				g.draw_arc(f.pos, rr, 0.0, TAU, 28, Color(f.col.r, f.col.g, f.col.b, a * 0.9), 4.0)
 				g.draw_arc(f.pos, rr - 6.0, 0.0, TAU, 28, Color(f.col.r, f.col.g, f.col.b, a * 0.35), 2.0)
@@ -1523,9 +1575,10 @@ func _draw_fx() -> void:
 
 
 ## 敌方弹幕三遍（无贴图底 → 贴图 → 弹芯描边）+ Boss 刀刃 → 抛射碎石 → 冲击环
-## Boss 弹画原色弹体（optical._eb_step 换色相时把原图留在 g.tex[名 + "@boss"]；docs/139 §7.3）
+## Boss 弹画原图弹体（optical._eb_step 把杂兵弹换成青蓝色相时，原图留在 g.tex[名 + "@boss"]；docs/139 §7.3）：
+## 不是染色，只是「不被杂兵的青蓝换色波及」——Boss 弹的本体颜色交给 Boss 会话（专属贴图 / b.col，docs/142b）
 func _eb_tex(b: Dictionary, nm: String) -> String:
-	return nm + "@boss" if b.get("boss", false) and g.tex.has(nm + "@boss") and Bal.v("render/ebullet_boss_danger", 1.0) > 0.0 else nm
+	return nm + "@boss" if b.get("boss", false) and g.tex.has(nm + "@boss") else nm
 
 
 func _draw_ebullets_lobs_shocks() -> void:
@@ -1651,7 +1704,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 			g.draw_circle(rp + Vector2(-2, -2), 3.0, Color(0.7, 0.66, 0.6))
 	# 冲击环（docs/48 全局 ④⑤、P0 伊祖米克）：原来写死成治疗同款的绿色、越扩越淡，到主控这里几乎看不见。
 	# 改成敌方危险色：深色外描边 + 洋红紫主色 + 白芯，透明度下限 0.6，扩到最大也看得清
-	for sh in g.shocks:
+	for sh in (g.shocks if not _dbg_shock else []):   # --clutterdbg=noshock 量测（docs/139 §8）
 		if not sh.get("ground", false):
 			_draw_shock(sh)
 
@@ -1693,7 +1746,7 @@ func _draw_shock(sh: Dictionary) -> void:
 
 ## 敌人出招提示 → 精英登场（docs/54 ④）→ 主控异常 → 预警轮廓 → 主控标记（压在所有敌方预警之上）
 func _draw_tells_outlines() -> void:
-	if not _dbg_foe:
+	if not _dbg_foe and not _dbg_tell:
 		draw_enemy_tells()
 	# docs/54 ④ 精英登场（按 e.age 画 0.9 秒；fx/first_sight 时改按首次入画起算；无贴图批，一次提交）
 	if g.vfx.on("elite_entrance"):
@@ -1703,7 +1756,7 @@ func _draw_tells_outlines() -> void:
 				g.vfx.elite_entrance(e)
 		tb_flush()
 	draw_leader_ailments()
-	if not _dbg_foe:
+	if not _dbg_foe and not _dbg_warn:
 		draw_warn_outlines()
 	# 主控标记（职业色细环 / 冲刺冷却弧 / 朝向）画在所有敌方预警之上：几十条预警叠在身上时也看得见自己在哪（协调人 1.1.1，干员拆出 draw_leader_mark）
 	g.squad.draw_leader_mark()   # 内含手动普攻方向指示（draw_attack_dir，同一批）
@@ -2949,13 +3002,20 @@ func draw_nest_auras() -> void:
 		var ar: float = ed.aura_r
 		if not view_rect(ar + 20.0).has_point(e.pos):
 			continue   # 屏外不画（性能 9/30：原来全场每只都画）
-		var aura_tex := _lazy_tex("fx_nest_aura_big")
+		var lite: bool = Bal.v("render/nest_aura_lite", 0.0) > 0.0   # docs/139 §8：只留一层淡底 + 不转的虚线边界
+		var aura_tex := _lazy_tex("fx_nest_aura_big") if not lite else null
 		if aura_tex != null:
 			var fw: float = aura_tex.get_width() / 4.0
 			var frame := int(g.t * 10.0) % 4
 			g.draw_texture_rect_region(aura_tex, Rect2(e.pos - Vector2.ONE * ar, Vector2.ONE * ar * 2.0), Rect2(frame * fw, 0, fw, aura_tex.get_height()), Color(1, 1, 1, 0.5 if g.t - float(e.get("aura_pulse_t", -1.0)) < 0.15 else 0.35))
 		# 柔光底 / 内收涟漪 / 转动虚线外圈都进无贴图批，函数末尾一次提交（原来每只约 24 次绘制调用）
 		var ac := Color(0.9, 0.5, 1.6)
+		if lite:
+			tb_circle(e.pos, ar, Color(ac.r, ac.g, ac.b, 0.05), 1.0, 32)
+			for q in 18:
+				var a0l: float = e.id + q * TAU / 18.0
+				tb_arc(e.pos, ar, a0l, a0l + TAU / 36.0, 2.0, Color(ac.r, ac.g, ac.b, 0.45), 3)
+			continue
 		for q in 4:
 			tb_circle(e.pos, ar * (1.0 - q * 0.22), Color(ac.r, ac.g, ac.b, 0.035), 1.0, 32)
 		for q in 2:
@@ -3233,6 +3293,8 @@ func _burden_ring(e: Dictionary) -> void:
 	var sq := func(v: Vector2) -> Vector2: return o + Vector2(v.x, v.y * gy)   # 地面椭圆：纵向按 GROUND_Y 压（原来用画布变换，改算顶点好进批）
 	tb_circle(o, r, Color(c.r, c.g, c.b, 0.06 if inn else 0.03), gy, 48)
 	tb_arc(o, r, 0.0, TAU, 2.0, Color(c.r, c.g, c.b, 0.5 * a), 72, gy)
+	if Bal.v("render/burden_lite", 0.0) > 0.0:
+		return   # docs/139 §8：只留淡底 + 外圈（不画内圈与转动符文）
 	tb_arc(o, r - 14.0, 0.0, TAU, 1.0, Color(c.r, c.g, c.b, 0.3 * a), 72, gy)
 	var rot: float = g.t * (0.35 if inn else 0.15)
 	var rc := Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, a)
@@ -3938,11 +4000,13 @@ func classify_tells() -> void:
 		w["dim"] = not hit
 
 
+## render/tell_circle_calm 1（docs/139 §8）：不铺流动涟漪贴图、描边不脉动（填充随倒计时长满照旧）
 func _tell_circle(p: Vector2, r: float, k: float, c: Color) -> void:
-	var pulse: float = 0.5 + 0.5 * sin(g.t * 18.0)
+	var calm: bool = Bal.v("render/tell_circle_calm", 0.0) > 0.0
+	var pulse: float = 0.0 if calm else 0.5 + 0.5 * sin(g.t * 18.0)
 	g.draw_set_transform(p, 0.0, Vector2(1.0, ground_y()))   # 地面椭圆，和判定一致
 	g.draw_circle(Vector2.ZERO, r * k, Color(c.r, c.g, c.b, (0.18 + 0.1 * k) * tell_fill))
-	var rt: Texture2D = _wtex("fx_warn_ring")
+	var rt: Texture2D = _wtex("fx_warn_ring") if not calm else null
 	if rt != null:
 		# V7 涟漪：从外向内收缩的水纹，按半径缩放（radius_px 30）
 		var rs: float = r / 30.0
@@ -3988,7 +4052,7 @@ func _marc_grains(f: Dictionary, gr, ap: Vector2, rc: float, tw: float, s0: floa
 		var cap: int = int(gr.TEMPLATES.slash.per_frame)
 		var stride: float = maxf(1.0, float(cells.size()) / float(cap))
 		var k: float = 0.0
-		var col := Color(minf(1.0, cc.r * kb), minf(1.0, cc.g * kb), minf(1.0, cc.b * kb))
+		var col := Color(minf(1.0, cc.r * kb), minf(1.0, cc.g * kb), minf(1.0, cc.b * kb), cc.a)
 		while int(k) < cells.size():
 			var c: Array = cells[int(k)]
 			gr.push("slash", c[0], c[1], col)

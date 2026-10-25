@@ -29,7 +29,7 @@ RAF_JS = """<script>
 window.requestAnimationFrame=function(cb){q.push(cb);if(q.length===1)ch.port2.postMessage(0);return q.length;};window.cancelAnimationFrame=function(){};
 var buf=[],send=function(){if(!buf.length)return;var b=buf.join("\\n");buf=[];fetch("/log",{method:"POST",body:b}).catch(function(){});};
 setInterval(send,1000);var wrap=function(k){var o=console[k];console[k]=function(){var s=Array.prototype.join.call(arguments," ");
-if(/^(PERF|PF |BALANCE|TRACE|SCRIPT ERROR|ERROR|USER ERROR)/.test(s)||k!=="log"){buf.push(s);if(/^(PERF|BALANCE)/.test(s))send();}return o.apply(console,arguments);};};
+if(/^(PERF|PF |BALANCE|TRACE|SCRIPT ERROR|ERROR|USER ERROR)/.test(s)||k!=="log"){buf.push(s);if(/^(PERF|BALANCE|PF FTDONE)/.test(s))send();}return o.apply(console,arguments);};};
 wrap("log");wrap("error");wrap("warn");})();
 </script>"""
 
@@ -104,7 +104,7 @@ def run(ref, tag, game_args, timeout):
             body = self.rfile.read(int(self.headers.get("Content-Length", 0))).decode("utf-8", "replace")
             with open(log_p, "a", encoding="utf-8") as fh:
                 fh.write(body + "\n")
-            if "PERF " in body or "BALANCE " in body:
+            if "PERF " in body or "BALANCE " in body or "PF FTDONE" in body:
                 done.set()
             self.send_response(204)
             self.end_headers()

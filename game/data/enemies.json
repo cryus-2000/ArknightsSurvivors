@@ -593,7 +593,7 @@
     "portrait": "portraits/boss_path",
     "line": "它把自己的碎片撒向每一条岔路，让它们先去走那些错的路。"
    },
-   "portrait_crop": [24, 4, 32, 32],
+   "portrait_crop": [50, 28, 44, 44],
    "draw_full": true,
    "ecol": [0.6, 0.7, 1.0]
   },
@@ -636,7 +636,7 @@
     "portrait": "portraits/boss_izumik",
     "line": "海嗣的母体之一。子代从它身上涌出，回到它身上就被吸收。"
    },
-   "portrait_crop": [8, 0, 54, 54],
+   "portrait_crop": [32, 30, 64, 64],
    "draw_full": true,
    "ecol": [0.5, 1.0, 0.7]
   },
@@ -698,7 +698,7 @@
     "portrait": "portraits/boss_iberia",
     "line": "斗篷破了，他不再说话。手炮只装一发，打空就贴身追来。"
    },
-   "portrait_crop": [4, 0, 32, 32],
+   "portrait_crop": [10, 14, 34, 34],
    "script": "saint",
    "draw_full": true,
    "ecol": [1.0, 0.6, 0.5]
@@ -750,7 +750,7 @@
     "portrait": "portraits/boss_carmen",
     "line": "退后、装填、瞄准。弹药打空，就用炮身砸过来。"
    },
-   "portrait_crop": [4, 0, 32, 32],
+   "portrait_crop": [12, 18, 36, 36],
    "script": "saint",
    "draw_full": true,
    "ecol": [0.7, 0.7, 1.0]
@@ -804,7 +804,7 @@
     "portrait": "portraits/boss_bishop",
     "line": "一方倒下只是假死，两者同时倒下才会真正消散。"
    },
-   "portrait_crop": [5, 0, 32, 32],
+   "portrait_crop": [14, 14, 36, 36],
    "ecol": [0.7, 1.0, 0.9]
   },
   "archon": {
@@ -841,7 +841,7 @@
     "portrait": "portraits/boss_archon",
     "line": "粗壮的近战海嗣，与主教同生共死，单独击倒只会假死片刻。"
    },
-   "portrait_crop": [12, 2, 30, 30],
+   "portrait_crop": [20, 10, 44, 44],
    "ecol": [0.5, 0.9, 0.9]
   },
   "immortal": {
@@ -893,7 +893,7 @@
     "portrait": "portraits/boss_immortal",
     "line": "迅捷的近战海嗣，与主教同生共死，单独击倒只会假死片刻。"
    },
-   "portrait_crop": [14, 0, 28, 28],
+   "portrait_crop": [20, 10, 44, 44],
    "ecol": [0.6, 0.8, 1.0]
   },
   "paranoia": {
@@ -944,7 +944,7 @@
     "portrait": "portraits/boss_paranoia",
     "line": "大群的祈望堵住了她的喉咙，她只能被那股力量拖着，一点点变成自己最痛恨的模样。"
    },
-   "portrait_crop": [14, 4, 44, 44],
+   "portrait_crop": [30, 22, 64, 64],
    "draw_full": true,
    "ecol": [0.8, 0.6, 1.0]
   },
@@ -989,7 +989,7 @@
     "portrait": "portraits/boss_ishar",
     "line": "伊莎玛拉，腐化之心。"
    },
-   "portrait_crop": [16, 8, 48, 48],
+   "portrait_crop": [14, 12, 34, 34],
    "draw_full": true,
    "ecol": [0.75, 0.55, 1.0]
   },
@@ -1051,7 +1051,7 @@
     "portrait": "portraits/boss_knight_boss",
     "line": "曾经同行的猎潮骑士。"
    },
-   "portrait_crop": [52, 40, 56, 56]
+   "portrait_crop": [30, 10, 64, 64]
   }
  }
 }

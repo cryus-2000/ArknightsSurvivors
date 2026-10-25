@@ -60,21 +60,56 @@ def deps(p):
 
 
 def build():
-    seen, order = set(), []
+    """叶子在前；互相 preload 的一圈脚本（强连通分量，game.gd 与它的各模块约 40 个）读其中任何一个都会整圈一起编译，
+    所以按分量排：一个分量排在它依赖的所有分量之后（Tarjan 的输出顺序正是这样），圈外的依赖先一个个读完，
+    整圈只占一项、标 heavy（启动页先把「正在读什么」画出来再读；网页没有线程，这一项会卡一下）。
+    10-25 以前按普通深度优先排，环里先碰到 boss_patterns.gd，读它时把 game.gd 连同 80 多个还没读的脚本一口气编译，桌面一帧卡 2–4 秒。"""
+    nodes = {}
 
     def walk(p):
-        if p in seen:
+        if p in nodes:
             return
-        seen.add(p)
-        for d in deps(p):
-            if os.path.isfile(os.path.join(GAME, d[len("res://"):])):
-                walk(d)
-        order.append(p)
+        ds = [d for d in deps(p) if os.path.isfile(os.path.join(GAME, d[len("res://"):]))]
+        nodes[p] = ds
+        for d in ds:
+            walk(d)
 
     sys.setrecursionlimit(10000)
     walk(START)
-    order.remove(START)   # main.tscn 由启动页最后读，读完就切场景
-    return {"_doc": "启动页预读顺序（tools/gen_boot_order.py 生成，叶子在前；勿手改）", "items": [[p, label(p)] for p in order]}
+    index, low, stack, on, comps, c = {}, {}, [], set(), [], [0]
+
+    def strong(v):
+        index[v] = low[v] = c[0]
+        c[0] += 1
+        stack.append(v)
+        on.add(v)
+        for w in nodes[v]:
+            if w not in index:
+                strong(w)
+                low[v] = min(low[v], low[w])
+            elif w in on:
+                low[v] = min(low[v], index[w])
+        if low[v] == index[v]:
+            comp = []
+            while True:
+                w = stack.pop()
+                on.discard(w)
+                comp.append(w)
+                if w == v:
+                    break
+            comps.append(comp)
+
+    strong(START)
+    items = []
+    for comp in comps:
+        if START in comp:
+            continue   # main.tscn 由启动页最后读，读完就建标题页
+        if len(comp) == 1:
+            items.append([comp[0], label(comp[0])])
+            continue
+        hub = "res://scripts/game.gd" if "res://scripts/game.gd" in comp else sorted(comp)[0]
+        items.append([hub, label(hub), "heavy"])   # 读它就整圈编译；其余成员已在缓存，不再单列
+    return {"_doc": "启动页预读顺序（tools/gen_boot_order.py 生成，叶子在前、互相引用的一圈合成一项；勿手改）", "items": items}
 
 
 def main():

@@ -31,6 +31,7 @@ static func _load() -> void:
 			cur[keys[keys.size() - 1]] = float(kv[1])
 	_preset("nausea_safe", NAUSEA_SAFE)
 	_preset("palette_trial", PALETTE_TRIAL)
+	_preset("foe_calm", FOE_CALM)
 
 
 ## docs/139 画面眩晕排查的「推荐组合」试验开关 render/nausea_safe（缺省 0 = 不动）：1 时把 NAUSEA_SAFE 里的旋钮一次套上，
@@ -56,6 +57,16 @@ const PALETTE_TRIAL := {
 	"render/optical_mire_emit": 0.2,
 	"render/mire_tint_r": 0.5, "render/mire_tint_g": 0.95, "render/mire_tint_b": 0.8,
 	"render/zone_dark_r": 0.03, "render/zone_dark_g": 0.08, "render/zone_dark_b": 0.12,
+}
+
+
+## docs/139 §8 怪物攻击圈环「重做版」试验开关 render/foe_calm（缺省 0）：玩法提示的形状 / 时机不变，只去掉流动、转动、脉动、整片白闪和结算后的装饰环
+const FOE_CALM := {
+	"render/warn_flash_fill": 0.0,
+	"render/warn_hatch_flow": 0.0,
+	"render/nest_aura_lite": 1.0,
+	"render/tell_circle_calm": 1.0,
+	"render/foe_ring_fx": 0.0,
 }
 
 

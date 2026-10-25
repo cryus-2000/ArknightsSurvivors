@@ -34,6 +34,9 @@ static func draw(o, f: Dictionary, a: float) -> bool:
 				o.cv.draw_line(points[i] + Vector2(0, -2), points[i + 1] + Vector2(0, -2),
 					Color(CRACK_EDGE, edge_alpha), 2.0)
 		return true
+	if str(f.kind) == "ulp_burst":
+		_draw_burst(o, f, a)
+		return true
 	if str(f.kind) != "ulp_wave":
 		return false
 	var r: float = clampf(float(f.r) * 0.65, 22.0, 76.0)
@@ -53,6 +56,26 @@ static func draw(o, f: Dictionary, a: float) -> bool:
 			arc.append(_snap(f.pos + Vector2(cos(angle) * rr, sin(angle) * rr * 0.4)))
 		o.cv.draw_polyline(arc, Color(WATER, a * sin(u * PI) * 0.52 * float(f.get("alpha", 1.0))), 2.0)
 	return true
+
+## 落地冲击环（docs/143 §8）：真圆，前沿 0.34 秒从落点推到判定半径 r 后停住淡出；前沿内侧一圈浅水色带，次环落后一拍。
+## 只用 draw_arc（不分配数组），alpha 封顶，亮蓝只在前沿，不闪、不留粘腻的大块面
+static func _draw_burst(o, f: Dictionary, a: float) -> void:
+	var age: float = float(f.max) - float(f.life)
+	var u: float = clampf(age / 0.34, 0.0, 1.0)
+	var R: float = float(f.r)
+	var rf: float = R * (1.0 - (1.0 - u) * (1.0 - u))
+	if rf < 3.0:
+		return
+	var fade: float = clampf(float(f.life) / (float(f.max) * 0.55), 0.0, 1.0)   # 后 55% 寿命淡出
+	var cv = o.cv
+	var dim: float = o.g.world.fx_dim
+	var band: float = maxf(3.0, rf * 0.2)
+	cv.draw_arc(f.pos, rf - band * 0.5, 0.0, TAU, 56, Color(0.16, 0.34, 0.6, 0.2 * fade * dim), band)
+	cv.draw_arc(f.pos, rf, 0.0, TAU, 64, Color(0.55, 0.82, 1.0, 0.8 * fade * dim), lerpf(5.0, 2.0, u))
+	var r2: float = rf * 0.78
+	if age > 0.05 and r2 > 3.0:
+		cv.draw_arc(f.pos, r2, 0.0, TAU, 48, Color(WATER, 0.42 * fade * dim), 2.0)
+
 
 static func _snap(p: Vector2) -> Vector2:
 	return (p / 2.0).round() * 2.0

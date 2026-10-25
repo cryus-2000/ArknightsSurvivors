@@ -175,13 +175,14 @@ func add_nerve(v: float) -> void:
 
 
 ## 每帧（enemies.update_status）：in_src = 站在溟痕里（不含流明光域）；sanct = 在流明光域里
-func update_nerve(dt: float, in_src: bool, sanct: bool) -> void:
+## mire_mult：只站在溟痕里（没有神经光环）时的累积倍率（灯火高时自然溟痕减免，docs/147；缺省 1）
+func update_nerve(dt: float, in_src: bool, sanct: bool, mire_mult := 1.0) -> void:
 	g.nerve_lock = maxf(0.0, g.nerve_lock - dt)
 	var aura: bool = g.nerve_aura_t > 0.0 and not sanct
 	g.nerve_aura_t = maxf(0.0, g.nerve_aura_t - dt)
 	if ((in_src and not sanct) or aura) and g.nerve_lock <= 0.0:
 		g.telemetry.on_status("nerve", "" if in_src else g.telemetry.aura_type, dt)   # 溟痕 = 环境；神经光环 = 放光环的敌人
-		add_nerve(Bal.v("enemy/nerve_mire", 12.0) * float(g.dmod.get("nerve_rate", 1.0)) * g.nerve_taken_mult * dt)
+		add_nerve(Bal.v("enemy/nerve_mire", 12.0) * float(g.dmod.get("nerve_rate", 1.0)) * g.nerve_taken_mult * (1.0 if aura else mire_mult) * dt)
 	else:
 		g.nerve = maxf(0.0, g.nerve - Bal.v("enemy/nerve_decay", 10.0) * (2.0 if sanct else 1.0) * dt)
 
@@ -1129,7 +1130,7 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	# 用 g.rng 会让机器负载 / 玩家设置改变对局随机数（docs/36 §3）
 	if g.crit_hit:
 		Sfx.play("crit_tick", -6.8, 1.0, 0.05)   # 暴击：清脆的「叮」叠在命中声上
-	g.vfx.dmg_number(e, dmg, g.crit_hit, weak_hit)   # 对 Boss 0.3 秒合并、Boss 战期间普通怪只飘暴击（docs/38 §1.15，显示逻辑在 vfx）
+	g.vfx.dmg_number(e, dmg, g.crit_hit, weak_hit, h)   # 对 Boss 0.3 秒合并、Boss 战期间普通怪只飘暴击（docs/38 §1.15，显示逻辑在 vfx）
 	# Boss 受击后（最后的骑士寒冷滑窗、圣徒装填打断）：dmg = 扣完潮盾的伤害，eff = 实际掉的血
 	if bh != null:
 		bh.on_damaged(e, dmg, eff)

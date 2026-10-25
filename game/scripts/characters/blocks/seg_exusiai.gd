@@ -113,22 +113,25 @@ static func _exu_muzzle(o, p: Dictionary) -> Vector2:
 	return o.pos + Vector2(float(m[0]) * o.face, float(m[1]))
 
 
-## 选目标：aim_targets（自动 = 最近，含 Boss 优先；手动 = 瞄准锥内）的候选里按「距离 ÷ 精英优先度」、再按 id 取前 n 个
+## 选目标：aim_targets（自动 = 最近，含 Boss 优先；手动 = 瞄准锥内）的候选里按「距离 ÷ 精英优先度」、再按 id 取前 n 个；
+## 队友在「清杂优先」（docs/114 §13）下自动瞄准时直接用 aim_targets 的优先级顺序（不再按精英加权重排，也不把 Boss 提前）
 static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 	var pool: Array = o.aim_targets(maxi(n * 3, 8), rr, o.pos)
+	var mob_first: bool = o.prio_mode() == 1 and not o.manual_attack()
 	var keyed: Array = []
-	for e in pool:
+	for i in pool.size():
+		var e = pool[i]
 		if e.dead:
 			continue
-		var d: float = o.pos.distance_to(e.pos)
-		if e.elite or e.boss:
+		var d: float = float(i) if mob_first else o.pos.distance_to(e.pos)
+		if (e.elite or e.boss) and not mob_first:
 			d /= maxf(1.0, prio)
 		keyed.append([d, int(e.id), e])
 	keyed.sort_custom(func(x, y): return x[0] < y[0] if x[0] != y[0] else x[1] < y[1])
 	var out: Array = []
 	for k in mini(n, keyed.size()):
 		out.append(keyed[k][2])
-	if not pool.is_empty() and pool[0].boss and not pool[0].dead and (out.is_empty() or not is_same(out[0], pool[0])):
+	if not mob_first and not pool.is_empty() and pool[0].boss and not pool[0].dead and (out.is_empty() or not is_same(out[0], pool[0])):
 		out.erase(pool[0])
 		out.push_front(pool[0])   # 保留 op_api 的 Boss 优先（ai/boss_focus）
 		if out.size() > n:

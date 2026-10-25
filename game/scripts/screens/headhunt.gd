@@ -15,6 +15,18 @@ const Character = preload("res://scripts/characters/character.gd")
 const Roster = preload("res://scripts/core/roster.gd")
 const Game = preload("res://scripts/game.gd")
 
+## 用户 10-25：寻访专用原作职业标志，来源见 art/incoming/headhunt_professions_1025/sources.json。
+const CLASS_ICONS := {
+	"先锋": preload("res://art/ui/professions/pioneer.png"),
+	"近卫": preload("res://art/ui/professions/warrior.png"),
+	"重装": preload("res://art/ui/professions/tank.png"),
+	"狙击": preload("res://art/ui/professions/sniper.png"),
+	"术师": preload("res://art/ui/professions/caster.png"),
+	"医疗": preload("res://art/ui/professions/medic.png"),
+	"辅助": preload("res://art/ui/professions/support.png"),
+	"特种": preload("res://art/ui/professions/special.png"),
+}
+
 const DESK := Vector2(1280, 720)   # 桌面设计稿尺寸
 var D := DESK                      # 当前版面：手机横屏按屏幕比例取 1280 ×（600–720），纵向位置用 _p() 单独排（docs/124 §13.7）
 var _phone := false
@@ -62,6 +74,8 @@ var _stamped := -1
 var reveal_id := ""       # 当前揭示的干员（测试输出用）
 var sel := 0              # 入口：0 寻访一次 / 1 定向；选职业 / 选干员：格子下标
 var sel_cls := ""
+var pick_scroll := 0      # 指定干员列表：第一张可见卡的下标
+var _pdrag := {}          # 指定干员列表的拖动翻页：{x, scroll, act}
 var choices: Array = []   # 选职业：职业；选干员：干员 id
 var rects: Array = []     # [Rect2（设计坐标）, 动作]
 var _k := 1.0             # 设计 → 界面单位
@@ -166,8 +180,47 @@ func _entry() -> void:
 		return
 	mode = "entry"
 	sel = 0
+	_warm_start()
 	t0 = _now()
 	_mode_t0 = t0
+
+
+## 预载（10-25 用户：进寻访卡顿）：入口先同步载好卡池前 3 名（在转场计时之前），其余未解锁干员每帧载一名，
+## 到选人 / 揭示时精细立绘、剪影、包围盒都已就绪；与 fps-first 的引擎层预热互不依赖
+var _warm_q: Array = []
+var _warmed := {}
+
+
+func _warm_one(cid: String, stage := 3) -> void:
+	var od := _card(cid)   # 阶段 0：载精细立绘；1：帧内包围盒；2：剪影贴图（单张最重，约 5–90 毫秒，所以分帧）
+	if od.tex == null:
+		_warmed[cid] = true
+		return
+	if stage == 1 or stage >= 3:
+		UI.card_bb(od, od.tex)
+	if stage == 2 or stage >= 3:
+		A.white_of(od.tex)
+		_warmed[cid] = true
+
+
+## 入口只画已预载好的剪影（转场黑场期间逐帧载完，没有一次性卡顿）；选人 / 揭示 / 本次寻访画到时当场补载
+func _is_warm(cid: String) -> bool:
+	return _warmed.has(cid)
+
+
+func _warm_start() -> void:
+	var pool := _sorted(Roster.locked_ids())
+	_warm_q = []
+	for cid in pool:
+		if not _warmed.has(cid):
+			for st in 3:
+				_warm_q.append([cid, st])
+
+
+func _warm() -> void:
+	if not _warm_q.is_empty():
+		var w: Array = _warm_q.pop_front()
+		_warm_one(w[0], w[1])
 
 
 func _sorted(ids: Array) -> Array:
@@ -277,6 +330,8 @@ func _act(a) -> void:
 				sel_cls = choices[sel]
 				choices = _sorted(Roster.locked_ids().filter(func(c): return Roster.class_of(c) == sel_cls))
 				sel = 0
+				pick_scroll = 0
+				_pdrag = {}
 				mode = "pick"
 				_trans("slide")
 			elif a == "back":
@@ -285,6 +340,9 @@ func _act(a) -> void:
 				sel = 1
 				_trans("slide")
 		"pick":
+			if a is String and a.begins_with("scroll_"):
+				_pick_step(-1 if a == "scroll_l" else 1)
+				return
 			if a is int and a >= 0 and a < choices.size():
 				sel = a
 				a = "ok"   # 点一下就寻访（10-24 用户）
@@ -316,13 +374,37 @@ func _act(a) -> void:
 
 ## 输入（game.gd _unhandled_input 在寻访打开时整段交给这里）；返回是否用掉了这次输入
 func input(event: InputEvent) -> bool:
+	if mode == "pick" and choices.size() > _pick_geom().cap:
+		if event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_LEFT, MOUSE_BUTTON_WHEEL_DOWN, MOUSE_BUTTON_WHEEL_RIGHT]:
+			_pick_step(-1 if event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_LEFT] else 1)
+			return true
+		if not _pdrag.is_empty() and (event is InputEventMouseMotion or (event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT)):
+			var px: float = (event.position.x / Cfg.ui_k - _off.x) / _k
+			if event is InputEventMouseMotion:
+				pick_scroll = clampi(int(_pdrag.s) - int(roundf((px - float(_pdrag.x)) / float(_pick_geom().pitch))), 0, maxi(0, choices.size() - int(_pick_geom().cap)))
+				return true
+			var act = _pdrag.act
+			var moved := absf(px - float(_pdrag.x)) >= 12.0
+			_pdrag = {}
+			if not moved:
+				_act(act)
+			return true
 	if _tr != "" and (event is InputEventKey or event is InputEventMouseButton or event is InputEventScreenTouch) and event.is_pressed():
 		_tr = ""   # 转场中任意键 / 点按：直接到位，这次输入不再往下传
 		return true
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var p: Vector2 = (event.position / Cfg.ui_k - _off) / _k
 		for r in rects:
-			if (r[0] as Rect2).has_point(p):
+			var box: Rect2 = r[0]
+			var hit := box.has_point(p)
+			if hit and mode == "pick" and r[1] is int:
+				# 加宽后的斜卡外接矩形会相交，命中只认卡片真实截面。
+				var left := box.position.x + (box.end.y - p.y) * HS.SKEW
+				hit = p.x >= left and p.x <= left + box.size.x - box.size.y * HS.SKEW
+				if hit and choices.size() > _pick_geom().cap:
+					_pdrag = {"x": p.x, "s": pick_scroll, "act": r[1]}   # 列表要滚动时：按下先当拖动，松手时位移 < 12 才算点选
+					return true
+			if hit:
 				_act(r[1])
 				return true
 		if mode in ["bag", "op"]:
@@ -349,6 +431,7 @@ func input(event: InputEvent) -> bool:
 						d = signi(d)
 			elif mode == "pick":
 				sel = clampi(sel + signi(d), 0, maxi(0, choices.size() - 1))
+				_pick_scroll_to(sel)
 			g.kb_nav = true
 			Sfx.play("ui_move")
 		return true
@@ -362,7 +445,7 @@ func _card(cid: String) -> Dictionary:
 	var d: Dictionary = Character.load_def(cid)
 	var idle = d.get("sprites", {}).get("idle", "")
 	var tn: String = idle if idle is String else idle.get("tex", "")
-	var tx: Texture2D = A.tex(tn) if tn != "" else null
+	var tx: Texture2D = A.tex_hi(tn) if tn != "" else null   # 精细 @2x 立绘（同选人页，10-25 用户：寻访不用局内 1 倍帧条）
 	var frames := 1
 	if idle is Dictionary and idle.has("frames"):
 		frames = int(idle.frames)
@@ -399,23 +482,23 @@ func _idle_frame(od: Dictionary, t: float) -> int:
 	return n - 1
 
 
-## 立绘（k2 = 每个 @2x 像素的设计单位，再乘 draw_scale）：脚底点 foot；sil = 剪影色；返回目标矩形
-func _figure(od: Dictionary, foot: Vector2, k2: float, sil := Color(0, 0, 0, 0), frame := 0, clip := Rect2()) -> Rect2:
+## 立绘放进 area：按帧内非透明区 bb 等比缩到恰好装得下（不超过 kmax 倍的 @2x 像素设计单位），水平居中、底边贴 area 底，
+## 任何干员都不会画出 area（10-25 用户：立绘出框）；sil = 剪影色；dx = 额外水平偏移（滑入用）；返回目标矩形
+func _figure(od: Dictionary, area: Rect2, kmax: float, sil := Color(0, 0, 0, 0), frame := 0, dx := 0.0) -> Rect2:
 	var tx: Texture2D = od.tex
 	if tx == null:
 		return Rect2()
 	var hi: float = od.hires
 	var fw: float = tx.get_width() / float(maxi(1, int(od.frames)))
 	var bb: Rect2 = UI.card_bb(od, tx)
-	var kk: float = k2 * 2.0 / hi * float(od.ds)
-	var dst := Rect2(UI.foot_pos(foot, bb, fw, tx.get_height(), hi, kk).round(), (bb.size * kk).round())
+	if bb.size.x <= 0.0 or bb.size.y <= 0.0:
+		return Rect2()
+	var kk: float = minf(minf(area.size.x / bb.size.x, area.size.y / bb.size.y), kmax * 2.0 / hi * float(od.ds))
+	var sz := (bb.size * kk).round()
+	var dst := Rect2(Vector2(area.position.x + roundf((area.size.x - sz.x) / 2.0) + dx, area.end.y - sz.y), sz)
 	var src := Rect2(fw * frame + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
 	var t2: Texture2D = A.white_of(tx) if sil.a > 0.0 else tx
-	var c2 := sil if sil.a > 0.0 else Color.WHITE
-	if clip.size.x > 0.0:
-		UI.blit_clipped(g.hud, t2, dst, src, clip, c2)
-	else:
-		g.hud.draw_texture_rect_region(t2, dst, src, c2)
+	g.hud.draw_texture_rect_region(t2, dst, src, sil if sil.a > 0.0 else Color.WHITE)
 	return dst
 
 
@@ -425,6 +508,7 @@ func _btn(r: Rect2, act) -> void:
 
 func draw(vs: Vector2) -> void:
 	rects.clear()
+	_warm()
 	var ci: CanvasItem = g.hud
 	_phone = Pad.touch
 	D = Vector2(1280, clampf(roundf(1280.0 * vs.y / vs.x), 600.0, 720.0)) if _phone else DESK
@@ -593,25 +677,23 @@ func _draw_entry() -> void:
 		UI.text_at(ci, f, Vector2(56, _p(509, 421) + j * 28), rules[j], int(_p(14, 17)), HS.INK2, "lm")
 	if not _phone:
 		HS.hr_mark(ci, f, Vector2(40, 640))
-	# 卡池：三组灰色像素剪影（未解锁的前 3 名 + 每组 4 名小剪影），缓慢视差
+	# 卡池：三个灰色剪影（未解锁的前 3 名；10-25 用户：「未解锁」下面的小剪影不要了），缓慢视差
 	HS.outline_px(ci, Vector2(560, _p(180, 130)), "PERSONNEL", 11.0, Color(1, 1, 1, 0.12), HS.DARK)
 	var pool := _sorted(locked)
 	var t := _now() - t0
 	for i in mini(3, pool.size()):
-		var cx := 690.0 + i * 250.0
+		var cx := 670.0 + i * 245.0
 		var big := i == 1
 		var foot := Vector2(cx + (0.0 if UM.rm() else sin(t * 0.6 + i) * 6.0), _p(520.0, 430.0) if big else _p(500.0, 414.0))
-		_figure(_card(pool[i]), foot, 4.0 if big else 3.0, HS.SIL)
+		var ah := _p(300.0, 240.0) * (1.0 if big else 0.82)
+		if _is_warm(pool[i]):
+			_figure(_card(pool[i]), Rect2(foot.x - 100.0, foot.y - ah, 200.0, ah), 4.0 if big else 3.0, HS.SIL)
 		ci.draw_set_transform(_off + foot * _k, 0.0, Vector2(_k, _k * 0.2))
 		ci.draw_circle(Vector2.ZERO, 70.0 if big else 56.0, Color(0, 0, 0, 0.35))
 		ci.draw_set_transform(_off, 0.0, Vector2(_k, _k))
 		HS.solid_px(ci, foot + Vector2(0, 22), "LOCKED", 2.0, Color(1, 1, 1, 0.6), 1)
-		for j in 4:
-			var pj := 3 + i * 4 + j
-			if pj < pool.size():
-				_figure(_card(pool[pj]), Vector2(cx - 84 + j * 56, _p(600.0, 514.0) if big else _p(580.0, 498.0)), 0.7, Color(0.45, 0.47, 0.52))
 	if pool.size() >= 2:
-		_brackets(Rect2(840, _p(250, 176), 200, _p(300, 270)), Color(1, 1, 1, 0.85))
+		_brackets(Rect2(805, _p(250, 176), 200, _p(300, 270)), Color(1, 1, 1, 0.85))
 	if pool.is_empty():
 		# 名册已满（10-24 用户问「全有了显示什么」）：卡池位置换成「全员入职」签，不留空场
 		_brackets(Rect2(700, _p(270, 196), 480, _p(200, 180)), Color(1, 1, 1, 0.5))
@@ -619,8 +701,8 @@ func _draw_entry() -> void:
 		HS.solid_px(ci, Vector2(940, _p(392, 308)), "ALL OPERATORS ON BOARD", 2.0, Color(1, 1, 1, 0.6), 1)
 		UI.text_at(ci, f, Vector2(940, _p(430, 344)), "罗德岛人事部已无待寻访的干员", 15, UI.fa(Color.WHITE, 0.55), "mm")
 	else:
-		HS.para(ci, Rect2(840, _p(210, 138), 210, 36), UI.fa(UI.VIOLET, 0.9))
-		UI.text_at(ci, f, Vector2(945, _p(228, 156)), "寻访范围 · %d 名" % locked.size(), 15, Color.WHITE, "mm", true)
+		HS.para(ci, Rect2(800, _p(210, 138), 210, 36), UI.fa(UI.VIOLET, 0.9))
+		UI.text_at(ci, f, Vector2(905, _p(228, 156)), "寻访范围 · %d 名" % locked.size(), 15, Color.WHITE, "mm", true)
 	var r1 := Rect2(620, D.y - 84, 300, 62)
 	var r0 := Rect2(940, D.y - 88, 310, 68)
 	HS.ghost_btn(ci, f, r1, "定向寻访  （%d 张）" % _cost_pick(), "", 1.0)
@@ -658,6 +740,16 @@ func _bottom(text_mid := "") -> void:
 		UI.text_at(ci, f, Vector2(640, D.y - 44), text_mid, 15, UI.TEXT, "mm")
 
 
+## 仅影响寻访界面；纹理原始宽高比保持不变，颜色跟随选中/禁用状态。
+func _class_icon(ci: CanvasItem, cls: String, center: Vector2, radius: float, color: Color, _width := 2.0) -> void:
+	var texture: Texture2D = CLASS_ICONS.get(cls)
+	if texture == null:
+		return
+	var size := texture.get_size()
+	size *= radius * 2.0 / maxf(size.x, size.y)
+	ci.draw_texture_rect(texture, Rect2((center - size * 0.5).round(), size.round()), false, color)
+
+
 func _draw_class() -> void:
 	var ci: CanvasItem = g.hud
 	var f: Font = g.font
@@ -692,15 +784,11 @@ func _draw_class() -> void:
 			HS.para(ci, r.grow(2), Color(0, 0, 0, 0), UI.fa(HS.CYB, 0.6), 1.5)
 		var ink := HS.INK if on else Color(1, 1, 1, 0.4 if dis else 1.0)
 		var cx := r.get_center().x + 10
-		UI.class_glyph(ci, cls, Vector2(cx, r.position.y + 70 * fy), 26.0 * minf(1.0, fy + 0.1), ink, 4.0)
+		_class_icon(ci, cls, Vector2(cx, r.position.y + 70 * fy), 38.0 * minf(1.0, fy + 0.1), ink, 4.0)
 		HS.spaced(ci, f, Vector2(cx - UI.cwidth(f, CLASS_EN[cls], 9) * 0.5 - 18, r.position.y + 128 * fy), CLASS_EN[cls], 9, UI.fa(ink, 0.7), 3.0)
 		UI.text_at(ci, f, Vector2(cx, r.position.y + 154 * fy), cls, 30, ink, "mm", true)
 		ci.draw_line(Vector2(r.position.x + 30, r.position.y + 182 * fy), Vector2(r.end.x - 20, r.position.y + 182 * fy), UI.fa(ink, 0.3), 1.0)
 		UI.text_at(ci, f, Vector2(cx, r.position.y + 204 * fy), "已全部解锁" if dis else "未解锁  %d" % mine.size(), 16, ink, "mm")
-		var sx: float = cx - mini(4, mine.size()) * 16.0
-		for j in mini(4, mine.size()):
-			_figure(_card(mine[j]), Vector2(sx + 16, r.end.y - 10), 0.32, Color(0.45, 0.47, 0.52))
-			sx += 32.0
 		if not owned.has(cls) and not dis:
 			HS.tag(ci, f, r.position + Vector2(r.size.y * HS.SKEW * 0.2 + 34, 10), "新职业", 0.85, HS.CYB)
 		if not dis:
@@ -715,32 +803,97 @@ func _draw_class() -> void:
 
 # ---------------------------------------------------------------- 定向 · 指定干员（GPT 30）
 
+## 指定干员列表：固定卡宽，放不下的横向滚动（滚轮 / 方向键 / 两侧箭头 / 拖动），一次露出 PICK_CAP 张以内（10-25 用户：小人列表要能滚动、别出框）
+const PICK_CW := 190.0
+const PICK_X0 := 24.0
+const PICK_X1 := 770.0   # 右侧信息面板（right_panel 从 780 起）之前
+
+
+func _pick_geom() -> Dictionary:
+	var height := _p(470.0, D.y - 88.0 - 84.0 - 18.0)
+	var skew := height * HS.SKEW
+	var pitch := PICK_CW + 20.0
+	var cap := maxi(1, int((PICK_X1 - PICK_X0 - PICK_CW - skew) / pitch) + 1)
+	return {"h": height, "skew": skew, "pitch": pitch, "cap": cap, "y": _p(104.0, 84.0)}
+
+
+func _pick_step(d: int) -> void:
+	var cap: int = _pick_geom().cap
+	var np := clampi(pick_scroll + d, 0, maxi(0, choices.size() - cap))
+	if np != pick_scroll:
+		pick_scroll = np
+		Sfx.play("ui_move", -6.0)
+
+
+func _arrow(c: Vector2, d: int, col: Color) -> void:
+	var r := 9.0
+	g.hud.draw_polyline(PackedVector2Array([c + Vector2(-d * r * 0.5, -r), c + Vector2(d * r * 0.5, 0), c + Vector2(-d * r * 0.5, r)]), col, 3.0)
+
+
+func _pick_scroll_to(i: int) -> void:
+	var cap: int = _pick_geom().cap
+	pick_scroll = clampi(pick_scroll, 0, maxi(0, choices.size() - cap))
+	if i < pick_scroll:
+		pick_scroll = i
+	elif i >= pick_scroll + cap:
+		pick_scroll = i - cap + 1
+	pick_scroll = clampi(pick_scroll, 0, maxi(0, choices.size() - cap))
+
+
 func _draw_pick() -> void:
 	var ci: CanvasItem = g.hud
 	var f: Font = g.font
 	HS.right_panel(ci, D, 780, 640, 62, D.y - 88)
 	_btn(HS.topbar(ci, f, D, ["PERSONNEL /", "TRANSFER"], "定向寻访 · 指定干员"), "back")
 	var n := choices.size()
-	var cw := minf(200.0, (660.0 - 20.0 * (n - 1)) / maxf(1.0, n))
-	for i in n:
+	var gm := _pick_geom()
+	var cap: int = gm.cap
+	var height: float = gm.h
+	var skew: float = gm.skew
+	pick_scroll = clampi(pick_scroll, 0, maxi(0, n - cap))
+	for k in mini(cap, n - pick_scroll):
+		var i := pick_scroll + k
 		var od := _card(choices[i])
-		var r := Rect2(40 + i * (cw + 20), _p(104, 84), cw, _p(470, D.y - 88 - 84 - 18))
+		var r := Rect2(PICK_X0 + k * gm.pitch, gm.y, PICK_CW + skew, height)
 		var on := i == sel
 		HS.card(ci, r, od.col, on)
 		var ink := HS.INK if on else Color.WHITE
-		UI.class_glyph(ci, od.cls, r.position + Vector2(70, 40), 14.0, ink, 3.0)
-		HS.spaced(ci, f, r.position + Vector2(96, 36), CLASS_EN[od.cls], 9, UI.fa(ink, 0.7), 3.0)
-		UI.text_at(ci, f, r.position + Vector2(96, 54), od.cls, 16, ink, "lm", true)
-		_figure(od, Vector2(r.get_center().x, r.end.y - 104), minf(1.8, cw / 110.0), Color(0.42, 0.44, 0.5) if not on else Color(0.30, 0.32, 0.37))
-		ci.draw_line(Vector2(r.position.x + 30, r.end.y - 80), Vector2(r.end.x - 30, r.end.y - 80), UI.fa(ink, 0.3), 1.0)
-		var fl := UI.fit_line(f, str(od.name), 28, cw - 40, 14)
-		UI.text_at(ci, f, Vector2(r.get_center().x - 8, r.end.y - 44), fl[0], fl[1], ink, "mm", true)
+		# 斜卡每个高度的中心不同；文字宽度扣除斜切及内边距。
+		var inner := maxf(24.0, r.size.x - skew - 24.0)
+		var top_x := r.get_center().x + skew * 0.5 - 34.0 * HS.SKEW
+		_class_icon(ci, od.cls, Vector2(top_x, r.position.y + 34), 14.0, ink)
+		var en := UI.fit_line(f, CLASS_EN[od.cls], 9, inner, 8)
+		UI.text_at(ci, f, Vector2(top_x - 24.0 * HS.SKEW, r.position.y + 58), en[0], en[1], UI.fa(ink, 0.7), "mm")
+		UI.text_at(ci, f, Vector2(top_x - 46.0 * HS.SKEW, r.position.y + 80), od.cls, 16, ink, "mm", true)
+		# 立绘区：卡中段，宽度扣掉这一段高度上斜边的位移，保证整个人在卡框里
+		var ay0 := r.position.y + 96.0
+		var ay1 := r.end.y - 96.0
+		var drift := (ay1 - ay0) * HS.SKEW
+		var cxm := r.position.x + (r.end.y - (ay0 + ay1) * 0.5) * HS.SKEW + PICK_CW * 0.5
+		var area := Rect2(cxm - (PICK_CW - drift - 16.0) * 0.5, ay0, PICK_CW - drift - 16.0, ay1 - ay0)
+		_figure(od, area, 3.0, Color(0.42, 0.44, 0.5) if not on else Color(0.30, 0.32, 0.37))
+		var line_x := r.get_center().x - skew * 0.5 + 80.0 * HS.SKEW
+		ci.draw_line(Vector2(line_x - inner * 0.5, r.end.y - 80), Vector2(line_x + inner * 0.5, r.end.y - 80), UI.fa(ink, 0.3), 1.0)
+		var fl := UI.fit_line(f, str(od.name), 28, inner - 6.0, 22)
+		var name_x := r.get_center().x - skew * 0.5 + 44.0 * HS.SKEW
+		UI.text_at(ci, f, Vector2(name_x, r.end.y - 44), fl[0], fl[1], ink, "mm", true)
 		_btn(r, i)
+	if n > cap:
+		# 滚动箭头 + 位置（左右各一枚，点一下翻一张；灰 = 到头了）
+		var my: float = float(gm.y) + height * 0.5
+		for d in [-1, 1]:
+			var can: bool = pick_scroll > 0 if d < 0 else pick_scroll + cap < n
+			var ar := Rect2(PICK_X0 - 18.0 if d < 0 else PICK_X1 - 22.0, my - 34.0, 40.0, 68.0)
+			HS.para(ci, ar, Color(0.0, 0.0, 0.0, 0.62 if can else 0.3), UI.fa(HS.CYB, 0.9) if can else Color(1, 1, 1, 0.12), 1.5)
+			_arrow(ar.get_center(), d, HS.CYB if can else Color(1, 1, 1, 0.2))
+			if can:
+				_btn(ar, "scroll_l" if d < 0 else "scroll_r")
+		UI.text_at(ci, f, Vector2((PICK_X0 + PICK_X1) * 0.5, gm.y + height + 22.0), "%d–%d / %d" % [pick_scroll + 1, mini(n, pick_scroll + cap), n], 14, UI.fa(Color.WHITE, 0.6), "mm")
 	if sel < n:
 		HS.reveal = minf(HS.reveal, 1.0 if UM.rm() else clampf((_now() - _mode_t0) / 0.5, 0.0, 1.0))
 		var od2 := _card(choices[sel])
 		var by := HS.title_block(ci, f, Vector2(820, _p(130, 100)), "01", "人事调度", od2.name, od2.en, 1.0, int(_p(64, 52)))
-		UI.class_glyph(ci, od2.cls, Vector2(846, by + 50), 22.0, HS.INK, 4.0)
+		_class_icon(ci, od2.cls, Vector2(846, by + 50), 22.0, HS.INK, 4.0)
 		HS.spaced(ci, f, Vector2(890, by + 40), CLASS_EN[od2.cls], 10, HS.INK2, 4.0)
 		UI.text_at(ci, f, Vector2(890, by + 64), od2.cls, 22, HS.INK, "lm", true)
 		ci.draw_rect(Rect2(820, by + _p(92, 84), 240, 2), HS.INK)
@@ -753,11 +906,12 @@ func _draw_pick() -> void:
 			HS.solid_px(ci, Vector2(840, y + 20), "S%d" % (j + 1), 2.0, Color.WHITE, 1)
 			UI.text_at(ci, f, Vector2(876, y + 20), str(sk[j].get("name", "")), 17, HS.INK, "lm")
 			ci.draw_line(Vector2(876, y + 44), Vector2(1060, y + 44), UI.fa(HS.INK, 0.2), 1.0)
-		_figure(od2, Vector2(1160, D.y - 130), 3.0, Color(0.16, 0.17, 0.21))
+		var fy0 := by + _p(92, 84) - 6.0
+		_figure(od2, Rect2(1066.0, fy0, 198.0, D.y - 130.0 - fy0), 3.0, Color(0.16, 0.17, 0.21))
 		if not _phone:
 			UI.text_at(ci, f, Vector2(820, D.y - 112), "指定 1 名未招募干员加入名册，招募后显示干员立绘。", 14, HS.INK, "lm")
 		HS.reveal = 1.0
-	_bottom()
+	_bottom("" if Pad.touch or n <= cap else "方向键 / 滚轮翻页")
 	var bb := Rect2(D.x - 560, D.y - 72, 210, 56)
 	HS.ghost_btn(ci, f, bb, "返回", "" if Pad.touch else "Esc")
 	_btn(bb, "back")
@@ -911,7 +1065,7 @@ func _draw_op() -> void:
 	# 右：职业色斜带 + 职业图标水印 + 描边英文（缓慢平移）
 	var drift := 0.0 if UM.rm() else lt * 6.0
 	HS.fill(ci, PackedVector2Array([Vector2(1080, 0), Vector2(1280, 0), Vector2(900, D.y), Vector2(700, D.y)]), UI.fa(col.darkened(0.35), 0.45))
-	UI.class_glyph(ci, od.cls, Vector2(1000, 250), 150.0, UI.fa(col.darkened(0.2), 0.45), 28.0)
+	_class_icon(ci, od.cls, Vector2(1000, 250), 150.0, UI.fa(col.darkened(0.2), 0.45), 28.0)
 	HS.outline_px(ci, Vector2(440 - drift, D.y - 270), od.en, 28.0, Color(1, 1, 1, 0.16), HS.DARK)
 	# 立绘：滑入（3 道残影）→ 信号解码 → 待机循环；网点投影
 	_reveal_figure(od, lt)
@@ -920,7 +1074,7 @@ func _draw_op() -> void:
 	ci.draw_set_transform(_off + Vector2(-(1.0 - e) * 480.0, 0) * _k, 0.0, Vector2(_k, _k))
 	var py := _p(0.0, -60.0)   # 手机：名牌整体上移
 	HS.fill(ci, PackedVector2Array([Vector2(0, 48), Vector2(460, 48), Vector2(460 - 0.262 * (D.y - 108), D.y - 60), Vector2(0, D.y - 60)]), HS.LIGHT)
-	UI.class_glyph(ci, od.cls, Vector2(110, 190 + py * 0.6), 40.0, HS.INK, 7.0)
+	_class_icon(ci, od.cls, Vector2(110, 190 + py * 0.6), 40.0, HS.INK, 7.0)
 	ci.draw_rect(Rect2(186, 152 + py * 0.6, 2, 76), HS.INK)
 	HS.spaced(ci, f, Vector2(214, 176 + py * 0.6), CLASS_EN[od.cls], 13, HS.INK, 8.0)
 	UI.text_at(ci, f, Vector2(212, 212 + py * 0.6), od.cls, 40, HS.INK, "lm", true)
@@ -954,12 +1108,16 @@ func _reveal_figure(od: Dictionary, lt: float) -> void:
 	var hi: float = od.hires
 	var fw: float = tx.get_width() / float(maxi(1, int(od.frames)))
 	var bb: Rect2 = UI.card_bb(od, tx)
-	var kk: float = 6.0 * 2.0 / hi * float(od.ds)
-	var foot := Vector2(820, D.y - 70)
+	if bb.size.x <= 0.0 or bb.size.y <= 0.0:
+		return
+	# 立绘区（桌面 / 手机各一块，名牌与右缘斜带之间；顶栏之下、底边之上）：立绘按 bb 等比缩到装得下，最多 6 倍 @2x 像素，整个人不出框
+	var area := Rect2(560.0, _p(86.0, 70.0), 520.0, D.y - 70.0 - _p(86.0, 70.0))
+	var kk: float = minf(minf(area.size.x / bb.size.x, area.size.y / bb.size.y), 6.0 * 2.0 / hi * float(od.ds))
+	var sz := (bb.size * kk).round()
 	var fr := 0 if lt < DECODE else _idle_frame(od, lt - DECODE)
 	var src := Rect2(fw * fr + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
 	var slide := UM.out_cubic(lt / SLIDE)
-	var dst := Rect2(UI.foot_pos(foot, bb, fw, tx.get_height(), hi, kk).round() + Vector2(roundf((1.0 - slide) * 520.0), 0), (bb.size * kk).round())
+	var dst := Rect2(Vector2(area.get_center().x - roundf(sz.x / 2.0) + roundf((1.0 - slide) * 520.0), area.end.y - sz.y), sz)
 	var wt := A.white_of(tx)
 	for i in 120:   # 网点投影
 		var x := 640.0 + (i % 40) * 9.0
@@ -1027,11 +1185,12 @@ func _draw_summary() -> void:
 		if e < 0.98:
 			continue
 		var cx := rr.get_center().x
-		UI.class_glyph(ci, od.cls, Vector2(cx + 28, rr.position.y + 46), 22.0, Color.WHITE, 4.0)
+		_class_icon(ci, od.cls, Vector2(cx + 28, rr.position.y + 46), 22.0, Color.WHITE, 4.0)
 		HS.spaced(ci, f, Vector2(cx - 6, rr.position.y + 94), CLASS_EN[od.cls], 9, UI.fa(Color.WHITE, 0.7), 3.0)
 		UI.text_at(ci, f, Vector2(cx + 26, rr.position.y + 118), od.cls, 24, Color.WHITE, "mm", true)
-		_figure(od, Vector2(cx + 6, rr.end.y - _p(148, 118)), minf(_p(2.5, 2.0), cw / 98.0), Color(0, 0, 0, 0), _idle_frame(od, t))
 		var nr := Rect2(rr.position.x + 10, rr.end.y - _p(132, 104), rr.size.x - 22, _p(112, 92))
+		var fy := rr.position.y + _p(134.0, 126.0)
+		_figure(od, Rect2(rr.position.x + 14.0, fy, rr.size.x - 28.0, nr.position.y - 10.0 - fy), _p(2.5, 2.0), Color(0, 0, 0, 0), _idle_frame(od, t))
 		HS.para(ci, nr, HS.LIGHT)
 		HS.tag(ci, f, nr.position + Vector2(30, -12), "新职业" if bool(r.get("new_class", false)) else "新加入", 0.9)
 		var fl := UI.fit_line(f, str(od.name), 34, nr.size.x - 40, 16)

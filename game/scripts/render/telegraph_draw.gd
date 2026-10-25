@@ -3,6 +3,7 @@
 extends RefCounted
 
 const UI = preload("res://scripts/ui.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 
 ## 预警绘制（地面填充层；轮廓 / 出口 / 端盖在 world.draw_warn_outlines）：结算瞬间闪白。
@@ -43,7 +44,7 @@ static func _hatch(g, w: Dictionary, c: Color, a: float, k: float) -> void:
 	for p in poly:
 		bb = bb.expand(p)
 	var gap: float = maxf(10.0, roundf(maxf(bb.size.x, bb.size.y) / 40.0 / 2.0) * 2.0)
-	var off: float = fmod(g.t * 12.0, gap)
+	var off: float = fmod(g.t * 12.0 * Bal.v("render/warn_hatch_flow", 1.0), gap)   # docs/139 §8：0 = 斜线不流动
 	var col := Color(c.r, c.g, c.b, a)
 	var x: float = bb.position.x - bb.size.y + off
 	while x < bb.end.x:
@@ -79,7 +80,7 @@ static func draw_fills(g) -> void:
 		if w.done:
 			var f: float = clampf(1.0 - (w.t - w.dur) / 0.25, 0.0, 1.0)
 			c = Color(2.0, 2.0, 2.0)
-			fa = 0.45 * f
+			fa = 0.45 * f * Bal.v("render/warn_flash_fill", 1.0)   # docs/139 §8：结算白闪的整片白填充（0 = 只闪轮廓）
 			oa = 0.9 * f
 			k = 1.0
 		# 颜色不再乘 1.7–2.0：乘完在灯光里褪成白色 / 粉彩，色相丢失（docs/48 全局 ④）；亮度靠 alpha 和白芯（world.draw_warn_outlines）

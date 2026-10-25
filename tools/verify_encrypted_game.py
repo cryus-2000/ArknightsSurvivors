@@ -103,7 +103,7 @@ func _verify():
     var want_dir = "ArknightsSurvivors_Internal_" + str(info.get("commit", "?")) if audience == "internal" else "ArknightsSurvivors"
     if user_dir != want_dir:
         failures.append("user_dir_isolation:" + user_dir)
-    # 图鉴：对内包全部解锁（干员页也全可看，名册虽按开局 5 人）；对外包新存档其余页全锁，干员页按名册（docs/109 §12：开局 5 人解锁、其余锁定，博士不锁）
+    # 图鉴：其余页对内包全解锁、对外包新存档全锁；干员页两种包都按名册（10-25 寻访 / 图鉴解锁数同源：Roster.is_unlocked；对内开局 10 人、对外 5 人，博士不锁）
     if cfg != null:
         var roster = load("res://scripts/core/roster.gd")
         var roster_ids: Array = roster.all_ids()
@@ -118,7 +118,7 @@ func _verify():
             var n_open := 0
             for entry in gallery.entries:
                 var want: bool = audience != "internal" and page != 0
-                if page == 0 and audience != "internal":
+                if page == 0:
                     var cid := str(entry.get("id", ""))
                     want = roster_ids.has(cid) and not roster.is_unlocked(cid)
                 if not bool(entry.get("locked", false)):
@@ -126,8 +126,8 @@ func _verify():
                 if bool(entry.get("locked", false)) != want:
                     failures.append("gallery_initial_lock:" + str(page) + ":" + str(entry.get("id", "")))
                     break
-            # 对外包新存档干员页：开局 5 人 + 博士可看，其余未招募
-            if page == 0 and audience != "internal" and n_open != roster.STARTERS.size() + (gallery.entries.size() - roster_ids.size()):
+            # 新存档干员页：名册已解锁的人 + 博士可看，其余未招募
+            if page == 0 and n_open != (roster_ids.size() - roster.locked_ids().size()) + (gallery.entries.size() - roster_ids.size()):
                 failures.append("gallery_roster_open:" + str(n_open))
         gallery.queue_free()
     var rost = load("res://scripts/core/roster.gd")

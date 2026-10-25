@@ -4,14 +4,17 @@ extends RefCounted
 ## 全是静态函数，不碰局内状态
 
 
+## 目录内容运行中不变：第一次扫完记住（10-25 帧率：界面每帧经 op_idle 调到，每次都是一次目录扫描）。返回副本，调用方改了不影响缓存
+static var _ids: Array = []
+
 static func list_ids() -> Array:
-	var out: Array = []
-	var d := DirAccess.open("res://data/characters")
-	if d != null:
-		for f in d.get_files():
-			if f.ends_with(".json"):
-				out.append(f.get_basename())
-	return out
+	if _ids.is_empty():
+		var d := DirAccess.open("res://data/characters")
+		if d != null:
+			for f in d.get_files():
+				if f.ends_with(".json"):
+					_ids.append(f.get_basename())
+	return _ids.duplicate()
 
 
 static func load_def(cid: String) -> Dictionary:

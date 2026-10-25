@@ -312,7 +312,7 @@ func _build() -> void:
 				var cdef: Dictionary = Character.load_def(cid)
 				var oe: Dictionary = _op_entry(cid, cdef)
 				oe["first"] = bool(cdef.get("list_first", false))   # list_first：干员 json（封面干员水月排第一）
-				if not Cfg.unlock_all and not Roster.is_unlocked(cid):   # 对内包图鉴全开（名册虽按新玩家走）
+				if not Roster.is_unlocked(cid):   # 干员页只认名册（Roster.is_unlocked 与寻访「未解锁 N 名」同一来源；调试版 / 测试局名册视为全开）
 					oe["locked"] = true
 					oe["locked_text"] = "未招募。\n\n探索结算后用寻访凭证解锁。"
 				ops.append(oe)
@@ -1356,7 +1356,11 @@ func _draw_top(ph: bool, vr: Rect2) -> void:
 	var W := _dsz().x
 	var ht := 0.0 if _still() else _now() * 30.0
 	var unl := 0
+	var total := 0
 	for en in entries:
+		if tab == 0 and not en.has("op"):
+			continue   # 干员页的收录数只数名册干员（博士不在寻访名册里），与寻访「未解锁 N 名」对得上
+		total += 1
 		if not en.get("locked", false):
 			unl += 1
 	if ph:
@@ -1386,7 +1390,7 @@ func _draw_top(ph: bool, vr: Rect2) -> void:
 		UI.text_at(self, font, Vector2(x + 22, 10), str(TABS[i].cn), 13, UI.C_HZ if on else UI.C_D_INK, "la", on)
 		UI.code(self, font, Vector2(x + 20, 28), str(TABS[i].en), 7, UI.C_HZ if on else UI.C_D_SUB)
 		hits.append([r, "cat", i])
-	UI.code(self, font, Vector2(W - 128, 20), "%d / %d" % [unl, entries.size()], 9, UI.C_D_SUB, "ra")
+	UI.code(self, font, Vector2(W - 128, 20), "%d / %d" % [unl, total], 9, UI.C_D_SUB, "ra")
 	var back := Rect2(W - 112, 10, 96, 28)
 	UI.para(self, back, 8, Color(0, 0, 0, 0), UI.C_D_INK)
 	UI.text_at(self, font, back.get_center() + Vector2(0, 1), Pad.hint("返回  Esc", "返回  Ⓑ", "返回"), 12, UI.C_D_INK, "mm")

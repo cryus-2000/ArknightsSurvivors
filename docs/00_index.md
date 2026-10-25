@@ -96,6 +96,7 @@
 | 文档 | 标题 | 状态 | 说明 | 被谁引用 |
 |---|---|---|---|---|
 | [95_boss_moves](95_boss_moves.md) | Boss 招式改版 | 进行中 | 每 Boss 4 招；第 1、2 批已合入（§15、§16），第 3 批（接潮组）与 Boss @2x 补单待做；Boss 招式以本文为准 | 36、38、98；boss_ai.gd、render/world.gd、tests/boss_variety_test.gd 等 20 个文件 |
+| [147_lamp_mire](147_lamp_mire.md) | 灯火与溟痕（方案 B） | 已实施记录 | 10-25：灯火 ≥70 身边溟痕慢慢收缩、踩着伤害 / 神经 −80%；<30 附近溟痕朝队长挪并长大、新溟痕刷得更近更勤；灯油试过 25→15、25→8（方案 A）后用户定调回原值（25 / 0.006），只保留溟痕规则；进出档小字提示；数值在 balance.json lamp 段；云端三档复测见 §5 | 146、56；run/enemies.gd、spawner.gd、combat.gd、world/map.gd |
 | [145_enemy_canon_and_reach](145_enemy_canon_and_reach.md) | 小怪原作核对 + 攻击范围加强方案 | 方案待用户看 | 10-24：19 种普通怪 / 精英对照 PRTS 与解包数据（名字全对；奠基者 / 引痕者 / 育母弱点与原作相反、箱形恐鱼免疫非原作、囊海爬行者档案不符）；攻击范围现状表；加强 5 只（育母落点圈 30→46、狂奔者 62→90、收割者 / 巢涌者光环待定；囊海爬行者爆裂 80→160 已做），伤害不动；§4 箱形恐鱼新攻击方案；§5 奠基者踏地特效改地面层、骑士图鉴归 Boss 页（已做） | 49b、76、94、96；enemies.json、lore.json、gallery.gd |
 | [146_difficulty_curve_1025](146_difficulty_curve_1025.md) | 难度曲线复查（三档 × 高手 / 普通，云端 336 局） | 方案待用户看 | 10-25：常规「前 1:30 很平 → 2 分钟陡升 → 3:00–5:30 平 → 7:00 台阶 → 7:30–9:30 平 → 最终段回落」；高压 / 深潮倍率开局全额生效、深潮高手 0–3:30 就死 27%；压力几乎全来自近身杂兵，溟痕 2:30 顶到 32 片上限几乎无威胁；方案 A 中段固定节拍大群 + 包围、B 后期伤害继续涨、C 难度倍率渐入（未实施）；§6 灯火：常规 3/4 时间满灯、回补 66% 来自精英灯油、损失 67% 是受击，寂灭占阵亡 30%（深潮 54%）；工具 tools/difficulty_curve.py | 109、111、116、117 |
 | [38_boss_redesign](38_boss_redesign.md) | Boss 重做 v3 | 现行规范 | §1 框架、§8.11 预警、§8.12 难度目标、§8.14 停刷仍有效；已改版 Boss 的招式（第 1、2 批：泡影、伊莎玛拉、伊祖米克、骑士、塑路者、两位圣徒）以 95 为准，接潮组暂按本文 | 21、27、36、37、40、41 等 23 篇；run/combat.gd、boss_ai.gd、tests/prot_test.gd 等 38 个文件 |
@@ -120,7 +121,7 @@
 | [27_balance_framework](27_balance_framework.md) | 数值平衡框架 | 现行规范 | §2 分层、§3 档位与预算、§9 新干员流程在用；§1 目标看 38 §8.12，§6 口径看 80，§4 以 balance.json 为准 | data/balance.json |
 | [29_bot_testing](29_bot_testing.md) | 分档机器人 | 现行规范 | 机器人档位与指标；§3 难度目标已作废（见 38 §8.12），第五档 master 见 36 | 27、36、38、41、79、归档46 等 7 篇；tools/balance_run.py、game.gd、data.gd 等 6 个文件 |
 | [33_release_build](33_release_build.md) | 打包发布 | 现行规范 | 双版本三包、itch、瘦身、ship.py 一键发版 | 41、55、99、归档ea_boss_variety_20260927；tools/export_build.py、tools/export_web.py、tools/release_all.py 等 11 个文件 |
-| [50_performance](50_performance.md) | 性能测量 | 进行中 | 帧时测量方法与各轮优化记录；§18 原生运动核心实测，§19 HUD 字体缓存与隔离对照，§20 双端 60 帧迭代（尚未达标），§21 网页为主基准（手机口径、WebGL 状态缓存 −19% / Boss −32%） | 21、35、36、38、39、41 等 15 篇；render/world.gd、game.gd、data/balance.json 等 34 个文件 |
+| [50_performance](50_performance.md) | 性能测量 | 进行中 | 帧时测量方法与各轮优化记录；§18 原生运动核心实测，§19 HUD 字体缓存与隔离对照，§20 双端 60 帧迭代（尚未达标），§21 网页为主基准（手机口径、WebGL 状态缓存 −19% / Boss −32%）；§26 叠加特效后的帧率与同屏上限 65（云端不合）；§27 帧率稳定优先：启动页稳 60 再进标题、着色器预热、界面动效审计、`--ftrec` 帧时记录 | 21、35、36、38、39、41 等 15 篇；render/world.gd、game.gd、data/balance.json 等 34 个文件 |
 | [55_code_audit](55_code_audit.md) | 代码冗余审计 | 进行中 | 大部分清理已做；§6 剩余项未做 | 35、39、41、56、57、归档14；boss_ai.gd、game.gd、relic_fx.gd 等 21 个文件 |
 | [101_arch_audit_1015](101_arch_audit_1015.md) | 代码框架审计与 C++ 预留 | 进行中 | 10-15 框架问题 / 冗余清单、原生代码切入面与构建约束、阶段 0 / 1 / 2 路线；§7 派活清单、§8 待用户定 | — |
 | [104_pixel_pipeline](104_pixel_pipeline.md) | 干员像素素材流程规范 | 现行规范 | 10-16 定：Codex 静态 f0 / 动画（分层合成）两条线、三层验收、f0 并行 + 人内串行；口径只在 103 改 | 97、103；tools/px_lint.py |
