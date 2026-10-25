@@ -808,6 +808,7 @@ func _ready() -> void:
 	endg = Endings.new(self)
 	knight = Knight.new(self)
 	touch = Touch.new(self)
+	_orient_init()
 	if D.ENEMIES.has("knight"):
 		D.ENEMIES.knight.no_spawn = true  # 敌对骑士只在同伴骑士阵亡后进入精英池（每局重置）
 	RL = rfx.table()
@@ -1321,6 +1322,7 @@ func _process(delta: float) -> void:
 	if wheel.is_open:
 		dt *= wheel.slow()   # 圆盘打开：局内放慢（不全停）
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
+	_orient_tick()
 	_auto_quality(delta)
 	_mem_guard(delta)
 	if victory.active and state == S.PLAY:
@@ -1392,8 +1394,50 @@ func _do_action(act: String) -> void:
 			run_stats.open_for_run()
 
 
+## 手机网页竖屏（10-26 用户「手机横过去之后锁住，否则动一下就变竖屏」，tools/web/orientation.js，docs/22「手机方向」）：
+## 页面在竖屏持续 0.5 秒后盖「请将手机横过来」并通知这里，对局里的游戏暂停（只恢复自己暂停的那一次），转回横屏自动继续。非网页没有桥，不起作用
+var _portrait := false
+var _orient_paused := false
+var _orient_cb = null
+
+
+func _orient_init() -> void:
+	if not OS.has_feature("web"):
+		return
+	var o = JavaScriptBridge.get_interface("__syOrient")
+	if o == null:
+		return
+	_orient_cb = JavaScriptBridge.create_callback(_on_orient)
+	o.onchange(_orient_cb)
+
+
+func _on_orient(args: Array) -> void:
+	_portrait = args.size() > 0 and str(args[0]) == "1"
+
+
+func _orient_tick() -> void:
+	if _portrait:
+		if state == S.PLAY:
+			state = S.PAUSE
+			_orient_paused = true
+			if touch != null:
+				touch.release_all()
+	elif _orient_paused:
+		_orient_paused = false
+		if state == S.PAUSE:
+			state = S.PLAY
+
+
+## 窗口失焦 / 切后台 / 页面暂停（iOS 锁屏、控制中心、来电）：触点的松手事件收不到，摇杆 / 技能键 / 攻击键全部复位
+func _notification(what: int) -> void:
+	if what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_WM_WINDOW_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_RESUMED, NOTIFICATION_WM_MOUSE_EXIT]:
+		if touch != null:
+			touch.release_all()
+
+
 ## 指南页的输入放在 _input：先于 GUI 控件处理，左键（或面板右半 / 下一页按钮）下一页，右键 / 面板左半 / 上一页按钮上一页，页码点可直接点
 func _input(event: InputEvent) -> void:
+	touch.observe(event)   # 触点真实按下 / 松开先记一笔（后面任何早退吞掉松手都不影响摇杆复位，touch.gd STICK_* 注释）
 	if victory.active:
 		return
 	if event is InputEventMouseMotion and event.relative.length() > 6.0:
