@@ -100,6 +100,7 @@
 |---|---|---|---|---|
 | [95_boss_moves](95_boss_moves.md) | Boss 招式改版 | 进行中 | 每 Boss 4 招；第 1、2 批已合入（§15、§16），第 3 批（接潮组）与 Boss @2x 补单待做；Boss 招式以本文为准 | 36、38、98；boss_ai.gd、render/world.gd、tests/boss_variety_test.gd 等 20 个文件 |
 | [150_hunt_into_hordes](150_hunt_into_hordes.md) | 围猎并入大群 + 难度曲线 A / B + 收紧 | 已实施记录 | 10-25：独立围猎关掉，3:45 / 5:00 / 6:15 固定节拍大群（5:00、6:15 围猎型：画面外合拢、缺口 16°、只数 ×1.5、HUD 只画缺口箭头）；所有大群速度散布 + 分批 + 左右摆「慢慢来」；方案 B dmg_late_cap 0.25（10:45 才封顶，影响很小）；合并 trim 后常规高手 76.8%，收紧 dmg_div 340 + horde_dmg 1.4 → 三档高手 58.9 / 35.7 / 14.3%；7:00 后压力回落待补；工具 tools/horde_rec.py | 146、147、149；run/spawner.gd、enemies.gd、screens/hud.gd |
+| [159_assault_dash](159_assault_dash.md) | 突击模式队友低频自冲刺 | 已实施记录 | 10-26：突击中其他队友每 7 秒朝目标冲一段（复用第一下冲锋），德克萨斯每 4.5 秒带伤害冲刺；随行 / 归队不冲；`command/roam_dash` 可调 | 114、151；character.gd、texas.json |
 | [153_attack_scale](153_attack_scale.md) | 攻速整条缩放（去掉 min_duration / min_rest / 水月 min_cd 下限） | 已实施记录 | 10-25：攻击条整条按攻速等比缩短，动画倍率超 3 隔帧抽取；盘点各干员节奏下限；水月 1× / 2.5× / 4× 实测频率；1× TRACE 不变 | 140；character.gd、data_operator.gd、balance.json atkspeed |
 | [155_mire_trail_fix](155_mire_trail_fix.md) | 溟痕「一长串后不动」修复 | 已实施记录 | 10-25：引痕者拖痕改按距离铺、每只 ≤8 片；怪物溟痕单独计数 16、超量淡出最老的；自然溟痕满了淡出最远一片再刷新；新溟痕 3 秒内不被灯火退散；修前 / 修后对比 build/mire_trail_before_after.mp4 | 147；enemy_ai.gd、combat.gd、shot_pool.gd、spawner.gd、enemies.gd、map.gd |
 | [156_event_cg](156_event_cg.md) | 事件插图：原作 CG 像素重构调研 | 调研待用户看 | 10-26：docs/154 用到的 18 件事件在原作都有 1600×900 专属 CG（rogue_2 choiceScenes.background）；PRTS 链接、裁切、难度、优先级（P1 结局线 7 张）；3 张 64 色草稿在 build/event_cg/ | 154；tools/probes/event_cg_pixel_draft.py |

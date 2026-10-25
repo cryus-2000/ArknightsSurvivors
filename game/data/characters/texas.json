@@ -13,6 +13,7 @@
   0.2
  ],
  "script": "res://scripts/characters/data_operator.gd",
+ "command": {"roam_dash": false},
  "base": {
   "_doc": "基础数值（docs/59 §2 / §8.2）；纯数据干员，行为在 blocks 段（docs/61 §13）。精英化形态（docs/91 §16）：pin_* 精一「钉剑」，rain_* 精二「余像·剑雨」（残像 30% → 15% 配合下调；每柄 35% 按木桩表 +33% 再按 docs/91 收到 25%）。普攻是朝最近敌人的冲刺穿行，穿过敌人给全队回技力；精一天赋「战术快递」= 她自己按 talent_cd 自动冲向附近敌群（10-12 用户「改成自动冲刺」，不再跟主控的冲刺键）；S2 把这个间隔 × s2_cd_mult",
   "atk": 32,
@@ -64,6 +65,9 @@
   "slash_wide": 0.15,
   "_rework": "10-24 用户拍板方案 A「阻挡」（docs/129 §11.4）：队长普攻原地每 cd 秒一刀「拔刀」（宽扇形 slash_r / slash_half，×slash_mult），命中里离她最近的 block_n 名被阻挡 block_dur 秒（精英减半，Boss 免疫）；每第 storm_every 次出手改为「骤雨」（原地 storm_gap×3 秒内 360° 连斩 4 下，半径 storm_r，每下 ×storm_mult，没有敌人照常拔刀）；10-25 用户「平时不自动冲锋」：队友短突进已删（队友只在队长冲刺时跟随冲刺）；删除天赋的定时自动冲刺；剑雨 / 剑雨滂沱自动释放需要射程内有敌人",
   "dash_mult": 1.0,
+  "roam_dash_cd": 4.5,
+  "roam_aim": 320,
+  "roam_min_d": 0,
   "block_n": 2,
   "block_dur": 0.4,
   "storm_every": 4,
@@ -849,6 +853,32 @@
      {
       "verb": "sp_secs",
       "seconds": "$hit_sp"
+     }
+    ]
+   },
+   {
+    "trig": "tick",
+    "every": "$roam_dash_cd",
+    "cond": "roaming",
+    "_doc": "突击模式低频冲刺（用户 10-26，docs/159）：指挥「突击」中的队友每 roam_dash_cd 秒朝 roam_aim 内最近的敌人冲一段 dash_len（带伤害，来源「突进」，吃天赋 on_dash_end 回技力）；roam_min_d 0 = 贴身也冲（穿过去扫一遍）；平时（随行）不触发",
+    "do": [
+     {
+      "shape": "dash_line",
+      "aim": "nearest",
+      "need_target": true,
+      "aim_r": "$roam_aim",
+      "min_d": "$roam_min_d",
+      "r": "$dash_len",
+      "w": "$dash_w",
+      "t": "$dash_t",
+      "hold": "$dash_hold",
+      "mult": "$dash_mult",
+      "src": "突进",
+      "tags": [
+       "basic",
+       "pierce"
+      ],
+      "strip": "fx_texas_dash"
      }
     ]
    }

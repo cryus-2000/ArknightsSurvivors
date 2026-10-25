@@ -932,6 +932,7 @@ def check_blocks_eq(godot):
 # 场景专项回归：默认快检执行全部；--only <key> 可单独复查，仍使用公共日志和错误扫描。
 SCENE_REGRESSIONS = {
     "command_ai": ("指挥接敌、站定、护主", "command_ai_test", r"COMMAND_AI checks=\d+ failures=0", []),
+    "assault_dash": ("突击模式低频自冲刺（随行不冲、突击每 7 秒 / 德克萨斯 4.5 秒、归队后不冲）", "assault_dash_test", r"ASSAULT DASH checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=skadi", "--squad=texas,lappland"]),
     "voice_command": ("指挥语音轮换、节流、登场去重", "voice_command_test", r"VOICE COMMAND checks=\d+ failures=0", []),
     "command_wheel": ("指挥圆盘索敌优先级（队友按优先级重排、队长不受影响）", "command_wheel_test", r"COMMAND WHEEL checks=\d+ failures=0", []),
     "eyja_volcanic_weight": ("熔岩弹连续起落点与浮空持续投弹", "eyja_volcanic_weight_test", r"EYJA VOLCANIC WEIGHT failures=0", ["--balance", "--seed=1", "--op=eyjafjalla", "--route=eyjafjalla:meteor"]),
@@ -953,7 +954,7 @@ SCENE_REGRESSIONS = {
     "touch_move": ("触屏摇杆移动：桌面 --touch / 手机比例、大 / 负触点编号（iOS Safari）、两指", "touch_move_test", r"TOUCH MOVE: 0 failures", ["--touch"]),
     "touch_layout": ("触屏按键布局：存档往返 / 换比例锚点 / 越界夹进安全区 / 局内按新位置点击 / 编辑页拖动推开调大小 / 选卡让位 / 转屏重算 ui_k", "touch_layout_test", r"TOUCH LAYOUT failures=0", ["--touch"]),
     "economy": ("经济与收藏品上限", "economy_regression", r"ECONOMY REGRESSION: 0 failures", []),
-    "node_cards": ("翻节点卡：卡组可复现 / 结局入口必出 / 首通前不开 / 互斥 / 结局只看信物 / 升华三句 / 最晚时刻 / 面板顺序（docs/154）", "node_cards_test", r"NODE CARDS: 0 failures", []),
+    "node_cards": ("翻节点卡：卡组可复现 / 结局入口必出 / 首通前不开 / 互斥 / 结局只看信物 / 升华三句 / 最晚时刻 / 面板顺序（docs/159）", "node_cards_test", r"NODE CARDS: 0 failures", []),
     # "hunt_approach" 停用（10-25 围猎并进大群，hunt/enabled 0，docs/150）：独立围猎事件不再触发，run/hunt.gd 与测试保留，恢复围猎时一起放回
     "friendly_target": ("中立单位索敌与治疗", "friendly_target_regression", r"FRIENDLY TARGET REGRESSION: 0 failures", []),
     "ishar_p2": ("伊莎玛拉敌对二阶段", "ishar_p2_test", r"ISHAR P2 failures=0", ["--balance", "--bosstest=ishar2"]),
