@@ -14,7 +14,7 @@ secs = sys.argv[3] if len(sys.argv) > 3 else '8'
 who = ['--op=texas'] if mode == 'leader' else ['--op=skadi', '--squad=texas']
 args = [gr.find_godot(), '--audio-driver', 'Dummy', '--path', str(ROOT / 'game'), '--fixed-fps', '60', '--resolution', '960x540',
         '--position', '-3000,0', 'res://tests/texas_rework_capture.tscn', '--', '--regression', '--balance', '--seed=1'] + who + [
-        '--capture-out=' + out, '--capture-mode=' + mode, '--capture-secs=' + secs]
+        '--capture-out=' + out, '--capture-mode=' + mode, '--capture-secs=' + secs] + (['--capture-s3'] if 's3' in sys.argv[4:] else [])
 o, e, timeout = gr.run_godot(args, 600)
 print((o or '')[-300:])
 print('TIMEOUT' if timeout else 'ok')

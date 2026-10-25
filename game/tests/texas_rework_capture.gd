@@ -8,10 +8,14 @@ func _ready() -> void:
 	var secs := 8.0
 	var every := 2
 	var mode := "leader"
+	var s3 := false   # --capture-s3：全程开着剑雨滂沱（次元斩），每帧都存（拼 20 fps = 1/3 速）
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--capture-out="): out_dir = arg.get_slice("=", 1)
 		if arg.begins_with("--capture-secs="): secs = float(arg.get_slice("=", 1))
 		if arg.begins_with("--capture-mode="): mode = arg.get_slice("=", 1)
+		if arg == "--capture-s3": s3 = true
+	if s3:
+		every = 1
 	var output := ProjectSettings.globalize_path("res://../build/" + out_dir + "/texas_" + mode)
 	DirAccess.make_dir_recursive_absolute(output)
 	var g = load("res://game.tscn").instantiate()
@@ -36,6 +40,8 @@ func _ready() -> void:
 		g.spawner.spawn_enemy("bone", g.ppos + Vector2((150.0 + 40.0 * k) * (1.0 if k % 2 == 0 else -1.0), 10.0 * k))
 	for frame in steps:
 		o.sp = [-100000.0, -100000.0, -100000.0]   # 只看普攻
+		if s3:
+			o.s_t[2] = 8.0
 		g.hp = g.max_hp
 		g.move_in = Vector2.ZERO
 		spawn_t -= 1.0 / 60.0

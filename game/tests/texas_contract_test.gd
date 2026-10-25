@@ -37,7 +37,7 @@ func _process(_d: float) -> void:
 		test_dash(o)
 		test_leader_dash(o)
 		test_storm(o)
-		test_clone(o)
+		test_rift(o)
 		test_gate(o)
 	print("%d checks, %d failed" % [n, fails])
 	print("TEXAS CONTRACT failures=%d" % fails)
@@ -181,41 +181,41 @@ func test_storm(o) -> void:
 	for e in es: e.dead = true
 
 
-## 剑雨滂沱·分身（10-24 用户选）：技能期间本体不动，每 s3_every 秒向 6 个方向各放一道分身路径（残像），到头不再有冲刺
-func test_clone(o) -> void:
+## 剑雨滂沱·次元斩（10-24 用户定）：技能期间普攻换成它——出手排好 5 道斩，本体逻辑位置不动，到点依次判定、留刀痕，序列结束本体现身
+func test_rift(o) -> void:
 	var g = game
 	for e in g.enemies: e.dead = true
 	g.enemies.clear()
-	g.enemies_sys.build_grid()
 	o.elite = 0
 	o.refresh_stats()
 	o.tx.erase("dash")
-	o.tx["trails"] = []
+	o.tx.erase("rift")
+	o.tx["scars"] = []
 	o.pos = g.ppos
 	var p0: Vector2 = o.pos
 	o.s_t = [0.0, 0.0, 8.0]
-	for i in 60:
-		o.update(DT)
-	ok(o.tx.get("trails", []).is_empty(), "分身：场上没有敌人 → 一道分身都不放")
-	for k in 12:
-		var ce: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2.from_angle(k * TAU / 12.0) * 120.0)
+	var es: Array = []
+	for k in 3:
+		var ce: Dictionary = g.spawner.spawn_enemy("stone", g.ppos + Vector2(70.0 + 40.0 * k, -20.0 + 20.0 * k))
 		ce.hp = 100000.0
 		ce.max_hp = ce.hp
 		ce.spd = 0.0
+		es.append(ce)
 	g.enemies_sys.build_grid()
-	o.s_t = [0.0, 0.0, 8.0]
-	for i in 60:
+	ok(not o._replace_trig(1).is_empty() and str(o._replace_trig(1).do[0].get("_tag", "")) == "verb.rift_slash", "次元斩：S3 期间每次普攻 replace 成 verb.rift_slash")
+	ok(o._replace_trig(4).do[0].get("_tag", "") == "verb.rift_slash", "次元斩：S3 期间第 4 次也是次元斩（骤雨让位）")
+	o._exec_list(o.B.trait[8].do)
+	ok(o.tx.has("rift") and int(o.tx.rift.n) == 5, "次元斩：出手排了 5 刀")
+	for i in 200:
 		o.update(DT)
-	var trails: Array = o.tx.get("trails", [])
-	ok(trails.size() >= 6, "分身：技能期间放出分身残像（%d 道，一次 6 个方向）" % trails.size())
-	ok(o.pos.distance_to(p0) < 1.0 and not o.tx.has("dash"), "分身：本体不动、没有冲刺")
-	var dirs := {}
-	for tr in trails:
-		dirs[snappedf((tr.to - tr.from).angle(), 0.1)] = true
-	ok(dirs.size() >= 6, "分身：方向不重合（%d 个不同方向）" % dirs.size())
+	var hurt: int = es.filter(func(e): return e.hp < e.max_hp).size()
+	ok(hurt >= 1, "次元斩：路径上的敌人受伤（%d / 3 个）" % hurt)
+	ok(o.pos.distance_to(p0) < 1.0, "次元斩：本体逻辑位置不动")
+	ok(not o.tx.has("rift"), "次元斩：序列结束，本体现身")
+	ok(o.tx.get("scars", []).size() == 5, "次元斩：3 名敌人轮着斩满 5 刀、都留刀痕（%d 道）" % o.tx.get("scars", []).size())
 	o.s_t = [0.0, 0.0, 0.0]
-	o.tx["trails"] = []
-	for e in g.enemies: e.dead = true
+	o.tx["scars"] = []
+	for e in es: e.dead = true
 
 
 ## 自动技能需要敌人（10-23）：剑雨（S1）技力满了，没有敌人不放、技力保留；有敌人才放
