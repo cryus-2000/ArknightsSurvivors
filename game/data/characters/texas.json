@@ -64,17 +64,10 @@
   "slash_half": 1.2,
   "slash_kb": 30,
   "slash_mult": 1.3,
-  "step_len": 60,
-  "step_w": 44,
-  "step_t": 0.14,
-  "step_cd": 2.0,
-  "step_min_d": 100,
-  "step_aim": 260,
-  "step_mult": 0.5,
   "s3_need": 230,
   "talent_atk_sp": 0.15,
   "slash_wide": 0.15,
-  "_rework": "10-24 用户拍板方案 A「阻挡」（docs/129 §11.4）：队长普攻原地每 cd 秒一刀「拔刀」（宽扇形 slash_r / slash_half，×slash_mult），命中里离她最近的 block_n 名被阻挡 block_dur 秒（精英减半，Boss 免疫）；每第 storm_every 次出手改为「骤雨」（原地 storm_gap×3 秒内 360° 连斩 4 下，半径 storm_r，每下 ×storm_mult，没有敌人照常拔刀）；队友另有每 step_cd 秒一次 ≤ step_len 的短突进；删除天赋的定时自动冲刺；剑雨 / 剑雨滂沱自动释放需要射程内有敌人",
+  "_rework": "10-24 用户拍板方案 A「阻挡」（docs/129 §11.4）：队长普攻原地每 cd 秒一刀「拔刀」（宽扇形 slash_r / slash_half，×slash_mult），命中里离她最近的 block_n 名被阻挡 block_dur 秒（精英减半，Boss 免疫）；每第 storm_every 次出手改为「骤雨」（原地 storm_gap×3 秒内 360° 连斩 4 下，半径 storm_r，每下 ×storm_mult，没有敌人照常拔刀）；10-25 用户「平时不自动冲锋」：队友短突进已删（队友只在队长冲刺时跟随冲刺）；删除天赋的定时自动冲刺；剑雨 / 剑雨滂沱自动释放需要射程内有敌人",
   "dash_mult": 1.0,
   "block_n": 2,
   "block_dur": 0.4,
@@ -342,7 +335,7 @@
  "attack": {
   "mode": "auto",
   "name": "拔刀",
-  "desc": "原地一刀「拔刀」：每 {$cd} 秒朝最近敌人挥出宽扇形斩（半径 {$slash_r}，物理，{$slash_mult*100}%），命中里离她最近的 {$block_n} 名敌人被「阻挡」，原地定住 {$block_dur} 秒（精英减半，Boss 免疫）；每第 {$storm_every} 次出手改为「骤雨」：{$storm_gap*3} 秒内原地 360° 连斩 4 下（半径 {$storm_r}，每下 {$storm_mult*100}%），没有敌人时照常拔刀；每次出手为全队技力 +{$hit_sp} 秒。当队友时，每 {$step_cd} 秒还会朝 {$step_min_d}–{$step_aim} 内的敌人突进一小步（≤ {$step_len}）"
+  "desc": "原地一刀「拔刀」：每 {$cd} 秒朝最近敌人挥出宽扇形斩（半径 {$slash_r}，物理，{$slash_mult*100}%），命中里离她最近的 {$block_n} 名敌人被「阻挡」，原地定住 {$block_dur} 秒（精英减半，Boss 免疫）；每第 {$storm_every} 次出手改为「骤雨」：{$storm_gap*3} 秒内原地 360° 连斩 4 下（半径 {$storm_r}，每下 {$storm_mult*100}%），没有敌人时照常拔刀；每次出手为全队技力 +{$hit_sp} 秒"
  },
  "skills": [
   {
@@ -789,32 +782,6 @@
      {
       "verb": "sp_secs",
       "seconds": "$talent_atk_sp"
-     }
-    ]
-   },
-   {
-    "trig": "tick",
-    "every": "$step_cd",
-    "cond": "!is_leader",
-    "_doc": "队友短突进（队长时不位移）：敌人在 step_min_d 以外、step_aim 以内才上前一步，≤ step_len、间隔 ≥ step_cd",
-    "do": [
-     {
-      "shape": "dash_line",
-      "aim": "nearest",
-      "need_target": true,
-      "aim_r": "$step_aim",
-      "min_d": "$step_min_d",
-      "r": "$step_len",
-      "w": "$step_w",
-      "t": "$step_t",
-      "hold": 0.0,
-      "mult": "$step_mult",
-      "src": "突进",
-      "tags": [
-       "basic",
-       "pierce"
-      ],
-      "strip": "fx_texas_dash"
      }
     ]
    },

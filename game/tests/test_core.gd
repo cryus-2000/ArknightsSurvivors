@@ -598,20 +598,20 @@ func test_blocks_texas() -> void:
 	var tx: Dictionary = Ch.load_def("texas")
 	ok(tx.has("blocks") and Ch.validate_operator("texas", tx), "德克萨斯 texas.json 通过积木校验")
 	var bads := {
-		"冲刺 aim 写错": func(d): d.blocks.trait[6].do[0]["aim"] = "random",   # 10-24 方案 A 后 trait: 0 出手回技力 / 1-4 骤雨 / 5 精一回技力 / 6 队友突进 / 7 突进多命中 / 8 剑雨滂沱 / 9 剑雨结束 / 10 冲刺斩回技力
-		"突进 need_target 写成字符串": func(d): d.blocks.trait[6].do[0]["need_target"] = "yes",
+		"冲刺 aim 写错": func(d): d.blocks.response[1].do[0]["aim"] = "random",   # 10-25 队友突进删后 trait: 0 出手回技力 / 1-4 骤雨 / 5 精一回技力 / 6 突进多命中 / 7 剑雨滂沱 tick / 8 on_skill_end；冲刺积木校验改用响应块 response[1]雨滂沱 / 9 剑雨结束 / 10 冲刺斩回技力
+		"突进 need_target 写成字符串": func(d): d.blocks.response[1].do[0]["need_target"] = "yes",
 		"骤雨 no_combo 写成字符串": func(d): d.blocks.trait[1]["no_combo"] = "yes",
 		"no_combo 配了非 replace 的 every_n": func(d): d.blocks.trait[2]["no_combo"] = true,
-		"冲刺缺宽度": func(d): d.blocks.trait[6].do[0].erase("w"),
+		"冲刺缺宽度": func(d): d.blocks.response[1].do[0].erase("w"),
 		"自动技能 need_enemy 超范围": func(d): d.blocks.skills[0]["need_enemy"] = 0.5,
 		"主控冲刺冷却不再是可写的主控属性（10-12 自动冲刺改版）": func(d): d.blocks.skills[1].do.append({"verb": "buff_leader", "stat": "dash_cd", "op": "mult", "value": 0.8}),
-		"突进的间隔写错": func(d): d.blocks.trait[6]["every"] = 0.01,
-		"突进不是瞬时冲刺放进常驻列表": func(d): d.blocks.talent.append({"trig": "passive", "do": [d.blocks.trait[6].do[0].duplicate(true)]}),
+		"突进的间隔写错": func(d): d.blocks.trait[7]["every"] = 0.01,
+		"突进不是瞬时冲刺放进常驻列表": func(d): d.blocks.talent.append({"trig": "passive", "do": [d.blocks.response[1].do[0].duplicate(true)]}),
 		"瞬时冲刺放进常驻节点": func(d): d.blocks.progression["wide"] = {"shape": "dash_line", "r": 100, "w": 40, "src": "疾行斩"},
 		"常驻 dash_mod 放进触发器": func(d): d.blocks.trait[0].do.append({"verb": "dash_mod", "len_add": 0.1}),
 		"触发积木放进技能 do": func(d): d.blocks.skills[0].do.append({"trig": "on_dash_end", "do": []}),
-		"on_skill_end 带 delay": func(d): d.blocks.trait[9]["delay"] = 0.2,
-		"on_dash_end 的 src 没登记": func(d): d.blocks.trait[7]["src"] = "没登记",
+		"on_skill_end 带 delay": func(d): d.blocks.trait[8]["delay"] = 0.2,
+		"on_dash_end 的 src 没登记": func(d): d.blocks.trait[6]["src"] = "没登记",
 		"残像伤害超上限": func(d): d.blocks.progression.elite2.do[0]["mult"] = 50,
 		"fx_rain 缺帧条": func(d): d.blocks.skills[0].do[2].erase("strip"),
 		"fx_rain 既没 density 也没 n": func(d): d.blocks.skills[0].do[2].erase("density"),
@@ -619,7 +619,7 @@ func test_blocks_texas() -> void:
 		"fx_rain 冲击帧条不是 fx_*": func(d): d.blocks.skills[0].do[2]["hit"] = "texas_hit",
 		"fx_rain 层写错": func(d): d.blocks.skills[0].do[2]["layer"] = "floor",
 		"fx_rain 下落时间超范围": func(d): d.blocks.skills[0].do[2]["fall_t"] = 3.0,
-		"fx_rain 终结参数名写错": func(d): d.blocks.trait[9].do[1].finale["flash"] = 2,
+		"fx_rain 终结参数名写错": func(d): d.blocks.trait[8].do[1].finale["flash"] = 2,
 		"fx_rain 放进常驻节点": func(d): d.blocks.progression["wide"] = d.blocks.skills[0].do[2].duplicate(true),
 	}
 	for why in bads:
@@ -628,9 +628,13 @@ func test_blocks_texas() -> void:
 		ok(not Ch.validate_operator("texas", d2), "德克萨斯积木校验应拒绝：" + why)
 	# 编译：$ 表达式解析成数字、每块编号
 	var B: Dictionary = OB.compile(tx)
-	# 10-23 重设计（docs/129）：队长普攻原地两连斩；队友另有短突进（trig.tick，!is_leader）；天赋定时自动冲刺已删
+	# 10-23 重设计（docs/129）：队长普攻原地两连斩；队友短突进 10-25 已删；天赋定时自动冲刺已删
 	ok(B.talent.size() == 2 and str(B.talent[0].get("_tag", "")) == "trig.on_dash_end" and str(B.talent[0].src) == "战术快递", "天赋只剩 on_dash_end 回技力（定时自动冲刺的两块 tick 已删）")
-	ok(str(B.trait[6].get("_tag", "")) == "trig.tick" and absf(float(B.trait[6].every) - 2.0) < 0.0001 and str(B.trait[6].do[0].aim) == "nearest" and str(B.trait[6].do[0].src) == "突进" and float(B.trait[6].do[0].r) == 60.0 and bool(B.trait[6].do[0].need_target), "队友突进：tick 每 2.0 秒、nearest、≤ 60、need_target")
+	var has_mate_step := false
+	for tb in B.trait:
+		if str(tb.get("_tag", "")) == "trig.tick" and tb.has("do") and not tb.do.is_empty() and str(tb.do[0].get("src", "")) == "突进":
+			has_mate_step = true
+	ok(not has_mate_step, "队友短突进已删（10-25 用户：平时不自动冲锋，队友只在队长冲刺时跟随）：特性里没有 src 突进的 tick 块")
 	ok(str(B.trait[1].get("_tag", "")) == "trig.every_n" and int(B.trait[1].n) == 4 and bool(B.trait[1].replace) and bool(B.trait[1].no_combo) and str(B.trait[1].do[0].get("_tag", "")) == "shape.circle" and float(B.trait[1].do[0].r) == 100.0 and absf(float(B.trait[1].do[0].mult) - 0.55) < 0.0001, "骤雨第一下：每第 4 次出手 replace + no_combo，360° 圆半径 100、每下 55%")
 	ok(absf(float(B.trait[2].delay) - 0.2) < 0.0001 and absf(float(B.trait[3].delay) - 0.4) < 0.0001 and absf(float(B.trait[4].delay) - 0.6) < 0.0001 and str(B.trait[2].cond) != "" and not B.trait[2].get("replace", false), "骤雨第二 / 三 / 四下：非 replace 的 every_n、delay 0.2 / 0.4 / 0.6")
 	ok(float(B.skills[0].need_enemy) == 130.0 and float(B.skills[2].need_enemy) == 230.0 and not B.skills[1].has("need_enemy"), "剑雨 / 剑雨滂沱自动释放需要敌人（130 / 230），冲锋号令·γ型（永久增益）不要")
