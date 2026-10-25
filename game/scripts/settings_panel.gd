@@ -17,7 +17,7 @@ const ROWS := [
 	{"cn": "音效", "en": "SFX", "key": "sfx", "type": "vol"},
 	{"cn": "语音", "en": "VOICE", "key": "voice", "type": "vol"},
 	{"cn": "画质", "en": "QUALITY", "key": "quality", "type": "quality"},
-	{"cn": "最高帧率", "en": "MAX FPS", "key": "max_fps", "type": "fps"},
+	{"cn": "帧率上限", "en": "FPS CAP", "key": "max_fps", "type": "fps"},
 	{"cn": "全屏", "en": "FULLSCREEN", "key": "fullscreen", "type": "bool"},
 	{"cn": "窗口分辨率", "en": "RESOLUTION", "key": "res_index", "type": "res"},
 	{"cn": "伤害数字", "en": "DAMAGE NUMBERS", "key": "dmg_numbers", "type": "bool"},
@@ -326,9 +326,9 @@ func _tap(mp: Vector2, button: int) -> void:
 			if button == MOUSE_BUTTON_LEFT:
 				if ROWS[i].type == "res" and mp.x >= control_x and mp.x <= control_x + 184.0:
 					_apply_res()
-				elif ROWS[i].type == "fps" and mp.x >= control_x + 76.0:
-					# 两格（60 / 30，各 56 宽、间距 4，同画质格）：点哪格选哪档
-					var fv: int = Cfg.MAX_FPS_OPTS[clampi(int((mp.x - (control_x + 76.0)) / 60.0), 0, 1)]
+				elif ROWS[i].type == "fps" and mp.x >= control_x + 16.0:
+					# 三格（自动 / 60 / 30，各 56 宽、间距 4，同画质格）：点哪格选哪档
+					var fv: int = Cfg.MAX_FPS_OPTS[clampi(int((mp.x - (control_x + 16.0)) / 60.0), 0, 2)]
 					if fv != Cfg.max_fps:
 						Cfg.max_fps = fv
 						Cfg.apply()
@@ -356,7 +356,8 @@ func _adjust(i: int, dir: int) -> void:
 			var qm: Array = Cfg.QUALITY_MODES
 			Cfg.set_quality_mode(qm[posmod(qm.find(Cfg.quality_mode) + dir, qm.size())])
 		"fps":
-			Cfg.max_fps = 30 if Cfg.max_fps == 60 else 60
+			var fo: Array = Cfg.MAX_FPS_OPTS
+			Cfg.max_fps = fo[posmod(fo.find(Cfg.max_fps) + dir, fo.size())]
 		"bright":
 			Cfg.brightness = clampf(snappedf(Cfg.brightness + dir * 0.05, 0.05), 0.8, 1.4)
 		"uisize":
@@ -583,13 +584,15 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 			if Cfg.quality_mode == "auto":
 				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "已按本机选：%s" % Cfg.QUALITY_NAME.get(Cfg.quality, "高"), 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 186)
 		"fps":
-			# 两格 60 / 30（同画质格的样式，右对齐到数值块末端）
-			for fi in 2:
+			# 三格 自动 / 60 / 30（同画质格的样式，右对齐到数值块末端）
+			for fi in 3:
 				var fv: int = Cfg.MAX_FPS_OPTS[fi]
 				var active: bool = fv == Cfg.max_fps
-				var fr := Rect2(vx + 76 + fi * 60, rr.position.y + ty0 - 25, 56, 36)
+				var fr := Rect2(vx + 16 + fi * 60, rr.position.y + ty0 - 25, 56, 36)
 				ci.draw_rect(fr, UI.CYAN if active else Color("1b252e"))
-				UI.text(ci, font, fr.position + Vector2(0, 25), str(fv), fs_v, Color("10151b") if active else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, fr.size.x)
+				UI.text(ci, font, fr.position + Vector2(0, 25), "自动" if fv == 0 else str(fv), fs_v - (2 if fv == 0 else 0), Color("10151b") if active else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, fr.size.x)
+			if Cfg.max_fps == 0 and Cfg.fps_lock30:
+				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "已按本机锁 30", 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 246)
 		"uisize", "zoom":
 			var pv: int = Cfg.ui_size_pct if row.type == "uisize" else int(round(Cfg.cam_zoom() * 100.0))
 			var dflt: bool = (Cfg.ui_size_pct == 100) if row.type == "uisize" else (Cfg.cam_zoom_pct < 0)

@@ -178,14 +178,22 @@ def _cdp_setup(port, url, throttle, mobile, throttle_late=False):
                                                "platform": "Linux armv8l"})
     cmd("Page.navigate", {"url": url})
     s.cmd = cmd
+    s.recv_raw = recv
+    s.send_raw = send
     return s   # 连接留着：断开后节流会失效
 
 
-def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False):
+def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, raf=False, rec="", rec_secs=0.0):
     d = export(ref)
     log_p = os.path.join(d, "out_%s.txt" % tag)
     open(log_p, "w").close()
     done = threading.Event()
+
+    if raf:
+        # 录片 / 看帧率上限：去掉 RAF_JS 里换 MessageChannel 的那两句，控制台回传照留（帧间隔受显示器刷新约束，同玩家）
+        html = open(os.path.join(d, "index.html"), encoding="utf-8").read()
+        html = re.sub(r"window\.requestAnimationFrame=function\(cb\)\{.*?\};window\.cancelAnimationFrame=function\(\)\{\};", "", html, count=1, flags=re.S)
+        open(os.path.join(d, "index_raf.html"), "w", encoding="utf-8").write(html)
 
     class H(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *a, **k):
@@ -208,11 +216,11 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False):
         port = s.getsockname()[1]
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", port), H)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
-    url = "http://127.0.0.1:%d/index.html?%s" % (port, urllib.parse.urlencode([("a", x) for x in game_args]))
+    url = "http://127.0.0.1:%d/%s?%s" % (port, "index_raf.html" if raf else "index.html", urllib.parse.urlencode([("a", x) for x in game_args]))
     ud = os.path.join(BASE, "_edge_" + tag)
     shutil.rmtree(ud, ignore_errors=True)
     px, py = gr._TEST_POS if gr._SEC else (-3000, 0)
-    emu = bool(throttle) or mobile
+    emu = bool(throttle) or mobile or bool(rec)
     dbg = 0
     if emu:
         with socket.socket() as s2:
@@ -223,8 +231,12 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False):
                           "--no-first-run", "--no-default-browser-check", "--disable-background-timer-throttling", "--disable-renderer-backgrounding",
                           "--disable-backgrounding-occluded-windows", "--disable-features=CalculateNativeWinOcclusion", "--mute-audio"]
                          + (["--remote-debugging-port=%d" % dbg] if emu else []) + (["--force_low_power_gpu"] if lowgpu else []))
-    late = bool(throttle) and "--rtfrom" in " ".join(game_args)   # 后期场景：快进段不节流，看到 PF RTFROM 再开
+    late = bool(throttle) and "--rtfrom" in " ".join(game_args) and not rec   # 后期场景：快进段不节流，看到 PF RTFROM 再开
     cdp = _cdp_setup(dbg, url, throttle, mobile, late) if emu else None
+    rec_th = None
+    if rec and cdp is not None:
+        rec_th = threading.Thread(target=_screencast, args=(cdp, rec, rec_secs), daemon=True)
+        rec_th.start()
     t0 = time.time()
     while not done.is_set() and time.time() - t0 < timeout:
         done.wait(2)
@@ -233,6 +245,9 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False):
             print("[网页] 快进结束，开 CPU 节流 %gx" % throttle)
             late = False
     time.sleep(2)
+    if rec_th is not None:
+        rec_th.join(timeout=5)
+        _rec_mp4(rec)
     if cdp is not None:
         cdp.close()
     subprocess.run(["taskkill", "/PID", str(p.pid), "/T", "/F"], capture_output=True)
@@ -244,6 +259,60 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False):
     if perf:
         summarize(json.loads(perf[-1][5:]))
     return log_p
+
+
+def _screencast(cdp, out_dir, secs):
+    """录屏（DevTools Page.startScreencast）：每帧存 JPEG 与时间戳，回 ack 才给下一帧；secs > 0 时录够秒数就停（从第一帧算）"""
+    import base64
+    os.makedirs(out_dir, exist_ok=True)
+    for f in os.listdir(out_dir):
+        os.remove(os.path.join(out_dir, f))
+    cdp.cmd("Page.startScreencast", {"format": "jpeg", "quality": 80, "everyNthFrame": 1})
+    meta = []
+    t0 = None
+    while True:
+        try:
+            m = json.loads(cdp.recv_raw())
+        except Exception:
+            break
+        if m.get("method") != "Page.screencastFrame":
+            continue
+        pr = m["params"]
+        ts = float(pr["metadata"]["timestamp"])
+        t0 = ts if t0 is None else t0
+        n = len(meta)
+        open(os.path.join(out_dir, "f%05d.jpg" % n), "wb").write(base64.b64decode(pr["data"]))
+        meta.append(ts - t0)
+        cdp.send_raw({"id": 900000 + n, "method": "Page.screencastFrameAck", "params": {"sessionId": pr["sessionId"]}})
+        if secs > 0 and ts - t0 >= secs:
+            break
+    json.dump(meta, open(os.path.join(out_dir, "times.json"), "w"))
+
+
+def _rec_mp4(out_dir):
+    """按真实时间戳把 JPEG 帧拼成 mp4（ffmpeg concat，每帧时长 = 到下一帧的间隔；ffmpeg 用 imageio_ffmpeg 自带的）"""
+    try:
+        import imageio_ffmpeg
+        ff = imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        print("[录屏] 没有 imageio_ffmpeg，只留了 JPEG 帧：", out_dir)
+        return
+    tp = os.path.join(out_dir, "times.json")
+    if not os.path.exists(tp):
+        return
+    ts = json.load(open(tp))
+    if len(ts) < 2:
+        return
+    lst = os.path.join(out_dir, "list.txt")
+    with open(lst, "w", encoding="utf-8") as fh:
+        for i in range(len(ts)):
+            dur = (ts[i + 1] - ts[i]) if i + 1 < len(ts) else 0.05
+            fh.write("file 'f%05d.jpg'\nduration %.4f\n" % (i, max(0.001, dur)))
+        fh.write("file 'f%05d.jpg'\n" % (len(ts) - 1))
+    out = out_dir.rstrip("/\\") + ".mp4"
+    subprocess.run([ff, "-y", "-f", "concat", "-safe", "0", "-i", lst, "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2,fps=30", "-pix_fmt", "yuv420p", "-c:v", "libx264", "-crf", "23", out],
+                   capture_output=True, cwd=out_dir)
+    print("[录屏] %s（%d 帧，%.1f 秒）" % (out, len(ts), ts[-1]))
 
 
 def summarize(pf):
@@ -268,11 +337,14 @@ def main():
     ap.add_argument("--throttle", type=float, default=0, help="低配模拟：CPU 节流倍数（DevTools，4 / 6）")
     ap.add_argument("--mobile", action="store_true", help="低配模拟：手机横屏视口 844×390、3 倍像素、触屏、安卓 UA")
     ap.add_argument("--lowgpu", action="store_true", help="低配模拟：Edge 用核显（--force_low_power_gpu）")
+    ap.add_argument("--raf", action="store_true", help="用浏览器真的 requestAnimationFrame（不换 MessageChannel）：看帧率上限 / 录片时用")
+    ap.add_argument("--rec", default="", help="录屏：JPEG 帧存这个目录，结束后拼成 <目录>.mp4")
+    ap.add_argument("--rec-secs", type=float, default=0.0, help="录屏秒数（0 = 录到结束）")
     a = ap.parse_args(argv)
     if a.cmd == "export":
         print(export(a.ref))
     else:
-        run(a.ref, a.tag, game_args, a.timeout, a.throttle, a.mobile, a.lowgpu)
+        run(a.ref, a.tag, game_args, a.timeout, a.throttle, a.mobile, a.lowgpu, a.raf, a.rec, a.rec_secs)
 
 
 if __name__ == "__main__":

@@ -1022,6 +1022,8 @@ func _ready() -> void:
 		intro_screen.start_opening.call_deferred()
 	A.mark("ready_end")
 	aq_on = demo_op == "" and ((mode == Mode.PLAY and Cfg.quality_mode == "auto" and Cfg.dev_args().is_empty()) or Cfg.dev_args().has("--autoq"))
+	if Cfg.dev_args().has("--fpsosd") and demo_op == "":
+		_fps_osd_add()
 	if aq_on:
 		_apply_auto_level()   # 同一次启动里前一局已经降过的，这局开局就沿用
 	if mode == Mode.PLAY and demo_op == "" and not trial.active:
@@ -1207,6 +1209,9 @@ func _auto_quality(delta: float) -> void:
 	if rd > 0.25 or rd <= 0.0:
 		aq_win = Vector3.ZERO   # 切窗口 / 读盘那种单次长停顿不算掉帧
 		return
+	if OS.has_feature("web") and Cfg.max_fps == 0 and not Cfg.fps_probed:
+		_fps_probe(rd)   # 网页帧率自动：先定 60 还是 30，定完再按那个预算判降档
+		return
 	aq_win.x += rd
 	aq_win.y += 1.0
 	if aq_win.x < AQ_WIN:
@@ -1228,6 +1233,45 @@ func _auto_quality(delta: float) -> void:
 	if Cfg.auto_level == 1:
 		quality_note = "帧率偏低，已自动精简特效（可在设置里改画质）"
 		quality_note_t = 5.0
+
+
+## 网页帧率自动（10-25 用户定）：先按 60 帧跑，开局 AQ_FPS_T 秒的平均帧率 ≥ 50 就保持 60，否则本次启动锁 30（Engine.max_fps = 30）；
+## 只测一次，不在两者之间来回跳；锁 30 之后降档按 30 帧预算判（_frame_budget_ms 读 Engine.max_fps）。桌面不锁。逻辑按 PlayClock 固定步长，与渲染帧率无关
+const AQ_FPS_T := 4.0
+var _fps_win := Vector2.ZERO
+
+func _fps_probe(rd: float) -> void:
+	_fps_win += Vector2(rd, 1.0)
+	if _fps_win.x < AQ_FPS_T:
+		return
+	var avg_ms: float = _fps_win.x / _fps_win.y * 1000.0
+	Cfg.fps_probed = true
+	if avg_ms > 1000.0 / 50.0:
+		Cfg.fps_lock30 = true
+		Engine.max_fps = Cfg.effective_max_fps()
+	if not Cfg.dev_args().is_empty():
+		print("AUTOFPS avg=%.1fms lock30=%s t=%.1f" % [avg_ms, Cfg.fps_lock30, t])
+
+
+## --fpsosd（仅测试）：左上角显示实际帧率 / 帧率上限 / 自动降档级（录网页锁 30 的证明片用；独立一层，不走 HUD 缓存）
+func _fps_osd_add() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 120
+	add_child(layer)
+	var lb := Label.new()
+	lb.position = Vector2(8, 6)
+	lb.add_theme_font_size_override("font_size", 18)
+	lb.add_theme_color_override("font_color", Color(0.6, 1.0, 0.95))
+	lb.add_theme_color_override("font_outline_color", Color.BLACK)
+	lb.add_theme_constant_override("outline_size", 4)
+	layer.add_child(lb)
+	var tm := Timer.new()
+	tm.wait_time = 0.25
+	tm.autostart = true
+	tm.timeout.connect(func(): lb.text = "FPS %.0f   上限 %d%s   降档 %d   %d:%02d" % [Engine.get_frames_per_second(), Engine.max_fps,
+		"（自动锁 30）" if Cfg.fps_lock30 else ("（自动 · 测量中）" if Cfg.max_fps == 0 and not Cfg.fps_probed and OS.has_feature("web") else ""),
+		Cfg.auto_level, int(t) / 60, int(t) % 60])
+	layer.add_child(tm)
 
 
 ## 按 Cfg.auto_level 关层（开局也调一次：同一次启动里前一局已经降过的，这局直接沿用）
