@@ -513,6 +513,7 @@ func step() -> void:
 	g.at_frames += 1
 	if g.rt_from >= 0.0 and not g.realtime and g.t >= g.rt_from:
 		g.realtime = true   # --rtfrom：快进结束，之后按真实步长（--fixed-fps 60 时每帧 1/60 秒）
+		print("PF RTFROM t=%.1f" % g.t)   # 网页低配测量（tools/perf_web.py --throttle）：看到这行才开 CPU 节流，快进段不节流
 	if vfxab < 0:
 		vfxab = 0
 		for a in Cfg.dev_args():
@@ -563,7 +564,9 @@ func step() -> void:
 		g.optical.grains.off = not g.optical.grains.off   # --grainab=N：同局轮换刀光第四版
 	if stackab > 0 and g.at_frames % stackab == 0 and g.optical != null:
 		stack_i = (stack_i + 1) % stack_masks.size()   # --stackab：换下一个逐层关闭掩码
-		g.optical.ab_mask = int(stack_masks[stack_i])
+		g.optical.ab_mask = int(stack_masks[stack_i]) & 127
+		if stack_masks.any(func(m): return int(m) & 128):
+			Cfg.set_render_scale((int(stack_masks[stack_i]) & 128) != 0)   # 位 128：分辨率缩放（docs/50 §28 自动档第 3 级）
 		stack_sw = g.at_frames
 	if matab > 0 and g.at_frames % matab == 0 and g.optical != null and g.optical.grains != null:
 		g.optical.grains.mat_off = not g.optical.grains.mat_off   # --matab=N：同局轮换材质颗粒
@@ -1498,7 +1501,7 @@ func _perf_sample() -> void:
 		if grainab > 0:
 			w += "/g0" if g.optical.grains.off else "/g1"
 		if stackab > 0:
-			w += "/sx" if g.at_frames - stack_sw <= 3 else "/s%d" % g.optical.ab_mask   # 采样在轮换之前：记的是上一帧所用掩码
+			w += "/sx" if g.at_frames - stack_sw <= 3 else "/s%d" % (g.optical.ab_mask | (128 if Cfg.render_scaled else 0))   # 采样在轮换之前：记的是上一帧所用掩码
 		if tierab > 0:
 			w += "/t0" if g.vfx.tier_off else "/t1"   # --tierab：上一帧的命中三档开关
 		if fx1ab > 0:

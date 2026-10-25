@@ -37,7 +37,8 @@ var brightness := 1.1    # 画面亮度 0.8 ~ 1.4（缺省值随观感预设 ren
 var pad_rumble := true   # 手柄震动
 var quality := ""        # 生效中的画质档 "high" / "mid" / "low"（由 quality_mode 决定）：中 = 关法线光照 / 辉光；低 = 四项后期全关（再关景深 / 水下滤镜）+ 粒子减半、真人局同屏敌人上限 300、演出简化
 var quality_mode := "auto"   # 玩家选的画质档：auto / low / mid / high（10-22 用户：设置精简 + 画质自动档，Codex 界面单 §4）
-var quality_probed := false  # 自动档：本次启动的首局已测过前 2 秒帧时（每次启动只测一次）
+var quality_probed := false  # （旧）自动档首局前 2 秒测帧时；10-25 起改逐级降（auto_level），保留键兼容
+var auto_level := 0          # 画质自动档逐级降到第几级（本次启动有效，不存档；game._auto_quality，docs/50 §28）
 const QUALITY_NAME := {"low": "低", "mid": "中", "high": "高"}
 const QUALITY_MODES := ["auto", "low", "mid", "high"]
 ## 界面大小（设置 → 画面，用户 10-13「手机横屏太拥挤」）：在设备缺省的界面放大倍数（ui_scale）上再乘 ui_size_pct / 100，80–120，步长 5
@@ -599,18 +600,39 @@ func set_quality(q: String) -> void:
 	water_filter = quality != "low"
 
 
+## 分辨率缩放（画质自动档第 3 级，docs/50 §28）：高像素密度屏（手机网页按设备像素画，2400×1080 级）改成先按逻辑分辨率（约 1280×720）
+## 画好整屏再放大，全屏着色器 / 后期的像素量降到约四分之一；字会软一点。窗口像素和逻辑分辨率差不多时（普通桌面）没有收益，自动档不用这一级
+var render_scaled := false
+
+func set_render_scale(on: bool) -> void:
+	if on == render_scaled:
+		return
+	render_scaled = on
+	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT if on else Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+
+
+## 窗口实际像素比逻辑分辨率（720 高）多出三成以上：分辨率缩放才有用
+func hidpi_render() -> bool:
+	return get_tree().root.size.y > 720.0 * 1.3
+
+
 func fx_density() -> float:
 	return 0.5 if quality == "low" else 1.0
 
 
-## 自动档的检测（每次启动）：触屏 / 网页移动端 / 移动 GPU 与软件渲染 → 低；桌面核显 → 中；网页其余 → 中（封顶）；桌面其余 → 高
+## 自动档的检测（每次启动）：软件渲染 → 低；触屏 / 网页移动端 / 移动 GPU / 桌面核显 → 中；网页其余 → 中（封顶）；桌面其余 → 高。
+## 10-25 起手机也从「中」起（用户「网页不默认低画质」「高配机观感不能变差，只在测出掉帧时才降」）：掉帧时由对局里的逐级降（game._auto_quality）往下收，
+## 原来手机直接「低」（10-22）
 func _guess_quality() -> String:
-	if DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios"):
-		return "low"
 	var gpu := RenderingServer.get_video_adapter_name().to_lower()
-	for k in ["mali", "adreno", "powervr", "llvmpipe", "swiftshader", "microsoft basic"]:
+	for k in ["llvmpipe", "swiftshader", "microsoft basic"]:
 		if gpu.contains(k):
 			return "low"
+	if DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios"):
+		return "mid"
+	for k in ["mali", "adreno", "powervr"]:
+		if gpu.contains(k):
+			return "mid"
 	for k in ["intel(r) uhd", "intel(r) hd", "intel(r) iris"]:
 		if gpu.contains(k):
 			return "mid"
@@ -622,6 +644,7 @@ func _guess_quality() -> String:
 ## 设置里选档：自动 = 立刻按本机检测；手选 = 用那一档（之后不再自动降）
 func set_quality_mode(m: String) -> void:
 	quality_mode = m if QUALITY_MODES.has(m) else "auto"
+	auto_level = 0   # 换档 / 重选自动：逐级降从头算
 	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)
 	quality_probed = quality_mode != "auto"
 
