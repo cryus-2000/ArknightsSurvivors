@@ -1,6 +1,11 @@
-"""认知塑造·根系布局（10-25 用户：按原作水月「认知塑造」节点树 + 深蓝之树树根意象，弧线内收、不对称）。
-结构：树干从顶栏下垂到树冠 → 分出几条主根（不挂节点）→ 每条线从主根的不同位置分叉成一条细根，节点按弧长在 [t0, t1] 等分。
-所有曲线都是三次贝塞尔（世界坐标 = 设计单位）。写出 game/data/meta_roots.json（游戏读），并出一张几何预览（标出重叠）。
+"""认知塑造·根系布局（几何版，10-25 用户定方向一「深蓝之树」并要求「稍微有一点几何规律，原作也是」）。
+规则：
+- 同阶节点在同一条水平线上（阶距一致）：Ⅰ–Ⅴ 落在 ROWS；
+- 每条线一条竖向车道，同组车道等距；
+- 根的走向只用直线段 + 45° / 90° 转折，转角都倒成同一半径的圆角；分叉一律 45° 斜下再转竖直，最外侧那条用 90° 圆角收边；
+- 根尖越过末节往下一小段，再用四分之一圆弧往中线收（内收）；
+- 左右主根高度错开、左短右长（左下留给详情卡），整体仍是有机的根系。
+写出 game/data/meta_roots.json（折线已加密，游戏直接画），并出几何预览（标出重叠）。
 运行：D:/Anaconda/python.exe -X utf8 -B art/incoming/meta_ui_1025/layout.py
 """
 from pathlib import Path
@@ -27,145 +32,156 @@ def chain(first):
 CHAINS = {c.rstrip('0123456789'): chain(c) for c in ORDER}
 KEY = {k for k, v in NODES.items() if any(('rule' in e) or ('start_relic' in e) for e in v.get('effects', []))}
 
-# 方向一「深蓝之树」：一屏 1280×720。左短右长（左下留给详情卡），调度是中间主根
-SCENE = {
-    'world': [1280, 720],
-    'crown': [556, 170],
-    'keep': [[0, 0, 1280, 64], [0, 420, 350, 720], [960, 64, 1280, 116], [0, 698, 1280, 720]],
-    # 主根：[P0, P1, P2, P3, 起点宽, 末端宽]
-    'mains': {
-        'L': [[552, 176], [470, 190], [300, 186], [176, 240], 9, 4],     # 探索
-        'C': [[556, 182], [556, 222], [556, 258], [558, 288], 10, 7],    # 成长（领导欲半路分出，调度接着往下）
-        'R1': [[562, 178], [628, 196], [724, 240], [772, 316], 9, 4],    # 战斗
-        'R2': [[566, 172], [700, 140], [900, 150], [1012, 230], 10, 4],  # 生存
-    },
-    # 线：[主根, 分叉处 t, P1, P2, P3, 节点 t0, t1, 标签方向]（P0 = 主根上 t 处；t1 < 1 时根尖越过末节再长一小段；标签 b 下 / r 右 / l 左 / z 左右交错）
-    # 每条线大致守一条约 100 宽的竖向「车道」（交涉 165 · 收藏癖 285 · 好奇心 395 · 领导欲 495 · 调度 600 · 危机感 700 · 攻击性 800 · 生存本能 905 ·
-    # 自我保护 1035 · 生命感悟 1170），名字一律放下方就不会互相压；弧度靠主根的拱和根尖往里收
-    'roots': {
-        'shop': ['L', 1.00, [150, 280], [146, 340], [190, 384], 0.05, 0.92],
-        'gold': ['L', 0.66, [276, 240], [262, 310], [300, 390], 0.22, 0.92],
-        'pick': ['L', 0.30, [430, 240], [378, 330], [412, 470], 0.18, 0.93],
-        'xp':   ['C', 0.40, [496, 270], [470, 420], [500, 620], 0.24, 0.94],
-        'disp': ['C', 1.00, [570, 370], [628, 470], [606, 646], 0.13, 0.88],
-        'sh':   ['R1', 0.42, [690, 250], [706, 300], [690, 352], 0.36, 0.95],
-        'atk':  ['R1', 1.00, [832, 392], [850, 540], [780, 668], 0.04, 0.90],
-        'hp':   ['R2', 0.40, [884, 204], [966, 384], [884, 640], 0.14, 0.92],
-        'def':  ['R2', 0.68, [1032, 214], [1106, 330], [1030, 492], 0.16, 0.92],
-        'reg':  ['R2', 1.00, [1150, 262], [1262, 440], [1150, 668], 0.22, 0.92],
-    },
+WORLD = [1280, 720]
+CROWN = (590, 140)
+ROWS = [226, 316, 406, 496, 586]          # Ⅰ–Ⅴ（阶距 90）
+CORNER = 12.0                             # 圆角半径
+DROP = 30.0                               # 分叉 45° 斜下的高度
+TAIL = 22.0                               # 根尖越过末节的直段
+CURL = 14.0                               # 根尖内收圆弧半径
+# 组：主根所在的水平线（左右错开）与各线车道（组内等距）
+# jog = (在第几阶之后, 横移量)：同组几条根在同一阶一起 45° 横移一次，仍互相平行等距
+GROUPS = {
+    'L': {'bus': 178, 'lanes': [('pick', 395), ('gold', 280), ('shop', 165)], 'side': -1, 'jog': {'gold': (0, -30), 'shop': (0, -30)}},   # 探索
+    'C': {'bus': None, 'lanes': [('disp', 590), ('xp', 485)], 'side': 0, 'jog': {}},                     # 成长：调度是正下方的主根，领导欲从左主根分出
+    'R1': {'bus': 166, 'lanes': [('sh', 700), ('atk', 805)], 'side': 1, 'jog': {'atk': (1, 30)}},       # 战斗
+    'R2': {'bus': 166, 'lanes': [('hp', 910), ('def', 1015), ('reg', 1120)], 'side': 1, 'jog': {'hp': (1, 30), 'def': (1, 30), 'reg': (1, 30)}},   # 生存
 }
+GROUP_IX = {'L': 0, 'C': 1, 'R1': 2, 'R2': 3}   # 同 meta_tree_ui GROUPS：探索 / 成长 / 战斗 / 生存
+KEEP = [[0, 0, 1280, 64], [0, 452, 352, 720], [960, 64, 1280, 116], [0, 698, 1280, 720]]
 
 
-ORIG_K = 1.5
-
-
-def scaled(lay, k):
-    sc = lambda q: [round(q[0] * k, 1), round(q[1] * k, 1)]
-    out = {'world': [int(lay['world'][0] * k), int(lay['world'][1] * k)], 'crown': sc(lay['crown']), 'keep': [],
-           'mains': {m: [sc(v[0]), sc(v[1]), sc(v[2]), sc(v[3]), v[4] * k, v[5] * k] for m, v in lay['mains'].items()},
-           'roots': {r: [v[0], v[1], sc(v[2]), sc(v[3]), sc(v[4])] + v[5:] for r, v in lay['roots'].items()}}
-    return out
-
-
-ORIG = scaled(SCENE, ORIG_K)
-
-
-def effect_line(k):
-    """节点下的一行效果：desc 第一句；质变节点只留第一句（规则名在详情卡）"""
-    s = NODES[k]['desc'].split('。')[0]
-    return s if len(s) <= 16 else s[:15] + '…'   # 同游戏 _effect_line
-
-
-def bez(c, t):
-    (x0, y0), (x1, y1), (x2, y2), (x3, y3) = c
-    u = 1 - t
-    return (u * u * u * x0 + 3 * u * u * t * x1 + 3 * u * t * t * x2 + t * t * t * x3,
-            u * u * u * y0 + 3 * u * u * t * y1 + 3 * u * t * t * y2 + t * t * t * y3)
-
-
-def samples(c, n=200):
-    pts = [bez(c, i / n) for i in range(n + 1)]
-    acc = [0.0]
+def densify(pts, step=3.0):
+    out = [pts[0]]
     for i in range(1, len(pts)):
-        acc.append(acc[-1] + math.dist(pts[i - 1], pts[i]))
-    return pts, acc
-
-
-def at_len(pts, acc, s):
-    for i in range(1, len(acc)):
-        if acc[i] >= s:
-            f = (s - acc[i - 1]) / max(1e-6, acc[i] - acc[i - 1])
-            return (pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * f, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * f)
-    return pts[-1]
-
-
-def curve_of(lay, p):
-    spec = lay['roots'][p]
-    main = lay['mains'][spec[0]]
-    p0 = bez(main[:4], spec[1])
-    return [list(p0), spec[2], spec[3], spec[4]], spec[5], spec[6]
-
-
-def place(lay):
-    out = {}
-    for p in lay['roots']:
-        c, t0, t1 = curve_of(lay, p)
-        ids = CHAINS[p]
-        pts, acc = samples(c)
-        L = acc[-1]
-        n = len(ids)
-        for j, k in enumerate(ids):
-            f = t0 + (t1 - t0) * (j / (n - 1) if n > 1 else 1.0)
-            out[k] = at_len(pts, acc, f * L)
-            sd = lay['roots'][p][7] if len(lay['roots'][p]) > 7 else 'b'
-            SIDE[k] = ('r' if j % 2 == 0 else 'l') if sd == 'z' else sd   # z：左右交错（偶数节右、奇数节左）
+        a, b = pts[i - 1], pts[i]
+        n = max(1, int(math.dist(a, b) / step))
+        for k in range(1, n + 1):
+            out.append((a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n))
     return out
+
+
+def rounded(poly, r=CORNER, step=3.0):
+    """折线倒圆角并加密：每个内角用半径 r 的圆弧替换（两边不够长时缩小半径）"""
+    out = [poly[0]]
+    for i in range(1, len(poly) - 1):
+        a, b, c = poly[i - 1], poly[i], poly[i + 1]
+        v1 = (a[0] - b[0], a[1] - b[1])
+        v2 = (c[0] - b[0], c[1] - b[1])
+        l1, l2 = math.hypot(*v1), math.hypot(*v2)
+        if l1 < 1e-6 or l2 < 1e-6:
+            continue
+        u1 = (v1[0] / l1, v1[1] / l1)
+        u2 = (v2[0] / l2, v2[1] / l2)
+        ang = math.acos(max(-1.0, min(1.0, u1[0] * u2[0] + u1[1] * u2[1])))
+        if ang > math.pi - 1e-3 or ang < 1e-3:
+            out.append(b)
+            continue
+        t = min(r / math.tan(ang / 2.0), l1 * 0.45, l2 * 0.45)
+        rr = t * math.tan(ang / 2.0)
+        p1 = (b[0] + u1[0] * t, b[1] + u1[1] * t)
+        p2 = (b[0] + u2[0] * t, b[1] + u2[1] * t)
+        bis = (u1[0] + u2[0], u1[1] + u2[1])
+        bl = math.hypot(*bis)
+        bis = (bis[0] / bl, bis[1] / bl)
+        cd = rr / math.sin(ang / 2.0)
+        cc = (b[0] + bis[0] * cd, b[1] + bis[1] * cd)
+        a1 = math.atan2(p1[1] - cc[1], p1[0] - cc[0])
+        a2 = math.atan2(p2[1] - cc[1], p2[0] - cc[0])
+        da = (a2 - a1 + math.pi) % (2 * math.pi) - math.pi
+        n = max(2, int(abs(da) * rr / step))
+        for k in range(n + 1):
+            aa = a1 + da * k / n
+            out.append((cc[0] + rr * math.cos(aa), cc[1] + rr * math.sin(aa)))
+    out.append(poly[-1])
+    return densify(out, step)
+
+
+def curl(x, y, side):
+    """根尖：往下 TAIL 再往中线收一个四分之一圆弧（side = 所在侧，-1 左 / 1 右 / 0 中线往左）"""
+    sx = -side if side != 0 else -1
+    pts = [(x, y + TAIL)]
+    for k in range(1, 9):
+        a = math.pi / 2 * k / 8
+        pts.append((x + sx * CURL * (1 - math.cos(a)), y + TAIL + CURL * math.sin(a)))
+    return pts
+
+
+def build():
+    cx, cy = CROWN
+    lb = GROUPS['L']['bus']
+    rb = GROUPS['R1']['bus']
+    l_end = GROUPS['L']['lanes'][-1][1]
+    r_end = GROUPS['R2']['lanes'][-1][1]
+    mains = {
+        'L': {'pts': [(cx - 4, cy), (cx - 4 - (lb - cy), lb), (l_end + DROP, lb)], 'w': [9, 5]},
+        'R': {'pts': [(cx + 4, cy), (cx + 4 + (rb - cy), rb), (r_end - DROP, rb)], 'w': [10, 5]},
+        'C': {'pts': [(cx, cy), (cx, cy + 46)], 'w': [10, 8]},
+    }
+    roots = {}
+    for g, spec in GROUPS.items():
+        side = spec['side']
+        for p, lx in spec['lanes']:
+            n = len(CHAINS[p])
+            last_y = ROWS[n - 1]
+            if p == 'disp':
+                path = [(cx, cy + 46), (cx, last_y)]
+            elif p == 'xp':
+                path = [(lx + DROP, lb), (lx, lb + DROP), (lx, last_y)]
+            elif g == 'L' and lx == l_end:
+                path = [(l_end + DROP, lb), (lx, lb), (lx, last_y)]
+            elif g == 'R2' and lx == r_end:
+                path = [(r_end - DROP, rb), (lx, rb), (lx, last_y)]
+            else:
+                sgn = 1 if side > 0 else -1
+                path = [(lx - sgn * DROP, spec['bus']), (lx, spec['bus'] + DROP), (lx, last_y)]
+            jg = spec['jog'].get(p)
+            if jg and jg[0] < n - 1:   # 第 jg[0] 阶与下一阶之间 45° 横移 jg[1]
+                k0, dx = jg
+                ym = (ROWS[k0] + ROWS[k0 + 1]) / 2.0
+                path = path[:-1] + [(lx, ym - abs(dx) / 2.0), (lx + dx, ym + abs(dx) / 2.0), (lx + dx, last_y)]
+            ex = path[-1][0]
+            pts = rounded(path + curl(ex, last_y, -1 if p == 'xp' else side))
+            nis = []
+            for k in range(n):
+                x_k = lx + (jg[1] if jg and k > jg[0] else 0)
+                target = (x_k, ROWS[k])
+                j = min(range(len(pts)), key=lambda q: math.dist(pts[q], target))
+                pts[j] = target
+                nis.append(j)
+            roots[p] = {'pts': [[round(a, 1), round(b, 1)] for a, b in pts], 'ni': nis, 'main': 'C' if p == 'disp' else ('L' if g in ('L', 'C') else 'R')}
+    mains_out = {m: {'pts': [[round(a, 1), round(b, 1)] for a, b in rounded(v['pts'])], 'w': v['w']} for m, v in mains.items()}
+    # 组名小标：在该组第一条车道上方、主根线上面一点
+    glabels = []
+    for g, spec in GROUPS.items():
+        xs = [lx for _, lx in spec['lanes']]
+        by = spec['bus'] if spec['bus'] else cy + 30
+        glabels.append([GROUP_IX[g], round(sum(xs) / len(xs)), by - 16])
+    return {'world': WORLD, 'crown': list(CROWN), 'rows': ROWS, 'keep': KEEP, 'mains': mains_out, 'roots': roots, 'glabels': glabels}
 
 
 FB = ImageFont.truetype('C:/Windows/Fonts/msyhbd.ttc', 13)
 
 
-def rad(k):
-    """节点占地半径（同游戏：普通盘 8 格 = 16，质变盘 11 格 = 22 + 放射条纹到 34）"""
-    return 30 if k in KEY else 17
-
-
-FS = ImageFont.truetype('C:/Windows/Fonts/msyh.ttc', 11)
-FULL = False   # 方向二：名称 + 一行效果
-
-
-SIDE = {}   # 节点 id → 标签方向（place 时按线填）
-
-
 def label_box(k, x, y):
     r = 22 if k in KEY else 16
-    off = 16 if k in KEY else 6          # 同游戏 _draw_labels：名字在盘下方 r + off；侧放时离盘边 off + 6
-    name = NODES[k]['name']
-    w = sum(FB.getlength(ch) for ch in name)
-    h = 18
-    if FULL:
-        w = max(w, sum(FS.getlength(ch) for ch in effect_line(k)))
-        h = 36
-    side = SIDE.get(k, 'b')
-    if side == 'r':
-        x0 = x + r + off + 6
-        return (x0, y - h / 2, x0 + w + 4, y + h / 2)
-    if side == 'l':
-        x1 = x - r - off - 6
-        return (x1 - w - 4, y - h / 2, x1, y + h / 2)
-    return (x - w / 2 - 2, y + r + off, x + w / 2 + 2, y + r + off + h)
+    off = 16 if k in KEY else 6
+    w = sum(FB.getlength(ch) for ch in NODES[k]['name'])
+    return (x - w / 2 - 6, y + r + off - 2, x + w / 2 + 6, y + r + off + 18)
 
 
-def check(lay, pos):
-    probs = []
+def check(lay):
+    pos = {}
+    for p, r in lay['roots'].items():
+        for k, j in zip(CHAINS[p], r['ni']):
+            pos[k] = r['pts'][j]
     items = []
     for k, (x, y) in pos.items():
-        r = rad(k)
-        items.append(('disc', k, (x - r, y - r, x + r, y + r)))
+        rr = 30 if k in KEY else 17
+        items.append(('disc', k, (x - rr, y - rr, x + rr, y + rr)))
         items.append(('lab', k, label_box(k, x, y)))
-    def ov(a, b):
-        return a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]
+    ov = lambda a, b: a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]
+    probs = []
     for i in range(len(items)):
         for j in range(i + 1, len(items)):
             if items[i][1] != items[j][1] and ov(items[i][2], items[j][2]):
@@ -174,9 +190,7 @@ def check(lay, pos):
         for z in lay['keep']:
             if ov(b, z):
                 probs.append((kind + ':' + k, 'keep' + str(z)))
-        if b[0] < 0 or b[2] > lay['world'][0] or b[3] > lay['world'][1]:
-            probs.append((kind + ':' + k, 'out'))
-    return probs, items
+    return pos, items, probs
 
 
 def preview(lay, pos, items, probs, path):
@@ -184,50 +198,35 @@ def preview(lay, pos, items, probs, path):
     im = Image.new('RGB', (W, H), (8, 20, 34))
     d = ImageDraw.Draw(im, 'RGBA')
     for z in lay['keep']:
-        d.rectangle(z, fill=(255, 255, 255, 18), outline=(255, 255, 255, 40))
-    cx, cy = lay['crown']
-    d.polygon([(cx - 26, 0), (cx + 26, 0), (cx + 10, cy), (cx - 10, cy)], fill=(30, 60, 90))
+        d.rectangle(z, fill=(255, 255, 255, 18))
+    for y in lay['rows']:
+        d.line([(0, y), (W, y)], fill=(255, 255, 255, 18))
     for m in lay['mains'].values():
-        pts, _ = samples(m[:4])
-        for i, q in enumerate(pts):
-            w = m[4] + (m[5] - m[4]) * i / len(pts)
-            d.ellipse((q[0] - w / 2, q[1] - w / 2, q[0] + w / 2, q[1] + w / 2), fill=(70, 110, 140))
-    for p in lay['roots']:
-        c, _, _ = curve_of(lay, p)
-        pts, _ = samples(c)
-        d.line(pts, fill=(120, 170, 200), width=3)
+        d.line([tuple(q) for q in m['pts']], fill=(80, 120, 150), width=6)
+    for r in lay['roots'].values():
+        d.line([tuple(q) for q in r['pts']], fill=(120, 170, 200), width=3)
     bad = {a.split(':')[1] for a, _ in probs} | {b.split(':')[1] for _, b in probs if ':' in b}
     for kind, k, b in items:
         x, y = pos[k]
         if kind == 'disc':
-            r = rad(k)
+            r = 22 if k in KEY else 16
             d.ellipse((x - r, y - r, x + r, y + r), fill=(10, 14, 20), outline=(255, 90, 90) if k in bad else (230, 236, 240), width=2)
         else:
-            d.rectangle(b, outline=(255, 90, 90, 200) if k in bad else (120, 140, 160, 100))
-            d.text((b[0] + 2, b[1]), NODES[k]['name'], font=FB, fill=(230, 236, 240))
+            d.text((b[0] + 6, b[1] + 2), NODES[k]['name'], font=FB, fill=(255, 120, 120) if k in bad else (230, 236, 240))
     im.save(path)
 
 
 def main():
-    global FULL
-    FULL = True
-    pos2 = place(ORIG)
-    probs2, items2 = check(ORIG, pos2)
-    for a, b in probs2:
-        print('orig overlap', a, b)
-    print('orig problems', len(probs2))
-    preview(ORIG, pos2, items2, probs2, ROOT / 'build/meta_ui/layout_orig.png')
-    FULL = False
-    pos = place(SCENE)
-    probs, items = check(SCENE, pos)
+    lay = build()
+    pos, items, probs = check(lay)
     for a, b in probs:
         print('overlap', a, b)
     print('problems', len(probs))
-    preview(SCENE, pos, items, probs, ROOT / 'build/meta_ui/layout_scene.png')
-    out = {'_doc': '认知塑造根系布局（art/incoming/meta_ui_1025/layout.py 生成，别手改）：mains 主根 [P0..P3, 起点宽, 末端宽]；'
-                   'roots 每条线 [主根, 分叉处 t, P1, P2, P3, 节点 t0, t1]，P0 取主根上 t 处，节点按弧长在 [t0, t1] 等分',
-           'scene': SCENE, 'orig': ORIG}
-    (ROOT / 'game/data/meta_roots.json').write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding='utf-8')
+    preview(lay, pos, items, probs, ROOT / 'build/meta_ui/layout_grid.png')
+    out = {'_doc': '认知塑造根系布局（art/incoming/meta_ui_1025/layout.py 生成，别手改）：几何版——同阶同一水平线（rows）、每条线一条竖向车道、'
+                   '直线段 + 45° / 90° 转折 + 统一圆角；mains 主根折线（已加密）+ 起止宽度；roots 每条线的折线（含根尖内收弧）与各节点在折线里的下标 ni',
+           'scene': lay}
+    (ROOT / 'game/data/meta_roots.json').write_text(json.dumps(out, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
 
 
 if __name__ == '__main__':

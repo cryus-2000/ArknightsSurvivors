@@ -166,7 +166,7 @@ func _ready() -> void:
 		for a in Cfg.dev_args():
 			if a.begins_with("--metabuy="):
 				Cfg.meta_shape = preload("res://scripts/core/meta.gd").shape_for(int(a.substr(10)))
-		var keys := "D,D,D,R,E,U,U,L"
+		var keys := "D,D,D,R,D,E,U,U,L"
 		for a in Cfg.dev_args():
 			if a.begins_with("--metademokeys="):
 				keys = a.substr(15)
