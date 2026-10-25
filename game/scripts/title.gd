@@ -452,6 +452,26 @@ func _process(delta: float) -> void:
 	var ft := FR.tic()
 	_process_main(delta)
 	FR.toc("title_proc", ft)
+	if _pw_on:
+		_power_title()
+
+
+## --powerseq 停在标题页（tools/probes/power_web.py --title，docs/50 §33）：出现 5 秒后记 20 秒「title」段
+var _pw_on: bool = Cfg.dev_args().has("--powerseq") and not Cfg.dev_args().has("--balance")
+var _pw_t := 0.0
+var _pw_fr := 0
+func _power_title() -> void:
+	_pw_t += get_process_delta_time()
+	if _pw_t >= 5.0 and _pw_fr == 0:
+		_pw_fr = Engine.get_frames_drawn()
+		if OS.has_feature("web"):
+			JavaScriptBridge.eval("window.__phase='title'", true)
+	elif _pw_t >= 25.0:
+		_pw_on = false
+		print("PF POWER title secs=20.0 fps=%.1f max_fps=%d" % [(Engine.get_frames_drawn() - _pw_fr) / 20.0, Engine.max_fps])
+		if OS.has_feature("web"):
+			JavaScriptBridge.eval("window.__phase='end'", true)
+		print("PF FTDONE")
 
 
 func _process_main(delta: float) -> void:
