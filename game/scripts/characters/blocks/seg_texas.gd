@@ -98,6 +98,7 @@ static func _tx_block(b: Dictionary, p: String, kind: String, tag: String, ctx: 
 			_num(b, "scar", p, ctx, false, 0.1, 5.0)
 			_num(b, "lead", p, ctx, false, 0.0, 1.0)
 			_num(b, "hold", p, ctx, false, 0.0, 1.0)
+			_num(b, "pose", p, ctx, false, 0.0, 1.0)
 			_src(b, p, ctx, true)
 		"verb.fx_rain":
 			_tx_rain_validate(b, p, ctx)
@@ -827,7 +828,7 @@ static func tx_rift_start(o, b: Dictionary) -> void:
 	var n: int = int(b.n)
 	var dmg: float = o.base("atk", 0.0) * float(b.mult) * float(o.loc.dmg) * o._dmg_bonus() * o.skill_power()
 	o.tx["rift"] = {"t": 0.0, "k": 0, "n": n, "lead": lead, "b": b, "dmg": dmg, "dir": dir_a, "r": r, "hit": {}, "from": o.pos,
-		"end": _tx_rift_at(b, lead, n, n - 1) + 0.16, "flash": {}, "any": not ts.is_empty()}
+		"end": _tx_rift_at(b, lead, n, n - 1) + maxf(0.16, float(b.get("pose", 0.12))), "flash": {}, "any": not ts.is_empty()}
 	o._sfx_op("atk")
 
 
@@ -939,9 +940,10 @@ static func tx_rift_draw_body(o) -> bool:
 	if rf == null:
 		return false
 	var fl: Dictionary = rf.flash
-	if not fl.is_empty() and float(rf.t) - float(fl.t) < 0.12:
+	var pose: float = float(rf.b.get("pose", 0.12))   # 定格：每刀斩完在落点停住的时间（下一刀先到就换位），最后 30% 渐隐
+	if not fl.is_empty() and float(rf.t) - float(fl.t) < pose:
 		var dv: Vector2 = (fl.p as Vector2) - (fl.from as Vector2)
-		var k: float = 1.0 - (float(rf.t) - float(fl.t)) / 0.12
+		var k: float = clampf((1.0 - (float(rf.t) - float(fl.t)) / pose) / 0.3, 0.0, 1.0)
 		o.draw_body_at(fl.p, dv.x < 0.0, Color(1.0, 1.0, 1.0, 0.35 + 0.65 * k))
 	return true
 
