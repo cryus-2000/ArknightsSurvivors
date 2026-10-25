@@ -23,8 +23,9 @@ const OUT_LEN := 0.3
 const WAIT_USEC := 4000      # 桌面后台编译时主线程每帧最多等多久（小脚本一帧能过一两个；留够画面的时间，稳 60）
 const GOOD_N := 30           # 稳帧门：连续多少帧在预算内
 const GATE_MIN := 0.4
+const GATE_SLOW := 2.0
 const GATE_MAX := 6.0
-const GATE_MAX_WEB := 10.0
+const GATE_MAX_WEB := 8.0
 
 var font: Font
 var tex_logo: Texture2D
@@ -43,11 +44,13 @@ var shot := false
 var cur_path := ""
 var _threads := false         # 桌面后台线程编译（网页导出没有线程）
 var _req := ""                # 正在后台编译的路径
+var _announced := -1
 var _req_t := 0
 var title: Node               # 建在本页下面的标题页
 var warm: Node                # 着色器预热视口
 var _gate_t0 := 0
 var _good := 0
+var _good_slow := 0
 var _last_us := 0
 var _budget_ms := 16.7
 
@@ -133,6 +136,10 @@ func _process(delta: float) -> void:
 func _step_sync() -> void:
 	var t0 := Time.get_ticks_usec()
 	while idx < items.size() and (Time.get_ticks_usec() - t0 < BUDGET_USEC or Time.get_ticks_usec() == t0):
+		if (items[idx] as Array).size() > 2 and _announced != idx:
+			_begin_item()
+			_announced = idx   # 整圈编译的大项（gen_boot_order 标 heavy）：先把「正在读什么」画出来，下一帧再读
+			return
 		_begin_item()
 		if ResourceLoader.exists(cur_path):
 			var l0 := Time.get_ticks_usec()
@@ -206,11 +213,12 @@ func _open_title() -> void:
 	layer.add_child(warm)
 	_gate_t0 = Time.get_ticks_usec()
 	_good = 0
+	_good_slow = 0
 	_last_us = 0   # 建标题页这一帧不算
 
 
 ## 稳帧门：着色器画完后，连续 GOOD_N 帧的真实帧间隔都在一帧预算内（60 帧；显示器更低或设了帧率上限就按那个），才淡出、标题开场从头播。
-## 最多等 GATE_MAX 秒（慢机器 / 被别的程序占满时照样进），至少盖 GATE_MIN 秒。标题页中途切走（测试直接进局）就立刻撤掉盖层。
+## 到不了 60 的设备：盖满 GATE_SLOW 秒后连续 GOOD_N 帧都在两帧预算内也放行；最多等 GATE_MAX 秒（被别的程序占满时照样进），至少盖 GATE_MIN 秒。标题页中途切走（测试直接进局）就立刻撤掉盖层。
 func _gate(dt_ms: float) -> void:
 	if not is_instance_valid(title) or get_tree().current_scene != title:
 		set_process(false)
@@ -219,16 +227,17 @@ func _gate(dt_ms: float) -> void:
 	if is_instance_valid(warm):
 		cur_file = "着色器 %d / %d" % [warm.total - warm.steps.size(), warm.total]
 		return
-	if dt_ms > 0.0 and dt_ms <= _budget_ms * 1.12:
-		_good += 1
-	elif dt_ms > 0.0:
-		_good = 0
+	if dt_ms > 0.0:
+		_good = _good + 1 if dt_ms <= _budget_ms * 1.12 else 0
+		_good_slow = _good_slow + 1 if dt_ms <= _budget_ms * 2.2 else 0
 	cur_file = "帧时稳定 %d / %d" % [mini(_good, GOOD_N), GOOD_N]
 	var held := (Time.get_ticks_usec() - _gate_t0) / 1e6
 	var timeout := held >= (GATE_MAX_WEB if OS.has_feature("web") else GATE_MAX)
-	if (_good >= GOOD_N and held >= GATE_MIN) or timeout:
+	# 慢设备到不了 60：盖满 GATE_SLOW 秒后，只要连续 GOOD_N 帧都在两帧预算内（没有尖峰、稳在 30 帧以上）也放行，不白等到超时
+	var slow_ok := held >= GATE_SLOW and _good_slow >= GOOD_N
+	if (_good >= GOOD_N and held >= GATE_MIN) or slow_ok or timeout:
 		if FR.enabled():
-			print("PF FTGATE held=%.2f good=%d timeout=%s budget=%.1f" % [held, _good, timeout, _budget_ms])
+			print("PF FTGATE held=%.2f good=%d slow=%d timeout=%s budget=%.1f" % [held, _good, _good_slow, timeout, _budget_ms])
 		if Cfg.dev_args().has("--loadprof"):
 			print("BOOTPROF boot_done=%d" % Time.get_ticks_msec())
 		if title.has_method("boot_reveal"):

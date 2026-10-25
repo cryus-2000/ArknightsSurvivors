@@ -26,8 +26,8 @@ SCEN = {
     "gallery": ["--ftrec", "--ftdo=title:4:gallery", "--ftdo=gallery:2.5:gal_next", "--ftdo=gal_next:2.5:gal_tab", "--ftquit=gal_tab:3"],
     # 机器人打 20 秒直接胜利，停在结算页 6 秒
     "settle": ["--ftrec", "--autotest", "--statsshot=20,hold", "--ftquit=settle:6"],
-    # 走玩家路径进局（载入页）：对局第一帧后看 10 秒
-    "enter": ["--ftrec", "--autotest", "--loadprof", "--ftquit=game:10"],
+    # 走玩家路径进局（载入页）：机器人按真实帧间隔打（--balance --realtime，不截图），对局第一帧后看 10 秒
+    "enter": ["--ftrec", "--balance", "--realtime", "--loadprof", "--nodeath", "--seed=1", "--ftquit=game:10"],
 }
 SEG_RE = re.compile(r"PF FTSEG (\S+) n=(\d+) mean=([\d.]+) p50=([\d.]+) p95=([\d.]+) p99=([\d.]+) max=([\d.]+) over16=(\d+) over33=(\d+)")
 LONG_RE = re.compile(r"PF FTLONG seg=(\S+) t=([\d.]+) ms=([\d.]+)(.*)")

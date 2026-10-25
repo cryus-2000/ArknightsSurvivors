@@ -427,7 +427,8 @@ func _process_main(delta: float) -> void:
 				if not _op_scripts.has(sp) and ResourceLoader.load_threaded_request(sp) == OK:
 					_op_scripts.append(sp)   # 干员脚本后台编译（data_operator.gd 首次加载约 1.4 秒，原来算在建局里）
 			loading.begin()
-		_op_warm_more = A.warm_step(24000)   # 开局干员的技能 / 特效帧条先读进贴图缓存（10-22 网页开局掉帧：第一次放技能时现读）
+		var wt0 := Time.get_ticks_usec()
+		_op_warm_more = A.warm_step(LOAD_BUDGET_USEC)   # 开局干员的技能 / 特效帧条先读进贴图缓存（10-22 网页开局掉帧：第一次放技能时现读）
 		for sp in _op_scripts.duplicate():
 			if ResourceLoader.load_threaded_get_status(sp) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 				_op_warm_more = true
@@ -442,7 +443,7 @@ func _process_main(delta: float) -> void:
 			if v6.has(sn):
 				load("res://scripts/characters/blocks/ob_fx.gd").warm_frame_r(sn, A.tex(sn), maxi(1, int(v6[sn][0])))
 			_op_warm_more = not _grow_strips.is_empty()
-		Sfx.warm_step(12000)   # 出发后的等待里逐条注册音频样本（网页；桌面队列为空）
+		Sfx.warm_step(maxi(1000, LOAD_BUDGET_USEC - (Time.get_ticks_usec() - wt0)))   # 出发后的等待里逐条注册音频样本（网页；桌面队列为空）：和读图共用一帧预算
 		_loading_progress()
 	if leaving >= 0.0:
 		leaving += delta
@@ -735,6 +736,9 @@ func _draw_leaving(vs: Vector2) -> void:
 
 ## 开局干员（选人 / --op；测试的 --squad 一并）JSON 里写到的帧条名（"tex" / "strip"）：出发后的等待里先读进 A.tex 缓存
 var _op_warm_begun := false
+## 载入页每帧预读预算（读图 + 注册音频合计）：原来 24 + 12 毫秒，载入页动画只有 20–25 帧；10-25「帧率稳定优先」压到 12 毫秒（加一帧渲染不超 16.7），
+## 总读取时间约长两成（单张超预算的照样一帧读一张）
+const LOAD_BUDGET_USEC := 12000
 var _op_warm_more := false
 var loading: Control   # 进局载入页（screens/loading_screen.gd，CanvasLayer 80）
 var _grow_strips: Array = []
