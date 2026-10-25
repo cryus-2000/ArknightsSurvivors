@@ -1325,6 +1325,8 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 			g.pickups.drop(e.pos, "chest", 1.0)
 		if g.rng_drop.randf() < Bal.v("lamp/elite_oil_chance", 0.65):
 			g.pickups.drop(e.pos + Vector2(20, 10), "oil", Bal.v("lamp/elite_oil_amount", 25.0))
+	if float(e.get("scream_t1", INF)) > g.t and D.ENEMIES.get(e.type, {}).has("scream_ingot_mult"):
+		ing = int(round(ing * float(D.ENEMIES[e.type].scream_ingot_mult)))   # 箱形恐鱼尖叫结束前击倒（含还没尖叫）：源石锭 ×1.5（docs/145 §4 A，原作宝箱恐鱼）
 	if e.boss:
 		ing = 20
 		if not is_same(e, g.final_boss) and not g.spawner.boss_alive():
