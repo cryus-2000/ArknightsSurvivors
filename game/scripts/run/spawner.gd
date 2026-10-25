@@ -529,7 +529,7 @@ func update(dt: float) -> void:
 			if close_ring:
 				he["rush"] = Bal.v("enemy/horde_rush", 1.6)   # 冲锋段：进到 horde_rush_r 内回正常速度（run/enemies.gd）
 				if si > 0:
-					he.wake_t = float(he.get("wake_t", 0.0)) + si * Bal.v("enemy/close_ring_delay", 1.5)   # 后几股原地等一下再出发（wake_t 期间不行动，enemy_ai；叠在 _horde_loose 的分批之上）
+					he["depart_t"] = float(he.get("depart_t", 0.0)) + si * Bal.v("enemy/close_ring_delay", 1.5)   # 后几股原地等一下再出发（depart_t 期间不行动，run/enemies.gd 倒计时；叠在 _horde_loose 的分批之上，docs/158）
 					he.spd *= 1.0 + si * Bal.v("enemy/close_ring_spd", 0.1)
 			# 群体个体的接触伤害 ×0.7：被包围时不至于两下暴毙，压力来自数量而不是单体
 			he.dmg *= Bal.v("enemy/early_horde_dmg", 0.7) if early else Bal.v("enemy/horde_dmg", 0.7)   # 大群单体接触伤害倍率（原写死 0.7）
@@ -989,7 +989,8 @@ func _horde_loose(he: Dictionary, hunt: bool) -> void:
 	var nb: int = int(Bal.v("enemy/horde_hunt_batches" if hunt else "enemy/horde_batches", 1.0))
 	if nb > 1:
 		var b: int = g.rng_spawn.randi() % nb
-		he.wake_t = maxf(float(he.get("wake_t", 0.0)), 0.0) + b * Bal.v("enemy/horde_hunt_batch_gap" if hunt else "enemy/horde_batch_gap", 0.8) + g.rng_spawn.randf() * Bal.v("enemy/horde_jitter", 0.0)
+		# 出发延迟写 depart_t（docs/158）：原来借用收割者的 wake_t，而 wake_t 只在收割者的招式里倒计时，其他怪永远走不完、一直站在原地
+		he["depart_t"] = maxf(float(he.get("depart_t", 0.0)), 0.0) + b * Bal.v("enemy/horde_hunt_batch_gap" if hunt else "enemy/horde_batch_gap", 0.8) + g.rng_spawn.randf() * Bal.v("enemy/horde_jitter", 0.0)
 	var wd: float = Bal.v("enemy/horde_wob_deg", 0.0)
 	if wd > 0.0:
 		he["wob"] = [deg_to_rad(wd) * g.rng_spawn.randf_range(0.6, 1.0), Bal.v("enemy/horde_wob_f", 1.5) * g.rng_spawn.randf_range(0.7, 1.3), g.rng_spawn.randf() * TAU]
