@@ -1298,8 +1298,16 @@ func _bossacts_step(spec: String) -> void:
 	if g.at_frames % 60 == 0:
 		print("BOSSACTS state t=%.1f %s" % [g.t, _ba_state(ba_boss)])
 	_ba_perf()
-	if g.at_frames >= 30 and g.at_frames % 3 == 0 and DisplayServer.get_name() != "headless" and not Cfg.dev_args().has("--noshots"):
+	if g.at_frames >= 30 and g.at_frames % _ba_step() == 0 and DisplayServer.get_name() != "headless" and not Cfg.dev_args().has("--noshots"):
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_acts_%s_%04d.png" % [spec.replace("+", "_"), g.at_frames])
+
+
+## --shotstep=N：每 N 帧截一张（缺省 3；激光收尾等要逐帧看时用 1）
+func _ba_step() -> int:
+	for a in Cfg.dev_args():
+		if a.begins_with("--shotstep="):
+			return maxi(1, int(a.substr(11)))
+	return 3
 
 
 ## --bossacts 帧时（协调人 10-25：每只 Boss 改完同局轮换量 P50 / P95）：记上一帧到这一帧的真实用时，按上一帧所用画法分桶；

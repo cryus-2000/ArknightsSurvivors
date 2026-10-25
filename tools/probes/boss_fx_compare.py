@@ -24,9 +24,9 @@ HW = 640
 BEFORE_GAME = os.path.join(ROOT, "build", "_fx_before", "game")   # 「旧」= 改前提交的独立检出（git worktree add --detach build/_fx_before <提交>，拷 .godot 导入缓存）
 
 
-def record(which, specs):
+def record(which, specs, extra=None):
     for spec in specs:
-        src, _ = bag.run(spec, BEFORE_GAME if which == "before" and os.path.isdir(BEFORE_GAME) else None)
+        src, _ = bag.run(spec, BEFORE_GAME if which == "before" and os.path.isdir(BEFORE_GAME) else None, extra)
         dst = os.path.join(OUT, which, spec.replace("+", "_"))
         shutil.rmtree(dst, ignore_errors=True)
         shutil.copytree(src, dst)
@@ -106,14 +106,15 @@ def perf(specs):
 def main():
     if len(sys.argv) < 2 or sys.argv[1] not in ("before", "after", "video", "perf"):
         sys.exit(__doc__)
-    specs = sys.argv[2:] or SPECS
+    extra = [a for a in sys.argv[2:] if a.startswith("--")]   # 透传给游戏，如 --shotstep=1 --bal=boss/acts_demo_len=4（激光收尾逐帧看）
+    specs = [a for a in sys.argv[2:] if not a.startswith("--")] or SPECS
     os.makedirs(OUT, exist_ok=True)
     if sys.argv[1] == "video":
         video(specs)
     elif sys.argv[1] == "perf":
-        perf(sys.argv[2:] or ["izumik"])   # 协调人 10-25：只量最重的一个场景（伊祖米克：900 像素大环 + 子代），预算是兜底
+        perf(specs if sys.argv[2:] and specs != SPECS else ["izumik"])   # 协调人 10-25：只量最重的一个场景（伊祖米克：900 像素大环 + 子代），预算是兜底
     else:
-        record(sys.argv[1], specs)
+        record(sys.argv[1], specs, extra)
 
 
 if __name__ == "__main__":

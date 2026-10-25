@@ -1150,7 +1150,7 @@ func _bfx_grains(f: Dictionary) -> void:
 			var nrm: Vector2 = (pb - pa).orthogonal().normalized()
 			for i in 22:
 				var u2: float = g.vrng.randf()
-				gr.push("bfx_dust", pa.lerp(pb, u2), nrm * (1.0 if g.vrng.randf() < 0.5 else -1.0), c, u2 * 0.08)
+				gr.push("bfx_flash", pa.lerp(pb, u2), nrm * (1.0 if g.vrng.randf() < 0.5 else -1.0), c, u2 * 0.04)   # 激光类收尾 ≤ 0.25 秒（用户 10-26）
 
 
 func _draw_fx() -> void:
