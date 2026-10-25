@@ -177,7 +177,7 @@ void fragment() {
 		float zf = 1.0 - smoothstep(zone_r * 0.9, zone_r, length(dz));
 		vec2 dh = vec2((SCREEN_UV.x - zone_hole.x) * asp, (SCREEN_UV.y - zone_hole.y) / 1.7);
 		zf *= smoothstep(zone_hole.z * 0.65, zone_hole.z, length(dh));
-		base = mix(base, vec3(luma(base)) * vec3(0.92, 0.94, 0.98), zf * zone_amt);
+		base = mix(base, clamp(vec3(luma(base)) * 1.35 + vec3(0.06), 0.0, 1.0) * vec3(0.84, 0.93, 1.08), zf * zone_amt);   // 冷银偏蓝（用户 10-25）
 	}
 	if (hurt > 0.001) {
 		float e = smoothstep(0.25, 0.75, length(c) * 1.4);

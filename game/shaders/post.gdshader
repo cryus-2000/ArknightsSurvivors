@@ -99,7 +99,7 @@ void fragment() {
 		vec2 dh = vec2((uv.x - zone_hole.x) * asp, (uv.y - zone_hole.y) / 1.7);
 		f *= smoothstep(zone_hole.z * 0.65, zone_hole.z, length(dh));
 		float l = dot(col, vec3(0.299, 0.587, 0.114));
-		col = mix(col, vec3(l) * vec3(0.92, 0.94, 0.98), f * zone_amt);
+		col = mix(col, clamp(vec3(l) * 1.35 + vec3(0.06), 0.0, 1.0) * vec3(0.84, 0.93, 1.08), f * zone_amt);   // 冷银偏蓝（用户 10-25）：去色 + 提亮 + 冷调
 	}
 	if (hurt > 0.001) {
 		float edge = smoothstep(0.12, 0.5, r2);
