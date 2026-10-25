@@ -10,6 +10,7 @@ extends Control
 ## 测试（带命令行参数、无界面）直接切标题页，不走本页；--bootshot / --loadprof 才走（--bootshot 在读到一半时截图退出）。
 
 const Tips = preload("res://scripts/screens/loading_tips.gd")
+const FR = preload("res://scripts/core/frame_rec.gd")
 const ORDER := "res://data/boot_order.json"
 const MAIN := "res://main.tscn"
 const BUDGET_USEC := 30000   # 每帧最多读多久（单个脚本超过也只读这一个）
@@ -38,12 +39,13 @@ func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var args := Cfg.dev_args()
 	shot = args.has("--bootshot")
-	if DisplayServer.get_name() == "headless" or (not args.is_empty() and not shot and not args.has("--loadprof")):
+	if DisplayServer.get_name() == "headless" or (not args.is_empty() and not shot and not args.has("--loadprof") and not args.has("--ftrec")):
 		get_tree().change_scene_to_file.call_deferred(MAIN)   # 测试直接进标题页
 		set_process(false)
 		return
 	if args.has("--loadprof"):
 		print("BOOTPROF boot_ready=%d" % Time.get_ticks_msec())
+	FR.mark("boot")
 	font = load("res://fonts/ui.ttf")
 	var img: Image = load("res://art/ui/title_deep/logo_mark.png").get_image()
 	img.generate_mipmaps()
@@ -94,7 +96,10 @@ func _process(delta: float) -> void:
 				cur_file = str(it[0]).get_file()
 				cur_label = str(it[1])
 				if ResourceLoader.exists(str(it[0])):
+					var l0 := Time.get_ticks_usec()
 					load(str(it[0]))
+					if FR.enabled() and Time.get_ticks_usec() - l0 > 40000:
+						print("PF FTLOAD %s %.0f ms" % [str(it[0]), (Time.get_ticks_usec() - l0) / 1000.0])
 				idx += 1
 				if shot and idx == items.size() / 2:
 					break

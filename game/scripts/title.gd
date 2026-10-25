@@ -1,11 +1,15 @@
 extends "res://scripts/screens/title_diff_pick.gd"
 ## 标题界面：「方舟幸存者」Logo + 菜单；背景是深海沉船与水母（title_deep.gd，10-24 用户定，docs/67 §13）
 const HS = preload("res://scripts/screens/hh_style.gd")
+const FR = preload("res://scripts/core/frame_rec.gd")
 func _ready() -> void:
 	if Cfg.dev_args().has("--loadprof"):
 		# 启动计时（docs/36 §5）：引擎启动 → 标题页 _ready → 标题页首帧画完（毫秒，从引擎启动算）
 		print("BOOTPROF title_ready=%d" % Time.get_ticks_msec())
 		RenderingServer.frame_post_draw.connect(func(): print("BOOTPROF title_first_frame=%d" % Time.get_ticks_msec()), CONNECT_ONE_SHOT)
+	if FR.enabled():
+		FR.mark("title_ready")
+		RenderingServer.frame_post_draw.connect(func(): FR.mark("title"), CONNECT_ONE_SHOT)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	# 触屏：标题页（含图鉴 / 设置 / Boss 演练子面板）整体放大 Cfg.ui_k（手机 1.3）；背景 / 转场在各自的 CanvasLayer 不受影响
 	Cfg.ui_k = Cfg.ui_scale()
@@ -126,7 +130,7 @@ func _ready() -> void:
 	Sfx.warm_begin()   # 网页：出发后的「载入中」里把战斗乐分轨 / 音效注册成样本（sfx.gd，10-22 开局掉帧）
 	# 截图 / 自动测试 / 从对局返回标题：不播开场动画
 	var args := Cfg.dev_args()
-	if (not args.is_empty() and not args.has("--introshot") and not args.has("--introshort") and not args.has("--titlemotion")) or Cfg.title_seen:
+	if (not args.is_empty() and not args.has("--introshot") and not args.has("--introshort") and not args.has("--titlemotion") and not args.has("--ftrec")) or Cfg.title_seen:
 		intro = INTRO_LEN
 	elif Cfg.opening_seen or args.has("--introshort"):
 		intro = INTRO_SHORT   # 看过完整版：只播 Logo 扫光和菜单滑入
@@ -321,6 +325,29 @@ func _ui_refit() -> void:
 
 func _exit_tree() -> void:
 	A.prewarm_join()
+
+
+## 帧时记录的脚本动作（--ftdo=<标记>:<秒>:<动作>，core/frame_rec.gd）：打开寻访 / 图鉴、图鉴换条目 / 换页签、关掉
+func _ft_action(what: String) -> void:
+	match what:
+		"hunt":
+			FR.mark("hunt")
+			hunt_ui.open()
+		"gallery":
+			FR.mark("gallery")
+			gallery.open()
+		"gal_next":
+			FR.mark("gal_next")
+			gallery._step(1)
+		"gal_tab":
+			FR.mark("gal_tab")
+			gallery._set_tab((gallery.tab + 1) % 3)
+		"close":
+			FR.mark("close")
+			if gallery.visible:
+				gallery.close()
+			if hunt_ui.visible:
+				hunt_ui.hh.open = false
 
 
 func _process(delta: float) -> void:
