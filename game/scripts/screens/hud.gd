@@ -375,7 +375,7 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		if ta > 0.0:
 			UI.text(g.hud, g.font, Vector2(0, cy + 14) + jit, line, 38, Color(1.0, 0.75, 1.0, ta), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 6)
 		if hw and hunt_w:
-			# 围猎型（docs/147）：不画圈、不画四周箭头，只在缺口方向屏边画一个朝外的小箭头（突围方向）
+			# 围猎型（docs/150）：不画圈、不画四周箭头，只在缺口方向屏边画一个朝外的小箭头（突围方向）
 			var gd := Vector2.from_angle(g.horde_gap)
 			var gc := vs / 2.0
 			var ge: Vector2 = gc + gd * min(abs((vs.x / 2 - 46) / max(abs(gd.x), 0.01)), abs((vs.y / 2 - 46) / max(abs(gd.y), 0.01)))

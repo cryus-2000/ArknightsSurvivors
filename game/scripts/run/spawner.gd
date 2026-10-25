@@ -14,7 +14,7 @@ var spawn_acc := 0.0
 var next_elite: float = Bal.v("enemy/first_elite", 45.0)   # 首只精英出现时间（balance.json）
 var _lead_slot := 0.0   # 大群领头精英已占的精英名额（不足一个时攒着）
 var horde_warned := -1.0
-var fixed_i := 0        # 中段固定节拍大群已出到第几波（docs/147）
+var fixed_i := 0        # 中段固定节拍大群已出到第几波（docs/150）
 var boss_idx := 0
 var mid_used: Array = []
 ## 同一人物的不同档（docs/38 §2.2，用户 10-01 按原作核对：圣徒卡门 / 圣徒伊比利亚是同一人两档）：中期 Boss 抽取按人物排除，同局只出一位
@@ -421,7 +421,7 @@ func update(dt: float) -> void:
 	var escort: bool = trickling() and Bal.v("final/escort_every", 0.0) > 0.0 and g.final_boss.hp > g.final_boss.maxhp * Bal.v("final/escort_stop_frac", 0.0)
 	if escort and g.next_horde < final_at + Bal.v("final/escort_first", 20.0):
 		g.next_horde = final_at + Bal.v("final/escort_first", 20.0)
-	# 中段固定节拍（docs/147，10-25 用户「把围猎和大群合并」，docs/146 方案 A）：enemy/horde_fixed_1..3 秒各一波，
+	# 中段固定节拍（docs/150，10-25 用户「把围猎和大群合并」，docs/146 方案 A）：enemy/horde_fixed_1..3 秒各一波，
 	# horde_fixed_hunt_N = 1 的那波是围猎型；窗口内不走常规节拍——常规的下一波若落在第一波前 40 秒到最后一波后 40 秒之间，推到最后一波之后一个间隔
 	var fixed_due := -1.0
 	if not escort and fixed_i < 3 and Bal.v("enemy/horde_fixed_%d" % (fixed_i + 1), -1.0) >= 0.0:
@@ -476,7 +476,7 @@ func update(dt: float) -> void:
 			n = int(round(n * Bal.v("enemy/early_horde_mult", 1.0)))
 		var n_base := n   # 未乘只数倍率前的只数：经验按「实际刷出只数 / 这个数」折算，被同屏上限裁掉时不多折（docs/116 §7.3）
 		if hunt_type:
-			n = int(round(n * Bal.v("enemy/horde_hunt_count_mult", 1.0)))   # 围猎型多来一些（docs/147），经验同样按只数折算守恒
+			n = int(round(n * Bal.v("enemy/horde_hunt_count_mult", 1.0)))   # 围猎型多来一些（docs/150），经验同样按只数折算守恒
 		n = int(round(n * Bal.v("enemy/horde_count_mult", 1.0)))   # 压力型大群（docs/116 §7.3）：只数倍率，经验按只数折算守恒（下面 xp）
 		n = dens_count(n, "horde")   # 怪物密度：只数 × density（累计余数取整；在 Boss 余量裁剪之前）
 		# Boss 在场时（Ⅷ horde_in_boss 让大群不顺延）超出存活杂兵上限的部分裁掉（协调人 9/30）；没有 Boss 时余量 = 同屏上限 max_alive()，不裁
@@ -523,6 +523,8 @@ func update(dt: float) -> void:
 					he.spd *= 1.0 + si * Bal.v("enemy/close_ring_spd", 0.1)
 			# 群体个体的接触伤害 ×0.7：被包围时不至于两下暴毙，压力来自数量而不是单体
 			he.dmg *= Bal.v("enemy/early_horde_dmg", 0.7) if early else Bal.v("enemy/horde_dmg", 0.7)   # 大群单体接触伤害倍率（原写死 0.7）
+			if hunt_type:
+				he.dmg *= Bal.v("enemy/horde_hunt_dmg", 1.0)   # 围猎型额外接触伤害倍率（docs/150，不给奖励的收紧旋钮）
 			var ehp: float = Bal.v("enemy/horde_hp_mult", 1.0) * (Bal.v("enemy/early_horde_hp", 1.0) if early else 1.0)   # 大群单只生命倍率（不加经验）
 			he.hp *= ehp
 			he.maxhp *= ehp
@@ -894,7 +896,7 @@ func _late_hp_apply(e: Dictionary, mult: float) -> void:
 	e.shield_hp *= f
 
 
-## 大群「慢慢来」（docs/147，10-25 用户：不要整圈像平移飘过来）：每只怪速度散布 ±horde_spd_spread、分 horde_batches 批先后出发（批间 horde_batch_gap 秒 + 每只 0–horde_jitter 秒抖动），
+## 大群「慢慢来」（docs/150，10-25 用户：不要整圈像平移飘过来）：每只怪速度散布 ±horde_spd_spread、分 horde_batches 批先后出发（批间 horde_batch_gap 秒 + 每只 0–horde_jitter 秒抖动），
 ## 走动时左右摆 ±horde_wob_deg 度（频率 horde_wob_f，相位各不相同），离队长 horde_wob_r 内摆幅逐渐收到 0、自然聚拢成圈（run/enemies.gd 读 e.wob）。
 ## 围猎型（hunt=true）：批数 / 批间隔用 horde_hunt_batches / horde_hunt_batch_gap，入场速度 × horde_hunt_rush（慢慢收拢，进到 horde_rush_r 内回正常速度）。
 ## 随机只用 g.rng_spawn（同 seed 可复现）

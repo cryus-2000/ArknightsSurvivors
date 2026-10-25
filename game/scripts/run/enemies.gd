@@ -440,7 +440,7 @@ func update(dt: float) -> void:
 			if absf(move_dir.x) > 0.1 and e.ai != "static":
 				e.fx = signf(move_dir.x)
 		if e.has("wob") and e.ai == "melee":
-			# 大群「慢慢来」（docs/147）：走动时左右摆，离队长 horde_wob_r 内摆幅收到 0（spawner._horde_loose 写 e.wob = [摆幅弧度, 频率, 相位]）
+			# 大群「慢慢来」（docs/150）：走动时左右摆，离队长 horde_wob_r 内摆幅收到 0（spawner._horde_loose 写 e.wob = [摆幅弧度, 频率, 相位]）
 			var wk: float = clampf((dist - Bal.v("enemy/horde_wob_r", 260.0)) / 300.0, 0.0, 1.0)
 			if wk > 0.0:
 				move_dir = move_dir.rotated(float(e.wob[0]) * wk * sin(g.t * float(e.wob[1]) + float(e.wob[2])))

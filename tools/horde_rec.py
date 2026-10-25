@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""大群收拢录像（docs/147）：开一个窗口局（走 godot_runner：屏外、静音、全机并发上限），快进到大群前几秒，逐帧存图，拼 1/3 速 gif。
+"""大群收拢录像（docs/150）：开一个窗口局（走 godot_runner：屏外、静音、全机并发上限），快进到大群前几秒，逐帧存图，拼 1/3 速 gif。
 用法：python tools/horde_rec.py <起始秒> <帧数> <输出名> [附加游戏参数…]
   例：python tools/horde_rec.py 296 260 hunt500        # 5:00 围猎型那波
       python tools/horde_rec.py 221 260 horde345       # 3:45 普通分股那波

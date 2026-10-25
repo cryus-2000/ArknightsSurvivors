@@ -229,6 +229,7 @@
   "horde_hunt_gap_deg": 16,
   "horde_hunt_rush": 0.9,
   "horde_hunt_count_mult": 1.5,
+  "horde_hunt_dmg": 1.0,
   "horde_hunt_batches": 3,
   "horde_hunt_batch_gap": 0.8,
   "horde_spd_spread": 0.15,
@@ -238,7 +239,7 @@
   "horde_wob_deg": 22,
   "horde_wob_f": 1.6,
   "horde_wob_r": 260,
-  "_horde_merge": "10-25 用户「把围猎和大群合并，怪还是从远处围圈过来，但不要像平移飘过来、要慢慢来」（docs/147）：hunt/enabled 0 关掉独立围猎；中段固定节拍大群 horde_fixed_1..3 秒（docs/146 方案 A），horde_fixed_hunt_N = 1 的那波是围猎型（出生半径 = 画面半对角线 × horde_hunt_spawn_mul，夹 650–1000；缺口半角 horde_hunt_gap_deg；入场速度 × horde_hunt_rush；只数 × horde_hunt_count_mult（经验按只数折算守恒）；分 horde_hunt_batches 批、批间 horde_hunt_batch_gap 秒；不画圈，HUD 只在缺口方向画一个小箭头）。所有大群：速度散布 ±horde_spd_spread、分 horde_batches 批（批间 horde_batch_gap 秒 + 每只 0–horde_jitter 秒）出发、走动时左右摆 ±horde_wob_deg 度（频率 horde_wob_f），离队长 horde_wob_r 内摆幅收到 0",
+  "_horde_merge": "10-25 用户「把围猎和大群合并，怪还是从远处围圈过来，但不要像平移飘过来、要慢慢来」（docs/150）：hunt/enabled 0 关掉独立围猎；中段固定节拍大群 horde_fixed_1..3 秒（docs/146 方案 A），horde_fixed_hunt_N = 1 的那波是围猎型（出生半径 = 画面半对角线 × horde_hunt_spawn_mul，夹 650–1000；缺口半角 horde_hunt_gap_deg；入场速度 × horde_hunt_rush；只数 × horde_hunt_count_mult（经验按只数折算守恒）；接触伤害再 × horde_hunt_dmg；分 horde_hunt_batches 批、批间 horde_hunt_batch_gap 秒；不画圈，HUD 只在缺口方向画一个小箭头）。所有大群：速度散布 ±horde_spd_spread、分 horde_batches 批（批间 horde_batch_gap 秒 + 每只 0–horde_jitter 秒）出发、走动时左右摆 ±horde_wob_deg 度（频率 horde_wob_f），离队长 horde_wob_r 内摆幅收到 0",
   "horde_runner_pct": 0.0,
   "horde_dmg": 1.0,
   "horde_lead_charge": 1,
@@ -776,6 +777,6 @@
  },
  "hunt": {
   "enabled": 0,
-  "_doc": "10-25 用户：围猎并进大群（docs/147），独立围猎事件关掉；run/hunt.gd 保留，置 1 可恢复"
+  "_doc": "10-25 用户：围猎并进大群（docs/150），独立围猎事件关掉；run/hunt.gd 保留，置 1 可恢复"
  }
 }
