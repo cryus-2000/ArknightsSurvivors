@@ -28,14 +28,22 @@ const COST_PICK := 2
 const CELLS_PER_TICKET := 5
 
 
+## 名册 id 表与职业表的缓存（10-25：寻访界面每帧调 locked_ids / class_of，原来每次都列目录 + 解析全部干员 JSON，进寻访卡顿的主因；
+## 干员定义运行期不变，所以只在第一次取时读一遍）
+static var _all_cache: Array = []
+static var _class_cache := {}
+
+
 ## 名册里所有可解锁的干员（data/characters 里允许招募的，按 id 排序，结果与目录遍历顺序无关）
 static func all_ids() -> Array:
-	var out: Array = []
-	for cid in Character.list_ids():
-		if Character.load_def(cid).get("recruitable", true):
-			out.append(cid)
-	out.sort()
-	return out
+	if _all_cache.is_empty():
+		for cid in Character.list_ids():
+			var d: Dictionary = Character.load_def(cid)
+			if d.get("recruitable", true):
+				_all_cache.append(cid)
+			_class_cache[cid] = str(d.get("class", ""))
+		_all_cache.sort()
+	return _all_cache.duplicate()
 
 
 ## 测试局：有 -- 参数且没写 --roster= → 全部解锁（与改动前一致）
@@ -67,7 +75,9 @@ static func locked_ids() -> Array:
 
 
 static func class_of(cid: String) -> String:
-	return str(Character.load_def(cid).get("class", ""))
+	if not _class_cache.has(cid):
+		_class_cache[cid] = str(Character.load_def(cid).get("class", ""))
+	return _class_cache[cid]
 
 
 ## 已解锁干员覆盖的职业
