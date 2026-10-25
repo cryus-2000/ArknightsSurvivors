@@ -142,6 +142,10 @@ def main():
     with open(os.path.join(WEB, "audio_unlock.js"), encoding="utf-8") as fh:
         js += fh.read() + "
 "
+    # 手机方向（tools/web/orientation.js，docs/22「手机方向」）：安卓锁横屏、iOS 竖屏暂停 + 提示；取代预设 head_include 里原来的「请横屏」小段
+    with open(os.path.join(WEB, "orientation.js"), encoding="utf-8") as fh:
+        js += fh.read() + "
+"
     # 帧时浮层（tools/web/fps_meter.js，docs/50 §21.7）：只在网址带 ?fps=1 时显示，给真机量帧率
     with open(os.path.join(WEB, "fps_meter.js"), encoding="utf-8") as fh:
         js += fh.read() + "\n"

@@ -6,12 +6,15 @@ var shot_dir := ""
 var cap: Label
 var n := 0
 var T
+var orient_only := false
 
 
 func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--shotdir="):
 			shot_dir = a.substr(10)
+		elif a == "--orient":
+			orient_only = true   # 只录横 → 竖 → 横（tools/web/orientation.js 通知 game._on_orient）
 	call_deferred("run")
 
 
@@ -74,6 +77,11 @@ func run() -> void:
 	var vs: Vector2 = get_viewport().get_visible_rect().size
 	var a0 := Vector2(vs.x * 0.22, vs.y * 0.62)
 	game.ppos = Vector2(1500, 900)
+	if orient_only:
+		await orient_phase(a0, vs)
+		print("TOUCH STUCK REC done frames=%d" % n)
+		get_tree().quit(0)
+		return
 	say("手机仿真 1560×720：按住摇杆向右 → 主控向右走")
 	await stick(0, a0, 90.0)
 	await fr(36)
@@ -132,3 +140,40 @@ func run() -> void:
 	await fr(6)
 	print("TOUCH STUCK REC done frames=%d" % n)
 	get_tree().quit(0)
+
+
+## 横 → 竖 → 横：浏览器里竖屏持续 0.5 秒后 orientation.js 盖上提示层并通知游戏暂停；这里用色块 + 文字示意提示层（真实 DOM 层的截图见 overlay_portrait.png）
+func orient_phase(a0: Vector2, vs: Vector2) -> void:
+	var cover := ColorRect.new()
+	cover.color = Color(0.008, 0.024, 0.04, 1.0)
+	cover.size = vs
+	cover.visible = false
+	var lab := Label.new()
+	lab.text = "请将手机横过来
+游戏已暂停，转回横屏后继续"
+	lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lab.add_theme_font_size_override("font_size", 34)
+	lab.add_theme_color_override("font_color", Color(0.8, 1, 0.95))
+	lab.add_theme_font_override("font", game.font)
+	lab.size = Vector2(vs.x, 120)
+	lab.position = Vector2(0, vs.y * 0.4)
+	cover.add_child(lab)
+	cap.get_parent().add_child(cover)
+	cap.get_parent().move_child(cap, -1)
+	say("横屏：按住摇杆向右走")
+	await stick(0, a0, 90.0)
+	await fr(40)
+	say("手机转成竖屏（持续 0.5 秒）→ 提示层盖上，游戏暂停，摇杆复位（提示层此处为示意）")
+	game._on_orient(["1"])
+	cover.visible = true
+	await fr(50)
+	tch(0, a0 + Vector2(90, 0), false)   # 竖屏期间手指抬起（事件落在提示层上，游戏收不到也无妨）
+	say("转回横屏 → 提示层撤掉，游戏自动继续，主控不再自己乱走")
+	game._on_orient(["0"])
+	cover.visible = false
+	await fr(40)
+	say("再按摇杆向左 → 正常换向")
+	await stick(1, a0, -90.0)
+	await fr(40)
+	tch(1, a0, false)
+	await fr(10)

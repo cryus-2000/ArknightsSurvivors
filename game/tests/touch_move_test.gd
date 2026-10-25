@@ -163,6 +163,32 @@ func stuck_cases(tag: String, a0: Vector2) -> void:
 	touch(15, a0, false)
 	await frames(2)
 	check(T.stick_id < 0, tag + " [双指] 摇杆手指松手后复位")
+	# 8 手机网页竖屏（orientation.js 通知 _on_orient）：对局暂停、摇杆复位；转回横屏自动继续（只恢复自己暂停的那一次），摇杆可重新起
+	await start_stick(17, a0)
+	check(game.state == game.S.PLAY and T.stick_id >= 0, tag + " [竖屏] 先起摇杆")
+	game._on_orient(["1"])
+	await frames(3)
+	check(game.state == game.S.PAUSE and T.stick_id < 0 and T.move_vec() == Vector2.ZERO, tag + " [竖屏] 竖屏后暂停且摇杆复位（state=%d）" % game.state)
+	var px: float = game.ppos.x
+	await frames(10)
+	check(absf(game.ppos.x - px) < 1.0, tag + " [竖屏] 暂停期间主控不动")
+	game._on_orient(["0"])
+	await frames(3)
+	check(game.state == game.S.PLAY, tag + " [竖屏] 转回横屏自动继续")
+	touch(17, a0, false)
+	await frames(2)
+	await start_stick(18, a0, -80.0)
+	check(T.move_vec().x < -0.5, tag + " [竖屏] 转回后摇杆能换向（%s）" % T.move_vec())
+	touch(18, a0, false)
+	await frames(2)
+	# 玩家自己点的暂停：横竖屏切换不替他恢复
+	game.state = game.S.PAUSE
+	game._on_orient(["1"])
+	await frames(2)
+	game._on_orient(["0"])
+	await frames(3)
+	check(game.state == game.S.PAUSE, tag + " [竖屏] 玩家自己暂停的，转回横屏不替他继续")
+	game.state = game.S.PLAY
 
 
 func one(vsz: Vector2i) -> void:

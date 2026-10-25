@@ -70,7 +70,7 @@
 | itch / 本地 / 桌面（没有 SDK） | 不加载 SDK，`__syToyEnv.sdk=false`，`__syCloud.probe` 回 unsupported，浏览器自己的布局 |
 | Toy 包但 SDK 加载失败 / 8 秒超时 | 同上 |
 | B站网页端（SDK 在、容器接口 `unsupported`） | 不改布局；云存档照常 |
-| B站 App 旧客户端（接口在、1.5 秒不回调） | 先试一次 `getContainerState`，再不行按 CSS `env(safe-area-inset-*)` 留边（`source=env`）；横竖屏交给预设 `head_include` 里原有的「请将手机横过来」提示 + 首次触摸尝试全屏 / `screen.orientation.lock('landscape')`（旋转自适应） |
+| B站 App 旧客户端（接口在、1.5 秒不回调） | 先试一次 `getContainerState`，再不行按 CSS `env(safe-area-inset-*)` 留边（`source=env`）；横竖屏交给 `tools/web/orientation.js`（见下文「手机方向」：首次触摸尝试全屏 / 锁横屏 + 竖屏暂停提示） |
 | 容器状态里没有胶囊字段 | `capsule=null`，顶部边距 0（画布本来已在安全区内） |
 
 **验证**（内置浏览器，桌面 Chrome 模拟手机：宽 < 768、派 TouchEvent，docs 的 `web-mobile-emulation-testing`）：
@@ -175,4 +175,14 @@ python tools/export_web.py        # 导出 HEAD 到 build/web/（改了 Web 预�
 - **根因**：摇杆靠 `stick_id ≥ 0` 判定「正在按」，只有 `touch.handle` 收到松手才清；而 `game._input` 在 `touch.handle` 之前有好几处早退（设置面板开着、结算 / 胜利演出、动效跳过、指挥圆盘吞触点），Safari 的 `touchcancel`（边缘手势、系统手势、多指）与切后台也可能根本没有松手事件。一旦丢了，`stick_id` 永远 ≥ 0：摇杆停在旧方向一直走，新手指按下又因为「已有摇杆」被忽略 = 移动键没用。
 - **三道保险**：①`game._input` 最前面 `touch.observe(event)` 记录每个触点的真实按下 / 松开（不消费、不管后面谁吞），`update()` 发现摇杆触点已松开就复位；②摇杆触点 0.6 秒没有任何事件（真手指有微动）时，新手指在摇杆区按下直接接管；4 秒没事件就当松手（停下），那根手指之后再拖动又接回；③`game._notification` 在窗口失焦 / 切后台 / 暂停 / 恢复 / 鼠标移出时 `release_all()`；槽位表被清（超 8 个陈旧登记）时控件一并复位。`touchcancel`（`canceled`）按松手处理，技能键不放技能。
 - **测试**：`tests/touch_move_test.gd` 的 `stuck_cases`：松手被吞 / 取消 / 滑出画布 / 松手整个丢了 + 新手指接管 / 超时与接回 / 失焦 / 双指，桌面与手机比例各一遍。录帧 `tests/touch_stuck_rec.tscn`（`--fixed-fps 30 --resolution 1560x720 -- --touch --shotdir=…`），mp4：主仓库 `build/ios_touch/touch_stuck_phone_sim.mp4`。
+
+## 手机方向（10-26 用户：「手机横过去之后能不能就锁住？否则没开方向锁时动一下就会变成竖屏」）
+
+`tools/web/orientation.js`（`export_web.py` 内联到最前面，取代预设 `head_include` 里原来的「请横屏」小段；`head_include` 现在只剩加载器占位）。只对手机 / 触屏小屏设备生效，电脑浏览器整段不动。
+
+- **安卓 Chrome**：首次 `touchend` 请求全屏 + `screen.orientation.lock('landscape')`，失败静默；进入全屏后再锁一次。
+- **iOS Safari（没有 orientation.lock）**：竖屏**持续 0.5 秒**才算（走动时的短暂抖动不触发），然后盖一层「请将手机横过来 / 游戏已暂停，转回横屏后继续」（图标 + 一句话），并通过 `window.__syOrient.onchange` 通知游戏；转回横屏立刻撤掉、通知继续。游戏侧（`game.gd` `_orient_init / _on_orient / _orient_tick`）：对局里（state = PLAY）进入暂停并 `touch.release_all()`，恢复时只恢复自己暂停的那一次（玩家自己点的暂停不替他继续）。
+- **不重排成竖屏界面**：竖屏期间把 `window.innerWidth / innerHeight` 冻结为最后一次横屏的值（引擎按它们定画布尺寸），画布保持横屏尺寸；转回横屏时派一次 `resize` 让引擎重新量。第一次就在竖屏打开页面时没有横屏值可冻，照常排版，转横屏后正常。
+- **B站 Toy**：容器方向由 `container.js` 的 `setContainerMode({orientation:'landscape', immersive:true})` 锁定；`__syToyEnv.container` 为真时本文件不做全屏 / 提示。itch / 普通浏览器走上面两条。
+- **验证**：Playwright（Edge，iPhone UA，844×390 ↔ 390×844）测 `orientation.js`：0.3 秒竖屏抖动不触发；持续竖屏 0.5 秒后提示层 `flex`、`innerWidth/Height` 保持 844×390、通知 `"1"`；转回 `"0"`，`resize` 被派发。游戏侧 `touch_move_test` 的「竖屏」用例（暂停 / 摇杆复位 / 自动继续 / 玩家自己暂停不替他继续）。mp4（横 → 竖 → 横，摇杆状态不乱）主仓库 `build/ios_touch/touch_orient_phone_sim.mp4`，提示层真实样式 `overlay_portrait.png`。真机（iOS Safari / 安卓 Chrome）未验。
 
