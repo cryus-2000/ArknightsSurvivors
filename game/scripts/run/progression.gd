@@ -505,6 +505,7 @@ func pick(i: int) -> void:
 	if o.get("disabled", false):
 		Sfx.play("ui_move", -6.0, 0.7)   # 买不起的事件选项（深蓝之心的房间）
 		return
+	g.panel_ui.mark_pick(i)   # 选中余光（choice_panel.draw_pick_glow）：面板马上关，选中的那张亮一下再散开
 	match o.kind:
 		"recruit":
 			if o.get("swap", false):

@@ -275,6 +275,7 @@ func _draw_body() -> void:
 		banners.draw_notices(vs)
 		banners.draw_open_hints(vs)
 		relics.draw_relic_tooltip(vs)
+		g.panel_ui.draw_pick_glow(g.hud)   # 选卡后的选中余光
 		g.touch.draw_hud(vs))
 	if not overlay_left() and not pq:
 		var sitems: Array = bars.status_items()

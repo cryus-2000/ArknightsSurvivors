@@ -43,6 +43,11 @@ const CARD_SCALE_PHONE := 0.9
 const BRIEF_SIZES_PHONE := [24, 23, 22, 21, 20, 19]
 ## 手机：正在看完整说明的那张卡（-1 = 没有）；点「详情」开 / 关，换一批卡、选中时清掉
 var detail_i := -1
+## 选中余光（10-26 用户「优化动效」：以前一选卡片就凭空消失）：选中那一刻记下这张卡的屏幕矩形，
+## 面板照旧马上关、游戏马上继续，HUD 上在原位置画 PICK_GLOW 秒的「亮一下 → 青框外扩散开」。只有两三个矩形，手机 30 帧无负担
+const PICK_GLOW := 0.3
+var picked_r := Rect2()
+var picked_t := -10.0
 const HEADER_H := 80.0         # 标题块（英文小标 + 大标题 + 说明行）到卡片顶边的高度
 ## 三档布局参数（docs/126 C6）：下标 = Cfg.ui_form()（0 桌面 / 1 触屏 / 2 手机横屏）。正文只读 lay()，不再各自判断平台。
 ## touch：触屏版式（事件条横跨整屏、卡片紧凑排版、面板压暗带从顶到底）；phone：手机横屏（整排缩 card_scale、按说明加高、上下居中）；
@@ -513,6 +518,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		if a.begins_with("--carddetail="):
 			detail_i = int(a.substr(13))
 	var briefs: bool = L.phone and kind != "event" and kind != "cross"   # 手机：卡上只写一句核心效果
+	var row_cards: bool = kind != "event" and kind != "cross"
 	if L.phone and kind != "event":
 		# 手机横屏：卡高固定（不再按最长说明加高，10-26 实机挤满），只是缩放后整块放不下时按画面高收一点
 		var max_h: float = (g.panel.size.y - HEADER_H - 12.0) / (CARD_SCALE_PHONE * row_k)
@@ -544,9 +550,11 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		var display_desc := option_description(o)
 		var card := Button.new()
 		card.set_meta("full_desc", display_desc)
-		if briefs:
-			var bf := brief(display_desc)
-			card.set_meta("brief", bf)   # 手机版式（一句话、大字、高选择条）；和完整说明不同时右上才有「详情」
+		if briefs or (row_cards and is_op_card(o)):
+			# 一句话（手机全部卡；电脑 / 平板只有干员卡，10-26 用户「干员相关卡别再细说技能」）。完整说明：手机 / 平板点「详情」，电脑悬停
+			var hl := headline(o)
+			var bf := hl if hl != "" else brief(display_desc)
+			card.set_meta("brief", bf)
 			card.set_meta("more", bf != display_desc.strip_edges())
 			display_desc = bf
 		card.custom_minimum_size = Vector2(ev_w, ev_h0) if ev else Vector2(card_w, row_h if row_h > 0.0 else card_h())
@@ -566,7 +574,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		card.draw.connect((draw_event_bar if ev else (draw_node_card if kind == "cross" else draw_card)).bind(card, o, i))
 		card.mouse_entered.connect(func(): Sfx.play("ui_move", -6.0); card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
-		if briefs:
+		if card.get_meta("more", false) and L.touch:
 			card.pressed.connect(_phone_press.bind(card, i))   # 点「详情」看完整说明，点别处照常选
 		else:
 			card.pressed.connect(g.progression.pick.bind(i))
@@ -580,6 +588,8 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		else:
 			# 触屏说明字先试大 2 号，放不下再退回原字号（紧凑布局同理）
 			var f0 := UI.fit(g.font, display_desc, card_w - 40.0, 60.0, [15, 14, 13, 12] if Pad.touch_ui() else [13, 12])
+			if card.has_meta("brief") and not L.touch:
+				f0 = UI.fit(g.font, display_desc, card_w - 40.0, 64.0, [18, 17, 16, 15, 14, 13])   # 电脑：干员卡一句话，字放大
 			var compact: bool = not f0.fit
 			if L.touch:
 				# 手机：说明字比图标要紧——一律紧凑布局（图标 64 在 84、名字 160、说明 176 起到标签行上方），字 20 起、最小 15
@@ -634,6 +644,61 @@ static func brief(desc: String) -> String:
 		if c >= 6:
 			s0 = s0.substr(0, c)
 	return s0.strip_edges()
+
+
+## 记下选中卡的屏幕矩形（progression.pick 调用；事件选项条、翻节点卡同样适用）
+func mark_pick(i: int) -> void:
+	var box: BoxContainer = g.panel_col if g.choice_kind == "event" else g.panel_box
+	if i < 0 or i >= box.get_child_count() or UM.rm():
+		return
+	var c := box.get_child(i) as Control
+	picked_r = c.get_global_rect()
+	picked_t = UM.now()
+
+
+## 选中余光：前 1/3 整卡一层白光淡出，青框从卡边外扩 18 px 并淡出（画在 HUD 最上层的 front 块里）
+func draw_pick_glow(ci: CanvasItem) -> void:
+	var e := (UM.now() - picked_t) / PICK_GLOW
+	if e < 0.0 or e >= 1.0:
+		return
+	var r := picked_r
+	r.position -= (ci as Control).get_global_rect().position
+	var k := 1.0 - e
+	if e < 0.33:
+		ci.draw_rect(r, Color(1, 1, 1, 0.28 * (1.0 - e / 0.33)))
+	var gr := r.grow(4.0 + 18.0 * UI.ease_out(e))
+	ci.draw_rect(gr, Color(UI.CYAN, 0.9 * k), false, 2.0)
+	ci.draw_rect(gr.grow(3.0), Color(UI.CYAN, 0.25 * k), false, 3.0)
+
+
+## 干员相关卡（招募 / 干员培养 / 精英化 / 技能进阶）
+static func is_op_card(o: Dictionary) -> bool:
+	var k: String = str(o.get("kind", ""))
+	return k == "recruit" or k == "prog" or (k == "growth" and o.has("op"))
+
+
+## 干员卡的一句话（10-26 用户：只写「解锁二技能 · <原作技能名>」这样一句）：精英化卡 = 这一阶解锁的技能（精一二技能、精二三技能）；
+## 招募卡去掉讲技能的后半句；其余返回空，由 brief() 取说明第一句
+const CN_NUM := ["一", "二", "三", "四"]
+
+
+func headline(o: Dictionary) -> String:
+	if str(o.get("kind", "")) == "recruit":
+		# 招募卡：第一句里讲到技能的半句不写（「普攻熔岩弹清理敌群，技能喷发火山…」只留前半），技能看详情
+		var b := brief(option_description(o))
+		var c := b.find("，")
+		return b.substr(0, c) if c >= 4 and b.substr(c).contains("技能") else ""
+	if str(o.get("kind", "")) != "prog" or int(o.get("elite", 0)) <= 0 or o.get("branch", false):
+		return ""
+	var op = g.squad.get_op(str(o.get("op", ""))) if g.squad != null else null
+	if op == null:
+		return ""
+	var lv: int = int(o.elite)
+	var sk: Dictionary = op.skill_def(lv)
+	var nm: String = str(sk.get("name", ""))
+	if nm == "" or lv >= CN_NUM.size():
+		return ""
+	return "解锁%s技能 · %s" % [CN_NUM[lv], nm]
 
 
 ## 手机卡片点击：点在右上「详情」上 = 开 / 关这张卡的完整说明；点在别处 = 选这张（详情开着时也照常选）
@@ -772,7 +837,7 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	card.draw_rect(r, UI.CYAN if hov else Color(1, 1, 1, 0.11), false, 1.0)
 	var tag := card_tag(o)
 	UI.strip(card, g.font, r.position + Vector2(14, 14), tag[0], tag[1], UI.CYAN if hov else Color(1, 1, 1, 0.88), UI.TEXT, 12)
-	if card.get_meta("more", false):
+	if card.get_meta("more", false) and card.get_meta("phone", false):
 		draw_detail_chip(card, r, i)
 	else:
 		UI.ctext(card, g.font, r.position + Vector2(r.size.x - 40, 32), str(i + 1), 17, UI.TEXT if hov else Color(0.43, 0.47, 0.51), HORIZONTAL_ALIGNMENT_RIGHT, 24)
@@ -835,10 +900,10 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	# 作用对象：这张卡影响编队里的哪些干员（招募卡列这名干员的伤害特征）；说明区最多到 306，标签行在 310
 	var chips: Array = card.get_meta("affects", [])
 	if not chips.is_empty():
-		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - (CHIP_UP_PHONE if roomy else 53.0)), chips, r.size.x - (2.0 * px if roomy else 32.0), 1, "特性" if o.kind in ["recruit", "swap_out"] else "影响", 14 if card.has_meta("brief") else 11, ta)
+		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - (CHIP_UP_PHONE if roomy else 53.0)), chips, r.size.x - (2.0 * px if roomy else 32.0), 1, "特性" if o.kind in ["recruit", "swap_out"] else "影响", 14 if (ph and card.has_meta("brief")) else 11, ta)
 	# 底部操作条：普通钢蓝；悬停青底深字
 	var ab := Rect2(r.position + Vector2(20, r.size.y - 46), Vector2(r.size.x - 40, 30)) if roomy else Rect2(r.position + Vector2(16, r.size.y - 44), Vector2(r.size.x - 32, 30))
-	if card.has_meta("brief"):
+	if ph and card.has_meta("brief"):
 		ab = Rect2(r.position + Vector2(16, r.size.y - 54), Vector2(r.size.x - 32, 42))   # 手机：选择条 42 高（× 0.9 ≈ 38 界面像素）
 	card.draw_rect(ab, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
 	var ink := Color(0.04, 0.07, 0.09) if hov else Color.WHITE
@@ -847,10 +912,10 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var w1 := g.font.get_string_size("选择", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sfs)).x
 	var w2 := (UI.cwidth(g.font, kl, 12) + 8.0) if kl != "" else 0.0
 	var sx := ab.get_center().x - (w1 + w2) / 2.0
-	if card.has_meta("brief"):
+	if ph and card.has_meta("brief"):
 		sfs = 20
 		sx = ab.get_center().x - g.font.get_string_size("选择", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sfs)).x / 2.0
-	UI.text(card, g.font, Vector2(sx, ab.position.y + (ab.size.y / 2.0 + 7.0 if card.has_meta("brief") else (21.0 if ph else 20.0))), "选择", sfs, ink)
+	UI.text(card, g.font, Vector2(sx, ab.position.y + (ab.size.y / 2.0 + 7.0 if (ph and card.has_meta("brief")) else (21.0 if ph else 20.0))), "选择", sfs, ink)
 	UI.ctext(card, g.font, Vector2(sx + w1 + 8.0, ab.position.y + 20), kl, 12, ink if hov else Color(1, 1, 1, 0.7))
 	motion.end(card, i, o)
 
@@ -1081,9 +1146,13 @@ func draw_panel_tip() -> void:
 		var fd: Dictionary = card.get_meta("fit", {})
 		var cut: bool = card.get_meta("chips_cut", false)
 		var links: String = card.get_meta("links", "")
-		if card.has_meta("brief"):
-			# 手机：只有点开「详情」的那张画完整说明（含联动 / 被收起的影响对象）
+		if card.has_meta("brief") and card.get_meta("phone", false):
+			# 手机 / 平板：只有点开「详情」的那张画完整说明（含联动 / 被收起的影响对象）
 			if card.get_index() != detail_i or not card.get_meta("more", false):
+				continue
+		elif card.has_meta("brief"):
+			# 电脑：干员卡只写了一句，悬停时给完整说明
+			if not (card.get_meta("more", false) or cut or links != "") or not g.panel_ui.card_hot(card, card.get_index()):
 				continue
 		elif ((fd.is_empty() or fd.get("fit", true)) and not cut and links == "") or not g.panel_ui.card_hot(card, card.get_index()):
 			continue
@@ -1094,8 +1163,12 @@ func draw_panel_tip() -> void:
 		var desc: String = card.get_meta("full_desc", fallback)
 		if cut:
 			desc += "\n影响：" + "、".join(PackedStringArray(card.get_meta("affects", []).map(func(c): return c[0])))
-		if card.has_meta("brief"):
+		if card.has_meta("brief") and card.get_meta("phone", false):
 			_draw_phone_detail(card, title, desc + ("\n联动：" + links if links != "" else ""))
+			return
+		if card.has_meta("brief"):
+			g.hud_view.draw_tooltip(vs, Rect2(gr.position - g.panel_tip.get_global_rect().position, gr.size), title, "完整说明",
+				desc + ("\n联动：" + links if links != "" else ""), "", UI.CYAN, g.panel_tip)
 			return
 		var sub := "完整说明"
 		if links != "" and not card.has_meta("brief"):
