@@ -30,6 +30,8 @@ var bm_boss: Dictionary = {}
 var ba_boss: Dictionary = {}   # --bossacts（docs/142b §9 逐幕演示 gif）：演示中的 Boss / 搭档 / 下一次过卡点的时刻
 var ba_mate: Dictionary = {}
 var ba_next := 0.0
+var ba_ft := {"a": [], "b": []}   # --bossacts --perfab：每帧用时（微秒），a = 新画法、b = g.perf_alt 旧画法
+var ba_us := 0
 var bm_mate: Dictionary = {}   # --bossmoves=<type>[2]+<搭档>：接潮组的搭档（停在主控左上、不出招、不死，供「统一」等两体招式验收）
 var bm_list: Array = []
 var bm_i := 0
@@ -1288,13 +1290,38 @@ func _bossacts_step(spec: String) -> void:
 			passed = true
 		print("BOSSACTS gate t=%.1f passed=%s phase=%d" % [g.t, str(passed), int(ba_boss.phase)])
 		if not passed:
+			for k in ["a", "b"]:
+				var v: Array = ba_ft[k]
+				if v.size() > 10:
+					v.sort()
+					print("BOSSACTS PERF %s n=%d p50=%.2f p95=%.2f ms" % [k, v.size(), v[v.size() / 2] / 1000.0, v[int(v.size() * 0.95)] / 1000.0])
 			print("BOSSACTS END %s" % spec)
 			g.get_tree().quit()
 			return
 	if g.at_frames % 60 == 0:
 		print("BOSSACTS state t=%.1f %s" % [g.t, _ba_state(ba_boss)])
-	if g.at_frames >= 30 and g.at_frames % 3 == 0 and DisplayServer.get_name() != "headless":
+	_ba_perf()
+	if g.at_frames >= 30 and g.at_frames % 3 == 0 and DisplayServer.get_name() != "headless" and not Cfg.dev_args().has("--noshots"):
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_acts_%s_%04d.png" % [spec.replace("+", "_"), g.at_frames])
+
+
+## --bossacts 帧时（协调人 10-25：每只 Boss 改完同局轮换量 P50 / P95）：记上一帧到这一帧的真实用时，按上一帧所用画法分桶；
+## 轮换（--perfab=N，每 N 帧切 g.perf_alt）后的头 2 帧不记（切换那一帧混着两种画法）
+var ba_sw := 0
+func _ba_perf() -> void:
+	var ab: int = 0
+	for a in Cfg.dev_args():
+		if a.begins_with("--perfab="):
+			ab = int(a.substr(9))
+	if ab <= 0:
+		return
+	var now: int = Time.get_ticks_usec()
+	if ba_us > 0 and g.at_frames - ba_sw > 2 and g.at_frames > 80:
+		ba_ft["b" if g.perf_alt else "a"].append(now - ba_us)
+	ba_us = now
+	if g.at_frames % ab == 0:
+		g.perf_alt = not g.perf_alt
+		ba_sw = g.at_frames
 
 
 ## 演示日志：主轴状态的个数（火线 / 路线 / 幻影 / 网 / 泪 / 子代 / 强化层 / 冰柱 / 同步护盾），核对 gif 里该出现的东西有没有出现

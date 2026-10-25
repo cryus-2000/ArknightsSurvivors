@@ -11,6 +11,33 @@ const SEG := 16.0     # 每段宽（美术像素）
 const HALF_H := 24.0  # 帧高 48 的一半（光束竖直居中）
 const ON_T := 0.12    # 开启 / 关闭各 0.12 秒（4 帧）
 const FPS := 16.0     # 持续帧循环
+# Boss 颗粒预算（令牌桶）：每秒补 render/boss_grain_rate（高档 600、中档减半）、最多攒 render/boss_grain_burst（高档 160、中档减半）；
+# 每次要 n 颗只给桶里有的（超了降密度，不排队）。低档 fx_grains 不开 → grains() 返回 null，各处退回原画法
+static var _tok := 0.0
+static var _tok_us := 0
+
+
+## Boss 特效颗粒层：光学观感颗粒开着、render/boss_fx_grains 开、且不在 --perfab 同局轮换的「旧」段（g.perf_alt）时返回 fx_grains，否则 null
+static func grains(g):
+	if g.optical == null or g.optical.grains == null or not g.optical.grains.on() or g.perf_alt or Bal.v("render/boss_fx_grains", 1.0) <= 0.0:
+		return null
+	return g.optical.grains
+
+
+## 从预算里要 n 颗，返回实际给的颗数（0..n）
+static func take(g, n: int) -> int:
+	var now: int = Time.get_ticks_usec()
+	var hi: bool = g.optical.grains.level >= 2
+	var rate: float = Bal.v("render/boss_grain_rate", 600.0) * (1.0 if hi else 0.5)
+	var cap: float = Bal.v("render/boss_grain_burst", 160.0) * (1.0 if hi else 0.5)
+	if _tok_us > 0:
+		_tok = minf(cap, _tok + rate * float(now - _tok_us) / 1000000.0)
+	else:
+		_tok = cap
+	_tok_us = now
+	var give: int = mini(n, int(_tok))
+	_tok -= float(give)
+	return give
 
 
 static func _tex(g, name: String) -> Texture2D:
@@ -270,16 +297,17 @@ static func _act_look(g, e: Dictionary, grains) -> void:
 	var prev: int = int(e.get("look_i", -9))
 	e["look_i"] = i
 	if prev != -9 and prev != i:
-		# 换幕：一圈 48 颗这一幕颜色的颗粒向外迸散
-		for k in 48:
-			var d: Vector2 = Vector2.from_angle(TAU * k / 48.0 + g.vrng.randf_range(-0.05, 0.05))
+		# 换幕：一圈（最多 48 颗）这一幕颜色的颗粒向外迸散
+		var nb: int = take(g, 48)
+		for k in nb:
+			var d: Vector2 = Vector2.from_angle(TAU * k / maxf(1.0, float(nb)) + g.vrng.randf_range(-0.05, 0.05))
 			grains.push("mote_burst", e.pos + d * float(e.r) * 0.6, d, c)
 	var mode: String = lk[1]
 	if mode == "":
 		return
 	var p: float = float(lk[2]) / 60.0
 	while p > 0.0:
-		if g.vrng.randf() < p:
+		if g.vrng.randf() < p and take(g, 1) > 0:
 			var r: float = float(e.r)
 			match mode:
 				"up":
@@ -296,6 +324,7 @@ static func _act_look(g, e: Dictionary, grains) -> void:
 ## 前沿：随角度起伏（7 瓣、随时间流动 ±7–10）、粗细脉动的专属色亮带 + 浅色芯；身后三层衰减尾带（越往里越淡越宽）；
 ## 前沿沿途散出颗粒（光学观感颗粒开着时）；缺口两侧照旧画金色出口短线。不加深色描边（只有伊比利亚的弹描边）
 const SONG_STEP := 0.07   # 折线每段弧度
+const SONG_RIP := 26.0    # 内波纹间距（世界像素）
 
 
 static func _song_pts(sh: Dictionary, a0: float, a1: float, dr: float, gy: float, t: float) -> PackedVector2Array:
@@ -336,6 +365,16 @@ static func draw_song(g, sh: Dictionary, gy: float) -> void:
 		for j in 3:
 			var dr: float = -8.0 - 9.0 * j
 			g.draw_polyline(_song_pts(sh, sg[0], sg[1], dr, gy, t - 0.05 * j), Color(c.r, c.g, c.b, (0.32 - 0.09 * j) * a), 6.0 + 3.0 * j)
+		# 内波纹（用户 10-25「波纹内部多叠，现在就外部一个不明显」）：前沿之内 4 圈，间距 SONG_RIP，随时间由内向外流向前沿（一层层推出去）；
+		# 越往里越淡越细，各圈错相起伏（相位偏 0.9 秒 / 圈），太靠近圆心的不画
+		var flow: float = fposmod(t * 55.0, SONG_RIP)
+		for q in 4:
+			var dr2: float = -(16.0 + SONG_RIP * float(q) + (SONG_RIP - flow))
+			if float(sh.r) + dr2 < 24.0:
+				continue
+			var depth: float = clampf(-dr2 / (SONG_RIP * 4.0 + 16.0), 0.0, 1.0)
+			var lc: float = 1.15 - 0.35 * depth   # 外圈偏亮、里圈偏暗（同色系分明暗）
+			g.draw_polyline(_song_pts(sh, sg[0], sg[1], dr2, gy, t + 0.9 * float(q + 1)), Color(c.r * lc, c.g * lc, c.b * lc, 0.55 * a * (1.0 - depth)), 2.6 - 1.6 * depth)
 		# 前沿亮带 + 浅色芯 + 前方一点柔光
 		g.draw_polyline(_song_pts(sh, sg[0], sg[1], 4.0, gy, t), Color(c.r, c.g, c.b, 0.22 * a), 4.0)
 		g.draw_polyline(_song_pts(sh, sg[0], sg[1], 0.0, gy, t), Color(c.r * 1.25, c.g * 1.25, c.b * 1.25, a), 3.0 + 1.5 * pulse)
@@ -347,14 +386,21 @@ static func draw_song(g, sh: Dictionary, gy: float) -> void:
 			var p1: Vector2 = sh.pos + Vector2(v.x, v.y * gy) * (float(sh.r) + 16.0)
 			g.draw_line(p0, p1, Color(1.0, 0.85, 0.35, 0.9), 2.0)
 	# 前沿沿途散颗粒：每帧 5 颗，随机角度（落在缺口里的跳过），向外飘、慢慢升起变淡
-	var grains = g.optical.grains if g.optical != null and g.optical.grains != null and g.optical.grains.on() else null
+	var grains = grains(g)
 	if grains != null and a > 0.2:
-		for i in 5:
+		for i in take(g, 3):
 			var ang: float = g.vrng.randf() * TAU
 			if not gaps.is_empty() and g.tele.in_gap(sh, ang):
 				continue
 			var v2 := Vector2.from_angle(ang)
 			grains.push("mote_shed", sh.pos + Vector2(v2.x, v2.y * gy) * float(sh.r), v2, c)
+		# 波内部由内向外流的颗粒（每帧最多 2 颗，走预算）：一层层往外推的「流」
+		for i in take(g, 2):
+			var ang2: float = g.vrng.randf() * TAU
+			if not gaps.is_empty() and g.tele.in_gap(sh, ang2):
+				continue
+			var v3 := Vector2.from_angle(ang2)
+			grains.push("mote_shed", sh.pos + Vector2(v3.x, v3.y * gy) * float(sh.r) * g.vrng.randf_range(0.45, 0.9), v3, Color(c.r * 0.85, c.g * 0.85, c.b * 0.85))
 
 
 ## 大群之歌的起势（预警 0.8 秒里）：她身边一圈由外往里收的环 + 颗粒向她汇聚（「张开 → 吸气」），出手时由 draw_song 接上
@@ -368,9 +414,9 @@ static func _song_windup(g, e: Dictionary) -> void:
 		g.draw_set_transform(e.pos, 0.0, Vector2(1.0, 0.72))
 		g.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 48, Color(c.r, c.g, c.b, 0.15 + 0.5 * k), 2.0 + 3.0 * k)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		var grains = g.optical.grains if g.optical != null and g.optical.grains != null and g.optical.grains.on() else null
+		var grains = grains(g)
 		if grains != null:
-			for i in 4:
+			for i in take(g, 3):
 				var d := Vector2.from_angle(g.vrng.randf() * TAU)
 				grains.push("mote_in", e.pos + d * g.vrng.randf_range(140.0, 200.0), -d, c)
 		return
@@ -378,7 +424,7 @@ static func _song_windup(g, e: Dictionary) -> void:
 
 ## 地面层：骑士的寒气圈（低亮度，0 区域样式：只提示「进来会涨寒冷」，不伤人）；卡门的封锁线；塑路者的生路
 static func draw_ground(g) -> void:
-	var grains = g.optical.grains if g.optical != null and g.optical.grains != null and g.optical.grains.on() else null
+	var grains = grains(g)
 	if grains != null:
 		for e in g.bosses:
 			if not e.dead:

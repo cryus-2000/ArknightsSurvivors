@@ -1000,7 +1000,7 @@ func gate_pass(e: Dictionary) -> void:
 	e.gate_inv = Bal.v("boss/gate_inv", 0.8)
 	e.wind = maxf(e.get("wind", 0.0), e.gate_inv)   # 0.8 秒内不出新招
 	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e) or w.done)
-	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.2, "life": 0.5, "max": 0.5, "col": UI.GOLD})
+	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.2, "life": 0.5, "max": 0.5, "col": g.vfx.boss_color(str(e.type))})   # 专属色（docs/142b §9 特效精修）
 	Sfx.play("roar", -4.0, 1.1, 0.0)
 	var bh = g.bai.boss(e.type)   # Boss 过卡点钩子（偏执泡影坠落进二阶段，docs/101 B1c）
 	if bh != null:

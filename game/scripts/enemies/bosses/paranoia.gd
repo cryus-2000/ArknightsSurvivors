@@ -74,7 +74,7 @@ func _gaze(e: Dictionary, dir: Vector2) -> void:
 		ng = 0
 		for s in [-1.0, 1.0]:
 			var a: float = dir.angle() + 0.6 * s
-			_warn(e, "line", 1.3, base.merged({"pos": g.ppos - Vector2.from_angle(a) * 410.0, "ang": a, "track": 0.0,
+			_warn(e, "line", 1.3, base.merged({"pos": g.ppos - Vector2.from_angle(a) * 410.0, "ang": a, "track": 0.0, "no_eye": true,
 				"name": "凝视" if s < 0.0 else "", "seq_no": 1 if s < 0.0 else 2, "lock": s < 0.0}))
 	elif e.phase == 1:
 		ng = 1

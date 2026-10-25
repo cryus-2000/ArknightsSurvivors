@@ -20,14 +20,15 @@ OUT = os.path.join(ROOT, "build", "boss_acts")
 W = 400
 
 
-def run(spec):
+def run(spec, gamedir=None):
+    """gamedir：另一份 game 目录（对比录「旧」用，如 build/_fx_before/game）；缺省本工作树"""
     out = os.path.join(OUT, spec.replace("+", "_"))
     shutil.rmtree(out, ignore_errors=True)
     os.makedirs(out, exist_ok=True)
     for f in os.listdir(out):   # 目录删不掉（被占用）时至少清掉旧截图
         if f.endswith(".png"):
             os.remove(os.path.join(out, f))
-    args = [gr.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "30", "--",
+    args = [gr.find_godot(), "--path", gamedir or os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "30", "--",
             "--autotest", "--seed=1", "--op=mizuki", "--bossacts=" + spec, "--shotdir=" + out.replace(os.sep, "/")]
     o, e, to = gr.run_godot(args, 400)
     open(os.path.join(out, "run.log"), "w", encoding="utf-8").write(o + "\n----\n" + e)

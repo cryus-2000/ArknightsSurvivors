@@ -212,6 +212,17 @@ func warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 
 
 func warn_resolve(w: Dictionary) -> void:
+	var n0: int = g.fx.size()
+	_resolve(w)
+	var e: Dictionary = w.owner
+	if e.get("boss", false) and Bal.v("render/boss_fx_grains", 1.0) > 0.0:
+		var bc: Color = g.vfx.boss_color(str(e.type))
+		for i in range(n0, g.fx.size()):
+			if not g.fx[i].has("bfx"):
+				g.fx[i]["bfx"] = bc
+
+
+func _resolve(w: Dictionary) -> void:
 	var e: Dictionary = w.owner
 	var c: Color = w.col
 	if w.has("cue"):
@@ -386,8 +397,9 @@ func warn_resolve(w: Dictionary) -> void:
 			warn_damage(w)
 		"beam":
 			var b2: Vector2 = w.pos + dv * w.len
-			if not _kp(w, w.pos + Vector2(0, -20), b2):
-				g.fx.append({"kind": "bbeam", "a": w.pos + Vector2(0, -20), "b": b2, "life": 0.5, "max": 0.5, "col": c, "wid": w.wid})
+			var eye: Vector2 = Vector2.ZERO if w.get("no_eye", false) else Vector2(0, -20)   # 眼位偏移只给从本体射出的线
+			if not _kp(w, w.pos + eye, b2):
+				g.fx.append({"kind": "bbeam", "a": w.pos + eye, "b": b2, "life": 0.5, "max": 0.5, "col": c, "wid": w.wid})
 			if e.type == "paranoia":
 				# 凝视命中端的紫白爆点（Codex fx_paranoia_gaze_hit；缺图只有光束）：画在主控被打到的位置，没打到画在线端
 				var hp: Vector2 = Geometry2D.get_closest_point_to_segment(g.ppos + Vector2(0, -14), w.pos, b2) if hits_leader(w) else b2
