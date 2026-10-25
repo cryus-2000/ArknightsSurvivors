@@ -636,6 +636,30 @@ func freeze_zone(r: float) -> void:
 	g.mires = remaining
 
 
+## 怪物留下的溟痕统一入口（docs/155）：拖痕 trail / 落点 lob / 神经弹 shot / 死亡留痕 death。打上 src 与出生时间 t0，
+## 怪物溟痕超过 enemy/mire_enemy_cap 时最老的一片开始淡出（mire_fade 秒后移除，淡出中不再伤人）。常驻规则不变：没被挤掉的照旧常驻
+func add_enemy_mire(m: Dictionary, src: String) -> void:
+	m["src"] = src
+	m["t0"] = g.t
+	var cap := int(Bal.v("enemy/mire_enemy_cap", 16.0))
+	var n := 0
+	var oldest = null
+	for x in g.mires:
+		if x.has("src") and x.life > 0.0 and not x.has("fade"):
+			n += 1
+			if oldest == null:
+				oldest = x
+	if n >= cap and oldest != null:
+		fade_mire(oldest)
+	g.mires.append(m)
+
+
+## 让一片溟痕慢慢淡出（不是瞬间消失）：world 按 fade 画透明度，enemies.update_status 倒计时到 0 移除
+func fade_mire(m: Dictionary) -> void:
+	if not m.has("fade"):
+		m["fade"] = Bal.v("enemy/mire_fade", 1.5)
+
+
 ## 最终 Boss 场地是禁生成圆区；最大半径与圆区相交（含相切）就禁止整片生成。
 func mire_blocked(pos: Vector2, radius: float = 0.0) -> bool:
 	return g.zone_frozen and pos.distance_squared_to(g.zone_next_c) <= pow(maxf(0.0, g.zone_next_r) + maxf(0.0, radius), 2.0)
@@ -1277,8 +1301,8 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 						kill(o)
 	# 深溟奠基者（V8）：死亡时留下一片溟痕（death_mire = 最大半径）
 	var dmire := float(D.ENEMIES.get(e.type, {}).get("death_mire", 0.0))
-	if dmire > 0.0 and g.mires.size() < 32 and not mire_blocked(e.pos + Vector2(0, 8), dmire):
-		g.mires.append({"pos": e.pos + Vector2(0, 8), "r": 10.0, "maxr": dmire, "life": 12.0, "seed": g.vrng.randf() * 100.0, "boss": false})
+	if dmire > 0.0 and not mire_blocked(e.pos + Vector2(0, 8), dmire):
+		add_enemy_mire({"pos": e.pos + Vector2(0, 8), "r": 10.0, "maxr": dmire, "life": 12.0, "seed": g.vrng.randf() * 100.0, "boss": false}, "death")
 	if e.xp > 0.0:
 		g.pickups.drop(e.pos, "xp", e.xp * g.xp_mult)
 	if g.rng_drop.randf() < Bal.v("lamp/oil_kill_chance", 0.006) * float(g.dmod.oil_drop):

@@ -170,6 +170,12 @@
  },
  "enemy": {
   "_doc": "敌人生命 / 攻击随时间的曲线（docs/27 §4）。hp = base × (1 + min(t,hp_knee)/hp_div + max(t-hp_knee,0)/hp_late_div)；dmg = base × (1 + min(t,dmg_knee)/dmg_div)",
+  "_mire_src": "怪物留下的溟痕（docs/155，用户 10-25「一下子生成一长串，然后后面就不动了」）：mire_enemy_cap 怪物溟痕（拖痕 / 落点 / 神经弹 / 死亡留痕）总数，超出时最老的一片 mire_fade 秒淡出；trail_spacing 引痕者拖痕每走这么远铺一片；trail_max 每只引痕者最多留这么多片，更旧的淡出。自然溟痕另按地图 max_count 计数，满了淡出离队长最远且超过 mire_recycle_d 的一片再刷新的",
+  "mire_enemy_cap": 16,
+  "mire_fade": 1.5,
+  "trail_spacing": 40,
+  "trail_max": 8,
+  "mire_recycle_d": 520,
   "hp_knee": 480,
   "hp_div": 110,
   "hp_late_div": 120,
@@ -300,7 +306,9 @@
   "mire_ward_r": 200, "mire_recede": 10, "mire_ward_dmg": 0.8,
   "mire_creep_r": 380, "mire_creep_spd": 14, "mire_creep_grow": 6, "mire_creep_cap": 1.3,
   "mire_spawn_iv": 0.4, "mire_spawn_near": 0.4,
-  "mire_hint_cd": 10
+  "mire_hint_cd": 10,
+  "_mire_ward_grace": "docs/155：刚出现的溟痕这么多秒内不受灯火退散影响（原来新拖痕半径 8 一出现就被收掉）",
+  "mire_ward_grace": 3
  },
  "xp": {
   "_doc": "升级所需经验：first 为 Lv1→2；基础 a + b·L + c·L²，Lv12前不变，Lv12→30平滑增至late_mult倍，延长后半程成长",

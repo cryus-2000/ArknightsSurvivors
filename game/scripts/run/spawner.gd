@@ -581,9 +581,25 @@ func update(dt: float) -> void:
 		if g.zone_state != 0 and g.rng_spawn.randf() < 0.6:
 			var ang := (g.ppos - g.zone_c).angle() + g.rng_spawn.randf_range(-0.8, 0.8)
 			mp = g.zone_c + Vector2.from_angle(ang) * (g.zone_r - g.rng_spawn.randf_range(20.0, 120.0))
-		if g.mires.size() < int(g.map.mire_cfg().get("max_count", 24)):
+		# 只和自然溟痕比上限（docs/155：原来和怪物留痕共用总数，拖痕把名额占满后全图不再刷新）；
+		# 满了就淡出离队长最远、且超过 enemy/mire_recycle_d 的一片自然溟痕再刷新的，溟痕跟着队长走而不是定格
+		var nat: Array = g.mires.filter(func(x): return not x.has("src") and not x.get("boss", false) and x.life > 0.0 and not x.has("fade"))
+		var room: bool = nat.size() < int(g.map.mire_cfg().get("max_count", 24))
+		if not room:
+			var far = null
+			var far_d: float = Bal.v("enemy/mire_recycle_d", 520.0)
+			for x in nat:
+				var xd: float = x.pos.distance_to(g.ppos)
+				if xd > far_d:
+					far_d = xd
+					far = x
+			if far != null:
+				g.combat.fade_mire(far)
+				room = true
+		if room:
 			var mire: Dictionary = g.map.mire_new(mp, g.t, true)
 			if not g.combat.mire_blocked(mire.pos, float(mire.maxr)):
+				mire["t0"] = g.t
 				g.mires.append(mire)
 	# 商人
 	if g.merchant.is_empty() and g.merchant_idx < g.MERCHANT_TIMES.size() and g.t >= g.MERCHANT_TIMES[g.merchant_idx]:
