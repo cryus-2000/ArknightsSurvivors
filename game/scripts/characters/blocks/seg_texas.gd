@@ -899,10 +899,12 @@ static func tx_rift_update(o, dt: float) -> void:
 			sc.append({"a": p0, "c": p1, "until": g.t + life})
 			tx["scars"] = sc
 			rf.flash = {"p": p1, "from": p0, "t": rf.t}
+			_tx_rift_trail(o, rf.from, p1)   # 瞬移残影：上一处 → 这一刀落点
 			rf.from = p1
 			_tx_rift_grains(o, p0, p1, 10.0)
 			o._sfx_op("hit")
 		if rf.t >= rf.end:
+			_tx_rift_trail(o, rf.from, o.pos)   # 斩完回原位，同样留残影
 			tx.erase("rift")
 	var sc2: Array = tx.get("scars", [])
 	if not sc2.is_empty():
@@ -939,6 +941,7 @@ static func _tx_rift_grains(o, a: Vector2, c: Vector2, step: float) -> void:
 
 ## 画本体：闪现序列里本体隐去，只在斩出手后的 0.2 秒里在落点画一份（朝向 = 斩的方向）。返回 true = 已处理（不画原位的本体）
 static func tx_rift_draw_body(o) -> bool:
+	_tx_rift_draw_trails(o)
 	var rf = o.tx.get("rift")
 	if rf == null:
 		return false
@@ -1005,3 +1008,37 @@ static func tx_scar_draw(o, f: Dictionary, a: float) -> bool:
 		var tip: Vector2 = p0 + d * (ut * L) + nv * (bow * sin(PI * ut))
 		cv.draw_rect(Rect2(Vector2(floorf(tip.x / cell), floorf(tip.y / cell)) * cell - Vector2(cell, cell) * 0.5, Vector2(cell, cell) * 2.0), Color(2.4, 2.4, 2.4, a))
 	return true
+
+## 瞬移残影（10-25 用户「瞬移加上一点残影」）：一次闪现 a → b 记一条，画面上沿线均匀画 RIFT_TRAIL_N 个当前帧剪影（偏冷半透明、越靠起点越淡），
+## RIFT_TRAIL_LIFE 秒内整体淡掉。纯画面：时间用 g.t，不进玩法
+const RIFT_TRAIL_N := 4
+const RIFT_TRAIL_LIFE := 0.26
+
+static func _tx_rift_trail(o, a: Vector2, b: Vector2) -> void:
+	if a.distance_to(b) < 8.0:
+		return
+	var tr: Array = o.tx.get("rtrail", [])
+	tr.append({"a": a, "b": b, "t0": float(o.g.t)})
+	o.tx["rtrail"] = tr
+
+
+static func _tx_rift_draw_trails(o) -> void:
+	var tr: Array = o.tx.get("rtrail", [])
+	if tr.is_empty():
+		return
+	var now: float = float(o.g.t)
+	var keep: Array = []
+	for it in tr:
+		var age: float = now - float(it.t0)
+		if age < 0.0 or age >= RIFT_TRAIL_LIFE:
+			continue
+		keep.append(it)
+		var fade: float = 1.0 - age / RIFT_TRAIL_LIFE
+		var a: Vector2 = it.a
+		var b: Vector2 = it.b
+		var flip: bool = b.x < a.x
+		for i in RIFT_TRAIL_N:
+			var u: float = float(i + 1) / float(RIFT_TRAIL_N + 1)
+			var al: float = fade * (0.18 + 0.32 * u)
+			o.draw_body_at(a.lerp(b, u).round(), flip, Color(0.55, 0.72, 1.0, al))
+	o.tx["rtrail"] = keep
