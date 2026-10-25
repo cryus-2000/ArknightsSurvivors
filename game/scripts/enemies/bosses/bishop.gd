@@ -1,24 +1,32 @@
 ## 接潮主教（type bishop，docs/38 §2.3；招式改版 docs/95 §8，10-14 第 3 批）
 ## Boss 行为脚本（docs/55 §6 拆分，10-10）：状态仍在敌人字典 e 上，预警 / 冷却 / 迫近经基类转给 boss_ai.gd。本文件只有这只 Boss 自己的招式与阶段逻辑。
 ## 4 招：A 潮汐柱（① 直线上等距三圈）/ B 交错潮环（④，patterns）/ C 统一（② 两体之间的直线，boss_ai 公共段 + unite）/ D 接潮扇浪（③，第二幕，patterns manual）
-## 机制不占名额：召潮、祝福、慌乱、假死赛跑、第二幕两体靠拢
+## 机制不占名额：召潮、祝福、慌乱、假死赛跑
+## 主轴「同步」（docs/142b §3.8 / §8.2，10-25）：血量差护盾（boss_base._pair_shield）、一幕两具推开 ≥360；
+##   二幕「统一」（关卡名）：每 pair_swap_cd（10）秒「换位」——两体连线 + 各自连向主控的两条线（统一三角）同时结算，结算那一刻两具互换位置；取代原第二幕靠拢
 extends "res://scripts/enemies/bosses/boss_base.gd"
 
 const MOVES := ["潮汐柱", "交错潮环", "统一", "接潮扇浪"]
 const TINT2 := Color(0.86, 1.1, 1.16)   # 第二幕常驻青色（docs/95 §8.2）
-const CLOSE_MAX := 260.0               # 第二幕两体靠拢：离搭档超过这个距离就朝搭档走（docs/95 §8.2 D）
 
 
 ## 每帧（boss_ai._boss_ai 公共段之后）：ready = 本帧可以出招；mate = 接潮搭档（没有则 null）
-func step(e: Dictionary, _dt: float, dir: Vector2, dist: float, ready: bool, mate) -> void:
+func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, mate) -> void:
 	# 慌乱（协调人 9/30 定 C，boss/bishop_panic，0 = 关）：搭档假死时停召潮、加速朝搭档靠拢，假死赛跑的 8 秒里能打到它
 	# （原来它远程 300 站在自己召的杂兵后面，Ⅷ on_boss 0%）
 	var panic: bool = Bal.v("boss/bishop_panic", 1.0) > 0.0 and mate != null and not mate.dead and mate.get("coma", false)
 	var p2: bool = _pair_p2(e)
 	if p2:
 		_tint2(e, TINT2)
-	# 第二幕两体靠拢（「统一」）：离搭档 >260 时朝搭档走，近了恢复远程
-	var regroup: bool = not panic and p2 and mate != null and not mate.dead and e.pos.distance_to(mate.pos) > CLOSE_MAX
+	_pair_spread(e, dt)
+	# 第二幕换位 + 统一三角（取代原来的两体靠拢）
+	if p2 and mate != null and not mate.dead and not panic and not mate.get("coma", false) and not e.get("coma", false):
+		e.link_next_at = INF   # 二幕的「统一」由换位取代（boss_ai 公共段不再单放）
+		if g.t >= float(e.get("swap_next", 0.0)) and e.get("wind", 0.0) <= 0.0 and e.stun <= 0.0 and float(e.get("break_t", 0.0)) <= 0.0:
+			e.swap_next = g.t + Bal.v("boss/pair_swap_cd", 10.0)
+			_swap(e, mate)
+	elif float(e.get("link_next_at", 0.0)) == INF:
+		e.link_next_at = g.t + 2.0   # 搭档假死 / 本体假死时恢复公共段的「统一」（假死赛跑那条连线）
 	if panic:
 		if not e.get("panic", false):
 			e.panic_n = int(e.get("panic_n", 0)) + 1   # 遥测 panic_n
@@ -27,9 +35,6 @@ func step(e: Dictionary, _dt: float, dir: Vector2, dist: float, ready: bool, mat
 		e.ai = "melee"
 		e.aggro = mate.pos
 		e.haste = maxf(float(e.get("haste", 0.0)), 0.1)
-	elif regroup:
-		e.ai = "melee"
-		e.aggro = mate.pos
 	elif e.ai == "melee":
 		e.ai = "ranged"
 	e.panic = panic
@@ -104,7 +109,28 @@ func _pillar(e: Dictionary, dir: Vector2) -> void:
 		_warn(e, "circle", 1.1, {"pos": g.ppos + off, "r": 64.0, "act": "pillar", "name": "潮汐柱" if k == 0 else "", "col": Color(0.4, 0.9, 1.0), "dmg": e.dmg * 1.1, "lock": k == 0})
 
 
+## 二幕「换位」（docs/142b §3.8）：两体连线（双端跟随 0.6 秒后锁定，Kanpelle 靛蓝光束）+ 各自连向主控的两条线，1.0 秒同时结算；
+## 连线结算那一刻两具互换位置（telegraph tide_link 的 swap）。读法：别站两体之间、也别站在任一体与自己的连线上，往三角外斜走，换完重新选边
+func _swap(e: Dictionary, mate: Dictionary) -> void:
+	_warn(e, "line", 1.0, {"ang": (mate.pos - e.pos).angle(), "len": e.pos.distance_to(mate.pos), "wid": 17.0, "track": 0.6, "act": "tide_link", "name": "换位",
+		"col": g.vfx.boss_color(e.type), "dmg": e.dmg * 0.47, "cancel_dead": true, "b_owner": mate, "lock": false, "swap": true, "kp": "bishop", "kp_k": 1.0})
+	# 各自连向主控的线 + 穿过主控、与两体连线平行的第 4 道（10-25 加密：原三角 3 道；×0.78）
+	for src in [e, mate]:
+		var v: Vector2 = g.ppos - src.pos
+		_warn(e, "line", 1.0, {"pos": src.pos, "ang": v.angle(), "len": v.length() + 40.0, "wid": 14.0, "track": 0.4, "act": "shot", "name": "",
+			"col": g.vfx.boss_color(src.type), "dmg": e.dmg * 0.39, "lock": false, "kp": "bishop", "kp_k": 1.0})
+	var pa: float = (mate.pos - e.pos).angle()
+	_warn(e, "line", 1.15, {"pos": g.ppos - Vector2.from_angle(pa) * 420.0, "ang": pa, "len": 840.0, "wid": 14.0, "track": 0.0, "act": "shot", "name": "",
+		"col": g.vfx.boss_color(e.type), "dmg": e.dmg * 0.39, "lock": false, "kp": "bishop", "kp_k": 1.0})
+	g.vfx.add_text(e.pos + Vector2(0, -50), "统一", Color(0.4, 0.9, 1.0), 16)
+
+
 ## D · 接潮扇浪（第二幕）：enemies.json patterns「接潮扇浪」（manual）——扇形 r260 半角 0.9，追踪 0.3 总 1.4；扇形本身一次 e.dmg × 0.9 + 7 发浪弹 320px/s
 func _wave(e: Dictionary, dir: Vector2, dist: float) -> void:
 	e.pattern_force = "接潮扇浪"
 	g.bai.patterns.try_attack(e, dir, dist)
+
+
+## 同步护盾（docs/142b §3.8）：血量比搭档低出门槛时受伤 × 0.4
+func taken_mult(e: Dictionary) -> float:
+	return _pair_shield(e)

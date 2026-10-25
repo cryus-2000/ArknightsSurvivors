@@ -212,6 +212,17 @@ func warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 
 
 func warn_resolve(w: Dictionary) -> void:
+	var n0: int = g.fx.size()
+	_resolve(w)
+	var e: Dictionary = w.owner
+	if e.get("boss", false) and Bal.v("render/boss_fx_grains", 1.0) > 0.0:
+		var bc: Color = g.vfx.boss_color(str(e.type))
+		for i in range(n0, g.fx.size()):
+			if not g.fx[i].has("bfx"):
+				g.fx[i]["bfx"] = bc
+
+
+func _resolve(w: Dictionary) -> void:
 	var e: Dictionary = w.owner
 	var c: Color = w.col
 	if w.has("cue"):
@@ -249,12 +260,23 @@ func warn_resolve(w: Dictionary) -> void:
 			Sfx.play("hit", -9.0, 1.4)
 			warn_damage(w)
 		"tide_link":
-			g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.55, "max": 0.55, "col": c, "enemy": true})
+			if not _kp(w, w.pos, w.pos + dv * w.len):
+				g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.55, "max": 0.55, "col": c, "enemy": true})
+			var sw = w.get("b_owner")
+			if w.get("swap", false) and sw is Dictionary and not sw.dead and not e.dead:
+				# 接潮「换位」（docs/142b §3.8）：两具互换位置
+				var tmp: Vector2 = e.pos
+				e.pos = sw.pos
+				sw.pos = tmp
+				g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.2, "life": 0.4, "max": 0.4, "col": c, "enemy": true})
+				g.fx.append({"kind": "ring", "pos": sw.pos, "r": sw.r * 2.2, "life": 0.4, "max": 0.4, "col": c, "enemy": true})
+				Sfx.play("tentacle", -4.0, 0.7)
 			g.vfx.fx_sprite("fx_water_splash", w.pos + dv * w.len, g.PX * 1.2)
 			Sfx.play("tentacle", -8.0, 1.1)
 			warn_damage(w)
 		"ishar_echo":
-			g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.55, "max": 0.55, "col": c, "enemy": true})
+			if not _kp(w, w.pos, w.pos + dv * w.len):
+				g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.55, "max": 0.55, "col": c, "enemy": true})
 			g.vfx.fx_sprite("fx_water_splash", w.pos, g.PX * 1.0)
 			Sfx.play("tentacle", -8.0, 1.25)
 			warn_damage(w)
@@ -282,7 +304,8 @@ func warn_resolve(w: Dictionary) -> void:
 			g.vfx.shake_screen(0.3)
 			warn_damage(w)
 		"ishar_line":
-			g.fx.append({"kind": "bbeam", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.28, "max": 0.28, "col": c, "wid": w.wid})
+			if not _kp(w, w.pos, w.pos + dv * w.len):
+				g.fx.append({"kind": "bbeam", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.28, "max": 0.28, "col": c, "wid": w.wid})
 			if g.vfx.fx_sprite("fx_ishar_line_muzzle", w.pos + dv * 30.0, g.PX * 1.2, w.ang):
 				g.fx[g.fx.size() - 1]["enemy"] = true   # 每条线起点的棘鳍闪光（Codex fx_ishar_line_muzzle；缺图只有光束）
 			Sfx.enemy("spit", e.pos.distance_to(g.ppos))
@@ -363,14 +386,20 @@ func warn_resolve(w: Dictionary) -> void:
 			warn_damage(w)
 		"shot":
 			var b: Vector2 = w.pos + dv * w.len
-			g.fx.append({"kind": "tracer", "a": w.pos + Vector2(0, -18), "b": b, "life": 0.35, "max": 0.35, "col": c, "wid": w.wid})
+			if str(w.get("kp", "")) != "":
+				# Boss 激光（Kanpelle 帧条，docs/142b §8.5）：w.kp = 帧条名里的 Boss 段，kp_k = 粗细（世界像素 / 美术像素）
+				g.fx.append({"kind": "kp_beam", "a": w.pos + Vector2(0, -18), "b": b, "life": 0.42, "max": 0.42, "boss": str(w.kp), "k": float(w.get("kp_k", 2.0)), "enemy": true})
+			else:
+				g.fx.append({"kind": "tracer", "a": w.pos + Vector2(0, -18), "b": b, "life": 0.35, "max": 0.35, "col": c, "wid": w.wid})
 			g.vfx.sparks(w.pos + dv * 24.0, dv, c if w.get("secondary", false) else Color(2.0, 1.6, 0.8), 8, 320.0)
 			Sfx.play("hit", 0.0, 0.5, 0.0)
 			g.vfx.shake_screen(0.4)
 			warn_damage(w)
 		"beam":
 			var b2: Vector2 = w.pos + dv * w.len
-			g.fx.append({"kind": "bbeam", "a": w.pos + Vector2(0, -20), "b": b2, "life": 0.5, "max": 0.5, "col": c, "wid": w.wid})
+			var eye: Vector2 = Vector2.ZERO if w.get("no_eye", false) else Vector2(0, -20)   # 眼位偏移只给从本体射出的线
+			if not _kp(w, w.pos + eye, b2):
+				g.fx.append({"kind": "bbeam", "a": w.pos + eye, "b": b2, "life": 0.5, "max": 0.5, "col": c, "wid": w.wid})
 			if e.type == "paranoia":
 				# 凝视命中端的紫白爆点（Codex fx_paranoia_gaze_hit；缺图只有光束）：画在主控被打到的位置，没打到画在线端
 				var hp: Vector2 = Geometry2D.get_closest_point_to_segment(g.ppos + Vector2(0, -14), w.pos, b2) if hits_leader(w) else b2
@@ -402,9 +431,10 @@ func warn_resolve(w: Dictionary) -> void:
 			warn_damage(w)
 		"breath":
 			# 蚀潮吐息（蔑死体，docs/95 §9.2 C）：口部射出的腐蚀流；Codex fx_archon_breath（左中原点朝右，按线长拉伸）缺图走程序光束
-			g.fx.append({"kind": "bbeam", "a": w.pos + Vector2(0, -16), "b": w.pos + dv * w.len, "life": 0.4, "max": 0.4, "col": c, "wid": w.wid, "enemy": true})
-			if g.vfx.fx_sprite("fx_archon_breath", w.pos + Vector2(0, -16), g.PX * w.len / 320.0, w.ang, false, false, Color.WHITE, false, Vector2(0, 24)):
-				g.fx[g.fx.size() - 1]["enemy"] = true
+			if not _kp(w, w.pos + Vector2(0, -16), w.pos + dv * w.len):
+				g.fx.append({"kind": "bbeam", "a": w.pos + Vector2(0, -16), "b": w.pos + dv * w.len, "life": 0.4, "max": 0.4, "col": c, "wid": w.wid, "enemy": true})
+				if g.vfx.fx_sprite("fx_archon_breath", w.pos + Vector2(0, -16), g.PX * w.len / 320.0, w.ang, false, false, Color.WHITE, false, Vector2(0, 24)):
+					g.fx[g.fx.size() - 1]["enemy"] = true
 			Sfx.play("tentacle", -6.0, 1.3)
 			g.vfx.shake_screen(0.3)
 			warn_damage(w)
@@ -456,7 +486,17 @@ func warn_resolve(w: Dictionary) -> void:
 				g.fx.append({"kind": "ring", "pos": w.pos, "r": 760.0, "life": 0.9, "max": 0.9, "col": Color(c.r * 0.8, c.g * 1.1, c.b * 1.2), "enemy": true})
 			g.fx.append({"kind": "gcrack", "pos": e.pos, "r": 170.0, "life": 0.9, "max": 0.9, "col": Color(0.9, 0.4, 1.15), "enemy": true, "opts": {"n": 12}})   # 地波源头：伊祖米克脚下大地裂（纯画面，界面与美术 10-01）
 			Sfx.play("boom", -2.0, 0.5, 0.0)
-			if g.invuln <= 0.0 and not g.bai.izumik_safe(e):
+			var safe: bool = g.bai.izumik_safe(e)   # 先判安全再熄灯（熄掉的灯柱这一下仍算庇护）
+			if w.get("share_all", false):
+				# 伊祖米克三幕「分享·全场」（docs/142b §3.7）：结算这一刻你站着的那根亮灯柱熄灭
+				for l in e.get("lamps", []):
+					if l.lit and g.combat.ground_d(g.ppos, l.pos) < float(e.get("lamp_r", 120.0)):
+						g.fx.append({"kind": "ring", "pos": l.pos, "r": float(e.get("lamp_r", 120.0)), "life": 0.6, "max": 0.6, "col": Color(0.5, 0.6, 0.8), "enemy": true})
+						g.vfx.add_text(l.pos + Vector2(0, -40), "灯柱熄灭", Color(0.7, 0.75, 0.9), 15)
+						l.out = true
+						l.lit = false
+						break
+			if g.invuln <= 0.0 and not safe:
 				g.combat.enemy_hit(w.dmg, {"boss": true, "src_type": e.type}, false, true, ["远程", "法术"], "boss_" + e.type)
 				g.combat.slow_leader("wave", 1.5, 0.6)
 				if float(w.get("burn", 0.0)) > 0.0:
@@ -473,6 +513,14 @@ func warn_resolve(w: Dictionary) -> void:
 			Sfx.play("swing", -6.0, 0.9)
 			warn_damage(w)
 
+
+
+## Boss 激光（Kanpelle 帧条，docs/142b §8.5）：预警带 kp（帧条里的 Boss 段名）就画 kp_beam，返回 true = 调用方跳过原来的光束画法；kp_k = 粗细
+func _kp(w: Dictionary, a: Vector2, b: Vector2) -> bool:
+	if str(w.get("kp", "")) == "":
+		return false
+	g.fx.append({"kind": "kp_beam", "a": a, "b": b, "life": 0.42, "max": 0.42, "boss": str(w.kp), "k": float(w.get("kp_k", 2.0)), "enemy": true})
+	return true
 
 
 ## 小怪器官攻击的出手特效（docs/96 §2.2，Codex 第 2 批：收割者镰肢 fx_reaper_scythe、引痕者触须刺击 fx_tracer_thrust（狂暴 _enraged）、巢涌者触须横扫 fx_nest_sweep）：

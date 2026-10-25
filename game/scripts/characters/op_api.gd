@@ -26,6 +26,22 @@ var cv:
 func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
 	var o: Vector2 = g.ppos if origin == Vector2.INF else origin
 	var cands: Array = []
+	# 主轴目标（docs/142b §1.0，10-25）：射程内有部件（泡影茧、伊莎玛拉连线海嗣、伊祖米克子代 / 茧、塑路者截停的分形……）就先打最近的部件，
+	# 再轮到指挥优先级——自动攻击下玩家选不了目标，只管把它们带进射程
+	var part = null
+	var pd: float = max_dist * max_dist
+	for p in g.enemies_sys.parts_live():
+		var d2: float = p.pos.distance_squared_to(o)
+		if d2 < pd:
+			pd = d2
+			part = p
+	if part != null:
+		var outp: Array = g.enemies_sys.nearest(n, max_dist, origin)
+		outp.erase(part)
+		outp.push_front(part)
+		if outp.size() > n:
+			outp.resize(n)
+		return outp
 	if prio_mode() == 1:
 		for e in g.enemies_sys.nearest(mini(maxi(n * 6, 14), 24), max_dist, origin):
 			cands.append([e, e.pos.distance_to(o)])
@@ -179,6 +195,8 @@ func _focus_bosses() -> Array:
 	for e in g.enemies:
 		if focusable_boss(e):
 			_fb_list.append(e)
+	if g.has_meta("boss_decoys"):
+		_fb_list.append_array(g.get_meta("boss_decoys"))   # 泡影二幕幻影（docs/142b §3.5）：和真身一起比远近，不替玩家认真身
 	return _fb_list
 
 

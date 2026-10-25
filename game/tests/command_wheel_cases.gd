@@ -10,6 +10,8 @@ class Sys extends RefCounted:
 	func nearest(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
 		var o: Vector2 = ppos if origin == Vector2.INF else origin
 		return list.filter(func(e): return e.pos.distance_to(o) < max_dist).slice(0, n)
+	func parts_live() -> Array:   # Boss 部件先打（op_api.nearest_enemies，docs/142b §1.0）：这里的场景没有部件
+		return []
 
 class Spy extends Node:
 	func voice(_cid: String, _key: String, _queued := false, _urgent := false) -> void:

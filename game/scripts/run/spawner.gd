@@ -227,7 +227,15 @@ func mobs_stopped() -> bool:
 ## final/trickle_cap；本级威胁新种类在补怪里的抽取权重 × final/trickle_fresh_w。精英 / 大群 / 威胁上升那一小波仍按 mobs_stopped() 不刷。
 ## trickle_mult 0（代码缺省）= 10-11 的全停
 func trickling() -> bool:
-	return mobs_stopped() and final_knob("trickle_mult") > 0.0
+	return mobs_stopped() and final_knob("trickle_mult") > 0.0 and not final_duel()
+
+
+## 最终 Boss 战不刷普通小怪（用户 10-25：「最终 boss 那里小怪就不刷了，换成我们设定里面的」，docs/142b §1.5）：
+## 最终 Boss 在场时不补怪、不来护卫波；场上只有 Boss 自己机制里的小怪（伊莎玛拉的合唱海嗣、伊祖米克的子代、骑士重生那一波），
+## 登场时现有杂兵由远到近消散（spawner 登场处 queue_clear）。boss/final_duel 0 = 旧行为（少量补怪 + 护卫波）
+func final_duel() -> bool:
+	var fb = g.final_boss
+	return fb != null and not fb.get("dead", false) and Bal.v("boss/final_duel", 1.0) > 0.0
 
 
 ## 最终 Boss 登场时 final/clear_mobs_s > 0：场上现有的普通杂兵（不含 Boss / 宝箱 / 友方 / 事件物件）在 N 秒内由远到近逐只消散。
@@ -321,6 +329,8 @@ func update(dt: float) -> void:
 			g.boss = b
 		if boss_idx == D.BOSS_TIMES.size() and mobs_stopped() and final_knob("clear_mobs_s") > 0.0:
 			queue_clear(final_knob("clear_mobs_s"))
+		elif boss_idx == D.BOSS_TIMES.size() and Bal.v("boss/final_duel", 1.0) > 0.0:
+			queue_clear(Bal.v("boss/final_duel_clear", 3.0))   # 最终 Boss 清场（docs/142b §1.5）
 		if spawned.size() == 2:
 			spawned[0].partner = spawned[1]
 			spawned[1].partner = spawned[0]

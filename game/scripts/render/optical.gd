@@ -219,13 +219,15 @@ func _fxq_step(on: bool) -> void:
 
 
 ## 某颗敌弹的光晕 / 弹芯 / 拖尾 / 地面光颜色（docs/139 §7.3）：杂兵弹 = 敌弹色（青蓝）；
-## Boss 弹（b.boss）= 这颗弹自带的 b.col（Boss 会话按每只 Boss 的专属色写，docs/142b），没有就用 Boss 专属暖色 col_boss。
-## render/ebullet_boss_danger 1 = 旧口径（Boss 弹统一危险洋红）；用户 10-25「Boss 子弹不是每个 Boss 专属颜色吗」「不要加描边」→ 缺省 0
+## Boss 弹（docs/142b §8.4）：render/ebullet_boss_own 1 = 该 Boss 专属色（enemies.json bcol，vfx.boss_color；不加危险色外圈，用户 10-25「描边不要加」）；
+## own 0 时用弹自带 b.col，没有就用 col_boss；render/ebullet_boss_danger 1 = 旧口径（Boss 弹统一危险洋红），缺省 0
 func eb_col(b: Dictionary) -> Color:
 	if not b.get("boss", false):
 		return col_ebullet
 	if Bal.v("render/ebullet_boss_danger", 0.0) > 0.0:
 		return col_danger
+	if Bal.v("render/ebullet_boss_own", 1.0) > 0.0:
+		return g.vfx.boss_color(str(b.get("src_type", "")))
 	var bc = b.get("col")
 	return bc if bc is Color else col_boss
 
@@ -458,7 +460,11 @@ func _draw_trails(list: Array, enemy: bool) -> void:
 		n += 1
 		var col: Color
 		if enemy:
-			col = eb_col(b)   # 颜色语言：杂兵弹敌弹色、Boss 弹危险色（不再取各怪 ecol；docs/139 §7.3）
+			col = eb_col(b)   # 颜色语言：杂兵弹敌弹色、Boss 弹专属色（不再取各怪 ecol；docs/139 §7.3、docs/142b §8.4）
+			if b.get("boss", false):
+				var tc = D.ENEMIES.get(str(b.get("src_type", "")), {}).get("bcol_trail")
+				if tc is Color:
+					col = tc   # 伊比利亚：拖尾用中间调（同色相、比亮边暗，用户 10-25「有层次感」）
 		else:
 			var bc = b.get("col")
 			col = bc if bc is Color else Color(0.7, 0.95, 1.0)

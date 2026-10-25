@@ -70,7 +70,7 @@ func _ready() -> void:
 		if id == "paranoia":
 			check(b.phase == 2 and b.ai == "melee" and b.hover_lost and b.spd == 70.0 and b.range == 400.0 and b.weak == "物理" and is_equal_approx(b.dmg, original_damage * 1.2), "paranoia preview uses actual grounded second phase")
 		elif id == "knight_boss":
-			check(b.phase == 2 and is_equal_approx(b.hp, b.maxhp * 0.5) and is_equal_approx(b.spd, original_speed * 1.2) and b.channel == 1.5, "knight preview uses actual rebirth state")
+			check(b.phase == 2 and is_equal_approx(b.hp, b.maxhp * 0.5) and is_equal_approx(b.spd, original_speed * 0.5) and b.channel == 1.5, "knight preview uses actual rebirth state")   # 冲锋形态移速 −50%（docs/142b §3.1，knight_reborn_spd）
 		else:
 			check(b.phase == 2 and b.hp == b.maxhp and not b.invuln, "izumik preview uses actual interpreted state")
 		var damage_after: float = b.dmg

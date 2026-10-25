@@ -1000,7 +1000,7 @@ func gate_pass(e: Dictionary) -> void:
 	e.gate_inv = Bal.v("boss/gate_inv", 0.8)
 	e.wind = maxf(e.get("wind", 0.0), e.gate_inv)   # 0.8 秒内不出新招
 	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e) or w.done)
-	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.2, "life": 0.5, "max": 0.5, "col": UI.GOLD})
+	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.2, "life": 0.5, "max": 0.5, "col": g.vfx.boss_color(str(e.type))})   # 专属色（docs/142b §9 特效精修）
 	Sfx.play("roar", -4.0, 1.1, 0.0)
 	var bh = g.bai.boss(e.type)   # Boss 过卡点钩子（偏执泡影坠落进二阶段，docs/101 B1c）
 	if bh != null:
@@ -1087,6 +1087,9 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 			dmg *= 1.0 + g.low_hp_bonus
 		if e.boss and g.final_boss != null and is_same(e, g.final_boss):
 			dmg *= 1.0 + 0.01 * g.rfx.rule("final_taken") + (0.8 if g.rfx.rule("bone_blood") > 0 else 0.0)
+	# Boss 脚本自己的受伤倍率（骑士重甲、破绽期另算，docs/142b §3.1；缺省 1）
+	if bh != null:
+		dmg *= bh.taken_mult(e)
 	# 破绽受伤加成、伤害预算（§1.5 / §1.4）
 	if e.boss:
 		if e.get("break_t", 0.0) > 0.0:

@@ -22,8 +22,8 @@ extends RefCounted
 const D = preload("res://scripts/data.gd")
 const Game = preload("res://scripts/game.gd")
 const FINAL_TYPES := ["paranoia", "knight_boss", "ishar", "izumik"]
-const OWNER_CAP := 120
-const TOTAL_CAP := 240
+const OWNER_CAP := 160   # 10-25 弹幕加密（×1.4 + 多一圈）后放宽：原 120 / 240，解读旋涡 3 圈 × 50 会被截
+const TOTAL_CAP := 320
 var g: Game
 func _init(game: Game) -> void:
 	g = game
@@ -111,7 +111,9 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 				data.act = "pattern_ring"
 				data.r = float(move.get("ring_r", 88.0))
 				var gj: float = float(move.get("gap_jitter", 0.12))
-				data.gap_ang = dir.angle() + (0.0 if move.get("gap_face", false) else PI * 0.5 + (gj if k % 2 else -gj))
+				# gap_face 多波时缺口左右错开 gap_stagger（泡影环落地 2 波，docs/142b §8.2：冲进去要连穿两道缺口）
+				var gst: float = float(move.get("gap_stagger", 0.0)) * (1.0 if k % 2 else -1.0) if waves > 1 else 0.0
+				data.gap_ang = dir.angle() + (gst if move.get("gap_face", false) else PI * 0.5 + (gj if k % 2 else -gj))
 				data.gap_half = float(move.gap)
 				var ng: int = int(move.get("gaps", 1))
 				if ng > 1:
