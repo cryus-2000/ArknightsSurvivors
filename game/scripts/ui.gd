@@ -758,7 +758,23 @@ static func wrap_lines(font: Font, s: String, size: int, width: float) -> Packed
 	return _wrap_lines(font, s, fs(size), width)
 
 
+## 折行结果缓存（10-25 帧率审计：属性面板 / 精英化演出 / 选人技能行 / 图鉴每帧对同一段静态文字重排，fit 一次要试几个字号、每个字号新建 TextParagraph）。
+## 键 = 字体 + 文字 + 字号 + 宽度；超过 512 条整表清空。PackedStringArray 按值传，调用方改不到缓存里的
+static var _wrap_cache := {}
+
 static func _wrap_lines(font: Font, s: String, size: int, width: float) -> PackedStringArray:
+	var key := "%d|%d|%.3f|%s" % [font.get_instance_id(), size, width, s]
+	var hit = _wrap_cache.get(key)
+	if hit != null:
+		return hit
+	var res := _wrap_lines_raw(font, s, size, width)
+	if _wrap_cache.size() >= 512:
+		_wrap_cache.clear()
+	_wrap_cache[key] = res
+	return res
+
+
+static func _wrap_lines_raw(font: Font, s: String, size: int, width: float) -> PackedStringArray:
 	var out := PackedStringArray()
 	for para in s.split("\n"):
 		var sp := soft(para)

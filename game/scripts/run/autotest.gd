@@ -128,7 +128,7 @@ func _stats_shot() -> bool:
 		for a in Cfg.dev_args():
 			if a.begins_with("--statsshot="):
 				var pp: PackedStringArray = a.substr(12).split(",")
-				_ss = {"on": true, "sec": float(pp[0]), "dead": pp.has("dead"), "phase": 0, "f": 0, "cause": ""}
+				_ss = {"on": true, "sec": float(pp[0]), "dead": pp.has("dead"), "hold": pp.has("hold"), "phase": 0, "f": 0, "cause": ""}   # hold：停在结算页不截图（帧时记录 --ftrec 用）
 				for q in pp:
 					if q.begins_with("cause="):
 						_ss.cause = q.substr(6)   # 截图摆拍：cause=corrode@<敌人类型> / cause=mire —— 倒下前补一段对应的扣血记账（只改击倒者显示）
@@ -159,6 +159,8 @@ func _stats_shot() -> bool:
 			_ss.f = 0
 		1:
 			_ss.f += 1
+			if _ss.hold:
+				return true
 			if g.state_age > (2.6 if _ss.dead else 0.8):
 				shot.call("result")
 				g._do_action("stats")

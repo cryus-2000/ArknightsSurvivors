@@ -364,9 +364,9 @@ func _tile(r: Rect2, n: int, on: bool, a := 1.0) -> Rect2:
 	return gg.rect
 
 
-func _panel(r: Rect2, n: int, a := 0.92) -> Rect2:
+func _panel(r: Rect2, n: int, a := 0.92, fade := 1.0) -> Rect2:
 	var gg := _grid(r)
-	TUI.panel(_ci(), gg, n, a)
+	TUI.panel(_ci(), gg, n, a, fade)
 	return gg.rect
 
 
@@ -571,7 +571,7 @@ func draw(vs: Vector2) -> void:
 	var a0: float = UM.prog(t_open, UM.T1) if not skipped else 1.0
 	_ci().draw_rect(Rect2(Vector2.ZERO, vs), Color(0.008, 0.03, 0.07, 0.88 * a0))
 	var m := 14.0 if not _ph else 8.0
-	_panel(Rect2(m, m, vs.x - m * 2.0, vs.y - m * 2.0), 3, 0.55 * a0)
+	_panel(Rect2(m, m, vs.x - m * 2.0, vs.y - m * 2.0), 3, 0.55, a0)
 	# 鼠标移动过才让悬停接管焦点（键盘 / 手柄操作后不被静止的鼠标抢回去）
 	var mp := _mouse()
 	if mp.distance_to(_last_mouse) > 2.0:

@@ -68,6 +68,7 @@ func _ready() -> void:
 
 
 func begin() -> void:
+	preload("res://scripts/core/frame_rec.gd").mark("loading")   # 帧时记录（--ftrec）：进局载入页开始
 	visible = true
 	t = 0.0
 	out_t = -1.0

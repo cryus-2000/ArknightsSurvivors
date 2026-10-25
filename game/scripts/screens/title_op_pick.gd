@@ -51,6 +51,8 @@ var op_bg := {}                  # 背景固定几何（浪纹、触须、灯火
 var op_glow_tex: Texture2D
 var op_motion := -1.0            # --opmotion：动效录制开始时刻
 var codex_motion := -1           # --codexmotion：已录帧数
+var _cover_name_id := "~"
+var _cover_name := ""
 var glass_perf := -1             # --glassperf：已跑帧数
 var glass_acc := [0.0, 0.0, 0, 0, 0.0, 0.0]   # 开 / 关 累计秒数与帧数、GPU 渲染毫秒
 var post_fx: CanvasLayer
@@ -741,7 +743,10 @@ func _op_draw_desk(od: Dictionary) -> void:
 	_op_btn(back, Pad.hint("返回  Esc", "返回  Ⓑ", "返回"))
 	op_rects["back"] = back.grow(4.0)
 	var px := W - 136.0
-	var cover_name: String = Character.load_def(Cfg.cover_character_id).get("name", Cfg.cover_character_id) if Cfg.cover_character_id != "" else ""
+	if _cover_name_id != Cfg.cover_character_id:
+		_cover_name_id = Cfg.cover_character_id   # 每帧读盘解析 JSON 只为一个名字（10-25 帧率审计）：封面干员变了才重读
+		_cover_name = Character.load_def(_cover_name_id).get("name", _cover_name_id) if _cover_name_id != "" else ""
+	var cover_name: String = _cover_name
 	for chip in [["封面干员 " + cover_name, UI.PURPLE], ["难度 " + str(D.DIFF_PRESETS[clampi(Cfg.difficulty, 0, D.DIFF_PRESETS.size() - 1)].name), UI.STEEL]]:
 		if chip[0].ends_with(" "):
 			continue
