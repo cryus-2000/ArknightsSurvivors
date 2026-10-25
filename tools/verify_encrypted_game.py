@@ -75,23 +75,22 @@ func _verify():
                 failures.append("internal_save_missing")
             elif int(saved.get_value("progress", "diff_unlocked", 0)) != 0 or not saved.get_value("progress", "seen_relics", []).is_empty() or not saved.get_value("progress", "endings_cleared", []).is_empty() or not saved.get_value("progress", "gallery_seen", []).is_empty():
                 failures.append("unlock_written_to_save")
-            # 对内包名册（用户 10-22 要测寻访，10-24 改开局 10 人）：新存档只有开局 5 人 + INTERNAL_START 5 人，首次启动发 INTERNAL_TICKETS 张寻访凭证并写进存档
+            # 对内包名册（10-26 用户：与新玩家同一流程）：新存档名册为空、要先做新手十连；凭证 = 新手 FIRST_TICKETS + 对内 INTERNAL_TICKETS，写进存档
             var roster = load("res://scripts/core/roster.gd")
-            var start_n: int = roster.STARTERS.size() + roster.INTERNAL_START.size()
-            if cfg.roster_all_open() or not roster.active() or start_n != 10 or roster.locked_ids().size() != roster.all_ids().size() - start_n:
-                failures.append("internal_roster_start10")
-            var saved_ops = saved.get_value("roster", "unlocked", [])
-            for cid in roster.INTERNAL_START:
-                if not roster.is_unlocked(cid) or roster.STARTERS.has(cid):
-                    failures.append("internal_roster_member:" + str(cid))
-                elif not saved_ops.has(cid):
-                    failures.append("internal_roster_saved:" + str(cid))
-            if roster.tickets() != cfg.INTERNAL_TICKETS or not cfg.roster_int_grant:
+            var want_tk: int = roster.FIRST_TICKETS + cfg.INTERNAL_TICKETS
+            if cfg.roster_all_open() or not roster.active() or not roster.needs_first() or not cfg.roster_unlocked.is_empty() or roster.locked_ids().size() != roster.all_ids().size():
+                failures.append("internal_roster_first")
+            if roster.tickets() != want_tk or not cfg.roster_int_grant:
                 failures.append("internal_roster_tickets:" + str(roster.tickets()))
-            elif saved.load("user://settings.cfg") != OK or int(saved.get_value("roster", "tickets", {}).get("hunt", 0)) != cfg.INTERNAL_TICKETS or not bool(saved.get_value("roster", "int_grant", false)):
+            elif saved.load("user://settings.cfg") != OK or int(saved.get_value("roster", "tickets", {}).get("hunt", 0)) != want_tk or not bool(saved.get_value("roster", "int_grant", false)) or int(saved.get_value("roster", "v", 0)) != 2:
                 failures.append("internal_roster_tickets_saved")
         elif not cfg.gallery_seen.is_empty() or not cfg.seen_relics.is_empty() or not cfg.endings_cleared.is_empty() or cfg.diff_unlocked != 0:
             failures.append("fresh_progress")
+        else:
+            # 对外包新存档（10-26 新手开局）：名册为空、新手 FIRST_TICKETS 张、要先做新手十连
+            var roster_p = load("res://scripts/core/roster.gd")
+            if not roster_p.active() or not roster_p.needs_first() or roster_p.tickets() != roster_p.FIRST_TICKETS:
+                failures.append("public_roster_first:" + str(roster_p.tickets()))
         if cfg.can_boss_trial() != (audience == "internal"):
             failures.append("boss_trial_audience")
         # 本地对局记录（docs/40，用户 10-10）：对内包写 user://runs/runs.jsonl，对外包恒不写
@@ -103,7 +102,7 @@ func _verify():
     var want_dir = "ArknightsSurvivors_Internal_" + str(info.get("commit", "?")) if audience == "internal" else "ArknightsSurvivors"
     if user_dir != want_dir:
         failures.append("user_dir_isolation:" + user_dir)
-    # 图鉴：其余页对内包全解锁、对外包新存档全锁；干员页两种包都按名册（10-25 寻访 / 图鉴解锁数同源：Roster.is_unlocked；对内开局 10 人、对外 5 人，博士不锁）
+    # 图鉴：其余页对内包全解锁、对外包新存档全锁；干员页两种包都按名册（10-25 寻访 / 图鉴解锁数同源：Roster.is_unlocked；10-26 起新存档名册为空（新手十连之前），只有博士不锁）
     if cfg != null:
         var roster = load("res://scripts/core/roster.gd")
         var roster_ids: Array = roster.all_ids()

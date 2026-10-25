@@ -2,7 +2,8 @@ extends Node
 ## 存档迁移样本测试（docs/126 R1，check.py 场景回归 save_migrate）：拿各个历史版本的 settings.cfg 片段直接喂 Cfg._read_cfg，
 ## 断言迁移结果。只改内存里的 Cfg，不调 save()，不碰 user://settings.cfg。
 ## 覆盖：难度 diff_ver 1 / 2 / 3 / 4（11 级累计档 → 三档、三档原样、潮位 → 三档、当前）、旧 2× 倍速、观感 look_ver 0 的旧缺省亮度、
-## 三种旧券 → 单一寻访凭证（含 spare）、没有 [roster] 段的老存档（打过的全部解锁 / 新档保持开局 5 人）。
+## 三种旧券 → 单一寻访凭证（含 spare）、没有 [roster] 段的老存档（打过的全部解锁 / 没打过按新手开局：名册为空 + 10 张）、
+## 旧版名册存档（[roster] 段没有 v 或 v < 2：补进旧开局 5 人，老玩家名册不变；v = 2 原样）。
 
 const Roster = preload("res://scripts/core/roster.gd")
 const Look = preload("res://scripts/render/look.gd")
@@ -75,11 +76,22 @@ func _ready() -> void:
 	load_sample(sample(4, 0, 0, {"tickets": {"hunt": 1, "cls": 2, "pick": 3}, "spare": {"hunt": 1, "pick": 1}}))
 	check(int(Cfg.roster_tickets.get(Roster.T_HUNT, -1)) == 1 + 2 + 6 + 1 + 2 and Cfg.roster_spare.is_empty() and not Cfg.roster_tickets.has("cls"),
 		"旧券折算（%s / spare %s）" % [str(Cfg.roster_tickets), str(Cfg.roster_spare)])
-	# 没有 [roster] 段：打过的（解锁过难度）全部解锁、新档保持开局 5 人
+	# 没有 [roster] 段：打过的（解锁过难度）全部解锁；没打过的按新手开局（10-26：名册为空 + 新手 10 张）
 	load_sample(sample(4, 0, 1, null))
-	var others: Array = Roster.all_ids().filter(func(cid): return not Roster.STARTERS.has(cid))
-	check(Cfg.roster_unlocked.size() == others.size() and not others.is_empty(), "老存档打过 → 全部解锁（%d / %d）" % [Cfg.roster_unlocked.size(), others.size()])
+	var all: Array = Roster.all_ids()
+	check(Cfg.roster_unlocked.size() == all.size() and not all.is_empty() and Cfg.roster_v == 2, "老存档打过 → 全部解锁（%d / %d）" % [Cfg.roster_unlocked.size(), all.size()])
 	load_sample(sample(4, 0, 0, null))
-	check(Cfg.roster_unlocked.is_empty(), "老存档没打过 → 保持开局 5 人（%d）" % Cfg.roster_unlocked.size())
+	check(Cfg.roster_unlocked.is_empty() and int(Cfg.roster_tickets.get(Roster.T_HUNT, 0)) == Roster.FIRST_TICKETS and Cfg.roster_v == 2,
+		"老存档没打过 → 新手开局：名册为空 + %d 张（%d 人 / %s）" % [Roster.FIRST_TICKETS, Cfg.roster_unlocked.size(), str(Cfg.roster_tickets)])
+	# 旧版名册存档（10-26 之前，有 [roster] 段、没有 v）：旧开局 5 人补进名册，原有的解锁与凭证不动
+	load_sample(sample(4, 0, 0, {"unlocked": ["lumen"], "tickets": {"hunt": 2}}))
+	var ok5 := Roster.STARTERS.all(func(cid): return Cfg.roster_unlocked.has(cid))
+	check(ok5 and Cfg.roster_unlocked.has("lumen") and Cfg.roster_unlocked.size() == Roster.STARTERS.size() + 1 and int(Cfg.roster_tickets.get(Roster.T_HUNT, 0)) == 2 and Cfg.roster_v == 2,
+		"旧版名册 → 补开局 5 人（%s / %s）" % [str(Cfg.roster_unlocked), str(Cfg.roster_tickets)])
+	load_sample(sample(4, 0, 0, {"unlocked": [], "tickets": {"hunt": 0}}))
+	check(Cfg.roster_unlocked.size() == Roster.STARTERS.size(), "旧版名册只有开局 5 人 → 仍是这 5 人（%s）" % str(Cfg.roster_unlocked))
+	# v = 2（10-26 起写的存档）：原样，空名册就是还没做新手十连
+	load_sample(sample(4, 0, 0, {"unlocked": [], "tickets": {"hunt": 10}}, {"roster/v": 2}))
+	check(Cfg.roster_unlocked.is_empty() and int(Cfg.roster_tickets.get(Roster.T_HUNT, 0)) == 10, "v2 空名册原样（%s）" % str(Cfg.roster_unlocked))
 	print("SAVE MIGRATE failures=%d" % failures)
 	get_tree().quit(1 if failures > 0 else 0)
