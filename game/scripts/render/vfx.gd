@@ -206,7 +206,7 @@ var lead_hit_t := -10.0
 func lead_mark(e: Dictionary) -> void:
 	lead_hit_dir = ((e.pos as Vector2) - g.ppos).normalized()
 	lead_hit_t = g.t
-	if Bal.vi("render/lead_hitmark", 0) <= 0 or g.fx.size() > 400:
+	if (Bal.vi("render/lead_hitmark", 0) <= 0 and g.world.lead_lv <= 0) or g.fx.size() > 400:
 		return
 	var f = e.get("_lead_mk")
 	if f is Dictionary and float(f.life) > 0.0:
@@ -359,6 +359,8 @@ func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 	var head: Vector2 = e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6)
 	var n: int = [0, Bal.vi("fx/hit_n1", 3), Bal.vi("fx/hit_n2", 6), Bal.vi("fx/hit_n3", 12)][tier]
 	var lead: bool = g.ch != null and str(h.get("op", "")) == str(g.ch.id)
+	if lead and g.world.lead_lv > 0:
+		col = g.world.lead_col(col)   # 队长命中颗粒 / 命中星：提亮 / 暖色（docs/139 §11）
 	if not lead and g.world.mate_on:
 		col = g.world.mate_col(col)   # 队友命中颗粒：去饱和、压透明度（docs/139 §10；敌人身上的白闪不动）
 		col.a = g.world.mate_dim
@@ -528,6 +530,16 @@ func dmg_number(e: Dictionary, dmg: float, crit: bool, weak: bool, h := {}) -> v
 		if _boss_fight() or (not weak and g.texts.size() > _white_cap()):
 			return
 		add_text(e.pos + jit + Vector2(0, -e.r - 8), ("弱点 " if weak else "") + str(int(round(dmg))), Color(0.8, 0.72, 0.5) if weak else Color(0.72, 0.74, 0.78, 0.85), 13 if weak else 11)
+		return
+	var lk: float = g.world.lead_num_k if (g.world.lead_lv > 0 and not h.is_empty() and is_lead_hit(h)) else 1.0
+	if lk > 1.0 and not e.boss:
+		# 队长的伤害数字（docs/139 §11）：放大 lead_num_k、普通白字改暖白；暴击 / 弱点同样放大
+		if crit:
+			add_text(e.pos + jit + Vector2(0, -e.r - 12), str(int(round(dmg))), UI.GOLD, int(round(22 * lk)))
+			return
+		if _boss_fight() and not weak:
+			return
+		add_text(e.pos + jit + Vector2(0, -e.r - 10), ("弱点 " if weak else "") + str(int(round(dmg))), Color(1.0, 0.85, 0.35) if weak else Color(1.0, 0.93, 0.75), int(round((18.0 if weak else 15.0) * lk)))
 		return
 	if crit:
 		add_text(e.pos + jit + Vector2(0, -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
@@ -906,6 +918,8 @@ const DISSOLVE_TINT := Color(1.0, 0.72, 1.05)
 ## ground=true：地面层帧条（kind "gsprite"，world._draw_ground_sprites 在溟痕之后、预警之前画；敌方落点溅射 / 囊液残留，docs/96）；
 ## anchor_px：帧内原点（1x 美术像素，按贴图密度换算；manifest 的 origin_1x），缺省帧中心
 ## delay：晚这么多秒才开始播（期间不画、不补光学火星；维什戴尔大爆炸的连环外圈，docs/137 §8）
+var spawn_lead := false   # squad.update 在队长更新期间置真：这期间生成的帧条特效打上 lead（world 绘制时按突出队长档提亮，docs/139 §11）
+
 func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip := false, bottom := false, col := Color.WHITE, ground := false, anchor_px := Vector2(-1, -1), delay := 0.0) -> bool:
 	if _fxc != null:
 		_fx_census(name, ground)
@@ -921,6 +935,8 @@ func fx_sprite(name: String, pos: Vector2, scale := Game.PX, ang := 0.0, flip :=
 	if _fxc != null:
 		_fx_census("SC|%s|%.3f" % [name, scale / A.hires_of(g.tex[name])], ground)   # 每个贴图像素占几个世界像素（÷2 = 低分辨率层格数）
 	var f := {"kind": "gsprite" if ground else "sprite", "name": name, "pos": pos, "ang": ang, "scale": scale, "life": dur + delay, "max": dur + delay, "flip": flip, "col": col}
+	if spawn_lead:
+		f["lead"] = true
 	if delay > 0.0:
 		f["delay"] = delay
 	if bottom:
