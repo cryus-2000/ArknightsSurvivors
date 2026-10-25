@@ -198,16 +198,27 @@ func _leader_kick(h: Dictionary, e: Dictionary, tier: int) -> void:
 	g.world.kick(((e.pos as Vector2) - g.ppos), px, Bal.v("fx/kick_t", 0.06))
 
 
-## 队长「这是我」标识（docs/139 §10，用户 10-25 后期分不清自己的攻击；render/lead_mark：0 = 关、1 = 命中处一颗暖色亮点、2 = 刀光 / 弹体暖色细描边）：
-## 1：命中点 4×4 像素琥珀亮点 + 深色 1 像素底，0.14 秒、三阶熄灭；2 的描边在 world.gd 刀光 / 子弹绘制处
-func lead_mark(p: Vector2, tier: int) -> void:
-	if Bal.vi("render/lead_mark", 0) != 1 or g.fx.size() > 400:
+## ── 突出队长（docs/139 §11，用户 10-25「队友特效不要降，想其它办法」）──
+## render/lead_hitmark 1：队长打中的敌人身上出四个像素角标（暖白，0.3 秒，同一只敌人重复命中只刷新寿命，不叠、不闪）；队友 / 召唤物命中没有
+## lead_hit_dir / lead_hit_t：队长最近一次命中方向（squad.draw_leader_mark 的朝向弧用，render/lead_dir）
+var lead_hit_dir := Vector2.ZERO
+var lead_hit_t := -10.0
+func lead_mark(e: Dictionary) -> void:
+	lead_hit_dir = ((e.pos as Vector2) - g.ppos).normalized()
+	lead_hit_t = g.t
+	if Bal.vi("render/lead_hitmark", 0) <= 0 or g.fx.size() > 400:
 		return
-	g.fx.append({"kind": "lead_dot", "pos": p.round(), "life": 0.14, "max": 0.14, "big": tier >= 3})
+	var f = e.get("_lead_mk")
+	if f is Dictionary and float(f.life) > 0.0:
+		f.life = f.max
+		return
+	var nf := {"kind": "lead_mark", "pos": e.pos, "e": e, "r": float(e.get("r", 12.0)), "life": 0.3, "max": 0.3}
+	e["_lead_mk"] = nf
+	g.fx.append(nf)
 
 
-func summon_off_lead_mark(h: Dictionary) -> bool:
-	return h.get("emitter", "") != "summon"   # 召唤物的命中不算队长本人出手
+func is_lead_hit(h: Dictionary) -> bool:
+	return g.ch != null and str(h.get("op", "")) == str(g.ch.id) and h.get("emitter", "") != "summon"   # 召唤物的命中不算队长本人出手
 
 
 func hit_tier(h: Dictionary, dmg: float, crit: bool, weak: bool) -> int:
@@ -288,6 +299,8 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 	else:
 		e.flash = maxf(float(e.get("flash", 0.0)), fl)
 	e.squash = maxf(float(e.get("squash", 0.0)), sq)
+	if not dot and is_lead_hit(h):
+		lead_mark(e)
 	if tier > 0:
 		_tier_fx(e, h, tier)
 		_leader_kick(h, e, tier)
@@ -346,11 +359,10 @@ func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 	var head: Vector2 = e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6)
 	var n: int = [0, Bal.vi("fx/hit_n1", 3), Bal.vi("fx/hit_n2", 6), Bal.vi("fx/hit_n3", 12)][tier]
 	var lead: bool = g.ch != null and str(h.get("op", "")) == str(g.ch.id)
-	if not lead:
+	if not lead and g.world.mate_on:
 		col = g.world.mate_col(col)   # 队友命中颗粒：去饱和、压透明度（docs/139 §10；敌人身上的白闪不动）
 		col.a = g.world.mate_dim
-	elif summon_off_lead_mark(h):
-		lead_mark(head, tier)   # 队长「这是我」标识（docs/139 §10，render/lead_mark）
+
 	if g.optical_on and g.optical.grains != null and g.optical.grains.on() and not g.optical.grains.off:
 		g.optical.grains.spark(head, (e.pos as Vector2).y + float(e.get("r", 12.0)) * 0.8, col, n)   # 刀光第四版：带重力、落到脚底高度停住冷却的火星（docs/136）
 	elif g.optical_on and g.optical.particles != null:
@@ -504,10 +516,19 @@ const TEXT_MERGE_T := 0.25
 const BOSS_SUM_T := 0.3
 var _boss_sum: Array = []   # [{e, dmg, t, weak}]，按 is_same 找（字典内容会变，不能当键）
 
-func dmg_number(e: Dictionary, dmg: float, crit: bool, weak: bool) -> void:
+## render/mate_numbers 1（docs/139 §11）：队友 / 召唤物的伤害数字改小号、偏灰；队长的原样。对 Boss 的合并数字不分
+func dmg_number(e: Dictionary, dmg: float, crit: bool, weak: bool, h := {}) -> void:
 	if not Cfg.dmg_numbers or g.texts.size() >= 80:
 		return
 	var jit := Vector2(g.vrng.randf_range(-6, 6), 0)
+	if Bal.vi("render/mate_numbers", 0) > 0 and not h.is_empty() and not is_lead_hit(h) and not e.boss:
+		if crit:
+			add_text(e.pos + jit + Vector2(0, -e.r - 10), str(int(round(dmg))), Color(0.85, 0.78, 0.6), 15)
+			return
+		if _boss_fight() or (not weak and g.texts.size() > _white_cap()):
+			return
+		add_text(e.pos + jit + Vector2(0, -e.r - 8), ("弱点 " if weak else "") + str(int(round(dmg))), Color(0.8, 0.72, 0.5) if weak else Color(0.72, 0.74, 0.78, 0.85), 13 if weak else 11)
+		return
 	if crit:
 		add_text(e.pos + jit + Vector2(0, -e.r - 10), str(int(round(dmg))), UI.GOLD, 22)
 		return

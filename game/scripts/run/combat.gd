@@ -1125,7 +1125,7 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	# 用 g.rng 会让机器负载 / 玩家设置改变对局随机数（docs/36 §3）
 	if g.crit_hit:
 		Sfx.play("crit_tick", -6.8, 1.0, 0.05)   # 暴击：清脆的「叮」叠在命中声上
-	g.vfx.dmg_number(e, dmg, g.crit_hit, weak_hit)   # 对 Boss 0.3 秒合并、Boss 战期间普通怪只飘暴击（docs/38 §1.15，显示逻辑在 vfx）
+	g.vfx.dmg_number(e, dmg, g.crit_hit, weak_hit, h)   # 对 Boss 0.3 秒合并、Boss 战期间普通怪只飘暴击（docs/38 §1.15，显示逻辑在 vfx）
 	# Boss 受击后（最后的骑士寒冷滑窗、圣徒装填打断）：dmg = 扣完潮盾的伤害，eff = 实际掉的血
 	if bh != null:
 		bh.on_damaged(e, dmg, eff)

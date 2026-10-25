@@ -33,7 +33,6 @@ var dof := true          # 2.5D 景深与前景
 var bloom := true        # 辉光
 var water_filter := true # 水下滤镜：色差 + 暗角 + 焦散
 var normal_maps := true  # 2D 法线光照（贴图加载时生成，改动下局生效）
-var mate_fx_pct := 55    # 队友特效不透明度 %（30–100，docs/139 §10）：队友的技能 / 普攻特效按这个比例压淡并轻度去饱和，队长的不变
 var brightness := 1.1    # 画面亮度 0.8 ~ 1.4（缺省值随观感预设 render/look，_ready 里设）
 var pad_rumble := true   # 手柄震动
 var quality := ""        # 生效中的画质档 "high" / "mid" / "low"（由 quality_mode 决定）：中 = 关法线光照 / 辉光；低 = 四项后期全关（再关景深 / 水下滤镜）+ 粒子减半、真人局同屏敌人上限 300、演出简化
@@ -180,10 +179,6 @@ func phone_ui() -> bool:
 
 
 ## 战斗镜头缩放（Camera2D.zoom）：玩家设过用玩家的，否则手机横屏 1.2、其余 1.0。只改画面，玩法不读视口
-func mate_fx() -> float:
-	return mate_fx_pct / 100.0
-
-
 func cam_zoom() -> float:
 	return clampi(cam_zoom_pct if cam_zoom_pct > 0 else zoom_default_pct(), ZOOM_PCT_MIN, ZOOM_PCT_MAX) / 100.0
 
@@ -335,8 +330,6 @@ func _ready() -> void:
 			ui_size_pct = clampi(int(a.substr(9)), UI_PCT_MIN, UI_PCT_MAX)
 		elif a.begins_with("--camzoom="):
 			cam_zoom_pct = clampi(int(a.substr(10)), ZOOM_PCT_MIN, ZOOM_PCT_MAX)
-		elif a.begins_with("--matefx="):
-			mate_fx_pct = clampi(int(a.substr(9)), 30, 100)   # 对照截图：队友特效不透明度 %
 	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)   # 自动档：每次启动按本机检测；手选档：按档位统一开关后期
 	for a in dev_args():
 		if a.begins_with("--quality="):
@@ -385,7 +378,6 @@ func _read_cfg(c: ConfigFile) -> void:
 	water_filter = c.get_value("video", "water_filter", water_filter)
 	normal_maps = c.get_value("video", "normal_maps", normal_maps)
 	brightness = clampf(float(c.get_value("video", "brightness", brightness)), 0.8, 1.4)
-	mate_fx_pct = clampi(int(c.get_value("video", "mate_fx", mate_fx_pct)), 30, 100)
 	brightness = migrate_brightness(brightness, int(c.get_value("video", "look_ver", 0)))
 	pad_rumble = c.get_value("input", "pad_rumble", pad_rumble)
 	manual_attack = c.get_value("input", "manual_attack", manual_attack)
@@ -659,7 +651,6 @@ func save() -> void:
 	c.set_value("video", "water_filter", water_filter)
 	c.set_value("video", "normal_maps", normal_maps)
 	c.set_value("video", "brightness", brightness)
-	c.set_value("video", "mate_fx", mate_fx_pct)
 	c.set_value("video", "look_ver", LOOK_VER)
 	c.set_value("input", "pad_rumble", pad_rumble)
 	c.set_value("input", "manual_attack", manual_attack)
