@@ -1193,6 +1193,38 @@ func cam_center() -> Vector2:
 ##   3 再关发光层（CPU 颗粒不关：退回帧条画法更慢；颗粒密度已由 fx_grains 按帧时自动收到最低 0.35）
 ##   4 分辨率缩放（只在高像素密度屏：手机网页；普通桌面跳过这级）    5 画质「低」（光学整套关、后期全关、粒子减半）
 ## 只在真人局 + 自动档时启用（测试加 --autoq 才开；都是纯画面，同 seed 结果不变）
+## 网页内存护栏（10-26 用户「重点是要让所有机型和网页版都不会崩溃」，docs/50 §30）：手机网页每 MG_EVERY 秒估一次内存
+## （引擎显存统计 + 网页音频样本解码估算）；超过 MG_BUDGET 先注销没在播的音频样本，还高就画质「低」+ 分辨率缩放（手机开局已是这样）。
+## 局中后期新怪 / 新音效越积越多时兜底，不等 WebKit 杀页。纯画面 / 声音缓存，不碰对局
+const MG_EVERY := 5.0
+const MG_BUDGET_MB := 380.0
+var _mg_t := 0.0
+
+func _mem_guard(delta: float) -> void:
+	if not (Cfg.mobile_web() or Cfg.dev_args().has("--memguard")):
+		return
+	_mg_t += delta
+	if _mg_t < MG_EVERY:
+		return
+	_mg_t = 0.0
+	var vid: float = Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0
+	var aud: float = Sfx.sample_mem_mb()
+	var budget: float = MG_BUDGET_MB
+	for a in Cfg.dev_args():
+		if a.begins_with("--memguard="):
+			budget = float(a.substr(11))
+	if vid + aud <= budget:
+		return
+	var n_off: int = Sfx.trim_samples()
+	var aud2: float = Sfx.sample_mem_mb()
+	if vid + aud2 > budget:
+		if Cfg.quality != "low":
+			Cfg.set_quality("low")
+		Cfg.set_render_scale(true)
+	if not Cfg.dev_args().is_empty():
+		print("PF MEMGUARD vid=%.0fMB audio=%.0f->%.0fMB trimmed=%d t=%.0f" % [vid, aud, aud2, n_off, t])
+
+
 const AQ_WIN := 2.0
 const AQ_NEED := 2
 const AQ_OVER := 1.35
@@ -1291,6 +1323,7 @@ func _process(delta: float) -> void:
 		dt *= wheel.slow()   # 圆盘打开：局内放慢（不全停）
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	_auto_quality(delta)
+	_mem_guard(delta)
 	if victory.active and state == S.PLAY:
 		simulated_dt = victory.step(minf(delta, 0.05))   # 最终 Boss 击破演出按慢动作缩放画面步长（run/victory_flow.gd）
 	elif hitstop > 0.0 and (mode == Mode.PLAY or playclock_test) and Cfg.hitstop and demo_op == "":
