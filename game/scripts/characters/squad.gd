@@ -351,7 +351,9 @@ func update(dt: float) -> void:
 			continue   # 倒地：不充技力、不出手（docs/114 §7）
 		o.tick_sp(dt)
 		_battle_voice(o, dt)
+		g.vfx.spawn_lead = o.is_leader   # 这段里生成的帧条特效记为队长的（docs/139 §11 突出队长；纯画面标记）
 		o.update(dt)
+		g.vfx.spawn_lead = false
 		# 主控的技能位移（推进之王跃空锤）带着玩家一起走，位移中短暂无敌
 		if o.is_leader and o.pos != Vector2.INF and o.pos.distance_to(g.ppos) > 0.5:
 			g.ppos = o.pos
@@ -845,8 +847,7 @@ func draw_auras() -> void:
 		o.draw_auras()
 	g.world.fx_dim = d0
 	cv.mute = false
-	cv.amul = 1.0
-	cv.dsat = 0.0
+	cv.set_mod(1.0, 0.0)
 	cv.end()
 
 
@@ -860,8 +861,7 @@ func draw_ground_fx() -> void:
 			o.draw_ground_fx()
 	g.world.fx_dim = d0
 	cv.mute = false
-	cv.amul = 1.0
-	cv.dsat = 0.0
+	cv.set_mod(1.0, 0.0)
 	cv.end()
 
 
@@ -874,8 +874,7 @@ func draw_entities_floor() -> void:
 		o.draw_pfx(true)
 	g.world.fx_dim = d0
 	cv.mute = false
-	cv.amul = 1.0
-	cv.dsat = 0.0
+	cv.set_mod(1.0, 0.0)
 	cv.end()
 
 
@@ -928,7 +927,7 @@ func draw_leader_mark() -> void:
 	cv.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * fc, -4), tip + Vector2(-6.0 * fc, 4)]), Color(c.r, c.g, c.b, 0.9))
 	# 出手方向弧（docs/139 §11，render/lead_dir 1）：脚下椭圆外沿一段 36° 暖白短弧指向当前出手方向——手动攻击 = 瞄准方向，
 	# 自动攻击 = 最近 0.8 秒内一次命中的方向（没有就不画）；常亮不闪
-	if Bal.v("render/lead_dir", 0.0) > 0.0:
+	if Bal.v("render/lead_dir", 0.0) > 0.0 or g.world.lead_lv >= 2:
 		var adir := Vector2.ZERO
 		if Cfg.manual_attack and g.doctor != null:
 			adir = g.doctor.attack_dir()
@@ -951,8 +950,7 @@ func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 		o.draw_fx_add(ci, loop)
 	g.world.fx_dim = d0
 	cv.mute = false
-	cv.amul = 1.0
-	cv.dsat = 0.0
+	cv.set_mod(1.0, 0.0)
 
 
 func draw_skill_over() -> void:
@@ -966,8 +964,7 @@ func draw_skill_over() -> void:
 		o.pfx_skip = 0
 	g.world.fx_dim = d0
 	cv.mute = false
-	cv.amul = 1.0
-	cv.dsat = 0.0
+	cv.set_mod(1.0, 0.0)
 	cv.end()
 
 
@@ -1004,6 +1001,10 @@ func _pfx_cap_plan() -> void:
 ## 加色层不经 cv，改乘 fx_dim。画完由调用方恢复。缺省两个系数恒 1 = 不变
 func _op_dim(o, d0: float) -> void:
 	g.world.fx_dim = d0
-	cv.amul = g.world.lead_dim if o.is_leader else g.world.mate_dim   # 经 cv 的绘制统一乘（自定义干员脚本不读 fx_dim 的特效也算上）
-	cv.dsat = 0.0 if o.is_leader else g.world.mate_desat   # 队友特效去饱和（docs/139 §10）
+	# 经 cv 的绘制统一乘（自定义干员脚本不读 fx_dim 的特效也算上）：透明度（拥挤降噪）、队友去饱和（docs/139 §10，缺省关）、
+	# 队长提亮 / 暖色（docs/139 §11 render/lead_emph，缺省关）
+	if o.is_leader:
+		cv.set_mod(g.world.lead_dim, 0.0, g.world.lead_boost, g.world.lead_tint)
+	else:
+		cv.set_mod(g.world.mate_dim, g.world.mate_desat)
 	cv.mute = g.world._dbg_friend   # --clutterdbg=nofriend（量测）：这些阶段只有特效，整段不显示

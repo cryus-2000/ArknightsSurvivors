@@ -68,6 +68,8 @@ VARIANTS = {
     "lead_now": ["--withhud"],
     "leadA": ["--withhud", "--bal=render/lead_hitmark=1", "--bal=render/mate_numbers=1"],
     "leadB": ["--withhud", "--bal=render/lead_hitmark=1", "--bal=render/mate_numbers=1", "--bal=render/lead_top=1", "--bal=render/lead_dir=1"],
+    "emph1": ["--withhud", "--bal=render/lead_emph=1"],
+    "emph2": ["--withhud", "--bal=render/lead_emph=2"],
     "leadC": ["--withhud", "--bal=render/mate_numbers=1", "--bal=render/lead_top=1", "--bal=render/lead_dir=1"],
     "dash_style1": ["--bal=render/dash_tell_style=1"],
     "dash_style2": ["--bal=render/dash_tell_style=2"],
