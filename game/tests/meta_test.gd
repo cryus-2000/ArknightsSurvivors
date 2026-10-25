@@ -92,5 +92,22 @@ func run() -> void:
 	var m := Pack.merge_meta(a, b)
 	check(int(m.earned.d1) == 100 and int(m.earned.d2) == 30 and int(m.earned.d3) == 50, "生机细胞逐设备取大 %s" % [m.earned])
 	check(m.bounty.size() == 2 and m.shape.has("atk1") and int(m.t) == 20, "赏金并集、认知塑造取较新 %s" % [m])
+	# 兑换寻访凭证的花费（Roster.exchange_ticket，用户 10-25）：预算 = 累计获得 − 兑换；认知塑造只能用剩下的
+	Cfg.meta_earned = {"d1": 100}
+	Cfg.meta_bought = {}
+	Cfg.meta_shape = {}
+	check(Meta.pay(15) and Meta.bought_total() == 15 and Meta.budget() == 85 and Meta.available() == 85, "pay(15)：预算 85")
+	check(not Meta.pay(86) and Meta.bought_total() == 15, "余额不够不扣")
+	check(Meta.shape_for(Meta.budget()).has("sh1") and not Meta.can_buy({}, "sh1", 34), "按预算点危机感Ⅰ（35）")
+	Cfg.meta_earned = {"d1": 40}
+	Cfg.meta_bought = {"d1": 15}
+	check(not Meta.buy("sh1") and Meta.available() == 25, "兑换后余额 25 买不起 35 的节点")
+	var ba := {"earned": {"d1": 100}, "bounty": [], "shape": {}, "t": 1, "bought": {"d1": 15, "d2": 5}}
+	var bb := {"earned": {"d1": 100}, "bounty": [], "shape": {}, "t": 2, "bought": {"d1": 30}}
+	var bm := Pack.merge_meta(ba, bb)
+	check(int(bm.bought.d1) == 30 and int(bm.bought.d2) == 5, "bought 逐设备取大 %s" % [bm])
+	check(not Pack.merge_meta({"earned": {"d1": 1}}, {"earned": {"d1": 2}}).has("bought"), "双方都没兑换过时不带 bought 字段")
+	Cfg.meta_earned = {}
+	Cfg.meta_bought = {}
 	print("META failures=%d" % failures)
 	get_tree().quit(1 if failures > 0 else 0)
