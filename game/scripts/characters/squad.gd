@@ -830,6 +830,7 @@ func draw_auras() -> void:
 	g.world.fx_dim = d0
 	cv.mute = false
 	cv.amul = 1.0
+	cv.dsat = 0.0
 	cv.end()
 
 
@@ -844,6 +845,7 @@ func draw_ground_fx() -> void:
 	g.world.fx_dim = d0
 	cv.mute = false
 	cv.amul = 1.0
+	cv.dsat = 0.0
 	cv.end()
 
 
@@ -857,6 +859,7 @@ func draw_entities_floor() -> void:
 	g.world.fx_dim = d0
 	cv.mute = false
 	cv.amul = 1.0
+	cv.dsat = 0.0
 	cv.end()
 
 
@@ -919,6 +922,7 @@ func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 	g.world.fx_dim = d0
 	cv.mute = false
 	cv.amul = 1.0
+	cv.dsat = 0.0
 
 
 func draw_skill_over() -> void:
@@ -933,6 +937,7 @@ func draw_skill_over() -> void:
 	g.world.fx_dim = d0
 	cv.mute = false
 	cv.amul = 1.0
+	cv.dsat = 0.0
 	cv.end()
 
 
@@ -970,4 +975,5 @@ func _pfx_cap_plan() -> void:
 func _op_dim(o, d0: float) -> void:
 	g.world.fx_dim = d0
 	cv.amul = g.world.lead_dim if o.is_leader else g.world.mate_dim   # 经 cv 的绘制统一乘（自定义干员脚本不读 fx_dim 的特效也算上）
+	cv.dsat = 0.0 if o.is_leader else g.world.mate_desat   # 队友特效去饱和（docs/139 §10）
 	cv.mute = g.world._dbg_friend   # --clutterdbg=nofriend（量测）：这些阶段只有特效，整段不显示

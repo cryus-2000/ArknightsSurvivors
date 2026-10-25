@@ -30,6 +30,8 @@ const ROWS := [
 	{"cn": "水下滤镜", "en": "UNDERWATER FILTER", "key": "water_filter", "type": "bool"},
 	{"cn": "法线光照", "en": "NORMAL LIGHTING", "key": "normal_maps", "type": "bool", "note": "下局生效"},
 	{"cn": "亮度", "en": "BRIGHTNESS", "key": "brightness", "type": "bright"},
+	# 队友特效（docs/139 §10，用户 10-25「后期看不清哪些攻击是我自己发的」）：队友技能 / 普攻特效的不透明度，30%–100%，队长的不变
+	{"cn": "队友特效", "en": "ALLY EFFECTS", "key": "mate_fx_pct", "type": "matefx"},
 	# 界面大小 / 战斗画面缩放（用户 10-13：手机横屏太拥挤、战斗画面放大一点）：所有设备可用，实时生效
 	{"cn": "界面大小", "en": "UI SIZE", "key": "ui_size_pct", "type": "uisize"},
 	{"cn": "战斗画面缩放", "en": "BATTLE ZOOM", "key": "cam_zoom_pct", "type": "zoom"},
@@ -52,7 +54,7 @@ const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 ## ROWS 与存档键都保留（旧存档兼容），后期四项跟画质档走，对局记录挪到作战结算底栏
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
-	["画面", "DISPLAY", ["quality", "max_fps", "fullscreen", "res_index", "brightness", "ui_size_pct", "dmg_numbers", "reduce_motion"]],
+	["画面", "DISPLAY", ["quality", "max_fps", "fullscreen", "res_index", "brightness", "mate_fx_pct", "ui_size_pct", "dmg_numbers", "reduce_motion"]],
 	["操作", "CONTROLS", ["manual_attack", "pad_rumble", "touch_layout"]],
 ]
 
@@ -315,7 +317,7 @@ func _tap(mp: Vector2, button: int) -> void:
 		var r: Rect2 = row_rects[si]
 		var i: int = cur[si]
 		if r.has_point(mp) and view.has_point(mp):
-			var arrows: bool = ROWS[i].type in ["vol", "bright", "res", "uisize", "zoom"]
+			var arrows: bool = ROWS[i].type in ["vol", "bright", "res", "uisize", "zoom", "matefx"]
 			var control_x: float = r.position.x + r.size.x - 8.0 - (252.0 if _tl() else 230.0)
 			var dir := 1
 			if arrows:
@@ -359,6 +361,8 @@ func _adjust(i: int, dir: int) -> void:
 			Cfg.max_fps = 30 if Cfg.max_fps == 60 else 60
 		"bright":
 			Cfg.brightness = clampf(snappedf(Cfg.brightness + dir * 0.05, 0.05), 0.8, 1.4)
+		"matefx":
+			Cfg.mate_fx_pct = clampi(Cfg.mate_fx_pct + dir * 5, 30, 100)
 		"uisize":
 			Cfg.ui_size_pct = clampi(Cfg.ui_size_pct + dir * 5, Cfg.UI_PCT_MIN, Cfg.UI_PCT_MAX)
 		"zoom":
@@ -606,6 +610,10 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 		"bright":
 			UI.text(ci, font, Vector2(vx - 10, rr.position.y + ty0), "◀", fs_a, UI.CYAN if on else UI.SUB)
 			UI.text(ci, font, Vector2(vx, rr.position.y + ty0), "%d%%" % int(round(Cfg.brightness * 100.0)), fs_v, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
+			UI.text(ci, font, Vector2(vx + 180, rr.position.y + ty0), "▶", fs_a, UI.CYAN if on else UI.SUB)
+		"matefx":
+			UI.text(ci, font, Vector2(vx - 10, rr.position.y + ty0), "◀", fs_a, UI.CYAN if on else UI.SUB)
+			UI.text(ci, font, Vector2(vx, rr.position.y + ty0), "%d%%" % Cfg.mate_fx_pct, fs_v, UI.CYAN, HORIZONTAL_ALIGNMENT_CENTER, 200)
 			UI.text(ci, font, Vector2(vx + 180, rr.position.y + ty0), "▶", fs_a, UI.CYAN if on else UI.SUB)
 		"res":
 			var pi: int = clampi(pending_res, 0, Cfg.RESOLUTIONS.size() - 1)

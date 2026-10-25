@@ -481,3 +481,10 @@ Boss 弹洋红确认：`build/look_nausea/boss_bullets_check.png`（`--bosstest`
 统计明细：`build/look_nausea/text_stats_seed3.txt`（改前）、`text_stats_cmp.txt`、`textlog_seed3*.txt`。
 
 没做：把状态类改成 HUD 小图标（现在是左侧小字，已有的 notices 区）；音效提示（由音效会话决定）。
+
+## 10. 主次分层：队友特效降淡 + 队长标识（10-25，进行中）
+
+协调人转用户「后期看不清哪些攻击是我自己发的」。已做（缺省开）：队友特效（合批画布全部绘制、子弹、刀光、命中颗粒 / 命中星）透明度 = min(设置「队友特效」55%, 拥挤降噪 mate_k)，并去饱和 `render/mate_desat` 0.35；队长不变；敌人身上的白闪不动。设置「画面」页新增「队友特效」30%–100%（缺省 55%）。总开关 `render/mate_layer`（0 = 关）。
+队长标识 `render/lead_mark`（缺省 0，等用户挑）：1 = 命中处琥珀亮点；2 = 队长刀光外沿 / 子弹琥珀细描边。
+对照：`build/look_nausea/mate_layer_cmp.png`（10:12 同帧四张：现状 / 队友 55% / +亮点 / +描边）。
+没做完：GPU 粒子（optical tier_burst 以外的技能粒子）、加色层只压透明度不去饱和；设置未进云存档同步；同 seed TRACE 对照未跑（只跑了 --only core 通过）；§8 待勾清单见上。

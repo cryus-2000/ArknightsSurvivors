@@ -198,6 +198,18 @@ func _leader_kick(h: Dictionary, e: Dictionary, tier: int) -> void:
 	g.world.kick(((e.pos as Vector2) - g.ppos), px, Bal.v("fx/kick_t", 0.06))
 
 
+## 队长「这是我」标识（docs/139 §10，用户 10-25 后期分不清自己的攻击；render/lead_mark：0 = 关、1 = 命中处一颗暖色亮点、2 = 刀光 / 弹体暖色细描边）：
+## 1：命中点 4×4 像素琥珀亮点 + 深色 1 像素底，0.14 秒、三阶熄灭；2 的描边在 world.gd 刀光 / 子弹绘制处
+func lead_mark(p: Vector2, tier: int) -> void:
+	if Bal.vi("render/lead_mark", 0) != 1 or g.fx.size() > 400:
+		return
+	g.fx.append({"kind": "lead_dot", "pos": p.round(), "life": 0.14, "max": 0.14, "big": tier >= 3})
+
+
+func summon_off_lead_mark(h: Dictionary) -> bool:
+	return h.get("emitter", "") != "summon"   # 召唤物的命中不算队长本人出手
+
+
 func hit_tier(h: Dictionary, dmg: float, crit: bool, weak: bool) -> int:
 	if tier_off or Bal.v("fx/hit_tiers", 1.0) <= 0.0:
 		return 0
@@ -333,6 +345,12 @@ func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 	var col: Color = _op_col(h)
 	var head: Vector2 = e.pos + Vector2(0, -float(e.get("r", 12.0)) * 0.6)
 	var n: int = [0, Bal.vi("fx/hit_n1", 3), Bal.vi("fx/hit_n2", 6), Bal.vi("fx/hit_n3", 12)][tier]
+	var lead: bool = g.ch != null and str(h.get("op", "")) == str(g.ch.id)
+	if not lead:
+		col = g.world.mate_col(col)   # 队友命中颗粒：去饱和、压透明度（docs/139 §10；敌人身上的白闪不动）
+		col.a = g.world.mate_dim
+	elif summon_off_lead_mark(h):
+		lead_mark(head, tier)   # 队长「这是我」标识（docs/139 §10，render/lead_mark）
 	if g.optical_on and g.optical.grains != null and g.optical.grains.on() and not g.optical.grains.off:
 		g.optical.grains.spark(head, (e.pos as Vector2).y + float(e.get("r", 12.0)) * 0.8, col, n)   # 刀光第四版：带重力、落到脚底高度停住冷却的火星（docs/136）
 	elif g.optical_on and g.optical.particles != null:
@@ -341,10 +359,10 @@ func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 		sparks(head, Vector2.ZERO, col, n, [0.0, 90.0, 140.0, 200.0][tier])
 	if tier >= 2:
 		var k: float = 1.3 if tier == 2 else 1.7
-		glow(head, [0.0, 6.0, 10.0, 16.0][tier], Color(col.r * k, col.g * k, col.b * k, 0.8), [0.0, 0.06, 0.09, 0.14][tier])
+		glow(head, [0.0, 6.0, 10.0, 16.0][tier], Color(col.r * k, col.g * k, col.b * k, 0.8 * col.a), [0.0, 0.06, 0.09, 0.14][tier])
 		# 像素命中星（中 4 臂、重 8 臂，2 px 线、亮芯，三阶跳着消失）：小颗粒在后期满屏时读不出档位，靠它分轻重
 		var sl: float = [0.0, 0.0, 0.08, 0.13][tier]
-		g.fx.append({"kind": "hstar", "pos": head.round(), "r": [0.0, 0.0, 8.0, 14.0][tier], "col": col, "n": 4 if tier == 2 else 8, "life": sl, "max": sl})
+		g.fx.append({"kind": "hstar", "pos": head.round(), "r": [0.0, 0.0, 8.0, 14.0][tier], "col": col, "n": 4 if tier == 2 else 8, "life": sl, "max": sl, "ka": col.a})
 
 
 ## 击杀爆点按体型分档（docs/53，combat.kill 调用；纯画面 + 音效，粒子用 g.vrng，不碰 g.rng）：

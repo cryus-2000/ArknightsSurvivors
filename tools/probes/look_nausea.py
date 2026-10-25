@@ -57,6 +57,11 @@ VARIANTS = {
     "hide_warn": ["--clutterdbg=nowarn"], "hide_tell": ["--clutterdbg=notell"], "hide_foefx": ["--clutterdbg=nofoefx"],
     "hide_shock": ["--clutterdbg=noshock"], "hide_aura": ["--clutterdbg=noaura"], "hide_foe": ["--clutterdbg=nofoe"],
     "foe_calm": ["--bal=render/foe_calm=1"],
+    # docs/139 §10 主次分层
+    "mate_off": ["--bal=render/mate_layer=0"],
+    "mate55": [],
+    "mate55_dot": ["--bal=render/lead_mark=1"],
+    "mate55_rim": ["--bal=render/lead_mark=2"],
     "dash_style1": ["--bal=render/dash_tell_style=1"],
     "dash_style2": ["--bal=render/dash_tell_style=2"],
     "dash_calm": ["--bal=render/dash_tell_alpha=0.55", "--bal=render/dash_tell_flow=0", "--bal=render/dash_tell_white=0", "--bal=render/dash_tell_half=6",

@@ -51,6 +51,7 @@ var fx_dim := 1.0                 # 友方特效的透明度系数（1 → 0.45�
 var dcrowd := 0.0                 # 降噪用的拥挤度：max(crowd, ecrowd × declutter crowd_mix)
 var mate_dim := 1.0               # 队友（非主控）特效再乘的系数（declutter mate_k；squad 绘制时按干员临时乘进 fx_dim）
 var lead_dim := 1.0               # 主控自己的特效再乘的系数（declutter lead_k）
+var mate_desat := 0.0             # 队友特效去饱和（docs/139 §10，render/mate_desat）
 var ol_mul := 1.0                 # 普通怪描边透明度系数（随 ecrowd 降到 declutter ol_floor；原来写死 0.4）
 var _lamp_rim := false              # 朝灯边缘亮线原型（balance render/rim > 0 且白色保护材质在）：敌人本体绘制的 alpha 取负作标记，actor_light.gdshader 认
 var flash_a := 0.9                # 普通怪受击白闪透明度（随 ecrowd 从 0.9 降到 declutter flash_a）
@@ -228,6 +229,12 @@ func update_visuals(dt: float) -> void:
 	fx_dim = lerpf(1.0, Dc.p("dim_floor"), dcrowd)
 	mate_dim = Dc.at("mate_k", dcrowd)
 	lead_dim = Dc.at("lead_k", dcrowd)
+	# 主次分层（docs/139 §10，用户 10-25「后期看不清哪些攻击是我自己发的」）：队友特效恒定压到设置「队友特效」（缺省 55%）并轻度去饱和，
+	# 和拥挤降噪的 mate_k 取更低者；队长特效不受影响。render/mate_layer 0 = 关（只剩原来的拥挤降噪）
+	mate_desat = 0.0
+	if Bal.v("render/mate_layer", 1.0) > 0.0 and g.demo_op == "":
+		mate_dim = minf(mate_dim, Cfg.mate_fx())
+		mate_desat = Bal.v("render/mate_desat", 0.35)
 	if _dbg_friend:
 		fx_dim = 0.0   # --clutterdbg=nofriend：友方特效全透明（代码照跑、随机数照抽）
 	ol_mul = lerpf(1.0, Dc.p("ol_floor"), ecrowd)
@@ -972,9 +979,14 @@ func _draw_bullets() -> void:
 	# 自己的投射物（render/declutter bullet_k / bullet_desat）：拥挤时略淡、略去饱和，让敌方弹幕更跳；缺省不变
 	_bk = 0.0 if _dbg_friend else Dc.at("bullet_k", dcrowd)
 	_bd = Dc.p("bullet_desat") * dcrowd
+	var lid: String = str(g.ch.id) if g.ch != null else ""
+	var lmark2: bool = Bal.vi("render/lead_mark", 0) == 2
 	for b in g.bullets:
 		if b.life <= 0.0 or b.get("hidden", false):
 			continue
+		_bmate = b.has("op") and str(b.op) != lid   # 队友的弹：再乘队友系数（docs/139 §10）
+		if not _bmate and lmark2:
+			g.draw_arc(b.pos, 9.0, 0.0, TAU, 12, Color(2.0, 1.4, 0.5, 0.85), 1.5)   # 队长的弹：琥珀细圈（render/lead_mark 2）
 		var n: Vector2 = b.vel.normalized()
 		# 美术 V6：投射物帧条（朝右绘制，按速度方向旋转）；程序只画拖尾
 		var ptex: String = PROJ_TEX.get(b.kind, "")
@@ -1009,13 +1021,24 @@ func _draw_bullets() -> void:
 
 var _bk := 1.0
 var _bd := 0.0
+var _bmate := false
+
+
+## 队友特效颜色：往同亮度灰拉 mate_desat（不改透明度，透明度由调用方乘 mate_dim）
+func mate_col(c: Color) -> Color:
+	if mate_desat <= 0.0:
+		return c
+	var l: float = c.r * 0.2126 + c.g * 0.7152 + c.b * 0.0722
+	return Color(lerpf(c.r, l, mate_desat), lerpf(c.g, l, mate_desat), lerpf(c.b, l, mate_desat), c.a)
 
 
 func _bc(c: Color) -> Color:
-	if _bk >= 1.0 and _bd <= 0.0:
+	var k: float = _bk * (mate_dim if _bmate else 1.0)
+	var dd: float = maxf(_bd, mate_desat if _bmate else 0.0)
+	if k >= 1.0 and dd <= 0.0:
 		return c
 	var l: float = (c.r + c.g + c.b) / 3.0
-	return Color(lerpf(c.r, l, _bd), lerpf(c.g, l, _bd), lerpf(c.b, l, _bd), c.a * _bk)
+	return Color(lerpf(c.r, l, dd), lerpf(c.g, l, dd), lerpf(c.b, l, dd), c.a * k)
 
 
 ## g.fx 特效按 kind 逐个画（频闪 / 爆炸 / 地裂 / 光束 / Boss 换幕……）；fx_dim 只压友方特效；写进 tb 批的（gcrack / mote / mire_recoil）末尾一次提交
@@ -1080,9 +1103,15 @@ func _draw_fx() -> void:
 				g.draw_circle(Vector2.ZERO, f.r, Color(0.6, 0.85, 1.3, 0.28 * a))
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				g.draw_line(f.pos + Vector2(-5, 1), f.pos + Vector2(5, -1), Color(1.2, 1.5, 2.0, 0.6 * a), 1.5)
+			"lead_dot":
+				# 队长命中标识（vfx.lead_mark，docs/139 §10）：琥珀亮点 + 深色底，三阶熄灭
+				var lq: float = ceilf(a * 3.0) / 3.0
+				var ls: float = 6.0 if f.get("big", false) else 4.0
+				g.draw_rect(Rect2(f.pos - Vector2(ls * 0.5 + 1.0, ls * 0.5 + 1.0), Vector2(ls + 2.0, ls + 2.0)), Color(0.05, 0.03, 0.02, 0.7 * lq))
+				g.draw_rect(Rect2(f.pos - Vector2(ls * 0.5, ls * 0.5), Vector2(ls, ls)), Color(2.0, 1.45, 0.55, lq))
 			"hstar":
 				# 命中星（vfx._tier_fx）：中档 4 臂、重档 8 臂；臂长随寿命先长后缩，2 px 线 + 白芯，三阶跳着消失
-				var hq: float = ceilf(a * 3.0) / 3.0
+				var hq: float = ceilf(a * 3.0) / 3.0 * float(f.get("ka", 1.0))   # ka：队友命中压透明度（docs/139 §10）
 				var hl: float = float(f.r) * (0.6 + 0.4 * sin((1.0 - a) * PI))
 				var hc: Color = f.col
 				for q in int(f.n):
@@ -1115,7 +1144,14 @@ func _draw_fx() -> void:
 				var hd: float = clampf(pr / 0.25, 0.0, 1.0)
 				var tl: float = clampf((pr - 0.25) / 0.75, 0.0, 1.0)
 				var cc: Color = f.col
+				if aop != null and not aop.is_leader:
+					cc = mate_col(cc)   # 队友刀光：去饱和、压透明度（颗粒走 cc.a，docs/139 §10）
+					cc.a = mate_dim
+					aq *= mate_dim
 				var gr = g.optical.grains if g.optical != null else null
+				if aop != null and aop.is_leader and Bal.vi("render/lead_mark", 0) == 2 and hd - tl > 0.02:
+					var lsw: float = sd * span   # 队长刀光：外沿外侧一道 1.5 px 琥珀细线（docs/139 §10）
+					g.draw_arc(ap, rc + tw * 0.5 + 3.0, minf(s0 + lsw * tl, s0 + lsw * hd), maxf(s0 + lsw * tl, s0 + lsw * hd), 12, Color(2.0, 1.4, 0.5, aq), 1.5)
 				if gr != null and gr.on() and not gr.off and hd > 0.0:
 					# 刀光第四版（docs/136「slash」粒子模板）：月牙本体由像素颗粒在这一帧扫过的那一段上生成，前沿只留一道热白细线
 					_marc_grains(f, gr, ap, rc, tw, s0, sd * span, hd, cc, kb, aq)
@@ -4009,7 +4045,7 @@ func _marc_grains(f: Dictionary, gr, ap: Vector2, rc: float, tw: float, s0: floa
 		var cap: int = int(gr.TEMPLATES.slash.per_frame)
 		var stride: float = maxf(1.0, float(cells.size()) / float(cap))
 		var k: float = 0.0
-		var col := Color(minf(1.0, cc.r * kb), minf(1.0, cc.g * kb), minf(1.0, cc.b * kb))
+		var col := Color(minf(1.0, cc.r * kb), minf(1.0, cc.g * kb), minf(1.0, cc.b * kb), cc.a)
 		while int(k) < cells.size():
 			var c: Array = cells[int(k)]
 			gr.push("slash", c[0], c[1], col)
