@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Boss 改版逐幕演示 gif（docs/142b §9）：逐个开窗口局（走 godot_runner：副屏 / 屏幕外、静音、全机并发上限），
 --autotest --bossacts=<spec> 让 Boss 按自己的 AI 出招、每 7 秒过一道卡点，每 3 帧截一张；再拼成 gif（10 帧 / 秒，裁中间 16:9 区域缩到 480 宽）
-和一张逐幕对照图（每幕中段一帧）。一次只开 1 个 Godot；结束靠进程自己退出（超时由 godot_runner 按自己的 PID 结束）。
+和一张逐幕对照图（每幕中段一帧）。gif 取每 2 张（5 帧 / 秒）、裁中间 70% 宽的 16:9、缩到 400 宽、48 色。一次只开 1 个 Godot；结束靠进程自己退出（超时由 godot_runner 按自己的 PID 结束）。
 
     python tools/probes/boss_act_gifs.py                    # 其余 8 只（docs/142b §9 表）
     python tools/probes/boss_act_gifs.py carmen paranoia    # 只跑这几只
@@ -17,13 +17,16 @@ import godot_runner as gr
 
 DEFAULT = ["carmen", "path", "bishop+archon", "bishop+immortal", "paranoia", "ishar", "izumik"]
 OUT = os.path.join(ROOT, "build", "boss_acts")
-W = 480
+W = 400
 
 
 def run(spec):
     out = os.path.join(OUT, spec.replace("+", "_"))
     shutil.rmtree(out, ignore_errors=True)
-    os.makedirs(out)
+    os.makedirs(out, exist_ok=True)
+    for f in os.listdir(out):   # 目录删不掉（被占用）时至少清掉旧截图
+        if f.endswith(".png"):
+            os.remove(os.path.join(out, f))
     args = [gr.find_godot(), "--path", os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "30", "--",
             "--autotest", "--seed=1", "--op=mizuki", "--bossacts=" + spec, "--shotdir=" + out.replace(os.sep, "/")]
     o, e, to = gr.run_godot(args, 400)
@@ -40,7 +43,7 @@ def frames(out):
     for f in fs:
         im = Image.open(os.path.join(out, f)).convert("RGB")
         w, h = im.size
-        cw, ch = int(w * 0.8), int(w * 0.8 * 9 / 16)   # 裁中间 80% 宽的 16:9（Boss 与队长都在中间）
+        cw, ch = int(w * 0.7), int(w * 0.7 * 9 / 16)   # 裁中间 70% 宽的 16:9（Boss 与队长都在中间，HUD 大多裁掉）
         x0, y0 = (w - cw) // 2, max(0, (h - ch) // 2)
         ims.append(im.crop((x0, y0, x0 + cw, y0 + ch)).resize((W, int(W * 9 / 16)), Image.LANCZOS))
     return fs, ims
@@ -51,10 +54,10 @@ def make_gif(spec, out):
     if not ims:
         print(spec, "没有截图")
         return []
-    pal = [im.quantize(colors=128, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE) for im in ims]
+    pal = [im.quantize(colors=48, method=Image.Quantize.MEDIANCUT, dither=Image.Dither.NONE) for im in ims[::2]]
     p = os.path.join(OUT, spec.replace("+", "_") + ".gif")
-    pal[0].save(p, save_all=True, append_images=pal[1:], duration=100, loop=0, optimize=True, disposal=1)
-    print(p, "%.1f MB" % (os.path.getsize(p) / 1048576.0), len(ims), "帧")
+    pal[0].save(p, save_all=True, append_images=pal[1:], duration=200, loop=0, optimize=True, disposal=1)
+    print(p, "%.1f MB" % (os.path.getsize(p) / 1048576.0), len(pal), "帧")
     return ims
 
 
@@ -94,8 +97,11 @@ def main():
             out, _ = run(spec)
         ims = make_gif(spec, out)
         if ims:
-            per = 70   # 7 秒一幕、每 3 帧一张 → 每幕约 70 张；取每幕中段
-            acts = [ims[min(len(ims) - 1, k * per + per // 2)] for k in range((len(ims) + per - 1) // per)]
+            # 幕数 = run.log 里「BOSSACTS gate」行数（每行结束一幕）；按张数均分，取每幕 60% 处
+            log = open(os.path.join(out, "run.log"), encoding="utf-8", errors="replace").read()
+            n = max(1, log.count("BOSSACTS gate"))
+            per = len(ims) / n
+            acts = [ims[min(len(ims) - 1, int(k * per + per * 0.6))] for k in range(n)]
             rows.append((spec, acts))
     sheet(rows)
 

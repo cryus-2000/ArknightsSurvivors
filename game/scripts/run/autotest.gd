@@ -1215,7 +1215,7 @@ func step() -> void:
 
 ## --bossacts=<type>[+<搭档>]（docs/142b §9 逐幕演示，tools/probes/boss_act_gifs.py 拼 gif）：第 20 帧在队长右侧刷出 Boss（伊莎玛拉直接变身、
 ## 伊祖米克直接扎根），按自己的 AI 出招；每 boss/acts_demo_len（7）秒把血放到下一道刻度并过卡点，最后一幕放满后退出。
-## 队长不死、Boss 血不低于当前刻度（自动攻击照打，打不进下一幕）；第 30 帧起每 3 帧截一张 shot_acts_<tag>_<帧>.png
+## 队长不死、绕圈慢走，Boss 血不低于当前刻度（自动攻击照打，打不进下一幕）；第 30 帧起每 3 帧截一张 shot_acts_<tag>_<帧>.png
 func _bossacts_step(spec: String) -> void:
 	var act_len: float = Bal.v("boss/acts_demo_len", 7.0)
 	if g.at_frames == 20:
@@ -1247,6 +1247,12 @@ func _bossacts_step(spec: String) -> void:
 	if g.at_frames < 20 or ba_boss.is_empty():
 		return
 	g.hp = g.max_hp
+	# 队长绕 (1500, 900) 半径 230 慢走（约 100 像素 / 秒）：站着不动时 Boss 会贴脸近战，远程招和主轴画面（火线、路线）都看不到
+	g.ppos = Vector2(1500, 900) + Vector2.from_angle((g.t - 150.0) * 0.45) * 230.0
+	# 演示只看 Boss 自己：普通波次的杂兵每帧清掉（不掉经验、不计击杀）；机制小怪（部件、连线海嗣、幻影、子代、分形、骑士重生波）留着
+	for o in g.enemies:
+		if not o.dead and not o.boss and not o.chest and not o.get("part", false) and not o.has("web_of") and not o.has("decoy_of") and not o.feed and not o.get("song_eye", false) and not o.has("izu_dir") and o.type != "fractal" and o.age > 0.05 and not o.has("ba_keep"):
+			o.dead = true
 	for e in [ba_boss, ba_mate]:
 		if e.is_empty() or e.dead:
 			continue
@@ -1266,8 +1272,24 @@ func _bossacts_step(spec: String) -> void:
 			print("BOSSACTS END %s" % spec)
 			g.get_tree().quit()
 			return
+	if g.at_frames % 60 == 0:
+		print("BOSSACTS state t=%.1f %s" % [g.t, _ba_state(ba_boss)])
 	if g.at_frames >= 30 and g.at_frames % 3 == 0 and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_acts_%s_%04d.png" % [spec.replace("+", "_"), g.at_frames])
+
+
+## 演示日志：主轴状态的个数（火线 / 路线 / 幻影 / 网 / 泪 / 子代 / 强化层 / 冰柱 / 同步护盾），核对 gif 里该出现的东西有没有出现
+func _ba_state(e: Dictionary) -> String:
+	var out: Array = ["act=%d" % int(e.get("gates_passed", 0)), "phase=%d" % int(e.phase)]
+	for k in ["fire_lines", "paths", "stakes", "batch", "eyes"]:
+		if e.has(k):
+			out.append("%s=%d" % [k, e[k].size()])
+	for k in ["web_n", "izu_stacks", "absorb_n", "pair_shield", "drop_until", "aura_off_until", "kcold"]:
+		if e.has(k):
+			out.append("%s=%s" % [k, str(e[k])])
+	if g.has_meta("boss_decoys"):
+		out.append("decoys=%d" % g.get_meta("boss_decoys").size())
+	return " ".join(out)
 
 
 ## --bossmoves=<type>[2]：逐招验收（docs/95 §12）。主控不动（autotest 模式没有移动输入），每招：force_move → 预警 60% 截图 → 结算后 8 帧截图
