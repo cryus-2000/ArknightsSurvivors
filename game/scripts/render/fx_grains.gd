@@ -32,6 +32,15 @@ const MATERIALS := {
 		"ramp": [[0.0, Color(1.5, 1.5, 1.5)], [0.3, Color(1, 1, 1)], [0.7, Color(0.5, 0.55, 0.65, 0.7)]]},
 	"fluid": {"life": 0.36, "life_rand": 0.25, "speed": Vector2(8, 24), "spread": 50.0, "grav": 95.0, "drag": 6.0, "per_frame": 96,
 		"ramp": [[0.0, Color(1, 1.1, 1.1)], [0.25, Color(0.8, 0.9, 0.95)], [0.7, Color(0.35, 0.45, 0.5, 0.65)]]},
+	# Boss 各幕常驻颗粒（docs/142b §8.2，render/boss_beam.act_look）：上升雾 / 下落屑 / 流入本体；转幕迸散一圈（不闪，docs/137）
+	"mote_up": {"life": 1.1, "life_rand": 0.4, "speed": Vector2(6, 18), "spread": 30.0, "grav": -28.0, "drag": 1.2, "per_frame": 8,
+		"ramp": [[0.0, Color(1.25, 1.25, 1.25, 0.9)], [0.3, Color(1, 1, 1, 0.8)], [0.75, Color(0.6, 0.6, 0.6, 0.45)]]},
+	"mote_down": {"life": 1.1, "life_rand": 0.4, "speed": Vector2(4, 12), "spread": 20.0, "grav": 34.0, "drag": 1.2, "per_frame": 8,
+		"ramp": [[0.0, Color(1.2, 1.2, 1.2, 0.9)], [0.35, Color(0.95, 0.95, 0.95, 0.8)], [0.75, Color(0.55, 0.55, 0.55, 0.45)]]},
+	"mote_in": {"life": 0.9, "life_rand": 0.3, "speed": Vector2(55, 85), "spread": 6.0, "grav": 0.0, "drag": 0.4, "per_frame": 8,
+		"ramp": [[0.0, Color(0.7, 0.7, 0.7, 0.5)], [0.4, Color(1, 1, 1, 0.85)], [0.85, Color(1.3, 1.3, 1.3, 0.9)]]},
+	"mote_burst": {"life": 0.6, "life_rand": 0.35, "speed": Vector2(70, 150), "spread": 8.0, "grav": 0.0, "drag": 3.5, "per_frame": 72,
+		"ramp": [[0.0, Color(1.3, 1.3, 1.3, 1)], [0.25, Color(1, 1, 1, 0.9)], [0.7, Color(0.55, 0.55, 0.55, 0.5)]]},
 }
 # 只替换短命中效果，不接管地面预警、持续领域或触手本体。
 # 10-24 第 2 批（docs/138 §7）：盘点后只加蓝水花。炮弹爆炸 / 日炎 / 维什戴尔炮击试过，用户看后定退回原版（原版更有冲击感、更省帧）；体液另两条（水母刺 / 血肉命中）也不加

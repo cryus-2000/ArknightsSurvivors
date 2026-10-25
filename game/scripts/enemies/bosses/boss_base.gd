@@ -120,6 +120,11 @@ func _tint2(e: Dictionary, col: Color) -> void:
 	e["tint2"] = col
 
 
+## 冲刺穿身（docs/142b §1.0 公共判定，10-25）：主控正在冲刺、且离本体中心 < 半径 + pad。圣徒装填打断、泡影打落 / 打散光环 / 戳破幻影共用
+func _dash_through(e: Dictionary, pad: float = 24.0) -> bool:
+	return g.dash_t > 0.0 and g.ppos.distance_to(e.pos) < float(e.r) + pad
+
+
 ## 接潮组「同步」（docs/142b §3.8，10-25；取材深岩银河：幸存者的无畏舰双子，原作没有）：两具血量比例差超过门槛（一幕 pair_shield_gap 0.25、
 ## 二幕 0.15）时，血少的那具出护盾、受伤 × pair_shield_mult（0.4）——自动攻击打射程内最近的 Boss，玩家靠站位决定打谁，要把两具拉平再一起打进假死
 func _pair_shield(e: Dictionary) -> float:

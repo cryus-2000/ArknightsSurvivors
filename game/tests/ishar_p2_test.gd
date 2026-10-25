@@ -61,11 +61,11 @@ func _ready() -> void:
 						names.append(w.name)
 			g.invuln = 100.0
 			g.bai._update_warns(0.04)
-		check(seen.has("ishar_strike") and seen.has("ishar_line") and seen.has("song_ring"), "three distinct ranged patterns at distance %d" % distance)   # docs/95 §2：三重吐息 → 大群之歌（song_ring）
+		check(seen.has("ishar_line") and seen.has("song_ring"), "line + song ranged patterns at distance %d" % distance)   # docs/142b §3.6：一幕三点落击删掉，轮转 三线扫射 → 大群之歌 → 撕咬
 		check(seen.has("bite") or seen.has("sweep"), "near bite or far fan in rotation")
-		var regular_names: Array = names.filter(func(n): return n != "泪滴共鸣" and n != "潮涌迫近")   # 泪滴共鸣 / 潮涌迫近是机制，不在 4 招轮转里（docs/95 §2）
-		check(regular_names.size() >= 8 and regular_names[0] == regular_names[4], "complete rotation repeats rather than priority starving")
-		if not (regular_names.size() >= 8 and regular_names[0] == regular_names[4]):
+		var regular_names: Array = names.filter(func(n): return n != "泪滴共鸣" and n != "潮涌迫近" and n != "共鸣")   # 泪滴共鸣 / 潮涌迫近 / 共鸣是机制，不在轮转里（docs/95 §2、docs/142b §3.6）
+		check(regular_names.size() >= 6 and regular_names[0] == regular_names[3], "complete rotation repeats rather than priority starving")   # 一幕 3 招轮转（泪落只在二幕有泪时进）
+		if not (regular_names.size() >= 6 and regular_names[0] == regular_names[3]):
 			print("  names at %d: %s" % [distance, str(regular_names)])
 	# Warning resolution must forward true damage and the existing protection budget.
 	g.t += 20.0

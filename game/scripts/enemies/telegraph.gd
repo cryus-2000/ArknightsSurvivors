@@ -474,7 +474,17 @@ func warn_resolve(w: Dictionary) -> void:
 				g.fx.append({"kind": "ring", "pos": w.pos, "r": 760.0, "life": 0.9, "max": 0.9, "col": Color(c.r * 0.8, c.g * 1.1, c.b * 1.2), "enemy": true})
 			g.fx.append({"kind": "gcrack", "pos": e.pos, "r": 170.0, "life": 0.9, "max": 0.9, "col": Color(0.9, 0.4, 1.15), "enemy": true, "opts": {"n": 12}})   # 地波源头：伊祖米克脚下大地裂（纯画面，界面与美术 10-01）
 			Sfx.play("boom", -2.0, 0.5, 0.0)
-			if g.invuln <= 0.0 and not g.bai.izumik_safe(e):
+			var safe: bool = g.bai.izumik_safe(e)   # 先判安全再熄灯（熄掉的灯柱这一下仍算庇护）
+			if w.get("share_all", false):
+				# 伊祖米克三幕「分享·全场」（docs/142b §3.7）：结算这一刻你站着的那根亮灯柱熄灭
+				for l in e.get("lamps", []):
+					if l.lit and g.combat.ground_d(g.ppos, l.pos) < float(e.get("lamp_r", 120.0)):
+						g.fx.append({"kind": "ring", "pos": l.pos, "r": float(e.get("lamp_r", 120.0)), "life": 0.6, "max": 0.6, "col": Color(0.5, 0.6, 0.8), "enemy": true})
+						g.vfx.add_text(l.pos + Vector2(0, -40), "灯柱熄灭", Color(0.7, 0.75, 0.9), 15)
+						l.out = true
+						l.lit = false
+						break
+			if g.invuln <= 0.0 and not safe:
 				g.combat.enemy_hit(w.dmg, {"boss": true, "src_type": e.type}, false, true, ["远程", "法术"], "boss_" + e.type)
 				g.combat.slow_leader("wave", 1.5, 0.6)
 				if float(w.get("burn", 0.0)) > 0.0:

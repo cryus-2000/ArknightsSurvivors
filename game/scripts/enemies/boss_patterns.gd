@@ -111,7 +111,9 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 				data.act = "pattern_ring"
 				data.r = float(move.get("ring_r", 88.0))
 				var gj: float = float(move.get("gap_jitter", 0.12))
-				data.gap_ang = dir.angle() + (0.0 if move.get("gap_face", false) else PI * 0.5 + (gj if k % 2 else -gj))
+				# gap_face 多波时缺口左右错开 gap_stagger（泡影环落地 2 波，docs/142b §8.2：冲进去要连穿两道缺口）
+				var gst: float = float(move.get("gap_stagger", 0.0)) * (1.0 if k % 2 else -1.0) if waves > 1 else 0.0
+				data.gap_ang = dir.angle() + (gst if move.get("gap_face", false) else PI * 0.5 + (gj if k % 2 else -gj))
 				data.gap_half = float(move.gap)
 				var ng: int = int(move.get("gaps", 1))
 				if ng > 1:

@@ -3,8 +3,9 @@ extends RefCounted
 ## 1. "kp_beam"：Kanpelle · Ultimate Laser Pack 光束（tools/gen_boss_laser.py 导出 fx_kp_<boss>_<段>，每段 16 × 48、4 帧）。
 ##    起点 + 中段平铺 + 命中端，沿 a → b 旋转；先播开启 4 帧，再循环持续帧，最后开启倒放 = 关闭。纯画面，不碰随机数。
 ## 2. 骑士「斗牛」的寒气圈（地面层）与主控的寒冷条（顶层）：读 e.kcold / e.kcold_r（knight_boss.gd 写）。
-## 3. 卡门火线、塑路者生路（地面层）、接潮组同步护盾（顶层）。
+## 3. 卡门火线、塑路者生路、泡影悬浮圈、伊莎玛拉连线、伊祖米克子代与茧（地面层）；接潮组同步护盾、泡影坠地 / 光环散开倒计时、伊莎玛拉音符与护盾格、伊祖米克来向箭头与强化层数（顶层）。
 const A = preload("res://scripts/art.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 const SEG := 16.0     # 每段宽（美术像素）
 const HALF_H := 24.0  # 帧高 48 的一半（光束竖直居中）
@@ -113,13 +114,202 @@ static func _paths(g, e: Dictionary) -> void:
 			g.draw_polyline(PackedVector2Array([q + Vector2(0, -9), q + Vector2(7, 0), q + Vector2(0, 9), q + Vector2(-7, 0), q + Vector2(0, -9)]), Color(1, 1, 1, c.a), 1.5)
 
 
+## 偏执泡影「打落」读法（docs/142b §3.5）：悬浮时身下白色双描边椭圆（主控冲刺可用时加亮）；
+## 坠地 / 三幕光环散开时青色倒计时环（弧长 = 剩余比例）
+static func _paranoia_ground(g, e: Dictionary) -> void:
+	if e.get("cocoon_t", 0.0) > 0.0 or e.phase != 1 or float(e.get("break_t", 0.0)) > 0.0:
+		return
+	var al: float = 0.75 if g.dash_ready() else 0.3
+	g.draw_set_transform(e.pos + Vector2(0, e.r * 0.8), 0.0, Vector2(1.0, 0.45))
+	g.draw_arc(Vector2.ZERO, e.r * 1.25, 0.0, TAU, 40, Color(1, 1, 1, al), 2.0)
+	g.draw_arc(Vector2.ZERO, e.r * 1.25 + 5.0, 0.0, TAU, 40, Color(1, 1, 1, al * 0.6), 1.5)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+static func _paranoia_top(g, e: Dictionary) -> void:
+	var left: float = 0.0
+	if e.phase == 1 and float(e.get("drop_until", 0.0)) > g.t:
+		left = (float(e.drop_until) - g.t) / maxf(0.1, Bal.v("boss/paranoia_drop_t", 4.0))
+	elif e.phase == 2 and float(e.get("aura_off_until", 0.0)) > g.t:
+		left = (float(e.aura_off_until) - g.t) / maxf(0.1, float(e.get("aura_off_max", 5.0)))
+	if left <= 0.0:
+		return
+	var c := Color(0.45, 0.95, 1.0, 0.9)
+	var r: float = e.r * 1.5
+	g.draw_arc(e.pos, r, -PI * 0.5, -PI * 0.5 + TAU * left, 48, c, 3.0)
+	g.draw_arc(e.pos, r, 0.0, TAU, 48, Color(c.r, c.g, c.b, 0.18), 1.5)
+
+
+## 伊莎玛拉「破网」读法（docs/142b §3.6）：地面层——她到每只连线海嗣一条低亮度青绿细线、海嗣脚下金色描边圈，泪脚下金圈随心跳缩放；
+## 顶层——连线海嗣头顶音符，她身上的护盾环按上限分格、亮格数 = 连线数（每断一根线少一格）
+const ISHAR_LINK := Color(0.3, 1.0, 0.65)
+const GOLD := Color(1.0, 0.82, 0.3)
+
+
+static func _web_ground(g, e: Dictionary) -> void:
+	for sl in e.get("web", []):
+		var o = sl.o
+		if o == null or o.dead:
+			continue
+		g.draw_line(e.pos, o.pos, Color(ISHAR_LINK.r, ISHAR_LINK.g, ISHAR_LINK.b, 0.28), 1.5)
+		g.draw_set_transform(o.pos + Vector2(0, o.r * 0.8), 0.0, Vector2(1.0, 0.5))
+		g.draw_arc(Vector2.ZERO, o.r + 6.0, 0.0, TAU, 24, Color(GOLD.r, GOLD.g, GOLD.b, 0.8), 2.0)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var beat: float = pow(maxf(0.0, sin(g.t * 5.0)), 6.0)
+	for o in e.get("eyes", []):
+		if o.dead:
+			continue
+		g.draw_arc(o.pos, o.r + 8.0 + beat * 6.0, 0.0, TAU, 28, Color(GOLD.r, GOLD.g, GOLD.b, 0.6 + beat * 0.4), 2.5)
+
+
+static func _web_top(g, e: Dictionary) -> void:
+	var cap: int = int(e.get("web_cap", 0))
+	if cap <= 0:
+		return
+	for sl in e.get("web", []):
+		var o = sl.o
+		if o == null or o.dead:
+			continue
+		var h: Vector2 = o.pos + Vector2(0, -o.r - 22.0 + sin(g.t * 3.0 + float(o.id)) * 2.0)
+		g.draw_circle(h + Vector2(-3, 4), 3.0, GOLD)
+		g.draw_line(h + Vector2(0, 4), h + Vector2(0, -6), GOLD, 1.5)
+		g.draw_line(h + Vector2(0, -6), h + Vector2(4, -3), GOLD, 1.5)
+	var n: int = int(e.get("web_n", 0))
+	var r: float = float(e.r) * 1.45
+	var step: float = TAU / float(cap)
+	for i in cap:
+		var a0: float = -PI * 0.5 + step * i + step * 0.1
+		var on: bool = i < n
+		g.draw_arc(e.pos, r, a0, a0 + step * 0.8, 8, Color(ISHAR_LINK.r, ISHAR_LINK.g, ISHAR_LINK.b, 0.85 if on else 0.15), 3.0 if on else 1.5)
+
+
+## 伊祖米克「拦截」读法（docs/142b §3.7）：地面层——每只批次子代脚下金色描边圈 + 一条细线连向她，茧外青色倒计时环；
+## 顶层——队长身边金色箭头指向每一路还在走的子代（重心），她头顶强化层数亮点（1–4）
+static func _izumik_ground(g, e: Dictionary) -> void:
+	for o in e.get("batch", []):
+		if o.dead:
+			continue
+		if o.get("izu_cocoon", false):
+			var left: float = clampf((float(o.cocoon_until) - g.t) / maxf(0.1, Bal.v("boss/izumik_cocoon_t", 4.0)), 0.0, 1.0)
+			g.draw_arc(o.pos, o.r + 12.0, -PI * 0.5, -PI * 0.5 + TAU * left, 32, Color(0.45, 0.95, 1.0, 0.9), 3.0)
+			continue
+		g.draw_line(o.pos, e.pos, Color(GOLD.r, GOLD.g, GOLD.b, 0.16), 1.0)
+		g.draw_set_transform(o.pos + Vector2(0, o.r * 0.8), 0.0, Vector2(1.0, 0.5))
+		g.draw_arc(Vector2.ZERO, o.r + 6.0, 0.0, TAU, 24, Color(GOLD.r, GOLD.g, GOLD.b, 0.8), 2.0)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+static func _izumik_top(g, e: Dictionary) -> void:
+	var sums: Dictionary = {}
+	for o in e.get("batch", []):
+		if o.dead or o.get("izu_cocoon", false):
+			continue
+		var k: int = int(o.get("izu_dir", 0))
+		if not sums.has(k):
+			sums[k] = [Vector2.ZERO, 0]
+		sums[k][0] += o.pos
+		sums[k][1] += 1
+	for k in sums:
+		var c: Vector2 = sums[k][0] / float(sums[k][1])
+		if c.distance_to(g.ppos) < 140.0:
+			continue
+		var d: Vector2 = (c - g.ppos).normalized()
+		var tip: Vector2 = g.ppos + d * 70.0
+		var side: Vector2 = d.orthogonal() * 9.0
+		var pts := PackedVector2Array([tip, tip - d * 16.0 + side, tip - d * 16.0 - side])
+		g.draw_colored_polygon(pts, Color(GOLD.r, GOLD.g, GOLD.b, 0.9))
+		g.draw_polyline(PackedVector2Array([pts[0], pts[1], pts[2], pts[0]]), Color(0.2, 0.12, 0.0, 0.8), 1.5)
+	var n: int = int(e.get("izu_stacks", 0))
+	for i in n:
+		var p: Vector2 = e.pos + Vector2((float(i) - (n - 1) * 0.5) * 12.0, -e.r - 30.0)
+		g.draw_circle(p, 4.0, Color(0.5, 1.0, 0.6))
+		g.draw_arc(p, 5.5, 0.0, TAU, 12, Color(1, 1, 1, 0.7), 1.0)
+
+
+## ---- 每幕一套颗粒（docs/142b §8.2「特效 / 转场」列，docs/142 §1「肉眼可见」）：本体周围按这一幕的颜色 / 方向持续冒颗粒；
+## 换幕那一刻（act_index 变了）从本体迸出一圈这一幕颜色的颗粒——不闪白、不加亮度（docs/137）。只在光学观感颗粒开着时画（fx_grains.on），纯画面，只用 g.vrng
+## 每项：[颜色, 方式（"up" 上升 / "down" 下落 / "in" 流入本体 / "" 不冒）, 每秒颗数]；下标 = act_index
+const ACT_LOOK := {
+	"knight_boss": [[Color(0.6, 0.9, 1.0), "up", 18.0], [Color(0.88, 0.96, 1.0), "down", 24.0], [Color(0.4, 0.6, 0.98), "up", 26.0], [Color(0.92, 0.96, 1.0), "down", 30.0]],
+	"path": [[Color(0.62, 0.66, 0.72), "down", 16.0], [Color(0.58, 0.5, 1.0), "up", 26.0]],
+	"iberia": [[Color(1.0, 0.5, 0.2), "", 0.0], [Color(0.32, 0.27, 0.22), "up", 22.0]],
+	"carmen": [[Color(1.0, 0.94, 0.82), "up", 10.0], [Color(1.0, 0.88, 0.55), "up", 24.0]],
+	"bishop": [[Color(0.3, 0.35, 0.9), "up", 12.0], [Color(0.45, 0.65, 1.0), "down", 22.0]],
+	"archon": [[Color(0.35, 0.9, 0.45), "up", 12.0], [Color(0.45, 1.0, 0.6), "down", 22.0]],
+	"immortal": [[Color(0.65, 0.75, 1.0), "up", 12.0], [Color(0.82, 0.86, 1.0), "down", 22.0]],
+	"paranoia": [[Color(0.78, 0.62, 1.0), "up", 18.0], [Color(1.0, 0.4, 0.85), "up", 24.0], [Color(0.32, 0.16, 0.42), "down", 28.0], [Color(0.95, 0.85, 1.0), "up", 30.0]],
+	"ishar": [[Color(0.3, 1.0, 0.65), "up", 18.0], [Color(0.75, 0.2, 0.22), "down", 24.0], [Color(0.82, 1.0, 0.9), "up", 28.0]],
+	"izumik": [[Color(0.4, 0.6, 1.0), "up", 18.0], [Color(0.5, 0.85, 1.0), "in", 26.0], [Color(0.85, 0.95, 1.0), "down", 28.0]],
+}
+
+
+## 这一幕的下标：一般 = 过了几道卡点；骑士重生 = 3；泡影落地 = 2、破茧后 = 3；伊莎玛拉 / 伊祖米克只算变身 / 扎根后（之前 -1 = 不冒）
+static func act_index(e: Dictionary) -> int:
+	var gp: int = int(e.get("gates_passed", 0))
+	match str(e.type):
+		"knight_boss":
+			return 3 if e.phase == 2 else mini(gp, 2)
+		"paranoia":
+			if e.get("cocoon_t", 0.0) > 0.0:
+				return -1
+			if e.get("cocoon_done", false) and e.phase == 2:
+				return 3
+			return 2 if e.phase == 2 else mini(gp, 1)
+		"ishar", "izumik":
+			return mini(gp, 2) if e.phase == 2 else -1
+	return mini(gp, ACT_LOOK.get(str(e.type), [[]]).size() - 1)
+
+
+static func _act_look(g, e: Dictionary, grains) -> void:
+	var looks: Array = ACT_LOOK.get(str(e.type), [])
+	var i: int = act_index(e)
+	if looks.is_empty() or i < 0 or i >= looks.size():
+		return
+	var lk: Array = looks[i]
+	var c: Color = lk[0]
+	var prev: int = int(e.get("look_i", -9))
+	e["look_i"] = i
+	if prev != -9 and prev != i:
+		# 换幕：一圈 48 颗这一幕颜色的颗粒向外迸散
+		for k in 48:
+			var d: Vector2 = Vector2.from_angle(TAU * k / 48.0 + g.vrng.randf_range(-0.05, 0.05))
+			grains.push("mote_burst", e.pos + d * float(e.r) * 0.6, d, c)
+	var mode: String = lk[1]
+	if mode == "":
+		return
+	var p: float = float(lk[2]) / 60.0
+	while p > 0.0:
+		if g.vrng.randf() < p:
+			var r: float = float(e.r)
+			match mode:
+				"up":
+					grains.push("mote_up", e.pos + Vector2(g.vrng.randf_range(-1.4, 1.4) * r, g.vrng.randf_range(-0.6, 0.9) * r), Vector2.UP, c)
+				"down":
+					grains.push("mote_down", e.pos + Vector2(g.vrng.randf_range(-1.5, 1.5) * r, g.vrng.randf_range(-2.0, -0.6) * r), Vector2.DOWN, c)
+				"in":
+					var d2: Vector2 = Vector2.from_angle(g.vrng.randf() * TAU)
+					grains.push("mote_in", e.pos + d2 * r * 3.2, -d2, c)
+		p -= 1.0
+
+
 ## 地面层：骑士的寒气圈（低亮度，0 区域样式：只提示「进来会涨寒冷」，不伤人）；卡门的封锁线；塑路者的生路
 static func draw_ground(g) -> void:
+	var grains = g.optical.grains if g.optical != null and g.optical.grains != null and g.optical.grains.on() else null
+	if grains != null:
+		for e in g.bosses:
+			if not e.dead:
+				_act_look(g, e, grains)
 	for e in g.bosses:
 		if not e.dead and e.type == "carmen" and not e.get("fire_lines", []).is_empty():
 			_fire_lines(g, e)
 		if not e.dead and e.type == "path" and not e.get("paths", []).is_empty():
 			_paths(g, e)
+		if not e.dead and e.type == "paranoia":
+			_paranoia_ground(g, e)
+		if not e.dead and e.type == "ishar" and e.phase == 2:
+			_web_ground(g, e)
+		if not e.dead and e.type == "izumik" and e.phase == 2:
+			_izumik_ground(g, e)
 		if e.dead or e.type != "knight_boss" or float(e.get("kcold_r", 0.0)) <= 0.0:
 			continue
 		var r: float = float(e.kcold_r)
@@ -149,6 +339,13 @@ static func _shields(g) -> void:
 ## 顶层：接潮护盾；主控脚下的寒冷条（骑士在场且寒冷 > 0 时）；满了之后「冻伤」期间整条变白
 static func draw_top(g) -> void:
 	_shields(g)
+	for e in g.bosses:
+		if not e.dead and e.type == "paranoia":
+			_paranoia_top(g, e)
+		if not e.dead and e.type == "ishar" and e.phase == 2:
+			_web_top(g, e)
+		if not e.dead and e.type == "izumik" and e.phase == 2:
+			_izumik_top(g, e)
 	for e in g.bosses:
 		if e.dead or e.type != "knight_boss":
 			continue

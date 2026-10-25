@@ -163,6 +163,8 @@ func _focus_bosses() -> Array:
 		if e.boss and not e.dead and not e.get("coma", false) and not e.get("invuln", false) \
 				and e.get("gate_inv", 0.0) <= 0.0 and not e.get("under", false):
 			_fb_list.append(e)
+	if g.has_meta("boss_decoys"):
+		_fb_list.append_array(g.get_meta("boss_decoys"))   # 泡影二幕幻影（docs/142b §3.5）：和真身一起比远近，不替玩家认真身
 	return _fb_list
 
 

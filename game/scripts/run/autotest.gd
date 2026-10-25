@@ -27,6 +27,9 @@ var bossintro_kill_at := -1   # --bossintro：登场演完后击杀 Boss 的帧�
 # --bossmoves=<type>[2][+<搭档>]（docs/95 §12 验收开关）：在主控旁刷出该 Boss（后缀 2 = 二阶段；+搭档 = 接潮组另一具，停在左上不出招），按 bosses/<type>.gd demo_moves 的顺序
 # 逐招 force_move，预警进度 60% 截 shot_bossmove_<type>_<招>.png、结算后 8 帧截 _hit.png；全部放完退出
 var bm_boss: Dictionary = {}
+var ba_boss: Dictionary = {}   # --bossacts（docs/142b §9 逐幕演示 gif）：演示中的 Boss / 搭档 / 下一次过卡点的时刻
+var ba_mate: Dictionary = {}
+var ba_next := 0.0
 var bm_mate: Dictionary = {}   # --bossmoves=<type>[2]+<搭档>：接潮组的搭档（停在主控左上、不出招、不死，供「统一」等两体招式验收）
 var bm_list: Array = []
 var bm_i := 0
@@ -697,6 +700,9 @@ func step() -> void:
 		if a.begins_with("--bossmoves="):
 			bosstest = true
 			_bossmoves_step(a.substr(12))
+		if a.begins_with("--bossacts="):
+			bosstest = true
+			_bossacts_step(a.substr(11))
 		if a.begins_with("--bossintro="):
 			# Boss 登场演出测试（docs/36 §5）：第 20 帧在主控旁刷出指定 Boss（逗号分隔 = 同组登场）并走一遍登场，
 			# 登场进行到 0.35 / 0.6 / 0.85 / 1.1 秒各截一张；演完后把 Boss 击杀，击破一拍 0.12 / 0.35 秒再各截一张，然后退出
@@ -1200,11 +1206,68 @@ func step() -> void:
 			o.fill_sp()
 	if g.shot_at.has(g.at_frames) and DisplayServer.get_name() != "headless":
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_%d.png" % g.at_frames)
-	if bosstest and g.at_frames > 610 and bm_boss.is_empty():   # --bossmoves 自己数招、放完才退
+	if bosstest and g.at_frames > 610 and bm_boss.is_empty() and ba_boss.is_empty():   # --bossmoves / --bossacts 自己数、放完才退
 		g.get_tree().quit()
 	if (g.state == g.S.WIN and not winshot) or g.at_frames > 14000:
 		print("AUTOTEST END state=%d t=%d" % [g.state, g.t])
 		g.get_tree().quit()
+
+
+## --bossacts=<type>[+<搭档>]（docs/142b §9 逐幕演示，tools/probes/boss_act_gifs.py 拼 gif）：第 20 帧在队长右侧刷出 Boss（伊莎玛拉直接变身、
+## 伊祖米克直接扎根），按自己的 AI 出招；每 boss/acts_demo_len（7）秒把血放到下一道刻度并过卡点，最后一幕放满后退出。
+## 队长不死、Boss 血不低于当前刻度（自动攻击照打，打不进下一幕）；第 30 帧起每 3 帧截一张 shot_acts_<tag>_<帧>.png
+func _bossacts_step(spec: String) -> void:
+	var act_len: float = Bal.v("boss/acts_demo_len", 7.0)
+	if g.at_frames == 20:
+		var parts: PackedStringArray = spec.split("+")
+		g.ppos = Vector2(1500, 900)
+		g.max_hp = 900.0
+		g.hp = 900.0
+		g.t = 150.0
+		var b := g.spawner.spawn_enemy(parts[0], g.ppos + Vector2(260, -40))
+		b.age = 5.0
+		g.bosses.append(b)
+		g.boss = b
+		if g.final_boss == null and g.spawner.is_final_boss_type(b.type):
+			g.final_boss = b
+		if parts.size() > 1:
+			var m := g.spawner.spawn_enemy(parts[1], g.ppos + Vector2(-260, -60))
+			m.age = 5.0
+			b.partner = m
+			m.partner = b
+			g.bosses.append(m)
+			ba_mate = m
+		if b.type in ["ishar", "izumik"]:
+			g.bai.setup_preview_phase2(b)
+			b.invuln = false
+		ba_boss = b
+		ba_next = g.t + act_len
+		print("BOSSACTS %s gates=%s" % [spec, str(b.get("gates", []))])
+		return
+	if g.at_frames < 20 or ba_boss.is_empty():
+		return
+	g.hp = g.max_hp
+	for e in [ba_boss, ba_mate]:
+		if e.is_empty() or e.dead:
+			continue
+		var gl: Array = e.get("gates", [])
+		e.hp = maxf(e.hp, e.maxhp * ((float(gl[0]) + 0.02) if not gl.is_empty() else 0.12))
+	if g.t >= ba_next:
+		ba_next = g.t + act_len
+		var passed := false
+		for e in [ba_boss, ba_mate]:
+			if e.is_empty() or e.dead or e.get("gates", []).is_empty():
+				continue
+			e.hp = e.maxhp * float(e.gates[0])
+			g.combat.gate_pass(e)
+			passed = true
+		print("BOSSACTS gate t=%.1f passed=%s phase=%d" % [g.t, str(passed), int(ba_boss.phase)])
+		if not passed:
+			print("BOSSACTS END %s" % spec)
+			g.get_tree().quit()
+			return
+	if g.at_frames >= 30 and g.at_frames % 3 == 0 and DisplayServer.get_name() != "headless":
+		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_acts_%s_%04d.png" % [spec.replace("+", "_"), g.at_frames])
 
 
 ## --bossmoves=<type>[2]：逐招验收（docs/95 §12）。主控不动（autotest 模式没有移动输入），每招：force_move → 预警 60% 截图 → 结算后 8 帧截图

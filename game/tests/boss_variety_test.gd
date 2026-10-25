@@ -73,7 +73,7 @@ func _ready() -> void:
 		g.warns.clear()
 		g.bai._boss_ai(ring_boss, 0.01, Vector2.RIGHT, 400.0)
 		rings = g.warns.filter(func(w): return w.get("act", "") == "pattern_ring")
-	check(rings.size() == 1, "final boss ring is one wave (docs/95 §1.2 B)")
+	check(rings.size() == 2, "final boss landed ring is two staggered waves (docs/142b §8.2)")
 	if not rings.is_empty():
 		var w: Dictionary = rings[0]
 		g.bai._warn_resolve(w)
@@ -122,7 +122,7 @@ func _ready() -> void:
 		g.bai._warn_resolve(g.warns[0])
 		check(g.ebullets.size() == 7 and g.ebullets[0].kind == "boss_blade", "blade volley has actual distinct projectiles")
 	# Every grouped laser / column uses one common resolve time, including legacy attacks.
-	for spec in [["bishop", "pillar", 0], ["izumik", "pattern_rain", 0], ["ishar", "ishar_line", 1], ["ishar", "ishar_strike", 0]]:   # 泡影爆裂已删（docs/95 §1）；伊祖米克潮汐坠落改为第 0 条
+	for spec in [["bishop", "pillar", 0], ["izumik", "pattern_rain", 0], ["ishar", "ishar_line", 1]]:   # 泡影爆裂已删（docs/95 §1）；伊祖米克潮汐坠落改为第 0 条；伊莎玛拉三点落击删（泪落依次落，docs/142b §3.6）
 		var caster: Dictionary = g.spawner.new_enemy(spec[0], Vector2.ZERO)
 		caster.age = 20.0
 		if caster.type == "paranoia":
@@ -214,7 +214,7 @@ func _ready() -> void:
 	if not echoes.is_empty():
 		g.fx.clear()
 		g.bai._warn_resolve(echoes[0])
-		check(g.fx.any(func(f): return f.kind == "tide_link"), "tear resonance draws linked wave")
+		check(g.fx.any(func(f): return f.kind in ["tide_link", "kp_beam"]), "tear resonance draws linked wave (Kanpelle beam, docs/142b §8.5)")
 	# Codex 第 1 批帧条挂点（docs/95 §13、art/incoming/boss_moves_1_handoff.md）：预警中播蓄力帧 f0 / f1，结算后 0.2 秒内播出手帧 f2（回旋 f2–f4、前刺 f1）
 	g.t = 600.0
 	g.warns.clear()

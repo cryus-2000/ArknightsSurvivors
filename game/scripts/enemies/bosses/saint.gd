@@ -50,7 +50,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		if e.ai == "melee" and e.channel <= 0.0:
 			e.haste = maxf(e.get("haste", 0.0), 0.1)
 	# 装填打断（docs/38 §8.2）：读条中主控冲刺穿过她的身体也算打断
-	if e.channel > 0.0 and g.dash_t > 0.0 and g.ppos.distance_to(e.pos) < e.r + 24.0:
+	if e.channel > 0.0 and _dash_through(e):
 		saint_interrupt(e)
 	# 伊比利亚第二幕装填完毕：清膛 → 手炮·三连（第一次先亮招式名 0.6 秒，期间 wind 占住出招窗口）
 	if e.get("reload_follow", false):

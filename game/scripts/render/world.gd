@@ -781,9 +781,10 @@ func _draw_shadows(evr: Rect2) -> void:
 	g.squad.draw_auras()
 	var stx: Texture2D = g.tex.get("shadow")
 	var ens: Array = _vis_ent if _vis_on else g.enemies
+	var nsh: bool = g.has_meta("boss_decoys")   # 泡影二幕幻影不画影子（docs/142b §3.5：只有真身在地上有影子）；平时不多查字段
 	if stx == null:
 		for e in ens:
-			if not evr.has_point(e.pos):
+			if not evr.has_point(e.pos) or (nsh and e.has("no_shadow")):
 				continue
 			var sc: float = Game.PX * e.r / 10.0
 			var hop: float = minf(e.kb.length() * 0.03, 14.0)
@@ -797,7 +798,7 @@ func _draw_shadows(evr: Rect2) -> void:
 		var doff: Vector2 = g.draw_off
 		for e in ens:
 			var ep: Vector2 = e.pos
-			if not evr.has_point(ep):
+			if not evr.has_point(ep) or (nsh and e.has("no_shadow")):
 				continue
 			var er: float = e.r
 			var sc2: float = Game.PX * er / 10.0 * (1.0 - minf(e.kb.length() * 0.03, 14.0) / 40.0)
