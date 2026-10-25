@@ -24,6 +24,11 @@
    ""
   ],
   [
+   "职业图标",
+   "寻访界面的八个职业标志为《明日方舟》原作线稿图标，取自社区整理的 PRTS Design 预览资源，未改动。图标版权归鹰角网络（Hypergryph）所有，该仓库声明游戏素材版权属鹰角、不在其 MIT 代码许可之内；本作仅在同人、非商业范围内使用。",
+   "https://github.com/MooncellWiki/prts-design"
+  ],
+  [
    "引擎",
    "Godot Engine 4.7（MIT 许可）。",
    "https://godotengine.org"
