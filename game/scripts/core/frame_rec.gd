@@ -35,6 +35,36 @@ func _print_mem(tag: String) -> void:
 		Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0,
 		Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0,
 		Sfx.sample_mem_mb(), get_tree().root.size, Cfg.render_scaled, Cfg.quality])
+	if tag == "game+5s":
+		_print_tex_breakdown()
+
+
+## 贴图缓存（art.gd A._cache）按前缀分组的估算（宽 × 高 × 4 字节）与最大的 12 张
+func _print_tex_breakdown() -> void:
+	var A = load("res://scripts/art.gd")
+	var groups := {}
+	var tops: Array = []
+	for n in A._cache:
+		var t = A._cache[n]
+		if not (t is Texture2D):
+			continue
+		var mb: float = t.get_width() * t.get_height() * 4.0 / 1048576.0
+		var pre: String = str(n).split("_")[0]
+		groups[pre] = groups.get(pre, 0.0) + mb
+		tops.append([mb, str(n), "%dx%d" % [t.get_width(), t.get_height()]])
+	for cname in ["_hires", "_white_cache", "_mirror_cache"]:
+		var cd: Dictionary = A.get(cname)
+		var sum := 0.0
+		for k in cd:
+			var t2 = cd[k]
+			if t2 is Texture2D:
+				sum += t2.get_width() * t2.get_height() * 4.0 / 1048576.0
+		groups[cname] = sum
+	tops.sort_custom(func(a, b): return a[0] > b[0])
+	var gs: Array = groups.keys()
+	gs.sort_custom(func(a, b): return groups[a] > groups[b])
+	print("PF MEMTEX groups " + "  ".join(gs.slice(0, 12).map(func(k): return "%s=%.0fMB" % [k, groups[k]])))
+	print("PF MEMTEX top " + "  ".join(tops.slice(0, 12).map(func(x): return "%s(%s)=%.1f" % [x[1], x[2], x[0]])))
 
 
 static func mark(name: String) -> void:

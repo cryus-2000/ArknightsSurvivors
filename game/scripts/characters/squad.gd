@@ -99,6 +99,8 @@ func ids() -> Array:
 func add(cid: String, recruit_event := true):
 	if has(cid) or is_full():
 		return null
+	if g.panel_ui != null:
+		g.panel_ui.load_op_tex(cid)   # 手机网页开局只读队长的帧条（docs/50 §30），中途入队的这时补读；其余平台已读过，这里不做事
 	var op = Character.create(g, cid)
 	if op == null:
 		return null

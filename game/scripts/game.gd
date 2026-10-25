@@ -570,6 +570,13 @@ static func demo_warm_names() -> Array:
 ## 一局开始（_ready）会固定加载的贴图名单，只看静态数据，标题页用它预热法线图（art.gd prewarm_start）。
 ## 覆盖 _ready 里的固定表、博士与全部干员的帧条、V6 帧、data/enemies.json 的敌人及附加帧条、地图主题的道具与前景。
 ## 不做法线的前缀（fx_ / proj_ / relic_ …）由 art.gd 过滤，这里不用管；漏掉的名字只是回到当场算（--loadprof 的 sync_names 能看到）
+## 开局要读帧条的干员：缺省全部可招募干员；手机网页只读队长（10-26 iPhone 进局即崩，按内存止血；中途入队的由 squad.add → load_op_tex 补读）
+static func _op_tex_ids() -> Array:
+	if Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_ops", 1.0):
+		return [Cfg.character_id]
+	return Character.list_ids()
+
+
 static func preload_tex_names() -> Array:
 	var names: Array = []
 	names.append_array(BASE_TEX)
@@ -580,7 +587,7 @@ static func preload_tex_names() -> Array:
 			var dn = dj.get("sprites", {}).get(kind, "")
 			if dn is String and dn != "":
 				names.append(dn)
-	for cid in Character.list_ids():
+	for cid in _op_tex_ids():
 		var cdef: Dictionary = Character.load_def(cid)
 		var csp: Dictionary = cdef.get("sprites", {})
 		for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"] + cdef.get("extra_sprites", []):   # move_attack：移动攻击（docs/128，character._move_swap）
@@ -663,7 +670,7 @@ static func loading_warm_lists() -> Array:
 		if str(n).begins_with("e_") and not skip.has(str(n)):
 			whites.append(n)   # V6 敌人附加帧条（休眠 / 唤醒 / 狂暴）的白色剪影，_ready 的 tex_v6 段也要
 	var names: Array = []
-	for n in preload_tex_names() + demo_warm_names():
+	for n in preload_tex_names() + ([] if Cfg.mobile_web() else demo_warm_names()):   # 手机网页不预读图鉴演示的补充名单（docs/50 §30）
 		var base := str(n)
 		for suffix in ENEMY_SUFFIXES:
 			if base.ends_with(suffix):
@@ -841,8 +848,8 @@ func _ready() -> void:
 		for sd in Character.load_def(cid).get("skills", []):
 			if sd.get("icon", "") != "" and tex.get(sd.icon) == null:
 				tex[sd.icon] = A.tex(sd.icon)
-	# 所有可招募干员的贴图集（待机 / 跑步 / 攻击）：招募卡与入队后绘制都用得到
-	for cid in Character.list_ids():
+	# 所有可招募干员的贴图集（待机 / 跑步 / 攻击）：招募卡与入队后绘制都用得到（手机网页只读队长的，入队时 squad.add 补读，docs/50 §30）
+	for cid in _op_tex_ids():
 		var cdef: Dictionary = Character.load_def(cid)
 		var csp: Dictionary = cdef.get("sprites", {})
 		for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"] + cdef.get("extra_sprites", []):   # move_attack：移动攻击（docs/128，character._move_swap）
