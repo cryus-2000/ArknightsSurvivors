@@ -633,7 +633,7 @@ func _wants_foot(n: String) -> bool:
 func _load_enemy_tex(n: String) -> void:
 	if tex.get(n) == null:
 		tex[n] = A.tex(n)
-		if tex[n] != null:
+		if tex[n] != null and not lazy_white:
 			tex[n + "_white"] = A.white_of(tex[n])
 	if _wants_foot(n):
 		foot_anchor[n] = true
@@ -641,7 +641,7 @@ func _load_enemy_tex(n: String) -> void:
 		var mn: String = n + suffix
 		if tex.get(mn) == null:
 			tex[mn] = A.tex(mn)
-			if tex[mn] != null and suffix != "_death":
+			if tex[mn] != null and suffix != "_death" and not lazy_white:
 				tex[mn + "_white"] = A.white_of(tex[mn])
 
 
@@ -671,6 +671,8 @@ static func loading_warm_lists() -> Array:
 		if str(n).begins_with("e_") and not skip.has(str(n)):
 			whites.append(n)   # V6 敌人附加帧条（休眠 / 唤醒 / 狂暴）的白色剪影，_ready 的 tex_v6 段也要
 	var names: Array = []
+	if Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_white", 1.0):
+		whites = []   # 手机网页白剪影按需建（ensure_white），载入页不预建
 	for n in preload_tex_names() + ([] if Cfg.mobile_web() else demo_warm_names()):   # 手机网页不预读图鉴演示的补充名单（docs/50 §30）
 		var base := str(n)
 		for suffix in ENEMY_SUFFIXES:
@@ -710,6 +712,55 @@ static func _web_early_enemy_tex() -> Dictionary:
 
 ## 网页版按需加载（spawner.new_enemy 在生成字典前调用）：n 及其派生名（e_paranoia → e_paranoia2）若在推迟名单里就现在读。
 ## 桌面版名单为空，直接返回；不碰 g.rng，同 seed 不受影响
+## 白剪影按需建、不在场就释放（10-26，手机网页；docs/50 §30.6）：受击闪白 / 轮廓光用的白剪影是本体帧条的整份拷贝，
+## 原来开局给每种敌人（含全部变体帧条）都建一份，手机一局约 48 MB。现在某种怪刷出来时才建（spawner.new_enemy → ensure_white），
+## 场上没有这种怪满 WHITE_KEEP 秒就把它的白剪影丢掉（g.tex 里的键也删，画白闪处按 has() 判断，场上没有就不会去画）。画面不变
+var lazy_white: bool = Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_white", 1.0)
+var _white_alive := {}    # 帧条本体名 -> 最近一次在场的 g.t
+var _white_t := 0.0
+const WHITE_KEEP := 20.0
+
+func ensure_white(n: String) -> void:
+	if not lazy_white or n == "":
+		return
+	_white_alive[n] = t
+	if tex.has(n + "_white"):
+		return
+	for nm in _white_names(n):
+		if tex.get(nm) != null and not tex.has(nm + "_white"):
+			tex[nm + "_white"] = A.white_of(tex[nm])
+
+
+func _white_names(n: String) -> Array:
+	var out: Array = [n]
+	for suffix in ENEMY_SUFFIXES:
+		if suffix != "_death":
+			out.append(n + suffix)
+	for v in V6_FRAMES:
+		if str(v).begins_with(n + "_") and not out.has(str(v)):
+			out.append(str(v))
+	return out
+
+
+func _white_release(delta: float) -> void:
+	if not lazy_white:
+		return
+	_white_t += delta
+	if _white_t < 5.0:
+		return
+	_white_t = 0.0
+	for e in enemies:
+		_white_alive[str(e.get("tex", ""))] = t
+	for n in _white_alive.keys():
+		if t - float(_white_alive[n]) > WHITE_KEEP and tex.has(n + "_white"):
+			for nm in _white_names(n):
+				if tex.has(nm + "_white"):
+					tex.erase(nm + "_white")
+					if tex.get(nm) != null:
+						A.white_drop(tex[nm])
+			_white_alive.erase(n)
+
+
 func ensure_enemy_tex(n: String) -> void:
 	if not tex_deferred.has(n):
 		return
@@ -867,7 +918,7 @@ func _ready() -> void:
 	for n in V6_FRAMES:
 		tex[n] = A.tex(n)
 		# 敌人的附加帧条（休眠 / 唤醒 / 狂暴）也要白色剪影：受击闪白与轮廓光用
-		if n.begins_with("e_") and tex[n] != null:
+		if n.begins_with("e_") and tex[n] != null and not lazy_white:
 			tex[n + "_white"] = A.white_of(tex[n])
 	A.mark("tex_v6")
 	# 敌人贴图按 data/enemies.json 加载：本体 + 白色剪影 + 脚底锚点，以及 _move / _attack / _charge / _death 变体（有图就用）
@@ -1036,6 +1087,8 @@ func _ready() -> void:
 	aq_on = demo_op == "" and ((mode == Mode.PLAY and Cfg.quality_mode == "auto" and Cfg.dev_args().is_empty()) or Cfg.dev_args().has("--autoq"))
 	if Cfg.dev_args().has("--fpsosd") and demo_op == "":
 		_fps_osd_add()
+	if mobile_cap():
+		spawner.auto_cap = AQ_CAP
 	if Cfg.guard_lowered and Cfg.quality_mode != "auto":
 		Cfg.guard_lowered = false
 		Cfg.set_quality(Cfg.quality_mode)   # 上局护栏临时降过：这局开局恢复玩家手选的档
@@ -1337,13 +1390,18 @@ func _apply_auto_level() -> void:
 	if optical != null:
 		optical.auto_mask = (6 if lv >= 1 else 0) | (8 if lv >= 3 else 0)   # 2 GPU 粒子 + 4 动态照明；8 发光层（CPU 颗粒不关：关了退回帧条画法反而慢 0.8–1 ms，docs/50 §28；颗粒量由 fx_grains 帧时自适应自己往下收）
 	if spawner != null:
-		spawner.auto_cap = AQ_CAP if lv >= 2 else 0
+		spawner.auto_cap = AQ_CAP if (lv >= 2 or mobile_cap()) else 0
 	if lv >= 4 and Cfg.hidpi_render():
 		Cfg.set_render_scale(true)
 	elif lv < 4 and not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_rscale", 1.0)):
 		Cfg.set_render_scale(false)
 	if lv >= 5 and Cfg.quality != "low":
 		Cfg.set_quality("low")
+
+
+## 手机网页开局就开同屏上限 65（10-26 晚：满屏帧时约 −21%，用户批过存活上限做软限制；合并补偿照 §26.13）。真人局才开，测试 / 机器人局不变
+func mobile_cap() -> bool:
+	return Cfg.mobile_web() and Cfg.mobile_knob("mobile_cap", 1.0) and (mode == Mode.PLAY or Cfg.dev_args().has("--mobilecap"))
 
 
 ## 一帧预算（毫秒）：60 帧；显示器刷新率更低或设了 30 帧上限时取更长的那个
@@ -1389,6 +1447,7 @@ func _process(delta: float) -> void:
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	_auto_quality(delta)
 	_mem_guard(delta)
+	_white_release(delta)
 	if victory.active and state == S.PLAY:
 		simulated_dt = victory.step(minf(delta, 0.05))   # 最终 Boss 击破演出按慢动作缩放画面步长（run/victory_flow.gd）
 	elif hitstop > 0.0 and (mode == Mode.PLAY or playclock_test) and Cfg.hitstop and demo_op == "":
