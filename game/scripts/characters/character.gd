@@ -1141,6 +1141,7 @@ func follow(dt: float, target: Vector2) -> void:
 			_cmd_stall = 0.0
 			_cmd_failed = null
 			rush_t = 0.0   # 离开突击：冲锋作废
+			_roam_dash_t = -1.0
 		if st == 2 and sq.gather_t >= 0.0:
 			target = pos   # 归队集合：到位后站定一下（squad._tick_recall）
 		var d: float = pos.distance_to(target)
@@ -1169,6 +1170,7 @@ func follow(dt: float, target: Vector2) -> void:
 			pos = g.map.push_out(pos, 10.0)
 	if st == 1:
 		_cmd_progress(prev, target, dt)
+		_roam_dash_tick(dt)
 	var vel: Vector2 = (pos - prev) / maxf(dt, 0.0001)
 	_sample_motion(vel, dt)
 	_rush_age(dt)
@@ -1618,6 +1620,36 @@ var rush_goal := Vector2.INF
 var rush_trail: Array = []   # [{p, a（年龄）, n（序号）, big（撞击迸射）}]
 var _rush_seq := 0
 var _rush_emit_t := 0.0
+
+
+## ---- 突击模式下的低频自冲刺（10-26 用户「干员在突击模式下可以自己冲刺，像德克萨斯这种靠冲刺打伤害的可以加上低频的冲刺」）：
+## 平时（随行）队友不自己冲；切到突击后，每名出击的队友每 command/roam_dash_cd 秒（默认 7 秒；干员 def.command.roam_dash_cd 可覆盖）朝突击目标冲一段
+## （同第一下冲锋：begin_rush，限距离 / 速度，撞怪推开，冲刺中短暂无敌；没有目标 / 贴着怪 / 路被挡就不冲，1 秒后再试）。
+## 冲刺为主要输出的干员（德克萨斯，天赋 on_dash_end 收益）def.command.roam_dash = false，改走自己 json 里 cond roaming 的 dash_line（带伤害）。
+## 起手错开（按编队序号），不改队长位置，冲完照常走突击 / 归队
+var _roam_dash_t := -1.0
+
+
+func is_roaming() -> bool:
+	return not is_leader and g != null and g.get("squad") != null and g.squad.stance == 1 and cmd_roam() and cmd_down <= 0.0 and pos != Vector2.INF
+
+
+func _roam_dash_cd() -> float:
+	return float(def.get("command", {}).get("roam_dash_cd", CmdBal.v("command/roam_dash_cd", 7.0)))
+
+
+func _roam_dash_tick(dt: float) -> void:
+	if CmdBal.v("command/roam_dash", 1.0) <= 0.0 or not bool(def.get("command", {}).get("roam_dash", true)) or is_leader:
+		return
+	if _roam_dash_t < 0.0:   # 本次出击第一次：按编队序号错开
+		_roam_dash_t = _roam_dash_cd() * (0.6 + 0.12 * float(maxi(0, g.squad.ops.find(self))))
+	if rush_t > 0.0 or cmd_down > 0.0:
+		return
+	_roam_dash_t -= dt
+	if _roam_dash_t > 0.0:
+		return
+	begin_rush()
+	_roam_dash_t = _roam_dash_cd() if rush_t > 0.0 else 1.0
 
 
 func begin_rush() -> void:
