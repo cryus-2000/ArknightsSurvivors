@@ -772,6 +772,8 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		_dens_apply(e)
 	if _norm and role == "" and d.has("hp_late"):
 		_late_hp_apply(e, float(d.hp_late))
+	if _norm and role == "":
+		_trim_apply(e)
 	if _norm and (role == "" or role == "elite") and escale() != 1.0:
 		e.r *= escale()   # 怪物体型：判定半径 × scale，r0 不动，画面缩放 enemy_scale = PX × r / r0 跟着放大
 		e["sc"] = escale()
@@ -792,7 +794,7 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		e.dmg = d.dmg * dmm * float(g.dmod.boss_dmg) * g.enemy_dmg_mult
 		g.combat.gate_init(e, type)   # 阶段卡点与每幕最短时长（docs/38 §1.3）
 	if type == "pocket":
-		e.burst_at = e.maxhp * 0.85
+		e.burst_at = e.maxhp * (2.0 / 3.0)   # 节点 66% / 33%（enemies.gd 囊海爬行者）
 	if type == "ishar":
 		e.friendly = true
 		e.invuln = true
@@ -863,6 +865,26 @@ func _dens_apply(e: Dictionary) -> void:
 ## 后期按类型抬血（docs/116 §6，10-21 用户「全程秒杀有点无聊」）：普通刷出的该类型单只生命 / 潮盾在 enemy/hp_late_t0 → t1 秒间
 ## 从 ×1 线性升到 ×hp_late（enemies.json 按类型写，缺省不写 = 不变），之后保持。经验、伤害不变（加血不加经验，避免「加血变易」）；
 ## 精英 / Boss / 召唤 / 事件不吃
+## 普通怪前后期微调（用户 10-25「后期小怪血量稍高、略降；前期小怪伤害和血量略提」）：
+## 0 → trim_early_until 秒生命 / 伤害 × trim_early_hp / trim_early_dmg，其后 trim_early_fade 秒线性回到 ×1；
+## trim_late_t0 → t1 秒生命从 ×1 线性降到 × trim_late_hp。只作用于普通怪（role ""），精英 / Boss / 友方 / 事件不动
+func _trim_apply(e: Dictionary) -> void:
+	var f := 1.0
+	var fd := 1.0
+	var u: float = Bal.v("enemy/trim_early_until", 180.0)
+	var k := 1.0 - clampf((g.t - u) / maxf(1.0, Bal.v("enemy/trim_early_fade", 60.0)), 0.0, 1.0)
+	f *= lerpf(1.0, Bal.v("enemy/trim_early_hp", 1.0), k)
+	fd *= lerpf(1.0, Bal.v("enemy/trim_early_dmg", 1.0), k)
+	var t0: float = Bal.v("enemy/trim_late_t0", 420.0)
+	var t1: float = Bal.v("enemy/trim_late_t1", 480.0)
+	f *= lerpf(1.0, Bal.v("enemy/trim_late_hp", 1.0), clampf((g.t - t0) / maxf(1.0, t1 - t0), 0.0, 1.0))
+	if f != 1.0:
+		e.hp *= f
+		e.maxhp *= f
+		e.shield_hp *= f
+	e.dmg *= fd
+
+
 func _late_hp_apply(e: Dictionary, mult: float) -> void:
 	var t0: float = Bal.v("enemy/hp_late_t0", 240.0)
 	var t1: float = Bal.v("enemy/hp_late_t1", 360.0)
