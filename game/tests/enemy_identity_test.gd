@@ -141,19 +141,37 @@ func test_pocket() -> void:
  g.enemies = []
  var e := spawn("pocket")
  e.spd = 0.0
- e.burst_at = e.maxhp * 0.85
+ e.burst_at = e.maxhp * (2.0 / 3.0)
  e.hp = e.maxhp * 0.50
  g.enemies_sys.update(0.1)
- ok(e.burst_w > 0.0, "crossing thresholds starts telegraph")
- var first: float = e.burst_at
+ ok(e.burst_w > 0.0, "crossing 2/3 node starts telegraph")
+ ok(is_equal_approx(e.hp, e.maxhp * (2.0 / 3.0)), "overshoot hit is capped at the node hp")
+ var node1: float = e.hp
+ ok(hit(e, "物理") == 0.0 and e.hp == node1, "invulnerable while swelling")
+ e.hp -= 500.0
+ g.enemies_sys.update(0.1)
+ ok(e.hp >= node1, "direct hp loss during swell does not accumulate")
  for i in 14:
   g.t += 0.1
   g.enemies_sys.update(0.1)
- ok(is_equal_approx(e.burst_at, first - e.maxhp * 0.15), "large hit queues next threshold after cooldown")
- ok(e.has("burst_fx_t"), "burst has existing visual")
+ ok(e.burst_w <= 0.0 and e.has("burst_fx_t"), "burst plays after the fuse")
+ ok(is_equal_approx(e.burst_at, e.maxhp / 3.0), "next node at 1/3")
+ ok(hit(e, "物理") > 0.0, "damage resumes after the burst")
+ e.hp = e.maxhp * 0.30
+ g.enemies_sys.update(0.1)
+ ok(e.burst_w > 0.0, "crossing 1/3 node starts the second telegraph")
+ for i in 14:
+  g.t += 0.1
+  g.enemies_sys.update(0.1)
+ e.hp = e.maxhp * 0.05
+ g.enemies_sys.update(0.1)
+ ok(e.burst_w <= 0.0, "no third node: last hits kill normally")
+ e.burst_at = e.maxhp * 0.8
+ e.hp = e.maxhp * 0.7
+ g.enemies_sys.update(0.1)
  e.dead = true
- var at: float = e.burst_fx_t
+ var at: float = e.get("burst_fx_t", -1.0)
  for i in 20:
   g.t += 0.1
   g.enemies_sys.update(0.1)
- ok(e.burst_fx_t == at, "death cancels pending burst")
+ ok(e.get("burst_fx_t", -1.0) == at, "death cancels pending burst")

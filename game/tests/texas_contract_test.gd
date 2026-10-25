@@ -204,7 +204,7 @@ func test_rift(o) -> void:
 	g.enemies_sys.build_grid()
 	ok(not o._replace_trig(1).is_empty() and str(o._replace_trig(1).do[0].get("_tag", "")) == "verb.rift_slash", "次元斩：S3 期间每次普攻 replace 成 verb.rift_slash")
 	ok(o._replace_trig(4).do[0].get("_tag", "") == "verb.rift_slash", "次元斩：S3 期间第 4 次也是次元斩（骤雨让位）")
-	o._exec_list(o.B.trait[8].do)
+	o._exec_list(o._replace_trig(1).do)   # 按 replace 触发取次元斩，不写死 trait 下标（10-25 队友短突进删后下标会变）
 	ok(o.tx.has("rift") and int(o.tx.rift.n) == 5, "次元斩：出手排了 5 刀")
 	for i in 200:
 		o.update(DT)

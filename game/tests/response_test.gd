@@ -105,7 +105,7 @@ func test_texas(g, o) -> void:
 	g.dash_t = 0.0
 	o.elite = 1
 	o.refresh_stats()
-	# 10-23 用户改口：天赋的定时自动冲刺（兜底）已删——天赋里不该再有任何 tick；队友短突进另在特性里（trait tick，需要 !is_leader + 敌人）
+	# 10-23 用户改口：天赋的定时自动冲刺（兜底）已删——天赋里不该再有任何 tick；队友短突进 10-25 也已删
 	var has_tick := false
 	for t in o.B.talent:
 		if str(t.get("_tag", "")) == "trig.tick":
