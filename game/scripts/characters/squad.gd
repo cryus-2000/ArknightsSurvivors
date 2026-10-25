@@ -611,6 +611,10 @@ func _stance_voice(s: int, shout := false) -> void:
 		return
 	var eligible: Array = ops.filter(func(o): return o.cmd_down <= 0.0 and (o.is_leader or o.cmd_roam()))
 	var order: Array = eligible.filter(func(o): return o.is_leader) + eligible.filter(func(o): return not o.is_leader)
+	if s == ROAM:   # 10-26 用户「切突击放这名队友自己的语音，别放成队长的」：出击的是队友，按编队序轮换放他们各自的「出击」；没有可出击的队友才轮到队长
+		var mates: Array = eligible.filter(func(o): return not o.is_leader)
+		if not mates.is_empty():
+			order = mates
 	if order.is_empty():
 		return
 	var o = order[_vo_i % order.size()]
