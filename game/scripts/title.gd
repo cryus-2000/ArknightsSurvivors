@@ -572,8 +572,19 @@ func _menu_nav(d: Vector2i) -> void:
 	_menu_set(Tiles.nav(menu_lay, sel, d), false)
 
 
+## 菜单排版每帧都要（命中区 = 终态位置），但只随尺寸 / 入口 / 安全区 / 触屏变：按这几样记住上一份（10-25 帧率审计，排版里有一串字宽测量）
+var _lay_key := ""
+var _lay_cache := {}
+
 func _menu_layout() -> Dictionary:
-	return Tiles.layout(size, _menu_ids(), Cfg.safe_insets(), Pad.touch_ui() or Cfg.touch_device(), font)
+	var ids := _menu_ids()
+	var ins := Cfg.safe_insets()
+	var touch: bool = Pad.touch_ui() or Cfg.touch_device()
+	var key := "%s|%s|%s|%s|%s" % [size, ids, ins, touch, UI.fk]   # UI.fk：设置里的字号倍率
+	if key != _lay_key or _lay_cache.is_empty():
+		_lay_key = key
+		_lay_cache = Tiles.layout(size, ids, ins, touch, font)
+	return _lay_cache
 
 
 ## 换选中：选中底条从此刻开始展开（remember 沿用旧接口，深海水母版不用）

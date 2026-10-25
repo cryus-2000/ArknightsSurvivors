@@ -66,7 +66,7 @@ def parse(path):
 
 def show(a):
     tags = a.tag or sorted({os.path.basename(p).split("_")[0] for p in glob.glob(os.path.join(OUT, "*_*_*.txt"))})
-    want = {"title": ["boot", "title"], "hunt": ["hunt"], "gallery": ["gallery", "gal_next", "gal_tab"], "settle": ["settle"], "enter": ["loading", "game"]}
+    want = {"title": ["boot", "title", "reveal"], "hunt": ["hunt"], "gallery": ["gallery", "gal_next", "gal_tab"], "settle": ["settle"], "enter": ["loading", "game"]}
     print("| 版本 | 场景 | 段 | 局数 | 平均 | P50 | P95 | P99 | 最长（各局） | >16.9 帧占比 |")
     print("|---|---|---|---|---|---|---|---|---|---|")
     for t in tags:

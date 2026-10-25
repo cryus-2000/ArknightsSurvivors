@@ -47,6 +47,7 @@ var _req := ""                # 正在后台编译的路径
 var _announced := -1
 var _req_t := 0
 var title: Node               # 建在本页下面的标题页
+var _opened := false
 var warm: Node                # 着色器预热视口
 var _gate_t0 := 0
 var _good := 0
@@ -113,7 +114,7 @@ func _process(delta: float) -> void:
 			get_parent().queue_free()   # 连同盖层一起释放
 		queue_redraw()
 		return
-	if title != null:
+	if _opened:   # 不用 title != null：标题页被测试切走释放后，那个引用按 null 算，会再建一个标题页（实测死循环）
 		_gate(dt_ms)
 		queue_redraw()
 		return
@@ -204,6 +205,7 @@ func _open_title() -> void:
 	get_tree().root.add_child(layer)
 	reparent(layer, false)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_opened = true
 	title = main_scene.instantiate()
 	get_tree().root.add_child(title)
 	get_tree().current_scene = title
@@ -277,7 +279,7 @@ func _progress() -> float:
 		f = 0.88 * float(idx) / float(items.size())
 	if main_scene != null:
 		f = 0.92
-	if title != null:
+	if _opened:
 		var w := 0.5 + 0.5 * minf(_good, GOOD_N) / float(GOOD_N)
 		if is_instance_valid(warm):
 			w = 0.5 * warm.progress()
@@ -376,9 +378,9 @@ func _draw_sonar(vs: Vector2) -> void:
 	_en(Vector2(c.x, c.y + big * 0.32 + 26.0 * u + 6.0), "SONAR · BOOT", 11, CYAN, 3.0, true)
 	# 圈下：正在读什么
 	var ty := c.y + 210.0 * u + 30.0
-	var what := "打开标题页" if out_t >= 0.0 else (cur_label if title != null else "读取 · " + cur_label)
+	var what := "打开标题页" if out_t >= 0.0 else (cur_label if _opened else "读取 · " + cur_label)
 	_txt(Vector2(0, ty), what, 15, TEXT, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
-	if out_t < 0.0 and title != null:
+	if out_t < 0.0 and _opened:
 		_txt(Vector2(0, ty + 20.0), cur_file, 11, DIM, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 	elif out_t < 0.0 and not items.is_empty():
 		_txt(Vector2(0, ty + 20.0), "%s　%d / %d" % [cur_file, mini(idx + 1, items.size()), items.size()], 11, DIM, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
@@ -405,8 +407,8 @@ func _draw_panels(vs: Vector2, compact: bool) -> void:
 	lines.append([1, "启动引擎"])
 	var scripts_done := idx >= items.size()
 	lines.append([1 if scripts_done else 0, "编译脚本　%d / %d" % [mini(idx, items.size()), items.size()]])
-	lines.append([1 if title != null else (0 if scripts_done else -1), "打开标题页"])
-	lines.append([1 if out_t >= 0.0 else (0 if title != null else -1), "预热画面"])
+	lines.append([1 if _opened else (0 if scripts_done else -1), "打开标题页"])
+	lines.append([1 if out_t >= 0.0 else (0 if _opened else -1), "预热画面"])
 	var y := by + 26 + lh
 	for ln in lines:
 		var st: int = ln[0]

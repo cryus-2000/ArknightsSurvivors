@@ -858,6 +858,17 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 
 ## 干员待机条的第一帧：{tex, fw, fh}（按 data/characters/<id>.json 的 sprites.idle；没有返回空）
 func op_idle(cid: String) -> Dictionary:
+	if _idle_cache.has(cid):
+		return _idle_cache[cid]
+	var out := _op_idle(cid)
+	_idle_cache[cid] = out
+	return out
+
+
+## 选卡 / 属性面板 / 作战记录每帧每张卡都调 op_idle：以前每次都读盘解析干员 JSON（load_def）+ 扫目录，10-25 帧率审计改成按干员缓存（纯画面数据）
+var _idle_cache := {}
+
+func _op_idle(cid: String) -> Dictionary:
 	if cid == "" or not Character.list_ids().has(cid):
 		return {}
 	var cdef: Dictionary = Character.load_def(cid)

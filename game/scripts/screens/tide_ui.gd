@@ -247,6 +247,7 @@ static func _px(b: PackedByteArray, i: int, col: Color, a := -1.0) -> void:
 ## 磁贴底贴图（一格一像素）：kind = "rest" 藏青抖动 + 描边 + 左上亮青 / "sel" 反白 + 青边 / "edge_sel" "edge_rest" 只有描边（盖在水上）
 ## dim：藏青底的不透明度
 static func body_tex(cw: int, ch: int, n: int, kind: String, gx0: int, gy0: int, a := 0.91) -> ImageTexture:
+	a = snappedf(a, 0.02)   # 透明度在动画里连续变时不必每帧一张新图（相差 < 1% 看不出）
 	var key := "%s|%d|%d|%d|%d|%d|%.2f" % [kind, cw, ch, n, posmod(gx0, 4), posmod(gy0, 4), a]
 	if _cache.has(key):
 		return _cache[key]
@@ -400,10 +401,11 @@ static func ripple(ci: CanvasItem, g: Dictionary, n: int, cx: float, crest_row: 
 
 
 ## 深色小面板（难度页的潮位尺、修正项卡、按钮）：抖动藏青 + 阶梯描边（无左上亮青）
-static func panel(ci: CanvasItem, g: Dictionary, n: int, a := 0.92) -> void:
+## fade：整块淡入淡出用乘色，不进贴图缓存键（10-25 帧率审计：作战记录整屏底板按淡入的透明度每帧重烘一张全屏贴图，一次几百毫秒）
+static func panel(ci: CanvasItem, g: Dictionary, n: int, a := 0.92, fade := 1.0) -> void:
 	var gx0 := int(round(g.pos.x / g.cl))
 	var gy0 := int(round(g.pos.y / g.cl))
-	ci.draw_texture_rect(body_tex(g.cw, g.ch, n, "rest", gx0, gy0, a), g.rect, false)
+	ci.draw_texture_rect(body_tex(g.cw, g.ch, n, "rest", gx0, gy0, a), g.rect, false, Color(1, 1, 1, fade))
 
 
 ## 描边换色（按钮的强调边）：用描边贴图乘色
