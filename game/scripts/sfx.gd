@@ -234,6 +234,18 @@ func _ready() -> void:
 		if ost != null:
 			ost.loop = false
 			overlays[o] = ost
+	_mobile_audio.call_deferred()   # Cfg 比本节点后加载：下一帧再判手机网页，标题曲也挪到那时开（先定播放方式再放）
+
+
+## 手机网页的配乐改「流式」播放（10-26 用户「不崩溃优先」，docs/50 §30）：网页缺省按样本播放，每条曲子第一次放就整段解码成 PCM 留在 JS 里，
+## 一首三四分钟的 Boss 曲就六十多 MB、而且没法从脚本注销；流式边解码边放，不留整段（代价：没有线程时在主线程混音，卡帧时可能断续）。音效照旧按样本
+func _mobile_audio() -> void:
+	var cfg = get_node_or_null("/root/Cfg")
+	if cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_music_stream", 1.0):
+		for n in find_children("*", "AudioStreamPlayer", true, false):
+			var pl := n as AudioStreamPlayer
+			if pl.bus == "Music":
+				pl.playback_type = AudioServer.PLAYBACK_TYPE_STREAM
 	play_music("title")
 
 
