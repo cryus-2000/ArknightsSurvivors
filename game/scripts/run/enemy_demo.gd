@@ -72,7 +72,7 @@ func reset() -> void:
 	else:
 		# 囊海爬行者靠失血触发爆裂；演示只设置一次场景条件，不用假特效替代技能。
 		if subject.has("burst_at"):
-			subject.hp = subject.maxhp * 0.8
+			subject.hp = subject.maxhp * 0.66
 		if id == "tear":
 			# 泪滴单独条目也复用中立泪滴机制，不演示已移除的踩踏伤害。
 			subject.friendly = true

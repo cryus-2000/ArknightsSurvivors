@@ -363,17 +363,26 @@ func _draw_under(vs: Vector2, ct: Transform2D) -> void:
 		var streams: bool = not g.horde_streams.is_empty()
 		# 10-22b 用户：两种横幅都去掉紫色横条，文字缓慢淡入 0.6 秒 / 停 2 秒 / 淡出 0.8 秒（预警 3 秒 + 到达 1.2 秒的时间线上从预警开始算）；
 		# 分股合围（「海嗣注意到了你的存在……」）再去掉震动（文字抖动、入场镜头轻推）与紫色边光，只留文字；大群来袭保留文字抖动与边光
-		if not streams:
+		var hunt_w: bool = g.horde_hunt
+		if not streams and not hunt_w:
 			var ea := (0.25 + 0.3 * pulse) if hw else g.horde_hit / 1.2 * 0.6
 			edge_glow(vs, Color(0.55, 0.15, 0.85, ea), 120.0)
 		var age := (3.0 - g.horde_warn) if hw else 3.0 + (1.2 - g.horde_hit)
 		var ta := clampf(age / 0.6, 0.0, 1.0) * clampf((3.4 - age) / 0.8, 0.0, 1.0)
 		var cy := vs.y * 0.3
 		var jit := Vector2(sin(g.t * 53.0), cos(g.t * 47.0)) * (2.0 if hw and not streams else 0.0)
-		var line := ("海嗣注意到了你的存在……" if g.t < 240.0 else "海嗣自四方合围而来……") if streams else "大 群 来 袭"
+		var line := ("海嗣注意到了你的存在……" if g.t < 240.0 else "海嗣自四方合围而来……") if streams or hunt_w else "大 群 来 袭"
 		if ta > 0.0:
 			UI.text(g.hud, g.font, Vector2(0, cy + 14) + jit, line, 38, Color(1.0, 0.75, 1.0, ta), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 6)
-		if hw:
+		if hw and hunt_w:
+			# 围猎型（docs/150）：不画圈、不画四周箭头，只在缺口方向屏边画一个朝外的小箭头（突围方向）
+			var gd := Vector2.from_angle(g.horde_gap)
+			var gc := vs / 2.0
+			var ge: Vector2 = gc + gd * min(abs((vs.x / 2 - 46) / max(abs(gd.x), 0.01)), abs((vs.y / 2 - 46) / max(abs(gd.y), 0.01)))
+			var gs := gd.orthogonal() * 9.0
+			var gt: Vector2 = ge + gd * (6.0 + 4.0 * pulse)
+			g.hud.draw_colored_polygon(PackedVector2Array([gt, ge - gd * 6.0 + gs, ge - gd * 6.0 - gs]), Color(1.0, 0.85, 0.55, 0.55 + 0.35 * pulse))
+		elif hw:
 			if not streams:
 				UI.en(g.hud, g.font, Vector2(vs.x / 2 - 130, cy - 40), "THE  SWARM  APPROACHES  ·  %d" % int(ceil(g.horde_warn)), 12, Color(0.85, 0.6, 1.0, ta), 3.0)
 			# 四周方向警示箭头（向内）

@@ -439,6 +439,13 @@ func update(dt: float) -> void:
 			move_dir = (ag.pos - e.pos).normalized()
 			if absf(move_dir.x) > 0.1 and e.ai != "static":
 				e.fx = signf(move_dir.x)
+		if e.has("wob") and e.ai == "melee":
+			# 大群「慢慢来」（docs/150）：走动时左右摆，离队长 horde_wob_r 内摆幅收到 0（spawner._horde_loose 写 e.wob = [摆幅弧度, 频率, 相位]）
+			var wk: float = clampf((dist - Bal.v("enemy/horde_wob_r", 260.0)) / 300.0, 0.0, 1.0)
+			if wk > 0.0:
+				move_dir = move_dir.rotated(float(e.wob[0]) * wk * sin(g.t * float(e.wob[1]) + float(e.wob[2])))
+			else:
+				e.erase("wob")
 		var held: bool = e.stun > 0.0 or bst > 0.0
 		# 封印（docs/61 §15 st.seal，干员积木）：非 Boss 敌人不起新的特殊招式（pattern：冲刺 / 吐酸 / 环弹 / 神经光环 / 额外招式……），
 		# 已经起手的蓄力 / 冲刺 / 自爆照常走完（enemy_ai.busy）；Boss 的封印在 boss_ai 的 ready 里。没有封印时 seal_t 不存在，这里恒为 false
@@ -511,10 +518,12 @@ func update(dt: float) -> void:
 		if e.dead:
 			continue
 		var dist: float = _seg_d[i]   # 接触 / 泪按本只移动前的距离判（与原来「一只走完再下一只」相同；B7 ③ 一度改成移动后，Ⅷ 熟练胜率 −20 点，10-15 改回）
-		# ---- 囊海爬行者：每失去 15% 生命爆发一次。有 0.8 秒鼓胀预警（docs/48 P0-6：原 0.4 秒低于 0.6 下限），爆发之间至少隔 1.2 秒（高输出下不会连爆秒人）
+		# ---- 囊海爬行者（用户 10-25）：生命每掉 1/3（66%、33% 两个节点）就进入无敌并鼓胀 1.1 秒（docs/48 P0-6 预警下限 0.6 秒）、原地爆裂一次，之后恢复可受伤继续扣血；
+		# 鼓胀期间 enemy_hit 直接挡掉，其余直接改血的路径由 burst_floor 兜底（生命不低于节点，无敌期间的伤害不累计）
 		if e.has("burst_at"):
 			e.burst_cd = maxf(0.0, e.get("burst_cd", 0.0) - dt)
 			if e.get("burst_w", 0.0) > 0.0:
+				e.hp = maxf(e.hp, float(e.get("burst_floor", 0.0)))
 				e.burst_w -= dt
 				if e.burst_w <= 0.0:
 					var br: float = float(D.ENEMIES[e.type].get("burst_r", 80.0))   # 爆裂半径（enemies.json burst_r；用户 10-24 囊海爬行者 ×2 = 160）
@@ -527,11 +536,12 @@ func update(dt: float) -> void:
 					Sfx.play("tentacle", -2.0, 0.7)
 					if g.combat.ground_d(g.ppos, e.pos) < br:   # 画即判（§1.9）
 						g.combat.enemy_hit(e.dmg * 0.5, {"corrode": 0.0, "nerve": 12.0}, true, false, ["近战", "法术"])
-			elif e.hp <= e.burst_at and e.burst_cd <= 0.0:
-				e.burst_at -= e.maxhp * 0.15
+			elif e.hp <= e.burst_at and e.hp > 0.0:
+				e.burst_floor = e.burst_at   # 节点生命：一次性大伤害越过节点也只掉到节点，爆裂后再继续扣
+				e.hp = maxf(e.hp, e.burst_at)
+				e.burst_at = e.burst_at - e.maxhp / 3.0 if e.burst_at - e.maxhp / 3.0 > e.maxhp * 0.1 else -1.0
 				e.burst_w = float(D.ENEMIES[e.type].get("burst_fuse", 0.8))   # 鼓胀时长随爆裂半径放大（enemies.json burst_fuse）
 				e.burst_dur = e.burst_w   # 画面按 burst_w / burst_dur 算鼓胀进度（界面与美术）
-				e.burst_cd = 1.2
 		# ---- 接触伤害
 		# 休眠中的收割者、自爆的狂奔者（V8）没有接触伤害；Boss 登场 2 秒内不造成接触伤害（docs/38 B0 第 6 项：边缘刷出贴脸）
 		if e.dmg > 0.0 and (e.ai == "melee" or D.ENEMIES[e.type].get("contact", false)) and dist < e.r + 12.0 and not e.get("coma", false) and not e.get("dormant", false) and not (e.get("wake_t", 0.0) > 0.0 and D.ENEMIES[e.type].get("wake_no_contact", false)) and not D.ENEMIES[e.type].get("no_contact", false) and not (e.boss and e.age < 2.0) and e.get("air", 0.0) <= 0.0 and not e.get("under", false) and float(e.get("hatch_until", 0.0)) <= g.t:
