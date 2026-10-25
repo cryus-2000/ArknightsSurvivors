@@ -106,7 +106,8 @@ func add(cid: String, recruit_event := true):
 	if op.is_leader:
 		_apply_leader_regen(op)
 	op.voice_t = g.vrng.randf_range(20.0, 40.0)   # 语音计时只影响声音（docs/101 §3.4 ④）
-	op.entry_started()   # 尚无独立 Start 动画：即时请求登场语音，后续动画通知不会重复
+	if g.get("entry_voice_hold") != true:
+		op.entry_started()   # 尚无独立 Start 动画：即时请求登场语音，后续动画通知不会重复；开局编队等画面出来再播（game.release_entry_voices）
 	ops.append(op)
 	g.stats.define_all(op.stat_defs())
 	# 干员档位系数（data/balance.json operators 段，docs/27 §3）：写入本干员作用域
@@ -163,8 +164,8 @@ func remove(cid: String) -> void:
 const LEAVE_JUMP := 0.5
 
 func _leave_fx(o) -> void:
-	if o.pos == Vector2.INF or g.get("fx") == null:
-		return
+	if o.pos == Vector2.INF or g.get("fx") == null or g.demo_op != "":
+		return   # 图鉴演示每段重建干员：旧实例直接消失，不播跳出屏幕（用户 10-24：切换会出现离场效果）
 	var st: Dictionary = o.anim_state()
 	if st.is_empty():
 		return

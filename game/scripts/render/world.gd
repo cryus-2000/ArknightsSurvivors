@@ -2,6 +2,7 @@ extends RefCounted
 ## 世界绘制（2.5D）：地图之上按纵深排序画敌人 / 主控 / 编队 / 博士挂件 / 特效，缩圈与护盾；主控与博士的动画状态、手感（压缩 / 拉伸 / 扬尘）。
 ## game.gd 的 _draw 只转发到这里。地图本身在 world/map.gd，HUD 在 screens/hud.gd。2026-09-26 从 game.gd 拆出。
 
+const LaserDraw = preload("res://scripts/render/laser_draw.gd")
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
@@ -354,6 +355,8 @@ func draw_world() -> void:
 	tell_fill = Dc.p("tell_fill_k")
 	tell_edge = Dc.p("tell_edge_k")
 	_draw_warns_auras()
+	if not _dbg_foe:
+		_draw_ground_foe_fx()
 	_pk("warns_auras")
 	if not _dbg_gem:   # --clutterdbg=nogem（量测）
 		_draw_pickups()
@@ -413,6 +416,21 @@ func _draw_ground_sprites() -> void:
 		var spec: Array = Game.V6_FRAMES[f.name]
 		var fr := mini(int((f.max - f.life) * spec[1]), spec[0] - 1)
 		g.vfx.spr_rot(f.name, fr, f.pos, f.ang, g.vfx.int_scale(f.scale), f.get("col", Color.WHITE), f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
+
+
+## 地面层敌方特效（ground 标记，用户 10-24：奠基者踏地「浮在最上面」）：小怪踏地的地裂与冲击环画在地面预警之上、单位之下，
+## 不盖住干员和其他单位。纯画面
+func _draw_ground_foe_fx() -> void:
+	for f in g.fx:
+		if f.kind == "gcrack" and f.get("ground", false) and f.life > 0.0:
+			if not f.has("cd"):
+				f["cd"] = GroundCrack.build(f.pos, f.r, f.get("ang"), f.get("opts", {}))
+			GroundCrack.draw(f.cd, f.max - f.life, clampf(f.life / f.max, 0.0, 1.0), f.col, _gc_sink, float(f.get("grow_t", 0.06)), float(f.get("hot", 1.0)))
+	tb_flush()
+	for sh in g.shocks:
+		if sh.get("ground", false):
+			_draw_shock(sh)
+	draw_warn_outlines(true)
 
 
 ## 预警分类 → Boss 招式预警填充（render/telegraph_draw）→ 巢涌者光环 → 灯标 → 藏品特效 → 商人
@@ -1003,8 +1021,8 @@ func _draw_fx() -> void:
 				ns += 1
 		skip_sparks = maxi(0, ns - spark_left)
 	for f in g.fx:
-		if f.life <= 0.0:
-			continue   # 到期还没被 _cleanup 回收的特效不画：最终 Boss 击破的慢动作（victory_flow）走 g.vfx.update 但不跑 game._update/_cleanup，
+		if f.life <= 0.0 or f.get("ground", false):
+			continue   # ground：地面层敌方特效（奠基者地裂）已在 _draw_ground_foe_fx 画过；到期还没被 _cleanup 回收的特效不画：最终 Boss 击破的慢动作（victory_flow）走 g.vfx.update 但不跑 game._update/_cleanup，
 			# 到期特效会一直留在 g.fx 里；"sprite" 类按已播时间取帧，life ≤ 0 后会被夹在末帧一直画（骑士死亡原地留下冰晶/冰砖残留）
 		var a: float = clamp(f.life / f.max, 0.0, 1.0)
 		var foe: bool = f.get("enemy", false) or FOE_KINDS.has(f.kind)
@@ -1016,6 +1034,8 @@ func _draw_fx() -> void:
 		if skip_sparks > 0 and f.kind == "spark" and not f.get("enemy", false):
 			skip_sparks -= 1
 			continue
+		if (f.kind == "beam" or f.kind == "bbeam" or f.kind == "tracer") and LaserDraw.draw(g, f, a):
+			continue   # 激光改版原型（fx/laser_style，缺省 0 = 原画法，docs/138 §12）
 		match f.kind:
 			"leave_jump":   # 队友离队 / 换人：原地一蹲后向上跳出屏幕（squad._leave_fx，10-22）
 				var jt: float = (f.max - f.life) / f.max
@@ -1340,6 +1360,8 @@ func _draw_fx() -> void:
 				var fr := mini(int(el * float(f.get("fps", spec[1]))), spec[0] - 1)   # fps：加快过的死亡帧条（vfx.death_shatter）
 				var scol: Color = f.get("col", Color.WHITE)
 				scol.a *= fdim
+				if g.optical != null and g.optical.grains != null and g.optical.grains.body_frame(f, fr, int(spec[0])):
+					continue   # 形状颗粒化（fx_grains.GRAIN_BODY，docs/138 §13）：这一帧由颗粒拼出形状
 				g.vfx.spr_rot(f.name, fr, f.pos, f.ang, g.vfx.int_scale(f.scale), scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
 				if f.get("ring", 0.0) > 0.0 and fr == 0:
 					g.draw_arc(f.pos, f.ring, 0.0, TAU, 40, Color(2.2, 2.0, 1.6, 0.6), 1.5)
@@ -1501,6 +1523,11 @@ func _draw_fx() -> void:
 
 
 ## 敌方弹幕三遍（无贴图底 → 贴图 → 弹芯描边）+ Boss 刀刃 → 抛射碎石 → 冲击环
+## Boss 弹画原色弹体（optical._eb_step 换色相时把原图留在 g.tex[名 + "@boss"]；docs/139 §7.3）
+func _eb_tex(b: Dictionary, nm: String) -> String:
+	return nm + "@boss" if b.get("boss", false) and g.tex.has(nm + "@boss") and Bal.v("render/ebullet_boss_danger", 1.0) > 0.0 else nm
+
+
 func _draw_ebullets_lobs_shocks() -> void:
 	# 敌方弹幕分三遍画（性能 9/30：原来每颗子弹影子 / 底圈 / 光晕 / 贴图 / 描边交替，有贴图和无贴图来回切，每颗约 5 次绘制调用；
 	# 分遍后同类连续提交能合批）：① 无贴图：影子椭圆、深色底圈、光晕；② 贴图：弹体；③ 无贴图：弹芯、亮描边
@@ -1519,7 +1546,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 		# 敌方弹幕高对比：深色外圈垫底，画完再描一圈亮洋红边，压在友方特效上也一眼看得出
 		tb_circle(bp, b.r + 3.0, Color(0.02, 0.0, 0.05, 0.85))
 		if g.optical_on:
-			var ec: Color = g.optical.col_ebullet   # 光学观感颜色语言：敌弹光晕统一敌弹色（10-24 起与预警危险色分开，docs/139 §6.7）
+			var ec: Color = g.optical.eb_col(b)   # 光学观感颜色语言：杂兵弹敌弹色、Boss 弹危险色（docs/139 §6.7 / §7.3）
 			tb_circle(bp, b.r + 4.0, Color(ec.r, ec.g, ec.b, 0.3))
 			continue
 		match b.get("kind", "orb"):
@@ -1544,13 +1571,13 @@ func _draw_ebullets_lobs_shocks() -> void:
 			g.vfx.spr_rot(btex, int(g.t * float(bspec[1]) + b.pos.x * 0.01) % int(bspec[0]), bp, b.vel.angle(), Game.PX)
 		elif kd == "nerve" and g.tex.get("proj_floater_nerve") != null:
 			# 浮海飘航者神经弹（V8 proj_floater_nerve，朝右绘制按速度方向旋转）
-			g.vfx.spr_rot("proj_floater_nerve", int(g.t * 12.0 + b.pos.x * 0.01) % 4, bp, b.vel.angle(), Game.PX)
+			g.vfx.spr_rot(_eb_tex(b, "proj_floater_nerve"), int(g.t * 12.0 + b.pos.x * 0.01) % 4, bp, b.vel.angle(), Game.PX)
 		elif kd == "acid" and g.tex.get("proj_acid") != null:
 			g.vfx.spr("proj_acid", 2, int(g.t * 8.0 + b.pos.x * 0.01) % 2, bp, _hpx("proj_acid"), false, Color(1.5, 1.5, 1.5))   # Codex v14 酸团（暗橄榄，避开友方黄绿）；×1.5 提亮，压过地图暗环境光（原程序圆也是过曝色）
 		elif kd == "nova" and g.tex.get("proj_nova") != null:
-			g.vfx.spr("proj_nova", 4, int(g.t * 10.0 + b.pos.x * 0.01) % 4, bp, _hpx("proj_nova"), false, Color(1.5, 1.5, 1.5))   # Codex v14 新星弹；×1.5 提亮同上
+			g.vfx.spr(_eb_tex(b, "proj_nova"), 4, int(g.t * 10.0 + b.pos.x * 0.01) % 4, bp, _hpx("proj_nova"), false, Color(1.5, 1.5, 1.5))   # Codex v14 新星弹；×1.5 提亮同上
 		elif kd != "acid" and kd != "nova" and kd != "nerve" and kd != "boss_blade":
-			g.vfx.spr("ebullet", 1, 0, bp, Game.PX * b.r / 5.0)
+			g.vfx.spr(_eb_tex(b, "ebullet"), 1, 0, bp, Game.PX * b.r / 5.0)
 	var eb_ow: float = Bal.v("render/ebullet_outline", 0.0) if g.optical_on else 0.0
 	for b in g.ebullets:
 		var kd: String = b.get("kind", "orb")
@@ -1574,7 +1601,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 				if g.tex.get("proj_floater_nerve") == null:
 					tb_circle(bp, b.r, Color(1.8, 1.6, 0.5))
 		if g.optical_on:
-			var ebc: Color = g.optical.col_ebullet
+			var ebc: Color = g.optical.eb_col(b)
 			tb_ring(bp, b.r + 2.0, 1.5, Color(ebc.r * 2.0, ebc.g * 2.0, ebc.b * 2.0, 0.9))   # 亮描边改敌弹色（原亮洋红）
 			var ow: float = eb_ow
 			if ow > 0.0:
@@ -1625,37 +1652,43 @@ func _draw_ebullets_lobs_shocks() -> void:
 	# 冲击环（docs/48 全局 ④⑤、P0 伊祖米克）：原来写死成治疗同款的绿色、越扩越淡，到主控这里几乎看不见。
 	# 改成敌方危险色：深色外描边 + 洋红紫主色 + 白芯，透明度下限 0.6，扩到最大也看得清
 	for sh in g.shocks:
-		var a: float = maxf(0.6, 1.0 - sh.r / sh.maxr)
-		var tc: Color = sh.get("col", ENEMY_TELL)   # 缺口环（大群之歌）用 Boss 主题色，普通冲击环洋红
-		g.draw_set_transform(sh.pos, 0.0, Vector2(1.0, ground_y()))   # 地面椭圆，和判定一致（docs/48 ①）
-		var gh: float = float(sh.get("gap_half", 0.0))
-		var gaps: Array = sh.get("gaps", []) if gh > 0.0 else []
-		if gaps.is_empty():
-			g.draw_arc(Vector2.ZERO, sh.r - 8.0, 0.0, TAU, 48, Color(tc.r, tc.g, tc.b, 0.18 * a * tell_fill), 10.0)
-			g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(0, 0, 0, 0.55 * a), 7.0)
-			g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(tc.r, tc.g, tc.b, a), 4.0)
-			g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(1, 1, 1, 0.9 * a), 1.5)
-		else:
-			# 缺口环：按缺口切成几段弧画，缺口处不画，两侧亮色「出口」短线（docs/95 §12 song_ring；判定在 enemies.update）
-			var starts: Array = []
-			for ga in gaps:
-				starts.append(fposmod(float(ga) + gh, TAU))
-			starts.sort()
-			for i in starts.size():
-				var a0: float = starts[i]
-				var a1: float = starts[(i + 1) % starts.size()] - gh * 2.0
-				if a1 <= a0:
-					a1 += TAU
-				g.draw_arc(Vector2.ZERO, sh.r - 8.0, a0, a1, 32, Color(tc.r, tc.g, tc.b, 0.18 * a * tell_fill), 10.0)
-				g.draw_arc(Vector2.ZERO, sh.r, a0, a1, 32, Color(0, 0, 0, 0.55 * a), 7.0)
-				g.draw_arc(Vector2.ZERO, sh.r, a0, a1, 32, Color(tc.r, tc.g, tc.b, a), 4.0)
-				g.draw_arc(Vector2.ZERO, sh.r, a0, a1, 32, Color(1, 1, 1, 0.9 * a), 1.5)
-			for ga in gaps:
-				for side in [-1.0, 1.0]:
-					var v := Vector2.from_angle(float(ga) + side * gh)
-					g.draw_line(v * (sh.r - 16.0), v * (sh.r + 16.0), Color(0, 0, 0, 0.7), 5.0)
-					g.draw_line(v * (sh.r - 16.0), v * (sh.r + 16.0), Color(1.0, 0.85, 0.35, 0.9), 2.0)
-		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		if not sh.get("ground", false):
+			_draw_shock(sh)
+
+
+## 一道冲击环：地面椭圆，深色外描边 + 危险色主色 + 白芯；缺口环按缺口分段（ground 环由 _draw_ground_foe_fx 在单位之下画）
+func _draw_shock(sh: Dictionary) -> void:
+	var a: float = maxf(0.6, 1.0 - sh.r / sh.maxr)
+	var tc: Color = sh.get("col", ENEMY_TELL)   # 缺口环（大群之歌）用 Boss 主题色，普通冲击环洋红
+	g.draw_set_transform(sh.pos, 0.0, Vector2(1.0, ground_y()))   # 地面椭圆，和判定一致（docs/48 ①）
+	var gh: float = float(sh.get("gap_half", 0.0))
+	var gaps: Array = sh.get("gaps", []) if gh > 0.0 else []
+	if gaps.is_empty():
+		g.draw_arc(Vector2.ZERO, sh.r - 8.0, 0.0, TAU, 48, Color(tc.r, tc.g, tc.b, 0.18 * a * tell_fill), 10.0)
+		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(0, 0, 0, 0.55 * a), 7.0)
+		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(tc.r, tc.g, tc.b, a), 4.0)
+		g.draw_arc(Vector2.ZERO, sh.r, 0.0, TAU, 48, Color(1, 1, 1, 0.9 * a), 1.5)
+	else:
+		# 缺口环：按缺口切成几段弧画，缺口处不画，两侧亮色「出口」短线（docs/95 §12 song_ring；判定在 enemies.update）
+		var starts: Array = []
+		for ga in gaps:
+			starts.append(fposmod(float(ga) + gh, TAU))
+		starts.sort()
+		for i in starts.size():
+			var a0: float = starts[i]
+			var a1: float = starts[(i + 1) % starts.size()] - gh * 2.0
+			if a1 <= a0:
+				a1 += TAU
+			g.draw_arc(Vector2.ZERO, sh.r - 8.0, a0, a1, 32, Color(tc.r, tc.g, tc.b, 0.18 * a * tell_fill), 10.0)
+			g.draw_arc(Vector2.ZERO, sh.r, a0, a1, 32, Color(0, 0, 0, 0.55 * a), 7.0)
+			g.draw_arc(Vector2.ZERO, sh.r, a0, a1, 32, Color(tc.r, tc.g, tc.b, a), 4.0)
+			g.draw_arc(Vector2.ZERO, sh.r, a0, a1, 32, Color(1, 1, 1, 0.9 * a), 1.5)
+		for ga in gaps:
+			for side in [-1.0, 1.0]:
+				var v := Vector2.from_angle(float(ga) + side * gh)
+				g.draw_line(v * (sh.r - 16.0), v * (sh.r + 16.0), Color(0, 0, 0, 0.7), 5.0)
+				g.draw_line(v * (sh.r - 16.0), v * (sh.r + 16.0), Color(1.0, 0.85, 0.35, 0.9), 2.0)
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 敌人出招提示 → 精英登场（docs/54 ④）→ 主控异常 → 预警轮廓 → 主控标记（压在所有敌方预警之上）
@@ -2517,7 +2550,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		g.draw_arc(Vector2.ZERO, e.r + 10.0 + 6.0 * sin(g.t * 9.0 + e.id), 0.0, TAU, 20, Color(0.7, 0.5, 1.0, 0.5), 2.0)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		return
-	if e.invuln:
+	if e.invuln and e.type != "ishar":   # 伊莎玛拉一阶段人形（friendly + invuln）画本色：蓝灰半透明会把白金配色洗成灰（用户 10-24「一阶段人形态是灰色的」）
 		col = Color(0.7, 0.85, 1.0, 0.75)
 	if e.chest:
 		frame = 0
@@ -2563,7 +2596,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		e.squash = maxf(e.squash, 0.14 * xk * (0.6 + 0.4 * sin(g.t * 40.0)))
 	if e.get("burst_w", 0.0) > 0.0:
 		if g.tex.get(e.tex + "_swell") != null:
-			# 囊海爬行者鼓胀（Codex docs/96 §1.3 e_pocket_swell）：10fps 不循环，播到 f3 后停住直到 0.8 秒蓄压结束；
+			# 囊海爬行者鼓胀（Codex docs/96 §1.3 e_pocket_swell）：10fps 不循环，播到 f3 后停住直到蓄压结束（burst_fuse，囊海爬行者 1.1 秒）；
 			# 首帧 = 本体 f0，鼓胀画在帧里，不再程序放大 / 提亮本体；范围圈仍在覆盖层画（draw_enemy_tells）
 			name = e.tex + "_swell"
 			frames = 4
@@ -2580,6 +2613,13 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	if g.foot_anchor.has(e.tex):
 		anc = Vector2(0.5, 1.0)
 		bpos = e.pos + Vector2(0, (31.0 if e.type == "ishar" else e.r) * 0.8 + 3.0 * Game.PX)
+	# 冲刺蓄力的身体表现（docs/139 §7.4，render/dash_tell_style ≥ 1）：往冲刺反方向缩 render/dash_pull 美术像素、按蓄力进度渐变到危险色（不闪）
+	if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir") and not e.boss and Bal.vi("render/dash_tell_style", 0) >= 1:
+		var dwk: float = clampf(1.0 - e.dash_w / float(D.ENEMIES.get(e.type, {}).get("dash_wind", 0.5)), 0.0, 1.0)
+		bpos -= (e.dash_dir as Vector2) * Bal.v("render/dash_pull", 3.0) * Game.PX * dwk
+		var dfl: float = dwk * Bal.v("render/dash_flash", 0.6)   # 随蓄力进度平滑变色，不闪（10-24 Boss 频闪教训）
+		var dc: Color = g.optical.col_danger if g.optical_on else ENEMY_TELL
+		col = col.lerp(Color(dc.r * 1.6, dc.g * 1.6, dc.b * 1.6, col.a), clampf(dfl, 0.0, 1.0))
 	var k: float = clamp(e.squash / 0.14, 0.0, 1.0)
 	var sq := Vector2(1.0 + 0.3 * k, 1.0 - 0.25 * k)
 	# Boss 攻击姿态：蓄力时后仰变亮，出手瞬间前倾拉伸；有 _attack 帧条时改用帧条
@@ -2797,13 +2837,22 @@ func draw_enemy_tells() -> void:
 			var xk: float = clampf(1.0 - e.blast_w / float(xd.get("blast_fuse", 0.55)), 0.0, 1.0)
 			_tell_circle(e.pos, float(xd.get("blast_r", 62)), xk, ENEMY_TELL)
 		if e.get("burst_w", 0.0) > 0.0:
-			_tell_circle(e.pos, 80.0, clampf(1.0 - e.burst_w / float(e.get("burst_dur", 0.4)), 0.0, 1.0), TELL_BURST)
+			_tell_circle(e.pos, float(D.ENEMIES.get(e.type, {}).get("burst_r", 80.0)), clampf(1.0 - e.burst_w / float(e.get("burst_dur", 0.4)), 0.0, 1.0), TELL_BURST)
 		# 冲刺预警线（滑动者 / 撕裂者 / 骑士精英）：长度按实际冲刺距离算（速度 × dash_speed × 0.35 秒），
 		# 不再写死 230（docs/48 P1：实际只冲 80–135）；只朝前画
 		if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir") and Bal.v("render/dash_tell", 1.0) > 0.0:   # render/dash_tell 0 = 不画（docs/139 §7 量测用）
 			var dd: Dictionary = D.ENEMIES.get(e.type, {})
 			var wk: float = clampf(1.0 - e.dash_w / float(dd.get("dash_wind", 0.5)), 0.0, 1.0)
-			_tell_line(e.pos, e.pos + e.dash_dir * _dash_len(e), Bal.v("render/dash_tell_half", 10.0), wk, ENEMY_TELL, e.get("tell_dim", false), true)   # render/dash_tell_half 半宽
+			match Bal.vi("render/dash_tell_style", 0):
+				1:
+					_dash_chevrons(e, wk, not e.get("tell_dim", false))
+				2:
+					if not e.get("tell_dim", false):   # 只给会冲到队长的画：冲刺距离前 45% 的短箭 + 箭头
+						var sb: Vector2 = e.pos + e.dash_dir * _dash_len(e) * Bal.v("render/dash_short", 0.45)
+						_tell_line(e.pos, sb, Bal.v("render/dash_tell_half", 10.0), wk, ENEMY_TELL, false, true)
+						_dash_head(sb, e.dash_dir, wk)
+				_:
+					_tell_line(e.pos, e.pos + e.dash_dir * _dash_len(e), Bal.v("render/dash_tell_half", 10.0), wk, ENEMY_TELL, e.get("tell_dim", false), true)   # render/dash_tell_half 半宽
 		# 灯边硬直（docs/56 §10）：头顶一颗暖色小光点 + 绕着转的两粒光屑，读作「被灯光震住」，随剩余时间淡出
 		var bst: float = e.get("bstag", 0.0)
 		if bst > 0.0:
@@ -3787,6 +3836,33 @@ func update_beacon_lights() -> void:
 
 
 ## 冲刺预警线长度：按实际冲刺距离（速度 × dash_speed × 0.35 秒）；Boss与怪物 给了 dash_len 就用它
+## 冲刺预警风格 1（docs/139 §7.4）：怪物脚前 3 个「›」箭头沿冲刺方向依次点亮（蓄力 0–⅓–⅔–1），深色底 + 危险色线；
+## 打不到队长的只亮最近一个、半透明。不画整条线
+func _dash_chevrons(e: Dictionary, wk: float, threat: bool) -> void:
+	var dv: Vector2 = e.dash_dir
+	var nv: Vector2 = dv.orthogonal()
+	var c: Color = ENEMY_TELL
+	var n: int = 3 if threat else 1
+	for i in n:
+		var lit: float = clampf(wk * 3.0 - float(i), 0.0, 1.0)
+		if lit <= 0.0 and i > 0:
+			continue
+		var a: float = (0.35 + 0.6 * lit) * (1.0 if threat else 0.4)
+		var tip: Vector2 = e.pos + dv * (float(e.get("r", 10.0)) + 10.0 + 11.0 * i)
+		var pts := PackedVector2Array([tip - dv * 6.0 + nv * 6.0, tip, tip - dv * 6.0 - nv * 6.0])
+		g.draw_polyline(pts, Color(0, 0, 0, 0.6 * a), 5.0)
+		g.draw_polyline(pts, Color(c.r, c.g, c.b, a), 2.5)
+
+
+## 风格 2 的箭头
+func _dash_head(p: Vector2, dv: Vector2, wk: float) -> void:
+	var nv: Vector2 = dv.orthogonal()
+	var c: Color = ENEMY_TELL
+	var pts := PackedVector2Array([p - dv * 9.0 + nv * 8.0, p + dv * 3.0, p - dv * 9.0 - nv * 8.0])
+	g.draw_polyline(pts, Color(0, 0, 0, 0.6), 5.0)
+	g.draw_polyline(pts, Color(c.r, c.g, c.b, 0.55 + 0.4 * wk), 2.5)
+
+
 func _dash_len(e: Dictionary) -> float:
 	var dd: Dictionary = D.ENEMIES.get(e.type, {})
 	return float(e.get("dash_len", clampf(e.spd * float(dd.get("dash_speed", 3.8)) * 0.35, 60.0, 400.0)))
@@ -3930,10 +4006,10 @@ func _warn_dash_arc(r: float, a0: float, a1: float, col: Color, wdt: float) -> v
 		a += seg
 
 
-func draw_warn_outlines() -> void:
+func draw_warn_outlines(ground := false) -> void:
 	for w in g.warns:
-		if w.done or TeleDraw.quiet(w):
-			continue
+		if w.done or TeleDraw.quiet(w) or bool(w.get("ground", false)) != ground:
+			continue   # ground：小怪踏地的轮廓在地面层画（_draw_ground_foe_fx），不压在单位上
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var tr: float = float(w.get("track", 0.0))
 		var tracking: bool = tr > 0.0 and w.t < tr
@@ -4469,5 +4545,5 @@ func draw_player() -> void:
 	g.draw_set_transform(g.sprite.position + g.p_off, g.sprite.rotation + g.p_lean, Vector2(sx * g.p_sq.x, pk * g.p_sq.y))
 	# 博士挂件不受击：不吃主控的受击闪白 / 无敌闪烁（那些现在画在主控干员身上）
 	var dmod: Color = Color(0.5, 0.5, 0.6, 0.6) if g.state == Game.S.DEAD else Color.WHITE
-	g.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh / 2.0) + g.sprite.offset, Vector2(fw, fh)), src, dmod * Look.actor_mod(g, g.sprite.position))
+	g.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh / 2.0) + g.sprite.offset, Vector2(fw, fh)), src, dmod * Look.plain_mod(g, g.sprite.position))
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

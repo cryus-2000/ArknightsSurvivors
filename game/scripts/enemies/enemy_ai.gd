@@ -92,7 +92,7 @@ func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool
 			data.merge({"act": "bite", "follow": true, "half": 0.72, "r": reach}, true)
 		"pulse":
 			shape = "circle"
-			data.merge({"act": "burst", "follow": true, "r": minf(reach, 110.0)}, true)
+			data.merge({"act": "burst", "follow": true, "r": reach}, true)   # 按 json 范围（囊壳震爆 135、酸蚀脉冲 100）；原 110 截断去掉（docs/145 §2.3）
 		"pierce":
 			shape = "line"
 			dur = 0.85
@@ -288,7 +288,7 @@ func _stomp(e: Dictionary, d: Dictionary, dist: float) -> Vector2:
 		if _stag(e):
 			return Vector2.INF
 		Sfx.enemy("screech", dist)
-		g.tele.warn(e, "circle", 0.9, {"follow": true, "r": float(d.get("stomp_r", 135)), "act": "slam", "col": Color(1.0, 0.8, 0.5), "dmg": e.dmg * 1.2})
+		g.tele.warn(e, "circle", 0.9, {"follow": true, "r": float(d.get("stomp_r", 135)), "act": "slam", "col": Color(1.0, 0.8, 0.5), "dmg": e.dmg * 1.2, "ground": true})   # ground：轮廓画在地面层，不盖住单位（用户 10-24）
 	return Vector2.INF
 
 

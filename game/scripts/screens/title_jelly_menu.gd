@@ -1,7 +1,8 @@
 extends RefCounted
 ## 标题页菜单·深海水母（docs/67 §13，10-24 用户定：Codex 47-C「探索徽记」构图 + 方向二「青光航标」精修；对照图 art/incoming/title_jelly_1024/）。
-## 左侧四个入口（寻访 / 图鉴 / 认知塑造 / 试炼）+ 刻度圆盘「集结出发」+ 底部一行（设置 / 操作说明 / 退出）。
-## 选中态：深色半透明斜切底条 + 青色左边标 + 青下划线 + 实心圆环图标；青色只给「可操作 / 选中」。
+## 左侧入口分主次（10-25 用户定原 B，对照图 art/incoming/title_jelly_1024/hierarchy/B.png）：「成长」寻访 / 认知塑造（大）、
+## 「档案」图鉴 / 蚀刻章（小一号）、试炼（一行小字）；刻度圆盘「集结出发」；底部一行（设置 / 操作说明 / 退出）。
+## 选中态：深色半透明斜切底条 + 青色左边标 + 青下划线 + 实心圆环图标（各档同一套，按行高缩放）；青色只给「可操作 / 选中」。
 ## 版式两套：桌面（UI 逻辑高 ≥ 712，设计坐标 1280×720，多出的高度给下半部）；紧凑（手机横屏 / 矮窗口：缩小、「集结出发」挪到右下拇指区）。
 ## 都按 Cfg.safe_insets() 让开刘海 / 圆角。导航按几何方向找最近的一项（不循环），Tab 按可见顺序线性走。
 
@@ -11,10 +12,11 @@ const UI = preload("res://scripts/ui.gd")
 ## slot：list = 左侧入口、deploy = 圆盘主按钮、foot = 底部一行
 const MENU := [
 	{"id": 0, "cn": "集结出发", "en": "DEPLOY", "slot": "deploy"},
-	{"id": 7, "cn": "寻访", "en": "HEADHUNT", "slot": "list", "icon": "headhunt"},
-	{"id": 1, "cn": "图鉴", "en": "ARCHIVE", "slot": "list", "icon": "gallery"},
-	{"id": 6, "cn": "认知塑造", "en": "COGNITION", "slot": "list", "icon": "cognition"},
-	{"id": 2, "cn": "试炼", "en": "TRIAL", "slot": "list", "icon": "trial", "tag": "测试版"},
+	{"id": 7, "cn": "寻访", "en": "HEADHUNT", "slot": "list", "icon": "headhunt", "tier": 0},
+	{"id": 6, "cn": "认知塑造", "en": "COGNITION", "slot": "list", "icon": "cognition", "tier": 0},
+	{"id": 1, "cn": "图鉴", "en": "ARCHIVE", "slot": "list", "icon": "gallery", "tier": 1},
+	{"id": 8, "cn": "蚀刻章", "en": "MEDALS", "slot": "list", "icon": "medals", "tier": 1, "tag": "未开放"},   # 10-25 用户：主界面留蚀刻章入口（docs/134，系统未做）
+	{"id": 2, "cn": "试炼", "en": "TRIAL", "slot": "list", "icon": "trial", "tier": 2, "tag": "测试版"},
 	{"id": 4, "cn": "设置", "en": "SETTINGS", "slot": "foot"},
 	{"id": 3, "cn": "操作说明", "en": "GUIDE", "slot": "foot"},
 	{"id": 5, "cn": "退出", "en": "EXIT", "slot": "foot"},
@@ -28,8 +30,16 @@ const INK := Color(0.075, 0.153, 0.204)        # #132734
 const RING := Color(0.361, 0.494, 0.561)       # #5c7e8f
 const GLYPH := Color(0.792, 0.851, 0.882)      # #cad9e1
 const STRIP := Color(0.094, 0.204, 0.267, 0.84)
-const ROW := 62.0                               # 入口行距（设计坐标）
-const STRIP_W := 292.0
+## 三档入口（设计坐标）：h 行高、gap 行后空、ring 圆环半径（0 = 不画圈）、ix 图标中心 x、ik 图标缩放、tx 中文左边、fs 中文字号、
+## en 英文字号（0 = 不写）、en_inline 英文跟在中文右边、sw 选中底条宽、ul 选中下划线 y
+const TIERS := [
+	{"h": 52.0, "gap": 6.0, "ring": 19.0, "ix": 26.0, "ik": 1.0, "tx": 60.0, "fs": 25, "en": 9, "en_inline": false, "sw": 300.0, "ul": 53.0},
+	{"h": 40.0, "gap": 4.0, "ring": 15.0, "ix": 24.0, "ik": 0.8, "tx": 50.0, "fs": 20, "en": 7, "en_inline": true, "sw": 262.0, "ul": 38.0},
+	{"h": 26.0, "gap": 0.0, "ring": 0.0, "ix": 24.0, "ik": 0.55, "tx": 38.0, "fs": 13, "en": 0, "en_inline": false, "sw": 176.0, "ul": 25.0},
+]
+## 组小标题（设计坐标高 22；档案组前多空 10）
+const GROUPS := [["成长", "GROWTH"], ["档案", "RECORDS"]]
+const LABEL_H := 22.0
 const EDGE := 40.0                              # 桌面版式整体离左边再收进来的量（设计坐标）
 
 
@@ -120,7 +130,7 @@ static func layout(vs: Vector2, ids: Array, ins: Array, touch: bool, font: Font)
 		var x0 := EDGE + maxf(0.0, il)   # 10-24 用户：字别太靠边
 		lo = Vector2(68 + x0, 52 + it)
 		lk = 1.0
-		lay.list = {"o": Vector2(64 + x0, 216 + dy * 0.55), "k": 1.0, "ids": list_ids}
+		lay.list = {"o": Vector2(64 + x0, 176 + dy * 0.55), "k": 1.0, "ids": list_ids}
 		dO = Vector2(64 + x0, 466 + dy - ib)
 		dk = 1.0
 		fo = Vector2(68 + x0, 648 + dy - ib)
@@ -132,8 +142,11 @@ static func layout(vs: Vector2, ids: Array, ins: Array, touch: bool, font: Font)
 		var rm := vs.x - maxf(48.0, ir + 26.0)
 		lk = 0.86
 		lo = Vector2(lm, tm)
-		var k := clampf((vs.y - 150.0) / (ROW * 4.0 + 70.0), 0.72, 1.0)
 		var ly := tm + 86.0 * lk
+		var avail := bm - 56.0 - ly   # 列表一直排到底部一行上面（集结出发在右下）
+		var k := 1.0
+		while k > 0.66 and _stack(list_ids, k, touch).h * k > avail:
+			k -= 0.02
 		lay.list = {"o": Vector2(lm - 4.0, ly), "k": k, "ids": list_ids}
 		dk = clampf(vs.y / 600.0, 0.7, 0.92)
 		dO = Vector2(rm - 320.0 * dk, bm - 178.0 * dk)
@@ -141,10 +154,12 @@ static func layout(vs: Vector2, ids: Array, ins: Array, touch: bool, font: Font)
 		fo = Vector2(lm, bm - 48.0)
 	lay.logo = {"o": lo, "k": lk}
 	var lst: Dictionary = lay.list
-	for i in list_ids.size():
-		var o: Vector2 = lst.o + Vector2(0, ROW * i) * lst.k
-		var h := maxf(ROW * lst.k - 2.0, 44.0 if touch else 0.0)
-		lay.rects[list_ids[i]] = Rect2(o.x, o.y + 27.0 * lst.k - h / 2.0, (STRIP_W + 8.0) * lst.k, h)
+	var stk: Dictionary = _stack(list_ids, lst.k, touch)
+	lst.rows = stk.rows
+	lst.labels = stk.labels
+	for r in stk.rows:
+		var o: Vector2 = lst.o + Vector2(0, r.y) * lst.k
+		lay.rects[r.id] = Rect2(o.x, o.y, (TIERS[r.tier].sw + 8.0) * lst.k, r.h * lst.k)
 	lay.deploy = {"o": dO, "k": dk}
 	if ids.has(0):
 		lay.rects[0] = Rect2(dO, Vector2(320, 176) * dk)
@@ -166,6 +181,29 @@ static func layout(vs: Vector2, ids: Array, ins: Array, touch: bool, font: Font)
 	else:
 		lay.legal = {"pos": Vector2(vs.x - 48.0 - ir, vs.y - 24.0 - ib), "align": "r", "max_x": vs.x}
 	return lay
+
+
+## 左侧入口逐行排：组小标题 + 各档行高（触屏时一行至少 44 逻辑像素高，内容在行内竖直居中）
+## 返回 {rows: [{id, tier, y, h, pad}], labels: [{y, cn, en}], h}（设计坐标，相对列表原点）
+static func _stack(list_ids: Array, k: float, touch: bool) -> Dictionary:
+	var rows: Array = []
+	var labels: Array = []
+	var y := 0.0
+	var last := -1
+	for id in list_ids:
+		var tier: int = item(id).tier
+		if tier != last:
+			if last >= 0:
+				y += 10.0 if tier < GROUPS.size() else 6.0
+			if tier < GROUPS.size():
+				labels.append({"y": y, "cn": GROUPS[tier][0], "en": GROUPS[tier][1]})
+				y += LABEL_H
+		last = tier
+		var tt: Dictionary = TIERS[tier]
+		var h: float = maxf(tt.h, (44.0 / k) if touch else 0.0)
+		rows.append({"id": id, "tier": tier, "y": y, "h": h, "pad": (h - tt.h) / 2.0})
+		y += h + tt.gap
+	return {"rows": rows, "labels": labels, "h": y}
 
 
 # ---------------------------------------------------------------- 绘制
@@ -207,13 +245,16 @@ static func draw(ci: CanvasItem, lay: Dictionary, st: Dictionary) -> void:
 	var font: Font = st.font
 	_draw_logo(ci, lay.logo.o, lay.logo.k, font, st.a_logo, st.logo_tex)
 	var lst: Dictionary = lay.list
-	for i in lst.ids.size():
-		var id: int = lst.ids[i]
+	var a0: float = st.a_list[0] if not st.a_list.is_empty() else 0.0
+	for lb in lst.labels:
+		_draw_label(ci, lst.o + Vector2(-st.slide * (1.0 - a0), lb.y * lst.k), lst.k, font, lb.cn, lb.en, a0)
+	for i in lst.rows.size():
+		var r: Dictionary = lst.rows[i]
 		var a: float = st.a_list[i]
 		if a <= 0.0:
 			continue
-		var o: Vector2 = lst.o + Vector2(0, ROW * i) * lst.k + Vector2(-st.slide * (1.0 - a), 0)
-		_draw_row(ci, o, lst.k, font, item(id), st.water[id], a, st.dim.has(id), st.tickets if id == 7 else -1)
+		var o: Vector2 = lst.o + Vector2(0, r.y + r.pad) * lst.k + Vector2(-st.slide * (1.0 - a), 0)
+		_draw_row(ci, o, lst.k, font, item(r.id), TIERS[r.tier], st.water[r.id], a, st.dim.has(r.id), st.tickets if r.id == 7 else -1)
 	if lay.rects.has(0) and st.a_deploy > 0.0:
 		_draw_deploy(ci, lay.deploy.o, lay.deploy.k, font, st.water[0], st.a_deploy, st.now, st.rm)
 	if st.a_foot > 0.0:
@@ -238,45 +279,68 @@ static func _draw_logo(ci: CanvasItem, o: Vector2, k: float, font: Font, a: floa
 	_en(ci, font, Vector2(sx, ry + 6.0 * k), "SURVIVORS", fs, _fa(Color(0.835, 0.886, 0.91), a), 2.6 * k)
 
 
-static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dictionary, water: float, a: float, dim: bool, tickets: int) -> void:
+## 组小标题：青色短竖条 + 中文 + 英文
+static func _draw_label(ci: CanvasItem, o: Vector2, k: float, font: Font, cn: String, en: String, a: float) -> void:
+	if a <= 0.0:
+		return
+	ci.draw_rect(Rect2(o + Vector2(2, 2) * k, Vector2(3, 11) * k), _fa(C, a))
+	var w := _txt(ci, font, o + Vector2(12, 0) * k, cn, int(round(12 * k)), _fa(C, a))
+	_en(ci, font, o + Vector2(20, 3) * k + Vector2(w, 0), en, int(round(8 * k)), _fa(M, a), 2.2 * k)
+
+
+## 一行入口（tt = TIERS 里的一档；o = 行左上，内容按 tt.h 画）
+static func _draw_row(ci: CanvasItem, o: Vector2, k: float, font: Font, m: Dictionary, tt: Dictionary, water: float, a: float, dim: bool, tickets: int) -> void:
 	var w := _ease(water)
 	var P := func(x: float, y: float) -> Vector2: return o + Vector2(x, y) * k
+	var h: float = tt.h
 	if w > 0.0:
-		var rx := STRIP_W * w
-		ci.draw_colored_polygon(PackedVector2Array([P.call(0, 2), P.call(rx, 2), P.call(maxf(0.0, rx - 16.0), 52), P.call(0, 52)]), _fa(STRIP, a * w))
-		ci.draw_rect(Rect2(P.call(0, 2), Vector2(3, 50) * k), _fa(C, a))
-		ci.draw_line(P.call(60, 53), P.call(60 + 176.0 * w, 53), _fa(C, a * w), maxf(1.0, 1.4 * k))
+		var rx: float = tt.sw * w
+		ci.draw_colored_polygon(PackedVector2Array([P.call(0, 0), P.call(rx, 0), P.call(maxf(0.0, rx - h * 0.3), h), P.call(0, h)]), _fa(STRIP, a * w))
+		ci.draw_rect(Rect2(P.call(0, 0), Vector2(3, h) * k), _fa(C, a))
 	var dm := 0.45 if dim else 1.0
-	var rc: Vector2 = P.call(26, 27)
-	if w > 0.0:
-		ci.draw_circle(rc, 19.0 * k, _fa(Color(0.055, 0.157, 0.204), a * w))
-	ci.draw_arc(rc, 19.0 * k, 0.0, TAU, 48, _fa(RING.lerp(C, w), a * dm), maxf(1.0, 1.2 * k), true)
-	_icon(ci, rc, str(m.icon), _fa(GLYPH.lerp(C, w), a * dm), k)
-	var fs := int(round(25 * k))
+	var rc: Vector2 = P.call(tt.ix, h / 2.0)
+	if tt.ring > 0.0:
+		if w > 0.0:
+			ci.draw_circle(rc, tt.ring * k, _fa(Color(0.055, 0.157, 0.204), a * w))
+		ci.draw_arc(rc, tt.ring * k, 0.0, TAU, 48, _fa(RING.lerp(C, w), a * dm), maxf(1.0, 1.2 * k), true)
+	_icon(ci, rc, str(m.icon), _fa(GLYPH.lerp(C, w), a * dm * (1.0 if tt.ring > 0.0 else 0.8)), k * tt.ik)
+	var fs := int(round(tt.fs * k))
 	var tc: Color = Color(0.859, 0.898, 0.918).lerp(Color.WHITE, w)
-	var cw := _txt(ci, font, P.call(60, 7), m.cn, fs, _fa(tc, a * dm))
-	_en(ci, font, P.call(61, 37), m.en, int(round(9 * k)), _fa(M.lerp(C, w), a * dm), 2.4 * k)
-	var tx: Vector2 = P.call(60, 0) + Vector2(cw + 10.0 * k, 0)
+	if tt.ring == 0.0:
+		tc = Color(0.627, 0.69, 0.729).lerp(Color.WHITE, w)   # 最轻一档（试炼）：字也暗一档
+	var ty: float = 7.0 if tt.en > 0 and not tt.en_inline else (h - tt.fs * 1.3) / 2.0
+	var cw := _txt(ci, font, P.call(tt.tx, ty), m.cn, fs, _fa(tc, a * dm))
+	var tx: Vector2 = P.call(tt.tx, ty) + Vector2(cw + 10.0 * k, 0)
+	if tt.en > 0:
+		var efs := int(round(tt.en * k))
+		if tt.en_inline:
+			tx.x += _en(ci, font, tx + Vector2(0, (fs - efs) * 0.62), m.en, efs, _fa(M.lerp(C, w), a * dm), 2.2 * k) + 8.0 * k
+		else:
+			_en(ci, font, P.call(tt.tx + 1, 37), m.en, efs, _fa(M.lerp(C, w), a * dm), 2.4 * k)
 	if m.has("tag"):
-		_txt(ci, font, tx + Vector2(0, 17.0 * k), m.tag, int(round(11 * k)), _fa(M, a))
+		var tfs := int(round((10 if tt.ring > 0.0 else 9) * k))
+		_txt(ci, font, tx + Vector2(0, (fs - tfs) * 0.55), m.tag, tfs, _fa(M, a))
 	if tickets >= 0:
 		# 寻访凭证数：黄底斜块 + 黑字（寻访界面的黄色，hh_style）；没有凭证时灰
 		var s := "×%d" % tickets
 		var bfs := int(round(13 * k))
 		var bw: float = font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, bfs).x + 14.0 * k
-		var by := tx.y + 13.0 * k
+		var by := tx.y + 6.0 * k
 		var bh := 18.0 * k
 		var col := Color8(255, 206, 0) if tickets > 0 else Color8(110, 118, 128)
 		var q := bh * 0.2
 		ci.draw_colored_polygon(PackedVector2Array([Vector2(tx.x + q, by), Vector2(tx.x + bw, by), Vector2(tx.x + bw - q, by + bh), Vector2(tx.x, by + bh)]), _fa(col, a))
 		ci.draw_string(font, Vector2(tx.x, by + bh * 0.5 + (font.get_ascent(bfs) - font.get_descent(bfs)) * 0.5), s, HORIZONTAL_ALIGNMENT_CENTER, bw, bfs, Color(0.07, 0.07, 0.09, a))
 	if w > 0.0:
-		ci.draw_polyline(PackedVector2Array([P.call(259, 17), P.call(269, 27), P.call(259, 37)]), _fa(C, a * w), maxf(1.0, 1.8 * k), true)
+		ci.draw_line(P.call(tt.tx, tt.ul), P.call(tt.tx + (tt.sw - tt.tx - 64.0) * w, tt.ul), _fa(C, a * w), maxf(1.0, 1.4 * k))
+		var cx: float = tt.sw - 22.0 - h * 0.15
+		var ch: float = minf(10.0, h * 0.2)
+		ci.draw_polyline(PackedVector2Array([P.call(cx - 5, h / 2 - ch), P.call(cx + 4, h / 2), P.call(cx - 5, h / 2 + ch)]), _fa(C, a * w), maxf(1.0, 1.8 * k), true)
 
 
 ## 线框图标（同 Codex 41 版 icon()，尺寸统一到同一光学大小）
 static func _icon(ci: CanvasItem, c: Vector2, kind: String, col: Color, k: float) -> void:
-	var s: float = {"headhunt": 0.82, "gallery": 0.74, "cognition": 0.78, "trial": 0.78}.get(kind, 0.8) * k
+	var s: float = {"headhunt": 0.82, "gallery": 0.74, "cognition": 0.78, "trial": 0.78, "medals": 0.8}.get(kind, 0.8) * k
 	var lw := maxf(1.0, 1.3 * k)
 	var ln := func(pts: Array) -> void:
 		var pv := PackedVector2Array()
@@ -298,6 +362,11 @@ static func _icon(ci: CanvasItem, c: Vector2, kind: String, col: Color, k: float
 			ln.call([[0, 5], [13, 12]])
 			for p in [[-12, -6], [0, 5], [10, -11], [13, 12]]:
 				ln.call([[p[0], p[1] - 3], [p[0] + 3, p[1]], [p[0], p[1] + 3], [p[0] - 3, p[1]], [p[0], p[1] - 3]])
+		"medals":
+			ln.call([[-7, -13], [-3, -4]])
+			ln.call([[7, -13], [3, -4]])
+			ci.draw_arc(c + Vector2(0, 4) * s, 8.0 * s, 0.0, TAU, 28, col, lw, true)
+			ci.draw_arc(c + Vector2(0, 4) * s, 3.5 * s, 0.0, TAU, 16, col, lw, true)
 		"trial":
 			ln.call([[-11, -10], [11, 10]])
 			ln.call([[-11, 10], [11, -10]])

@@ -111,7 +111,9 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		add_apop(float(ad.apop_hit))
 	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
 	var lamp_loss: float = (Bal.v("lamp/hit_base", 4.0) + Bal.v("lamp/hit_scale", 30.0) * dmg / g.max_hp) * g.lamp_decay * g.lamp_loss_mult
+	var l0: float = g.lamp
 	g.lamp = maxf(0.0, g.lamp - lamp_loss)
+	g.telemetry.lamp_note("受击", g.lamp - l0)
 	if lamp_loss >= 6.0:
 		g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
 	if src.get("corrode", 0.0) > 0.0:
@@ -540,7 +542,9 @@ func update_zone(dt: float) -> void:
 	var out := g.ppos.distance_to(g.zone_c) - g.zone_r
 	if out > 0.0 and g.state == g.S.PLAY and not g.squad.in_sanctuary(g.ppos):
 		zone_out_t += dt
+		var lz: float = g.lamp
 		g.lamp = maxf(0.0, g.lamp - 6.0 * dt * g.lamp_loss_mult)
+		g.telemetry.lamp_note("圈外", g.lamp - lz)
 		if zone_out_t < ZONE_GRACE:
 			return
 		var dps: float = (2.5 + 1.5 * max(zone_phase, 0)) * (1.0 + minf(out / 300.0, 1.0))

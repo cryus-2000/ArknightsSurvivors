@@ -408,7 +408,7 @@ func step_trails(danger: Color, on: bool) -> void:
 			if b.life <= 0.0:
 				continue
 			_tp_img.set_pixel(n, 0, Color(b.pos.x, b.pos.y - 16.0, 0, 1))
-			_tc_img.set_pixel(n, 0, danger)
+			_tc_img.set_pixel(n, 0, g.optical.eb_col(b) if g.optical != null else danger)   # Boss 弹危险色、杂兵弹敌弹色（docs/139 §7.3）
 			n += 1
 	trails.visible = n > 0
 	trails.emitting = n > 0

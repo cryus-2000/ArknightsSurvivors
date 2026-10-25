@@ -17,6 +17,7 @@ class VoiceGame extends RefCounted:
 	var trace_every := 0.0
 	var ppos := Vector2.ZERO
 	var in_tree := true
+	var entry_voice_hold := false
 	var rng := RandomNumberGenerator.new()
 	var vrng := RandomNumberGenerator.new()
 	var stats = preload("res://scripts/core/stat_block.gd").new()
@@ -98,6 +99,15 @@ func run(check: Callable) -> void:
 	if joined != null and joined.has_method("entry_started"):
 		joined.entry_started()
 		check.call(spy.calls.size() == 1, "later entry-start notification does not repeat join voice")
+	# 开局编队：建局时（画面还没出来）不播登场语音，game.release_entry_voices 放开后才播（用户 10-25）
+	spy.calls.clear()
+	game.entry_voice_hold = true
+	var held = Squad.new(game).add("texas", false)
+	check.call(held != null and spy.calls.is_empty(), "opening squad entry voice waits while held")
+	game.entry_voice_hold = false
+	if held != null:
+		held.entry_started()
+		check.call(spy.calls == [["texas", "entry", true]], "held entry voice plays once released")
 	spy.free()
 	_asset_coverage(check)
 	_channel_rules(check)

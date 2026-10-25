@@ -79,7 +79,7 @@ def one_package(kind, label, extra, commit, final):
         shutil.rmtree(unpacked, ignore_errors=True)
         shutil.copytree(STAGED_PKG, unpacked)
     return {"zip": dst, "mb": round(os.path.getsize(dst) / 1048576, 1), "sha256": sha256(dst), "verify": os.path.join(final, os.path.basename(report)),
-            "user_dir": result.get("user_dir"), "unlock_all": result.get("unlock_all"), "packed_png": result.get("packed_png_count"), "audio": result.get("audio_count")}
+            "user_dir": result.get("user_dir"), "unlock_all": result.get("unlock_all"), "roster": result.get("roster_count"), "tickets": result.get("tickets"), "packed_png": result.get("packed_png_count"), "audio": result.get("audio_count")}
 
 
 def main():
@@ -125,7 +125,7 @@ def main():
     print("\n完成（提交 %s）。产物目录：%s" % (commit, final))
     for k in ("public", "internal"):
         if k in summary:
-            print("  %-8s %s（%.1f MB，存档目录 %s，全部解锁 %s）" % (k, summary[k]["zip"], summary[k]["mb"], summary[k]["user_dir"], summary[k].get("unlock_all")))
+            print("  %-8s %s（%.1f MB，存档目录 %s，全部解锁 %s，名册 %s 人，凭证 %s 张）" % (k, summary[k]["zip"], summary[k]["mb"], summary[k]["user_dir"], summary[k].get("unlock_all"), summary[k].get("roster"), summary[k].get("tickets")))
     for k in ("web", "web_internal"):
         if k in summary:
             print("  %-12s %s（全部解锁 %s，演练 %s）" % (k, summary[k]["result"], summary[k].get("unlock_all"), summary[k].get("boss_trial")))

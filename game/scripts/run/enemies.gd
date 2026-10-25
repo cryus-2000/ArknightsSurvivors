@@ -515,19 +515,20 @@ func update(dt: float) -> void:
 			if e.get("burst_w", 0.0) > 0.0:
 				e.burst_w -= dt
 				if e.burst_w <= 0.0:
-					g.fx.append({"kind": "ring", "pos": e.pos, "r": 80.0, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.45, 1.0)})
+					var br: float = float(D.ENEMIES[e.type].get("burst_r", 80.0))   # 爆裂半径（enemies.json burst_r；用户 10-24 囊海爬行者 ×2 = 160）
+					g.fx.append({"kind": "ring", "pos": e.pos, "r": br, "life": 0.4, "max": 0.4, "col": Color(0.8, 0.45, 1.0)})
 					# 破膜帧条（docs/96 §1.3，纯画面）：world._draw_enemy_full 按 burst_fx_t 在本体前后各画一层；地面残留 fx_pocket_puddle 在溟痕层
 					e["burst_fx_t"] = g.t
 					var pf: String = str(D.ENEMIES[e.type].get("puddle_fx", ""))
 					if pf != "":
 						g.vfx.fx_sprite(pf, e.pos + Vector2(0, e.r * 0.8 + 3.0 * Game.PX + 4.0 * Game.PX), D.enemy_scale(e, g.t, Game.PX), 0.0, false, false, Color.WHITE, true)
 					Sfx.play("tentacle", -2.0, 0.7)
-					if g.combat.ground_d(g.ppos, e.pos) < 80.0:   # 画即判（§1.9）
+					if g.combat.ground_d(g.ppos, e.pos) < br:   # 画即判（§1.9）
 						g.combat.enemy_hit(e.dmg * 0.5, {"corrode": 0.0, "nerve": 12.0}, true, false, ["近战", "法术"])
 			elif e.hp <= e.burst_at and e.burst_cd <= 0.0:
 				e.burst_at -= e.maxhp * 0.15
-				e.burst_w = 0.8
-				e.burst_dur = 0.8   # 画面按 burst_w / burst_dur 算鼓胀进度（界面与美术）
+				e.burst_w = float(D.ENEMIES[e.type].get("burst_fuse", 0.8))   # 鼓胀时长随爆裂半径放大（enemies.json burst_fuse）
+				e.burst_dur = e.burst_w   # 画面按 burst_w / burst_dur 算鼓胀进度（界面与美术）
 				e.burst_cd = 1.2
 		# ---- 接触伤害
 		# 休眠中的收割者、自爆的狂奔者（V8）没有接触伤害；Boss 登场 2 秒内不造成接触伤害（docs/38 B0 第 6 项：边缘刷出贴脸）
@@ -538,7 +539,9 @@ func update(dt: float) -> void:
 			if g.invuln <= 0.0:
 				# 冲刺撞击熄灭灯火（enemies.json dash_lamp_drain；底海滑动者）
 				if e.get("dash_t", 0.0) > 0.0 and D.ENEMIES[e.type].has("dash_lamp_drain"):
+					var ld: float = g.lamp
 					g.lamp = maxf(0.0, g.lamp - float(D.ENEMIES[e.type].dash_lamp_drain) * g.lamp_loss_mult)
+					g.telemetry.lamp_note("冲撞吸灯", g.lamp - ld)
 					g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -8", Color(1.0, 0.6, 0.4), 14)
 				g.combat.enemy_hit(e.dmg * dark_mod, e, false, false, ["近战", "物理"], "contact_" + e.type)
 				e.atk_until = g.t + 0.2   # 近战出手：atk_anim 的敌人播攻击帧条第 3、4 帧

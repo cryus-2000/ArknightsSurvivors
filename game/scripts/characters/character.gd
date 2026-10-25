@@ -5,6 +5,7 @@
 ## 干员调用 game.gd 的能力一律走 op_api.gd（本类的父类），不直接调用 g._ 开头的内部函数。
 extends "res://scripts/characters/op_api.gd"
 
+const LaserDraw = preload("res://scripts/render/laser_draw.gd")
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")   # 地裂共用画法
 const A = preload("res://scripts/art.gd")
 const OperatorContract = preload("res://scripts/characters/operator_contract.gd")   # 帧条 / 动画数据契约（docs/108 §10）
@@ -104,12 +105,18 @@ static func exists(cid: String) -> bool:
 	return OpDefs.exists(cid)
 
 
+## 干员脚本路径（定义里的 script 字段，缺省见 create）；进局载入页先在后台线程编译它（title.gd）
+static func script_path(cid: String) -> String:
+	var d := load_def(cid)
+	return d.get("script", "res://scripts/characters/data_operator.gd" if d.has("blocks") else "res://scripts/characters/%s.gd" % cid)
+
+
 ## 按 id 实例化角色（脚本路径来自定义里的 script 字段，默认 scripts/characters/<id>.gd；
 ## 有 blocks 而没写 script 的是数据干员，用 data_operator.gd，docs/61）。
 ## 测试开关 --opscript=<id>=<脚本路径>：同一个 id 改用别的脚本加载（积木等价测试用手写参照，tools/check.py blocks_eq）
 static func create(game, cid: String) -> RefCounted:
 	var d := load_def(cid)
-	var path: String = d.get("script", "res://scripts/characters/data_operator.gd" if d.has("blocks") else "res://scripts/characters/%s.gd" % cid)
+	var path := script_path(cid)
 	for a in (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()):   # 发布版不读命令行（check_release）；Cfg 在测试场景可能未加载，同 balance.gd 写法
 		if a.begins_with("--opscript=%s=" % cid):
 			path = a.substr(("--opscript=%s=" % cid).length())
@@ -639,7 +646,8 @@ func draw_pfx(floor_layer: bool) -> void:
 				var sv: Vector2 = Vector2.from_angle(f.get("ang", 0.0)) * f.get("sz", 6.0)
 				cv.draw_colored_polygon(PackedVector2Array([f.pos - sv, f.pos + sv.orthogonal() * 0.45, f.pos + sv]), Color(c.r * 1.5, c.g * 1.5, c.b * 1.5, a))
 			"line":
-				cv.draw_line(f.pos, f.get("to", f.pos), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a), f.get("w", 2.0))
+				if not (f.get("laser", false) and LaserDraw.draw(g, f, a, cv)):   # 激光 A（docs/138 §12）：只接管标了 laser 的瞬时激光线
+					cv.draw_line(f.pos, f.get("to", f.pos), Color(c.r * 1.6, c.g * 1.6, c.b * 1.6, a), f.get("w", 2.0))
 			"flame":
 				# 火舌：底宽上尖，随时间抖动
 				var h: float = f.get("sz", 10.0) * (0.6 + 0.4 * a)
