@@ -27,6 +27,7 @@ var _proc_ms := 0.0          # 上一帧全部 _process 的耗时（含场景切
 
 var _memlog := false
 var _mem5 := false
+var _mem_tick := -1
 
 ## --memlog（docs/50 §30）：引擎堆 / 贴图显存 / 显存合计（Godot 自己的统计），加网页音频样本解码后的估算（Web Audio 缓冲在 JS 里，引擎看不到）
 func _print_mem(tag: String) -> void:
@@ -35,7 +36,7 @@ func _print_mem(tag: String) -> void:
 		Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0,
 		Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0,
 		Sfx.sample_mem_mb(), get_tree().root.size, Cfg.render_scaled, Cfg.quality])
-	if tag == "game+5s":
+	if tag == "game+5s" or tag.begins_with("t="):
 		_print_tex_breakdown()
 
 
@@ -232,6 +233,13 @@ func _process(_delta: float) -> void:
 	if _memlog and _marks.has("game") and not _mem5 and now - int(_marks["game"]) >= 5000000:
 		_mem5 = true
 		_print_mem("game+5s")
+	if _memlog and _marks.has("game"):   # 内存曲线：对局时间每 30 秒一行（含分组），快进段也记（docs/50 §30.7）
+		var sc = get_tree().current_scene
+		if sc != null and "t" in sc:
+			var gt := int(float(sc.t) / 30.0)
+			if gt != _mem_tick:
+				_mem_tick = gt
+				_print_mem("t=%d" % (gt * 30))
 	if not _quit.is_empty() and _marks.has(_quit[0]) and now - int(_marks[_quit[0]]) >= int(float(_quit[1]) * 1e6):
 		_quit = []
 		_close_seg()
