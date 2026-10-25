@@ -151,7 +151,7 @@ func _state(id: String) -> String:
 		return "lock"
 	if Meta.spent(shape) < int(nd.get("need", 0)):
 		return "lock"
-	return "ok" if Meta.can_buy(shape, id, Meta.earned_total()) else "poor"
+	return "ok" if Meta.can_buy(shape, id, Meta.budget()) else "poor"
 
 
 func _buy(id: String) -> void:

@@ -13,6 +13,7 @@ const A = preload("res://scripts/art.gd")
 const HS = preload("res://scripts/screens/hh_style.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const Roster = preload("res://scripts/core/roster.gd")
+const Meta = preload("res://scripts/core/meta.gd")
 const Game = preload("res://scripts/game.gd")
 
 ## 用户 10-25：寻访专用原作职业标志，来源见 art/incoming/headhunt_professions_1025/sources.json。
@@ -74,6 +75,7 @@ var _stamped := -1
 var reveal_id := ""       # 当前揭示的干员（测试输出用）
 var sel := 0              # 入口：0 寻访一次 / 1 定向；选职业 / 选干员：格子下标
 var sel_cls := ""
+var _buy_t0 := -9.0       # 上次兑换成功的时刻（「+1」上浮用）
 var pick_scroll := 0      # 指定干员列表：第一张可见卡的下标
 var _pdrag := {}          # 指定干员列表的拖动翻页：{x, scroll, act}
 var choices: Array = []   # 选职业：职业；选干员：干员 id
@@ -294,6 +296,14 @@ func _burst_sfx() -> void:
 func _act(a) -> void:
 	match mode:
 		"entry":
+			if a is String and a == "buy":
+				if Roster.exchange_ticket():
+					_buy_t0 = _now()
+					Sfx.play("ui_ok")
+					Sfx.play("levelup", -8.0)
+				else:
+					Sfx.play("ui_move", -4.0, 0.6)   # 细胞不够 / 名册已满：只响一声
+				return
 			if a is int:
 				sel = a
 				a = "one" if a == 0 else "directed"
@@ -412,7 +422,9 @@ func input(event: InputEvent) -> bool:
 		return true
 	if event is InputEventKey and event.pressed and not event.echo:
 		var k: int = Pad.kc(event)
-		if k in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
+		if k == KEY_B and mode == "entry":
+			_act("buy")
+		elif k in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
 			_act(("one" if sel == 0 else "directed") if mode == "entry" else "ok")
 		elif k == KEY_ESCAPE:
 			_act("skip" if mode in ["bag", "op"] else "back")
@@ -675,6 +687,8 @@ func _draw_entry() -> void:
 	for j in rules.size():
 		ci.draw_rect(Rect2(40, _p(506, 418) + j * 28, 6, 6), HS.INK)
 		UI.text_at(ci, f, Vector2(56, _p(509, 421) + j * 28), rules[j], int(_p(14, 17)), HS.INK2, "lm")
+	if Roster.exchange_visible():
+		_draw_exchange(ci, f)
 	if not _phone:
 		HS.hr_mark(ci, f, Vector2(40, 640))
 	# 卡池：三个灰色剪影（未解锁的前 3 名；10-25 用户：「未解锁」下面的小剪影不要了），缓慢视差
@@ -717,6 +731,25 @@ func _draw_entry() -> void:
 		HS.para(ci, r0.grow(4), Color(0, 0, 0, 0), Color.WHITE, 2.0)
 	_btn(r1, 1)
 	_btn(r0, 0)
+
+
+## 用生机细胞兑换寻访凭证（用户 10-25：1 张 = Roster.TICKET_PRICE 个细胞，不设上限）：凭证数下面一枚按钮，细胞不够就灰掉并写还差多少
+func _draw_exchange(ci: CanvasItem, f: Font) -> void:
+	var r := Rect2(36, _p(570.0, 500.0), 380, 50)
+	var can := Roster.exchange_short() == 0
+	var hot: bool = can and not (Pad.using or g.kb_nav) and r.has_point((ci.get_local_mouse_position() - _off) / _k)
+	HS.para(ci, r, HS.INK if can else Color(0, 0, 0, 0), Color(0, 0, 0, 0) if can else UI.fa(HS.INK, 0.35), 1.5)
+	if hot:
+		HS.para(ci, r.grow(3), Color(0, 0, 0, 0), HS.CYB, 2.0)
+	var ink := Color.WHITE if can else UI.fa(HS.INK, 0.55)
+	UI.text_at(ci, f, Vector2(r.position.x + 22, r.position.y + 18), "用生机细胞兑换 1 张（%d）" % Roster.TICKET_PRICE, 17, ink, "lm", true)
+	var sub := "持有生机细胞  %d" % Meta.available() if can else "还差 %d 生机细胞  ·  持有 %d" % [Roster.exchange_short(), Meta.available()]
+	UI.text_at(ci, f, Vector2(r.position.x + 22, r.position.y + 38), sub, 13, UI.fa(ink, 0.8), "lm")
+	var bt := _now() - _buy_t0
+	if bt >= 0.0 and bt < 0.9:   # 兑换成功：凭证数旁「+1」上浮淡出
+		var vy := _p(400.0, 320.0)
+		UI.text_at(ci, f, Vector2(300, vy - 6.0 - bt * 24.0), "+1", 26, UI.fa(HS.INK, 1.0 - bt / 0.9), "mm", true)
+	_btn(r, "buy")
 
 
 func _brackets(r: Rect2, col: Color, l := 22.0, w := 3.0) -> void:

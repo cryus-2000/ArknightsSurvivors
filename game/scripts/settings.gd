@@ -85,6 +85,7 @@ var meta_shape := {}              # 认知塑造已点的节点 {id: true}（cor
 var meta_shape_t := 0             # 认知塑造最后修改时刻（云存档合并：较新的一份为准）
 var meta_earned := {}             # 累计获得的生机细胞 {设备号: 数量}（云存档逐设备取大再求和）
 var meta_dev := ""                # 本机设备号（第一次记生机细胞时生成）
+var meta_bought := {}             # 用生机细胞兑换寻访凭证花掉的细胞 {设备号: 数量}（云存档同 meta_earned 逐设备取大再求和；余额 = 累计获得 − 认知塑造 − 兑换）
 var meta_bounty: Array = []       # 已领首通赏金的潮位
 var roster_fresh: Array = []      # 刚解锁、还没在名册里看过的干员（选人页 / 图鉴高亮一次；只存本机，不上云）
 var roster_int_grant := false     # 对内包的测试寻访凭证已发过（INTERNAL_TICKETS，每份存档一次）
@@ -313,6 +314,7 @@ func _ready() -> void:
 			roster_fresh = []
 			meta_shape = {}
 			meta_earned = {}
+			meta_bought = {}
 			meta_bounty = []
 		elif a == "--roster=full":   # 截图：名册全满（寻访「全员已入职」页），只在内存
 			roster_unlocked = preload("res://scripts/core/roster.gd").all_ids()
@@ -413,6 +415,7 @@ func _read_cfg(c: ConfigFile) -> void:
 	meta_shape = c.get_value("meta", "shape", meta_shape)
 	meta_shape_t = int(c.get_value("meta", "shape_t", meta_shape_t))
 	meta_earned = c.get_value("meta", "earned", meta_earned)
+	meta_bought = c.get_value("meta", "bought", meta_bought)
 	meta_dev = str(c.get_value("meta", "dev", meta_dev))
 	meta_bounty = c.get_value("meta", "bounty", meta_bounty)
 	if not c.has_section("roster"):
@@ -682,6 +685,7 @@ func save() -> void:
 	c.set_value("meta", "shape", meta_shape)
 	c.set_value("meta", "shape_t", meta_shape_t)
 	c.set_value("meta", "earned", meta_earned)
+	c.set_value("meta", "bought", meta_bought)
 	c.set_value("meta", "dev", meta_dev)
 	c.set_value("meta", "bounty", meta_bounty)
 	var ss := _settings_sig()
@@ -711,6 +715,14 @@ func _settings_sig() -> String:
 
 ## 当前本地存档的正文（全部解锁时用存档里的真实进度，同 save()）。
 ## 云端带来的、本版不认识的字段（新版本加的）存在 cloud_extra 里，这里原样放回去：回写云端时不丢（docs/89 §3.1）
+## 云存档正文里的局外成长段；兑换记账 bought 只在有记录时才写，没兑换过的存档往返与旧版本逐字相同
+func _cloud_meta() -> Dictionary:
+	var m := {"earned": meta_earned.duplicate(), "bounty": meta_bounty.duplicate(), "shape": meta_shape.duplicate(), "t": meta_shape_t}
+	if not meta_bought.is_empty():
+		m["bought"] = meta_bought.duplicate()
+	return m
+
+
 func cloud_body() -> Dictionary:
 	var d: Dictionary = (cloud_extra.get("d", {}) as Dictionary).duplicate(true)
 	for k in CLOUD_SET_KEYS:
@@ -724,7 +736,7 @@ func cloud_body() -> Dictionary:
 		"shows": seen_shows.duplicate(), "intro": seen_intro, "open": opening_seen,
 		"ops": roster_unlocked.duplicate(), "optier": roster_tiers.duplicate(),
 		"dbest": diff_best.duplicate(true),
-		"meta": {"earned": meta_earned.duplicate(), "bounty": meta_bounty.duplicate(), "shape": meta_shape.duplicate(), "t": meta_shape_t},
+		"meta": _cloud_meta(),
 		"opst": {"tk": roster_tickets.duplicate(), "sp": roster_spare.duplicate(), "wish": roster_wish, "pity": roster_pity, "draws": roster_draws, "seed": roster_seed}}, true)
 	var out: Dictionary = (cloud_extra.get("top", {}) as Dictionary).duplicate(true)
 	out["set"] = st
@@ -763,6 +775,8 @@ func cloud_apply(body: Dictionary) -> void:
 		var mt: Dictionary = p.meta
 		if mt.get("earned") is Dictionary:
 			meta_earned = (mt.earned as Dictionary).duplicate()
+		if mt.get("bought") is Dictionary:
+			meta_bought = (mt.bought as Dictionary).duplicate()
 		if mt.get("bounty") is Array:
 			meta_bounty = mt.bounty.map(func(x): return int(x))
 		if mt.get("shape") is Dictionary:
@@ -770,7 +784,7 @@ func cloud_apply(body: Dictionary) -> void:
 		if mt.get("t") is float or mt.get("t") is int:
 			meta_shape_t = int(mt.t)
 		var M = load("res://scripts/core/meta.gd")
-		if M.spent(meta_shape) > M.earned_total():
+		if M.spent(meta_shape) > M.budget():
 			meta_shape = {}   # 采用的认知塑造超出余额（另一台设备的进度还没同步过来）：整组重置，重置免费
 	if p.get("dbest") is Dictionary:
 		diff_best = (p.dbest as Dictionary).duplicate(true)
