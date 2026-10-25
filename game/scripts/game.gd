@@ -1392,8 +1392,16 @@ func _do_action(act: String) -> void:
 			run_stats.open_for_run()
 
 
+## 窗口失焦 / 切后台 / 页面暂停（iOS 锁屏、控制中心、来电）：触点的松手事件收不到，摇杆 / 技能键 / 攻击键全部复位
+func _notification(what: int) -> void:
+	if what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_WM_WINDOW_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED, NOTIFICATION_APPLICATION_RESUMED, NOTIFICATION_WM_MOUSE_EXIT]:
+		if touch != null:
+			touch.release_all()
+
+
 ## 指南页的输入放在 _input：先于 GUI 控件处理，左键（或面板右半 / 下一页按钮）下一页，右键 / 面板左半 / 上一页按钮上一页，页码点可直接点
 func _input(event: InputEvent) -> void:
+	touch.observe(event)   # 触点真实按下 / 松开先记一笔（后面任何早退吞掉松手都不影响摇杆复位，touch.gd STICK_* 注释）
 	if victory.active:
 		return
 	if event is InputEventMouseMotion and event.relative.length() > 6.0:

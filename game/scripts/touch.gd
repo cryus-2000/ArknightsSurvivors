@@ -44,6 +44,17 @@ var atk_rect := Rect2()
 ## 按下分配最小空槽，拖动查表，松手释放；没登记过的触点（按下没经过这里）返回 UNKNOWN，不会撞上任何 *_id
 const UNKNOWN := -2
 var _slots := {}            # 原始 index -> 槽位（0 起）
+## 摇杆卡死兜底（10-26 iPhone Safari 实机「一直朝一个方向走、移动键没用」）：松手 / 取消事件没到 touch.handle 时（被设置面板 / 指挥圆盘 / 胜利演出等
+## 先吞掉，或 Safari 边缘手势 / 切后台 / 多指把 touchend 丢了），stick_id 一直 ≥ 0，摇杆停在旧方向，新按下又因为「已有摇杆」被忽略。
+## 三道保险：①game._input 最前面 observe() 记录每个触点真实按下 / 松开（不管后面谁消费），update() 发现摇杆触点已松开就复位；
+## ②摇杆触点超过 STICK_SUSPECT 没有任何事件（真手指会有微动）时，新手指在摇杆区按下直接接管；超过 STICK_STALE 没事件就当松手（停下），
+## 那根手指之后再拖动就重新接回；③窗口失焦 / 切后台 / 暂停（release_all）和状态离开对局时全部复位
+const STICK_SUSPECT := 600       # 毫秒
+const STICK_STALE := 4000
+var _down := {}             # 原始 index -> true：此刻按着的触点（observe 维护）
+var stick_raw := -1         # 摇杆触点的原始 index（-1 = 没有）
+var stick_ms := 0           # 摇杆触点最后一次事件的毫秒时刻
+var _stale_raw := UNKNOWN   # 超时被当作松手的那根手指的原始 index：它再拖动就接回摇杆
 var _lay := {}              # 本帧的按键布局（TouchLayout.resolve），按帧缓存
 var _lay_key: Array = []
 
@@ -51,6 +62,36 @@ var _lay_key: Array = []
 func _init(game) -> void:
 	g = game
 	active = Cfg.touch_device()
+
+
+## 每个输入事件最先过一遍（game._input 开头，在所有早退之前）：只记触点的真实按下 / 松开，不消费
+func observe(event: InputEvent) -> void:
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			_down[event.index] = true
+		else:
+			_down.erase(event.index)
+			if event.index == _stale_raw:
+				_stale_raw = UNKNOWN
+
+
+## 摇杆复位（不动技能键 / 攻击键）
+func _stick_release() -> void:
+	stick_id = -1
+	stick_raw = -1
+	vec = Vector2.ZERO
+
+
+## 全部触点控件复位：窗口失焦 / 切后台 / 页面暂停（game._notification）、槽位表被清时
+func release_all() -> void:
+	_stick_release()
+	skill_id = -1
+	skill_aim = Vector2.ZERO
+	if atk_id >= 0:
+		_atk_release()
+	_slots.clear()
+	_down.clear()
+	_stale_raw = UNKNOWN
 
 
 func move_vec() -> Vector2:
@@ -114,8 +155,13 @@ func handle(event: InputEvent) -> bool:
 						return false
 				g.state = g.S.PLAY
 				return true
+			if g.state == g.S.PLAY and stick_id >= 0 and Time.get_ticks_msec() - stick_ms > STICK_SUSPECT and _stick_zone(p, vs):
+				_stick_release()   # 摇杆触点很久没动静（松手事件多半丢了）：新手指接管
 			if g.state == g.S.PLAY and stick_id < 0 and _stick_zone(p, vs):
 				stick_id = fid
+				stick_raw = event.index
+				stick_ms = Time.get_ticks_msec()
+				_stale_raw = UNKNOWN
 				stick_origin = p
 				stick_pos = p
 				vec = Vector2.ZERO
@@ -132,14 +178,13 @@ func handle(event: InputEvent) -> bool:
 			if fid == skill_id:
 				skill_id = -1
 				flash["skill"] = 0.2
-				if g.state == g.S.PLAY:
+				if g.state == g.S.PLAY and not event.canceled:
 					# 一定要传方向：不传会读摇杆移动方向，边走边点就朝走的方向放了。没就绪时它自己飘字说原因；正在出手时记下、1 秒内放出
 					g.doctor.try_manual_skill(aim_dir())
 				skill_aim = Vector2.ZERO   # 松手清掉拖动量：选落点圈读它（验收 P2：松手后圈停在旧位置）
 				return true
 			if fid == stick_id:
-				stick_id = -1
-				vec = Vector2.ZERO
+				_stick_release()
 				return true
 	elif event is InputEventScreenDrag:
 		if fid == atk_id:
@@ -150,7 +195,17 @@ func handle(event: InputEvent) -> bool:
 			skill_aim = p - skill_origin
 			return true
 		if fid == stick_id:
+			stick_ms = Time.get_ticks_msec()
 			_stick_move(p)
+			return true
+		if event.index == _stale_raw and stick_id < 0 and g.state == g.S.PLAY and fid >= 0 and fid != skill_id and fid != atk_id:
+			stick_id = fid   # 超时当作松手的那根手指还按着、又动了：接回摇杆，以当前位置为中心
+			stick_raw = event.index
+			stick_ms = Time.get_ticks_msec()
+			_stale_raw = UNKNOWN
+			stick_origin = p
+			stick_pos = p
+			vec = Vector2.ZERO
 			return true
 	return false
 
@@ -212,7 +267,7 @@ func _finger(event: InputEvent) -> int:
 		if event.pressed:
 			if not _slots.has(raw):
 				if _slots.size() >= 8:
-					_slots.clear()
+					release_all()   # 槽位表清掉后原来的触点认不出了，控件跟着复位，免得松手对不上号
 				var used: Array = _slots.values()
 				var s := 0
 				while used.has(s):
@@ -272,10 +327,15 @@ func _do(action: String) -> void:
 func update(dt: float) -> void:
 	for k in flash.keys():
 		flash[k] = maxf(0.0, flash[k] - dt)
-	# 松手后没收到 release（浏览器切后台等）的保险：摇杆超过 8 秒没动就复位
-	if stick_id >= 0 and g.state != g.S.PLAY:
-		stick_id = -1
-		vec = Vector2.ZERO
+	# 松手后没收到 release（浏览器切后台等）的保险，见 STICK_SUSPECT 注释：状态离开对局 / 触点已松开 / 太久没事件就复位
+	if stick_id >= 0:
+		if g.state != g.S.PLAY:
+			_stick_release()
+		elif not _down.has(stick_raw):
+			_stick_release()
+		elif Time.get_ticks_msec() - stick_ms > STICK_STALE:
+			_stale_raw = stick_raw
+			_stick_release()
 	if skill_id >= 0 and g.state != g.S.PLAY:
 		skill_id = -1
 	if skill_id < 0:

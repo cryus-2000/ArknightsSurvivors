@@ -160,3 +160,19 @@ python tools/export_web.py        # 导出 HEAD 到 build/web/（改了 Web 预�
 - Android APK（需要 Android SDK + JDK 17 + 导出模板；预设可复用本文的触控层）。
 - iOS Safari 的全屏 / 音频解锁细节，真机验证。
 - 手机上的字号与热区再评估（现在按 1280×720 等比缩放，小屏可能偏小）。
+
+## iOS 实机两个问题（10-26 用户 iPhone Safari 玩 itch 网页版 17029a603：「听不到声音」「一直朝一个方向走、移动键没用」）
+
+### 声音（`tools/web/audio_unlock.js`，导出时由 `export_web.py` 注入到最前，引擎建 AudioContext 之前）
+
+- **嫌疑一：静音键**。iOS Safari 的 Web Audio 默认属于「环境声」类别，侧边静音键开着时整页无声（用户截图状态栏有静音铃铛）。修法：`navigator.audioSession.type = 'playback'`（iOS 16.4+，页面加载和每次手势里都设）；更老的 iOS 没这个接口，首次手势里放一段 0.1 秒静音 `<audio>` 循环，系统把页面按「播放」类别处理，Web Audio 同样不受静音键管。同时首次手势后在 iOS 上弹一次小提示（localStorage 记，只一次）：「没有声音时，请检查手机侧边的静音键与音量。」
+- **嫌疑二：AudioContext 没在手势里 resume**。iOS 只认手势回调里同步调的 `resume()`，而且来电 / 锁屏 / 切后台后状态会变 `interrupted`，要再叫醒。引擎自己的 resume 在哪些事件里调、能否覆盖 `touchend`，没法在真机验证；这里包了一层 `window.AudioContext` 构造，记下所有实例，在 `touchend / click / keydown / pointerup` 手势里（capture 阶段）对非 running 的实例 `resume()`，`visibilitychange` / `pageshow` 回来时也试一次。
+- **嫌疑三：内存热修（`claude/ios-mem-hotfix`）**：手机网页战斗乐分轨不再预先 `register_stream_as_sample`。读代码结论：没注册的流在「样本」播放模式下第一次 `play()` 时由引擎自己注册并解码，只是首次解码有一次卡顿，**不会因此不出声**；标题页音乐（`play_music("title")`）走同一条路，和战斗乐分开查过：二者都经预定义的 Music / SFX 总线（见上文「静音」），没有区别。
+- 没有 iOS 真机，上面都未实测；包出来后请用户在关掉静音键 / 开着静音键各试一次，并看提示是否出现。
+
+### 摇杆卡死（`scripts/touch.gd`）
+
+- **根因**：摇杆靠 `stick_id ≥ 0` 判定「正在按」，只有 `touch.handle` 收到松手才清；而 `game._input` 在 `touch.handle` 之前有好几处早退（设置面板开着、结算 / 胜利演出、动效跳过、指挥圆盘吞触点），Safari 的 `touchcancel`（边缘手势、系统手势、多指）与切后台也可能根本没有松手事件。一旦丢了，`stick_id` 永远 ≥ 0：摇杆停在旧方向一直走，新手指按下又因为「已有摇杆」被忽略 = 移动键没用。
+- **三道保险**：①`game._input` 最前面 `touch.observe(event)` 记录每个触点的真实按下 / 松开（不消费、不管后面谁吞），`update()` 发现摇杆触点已松开就复位；②摇杆触点 0.6 秒没有任何事件（真手指有微动）时，新手指在摇杆区按下直接接管；4 秒没事件就当松手（停下），那根手指之后再拖动又接回；③`game._notification` 在窗口失焦 / 切后台 / 暂停 / 恢复 / 鼠标移出时 `release_all()`；槽位表被清（超 8 个陈旧登记）时控件一并复位。`touchcancel`（`canceled`）按松手处理，技能键不放技能。
+- **测试**：`tests/touch_move_test.gd` 的 `stuck_cases`：松手被吞 / 取消 / 滑出画布 / 松手整个丢了 + 新手指接管 / 超时与接回 / 失焦 / 双指，桌面与手机比例各一遍。录帧 `tests/touch_stuck_rec.tscn`（`--fixed-fps 30 --resolution 1560x720 -- --touch --shotdir=…`），mp4：主仓库 `build/ios_touch/touch_stuck_phone_sim.mp4`。
+
