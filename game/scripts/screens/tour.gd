@@ -1,7 +1,7 @@
 extends RefCounted
 ## 聚光框引导 + 到点小提示（协调人 10-26，用户同意方向；取代首次进局自动弹出的翻页指南，翻页指南仍在暂停菜单「指南」里）。
 ## 1. 聚光框引导：只在第一局（存档里 seen_intro 为假）开场结束后触发。借用 state INTRO 暂停局内，整屏压暗，依次用方框框住要讲的 HUD 元素
-##    （生命值 / 灯火 / 移动与冲刺 / 指挥），每步一两句；点击 / 任意键下一步，右键 / ← 上一步，Esc / 「跳过引导」结束。
+##    （生命值与灯火 / 移动与冲刺 / 指挥），每步一两句；点击 / 任意键下一步，右键 / ← 上一步，Esc / 「跳过引导」结束。
 ##    框的位置：桌面按 hud_bars / hud_banners 的固定坐标，触屏取 touch.layout()（摇杆 / 冲刺键 / 指挥键）。
 ## 2. 到点小提示：第一次遇到精英、第一次 Boss、灯火第一次低于 30、第一次升级选卡，各在左上角弹一个不暂停的小框（8 秒），每样只弹一次，
 ##    已弹过的 id 记在存档 Cfg.seen_tips；老存档（已看过旧指南）升级后不再弹。文案按 docs/76，样式按 docs/37（斜切、黄条）。
@@ -68,12 +68,12 @@ func start() -> void:
 		finish()
 
 
-## 全部步骤：{title, en, rects, text}。指挥未开（command/on = 0）时去掉第 4 步
+## 全部步骤：{title, en, rects, text}。指挥未开（command/on = 0）时去掉第 3 步
 func _build(vs: Vector2) -> Array:
 	var touch: bool = g.touch.active
 	var out: Array = []
-	out.append({"title": "生命值", "en": "HEALTH", "rects": [Rect2(70.0, 4.0, 176.0, 66.0)], "text": "队长的生命。归零即探索失败。"})
-	out.append({"title": "灯火", "en": "LAMP", "rects": [Rect2(246.0, 4.0, 134.0, 66.0)], "text": "受击时下降，低于 30 时受到的伤害更多。拾取灯油、点燃引航灯标补充。"})
+	out.append({"title": "生命与灯火", "en": "HEALTH · LAMP", "rects": [Rect2(70.0, 4.0, 310.0, 66.0)],
+		"text": "生命值是队长的生命，归零即探索失败。灯火受击时下降，低于 30 时受到的伤害更多；拾取灯油、点燃引航灯标补充。"})
 	if touch:
 		var lay: Dictionary = g.touch.layout(vs)
 		var sr: float = g.touch.stick_r() * 1.25
