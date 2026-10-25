@@ -15,6 +15,18 @@ const Character = preload("res://scripts/characters/character.gd")
 const Roster = preload("res://scripts/core/roster.gd")
 const Game = preload("res://scripts/game.gd")
 
+## 用户 10-25：寻访专用原作职业标志，来源见 art/incoming/headhunt_professions_1025/sources.json。
+const CLASS_ICONS := {
+	"先锋": preload("res://art/ui/professions/pioneer.png"),
+	"近卫": preload("res://art/ui/professions/warrior.png"),
+	"重装": preload("res://art/ui/professions/tank.png"),
+	"狙击": preload("res://art/ui/professions/sniper.png"),
+	"术师": preload("res://art/ui/professions/caster.png"),
+	"医疗": preload("res://art/ui/professions/medic.png"),
+	"辅助": preload("res://art/ui/professions/support.png"),
+	"特种": preload("res://art/ui/professions/special.png"),
+}
+
 const DESK := Vector2(1280, 720)   # 桌面设计稿尺寸
 var D := DESK                      # 当前版面：手机横屏按屏幕比例取 1280 ×（600–720），纵向位置用 _p() 单独排（docs/124 §13.7）
 var _phone := false
@@ -322,7 +334,13 @@ func input(event: InputEvent) -> bool:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var p: Vector2 = (event.position / Cfg.ui_k - _off) / _k
 		for r in rects:
-			if (r[0] as Rect2).has_point(p):
+			var box: Rect2 = r[0]
+			var hit := box.has_point(p)
+			if hit and mode == "pick" and r[1] is int:
+				# 加宽后的斜卡外接矩形会相交，命中只认卡片真实截面。
+				var left := box.position.x + (box.end.y - p.y) * HS.SKEW
+				hit = p.x >= left and p.x <= left + box.size.x - box.size.y * HS.SKEW
+			if hit:
 				_act(r[1])
 				return true
 		if mode in ["bag", "op"]:
@@ -658,6 +676,16 @@ func _bottom(text_mid := "") -> void:
 		UI.text_at(ci, f, Vector2(640, D.y - 44), text_mid, 15, UI.TEXT, "mm")
 
 
+## 仅影响寻访界面；纹理原始宽高比保持不变，颜色跟随选中/禁用状态。
+func _class_icon(ci: CanvasItem, cls: String, center: Vector2, radius: float, color: Color, _width := 2.0) -> void:
+	var texture: Texture2D = CLASS_ICONS.get(cls)
+	if texture == null:
+		return
+	var size := texture.get_size()
+	size *= radius * 2.0 / maxf(size.x, size.y)
+	ci.draw_texture_rect(texture, Rect2((center - size * 0.5).round(), size.round()), false, color)
+
+
 func _draw_class() -> void:
 	var ci: CanvasItem = g.hud
 	var f: Font = g.font
@@ -692,15 +720,11 @@ func _draw_class() -> void:
 			HS.para(ci, r.grow(2), Color(0, 0, 0, 0), UI.fa(HS.CYB, 0.6), 1.5)
 		var ink := HS.INK if on else Color(1, 1, 1, 0.4 if dis else 1.0)
 		var cx := r.get_center().x + 10
-		UI.class_glyph(ci, cls, Vector2(cx, r.position.y + 70 * fy), 26.0 * minf(1.0, fy + 0.1), ink, 4.0)
+		_class_icon(ci, cls, Vector2(cx, r.position.y + 70 * fy), 38.0 * minf(1.0, fy + 0.1), ink, 4.0)
 		HS.spaced(ci, f, Vector2(cx - UI.cwidth(f, CLASS_EN[cls], 9) * 0.5 - 18, r.position.y + 128 * fy), CLASS_EN[cls], 9, UI.fa(ink, 0.7), 3.0)
 		UI.text_at(ci, f, Vector2(cx, r.position.y + 154 * fy), cls, 30, ink, "mm", true)
 		ci.draw_line(Vector2(r.position.x + 30, r.position.y + 182 * fy), Vector2(r.end.x - 20, r.position.y + 182 * fy), UI.fa(ink, 0.3), 1.0)
 		UI.text_at(ci, f, Vector2(cx, r.position.y + 204 * fy), "已全部解锁" if dis else "未解锁  %d" % mine.size(), 16, ink, "mm")
-		var sx: float = cx - mini(4, mine.size()) * 16.0
-		for j in mini(4, mine.size()):
-			_figure(_card(mine[j]), Vector2(sx + 16, r.end.y - 10), 0.32, Color(0.45, 0.47, 0.52))
-			sx += 32.0
 		if not owned.has(cls) and not dis:
 			HS.tag(ci, f, r.position + Vector2(r.size.y * HS.SKEW * 0.2 + 34, 10), "新职业", 0.85, HS.CYB)
 		if not dis:
@@ -721,26 +745,35 @@ func _draw_pick() -> void:
 	HS.right_panel(ci, D, 780, 640, 62, D.y - 88)
 	_btn(HS.topbar(ci, f, D, ["PERSONNEL /", "TRANSFER"], "定向寻访 · 指定干员"), "back")
 	var n := choices.size()
-	var cw := minf(200.0, (660.0 - 20.0 * (n - 1)) / maxf(1.0, n))
+	var cw := minf(200.0, (600.0 - 20.0 * (n - 1)) / maxf(1.0, n))
 	for i in n:
 		var od := _card(choices[i])
-		var r := Rect2(40 + i * (cw + 20), _p(104, 84), cw, _p(470, D.y - 88 - 84 - 18))
+		var height := _p(470, D.y - 88 - 84 - 18)
+		# cw 为真实内部宽度，斜切量额外补到外框，不再挤占名字和小人。
+		var r := Rect2(24 + i * (cw + 20), _p(104, 84), cw + height * HS.SKEW, height)
 		var on := i == sel
 		HS.card(ci, r, od.col, on)
 		var ink := HS.INK if on else Color.WHITE
-		UI.class_glyph(ci, od.cls, r.position + Vector2(70, 40), 14.0, ink, 3.0)
-		HS.spaced(ci, f, r.position + Vector2(96, 36), CLASS_EN[od.cls], 9, UI.fa(ink, 0.7), 3.0)
-		UI.text_at(ci, f, r.position + Vector2(96, 54), od.cls, 16, ink, "lm", true)
+		# 斜卡每个高度的中心不同；文字宽度扣除斜切及内边距。
+		var skew := r.size.y * HS.SKEW
+		var inner := maxf(24.0, r.size.x - skew - 24.0)
+		var top_x := r.get_center().x + skew * 0.5 - 34.0 * HS.SKEW
+		_class_icon(ci, od.cls, Vector2(top_x, r.position.y + 34), 14.0, ink)
+		var en := UI.fit_line(f, CLASS_EN[od.cls], 9, inner, 8)
+		UI.text_at(ci, f, Vector2(top_x - 24.0 * HS.SKEW, r.position.y + 58), en[0], en[1], UI.fa(ink, 0.7), "mm")
+		UI.text_at(ci, f, Vector2(top_x - 46.0 * HS.SKEW, r.position.y + 80), od.cls, 16, ink, "mm", true)
 		_figure(od, Vector2(r.get_center().x, r.end.y - 104), minf(1.8, cw / 110.0), Color(0.42, 0.44, 0.5) if not on else Color(0.30, 0.32, 0.37))
-		ci.draw_line(Vector2(r.position.x + 30, r.end.y - 80), Vector2(r.end.x - 30, r.end.y - 80), UI.fa(ink, 0.3), 1.0)
-		var fl := UI.fit_line(f, str(od.name), 28, cw - 40, 14)
-		UI.text_at(ci, f, Vector2(r.get_center().x - 8, r.end.y - 44), fl[0], fl[1], ink, "mm", true)
+		var line_x := r.get_center().x - skew * 0.5 + 80.0 * HS.SKEW
+		ci.draw_line(Vector2(line_x - inner * 0.5, r.end.y - 80), Vector2(line_x + inner * 0.5, r.end.y - 80), UI.fa(ink, 0.3), 1.0)
+		var fl := UI.fit_line(f, str(od.name), 28, inner - 6.0, 22)
+		var name_x := r.get_center().x - skew * 0.5 + 44.0 * HS.SKEW
+		UI.text_at(ci, f, Vector2(name_x, r.end.y - 44), fl[0], fl[1], ink, "mm", true)
 		_btn(r, i)
 	if sel < n:
 		HS.reveal = minf(HS.reveal, 1.0 if UM.rm() else clampf((_now() - _mode_t0) / 0.5, 0.0, 1.0))
 		var od2 := _card(choices[sel])
 		var by := HS.title_block(ci, f, Vector2(820, _p(130, 100)), "01", "人事调度", od2.name, od2.en, 1.0, int(_p(64, 52)))
-		UI.class_glyph(ci, od2.cls, Vector2(846, by + 50), 22.0, HS.INK, 4.0)
+		_class_icon(ci, od2.cls, Vector2(846, by + 50), 22.0, HS.INK, 4.0)
 		HS.spaced(ci, f, Vector2(890, by + 40), CLASS_EN[od2.cls], 10, HS.INK2, 4.0)
 		UI.text_at(ci, f, Vector2(890, by + 64), od2.cls, 22, HS.INK, "lm", true)
 		ci.draw_rect(Rect2(820, by + _p(92, 84), 240, 2), HS.INK)
@@ -911,7 +944,7 @@ func _draw_op() -> void:
 	# 右：职业色斜带 + 职业图标水印 + 描边英文（缓慢平移）
 	var drift := 0.0 if UM.rm() else lt * 6.0
 	HS.fill(ci, PackedVector2Array([Vector2(1080, 0), Vector2(1280, 0), Vector2(900, D.y), Vector2(700, D.y)]), UI.fa(col.darkened(0.35), 0.45))
-	UI.class_glyph(ci, od.cls, Vector2(1000, 250), 150.0, UI.fa(col.darkened(0.2), 0.45), 28.0)
+	_class_icon(ci, od.cls, Vector2(1000, 250), 150.0, UI.fa(col.darkened(0.2), 0.45), 28.0)
 	HS.outline_px(ci, Vector2(440 - drift, D.y - 270), od.en, 28.0, Color(1, 1, 1, 0.16), HS.DARK)
 	# 立绘：滑入（3 道残影）→ 信号解码 → 待机循环；网点投影
 	_reveal_figure(od, lt)
@@ -920,7 +953,7 @@ func _draw_op() -> void:
 	ci.draw_set_transform(_off + Vector2(-(1.0 - e) * 480.0, 0) * _k, 0.0, Vector2(_k, _k))
 	var py := _p(0.0, -60.0)   # 手机：名牌整体上移
 	HS.fill(ci, PackedVector2Array([Vector2(0, 48), Vector2(460, 48), Vector2(460 - 0.262 * (D.y - 108), D.y - 60), Vector2(0, D.y - 60)]), HS.LIGHT)
-	UI.class_glyph(ci, od.cls, Vector2(110, 190 + py * 0.6), 40.0, HS.INK, 7.0)
+	_class_icon(ci, od.cls, Vector2(110, 190 + py * 0.6), 40.0, HS.INK, 7.0)
 	ci.draw_rect(Rect2(186, 152 + py * 0.6, 2, 76), HS.INK)
 	HS.spaced(ci, f, Vector2(214, 176 + py * 0.6), CLASS_EN[od.cls], 13, HS.INK, 8.0)
 	UI.text_at(ci, f, Vector2(212, 212 + py * 0.6), od.cls, 40, HS.INK, "lm", true)
@@ -1027,7 +1060,7 @@ func _draw_summary() -> void:
 		if e < 0.98:
 			continue
 		var cx := rr.get_center().x
-		UI.class_glyph(ci, od.cls, Vector2(cx + 28, rr.position.y + 46), 22.0, Color.WHITE, 4.0)
+		_class_icon(ci, od.cls, Vector2(cx + 28, rr.position.y + 46), 22.0, Color.WHITE, 4.0)
 		HS.spaced(ci, f, Vector2(cx - 6, rr.position.y + 94), CLASS_EN[od.cls], 9, UI.fa(Color.WHITE, 0.7), 3.0)
 		UI.text_at(ci, f, Vector2(cx + 26, rr.position.y + 118), od.cls, 24, Color.WHITE, "mm", true)
 		_figure(od, Vector2(cx + 6, rr.end.y - _p(148, 118)), minf(_p(2.5, 2.0), cw / 98.0), Color(0, 0, 0, 0), _idle_frame(od, t))

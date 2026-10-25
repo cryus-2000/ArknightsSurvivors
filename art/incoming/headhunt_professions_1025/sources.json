@@ -1,0 +1,54 @@
+{
+  "reference": "https://mooncellwiki.github.io/prts-design/arknights/profession",
+  "provenance": "PRTS original game profession line glyphs, unchanged bytes; source archive and runtime copies identical.",
+  "assets": [
+    {
+      "profession": "先锋",
+      "file": "pioneer.png",
+      "source": "https://raw.githubusercontent.com/MooncellWiki/prts-design/8734400ed75370a7976191717895e8fd706f08ed/preview/assets/profession/line_pioneer.png",
+      "sha256": "91f34ca872654adb62a1eef231daf30d4219343addf45de01610bdabd8383341"
+    },
+    {
+      "profession": "近卫",
+      "file": "warrior.png",
+      "source": "https://raw.githubusercontent.com/MooncellWiki/prts-design/8734400ed75370a7976191717895e8fd706f08ed/preview/assets/profession/line_warrior.png",
+      "sha256": "a16c579284d2328fdf0e2c020924db50cfb8bd41f8d892452d0a8a3eefe191e0"
+    },
+    {
+      "profession": "重装",
+      "file": "tank.png",
+      "source": "https://raw.githubusercontent.com/MooncellWiki/prts-design/8734400ed75370a7976191717895e8fd706f08ed/preview/assets/profession/line_tank.png",
+      "sha256": "31d7b42a0bee14984e77321901ca33f228df34189ac88609ac7fc2167fa232c3"
+    },
+    {
+      "profession": "狙击",
+      "file": "sniper.png",
+      "source": "https://raw.githubusercontent.com/MooncellWiki/prts-design/8734400ed75370a7976191717895e8fd706f08ed/preview/assets/profession/line_sniper.png",
+      "sha256": "3ec98eb7a7604048ab7c388deee7a4d4e1f96ce942d5ecd9946b85821e242cff"
+    },
+    {
+      "profession": "术师",
+      "file": "caster.png",
+      "source": "https://raw.githubusercontent.com/MooncellWiki/prts-design/8734400ed75370a7976191717895e8fd706f08ed/preview/assets/profession/line_caster.png",
+      "sha256": "95a53ea4e8b25efc0e58a1b480d9c41dfbfb77d93dddff664c68fab15773e5ab"
+    },
+    {
+      "profession": "医疗",
+      "file": "medic.png",
+      "source": "https://raw.githubusercontent.com/MooncellWiki/prts-design/8734400ed75370a7976191717895e8fd706f08ed/preview/assets/profession/line_medic.png",
+      "sha256": "c586cf250defc868f3029e4cb6545de1de2047608038427c220514e5813298d8"
+    },
+    {
+      "profession": "辅助",
+      "file": "support.png",
+      "source": "https://raw.githubusercontent.com/MooncellWiki/prts-design/8734400ed75370a7976191717895e8fd706f08ed/preview/assets/profession/line_support.png",
+      "sha256": "ce0e90000aacc76e4eaf936fd939219d0f0d7bb106e684e58133ff0d89b0de92"
+    },
+    {
+      "profession": "特种",
+      "file": "special.png",
+      "source": "https://raw.githubusercontent.com/MooncellWiki/prts-design/8734400ed75370a7976191717895e8fd706f08ed/preview/assets/profession/line_special.png",
+      "sha256": "808b30101ab348ccbf6ae69f733c1d4424caa1ad8b59f5b70374b4845278dc19"
+    }
+  ]
+}
