@@ -518,6 +518,7 @@ func step() -> void:
 	g.at_frames += 1
 	if g.rt_from >= 0.0 and not g.realtime and g.t >= g.rt_from:
 		g.realtime = true   # --rtfrom：快进结束，之后按真实步长（--fixed-fps 60 时每帧 1/60 秒）
+		preload("res://scripts/core/frame_rec.gd").mark("late")   # 帧时 / 内存记录（--ftrec --memlog）：快进结束那一刻
 		print("PF RTFROM t=%.1f" % g.t)   # 网页低配测量（tools/perf_web.py --throttle）：看到这行才开 CPU 节流，快进段不节流
 	if vfxab < 0:
 		vfxab = 0

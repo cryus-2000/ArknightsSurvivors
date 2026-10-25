@@ -2650,6 +2650,8 @@ func _rimc(c: Color) -> Color:
 func build_enemy_atlas() -> void:
 	if DisplayServer.get_name() == "headless":
 		return
+	if Cfg.mobile_web() and Cfg.mobile_knob("mobile_no_atlas", 1.0):
+		return   # 手机网页不拼图集（docs/50 §30）：图集是普通怪 / 精英帧条与白剪影的整份拷贝，原帧条也还留着，显存多一倍；手机按内存优先，走原帧条（不合批）
 	var t0 := Time.get_ticks_usec()
 	var names: Array = []
 	for k in D.ENEMIES:

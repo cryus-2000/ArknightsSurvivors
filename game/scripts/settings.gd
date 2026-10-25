@@ -20,8 +20,21 @@ var music := 0.8
 var sfx := 0.9
 var voice := 0.8        # 干员语音（Voice 总线）
 var fullscreen := false
-var max_fps := 60          # 最高帧率 60 / 30（10-22，设置「画面」）：只限渲染帧（Engine.max_fps；网页端 Godot 在 requestAnimationFrame 回调里按它跳帧），逻辑仍按 PlayClock 固定步长
-const MAX_FPS_OPTS := [60, 30]
+var max_fps := 0           # 帧率上限 0 = 自动 / 60 / 30（10-22 加 60 / 30；10-25 用户定加「自动」并作缺省，设置「画面」）：只限渲染帧（Engine.max_fps；
+                          # 网页端 Godot 在 requestAnimationFrame 回调里按它跳帧），逻辑仍按 PlayClock 固定步长。
+                          # 自动：桌面 60；网页先按 60 跑，开局前几秒稳不住 50 帧就锁 30（fps_lock30，本次启动有效，不来回跳；game._auto_quality）
+const MAX_FPS_OPTS := [0, 60, 30]
+var fps_lock30 := false   # 自动档在网页上测出稳不住 50 帧：本次启动锁 30
+var fps_probed := false   # 自动档本次启动已测过（测过就不再改）
+
+
+## 实际生效的帧率上限（Engine.max_fps）
+func effective_max_fps() -> int:
+	if max_fps > 0:
+		return max_fps
+	if mobile_web():
+		return 30   # 10-26 晚用户定：手机网页自动档直接锁 30（稳 30 比 40 上下抖好），不测；手选 60 照旧
+	return 30 if fps_lock30 else 60
 const RESOLUTIONS := [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(3840, 2160)]   # 都是 1280×720 的整数倍，像素对齐
 var res_index := 0        # 窗口分辨率（RESOLUTIONS 下标；全屏时按屏幕）
 var dmg_numbers := true
@@ -38,6 +51,7 @@ var pad_rumble := true   # 手柄震动
 var quality := ""        # 生效中的画质档 "high" / "mid" / "low"（由 quality_mode 决定）：中 = 关法线光照 / 辉光；低 = 四项后期全关（再关景深 / 水下滤镜）+ 粒子减半、真人局同屏敌人上限 300、演出简化
 var quality_mode := "auto"   # 玩家选的画质档：auto / low / mid / high（10-22 用户：设置精简 + 画质自动档，Codex 界面单 §4）
 var quality_probed := false  # （旧）自动档首局前 2 秒测帧时；10-25 起改逐级降（auto_level），保留键兼容
+var guard_lowered := false   # 内存护栏本局临时降过画质（手动档也会，提示玩家；下局开局恢复手选的档）
 var auto_level := 0          # 画质自动档逐级降到第几级（本次启动有效，不存档；game._auto_quality，docs/50 §28）
 const QUALITY_NAME := {"low": "低", "mid": "中", "high": "高"}
 const QUALITY_MODES := ["auto", "low", "mid", "high"]
@@ -127,6 +141,33 @@ var _ui_font: FontFile = null
 ## 触屏设备（全项目唯一判定：touch.gd / Pad / 标题页都问这里）：有触屏、网页 Android / iOS、或 --touch。
 ## iPad Safari 默认报桌面 UA（Macintosh），web_ios 认不出：网页版再看 navigator.maxTouchPoints（触屏验收 10-01，架构报）
 var _touch := -1
+
+
+## 手机 / 平板上的网页（10-26 iPhone Safari 进局即「网页崩溃」：WebKit 按内存杀页，docs/50 §30）：开局就封渲染分辨率、自动档从「低」起、音乐分轨不预先解码
+func mobile_web() -> bool:
+	return OS.has_feature("web") and touch_device()
+
+
+## 手机网页止血开关（balance.json 没写 = 缺省值；--bal=web/<键>=0 可退回 10-25 线上版行为做对照）
+func mobile_knob(key: String, dflt: float) -> bool:
+	return load("res://scripts/core/balance.gd").v("web/" + key, dflt) > 0.0
+
+
+## 字形缓存瘦身（docs/50 §30.4：桌面低画质一局下来字体缓存 173 个字号、161 张页、62 MB——引擎显存里最大的一块没对上的就是它）：
+## 关掉亚像素定位（每个字形不再按 1/4 像素存 4 份；像素风的界面字看不出差别），并清掉已有缓存。手机网页开局做、进局再清一次标题页用过的字号
+const FONT_PATHS := ["res://fonts/ui.ttf", "res://fonts/ui_fallback.otf", "res://fonts/serif.ttf"]
+
+func slim_fonts(clear_only := false) -> void:
+	for fp in FONT_PATHS:
+		var ff = load(fp)
+		if ff is FontFile:
+			if not clear_only:
+				ff.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+			ff.clear_cache()
+
+
+func mobile_fonts_slim() -> bool:
+	return (mobile_web() and mobile_knob("mobile_font_slim", 1.0)) or dev_args().has("--fontslim")
 
 
 func touch_device() -> bool:
@@ -360,6 +401,10 @@ func _ready() -> void:
 		elif a.begins_with("--camzoom="):
 			cam_zoom_pct = clampi(int(a.substr(10)), ZOOM_PCT_MIN, ZOOM_PCT_MAX)
 	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)   # 自动档：每次启动按本机检测；手选档：按档位统一开关后期
+	if mobile_fonts_slim():
+		slim_fonts()
+	if mobile_web() and mobile_knob("mobile_rscale", 1.0):
+		set_render_scale.call_deferred(true)   # 手机网页开局就按逻辑分辨率（约 1280×720）画再放大：iPhone 3 倍像素屏的画布 / 全屏层显存约降到 1/3–1/7
 	for a in dev_args():
 		if a.begins_with("--quality="):
 			set_quality(a.substr(10))   # 截图自测：强制画质档（测试模式不写存档）
@@ -393,9 +438,13 @@ func _read_cfg(c: ConfigFile) -> void:
 	sfx = c.get_value("audio", "sfx", sfx)
 	voice = c.get_value("audio", "voice", voice)
 	fullscreen = c.get_value("video", "fullscreen", fullscreen)
-	max_fps = int(c.get_value("video", "max_fps", 60))
+	# 10-25 起存 fps_mode（0 自动 / 60 / 30）；旧存档只有 max_fps（缺省 60，没法分辨是否手选过）：旧值 30 视为手选 30，其余按「自动」
+	if c.has_section_key("video", "fps_mode"):
+		max_fps = int(c.get_value("video", "fps_mode", 0))
+	else:
+		max_fps = 30 if int(c.get_value("video", "max_fps", 60)) == 30 else 0
 	if not MAX_FPS_OPTS.has(max_fps):
-		max_fps = 60
+		max_fps = 0
 	res_index = clampi(int(c.get_value("video", "res_index", res_index)), 0, RESOLUTIONS.size() - 1)
 	dmg_numbers = c.get_value("game", "dmg_numbers", dmg_numbers)
 	hitstop = c.get_value("game", "hitstop", hitstop)
@@ -490,7 +539,7 @@ func apply() -> void:
 			if DisplayServer.window_get_size() != sz:
 				DisplayServer.window_set_size(sz)
 				DisplayServer.window_set_position((scr - sz) / 2 + DisplayServer.screen_get_position())
-		Engine.max_fps = max_fps   # 无头 / 测试局不走到这里：批跑仍不限帧
+		Engine.max_fps = effective_max_fps()   # 无头 / 测试局不走到这里：批跑仍不限帧
 
 
 const WEB_MASTER_TRIM := -7.0
@@ -667,7 +716,9 @@ func _guess_quality() -> String:
 		if gpu.contains(k):
 			return "low"
 	if DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios"):
-		return "mid"
+		# 10-26 改回「低」（10-25 曾改「中」）：iPhone 网页进局即崩，光学层 / 发光层 / GPU 粒子的渲染目标与着色器在 WebKit 上吃内存；
+		# 掉帧时的逐级降档来不及救内存。手选「中 / 高」照旧可用
+		return "low" if mobile_knob("mobile_low", 0.0) or not OS.has_feature("web") else "mid"   # 10-26 晚用户定手机标准「30 帧 + 中档特效」：改回从中起（内存靠其余止血项与护栏兜）
 	for k in ["mali", "adreno", "powervr"]:
 		if gpu.contains(k):
 			return "mid"
@@ -683,6 +734,7 @@ func _guess_quality() -> String:
 func set_quality_mode(m: String) -> void:
 	quality_mode = m if QUALITY_MODES.has(m) else "auto"
 	auto_level = 0   # 换档 / 重选自动：逐级降从头算
+	guard_lowered = false   # 手动换档压过护栏这一局的临时降档
 	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)
 	quality_probed = quality_mode != "auto"
 
@@ -722,7 +774,8 @@ func save() -> void:
 	c.set_value("audio", "sfx", sfx)
 	c.set_value("audio", "voice", voice)
 	c.set_value("video", "fullscreen", fullscreen)
-	c.set_value("video", "max_fps", max_fps)
+	c.set_value("video", "fps_mode", max_fps)
+	c.set_value("video", "max_fps", effective_max_fps())   # 旧键：老版本读到的仍是 60 / 30
 	c.set_value("video", "res_index", res_index)
 	c.set_value("game", "dmg_numbers", dmg_numbers)
 	c.set_value("game", "hitstop", hitstop)

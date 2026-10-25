@@ -571,6 +571,13 @@ static func demo_warm_names() -> Array:
 ## 一局开始（_ready）会固定加载的贴图名单，只看静态数据，标题页用它预热法线图（art.gd prewarm_start）。
 ## 覆盖 _ready 里的固定表、博士与全部干员的帧条、V6 帧、data/enemies.json 的敌人及附加帧条、地图主题的道具与前景。
 ## 不做法线的前缀（fx_ / proj_ / relic_ …）由 art.gd 过滤，这里不用管；漏掉的名字只是回到当场算（--loadprof 的 sync_names 能看到）
+## 开局要读帧条的干员：缺省全部可招募干员；手机网页只读队长（10-26 iPhone 进局即崩，按内存止血；中途入队的由 squad.add → load_op_tex 补读）
+static func _op_tex_ids() -> Array:
+	if Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_ops", 1.0):
+		return [Cfg.character_id]
+	return Character.list_ids()
+
+
 static func preload_tex_names() -> Array:
 	var names: Array = []
 	names.append_array(BASE_TEX)
@@ -581,7 +588,7 @@ static func preload_tex_names() -> Array:
 			var dn = dj.get("sprites", {}).get(kind, "")
 			if dn is String and dn != "":
 				names.append(dn)
-	for cid in Character.list_ids():
+	for cid in _op_tex_ids():
 		var cdef: Dictionary = Character.load_def(cid)
 		var csp: Dictionary = cdef.get("sprites", {})
 		for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"] + cdef.get("extra_sprites", []):   # move_attack：移动攻击（docs/128，character._move_swap）
@@ -664,7 +671,7 @@ static func loading_warm_lists() -> Array:
 		if str(n).begins_with("e_") and not skip.has(str(n)):
 			whites.append(n)   # V6 敌人附加帧条（休眠 / 唤醒 / 狂暴）的白色剪影，_ready 的 tex_v6 段也要
 	var names: Array = []
-	for n in preload_tex_names() + demo_warm_names():
+	for n in preload_tex_names() + ([] if Cfg.mobile_web() else demo_warm_names()):   # 手机网页不预读图鉴演示的补充名单（docs/50 §30）
 		var base := str(n)
 		for suffix in ENEMY_SUFFIXES:
 			if base.ends_with(suffix):
@@ -842,8 +849,8 @@ func _ready() -> void:
 		for sd in Character.load_def(cid).get("skills", []):
 			if sd.get("icon", "") != "" and tex.get(sd.icon) == null:
 				tex[sd.icon] = A.tex(sd.icon)
-	# 所有可招募干员的贴图集（待机 / 跑步 / 攻击）：招募卡与入队后绘制都用得到
-	for cid in Character.list_ids():
+	# 所有可招募干员的贴图集（待机 / 跑步 / 攻击）：招募卡与入队后绘制都用得到（手机网页只读队长的，入队时 squad.add 补读，docs/50 §30）
+	for cid in _op_tex_ids():
 		var cdef: Dictionary = Character.load_def(cid)
 		var csp: Dictionary = cdef.get("sprites", {})
 		for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"] + cdef.get("extra_sprites", []):   # move_attack：移动攻击（docs/128，character._move_swap）
@@ -1024,7 +1031,14 @@ func _ready() -> void:
 	elif mode == Mode.PLAY or Cfg.dev_args().has("--openshot"):
 		intro_screen.start_opening.call_deferred()
 	A.mark("ready_end")
+	if Cfg.mobile_fonts_slim():
+		Cfg.slim_fonts(true)   # 手机网页：进局清掉标题页 / 载入页用过的字号缓存（docs/50 §30）
 	aq_on = demo_op == "" and ((mode == Mode.PLAY and Cfg.quality_mode == "auto" and Cfg.dev_args().is_empty()) or Cfg.dev_args().has("--autoq"))
+	if Cfg.dev_args().has("--fpsosd") and demo_op == "":
+		_fps_osd_add()
+	if Cfg.guard_lowered and Cfg.quality_mode != "auto":
+		Cfg.guard_lowered = false
+		Cfg.set_quality(Cfg.quality_mode)   # 上局护栏临时降过：这局开局恢复玩家手选的档
 	if aq_on:
 		_apply_auto_level()   # 同一次启动里前一局已经降过的，这局开局就沿用
 	if mode == Mode.PLAY and demo_op == "" and not trial.active:
@@ -1189,6 +1203,44 @@ func cam_center() -> Vector2:
 ##   3 再关发光层（CPU 颗粒不关：退回帧条画法更慢；颗粒密度已由 fx_grains 按帧时自动收到最低 0.35）
 ##   4 分辨率缩放（只在高像素密度屏：手机网页；普通桌面跳过这级）    5 画质「低」（光学整套关、后期全关、粒子减半）
 ## 只在真人局 + 自动档时启用（测试加 --autoq 才开；都是纯画面，同 seed 结果不变）
+## 网页内存护栏（10-26 用户「重点是要让所有机型和网页版都不会崩溃」，docs/50 §30）：手机网页每 MG_EVERY 秒估一次内存
+## （引擎显存统计 + 网页音频样本解码估算）；超过 MG_BUDGET 就画质「低」+ 分辨率缩放（手机自动档开局已是这样；兜手选中 / 高档的手机）。
+## 音频样本没法从脚本注销（引擎没开放 unregister），所以手机上战斗乐分轨不预先解码（sfx.warm_begin）。
+## 局中后期新怪 / 新音效越积越多时兜底，不等 WebKit 杀页。纯画面 / 声音缓存，不碰对局
+const MG_EVERY := 5.0
+const MG_BUDGET_MB := 380.0
+const MG_MANUAL_EXTRA := 140.0
+var _mg_t := 0.0
+
+func _mem_guard(delta: float) -> void:
+	if not (Cfg.mobile_web() or Cfg.dev_args().has("--memguard")):
+		return
+	_mg_t += delta
+	if _mg_t < MG_EVERY:
+		return
+	_mg_t = 0.0
+	var vid: float = Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0
+	var aud: float = Sfx.sample_mem_mb()
+	var budget: float = MG_BUDGET_MB
+	for a in Cfg.dev_args():
+		if a.begins_with("--memguard="):
+			budget = float(a.substr(11))
+	if Cfg.quality_mode != "auto":
+		budget += MG_MANUAL_EXTRA   # 玩家手选了档：只在真逼近时才临时降（10-26 晚用户「玩家手动选了某档就按它」）
+	if vid + aud <= budget:
+		return
+	Cfg.slim_fonts(true)   # 字形缓存清掉重建（按需栅格化，卡一下；docs/50 §30 字体缓存能到 60 MB）
+	var acted: bool = Cfg.quality != "low" or not Cfg.render_scaled
+	if Cfg.quality != "low":
+		Cfg.set_quality("low")
+		Cfg.guard_lowered = true
+		quality_note = "内存紧张，本局已临时降低画质" if Cfg.quality_mode != "auto" else "内存紧张，已自动降低画质（可在设置里改）"
+		quality_note_t = 5.0
+	Cfg.set_render_scale(true)
+	if acted and not Cfg.dev_args().is_empty():
+		print("PF MEMGUARD vid=%.0fMB audio=%.0fMB -> 低画质 + 分辨率缩放 t=%.0f" % [vid, aud, t])
+
+
 const AQ_WIN := 2.0
 const AQ_NEED := 2
 const AQ_OVER := 1.35
@@ -1201,6 +1253,10 @@ func _auto_quality(delta: float) -> void:
 	var now := Time.get_ticks_usec()
 	var rd: float = (now - _aq_us) / 1e6 if _aq_us > 0 else 0.0   # 真实帧间隔（--fixed-fps 测量时 delta 是定值，看不出掉帧）
 	_aq_us = now
+	if aq_on and Cfg.quality_mode != "auto" and Cfg.dev_args().is_empty():
+		aq_on = false   # 对局里在设置里手选了档：自动降档停手、已关的层撤掉（10-26 晚用户「从低切到高没有反应」）
+		Cfg.auto_level = 0
+		_apply_auto_level()
 	if not aq_on or state != S.PLAY or t < 1.0 or Cfg.auto_level >= AQ_MAX or (rt_from >= 0.0 and not realtime):   # 测量的快进段不算
 		aq_win = Vector3(0, 0, aq_win.z)
 		return
@@ -1209,6 +1265,9 @@ func _auto_quality(delta: float) -> void:
 		return
 	if rd > 0.25 or rd <= 0.0:
 		aq_win = Vector3.ZERO   # 切窗口 / 读盘那种单次长停顿不算掉帧
+		return
+	if OS.has_feature("web") and Cfg.max_fps == 0 and not Cfg.fps_probed:
+		_fps_probe(rd)   # 网页帧率自动：先定 60 还是 30，定完再按那个预算判降档
 		return
 	aq_win.x += rd
 	aq_win.y += 1.0
@@ -1233,6 +1292,45 @@ func _auto_quality(delta: float) -> void:
 		quality_note_t = 5.0
 
 
+## 网页帧率自动（10-25 用户定）：先按 60 帧跑，开局 AQ_FPS_T 秒的平均帧率 ≥ 50 就保持 60，否则本次启动锁 30（Engine.max_fps = 30）；
+## 只测一次，不在两者之间来回跳；锁 30 之后降档按 30 帧预算判（_frame_budget_ms 读 Engine.max_fps）。桌面不锁。逻辑按 PlayClock 固定步长，与渲染帧率无关
+const AQ_FPS_T := 4.0
+var _fps_win := Vector2.ZERO
+
+func _fps_probe(rd: float) -> void:
+	_fps_win += Vector2(rd, 1.0)
+	if _fps_win.x < AQ_FPS_T:
+		return
+	var avg_ms: float = _fps_win.x / _fps_win.y * 1000.0
+	Cfg.fps_probed = true
+	if avg_ms > 1000.0 / 50.0:
+		Cfg.fps_lock30 = true
+		Engine.max_fps = Cfg.effective_max_fps()
+	if not Cfg.dev_args().is_empty():
+		print("AUTOFPS avg=%.1fms lock30=%s t=%.1f" % [avg_ms, Cfg.fps_lock30, t])
+
+
+## --fpsosd（仅测试）：左上角显示实际帧率 / 帧率上限 / 自动降档级（录网页锁 30 的证明片用；独立一层，不走 HUD 缓存）
+func _fps_osd_add() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 120
+	add_child(layer)
+	var lb := Label.new()
+	lb.position = Vector2(8, 6)
+	lb.add_theme_font_size_override("font_size", 18)
+	lb.add_theme_color_override("font_color", Color(0.6, 1.0, 0.95))
+	lb.add_theme_color_override("font_outline_color", Color.BLACK)
+	lb.add_theme_constant_override("outline_size", 4)
+	layer.add_child(lb)
+	var tm := Timer.new()
+	tm.wait_time = 0.25
+	tm.autostart = true
+	tm.timeout.connect(func(): lb.text = "FPS %.0f   上限 %d%s   降档 %d   %d:%02d" % [Engine.get_frames_per_second(), Engine.max_fps,
+		"（自动锁 30）" if Cfg.fps_lock30 else ("（自动 · 测量中）" if Cfg.max_fps == 0 and not Cfg.fps_probed and OS.has_feature("web") else ""),
+		Cfg.auto_level, int(t) / 60, int(t) % 60])
+	layer.add_child(tm)
+
+
 ## 按 Cfg.auto_level 关层（开局也调一次：同一次启动里前一局已经降过的，这局直接沿用）
 func _apply_auto_level() -> void:
 	var lv: int = Cfg.auto_level
@@ -1242,6 +1340,8 @@ func _apply_auto_level() -> void:
 		spawner.auto_cap = AQ_CAP if lv >= 2 else 0
 	if lv >= 4 and Cfg.hidpi_render():
 		Cfg.set_render_scale(true)
+	elif lv < 4 and not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_rscale", 1.0)):
+		Cfg.set_render_scale(false)
 	if lv >= 5 and Cfg.quality != "low":
 		Cfg.set_quality("low")
 
@@ -1288,6 +1388,7 @@ func _process(delta: float) -> void:
 		dt *= wheel.slow()   # 圆盘打开：局内放慢（不全停）
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	_auto_quality(delta)
+	_mem_guard(delta)
 	if victory.active and state == S.PLAY:
 		simulated_dt = victory.step(minf(delta, 0.05))   # 最终 Boss 击破演出按慢动作缩放画面步长（run/victory_flow.gd）
 	elif hitstop > 0.0 and (mode == Mode.PLAY or playclock_test) and Cfg.hitstop and demo_op == "":

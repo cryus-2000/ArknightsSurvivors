@@ -227,12 +227,21 @@ func ground_mean() -> Color:
 	return _gmean
 
 
+## 区块缓存满了：丢掉离 k 最远的一半（原来整表清空，下一帧可见的几块要一起重新合成，卡一下）
+func _ground_evict(k: Vector2i, cap: int) -> void:
+	var keys: Array = ground_cache.keys()
+	keys.sort_custom(func(a, b): return (a - k).length_squared() > (b - k).length_squared())
+	for i in maxi(1, keys.size() - cap / 2):
+		ground_cache.erase(keys[i])
+
+
 ## 生成 / 取一块地面缓存：[贴图, 道具列表 [tex, pos, hash, cx, cy]]
 func _ground_chunk(k: Vector2i) -> Array:
 	if ground_cache.has(k):
 		return ground_cache[k]
-	if ground_cache.size() > 96:
-		ground_cache.clear()
+	var cap: int = 20 if Cfg.mobile_web() else 96   # 手机网页少留（docs/50 §30：走得越远区块越多，一块按地砖原分辨率合成，九分钟能攒几十到上百 MB）
+	if ground_cache.size() >= cap:
+		_ground_evict(k, cap)
 	var T := tile_size
 	var tt: Dictionary = theme.tiles
 	var src: int = int(tt.get("src_px", 16))
