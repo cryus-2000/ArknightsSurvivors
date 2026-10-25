@@ -137,7 +137,6 @@ func _paths_step(e: Dictionary, dt: float, p2: bool) -> void:
 	var live: int = paths.filter(func(p): return not p.cut).size()
 	if live < want and g.t >= float(e.get("path_next", 0.0)):
 		paths.append(_new_path(e, p2))
-		_rule_banner("path_intro", "踩断金色路标！")
 		e.path_next = g.t + Bal.v("boss/path_lay_cd", 10.0) * (0.5 if p2 else 1.0)
 	var spd: float = Bal.v("boss/path_fr_spd", 60.0)
 	for p in paths:

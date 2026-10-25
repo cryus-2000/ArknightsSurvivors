@@ -20,8 +20,6 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	if e.get("cocoon_t", 0.0) > 0.0:
 		_paranoia_cocoon_step(e, dt)
 		return
-	if e.phase == 1 and dist < 320.0:
-		_rule_banner("paranoia_intro", "冲刺穿过她！")
 	_drop_step(e)
 	_decoy_step(e, dt)
 	_paranoia_aura(e, dist)
@@ -160,7 +158,6 @@ func _decoy_step(e: Dictionary, dt: float) -> void:
 			sl.o = null
 			if g.t >= float(sl.next):
 				sl.o = _decoy_make(e, int(sl.k))
-				_rule_banner("paranoia_p2", "认准有影子的那个！")
 		var o = sl.o
 		if o == null:
 			continue
@@ -352,4 +349,3 @@ func on_gate(e: Dictionary) -> void:
 	if e.gates.is_empty() and e.phase == 1 and Bal.v("boss/paranoia_p2_at_gate", 1.0) > 0.0:
 		_paranoia_p2(e)
 		g.vfx.add_text(e.pos + Vector2(0, -70), "坠落", Color(0.9, 0.4, 1.0), 20)
-		_rule_banner("paranoia_p3", "冲刺打散光环！")

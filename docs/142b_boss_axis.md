@@ -414,7 +414,7 @@
 | 主轴目标 | 射程内有部件（`e.part`）就先打最近的部件，再轮到 Boss 优先。队长和队友都适用 | `characters/op_api.gd` `nearest_enemies`、`run/enemies.gd` `parts_live()` |
 | 主轴受伤倍率 | Boss 脚本 `taken_mult(e)`，乘在破绽倍率之前 | `run/combat.gd` `damage()`、`bosses/boss_base.gd` |
 | 冲刺穿身 | 公共判定：正在冲刺，且离本体中心 < 半径 + 24 | `boss_base._dash_through` |
-| 规则横幅 | 每局每条只出一次 | `boss_base._rule_banner` |
+| 战斗中不喊话 | 用户 10-25 定：Boss 战里不出任何规则横幅或喊话，机制靠画面让玩家看懂；也不挪到 Boss 名片或图鉴。骑士只在撞冰柱眩晕时头顶写「眩晕」读秒，它的其他破绽不写字（别的 Boss 的破绽照旧写「破绽」） | `render/world.gd` 破绽读秒 |
 | Kanpelle 激光 | 结算播开启 → 持续 → 关闭。帧条由 `tools/gen_boss_laser.py` 生成，见 §8.5 | `render/boss_beam.gd`、`enemies/telegraph.gd` `_kp` |
 | 专属色表 | §8.4 的 10 色写进 `enemies.json` 的 `bcol`（协调人 10-25：专属色表写 json）。`vfx.boss_color` 和激光帧条脚本都读这一份 | `enemies/enemy_db.gd`、`render/vfx.gd` |
 | Boss 弹专属色 | 弹体换成灰度贴图，乘以专属色（×1.1）；亮描边 ×1.3；光学观感下的拖尾、地面光、光晕同色。不加危险色外圈（用户 10-25：「描边不要加」）。`render/ebullet_boss_own` 0 = 旧口径（整颗危险色） | `render/world.gd` `_eb_tex` / `_eb_mod` / `_eb_gray`、`render/optical.gd` `eb_col` |

@@ -255,7 +255,6 @@ func _web_step(e: Dictionary, dt: float) -> void:
 				n += 1
 		if n > 0:
 			g.vfx.add_text(e.pos + Vector2(0, -60), "召唤合唱", COL, 16)
-			_rule_banner("ishar_web", "击破那些海嗣！")   # 用户 10-25 原话
 			Sfx.play("tentacle", -6.0, 1.2)
 
 
@@ -354,7 +353,6 @@ func on_gate(e: Dictionary) -> void:
 		return
 	if int(e.get("gates_passed", 0)) == 1:
 		_eyes_spawn(e)
-		_rule_banner("ishar_p2", "先打碎那两滴泪！")
 
 
 ## 本体倒下：网与泪一起散

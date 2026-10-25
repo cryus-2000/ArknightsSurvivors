@@ -135,8 +135,6 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 						g.vfx.sparks(e.pos, away, Color(0.9, 0.9, 0.8), 12, 180.0)
 						g.vfx.add_text(e.pos + Vector2(0, -50), "退避", Color(0.95, 0.92, 0.85), 14)
 				e.channel = rt
-				if e.type == "iberia":
-					_rule_banner("iberia_intro", "趁装填冲刺穿过他！")
 				e.reload_dmg = 0.0
 				e.count_end = g.t + rt   # 读条环（界面与美术读 count_end / count_max）
 				e.count_max = rt
@@ -302,7 +300,6 @@ func _fire_step(e: Dictionary, dt: float) -> void:
 		var a: Vector2 = la.pos
 		lines.append({"a": a, "b": a + Vector2.from_angle(float(la.ang)) * float(la.len), "gap_t": gt, "gap_len": Bal.v("boss/carmen_fire_gap", 80.0),
 			"until": g.t + Bal.v("boss/carmen_fire_life", 6.0), "born": g.t})
-		_rule_banner("carmen_intro", "从火线缺口穿过去！")
 	lines = lines.filter(func(fl): return g.t < float(fl.until))
 	e.fire_lines = lines
 	if g.invuln > 0.0 or g.t < float(e.get("fire_hit_at", 0.0)):

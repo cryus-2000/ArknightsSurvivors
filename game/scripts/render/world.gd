@@ -3894,9 +3894,13 @@ func _boss_state(e: Dictionary) -> void:
 			UI.diamond(g, sp, 4.0, Color(1.8, 1.6, 0.6), Color(0, 0, 0, 0.6))
 		if e.has("ammo") and brk > 0.0:
 			UI.text(g, g.font, top + Vector2(-120, -12), "装填被打断 · 破绽 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
+		elif brk > 0.0 and e.type == "knight_boss":
+			# 骑士（用户 10-25）：只在撞冰柱眩晕时写「眩晕」读秒，别的破绽不写字
+			if str(e.get("brk_label", "")) == "眩晕":
+				UI.text(g, g.font, top + Vector2(-120, -12), "眩晕 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 		elif brk > 0.0:
 			# 其他 Boss 的破绽（伊莎玛拉潮涌迫近落地、塑路者核心碎裂等）：同一套星 + 剩余秒数
-			UI.text(g, g.font, top + Vector2(-120, -12), "%s %.1f" % [str(e.get("brk_label", "破绽")), brk], 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)   # 骑士撞冰柱写「眩晕」
+			UI.text(g, g.font, top + Vector2(-120, -12), "破绽 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 		elif e.type in ["iberia", "carmen"] and e.get("ammo", 1) == 0:
 			UI.text(g, g.font, top + Vector2(-120, -12), "装填被打断 · 眩晕 %.1f" % e.stun, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 

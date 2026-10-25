@@ -126,8 +126,6 @@ func _bite(e: Dictionary, dmg: float) -> float:
 
 ## A · 冲锋：520 × 34 条纹线，追踪 0.4 秒后锁定，总 0.8 秒；e.dmg × 1.7（冲锋期间碰到结算一次）；重生后带三连；三幕后面再转向冲一次（折线）
 func _charge(e: Dictionary, dir: Vector2) -> void:
-	if e.phase == 1:
-		_rule_banner("knight_intro", "利用冰柱让他眩晕！")   # 用户 10-25
 	_warn(e, "line", 0.8, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.4, "act": "dash", "fit_len": true, "name": "冲锋", "col": ICE,
 		"dmg": _bite(e, e.dmg * Bal.v("boss/knight_charge_mult", 1.7))})
 	if e.phase == 2:
@@ -264,13 +262,12 @@ func _knight_stakes(e: Dictionary, _dt: float) -> void:
 				e.dash2 = 0
 				e.erase("breath_at")
 				g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
-				# 撞柱眩晕（用户 10-25）：knight_stake_break（2.5）秒不动不出招、受伤 × knight_break_taken（2.0）；头顶星 + 「眩晕」读秒（world 读 brk_label）
+				# 撞柱眩晕（用户 10-25）：knight_stake_break（2.5）秒不动不出招、受伤 × knight_break_taken（2.0）；头顶星 + 「眩晕」读秒（world 读 brk_label；骑士别的破绽不写字）
 				g.combat.start_break(e, Bal.v("boss/knight_stake_break", 2.5))
 				e.brk_label = "眩晕"
 				e.stun_fx = e.fx
 				Sfx.play("stake_hit", 2.0, 1.0, 0.0)   # 撞桩、长枪脱手
 				g.fx.append({"kind": "ring", "pos": s.pos, "r": 70.0, "life": 0.5, "max": 0.5, "col": Color(0.6, 0.9, 1.4), "enemy": true})
-				g.vfx.add_text(e.pos + Vector2(0, -70), "撞上冰柱 · 眩晕！", Color(1.0, 0.85, 0.4), 22)
 				Sfx.play("boom", -4.0, 1.2, 0.0)
 				break
 

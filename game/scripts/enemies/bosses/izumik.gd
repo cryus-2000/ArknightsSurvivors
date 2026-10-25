@@ -249,7 +249,6 @@ func _batch_step(e: Dictionary) -> void:
 	e.batch = live
 	e.batch_t = g.t
 	g.vfx.add_text(e.pos + Vector2(0, -60), "子代来袭", COL, 16)
-	_rule_banner("izumik_axis", "截住那些子代！")
 	Sfx.play("tentacle", -5.0, 0.8)
 
 
@@ -264,7 +263,6 @@ func _cocoon(e: Dictionary, o: Dictionary) -> void:
 	o.extra_next = INF
 	o.pos = g.combat.arena_clamp(e.pos + (o.pos - e.pos).normalized() * (e.r + 30.0), 60.0)
 	g.vfx.add_text(o.pos + Vector2(0, -36), "结茧", COL, 13)
-	_rule_banner("izumik_p2", "打掉她脚下的茧！")
 
 
 ## 阐释阶段的吸收：每 izumik_absorb_need（5）只强化 1 层（伤害 × (1 + izumik_stack_dmg 0.15)，最多 izumik_stack_max 4 层）并回 izumik_stack_heal（5%）生命
@@ -285,7 +283,6 @@ func _absorb2(e: Dictionary) -> void:
 ## 三幕「分享·全场」：借震撼的全场判定（telegraph izu_wave：冲刺无敌或灯柱光圈里不受伤），带 share_all——结算后你躲进的那根灯柱熄灭
 func _share_all(e: Dictionary) -> void:
 	e.share_all_next = g.t + Bal.v("boss/izumik_share_all_cd", 12.0)
-	_rule_banner("izumik_p3", "躲进灯柱！")
 	var dur: float = Bal.v("boss/izumik_share_all_warn", 3.0) + Bal.v("boss/izumik_share_all_charge", 1.6)
 	_warn(e, "circle", dur, {"follow": true, "r": 2400.0, "act": "izu_wave", "name": "分享·全场", "must_dash": true, "col": COL,
 		"dmg": minf(e.dmg * 1.5, g.max_hp * Bal.v("boss/izumik_share_all_cap", 0.2)), "share_all": true, "arts": true})
