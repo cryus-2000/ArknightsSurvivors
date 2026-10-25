@@ -1,15 +1,15 @@
 extends Control
 ## 局外 · 认知塑造页（docs/109 §4；10-25 重做，art/incoming/meta_ui_1025/）。只改 Cfg.meta_*，规则与数据在 core/meta.gd / data/meta_tree.json。
-## 版式（10-25 用户定方向一「深蓝之树」+「稍微有一点几何规律，原作也是」）：原作水月「认知塑造」的节点语言 + 深蓝之树的根系——
-## 树干从顶栏垂下，两条主根左右分出（左高右低、左短右长），每条线一条竖向车道：45° 斜下分叉 → 竖直往下，同组几条根在同一阶一起 45° 横移、
-## 互相平行等距；同阶节点在同一条水平线上（阶距一致），越深越高阶；转角都是同一半径的圆角，根尖越过末节再用四分之一圆弧往中线收。
-## 布局在 data/meta_roots.json（art/incoming/meta_ui_1025/layout.py 生成，折线已加密）。水下像素场景：树冠的光、光柱缓摆、海床剪影、浮游光点；
-## 树干带荧光脉络，已塑造的根发青光、有汁液流动；一屏放下全树，节点只写名字，效果看详情卡。
-## 像素层（背景、树干、根、节点）画进低分辨率 SubViewport（1 格 = 2 设计单位，最近邻放大）；文字、外框、详情卡画在 view（设计单位）里保持清晰。
+## 版式（10-25 用户：「或者干脆照抄原作吧，做一些小改版」；照原作有公司授权）：照搬原作水月「认知塑造」节点树——
+## 布局、连线走向、大节点位置、蓝色三角、青色特殊路径、夜海背景都照原作；本作同名节点放在原作对应位置，原作有而本作没有的节点只留连线
+## 经过的空位（大节点位留一圈淡点环），本作多出来的阶顺着原作的线放进空出来的位置。小改版只有：像素化统一、本作的顶栏和详情卡、三种状态表现、
+## 手机横屏、画布可拖动。布局在 data/meta_roots.json（art/incoming/meta_ui_1025/layout.py 生成，连线已采样）。
+## 连线亮起：两端都是已塑造节点或空位的线发青光（通向空位的死胡同不亮），已塑造的线上有光点流动。
+## 像素层（背景、连线、节点）画进低分辨率 SubViewport（1 格 = 2 设计单位，最近邻放大）；文字、外框、详情卡画在 view（设计单位）里保持清晰。
 ## 节点照原作：黑盘 + 白环 + 白色图形 + 点状外环、右下消耗；质变节点（带 rule 的）是放射条纹大盘。已塑造 = 白盘黑图；可塑造 = 黄色点环转动呼吸；
-## 余额不够 = 灰环；未解锁 = 暗。招牌动效：塑造时一道光沿根从上一节流到新节点（0.55 秒）→ 节点翻白 + 外扩环（0.45 秒）。
+## 余额不够 = 灰环；未解锁 = 暗。招牌动效：塑造时一道光沿亮起的连线流到新节点（0.55 秒）→ 节点翻白 + 外扩环（0.45 秒）。
 ## 操作：方向键 / 手柄十字键按方向找最近的节点；点节点选中、再点 / Enter / 详情卡「塑造」塑造；R 推荐（按推荐顺序把余额点完）；X 两次全部重置（免费退回）；
-## Esc 返回；画布比屏幕大时拖动 / 滚轮平移，换选中后镜头跟随。减少动态效果：不生长、不呼吸、无汁液流动，镜头直接到位。
+## Esc 返回；画布比屏幕大时拖动 / 滚轮（Shift 横向）平移，换选中后镜头跟随。减少动态效果：不生长、不呼吸、无光点流动，镜头直接到位。
 signal closed
 
 const UI = preload("res://scripts/ui.gd")
@@ -35,10 +35,9 @@ const LIT_DUR := 1.0
 const LIT_GROW := 0.55
 
 ## 像素层颜色
-const C_TRUNK := Color8(7, 18, 29)
-const C_TRUNK_HI := Color8(70, 128, 156)
-const C_ROOT := Color8(40, 72, 96)
-const C_ROOT_HI := Color8(66, 108, 134)
+const C_LINE := Color8(196, 202, 210)    # 原作的灰白连线
+const C_CYAN := Color8(34, 196, 186)     # 原作青色特殊路径
+const C_ARROW := Color8(72, 150, 255)    # 原作蓝色三角
 const C_SAP := Color8(118, 238, 255)
 const C_DISC := Color8(10, 15, 22)
 const C_WHITE := Color8(238, 243, 246)
@@ -61,10 +60,14 @@ var pix: TextureRect
 var view: Control             # 文字 / 外框 / 详情卡（设计单位）
 var lay: Dictionary = {}
 var chains: Array = []        # 每条链的节点 id（从第一节往末节）
-var geo := {}                 # 链前缀 → 整条根的采样点（世界坐标）
-var ni := {}                  # 节点 id → 在本链 geo 里的下标
 var pos := {}                 # 节点 id → 世界坐标（设计单位）
-var mains := {}               # 主根名 → 采样点
+var opos := {}                # 原作节点名 → 世界坐标
+var obig := {}                # 原作节点名 → 是否大节点
+var onode := {}               # 原作节点名 → 放在这里的本作节点（空位 = ""）
+var oname := {}               # 本作节点 id → 原作节点名
+var odepth := {}              # 原作节点名 → 从「开始」数第几层（开场按层亮出）
+var edges: Array = []         # 原作连线：[a, b, 采样点, 是否青色]
+var arrows: Array = []        # 原作蓝色三角：[p, q]（p → q 方向）
 var sel := Vector2i(0, 0)     # 选中（链，节）
 var hover := ""
 var buttons: Array = []       # [Rect2, 动作]（设计坐标）
@@ -85,6 +88,7 @@ var motes: Array = []
 var pxu := 2.0                # 1 像素格 = pxu 设计单位：一格恰好是整数个屏幕像素（720p / 1080p = 2，900p = 2.4），任何分辨率都是整齐的方块
 var rn := 8                   # 普通 / 质变节点半径（像素格）
 var rk := 11
+var fit_all := false          # --metafit（开发截图）：整棵树缩进一屏、不画详情卡，做「原作 | 本作」对照用
 
 static var _re_head: RegEx
 static var _re_sum: RegEx
@@ -126,6 +130,7 @@ func _ready() -> void:
 	add_child(view)
 	var rng := RandomNumberGenerator.new()   # 独立种子：不碰局内随机数
 	rng.seed = 20261025
+	fit_all = Cfg.dev_args().has("--metafit")
 	for i in 46:
 		motes.append([Vector2(rng.randf(), rng.randf()), rng.randf_range(3.0, 9.0), rng.randf() * TAU, rng.randf() < 0.3])
 	hide()
@@ -148,10 +153,7 @@ static func _v(a) -> Vector2:
 
 func _build() -> void:
 	chains.clear()
-	geo.clear()
-	ni.clear()
 	pos.clear()
-	mains.clear()
 	var j = JSON.parse_string(FileAccess.get_file_as_string("res://data/meta_roots.json"))
 	lay = j.get("scene", {}) if j is Dictionary else {}
 	var nodes := Meta.nodes()
@@ -168,25 +170,42 @@ func _build() -> void:
 		while child.has(ch[-1]) and ch.size() < 12:
 			ch.append(child[ch[-1]])
 		chains.append(ch)
-	var ms: Dictionary = lay.get("mains", {})
-	for m in ms:
-		mains[m] = _pts(ms[m].get("pts", []))
-	var rs: Dictionary = lay.get("roots", {})
-	for ch in chains:
-		var p := _pre(ch[0])
-		if not rs.has(p):   # 布局里没有的新线：挂在右边临时排一列（数据加线后跑 layout.py 补上）
-			for k in ch.size():
-				pos[ch[k]] = Vector2(1200.0, 160.0 + k * 90.0)
-				ni[ch[k]] = 0
-			geo[p] = PackedVector2Array([Vector2(1200, 120), Vector2(1200, 160.0 + ch.size() * 90.0)])
-			continue
-		var pts := _pts(rs[p].get("pts", []))
-		var nis: Array = rs[p].get("ni", [])
-		for k in ch.size():
-			var idx := clampi(int(nis[k]) if k < nis.size() else pts.size() - 1, 0, pts.size() - 1)
-			pos[ch[k]] = pts[idx]
-			ni[ch[k]] = idx
-		geo[p] = pts
+	opos.clear()
+	obig.clear()
+	onode.clear()
+	oname.clear()
+	odepth.clear()
+	edges.clear()
+	arrows.clear()
+	var og: Dictionary = lay.get("orig", {})
+	for o in og:
+		opos[o] = _v(og[o])
+		obig[o] = int(og[o][2]) == 1
+		onode[o] = ""
+	var ours: Dictionary = lay.get("ours", {})
+	var extra := 0
+	for id in nodes:
+		var o := str(ours.get(id, ""))
+		if opos.has(o):
+			pos[id] = opos[o]
+			onode[o] = id
+			oname[id] = o
+		else:   # 布局里没有的新节点：先排在右下角（数据加节点后跑 layout.py 补上）
+			pos[id] = _world() - Vector2(60.0 + extra * 70.0, 60.0)
+			extra += 1
+	for e in lay.get("edges", []):
+		edges.append([str(e.a), str(e.b), _pts(e.pts), int(e.get("cyan", 0)) == 1])
+	for ar in lay.get("arrows", []):
+		arrows.append([_v(ar.p), _v(ar.q)])
+	odepth["start"] = 0
+	var q: Array = ["start"]
+	while not q.is_empty():
+		var n: String = q.pop_front()
+		for e in edges:
+			var o: String = e[1] if e[0] == n else (e[0] if e[1] == n else "")
+			if o != "" and not odepth.has(o):
+				odepth[o] = int(odepth[n]) + 1
+				q.append(o)
 
 
 func _pts(a: Array) -> PackedVector2Array:
@@ -234,6 +253,8 @@ func _fit() -> void:
 	if size.y < 8.0 or size.x < 8.0:   # 还没排版（标题页 _ready 里就 open 的截图路径）：等下一帧
 		return
 	var h := 640.0 if Cfg.phone_ui() else 720.0
+	if fit_all and not lay.is_empty():
+		h = maxf(_world().y + 90.0, _world().x * size.y / size.x)
 	kd = size.y / h
 	vs = size / kd
 	under.scale = Vector2(kd, kd)
@@ -265,7 +286,7 @@ func _pannable() -> bool:
 ## 选中节点应当落在的视口区域（设计坐标）：桌面在详情卡右边、顶栏下面；手机在底条上面
 func _safe() -> Rect2:
 	if Cfg.phone_ui():
-		return Rect2(40.0, 120.0, vs.x - 80.0, vs.y - 120.0 - SHEET_H - 64.0)
+		return Rect2(40.0, 120.0, vs.x - 80.0, vs.y - 120.0 - SHEET_H - 80.0)
 	return Rect2(380.0, 130.0, vs.x - 420.0, vs.y - 196.0)
 
 
@@ -285,13 +306,15 @@ func _cam_range() -> Rect2:
 		lo.y = w.y - vs.y
 		hi.y = minf(0.0 + extra, maxf(0.0, w.y + extra - vs.y))
 	else:
-		lo.y = -20.0
+		lo.y = -60.0
 		hi.y = w.y - vs.y + 30.0 + extra
 	return Rect2(lo, hi - lo)
 
 
 ## 镜头目标：打开时居中；之后换选中只挪到让选中节点进安全区为止（不乱晃）
 func _cam_goal() -> Vector2:
+	if fit_all:
+		return _cam_center()
 	var c := cam
 	if follow:
 		var sp: Vector2 = pos.get(_sel_id(), _world() / 2.0)
@@ -301,12 +324,12 @@ func _cam_goal() -> Vector2:
 	return _clamp_cam(c)
 
 
-## 打开时的镜头：世界居中；比视口大时让树冠落在顶部标题下方、水平居中
+## 打开时的镜头：世界居中；比视口大时让「开始」落在顶部标题下方、水平居中
 func _cam_center() -> Vector2:
 	var c := (_world() - vs) / 2.0
 	var cr := _v(lay.get("crown", [556, 170]))
 	if _world().y > vs.y:
-		c.y = cr.y - 110.0   # 树冠刚好在顶栏下面
+		c.y = cr.y - 130.0   # 「开始」连同上面的字刚好在顶栏下面
 	if _world().x > vs.x:
 		c.x = cr.x - vs.x * 0.5
 	return _clamp_cam(c)
@@ -466,7 +489,11 @@ func _input(event: InputEvent) -> void:
 					_click(p)
 		elif event.pressed and _pannable() and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
 			follow = false
-			cam.y += -60.0 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 60.0
+			var dw := -60.0 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 60.0
+			if event.shift_pressed:
+				cam.x += dw
+			else:
+				cam.y += dw
 			cam = _clamp_cam(cam)
 		get_viewport().set_input_as_handled()
 		return
@@ -526,187 +553,148 @@ func _a(w: Vector2) -> Vector2:
 	return ((w - cam_px) / pxu).round()
 
 
-## 开场：主根先长（0–0.35 秒），各线随后（每条晚 0.03 秒、0.45 秒长完）；减少动态效果直接到位
-func _grow_main() -> float:
+## 开场：从「开始」按层亮出，每层晚 0.035 秒，一条线 0.3 秒画完；减少动态效果直接到位
+func _grow_d(depth: int) -> float:
 	if Cfg.reduce_motion:
 		return 1.0
-	return UI.ease_out(clampf((t - open_t0) / 0.35, 0.0, 1.0))
+	return UI.ease_out(clampf((t - open_t0 - 0.035 * depth) / 0.3, 0.0, 1.0))
 
 
-func _grow(i: int) -> float:
-	if Cfg.reduce_motion:
-		return 1.0
-	return UI.ease_out(clampf((t - open_t0 - 0.22 - 0.03 * i) / 0.45, 0.0, 1.0))
+func _shown(o: String) -> bool:
+	return o != "" and (Cfg.reduce_motion or t - open_t0 >= 0.035 * int(odepth.get(o, 0)) + 0.12)
+
+
+## 亮着的连线：两端都是已塑造节点或空位（含「开始」）的线；再把通向空位的死胡同一层层剪掉，线只连到亮着的节点
+func _lit_edges() -> Array:
+	var on: Array = []
+	var deg := {}
+	for e in edges:
+		var lit := _passable(e[0]) and _passable(e[1])
+		on.append(lit)
+		if lit:
+			deg[e[0]] = int(deg.get(e[0], 0)) + 1
+			deg[e[1]] = int(deg.get(e[1], 0)) + 1
+	var changed := true
+	while changed:
+		changed = false
+		for k in edges.size():
+			if not on[k]:
+				continue
+			var e: Array = edges[k]
+			for n: String in [e[0], e[1]]:
+				if n != "start" and onode.get(n, "") == "" and int(deg.get(n, 0)) <= 1:
+					on[k] = false
+					deg[e[0]] = int(deg[e[0]]) - 1
+					deg[e[1]] = int(deg[e[1]]) - 1
+					changed = true
+					break
+	return on
+
+
+func _passable(o: String) -> bool:
+	var id: String = onode.get(o, "")
+	return id == "" or bool(Cfg.meta_shape.get(id, false))
 
 
 func _draw_world() -> void:
 	var ci := wn
 	if lay.is_empty():
 		return
-	_draw_trunk(ci)
-	_draw_mains(ci)
-	for i in chains.size():
-		_draw_chain(ci, i)
 	_draw_motes(ci)
+	_draw_edges(ci)
+	_draw_spots(ci)
 	var sid := _sel_id()
-	for i in chains.size():
-		var g := _grow(i)
-		var ch: Array = chains[i]
-		var p := _pre(ch[0])
-		var lim := int(g * (geo[p].size() - 1))
-		for id in ch:
-			if ni[id] <= lim:
-				_draw_node(ci, id, id == sid)
+	for id in pos:
+		if _shown(oname.get(id, "")):
+			_draw_node(ci, id, id == sid)
 
 
-## 树干（深蓝之树）：从视口顶上垂到树冠，越往下越细、底部张开接主根；左亮右暗两道边、几道树皮纹、两条荧光脉络往下流；
-## 树冠是一颗发光的「心」，外面两圈点状圆环（原作「开始」处的大圆）
-func _draw_trunk(ci: CanvasItem) -> void:
-	var cr := _v(lay.get("crown", [590, 140]))
-	var n := 18
-	var l := PackedVector2Array()
-	var rr := PackedVector2Array()
-	for i in n + 1:
-		var u := float(i) / n
-		var y := lerpf(-70.0, cr.y + 4.0, u)
-		var x := cr.x + sin(u * 3.1 + 0.6) * 8.0 * (1.0 - u)
-		var w := lerpf(70.0, 12.0, pow(u, 0.65))
-		if u > 0.8:
-			w += (u - 0.8) / 0.2 * 18.0   # 根部张开
-		l.append(_a(Vector2(x - w, y)))
-		rr.append(_a(Vector2(x + w * 0.9, y)))
-	var poly := l.duplicate()
-	for i in range(rr.size() - 1, -1, -1):
-		poly.append(rr[i])
-	# 一层淡辉光把树干从水色里托出来
-	var mid := PackedVector2Array()
-	for i in n + 1:
-		mid.append(l[i].lerp(rr[i], 0.5))
-	ci.draw_polyline(mid, Color(C_SAP, 0.05), (rr[0].x - l[0].x) + 14.0)
-	ci.draw_polyline(mid, Color(C_SAP, 0.06), (rr[0].x - l[0].x) * 0.5 + 10.0)
-	ci.draw_colored_polygon(poly, C_TRUNK)
-	# 树皮纹
-	for v in 5:
-		var line := PackedVector2Array()
-		for i in n + 1:
-			line.append((l[i].lerp(rr[i], 0.14 + v * 0.17) + Vector2(sin(i * 1.3 + v * 2.0) * 0.8, 0)).round())
-		ci.draw_polyline(line, Color(0.02, 0.07, 0.11, 0.8), 1.0)
-	ci.draw_polyline(l, C_TRUNK_HI, 2.0)
-	ci.draw_polyline(rr, Color(C_SAP, 0.35), 1.0)
-	# 荧光脉络：两条，带一层辉光；光点往下流
-	for v in 2:
-		var vein := PackedVector2Array()
-		for i in n + 1:
-			vein.append(l[i].lerp(rr[i], 0.36 + v * 0.3 + 0.07 * sin(i * 0.8 + v * 3.0)).round())
-		ci.draw_polyline(vein, Color(C_SAP, 0.10), 3.0)
-		ci.draw_polyline(vein, Color(C_SAP, 0.38), 1.0)
-		if not Cfg.reduce_motion:
-			for q in 3:
-				var f := fmod(t * 0.22 + q / 3.0 + v * 0.17, 1.0)
-				var k := int(f * n)
-				ci.draw_rect(Rect2(vein[k] - Vector2(0, 1), Vector2(1, 3)), Color(C_SAP, 0.9))
-	# 树冠：两圈点状圆环 + 发光的心
-	var c := _a(cr)
-	for r: int in [26, 40]:
-		var m := 40 if r == 26 else 56
-		for k in m:
-			if k % 2 == 0:
-				var d: Vector2 = Vector2.from_angle(k * TAU / m) * float(r)
-				ci.draw_rect(Rect2((c + d).floor(), Vector2(1, 1)), Color(C_SAP, 0.22 if r == 26 else 0.12))
-	var br := 0.0 if Cfg.reduce_motion else 0.5 + 0.5 * sin(t * TAU / 3.0)
-	ci.draw_circle(c, 10.0, Color(C_SAP, 0.08 + 0.04 * br))
-	ci.draw_circle(c, 6.0, Color(C_SAP, 0.22))
-	ci.draw_circle(c, 3.5, C_SAP)
-	ci.draw_rect(Rect2(c - Vector2(1, 1), Vector2(2, 2)), Color.WHITE)
-
-
-func _seg_pts(pts: PackedVector2Array, i0: int, i1: int) -> PackedVector2Array:
+func _part(pts: PackedVector2Array, g: float) -> PackedVector2Array:
 	var out := PackedVector2Array()
-	for i in range(maxi(0, i0), mini(pts.size(), i1 + 1)):
+	var m := int(g * (pts.size() - 1))
+	for i in m + 1:
 		out.append(_a(pts[i]))
 	return out
 
 
-## 主根：粗、往外渐细；挂在它上面的线有已塑造的节点时带一层淡青光；每隔一段往下斜出一根 45° 的短细须
-func _draw_mains(ci: CanvasItem) -> void:
-	var g := _grow_main()
-	var ms: Dictionary = lay.get("mains", {})
-	var rs: Dictionary = lay.get("roots", {})
-	for m in mains:
-		var pts: PackedVector2Array = mains[m]
-		var wd: Array = ms[m].get("w", [8, 4])
-		var lim := int(g * (pts.size() - 1))
-		var lit := false
-		for id in Cfg.meta_shape:
-			if Cfg.meta_shape[id] and str(rs.get(_pre(id), {}).get("main", "")) == m:
-				lit = true
-		var pieces := 6
-		for k in pieces:
-			var i0 := floori(float(k * (pts.size() - 1)) / pieces)
-			var i1 := floori(float((k + 1) * (pts.size() - 1)) / pieces)
-			if i0 >= lim:
-				break
-			var w := lerpf(float(wd[0]), float(wd[1]), (k + 0.5) / pieces) / pxu
-			var sp := _seg_pts(pts, i0, mini(i1, lim))
-			if sp.size() < 2:
-				continue
-			if lit:
-				ci.draw_polyline(sp, Color(C_SAP, 0.14), w + 3.0)
-			ci.draw_polyline(sp, C_ROOT, maxf(1.0, round(w)))
-			ci.draw_polyline(sp, Color(C_ROOT_HI, 0.8), 1.0)
-			if k in [2, 4] and sp.size() > 3:   # 细须：45° 往下斜出一小截
-				var q := sp[sp.size() / 2]
-				var tg := (sp[sp.size() - 1] - sp[0]).normalized()
-				var dn := Vector2(signf(tg.x) if absf(tg.x) > 0.5 else 1.0, 1.0)
-				ci.draw_line(q, (q + dn * (4.0 + k)).round(), Color(C_ROOT, 0.85), 1.0)
-
-
-func _draw_chain(ci: CanvasItem, i: int) -> void:
-	var ch: Array = chains[i]
-	var p := _pre(ch[0])
-	var pts: PackedVector2Array = geo[p]
-	var lim := int(_grow(i) * (pts.size() - 1))
-	var prev := 0
-	var n := ch.size()
+## 原作连线：灰白线；青色特殊路径照原作；亮着的线 = 白芯 + 青光 + 光点流动。开场从浅层那头往深层画出来；
+## 塑造演出：一道光沿新节点相连的亮线流进去
+func _draw_edges(ci: CanvasItem) -> void:
+	var lit := _lit_edges()
 	var lit_f := (t - lit_t0) / LIT_DUR if lit_id != "" else 2.0
-	for k in n:
-		var id: String = ch[k]
-		var i1: int = ni[id]
-		var sp := _seg_pts(pts, prev, mini(i1, lim))
-		if sp.size() >= 2:
-			var st := _state(id)
-			if id == lit_id and lit_f < LIT_GROW:
-				st = "ok"
-			var w := clampf(4.0 - k * 0.6, 1.5, 4.0)
-			if st == "on":
-				ci.draw_polyline(sp, Color(C_SAP, 0.22), w + 3.0)
-				ci.draw_polyline(sp, C_ROOT, w)
-				ci.draw_polyline(sp, C_SAP, 1.0)
-			else:
-				ci.draw_polyline(sp, C_ROOT if st != "lock" else Color(C_ROOT, 0.7), w)
-				if st == "ok":
-					ci.draw_polyline(sp, Color(C_ROOT_HI, 0.9), 1.0)
-			# 塑造演出：光从上一节沿根流到新节点
-			if id == lit_id and lit_f < LIT_GROW:
-				var gf := UI.ease_out(clampf(lit_f / LIT_GROW, 0.0, 1.0))
-				var m2 := int(gf * (sp.size() - 1))
-				var part := sp.slice(0, m2 + 1)
-				if part.size() >= 2:
-					ci.draw_polyline(part, Color(C_SAP, 0.35), 5.0)
-					ci.draw_polyline(part, Color.WHITE, 1.0)
-				ci.draw_circle(sp[m2], 3.0, Color(1, 1, 1, 0.35))
-				ci.draw_rect(Rect2(sp[m2] - Vector2(1, 1), Vector2(3, 3)), Color.WHITE)
-			# 汁液：已塑造的根上，小光点慢慢往下流
-			elif _state(id) == "on" and not Cfg.reduce_motion:
-				var gap := 9
-				var off := int(t * 14.0) % gap
+	var lo: String = oname.get(lit_id, "")
+	for k in edges.size():
+		var e: Array = edges[k]
+		var pts: PackedVector2Array = e[2]
+		var da := int(odepth.get(e[0], 0))
+		var db := int(odepth.get(e[1], 0))
+		if db < da:
+			pts = pts.duplicate()
+			pts.reverse()
+		var g := _grow_d(mini(da, db))
+		if g <= 0.0:
+			continue
+		var sp := _part(pts, g)
+		if sp.size() < 2:
+			continue
+		var anim: bool = lo != "" and lit_f < LIT_GROW and (e[0] == lo or e[1] == lo)
+		if lit[k] and not anim:
+			ci.draw_polyline(sp, Color(C_SAP, 0.13), 5.0)
+			ci.draw_polyline(sp, C_WHITE, 2.0)
+			if not Cfg.reduce_motion:   # 光点从浅层往深层流
+				var gap := 10
+				var off := int(t * 12.0) % gap
 				for q in range(off, sp.size(), gap):
-					ci.draw_rect(Rect2(sp[q], Vector2(1, 1)), Color(1, 1, 1, 0.85))
-		prev = i1
-	# 根尖：越过末节往下一小段再往中线收，渐细渐暗
-	var tl := _seg_pts(pts, prev, lim)
-	if tl.size() >= 2:
-		ci.draw_polyline(tl, Color(C_ROOT, 0.75), 1.0)
+					ci.draw_rect(Rect2(sp[q], Vector2(1, 1)), Color(C_SAP, 0.95))
+		elif e[3]:
+			ci.draw_polyline(sp, Color(C_CYAN, 0.22), 4.0)
+			ci.draw_polyline(sp, C_CYAN, 2.0)
+		else:
+			ci.draw_polyline(sp, Color(C_LINE, 0.55), 2.0)
+		if anim and lit[k]:   # 光从另一头流进新节点
+			var fl := pts.duplicate()
+			if e[1] != lo:
+				fl.reverse()
+			var gf := UI.ease_out(clampf(lit_f / LIT_GROW, 0.0, 1.0))
+			var part := _part(fl, gf)
+			if part.size() >= 2:
+				ci.draw_polyline(part, Color(C_SAP, 0.35), 5.0)
+				ci.draw_polyline(part, Color.WHITE, 1.0)
+				ci.draw_circle(part[part.size() - 1], 3.0, Color(1, 1, 1, 0.35))
+				ci.draw_rect(Rect2(part[part.size() - 1] - Vector2(1, 1), Vector2(3, 3)), Color.WHITE)
+	# 蓝色三角（原作照搬）
+	for ar in arrows:
+		var q := _a(ar[0].lerp(ar[1], 0.5))
+		var dv: Vector2 = (ar[1] - ar[0]).normalized()
+		var sz := 5.0
+		var tri := PackedVector2Array([(q + dv * sz).round(), (q - dv * sz * 0.6 + dv.orthogonal() * sz * 0.95).round(),
+				(q - dv * sz * 0.6 - dv.orthogonal() * sz * 0.95).round()])
+		ci.draw_colored_polygon(tri, Color(C_ARROW, maxf(0.0, _grow_d(6))))
+
+
+## 空位：原作有而本作没有的节点——小节点只留连线交汇的一点，大节点位留一圈很淡的点环；「开始」是两圈点环 + 一颗亮点
+func _draw_spots(ci: CanvasItem) -> void:
+	for o in opos:
+		if onode[o] != "" or not _shown(o):
+			continue
+		var p := _a(opos[o])
+		if o == "start":
+			for r: int in [5, 9]:
+				var m := 20 if r == 5 else 32
+				for k in m:
+					if k % 2 == 0:
+						var d: Vector2 = Vector2.from_angle(k * TAU / m) * float(r)
+						ci.draw_rect(Rect2((p + d).floor(), Vector2(1, 1)), Color(C_WHITE, 0.6 if r == 5 else 0.3))
+			ci.draw_rect(Rect2(p - Vector2(1, 1), Vector2(3, 3)), C_WHITE)
+		elif obig[o]:
+			var m := 36
+			for k in m:
+				if k % 2 == 0:
+					var d: Vector2 = Vector2.from_angle(k * TAU / m) * float(rk + 3)
+					ci.draw_rect(Rect2((p + d).floor(), Vector2(1, 1)), Color(C_LINE, 0.5))
+			ci.draw_rect(Rect2(p - Vector2(1, 1), Vector2(3, 3)), Color(C_LINE, 0.7))
+		else:
+			ci.draw_rect(Rect2(p - Vector2(1, 1), Vector2(3, 3)), Color(C_LINE, 0.85))
 
 
 func _draw_motes(ci: CanvasItem) -> void:
@@ -716,7 +704,7 @@ func _draw_motes(ci: CanvasItem) -> void:
 		var y := fposmod(u.y * w.y - (0.0 if Cfg.reduce_motion else t * float(m[1])), w.y)
 		var x := u.x * w.x + (0.0 if Cfg.reduce_motion else sin(t * 0.4 + float(m[2])) * 6.0)
 		var a := 0.35 + 0.25 * sin(t * 0.8 + float(m[2]))
-		ci.draw_rect(Rect2(_a(Vector2(x, y)), Vector2(1, 1)), Color(C_SAP if m[3] else C_ROOT_HI, a))
+		ci.draw_rect(Rect2(_a(Vector2(x, y)), Vector2(1, 1)), Color(C_SAP if m[3] else C_LINE, a * 0.7))
 
 
 func _draw_node(ci: CanvasItem, id: String, selected: bool) -> void:
@@ -795,8 +783,6 @@ func _draw_view() -> void:
 	if lay.is_empty():
 		return
 	_draw_labels(ci)
-	_draw_groups(ci)
-	_draw_ruler(ci)
 	_draw_chrome(ci)
 	_draw_card(ci)
 
@@ -816,14 +802,11 @@ func _txt(ci: CanvasItem, p: Vector2, s: String, sz: int, col: Color, anchor := 
 func _draw_labels(ci: CanvasItem) -> void:
 	var sid := _sel_id()
 	var c := TUI.ctx(ci)
-	for i in chains.size():
-		var g := _grow(i)
-		var ch: Array = chains[i]
-		var p := _pre(ch[0])
-		var lim := int(g * (geo[p].size() - 1))
-		for k in ch.size():
-			var id: String = ch[k]
-			if ni[id] > lim:
+	if _shown("start"):   # 原作「开始」
+		_txt(ci, _to_view(opos.get("start", Vector2.ZERO)) + Vector2(0, -30.0), "开始", 12, T_SUB)
+	for ch in chains:
+		for id: String in ch:
+			if not _shown(oname.get(id, "")):
 				continue
 			var d := _to_view(pos[id])
 			if d.x < -80.0 or d.x > vs.x + 80.0 or d.y < -40.0 or d.y > vs.y + 40.0:
@@ -854,44 +837,14 @@ func _draw_labels(ci: CanvasItem) -> void:
 				TUI.ptext(ci, c, cp + Vector2(8, 0), s, 1.5, C_YEL if st == "ok" else col)
 
 
-## 组名小标（布局 glabels：[组, x, y]，在该组车道上方、主根线上面）
-func _draw_groups(ci: CanvasItem) -> void:
-	var c := TUI.ctx(ci)
-	var a := _grow_main()
-	for gl in lay.get("glabels", []):
-		var g: int = int(gl[0])
-		var d := _to_view(Vector2(float(gl[1]), float(gl[2])))
-		var col: Color = GROUPS[g][2]
-		var tw := font.get_string_size(GROUPS[g][0], HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 8.0 + TUI.ptext_w(c, GROUPS[g][1], 1.0)
-		var x0 := d.x - tw / 2.0
-		UI.diamond(ci, Vector2(x0 - 8.0, d.y), 3.5, UI.fa(col, a))
-		var w := _txt(ci, Vector2(x0, d.y - 8.0), GROUPS[g][0], 12, UI.fa(col, a), "la")
-		TUI.ptext(ci, c, Vector2(x0 + w + 8.0, d.y), GROUPS[g][1], 1.0, UI.fa(T_SUB, 0.8 * a))
-
-
-## 左缘深度刻度尺（-0000M，每 60 一道长刻度；到详情卡上沿为止）
-func _draw_ruler(ci: CanvasItem) -> void:
-	var c := TUI.ctx(ci)
-	var x := 14.0
-	var y0 := 120.0
-	var y1 := vs.y - 316.0
-	ci.draw_line(Vector2(x, y0), Vector2(x, y1), Color(T_SUB, 0.35), 1.0)
-	var y := y0
-	while y <= y1:
-		var wy := y + cam_px.y
-		var big := int(round(wy)) % 60 == 0
-		ci.draw_line(Vector2(x, y), Vector2(x + (8.0 if big else 4.0), y), Color(T_SUB, 0.5 if big else 0.3), 1.0)
-		if big:
-			TUI.ptext(ci, c, Vector2(x + 12.0, y), "-%04dM" % int(wy / 6.0 + 20.0), 1.0, Color(T_SUB, 0.55))
-		y += 12.0
-
-
 func _draw_chrome(ci: CanvasItem) -> void:
 	var mouse := view.get_local_mouse_position()
 	var done := 0
 	for id in Cfg.meta_shape:
 		if Cfg.meta_shape[id]:
 			done += 1
+	for i in 12:   # 顶栏下一条渐隐暗带：推荐 / 重置 / 提示压在连线上也看得清
+		ci.draw_rect(Rect2(0, 60.0 + i * 5.0, vs.x, 5.0), Color(0.012, 0.02, 0.035, 0.78 * (1.0 - i / 12.0)))
 	HS.topbar(ci, font, vs, ["COGNITION", "SHAPING"], "认知塑造", 1.0, "", "")
 	# 生机细胞 + 已塑造
 	var rx := vs.x - 470.0
@@ -931,7 +884,7 @@ func _draw_chrome(ci: CanvasItem) -> void:
 ## 高度随内容、底边对齐；手机：贴底一条（名称 + 效果 ｜ 本线进度 + 状态 ｜ 塑造按钮），把上面的根让出来
 func _draw_card(ci: CanvasItem) -> void:
 	var id := _sel_id()
-	if id == "":
+	if id == "" or fit_all:
 		return
 	var slide := 1.0 if Cfg.reduce_motion else UI.ease_out(clampf((t - open_t0 - 0.15) / 0.3, 0.0, 1.0))
 	if Cfg.phone_ui():
