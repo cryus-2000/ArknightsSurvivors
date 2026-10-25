@@ -1033,6 +1033,9 @@ func _ready() -> void:
 	aq_on = demo_op == "" and ((mode == Mode.PLAY and Cfg.quality_mode == "auto" and Cfg.dev_args().is_empty()) or Cfg.dev_args().has("--autoq"))
 	if Cfg.dev_args().has("--fpsosd") and demo_op == "":
 		_fps_osd_add()
+	if Cfg.guard_lowered and Cfg.quality_mode != "auto":
+		Cfg.guard_lowered = false
+		Cfg.set_quality(Cfg.quality_mode)   # 上局护栏临时降过：这局开局恢复玩家手选的档
 	if aq_on:
 		_apply_auto_level()   # 同一次启动里前一局已经降过的，这局开局就沿用
 	if mode == Mode.PLAY and demo_op == "" and not trial.active:
@@ -1203,6 +1206,7 @@ func cam_center() -> Vector2:
 ## 局中后期新怪 / 新音效越积越多时兜底，不等 WebKit 杀页。纯画面 / 声音缓存，不碰对局
 const MG_EVERY := 5.0
 const MG_BUDGET_MB := 380.0
+const MG_MANUAL_EXTRA := 140.0
 var _mg_t := 0.0
 
 func _mem_guard(delta: float) -> void:
@@ -1218,12 +1222,17 @@ func _mem_guard(delta: float) -> void:
 	for a in Cfg.dev_args():
 		if a.begins_with("--memguard="):
 			budget = float(a.substr(11))
+	if Cfg.quality_mode != "auto":
+		budget += MG_MANUAL_EXTRA   # 玩家手选了档：只在真逼近时才临时降（10-26 晚用户「玩家手动选了某档就按它」）
 	if vid + aud <= budget:
 		return
 	Cfg.slim_fonts(true)   # 字形缓存清掉重建（按需栅格化，卡一下；docs/50 §30 字体缓存能到 60 MB）
 	var acted: bool = Cfg.quality != "low" or not Cfg.render_scaled
 	if Cfg.quality != "low":
 		Cfg.set_quality("low")
+		Cfg.guard_lowered = true
+		quality_note = "内存紧张，本局已临时降低画质" if Cfg.quality_mode != "auto" else "内存紧张，已自动降低画质（可在设置里改）"
+		quality_note_t = 5.0
 	Cfg.set_render_scale(true)
 	if acted and not Cfg.dev_args().is_empty():
 		print("PF MEMGUARD vid=%.0fMB audio=%.0fMB -> 低画质 + 分辨率缩放 t=%.0f" % [vid, aud, t])
@@ -1241,6 +1250,10 @@ func _auto_quality(delta: float) -> void:
 	var now := Time.get_ticks_usec()
 	var rd: float = (now - _aq_us) / 1e6 if _aq_us > 0 else 0.0   # 真实帧间隔（--fixed-fps 测量时 delta 是定值，看不出掉帧）
 	_aq_us = now
+	if aq_on and Cfg.quality_mode != "auto" and Cfg.dev_args().is_empty():
+		aq_on = false   # 对局里在设置里手选了档：自动降档停手、已关的层撤掉（10-26 晚用户「从低切到高没有反应」）
+		Cfg.auto_level = 0
+		_apply_auto_level()
 	if not aq_on or state != S.PLAY or t < 1.0 or Cfg.auto_level >= AQ_MAX or (rt_from >= 0.0 and not realtime):   # 测量的快进段不算
 		aq_win = Vector3(0, 0, aq_win.z)
 		return
@@ -1324,6 +1337,8 @@ func _apply_auto_level() -> void:
 		spawner.auto_cap = AQ_CAP if lv >= 2 else 0
 	if lv >= 4 and Cfg.hidpi_render():
 		Cfg.set_render_scale(true)
+	elif lv < 4 and not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_rscale", 1.0)):
+		Cfg.set_render_scale(false)
 	if lv >= 5 and Cfg.quality != "low":
 		Cfg.set_quality("low")
 

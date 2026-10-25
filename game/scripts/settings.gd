@@ -32,6 +32,8 @@ var fps_probed := false   # 自动档本次启动已测过（测过就不再改�
 func effective_max_fps() -> int:
 	if max_fps > 0:
 		return max_fps
+	if mobile_web():
+		return 30   # 10-26 晚用户定：手机网页自动档直接锁 30（稳 30 比 40 上下抖好），不测；手选 60 照旧
 	return 30 if fps_lock30 else 60
 const RESOLUTIONS := [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(3840, 2160)]   # 都是 1280×720 的整数倍，像素对齐
 var res_index := 0        # 窗口分辨率（RESOLUTIONS 下标；全屏时按屏幕）
@@ -49,6 +51,7 @@ var pad_rumble := true   # 手柄震动
 var quality := ""        # 生效中的画质档 "high" / "mid" / "low"（由 quality_mode 决定）：中 = 关法线光照 / 辉光；低 = 四项后期全关（再关景深 / 水下滤镜）+ 粒子减半、真人局同屏敌人上限 300、演出简化
 var quality_mode := "auto"   # 玩家选的画质档：auto / low / mid / high（10-22 用户：设置精简 + 画质自动档，Codex 界面单 §4）
 var quality_probed := false  # （旧）自动档首局前 2 秒测帧时；10-25 起改逐级降（auto_level），保留键兼容
+var guard_lowered := false   # 内存护栏本局临时降过画质（手动档也会，提示玩家；下局开局恢复手选的档）
 var auto_level := 0          # 画质自动档逐级降到第几级（本次启动有效，不存档；game._auto_quality，docs/50 §28）
 const QUALITY_NAME := {"low": "低", "mid": "中", "high": "高"}
 const QUALITY_MODES := ["auto", "low", "mid", "high"]
@@ -687,7 +690,7 @@ func _guess_quality() -> String:
 	if DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios"):
 		# 10-26 改回「低」（10-25 曾改「中」）：iPhone 网页进局即崩，光学层 / 发光层 / GPU 粒子的渲染目标与着色器在 WebKit 上吃内存；
 		# 掉帧时的逐级降档来不及救内存。手选「中 / 高」照旧可用
-		return "low" if mobile_knob("mobile_low", 1.0) or not OS.has_feature("web") else "mid"
+		return "low" if mobile_knob("mobile_low", 0.0) or not OS.has_feature("web") else "mid"   # 10-26 晚用户定手机标准「30 帧 + 中档特效」：改回从中起（内存靠其余止血项与护栏兜）
 	for k in ["mali", "adreno", "powervr"]:
 		if gpu.contains(k):
 			return "mid"
@@ -703,6 +706,7 @@ func _guess_quality() -> String:
 func set_quality_mode(m: String) -> void:
 	quality_mode = m if QUALITY_MODES.has(m) else "auto"
 	auto_level = 0   # 换档 / 重选自动：逐级降从头算
+	guard_lowered = false   # 手动换档压过护栏这一局的临时降档
 	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)
 	quality_probed = quality_mode != "auto"
 
