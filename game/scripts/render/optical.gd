@@ -372,9 +372,11 @@ func _lo_step() -> void:
 	var sx: float = maxf(0.01, vp.get_final_transform().x.x)   # 窗口物理像素 / 设计单位
 	var target: float = Bal.v("render/optical_view_h_phone", 360.0) if Cfg.phone_ui() else Bal.v("render/optical_view_h", 450.0)
 	view_k = maxi(2, roundi(vs.y * sx / target))
+	if Cfg.phone_ui() and Cfg.phone_cam_unified():
+		view_k = Cfg.phone_view_k()   # 手机三档同一个镜头（Cfg.phone_view_k，docs/50 §32）：低档 cam.zoom 也按这个 k
 	# 设置里的「战斗画面缩放」叠在整数像素镜头上（相对本设备缺省：手机缺省那档 = 不变；桌面缺省 ZOOM_DESK_DEF 把视野拉近；
 	# 非整数倍时 1 美术像素占的屏幕像素不再恒为整数，用户 10-24 要求先看 ×1.15 再定）
-	var rel: float = Cfg.cam_zoom() / (Cfg.ZOOM_PHONE_DEF / 100.0 if Cfg.phone_ui() else 1.0)
+	var rel: float = Cfg.cam_zoom() / (Cfg.zoom_default_pct() / 100.0 if Cfg.phone_ui() else 1.0)
 	if g.demo_op != "":
 		rel *= Bal.v("gallery/demo_zoom", 0.68)   # 图鉴演示小窗再拉远（用户 10-24），视野更大
 	var zw: float = view_k / (2.0 * sx) * rel
