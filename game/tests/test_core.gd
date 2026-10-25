@@ -598,19 +598,17 @@ func test_blocks_texas() -> void:
 	var tx: Dictionary = Ch.load_def("texas")
 	ok(tx.has("blocks") and Ch.validate_operator("texas", tx), "德克萨斯 texas.json 通过积木校验")
 	var bads := {
-		"冲刺 aim 写错": func(d): d.blocks.response[1].do[0]["aim"] = "random",   # 10-25 队友突进删后 trait: 0 出手回技力 / 1-4 骤雨 / 5 精一回技力 / 6 突进多命中 / 7 剑雨滂沱 tick / 8 on_skill_end；冲刺积木校验改用响应块 response[1]雨滂沱 / 9 剑雨结束 / 10 冲刺斩回技力
+		"冲刺 aim 写错": func(d): d.blocks.response[1].do[0]["aim"] = "random",   # 10-25 合并后 trait: 0 出手回技力 / 1-4 骤雨 / 5 精一回技力 / 6 突进多命中 / 7 次元斩 / 8 冲刺斩回技力（队友短突进与分身 tick 已删）；冲刺积木校验用响应块 response[1]
 		"突进 need_target 写成字符串": func(d): d.blocks.response[1].do[0]["need_target"] = "yes",
 		"骤雨 no_combo 写成字符串": func(d): d.blocks.trait[1]["no_combo"] = "yes",
 		"no_combo 配了非 replace 的 every_n": func(d): d.blocks.trait[2]["no_combo"] = true,
 		"冲刺缺宽度": func(d): d.blocks.response[1].do[0].erase("w"),
 		"自动技能 need_enemy 超范围": func(d): d.blocks.skills[0]["need_enemy"] = 0.5,
 		"主控冲刺冷却不再是可写的主控属性（10-12 自动冲刺改版）": func(d): d.blocks.skills[1].do.append({"verb": "buff_leader", "stat": "dash_cd", "op": "mult", "value": 0.8}),
-		"突进的间隔写错": func(d): d.blocks.trait[7]["every"] = 0.01,
 		"突进不是瞬时冲刺放进常驻列表": func(d): d.blocks.talent.append({"trig": "passive", "do": [d.blocks.response[1].do[0].duplicate(true)]}),
 		"瞬时冲刺放进常驻节点": func(d): d.blocks.progression["wide"] = {"shape": "dash_line", "r": 100, "w": 40, "src": "疾行斩"},
 		"常驻 dash_mod 放进触发器": func(d): d.blocks.trait[0].do.append({"verb": "dash_mod", "len_add": 0.1}),
 		"触发积木放进技能 do": func(d): d.blocks.skills[0].do.append({"trig": "on_dash_end", "do": []}),
-		"on_skill_end 带 delay": func(d): d.blocks.trait[8]["delay"] = 0.2,
 		"on_dash_end 的 src 没登记": func(d): d.blocks.trait[6]["src"] = "没登记",
 		"残像伤害超上限": func(d): d.blocks.progression.elite2.do[0]["mult"] = 50,
 		"fx_rain 缺帧条": func(d): d.blocks.skills[0].do[2].erase("strip"),
@@ -619,7 +617,6 @@ func test_blocks_texas() -> void:
 		"fx_rain 冲击帧条不是 fx_*": func(d): d.blocks.skills[0].do[2]["hit"] = "texas_hit",
 		"fx_rain 层写错": func(d): d.blocks.skills[0].do[2]["layer"] = "floor",
 		"fx_rain 下落时间超范围": func(d): d.blocks.skills[0].do[2]["fall_t"] = 3.0,
-		"fx_rain 终结参数名写错": func(d): d.blocks.trait[8].do[1].finale["flash"] = 2,
 		"fx_rain 放进常驻节点": func(d): d.blocks.progression["wide"] = d.blocks.skills[0].do[2].duplicate(true),
 	}
 	for why in bads:
