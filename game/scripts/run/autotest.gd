@@ -1245,6 +1245,7 @@ func _bossacts_step(spec: String) -> void:
 		g.max_hp = 900.0
 		g.hp = 900.0
 		g.t = 150.0
+		g.hunt.state = 3   # 「围猎」（约 1:30）不在演示里触发：时间直接跳到 2:30 会让包围圈和 Boss 同场（正式局 Boss 最早 3:30，碰不到）
 		var b := g.spawner.spawn_enemy(parts[0], g.ppos + Vector2(260, -40))
 		b.age = 5.0
 		g.bosses.append(b)

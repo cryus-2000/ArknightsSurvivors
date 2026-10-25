@@ -73,7 +73,7 @@ func _ready() -> void:
 		g.warns.clear()
 		g.bai._boss_ai(ring_boss, 0.01, Vector2.RIGHT, 400.0)
 		rings = g.warns.filter(func(w): return w.get("act", "") == "pattern_ring")
-	check(rings.size() == 2, "final boss landed ring is two staggered waves (docs/142b §8.2)")
+	check(rings.size() == 3, "final boss landed ring is three staggered waves (docs/142b §8.2; 10-25 加密 +1 圈)")
 	if not rings.is_empty():
 		var w: Dictionary = rings[0]
 		g.bai._warn_resolve(w)
@@ -92,13 +92,13 @@ func _ready() -> void:
 		ring_boss.break_t = 0.0
 		for repeat in 20:
 			g.bai._warn_resolve(w)
-		check(g.ebullets.size() <= 120, "one boss projectile cap")
+		check(g.ebullets.size() <= 160, "one boss projectile cap")   # 10-25 弹幕加密：OWNER_CAP 120 → 160
 		for source in 5:
 			var next_boss: Dictionary = g.spawner.new_enemy("paranoia", Vector2.ZERO)
 			w.owner = next_boss
 			for repeat in 10:
 				g.bai._warn_resolve(w)
-		check(g.ebullets.size() <= 240, "total live projectile cap")
+		check(g.ebullets.size() <= 320, "total live projectile cap")   # TOTAL_CAP 240 → 320
 	# A distant melee Boss closes in instead of stalling（docs/95 §9：蔑死体的裂潮刃波删了，远距离由跃击贴上来）.
 	var melee: Dictionary = g.spawner.new_enemy("archon", Vector2.ZERO)
 	melee.age = 20.0
@@ -120,7 +120,7 @@ func _ready() -> void:
 	check(g.warns.any(func(w): return w.get("act", "") == "pattern_fan"), "blade volley is scheduled")
 	if not g.warns.is_empty():
 		g.bai._warn_resolve(g.warns[0])
-		check(g.ebullets.size() == 7 and g.ebullets[0].kind == "boss_blade", "blade volley has actual distinct projectiles")
+		check(g.ebullets.size() == 10 and g.ebullets[0].kind == "boss_blade", "blade volley has actual distinct projectiles")   # 掠海飞刃 7 → 10（10-25 加密）
 	# Every grouped laser / column uses one common resolve time, including legacy attacks.
 	for spec in [["bishop", "pillar", 0], ["izumik", "pattern_rain", 0], ["ishar", "ishar_line", 1]]:   # 泡影爆裂已删（docs/95 §1）；伊祖米克潮汐坠落改为第 0 条；伊莎玛拉三点落击删（泪落依次落，docs/142b §3.6）
 		var caster: Dictionary = g.spawner.new_enemy(spec[0], Vector2.ZERO)

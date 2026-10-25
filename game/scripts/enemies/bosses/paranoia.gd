@@ -68,18 +68,20 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 ##   二幕 X 交叉——两道以你脚下为交点、与「她 → 你」各成 ±0.6 弧度，出手即锁定：斜着离开交点；
 ##   三幕 / 茧后（落地）——原来的 3 道依次追踪（每道间隔 0.6 秒）。茧没打破 +1 道（依次追踪接在后面）
 func _gaze(e: Dictionary, dir: Vector2) -> void:
-	var base: Dictionary = {"len": 820.0, "wid": 26.0, "act": "beam", "col": COL, "dmg": e.dmg * 2.0, "corrode": 0.5, "kp": "paranoia", "kp_k": 2.0}
-	var ng: int = 3
+	var base: Dictionary = {"len": 820.0, "wid": 26.0, "act": "beam", "col": COL, "dmg": e.dmg * Bal.v("boss/paranoia_gaze_mult", 1.56), "corrode": 0.5, "kp": "paranoia", "kp_k": 2.0}   # 原 2.0（10-25 加密 ×0.78）
+	var ng: int = 4   # 落地后依次 4 道（10-25 加密：原 3）
 	if e.phase == 1 and int(e.get("gates_passed", 0)) >= 1:
 		ng = 0
-		for s in [-1.0, 1.0]:
+		# 二幕交叉：两斜线 + 一道沿「她 → 你」的直线（米字，10-25 加密：原 X 两道），交点都在你脚下
+		for s in [-1.0, 1.0, 0.0]:
 			var a: float = dir.angle() + 0.6 * s
-			_warn(e, "line", 1.3, base.merged({"pos": g.ppos - Vector2.from_angle(a) * 410.0, "ang": a, "track": 0.0, "no_eye": true,
-				"name": "凝视" if s < 0.0 else "", "seq_no": 1 if s < 0.0 else 2, "lock": s < 0.0}))
+			_warn(e, "line", 1.3 if s != 0.0 else 1.6, base.merged({"pos": g.ppos - Vector2.from_angle(a) * 410.0, "ang": a, "track": 0.0, "no_eye": true,
+				"name": "凝视" if s < 0.0 else "", "seq_no": 1 if s < 0.0 else (2 if s > 0.0 else 3), "lock": s < 0.0}))
 	elif e.phase == 1:
 		ng = 1
-		var side: float = 1.0 if g.rng_enemy.randf() < 0.5 else -1.0
-		_warn(e, "line", 1.6, base.merged({"pos": e.pos + dir.orthogonal() * 90.0 * side, "ang": dir.angle(), "track": 0.0, "seq_no": 2, "name": "", "lock": false}))
+		# 一幕：瞄你的一道 + 两侧各一道平行（10-25 加密：原只一侧），中间那条跑道 1.6 秒后才落
+		for side in [-1.0, 1.0]:
+			_warn(e, "line", 1.6, base.merged({"pos": e.pos + dir.orthogonal() * 90.0 * side, "ang": dir.angle(), "track": 0.0, "seq_no": 2, "name": "", "lock": false}))
 	for k in ng + int(e.get("gaze_bonus", 0)):
 		_warn(e, "line", 1.3 + 0.6 * k, base.merged({"ang": dir.angle(), "track": 0.65 + 0.6 * k, "seq_no": k + 1, "name": "凝视" if k == 0 and ng != 0 else "", "lock": k == 0 and ng != 0}))
 
@@ -281,8 +283,8 @@ func _paranoia_cocoon_step(e: Dictionary, dt: float) -> void:
 	e.shell_shot -= dt
 	if e.shell_shot <= 0.0:
 		e.shell_shot = 2.0
-		for k in 8:
-			g.ebullets.append({"pos": e.pos, "vel": Vector2.from_angle(TAU * k / 8.0 + g.t) * 120.0, "dmg": e.dmg * 0.4, "slow": false, "r": 7.0,
+		for k in 11:   # 10-25 加密：原 8 发、e.dmg × 0.4
+			g.ebullets.append({"pos": e.pos, "vel": Vector2.from_angle(TAU * k / 11.0 + g.t) * 120.0, "dmg": e.dmg * 0.31, "slow": false, "r": 7.0,
 				"life": 3.0, "corrode": 0.0, "nerve": 0.0, "true": false, "kind": "nova", "home": false, "boss": true, "src_type": e.type})
 	if e.cocoon_t <= 0.0:
 		paranoia_hatch(e, false)

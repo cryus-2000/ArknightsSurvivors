@@ -22,8 +22,8 @@ extends RefCounted
 const D = preload("res://scripts/data.gd")
 const Game = preload("res://scripts/game.gd")
 const FINAL_TYPES := ["paranoia", "knight_boss", "ishar", "izumik"]
-const OWNER_CAP := 120
-const TOTAL_CAP := 240
+const OWNER_CAP := 160   # 10-25 弹幕加密（×1.4 + 多一圈）后放宽：原 120 / 240，解读旋涡 3 圈 × 50 会被截
+const TOTAL_CAP := 320
 var g: Game
 func _init(game: Game) -> void:
 	g = game

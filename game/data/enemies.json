@@ -572,8 +572,8 @@
     {
      "name": "订正",
      "mode": "ring",
-     "count": 12,
-     "waves": 1,
+     "count": 17,
+     "waves": 2,
      "speed": 380,
      "gap": 0.45,
      "blade": true,
@@ -583,7 +583,7 @@
      "gap_face": true,
      "dur": 1.0,
      "life": 2.2,
-     "mult": 0.8,
+     "mult": 0.624,
      "cd": 10,
      "fx": "fx_path_correct_ring"
     }
@@ -618,18 +618,20 @@
     {
      "name": "潮汐坠落",
      "mode": "rain",
-     "waves": 5,
+     "waves": 7,
      "radius": 56,
      "arc": true,
-     "arc_r": 108
+     "arc_r": 108,
+     "mult": 0.507
     },
     {
      "name": "解读旋涡",
      "mode": "ring",
-     "count": 36,
-     "waves": 2,
+     "count": 50,
+     "waves": 3,
      "speed": 345,
-     "gap": 0.38
+     "gap": 0.38,
+     "mult": 0.507
     }
    ],
    "intro": {
@@ -666,7 +668,7 @@
      "phase_min": 1,
      "bullet": "orb",
      "mode": "fan",
-     "count": 13,
+     "count": 18,
      "waves": 2,
      "spread": 2.0,
      "speed": 410,
@@ -676,7 +678,7 @@
      "warn_r": 240,
      "dur": 1.4,
      "track": 0.3,
-     "mult": 0.8,
+     "mult": 0.624,
      "cd": 7,
      "fx": "fx_saint_scatter"
     },
@@ -684,8 +686,8 @@
      "name": "清膛",
      "bullet": "orb",
      "mode": "ring",
-     "count": 18,
-     "waves": 1,
+     "count": 25,
+     "waves": 2,
      "speed": 360,
      "gap": 0.6,
      "blade": false,
@@ -695,7 +697,7 @@
      "gap_face": true,
      "dur": 0.9,
      "life": 1.8,
-     "mult": 0.6,
+     "mult": 0.468,
      "fx": "fx_saint_clear_ring"
     }
    ],
@@ -730,8 +732,8 @@
      "name": "环射",
      "bullet": "orb",
      "mode": "ring",
-     "count": 29,
-     "waves": 1,
+     "count": 41,
+     "waves": 2,
      "speed": 460,
      "gap": 0.28,
      "gaps": 3,
@@ -742,7 +744,7 @@
      "ring_r": 60,
      "gap_face": true,
      "dur": 1.0,
-     "mult": 0.9,
+     "mult": 0.702,
      "cd": 12,
      "fx": "fx_saint_clear_ring",
      "fx_col": [
@@ -782,17 +784,17 @@
     {
      "name": "交错潮环",
      "mode": "ring",
-     "count": 26,
-     "waves": 2,
+     "count": 36,
+     "waves": 3,
      "speed": 300,
      "gap": 0.38,
      "gap_jitter": 0.0,
-     "mult": 0.65
+     "mult": 0.507
     },
     {
      "name": "接潮扇浪",
      "mode": "fan",
-     "count": 7,
+     "count": 10,
      "waves": 1,
      "spread": 1.8,
      "speed": 320,
@@ -802,9 +804,10 @@
      "warn_r": 260,
      "dur": 1.4,
      "track": 0.3,
-     "cone_dmg": 0.9,
+     "cone_dmg": 0.702,
      "cd": 8,
-     "fx": "fx_bishop_wave"
+     "fx": "fx_bishop_wave",
+     "mult": 0.624
     }
    ],
    "intro": {
@@ -834,15 +837,15 @@
     {
      "name": "裂潮",
      "mode": "ring",
-     "count": 10,
-     "waves": 1,
+     "count": 14,
+     "waves": 2,
      "speed": 400,
      "gap": 0.5,
      "blade": true,
      "manual": true,
      "phase_min": 1,
      "ring_r": 84,
-     "mult": 0.8
+     "mult": 0.624
     }
    ],
    "intro": {
@@ -872,17 +875,17 @@
     {
      "name": "斥亡旋刃",
      "mode": "ring",
-     "count": 18,
-     "waves": 1,
+     "count": 25,
+     "waves": 2,
      "speed": 350,
      "gap": 0.42,
      "blade": true,
-     "mult": 0.8
+     "mult": 0.624
     },
     {
      "name": "掠海飞刃",
      "mode": "fan",
-     "count": 7,
+     "count": 10,
      "waves": 1,
      "spread": 1.7,
      "speed": 430,
@@ -894,7 +897,7 @@
      "warn_r": 300,
      "dur": 1.5,
      "track": 0.3,
-     "mult": 0.8,
+     "mult": 0.624,
      "cd": 7
     }
    ],
@@ -928,26 +931,26 @@
     {
      "name": "叠影",
      "mode": "stack",
-     "waves": 3,
-     "waves_p2": 5,
+     "waves": 4,
+     "waves_p2": 6,
      "radius": 45,
      "track": 0.5,
      "lock": 0.65,
-     "mult": 0.8,
+     "mult": 0.624,
      "corrode": 0.6,
      "cd": 4.0
     },
     {
      "name": "泡影环",
      "mode": "ring",
-     "count": 32,
-     "waves": 1,
-     "waves_p2": 2,
+     "count": 45,
+     "waves": 2,
+     "waves_p2": 3,
      "gap_face": true,
      "gap_stagger": 0.35,
      "speed": 330,
      "gap": 0.38,
-     "mult": 0.6,
+     "mult": 0.468,
      "cd": 4.0,
      "p2_every": 2
     }

@@ -283,7 +283,7 @@ func _lane_shot(e: Dictionary, dir: Vector2, k: int) -> void:
 	q.append(g.rng_enemy.randf_range(0.3, 0.7))
 	e.lane_gaps = q
 	_warn(e, "line", dur, {"pos": pos, "ang": ang, "len": 1100.0, "wid": 10.0, "track": track, "act": "shot", "name": "狙击",
-		"col": Color(1.0, 0.94, 0.82), "dmg": e.dmg * Bal.v("boss/carmen_lane_mult", 2.0), "kp": "carmen", "kp_k": 2.0, "lock": k == 0})
+		"col": Color(1.0, 0.94, 0.82), "dmg": e.dmg * Bal.v("boss/carmen_lane_mult", 1.56), "kp": "carmen", "kp_k": 2.0, "lock": k == 0})   # 原 2.0（10-25 加密 ×0.78）
 	_spend(e, 1)
 
 
@@ -299,7 +299,7 @@ func _fire_step(e: Dictionary, dt: float) -> void:
 		e.lane_gaps = q
 		var a: Vector2 = la.pos
 		lines.append({"a": a, "b": a + Vector2.from_angle(float(la.ang)) * float(la.len), "gap_t": gt, "gap_len": Bal.v("boss/carmen_fire_gap", 80.0),
-			"until": g.t + Bal.v("boss/carmen_fire_life", 6.0), "born": g.t})
+			"until": g.t + Bal.v("boss/carmen_fire_life", 7.5), "born": g.t})   # 原 6 秒（10-25 激光持续更长）
 	lines = lines.filter(func(fl): return g.t < float(fl.until))
 	e.fire_lines = lines
 	if g.invuln > 0.0 or g.t < float(e.get("fire_hit_at", 0.0)):

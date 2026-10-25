@@ -93,15 +93,16 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 			var eyes: Array = e.get("eyes", [])
 			var a: Vector2 = eyes[0].pos if eyes.size() >= 2 else g.ppos - dir.orthogonal() * 220.0
 			var b: Vector2 = eyes[1].pos if eyes.size() >= 2 else g.ppos + dir.orthogonal() * 220.0
-			for k in 5:
-				var pos: Vector2 = g.combat.arena_clamp(a.lerp(b, (float(k) + 0.5) / 5.0), 60.0)
-				var w := _warn(e, "circle", 0.9 + 0.22 * k, {"pos": pos, "r": 48.0, "act": "ishar_strike", "true": true, "seq_no": k + 1,
-					"name": "泪落" if k == 0 else "", "col": COL, "dmg": e.dmg * 0.6, "cancel_dead": true, "lock": k == 0})
+			for k in 7:   # 10-25 加密：原 5 个、e.dmg × 0.6
+				var pos: Vector2 = g.combat.arena_clamp(a.lerp(b, (float(k) + 0.5) / 7.0), 60.0)
+				var w := _warn(e, "circle", 0.9 + 0.16 * k, {"pos": pos, "r": 48.0, "act": "ishar_strike", "true": true, "seq_no": k + 1,
+					"name": "泪落" if k == 0 else "", "col": COL, "dmg": e.dmg * 0.47, "cancel_dead": true, "lock": k == 0})
 				end = maxf(end, w.dur)
 		1:
 			# B · 三线扫射：三条 660 × 14 条纹线，夹角 0.38；逐条锁定（第 1 条 0.3 秒、之后各晚 0.15 秒），同时结算；每条锁定 ≥0.4；e.dmg × 0.7 真伤 / 线。
 			# Kanpelle 青绿光束（§8.5）。三幕「分锁三人」：第 2、3 条改瞄两名队友（没有就照旧张开），之后 2 秒不出招（§8.2「定拍」：拆网的空档）
-			var aims: Array = [dir.angle(), dir.angle() - float(d.get("line_spread", 0.38)), dir.angle() + float(d.get("line_spread", 0.38))]
+			var sp: float = float(d.get("line_spread", 0.38))
+			var aims: Array = [dir.angle(), dir.angle() - sp, dir.angle() + sp, dir.angle() + sp * 2.0 * (1.0 if g.rng_enemy.randf() < 0.5 else -1.0)]   # 第 4 条（10-25 加密）：再往一侧张开一格
 			if act3:
 				var n := 1
 				for o in g.squad.ops:
@@ -111,12 +112,12 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 						aims[n] = (o.pos - e.pos).angle()
 						n += 1
 				pause = Bal.v("boss/ishar_line_pause", 2.0)
-			for k in 3:
+			for k in 4:
 				var w := _warn(e, "line", float(d.get("line_warn", 1.0)),
-					{"ang": aims[[1, 0, 2][k]],
+					{"ang": aims[[1, 0, 2, 3][k]],
 					"len": float(d.get("range", 660.0)), "wid": float(d.get("line_width", 14.0)), "track": (0.3 + 0.15 * k) if not act3 or k == 1 else 0.0, "seq_no": k + 1,
 					"act": "ishar_line", "true": true, "name": "三线扫射" if k == 0 else "", "col": COL, "kp": "ishar", "kp_k": 2.0,
-					"dmg": e.dmg * float(d.get("line_mult", 0.7)), "cancel_dead": true, "lock": k == 0})
+					"dmg": e.dmg * float(d.get("line_mult", 0.7)) * 0.78, "cancel_dead": true, "lock": k == 0})   # ×0.78：10-25 加密
 				end = maxf(end, w.dur)
 		2:
 			# C · 大群之歌（PRTS「她不再歌唱，它为大群发声」，招式名本作拟）：以本体为心 r90 起扩散的声波环（≤220px/s，到 r600 止），
@@ -126,15 +127,17 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 			if g.lamp >= 70.0:
 				arc *= 1.5
 			var gh: float = clampf(arc * 0.5 / maxf(dist, 90.0), 0.12, 1.0)
+			var smult: float = Bal.v("boss/ishar_song_mult", 0.7)   # 原 0.9（10-25 加密 ×0.78）
 			var w := _warn(e, "circle", 0.8, {"r": 90.0, "act": "song_ring", "gaps": [dir.angle(), dir.angle() + PI], "gap_half": gh,
 				"maxr": 600.0, "spd": Bal.v("boss/ishar_song_spd", 220.0), "true": true, "name": "大群之歌", "col": COL,
-				"dmg": e.dmg * Bal.v("boss/ishar_song_mult", 0.9), "cancel_dead": true})
+				"dmg": e.dmg * smult, "cancel_dead": true})
 			end = w.dur
-			if act3:
-				# 三幕：第二圈晚 0.9 秒、缺口转 90°（§8.2「拦路」：穿过第一圈的缺口后要再找第二圈的）
-				var w2 := _warn(e, "circle", 1.7, {"r": 90.0, "act": "song_ring", "gaps": [dir.angle() + PI * 0.5, dir.angle() - PI * 0.5], "gap_half": gh,
+			# 后续圈（10-25 加密：一二幕 2 圈、三幕 3 圈；原一二幕 1 圈、三幕 2 圈）：每圈晚 0.9 秒、缺口转 90°（§8.2「拦路」：穿过一圈的缺口后要再找下一圈的）
+			for q in (2 if act3 else 1):
+				var ga: float = dir.angle() + PI * 0.5 * float(q + 1)
+				var w2 := _warn(e, "circle", 1.7 + 0.9 * q, {"r": 90.0, "act": "song_ring", "gaps": [ga, ga + PI], "gap_half": gh,
 					"maxr": 600.0, "spd": Bal.v("boss/ishar_song_spd", 220.0), "true": true, "name": "", "col": COL,
-					"dmg": e.dmg * Bal.v("boss/ishar_song_mult", 0.9), "cancel_dead": true, "lock": false})
+					"dmg": e.dmg * smult, "cancel_dead": true, "lock": false})
 				end = maxf(end, w2.dur)
 		3:
 			# D · 撕咬（近，半角 0.85、r190）/ 横扫（远，半角 0.46、r 到主控 +40 ≤660）：暗填扇形，追踪 0.3；e.dmg × 0.9 真伤。

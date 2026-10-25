@@ -113,11 +113,15 @@ func _pillar(e: Dictionary, dir: Vector2) -> void:
 ## 连线结算那一刻两具互换位置（telegraph tide_link 的 swap）。读法：别站两体之间、也别站在任一体与自己的连线上，往三角外斜走，换完重新选边
 func _swap(e: Dictionary, mate: Dictionary) -> void:
 	_warn(e, "line", 1.0, {"ang": (mate.pos - e.pos).angle(), "len": e.pos.distance_to(mate.pos), "wid": 17.0, "track": 0.6, "act": "tide_link", "name": "换位",
-		"col": g.vfx.boss_color(e.type), "dmg": e.dmg * 0.6, "cancel_dead": true, "b_owner": mate, "lock": false, "swap": true, "kp": "bishop", "kp_k": 1.0})
+		"col": g.vfx.boss_color(e.type), "dmg": e.dmg * 0.47, "cancel_dead": true, "b_owner": mate, "lock": false, "swap": true, "kp": "bishop", "kp_k": 1.0})
+	# 各自连向主控的线 + 穿过主控、与两体连线平行的第 4 道（10-25 加密：原三角 3 道；×0.78）
 	for src in [e, mate]:
 		var v: Vector2 = g.ppos - src.pos
 		_warn(e, "line", 1.0, {"pos": src.pos, "ang": v.angle(), "len": v.length() + 40.0, "wid": 14.0, "track": 0.4, "act": "shot", "name": "",
-			"col": g.vfx.boss_color(src.type), "dmg": e.dmg * 0.5, "lock": false, "kp": "bishop", "kp_k": 1.0})
+			"col": g.vfx.boss_color(src.type), "dmg": e.dmg * 0.39, "lock": false, "kp": "bishop", "kp_k": 1.0})
+	var pa: float = (mate.pos - e.pos).angle()
+	_warn(e, "line", 1.15, {"pos": g.ppos - Vector2.from_angle(pa) * 420.0, "ang": pa, "len": 840.0, "wid": 14.0, "track": 0.0, "act": "shot", "name": "",
+		"col": g.vfx.boss_color(e.type), "dmg": e.dmg * 0.39, "lock": false, "kp": "bishop", "kp_k": 1.0})
 	g.vfx.add_text(e.pos + Vector2(0, -50), "统一", Color(0.4, 0.9, 1.0), 16)
 
 

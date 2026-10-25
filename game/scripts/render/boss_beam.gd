@@ -320,26 +320,50 @@ static func _act_look(g, e: Dictionary, grains) -> void:
 		p -= 1.0
 
 
-## ---- 伊莎玛拉「大群之歌」（用户 10-25「放出去的像是平推出去」，要有生命感；判定不变：shot_pool.update_shocks 按 sh.r 一条环带）
-## 前沿：随角度起伏（7 瓣、随时间流动 ±7–10）、粗细脉动的专属色亮带 + 浅色芯；身后三层衰减尾带（越往里越淡越宽）；
-## 前沿沿途散出颗粒（光学观感颗粒开着时）；缺口两侧照旧画金色出口短线。不加深色描边（只有伊比利亚的弹描边）
+## ---- Boss 冲击环（伊莎玛拉「大群之歌」、塑路者震地、蔑死体跃击）：用户 10-25「放出去的像是平推出去」「波纹内部多叠」「几何线条感太重」
 const SONG_STEP := 0.07   # 折线每段弧度
 const SONG_RIP := 26.0    # 内波纹间距（世界像素）
 
 
-static func _song_pts(sh: Dictionary, a0: float, a1: float, dr: float, gy: float, t: float) -> PackedVector2Array:
+static func _song_r(sh: Dictionary, a: float, dr: float, t: float) -> float:
+	var amp: float = 7.0 + float(sh.r) * 0.006   # 起伏随半径略增（大半径时 ±4 看着还是正圆）
+	return float(sh.r) + dr + sin(a * 7.0 + t * 5.0) * amp + sin(a * 13.0 - t * 8.0) * amp * 0.35
+
+
+## 一条断续的「颗粒带」（用户 10-25「波的几何线条感太重」）：沿弧每 SONG_STEP 一小段短划（占 70%，留缝），按 hash 决定这一段画不画（keep）、
+## 半径抖动 ±jit/2、亮度起伏；hash 每秒换 6 次 → 闪烁、断续。一次 draw_multiline_colors 提交整条带（不逐段调用）
+static func _song_band(g, sh: Dictionary, segs: Array, dr: float, gy: float, t: float, col: Color, width: float, keep: float, jit: float, seed: float) -> void:
 	var pts := PackedVector2Array()
-	var n: int = maxi(2, int(ceil((a1 - a0) / SONG_STEP)))
-	for i in n + 1:
-		var a: float = a0 + (a1 - a0) * float(i) / float(n)
-		var amp: float = 7.0 + float(sh.r) * 0.006   # 起伏随半径略增（大半径时 ±4 看着还是正圆）
-		var rr: float = float(sh.r) + dr + sin(a * 7.0 + t * 5.0) * amp + sin(a * 13.0 - t * 8.0) * amp * 0.35
-		pts.append(sh.pos + Vector2(cos(a) * rr, sin(a) * rr * gy))
-	return pts
+	var cols := PackedColorArray()
+	var tick: float = floor(t * 6.0)
+	for sg in segs:
+		var a0: float = sg[0]
+		var a1: float = sg[1]
+		var n: int = maxi(2, int(ceil((a1 - a0) / SONG_STEP)))
+		for i in n:
+			var h: float = fposmod(sin(float(i) * 12.9898 + seed * 78.233 + tick * 3.17) * 43758.5453, 1.0)
+			if h > keep:
+				continue
+			var aa: float = a0 + (a1 - a0) * float(i) / float(n)
+			var ab: float = a0 + (a1 - a0) * (float(i) + 0.7) / float(n)
+			var j: float = (h / maxf(0.01, keep) - 0.5) * jit
+			var ra: float = _song_r(sh, aa, dr, t) + j
+			var rb: float = _song_r(sh, ab, dr, t) + j
+			pts.append(sh.pos + Vector2(cos(aa) * ra, sin(aa) * ra * gy))
+			pts.append(sh.pos + Vector2(cos(ab) * rb, sin(ab) * rb * gy))
+			var k: float = 0.55 + 0.45 * fposmod(h * 7.31, 1.0)
+			cols.append(Color(col.r, col.g, col.b, col.a * k))
+	if not cols.is_empty():
+		g.draw_multiline_colors(pts, cols, width)
 
 
-static func draw_song(g, sh: Dictionary, gy: float) -> void:
+## Boss 冲击环（大群之歌、震地、跃击；判定不变：shot_pool.update_shocks 按 sh.r 一条环带）：
+## 前沿 = 断续抖动的专属色颗粒带（亮芯 + 外侧柔光），往内三层越淡越宽越碎的尾带；伊莎玛拉另叠 4 圈由内向外流的内波纹（ripples）；
+## 前沿沿途散颗粒（走预算）；缺口两侧照旧画金色出口短线。不加深色描边
+static func draw_song(g, sh: Dictionary, gy: float, ripples: bool = true) -> void:
 	var c: Color = sh.get("col", ISHAR_LINK)
+	if str(sh.get("src_type", "")) != "ishar":
+		c = g.vfx.boss_color(str(sh.get("src_type", "")))
 	var k: float = clampf(float(sh.r) / maxf(1.0, float(sh.maxr)), 0.0, 1.0)
 	var a: float = 1.0 - k * k * 0.7   # 越扩越淡（到最大半径剩 0.3），不是匀速一整块
 	var t: float = g.t
@@ -359,14 +383,12 @@ static func draw_song(g, sh: Dictionary, gy: float) -> void:
 			if s1 <= s0:
 				s1 += TAU
 			segs.append([s0, s1])
-	var pulse: float = 0.5 + 0.5 * sin(t * 14.0)
-	for sg in segs:
-		# 尾带（由外往里：越淡越宽）
-		for j in 3:
-			var dr: float = -8.0 - 9.0 * j
-			g.draw_polyline(_song_pts(sh, sg[0], sg[1], dr, gy, t - 0.05 * j), Color(c.r, c.g, c.b, (0.32 - 0.09 * j) * a), 6.0 + 3.0 * j)
-		# 内波纹（用户 10-25「波纹内部多叠，现在就外部一个不明显」）：前沿之内 4 圈，间距 SONG_RIP，随时间由内向外流向前沿（一层层推出去）；
-		# 越往里越淡越细，各圈错相起伏（相位偏 0.9 秒 / 圈），太靠近圆心的不画
+	var sd: float = float(sh.pos.x * 0.013 + sh.pos.y * 0.007)   # 每个环自己的 hash 种子
+	# 尾带（由外往里：越淡、越宽、越碎）
+	for j in 3:
+		_song_band(g, sh, segs, -9.0 - 10.0 * j, gy, t - 0.05 * j, Color(c.r, c.g, c.b, (0.34 - 0.09 * j) * a), 5.0 + 2.5 * j, 0.8 - 0.15 * j, 6.0 + 3.0 * j, sd + 1.0 + j)
+	if ripples:
+		# 内波纹：4 圈由内向外流向前沿（一层层推出去），越往里越淡越细越碎，各圈错相起伏
 		var flow: float = fposmod(t * 55.0, SONG_RIP)
 		for q in 4:
 			var dr2: float = -(16.0 + SONG_RIP * float(q) + (SONG_RIP - flow))
@@ -374,33 +396,33 @@ static func draw_song(g, sh: Dictionary, gy: float) -> void:
 				continue
 			var depth: float = clampf(-dr2 / (SONG_RIP * 4.0 + 16.0), 0.0, 1.0)
 			var lc: float = 1.15 - 0.35 * depth   # 外圈偏亮、里圈偏暗（同色系分明暗）
-			g.draw_polyline(_song_pts(sh, sg[0], sg[1], dr2, gy, t + 0.9 * float(q + 1)), Color(c.r * lc, c.g * lc, c.b * lc, 0.55 * a * (1.0 - depth)), 2.6 - 1.6 * depth)
-		# 前沿亮带 + 浅色芯 + 前方一点柔光
-		g.draw_polyline(_song_pts(sh, sg[0], sg[1], 4.0, gy, t), Color(c.r, c.g, c.b, 0.22 * a), 4.0)
-		g.draw_polyline(_song_pts(sh, sg[0], sg[1], 0.0, gy, t), Color(c.r * 1.25, c.g * 1.25, c.b * 1.25, a), 3.0 + 1.5 * pulse)
-		g.draw_polyline(_song_pts(sh, sg[0], sg[1], 0.0, gy, t), Color(0.85 + c.r * 0.15, 0.85 + c.g * 0.15, 0.85 + c.b * 0.15, 0.85 * a), 1.2)
+			_song_band(g, sh, segs, dr2, gy, t + 0.9 * float(q + 1), Color(c.r * lc, c.g * lc, c.b * lc, 0.6 * a * (1.0 - depth)), 3.0 - 1.6 * depth, 0.75 - 0.35 * depth, 5.0, sd + 7.0 + q)
+	# 前沿：外侧柔光 + 本色亮带 + 浅色芯（都断续）
+	_song_band(g, sh, segs, 4.0, gy, t, Color(c.r, c.g, c.b, 0.22 * a), 6.0, 0.7, 4.0, sd + 20.0)
+	_song_band(g, sh, segs, 0.0, gy, t, Color(c.r * 1.25, c.g * 1.25, c.b * 1.25, a), 3.5, 0.9, 3.0, sd + 21.0)
+	_song_band(g, sh, segs, 0.0, gy, t, Color(0.85 + c.r * 0.15, 0.85 + c.g * 0.15, 0.85 + c.b * 0.15, 0.8 * a), 1.4, 0.55, 2.0, sd + 22.0)
 	for ga in gaps:
 		for side in [-1.0, 1.0]:
 			var v := Vector2.from_angle(float(ga) + side * gh)
 			var p0: Vector2 = sh.pos + Vector2(v.x, v.y * gy) * (float(sh.r) - 16.0)
 			var p1: Vector2 = sh.pos + Vector2(v.x, v.y * gy) * (float(sh.r) + 16.0)
 			g.draw_line(p0, p1, Color(1.0, 0.85, 0.35, 0.9), 2.0)
-	# 前沿沿途散颗粒：每帧 5 颗，随机角度（落在缺口里的跳过），向外飘、慢慢升起变淡
+	# 前沿沿途散颗粒 + 波内由内向外流的颗粒（走预算）
 	var grains = grains(g)
 	if grains != null and a > 0.2:
-		for i in take(g, 3):
+		for i in take(g, 5):
 			var ang: float = g.vrng.randf() * TAU
 			if not gaps.is_empty() and g.tele.in_gap(sh, ang):
 				continue
 			var v2 := Vector2.from_angle(ang)
 			grains.push("mote_shed", sh.pos + Vector2(v2.x, v2.y * gy) * float(sh.r), v2, c)
-		# 波内部由内向外流的颗粒（每帧最多 2 颗，走预算）：一层层往外推的「流」
-		for i in take(g, 2):
-			var ang2: float = g.vrng.randf() * TAU
-			if not gaps.is_empty() and g.tele.in_gap(sh, ang2):
-				continue
-			var v3 := Vector2.from_angle(ang2)
-			grains.push("mote_shed", sh.pos + Vector2(v3.x, v3.y * gy) * float(sh.r) * g.vrng.randf_range(0.45, 0.9), v3, Color(c.r * 0.85, c.g * 0.85, c.b * 0.85))
+		if ripples:
+			for i in take(g, 2):
+				var ang2: float = g.vrng.randf() * TAU
+				if not gaps.is_empty() and g.tele.in_gap(sh, ang2):
+					continue
+				var v3 := Vector2.from_angle(ang2)
+				grains.push("mote_shed", sh.pos + Vector2(v3.x, v3.y * gy) * float(sh.r) * g.vrng.randf_range(0.45, 0.9), v3, Color(c.r * 0.85, c.g * 0.85, c.b * 0.85))
 
 
 ## 大群之歌的起势（预警 0.8 秒里）：她身边一圈由外往里收的环 + 颗粒向她汇聚（「张开 → 吸气」），出手时由 draw_song 接上
