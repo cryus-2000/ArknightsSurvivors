@@ -71,7 +71,8 @@ func setup(game, wp: Node2D, gp: Node2D) -> void:
 	var img := Image.create(2, 2, false, Image.FORMAT_RGBA8)
 	img.fill(Color.WHITE)
 	px_tex = ImageTexture.create_from_image(img)
-	k_amount = 0.5 if Cfg.quality == "mid" else 1.0
+	# 中档颗粒量同高档（render/mid_full_fx，缺省 1；10-25 用户「以现在高档的画质作为中档的画质来保障」，docs/50 §26）；0 = 旧的中档减半
+	k_amount = 0.5 if Cfg.quality == "mid" and Bal.v("render/mid_full_fx", 1.0) <= 0.0 else 1.0
 	var dn := int(DEBRIS_POOL * k_amount)
 	for i in dn:
 		debris.append(_one_shot(world_parent, DEBRIS_PTS, 0.9))
@@ -398,7 +399,7 @@ func step_trails(danger: Color, on: bool) -> void:
 			if b.life <= 0.0:
 				continue
 			_tp_img.set_pixel(n, 0, Color(b.pos.x, b.pos.y - 16.0, 0, 1))
-			_tc_img.set_pixel(n, 0, danger)
+			_tc_img.set_pixel(n, 0, g.optical.eb_col(b) if g.optical != null else danger)   # Boss 弹危险色、杂兵弹敌弹色（docs/139 §7.3）
 			n += 1
 	trails.visible = n > 0
 	trails.emitting = n > 0

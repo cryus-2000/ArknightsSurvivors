@@ -21,7 +21,7 @@ K = GW / 640.0
 
 # 640×360 原图坐标：范围多边形（含触须）、伞顶锚点、主轴方向（伞顶 → 触须）、伞体长度
 JELLIES = [
-    {'poly': [(378, 78), (486, 78), (488, 160), (452, 228), (402, 270), (330, 280), (300, 262), (312, 228), (352, 190), (372, 150)],
+    {'poly': [(374, 74), (490, 74), (492, 162), (456, 232), (404, 276), (328, 286), (294, 266), (306, 226), (338, 192), (344, 168), (360, 140)],
      'anchor': (430, 86), 'axis': (-0.56, 0.83), 'bell': 64.0},
     {'poly': [(250, 192), (300, 192), (302, 232), (292, 272), (262, 276), (246, 240)],
      'anchor': (276, 197), 'axis': (-0.15, 0.99), 'bell': 22.0},
@@ -76,7 +76,9 @@ def main():
         solid = ndimage.binary_fill_holes(ndimage.binary_closing(a > 0.15, iterations=3)) & region
         a = np.where(solid, np.maximum(a, 0.45), a)
         alphas.append(a)
-        hole |= ndimage.binary_dilation(a > 0.15, iterations=3) & region
+        # 补洞范围比水母大一圈（主水母 7 格）：原画伞体周围的光晕一并拆走，免得留下不跟水母走的亮斑（10-25 用户：水母有断层）
+        grow = ndimage.binary_dilation(region, iterations=8)
+        hole |= ndimage.binary_dilation(a > 0.15, iterations=7 if j is JELLIES[0] else 4) & grow
     bg = inpaint(src, hole)
     # 底图与水母都缩到 3 像素格
     def down(arr):

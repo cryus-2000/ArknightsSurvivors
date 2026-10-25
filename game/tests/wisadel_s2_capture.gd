@@ -4,11 +4,13 @@ func _ready() -> void:
 	var id := "wisadel"
 	var slot := 1
 	var frames := 210
+	var move := false
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--capture-op="): id = arg.get_slice("=", 1)
 		if arg.begins_with("--capture-skill="): slot = int(arg.get_slice("=", 1))
 		if arg.begins_with("--capture-frames="): frames = int(arg.get_slice("=", 1))
-	var output := ProjectSettings.globalize_path("res://../build/wisadel_s2_capture" if id == "wisadel" and slot == 1 else "res://../build/three_lifecycle_capture/%s_s%d" % [id, slot + 1])
+		if arg == "--capture-move": move = true   # 10-24 S2 跑动：技能期间队长左右来回跑（每 1.5 秒掉头），看跑动帧条
+	var output := ProjectSettings.globalize_path("res://../build/wisadel_s2_capture" + ("_move" if move else "") if id == "wisadel" and slot == 1 else "res://../build/three_lifecycle_capture/%s_s%d" % [id, slot + 1])
 	DirAccess.make_dir_recursive_absolute(output)
 	var g = load("res://game.tscn").instantiate()
 	add_child(g)
@@ -30,13 +32,15 @@ func _ready() -> void:
 	o.attack_t = 0.0
 	o.fire_t = -1.0
 	for k in 6:
-		var enemy: Dictionary = g.spawner.spawn_enemy("stone", center + Vector2(120+k*8, (k%3-1)*16))
+		var enemy: Dictionary = g.spawner.spawn_enemy("stone", center + Vector2((300 if move else 120)+k*8, (k%3-1)*16 - (60 if move else 0)))
 		enemy.hp = 1000000.0
 		enemy.max_hp = 1000000.0
 	g.enemies_sys.build_grid()
 	o.start_skill(Vector2.INF,slot)
 	for frame in frames:
 		for step in 3:
+			if move:
+				g.ppos.x += (1.0 if (frame / 30) % 2 == 0 else -1.0) * 110.0 / 60.0
 			g._update(1.0/60)
 			g.world.update_visuals(1.0/60)
 			g.world.present_step()

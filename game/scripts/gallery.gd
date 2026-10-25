@@ -37,10 +37,10 @@ const ENEMY_DESC := {
 	"fractal": "塑路者碎裂时放出的高速碎片。",
 	"spitter": "远程抛射酸液：落点先出预警，落地造成范围伤害并留下溟痕，命中附带侵蚀。",
 	"tear": "伊莎玛拉人形阶段用技能「抗争之泪」召唤，不会伤害队长；未被压制时为伊莎玛拉的转化充能。队长靠近即可压制，伊莎玛拉转化后消失。",
-	"pocket": "精英。背负气囊的爬行者，每失去 15% 最大生命就鼓胀 0.8 秒后爆裂一次（范围 80），两次爆裂至少间隔 1.2 秒；看到它发亮就离开。",
+	"pocket": "精英。背负气囊的爬行者，每失去 15% 最大生命就鼓胀 1.1 秒后爆裂一次（范围 160），两次爆裂至少间隔 1.2 秒；看到它发亮就离开。",
 	"skimmer": "精英。低空悬浮的远程个体，射击附带侵蚀；被控制后坠落，改为近战。",
 	"mother": "精英。向队长投掷注亡拟嗣：落点先出预警，落地造成伤害并附加侵蚀，拟嗣随即在落点孵化（场上最多 6 只）。",
-	"mimic": "精英。伪装成补给箱，受到攻击后现形。免疫眩晕、寒冷和封印；击败后掉落源石锭。",
+	"mimic": "精英。伪装成补给箱，受到攻击后现形。现形后尖叫 2.5 秒：周围 150 内累积神经损伤，期间照常追击、不啃咬；尖叫结束前击倒，源石锭 ×1.5。啃咬两连，第二口伤害 ×0.6。免疫眩晕、寒冷和封印；击败后掉落源石锭。",
 	"path": "中期 Boss（3:30 / 7:00）。高大的刃肢海嗣：直线「冲撞」、近身「震地」；「分形塑路」扇形劈击，劈痕处长出 1 只分形（本体所属最多 8 只，20 秒后消散）。生命降到 75% / 50% / 25% 时各碎裂一次，放出 4 只分形；50% 后放「订正」，以自身为中心射出带缺口的刃弹环，核心分形 12 秒内未被打碎时碎片回流并立即「订正」。",
 	"iberia": "中期 Boss（7:00）。圣徒卡门的强化状态（同一人物，一次探索只会出现一位）：生命与攻击更高，手炮只装 1 发。「手炮」射线贯穿全屏，「轰击」曲射砸向队长所在位置，两者共用弹药；打空后近身追击，近距离用「散射」喷出 13 发弹丸。装填 2.2 秒，读条中累计受到伤害或被冲刺穿身会被打断、跪地露出破绽。50% 后装填完毕先放「清膛」缺口环，再接「手炮·三连」。",
 	"carmen": "中期 Boss（3:30 / 7:00）。持手炮的年迈圣徒（与伊比利亚是同一人物，一次探索只会出现一位）：3 发弹药。远距离「狙击」，近身「炮身横扫」；弹药满且距离适中时转身「环射」，三个缺口的弹环一次打空 3 发。装填 3 秒，读条可被打断。50% 后弹药打空先进入 8 秒炮身近战，用「炮身砸击」冲到队长身边砸地。",
@@ -50,7 +50,7 @@ const ENEMY_DESC := {
 	"paranoia": "结局一「平凡即是喜乐」的最终 Boss。悬浮形态：「凝视」依次锁定的多道光束、「叠影」连续落在队长脚下的落点圈、「泡影环」带缺口的慢弹环；站在认知负担光环内全队攻速下降。生命降至最大生命的 1/3 时坠落，进入近战的第二形态，追加「呼号」扇形喷涌；生命归零时结茧，击破外壳后进入破绽状态。",
 	"izumik": "结局四「如星空般深蓝」的最终 Boss。学习阶段无敌并放出子代，子代回到本体会被吸收，每吸收一只就朝队长放一次「分享」；阐释阶段使用「潮汐坠落」「解读旋涡」「分享」，66% 后周期释放全场的「震撼」，只有冲刺或点亮的灯柱光圈能躲。",
 	"ishar": "结局三「息潮的代价」的最终 Boss。人形阶段治疗受伤海嗣，不攻击队长，干员也不会以她为目标；转化充能随时间增长，未被队长靠近压制的泪滴会加快充能。充满后变为敌对白壳海嗣，轮转使用「三点落击」「三线扫射」「大群之歌」（带两个出口的声波环）与近身「撕咬」，全部真实伤害；未压制的泪滴会在变身后发动「泪滴共鸣」。",
-	"knight_boss": "结局二「静谧时代」的最终 Boss。「冲锋」直线突进，「冰线」之后沿线发动「寒冷追击」；近身「长枪连刺」三段、末段前刺；短时间内受到足够伤害就以自身为心放「寒冷」，命中附加寒冷并留下冰面。第一次生命归零后寒冰重生进入二阶段：冲锋三连、寒冷更久，加「长枪回旋」缺口环。",
+	"knight_boss": "结局二「静谧时代」的最终 Boss。「冲锋」直线突进，「冰线」之后沿线发动「寒冷追击」；近身「长枪连刺」三段、末段前刺；短时间内受到足够伤害就以自身为心放「寒冷」，命中附加寒冷并留下冰面。第一次生命归零后寒冰重生进入二阶段：冲锋三连、寒冷更久，加「长枪回旋」缺口环。猎潮的骑士倒下后，这次探索里它还会作为精英出现：直线冲锋，命中附带冰霜减速。",
 	"knight": "精英。最后的骑士，只在猎潮的骑士（结局二路线）倒下后出现。直线冲锋，命中附带冰霜减速。",
 }
 const RelicDb = preload("res://scripts/core/relic_db.gd")
@@ -75,18 +75,6 @@ var demo_mode := -1
 ## 干员详情的信息页：档案 / 技能 / 成长（docs/58 §11，10-11 用户定：不要藏品契合、不要战绩；旧「数值」页并进技能页顶部的大数字）
 var info_tab := 0
 const INFO_TABS := ["档案", "属性", "技能", "成长"]   # 属性：主控数值表（与选人「属性」页同源，InitialStats.sheet）
-## 敌人图鉴的附加形态（标签, 贴图, 帧数, 帧率, 循环）：说明里写了第二形态的 Boss（docs/48 验收 P2-6）
-const EXTRA_FORMS := {
-	"ishar": [["变身", "e_ishar_transform", 6, 7.0, false], ["变身移动", "e_ishar_t_move", 4, 5.0, true], ["变身攻击", "e_ishar_t_attack", 4, 8.0, true]],
-	"knight_boss": [["冲刺", "e_knight_charge", 4, 8.0, true], ["插枪", "e_knight_plant", 4, 8.0, false], ["冲锋形态", "e_knight_charge_form", 4, 8.0, true]],
-	# Codex V13（art/requests/v13_codex_boss_p2.md）；伊比利亚射击、伊祖米克地波蓄力是 _attack，已由上面的通用「攻击」行展示
-	"carmen": [["炮身近战", "e_saint_melee", 4, 12.0, true], ["装弹", "e_saint_reload", 4, 6.0, true]],   # V15 圣徒统一造型
-	"iberia": [["炮身近战", "e_saint_dark_melee", 4, 12.0, true], ["装弹", "e_saint_dark_reload", 4, 6.0, true]],
-	"izumik": [["扎根", "e_izumik_rooting", 4, 3.0, true]],
-	"path": [["冲撞", "e_path_charge", 4, 10.0, true]],
-}
-
-
 func _ready() -> void:
 	var lf := FileAccess.open("res://data/lore.json", FileAccess.READ)
 	if lf != null:
@@ -344,32 +332,14 @@ func _build() -> void:
 				var e: Dictionary = D.ENEMIES[k]
 				if e.get("role", "") != role:
 					continue
-				var forms: Array = [_anim_n("常态", e.tex, 2, 2.0 if role == "boss" else 5.0)]
-				if k == "paranoia" and A.tex("e_paranoia2") != null:
-					forms[0].label = "一阶段"
-					forms.append(_anim_n("二阶段", "e_paranoia2", 2, 2.0))
-				if A.tex(e.tex + "_feign") != null:
-					forms.append(_anim_n("假死", e.tex + "_feign", 2, 2.0))
-				if k == "ishar" and A.tex("e_ishar_t") != null:
-					forms.append(_anim_n("转化后", "e_ishar_t", 2, 2.0))   # 转化形态素材已交付（docs/38 §6.2），实战接入在伊莎玛拉纵切
-				# 美术 V8 新敌人：另列移动 / 攻击与附加帧条（休眠 / 唤醒 / 狂暴）；普通怪一律列（注亡拟嗣 / 碎片 / 泪只有移动帧条，docs/94）
-				if e.get("atk_anim", false) or role == "boss" or role == "":
-					for fm in [["移动", "_move", 4, float(e.get("move_fps", 6.0))], ["攻击", "_attack", 4, 10.0], ["休眠", "_dormant", 2, 3.0], ["唤醒", "_awaken", 4, 10.0], ["狂暴", "_enraged", 2, 5.0]]:
-						if A.tex(e.tex + fm[1]) != null:
-							forms.append(_anim_n(fm[0], e.tex + fm[1], fm[2], fm[3]))
-				# 说明里写了第二形态的 Boss：把已交付的形态帧条列出来（伊莎玛拉变身 / 骑士插枪、冲锋形态）
-				for fm in EXTRA_FORMS.get(k, []):
-					if A.tex(fm[1]) != null:
-						forms.append(_anim_n(fm[0], fm[1], fm[2], fm[3], fm[4]))
+				if k == "knight":
+					continue   # 敌对骑士在数据里是精英（进精英池），图鉴只在 Boss 页列一条「最后的骑士」（用户 10-24）
+				# 敌人 / Boss 页签只留「待机」和「演示」（用户 10-24）：移动 / 攻击 / 变身等帧条不再单列，演示里的实机 AI 会演出来
+				var forms: Array = [_anim_n("待机", e.tex, 2, 2.0 if role == "boss" else 5.0)]
 				# 换色复用贴图的怪（撕裂者 / 潜地者 / 吐酸者 / 巨骸）：展示台按 enemies.json 的 tint 染色、按 draw_scale 放大（和实战一致）
-				var tint: Color = e.get("tint", Color.WHITE)
-				var dsc: float = float(e.get("draw_scale", 1.0))
-				for fm in forms:
-					fm.tint = tint
-					fm.dscale = float(e.get("transformed_draw_scale", 1.0)) if k == "ishar" and fm.label in ["转化后", "变身", "变身移动", "变身攻击"] else dsc
-					if fm.label == "二阶段" and k == "paranoia":
-						pass   # 同实战：V13 终稿自带洋红配色和 ×1.10 体量，不再染色、不放大
-				forms.append({"label": "攻击演示", "tex": null, "frames": 1, "fps": 1.0, "loop": true, "enemy_demo": k})
+				forms[0].tint = e.get("tint", Color.WHITE)
+				forms[0].dscale = float(e.get("draw_scale", 1.0))
+				forms.append({"label": "演示", "tex": null, "frames": 1, "fps": 1.0, "loop": true, "enemy_demo": k})
 				var ai: String = {"melee": "近战", "ranged": "远程", "static": "固定"}.get(e.ai, "")
 				var st := [["生命", str(int(e.hp))], ["伤害", str(int(e.dmg))], ["移速", str(int(e.spd))], ["类型", ai]]
 				if e.has("range"):
@@ -405,7 +375,7 @@ func _build() -> void:
 					mech += "\n\n攻击模式：" + " / ".join(moves) + "。"
 				entries.append({"id": k, "name": e.name, "en": k.to_upper(), "tag": ["", "普通敌人", "精英敌人", "Boss"][tab],
 					"forms": forms, "stats": st, "chips": tags, "desc": _lore_text(k, mech),
-					"locked": not Cfg.unlock_all and not Cfg.gallery_seen.has("enemy:" + str(k)), "locked_text": "尚未遭遇，遇到后收录。"})
+					"locked": not Cfg.unlock_all and not Cfg.gallery_seen.has("enemy:" + str(k)) and not (k == "knight_boss" and Cfg.gallery_seen.has("enemy:knight")), "locked_text": "尚未遭遇，遇到后收录。"})
 		6:
 			# 结局：四格；未达成显示 ???，达成后显示最终 Boss 立绘与一句话
 			for i in ENDING_ORDER.size():

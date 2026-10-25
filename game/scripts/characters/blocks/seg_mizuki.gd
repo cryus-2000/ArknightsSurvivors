@@ -224,7 +224,7 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 	var bu = emp.get("burst", null)
 	if empowered and hit.size() > 0 and bu is Dictionary:
 		var ip: Vector2 = hit[0].pos
-		g.fx.append({"kind": "impact", "pos": ip, "ang": ang, "life": 0.35, "max": 0.35, "col": H3_GOLD})
+		# 10-24 用户「水月一技能造成的这些黄色的圆形可以去掉」：命中处的金色十字光团（impact）不画了；r70 金环本来就被 render/hit_rings 关着
 		g.fx.append({"kind": "ring", "pos": ip, "r": 70.0, "life": 0.3, "max": 0.3, "col": H3_GOLD, "op_hit": true})
 		g.flash = maxf(g.flash, 0.12)
 		for k in mini(hit.size(), int(bu.get("n", 3))):
@@ -318,7 +318,7 @@ static func _h3_run_delayed(o, dl: Dictionary) -> void:
 					o.deal_damage(e, dl.dmg)
 					if not e.boss:
 						o.apply_kb(e, (e.pos - dl.pos).normalized() * float(bu.get("kb", 200.0)))
-			g.fx.append({"kind": "burst", "pos": dl.pos, "r": dl.r, "life": 0.4, "max": 0.4, "col": H3_GOLD, "op_spoke": true})
+			# 创伤扩散的金色实心圆 + 粗圆环（burst）不画了（10-24 用户），伤害 / 击退 / 火星照旧
 			o.sparks(dl.pos, Vector2.ZERO, Color(1.0, 0.8, 0.4), 10, 280.0)
 			var sfx: Node = g.get_node_or_null("/root/Sfx") if g.is_inside_tree() else null
 			if sfx != null:

@@ -31,7 +31,7 @@ const OP_SFX := {
 	"ulpianus": ["atk", "s1", "s2", "s3", "big"],
 	# 网上 CC0 录音截取（docs/113 §8，tools/import_sfx_cc0.py）：能天使枪声 / 命中 / 弹匣倾泻、德克萨斯刀划、星熊格挡；其余类别仍走 OP_ALT 借用
 	"exusiai": ["atk", "hit", "big"],
-	"texas": ["atk"],
+	"texas": ["atk", "hit"],
 	"hoshiguma": ["hit"],
 }
 ## 各类别的默认音量（dB）：普攻 / 命中最频繁，压低；技能发动是一局里少数几次的"高光"，放开
@@ -41,7 +41,7 @@ const OP_LIMIT := {"atk": 0.06, "hit": 0.06, "quake": 0.08, "big": 0.1, "heal": 
 ## 音效盘点（docs/113，10-21 用户「枪击、锁链等各种音效都需要优化」）按请求名（op_<干员>_<类别>）的三张旋钮表：
 ## OP_DB 音量偏移（dB，叠在 OP_VOL 与调用处偏移上）；OP_GAP 最短间隔（秒，按请求名算，借用同一文件的干员各算各的）；
 ## OP_PVAR 音高随机（±，取它与调用处的较大值）。数字来自 docs/113 §2 实测：混音里最响的是长尾低频重击的高频连发
-const OP_DB := {"op_eyjafjalla_big": -3.0, "op_kaltsit_big": -2.0, "op_wisadel_quake": -3.0, "op_wisadel_hit": -1.5, "op_exusiai_hit": -2.0}
+const OP_DB := {"op_eyjafjalla_big": -3.0, "op_kaltsit_big": -2.0, "op_wisadel_quake": -3.0, "op_wisadel_hit": -1.5, "op_exusiai_hit": -2.0, "op_texas_hit": -3.0}
 const OP_GAP := {"op_exusiai_hit": 0.1, "op_exusiai_big": 0.3, "op_eyjafjalla_big": 0.2}
 const OP_PVAR := {"op_exusiai_atk": 0.09, "op_exusiai_hit": 0.1, "op_irene_atk": 0.08, "op_texas_atk": 0.08, "op_eyjafjalla_atk": 0.08, "op_lumen_atk": 0.07, "op_wisadel_quake": 0.12}
 var op_last := {}          # 请求名 -> 上次放行的墙钟秒（OP_GAP）
@@ -58,8 +58,8 @@ const OP_ALT := {"op_logos_hit": ["op_mizuki_hit", 0.8, -4.0],
 	# 安洁莉娜（docs/61 §12，数据干员，暂无专属音）：普攻借 Logos 低沉的法术起手（「嗡」），落点借铃兰命中压低（内收短鸣），技能借 Logos / 铃兰 / 流明
 	"op_angelina_atk": ["op_logos_atk", 0.7, -2.0], "op_angelina_hit": ["op_suzuran_hit", 0.7, -2.0], "op_angelina_s1": ["op_logos_s1", 0.85, 0.0],
 	"op_angelina_s2": ["op_suzuran_s2", 0.6, 0.0], "op_angelina_s3": ["op_lumen_s3", 0.9, -1.0],
-	# 德克萨斯（docs/61 §13，数据干员）：命中借艾丽妮，技能借艾丽妮 / 推进之王；拔剑斩已换 CC0 录音 op_texas_atk（docs/113 §8）
-	"op_texas_hit": ["op_irene_hit", 1.1, -3.0], "op_texas_s1": ["op_irene_s1", 1.05, 0.0],
+	# 德克萨斯（docs/61 §13，数据干员）：技能借艾丽妮 / 推进之王；冲刺起冲 op_texas_atk、收势 op_texas_hit 是合成版专属音（docs/113 §15，10-24 用户定）
+	"op_texas_s1": ["op_irene_s1", 1.05, 0.0],
 	"op_texas_s2": ["op_siege_s2", 1.15, 0.0], "op_texas_s3": ["op_irene_s3", 1.1, 0.0],
 	# 能天使（docs/61 §14，数据干员）：技能借艾丽妮 / 维什戴尔；枪声 / 命中 / 弹匣倾泻已换 CC0 录音 op_exusiai_atk / hit / big（docs/113 §8）
 	"op_exusiai_s1": ["op_irene_s1", 1.15, 0.0],
@@ -665,6 +665,11 @@ func voice_can_cut(key: String, now: float) -> bool:
 ## 能打断正在说的战斗闲聊（同技能语音口径）；只有正在播技能 / 部署 / 指挥语音时才放弃
 var voice_urgent: Array = []          # [干员, 事件, 截止时刻]：等当前这条播完立即补播的指挥回应
 var voice_log := false                 # --voicelog（测试）：真正开播时打印 VOICEPLAY <干员> <事件>
+
+## 这名干员有没有这条语音素材（指挥喊话缺素材时退到通用音效）
+func has_voice(cid: String, key: String) -> bool:
+	return _voice_stream(cid, key) != null
+
 
 func voice(cid: String, key: String, queue := false, urgent := false) -> void:
 	var st := _voice_stream(cid, key)
