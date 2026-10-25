@@ -12,6 +12,7 @@ class VoiceSpy extends Node:
 
 class VoiceGame extends RefCounted:
 	var sfx: Node
+	var panel_ui = null
 	var t := 100.0
 	var demo_op := ""
 	var trace_every := 0.0
