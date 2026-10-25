@@ -18,12 +18,12 @@ import godot_runner as gr
 ROOT = os.path.dirname(TOOLS)
 OUT = os.path.join(gr.common_root(), "build", "uift")
 SCEN = {
-    # 启动页 → 标题页首帧后 10 秒（含开场动画）
-    "title": ["--ftrec", "--ftquit=title:10"],
-    # 标题页 4 秒后打开寻访，看 6 秒
-    "hunt": ["--ftrec", "--ftdo=title:4:hunt", "--ftquit=hunt:6"],
-    # 标题页 4 秒后开图鉴，2.5 秒后换条目，再 2.5 秒换页签，看 3 秒
-    "gallery": ["--ftrec", "--ftdo=title:4:gallery", "--ftdo=gallery:2.5:gal_next", "--ftdo=gal_next:2.5:gal_tab", "--ftquit=gal_tab:3"],
+    # 启动页 → 标题页揭开后 10 秒（含开场动画；10-25 起启动页盖到稳帧才揭开，改前版本没有 reveal 标记，要比改前用 git 历史里的 title:10 写法）
+    "title": ["--ftrec", "--ftquit=reveal:10"],
+    # 标题页揭开 3 秒后打开寻访，看 6 秒
+    "hunt": ["--ftrec", "--ftdo=reveal:3:hunt", "--ftquit=hunt:6"],
+    # 标题页揭开 3 秒后开图鉴，2.5 秒后换条目，再 2.5 秒换页签，看 3 秒
+    "gallery": ["--ftrec", "--ftdo=reveal:3:gallery", "--ftdo=gallery:2.5:gal_next", "--ftdo=gal_next:2.5:gal_tab", "--ftquit=gal_tab:3"],
     # 机器人打 20 秒直接胜利，停在结算页 6 秒
     "settle": ["--ftrec", "--autotest", "--statsshot=20,hold", "--ftquit=settle:6"],
     # 走玩家路径进局（载入页）：机器人按真实帧间隔打（--balance --realtime，不截图），对局第一帧后看 10 秒

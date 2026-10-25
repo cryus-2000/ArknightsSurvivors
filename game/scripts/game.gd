@@ -1180,13 +1180,14 @@ func cam_center() -> Vector2:
 ## 整局都看真实帧间隔，每 AQ_WIN 秒一窗；连续 AQ_NEED 窗平均帧时超过一帧预算 × AQ_OVER（60 帧时约 44 帧以下）才降一级（低于 30 帧一窗就降），降完 AQ_HOLD 秒不判。
 ## 只降不升，本次启动内一直有效（Cfg.auto_level，不存档：下次启动从头测，偶尔一次卡顿不会永久降低观感）。高配机不掉帧就一级都不降。
 ## 各级按「省得多、看着差得少」排（docs/50 §28 实测）：
-##   1 关光学 GPU 粒子 + 特效动态照明    2 再关发光层 + CPU 颗粒（刀光 / 水花退回帧条画法）    3 画质「低」（光学整套关、后期全关、粒子减半）
+##   1 关光学 GPU 粒子 + 特效动态照明    2 再关发光层 + CPU 颗粒（刀光 / 水花退回帧条画法）
+##   3 分辨率缩放（只在高像素密度屏：手机网页；普通桌面跳过这级）    4 画质「低」（光学整套关、后期全关、粒子减半）
 ## 只在真人局 + 自动档时启用（测试加 --autoq 才开；都是纯画面，同 seed 结果不变）
 const AQ_WIN := 2.0
 const AQ_NEED := 2
 const AQ_OVER := 1.35
 const AQ_HOLD := 3.0
-const AQ_MAX := 3
+const AQ_MAX := 4
 
 func _auto_quality(delta: float) -> void:
 	quality_note_t = maxf(0.0, quality_note_t - delta)
@@ -1214,6 +1215,8 @@ func _auto_quality(delta: float) -> void:
 		return
 	aq_win = Vector3.ZERO
 	Cfg.auto_level += 1
+	if Cfg.auto_level == 3 and not Cfg.hidpi_render():
+		Cfg.auto_level = 4   # 普通桌面：分辨率缩放没收益，直接下一级
 	aq_hold = AQ_HOLD
 	_apply_auto_level()
 	if not Cfg.dev_args().is_empty():
@@ -1228,7 +1231,9 @@ func _apply_auto_level() -> void:
 	var lv: int = Cfg.auto_level
 	if optical != null:
 		optical.auto_mask = (6 if lv >= 1 else 0) | (9 if lv >= 2 else 0)   # 2 GPU 粒子 + 4 动态照明；8 发光层 + 1 CPU 颗粒
-	if lv >= 3 and Cfg.quality != "low":
+	if lv >= 3 and Cfg.hidpi_render():
+		Cfg.set_render_scale(true)
+	if lv >= 4 and Cfg.quality != "low":
 		Cfg.set_quality("low")
 
 

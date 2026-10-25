@@ -580,6 +580,22 @@ func set_quality(q: String) -> void:
 	water_filter = quality != "low"
 
 
+## 分辨率缩放（画质自动档第 3 级，docs/50 §28）：高像素密度屏（手机网页按设备像素画，2400×1080 级）改成先按逻辑分辨率（约 1280×720）
+## 画好整屏再放大，全屏着色器 / 后期的像素量降到约四分之一；字会软一点。窗口像素和逻辑分辨率差不多时（普通桌面）没有收益，自动档不用这一级
+var render_scaled := false
+
+func set_render_scale(on: bool) -> void:
+	if on == render_scaled:
+		return
+	render_scaled = on
+	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT if on else Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+
+
+## 窗口实际像素比逻辑分辨率（720 高）多出三成以上：分辨率缩放才有用
+func hidpi_render() -> bool:
+	return get_tree().root.size.y > 720.0 * 1.3
+
+
 func fx_density() -> float:
 	return 0.5 if quality == "low" else 1.0
 

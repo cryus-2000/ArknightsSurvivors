@@ -97,6 +97,7 @@ def _ws_connect(url):
     u = urllib.parse.urlparse(url)
     s0 = socket.create_connection((u.hostname, u.port), timeout=10)
     s = _Sock(fileno=s0.detach())   # 子类才能挂属性（cmd）
+    s.settimeout(30)
     key = base64.b64encode(os.urandom(16)).decode()
     s.sendall(("GET %s HTTP/1.1\r\nHost: %s:%d\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\n\r\n"
                % (u.path, u.hostname, u.port, key)).encode())

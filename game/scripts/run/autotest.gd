@@ -564,7 +564,9 @@ func step() -> void:
 		g.optical.grains.off = not g.optical.grains.off   # --grainab=N：同局轮换刀光第四版
 	if stackab > 0 and g.at_frames % stackab == 0 and g.optical != null:
 		stack_i = (stack_i + 1) % stack_masks.size()   # --stackab：换下一个逐层关闭掩码
-		g.optical.ab_mask = int(stack_masks[stack_i])
+		g.optical.ab_mask = int(stack_masks[stack_i]) & 127
+		if stack_masks.any(func(m): return int(m) & 128):
+			Cfg.set_render_scale((int(stack_masks[stack_i]) & 128) != 0)   # 位 128：分辨率缩放（docs/50 §28 自动档第 3 级）
 		stack_sw = g.at_frames
 	if matab > 0 and g.at_frames % matab == 0 and g.optical != null and g.optical.grains != null:
 		g.optical.grains.mat_off = not g.optical.grains.mat_off   # --matab=N：同局轮换材质颗粒
