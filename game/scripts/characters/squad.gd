@@ -21,9 +21,10 @@ var side := 1.0                # 编队站位的左右（-1..1），主控转身
 ## 指挥模式（docs/114）：全队站位。一个键循环 随行 → 突击 → 归队；归队归位完自动回随行（下一次按键进突击）
 enum { GUARD, ROAM, RECALL }
 const STANCE_NAMES := ["随行", "突击", "归队"]
-## 索敌优先级（指挥圆盘，docs/114 §13）：只影响队友自动索敌（op_api.nearest_enemies），队长不受影响；机器人缺省 0
-const PRIO_NAMES := ["就近", "清杂优先", "Boss 优先"]
-const PRIO_SHORT := ["就近", "清杂", "Boss"]
+## 索敌优先级（指挥圆盘，docs/114 §13）：0 Boss 优先（缺省 = 改动前的逻辑）/ 1 清杂优先；只影响队友（op_api.prio_mode），队长恒为 0；机器人缺省 0
+## （10-24 用户定：去掉「就近」——它和 Boss 优先在有 Boss 时几乎一样）
+const PRIO_NAMES := ["Boss 优先", "清杂优先"]
+const PRIO_SHORT := ["Boss", "清杂"]
 var priority := 0
 var stance := GUARD
 var recall_t := 0.0
@@ -344,6 +345,7 @@ func update(dt: float) -> void:
 	swap_cd = maxf(0.0, swap_cd - dt)
 	_tick_stamina(dt)
 	_tick_hp(dt)
+	_tick_rush_buff()
 	for o in ops:
 		if o.cmd_down > 0.0:
 			continue   # 倒地：不充技力、不出手（docs/114 §7）
@@ -454,10 +456,8 @@ func apply_command(id: String) -> void:
 				set_stance(RECALL)
 		"mob":
 			set_priority(1)
-		"near":
-			set_priority(0)
 		"boss":
-			set_priority(2)
+			set_priority(0)
 
 
 func set_priority(p: int) -> void:
@@ -602,7 +602,7 @@ func _recall_blink() -> void:
 var _vo_i := 0
 var _vo_t := -999.0
 
-func _stance_voice(s: int) -> void:
+func _stance_voice(s: int, shout := false) -> void:
 	if g.demo_op != "" or g.t - _vo_t < Bal.v("command/voice_gap", 6.0):
 		return
 	var eligible: Array = ops.filter(func(o): return o.cmd_down <= 0.0 and (o.is_leader or o.cmd_roam()))
@@ -613,8 +613,15 @@ func _stance_voice(s: int) -> void:
 	_vo_i += 1
 	_vo_t = g.t
 	var sfx: Node = g.get_node_or_null("/root/Sfx")
+	var key: String = "command" if s == ROAM else "entry"
 	if sfx != null:
-		sfx.voice(o.id, "command" if s == ROAM else "entry", false, true)   # urgent：玩家指挥回应，不被闲聊 / 间隔吃掉（10-23）
+		sfx.voice(o.id, key, false, true)   # urgent：玩家指挥回应，不被闲聊 / 间隔吃掉（10-23）
+	if shout and o.pos != Vector2.INF:
+		# 爆发窗口喊话（10-24）：头顶短字「出击」；这名干员没有对应语音素材就补一声通用音效
+		if g.get("vfx") != null:
+			g.vfx.add_text(o.pos + Vector2(0, -78), "出击", Color(1.0, 0.82, 0.3), 16)
+		if sfx != null and not sfx.has_voice(o.id, key):
+			sfx.play("swing_heavy", -4.0)
 
 
 func _tick_lead(dt: float) -> void:
@@ -636,6 +643,47 @@ func _revive(o, p: Vector2) -> void:
 	o.cmd_inv = Bal.v("command/revive_inv", 1.0)
 	o.cmd_show = 3.0
 	o.pos = p
+
+
+## ---- 爆发窗口（10-24 用户定：突击 = 队友出击时攻速和技力回复明显加成 + 第一下冲锋带击退，耐力照旧限时）
+static func rush_on() -> bool:
+	return Bal.v("command/rush", 1.0) > 0.0
+
+
+var _rush_buffed: Array = []   # 当前挂着「command」加成的干员 id
+
+## 每帧对账：突击中、肯出击、没倒地的队友挂攻速 / 技力回复 mult（来源 command，作用域 op:<id>），其余撤掉；退出突击立即全撤
+func _tick_rush_buff() -> void:
+	var want: Array = []
+	if stance == ROAM and rush_on() and cmd_on():
+		for o in ops:
+			if roaming_op(o):
+				want.append(o.id)
+	if want == _rush_buffed:
+		return
+	_rush_buffed = want
+	g.stats.remove_source("command")
+	for cid in want:
+		if g.stats.has_stat(&"op_aspd"):
+			g.stats.add(&"op_aspd", "mult", 1.0 + Bal.v("command/rush_aspd", 0.25), "command", "op:" + cid)
+		if g.stats.has_stat(&"op_skill_sp"):
+			g.stats.add(&"op_skill_sp", "mult", Bal.v("command/rush_sp", 1.5), "command", "op:" + cid)
+
+
+## 加成说明（状态栏 / 属性面板）：不在爆发窗口里返回空串
+func rush_text() -> String:
+	if _rush_buffed.is_empty():
+		return ""
+	return "攻速 +%d%% · 技力回复 ×%s" % [roundi(Bal.v("command/rush_aspd", 0.25) * 100.0), _num(Bal.v("command/rush_sp", 1.5))]
+
+
+## 切到突击那一刻：每名出击的队友朝自己的目标冲一段（character.begin_rush）
+func _rush_start() -> void:
+	if not rush_on() or g.demo_op != "":
+		return
+	for o in ops:
+		if roaming_op(o):
+			o.begin_rush()
 
 
 ## 耐力：突击扣、其余回；耗尽 → 自动归队（走集合那套）+ 冷却。机器人突击常开（command/bot_roam）时随行中耐力够了就再突击
@@ -664,8 +712,10 @@ func set_stance(s: int) -> void:
 		_sortie_down = false
 	elif s == RECALL:
 		_recall_blink()
+	if s == ROAM:
+		_rush_start()
 	if s == ROAM or s == RECALL:
-		_stance_voice(s)
+		_stance_voice(s, s == ROAM)
 	recall_t = 0.0
 	gather_t = -1.0
 	stance_log.append([g.t, s])
