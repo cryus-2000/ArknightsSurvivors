@@ -256,6 +256,7 @@ var ending_new := false            # 本局首次达成该结局（结算面板�
 var next_horde := Bal.v("enemy/first_horde", 75.0)   # 第一次大群（balance.json，docs/46 §1.2）
 var horde_gap := 0.0          # 本次大群包围圈的缺口方向（弧度），预警箭头会留出这一侧
 var horde_streams: Array = []   # 分股合围原型（docs/116 §7.2）：本次大群各股的方向（弧度），空 = 普通整圈；HUD 预警箭头只画这些方向
+var horde_hunt := false      # 本次大群是「围猎型」（docs/147，10-25 围猎并进大群）：四面合拢、缺口小，HUD 只在缺口方向画一个小箭头
 var horde_stream_rel: Array = []   # 各股出发时刻（与 horde_streams 对应），HUD 出发前 0.8 秒屏边预警
 var show_queue: Array = []   # 解锁演出队列
 var shop_refreshed := false  # 本次商人只能刷新一次
