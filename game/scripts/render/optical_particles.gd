@@ -203,6 +203,15 @@ func _ambient(parent: Node, amount: int, life: float, col: Color) -> GPUParticle
 	return p
 
 
+## --stackab 第 64 位（docs/50 §26.9，仅测试）：爆发类隔一次发一次，近似「GPU 粒子池减半」的网页画质选项，同局轮换量帧时
+var _half_n := 0
+func _ab_half() -> bool:
+	if g.optical == null or (int(g.optical.ab_mask) & 64) == 0:
+		return false
+	_half_n += 1
+	return _half_n % 2 == 0
+
+
 func set_active(on: bool) -> void:
 	active = on and k_amount > 0.0 and Cfg.quality != "low"
 	spores.visible = active
@@ -286,7 +295,7 @@ func _debris_mat(e: Dictionary, sc: float, anc: Vector2, src := "", frame := 0) 
 
 ## 新击杀（vfx.death_shatter / _shatter）：死亡帧条播完那一刻，按它最后一帧的像素碎开（位置 / 缩放 / 锚点 / 朝向与帧条绘制一致）
 func kill_burst_frame(e: Dictionary, src: String, frame: int, origin: Vector2, sc: float, anc: Vector2, flip: bool) -> void:
-	if not active or debris.is_empty() or e.get("chest", false):
+	if not active or debris.is_empty() or e.get("chest", false) or _ab_half():
 		return
 	var mc: Array = _debris_mat(e, sc, anc, src, frame)
 	if mc[0] == null:
@@ -310,7 +319,7 @@ func kill_burst_frame(e: Dictionary, src: String, frame: int, origin: Vector2, s
 
 ## ⑦ 击杀碎屑（combat.kill 在光学观感开着时调；只做画面）
 func kill_burst(e: Dictionary) -> void:
-	if not active or debris.is_empty() or e.get("chest", false):
+	if not active or debris.is_empty() or e.get("chest", false) or _ab_half():
 		return
 	var foot: bool = g.foot_anchor.has(e.tex)
 	var origin: Vector2 = e.pos + Vector2(0, e.r * 0.8) if foot else e.pos
@@ -438,7 +447,7 @@ func fx_color(name: String) -> Color:
 
 ## ③ 技能点缀：一次性帧条特效出现时，按它的本色在原点喷一组火星 / 碎片（大的特效另配余烬）。限频 SKILL_GAP、轮转池
 func fx_burst(name: String, pos: Vector2, scale: float) -> void:
-	if not active or skill.is_empty() or name == "fx_death_dissolve":
+	if not active or skill.is_empty() or name == "fx_death_dissolve" or _ab_half():
 		return
 	var now := Time.get_ticks_msec() / 1000.0
 	if now - _skill_t < SKILL_GAP:
@@ -480,7 +489,7 @@ func fx_burst(name: String, pos: Vector2, scale: float) -> void:
 
 ## 特效第 2 步：命中三档迸溅（vfx._tier_fx 调）。按档取池轮转；队长周围局部预算超了就压暗（同 fx_burst）
 func tier_burst(pos: Vector2, col: Color, tier: int) -> void:
-	if not active or tier < 1 or tiers[tier - 1].is_empty():
+	if not active or tier < 1 or tiers[tier - 1].is_empty() or _ab_half():
 		return
 	var pool: Array = tiers[tier - 1]
 	var p: GPUParticles2D = pool[_tii[tier - 1] % pool.size()]
@@ -500,7 +509,7 @@ func tier_burst(pos: Vector2, col: Color, tier: int) -> void:
 
 ## 命中迸溅（vfx.hit_react 调）：限频，几颗被打者发光色 / 白色像素
 func hit_spark(pos: Vector2, col: Color) -> void:
-	if not active or sparks.is_empty():
+	if not active or sparks.is_empty() or _ab_half():
 		return
 	var now := Time.get_ticks_msec() / 1000.0
 	if now - _spark_t < SPARK_GAP:
