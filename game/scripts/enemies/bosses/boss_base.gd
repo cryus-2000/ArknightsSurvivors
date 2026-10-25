@@ -107,6 +107,7 @@ func _first_tell(e: Dictionary, key: String, name: String) -> bool:
 
 ## 规则横幅（docs/142b §1.3 / §1.4）：第一次见这只 Boss（本局）先亮一句「要做什么」；过卡点换幕时亮这一幕的新规则。
 ## 同一 key 本局只亮一次（g 上记 meta）；Boss 战里走 vfx 的小通知（show_banner prio 2）
+## 用户 10-25 起只用来喊关键机制的短句（≤ 10 字的祈使句，机制第一次出现那一刻），不再写规则说明
 func _rule_banner(key: String, text: String) -> void:
 	var mk: String = "boss_rule_" + key
 	if g.has_meta(mk):
@@ -134,6 +135,8 @@ func _pair_shield(e: Dictionary) -> float:
 		return 1.0
 	var gap: float = Bal.v("boss/pair_shield_gap2", 0.15) if _pair_p2(e) else Bal.v("boss/pair_shield_gap", 0.25)
 	e.pair_shield = e.hp / maxf(1.0, e.maxhp) < m.hp / maxf(1.0, m.maxhp) - gap
+	if e.pair_shield:
+		_rule_banner("tide_shield", "把两具血量拉平！")
 	return Bal.v("boss/pair_shield_mult", 0.4) if e.pair_shield else 1.0
 
 

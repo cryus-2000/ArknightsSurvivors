@@ -459,7 +459,11 @@ func _draw_trails(list: Array, enemy: bool) -> void:
 		n += 1
 		var col: Color
 		if enemy:
-			col = eb_col(b)   # 颜色语言：杂兵弹敌弹色、Boss 弹危险色（不再取各怪 ecol；docs/139 §7.3）
+			col = eb_col(b)   # 颜色语言：杂兵弹敌弹色、Boss 弹专属色（不再取各怪 ecol；docs/139 §7.3、docs/142b §8.4）
+			if b.get("boss", false):
+				var tc = D.ENEMIES.get(str(b.get("src_type", "")), {}).get("bcol_trail")
+				if tc is Color:
+					col = tc   # 伊比利亚：拖尾用中间调（同色相、比亮边暗，用户 10-25「有层次感」）
 		else:
 			var bc = b.get("col")
 			col = bc if bc is Color else Color(0.7, 0.95, 1.0)

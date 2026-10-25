@@ -1599,8 +1599,18 @@ func _eb_own() -> bool:
 func _eb_mod(b: Dictionary, base: Color) -> Color:
 	if not (b.get("boss", false) and _eb_own()):
 		return base
-	var c: Color = g.vfx.boss_color(str(b.get("src_type", "")))
+	var t: String = str(b.get("src_type", ""))
+	var c: Color = D.ENEMIES.get(t, {}).get("bcol_core", g.vfx.boss_color(t))   # 有弹芯色（伊比利亚）用弹芯色
 	return Color(c.r * 1.1, c.g * 1.1, c.b * 1.1)
+
+
+## Boss 弹的同色系外描边（enemies.json bcol_outline，目前只伊比利亚，用户 10-25「描边要同调、有层次」）：压在亮边外侧、2 世界像素（1 个低分辨率格）、不闪
+func _eb_boss_outline(b: Dictionary, bp: Vector2) -> void:
+	if not (b.get("boss", false) and _eb_own()):
+		return
+	var oc = D.ENEMIES.get(str(b.get("src_type", "")), {}).get("bcol_outline")
+	if oc is Color:
+		tb_ring(bp, b.r + 3.5, 2.0, Color(oc.r, oc.g, oc.b, 1.0))
 
 
 ## 弹体贴图的灰度版 g.tex[名 + "@gray"]（第一次用时从原色版做：按最亮通道提到 0.35–1.0 的灰、保留透明度），画时乘专属色。纯画面
@@ -1706,9 +1716,11 @@ func _draw_ebullets_lobs_shocks() -> void:
 				# docs/139 §7 敌弹外描边（用户 10-24「敌方子弹加一个描边看一下」）：危险色、不闪，宽 ow 世界像素（2 = 1 个低分辨率格），压在亮描边外侧
 				var dc: Color = g.optical.col_danger
 				tb_ring(bp, b.r + 3.0 + ow * 0.5, ow, Color(dc.r, dc.g, dc.b, 1.0))
+			_eb_boss_outline(b, bp)
 		elif b.get("boss", false) and _eb_own():
 			var bc: Color = g.vfx.boss_color(str(b.get("src_type", "")))
 			tb_ring(bp, b.r + 2.0, 1.5, Color(bc.r * 1.3, bc.g * 1.3, bc.b * 1.3, 0.9))   # Boss 弹亮描边 = 专属色（不加危险色外圈，用户 10-25「描边不要加」）
+			_eb_boss_outline(b, bp)
 		else:
 			tb_ring(bp, b.r + 2.0, 1.5, Color(2.4, 0.8, 1.8, 0.9))
 	tb_flush()
@@ -3881,7 +3893,7 @@ func _boss_state(e: Dictionary) -> void:
 			UI.text(g, g.font, top + Vector2(-120, -12), "装填被打断 · 破绽 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 		elif brk > 0.0:
 			# 其他 Boss 的破绽（伊莎玛拉潮涌迫近落地、塑路者核心碎裂等）：同一套星 + 剩余秒数
-			UI.text(g, g.font, top + Vector2(-120, -12), "破绽 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
+			UI.text(g, g.font, top + Vector2(-120, -12), "%s %.1f" % [str(e.get("brk_label", "破绽")), brk], 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)   # 骑士撞冰柱写「眩晕」
 		elif e.type in ["iberia", "carmen"] and e.get("ammo", 1) == 0:
 			UI.text(g, g.font, top + Vector2(-120, -12), "装填被打断 · 眩晕 %.1f" % e.stun, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 

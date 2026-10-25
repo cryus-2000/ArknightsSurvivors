@@ -18,7 +18,6 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, mate
 	var p2: bool = _pair_p2(e)
 	if p2:
 		_tint2(e, TINT2)
-	_rule_banner("tide_intro", "接潮组：站到血多那具旁边，把两具血量拉平，再一起打进假死")
 	_pair_spread(e, dt)
 	# 第二幕换位 + 统一三角（取代原来的两体靠拢）
 	if p2 and mate != null and not mate.dead and not panic and not mate.get("coma", false) and not e.get("coma", false):
@@ -120,11 +119,6 @@ func _swap(e: Dictionary, mate: Dictionary) -> void:
 		_warn(e, "line", 1.0, {"pos": src.pos, "ang": v.angle(), "len": v.length() + 40.0, "wid": 14.0, "track": 0.4, "act": "shot", "name": "",
 			"col": g.vfx.boss_color(src.type), "dmg": e.dmg * 0.5, "lock": false, "kp": "bishop", "kp_k": 1.0})
 	g.vfx.add_text(e.pos + Vector2(0, -50), "统一", Color(0.4, 0.9, 1.0), 16)
-
-
-## 过卡点：二幕规则
-func on_gate(e: Dictionary) -> void:
-	_rule_banner("tide_p2", "统一：每 10 秒两具换位，换完重新选边")
 
 
 ## D · 接潮扇浪（第二幕）：enemies.json patterns「接潮扇浪」（manual）——扇形 r260 半角 0.9，追踪 0.3 总 1.4；扇形本身一次 e.dmg × 0.9 + 7 发浪弹 320px/s

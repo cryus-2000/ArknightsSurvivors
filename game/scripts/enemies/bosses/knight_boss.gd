@@ -1,6 +1,6 @@
 ## 最后的骑士（type knight_boss，docs/38 §2.7 / §8.8；招式改版 docs/95 §4，10-14；主轴改版 docs/142b §3.1 / §8.2 样板，10-25）
 ## Boss 行为脚本（docs/55 §6 拆分，10-10）：状态仍在敌人字典 e 上，预警 / 冷却 / 迫近经基类转给 boss_ai.gd。本文件只有这只 Boss 自己的招式与阶段逻辑。
-## 主轴「斗牛」：平时重甲（受伤 × knight_armor 0.4），引它冲锋撞上冰枪桩 → 长枪脱手破绽（受伤 × knight_break_taken 2.0）。
+## 主轴「斗牛」：平时重甲（受伤 × knight_armor 0.4），引它冲锋撞上冰柱 → 眩晕 knight_stake_break（2.5）秒（受伤 × knight_break_taken 2.0；用户 10-25「撞上冰柱之后让他眩晕一会」）。
 ##   原作反冻（受到伤害时给来源附加寒冷）按自动攻击改成「寒气圈」：队长在它脚下 knight_cold_r 内寒冷条上涨，满了冻伤（减速 + 下一击 × 1.75，原作打冻结 175%）。
 ##   一幕：开局 3 根桩、到期自动补；冲锋 / 冰线 + 寒冷追击（用户 10-14 定保留）/ 长枪连刺
 ##   二幕「冰原」（66%）：桩撞一次就碎、不再自动补，靠新招「掷枪」落地立桩（最多 4 根）；冲锋路径留冰面 3 秒，站上去寒冷条照涨
@@ -25,7 +25,8 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		e.channel -= dt
 		if e.channel <= 0.0:
 			e.invuln = false
-	_rule_banner("knight_intro", "最后的骑士：引它冲锋撞上冰柱 · 别在寒气圈里久留")
+	if e.has("brk_label") and float(e.get("break_t", 0.0)) <= 0.0:
+		e.erase("brk_label")   # 撞柱眩晕 / 喘气破绽结束：别的破绽（韧性）照旧写「破绽」
 	_knight_stakes(e, dt)
 	_cold_step(e, dt)
 	_ice_step(e)
@@ -40,6 +41,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	if e.has("breath_at") and g.t >= float(e.breath_at):
 		e.erase("breath_at")
 		g.combat.start_break(e, Bal.v("boss/knight_breath", 2.5))
+		e.brk_label = "破绽"
 	if not (ready and e.channel <= 0.0 and e.get("wind", 0.0) <= 0.0):
 		return
 	# 冰线之后的寒冷追击（沿冰线冲锋）：最高优先；二阶段它就是三连的第一冲
@@ -119,6 +121,8 @@ func _bite(e: Dictionary, dmg: float) -> float:
 
 ## A · 冲锋：520 × 34 条纹线，追踪 0.4 秒后锁定，总 0.8 秒；e.dmg × 1.7（冲锋期间碰到结算一次）；重生后带三连；三幕后面再转向冲一次（折线）
 func _charge(e: Dictionary, dir: Vector2) -> void:
+	if e.phase == 1:
+		_rule_banner("knight_intro", "利用冰柱让他眩晕！")   # 用户 10-25
 	_warn(e, "line", 0.8, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.4, "act": "dash", "fit_len": true, "name": "冲锋", "col": ICE,
 		"dmg": _bite(e, e.dmg * Bal.v("boss/knight_charge_mult", 1.7))})
 	if e.phase == 2:
@@ -255,10 +259,12 @@ func _knight_stakes(e: Dictionary, _dt: float) -> void:
 				e.dash2 = 0
 				e.erase("breath_at")
 				g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
-				g.combat.start_break(e, Bal.v("boss/knight_stake_break", 5.0))
+				# 撞柱眩晕（用户 10-25）：knight_stake_break（2.5）秒不动不出招、受伤 × knight_break_taken（2.0）；头顶星 + 「眩晕」读秒（world 读 brk_label）
+				g.combat.start_break(e, Bal.v("boss/knight_stake_break", 2.5))
+				e.brk_label = "眩晕"
 				Sfx.play("stake_hit", 2.0, 1.0, 0.0)   # 撞桩、长枪脱手
 				g.fx.append({"kind": "ring", "pos": s.pos, "r": 70.0, "life": 0.5, "max": 0.5, "col": Color(0.6, 0.9, 1.4), "enemy": true})
-				g.vfx.add_text(e.pos + Vector2(0, -70), "长枪脱手！", Color(1.0, 0.85, 0.4), 22)
+				g.vfx.add_text(e.pos + Vector2(0, -70), "撞上冰柱 · 眩晕！", Color(1.0, 0.85, 0.4), 22)
 				Sfx.play("boom", -4.0, 1.2, 0.0)
 				break
 
@@ -299,9 +305,6 @@ func on_gate(e: Dictionary) -> void:
 			s.until = INF
 		_place_stakes(e, int(Bal.v("boss/knight_stakes", 5.0)))
 		g.vfx.add_text(e.pos + Vector2(0, -70), "冰原 · 冰柱破土", Color(0.6, 0.9, 1.4), 18)
-		_rule_banner("knight_p2", "冰原：冰柱撞一次就碎，靠它掷枪补上")
-	elif _act(e) == 2:
-		_rule_banner("knight_p3", "掷枪：冲锋会转弯，冰柱要挡在第二段上")
 
 
 ## 第一次归零不死，寒冰重生（二阶段「冲锋形态」）

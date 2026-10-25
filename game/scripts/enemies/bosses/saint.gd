@@ -25,10 +25,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	var p2: bool = int(e.get("gates_passed", 0)) >= 1
 	if p2:
 		_tint2(e, TINT2_IBERIA if e.type == "iberia" else TINT2_CARMEN)
-	if e.type == "iberia":
-		_rule_banner("iberia_intro", "圣徒伊比利亚：躲过手炮，趁装填冲刺穿过他打断")
-	else:
-		_rule_banner("carmen_intro", "圣徒卡门：三枪留下火线，从缺口绕到她身边，趁装填压上去")
+	if e.type != "iberia":
 		_fire_step(e, dt)
 	# 打断后起身：直接补满弹药、转回远程，0.8 秒后开火（不再装填——不然每次装填都能被打断，永远开不了火）
 	if e.get("refill_on_rise", false) and float(e.get("break_t", 0.0)) <= 0.0 and e.stun <= 0.0:
@@ -138,18 +135,12 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 						g.vfx.sparks(e.pos, away, Color(0.9, 0.9, 0.8), 12, 180.0)
 						g.vfx.add_text(e.pos + Vector2(0, -50), "退避", Color(0.95, 0.92, 0.85), 14)
 				e.channel = rt
+				if e.type == "iberia":
+					_rule_banner("iberia_intro", "趁装填冲刺穿过他！")
 				e.reload_dmg = 0.0
 				e.count_end = g.t + rt   # 读条环（界面与美术读 count_end / count_max）
 				e.count_max = rt
 				g.vfx.add_text(e.pos + Vector2(0, -44), "装填中……", Color(1.0, 0.8, 0.5), 16)
-
-
-## 过卡点（第二幕）：伊比利亚亮这一幕的新规则（docs/142b §1.4）
-func on_gate(e: Dictionary) -> void:
-	if e.type == "iberia":
-		_rule_banner("iberia_p2", "延生：装填更快，只有冲刺穿身能打断")
-	else:
-		_rule_banner("carmen_p2", "守誓：第三枪锁你所在的跑道，穿缺口换格；她装填时会跳开")
 
 
 ## 图鉴 / Boss 演练：直接进入第二幕（伊比利亚装填完毕放清膛、卡门炮身近战段）
@@ -311,6 +302,7 @@ func _fire_step(e: Dictionary, dt: float) -> void:
 		var a: Vector2 = la.pos
 		lines.append({"a": a, "b": a + Vector2.from_angle(float(la.ang)) * float(la.len), "gap_t": gt, "gap_len": Bal.v("boss/carmen_fire_gap", 80.0),
 			"until": g.t + Bal.v("boss/carmen_fire_life", 6.0), "born": g.t})
+		_rule_banner("carmen_intro", "从火线缺口穿过去！")
 	lines = lines.filter(func(fl): return g.t < float(fl.until))
 	e.fire_lines = lines
 	if g.invuln > 0.0 or g.t < float(e.get("fire_hit_at", 0.0)):

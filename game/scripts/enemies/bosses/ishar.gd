@@ -20,7 +20,6 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	if e.phase == 2 and _enraged(e) and not e.has("tint2"):
 		_tint2(e, Color(1.18, 0.86, 0.9))   # 濒死强化：本体加红色着色（docs/95 §2.2 D）
 	if e.phase == 2 and g.t >= float(e.get("transform_until", 0.0)):
-		_rule_banner("ishar_web", "破网：被歌声连住的海嗣给她减伤，绕着她把网一只只拆掉")
 		_web_step(e, dt)
 		_eye_step(e)
 	if e.phase == 2 and ready and g.t >= float(e.get("transform_until", 0.0)):
@@ -256,6 +255,7 @@ func _web_step(e: Dictionary, dt: float) -> void:
 				n += 1
 		if n > 0:
 			g.vfx.add_text(e.pos + Vector2(0, -60), "召唤合唱", COL, 16)
+			_rule_banner("ishar_web", "击破那些海嗣！")   # 用户 10-25 原话
 			Sfx.play("tentacle", -6.0, 1.2)
 
 
@@ -354,9 +354,7 @@ func on_gate(e: Dictionary) -> void:
 		return
 	if int(e.get("gates_passed", 0)) == 1:
 		_eyes_spawn(e)
-		_rule_banner("ishar_p2", "濒死强化：泪在场时网会自动接上，先打碎两个泪再清网")
-	elif int(e.get("gates_passed", 0)) >= 2:
-		_rule_banner("ishar_p3", "回声：拆掉的海嗣留下音圈，1 秒后爆开")
+		_rule_banner("ishar_p2", "先打碎那两滴泪！")
 
 
 ## 本体倒下：网与泪一起散

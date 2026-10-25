@@ -19,7 +19,6 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	var p2: bool = int(e.get("gates_passed", 0)) >= 1
 	if p2:
 		_tint2(e, TINT2)
-	_rule_banner("path_intro", "塑路者：跑过它铺的路线上的金色路标，把路截断")
 	_paths_step(e, dt, p2)
 	if not ready:
 		return
@@ -65,7 +64,6 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 func on_gate(e: Dictionary) -> void:
 	_clear_paths(e)
 	e.path_next = g.t + 0.6
-	_rule_banner("path_p2", "订正：分形往回走给它回血，截断的路会改道重铺")
 
 
 ## A · 冲撞（保留）：440 × 30 条纹线，fit_len 真冲到位，追踪 0.45 秒后锁定，总 0.9 秒；第二幕 2 连。队长靠近某条路线时顺着那条路冲
@@ -139,6 +137,7 @@ func _paths_step(e: Dictionary, dt: float, p2: bool) -> void:
 	var live: int = paths.filter(func(p): return not p.cut).size()
 	if live < want and g.t >= float(e.get("path_next", 0.0)):
 		paths.append(_new_path(e, p2))
+		_rule_banner("path_intro", "踩断金色路标！")
 		e.path_next = g.t + Bal.v("boss/path_lay_cd", 10.0) * (0.5 if p2 else 1.0)
 	var spd: float = Bal.v("boss/path_fr_spd", 60.0)
 	for p in paths:

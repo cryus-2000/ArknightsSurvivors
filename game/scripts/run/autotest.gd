@@ -1303,7 +1303,7 @@ func _ba_state(e: Dictionary) -> String:
 	for k in ["fire_lines", "paths", "stakes", "batch", "eyes"]:
 		if e.has(k):
 			out.append("%s=%d" % [k, e[k].size()])
-	for k in ["web_n", "izu_stacks", "absorb_n", "pair_shield", "drop_until", "aura_off_until", "kcold"]:
+	for k in ["web_n", "izu_stacks", "absorb_n", "pair_shield", "drop_until", "aura_off_until", "kcold", "brk_label"]:
 		if e.has(k):
 			out.append("%s=%s" % [k, str(e[k])])
 	if g.has_meta("boss_decoys"):

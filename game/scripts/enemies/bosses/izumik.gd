@@ -56,7 +56,6 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		var gp: int = int(e.get("gates_passed", 0))
 		if gp >= 2 and not e.has("tint2"):
 			_tint2(e, Color(0.82, 1.1, 1.0))   # 33% 后常驻青绿着色（docs/95 §3.2 D）
-		_rule_banner("izumik_axis", "拦截：子代从场边走向她，迎上去半路截杀，别让它们被吸收")
 		_batch_step(e)
 		var shock: Array = [0.75, 0.5, 0.25]
 		var si: int = int(e.get("shock_i", 0))
@@ -250,6 +249,7 @@ func _batch_step(e: Dictionary) -> void:
 	e.batch = live
 	e.batch_t = g.t
 	g.vfx.add_text(e.pos + Vector2(0, -60), "子代来袭", COL, 16)
+	_rule_banner("izumik_axis", "截住那些子代！")
 	Sfx.play("tentacle", -5.0, 0.8)
 
 
@@ -264,6 +264,7 @@ func _cocoon(e: Dictionary, o: Dictionary) -> void:
 	o.extra_next = INF
 	o.pos = g.combat.arena_clamp(e.pos + (o.pos - e.pos).normalized() * (e.r + 30.0), 60.0)
 	g.vfx.add_text(o.pos + Vector2(0, -36), "结茧", COL, 13)
+	_rule_banner("izumik_p2", "打掉她脚下的茧！")
 
 
 ## 阐释阶段的吸收：每 izumik_absorb_need（5）只强化 1 层（伤害 × (1 + izumik_stack_dmg 0.15)，最多 izumik_stack_max 4 层）并回 izumik_stack_heal（5%）生命
@@ -284,6 +285,7 @@ func _absorb2(e: Dictionary) -> void:
 ## 三幕「分享·全场」：借震撼的全场判定（telegraph izu_wave：冲刺无敌或灯柱光圈里不受伤），带 share_all——结算后你躲进的那根灯柱熄灭
 func _share_all(e: Dictionary) -> void:
 	e.share_all_next = g.t + Bal.v("boss/izumik_share_all_cd", 12.0)
+	_rule_banner("izumik_p3", "躲进灯柱！")
 	var dur: float = Bal.v("boss/izumik_share_all_warn", 3.0) + Bal.v("boss/izumik_share_all_charge", 1.6)
 	_warn(e, "circle", dur, {"follow": true, "r": 2400.0, "act": "izu_wave", "name": "分享·全场", "must_dash": true, "col": COL,
 		"dmg": minf(e.dmg * 1.5, g.max_hp * Bal.v("boss/izumik_share_all_cap", 0.2)), "share_all": true, "arts": true})
@@ -295,9 +297,7 @@ func on_gate(e: Dictionary) -> void:
 	if e.phase != 2:
 		return
 	var gp: int = int(e.get("gates_passed", 0))
-	if gp == 1:
-		_rule_banner("izumik_p2", "学习：子代分两路来，到她脚下会结茧 4 秒，打掉茧")
-	elif gp >= 2:
+	if gp >= 2:
 		e.lamp_r = Bal.v("boss/izumik_lamp_r", 120.0)
 		e.lamps = []
 		var a0: float = g.rng_enemy.randf() * TAU
@@ -306,7 +306,6 @@ func on_gate(e: Dictionary) -> void:
 			e.lamps.append({"pos": p, "lit": true, "prog": 1.0})
 			g.fx.append({"kind": "ring", "pos": p, "r": e.lamp_r, "life": 0.6, "max": 0.6, "col": Color(1.4, 1.1, 0.5), "enemy": true})
 		e.share_all_next = g.t + 4.0
-		_rule_banner("izumik_p3", "分享：每 12 秒全场分享，躲进灯柱光圈；躲过的那根会熄灭")
 
 
 ## 本体倒下：茧一起散（还在走的子代由 combat 的喂食清理带走）
