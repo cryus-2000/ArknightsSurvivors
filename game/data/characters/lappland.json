@@ -11,7 +11,7 @@
  ],
  "script": "res://scripts/characters/data_operator.gd",
  "base": {
-  "_doc": "基础数值（docs/27 §3、§9；设计稿 docs/122）：近卫 · 领主。普攻「双刃」近身横扫（cone），特性「领主」远处（近战触及外）改掷剑气（远程 far_mult 80%、间隔 far_every，狼魂期间 far_s2_mult 100%），近处照常横扫（10-24 用户定，attack.far）；天赋「精神摧毁」命中封印；S1「日晷」永久（攻击 + 队长受击格挡概率）；S2「狼魂」限时（攻击 + 法术剑气）；S3「群狼之噬」（本作自创名）限时每 s3_every 秒三道剑气 + 封印环；精一「狼之舞」每第 dance_n 次改为旋身斩；精二「双生刃」横扫附带两道交叉剑气；节点 4 二选一「断喝」/「狼魂·狂」（docs/119 §4.1）",
+  "_doc": "基础数值（docs/27 §3、§9；设计稿 docs/122）：近卫 · 领主。普攻「双刃」近身横扫（cone），特性「领主」远处（近战触及外）改掷剑气（远程 far_mult 80%、间隔 far_every，狼魂期间 far_s2_mult 100%），近处照常横扫（10-24 用户定，attack.far）；天赋「精神摧毁」命中封印；S1「日晷」永久（攻击 + 队长受击格挡概率）；S2「狼魂」限时（攻击 + 法术剑气）；S3「噤声」（本作自创名，10-25 用户定方案 A，docs/122 §2.7）限时攻击 ×s3_atk，命中叠「观察」，同一敌人 s3_keep 秒内叠满 s3_mark_n 层 → 十字斩 s3_cut_mult + 封印 s3_seal + 定格 s3_stun + 易伤 s3_fragile 秒；精一「狼之舞」每第 dance_n 次改为旋身斩；精二「双生刃」横扫附带两道交叉剑气；节点 4 二选一「断喝」/「狼魂·狂」（docs/119 §4.1）",
   "atk": 35,
   "cd": 0.8,
   "reach": 100,
@@ -39,11 +39,7 @@
   "s2_atk": 1.4,
   "s2_mult": 0.6,
   "s3_dur": 8.0,
-  "s3_every": 0.6,
-  "s3_mult": 0.7,
-  "s3_dist": 220,
-  "s3_seal": 2.0,
-  "s3_seal_r": 180,
+  "s3_seal": 3.0,
   "twin_delay": 0.12,
   "twin_mult": 0.5,
   "far_dist": 270,
@@ -68,7 +64,15 @@
   "rage2_aspd": 0.2,
   "far_mult": 0.8,
   "far_every": 1.0,
-  "far_s2_mult": 1.0
+  "far_s2_mult": 1.0,
+  "s3_atk": 1.3,
+  "s3_mark_n": 3,
+  "s3_keep": 4.0,
+  "s3_cut_r": 40,
+  "s3_cut_mult": 1.5,
+  "s3_stun": 0.15,
+  "s3_fragile": 3.0,
+  "s3_ring": 150
  },
  "leader": {
   "_doc": "当队长时的受击属性（docs/23）：原作精二满级 生命 2350 / 防御 365 / 法抗 15（character_table）；近战无自疗 regen 1.4–1.7 口径取 1.5，防御高于斯卡蒂故生命略低、护甲略高",
@@ -269,7 +273,7 @@
    }
   },
   "skills": {
-   "_doc": "S1 单条 skill；S2 单条 throw（原作 Attack 掷刃）；S3 起手 skill → 持续期由实际剑气事件驱动 throw（与 S2 同一掷刃动作，用户 10-22），等待事件时保持准备姿势、普攻也播 throw、移动 run",
+   "_doc": "S1 单条 skill；S2 单条 throw（原作 Attack 掷刃）；S3 起手 skill → 持续期由实际剑气事件驱动 throw（与 S2 同一掷刃动作，用户 10-22），等待事件时保持准备姿势、普攻也播 throw、移动 run；10-25 S3 改「噤声」：只播 skill 起手，技能期间普攻照常按远近切换",
    "s1": {
     "anim": "skill"
    },
@@ -277,15 +281,7 @@
     "anim": "throw"
    },
    "s3": {
-    "start": "skill",
-    "loop": {
-     "anim": "throw",
-     "frames": [
-      0
-     ]
-    },
-    "run": "run",
-    "attack": "throw"
+    "anim": "skill"
    }
   }
  },
@@ -316,11 +312,11 @@
    "icon": "skill_skadi_s2"
   },
   {
-   "name": "群狼之噬",
-   "en": "WOLF PACK",
+   "name": "噤声",
+   "en": "SILENCE",
    "sp": 24,
    "dur": 8.0,
-   "desc": "{$s3_dur} 秒内每 {$s3_every} 秒朝最近的敌人掷出 3 道剑气（±18°，每道攻击 {$s3_mult*100}%，飞出 {$s3_dist}，穿透，每名敌人每轮只受一道），同时封印周围 {$s3_seal_r} 内的敌人 {$s3_seal} 秒；普攻照常",
+   "desc": "{$s3_dur} 秒内攻击力 +{$s3_atk*100-100}%，每次命中在敌人身上刻下一道「观察」；同一名敌人 {$s3_keep} 秒内被刻满 {$s3_mark_n} 道即封锁完成：十字斩造成攻击力 {$s3_cut_mult*100}% 的伤害，封印 {$s3_seal} 秒，并在 {$s3_fragile} 秒内受到的伤害 +10%",
    "icon": "skill_skadi_s3"
   }
  ],
@@ -344,17 +340,6 @@
    "origin": "skill",
    "range": "近战",
    "kind": "法术",
-   "tags": [
-    "skill",
-    "area",
-    "projectile"
-   ]
-  },
-  "群狼之噬": {
-   "emitter": "operator",
-   "origin": "skill",
-   "range": "近战",
-   "kind": "物理",
    "tags": [
     "skill",
     "area",
@@ -402,6 +387,16 @@
     "area",
     "projectile"
    ]
+  },
+  "噤声": {
+   "emitter": "operator",
+   "origin": "skill",
+   "range": "近战",
+   "kind": "物理",
+   "tags": [
+    "skill",
+    "area"
+   ]
   }
  },
  "progression": [
@@ -426,7 +421,7 @@
    "desc": "解锁二技能「狼魂」；解锁天赋「精神摧毁」：横扫命中的敌人被封印 {$seal_dur} 秒（精英减半，Boss 只推迟出招至多 {$seal_boss_max} 秒）；普攻「狼之舞」：每第 {$dance_n} 次横扫改为旋身斩：以自身为中心半径 {$dance_r} 内 ×{$dance_mult} 伤害、击退并封印 {$dance_seal} 秒",
    "attack": {
     "name": "狼之舞",
-    "desc": "每第 {$dance_n} 次横扫改为旋身斩：以自身为中心半径 {$dance_r} 内 ×{$dance_mult} 伤害，击退，命中的敌人封印 {$dance_seal} 秒（「群狼之噬」期间不换）"
+    "desc": "每第 {$dance_n} 次横扫改为旋身斩：以自身为中心半径 {$dance_r} 内 ×{$dance_mult} 伤害，击退，命中的敌人封印 {$dance_seal} 秒"
    }
   },
   {
@@ -477,7 +472,7 @@
    "type": "elite",
    "level": 2,
    "name": "精英二",
-   "desc": "解锁三技能「群狼之噬」：{$s3_dur} 秒内每 {$s3_every} 秒掷出 3 道剑气并封印周围敌人；普通攻击强化「双生刃」：每次横扫都掷出两道交叉剑气（各 {$twin_blade_mult*100}% 伤害，±{$twin_fan}°，每名敌人每轮只受一道），离得远时掷出的「领主」剑气照旧",
+   "desc": "解锁三技能「噤声」：{$s3_dur} 秒内命中叠「观察」，叠满 {$s3_mark_n} 道时十字斩并封印敌人；普通攻击强化「双生刃」：每次横扫都掷出两道交叉剑气（各 {$twin_blade_mult*100}% 伤害，±{$twin_fan}°，每名敌人每轮只受一道），离得远时掷出的「领主」剑气照旧",
    "attack": {
     "name": "双生刃",
     "desc": "每次横扫都掷出两道交叉剑气（各横扫 {$twin_blade_mult*100}% 伤害，±{$twin_fan}°，飞出 {$blade_dist}，命中第一名敌人即消失；每名敌人每轮只受一道）"
@@ -491,10 +486,10 @@
    "封印",
    "剑气"
   ],
-  "desc": "近卫干员，领主。敌人贴近时双刃横扫，离得远则掷出剑气；晋升至精英一后每次斩击封印敌人的特殊招式，三技能连续释放剑气并封印周围敌人"
+  "desc": "近卫干员，领主。敌人贴近时双刃横扫，离得远则掷出剑气；晋升至精英一后每次斩击封印敌人的特殊招式，三技能「噤声」刻满三道观察即封锁敌人"
  },
  "blocks": {
-  "_doc": "拉普兰德（docs/122）：纯数据干员。普攻 cone（斯卡蒂同款写法），剑气用 shape.wave from self（斯卡蒂精二潮刃的写法），封印用 st.seal（docs/61 §15.3）。waves 不支持 on_hit，封印一律挂在 cone / circle 的 on_hit 或 verb.affect 上。技能备注——S1：日晷：永久攻击 +25%；队长受击 15% 概率格挡写在 trait（trig.on_hurt cond skill_active:0）；S2：狼魂：攻击 +40%；每次横扫追加法术剑气写在 trait（every_n 1 cond skill_active:1）；S3：群狼之噬：期间每 s3_every 秒三道剑气 + 封印环，写在 trait（trig.tick cond skill_active:2）；普攻照常",
+  "_doc": "拉普兰德（docs/122）：纯数据干员。普攻 cone（斯卡蒂同款写法），剑气用 shape.wave from self（斯卡蒂精二潮刃的写法），封印用 st.seal（docs/61 §15.3）。waves 不支持 on_hit，封印一律挂在 cone / circle 的 on_hit 或 verb.affect 上。技能备注——S1：日晷：永久攻击 +25%；队长受击 15% 概率格挡写在 trait（trig.on_hurt cond skill_active:0）；S2：狼魂：攻击 +40%；每次横扫追加法术剑气写在 trait（every_n 1 cond skill_active:1）；S3：噤声：攻击 ×1.3 + verb.mark（命中叠观察，叠满十字斩 + 封印 + 定格 + 易伤，docs/122 §2.7）",
   "follow": {
    "leash": "$leash",
    "gap": "$gap"
@@ -849,7 +844,7 @@
    },
    {
     "dur": "$s3_dur",
-    "status": "群狼之噬",
+    "status": "噤声",
     "status_col": [
      0.9,
      0.9,
@@ -859,12 +854,12 @@
      {
       "pfx": {
        "kind": "ring",
-       "r": 180.0,
+       "r": 150.0,
        "r0": 10.0,
        "life": 0.5,
        "col": [
-        0.9,
-        0.9,
+        1.0,
+        1.0,
         1.0
        ],
        "floor": true
@@ -872,15 +867,64 @@
       "at": "self"
      },
      {
-      "banner": "群狼之噬"
+      "banner": "噤声"
      }
     ],
     "do": [
      {
       "verb": "buff_self",
-      "stat": "dmg",
+      "stat": "atk",
       "op": "mult",
-      "value": 1.0
+      "value": "$s3_atk",
+      "power": true
+     },
+     {
+      "verb": "mark",
+      "n": "$s3_mark_n",
+      "keep": "$s3_keep",
+      "ring_r": "$s3_ring",
+      "max_show": 8,
+      "_doc": "观察·噤声（docs/122 §2.7 方案 A；原作档案资料二「数次观察即可封锁敌人的特殊能力」）：命中叠层，叠满十字斩 + 封印 + 定格 + 易伤",
+      "on_full": [
+       {
+        "shape": "circle",
+        "center": "target",
+        "r": "$s3_cut_r",
+        "r_abs": true,
+        "basis": "atk",
+        "mult": "$s3_cut_mult",
+        "kb": 0,
+        "src": "噤声",
+        "ring": false,
+        "on_hit": [
+         {
+          "st": "seal",
+          "dur": "$s3_seal",
+          "elite_mult": "$seal_elite",
+          "boss_mult": "$seal_boss",
+          "boss_max": "$seal_boss_max",
+          "boss_immune": "$seal_boss_imm",
+          "look": "cross"
+         },
+         {
+          "st": "stun",
+          "dur": "$s3_stun"
+         },
+         {
+          "st": "fragile",
+          "dur": "$s3_fragile"
+         }
+        ],
+        "fx": [
+         {
+          "sfx": {
+           "kind": "big",
+           "db": -6.0
+          }
+         }
+        ]
+       }
+      ]
      }
     ],
     "need_enemy": 200
@@ -960,64 +1004,6 @@
       "proj_front": true
      }
     ]
-   },
-   {
-    "trig": "tick",
-    "every": "$s3_every",
-    "countdown": true,
-    "cond": "skill_active:2",
-    "_doc": "群狼之噬：每 0.6 秒三道剑气（70%，每名敌人每轮一道）+ 周围 180 封印 2 秒",
-    "do": [
-     {
-      "shape": "wave",
-      "from": "self",
-      "aim": "nearest",
-      "aim_r": "$blade_aim",
-      "fan": [
-       -18,
-       0,
-       18
-      ],
-      "fan_once": true,
-      "basis": "atk",
-      "mult": "$s3_mult",
-      "dist": "$s3_dist",
-      "speed": "$blade_spd",
-      "w": "$blade_w",
-      "depth": 14,
-      "kb": "$blade_kb",
-      "cap": 9,
-      "off": [
-       0,
-       -6
-      ],
-      "src": "群狼之噬",
-      "proj": "proj_lappland_sword",
-      "proj_hold": 1,
-      "proj_front": true,
-      "release_pose": {
-       "slot": "throw",
-       "skill": 2,
-       "cycle": "$s3_every"
-      }
-     },
-     {
-      "verb": "affect",
-      "center": "self",
-      "r": "$s3_seal_r",
-      "on_hit": [
-       {
-        "st": "seal",
-        "dur": "$s3_seal",
-        "elite_mult": "$seal_elite",
-        "boss_mult": "$seal_boss",
-        "boss_max": "$seal_boss_max",
-        "boss_immune": "$seal_boss_imm",
-        "look": "cross"
-       }
-      ]
-     }
-    ]
    }
   ],
   "talent": [],
@@ -1036,8 +1022,7 @@
     "trig": "every_n",
     "n": "$dance_n",
     "replace": true,
-    "cond": "!skill_active:2",
-    "_doc": "精一狼之舞：每第 5 次横扫改为旋身斩（自身为中心 r120 ×1.3，击退，封印 2 秒）；群狼之噬期间不换",
+    "_doc": "精一狼之舞：每第 5 次横扫改为旋身斩（自身为中心 r120 ×1.3，击退，封印 2 秒）",
     "do": [
      {
       "shape": "circle",

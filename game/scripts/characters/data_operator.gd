@@ -1741,6 +1741,8 @@ func bullet_exploded(b: Dictionary) -> void:
 ## 精英化第 2 批段：本干员造成伤害之后（咒文链上的传递）
 func deal_damage(e: Dictionary, dmg: float) -> void:
 	super(e, dmg)
+	if not sm.is_empty() and not sm.get("mark_b", _ED).is_empty():
+		ObSummon.mark_hit(self, e)   # 召唤 / 封印段：verb.mark 叠层（拉普兰德 S3）
 	if not hw.is_empty():
 		SegLogos.hw_dealt(self, e, dmg)
 

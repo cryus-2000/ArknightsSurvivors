@@ -191,6 +191,7 @@
 | `st.fragile` | 瞬时（命中时） | `value`（敌人 `aura_weak`，同名取最高） | 📝 |
 | `st.slow_soft` | 常驻 | `pct`、`scope: in_zone`、`boss`（缺省 false） | ✅ 新：不是减速状态、不与 `st.slow` 叠——每帧把区域内非 Boss 敌人这一帧的位移退回 `pct`（含被击退的位移）。docs/59 §1 天赋「移速 -10%」 |
 | `st.seal` | 瞬时（命中时 / 力场 tick） | `dur`、`elite_mult`、`boss`、`boss_mult`、`boss_max`、`boss_immune` | ✅ 10-12，封印（敌人特殊能力失效），见 §15.3 |
+| `verb.mark` | 常驻（技能 do / sustain） | `n`（叠满层数 2–9）、`keep`（几秒没再被打就清零，缺省 4）、`on_full`（瞬时积木，以该敌人为 target）、`ring_r`（脚下静默圈半径，0 = 不画）、`max_show`（同屏最多标几名，缺省 8） | ✅ 10-25，拉普兰德 S3「噤声」：生效期间本干员每次造成伤害给那名敌人叠 1 层，叠满清零执行 `on_full`（`on_full` 自己的伤害不叠层），技能结束层数全清；画面：敌人身上红色刀口（1 道 / 交叉）、叠满白十字 + 灰白定格 + 白线连回本干员；实现在 `ob_summon.gd`（mark_hit / _mark_draw），挂钩 `data_operator.deal_damage`；不取随机数 |
 | `st.airborne` / `st.bind` / `st.weightless` / `st.dot` / `st.mark` | | docs/60 第 29–31 条 | 📝（airborne / weightless / dot 已在 §12 实现） |
 
 ### 5.4 修饰 `mod.*`、代价 `cost.*`

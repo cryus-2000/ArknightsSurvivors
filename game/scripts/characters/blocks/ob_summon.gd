@@ -16,9 +16,12 @@ const SummonVisual = preload("res://scripts/characters/summon_visual.gd")
 #               不远程开火、甲壳 / 潮盾词条失效；已经起手的蓄力照常打完。精英 × elite_mult；
 #               Boss：时长 × boss_mult、封顶 boss_max 秒，期间不起新招（冷却照走 = 推迟下一招），封印结束后 boss_immune 秒免疫
 #  verb.shield  瞬时：主控护盾 + pct × 最大生命（总量封顶 cap × 最大生命），dur 秒后消失，每秒按当前量衰减 decay；吸收在减伤（verb.dr）之后、护甲 / 法抗之前
+#  verb.mark    常驻（10-25 拉普兰德 S3「噤声」）：生效期间本干员每造成一次伤害给那名敌人叠 1 层（keep 秒没再被打就清零），叠满 n 层清零并以该敌人为
+#               target 执行 on_full（on_full 自己的伤害不叠层）；画面：敌人身上红色刀口（1 道 / 交叉），叠满时白十字 + 灰白定格 + 一道白线连回本干员，
+#               ring_r > 0 时脚下一圈白色静默圈；同屏最多 max_show 名（离本干员近的优先）。技能结束层数全清。只读写本干员的 sm，不取随机数
 #  aura.heal    常驻：scope in_zone（缺省，主控在本干员区域内）/ always，每秒回复主控 pct × 最大生命（× 局部 heal 倍率 [× 技能强度]）；满血时不治
 
-const SM_TAGS := ["verb.summon", "st.seal", "verb.shield", "aura.heal"]
+const SM_TAGS := ["verb.summon", "st.seal", "verb.shield", "aura.heal", "verb.mark"]
 
 const SM_MOVES := ["orbit", "chase", "stay", "follow"]
 
@@ -573,12 +576,102 @@ static func sealed(e: Dictionary, t: float) -> bool:
 	return float(e.get("seal_t", 0.0)) > t
 
 
+## verb.mark：本干员对敌人 e 造成了一次伤害（data_operator.deal_damage 之后）
+static func mark_hit(o, e: Dictionary) -> void:
+	var st: Dictionary = o.sm
+	if st.get("mark_busy", false) or e.get("friendly", false) or e.get("chest", false):
+		return
+	if not st.has("marks"):
+		st["marks"] = {}
+	var id := int(e.id)
+	if e.dead:
+		st.marks.erase(id)
+		return
+	var b: Dictionary = st.mark_b
+	var g = o.g
+	var m = st.marks.get(id, null)
+	if m == null or g.t - float(m.t) > float(b.get("keep", 4.0)):
+		m = {"e": e, "n": 0, "t": g.t}
+		st.marks[id] = m
+	m.n = int(m.n) + 1
+	m.t = g.t
+	if int(m.n) < int(b.n):
+		return
+	st.marks.erase(id)
+	var at: Vector2 = e.pos
+	st["mark_busy"] = true   # on_full 自己的伤害不叠层
+	o._exec_list(b.on_full, at)
+	st["mark_busy"] = false
+	var fl: Array = st.get("mark_fx", []).filter(func(f): return g.t - float(f.t) < 0.4)
+	fl.append({"a": o.pos, "b": at, "r": float(e.r), "t": g.t})
+	st["mark_fx"] = fl
+
+
+const MARK_COL := Color(1.0, 0.32, 0.26)   # 刀口用红：白色会被横扫刀光 / 受击白闪吞掉，灰叉是天赋封印
+
+## verb.mark 的画面（技能上层）：静默圈、叠层刀口、叠满的白十字 / 灰白定格 / 白线（只读状态，不改模拟量）
+static func _mark_draw(o) -> void:
+	var g = o.g
+	var cv = o.cv
+	var b: Dictionary = o.sm.mark_b
+	if not b.is_empty() and float(b.get("ring_r", 0.0)) > 0.0 and o.pos != Vector2.INF:
+		var rr: float = float(b.ring_r)
+		var pa: float = 0.28 + 0.08 * sin(g.t * 4.0)
+		cv.draw_set_transform(o.pos, 0.0, Vector2(1.0, 0.45))
+		cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 48, Color(1, 1, 1, pa), 2.0)
+		cv.draw_arc(Vector2.ZERO, rr - 6.0, 0.0, TAU, 48, Color(1, 1, 1, pa * 0.4), 1.0)
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	if not b.is_empty() and o.sm.has("marks"):
+		var ls: Array = []
+		for id in o.sm.marks:
+			var m: Dictionary = o.sm.marks[id]
+			var e: Dictionary = m.e
+			if e.dead or g.t - float(m.t) > float(b.get("keep", 4.0)):
+				continue
+			ls.append([o.pos.distance_squared_to(e.pos), int(id), m])
+		ls.sort_custom(func(x, y): return x[0] < y[0] if x[0] != y[0] else x[1] < y[1])
+		for k in mini(ls.size(), int(b.get("max_show", 8))):
+			var m2: Dictionary = ls[k][2]
+			var e2: Dictionary = m2.e
+			var er: float = float(e2.r)
+			var c: Vector2 = e2.pos + Vector2(0, -er)
+			var s: float = er * 1.1 + 6.0
+			var fresh: float = clampf(1.0 - (g.t - float(m2.t)) / 0.1, 0.0, 1.0)   # 新刻下的一道 0.1 秒亮闪
+			var w: float = 3.0 + 2.0 * fresh
+			var segs: Array = [[Vector2(-s, -s * 0.7), Vector2(s, s * 0.7)]]
+			if int(m2.n) >= 2:
+				segs.append([Vector2(-s, s * 0.7), Vector2(s, -s * 0.7)])
+			for sg in segs:
+				cv.draw_line(c + sg[0], c + sg[1], Color(0.05, 0.05, 0.08, 0.7), w + 2.0)
+			for sg in segs:
+				cv.draw_line(c + sg[0], c + sg[1], Color(MARK_COL.r + 0.6 * fresh, MARK_COL.g + 0.6 * fresh, MARK_COL.b + 0.6 * fresh, 0.95), w)
+	for f in o.sm.get("mark_fx", _EA):
+		var age: float = g.t - float(f.t)
+		if age >= 0.35:
+			continue
+		var k2: float = 1.0 - age / 0.35
+		var r2: float = float(f.r)
+		var cc: Vector2 = f.b + Vector2(0, -r2)
+		if age < 0.15:   # 灰白定格
+			cv.draw_set_transform(cc, 0.0, Vector2(1.0, 1.15))
+			cv.draw_circle(Vector2.ZERO, r2 + 4.0, Color(0.82, 0.83, 0.86, 0.45))
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var L: float = r2 * 1.6 + 10.0
+		for sg2 in [[Vector2(-L, 0), Vector2(L, 0)], [Vector2(0, -L), Vector2(0, L)]]:
+			cv.draw_line(cc + sg2[0], cc + sg2[1], Color(0.05, 0.05, 0.08, 0.6 * k2), 6.0)
+			cv.draw_line(cc + sg2[0], cc + sg2[1], Color(1, 1, 1, k2), 3.0)
+		if f.a != Vector2.INF:
+			cv.draw_line(f.a + Vector2(0, -20), cc, Color(1, 1, 1, 0.7 * k2), 1.5)
+
+
 ## 技能上层（data_operator._draw_skill_over）：本干员施加的封印标记（头顶旋转的锁环 + 脚下紫环）、主控护盾（泡壳 + 头顶护盾条）
 static func sm_draw_over(o) -> void:
 	if o.sm.is_empty():
 		return
 	var g = o.g
 	var cv = o.cv
+	if o.sm.has("mark_b"):
+		_mark_draw(o)
 	for id in o.sm.seal:
 		var e: Dictionary = o.sm.seal[id]
 		if e.dead or not sealed(e, g.t) or str(e.get("seal_by", "")) != o.id:
@@ -650,6 +743,16 @@ static func shield_mult(o, m: float, raw: float) -> float:
 
 ## 常驻部分（data_operator._sustain 末尾）：aura.heal 每秒回复（各积木独立计时，没生效的计时清零）
 static func sm_sustain(o, act: Array, dt: float) -> void:
+	if has_tag(o, "verb.mark"):
+		var mk: Dictionary = {}
+		for b in act:
+			if mk.is_empty() and str(b.get("_tag", "")) == "verb.mark":
+				mk = b
+		if not mk.is_empty() or o.sm.has("mark_b"):   # 没用过 verb.mark 的干员不建 sm
+			var st0 := sm_st(o)
+			if mk.is_empty() and not st0.get("mark_b", _ED).is_empty():
+				st0["marks"] = {}   # 技能结束：层数全清
+			st0["mark_b"] = mk
 	var seen := {}
 	for b in (act if has_tag(o, "aura.heal") else _EA):   # B6 ④
 		if str(b.get("_tag", "")) != "aura.heal":
@@ -814,6 +917,7 @@ static func _sm_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 		"verb.shield": ["skill", "instant"],
 		"st.seal": ["on_hit", "field"],
 		"aura.heal": ["skill", "sustain"],
+		"verb.mark": ["skill", "sustain"],
 	}
 	if not kind in where_ok[tag]:
 		errs.append("%s：「%s」不能放在这里（%s；只能在 %s）" % [p, tag, kind, " / ".join(where_ok[tag])])
@@ -853,6 +957,15 @@ static func _sm_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 			_num(b, "boss_immune", p, ctx, false, 3.0, 60.0)
 			if b.has("boss") and not (b.boss is bool):
 				errs.append(p + ".boss 只能是 true / false")
+		"verb.mark":
+			_num(b, "n", p, ctx, true, 2.0, 9.0)
+			_num(b, "keep", p, ctx, false, 0.5, 20.0)
+			_num(b, "ring_r", p, ctx, false, 0.0, 400.0)
+			_num(b, "max_show", p, ctx, false, 1.0, 32.0)
+			if not (b.get("on_full", null) is Array) or b.on_full.is_empty():
+				errs.append(p + ".on_full 必须是非空的瞬时积木数组（叠满时以该敌人为 target 执行）")
+			else:
+				_list(b.on_full, p + ".on_full", "instant", ctx)
 		"aura.heal":
 			_num(b, "pct", p, ctx, true, 0.0, 0.1)
 			if not str(b.get("scope", "in_zone")) in ["in_zone", "always"]:
