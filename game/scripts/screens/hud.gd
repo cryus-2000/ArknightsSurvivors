@@ -324,6 +324,7 @@ func _draw_body() -> void:
 				g.run_stats.draw(vs)   # 作战记录（docs/77）
 			else:
 				g.result_screen.draw(vs, "%s · 探索完成" % D.ENDINGS[g.ending].name, D.ENDINGS[g.ending].en, g.endg.cur_col().lerp(UI.GOLD, 0.35), [["再次探索", "R", "restart"], ["作战记录", "Tab", "stats"], ["回到标题", "T", "title"]], true)
+	g.tour.draw_tip(vs)   # 到点小提示（screens/tour.gd）：压在所有界面之上，不拦输入
 	# 寻访（docs/109 §12）：打不打开由 headhunt.tick 在主循环里定（docs/126 R4），这里只画
 	if g.headhunt.open and (g.state == Game.S.WIN or g.state == Game.S.DEAD) and not g.run_stats.open:
 		g.result_btns.clear()

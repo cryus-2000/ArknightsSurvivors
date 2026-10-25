@@ -85,10 +85,13 @@ var diff_best := {}      # 各档最佳成绩 {"0": {"wins": 通关次数, "best
 var seen_shows: Array = []   # 已看过的解锁演出
 var gallery_seen: Array = []
 var seen_relics: Array = []  # 获得过的藏品 id（图鉴用）
-var seen_intro := false      # 已看过开局指南
+var seen_intro := false      # 已看过开局引导（聚光框，screens/tour.gd；旧版翻页指南也用它）
+var seen_tips: Array = []    # 已弹过的到点小提示 id（tour.gd TIPS；每样只弹一次）
+const TIP_IDS := ["elite", "boss", "lamp", "levelup"]
 var endings_cleared: Array = []   # 已达成的结局 id（通关结局一后才出现其余结局的事件）
-# 干员解锁（局外成长 P1，docs/109 §12，core/roster.gd）：存档 [roster] 段。开局 5 人不存（Roster.STARTERS）
-var roster_unlocked: Array = []   # 解锁过的干员 id（不含开局 5 人）
+# 干员解锁（局外成长 P1，docs/109 §12，core/roster.gd）：存档 [roster] 段。10-26 起新玩家开局为空（新手十连），名册全部存在这里
+var roster_unlocked: Array = []   # 解锁过的干员 id（roster_v ≥ 2：全部；旧版存档不含开局 5 人，读档时补上）
+var roster_v := 0                 # 名册存档版本：2 = 开局 5 人已写进 roster_unlocked（10-26 新手十连起）
 var roster_tickets := {}          # 待用的券 {"hunt": 寻访凭证, "cls": 招募券, "pick": 人事调度函}
 var roster_spare := {}            # 名册已满后多出来的券（P2 换生机细胞）
 var roster_tiers: Array = []      # 已首通的难度档（发过人事调度函的）
@@ -106,8 +109,8 @@ var roster_fresh: Array = []      # 刚解锁、还没在名册里看过的干�
 var roster_int_grant := false     # 对内包的测试寻访凭证已发过（INTERNAL_TICKETS，每份存档一次）
 var medals := {}                  # 已获得的蚀刻章 {key: 获得时刻 Unix 秒}（core/medals.gd；存档 [medals] 段；获得后永久保留）
 var medal_best := {}              # 蚀刻章的历史最好进度 {key: 数}（协同晋升：一次探索里同时精英二的人数）
-## 对内包（用户 10-22：要在对内包里测寻访；10-24 改：开局 10 人 + 20 张）：名册不全部解锁；每份存档首次启动补齐
-## Roster.INTERNAL_START 的 5 名干员（开局共 10 人）并发这么多张寻访凭证
+## 对内包（用户 10-22：要在对内包里测寻访；10-24 开局 10 人 + 20 张；10-26 改：与新玩家同一流程——名册为空 + 新手 10 张、
+## 先做新手十连），每份存档首次启动再多发这么多张寻访凭证，十连之后用来测单抽 / 定向 / 补满名册
 const INTERNAL_TICKETS := 20
 ## 对内包存档目录带提交号（ArknightsSurvivors_Internal_<短 sha>，tools/export_build.py 打包时改 project.godot）：每个新的对内包从干净存档开始，
 ## 不读旧包、也不读开发目录的存档（用户 10-24；旧的一次性迁移已删）；同一个包里的进度照常保存
@@ -344,6 +347,8 @@ func _ready() -> void:
 	var c := ConfigFile.new()
 	if c.load(PATH) == OK:
 		_read_cfg(c)
+	else:
+		_roster_fresh()   # 全新安装（没有存档文件）：新手开局
 	if _set_sig == "":
 		_set_sig = _settings_sig()   # 旧存档 / 首次启动：以现在的设置为基准，没改过就不算「新」（cloud_set_t 保持 0，换设备时让云端的设置生效）
 	_apply_unlock_all()
@@ -362,10 +367,13 @@ func _ready() -> void:
 				if pr.size() == 2:
 					medal_best[pr[0]] = int(pr[1])
 	for a in dev_args():
-		# 截图 / 测试新玩家名册：--roster=start5 只留开局 5 人（只在内存，测试局不写存档）；--rostertickets=寻访,招募,调度 预置待用的券
-		if a == "--roster=start5":
-			roster_unlocked = []
-			roster_tickets = {}
+		# 截图 / 测试名册（只在内存，测试局不写存档）：--roster=start5 = 旧版开局 5 人（Roster.STARTERS，现有单测按它写）；
+		# --roster=new = 10-26 新手开局（名册为空 + 新手 10 张，要先做新手十连）；--rostertickets=寻访,招募,调度 预置待用的券
+		if a == "--roster=start5" or a == "--roster=new":
+			var R0 = preload("res://scripts/core/roster.gd")
+			roster_unlocked = [] if a == "--roster=new" else R0.STARTERS.duplicate()
+			roster_tickets = {"hunt": R0.FIRST_TICKETS} if a == "--roster=new" else {}
+			roster_v = 2
 			roster_tiers = []
 			roster_wish = ""
 			roster_pity = 0
@@ -467,6 +475,9 @@ func _read_cfg(c: ConfigFile) -> void:
 	gallery_seen = c.get_value("progress", "gallery_seen", [])
 	seen_relics = c.get_value("progress", "seen_relics", seen_relics)
 	seen_intro = c.get_value("progress", "seen_intro", seen_intro)
+	seen_tips = c.get_value("progress", "seen_tips", seen_tips)
+	if not c.has_section_key("progress", "seen_tips") and seen_intro:
+		seen_tips = TIP_IDS.duplicate()   # 老存档（已看过旧指南）：到点小提示按「都看过」处理，不再打扰
 	opening_seen = c.get_value("progress", "opening_seen", opening_seen)
 	endings_cleared = c.get_value("progress", "endings_cleared", endings_cleared)
 	roster_unlocked = c.get_value("roster", "unlocked", roster_unlocked)
@@ -479,6 +490,7 @@ func _read_cfg(c: ConfigFile) -> void:
 	roster_seed = int(c.get_value("roster", "seed", roster_seed))
 	roster_fresh = c.get_value("roster", "fresh", roster_fresh)
 	roster_int_grant = bool(c.get_value("roster", "int_grant", roster_int_grant))
+	roster_v = int(c.get_value("roster", "v", 0))
 	load("res://scripts/core/roster.gd").migrate_tickets()   # 三种券 → 单一寻访凭证（1:1 / 1:1 / 1:2）
 	meta_shape = c.get_value("meta", "shape", meta_shape)
 	meta_shape_t = int(c.get_value("meta", "shape_t", meta_shape_t))
@@ -492,6 +504,8 @@ func _read_cfg(c: ConfigFile) -> void:
 	medal_best = mb if mb is Dictionary else {}
 	if not c.has_section("roster"):
 		_migrate_roster()
+	elif roster_v < 2:
+		_roster_add_starters()
 	diff_best = c.get_value("progress", "diff_best", diff_best)
 	_migrate_progress(int(c.get_value("progress", "diff_ver", 1)))
 	cloud_set_t = int(c.get_value("cloud", "set_t", 0))
@@ -594,11 +608,29 @@ func note_diff_best(preset: int, won: bool, t: float) -> void:
 
 
 ## 老存档（没有 [roster] 段）：EA 期间所有干员都开局可用，打过的玩家一律直接全部解锁，不收回已有内容（docs/109 §12.5）。
-## 判定「打过」：通关过任何难度、达成过结局、或获得过藏品。全新存档保持开局 5 人。
+## 判定「打过」：通关过任何难度、达成过结局、或获得过藏品。没打过的按新玩家开局（10-26：名册为空 + 新手 10 张，先做新手十连）。
 func _migrate_roster() -> void:
 	if diff_unlocked >= 1 or not endings_cleared.is_empty() or not seen_relics.is_empty():
-		var Roster = load("res://scripts/core/roster.gd")
-		roster_unlocked = Roster.all_ids().filter(func(cid): return not Roster.STARTERS.has(cid))
+		roster_unlocked = load("res://scripts/core/roster.gd").all_ids()
+		roster_v = 2
+	else:
+		_roster_fresh()
+
+
+## 新手开局（10-26 用户）：名册为空、送 Roster.FIRST_TICKETS 张寻访凭证；主界面引导去做新手十连。只改内存，随下一次存档写盘
+## （没写盘前退出，下次启动还是全新存档，结果相同）
+func _roster_fresh() -> void:
+	roster_unlocked = []
+	roster_tickets = {"hunt": load("res://scripts/core/roster.gd").FIRST_TICKETS}
+	roster_v = 2
+
+
+## 旧版名册存档（有 [roster] 段、版本 < 2）：开局 5 人当时不写进存档，现在补进 roster_unlocked，老玩家名册不变
+func _roster_add_starters() -> void:
+	for cid in load("res://scripts/core/roster.gd").STARTERS:
+		if not roster_unlocked.has(cid):
+			roster_unlocked.append(cid)
+	roster_v = 2
 
 
 ## 开发测试用「全部解锁」（用户 2026-09-27 要求）：难度三档、图鉴（藏品 / 敌人 / 结局）、结局事件线全部解锁。
@@ -619,13 +651,9 @@ func _apply_unlock_all() -> void:
 	var db = preload("res://scripts/core/relic_db.gd").new()
 	db.load_files()
 	seen_relics = db.implemented().map(func(r): return r.id)
-	# 对内发布包：名册不全开（roster_all_open() 为假），首次启动补齐开局 10 人并发测试用寻访凭证，写进存档（真实进度，寻访结果也照常存）
+	# 对内发布包：名册不全开（roster_all_open() 为假），与新玩家同一流程（新手十连），首次启动另发测试用寻访凭证，写进存档（真实进度，寻访结果也照常存）
 	if internal_roster() and not roster_int_grant:
 		roster_int_grant = true
-		var Roster = preload("res://scripts/core/roster.gd")
-		for cid in Roster.INTERNAL_START:
-			if not roster_unlocked.has(cid):
-				roster_unlocked.append(cid)
 		roster_tickets["hunt"] = int(roster_tickets.get("hunt", 0)) + INTERNAL_TICKETS
 		save()
 
@@ -775,6 +803,7 @@ func save() -> void:
 	c.set_value("progress", "seen_shows", seen_shows)
 	c.set_value("progress", "seen_relics", _real_progress.get("seen_relics", seen_relics))
 	c.set_value("progress", "seen_intro", seen_intro)
+	c.set_value("progress", "seen_tips", seen_tips)
 	c.set_value("progress", "opening_seen", opening_seen)
 	c.set_value("progress", "endings_cleared", _real_progress.get("endings_cleared", endings_cleared))
 	c.set_value("roster", "unlocked", roster_unlocked)
@@ -787,6 +816,7 @@ func save() -> void:
 	c.set_value("roster", "seed", roster_seed)
 	c.set_value("roster", "fresh", roster_fresh)
 	c.set_value("roster", "int_grant", roster_int_grant)
+	c.set_value("roster", "v", roster_v)
 	c.set_value("meta", "shape", meta_shape)
 	c.set_value("meta", "shape_t", meta_shape_t)
 	c.set_value("meta", "earned", meta_earned)
@@ -846,7 +876,8 @@ func cloud_body() -> Dictionary:
 		"dbest": diff_best.duplicate(true),
 		"meta": _cloud_meta(),
 		"med": {"got": medals.duplicate(), "best": medal_best.duplicate()},
-		"opst": {"tk": roster_tickets.duplicate(), "sp": roster_spare.duplicate(), "wish": roster_wish, "pity": roster_pity, "draws": roster_draws, "seed": roster_seed}}, true)
+		"opst": {"tk": roster_tickets.duplicate(), "sp": roster_spare.duplicate(), "wish": roster_wish, "pity": roster_pity, "draws": roster_draws, "seed": roster_seed},
+		"rv": roster_v}, true)
 	var out: Dictionary = (cloud_extra.get("top", {}) as Dictionary).duplicate(true)
 	out["set"] = st
 	out["prog"] = pr
@@ -941,6 +972,9 @@ func cloud_apply(body: Dictionary) -> void:
 			_real_progress[{"rel": "seen_relics", "end": "endings_cleared"}[k]] = arr
 		else:
 			set(lists[k], arr)
+	# 旧版本写的云档（没有 rv ≥ 2、但有名册段 opst）：当时开局 5 人不进 ops，这里补上，免得新设备读旧云档丢了开局 5 人
+	if p.has("opst") and int(p.get("rv", 0)) < 2:
+		_roster_add_starters()
 	if p.get("intro") is bool:
 		seen_intro = p.intro
 	if p.get("open") is bool:

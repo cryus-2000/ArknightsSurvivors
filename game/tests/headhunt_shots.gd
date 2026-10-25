@@ -29,7 +29,7 @@ func _ready() -> void:
 	assert(out != "")
 	var Roster = preload("res://scripts/core/roster.gd")
 	if internal:
-		Cfg.roster_unlocked = Roster.INTERNAL_START.duplicate()
+		Cfg.roster_unlocked = Roster.STARTERS + ["lumen", "skadi", "specter_unchained", "siege", "ulpianus"]   # 旧对内包开局 10 人
 	host.hh.browse = false
 	var t0 := Time.get_ticks_usec()
 	host.open()

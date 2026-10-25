@@ -109,6 +109,7 @@ var enemies_sys = EnemiesSys.new(self)   # 敌人的逐帧更新
 var combat = Combat.new(self)   # 战斗结算
 var vfx = Vfx.new(self)   # 特效与提示
 var intro_screen = IntroScreen.new(self)   # 界面 · 开场与教程
+var tour = preload("res://scripts/screens/tour.gd").new(self)   # 界面 · 首局聚光框引导 + 到点小提示（取代开局自动弹出的翻页指南）
 var boss_intro = BossIntro.new(self)   # 界面 · Boss 登场 / 击破演出（纯覆盖层，不影响模拟；用户 10-10）
 var show_screen = EliteShowScreen.new(self)   # 界面 · 精英化 / 解锁演出（state SHOW）
 var stats_screen = StatsScreen.new(self)   # 界面 · 属性面板（Tab，state STATS）
@@ -1022,6 +1023,8 @@ func _ready() -> void:
 			ch.advance(chs.keys()[0] if not chs.is_empty() else "")
 	elif trial.active:
 		pass
+	elif tour.demo_active():
+		pass   # --tourdemo / --tipdemo=<id>：跳过开场，screens/tour.gd 第 25 帧起接管（录片 / 截图）
 	elif Cfg.dev_args().has("--introshot") or Cfg.dev_args().has("--guidepages"):
 		# --guidepages：只截局内指南各页（不带标题页 --introshot 的开场分镜截图与 5 秒退出）
 		intro_screen.open.call_deferred(S.PAUSE if Cfg.dev_args().has("--guidefull") else S.PLAY)   # --guidefull：截完整版（暂停菜单打开的 lines + more）
@@ -1357,6 +1360,7 @@ func _frame_budget_ms() -> float:
 func _process(delta: float) -> void:
 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
+	tour.update(delta)   # 聚光框引导 / 到点小提示：真实帧间隔（screens/tour.gd）
 	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）
 	var dt: float = min(delta, 0.05)
 	var simulated_dt := 0.0
@@ -1473,6 +1477,10 @@ func _input(event: InputEvent) -> void:
 		return
 	if wheel.input(event):   # 指挥圆盘打开时吞掉按键 / 点选（移动是轮询的，不受影响）
 		get_viewport().set_input_as_handled()
+		return
+	if state == S.INTRO and tour.active:   # 聚光框引导：点击 / 按键翻步，Esc / 「跳过引导」结束
+		if tour.input(event):
+			get_viewport().set_input_as_handled()
 		return
 	if touch.handle(event):
 		get_viewport().set_input_as_handled()
@@ -1781,6 +1789,11 @@ func toggle_command() -> void:
 		Sfx.play("ui_ok", -8.0)
 	elif Squad.cmd_on():
 		vfx.add_text(ppos + Vector2(0, -70), "作战时限未恢复", UI.SUB, 14)   # 突击耐力（玩家可见名「作战时限」，10-22 定）没回到 command/min_start
+
+
+## HUD 按「对局进行中」画的块（触屏按键、指挥状态）在聚光框引导期间（state INTRO、tour.active）也要画出来，让方框框得到
+func hud_live() -> bool:
+	return state == S.PLAY or tour.active
 
 
 func _try_dash() -> void:

@@ -1005,7 +1005,23 @@ func sfx_prio(name: String) -> int:
 	return 2
 
 
+## 寻访 / 十连音效（tools/gen_hh_sfx.py 程序合成，10-26）：不进开局预载表，第一次打开寻访时才读（网页包按需、不预解码）
+const HH_SFX := ["hh_drop", "hh_zip", "hh_hum", "hh_burst", "hh_star6", "hh_reveal", "hh_card", "hh_done"]
+## 录屏配音用（测试局主线照样静音）：trace_on 时把每次真正放出的音效记成 [渲染帧号, 名字, 音量 dB, 音高]，
+## 录屏脚本按记录离线混音再合进视频（tools/probes/first_tenpull_rec.py）；不改变任何播放行为
+var trace_on := false
+var trace: Array = []
+
+
+func ensure(names: Array) -> void:
+	for n in names:
+		if not streams.has(n):
+			streams[n] = _load_wav("res://audio/sfx/%s.wav" % n)
+
+
 func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
+	if not streams.has(name) and name.begins_with("hh_"):
+		ensure([name])
 	if not streams.has(name) or streams[name] == null:
 		if ALT.has(name) and streams.get(ALT[name][0]) != null:   # 缺文件：借近似音（docs/53）
 			var alt: Array = ALT[name]
@@ -1071,6 +1087,8 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 	p.set_meta("prio", prio)
 	p.set_meta("sname", name)
 	p.play()
+	if trace_on:
+		trace.append([Engine.get_process_frames(), name, p.volume_db, p.pitch_scale])
 	sfx_stat.plays += 1
 	_by(name, 1)
 	sfx_stat.voices_max = maxi(int(sfx_stat.voices_max), busy + 1)
