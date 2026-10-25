@@ -273,11 +273,12 @@ func draw(ci: CanvasItem, vs: Vector2) -> void:
 	_text(ci,895,631,"›",18,HH.CYB)
 	_timeline(ci)
 	ci.draw_rect(Rect2(0,652,1280,68),HH.INK)
-	_text(ci,28,679,"作战数据  SELECT" if Pad.using else "作战数据  Tab",16,HH.MUTE)
+	var tch: bool = Pad.touch_ui()   # 触屏（手机 / 平板）不写键位
+	_text(ci,28,679,"作战数据  SELECT" if Pad.using else ("作战数据" if tch else "作战数据  Tab"),16,HH.MUTE)
 	if Cfg.runs_log_enabled():   # 对局记录（测试版 / 对内包）：从设置页挪到这里（10-22 用户），点一下打开记录文件夹
 		_text(ci,206,679,"对局记录",16,HH.MUTE)
-	var ph: bool = Cfg.phone_ui()   # 手机：按钮 52 高、字 20，触屏不写键位
-	for b in [[374,250,"返回主界面  B" if Pad.using else ("返回主界面" if ph else "返回主界面  Esc")],[642,250,"认知塑造  Y" if Pad.using else ("认知塑造" if ph else "认知塑造  X")],[910,342,("寻访 ×%d  A" if Pad.using else ("寻访 ×%d" if ph else "寻访 ×%d  Enter")) % Roster.tickets()]]:
+	var ph: bool = Cfg.phone_ui()   # 手机：按钮 52 高、字 20
+	for b in [[374,250,"返回主界面  B" if Pad.using else ("返回主界面" if tch else "返回主界面  Esc")],[642,250,"认知塑造  Y" if Pad.using else ("认知塑造" if tch else "认知塑造  X")],[910,342,("寻访 ×%d  A" if Pad.using else ("寻访 ×%d" if tch else "寻访 ×%d  Enter")) % Roster.tickets()]]:
 		ci.draw_rect(Rect2(b[0],660 if ph else 666,b[1],52 if ph else 40),HH.CYB if b[0]==910 and Roster.tickets()>0 else HH.DARK2)
 		_text(ci,b[0]+20,673 if ph else 676,b[2],20 if ph else 18,HH.INK if b[0]==910 and Roster.tickets()>0 else HH.LIGHT)
 	ci.draw_set_transform(Vector2.ZERO)

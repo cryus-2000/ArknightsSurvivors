@@ -102,7 +102,7 @@ func build(restart := false) -> void:
 		else:
 			card.pressed.connect(g.shop_sys.buy.bind(i))
 		# 触屏说明字先试大 2 号（手机上 12 号只有约 6.5 pt），放不下再退回原字号；手机一句话 20 起、最小 17
-		var szs: Array = ([18, 17, 16, 15, 14] if touch else [14, 13, 12, 11]) if Pad.touch_ui() else [12, 11]
+		var szs: Array = ([18, 17, 16, 15, 14] if touch else [14, 13, 12, 11]) if Pad.touch_ui() else [13, 12]   # 电脑：说明不低于 13（docs/37 最小字号）
 		if ph:
 			szs = [20, 19, 18, 17]
 		var chips := Affects.chips(g, it)
