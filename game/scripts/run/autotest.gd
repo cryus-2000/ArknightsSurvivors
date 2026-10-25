@@ -536,6 +536,8 @@ func _power_step() -> bool:
 			return false
 		_pw_t0 = Time.get_ticks_msec()
 		_pw_fr = Engine.get_frames_drawn()
+		g.power_cap = true   # 按玩家的帧率上限跑（批跑缺省不限帧；手机网页自动档 = 30），静止界面降帧也照玩家
+		Engine.max_fps = Cfg.effective_max_fps()
 		_pw_mark(PW_SEQ[0][0])
 	var el: float = (Time.get_ticks_msec() - _pw_t0) / 1000.0
 	if el >= float(PW_SEQ[_pw][1]):

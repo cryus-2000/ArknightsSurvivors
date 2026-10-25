@@ -1429,6 +1429,21 @@ func _apply_auto_level() -> void:
 		Cfg.set_quality("low")
 
 
+## 手机网页静止界面降帧（10-27 用户「手机发烫」，docs/50 §33）：暂停 / 选卡 / 商店 / 结算这些画面不跑模拟，照 30 帧整屏重画是空耗电。
+## 进入这类画面 STATIC_DELAY 秒后（入场动效走完）降到 render/static_fps（缺省 20），回对局立刻恢复。只在帧率设置为「自动」时（手选 60 / 30 照玩家的）；
+## 真人局才开（批跑不限帧，测试 --powerseq 照玩家）；--bal=web/mobile_static_fps=0 退回
+var power_cap := false
+const STATIC_DELAY := 0.5
+
+func _static_fps() -> void:
+	if not (Cfg.mobile_web() and Cfg.max_fps == 0 and (mode == Mode.PLAY or power_cap) and Cfg.mobile_knob("mobile_static_fps", 1.0)):
+		return
+	var still: bool = state != S.PLAY and state != S.INTRO and state != S.OPENING and state != S.SHOW and state_age > STATIC_DELAY and not wheel.is_open
+	var want: int = int(Bal.v("render/static_fps", 20.0)) if still else Cfg.effective_max_fps()
+	if Engine.max_fps != want:
+		Engine.max_fps = want
+
+
 ## 手机网页开局就开同屏上限 65（10-26 晚：满屏帧时约 −21%，用户批过存活上限做软限制；合并补偿照 §26.13）。真人局才开，测试 / 机器人局不变
 func mobile_cap() -> bool:
 	return Cfg.mobile_web() and Cfg.mobile_knob("mobile_cap", 1.0) and (mode == Mode.PLAY or Cfg.dev_args().has("--mobilecap"))
@@ -1476,6 +1491,7 @@ func _process(delta: float) -> void:
 		dt *= wheel.slow()   # 圆盘打开：局内放慢（不全停）
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	_auto_quality(delta)
+	_static_fps()
 	_mem_guard(delta)
 	_white_release(delta)
 	if victory.active and state == S.PLAY:

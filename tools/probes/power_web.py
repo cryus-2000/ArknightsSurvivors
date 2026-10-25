@@ -28,7 +28,7 @@ def main():
     ap.add_argument("--ref", default="HEAD")
     ap.add_argument("--tag", default="power")
     ap.add_argument("--title", action="store_true")
-    ap.add_argument("--secs", type=float, default=75)
+    ap.add_argument("--secs", type=float, default=400, help="最长等多久（含启动；段走完写 end 就提前结束）")
     ap.add_argument("--dpr", type=float, default=3)
     a = ap.parse_args(argv)
     d = pw.export(a.ref)
