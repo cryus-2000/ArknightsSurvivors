@@ -3,6 +3,7 @@ extends RefCounted
 ## game.gd 的 _draw 只转发到这里。地图本身在 world/map.gd，HUD 在 screens/hud.gd。2026-09-26 从 game.gd 拆出。
 
 const LaserDraw = preload("res://scripts/render/laser_draw.gd")
+const BossBeam = preload("res://scripts/render/boss_beam.gd")   # Boss 改版样板：Kanpelle 光束、骑士寒气圈 / 寒冷条（docs/142b）
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const A = preload("res://scripts/art.gd")
@@ -341,10 +342,19 @@ func boss_phase_fx(b: Dictionary) -> void:
 
 ## Boss 倒下：白色核心爆闪 + 三道错开的冲击环（最大到本体 8 倍）+ 竖直光柱 + 大量碎光，全屏白闪
 func boss_down_fx(b: Dictionary) -> void:
-	g.fx.append({"kind": "boss_down", "pos": b.pos, "r": maxf(b.r, 24.0), "life": 1.6, "max": 1.6})
-	g.vfx.sparks(b.pos, Vector2.ZERO, Color(1.6, 1.4, 1.8), 30, 420.0)
-	g.vfx.sparks(b.pos, Vector2.UP, Color(1.4, 0.5, 1.2), 16, 360.0)
-	_flash(Color(1.0, 0.97, 0.95), 0.4)
+	var bc: Color = g.vfx.boss_color(str(b.get("type", "")))
+	g.fx.append({"kind": "boss_down", "pos": b.pos, "r": maxf(b.r, 24.0), "life": 1.6, "max": 1.6, "bcol": bc})
+	g.vfx.sparks(b.pos, Vector2.ZERO, Color(bc.r * 1.5, bc.g * 1.5, bc.b * 1.5), 30, 420.0)
+	g.vfx.sparks(b.pos, Vector2.UP, Color(bc.r * 0.9, bc.g * 0.9, bc.b * 0.9), 16, 360.0)
+	# 全屏白闪去掉（docs/137 不闪白；用户 10-25 特效精修）：改成专属色颗粒爆散 + 升起的余烬
+	var gr0 = BossBeam.grains(g)
+	if gr0 != null:
+		var gr = _BfxCap.new(gr0, BossBeam.take(g, 130))
+		for i in 90:
+			var d := Vector2.from_angle(g.vrng.randf() * TAU)
+			gr.push("bfx_burst", b.pos + d * float(b.r) * g.vrng.randf_range(0.0, 0.6), d, bc, g.vrng.randf() * 0.25)
+		for i in 40:
+			gr.push("bfx_dust", b.pos + Vector2(g.vrng.randf_range(-1.2, 1.2) * float(b.r), g.vrng.randf_range(-1.0, 0.4) * float(b.r)), Vector2.UP, bc, g.vrng.randf() * 0.6)
 	g.boss_intro.on_down(b)   # 击破一拍：名字一行「击破」（screens/boss_intro.gd）
 
 
@@ -398,6 +408,7 @@ func draw_world() -> void:
 	_draw_bullets()
 	_pk("bullets")
 	_draw_fx()
+	BossBeam.draw_top(g)   # 主控寒冷条（骑士在场时）
 	_pk("fx")
 	if not _dbg_foe:   # --clutterdbg=nofoe：敌方弹幕 / 预警整层不画（量测）
 		_draw_ebullets_lobs_shocks()
@@ -456,6 +467,7 @@ func _draw_ground_foe_fx() -> void:
 	for sh in (g.shocks if not _dbg_shock else []):
 		if sh.get("ground", false):
 			_draw_shock(sh)
+	BossBeam.draw_ground(g)   # 骑士寒气圈（docs/142b §3.1）
 	draw_warn_outlines(true)
 
 
@@ -805,9 +817,10 @@ func _draw_shadows(evr: Rect2) -> void:
 	g.squad.draw_auras()
 	var stx: Texture2D = g.tex.get("shadow")
 	var ens: Array = _vis_ent if _vis_on else g.enemies
+	var nsh: bool = g.has_meta("boss_decoys")   # 泡影二幕幻影不画影子（docs/142b §3.5：只有真身在地上有影子）；平时不多查字段
 	if stx == null:
 		for e in ens:
-			if not evr.has_point(e.pos):
+			if not evr.has_point(e.pos) or (nsh and e.has("no_shadow")):
 				continue
 			var sc: float = Game.PX * e.r / 10.0
 			var hop: float = minf(e.kb.length() * 0.03, 14.0)
@@ -821,7 +834,7 @@ func _draw_shadows(evr: Rect2) -> void:
 		var doff: Vector2 = g.draw_off
 		for e in ens:
 			var ep: Vector2 = e.pos
-			if not evr.has_point(ep):
+			if not evr.has_point(ep) or (nsh and e.has("no_shadow")):
 				continue
 			var er: float = e.r
 			var sc2: float = Game.PX * er / 10.0 * (1.0 - minf(e.kb.length() * 0.03, 14.0) / 40.0)
@@ -1063,7 +1076,85 @@ func _bc(c: Color) -> Color:
 
 
 ## g.fx 特效按 kind 逐个画（频闪 / 爆炸 / 地裂 / 光束 / Boss 换幕……）；fx_dim 只压友方特效；写进 tb 批的（gcrack / mote / mire_recoil）末尾一次提交
+## Boss 结算特效颗粒化（docs/142b §9 特效精修，用户 10-25）：这些矢量平涂的结算形（环 / 爆炸 / 水柱 / 震地 / 刀光 / 放射 / 弹道）
+## 画成半透明的底、颗粒做主体；冰面等持续区域不在表里（是读法，不压暗）。render/boss_fx_grains 0 = 旧画法
+const BFX_KINDS := {"ring": true, "explode": true, "wpillar": true, "quake": true, "bslash": true, "rays": true, "tracer": true}
+const BFX_DIM := 0.45
+const BFX_CAP := {"ring": 48, "explode": 56, "wpillar": 48, "quake": 36, "bslash": 30, "rays": 20, "tracer": 22}   # 单个特效颗粒上限（再受 BossBeam 预算）
+
+
+## 单个特效的颗粒配额：push 到配额用完就不再发（各分支照常写循环，超出的直接丢）
+class _BfxCap:
+	var gr
+	var left: int
+	func _init(grains, n: int) -> void:
+		gr = grains
+		left = n
+	func push(name: String, p: Vector2, dir: Vector2, c: Color, delay := 0.0) -> void:
+		if left <= 0:
+			return
+		left -= 1
+		gr.push(name, p, dir, c, delay)
+var bfx_grains = null   # 本帧可用的颗粒层（光学观感颗粒开着且 boss_fx_grains 开时），_draw_fx 开头取
+
+
+func _bfx_grains(f: Dictionary) -> void:
+	var c: Color = f.bfx
+	var gr = _BfxCap.new(bfx_grains, BossBeam.take(g, BFX_CAP.get(str(f.kind), 32)))
+	var p: Vector2 = f.get("pos", Vector2.ZERO)
+	match str(f.kind):
+		"ring":
+			var r: float = float(f.get("r", 40.0))
+			var n: int = clampi(int(r * 0.35), 16, 48)
+			for i in n:
+				var d := Vector2.from_angle(TAU * i / n + g.vrng.randf_range(-0.08, 0.08))
+				gr.push("bfx_burst", p + Vector2(d.x, d.y * 0.72) * r, d, c)
+		"explode":
+			var r2: float = float(f.get("r", 40.0))
+			for i in 44:
+				var d2 := Vector2.from_angle(g.vrng.randf() * TAU)
+				gr.push("bfx_burst", p + d2 * r2 * g.vrng.randf_range(0.0, 0.35), d2, c)
+			for i in 12:
+				gr.push("bfx_dust", p + Vector2(g.vrng.randf_range(-0.5, 0.5) * r2, 0), Vector2.UP, c)
+		"wpillar":
+			# 水柱：一柱颗粒自下而上（不再是两个矩形）
+			var r3: float = float(f.get("r", 40.0))
+			for i in 34:
+				var y: float = -g.vrng.randf() * r3 * 2.2
+				gr.push("bfx_dust", p + Vector2(g.vrng.randf_range(-0.35, 0.35) * r3, y), Vector2.UP, c, g.vrng.randf() * 0.12)
+			for i in 14:
+				var d3 := Vector2.from_angle(PI + g.vrng.randf() * PI)
+				gr.push("bfx_burst", p + Vector2(d3.x * r3 * 0.5, 0), d3, c)
+		"quake":
+			var r4: float = float(f.get("r", 60.0))
+			var dc := Color(c.r * 0.55 + 0.25, c.g * 0.55 + 0.22, c.b * 0.55 + 0.2)   # 尘土：专属色掺土灰
+			for i in 36:
+				var d4 := Vector2.from_angle(g.vrng.randf() * TAU)
+				gr.push("bfx_dust", p + Vector2(d4.x, d4.y * 0.6) * r4 * g.vrng.randf_range(0.2, 1.0), d4, dc)
+		"bslash":
+			# 刀光：沿弧撒刀光颗粒（切向 + 略向外），顺着挥刀方向依次出（emit_delay）
+			var r5: float = float(f.get("r", 80.0))
+			var a0: float = float(f.ang) - float(f.half)
+			for i in 30:
+				var u: float = float(i) / 29.0
+				var aa: float = a0 + float(f.half) * 2.0 * u
+				var d5 := Vector2.from_angle(aa)
+				gr.push("slash", p + d5 * r5 * g.vrng.randf_range(0.55, 0.92), (d5.orthogonal() + d5 * 0.6).normalized(), c, u * 0.12)
+		"rays":
+			for i in 20:
+				var d6 := Vector2.from_angle(TAU * i / 20.0)
+				gr.push("bfx_burst", p + d6 * 20.0, d6, c)
+		"tracer":
+			var pa: Vector2 = f.a
+			var pb: Vector2 = f.b
+			var nrm: Vector2 = (pb - pa).orthogonal().normalized()
+			for i in 22:
+				var u2: float = g.vrng.randf()
+				gr.push("bfx_dust", pa.lerp(pb, u2), nrm * (1.0 if g.vrng.randf() < 0.5 else -1.0), c, u2 * 0.08)
+
+
 func _draw_fx() -> void:
+	bfx_grains = BossBeam.grains(g)
 	# 友方火花绘制预算（render/declutter spark_budget；缺省不限）：超出时跳过最早的（快淡完的），只影响绘制
 	var skip_sparks := 0
 	if spark_left < (1 << 29):
@@ -1080,11 +1171,20 @@ func _draw_fx() -> void:
 		var foe: bool = f.get("enemy", false) or FOE_KINDS.has(f.kind)
 		if ((_dbg_foe or _dbg_foefx) and foe) or (_dbg_friend and not foe and not AMB_KINDS.has(f.kind)) or (_dbg_amb and AMB_KINDS.has(f.kind)):
 			continue   # --clutterdbg 量测：这一层不画
+		if bfx_grains != null and f.has("bfx") and BFX_KINDS.has(f.kind):
+			# Boss 结算特效（telegraph.warn_resolve 打的 bfx = 专属色）：第一帧迸出颗粒，矢量形压成半透明的底（起手 = 预警、爆发 = 颗粒、消散 = 颗粒飘散）
+			if not f.has("bg"):
+				f["bg"] = true
+				_bfx_grains(f)
+			a *= BFX_DIM
 		var fdim: float = 1.0 if f.get("enemy", false) else fx_dim   # 敌方特效不降噪（docs/48 ③）
 		if fdim < 1.0 and DIM_KINDS.has(f.kind):
 			a *= fdim
 		if skip_sparks > 0 and f.kind == "spark" and not f.get("enemy", false):
 			skip_sparks -= 1
+			continue
+		if f.kind == "kp_beam":
+			BossBeam.draw(g, f)   # Boss 激光（Kanpelle 帧条，docs/142b §8.5）；缺图不画（结算伤害不受影响）
 			continue
 		if (f.kind == "beam" or f.kind == "bbeam" or f.kind == "tracer") and LaserDraw.draw(g, f, a):
 			continue   # 激光改版原型（fx/laser_style，缺省 0 = 原画法，docs/138 §12）
@@ -1553,10 +1653,11 @@ func _draw_fx() -> void:
 				# Boss 倒下：核心爆闪 → 三道冲击环 → 光柱收细
 				var k := 1.0 - a
 				var el: float = f.max - f.life
+				var dbc: Color = f.get("bcol", Color(1.0, 0.95, 1.0))   # 专属色系（亮 → 本色 → 暗），核心不再白闪
 				if el < 0.3:
 					var ck: float = el / 0.3
-					g.draw_circle(f.pos, f.r * (1.0 + 1.5 * ck), Color(2.0, 1.9, 2.0, 1.0 - ck))
-				var cols := [Color(2.0, 1.9, 2.0), Color(1.6, 0.45, 1.3), Color(0.5, 1.5, 1.6)]
+					g.draw_circle(f.pos, f.r * (1.0 + 1.5 * ck), Color(dbc.r * 1.4, dbc.g * 1.4, dbc.b * 1.4, (1.0 - ck) * 0.55))
+				var cols := [Color(dbc.r * 0.5 + 0.7, dbc.g * 0.5 + 0.7, dbc.b * 0.5 + 0.7), Color(dbc.r * 1.2, dbc.g * 1.2, dbc.b * 1.2), Color(dbc.r * 0.6, dbc.g * 0.6, dbc.b * 0.6)]
 				for q in 3:
 					var kq: float = clampf((el - q * 0.14) / 1.1, 0.0, 1.0)
 					if kq > 0.0 and kq < 1.0:
@@ -1605,7 +1706,71 @@ func _draw_fx() -> void:
 ## Boss 弹画原图弹体（optical._eb_step 把杂兵弹换成青蓝色相时，原图留在 g.tex[名 + "@boss"]；docs/139 §7.3）：
 ## 不是染色，只是「不被杂兵的青蓝换色波及」——Boss 弹的本体颜色交给 Boss 会话（专属贴图 / b.col，docs/142b）
 func _eb_tex(b: Dictionary, nm: String) -> String:
+	if b.get("boss", false) and _eb_own():
+		return _eb_gray(nm)
 	return nm + "@boss" if b.get("boss", false) and g.tex.has(nm + "@boss") else nm
+
+
+## 敌弹画在哪：脚下 16 像素上方；Boss 弹再加一点垂直于飞行方向的轻摆（±2，按所在位置错相——同一圈弹各摆各的，飞起来是一条条细波，不是整片平移）。只画面
+func _ebp(b: Dictionary) -> Vector2:
+	var p: Vector2 = b.pos + Vector2(0, -16)
+	if b.get("boss", false) and bfx_grains != null:
+		var v: Vector2 = b.vel
+		if v.length_squared() > 1.0:
+			p += v.orthogonal().normalized() * sin(g.t * 9.0 + (b.pos.x + b.pos.y) * 0.06) * 2.0
+	return p
+
+
+## Boss 弹体脉动（±14%，错相同上）；不是 Boss 弹或颗粒关着时 1
+func _eb_pulse(b: Dictionary) -> float:
+	if not (b.get("boss", false) and bfx_grains != null):
+		return 1.0
+	return 1.0 + 0.14 * sin(g.t * 13.0 + (b.pos.x - b.pos.y) * 0.05)
+
+
+## Boss 弹体用专属色（docs/142b §8.4，协调人 10-25；不加危险色外圈，用户 10-25「描边不要加」）：render/ebullet_boss_own 1 = 开
+func _eb_own() -> bool:
+	return Bal.v("render/ebullet_boss_own", 1.0) > 0.0
+
+
+## Boss 弹体的调色：专属色 × 1.1（只略提亮：再高光学辉光一叠色相就偏，炮火橙会变黄）；不是 Boss 弹 / 关掉时用 base
+func _eb_mod(b: Dictionary, base: Color) -> Color:
+	if not (b.get("boss", false) and _eb_own()):
+		return base
+	var t: String = str(b.get("src_type", ""))
+	var c: Color = D.ENEMIES.get(t, {}).get("bcol_core", g.vfx.boss_color(t))   # 有弹芯色（伊比利亚）用弹芯色
+	return Color(c.r * 1.1, c.g * 1.1, c.b * 1.1)
+
+
+## Boss 弹的同色系外描边（enemies.json bcol_outline，目前只伊比利亚，用户 10-25「描边要同调、有层次」）：压在亮边外侧、2 世界像素（1 个低分辨率格）、不闪
+func _eb_boss_outline(b: Dictionary, bp: Vector2) -> void:
+	if not (b.get("boss", false) and _eb_own()):
+		return
+	var oc = D.ENEMIES.get(str(b.get("src_type", "")), {}).get("bcol_outline")
+	if oc is Color:
+		tb_ring(bp, b.r + 3.5, 2.0, Color(oc.r, oc.g, oc.b, 1.0))
+
+
+## 弹体贴图的灰度版 g.tex[名 + "@gray"]（第一次用时从原色版做：按最亮通道提到 0.35–1.0 的灰、保留透明度），画时乘专属色。纯画面
+func _eb_gray(nm: String) -> String:
+	var key: String = nm + "@gray"
+	if g.tex.has(key):
+		return key
+	var src: Texture2D = g.tex.get(nm + "@boss", g.tex.get(nm))
+	if src == null:
+		return nm
+	var im: Image = src.get_image()
+	if im.is_compressed():
+		im.decompress()
+	im.convert(Image.FORMAT_RGBA8)
+	for y in im.get_height():
+		for x in im.get_width():
+			var c: Color = im.get_pixel(x, y)
+			if c.a > 0.0:
+				var v: float = clampf(0.35 + maxf(c.r, maxf(c.g, c.b)) * 0.75, 0.0, 1.0)
+				im.set_pixel(x, y, Color(v, v, v, c.a))
+	g.tex[key] = ImageTexture.create_from_image(im)
+	return key
 
 
 func _draw_ebullets_lobs_shocks() -> void:
@@ -1622,7 +1787,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 		tb_circle(b.pos + Vector2(0, 2), b.r + 1.0, Color(0, 0, 0, 0.4), 0.45, 10)
 		if _bullet_tex(b) != "":
 			continue   # 专属弹体帧条（docs/96：漂移体侵蚀弹）自带 #080E18 描边，不垫底圈、不描洋红边
-		var bp: Vector2 = b.pos + Vector2(0, -16)
+		var bp: Vector2 = _ebp(b)
 		# 敌方弹幕高对比：深色外圈垫底，画完再描一圈亮洋红边，压在友方特效上也一眼看得出
 		tb_circle(bp, b.r + 3.0, Color(0.02, 0.0, 0.05, 0.85))
 		if g.optical_on:
@@ -1643,7 +1808,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 		if b.life <= 0.0:
 			continue
 		var kd: String = b.get("kind", "orb")
-		var bp: Vector2 = b.pos + Vector2(0, -16)
+		var bp: Vector2 = _ebp(b)
 		var btex: String = _bullet_tex(b)
 		if btex != "":
 			# 小怪专属弹体（enemies.json shot_tex，docs/96 第 1 批：漂移体 proj_skimmer_corrode）：朝右绘制、按速度方向旋转，帧率按 V6_FRAMES
@@ -1651,19 +1816,19 @@ func _draw_ebullets_lobs_shocks() -> void:
 			g.vfx.spr_rot(btex, int(g.t * float(bspec[1]) + b.pos.x * 0.01) % int(bspec[0]), bp, b.vel.angle(), Game.PX)
 		elif kd == "nerve" and g.tex.get("proj_floater_nerve") != null:
 			# 浮海飘航者神经弹（V8 proj_floater_nerve，朝右绘制按速度方向旋转）
-			g.vfx.spr_rot(_eb_tex(b, "proj_floater_nerve"), int(g.t * 12.0 + b.pos.x * 0.01) % 4, bp, b.vel.angle(), Game.PX)
+			g.vfx.spr_rot(_eb_tex(b, "proj_floater_nerve"), int(g.t * 12.0 + b.pos.x * 0.01) % 4, bp, b.vel.angle(), Game.PX, _eb_mod(b, Color.WHITE))
 		elif kd == "acid" and g.tex.get("proj_acid") != null:
 			g.vfx.spr("proj_acid", 2, int(g.t * 8.0 + b.pos.x * 0.01) % 2, bp, _hpx("proj_acid"), false, Color(1.5, 1.5, 1.5))   # Codex v14 酸团（暗橄榄，避开友方黄绿）；×1.5 提亮，压过地图暗环境光（原程序圆也是过曝色）
 		elif kd == "nova" and g.tex.get("proj_nova") != null:
-			g.vfx.spr(_eb_tex(b, "proj_nova"), 4, int(g.t * 10.0 + b.pos.x * 0.01) % 4, bp, _hpx("proj_nova"), false, Color(1.5, 1.5, 1.5))   # Codex v14 新星弹；×1.5 提亮同上
+			g.vfx.spr(_eb_tex(b, "proj_nova"), 4, int(g.t * 10.0 + b.pos.x * 0.01) % 4, bp, _hpx("proj_nova") * _eb_pulse(b), false, _eb_mod(b, Color(1.5, 1.5, 1.5)))   # Codex v14 新星弹；×1.5 提亮同上；Boss 弹 = 专属色
 		elif kd != "acid" and kd != "nova" and kd != "nerve" and kd != "boss_blade":
-			g.vfx.spr(_eb_tex(b, "ebullet"), 1, 0, bp, Game.PX * b.r / 5.0)
+			g.vfx.spr(_eb_tex(b, "ebullet"), 1, 0, bp, Game.PX * b.r / 5.0 * _eb_pulse(b), false, _eb_mod(b, Color.WHITE))
 	var eb_ow: float = Bal.v("render/ebullet_outline", 0.0) if g.optical_on else 0.0
 	for b in g.ebullets:
 		var kd: String = b.get("kind", "orb")
 		if kd == "boss_blade" or b.life <= 0.0:
 			continue
-		var bp: Vector2 = b.pos + Vector2(0, -16)
+		var bp: Vector2 = _ebp(b)
 		if _bullet_tex(b) != "":
 			if eb_ow > 0.0:   # 专属弹体（漂移体侵蚀弹）也加同一圈外描边
 				var dc0: Color = g.optical.col_danger
@@ -1682,12 +1847,20 @@ func _draw_ebullets_lobs_shocks() -> void:
 					tb_circle(bp, b.r, Color(1.8, 1.6, 0.5))
 		if g.optical_on:
 			var ebc: Color = g.optical.eb_col(b)
-			tb_ring(bp, b.r + 2.0, 1.5, Color(ebc.r * 2.0, ebc.g * 2.0, ebc.b * 2.0, 0.9))   # 亮描边改敌弹色（原亮洋红）
+			var bk: float = 1.3 if b.get("boss", false) and _eb_own() else 2.0   # Boss 弹专属色亮描边只提到 ×1.3（×2 叠辉光后色相偏）
+			tb_ring(bp, b.r + 2.0, 1.5, Color(ebc.r * bk, ebc.g * bk, ebc.b * bk, 0.9))   # 亮描边改敌弹色（原亮洋红）；Boss 弹 = 专属色
 			var ow: float = eb_ow
 			if ow > 0.0:
 				# docs/139 §7 敌弹外描边（用户 10-24「敌方子弹加一个描边看一下」）：危险色、不闪，宽 ow 世界像素（2 = 1 个低分辨率格），压在亮描边外侧
 				var dc: Color = g.optical.col_danger
 				tb_ring(bp, b.r + 3.0 + ow * 0.5, ow, Color(dc.r, dc.g, dc.b, 1.0))
+			_eb_boss_outline(b, bp)
+			if bfx_grains != null and b.get("boss", false) and g.vrng.randf() < 0.08 and BossBeam.take(g, 1) > 0:
+				bfx_grains.push("mote_shed", bp, -b.vel.normalized(), ebc)   # 沿途散颗粒（拖尾之外的「活」，走预算）
+		elif b.get("boss", false) and _eb_own():
+			var bc: Color = g.vfx.boss_color(str(b.get("src_type", "")))
+			tb_ring(bp, b.r + 2.0, 1.5, Color(bc.r * 1.3, bc.g * 1.3, bc.b * 1.3, 0.9))   # Boss 弹亮描边 = 专属色（不加危险色外圈，用户 10-25「描边不要加」）
+			_eb_boss_outline(b, bp)
 		else:
 			tb_ring(bp, b.r + 2.0, 1.5, Color(2.4, 0.8, 1.8, 0.9))
 	tb_flush()
@@ -1738,6 +1911,10 @@ func _draw_ebullets_lobs_shocks() -> void:
 
 ## 一道冲击环：地面椭圆，深色外描边 + 危险色主色 + 白芯；缺口环按缺口分段（ground 环由 _draw_ground_foe_fx 在单位之下画）
 func _draw_shock(sh: Dictionary) -> void:
+	if sh.get("boss", false) and Bal.v("render/ishar_song_live", 1.0) > 0.0 and not g.perf_alt:   # perf_alt：--perfab 同局轮换的旧段
+		# Boss 冲击环：断续抖动的颗粒带 + 衰减尾带（伊莎玛拉另叠内波纹），专属色（docs/142b §9，用户 10-25）
+		BossBeam.draw_song(g, sh, ground_y(), str(sh.get("src_type", "")) == "ishar")
+		return
 	var a: float = maxf(0.6, 1.0 - sh.r / sh.maxr)
 	var tc: Color = sh.get("col", ENEMY_TELL)   # 缺口环（大群之歌）用 Boss 主题色，普通冲击环洋红
 	g.draw_set_transform(sh.pos, 0.0, Vector2(1.0, ground_y()))   # 地面椭圆，和判定一致（docs/48 ①）
@@ -3497,7 +3674,7 @@ func beacon_burst(b: Dictionary) -> void:
 	g.vfx.beacon_ignite(b)   # docs/54：柔光 + 余烬 + 溟痕退散（fx/beacon_burst2）
 
 
-## 最后的骑士冰枪桩（e.stakes = [{pos, until}]，r 22）：竖立的冰晶长枪 + 脚下冰霜圈；快到期（< 2 秒）时闪烁
+## 最后的骑士冰柱（e.stakes = [{pos, until, born}]，判定 r 22）：冰柱帧条（没有就退回冰枪桩 / 程序长枪）+ 脚下冰霜圈；快到期（< 2 秒）时闪烁
 func _draw_stakes(e: Dictionary) -> void:
 	for st in e.stakes:
 		var left: float = float(st.until) - g.t
@@ -3509,6 +3686,15 @@ func _draw_stakes(e: Dictionary) -> void:
 		g.draw_circle(Vector2.ZERO, 22.0, Color(0.6, 0.85, 1.3, 0.14 * a))
 		g.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 24, Color(0.8, 1.1, 1.6, 0.6 * a), 1.5)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		if g.tex.get("prop_ice_pillar") != null:
+			# 冰柱（10-25 用户「骑士的桩设置成冰柱」，tools/gen_ice_pillar.py：ansimuz Ice_b，64 × 96、脚底第 94 行）：0.75 倍；新立的先播破土 0.25 秒
+			var age: float = g.t - float(st.get("born", -99.0))
+			var pc := Color(1.15, 1.2, 1.3, a)
+			if age < 0.25 and g.tex.get("prop_ice_pillar_rise") != null:
+				g.vfx.spr("prop_ice_pillar_rise", 3, clampi(int(age / 0.25 * 3.0), 0, 2), p, g.PX * 0.75, false, pc, Vector2(0.5, 94.0 / 96.0))
+			else:
+				g.vfx.spr("prop_ice_pillar", 4, int(g.t * 4.0) % 4, p, g.PX * 0.75, false, pc, Vector2(0.5, 94.0 / 96.0))
+			continue
 		if g.tex.get("prop_ice_stake") != null:
 			# Codex v14 prop_ice_stake（24×56 × 2 帧，脚底第 53 行）；冰蓝过曝调色同骑士长矛（暗环境光下原色太暗）；到期前闪烁仍是程序改透明度，判定圈程序画
 			g.vfx.spr("prop_ice_stake", 2, int(g.t * 4.0) % 2, p, _hpx("prop_ice_stake"), false, Color(1.6, 1.8, 2.1, a), Vector2(0.5, 54.0 / 56.0))
@@ -3849,6 +4035,10 @@ func _boss_state(e: Dictionary) -> void:
 			UI.diamond(g, sp, 4.0, Color(1.8, 1.6, 0.6), Color(0, 0, 0, 0.6))
 		if e.has("ammo") and brk > 0.0:
 			UI.text(g, g.font, top + Vector2(-120, -12), "装填被打断 · 破绽 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
+		elif brk > 0.0 and e.type == "knight_boss":
+			# 骑士（用户 10-25）：只在撞冰柱眩晕时写「眩晕」读秒，别的破绽不写字
+			if str(e.get("brk_label", "")) == "眩晕":
+				UI.text(g, g.font, top + Vector2(-120, -12), "眩晕 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 		elif brk > 0.0:
 			# 其他 Boss 的破绽（伊莎玛拉潮涌迫近落地、塑路者核心碎裂等）：同一套星 + 剩余秒数
 			UI.text(g, g.font, top + Vector2(-120, -12), "破绽 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
