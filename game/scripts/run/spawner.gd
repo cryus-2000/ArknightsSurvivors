@@ -625,7 +625,7 @@ var n_mob := 0                    # 普通刷怪实际刷出的只数（含推�
 var q_stat := {"queued": 0, "deferred": 0, "wait_sum": 0.0, "wait_max": 0.0, "q_peak": 0, "drop_final": 0, "drop_room": 0, "forced": 0, "merged": 0, "merge_spawns": 0}
 ## 硬上限合并（docs/50 §26.10，用户 10-25「同屏怪物上限可以修改，那还是得修改怪物的数值」）：普通怪已到 enemy/alive_hard（> 0 才开）时，
 ## 队列里的普通刷怪立刻不刷（不再排队等空位——10-25 本地两 seed：排队推迟本身让压力明显变小，机器人从 7–8 分钟阵亡变成撑到最后），记进 owed；之后每刷出一只普通怪（role 为空）吸收 a = min(owed, enemy/merge_max) 只：
-## 生命 / 潮盾 / 经验 / 击杀权重 dk × (1 + a)（总量不变：经验、血量池、灯油与掉率期望都和「多刷 a 只」相同），伤害 × (1 + a)^enemy/merge_dmg_exp
+## 生命 / 潮盾 × (1 + a)^enemy/merge_hp_exp（缺省 1 = 血量池不变）、经验 / 击杀权重 dk × (1 + a)（经验、灯油与掉率期望都和「多刷 a 只」相同），伤害 × (1 + a)^enemy/merge_dmg_exp
 ## （缺省 0.5，同怪物密度的伤害指数：只数少了、贴身次数少，单发不按只数等比放大）。体型、速度、画面不变
 var owed := 0
 var q_waits := PackedFloat32Array()   # 每只推迟出场的等待秒数（只在测试参数下记，用于分布）
@@ -654,19 +654,23 @@ func _plat_knob(key: String) -> int:
 
 ## 刷出的普通怪吸收合并欠账（见 owed）
 func _merge_apply(e: Dictionary) -> void:
-	var a: int = mini(owed, int(Bal.v("enemy/merge_max", 2.0)))
-	if a <= 0:
+	if owed <= 0:
 		return
-	owed -= a
+	# 经验 / 击杀权重把欠账一次吸收完（总量守恒，10-26：新版大群下每只只吸 2 只跟不上，一局欠 500 多只的经验）；生命 / 伤害只按至多 merge_max 只放大
+	var all: int = owed
+	var a: int = mini(owed, int(Bal.v("enemy/merge_max", 2.0)))
+	owed = 0
 	q_stat.merge_spawns += 1
 	var m := 1.0 + float(a)
-	e.hp *= m
-	e.maxhp *= m
-	e.shield_hp *= m
-	e.xp *= m
+	var mx := 1.0 + float(all)
+	var hm: float = pow(m, Bal.v("enemy/merge_hp_exp", 1.0))   # 生命指数（10-26 第二轮）：1 = 血量池不变；< 1 = 合并怪更薄（10-25 云端：×2–×3 血让范围攻击收益掉、反而变难）
+	e.hp *= hm
+	e.maxhp *= hm
+	e.shield_hp *= hm
+	e.xp *= mx
 	e.dmg *= pow(m, Bal.v("enemy/merge_dmg_exp", 0.5))
-	e["dk"] = float(e.get("dk", 1.0)) * m
-	e["merged"] = a
+	e["dk"] = float(e.get("dk", 1.0)) * mx
+	e["merged"] = all
 
 
 ## 排队保底（enemy/alive_cap_wait 秒，0 = 不保底）：排满这么久的普通刷怪不再等空位，直接出（可短暂超过上限）
