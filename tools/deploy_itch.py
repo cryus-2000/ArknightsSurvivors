@@ -80,7 +80,10 @@ def main():
     ap.add_argument("--confirm", default="", help="--apply 时必须再写一遍提交号")
     ap.add_argument("--release-dir", type=Path, default=RELEASE, help="final_<提交>/ 所在目录（缺省 build/release）")
     a = ap.parse_args()
-    commit = subprocess.run(["git", "rev-parse", "--short=8", a.ref], cwd=ROOT, stdout=subprocess.PIPE, text=True, check=True).stdout.strip()
+    full = subprocess.run(["git", "rev-parse", a.ref], cwd=ROOT, stdout=subprocess.PIPE, text=True, check=True).stdout.strip()
+    # release_all 用 git 缺省的短号（仓库变大后是 9 位）命名 final_<提交>；这里按已有目录反查，避免 8 / 9 位对不上（10-26）
+    cands = sorted(d.name[len("final_"):] for d in a.release_dir.resolve().glob("final_*") if full.startswith(d.name[len("final_"):]))
+    commit = max(cands, key=len) if cands else full[:9]
     if a.apply and a.confirm != commit:
         raise SystemExit("--apply 需要 --confirm %s（发布前先经用户确认）" % commit)
     final = a.release_dir.resolve() / ("final_%s" % commit)
