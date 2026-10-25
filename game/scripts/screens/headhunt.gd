@@ -76,6 +76,19 @@ var reveal_id := ""       # 当前揭示的干员（测试输出用）
 var sel := 0              # 入口：0 寻访一次 / 1 定向；选职业 / 选干员：格子下标
 var sel_cls := ""
 var _buy_t0 := -9.0       # 上次兑换成功的时刻（「+1」上浮用）
+## 开包进度（10-26 用户：按住往左拖 = 拉开，往回拖 = 合上、光跟着收回；拖过一半松手自动拉开，不到一半弹回合上；
+## 键盘 / 手柄按住确认或左方向匀速拉开；单点一下 = 自动拉开）。0 = 合着，1 = 全开（触发光炸）
+const DRAG_W := 380.0         # 从合着拖到全开要拖的设计单位
+const OPEN_KEY := 0.9         # 按住键时每秒拉开的进度
+var _open := 0.0
+var _open_to := -1.0          # 松手后自动走向的目标（1 拉开 / 0 合上；−1 = 不动）
+var _odrag := {}              # 开包拖动：{x 按下处, p 按下时进度, moved 是否拖动过}
+var _okey := false            # 键盘 / 手柄按住拉开
+var _burst_t := -1.0          # 光炸开始的时刻（−1 = 还没到）
+var _zip_s := 0               # 上一帧的拉链档（档位变化时响一下拉链齿）
+var _bag_last := 0.0
+var _hum: AudioStreamPlayer   # 开口里的光：循环音，音量 / 音高跟开包进度（可逆）
+var _flip_n := 0              # 十人总览：已经响过翻卡声的张数（第 TEN 张之后再响一下收尾和弦）
 var ten := false          # 本次是新手十连（10-26：名册为空时入口只有「十连寻访」；揭示每人 TEN_OP_T 秒，最后一屏十人总览）
 var pick_scroll := 0      # 指定干员列表：第一张可见卡的下标
 var _pdrag := {}          # 指定干员列表的拖动翻页：{x, scroll, act}
@@ -252,10 +265,23 @@ func _play() -> void:
 	t0 = _now()
 	_zip_ticks = 0
 	_burst = false
+	_open = 0.0
+	_open_to = -1.0
+	_odrag = {}
+	_okey = false
+	_burst_t = -1.0
+	_zip_s = 0
+	_bag_last = _now()
+	Sfx.ensure(Sfx.HH_SFX)
+	Sfx.play("hh_drop", -4.0, 1.0, 0.0)
 	_trans("cut")
 
 
 func _op(i: int) -> void:
+	_hum_set(0.0)
+	Sfx.play("hh_reveal", -6.0, 1.0, 0.03)
+	if Roster.rarity(str(results[i].id)) >= 6:
+		Sfx.play("hh_star6", -12.0, 1.0, 0.0)
 	idx = i
 	mode = "op"
 	reveal_id = results[i].id
@@ -263,18 +289,19 @@ func _op(i: int) -> void:
 
 
 func _summary() -> void:
+	_hum_set(0.0)
+	_flip_n = 0
 	if mode in ["op", "bag"]:
 		_trans("wipe")
 	mode = "summary"
 	t0 = _now()
 
 
-## 点按：拉包段直接到第一名；揭示段先到终态，再按下一名
+## 点按：拉包段 = 自动拉开（拉开后光炸进第一名）；揭示段先到终态，再按下一名
 func _tap() -> void:
 	if mode == "bag":
-		if not _burst:
-			_burst_sfx()
-		_op(0)
+		if _burst_t < 0.0:
+			_open_to = 1.0
 	elif mode == "op":
 		if _now() - t0 < PLATE:
 			t0 = _now() - PLATE
@@ -291,8 +318,38 @@ func _advance() -> void:
 
 func _burst_sfx() -> void:
 	_burst = true
-	Sfx.play("beacon_lit")
-	Sfx.play("levelup", -2.0)
+	Sfx.play("hh_burst", -2.0, 1.0, 0.0)
+	for r in results:
+		if Roster.rarity(str(r.id)) >= 6:
+			Sfx.play("hh_star6", -5.0, 1.0, 0.0)   # 本次有 6★：光炸上叠一串上行钟音
+			break
+
+
+## 开口里的光（循环）：v = 0–1 音量，按开包进度走；进度降回 0 时停
+func _hum_set(v: float) -> void:
+	if v <= 0.001:
+		if _hum != null and _hum.playing:
+			_hum.stop()
+		return
+	if _hum == null:
+		Sfx.ensure(["hh_hum"])
+		var st = Sfx.streams.get("hh_hum")
+		if st == null:
+			return
+		if st is AudioStreamWAV:
+			st.loop_mode = AudioStreamWAV.LOOP_FORWARD
+			st.loop_begin = 0
+			st.loop_end = int(st.get_length() * st.mix_rate)
+		_hum = AudioStreamPlayer.new()
+		_hum.stream = st
+		_hum.bus = "SFX"
+		g.hud.add_child(_hum)
+	_hum.volume_db = linear_to_db(maxf(v, 0.001)) - 2.0
+	_hum.pitch_scale = 0.8 + 0.45 * v
+	if not _hum.playing:
+		_hum.play()
+	if Sfx.trace_on:
+		Sfx.trace.append([Engine.get_process_frames(), "hh_hum~", _hum.volume_db, _hum.pitch_scale])
 
 
 func _act(a) -> void:
@@ -439,9 +496,37 @@ func input(event: InputEvent) -> bool:
 			if hit:
 				_act(r[1])
 				return true
-		if mode in ["bag", "op"]:
+		if mode == "bag":
+			_odrag = {"x": p.x, "p": _open, "moved": false}
+			_open_to = -1.0
+			return true
+		if mode == "op":
 			_tap()
 		return true
+	if mode == "bag" and not _odrag.is_empty():
+		if event is InputEventMouseMotion or (event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT):
+			var px: float = (event.position.x / Cfg.ui_k - _off.x) / _k
+			var dx: float = float(_odrag.x) - px   # 往左为正
+			if absf(dx) >= 12.0:
+				_odrag.moved = true
+			if event is InputEventMouseMotion:
+				if _odrag.moved and _burst_t < 0.0:
+					_open = clampf(float(_odrag.p) + dx / DRAG_W, 0.0, 1.0)
+				return true
+			var moved: bool = _odrag.moved
+			_odrag = {}
+			if _burst_t < 0.0:
+				_open_to = 1.0 if (not moved or _open >= 0.5) else 0.0   # 单点 = 自动拉开；拖过一半松手自动拉开，不到一半弹回
+			return true
+	if mode == "bag" and event is InputEventKey and not event.echo:
+		var kb: int = Pad.kc(event)
+		if kb in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_LEFT, KEY_A]:
+			_okey = event.pressed
+			if event.pressed:
+				_open_to = -1.0
+			elif _burst_t < 0.0:
+				_open_to = 1.0 if _open >= 0.5 else 0.0
+			return true
 	if event is InputEventKey and event.pressed and not event.echo:
 		var k: int = Pad.kc(event)
 		if k == KEY_B and mode == "entry":
@@ -1056,10 +1141,31 @@ func _draw_bag() -> void:
 	var ci: CanvasItem = g.hud
 	var f: Font = g.font
 	var t := _now() - t0
-	if t >= BAG_T:
+	var dt := clampf(_now() - _bag_last, 0.0, 0.1)
+	_bag_last = _now()
+	if _burst_t >= 0.0 and _now() - _burst_t >= 0.45:
 		_op(0)
 		_draw_op()
 		return
+	# 开包进度：拖动中由 input 直接写；按住键匀速拉开；松手后走向 _open_to（拉开 2.4 / 秒、弹回 3 / 秒）
+	if t >= ZIP0 and _burst_t < 0.0:
+		if _okey:
+			_open = minf(1.0, _open + dt * OPEN_KEY)
+		elif _odrag.is_empty() and _open_to >= 0.0:
+			_open = move_toward(_open, _open_to, dt * (2.4 if _open_to > 0.5 else 3.0))
+			if _open_to < 0.5 and _open <= 0.0:
+				_open_to = -1.0
+		if _open >= 1.0:
+			_open = 1.0
+			_burst_t = _now()
+			_odrag = {}
+			_okey = false
+			_burst_sfx()
+	var s := clampi(int(roundf(_open * 7.0)), 0, 7)
+	if s != _zip_s:
+		Sfx.play("hh_zip", -7.0, (0.9 + 0.06 * s) if s > _zip_s else (0.72 + 0.04 * s), 0.02)   # 拉开升调、合上降调
+		_zip_s = s
+	_hum_set(_open if _burst_t < 0.0 else 0.0)
 	# 台面与墙面
 	ci.draw_rect(Rect2(Vector2.ZERO, D), Color8(22, 25, 32))
 	var fl := D.y - 250.0   # 台面线
@@ -1071,41 +1177,48 @@ func _draw_bag() -> void:
 	var ground := Vector2(D.x / 2.0, D.y - 120)
 	var drop := clampf(t / 0.32, 0.0, 1.0)
 	var pos := ground + Vector2(0, -(1.0 - drop * drop) * D.y * 0.7)
+	# 开口的光把台面也照亮一点（随进度）
+	if _open > 0.0:
+		ci.draw_set_transform(_off + ground * _k, 0.0, Vector2(_k, _k * 0.3))
+		ci.draw_circle(Vector2.ZERO, 260.0 * (0.6 + 0.4 * _open), UI.fa(_burst_col(), 0.12 * _open))
+		ci.draw_set_transform(_off, 0.0, Vector2(_k, _k))
 	ci.draw_set_transform(_off + ground * _k, 0.0, Vector2(_k, _k * 0.18))
 	ci.draw_circle(Vector2.ZERO, BAG_SZ.x * sc * 0.5 * clampf(drop, 0.2, 1.0), Color(0, 0, 0, 0.45))
 	ci.draw_set_transform(_off, 0.0, Vector2(_k, _k))
 	if t < ZIP0:
 		_blit(A.tex("ui_hh_bag"), 0 if t < 0.32 else (1 if t < 0.36 else 2), BAG_SZ, BAG_O, pos, sc)
 	else:
-		var s := clampi(1 + int((t - ZIP0) / ZIP_STEP), 1, 7)
-		var ticks := int((t - ZIP0) / 0.11)
-		if t < ZIP1 and ticks > _zip_ticks:
-			_zip_ticks = ticks
-			Sfx.play("ui_move", -5.0, 1.0 + 0.04 * s)
-		if t >= BURST and not _burst:
-			_burst_sfx()
 		var tl := (pos - BAG_O * sc).round()
-		var lit := _light(int((t - ZIP0) * 12.0) % 24, s)
 		var la := (tl + FX_AT * sc).round()
+		var lit: Array = _light(int((t - ZIP0) * 12.0) % 24, maxi(1, s)) if _open > 0.01 else [null, null]
+		var lc := Color(1, 1, 1, clampf(_open * 1.6, 0.0, 1.0))   # 光随开口亮起、往回拖时一起收回
 		if lit[0] != null:
-			ci.draw_texture_rect(lit[0], Rect2(la, FX_SZ * sc), false)
+			ci.draw_texture_rect(lit[0], Rect2(la, FX_SZ * sc), false, lc)
 		_blit(A.tex("ui_hh_bag_zip"), s, BAG_SZ, BAG_O, pos, sc)
 		if lit[1] != null:
-			ci.draw_texture_rect(lit[1], Rect2(la + Vector2(FX_CROP.position) * sc, Vector2(FX_CROP.size) * sc), false)
+			ci.draw_texture_rect(lit[1], Rect2(la + Vector2(FX_CROP.position) * sc, Vector2(FX_CROP.size) * sc), false, lc)
 		_blit(A.tex("ui_hh_bag_zip_front"), s, BAG_SZ, BAG_O, pos, sc)
 	ci.draw_rect(Rect2(40, 34, 3, 64), UI.TEXT)
 	UI.text_at(ci, f, Vector2(64, 48), "寻访", 26, UI.TEXT, "lm", true)
 	ci.draw_rect(Rect2(64, 74, 140, 1.5), UI.TEXT)
 	HS.spaced(ci, f, Vector2(64, 98), "PERSONNEL", 13, UI.TEXT, 5.0)
-	if t < ZIP1:
-		ci.draw_line(Vector2(D.x / 2.0 - 160, D.y - 66), Vector2(D.x / 2.0 - 70, D.y - 66), UI.TEXT, 3.0)
-		ci.draw_polyline(PackedVector2Array([Vector2(D.x / 2.0 - 146, D.y - 78), Vector2(D.x / 2.0 - 160, D.y - 66), Vector2(D.x / 2.0 - 146, D.y - 54)]), UI.TEXT, 3.0)
-		HS.spaced(ci, f, Vector2(D.x / 2.0 - 50, D.y - 58), "向左拉开拉链", 18, UI.TEXT, 8.0)
+	if _burst_t < 0.0 and t >= ZIP0 * 0.5:
+		# 提示：箭头左右轻摆（拖动中停摆），下面一条进度条，中点刻度 = 过了松手就自动拉开
+		var sw := 0.0 if UM.rm() or not _odrag.is_empty() else sin(_now() * 4.0) * 8.0
+		var hx := D.x / 2.0 + sw
+		var ha := 1.0 - _open * 0.6
+		ci.draw_line(Vector2(hx - 160, D.y - 66), Vector2(hx - 70, D.y - 66), UI.fa(UI.TEXT, ha), 3.0)
+		ci.draw_polyline(PackedVector2Array([Vector2(hx - 146, D.y - 78), Vector2(hx - 160, D.y - 66), Vector2(hx - 146, D.y - 54)]), UI.fa(UI.TEXT, ha), 3.0)
+		HS.spaced(ci, f, Vector2(hx - 50, D.y - 58), "按住确认键拉开拉链" if Pad.using else "按住向左拖，拉开拉链", 18, UI.fa(UI.TEXT, ha), 6.0)
+		var pr := Rect2(D.x / 2.0 - 200, D.y - 36, 400, 4)
+		ci.draw_rect(pr, Color(1, 1, 1, 0.15))
+		ci.draw_rect(Rect2(pr.end.x - pr.size.x * _open, pr.position.y, pr.size.x * _open, pr.size.y), UI.fa(_burst_col(), 0.9))
+		ci.draw_rect(Rect2(pr.get_center().x - 1, pr.position.y - 3, 2, 10), Color(1, 1, 1, 0.35))
 	# 光炸：档位色铺满再转白，再退（docs/124 §10.2）
-	if t > BURST - 0.1:
+	if _burst_t >= 0.0:
 		var a := 0.0
 		var c: Color = _burst_col()
-		var bt := t - (BURST - 0.1)
+		var bt := _now() - _burst_t
 		if bt < 0.15:
 			a = bt / 0.15 * 0.85
 		elif bt < 0.27:
@@ -1257,52 +1370,108 @@ func _stars(ci: CanvasItem, c: Vector2, n: int, r: float, col: Color, line: Colo
 
 # ---------------------------------------------------------------- 新手十连 · 十人总览（10-26 用户：模仿原作十连结果屏）
 
-## 十张竖卡横排铺满：卡顶稀有度色光、职业图标、精细立绘（待机循环）、星数、名字、NEW 签；卡片依次从下方翻入（每张晚 0.08 秒）
+## 十连总览（10-26 用户第二版：「人物大小不一，全部用大号的；画面更有设计感」，参照原作十连结算屏）：
+## 暗底 + 中心暖光 + 斜向光带 + 上浮像素尘；十张竖卡依次从上方落入（每张晚 0.09 秒），卡内稀有度色自下而上渐亮 + 竖向光柱微微闪动 +
+## 职业大水印；干员一律按同一倍数（精细 @2x，按画布统一，不按各自包围盒缩放）画在同一条脚底线上、裁在本卡内（长武器裁掉，不压相邻卡）；
+## 名牌：稀有度色顶线、星级一行、中文名大字、英文小字；6★ 卡落定后一道斜向闪光扫过
+const SUM_K := 2.6            # 十连总览的统一立绘倍数（每个 @2x 像素占的设计单位，手机 ×0.9）
+
+
 func _draw_summary10() -> void:
 	var ci: CanvasItem = g.hud
 	var f: Font = g.font
 	var t := 99.0 if (UM.rm() or UM.skip_all()) else _now() - t0
-	HS.backdrop(ci, D)
-	HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "寻访结果", 1.0, "%02d / %02d" % [results.size(), Roster.TEN], "")
 	var n := results.size()
-	var gap := 8.0
-	var x0 := 24.0
+	var any6 := false
+	for r in results:
+		if Roster.rarity(str(r.id)) >= 6:
+			any6 = true
+	var warm: Color = _rar_col(6 if any6 else 5)
+	# ---- 背景：暗底、中心暖光（同心圆叠加）、三道斜向光带缓慢平移、上浮的像素尘
+	var full := Rect2(-_off / _k, D + _off * 2.0 / _k)
+	ci.draw_rect(full, Color8(9, 11, 16))
+	for k in 7:
+		ci.draw_circle(Vector2(D.x / 2.0, D.y * 0.42), 640.0 - k * 80.0, UI.fa(warm, 0.022 + k * 0.004))
+	var drift := 0.0 if UM.rm() else fmod(t * 18.0, 260.0)
+	for k in 3:
+		var bx := 180.0 + k * 420.0 + drift
+		HS.fill(ci, PackedVector2Array([Vector2(bx, 0), Vector2(bx + 90, 0), Vector2(bx - 150, D.y), Vector2(bx - 240, D.y)]), UI.fa(warm, 0.035))
+	for k in 46:
+		var hsh := absi(hash([k, 77]))
+		var px := float(hsh % 1280)
+		var sp := 14.0 + float(hsh % 23)
+		var py := D.y - fmod((0.0 if UM.rm() else t) * sp + float(hsh % 997), D.y + 40.0)
+		var sz := 2.0 + float(hsh % 3)
+		ci.draw_rect(Rect2(px, py, sz, sz), UI.fa(warm if k % 3 else Color.WHITE, 0.10 + 0.05 * float(hsh % 4)))
+	HS.outline_px(ci, Vector2(30, D.y - _p(196.0, 176.0)), "RECRUITMENT", 9.0, Color(1, 1, 1, 0.05), Color8(9, 11, 16))
+	HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "寻访结果", 1.0, "%02d / %02d" % [n, Roster.TEN], "")
+	# ---- 十张卡
+	var gap := 6.0
+	var x0 := 22.0
 	var cw := (D.x - x0 * 2.0 - gap * (n - 1)) / maxf(1.0, n)
-	var y0 := _p(84.0, 76.0)
-	var ch := D.y - 88.0 - 14.0 - y0
+	var y0 := _p(80.0, 72.0)
+	var ch := D.y - 88.0 - 12.0 - y0
+	var np_h := _p(98.0, 86.0)
+	var k2 := SUM_K * (0.9 if _phone else 1.0)
+	# 翻卡声：每张落定时一下，音高逐张升；全部落定 0.3 秒后收尾和弦（只响一次）
+	while _flip_n < n and t - 0.09 * _flip_n >= 0.12:
+		Sfx.play("hh_card", -8.0, 0.92 + 0.035 * _flip_n, 0.0)
+		_flip_n += 1
+	if _flip_n == n and t >= 0.09 * n + 0.45:
+		_flip_n += 1
+		Sfx.play("hh_done", -6.0, 1.0, 0.0)
 	for i in n:
 		var r: Dictionary = results[i]
 		var od := _card(r.id)
 		var rar := Roster.rarity(r.id)
 		var rc := _rar_col(rar)
-		var e := UM.out_cubic((t - 0.08 * i) / 0.4)
+		var lt := t - 0.09 * i
+		var e := UM.out_cubic(lt / 0.45)
 		if e <= 0.0:
 			continue
-		var rr := Rect2(x0 + i * (cw + gap), y0 + (1.0 - e) * 60.0, cw, ch)
-		var a := clampf(e * 1.4, 0.0, 1.0)
-		ci.draw_rect(rr, Color(0.07, 0.08, 0.1, 0.95 * a))
-		# 卡顶稀有度光：自上而下渐隐（6 段色块，像素风）
-		for k in 6:
-			ci.draw_rect(Rect2(rr.position.x, rr.position.y + k * 22.0, rr.size.x, 22.0), UI.fa(rc, (0.42 - k * 0.07) * a))
-		ci.draw_rect(Rect2(rr.position.x, rr.position.y, rr.size.x, 4.0), UI.fa(rc, a))
-		ci.draw_rect(rr, UI.fa(rc, 0.55 * a), false, 1.5)
-		_class_icon(ci, od.cls, Vector2(rr.get_center().x, rr.position.y + 34.0), 15.0, UI.fa(Color.WHITE, a))
-		var fy0 := rr.position.y + 60.0
-		var fy1 := rr.end.y - 92.0
-		_figure(od, Rect2(rr.position.x + 4.0, fy0, rr.size.x - 8.0, fy1 - fy0), 2.6, Color(0, 0, 0, 0), _idle_frame(od, t))
-		# 底部名牌：星 + 名字 + 英文
-		var nr := Rect2(rr.position.x, rr.end.y - 84.0, rr.size.x, 84.0)
-		ci.draw_rect(nr, Color(0.9, 0.91, 0.93, 0.96 * a))
-		var sr := 5.0 if cw < 110.0 else 6.0
-		_stars(ci, Vector2(nr.get_center().x - (rar - 1) * sr * 1.15, nr.position.y + 14.0), rar, sr, rc, HS.INK)
-		var fl := UI.fit_line(f, str(od.name), 20, nr.size.x - 10.0, 11)
-		UI.text_at(ci, f, Vector2(nr.get_center().x, nr.position.y + 42.0), fl[0], fl[1], HS.INK, "mm", true)
-		var en := UI.fit_line(f, od.en, 9, nr.size.x - 10.0, 7)
-		UI.text_at(ci, f, Vector2(nr.get_center().x, nr.position.y + 66.0), en[0], en[1], HS.INK2, "mm")
-		HS.tag(ci, f, rr.position + Vector2(6.0, 54.0), "NEW", 0.7, HS.YEL)   # 十连出的都是新干员
-		# 入场白闪
-		if e < 1.0 and t - 0.08 * i < 0.25:
-			ci.draw_rect(rr, UI.fa(Color.WHITE, (1.0 - e) * 0.6))
+		var a := clampf(e * 1.5, 0.0, 1.0)
+		var rr := Rect2(x0 + i * (cw + gap), y0 - (1.0 - e) * 46.0, cw, ch)
+		var fig := Rect2(rr.position, Vector2(rr.size.x, rr.size.y - np_h))
+		# 卡底：深色 + 稀有度色自下而上渐亮（12 段像素色块）+ 竖向光柱（闪动）
+		ci.draw_rect(rr, Color(0.06, 0.07, 0.1, 0.96 * a))
+		for k in 12:
+			var yb := roundf(fig.end.y - fig.size.y * k / 12.0)
+			var yt := roundf(fig.end.y - fig.size.y * (k + 1) / 12.0)
+			ci.draw_rect(Rect2(fig.position.x, yt, fig.size.x, yb - yt), UI.fa(rc, (0.34 - k * 0.028) * a))
+		var pul := 0.0 if UM.rm() else 0.06 * sin(t * 3.0 + i * 0.9)
+		ci.draw_rect(Rect2(fig.get_center().x - cw * 0.22, fig.position.y, cw * 0.44, fig.size.y), UI.fa(rc, (0.10 + pul) * a))
+		ci.draw_rect(Rect2(fig.get_center().x - cw * 0.06, fig.position.y, cw * 0.12, fig.size.y), UI.fa(Color.WHITE, (0.05 + pul * 0.5) * a))
+		_class_icon(ci, od.cls, Vector2(fig.get_center().x, fig.position.y + fig.size.y * 0.4), cw * 0.42, UI.fa(rc, 0.16 * a))
+		# 干员：统一倍数、同一脚底线、裁在本卡
+		_figure_k(od, Vector2(fig.get_center().x, fig.end.y - 8.0), k2, fig, _idle_frame(od, t), a)
+		# 顶部：稀有度色条 + 职业徽（菱形底）+ NEW
+		ci.draw_rect(Rect2(rr.position.x, rr.position.y, rr.size.x, 3.0), UI.fa(rc, a))
+		var bc := Vector2(rr.position.x + rr.size.x - 16.0, rr.position.y + 20.0)
+		HS.fill(ci, PackedVector2Array([bc + Vector2(0, -13), bc + Vector2(13, 0), bc + Vector2(0, 13), bc + Vector2(-13, 0)]), UI.fa(Color(0.04, 0.05, 0.07), 0.85 * a))
+		_class_icon(ci, od.cls, bc, 9.0, UI.fa(Color.WHITE, a))
+		HS.tag(ci, f, rr.position + Vector2(6.0, 10.0), "NEW", 0.68, HS.YEL)
+		# 名牌：深底、稀有度顶线、星级一行、中文名大字、英文小字
+		var nr := Rect2(rr.position.x, rr.end.y - np_h, rr.size.x, np_h)
+		ci.draw_rect(nr, Color(0.035, 0.04, 0.055, 0.98 * a))
+		ci.draw_rect(Rect2(nr.position.x, nr.position.y, nr.size.x, 2.0), UI.fa(rc, a))
+		var sr := 5.0 if cw < 112.0 else 5.5
+		_stars(ci, Vector2(nr.get_center().x - (rar - 1) * sr * 1.15, nr.position.y + 15.0), rar, sr, rc, Color(0, 0, 0, 0.6 * a))
+		var fl := UI.fit_line(f, str(od.name), int(_p(22, 20)), nr.size.x - 10.0, 12)
+		UI.text_at(ci, f, Vector2(nr.get_center().x, nr.position.y + np_h * 0.5), fl[0], fl[1], UI.fa(Color.WHITE, a), "mm", true)
+		var en := UI.fit_line(f, od.en, 8, nr.size.x - 12.0, 6)
+		UI.text_at(ci, f, Vector2(nr.get_center().x, nr.end.y - 13.0), en[0], en[1], UI.fa(rc.lerp(Color.WHITE, 0.4), 0.85 * a), "mm")
+		ci.draw_rect(rr, UI.fa(rc, 0.5 * a), false, 1.0)
+		# 落入白闪；6★ 落定后斜向闪光扫过一次
+		if lt < 0.3:
+			ci.draw_rect(rr, UI.fa(Color.WHITE, (1.0 - lt / 0.3) * 0.55))
+		if rar >= 6 and lt > 0.45 and lt < 1.05:
+			var gx := lerpf(rr.position.x - 40.0, rr.end.x + 40.0, (lt - 0.45) / 0.6)
+			var gl := PackedVector2Array([Vector2(gx, rr.position.y), Vector2(gx + 18.0, rr.position.y), Vector2(gx - 22.0, rr.end.y - np_h), Vector2(gx - 40.0, rr.end.y - np_h)])
+			var ok := true
+			for q in gl:
+				ok = ok and q.x >= rr.position.x - 1.0 and q.x <= rr.end.x + 1.0
+			if ok:
+				HS.fill(ci, gl, UI.fa(Color.WHITE, 0.35))
 	HS.bottom_bar(ci, D, 88)
 	var cls_n := {}
 	for r in results:
@@ -1311,6 +1480,20 @@ func _draw_summary10() -> void:
 	var br := Rect2(D.x - 330, D.y - 74, 310, 60)
 	HS.main_btn(ci, f, br, "完成", "" if Pad.touch else "Enter")
 	_btn(br, "ok")
+
+
+## 统一倍数画立绘：k2 = 每个 @2x 像素占的设计单位（再乘干员自己的 draw_scale），脚底点 foot，裁进 clip
+func _figure_k(od: Dictionary, foot: Vector2, k2: float, clip: Rect2, frame := 0, a := 1.0) -> void:
+	var tx: Texture2D = od.tex
+	if tx == null:
+		return
+	var hi: float = od.hires
+	var fw: float = tx.get_width() / float(maxi(1, int(od.frames)))
+	var bb: Rect2 = UI.card_bb(od, tx)
+	var kk: float = k2 * 2.0 / hi * float(od.ds)
+	var dst := Rect2(UI.foot_pos(foot, bb, fw, tx.get_height(), hi, kk).round(), (bb.size * kk).round())
+	var src := Rect2(fw * frame + bb.position.x, bb.position.y, bb.size.x, bb.size.y)
+	UI.blit_clipped(g.hud, tx, dst, src, clip, Color(1, 1, 1, a))
 
 
 # ---------------------------------------------------------------- 本次寻访（GPT 33）
