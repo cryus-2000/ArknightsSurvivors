@@ -23,6 +23,8 @@ else
     echo "不是 apt 系发行版：请自行安装 wget unzip python3 fontconfig"
 fi
 python3 --version
+# 快检 / 静态项要用的 Python 包（10-25 云端镜像曾缺 numpy、pillow、fonttools：art_lint / release_slim 字体子集会崩）
+python3 -m pip install -q numpy pillow fonttools 2>/dev/null || python3 -m pip install -q --break-system-packages numpy pillow fonttools
 
 echo "== 2/5 Godot ${GODOT_VER}（官方 release + SHA512 校验）"
 mkdir -p "$GODOT_DIR"
