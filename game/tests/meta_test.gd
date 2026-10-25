@@ -57,8 +57,9 @@ func run() -> void:
 			var nd: Dictionary = nodes[id]
 			if nd.has("req"):
 				check(sh.has(str(nd.req)), "预算 %d：%s 没有前置 %s" % [b, id, nd.req])
-	check(Meta.shape_for(35).has("sh1"), "推荐点法第一个应是危机感Ⅰ")
-	check(not Meta.shape_for(35).has("atk1"), "预算 35 只点危机感Ⅰ")
+	# 推荐点法（10-25 温和前置，docs/150 §4）：先点四条主线Ⅰ，18 细胞 = 攻击性Ⅰ + 生存本能Ⅰ + 自我保护Ⅰ
+	var s18 := Meta.shape_for(18)
+	check(s18.has("atk1") and s18.has("hp1") and s18.has("def1") and not s18.has("sh1"), "预算 18 应点攻击性Ⅰ / 生存本能Ⅰ / 自我保护Ⅰ：%s" % [s18.keys()])
 	check(Meta.run_shape().is_empty(), "测试局缺省不带局外成长")
 	# 生机细胞（§3.1）
 	Cfg.meta_earned = {}

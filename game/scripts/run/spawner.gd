@@ -14,6 +14,7 @@ var spawn_acc := 0.0
 var next_elite: float = Bal.v("enemy/first_elite", 45.0)   # 首只精英出现时间（balance.json）
 var _lead_slot := 0.0   # 大群领头精英已占的精英名额（不足一个时攒着）
 var horde_warned := -1.0
+var wonder_done := false   # 认知塑造「误入奇境」的补给箱已出（docs/152）
 var fixed_i := 0        # 中段固定节拍大群已出到第几波（docs/150）
 var boss_idx := 0
 var mid_used: Array = []
@@ -571,6 +572,10 @@ func update(dt: float) -> void:
 				nch += 1
 		if nch < 3:
 			spawn_chest(g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(260.0, 420.0))
+	# 认知塑造「好奇心Ⅳ · 误入奇境」（docs/152）：meta/wonder_t 秒时额外出一个奇境补给箱，打开从藏品中三选一；只出一次
+	if not wonder_done and g.t >= Bal.v("meta/wonder_t", 200.0) and g.rfx.rule("wonder_crate") > 0:
+		wonder_done = true
+		spawn_chest(g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(260.0, 420.0), "", true)
 	# 溟痕：先照常采样，再排除最终 Boss 禁生成区域，区域外仍可生成。
 	if g.t >= g.next_mire:
 		# 溟痕随时间越来越多、越来越大；缩圈后多出现在圈边
@@ -1000,15 +1005,15 @@ func check_enemy(e: Dictionary, where: String) -> void:
 
 
 ## 补给箱；约 15% 是伪装的箱形恐鱼
-func spawn_chest(pos: Vector2, event_id := "") -> void:
+func spawn_chest(pos: Vector2, event_id := "", wonder := false) -> void:
 	next_id += 1
 	g.enemies_sys.admit({
-		"id": next_id, "type": "chest", "name": "补给箱" if event_id == "" else "海嗣祭坛", "tex": "e_chest" if event_id == "" else "e_event", "pos": pos, "hp": 22.0, "maxhp": 22.0,
+		"id": next_id, "type": "chest", "name": ("奇境补给箱" if wonder else "补给箱") if event_id == "" else "海嗣祭坛", "wonder": wonder, "tex": "e_chest" if event_id == "" else "e_event", "pos": pos, "hp": 22.0, "maxhp": 22.0,
 		"event": event_id,
 		"spd": 0.0, "dmg": 0.0, "r": 13.0, "r0": 13.0, "xp": 0.0, "age": 0.0, "evo": false, "elite": false, "boss": false,
 		"stun": 0.0, "kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,
 		"ai": "static", "range": 0.0, "cd": 0.0, "cdt": 0.0, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "def": 1.0, "set_t": 0.0, "set_done": true,
-		"chest": true, "hidden": _mimic_roll(event_id), "invuln": false, "friendly": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
+		"chest": true, "hidden": false if wonder else _mimic_roll(event_id), "invuln": false, "friendly": false, "hits": 0, "phase": 1, "charge": 0.0, "feed": false,
 		"coma": false, "wind": 0.0, "pose": 0.0, "pose_max": 0.0, "haste": 0.0, "air": 0.0, "channel": 0.0,
 		"dash_t": 0.0, "dash_w": 0.0, "nova_w": 0.0, "burst_w": 0.0, "burst_cd": 0.0, "bleed": 0.0, "bleed_t": 0.0, "mv_until": 0.0, "dpos": pos,
 		"tex_move": false, "tex_feign": false, "tex_attack": false, "tex_charge": false, "tex_death": false,

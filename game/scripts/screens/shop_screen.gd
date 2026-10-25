@@ -200,6 +200,8 @@ func draw_card(card: Button, it: Dictionary, i: int) -> void:
 	UI.ctext(card, g.font, pb.position + Vector2(34, 24), str(it.price), 21, pc)
 	if not afford:
 		UI.text(card, g.font, pb.position + Vector2(40 + UI.cwidth(g.font, str(it.price), 21), 21), "不足", 11, pc)
+	elif it.get("haggle", false):
+		UI.text(card, g.font, pb.position + Vector2(40 + UI.cwidth(g.font, str(it.price), 21), 21), g.shop_sys.haggle_tag(), 11, UI.GOLD)
 	if not Pad.touch_ui():
 		UI.ctext(card, g.font, Vector2(pb.end.x - 40, pb.position.y + 21), "[ %d ]" % (i + 1), 12, kc, HORIZONTAL_ALIGNMENT_RIGHT, 32)
 

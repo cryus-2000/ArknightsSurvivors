@@ -4,7 +4,8 @@ extends Node
 ## 把 game.tscn 当子节点跑起来，第 5 帧直接调结算入口逐条检查：
 ##   护盾反震（危机感）：护盾被击碎时周围敌人受伤并被击退；低血回复翻倍（生命感悟Ⅲ）；处决（攻击性Ⅴ）：普通 <15% / 精英 <8% 直接击杀、Boss 不受；
 ##   濒死免死（生存本能Ⅴ）：每局一次保留 1 点并无敌；静守（自我保护Ⅳ）：连续 5 秒未受伤后下一击减半；升级再升（领导欲Ⅳ）：100 次升级里有再升；
-##   开局四选一（多程信息处理）只在第一次升级；行商免费刷新（自我审视）每局一次；首个藏品三选一（战利品意识）开局自动打开。
+##   开局四选一（多程信息处理）只在第一次升级；行商免费刷新（自我审视）每局一次；首个藏品三选一（战利品意识）开局自动打开；
+##   末节质变（docs/152）：误入奇境补给箱不会是箱形恐鱼、打开给一次藏品三选一；收藏癖Ⅲ精英 / Boss 掉源石锭；交涉Ⅲ每次进店一件藏品打折。
 ## 全部通过时打印 "META MECH failures=0"。
 
 const Game = preload("res://scripts/game.gd")
@@ -48,6 +49,7 @@ func _process(_d: float) -> void:
 		test_double_level()
 		test_first_choice()
 		test_free_refresh()
+		test_capstones()
 		# 濒死免死：第 5 帧把生命打到负数（回复在死亡判定之前结算，0 会被回复救回），下一帧的 _process 应保留 1 点（不进 DEAD）
 		game.state = game.S.PLAY
 		game.hp = -5.0
@@ -75,7 +77,7 @@ func spawn(type: String, off: Vector2) -> Dictionary:
 
 
 func test_rules() -> void:
-	for r in ["shield_shatter", "low_hp_regen", "execute", "last_stand", "calm_guard", "double_level", "first_choice_extra", "shop_free_refresh", "revive"]:
+	for r in ["shield_shatter", "low_hp_regen", "execute", "last_stand", "calm_guard", "double_level", "first_choice_extra", "shop_free_refresh", "revive", "wonder_crate", "loot_ingot", "haggle"]:
 		ok(game.rfx.rule(r) > 0, "开局写进 rfx.rules：" + r)
 	ok(game.shield_max == 1, "危机感：护盾上限 1（%d）" % game.shield_max)
 	ok(game.meta_start_relic == 3 or relic_seen or game.relics.size() > 0, "战利品意识：开局待选 3 件（%d，t=%.2f，见过 %s）" % [game.meta_start_relic, game.t, relic_seen])
@@ -201,3 +203,44 @@ func test_free_refresh() -> void:
 	game.shop_sys.refresh()
 	ok(not game.shop_refreshed, "自我审视：用掉后没钱就刷不了")
 	game.state = game.S.PLAY
+
+
+## docs/152 末节质变
+func test_capstones() -> void:
+	# 误入奇境：奇境补给箱不是箱形恐鱼，打碎后待开藏品选择 +1
+	game.spawner.spawn_chest(game.ppos + Vector2(200, 0), "", true)
+	var w: Dictionary = game.enemies[game.enemies.size() - 1]
+	ok(w.get("wonder", false) and not w.hidden, "误入奇境：奇境补给箱（wonder %s，hidden %s）" % [w.get("wonder", false), w.hidden])
+	var pc0: int = game.pending_chests
+	w.hp = 0.0
+	c.kill(w)
+	ok(game.pending_chests == pc0 + 1, "误入奇境：打开后藏品三选一 +1（%d → %d）" % [pc0, game.pending_chests])
+	game.pending_chests = pc0
+	ok(not game.spawner.wonder_done, "误入奇境：开局还没刷（t=%.1f）" % game.t)
+	# 收藏癖Ⅲ：同一种怪开 / 关规则各杀一只，掉落源石锭之差 = 精英 loot_elite、普通怪 0
+	for elite in [false, true]:
+		var cnt := []
+		var st: int = game.rng_drop.state   # 两次击杀用同一段随机数（精英本身掉 3–5 个），差值只来自规则
+		for on in [0, 1]:
+			game.rng_drop.state = st
+			game.rfx.rules["loot_ingot"] = on
+			var e: Dictionary = spawn("stone", Vector2(400, 0))
+			e.elite = elite
+			var g0: int = game.gems.filter(func(x): return x.kind == "ingot").size()
+			e.hp = 0.0
+			c.kill(e)
+			cnt.append(game.gems.filter(func(x): return x.kind == "ingot").size() - g0)
+		var want: int = int(Bal.v("meta/loot_elite", 1.0)) if elite else 0
+		ok(cnt[1] - cnt[0] == want, "收藏癖Ⅲ：%s 多掉源石锭 %d（应 %d）" % ["精英" if elite else "普通怪", cnt[1] - cnt[0], want])
+	game.rfx.rules["loot_ingot"] = 1
+	# 交涉Ⅲ：每次进店恰好一件藏品打折，价格 = 原价 × haggle_mult；买掉别的一件后折扣仍保留
+	game.merchant_idx = 1
+	game.merchant = {"purchases": 0}
+	game.shop_sys.roll()
+	var hs: Array = game.shop_items.filter(func(it): return it.get("haggle", false))
+	ok(hs.size() == 1 and hs[0].kind == "relic", "交涉Ⅲ：一件藏品打折（%d 件）" % hs.size())
+	if hs.size() == 1:
+		var full: int = game.rfx.db.price(hs[0].id, game.shop_sys.price_mult())
+		ok(hs[0].price == game.shop_sys.haggle_price(full) and hs[0].price < full, "交涉Ⅲ：折扣价 %d（原价 %d）" % [hs[0].price, full])
+	game.merchant = {}
+	game.shop_items.clear()

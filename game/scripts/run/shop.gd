@@ -62,6 +62,15 @@ func relic_buys_left() -> int:
 	return maxi(0, Bal.vi("shop/relic_buy_limit", -1) - int(g.merchant.get("relic_purchases", 0)))
 
 
+## 交涉折扣价（docs/152）
+func haggle_price(p: int) -> int:
+	return maxi(1, int(ceil(p * Bal.v("meta/haggle_mult", 0.6))))
+
+
+func haggle_tag() -> String:
+	return "%d 折" % roundi(Bal.v("meta/haggle_mult", 0.6) * 10.0)
+
+
 func can_buy(it: Dictionary) -> bool:
 	return not it.sold and g.ingots >= it.price and (it.kind != "relic" or (relic_buys_left() > 0 and g.progression.can_gain_relic(it.id)))
 
@@ -97,6 +106,11 @@ func roll(first := false) -> void:
 		if not cursed.is_empty():
 			var cid: String = cursed[0]
 			g.shop_items.append({"kind": "relic", "id": cid, "name": "【遭诅】" + g.rfx.display_name(cid), "desc": g.rfx.display_desc(cid), "price": g.rfx.db.price(cid, price_mult()), "sold": false, "deep": true})
+	# 认知塑造「交涉Ⅲ」（docs/152）：每次进店随机 1 件藏品打折（meta/haggle_mult，缺省 6 折），价签上标出
+	if g.rfx.rule("haggle") > 0 and not g.shop_items.is_empty():
+		var hi: Dictionary = g.shop_items[g.rng_drop.randi() % g.shop_items.size()]
+		hi["haggle"] = true
+		hi.price = haggle_price(hi.price)
 	if g.mode == g.Mode.BALANCE:
 		g.dbg_relic_offer.append([int(g.t), "shop", g.shop_items.map(func(it): return it.id)])
 	g.shop_items.append({"kind": "heal", "id": "heal", "name": "急救包", "desc": "回复 40% 最大生命", "price": price("heal"), "sold": false})
@@ -189,6 +203,8 @@ func buy(i: int) -> void:
 	for item in g.shop_items:
 		if not item.sold:
 			item.price = g.rfx.db.price(item.id, price_mult()) if item.kind == "relic" else price(item.kind)
+			if item.get("haggle", false):
+				item.price = haggle_price(item.price)
 	# 预告的商品售出即撤销（docs/119 §4.5）；预告价格由 preview_item 从货架现价读，这里不用改
 	if not g.merchant.is_empty() and g.merchant.has("preview") and str(g.merchant.preview) == str(it.id):
 		g.merchant.erase("preview")

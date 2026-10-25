@@ -1189,6 +1189,9 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 			g.pickups.drop(e.pos + Vector2.from_angle(g.rng_drop.randf() * TAU) * g.rng_drop.randf_range(4.0, 18.0), "ingot", 1.0)
 		if g.rng_drop.randf() < 0.3:
 			g.pickups.drop(e.pos + Vector2(10, 6), "oil", 15.0)
+		if e.get("wonder", false):
+			g.pending_chests += 1   # 认知塑造「误入奇境」（docs/152）：开出藏品三选一
+			g.vfx.add_text(e.pos + Vector2(0, -30), "误入奇境", UI.GOLD, 16)
 		# 补给箱回血（docs/133，用户 10-24：参照吸血鬼幸存者靠打可破坏道具回血）：箱子里主要是应急补给（回 crate/pack_pct 最大生命，不吃 heal_mult），
 		# 少量磁铁 / 临时护盾；伪装箱形恐鱼（现形）和祭坛不走这里。crate/pack_p 0 = 关（旧行为：只有源石锭 / 灯油）
 		var cpk: float = Bal.v("crate/pack_p", 0.0)
@@ -1204,6 +1207,10 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 				g.vfx.add_text(e.pos + Vector2(0, -30), "护盾 +1", Color(0.55, 0.85, 1.0), 16)
 				g.pickups.item_log["crate_shield"] += 1
 		return
+	# 认知塑造「收藏癖Ⅲ」（docs/152）：击败精英额外掉 meta/loot_elite 源石锭、Boss meta/loot_boss
+	if g.rfx.rule("loot_ingot") > 0 and (e.elite or e.boss) and not e.get("friendly", false):
+		for k in int(Bal.v("meta/loot_boss" if e.boss else "meta/loot_elite", 5.0 if e.boss else 1.0)):
+			g.pickups.drop(e.pos + Vector2.from_angle(TAU * k / 5.0) * 14.0, "ingot", 1.0)
 	if e.type != "tear":
 		g.kills += 1
 		g.telemetry.on_kill(e)
