@@ -377,7 +377,10 @@ var shake := 0.0
 var hurt_vignette := 0.0
 var hurt_duck := 0.0         # 重击后配乐低通保持的剩余秒数（combat.hurt 写，music_director 读，world.update_player_feel 衰减；docs/53）
 var tab_hint := 0.0          # 首次升级后再提醒一次 Tab
-var q_probe := Vector2.ZERO  # 画质自动档：首局前 2 秒的帧时累计（x = 秒数和，y = 帧数；Cfg.auto_downgrade）
+var aq_win := Vector3.ZERO   # 画质自动档逐级降：当前窗口（x = 帧时和（秒）、y = 帧数、z = 连续超线的窗口数）
+var aq_hold := 0.0           # 刚降过一级：这几秒不判（等画面和帧时稳下来）
+var aq_on := false           # 本局是否启用（真人局 + 自动档；测试加 --autoq）
+var _aq_us := 0
 var quality_note := ""       # 自动降档后的提示（hud_banners.draw_open_hints 画）
 var quality_note_t := 0.0
 var tab_used := false
@@ -1017,6 +1020,9 @@ func _ready() -> void:
 	elif mode == Mode.PLAY or Cfg.dev_args().has("--openshot"):
 		intro_screen.start_opening.call_deferred()
 	A.mark("ready_end")
+	aq_on = demo_op == "" and ((mode == Mode.PLAY and Cfg.quality_mode == "auto" and Cfg.dev_args().is_empty()) or Cfg.dev_args().has("--autoq"))
+	if aq_on:
+		_apply_auto_level()   # 同一次启动里前一局已经降过的，这局开局就沿用
 	if mode == Mode.PLAY and demo_op == "" and not trial.active:
 		_cover_begin()
 	RenderingServer.frame_post_draw.connect(func():
@@ -1170,20 +1176,71 @@ func cam_center() -> Vector2:
 # =====================================================================
 # 主循环
 # =====================================================================
-## 画质自动档（10-22 用户）：每次启动的首局，开局 0.5–2.5 秒的平均帧时 > 25 ms 就降一档并提示一次。
-## 只在真人局测（测试 / 机器人局不测，同 seed 结果不变）
-func _quality_probe(delta: float) -> void:
+## 画质自动档逐级降（10-25 用户「帧率你也要考虑到别人的电脑和手机配置不一定有我高」，docs/50 §28；取代 10-22 的「首局前 2 秒降一档」）：
+## 整局都看真实帧间隔，每 AQ_WIN 秒一窗；连续 AQ_NEED 窗平均帧时超过一帧预算 × AQ_OVER（60 帧时约 44 帧以下）才降一级（低于 30 帧一窗就降），降完 AQ_HOLD 秒不判。
+## 只降不升，本次启动内一直有效（Cfg.auto_level，不存档：下次启动从头测，偶尔一次卡顿不会永久降低观感）。高配机不掉帧就一级都不降。
+## 各级按「省得多、看着差得少」排（docs/50 §28 实测）：
+##   1 关光学 GPU 粒子 + 特效动态照明    2 再关发光层 + CPU 颗粒（刀光 / 水花退回帧条画法）    3 画质「低」（光学整套关、后期全关、粒子减半）
+## 只在真人局 + 自动档时启用（测试加 --autoq 才开；都是纯画面，同 seed 结果不变）
+const AQ_WIN := 2.0
+const AQ_NEED := 2
+const AQ_OVER := 1.35
+const AQ_HOLD := 3.0
+const AQ_MAX := 3
+
+func _auto_quality(delta: float) -> void:
 	quality_note_t = maxf(0.0, quality_note_t - delta)
-	if Cfg.quality_probed or Cfg.quality_mode != "auto" or state != S.PLAY or mode != Mode.PLAY or not Cfg.dev_args().is_empty() or t < 0.5:
+	var now := Time.get_ticks_usec()
+	var rd: float = (now - _aq_us) / 1e6 if _aq_us > 0 else 0.0   # 真实帧间隔（--fixed-fps 测量时 delta 是定值，看不出掉帧）
+	_aq_us = now
+	if not aq_on or state != S.PLAY or t < 1.0 or Cfg.auto_level >= AQ_MAX or (rt_from >= 0.0 and not realtime):   # 测量的快进段不算
+		aq_win = Vector3(0, 0, aq_win.z)
 		return
-	q_probe += Vector2(delta, 1.0)
-	if t < 2.5:
+	if aq_hold > 0.0:
+		aq_hold -= delta
 		return
-	var nxt: String = Cfg.auto_downgrade() if q_probe.x / maxf(1.0, q_probe.y) > 0.025 else ""
-	Cfg.quality_probed = true
-	if nxt != "":
-		quality_note = "本机帧率偏低，画质已自动降为「%s」（可在设置里改）" % Cfg.QUALITY_NAME[nxt]
+	if rd > 0.25 or rd <= 0.0:
+		aq_win = Vector3.ZERO   # 切窗口 / 读盘那种单次长停顿不算掉帧
+		return
+	aq_win.x += rd
+	aq_win.y += 1.0
+	if aq_win.x < AQ_WIN:
+		return
+	var avg_ms: float = aq_win.x / aq_win.y * 1000.0
+	var budget := _frame_budget_ms()
+	var over: bool = avg_ms > budget * AQ_OVER
+	aq_win = Vector3(0, 0, aq_win.z + 1.0 if over else 0.0)
+	if aq_win.z < (1.0 if avg_ms > budget * 2.0 else float(AQ_NEED)):   # 慢到一半帧率以下：一窗就降，弱手机十来秒内降到合适的级
+		return
+	aq_win = Vector3.ZERO
+	Cfg.auto_level += 1
+	aq_hold = AQ_HOLD
+	_apply_auto_level()
+	if not Cfg.dev_args().is_empty():
+		print("AUTOQ level=%d avg=%.1fms t=%.1f" % [Cfg.auto_level, avg_ms, t])
+	if Cfg.auto_level == 1:
+		quality_note = "帧率偏低，已自动精简特效（可在设置里改画质）"
 		quality_note_t = 5.0
+
+
+## 按 Cfg.auto_level 关层（开局也调一次：同一次启动里前一局已经降过的，这局直接沿用）
+func _apply_auto_level() -> void:
+	var lv: int = Cfg.auto_level
+	if optical != null:
+		optical.auto_mask = (6 if lv >= 1 else 0) | (9 if lv >= 2 else 0)   # 2 GPU 粒子 + 4 动态照明；8 发光层 + 1 CPU 颗粒
+	if lv >= 3 and Cfg.quality != "low":
+		Cfg.set_quality("low")
+
+
+## 一帧预算（毫秒）：60 帧；显示器刷新率更低或设了 30 帧上限时取更长的那个
+func _frame_budget_ms() -> float:
+	var fps := 60.0
+	var hz := DisplayServer.screen_get_refresh_rate()
+	if hz > 1.0:
+		fps = minf(fps, hz)
+	if Engine.max_fps > 0:
+		fps = minf(fps, float(Engine.max_fps))
+	return 1000.0 / fps
 
 
 func _process(delta: float) -> void:
@@ -1215,7 +1272,7 @@ func _process(delta: float) -> void:
 	if wheel.is_open:
 		dt *= wheel.slow()   # 圆盘打开：局内放慢（不全停）
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
-	_quality_probe(delta)
+	_auto_quality(delta)
 	if victory.active and state == S.PLAY:
 		simulated_dt = victory.step(minf(delta, 0.05))   # 最终 Boss 击破演出按慢动作缩放画面步长（run/victory_flow.gd）
 	elif hitstop > 0.0 and (mode == Mode.PLAY or playclock_test) and Cfg.hitstop and demo_op == "":
