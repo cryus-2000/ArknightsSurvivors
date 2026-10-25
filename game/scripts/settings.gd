@@ -9,6 +9,7 @@ const D = preload("res://scripts/data.gd")
 const Look = preload("res://scripts/render/look.gd")
 const TouchLayout = preload("res://scripts/touch_layout.gd")
 const CloudPack = preload("res://scripts/core/cloud_pack.gd")
+const Medals = preload("res://scripts/core/medals.gd")
 ## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的三档下标；3 = 10-22 的潮位 0–15（只在内部包短暂存在）；
 ## 4 = 10-22 起的三档预设下标（D.DIFF_PRESETS：常规 / 高压 / 深潮 = 潮位 0 / 5 / 10）
 const DIFF_VER := 4
@@ -88,6 +89,8 @@ var meta_dev := ""                # 本机设备号（第一次记生机细胞�
 var meta_bounty: Array = []       # 已领首通赏金的潮位
 var roster_fresh: Array = []      # 刚解锁、还没在名册里看过的干员（选人页 / 图鉴高亮一次；只存本机，不上云）
 var roster_int_grant := false     # 对内包的测试寻访凭证已发过（INTERNAL_TICKETS，每份存档一次）
+var medals := {}                  # 已获得的蚀刻章 {key: 获得时刻 Unix 秒}（core/medals.gd；存档 [medals] 段；获得后永久保留）
+var medal_best := {}              # 蚀刻章的历史最好进度 {key: 数}（协同晋升：一次探索里同时精英二的人数）
 ## 对内包（用户 10-22：要在对内包里测寻访；10-24 改：开局 10 人 + 20 张）：名册不全部解锁；每份存档首次启动补齐
 ## Roster.INTERNAL_START 的 5 名干员（开局共 10 人）并发这么多张寻访凭证
 const INTERNAL_TICKETS := 20
@@ -300,6 +303,20 @@ func _ready() -> void:
 	if _set_sig == "":
 		_set_sig = _settings_sig()   # 旧存档 / 首次启动：以现在的设置为基准，没改过就不算「新」（cloud_set_t 保持 0，换设备时让云端的设置生效）
 	_apply_unlock_all()
+	Medals.sync()   # 蚀刻章补录：旧存档里已有的结局 / 藏品 / 认知记录，读档时按真实记录补上（下次存档写盘）
+	for a in dev_args():
+		# 截图 / 测试：--medals=all / none / key,key 预置已得蚀刻章，--medalbest=key:n 预置进度（只在内存，测试局不写存档）
+		if a.begins_with("--medals="):
+			var v := a.substr(9)
+			medals = {}
+			for m in Medals.defs():
+				if v == "all" or v.split(",").has(str(m.key)):
+					medals[m.key] = 1793000000
+		elif a.begins_with("--medalbest="):
+			for kv in a.substr(12).split(",", false):
+				var pr := kv.split(":")
+				if pr.size() == 2:
+					medal_best[pr[0]] = int(pr[1])
 	for a in dev_args():
 		# 截图 / 测试新玩家名册：--roster=start5 只留开局 5 人（只在内存，测试局不写存档）；--rostertickets=寻访,招募,调度 预置待用的券
 		if a == "--roster=start5":
@@ -415,6 +432,10 @@ func _read_cfg(c: ConfigFile) -> void:
 	meta_earned = c.get_value("meta", "earned", meta_earned)
 	meta_dev = str(c.get_value("meta", "dev", meta_dev))
 	meta_bounty = c.get_value("meta", "bounty", meta_bounty)
+	var md = c.get_value("medals", "got", medals)
+	medals = md if md is Dictionary else {}
+	var mb = c.get_value("medals", "best", medal_best)
+	medal_best = mb if mb is Dictionary else {}
 	if not c.has_section("roster"):
 		_migrate_roster()
 	diff_best = c.get_value("progress", "diff_best", diff_best)
@@ -684,6 +705,9 @@ func save() -> void:
 	c.set_value("meta", "earned", meta_earned)
 	c.set_value("meta", "dev", meta_dev)
 	c.set_value("meta", "bounty", meta_bounty)
+	Medals.sync()   # 结局 / 藏品 / 认知塑造的记录都经这里落盘：先补判蚀刻章，同一次写进存档
+	c.set_value("medals", "got", medals)
+	c.set_value("medals", "best", medal_best)
 	var ss := _settings_sig()
 	if ss != _set_sig:
 		_set_sig = ss
@@ -725,6 +749,7 @@ func cloud_body() -> Dictionary:
 		"ops": roster_unlocked.duplicate(), "optier": roster_tiers.duplicate(),
 		"dbest": diff_best.duplicate(true),
 		"meta": {"earned": meta_earned.duplicate(), "bounty": meta_bounty.duplicate(), "shape": meta_shape.duplicate(), "t": meta_shape_t},
+		"med": {"got": medals.duplicate(), "best": medal_best.duplicate()},
 		"opst": {"tk": roster_tickets.duplicate(), "sp": roster_spare.duplicate(), "wish": roster_wish, "pity": roster_pity, "draws": roster_draws, "seed": roster_seed}}, true)
 	var out: Dictionary = (cloud_extra.get("top", {}) as Dictionary).duplicate(true)
 	out["set"] = st
@@ -774,6 +799,22 @@ func cloud_apply(body: Dictionary) -> void:
 			meta_shape = {}   # 采用的认知塑造超出余额（另一台设备的进度还没同步过来）：整组重置，重置免费
 	if p.get("dbest") is Dictionary:
 		diff_best = (p.dbest as Dictionary).duplicate(true)
+	if p.get("med") is Dictionary:
+		# 蚀刻章：合并后的正文已是两边并集（CloudPack.merge_med）；这里只收类型对的项。本版不认识的章 key 也留着（新版本加的章不丢）
+		var mg = p.med.get("got", {})
+		if mg is Dictionary:
+			var got := {}
+			for k in mg:
+				if mg[k] is int or mg[k] is float:
+					got[str(k)] = int(mg[k])
+			medals = got
+		var mb = p.med.get("best", {})
+		if mb is Dictionary:
+			var best := {}
+			for k in mb:
+				if mb[k] is int or mb[k] is float:
+					best[str(k)] = int(mb[k])
+			medal_best = best
 	if p.get("optier") is Array:
 		roster_tiers = p.optier.map(func(x): return int(x))
 	if p.get("opst") is Dictionary:
@@ -827,6 +868,17 @@ func cloud_apply(body: Dictionary) -> void:
 			ex.prog[k] = p[k]
 	cloud_extra = ex
 	_set_sig = _settings_sig()
+
+
+## 全部解锁（调试 / 对内包）时：界面用的那份是全开的演示数据，真实进度在 _real_progress。
+## 新达成的结局 / 新获得的藏品也记进真实进度（蚀刻章按它判，docs/134）；没开全部解锁时什么都不做（调用方已经记过）
+func note_real(list_name: String, id: String) -> void:
+	if not unlock_all or not (_real_progress.get(list_name) is Array):
+		return
+	var a: Array = _real_progress[list_name]
+	if not a.has(id):
+		a.append(id)
+		save()
 
 
 ## 打包时写进 build.json 的发布对象：public / internal / diagnostic；源码运行（没打包）为 ""

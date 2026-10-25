@@ -355,3 +355,4 @@ func on_win() -> void:
 		Cfg.endings_cleared.append(cur)
 		g.ending_new = true
 		Cfg.save()
+	Cfg.note_real("endings_cleared", cur)   # 全部解锁时真实进度另记（蚀刻章用；不影响 ending_new）

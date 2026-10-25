@@ -59,6 +59,7 @@ var gallery: Control
 var boss_trial: Control
 var meta_ui: Control             # 认知塑造页（局外成长 P2，docs/109 §4）
 var hunt_ui: Control             # 寻访（screens/hunt_host.gd 把结算页的寻访盖到标题上，10-22）
+var medals_ui: Control           # 蚀刻章「深蓝之下」（screens/medals_ui.gd，10-25）
 var transition: Control
 var overlay_was_open := false
 var cover_pick := false
