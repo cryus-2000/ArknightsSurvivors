@@ -1,0 +1,48 @@
+快检：本次最多 4 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1025_003126
+按改动分级（--auto）：full（干员：angelina、exusiai、eyjafjalla、gladiia、hoshiguma、irene、kaltsit、lappland、logos、mizuki、saria、siege、skadi、skalter、specter_unchained、texas、ulpianus、wisadel）
+    art/incoming/_trial_icons/relic_10.png → full
+    art/incoming/_trial_icons/relic_103.png → full
+    art/incoming/_trial_icons/relic_104.png → full
+    art/incoming/_trial_icons/relic_11.png → full
+    art/incoming/_trial_icons/relic_125.png → full
+    art/incoming/_trial_icons/relic_13.png → full
+    art/incoming/_trial_icons/relic_147.png → full
+    art/incoming/_trial_icons/relic_18.png → full
+    art/incoming/_trial_icons/relic_2.png → full
+    art/incoming/_trial_icons/relic_230.png → full
+    art/incoming/_trial_icons/relic_253.png → full
+    art/incoming/_trial_icons/relic_254.png → full
+    …… 另 1832 个文件
+分支全量精简：不跑积木等价、自然流程；冒烟 18 / 20 人（改动涉及：angelina、exusiai、eyjafjalla、gladiia、hoshiguma、irene、kaltsit、lappland、logos、mizuki、saria、siege、skadi、skalter、specter_unchained、texas、ulpianus、wisadel；轮换抽样：exusiai、eyjafjalla、gladiia、hoshiguma、irene）。合入 main 后跑真全量
+Traceback (most recent call last):
+  File "/home/user/ArknightsSurvivors/tools/check.py", line 1275, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/user/ArknightsSurvivors/tools/check.py", line 1246, in main
+    results = list(ex.map(lambda f: f(), jobs))
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/concurrent/futures/_base.py", line 619, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/concurrent/futures/_base.py", line 317, in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/concurrent/futures/_base.py", line 456, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+  File "/usr/lib/python3.11/concurrent/futures/thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/ArknightsSurvivors/tools/check.py", line 1246, in <lambda>
+    results = list(ex.map(lambda f: f(), jobs))
+                                    ^^^
+  File "/home/user/ArknightsSurvivors/tools/check.py", line 153, in check_art_lint
+    import art_lint
+  File "/home/user/ArknightsSurvivors/tools/art_lint.py", line 48, in <module>
+    from PIL import Image, ImageDraw, ImageFilter, ImageFont
+  File "/usr/lib/python3/dist-packages/PIL/Image.py", line 84, in <module>
+    from . import _imaging as core
+ImportError: cannot import name '_imaging' from 'PIL' (/usr/lib/python3/dist-packages/PIL/__init__.py)
+rc=1
