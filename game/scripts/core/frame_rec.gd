@@ -127,6 +127,7 @@ func _print_tex_breakdown() -> void:
 	tops.sort_custom(func(a, b): return a[0] > b[0])
 	var gs: Array = groups.keys()
 	gs.sort_custom(func(a, b): return groups[a] > groups[b])
+	print("PF MEMHALF on=%s halved=%d kept2x=%d" % [A.half_enemy_on(), A.half_n, A.half_keep])
 	print("PF MEMTEX groups " + "  ".join(gs.slice(0, 12).map(func(k): return "%s=%.0fMB" % [k, groups[k]])))
 	print("PF MEMTEX top " + "  ".join(tops.slice(0, 12).map(func(x): return "%s(%s)=%.1f" % [x[1], x[2], x[0]])))
 

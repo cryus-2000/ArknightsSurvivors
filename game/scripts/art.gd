@@ -301,15 +301,17 @@ static func _pop_tex(t: Texture2D) -> Texture2D:
 ## 读进来缩回 1 倍、密度记 1，屏幕上的大小 / 锚点 / 帧数不变（绘制处都按 hires_of 除），帧条与由它派生的白剪影 / 轮廓显存约省四分之三。
 ## 缩回再放大和原图对不上的（卡门 / 伊比利亚几条真 2 倍细节）照旧用 @2x。--halfenemy 桌面试；--bal=web/mobile_half_enemy=0 退回
 static var _half_e := -1
+static var half_n := 0      # 减半读了几条 / 对不上保留 @2x 几条（--memlog 打印）
+static var half_keep := 0
 
 static func half_enemy_on() -> bool:
 	if _half_e < 0:
-		var on := false
 		var ml = Engine.get_main_loop()
 		var cfg = ml.root.get_node_or_null("/root/Cfg") if ml is SceneTree else null
-		if cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_half_enemy", 1.0):
-			on = true
-		if OS.is_debug_build() and OS.get_cmdline_user_args().has("--halfenemy"):
+		if cfg == null:
+			return false   # 自动加载还没起（更早的自动加载里取贴图）：先不记结果，等 Cfg 在了再判
+		var on: bool = cfg.mobile_web() and cfg.mobile_knob("mobile_half_enemy", 1.0)
+		if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--halfenemy"):
 			on = true
 		_half_e = 1 if on else 0
 	return _half_e == 1
@@ -332,7 +334,9 @@ static func _halve(img: Image) -> Image:
 	var back: Image = half.duplicate()
 	back.resize(w, h, Image.INTERPOLATE_NEAREST)
 	if back.get_data() != img.get_data():
+		half_keep += 1
 		return null
+	half_n += 1
 	return half
 
 
