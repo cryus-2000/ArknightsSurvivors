@@ -157,11 +157,11 @@ func test_confirm_once() -> void:
 	ok(game.progression.focus_op == "texas", "培养保底：德克萨斯成为最近培养对象")
 
 
-## 节点 5 按路线解析：卡面名字与 id 都是路线版（rain → rain3，不是旧线 rain2 / 不是另一条的 back2）
+## 节点 5 按路线解析：卡面名字与 id 都是路线版（rain → rain3「剑雨·连绵」，10-25 德克萨斯改名；不是旧线 rain2 / 不是另一条的 back2）
 func test_node5_by_route() -> void:
 	var o = game.squad.get_op("texas")
 	var pc := prog_cards(o)
-	ok(pc.size() == 1 and not pc[0].get("branch", false) and "剑雨·再临" in str(pc[0].name), "节点 5 卡面按路线：%s" % str(pc[0].get("name", "")))
+	ok(pc.size() == 1 and not pc[0].get("branch", false) and "剑雨·连绵" in str(pc[0].name), "节点 5 卡面按路线：%s" % str(pc[0].get("name", "")))
 	var n5: Dictionary = o.node_view(o.next_node())
 	ok(str(n5.get("id", "")) == "rain3", "节点 5 解析 id = rain3（%s）" % str(n5.get("id", "")))
 	o.advance("")

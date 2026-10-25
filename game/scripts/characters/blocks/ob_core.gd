@@ -801,7 +801,7 @@ static func _v_shared(b: Dictionary, p: String, kind: String, ctx: Dictionary, t
 
 const TX_IMPL := {
 	"shape": ["dash_line"],
-	"verb": ["sp_secs", "dash_mod", "trail", "fx_scatter", "fx_rain", "emit_path"],   # verb.buff_leader 在「共用积木」段
+	"verb": ["sp_secs", "dash_mod", "trail", "fx_scatter", "fx_rain", "emit_path", "rift_slash"],   # verb.buff_leader 在「共用积木」段
 	"trig": ["on_dash_end", "on_leader_dash", "on_skill_start", "on_skill_end"],
 }
 

@@ -29,11 +29,6 @@
   "s2_len": 0.4,
   "s2_mult": 1.3,
   "s3_dur": 8.0,
-  "s3_every": 0.8,
-  "s3_mult": 0.9,
-  "s3_stun": 0.3,
-  "s3_sp": 0.4,
-  "s3_end_mult": 1.6,
   "talent_sp": 0.8,
   "talent_many": 3,
   "talent_many_sp": 0.3,
@@ -64,17 +59,10 @@
   "slash_half": 1.2,
   "slash_kb": 30,
   "slash_mult": 1.3,
-  "step_len": 60,
-  "step_w": 44,
-  "step_t": 0.14,
-  "step_cd": 2.0,
-  "step_min_d": 100,
-  "step_aim": 260,
-  "step_mult": 0.5,
   "s3_need": 230,
   "talent_atk_sp": 0.15,
   "slash_wide": 0.15,
-  "_rework": "10-24 用户拍板方案 A「阻挡」（docs/129 §11.4）：队长普攻原地每 cd 秒一刀「拔刀」（宽扇形 slash_r / slash_half，×slash_mult），命中里离她最近的 block_n 名被阻挡 block_dur 秒（精英减半，Boss 免疫）；每第 storm_every 次出手改为「骤雨」（原地 storm_gap×3 秒内 360° 连斩 4 下，半径 storm_r，每下 ×storm_mult，没有敌人照常拔刀）；队友另有每 step_cd 秒一次 ≤ step_len 的短突进；删除天赋的定时自动冲刺；剑雨 / 剑雨滂沱自动释放需要射程内有敌人",
+  "_rework": "10-24 用户拍板方案 A「阻挡」（docs/129 §11.4）：队长普攻原地每 cd 秒一刀「拔刀」（宽扇形 slash_r / slash_half，×slash_mult），命中里离她最近的 block_n 名被阻挡 block_dur 秒（精英减半，Boss 免疫）；每第 storm_every 次出手改为「骤雨」（原地 storm_gap×3 秒内 360° 连斩 4 下，半径 storm_r，每下 ×storm_mult，没有敌人照常拔刀）；10-25 用户「平时不自动冲锋」：队友短突进已删（队友只在队长冲刺时跟随冲刺）；删除天赋的定时自动冲刺；剑雨 / 剑雨滂沱自动释放需要射程内有敌人",
   "dash_mult": 1.0,
   "block_n": 2,
   "block_dur": 0.4,
@@ -83,12 +71,20 @@
   "storm_mult": 0.55,
   "storm_gap": 0.2,
   "storm_w": 44,
-  "s3_len": 200,
-  "s3_dirs": 6,
-  "s3_w": 44,
-  "s3_trail_life": 0.5,
-  "s3_trail_mult": 0.5,
-  "_s3_clone": "10-24 用户选「分身」（docs/129 §13）：剑雨滂沱期间本体不动，每 s3_every 秒向 s3_dirs 个均分方向（每次错开半格）各放一道分身路径（长 s3_len），沿路径扫 s3_trail_mult、消散时沿路每 rain_step 落一柄剑；s3_mult / s3_stun / dash_* 不再用于 S3"
+  "rift_n": 5,
+  "rift_r": 240,
+  "rift_half": 1.1,
+  "rift_len": 170,
+  "rift_gap": 0.26,
+  "rift_w": 40,
+  "rift_mult": 0.8,
+  "rift_stun": 0.3,
+  "rift_scar": 1.3,
+  "_s3_rift": "10-24 用户定「次元斩」（docs/129 §14）：剑雨滂沱期间普攻整个换成次元斩——出手瞬间本体隐去，在前方 rift_r 的扇形（半角 rift_half）里每 rift_gap 秒闪现一次、追着 rift_r 内最近的活敌人各斩一道长 rift_len 的直线，共 rift_n 刀（优先前方扇形、离上一刀最近、这一轮没斩过的；敌人少就轮着斩，没有敌人就收刀，不斩空），路径上的敌人各吃一次 rift_mult（眩晕 rift_stun 秒），刀痕留 rift_scar 秒后碎成颗粒；本体逻辑位置全程不动（镜头不动）；节奏：首刀前停 rift_lead、中间每 rift_gap 一刀、末刀前再停 rift_hold，末刀长 ×1.3（10-25 用户「首尾有停顿感」）",
+  "rift_lead": 0.24,
+  "rift_hold": 0.32,
+  "rift_pose": 0.6,
+  "rift_sweep": 0.14
  },
  "leader": {
   "_doc": "当主控时的受击属性（docs/23）：原作精二满级 生命 1986 / 防御 441 / 法抗 0%，近战主控有效生命 ×1.06",
@@ -342,7 +338,7 @@
  "attack": {
   "mode": "auto",
   "name": "拔刀",
-  "desc": "原地一刀「拔刀」：每 {$cd} 秒朝最近敌人挥出宽扇形斩（半径 {$slash_r}，物理，{$slash_mult*100}%），命中里离她最近的 {$block_n} 名敌人被「阻挡」，原地定住 {$block_dur} 秒（精英减半，Boss 免疫）；每第 {$storm_every} 次出手改为「骤雨」：{$storm_gap*3} 秒内原地 360° 连斩 4 下（半径 {$storm_r}，每下 {$storm_mult*100}%），没有敌人时照常拔刀；每次出手为全队技力 +{$hit_sp} 秒。当队友时，每 {$step_cd} 秒还会朝 {$step_min_d}–{$step_aim} 内的敌人突进一小步（≤ {$step_len}）"
+  "desc": "原地一刀「拔刀」：每 {$cd} 秒朝最近敌人挥出宽扇形斩（半径 {$slash_r}，物理，{$slash_mult*100}%），命中里离她最近的 {$block_n} 名敌人被「阻挡」，原地定住 {$block_dur} 秒（精英减半，Boss 免疫）；每第 {$storm_every} 次出手改为「骤雨」：{$storm_gap*3} 秒内原地 360° 连斩 4 下（半径 {$storm_r}，每下 {$storm_mult*100}%），没有敌人时照常拔刀；每次出手为全队技力 +{$hit_sp} 秒"
  },
  "skills": [
   {
@@ -365,8 +361,14 @@
    "en": "TORRENTIAL SWORD RAIN",
    "sp": 20,
    "dur": 8.0,
-   "desc": "{$s3_dur} 秒内本体不动，每 {$s3_every} 秒向 {$s3_dirs} 个方向放出分身冲出 {$s3_len}，沿途斩击（×{$s3_trail_mult}）并减速，分身消散时沿路落下剑雨（眩晕 {$rain_stun} 秒，精英减半，Boss 除外），全队技力 +{$s3_sp} 秒；结束时在她脚下落下大剑雨 ×{$s3_end_mult}（自动释放需要附近有敌人）",
-   "icon": "skill_texas_s3"
+   "desc": "{$s3_dur} 秒内普攻换成「次元斩」：出手时她从原地隐去，追着附近的敌人连续闪现 {$rift_n} 次，每次贯穿一刀（路径上的敌人 ×{$rift_mult}，眩晕 {$rift_stun} 秒，精英减半，Boss 除外），刀痕留下约 {$rift_scar} 秒后碎成光屑；斩完回到原位（自动释放需要附近有敌人）",
+   "icon": "skill_texas_s3",
+   "do": [
+    {
+     "verb": "mode",
+     "no_attack": true
+    }
+   ]
   }
  ],
  "talent": {
@@ -479,14 +481,14 @@
     "area"
    ]
   },
-  "分身": {
+  "次元斩": {
    "emitter": "operator",
    "origin": "skill",
    "range": "近战",
    "kind": "物理",
    "tags": [
     "skill",
-    "area",
+    "pierce",
     "stun"
    ]
   }
@@ -554,9 +556,9 @@
     },
     "rain": {
      "id": "rain3",
-     "name": "剑雨·再临",
+     "name": "剑雨·连绵",
      "icon": "skill_texas_s3",
-     "desc": "「剑雨」再落第三波（{$rain3_echo*100}% 伤害）；「剑雨滂沱」每次冲刺到头，落点半径 {$rain3_r} 内再落一片剑雨（{$rain3_mult*100}% 伤害）"
+     "desc": "「剑雨」再落第三波（{$rain3_echo*100}% 伤害）"
     }
    }
   },
@@ -673,7 +675,11 @@
      ],
      "_doc": "精一钉剑：被阻挡的敌人各插一柄源石剑，定住时间延长到 pin_dur"
     }
-   ]
+   ],
+   "skill_reach": {
+    "skill": 2,
+    "r": "$rift_r"
+   }
   },
   "trait": [
    {
@@ -690,7 +696,7 @@
    {
     "trig": "every_n",
     "n": "$storm_every",
-    "cond": "enemy_near",
+    "cond": "enemy_near && !skill_active:2",
     "replace": true,
     "no_combo": true,
     "_doc": "骤雨（原作档案「暴风骤雨」）：每第 storm_every 次出手改为原地 360° 连斩 4 下（0 / storm_gap / 2×storm_gap / 3×storm_gap 秒），半径 storm_r、每下 storm_mult；范围内没有敌人就照常拔刀",
@@ -720,7 +726,7 @@
    {
     "trig": "every_n",
     "n": "$storm_every",
-    "cond": "enemy_near",
+    "cond": "enemy_near && !skill_active:2",
     "delay": "$storm_gap",
     "do": [
      {
@@ -741,7 +747,7 @@
    {
     "trig": "every_n",
     "n": "$storm_every",
-    "cond": "enemy_near",
+    "cond": "enemy_near && !skill_active:2",
     "delay": "$storm_gap*2",
     "do": [
      {
@@ -762,7 +768,7 @@
    {
     "trig": "every_n",
     "n": "$storm_every",
-    "cond": "enemy_near",
+    "cond": "enemy_near && !skill_active:2",
     "delay": "$storm_gap*3",
     "do": [
      {
@@ -793,32 +799,6 @@
     ]
    },
    {
-    "trig": "tick",
-    "every": "$step_cd",
-    "cond": "!is_leader",
-    "_doc": "队友短突进（队长时不位移）：敌人在 step_min_d 以外、step_aim 以内才上前一步，≤ step_len、间隔 ≥ step_cd",
-    "do": [
-     {
-      "shape": "dash_line",
-      "aim": "nearest",
-      "need_target": true,
-      "aim_r": "$step_aim",
-      "min_d": "$step_min_d",
-      "r": "$step_len",
-      "w": "$step_w",
-      "t": "$step_t",
-      "hold": 0.0,
-      "mult": "$step_mult",
-      "src": "突进",
-      "tags": [
-       "basic",
-       "pierce"
-      ],
-      "strip": "fx_texas_dash"
-     }
-    ]
-   },
-   {
     "trig": "on_dash_end",
     "src": "突进",
     "min_hits": "$talent_many",
@@ -830,67 +810,33 @@
     ]
    },
    {
-    "trig": "tick",
-    "every": "$s3_every",
+    "trig": "every_n",
+    "n": 1,
+    "replace": true,
+    "no_combo": true,
     "cond": "skill_active:2",
+    "_doc": "次元斩：剑雨滂沱期间每次普攻整个换成它（verb.rift_slash）",
     "do": [
      {
-      "verb": "emit_path",
-      "len": "$s3_len",
-      "w": "$s3_w",
-      "dirs": "$s3_dirs",
-      "src": "分身",
-      "strip": "fx_texas_dash"
-     },
-     {
-      "verb": "sp_secs",
-      "seconds": "$s3_sp"
-     }
-    ],
-    "_doc": "剑雨滂沱·分身：本体不动，每 s3_every 秒向 s3_dirs 个方向各放一道分身路径（verb.emit_path dirs），到头由下面 on_dash_end「分身」块接手"
-   },
-   {
-    "trig": "on_skill_end",
-    "skill": 2,
-    "do": [
-     {
-      "shape": "circle",
-      "center": "self",
-      "r": "$s1_r",
-      "mult": "$s3_end_mult",
-      "power": true,
-      "src": "剑雨",
+      "verb": "rift_slash",
+      "n": "$rift_n",
+      "r": "$rift_r",
+      "half": "$rift_half",
+      "len": "$rift_len",
+      "gap": "$rift_gap",
+      "w": "$rift_w",
+      "mult": "$rift_mult",
+      "stun": "$rift_stun",
+      "scar": "$rift_scar",
+      "src": "次元斩",
       "tags": [
-       "skill"
-      ]
-     },
-     {
-      "verb": "fx_rain",
-      "strip": "fx_texas_blade",
-      "mark": "fx_texas_rain_mark",
-      "r": "$s1_r",
-      "center": "self",
-      "density": 6.5,
-      "n_max": 56,
-      "on_enemies": 0.4,
-      "stagger": 0.5,
-      "fall": 120,
-      "fall_t": 0.1,
-      "fall_frames": 2,
-      "mark_frames": 3,
-      "scale": 0.633,
-      "streak": 2,
-      "scorch": 0.0,
-      "finale": {
-       "scale": 1.8,
-       "ring": 1.0,
-       "col": [
-        1.0,
-        0.86,
-        0.45,
-        0.9
-       ]
-      }
+       "skill",
+       "pierce"
+      ],
+      "lead": "$rift_lead",
+      "hold": "$rift_hold",
+      "pose": "$rift_pose",
+      "sweep": "$rift_sweep"
      }
     ]
    },
@@ -903,93 +849,6 @@
      {
       "verb": "sp_secs",
       "seconds": "$hit_sp"
-     }
-    ]
-   },
-   {
-    "trig": "on_dash_end",
-    "src": "分身",
-    "_doc": "剑雨滂沱分身到头：沿路径留残像（扫 s3_trail_mult、减速），消散时沿路落剑（rain_mult_s3，眩晕 rain_stun）",
-    "do": [
-     {
-      "verb": "trail",
-      "life": "$s3_trail_life",
-      "mult": "$s3_trail_mult",
-      "src": "分身",
-      "tags": [
-       "skill",
-       "dot"
-      ],
-      "on_hit": [
-       {
-        "st": "slow",
-        "dur": "$trail_slow"
-       }
-      ],
-      "_doc": "余像·剑雨（docs/91 §16）：残像消散时沿路径每 rain_step 落一柄剑，从起点到终点间隔 rain_gap 秒；伤害在各自落地时结算",
-      "on_expire": [
-       {
-        "shape": "circle",
-        "center": "path",
-        "step": "$rain_step",
-        "r": "$rain_r",
-        "delay": "$rain_fall",
-        "stagger": "$rain_gap",
-        "mult": "$rain_mult_s3",
-        "ring": false,
-        "src": "分身",
-        "tags": [
-         "basic"
-        ],
-        "on_hit": [
-         {
-          "st": "stun",
-          "dur": "$rain_stun"
-         }
-        ]
-       },
-       {
-        "verb": "fx_rain",
-        "along": "path",
-        "step": "$rain_step",
-        "if_tex": "fx_texas_sword_drop",
-        "strip": "fx_texas_sword_drop",
-        "anchor": [
-         6,
-         38
-        ],
-        "fall_frames": 4,
-        "stagger": "$rain_gap",
-        "fall": 70,
-        "fall_t": "$rain_fall",
-        "stick": 0.2,
-        "scorch": 0.0,
-        "streak": 1,
-        "scale": 0.6,
-        "tilt": 3,
-        "_doc": "10-21 用户：剑太大显廉价 → 0.9 倍改 0.6 倍、去落地火花（hit）；残像地面光带 line_w 0 关掉（纯画面）"
-       },
-       {
-        "verb": "fx_rain",
-        "along": "path",
-        "step": "$rain_step",
-        "if_tex": "!fx_texas_sword_drop",
-        "strip": "fx_texas_blade",
-        "mark": "fx_texas_rain_mark",
-        "stagger": "$rain_gap",
-        "fall": 70,
-        "fall_t": "$rain_fall",
-        "fall_frames": 2,
-        "mark_frames": 3,
-        "stick": 0.3,
-        "scorch": 0.0,
-        "streak": 1,
-        "scale": 0.4,
-        "tilt": 3
-       }
-      ],
-      "line_w": 0.0,
-      "need_hit": true
      }
     ]
    }
@@ -1058,7 +917,7 @@
     "do": [
      {
       "verb": "mode",
-      "no_attack": true
+      "dmg_mult": 1.0
      }
     ],
     "need_enemy": "$s3_need"
@@ -1297,42 +1156,6 @@
        "fall_frames": 2,
        "mark_frames": 3,
        "scale": 0.4,
-       "streak": 1,
-       "alpha": 0.75,
-       "scorch": 0.0
-      }
-     ]
-    },
-    {
-     "trig": "on_dash_end",
-     "src": "分身",
-     "_doc": "S3 每道分身到头：落点小剑雨",
-     "do": [
-      {
-       "shape": "circle",
-       "center": "target",
-       "r": "$rain3_r",
-       "mult": "$rain3_mult",
-       "power": true,
-       "src": "剑雨",
-       "tags": [
-        "skill"
-       ]
-      },
-      {
-       "verb": "fx_rain",
-       "strip": "fx_texas_blade",
-       "mark": "fx_texas_rain_mark",
-       "r": "$rain3_r",
-       "center": "target",
-       "density": 1.5,
-       "on_enemies": 0.5,
-       "stagger": 0.3,
-       "fall": 80,
-       "fall_t": 0.1,
-       "fall_frames": 2,
-       "mark_frames": 3,
-       "scale": 0.35,
        "streak": 1,
        "alpha": 0.75,
        "scorch": 0.0
