@@ -93,6 +93,54 @@ def show(a):
             cell = "P50 %.1f / P95 %.1f / 最长 %.0f" % (v["p50"], v["p95"], v["max"]) if v else "—"
             print("| %s | %s | %s |" % (name, sname, cell + " | " * (len(LEVELS) - 1)))
     json.dump(chart, open(os.path.join(OUT, "%s_chart.json" % t), "w", encoding="utf-8"), ensure_ascii=False)
+    _plot(t, chart)
+
+
+def _plot(t, chart):
+    """对比图（用户在手机上看）：每个「设备 × 场景」一组柱，柱 = 自动档各级的 P50，细线 = P95；横线 16.7 / 33.3 ms。要 matplotlib（D:/Anaconda/python.exe）"""
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        from matplotlib import font_manager
+    except ImportError:
+        print("没有 matplotlib，跳过对比图（用 D:/Anaconda/python.exe 跑 show）")
+        return
+    for f in ("Microsoft YaHei", "SimHei"):
+        if any(f in x.name for x in font_manager.fontManager.ttflist):
+            plt.rcParams["font.family"] = f
+            break
+    groups = []
+    for name, sname, m, p50, p95 in chart:
+        k = name + "\n" + sname
+        if k not in groups:
+            groups.append(k)
+    cols = ["#3b6e8f", "#5aa0c8", "#8cc7e3", "#c9a227", "#b55d4c"]
+    fig, ax = plt.subplots(figsize=(10, 6.5), dpi=150)
+    w = 0.16
+    for li, (m, lname) in enumerate(LEVELS):
+        xs, ys, es = [], [], []
+        for gi, k in enumerate(groups):
+            for name, sname, mm, p50, p95 in chart:
+                if name + "\n" + sname == k and mm == m and p50 is not None:
+                    xs.append(gi + (li - 2) * w)
+                    ys.append(p50)
+                    es.append(max(0.0, p95 - p50))
+        ax.bar(xs, ys, w, color=cols[li], label=lname, yerr=[[0] * len(es), es], error_kw={"elinewidth": 0.8, "capsize": 2})
+    ax.axhline(16.7, color="#2e8b57", lw=1, ls="--")
+    ax.axhline(33.3, color="#cc7a00", lw=1, ls="--")
+    ax.text(len(groups) - 0.5, 17.5, "60 帧", color="#2e8b57", ha="right", fontsize=9)
+    ax.text(len(groups) - 0.5, 34.1, "30 帧", color="#cc7a00", ha="right", fontsize=9)
+    ax.set_xticks(range(len(groups)))
+    ax.set_xticklabels(groups, fontsize=8)
+    ax.set_ylabel("帧时 毫秒（柱 = P50，细线到 P95）")
+    ax.set_title("低配模拟：后期满屏 / 10:00 Boss，自动降档各级")
+    ax.legend(fontsize=8, ncol=5, loc="upper left")
+    ax.set_ylim(0, min(200, max([p95 for *_, p95 in chart if p95] + [40]) * 1.1))
+    fig.tight_layout()
+    out = os.path.join(OUT, "%s.png" % t)
+    fig.savefig(out)
+    print("对比图：", out)
 
 
 if __name__ == "__main__":
