@@ -345,6 +345,15 @@ func _now() -> float:
 	return Time.get_ticks_usec() / 1000000.0
 
 
+## 手机网页的战斗乐只放底层（不放加层 / 危险层），省下网页样本解码后的内存；sfx 比 Cfg 先加载，按节点取
+var _lite := -1
+func _music_lite() -> bool:
+	if _lite < 0:
+		var cfg = get_node_or_null("/root/Cfg")
+		_lite = 1 if cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_music_lite", 1.0) else 0
+	return _lite == 1
+
+
 ## 乐句式曲目：载入每句每层的流（不循环），建两组播放器（各层 + 危险层）
 func _seq_init(tname: String) -> void:
 	var cfg: Dictionary = SEQ[tname]
@@ -388,9 +397,12 @@ func _seq_play(tname: String, s: String, deck: int, from: float) -> void:
 	var q: Dictionary = seq[tname]
 	var pls: Array = q.decks[deck]
 	var sts: Array = q.segs[s]
+	var lite: bool = _music_lite()
 	for i in pls.size():
 		var pl: AudioStreamPlayer = pls[i]
 		pl.stream = sts[i] if i < sts.size() else q.danger
+		if lite and i > 0:
+			pl.stream = null   # 手机网页只放底层（docs/50 §30）：每层一句约 4–5 MB 解码后的 PCM，播过就一直留在 JS 里，九分钟能攒到两百多 MB
 		if pl.stream != null:
 			pl.volume_db = linear_to_db(maxf(float(group_vol[tname]) * float(stem_vol[tname][i]), 0.0001)) + vol_target
 			pl.play(from)
