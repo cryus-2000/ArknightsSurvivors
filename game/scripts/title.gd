@@ -427,6 +427,10 @@ func _process_main(delta: float) -> void:
 				if not _op_scripts.has(sp) and ResourceLoader.load_threaded_request(sp) == OK:
 					_op_scripts.append(sp)   # 干员脚本后台编译（data_operator.gd 首次加载约 1.4 秒，原来算在建局里）
 			loading.begin()
+			if DisplayServer.get_name() != "headless" and Cfg.quality != "low" and preload("res://scripts/core/balance.gd").v("render/optical", 1.0) > 0.0:   # 同 optical.wanted()：低画质不开粒子，不用编译
+				_game_warm = preload("res://scripts/render/shader_warm.gd").new()
+				_game_warm.parts = 1   # 光学 GPU 粒子的处理材质（render/shader_warm.gd PARTS_GAME，网页才有；桌面启动页已画过就是空的）：在载入页编译，不留到进局后
+				add_child(_game_warm)
 		var wt0 := Time.get_ticks_usec()
 		_op_warm_more = A.warm_step(LOAD_BUDGET_USEC)   # 开局干员的技能 / 特效帧条先读进贴图缓存（10-22 网页开局掉帧：第一次放技能时现读）
 		for sp in _op_scripts.duplicate():
@@ -449,14 +453,14 @@ func _process_main(delta: float) -> void:
 		leaving += delta
 		if leaving > 0.7:
 			# 预热 / 预读没完就停在载入页等它（以前这里直接切场景，game.gd _ready 同步算 10 秒法线图 = 黑屏），最多等 60 秒
-			if (A.prewarm_busy() or Sfx.warm_busy() or _op_warm_more or Cfg.dev_args().has("--loadingshot")) and wait_t < 60.0:
+			if (A.prewarm_busy() or Sfx.warm_busy() or _op_warm_more or is_instance_valid(_game_warm) or Cfg.dev_args().has("--loadingshot")) and wait_t < 60.0:
 				wait_t += delta
 			else:
 				loading.finish()   # 淡到黑，开场演出从同一片黑里亮起
 				if loading.done():
 					A.mark("title_leave")
 					get_tree().change_scene_to_file("res://game.tscn")
-	elif auto_go and not A.prewarm_busy() and not Sfx.warm_busy() and not _op_warm_more and _op_warm_begun:
+	elif auto_go and not A.prewarm_busy() and not Sfx.warm_busy() and not _op_warm_more and _op_warm_begun and not is_instance_valid(_game_warm):
 		loading.finish()
 		if loading.done():
 			auto_go = false
@@ -747,6 +751,7 @@ func _draw_leaving(vs: Vector2) -> void:
 
 ## 开局干员（选人 / --op；测试的 --squad 一并）JSON 里写到的帧条名（"tex" / "strip"）：出发后的等待里先读进 A.tex 缓存
 var _op_warm_begun := false
+var _game_warm: Node   # 载入页里的着色器预热视口（光学粒子）
 ## 载入页每帧预读预算（读图 + 注册音频合计）：原来 24 + 12 毫秒，载入页动画只有 20–25 帧；10-25「帧率稳定优先」压到 12 毫秒（加一帧渲染不超 16.7），
 ## 总读取时间约长两成（单张超预算的照样一帧读一张）
 const LOAD_BUDGET_USEC := 12000

@@ -212,6 +212,7 @@ func _open_title() -> void:
 	if title.has_method("boot_cover"):
 		title.boot_cover()
 	warm = preload("res://scripts/render/shader_warm.gd").new()
+	warm.parts = warm.PARTS_UI if OS.has_feature("web") else warm.PARTS_ALL   # 网页的粒子那批放到出发后的载入页（一种就编译 5–9 秒）
 	layer.add_child(warm)
 	_gate_t0 = Time.get_ticks_usec()
 	_good = 0

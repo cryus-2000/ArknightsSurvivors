@@ -27,6 +27,24 @@ func _init() -> void:
 				im.set_pixel(x, y, Color(0.031, 0.059, 0.102, alpha))
 		shadows[id] = ImageTexture.create_from_image(im)
 
+## 海底六层轮廓与等高线是常量：第一次画时算好（10-25 帧率审计：原来每帧 6 × 283 + 282 次 exp / sin）
+static var _edges: Array = []
+static var _fills: Array = []
+static var _contour := PackedVector2Array()
+
+static func _build_terrain() -> void:
+	for k in 6:
+		var edge := PackedVector2Array()
+		for x in 283:
+			edge.append(Vector2(x, terrain(x, k)))
+		var fill := edge.duplicate()
+		fill.append(Vector2(282, 160))
+		fill.append(Vector2(0, 160))
+		_edges.append(edge)
+		_fills.append(fill)
+	for x in 282:
+		_contour.append(Vector2(x, terrain(x)))
+
 static func terrain(x: float, layer := 0) -> float:
 	var u := x / 282.0
 	return roundf(25.0 + 90.0 / (1.0 + exp(-(u - 0.46) * 10.0)) + sin(u * 19.0) * 4.0 + layer * 7.0)
@@ -103,15 +121,11 @@ func draw(c: CanvasItem, tier: int, depth: float, tm: float, change: float, colo
 		var x: float = spec[0] + roundf(sin(tm * 0.12 + spec[0]) * 9.0)
 		if spec[1] < terrain(x) - 6:
 			fish(c, x, spec[1], spec[2], -1, Color("36566a"), tm, spec[3])
+	if _edges.is_empty():
+		_build_terrain()
 	for k in 6:
-		var edge := PackedVector2Array()
-		for x in 283:
-			edge.append(Vector2(x, terrain(x, k)))
-		var fill := edge.duplicate()
-		fill.append(Vector2(282, 160))
-		fill.append(Vector2(0, 160))
-		c.draw_colored_polygon(fill, [Color("263744"),Color("22303c"),Color("1e2a35"),Color("1a2530"),Color("17212b"),Color("141d26")][k])
-		c.draw_polyline(edge, Color("496372") if k == 0 else Color("2d404e"), 1.0, false)
+		c.draw_colored_polygon(_fills[k], [Color("263744"),Color("22303c"),Color("1e2a35"),Color("1a2530"),Color("17212b"),Color("141d26")][k])
+		c.draw_polyline(_edges[k], Color("496372") if k == 0 else Color("2d404e"), 1.0, false)
 	for spec in [[19,17],[58,20],[110,14],[206,23],[267,21]]:
 		var x: float = spec[0]
 		var y := terrain(x)
@@ -140,10 +154,7 @@ func draw(c: CanvasItem, tier: int, depth: float, tm: float, change: float, colo
 		rect(c,x,y+2,12,5,Color("456c80"))
 		for j in 3:
 			line(c,[[x+2+j*4,y+7],[x+2+j*4,y+10],[x+3+j*4,y+12]],Color("3a6178"))
-	var contour := PackedVector2Array()
-	for x in 282:
-		contour.append(Vector2(x, terrain(x)))
-	c.draw_polyline(contour, color, 1.0, false)
+	c.draw_polyline(_contour, color, 1.0, false)
 	var px := roundf(66.0 + depth * 84.0)
 	var py := terrain(px)
 	rect(c, 0, py, 282, 1, color)

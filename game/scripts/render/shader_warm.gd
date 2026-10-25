@@ -5,12 +5,21 @@ extends SubViewport
 ## 画的东西：光学全屏 pass、景深、后期、受光保护、磨砂玻璃、横条、加色混合、点光源受光，加光学 GPU 粒子的四种处理材质
 ## （爆开 / 环境盒 / 环境球 / 发射点贴图，与 render/optical_particles.gd 同一份构造）。
 ## 一帧只加一项（一次全加，桌面实测一帧卡 2.7 秒，启动页进度停住），全部画过再多画 HOLD 帧后自己释放；视口不挂到屏幕上，看不见。
+## 分两批：PARTS_UI（全屏 / 界面着色器，便宜）在启动页画；PARTS_GAME（光学 GPU 粒子）在出发后的载入页画——
+## 网页（Edge / ANGLE）实测粒子处理材质第一次编译一种就 5.7–9 秒，放在启动页会让启动多等十几秒，放在载入页正好替掉以前进局后那几下冻住
+## （改前网页进局后 10 秒 P95 5.8 秒）。浏览器会把编译结果存进 GPU 磁盘缓存，同一浏览器第二次启动基本不再编译。
 
 const HOLD := 3
 const OP = preload("res://scripts/render/optical_particles.gd")
+const FR = preload("res://scripts/core/frame_rec.gd")
 const SHADERS := ["res://shaders/optical.gdshader", "res://shaders/dof.gdshader", "res://shaders/post.gdshader",
 	"res://shaders/actor_light.gdshader", "res://shaders/ui_glass.gdshader", "res://shaders/ui_band.gdshader"]
 
+const PARTS_UI := 0
+const PARTS_GAME := 1
+const PARTS_ALL := 2   # 桌面启动页：两批都画（桌面编译快，盖层下一并做完，载入页那批就是空的）
+static var game_done := false   # 粒子那批已画过（载入页不再重画）
+var parts := PARTS_UI
 var steps: Array = []        # 待加的项（Callable）
 var total := 0
 var _hold := HOLD
@@ -27,12 +36,15 @@ func _ready() -> void:
 	var px := Image.create(4, 4, false, Image.FORMAT_RGBA8)
 	px.fill(Color.WHITE)
 	_tex = ImageTexture.create_from_image(px)
-	for path in SHADERS:
-		if ResourceLoader.exists(path):
-			steps.append(_add_shader.bind(path))
-	steps.append(_add_blend_light)
-	for k in 4:
-		steps.append(_add_particles.bind(k))
+	if parts != PARTS_GAME:
+		for path in SHADERS:
+			if ResourceLoader.exists(path):
+				steps.append(_add_shader.bind(path))
+		steps.append(_add_blend_light)
+	if parts != PARTS_UI and not game_done:
+		game_done = true
+		for k in 4:
+			steps.append(_add_particles.bind(k))
 	total = steps.size()
 
 
@@ -43,7 +55,10 @@ func progress() -> float:
 
 func _process(_delta: float) -> void:
 	if not steps.is_empty():
+		var st0 := Time.get_ticks_usec()
 		(steps.pop_front() as Callable).call()
+		if FR.enabled():
+			print("PF FTWARM %d/%d %.0f ms" % [total - steps.size(), total, (Time.get_ticks_usec() - st0) / 1000.0])
 		return
 	_hold -= 1
 	if _hold <= 0:
