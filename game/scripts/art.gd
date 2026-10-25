@@ -297,6 +297,45 @@ static func _pop_tex(t: Texture2D) -> Texture2D:
 	return ImageTexture.create_from_image(img)
 
 
+## 手机网页敌人帧条减半读（10-26，docs/50 §30.8）：e_* 的 @2x 几乎全是 1 倍图整 2 倍放大（401 条里 398 条逐 2×2 块同色，占 208 / 210 MB），
+## 读进来缩回 1 倍、密度记 1，屏幕上的大小 / 锚点 / 帧数不变（绘制处都按 hires_of 除），帧条与由它派生的白剪影 / 轮廓显存约省四分之三。
+## 缩回再放大和原图对不上的（卡门 / 伊比利亚几条真 2 倍细节）照旧用 @2x。--halfenemy 桌面试；--bal=web/mobile_half_enemy=0 退回
+static var _half_e := -1
+
+static func half_enemy_on() -> bool:
+	if _half_e < 0:
+		var on := false
+		var ml = Engine.get_main_loop()
+		var cfg = ml.root.get_node_or_null("/root/Cfg") if ml is SceneTree else null
+		if cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_half_enemy", 1.0):
+			on = true
+		if OS.is_debug_build() and OS.get_cmdline_user_args().has("--halfenemy"):
+			on = true
+		_half_e = 1 if on else 0
+	return _half_e == 1
+
+
+## 整 2 倍放大的图缩回 1 倍（img 会被转成 RGBA8）；不是整 2 倍放大返回 null
+static func _halve(img: Image) -> Image:
+	if img == null or img.is_empty():
+		return null
+	if img.is_compressed():
+		img.decompress()
+	if img.get_format() != Image.FORMAT_RGBA8:
+		img.convert(Image.FORMAT_RGBA8)
+	var w := img.get_width()
+	var h := img.get_height()
+	if w % 2 != 0 or h % 2 != 0:
+		return null
+	var half: Image = img.duplicate()
+	half.resize(w / 2, h / 2, Image.INTERPOLATE_NEAREST)
+	var back: Image = half.duplicate()
+	back.resize(w, h, Image.INTERPOLATE_NEAREST)
+	if back.get_data() != img.get_data():
+		return null
+	return half
+
+
 ## 取贴图；找不到返回 null
 static func tex(name: String) -> Texture2D:
 	if _cache.has(name):
@@ -325,22 +364,34 @@ static func tex(name: String) -> Texture2D:
 			if t != null:
 				src_path = q1
 	var p2 := _incoming_path(name + "@2x") if USE_HIRES and t == null else ""
+	var halve := half_enemy_on() and name.begins_with("e_") and not normal_maps
 	if p2 != "":
 		var img2 := Image.load_from_file(p2)
 		if img2 != null and not img2.is_empty():
+			density = 2.0
+			var h1: Image = _halve(img2) if halve else null
+			if h1 != null:
+				img2 = h1
+				density = 1.0
 			if pop:
 				pop_image(img2)
 			t = ImageTexture.create_from_image(img2)
-			density = 2.0
 			src_path = p2
 	elif USE_HIRES and t == null:
 		var q2 := _packed_path(name + "@2x")
 		if q2 != "":
 			t = load(q2)
 			if t != null:
-				if pop:
-					t = _pop_tex(t)
 				density = 2.0
+				var hi: Image = t.get_image() if halve else null
+				var h2: Image = _halve(hi.duplicate()) if hi != null and not hi.is_empty() else null
+				if h2 != null:
+					if pop:
+						pop_image(h2)
+					t = ImageTexture.create_from_image(h2)
+					density = 1.0
+				elif pop:
+					t = _pop_tex(t)
 				src_path = q2
 	if t == null:
 		var p := _incoming_path(name)
