@@ -1,5 +1,5 @@
 extends Node
-## 认知塑造单元测试（docs/109 §4，check.py 场景回归 meta）：节点数据完整（总量 609、前置存在、推荐顺序覆盖全部节点）、
+## 认知塑造单元测试（docs/109 §4，check.py 场景回归 meta）：节点数据完整（总量 587、前置存在、推荐顺序覆盖全部节点）、
 ## 推荐点法按预算点（前置 / 大节点门槛 / 余额）、--meta=full 点满、测试局缺省不带局外成长。
 const Meta = preload("res://scripts/core/meta.gd")
 const Pack = preload("res://scripts/core/cloud_pack.gd")
@@ -39,7 +39,7 @@ func _ready() -> void:
 func run() -> void:
 	var nodes := Meta.nodes()
 	check(nodes.size() >= 25, "节点数 %d" % nodes.size())
-	check(Meta.total_cost() == 609, "总量应为 609，实为 %d" % Meta.total_cost())
+	check(Meta.total_cost() == 587, "总量应为 587，实为 %d" % Meta.total_cost())
 	var order: Array = Meta.data().get("order", [])
 	for id in nodes:
 		check(order.has(id), "推荐顺序缺 " + id)
@@ -49,16 +49,18 @@ func run() -> void:
 		check(nd.has("name") and nd.has("desc") and int(nd.get("cost", 0)) > 0, "%s 缺名字 / 说明 / 价格" % id)
 	check(Meta.shape_for(0).is_empty(), "预算 0 不点")
 	var full := Meta.shape_for(Meta.total_cost())
-	check(full.size() == nodes.size() and Meta.spent(full) == 609, "满预算应点满：%d 个 / %d" % [full.size(), Meta.spent(full)])
-	for b in [30, 75, 150, 220, 360, 540, 608]:
+	check(full.size() == nodes.size() and Meta.spent(full) == 587, "满预算应点满：%d 个 / %d" % [full.size(), Meta.spent(full)])
+	for b in [30, 75, 150, 220, 360, 540, 586]:
 		var sh := Meta.shape_for(b)
 		check(Meta.spent(sh) <= b, "预算 %d 超支 %d" % [b, Meta.spent(sh)])
 		for id in sh:
 			var nd: Dictionary = nodes[id]
 			if nd.has("req"):
 				check(sh.has(str(nd.req)), "预算 %d：%s 没有前置 %s" % [b, id, nd.req])
-	check(Meta.shape_for(35).has("sh1"), "推荐点法第一个应是危机感Ⅰ")
-	check(not Meta.shape_for(35).has("atk1"), "预算 35 只点危机感Ⅰ")
+	check(Meta.shape_for(13).has("sh1"), "推荐点法第一个应是危机感Ⅰ（13，10-26 前置加强由 35 降价）")
+	check(not Meta.shape_for(13).has("atk1"), "预算 13 只点危机感Ⅰ")
+	var s18 := Meta.shape_for(18)
+	check(s18.has("sh1") and s18.has("atk1") and Meta.spent(s18) == 18 and s18.size() == 2, "预算 18 = 危机感Ⅰ + 攻击性Ⅰ（--meta=18 的前置加强口径）：%s" % [s18])
 	check(Meta.run_shape().is_empty(), "测试局缺省不带局外成长")
 	# 生机细胞（§3.1）
 	Cfg.meta_earned = {}
@@ -80,7 +82,7 @@ func run() -> void:
 	check(Meta.earned_total() == 66 and Cfg.meta_bounty.has(8) and fg.meta_result.cells == 66, "局终记账 %s" % [Cfg.meta_earned])
 	r = Meta.run_reward(fg, true)
 	check(r.bounty == 0, "同一潮位第二次通关没有首通赏金")
-	check(Meta.buy("sh1") and Meta.available() == 31, "点危机感Ⅰ（35）后余额 31，实为 %d" % Meta.available())
+	check(Meta.buy("sh1") and Meta.available() == 53, "点危机感Ⅰ（13）后余额 53，实为 %d" % Meta.available())
 	check(not Meta.buy("atk2"), "没点攻击性Ⅰ不能点攻击性Ⅱ")
 	Meta.buy_recommended()
 	check(Meta.available() >= 0 and Meta.available() < 5, "推荐点完余额 %d" % Meta.available())
@@ -98,10 +100,10 @@ func run() -> void:
 	Cfg.meta_shape = {}
 	check(Meta.pay(15) and Meta.bought_total() == 15 and Meta.budget() == 85 and Meta.available() == 85, "pay(15)：预算 85")
 	check(not Meta.pay(86) and Meta.bought_total() == 15, "余额不够不扣")
-	check(Meta.shape_for(Meta.budget()).has("sh1") and not Meta.can_buy({}, "sh1", 34), "按预算点危机感Ⅰ（35）")
+	check(Meta.shape_for(Meta.budget()).has("sh1") and not Meta.can_buy({}, "sh1", 12), "按预算点危机感Ⅰ（13）")
 	Cfg.meta_earned = {"d1": 40}
 	Cfg.meta_bought = {"d1": 15}
-	check(not Meta.buy("sh1") and Meta.available() == 25, "兑换后余额 25 买不起 35 的节点")
+	check(not Meta.buy("disp1") and Meta.available() == 25, "兑换后余额 25 买不起 30 的节点（多程信息处理）")
 	var ba := {"earned": {"d1": 100}, "bounty": [], "shape": {}, "t": 1, "bought": {"d1": 15, "d2": 5}}
 	var bb := {"earned": {"d1": 100}, "bounty": [], "shape": {}, "t": 2, "bought": {"d1": 30}}
 	var bm := Pack.merge_meta(ba, bb)
