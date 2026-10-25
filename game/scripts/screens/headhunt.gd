@@ -46,6 +46,7 @@ const DECODE := 1.2
 const PLATE := 1.6
 const STAMP := 1.3
 const OP_T := 5.0
+const TEN_OP_T := 3.4
 ## Codex 交付的包体（playback_contract.json，@2x 像素）：拉链 8 档帧条，原点 = 底边中点
 const BAG_O := Vector2(128, 148)
 const BAG_SZ := Vector2(256, 152)
@@ -75,6 +76,7 @@ var reveal_id := ""       # 当前揭示的干员（测试输出用）
 var sel := 0              # 入口：0 寻访一次 / 1 定向；选职业 / 选干员：格子下标
 var sel_cls := ""
 var _buy_t0 := -9.0       # 上次兑换成功的时刻（「+1」上浮用）
+var ten := false          # 本次是新手十连（10-26：名册为空时入口只有「十连寻访」；揭示每人 TEN_OP_T 秒，最后一屏十人总览）
 var pick_scroll := 0      # 指定干员列表：第一张可见卡的下标
 var _pdrag := {}          # 指定干员列表的拖动翻页：{x, scroll, act}
 var choices: Array = []   # 选职业：职业；选干员：干员 id
@@ -174,6 +176,7 @@ func open_browse() -> bool:
 
 func _entry() -> void:
 	results.clear()
+	ten = false
 	if Roster.locked_ids().is_empty():
 		_spill()
 	if not browse and ((not _can_random() and not _can_direct()) or Roster.locked_ids().is_empty()):
@@ -303,6 +306,22 @@ func _act(a) -> void:
 				else:
 					Sfx.play("ui_move", -4.0, 0.6)   # 细胞不够 / 名册已满：只响一声
 				return
+			if Roster.needs_first():
+				# 新手十连（10-26 用户）：入口只有这一个按钮，不能拆成单抽 / 定向
+				if (a is int and a == 0) or (a is String and a in ["one", "ten"]):
+					if _vouchers() >= Roster.TEN:
+						Sfx.play("ui_ok")
+						results = Roster.redeem_ten()
+						ten = true
+						_play()
+					else:
+						Sfx.play("ui_move", -4.0, 0.6)
+				elif a is String and a == "back":
+					Sfx.play("ui_ok")
+					open = false
+				else:
+					Sfx.play("ui_move", -4.0, 0.6)
+				return
 			if a is int:
 				sel = a
 				a = "one" if a == 0 else "directed"
@@ -376,6 +395,10 @@ func _act(a) -> void:
 		"summary":
 			if a == "ok":
 				Sfx.play("ui_ok")
+				if ten:
+					ten = false
+					open = false   # 新手十连看完总览直接回主界面（此时可以集结出发了）
+					return
 				_entry()
 				if open:
 					_trans("slide")
@@ -555,7 +578,10 @@ func draw(vs: Vector2) -> void:
 			"pick":
 				_draw_pick()
 			"summary":
-				_draw_summary()
+				if ten:
+					_draw_summary10()
+				else:
+					_draw_summary()
 	HS.reveal = 1.0
 	_k = k0
 	_off = off0
@@ -679,14 +705,17 @@ func _draw_entry() -> void:
 	UI.text_at(ci, f, vr.position + Vector2(110, 38), "寻访凭证", 20, HS.INK, "lm", true)
 	UI.text_at(ci, f, Vector2(vr.end.x - 20, vr.position.y + 38), "× %d" % n, 30, HS.INK, "rm", true)
 	var rules := ["每次探索结算获得 %d 张，通关获得 %d 张" % [_per_run(), _per_clear()], "未解锁 %d 名 · 不会抽到重复干员" % locked.size()]
+	var first := Roster.needs_first()
 	if locked.is_empty():
 		rules = ["干员已全部入职", "此后获得的凭证每张折算为 %d 生机细胞" % Roster.CELLS_PER_TICKET]
+	elif first:
+		rules = ["新手寻访：一次招募 %d 名不同干员" % Roster.TEN, "必定覆盖全部 8 个职业，招募后即可编队出发"]
 	elif Cfg.roster_draws == 0:
 		rules.append("首次寻访必定获得医疗干员")
 	for j in rules.size():
 		ci.draw_rect(Rect2(40, _p(506, 418) + j * 28, 6, 6), HS.INK)
 		UI.text_at(ci, f, Vector2(56, _p(509, 421) + j * 28), rules[j], int(_p(14, 17)), HS.INK2, "lm")
-	if Roster.exchange_visible():
+	if Roster.exchange_visible() and not first:
 		_draw_exchange(ci, f)
 	if not _phone:
 		HS.hr_mark(ci, f, Vector2(40, 640))
@@ -716,6 +745,18 @@ func _draw_entry() -> void:
 	else:
 		HS.para(ci, Rect2(800, _p(210, 138), 210, 36), UI.fa(UI.VIOLET, 0.9))
 		UI.text_at(ci, f, Vector2(905, _p(228, 156)), "寻访范围 · %d 名" % locked.size(), 15, Color.WHITE, "mm", true)
+	if first:
+		# 新手十连：只有一个主按钮（10 张），呼吸描边提示
+		var rt := Rect2(860, D.y - 92, 390, 74)
+		var can_t := n >= Roster.TEN
+		HS.main_btn(ci, f, rt, "十连寻访  （%d 张）" % Roster.TEN, "", 1.1)
+		if not can_t:
+			HS.para(ci, rt, Color(0, 0, 0, 0.55))
+		else:
+			var pa := 0.5 + 0.5 * sin(_now() * 4.0) if not UM.rm() else 1.0
+			HS.para(ci, rt.grow(4.0 + 3.0 * pa), Color(0, 0, 0, 0), UI.fa(Color.WHITE, 0.4 + 0.5 * pa), 2.0)
+		_btn(rt, 0)
+		return
 	var r1 := Rect2(620, D.y - 84, 300, 62)
 	var r0 := Rect2(940, D.y - 88, 310, 68)
 	HS.ghost_btn(ci, f, r1, "定向寻访  （%d 张）" % _cost_pick(), "", 1.0)
@@ -1063,7 +1104,7 @@ func _draw_bag() -> void:
 	# 光炸：档位色铺满再转白，再退（docs/124 §10.2）
 	if t > BURST - 0.1:
 		var a := 0.0
-		var c: Color = BURST_COL
+		var c: Color = _burst_col()
 		var bt := t - (BURST - 0.1)
 		if bt < 0.15:
 			a = bt / 0.15 * 0.85
@@ -1083,7 +1124,7 @@ func _draw_op() -> void:
 	var ci: CanvasItem = g.hud
 	var f: Font = g.font
 	var lt := _now() - t0
-	if lt >= OP_T:
+	if lt >= (TEN_OP_T if ten else OP_T):
 		_advance()
 		if mode != "op":
 			ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
@@ -1110,6 +1151,7 @@ func _draw_op() -> void:
 	ci.draw_rect(Rect2(186, 152 + py * 0.6, 2, 76), HS.INK)
 	HS.spaced(ci, f, Vector2(214, 176 + py * 0.6), CLASS_EN[od.cls], 13, HS.INK, 8.0)
 	UI.text_at(ci, f, Vector2(212, 212 + py * 0.6), od.cls, 40, HS.INK, "lm", true)
+	_stars(ci, Vector2(214 + UI.cwidth(f, od.cls, 40) + 26.0, 214 + py * 0.6), Roster.rarity(res.id), 9.0, _rar_col(Roster.rarity(res.id)), HS.INK)   # 原作星数（10-26）
 	var fl := UI.fit_line(f, str(od.name), int(_p(110, 96)), 330, 48)
 	UI.text_at(ci, f, Vector2(46, 262 + py + (110 - fl[1]) * 0.6), fl[0], fl[1], HS.INK, "la", true)
 	ci.draw_rect(Rect2(52, 410 + py, 66, 4), HS.YEL)
@@ -1182,6 +1224,93 @@ func _reveal_figure(od: Dictionary, lt: float) -> void:
 			var hsh := (c * 73856093) ^ (r * 19349663) ^ (int(lt * 20.0) * 83492791)
 			if hsh % 5 < 2:
 				ci.draw_rect(Rect2(dst.position.x + c * 6.0, sy + 3 + r * 6.0, 6, 6), UI.fa(od.col, 0.5 - 0.14 * r))
+
+
+# ---------------------------------------------------------------- 稀有度（原作星数，Roster.rarity）
+
+## 稀有度色：6★ 橙、5★ 金黄（原作寻访的出光色）
+func _rar_col(r: int) -> Color:
+	return Color8(255, 140, 40) if r >= 6 else Color8(255, 214, 70)
+
+
+## 拉包光炸的颜色跟本次最高稀有度走：有 6★ 用原来的金橙，只有 5★ 时偏黄白
+func _burst_col() -> Color:
+	for r in results:
+		if Roster.rarity(str(r.id)) >= 6:
+			return BURST_COL
+	return Color8(255, 236, 150)
+
+
+## 一排星（中心在 c 左起，r = 外半径）：像素风五角星，带 1 像素描边
+func _stars(ci: CanvasItem, c: Vector2, n: int, r: float, col: Color, line: Color) -> void:
+	for i in n:
+		var o := c + Vector2(i * r * 2.3, 0)
+		var pts := PackedVector2Array()
+		for k in 10:
+			var ang := -PI / 2.0 + k * PI / 5.0
+			var rr := r if k % 2 == 0 else r * 0.45
+			pts.append((o + Vector2(cos(ang), sin(ang)) * rr).round())
+		HS.fill(ci, pts, col)
+		pts.append(pts[0])
+		ci.draw_polyline(pts, line, 1.0)
+
+
+# ---------------------------------------------------------------- 新手十连 · 十人总览（10-26 用户：模仿原作十连结果屏）
+
+## 十张竖卡横排铺满：卡顶稀有度色光、职业图标、精细立绘（待机循环）、星数、名字、NEW 签；卡片依次从下方翻入（每张晚 0.08 秒）
+func _draw_summary10() -> void:
+	var ci: CanvasItem = g.hud
+	var f: Font = g.font
+	var t := 99.0 if (UM.rm() or UM.skip_all()) else _now() - t0
+	HS.backdrop(ci, D)
+	HS.topbar(ci, f, D, ["PERSONNEL /", "RECRUITMENT"], "寻访结果", 1.0, "%02d / %02d" % [results.size(), Roster.TEN], "")
+	var n := results.size()
+	var gap := 8.0
+	var x0 := 24.0
+	var cw := (D.x - x0 * 2.0 - gap * (n - 1)) / maxf(1.0, n)
+	var y0 := _p(84.0, 76.0)
+	var ch := D.y - 88.0 - 14.0 - y0
+	for i in n:
+		var r: Dictionary = results[i]
+		var od := _card(r.id)
+		var rar := Roster.rarity(r.id)
+		var rc := _rar_col(rar)
+		var e := UM.out_cubic((t - 0.08 * i) / 0.4)
+		if e <= 0.0:
+			continue
+		var rr := Rect2(x0 + i * (cw + gap), y0 + (1.0 - e) * 60.0, cw, ch)
+		var a := clampf(e * 1.4, 0.0, 1.0)
+		ci.draw_rect(rr, Color(0.07, 0.08, 0.1, 0.95 * a))
+		# 卡顶稀有度光：自上而下渐隐（6 段色块，像素风）
+		for k in 6:
+			ci.draw_rect(Rect2(rr.position.x, rr.position.y + k * 22.0, rr.size.x, 22.0), UI.fa(rc, (0.42 - k * 0.07) * a))
+		ci.draw_rect(Rect2(rr.position.x, rr.position.y, rr.size.x, 4.0), UI.fa(rc, a))
+		ci.draw_rect(rr, UI.fa(rc, 0.55 * a), false, 1.5)
+		_class_icon(ci, od.cls, Vector2(rr.get_center().x, rr.position.y + 34.0), 15.0, UI.fa(Color.WHITE, a))
+		var fy0 := rr.position.y + 60.0
+		var fy1 := rr.end.y - 92.0
+		_figure(od, Rect2(rr.position.x + 4.0, fy0, rr.size.x - 8.0, fy1 - fy0), 2.6, Color(0, 0, 0, 0), _idle_frame(od, t))
+		# 底部名牌：星 + 名字 + 英文
+		var nr := Rect2(rr.position.x, rr.end.y - 84.0, rr.size.x, 84.0)
+		ci.draw_rect(nr, Color(0.9, 0.91, 0.93, 0.96 * a))
+		var sr := 5.0 if cw < 110.0 else 6.0
+		_stars(ci, Vector2(nr.get_center().x - (rar - 1) * sr * 1.15, nr.position.y + 14.0), rar, sr, rc, HS.INK)
+		var fl := UI.fit_line(f, str(od.name), 20, nr.size.x - 10.0, 11)
+		UI.text_at(ci, f, Vector2(nr.get_center().x, nr.position.y + 42.0), fl[0], fl[1], HS.INK, "mm", true)
+		var en := UI.fit_line(f, od.en, 9, nr.size.x - 10.0, 7)
+		UI.text_at(ci, f, Vector2(nr.get_center().x, nr.position.y + 66.0), en[0], en[1], HS.INK2, "mm")
+		HS.tag(ci, f, rr.position + Vector2(6.0, 54.0), "NEW", 0.7, HS.YEL)   # 十连出的都是新干员
+		# 入场白闪
+		if e < 1.0 and t - 0.08 * i < 0.25:
+			ci.draw_rect(rr, UI.fa(Color.WHITE, (1.0 - e) * 0.6))
+	HS.bottom_bar(ci, D, 88)
+	var cls_n := {}
+	for r in results:
+		cls_n[Roster.class_of(r.id)] = true
+	UI.text_at(ci, f, Vector2(48, D.y - 44), "%d 名干员已加入名册（覆盖 %d 个职业），可在编队界面设为队长。" % [n, cls_n.size()], 16, UI.TEXT, "lm")
+	var br := Rect2(D.x - 330, D.y - 74, 310, 60)
+	HS.main_btn(ci, f, br, "完成", "" if Pad.touch else "Enter")
+	_btn(br, "ok")
 
 
 # ---------------------------------------------------------------- 本次寻访（GPT 33）

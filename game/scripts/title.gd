@@ -70,6 +70,8 @@ func _ready() -> void:
 	add_child(meta_ui)
 	hunt_ui = preload("res://scripts/screens/hunt_host.gd").new()
 	add_child(hunt_ui)
+	if preload("res://scripts/core/roster.gd").needs_first():
+		sel = 7   # 新手开局（名册为空）：缺省选中寻访，Enter 直接去做新手十连
 	medals_ui = preload("res://scripts/screens/medals_ui.gd").new()
 	add_child(medals_ui)
 	if get_tree().has_meta("settlement_open_meta"):
@@ -659,6 +661,10 @@ func _activate(i: int) -> void:
 	Sfx.play("ui_ok")
 	match i:
 		0:
+			if preload("res://scripts/core/roster.gd").needs_first():
+				sel = 7   # 新手十连之前名册为空、出发不了：点「集结出发」先带去寻访（10-26 用户）
+				_activate(7)
+				return
 			transition.switch_page(_open_op_pick.bind(false))
 		1:
 			gallery.open()   # 10-22 用户：进图鉴不要入场动效，直接出现
@@ -757,9 +763,12 @@ func _draw_menu(vs: Vector2) -> void:
 	for i in menu_lay.list.ids:
 		a_list.append(_item_a(i))
 	const R = preload("res://scripts/core/roster.gd")
+	var first := R.needs_first()
 	Tiles.draw(self, menu_lay, {"font": font, "sel": sel, "water": menu_water, "now": t, "rm": Cfg.reduce_motion,
-		"a_logo": 0.0, "logo_tex": null, "a_list": a_list, "a_deploy": _item_a(0), "a_foot": _seg(2.0, 0.4),
+		"a_logo": 0.0, "logo_tex": null, "a_list": a_list, "a_deploy": _item_a(0) * (0.35 if first else 1.0), "a_foot": _seg(2.0, 0.4),
 		"slide": 0.0 if Cfg.reduce_motion else 16.0, "dim": [] if R.active() else [7], "tickets": R.tickets() if R.active() else -1})   # 10-24 用户：没有凭证也能点进寻访看卡池
+	if first and not (guide or credits):
+		_draw_first_guide()
 	# 声明（同人 · 非商业 · 与鹰角网络无关 · 致谢与声明）+ 版本：桌面右下，手机跟在底部一行后面
 	var ff := _seg(2.0, 0.4)
 	var lg: Dictionary = menu_lay.legal
@@ -781,6 +790,40 @@ func _draw_menu(vs: Vector2) -> void:
 	# 对内包页脚提示（docs/40，用户 10-10）：声明上面一行；手机只在设置页提示
 	if not ph and not OS.is_debug_build() and Cfg.runs_log_enabled():
 		UI.text(self, font, Vector2(lg.pos.x - 310, fy - 20), "测试版：本地记录对局摘要（不上传）", 12, _fa(UI.GOLD, ff), HORIZONTAL_ALIGNMENT_RIGHT, 310)
+
+
+## 新手引导（10-26 用户：开局名册为空，第一次进主界面引去寻访做新手十连）：寻访一行外圈青色角框呼吸 + 右侧箭头左右轻摆 + 一句提示；
+## 「集结出发」压暗并写开放条件。命中区不变（点集结出发由 _activate 转去寻访）
+func _draw_first_guide() -> void:
+	var a := _item_a(7)
+	var r: Rect2 = item_rects[7] if item_rects.size() > 7 else Rect2()
+	if a <= 0.0 or r.size.x <= 0.0:
+		return
+	const C := Color(0.616, 0.898, 0.937)
+	var p := 0.5 + 0.5 * sin(t * 4.0) if not Cfg.reduce_motion else 1.0
+	var g := r.grow(6.0)
+	var l := 14.0
+	for cn in [[g.position, 1, 1], [Vector2(g.end.x, g.position.y), -1, 1], [Vector2(g.position.x, g.end.y), 1, -1], [g.end, -1, -1]]:
+		var q: Vector2 = cn[0]
+		draw_rect(Rect2(q + Vector2(0.0 if cn[1] > 0 else -l, 0.0 if cn[2] > 0 else -2.0), Vector2(l, 2.0)), _fa(C, a * (0.55 + 0.45 * p)))
+		draw_rect(Rect2(q + Vector2(0.0 if cn[1] > 0 else -2.0, 0.0 if cn[2] > 0 else -l), Vector2(2.0, l)), _fa(C, a * (0.55 + 0.45 * p)))
+	draw_rect(g, _fa(C, a * 0.08 * p))
+	var ax := g.end.x + 14.0 + (0.0 if Cfg.reduce_motion else sin(t * 5.0) * 5.0)
+	var ay := g.get_center().y
+	draw_colored_polygon(PackedVector2Array([Vector2(ax, ay), Vector2(ax + 14.0, ay - 9.0), Vector2(ax + 14.0, ay + 9.0)]), _fa(C, a))
+	var tx := ax + 22.0
+	var fs := 15 if not menu_lay.compact else 13
+	var tip := "新手寻访：十连招募 10 名干员"
+	var tw: float = font.get_string_size(tip, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	draw_rect(Rect2(tx - 6.0, ay - 15.0, tw + 14.0, 30.0), Color(0.02, 0.05, 0.07, 0.82 * a))
+	draw_rect(Rect2(tx - 6.0, ay - 15.0, 3.0, 30.0), _fa(C, a))
+	UI.text(self, font, Vector2(tx + 2.0, ay + fs * 0.36), tip, fs, _fa(Color(0.914, 0.941, 0.953), a))
+	var d: Rect2 = item_rects[0] if item_rects.size() > 0 else Rect2()
+	if d.size.x > 0.0:
+		var lock := "完成新手寻访后开放"
+		var lw: float = font.get_string_size(lock, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+		var ly: float = d.position.y - 8.0 if menu_lay.compact else d.end.y + 16.0   # 紧凑版式集结出发贴底：提示写在上方
+		UI.text(self, font, Vector2(d.get_center().x - lw / 2.0, ly), lock, 12, _fa(Color(0.635, 0.725, 0.784), _item_a(0)))
 
 
 ## Logo 层（logo_ci 的 draw）：难度页、选人页不画
