@@ -175,6 +175,16 @@ func _ready() -> void:
 				get_viewport().get_texture().get_image().save_png(path)
 				if i == int(shots[0]) - 1:
 					get_tree().quit())
+	if Cfg.dev_args().has("--medalvideo"):
+		# 蚀刻章演示录像（10-25 用户要视频；配 Godot --write-movie + --fixed-fps 30）：标题页 1.2 秒 → 点「蚀刻章」→
+		# 依次选几枚章（每 1.3 秒一枚）→ 停在背景动态上，共 15 秒后退出
+		intro = INTRO_LEN
+		sel = 8
+		get_tree().create_timer(1.2).timeout.connect(func(): _activate(8))
+		var keys := ["ending_knight", "ending_standard", "elite_three", "cognition_complete", "cognition_first", "relic_fifty", "set_complete"]
+		for i in keys.size():
+			get_tree().create_timer(2.8 + 1.3 * i).timeout.connect(func(): medals_ui._pick(medals_ui._index_of(keys[i])))
+		get_tree().create_timer(15.0).timeout.connect(func(): get_tree().quit())
 	if Cfg.dev_args().has("--medalperf"):
 		intro = INTRO_LEN
 		medals_ui.open()
