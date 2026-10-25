@@ -475,6 +475,8 @@ func update(dt: float) -> void:
 		if early:
 			n = int(round(n * Bal.v("enemy/early_horde_mult", 1.0)))
 		var n_base := n   # 未乘只数倍率前的只数：经验按「实际刷出只数 / 这个数」折算，被同屏上限裁掉时不多折（docs/116 §7.3）
+		if hunt_type:
+			n = int(round(n * Bal.v("enemy/horde_hunt_count_mult", 1.0)))   # 围猎型多来一些（docs/147），经验同样按只数折算守恒
 		n = int(round(n * Bal.v("enemy/horde_count_mult", 1.0)))   # 压力型大群（docs/116 §7.3）：只数倍率，经验按只数折算守恒（下面 xp）
 		n = dens_count(n, "horde")   # 怪物密度：只数 × density（累计余数取整；在 Boss 余量裁剪之前）
 		# Boss 在场时（Ⅷ horde_in_boss 让大群不顺延）超出存活杂兵上限的部分裁掉（协调人 9/30）；没有 Boss 时余量 = 同屏上限 max_alive()，不裁
