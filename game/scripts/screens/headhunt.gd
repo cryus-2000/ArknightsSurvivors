@@ -280,8 +280,7 @@ func _play() -> void:
 func _op(i: int) -> void:
 	_hum_set(0.0)
 	Sfx.play("hh_reveal", -6.0, 1.0, 0.03)
-	if Roster.rarity(str(results[i].id)) >= 6:
-		Sfx.play("hh_star6", -12.0, 1.0, 0.0)
+	Sfx.play("hh_star6", -12.0, 1.0, 0.0)   # 每名干员同一套声音（不按稀有度区别对待）
 	idx = i
 	mode = "op"
 	reveal_id = results[i].id
@@ -319,10 +318,7 @@ func _advance() -> void:
 func _burst_sfx() -> void:
 	_burst = true
 	Sfx.play("hh_burst", -2.0, 1.0, 0.0)
-	for r in results:
-		if Roster.rarity(str(r.id)) >= 6:
-			Sfx.play("hh_star6", -5.0, 1.0, 0.0)   # 本次有 6★：光炸上叠一串上行钟音
-			break
+	Sfx.play("hh_star6", -5.0, 1.0, 0.0)   # 光炸上叠一串上行钟音
 
 
 ## 开口里的光（循环）：v = 0–1 音量，按开包进度走；进度降回 0 时停
@@ -1341,17 +1337,17 @@ func _reveal_figure(od: Dictionary, lt: float) -> void:
 
 # ---------------------------------------------------------------- 稀有度（原作星数，Roster.rarity）
 
-## 稀有度色：6★ 橙、5★ 金黄（原作寻访的出光色）
-func _rar_col(r: int) -> Color:
-	return Color8(255, 140, 40) if r >= 6 else Color8(255, 214, 70)
+## 卡面 / 星 / 光的颜色：所有干员统一同一种金橙（10-26 用户：「德克萨斯的颜色不要和别的干员不一样，所有干员用一个颜色」）；
+## 星数仍按原作（Roster.rarity），只是不再按稀有度换色
+const CARD_COL := Color8(255, 140, 40)
 
 
-## 拉包光炸的颜色跟本次最高稀有度走：有 6★ 用原来的金橙，只有 5★ 时偏黄白
+func _rar_col(_r: int) -> Color:
+	return CARD_COL
+
+
 func _burst_col() -> Color:
-	for r in results:
-		if Roster.rarity(str(r.id)) >= 6:
-			return BURST_COL
-	return Color8(255, 236, 150)
+	return BURST_COL
 
 
 ## 一排星（中心在 c 左起，r = 外半径）：像素风五角星，带 1 像素描边
@@ -1373,7 +1369,7 @@ func _stars(ci: CanvasItem, c: Vector2, n: int, r: float, col: Color, line: Colo
 ## 十连总览（10-26 用户第二版：「人物大小不一，全部用大号的；画面更有设计感」，参照原作十连结算屏）：
 ## 暗底 + 中心暖光 + 斜向光带 + 上浮像素尘；十张竖卡依次从上方落入（每张晚 0.09 秒），卡内稀有度色自下而上渐亮 + 竖向光柱微微闪动 +
 ## 职业大水印；干员一律按同一倍数（精细 @2x，按画布统一，不按各自包围盒缩放）画在同一条脚底线上、裁在本卡内（长武器裁掉，不压相邻卡）；
-## 名牌：稀有度色顶线、星级一行、中文名大字、英文小字；6★ 卡落定后一道斜向闪光扫过
+## 名牌：顶线、星级一行、中文名大字、英文小字；每张卡落定后一道斜向闪光扫过（所有干员同一配色、同一套光效）
 const SUM_K := 2.6            # 十连总览的统一立绘倍数（每个 @2x 像素占的设计单位，手机 ×0.9）
 
 
@@ -1464,7 +1460,7 @@ func _draw_summary10() -> void:
 		# 落入白闪；6★ 落定后斜向闪光扫过一次
 		if lt < 0.3:
 			ci.draw_rect(rr, UI.fa(Color.WHITE, (1.0 - lt / 0.3) * 0.55))
-		if rar >= 6 and lt > 0.45 and lt < 1.05:
+		if lt > 0.45 and lt < 1.05:
 			var gx := lerpf(rr.position.x - 40.0, rr.end.x + 40.0, (lt - 0.45) / 0.6)
 			var gl := PackedVector2Array([Vector2(gx, rr.position.y), Vector2(gx + 18.0, rr.position.y), Vector2(gx - 22.0, rr.end.y - np_h), Vector2(gx - 40.0, rr.end.y - np_h)])
 			var ok := true
