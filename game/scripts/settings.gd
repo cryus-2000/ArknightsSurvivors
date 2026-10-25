@@ -9,7 +9,6 @@ const D = preload("res://scripts/data.gd")
 const Look = preload("res://scripts/render/look.gd")
 const TouchLayout = preload("res://scripts/touch_layout.gd")
 const CloudPack = preload("res://scripts/core/cloud_pack.gd")
-const Medals = preload("res://scripts/core/medals.gd")
 ## 存档里难度字段的含义：1 = 旧版累计档位 0–10；2 = 1.1 起的三档下标；3 = 10-22 的潮位 0–15（只在内部包短暂存在）；
 ## 4 = 10-22 起的三档预设下标（D.DIFF_PRESETS：常规 / 高压 / 深潮 = 潮位 0 / 5 / 10）
 const DIFF_VER := 4
@@ -303,13 +302,13 @@ func _ready() -> void:
 	if _set_sig == "":
 		_set_sig = _settings_sig()   # 旧存档 / 首次启动：以现在的设置为基准，没改过就不算「新」（cloud_set_t 保持 0，换设备时让云端的设置生效）
 	_apply_unlock_all()
-	Medals.sync()   # 蚀刻章补录：旧存档里已有的结局 / 藏品 / 认知记录，读档时按真实记录补上（下次存档写盘）
+	load("res://scripts/core/medals.gd").sync()   # 蚀刻章补录：旧存档里已有的结局 / 藏品 / 认知记录，读档时按真实记录补上（下次存档写盘）
 	for a in dev_args():
 		# 截图 / 测试：--medals=all / none / key,key 预置已得蚀刻章，--medalbest=key:n 预置进度（只在内存，测试局不写存档）
 		if a.begins_with("--medals="):
 			var v := a.substr(9)
 			medals = {}
-			for m in Medals.defs():
+			for m in load("res://scripts/core/medals.gd").defs():
 				if v == "all" or v.split(",").has(str(m.key)):
 					medals[m.key] = 1793000000
 		elif a.begins_with("--medalbest="):
@@ -705,7 +704,7 @@ func save() -> void:
 	c.set_value("meta", "earned", meta_earned)
 	c.set_value("meta", "dev", meta_dev)
 	c.set_value("meta", "bounty", meta_bounty)
-	Medals.sync()   # 结局 / 藏品 / 认知塑造的记录都经这里落盘：先补判蚀刻章，同一次写进存档
+	load("res://scripts/core/medals.gd").sync()   # 结局 / 藏品 / 认知塑造的记录都经这里落盘：先补判蚀刻章，同一次写进存档
 	c.set_value("medals", "got", medals)
 	c.set_value("medals", "best", medal_best)
 	var ss := _settings_sig()

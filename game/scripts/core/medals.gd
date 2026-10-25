@@ -118,6 +118,8 @@ static func sync(now := -1) -> Array:
 		for m in defs():
 			if (str(m.rule) == "set") != pass_set or Cfg.medals.has(m.key):
 				continue
+			if str(m.rule) == "relics" and _real("seen_relics").size() < int(m.max):
+				continue   # 条数都不够：不必加载藏品库（读档补录在启动时跑，省网页启动时间）
 			var p := progress(m)
 			if int(p[0]) >= int(p[1]):
 				Cfg.medals[m.key] = t
