@@ -21,6 +21,7 @@ var _dos: Array = []         # [标记, 秒, 动作, 已做]
 var _marks := {}             # 标记 -> 打下时的 usec
 var _proc_start := 0
 var _proc_end := 0
+var _acc := {}               # 分项计时（FR.tic / toc）：名字 -> 本段累计微秒
 var _proc_ms := 0.0          # 上一帧全部 _process 的耗时（含场景切换后的 _ready 不算在内）
 
 
@@ -38,6 +39,16 @@ static func lap(name: String) -> void:
 	if _lap_t > 0 and now - _lap_t > 20000:
 		print("PF FTLAP %s %.0f ms" % [name, (now - _lap_t) / 1000.0])
 	_lap_t = now
+
+
+## 段内分项计时：t0 = FR.tic()，做完 FR.toc("名字", t0)；段结束时打印 PF FTACC（每帧平均毫秒）。没挂上时 tic() 返回 0、toc 什么也不做
+static func tic() -> int:
+	return Time.get_ticks_usec() if _inst != null else 0
+
+
+static func toc(name: String, t0: int) -> void:
+	if _inst != null and t0 > 0:
+		_inst._acc[name] = _inst._acc.get(name, 0) + Time.get_ticks_usec() - t0
 
 
 static func enabled() -> bool:
@@ -72,7 +83,8 @@ func _ready() -> void:
 			var p := a.substr(7).split(":")
 			if p.size() >= 3:
 				_dos.append([p[0], float(p[1]), p[2], false])
-	_mark("start")
+	if _segs.is_empty():
+		_mark("start")   # 启动页没打标记（测试直接进标题页）时从这里算
 
 
 func _mark(name: String) -> void:
@@ -141,5 +153,11 @@ func _close_seg() -> void:
 			over += 1
 		if v > LONG_MS:
 			over2 += 1
+	if not _acc.is_empty():
+		var parts: Array = []
+		for k in _acc:
+			parts.append("%s=%.2f" % [k, _acc[k] / 1000.0 / n])
+		print("PF FTACC %s %s" % [s.name, " ".join(parts)])
+		_acc.clear()
 	print("PF FTSEG %s n=%d mean=%.2f p50=%.2f p95=%.2f p99=%.2f max=%.1f over16=%d over33=%d" % [s.name, n, sum / n,
 		d[int(n * 0.5)], d[mini(n - 1, int(n * 0.95))], d[mini(n - 1, int(n * 0.99))], d[n - 1], over, over2])

@@ -1021,6 +1021,8 @@ func _ready() -> void:
 		_cover_begin()
 	RenderingServer.frame_post_draw.connect(func():
 		first_frame_ms = Time.get_ticks_msec()
+		if demo_op == "":
+			preload("res://scripts/core/frame_rec.gd").mark("game")   # 帧时记录（--ftrec，docs/50 §27）：对局第一帧画完
 		if state != S.OPENING:
 			release_entry_voices()   # 没有开场演出（测试 / Boss 演练 / 指南截图）：第一帧画完就放；有开场演出的由 intro.gd 在编队着地时放
 		, CONNECT_ONE_SHOT)

@@ -2,7 +2,9 @@ extends Control
 ## 启动页「声呐测绘」（用户 10-25 定：对照图方向 C 第一张；10-25 追加「启动中要有百分比，并说明在读什么」）。
 ## 主场景是 boot.tscn（本脚本），只依赖字体、标志与提示表，几十毫秒就能画出来；然后按 data/boot_order.json
 ## （tools/gen_boot_order.py 生成，叶子在前）逐个 load() 标题页带出的脚本与资源——每个只编译它自己，进度是真实的，
-## 同时显示正在读哪一类（干员积木 / 海嗣 / 战场渲染 …）和文件名。全部读完再读 main.tscn（此时都在缓存里），淡到黑后切到标题页。
+## 同时显示正在读哪一类（干员积木 / 海嗣 / 战场渲染 …）和文件名。桌面交给后台线程逐个编译，主线程照常出帧（大脚本以前一卡几秒）。
+## 全部读完再读 main.tscn（此时都在缓存里），把标题页建在本页下面（本页挪进最上层盖层），离屏画一遍对局 / 图鉴的着色器（render/shader_warm.gd），
+## 等连续 GOOD_N 帧稳在一帧预算内再淡出，标题开场从头播（10-25 用户「等能渲染到稳定 60 帧之后再正式进入游戏主界面」，docs/50 §27）。
 ## 以前这一段（桌面调试版 8–12 秒、网页十几秒）全在 Godot 静态启动图下面，没有进度。
 ## 引擎初始化与自动加载（Sfx / Cfg …）在本页之前，仍由静态启动图（art/ui/boot_splash.png，同一版式）盖着。
 ## 网页：前面还有 HTML 加载页（tools/web/loader.js，下载占 0–60%、引擎启动 60–80%），这里接着它的百分比走、不倒退；
@@ -18,6 +20,11 @@ const CYAN := Color(0.369, 0.902, 0.902)
 const TEXT := Color(0.949, 0.957, 0.961)
 const DIM := Color(0.5, 0.6, 0.65)
 const OUT_LEN := 0.3
+const WAIT_USEC := 4000      # 桌面后台编译时主线程每帧最多等多久（小脚本一帧能过一两个；留够画面的时间，稳 60）
+const GOOD_N := 30           # 稳帧门：连续多少帧在预算内
+const GATE_MIN := 0.4
+const GATE_MAX := 6.0
+const GATE_MAX_WEB := 10.0
 
 var font: Font
 var tex_logo: Texture2D
@@ -33,6 +40,16 @@ var out_t := -1.0
 var tip_i := 0
 var tip_t := 0.0
 var shot := false
+var cur_path := ""
+var _threads := false         # 桌面后台线程编译（网页导出没有线程）
+var _req := ""                # 正在后台编译的路径
+var _req_t := 0
+var title: Node               # 建在本页下面的标题页
+var warm: Node                # 着色器预热视口
+var _gate_t0 := 0
+var _good := 0
+var _last_us := 0
+var _budget_ms := 16.7
 
 
 func _ready() -> void:
@@ -71,47 +88,164 @@ func _ready() -> void:
 		if d is Dictionary:
 			items = d.get("items", [])
 	tip_i = randi() % Tips.TIPS.size()
+	_threads = OS.has_feature("threads") and not OS.has_feature("web")
+	_budget_ms = _frame_budget_ms()
 
 
 func _process(delta: float) -> void:
+	var now := Time.get_ticks_usec()
+	var dt_ms := (now - _last_us) / 1000.0 if _last_us > 0 else 0.0
+	_last_us = now
 	t += delta
 	tip_t += delta
 	if tip_t >= 4.0:
 		tip_t = 0.0
 		tip_i = (tip_i + 1) % Tips.TIPS.size()
 	if out_t >= 0.0:
+		# 淡出：标题页已在下面画稳了，本页渐隐露出它（标题开场从头播）
 		out_t += delta
+		modulate.a = 1.0 - clampf(out_t / OUT_LEN, 0.0, 1.0)
 		if out_t >= OUT_LEN:
-			if Cfg.dev_args().has("--loadprof"):
-				print("BOOTPROF boot_done=%d" % Time.get_ticks_msec())
 			set_process(false)
-			get_tree().change_scene_to_packed(main_scene)
+			get_parent().queue_free()   # 连同盖层一起释放
+		queue_redraw()
+		return
+	if title != null:
+		_gate(dt_ms)
 		queue_redraw()
 		return
 	if t > 0.05:   # 先让第一帧画出来
 		if idx < items.size():
-			var t0 := Time.get_ticks_usec()
-			while idx < items.size() and (idx == 0 or Time.get_ticks_usec() - t0 < BUDGET_USEC):
-				var it: Array = items[idx]
-				cur_file = str(it[0]).get_file()
-				cur_label = str(it[1])
-				if ResourceLoader.exists(str(it[0])):
-					var l0 := Time.get_ticks_usec()
-					load(str(it[0]))
-					if FR.enabled() and Time.get_ticks_usec() - l0 > 40000:
-						print("PF FTLOAD %s %.0f ms" % [str(it[0]), (Time.get_ticks_usec() - l0) / 1000.0])
-				idx += 1
-				if shot and idx == items.size() / 2:
-					break
-			if shot and idx == items.size() / 2:
-				_shot()
+			if _threads:
+				_step_threaded()
+			else:
+				_step_sync()
 		elif main_scene == null:
 			cur_label = "标题页"
 			cur_file = MAIN.get_file()
 			main_scene = load(MAIN)
 		else:
-			out_t = 0.0
+			_open_title()
 	queue_redraw()
+
+
+## 网页（无线程）：主线程逐个 load，每帧最多 BUDGET_USEC（单个超过也只读这一个）
+func _step_sync() -> void:
+	var t0 := Time.get_ticks_usec()
+	while idx < items.size() and (Time.get_ticks_usec() - t0 < BUDGET_USEC or Time.get_ticks_usec() == t0):
+		_begin_item()
+		if ResourceLoader.exists(cur_path):
+			var l0 := Time.get_ticks_usec()
+			load(cur_path)
+			if FR.enabled() and Time.get_ticks_usec() - l0 > 40000:
+				print("PF FTLOAD %s %.0f ms" % [cur_path, (Time.get_ticks_usec() - l0) / 1000.0])
+		idx += 1
+		if shot and idx == items.size() / 2:
+			_shot()
+			return
+
+
+## 桌面：一个接一个交给后台线程编译（game.gd 这类大脚本单个就要几秒，以前整段卡在一帧里、进度不动）；
+## 主线程每帧最多等 WAIT_USEC，大脚本编译时照常出帧。一次只交一个（按依赖顺序，不让两个线程同时编译互相引用的脚本）
+func _step_threaded() -> void:
+	var t0 := Time.get_ticks_usec()
+	while idx < items.size():
+		if cur_path == "" or _req == "":
+			_begin_item()
+			if not ResourceLoader.exists(cur_path) or ResourceLoader.load_threaded_request(cur_path) != OK:
+				_end_item()
+				continue
+			_req = cur_path
+			_req_t = Time.get_ticks_usec()
+		var st := ResourceLoader.load_threaded_get_status(_req)
+		if st == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+			if Time.get_ticks_usec() - t0 > WAIT_USEC:
+				return
+			OS.delay_usec(200)
+			continue
+		if st == ResourceLoader.THREAD_LOAD_LOADED:
+			ResourceLoader.load_threaded_get(_req)
+		if FR.enabled() and Time.get_ticks_usec() - _req_t > 40000:
+			print("PF FTLOAD %s %.0f ms（后台）" % [_req, (Time.get_ticks_usec() - _req_t) / 1000.0])
+		_end_item()
+		if shot and idx == items.size() / 2:
+			_shot()
+			return
+		if Time.get_ticks_usec() - t0 > WAIT_USEC:
+			return
+
+
+func _begin_item() -> void:
+	var it: Array = items[idx]
+	cur_path = str(it[0])
+	cur_file = cur_path.get_file()
+	cur_label = str(it[1])
+
+
+func _end_item() -> void:
+	idx += 1
+	cur_path = ""
+	_req = ""
+
+
+## 脚本读完：标题页在本页下面建好、开始画（本页挪进最上层的盖层），同时离屏画一遍对局会用的着色器（render/shader_warm.gd）
+func _open_title() -> void:
+	cur_label = "预热画面"
+	cur_file = ""
+	var layer := CanvasLayer.new()
+	layer.layer = 128   # 盖过标题页自己的各层（背景 -1、载入页 80、转场 90）
+	get_tree().root.add_child(layer)
+	reparent(layer, false)
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	title = main_scene.instantiate()
+	get_tree().root.add_child(title)
+	get_tree().current_scene = title
+	if title.has_method("boot_cover"):
+		title.boot_cover()
+	warm = preload("res://scripts/render/shader_warm.gd").new()
+	layer.add_child(warm)
+	_gate_t0 = Time.get_ticks_usec()
+	_good = 0
+	_last_us = 0   # 建标题页这一帧不算
+
+
+## 稳帧门：着色器画完后，连续 GOOD_N 帧的真实帧间隔都在一帧预算内（60 帧；显示器更低或设了帧率上限就按那个），才淡出、标题开场从头播。
+## 最多等 GATE_MAX 秒（慢机器 / 被别的程序占满时照样进），至少盖 GATE_MIN 秒。标题页中途切走（测试直接进局）就立刻撤掉盖层。
+func _gate(dt_ms: float) -> void:
+	if not is_instance_valid(title) or get_tree().current_scene != title:
+		set_process(false)
+		get_parent().queue_free()
+		return
+	if is_instance_valid(warm):
+		cur_file = "着色器 %d / %d" % [warm.total - warm.steps.size(), warm.total]
+		return
+	if dt_ms > 0.0 and dt_ms <= _budget_ms * 1.12:
+		_good += 1
+	elif dt_ms > 0.0:
+		_good = 0
+	cur_file = "帧时稳定 %d / %d" % [mini(_good, GOOD_N), GOOD_N]
+	var held := (Time.get_ticks_usec() - _gate_t0) / 1e6
+	var timeout := held >= (GATE_MAX_WEB if OS.has_feature("web") else GATE_MAX)
+	if (_good >= GOOD_N and held >= GATE_MIN) or timeout:
+		if FR.enabled():
+			print("PF FTGATE held=%.2f good=%d timeout=%s budget=%.1f" % [held, _good, timeout, _budget_ms])
+		if Cfg.dev_args().has("--loadprof"):
+			print("BOOTPROF boot_done=%d" % Time.get_ticks_msec())
+		if title.has_method("boot_reveal"):
+			title.boot_reveal()
+		FR.mark("reveal")
+		out_t = 0.0
+
+
+## 一帧预算（毫秒）：60 帧，显示器刷新率更低或设了帧率上限时取更长的那个
+func _frame_budget_ms() -> float:
+	var fps := 60.0
+	var hz := DisplayServer.screen_get_refresh_rate()
+	if hz > 1.0:
+		fps = minf(fps, hz)
+	if Engine.max_fps > 0:
+		fps = minf(fps, float(Engine.max_fps))
+	return 1000.0 / fps
 
 
 func _shot() -> void:
@@ -127,12 +261,19 @@ func _shot() -> void:
 	get_tree().quit()
 
 
-## 进度 0–1：脚本占 95%，最后读标题页场景 5%
+## 进度 0–1：脚本占 88%，标题页场景 4%，预热画面（着色器 + 稳帧）8%
 func _progress() -> float:
 	var f := 0.0
 	if not items.is_empty():
-		f = 0.95 * float(idx) / float(items.size())
+		f = 0.88 * float(idx) / float(items.size())
 	if main_scene != null:
+		f = 0.92
+	if title != null:
+		var w := 0.5 + 0.5 * minf(_good, GOOD_N) / float(GOOD_N)
+		if is_instance_valid(warm):
+			w = 0.5 * warm.progress()
+		f = 0.92 + 0.08 * w
+	if out_t >= 0.0:
 		f = 1.0
 	return base + (1.0 - base) * f
 
@@ -182,8 +323,6 @@ func _draw() -> void:
 	_draw_sonar(vs)
 	_draw_panels(vs, compact)
 	_txt(Vector2(0, vs.y - (16 if not compact else 8)), "明日方舟同人作品 · 非商业 · 与鹰角网络无关", 11, Color(0.44, 0.52, 0.56), HORIZONTAL_ALIGNMENT_CENTER, vs.x)
-	if out_t >= 0.0:
-		draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0, 0, clampf(out_t / OUT_LEN, 0.0, 1.0)))
 
 
 func _draw_sonar(vs: Vector2) -> void:
@@ -228,9 +367,11 @@ func _draw_sonar(vs: Vector2) -> void:
 	_en(Vector2(c.x, c.y + big * 0.32 + 26.0 * u + 6.0), "SONAR · BOOT", 11, CYAN, 3.0, true)
 	# 圈下：正在读什么
 	var ty := c.y + 210.0 * u + 30.0
-	var what := "读取 · " + cur_label if out_t < 0.0 else "打开标题页"
+	var what := "打开标题页" if out_t >= 0.0 else (cur_label if title != null else "读取 · " + cur_label)
 	_txt(Vector2(0, ty), what, 15, TEXT, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
-	if out_t < 0.0 and not items.is_empty():
+	if out_t < 0.0 and title != null:
+		_txt(Vector2(0, ty + 20.0), cur_file, 11, DIM, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
+	elif out_t < 0.0 and not items.is_empty():
 		_txt(Vector2(0, ty + 20.0), "%s　%d / %d" % [cur_file, mini(idx + 1, items.size()), items.size()], 11, DIM, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 
 
@@ -255,7 +396,8 @@ func _draw_panels(vs: Vector2, compact: bool) -> void:
 	lines.append([1, "启动引擎"])
 	var scripts_done := idx >= items.size()
 	lines.append([1 if scripts_done else 0, "编译脚本　%d / %d" % [mini(idx, items.size()), items.size()]])
-	lines.append([1 if out_t >= 0.0 else (0 if scripts_done else -1), "打开标题页"])
+	lines.append([1 if title != null else (0 if scripts_done else -1), "打开标题页"])
+	lines.append([1 if out_t >= 0.0 else (0 if title != null else -1), "预热画面"])
 	var y := by + 26 + lh
 	for ln in lines:
 		var st: int = ln[0]

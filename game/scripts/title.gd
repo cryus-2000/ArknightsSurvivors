@@ -327,6 +327,21 @@ func _exit_tree() -> void:
 	A.prewarm_join()
 
 
+## 启动页盖着时（screens/boot_screen.gd 把标题页建在它下面）：先按开场播完的样子画（Logo、入口、水母背景都画到，
+## 着色器 / 贴图 / 字形都在盖层下面备好），揭开时开场从头播
+var _intro0 := -1.0
+
+func boot_cover() -> void:
+	_intro0 = intro
+	intro = INTRO_LEN
+
+
+func boot_reveal() -> void:
+	if _intro0 >= 0.0:
+		intro = _intro0
+		_intro0 = -1.0
+
+
 ## 帧时记录的脚本动作（--ftdo=<标记>:<秒>:<动作>，core/frame_rec.gd）：打开寻访 / 图鉴、图鉴换条目 / 换页签、关掉
 func _ft_action(what: String) -> void:
 	match what:
@@ -351,6 +366,12 @@ func _ft_action(what: String) -> void:
 
 
 func _process(delta: float) -> void:
+	var ft := FR.tic()
+	_process_main(delta)
+	FR.toc("title_proc", ft)
+
+
+func _process_main(delta: float) -> void:
 	Pad.context = "title"
 	var overlay_open: bool = _overlay_open()
 	if post_fx != null:
@@ -454,7 +475,7 @@ func menu_track() -> String:
 
 
 func _input(event: InputEvent) -> void:
-	if leaving >= 0.0 or transition.busy or _overlay_open():
+	if leaving >= 0.0 or transition.busy or _overlay_open() or _intro0 >= 0.0:   # _intro0 ≥ 0：启动页还盖着，不收输入
 		return
 	if intro < INTRO_LEN:
 		# 开场动画中：按键 / 点击直接跳到完成态，本次输入不再传给菜单
@@ -625,6 +646,12 @@ func _ease(x: float) -> float:
 
 
 func _draw() -> void:
+	var ft := FR.tic()
+	_draw_main()
+	FR.toc("title_draw", ft)
+
+
+func _draw_main() -> void:
 	var vs := size
 	if diff_pick and not op_pick and not guide and not credits:
 		# 难度页（T5s）：整屏是它自己的版式，标题的 Logo / 磁贴 / 页脚都不画
@@ -693,10 +720,12 @@ func _draw_menu(vs: Vector2) -> void:
 func _draw_logo_layer() -> void:
 	if (diff_pick or op_pick) or menu_lay.is_empty():
 		return
+	var ft := FR.tic()
 	var a := _seg(1.0, 0.5)
 	if guide or credits:
 		a *= 0.25
 	Tiles._draw_logo(logo_ci, menu_lay.logo.o, menu_lay.logo.k, font, a, tex_logo)
+	FR.toc("logo_draw", ft)
 
 
 func _draw_leaving(vs: Vector2) -> void:
