@@ -10,6 +10,7 @@ const Look = preload("res://scripts/render/look.gd")
 const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（render/declutter）
 const UM = preload("res://scripts/ui_motion.gd")
 const FD = preload("res://scripts/render/frame_dst.gd")   # 精灵取帧 + 落点（docs/101 B4 ②）
+const BossBeam = preload("res://scripts/render/boss_beam.gd")   # Boss 颗粒层是否开着（grains）：开着时绿色水花 / 邪能贴图让位给专属色颗粒
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 var g: Game
@@ -994,13 +995,13 @@ const BOSS_STYLE := {
 	"carmen": "fx_muzzle_flash",
 	"iberia": "fx_muzzle_flash",
 	"path": "fx_circle_steel",
-	"bishop": "fx_water_splash",
+	"bishop": "fx_water_splash",   # 青绿水花和靛蓝不搭：Boss 颗粒开着时不放（同伊祖米克）
 	"archon": "fx_claw_double_green",
 	"immortal": "fx_slash_arc_deep",
 	"paranoia": "fx_circle_ghost",
 	"knight_boss": "fx_knight_impact",
 	"ishar": "fx_water_splash",
-	"izumik": "fx_felspell",
+	"izumik": "fx_felspell",   # 绿色邪能，和群青不搭：Boss 颗粒开着时不放（boss_signature），由结算颗粒出专属色
 }
 
 func boss_color(type: String) -> Color:
@@ -1014,7 +1015,8 @@ func boss_signature(w: Dictionary) -> void:
 	var pos: Vector2 = w.pos
 	if e.type in ["carmen", "iberia"]:
 		pos = e.pos + Vector2.from_angle(w.get("ang", 0.0)) * 28.0 + Vector2(0, -18)
-	fx_sprite(BOSS_STYLE[e.type], pos, 2.0)
+	if not (e.type in ["izumik", "bishop"] and BossBeam.grains(g) != null):   # 用户 10-25：伊祖米克那团荧光绿不搭；主教的青绿水花和靛蓝同理
+		fx_sprite(BOSS_STYLE[e.type], pos, 2.0)
 	g.fx.append({"kind": "ring", "pos": pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": boss_color(e.type)})
 	for i in range(start, g.fx.size()):
 		g.fx[i]["enemy"] = true
@@ -1034,7 +1036,10 @@ func boss_pattern(w: Dictionary) -> void:
 			Sfx.play("hit", -5.0, 0.7, 0.0)
 		"pattern_rain":
 			g.fx.append({"kind": "wpillar", "pos": w.pos, "r": w.r, "life": 0.5, "max": 0.5, "col": w.col})
-			fx_sprite("fx_water_splash", w.pos, 2.5)
+			# 2.5 倍水花贴图会被材质颗粒拆成一团荧光绿，7 个落点连成一片（用户 10-25「绿色的那团不搭、糊成一整团」）：
+			# Boss 颗粒开着时不放，水柱由结算颗粒出专属色颗粒（有上限、有明暗）；关着时照旧
+			if not (w.owner.get("boss", false) and BossBeam.grains(g) != null):
+				fx_sprite("fx_water_splash", w.pos, 2.5)
 			Sfx.play("tentacle", -7.0, 0.9)
 		_:
 			g.fx.append({"kind": "ring", "pos": w.pos, "r": 40.0, "life": 0.3, "max": 0.3, "col": w.col})

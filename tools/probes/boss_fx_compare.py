@@ -53,8 +53,8 @@ def video(specs):
     jobs = []
     for spec in specs:
         jobs.append((spec, 0.7, ""))
-        if spec == "ishar":
-            jobs.append((spec, 0.45, "_closeup"))   # 伊莎玛拉另出一段特写并排（用户 10-25：看大群之歌的内波纹）
+        if spec in ("ishar", "izumik"):
+            jobs.append((spec, 0.45, "_closeup"))   # 特写并排（用户 10-25：伊莎玛拉看内波纹、伊祖米克看潮汐坠落）
     for spec, crop, suffix in jobs:
         tag = spec.replace("+", "_")
         da, db = os.path.join(OUT, "before", tag), os.path.join(OUT, "after", tag)
