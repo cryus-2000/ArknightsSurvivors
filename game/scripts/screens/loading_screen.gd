@@ -61,6 +61,8 @@ func _ready() -> void:
 	m.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
 	glow_ci.material = m
 	glow_ci.draw.connect(_draw_glow)
+	add_child(glow_ci)   # 一建好就挂上（在 _draw 之后画：辉光叠在底图与水母上）。以前到 begin() 才挂：没出发就退出时它是孤儿节点，
+	                     # 连同叠加材质的着色器一起泄漏，打包校验报 RID leaked（10-25）
 	tip_i = randi() % Tips.TIPS.size()
 	visible = false
 
@@ -73,8 +75,6 @@ func begin() -> void:
 	shown = 0.0
 	wave_t = -1.0
 	tip_t = 0.0
-	if glow_ci.get_parent() == null:
-		add_child(glow_ci)   # 在 _draw 之后画：辉光叠在底图与水母上
 
 
 ## 真实进度（0–1）、阶段文字、阶段计数（done / total；total 0 = 不显示计数）
