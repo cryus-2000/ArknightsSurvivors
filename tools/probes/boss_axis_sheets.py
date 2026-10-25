@@ -13,7 +13,7 @@ PW, PH = B.PW, B.PH
 CX, CY = PW // 2, 150
 GOLD = (1.0, 0.82, 0.3)
 CYAN = (0.35, 0.95, 1.0)
-FRAMES = {"prop_ice_stake": 2, "prop_lamp_post": 3, "e_bone": 4, "e_offspring": 4, "e_tear": 4, "e_fractal": 4}
+FRAMES = {"prop_ice_pillar": 4, "prop_ice_stake": 2, "prop_lamp_post": 3, "e_bone": 4, "e_offspring": 4, "e_tear": 4, "e_fractal": 4}
 
 
 def spr(key, scale, tint=None, alpha=1.0):

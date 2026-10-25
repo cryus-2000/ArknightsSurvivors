@@ -177,15 +177,16 @@ KNIGHT = ("最后的骑士 · 合并版（主轴：斗牛）", [
     {"name": "一 · 骑士：引它撞桩", "col": I1, "P": [(CX + 150, CY + 170), (CX + 60, CY + 190), (CX + 210, CY + 150)], "draw": [
         lambda im, d: d.ellipse((CX - 150 - 140, CY + 60 - 70, CX - 150 + 140, CY + 60 + 70), outline=B.rgb(I1, 0.5, 120), width=2),
         lambda im, d: B.beam(d, CX - 150, CY + 20, CX + 150, CY + 170, 30, I1),
-        lambda im, d: put(im, "prop_ice_stake", 0.7, CX + 40, CY + 125),
+        lambda im, d: [put(im, "prop_ice_pillar", 0.375, x, y) for x, y in ((CX + 40, CY + 125), (CX - 40, CY + 205), (CX + 190, CY + 60), (60, CY + 150), (PW - 60, CY + 210))],
         lambda im, d: gold(d, CX + 40, CY + 120),
         lambda im, d: put(im, "e_knight", 0.8, CX - 150, CY + 60),
         lambda im, d: bar(d, 20, PH - 24, 150, 0.35, I1, "寒冷条（进寒气圈就涨）"),
-    ], "lines": ["主轴：冲锋锁定后侧身，让它撞上桩 → 破绽 5 秒、受伤 ×2.0；打它的干员平时攻速 −30%。", "弹幕：冲锋（主轴本身）；长枪连刺扇形（贴近又不在破绽期才出，惩罚）。"]},
+    ], "lines": ["主轴：开局 5 根冰柱（用户 10-25 定）；冲锋锁定后侧身，让它撞上冰柱 → 破绽 5 秒、受伤 ×2.0；平时重甲受伤 ×0.4。", "弹幕：冲锋（主轴本身）；长枪连刺扇形（贴近又不在破绽期才出，惩罚）。"]},
     {"name": "二 · 冰原：桩会碎，掷枪补桩", "col": I2, "ground": "frost", "draw": [
         lambda im, d: B.beam(d, CX - 160, CY + 30, CX + 170, CY + 190, 30, I2, "zig"),
         lambda im, d: B.circle(d, CX + 150, CY + 70, 40, I2, "dark", "hex"),
-        lambda im, d: put(im, "prop_ice_stake", 0.6, CX + 150, CY + 85, alpha=0.5),
+        lambda im, d: put(im, "prop_ice_pillar", 0.375, CX + 150, CY + 85, alpha=0.5),
+        lambda im, d: [put(im, "prop_ice_pillar", 0.375, x, y) for x, y in ((80, CY + 200), (PW - 70, CY + 205), (CX - 30, CY + 230))],
         lambda im, d: put(im, "e_knight", 0.8, CX - 160, CY + 70, tint=(1.05, 1.1, 1.2)),
         lambda im, d: tag(d, (CX - 30, CY + 150), "拦路"),
         lambda im, d: txt(d, (CX + 90, CY + 10), "掷枪落点 = 新桩", 14),
@@ -194,7 +195,7 @@ KNIGHT = ("最后的骑士 · 合并版（主轴：斗牛）", [
     {"name": "三 · 掷枪：折线冲锋", "col": I3, "ground": "abyss", "draw": [
         lambda im, d: B.beam(d, CX - 40, CY + 40, CX - 170, CY + 170, 28, I3),
         lambda im, d: B.beam(d, CX - 170, CY + 170, CX + 140, CY + 200, 28, I3),
-        lambda im, d: put(im, "prop_ice_stake", 0.6, CX - 10, CY + 200),
+        lambda im, d: [put(im, "prop_ice_pillar", 0.375, x, y) for x, y in ((CX - 10, CY + 200), (70, CY + 120), (PW - 80, CY + 90))],
         lambda im, d: gold(d, CX - 10, CY + 196),
         lambda im, d: put(im, "e_knight", 0.8, CX - 40, CY + 60, tint=(0.85, 0.95, 1.2)),
         lambda im, d: tag(d, (CX + 40, CY + 140), "拦路"),
