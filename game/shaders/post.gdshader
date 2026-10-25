@@ -17,6 +17,13 @@ uniform float sat = 0.0;            // 饱和度增量（0.1 = +10%，按鲜艳�
 uniform float hurt = 0.0;           // 0..1 受伤红边
 uniform float desat = 0.0;          // 0..1 去色（最终 Boss 击破演出）
 uniform float time = 0.0;
+// 失色区（10-25 拉普兰德 S3「噤声」，ob_summon._mark_draw 写）：屏幕 uv 椭圆（x 按宽高比校正、y 按 zone_ratio 压扁）内去色；
+// zone_hole = 施放者本人（uv 中心 + 半径）保留颜色
+uniform float zone_amt = 0.0;
+uniform vec2 zone_c = vec2(0.5);
+uniform float zone_r = 0.0;
+uniform float zone_ratio = 0.6;
+uniform vec3 zone_hole = vec3(0.5, 0.5, 0.0);
 
 vec3 sample_rgb(vec2 uv) {
 	return texture(screen_tex, uv).rgb;
@@ -84,6 +91,15 @@ void fragment() {
 	}
 	if (desat > 0.001) {
 		col = mix(col, vec3(dot(col, vec3(0.299, 0.587, 0.114))), desat);
+	}
+	if (zone_amt > 0.001 && zone_r > 0.0001) {
+		float asp = SCREEN_PIXEL_SIZE.y / SCREEN_PIXEL_SIZE.x;
+		vec2 dz = vec2((uv.x - zone_c.x) * asp, (uv.y - zone_c.y) / zone_ratio);
+		float f = 1.0 - smoothstep(zone_r * 0.9, zone_r, length(dz));
+		vec2 dh = vec2((uv.x - zone_hole.x) * asp, (uv.y - zone_hole.y) / 1.7);
+		f *= smoothstep(zone_hole.z * 0.65, zone_hole.z, length(dh));
+		float l = dot(col, vec3(0.299, 0.587, 0.114));
+		col = mix(col, vec3(l) * vec3(0.92, 0.94, 0.98), f * zone_amt);
 	}
 	if (hurt > 0.001) {
 		float edge = smoothstep(0.12, 0.5, r2);

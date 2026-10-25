@@ -17,8 +17,8 @@ const SummonVisual = preload("res://scripts/characters/summon_visual.gd")
 #               Boss：时长 × boss_mult、封顶 boss_max 秒，期间不起新招（冷却照走 = 推迟下一招），封印结束后 boss_immune 秒免疫
 #  verb.shield  瞬时：主控护盾 + pct × 最大生命（总量封顶 cap × 最大生命），dur 秒后消失，每秒按当前量衰减 decay；吸收在减伤（verb.dr）之后、护甲 / 法抗之前
 #  verb.mark    常驻（10-25 拉普兰德 S3「噤声」）：生效期间本干员每造成一次伤害给那名敌人叠 1 层（keep 秒没再被打就清零），叠满 n 层清零并以该敌人为
-#               target 执行 on_full（on_full 自己的伤害不叠层）；画面：敌人身上红色刀口（1 道 / 交叉），叠满时白十字 + 灰白定格 + 一道白线连回本干员，
-#               ring_r > 0 时脚下一圈白色静默圈；同屏最多 max_show 名（离本干员近的优先）。技能结束层数全清。只读写本干员的 sm，不取随机数
+#               target 执行 on_full（on_full 自己的伤害不叠层）；画面：层数 = 敌人脚下细银圈逐层加粗，叠满时灰白定格 + 灰白冲击波 + 碎片，
+#               ring_r > 0 时开场从脚下扩出静默圈、圈内失色（post.gdshader zone_*，本人保留颜色，低画质不去色）；同屏最多 max_show 名（离本干员近的优先）。技能结束层数全清。只读写本干员的 sm，不取随机数
 #  aura.heal    常驻：scope in_zone（缺省，主控在本干员区域内）/ always，每秒回复主控 pct × 最大生命（× 局部 heal 倍率 [× 技能强度]）；满血时不治
 
 const SM_TAGS := ["verb.summon", "st.seal", "verb.shield", "aura.heal", "verb.mark"]
@@ -603,25 +603,48 @@ static func mark_hit(o, e: Dictionary) -> void:
 	o._exec_list(b.on_full, at)
 	st["mark_busy"] = false
 	var fl: Array = st.get("mark_fx", []).filter(func(f): return g.t - float(f.t) < 0.4)
-	fl.append({"a": o.pos, "b": at, "r": float(e.r), "t": g.t})
+	fl.append({"a": o.pos, "b": at, "r": float(e.r), "t": g.t, "id": id})
 	st["mark_fx"] = fl
 
 
-const MARK_COL := Color(1.0, 0.32, 0.26)   # 刀口用红：白色会被横扫刀光 / 受击白闪吞掉，灰叉是天赋封印
+const MARK_COL := Color(0.9, 0.91, 0.94)   # 灰白：层数银圈、收割冲击波与碎片（10-25 用户：红叉丑，冲击波要灰白）
+const MARK_RATIO := 0.6   # 静默圈 / 失色区的椭圆压扁比（与 post.gdshader zone_ratio 一致）
+const MARK_OPEN := 0.4    # 开场：静默圈从 0 扩到 ring_r 的秒数
+const MARK_FADE := 0.35   # 收场淡出秒数
 
-## verb.mark 的画面（技能上层）：静默圈、叠层刀口、叠满的白十字 / 灰白定格 / 白线（只读状态，不改模拟量）
+## verb.mark 的画面（技能上层）：开场扩散的静默圈 + 圈内失色（post.gdshader）、层数 = 脚下细银圈逐层加粗、
+## 叠满 = 灰白定格 + 灰白冲击波 + 碎片。只读状态与 g.t，不改模拟量、不取随机数
 static func _mark_draw(o) -> void:
 	var g = o.g
 	var cv = o.cv
 	var b: Dictionary = o.sm.mark_b
-	if not b.is_empty() and float(b.get("ring_r", 0.0)) > 0.0 and o.pos != Vector2.INF:
-		var rr: float = float(b.ring_r)
-		var pa: float = 0.28 + 0.08 * sin(g.t * 4.0)
-		cv.draw_set_transform(o.pos, 0.0, Vector2(1.0, 0.45))
-		cv.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 48, Color(1, 1, 1, pa), 2.0)
-		cv.draw_arc(Vector2.ZERO, rr - 6.0, 0.0, TAU, 48, Color(1, 1, 1, pa * 0.4), 1.0)
+	var on: bool = not b.is_empty()
+	var rr: float = float((b if on else o.sm.get("mark_last", _ED)).get("ring_r", 0.0))
+	var k_open: float = clampf((g.t - float(o.sm.get("mark_t0", g.t))) / MARK_OPEN, 0.0, 1.0) if on else 1.0
+	var k_amt: float = k_open if on else clampf(1.0 - (g.t - float(o.sm.get("mark_t1", -99.0))) / MARK_FADE, 0.0, 1.0)
+	var r_now: float = rr * (1.0 - pow(1.0 - k_open, 3.0))
+	var post = g.get("post")
+	if post != null and post.get("zone_amt") != null:
+		if rr > 0.0 and k_amt > 0.0 and o.pos != Vector2.INF and Cfg.quality != "low":
+			var vp = g.get_viewport()
+			var xf: Transform2D = vp.get_canvas_transform()
+			var vs: Vector2 = vp.get_visible_rect().size
+			var sc: float = xf.get_scale().y
+			var hc: Vector2 = (xf * (o.pos + Vector2(0, -26))) / vs
+			post.zone_amt = 0.8 * k_amt
+			post.zone_c = (xf * o.pos) / vs
+			post.zone_r = r_now * sc / vs.y
+			post.zone_hole = Vector3(hc.x, hc.y, 34.0 * sc / vs.y)
+		else:
+			post.zone_amt = 0.0
+	if rr > 0.0 and k_amt > 0.0 and o.pos != Vector2.INF:
+		var pa: float = (0.22 + 0.06 * sin(g.t * 4.0)) * k_amt
+		cv.draw_set_transform(o.pos, 0.0, Vector2(1.0, MARK_RATIO))
+		cv.draw_arc(Vector2.ZERO, r_now, 0.0, TAU, 56, Color(MARK_COL.r, MARK_COL.g, MARK_COL.b, pa), 1.5)
+		if k_open < 1.0:   # 开场扩散的波前
+			cv.draw_arc(Vector2.ZERO, r_now, 0.0, TAU, 56, Color(1, 1, 1, 0.8 * (1.0 - k_open)), 5.0 * (1.0 - k_open) + 1.0)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if not b.is_empty() and o.sm.has("marks"):
+	if on and o.sm.has("marks"):
 		var ls: Array = []
 		for id in o.sm.marks:
 			var m: Dictionary = o.sm.marks[id]
@@ -634,34 +657,37 @@ static func _mark_draw(o) -> void:
 			var m2: Dictionary = ls[k][2]
 			var e2: Dictionary = m2.e
 			var er: float = float(e2.r)
-			var c: Vector2 = e2.pos + Vector2(0, -er)
-			var s: float = er * 1.1 + 6.0
-			var fresh: float = clampf(1.0 - (g.t - float(m2.t)) / 0.1, 0.0, 1.0)   # 新刻下的一道 0.1 秒亮闪
-			var w: float = 3.0 + 2.0 * fresh
-			var segs: Array = [[Vector2(-s, -s * 0.7), Vector2(s, s * 0.7)]]
-			if int(m2.n) >= 2:
-				segs.append([Vector2(-s, s * 0.7), Vector2(s, -s * 0.7)])
-			for sg in segs:
-				cv.draw_line(c + sg[0], c + sg[1], Color(0.05, 0.05, 0.08, 0.7), w + 2.0)
-			for sg in segs:
-				cv.draw_line(c + sg[0], c + sg[1], Color(MARK_COL.r + 0.6 * fresh, MARK_COL.g + 0.6 * fresh, MARK_COL.b + 0.6 * fresh, 0.95), w)
+			var fresh: float = clampf(1.0 - (g.t - float(m2.t)) / 0.12, 0.0, 1.0)   # 新叠一层：0.12 秒亮闪
+			cv.draw_set_transform(e2.pos, 0.0, Vector2(1.0, 0.45))
+			for L in int(m2.n):
+				cv.draw_arc(Vector2.ZERO, er + 4.0 + 4.0 * L, 0.0, TAU, 24, Color(MARK_COL.r, MARK_COL.g, MARK_COL.b, 0.45 + 0.5 * fresh), 1.0 + 0.5 * L + 1.5 * fresh)
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	for f in o.sm.get("mark_fx", _EA):
 		var age: float = g.t - float(f.t)
-		if age >= 0.35:
+		if age >= 0.4:
 			continue
-		var k2: float = 1.0 - age / 0.35
 		var r2: float = float(f.r)
-		var cc: Vector2 = f.b + Vector2(0, -r2)
-		if age < 0.15:   # 灰白定格
-			cv.draw_set_transform(cc, 0.0, Vector2(1.0, 1.15))
-			cv.draw_circle(Vector2.ZERO, r2 + 4.0, Color(0.82, 0.83, 0.86, 0.45))
+		var cc: Vector2 = f.b + Vector2(0, -r2 * 0.8)
+		if age < 0.12:   # 灰白定格
+			cv.draw_set_transform(cc, 0.0, Vector2(1.0, 1.2))
+			cv.draw_circle(Vector2.ZERO, r2 + 5.0, Color(0.86, 0.87, 0.9, 0.6))
 			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		var L: float = r2 * 1.6 + 10.0
-		for sg2 in [[Vector2(-L, 0), Vector2(L, 0)], [Vector2(0, -L), Vector2(0, L)]]:
-			cv.draw_line(cc + sg2[0], cc + sg2[1], Color(0.05, 0.05, 0.08, 0.6 * k2), 6.0)
-			cv.draw_line(cc + sg2[0], cc + sg2[1], Color(1, 1, 1, k2), 3.0)
-		if f.a != Vector2.INF:
-			cv.draw_line(f.a + Vector2(0, -20), cc, Color(1, 1, 1, 0.7 * k2), 1.5)
+		var kw: float = clampf(age / 0.32, 0.0, 1.0)
+		var ez: float = 1.0 - pow(1.0 - kw, 3.0)
+		var wr: float = 10.0 + 95.0 * ez   # 冲击波
+		cv.draw_set_transform(f.b, 0.0, Vector2(1.0, MARK_RATIO))
+		cv.draw_arc(Vector2.ZERO, wr, 0.0, TAU, 40, Color(0.05, 0.05, 0.07, 0.35 * (1.0 - kw)), 9.0 * (1.0 - kw) + 3.0)
+		cv.draw_arc(Vector2.ZERO, wr, 0.0, TAU, 40, Color(MARK_COL.r, MARK_COL.g, MARK_COL.b, 1.0 - kw), 6.0 * (1.0 - kw) + 1.0)
+		if age < 0.08:
+			cv.draw_circle(Vector2.ZERO, 22.0 * (1.0 - age / 0.08) + 6.0, Color(1, 1, 1, 0.7))
+		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		for q in 10:   # 碎片：方向按序号均布 + 敌人 id 错开（确定性，不取随机数）
+			var a: float = TAU * float(q) / 10.0 + float(int(f.get("id", 0)) % 7) * 0.37
+			var dd: float = (14.0 + 70.0 * ez) * (0.7 + 0.3 * float((q * 5 + 3) % 4) / 3.0)
+			var pp: Vector2 = cc + Vector2(cos(a), sin(a) * MARK_RATIO) * dd + Vector2(0, 30.0 * kw * kw)
+			var sz: float = (4.0 - 2.5 * kw) * (1.0 + float(q % 3) * 0.3)
+			var gl: float = 0.1 * float(q % 2)
+			cv.draw_rect(Rect2(pp - Vector2(sz, sz) * 0.5, Vector2(sz, sz)), Color(0.78 + gl, 0.79 + gl, 0.82 + gl, 1.0 - kw))
 
 
 ## 技能上层（data_operator._draw_skill_over）：本干员施加的封印标记（头顶旋转的锁环 + 脚下紫环）、主控护盾（泡壳 + 头顶护盾条）
@@ -752,6 +778,10 @@ static func sm_sustain(o, act: Array, dt: float) -> void:
 			var st0 := sm_st(o)
 			if mk.is_empty() and not st0.get("mark_b", _ED).is_empty():
 				st0["marks"] = {}   # 技能结束：层数全清
+				st0["mark_last"] = st0.mark_b
+				st0["mark_t1"] = o.g.t   # 画面：收场淡出起点
+			elif not mk.is_empty() and st0.get("mark_b", _ED).is_empty():
+				st0["mark_t0"] = o.g.t   # 画面：开场扩散起点
 			st0["mark_b"] = mk
 	var seen := {}
 	for b in (act if has_tag(o, "aura.heal") else _EA):   # B6 ④

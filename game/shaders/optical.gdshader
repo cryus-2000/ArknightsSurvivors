@@ -38,6 +38,12 @@ uniform float lut_on = 1.0;
 uniform float vignette = 0.12;
 uniform float hurt = 0.0;
 uniform float desat = 0.0;
+// 失色区（10-25 拉普兰德 S3「噤声」；同 post.gdshader，参数由 optical.gd 从 g.post 转来）
+uniform float zone_amt = 0.0;
+uniform vec2 zone_c = vec2(0.5);
+uniform float zone_r = 0.0;
+uniform float zone_ratio = 0.6;
+uniform vec3 zone_hole = vec3(0.5, 0.5, 0.0);
 uniform float brightness = 1.0;
 uniform float sat = 1.0;               // docs/139 §6 试验旋钮 render/optical_sat：LUT 之后整体饱和度（1 = 不变）
 
@@ -164,6 +170,14 @@ void fragment() {
 	base *= 1.0 - dot(c, c) * vignette * 2.0;
 	if (desat > 0.001) {
 		base = mix(base, vec3(luma(base)), desat);
+	}
+	if (zone_amt > 0.001 && zone_r > 0.0001) {
+		float asp = SCREEN_PIXEL_SIZE.y / SCREEN_PIXEL_SIZE.x;
+		vec2 dz = vec2((SCREEN_UV.x - zone_c.x) * asp, (SCREEN_UV.y - zone_c.y) / zone_ratio);
+		float zf = 1.0 - smoothstep(zone_r * 0.9, zone_r, length(dz));
+		vec2 dh = vec2((SCREEN_UV.x - zone_hole.x) * asp, (SCREEN_UV.y - zone_hole.y) / 1.7);
+		zf *= smoothstep(zone_hole.z * 0.65, zone_hole.z, length(dh));
+		base = mix(base, vec3(luma(base)) * vec3(0.92, 0.94, 0.98), zf * zone_amt);
 	}
 	if (hurt > 0.001) {
 		float e = smoothstep(0.25, 0.75, length(c) * 1.4);
