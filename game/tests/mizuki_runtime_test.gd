@@ -108,6 +108,11 @@ func test_matrix() -> void:
      if slot==0:
       while o.acting(): step(o,1)
       ok(o.ammo[0]==1,"S1 charges through real entry")
+      var foe: Dictionary=g.spawner.spawn_enemy("runner",o.pos+Vector2(80,0))   # 10-25 自动技能门槛：前面的敌人可能已被她打死，补一只不会死的
+      foe.spd=0.0
+      foe.hp=1000000.0
+      foe.maxhp=foe.hp
+      g.enemies_sys.build_grid()
       for repeat in 3:
        o.sp[0]=o.sp_need(0)
        o.update(0.0)

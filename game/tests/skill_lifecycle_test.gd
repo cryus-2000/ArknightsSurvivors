@@ -148,6 +148,9 @@ func integration():
  ok(not p.perm_on[1] and not p.perm[1],"permanent clears for redeployment")
  p = null
  # Same adapters on another slot and an unrelated fixture identity.
+ for e in g.enemies: e.dead = true   # 10-25：上面为过自动技能门槛摆过活的敌人，这一段要的是「没有目标」
+ g.enemies = []
+ g.enemies_sys.build_grid()
  var moved = Fixture.new(g,definition)
  moved.pos = g.ppos
  moved.elite = 2
