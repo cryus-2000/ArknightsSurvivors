@@ -97,6 +97,8 @@ static var marks: Array = []
 static func mark(n: String) -> void:
 	if OS.is_debug_build() and OS.get_cmdline_user_args().has("--loadprof"):
 		marks.append([n, Time.get_ticks_msec()])
+	if OS.is_debug_build() and OS.get_cmdline_user_args().has("--memlog"):
+		print("PF MEMSTAGE %s tex=%.1fMB vid=%.1fMB" % [n, Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0, Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0])   # docs/50 §30：建局各段的贴图增量
 
 ## 美术交付用旧文件名时的对应关系（新名 -> incoming 里的文件名）
 const ALIAS := {

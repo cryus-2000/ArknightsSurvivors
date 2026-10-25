@@ -60,6 +60,45 @@ func _print_tex_breakdown() -> void:
 			if t2 is Texture2D:
 				sum += t2.get_width() * t2.get_height() * 4.0 / 1048576.0
 		groups[cname] = sum
+	var sc = get_tree().current_scene
+	if sc != null and "tex" in sc and sc.tex is Dictionary:
+		var seen := {}
+		var tot := 0.0
+		var in_a := {}
+		for n in A._cache:
+			if A._cache[n] is Texture2D:
+				in_a[A._cache[n].get_instance_id()] = true
+		var extra := 0.0
+		for n in sc.tex:
+			var t3 = sc.tex[n]
+			if t3 is Texture2D and not seen.has(t3.get_instance_id()):
+				seen[t3.get_instance_id()] = true
+				var mb3: float = t3.get_width() * t3.get_height() * 4.0 / 1048576.0
+				tot += mb3
+				if not in_a.has(t3.get_instance_id()):
+					extra += mb3
+		groups["g.tex"] = tot
+		groups["g.tex_not_in_A"] = extra
+		if "world" in sc and sc.world != null:
+			var ol := 0.0
+			for k in sc.world._ol_cache:
+				var t4 = sc.world._ol_cache[k]
+				if t4 is Texture2D:
+					ol += t4.get_width() * t4.get_height() * 4.0 / 1048576.0
+			groups["outline"] = ol
+			if sc.world.atlas != null:
+				var at := 0.0
+				for t5 in [sc.world.atlas.tex_white]:
+					if t5 is Texture2D:
+						at += t5.get_width() * t5.get_height() * 4.0 / 1048576.0
+				groups["atlas_white"] = at
+		if "map" in sc and sc.map != null:
+			var gm := 0.0
+			for k in sc.map.ground_cache:
+				var t6 = sc.map.ground_cache[k][0]
+				if t6 is Texture2D:
+					gm += t6.get_width() * t6.get_height() * 4.0 / 1048576.0
+			groups["ground"] = gm
 	tops.sort_custom(func(a, b): return a[0] > b[0])
 	var gs: Array = groups.keys()
 	gs.sort_custom(func(a, b): return groups[a] > groups[b])
