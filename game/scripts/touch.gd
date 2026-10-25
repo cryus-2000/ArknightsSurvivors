@@ -59,7 +59,7 @@ func move_vec() -> Vector2:
 
 ## 返回 true 表示事件已消费
 func handle(event: InputEvent) -> bool:
-	if not active:
+	if not active or g.tour.active:   # 聚光框引导期间按键只是画给人看的，输入归 tour.gd
 		return false
 	var p := Vector2.ZERO   # 触点的 UI 坐标（界面层放大 Cfg.ui_k 后视口坐标要除回去）
 	var fid := UNKNOWN   # 本事件的触点槽位（_finger 归一后的 index，见 _slots）
@@ -308,7 +308,7 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 		var knob: Vector2 = stick_origin + vec * rr
 		_circ(hud, knob, 24.0 * sk, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35))
 		_arc(hud, knob, 24.0 * sk, 0.0, TAU, 24, Color(0.8, 1.0, 1.0, 0.8), 2.0)
-	elif g.state == g.S.PLAY:
+	elif g.hud_live():
 		# 提示：左下角淡淡的摇杆位置（改过位置时稍亮一点：那里按下就是固定摇杆）
 		var c: Vector2 = L.stick.c
 		var ka: float = 0.2 if L.stick.custom else 0.12
@@ -317,7 +317,7 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 	# 冲刺按钮：缺省在右下角编队区（源石锭框 + 「编队 n / m」）正上方；技能键 / 攻击键缺省跟着冲刺键（touch_layout.default_center）
 	# 手机（界面层放大后逻辑高约 481，手机端 UI 优化 r2）：右侧竖列只放暂停 / 属性，冲刺键左移到 vs.x − 134
 	var ph: bool = vs.y < 520.0 or Cfg.phone_ui()
-	if g.state == g.S.PLAY:
+	if g.hud_live():
 		var ds: float = L.dash.s
 		var dc: Vector2 = L.dash.c
 		var dr: float = BTN * 0.7 * ds
@@ -340,7 +340,7 @@ func _draw_hud_body(hud: CanvasItem, font: Font, vs: Vector2) -> void:
 		skill_rect = Rect2()
 		atk_rect = Rect2()
 	# 指挥键（docs/114）：圈里写当前模式，颜色随模式（随行青 / 突击金 / 归队绿），下方标签「指挥」
-	if g.state == g.S.PLAY and g.squad.cmd_on():
+	if g.hud_live() and g.squad.cmd_on():
 		var ce: Dictionary = L.cmd
 		var cc: Vector2 = ce.c
 		var cr: float = BTN / 2.0 * float(ce.s)
