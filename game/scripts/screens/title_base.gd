@@ -4,12 +4,16 @@ extends Control
 ## 各段之间按成员 / 函数名直接互调；选人页调难度页的 _diff_step 走下面的占位（title_diff_pick 覆盖）
 
 const UI = preload("res://scripts/ui.gd")
-const Affects = preload("res://scripts/run/affects.gd")
 const A = preload("res://scripts/art.gd")
 const D = preload("res://scripts/data.gd")
 const Character = preload("res://scripts/characters/character.gd")
 const Roster = preload("res://scripts/core/roster.gd")   # 干员解锁（docs/109 §12）：选人页只列已解锁的干员（选封面干员时列全部）
-const Game = preload("res://scripts/game.gd")
+## 对局主脚本（game.gd）不在这里 preload：它和各模块互相 preload 成一圈 41 个脚本，读它就整圈编译（网页一帧 0.75 秒、4–6× 节流 12–16 秒）。
+## 标题页只在出发时（载入页）和法线预热时才要它，用 _game() 现取；桌面在标题页揭开后后台线程先编译好（title.gd _bg_game），docs/50 §29
+static func _game() -> GDScript:
+	return load("res://scripts/game.gd")
+
+
 const InitialStats = preload("res://scripts/screens/initial_stats.gd")
 const TUI = preload("res://scripts/screens/tide_ui.gd")
 const DifficultyScreen = preload("res://scripts/screens/difficulty_screen.gd")
@@ -89,8 +93,9 @@ func _diff_step(_d: int) -> void:
 
 
 func _prewarm() -> void:
-	A.normal_maps = Game.wants_normal_maps()   # 和局内同一判断（光学观感下不生成法线）：以前这里只看设置，光学开着也在后台算整套法线、出发后还要等它
-	A.prewarm_start(Game.preload_tex_names())
+	A.normal_maps = Cfg.wants_normal_maps()   # 和局内同一判断（光学观感下不生成法线）：以前这里只看设置，光学开着也在后台算整套法线、出发后还要等它
+	if A.normal_maps and DisplayServer.get_name() != "headless":
+		A.prewarm_start(_game().preload_tex_names())   # 只有要法线时才需要对局贴图名单
 
 
 func _fa(c: Color, a: float) -> Color:

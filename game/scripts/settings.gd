@@ -596,6 +596,13 @@ func hidpi_render() -> bool:
 	return get_tree().root.size.y > 720.0 * 1.3
 
 
+## 这一局要不要法线光照：设置开着、有显卡，且光学观感没开（光学下不画法线，除非 render/optical_normals）。
+## 标题页预热与对局同一判断（10-25 从 game.gd 搬来：标题页不再为它 preload game.gd，docs/50 §29）
+func wants_normal_maps() -> bool:
+	var Bal = load("res://scripts/core/balance.gd")
+	return normal_maps and DisplayServer.get_name() != "headless" and (Bal.v("render/optical_normals", 0.0) > 0.0 or not (Bal.v("render/optical", 1.0) > 0.0 and quality != "low"))
+
+
 func fx_density() -> float:
 	return 0.5 if quality == "low" else 1.0
 

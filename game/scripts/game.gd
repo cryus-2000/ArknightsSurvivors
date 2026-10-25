@@ -639,7 +639,7 @@ func _load_enemy_tex(n: String) -> void:
 ## 本局是否给贴图生成法线图：无界面运行不画，光学观感开着时也不生成（docs/130 A4，用户 10-24 定：朝灯亮线已取代法线的立体感）。
 ## render/optical_normals 1 = 光学下也开（对照用）。标题页预热 / 载入页读图按同一判断（title_base._prewarm），缓存的贴图与局内一致
 static func wants_normal_maps() -> bool:
-	return Cfg.normal_maps and DisplayServer.get_name() != "headless" and (Bal.v("render/optical_normals", 0.0) > 0.0 or not (Bal.v("render/optical", 1.0) > 0.0 and Cfg.quality != "low"))
+	return Cfg.wants_normal_maps()   # 判断搬到 settings.gd（标题页用，不带出对局那一圈，docs/50 §29）
 
 
 ## 进局载入页分帧预读的贴图（title.gd → A.warm_begin）：[名字, 要白色剪影的名字]。和 _ready 读的同一批（preload_tex_names + 图鉴演示补充名单），

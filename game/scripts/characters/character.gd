@@ -93,6 +93,10 @@ static func load_def(cid: String) -> Dictionary:
 	return OpDefs.load_def(cid)
 
 
+static func care_labels(def: Dictionary) -> Array:
+	return OpDefs.care_labels(def)
+
+
 static func fill_line(s: String, base: Dictionary) -> String:
 	return OpDefs.fill_line(s, base)
 

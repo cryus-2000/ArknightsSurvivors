@@ -11,6 +11,7 @@ func _ready() -> void:
 		FR.mark("title_ready")
 		RenderingServer.frame_post_draw.connect(func(): FR.mark("title"), CONNECT_ONE_SHOT)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_bg_game.call_deferred()   # 启动页盖着时（boot_cover 紧接着调）不做，揭开时再做
 	# 触屏：标题页（含图鉴 / 设置 / Boss 演练子面板）整体放大 Cfg.ui_k（手机 1.3）；背景 / 转场在各自的 CanvasLayer 不受影响
 	Cfg.ui_k = Cfg.ui_scale()
 	if Cfg.ui_k != 1.0:
@@ -340,6 +341,19 @@ func boot_reveal() -> void:
 	if _intro0 >= 0.0:
 		intro = _intro0
 		_intro0 = -1.0
+	_bg_game()
+
+
+## 桌面：标题页露出来以后，后台线程把对局场景（game.gd 那一圈 41 个脚本）编译好，出发 / 图鉴演示时直接命中缓存。
+## 网页没有线程，照旧在第一次用到时编译（载入页 / 第一次开图鉴）。启动页不再读这一圈（docs/50 §29）
+var _bg_game_started := false
+
+func _bg_game() -> void:
+	if _bg_game_started or _intro0 >= 0.0 or OS.has_feature("web") or not OS.has_feature("threads") or DisplayServer.get_name() == "headless":
+		return
+	_bg_game_started = true
+	if not ResourceLoader.has_cached("res://game.tscn"):
+		ResourceLoader.load_threaded_request("res://game.tscn")
 
 
 ## 帧时记录的脚本动作（--ftdo=<标记>:<秒>:<动作>，core/frame_rec.gd）：打开寻访 / 图鉴、图鉴换条目 / 换页签、关掉
@@ -420,7 +434,7 @@ func _process_main(delta: float) -> void:
 		if not _op_warm_begun:
 			_op_warm_begun = true
 			A.warm_begin(_op_fx_names(), [])
-			var wl: Array = Game.loading_warm_lists()
+			var wl: Array = _game().loading_warm_lists()
 			A.warm_begin(wl[0], wl[1])   # 对局 _ready 要读的整批贴图也在这里分帧读完（以前在 _ready 里一口气读，网页冻住 ~32 秒，10-25）
 			for cid in _op_ids():
 				var sp: String = Character.script_path(cid)
