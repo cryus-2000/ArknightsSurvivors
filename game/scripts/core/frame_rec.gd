@@ -25,6 +25,18 @@ var _acc := {}               # 分项计时（FR.tic / toc）：名字 -> 本段
 var _proc_ms := 0.0          # 上一帧全部 _process 的耗时（含场景切换后的 _ready 不算在内）
 
 
+var _memlog := false
+var _mem5 := false
+
+## --memlog（docs/50 §30）：引擎堆 / 贴图显存 / 显存合计（Godot 自己的统计），加网页音频样本解码后的估算（Web Audio 缓冲在 JS 里，引擎看不到）
+func _print_mem(tag: String) -> void:
+	print("PF MEM %s heap=%.1fMB tex=%.1fMB vid=%.1fMB audio=%.1fMB win=%s scaled=%s q=%s" % [tag,
+		Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
+		Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0,
+		Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0,
+		Sfx.sample_mem_mb(), get_tree().root.size, Cfg.render_scaled, Cfg.quality])
+
+
 static func mark(name: String) -> void:
 	if _inst != null:
 		_inst._mark(name)
@@ -75,6 +87,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_vp = get_tree().root.get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(_vp, true)
+	_memlog = (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--memlog")
 	for a in (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()):   # 发布版不读命令行（check_release）；不依赖 Cfg 加载顺序，同 balance.gd 写法
 		if a.begins_with("--ftquit="):
 			var p := a.substr(9).split(":")
@@ -93,6 +106,8 @@ func _mark(name: String) -> void:
 	_marks[name] = now
 	_segs.append({"name": name, "t0": now, "dts": PackedFloat32Array()})
 	print("PF FTMARK %s t=%.3f" % [name, now / 1e6])
+	if _memlog:
+		_print_mem(name)
 
 
 func _process(_delta: float) -> void:
@@ -121,6 +136,9 @@ func _process(_delta: float) -> void:
 				sc._ft_action(str(d[2]))
 			else:
 				print("PF FTWARN no _ft_action for %s" % d[2])
+	if _memlog and _marks.has("game") and not _mem5 and now - int(_marks["game"]) >= 5000000:
+		_mem5 = true
+		_print_mem("game+5s")
 	if not _quit.is_empty() and _marks.has(_quit[0]) and now - int(_marks[_quit[0]]) >= int(float(_quit[1]) * 1e6):
 		_quit = []
 		_close_seg()

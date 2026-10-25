@@ -126,6 +126,16 @@ var _ui_font: FontFile = null
 var _touch := -1
 
 
+## 手机 / 平板上的网页（10-26 iPhone Safari 进局即「网页崩溃」：WebKit 按内存杀页，docs/50 §30）：开局就封渲染分辨率、自动档从「低」起、音乐分轨不预先解码
+func mobile_web() -> bool:
+	return OS.has_feature("web") and touch_device()
+
+
+## 手机网页止血开关（balance.json 没写 = 缺省值；--bal=web/<键>=0 可退回 10-25 线上版行为做对照）
+func mobile_knob(key: String, dflt: float) -> bool:
+	return load("res://scripts/core/balance.gd").v("web/" + key, dflt) > 0.0
+
+
 func touch_device() -> bool:
 	if _touch < 0:
 		var t: bool = DisplayServer.is_touchscreen_available() or dev_args().has("--touch") or OS.has_feature("web_android") or OS.has_feature("web_ios")
@@ -352,6 +362,8 @@ func _ready() -> void:
 		elif a.begins_with("--camzoom="):
 			cam_zoom_pct = clampi(int(a.substr(10)), ZOOM_PCT_MIN, ZOOM_PCT_MAX)
 	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)   # 自动档：每次启动按本机检测；手选档：按档位统一开关后期
+	if mobile_web() and mobile_knob("mobile_rscale", 1.0):
+		set_render_scale.call_deferred(true)   # 手机网页开局就按逻辑分辨率（约 1280×720）画再放大：iPhone 3 倍像素屏的画布 / 全屏层显存约降到 1/3–1/7
 	for a in dev_args():
 		if a.begins_with("--quality="):
 			set_quality(a.substr(10))   # 截图自测：强制画质档（测试模式不写存档）
@@ -639,7 +651,9 @@ func _guess_quality() -> String:
 		if gpu.contains(k):
 			return "low"
 	if DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios"):
-		return "mid"
+		# 10-26 改回「低」（10-25 曾改「中」）：iPhone 网页进局即崩，光学层 / 发光层 / GPU 粒子的渲染目标与着色器在 WebKit 上吃内存；
+		# 掉帧时的逐级降档来不及救内存。手选「中 / 高」照旧可用
+		return "low" if mobile_knob("mobile_low", 1.0) or not OS.has_feature("web") else "mid"
 	for k in ["mali", "adreno", "powervr"]:
 		if gpu.contains(k):
 			return "mid"

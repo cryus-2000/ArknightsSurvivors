@@ -249,6 +249,9 @@ func warm_begin() -> void:
 		return
 	var list: Array = []
 	var q = seq.get("battle1")
+	var cfg = get_node_or_null("/root/Cfg")   # sfx 比 Cfg 先加载，不能直接写 Cfg
+	if cfg != null and cfg.mobile_web() and not cfg.mobile_knob("mobile_warm_music", 0.0):
+		q = null   # 手机网页：战斗乐分轨（每句约 13 秒 × 十几句）预先全解码成 PCM 要几十 MB，iPhone 进局即崩的嫌疑之一；改为播到才解码（10-26，docs/50 §30）
 	if q != null:
 		for sname in q.segs:
 			for st in q.segs[sname]:
@@ -274,6 +277,25 @@ func warm_step(budget_usec: int) -> bool:
 		if Time.get_ticks_usec() - t0 > budget_usec:
 			break
 	return not _warm_q.is_empty()
+
+
+## 已注册成网页样本的音频解码后大约占多少 MB（float32 × 声道 × 混音采样率 × 时长；--memlog 用）
+func sample_mem_mb() -> float:
+	if not OS.has_feature("web"):
+		return 0.0
+	var seen := {}
+	var total := 0.0
+	var lists: Array = streams.values()
+	for tn in seq:
+		var q = seq[tn]
+		for sname in q.segs:
+			lists.append_array(q.segs[sname])
+		lists.append(q.danger)
+	for st in lists:
+		if st is AudioStream and not seen.has(st) and AudioServer.is_stream_registered_as_sample(st):
+			seen[st] = true
+			total += st.get_length() * AudioServer.get_mix_rate() * 2.0 * 4.0
+	return total / 1048576.0
 
 
 func warm_busy() -> bool:
