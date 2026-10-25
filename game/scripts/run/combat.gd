@@ -1032,6 +1032,8 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	# 过卡点后的 0.8 秒无敌 / 阶段护盾：伤害全部挡掉，不飘「无效」（docs/38 §1.3）
 	if e.boss and (e.get("gate_inv", 0.0) > 0.0 or e.get("gate_hold", false)):
 		return
+	if e.get("burst_w", 0.0) > 0.0:
+		return   # 囊海爬行者鼓胀期间无敌（enemies.gd）：不飘字、不累计
 	if e.invuln:
 		g.vfx.immune_text(e)   # 伊祖米克学习期飘「学习中」，其余无敌不再飘「无效」（docs/38 §1.15，显示逻辑在 vfx）
 		return

@@ -1129,6 +1129,7 @@ func follow(dt: float, target: Vector2) -> void:
 		mv = 0.0
 		return
 	var prev: Vector2 = pos
+	var slot: Vector2 = target   # 编队位（follow_target 之前的原值）：跟随冲刺时奔向它
 	if is_leader:
 		pos = target   # 主控：位置就是玩家位置（g.ppos），不走编队跟随 / 近战前压
 	else:
@@ -1143,7 +1144,12 @@ func follow(dt: float, target: Vector2) -> void:
 		var d: float = pos.distance_to(target)
 		var k: float = clampf(dt * (3.0 if d < 20.0 else (9.0 if st == 2 else 6.0)), 0.0, 1.0)
 		cmd_d = d
-		if st == 0:
+		if st == 0 and g.dash_t > 0.0 and CmdBal.v("command/dash_follow", 1.0) > 0.0:
+			# 跟随冲刺（用户 10-25「冲锋的时候一起冲锋，平时就跑动攻击」）：队长冲刺期间队友不停顿、不前压追怪，快步贴着编队位一起冲；
+			# 平时队友只跑动（跑动中攻击），不再自动突进 / 冲刺
+			fp_moving = true
+			pos = pos.lerp(slot, clampf(dt * CmdBal.v("command/dash_follow_k", 22.0), 0.0, 1.0))
+		elif st == 0:
 			if not _follow_paused(dt, d):   # 随行：到位停 + 错开起步（10-21 用户定方案 C）
 				pos = pos.lerp(target, k)
 		else:

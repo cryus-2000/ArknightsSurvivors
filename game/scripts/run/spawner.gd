@@ -14,6 +14,7 @@ var spawn_acc := 0.0
 var next_elite: float = Bal.v("enemy/first_elite", 45.0)   # 首只精英出现时间（balance.json）
 var _lead_slot := 0.0   # 大群领头精英已占的精英名额（不足一个时攒着）
 var horde_warned := -1.0
+var fixed_i := 0        # 中段固定节拍大群已出到第几波（docs/150）
 var boss_idx := 0
 var mid_used: Array = []
 ## 同一人物的不同档（docs/38 §2.2，用户 10-01 按原作核对：圣徒卡门 / 圣徒伊比利亚是同一人两档）：中期 Boss 抽取按人物排除，同局只出一位
@@ -420,7 +421,17 @@ func update(dt: float) -> void:
 	var escort: bool = trickling() and Bal.v("final/escort_every", 0.0) > 0.0 and g.final_boss.hp > g.final_boss.maxhp * Bal.v("final/escort_stop_frac", 0.0)
 	if escort and g.next_horde < final_at + Bal.v("final/escort_first", 20.0):
 		g.next_horde = final_at + Bal.v("final/escort_first", 20.0)
-	var due: float = g.next_horde
+	# 中段固定节拍（docs/150，10-25 用户「把围猎和大群合并」，docs/146 方案 A）：enemy/horde_fixed_1..3 秒各一波，
+	# horde_fixed_hunt_N = 1 的那波是围猎型；窗口内不走常规节拍——常规的下一波若落在第一波前 40 秒到最后一波后 40 秒之间，推到最后一波之后一个间隔
+	var fixed_due := -1.0
+	if not escort and fixed_i < 3 and Bal.v("enemy/horde_fixed_%d" % (fixed_i + 1), -1.0) >= 0.0:
+		fixed_due = Bal.v("enemy/horde_fixed_%d" % (fixed_i + 1), -1.0)
+		var last_fixed: float = maxf(maxf(Bal.v("enemy/horde_fixed_1", -1.0), Bal.v("enemy/horde_fixed_2", -1.0)), Bal.v("enemy/horde_fixed_3", -1.0))
+		if g.next_horde > Bal.v("enemy/horde_fixed_1", -1.0) - 40.0 and g.next_horde < last_fixed + 40.0:
+			g.next_horde = last_fixed + float(D.THREAT[g.threat].get("horde_every", 120.0))
+	var is_fixed: bool = fixed_due >= 0.0 and fixed_due <= g.next_horde
+	var due: float = fixed_due if is_fixed else g.next_horde
+	var hunt_type: bool = is_fixed and Bal.v("enemy/horde_fixed_hunt_%d" % (fixed_i + 1), 0.0) > 0.0
 	if boss_alive() and int(g.dmod.horde_in_boss) <= 0 and not escort:
 		due += Bal.v("boss/horde_defer_max", 40.0)
 	var horde_ok: bool = (g.t < 570.0 and not stop) or escort   # 最终 Boss 战停刷时连预警也不出（护卫波除外）
@@ -429,13 +440,18 @@ func update(dt: float) -> void:
 		g.horde_warn = 3.0
 		g.horde_gap = g.rng_spawn.randf() * TAU
 		g.horde_streams = []
-		if due < Bal.v("enemy/close_ring_until", 0.0) or Bal.v("enemy/horde_streams", 0.0) > 0.0:
+		g.horde_hunt = hunt_type
+		if not hunt_type and (due < Bal.v("enemy/close_ring_until", 0.0) or Bal.v("enemy/horde_streams", 0.0) > 0.0):
 			# 分股合围原型（docs/116 §7.2）：缺口对面 3 股，股心相隔 close_ring_spread 弧度；HUD 预警箭头只画这几个方向
 			for i in 3:
 				g.horde_streams.append(g.horde_gap + PI + (i - 1) * deg_to_rad(Bal.v("enemy/close_ring_spread_deg", 110.0)) + i * deg_to_rad(Bal.v("enemy/close_ring_rot", 20.0)))
 		Sfx.play("roar", -2.0, 0.55, 0.0)
 	if g.t >= due and horde_ok:
-		g.next_horde = g.t + Bal.v("final/escort_every", 75.0) if escort else g.next_horde + D.THREAT[g.threat].get("horde_every", 120.0)
+		if is_fixed:
+			fixed_i += 1   # 固定节拍那波：不动常规节拍
+		else:
+			g.next_horde = g.t + Bal.v("final/escort_every", 75.0) if escort else g.next_horde + D.THREAT[g.threat].get("horde_every", 120.0)
+		g.horde_hunt = hunt_type
 		g.horde_warn = 0.0
 		g.horde_hit = 1.2
 		g.vfx.shake_screen(1.4)
@@ -447,7 +463,9 @@ func update(dt: float) -> void:
 			g.horde_stream_rel.append(g.t + i * Bal.v("enemy/close_ring_delay", 1.5))   # 各股出发时刻：HUD 在出发前 0.8 秒于该方向屏边亮预警
 		# 分股合围的入场镜头轻推（cam_kick）10-22b 用户取消：「海嗣注意到了你的存在……」只留文字（纯画面）
 		var ring_r := 600.0
-		if not close_ring:
+		if hunt_type:
+			ring_r = clampf(_view_half_diag() * Bal.v("enemy/horde_hunt_spawn_mul", 1.15), 650.0, 1000.0)   # 围猎型：从屏外更远处合拢（离主控 1300 外的静止敌人会被清掉，夹在 1000 内）
+		if not close_ring and not hunt_type:
 			g.fx.append({"kind": "horde_ring", "pos": g.ppos, "r": 640.0, "life": 0.9, "max": 0.9, "col": Color(0.75, 0.3, 1.0)})
 		Sfx.play("roar", 2.0, 0.8, 0.0)
 		# 数量：32 → 88（10 分钟），× 难度修正 horde；包围圈留 70° 缺口（预警时的箭头也留出这一侧），给玩家一条突围路线
@@ -457,6 +475,8 @@ func update(dt: float) -> void:
 		if early:
 			n = int(round(n * Bal.v("enemy/early_horde_mult", 1.0)))
 		var n_base := n   # 未乘只数倍率前的只数：经验按「实际刷出只数 / 这个数」折算，被同屏上限裁掉时不多折（docs/116 §7.3）
+		if hunt_type:
+			n = int(round(n * Bal.v("enemy/horde_hunt_count_mult", 1.0)))   # 围猎型多来一些（docs/150），经验同样按只数折算守恒
 		n = int(round(n * Bal.v("enemy/horde_count_mult", 1.0)))   # 压力型大群（docs/116 §7.3）：只数倍率，经验按只数折算守恒（下面 xp）
 		n = dens_count(n, "horde")   # 怪物密度：只数 × density（累计余数取整；在 Boss 余量裁剪之前）
 		# Boss 在场时（Ⅷ horde_in_boss 让大群不顺延）超出存活杂兵上限的部分裁掉（协调人 9/30）；没有 Boss 时余量 = 同屏上限 max_alive()，不裁
@@ -469,7 +489,7 @@ func update(dt: float) -> void:
 		var n_real: int = mini(n, room_now)
 		var n_old: int = mini(mini(int(round(float(n_base) * density())), maxi(0, boss_mob_room())), room_now)
 		var xp_ratio: float = clampf(float(n_old) / maxf(1.0, float(n_real)), 0.0, 1.0)
-		var gap_half := deg_to_rad(35.0)
+		var gap_half := deg_to_rad(Bal.v("enemy/horde_hunt_gap_deg", 22.0) if hunt_type else 35.0)
 		var span: float = TAU - gap_half * 2.0
 		var mix := horde_mix()
 		var plan := horde_plan(mix, n)
@@ -495,13 +515,16 @@ func update(dt: float) -> void:
 			var he := spawn_enemy(s.id, p)
 			he["horde"] = g.horde_log.size() - 1
 			he.dormant = false
+			_horde_loose(he, hunt_type)
 			if close_ring:
 				he["rush"] = Bal.v("enemy/horde_rush", 1.6)   # 冲锋段：进到 horde_rush_r 内回正常速度（run/enemies.gd）
 				if si > 0:
-					he.wake_t = si * Bal.v("enemy/close_ring_delay", 1.5)   # 后几股原地等一下再一股脑出发（wake_t 期间不行动，enemy_ai）
+					he.wake_t = float(he.get("wake_t", 0.0)) + si * Bal.v("enemy/close_ring_delay", 1.5)   # 后几股原地等一下再出发（wake_t 期间不行动，enemy_ai；叠在 _horde_loose 的分批之上）
 					he.spd *= 1.0 + si * Bal.v("enemy/close_ring_spd", 0.1)
 			# 群体个体的接触伤害 ×0.7：被包围时不至于两下暴毙，压力来自数量而不是单体
 			he.dmg *= Bal.v("enemy/early_horde_dmg", 0.7) if early else Bal.v("enemy/horde_dmg", 0.7)   # 大群单体接触伤害倍率（原写死 0.7）
+			if hunt_type:
+				he.dmg *= Bal.v("enemy/horde_hunt_dmg", 1.0)   # 围猎型额外接触伤害倍率（docs/150，不给奖励的收紧旋钮）
 			var ehp: float = Bal.v("enemy/horde_hp_mult", 1.0) * (Bal.v("enemy/early_horde_hp", 1.0) if early else 1.0)   # 大群单只生命倍率（不加经验）
 			he.hp *= ehp
 			he.maxhp *= ehp
@@ -584,6 +607,8 @@ func _spawn_mob() -> void:
 		g.enemies_sys.evolve(ne)
 	if g.ending == "resolve" and g.t >= 520.0:
 		ne.weak = ""
+	if owed > 0 and not ne.elite and str(D.ENEMIES.get(str(ne.type), {}).get("role", "")) == "":
+		_merge_apply(ne)   # 硬上限合并欠账（docs/50 §26.10）：进化之后再乘，进化重设生命也不会把吸收的量冲掉
 
 
 ## 同屏普通怪存活上限（docs/50 §15 B，用户 10-14 批准「同屏普通怪存活上限 120」；balance.json enemy/alive_cap，0 = 关 = 原行为）。
@@ -597,7 +622,12 @@ func _spawn_mob() -> void:
 var final_at := -1.0
 var q_t := PackedFloat64Array()   # 排队中的普通刷怪：进队时的游戏时间（先进先出）
 var n_mob := 0                    # 普通刷怪实际刷出的只数（含推迟后放出的）
-var q_stat := {"queued": 0, "deferred": 0, "wait_sum": 0.0, "wait_max": 0.0, "q_peak": 0, "drop_final": 0, "drop_room": 0, "forced": 0}
+var q_stat := {"queued": 0, "deferred": 0, "wait_sum": 0.0, "wait_max": 0.0, "q_peak": 0, "drop_final": 0, "drop_room": 0, "forced": 0, "merged": 0, "merge_spawns": 0}
+## 硬上限合并（docs/50 §26.10，用户 10-25「同屏怪物上限可以修改，那还是得修改怪物的数值」）：普通怪已到 enemy/alive_hard（> 0 才开）时，
+## 队列里的普通刷怪立刻不刷（不再排队等空位——10-25 本地两 seed：排队推迟本身让压力明显变小，机器人从 7–8 分钟阵亡变成撑到最后），记进 owed；之后每刷出一只普通怪（role 为空）吸收 a = min(owed, enemy/merge_max) 只：
+## 生命 / 潮盾 × (1 + a)^enemy/merge_hp_exp（缺省 1 = 血量池不变）、经验 / 击杀权重 dk × (1 + a)（经验、灯油与掉率期望都和「多刷 a 只」相同），伤害 × (1 + a)^enemy/merge_dmg_exp
+## （缺省 0.5，同怪物密度的伤害指数：只数少了、贴身次数少，单发不按只数等比放大）。体型、速度、画面不变
+var owed := 0
 var q_waits := PackedFloat32Array()   # 每只推迟出场的等待秒数（只在测试参数下记，用于分布）
 var q_samp := PackedInt32Array()
 var q_samp710 := PackedInt32Array()
@@ -605,7 +635,42 @@ var _samp_s := -1
 
 
 func alive_cap() -> int:
-	return int(Bal.v("enemy/alive_cap", 0.0))
+	return _plat_knob("alive_cap")
+
+
+## 普通怪硬上限（docs/50 §26.10）：强制放出时普通怪已到这个数就合并进后来的怪（owed），0 = 不合并（原行为：排满就放）
+func alive_hard() -> int:
+	return _plat_knob("alive_hard")
+
+
+## 同屏上限按平台单独覆盖（enemy/<键>_web，缺省 0 = 不覆盖，桌面 / 网页同一套）
+func _plat_knob(key: String) -> int:
+	if OS.has_feature("web"):
+		var w := int(Bal.v("enemy/%s_web" % key, 0.0))
+		if w > 0:
+			return w
+	return int(Bal.v("enemy/" + key, 0.0))
+
+
+## 刷出的普通怪吸收合并欠账（见 owed）
+func _merge_apply(e: Dictionary) -> void:
+	if owed <= 0:
+		return
+	# 经验 / 击杀权重把欠账一次吸收完（总量守恒，10-26：新版大群下每只只吸 2 只跟不上，一局欠 500 多只的经验）；生命 / 伤害只按至多 merge_max 只放大
+	var all: int = owed
+	var a: int = mini(owed, int(Bal.v("enemy/merge_max", 2.0)))
+	owed = 0
+	q_stat.merge_spawns += 1
+	var m := 1.0 + float(a)
+	var mx := 1.0 + float(all)
+	var hm: float = pow(m, Bal.v("enemy/merge_hp_exp", 1.0))   # 生命指数（10-26 第二轮）：1 = 血量池不变；< 1 = 合并怪更薄（10-25 云端：×2–×3 血让范围攻击收益掉、反而变难）
+	e.hp *= hm
+	e.maxhp *= hm
+	e.shield_hp *= hm
+	e.xp *= mx
+	e.dmg *= pow(m, Bal.v("enemy/merge_dmg_exp", 0.5))
+	e["dk"] = float(e.get("dk", 1.0)) * mx
+	e["merged"] = all
 
 
 ## 排队保底（enemy/alive_cap_wait 秒，0 = 不保底）：排满这么久的普通刷怪不再等空位，直接出（可短暂超过上限）
@@ -643,11 +708,19 @@ func _release_queue(cap: int, stop: bool, mobs_off: bool) -> void:
 	# 有空位就按先后放；排满 wmax 秒的不再等空位（保底：推迟有上限，不会一直排不进去，刷出总数与经验掉落不丢）
 	# Boss 在场的存活杂兵余量（boss_mob_room）/ 全场 max_alive 挡住的照原规则作废（原来这两种情况就是不刷），只有存活上限是推迟
 	var room: int = boss_mob_room()
-	while k2 < q_t.size() and (nn < cap or (wmax > 0.0 and g.t - q_t[k2] >= wmax)):
+	var hard: int = alive_hard()
+	while k2 < q_t.size():
 		var w: float = g.t - q_t[k2]
+		var at_hard: bool = hard > 0 and nn >= hard
+		if not at_hard and nn >= cap and not (wmax > 0.0 and w >= wmax):
+			break
 		k2 += 1
 		if room <= 0 or g.enemies.size() >= max_alive():
 			q_stat.drop_room += 1
+			continue
+		if at_hard:
+			owed += 1   # 硬上限：这一只立刻不刷（不排队等），生命 / 经验 / 伤害并进之后刷出的普通怪（_merge_apply）
+			q_stat.merged += 1
 			continue
 		if nn >= cap:
 			q_stat.forced += 1
@@ -675,7 +748,7 @@ func queue_report() -> Dictionary:
 		var b: String = "<1s" if x < 1.0 else ("1-3s" if x < 3.0 else ("3-10s" if x < 10.0 else ("10-30s" if x < 30.0 else ">=30s")))
 		hist[b] += 1
 	return {"cap": alive_cap(), "spawned": n_mob, "queued": q_stat.queued, "deferred": q_stat.deferred, "pending_end": q_t.size(),
-		"q_peak": q_stat.q_peak, "drop_final": q_stat.drop_final, "drop_room": q_stat.drop_room, "forced": q_stat.forced, "wait_cap": alive_cap_wait(), "wait_mean": snappedf(float(q_stat.wait_sum) / maxf(1.0, float(q_stat.deferred)), 0.01),
+		"q_peak": q_stat.q_peak, "drop_final": q_stat.drop_final, "drop_room": q_stat.drop_room, "forced": q_stat.forced, "hard": alive_hard(), "merged": q_stat.merged, "merge_spawns": q_stat.merge_spawns, "owed_end": owed, "wait_cap": alive_cap_wait(), "wait_mean": snappedf(float(q_stat.wait_sum) / maxf(1.0, float(q_stat.deferred)), 0.01),
 		"alive_420_med": _pct_i(q_samp, 0.5), "alive_420_p95": _pct_i(q_samp, 0.95), "alive_420_max": _pct_i(q_samp, 1.0),
 		"density": density(), "alive_710_med": _pct_i(q_samp710, 0.5), "alive_710_p95": _pct_i(q_samp710, 0.95), "alive_710_max": _pct_i(q_samp710, 1.0),
 		"wait_p50": pc.call(0.5), "wait_p90": pc.call(0.9), "wait_p99": pc.call(0.99), "wait_max": snappedf(float(q_stat.wait_max), 0.01), "hist": hist}
@@ -751,6 +824,8 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		_dens_apply(e)
 	if _norm and role == "" and d.has("hp_late"):
 		_late_hp_apply(e, float(d.hp_late))
+	if _norm and role == "":
+		_trim_apply(e)
 	if _norm and (role == "" or role == "elite") and escale() != 1.0:
 		e.r *= escale()   # 怪物体型：判定半径 × scale，r0 不动，画面缩放 enemy_scale = PX × r / r0 跟着放大
 		e["sc"] = escale()
@@ -771,7 +846,7 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		e.dmg = d.dmg * dmm * float(g.dmod.boss_dmg) * g.enemy_dmg_mult
 		g.combat.gate_init(e, type)   # 阶段卡点与每幕最短时长（docs/38 §1.3）
 	if type == "pocket":
-		e.burst_at = e.maxhp * 0.85
+		e.burst_at = e.maxhp * (2.0 / 3.0)   # 节点 66% / 33%（enemies.gd 囊海爬行者）
 	if type == "ishar":
 		e.friendly = true
 		e.invuln = true
@@ -842,6 +917,26 @@ func _dens_apply(e: Dictionary) -> void:
 ## 后期按类型抬血（docs/116 §6，10-21 用户「全程秒杀有点无聊」）：普通刷出的该类型单只生命 / 潮盾在 enemy/hp_late_t0 → t1 秒间
 ## 从 ×1 线性升到 ×hp_late（enemies.json 按类型写，缺省不写 = 不变），之后保持。经验、伤害不变（加血不加经验，避免「加血变易」）；
 ## 精英 / Boss / 召唤 / 事件不吃
+## 普通怪前后期微调（用户 10-25「后期小怪血量稍高、略降；前期小怪伤害和血量略提」）：
+## 0 → trim_early_until 秒生命 / 伤害 × trim_early_hp / trim_early_dmg，其后 trim_early_fade 秒线性回到 ×1；
+## trim_late_t0 → t1 秒生命从 ×1 线性降到 × trim_late_hp。只作用于普通怪（role ""），精英 / Boss / 友方 / 事件不动
+func _trim_apply(e: Dictionary) -> void:
+	var f := 1.0
+	var fd := 1.0
+	var u: float = Bal.v("enemy/trim_early_until", 180.0)
+	var k := 1.0 - clampf((g.t - u) / maxf(1.0, Bal.v("enemy/trim_early_fade", 60.0)), 0.0, 1.0)
+	f *= lerpf(1.0, Bal.v("enemy/trim_early_hp", 1.0), k)
+	fd *= lerpf(1.0, Bal.v("enemy/trim_early_dmg", 1.0), k)
+	var t0: float = Bal.v("enemy/trim_late_t0", 420.0)
+	var t1: float = Bal.v("enemy/trim_late_t1", 480.0)
+	f *= lerpf(1.0, Bal.v("enemy/trim_late_hp", 1.0), clampf((g.t - t0) / maxf(1.0, t1 - t0), 0.0, 1.0))
+	if f != 1.0:
+		e.hp *= f
+		e.maxhp *= f
+		e.shield_hp *= f
+	e.dmg *= fd
+
+
 func _late_hp_apply(e: Dictionary, mult: float) -> void:
 	var t0: float = Bal.v("enemy/hp_late_t0", 240.0)
 	var t1: float = Bal.v("enemy/hp_late_t1", 360.0)
@@ -849,6 +944,31 @@ func _late_hp_apply(e: Dictionary, mult: float) -> void:
 	e.hp *= f
 	e.maxhp *= f
 	e.shield_hp *= f
+
+
+## 大群「慢慢来」（docs/150，10-25 用户：不要整圈像平移飘过来）：每只怪速度散布 ±horde_spd_spread、分 horde_batches 批先后出发（批间 horde_batch_gap 秒 + 每只 0–horde_jitter 秒抖动），
+## 走动时左右摆 ±horde_wob_deg 度（频率 horde_wob_f，相位各不相同），离队长 horde_wob_r 内摆幅逐渐收到 0、自然聚拢成圈（run/enemies.gd 读 e.wob）。
+## 围猎型（hunt=true）：批数 / 批间隔用 horde_hunt_batches / horde_hunt_batch_gap，入场速度 × horde_hunt_rush（慢慢收拢，进到 horde_rush_r 内回正常速度）。
+## 随机只用 g.rng_spawn（同 seed 可复现）
+func _horde_loose(he: Dictionary, hunt: bool) -> void:
+	var sp: float = Bal.v("enemy/horde_spd_spread", 0.0)
+	if sp > 0.0:
+		he.spd *= 1.0 + g.rng_spawn.randf_range(-sp, sp)
+	var nb: int = int(Bal.v("enemy/horde_hunt_batches" if hunt else "enemy/horde_batches", 1.0))
+	if nb > 1:
+		var b: int = g.rng_spawn.randi() % nb
+		he.wake_t = maxf(float(he.get("wake_t", 0.0)), 0.0) + b * Bal.v("enemy/horde_hunt_batch_gap" if hunt else "enemy/horde_batch_gap", 0.8) + g.rng_spawn.randf() * Bal.v("enemy/horde_jitter", 0.0)
+	var wd: float = Bal.v("enemy/horde_wob_deg", 0.0)
+	if wd > 0.0:
+		he["wob"] = [deg_to_rad(wd) * g.rng_spawn.randf_range(0.6, 1.0), Bal.v("enemy/horde_wob_f", 1.5) * g.rng_spawn.randf_range(0.7, 1.3), g.rng_spawn.randf() * TAU]
+	if hunt:
+		he["rush"] = Bal.v("enemy/horde_hunt_rush", 0.7)
+
+
+## 画面对角线一半（世界坐标）：围猎型大群的出生半径按它算（同 run/hunt.gd 的 _spawn_radius）
+func _view_half_diag() -> float:
+	var vs: Vector2 = g.get_viewport_rect().size
+	return g.get_viewport().get_canvas_transform().affine_inverse().basis_xform(vs).length() * 0.5
 
 
 ## 本次大群的编成（data/waves.json，EA 1.1 大群混编）：威胁等级写了 horde_mix 就从中随机抽一套（g.rng，同 seed 可复现），
