@@ -1,12 +1,13 @@
 extends Control
 ## 局外 · 认知塑造页（docs/109 §4；10-25 重做，art/incoming/meta_ui_1025/）。只改 Cfg.meta_*，规则与数据在 core/meta.gd / data/meta_tree.json。
-## 版式（10-25 用户：「改成那种海底星空的排列，节点可以是星座」；在照抄原作版 38bf92203 上改）：从海底仰望星空——
-## 每条认知线是一个星座：节点是星，同一条线按 Ⅰ→Ⅱ→… 用细的星座连线连起来，星座旁写线名（星图标注，下附已塑造 / 总数）。
-## 星座的整体位置沿用原作水月「认知塑造」节点树（同名节点尽量留在原位，离群的挪进本星座）。布局在 data/meta_roots.json
-## （art/incoming/meta_ui_1025/layout.py 生成）。背景：海面淡光 + 满屏闪烁的发光微粒 + 一条星云带（meta_bg.gdshader），微粒缓缓上浮。
+## 版式（10-25 用户：星空版改成「真实的星座」）：从海底仰望星空——每条认知线配一个星数相近的真实星座（狮子座、天琴座、仙后座、
+## 南十字座、乌鸦座、海豚座、飞马座、天鹰座、猎户座腰带、双子座），节点是星，用该星座真实的星位形状和连线（北上东左，按比例缩放）；
+## 质变节点在该星座最亮的星上。星座旁写「线名 · 星座名」，下附已塑造 / 总数；星座里没用上的星画成暗淡的点缀星。星座之间以星图好看、不重叠排布。
+## 布局在 data/meta_roots.json（art/incoming/meta_ui_1025/layout.py 生成：星表、投影、缩放、星名 / 线名自动选方位避开连线）。
+## 背景：海面淡光 + 满屏闪烁的发光微粒 + 一条星云带（meta_bg.gdshader），微粒缓缓上浮。
 ## 像素层（背景、星座连线、星）画进低分辨率 SubViewport（1 格 = 2 设计单位，最近邻放大）；文字、外框、详情卡画在 view（设计单位）里保持清晰。
-## 三种状态：已塑造 = 亮星（白芯 + 十字星芒 + 青光），两头都亮的连线点亮、有光点流动；可塑造 = 黄白星闪烁 + 黄色点环转动；
-## 余额不够 = 灰星；未解锁 = 暗星。质变节点 = 大亮星（八道星芒 + 伴星成团）。招牌动效：塑造时一道光从上一颗沿连线流进新星（0.55 秒）→ 外扩环（0.45 秒）。
+## 三种状态：已塑造 = 亮星（白芯 + 十字星芒 + 青光），两头都亮的星座连线点亮、有光点流动；可塑造 = 黄白星闪烁 + 黄色点环转动；
+## 余额不够 = 灰星；未解锁 = 暗星。质变节点 = 大亮星（八道星芒 + 伴星成团）。招牌动效：塑造时一道光从相连的亮星沿连线流进新星（0.55 秒）→ 外扩环（0.45 秒）。
 ## 操作：方向键 / 手柄十字键按方向找最近的节点；点节点选中、再点 / Enter / 详情卡「塑造」塑造；R 推荐（按推荐顺序把余额点完）；X 两次全部重置（免费退回）；
 ## Esc 返回；画布比屏幕大时拖动 / 滚轮（Shift 横向）平移，换选中后镜头跟随。减少动态效果：不生长、不呼吸、无光点流动，镜头直接到位。
 signal closed
@@ -533,22 +534,32 @@ func _draw_world() -> void:
 	if lay.is_empty():
 		return
 	_draw_motes(ci)
-	for i in chains.size():
-		_draw_const_lines(ci, i)
+	_draw_deco(ci)
+	_draw_lines(ci)
 	var sid := _sel_id()
 	for id in pos:
 		if _appear(id) > 0.0:
 			_draw_star(ci, id, id == sid)
 
 
-## 星座连线：细线，到星前留一小段空（星图的画法）。两头都已塑造 = 亮线（白芯 + 青光 + 光点往下一颗流）；
-## 上一颗已塑造、这一颗还没 = 点线；其余 = 很淡的细线。塑造演出：一道光从上一颗流进新点亮的星
-func _draw_const_lines(ci: CanvasItem, i: int) -> void:
-	var ch: Array = chains[i]
+## 星座连线（布局 lines：真实星座的连线）：细线，到星前留一小段空（星图的画法）。两头都已塑造 = 亮线（白芯 + 青光 + 光点流动）；
+## 一头已塑造 = 点线；其余 = 很淡的细线。开场从先亮的那颗往后亮的那颗画过去。塑造演出：一道光从相连的亮星流进新点亮的星
+func _draw_lines(ci: CanvasItem) -> void:
 	var lit_f := (t - lit_t0) / LIT_DUR if lit_id != "" else 2.0
-	for k in range(1, ch.size()):
-		var a: String = ch[k - 1]
-		var b: String = ch[k]
+	for ln in lay.get("lines", []):
+		var a: String = ln[0]
+		var b: String = ln[1]
+		if not pos.has(a) or not pos.has(b):
+			continue
+		var oa: Vector2i = ord.get(a, Vector2i.ZERO)
+		var ob: Vector2i = ord.get(b, Vector2i.ZERO)
+		if ob.y < oa.y:
+			var tmp := a
+			a = b
+			b = tmp
+		var sa := _state(a)
+		var sb := _state(b)
+		var anim := lit_f < LIT_GROW and ((a == lit_id and sb == "on") or (b == lit_id and sa == "on"))
 		var g := _appear(b)
 		if g <= 0.0:
 			continue
@@ -560,9 +571,6 @@ func _draw_const_lines(ci: CanvasItem, i: int) -> void:
 		if (p1 - p0).dot(dv) <= 0.0:
 			continue
 		p1 = p0.lerp(p1, g)
-		var sa := _state(a)
-		var sb := _state(b)
-		var anim := b == lit_id and lit_f < LIT_GROW
 		if sa == "on" and sb == "on" and not anim:
 			ci.draw_line(p0, p1, Color(C_SAP, 0.16), 3.0)
 			ci.draw_line(p0, p1, Color(C_WHITE, 0.9), 1.0)
@@ -571,19 +579,33 @@ func _draw_const_lines(ci: CanvasItem, i: int) -> void:
 				var off := int(t * 10.0) % 12
 				for q in range(off, n, 12):
 					ci.draw_rect(Rect2((p0 + dv * q).floor(), Vector2(1, 1)), C_SAP)
-		elif sa == "on" or anim:
+		elif sa == "on" or sb == "on" or anim:
 			var n := int(p0.distance_to(p1))
 			for q in range(0, n, 3):
 				ci.draw_rect(Rect2((p0 + dv * q).floor(), Vector2(1, 1)), Color(C_LINE, 0.6))
 		else:
 			ci.draw_line(p0, p1, Color(C_LINE, 0.22), 1.0)
-		if anim:
-			var gf := UI.ease_out(clampf(lit_f / LIT_GROW, 0.0, 1.0))
-			var e := p0.lerp(p1, gf)
-			ci.draw_line(p0, e, Color(C_SAP, 0.35), 3.0)
-			ci.draw_line(p0, e, Color.WHITE, 1.0)
+		if anim:   # 光从亮着的那头流向新星
+			var f0 := p0 if b == lit_id else p1
+			var f1 := p1 if b == lit_id else p0
+			var e := f0.lerp(f1, UI.ease_out(clampf(lit_f / LIT_GROW, 0.0, 1.0)))
+			ci.draw_line(f0, e, Color(C_SAP, 0.35), 3.0)
+			ci.draw_line(f0, e, Color.WHITE, 1.0)
 			ci.draw_circle(e, 3.0, Color(1, 1, 1, 0.35))
 			ci.draw_rect(Rect2(e - Vector2(1, 1), Vector2(3, 3)), Color.WHITE)
+
+
+## 点缀星：星座里没用上的星，暗淡的一点 + 一丝闪
+func _draw_deco(ci: CanvasItem) -> void:
+	var g := 1.0 if Cfg.reduce_motion else clampf((t - open_t0 - 0.3) / 0.4, 0.0, 1.0)
+	var i := 0
+	for q in lay.get("deco", []):
+		var p := _a(_v(q))
+		var a := (0.55 if Cfg.reduce_motion else 0.45 + 0.2 * sin(t * 1.3 + i * 2.1)) * g
+		ci.draw_rect(Rect2(p, Vector2(1, 1)), Color(C_LINE, a))
+		ci.draw_rect(Rect2(p - Vector2(1, 0), Vector2(3, 1)), Color(C_LINE, a * 0.35))
+		ci.draw_rect(Rect2(p - Vector2(0, 1), Vector2(1, 3)), Color(C_LINE, a * 0.35))
+		i += 1
 
 
 ## 漂浮的发光微粒：慢慢往上浮、左右轻摆
@@ -719,7 +741,7 @@ func _short(id: String) -> String:
 func _draw_labels(ci: CanvasItem) -> void:
 	var sid := _sel_id()
 	var c := TUI.ctx(ci)
-	# 星座线名（星图标注）：字间拉开，下面一行像素小字「已塑造 / 总数」
+	# 星座标注「线名 · 星座名」（星图标注），下面一行像素小字「已塑造 / 总数」
 	var cs: Dictionary = lay.get("consts", {})
 	for ch in chains:
 		var pre := _pre(ch[0])
@@ -733,13 +755,11 @@ func _draw_labels(ci: CanvasItem) -> void:
 		for id in ch:
 			if Cfg.meta_shape.get(id, false):
 				done += 1
-		var sp := ""
-		for ch2 in str(cs[pre].name):
-			sp += ch2 + " "
-		_txt(ci, d + Vector2(0, -10.0), sp.strip_edges(), 13, Color(0.66, 0.78, 0.92, (0.95 if done > 0 else 0.62) * g))
+		_txt(ci, d + Vector2(0, -10.0), str(cs[pre].get("label", cs[pre].name)), 13, Color(0.66, 0.78, 0.92, (0.95 if done > 0 else 0.62) * g))
 		var ps := "%d/%d" % [done, ch.size()]
 		TUI.ptext(ci, c, d + Vector2(-TUI.ptext_w(c, ps, 1.0) / 2.0, 13.0), ps, 1.0, Color(T_SUB, 0.75 * g))
-	# 星名 + 消耗：写在星的右边
+	# 星名 + 消耗：按布局 lside 摆在星的 右 / 左 / 下 / 上（layout.py 选的避开连线的那边）
+	var sides: Dictionary = lay.get("lside", {})
 	for ch in chains:
 		for id: String in ch:
 			var g := _appear(id)
@@ -751,20 +771,29 @@ func _draw_labels(ci: CanvasItem) -> void:
 			var r := (rk if _is_key(id) else rn) * pxu
 			var st := _state(id)
 			var col := T_ON if st == "on" or st == "ok" else (T_POOR if st == "poor" else T_LOCK)
+			var sel_on := id == sid
+			var nm := str(Meta.nodes()[id].name) if sel_on else _short(id)
+			var nw := font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, 14 if sel_on else 13).x + (20.0 if sel_on else 0.0)
+			var cost := "" if st == "on" else str(int(Meta.nodes()[id].cost))
+			var w := nw + (14.0 + TUI.ptext_w(c, cost, 1.5) if cost != "" else 0.0)
 			var np := Vector2(d.x + r + 6.0, d.y - 9.0)
-			if id == sid:   # 选中：黄色名牌写全名
-				var nm := str(Meta.nodes()[id].name)
-				var w := font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 20.0
-				HS.para(ci, Rect2(np.x, np.y - 1.0, w, 21.0), HS.YEL)
-				UI.text_at(ci, font, Vector2(np.x + w / 2.0, np.y + 9.5), nm, 14, HS.INK, "mm", true)
-				np.x += w + 6.0
+			match str(sides.get(id, "r")):
+				"l":
+					np = Vector2(d.x - r - 6.0 - w, d.y - 9.0)
+				"b":
+					np = Vector2(d.x - w / 2.0, d.y + r + 4.0)
+				"t":
+					np = Vector2(d.x - w / 2.0, d.y - r - 22.0)
+			if sel_on:   # 选中：黄色名牌写全名
+				HS.para(ci, Rect2(np.x, np.y - 1.0, nw, 21.0), HS.YEL)
+				UI.text_at(ci, font, Vector2(np.x + nw / 2.0, np.y + 9.5), nm, 14, HS.INK, "mm", true)
 			else:
-				np.x += _txt(ci, np, _short(id), 13, UI.fa(col, g), "la") + 6.0
-			if st != "on":
-				var s := str(int(Meta.nodes()[id].cost))
+				_txt(ci, np, nm, 13, UI.fa(col, g), "la")
+			if cost != "":
 				var cc := C_YEL if st == "ok" else col
-				TUI.pdiamond(ci, c, Vector2(np.x + 2.0, d.y), 2, TUI.cell(c, 1.0), UI.fa(cc, g))
-				TUI.ptext(ci, c, Vector2(np.x + 8.0, d.y), s, 1.5, UI.fa(cc, g))
+				var cx := np.x + nw + 6.0
+				TUI.pdiamond(ci, c, Vector2(cx + 2.0, np.y + 9.0), 2, TUI.cell(c, 1.0), UI.fa(cc, g))
+				TUI.ptext(ci, c, Vector2(cx + 8.0, np.y + 9.0), cost, 1.5, UI.fa(cc, g))
 
 
 func _draw_chrome(ci: CanvasItem) -> void:
