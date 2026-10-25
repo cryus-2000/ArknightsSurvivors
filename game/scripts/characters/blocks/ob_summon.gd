@@ -624,8 +624,10 @@ static func _mark_draw(o) -> void:
 	var k_amt: float = k_open if on else clampf(1.0 - (g.t - float(o.sm.get("mark_t1", -99.0))) / MARK_FADE, 0.0, 1.0)
 	var r_now: float = rr * (1.0 - pow(1.0 - k_open, 3.0))
 	var post = g.get("post")
+	var cfg = g.get_node_or_null("/root/Cfg")   # 积木脚本不直接引用自动加载（契约测试里编译不到）
+	var low_q: bool = cfg != null and str(cfg.get("quality")) == "low"
 	if post != null and post.get("zone_amt") != null:
-		if rr > 0.0 and k_amt > 0.0 and o.pos != Vector2.INF and Cfg.quality != "low":
+		if rr > 0.0 and k_amt > 0.0 and o.pos != Vector2.INF and not low_q:
 			var vp = g.get_viewport()
 			var xf: Transform2D = vp.get_canvas_transform()
 			var vs: Vector2 = vp.get_visible_rect().size
