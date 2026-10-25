@@ -41,7 +41,7 @@ def run(a):
             py([os.path.join(HERE, "perf_stack.py"), "run", "late", "%s_d%d_late" % (t, c), "--quality=mid", "--cores=%d" % c, "--maxother=1",
                 "--more=--stackab=" + DESK_LEVELS])
             py([os.path.join(HERE, "ui_frametimes.py"), "run", "--tag", "%sd%d" % (t, c), "--scen", "title,hunt", "--maxother", "1",
-                "--cores", str(c), "--more", "--quality=mid"])
+                "--cores", str(c), "--more=--quality=mid"])
     if a.only in ("", "web") and a.web:
         import perf_web
         for th in (4, 6):
@@ -110,33 +110,37 @@ def _plot(t, chart):
         if any(f in x.name for x in font_manager.fontManager.ttflist):
             plt.rcParams["font.family"] = f
             break
-    groups = []
-    for name, sname, m, p50, p95 in chart:
-        k = name + "\n" + sname
-        if k not in groups:
-            groups.append(k)
     cols = ["#3b6e8f", "#5aa0c8", "#8cc7e3", "#c9a227", "#b55d4c"]
-    fig, ax = plt.subplots(figsize=(10, 6.5), dpi=150)
-    w = 0.16
-    for li, (m, lname) in enumerate(LEVELS):
-        xs, ys, es = [], [], []
-        for gi, k in enumerate(groups):
-            for name, sname, mm, p50, p95 in chart:
-                if name + "\n" + sname == k and mm == m and p50 is not None:
-                    xs.append(gi + (li - 2) * w)
+    fig, axes = plt.subplots(1, 2, figsize=(11, 6), dpi=150, gridspec_kw={"width_ratios": [3, 1.3]})
+    for ax, web in zip(axes, (False, True)):
+        rows = [r for r in chart if r[0].startswith("网页") == web and r[3] is not None]
+        groups = []
+        for name, sname, m, p50, p95 in rows:
+            k = name.replace("网页 ", "").replace("桌面 ", "") + "|" + sname.replace("（P50 / P95）", "")
+            if k not in groups:
+                groups.append(k)
+        w = 0.16
+        for li, (m, lname) in enumerate(LEVELS):
+            xs, ys, es = [], [], []
+            for name, sname, mm, p50, p95 in rows:
+                k = name.replace("网页 ", "").replace("桌面 ", "") + "|" + sname.replace("（P50 / P95）", "")
+                if mm == m:
+                    xs.append(groups.index(k) + (li - 2) * w)
                     ys.append(p50)
                     es.append(max(0.0, p95 - p50))
-        ax.bar(xs, ys, w, color=cols[li], label=lname, yerr=[[0] * len(es), es], error_kw={"elinewidth": 0.8, "capsize": 2})
-    ax.axhline(16.7, color="#2e8b57", lw=1, ls="--")
-    ax.axhline(33.3, color="#cc7a00", lw=1, ls="--")
-    ax.text(len(groups) - 0.5, 17.5, "60 帧", color="#2e8b57", ha="right", fontsize=9)
-    ax.text(len(groups) - 0.5, 34.1, "30 帧", color="#cc7a00", ha="right", fontsize=9)
-    ax.set_xticks(range(len(groups)))
-    ax.set_xticklabels(groups, fontsize=8)
-    ax.set_ylabel("帧时 毫秒（柱 = P50，细线到 P95）")
-    ax.set_title("低配模拟：后期满屏 / 10:00 Boss，自动降档各级")
-    ax.legend(fontsize=8, ncol=5, loc="upper left")
-    ax.set_ylim(0, min(200, max([p95 for *_, p95 in chart if p95] + [40]) * 1.1))
+            ax.bar(xs, ys, w, color=cols[li], label=lname, yerr=[[0] * len(es), es], error_kw={"elinewidth": 0.8, "capsize": 2})
+        for y, c, lab in ((16.7, "#2e8b57", "60 帧"), (33.3, "#cc7a00", "30 帧")):
+            if y > (500 if web else 30):
+                continue
+            ax.axhline(y, color=c, lw=1, ls="--")
+            ax.text(len(groups) - 0.5, y * 1.03, lab, color=c, ha="right", fontsize=8)
+        ax.set_xticks(range(len(groups)))
+        ax.set_xticklabels([g.replace("|", "\n") for g in groups], fontsize=8)
+        ax.set_title("网页 手机视口（Edge CPU 节流）" if web else "桌面 中档 1280×720（限核）", fontsize=10)
+        ax.set_ylim(0, 500 if web else 30)
+    axes[0].set_ylabel("帧时 毫秒（柱 = P50，细线到 P95）")
+    axes[0].legend(fontsize=8, ncol=3, loc="upper left")
+    fig.suptitle("低配模拟：后期满屏 / 10:00 最终 Boss，自动降档各级")
     fig.tight_layout()
     out = os.path.join(OUT, "%s.png" % t)
     fig.savefig(out)
