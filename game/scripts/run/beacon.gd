@@ -192,7 +192,9 @@ func _light(b: Dictionary) -> void:
 	b["cleared"] = cleared_pts
 	if cleared > 0:
 		Sfx.play("mire_clear", -10.2, 1.0, 0.0)   # 清掉溟痕：溶解嘶声，叠在点亮光爆下（tools/gen_sfx_events.py）
+	var l0: float = g.lamp
 	g.lamp = minf(g.lamp_cap, g.lamp + _k("lamp", 5.0))
+	g.telemetry.lamp_note("灯标", g.lamp - l0)
 	clear_nerve(b.pos, _k("r", 70.0))
 	# 点燃光爆（爆闪、扩到 clear_r 的光环、放射光、火花）由界面与美术画（lit 由 false 变 true 那一帧），这里只留飘字
 	g.vfx.add_text(b.pos + Vector2(0, -70), "引航灯标已点亮 · 灯火 +%d" % int(_k("lamp", 5.0)), UI.GOLD, 16)
