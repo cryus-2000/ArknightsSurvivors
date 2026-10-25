@@ -1194,7 +1194,8 @@ func cam_center() -> Vector2:
 ##   4 分辨率缩放（只在高像素密度屏：手机网页；普通桌面跳过这级）    5 画质「低」（光学整套关、后期全关、粒子减半）
 ## 只在真人局 + 自动档时启用（测试加 --autoq 才开；都是纯画面，同 seed 结果不变）
 ## 网页内存护栏（10-26 用户「重点是要让所有机型和网页版都不会崩溃」，docs/50 §30）：手机网页每 MG_EVERY 秒估一次内存
-## （引擎显存统计 + 网页音频样本解码估算）；超过 MG_BUDGET 先注销没在播的音频样本，还高就画质「低」+ 分辨率缩放（手机开局已是这样）。
+## （引擎显存统计 + 网页音频样本解码估算）；超过 MG_BUDGET 就画质「低」+ 分辨率缩放（手机自动档开局已是这样；兜手选中 / 高档的手机）。
+## 音频样本没法从脚本注销（引擎没开放 unregister），所以手机上战斗乐分轨不预先解码（sfx.warm_begin）。
 ## 局中后期新怪 / 新音效越积越多时兜底，不等 WebKit 杀页。纯画面 / 声音缓存，不碰对局
 const MG_EVERY := 5.0
 const MG_BUDGET_MB := 380.0
@@ -1215,14 +1216,12 @@ func _mem_guard(delta: float) -> void:
 			budget = float(a.substr(11))
 	if vid + aud <= budget:
 		return
-	var n_off: int = Sfx.trim_samples()
-	var aud2: float = Sfx.sample_mem_mb()
-	if vid + aud2 > budget:
-		if Cfg.quality != "low":
-			Cfg.set_quality("low")
-		Cfg.set_render_scale(true)
-	if not Cfg.dev_args().is_empty():
-		print("PF MEMGUARD vid=%.0fMB audio=%.0f->%.0fMB trimmed=%d t=%.0f" % [vid, aud, aud2, n_off, t])
+	var acted: bool = Cfg.quality != "low" or not Cfg.render_scaled
+	if Cfg.quality != "low":
+		Cfg.set_quality("low")
+	Cfg.set_render_scale(true)
+	if acted and not Cfg.dev_args().is_empty():
+		print("PF MEMGUARD vid=%.0fMB audio=%.0fMB -> 低画质 + 分辨率缩放 t=%.0f" % [vid, aud, t])
 
 
 const AQ_WIN := 2.0

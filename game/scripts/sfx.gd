@@ -298,30 +298,6 @@ func sample_mem_mb() -> float:
 	return total / 1048576.0
 
 
-## 内存护栏（docs/50 §30）：把没在播的网页音频样本注销（解码后的 PCM 在 JS 里，一句战斗乐约 4–5 MB），下次播放时引擎自己再注册；返回注销了几条
-func trim_samples() -> int:
-	if not OS.has_feature("web"):
-		return 0
-	var keep := {}
-	for n in find_children("*", "AudioStreamPlayer", true, false):
-		if (n as AudioStreamPlayer).playing and n.stream != null:
-			keep[n.stream] = true
-	var lists: Array = streams.values()
-	for tn in seq:
-		var q = seq[tn]
-		for sname in q.segs:
-			lists.append_array(q.segs[sname])
-		lists.append(q.danger)
-	var n_off := 0
-	var seen := {}
-	for st in lists:
-		if st is AudioStream and not seen.has(st) and not keep.has(st) and AudioServer.is_stream_registered_as_sample(st):
-			seen[st] = true
-			AudioServer.unregister_stream_as_sample(st)
-			n_off += 1
-	return n_off
-
-
 func warm_busy() -> bool:
 	return not _warm_q.is_empty()
 
