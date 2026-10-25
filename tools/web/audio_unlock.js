@@ -16,6 +16,7 @@
     W.prototype = AC.prototype;
     try { window.AudioContext = W; if (window.webkitAudioContext) window.webkitAudioContext = W; } catch (e) {}
   }
+  window.__syAudio = { ctxs: ctxs };   // 给测试看：引擎建的 AudioContext 实例与状态
   var ua = navigator.userAgent || '';
   var ios = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
   var sess = navigator.audioSession;
