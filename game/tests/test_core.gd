@@ -596,6 +596,11 @@ func test_skill_gate() -> void:
 			continue
 		var B: Dictionary = OB.compile(d)
 		for i in B.skills.size():
+			if B.skills[i].get("no_gate", false):
+				ok(true, "%s S%d 治疗类不加门槛（no_gate）" % [id, i + 1])
+				if table:
+					print("GATE ", id, " S", i + 1, " none (heal)")
+				continue
 			var g: float = OB.skill_gate_base(B.skills[i], B.get("attack", {}), {}, 0.0)
 			if table:
 				print("GATE ", id, " S", i + 1, " ", snappedf(g, 1.0), " ", "need" if B.skills[i].has("need_enemy") else "derived")

@@ -443,7 +443,7 @@ static func apply_status(o, e: Dictionary, s: Dictionary, c := Vector2.INF, ring
 
 ## 自动技能的放出门槛（10-25 用户「范围内没有敌人就不开技能」）：返回「周围这个半径（未乘 op_range）内要有敌人才放」，0 = 推不出来（校验报错）。
 ## 优先级：技能自己写的 need_enemy → 技能 do 里会打到敌人的积木（GATE_HIT_KINDS）的最大作用半径 + GATE_MARGIN（敌人体型）→ 该干员普攻的射程（range / r / len）→ GATE_DEFAULT。
-## 纯治疗 / 增益 / 召唤类技能没有伤害积木，走普攻射程。sb / atk 可以是原始 json（带 $ 表达式，传 base）或编译后的 B（数字，base 传空）
+## 治疗类技能（纯治疗 / 回血 / 给血盾，以及治疗为主的混合增益）写 "no_gate": true，不加门槛（返回 0）；其余没有伤害积木的增益 / 召唤类走普攻射程。sb / atk 可以是原始 json（带 $ 表达式，传 base）或编译后的 B（数字，base 传空）
 const GATE_HIT_KINDS := ["cone", "cleave", "circle", "wave", "shell", "hookshot", "tether", "leap_slam", "fan", "lock", "barrage", "cast_push", "fx_rain", "mark", "followup", "taunt_guard"]
 const GATE_RADIUS_KEYS := ["r", "aim_r", "range", "wave_dist", "dist", "len"]
 const GATE_MARGIN := 20.0
@@ -456,6 +456,8 @@ static func _gate_num(v, base: Dictionary) -> float:
 
 
 static func skill_gate_base(sb: Dictionary, atk: Dictionary, base: Dictionary, fallback: float = GATE_DEFAULT) -> float:
+	if sb.get("no_gate", false):   # 治疗类自动技能不加门槛（用户 10-25「治疗类的取消这么限制」）：技力满就放，0 = 恒放
+		return 0.0
 	if sb.has("need_enemy"):
 		return _gate_num(sb.need_enemy, base)
 	var best := 0.0
