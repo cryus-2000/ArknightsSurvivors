@@ -2,6 +2,10 @@ extends "res://scripts/screens/title_diff_pick.gd"
 ## 标题界面：「方舟幸存者」Logo + 菜单；背景是深海沉船与水母（title_deep.gd，10-24 用户定，docs/67 §13）
 const HS = preload("res://scripts/screens/hh_style.gd")
 func _ready() -> void:
+	if Cfg.dev_args().has("--loadprof"):
+		# 启动计时（docs/36 §5）：引擎启动 → 标题页 _ready → 标题页首帧画完（毫秒，从引擎启动算）
+		print("BOOTPROF title_ready=%d" % Time.get_ticks_msec())
+		RenderingServer.frame_post_draw.connect(func(): print("BOOTPROF title_first_frame=%d" % Time.get_ticks_msec()), CONNECT_ONE_SHOT)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	# 触屏：标题页（含图鉴 / 设置 / Boss 演练子面板）整体放大 Cfg.ui_k（手机 1.3）；背景 / 转场在各自的 CanvasLayer 不受影响
 	Cfg.ui_k = Cfg.ui_scale()
@@ -69,6 +73,11 @@ func _ready() -> void:
 	add_child(transition_layer)
 	transition = preload("res://scripts/screens/scene_transition.gd").new()
 	transition_layer.add_child(transition)
+	var loading_layer := CanvasLayer.new()
+	loading_layer.layer = 80   # 盖住标题 Logo 层、选人 / 难度页与后期层；转场遮罩（90）仍在它上面
+	add_child(loading_layer)
+	loading = preload("res://scripts/screens/loading_screen.gd").new()
+	loading_layer.add_child(loading)
 	for a in Cfg.dev_args():
 		if a.begins_with("--compareshot="):
 			_compare_shot(a.substr(14))
@@ -272,8 +281,10 @@ func _ready() -> void:
 				get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_diff_%d_%d.png" % [diff_sel, Cfg.diff_unlocked])
 				get_tree().quit())
 	if Cfg.dev_args().has("--loadingshot"):
-		# 出发后「载入中…」面板的截图（预热通常不到 1 秒就完成，截图时强制画出来）
+		# 出发后载入页的截图（预读完也停在载入页，截图时强制画出来）；带 --reducemotion 截静态版
 		leaving = 0.0
+		if Cfg.dev_args().has("--reducemotion"):
+			Cfg.reduce_motion = true
 		get_tree().create_timer(1.3).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_loading.png")
 			get_tree().quit())
@@ -290,8 +301,8 @@ func _ready() -> void:
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_title.png")
 			get_tree().quit())
 	if Cfg.dev_args().has("--autotest") or Cfg.dev_args().has("--balance"):
-		if A.prewarm_busy() or Sfx.warm_busy():
-			auto_go = true   # 开窗口的自测：等法线图预热完（同玩家路径），黑屏时长才有可比性
+		if A.prewarm_busy() or Sfx.warm_busy() or Cfg.dev_args().has("--loadprof"):
+			auto_go = true   # 开窗口的自测：等法线图预热完（同玩家路径），黑屏时长才有可比性；--loadprof 一律走载入页（量玩家路径）
 		else:
 			A.mark("title_leave")
 			get_tree().change_scene_to_file.call_deferred("res://game.tscn")
@@ -361,7 +372,21 @@ func _process(delta: float) -> void:
 		if not _op_warm_begun:
 			_op_warm_begun = true
 			A.warm_begin(_op_fx_names(), [])
-		_op_warm_more = A.warm_step(12000)   # 开局干员的技能 / 特效帧条先读进贴图缓存（10-22 网页开局掉帧：第一次放技能时现读）
+			var wl: Array = Game.loading_warm_lists()
+			A.warm_begin(wl[0], wl[1])   # 对局 _ready 要读的整批贴图也在这里分帧读完（以前在 _ready 里一口气读，网页冻住 ~32 秒，10-25）
+			for cid in _op_ids():
+				var sp: String = Character.script_path(cid)
+				if not _op_scripts.has(sp) and ResourceLoader.load_threaded_request(sp) == OK:
+					_op_scripts.append(sp)   # 干员脚本后台编译（data_operator.gd 首次加载约 1.4 秒，原来算在建局里）
+			loading.begin()
+		_op_warm_more = A.warm_step(24000)   # 开局干员的技能 / 特效帧条先读进贴图缓存（10-22 网页开局掉帧：第一次放技能时现读）
+		for sp in _op_scripts.duplicate():
+			if ResourceLoader.load_threaded_get_status(sp) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+				_op_warm_more = true
+			else:
+				if ResourceLoader.load_threaded_get_status(sp) == ResourceLoader.THREAD_LOAD_LOADED:
+					get_tree().set_meta("op_script_" + sp.get_file().get_basename(), ResourceLoader.load_threaded_get(sp))   # 挂在场景树上留住缓存，切场景后对局 load() 直接命中
+				_op_scripts.erase(sp)
 		if not _op_warm_more and not _grow_strips.is_empty():
 			# 扩散帧条的每帧半径（ob_fx.warm_frame_r，同一张贴图、同一算式）：一帧算一张
 			var sn: String = _grow_strips.pop_back()
@@ -370,19 +395,24 @@ func _process(delta: float) -> void:
 				load("res://scripts/characters/blocks/ob_fx.gd").warm_frame_r(sn, A.tex(sn), maxi(1, int(v6[sn][0])))
 			_op_warm_more = not _grow_strips.is_empty()
 		Sfx.warm_step(12000)   # 出发后的等待里逐条注册音频样本（网页；桌面队列为空）
+		_loading_progress()
 	if leaving >= 0.0:
 		leaving += delta
 		if leaving > 0.7:
-			# 法线图预热没完就画「载入中…」等它（以前这里直接切场景，game.gd _ready 同步算 10 秒法线图 = 黑屏），最多等 30 秒
-			if (A.prewarm_busy() or Sfx.warm_busy() or _op_warm_more or Cfg.dev_args().has("--loadingshot")) and wait_t < 30.0:
+			# 预热 / 预读没完就停在载入页等它（以前这里直接切场景，game.gd _ready 同步算 10 秒法线图 = 黑屏），最多等 60 秒
+			if (A.prewarm_busy() or Sfx.warm_busy() or _op_warm_more or Cfg.dev_args().has("--loadingshot")) and wait_t < 60.0:
 				wait_t += delta
 			else:
-				A.mark("title_leave")
-				get_tree().change_scene_to_file("res://game.tscn")
+				loading.finish()   # 淡到黑，开场演出从同一片黑里亮起
+				if loading.done():
+					A.mark("title_leave")
+					get_tree().change_scene_to_file("res://game.tscn")
 	elif auto_go and not A.prewarm_busy() and not Sfx.warm_busy() and not _op_warm_more and _op_warm_begun:
-		auto_go = false
-		A.mark("title_leave")
-		get_tree().change_scene_to_file("res://game.tscn")
+		loading.finish()
+		if loading.done():
+			auto_go = false
+			A.mark("title_leave")
+			get_tree().change_scene_to_file("res://game.tscn")
 	queue_redraw()
 
 
@@ -510,6 +540,9 @@ func _menu_set(i: int, _remember: bool) -> void:
 func _activate(i: int) -> void:
 	if transition.busy:
 		return
+	if i == 8:
+		Sfx.play("ui_move", -4.0, 0.6)   # 蚀刻章（docs/134）还没做：入口先留着、灰显，点了只响一声
+		return
 	Sfx.play("ui_ok")
 	match i:
 		0:
@@ -605,7 +638,7 @@ func _draw_menu(vs: Vector2) -> void:
 	const R = preload("res://scripts/core/roster.gd")
 	Tiles.draw(self, menu_lay, {"font": font, "sel": sel, "water": menu_water, "now": t, "rm": Cfg.reduce_motion,
 		"a_logo": 0.0, "logo_tex": null, "a_list": a_list, "a_deploy": _item_a(0), "a_foot": _seg(2.0, 0.4),
-		"slide": 0.0 if Cfg.reduce_motion else 16.0, "dim": [] if R.active() else [7], "tickets": R.tickets() if R.active() else -1})   # 10-24 用户：没有凭证也能点进寻访看卡池
+		"slide": 0.0 if Cfg.reduce_motion else 16.0, "dim": [8] if R.active() else [7, 8], "tickets": R.tickets() if R.active() else -1})   # 8 = 蚀刻章（未开放）恒灰；10-24 用户：没有凭证也能点进寻访看卡池
 	# 声明（同人 · 非商业 · 与鹰角网络无关 · 致谢与声明）+ 版本：桌面右下，手机跟在底部一行后面
 	var ff := _seg(2.0, 0.4)
 	var lg: Dictionary = menu_lay.legal
@@ -642,16 +675,28 @@ func _draw_logo_layer() -> void:
 func _draw_leaving(vs: Vector2) -> void:
 	if leaving >= 0.0:
 		draw_rect(Rect2(Vector2.ZERO, vs), Color(0, 0.01, 0.02, clamp(leaving / 0.6, 0.0, 1.0)))
-		if wait_t > 0.0:
-			_draw_loading(vs)
 
 
 ## 开局干员（选人 / --op；测试的 --squad 一并）JSON 里写到的帧条名（"tex" / "strip"）：出发后的等待里先读进 A.tex 缓存
 var _op_warm_begun := false
 var _op_warm_more := false
+var loading: Control   # 进局载入页（screens/loading_screen.gd，CanvasLayer 80）
 var _grow_strips: Array = []
 
+var _op_scripts: Array = []   # 后台编译中的干员脚本路径
+
+
 func _op_fx_names() -> Array:
+	var ids := _op_ids()
+	var out: Array = []
+	for cid in ids:
+		if Character.exists(cid):
+			_collect_tex(Character.load_def(cid), out)
+	return out
+
+
+## 开局干员 id（选人 / --op；测试的 --squad 一并）
+func _op_ids() -> Array:
 	var ids: Array = [Cfg.character_id]
 	for a in Cfg.dev_args():
 		if a.begins_with("--op="):
@@ -659,11 +704,7 @@ func _op_fx_names() -> Array:
 	for a in Cfg.dev_args():
 		if a.begins_with("--squad="):
 			ids.append_array(a.substr(8).split(","))
-	var out: Array = []
-	for cid in ids:
-		if Character.exists(cid):
-			_collect_tex(Character.load_def(cid), out)
-	return out
+	return ids.filter(func(c): return Character.exists(str(c)))
 
 
 func _collect_tex(x, out: Array, key := "") -> void:
@@ -679,18 +720,25 @@ func _collect_tex(x, out: Array, key := "") -> void:
 		out.append(x)
 
 
-## 出发后等法线图预热：潮汐航线风格的小面板 + 进度条（docs/37）
-func _draw_loading(vs: Vector2) -> void:
-	var pr := A.prewarm_progress()
-	var what := "准备光照贴图"
-	if Sfx.warm_busy() and pr.x >= pr.y:
-		pr = Sfx.warm_progress()
-		what = "准备作战数据"
-	var r := Rect2(vs.x / 2 - 170, vs.y / 2 - 44, 340, 88)
-	UI.frame(self, r, UI.CYAN)
-	UI.en(self, font, Vector2(r.position.x + 18, r.position.y + 24), "LOADING", 11, Color(0.55, 0.59, 0.63), 2.5)
-	UI.text(self, font, Vector2(r.position.x + 18, r.position.y + 46), "载入中…  %s %d / %d" % [what, pr.x, pr.y], 15, UI.TEXT)
-	UI.gbar(self, Rect2(r.position.x + 18, r.position.y + 62, r.size.x - 36, 6), float(pr.x) / maxf(1.0, float(pr.y)), UI.CYAN)
+## 载入页进度：法线图预热 + 贴图分帧预读 + 音频样本注册，按条数合计（三者都是单调的，合计也不会倒退）
+func _loading_progress() -> void:
+	var nm := A.prewarm_progress()
+	var tx := A.warm_progress()
+	var au: Vector2i = Sfx.warm_progress()
+	var done := nm.x + tx.x + au.x
+	var total := nm.y + tx.y + au.y
+	var what := "展开战场"
+	var n := Vector2i.ZERO
+	if A.prewarm_busy():
+		what = "准备光照贴图"
+		n = nm
+	elif _op_warm_more:
+		what = "读取干员与海嗣帧条"
+		n = tx
+	elif Sfx.warm_busy():
+		what = "准备作战音频"
+		n = au
+	loading.set_progress(float(done) / float(total) if total > 0 else 1.0, what, n)
 
 
 ## 本作徽记（菱形 + 一道浪）：标题页小标与主按钮用（不用原作的集成战略标志）
@@ -707,15 +755,17 @@ func _draw_emblem(c: Vector2, r: float, col: Color) -> void:
 ## 操作说明（10-22 用户：每条一行，只写键位 + 动作；页面换寻访 hh_style 模板）：[动作, 键鼠, 手柄]；触屏只用前两列
 const GUIDE_ROWS := [
 	["移动", "WASD / 方向键", "左摇杆"],
-	["冲刺", "空格", "Ⓑ / RB"],
+	["冲刺", "空格", "Ⓑ"],
 	["队长技能", "E / J", "Ⓐ / Ⓨ"],
 	["切换队长", "Q", "RB"],
+	["指挥圆盘", "F（按住选，松开确认）", "LB"],
 	["手动普攻", "左键 / J", "Ⓧ / RT"],
 	["瞄准", "鼠标", "右摇杆"],
 	["选卡", "数字键 / 点击", "Ⓐ"],
 	["暂停", "Esc", "START"],
 	["属性", "Tab / C", "SELECT"],
 	["重看指南", "暂停时 G", "暂停菜单"],
+	["倍速", "V", ""],
 	["音乐开关", "M", ""],
 	["重来 / 回标题", "R / T", ""],
 ]
@@ -724,6 +774,8 @@ const TOUCH_GUIDE := [
 	["冲刺", "冲刺键"],
 	["队长技能", "技能键 · 按住拖动瞄准"],
 	["手动普攻", "攻击键 · 按住拖动瞄准"],
+	["指挥圆盘", "指挥键 · 点选"],
+	["切换队长", "点编队栏头像"],
 	["选卡", "点卡片"],
 	["暂停 / 属性", "暂停键 / 属性键"],
 	["重看指南", "暂停菜单 · 指南"],
@@ -758,7 +810,7 @@ func _draw_guide(vs: Vector2) -> void:
 		if not touch and rows[i][2] != "":
 			UI.text_at(self, font, Vector2(px, y + step / 2.0 - 3.0), rows[i][2], 18, Color8(200, 210, 222), "lm")
 	HS.bottom_bar(self, vs, 52.0)
-	UI.text_at(self, font, Vector2(x0, vs.y - 26.0), "编队、灯火、藏品、商人、结局：见开局指南", 14, HS.MUTE, "lm")
+	UI.text_at(self, font, Vector2(x0, vs.y - 26.0), "编队、灯火、溟痕、指挥、藏品、商人：见开局指南", 14, HS.MUTE, "lm")
 	HS.ghost_btn(self, font, Rect2(vs.x - 196, vs.y - 44, 168, 36), "返回", Pad.hint("Esc", "Ⓑ", ""))
 
 

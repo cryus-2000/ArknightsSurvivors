@@ -267,3 +267,100 @@
 用户实玩觉得 C 版「太难听」。`op_ulpianus_s1.wav` / `op_ulpianus_s3.wav` 恢复成 547edc5f（§8）的文件，其余音效不动。§11 的 C 版不再使用；`gen_ulpianus_v2.py --apply` 别再跑（它会写回 C）。
 
 备选（不接进游戏）：A 版另存在主仓库 `build/sfx_candidates/ulpianus_backup_A_s1.wav`、`_s3.wav` 与 5 秒局内混音 `ulpianus_backup_A_mix.wav`（1.0 秒掷锚、3.2 秒收链，背景同 §10）。
+
+## 13. 锁链 / 能天使枪声 / 冲锋 第三轮（10-24 用户：「锁链和能天使的射击也得更改，冲锋的音效也得更改」）
+
+§8 的 CC0 录音接进去之后用户仍不满意。这轮不再找录音，改回程序合成（同 gen_sfx_ops.py 的工具函数），由 `game/tools/gen_sfx_review_1024.py` 生成改前 / 改后试听包到主仓库 `build/sfx_review_1024/`（`index.html` 点开自己听，不自动播放）。**候选未接进游戏，等用户试听点头后用 `--apply` 写入并改 sfx.gd。**
+
+### 13.1 现状盘点（哪几个音、在哪里响）
+
+| 类别 | 动作 | 文件 | 触发点 | 时长 / 峰值 / 100 ms RMS / 重心 | 频率 | 问题 |
+|---|---|---|---|---|---|---|
+| 锁链 | 乌尔比安 S1 掷锚（出钩） | `op_ulpianus_s1`（§8 CC0 ChainsRattling 截取） | `character.spend_sp` → `Sfx.op("ulpianus","s1")` | 0.79 s / −2.5 / −15.6 / 1.9 kHz | 0.27 次 / 秒 | 录音里链节碰撞糊在一起，没有「出手—咬住」的两段；用户 10-21 先嫌不明显、C 版又嫌难听 |
+| 锁链 | 乌尔比安 S3 | `op_ulpianus_s3`（nettimato chain 截取，原意「收链」） | 同上，S3 发动时 | 0.67 s / −2.8 / −16.6 / 2.9 kHz | 0.06 次 / 秒 | S3 改成冲锋后，它成了冲锋的第一声，语义是「收链」却放在出手瞬间 |
+| 锁链 | 乌尔比安普攻 / 钩住 | `op_ulpianus_atk`（Kp69606 拖地链 + 合成风声砸地） | `seg_ulpianus` 抡锚落地、锚咬住、冲锋起步、非 big 落地，`pitch 0.85`、+2 dB | 0.36 s / −3.0 / −13.0 / 0.24 kHz | 0.89 次 / 秒 | 重心 240 Hz，几乎只有「咚」，听不出链；冲锋起步也借它 |
+| 锁链 | 歌蕾蒂娅钩索 | 无专属文件，走 `OP_FALLBACK`（atk=`swing`、s1–s3=`skill`、hit=`hit`） | 同 ob_hw 钩索代码 | — | — | 没有链声，只有通用挥砍；可复用本轮的出钩 / 收拉（需接线，见 13.4） |
+| 枪声 | 能天使普攻 | `op_exusiai_atk`（M9 单发录音 120 Hz 高通） | `data_operator` projectile 出手，`OP_VOL atk −11`，`OP_PVAR 0.09` | 0.26 s / −1.6 / −16.6 / 1.7 kHz | 均值 2.1 次 / 秒，过载连射更高 | 录音带房间尾音，0.26 s 比射击间隔长，连发糊；单一样本重复感强 |
+| 枪声 | 能天使命中 | `op_exusiai_hit`（Kenney impactMetal_light，4 kHz 低通） | `seg_exusiai` 子弹命中，`OP_GAP 0.1` | 0.12 s / −5.1 / −21.0 / 2.4 kHz | 均值 6.7 次 / 秒，峰值 11 | 每颗子弹一声金属「叮」，带环响，累 |
+| 枪声 | 能天使弹匣倾泻 | `op_exusiai_big`（科幻狙击截取） | 计数满 `trig.on_attack` | 0.62 s | 0.66 次 / 秒 | 本轮不动（用户没提） |
+| 冲锋 | 乌尔比安 S3 冲锋 | s3（发动）→ atk（锚咬住转冲锋，0.85 倍速 +2 dB）→ big（落地，−6 dB） | `seg_ulpianus` `_hw_anchor_bite` / `_hw_zip_land` | 冲锋本体 0.14–0.34 s | 0.06 次 / 秒 | **只有「发动」「抡锚」「砸地」三次借来的声音，没有蹬地爆发，也没有冲刺中的风声**；音和画面（路径拖痕 + 落地水花）对不上 |
+| 冲锋 | 推进之王 S1「冲锋号令」 | `op_siege_s1` | `spend_sp`，`SIEGE_S1_GAP` 4.5 s | 0.91 s / −2.5 / −9.2 | 0.21 次 / 秒 | 号令类的喊响，不是位移冲锋；本轮不动 |
+| 冲锋 | 德克萨斯 S1 冲锋号令·γ型（冲刺） | `op_texas_s1` ← 借 `op_irene_s1` ×1.05（刺剑风切） | `seg_texas` dash，`b.sfx = "atk"` → `op_texas_atk` 刀划 | 0.18–0.64 s | 0.21 次 / 秒 | 同样没有蹬地 / 呼啸；若用户指的是她，三段声可复用（13.4） |
+| 冲锋 | 队长冲刺 | `dodge`（`combat.gd:60/670`，−4 dB / −2 dB ×1.4 音高） | 玩家冲刺 / 闪避 | — | 按键 | 本轮不动 |
+| 冲锋 | 敌方：骑士冰面急冲、Boss 冲锋预警 `cue_charge_start/hit` | `knight_charge`、`cue_charge_*` | Boss 战 | — | 0.03–0.13 次 / 秒 | 敌方，本轮不动 |
+
+本轮判断「冲锋」主要指乌尔比安 S3（10-24 刚改成冲锋 + 新特效，截图里的黑色落点水面和金色拖痕就是它）。德克萨斯的冲刺若也要换，三段声直接复用。
+
+### 13.2 候选设计
+
+响度口径同 §1。全部单声道 44.1 kHz，峰值 −1…−3 dBFS，不引入外部音频。
+
+| 文件（试听包里的名字） | 替换 | 设计 | 实测（时长 / 重心 / 4 kHz 以上） |
+|---|---|---|---|
+| `chain_throw` 出钩 | `op_ulpianus_s1` | 链节从盘里越抖越快地放出（间隔 75 ms 每节 ×0.84，12 节）+ 一口风切 + 末尾 450 ms 钩头「铛」（540 Hz 金属 + 低频「咚」）。链节 = 2 ms 噪声起音 + 三个非谐泛音的 20–30 ms 环响，5.5 kHz 低通（不刺耳） | 0.82 s / 1.4 kHz / 3% |
+| `chain_reel` 收拉 | `op_ulpianus_s3`（若 S3 不再放它，改给钩住后拽回 / 歌蕾蒂娅收钩） | 棘轮式一格一格过链轮（间隔 50→30 ms，15 节）+ 摩擦低鸣（150→230 Hz 锯齿低通加 23 Hz 颤）+ 末尾绷直「铮」（250 Hz 近谐波金属） | 0.97 s / 1.2 kHz / 2% |
+| `chain_swing` 抡锚 | `op_ulpianus_atk` | 风切（800→260 Hz）+ 5 节沉链 + 锚头砸地「咚 + 铛」 | 0.40 s / 0.7 kHz / 1% |
+| `charge_launch` 起步爆发 | 新增 | 125→42 Hz 蹬地低频 + 3.2 kHz 低通的爆气 + 锚链绷直一声脆响 + 450→2600 Hz 上扬风 | 0.20 s / 0.7 kHz / 3% |
+| `charge_rush` 呼啸 | 新增 | 位移按 k² 加速，所以整段 t^2.2 渐强：500→3300 Hz 扫频风 + 低频风体 + 链响越抖越密（间隔 40→14 ms），最响处戛然而止，接撞击 | 0.30 s / 2.1 kHz / 11% |
+| `charge_impact` 撞击 | `op_ulpianus_big`（冲锋落地专用） | 88→30 Hz 低频「轰」+ 锚头砸地金属闷响 470 Hz + 碎石水花碎响，轻饱和提升听感响度 | 0.53 s / 0.2 kHz / 0% |
+| `exu_atk_a/b/c` 枪声 ×3 | `op_exusiai_atk`（+ `_b` `_c`，轮换） | 枪口爆裂（14 ms 噪声）+ 700–2600 Hz 枪声主体 35 ms + 膛压「噗」+ 滑套小「咔」+ 极短尾；三个变体的机身 / 爆裂 / 主体频率不同（150 / 175 / 205 Hz） | 0.07–0.08 s / 1.4–1.6 kHz / 12–15% |
+| `exu_hit` 命中 | `op_exusiai_hit` | 800–3000 Hz 极短的「嗒」+ 低频「噗」，无金属环响 | 0.04 s / 0.9 kHz / 2% |
+
+响度：枪声整段能量对齐现用文件的 0.8 倍（短促枪声按 100 ms RMS 比会被低估），峰值封顶 −1 dBFS；锁链 100 ms RMS 比现用高 1.5–2 dB；撞击比旧 `big` 的 100 ms RMS 低（−8.9 对 −6.9），播放音量不变。
+
+试听包里另有两段按代码时序摆好的混音：**冲锋整段**（改前 = s3 → 0.3 s 抡锚 → 0.55 s 落地 big；改后 = 出钩 → 起步爆发 + 呼啸 → 撞击）、**能天使 6 秒连射**（前 3 秒 2 次 / 秒，后 3 秒约 9 次 / 秒，命中按 0.1 s 节流）。混音不是引擎实录，没有同时发声上限。
+
+### 13.3 点头之后的接线（现在未做）
+
+1. `python game/tools/gen_sfx_review_1024.py --apply` 写 `op_ulpianus_s1 / s3 / atk / big / launch / rush`、`op_exusiai_atk / _b / _c / hit` 十个 wav（引擎导入沿用 QOA，约 1.4 秒 × 17.6 KB ≈ 40 KB，旧文件约 45 KB，网页包基本持平）。
+2. `sfx.gd`：`OP_SFX["ulpianus"]` 加 `launch` `rush`，`OP_VOL` 登记 launch −3、rush −5；能天使 atk 变体轮换（请求名 `op_exusiai_atk` 随机取 `_b` `_c`，`OP_GAP["op_exusiai_atk"] = 0.045` 合并同帧多发）。
+3. `seg_ulpianus.gd`：`_hw_anchor_bite` 冲锋分支把 `atk` 换成 `launch` + `rush`（`rush` 音高 = 文件时长 / 冲锋时长，夹在 0.8–1.5）；`_hw_zip_land` 冲锋分支落地播新的撞击；S3 发动音改播 `chain_throw` 变体。
+4. 备选：歌蕾蒂娅钩索、德克萨斯冲刺借用同一批音（`OP_ALT`）。
+
+## 14. 锁链 / 落锚的 CC0 现成录音候选（10-24 用户：「出钩出锚的都太难听了，去网上看看有没有相关的素材」）
+
+§13 的合成版锁链放弃，改找现成录音。`game/tools/gen_sfx_review_cc0_1024.py`：只用 Freesound 上许可为 CC0 的条目（脚本逐条在原页面核对 `publicdomain/zero/1.0`，不是就停），下载页面公开的 HQ 试听 mp3 到主仓库 `build/sfx_candidates_1024/freesound/`（不进 git、不进包，`meta.json` 记来源 URL / 作者 / 许可 / 时长），截取并统一处理（50 Hz 高通、5.5 kHz 4 阶低通、5 ms 淡入 30 ms 淡出、100 ms RMS 对齐现用文件：出钩 / 收拉 −15.6、落地 −9 dBFS、峰值软限幅 −1 dBFS）后追加到试听页 `build/sfx_review_1024/index.html` 的第四节，和现用版、合成版并排。
+
+| 角色 | 候选 | 来源（Freesound，全部 CC0 1.0） | 截取 |
+|---|---|---|---|
+| 出钩 / 出锚 | t1 / t2 | 733608 C_Sander「chains_whipAndTighten」 | 4.00–4.68 s 整下甩链 / 2.25–2.60 s 短抖 |
+| | t3 | 792318 randbsoundbites「Grappling hook/gun extending & retracting」 | 0.72–1.15 s 钩爪射出 |
+| | t4 | 541975 16bitstudios「grappling hook」 | 整段 0.58 s |
+| | t5 | 675781 craigsmith「S29-28 Anchor drops over side of boat」 | 0.55–1.60 s 锁链往外放 |
+| 收拉 | r1 | 733608 C_Sander（同上后半「收紧」） | 6.06–7.34 s |
+| | r2 | 792318 randbsoundbites（收回） | 2.25–2.93 s |
+| | r3 | 386174 ldezem「Chain pulley 750kg - Chain pull」 | 0.30–1.40 s |
+| | r4 / r5 | 235959 mffm「Chain Drag」/ 405417 Mrthenoronha「Pulling Chain」 | 0.75–1.80 s / 0–1.00 s |
+| 落锚 / 砸地 | i1 | 819711 DaVoiceActor「Chain Impact」 | 1.75–2.30 s |
+| | i2 | 871034 funkysandwich「metal_chain_drop2」 | 整段 0.6 s |
+| | i3 | 235959 mffm（拖链到头的磕碰） | 1.25–1.75 s |
+| | i4 | 167916 ani_music「Steel chain hard clicking」 | 1.45–2.05 s |
+
+截取起止点是按能量包络与频谱挑的，没有人耳试听过，试听页上由用户选；录音原频谱偏亮（733608 重心 8–14 kHz），低通后 4 kHz 以上仍占 16–42%，若仍刺耳，选 t5 / r4 / i3 / i4（重心 1.4–2.2 kHz）。CC0 不强制署名，接入时仍在 `data/credits.json`「音乐与音效」写明作者与 URL。
+
+## 15. 德克萨斯冲刺（10-24 用户：「冲锋说的是德克萨斯的冲锋」）
+
+§13 把「冲锋」当成乌尔比安 S3，用户纠正：指的是德克萨斯。她的冲刺有三个来源：普攻「冲刺斩」（≈ 每 1.05 s 一次）、天赋「战术快递」（队长冲刺时同向冲）、二技能「冲锋号令·γ型」（永久加长冲刺距离）。位移 0.24 s（先快后慢）+ 停留 0.2 s，沿途斩击（`seg_texas._tx_sweep`），画面是 `fx_texas_dash` 残影帧条。
+
+**现状**：数据里 `"sfx": "atk"` → `tx_dash_start` 起冲时播 `op_texas_atk`（§8 的 Kenney knifeSlice 刀划，0.22 s，−11 dB）；`_tx_dash_end` 在这次冲刺打到人时播 `op_texas_hit`（OP_ALT 借艾丽妮命中 ×1.1，−3 dB）。问题：只有一声刀划，**没有蹬地爆发、没有随位移衰减的呼啸、没有收势**；刀划是「挥」不是「冲」，和先快后慢的位移 / 残影对不上；起冲与收势隔 0.44 s，中间是空的。
+
+**候选**（`game/tools/gen_sfx_review_texas_1024.py`，试听页第五节，未接进游戏）：
+- 起冲 / 收势两类；每类一个现用版、一个合成版、若干 CC0 录音（全部 Freesound CC0 1.0，页面核对过，来源 URL / 作者见试听页与 `build/sfx_candidates_1024/freesound/meta.json`）。
+- 合成起冲：蹬地低频「嗒」+ 一丝刃鸣 + 3.2→0.7 kHz 下行扫频风声（先快后慢，0.3 s）；合成收势：靴底刹停摩擦 + 刃「嘶」+ 轻「咚」（0.2 s）。
+- CC0 起冲 d1 521999 Kastenfrosch「Whoosh / Dash」、d2 803773 Logicogonist「whoosh 1 short」、d3 507466 Danjocross「Clean fast Swoosh」、d4 60004 qubodup「Fast Sword Swing Sound」、d5 522701 julianmateo_「Metal sword swing fast impact」；收势 e1 426322 MTJohnson「Single Sword Hit」、e2 434896 TheBuilder15「Sword Impact」、e3 417035 FunWithSound「Quick Sword Draw」。
+- 处理同 §14（50 Hz 高通、5.5 kHz 低通、响度对齐现用 `op_texas_atk` / 艾丽妮命中）。整段对照：两次冲刺（间隔 1.05 s）按代码时序和 sfx.gd 音量摆好。
+- 起冲节奏每秒约 1 次，文件都在 0.5 s 以内；接入时 `OP_SFX["texas"]` 加 `go`、`end`（或直接替换 `op_texas_atk` / 给 `op_texas_hit` 专属文件），`seg_texas._tx_dash_end` 的 `hit` 改播 `end`，一次冲刺只响一次起冲。
+
+### 14.1 用户定（10-24 试听后）
+
+i1（819711 DaVoiceActor「Chain Impact」1.75–2.30 s）「挺好听」→ 作**收拉**，写进 `op_ulpianus_s3.wav`（响度 −13 dBFS，比出钩高 2.6 dB）；t4（541975 16bitstudios「grappling hook」整段 0.58 s）作**出钩**，写进 `op_ulpianus_s1.wav`（−15.6 dBFS）；出锚（t5）不用；落地 `op_ulpianus_big` 与抡锚 `op_ulpianus_atk` 不动。由 `python game/tools/gen_sfx_review_cc0_1024.py --apply-chain` 写入；`data/credits.json` 的 CC0 来源去掉不再使用的 klakmart、nettimato，加入 16bitstudios、DaVoiceActor。
+
+## 16. 能天使枪声第二轮：CC0 单发录音（10-24 用户：「枪声再找找」）
+
+§13 的合成枪声没被选中，改找录音。`game/tools/gen_sfx_review_gun_1024.py`：Freesound CC0 单发枪声 14 条（g1–g14，来源页 / 作者 / 许可在试听页第六节与 `build/sfx_candidates_1024/freesound/meta.json`），自动找第一声枪响，取 0.14 s（g8 取 0.2 s 带科幻尾音），100 Hz 高通 + 7 kHz 低通，响度对齐现用 `op_exusiai_atk`；每条另有「8 连发」试听（0.11 s 间隔 + ±9% 音高随机，约等于过载连射）看累不累。偏 Arknights 的方向：消音 / 短促 / 带一点科幻金属（g2 g3 g5 g8 g13 为消音枪，g11 为实验性科幻枪）；g1 g12 重心 250–400 Hz，偏低沉。选定后：能天使 atk 用 2–3 条轮换（`op_exusiai_atk` / `_b` / `_c`），`OP_GAP["op_exusiai_atk"] = 0.045` 合并同帧多发，接入时 credits 补作者。
+
+### 15.1 / 16.1 用户定（10-24 再次试听后）
+
+- **德克萨斯冲刺用合成版**：`op_texas_atk.wav` ← 合成起冲（蹬地 + 一丝刃鸣 + 下行呼啸，0.3 s，替换 Kenney 刀划）；`op_texas_hit.wav` 新增 ← 合成收势（靴底刹停摩擦 + 刃「嘶」+ 轻「咚」，0.2 s，原来借艾丽妮命中 ×1.1）。由 `python game/tools/gen_sfx_review_texas_1024.py --apply` 写入。`sfx.gd`：`OP_SFX["texas"]` 加 `hit`，删 `OP_ALT["op_texas_hit"]`，`OP_DB["op_texas_hit"] = -3`（等于原来借用时的 −3 dB，文件响度同艾丽妮命中）。
+- **能天使枪声不换**：继续用 `op_exusiai_atk`（DarkShroom M9，CC0）。第六节 14 条候选不接；§13 的合成枪声也不接。
+- **试听页「改前」修正**：10-24 接入乌尔比安出钩 / 收拉后重跑生成脚本，页面里的「改前」读到了工作树里已经是新文件，改前改后读反了。现在「改前」固定读换音前的基线提交 `d872886cc`（`git show`），不随工作树变。

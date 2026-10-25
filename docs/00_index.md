@@ -31,6 +31,7 @@
 | [39_code_architecture](39_code_architecture.md) | 代码结构与界面分层 | 现行规范 | 分层、界面层、op_api、画法缓存；§1 未收 bosses/、云存档、g.mode | 38、40、41、43、50、55；game.gd、enemies/bosses/boss_base.gd、run/spawner.gd 等 10 个文件 |
 | [37_ui_style](37_ui_style.md) | 界面风格「潮汐航线」 | 现行规范 | 颜色、组件、各画面规则，§8 T5s；术语以 76 为准 | 22、35、39、41、49、49e 等 11 篇；title.gd、ui.gd、run/affects.gd 等 17 个文件 |
 | [62_ui_motion](62_ui_motion.md) | 界面动效系统 | 进行中 | §2 共用规则现行；部分界面的招牌动效未做；§3.1 / §3.3 被 T5s 取代 | 36、41、58、67、71、77 等 7 篇；tools/concept_title_ui.py、gallery.gd、game.gd 等 17 个文件 |
+| [144_endfield_wheel_style](144_endfield_wheel_style.md) | 指挥圆盘：终末地风格（调研 + 定稿） | 已实现、待用户看实机 | 10-24：终末地界面调研与 7 条规则；圆盘定稿终末地蓝 #1FA8F0（用户由黄改蓝）、12 层叠加（底盘 / 刻度环 / 斜纹带 / 切角扇区 / 外推虚框 / 指针游标…）、打开 / 常驻 / 悬停 / 收起动效、减少动态效果终态；建议只用在圆盘；探针 tools/probes/wheel_style_shots.py | 37、62、76、114 |
 | [98_sprite_standard](98_sprite_standard.md) | 角色与怪物立绘标准 v2 | 现行规范 | 像素密度、同屏比例、敌我配色、特效归属（跨类别以本文为准）；§8 待办已过时 | 87、94、97；op_fix_a_manifest.json、op_fix_b_eye_manifest.json、op_fix_b_manifest.json 等 6 个文件 |
 | [87_art_spec](87_art_spec.md) | 人物帧条统一规格 | 现行规范 | 干员帧条细则与 art_lint 机检；附录 C 记旧条款去向 | 05、91、93、94、95、97 等 17 篇；tools/art_lint.py、tools/check.py、ally_rework_1014_art_lint.json 等 15 个文件 |
 | [05_art_handoff](05_art_handoff.md) | 美术交接说明 | 现行规范 | 文件存放、命名、旧特效帧数；人物尺寸（主角 / 海嗣节）已作废，见 87、98 | 87、归档15；game.gd、tools/make_skill_icons.py、incoming/README.md 等 4 个文件 |
@@ -95,6 +96,7 @@
 | 文档 | 标题 | 状态 | 说明 | 被谁引用 |
 |---|---|---|---|---|
 | [95_boss_moves](95_boss_moves.md) | Boss 招式改版 | 进行中 | 每 Boss 4 招；第 1、2 批已合入（§15、§16），第 3 批（接潮组）与 Boss @2x 补单待做；Boss 招式以本文为准 | 36、38、98；boss_ai.gd、render/world.gd、tests/boss_variety_test.gd 等 20 个文件 |
+| [145_enemy_canon_and_reach](145_enemy_canon_and_reach.md) | 小怪原作核对 + 攻击范围加强方案 | 方案待用户看 | 10-24：19 种普通怪 / 精英对照 PRTS 与解包数据（名字全对；奠基者 / 引痕者 / 育母弱点与原作相反、箱形恐鱼免疫非原作、囊海爬行者档案不符）；攻击范围现状表；加强 5 只（育母落点圈 30→46、狂奔者 62→90、收割者 / 巢涌者光环待定；囊海爬行者爆裂 80→160 已做），伤害不动；§4 箱形恐鱼新攻击方案；§5 奠基者踏地特效改地面层、骑士图鉴归 Boss 页（已做） | 49b、76、94、96；enemies.json、lore.json、gallery.gd |
 | [38_boss_redesign](38_boss_redesign.md) | Boss 重做 v3 | 现行规范 | §1 框架、§8.11 预警、§8.12 难度目标、§8.14 停刷仍有效；已改版 Boss 的招式（第 1、2 批：泡影、伊莎玛拉、伊祖米克、骑士、塑路者、两位圣徒）以 95 为准，接潮组暂按本文 | 21、27、36、37、40、41 等 23 篇；run/combat.gd、boss_ai.gd、tests/prot_test.gd 等 38 个文件 |
 
 ## 美术单（给 Codex，进行中）

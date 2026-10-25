@@ -129,14 +129,8 @@ func _ready() -> void:
 			if cfg.has("patterns"):
 				for move in cfg.patterns:
 					check(str(move.name) in entry.desc, "gallery lists boss pattern " + entry.id + ":" + str(move.name))
-			# Codex V13 帧条在图鉴里逐帧演示（art/requests/v13_codex_boss_p2.md）；泡影二阶段不再程序染色
-			var want: Dictionary = {"carmen": ["攻击", "炮身近战", "装弹"], "iberia": ["攻击", "炮身近战", "装弹"], "izumik": ["攻击", "扎根"], "path": ["冲撞"]}
-			for lab in want.get(entry.id, []):
-				check(entry.forms.any(func(f): return f.get("label", "") == lab and f.get("tex") != null), "gallery shows V13 strip " + entry.id + ":" + lab)
-			if entry.id == "paranoia":
-				for f in entry.forms:
-					if f.get("label", "") == "二阶段":
-						check(f.get("tint", Color.WHITE) == Color.WHITE, "paranoia phase 2 gallery form is not tinted (V13 art is magenta)")
+			# 敌人 / Boss 页签只留「待机」和「演示」（用户 10-24）：移动 / 攻击 / 变身等帧条不再单列
+			check(entry.forms.size() == 2 and entry.forms[0].get("label", "") == "待机" and entry.forms[1].get("label", "") == "演示", "gallery tabs are idle + demo only " + entry.id)
 	for detail in [["knight_boss", "寒冷追击"], ["bishop", "统一"], ["ishar", "泪滴共鸣"]]:
 		gal.tab = 3
 		gal._build()

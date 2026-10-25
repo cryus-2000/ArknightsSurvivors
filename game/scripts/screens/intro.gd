@@ -52,6 +52,7 @@ func update_opening(dt: float) -> void:
 		Sfx.play("boom", -14.0, 1.4, 0.0)
 		for o in g.squad.ops:
 			o.play_entry()   # 编队着地接入场条（10-22）
+		g.release_entry_voices()   # 登场语音在编队着地、黑场已褪时才播（以前在建局时就响，画面还没出来，用户 10-25）
 	if opening_t >= 1.7:
 		for o in g.squad.ops:
 			if o.vis_anim == "entry":
@@ -79,6 +80,7 @@ func end_opening() -> void:
 	g.p_lean = 0.0
 	g.lamp_light.energy = 1.15
 	g.state = Game.S.PLAY
+	g.release_entry_voices()   # 跳过开场：没等到着地也放
 	# 指南只在第一次自动打开（协调人 10-01 定）；看过以后直接进局，暂停菜单「指南」可随时重看
 	if not Cfg.seen_intro:
 		open(Game.S.PLAY)
@@ -107,7 +109,7 @@ func draw_opening_hud(vs: Vector2) -> void:
 
 
 ## 指南文字在 data/guide.json（文案维护；10-15 从 game.gd INTRO_PAGES 与本文件的 TOUCH_SUBS / TOUCH_CONTROLS / MORE_HINT 原样搬去，docs/101 S5）：
-## pages 9 页（title / en / icon / lines / more）；touch_subs 触屏版逐句替换 [键鼠说法, 触屏说法]；touch_controls 触屏版最后一页「操作」整页；
+## pages 8 页（title / en / icon / lines / more）；touch_subs 触屏版逐句替换 [键鼠说法, 触屏说法]；touch_controls 触屏版最后一页「操作」整页；
 ## more_hint 精简版（首次自动打开）最后一页末尾的提示
 static var _guide: Dictionary = {}
 
@@ -179,6 +181,16 @@ func draw(vs: Vector2) -> void:
 	UI.en(g.hud, g.font, r.position + Vector2(40, 46), "GUIDE  %d / %d  ·  %s" % [g.intro_page + 1, pages().size(), pg.en], 12, UI.CYAN, 3.0)
 	UI.text(g.hud, g.font, r.position + Vector2(40, 90), pg.title, 30, UI.TEXT)
 	g.hud.draw_line(r.position + Vector2(40, 108), r.position + Vector2(r.size.x - 40, 108), UI.CYAN_DIM, 1.0)
+	# 装饰：大号页码水印（右上，极淡）+ 插图区取景框四角（终末地的取景框角标）
+	if not Cfg.touch_device():   # 手机上右上角是「跳过」，不叠水印
+		UI.text(g.hud, g.font, Vector2(r.end.x - 230, r.position.y + 104), "%02d" % (g.intro_page + 1), 88, Color(0.6, 0.9, 0.95, 0.07 * ea), HORIZONTAL_ALIGNMENT_RIGHT, 190)
+	var fr0 := Rect2(r.position + Vector2(36, 132), Vector2(292, r.size.y - 132.0 - 76.0))
+	for sx in [0.0, 1.0]:
+		for sy in [0.0, 1.0]:
+			var q := Vector2(fr0.position.x + sx * fr0.size.x, fr0.position.y + sy * fr0.size.y)
+			var dx := -16.0 if sx > 0.5 else 16.0
+			var dy := -16.0 if sy > 0.5 else 16.0
+			g.hud.draw_polyline(PackedVector2Array([q + Vector2(0, dy), q, q + Vector2(dx, 0)]), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.4 * ea), 1.5)
 	# 插图区
 	var ic := r.position + Vector2(170, 270)
 	draw_icon(pg.icon, ic)
@@ -189,33 +201,53 @@ func draw(vs: Vector2) -> void:
 	var top := r.position.y + 142
 	var avail := r.end.y - 62.0 - top
 	var touch: bool = Cfg.touch_device()
-	var fsz := 18 if touch else 15   # 触屏（手机）正文先试 18，放不下再缩到 13；桌面 15 → 12 不变（手机局内再乘 UI.fk，量字画字都用 UI.fs）
+	var fsz := 19 if touch else 17   # 正文先试大字，放不下逐号缩小（手机 19 → 13，桌面 17 → 12；手机局内再乘 UI.fk，量字画字都用 UI.fs）
 	var fsz_min := 13 if touch else 12
-	var paras: Array = []
 	var src: Dictionary = _g().touch_controls if Pad.touch_ui() and g.intro_page == pages().size() - 1 else pg
 	var src_lines: Array = page_lines(src, full_guide(), g.intro_page == pages().size() - 1)
+	# 每条 =「标签｜正文」：标签列（青色小字）+ 正文列，条与条之间一条淡分隔线；没有「｜」的整行通栏（精简版末页的提示）
+	var rows: Array = []
+	for ln in src_lines:
+		var txt: String = touch_line(fill_numbers(ln))
+		var cut: int = txt.find("｜")
+		rows.append({"label": txt.substr(0, cut) if cut > 0 else "", "text": txt.substr(cut + 1) if cut > 0 else txt})
+	var lbl_w := 92.0 if touch else 78.0
+	var row_gap := 12.0 if touch else 16.0
+	var lhh := 0.0
+	var asc := 0.0
 	while true:
-		paras.clear()
+		lhh = g.font.get_height(UI.fs(fsz)) + 2.0
+		asc = g.font.get_ascent(UI.fs(fsz))
 		var tot := 0.0
-		for ln in src_lines:
-			ln = touch_line(fill_numbers(ln))
-			var ls: PackedStringArray = UI.wrap_lines(g.font, ln, fsz, tw)
-			paras.append(ls)
-			tot += ls.size() * (g.font.get_height(UI.fs(fsz)) + 1.0) + 14.0
-		if tot - 14.0 <= avail or fsz <= fsz_min:
+		for row in rows:
+			row["lines"] = UI.wrap_lines(g.font, row.text, fsz, tw - (lbl_w if row.label != "" else 0.0))
+			tot += maxf(row.lines.size() * lhh, lhh) + row_gap
+		if tot - row_gap <= avail or fsz <= fsz_min:
 			break
 		fsz -= 1
-	var lhh: float = g.font.get_height(UI.fs(fsz)) + 1.0
-	var asc: float = g.font.get_ascent(UI.fs(fsz))
+	var lbl_sz := clampi(fsz - 3, 12, 15)
 	var y := top
-	for ls in paras:
-		UI.diamond(g.hud, Vector2(r.position.x + 340, y + asc - 6), 4.0, UI.CYAN)
-		for ln2 in ls:
+	for ri in rows.size():
+		var row: Dictionary = rows[ri]
+		if y + lhh > r.end.y - 58.0:
+			break   # 整条放不下就不画（不让标签孤零零露出来）
+		if ri > 0:
+			g.hud.draw_line(Vector2(tx, y - row_gap / 2.0 - 1.0), Vector2(tx + tw, y - row_gap / 2.0 - 1.0), Color(0.45, 0.8, 0.85, 0.12 * ea), 1.0)
+		if row.label != "":
+			# 标签芯片：淡青底 + 左端一道青条，字居中（终末地的标签牌）
+			var la: float = g.font.get_ascent(UI.fs(lbl_sz))
+			var lh: float = g.font.get_height(UI.fs(lbl_sz))
+			var chip := Rect2(tx, y + (lhh - lh - 8.0) / 2.0, lbl_w - 14.0, lh + 8.0)
+			g.hud.draw_rect(chip, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.1 * ea))
+			g.hud.draw_rect(Rect2(chip.position, Vector2(2.0, chip.size.y)), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ea))
+			g.hud.draw_string(g.font, Vector2(chip.position.x, chip.position.y + 4.0 + la), row.label, HORIZONTAL_ALIGNMENT_CENTER, chip.size.x, UI.fs(lbl_sz), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, ea))
+		var y0 := y
+		for ln2 in row.lines:
 			if y + lhh > r.end.y - 58.0:
 				break
-			g.hud.draw_string(g.font, Vector2(tx, y + asc), ln2, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.85, 0.93, 0.95, ea))
+			g.hud.draw_string(g.font, Vector2(tx + (lbl_w if row.label != "" else 0.0), y + asc), ln2, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.9, 0.96, 0.98, ea))
 			y += lhh
-		y += 14.0
+		y = maxf(y, y0 + lhh) + row_gap
 	# 页码点（可点击）
 	g.intro_panel = r
 	g.intro_dots.clear()
@@ -410,6 +442,9 @@ func draw_icon(kind: String, c: Vector2) -> void:
 				var ec: Color = ends[k][1]
 				UI.diamond(g.hud, c + Vector2(-66 + k * 44, 92), 9.0, Color(ec.r, ec.g, ec.b, 0.35), ec)
 				UI.text(g.hud, g.font, c + Vector2(-86 + k * 44, 122), ends[k][0], 13, ec, HORIZONTAL_ALIGNMENT_CENTER, 40)
+		"command":
+			# 指挥圆盘：直接缩小画当前的圆盘（终末地风格，command_wheel.gd 同一份画法），每 1.4 秒轮流悬停一项
+			g.wheel.draw_preview(c + Vector2(0, 4), 0.56, g.intro_t)
 		"keys":
 			if Pad.touch_ui():
 				_draw_touch_keys(c)
@@ -424,13 +459,26 @@ func draw_icon(kind: String, c: Vector2) -> void:
 
 ## 指南正文里的数值占位（docs/83 入队加成读 balance.json squad 段；docs/88 灯火暗淡 / 受击灯火读 lamp 段、暗淡刷新读 enemy 段；不写死）。
 ## 缺省值与读取处一致：combat.gd（lamp/dark_taken、hit_base、hit_scale）、enemies.gd（lamp/dark_enemy）、spawner.gd（enemy/spawn_dark_mult）
+## 10-24 增补：灯标（run/beacon.gd）、宝箱 / 补给箱（combat.gd、docs/133）、指挥与切换队长（docs/114、135）
 static func fill_numbers(ln: String) -> String:
 	if not ln.contains("{"):
 		return ln
 	var Bal = preload("res://scripts/core/balance.gd")
 	var Sq = preload("res://scripts/characters/squad.gd")
 	var pct := func(mult: float) -> String: return str(int(round((mult - 1.0) * 100.0)))
-	return ln.replace("{hp_per_member}", str(int(round(Bal.v("squad/hp_per_member", 0.0) * 100.0)))).replace("{regen_per_member}", Sq.regen_steps_text()) \
-		.replace("{dark_taken}", pct.call(Bal.v("lamp/dark_taken", 1.15))).replace("{dark_enemy}", pct.call(Bal.v("lamp/dark_enemy", 1.2))) \
-		.replace("{dark_spawn}", pct.call(Bal.v("enemy/spawn_dark_mult", 1.15))) \
-		.replace("{lamp_hit_10}", Sq._num(Bal.v("lamp/hit_scale", 30.0) * 0.1)).replace("{lamp_hit}", Sq._num(Bal.v("lamp/hit_base", 4.0)))
+	var pc100 := func(key: String, dflt: float) -> String: return str(int(round(Bal.v(key, dflt) * 100.0)))
+	var vals := {
+		"{hp_per_member}": str(int(round(Bal.v("squad/hp_per_member", 0.0) * 100.0))), "{regen_per_member}": Sq.regen_steps_text(),
+		"{dark_taken}": pct.call(Bal.v("lamp/dark_taken", 1.15)), "{dark_enemy}": pct.call(Bal.v("lamp/dark_enemy", 1.2)),
+		"{dark_spawn}": pct.call(Bal.v("enemy/spawn_dark_mult", 1.15)),
+		"{lamp_hit_10}": Sq._num(Bal.v("lamp/hit_scale", 30.0) * 0.1), "{lamp_hit}": Sq._num(Bal.v("lamp/hit_base", 4.0)),
+		"{beacon_need}": Sq._num(Bal.v("beacon/need", 2.5)), "{beacon_lamp}": Sq._num(Bal.v("beacon/lamp", 5.0)), "{beacon_block}": Sq._num(Bal.v("beacon/block_t", 30.0)),
+		"{elite_chest}": pc100.call("relic/elite_drop_chance", 0.3),
+		"{pack_p}": pc100.call("crate/pack_p", 0.9), "{pack_pct}": pc100.call("crate/pack_pct", 0.3), "{pack_below}": pc100.call("crate/pick_below", 0.9),
+		"{crate_magnet}": pc100.call("crate/magnet_p", 0.1), "{crate_shield}": pc100.call("crate/shield_p", 0.1),
+		"{cmd_stamina}": Sq._num(Bal.v("command/stamina_secs", 25.0)), "{cmd_min}": pc100.call("command/min_start", 0.3),
+		"{cmd_revive}": Sq._num(Bal.v("command/revive_secs", 25.0)), "{swap_cd}": Sq._num(Bal.v("leader_swap/cd", 2.0)),
+	}
+	for k in vals:
+		ln = ln.replace(k, vals[k])
+	return ln

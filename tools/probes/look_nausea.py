@@ -19,7 +19,8 @@ import godot_runner as GR  # noqa: E402
 OUT = os.path.join(GR.common_root(ROOT), "build", "look_nausea")
 
 # 段：起始秒、帧数（60 fps）
-SEGS = {"early": (6.0, 240), "late": (300.0, 300)}
+SEGS = {"early": (6.0, 240), "late": (300.0, 300), "late9": (545.0, 120), "boss10": (612.0, 120)}
+SEG_EXTRA = {"late9": ["--nodeath"], "boss10": ["--nodeath"]}   # 后期段：不死，保证录到 9:00 后 / 最终 Boss 在场
 
 KILL_RECOIL = ["--bal=fx/recoil_px=0", "--bal=fx/recoil_px1=0", "--bal=fx/recoil_px2=0", "--bal=fx/recoil_px3=0"]
 KILL_SQUASH = ["--bal=fx/squash_basic=0", "--bal=fx/squash_dot=0", "--bal=fx/squash_skill=0"]
@@ -46,6 +47,16 @@ VARIANTS = {
     "reco": ["--bal=render/nausea_safe=1"],
     "ambdesat": ["--bal=render/ambient_desat=0.5"],
     "ambdesat_nosea": ["--bal=render/ambient_desat=0.5", "--bal=render/optical_sea=0"],
+    # docs/139 §7（10-24）：敌弹描边三档、怪物冲刺各项
+    "eb_outline": ["--bal=render/ebullet_outline=2"],
+    "eb_danger": ["--bal=render/ebullet_recolor=0", "--bal=render/optical_col_ebullet_h=0.95", "--bal=render/optical_col_ebullet_s=0.85"],
+    "dash_notell": ["--bal=render/dash_tell=0"],
+    "dash_nosparks": ["--bal=render/enemy_dash_sparks=0"],
+    "dash_noflow": ["--bal=render/dash_tell_flow=0"],
+    "dash_style1": ["--bal=render/dash_tell_style=1"],
+    "dash_style2": ["--bal=render/dash_tell_style=2"],
+    "dash_calm": ["--bal=render/dash_tell_alpha=0.55", "--bal=render/dash_tell_flow=0", "--bal=render/dash_tell_white=0", "--bal=render/dash_tell_half=6",
+                  "--bal=fx/tell_full_max=2"],
     "camfloat": ["--bal=render/cam_round=0"],
     "camsnap2": ["--bal=render/cam_round=2"],
     "intzoom": ["--bal=render/optical_int_zoom=1"],
@@ -68,7 +79,7 @@ def rec_one(seg, name, res, squad, seed):
             "--resolution", "%sx%s" % (w, h), "--",
             "--balance", "--seed=%d" % seed, "--op=" + squad[0], "--squad=" + ",".join(squad[1:]), "--bot=expert",
             "--realtime", "--playclock", "--rtfrom=%g" % max(0.0, t0 - 3.0), "--nohud",
-            "--recframes=%g,%d" % (t0, n), "--camlog=%g" % t0, "--shotdir=" + d.replace(os.sep, "/"), "--perf"] + VARIANTS[name]
+            "--recframes=%g,%d" % (t0, n), "--camlog=%g" % t0, "--shotdir=" + d.replace(os.sep, "/"), "--perf"] + SEG_EXTRA.get(seg, []) + VARIANTS[name]
     out, err, to = GR.run_godot(args, 2400)
     cam = [l for l in out.splitlines() if l.startswith("CAMLOG ")]
     perf = [l for l in out.splitlines() if l.startswith("PERF ") or l.startswith("STOPSTAT")]

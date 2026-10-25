@@ -224,6 +224,8 @@ static func fx_draw(ci, g, f: Dictionary, dim: float) -> void:
 		fr = mini(int(f.get("first_frame", 0)) + int(el * float(f.fps)), frames - 1)
 	if f.get("slash_material", false):
 		a *= clampf(1.0 - (el - float(f.slash_break_at)) / 0.08, 0.0, 1.0)
+	if not f.loop:
+		a *= _mat_handoff(g, f, el, frames, fr)
 	var sc: float = float(f.sc) if f.get("fit", false) or not ("vfx" in g) or g.vfx == null else g.vfx.int_scale(float(f.sc))   # 低分辨率层整数格（docs/138 §10）；按半径拟合的不取整
 	fx_frame(ci, g, str(f.name), frames, fr, f.pos, sc, Color(f.col.r, f.col.g, f.col.b, f.col.a * a), f.anc, float(f.ang))
 
@@ -581,3 +583,26 @@ static func fx_has_vortex(entries) -> bool:
 			if f is Dictionary and f.has("vortex"):
 				return true
 	return false
+
+
+## 帧条后半段换颗粒（docs/138 §11，fx_grains.MAT_HANDOFF）：播到交接比例那一刻从当前帧迸出材质颗粒，之后返回帧条的淡出系数；
+## 颗粒没生成（材质关 / 预算满 / 低画质）就返回 1，帧条照原样播完。只在画的时候算，随机只走 g.vrng
+static func _mat_handoff(g, f: Dictionary, el: float, frames: int, fr: int) -> float:
+	var grains = g.optical.grains if "optical" in g and g.optical != null else null
+	if grains == null or f.get("mat_skip", false) or not grains.MAT_HANDOFF.has(str(f.name)):
+		return 1.0
+	var at: float = float(grains.MAT_HANDOFF[str(f.name)]) * float(frames) / maxf(1.0, float(f.fps))
+	if not f.has("mat_t"):
+		if el < at:
+			return 1.0
+		f["mat_t"] = el
+		f["mat_ok"] = false
+		var tx: Texture2D = g.tex.get(str(f.name))
+		if tx != null:
+			var h: float = ArtS.hires_of(tx)
+			var fw: float = float(tx.get_width()) / float(frames)
+			var an: Vector2 = f.anc * h if f.anc.x >= 0.0 else Vector2(fw, tx.get_height()) / 2.0
+			f["mat_ok"] = grains.material_burst(str(f.name), tx, frames, f.pos, float(f.ang), float(f.sc) / h, an, false, f.col, fr)
+	if not f.mat_ok:
+		return 1.0
+	return clampf(1.0 - (el - float(f.mat_t)) / 0.08, 0.0, 1.0)

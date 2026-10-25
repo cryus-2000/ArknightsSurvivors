@@ -88,8 +88,11 @@ var meta_dev := ""                # 本机设备号（第一次记生机细胞�
 var meta_bounty: Array = []       # 已领首通赏金的潮位
 var roster_fresh: Array = []      # 刚解锁、还没在名册里看过的干员（选人页 / 图鉴高亮一次；只存本机，不上云）
 var roster_int_grant := false     # 对内包的测试寻访凭证已发过（INTERNAL_TICKETS，每份存档一次）
-## 对内包（用户 10-22：要在对内包里测寻访）：名册不全部解锁，按新玩家开局 5 人；每份存档首次启动发这么多张寻访凭证
+## 对内包（用户 10-22：要在对内包里测寻访；10-24 改：开局 10 人 + 20 张）：名册不全部解锁；每份存档首次启动补齐
+## Roster.INTERNAL_START 的 5 名干员（开局共 10 人）并发这么多张寻访凭证
 const INTERNAL_TICKETS := 20
+## 对内包存档目录带提交号（ArknightsSurvivors_Internal_<短 sha>，tools/export_build.py 打包时改 project.godot）：每个新的对内包从干净存档开始，
+## 不读旧包、也不读开发目录的存档（用户 10-24；旧的一次性迁移已删）；同一个包里的进度照常保存
 var unlock_all := false      # 本次运行全部解锁（只在内存里，见 _apply_unlock_all）：调试版与对内打包版为 true，对外包恒为 false
 var _real_progress := {}      # 全部解锁时存档里真实的进度字段，save() 原样写回
 var title_seen := false      # 本次运行已播过标题开场动画（仅内存；对局返回标题不重播）
@@ -291,7 +294,6 @@ func _ready() -> void:
 		dof = DisplayServer.is_touchscreen_available() == false
 	_toy_init()
 	brightness = Look.p("bright_def")
-	_migrate_internal_save()
 	var c := ConfigFile.new()
 	if c.load(PATH) == OK:
 		_read_cfg(c)
@@ -542,14 +544,18 @@ func _apply_unlock_all() -> void:
 	var db = preload("res://scripts/core/relic_db.gd").new()
 	db.load_files()
 	seen_relics = db.implemented().map(func(r): return r.id)
-	# 对内发布包：名册照新玩家走（roster_all_open() 为假），首次启动发测试用寻访凭证，写进存档（真实进度，寻访结果也照常存）
+	# 对内发布包：名册不全开（roster_all_open() 为假），首次启动补齐开局 10 人并发测试用寻访凭证，写进存档（真实进度，寻访结果也照常存）
 	if internal_roster() and not roster_int_grant:
 		roster_int_grant = true
+		var Roster = preload("res://scripts/core/roster.gd")
+		for cid in Roster.INTERNAL_START:
+			if not roster_unlocked.has(cid):
+				roster_unlocked.append(cid)
 		roster_tickets["hunt"] = int(roster_tickets.get("hunt", 0)) + INTERNAL_TICKETS
 		save()
 
 
-## 对内发布包（非调试版、audience = internal）：图鉴 / 难度 / 结局照旧全开，名册按开局 5 人 + 寻访（10-22）
+## 对内发布包（非调试版、audience = internal）：图鉴 / 难度 / 结局照旧全开，名册按开局 10 人 + 寻访（10-22、10-24）
 func internal_roster() -> bool:
 	return not OS.is_debug_build() and build_audience() == "internal"
 
@@ -860,23 +866,3 @@ func can_boss_trial() -> bool:
 		return not dev_args().has("--audience=public")
 	return build_audience() == "internal"
 
-
-## 对内包存档一次性迁移（2026-09-30，docs/33 §双版本）：对内包的存档目录从 ArknightsSurvivors 改成
-## ArknightsSurvivors_Internal（tools/export_build.py 打包时改）后，已经在玩旧内测包的人进度会「消失」。
-## 对内包启动时：新目录还没有存档、旧目录（同级的 ArknightsSurvivors）有，就把 settings.cfg 复制过来——
-## 只复制，不移动、不删旧的；新目录已有存档就不动。对外包 / 调试版不迁移。
-const LEGACY_USER_DIR := "ArknightsSurvivors"
-const INTERNAL_USER_DIR := "ArknightsSurvivors_Internal"
-
-func _migrate_internal_save() -> void:
-	if OS.is_debug_build() or build_audience() != "internal":
-		return
-	var cur := OS.get_user_data_dir()
-	if cur.get_file() != INTERNAL_USER_DIR or FileAccess.file_exists(PATH):
-		return
-	var old := cur.get_base_dir().path_join(LEGACY_USER_DIR).path_join(PATH.get_file())
-	if not FileAccess.file_exists(old):
-		return
-	DirAccess.make_dir_recursive_absolute(cur)
-	var err := DirAccess.copy_absolute(old, cur.path_join(PATH.get_file()))
-	print("[Cfg] 对内包存档迁移：%s -> %s（%s）" % [old, cur.path_join(PATH.get_file()), error_string(err)])
