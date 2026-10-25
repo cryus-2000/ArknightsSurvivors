@@ -75,7 +75,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_vp = get_tree().root.get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(_vp, true)
-	for a in OS.get_cmdline_user_args():
+	for a in (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()):   # 发布版不读命令行（check_release）；不依赖 Cfg 加载顺序，同 balance.gd 写法
 		if a.begins_with("--ftquit="):
 			var p := a.substr(9).split(":")
 			_quit = [p[0], float(p[1]) if p.size() > 1 else 10.0]
