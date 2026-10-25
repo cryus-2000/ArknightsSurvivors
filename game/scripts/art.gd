@@ -97,6 +97,8 @@ static var marks: Array = []
 static func mark(n: String) -> void:
 	if OS.is_debug_build() and OS.get_cmdline_user_args().has("--loadprof"):
 		marks.append([n, Time.get_ticks_msec()])
+	if OS.is_debug_build() and OS.get_cmdline_user_args().has("--memlog"):
+		print("PF MEMSTAGE %s tex=%.1fMB vid=%.1fMB" % [n, Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0, Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0])   # docs/50 §30：建局各段的贴图增量
 
 ## 美术交付用旧文件名时的对应关系（新名 -> incoming 里的文件名）
 const ALIAS := {
@@ -806,6 +808,12 @@ static func hue_to(src: Texture2D, hue: float, lo: float, hi: float) -> Texture2
 
 
 static var _white_cache := {}   # 原贴图 instance id → 白色剪影（10-21：每建一局都从显存读回重算，图鉴演示每点一次卡 1–2 秒）
+
+
+## 白剪影释放（game._white_release）：从缓存里拿掉，贴图在没人引用后释放
+static func white_drop(src: Texture2D) -> void:
+	if src != null:
+		_white_cache.erase(src.get_instance_id())
 
 
 static func white_of(src: Texture2D) -> Texture2D:

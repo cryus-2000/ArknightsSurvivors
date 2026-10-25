@@ -30,8 +30,10 @@ func check(ok: bool, what: String) -> void:
 		print("FAIL ", what)
 
 
+## 旧版开局（--roster=start5：开局 5 人写在名册里），下面 1–8 节按它写；新手十连见第 9 节
 func reset() -> void:
-	Cfg.roster_unlocked = []
+	Cfg.roster_unlocked = Roster.STARTERS.duplicate()
+	Cfg.roster_v = 2
 	Cfg.roster_tickets = {}
 	Cfg.roster_spare = {}
 	Cfg.roster_tiers = []
@@ -115,7 +117,7 @@ func run() -> void:
 	Roster.on_run_end(fg, false)
 	check(Roster.tickets() == 7, "非 PLAY 模式不发")
 	fg.mode = 0
-	Cfg.roster_unlocked = Roster.all_ids().filter(func(c): return not Roster.STARTERS.has(c))
+	Cfg.roster_unlocked = Roster.all_ids()
 	Cfg.meta_earned = {}
 	Cfg.meta_dev = "dtest"
 	Roster.on_run_end(fg, true)
@@ -156,7 +158,7 @@ func run() -> void:
 	check(Meta.available() == 100 - 90 - Meta.spent(Cfg.meta_shape), "认知塑造与兑换共用同一余额")
 	Cfg.meta_shape = {}
 	Cfg.meta_earned = {"dtest": 1000}
-	Cfg.roster_unlocked = Roster.all_ids().filter(func(c): return not Roster.STARTERS.has(c))
+	Cfg.roster_unlocked = Roster.all_ids()
 	check(not Roster.exchange_visible() and not Roster.exchange_ticket() and Cfg.meta_bought.dtest == 90, "名册已满：入口隐藏、不兑换、不扣")
 	Cfg.roster_unlocked = []
 	# 存档往返 + 云存档：兑换花费逐设备取大（只增不减）
@@ -173,6 +175,60 @@ func run() -> void:
 	Cfg.meta_bought = {}
 	var nb: Dictionary = Cfg.cloud_body()
 	check(not nb.prog.meta.has("bought"), "没兑换过的存档不写 bought（与旧版本往返相同）")
+	reset()
+
+	# 9. 新手开局 + 新手十连（10-26 用户）：名册为空、10 张；十连 10 名不同干员、覆盖全部 8 个职业（含医疗）；只在名册为空时可用；
+	# 凭证不够不扣；同一存档种子结果固定；旧云档（没有 rv）补开局 5 人
+	reset()
+	Cfg.roster_unlocked = []
+	Cfg.roster_tickets = {"hunt": Roster.FIRST_TICKETS}
+	check(Roster.needs_first() and not Roster.is_unlocked("texas"), "新手开局：名册为空（旧开局 5 人不再默认解锁）")
+	check(Roster.rarity("texas") == 5 and Roster.rarity("lappland") == 5 and Roster.rarity("skadi") == 6, "原作稀有度")
+	var ten := Roster.redeem_ten()
+	var tids := {}
+	var tcls := {}
+	for r in ten:
+		tids[r.id] = true
+		tcls[Roster.class_of(r.id)] = true
+	check(ten.size() == Roster.TEN and tids.size() == Roster.TEN and Roster.tickets() == 0 and Cfg.roster_draws == Roster.TEN, "十连：10 名不同干员、10 张用完（%s）" % [tids.keys()])
+	check(tcls.size() == 8 and tcls.has("医疗"), "十连覆盖全部 8 个职业（%s）" % [tcls.keys()])
+	check(not Roster.needs_first() and Roster.locked_ids().size() == Roster.all_ids().size() - Roster.TEN, "十连后新手引导结束、剩 %d 人待寻访" % Roster.locked_ids().size())
+	Cfg.roster_tickets = {"hunt": 10}
+	check(Roster.redeem_ten().is_empty() and Roster.tickets() == 10, "名册不为空时不能再十连")
+	reset()
+	Cfg.roster_unlocked = []
+	Cfg.roster_tickets = {"hunt": 9}
+	check(Roster.redeem_ten().is_empty() and Roster.tickets() == 9 and Cfg.roster_unlocked.is_empty(), "凭证不够 10 张不十连、不扣")
+	var first_ids: Array = ten.map(func(r): return r.id)
+	reset()
+	Cfg.roster_unlocked = []
+	Cfg.roster_tickets = {"hunt": 10}
+	check(Roster.redeem_ten().map(func(r): return r.id) == first_ids, "同一存档种子十连结果相同")
+	var bad := 0
+	for sd in range(1, 41):
+		reset()
+		Cfg.roster_seed = sd
+		Cfg.roster_unlocked = []
+		Cfg.roster_tickets = {"hunt": 10}
+		var cs := {}
+		for r in Roster.redeem_ten():
+			cs[Roster.class_of(r.id)] = true
+		if cs.size() != 8:
+			bad += 1
+	check(bad == 0, "40 个种子的十连都覆盖 8 个职业（%d 个没有）" % bad)
+	# 旧版本写的云档（没有 rv）：开局 5 人不在 ops 里，读进新设备（空名册）时补上
+	reset()
+	Cfg.roster_unlocked = []
+	Cfg.roster_tickets = {"hunt": 10}
+	var nb2: Dictionary = Cfg.cloud_body()
+	check(int(nb2.prog.get("rv", 0)) == 2, "cloud_body 带 rv=2")
+	var old_cloud: Dictionary = nb2.duplicate(true)
+	old_cloud.prog.erase("rv")
+	old_cloud.prog.ops = ["lumen"]
+	old_cloud.prog.opst = {"tk": {"hunt": 1}, "draws": 3, "seed": 9}
+	var mo: Dictionary = Pack.merge(nb2, old_cloud)
+	Cfg.cloud_apply(mo)
+	check(Cfg.roster_unlocked.has("lumen") and Roster.STARTERS.all(func(c): return Cfg.roster_unlocked.has(c)) and not Roster.needs_first(), "旧云档补开局 5 人：%s" % [Cfg.roster_unlocked])
 	reset()
 
 	print("ROSTER failures=%d" % failures)

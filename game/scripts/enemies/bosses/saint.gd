@@ -299,7 +299,7 @@ func _fire_step(e: Dictionary, dt: float) -> void:
 		e.lane_gaps = q
 		var a: Vector2 = la.pos
 		lines.append({"a": a, "b": a + Vector2.from_angle(float(la.ang)) * float(la.len), "gap_t": gt, "gap_len": Bal.v("boss/carmen_fire_gap", 80.0),
-			"until": g.t + Bal.v("boss/carmen_fire_life", 7.5), "born": g.t})   # 原 6 秒（10-25 激光持续更长）
+			"until": g.t + Bal.v("boss/carmen_fire_life", 6.0), "born": g.t})   # 6 秒（10-25 曾加到 7.5，10-26 用户嫌激光收得慢，退回）
 	lines = lines.filter(func(fl): return g.t < float(fl.until))
 	e.fire_lines = lines
 	if g.invuln > 0.0 or g.t < float(e.get("fire_hit_at", 0.0)):

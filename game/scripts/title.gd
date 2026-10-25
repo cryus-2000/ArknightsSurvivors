@@ -70,6 +70,8 @@ func _ready() -> void:
 	add_child(meta_ui)
 	hunt_ui = preload("res://scripts/screens/hunt_host.gd").new()
 	add_child(hunt_ui)
+	if preload("res://scripts/core/roster.gd").needs_first():
+		sel = 7   # 新手开局（名册为空）：缺省选中寻访，Enter 直接去做新手十连
 	medals_ui = preload("res://scripts/screens/medals_ui.gd").new()
 	add_child(medals_ui)
 	if get_tree().has_meta("settlement_open_meta"):
@@ -194,6 +196,31 @@ func _ready() -> void:
 		intro = INTRO_LEN
 		medals_ui.open()
 		medals_ui.perf_t = 0.0   # 帧时测量（tools/perf_web.py run … -- --medalperf）：背景动 / 静轮换 24 秒
+	if Cfg.dev_args().has("--metademo"):
+		# 认知塑造演示录像（10-25）：配 --write-movie <文件.avi> --fixed-fps 30 与 --metacells / --metabuy；可选 --metastyle=tree|sea。
+		# 0.5 秒从标题进入 → 按 --metademokeys（R/L/U/D 方向、E 塑造、W 停一拍；缺省见下）每 0.75 秒一个键（塑造后停 1.6 秒）→ 10 秒退出
+		intro = INTRO_LEN
+		for a in Cfg.dev_args():
+			if a.begins_with("--metabuy="):
+				Cfg.meta_shape = preload("res://scripts/core/meta.gd").shape_for(int(a.substr(10)))
+		var keys := "D,D,D,R,D,E,U,U,L"
+		for a in Cfg.dev_args():
+			if a.begins_with("--metademokeys="):
+				keys = a.substr(15)
+		get_tree().create_timer(0.5).timeout.connect(func(): _activate(6))
+		var kmap := {"R": KEY_RIGHT, "L": KEY_LEFT, "U": KEY_UP, "D": KEY_DOWN, "E": KEY_ENTER}
+		var at := 1.9
+		for kname in keys.split(","):
+			var kc: int = kmap.get(kname, 0)
+			if kc != 0:
+				get_tree().create_timer(at).timeout.connect(func():
+					for down in [true, false]:
+						var e := InputEventKey.new()
+						e.keycode = kc
+						e.pressed = down
+						Input.parse_input_event(e))
+			at += 1.6 if kname == "E" else 0.75
+		get_tree().create_timer(10.0).timeout.connect(func(): get_tree().quit())
 	if Cfg.dev_args().has("--titlehunt"):
 		# 标题页寻访入口截图（10-22）：配 --rostertickets=<n>；打开寻访入口 1.2 秒后截
 		intro = INTRO_LEN
@@ -339,7 +366,11 @@ func _ready() -> void:
 		get_tree().create_timer(2.0).timeout.connect(func():
 			get_viewport().get_texture().get_image().save_png(_shot_dir() + "/shot_title.png")
 			get_tree().quit())
-	if Cfg.dev_args().has("--autotest") or Cfg.dev_args().has("--balance"):
+	var tour_demo := false   # --tourdemo / --tipdemo=<id>：真人局（不带机器人）直接进对局演引导 / 小提示（screens/tour.gd）
+	for a in Cfg.dev_args():
+		if a == "--tourdemo" or a.begins_with("--tipdemo="):
+			tour_demo = true
+	if Cfg.dev_args().has("--autotest") or Cfg.dev_args().has("--balance") or tour_demo:
 		if A.prewarm_busy() or Sfx.warm_busy() or Cfg.dev_args().has("--loadprof"):
 			auto_go = true   # 开窗口的自测：等法线图预热完（同玩家路径），黑屏时长才有可比性；--loadprof 一律走载入页（量玩家路径）
 		else:
@@ -386,6 +417,9 @@ var _bg_game_started := false
 func _bg_game() -> void:
 	if _bg_game_started or OS.has_feature("web") or not OS.has_feature("threads") or DisplayServer.get_name() == "headless":
 		return
+	var args := Cfg.dev_args()
+	if not args.is_empty() and not args.has("--ftrec") and not args.has("--loadprof"):
+		return   # 截图 / 测试局常在一两秒内退出：后台还在编译时退出会报「Could not preload」，算快检失败；只在玩家路径和帧时测量里做
 	_bg_game_started = true
 	if not ResourceLoader.has_cached("res://game.tscn"):
 		ResourceLoader.load_threaded_request("res://game.tscn")
@@ -659,6 +693,10 @@ func _activate(i: int) -> void:
 	Sfx.play("ui_ok")
 	match i:
 		0:
+			if preload("res://scripts/core/roster.gd").needs_first():
+				sel = 7   # 新手十连之前名册为空、出发不了：点「集结出发」先带去寻访（10-26 用户）
+				_activate(7)
+				return
 			transition.switch_page(_open_op_pick.bind(false))
 		1:
 			gallery.open()   # 10-22 用户：进图鉴不要入场动效，直接出现
@@ -757,9 +795,12 @@ func _draw_menu(vs: Vector2) -> void:
 	for i in menu_lay.list.ids:
 		a_list.append(_item_a(i))
 	const R = preload("res://scripts/core/roster.gd")
+	var first := R.needs_first()
 	Tiles.draw(self, menu_lay, {"font": font, "sel": sel, "water": menu_water, "now": t, "rm": Cfg.reduce_motion,
-		"a_logo": 0.0, "logo_tex": null, "a_list": a_list, "a_deploy": _item_a(0), "a_foot": _seg(2.0, 0.4),
+		"a_logo": 0.0, "logo_tex": null, "a_list": a_list, "a_deploy": _item_a(0) * (0.35 if first else 1.0), "a_foot": _seg(2.0, 0.4),
 		"slide": 0.0 if Cfg.reduce_motion else 16.0, "dim": [] if R.active() else [7], "tickets": R.tickets() if R.active() else -1})   # 10-24 用户：没有凭证也能点进寻访看卡池
+	if first and not (guide or credits):
+		_draw_first_guide()
 	# 声明（同人 · 非商业 · 与鹰角网络无关 · 致谢与声明）+ 版本：桌面右下，手机跟在底部一行后面
 	var ff := _seg(2.0, 0.4)
 	var lg: Dictionary = menu_lay.legal
@@ -781,6 +822,40 @@ func _draw_menu(vs: Vector2) -> void:
 	# 对内包页脚提示（docs/40，用户 10-10）：声明上面一行；手机只在设置页提示
 	if not ph and not OS.is_debug_build() and Cfg.runs_log_enabled():
 		UI.text(self, font, Vector2(lg.pos.x - 310, fy - 20), "测试版：本地记录对局摘要（不上传）", 12, _fa(UI.GOLD, ff), HORIZONTAL_ALIGNMENT_RIGHT, 310)
+
+
+## 新手引导（10-26 用户：开局名册为空，第一次进主界面引去寻访做新手十连）：寻访一行外圈青色角框呼吸 + 右侧箭头左右轻摆 + 一句提示；
+## 「集结出发」压暗并写开放条件。命中区不变（点集结出发由 _activate 转去寻访）
+func _draw_first_guide() -> void:
+	var a := _item_a(7)
+	var r: Rect2 = item_rects[7] if item_rects.size() > 7 else Rect2()
+	if a <= 0.0 or r.size.x <= 0.0:
+		return
+	const C := Color(0.616, 0.898, 0.937)
+	var p := 0.5 + 0.5 * sin(t * 4.0) if not Cfg.reduce_motion else 1.0
+	var g := r.grow(6.0)
+	var l := 14.0
+	for cn in [[g.position, 1, 1], [Vector2(g.end.x, g.position.y), -1, 1], [Vector2(g.position.x, g.end.y), 1, -1], [g.end, -1, -1]]:
+		var q: Vector2 = cn[0]
+		draw_rect(Rect2(q + Vector2(0.0 if cn[1] > 0 else -l, 0.0 if cn[2] > 0 else -2.0), Vector2(l, 2.0)), _fa(C, a * (0.55 + 0.45 * p)))
+		draw_rect(Rect2(q + Vector2(0.0 if cn[1] > 0 else -2.0, 0.0 if cn[2] > 0 else -l), Vector2(2.0, l)), _fa(C, a * (0.55 + 0.45 * p)))
+	draw_rect(g, _fa(C, a * 0.08 * p))
+	var ax := g.end.x + 14.0 + (0.0 if Cfg.reduce_motion else sin(t * 5.0) * 5.0)
+	var ay := g.get_center().y
+	draw_colored_polygon(PackedVector2Array([Vector2(ax, ay), Vector2(ax + 14.0, ay - 9.0), Vector2(ax + 14.0, ay + 9.0)]), _fa(C, a))
+	var tx := ax + 22.0
+	var fs := 15 if not menu_lay.compact else 13
+	var tip := "新手寻访：十连招募 10 名干员"
+	var tw: float = font.get_string_size(tip, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	draw_rect(Rect2(tx - 6.0, ay - 15.0, tw + 14.0, 30.0), Color(0.02, 0.05, 0.07, 0.82 * a))
+	draw_rect(Rect2(tx - 6.0, ay - 15.0, 3.0, 30.0), _fa(C, a))
+	UI.text(self, font, Vector2(tx + 2.0, ay + fs * 0.36), tip, fs, _fa(Color(0.914, 0.941, 0.953), a))
+	var d: Rect2 = item_rects[0] if item_rects.size() > 0 else Rect2()
+	if d.size.x > 0.0:
+		var lock := "完成新手寻访后开放"
+		var lw: float = font.get_string_size(lock, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+		var ly: float = d.position.y - 8.0 if menu_lay.compact else d.end.y + 16.0   # 紧凑版式集结出发贴底：提示写在上方
+		UI.text(self, font, Vector2(d.get_center().x - lw / 2.0, ly), lock, 12, _fa(Color(0.635, 0.725, 0.784), _item_a(0)))
 
 
 ## Logo 层（logo_ci 的 draw）：难度页、选人页不画

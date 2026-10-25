@@ -243,6 +243,23 @@ func run_checks() -> void:
 	g.eai.lob(st_e)
 	check(not g.lobs.is_empty() and str(g.lobs[g.lobs.size() - 1].get("hit_fx", "")) == "fx_rock_hit" and float(g.lobs[g.lobs.size() - 1].get("hit_org", [0, 0])[0]) == 10.0 and float(g.lobs[g.lobs.size() - 1].get("hit_org", [0, 0])[1]) == 10.0, "stone lob carries hit_fx and its origin")
 	g.lobs.clear()
+	# 大群分批出发（docs/158，10-26 iPhone 实机「有些怪物身上冒着红光卡在原地」）：出发延迟走 depart_t，等待结束后普通怪照常追队长；
+	# 原来借用收割者的 wake_t，只有收割者会倒计时，其他怪永远站在原地
+	g.enemies.clear()
+	g.warns.clear()
+	g.ppos = Vector2.ZERO
+	var hb: Array = []
+	for k in 6:
+		var he: Dictionary = g.spawner.spawn_enemy("tracer" if k == 0 else "bone", Vector2.from_angle(k * TAU / 6.0) * 500.0)
+		g.spawner._horde_loose(he, true)
+		hb.append([he, he.pos])
+	check(hb.any(func(x): return float(x[0].get("depart_t", 0.0)) > 0.0) and hb.all(func(x): return float(x[0].get("wake_t", 0.0)) <= 0.0), "horde batches wait on depart_t, not the reaper-only wake_t")
+	for f in 150:
+		g.t += 1.0 / 30.0
+		g.enemies_sys.build_grid()
+		g.enemies_sys.update(1.0 / 30.0)
+	check(hb.all(func(x): return x[0].dead or x[0].pos.distance_to(Vector2.ZERO) < float(x[1].distance_to(Vector2.ZERO)) - 60.0), "every horde member leaves its spawn point after its batch delay (no one stays frozen)")
+	g.enemies.clear()
 	print("ENEMY ATTACK VARIETY failures=", failures)
 	g.warns.clear()
 	g.enemies.clear()

@@ -1,5 +1,8 @@
 extends RefCounted
-## 干员解锁（局外成长 P1，docs/109 §12，用户 10-22 定；10-22 晚改为单一「寻访凭证」）：开局 5 人，其余用寻访凭证解锁。
+## 干员解锁（局外成长 P1，docs/109 §12，用户 10-22 定；10-22 晚改为单一「寻访凭证」）：其余用寻访凭证解锁。
+## 10-26 用户定新手开局：名册为空、送 FIRST_TICKETS（10）张凭证，第一次进主界面引导去寻访做一次「新手十连」（redeem_ten：10 名不同干员，
+## 先补齐职业），十连之前不能出发；剩下的干员靠之后每局的凭证 / 生机细胞兑换。旧存档（有 [roster] 段、版本 < 2）读档时把旧开局 5 人
+## （STARTERS）补进 roster_unlocked，老玩家名册不变（settings.gd _migrate_roster）。
 ## 每次探索结束发 3 张（通关 4 张）；随机寻访花 1 张，定向寻访花 2 张、直接解锁玩家点名的干员。
 ## 还有职业一个都没解锁时，随机寻访只从这些职业里抽（开局缺医疗 / 近卫 / 特种，首局 3 张随机正好各出 1 名）。
 ## 数据在 Cfg（[roster] 存档段，settings.gd）；这里只放规则。抽取用独立的 RandomNumberGenerator（种子来自存档的 roster_seed + 已抽次数），
@@ -10,12 +13,14 @@ extends RefCounted
 const Character = preload("res://scripts/characters/character.gd")
 const Meta = preload("res://scripts/core/meta.gd")
 
-## 开局固定的 5 人（用户 10-22：德克萨斯 / 星熊 / 艾雅法拉 / 铃兰 / 能天使 = 先锋 / 重装 / 术师 / 辅助 / 狙击）
+## 旧版开局的 5 人（10-22 ~ 10-25：德克萨斯 / 星熊 / 艾雅法拉 / 铃兰 / 能天使）。10-26 起新玩家开局为空，这张表只用于
+## 旧存档迁移（settings.gd _migrate_roster）与测试参数 --roster=start5（旧开局名册）
 const STARTERS := ["texas", "hoshiguma", "eyjafjalla", "suzuran", "exusiai"]
-## 对内发布包（Cfg.internal_roster()）首次启动再补的 5 人 → 开局共 10 人（用户 10-24）：
-## 在开局 5 人（先锋 / 重装 / 术师 / 辅助 / 狙击）之外补齐医疗 / 近卫 / 特种——流明、斯卡蒂、归溟幽灵鲨正是各职业「上手快」的首位，
-## 再加第二位先锋推进之王与带手动技能的近卫乌尔比安；8 个职业全覆盖，其余 10 人靠 20 张凭证与局终发券去寻访
-const INTERNAL_START := ["lumen", "skadi", "specter_unchained", "siege", "ulpianus"]
+## 新手开局：送 FIRST_TICKETS 张凭证，名册为空时只能做一次 TEN 连（redeem_ten）
+const FIRST_TICKETS := 10
+const TEN := 10
+## 原作稀有度（PRTS：德克萨斯、拉普兰德为 5★，其余名册干员均为 6★）：寻访演出的光色 / 星数用
+const RARITY_5 := ["texas", "lappland"]
 ## 同职业里先出「上手快」的那位：权重 2（其余 1）；后加入的干员排在同职业第二人之后：权重 0.5
 ## （10-22 拉普兰德 近卫、歌蕾蒂娅 特种，协调人定）
 const PRIORITY := {"lumen": 2.0, "skadi": 2.0, "specter_unchained": 2.0, "lappland": 0.5, "gladiia": 0.5}
@@ -69,7 +74,7 @@ static func active() -> bool:
 static func is_unlocked(cid: String) -> bool:
 	if not active():
 		return true
-	return STARTERS.has(cid) or Cfg.roster_unlocked.has(cid)
+	return Cfg.roster_unlocked.has(cid)
 
 
 static func locked_ids() -> Array:
@@ -82,6 +87,21 @@ static func class_of(cid: String) -> String:
 	if not _class_cache.has(cid):
 		_class_cache[cid] = str(Character.load_def(cid).get("class", ""))
 	return _class_cache[cid]
+
+
+## 原作稀有度（星数）
+static func rarity(cid: String) -> int:
+	return 5 if RARITY_5.has(cid) else 6
+
+
+## 新手十连还没做：解锁规则生效且名册一个人都没有（新玩家开局为空；老存档迁移后至少有旧开局 5 人）
+static func needs_first() -> bool:
+	if not active():
+		return false
+	for cid in Cfg.roster_unlocked:
+		if all_ids().has(cid):
+			return false
+	return true
 
 
 ## 已解锁干员覆盖的职业
@@ -204,6 +224,19 @@ static func redeem_random() -> Dictionary:
 ## 定向寻访（2 张）：直接解锁点名的干员
 static func redeem_pick(cid: String) -> Dictionary:
 	return _result("pick", cid, COST_PICK)
+
+
+## 新手十连（TEN 张，只在名册为空时可用）：连抽 TEN 次随机寻访，不重复；choose_hunt 先补齐缺的职业，所以 10 人覆盖全部 8 个职业
+## （名册 20 人、每职业 ≥ 2 人时必然如此），保证队里有医疗与输出。返回每一抽的结果（同 redeem_random）；条件不满足返回 []，什么也不扣
+static func redeem_ten() -> Array:
+	if not needs_first() or tickets() < TEN or locked_ids().size() < TEN:
+		return []
+	var out: Array = []
+	for _i in TEN:
+		var r := _result("ten", choose_hunt(), COST_RANDOM)
+		if str(r.id) != "":
+			out.append(r)
+	return out
 
 
 ## 「刚解锁」高亮：解锁后还没在选人页 / 图鉴里看过的干员；表现层显示一次后调 mark_seen

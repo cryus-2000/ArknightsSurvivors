@@ -9,6 +9,7 @@ const Character = preload("res://scripts/characters/character.gd")
 const Affects = preload("res://scripts/run/affects.gd")
 const CardMotion = preload("res://scripts/screens/card_motion.gd")   # 各种面板的入场动效分派（docs/62 第一批）
 const NodeIcons = preload("res://scripts/screens/node_icons.gd")   # 节点卡图标（docs/154）
+const NodeCardsUI = preload("res://scripts/screens/node_cards_ui.gd")   # 翻节点卡卡面与演出（docs/154）
 const UM = preload("res://scripts/ui_motion.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -23,6 +24,10 @@ var serif: Font                # 事件标题用的衬线粗体（fonts/serif.tt
 ## 下方事件名（衬线粗体）+ 剧情一句；右边竖排选项条在 panel_col。插画的随机形状按事件名缓存
 var ev_art := {}
 var ink_tex: GradientTexture2D
+## 事件插画（docs/156，Codex 母稿 art/incoming/event_cg_1026 离线缩成运行时用图）：按事件 id 打开面板时才 load，
+## 换成别的面板 / 面板关掉就放掉引用（显存随之释放）。桌面读 art/event_cg/hi（1120×1000，2× 插画框），网页读 web（560×500）
+var ev_cg: Texture2D = null
+var ev_cg_key := ""
 ## 选卡卡片（A3，仿原作「选择支援」）：炭灰卡 + 左上节点标签条（英文分类 + 中文）+ 右上序号 + 图标光环 + 名称 + 说明 +
 ## 作用对象标签（影响当前编队里的哪些干员，run/affects.gd）+ 底部操作条。悬停 / 焦点：青色细边与外晕，标签条与操作条变青
 const CARD_W := 272.0
@@ -272,6 +277,9 @@ func layout(kind: String) -> void:
 	var dim := 0.5
 	if kind == "shop":
 		bot = vs.y - 56.0
+	elif kind == "cross":
+		desat = 0.6   # 翻节点卡（docs/154）：压暗但保留战场氛围
+		dim = 0.42
 	elif kind == "event":
 		top = 0.0
 		bot = vs.y
@@ -338,6 +346,13 @@ func draw_bg() -> void:
 					hint = "←→ 选择 · Ⓐ 翻开" if Pad.using else ("点击卡片翻开" if Pad.touch else "点击卡片翻开，或按 1–%d" % g.choices.size())
 				UI.text(g.panel_fg, g.font, Vector2(0, CARDS_TOP + CARD_H * row_k + 26), hint, 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 			motion.draw_under(g.panel_fg)   # 藏品光柱（压暗带之上、卡片之下）
+			if g.choice_kind == "cross":
+				var inv: Transform2D = g.panel_fg.get_global_transform().affine_inverse()
+				var rects: Array = []
+				for cd in g.panel_box.get_children():
+					if cd is Button:
+						rects.append(inv * (cd as Control).get_global_rect())
+				NodeCardsUI.draw_bg(g.panel_fg, vs, rects, g.endg.flipped, UM.now(), cards_top())
 
 
 ## 面板标题（原作「选择支援」）：英文小标签 + 大标题（两侧渐隐细线 + 靠近文字的短粗线）+ 一行说明
@@ -410,6 +425,20 @@ func draw_event_bg(vs: Vector2) -> void:
 	for q in pts:
 		tp.append(p0 + q)
 		uv.append(Vector2(clampf(q.x / 560.0, 0.0, 1.0), clampf(q.y / 500.0, 0.0, 1.0)))
+	var cg := event_cg()
+	if cg != null:
+		UI.fill_poly(g.panel_fg, tp, Color.WHITE, uv, cg)
+	else:
+		_draw_ink_art(art, p0, tp)
+	# 底部压暗，放事件名与剧情
+	_event_caption(art, p0)
+
+
+## 没有插画时的墨色底：灰阶渐变 + 墨点笔触 + 彩色节点图标（C 版式）
+func _draw_ink_art(art: Dictionary, p0: Vector2, tp: PackedVector2Array) -> void:
+	var uv := PackedVector2Array()
+	for q in art.panel:
+		uv.append(Vector2(clampf(q.x / 560.0, 0.0, 1.0), clampf(q.y / 500.0, 0.0, 1.0)))
 	UI.fill_poly(g.panel_fg, tp, Color.WHITE, uv, ink_grad())
 	for b in art.blobs:
 		UI.fill_poly(g.panel_fg, offset_poly(b, p0, tp), Color(0.047, 0.047, 0.05, 0.5))
@@ -423,7 +452,12 @@ func draw_event_bg(vs: Vector2) -> void:
 		g.panel_fg.draw_circle(ac, 120.0 - k * 20.0, Color(0.18, 0.72, 1.0, 0.05))
 	var nk := event_node_kind()
 	NodeIcons.draw(g.panel_fg, nk, ac + Vector2(0, roundf(2.0 * sin(g.t * 2.0))), 8.0, NodeIcons.COLS[nk])
-	# 底部压暗，放事件名与剧情
+
+
+## 插画框底部压暗带 + 事件名 / 剧情 + 右侧「选择一项」标题与提示
+func _event_caption(art: Dictionary, p0: Vector2) -> void:
+	var vs := g.panel_fg.size
+	var cx := vs.x / 2.0
 	var g0 := Color(0.04, 0.04, 0.043, 0.0)
 	var g1 := Color(0.04, 0.04, 0.043, 0.95)
 	g.panel_fg.draw_polygon(PackedVector2Array([p0 + Vector2(6, 300), p0 + Vector2(554, 300), p0 + Vector2(554, 492), p0 + Vector2(6, 492)]), PackedColorArray([g0, g0, g1, g1]))
@@ -455,10 +489,20 @@ func draw_event_bg(vs: Vector2) -> void:
 func _draw_event_bg_phone(vs: Vector2) -> void:
 	var x0 := 28.0
 	var nk := event_node_kind()
-	for k in 3:
-		g.panel_fg.draw_circle(Vector2(x0 + 24.0, 32.0), 40.0 - k * 10.0, Color(0.18, 0.72, 1.0, 0.05))
-	NodeIcons.draw(g.panel_fg, nk, Vector2(x0 + 24.0, 32.0), 3.0, NodeIcons.COLS[nk])
-	x0 += 62.0
+	var cg := event_cg()
+	if cg != null:
+		# 有插画：压暗铺满整屏当底（选项条横跨整屏，插画放不下左栏），左上再放一张小图
+		var ts := Vector2(cg.get_size())
+		var sz: Vector2 = ts * maxf(vs.x / ts.x, vs.y / ts.y)
+		g.panel_fg.draw_texture_rect(cg, Rect2(((vs - sz) / 2.0).round(), sz.round()), false, Color(0.36, 0.36, 0.38))
+		g.panel_fg.draw_texture_rect(cg, Rect2(x0, 6.0, 62.0, 55.0), false)
+		g.panel_fg.draw_rect(Rect2(x0, 6.0, 62.0, 55.0), Color(0.6, 0.85, 1.0, 0.6), false, 1.0)
+		x0 += 76.0
+	else:
+		for k in 3:
+			g.panel_fg.draw_circle(Vector2(x0 + 24.0, 32.0), 40.0 - k * 10.0, Color(0.18, 0.72, 1.0, 0.05))
+		NodeIcons.draw(g.panel_fg, nk, Vector2(x0 + 24.0, 32.0), 3.0, NodeIcons.COLS[nk])
+		x0 += 62.0
 	var ew0 := UI.en(g.panel_fg, g.font, Vector2(x0, 22), "EVENT", 11, Color(0.6, 0.59, 0.56), 3.0)
 	UI.text(g.panel_fg, g.font, Vector2(x0 + ew0 + 6, 22), "·  %s  ·  选择一项" % NodeIcons.NAMES[nk], 11, Color(0.6, 0.59, 0.56))
 	g.panel_fg.draw_string(serif, Vector2(x0, 52), g.panel_title_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
@@ -467,6 +511,23 @@ func _draw_event_bg_phone(vs: Vector2) -> void:
 		UI.text_fit(g.panel_fg, g.font, Vector2(x0 + tw + 18, 50), UI.soft(panel_sub_text), 15, Color(0.81, 0.79, 0.76), vs.x - x0 - tw - 46.0, 12)
 	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击选项" if Pad.touch else "点击选项，或按 1–%d" % g.choices.size())
 	UI.text(g.panel_fg, g.font, Vector2(24, g.panel_col.offset_top + ev_bars_h + 6), hint, 14, Color(0.55, 0.54, 0.52))
+
+
+## 当前事件的插画（没有对应图返回 null，退回墨色底 + 节点图标）
+func event_cg() -> Texture2D:
+	var key: String = g.endg.opened_id if g.endg != null else ""
+	if key != ev_cg_key:
+		ev_cg_key = key
+		ev_cg = null
+		var path := "res://art/event_cg/%s/%s.webp" % ["web" if OS.has_feature("web") else "hi", key]
+		if key != "" and ResourceLoader.exists(path):
+			ev_cg = load(path)
+	return ev_cg
+
+
+func release_event_cg() -> void:
+	ev_cg = null
+	ev_cg_key = ""
 
 
 ## 事件插画里的节点图标：安全屋是「安全的角落」，其余都是「不期而遇」
@@ -487,6 +548,8 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	g.choices = opts
 	g.choice_kind = kind
 	g.nav_sel = 0
+	if kind != "event":
+		release_event_cg()
 	g.state = Game.S.CHOICE
 	g.panel_title_text = title
 	panel_sub_text = sub
@@ -778,6 +841,8 @@ func option_description(option: Dictionary) -> String:
 ## 每帧：按面板种类推进入场动效（card_motion.update）；悬停抬起各种类共用
 func animate_cards(dt: float) -> void:
 	if not g.panel.visible:
+		if ev_cg != null:
+			release_event_cg()   # 面板关了：放掉事件插画
 		return
 	g.panel_fg.queue_redraw()
 	g.panel_tip.queue_redraw()
@@ -1000,90 +1065,39 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 		card.draw_rect(Rect2(base + Vector2(10, 22), Vector2(4, card.size.y - 44.0)), Color(0.18, 0.72, 1.0))
 
 
-## 翻节点卡（docs/154）：背面只露节点图标 + 名字（结局入口描已达成结局的色边）；选中的那张翻面（横向压扁再展开），
-## 正面写翻出来的事件名或效果，其余卡压暗
+## 翻节点卡（docs/154）：卡面与演出在 screens/node_cards_ui.gd（卡背纹样、结局色边、发牌 → 起手 → 翻转 → 揭示 → 退场）；
+## 这里只把卡片数据整理成绘制参数
 func draw_node_card(card: Button, o: Dictionary, i: int) -> void:
 	var c: Dictionary = o.get("node", {})
-	var fl: int = g.endg.flipped
-	var hov := card_hot(card, i) and fl < 0
-	var r := Rect2(Vector2(0, card.get_meta("oy", 0.0)), card.size)
-	var ctr := r.get_center()
-	var face := false
-	if fl == i:
-		var fe := clampf((UM.now() - g.endg.flip_t) / 0.36, 0.0, 1.0)
-		face = fe >= 0.5
-		var sx := maxf(0.03, absf(1.0 - 2.0 * fe))
-		card.draw_set_transform_matrix(Transform2D(0.0, Vector2(sx, 1.0), 0.0, ctr) * Transform2D(0.0, Vector2.ONE, 0.0, -ctr))
-	card.self_modulate.a = 0.35 if fl >= 0 and fl != i else 1.0
-	if hov:
-		for k in 3:
-			card.draw_rect(r.grow(2.0 + k * 3.0), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.12 - k * 0.035), false, 3.0)
-	var top := Color(0.075, 0.13, 0.18, 0.97) if not face else Color(0.13, 0.14, 0.16, 0.97)
-	var bot := Color(0.035, 0.06, 0.085, 0.97) if not face else Color(0.06, 0.065, 0.075, 0.97)
-	card.draw_polygon(PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]), PackedColorArray([top, top, bot, bot]))
-	var t: String = str(c.get("type", "incident"))
-	var col: Color = NodeIcons.COLS.get(t, UI.CYAN)
-	if not face:
-		# 卡背：细横纹 + 内框 + 中央图标
-		var y := r.position.y + 26.0
-		while y < r.end.y - 22.0:
-			card.draw_rect(Rect2(r.position.x + 16.0, y, r.size.x - 32.0, 1.0), Color(1, 1, 1, 0.035))
-			y += 18.0
-		card.draw_rect(r.grow(-8.0), Color(col.r, col.g, col.b, 0.22), false, 1.0)
-		var ends: Array = (c.get("ends", []) as Array).filter(func(e): return Cfg.endings_cleared.has(e))
-		if ends.size() == 1:
-			card.draw_rect(r.grow(-1.5), g.endg.ending_col(ends[0]), false, 3.0)
-		elif ends.size() >= 2:
-			# 两个结局都达成过：左半一色、右半一色
-			var hw := r.size.x / 2.0
-			var c0: Color = g.endg.ending_col(ends[0])
-			var c1: Color = g.endg.ending_col(ends[1])
-			for e in [[r.position.x, c0], [r.position.x + hw, c1]]:
-				card.draw_rect(Rect2(e[0], r.position.y, hw, 3.0), e[1])
-				card.draw_rect(Rect2(e[0], r.end.y - 3.0, hw, 3.0), e[1])
-			card.draw_rect(Rect2(r.position.x, r.position.y, 3.0, r.size.y), c0)
-			card.draw_rect(Rect2(r.end.x - 3.0, r.position.y, 3.0, r.size.y), c1)
-		else:
-			card.draw_rect(r, UI.CYAN if hov else Color(1, 1, 1, 0.13), false, 1.0)
-		var ic := Vector2(ctr.x, r.position.y + r.size.y * 0.4)
-		for k in 3:
-			card.draw_circle(ic, 70.0 - k * 18.0, Color(col.r, col.g, col.b, 0.04 + 0.02 * k + (0.03 if hov else 0.0)))
-		NodeIcons.draw(card, t, ic, 6.0, col)
-		var nm: String = NodeIcons.NAMES.get(t, "")
-		card.draw_string(serif, Vector2(r.position.x, r.end.y - 92.0), nm, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 26, Color.WHITE if hov else UI.TEXT)
-		var en: String = NodeIcons.EN.get(t, "")
-		var ew := UI.en_width(g.font, en, 11, 3.0)
-		UI.en(card, g.font, Vector2(ctr.x - ew / 2.0, r.end.y - 64.0), en, 11, Color(col.r, col.g, col.b, 0.85), 3.0)
-		UI.ctext(card, g.font, r.position + Vector2(r.size.x - 40, 32), str(i + 1), 17, UI.TEXT if hov else Color(0.43, 0.47, 0.51), HORIZONTAL_ALIGNMENT_RIGHT, 24)
-	else:
-		# 正面：小图标 +「迷雾散去 ·」节点名 + 事件名或效果
-		card.draw_rect(r, col, false, 2.0)
-		NodeIcons.draw(card, t, Vector2(ctr.x, r.position.y + 70.0), 3.0, col)
-		var sub: String = ("迷雾散去 · " if c.get("fog", false) else "") + str(NodeIcons.NAMES.get(t, ""))
-		var ph: bool = card.get_meta("phone", false)   # 手机：说明字 18、小标 16（× 0.9，10-26 实机可读下限）
-		UI.text(card, g.font, Vector2(r.position.x, r.position.y + 128.0), sub, 16 if ph else 13, col, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-		var title := ""
-		var body := ""
+	var ends: Array = (c.get("ends", []) as Array).filter(func(e): return Cfg.endings_cleared.has(e))
+	var st := {
+		"i": i, "n": g.choices.size(), "hot": card_hot(card, i) and g.endg.flipped < 0, "flipped": g.endg.flipped,
+		"deal_t": motion.t0, "flip_t": g.endg.flip_t, "ends": ends, "ends_cols": ends.map(func(e): return g.endg.ending_col(e)),
+		"center_x": (card.get_global_transform().affine_inverse() * g.panel_box.get_global_rect().get_center()).x,
+	}
+	if g.endg.flipped == i:
+		var t: String = str(c.get("type", ""))
 		match t:
 			"incident":
 				var ev: Dictionary = g.endg.ev_by_id.get(str(c.get("event", "")), {})
-				title = str(ev.get("name", "不期而遇"))
-				body = str(ev.get("text", ""))
+				st.face_title = str(ev.get("name", "不期而遇"))
+				st.face_body = str(ev.get("text", ""))
+				if c.get("must", false):
+					st.face_tag = "结局线 · " + " / ".join((c.get("ends", []) as Array).map(func(e): return NodeCardsUI.ROMAN.get(e, "")))
 			"wish":
-				title = "消失的习俗"
-				body = "亮出三件藏品，选一件带走。"
+				st.face_title = "消失的习俗"
+				st.face_body = "亮出三件藏品，选一件带走。"
 			"rest":
-				title = "安全屋"
-				body = "休整、添加燃料，或重整编制。"
+				st.face_title = "安全屋"
+				st.face_body = "休整、添加燃料，或重整编制。"
 			"shop":
-				title = "诡意行商"
-				body = "下一位商人多带一件货，第一件打折。" if g.merchant_idx < g.MERCHANT_TIMES.size() else "商人已经走远，留下了一笔源石锭。"
+				st.face_title = "诡意行商"
+				st.face_body = "下一位商人多带一件货，第一件打折。" if g.merchant_idx < g.MERCHANT_TIMES.size() else "商人已经走远，留下了一笔源石锭。"
 			"elite":
-				title = "紧急作战"
-				body = "精英小队来袭。全部击败，多得一个宝箱。"
-		card.draw_string(serif, Vector2(r.position.x, r.position.y + 172.0), title, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 28, Color.WHITE)
-		card.draw_multiline_string(g.font, Vector2(r.position.x + (16.0 if ph else 22.0), r.position.y + 212.0), UI.soft(body), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - (32.0 if ph else 44.0), 18 if ph else 14, 6, Color(0.81, 0.79, 0.76), UI.BRK)
-	card.draw_set_transform_matrix(Transform2D.IDENTITY)
+				st.face_title = "紧急作战"
+				st.face_body = "精英小队来袭。全部击败，多得一个宝箱。"
+	card.self_modulate.a = 1.0
+	NodeCardsUI.draw_card(card, card.size, c, st, g.font, serif)
 
 
 ## 干员待机条的第一帧：{tex, fw, fh}（按 data/characters/<id>.json 的 sprites.idle；没有返回空）

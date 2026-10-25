@@ -12,6 +12,7 @@ class VoiceSpy extends Node:
 
 class VoiceGame extends RefCounted:
 	var sfx: Node
+	var panel_ui = null
 	var t := 100.0
 	var demo_op := ""
 	var trace_every := 0.0
@@ -42,7 +43,7 @@ func run(check: Callable) -> void:
 	down.cmd_down = 5.0
 	squad.ops = [medic, fighter, leader, down]
 	squad.set_stance(Squad.ROAM)
-	check.call(spy.calls == [["skadi", "command", false]], "assault requests approved command event, leader first")
+	check.call(spy.calls == [["texas", "command", false]], "assault requests the sortieing teammate's own command voice, not the leader's")
 	var called := spy.calls.size()
 	squad.set_stance(Squad.ROAM)
 	check.call(spy.calls.size() == called, "same stance does not request another voice")
@@ -54,7 +55,7 @@ func run(check: Callable) -> void:
 	check.call(spy.calls.size() == 2, "rapid command change is throttled")
 	game.t += 7.0
 	squad._stance_voice(Squad.ROAM)
-	check.call(spy.calls[-1] == ["skadi", "command", false], "eligible rotation returns to leader")
+	check.call(spy.calls[-1] == ["texas", "command", false], "assault rotation stays on the sortieing teammates")
 	squad.set_stance(Squad.GUARD)
 	squad.stamina = 0.0
 	squad.exhausted = true
@@ -67,7 +68,7 @@ func run(check: Callable) -> void:
 	game.demo_op = ""
 	medic.is_leader = true
 	leader.is_leader = false
-	squad.ops = [medic, fighter]
+	squad.ops = [medic]
 	squad._vo_i = 0
 	squad._stance_voice(Squad.ROAM)
 	check.call(spy.calls[-1] == ["lumen", "command", false], "non-roaming operator may speak when leading")

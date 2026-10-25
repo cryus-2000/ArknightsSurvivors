@@ -109,6 +109,7 @@ var enemies_sys = EnemiesSys.new(self)   # 敌人的逐帧更新
 var combat = Combat.new(self)   # 战斗结算
 var vfx = Vfx.new(self)   # 特效与提示
 var intro_screen = IntroScreen.new(self)   # 界面 · 开场与教程
+var tour = preload("res://scripts/screens/tour.gd").new(self)   # 界面 · 首局聚光框引导 + 到点小提示（取代开局自动弹出的翻页指南）
 var boss_intro = BossIntro.new(self)   # 界面 · Boss 登场 / 击破演出（纯覆盖层，不影响模拟；用户 10-10）
 var show_screen = EliteShowScreen.new(self)   # 界面 · 精英化 / 解锁演出（state SHOW）
 var stats_screen = StatsScreen.new(self)   # 界面 · 属性面板（Tab，state STATS）
@@ -570,6 +571,13 @@ static func demo_warm_names() -> Array:
 ## 一局开始（_ready）会固定加载的贴图名单，只看静态数据，标题页用它预热法线图（art.gd prewarm_start）。
 ## 覆盖 _ready 里的固定表、博士与全部干员的帧条、V6 帧、data/enemies.json 的敌人及附加帧条、地图主题的道具与前景。
 ## 不做法线的前缀（fx_ / proj_ / relic_ …）由 art.gd 过滤，这里不用管；漏掉的名字只是回到当场算（--loadprof 的 sync_names 能看到）
+## 开局要读帧条的干员：缺省全部可招募干员；手机网页只读队长（10-26 iPhone 进局即崩，按内存止血；中途入队的由 squad.add → load_op_tex 补读）
+static func _op_tex_ids() -> Array:
+	if Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_ops", 1.0):
+		return [Cfg.character_id]
+	return Character.list_ids()
+
+
 static func preload_tex_names() -> Array:
 	var names: Array = []
 	names.append_array(BASE_TEX)
@@ -580,7 +588,7 @@ static func preload_tex_names() -> Array:
 			var dn = dj.get("sprites", {}).get(kind, "")
 			if dn is String and dn != "":
 				names.append(dn)
-	for cid in Character.list_ids():
+	for cid in _op_tex_ids():
 		var cdef: Dictionary = Character.load_def(cid)
 		var csp: Dictionary = cdef.get("sprites", {})
 		for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"] + cdef.get("extra_sprites", []):   # move_attack：移动攻击（docs/128，character._move_swap）
@@ -625,7 +633,7 @@ func _wants_foot(n: String) -> bool:
 func _load_enemy_tex(n: String) -> void:
 	if tex.get(n) == null:
 		tex[n] = A.tex(n)
-		if tex[n] != null:
+		if tex[n] != null and not lazy_white:
 			tex[n + "_white"] = A.white_of(tex[n])
 	if _wants_foot(n):
 		foot_anchor[n] = true
@@ -633,7 +641,7 @@ func _load_enemy_tex(n: String) -> void:
 		var mn: String = n + suffix
 		if tex.get(mn) == null:
 			tex[mn] = A.tex(mn)
-			if tex[mn] != null and suffix != "_death":
+			if tex[mn] != null and suffix != "_death" and not lazy_white:
 				tex[mn + "_white"] = A.white_of(tex[mn])
 
 
@@ -663,7 +671,9 @@ static func loading_warm_lists() -> Array:
 		if str(n).begins_with("e_") and not skip.has(str(n)):
 			whites.append(n)   # V6 敌人附加帧条（休眠 / 唤醒 / 狂暴）的白色剪影，_ready 的 tex_v6 段也要
 	var names: Array = []
-	for n in preload_tex_names() + demo_warm_names():
+	if Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_white", 1.0):
+		whites = []   # 手机网页白剪影按需建（ensure_white），载入页不预建
+	for n in preload_tex_names() + ([] if Cfg.mobile_web() else demo_warm_names()):   # 手机网页不预读图鉴演示的补充名单（docs/50 §30）
 		var base := str(n)
 		for suffix in ENEMY_SUFFIXES:
 			if base.ends_with(suffix):
@@ -702,6 +712,55 @@ static func _web_early_enemy_tex() -> Dictionary:
 
 ## 网页版按需加载（spawner.new_enemy 在生成字典前调用）：n 及其派生名（e_paranoia → e_paranoia2）若在推迟名单里就现在读。
 ## 桌面版名单为空，直接返回；不碰 g.rng，同 seed 不受影响
+## 白剪影按需建、不在场就释放（10-26，手机网页；docs/50 §30.6）：受击闪白 / 轮廓光用的白剪影是本体帧条的整份拷贝，
+## 原来开局给每种敌人（含全部变体帧条）都建一份，手机一局约 48 MB。现在某种怪刷出来时才建（spawner.new_enemy → ensure_white），
+## 场上没有这种怪满 WHITE_KEEP 秒就把它的白剪影丢掉（g.tex 里的键也删，画白闪处按 has() 判断，场上没有就不会去画）。画面不变
+var lazy_white: bool = Cfg.mobile_web() and Cfg.mobile_knob("mobile_lazy_white", 1.0)
+var _white_alive := {}    # 帧条本体名 -> 最近一次在场的 g.t
+var _white_t := 0.0
+const WHITE_KEEP := 20.0
+
+func ensure_white(n: String) -> void:
+	if not lazy_white or n == "":
+		return
+	_white_alive[n] = t
+	if tex.has(n + "_white"):
+		return
+	for nm in _white_names(n):
+		if tex.get(nm) != null and not tex.has(nm + "_white"):
+			tex[nm + "_white"] = A.white_of(tex[nm])
+
+
+func _white_names(n: String) -> Array:
+	var out: Array = [n]
+	for suffix in ENEMY_SUFFIXES:
+		if suffix != "_death":
+			out.append(n + suffix)
+	for v in V6_FRAMES:
+		if str(v).begins_with(n + "_") and not out.has(str(v)):
+			out.append(str(v))
+	return out
+
+
+func _white_release(delta: float) -> void:
+	if not lazy_white:
+		return
+	_white_t += delta
+	if _white_t < 5.0:
+		return
+	_white_t = 0.0
+	for e in enemies:
+		_white_alive[str(e.get("tex", ""))] = t
+	for n in _white_alive.keys():
+		if t - float(_white_alive[n]) > WHITE_KEEP and tex.has(n + "_white"):
+			for nm in _white_names(n):
+				if tex.has(nm + "_white"):
+					tex.erase(nm + "_white")
+					if tex.get(nm) != null:
+						A.white_drop(tex[nm])
+			_white_alive.erase(n)
+
+
 func ensure_enemy_tex(n: String) -> void:
 	if not tex_deferred.has(n):
 		return
@@ -841,8 +900,8 @@ func _ready() -> void:
 		for sd in Character.load_def(cid).get("skills", []):
 			if sd.get("icon", "") != "" and tex.get(sd.icon) == null:
 				tex[sd.icon] = A.tex(sd.icon)
-	# 所有可招募干员的贴图集（待机 / 跑步 / 攻击）：招募卡与入队后绘制都用得到
-	for cid in Character.list_ids():
+	# 所有可招募干员的贴图集（待机 / 跑步 / 攻击）：招募卡与入队后绘制都用得到（手机网页只读队长的，入队时 squad.add 补读，docs/50 §30）
+	for cid in _op_tex_ids():
 		var cdef: Dictionary = Character.load_def(cid)
 		var csp: Dictionary = cdef.get("sprites", {})
 		for kind in ["idle", "run", "attack", "skill", "hurt", "death", "move_attack"] + cdef.get("extra_sprites", []):   # move_attack：移动攻击（docs/128，character._move_swap）
@@ -859,7 +918,7 @@ func _ready() -> void:
 	for n in V6_FRAMES:
 		tex[n] = A.tex(n)
 		# 敌人的附加帧条（休眠 / 唤醒 / 狂暴）也要白色剪影：受击闪白与轮廓光用
-		if n.begins_with("e_") and tex[n] != null:
+		if n.begins_with("e_") and tex[n] != null and not lazy_white:
 			tex[n + "_white"] = A.white_of(tex[n])
 	A.mark("tex_v6")
 	# 敌人贴图按 data/enemies.json 加载：本体 + 白色剪影 + 脚底锚点，以及 _move / _attack / _charge / _death 变体（有图就用）
@@ -1015,13 +1074,24 @@ func _ready() -> void:
 			ch.advance(chs.keys()[0] if not chs.is_empty() else "")
 	elif trial.active:
 		pass
+	elif tour.demo_active():
+		pass   # --tourdemo / --tipdemo=<id>：跳过开场，screens/tour.gd 第 25 帧起接管（录片 / 截图）
 	elif Cfg.dev_args().has("--introshot") or Cfg.dev_args().has("--guidepages"):
 		# --guidepages：只截局内指南各页（不带标题页 --introshot 的开场分镜截图与 5 秒退出）
 		intro_screen.open.call_deferred(S.PAUSE if Cfg.dev_args().has("--guidefull") else S.PLAY)   # --guidefull：截完整版（暂停菜单打开的 lines + more）
 	elif mode == Mode.PLAY or Cfg.dev_args().has("--openshot"):
 		intro_screen.start_opening.call_deferred()
 	A.mark("ready_end")
+	if Cfg.mobile_fonts_slim():
+		Cfg.slim_fonts(true)   # 手机网页：进局清掉标题页 / 载入页用过的字号缓存（docs/50 §30）
 	aq_on = demo_op == "" and ((mode == Mode.PLAY and Cfg.quality_mode == "auto" and Cfg.dev_args().is_empty()) or Cfg.dev_args().has("--autoq"))
+	if Cfg.dev_args().has("--fpsosd") and demo_op == "":
+		_fps_osd_add()
+	if mobile_cap():
+		spawner.auto_cap = AQ_CAP
+	if Cfg.guard_lowered and Cfg.quality_mode != "auto":
+		Cfg.guard_lowered = false
+		Cfg.set_quality(Cfg.quality_mode)   # 上局护栏临时降过：这局开局恢复玩家手选的档
 	if aq_on:
 		_apply_auto_level()   # 同一次启动里前一局已经降过的，这局开局就沿用
 	if mode == Mode.PLAY and demo_op == "" and not trial.active:
@@ -1186,6 +1256,44 @@ func cam_center() -> Vector2:
 ##   3 再关发光层（CPU 颗粒不关：退回帧条画法更慢；颗粒密度已由 fx_grains 按帧时自动收到最低 0.35）
 ##   4 分辨率缩放（只在高像素密度屏：手机网页；普通桌面跳过这级）    5 画质「低」（光学整套关、后期全关、粒子减半）
 ## 只在真人局 + 自动档时启用（测试加 --autoq 才开；都是纯画面，同 seed 结果不变）
+## 网页内存护栏（10-26 用户「重点是要让所有机型和网页版都不会崩溃」，docs/50 §30）：手机网页每 MG_EVERY 秒估一次内存
+## （引擎显存统计 + 网页音频样本解码估算）；超过 MG_BUDGET 就画质「低」+ 分辨率缩放（手机自动档开局已是这样；兜手选中 / 高档的手机）。
+## 音频样本没法从脚本注销（引擎没开放 unregister），所以手机上战斗乐分轨不预先解码（sfx.warm_begin）。
+## 局中后期新怪 / 新音效越积越多时兜底，不等 WebKit 杀页。纯画面 / 声音缓存，不碰对局
+const MG_EVERY := 5.0
+const MG_BUDGET_MB := 380.0
+const MG_MANUAL_EXTRA := 140.0
+var _mg_t := 0.0
+
+func _mem_guard(delta: float) -> void:
+	if not (Cfg.mobile_web() or Cfg.dev_args().has("--memguard")):
+		return
+	_mg_t += delta
+	if _mg_t < MG_EVERY:
+		return
+	_mg_t = 0.0
+	var vid: float = Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0
+	var aud: float = Sfx.sample_mem_mb()
+	var budget: float = MG_BUDGET_MB
+	for a in Cfg.dev_args():
+		if a.begins_with("--memguard="):
+			budget = float(a.substr(11))
+	if Cfg.quality_mode != "auto":
+		budget += MG_MANUAL_EXTRA   # 玩家手选了档：只在真逼近时才临时降（10-26 晚用户「玩家手动选了某档就按它」）
+	if vid + aud <= budget:
+		return
+	Cfg.slim_fonts(true)   # 字形缓存清掉重建（按需栅格化，卡一下；docs/50 §30 字体缓存能到 60 MB）
+	var acted: bool = Cfg.quality != "low" or not Cfg.render_scaled
+	if Cfg.quality != "low":
+		Cfg.set_quality("low")
+		Cfg.guard_lowered = true
+		quality_note = "内存紧张，本局已临时降低画质" if Cfg.quality_mode != "auto" else "内存紧张，已自动降低画质（可在设置里改）"
+		quality_note_t = 5.0
+	Cfg.set_render_scale(true)
+	if acted and not Cfg.dev_args().is_empty():
+		print("PF MEMGUARD vid=%.0fMB audio=%.0fMB -> 低画质 + 分辨率缩放 t=%.0f" % [vid, aud, t])
+
+
 const AQ_WIN := 2.0
 const AQ_NEED := 2
 const AQ_OVER := 1.35
@@ -1198,6 +1306,10 @@ func _auto_quality(delta: float) -> void:
 	var now := Time.get_ticks_usec()
 	var rd: float = (now - _aq_us) / 1e6 if _aq_us > 0 else 0.0   # 真实帧间隔（--fixed-fps 测量时 delta 是定值，看不出掉帧）
 	_aq_us = now
+	if aq_on and Cfg.quality_mode != "auto" and Cfg.dev_args().is_empty():
+		aq_on = false   # 对局里在设置里手选了档：自动降档停手、已关的层撤掉（10-26 晚用户「从低切到高没有反应」）
+		Cfg.auto_level = 0
+		_apply_auto_level()
 	if not aq_on or state != S.PLAY or t < 1.0 or Cfg.auto_level >= AQ_MAX or (rt_from >= 0.0 and not realtime):   # 测量的快进段不算
 		aq_win = Vector3(0, 0, aq_win.z)
 		return
@@ -1206,6 +1318,9 @@ func _auto_quality(delta: float) -> void:
 		return
 	if rd > 0.25 or rd <= 0.0:
 		aq_win = Vector3.ZERO   # 切窗口 / 读盘那种单次长停顿不算掉帧
+		return
+	if OS.has_feature("web") and Cfg.max_fps == 0 and not Cfg.fps_probed:
+		_fps_probe(rd)   # 网页帧率自动：先定 60 还是 30，定完再按那个预算判降档
 		return
 	aq_win.x += rd
 	aq_win.y += 1.0
@@ -1230,17 +1345,63 @@ func _auto_quality(delta: float) -> void:
 		quality_note_t = 5.0
 
 
+## 网页帧率自动（10-25 用户定）：先按 60 帧跑，开局 AQ_FPS_T 秒的平均帧率 ≥ 50 就保持 60，否则本次启动锁 30（Engine.max_fps = 30）；
+## 只测一次，不在两者之间来回跳；锁 30 之后降档按 30 帧预算判（_frame_budget_ms 读 Engine.max_fps）。桌面不锁。逻辑按 PlayClock 固定步长，与渲染帧率无关
+const AQ_FPS_T := 4.0
+var _fps_win := Vector2.ZERO
+
+func _fps_probe(rd: float) -> void:
+	_fps_win += Vector2(rd, 1.0)
+	if _fps_win.x < AQ_FPS_T:
+		return
+	var avg_ms: float = _fps_win.x / _fps_win.y * 1000.0
+	Cfg.fps_probed = true
+	if avg_ms > 1000.0 / 50.0:
+		Cfg.fps_lock30 = true
+		Engine.max_fps = Cfg.effective_max_fps()
+	if not Cfg.dev_args().is_empty():
+		print("AUTOFPS avg=%.1fms lock30=%s t=%.1f" % [avg_ms, Cfg.fps_lock30, t])
+
+
+## --fpsosd（仅测试）：左上角显示实际帧率 / 帧率上限 / 自动降档级（录网页锁 30 的证明片用；独立一层，不走 HUD 缓存）
+func _fps_osd_add() -> void:
+	var layer := CanvasLayer.new()
+	layer.layer = 120
+	add_child(layer)
+	var lb := Label.new()
+	lb.position = Vector2(8, 6)
+	lb.add_theme_font_size_override("font_size", 18)
+	lb.add_theme_color_override("font_color", Color(0.6, 1.0, 0.95))
+	lb.add_theme_color_override("font_outline_color", Color.BLACK)
+	lb.add_theme_constant_override("outline_size", 4)
+	layer.add_child(lb)
+	var tm := Timer.new()
+	tm.wait_time = 0.25
+	tm.autostart = true
+	tm.timeout.connect(func(): lb.text = "FPS %.0f   上限 %d%s   降档 %d   %d:%02d" % [Engine.get_frames_per_second(), Engine.max_fps,
+		"（自动锁 30）" if Cfg.fps_lock30 else ("（自动 · 测量中）" if Cfg.max_fps == 0 and not Cfg.fps_probed and OS.has_feature("web") else ""),
+		Cfg.auto_level, int(t) / 60, int(t) % 60])
+	layer.add_child(tm)
+
+
 ## 按 Cfg.auto_level 关层（开局也调一次：同一次启动里前一局已经降过的，这局直接沿用）
 func _apply_auto_level() -> void:
 	var lv: int = Cfg.auto_level
 	if optical != null:
 		optical.auto_mask = (6 if lv >= 1 else 0) | (8 if lv >= 3 else 0)   # 2 GPU 粒子 + 4 动态照明；8 发光层（CPU 颗粒不关：关了退回帧条画法反而慢 0.8–1 ms，docs/50 §28；颗粒量由 fx_grains 帧时自适应自己往下收）
 	if spawner != null:
-		spawner.auto_cap = AQ_CAP if lv >= 2 else 0
+		spawner.auto_cap = AQ_CAP if (lv >= 2 or mobile_cap()) else 0
 	if lv >= 4 and Cfg.hidpi_render():
 		Cfg.set_render_scale(true)
+	elif lv < 4 and not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_rscale", 1.0)):
+		Cfg.set_render_scale(false)
 	if lv >= 5 and Cfg.quality != "low":
 		Cfg.set_quality("low")
+
+
+## 手机网页开局就开同屏上限 65（10-26 晚：满屏帧时约 −21%，用户批过存活上限做软限制；合并补偿照 §26.13）。真人局才开，测试 / 机器人局不变
+func mobile_cap() -> bool:
+	return Cfg.mobile_web() and Cfg.mobile_knob("mobile_cap", 1.0) and (mode == Mode.PLAY or Cfg.dev_args().has("--mobilecap"))
 
 
 ## 一帧预算（毫秒）：60 帧；显示器刷新率更低或设了 30 帧上限时取更长的那个
@@ -1257,6 +1418,7 @@ func _frame_budget_ms() -> float:
 func _process(delta: float) -> void:
 	UM.advance(delta)   # 界面动效时钟（真实帧间隔，不乘对局倍速；scripts/ui_motion.gd）
 	_pm("engine")   # 上一帧结束到这一帧开始：引擎自身、_draw 回调、其他节点（只在 --prof 下记）
+	tour.update(delta)   # 聚光框引导 / 到点小提示：真实帧间隔（screens/tour.gd）
 	wheel.update(delta)   # 指挥圆盘：真实帧间隔（悬停 / 松开判定 / 测试计划）
 	var dt: float = min(delta, 0.05)
 	var simulated_dt := 0.0
@@ -1284,6 +1446,8 @@ func _process(delta: float) -> void:
 		dt *= wheel.slow()   # 圆盘打开：局内放慢（不全停）
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	_auto_quality(delta)
+	_mem_guard(delta)
+	_white_release(delta)
 	if victory.active and state == S.PLAY:
 		simulated_dt = victory.step(minf(delta, 0.05))   # 最终 Boss 击破演出按慢动作缩放画面步长（run/victory_flow.gd）
 	elif hitstop > 0.0 and (mode == Mode.PLAY or playclock_test) and Cfg.hitstop and demo_op == "":
@@ -1372,6 +1536,10 @@ func _input(event: InputEvent) -> void:
 		return
 	if wheel.input(event):   # 指挥圆盘打开时吞掉按键 / 点选（移动是轮询的，不受影响）
 		get_viewport().set_input_as_handled()
+		return
+	if state == S.INTRO and tour.active:   # 聚光框引导：点击 / 按键翻步，Esc / 「跳过引导」结束
+		if tour.input(event):
+			get_viewport().set_input_as_handled()
 		return
 	if touch.handle(event):
 		get_viewport().set_input_as_handled()
@@ -1680,6 +1848,11 @@ func toggle_command() -> void:
 		Sfx.play("ui_ok", -8.0)
 	elif Squad.cmd_on():
 		vfx.add_text(ppos + Vector2(0, -70), "作战时限未恢复", UI.SUB, 14)   # 突击耐力（玩家可见名「作战时限」，10-22 定）没回到 command/min_start
+
+
+## HUD 按「对局进行中」画的块（触屏按键、指挥状态）在聚光框引导期间（state INTRO、tour.active）也要画出来，让方框框得到
+func hud_live() -> bool:
+	return state == S.PLAY or tour.active
 
 
 func _try_dash() -> void:

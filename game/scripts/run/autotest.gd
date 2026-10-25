@@ -518,6 +518,7 @@ func step() -> void:
 	g.at_frames += 1
 	if g.rt_from >= 0.0 and not g.realtime and g.t >= g.rt_from:
 		g.realtime = true   # --rtfrom：快进结束，之后按真实步长（--fixed-fps 60 时每帧 1/60 秒）
+		preload("res://scripts/core/frame_rec.gd").mark("late")   # 帧时 / 内存记录（--ftrec --memlog）：快进结束那一刻
 		print("PF RTFROM t=%.1f" % g.t)   # 网页低配测量（tools/perf_web.py --throttle）：看到这行才开 CPU 节流，快进段不节流
 	if vfxab < 0:
 		vfxab = 0
@@ -593,7 +594,7 @@ func step() -> void:
 		if g.at_frames > 240:
 			g.get_tree().quit()
 		return
-	if g.state == g.S.INTRO:
+	if g.state == g.S.INTRO and not g.tour.active:
 		if g.intro_t > 0.5 and DisplayServer.get_name() != "headless":
 			g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_intro_%d.png" % g.intro_page)
 			if g.intro_page >= g.intro_screen.pages().size() - 1:
@@ -1297,8 +1298,16 @@ func _bossacts_step(spec: String) -> void:
 	if g.at_frames % 60 == 0:
 		print("BOSSACTS state t=%.1f %s" % [g.t, _ba_state(ba_boss)])
 	_ba_perf()
-	if g.at_frames >= 30 and g.at_frames % 3 == 0 and DisplayServer.get_name() != "headless" and not Cfg.dev_args().has("--noshots"):
+	if g.at_frames >= 30 and g.at_frames % _ba_step() == 0 and DisplayServer.get_name() != "headless" and not Cfg.dev_args().has("--noshots"):
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/shot_acts_%s_%04d.png" % [spec.replace("+", "_"), g.at_frames])
+
+
+## --shotstep=N：每 N 帧截一张（缺省 3；激光收尾等要逐帧看时用 1）
+func _ba_step() -> int:
+	for a in Cfg.dev_args():
+		if a.begins_with("--shotstep="):
+			return maxi(1, int(a.substr(11)))
+	return 3
 
 
 ## --bossacts 帧时（协调人 10-25：每只 Boss 改完同局轮换量 P50 / P95）：记上一帧到这一帧的真实用时，按上一帧所用画法分桶；

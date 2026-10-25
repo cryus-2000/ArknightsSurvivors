@@ -5,6 +5,7 @@ extends RefCounted
 
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const KP_LIFE := 0.25   # Boss 激光画面总长（秒）：判定在结算那一刻已结束，画面 ≤ 0.25 秒收完（用户 10-26「打完之后消失的很慢」；原 Kanpelle 0.42、缺图光束 0.4–0.55）
 const UI = preload("res://scripts/ui.gd")
 
 var g  # Game (Node2D)
@@ -261,7 +262,7 @@ func _resolve(w: Dictionary) -> void:
 			warn_damage(w)
 		"tide_link":
 			if not _kp(w, w.pos, w.pos + dv * w.len):
-				g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.55, "max": 0.55, "col": c, "enemy": true})
+				g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": KP_LIFE, "max": KP_LIFE, "col": c, "enemy": true})
 			var sw = w.get("b_owner")
 			if w.get("swap", false) and sw is Dictionary and not sw.dead and not e.dead:
 				# 接潮「换位」（docs/142b §3.8）：两具互换位置
@@ -276,7 +277,7 @@ func _resolve(w: Dictionary) -> void:
 			warn_damage(w)
 		"ishar_echo":
 			if not _kp(w, w.pos, w.pos + dv * w.len):
-				g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.55, "max": 0.55, "col": c, "enemy": true})
+				g.fx.append({"kind": "tide_link", "a": w.pos, "b": w.pos + dv * w.len, "life": KP_LIFE, "max": KP_LIFE, "col": c, "enemy": true})
 			g.vfx.fx_sprite("fx_water_splash", w.pos, g.PX * 1.0)
 			Sfx.play("tentacle", -8.0, 1.25)
 			warn_damage(w)
@@ -388,7 +389,7 @@ func _resolve(w: Dictionary) -> void:
 			var b: Vector2 = w.pos + dv * w.len
 			if str(w.get("kp", "")) != "":
 				# Boss 激光（Kanpelle 帧条，docs/142b §8.5）：w.kp = 帧条名里的 Boss 段，kp_k = 粗细（世界像素 / 美术像素）
-				g.fx.append({"kind": "kp_beam", "a": w.pos + Vector2(0, -18), "b": b, "life": 0.42, "max": 0.42, "boss": str(w.kp), "k": float(w.get("kp_k", 2.0)), "enemy": true})
+				g.fx.append({"kind": "kp_beam", "a": w.pos + Vector2(0, -18), "b": b, "life": KP_LIFE, "max": KP_LIFE, "boss": str(w.kp), "k": float(w.get("kp_k", 2.0)), "enemy": true})
 			else:
 				g.fx.append({"kind": "tracer", "a": w.pos + Vector2(0, -18), "b": b, "life": 0.35, "max": 0.35, "col": c, "wid": w.wid})
 			g.vfx.sparks(w.pos + dv * 24.0, dv, c if w.get("secondary", false) else Color(2.0, 1.6, 0.8), 8, 320.0)
@@ -399,7 +400,7 @@ func _resolve(w: Dictionary) -> void:
 			var b2: Vector2 = w.pos + dv * w.len
 			var eye: Vector2 = Vector2.ZERO if w.get("no_eye", false) else Vector2(0, -20)   # 眼位偏移只给从本体射出的线
 			if not _kp(w, w.pos + eye, b2):
-				g.fx.append({"kind": "bbeam", "a": w.pos + eye, "b": b2, "life": 0.5, "max": 0.5, "col": c, "wid": w.wid})
+				g.fx.append({"kind": "bbeam", "a": w.pos + eye, "b": b2, "life": KP_LIFE, "max": KP_LIFE, "col": c, "wid": w.wid})
 			if e.type == "paranoia":
 				# 凝视命中端的紫白爆点（Codex fx_paranoia_gaze_hit；缺图只有光束）：画在主控被打到的位置，没打到画在线端
 				var hp: Vector2 = Geometry2D.get_closest_point_to_segment(g.ppos + Vector2(0, -14), w.pos, b2) if hits_leader(w) else b2
@@ -432,7 +433,7 @@ func _resolve(w: Dictionary) -> void:
 		"breath":
 			# 蚀潮吐息（蔑死体，docs/95 §9.2 C）：口部射出的腐蚀流；Codex fx_archon_breath（左中原点朝右，按线长拉伸）缺图走程序光束
 			if not _kp(w, w.pos + Vector2(0, -16), w.pos + dv * w.len):
-				g.fx.append({"kind": "bbeam", "a": w.pos + Vector2(0, -16), "b": w.pos + dv * w.len, "life": 0.4, "max": 0.4, "col": c, "wid": w.wid, "enemy": true})
+				g.fx.append({"kind": "bbeam", "a": w.pos + Vector2(0, -16), "b": w.pos + dv * w.len, "life": KP_LIFE, "max": KP_LIFE, "col": c, "wid": w.wid, "enemy": true})
 				if g.vfx.fx_sprite("fx_archon_breath", w.pos + Vector2(0, -16), g.PX * w.len / 320.0, w.ang, false, false, Color.WHITE, false, Vector2(0, 24)):
 					g.fx[g.fx.size() - 1]["enemy"] = true
 			Sfx.play("tentacle", -6.0, 1.3)
@@ -519,7 +520,7 @@ func _resolve(w: Dictionary) -> void:
 func _kp(w: Dictionary, a: Vector2, b: Vector2) -> bool:
 	if str(w.get("kp", "")) == "":
 		return false
-	g.fx.append({"kind": "kp_beam", "a": a, "b": b, "life": 0.42, "max": 0.42, "boss": str(w.kp), "k": float(w.get("kp_k", 2.0)), "enemy": true})
+	g.fx.append({"kind": "kp_beam", "a": a, "b": b, "life": KP_LIFE, "max": KP_LIFE, "boss": str(w.kp), "k": float(w.get("kp_k", 2.0)), "enemy": true})
 	return true
 
 

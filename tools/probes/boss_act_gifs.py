@@ -20,7 +20,7 @@ OUT = os.path.join(ROOT, "build", "boss_acts")
 W = 400
 
 
-def run(spec, gamedir=None):
+def run(spec, gamedir=None, extra=None):
     """gamedir：另一份 game 目录（对比录「旧」用，如 build/_fx_before/game）；缺省本工作树"""
     out = os.path.join(OUT, spec.replace("+", "_"))
     shutil.rmtree(out, ignore_errors=True)
@@ -29,7 +29,7 @@ def run(spec, gamedir=None):
         if f.endswith(".png"):
             os.remove(os.path.join(out, f))
     args = [gr.find_godot(), "--path", gamedir or os.path.join(ROOT, "game"), "--audio-driver", "Dummy", "--fixed-fps", "30", "--",
-            "--autotest", "--seed=1", "--op=mizuki", "--bossacts=" + spec, "--shotdir=" + out.replace(os.sep, "/")]
+            "--autotest", "--seed=1", "--op=mizuki", "--bossacts=" + spec, "--shotdir=" + out.replace(os.sep, "/")] + list(extra or [])
     o, e, to = gr.run_godot(args, 400)
     open(os.path.join(out, "run.log"), "w", encoding="utf-8").write(o + "\n----\n" + e)
     gates = [ln for ln in o.splitlines() if ln.startswith("BOSSACTS")]

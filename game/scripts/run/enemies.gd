@@ -333,6 +333,8 @@ func update(dt: float) -> void:
 			e.wind -= dt
 		if e.get("pose", 0.0) > 0.0:
 			e.pose -= dt
+		if e.get("depart_t", 0.0) > 0.0:
+			e.depart_t -= dt   # 大群分批出发的等待（spawner._horde_loose，docs/158）：所有敌人统一在这里倒计时
 		# 不可索敌的第一形态仍参与公共动画计时；移动/治疗交给遭遇模块，不走敌对 AI 和接触伤害。
 		if e.get("friendly", false):
 			g.ishar.step_ally(e, dt)
@@ -400,7 +402,7 @@ func update(dt: float) -> void:
 		# 重型怪只削外来击退；自己冲锋 / 突刺（kb_self，boss_ai 的 dash / stab）不削，否则骑士冲锋只冲出 1/3（用户实机反馈 9/27）
 		var v: Vector2 = e.kb * (0.3 if D.ENEMIES[e.type].get("heavy", false) and not e.get("kb_self", false) else 1.0)
 		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0) * g.beacon_sys.slow_mult(e)
-		if e.get("lead_charge", false) and dist < Bal.v("enemy/horde_lead_charge_r", 320.0) and e.get("wake_t", 0.0) <= 0.0 and e.stun <= 0.0 and not g.eai.busy(e):
+		if e.get("lead_charge", false) and dist < Bal.v("enemy/horde_lead_charge_r", 320.0) and e.get("wake_t", 0.0) <= 0.0 and e.get("depart_t", 0.0) <= 0.0 and e.stun <= 0.0 and not g.eai.busy(e):
 			# 领头冲撞（docs/116 §7.4）：大群领头的重型怪 / 精英第一次逼近时起一次带地面预警的直线冲撞（复用 telegraph 的 dash）
 			e.lead_charge = false
 			g.tele.warn(e, "line", Bal.v("enemy/horde_lead_charge_warn", 0.8), {"ang": dir.angle(), "len": clampf(dist + 60.0, 160.0, 420.0), "wid": 26.0, "track": 0.3,
@@ -416,7 +418,7 @@ func update(dt: float) -> void:
 			spd *= g.enemy_speed_mult
 			if not e.get("kb_self", false):
 				v *= g.enemy_kb_mult
-		if e.get("channel", 0.0) > 0.0 or e.get("coma", false) or e.get("wind", 0.0) > 0.0 or e.get("dormant", false) or e.get("wake_t", 0.0) > 0.0:
+		if e.get("channel", 0.0) > 0.0 or e.get("coma", false) or e.get("wind", 0.0) > 0.0 or e.get("dormant", false) or e.get("wake_t", 0.0) > 0.0 or e.get("depart_t", 0.0) > 0.0:
 			spd = 0.0
 		if e.get("haste", 0.0) > 0.0:
 			spd *= 1.4

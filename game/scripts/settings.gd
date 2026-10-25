@@ -20,8 +20,21 @@ var music := 0.8
 var sfx := 0.9
 var voice := 0.8        # 干员语音（Voice 总线）
 var fullscreen := false
-var max_fps := 60          # 最高帧率 60 / 30（10-22，设置「画面」）：只限渲染帧（Engine.max_fps；网页端 Godot 在 requestAnimationFrame 回调里按它跳帧），逻辑仍按 PlayClock 固定步长
-const MAX_FPS_OPTS := [60, 30]
+var max_fps := 0           # 帧率上限 0 = 自动 / 60 / 30（10-22 加 60 / 30；10-25 用户定加「自动」并作缺省，设置「画面」）：只限渲染帧（Engine.max_fps；
+                          # 网页端 Godot 在 requestAnimationFrame 回调里按它跳帧），逻辑仍按 PlayClock 固定步长。
+                          # 自动：桌面 60；网页先按 60 跑，开局前几秒稳不住 50 帧就锁 30（fps_lock30，本次启动有效，不来回跳；game._auto_quality）
+const MAX_FPS_OPTS := [0, 60, 30]
+var fps_lock30 := false   # 自动档在网页上测出稳不住 50 帧：本次启动锁 30
+var fps_probed := false   # 自动档本次启动已测过（测过就不再改）
+
+
+## 实际生效的帧率上限（Engine.max_fps）
+func effective_max_fps() -> int:
+	if max_fps > 0:
+		return max_fps
+	if mobile_web():
+		return 30   # 10-26 晚用户定：手机网页自动档直接锁 30（稳 30 比 40 上下抖好），不测；手选 60 照旧
+	return 30 if fps_lock30 else 60
 const RESOLUTIONS := [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(3840, 2160)]   # 都是 1280×720 的整数倍，像素对齐
 var res_index := 0        # 窗口分辨率（RESOLUTIONS 下标；全屏时按屏幕）
 var dmg_numbers := true
@@ -38,6 +51,7 @@ var pad_rumble := true   # 手柄震动
 var quality := ""        # 生效中的画质档 "high" / "mid" / "low"（由 quality_mode 决定）：中 = 关法线光照 / 辉光；低 = 四项后期全关（再关景深 / 水下滤镜）+ 粒子减半、真人局同屏敌人上限 300、演出简化
 var quality_mode := "auto"   # 玩家选的画质档：auto / low / mid / high（10-22 用户：设置精简 + 画质自动档，Codex 界面单 §4）
 var quality_probed := false  # （旧）自动档首局前 2 秒测帧时；10-25 起改逐级降（auto_level），保留键兼容
+var guard_lowered := false   # 内存护栏本局临时降过画质（手动档也会，提示玩家；下局开局恢复手选的档）
 var auto_level := 0          # 画质自动档逐级降到第几级（本次启动有效，不存档；game._auto_quality，docs/50 §28）
 const QUALITY_NAME := {"low": "低", "mid": "中", "high": "高"}
 const QUALITY_MODES := ["auto", "low", "mid", "high"]
@@ -71,10 +85,13 @@ var diff_best := {}      # 各档最佳成绩 {"0": {"wins": 通关次数, "best
 var seen_shows: Array = []   # 已看过的解锁演出
 var gallery_seen: Array = []
 var seen_relics: Array = []  # 获得过的藏品 id（图鉴用）
-var seen_intro := false      # 已看过开局指南
+var seen_intro := false      # 已看过开局引导（聚光框，screens/tour.gd；旧版翻页指南也用它）
+var seen_tips: Array = []    # 已弹过的到点小提示 id（tour.gd TIPS；每样只弹一次）
+const TIP_IDS := ["elite", "boss", "lamp", "levelup"]
 var endings_cleared: Array = []   # 已达成的结局 id（通关结局一后才出现其余结局的事件）
-# 干员解锁（局外成长 P1，docs/109 §12，core/roster.gd）：存档 [roster] 段。开局 5 人不存（Roster.STARTERS）
-var roster_unlocked: Array = []   # 解锁过的干员 id（不含开局 5 人）
+# 干员解锁（局外成长 P1，docs/109 §12，core/roster.gd）：存档 [roster] 段。10-26 起新玩家开局为空（新手十连），名册全部存在这里
+var roster_unlocked: Array = []   # 解锁过的干员 id（roster_v ≥ 2：全部；旧版存档不含开局 5 人，读档时补上）
+var roster_v := 0                 # 名册存档版本：2 = 开局 5 人已写进 roster_unlocked（10-26 新手十连起）
 var roster_tickets := {}          # 待用的券 {"hunt": 寻访凭证, "cls": 招募券, "pick": 人事调度函}
 var roster_spare := {}            # 名册已满后多出来的券（P2 换生机细胞）
 var roster_tiers: Array = []      # 已首通的难度档（发过人事调度函的）
@@ -92,8 +109,8 @@ var roster_fresh: Array = []      # 刚解锁、还没在名册里看过的干�
 var roster_int_grant := false     # 对内包的测试寻访凭证已发过（INTERNAL_TICKETS，每份存档一次）
 var medals := {}                  # 已获得的蚀刻章 {key: 获得时刻 Unix 秒}（core/medals.gd；存档 [medals] 段；获得后永久保留）
 var medal_best := {}              # 蚀刻章的历史最好进度 {key: 数}（协同晋升：一次探索里同时精英二的人数）
-## 对内包（用户 10-22：要在对内包里测寻访；10-24 改：开局 10 人 + 20 张）：名册不全部解锁；每份存档首次启动补齐
-## Roster.INTERNAL_START 的 5 名干员（开局共 10 人）并发这么多张寻访凭证
+## 对内包（用户 10-22：要在对内包里测寻访；10-24 开局 10 人 + 20 张；10-26 改：与新玩家同一流程——名册为空 + 新手 10 张、
+## 先做新手十连），每份存档首次启动再多发这么多张寻访凭证，十连之后用来测单抽 / 定向 / 补满名册
 const INTERNAL_TICKETS := 20
 ## 对内包存档目录带提交号（ArknightsSurvivors_Internal_<短 sha>，tools/export_build.py 打包时改 project.godot）：每个新的对内包从干净存档开始，
 ## 不读旧包、也不读开发目录的存档（用户 10-24；旧的一次性迁移已删）；同一个包里的进度照常保存
@@ -124,6 +141,33 @@ var _ui_font: FontFile = null
 ## 触屏设备（全项目唯一判定：touch.gd / Pad / 标题页都问这里）：有触屏、网页 Android / iOS、或 --touch。
 ## iPad Safari 默认报桌面 UA（Macintosh），web_ios 认不出：网页版再看 navigator.maxTouchPoints（触屏验收 10-01，架构报）
 var _touch := -1
+
+
+## 手机 / 平板上的网页（10-26 iPhone Safari 进局即「网页崩溃」：WebKit 按内存杀页，docs/50 §30）：开局就封渲染分辨率、自动档从「低」起、音乐分轨不预先解码
+func mobile_web() -> bool:
+	return OS.has_feature("web") and touch_device()
+
+
+## 手机网页止血开关（balance.json 没写 = 缺省值；--bal=web/<键>=0 可退回 10-25 线上版行为做对照）
+func mobile_knob(key: String, dflt: float) -> bool:
+	return load("res://scripts/core/balance.gd").v("web/" + key, dflt) > 0.0
+
+
+## 字形缓存瘦身（docs/50 §30.4：桌面低画质一局下来字体缓存 173 个字号、161 张页、62 MB——引擎显存里最大的一块没对上的就是它）：
+## 关掉亚像素定位（每个字形不再按 1/4 像素存 4 份；像素风的界面字看不出差别），并清掉已有缓存。手机网页开局做、进局再清一次标题页用过的字号
+const FONT_PATHS := ["res://fonts/ui.ttf", "res://fonts/ui_fallback.otf", "res://fonts/serif.ttf"]
+
+func slim_fonts(clear_only := false) -> void:
+	for fp in FONT_PATHS:
+		var ff = load(fp)
+		if ff is FontFile:
+			if not clear_only:
+				ff.subpixel_positioning = TextServer.SUBPIXEL_POSITIONING_DISABLED
+			ff.clear_cache()
+
+
+func mobile_fonts_slim() -> bool:
+	return (mobile_web() and mobile_knob("mobile_font_slim", 1.0)) or dev_args().has("--fontslim")
 
 
 func touch_device() -> bool:
@@ -309,6 +353,8 @@ func _ready() -> void:
 	var c := ConfigFile.new()
 	if c.load(PATH) == OK:
 		_read_cfg(c)
+	else:
+		_roster_fresh()   # 全新安装（没有存档文件）：新手开局
 	if _set_sig == "":
 		_set_sig = _settings_sig()   # 旧存档 / 首次启动：以现在的设置为基准，没改过就不算「新」（cloud_set_t 保持 0，换设备时让云端的设置生效）
 	_apply_unlock_all()
@@ -327,10 +373,13 @@ func _ready() -> void:
 				if pr.size() == 2:
 					medal_best[pr[0]] = int(pr[1])
 	for a in dev_args():
-		# 截图 / 测试新玩家名册：--roster=start5 只留开局 5 人（只在内存，测试局不写存档）；--rostertickets=寻访,招募,调度 预置待用的券
-		if a == "--roster=start5":
-			roster_unlocked = []
-			roster_tickets = {}
+		# 截图 / 测试名册（只在内存，测试局不写存档）：--roster=start5 = 旧版开局 5 人（Roster.STARTERS，现有单测按它写）；
+		# --roster=new = 10-26 新手开局（名册为空 + 新手 10 张，要先做新手十连）；--rostertickets=寻访,招募,调度 预置待用的券
+		if a == "--roster=start5" or a == "--roster=new":
+			var R0 = preload("res://scripts/core/roster.gd")
+			roster_unlocked = [] if a == "--roster=new" else R0.STARTERS.duplicate()
+			roster_tickets = {"hunt": R0.FIRST_TICKETS} if a == "--roster=new" else {}
+			roster_v = 2
 			roster_tiers = []
 			roster_wish = ""
 			roster_pity = 0
@@ -358,6 +407,10 @@ func _ready() -> void:
 		elif a.begins_with("--camzoom="):
 			cam_zoom_pct = clampi(int(a.substr(10)), ZOOM_PCT_MIN, ZOOM_PCT_MAX)
 	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)   # 自动档：每次启动按本机检测；手选档：按档位统一开关后期
+	if mobile_fonts_slim():
+		slim_fonts()
+	if mobile_web() and mobile_knob("mobile_rscale", 1.0):
+		set_render_scale.call_deferred(true)   # 手机网页开局就按逻辑分辨率（约 1280×720）画再放大：iPhone 3 倍像素屏的画布 / 全屏层显存约降到 1/3–1/7
 	for a in dev_args():
 		if a.begins_with("--quality="):
 			set_quality(a.substr(10))   # 截图自测：强制画质档（测试模式不写存档）
@@ -391,9 +444,13 @@ func _read_cfg(c: ConfigFile) -> void:
 	sfx = c.get_value("audio", "sfx", sfx)
 	voice = c.get_value("audio", "voice", voice)
 	fullscreen = c.get_value("video", "fullscreen", fullscreen)
-	max_fps = int(c.get_value("video", "max_fps", 60))
+	# 10-25 起存 fps_mode（0 自动 / 60 / 30）；旧存档只有 max_fps（缺省 60，没法分辨是否手选过）：旧值 30 视为手选 30，其余按「自动」
+	if c.has_section_key("video", "fps_mode"):
+		max_fps = int(c.get_value("video", "fps_mode", 0))
+	else:
+		max_fps = 30 if int(c.get_value("video", "max_fps", 60)) == 30 else 0
 	if not MAX_FPS_OPTS.has(max_fps):
-		max_fps = 60
+		max_fps = 0
 	res_index = clampi(int(c.get_value("video", "res_index", res_index)), 0, RESOLUTIONS.size() - 1)
 	dmg_numbers = c.get_value("game", "dmg_numbers", dmg_numbers)
 	hitstop = c.get_value("game", "hitstop", hitstop)
@@ -424,6 +481,9 @@ func _read_cfg(c: ConfigFile) -> void:
 	gallery_seen = c.get_value("progress", "gallery_seen", [])
 	seen_relics = c.get_value("progress", "seen_relics", seen_relics)
 	seen_intro = c.get_value("progress", "seen_intro", seen_intro)
+	seen_tips = c.get_value("progress", "seen_tips", seen_tips)
+	if not c.has_section_key("progress", "seen_tips") and seen_intro:
+		seen_tips = TIP_IDS.duplicate()   # 老存档（已看过旧指南）：到点小提示按「都看过」处理，不再打扰
 	opening_seen = c.get_value("progress", "opening_seen", opening_seen)
 	endings_cleared = c.get_value("progress", "endings_cleared", endings_cleared)
 	roster_unlocked = c.get_value("roster", "unlocked", roster_unlocked)
@@ -436,6 +496,7 @@ func _read_cfg(c: ConfigFile) -> void:
 	roster_seed = int(c.get_value("roster", "seed", roster_seed))
 	roster_fresh = c.get_value("roster", "fresh", roster_fresh)
 	roster_int_grant = bool(c.get_value("roster", "int_grant", roster_int_grant))
+	roster_v = int(c.get_value("roster", "v", 0))
 	load("res://scripts/core/roster.gd").migrate_tickets()   # 三种券 → 单一寻访凭证（1:1 / 1:1 / 1:2）
 	meta_shape = c.get_value("meta", "shape", meta_shape)
 	meta_shape_t = int(c.get_value("meta", "shape_t", meta_shape_t))
@@ -449,6 +510,8 @@ func _read_cfg(c: ConfigFile) -> void:
 	medal_best = mb if mb is Dictionary else {}
 	if not c.has_section("roster"):
 		_migrate_roster()
+	elif roster_v < 2:
+		_roster_add_starters()
 	diff_best = c.get_value("progress", "diff_best", diff_best)
 	_migrate_progress(int(c.get_value("progress", "diff_ver", 1)))
 	cloud_set_t = int(c.get_value("cloud", "set_t", 0))
@@ -482,7 +545,7 @@ func apply() -> void:
 			if DisplayServer.window_get_size() != sz:
 				DisplayServer.window_set_size(sz)
 				DisplayServer.window_set_position((scr - sz) / 2 + DisplayServer.screen_get_position())
-		Engine.max_fps = max_fps   # 无头 / 测试局不走到这里：批跑仍不限帧
+		Engine.max_fps = effective_max_fps()   # 无头 / 测试局不走到这里：批跑仍不限帧
 
 
 const WEB_MASTER_TRIM := -7.0
@@ -551,11 +614,29 @@ func note_diff_best(preset: int, won: bool, t: float) -> void:
 
 
 ## 老存档（没有 [roster] 段）：EA 期间所有干员都开局可用，打过的玩家一律直接全部解锁，不收回已有内容（docs/109 §12.5）。
-## 判定「打过」：通关过任何难度、达成过结局、或获得过藏品。全新存档保持开局 5 人。
+## 判定「打过」：通关过任何难度、达成过结局、或获得过藏品。没打过的按新玩家开局（10-26：名册为空 + 新手 10 张，先做新手十连）。
 func _migrate_roster() -> void:
 	if diff_unlocked >= 1 or not endings_cleared.is_empty() or not seen_relics.is_empty():
-		var Roster = load("res://scripts/core/roster.gd")
-		roster_unlocked = Roster.all_ids().filter(func(cid): return not Roster.STARTERS.has(cid))
+		roster_unlocked = load("res://scripts/core/roster.gd").all_ids()
+		roster_v = 2
+	else:
+		_roster_fresh()
+
+
+## 新手开局（10-26 用户）：名册为空、送 Roster.FIRST_TICKETS 张寻访凭证；主界面引导去做新手十连。只改内存，随下一次存档写盘
+## （没写盘前退出，下次启动还是全新存档，结果相同）
+func _roster_fresh() -> void:
+	roster_unlocked = []
+	roster_tickets = {"hunt": load("res://scripts/core/roster.gd").FIRST_TICKETS}
+	roster_v = 2
+
+
+## 旧版名册存档（有 [roster] 段、版本 < 2）：开局 5 人当时不写进存档，现在补进 roster_unlocked，老玩家名册不变
+func _roster_add_starters() -> void:
+	for cid in load("res://scripts/core/roster.gd").STARTERS:
+		if not roster_unlocked.has(cid):
+			roster_unlocked.append(cid)
+	roster_v = 2
 
 
 ## 开发测试用「全部解锁」（用户 2026-09-27 要求）：难度三档、图鉴（藏品 / 敌人 / 结局）、结局事件线全部解锁。
@@ -576,13 +657,9 @@ func _apply_unlock_all() -> void:
 	var db = preload("res://scripts/core/relic_db.gd").new()
 	db.load_files()
 	seen_relics = db.implemented().map(func(r): return r.id)
-	# 对内发布包：名册不全开（roster_all_open() 为假），首次启动补齐开局 10 人并发测试用寻访凭证，写进存档（真实进度，寻访结果也照常存）
+	# 对内发布包：名册不全开（roster_all_open() 为假），与新玩家同一流程（新手十连），首次启动另发测试用寻访凭证，写进存档（真实进度，寻访结果也照常存）
 	if internal_roster() and not roster_int_grant:
 		roster_int_grant = true
-		var Roster = preload("res://scripts/core/roster.gd")
-		for cid in Roster.INTERNAL_START:
-			if not roster_unlocked.has(cid):
-				roster_unlocked.append(cid)
 		roster_tickets["hunt"] = int(roster_tickets.get("hunt", 0)) + INTERNAL_TICKETS
 		save()
 
@@ -645,7 +722,9 @@ func _guess_quality() -> String:
 		if gpu.contains(k):
 			return "low"
 	if DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios"):
-		return "mid"
+		# 10-26 改回「低」（10-25 曾改「中」）：iPhone 网页进局即崩，光学层 / 发光层 / GPU 粒子的渲染目标与着色器在 WebKit 上吃内存；
+		# 掉帧时的逐级降档来不及救内存。手选「中 / 高」照旧可用
+		return "low" if mobile_knob("mobile_low", 0.0) or not OS.has_feature("web") else "mid"   # 10-26 晚用户定手机标准「30 帧 + 中档特效」：改回从中起（内存靠其余止血项与护栏兜）
 	for k in ["mali", "adreno", "powervr"]:
 		if gpu.contains(k):
 			return "mid"
@@ -661,6 +740,7 @@ func _guess_quality() -> String:
 func set_quality_mode(m: String) -> void:
 	quality_mode = m if QUALITY_MODES.has(m) else "auto"
 	auto_level = 0   # 换档 / 重选自动：逐级降从头算
+	guard_lowered = false   # 手动换档压过护栏这一局的临时降档
 	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)
 	quality_probed = quality_mode != "auto"
 
@@ -700,7 +780,8 @@ func save() -> void:
 	c.set_value("audio", "sfx", sfx)
 	c.set_value("audio", "voice", voice)
 	c.set_value("video", "fullscreen", fullscreen)
-	c.set_value("video", "max_fps", max_fps)
+	c.set_value("video", "fps_mode", max_fps)
+	c.set_value("video", "max_fps", effective_max_fps())   # 旧键：老版本读到的仍是 60 / 30
 	c.set_value("video", "res_index", res_index)
 	c.set_value("game", "dmg_numbers", dmg_numbers)
 	c.set_value("game", "hitstop", hitstop)
@@ -728,6 +809,7 @@ func save() -> void:
 	c.set_value("progress", "seen_shows", seen_shows)
 	c.set_value("progress", "seen_relics", _real_progress.get("seen_relics", seen_relics))
 	c.set_value("progress", "seen_intro", seen_intro)
+	c.set_value("progress", "seen_tips", seen_tips)
 	c.set_value("progress", "opening_seen", opening_seen)
 	c.set_value("progress", "endings_cleared", _real_progress.get("endings_cleared", endings_cleared))
 	c.set_value("roster", "unlocked", roster_unlocked)
@@ -740,6 +822,7 @@ func save() -> void:
 	c.set_value("roster", "seed", roster_seed)
 	c.set_value("roster", "fresh", roster_fresh)
 	c.set_value("roster", "int_grant", roster_int_grant)
+	c.set_value("roster", "v", roster_v)
 	c.set_value("meta", "shape", meta_shape)
 	c.set_value("meta", "shape_t", meta_shape_t)
 	c.set_value("meta", "earned", meta_earned)
@@ -799,7 +882,8 @@ func cloud_body() -> Dictionary:
 		"dbest": diff_best.duplicate(true),
 		"meta": _cloud_meta(),
 		"med": {"got": medals.duplicate(), "best": medal_best.duplicate()},
-		"opst": {"tk": roster_tickets.duplicate(), "sp": roster_spare.duplicate(), "wish": roster_wish, "pity": roster_pity, "draws": roster_draws, "seed": roster_seed}}, true)
+		"opst": {"tk": roster_tickets.duplicate(), "sp": roster_spare.duplicate(), "wish": roster_wish, "pity": roster_pity, "draws": roster_draws, "seed": roster_seed},
+		"rv": roster_v}, true)
 	var out: Dictionary = (cloud_extra.get("top", {}) as Dictionary).duplicate(true)
 	out["set"] = st
 	out["prog"] = pr
@@ -894,6 +978,9 @@ func cloud_apply(body: Dictionary) -> void:
 			_real_progress[{"rel": "seen_relics", "end": "endings_cleared"}[k]] = arr
 		else:
 			set(lists[k], arr)
+	# 旧版本写的云档（没有 rv ≥ 2、但有名册段 opst）：当时开局 5 人不进 ops，这里补上，免得新设备读旧云档丢了开局 5 人
+	if p.has("opst") and int(p.get("rv", 0)) < 2:
+		_roster_add_starters()
 	if p.get("intro") is bool:
 		seen_intro = p.intro
 	if p.get("open") is bool:

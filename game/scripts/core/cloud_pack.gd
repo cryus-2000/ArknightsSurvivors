@@ -183,6 +183,11 @@ static func normalize(b: Dictionary) -> Dictionary:
 	pr["open"] = bool(pr.get("open", false))
 	if pr.has("opst"):
 		pr["opst"] = (pr.opst as Dictionary).duplicate(true) if pr.opst is Dictionary else {}
+		if int(pr.get("rv", 0)) < 2:
+			# 旧版本写的名册（10-26 之前）：开局 5 人不进 ops；补上再合并，免得新设备（名册为空的新手开局）读旧云档丢了这 5 人
+			var ops0: Array = pr.get("ops", []) if pr.get("ops") is Array else []
+			pr["ops"] = union(ops0, load("res://scripts/core/roster.gd").STARTERS)
+			pr["rv"] = 2
 	if pr.has("med"):
 		pr["med"] = merge_med(pr.med, {})   # 规范化：两个子字典都在、值转 int
 	for k in LIST_KEYS:

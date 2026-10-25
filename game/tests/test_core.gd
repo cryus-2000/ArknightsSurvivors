@@ -645,10 +645,15 @@ func test_blocks_texas() -> void:
 	# 10-23 重设计（docs/129）：队长普攻原地两连斩；队友短突进 10-25 已删；天赋定时自动冲刺已删
 	ok(B.talent.size() == 2 and str(B.talent[0].get("_tag", "")) == "trig.on_dash_end" and str(B.talent[0].src) == "战术快递", "天赋只剩 on_dash_end 回技力（定时自动冲刺的两块 tick 已删）")
 	var has_mate_step := false
+	var has_roam_dash := false
 	for tb in B.trait:
 		if str(tb.get("_tag", "")) == "trig.tick" and tb.has("do") and not tb.do.is_empty() and str(tb.do[0].get("src", "")) == "突进":
-			has_mate_step = true
-	ok(not has_mate_step, "队友短突进已删（10-25 用户：平时不自动冲锋，队友只在队长冲刺时跟随）：特性里没有 src 突进的 tick 块")
+			if tb.get("cond", {}) is Dictionary and str(tb.cond.get("k", "")) == "roaming":
+				has_roam_dash = true
+			else:
+				has_mate_step = true
+	ok(not has_mate_step, "队友平时短突进已删（10-25 用户：平时不自动冲锋，队友只在队长冲刺时跟随）：特性里没有无条件的 src 突进 tick 块")
+	ok(has_roam_dash, "突击模式低频冲刺（10-26 用户）：特性里有 cond roaming 的 src 突进 tick 块")
 	ok(str(B.trait[1].get("_tag", "")) == "trig.every_n" and int(B.trait[1].n) == 4 and bool(B.trait[1].replace) and bool(B.trait[1].no_combo) and str(B.trait[1].do[0].get("_tag", "")) == "shape.circle" and float(B.trait[1].do[0].r) == 100.0 and absf(float(B.trait[1].do[0].mult) - 0.55) < 0.0001, "骤雨第一下：每第 4 次出手 replace + no_combo，360° 圆半径 100、每下 55%")
 	ok(absf(float(B.trait[2].delay) - 0.2) < 0.0001 and absf(float(B.trait[3].delay) - 0.4) < 0.0001 and absf(float(B.trait[4].delay) - 0.6) < 0.0001 and str(B.trait[2].cond) != "" and not B.trait[2].get("replace", false), "骤雨第二 / 三 / 四下：非 replace 的 every_n、delay 0.2 / 0.4 / 0.6")
 	ok(float(B.skills[0].need_enemy) == 130.0 and float(B.skills[2].need_enemy) == 230.0 and not B.skills[1].has("need_enemy"), "剑雨 / 剑雨滂沱自动释放需要敌人（130 / 230），冲锋号令·γ型（永久增益）不要")
