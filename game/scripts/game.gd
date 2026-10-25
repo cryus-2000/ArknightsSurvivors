@@ -1229,7 +1229,7 @@ func _auto_quality(delta: float) -> void:
 	aq_hold = AQ_HOLD
 	_apply_auto_level()
 	if not Cfg.dev_args().is_empty():
-		print("AUTOQ level=%d avg=%.1fms t=%.1f" % [Cfg.auto_level, avg_ms, t])
+		print("PF AUTOQ level=%d avg=%.1fms t=%.1f" % [Cfg.auto_level, avg_ms, t])
 	if Cfg.auto_level == 1:
 		quality_note = "帧率偏低，已自动精简特效（可在设置里改画质）"
 		quality_note_t = 5.0
@@ -1250,7 +1250,7 @@ func _fps_probe(rd: float) -> void:
 		Cfg.fps_lock30 = true
 		Engine.max_fps = Cfg.effective_max_fps()
 	if not Cfg.dev_args().is_empty():
-		print("AUTOFPS avg=%.1fms lock30=%s t=%.1f" % [avg_ms, Cfg.fps_lock30, t])
+		print("PF AUTOFPS avg=%.1fms lock30=%s t=%.1f" % [avg_ms, Cfg.fps_lock30, t])
 
 
 ## --fpsosd（仅测试）：左上角显示实际帧率 / 帧率上限 / 自动降档级（录网页锁 30 的证明片用；独立一层，不走 HUD 缓存）

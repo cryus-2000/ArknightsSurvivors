@@ -261,31 +261,26 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, ra
     return log_p
 
 
-def _screencast(cdp, out_dir, secs):
-    """录屏（DevTools Page.startScreencast）：每帧存 JPEG 与时间戳，回 ack 才给下一帧；secs > 0 时录够秒数就停（从第一帧算）"""
+def _screencast(cdp, out_dir, secs, every=0.2):
+    """录屏：每 every 秒用 DevTools Page.captureScreenshot 截一张 JPEG（窗口在屏幕外时 startScreencast 收不到帧，截图会强制出一帧），
+    存时间戳；secs > 0 时录够秒数就停"""
     import base64
     os.makedirs(out_dir, exist_ok=True)
     for f in os.listdir(out_dir):
         os.remove(os.path.join(out_dir, f))
-    cdp.cmd("Page.startScreencast", {"format": "jpeg", "quality": 80, "everyNthFrame": 1})
     meta = []
-    t0 = None
-    while True:
+    t0 = time.time()
+    while secs <= 0 or time.time() - t0 < secs:
+        t1 = time.time()
         try:
-            m = json.loads(cdp.recv_raw())
+            r = cdp.cmd("Page.captureScreenshot", {"format": "jpeg", "quality": 75})
         except Exception:
             break
-        if m.get("method") != "Page.screencastFrame":
-            continue
-        pr = m["params"]
-        ts = float(pr["metadata"]["timestamp"])
-        t0 = ts if t0 is None else t0
-        n = len(meta)
-        open(os.path.join(out_dir, "f%05d.jpg" % n), "wb").write(base64.b64decode(pr["data"]))
-        meta.append(ts - t0)
-        cdp.send_raw({"id": 900000 + n, "method": "Page.screencastFrameAck", "params": {"sessionId": pr["sessionId"]}})
-        if secs > 0 and ts - t0 >= secs:
-            break
+        data = r.get("result", {}).get("data")
+        if data:
+            open(os.path.join(out_dir, "f%05d.jpg" % len(meta)), "wb").write(base64.b64decode(data))
+            meta.append(t1 - t0)
+        time.sleep(max(0.0, every - (time.time() - t1)))
     json.dump(meta, open(os.path.join(out_dir, "times.json"), "w"))
 
 
