@@ -821,15 +821,32 @@ func on_kill(e: Dictionary) -> void:
 
 # ---------------------------------------------------------------- 绘制分发（world 坐标）
 
+## 干员特效绘制顺序（docs/139 §11，render/lead_top 1）：队长排最后 = 画在队友特效上面；0 = 原顺序
+func _fx_order() -> Array:
+	if Bal.v("render/lead_top", 0.0) <= 0.0:
+		return ops
+	var out: Array = []
+	var ld = null
+	for o in ops:
+		if o.is_leader:
+			ld = o
+		else:
+			out.append(o)
+	if ld != null:
+		out.append(ld)
+	return out
+
+
 func draw_auras() -> void:
 	cv.begin()
 	var d0: float = g.world.fx_dim
-	for o in ops:
+	for o in _fx_order():
 		_op_dim(o, d0)
 		o.draw_auras()
 	g.world.fx_dim = d0
 	cv.mute = false
 	cv.amul = 1.0
+	cv.dsat = 0.0
 	cv.end()
 
 
@@ -837,32 +854,34 @@ func draw_auras() -> void:
 func draw_ground_fx() -> void:
 	cv.begin()
 	var d0: float = g.world.fx_dim
-	for o in ops:
+	for o in _fx_order():
 		if o.has_method("draw_ground_fx"):
 			_op_dim(o, d0)
 			o.draw_ground_fx()
 	g.world.fx_dim = d0
 	cv.mute = false
 	cv.amul = 1.0
+	cv.dsat = 0.0
 	cv.end()
 
 
 func draw_entities_floor() -> void:
 	cv.begin()   # 合批（性能 9/30）：几何图形攒成一批，画贴图前自动提交
 	var d0: float = g.world.fx_dim
-	for o in ops:
+	for o in _fx_order():
 		_op_dim(o, d0)
 		o.draw_entities_floor()
 		o.draw_pfx(true)
 	g.world.fx_dim = d0
 	cv.mute = false
 	cv.amul = 1.0
+	cv.dsat = 0.0
 	cv.end()
 
 
 func draw_shadows() -> void:
 	cv.begin()
-	for o in ops:
+	for o in _fx_order():
 		if o.pos != Vector2.INF:
 			cv.sync()
 			cv.touch()
@@ -907,25 +926,40 @@ func draw_leader_mark() -> void:
 	# 朝向小三角：先垫一个每边大 2 像素的深色三角
 	cv.draw_colored_polygon(PackedVector2Array([tip + Vector2(2.5 * fc, 0), tip + Vector2(-7.5 * fc, -6), tip + Vector2(-7.5 * fc, 6)]), dark)
 	cv.draw_colored_polygon(PackedVector2Array([tip, tip + Vector2(-6.0 * fc, -4), tip + Vector2(-6.0 * fc, 4)]), Color(c.r, c.g, c.b, 0.9))
+	# 出手方向弧（docs/139 §11，render/lead_dir 1）：脚下椭圆外沿一段 36° 暖白短弧指向当前出手方向——手动攻击 = 瞄准方向，
+	# 自动攻击 = 最近 0.8 秒内一次命中的方向（没有就不画）；常亮不闪
+	if Bal.v("render/lead_dir", 0.0) > 0.0:
+		var adir := Vector2.ZERO
+		if Cfg.manual_attack and g.doctor != null:
+			adir = g.doctor.attack_dir()
+		elif g.t - g.vfx.lead_hit_t < 0.8:
+			adir = g.vfx.lead_hit_dir
+		if adir != Vector2.ZERO:
+			var aa: float = adir.angle()
+			cv.draw_set_transform(o.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.45))
+			cv.draw_arc(Vector2.ZERO, 38.0, aa - 0.32, aa + 0.32, 10, dark, 5.0)
+			cv.draw_arc(Vector2.ZERO, 38.0, aa - 0.32, aa + 0.32, 10, Color(1.0, 0.82, 0.5, 0.95), 2.0)
+			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	cv.end()
 
 
 func draw_fx_add(ci: CanvasItem, loop: int) -> void:
 	var d0: float = g.world.fx_dim
-	for o in ops:
+	for o in _fx_order():
 		_op_dim(o, d0)
 		g.world.fx_dim = d0 * cv.amul   # 加色层直接画在 ci（不经 cv）：读 fx_dim 的干员特效按同一系数降
 		o.draw_fx_add(ci, loop)
 	g.world.fx_dim = d0
 	cv.mute = false
 	cv.amul = 1.0
+	cv.dsat = 0.0
 
 
 func draw_skill_over() -> void:
 	cv.begin()
 	var d0: float = g.world.fx_dim
 	_pfx_cap_plan()
-	for o in ops:
+	for o in _fx_order():
 		_op_dim(o, d0)
 		o._draw_skill_over()
 		o.draw_pfx(false)
@@ -933,6 +967,7 @@ func draw_skill_over() -> void:
 	g.world.fx_dim = d0
 	cv.mute = false
 	cv.amul = 1.0
+	cv.dsat = 0.0
 	cv.end()
 
 
@@ -970,4 +1005,5 @@ func _pfx_cap_plan() -> void:
 func _op_dim(o, d0: float) -> void:
 	g.world.fx_dim = d0
 	cv.amul = g.world.lead_dim if o.is_leader else g.world.mate_dim   # 经 cv 的绘制统一乘（自定义干员脚本不读 fx_dim 的特效也算上）
+	cv.dsat = 0.0 if o.is_leader else g.world.mate_desat   # 队友特效去饱和（docs/139 §10）
 	cv.mute = g.world._dbg_friend   # --clutterdbg=nofriend（量测）：这些阶段只有特效，整段不显示

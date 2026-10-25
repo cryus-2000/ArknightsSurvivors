@@ -51,6 +51,8 @@ var fx_dim := 1.0                 # 友方特效的透明度系数（1 → 0.45�
 var dcrowd := 0.0                 # 降噪用的拥挤度：max(crowd, ecrowd × declutter crowd_mix)
 var mate_dim := 1.0               # 队友（非主控）特效再乘的系数（declutter mate_k；squad 绘制时按干员临时乘进 fx_dim）
 var lead_dim := 1.0               # 主控自己的特效再乘的系数（declutter lead_k）
+var mate_desat := 0.0             # 队友特效去饱和（docs/139 §10，render/mate_desat）
+var mate_on := false              # render/mate_layer 开着（缺省关）：子弹 / 刀光 / 命中颗粒才按队友另压
 var ol_mul := 1.0                 # 普通怪描边透明度系数（随 ecrowd 降到 declutter ol_floor；原来写死 0.4）
 var _lamp_rim := false              # 朝灯边缘亮线原型（balance render/rim > 0 且白色保护材质在）：敌人本体绘制的 alpha 取负作标记，actor_light.gdshader 认
 var flash_a := 0.9                # 普通怪受击白闪透明度（随 ecrowd 从 0.9 降到 declutter flash_a）
@@ -228,6 +230,13 @@ func update_visuals(dt: float) -> void:
 	fx_dim = lerpf(1.0, Dc.p("dim_floor"), dcrowd)
 	mate_dim = Dc.at("mate_k", dcrowd)
 	lead_dim = Dc.at("lead_k", dcrowd)
+	# 主次分层试验（docs/139 §10）：render/mate_layer 1 = 队友特效恒定压到 render/mate_fx（0.55）并去饱和 render/mate_desat；
+	# 用户 10-25「队友特效不要降，想其它办法」→ 缺省 0（只剩原来的拥挤降噪），改走 §11「突出队长」
+	mate_desat = 0.0
+	mate_on = Bal.v("render/mate_layer", 0.0) > 0.0 and g.demo_op == ""
+	if mate_on:
+		mate_dim = minf(mate_dim, Bal.v("render/mate_fx", 0.55))
+		mate_desat = Bal.v("render/mate_desat", 0.35)
 	if _dbg_friend:
 		fx_dim = 0.0   # --clutterdbg=nofriend：友方特效全透明（代码照跑、随机数照抽）
 	ol_mul = lerpf(1.0, Dc.p("ol_floor"), ecrowd)
@@ -972,9 +981,11 @@ func _draw_bullets() -> void:
 	# 自己的投射物（render/declutter bullet_k / bullet_desat）：拥挤时略淡、略去饱和，让敌方弹幕更跳；缺省不变
 	_bk = 0.0 if _dbg_friend else Dc.at("bullet_k", dcrowd)
 	_bd = Dc.p("bullet_desat") * dcrowd
+	var lid: String = str(g.ch.id) if g.ch != null else ""
 	for b in g.bullets:
 		if b.life <= 0.0 or b.get("hidden", false):
 			continue
+		_bmate = mate_on and b.has("op") and str(b.op) != lid   # 队友的弹：再乘队友系数（docs/139 §10）
 		var n: Vector2 = b.vel.normalized()
 		# 美术 V6：投射物帧条（朝右绘制，按速度方向旋转）；程序只画拖尾
 		var ptex: String = PROJ_TEX.get(b.kind, "")
@@ -1009,13 +1020,24 @@ func _draw_bullets() -> void:
 
 var _bk := 1.0
 var _bd := 0.0
+var _bmate := false
+
+
+## 队友特效颜色：往同亮度灰拉 mate_desat（不改透明度，透明度由调用方乘 mate_dim）
+func mate_col(c: Color) -> Color:
+	if mate_desat <= 0.0:
+		return c
+	var l: float = c.r * 0.2126 + c.g * 0.7152 + c.b * 0.0722
+	return Color(lerpf(c.r, l, mate_desat), lerpf(c.g, l, mate_desat), lerpf(c.b, l, mate_desat), c.a)
 
 
 func _bc(c: Color) -> Color:
-	if _bk >= 1.0 and _bd <= 0.0:
+	var k: float = _bk * (mate_dim if _bmate else 1.0)
+	var dd: float = maxf(_bd, mate_desat if _bmate else 0.0)
+	if k >= 1.0 and dd <= 0.0:
 		return c
 	var l: float = (c.r + c.g + c.b) / 3.0
-	return Color(lerpf(c.r, l, _bd), lerpf(c.g, l, _bd), lerpf(c.b, l, _bd), c.a * _bk)
+	return Color(lerpf(c.r, l, dd), lerpf(c.g, l, dd), lerpf(c.b, l, dd), c.a * k)
 
 
 ## g.fx 特效按 kind 逐个画（频闪 / 爆炸 / 地裂 / 光束 / Boss 换幕……）；fx_dim 只压友方特效；写进 tb 批的（gcrack / mote / mire_recoil）末尾一次提交
@@ -1080,9 +1102,25 @@ func _draw_fx() -> void:
 				g.draw_circle(Vector2.ZERO, f.r, Color(0.6, 0.85, 1.3, 0.28 * a))
 				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				g.draw_line(f.pos + Vector2(-5, 1), f.pos + Vector2(5, -1), Color(1.2, 1.5, 2.0, 0.6 * a), 1.5)
+			"lead_mark":
+				# 队长命中记号（vfx.lead_mark，docs/139 §11）：敌人身上四个像素角标（暖白），跟着敌人走；前 70% 寿命满亮不闪，之后两阶熄灭
+				var me = f.get("e")
+				var mp: Vector2 = f.pos
+				if me is Dictionary and not me.get("dead", false):
+					mp = (me.pos as Vector2) + Vector2(0, -float(me.get("r", 12.0)) * 0.6)
+				var mq: float = 1.0 if a > 0.3 else (0.66 if a > 0.15 else 0.33)
+				var mr: float = clampf(float(f.get("r", 12.0)) * 0.8 + 4.0, 12.0, 24.0)
+				mp = (mp / 2.0).round() * 2.0
+				for sx in [-1.0, 1.0]:
+					for sy in [-1.0, 1.0]:
+						var cn: Vector2 = mp + Vector2(sx * mr, sy * mr)
+						g.draw_line(cn, cn - Vector2(sx * 7.0, 0), Color(0.05, 0.04, 0.03, 0.8 * mq), 4.0)
+						g.draw_line(cn, cn - Vector2(0, sy * 7.0), Color(0.05, 0.04, 0.03, 0.8 * mq), 4.0)
+						g.draw_line(cn, cn - Vector2(sx * 6.0, 0), Color(1.0, 0.82, 0.5, mq), 2.0)   # 琥珀白（不过 1，免得被截成纯白）
+						g.draw_line(cn, cn - Vector2(0, sy * 6.0), Color(1.0, 0.82, 0.5, mq), 2.0)
 			"hstar":
 				# 命中星（vfx._tier_fx）：中档 4 臂、重档 8 臂；臂长随寿命先长后缩，2 px 线 + 白芯，三阶跳着消失
-				var hq: float = ceilf(a * 3.0) / 3.0
+				var hq: float = ceilf(a * 3.0) / 3.0 * float(f.get("ka", 1.0))   # ka：队友命中压透明度（docs/139 §10）
 				var hl: float = float(f.r) * (0.6 + 0.4 * sin((1.0 - a) * PI))
 				var hc: Color = f.col
 				for q in int(f.n):
@@ -1115,6 +1153,10 @@ func _draw_fx() -> void:
 				var hd: float = clampf(pr / 0.25, 0.0, 1.0)
 				var tl: float = clampf((pr - 0.25) / 0.75, 0.0, 1.0)
 				var cc: Color = f.col
+				if mate_on and aop != null and not aop.is_leader:
+					cc = mate_col(cc)   # 队友刀光：去饱和、压透明度（颗粒走 cc.a，docs/139 §10）
+					cc.a = mate_dim
+					aq *= mate_dim
 				var gr = g.optical.grains if g.optical != null else null
 				if gr != null and gr.on() and not gr.off and hd > 0.0:
 					# 刀光第四版（docs/136「slash」粒子模板）：月牙本体由像素颗粒在这一帧扫过的那一段上生成，前沿只留一道热白细线
@@ -1533,9 +1575,10 @@ func _draw_fx() -> void:
 
 
 ## 敌方弹幕三遍（无贴图底 → 贴图 → 弹芯描边）+ Boss 刀刃 → 抛射碎石 → 冲击环
-## Boss 弹画原色弹体（optical._eb_step 换色相时把原图留在 g.tex[名 + "@boss"]；docs/139 §7.3）
+## Boss 弹画原图弹体（optical._eb_step 把杂兵弹换成青蓝色相时，原图留在 g.tex[名 + "@boss"]；docs/139 §7.3）：
+## 不是染色，只是「不被杂兵的青蓝换色波及」——Boss 弹的本体颜色交给 Boss 会话（专属贴图 / b.col，docs/142b）
 func _eb_tex(b: Dictionary, nm: String) -> String:
-	return nm + "@boss" if b.get("boss", false) and g.tex.has(nm + "@boss") and Bal.v("render/ebullet_boss_danger", 1.0) > 0.0 else nm
+	return nm + "@boss" if b.get("boss", false) and g.tex.has(nm + "@boss") else nm
 
 
 func _draw_ebullets_lobs_shocks() -> void:
@@ -4009,7 +4052,7 @@ func _marc_grains(f: Dictionary, gr, ap: Vector2, rc: float, tw: float, s0: floa
 		var cap: int = int(gr.TEMPLATES.slash.per_frame)
 		var stride: float = maxf(1.0, float(cells.size()) / float(cap))
 		var k: float = 0.0
-		var col := Color(minf(1.0, cc.r * kb), minf(1.0, cc.g * kb), minf(1.0, cc.b * kb))
+		var col := Color(minf(1.0, cc.r * kb), minf(1.0, cc.g * kb), minf(1.0, cc.b * kb), cc.a)
 		while int(k) < cells.size():
 			var c: Array = cells[int(k)]
 			gr.push("slash", c[0], c[1], col)
