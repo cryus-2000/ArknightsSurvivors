@@ -36,6 +36,12 @@ func _print_mem(tag: String) -> void:
 		Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0,
 		Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0,
 		Sfx.sample_mem_mb(), get_tree().root.size, Cfg.render_scaled, Cfg.quality])
+	var sc = get_tree().current_scene
+	if sc != null and sc.has_method("view_size") and "cam" in sc and sc.cam != null:
+		var vp := get_viewport()
+		# 镜头：可见世界高（世界像素，2 世界像素 = 1 美术像素）、zoom、1 美术像素占几个物理像素（手机三档统一镜头用，docs/50 §32）
+		print("PF VIEW %s view_h=%.0f zoom=%.3f art_px=%.2f phys_h=%.0f" % [tag, sc.view_size().y, sc.cam.zoom.x,
+			2.0 * sc.cam.zoom.x * vp.get_final_transform().x.x, vp.get_visible_rect().size.y * vp.get_final_transform().x.x])
 	if tag == "game+5s" or tag.begins_with("t="):
 		_print_tex_breakdown()
 
