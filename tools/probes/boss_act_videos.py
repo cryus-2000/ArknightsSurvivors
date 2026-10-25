@@ -5,6 +5,7 @@
 
     python tools/probes/boss_act_videos.py ishar knight_boss iberia
     python tools/probes/boss_act_videos.py --video-only ishar        # 不重跑，用已有截图重编
+    python tools/probes/boss_act_videos.py --closeup ishar           # 另出一段特写 <spec>_closeup.mp4（裁中间 45%，按像素放大）
 输出 build/boss_acts/<spec>.mp4
 """
 import os, subprocess, sys, tempfile
@@ -17,7 +18,7 @@ import boss_act_gifs as bag
 W = 960
 
 
-def encode(spec, out):
+def encode(spec, out, crop=0.8, tag=""):
     import imageio_ffmpeg
     fs = sorted(f for f in os.listdir(out) if f.startswith("shot_acts_") and f.endswith(".png"))
     if not fs:
@@ -28,10 +29,10 @@ def encode(spec, out):
     for i, f in enumerate(fs):
         im = Image.open(os.path.join(out, f)).convert("RGB")
         w0, h0 = im.size
-        cw, ch = int(w0 * 0.8), int(w0 * 0.8 * 9 / 16)
+        cw, ch = int(w0 * crop), int(w0 * crop * 9 / 16)
         x0, y0 = (w0 - cw) // 2, max(0, (h0 - ch) // 2)
-        im.crop((x0, y0, x0 + cw, y0 + ch)).resize((W, h), Image.LANCZOS).save(os.path.join(tmp, "f%04d.png" % i))
-    dst = os.path.join(bag.OUT, spec.replace("+", "_") + ".mp4")
+        im.crop((x0, y0, x0 + cw, y0 + ch)).resize((W, h), Image.LANCZOS if crop >= 0.7 else Image.NEAREST).save(os.path.join(tmp, "f%04d.png" % i))
+    dst = os.path.join(bag.OUT, spec.replace("+", "_") + tag + ".mp4")
     # 实时帧率 = 张数 / 游戏时长（登场 t=150 到最后一行 BOSSACTS gate 的 t）
     import re
     ts = [float(x) for x in re.findall(r"BOSSACTS gate t=([0-9.]+)", open(os.path.join(out, "run.log"), encoding="utf-8", errors="replace").read())]
@@ -56,6 +57,8 @@ def main():
         if not only:
             out, _ = bag.run(spec)
         encode(spec, out)
+        if "--closeup" in args:
+            encode(spec, out, 0.45, "_closeup")
 
 
 if __name__ == "__main__":

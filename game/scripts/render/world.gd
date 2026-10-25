@@ -1771,6 +1771,9 @@ func _draw_ebullets_lobs_shocks() -> void:
 
 ## 一道冲击环：地面椭圆，深色外描边 + 危险色主色 + 白芯；缺口环按缺口分段（ground 环由 _draw_ground_foe_fx 在单位之下画）
 func _draw_shock(sh: Dictionary) -> void:
+	if str(sh.get("src_type", "")) == "ishar" and Bal.v("render/ishar_song_live", 1.0) > 0.0:
+		BossBeam.draw_song(g, sh, ground_y())   # 伊莎玛拉大群之歌：起伏前沿 + 衰减尾带 + 沿途散颗粒（docs/142b §9，用户 10-25）
+		return
 	var a: float = maxf(0.6, 1.0 - sh.r / sh.maxr)
 	var tc: Color = sh.get("col", ENEMY_TELL)   # 缺口环（大群之歌）用 Boss 主题色，普通冲击环洋红
 	g.draw_set_transform(sh.pos, 0.0, Vector2(1.0, ground_y()))   # 地面椭圆，和判定一致（docs/48 ①）

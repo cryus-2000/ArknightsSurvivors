@@ -27,6 +27,11 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 			e.invuln = false
 	if e.has("brk_label") and float(e.get("break_t", 0.0)) <= 0.0:
 		e.erase("brk_label")   # 撞柱眩晕 / 喘气破绽结束：别的破绽（韧性）照旧写「破绽」
+	elif str(e.get("brk_label", "")) == "眩晕":
+		# 撞柱眩晕期间完全定住：不走（wind 让移动速度为 0）、不被击退、不转向（enemies.gd 每帧按主控方向翻面，这里改回撞柱时的朝向）
+		e.wind = maxf(float(e.get("wind", 0.0)), float(e.break_t))
+		e.kb = Vector2.ZERO
+		e.fx = float(e.get("stun_fx", e.fx))
 	_knight_stakes(e, dt)
 	_cold_step(e, dt)
 	_ice_step(e)
@@ -262,6 +267,7 @@ func _knight_stakes(e: Dictionary, _dt: float) -> void:
 				# 撞柱眩晕（用户 10-25）：knight_stake_break（2.5）秒不动不出招、受伤 × knight_break_taken（2.0）；头顶星 + 「眩晕」读秒（world 读 brk_label）
 				g.combat.start_break(e, Bal.v("boss/knight_stake_break", 2.5))
 				e.brk_label = "眩晕"
+				e.stun_fx = e.fx
 				Sfx.play("stake_hit", 2.0, 1.0, 0.0)   # 撞桩、长枪脱手
 				g.fx.append({"kind": "ring", "pos": s.pos, "r": 70.0, "life": 0.5, "max": 0.5, "col": Color(0.6, 0.9, 1.4), "enemy": true})
 				g.vfx.add_text(e.pos + Vector2(0, -70), "撞上冰柱 · 眩晕！", Color(1.0, 0.85, 0.4), 22)

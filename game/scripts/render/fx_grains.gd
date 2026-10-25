@@ -39,6 +39,8 @@ const MATERIALS := {
 		"ramp": [[0.0, Color(1.2, 1.2, 1.2, 0.9)], [0.35, Color(0.95, 0.95, 0.95, 0.8)], [0.75, Color(0.55, 0.55, 0.55, 0.45)]]},
 	"mote_in": {"life": 0.9, "life_rand": 0.3, "speed": Vector2(55, 85), "spread": 6.0, "grav": 0.0, "drag": 0.4, "per_frame": 8,
 		"ramp": [[0.0, Color(0.7, 0.7, 0.7, 0.5)], [0.4, Color(1, 1, 1, 0.85)], [0.85, Color(1.3, 1.3, 1.3, 0.9)]]},
+	"mote_shed": {"life": 0.55, "life_rand": 0.35, "speed": Vector2(12, 34), "spread": 35.0, "grav": -22.0, "drag": 2.5, "per_frame": 14,
+		"ramp": [[0.0, Color(1.3, 1.3, 1.3, 0.95)], [0.3, Color(1, 1, 1, 0.8)], [0.7, Color(0.5, 0.5, 0.5, 0.4)]]},
 	"mote_burst": {"life": 0.6, "life_rand": 0.35, "speed": Vector2(70, 150), "spread": 8.0, "grav": 0.0, "drag": 3.5, "per_frame": 72,
 		"ramp": [[0.0, Color(1.3, 1.3, 1.3, 1)], [0.25, Color(1, 1, 1, 0.9)], [0.7, Color(0.55, 0.55, 0.55, 0.5)]]},
 }

@@ -292,6 +292,89 @@ static func _act_look(g, e: Dictionary, grains) -> void:
 		p -= 1.0
 
 
+## ---- 伊莎玛拉「大群之歌」（用户 10-25「放出去的像是平推出去」，要有生命感；判定不变：shot_pool.update_shocks 按 sh.r 一条环带）
+## 前沿：随角度起伏（6 瓣、随时间流动 ±4）、粗细脉动的专属色亮带 + 浅色芯；身后三层衰减尾带（越往里越淡越宽）；
+## 前沿沿途散出颗粒（光学观感颗粒开着时）；缺口两侧照旧画金色出口短线。不加深色描边（只有伊比利亚的弹描边）
+const SONG_STEP := 0.07   # 折线每段弧度
+
+
+static func _song_pts(sh: Dictionary, a0: float, a1: float, dr: float, gy: float, t: float) -> PackedVector2Array:
+	var pts := PackedVector2Array()
+	var n: int = maxi(2, int(ceil((a1 - a0) / SONG_STEP)))
+	for i in n + 1:
+		var a: float = a0 + (a1 - a0) * float(i) / float(n)
+		var rr: float = float(sh.r) + dr + sin(a * 6.0 + t * 5.0) * 4.0 + sin(a * 11.0 - t * 7.0) * 1.5
+		pts.append(sh.pos + Vector2(cos(a) * rr, sin(a) * rr * gy))
+	return pts
+
+
+static func draw_song(g, sh: Dictionary, gy: float) -> void:
+	var c: Color = sh.get("col", ISHAR_LINK)
+	var k: float = clampf(float(sh.r) / maxf(1.0, float(sh.maxr)), 0.0, 1.0)
+	var a: float = 1.0 - k * k * 0.7   # 越扩越淡（到最大半径剩 0.3），不是匀速一整块
+	var t: float = g.t
+	var gh: float = float(sh.get("gap_half", 0.0))
+	var gaps: Array = sh.get("gaps", []) if gh > 0.0 else []
+	var segs: Array = []
+	if gaps.is_empty():
+		segs.append([0.0, TAU])
+	else:
+		var starts: Array = []
+		for ga in gaps:
+			starts.append(fposmod(float(ga) + gh, TAU))
+		starts.sort()
+		for i in starts.size():
+			var s0: float = starts[i]
+			var s1: float = starts[(i + 1) % starts.size()] - gh * 2.0
+			if s1 <= s0:
+				s1 += TAU
+			segs.append([s0, s1])
+	var pulse: float = 0.5 + 0.5 * sin(t * 14.0)
+	for sg in segs:
+		# 尾带（由外往里：越淡越宽）
+		for j in 3:
+			var dr: float = -8.0 - 9.0 * j
+			g.draw_polyline(_song_pts(sh, sg[0], sg[1], dr, gy, t - 0.05 * j), Color(c.r, c.g, c.b, (0.32 - 0.09 * j) * a), 6.0 + 3.0 * j)
+		# 前沿亮带 + 浅色芯 + 前方一点柔光
+		g.draw_polyline(_song_pts(sh, sg[0], sg[1], 4.0, gy, t), Color(c.r, c.g, c.b, 0.22 * a), 4.0)
+		g.draw_polyline(_song_pts(sh, sg[0], sg[1], 0.0, gy, t), Color(c.r * 1.25, c.g * 1.25, c.b * 1.25, a), 3.0 + 1.5 * pulse)
+		g.draw_polyline(_song_pts(sh, sg[0], sg[1], 0.0, gy, t), Color(0.85 + c.r * 0.15, 0.85 + c.g * 0.15, 0.85 + c.b * 0.15, 0.85 * a), 1.2)
+	for ga in gaps:
+		for side in [-1.0, 1.0]:
+			var v := Vector2.from_angle(float(ga) + side * gh)
+			var p0: Vector2 = sh.pos + Vector2(v.x, v.y * gy) * (float(sh.r) - 16.0)
+			var p1: Vector2 = sh.pos + Vector2(v.x, v.y * gy) * (float(sh.r) + 16.0)
+			g.draw_line(p0, p1, Color(1.0, 0.85, 0.35, 0.9), 2.0)
+	# 前沿沿途散颗粒：每帧 5 颗，随机角度（落在缺口里的跳过），向外飘、慢慢升起变淡
+	var grains = g.optical.grains if g.optical != null and g.optical.grains != null and g.optical.grains.on() else null
+	if grains != null and a > 0.2:
+		for i in 5:
+			var ang: float = g.vrng.randf() * TAU
+			if not gaps.is_empty() and g.tele.in_gap(sh, ang):
+				continue
+			var v2 := Vector2.from_angle(ang)
+			grains.push("mote_shed", sh.pos + Vector2(v2.x, v2.y * gy) * float(sh.r), v2, c)
+
+
+## 大群之歌的起势（预警 0.8 秒里）：她身边一圈由外往里收的环 + 颗粒向她汇聚（「张开 → 吸气」），出手时由 draw_song 接上
+static func _song_windup(g, e: Dictionary) -> void:
+	for w in g.warns:
+		if w.done or not is_same(w.owner, e) or str(w.act) != "song_ring":
+			continue
+		var k: float = clampf(float(w.t) / maxf(0.05, float(w.dur)), 0.0, 1.0)
+		var c: Color = w.col
+		var rr: float = lerpf(150.0, float(w.r), k * k)
+		g.draw_set_transform(e.pos, 0.0, Vector2(1.0, 0.72))
+		g.draw_arc(Vector2.ZERO, rr, 0.0, TAU, 48, Color(c.r, c.g, c.b, 0.15 + 0.5 * k), 2.0 + 3.0 * k)
+		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		var grains = g.optical.grains if g.optical != null and g.optical.grains != null and g.optical.grains.on() else null
+		if grains != null:
+			for i in 4:
+				var d := Vector2.from_angle(g.vrng.randf() * TAU)
+				grains.push("mote_in", e.pos + d * g.vrng.randf_range(140.0, 200.0), -d, c)
+		return
+
+
 ## 地面层：骑士的寒气圈（低亮度，0 区域样式：只提示「进来会涨寒冷」，不伤人）；卡门的封锁线；塑路者的生路
 static func draw_ground(g) -> void:
 	var grains = g.optical.grains if g.optical != null and g.optical.grains != null and g.optical.grains.on() else null
@@ -308,6 +391,7 @@ static func draw_ground(g) -> void:
 			_paranoia_ground(g, e)
 		if not e.dead and e.type == "ishar" and e.phase == 2:
 			_web_ground(g, e)
+			_song_windup(g, e)
 		if not e.dead and e.type == "izumik" and e.phase == 2:
 			_izumik_ground(g, e)
 		if e.dead or e.type != "knight_boss" or float(e.get("kcold_r", 0.0)) <= 0.0:
