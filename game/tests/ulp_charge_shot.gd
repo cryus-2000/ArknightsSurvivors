@@ -92,6 +92,7 @@ func _set_new(on: bool) -> void:
 	if not (Bal._data.get("fx") is Dictionary):
 		Bal._data["fx"] = {}
 	Bal._data.fx["ulp_charge_grains"] = 1.0 if on else 0.0
+	Bal._data.fx["ulp_burst"] = 1.0 if on else 0.0   # 落地冲击环（docs/143 §8）随新旧一起切
 
 
 func _setup() -> void:
