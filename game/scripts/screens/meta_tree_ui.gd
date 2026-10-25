@@ -1,13 +1,12 @@
 extends Control
 ## 局外 · 认知塑造页（docs/109 §4；10-25 重做，art/incoming/meta_ui_1025/）。只改 Cfg.meta_*，规则与数据在 core/meta.gd / data/meta_tree.json。
-## 版式（10-25 用户：「或者干脆照抄原作吧，做一些小改版」；照原作有公司授权）：照搬原作水月「认知塑造」节点树——
-## 布局、连线走向、大节点位置、蓝色三角、青色特殊路径、夜海背景都照原作；本作同名节点放在原作对应位置，原作有而本作没有的节点只留连线
-## 经过的空位（大节点位留一圈淡点环），本作多出来的阶顺着原作的线放进空出来的位置。小改版只有：像素化统一、本作的顶栏和详情卡、三种状态表现、
-## 手机横屏、画布可拖动。布局在 data/meta_roots.json（art/incoming/meta_ui_1025/layout.py 生成，连线已采样）。
-## 连线亮起：两端都是已塑造节点或空位的线发青光（通向空位的死胡同不亮），已塑造的线上有光点流动。
-## 像素层（背景、连线、节点）画进低分辨率 SubViewport（1 格 = 2 设计单位，最近邻放大）；文字、外框、详情卡画在 view（设计单位）里保持清晰。
-## 节点照原作：黑盘 + 白环 + 白色图形 + 点状外环、右下消耗；质变节点（带 rule 的）是放射条纹大盘。已塑造 = 白盘黑图；可塑造 = 黄色点环转动呼吸；
-## 余额不够 = 灰环；未解锁 = 暗。招牌动效：塑造时一道光沿亮起的连线流到新节点（0.55 秒）→ 节点翻白 + 外扩环（0.45 秒）。
+## 版式（10-25 用户：「改成那种海底星空的排列，节点可以是星座」；在照抄原作版 38bf92203 上改）：从海底仰望星空——
+## 每条认知线是一个星座：节点是星，同一条线按 Ⅰ→Ⅱ→… 用细的星座连线连起来，星座旁写线名（星图标注，下附已塑造 / 总数）。
+## 星座的整体位置沿用原作水月「认知塑造」节点树（同名节点尽量留在原位，离群的挪进本星座）。布局在 data/meta_roots.json
+## （art/incoming/meta_ui_1025/layout.py 生成）。背景：海面淡光 + 满屏闪烁的发光微粒 + 一条星云带（meta_bg.gdshader），微粒缓缓上浮。
+## 像素层（背景、星座连线、星）画进低分辨率 SubViewport（1 格 = 2 设计单位，最近邻放大）；文字、外框、详情卡画在 view（设计单位）里保持清晰。
+## 三种状态：已塑造 = 亮星（白芯 + 十字星芒 + 青光），两头都亮的连线点亮、有光点流动；可塑造 = 黄白星闪烁 + 黄色点环转动；
+## 余额不够 = 灰星；未解锁 = 暗星。质变节点 = 大亮星（八道星芒 + 伴星成团）。招牌动效：塑造时一道光从上一颗沿连线流进新星（0.55 秒）→ 外扩环（0.45 秒）。
 ## 操作：方向键 / 手柄十字键按方向找最近的节点；点节点选中、再点 / Enter / 详情卡「塑造」塑造；R 推荐（按推荐顺序把余额点完）；X 两次全部重置（免费退回）；
 ## Esc 返回；画布比屏幕大时拖动 / 滚轮（Shift 横向）平移，换选中后镜头跟随。减少动态效果：不生长、不呼吸、无光点流动，镜头直接到位。
 signal closed
@@ -35,9 +34,7 @@ const LIT_DUR := 1.0
 const LIT_GROW := 0.55
 
 ## 像素层颜色
-const C_LINE := Color8(196, 202, 210)    # 原作的灰白连线
-const C_CYAN := Color8(34, 196, 186)     # 原作青色特殊路径
-const C_ARROW := Color8(72, 150, 255)    # 原作蓝色三角
+const C_LINE := Color8(170, 196, 228)    # 星座连线 / 标记圈
 const C_SAP := Color8(118, 238, 255)
 const C_DISC := Color8(10, 15, 22)
 const C_WHITE := Color8(238, 243, 246)
@@ -54,20 +51,14 @@ var font: Font
 var vp: SubViewport           # 像素层
 var bgrect: ColorRect
 var bgmat: ShaderMaterial
-var wn: Node2D                # 像素层里画树干 / 根 / 节点（像素格坐标）
+var wn: Node2D                # 像素层里画星座连线 / 星（像素格坐标）
 var under: Control            # 放像素层画面（设计单位，在 view 下面）
 var pix: TextureRect
 var view: Control             # 文字 / 外框 / 详情卡（设计单位）
 var lay: Dictionary = {}
 var chains: Array = []        # 每条链的节点 id（从第一节往末节）
 var pos := {}                 # 节点 id → 世界坐标（设计单位）
-var opos := {}                # 原作节点名 → 世界坐标
-var obig := {}                # 原作节点名 → 是否大节点
-var onode := {}               # 原作节点名 → 放在这里的本作节点（空位 = ""）
-var oname := {}               # 本作节点 id → 原作节点名
-var odepth := {}              # 原作节点名 → 从「开始」数第几层（开场按层亮出）
-var edges: Array = []         # 原作连线：[a, b, 采样点, 是否青色]
-var arrows: Array = []        # 原作蓝色三角：[p, q]（p → q 方向）
+var ord := {}                 # 节点 id → (第几条线, 第几颗)（开场按这个亮出）
 var sel := Vector2i(0, 0)     # 选中（链，节）
 var hover := ""
 var buttons: Array = []       # [Rect2, 动作]（设计坐标）
@@ -170,42 +161,18 @@ func _build() -> void:
 		while child.has(ch[-1]) and ch.size() < 12:
 			ch.append(child[ch[-1]])
 		chains.append(ch)
-	opos.clear()
-	obig.clear()
-	onode.clear()
-	oname.clear()
-	odepth.clear()
-	edges.clear()
-	arrows.clear()
-	var og: Dictionary = lay.get("orig", {})
-	for o in og:
-		opos[o] = _v(og[o])
-		obig[o] = int(og[o][2]) == 1
-		onode[o] = ""
-	var ours: Dictionary = lay.get("ours", {})
+	ord.clear()
+	var st: Dictionary = lay.get("stars", {})
 	var extra := 0
-	for id in nodes:
-		var o := str(ours.get(id, ""))
-		if opos.has(o):
-			pos[id] = opos[o]
-			onode[o] = id
-			oname[id] = o
-		else:   # 布局里没有的新节点：先排在右下角（数据加节点后跑 layout.py 补上）
-			pos[id] = _world() - Vector2(60.0 + extra * 70.0, 60.0)
-			extra += 1
-	for e in lay.get("edges", []):
-		edges.append([str(e.a), str(e.b), _pts(e.pts), int(e.get("cyan", 0)) == 1])
-	for ar in lay.get("arrows", []):
-		arrows.append([_v(ar.p), _v(ar.q)])
-	odepth["start"] = 0
-	var q: Array = ["start"]
-	while not q.is_empty():
-		var n: String = q.pop_front()
-		for e in edges:
-			var o: String = e[1] if e[0] == n else (e[0] if e[1] == n else "")
-			if o != "" and not odepth.has(o):
-				odepth[o] = int(odepth[n]) + 1
-				q.append(o)
+	for i in chains.size():
+		for k in chains[i].size():
+			var id: String = chains[i][k]
+			ord[id] = Vector2i(i, k)
+			if st.has(id):
+				pos[id] = _v(st[id])
+			else:   # 布局里没有的新节点：先排在右下角（数据加节点后跑 layout.py 补上）
+				pos[id] = _world() - Vector2(60.0 + extra * 70.0, 60.0)
+				extra += 1
 
 
 func _pts(a: Array) -> PackedVector2Array:
@@ -324,12 +291,12 @@ func _cam_goal() -> Vector2:
 	return _clamp_cam(c)
 
 
-## 打开时的镜头：世界居中；比视口大时让「开始」落在顶部标题下方、水平居中
+## 打开时的镜头：世界居中；比视口大时让顶部中心落在顶部标题下方、水平居中
 func _cam_center() -> Vector2:
 	var c := (_world() - vs) / 2.0
 	var cr := _v(lay.get("crown", [556, 170]))
 	if _world().y > vs.y:
-		c.y = cr.y - 130.0   # 「开始」连同上面的字刚好在顶栏下面
+		c.y = cr.y - 130.0   # 最上面的星座刚好在顶栏下面
 	if _world().x > vs.x:
 		c.x = cr.x - vs.x * 0.5
 	return _clamp_cam(c)
@@ -553,47 +520,12 @@ func _a(w: Vector2) -> Vector2:
 	return ((w - cam_px) / pxu).round()
 
 
-## 开场：从「开始」按层亮出，每层晚 0.035 秒，一条线 0.3 秒画完；减少动态效果直接到位
-func _grow_d(depth: int) -> float:
+## 开场：星座一颗接一颗亮出来（每条线晚 0.04 秒、每颗晚 0.07 秒），连线从上一颗往下一颗画过去；减少动态效果直接到位
+func _appear(id: String) -> float:
 	if Cfg.reduce_motion:
 		return 1.0
-	return UI.ease_out(clampf((t - open_t0 - 0.035 * depth) / 0.3, 0.0, 1.0))
-
-
-func _shown(o: String) -> bool:
-	return o != "" and (Cfg.reduce_motion or t - open_t0 >= 0.035 * int(odepth.get(o, 0)) + 0.12)
-
-
-## 亮着的连线：两端都是已塑造节点或空位（含「开始」）的线；再把通向空位的死胡同一层层剪掉，线只连到亮着的节点
-func _lit_edges() -> Array:
-	var on: Array = []
-	var deg := {}
-	for e in edges:
-		var lit := _passable(e[0]) and _passable(e[1])
-		on.append(lit)
-		if lit:
-			deg[e[0]] = int(deg.get(e[0], 0)) + 1
-			deg[e[1]] = int(deg.get(e[1], 0)) + 1
-	var changed := true
-	while changed:
-		changed = false
-		for k in edges.size():
-			if not on[k]:
-				continue
-			var e: Array = edges[k]
-			for n: String in [e[0], e[1]]:
-				if n != "start" and onode.get(n, "") == "" and int(deg.get(n, 0)) <= 1:
-					on[k] = false
-					deg[e[0]] = int(deg[e[0]]) - 1
-					deg[e[1]] = int(deg[e[1]]) - 1
-					changed = true
-					break
-	return on
-
-
-func _passable(o: String) -> bool:
-	var id: String = onode.get(o, "")
-	return id == "" or bool(Cfg.meta_shape.get(id, false))
+	var o: Vector2i = ord.get(id, Vector2i.ZERO)
+	return UI.ease_out(clampf((t - open_t0 - 0.1 - 0.04 * o.x - 0.07 * o.y) / 0.25, 0.0, 1.0))
 
 
 func _draw_world() -> void:
@@ -601,102 +533,60 @@ func _draw_world() -> void:
 	if lay.is_empty():
 		return
 	_draw_motes(ci)
-	_draw_edges(ci)
-	_draw_spots(ci)
+	for i in chains.size():
+		_draw_const_lines(ci, i)
 	var sid := _sel_id()
 	for id in pos:
-		if _shown(oname.get(id, "")):
-			_draw_node(ci, id, id == sid)
+		if _appear(id) > 0.0:
+			_draw_star(ci, id, id == sid)
 
 
-func _part(pts: PackedVector2Array, g: float) -> PackedVector2Array:
-	var out := PackedVector2Array()
-	var m := int(g * (pts.size() - 1))
-	for i in m + 1:
-		out.append(_a(pts[i]))
-	return out
-
-
-## 原作连线：灰白线；青色特殊路径照原作；亮着的线 = 白芯 + 青光 + 光点流动。开场从浅层那头往深层画出来；
-## 塑造演出：一道光沿新节点相连的亮线流进去
-func _draw_edges(ci: CanvasItem) -> void:
-	var lit := _lit_edges()
+## 星座连线：细线，到星前留一小段空（星图的画法）。两头都已塑造 = 亮线（白芯 + 青光 + 光点往下一颗流）；
+## 上一颗已塑造、这一颗还没 = 点线；其余 = 很淡的细线。塑造演出：一道光从上一颗流进新点亮的星
+func _draw_const_lines(ci: CanvasItem, i: int) -> void:
+	var ch: Array = chains[i]
 	var lit_f := (t - lit_t0) / LIT_DUR if lit_id != "" else 2.0
-	var lo: String = oname.get(lit_id, "")
-	for k in edges.size():
-		var e: Array = edges[k]
-		var pts: PackedVector2Array = e[2]
-		var da := int(odepth.get(e[0], 0))
-		var db := int(odepth.get(e[1], 0))
-		if db < da:
-			pts = pts.duplicate()
-			pts.reverse()
-		var g := _grow_d(mini(da, db))
+	for k in range(1, ch.size()):
+		var a: String = ch[k - 1]
+		var b: String = ch[k]
+		var g := _appear(b)
 		if g <= 0.0:
 			continue
-		var sp := _part(pts, g)
-		if sp.size() < 2:
+		var pa := _a(pos[a])
+		var pb := _a(pos[b])
+		var dv := (pb - pa).normalized()
+		var p0 := pa + dv * (_star_r(a) + 3.0)
+		var p1 := pb - dv * (_star_r(b) + 3.0)
+		if (p1 - p0).dot(dv) <= 0.0:
 			continue
-		var anim: bool = lo != "" and lit_f < LIT_GROW and (e[0] == lo or e[1] == lo)
-		if lit[k] and not anim:
-			ci.draw_polyline(sp, Color(C_SAP, 0.13), 5.0)
-			ci.draw_polyline(sp, C_WHITE, 2.0)
-			if not Cfg.reduce_motion:   # 光点从浅层往深层流
-				var gap := 10
-				var off := int(t * 12.0) % gap
-				for q in range(off, sp.size(), gap):
-					ci.draw_rect(Rect2(sp[q], Vector2(1, 1)), Color(C_SAP, 0.95))
-		elif e[3]:
-			ci.draw_polyline(sp, Color(C_CYAN, 0.22), 4.0)
-			ci.draw_polyline(sp, C_CYAN, 2.0)
+		p1 = p0.lerp(p1, g)
+		var sa := _state(a)
+		var sb := _state(b)
+		var anim := b == lit_id and lit_f < LIT_GROW
+		if sa == "on" and sb == "on" and not anim:
+			ci.draw_line(p0, p1, Color(C_SAP, 0.16), 3.0)
+			ci.draw_line(p0, p1, Color(C_WHITE, 0.9), 1.0)
+			if not Cfg.reduce_motion:
+				var n := int(p0.distance_to(p1))
+				var off := int(t * 10.0) % 12
+				for q in range(off, n, 12):
+					ci.draw_rect(Rect2((p0 + dv * q).floor(), Vector2(1, 1)), C_SAP)
+		elif sa == "on" or anim:
+			var n := int(p0.distance_to(p1))
+			for q in range(0, n, 3):
+				ci.draw_rect(Rect2((p0 + dv * q).floor(), Vector2(1, 1)), Color(C_LINE, 0.6))
 		else:
-			ci.draw_polyline(sp, Color(C_LINE, 0.55), 2.0)
-		if anim and lit[k]:   # 光从另一头流进新节点
-			var fl := pts.duplicate()
-			if e[1] != lo:
-				fl.reverse()
+			ci.draw_line(p0, p1, Color(C_LINE, 0.22), 1.0)
+		if anim:
 			var gf := UI.ease_out(clampf(lit_f / LIT_GROW, 0.0, 1.0))
-			var part := _part(fl, gf)
-			if part.size() >= 2:
-				ci.draw_polyline(part, Color(C_SAP, 0.35), 5.0)
-				ci.draw_polyline(part, Color.WHITE, 1.0)
-				ci.draw_circle(part[part.size() - 1], 3.0, Color(1, 1, 1, 0.35))
-				ci.draw_rect(Rect2(part[part.size() - 1] - Vector2(1, 1), Vector2(3, 3)), Color.WHITE)
-	# 蓝色三角（原作照搬）
-	for ar in arrows:
-		var q := _a(ar[0].lerp(ar[1], 0.5))
-		var dv: Vector2 = (ar[1] - ar[0]).normalized()
-		var sz := 5.0
-		var tri := PackedVector2Array([(q + dv * sz).round(), (q - dv * sz * 0.6 + dv.orthogonal() * sz * 0.95).round(),
-				(q - dv * sz * 0.6 - dv.orthogonal() * sz * 0.95).round()])
-		ci.draw_colored_polygon(tri, Color(C_ARROW, maxf(0.0, _grow_d(6))))
+			var e := p0.lerp(p1, gf)
+			ci.draw_line(p0, e, Color(C_SAP, 0.35), 3.0)
+			ci.draw_line(p0, e, Color.WHITE, 1.0)
+			ci.draw_circle(e, 3.0, Color(1, 1, 1, 0.35))
+			ci.draw_rect(Rect2(e - Vector2(1, 1), Vector2(3, 3)), Color.WHITE)
 
 
-## 空位：原作有而本作没有的节点——小节点只留连线交汇的一点，大节点位留一圈很淡的点环；「开始」是两圈点环 + 一颗亮点
-func _draw_spots(ci: CanvasItem) -> void:
-	for o in opos:
-		if onode[o] != "" or not _shown(o):
-			continue
-		var p := _a(opos[o])
-		if o == "start":
-			for r: int in [5, 9]:
-				var m := 20 if r == 5 else 32
-				for k in m:
-					if k % 2 == 0:
-						var d: Vector2 = Vector2.from_angle(k * TAU / m) * float(r)
-						ci.draw_rect(Rect2((p + d).floor(), Vector2(1, 1)), Color(C_WHITE, 0.6 if r == 5 else 0.3))
-			ci.draw_rect(Rect2(p - Vector2(1, 1), Vector2(3, 3)), C_WHITE)
-		elif obig[o]:
-			var m := 36
-			for k in m:
-				if k % 2 == 0:
-					var d: Vector2 = Vector2.from_angle(k * TAU / m) * float(rk + 3)
-					ci.draw_rect(Rect2((p + d).floor(), Vector2(1, 1)), Color(C_LINE, 0.5))
-			ci.draw_rect(Rect2(p - Vector2(1, 1), Vector2(3, 3)), Color(C_LINE, 0.7))
-		else:
-			ci.draw_rect(Rect2(p - Vector2(1, 1), Vector2(3, 3)), Color(C_LINE, 0.85))
-
-
+## 漂浮的发光微粒：慢慢往上浮、左右轻摆
 func _draw_motes(ci: CanvasItem) -> void:
 	var w := _world()
 	for m in motes:
@@ -707,7 +597,15 @@ func _draw_motes(ci: CanvasItem) -> void:
 		ci.draw_rect(Rect2(_a(Vector2(x, y)), Vector2(1, 1)), Color(C_SAP if m[3] else C_LINE, a * 0.7))
 
 
-func _draw_node(ci: CanvasItem, id: String, selected: bool) -> void:
+## 星的点击 / 连线留空半径（像素格）
+func _star_r(id: String) -> float:
+	return (5.0 if _is_key(id) else 3.0)
+
+
+## 星：已塑造 = 亮星（白芯 + 十字星芒 + 青光，慢慢闪）；可塑造 = 黄白星，星芒一伸一缩地闪 + 黄色点环转动；
+## 余额不够 = 灰星；未解锁 = 暗星（一点）。质变节点 = 大亮星：八道星芒、外圈细环，周围三四颗小伴星（星团）。
+## 外圈一道很淡的细环标出点击范围（星图上的标记圈）。塑造落定：外扩环；选中：四角黄角标
+func _draw_star(ci: CanvasItem, id: String, selected: bool) -> void:
 	var p := _a(pos[id])
 	var key := _is_key(id)
 	var r := rk if key else rn
@@ -718,56 +616,69 @@ func _draw_node(ci: CanvasItem, id: String, selected: bool) -> void:
 	if id == lit_id and lit_f < LIT_GROW:
 		st = "ok"
 	var rm := Cfg.reduce_motion
-	var ring := C_WHITE
-	var fill := C_DISC
-	var ic := C_WHITE
+	var g := _appear(id)
+	var ph := float(id.hash() % 100) / 100.0 * TAU
+	var tw := 1.0 if rm else 0.8 + 0.2 * sin(t * 1.7 + ph)
+	var core := C_WHITE
+	var arm := 0.0           # 星芒长度（像素格）
+	var halo := 0.0
 	match st:
 		"on":
-			fill = C_WHITE
-			ic = C_DISC
+			arm = (9.0 if key else 6.0) * tw
+			halo = 1.0
+		"ok":
+			core = Color8(255, 238, 170)
+			arm = (7.0 if key else 4.0) * (1.0 if rm else 0.65 + 0.35 * sin(t * TAU / 1.6 + ph))
 		"poor":
-			ring = C_POOR
-			ic = C_POOR
+			core = C_POOR
+			arm = 3.0 if key else 2.0
 		"lock":
-			ring = C_LOCK
-			ic = C_LOCK
-	# 质变节点：放射条纹（已塑造慢转）
+			core = Color(C_LOCK, 1.0)
+	arm *= g
+	# 标记圈
+	ci.draw_arc(p, r, 0.0, TAU, 36, Color(C_LINE, (0.16 if st == "lock" else 0.26) * g), 1.0)
+	if halo > 0.0:
+		ci.draw_circle(p, r * 0.9, Color(C_SAP, 0.07 * g))
+		ci.draw_circle(p, r * 0.5, Color(C_SAP, 0.14 * g))
+	# 星团：质变节点周围的小伴星（位置按 id 固定）
 	if key:
-		var rc := Color(C_WHITE, 0.9) if st == "on" else (Color(ring, 0.55))
-		var rot := (t * 0.05 if st == "on" and not rm else 0.0)
-		for k in 28:
-			var dv := Vector2.from_angle(k * TAU / 28.0 + rot)
-			var l1 := r + (5 if k % 2 == 0 else 3)
-			ci.draw_line(p + dv * (r + 2), p + dv * l1, rc, 1.0)
-	# 点状外环：可塑造 = 黄、转动呼吸；已塑造 = 白；其余不画
-	if st == "ok" or st == "on":
-		var dr := r + (7 if key else 3)
-		var n := 24 if key else 14
-		var rot2 := (t * 0.6 if st == "ok" and not rm else 0.0)
-		var a := 1.0
-		var col := Color(C_WHITE, 0.55)
-		if st == "ok":
-			a = 0.55 + 0.45 * sin(t * TAU / 1.6) if not rm else 1.0
-			col = Color(C_YEL, a)
+		var rng := RandomNumberGenerator.new()
+		rng.seed = id.hash()
+		for c in 4:
+			var cp := p + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(r * 0.45, r * 0.85)
+			var ca := (0.9 if st == "on" else (0.6 if st != "lock" else 0.3)) * g * (1.0 if rm else 0.7 + 0.3 * sin(t * 2.3 + c * 1.7 + ph))
+			ci.draw_rect(Rect2(cp.floor(), Vector2(1, 1)), Color(core, ca))
+	# 星芒：十字长、斜向短（质变节点八道）
+	if arm >= 1.0:
+		for k in (8 if key else 4):
+			var dv := Vector2.from_angle(k * TAU / (8 if key else 4) - PI / 2.0)
+			var l := arm if k % 2 == 0 or not key else arm * 0.5
+			for q in range(1, int(l) + 1):
+				var a := (1.0 - float(q) / (l + 1.0)) * g
+				ci.draw_rect(Rect2((p + dv * q).floor(), Vector2(1, 1)), Color(core, a))
+	# 星芯：菱形（|x| + |y| < 半径），中心一点纯白
+	var cs := (3 if key else 2) if st != "lock" else 1
+	var ca := g if st == "on" or st == "ok" else (0.9 if st == "poor" else 0.75) * g
+	for y in range(-cs + 1, cs):
+		var hw := cs - 1 - absi(y)
+		ci.draw_rect(Rect2(p + Vector2(-hw, y), Vector2(hw * 2 + 1, 1)), Color(core, ca))
+	if st == "on" or st == "ok":
+		ci.draw_rect(Rect2(p, Vector2(1, 1)), Color(1, 1, 1, g))
+	# 可塑造：黄色点环转动呼吸
+	if st == "ok":
+		var n := 20 if key else 14
+		var rot := t * 0.6 if not rm else 0.0
+		var a := (0.55 + 0.45 * sin(t * TAU / 1.6)) if not rm else 1.0
 		for k in n:
-			var dv := Vector2.from_angle(k * TAU / n + rot2) * dr
-			ci.draw_rect(Rect2((p + dv).floor(), Vector2(1, 1)), col)
-	if st == "on":   # 已塑造：一圈很淡的青光
-		ci.draw_circle(p, r + 5.0, Color(C_SAP, 0.10))
-		ci.draw_circle(p, r + 2.5, Color(C_SAP, 0.16))
-	ci.draw_circle(p, r + 0.5, fill)
-	ci.draw_arc(p, r, 0.0, TAU, 40, ring, 1.0)
-	if key:
-		ci.draw_arc(p, r - 2, 0.0, TAU, 36, Color(ring if st != "on" else C_DISC, 0.5), 1.0)
-	var tex := Icons.tex(id if _pre(id) == "disp" else _pre(id))
-	ci.draw_texture(tex, p - Vector2(5, 5), ic)
+			var dv := Vector2.from_angle(k * TAU / n + rot) * (r + 2.0)
+			ci.draw_rect(Rect2((p + dv).floor(), Vector2(1, 1)), Color(C_YEL, a * g))
 	# 塑造落定：外扩环
 	if id == lit_id and lit_f >= LIT_GROW:
 		var e := (lit_f - LIT_GROW) / (1.0 - LIT_GROW)
 		ci.draw_arc(p, r + 2 + 16.0 * e, 0.0, TAU, 40, Color(C_SAP, 1.0 - e), 1.0)
 	# 选中：四角黄角标（轻微呼吸）
 	if selected:
-		var q := r + (11 if key else 6) + (0.0 if rm else roundf(sin(t * TAU / 1.2) * 0.6 + 0.4))
+		var q := r + 5 + (0.0 if rm else roundf(sin(t * TAU / 1.2) * 0.6 + 0.4))
 		for s in [Vector2(-1, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-1, 1)]:
 			var c: Vector2 = p + s * q
 			ci.draw_line(c, c - Vector2(s.x * 4.0, 0), C_YEL, 1.0)
@@ -788,7 +699,7 @@ func _draw_view() -> void:
 
 
 func _txt(ci: CanvasItem, p: Vector2, s: String, sz: int, col: Color, anchor := "ma", bold := false) -> float:
-	# 深色描边：压在根和背景上也看得清
+	# 深色描边：压在连线和背景上也看得清
 	var w := font.get_string_size(s, HORIZONTAL_ALIGNMENT_LEFT, -1, sz).x
 	var x := p.x - (w / 2.0 if anchor[0] == "m" else (w if anchor[0] == "r" else 0.0))
 	var y := p.y + font.get_ascent(sz)
@@ -799,42 +710,61 @@ func _txt(ci: CanvasItem, p: Vector2, s: String, sz: int, col: Color, anchor := 
 	return w
 
 
+## 星旁的字：带罗马数字的线只写数字（线名标在星座旁），多程信息处理那条每颗名字不同，写全名
+func _short(id: String) -> String:
+	var nm := str(Meta.nodes()[id].name)
+	return nm.right(1) if "ⅠⅡⅢⅣⅤⅥ".contains(nm.right(1)) else nm
+
+
 func _draw_labels(ci: CanvasItem) -> void:
 	var sid := _sel_id()
 	var c := TUI.ctx(ci)
-	if _shown("start"):   # 原作「开始」
-		_txt(ci, _to_view(opos.get("start", Vector2.ZERO)) + Vector2(0, -30.0), "开始", 12, T_SUB)
+	# 星座线名（星图标注）：字间拉开，下面一行像素小字「已塑造 / 总数」
+	var cs: Dictionary = lay.get("consts", {})
+	for ch in chains:
+		var pre := _pre(ch[0])
+		if not cs.has(pre):
+			continue
+		var g := _appear(ch[0])
+		if g <= 0.0:
+			continue
+		var d := _to_view(_v(cs[pre].at))
+		var done := 0
+		for id in ch:
+			if Cfg.meta_shape.get(id, false):
+				done += 1
+		var sp := ""
+		for ch2 in str(cs[pre].name):
+			sp += ch2 + " "
+		_txt(ci, d + Vector2(0, -10.0), sp.strip_edges(), 13, Color(0.66, 0.78, 0.92, (0.95 if done > 0 else 0.62) * g))
+		var ps := "%d/%d" % [done, ch.size()]
+		TUI.ptext(ci, c, d + Vector2(-TUI.ptext_w(c, ps, 1.0) / 2.0, 13.0), ps, 1.0, Color(T_SUB, 0.75 * g))
+	# 星名 + 消耗：写在星的右边
 	for ch in chains:
 		for id: String in ch:
-			if not _shown(oname.get(id, "")):
+			var g := _appear(id)
+			if g <= 0.0:
 				continue
 			var d := _to_view(pos[id])
 			if d.x < -80.0 or d.x > vs.x + 80.0 or d.y < -40.0 or d.y > vs.y + 40.0:
 				continue
-			var key := _is_key(id)
-			var r := (rk if key else rn) * pxu
-			var off := 16.0 if key else 6.0
+			var r := (rk if _is_key(id) else rn) * pxu
 			var st := _state(id)
 			var col := T_ON if st == "on" or st == "ok" else (T_POOR if st == "poor" else T_LOCK)
-			var nm := str(Meta.nodes()[id].name)
-			var np := Vector2(d.x, d.y + r + off)
-			# 标签底板：根从节点往下延伸，会穿过名字；垫一块半透明暗底，线从底板后面过
-			var pw := font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x + 12.0
-			ci.draw_rect(Rect2(np.x - pw / 2.0, np.y - 2.0, pw, 20.0), Color(0.02, 0.05, 0.09, 0.72))
-			if id == sid:   # 选中：黄色名牌
-				var w := font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 22.0
-				HS.para(ci, Rect2(np.x - w / 2.0, np.y - 2.0, w, 21.0), HS.YEL)
-				UI.text_at(ci, font, Vector2(np.x, np.y + 8.5), nm, 14, HS.INK, "mm", true)
+			var np := Vector2(d.x + r + 6.0, d.y - 9.0)
+			if id == sid:   # 选中：黄色名牌写全名
+				var nm := str(Meta.nodes()[id].name)
+				var w := font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 20.0
+				HS.para(ci, Rect2(np.x, np.y - 1.0, w, 21.0), HS.YEL)
+				UI.text_at(ci, font, Vector2(np.x + w / 2.0, np.y + 9.5), nm, 14, HS.INK, "mm", true)
+				np.x += w + 6.0
 			else:
-				_txt(ci, np, nm, 13, col)
-			# 消耗：右下角像素数字（已塑造不写）
+				np.x += _txt(ci, np, _short(id), 13, UI.fa(col, g), "la") + 6.0
 			if st != "on":
-				var cp := d + Vector2(r * 0.78, r * 0.62)
 				var s := str(int(Meta.nodes()[id].cost))
-				var tw := TUI.ptext_w(c, s, 1.5)
-				ci.draw_rect(Rect2(cp.x - 3.0, cp.y - 8.0, tw + 15.0, 16.0), Color(0.02, 0.04, 0.07, 0.9))
-				TUI.pdiamond(ci, c, cp + Vector2(2, 0), 2, TUI.cell(c, 1.0), C_YEL if st == "ok" else col)
-				TUI.ptext(ci, c, cp + Vector2(8, 0), s, 1.5, C_YEL if st == "ok" else col)
+				var cc := C_YEL if st == "ok" else col
+				TUI.pdiamond(ci, c, Vector2(np.x + 2.0, d.y), 2, TUI.cell(c, 1.0), UI.fa(cc, g))
+				TUI.ptext(ci, c, Vector2(np.x + 8.0, d.y), s, 1.5, UI.fa(cc, g))
 
 
 func _draw_chrome(ci: CanvasItem) -> void:
@@ -844,7 +774,7 @@ func _draw_chrome(ci: CanvasItem) -> void:
 		if Cfg.meta_shape[id]:
 			done += 1
 	for i in 12:   # 顶栏下一条渐隐暗带：推荐 / 重置 / 提示压在连线上也看得清
-		ci.draw_rect(Rect2(0, 60.0 + i * 5.0, vs.x, 5.0), Color(0.012, 0.02, 0.035, 0.78 * (1.0 - i / 12.0)))
+		ci.draw_rect(Rect2(0, 60.0 + i * 6.0, vs.x, 6.0), Color(0.012, 0.02, 0.035, 0.92 * pow(1.0 - i / 12.0, 0.7)))
 	HS.topbar(ci, font, vs, ["COGNITION", "SHAPING"], "认知塑造", 1.0, "", "")
 	# 生机细胞 + 已塑造
 	var rx := vs.x - 470.0
