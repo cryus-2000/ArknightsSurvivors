@@ -31,6 +31,7 @@ SCEN = {
 def run(scen, tag, quality, stackab, prof, more, maxother, res, gamedir=None):
     d = os.path.join(OUT, tag)
     os.makedirs(d, exist_ok=True)
+    gr.ensure_imported(gamedir or os.path.join(ROOT, "game"))   # 合过 main 后新素材没导入会整局卡在解析错误里（10-25 实测）
     t0 = time.time()
     while gr.count_godot() > maxother and time.time() - t0 < 1200:
         time.sleep(15)
