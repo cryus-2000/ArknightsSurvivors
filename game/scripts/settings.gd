@@ -20,8 +20,19 @@ var music := 0.8
 var sfx := 0.9
 var voice := 0.8        # 干员语音（Voice 总线）
 var fullscreen := false
-var max_fps := 60          # 最高帧率 60 / 30（10-22，设置「画面」）：只限渲染帧（Engine.max_fps；网页端 Godot 在 requestAnimationFrame 回调里按它跳帧），逻辑仍按 PlayClock 固定步长
-const MAX_FPS_OPTS := [60, 30]
+var max_fps := 0           # 帧率上限 0 = 自动 / 60 / 30（10-22 加 60 / 30；10-25 用户定加「自动」并作缺省，设置「画面」）：只限渲染帧（Engine.max_fps；
+                          # 网页端 Godot 在 requestAnimationFrame 回调里按它跳帧），逻辑仍按 PlayClock 固定步长。
+                          # 自动：桌面 60；网页先按 60 跑，开局前几秒稳不住 50 帧就锁 30（fps_lock30，本次启动有效，不来回跳；game._auto_quality）
+const MAX_FPS_OPTS := [0, 60, 30]
+var fps_lock30 := false   # 自动档在网页上测出稳不住 50 帧：本次启动锁 30
+var fps_probed := false   # 自动档本次启动已测过（测过就不再改）
+
+
+## 实际生效的帧率上限（Engine.max_fps）
+func effective_max_fps() -> int:
+	if max_fps > 0:
+		return max_fps
+	return 30 if fps_lock30 else 60
 const RESOLUTIONS := [Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(3840, 2160)]   # 都是 1280×720 的整数倍，像素对齐
 var res_index := 0        # 窗口分辨率（RESOLUTIONS 下标；全屏时按屏幕）
 var dmg_numbers := true
@@ -416,9 +427,13 @@ func _read_cfg(c: ConfigFile) -> void:
 	sfx = c.get_value("audio", "sfx", sfx)
 	voice = c.get_value("audio", "voice", voice)
 	fullscreen = c.get_value("video", "fullscreen", fullscreen)
-	max_fps = int(c.get_value("video", "max_fps", 60))
+	# 10-25 起存 fps_mode（0 自动 / 60 / 30）；旧存档只有 max_fps（缺省 60，没法分辨是否手选过）：旧值 30 视为手选 30，其余按「自动」
+	if c.has_section_key("video", "fps_mode"):
+		max_fps = int(c.get_value("video", "fps_mode", 0))
+	else:
+		max_fps = 30 if int(c.get_value("video", "max_fps", 60)) == 30 else 0
 	if not MAX_FPS_OPTS.has(max_fps):
-		max_fps = 60
+		max_fps = 0
 	res_index = clampi(int(c.get_value("video", "res_index", res_index)), 0, RESOLUTIONS.size() - 1)
 	dmg_numbers = c.get_value("game", "dmg_numbers", dmg_numbers)
 	hitstop = c.get_value("game", "hitstop", hitstop)
@@ -507,7 +522,7 @@ func apply() -> void:
 			if DisplayServer.window_get_size() != sz:
 				DisplayServer.window_set_size(sz)
 				DisplayServer.window_set_position((scr - sz) / 2 + DisplayServer.screen_get_position())
-		Engine.max_fps = max_fps   # 无头 / 测试局不走到这里：批跑仍不限帧
+		Engine.max_fps = effective_max_fps()   # 无头 / 测试局不走到这里：批跑仍不限帧
 
 
 const WEB_MASTER_TRIM := -7.0
@@ -727,7 +742,8 @@ func save() -> void:
 	c.set_value("audio", "sfx", sfx)
 	c.set_value("audio", "voice", voice)
 	c.set_value("video", "fullscreen", fullscreen)
-	c.set_value("video", "max_fps", max_fps)
+	c.set_value("video", "fps_mode", max_fps)
+	c.set_value("video", "max_fps", effective_max_fps())   # 旧键：老版本读到的仍是 60 / 30
 	c.set_value("video", "res_index", res_index)
 	c.set_value("game", "dmg_numbers", dmg_numbers)
 	c.set_value("game", "hitstop", hitstop)

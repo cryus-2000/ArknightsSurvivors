@@ -386,6 +386,9 @@ var _bg_game_started := false
 func _bg_game() -> void:
 	if _bg_game_started or OS.has_feature("web") or not OS.has_feature("threads") or DisplayServer.get_name() == "headless":
 		return
+	var args := Cfg.dev_args()
+	if not args.is_empty() and not args.has("--ftrec") and not args.has("--loadprof"):
+		return   # 截图 / 测试局常在一两秒内退出：后台还在编译时退出会报「Could not preload」，算快检失败；只在玩家路径和帧时测量里做
 	_bg_game_started = true
 	if not ResourceLoader.has_cached("res://game.tscn"):
 		ResourceLoader.load_threaded_request("res://game.tscn")
