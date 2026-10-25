@@ -1,0 +1,3 @@
+基线：在 1be86c55（/home/user/ArknightsSurvivors/.claude/worktrees/trace-1be86c55-1096）上跑 seed 1 mizuki 240 秒……
+/home/user/ArknightsSurvivors/build/trace_cache/1be86c55_1_mizuki_240.txt
+TRACE 241 行逐行相同（BALANCE 行有差异，多半是画面峰值 / prof 字段，需要时自己比）
