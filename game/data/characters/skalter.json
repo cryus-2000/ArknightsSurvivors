@@ -853,6 +853,7 @@
   ],
   "skills": [
    {
+    "need_enemy": "$aura",
     "dur": "$s1_dur",
     "fx": [
      {
@@ -898,6 +899,7 @@
     ]
    },
    {
+    "need_enemy": "$aura",
     "dur": "permanent",
     "fx": [
      {
@@ -944,6 +946,7 @@
     ]
    },
    {
+    "need_enemy": "$aura",
     "dur": "$s3_dur",
     "fx": [
      {

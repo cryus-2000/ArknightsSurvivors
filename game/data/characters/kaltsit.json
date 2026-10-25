@@ -1507,6 +1507,7 @@
   ],
   "skills": [
    {
+    "need_enemy": 200,
     "aim": "summon:mon3tr",
     "fx": [
      {
@@ -1645,6 +1646,7 @@
    },
    {
     "dur": "permanent",
+    "need_enemy": 200,
     "aim": "summon:mon3tr",
     "fx": [
      {

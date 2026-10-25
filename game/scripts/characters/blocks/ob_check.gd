@@ -89,6 +89,8 @@ static func validate(cid: String, d: Dictionary) -> bool:
 						errs.append(p + ".attack_phases：本干员其他技能的 swap_attack 换上的普攻须是 circle / cone")
 			_num(sb, "aim_r", p, ctx, false, 1.0, 2000.0)
 			_num(sb, "need_enemy", p, ctx, false, 1.0, 2000.0)   # 自动释放的前提：这个半径（× op_range）内有敌人，没有就保留技力不放（10-23）
+			if skill_gate_base(sb, atk if atk is Dictionary else {}, ctx.base, 0.0) <= 0.0 and not (atk is Dictionary and str(atk.get("r", "")) == "zone"):   # 普攻 r = zone 的运行时按区域半径   # 10-25：每个自动技能都要能解析出「范围内有敌人才放」的门槛距离（need_enemy / 伤害积木半径 / 普攻射程）
+				errs.append("%s：推不出自动释放的门槛距离，请写 need_enemy（半径，× op_range）或让技能 / 普攻带 r / range" % p)
 			if sb.has("fx"):
 				_F()._fx(sb.fx, p + ".fx", ctx, "cast")
 			_list(sb.get("do", []), p + ".do", "skill", ctx)
