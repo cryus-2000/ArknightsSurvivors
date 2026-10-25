@@ -511,6 +511,24 @@ Boss 弹洋红确认：`build/look_nausea/boss_bullets_check.png`（`--bosstest`
 
 验证：同 seed TRACE 241 行逐行相同（基线 eafef6a3）；`--only core` 通过。
 
+### 11.0 第二版：两档强度 `render/lead_emph`（10-25，用户「队长明不明显没看太出来」）
+
+只加强队长、不削队友。`render/lead_emph`：0 关（缺省）/ 1 中 / 2 强；各参数可用同名键单独覆盖。
+
+| 项 | 中（1） | 强（2） |
+|---|---|---|
+| 队长特效提亮 `lead_boost`（cv 绘制、刀光、子弹、命中颗粒、**队长生成的帧条特效**） | ×1.35 | ×1.6 |
+| 往琥珀专属色偏 `lead_tint`（保持亮度） | 0 | 0.3 |
+| 队长伤害数字放大 `lead_num_k`（普通白字改暖白） | ×1.35 | ×1.6 |
+| 命中角标 | 开 | 开，加大 1.25 倍、臂长 11 |
+| 方向弧 | — | 开 |
+
+帧条特效归属：`squad.update` 在队长 `o.update(dt)` 期间置 `vfx.spawn_lead`，这期间 `fx_sprite` 生成的特效打 `lead` 标记，`world._draw_fx` 绘制时过 `lead_col`。纯画面标记，不进逻辑。
+
+对照视频（30 fps，左上现状 / 右上中档 / 左下强档，三格放大 1.5 倍到队长附近；右下强档整屏）：`build/look_nausea/lead_emph_late.mp4`（9:05 满屏，15.1 MB）、`lead_emph_boss.mp4`（10:12 Boss 在场，15.0 MB），队长维什戴尔。生成：`look_nausea.py rec --seg vid_late|vid_boss --squad wisadel,siege,mizuki,kaltsit --only emph1,emph2` 后 `lead_video.py --emph`。
+
+验证：同 seed TRACE 241 行逐行相同（基线 8bbe13a1）；`--only core` 通过。
+
 ### 11.1 Boss 弹颜色口径（同批，10-25）
 
 用户：「Boss 子弹不是每个 Boss 专属颜色吗？」「不要加描边、丑」。`render/ebullet_boss_danger` 缺省改 **0**：Boss 弹不再统一染危险洋红、不加描边；光晕 / 弹芯 / 拖尾 / 地面光用这颗弹自带的 `b.col`（Boss 会话按每只 Boss 专属色写入，docs/142b），没有就用 Boss 专属暖色 `col_boss`。弹体贴图：杂兵弹换成青蓝色相时，Boss 弹仍用原图（`g.tex[名@boss]`）——这不是染色，只是不被杂兵的青蓝换色波及；本体颜色交给 Boss 会话（专属贴图或 b.col）。`ebullet_boss_danger` 1 = 旧口径（统一洋红）。杂兵敌弹描边 `ebullet_outline` 维持缺省 0。

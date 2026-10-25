@@ -8,6 +8,7 @@ extends RefCounted
 ## 调试版的「全部解锁」（Cfg.roster_all_open()）同样视为全部解锁，存档里的真实名册不动；对内发布包例外，名册照新玩家走（10-22 用户要测寻访）。
 
 const Character = preload("res://scripts/characters/character.gd")
+const Meta = preload("res://scripts/core/meta.gd")
 
 ## 开局固定的 5 人（用户 10-22：德克萨斯 / 星熊 / 艾雅法拉 / 铃兰 / 能天使 = 先锋 / 重装 / 术师 / 辅助 / 狙击）
 const STARTERS := ["texas", "hoshiguma", "eyjafjalla", "suzuran", "exusiai"]
@@ -26,6 +27,9 @@ const COST_RANDOM := 1
 const COST_PICK := 2
 ## 名册已满时，剩下的凭证每张折成多少生机细胞（docs/109 §12.7）
 const CELLS_PER_TICKET := 5
+## 用生机细胞兑换寻访凭证（用户 10-25）：1 张 = TICKET_PRICE 个细胞，不设购买上限；买价高于满员折价（5），防倒卖。
+## 记账走 Meta：Cfg.meta_bought（逐设备）→ Meta.available() 同步减少；名册已满不再兑换
+const TICKET_PRICE := 15
 
 
 ## 名册 id 表与职业表的缓存（10-25：寻访界面每帧调 locked_ids / class_of，原来每次都列目录 + 解析全部干员 JSON，进寻访卡顿的主因；
@@ -99,6 +103,25 @@ static func locked_classes() -> Array:
 		if c != "" and not out.has(c):
 			out.append(c)
 	return out
+
+
+## 兑换入口是否显示：解锁规则生效且名册没满
+static func exchange_visible() -> bool:
+	return active() and not locked_ids().is_empty()
+
+
+## 还差多少生机细胞才能兑换 1 张（够了 = 0）
+static func exchange_short() -> int:
+	return maxi(0, TICKET_PRICE - Meta.available())
+
+
+## 用生机细胞兑换 1 张寻访凭证；不够 / 名册已满返回 false，什么也不扣
+static func exchange_ticket() -> bool:
+	if not exchange_visible() or not Meta.pay(TICKET_PRICE):
+		return false
+	Cfg.roster_tickets[T_HUNT] = tickets() + 1
+	Cfg.save()
+	return true
 
 
 ## 待用的寻访凭证张数

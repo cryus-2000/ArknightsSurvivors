@@ -322,3 +322,11 @@
 - **职业图标**（Codex `codex/headhunt-professions` faa363241）：八枚原作线稿图标取自 MooncellWiki/prts-design 预览资源（固定版本与 SHA256 见 `art/incoming/headhunt_professions_1025/sources.json`），版权归鹰角，仓库 MIT 只覆盖代码；已写入致谢页「职业图标」。仅用于寻访界面。
 - **Boss 名片头像**：10 个 Boss 的 `portrait_crop` 是按旧 1x 画布量的，怪物重画后帧内位置整体变了，裁出来多是空白 / 一角；按现图重量。读不到原始 PNG（网页包）时退回导入后的 1x 基础图。
 - **图鉴演示镜头**：`balance.json gallery/demo_zoom` 0.8 → 0.68（再 ×0.85）。
+
+## 10-25 生机细胞兑换寻访凭证（用户批）
+
+- 入口在寻访入口页凭证数下面：「用生机细胞兑换 1 张（15）」+ 持有细胞数；细胞不够时按钮灰掉并写「还差 N 生机细胞」；名册已满不显示（`Roster.exchange_visible()`）。键盘 B 同点击。标题页进来（没有凭证的浏览模式）同样可兑换。
+- 价格 `Roster.TICKET_PRICE = 15`，不设购买上限；买价高于满员折价（`CELLS_PER_TICKET = 5`），防倒卖。
+- 记账：`Cfg.meta_bought {设备号: 花掉的细胞}`；认知塑造预算改为 `Meta.budget() = 累计获得 − 兑换花费`，`Meta.available()` 再减去已点节点。云存档 `prog.meta.bought` 逐设备取大（同 `earned`，只增不减，没兑换过时不写该字段）；采用云端后若已点节点超出预算，沿用旧规则整组重置（免费）。
+- 已知边角：凭证本身按「取较大值」合并（docs/109 §12.5），两台设备各兑换 / 各领一张时凭证只留较大的一份，而细胞花费是累加的；换设备前先同步即可，与现有「一台用掉、另一台未同步可能多留一张」同一类取舍。
+- 测试：`roster_test`（兑换扣点 / 不够不兑 / 连兑 / 满员隐藏 / 存档与云存档往返）、`meta_test`（预算 / 合并）；录屏 `tools/probes/headhunt_exchange_rec.py`。

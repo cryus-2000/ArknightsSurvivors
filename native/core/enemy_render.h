@@ -1,4 +1,4 @@
-// 敌人绘制内核（docs/50 §28，claude/enemy-native）：排序实体里普通怪的「缓存路径」（world.gd draw_enemy → _dc_ok / _dc_compute / _dc_emit）、
+// 敌人绘制内核（docs/50 §30，claude/enemy-native）：排序实体里普通怪的「缓存路径」（world.gd draw_enemy → _dc_ok / _dc_compute / _dc_emit）、
 // 影子（_draw_shadows）、光学发光点（_glow_pts）、弱点菱形登记的逐只计算，原生化后一帧按段调用。纯 C++，不含 Godot 头文件：
 // 只算出「绘制命令表」（贴图矩形 / 翻转变换 / 复位 / 纯色矩形），由 gdext 绑定逐条交给 RenderingServer——与 GDScript 的
 // draw_texture_rect_region / draw_set_transform / draw_rect 是同一种画布命令，所以画面逐像素相同。

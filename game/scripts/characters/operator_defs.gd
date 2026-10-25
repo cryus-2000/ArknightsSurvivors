@@ -200,3 +200,28 @@ static func seq_anim(seg) -> String:
 	if seg is Dictionary:
 		return str(seg.get("anim", ""))
 	return str(seg) if seg != null else ""
+
+
+## 奶位标签（docs/49e C 口径，用户 9/30 定）：普攻 / 技能 / 天赋 JSON 里写的 cleanse（能清的状态）与 heal（回复主控），
+## 汇总成「净化：侵蚀 · 神经损伤」「回复」。状态名与排序按 docs/37 §6。选人页和招募卡共用
+## （10-25 从 run/affects.gd 搬来：标题页引用 affects 会把对局那一圈 41 个脚本带进启动，docs/50 §29）
+const CLEANSE_ORDER := ["侵蚀", "神经损伤", "凋亡损伤", "寒冷", "束缚", "创口"]
+
+static func care_labels(def: Dictionary) -> Array:
+	var parts: Array = [def.get("attack", {}), def.get("talent", {})]
+	parts.append_array(def.get("skills", []))
+	var got := {}
+	var heal := false
+	for p in parts:
+		if not (p is Dictionary):
+			continue
+		heal = heal or bool(p.get("heal", false))
+		for st in p.get("cleanse", []):
+			got[st] = true
+	var out: Array = []
+	var cl: Array = CLEANSE_ORDER.filter(func(k): return got.has(k))
+	if not cl.is_empty():
+		out.append("净化：" + " · ".join(PackedStringArray(cl)))
+	if heal:
+		out.append("回复")
+	return out

@@ -1,4 +1,4 @@
-"""原生敌人绘制（docs/50 §28 EnemyRender）的画面对照：同一份代码、同 seed、同帧，--optold=OPT_NR（GDScript 原路径）跑两次（旧对旧 = 噪声底）、
+"""原生敌人绘制（docs/50 §30 EnemyRender）的画面对照：同一份代码、同 seed、同帧，--optold=OPT_NR（GDScript 原路径）跑两次（旧对旧 = 噪声底）、
 原生跑一次，逐像素比；另录 --autotest --worldspec / --fxtest 摆拍各一组。随机噪声源关掉（CPU 颗粒、GPU 粒子常关、焦散、地面荧光斑）。
 
   python tools/probes/nr_pixcmp.py rec <标签> [--t=560] [--n=30] [--seed=13] [--squad=skalter,texas,exusiai] [--quality=mid] [--more="..."] [--groups=run,worldspec,fxtest]

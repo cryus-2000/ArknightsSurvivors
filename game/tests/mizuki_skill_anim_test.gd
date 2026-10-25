@@ -59,6 +59,9 @@ func _ready() -> void:
   step(o,1)
   ok(o.anim_state().kind==stem+"_loop","full recovery returns to loop")
   # S1 instant activation stores charge without interrupting loop or consuming it.
+  var near_e: Dictionary=game.spawner.spawn_enemy("runner",o.pos+Vector2(60,0))   # 10-25 自动技能要射程内有敌人才放（docs/151）
+  near_e.spd=0.0
+  game.enemies_sys.build_grid()
   o.sp[0]=o.sp_need(0)
   o.update(0.0)
   ok(o.ammo[0]==1 and o.sq_i==slot,"S1 stacks while sustained skill owns loop")

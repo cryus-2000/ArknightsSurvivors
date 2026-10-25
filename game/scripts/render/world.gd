@@ -14,7 +14,7 @@ const GroundCrack = preload("res://scripts/render/ground_crack.gd")
 const EnemyAtlas = preload("res://scripts/render/enemy_atlas.gd")
 const TeleDraw = preload("res://scripts/render/telegraph_draw.gd")   # 预警填充层（docs/101 B2，原 boss_ai.draw_warns）
 const LAMP_READ_EXT := 1.6   # 可读灯圈（render/lamp_readable）：余光延到灯半径的倍数，game.gd 的灯光贴图按它生成
-const Native = preload("res://scripts/native/native.gd")   # 原生模块薄封装（docs/50 §28 EnemyRender）
+const Native = preload("res://scripts/native/native.gd")   # 原生模块薄封装（docs/50 §30 EnemyRender）
 const TriBatch = preload("res://scripts/render/tri_batch.gd")   # 引擎同款几何的无贴图三角形批（docs/50 §13）
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -53,6 +53,10 @@ var dcrowd := 0.0                 # 降噪用的拥挤度：max(crowd, ecrowd ×
 var mate_dim := 1.0               # 队友（非主控）特效再乘的系数（declutter mate_k；squad 绘制时按干员临时乘进 fx_dim）
 var lead_dim := 1.0               # 主控自己的特效再乘的系数（declutter lead_k）
 var mate_desat := 0.0             # 队友特效去饱和（docs/139 §10，render/mate_desat）
+var lead_boost := 1.0             # 队长特效提亮（docs/139 §11，render/lead_emph 档位或 render/lead_boost）
+var lead_tint := 0.0              # 队长特效暖色偏移（render/lead_tint）
+var lead_num_k := 1.0             # 队长伤害数字放大（render/lead_num_k）
+var lead_lv := 0                  # render/lead_emph：0 关 / 1 中 / 2 强
 var mate_on := false              # render/mate_layer 开着（缺省关）：子弹 / 刀光 / 命中颗粒才按队友另压
 var ol_mul := 1.0                 # 普通怪描边透明度系数（随 ecrowd 降到 declutter ol_floor；原来写死 0.4）
 var _lamp_rim := false              # 朝灯边缘亮线原型（balance render/rim > 0 且白色保护材质在）：敌人本体绘制的 alpha 取负作标记，actor_light.gdshader 认
@@ -234,6 +238,12 @@ func update_visuals(dt: float) -> void:
 	# 主次分层试验（docs/139 §10）：render/mate_layer 1 = 队友特效恒定压到 render/mate_fx（0.55）并去饱和 render/mate_desat；
 	# 用户 10-25「队友特效不要降，想其它办法」→ 缺省 0（只剩原来的拥挤降噪），改走 §11「突出队长」
 	mate_desat = 0.0
+	# 突出队长（docs/139 §11，用户 10-25「队友特效不要降」「队长明不明显没看太出来」）：render/lead_emph 1 = 中、2 = 强；
+	# 各参数可用同名键单独覆盖。图鉴演示不加
+	lead_lv = Bal.vi("render/lead_emph", 0) if g.demo_op == "" else 0
+	lead_boost = Bal.v("render/lead_boost", [1.0, 1.35, 1.6][clampi(lead_lv, 0, 2)])
+	lead_tint = Bal.v("render/lead_tint", [0.0, 0.0, 0.3][clampi(lead_lv, 0, 2)])
+	lead_num_k = Bal.v("render/lead_num_k", [1.0, 1.35, 1.6][clampi(lead_lv, 0, 2)])
 	mate_on = Bal.v("render/mate_layer", 0.0) > 0.0 and g.demo_op == ""
 	if mate_on:
 		mate_dim = minf(mate_dim, Bal.v("render/mate_fx", 0.55))
@@ -814,7 +824,7 @@ func _draw_shadows(evr: Rect2) -> void:
 		var scol := Color(1, 1, 1, 0.0 if _dbg_enemy else 1.0)
 		var doff: Vector2 = g.draw_off
 		if _nr_on:
-			_nr.emit_shadows(g.get_canvas_item(), doff, sw, sh, scol.a)   # 原生：同一算式、同一画布命令（docs/50 §28）
+			_nr.emit_shadows(g.get_canvas_item(), doff, sw, sh, scol.a)   # 原生：同一算式、同一画布命令（docs/50 §30）
 		for e in (_NR_NONE if _nr_on else ens):
 			var ep: Vector2 = e.pos
 			if not evr.has_point(ep):
@@ -829,7 +839,7 @@ func _draw_shadows(evr: Rect2) -> void:
 	g.squad.draw_entities_floor()
 
 
-## ---- 原生敌人绘制（docs/50 §28，ark_native EnemyRender）：排序实体里普通怪的缓存路径、影子、发光点、弱点菱形的逐只计算交给 C++，
+## ---- 原生敌人绘制（docs/50 §30，ark_native EnemyRender）：排序实体里普通怪的缓存路径、影子、发光点、弱点菱形的逐只计算交给 C++，
 ## C++ 发出与 GDScript 同一种画布命令（贴图矩形 / 翻转变换 / 纯色矩形），画面逐像素相同。GDScript 每帧只按视野表收一遍列（_nr_begin），
 ## 排序后按段调用：原生段一次画完；_dc_ok 不通过 / 精英冷色描边 / 种类未登记的敌人与干员 / 博士 / 景物照旧由 GDScript 画（段与段之间次序不变）。
 ## 开关：没有扩展、OPT_NR（--optold / --optab）、--dccheck、图集未建、调试开关时整帧走 GDScript 原路径
@@ -1313,6 +1323,7 @@ func _draw_bullets() -> void:
 		if b.life <= 0.0 or b.get("hidden", false):
 			continue
 		_bmate = mate_on and b.has("op") and str(b.op) != lid   # 队友的弹：再乘队友系数（docs/139 §10）
+		_blead = lead_lv > 0 and b.has("op") and str(b.op) == lid   # 队长的弹：提亮 / 暖色（docs/139 §11）
 		var n: Vector2 = b.vel.normalized()
 		# 美术 V6：投射物帧条（朝右绘制，按速度方向旋转）；程序只画拖尾
 		var ptex: String = PROJ_TEX.get(b.kind, "")
@@ -1348,9 +1359,18 @@ func _draw_bullets() -> void:
 var _bk := 1.0
 var _bd := 0.0
 var _bmate := false
+var _blead := false
 
 
 ## 队友特效颜色：往同亮度灰拉 mate_desat（不改透明度，透明度由调用方乘 mate_dim）
+## 队长特效颜色：往琥珀偏 lead_tint（保持亮度）再 × lead_boost（同 batch_canvas._dim）
+func lead_col(c: Color) -> Color:
+	if lead_tint > 0.0:
+		var m: float = maxf(c.r, maxf(c.g, c.b))
+		c = Color(lerpf(c.r, m, lead_tint), lerpf(c.g, 0.78 * m, lead_tint), lerpf(c.b, 0.42 * m, lead_tint), c.a)
+	return Color(c.r * lead_boost, c.g * lead_boost, c.b * lead_boost, c.a)
+
+
 func mate_col(c: Color) -> Color:
 	if mate_desat <= 0.0:
 		return c
@@ -1359,6 +1379,8 @@ func mate_col(c: Color) -> Color:
 
 
 func _bc(c: Color) -> Color:
+	if _blead:
+		c = lead_col(c)
 	var k: float = _bk * (mate_dim if _bmate else 1.0)
 	var dd: float = maxf(_bd, mate_desat if _bmate else 0.0)
 	if k >= 1.0 and dd <= 0.0:
@@ -1436,15 +1458,16 @@ func _draw_fx() -> void:
 				if me is Dictionary and not me.get("dead", false):
 					mp = (me.pos as Vector2) + Vector2(0, -float(me.get("r", 12.0)) * 0.6)
 				var mq: float = 1.0 if a > 0.3 else (0.66 if a > 0.15 else 0.33)
-				var mr: float = clampf(float(f.get("r", 12.0)) * 0.8 + 4.0, 12.0, 24.0)
+				var mr: float = clampf(float(f.get("r", 12.0)) * 0.8 + 4.0, 12.0, 24.0) * (1.25 if lead_lv >= 2 else 1.0)
+				var arm: float = 6.0 if lead_lv < 1 else (9.0 if lead_lv == 1 else 11.0)
 				mp = (mp / 2.0).round() * 2.0
 				for sx in [-1.0, 1.0]:
 					for sy in [-1.0, 1.0]:
 						var cn: Vector2 = mp + Vector2(sx * mr, sy * mr)
-						g.draw_line(cn, cn - Vector2(sx * 7.0, 0), Color(0.05, 0.04, 0.03, 0.8 * mq), 4.0)
-						g.draw_line(cn, cn - Vector2(0, sy * 7.0), Color(0.05, 0.04, 0.03, 0.8 * mq), 4.0)
-						g.draw_line(cn, cn - Vector2(sx * 6.0, 0), Color(1.0, 0.82, 0.5, mq), 2.0)   # 琥珀白（不过 1，免得被截成纯白）
-						g.draw_line(cn, cn - Vector2(0, sy * 6.0), Color(1.0, 0.82, 0.5, mq), 2.0)
+						g.draw_line(cn, cn - Vector2(sx * (arm + 1.0), 0), Color(0.05, 0.04, 0.03, 0.8 * mq), 4.0)
+						g.draw_line(cn, cn - Vector2(0, sy * (arm + 1.0)), Color(0.05, 0.04, 0.03, 0.8 * mq), 4.0)
+						g.draw_line(cn, cn - Vector2(sx * arm, 0), Color(1.0, 0.82, 0.5, mq), 2.0)   # 琥珀白（不过 1，免得被截成纯白）
+						g.draw_line(cn, cn - Vector2(0, sy * arm), Color(1.0, 0.82, 0.5, mq), 2.0)
 			"hstar":
 				# 命中星（vfx._tier_fx）：中档 4 臂、重档 8 臂；臂长随寿命先长后缩，2 px 线 + 白芯，三阶跳着消失
 				var hq: float = ceilf(a * 3.0) / 3.0 * float(f.get("ka", 1.0))   # ka：队友命中压透明度（docs/139 §10）
@@ -1480,6 +1503,8 @@ func _draw_fx() -> void:
 				var hd: float = clampf(pr / 0.25, 0.0, 1.0)
 				var tl: float = clampf((pr - 0.25) / 0.75, 0.0, 1.0)
 				var cc: Color = f.col
+				if aop != null and aop.is_leader and (lead_boost != 1.0 or lead_tint > 0.0):
+					cc = lead_col(cc)   # 队长刀光：提亮 / 暖色（docs/139 §11）
 				if mate_on and aop != null and not aop.is_leader:
 					cc = mate_col(cc)   # 队友刀光：去饱和、压透明度（颗粒走 cc.a，docs/139 §10）
 					cc.a = mate_dim
@@ -1739,6 +1764,8 @@ func _draw_fx() -> void:
 				var fr := mini(int(el * float(f.get("fps", spec[1]))), spec[0] - 1)   # fps：加快过的死亡帧条（vfx.death_shatter）
 				var scol: Color = f.get("col", Color.WHITE)
 				scol.a *= fdim
+				if lead_lv > 0 and f.get("lead", false):
+					scol = lead_col(scol)   # 队长放的帧条特效：提亮 / 暖色（docs/139 §11）
 				if g.optical != null and g.optical.grains != null and g.optical.grains.body_frame(f, fr, int(spec[0])):
 					continue   # 形状颗粒化（fx_grains.GRAIN_BODY，docs/138 §13）：这一帧由颗粒拼出形状
 				g.vfx.spr_rot(f.name, fr, f.pos, f.ang, g.vfx.int_scale(f.scale), scol, f.get("anchor", Vector2(-1, -1)), f.get("flip", false))
@@ -2657,7 +2684,7 @@ func _espr(name: String, frames: int, frame: int, pos: Vector2, sc: float, flip:
 var _glow_cache := {}
 ## 位置取帧条首帧最亮的几处像素；颜色按颜色语言统一（render/optical.gd enemy_glow：普通 / 精英 / Boss），不用像素自身颜色。
 ## 普通怪 3 处，精英 / Boss 多一处、大一号
-## 发光点表：重画帧条有 _emit 层时按帧取（_emit_pts），否则取首帧最亮像素（_glow_cache，所有帧同一份）。原生敌人绘制登记时也调它（docs/50 §28）
+## 发光点表：重画帧条有 _emit 层时按帧取（_emit_pts），否则取首帧最亮像素（_glow_cache，所有帧同一份）。原生敌人绘制登记时也调它（docs/50 §30）
 func _glow_table(name: String, frames: int, frame: int) -> Array:
 	var pts = _emit_pts(name, frames, frame)   # 重画帧条（10-23）带独立 _emit 发光层：读它，不再自动取最亮像素
 	if pts == null:

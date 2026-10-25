@@ -15,7 +15,7 @@ static func enemy_core():
 	return _core
 
 
-## 敌人绘制 EnemyRender（render/world.gd 排序实体 / 影子 / 发光点的原生版，docs/50 §28）；没有扩展返回 null。
+## 敌人绘制 EnemyRender（render/world.gd 排序实体 / 影子 / 发光点的原生版，docs/50 §30）；没有扩展返回 null。
 ## 每个世界各建一个（不共用：图鉴 / 精英化演出里内嵌的演示局另有一个世界，共用会串发光点缓冲与种类登记）
 static func enemy_render():
 	if ClassDB.class_exists("EnemyRender"):

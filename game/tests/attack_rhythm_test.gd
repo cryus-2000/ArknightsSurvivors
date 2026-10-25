@@ -42,7 +42,7 @@ func _ready() -> void:
 			var timing: Dictionary = spec.get("attack_timing", {})
 			ok(timing.has("frame_durations"), "%s approved timeline" % id)
 			if timing.is_empty(): continue
-			var duration := maxf(float(timing.get("min_duration",0)), minf(float(expected.duration), float(expected.cycle)/rate*float(timing.active_ratio)))
+			var duration := maxf(0.03, minf(float(expected.duration), float(expected.cycle)/rate*float(timing.active_ratio)))
 			ok(near(o.attack_dur,duration), "%s x%s duration compresses" % [id,rate])
 			ok(near(o.attack_fire_at,float(expected.fire)*duration/float(expected.duration)), "%s x%s release scales" % [id,rate])
 			if rate == 1.0:
@@ -69,11 +69,19 @@ func _ready() -> void:
 				o.attack_t = duration-mid
 				o.anim_kind = "attack"
 				var raw: Dictionary = o._anim_state_raw()
-				ok(int(raw.frame)==f, "%s x%s frame %s" % [id,rate,f])
+				var kk: float = float(expected.duration)/duration   # 动画倍率超过 atkspeed/anim_k_cap（3）后隔帧抽取：不超前、落后不超过一个步长，出手帧本身在出手后一定显示
+				var step_f: float = maxf(1.0, kk/3.0)
+				if kk <= 3.0 + 0.0001:
+					ok(int(raw.frame)==f, "%s x%s frame %s" % [id,rate,f])
+				else:
+					ok(int(raw.frame)<=f and float(f-int(raw.frame))<=ceil(step_f)+1.0, "%s x%s frame %s skips within step" % [id,rate,f])
 				# A stale native clip must not overwrite the authoritative pose.
 				o.native_motion = {"clip":"attack","t":mid,"from":0}
 				var shown: Dictionary = NM.state(o,raw)
-				ok(int(shown.frame)==f, "%s x%s native frame %s" % [id,rate,f])
+				if kk <= 3.0 + 0.0001:
+					ok(int(shown.frame)==f, "%s x%s native frame %s" % [id,rate,f])
+				else:
+					ok(int(shown.frame)==int(raw.frame), "%s x%s native frame %s follows raw" % [id,rate,f])
 				elapsed += float(expected.times[f])
 			# Completed attack must not linger over idle.
 			o.attack_t=0.0
@@ -131,7 +139,11 @@ func _ready() -> void:
 		var scale: float=swordswoman.attack_dur/0.62
 		for stab in 3:
 			var at: float=(0.125+stab/6.0)*scale+0.000001
-			ok(swordswoman.attack_phase_frame(12,2,at,"attack_retrial")==2+stab*2,"Irene each stab matches its pose")
+			var got_f: int=swordswoman.attack_phase_frame(12,2,at,"attack_retrial")
+			if 0.62/swordswoman.attack_dur <= 3.0+0.0001:
+				ok(got_f==2+stab*2,"Irene each stab matches its pose")
+			else:
+				ok(got_f<=2+stab*2 and got_f>=2,"Irene each stab matches its pose (skips beyond anim_k_cap)")
 		for tick in int(ceil(swordswoman.attack_dur*60)):
 			Irene._h3_stage_tick(swordswoman,swordswoman.hw.ir,1.0/60.0)
 			swordswoman.follow(1.0/60.0,swordswoman.pos)

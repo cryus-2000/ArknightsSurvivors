@@ -287,7 +287,7 @@
     "s3_stun": 0.6,
     "half_base": 75,
     "aim_pad": 60,
-    "min_cd": 0.18,
+    "min_cd": 0.05,
     "kb": 240,
     "stake_life": 1.5,
     "stake_every": 0.5,

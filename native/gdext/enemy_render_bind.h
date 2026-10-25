@@ -1,4 +1,4 @@
-// EnemyRender 的 godot-cpp 薄绑定（docs/50 §28）：把 Packed 列交给纯 C++ 内核 core/enemy_render，内核算出的画布命令在这里逐条发给 RenderingServer。
+// EnemyRender 的 godot-cpp 薄绑定（docs/50 §30）：把 Packed 列交给纯 C++ 内核 core/enemy_render，内核算出的画布命令在这里逐条发给 RenderingServer。
 // 列在本对象里留一份引用（GDScript 下一帧改自己的数组时写时复制，不影响这里的指针）。
 #pragma once
 

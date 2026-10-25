@@ -556,6 +556,7 @@
         "do": []
       },
       {
+        "no_gate": true,
         "dur": "permanent",
         "do": [
           {
@@ -566,6 +567,7 @@
         ]
       },
       {
+        "no_gate": true,
         "dur": 0,
         "status": "狐火渺然",
         "status_col": [

@@ -1,4 +1,4 @@
-// ark_native 的 GDExtension 入口（docs/101 §4.7）：注册 EnemyCore、EnemyRender（docs/50 §28）。entry_symbol 与 game/bin/ark_native.gdextension 一致
+// ark_native 的 GDExtension 入口（docs/101 §4.7）：注册 EnemyCore、EnemyRender（docs/50 §30）。entry_symbol 与 game/bin/ark_native.gdextension 一致
 #include <gdextension_interface.h>
 
 #include <godot_cpp/core/class_db.hpp>

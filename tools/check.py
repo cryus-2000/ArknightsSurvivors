@@ -624,9 +624,9 @@ def check_native_eq(godot):
 
 
 def check_native_render_eq(godot):
-    """原生敌人绘制对照（docs/50 §28 EnemyRender）：本机编过 ark_native 时，同 seed 开窗口（屏幕外、静音）截图，原生绘制与 --optold=4194304
+    """原生敌人绘制对照（docs/50 §30 EnemyRender）：本机编过 ark_native 时，同 seed 开窗口（屏幕外、静音）截图，原生绘制与 --optold=4194304
     （OPT_NR，走 GDScript 原路径）逐张比文件字节：一局 3:20 起 8 帧 + --worldspec 摆拍 + --fxtest 特效 / 演示屏。同样的像素 Godot 编出同样的 PNG，
-    所以字节相同即像素相同（旧对旧也是 0 差异，docs/50 §28）；录完一行 RECDONE nr_drawn > 0 确认原生真的画了。没有 dll 跳过（云端快检无头、也没 dll）"""
+    所以字节相同即像素相同（旧对旧也是 0 差异，docs/50 §30）；录完一行 RECDONE nr_drawn > 0 确认原生真的画了。没有 dll 跳过（云端快检无头、也没 dll）"""
     import glob as _glob
     import hashlib
     import shutil
@@ -1079,6 +1079,7 @@ SCENE_REGRESSIONS = {
         ["--balance", "--seed=1", "--op=wisadel", "--metanodes=sh1,reg3,atk5,hp5,def4,xp4,disp1,disp2,disp3,disp4"]),
     "roster": ("干员解锁（docs/109 §12）：开局 5 人、随机寻访先补齐职业、不重复、定向寻访 2 张、旧券折算、局终 3 / 4 张、满员折细胞、云存档并集", "roster_test", r"ROSTER failures=0", ["--roster=start5"]),
     "save_migrate": ("存档迁移样本（docs/126 R1）：难度 diff_ver 1–5、旧倍速、旧亮度缺省、三种旧券、没有 [roster] 段的老存档", "save_migrate_test", r"SAVE MIGRATE failures=0", []),
+    "medals": ("蚀刻章「深蓝之下」（core/medals.gd）：章表、藏品 49 / 50 边界与去重、结局 / 协同晋升 / 认知首次与全部、认知重置不收回、套组、读档补录、云存档合并与往返", "medals_test", r"MEDALS failures=0", []),
     "cloud_save": ("B站云存档：打包 / 分片 / 平台限制 / 校验 / 版本 / 合并规则 / Cfg 往返 / 非网页不启用（docs/89）", "cloud_save_test", r"CLOUD SAVE failures=0", []),
     "look": ("观感预设 render/look（角色受光封顶 / 后期曲线 / 亮度缺省）", "look_test", r"LOOK TEST failures=0", []),
     "build_affinity": ("构筑匹配（docs/119 §4.3 / §4.4）：三条链的来源 / 门槛 / 浮空与永久技能不误算、卡面说明行、强制招募保底与开关", "build_affinity_test", r"BUILD AFFINITY failures=0", ["--balance", "--op=angelina", "--squad=skadi,kaltsit"]),

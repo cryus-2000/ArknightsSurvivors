@@ -5,6 +5,7 @@ extends Node
 ## 6. 云存档：解锁名单并集、券取较大值、Cfg 往返；7. 抽取不碰全局随机数之外的局内状态（同一状态抽两次结果相同）。
 const Roster = preload("res://scripts/core/roster.gd")
 const Pack = preload("res://scripts/core/cloud_pack.gd")
+const Meta = preload("res://scripts/core/meta.gd")
 
 var failures := 0
 
@@ -38,6 +39,9 @@ func reset() -> void:
 	Cfg.roster_pity = 0
 	Cfg.roster_draws = 0
 	Cfg.roster_seed = 12345
+	Cfg.meta_earned = {}
+	Cfg.meta_bought = {}
+	Cfg.meta_shape = {}
 
 
 func _ready() -> void:
@@ -134,6 +138,42 @@ func run() -> void:
 	check(Cfg.roster_unlocked.has("skadi") and Cfg.roster_unlocked.has("lumen") and Roster.tickets() == 4 and Cfg.roster_draws == 5, "cloud_apply 写回名册（旧云档的人事调度函按 1:2 折凭证：2 + 2 = 4，实为 %d）" % Roster.tickets())
 	var empty_cloud: Dictionary = Pack.merge(body, {})
 	check(empty_cloud.prog.ops == ["lumen"], "云端为空时保持本地")
+
+	# 8. 用生机细胞兑换寻访凭证（用户 10-25）：1 张 = 15 细胞，不设上限；记账进 meta_bought，余额同步减；不够不兑；满员隐藏
+	reset()
+	Cfg.meta_dev = "dtest"
+	check(Roster.TICKET_PRICE == 15 and Roster.TICKET_PRICE > Roster.CELLS_PER_TICKET, "买价 15 高于满员折价 %d" % Roster.CELLS_PER_TICKET)
+	check(Roster.exchange_visible() and Roster.exchange_short() == Roster.TICKET_PRICE, "新档：入口可见、还差 15")
+	check(not Roster.exchange_ticket() and Roster.tickets() == 0 and Cfg.meta_bought.is_empty(), "细胞不够不兑换、不扣")
+	Cfg.meta_earned = {"dtest": 14}
+	check(Roster.exchange_short() == 1 and not Roster.exchange_ticket() and Meta.available() == 14, "14 个细胞还差 1，仍不兑换")
+	Cfg.meta_earned = {"dtest": 100}
+	check(Roster.exchange_ticket() and Roster.tickets() == 1 and Meta.available() == 85 and int(Cfg.meta_bought.dtest) == 15, "兑换 1 张：凭证 +1、细胞 −15（余额 %d）" % Meta.available())
+	for _i in 5:
+		Roster.exchange_ticket()
+	check(Roster.tickets() == 6 and Meta.available() == 10 and not Roster.exchange_ticket() and Roster.tickets() == 6, "连兑到不够为止（6 张，余 10），不设购买上限")
+	Cfg.meta_shape = {"sh1": true}
+	check(Meta.available() == 100 - 90 - Meta.spent(Cfg.meta_shape), "认知塑造与兑换共用同一余额")
+	Cfg.meta_shape = {}
+	Cfg.meta_earned = {"dtest": 1000}
+	Cfg.roster_unlocked = Roster.all_ids().filter(func(c): return not Roster.STARTERS.has(c))
+	check(not Roster.exchange_visible() and not Roster.exchange_ticket() and Cfg.meta_bought.dtest == 90, "名册已满：入口隐藏、不兑换、不扣")
+	Cfg.roster_unlocked = []
+	# 存档往返 + 云存档：兑换花费逐设备取大（只增不减）
+	Cfg.roster_tickets = {"hunt": 6}
+	var body2: Dictionary = Cfg.cloud_body()
+	check(int(body2.prog.meta.bought.dtest) == 90, "cloud_body 带 bought")
+	var other2: Dictionary = body2.duplicate(true)
+	other2.prog.meta.bought = {"dtest": 30, "dother": 45}
+	var m2: Dictionary = Pack.merge(body2, other2)
+	check(int(m2.prog.meta.bought.dtest) == 90 and int(m2.prog.meta.bought.dother) == 45, "bought 逐设备取大 %s" % [m2.prog.meta.bought])
+	Cfg.meta_bought = {}
+	Cfg.cloud_apply(m2)
+	check(Meta.bought_total() == 135, "cloud_apply 写回兑换记账 %s" % [Cfg.meta_bought])
+	Cfg.meta_bought = {}
+	var nb: Dictionary = Cfg.cloud_body()
+	check(not nb.prog.meta.has("bought"), "没兑换过的存档不写 bought（与旧版本往返相同）")
+	reset()
 
 	print("ROSTER failures=%d" % failures)
 	get_tree().quit(1 if failures > 0 else 0)

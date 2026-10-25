@@ -93,6 +93,10 @@ static func load_def(cid: String) -> Dictionary:
 	return OpDefs.load_def(cid)
 
 
+static func care_labels(def: Dictionary) -> Array:
+	return OpDefs.care_labels(def)
+
+
 static func fill_line(s: String, base: Dictionary) -> String:
 	return OpDefs.fill_line(s, base)
 
@@ -909,6 +913,8 @@ func advance(choice: String = "") -> void:
 			refresh_stats()
 		"elite":
 			elite = int(n.level)
+			if elite >= 2:
+				load("res://scripts/core/medals.gd").note_elite(g)   # 蚀刻章「协同晋升」：只数编队里的精英二人数
 			on_elite(elite, choice)
 			# 新解锁的技能立即充满：选下精英化卡的当下就能看到新技能（原来从 0 充能，要等 15–30 秒）
 			if elite < 3 and skill_unlocked(elite) and not perm[elite]:
@@ -1405,7 +1411,9 @@ func _start_action(kind: String, aim: Vector2, dur: float, fire_at: float, anim 
 		var timing: Dictionary = spec.attack_timing
 		dur = float(timing.duration)
 		if interval > 0.0:
-			dur = maxf(float(timing.get("min_duration", 0.0)), minf(dur, interval * float(timing.active_ratio)))
+			# 整条攻击条按攻速等比缩短（balance.json atkspeed）：不再卡 attack_timing.min_duration，只留防零长度的硬下限；legacy_floor = 1 恢复旧下限
+			var floor_w: float = float(timing.get("min_duration", 0.0)) if BranchBal.v("atkspeed/legacy_floor", 0.0) > 0.0 else BranchBal.v("atkspeed/min_window", 0.03)
+			dur = maxf(floor_w, minf(dur, interval * float(timing.active_ratio)))
 		fire_at = minf(float(timing.fire_time), dur * float(timing.windup_ratio))
 	attack_fire_at = fire_at
 	attack_dur = dur
@@ -1997,6 +2005,22 @@ func _anim_state_raw() -> Dictionary:
 
 ## 每击完整经过前摇、出手、收势；伤害事件位于出手帧起点。
 func attack_phase_frame(n: int, release_frame: int, elapsed: float, slot := "") -> int:
+	var f: int = _attack_phase_frame_raw(n, release_frame, elapsed, slot)
+	# 动画播放倍率（帧条标称时长 ÷ 当前窗口）超过 anim_k_cap：隔帧抽取，前摇 / 收势各自按步长取整，出手帧本身一定显示（只影响画面，判定不动）
+	var tm: Dictionary = sprite_spec(slot if slot != "" else act_anim).get("attack_timing", {})
+	if tm.has("duration") and attack_dur > 0.0 and release_frame > 0 and release_frame < n:
+		var k: float = float(tm.duration) / attack_dur
+		var cap: float = BranchBal.v("atkspeed/anim_k_cap", 3.0)
+		if k > cap and cap > 0.0 and f != n - 1 and f != release_frame:   # 出手帧与末帧（收势定格）不抽掉
+			var step: float = k / cap
+			if f < release_frame:
+				f = clampi(int(floor(float(f) / step) * step), 0, release_frame - 1)
+			else:
+				f = clampi(release_frame + int(floor(float(f - release_frame) / step) * step), release_frame, n - 1)
+	return f
+
+
+func _attack_phase_frame_raw(n: int, release_frame: int, elapsed: float, slot := "") -> int:
 	var spec := sprite_spec(slot if slot != "" else act_anim)
 	var timing: Dictionary = spec.get("attack_timing", {})
 	var ds: Array = timing.get("frame_durations", spec.get("frame_durations", []))

@@ -37,7 +37,8 @@ var brightness := 1.1    # 画面亮度 0.8 ~ 1.4（缺省值随观感预设 ren
 var pad_rumble := true   # 手柄震动
 var quality := ""        # 生效中的画质档 "high" / "mid" / "low"（由 quality_mode 决定）：中 = 关法线光照 / 辉光；低 = 四项后期全关（再关景深 / 水下滤镜）+ 粒子减半、真人局同屏敌人上限 300、演出简化
 var quality_mode := "auto"   # 玩家选的画质档：auto / low / mid / high（10-22 用户：设置精简 + 画质自动档，Codex 界面单 §4）
-var quality_probed := false  # 自动档：本次启动的首局已测过前 2 秒帧时（每次启动只测一次）
+var quality_probed := false  # （旧）自动档首局前 2 秒测帧时；10-25 起改逐级降（auto_level），保留键兼容
+var auto_level := 0          # 画质自动档逐级降到第几级（本次启动有效，不存档；game._auto_quality，docs/50 §28）
 const QUALITY_NAME := {"low": "低", "mid": "中", "high": "高"}
 const QUALITY_MODES := ["auto", "low", "mid", "high"]
 ## 界面大小（设置 → 画面，用户 10-13「手机横屏太拥挤」）：在设备缺省的界面放大倍数（ui_scale）上再乘 ui_size_pct / 100，80–120，步长 5
@@ -85,9 +86,12 @@ var meta_shape := {}              # 认知塑造已点的节点 {id: true}（cor
 var meta_shape_t := 0             # 认知塑造最后修改时刻（云存档合并：较新的一份为准）
 var meta_earned := {}             # 累计获得的生机细胞 {设备号: 数量}（云存档逐设备取大再求和）
 var meta_dev := ""                # 本机设备号（第一次记生机细胞时生成）
+var meta_bought := {}             # 用生机细胞兑换寻访凭证花掉的细胞 {设备号: 数量}（云存档同 meta_earned 逐设备取大再求和；余额 = 累计获得 − 认知塑造 − 兑换）
 var meta_bounty: Array = []       # 已领首通赏金的潮位
 var roster_fresh: Array = []      # 刚解锁、还没在名册里看过的干员（选人页 / 图鉴高亮一次；只存本机，不上云）
 var roster_int_grant := false     # 对内包的测试寻访凭证已发过（INTERNAL_TICKETS，每份存档一次）
+var medals := {}                  # 已获得的蚀刻章 {key: 获得时刻 Unix 秒}（core/medals.gd；存档 [medals] 段；获得后永久保留）
+var medal_best := {}              # 蚀刻章的历史最好进度 {key: 数}（协同晋升：一次探索里同时精英二的人数）
 ## 对内包（用户 10-22：要在对内包里测寻访；10-24 改：开局 10 人 + 20 张）：名册不全部解锁；每份存档首次启动补齐
 ## Roster.INTERNAL_START 的 5 名干员（开局共 10 人）并发这么多张寻访凭证
 const INTERNAL_TICKETS := 20
@@ -302,6 +306,20 @@ func _ready() -> void:
 	if _set_sig == "":
 		_set_sig = _settings_sig()   # 旧存档 / 首次启动：以现在的设置为基准，没改过就不算「新」（cloud_set_t 保持 0，换设备时让云端的设置生效）
 	_apply_unlock_all()
+	load("res://scripts/core/medals.gd").sync()   # 蚀刻章补录：旧存档里已有的结局 / 藏品 / 认知记录，读档时按真实记录补上（下次存档写盘）
+	for a in dev_args():
+		# 截图 / 测试：--medals=all / none / key,key 预置已得蚀刻章，--medalbest=key:n 预置进度（只在内存，测试局不写存档）
+		if a.begins_with("--medals="):
+			var v := a.substr(9)
+			medals = {}
+			for m in load("res://scripts/core/medals.gd").defs():
+				if v == "all" or v.split(",").has(str(m.key)):
+					medals[m.key] = 1793000000
+		elif a.begins_with("--medalbest="):
+			for kv in a.substr(12).split(",", false):
+				var pr := kv.split(":")
+				if pr.size() == 2:
+					medal_best[pr[0]] = int(pr[1])
 	for a in dev_args():
 		# 截图 / 测试新玩家名册：--roster=start5 只留开局 5 人（只在内存，测试局不写存档）；--rostertickets=寻访,招募,调度 预置待用的券
 		if a == "--roster=start5":
@@ -315,6 +333,7 @@ func _ready() -> void:
 			roster_fresh = []
 			meta_shape = {}
 			meta_earned = {}
+			meta_bought = {}
 			meta_bounty = []
 		elif a == "--roster=full":   # 截图：名册全满（寻访「全员已入职」页），只在内存
 			roster_unlocked = preload("res://scripts/core/roster.gd").all_ids()
@@ -415,8 +434,13 @@ func _read_cfg(c: ConfigFile) -> void:
 	meta_shape = c.get_value("meta", "shape", meta_shape)
 	meta_shape_t = int(c.get_value("meta", "shape_t", meta_shape_t))
 	meta_earned = c.get_value("meta", "earned", meta_earned)
+	meta_bought = c.get_value("meta", "bought", meta_bought)
 	meta_dev = str(c.get_value("meta", "dev", meta_dev))
 	meta_bounty = c.get_value("meta", "bounty", meta_bounty)
+	var md = c.get_value("medals", "got", medals)
+	medals = md if md is Dictionary else {}
+	var mb = c.get_value("medals", "best", medal_best)
+	medal_best = mb if mb is Dictionary else {}
 	if not c.has_section("roster"):
 		_migrate_roster()
 	diff_best = c.get_value("progress", "diff_best", diff_best)
@@ -579,18 +603,46 @@ func set_quality(q: String) -> void:
 	water_filter = quality != "low"
 
 
+## 分辨率缩放（画质自动档第 3 级，docs/50 §28）：高像素密度屏（手机网页按设备像素画，2400×1080 级）改成先按逻辑分辨率（约 1280×720）
+## 画好整屏再放大，全屏着色器 / 后期的像素量降到约四分之一；字会软一点。窗口像素和逻辑分辨率差不多时（普通桌面）没有收益，自动档不用这一级
+var render_scaled := false
+
+func set_render_scale(on: bool) -> void:
+	if on == render_scaled:
+		return
+	render_scaled = on
+	get_tree().root.content_scale_mode = Window.CONTENT_SCALE_MODE_VIEWPORT if on else Window.CONTENT_SCALE_MODE_CANVAS_ITEMS
+
+
+## 窗口实际像素比逻辑分辨率（720 高）多出三成以上：分辨率缩放才有用
+func hidpi_render() -> bool:
+	return get_tree().root.size.y > 720.0 * 1.3
+
+
+## 这一局要不要法线光照：设置开着、有显卡，且光学观感没开（光学下不画法线，除非 render/optical_normals）。
+## 标题页预热与对局同一判断（10-25 从 game.gd 搬来：标题页不再为它 preload game.gd，docs/50 §29）
+func wants_normal_maps() -> bool:
+	var Bal = load("res://scripts/core/balance.gd")
+	return normal_maps and DisplayServer.get_name() != "headless" and (Bal.v("render/optical_normals", 0.0) > 0.0 or not (Bal.v("render/optical", 1.0) > 0.0 and quality != "low"))
+
+
 func fx_density() -> float:
 	return 0.5 if quality == "low" else 1.0
 
 
-## 自动档的检测（每次启动）：触屏 / 网页移动端 / 移动 GPU 与软件渲染 → 低；桌面核显 → 中；网页其余 → 中（封顶）；桌面其余 → 高
+## 自动档的检测（每次启动）：软件渲染 → 低；触屏 / 网页移动端 / 移动 GPU / 桌面核显 → 中；网页其余 → 中（封顶）；桌面其余 → 高。
+## 10-25 起手机也从「中」起（用户「网页不默认低画质」「高配机观感不能变差，只在测出掉帧时才降」）：掉帧时由对局里的逐级降（game._auto_quality）往下收，
+## 原来手机直接「低」（10-22）
 func _guess_quality() -> String:
-	if DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios"):
-		return "low"
 	var gpu := RenderingServer.get_video_adapter_name().to_lower()
-	for k in ["mali", "adreno", "powervr", "llvmpipe", "swiftshader", "microsoft basic"]:
+	for k in ["llvmpipe", "swiftshader", "microsoft basic"]:
 		if gpu.contains(k):
 			return "low"
+	if DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios"):
+		return "mid"
+	for k in ["mali", "adreno", "powervr"]:
+		if gpu.contains(k):
+			return "mid"
 	for k in ["intel(r) uhd", "intel(r) hd", "intel(r) iris"]:
 		if gpu.contains(k):
 			return "mid"
@@ -602,6 +654,7 @@ func _guess_quality() -> String:
 ## 设置里选档：自动 = 立刻按本机检测；手选 = 用那一档（之后不再自动降）
 func set_quality_mode(m: String) -> void:
 	quality_mode = m if QUALITY_MODES.has(m) else "auto"
+	auto_level = 0   # 换档 / 重选自动：逐级降从头算
 	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)
 	quality_probed = quality_mode != "auto"
 
@@ -684,8 +737,12 @@ func save() -> void:
 	c.set_value("meta", "shape", meta_shape)
 	c.set_value("meta", "shape_t", meta_shape_t)
 	c.set_value("meta", "earned", meta_earned)
+	c.set_value("meta", "bought", meta_bought)
 	c.set_value("meta", "dev", meta_dev)
 	c.set_value("meta", "bounty", meta_bounty)
+	load("res://scripts/core/medals.gd").sync()   # 结局 / 藏品 / 认知塑造的记录都经这里落盘：先补判蚀刻章，同一次写进存档
+	c.set_value("medals", "got", medals)
+	c.set_value("medals", "best", medal_best)
 	var ss := _settings_sig()
 	if ss != _set_sig:
 		_set_sig = ss
@@ -713,6 +770,14 @@ func _settings_sig() -> String:
 
 ## 当前本地存档的正文（全部解锁时用存档里的真实进度，同 save()）。
 ## 云端带来的、本版不认识的字段（新版本加的）存在 cloud_extra 里，这里原样放回去：回写云端时不丢（docs/89 §3.1）
+## 云存档正文里的局外成长段；兑换记账 bought 只在有记录时才写，没兑换过的存档往返与旧版本逐字相同
+func _cloud_meta() -> Dictionary:
+	var m := {"earned": meta_earned.duplicate(), "bounty": meta_bounty.duplicate(), "shape": meta_shape.duplicate(), "t": meta_shape_t}
+	if not meta_bought.is_empty():
+		m["bought"] = meta_bought.duplicate()
+	return m
+
+
 func cloud_body() -> Dictionary:
 	var d: Dictionary = (cloud_extra.get("d", {}) as Dictionary).duplicate(true)
 	for k in CLOUD_SET_KEYS:
@@ -726,7 +791,8 @@ func cloud_body() -> Dictionary:
 		"shows": seen_shows.duplicate(), "intro": seen_intro, "open": opening_seen,
 		"ops": roster_unlocked.duplicate(), "optier": roster_tiers.duplicate(),
 		"dbest": diff_best.duplicate(true),
-		"meta": {"earned": meta_earned.duplicate(), "bounty": meta_bounty.duplicate(), "shape": meta_shape.duplicate(), "t": meta_shape_t},
+		"meta": _cloud_meta(),
+		"med": {"got": medals.duplicate(), "best": medal_best.duplicate()},
 		"opst": {"tk": roster_tickets.duplicate(), "sp": roster_spare.duplicate(), "wish": roster_wish, "pity": roster_pity, "draws": roster_draws, "seed": roster_seed}}, true)
 	var out: Dictionary = (cloud_extra.get("top", {}) as Dictionary).duplicate(true)
 	out["set"] = st
@@ -765,6 +831,8 @@ func cloud_apply(body: Dictionary) -> void:
 		var mt: Dictionary = p.meta
 		if mt.get("earned") is Dictionary:
 			meta_earned = (mt.earned as Dictionary).duplicate()
+		if mt.get("bought") is Dictionary:
+			meta_bought = (mt.bought as Dictionary).duplicate()
 		if mt.get("bounty") is Array:
 			meta_bounty = mt.bounty.map(func(x): return int(x))
 		if mt.get("shape") is Dictionary:
@@ -772,10 +840,26 @@ func cloud_apply(body: Dictionary) -> void:
 		if mt.get("t") is float or mt.get("t") is int:
 			meta_shape_t = int(mt.t)
 		var M = load("res://scripts/core/meta.gd")
-		if M.spent(meta_shape) > M.earned_total():
+		if M.spent(meta_shape) > M.budget():
 			meta_shape = {}   # 采用的认知塑造超出余额（另一台设备的进度还没同步过来）：整组重置，重置免费
 	if p.get("dbest") is Dictionary:
 		diff_best = (p.dbest as Dictionary).duplicate(true)
+	if p.get("med") is Dictionary:
+		# 蚀刻章：合并后的正文已是两边并集（CloudPack.merge_med）；这里只收类型对的项。本版不认识的章 key 也留着（新版本加的章不丢）
+		var mg = p.med.get("got", {})
+		if mg is Dictionary:
+			var got := {}
+			for k in mg:
+				if mg[k] is int or mg[k] is float:
+					got[str(k)] = int(mg[k])
+			medals = got
+		var mb = p.med.get("best", {})
+		if mb is Dictionary:
+			var best := {}
+			for k in mb:
+				if mb[k] is int or mb[k] is float:
+					best[str(k)] = int(mb[k])
+			medal_best = best
 	if p.get("optier") is Array:
 		roster_tiers = p.optier.map(func(x): return int(x))
 	if p.get("opst") is Dictionary:
@@ -829,6 +913,17 @@ func cloud_apply(body: Dictionary) -> void:
 			ex.prog[k] = p[k]
 	cloud_extra = ex
 	_set_sig = _settings_sig()
+
+
+## 全部解锁（调试 / 对内包）时：界面用的那份是全开的演示数据，真实进度在 _real_progress。
+## 新达成的结局 / 新获得的藏品也记进真实进度（蚀刻章按它判，docs/134）；没开全部解锁时什么都不做（调用方已经记过）
+func note_real(list_name: String, id: String) -> void:
+	if not unlock_all or not (_real_progress.get(list_name) is Array):
+		return
+	var a: Array = _real_progress[list_name]
+	if not a.has(id):
+		a.append(id)
+		save()
 
 
 ## 打包时写进 build.json 的发布对象：public / internal / diagnostic；源码运行（没打包）为 ""

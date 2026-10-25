@@ -1194,7 +1194,7 @@ func _op_squad(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: bo
 				UI.text_at(ci, font, Vector2(r.end.x - 10, r.get_center().y), "探索中通过升级招募", 10, UI.fa(UI.B_SUB, a), "rm")
 		y += sh + 6.0
 	y += 4.0
-	var care: Array = Affects.care_labels(d)
+	var care: Array = Character.care_labels(d)
 	if not care.is_empty() and y + 20.0 < box.end.y:
 		var cx := box.position.x + UI.btab(ci, font, Vector2(box.position.x, y + 3), "定位", UI.TAB_HP, 9) + 8.0
 		for c in care:

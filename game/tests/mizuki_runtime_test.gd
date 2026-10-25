@@ -63,7 +63,10 @@ func test_attacks() -> void:
   ok(o.act_anim=="skill_s1_attack","S1 uses empowered attack pixels")
   var duration: float=o.attack_dur
   var cycle: float=o.cd
-  ok(duration>=0.36-0.0001 and cycle>=duration+0.09-0.0001,"bounded full action plus visible rest")
+  if rate==1.0:   # 10-25 攻速整条缩放（docs/153）：1× 仍有完整动作 + 可见休息段；高攻速整条等比缩短，可以没有休息段，但窗口不超过出手间隔、频率 = 面板
+   ok(duration>=0.36-0.0001 and cycle>=duration+0.09-0.0001,"bounded full action plus visible rest")
+  else:
+   ok(duration>0.0 and duration<=cycle+0.0001,"scaled action fits inside the attack interval")
   var fire_steps := int(ceil(o.fire_t/DT))
   step(o,fire_steps-1)
   ok(e.hp==1000000.0 and o.ammo[0]==2,"damage/charge wait for actual fire event")
@@ -96,10 +99,9 @@ func test_matrix() -> void:
      if manual:
       ok(o.cast_manual(slot),"manual entry slot%d"%slot)
      else:
-      if slot>0:   # 10-23：S2 / S3 自动释放要射程内有敌人（need_enemy）；放一只近处的敌人
-       var ge: Dictionary=g.spawner.spawn_enemy("runner",o.pos+Vector2(80,0))
-       ge.spd=0.0
-       g.enemies_sys.build_grid()
+      var ge: Dictionary=g.spawner.spawn_enemy("runner",o.pos+Vector2(80,0))   # 10-23 起 S2 / S3、10-25 起 S1 也要射程内有敌人才自动放（docs/151）；放一只近处的敌人
+      ge.spd=0.0
+      g.enemies_sys.build_grid()
       ok(o.charge_skills(0.0)==slot,"automatic entry slot%d"%slot)
       o.update(0.0)
      if slot>0:
@@ -109,6 +111,11 @@ func test_matrix() -> void:
      if slot==0:
       while o.acting(): step(o,1)
       ok(o.ammo[0]==1,"S1 charges through real entry")
+      var foe: Dictionary=g.spawner.spawn_enemy("runner",o.pos+Vector2(80,0))   # 10-25 自动技能门槛：前面的敌人可能已被她打死，补一只不会死的
+      foe.spd=0.0
+      foe.hp=1000000.0
+      foe.maxhp=foe.hp
+      g.enemies_sys.build_grid()
       for repeat in 3:
        o.sp[0]=o.sp_need(0)
        o.update(0.0)
