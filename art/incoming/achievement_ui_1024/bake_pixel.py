@@ -2,10 +2,10 @@
 用户：「改成我们的像素风格并且保持一致」。按标题页「青光航标」的像素精度（docs/67 §13.3）重新量化 Codex 交付：
 - 背景 ocean_backdrop_v7.png：1280×720 下 1 美术像素 = 3 逻辑像素 → 428×240 网格（四周各留 PAD 格给形变）；
   不在这里压色，游戏里 shader 先做低频形变再按 bg_pal.png 的 24 色就近取色（无抖动），形变后每帧仍是干净的像素画。
-- 九枚章 medals_silver_clean_1025.png：同一个美术像素尺寸（--grid，布局单位），各章按自己的半径出图；
+- 九枚章 medals_silver_clean_1025.png：同一个美术像素尺寸（版式里的 grid，设计像素），各章按版式里的半径出图；
   九枚共用一套色板（≤ MEDAL_COLORS 色），六边形硬边二值透明，去孤立像素。
-布局 approved_layout_1025.json（画布 1672×941）只读，坐标与尺寸一律不改。
-用法：python bake_pixel.py [--grid 3.92] [--out game/art/ui/medals] [--preview build/medals_preview.png]
+版式读 game/data/medals_layout.json（v2，10-25 用户让 Claude 重排；Codex 的 approved_layout_1025.json 留作原稿）。
+用法：python bake_pixel.py [--layout game/data/medals_layout.json] [--out game/art/ui/medals] [--preview build/medals_preview.png]
 """
 from pathlib import Path
 import argparse, json, math
@@ -13,7 +13,6 @@ from PIL import Image, ImageDraw, ImageFilter
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
-CANVAS = (1672, 941)
 GRID_BG = (428, 240)          # 标题页同精度：1280×720 下 3 逻辑像素一格
 PAD = 6                       # 形变留边（美术像素）
 BG_COLORS = 24
@@ -73,8 +72,8 @@ def locked(im):
     return out
 
 
-def bake_medals(grid, out_dir):
-    layout = json.loads((HERE / "approved_layout_1025.json").read_text(encoding="utf-8"))
+def bake_medals(layout, out_dir):
+    grid = float(layout["grid"])
     atlas = Image.open(HERE / "medals_silver_clean_1025.png").convert("RGBA")
     smalls = {}
     for m in layout["medals"]:
@@ -144,10 +143,10 @@ def bake_bg(out_dir):
     return still
 
 
-def preview(medals, bg, grid, path):
-    """预览：背景放大到 1672×941 + 九枚章按布局摆好（最近邻放大，整数近似）"""
-    layout = json.loads((HERE / "approved_layout_1025.json").read_text(encoding="utf-8"))
-    big = bg.crop((PAD, PAD, PAD + GRID_BG[0], PAD + GRID_BG[1])).resize(CANVAS, Image.NEAREST).convert("RGBA")
+def preview(medals, bg, layout, path):
+    """预览：背景放大到版式画布 + 九枚章按版式摆好（最近邻放大）"""
+    grid = float(layout["grid"])
+    big = bg.crop((PAD, PAD, PAD + GRID_BG[0], PAD + GRID_BG[1])).resize(tuple(layout["canvas"]), Image.NEAREST).convert("RGBA")
     for m in layout["medals"]:
         im = medals[m["id"]]
         sz = int(round(im.size[0] * grid))
@@ -160,13 +159,14 @@ def preview(medals, bg, grid, path):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("--grid", type=float, default=1672 / 1280 * 3, help="一个美术像素的布局单位（缺省 = 标题页 3 逻辑像素）")
+    ap.add_argument("--layout", default=str(ROOT / "game/data/medals_layout.json"))
     ap.add_argument("--out", default=str(ROOT / "game/art/ui/medals"))
     ap.add_argument("--preview", default="")
     a = ap.parse_args()
     out = Path(a.out)
-    md, pal = bake_medals(a.grid, out)
+    lay = json.loads(Path(a.layout).read_text(encoding="utf-8"))
+    md, pal = bake_medals(lay, out)
     bg = bake_bg(out)
     if a.preview:
-        preview(md, bg, a.grid, Path(a.preview))
-    print("grid=%.3f medals=%s colors=%d" % (a.grid, {k: v.size[0] for k, v in md.items()}, len(pal) // 3))
+        preview(md, bg, lay, Path(a.preview))
+    print("grid=%s medals=%s colors=%d" % (lay["grid"], {k: v.size[0] for k, v in md.items()}, len(pal) // 3))

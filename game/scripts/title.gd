@@ -170,7 +170,7 @@ func _ready() -> void:
 				shots = [int(gp[0]), float(gp[1]) if gp.size() > 1 else 0.5]
 		for i in int(shots[0]):
 			get_tree().create_timer(1.0 + i * float(shots[1])).timeout.connect(func():
-				print("MEDALSHOT size=%s k=%.3f compact=%s xf=%s" % [medals_ui.size, medals_ui.k, medals_ui.compact, medals_ui.get_global_transform_with_canvas()])
+				print("MEDALSHOT size=%s k=%.3f" % [medals_ui.size, medals_ui.k])
 				var path: String = _shot_dir() + ("/shot_medals.png" if int(shots[0]) == 1 else "/shot_medals_%03d.png" % i)
 				get_viewport().get_texture().get_image().save_png(path)
 				if i == int(shots[0]) - 1:

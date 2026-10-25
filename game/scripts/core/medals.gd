@@ -30,6 +30,13 @@ static func def(key: String) -> Dictionary:
 	return {}
 
 
+static func def_by_id(id: int) -> Dictionary:
+	for m in defs():
+		if int(m.id) == id:
+			return m
+	return {}
+
+
 static func has(key: String) -> bool:
 	return Cfg.medals.has(key)
 
