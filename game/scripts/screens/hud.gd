@@ -242,12 +242,11 @@ func _draw_body() -> void:
 	# 各块的层次见 LAYER_ORDER（与 10-22 拆块前的实际层次相同：原缓存层在下，原主画布各段按原顺序在上）；块内的先后照旧，别调换。
 	# 绘制回调按登记先后执行：boss 块写的 bars.boss_bottom 在 front / tail 读之前更新
 	if not (panel_over_top() and g.choice_kind == "event"):
-		# 触屏事件（祭坛）的标题与剧情行占左上角，生命 / 灯火条不画（10-13 手机实测压字）
+		# 触屏事件（节点卡的不期而遇）的标题与剧情行占左上角，生命 / 灯火条不画（10-13 手机实测压字）
 		_layer("top_left", bars.top_left_sig(vs), func(): bars.draw_top_left(vs))
 	_layer("pointers", null, func():
 		banners.draw_leader_hints(ct)
 		banners.draw_merchant_pointer(vs, ct)
-		banners.draw_altar_pointers(vs, ct)
 		banners.draw_boss_pointers(vs, ct)
 		banners.draw_offscreen_edges(vs, ct)   # 镜头拉近（战斗画面缩放 > 100%）时屏外近处敌人的边缘红边
 		banners.draw_field_wave(vs)

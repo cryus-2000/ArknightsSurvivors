@@ -1199,14 +1199,6 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 	if e.dead:
 		return
 	e.dead = true
-	# 海嗣祭坛：打开事件选项
-	if e.chest and e.get("event", "") != "":
-		Sfx.play("relic", -2.0, 0.8)
-		g.vfx.sparks(e.pos, Vector2.UP, Color(0.5, 0.8, 1.4), 18, 260.0)
-		g.fx.append({"kind": "rays", "pos": e.pos, "life": 0.7, "max": 0.7, "col": Color(0.5, 0.8, 1.0)})
-		g.telemetry.altars += 1   # 作战记录（docs/77）
-		g.endg.open(e.event)
-		return
 	# 补给箱被打碎
 	if e.chest:
 		g.telemetry.chests += 1   # 作战记录（docs/77）

@@ -240,6 +240,9 @@ func relic_pool_ids(for_shop := false) -> Array:
 		# 犹疑 (240)：稀有 / 核心 权重 +30%
 		if g.rfx.rule("rare_weight") > 0 and r.rarity in ["稀有", "核心"]:
 			w *= 1.3
+		# 得偿所愿（翻节点卡，docs/154）：这一次三选一稀有 / 核心加权
+		if not for_shop and g.endg.wish_rare and r.rarity in ["稀有", "核心"]:
+			w *= float(g.endg.deck_cfg.get("wish_rare", 1.5))
 		# 护盾保底（10-21 用户：护盾常刷不到）：队长还没有护盾层数时，给层数的藏品（7 件）权重 ×relic/shield_weight；
 		# 一拿到层数就恢复原权重。权重只改排序、不改随机数抽取次数
 		if r.get("shield_layer", false) and g.shield_max <= 0:
@@ -274,6 +277,7 @@ func open_relic_choice() -> void:
 		g.vfx.add_text(g.ppos + Vector2(0, -96), "钥匙 · 多一个选项", UI.GOLD, 15)
 	var shown: Array = pool.slice(0, 3 + g.rfx.rule("four_choices") + extra)
 	g.meta_basic_pick = false
+	g.endg.wish_rare = false
 	if g.mode == g.Mode.BALANCE:
 		g.dbg_relic_offer.append([int(g.t), "choice", shown.map(func(c): return c.id)])
 	g.panel_ui.show_choices("获得藏品", shown, "relic")
@@ -494,7 +498,13 @@ func auto_branch_pick() -> int:
 func pick(i: int) -> void:
 	if g.state != g.S.CHOICE or i >= g.choices.size():
 		return
+	if g.choice_kind == "cross":
+		g.endg.flip(i)   # 翻节点卡（docs/154）：先翻面再兑现，面板由 endings 关
+		return
 	var o: Dictionary = g.choices[i]
+	if o.get("disabled", false):
+		Sfx.play("ui_move", -6.0, 0.7)   # 买不起的事件选项（深蓝之心的房间）
+		return
 	match o.kind:
 		"recruit":
 			if o.get("swap", false):
@@ -550,7 +560,8 @@ func pick(i: int) -> void:
 		heal_pick += 1
 	match o.kind:
 		"event":
-			g.endg.pick(o)
+			if g.endg.pick(o):
+				return   # 又弹了下一屏（继续搜寻 / 仪式 → 升华 / 园林 → 赞歌）
 		"growth":
 			g.growth[o.id] = g.growth.get(o.id, 0) + 1
 			if not g.doctor.apply_passive(o.id):
@@ -590,7 +601,7 @@ func pick(i: int) -> void:
 			var W: Dictionary = D.WEAPONS[o.id]
 			g.vfx.show_banner(("「%s」加入支援" % W.name) if o.wlv == 1 else ("「%s」升至 Lv.%d" % [W.name, o.wlv]))
 			g.fx.append({"kind": "ring", "pos": g.ppos, "r": 110.0, "life": 0.45, "max": 0.45, "col": W.col})
-	# 事件选项不占升级 / 宝箱次数（祭坛被打碎时直接弹出，没有计入 pending）
+	# 事件选项不占升级 / 宝箱次数（翻节点卡直接弹出，没有计入 pending）
 	if g.choice_kind == "relic":
 		g.pending_chests -= 1
 	elif g.choice_kind != "event":

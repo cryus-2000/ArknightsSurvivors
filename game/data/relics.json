@@ -3871,19 +3871,17 @@
    "original": "每次战斗结束后灯火额外-5",
    "cat": "负面藏品",
    "tier": "B",
-   "adapt": "受击时灯火损失 +25%",
+   "adapt": "商人售价 +15%（docs/154：结局线不再拿灯火当代价；只从「开端」得到）",
    "rarity": "遭诅古物",
-   "lanes": [
-    "F"
-   ],
+   "lanes": [],
    "tags": [
-    "low_light",
-    "light",
-    "curse"
+    "economy",
+    "curse",
+    "ending"
    ],
    "first_batch": true,
    "boss_only": false,
-   "shop_allowed": true
+   "shop_allowed": false
   },
   {
    "id": 221,

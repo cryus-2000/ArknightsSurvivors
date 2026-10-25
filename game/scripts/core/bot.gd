@@ -244,9 +244,7 @@ func _expert_goal(p: Vector2, near: Array) -> Vector2:
 			best_w = w
 			best_v = (gm.pos - p).normalized()
 	for e in g.enemies:
-		# 海嗣祭坛只有主控走近才打开（事件验收 P2-10），刷在 520–650 外：机器人像真人一样看方位指示走过去
-		var reach: float = 1600.0 if e.get("event", "") != "" else 450.0
-		if e.get("chest", false) and not e.dead and e.pos.distance_to(p) < reach:
+		if e.get("chest", false) and not e.dead and e.pos.distance_to(p) < 450.0:
 			return (e.pos - p).normalized()
 	beacon_hold = Vector2.INF
 	beacon_w = 2.0

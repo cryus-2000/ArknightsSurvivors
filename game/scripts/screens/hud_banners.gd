@@ -1,5 +1,5 @@
 extends RefCounted
-## 界面 · HUD 提示与指示（2026-10-10 从 hud.gd 拆出，docs/55 §6）：主控身边的僵直 / 挣脱提示、商人 / 祭坛 / Boss / 灯标的屏外指示、
+## 界面 · HUD 提示与指示（2026-10-10 从 hud.gd 拆出，docs/55 §6）：主控身边的僵直 / 挣脱提示、商人 / Boss / 灯标的屏外指示、
 ## 全场地波、黑潮警告与方向提示、横幅通知与小字通知、开局提示、冲刺提示。触屏分支原样保留。
 const Bars = preload("res://scripts/screens/hud_bars.gd")   # Bars.BOSS_BARS_MAX
 const D = preload("res://scripts/data.gd")
@@ -87,37 +87,7 @@ func _preview_line(at: Vector2, vs: Vector2) -> void:
 	UI.text(g.hud, g.font, Vector2(x, y), pv, 13, Color(1.0, 0.9, 0.6), HORIZONTAL_ALIGNMENT_CENTER, w, 3)
 
 
-## 海嗣祭坛方位指示（屏内头顶箭头 / 屏外边缘圈）；最终 Boss 前 10 秒未开的祭坛金红快闪
-func draw_altar_pointers(vs: Vector2, ct: Transform2D) -> void:
-	# 海嗣祭坛方位指示（屏幕外）；最终 Boss 登场前 10 秒还有没开的祭坛（g.endg.urgent）：指示变金红快闪（文字已取消）
-	var urgent: bool = g.endg != null and g.endg.get("urgent") == true
-	var uk: float = absf(sin(g.t * 9.0)) if urgent else 0.0
-	var acol: Color = Color(0.55, 0.8, 1.0).lerp(Color(1.0, 0.45, 0.3), uk) if urgent else Color(0.55, 0.8, 1.0)
-	for e in g.enemies:
-		if not e.chest or e.dead or e.get("event", "") == "":
-			continue
-		var spb: Vector2 = ct * e.pos
-		if Rect2(Vector2(60, 60), vs - Vector2(120, 120)).has_point(spb):
-			var hb := spb + Vector2(0, -60 - absf(sin(g.t * 5.0)) * 8.0)
-			g.hud.draw_colored_polygon(PackedVector2Array([hb + Vector2(0, 12), hb + Vector2(-10, -2), hb + Vector2(10, -2)]), acol)
-		else:
-			var cc := vs / 2.0
-			var dd := (spb - cc).normalized()
-			var edge2: Vector2 = cc + dd * min(abs((vs.x / 2 - 64) / max(abs(dd.x), 0.01)), abs((vs.y / 2 - 64) / max(abs(dd.y), 0.01)))
-			var pl := 0.5 + 0.5 * sin(g.t * 6.0)
-			if urgent:
-				g.hud.draw_circle(edge2, 32.0 + 8.0 * uk, Color(1.0, 0.45, 0.3, 0.25 * uk))
-			g.hud.draw_circle(edge2, 24.0, Color(0.03, 0.05, 0.1, 0.85))
-			g.hud.draw_arc(edge2, 24.0, 0.0, TAU, 28, acol, 2.0)
-			var et2: Texture2D = g.tex.e_event
-			g.hud.draw_texture_rect_region(et2, Rect2(edge2 - Vector2(13, 15), Vector2(26, 30)), Rect2(0, 0, 26, 30))
-			var tip2: Vector2 = edge2 + dd * (40.0 + 5.0 * pl)
-			var base2: Vector2 = edge2 + dd * 28.0
-			var sd2 := dd.orthogonal() * 10.0
-			g.hud.draw_colored_polygon(PackedVector2Array([tip2, base2 + sd2, base2 - sd2]), acol)
-
-
-## Boss 屏外指示（docs/48 P1：Boss 在屏幕外登场，商人和祭坛都有指示，Boss 没有）：
+## Boss 屏外指示（docs/48 P1：Boss 在屏幕外登场，商人有指示，Boss 没有）：
 ## 屏幕边缘一个洋红红圈（比商人 / 祭坛大一号、双圈、脉动），里面是 Boss 常态帧头像，外侧箭头指向 Boss，旁边写名字和距离
 const BOSS_PTR_COL := Color(1.0, 0.28, 0.42)
 

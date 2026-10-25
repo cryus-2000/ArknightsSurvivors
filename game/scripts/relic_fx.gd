@@ -384,9 +384,7 @@ func apply(id: String) -> void:
 				var ra: Dictionary = ef.get("args", {})
 				if ef.rule == "squad_scale":
 					squad_dep = true
-				if ef.rule == "deep_sea":
-					g.lamp_cap = 70.0
-					g.lamp = minf(g.lamp, g.lamp_cap)
+				# deep_sea（深蓝之心）原来还把灯火上限压到 70：docs/154 结局线不再拿灯火当代价，只留「海嗣更快进化」与商店遭诅栏
 				if ef.rule == "shield_burst":
 					g.shield_burst = true
 				elif ef.rule == "shield_heal":

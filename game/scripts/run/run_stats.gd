@@ -91,7 +91,7 @@ static func snapshot(g) -> Dictionary:
 		"best": tm.best_hit.duplicate(), "bosses": bosses, "lamp_s": tm.lamp_s.duplicate(),
 		"beacons": [int(g.beacon_sys.lit_n), g.beacons.size()], "dodges": tm.dodges, "dashes": tm.dashes, "blocks": tm.blocks,
 		"low_hp_s": tm.low_hp_s, "fuse": fuse, "relic_list": relic_list, "killer": killer, "final_boss": final_boss,
-		"xp": float(g.pickups.xp_total), "chests": tm.chests, "altars": tm.altars, "ingots_got": tm.ingots_got, "ingots_spent": tm.ingots_spent}
+		"xp": float(g.pickups.xp_total), "chests": tm.chests, "nodes": tm.nodes, "ingots_got": tm.ingots_got, "ingots_spent": tm.ingots_spent}
 
 
 static func _sum(d: Dictionary) -> float:
@@ -306,8 +306,8 @@ static func model(raw: Dictionary) -> Dictionary:
 		{"label": "获得经验", "v": float(raw.get("xp", 0.0)), "fmt": "n", "sub": "Lv.%d" % int(raw.get("level", 1))},
 		{"label": "获得源石锭", "v": float(raw.get("ingots_got", 0)), "fmt": "n", "sub": "花费 %d" % int(raw.get("ingots_spent", 0))},
 		{"label": "打开补给箱", "v": float(raw.get("chests", 0)), "fmt": "n"}]
-	if int(raw.get("altars", 0)) > 0:
-		stats.append({"label": "海嗣祭坛", "v": float(raw.altars), "fmt": "n"})
+	if int(raw.get("nodes", 0)) > 0:
+		stats.append({"label": "翻开节点卡", "v": float(raw.nodes), "fmt": "n"})
 	if int(bc[0]) > 0 or int(bc[1]) > 0:
 		stats.append({"label": "点亮引航灯标", "v": float(bc[0]), "fmt": "n"})   # 只写点燃数：熄灭消散的灯标会从 g.beacons 移除，「出现数」不可靠
 	stats.append({"label": "通明时长", "v": (float(ls[0]) / lt * 100.0) if lt > 0.0 else 0.0, "fmt": "pct"})
@@ -371,4 +371,4 @@ static func fake_raw() -> Dictionary:
 			{"id": "13", "name": "玻璃小鸟", "cat": "经济", "rarity": "基础", "lv": 2, "max": 3, "desc": "示例。"},
 			{"id": "999", "name": "遭诅示例", "cat": "生存", "rarity": "遭诅古物", "lv": 1, "max": 1, "desc": "遭诅藏品示例。"}],
 		"killer": {}, "final_boss": {"type": "paranoia", "name": "偏执泡影"},
-		"xp": 4210.0, "chests": 6, "altars": 2, "ingots_got": 148, "ingots_spent": 120}
+		"xp": 4210.0, "chests": 6, "nodes": 2, "ingots_got": 148, "ingots_spent": 120}
