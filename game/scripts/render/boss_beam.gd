@@ -293,7 +293,7 @@ static func _act_look(g, e: Dictionary, grains) -> void:
 
 
 ## ---- 伊莎玛拉「大群之歌」（用户 10-25「放出去的像是平推出去」，要有生命感；判定不变：shot_pool.update_shocks 按 sh.r 一条环带）
-## 前沿：随角度起伏（6 瓣、随时间流动 ±4）、粗细脉动的专属色亮带 + 浅色芯；身后三层衰减尾带（越往里越淡越宽）；
+## 前沿：随角度起伏（7 瓣、随时间流动 ±7–10）、粗细脉动的专属色亮带 + 浅色芯；身后三层衰减尾带（越往里越淡越宽）；
 ## 前沿沿途散出颗粒（光学观感颗粒开着时）；缺口两侧照旧画金色出口短线。不加深色描边（只有伊比利亚的弹描边）
 const SONG_STEP := 0.07   # 折线每段弧度
 
@@ -303,7 +303,8 @@ static func _song_pts(sh: Dictionary, a0: float, a1: float, dr: float, gy: float
 	var n: int = maxi(2, int(ceil((a1 - a0) / SONG_STEP)))
 	for i in n + 1:
 		var a: float = a0 + (a1 - a0) * float(i) / float(n)
-		var rr: float = float(sh.r) + dr + sin(a * 6.0 + t * 5.0) * 4.0 + sin(a * 11.0 - t * 7.0) * 1.5
+		var amp: float = 7.0 + float(sh.r) * 0.006   # 起伏随半径略增（大半径时 ±4 看着还是正圆）
+		var rr: float = float(sh.r) + dr + sin(a * 7.0 + t * 5.0) * amp + sin(a * 13.0 - t * 8.0) * amp * 0.35
 		pts.append(sh.pos + Vector2(cos(a) * rr, sin(a) * rr * gy))
 	return pts
 
