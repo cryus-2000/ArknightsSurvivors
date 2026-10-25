@@ -58,19 +58,53 @@ def despeckle(im, mask):
     return out
 
 
-def locked(im):
-    """未获得：同一张图按亮度换成暗钢蓝一阶色（逐色映射，色数不增加），轮廓与蚀刻纹样仍看得出"""
-    out = im.copy()
-    px = out.load()
-    for y in range(out.size[1]):
-        for x in range(out.size[0]):
-            r, g, b, a = px[x, y]
-            if a == 0:
+def slot(n):
+    """未获得：空插槽（10-25 用户「刻章未解锁的保持插槽空着」）——不画章面，只画同尺寸的六边形凹槽：
+    1 格钢蓝外沿 + 1 格暗内沿（凹进去的阴影）+ 暗色半透明内底（上浅下深两档，无抖动）+ 内收 4 格一道浅刻线。色数 6"""
+    mask = hex_mask(n, n / 2.0)
+    mk = mask.load()
+    im = Image.new("RGBA", (n, n), (0, 0, 0, 0))
+    px = im.load()
+
+    def depth(x, y):
+        # 到六边形外缘的格距（四邻 BFS 近似）：0 = 最外一圈
+        return dist[y][x]
+
+    INF = 10 ** 6
+    dist = [[INF] * n for _ in range(n)]
+    q = []
+    for y in range(n):
+        for x in range(n):
+            if not mk[x, y]:
                 continue
-            v = (0.3 * r + 0.59 * g + 0.11 * b) / 255.0
-            v = v ** 1.15
-            px[x, y] = (int(16 + 92 * v), int(24 + 104 * v), int(38 + 118 * v), 255)
-    return out
+            edge = x in (0, n - 1) or y in (0, n - 1) or not (mk[x - 1, y] and mk[x + 1, y] and mk[x, y - 1] and mk[x, y + 1])
+            if edge:
+                dist[y][x] = 0
+                q.append((x, y))
+    i = 0
+    while i < len(q):
+        x, y = q[i]
+        i += 1
+        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            u, v = x + dx, y + dy
+            if 0 <= u < n and 0 <= v < n and mk[u, v] and dist[v][u] > dist[y][x] + 1:
+                dist[v][u] = dist[y][x] + 1
+                q.append((u, v))
+    line = max(3, n // 12)   # 内刻线离外缘的格数（小章 3 格，大章 6 格）
+    for y in range(n):
+        for x in range(n):
+            if not mk[x, y]:
+                continue
+            dd = depth(x, y)
+            if dd == 0:
+                px[x, y] = (92, 116, 142, 235)        # 钢蓝外沿
+            elif dd == 1:
+                px[x, y] = (6, 12, 22, 225)           # 暗内沿（凹槽阴影）
+            elif dd == line:
+                px[x, y] = (46, 66, 90, 150)          # 浅刻线
+            else:
+                px[x, y] = (10, 22, 38, 150) if y < n * 0.5 else (6, 14, 26, 165)   # 内底两档
+    return im
 
 
 def bake_medals(grid, out_dir):
@@ -119,7 +153,7 @@ def bake_medals(grid, out_dir):
                 if px[x, y][3] == 0:
                     px[x, y] = (0, 0, 0, 0)
         q.save(out_dir / f"medal_{mid}.png")
-        locked(q).save(out_dir / f"medal_{mid}_off.png")
+        slot(q.size[0]).save(out_dir / f"medal_{mid}_slot.png")
         res[mid] = q
     pal = pal_img.getpalette()[: MEDAL_COLORS * 3]
     return res, pal

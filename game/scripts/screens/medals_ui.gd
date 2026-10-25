@@ -3,7 +3,7 @@ extends Control
 ## 用户：「改成我们的像素风格并且保持一致，背景设置成动态效果，字体也是需要修改」；「蚀刻章按照 codex 提交的排列来，那是设计」（10-25 晚，撤掉 v2 陈列柜）。
 ## - 版式：严格照 Codex 设计稿 packed_layout_v16.svg——九枚章的坐标 / 尺寸 / 分组 / 顺序照 approved_layout_1025.json（= data/medals_layout.json），
 ##   左栏文字位置量自设计稿（见下方「版式」段）；整幅等比放进安全区，手机同一幅。
-## - 像素：章图与背景都按标题页「青光航标」的精度（1280×720 下 3 逻辑像素一格，docs/67 §13.3）重新量化，见 bake_pixel.py；未获得用暗钢蓝版。
+## - 像素：章图与背景都按标题页「青光航标」的精度（1280×720 下 3 逻辑像素一格，docs/67 §13.3）重新量化，见 bake_pixel.py；未获得不画章面，只留同尺寸空插槽（10-25 用户「刻章未解锁的保持插槽空着」）。
 ## - 背景：原图低频形变（shaders/medal_sea.gdshader，SubViewport 428×240，≤ 30 Hz，24 秒一周期）；减少动态效果只画静帧；页面关着不更新。
 ## - 字：中文 ui.ttf，套组大标题 serif.ttf；拉丁 / 数字一律 5×7 像素字（tide_ui.ptext）。青只给可操作 / 选中。
 ## 操作：点章 / 方向键选中（按几何方向找最近的一枚）；左上「‹ 行动履历」/ Esc / 退格返回。
@@ -28,7 +28,7 @@ const L := Tiles.L
 
 var font: Font
 var serif: Font
-var items: Array = []          # [{def, c: 布局中心, r, tex, off, ring}]
+var items: Array = []          # [{def, c: 布局中心, r, tex, slot, ring}]
 var sel := 0
 var hover := -1
 var k := 1.0
@@ -103,7 +103,7 @@ func _load_items() -> void:
 		if not pos.has(id):
 			continue
 		var tex: Texture2D = load(DIR + "medal_%d.png" % id)
-		items.append({"def": d, "c": pos[id][0], "r": pos[id][1], "tex": tex, "off": load(DIR + "medal_%d_off.png" % id),
+		items.append({"def": d, "c": pos[id][0], "r": pos[id][1], "tex": tex, "slot": load(DIR + "medal_%d_slot.png" % id),
 			"ring": _ring(tex.get_width())})
 
 
@@ -287,7 +287,7 @@ func _draw_medals(a: float) -> void:
 	for i in items.size():
 		var it: Dictionary = items[i]
 		var got := Medals.has(it.def.key)
-		var tex: Texture2D = it.tex if got else it.off
+		var tex: Texture2D = it.tex if got else it.slot
 		var n := float(tex.get_width())
 		var s := n * GRID * k
 		var c: Vector2 = _P(it.c.x, it.c.y)

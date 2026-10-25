@@ -60,7 +60,7 @@ func table_tests() -> void:
 	for m in defs:
 		check(not keys.has(m.key), "key 重复：%s" % m.key)
 		keys[m.key] = true
-		check(ResourceLoader.exists("res://art/ui/medals/medal_%d.png" % int(m.id)) and ResourceLoader.exists("res://art/ui/medals/medal_%d_off.png" % int(m.id)), "缺章图：%d" % int(m.id))
+		check(ResourceLoader.exists("res://art/ui/medals/medal_%d.png" % int(m.id)) and ResourceLoader.exists("res://art/ui/medals/medal_%d_slot.png" % int(m.id)), "缺章图：%d" % int(m.id))
 		check(str(m.name) != "" and str(m.desc) != "", "缺名称 / 条件：%s" % m.key)
 	var lay = JSON.parse_string(FileAccess.get_file_as_string("res://data/medals_layout.json"))
 	var ids := {}
