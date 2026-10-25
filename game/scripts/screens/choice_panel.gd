@@ -48,6 +48,8 @@ const LAY := [
 ]
 
 
+static var _re_op: RegEx
+
 func lay() -> Dictionary:
 	return LAY[Cfg.ui_form()]
 
@@ -615,7 +617,9 @@ func option_description(option: Dictionary) -> String:
 	var extra := ""
 	if kind == "recruit":
 		# 10-23 用户「前面重复的介绍就不需要了」：卡头已写「招募 · 职业」，正文去掉开头的「X干员，」
-		var re := RegEx.create_from_string("^[^，,]{1,3}干员[，,]\\s*")
+		if _re_op == null:
+			_re_op = RegEx.create_from_string("^[^，,]{1,3}干员[，,]\\s*")   # 只编译一次
+		var re := _re_op
 		description = re.sub(description, "")
 	if kind == "recruit" and not option.get("swap", false):
 		extra = ""   # 10-23 用户：招募卡正文不写联动，改为标签行「联动 N」+ 悬停提示（draw_panel_tip）
@@ -858,6 +862,17 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 
 ## 干员待机条的第一帧：{tex, fw, fh}（按 data/characters/<id>.json 的 sprites.idle；没有返回空）
 func op_idle(cid: String) -> Dictionary:
+	if _idle_cache.has(cid):
+		return _idle_cache[cid]
+	var out := _op_idle(cid)
+	_idle_cache[cid] = out
+	return out
+
+
+## 选卡 / 属性面板 / 作战记录每帧每张卡都调 op_idle：以前每次都读盘解析干员 JSON（load_def）+ 扫目录，10-25 帧率审计改成按干员缓存（纯画面数据）
+var _idle_cache := {}
+
+func _op_idle(cid: String) -> Dictionary:
 	if cid == "" or not Character.list_ids().has(cid):
 		return {}
 	var cdef: Dictionary = Character.load_def(cid)

@@ -42,6 +42,18 @@
   "revive_inv": 1.0,
   "revive_near": 64,
   "revive_near_k": 4.0,
+  "rush": 1,
+  "rush_aspd": 0.25,
+  "rush_sp": 1.5,
+  "rush_dist": 320,
+  "rush_min": 60,
+  "rush_speed": 780,
+  "rush_max_t": 0.5,
+  "rush_hit_r": 56,
+  "rush_kb": 340,
+  "rush_kb_elite": 0.5,
+  "rush_inv": 0.6,
+  "rush_trail_life": 0.22,
   "range_k": 0.6,
   "bot_roam_at": 1.0,
   "bot_roam": 0
@@ -249,7 +261,13 @@
   "hit_scale": 18,
   "oil_kill_chance": 0.006,
   "elite_oil_chance": 0.65,
-  "elite_oil_amount": 25.0
+  "elite_oil_amount": 25.0,
+  "_mire": "灯火与溟痕（docs/147，10-25 用户方案 B）：灯火 ≥ mire_hi 时退散强度 1、≤ mire_lo 时 0（中间线性）；逼近强度在灯火 mire_lo → 0 线性 0 → 1。退散：边缘进入队长 mire_ward_r 内的自然溟痕每秒收缩 mire_recede × 强度，站在自然溟痕里伤害与神经损伤 × (1 − mire_ward_dmg × 强度)。逼近：mire_creep_r 内的溟痕每秒朝队长挪 mire_creep_spd × 强度、上限长 mire_creep_grow × 强度（≤ 原上限 × mire_creep_cap）；新溟痕刷新间隔 × (1 − mire_spawn_iv × 强度)、离队长距离 × (1 − mire_spawn_near × 强度)。mire_hint_cd：进出通明 / 暗淡档的小字提示间隔。mire_ward_r 与 mire_creep_r 都写 0 = 改动前",
+  "mire_hi": 70, "mire_lo": 30,
+  "mire_ward_r": 200, "mire_recede": 10, "mire_ward_dmg": 0.8,
+  "mire_creep_r": 380, "mire_creep_spd": 14, "mire_creep_grow": 6, "mire_creep_cap": 1.3,
+  "mire_spawn_iv": 0.4, "mire_spawn_near": 0.4,
+  "mire_hint_cd": 10
  },
  "xp": {
   "_doc": "升级所需经验：first 为 Lv1→2；基础 a + b·L + c·L²，Lv12前不变，Lv12→30平滑增至late_mult倍，延长后半程成长",
@@ -572,6 +590,8 @@
   "_doc_hit_feel": "打击感一轮（docs/53，2026-10-10，纯画面 / 音效，不碰模拟与随机数）：受击后坐 recoil_px（世界单位，PX=2 即 1 像素=2）、recoil_t 秒回位、技能 / 暴击 / 弱点 ×recoil_skill_k，0 = 关；击杀爆点火花 = kill_sparks + r × kill_sparks_per_r，r ≥ kill_big_r 算大体型（外环 + 尘土 + 材质层音 kill_big_sfx / 甲壳 kill_shell_sfx，空串 = 不叠），击杀音音高 = 1.15 − r ÷ kill_pitch_r（0.75–1.15），大体型或暴击击杀顿帧 kill_pause 秒（共享 impact_pause 预算、受命中顿帧设置）；主控重击：单发 ≥ 最大生命 12% × hurt_heavy_sev 时叠 hurt_heavy（hurt_heavy_db）+ 配乐低通压到 hurt_duck_hz 保持 hurt_duck_t 秒",
   "recoil_px": 3.0,
   "recoil_t": 0.1,
+  "_grains_adapt_doc": "颗粒帧时自适应（docs/50 §26，render/fx_grains.gd _adapt）：1 = 真实帧间隔平滑后超过目标间隔（60 帧 / 玩家 30 帧上限 / 低于 60 Hz 显示器取最长）× 1.08 时，CPU 颗粒与火星的同屏上限每秒最多降 1.2 倍、最低 0.35，回到 × 1.03 以下每秒升 0.15；0 = 上限固定",
+  "grains_adapt": 1,
   "recoil_skill_k": 1.6,
   "_doc_feel_1024": "《黎明前 20 分钟》四点（用户 10-24，纯画面，同 seed 不变）：三档普攻受击后坐 recoil_px1 / 2 / 3（美术像素，只挪画面）、recoil_tier_t 秒回弹；heavy_knockback > 0 时重档普攻另加真实击退速度（会改玩法，缺省 0 = 关）；队长普攻开火微震 leader_kick（1 = 开）中档 kick_px2 / 重档 kick_px3 美术像素、kick_t 秒阶梯回位（减少动态效果开时不震）；光学新击杀（render/kill_style）死亡帧条整段压到普通 ≤ death_max 秒、精英 ≤ death_max_elite 秒，Boss 不变",
   "recoil_px1": 2.0,
@@ -623,12 +643,14 @@
   "accel_t": 0.06
  },
  "gallery": {
-  "_doc": "图鉴演示 / 精英化演出小窗（demo_op）。demo_zoom 镜头缩放（用户 10-24「图鉴里镜头缩小一点」：1 = 原样，0.8 = 多看 25% 范围）",
-  "demo_zoom": 0.8
+  "_doc": "图鉴演示 / 精英化演出小窗（demo_op）。demo_zoom 镜头缩放（用户 10-24「图鉴里镜头缩小一点」：1 = 原样，0.8 = 多看 25% 范围；10-25 用户「图鉴镜头再拉远一点，人和怪都小一点」→ 0.68 = 0.8 × 0.85）",
+  "demo_zoom": 0.68
  },
  "render": {
   "_doc_op_unlit": "干员不吃灯火（用户 10-24「干员身上的灯光附着取消掉」，选「受灯火提亮 / 染色」）：1 = 干员按贴图原色画，不随离灯远近变亮 / 变暖，也没有朝灯亮线；0 = 原来的受光封顶 + 白色保护。只管干员与博士，敌人不动（render/look.gd op_unlit_mod）",
   "op_unlit": 1,
+  "_doc_mid_full_fx": "中档颗粒量（docs/50 §26，10-25 用户「以现在高档的画质作为中档的画质来保障」）：1 = 中档的 CPU 颗粒（fx_grains 上限 900 / 火星 240 / 材质 48）与 GPU 粒子池（optical_particles k_amount 1）同高档；0 = 旧的中档减半。满帧时由 fx/grains_adapt 帧时自适应往下收",
+  "mid_full_fx": 1,
   "_doc_fx_int_scale": "特效缩放取整到低分辨率层整数格（docs/138 §10，用户 10-24 定）：1 = 每个美术像素 ≥ 0.75 格的帧条特效取整到最近整数格（像素宽度均匀），< 0.75 格的不动；0 = 原样。只在光学低分辨率层开着时生效；按半径拟合的区域 / 扩散件不取整",
   "fx_int_scale": 1,
   "_doc_kill_style": "光学观感下的击杀（docs/130 C5，用户 10-24 定）：1 = 死亡动作加快后最后一帧碎成像素碎屑、不画溶解与老火花；0 = 旧样子（帧条 / 溶解 + 碎屑 + 火花）",
@@ -673,6 +695,8 @@
   "dash_tell_alpha": 0.55, "dash_tell_flow": 0, "dash_tell_white": 0, "dash_tell_half": 6, "ebullet_outline": 0, "dash_tell_style": 2,
   "_doc_ebullet_boss": "Boss 弹（docs/142b §8.4）：弹体、亮描边、拖尾、地面光用该 Boss 专属色（enemies.json bcol，身份）；不加危险色外圈（用户 10-25「描边不要加」）。ebullet_boss_own 0 = 旧口径（ebullet_boss_danger 整颗危险色）",
   "ebullet_boss_own": 1,
+  "_doc_text_calm": "文字提醒节流（用户 10-25「那些字提醒的时候也显得太频繁了」，docs/139 §9，render/vfx.gd）：text_calm 1 = 横幅只给要玩家做事的（黑潮 / Boss / 商人到达 / 精英 / 灯标），干员技能名不出横幅，入队 / 升级 / 精英化 / 威胁上升 / 商人离开 / 熔铸 / 排异反应改左侧小字；精英横幅 45 秒、灯标 90 秒、同一句 60 秒内再来改小字；两条横幅至少隔 banner_gap 秒（黑潮 / Boss 不受限）；头顶文字飘字同一句 word_gap 秒内只出一次、同屏最多 word_max 条，敌人「狂暴」「尖叫」「架起结束」不飘字。0 = 原行为",
+  "text_calm": 1, "banner_gap": 8, "word_gap": 15, "word_max": 4,
   "_declutter_doc": "后期降噪预设（用户 10-12「后期画面是不是太乱了，容易看不清」，scripts/render/declutter.gd，量测 tools/late_clutter.py）：0 现状；1 轻；2 中；3 强。只在拥挤时（特效数 / 敌人数）按比例生效：队友 / 自己的特效与投射物退后、白字伤害数字限量、普通怪描边 / 白闪变淡、击杀火花减少、地面纹理薄纱、远处结晶压暗；敌方弹幕 / 预警轮廓加粗、填充减淡；主控、灯火、特殊掉落不降。只改画面；单项可用 render/declutter_<键> 覆盖。10-12 推荐缺省切到 3（单独提交，可整条回退）",
   "declutter": 3,
   "_hit_rings_doc": "干员攻击 / 技能命中的装饰圆圈（用户 10-13「艾雅法拉的攻击特效的圆圈可以不用加，保留火焰特效就可以；其余干员也是」，scripts/render/declutter.gd hit_rings）：0 不画（缺省），1 照旧画（回退）。只在绘制时跳过，主体特效（火焰 / 斩击 / 光弹 / 帧条）、持续区域边界、敌方预警、拾取 / 灯标范围不受影响；对照截图用 --bal=render/hit_rings=1",

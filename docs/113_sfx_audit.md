@@ -364,3 +364,12 @@ i1（819711 DaVoiceActor「Chain Impact」1.75–2.30 s）「挺好听」→ 作
 - **德克萨斯冲刺用合成版**：`op_texas_atk.wav` ← 合成起冲（蹬地 + 一丝刃鸣 + 下行呼啸，0.3 s，替换 Kenney 刀划）；`op_texas_hit.wav` 新增 ← 合成收势（靴底刹停摩擦 + 刃「嘶」+ 轻「咚」，0.2 s，原来借艾丽妮命中 ×1.1）。由 `python game/tools/gen_sfx_review_texas_1024.py --apply` 写入。`sfx.gd`：`OP_SFX["texas"]` 加 `hit`，删 `OP_ALT["op_texas_hit"]`，`OP_DB["op_texas_hit"] = -3`（等于原来借用时的 −3 dB，文件响度同艾丽妮命中）。
 - **能天使枪声不换**：继续用 `op_exusiai_atk`（DarkShroom M9，CC0）。第六节 14 条候选不接；§13 的合成枪声也不接。
 - **试听页「改前」修正**：10-24 接入乌尔比安出钩 / 收拉后重跑生成脚本，页面里的「改前」读到了工作树里已经是新文件，改前改后读反了。现在「改前」固定读换音前的基线提交 `d872886cc`（`git show`），不随工作树变。
+
+## 17. 能天使音效第三轮：用户要换（10-25「能天使的音效没有替换」，推翻 §16.1「不换」）
+
+用户 10-25 听到能天使仍是同一条枪声、技能仍是借来的（一技能借艾丽妮、二三技能借维什戴尔）。改为：
+
+- `game/tools/gen_sfx_review_exu3_1025.py`：三套候选（A 消音·干脆 g3 / g5 / g6；B 冲锋枪·利落 g10 / g7 / g13；C 科幻·冷 g11 / g8 / g2），每套 3 条单发轮换 + 同一套样本拼出的技能音：s1 装填「咔」+ 3 连点射、s2 6 连渐快、s3 18 连渐快 + 末发加重、big 9 连 + 一声重的。全是 §16 已处理好的 CC0 单发拼接，无合成。试听页第七节：`build/sfx_review_1024/index.html`（`exu3/`），写入游戏：`python game/tools/gen_sfx_review_exu3_1025.py --apply A|B|C`。
+- 分支里先接了 A 套（最短、重心 2.3–3.2 kHz、连射最不累）：`op_exusiai_atk` / `_atk_b` / `_atk_c` / `_s1` / `_s2` / `_s3` / `_big` 七个文件，QOA 后约 +60 KB。
+- `sfx.gd`：`OP_SFX["exusiai"]` 加 `atk_b` `atk_c` `s1` `s2` `s3`；`OP_ROT["op_exusiai_atk"]` 按次轮换三条（只改声音，不碰玩法随机）；`OP_GAP["op_exusiai_atk"] = 0.05` 合并同帧多发；音高随机沿用 `OP_PVAR` 9%；删掉 OP_ALT 里能天使三条技能借用。
+- 来源 / 许可：g3 areniporgen、g5 / g6 morganpurkis（Freesound，CC0）；致谢页 credits.json 已补作者名。B / C 套来源见试听页。

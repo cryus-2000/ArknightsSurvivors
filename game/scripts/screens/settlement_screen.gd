@@ -50,6 +50,7 @@ func tick(dt: float) -> void:
 		squad_canvas.clip_contents = true
 		g.hud.add_child(squad_canvas)
 	if model.is_empty():
+		preload("res://scripts/core/frame_rec.gd").mark("settle")
 		set_model(RS.model(RS.snapshot(g)))
 		cells = int(g.meta_result.get("cells", 0))
 		vouchers = int(g.roster_new.get("hunt", 0))

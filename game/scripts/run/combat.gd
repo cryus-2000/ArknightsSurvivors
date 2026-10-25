@@ -111,7 +111,9 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 		add_apop(float(ad.apop_hit))
 	# 灯火只在受击时熄灭：基础 4 + 伤害占最大生命的比例 × 30（10% 血的一击 -7），受「灯火消耗」修正
 	var lamp_loss: float = (Bal.v("lamp/hit_base", 4.0) + Bal.v("lamp/hit_scale", 30.0) * dmg / g.max_hp) * g.lamp_decay * g.lamp_loss_mult
+	var l0: float = g.lamp
 	g.lamp = maxf(0.0, g.lamp - lamp_loss)
+	g.telemetry.lamp_note("受击", g.lamp - l0)
 	if lamp_loss >= 6.0:
 		g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -%d" % int(lamp_loss), Color(1.0, 0.6, 0.4), 13)
 	if src.get("corrode", 0.0) > 0.0:
@@ -173,13 +175,14 @@ func add_nerve(v: float) -> void:
 
 
 ## 每帧（enemies.update_status）：in_src = 站在溟痕里（不含流明光域）；sanct = 在流明光域里
-func update_nerve(dt: float, in_src: bool, sanct: bool) -> void:
+## mire_mult：只站在溟痕里（没有神经光环）时的累积倍率（灯火高时自然溟痕减免，docs/147；缺省 1）
+func update_nerve(dt: float, in_src: bool, sanct: bool, mire_mult := 1.0) -> void:
 	g.nerve_lock = maxf(0.0, g.nerve_lock - dt)
 	var aura: bool = g.nerve_aura_t > 0.0 and not sanct
 	g.nerve_aura_t = maxf(0.0, g.nerve_aura_t - dt)
 	if ((in_src and not sanct) or aura) and g.nerve_lock <= 0.0:
 		g.telemetry.on_status("nerve", "" if in_src else g.telemetry.aura_type, dt)   # 溟痕 = 环境；神经光环 = 放光环的敌人
-		add_nerve(Bal.v("enemy/nerve_mire", 12.0) * float(g.dmod.get("nerve_rate", 1.0)) * g.nerve_taken_mult * dt)
+		add_nerve(Bal.v("enemy/nerve_mire", 12.0) * float(g.dmod.get("nerve_rate", 1.0)) * g.nerve_taken_mult * (1.0 if aura else mire_mult) * dt)
 	else:
 		g.nerve = maxf(0.0, g.nerve - Bal.v("enemy/nerve_decay", 10.0) * (2.0 if sanct else 1.0) * dt)
 
@@ -540,7 +543,9 @@ func update_zone(dt: float) -> void:
 	var out := g.ppos.distance_to(g.zone_c) - g.zone_r
 	if out > 0.0 and g.state == g.S.PLAY and not g.squad.in_sanctuary(g.ppos):
 		zone_out_t += dt
+		var lz: float = g.lamp
 		g.lamp = maxf(0.0, g.lamp - 6.0 * dt * g.lamp_loss_mult)
+		g.telemetry.lamp_note("圈外", g.lamp - lz)
 		if zone_out_t < ZONE_GRACE:
 			return
 		var dps: float = (2.5 + 1.5 * max(zone_phase, 0)) * (1.0 + minf(out / 300.0, 1.0))
@@ -1128,7 +1133,7 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	# 用 g.rng 会让机器负载 / 玩家设置改变对局随机数（docs/36 §3）
 	if g.crit_hit:
 		Sfx.play("crit_tick", -6.8, 1.0, 0.05)   # 暴击：清脆的「叮」叠在命中声上
-	g.vfx.dmg_number(e, dmg, g.crit_hit, weak_hit)   # 对 Boss 0.3 秒合并、Boss 战期间普通怪只飘暴击（docs/38 §1.15，显示逻辑在 vfx）
+	g.vfx.dmg_number(e, dmg, g.crit_hit, weak_hit, h)   # 对 Boss 0.3 秒合并、Boss 战期间普通怪只飘暴击（docs/38 §1.15，显示逻辑在 vfx）
 	# Boss 受击后（最后的骑士寒冷滑窗、圣徒装填打断）：dmg = 扣完潮盾的伤害，eff = 实际掉的血
 	if bh != null:
 		bh.on_damaged(e, dmg, eff)
@@ -1324,6 +1329,8 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 			g.pickups.drop(e.pos, "chest", 1.0)
 		if g.rng_drop.randf() < Bal.v("lamp/elite_oil_chance", 0.65):
 			g.pickups.drop(e.pos + Vector2(20, 10), "oil", Bal.v("lamp/elite_oil_amount", 25.0))
+	if float(e.get("scream_t1", INF)) > g.t and D.ENEMIES.get(e.type, {}).has("scream_ingot_mult"):
+		ing = int(round(ing * float(D.ENEMIES[e.type].scream_ingot_mult)))   # 箱形恐鱼尖叫结束前击倒（含还没尖叫）：源石锭 ×1.5（docs/145 §4 A，原作宝箱恐鱼）
 	if e.boss:
 		ing = 20
 		if not is_same(e, g.final_boss) and not g.spawner.boss_alive():

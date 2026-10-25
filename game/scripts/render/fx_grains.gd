@@ -59,6 +59,7 @@ const SPARK_MAX := [0, 120, 240]
 var g
 var level := 2      # 2 高 / 1 中 / 0 低（低 = 不开）
 var off := false    # --grainab 同局轮换：true = 这一段退回第二版画法
+var kill := false   # --stackab 第 1 位（docs/50 §26，仅测试）：整套 CPU 颗粒关，调用方退回非粒子画法
 var mat_off := false   # --matab 同局轮换：true = 这一段材质颗粒关（只关材质，刀光第四版照旧）
 # 颗粒（结构数组）：位置、速度、剩余寿命、总寿命、颜色、模板序号
 var pos := PackedVector2Array()
@@ -72,6 +73,32 @@ var _names: Array = []
 var _ramps: Array = []   # 模板序号 → [[阈值（年龄比例）, 颜色], …]
 var _frame_n := {}
 var sparks: Array = []   # CPU 火星：[pos, vel, ground_y, life, max, col]
+## 帧时自适应（docs/50 §26，fx/grains_adapt 缺省 1）：每帧量真实帧间隔（墙钟），平滑后持续超过目标间隔 × ADAPT_HI 就把颗粒 / 火星上限按比例往下降
+## （每秒最多降 ADAPT_DOWN，最低 ADAPT_MIN），回到目标 × ADAPT_LO 以下再慢慢升回（每秒 ADAPT_UP）。只影响「还能新发多少颗」，已有颗粒照旧走完。
+## 目标间隔 = 60 帧、玩家「最高帧率」30 档、低于 60 Hz 的显示器三者里最长的那个（30 帧档不当成掉帧）
+const ADAPT_HI := 1.08
+const ADAPT_LO := 1.03
+var _refresh_ms := 1000.0 / 60.0
+const ADAPT_MIN := 0.35
+const ADAPT_DOWN := 1.2
+const ADAPT_UP := 0.15
+var adapt_k := 1.0
+var _ema := 16.7
+var _last_us := 0
+## 屏外不发（docs/50 §26）：镜头可见范围外扩 VIEW_PAD 世界像素，范围外的 push / spark 直接丢，整团材质颗粒按「已处理」返回（不退回帧条）
+const VIEW_PAD := 64.0
+var view := Rect2(-1e9, -1e9, 2e9, 2e9)
+# 模板参数按序号缓存（每颗每帧不再查 Dictionary）
+var _grav := PackedFloat32Array()
+var _drag := PackedFloat32Array()
+var _rt: Array = []   # 序号 → 颜色阶阈值（PackedFloat32Array）
+var _rc: Array = []   # 序号 → 颜色阶颜色（PackedColorArray）
+const RAMP_N := 4     # 颜色阶摊平成每模板 4 段（不足的用 2.0 阈值补，永远到不了）：_draw 里不再调函数、不再取子数组
+var _rth := PackedFloat32Array()
+var _rcol := PackedColorArray()
+var _blade_i := -1
+var _fire_i := -1
+var _slash_i := -1
 var lights: Array = []   # 颗粒簇登记的灯（docs/138 §8）：[pos, r, col, life, max]；optical._dyn_lights 当候选，同 12 灯预算
 const LIGHT_MAX := 16
 var _drawn := false
@@ -80,29 +107,83 @@ var _drawn := false
 func setup(game) -> void:
 	g = game
 	level = {"high": 2, "mid": 1, "low": 0}.get(Cfg.quality, 2)
+	if level == 1 and Bal.v("render/mid_full_fx", 1.0) > 0.0:
+		level = 2   # 中档颗粒量同高档（render/mid_full_fx，docs/50 §26）：上限 900 / 火星 240，满帧时靠帧时自适应往下收
 	templates.merge(MATERIALS)
 	for name in templates:
 		_names.append(name)
 		_ramps.append(templates[name].ramp)
+		_grav.append(float(templates[name].grav))
+		_drag.append(float(templates[name].drag))
+		var rt := PackedFloat32Array()
+		var rc := PackedColorArray()
+		for st in templates[name].ramp:
+			rt.append(float(st[0]))
+			rc.append(st[1])
+		_rt.append(rt)
+		_rc.append(rc)
+		for j in RAMP_N:
+			_rth.append(rt[j] if j < rt.size() else 2.0)
+			_rcol.append(rc[mini(j, rc.size() - 1)])
+	var hz: float = DisplayServer.screen_get_refresh_rate() if DisplayServer.get_name() != "headless" else -1.0
+	_refresh_ms = 1000.0 / clampf(hz if hz > 1.0 else 60.0, 20.0, 60.0)
+	_blade_i = _names.find("blade")
+	_fire_i = _names.find("fire")
+	_slash_i = _names.find("slash")
 
 
 func on() -> bool:
-	return level > 0 and g != null and g.optical_on and Bal.v("fx/grains", 1.0) > 0.0
+	_knobs()
+	return level > 0 and not kill and g != null and g.optical_on and _k_grains
 
 
 ## 材质颗粒（fx/material_grains，10-24 起缺省开；拉普兰德 / 体液各自另有开关，缺省关）：模板开着、未被 --grainab / --matab 轮换关掉
 func material_on() -> bool:
-	return on() and not off and not mat_off and Bal.v("fx/material_grains", 0.0) > 0.0
+	return on() and not off and not mat_off and _k_mat
+
+
+## fx/grains、fx/material_grains 每帧读一次（on() 每帧被调十几次；docs/50 §26）
+var _k_frame := -1
+var _k_grains := true
+var _k_mat := false
+func _knobs() -> void:
+	var fr: int = Engine.get_process_frames()
+	if fr == _k_frame:
+		return
+	_k_frame = fr
+	_k_grains = Bal.v("fx/grains", 1.0) > 0.0
+	_k_mat = Bal.v("fx/material_grains", 0.0) > 0.0
 
 
 func budget() -> int:
-	return int(TEMPLATES.slash.budget[0 if level >= 2 else 1])
+	return int(float(TEMPLATES.slash.budget[0 if level >= 2 else 1]) * adapt_k)
+
+
+## 每帧（step 开头）：真实帧间隔的平滑值 → 上限比例 adapt_k；镜头可见范围 → view
+func _adapt(dt: float) -> void:
+	var now := Time.get_ticks_usec()
+	if _last_us > 0 and Bal.v("fx/grains_adapt", 1.0) > 0.0:
+		var ms: float = minf(50.0, (now - _last_us) / 1000.0)   # 暂停 / 切后台回来的长间隔截到 50
+		_ema = lerpf(_ema, ms, 0.1)
+		var tgt: float = maxf(_refresh_ms, 1000.0 / float(Engine.max_fps) if Engine.max_fps > 0 else 0.0)
+		if _ema > tgt * ADAPT_HI:
+			adapt_k = maxf(ADAPT_MIN, adapt_k - ADAPT_DOWN * dt)
+		elif _ema < tgt * ADAPT_LO:
+			adapt_k = minf(1.0, adapt_k + ADAPT_UP * dt)
+	else:
+		adapt_k = 1.0
+	_last_us = now
+	if g != null and g.cam != null and is_inside_tree():
+		var vs: Vector2 = get_viewport().get_visible_rect().size / g.cam.zoom
+		view = Rect2(g.cam.get_screen_center_position() - vs * 0.5, vs).grow(VIEW_PAD)
 
 
 ## 生成一颗：p 世界坐标、dir 初速基准方向（单位向量；模板 spread 内散开）、c 颜色（乘在颜色阶上）
 func push(name: String, p: Vector2, dir: Vector2, c: Color, emit_delay := 0.0) -> void:
+	if pos.size() >= budget() or not view.has_point(p):
+		return
 	var t: Dictionary = templates.get(name, {})
-	if t.is_empty() or pos.size() >= budget():
+	if t.is_empty():
 		return
 	var fn: int = int(_frame_n.get(name, 0))
 	if fn >= int(t.per_frame):
@@ -128,10 +209,11 @@ func light(p: Vector2, r: float, c: Color, life: float) -> void:
 
 ## CPU 火星：从 p 带重力迸出，落到 ground_y 停住、冷却变暗后熄灭（同屏上限 SPARK_MAX）
 func spark(p: Vector2, ground_y: float, c: Color, n: int) -> void:
-	if not on():
+	if not on() or not view.has_point(p):
 		return
+	var smax: int = int(float(SPARK_MAX[level]) * adapt_k)
 	for i in n:
-		if sparks.size() >= SPARK_MAX[level]:
+		if sparks.size() >= smax:
 			return
 		var a: float = -PI * 0.5 + (float(i) / maxf(1.0, float(n - 1)) - 0.5) * 2.4 + g.vrng.randf_range(-0.2, 0.2)
 		var v: Vector2 = Vector2.from_angle(a) * g.vrng.randf_range(70.0, 170.0)
@@ -143,6 +225,17 @@ func step(dt: float) -> void:
 	if g != null and visibility_layer != g.visibility_layer:
 		visibility_layer = g.visibility_layer   # 跟世界节点同一可见层（光学观感低分辨率层开着时 = 第 2 位；本节点比 _set_lo 晚挂上）
 	_frame_n.clear()
+	_adapt(dt)
+	if kill and (pos.size() > 0 or sparks.size() > 0):
+		pos.clear()
+		vel.clear()
+		life.clear()
+		lmax.clear()
+		delay.clear()
+		col.clear()
+		tpl.clear()
+		sparks.clear()
+		lights.clear()
 	_lappland_step()
 	var n: int = pos.size()
 	var k := 0
@@ -152,10 +245,10 @@ func step(dt: float) -> void:
 		var l: float = life[i] - active_dt
 		if l <= 0.0:
 			continue
-		var t: Dictionary = templates[_names[tpl[i]]]
+		var ti: int = tpl[i]
 		var v: Vector2 = vel[i]
-		v.y += float(t.grav) * active_dt
-		v *= maxf(0.0, 1.0 - float(t.drag) * active_dt)
+		v.y += _grav[ti] * active_dt
+		v *= maxf(0.0, 1.0 - _drag[ti] * active_dt)
 		pos[k] = pos[i] + v * active_dt
 		vel[k] = v
 		life[k] = l
@@ -202,17 +295,37 @@ func step(dt: float) -> void:
 
 
 func _draw() -> void:
+	var pt: int = Time.get_ticks_usec() if g != null and g.prof_on else 0
 	_drawn = pos.size() > 0 or sparks.size() > 0
 	var sz := Vector2(2, 2)
 	for i in pos.size():
 		if delay[i] > 0.0:
 			continue
-		var p: Vector2 = (pos[i] * 0.5).floor() * 2.0
-		if _names[tpl[i]] == "blade" and life[i] / lmax[i] > 0.45:
-			var tail: Vector2 = ((pos[i] - vel[i] * 0.045) * 0.5).floor() * 2.0
-			draw_line(tail, p, grain_color(i), 2.0, false)
+		# 颜色同 grain_color(i)，就地展开（每帧上千颗，省函数调用）
+		var ti: int = tpl[i]
+		var lf: float = life[i] / lmax[i]
+		var age: float = 1.0 - lf
+		var b: int = ti * RAMP_N
+		var rc: Color = _rcol[b]
+		if age >= _rth[b + 1]:
+			rc = _rcol[b + 1]
+			if age >= _rth[b + 2]:
+				rc = _rcol[b + 2]
+				if age >= _rth[b + 3]:
+					rc = _rcol[b + 3]
+		var c: Color = col[i]
+		var gc: Color
+		if ti == _fire_i and age >= 0.8:
+			var ash: float = (c.r + c.g + c.b) / 3.0 * 0.22
+			gc = Color(ash, ash, ash, c.a * 0.6)
 		else:
-			draw_rect(Rect2(p, sz), grain_color(i))
+			var hot: float = maxf(0.0, rc.r - 1.0) * 0.5
+			gc = Color(c.r * rc.r + hot, c.g * rc.g + hot, c.b * rc.b + hot, c.a * rc.a)
+		var p: Vector2 = (pos[i] * 0.5).floor() * 2.0
+		if ti == _blade_i and lf > 0.45:
+			draw_line(((pos[i] - vel[i] * 0.045) * 0.5).floor() * 2.0, p, gc, 2.0, false)
+		else:
+			draw_rect(Rect2(p, sz), gc)
 	for s in sparks:
 		var u: float = float(s[3]) / float(s[4])   # 1 → 0
 		var c: Color = s[5]
@@ -222,6 +335,8 @@ func _draw() -> void:
 		var a: float = 1.0 if u > 0.15 else u / 0.15
 		var add: float = 0.6 if kk > 1.5 else 0.0
 		draw_rect(Rect2(((s[0] as Vector2) * 0.5).floor() * 2.0, sz), Color(minf(2.0, c.r * kk + add), minf(2.0, c.g * kk + add), minf(2.0, c.b * kk + add), a))
+	if pt > 0:
+		g.prof["op_grains_draw"] = int(g.prof.get("op_grains_draw", 0)) + Time.get_ticks_usec() - pt
 
 
 ## 兼容旧调用：GPU 版要在这里写贴图，CPU 版颗粒在 push 时就生成
@@ -237,6 +352,8 @@ func material_burst(name: String, tx: Texture2D, frames: int, at: Vector2, angle
 	var kind: String = MATERIAL_FX[name]
 	if kind == "fluid" and Bal.v("fx/material_fluid", 0.0) <= 0.0:
 		return false   # 体液单独一道开关（缺省关，balance.json fx._material_doc）
+	if not view.grow(64.0).has_point(at):
+		return true   # 整团在屏外（再外扩 64）：不发颗粒也不画帧条
 	var skey: String = name if frame_at < 0 else "%s#%d" % [name, frame_at]   # frame_at：指定从哪一帧取形状（帧条交接用）
 	if not _samples.has(skey):
 		var img: Image = tx.get_image()
@@ -288,7 +405,7 @@ func draw_material_glow(ci: CanvasItem) -> void:
 	if not on() or off:
 		return
 	for i in pos.size():
-		if delay[i] > 0.0 or _names[tpl[i]] == "slash":
+		if delay[i] > 0.0 or tpl[i] == _slash_i:
 			continue
 		var age: float = 1.0 - life[i] / lmax[i]
 		if age >= 0.4:
@@ -300,13 +417,15 @@ func draw_material_glow(ci: CanvasItem) -> void:
 
 func grain_color(i: int) -> Color:
 	var age: float = 1.0 - life[i] / lmax[i]
-	var rp: Array = _ramps[tpl[i]]
-	var rc: Color = rp[0][1]
-	for st in rp:
-		if age >= float(st[0]):
-			rc = st[1]
+	var ti: int = tpl[i]
+	var rt: PackedFloat32Array = _rt[ti]
+	var rcs: PackedColorArray = _rc[ti]
+	var rc: Color = rcs[0]
+	for j in rt.size():
+		if age >= rt[j]:
+			rc = rcs[j]
 	var c: Color = col[i]
-	if _names[tpl[i]] == "fire" and age >= 0.8:
+	if ti == _fire_i and age >= 0.8:
 		# 最后转成无辉光的灰烬，不一直维持橙色发亮。
 		var ash: float = (c.r + c.g + c.b) / 3.0 * 0.22
 		return Color(ash, ash, ash, c.a * 0.6)

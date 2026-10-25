@@ -561,8 +561,10 @@ func update(dt: float) -> void:
 	# 溟痕：先照常采样，再排除最终 Boss 禁生成区域，区域外仍可生成。
 	if g.t >= g.next_mire:
 		# 溟痕随时间越来越多、越来越大；缩圈后多出现在圈边
-		g.next_mire = g.t + g.map.mire_next_interval(g.t)
-		var mp := g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(160.0, 380.0)
+		# 灯火低（docs/147）：间隔 × (1 − mire_spawn_iv × y)、离队长的距离 × (1 − mire_spawn_near × y)，随机数抽取次数不变
+		var ly: float = g.enemies_sys.lamp_mire_k().y
+		g.next_mire = g.t + g.map.mire_next_interval(g.t) * (1.0 - Bal.v("lamp/mire_spawn_iv", 0.0) * ly)
+		var mp := g.ppos + Vector2.from_angle(g.rng_spawn.randf() * TAU) * g.rng_spawn.randf_range(160.0, 380.0) * (1.0 - Bal.v("lamp/mire_spawn_near", 0.0) * ly)
 		if g.zone_state != 0 and g.rng_spawn.randf() < 0.6:
 			var ang := (g.ppos - g.zone_c).angle() + g.rng_spawn.randf_range(-0.8, 0.8)
 			mp = g.zone_c + Vector2.from_angle(ang) * (g.zone_r - g.rng_spawn.randf_range(20.0, 120.0))
@@ -977,6 +979,8 @@ func reveal_mimic(e: Dictionary) -> void:
 	e.flash = 0.2
 	e.vis_act = "reveal"   # 重画 e_mimic_reveal 现形帧条（纯画面）
 	e.vis_t0 = g.t
+	if D.ENEMIES["mimic"].has("scream_r"):
+		g.eai.start_scream(e, D.ENEMIES["mimic"])   # 现形尖叫（docs/145 §4 A）
 	g.vfx.show_banner("箱形恐鱼！")
 	g.vfx.add_text(e.pos + Vector2(0, -30), "伪装！", UI.RED, 20)
 	Sfx.play("roar", -2.0, 1.3)

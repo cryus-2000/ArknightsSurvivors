@@ -31,6 +31,12 @@ func armor_text() -> String:
 	return s + " / %d%%" % int(round(g.arts_res * 100.0))
 
 
+## 突击爆发窗口的队友加成（来源 command，squad._tick_rush_buff）：突击中才有这一行
+func rush_rows() -> Array:
+	var t: String = g.squad.rush_text()
+	return [] if t == "" else [["突击加成（队友）", t]]
+
+
 func dmg_mix_text() -> String:
 	var total := 0.0
 	for k in g.dmg_out:
@@ -133,6 +139,7 @@ func draw(vs: Vector2) -> void:
 		["近战 / 远程", "×%.2f / ×%.2f" % [g.melee_mult, g.ranged_mult]], ["物理 / 法术", "×%.2f / ×%.2f" % [g.phys_mult, g.arts_mult]],
 		["本局构成", dmg_mix_text()],
 	])
+	rows1.append_array(rush_rows())
 	y = b1.position.y + 48
 	# 属性行的行高按剩余空间收：下半的技能列表每条至少要「名字 + 一行说明」的高度（干员属性行多时不再挤出面板）
 	var need_sk: float = skill_rows.size() * maxf(42.0, 30.0 + g.font.get_height(UI.fs(11)) + 1.0) + 18.0
@@ -381,6 +388,7 @@ func draw_phone(vs: Vector2) -> void:
 				["近战 / 远程", "×%.2f / ×%.2f" % [g.melee_mult, g.ranged_mult]], ["物理 / 法术", "×%.2f / ×%.2f" % [g.phys_mult, g.arts_mult]],
 				["本局构成", dmg_mix_text()],
 			])
+			rows1.append_array(rush_rows())
 			_phone_rows(b, y, rows1, fs, half)
 		2:
 			UI.text(g.hud, g.font, b.position + Vector2(16, 28), "技能与天赋", 18, UI.CYAN)

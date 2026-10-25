@@ -183,7 +183,9 @@ func buy(i: int) -> void:
 		"heal":
 			g.combat.heal(g.max_hp * 0.4, "商店")
 		"oil":
+			var l0: float = g.lamp
 			g.lamp = min(g.lamp_cap, g.lamp + 50.0)
+			g.telemetry.lamp_note("商人", g.lamp - l0)
 	for item in g.shop_items:
 		if not item.sold:
 			item.price = g.rfx.db.price(item.id, price_mult()) if item.kind == "relic" else price(item.kind)

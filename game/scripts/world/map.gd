@@ -851,13 +851,14 @@ func mire_cells(ins: Dictionary) -> Array:
 ## 按格画一组溟痕（内区先画、围边后画，各自同一张图集连续合批）；col 的 alpha = 淡入淡出
 func draw_mire_cells(cells: Array, f: int, col: Color) -> void:
 	# docs/139 §6 试验旋钮：render/mire_anim（1 = 两帧每 0.5 秒交替，缺省；0 = 定格第 1 帧）、render/mire_alpha（溟痕本体不透明度倍率，缺省 1）
-	if Bal.v("render/mire_anim", 1.0) <= 0.0:
+	_mire_knobs()
+	if _mk_anim <= 0.0:
 		f = 0
-	col.a *= Bal.v("render/mire_alpha", 1.0)
-	col *= mire_tint()
+	col.a *= _mk_alpha
+	col *= _mk_tint
 	var cw: float = MIRE_CELL * g.PX
 	var glow: bool = g.optical_on and _mire_ab_e != null
-	var gc := Color(col.r, col.g, col.b, col.a * Bal.v("render/optical_mire_emit", 0.35))   # 发光层强度（全亮会盖掉紫色底）
+	var gc := Color(col.r, col.g, col.b, col.a * _mk_emit)   # 发光层强度（全亮会盖掉紫色底）
 	for c in cells[0]:
 		var gx: int = c.x * MIRE_CELL
 		var gy: int = c.y * MIRE_CELL
@@ -879,7 +880,25 @@ func draw_mire_cells(cells: Array, f: int, col: Color) -> void:
 
 ## docs/139 §6 试验旋钮 render/mire_tint_r / _g / _b（缺省 1, 1, 1）：溟痕本体与判定圈乘色，靛紫往深海青灰移（保留蓝调）
 func mire_tint() -> Color:
-	return Color(Bal.v("render/mire_tint_r", 1.0), Bal.v("render/mire_tint_g", 1.0), Bal.v("render/mire_tint_b", 1.0), 1.0)
+	_mire_knobs()
+	return _mk_tint
+
+
+## 溟痕旋钮每帧读一次（每片溟痕、每格都要用；docs/50 §26：Bal.v 每次拆路径约 1.4 µs）
+var _mk_frame := -1
+var _mk_tint := Color.WHITE
+var _mk_anim := 1.0
+var _mk_alpha := 1.0
+var _mk_emit := 0.35
+func _mire_knobs() -> void:
+	var fr: int = Engine.get_process_frames()
+	if fr == _mk_frame:
+		return
+	_mk_frame = fr
+	_mk_tint = Color(Bal.v("render/mire_tint_r", 1.0), Bal.v("render/mire_tint_g", 1.0), Bal.v("render/mire_tint_b", 1.0), 1.0)
+	_mk_anim = Bal.v("render/mire_anim", 1.0)
+	_mk_alpha = Bal.v("render/mire_alpha", 1.0)
+	_mk_emit = Bal.v("render/optical_mire_emit", 0.35)
 
 
 ## 64 格块取 A / B 变体（约三分之一 B，减轻 64 像素周期感）
@@ -888,9 +907,9 @@ func _mire_var(gx: int, gy: int) -> int:
 
 
 func _mire_disc(m: Dictionary) -> Array:
-	var key := int(m.r * 0.25)
+	var key := Vector3i(int(m.r * 0.25), floori(m.pos.x * 0.125), floori(m.pos.y * 0.125))   # 位置也进键：灯火低时溟痕会挪（docs/147）
 	var c = m.get("_mc")
-	if c != null and int(c[0]) == key:
+	if c != null and c[0] == key:
 		return c[1]
 	var cw: float = MIRE_CELL * g.PX
 	var r: float = m.r

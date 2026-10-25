@@ -1,11 +1,15 @@
 extends "res://scripts/screens/title_diff_pick.gd"
 ## 标题界面：「方舟幸存者」Logo + 菜单；背景是深海沉船与水母（title_deep.gd，10-24 用户定，docs/67 §13）
 const HS = preload("res://scripts/screens/hh_style.gd")
+const FR = preload("res://scripts/core/frame_rec.gd")
 func _ready() -> void:
 	if Cfg.dev_args().has("--loadprof"):
 		# 启动计时（docs/36 §5）：引擎启动 → 标题页 _ready → 标题页首帧画完（毫秒，从引擎启动算）
 		print("BOOTPROF title_ready=%d" % Time.get_ticks_msec())
 		RenderingServer.frame_post_draw.connect(func(): print("BOOTPROF title_first_frame=%d" % Time.get_ticks_msec()), CONNECT_ONE_SHOT)
+	if FR.enabled():
+		FR.mark("title_ready")
+		RenderingServer.frame_post_draw.connect(func(): FR.mark("title"), CONNECT_ONE_SHOT)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	# 触屏：标题页（含图鉴 / 设置 / Boss 演练子面板）整体放大 Cfg.ui_k（手机 1.3）；背景 / 转场在各自的 CanvasLayer 不受影响
 	Cfg.ui_k = Cfg.ui_scale()
@@ -126,7 +130,7 @@ func _ready() -> void:
 	Sfx.warm_begin()   # 网页：出发后的「载入中」里把战斗乐分轨 / 音效注册成样本（sfx.gd，10-22 开局掉帧）
 	# 截图 / 自动测试 / 从对局返回标题：不播开场动画
 	var args := Cfg.dev_args()
-	if (not args.is_empty() and not args.has("--introshot") and not args.has("--introshort") and not args.has("--titlemotion")) or Cfg.title_seen:
+	if (not args.is_empty() and not args.has("--introshot") and not args.has("--introshort") and not args.has("--titlemotion") and not args.has("--ftrec")) or Cfg.title_seen:
 		intro = INTRO_LEN
 	elif Cfg.opening_seen or args.has("--introshort"):
 		intro = INTRO_SHORT   # 看过完整版：只播 Logo 扫光和菜单滑入
@@ -323,7 +327,51 @@ func _exit_tree() -> void:
 	A.prewarm_join()
 
 
+## 启动页盖着时（screens/boot_screen.gd 把标题页建在它下面）：先按开场播完的样子画（Logo、入口、水母背景都画到，
+## 着色器 / 贴图 / 字形都在盖层下面备好），揭开时开场从头播
+var _intro0 := -1.0
+
+func boot_cover() -> void:
+	_intro0 = intro
+	intro = INTRO_LEN
+
+
+func boot_reveal() -> void:
+	if _intro0 >= 0.0:
+		intro = _intro0
+		_intro0 = -1.0
+
+
+## 帧时记录的脚本动作（--ftdo=<标记>:<秒>:<动作>，core/frame_rec.gd）：打开寻访 / 图鉴、图鉴换条目 / 换页签、关掉
+func _ft_action(what: String) -> void:
+	match what:
+		"hunt":
+			FR.mark("hunt")
+			hunt_ui.open()
+		"gallery":
+			FR.mark("gallery")
+			gallery.open()
+		"gal_next":
+			FR.mark("gal_next")
+			gallery._step(1)
+		"gal_tab":
+			FR.mark("gal_tab")
+			gallery._set_tab((gallery.tab + 1) % 3)
+		"close":
+			FR.mark("close")
+			if gallery.visible:
+				gallery.close()
+			if hunt_ui.visible:
+				hunt_ui.hh.open = false
+
+
 func _process(delta: float) -> void:
+	var ft := FR.tic()
+	_process_main(delta)
+	FR.toc("title_proc", ft)
+
+
+func _process_main(delta: float) -> void:
 	Pad.context = "title"
 	var overlay_open: bool = _overlay_open()
 	if post_fx != null:
@@ -379,7 +427,12 @@ func _process(delta: float) -> void:
 				if not _op_scripts.has(sp) and ResourceLoader.load_threaded_request(sp) == OK:
 					_op_scripts.append(sp)   # 干员脚本后台编译（data_operator.gd 首次加载约 1.4 秒，原来算在建局里）
 			loading.begin()
-		_op_warm_more = A.warm_step(24000)   # 开局干员的技能 / 特效帧条先读进贴图缓存（10-22 网页开局掉帧：第一次放技能时现读）
+			if DisplayServer.get_name() != "headless" and Cfg.quality != "low" and preload("res://scripts/core/balance.gd").v("render/optical", 1.0) > 0.0:   # 同 optical.wanted()：低画质不开粒子，不用编译
+				_game_warm = preload("res://scripts/render/shader_warm.gd").new()
+				_game_warm.parts = 1   # 光学 GPU 粒子的处理材质（render/shader_warm.gd PARTS_GAME，网页才有；桌面启动页已画过就是空的）：在载入页编译，不留到进局后
+				add_child(_game_warm)
+		var wt0 := Time.get_ticks_usec()
+		_op_warm_more = A.warm_step(LOAD_BUDGET_USEC)   # 开局干员的技能 / 特效帧条先读进贴图缓存（10-22 网页开局掉帧：第一次放技能时现读）
 		for sp in _op_scripts.duplicate():
 			if ResourceLoader.load_threaded_get_status(sp) == ResourceLoader.THREAD_LOAD_IN_PROGRESS:
 				_op_warm_more = true
@@ -394,20 +447,20 @@ func _process(delta: float) -> void:
 			if v6.has(sn):
 				load("res://scripts/characters/blocks/ob_fx.gd").warm_frame_r(sn, A.tex(sn), maxi(1, int(v6[sn][0])))
 			_op_warm_more = not _grow_strips.is_empty()
-		Sfx.warm_step(12000)   # 出发后的等待里逐条注册音频样本（网页；桌面队列为空）
+		Sfx.warm_step(maxi(1000, LOAD_BUDGET_USEC - (Time.get_ticks_usec() - wt0)))   # 出发后的等待里逐条注册音频样本（网页；桌面队列为空）：和读图共用一帧预算
 		_loading_progress()
 	if leaving >= 0.0:
 		leaving += delta
 		if leaving > 0.7:
 			# 预热 / 预读没完就停在载入页等它（以前这里直接切场景，game.gd _ready 同步算 10 秒法线图 = 黑屏），最多等 60 秒
-			if (A.prewarm_busy() or Sfx.warm_busy() or _op_warm_more or Cfg.dev_args().has("--loadingshot")) and wait_t < 60.0:
+			if (A.prewarm_busy() or Sfx.warm_busy() or _op_warm_more or is_instance_valid(_game_warm) or Cfg.dev_args().has("--loadingshot")) and wait_t < 60.0:
 				wait_t += delta
 			else:
 				loading.finish()   # 淡到黑，开场演出从同一片黑里亮起
 				if loading.done():
 					A.mark("title_leave")
 					get_tree().change_scene_to_file("res://game.tscn")
-	elif auto_go and not A.prewarm_busy() and not Sfx.warm_busy() and not _op_warm_more and _op_warm_begun:
+	elif auto_go and not A.prewarm_busy() and not Sfx.warm_busy() and not _op_warm_more and _op_warm_begun and not is_instance_valid(_game_warm):
 		loading.finish()
 		if loading.done():
 			auto_go = false
@@ -427,7 +480,7 @@ func menu_track() -> String:
 
 
 func _input(event: InputEvent) -> void:
-	if leaving >= 0.0 or transition.busy or _overlay_open():
+	if leaving >= 0.0 or transition.busy or _overlay_open() or _intro0 >= 0.0:   # _intro0 ≥ 0：启动页还盖着，不收输入
 		return
 	if intro < INTRO_LEN:
 		# 开场动画中：按键 / 点击直接跳到完成态，本次输入不再传给菜单
@@ -523,8 +576,19 @@ func _menu_nav(d: Vector2i) -> void:
 	_menu_set(Tiles.nav(menu_lay, sel, d), false)
 
 
+## 菜单排版每帧都要（命中区 = 终态位置），但只随尺寸 / 入口 / 安全区 / 触屏变：按这几样记住上一份（10-25 帧率审计，排版里有一串字宽测量）
+var _lay_key := ""
+var _lay_cache := {}
+
 func _menu_layout() -> Dictionary:
-	return Tiles.layout(size, _menu_ids(), Cfg.safe_insets(), Pad.touch_ui() or Cfg.touch_device(), font)
+	var ids := _menu_ids()
+	var ins := Cfg.safe_insets()
+	var touch: bool = Pad.touch_ui() or Cfg.touch_device()
+	var key := "%s|%s|%s|%s|%s" % [size, ids, ins, touch, UI.fk]   # UI.fk：设置里的字号倍率
+	if key != _lay_key or _lay_cache.is_empty():
+		_lay_key = key
+		_lay_cache = Tiles.layout(size, ids, ins, touch, font)
+	return _lay_cache
 
 
 ## 换选中：选中底条从此刻开始展开（remember 沿用旧接口，深海水母版不用）
@@ -598,6 +662,12 @@ func _ease(x: float) -> float:
 
 
 func _draw() -> void:
+	var ft := FR.tic()
+	_draw_main()
+	FR.toc("title_draw", ft)
+
+
+func _draw_main() -> void:
 	var vs := size
 	if diff_pick and not op_pick and not guide and not credits:
 		# 难度页（T5s）：整屏是它自己的版式，标题的 Logo / 磁贴 / 页脚都不画
@@ -666,10 +736,12 @@ func _draw_menu(vs: Vector2) -> void:
 func _draw_logo_layer() -> void:
 	if (diff_pick or op_pick) or menu_lay.is_empty():
 		return
+	var ft := FR.tic()
 	var a := _seg(1.0, 0.5)
 	if guide or credits:
 		a *= 0.25
 	Tiles._draw_logo(logo_ci, menu_lay.logo.o, menu_lay.logo.k, font, a, tex_logo)
+	FR.toc("logo_draw", ft)
 
 
 func _draw_leaving(vs: Vector2) -> void:
@@ -679,6 +751,10 @@ func _draw_leaving(vs: Vector2) -> void:
 
 ## 开局干员（选人 / --op；测试的 --squad 一并）JSON 里写到的帧条名（"tex" / "strip"）：出发后的等待里先读进 A.tex 缓存
 var _op_warm_begun := false
+var _game_warm: Node   # 载入页里的着色器预热视口（光学粒子）
+## 载入页每帧预读预算（读图 + 注册音频合计）：原来 24 + 12 毫秒，载入页动画只有 20–25 帧；10-25「帧率稳定优先」压到 12 毫秒（加一帧渲染不超 16.7），
+## 总读取时间约长两成（单张超预算的照样一帧读一张）
+const LOAD_BUDGET_USEC := 12000
 var _op_warm_more := false
 var loading: Control   # 进局载入页（screens/loading_screen.gd，CanvasLayer 80）
 var _grow_strips: Array = []
