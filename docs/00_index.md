@@ -53,6 +53,7 @@
 | [17_combat_contract](17_combat_contract.md) | 战斗契约 v1.8 | 现行规范 | 伤害描述符、能力标签仍是现状；§2 / §4 / §5 已作废，见 23 §4.2、26、61 | 23、49b |
 | [18_ending2_knight](18_ending2_knight.md) | 结局二「最后的骑士」 | 现行规范 | §1 骑士同伴 → 9:00 入潮 → 10:00 中心重生；§2 / §3 数值以 knight.gd、95 §4 为准 | 19、95；game.gd、allies/knight.gd |
 | [19_four_endings](19_four_endings.md) | 四结局方案 | 已实施记录 | 事件箱与四结局的唯一规格；标题「未实现」不实，结局 Boss 09-29 已对调（以 waves.json 为准） | 38、49、49a、49c；endings.gd |
+| [148_route_choice](148_route_choice.md) | 结局走向：替代海嗣祭坛的选路方案 | 方案待用户挑 | 10-25：原作选路调研（PRTS + 解包）+ 四方案 A 航路图（推荐）/ B 岔路航标 / C Boss 宝箱 + 行商 / D 溟痕石碑；共用按原作重排的事件链；订正 49a §3.1 第 6 / 7 层；示意图 reference/148_route_*.svg | 19、49a；endings.gd、waves.json、guide.json |
 | [22_mobile_web](22_mobile_web.md) | 移动端适配（网页） | 现行规范 | 触屏、缩放、超宽、iOS；部署与加载器两节已作废，见 33 | 33、38、41、62、89；tools/export_web.py |
 | [35_relic_lanes](35_relic_lanes.md) | 藏品流派 A–H | 现行规范 | 流派划分、职业门槛、流派加权；部分数值已被 65 §6 改（以 relic_effects.json 为准） | 27、29、36、38、41、57 等 7 篇；relic_fx.gd、characters/character.gd、run/combat.gd 等 15 个文件 |
 | [40_run_telemetry](40_run_telemetry.md) | 局内数据记录 | 现行规范 | runs.jsonl 格式，按包类型决定写不写 | 33、41、43、89、归档59；game.gd、run/telemetry.gd、settings.gd 等 11 个文件 |
