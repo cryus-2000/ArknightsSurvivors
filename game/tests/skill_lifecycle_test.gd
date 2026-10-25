@@ -97,7 +97,8 @@ func integration():
     for e in g.enemies: e.dead = true
     g.enemies = []
     var enemy: Dictionary = g.spawner.spawn_enemy("runner",o.pos+Vector2(50,0))
-    enemy.dead = true
+    enemy.hp = 1000000.0   # 10-25 自动技能要射程内有敌人才放（docs/151）：活的敌人摆在门槛内
+    enemy.max_hp = enemy.hp
     g.enemies_sys.build_grid()
     o.sp[0] = o.sp_need(0)
     if manual:
