@@ -789,10 +789,11 @@ func _white_release(delta: float, now := false) -> void:
 			_enemy_evict(n)
 			_white_alive.erase(n)
 	_font_t += 5.0
-	if _font_t >= 60.0:
+	if _font_t >= 60.0 and Bal.v("web/font_clear_minutely", 0.0) > 0.0:
 		_font_t = 0.0
 		perf_rep.tag("清字形")
-		Cfg.slim_fonts(true)   # 手机网页：字形缓存每分钟清一次（局中各面板的字号会越攒越多，10 分钟约 80 个字号 / 18 MB，docs/50 §30.7）
+		Cfg.slim_fonts(true)   # （10-27 起缺省关，docs/50 §39）原来手机网页每分钟清一次字形缓存（10 分钟约 18 MB），清完全部界面字重新栅格化，
+		# 网页仿真里 60 秒前后连着几帧 270–450 ms；内存护栏超线时第一步就清，平时不清
 
 
 func ensure_enemy_tex(n: String) -> void:
