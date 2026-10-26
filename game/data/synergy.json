@@ -4,7 +4,8 @@
   {
    "id": "moqi", "name": "默契", "src": "PRTS 德克萨斯·后勤技能「默契」", "cd": 12.0,
    "dirs": [
-    {"from": "texas", "to": "exusiai", "skills": [0, 2], "kind": "volley", "n": 6, "gap": 0.075, "wind": 0.14, "mult": 0.22, "range": 470.0, "col": [1.0, 0.82, 0.3], "voice": "syn_team", "kind_dmg": "物理", "rng": "远程"},
+    {"from": "texas", "to": "exusiai", "skills": [0], "kind": "volley", "cast": true, "prefer_stun": true, "n": 6, "gap": 0.075, "wind": 0.4, "mult": 0.22, "range": 470.0, "col": [1.0, 0.82, 0.3], "voice": "syn_team", "kind_dmg": "物理", "rng": "远程"},
+    {"from": "texas", "to": "exusiai", "skills": [2], "kind": "volley", "n": 6, "gap": 0.075, "wind": 0.14, "mult": 0.22, "range": 470.0, "col": [1.0, 0.82, 0.3], "voice": "syn_team", "kind_dmg": "物理", "rng": "远程"},
     {"from": "exusiai", "to": "texas", "skills": [0, 1, 2], "kind": "dash_strike", "wind": 0.12, "dur": 0.2, "mult": 1.1, "r": 78.0, "half": 1.5, "kb": 90.0, "stun": 0.3, "range": 340.0, "gap": 26.0, "col": [0.9, 0.9, 1.0], "voice": "skill_3", "kind_dmg": "物理", "rng": "近战", "strip": "fx_texas_dash"}
    ]
   },
@@ -18,7 +19,8 @@
   {
    "id": "shouduan", "name": "手段应当有效", "src": "PRTS 乌尔比安·后勤技能「手段应当有效」", "cd": 12.0,
    "dirs": [
-    {"from": "ulpianus", "to": "skadi", "skills": [0, 1, 2], "kind": "dash_strike", "wind": 0.14, "dur": 0.22, "mult": 1.4, "r": 96.0, "half": 1.7, "kb": 150.0, "stun": 0.5, "range": 380.0, "gap": 30.0, "col": [0.55, 0.8, 1.0], "voice": "entry", "kind_dmg": "物理", "rng": "近战"},
+    {"from": "ulpianus", "to": "skadi", "skills": [0], "kind": "dash_cast", "cluster": 150.0, "wind": 0.5, "dur": 0.22, "mult": 1.5, "r": 96.0, "half": 1.7, "kb": 150.0, "stun": 0.5, "range": 400.0, "gap": 30.0, "col": [0.55, 0.8, 1.0], "voice": "entry", "kind_dmg": "物理", "rng": "近战"},
+    {"from": "ulpianus", "to": "skadi", "skills": [1, 2], "kind": "dash_strike", "wind": 0.14, "dur": 0.22, "mult": 1.4, "r": 96.0, "half": 1.7, "kb": 150.0, "stun": 0.5, "range": 380.0, "gap": 30.0, "col": [0.55, 0.8, 1.0], "voice": "entry", "kind_dmg": "物理", "rng": "近战"},
     {"from": "skadi", "to": "ulpianus", "skills": [0, 1, 2], "kind": "dash_strike", "wind": 0.14, "dur": 0.22, "mult": 1.2, "r": 104.0, "half": 3.14, "kb": 200.0, "stun": 0.4, "range": 340.0, "gap": 30.0, "chain": true, "col": [0.7, 0.75, 0.9], "voice": "skill_3", "kind_dmg": "物理", "rng": "近战"}
    ]
   },

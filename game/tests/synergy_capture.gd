@@ -38,6 +38,7 @@ func _ready() -> void:
 	if ready != "" and g.squad.get_op(ready) != null:
 		var ro = g.squad.get_op(ready)
 		ro.sp[0] = ro.sp_need(0)
+		ro.pos = g.ppos + Vector2(90.0, 10.0)   # 站进技能门槛（攻击射程）以内，演示才放得出来
 	var dt := 1.0 / 60.0
 	var cast_frame := int(0.8 / dt)
 	var log := {"cast_at": 0.8, "acts": 0}

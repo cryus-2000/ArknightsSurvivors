@@ -223,8 +223,26 @@ static func _step_volley(a: Dictionary, dt: float) -> bool:
 		return true
 	if a.age < float(dr.wind):
 		return false
-	var due: int = mini(int(dr.n), 1 + int((a.age - float(dr.wind)) / maxf(0.02, float(dr.gap))))
 	var g = p.g
+	if a.shots == 0 and not a.get("vstart", false):
+		a["vstart"] = true
+		if dr.get("prefer_stun", false):   # 控场 → 收割：剑雨的眩晕落下之后，改打被晕的怪（离原目标最近的一只）
+			var stunned: Array = a.from.nearest_enemies(12, float(dr.range), a.from.pos).filter(func(e): return float(e.get("stun", 0.0)) > 0.0 and not e.dead)
+			if not stunned.is_empty():
+				stunned.sort_custom(func(x, y): return x.pos.distance_squared_to(a.tpos) < y.pos.distance_squared_to(a.tpos))
+				a.tgt = stunned[0]
+				a.tpos = stunned[0].pos
+		if dr.get("cast", false) and not p.is_leader:   # 搭档的技能正好就绪（自动档、够门槛）就对准放出去；没就绪就照常打弹，不白送技能、不回技力
+			var idx: int = int(p.charge_skills(0.0))
+			if idx >= 0 and p.acting() and float(a.get("cwait", 0.0)) < 0.6:
+				a["cwait"] = float(a.get("cwait", 0.0)) + dt   # 搭档正在出手：最多等 0.6 秒，等他收手再放技能
+				a["vstart"] = false
+				return false
+			if idx >= 0 and not p.acting():
+				p.start_skill(p.ObSummon.mf_skill_aim(p, idx), idx)
+				p.face_to((_tpos(a) - p.pos).angle())
+				return true
+	var due: int = mini(int(dr.n), 1 + int((a.age - float(dr.wind)) / maxf(0.02, float(dr.gap))))
 	while a.shots < due:
 		a.shots += 1
 		var tp: Vector2 = _tpos(a)
@@ -288,6 +306,9 @@ static func _step_dash(a: Dictionary, dt: float) -> bool:
 		if str(dr.kind) == "dash_cast" and not p.is_leader:
 			# 控场 → 收割：搭档的技能正好就绪（自动档、够门槛）就对准这群怪放出去；没就绪就打一次冲锋重击，不白送技能、不回技力
 			var idx: int = int(p.charge_skills(0.0))
+			if idx >= 0 and p.acting() and float(a.get("cwait", 0.0)) < 0.5:
+				a["cwait"] = float(a.get("cwait", 0.0)) + dt   # 搭档正在出手：最多等 0.5 秒（原地停在落点），等他收手再放技能
+				return false
 			if idx >= 0 and not p.acting():
 				p.syn_mv = {}
 				p.start_skill(p.ObSummon.mf_skill_aim(p, idx), idx)

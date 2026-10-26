@@ -106,9 +106,28 @@ func scene_texas() -> void:
 	ex.spend_sp(0)
 	step(0.3)
 	ok(int(g.squad.syn.n) == n1 and tx.syn_mv.is_empty(), "队长当搭档时不位移：能天使放技能不触发德克萨斯的冲刺")
+	# 控场 → 收割：德克萨斯剑雨（S1）后，能天使技能就绪就放，没就绪才打弹
+	g.squad.syn.cd.clear()
+	step(0.2)
+	ex.sp = [0.0, 0.0, 0.0]
+	var ec0: int = int(g.telemetry.op_casts.get("exusiai", 0))
+	var ehp0: float = e.hp
+	e.stun = 3.0
+	tx.spend_sp(0)
+	step(1.6)
+	ok(int(g.telemetry.op_casts.get("exusiai", 0)) == ec0 and e.hp < ehp0, "能天使技能没就绪：打了一轮弹、没放技能（casts %d）" % ec0)
+	g.squad.syn.cd.clear()
+	step(0.3)
+	ex.ammo[0] = 0   # S1 之前被「能天使放技能」那一段点过、还在装填状态：清掉强力弹，技力满格
+	ex.sp = [ex.sp_need(0), 0.0, 0.0]
+	ex.pos = g.ppos + Vector2(90.0, 10.0)   # 站到敌人的技能门槛（攻击射程）以内：门槛不够的搭档本来就不放
+	tx.spend_sp(0)
+	step(1.6)
+	ok(int(g.telemetry.op_casts.get("exusiai", 0)) > ec0, "能天使技能就绪：对被晕的怪放了技能（casts %d → %d）" % [ec0, int(g.telemetry.op_casts.get("exusiai", 0))])
 	# 没有目标不触发、不进冷却
 	e.dead = true
 	g.enemies_sys.build_grid()
+	n1 = int(g.squad.syn.n)
 	g.squad.syn.cd.clear()
 	tx.spend_sp(0)
 	step(0.2)
@@ -148,6 +167,15 @@ func scene_pair() -> void:
 	ok(e.hp < hp0, "合击伤害落在目标上")
 	step(3.0)
 	ok(g.squad.syn.acts.is_empty() and sk.syn_mv.is_empty(), "收势后位移解除")
+	# 控场 → 收割：乌尔比安 S1 后，斯卡蒂技能就绪才放
+	g.squad.syn.cd.clear()
+	step(0.3)
+	sk.sp = [sk.sp_need(0), 0.0, 0.0]
+	var kc0: int = int(g.telemetry.op_casts.get("skadi", 0))
+	ul.spend_sp(0)
+	step(1.8)
+	ok(int(g.telemetry.op_casts.get("skadi", 0)) > kc0, "斯卡蒂技能就绪：冲向聚怪中心放了技能（casts %d → %d）" % [kc0, int(g.telemetry.op_casts.get("skadi", 0))])
+	step(3.0)
 	# 反方向：斯卡蒂放技能 → 乌尔比安是队长，dash_strike 跳过
 	g.squad.syn.cd.clear()
 	var n0: int = int(g.squad.syn.n)
