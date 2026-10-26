@@ -135,6 +135,9 @@ def main():
     print("[瘦身] pck：%.2f MB" % (os.path.getsize(os.path.join(tmp, "index.pck")) / 1e6), flush=True)
     part = int(a.part_mib * 1048576)
     manifest = {n: split(tmp, n, part, a.toy) for n in ("index.pck", "index.wasm")}
+    sys.path.insert(0, WEB)
+    import engine_patch
+    engine_patch.patch_index_js(os.path.join(tmp, "index.js"))   # 网页样本释放接口（tools/web/engine_patch.py，docs/50 §40）
     html_p = os.path.join(tmp, "index.html")
     with open(html_p, encoding="utf-8") as fh:
         html = fh.read()

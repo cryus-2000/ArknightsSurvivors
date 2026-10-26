@@ -1444,6 +1444,8 @@ func _process(delta: float) -> void:
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	_auto_quality(delta)
 	_static_fps()
+	if OS.has_feature("web") and state != S.PLAY and state != S.OPENING and state != S.INTRO and state_age > 0.3 and Sfx.warm_pending():
+		Sfx.warm_step(20000)   # 静止界面里解码下一批配乐（sfx._queue_next，docs/50 §40）：一帧至少一句，对局画面里不解码
 	if cam != null and not optical_lo and demo_op == "" and demo_enemy == "" and Cfg.cam_unified():
 		var bz: float = Cfg.battle_zoom()
 		if absf(cam.zoom.x - bz) > 0.0001:

@@ -166,6 +166,10 @@ static func is_automated() -> bool:
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if OS.has_feature("web") and (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--audiofree"):
+		_audio_free_test.call_deferred()
+	if OS.has_feature("web") and (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--musictour"):
+		_music_tour.call_deferred()
 	if is_automated():
 		AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), true)
 	var mbus := _ensure_bus("Music")
@@ -264,7 +268,7 @@ func warm_begin() -> void:
 	var list: Array = []
 	var q = seq.get("battle1")
 	var cfg = get_node_or_null("/root/Cfg")   # sfx 比 Cfg 先加载，不能直接写 Cfg
-	if cfg != null and cfg.mobile_web() and not cfg.mobile_knob("mobile_warm_music", 0.0):
+	if cfg != null and cfg.mobile_web() and not cfg.mobile_knob("mobile_warm_music", 1.0):   # 10-27 起缺省开（docs/50 §40）：24 kHz + 切曲释放后内存够，局内首段解码改在载入页做
 		q = null   # 手机网页：战斗乐分轨（每句约 13 秒 × 十几句）预先全解码成 PCM 要几十 MB，iPhone 进局即崩的嫌疑之一；改为播到才解码（10-26，docs/50 §30）
 	if q != null:
 		for sname in q.segs:
@@ -293,10 +297,14 @@ func warm_step(budget_usec: int) -> bool:
 	return not _warm_q.is_empty()
 
 
-## 已注册成网页样本的音频解码后大约占多少 MB（float32 × 声道 × 混音采样率 × 时长；--memlog 用）
+## 已注册成网页样本的音频解码后大约占多少 MB（float32 × 声道 × 混音采样率 × 时长；--memlog / 内存护栏 / 性能报告用）。
+## 发布包打了引擎补丁时直接读引擎样本表的实际字节（window.__syAudioMB，docs/50 §40：切曲释放后估算会偏高）
 func sample_mem_mb() -> float:
 	if not OS.has_feature("web"):
 		return 0.0
+	var js = JavaScriptBridge.eval("window.__syAudioMB?window.__syAudioMB():-1", true)
+	if js != null and float(js) >= 0.0:
+		return float(js)
 	var seen := {}
 	var total := 0.0
 	var lists: Array = streams.values()
@@ -364,7 +372,7 @@ var _lite := -1
 func _music_lite() -> bool:
 	if _lite < 0:
 		var cfg = get_node_or_null("/root/Cfg")
-		_lite = 1 if cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_music_lite", 1.0) else 0
+		_lite = 1 if cfg != null and cfg.mobile_web() and cfg.mobile_knob("mobile_music_lite", 0.0) else 0   # 10-27 起缺省关（docs/50 §40）：手机也放完整曲目、全部分层，内存靠切曲释放 + 24 kHz 上下文
 	return _lite == 1
 
 
@@ -420,6 +428,14 @@ func _seq_play(tname: String, s: String, deck: int, from: float) -> void:
 	var pls: Array = q.decks[deck]
 	var sts: Array = q.segs[s]
 	var lite: bool = _music_lite()
+	var fresh := 0   # 这一句里还没解码的层（开播当帧在主线程整段解码，网页仿真一层 100–250 ms）：记进性能报告
+	for st in sts + [q.danger]:
+		if st is AudioStream and not AudioServer.is_stream_registered_as_sample(st):
+			fresh += 1
+	if fresh > 0 and OS.has_feature("web"):
+		var sc = get_tree().current_scene
+		if sc != null and "perf_rep" in sc and sc.perf_rep != null:
+			sc.perf_rep.tag("解码配乐 %d 层" % fresh)
 	for i in pls.size():
 		var pl: AudioStreamPlayer = pls[i]
 		pl.stream = sts[i] if i < sts.size() else q.danger
@@ -540,11 +556,8 @@ func _seq_tick(tname: String) -> void:
 ## - 其余：新曲从头淡入，旧曲淡出后停止
 ## 手机网页的配乐合并（10-26 晚：流式播放在无线程网页上几乎无声，退回样本播放；样本解码后注销不掉，就少放几首不同的曲子）：
 ## 战斗二 / 三段沿用战斗一（只放底层）、最终 Boss 沿用 Boss 曲、出发 / 图鉴沿用标题曲。全部配乐解码后约 486 MB，合并后最多约 100 MB
-const MOBILE_MUSIC_MAP := {"battle2": "battle1", "battle3": "battle1", "final": "boss", "deploy": "title", "archive": "title"}
 
 func play_music(tname: String) -> void:
-	if _music_lite() and MOBILE_MUSIC_MAP.has(tname) and (seq.has(MOBILE_MUSIC_MAP[tname]) or groups.has(MOBILE_MUSIC_MAP[tname])):
-		tname = MOBILE_MUSIC_MAP[tname]
 	if not MENU_TRACKS.has(tname):
 		driven_t = 0.0
 	if not seq.has(tname) and (not groups.has(tname) or groups[tname].is_empty()):
@@ -576,6 +589,8 @@ func play_music(tname: String) -> void:
 
 ## 开播一首（乐句式从第一句开始；各层同一时刻开，保证同步）；旧曲按 old_out 淡出
 func _start(tname: String, fade_in: float, old_out: float, from := 0.0) -> void:
+	_freed.erase(tname)
+	_queue_next(tname)
 	if cur_track != "" and cur_track != tname:
 		group_rate[cur_track][1] = old_out
 	cur_track = tname
@@ -869,6 +884,10 @@ func _process(delta: float) -> void:
 				pl.volume_db = gdb
 			if gv <= 0.0 and pl.playing:
 				pl.stop()
+		if gv <= 0.0:
+			_maybe_free(tname)
+		else:
+			_last_on[tname] = _now()
 	for tname in seq:
 		var want := 1.0 if tname == cur_track else 0.0
 		var rate: Array = group_rate[tname]
@@ -887,6 +906,10 @@ func _process(delta: float) -> void:
 						pl.volume_db = sdb
 					if gv <= 0.0:
 						pl.stop()
+		if gv <= 0.0:
+			_maybe_free(tname)
+		else:
+			_last_on[tname] = _now()
 	if stinger.playing:
 		if absf(stinger.volume_db - (vol_target + 4.0)) > 0.0001:
 			stinger.volume_db = vol_target + 4.0
@@ -895,6 +918,77 @@ func _process(delta: float) -> void:
 		var nxt := after_stinger
 		after_stinger = ""
 		play_music(nxt)
+
+
+## 网页切曲释放（docs/50 §40）：引擎把每段配乐整段解码成样本、脚本没有注销接口，播过的曲子会一直占着（48 kHz 时 15 秒一句 5.5 MB）。
+## 发布包 / 测量副本给引擎 JS 打了 window.__syAudioFree（tools/web/engine_patch.py）：一首曲子完全淡出、不是当前也不是下一首时，
+## 把它所有句 / 层的样本按流的 instance id 释放；再播时引擎重新解码注册。局外曲目之间来回切不放（回到标题接着放、免得重新解码），进局才放；
+## 局内曲目回到局外时放。不是网页或没打补丁时什么也不做
+var _freed := {}
+var _next := {}
+var _free_ok := -1
+
+
+## 下一批可能要放的曲目提前排进解码队列（docs/50 §40）：由局内静止界面（暂停 / 选卡 / 商店，game._process 调 warm_step）慢慢解码，
+## 不在对局画面里卡。战斗 N 开播时排 战斗 N+1 + Boss（战斗三再加最终 Boss）
+func _queue_next(tname: String) -> void:
+	if not OS.has_feature("web") or not tname.begins_with("battle"):
+		return
+	var k := int(tname.substr(6))
+	var nxt: Array = ["boss"]
+	_next = {}
+	if seq.has("battle%d" % (k + 1)):
+		nxt.push_front("battle%d" % (k + 1))
+	if k >= 3:
+		nxt.append("final")
+	for t2 in nxt:
+		if not seq.has(t2):
+			continue
+		var q = seq[t2]
+		for sname in q.segs:
+			for st in q.segs[sname]:
+				if st is AudioStream and not AudioServer.is_stream_registered_as_sample(st) and not _warm_q.has(st):
+					_warm_q.append(st)
+		if q.danger is AudioStream and not _warm_q.has(q.danger) and not AudioServer.is_stream_registered_as_sample(q.danger):
+			_warm_q.append(q.danger)
+		_freed.erase(t2)
+		_next[t2] = true   # 提前解码的曲目不被「切曲释放」放掉（直到下一首战斗乐开播重排）
+
+
+func warm_pending() -> bool:
+	return not _warm_q.is_empty()
+
+var _last_on := {}   # 曲目最后一次是当前曲目的时刻（墙钟）：离开满 FREE_AFTER 秒才放，刚点播还没开起来的不放
+const FREE_AFTER := 3.0
+
+func _maybe_free(tname: String) -> void:
+	if tname == cur_track or tname == str(pending.get("track", "")):
+		_last_on[tname] = _now()
+		return
+	if _freed.has(tname) or _next.has(tname) or tname == after_stinger or cur_track == "" or _now() - float(_last_on.get(tname, -99.0)) < FREE_AFTER:
+		return
+	if MENU_TRACKS.has(tname) and MENU_TRACKS.has(cur_track):
+		return
+	_freed[tname] = true
+	if _free_ok < 0:
+		_free_ok = 1 if OS.has_feature("web") and str(JavaScriptBridge.eval("typeof window.__syAudioFree", true)) == "function" else 0
+	if _free_ok == 0:
+		return
+	var sts: Array = []
+	if seq.has(tname):
+		for sname in seq[tname].segs:
+			sts.append_array(seq[tname].segs[sname])
+		sts.append(seq[tname].danger)
+	elif groups.has(tname):
+		for pl in groups[tname]:
+			sts.append((pl as AudioStreamPlayer).stream)
+	var n := 0
+	for st in sts:
+		if st is AudioStream and AudioServer.is_stream_registered_as_sample(st):
+			JavaScriptBridge.eval("window.__syAudioFree('%d')" % st.get_instance_id(), true)
+			n += 1
+	if n > 0 and not (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).is_empty():
+		print("PF AUDIOFREE track=%s n=%d mb=%s" % [tname, n, str(JavaScriptBridge.eval("window.__syAudioMB?window.__syAudioMB().toFixed(1):-1", true))])
 
 
 func toggle_music() -> bool:
@@ -1190,3 +1284,78 @@ func enemy(kind: String, distance := 0.0) -> void:
 		return
 	var attenuation := clampf(distance / 800.0, 0.0, 1.0) * 18.0
 	play("enemy_" + kind, -13.0 - attenuation, 1.0, 0.07)
+
+
+## --audiofree（仅测试，网页，docs/50 §40）：量网页样本解码后的实际字节、以及丢掉流 / 播放器后样本是否真释放。
+## 要配合 tools/probes/audio_web.py（测量副本里把引擎的 GodotAudio.samples 挂到 window.__GAS 才读得到）
+func _js_samples() -> String:
+	var r = JavaScriptBridge.eval("(()=>{const m=window.__GAS;if(!m)return 'nomap';let n=0,live=0,b=0;for(const [k,s] of m){n++;const a=s._audioBuffer;if(a){live++;b+=a.length*a.numberOfChannels*4;}}return n+' live='+live+' MB='+(b/1048576).toFixed(1)+' sr='+(window.__GACTX?window.__GACTX.sampleRate:0);})()", true)
+	return str(r)
+
+
+func _audio_free_test() -> void:
+	await get_tree().create_timer(2.0).timeout
+	print("PF AUDIOFREE start " + _js_samples())
+	var path := "res://audio/music/battle1_A_base.ogg"
+	var st: AudioStream = ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE)
+	print("PF AUDIOFREE len=%.2fs" % st.get_length())
+	AudioServer.register_stream_as_sample(st)
+	await get_tree().create_timer(1.0).timeout
+	print("PF AUDIOFREE registered " + _js_samples())
+	var pl := AudioStreamPlayer.new()
+	pl.stream = st
+	pl.bus = "Music"
+	add_child(pl)
+	pl.play()
+	await get_tree().create_timer(2.0).timeout
+	print("PF AUDIOFREE playing " + _js_samples())
+	pl.stop()
+	pl.queue_free()
+	pl = null
+	await get_tree().create_timer(1.0).timeout
+	print("PF AUDIOFREE player_freed " + _js_samples())
+	print("PF AUDIOFREE ids keys=%s mine=%d" % [str(JavaScriptBridge.eval("Array.from(window.__GAS.keys()).join(',')", true)), st.get_instance_id()])
+	JavaScriptBridge.eval("(()=>{const s=window.__GAS.get('%d');if(s)s.clear();})()" % st.get_instance_id(), true)
+	await get_tree().create_timer(1.0).timeout
+	print("PF AUDIOFREE js_cleared %s registered=%s" % [_js_samples(), str(AudioServer.is_stream_registered_as_sample(st))])
+	AudioServer.register_stream_as_sample(st)
+	var pl2 := AudioStreamPlayer.new()
+	pl2.stream = st
+	pl2.bus = "Music"
+	add_child(pl2)
+	pl2.play()
+	await get_tree().create_timer(1.5).timeout
+	print("PF AUDIOFREE reregistered_playing %s playing=%s pos=%.2f" % [_js_samples(), str(pl2.playing), pl2.get_playback_position()])
+	pl2.queue_free()
+	st = null
+	await get_tree().create_timer(2.0).timeout
+	print("PF AUDIOFREE stream_dropped " + _js_samples())
+	# 再试：一次读 15 句底层、全注册，再全部丢掉
+	var arr: Array = []
+	for sname in ["A", "B", "C", "D", "E"]:
+		for layer in ["base", "pulse", "drive"]:
+			var s2: AudioStream = ResourceLoader.load("res://audio/music/battle2_%s_%s.ogg" % [sname, layer], "", ResourceLoader.CACHE_MODE_IGNORE)
+			if s2 != null:
+				AudioServer.register_stream_as_sample(s2)
+				arr.append(s2)
+	await get_tree().create_timer(2.0).timeout
+	print("PF AUDIOFREE battle2_all_registered n=%d %s" % [arr.size(), _js_samples()])
+	arr.clear()
+	await get_tree().create_timer(2.0).timeout
+	print("PF AUDIOFREE battle2_dropped " + _js_samples())
+	print("PF FTDONE")
+
+
+## --musictour（仅测试，网页，docs/50 §40）：停在标题页，按 标题 → 战斗一 → 中期 Boss → 战斗二 → 战斗三 → 最终 Boss → 标题 依次切曲，
+## 战斗强度拉满（各层都响），每 5 秒打一行 PF AUDIOMEM（引擎样本表实际 MB），看切曲释放后音频内存的曲线
+func _music_tour() -> void:
+	var plan := [["title", 8.0], ["battle1", 40.0], ["boss", 35.0], ["battle2", 40.0], ["battle3", 40.0], ["final", 45.0], ["title", 12.0]]
+	var t0 := _now()
+	for st in plan:
+		battle_lv = 2
+		play_music(str(st[0]))
+		var end := _now() + float(st[1])
+		while _now() < end:
+			await get_tree().create_timer(5.0).timeout
+			print("PF AUDIOMEM t=%.0f want=%s cur=%s mb=%.1f" % [_now() - t0, str(st[0]), cur_track, sample_mem_mb()])
+	print("PF FTDONE")
