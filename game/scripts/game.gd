@@ -736,6 +736,7 @@ var _font_t := 0.0
 func _enemy_evict(n: String) -> void:
 	if not _enemy_loaded.has(n):
 		return
+	perf_rep.tag("释放帧条")
 	_enemy_loaded.erase(n)
 	for nm in _white_names(n) + [n + "_death"]:
 		if tex.has(nm):
@@ -749,6 +750,7 @@ func ensure_white(n: String) -> void:
 	_white_alive[n] = t
 	if tex.has(n + "_white"):
 		return
+	perf_rep.tag("建白剪影")
 	for nm in _white_names(n):
 		if tex.get(nm) != null and not tex.has(nm + "_white"):
 			tex[nm + "_white"] = A.white_of(tex[nm])
@@ -789,6 +791,7 @@ func _white_release(delta: float, now := false) -> void:
 	_font_t += 5.0
 	if _font_t >= 60.0:
 		_font_t = 0.0
+		perf_rep.tag("清字形")
 		Cfg.slim_fonts(true)   # 手机网页：字形缓存每分钟清一次（局中各面板的字号会越攒越多，10 分钟约 80 个字号 / 18 MB，docs/50 §30.7）
 
 
