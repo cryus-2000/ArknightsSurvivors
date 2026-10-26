@@ -352,7 +352,12 @@ func update(dt: float) -> void:
 		if not fresh.is_empty() and not mobs_stopped():
 			_norm = true
 			for k in dens_count(6, "threat"):   # 只数 × 怪物密度（累计余数取整）
-				spawn_enemy(fresh[k % fresh.size()], edge_pos())
+				var ft: String = fresh[k % fresh.size()]
+				if g.mobile_cap():
+					var ep := edge_pos()
+					_wave_q.append({"at": g.t, "rel": ep - g.ppos, "fn": func(pp: Vector2): _wave_one(ft, pp)})   # 手机：计入同屏上限（docs/50 §39）
+				else:
+					spawn_enemy(ft, edge_pos())
 			_norm = false
 	# 刷怪率：spawn_knee 之后按 spawn_late_div 放缓（docs/46 §1.4；缺省拐点在无穷远，行为不变）
 	var sp_div: float = Bal.v("enemy/spawn_div", 30.0)
@@ -510,8 +515,10 @@ func update(dt: float) -> void:
 		var hl := {"t": int(g.t), "n": n, "hp": 0.0, "killed": 0, "t80": -1, "minhp": g.hp, "hp0": g.hp, "mix": str(mix.get("name", "")), "comp": comp}
 		g.horde_log.append(hl)
 		var pidx := 0
+		var defer: bool = g.mobile_cap()   # 手机网页：大群计入同屏上限，分 HORDE_SPREAD 秒进场、超上限排队（docs/50 §39；总只数 / 经验不变，只推迟出场）
+		var qi := 0
 		for s in plan:
-			if g.enemies.size() >= max_alive() + 60:
+			if not defer and g.enemies.size() >= max_alive() + 60:
 				break
 			var ang: float = g.horde_gap + gap_half + span * float(s.u)
 			var si := 0
@@ -522,7 +529,23 @@ func update(dt: float) -> void:
 				pidx += 1
 				ang = float(g.horde_streams[si]) + (fposmod(float(s.u) * 3.0, 1.0) - 0.5) * deg_to_rad(Bal.v("enemy/close_ring_arc", 50.0)) * (0.45 + 0.55 * row)
 			var p := g.ppos + Vector2.from_angle(ang) * (g.rng_spawn.randf_range(ring_r - 40.0, ring_r + 40.0) + float(s.dr) + pow(row, 1.6) * Bal.v("enemy/horde_tail", 260.0))
-			var he := spawn_enemy(s.id, p)
+			var mk := func(pp: Vector2) -> void:
+				_horde_member(s.id, pp, hl, si, close_ring, early, hunt_type, xp_ratio)
+			if defer:
+				_wave_q.append({"at": g.t + HORDE_SPREAD * float(qi) / maxf(1.0, float(plan.size())), "rel": p - g.ppos, "fn": mk})
+				qi += 1
+			else:
+				mk.call(p)
+		_norm = false
+		_horde_leads(hl, early, hunt_type, escort, ring_r)
+	_horde_tail_rest()
+
+
+## 大群里的一只（原来在 update 的大群循环里；手机分批进场时由 _wave_q 延后调用）
+func _horde_member(id: String, p: Vector2, hl: Dictionary, si: int, close_ring: bool, early: bool, hunt_type: bool, xp_ratio: float) -> void:
+	_norm = true
+	if true:
+			var he := spawn_enemy(id, p)
 			he["horde"] = g.horde_log.size() - 1
 			he.dormant = false
 			_horde_loose(he, hunt_type)
@@ -542,6 +565,13 @@ func update(dt: float) -> void:
 			# 大群经验按只数折算：缺省 -1 = 原只数 / 本波实际可刷只数（≤ 1），大群总经验不变；后期被同屏上限裁掉时折得少（10-22 修：原按固定 1 / 只数倍率，后期少给 15–30%）
 			he.xp *= xp_ratio if xm < 0.0 else xm
 			hl.hp += he.maxhp
+	_norm = false
+
+
+## 大群的领头（原来在 update 的大群循环后面）
+func _horde_leads(hl: Dictionary, early: bool, hunt_type: bool, escort: bool, ring_r: float) -> void:
+	_norm = true
+	if true:
 		# 领头精英（docs/116 §7.3，用户 10-22）：每次大群 1 只（horde_elite_late_t 秒起 2 只）走在第一股前列；
 		# 占用精英计时的一个名额（next_elite 顺延一个间隔），精英总数、经验、掉箱不变
 		var ne := 0 if escort else int(Bal.v("enemy/horde_elite", 0.0))   # 护卫波不带领头（最终 Boss 战不出精英）
@@ -565,7 +595,41 @@ func update(dt: float) -> void:
 			else:
 				le["horde"] = g.horde_log.size() - 1
 				le.dormant = false
-		_norm = false
+	_norm = false
+
+
+## 手机网页的分批进场队列（大群 / 威胁升级波，docs/50 §39）：到了进场时刻、且普通怪没到同屏上限才放（每帧最多 WAVE_PER_FRAME 只）；
+## 位置按「相对队长」存，放出时贴着队长现在的位置。最终 Boss 停刷时作废
+const HORDE_SPREAD := 3.5
+const WAVE_PER_FRAME := 4
+var _wave_q: Array = []
+
+func _release_wave_q() -> void:
+	if _wave_q.is_empty():
+		return
+	if mobs_stopped() and not trickling():
+		_wave_q.clear()
+		return
+	var cap: int = alive_cap()
+	var room: int = (cap - normal_count()) if cap > 0 else WAVE_PER_FRAME
+	var k := 0
+	while k < _wave_q.size() and k < WAVE_PER_FRAME and room > 0 and float(_wave_q[k].at) <= g.t:
+		var it: Dictionary = _wave_q[k]
+		(it.fn as Callable).call(g.ppos + (it.rel as Vector2))
+		room -= 1
+		k += 1
+	if k > 0:
+		_wave_q = _wave_q.slice(k)
+
+
+func _wave_one(id: String, p: Vector2) -> void:
+	_norm = true
+	spawn_enemy(id, p)
+	_norm = false
+
+
+func _horde_tail_rest() -> void:
+	_release_wave_q()
 	# 补给箱
 	if g.t >= next_chest:
 		# 刷出间隔前松后紧（docs/133）：crate/early_until 秒前 [early_lo, early_hi]，crate/mid_until 秒前 [mid_lo, mid_hi]，之后 [late_lo, late_hi]；
