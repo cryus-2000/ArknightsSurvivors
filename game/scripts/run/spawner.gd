@@ -89,11 +89,13 @@ func pick_type() -> String:
 	else:
 		pick = pool[g.rng_spawn.randi() % pool.size()]
 	if type_cap(pick) > 0 and type_n(pick) >= dens_cap(type_cap(pick)):   # 同种上限按怪物密度同比缩（density 1 = 原值）
-		# 到上限时改从本级池里没到上限的种类里抽（docs/158 §6）；原来一律换成底海滑动者 / 骨海漂流体，中后段滑动者因此占到七成
+		# 中后段（裂隙起）到上限时改从本级池里没到上限的种类里抽（docs/158 §6）；原来一律换成底海滑动者，中后段滑动者因此占到七成
+		# 前段照旧换骨海漂流体（改成从池里抽会把同种上限挡下的狂奔者换进来，前段明显变难）
 		var ok: Array = []
-		for x in pool:
-			if type_cap(x) <= 0 or type_n(x) < dens_cap(type_cap(x)):
-				ok.append(x)
+		if g.threat >= 3:
+			for x in pool:
+				if type_cap(x) <= 0 or type_n(x) < dens_cap(type_cap(x)):
+					ok.append(x)
 		# 池里全到上限（怪物密度 0.4 把同种上限缩得很小，后段常见）：中后段在骨海漂流体 / 底海滑动者里二选一，不再全给滑动者
 		pick = ok[g.rng_spawn.randi() % ok.size()] if not ok.is_empty() else ((["bone", "slider"][g.rng_spawn.randi() % 2]) if g.threat >= 3 else "bone")
 	return pick
