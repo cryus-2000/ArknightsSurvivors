@@ -3,6 +3,7 @@ extends Node
 ## godot --headless --path game res://tests/synergy_test.tscn -- --regression --balance --seed=1 --op=texas --squad=exusiai,lappland
 ##                                                              --op=skadi --squad=ulpianus,gladiia   （集群狩猎，编队上限 3）
 ##                                                              --op=ulpianus --squad=skadi                            （两人：手段应当有效）
+##                                                              --op=gladiia --squad=ulpianus                          （战争设计：控场 → 收割）
 ## 全部通过时打印 "SYNERGY checks=N failures=0"
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -38,6 +39,8 @@ func _ready() -> void:
 		await scene_hunters()
 	elif ids.has("skadi") and ids.has("ulpianus"):
 		await scene_pair()
+	elif ids.has("gladiia") and ids.has("ulpianus"):
+		await scene_cast()
 	else:
 		ok(false, "测试编队不对：%s" % [ids])
 	print("SYNERGY checks=%d failures=%d" % [checks, failures])
@@ -151,3 +154,48 @@ func scene_pair() -> void:
 	sk.spend_sp(0)
 	step(0.3)
 	ok(int(g.squad.syn.n) == n0 and ul.syn_mv.is_empty(), "队长当搭档时不位移：不触发")
+
+
+## R6 战争设计（控场 → 收割）：歌蕾蒂娅 S3 聚怪 → 乌尔比安冲向聚怪中心；技能就绪就放，没就绪打一次冲锋重击（不回技力、不白送技能）
+func scene_cast() -> void:
+	var gl = g.squad.get_op("gladiia")
+	var ul = g.squad.get_op("ulpianus")
+	ok(gl.is_leader and not ul.is_leader, "歌蕾蒂娅是队长、乌尔比安是队友")
+	for k in 3:
+		foe(g.ppos + Vector2(230.0 + 18.0 * k, -20.0 + 20.0 * k))
+	await get_tree().process_frame
+	var sp0: Array = [ul.sp[0], ul.sp[1], ul.sp[2]]
+	var hp_sum0 := 0.0
+	for e in g.enemies:
+		hp_sum0 += float(e.hp)
+	# ① 乌尔比安技能没就绪：冲锋重击
+	ul.sp = [0.0, 0.0, 0.0]
+	var casts0: int = int(g.telemetry.op_casts.get("ulpianus", 0))
+	gl.spend_sp(2)
+	var moved: Dictionary = step(1.6, [ul])
+	ok(g.squad.syn.cd.has("zhansheji"), "歌蕾蒂娅放 S3 → 战争设计触发")
+	ok(float(moved[ul.id]) > 60.0, "乌尔比安冲向聚怪中心（%.0f）" % float(moved[ul.id]))
+	var hp_sum1 := 0.0
+	for e in g.enemies:
+		hp_sum1 += float(e.hp)
+	ok(hp_sum1 < hp_sum0, "冲锋重击伤到了敌人")
+	ok(int(g.telemetry.op_casts.get("ulpianus", 0)) == casts0 and ul.sp[0] < ul.sp_need(0) * 0.5, "技能没就绪：乌尔比安没放技能、也没被送技力（casts %d，S1 技力 %.1f / %.1f）" % [casts0, ul.sp[0], ul.sp_need(0)])
+	step(3.0)
+	# ② 乌尔比安 S1 就绪：冲过去后对准这群怪放出去
+	g.squad.syn.cd.clear()
+	ul.sp = [ul.sp_need(0), 0.0, 0.0]
+	casts0 = int(g.telemetry.op_casts.get("ulpianus", 0))
+	gl.spend_sp(2)
+	step(1.6, [ul])
+	ok(int(g.telemetry.op_casts.get("ulpianus", 0)) > casts0, "技能就绪：乌尔比安真的放了技能（casts %d → %d）" % [casts0, int(g.telemetry.op_casts.get("ulpianus", 0))])
+	step(3.0)
+	ok(ul.syn_mv.is_empty() and g.squad.syn.acts.is_empty(), "收势后位移解除")
+	# ③ 乌尔比安是队长：不位移、不替玩家放技能
+	ul.is_leader = true
+	gl.is_leader = false
+	g.squad.syn.cd.clear()
+	var n0: int = int(g.squad.syn.n)
+	ul.sp = [ul.sp_need(0), 0.0, 0.0]
+	gl.spend_sp(2)
+	step(0.5)
+	ok(int(g.squad.syn.n) == n0 and ul.syn_mv.is_empty(), "乌尔比安是队长：不触发、不位移（技能由玩家 / 他自己的自动规则放，连携不替放）")

@@ -21,11 +21,13 @@ cap = ROOT / 'build' / ('syn_' + name + '_cap')
 cap.mkdir(parents=True, exist_ok=True)
 idx = 0
 for si, sc in enumerate(scenes):
-    lead, mates, caster, skill = sc.split(':')
+    parts = sc.split(':')
+    lead, mates, caster, skill = parts[:4]
+    ready = parts[4] if len(parts) > 4 else ''
     tag = 'syn_%s_%d' % (name, si)
     args = [gr.find_godot(), '--audio-driver', 'Dummy', '--path', str(ROOT / 'game'), '--fixed-fps', '60', '--resolution', '960x540',
             '--position', '-3000,0', 'res://tests/synergy_capture.tscn', '--', '--regression', '--balance', '--seed=1', '--op=' + lead, '--squad=' + mates,
-            '--cast=' + caster, '--skill=' + skill, '--capture-secs=4.5', '--capture-out=' + tag]
+            '--cast=' + caster, '--skill=' + skill, '--ready=' + ready, '--capture-secs=5.5', '--capture-out=' + tag]
     o, e, timeout = gr.run_godot(args, 900)
     print(tag, 'TIMEOUT' if timeout else 'ok', (o or '')[-80:].strip())
     d = ROOT / 'build' / tag

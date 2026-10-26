@@ -37,13 +37,17 @@ static func on_skill(sq, o, i: int) -> void:
 	if g.demo_op != "" or g.state != g.S.PLAY:
 		return
 	var d: Dictionary = data()
+	for pr in d.get("pairs", []):   # 控场 → 收割（dash_cast，R6）最优先：猎人 ≥ 3 人时也不被集群狩猎吃掉
+		for dr in pr.dirs:
+			if str(dr.kind) == "dash_cast" and str(dr.from) == str(o.id) and _has_skill(dr.skills, i) and _pair_try(sq, o, pr, dr):
+				return
 	for gr in d.get("groups", []):
-		if str(o.id) in gr.members and _has_skill(gr.skills, i) and _group_try(sq, o, gr):
+		if str(o.id) in gr.members and _has_skill(gr.skills, i) and _group_try(sq, o, gr, i):
 			return   # 猎人 ≥ 3 人时集群狩猎取代两人的潮汐守望，不叠
 	for pr in d.get("pairs", []):
 		for dr in pr.dirs:
-			if str(dr.from) == str(o.id) and _has_skill(dr.skills, i):
-				_pair_try(sq, o, pr, dr)   # 一人可参与多条（德克萨斯：默契 + 恩怨），同时进行上限由 _active 管
+			if str(dr.kind) != "dash_cast" and str(dr.from) == str(o.id) and _has_skill(dr.skills, i):
+				_pair_try(sq, o, pr, dr, i)   # 一人可参与多条（德克萨斯：默契 + 恩怨），同时进行上限由 _active 管
 
 
 ## json 数字读出来是 float，Array.has(int) 对 0.0 不一定认，逐个转 int 比
@@ -76,14 +80,14 @@ static func _pick_target(o, p, reach: float) -> Variant:
 	return null
 
 
-static func _pair_try(sq, o, pr: Dictionary, dr: Dictionary) -> bool:
+static func _pair_try(sq, o, pr: Dictionary, dr: Dictionary, skill := -1) -> bool:
 	var g = o.g
 	var st: Dictionary = sq.syn
 	if g.t < float(st.cd.get(str(pr.id), -99.0)) or _active(sq) >= BalS.vi("synergy/max_active", 2):
 		return false
 	var p: Variant = _ready_partner(sq, str(dr.to))
 	if p == null or (p.is_leader and str(dr.kind) != "volley" and str(dr.kind) != "hook"):
-		return false
+		return false   # 队长不位移；队长是乌尔比安且技能手动档时更不替玩家放（dash_cast 的队长搭档直接跳过）
 	var tgt: Variant = _pick_target(o, p, float(dr.range))
 	if tgt == null:
 		return false
@@ -91,11 +95,20 @@ static func _pair_try(sq, o, pr: Dictionary, dr: Dictionary) -> bool:
 	st.n += 1
 	var gid: int = st.n
 	_announce(sq, pr, dr, o, p)
-	sq.syn.acts.append(_act(gid, pr, dr, o, p, tgt, 0.0))
+	sq.syn.acts.append(_act(gid, pr, dr, o, p, tgt, 0.0, _cl(dr, skill if skill >= 0 else _first_skill(dr))))
 	return true
 
 
-static func _group_try(sq, o, gr: Dictionary) -> bool:
+## 控场技能（dr.cluster_skills，如歌蕾蒂娅 S3 聚怪）出手时，合击落在聚怪中心而不是最近的那一只
+static func _cl(dr: Dictionary, skill: int) -> bool:
+	return dr.has("cluster") and (not dr.has("cluster_skills") or _has_skill(dr.cluster_skills, skill))
+
+
+static func _first_skill(dr: Dictionary) -> int:
+	return int((dr.skills as Array)[0]) if not (dr.skills as Array).is_empty() else 0
+
+
+static func _group_try(sq, o, gr: Dictionary, skill := -1) -> bool:
 	var g = o.g
 	var st: Dictionary = sq.syn
 	if g.t < float(st.cd.get(str(gr.id), -99.0)) or _active(sq) >= BalS.vi("synergy/max_active", 2):
@@ -119,7 +132,7 @@ static func _group_try(sq, o, gr: Dictionary) -> bool:
 	_announce(sq, gr, gr, o, movers[0])
 	var k := 0
 	for h in movers:
-		sq.syn.acts.append(_act(gid, gr, gr, o, h, tgt, float(gr.stagger) * k))
+		sq.syn.acts.append(_act(gid, gr, gr, o, h, tgt, float(gr.stagger) * k, gr.has("cluster") and _has_skill(gr.get("cluster_skills", []), skill) and skill >= 0))
 		k += 1
 	if float(gr.get("mark", 0.0)) > 0.0:   # 集群狩猎：同一目标在窗口里多吃一点伤害（沿用铃兰「印记」的受伤加成通道，取较大值不叠）
 		tgt["frag_t"] = maxf(float(tgt.get("frag_t", 0.0)), g.t + float(gr.mark_t))
@@ -127,8 +140,8 @@ static func _group_try(sq, o, gr: Dictionary) -> bool:
 	return true
 
 
-static func _act(gid: int, pr: Dictionary, dr: Dictionary, o, p, tgt, delay: float) -> Dictionary:
-	return {"gid": gid, "pr": pr, "dr": dr, "from": o, "p": p, "tgt": tgt, "tpos": tgt.pos, "age": 0.0, "delay": delay, "phase": 0, "shots": 0, "t_phase": 0.0}
+static func _act(gid: int, pr: Dictionary, dr: Dictionary, o, p, tgt, delay: float, cl := false) -> Dictionary:
+	return {"cl": cl, "gid": gid, "pr": pr, "dr": dr, "from": o, "p": p, "tgt": tgt, "tpos": tgt.pos, "age": 0.0, "delay": delay, "phase": 0, "shots": 0, "t_phase": 0.0}
 
 
 ## 连线 + 头顶小字 + 台词（每次触发一次）
@@ -175,7 +188,7 @@ static func tick(sq, dt: float) -> void:
 		match str(a.dr.kind):
 			"volley":
 				done = _step_volley(a, dt)
-			"dash_strike":
+			"dash_strike", "dash_cast":
 				done = _step_dash(a, dt)
 			"hook":
 				done = _step_hook(a, dt)
@@ -195,6 +208,11 @@ static func _alive(a: Dictionary) -> bool:
 static func _tpos(a: Dictionary) -> Vector2:
 	if a.tgt != null and not a.tgt.dead:
 		a.tpos = a.tgt.pos
+		if a.cl:   # 聚怪中心：目标周围敌人最密处（聚怪涡 / 钩锁把怪拉拢以后）
+			var cdr: Dictionary = a.dr if a.dr.has("cluster") else a.pr
+			var c: Vector2 = a.p.densest_point(float(cdr.cluster), a.tgt.pos)
+			if c != Vector2.INF:
+				a.tpos = c
 	return a.tpos
 
 
@@ -267,6 +285,17 @@ static func _step_dash(a: Dictionary, dt: float) -> bool:
 		var c: Color = _col(dr.col)
 		var half: float = float(dr.half)
 		var rr: float = float(dr.r)
+		if str(dr.kind) == "dash_cast" and not p.is_leader:
+			# 控场 → 收割：搭档的技能正好就绪（自动档、够门槛）就对准这群怪放出去；没就绪就打一次冲锋重击，不白送技能、不回技力
+			var idx: int = int(p.charge_skills(0.0))
+			if idx >= 0 and not p.acting():
+				p.syn_mv = {}
+				p.start_skill(p.ObSummon.mf_skill_aim(p, idx), idx)
+				p.face_to(ang)
+				g.fx.append({"kind": "ring", "pos": tp, "r": rr, "r0": rr * 0.4, "life": 0.3, "max": 0.3, "col": c, "floor": true, "w": 2.0, "alpha": 0.6})
+				a.phase = 2
+				a.t_phase = a.age
+				return false
 		p.melee_hit(_src(p, a.pr, dr), stop, ang, half, rr, _dmg(p, float(dr.mult)), float(dr.kb), float(dr.get("stun", 0.0)), ["连携"], 0)
 		p.slash_fx(stop, ang, minf(half, 1.5), rr * 0.9, c, "slash", 0.26)
 		if dr.get("cross", false):   # 两人刀光交叉：施放者的刀光从另一个角度也落在目标处（只有画面，伤害只算搭档这一击）

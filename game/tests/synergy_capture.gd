@@ -4,12 +4,14 @@ extends Node
 
 func _ready() -> void:
 	var cast := "texas"
+	var ready := ""   # 让这名干员的 S1 技力满格（演示「技能就绪就放」）
 	var skill := 0
 	var secs := 5.0
 	var out_dir := "synergy_cap"
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--cast="): cast = arg.get_slice("=", 1)
 		if arg.begins_with("--skill="): skill = int(arg.get_slice("=", 1))
+		if arg.begins_with("--ready="): ready = arg.get_slice("=", 1)
 		if arg.begins_with("--capture-secs="): secs = float(arg.get_slice("=", 1))
 		if arg.begins_with("--capture-out="): out_dir = arg.get_slice("=", 1)
 	var output := ProjectSettings.globalize_path("res://../build/" + out_dir)
@@ -33,6 +35,9 @@ func _ready() -> void:
 		e.maxhp = 1.0e9
 		e.spd = 0.0
 		foes.append(e)
+	if ready != "" and g.squad.get_op(ready) != null:
+		var ro = g.squad.get_op(ready)
+		ro.sp[0] = ro.sp_need(0)
 	var dt := 1.0 / 60.0
 	var cast_frame := int(0.8 / dt)
 	var log := {"cast_at": 0.8, "acts": 0}

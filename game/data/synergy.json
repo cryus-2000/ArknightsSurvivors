@@ -23,9 +23,15 @@
    ]
   },
   {
+   "id": "zhansheji", "name": "战争设计", "src": "PRTS 乌尔比安·语音「3星结束行动」（交流过战争设计）、晋升记录（与歌蕾蒂娅训练对比）", "cd": 14.0,
+   "dirs": [
+    {"from": "gladiia", "to": "ulpianus", "skills": [2], "kind": "dash_cast", "cluster": 150.0, "wind": 0.7, "dur": 0.24, "mult": 1.8, "r": 100.0, "half": 3.14, "kb": 200.0, "stun": 0.4, "range": 440.0, "gap": 30.0, "col": [0.55, 0.8, 1.0], "voice": "battle", "kind_dmg": "物理", "rng": "近战"}
+   ]
+  },
+  {
    "id": "chaoxi", "name": "潮汐守望", "src": "PRTS 歌蕾蒂娅·后勤技能「潮汐守望」", "cd": 12.0,
    "dirs": [
-    {"from": "gladiia", "to": "specter_unchained", "skills": [0, 1, 2], "kind": "dash_strike", "wind": 0.14, "dur": 0.2, "mult": 1.2, "r": 90.0, "half": 3.14, "kb": 110.0, "stun": 0.0, "range": 380.0, "gap": 30.0, "col": [0.4, 0.9, 0.9], "voice": "battle", "kind_dmg": "物理", "rng": "近战"},
+    {"from": "gladiia", "to": "specter_unchained", "skills": [0, 1, 2], "cluster": 150.0, "cluster_skills": [2], "kind": "dash_strike", "wind": 0.14, "dur": 0.2, "mult": 1.2, "r": 90.0, "half": 3.14, "kb": 110.0, "stun": 0.0, "range": 380.0, "gap": 30.0, "col": [0.4, 0.9, 0.9], "voice": "battle", "kind_dmg": "物理", "rng": "近战"},
     {"from": "specter_unchained", "to": "gladiia", "skills": [0, 1, 2], "kind": "hook", "wind": 0.12, "mult": 1.1, "pull": 70.0, "stun": 0.4, "range": 420.0, "col": [0.4, 0.9, 0.9], "voice": "entry", "kind_dmg": "法术", "rng": "远程"}
    ]
   }
@@ -34,7 +40,7 @@
   {
    "id": "jiqun", "name": "集群狩猎", "src": "PRTS 歌蕾蒂娅·后勤技能「集群狩猎」", "cd": 14.0,
    "members": ["gladiia", "skadi", "specter_unchained", "ulpianus", "skalter"], "min": 3, "kind": "dash_strike",
-   "skills": [0, 1, 2], "wind": 0.14, "dur": 0.22, "stagger": 0.09, "mult": 1.0, "r": 92.0, "half": 3.14, "kb": 120.0, "stun": 0.0, "range": 400.0, "gap": 30.0,
+   "skills": [0, 1, 2], "cluster": 150.0, "cluster_skills": [2], "wind": 0.14, "dur": 0.22, "stagger": 0.09, "mult": 1.0, "r": 92.0, "half": 3.14, "kb": 120.0, "stun": 0.0, "range": 400.0, "gap": 30.0,
    "mark": 0.06, "mark_t": 4.0, "col": [0.35, 0.85, 0.95], "voice": "battle", "voice_map": {"gladiia": "entry", "skadi": "entry", "specter_unchained": "battle", "ulpianus": "skill_3", "skalter": "entry"}, "kind_dmg": "物理", "rng": "近战"
   }
  ]
