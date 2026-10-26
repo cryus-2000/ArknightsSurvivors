@@ -503,6 +503,8 @@ func spend_sp(i: int) -> void:
 	g.rfx.on_skill_start(self, i)
 	if g.get("telemetry") != null:
 		g.telemetry.on_cast(id)   # 作战记录：技能发动次数（docs/77）
+	if g.get("squad") != null and g.squad != null:
+		g.squad.syn_skill(self, i)   # 连携技（docs/160）：synergy/on = 0 时直接返回
 
 
 ## 藏品 / 先锋等给的技力：已解锁技能各按需求百分比充能
@@ -1126,7 +1128,7 @@ func follow(dt: float, target: Vector2) -> void:
 		mv = 0.0
 		cmd_d = 0.0
 		return
-	if pos == Vector2.INF or pos.distance_to(target) > (700.0 if st == 0 else CmdBal.v("command/leash", 960.0) * 1.6):
+	if syn_mv.is_empty() and (pos == Vector2.INF or pos.distance_to(target) > (700.0 if st == 0 else CmdBal.v("command/leash", 960.0) * 1.6)):
 		pos = target
 		mv = 0.0
 		return
@@ -1134,6 +1136,9 @@ func follow(dt: float, target: Vector2) -> void:
 	var slot: Vector2 = target   # 编队位（follow_target 之前的原值）：跟随冲刺时奔向它
 	if is_leader:
 		pos = target   # 主控：位置就是玩家位置（g.ppos），不走编队跟随 / 近战前压
+	elif not syn_mv.is_empty():
+		pos = syn_step(dt)   # 连携技的合击位移（synergy.gd）：脚本推着走，不跟编队
+		fp_moving = true
 	else:
 		target = _cmd_walk(roam_target(target)) if st == 1 else follow_target(target)
 		if st != 1:
@@ -1615,6 +1620,16 @@ func _cmd_progress(previous: Vector2, target: Vector2, dt: float) -> void:
 ## ---- 爆发窗口的第一下冲锋（10-24 用户定，docs/114 §14）：切到突击那一刻，每名出击的队友朝自己的目标冲一段（限距离 / 速度，
 ## 镜头不动），撞上怪（或冲到位）时把身边的怪推开一下：精英减半、Boss / 部件 / 宝箱不受（沿用 apply_kb 口径）。冲锋期间短暂无敌。
 ## 身后拖金色轨迹：2 px 网格方块、短寿命、三阶硬边淡出，不走随机数（序号哈希摆位），同时往光学发光层排发光点
+## ---- 连携技的搭档位移（docs/160，synergy.gd）：{"from", "to", "t", "dur"}，跟随时由 syn_step 推着走（冲到目标面前），空 = 没有
+var syn_mv: Dictionary = {}
+
+
+func syn_step(dt: float) -> Vector2:
+	syn_mv.t = float(syn_mv.t) + dt
+	var u: float = clampf(float(syn_mv.t) / maxf(0.001, float(syn_mv.dur)), 0.0, 1.0)
+	return Vector2(syn_mv.from).lerp(Vector2(syn_mv.to), 1.0 - (1.0 - u) * (1.0 - u))
+
+
 var rush_t := 0.0
 var rush_goal := Vector2.INF
 var rush_trail: Array = []   # [{p, a（年龄）, n（序号）, big（撞击迸射）}]

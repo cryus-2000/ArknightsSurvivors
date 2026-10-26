@@ -115,13 +115,13 @@ func run(check: Callable) -> void:
 
 func _asset_coverage(check: Callable) -> void:
 	var manifest = JSON.parse_string(FileAccess.get_file_as_string("res://audio/voice/voice_manifest.json"))
-	check.call(manifest is Dictionary and manifest.get("clips", []).size() == 121, "runtime manifest retains91 old clips and adds30")
+	check.call(manifest is Dictionary and manifest.get("clips", []).size() == 123, "runtime manifest retains 121 clips and adds 2 synergy lines (docs/160)")
 	if not manifest is Dictionary:
 		return
 	var have := {}
 	for clip in manifest.clips:
 		have[clip.operator + ":" + clip.event] = true
-	check.call(have.size() == 121, "runtime event pairs are unique")
+	check.call(have.size() == 123, "runtime event pairs are unique")
 	var ids := Character.list_ids()
 	check.call(manifest.operators.size() == 20 and ids.size() == 20, "runtime voice map covers20 operators")
 	for cid in ids:

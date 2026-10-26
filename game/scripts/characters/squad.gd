@@ -336,9 +336,19 @@ func validate_squad() -> bool:
 
 # ---------------------------------------------------------------- 每帧
 
+## ---- 连携技（docs/160）：状态在 syn（冷却 / 进行中的合击），逻辑在 synergy.gd；synergy/on = 0 时两个入口都直接返回
+const Synergy = preload("res://scripts/characters/synergy.gd")
+var syn := {"cd": {}, "acts": [], "n": 0}
+
+
+func syn_skill(o, i: int) -> void:
+	Synergy.on_skill(self, o, i)
+
+
 func update(dt: float) -> void:
 	g.doctor.tick_input(dt)   # 手动普攻按键 / 选落点蓄距离（契约 v2.5）
 	side = move_toward(side, g.facing, dt * 2.5)
+	Synergy.tick(self, dt)
 	for o in ops:
 		o.follow(dt, g.ppos if o.is_leader else g.ppos + _slot_offset(o.slot))
 	if stance == RECALL:
