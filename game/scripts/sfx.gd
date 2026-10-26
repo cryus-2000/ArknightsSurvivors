@@ -266,7 +266,7 @@ func warm_begin() -> void:
 	var list: Array = []
 	var q = seq.get("battle1")
 	var cfg = get_node_or_null("/root/Cfg")   # sfx 比 Cfg 先加载，不能直接写 Cfg
-	if cfg != null and cfg.mobile_web() and not cfg.mobile_knob("mobile_warm_music", 0.0):
+	if cfg != null and cfg.mobile_web() and not cfg.mobile_knob("mobile_warm_music", 1.0):   # 10-27 起缺省开（docs/50 §40）：24 kHz + 切曲释放后内存够，局内首段解码改在载入页做
 		q = null   # 手机网页：战斗乐分轨（每句约 13 秒 × 十几句）预先全解码成 PCM 要几十 MB，iPhone 进局即崩的嫌疑之一；改为播到才解码（10-26，docs/50 §30）
 	if q != null:
 		for sname in q.segs:
@@ -426,6 +426,14 @@ func _seq_play(tname: String, s: String, deck: int, from: float) -> void:
 	var pls: Array = q.decks[deck]
 	var sts: Array = q.segs[s]
 	var lite: bool = _music_lite()
+	var fresh := 0   # 这一句里还没解码的层（开播当帧在主线程整段解码，网页仿真一层 100–250 ms）：记进性能报告
+	for st in sts + [q.danger]:
+		if st is AudioStream and not AudioServer.is_stream_registered_as_sample(st):
+			fresh += 1
+	if fresh > 0 and OS.has_feature("web"):
+		var sc = get_tree().current_scene
+		if sc != null and "perf_rep" in sc and sc.perf_rep != null:
+			sc.perf_rep.tag("解码配乐 %d 层" % fresh)
 	for i in pls.size():
 		var pl: AudioStreamPlayer = pls[i]
 		pl.stream = sts[i] if i < sts.size() else q.danger
@@ -580,6 +588,7 @@ func play_music(tname: String) -> void:
 ## 开播一首（乐句式从第一句开始；各层同一时刻开，保证同步）；旧曲按 old_out 淡出
 func _start(tname: String, fade_in: float, old_out: float, from := 0.0) -> void:
 	_freed.erase(tname)
+	_queue_next(tname)
 	if cur_track != "" and cur_track != tname:
 		group_rate[cur_track][1] = old_out
 	cur_track = tname
@@ -914,7 +923,38 @@ func _process(delta: float) -> void:
 ## 把它所有句 / 层的样本按流的 instance id 释放；再播时引擎重新解码注册。局外曲目之间来回切不放（回到标题接着放、免得重新解码），进局才放；
 ## 局内曲目回到局外时放。不是网页或没打补丁时什么也不做
 var _freed := {}
+var _next := {}
 var _free_ok := -1
+
+
+## 下一批可能要放的曲目提前排进解码队列（docs/50 §40）：由局内静止界面（暂停 / 选卡 / 商店，game._process 调 warm_step）慢慢解码，
+## 不在对局画面里卡。战斗 N 开播时排 战斗 N+1 + Boss（战斗三再加最终 Boss）
+func _queue_next(tname: String) -> void:
+	if not OS.has_feature("web") or not tname.begins_with("battle"):
+		return
+	var k := int(tname.substr(6))
+	var nxt: Array = ["boss"]
+	_next = {}
+	if seq.has("battle%d" % (k + 1)):
+		nxt.push_front("battle%d" % (k + 1))
+	if k >= 3:
+		nxt.append("final")
+	for t2 in nxt:
+		if not seq.has(t2):
+			continue
+		var q = seq[t2]
+		for sname in q.segs:
+			for st in q.segs[sname]:
+				if st is AudioStream and not AudioServer.is_stream_registered_as_sample(st) and not _warm_q.has(st):
+					_warm_q.append(st)
+		if q.danger is AudioStream and not _warm_q.has(q.danger) and not AudioServer.is_stream_registered_as_sample(q.danger):
+			_warm_q.append(q.danger)
+		_freed.erase(t2)
+		_next[t2] = true   # 提前解码的曲目不被「切曲释放」放掉（直到下一首战斗乐开播重排）
+
+
+func warm_pending() -> bool:
+	return not _warm_q.is_empty()
 
 var _last_on := {}   # 曲目最后一次是当前曲目的时刻（墙钟）：离开满 FREE_AFTER 秒才放，刚点播还没开起来的不放
 const FREE_AFTER := 3.0
@@ -923,7 +963,7 @@ func _maybe_free(tname: String) -> void:
 	if tname == cur_track or tname == str(pending.get("track", "")):
 		_last_on[tname] = _now()
 		return
-	if _freed.has(tname) or tname == after_stinger or cur_track == "" or _now() - float(_last_on.get(tname, -99.0)) < FREE_AFTER:
+	if _freed.has(tname) or _next.has(tname) or tname == after_stinger or cur_track == "" or _now() - float(_last_on.get(tname, -99.0)) < FREE_AFTER:
 		return
 	if MENU_TRACKS.has(tname) and MENU_TRACKS.has(cur_track):
 		return
