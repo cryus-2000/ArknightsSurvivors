@@ -992,6 +992,7 @@ SCENE_REGRESSIONS = {
     "enemy_prepare": ("敌人攻击前摇", "enemy_prepare_test", r"ENEMY PREPARE TEST: 0 failures", []),
     "feedback": ("攻击反馈", "feedback_test", r"FEEDBACK TESTS PASSED", []),
     "wisadel_cannon": ("维什戴尔炮击", "wisadel_cannon_test", r"WISADEL CANNON failures=0", ["--op=wisadel"]),
+    "wisadel_boom": ("维什戴尔同处爆炸动画只画一次（伤害照打）", "wisadel_boom_test", r"WISADEL BOOM checks=\d+ failures=0", ["--balance", "--seed=1", "--op=wisadel"]),
     "mon3tr_fx": ("Mon3tr 熔毁效果", "mon3tr_fx_test", r"MON3TR FX failures=0", ["--op=kaltsit"]),
     "relic_impl": ("藏品第二批原语（docs/57）", "relic_impl_test", r"RELIC IMPL failures=0", ["--balance", "--op=siege", "--squad=saria,wisadel"]),
     "gladiia_hook": ("歌蕾蒂娅钩索把人拉到身前（10-24）", "gladiia_hook_test", r"GLADIIA HOOK failures=0", ["--balance", "--op=gladiia"]),
