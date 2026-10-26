@@ -31,9 +31,10 @@ var _mem_tick := -1
 
 ## --memlog（docs/50 §30）：引擎堆 / 贴图显存 / 显存合计（Godot 自己的统计），加网页音频样本解码后的估算（Web Audio 缓冲在 JS 里，引擎看不到）
 func _print_mem(tag: String) -> void:
-	print("PF MEM %s heap=%.1fMB tex=%.1fMB vid=%.1fMB audio=%.1fMB win=%s scaled=%s q=%s" % [tag,
+	print("PF MEM %s heap=%.1fMB tex=%.1fMB buf=%.1fMB vid=%.1fMB audio=%.1fMB win=%s scaled=%s q=%s" % [tag,
 		Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
 		Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0,
+		Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED) / 1048576.0,
 		Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0,
 		Sfx.sample_mem_mb(), get_tree().root.size, Cfg.render_scaled, Cfg.quality])
 	var sc = get_tree().current_scene
