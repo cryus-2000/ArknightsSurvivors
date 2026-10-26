@@ -59,6 +59,7 @@ func _process(_d: float) -> void:
 	test_non_boss()
 	test_no_hard_cc()
 	test_beacon_decay()
+	test_beacon_sweep()
 	test_xp_recall()
 	test_atk_slow_floor()
 	test_horde_mix()
@@ -2040,6 +2041,52 @@ func test_beacon_decay() -> void:
 		Bal._data["beacon"] = old
 	else:
 		Bal._data.erase("beacon")
+
+
+## 灯标驱散（10-26 用户「灯塔范围内的溟痕全部消失」+ 回复 / 攻速加成）：点燃时圈内整片驱散、压圈边的削到圈外、驱散的当下就不伤人；
+## 生效期间怪物溟痕不落、圈内长进来的被削；在圈里有回复 / 攻速加成，出圈撤销
+func test_beacon_sweep() -> void:
+	var bs = game.beacon_sys
+	var nb: float = bs.next_at
+	bs.next_at = 1.0e9
+	var zs: int = game.zone_state
+	game.zone_state = 0
+	var mires0: Array = game.mires
+	var c: Vector2 = game.ppos
+	var cr: float = bs.clear_radius()
+	var inner := {"pos": c + Vector2(120, 0), "r": 60.0, "maxr": 60.0, "life": 9999.0, "seed": 1.0}
+	var edge := {"pos": c + Vector2(cr + 40.0, 0), "r": 90.0, "maxr": 90.0, "life": 9999.0, "seed": 2.0}
+	var far := {"pos": c + Vector2(cr + 300.0, 0), "r": 80.0, "maxr": 80.0, "life": 9999.0, "seed": 3.0}
+	game.mires = [inner, edge, far]
+	var b := {"pos": c, "lit": false, "prog": 0.0, "need": 2.5, "lit_t": -1.0, "count_end": 0.0, "count_max": 0.0, "dead": false,
+		"r": 70.0, "clear_r": cr, "safe_end": 0.0, "age": 0.0, "out_t": 0.0}
+	game.beacons = [b]
+	bs._light(b)
+	ok(inner.has("fade"), "灯标驱散：圈内整片标记驱散（当下不伤人、不计数）")
+	ok(float(edge.maxr) <= 40.01 and not edge.has("fade"), "灯标驱散：中心在圈外、边压进圈里的削到圈外（maxr %.0f）" % float(edge.maxr))
+	ok(not far.has("fade") and float(far.maxr) == 80.0, "灯标驱散：圈外的不动")
+	var n0: int = game.mires.size()
+	game.combat.add_enemy_mire({"pos": c + Vector2(60, 60), "r": 10.0, "maxr": 50.0, "life": 12.0, "seed": 4.0, "boss": false}, "death")
+	ok(game.mires.size() == n0, "灯标生效中：圈内不落怪物溟痕")
+	var creep := {"pos": c + Vector2(0, 200), "r": 50.0, "maxr": 50.0, "life": 9999.0, "seed": 5.0}
+	game.mires.append(creep)
+	bs.zone_on = false   # 前面的测试可能重建过属性块
+	game.stats.remove_source("beacon_zone")
+	game.regen_pct = 0.0
+	bs.update(1.0 / 60.0)
+	ok(creep.has("fade"), "灯标生效中：进到圈里的溟痕随到随散")
+	ok(bs.zone_on and game.regen_pct >= float(bs._k("zone_regen_pct", 0.015)) - 0.0001, "灯标庇护：圈里有回复加成（regen_pct %.3f zone_on %s active %s rp %.3f stat %.3f）" % [game.regen_pct, str(bs.zone_on), str(bs.active(b)), float(bs._k("zone_regen_pct", 0.015)), game.stats.value(&"regen_pct")])
+	game.ppos = c + Vector2(cr + 200.0, 0)
+	bs.update(1.0 / 60.0)
+	ok(not bs.zone_on and game.regen_pct < float(bs._k("zone_regen_pct", 0.015)) - 0.0001 + game.regen_pct * 0.0, "灯标庇护：出圈撤销")
+	game.ppos = c
+	game.stats.remove_source("beacon_zone")
+	game.sync_stats()
+	bs.zone_on = false
+	game.beacons = []
+	game.mires = mires0
+	bs.next_at = nb
+	game.zone_state = zs
 
 
 ## 经验视野外回收（docs/38 §8.13 方案 A，数值 10-01）：视野外满 recall_after 秒入账且只计一次、回到视野内重新计时、

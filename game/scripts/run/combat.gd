@@ -639,6 +639,8 @@ func freeze_zone(r: float) -> void:
 ## 怪物留下的溟痕统一入口（docs/155）：拖痕 trail / 落点 lob / 神经弹 shot / 死亡留痕 death。打上 src 与出生时间 t0，
 ## 怪物溟痕超过 enemy/mire_enemy_cap 时最老的一片开始淡出（mire_fade 秒后移除，淡出中不再伤人）。常驻规则不变：没被挤掉的照旧常驻
 func add_enemy_mire(m: Dictionary, src: String) -> void:
+	if g.beacon_sys.holds(m.pos):
+		return   # 生效中的引航灯标清除圈内不落怪物溟痕（10-26，用户「灯塔范围内的溟痕全部消失」）
 	m["src"] = src
 	m["t0"] = g.t
 	var cap := int(Bal.v("enemy/mire_enemy_cap", 16.0))
