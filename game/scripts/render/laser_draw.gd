@@ -5,6 +5,7 @@ extends RefCounted
 ## 开关 fx/laser_style：0 = 原样（缺省，返回 false 交回原画法）；1 = A 像素光束；2 = B 颗粒光束。纯画面，随机只走 g.vrng。
 ## 共同点：光束 0.06 秒内从起点伸到终点（不再满长度瞬间出现）；颜色压回 ≤ 1（不靠 HDR 糊辉光）；不画常驻大光晕、不按 sin 抖宽度（原 bbeam 40 Hz 抖动）。
 const Bal = preload("res://scripts/core/balance.gd")
+const BossBeam = preload("res://scripts/render/boss_beam.gd")
 const GROW := 0.06   # 伸出时长（秒）
 
 static func style() -> int:
@@ -16,6 +17,10 @@ static func draw(g, f: Dictionary, a: float, ci = null) -> bool:
 	var st: int = style()
 	if st <= 0:
 		return false
+	# 淡出按模拟 / 真实时间里走得快的那个（boss_beam.laser_el）：掉帧、顿帧时也在寿命内收完（用户 10-26「激光打完消失得很慢」）
+	a = minf(a, 1.0 - BossBeam.laser_el(f) / maxf(0.001, float(f.max)))
+	if a <= 0.0:
+		return true
 	if ci == null:
 		ci = g
 	var grains = g.optical.grains if g.optical != null and g.optical.grains != null and g.optical.grains.on() else null

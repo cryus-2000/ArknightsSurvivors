@@ -189,7 +189,7 @@ func _pick_common() -> String:
 	return id
 
 
-## 翻开第 i 张（progression.pick 在 choice_kind == "cross" 时转到这里）：先翻面，0.6 秒后兑现；批跑 / 无头立即兑现
+## 翻开第 i 张（progression.pick 在 choice_kind == "cross" 时转到这里）：先翻面，1.15 秒后兑现；批跑 / 无头立即兑现
 func flip(i: int) -> void:
 	if flipped >= 0 or i < 0 or i >= deck.size():
 		return
@@ -211,7 +211,7 @@ func flip(i: int) -> void:
 	if g.mode == g.Mode.BALANCE or DisplayServer.get_name() == "headless":
 		_resolve()
 	else:
-		g.get_tree().create_timer(0.75, true, false, true).timeout.connect(_resolve)
+		g.get_tree().create_timer(1.15, true, false, true).timeout.connect(_resolve)   # 起手 → 翻转 → 揭示（node_cards_ui）走完再兑现
 
 
 func _fog_type() -> String:

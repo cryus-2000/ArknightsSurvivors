@@ -9,7 +9,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 
 const SEG := 16.0     # 每段宽（美术像素）
 const HALF_H := 24.0  # 帧高 48 的一半（光束竖直居中）
-const ON_T := 0.12    # 开启 / 关闭各 0.12 秒（4 帧）
+const ON_T := 0.06    # 开启 / 关闭各 0.06 秒（4 帧；原 0.12，光束总长随 telegraph.KP_LIFE 收到 0.25 秒）
 const FPS := 16.0     # 持续帧循环
 # Boss 颗粒预算（令牌桶）：每秒补 render/boss_grain_rate（高档 600、中档减半）、最多攒 render/boss_grain_burst（高档 160、中档减半）；
 # 每次要 n 颗只给桶里有的（超了降密度，不排队）。低档 fx_grains 不开 → grains() 返回 null，各处退回原画法
@@ -22,6 +22,17 @@ static func grains(g):
 	if g.optical == null or g.optical.grains == null or not g.optical.grains.on() or g.perf_alt or Bal.v("render/boss_fx_grains", 1.0) <= 0.0:
 		return null
 	return g.optical.grains
+
+
+## 激光类特效已播时长（秒）：取模拟时间（max − life）与真实时间（第一次画时记下 rt0）里大的那个——
+## 掉帧（30 帧以下 PlayClock 让模拟放慢）或顿帧（hitstop 暂停模拟）时，按模拟时间淡出会在真实时间里拖长（用户 10-26「激光打完消失得很慢」）；
+## 判定在结算那一刻已结束，画面只看真实时间也不会和判定错开。正常帧率下两者相同
+static func laser_el(f: Dictionary) -> float:
+	var el: float = float(f.max) - float(f.life)
+	var now: int = Time.get_ticks_msec()
+	if not f.has("rt0"):
+		f["rt0"] = now - int(el * 1000.0)
+	return maxf(el, float(now - int(f.rt0)) / 1000.0)
 
 
 ## 从预算里要 n 颗，返回实际给的颗数（0..n）
@@ -49,13 +60,16 @@ static func _tex(g, name: String) -> Texture2D:
 ## f：{"kind": "kp_beam", "a", "b", "life", "max", "boss": "iberia", "k": 世界像素 / 美术像素（缺省 2 = 1 倍粗，3 = 1.5 倍粗）}
 static func draw(g, f: Dictionary) -> bool:
 	var boss: String = str(f.get("boss", ""))
-	var el: float = float(f.max) - float(f.life)
-	var on: bool = el < ON_T or float(f.life) < ON_T
+	var el: float = laser_el(f)
+	var left: float = float(f.max) - el
+	if left <= 0.0:
+		return true   # 真实时间已到（掉帧 / 顿帧时模拟还没走完）：不再画
+	var on: bool = el < ON_T or left < ON_T
 	var fr: int
 	if el < ON_T:
 		fr = clampi(int(el / ON_T * 4.0), 0, 3)
-	elif float(f.life) < ON_T:
-		fr = clampi(int(float(f.life) / ON_T * 4.0), 0, 3)   # 关闭 = 开启倒放
+	elif left < ON_T:
+		fr = clampi(int(left / ON_T * 4.0), 0, 3)   # 关闭 = 开启倒放
 	else:
 		fr = int(el * FPS) % 4
 	var suf: String = "_on" if on else ""
@@ -97,7 +111,8 @@ static func _tile(g, tex: Texture2D, a: Vector2, b: Vector2, k: float, fr: int, 
 
 ## 卡门的封锁线（saint.gd _fire_step 写 e.fire_lines）：Kanpelle 象牙白中段压暗平铺，缺口空出来、画白圈；最后 0.6 秒淡出
 static func _fire_lines(g, e: Dictionary) -> void:
-	var tex := _tex(g, "fx_kp_%s_mid" % e.type)
+	var bc: Color = g.vfx.boss_color(str(e.type))
+	var ember := Color(bc.r * 0.95, bc.g * 0.62, bc.b * 0.38)   # 余烬：专属色往暖、往暗压（象牙白 → 焦橙）
 	for fl in e.get("fire_lines", []):
 		var left: float = float(fl.until) - g.t
 		var al: float = 0.55 * clampf(left / 0.6, 0.0, 1.0) * clampf((g.t - float(fl.get("born", 0.0))) / 0.15, 0.0, 1.0)
@@ -108,13 +123,27 @@ static func _fire_lines(g, e: Dictionary) -> void:
 			continue
 		var gt: float = float(fl.gap_t)
 		var gh: float = float(fl.gap_len) * 0.5 / L
-		var fr: int = int(g.t * FPS) % 4
-		if tex != null:
-			_tile(g, tex, a, a.lerp(b, maxf(0.0, gt - gh)), 2.0, fr, al)
-			_tile(g, tex, a.lerp(b, minf(1.0, gt + gh)), b, 2.0, fr, al)
-		else:
-			g.draw_line(a, a.lerp(b, gt - gh), Color(1.0, 0.94, 0.82, al), 6.0)
-			g.draw_line(a.lerp(b, gt + gh), b, Color(1.0, 0.94, 0.82, al), 6.0)
+		# 贴地余烬带（用户 10-26：火线用激光帧条画，看起来像激光打完迟迟不消失）：每 14 像素一小段，hash 每秒换 5 次决定亮暗 / 断续，
+		# 线宽 4、比激光暗得多；判定照旧（saint._fire_step：线宽 14 内、缺口外）
+		var dirv: Vector2 = (b - a) / L
+		var nrm: Vector2 = dirv.orthogonal()
+		var pts := PackedVector2Array()
+		var cols := PackedColorArray()
+		var n: int = int(L / 14.0)
+		var tick: float = floor(g.t * 5.0)
+		for i in n:
+			var u0: float = float(i) / float(n)
+			var u1: float = (float(i) + 0.75) / float(n)
+			if absf((u0 + u1) * 0.5 - gt) < gh:
+				continue   # 缺口里不画
+			var h: float = fposmod(sin(float(i) * 12.9898 + tick * 4.11 + float(fl.born) * 7.0) * 43758.5453, 1.0)
+			var j: float = (h - 0.5) * 4.0
+			pts.append(a + dirv * (L * u0) + nrm * j)
+			pts.append(a + dirv * (L * u1) + nrm * j)
+			var k: float = 0.45 + 0.55 * h
+			cols.append(Color(ember.r * (0.8 + 0.5 * k), ember.g * (0.8 + 0.5 * k), ember.b * (0.8 + 0.5 * k), al * k))
+		if not cols.is_empty():
+			g.draw_multiline_colors(pts, cols, 4.0)
 		var gp: Vector2 = a.lerp(b, gt)
 		g.draw_set_transform(gp, 0.0, Vector2(1.0, 0.6))
 		g.draw_arc(Vector2.ZERO, 14.0, 0.0, TAU, 20, Color(1, 1, 1, minf(1.0, al * 1.6)), 2.0)

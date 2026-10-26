@@ -78,6 +78,7 @@ def export(ref):
         sys.exit("导出失败")
     html = open(os.path.join(tmp, "index.html"), encoding="utf-8").read()
     gl = open(os.path.join(TOOLS, "web", "gl_state.js"), encoding="utf-8").read()
+    gl += "\n" + open(os.path.join(TOOLS, "web", "power.js"), encoding="utf-8").read()   # 页面隐藏挂起音频（同发布版，docs/50 §33）
     html = html.replace("<head>", "<head>\n" + RAF_JS + "\n<script>\n" + gl + "\n</script>", 1)
     html, k = re.subn(r'"args":\s*\[\]', '"args":new URLSearchParams(location.search).getAll("a")', html)
     if k != 1:
@@ -144,7 +145,7 @@ class _Sock(socket.socket):
     pass
 
 
-def _cdp_setup(port, url, throttle, mobile, throttle_late=False):
+def _cdp_setup(port, url, throttle, mobile, throttle_late=False, dpr=3):
     """等 Edge 起来，按需开 CPU 节流 / 手机视口 + 触屏，再导航到游戏页（先设好再加载，游戏启动时就认成触屏设备）"""
     t0 = time.time()
     tgt = None
@@ -171,7 +172,7 @@ def _cdp_setup(port, url, throttle, mobile, throttle_late=False):
     if throttle and throttle > 1 and not throttle_late:
         cmd("Emulation.setCPUThrottlingRate", {"rate": throttle})
     if mobile:
-        cmd("Emulation.setDeviceMetricsOverride", {"width": 844, "height": 390, "deviceScaleFactor": 3, "mobile": True,
+        cmd("Emulation.setDeviceMetricsOverride", {"width": 844, "height": 390, "deviceScaleFactor": dpr, "mobile": True,
                                                     "screenOrientation": {"type": "landscapePrimary", "angle": 90}})
         cmd("Emulation.setTouchEmulationEnabled", {"enabled": True, "maxTouchPoints": 5})
         cmd("Emulation.setUserAgentOverride", {"userAgent": "Mozilla/5.0 (Linux; Android 13; Pixel 6a) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36",
@@ -181,7 +182,7 @@ def _cdp_setup(port, url, throttle, mobile, throttle_late=False):
     return s   # 连接留着：断开后节流会失效
 
 
-def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False):
+def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False, dpr=3):
     d = export(ref)
     log_p = os.path.join(d, "out_%s.txt" % tag)
     open(log_p, "w").close()
@@ -224,7 +225,7 @@ def run(ref, tag, game_args, timeout, throttle=0, mobile=False, lowgpu=False):
                           "--disable-backgrounding-occluded-windows", "--disable-features=CalculateNativeWinOcclusion", "--mute-audio"]
                          + (["--remote-debugging-port=%d" % dbg] if emu else []) + (["--force_low_power_gpu"] if lowgpu else []))
     late = bool(throttle) and "--rtfrom" in " ".join(game_args)   # 后期场景：快进段不节流，看到 PF RTFROM 再开
-    cdp = _cdp_setup(dbg, url, throttle, mobile, late) if emu else None
+    cdp = _cdp_setup(dbg, url, throttle, mobile, late, dpr) if emu else None
     t0 = time.time()
     while not done.is_set() and time.time() - t0 < timeout:
         done.wait(2)
@@ -267,12 +268,13 @@ def main():
     ap.add_argument("--timeout", type=float, default=1800)
     ap.add_argument("--throttle", type=float, default=0, help="低配模拟：CPU 节流倍数（DevTools，4 / 6）")
     ap.add_argument("--mobile", action="store_true", help="低配模拟：手机横屏视口 844×390、3 倍像素、触屏、安卓 UA")
+    ap.add_argument("--dpr", type=float, default=3, help="手机视口的设备像素比（iPhone 3、中低端安卓 2）")
     ap.add_argument("--lowgpu", action="store_true", help="低配模拟：Edge 用核显（--force_low_power_gpu）")
     a = ap.parse_args(argv)
     if a.cmd == "export":
         print(export(a.ref))
     else:
-        run(a.ref, a.tag, game_args, a.timeout, a.throttle, a.mobile, a.lowgpu)
+        run(a.ref, a.tag, game_args, a.timeout, a.throttle, a.mobile, a.lowgpu, a.dpr)
 
 
 if __name__ == "__main__":

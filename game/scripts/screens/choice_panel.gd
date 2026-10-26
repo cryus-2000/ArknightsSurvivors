@@ -9,6 +9,7 @@ const Character = preload("res://scripts/characters/character.gd")
 const Affects = preload("res://scripts/run/affects.gd")
 const CardMotion = preload("res://scripts/screens/card_motion.gd")   # 各种面板的入场动效分派（docs/62 第一批）
 const NodeIcons = preload("res://scripts/screens/node_icons.gd")   # 节点卡图标（docs/154）
+const NodeCardsUI = preload("res://scripts/screens/node_cards_ui.gd")   # 翻节点卡卡面与演出（docs/154）
 const UM = preload("res://scripts/ui_motion.gd")
 
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
@@ -23,6 +24,10 @@ var serif: Font                # 事件标题用的衬线粗体（fonts/serif.tt
 ## 下方事件名（衬线粗体）+ 剧情一句；右边竖排选项条在 panel_col。插画的随机形状按事件名缓存
 var ev_art := {}
 var ink_tex: GradientTexture2D
+## 事件插画（docs/156，Codex 母稿 art/incoming/event_cg_1026 离线缩成运行时用图）：按事件 id 打开面板时才 load，
+## 换成别的面板 / 面板关掉就放掉引用（显存随之释放）。桌面读 art/event_cg/hi（1120×1000，2× 插画框），网页读 web（560×500）
+var ev_cg: Texture2D = null
+var ev_cg_key := ""
 ## 选卡卡片（A3，仿原作「选择支援」）：炭灰卡 + 左上节点标签条（英文分类 + 中文）+ 右上序号 + 图标光环 + 名称 + 说明 +
 ## 作用对象标签（影响当前编队里的哪些干员，run/affects.gd）+ 底部操作条。悬停 / 焦点：青色细边与外晕，标签条与操作条变青
 const CARD_W := 272.0
@@ -34,11 +39,20 @@ const CARDS_TOP_PHONE := 80.0
 const EV_COL_TOP_PHONE := 70.0
 
 
-## 手机横屏（Cfg.phone_ui）三选一整排卡片的缩放（用户 10-13「藏品还是有点太顶天立地」）：卡片按原排版画，整排（panel_box）等比缩到 0.8，
-## 382 高 → 约 306，界面逻辑高约 544 时占约 56%；图标、名字、说明、「影响」标签、选择条、卡间距一起按比例缩。
-## 标题 + 卡片整块在画面里上下居中（上下各留出一截能看到背后的战斗）。说明字最小 15 × 0.8 = 12，守住手机正文下限 12。
-## 「界面大小」照常生效（整层再乘）；平板 / 16:9 触屏 / 电脑不缩
-const CARD_SCALE_PHONE := 0.8
+## 手机横屏（Cfg.phone_ui）三选一整排卡片的缩放：卡片按原排版画，整排（panel_box）等比缩到 CARD_SCALE_PHONE；
+## 图标、名字、说明、「影响」标签、选择条、卡间距一起按比例缩。标题 + 卡片整块在画面里上下居中。
+## 10-26 用户 iPhone 实机「挤得太满」（Safari 横屏可视区约 2.18:1，长说明把卡撑到快顶满）：手机上卡片只写一句核心效果（brief()，
+## 不再按最长说明加高），字从 24 号起、最小 19（× 0.9 ≈ 17 界面像素），整排放大到 0.9；完整说明点卡片右上「详情」再看（detail_i）。
+## 「界面大小」照常生效（整层再乘）；平板 / 16:9 触屏 / 电脑不缩、照旧写完整说明
+const CARD_SCALE_PHONE := 0.9
+const BRIEF_SIZES_PHONE := [24, 23, 22, 21, 20, 19]
+## 手机：正在看完整说明的那张卡（-1 = 没有）；点「详情」开 / 关，换一批卡、选中时清掉
+var detail_i := -1
+## 选中余光（10-26 用户「优化动效」：以前一选卡片就凭空消失）：选中那一刻记下这张卡的屏幕矩形，
+## 面板照旧马上关、游戏马上继续，HUD 上在原位置画 PICK_GLOW 秒的「亮一下 → 青框外扩散开」。只有两三个矩形，手机 30 帧无负担
+const PICK_GLOW := 0.3
+var picked_r := Rect2()
+var picked_t := -10.0
 const HEADER_H := 80.0         # 标题块（英文小标 + 大标题 + 说明行）到卡片顶边的高度
 ## 三档布局参数（docs/126 C6）：下标 = Cfg.ui_form()（0 桌面 / 1 触屏 / 2 手机横屏）。正文只读 lay()，不再各自判断平台。
 ## touch：触屏版式（事件条横跨整屏、卡片紧凑排版、面板压暗带从顶到底）；phone：手机横屏（整排缩 card_scale、按说明加高、上下居中）；
@@ -263,6 +277,9 @@ func layout(kind: String) -> void:
 	var dim := 0.5
 	if kind == "shop":
 		bot = vs.y - 56.0
+	elif kind == "cross":
+		desat = 0.6   # 翻节点卡（docs/154）：压暗但保留战场氛围
+		dim = 0.42
 	elif kind == "event":
 		top = 0.0
 		bot = vs.y
@@ -329,6 +346,13 @@ func draw_bg() -> void:
 					hint = "←→ 选择 · Ⓐ 翻开" if Pad.using else ("点击卡片翻开" if Pad.touch else "点击卡片翻开，或按 1–%d" % g.choices.size())
 				UI.text(g.panel_fg, g.font, Vector2(0, CARDS_TOP + CARD_H * row_k + 26), hint, 12, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, vs.x)
 			motion.draw_under(g.panel_fg)   # 藏品光柱（压暗带之上、卡片之下）
+			if g.choice_kind == "cross":
+				var inv: Transform2D = g.panel_fg.get_global_transform().affine_inverse()
+				var rects: Array = []
+				for cd in g.panel_box.get_children():
+					if cd is Button:
+						rects.append(inv * (cd as Control).get_global_rect())
+				NodeCardsUI.draw_bg(g.panel_fg, vs, rects, g.endg.flipped, UM.now(), cards_top())
 
 
 ## 面板标题（原作「选择支援」）：英文小标签 + 大标题（两侧渐隐细线 + 靠近文字的短粗线）+ 一行说明
@@ -401,6 +425,20 @@ func draw_event_bg(vs: Vector2) -> void:
 	for q in pts:
 		tp.append(p0 + q)
 		uv.append(Vector2(clampf(q.x / 560.0, 0.0, 1.0), clampf(q.y / 500.0, 0.0, 1.0)))
+	var cg := event_cg()
+	if cg != null:
+		UI.fill_poly(g.panel_fg, tp, Color.WHITE, uv, cg)
+	else:
+		_draw_ink_art(art, p0, tp)
+	# 底部压暗，放事件名与剧情
+	_event_caption(art, p0)
+
+
+## 没有插画时的墨色底：灰阶渐变 + 墨点笔触 + 彩色节点图标（C 版式）
+func _draw_ink_art(art: Dictionary, p0: Vector2, tp: PackedVector2Array) -> void:
+	var uv := PackedVector2Array()
+	for q in art.panel:
+		uv.append(Vector2(clampf(q.x / 560.0, 0.0, 1.0), clampf(q.y / 500.0, 0.0, 1.0)))
 	UI.fill_poly(g.panel_fg, tp, Color.WHITE, uv, ink_grad())
 	for b in art.blobs:
 		UI.fill_poly(g.panel_fg, offset_poly(b, p0, tp), Color(0.047, 0.047, 0.05, 0.5))
@@ -414,7 +452,12 @@ func draw_event_bg(vs: Vector2) -> void:
 		g.panel_fg.draw_circle(ac, 120.0 - k * 20.0, Color(0.18, 0.72, 1.0, 0.05))
 	var nk := event_node_kind()
 	NodeIcons.draw(g.panel_fg, nk, ac + Vector2(0, roundf(2.0 * sin(g.t * 2.0))), 8.0, NodeIcons.COLS[nk])
-	# 底部压暗，放事件名与剧情
+
+
+## 插画框底部压暗带 + 事件名 / 剧情 + 右侧「选择一项」标题与提示
+func _event_caption(art: Dictionary, p0: Vector2) -> void:
+	var vs := g.panel_fg.size
+	var cx := vs.x / 2.0
 	var g0 := Color(0.04, 0.04, 0.043, 0.0)
 	var g1 := Color(0.04, 0.04, 0.043, 0.95)
 	g.panel_fg.draw_polygon(PackedVector2Array([p0 + Vector2(6, 300), p0 + Vector2(554, 300), p0 + Vector2(554, 492), p0 + Vector2(6, 492)]), PackedColorArray([g0, g0, g1, g1]))
@@ -446,10 +489,20 @@ func draw_event_bg(vs: Vector2) -> void:
 func _draw_event_bg_phone(vs: Vector2) -> void:
 	var x0 := 28.0
 	var nk := event_node_kind()
-	for k in 3:
-		g.panel_fg.draw_circle(Vector2(x0 + 24.0, 32.0), 40.0 - k * 10.0, Color(0.18, 0.72, 1.0, 0.05))
-	NodeIcons.draw(g.panel_fg, nk, Vector2(x0 + 24.0, 32.0), 3.0, NodeIcons.COLS[nk])
-	x0 += 62.0
+	var cg := event_cg()
+	if cg != null:
+		# 有插画：压暗铺满整屏当底（选项条横跨整屏，插画放不下左栏），左上再放一张小图
+		var ts := Vector2(cg.get_size())
+		var sz: Vector2 = ts * maxf(vs.x / ts.x, vs.y / ts.y)
+		g.panel_fg.draw_texture_rect(cg, Rect2(((vs - sz) / 2.0).round(), sz.round()), false, Color(0.36, 0.36, 0.38))
+		g.panel_fg.draw_texture_rect(cg, Rect2(x0, 6.0, 62.0, 55.0), false)
+		g.panel_fg.draw_rect(Rect2(x0, 6.0, 62.0, 55.0), Color(0.6, 0.85, 1.0, 0.6), false, 1.0)
+		x0 += 76.0
+	else:
+		for k in 3:
+			g.panel_fg.draw_circle(Vector2(x0 + 24.0, 32.0), 40.0 - k * 10.0, Color(0.18, 0.72, 1.0, 0.05))
+		NodeIcons.draw(g.panel_fg, nk, Vector2(x0 + 24.0, 32.0), 3.0, NodeIcons.COLS[nk])
+		x0 += 62.0
 	var ew0 := UI.en(g.panel_fg, g.font, Vector2(x0, 22), "EVENT", 11, Color(0.6, 0.59, 0.56), 3.0)
 	UI.text(g.panel_fg, g.font, Vector2(x0 + ew0 + 6, 22), "·  %s  ·  选择一项" % NodeIcons.NAMES[nk], 11, Color(0.6, 0.59, 0.56))
 	g.panel_fg.draw_string(serif, Vector2(x0, 52), g.panel_title_text, HORIZONTAL_ALIGNMENT_LEFT, -1, 24, Color.WHITE)
@@ -458,6 +511,23 @@ func _draw_event_bg_phone(vs: Vector2) -> void:
 		UI.text_fit(g.panel_fg, g.font, Vector2(x0 + tw + 18, 50), UI.soft(panel_sub_text), 15, Color(0.81, 0.79, 0.76), vs.x - x0 - tw - 46.0, 12)
 	var hint := "←→ 选择 · Ⓐ 确认" if Pad.using else ("点击选项" if Pad.touch else "点击选项，或按 1–%d" % g.choices.size())
 	UI.text(g.panel_fg, g.font, Vector2(24, g.panel_col.offset_top + ev_bars_h + 6), hint, 14, Color(0.55, 0.54, 0.52))
+
+
+## 当前事件的插画（没有对应图返回 null，退回墨色底 + 节点图标）
+func event_cg() -> Texture2D:
+	var key: String = g.endg.opened_id if g.endg != null else ""
+	if key != ev_cg_key:
+		ev_cg_key = key
+		ev_cg = null
+		var path := "res://art/event_cg/%s/%s.webp" % ["web" if OS.has_feature("web") else "hi", key]
+		if key != "" and ResourceLoader.exists(path):
+			ev_cg = load(path)
+	return ev_cg
+
+
+func release_event_cg() -> void:
+	ev_cg = null
+	ev_cg_key = ""
 
 
 ## 事件插画里的节点图标：安全屋是「安全的角落」，其余都是「不期而遇」
@@ -478,6 +548,8 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	g.choices = opts
 	g.choice_kind = kind
 	g.nav_sel = 0
+	if kind != "event":
+		release_event_cg()
 	g.state = Game.S.CHOICE
 	g.panel_title_text = title
 	panel_sub_text = sub
@@ -504,17 +576,16 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	fit_row(0 if kind == "event" else opts.size())
 	g.panel_box.add_theme_constant_override("separation", int(row_sep))   # 商店会改间距，这里每次按本次张数重设
 	var L: Dictionary = lay()
+	detail_i = -1
+	for a in Cfg.dev_args():   # --carddetail=<n>（截图验收）：打开时直接展开第 n 张卡的详情
+		if a.begins_with("--carddetail="):
+			detail_i = int(a.substr(13))
+	var briefs: bool = L.phone and kind != "event" and kind != "cross"   # 手机：卡上只写一句核心效果
+	var row_cards: bool = kind != "event" and kind != "cross"
 	if L.phone and kind != "event":
-		# 手机横屏：卡片缩到 0.8 后上下有空，说明在最小字号 15 下仍放不下的（长说明藏品、招募卡），整排加高到放得下，最多到画面装得下为止
-		var base_h: float = card_h()
+		# 手机横屏：卡高固定（不再按最长说明加高，10-26 实机挤满），只是缩放后整块放不下时按画面高收一点
 		var max_h: float = (g.panel.size.y - HEADER_H - 12.0) / (CARD_SCALE_PHONE * row_k)
-		var need := base_h
-		for o in opts:
-			var fz := UI.fit(g.font, option_description(o), card_w - 2.0 * PAD_X_PHONE, base_h - DESC_PAD_PHONE, DESC_SIZES_PHONE)
-			if not fz.fit:
-				var f15 := UI.fit(g.font, option_description(o), card_w - 2.0 * PAD_X_PHONE, 9999.0, [DESC_SIZES_PHONE[-1]])
-				need = maxf(need, ceilf(f15.lines.size() * float(f15.lh)) + DESC_PAD_PHONE)
-		row_h = clampf(need, base_h, maxf(base_h, max_h))
+		row_h = minf(card_h(), maxf(DESC_PAD_PHONE + 90.0, max_h))
 	layout(kind)
 	motion.start(kind, opts)
 	var ev := kind == "event"
@@ -542,6 +613,13 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		var display_desc := option_description(o)
 		var card := Button.new()
 		card.set_meta("full_desc", display_desc)
+		if briefs or (row_cards and is_op_card(o)):
+			# 一句话（手机全部卡；电脑 / 平板只有干员卡，10-26 用户「干员相关卡别再细说技能」）。完整说明：手机 / 平板点「详情」，电脑悬停
+			var hl := headline(o)
+			var bf := hl if hl != "" else brief(display_desc)
+			card.set_meta("brief", bf)
+			card.set_meta("more", bf != display_desc.strip_edges())
+			display_desc = bf
 		card.custom_minimum_size = Vector2(ev_w, ev_h0) if ev else Vector2(card_w, row_h if row_h > 0.0 else card_h())
 		if L.touch:
 			card.set_meta("phone", true)
@@ -559,7 +637,10 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		card.draw.connect((draw_event_bar if ev else (draw_node_card if kind == "cross" else draw_card)).bind(card, o, i))
 		card.mouse_entered.connect(func(): Sfx.play("ui_move", -6.0); card.queue_redraw())
 		card.mouse_exited.connect(card.queue_redraw)
-		card.pressed.connect(g.progression.pick.bind(i))
+		if card.get_meta("more", false) and L.touch:
+			card.pressed.connect(_phone_press.bind(card, i))   # 点「详情」看完整说明，点别处照常选
+		else:
+			card.pressed.connect(g.progression.pick.bind(i))
 		# 说明文字：创建时按宽度排好版（放不下先缩字号）。选卡卡片三行还放不下就切紧凑布局——
 		# 图标缩小、名字上移，把位置让给说明；事件选项条则按行数加高
 		if ev:
@@ -570,12 +651,14 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		else:
 			# 触屏说明字先试大 2 号，放不下再退回原字号（紧凑布局同理）
 			var f0 := UI.fit(g.font, display_desc, card_w - 40.0, 60.0, [15, 14, 13, 12] if Pad.touch_ui() else [13, 12])
+			if card.has_meta("brief") and not L.touch:
+				f0 = UI.fit(g.font, display_desc, card_w - 40.0, 64.0, [18, 17, 16, 15, 14, 13])   # 电脑：干员卡一句话，字放大
 			var compact: bool = not f0.fit
 			if L.touch:
 				# 手机：说明字比图标要紧——一律紧凑布局（图标 64 在 84、名字 160、说明 176 起到标签行上方），字 20 起、最小 15
 				compact = true
 				if row_h > 0.0:
-					f0 = UI.fit(g.font, display_desc, card_w - 2.0 * PAD_X_PHONE, row_h - DESC_PAD_PHONE, DESC_SIZES_PHONE)
+					f0 = UI.fit(g.font, display_desc, card_w - 2.0 * PAD_X_PHONE, row_h - DESC_PAD_PHONE, BRIEF_SIZES_PHONE if briefs else DESC_SIZES_PHONE)
 					card.set_meta("roomy", true)
 				else:
 					f0 = UI.fit(g.font, display_desc, card_w - 40.0, card_h() - 176.0 - 53.0 - 4.0, [20, 19, 18, 17, 16, 15])
@@ -603,6 +686,157 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 					c.set_meta("fit", UI.fit(g.font, c.get_meta("full_desc", ""), card_w - 40.0, 108.0, [15, 14, 13, 12, 11] if Pad.touch_ui() else [13, 12, 11]))
 	g.panel.visible = true
 	g.panel_fg.queue_redraw()
+
+
+## 手机卡片上的一句核心效果：说明第一行的第一句（到「；」「。」为止），去掉括号里的补充说明；还长于 BRIEF_MAX 字
+## 就在冒号 / 逗号处取一个完整的前半句（brief_whole）。招募卡第一句是干员概述，特性看标签行
+const BRIEF_MAX := 24
+static var _re_paren: RegEx
+
+static func brief(desc: String) -> String:
+	if _re_paren == null:
+		_re_paren = RegEx.create_from_string("（[^）]*）|\\([^)]*\\)")
+		_re_digit = RegEx.create_from_string("[0-9]")
+		_re_numparen = RegEx.create_from_string("（([^）]*[0-9][^）]*)）")
+	var raw: String = desc.strip_edges().split("\n")[0]
+	var sent: String = _re_paren.sub(raw, "", true)
+	for sep in ["；", "。"]:
+		var k := sent.find(sep)
+		if k > 0:
+			sent = sent.substr(0, k)
+	sent = sent.strip_edges()
+	# 括号外没有数字、数值全在括号里（「…再落第三波（40% 伤害）」）：留括号里第一个带数字的短语，别把数值整个丢掉
+	if _re_digit.search(sent) == null:
+		var m := _re_numparen.search(raw)
+		if m != null:
+			for piece in m.get_string(1).split("，"):
+				var pc: String = piece.get_slice("；", 0).strip_edges()
+				if _re_digit.search(pc) != null:
+					sent += "（%s）" % pc
+					break
+	if sent.length() <= BRIEF_MAX:
+		return sent
+	# 整句太长：在冒号 / 逗号处找一个完整的前半句——不以「每秒 / 期间 / 的」这类半截词结尾，原句有数字时前半句也要有数字
+	# （10-26：水月「病理性依恋·缠缚」以前切成「「囚徒困境」期间每秒」）。都不行就整句（字号由 fit 往下缩）
+	var has_num := _re_digit.search(sent) != null
+	for sep in ["：", "，"]:
+		var k := sent.find(sep)
+		while k >= 4:
+			var head := sent.substr(0, k).strip_edges()
+			if head.length() > BRIEF_MAX + 8:
+				break
+			if brief_whole(head) and (not has_num or _re_digit.search(head) != null):
+				return head
+			k = sent.find(sep, k + 1)
+	return sent
+
+
+## 一句话是不是完整的：不以半截词结尾（card_desc 回归同一规则）
+const BRIEF_WEAK_TAIL := ["每秒", "期间", "的", "时", "中", "内", "与", "和", "并", "对", "在", "被", "将", "使", "及", "或", "把", "向", "从", "为", "让", "且"]
+static var _re_digit: RegEx
+static var _re_numparen: RegEx
+
+
+static func brief_whole(t: String) -> bool:
+	t = t.strip_edges()
+	if t.length() < 4:
+		return false
+	for w in BRIEF_WEAK_TAIL:
+		if t.ends_with(w):
+			return false
+	return true
+
+
+## 记下选中卡的屏幕矩形（progression.pick 调用；事件选项条、翻节点卡同样适用）
+func mark_pick(i: int) -> void:
+	var box: BoxContainer = g.panel_col if g.choice_kind == "event" else g.panel_box
+	if i < 0 or i >= box.get_child_count() or UM.rm():
+		return
+	var c := box.get_child(i) as Control
+	picked_r = c.get_global_rect()
+	picked_t = UM.now()
+
+
+## 选中余光：前 1/3 整卡一层白光淡出，青框从卡边外扩 18 px 并淡出（画在 HUD 最上层的 front 块里）
+func draw_pick_glow(ci: CanvasItem) -> void:
+	var e := (UM.now() - picked_t) / PICK_GLOW
+	if e < 0.0 or e >= 1.0:
+		return
+	var r := picked_r
+	r.position -= (ci as Control).get_global_rect().position
+	var k := 1.0 - e
+	if e < 0.33:
+		ci.draw_rect(r, Color(1, 1, 1, 0.28 * (1.0 - e / 0.33)))
+	var gr := r.grow(4.0 + 18.0 * UI.ease_out(e))
+	ci.draw_rect(gr, Color(UI.CYAN, 0.9 * k), false, 2.0)
+	ci.draw_rect(gr.grow(3.0), Color(UI.CYAN, 0.25 * k), false, 3.0)
+
+
+## 干员相关卡（招募 / 干员培养 / 精英化 / 技能进阶）
+static func is_op_card(o: Dictionary) -> bool:
+	var k: String = str(o.get("kind", ""))
+	return k == "recruit" or k == "prog" or (k == "growth" and o.has("op"))
+
+
+## 干员卡的一句话（10-26 用户：只写「解锁二技能 · <原作技能名>」这样一句）：精英化卡 = 这一阶解锁的技能（精一二技能、精二三技能）；
+## 招募卡去掉讲技能的后半句；其余返回空，由 brief() 取说明第一句
+const CN_NUM := ["一", "二", "三", "四"]
+
+
+func headline(o: Dictionary) -> String:
+	if str(o.get("kind", "")) == "recruit":
+		# 招募卡：第一句里讲到技能的半句不写（「普攻熔岩弹清理敌群，技能喷发火山…」只留前半），技能看详情
+		var b := brief(option_description(o))
+		var c := b.find("，")
+		return b.substr(0, c) if c >= 4 and b.substr(c).contains("技能") and brief_whole(b.substr(0, c)) else ""
+	if str(o.get("kind", "")) != "prog" or int(o.get("elite", 0)) <= 0 or o.get("branch", false):
+		return ""
+	var op = g.squad.get_op(str(o.get("op", ""))) if g.squad != null else null
+	if op == null:
+		return ""
+	var lv: int = int(o.elite)
+	var sk: Dictionary = op.skill_def(lv)
+	var nm: String = str(sk.get("name", ""))
+	if nm == "" or lv >= CN_NUM.size():
+		return ""
+	return "解锁%s技能 · %s" % [CN_NUM[lv], nm]
+
+
+## 手机卡片点击：点在右上「详情」上 = 开 / 关这张卡的完整说明；点在别处 = 选这张（详情开着时也照常选）
+func _phone_press(card: Button, i: int) -> void:
+	if detail_tap(card, i):
+		return
+	detail_i = -1
+	g.progression.pick(i)
+
+
+## 手机卡片（选卡 / 商店）：这次点击落在「详情」键上（触控区比画出来的大一圈）就开 / 关完整说明并返回 true
+func detail_tap(card: Button, i: int) -> bool:
+	var dr: Rect2 = card.get_meta("detail_r", Rect2())
+	if card.get_meta("more", false) and dr.has_area() and dr.grow(10.0).has_point(card.get_local_mouse_position()):
+		detail_i = -1 if detail_i == i else i
+		Sfx.play("ui_move", -6.0)
+		g.panel_tip.queue_redraw()
+		return true
+	return false
+
+
+## 手机卡片右上的「详情」键（开着时青底、箭头朝下）；small = 商店窄卡用小一号
+func draw_detail_chip(card: Button, r: Rect2, i: int, small := false) -> void:
+	var on: bool = detail_i == i
+	var fs := 15 if small else 17
+	var dw := UI.cwidth(g.font, "详情", fs) + (28.0 if small else 34.0)
+	var dh := 28.0 if small else 32.0
+	var dr := Rect2(r.position + Vector2(r.size.x - dw - (6.0 if small else 10.0), 6.0 if small else 8.0), Vector2(dw, dh))
+	card.set_meta("detail_r", dr)
+	card.draw_rect(dr, UI.CYAN if on else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.45))
+	card.draw_rect(dr, Color(UI.CYAN, 0.9 if on else 0.5), false, 1.0)
+	var ink := Color(0.04, 0.07, 0.09) if on else Color.WHITE
+	UI.text(card, g.font, dr.position + Vector2(8 if small else 10, dh / 2.0 + fs * 0.4), "详情", fs, ink)
+	var ax := dr.end.x - (11.0 if small else 14.0)
+	var ay := dr.get_center().y
+	var tri := PackedVector2Array([Vector2(ax - 5, ay - 5), Vector2(ax + 1, ay), Vector2(ax - 5, ay + 5)]) if not on else PackedVector2Array([Vector2(ax - 6, ay - 3), Vector2(ax + 2, ay - 3), Vector2(ax - 2, ay + 3)])
+	card.draw_colored_polygon(tri, ink)
 
 
 ## 按技能的真实手动属性和当前身份提示；队友不会出现按 Q 的误导。
@@ -645,6 +879,8 @@ func option_description(option: Dictionary) -> String:
 ## 每帧：按面板种类推进入场动效（card_motion.update）；悬停抬起各种类共用
 func animate_cards(dt: float) -> void:
 	if not g.panel.visible:
+		if ev_cg != null:
+			release_event_cg()   # 面板关了：放掉事件插画
 		return
 	g.panel_fg.queue_redraw()
 	g.panel_tip.queue_redraw()
@@ -704,7 +940,10 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	card.draw_rect(r, UI.CYAN if hov else Color(1, 1, 1, 0.11), false, 1.0)
 	var tag := card_tag(o)
 	UI.strip(card, g.font, r.position + Vector2(14, 14), tag[0], tag[1], UI.CYAN if hov else Color(1, 1, 1, 0.88), UI.TEXT, 12)
-	UI.ctext(card, g.font, r.position + Vector2(r.size.x - 40, 32), str(i + 1), 17, UI.TEXT if hov else Color(0.43, 0.47, 0.51), HORIZONTAL_ALIGNMENT_RIGHT, 24)
+	if card.get_meta("more", false) and card.get_meta("phone", false):
+		draw_detail_chip(card, r, i)
+	else:
+		UI.ctext(card, g.font, r.position + Vector2(r.size.x - 40, 32), str(i + 1), 17, UI.TEXT if hov else Color(0.43, 0.47, 0.51), HORIZONTAL_ALIGNMENT_RIGHT, 24)
 	if tag[2] != "":
 		var rw := UI.cwidth(g.font, tag[2], 10) + 10.0
 		card.draw_rect(Rect2(r.position + Vector2(14, 40), Vector2(rw, 15)), tag[3])
@@ -755,17 +994,20 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var px: float = PAD_X_PHONE if roomy else 20.0
 	var ny: float = NAME_Y_PHONE if roomy else ((160.0 if ph else 184.0) if compact else 230.0)
 	var nx: float = px if roomy else 0.0
-	UI.text(card, g.font, r.position + Vector2(nx, ny), nm, 22 if ph else 20, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * nx, 3)
+	UI.text(card, g.font, r.position + Vector2(nx, ny), nm, (24 if card.has_meta("brief") else 22) if ph else 20, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * nx, 3)
 	var fd: Dictionary = card.get_meta("fit", {})
 	if not fd.is_empty():
 		var dy: float = DESC_Y_PHONE if roomy else ((176.0 if ph else 198.0) if compact else 244.0)
-		UI.draw_fit(card, g.font, r.position + Vector2(px, dy), fd, Color(0.655, 0.69, 0.725, ta), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * px)
+		var dc := Color(0.86, 0.9, 0.93, ta) if card.has_meta("brief") else Color(0.655, 0.69, 0.725, ta)
+		UI.draw_fit(card, g.font, r.position + Vector2(px, dy), fd, dc, HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 2.0 * px)
 	# 作用对象：这张卡影响编队里的哪些干员（招募卡列这名干员的伤害特征）；说明区最多到 306，标签行在 310
 	var chips: Array = card.get_meta("affects", [])
 	if not chips.is_empty():
-		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - (CHIP_UP_PHONE if roomy else 53.0)), chips, r.size.x - (2.0 * px if roomy else 32.0), 1, "特性" if o.kind in ["recruit", "swap_out"] else "影响", 11, ta)
+		UI.chip_row(card, g.font, r.position + Vector2(r.size.x / 2.0, r.size.y - (CHIP_UP_PHONE if roomy else 53.0)), chips, r.size.x - (2.0 * px if roomy else 32.0), 1, "特性" if o.kind in ["recruit", "swap_out"] else "影响", 14 if (ph and card.has_meta("brief")) else 11, ta)
 	# 底部操作条：普通钢蓝；悬停青底深字
 	var ab := Rect2(r.position + Vector2(20, r.size.y - 46), Vector2(r.size.x - 40, 30)) if roomy else Rect2(r.position + Vector2(16, r.size.y - 44), Vector2(r.size.x - 32, 30))
+	if ph and card.has_meta("brief"):
+		ab = Rect2(r.position + Vector2(16, r.size.y - 54), Vector2(r.size.x - 32, 42))   # 手机：选择条 42 高（× 0.9 ≈ 38 界面像素）
 	card.draw_rect(ab, UI.CYAN if hov else Color(UI.STEEL.r, UI.STEEL.g, UI.STEEL.b, 0.4))
 	var ink := Color(0.04, 0.07, 0.09) if hov else Color.WHITE
 	var kl := "" if Pad.touch_ui() else "[ %d ]" % (i + 1)
@@ -773,7 +1015,10 @@ func draw_card(card: Button, o: Dictionary, i: int) -> void:
 	var w1 := g.font.get_string_size("选择", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sfs)).x
 	var w2 := (UI.cwidth(g.font, kl, 12) + 8.0) if kl != "" else 0.0
 	var sx := ab.get_center().x - (w1 + w2) / 2.0
-	UI.text(card, g.font, Vector2(sx, ab.position.y + (21 if ph else 20)), "选择", sfs, ink)
+	if ph and card.has_meta("brief"):
+		sfs = 20
+		sx = ab.get_center().x - g.font.get_string_size("选择", HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(sfs)).x / 2.0
+	UI.text(card, g.font, Vector2(sx, ab.position.y + (ab.size.y / 2.0 + 7.0 if (ph and card.has_meta("brief")) else (21.0 if ph else 20.0))), "选择", sfs, ink)
 	UI.ctext(card, g.font, Vector2(sx + w1 + 8.0, ab.position.y + 20), kl, 12, ink if hov else Color(1, 1, 1, 0.7))
 	motion.end(card, i, o)
 
@@ -858,89 +1103,39 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 		card.draw_rect(Rect2(base + Vector2(10, 22), Vector2(4, card.size.y - 44.0)), Color(0.18, 0.72, 1.0))
 
 
-## 翻节点卡（docs/154）：背面只露节点图标 + 名字（结局入口描已达成结局的色边）；选中的那张翻面（横向压扁再展开），
-## 正面写翻出来的事件名或效果，其余卡压暗
+## 翻节点卡（docs/154）：卡面与演出在 screens/node_cards_ui.gd（卡背纹样、结局色边、发牌 → 起手 → 翻转 → 揭示 → 退场）；
+## 这里只把卡片数据整理成绘制参数
 func draw_node_card(card: Button, o: Dictionary, i: int) -> void:
 	var c: Dictionary = o.get("node", {})
-	var fl: int = g.endg.flipped
-	var hov := card_hot(card, i) and fl < 0
-	var r := Rect2(Vector2(0, card.get_meta("oy", 0.0)), card.size)
-	var ctr := r.get_center()
-	var face := false
-	if fl == i:
-		var fe := clampf((UM.now() - g.endg.flip_t) / 0.36, 0.0, 1.0)
-		face = fe >= 0.5
-		var sx := maxf(0.03, absf(1.0 - 2.0 * fe))
-		card.draw_set_transform_matrix(Transform2D(0.0, Vector2(sx, 1.0), 0.0, ctr) * Transform2D(0.0, Vector2.ONE, 0.0, -ctr))
-	card.self_modulate.a = 0.35 if fl >= 0 and fl != i else 1.0
-	if hov:
-		for k in 3:
-			card.draw_rect(r.grow(2.0 + k * 3.0), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.12 - k * 0.035), false, 3.0)
-	var top := Color(0.075, 0.13, 0.18, 0.97) if not face else Color(0.13, 0.14, 0.16, 0.97)
-	var bot := Color(0.035, 0.06, 0.085, 0.97) if not face else Color(0.06, 0.065, 0.075, 0.97)
-	card.draw_polygon(PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)]), PackedColorArray([top, top, bot, bot]))
-	var t: String = str(c.get("type", "incident"))
-	var col: Color = NodeIcons.COLS.get(t, UI.CYAN)
-	if not face:
-		# 卡背：细横纹 + 内框 + 中央图标
-		var y := r.position.y + 26.0
-		while y < r.end.y - 22.0:
-			card.draw_rect(Rect2(r.position.x + 16.0, y, r.size.x - 32.0, 1.0), Color(1, 1, 1, 0.035))
-			y += 18.0
-		card.draw_rect(r.grow(-8.0), Color(col.r, col.g, col.b, 0.22), false, 1.0)
-		var ends: Array = (c.get("ends", []) as Array).filter(func(e): return Cfg.endings_cleared.has(e))
-		if ends.size() == 1:
-			card.draw_rect(r.grow(-1.5), g.endg.ending_col(ends[0]), false, 3.0)
-		elif ends.size() >= 2:
-			# 两个结局都达成过：左半一色、右半一色
-			var hw := r.size.x / 2.0
-			var c0: Color = g.endg.ending_col(ends[0])
-			var c1: Color = g.endg.ending_col(ends[1])
-			for e in [[r.position.x, c0], [r.position.x + hw, c1]]:
-				card.draw_rect(Rect2(e[0], r.position.y, hw, 3.0), e[1])
-				card.draw_rect(Rect2(e[0], r.end.y - 3.0, hw, 3.0), e[1])
-			card.draw_rect(Rect2(r.position.x, r.position.y, 3.0, r.size.y), c0)
-			card.draw_rect(Rect2(r.end.x - 3.0, r.position.y, 3.0, r.size.y), c1)
-		else:
-			card.draw_rect(r, UI.CYAN if hov else Color(1, 1, 1, 0.13), false, 1.0)
-		var ic := Vector2(ctr.x, r.position.y + r.size.y * 0.4)
-		for k in 3:
-			card.draw_circle(ic, 70.0 - k * 18.0, Color(col.r, col.g, col.b, 0.04 + 0.02 * k + (0.03 if hov else 0.0)))
-		NodeIcons.draw(card, t, ic, 6.0, col)
-		var nm: String = NodeIcons.NAMES.get(t, "")
-		card.draw_string(serif, Vector2(r.position.x, r.end.y - 92.0), nm, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 26, Color.WHITE if hov else UI.TEXT)
-		var en: String = NodeIcons.EN.get(t, "")
-		var ew := UI.en_width(g.font, en, 11, 3.0)
-		UI.en(card, g.font, Vector2(ctr.x - ew / 2.0, r.end.y - 64.0), en, 11, Color(col.r, col.g, col.b, 0.85), 3.0)
-		UI.ctext(card, g.font, r.position + Vector2(r.size.x - 40, 32), str(i + 1), 17, UI.TEXT if hov else Color(0.43, 0.47, 0.51), HORIZONTAL_ALIGNMENT_RIGHT, 24)
-	else:
-		# 正面：小图标 +「迷雾散去 ·」节点名 + 事件名或效果
-		card.draw_rect(r, col, false, 2.0)
-		NodeIcons.draw(card, t, Vector2(ctr.x, r.position.y + 70.0), 3.0, col)
-		var sub: String = ("迷雾散去 · " if c.get("fog", false) else "") + str(NodeIcons.NAMES.get(t, ""))
-		UI.text(card, g.font, Vector2(r.position.x, r.position.y + 128.0), sub, 13, col, HORIZONTAL_ALIGNMENT_CENTER, r.size.x)
-		var title := ""
-		var body := ""
+	var ends: Array = (c.get("ends", []) as Array).filter(func(e): return Cfg.endings_cleared.has(e))
+	var st := {
+		"i": i, "n": g.choices.size(), "hot": card_hot(card, i) and g.endg.flipped < 0, "flipped": g.endg.flipped,
+		"deal_t": motion.t0, "flip_t": g.endg.flip_t, "ends": ends, "ends_cols": ends.map(func(e): return g.endg.ending_col(e)),
+		"center_x": (card.get_global_transform().affine_inverse() * g.panel_box.get_global_rect().get_center()).x,
+	}
+	if g.endg.flipped == i:
+		var t: String = str(c.get("type", ""))
 		match t:
 			"incident":
 				var ev: Dictionary = g.endg.ev_by_id.get(str(c.get("event", "")), {})
-				title = str(ev.get("name", "不期而遇"))
-				body = str(ev.get("text", ""))
+				st.face_title = str(ev.get("name", "不期而遇"))
+				st.face_body = str(ev.get("text", ""))
+				if c.get("must", false):
+					st.face_tag = "结局线 · " + " / ".join((c.get("ends", []) as Array).map(func(e): return NodeCardsUI.ROMAN.get(e, "")))
 			"wish":
-				title = "消失的习俗"
-				body = "亮出三件藏品，选一件带走。"
+				st.face_title = "消失的习俗"
+				st.face_body = "亮出三件藏品，选一件带走。"
 			"rest":
-				title = "安全屋"
-				body = "休整、添加燃料，或重整编制。"
+				st.face_title = "安全屋"
+				st.face_body = "休整、添加燃料，或重整编制。"
 			"shop":
-				title = "诡意行商"
-				body = "下一位商人多带一件货，第一件打折。" if g.merchant_idx < g.MERCHANT_TIMES.size() else "商人已经走远，留下了一笔源石锭。"
+				st.face_title = "诡意行商"
+				st.face_body = "下一位商人多带一件货，第一件打折。" if g.merchant_idx < g.MERCHANT_TIMES.size() else "商人已经走远，留下了一笔源石锭。"
 			"elite":
-				title = "紧急作战"
-				body = "精英小队来袭。全部击败，多得一个宝箱。"
-		card.draw_string(serif, Vector2(r.position.x, r.position.y + 172.0), title, HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 28, Color.WHITE)
-		card.draw_multiline_string(g.font, Vector2(r.position.x + 22.0, r.position.y + 210.0), UI.soft(body), HORIZONTAL_ALIGNMENT_CENTER, r.size.x - 44.0, 14, 6, Color(0.81, 0.79, 0.76), UI.BRK)
-	card.draw_set_transform_matrix(Transform2D.IDENTITY)
+				st.face_title = "紧急作战"
+				st.face_body = "精英小队来袭。全部击败，多得一个宝箱。"
+	card.self_modulate.a = 1.0
+	NodeCardsUI.draw_card(card, card.size, c, st, g.font, serif)
 
 
 ## 干员待机条的第一帧：{tex, fw, fh}（按 data/characters/<id>.json 的 sprites.idle；没有返回空）
@@ -1003,7 +1198,15 @@ func draw_panel_tip() -> void:
 		var fd: Dictionary = card.get_meta("fit", {})
 		var cut: bool = card.get_meta("chips_cut", false)
 		var links: String = card.get_meta("links", "")
-		if ((fd.is_empty() or fd.get("fit", true)) and not cut and links == "") or not g.panel_ui.card_hot(card, card.get_index()):
+		if card.has_meta("brief") and card.get_meta("phone", false):
+			# 手机 / 平板：只有点开「详情」的那张画完整说明（含联动 / 被收起的影响对象）
+			if card.get_index() != detail_i or not card.get_meta("more", false):
+				continue
+		elif card.has_meta("brief"):
+			# 电脑：干员卡只写了一句，悬停时给完整说明
+			if not (card.get_meta("more", false) or cut or links != "") or not g.panel_ui.card_hot(card, card.get_index()):
+				continue
+		elif ((fd.is_empty() or fd.get("fit", true)) and not cut and links == "") or not g.panel_ui.card_hot(card, card.get_index()):
 			continue
 		var gr: Rect2 = card.get_global_rect()
 		var it: Dictionary = card.get_meta("item", {})
@@ -1012,9 +1215,33 @@ func draw_panel_tip() -> void:
 		var desc: String = card.get_meta("full_desc", fallback)
 		if cut:
 			desc += "\n影响：" + "、".join(PackedStringArray(card.get_meta("affects", []).map(func(c): return c[0])))
+		if card.has_meta("brief") and card.get_meta("phone", false):
+			_draw_phone_detail(card, title, desc + ("\n联动：" + links if links != "" else ""))
+			return
+		if card.has_meta("brief"):
+			g.hud_view.draw_tooltip(vs, Rect2(gr.position - g.panel_tip.get_global_rect().position, gr.size), title, "完整说明",
+				desc + ("\n联动：" + links if links != "" else ""), "", UI.CYAN, g.panel_tip)
+			return
 		var sub := "完整说明"
-		if links != "":
+		if links != "" and not card.has_meta("brief"):
 			desc = links   # 10-23 用户：招募卡提示框只列生效的藏品 / 联动，不重复干员介绍
 			sub = "联动"
 		g.hud_view.draw_tooltip(vs, Rect2(gr.position - g.panel_tip.get_global_rect().position, gr.size), title, sub, desc, "", UI.CYAN, g.panel_tip)
 		return
+
+
+## 手机「详情」：完整说明直接盖在这张卡上（卡头标签和「详情」键、底部选择条露在外面，点「详情」收起、点选择条照常选），
+## 不另外弹框挡住别的卡。正文 18 号起、最小 15（× 0.9 缩放），放不下才截断
+func _draw_phone_detail(card: Button, title: String, desc: String) -> void:
+	var tip: Control = g.panel_tip
+	var sc: float = g.panel_box.scale.x
+	var gr: Rect2 = card.get_global_rect()
+	var o: Vector2 = gr.position - tip.get_global_rect().position + Vector2(0, card.get_meta("oy", 0.0) * sc)
+	var r := Rect2(o + Vector2(6.0, 42.0) * sc, Vector2(card.size.x - 12.0, card.size.y - 42.0 - 60.0) * sc)
+	tip.draw_rect(r, Color(0.035, 0.045, 0.06, 0.97))
+	tip.draw_rect(r, Color(UI.CYAN, 0.7), false, 1.0)
+	tip.draw_rect(Rect2(r.position, Vector2(3.0, r.size.y)), UI.CYAN)
+	var pad := 14.0 * sc
+	UI.text_fit(tip, g.font, r.position + Vector2(pad, 28.0 * sc), title, 19, Color.WHITE, r.size.x - 2.0 * pad, 14)
+	var fd := UI.fit(g.font, desc, r.size.x - 2.0 * pad, r.size.y - 48.0 * sc - pad, [17, 16, 15, 14], 3.0)
+	UI.draw_fit(tip, g.font, r.position + Vector2(pad, 46.0 * sc), fd, Color(0.86, 0.92, 0.95))

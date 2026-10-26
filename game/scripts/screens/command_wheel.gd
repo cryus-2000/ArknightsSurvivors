@@ -246,17 +246,21 @@ func input(event: InputEvent) -> bool:
 	if event is InputEventMouseMotion:
 		mouse = event.position / Cfg.ui_k
 		return false   # 悬停高亮读 mouse；别的鼠标逻辑照常
+	# 触屏（10-26 iPhone 实机「点完突击之后方向键还是会被锁定」）：圆盘开着时以前把所有触点事件都吞了——按着摇杆的那根手指
+	# 拖动停在旧方向、抬起也被吃掉，touch.gd 的 stick_id 一直占着，圆盘关了以后摇杆卡在旧方向、新按下也起不了摇杆。
+	# 现在只吞「按下」：点到选项 = 确认，点空白 = 取消；空白处正好在摇杆区时这一下同时起摇杆（不用松手重按）。抬起 / 拖动一律放行给 touch.gd
 	if event is InputEventScreenTouch:
-		if event.pressed:
-			var p: Vector2 = event.position / Cfg.ui_k
-			var i: int = _hit(p)
-			if i >= 0:
-				confirm(i)
-			else:
-				cancel()
-		return true
+		if not event.pressed:
+			return false
+		var p: Vector2 = event.position / Cfg.ui_k
+		var i: int = _hit(p)
+		if i >= 0:
+			confirm(i)
+			return true
+		cancel()
+		return not g.touch.wants_stick(p)
 	if event is InputEventScreenDrag:
-		return true
+		return false
 	return false
 
 

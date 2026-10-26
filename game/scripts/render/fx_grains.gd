@@ -44,6 +44,9 @@ const MATERIALS := {
 		"ramp": [[0.0, Color(1.35, 1.35, 1.35, 1)], [0.2, Color(1, 1, 1, 0.95)], [0.55, Color(0.62, 0.62, 0.62, 0.7)], [0.85, Color(0.32, 0.32, 0.32, 0.35)]]},
 	"bfx_dust": {"life": 0.85, "life_rand": 0.4, "speed": Vector2(10, 42), "spread": 45.0, "grav": -16.0, "drag": 2.0, "per_frame": 120,
 		"ramp": [[0.0, Color(1.1, 1.1, 1.1, 0.9)], [0.35, Color(0.8, 0.8, 0.8, 0.7)], [0.75, Color(0.45, 0.45, 0.45, 0.35)]]},
+	# 激光 / 弹道沿线的短闪（用户 10-26「激光打完消失得慢」：≤ 0.22 秒收完）
+	"bfx_flash": {"life": 0.22, "life_rand": 0.35, "speed": Vector2(20, 60), "spread": 25.0, "grav": 0.0, "drag": 4.0, "per_frame": 120,
+		"ramp": [[0.0, Color(1.4, 1.4, 1.4, 1)], [0.3, Color(1, 1, 1, 0.85)], [0.7, Color(0.55, 0.55, 0.55, 0.4)]]},
 	"mote_shed": {"life": 0.55, "life_rand": 0.35, "speed": Vector2(12, 34), "spread": 35.0, "grav": -22.0, "drag": 2.5, "per_frame": 14,
 		"ramp": [[0.0, Color(1.3, 1.3, 1.3, 0.95)], [0.3, Color(1, 1, 1, 0.8)], [0.7, Color(0.5, 0.5, 0.5, 0.4)]]},
 	"mote_burst": {"life": 0.6, "life_rand": 0.35, "speed": Vector2(70, 150), "spread": 8.0, "grav": 0.0, "drag": 3.5, "per_frame": 72,
@@ -141,7 +144,7 @@ func setup(game) -> void:
 
 func on() -> bool:
 	_knobs()
-	return level > 0 and not kill and g != null and g.optical_on and _k_grains
+	return level > 0 and not kill and g != null and (g.optical_on or Cfg.quality == "low") and _k_grains
 
 
 ## 材质颗粒（fx/material_grains，10-24 起缺省开；拉普兰德 / 体液各自另有开关，缺省关）：模板开着、未被 --grainab / --matab 轮换关掉
@@ -157,6 +160,11 @@ func _knobs() -> void:
 	var fr: int = Engine.get_process_frames()
 	if fr == _k_frame:
 		return
+	# 档位每帧跟画质（10-26 晚：设置里换档要立刻生效）：高 2；中 2（render/mid_full_fx）或 1；低 1（用户「低档也要保留一点点粒子」，原来低 = 全关）
+	var lv0: int = {"high": 2, "mid": 1, "low": 1}.get(Cfg.quality, 2)
+	if Cfg.quality == "mid" and Bal.v("render/mid_full_fx", 1.0) > 0.0:
+		lv0 = 2
+	level = lv0
 	_k_frame = fr
 	_k_grains = Bal.v("fx/grains", 1.0) > 0.0
 	_k_mat = Bal.v("fx/material_grains", 0.0) > 0.0

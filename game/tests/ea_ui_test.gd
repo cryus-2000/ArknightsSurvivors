@@ -74,6 +74,9 @@ func run() -> void:
 	op.is_leader = false
 	check(not "按 E" in game.panel_ui.option_description(option), "ally growth never asks E")
 	check("自动" in game.show_screen.skill_item(op, 2).desc, "ally elite show says auto")
+	# 干员卡只写一句（10-26 用户）：精英化卡 =「解锁N技能 · 原作技能名」
+	var hl: String = game.panel_ui.headline({"kind": "prog", "op": "ulpianus", "elite": 2})
+	check(hl.begins_with("解锁三技能 · ") and hl.length() > 8, "elite card headline names the unlocked skill (%s)" % hl)
 	# 倍速按钮不与 15 件藏品覆盖；演练结算不读取剧情解锁字段。
 	game.demo_op = ""
 	game.trial.active = true
@@ -104,6 +107,23 @@ func run() -> void:
 			check(game.tray_cells.size() == mini(cnt, 42), "tray shows %d cells at %d" % [game.tray_cells.size(), cnt])
 			check(cnt <= 42 or game.tray_cells[0][1] == "", "overflow cell first at %d" % cnt)
 			await capture("ea_hud_relics_%d" % cnt)
+		# 各画面比例下三选一整排卡片都在面板里、说明不截断（docs/37 最小字号；全量逐屏截图见 tools/ui_matrix.py）
+		var opts: Array = []
+		for rid in game.RL.keys().slice(0, 3):
+			opts.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [game.RL[rid].cat, game.rfx.display_name(rid)], "desc": game.rfx.display_desc(rid)})
+		for sz in [Vector2i(1280, 720), Vector2i(1024, 768), Vector2i(2560, 1080), Vector2i(1680, 1050)]:
+			get_tree().root.size = sz
+			await RenderingServer.frame_post_draw
+			game.panel_ui.show_choices("获得藏品", opts, "relic", "", true)
+			await RenderingServer.frame_post_draw
+			var pr: Rect2 = game.panel.get_global_rect().grow(1.0)
+			for c in game.panel_box.get_children():
+				if c is Button:
+					check(pr.encloses(c.get_global_rect()), "card inside panel at %s (%s)" % [sz, c.get_global_rect()])
+			game.panel.visible = false
+			game.state = game.S.PLAY
+		get_tree().root.size = Vector2i(1280, 720)
+		await RenderingServer.frame_post_draw
 	game.state = game.S.WIN
 	game.diff_new = true
 	game.tier = game.D.DIFFICULTY_TIERS.size() - 1

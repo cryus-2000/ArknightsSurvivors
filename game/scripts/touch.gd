@@ -172,6 +172,11 @@ func _stick_move(p: Vector2) -> void:
 		vec = vec.normalized()
 
 
+## 在 p 处按下会不会起摇杆（command_wheel：圆盘开着时按在摇杆区，取消圆盘的同时把这次按下交给摇杆）
+func wants_stick(p: Vector2) -> bool:
+	return active and g.state == g.S.PLAY and stick_id < 0 and _stick_zone(p, g.hud.size)
+
+
 ## 摇杆最大行程（按布局缩放）
 func stick_r() -> float:
 	var L: Dictionary = _lay if not _lay.is_empty() else layout(g.hud.size)

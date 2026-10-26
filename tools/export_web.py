@@ -138,6 +138,9 @@ def main():
     # WebGL 状态缓存（tools/web/gl_state.js，docs/50 §21）：放在最前，引擎建上下文之前就得装好
     with open(os.path.join(WEB, "gl_state.js"), encoding="utf-8") as fh:
         js = fh.read() + "\n"
+    # 页面隐藏时挂起音频（tools/web/power.js，docs/50 §33）：也要在引擎建 AudioContext 之前
+    with open(os.path.join(WEB, "power.js"), encoding="utf-8") as fh:
+        js += fh.read() + "\n"
     # 帧时浮层（tools/web/fps_meter.js，docs/50 §21.7）：只在网址带 ?fps=1 时显示，给真机量帧率
     with open(os.path.join(WEB, "fps_meter.js"), encoding="utf-8") as fh:
         js += fh.read() + "\n"

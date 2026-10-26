@@ -97,6 +97,8 @@ static var marks: Array = []
 static func mark(n: String) -> void:
 	if OS.is_debug_build() and OS.get_cmdline_user_args().has("--loadprof"):
 		marks.append([n, Time.get_ticks_msec()])
+	if OS.is_debug_build() and OS.get_cmdline_user_args().has("--memlog"):
+		print("PF MEMSTAGE %s tex=%.1fMB vid=%.1fMB" % [n, Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0, Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0])   # docs/50 §30：建局各段的贴图增量
 
 ## 美术交付用旧文件名时的对应关系（新名 -> incoming 里的文件名）
 const ALIAS := {
@@ -295,6 +297,54 @@ static func _pop_tex(t: Texture2D) -> Texture2D:
 	return ImageTexture.create_from_image(img)
 
 
+## 手机网页敌人帧条减半读（10-26，docs/50 §30.8）：e_* 的 @2x 几乎全是 1 倍图整 2 倍放大（401 条里 398 条逐 2×2 块同色，占 208 / 210 MB），
+## 读进来缩回 1 倍、密度记 1，屏幕上的大小 / 锚点 / 帧数不变（绘制处都按 hires_of 除），帧条与由它派生的白剪影 / 轮廓显存约省四分之三。
+## 缩回再放大和原图对不上的（卡门 / 伊比利亚几条真 2 倍细节）照旧用 @2x。--halfenemy 桌面试；--bal=web/mobile_half_enemy=0 退回
+static var _half_e := -1
+static var half_n := 0      # 减半读了几条 / 对不上保留 @2x 几条（--memlog 打印）
+static var half_keep := 0
+
+static func half_enemy_on() -> bool:
+	if _half_e < 0:
+		var ml = Engine.get_main_loop()
+		var cfg = ml.root.get_node_or_null("/root/Cfg") if ml is SceneTree else null
+		if cfg == null:
+			return false   # 自动加载还没起（更早的自动加载里取贴图）：先不记结果，等 Cfg 在了再判
+		var on: bool = cfg.mobile_web() and cfg.mobile_knob("mobile_half_enemy", 1.0)
+		if (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--halfenemy"):
+			on = true
+		_half_e = 1 if on else 0
+	return _half_e == 1
+
+
+## 整 2 倍放大的图缩回 1 倍（img 会被转成 RGBA8）；不是整 2 倍放大返回 null
+static func _halve(img: Image) -> Image:
+	if img == null or img.is_empty():
+		return null
+	if img.is_compressed():
+		img.decompress()
+	if img.get_format() != Image.FORMAT_RGBA8:
+		img.convert(Image.FORMAT_RGBA8)
+	var w := img.get_width()
+	var h := img.get_height()
+	if w % 2 != 0 or h % 2 != 0:
+		return null
+	var half: Image = img.duplicate()
+	half.resize(w / 2, h / 2, Image.INTERPOLATE_NEAREST)
+	var back: Image = half.duplicate()
+	back.resize(w, h, Image.INTERPOLATE_NEAREST)
+	if back.get_data() != img.get_data():
+		# 包内贴图导入时 fix_alpha_border 会改全透明像素的 RGB（往外渗邻色），逐字节比会全部落空：预乘后再比（全透明像素归零，只比看得见的）
+		var pa: Image = img.duplicate()
+		pa.premultiply_alpha()
+		back.premultiply_alpha()
+		if back.get_data() != pa.get_data():
+			half_keep += 1
+			return null
+	half_n += 1
+	return half
+
+
 ## 取贴图；找不到返回 null
 static func tex(name: String) -> Texture2D:
 	if _cache.has(name):
@@ -323,22 +373,34 @@ static func tex(name: String) -> Texture2D:
 			if t != null:
 				src_path = q1
 	var p2 := _incoming_path(name + "@2x") if USE_HIRES and t == null else ""
+	var halve := half_enemy_on() and name.begins_with("e_") and not normal_maps
 	if p2 != "":
 		var img2 := Image.load_from_file(p2)
 		if img2 != null and not img2.is_empty():
+			density = 2.0
+			var h1: Image = _halve(img2) if halve else null
+			if h1 != null:
+				img2 = h1
+				density = 1.0
 			if pop:
 				pop_image(img2)
 			t = ImageTexture.create_from_image(img2)
-			density = 2.0
 			src_path = p2
 	elif USE_HIRES and t == null:
 		var q2 := _packed_path(name + "@2x")
 		if q2 != "":
 			t = load(q2)
 			if t != null:
-				if pop:
-					t = _pop_tex(t)
 				density = 2.0
+				var hi: Image = t.get_image() if halve else null
+				var h2: Image = _halve(hi.duplicate()) if hi != null and not hi.is_empty() else null
+				if h2 != null:
+					if pop:
+						pop_image(h2)
+					t = ImageTexture.create_from_image(h2)
+					density = 1.0
+				elif pop:
+					t = _pop_tex(t)
 				src_path = q2
 	if t == null:
 		var p := _incoming_path(name)
@@ -806,6 +868,20 @@ static func hue_to(src: Texture2D, hue: float, lo: float, hi: float) -> Texture2
 
 
 static var _white_cache := {}   # 原贴图 instance id → 白色剪影（10-21：每建一局都从显存读回重算，图鉴演示每点一次卡 1–2 秒）
+
+
+## 帧条释放（手机网页 game._enemy_evict）：从缓存里拿掉，贴图在没人引用后释放；再要时 tex() 重新读
+static func uncache(name: String) -> void:
+	var t = _cache.get(name)
+	if t is Texture2D:
+		_white_cache.erase(t.get_instance_id())
+	_cache.erase(name)
+
+
+## 白剪影释放（game._white_release）：从缓存里拿掉，贴图在没人引用后释放
+static func white_drop(src: Texture2D) -> void:
+	if src != null:
+		_white_cache.erase(src.get_instance_id())
 
 
 static func white_of(src: Texture2D) -> Texture2D:

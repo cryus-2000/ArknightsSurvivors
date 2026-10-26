@@ -126,6 +126,8 @@ func draw_lamp_strip(vs: Vector2) -> void:
 		st_col = Color(1.0, 0.85, 0.6)
 	if h.panel_over_top():
 		return   # 触屏选卡：这一行会被卡片压住截断，不画
+	if Cfg.phone_ui():
+		st_txt = st_txt.get_slice(" · ", 0)   # 手机：只写灯火档名，效果在属性面板（Tab）里看
 	h.batch_begin()
 	UI.strip(g.hud, g.font, o + Vector2(2, 66), st_en, st_txt, st_col, st_col.lerp(UI.TEXT, 0.45))
 	h.batch_end()
@@ -402,6 +404,7 @@ func draw_status(vs: Vector2, items: Array) -> void:
 		return
 	var x := 18.0
 	var y := 104.0
+	var fs := 14 if Cfg.phone_ui() else 12   # 手机：字号不低于 14（10-26 实机可读下限）
 	# 换行宽度（§1.15）：min(360, Boss 血条框左边 − 8)，有 Boss 血条时不钻到血条框下面
 	var wrap_x := 360.0
 	if not boss_bars().is_empty():
@@ -410,14 +413,14 @@ func draw_status(vs: Vector2, items: Array) -> void:
 	var tb := TriBatch.new()
 	var tx: Array = []
 	for it in items:
-		var cw: float = g.font.get_string_size(it[0], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12)).x + 16.0   # 与 UI.chip 的宽度算法一致
+		var cw: float = g.font.get_string_size(it[0], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fs)).x + 16.0   # 与 UI.chip 的宽度算法一致
 		if x + cw > wrap_x and x > 18.0:
 			x = 18.0
-			y += 26.0
+			y += fs + 14.0
 		var w: float
-		w = _chip_b(tb, tx, Vector2(x, y), it[0], it[1], UI._ks(g.hud, 12))
+		w = _chip_b(tb, tx, Vector2(x, y), it[0], it[1], UI._ks(g.hud, fs))
 		if it[2] >= 0.0:
-			tb.rect(Rect2(x, y + 20, w * it[2], 2), it[1])
+			tb.rect(Rect2(x, y + fs + 8.0, w * it[2], 2), it[1])
 		x += w + 6.0
 	tb.flush(g.hud)
 	for f in tx:
@@ -438,7 +441,7 @@ func _chip_b(tb: TriBatch, tx: Array, pos: Vector2, s: String, col: Color, size:
 
 ## 小地图（左下）：以水月为中心，显示约 1100 范围内的敌人、精英、Boss、宝箱、道具与商人
 func draw_minimap(vs: Vector2) -> void:
-	var rad := 78.0
+	var rad := 58.0 if Cfg.phone_ui() else 78.0   # 手机：缩小（左下是摇杆区，10-26 实机挤）
 	var c := Vector2(16 + rad + 8, vs.y - rad - 24)
 	var slr := Rect2(Vector2(c.x - rad + 2, c.y - rad - 8), Vector2(UI.en_width(g.font, "SONAR", 9, 2.0) + 10.0, 14))
 	# 合批（docs/50 §13）：UI.porthole（圆底 + 两道环 + 虚线十字）与标签底同一批，引擎同款几何

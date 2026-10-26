@@ -6,6 +6,9 @@
   "cd": 2.0
  },
  "command": {
+  "roam_dash": 1,
+  "roam_dash_cd": 7.0,
+  "_roam_dash": "突击模式低频自冲刺（用户 10-26）：突击中每名队友每 roam_dash_cd 秒朝突击目标冲一段（character._roam_dash_tick → begin_rush，起手按编队序号错开）；def.command.roam_dash_cd 可覆盖，def.command.roam_dash = false 的（德克萨斯）走自己 json 里 cond roaming 的带伤害冲刺；roam_dash 0 = 关",
   "_doc": "指挥模式（docs/114，10-21 原型）：on 总开关（0 = 关，不显示按钮、按键无效）；roam_r 突击活动圈半径（离队长，屏内，约 0.5–0.7 屏；10-22 断后版，只在圈内挑怪、出圈回收）；rear_d 断后锚点在队长身后多远（按队长移动方向反侧）；leash 只剩瞬移阈值（× 1.6，首版的活动半径）；roam_speed / recall_speed 突击 / 归队限速（× 队长移速）；recall_done 归队归位判定距离；recall_max 归队最长秒数；wheel_slow 指挥圆盘打开时局内时间系数（0.2，不全停）；gather 归队到位后站定秒数（集合完毕再回随行）；recall_inv 按下归队后队友无敌秒数（离站位远的直接闪回队长身边）；voice_gap 突击 / 归队语音最短间隔秒数；stamina_secs 突击耐力满→空秒数（只按时间扣，耗尽自动归队）；regen_secs 不突击时空→满秒数；min_start 耐力低于它不能发起突击（耗尽后的冷却线）；range_k 远程突击站位 = 普攻射程 × 它；stamina 耐力开关；aggro 仇恨开关（突击中 aggro_r 内 aggro_share 比例的怪改追最近的突击队友，rng_enemy 每只掷一次）；detour_step 局部绕行采样步长；stall_secs 有位移目标却持续停滞的判定时长；retry_secs 暂时跳过卡住目标的时长；guard_r 队长近身紧急护卫半径；stop_range_k 站定距离不超过当前普攻有效距离的比例；retreat_k 远程低于期望距离此比例时后撤；hp 队友生命开关（上限 = 队长生命上限 × 职业系数 HP_K_DEF × hp_mul，hp_k_<职业> 可覆盖；突击中被近战怪碰到掉 敌伤 × op_dmg_k，间隔 op_inv 秒；不突击 hp_regen_secs 回满；血空倒地 revive_secs 秒原地复活或归队集合时在队长身边复活，复活 revive_hp 生命 + revive_inv 秒无敌；倒地的留在倒地点不跟随、归队也不带走，队长站到 revive_near 内复活计时 × revive_near_k）；bot_roam_at 机器人耐力回到多少才再突击（缺省 1.0 = 回满，每次都是完整作战时限）；bot_roam 机器人局突击常开（耐力够就突击，耗尽归队后回到 min_start 再突击；对照用）。",
   "on": 1,
   "roam_r": 380,
@@ -785,7 +788,7 @@
  "meta": {
   "_doc": "认知塑造质变节点旋钮（docs/109 §14 v5，data/meta_tree.json 节点 effects 的 rule）：shatter_* 危机感末节护盾反震（半径 / 队长攻击倍率 / 击退），leader_atk_fallback 没有 base.atk 的队长的攻击基数；low_regen_* 生命感悟Ⅲ低血回复翻倍；execute_* 攻击性Ⅴ处决阈值（普通 / 精英，占最大生命）；last_stand_inv 生存本能Ⅴ免死后的无敌秒数；calm_* 自我保护Ⅳ静守（未受伤秒数 / 下一击倍率）；double_level_chance 领导欲Ⅳ升级再升概率；stat_scale 局外成长数值总旋钮（apply_run 里所有 stat 类节点的值 ×它，缺省 1，云端校准用）；revive_hp / revive_inv 调度线末节「绝处逢生」复活的生命比例 / 无敌秒数",
   "shatter_r": 140.0,
-  "shatter_mult": 2.0,
+  "shatter_mult": 3.0,
   "shatter_kb": 420.0,
   "leader_atk_fallback": 15.0,
   "low_regen_at": 0.35,

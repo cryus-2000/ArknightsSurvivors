@@ -115,6 +115,43 @@ func one(vsz: Vector2i) -> void:
 	touch(WRAPPED, a0, false)
 	await frames(2)
 	check(game.touch.stick_id < 0, tag + " 摇杆手指松手后复位")
+	# 指挥圆盘（10-26 iPhone「点完突击之后方向键还是会被锁定」）：
+	# ① 摇杆按住 → 另一指点「指挥」开圆盘 → 摇杆手指照常拖动、松手照常复位；圆盘关后新按下照常起摇杆
+	if game.squad.cmd_on():
+		touch(WRAPPED, a0, true)
+		await frames(1)
+		drag(WRAPPED, a0 + Vector2(80, 0), Vector2(80, 0))
+		await frames(1)
+		game.touch._do("cmd")   # 等同第二指点「指挥」键
+		await frames(1)
+		check(game.wheel.is_open, tag + " 点指挥键应打开圆盘")
+		drag(WRAPPED, a0 + Vector2(-80, 0), Vector2(-160, 0))
+		await frames(2)
+		check(game.touch.move_vec().x < -0.5, tag + " 圆盘开着时摇杆手指拖动仍生效（%s）" % game.touch.move_vec())
+		touch(WRAPPED, a0 + Vector2(-80, 0), false)
+		await frames(2)
+		check(game.touch.stick_id < 0 and game.touch.move_vec() == Vector2.ZERO, tag + " 圆盘开着时摇杆手指松手应复位（stick_id=%d）" % game.touch.stick_id)
+		game.wheel.confirm(1)   # 选「突击」类的一项，圆盘关上
+		await hold_play(2)
+		touch(9, a0, true)
+		await frames(1)
+		drag(9, a0 + Vector2(80, 0), Vector2(80, 0))
+		await hold_play(2)
+		check(game.touch.stick_id >= 0 and game.touch.move_vec().x > 0.5, tag + " 圆盘关后新按下应起摇杆（%s）" % game.touch.move_vec())
+		touch(9, a0 + Vector2(80, 0), false)
+		await frames(2)
+		# ② 先开圆盘、再按在摇杆区：取消圆盘，同一次按下直接起摇杆
+		game.touch._do("cmd")
+		await frames(1)
+		touch(WRAPPED - 3, a0, true)
+		await frames(1)
+		check(not game.wheel.is_open, tag + " 圆盘开着时点摇杆区应取消圆盘")
+		drag(WRAPPED - 3, a0 + Vector2(0, 80), Vector2(0, 80))
+		await hold_play(2)
+		check(game.touch.move_vec().y > 0.5, tag + " 取消圆盘的那一下应直接起摇杆（%s）" % game.touch.move_vec())
+		touch(WRAPPED - 3, a0 + Vector2(0, 80), false)
+		await frames(2)
+		check(game.touch.stick_id < 0, tag + " 松手后摇杆复位")
 	# 没登记过的触点（按下被别处吞掉）只拖动 / 松手：不影响摇杆
 	drag(123456, a0, Vector2(10, 0))
 	touch(123456, a0, false)

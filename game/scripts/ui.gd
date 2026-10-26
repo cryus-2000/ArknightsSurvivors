@@ -60,15 +60,17 @@ const TextQ = preload("res://scripts/screens/hud_textq.gd")
 ## 大标题（≥ FS_CAP）与英文小标签（en / en_width）不变。画字的助手只对 Control（HUD / 面板 / 设置 / 卡片）放大，
 ## 世界层（Node2D 上的头顶字）不变；量字的助手（cwidth / wrap_lines / fit / fit_line / chip_fits / strip_width）按同一倍率量，
 ## 调用方自己用 font.get_string_size 量、再交给这些助手画的地方要改用 fs() 换算
+## 10-26 用户 iPhone 实机（Safari 横屏，1 界面像素约 0.6 pt）：放大后仍不到 FS_MIN 的小字（9–10 号的标签）一律抬到 FS_MIN
 static var fk := 1.0
 const FS_CAP := 24
+const FS_MIN := 13
 
 
-## 正文字号换算：手机局内放大，其余原样
+## 正文字号换算：手机局内放大（不小于 FS_MIN），其余原样
 static func fs(size: int) -> int:
 	if fk == 1.0 or size >= FS_CAP:
 		return size
-	return mini(int(round(size * fk)), FS_CAP)
+	return clampi(int(round(size * fk)), FS_MIN, FS_CAP)
 
 
 static func _ks(ci: CanvasItem, size: int) -> int:

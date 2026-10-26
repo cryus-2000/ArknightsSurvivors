@@ -254,3 +254,11 @@
 - 开发参数：`--route=knight|heart|memory|none|rand`、`--nocross`、`--eventtest=<事件 id | cross1 | cross2>`。
 - 测试：新 `node_cards`（§6 八条）；`route_knight` 改为三条结局线事件链；`economy` 改路口留位；`run_stats` 改统计行名。本地跑过 node_cards / route_knight / economy / run_stats / ea_ui / touch_layout / core / repro / data_lint / relic_reclassification / public_gallery / medals / boss_trial / smoke，全部通过；积木等价金样按 docs/132 §1 合入后在 main 重录。
 - 演示录像：`tools/probes/node_cards_capture.py`（场景 `tests/node_cards_capture.tscn`），输出 `build/node_cards_rec.mp4`。
+
+## 10. 翻卡界面重做（10-26，用户「多结局翻卡的 UI 能不能再好好设计一下」）
+
+- 卡面与演出搬到 `screens/node_cards_ui.gd`：像素阶梯切角卡；六种卡背各有底色与纹样（不期而遇菱形涟漪、得偿所愿星屑、诡意行商货架、安全的角落炊烟、紧急作战警示斜阶、迷雾重重雾带）与四角像素角饰；
+  结局入口描达成结局的色框（两色左右各半）+ 沿框跑动的高光 + 卡内顶部罗马数字徽记。
+- 演出：发牌（自整排中心扇出升起）→ 悬停抬起 + 青色阶梯外框 → 起手（再抬起放大、脚下光）→ 翻转（压扁 + 中线闪光，同时滑到整排中央）→ 揭示（像素颗粒迸散、正文自上而下显出、底部生效进度条）→ 未选卡下沉淡出。兑现延迟 0.75 → 1.15 秒。
+- 背景：压暗减轻（dim 0.42、去饱和 0.6）保留战场；一条横穿卡片中线的虚线航线，每张卡两侧一个航点，翻开后只留选中那张亮。
+- 截图自审：`tests/node_cards_shots.tscn`（电脑 1280×720 / 手机 1560×720 `--touch`，`--rec` 录 10 秒）。

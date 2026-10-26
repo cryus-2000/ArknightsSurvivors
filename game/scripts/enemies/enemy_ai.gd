@@ -71,7 +71,7 @@ func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool
 		return false
 	if e.wind > 0.0 or e.get("dash_w", 0.0) > 0.0 or e.get("dash_t", 0.0) > 0.0 or e.get("nova_w", 0.0) > 0.0 or e.get("blast_w", 0.0) > 0.0:
 		return false
-	if e.get("dormant", false) or e.get("wake_t", 0.0) > 0.0 or e.get("under", false) or e.get("coma", false) or e.get("friendly", false) or e.get("channel", 0.0) > 0.0:
+	if e.get("dormant", false) or e.get("wake_t", 0.0) > 0.0 or e.get("depart_t", 0.0) > 0.0 or e.get("under", false) or e.get("coma", false) or e.get("friendly", false) or e.get("channel", 0.0) > 0.0:
 		return false
 	if g.warns.size() >= 10 or (g.t >= 280.0 and g.t < next_secondary_at):
 		return false

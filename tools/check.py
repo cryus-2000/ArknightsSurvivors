@@ -932,6 +932,7 @@ def check_blocks_eq(godot):
 # 场景专项回归：默认快检执行全部；--only <key> 可单独复查，仍使用公共日志和错误扫描。
 SCENE_REGRESSIONS = {
     "command_ai": ("指挥接敌、站定、护主", "command_ai_test", r"COMMAND_AI checks=\d+ failures=0", []),
+    "assault_dash": ("突击模式低频自冲刺（随行不冲、突击每 7 秒 / 德克萨斯 4.5 秒、归队后不冲）", "assault_dash_test", r"ASSAULT DASH checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=skadi", "--squad=texas,lappland"]),
     "voice_command": ("指挥语音轮换、节流、登场去重", "voice_command_test", r"VOICE COMMAND checks=\d+ failures=0", []),
     "command_wheel": ("指挥圆盘索敌优先级（队友按优先级重排、队长不受影响）", "command_wheel_test", r"COMMAND WHEEL checks=\d+ failures=0", []),
     "eyja_volcanic_weight": ("熔岩弹连续起落点与浮空持续投弹", "eyja_volcanic_weight_test", r"EYJA VOLCANIC WEIGHT failures=0", ["--balance", "--seed=1", "--op=eyjafjalla", "--route=eyjafjalla:meteor"]),
@@ -953,7 +954,7 @@ SCENE_REGRESSIONS = {
     "touch_move": ("触屏摇杆移动：桌面 --touch / 手机比例、大 / 负触点编号（iOS Safari）、两指", "touch_move_test", r"TOUCH MOVE: 0 failures", ["--touch"]),
     "touch_layout": ("触屏按键布局：存档往返 / 换比例锚点 / 越界夹进安全区 / 局内按新位置点击 / 编辑页拖动推开调大小 / 选卡让位 / 转屏重算 ui_k", "touch_layout_test", r"TOUCH LAYOUT failures=0", ["--touch"]),
     "economy": ("经济与收藏品上限", "economy_regression", r"ECONOMY REGRESSION: 0 failures", []),
-    "node_cards": ("翻节点卡：卡组可复现 / 结局入口必出 / 首通前不开 / 互斥 / 结局只看信物 / 升华三句 / 最晚时刻 / 面板顺序（docs/154）", "node_cards_test", r"NODE CARDS: 0 failures", []),
+    "node_cards": ("翻节点卡：卡组可复现 / 结局入口必出 / 首通前不开 / 互斥 / 结局只看信物 / 升华三句 / 最晚时刻 / 面板顺序（docs/159）", "node_cards_test", r"NODE CARDS: 0 failures", []),
     # "hunt_approach" 停用（10-25 围猎并进大群，hunt/enabled 0，docs/150）：独立围猎事件不再触发，run/hunt.gd 与测试保留，恢复围猎时一起放回
     "friendly_target": ("中立单位索敌与治疗", "friendly_target_regression", r"FRIENDLY TARGET REGRESSION: 0 failures", []),
     "ishar_p2": ("伊莎玛拉敌对二阶段", "ishar_p2_test", r"ISHAR P2 failures=0", ["--balance", "--bosstest=ishar2"]),
@@ -1016,7 +1017,7 @@ SCENE_REGRESSIONS = {
                  ["--balance", "--bot=afk", "--nodeath", "--op=hoshiguma", "--squad=wisadel", "--dummy_op=wisadel", "--dummy_role=mate",
                   "--dummy_scene=horde", "--dummy_stage=2", "--dummy_secs=5", "--dummy_warm=2", "--dummy_check"]),
     "tide": ("潮位阶梯 0–15（docs/109 §5）：16 级、锚点 0 / 4 / 8 与旧三档逐键、严格累加", "tide_test", r"TIDE failures=0", []),
-    "meta": ("认知塑造（docs/109 §4）：节点数据完整（总量 609、前置、推荐顺序）、推荐点法按预算点、--meta=full 点满、测试局缺省不带", "meta_test", r"META failures=0", ["--roster=start5"]),
+    "meta": ("认知塑造（docs/109 §4）：节点数据完整（总量 587、前置、推荐顺序）、推荐点法按预算点、--meta=full 点满、测试局缺省不带", "meta_test", r"META failures=0", ["--roster=start5"]),
     "meta_mech": ("认知塑造质变 / 非数值节点（docs/109 §14 v5）：护盾反震、低血回复翻倍、处决、濒死免死、静守、升级再升、开局四选一、免费刷新、首个藏品三选一、绝处逢生复活", "meta_mech_test", r"META MECH checks=\d+ failures=0",
         ["--balance", "--seed=1", "--op=wisadel", "--metanodes=sh1,reg3,atk5,hp5,def4,xp4,disp1,disp2,disp3,disp4"]),
     "roster": ("干员解锁（docs/109 §12）：开局 5 人、随机寻访先补齐职业、不重复、定向寻访 2 张、旧券折算、局终 3 / 4 张、满员折细胞、云存档并集", "roster_test", r"ROSTER failures=0", ["--roster=start5"]),
