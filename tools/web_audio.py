@@ -27,6 +27,8 @@ TIERS = {
 
 
 def music_group(name):
+    if name.startswith("suno_"):   # Suno 分层配乐（docs/164）：suno_battle1_pulse 等按去掉前缀的名字分组
+        name = name[5:]
     if name.startswith("battle") and name.endswith("_base"):
         return "battle_base"
     if name.startswith("battle") and name.endswith("_pulse"):
@@ -93,6 +95,34 @@ def shrink(gamedir, tier):
             else:
                 stat["voice"][1] += old
     return stat
+
+
+def drop_unused_music(gamedir):
+    """Suno 整首分层配乐接进来之后（docs/164），旧的程序合成乐句（battle*_A–E_*、危险层、boss_A–D_full、final_A–D_p1/p2）、final_suno、archive_v2
+    在 suno_layers 开着时不会被载入（sfx.gd 按 suno_layers.json 判断），网页包里不带。suno_layers.json 或任一层文件缺失时什么都不删。返回删掉的字节数。
+    代价：网页包里没法再用 balance.json music/suno_layers = 0 退回旧曲（桌面包 / 仓库里旧文件都还在）"""
+    import re
+    mdir = os.path.join(gamedir, "audio", "music")
+    mp = os.path.join(mdir, "suno_layers.json")
+    if not os.path.exists(mp):
+        return 0
+    meta = json.load(open(mp, encoding="utf-8"))
+    for t, m in meta.items():
+        for f in m["files"]:
+            if not os.path.exists(os.path.join(mdir, f + ".ogg")):
+                return 0
+    if not os.path.exists(os.path.join(mdir, "suno_archive_full.ogg")):
+        return 0
+    pat = re.compile(r"^(battle[123]_([A-E]_(base|pulse|drive)|danger)|boss_[A-D]_full|final_[A-D]_p[12]|final_suno|archive_v2)\.ogg$")
+    freed = 0
+    for f in sorted(os.listdir(mdir)):
+        if pat.match(f):
+            freed += os.path.getsize(os.path.join(mdir, f))
+            for g in (f, f + ".import"):
+                gp = os.path.join(mdir, g)
+                if os.path.exists(gp):
+                    os.remove(gp)
+    return freed
 
 
 def report(stat):

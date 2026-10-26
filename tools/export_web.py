@@ -121,8 +121,11 @@ def main():
     # 字体按实际用字子集化（release_slim，docs/33 §包体瘦身）：只换打包副本里的字体，仓库原字体不动
     release_slim.print_font_rows(release_slim.subset_fonts(gpath))
     # 网页包专用音频再压缩（tools/web_audio.py，docs/121 §4）：只改打包副本，桌面包与仓库不动；--audio-tier off 关闭
+    import web_audio
+    freed = web_audio.drop_unused_music(gpath)   # Suno 分层配乐接入后旧乐句文件不进网页包（tools/web_audio.py drop_unused_music）
+    if freed:
+        print("[瘦身] 旧程序合成配乐（Suno 分层已取代）不进网页包：%.2f MiB" % (freed / 1048576), flush=True)
     if a.audio_tier != "off":
-        import web_audio
         print("[瘦身] " + web_audio.report(web_audio.shrink(gpath, a.audio_tier)) + "（档位 %s）" % a.audio_tier, flush=True)
     tmp = os.path.join(WORK, "out")
     os.makedirs(tmp)

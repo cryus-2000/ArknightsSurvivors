@@ -137,6 +137,9 @@ var group_vol := {}       # 曲目 -> 当前整体音量（0~1）
 var group_rate := {}      # 曲目 -> [淡入, 淡出] 速度（每秒）
 var stem_on := {}         # 乐句式曲目 -> 各层当前开关（小节线上才从游戏请求同步过来；战斗最后一层是危险层）
 var stem_vol := {}        # 乐句式曲目 -> 各层实际音量
+## Suno 整首分层循环（docs/164，10-27）：曲目 -> {players 各层播放器, bpm, offset 首拍偏移秒, len 时长秒}；各层同长度、同时开播、各层单独控音量（stem_on / stem_vol 复用）、
+## 小节线上切层。开关 balance.json music/suno_layers（缺省 1；0 = 回到旧的 SEQ 乐句拼接 / MUSIC 整首，旧文件与代码都还在）
+var lay := {}
 var cur_track := ""
 var battle_lv := 0        # 游戏请求：0 平静 / 1 交战 / 2 激战
 var battle_danger := false
@@ -208,7 +211,10 @@ func _ready() -> void:
 		players.append(p)
 	for tname in MUSIC:
 		var arr: Array = []
-		for f in MUSIC[tname]:
+		var files: Array = MUSIC[tname]
+		if tname == "archive" and _suno_on() and ResourceLoader.exists("res://audio/music/suno_archive_full.ogg"):
+			files = ["suno_archive_full"]   # 图鉴：Suno 分轨相加成整曲（docs/164）；关开关 music/suno_layers = 0 回到 archive_v2
+		for f in files:
 			var st: AudioStreamOggVorbis = _load_ogg("res://audio/music/%s.ogg" % f)
 			if st == null:
 				continue
@@ -224,8 +230,10 @@ func _ready() -> void:
 		groups[tname] = arr
 		group_vol[tname] = 0.0
 		group_rate[tname] = [0.8, 0.6]
+	_suno_init()
 	for tname in SEQ:
-		_seq_init(tname)
+		if not lay.has(tname):
+			_seq_init(tname)
 	music_rng.randomize()
 	stinger = AudioStreamPlayer.new()
 	stinger.bus = "Music"
@@ -313,6 +321,9 @@ func sample_mem_mb() -> float:
 		for sname in q.segs:
 			lists.append_array(q.segs[sname])
 		lists.append(q.danger)
+	for tn in lay:
+		for pl in lay[tn].players:
+			lists.append(pl.stream)
 	for st in lists:
 		if st is AudioStream and not seen.has(st) and AudioServer.is_stream_registered_as_sample(st):
 			seen[st] = true
@@ -382,6 +393,87 @@ func _music_cap_hit() -> bool:
 	var cfg = get_node_or_null("/root/Cfg")
 	var cap: float = load("res://scripts/core/balance.gd").v("web/mobile_music_cap_mb", 64.0)
 	return cfg != null and cap > 0.0 and sample_mem_mb() > cap
+
+
+## Suno 整首分层循环的曲目表（文件由 tools/suno_layers.py 生成，bpm / 首拍偏移 / 时长在 suno_layers.json）。
+## 层的含义：battle 三段 = [底层 平静, 打击乐 交战, 驱动 激战]；boss = [全曲]；final = [p1 一阶段, p2 二阶段叠加]
+const SUNO_TRACKS := ["battle1", "battle2", "battle3", "boss", "final"]
+const SUNO_META := "res://audio/music/suno_layers.json"
+
+
+func _suno_on() -> bool:
+	return load("res://scripts/core/balance.gd").v("music/suno_layers", 1.0) > 0.0
+
+
+func _suno_init() -> void:
+	if not _suno_on() or not FileAccess.file_exists(SUNO_META):
+		return
+	var meta = JSON.parse_string(FileAccess.get_file_as_string(SUNO_META))
+	if not meta is Dictionary:
+		return
+	# 手机网页（只载底层）：这时 Cfg 还没加载，不能用 _music_lite()（它会缓存成「不是手机」），按平台特性直接判
+	var lite: bool = OS.has_feature("web") and (OS.has_feature("web_android") or OS.has_feature("web_ios") or DisplayServer.is_touchscreen_available()) 		and load("res://scripts/core/balance.gd").v("web/mobile_music_lite", 1.0) > 0.0
+	for tname in SUNO_TRACKS:
+		var m = meta.get(tname, null)
+		if not m is Dictionary:
+			continue
+		var pls: Array = []
+		var ok := true
+		for i in m.files.size():
+			if lite and i > 0:
+				break   # 手机网页只载入底层（docs/50 §30：每层整段解码后约 50 MB）
+			var st: AudioStreamOggVorbis = _load_ogg("res://audio/music/%s.ogg" % m.files[i])
+			if st == null:
+				ok = false
+				break
+			st.loop = true
+			var pl := AudioStreamPlayer.new()
+			pl.stream = st
+			pl.bus = "Music"
+			pl.volume_db = -80.0
+			add_child(pl)
+			pls.append(pl)
+		if not ok:
+			for pl in pls:
+				pl.queue_free()
+			continue
+		lay[tname] = {"players": pls, "bpm": float(m.bpm), "offset": float(m.offset), "len": float(m.len)}
+		groups.erase(tname)   # MUSIC 里同名的整首（final_suno）让位
+		group_vol[tname] = 0.0
+		group_rate[tname] = [0.8, 0.6]
+		stem_on[tname] = []
+		stem_vol[tname] = []
+		for i in pls.size():
+			stem_on[tname].append(0.0)
+			stem_vol[tname].append(0.0)
+
+
+## 整首分层曲目当前播到第几秒（按开播时记的墙钟算，对时长取模；网页样本播放的 get_playback_position 滞后约 1 秒，所以一律用墙钟）
+func _lay_pos(tname: String) -> float:
+	return fposmod(_now() - float(track_t0.get(tname, _now())), float(lay[tname].len))
+
+
+## 下一条小节线（墙钟）：战斗段之间切换时等它再换曲，换曲点永远落在上一首的小节线上
+func _lay_next_bar_at(tname: String) -> float:
+	var q: Dictionary = lay[tname]
+	var bar: float = 4.0 * 60.0 / float(q.bpm)
+	var pos: float = _lay_pos(tname) - float(q.offset)
+	var nxt: float = ceilf(pos / bar + 0.0001) * bar - pos
+	return _now() + maxf(nxt, 0.05)
+
+
+## 整首分层曲目每帧：小节线上把游戏请求的分层同步过来（进层提前 BAR_AHEAD 淡入，保证重拍满音量）
+func _lay_tick(tname: String) -> void:
+	var q: Dictionary = lay[tname]
+	var pos: float = _lay_pos(tname)
+	var beat := int(floor((pos - float(q.offset) + BAR_AHEAD) * float(q.bpm) / 60.0))
+	if beat != clock_beat:
+		clock_beat = beat
+		var on: Array = stem_on[tname]
+		for i in on.size():
+			var w := _stem_want(tname, i)
+			if w != on[i] and beat % 4 == 0:
+				on[i] = w
 
 
 ## 乐句式曲目：载入每句每层的流（不循环），建两组播放器（各层 + 危险层）
@@ -556,11 +648,15 @@ func _seq_tick(tname: String) -> void:
 ## - 其余：新曲从头淡入，旧曲淡出后停止
 ## 手机网页的配乐合并（10-26 晚：流式播放在无线程网页上几乎无声，退回样本播放；样本解码后注销不掉，就少放几首不同的曲子）：
 ## 战斗二 / 三段沿用战斗一（只放底层）、最终 Boss 沿用 Boss 曲、出发 / 图鉴沿用标题曲。全部配乐解码后约 486 MB，合并后最多约 100 MB
+## 10-27 临时保留（协调人）：Suno 分层曲三层同解码约 99 MB / 首，按需加载方案尚未覆盖分层曲，手机先沿用合并映射防崩；接手后按 docs/132 §3 解除
+const MOBILE_MUSIC_MAP := {"battle2": "battle1", "battle3": "battle1", "final": "boss"}
 
 func play_music(tname: String) -> void:
+	if _music_lite() and MOBILE_MUSIC_MAP.has(tname) and (seq.has(MOBILE_MUSIC_MAP[tname]) or groups.has(MOBILE_MUSIC_MAP[tname]) or lay.has(MOBILE_MUSIC_MAP[tname])):
+		tname = MOBILE_MUSIC_MAP[tname]
 	if not MENU_TRACKS.has(tname):
 		driven_t = 0.0
-	if not seq.has(tname) and (not groups.has(tname) or groups[tname].is_empty()):
+	if not seq.has(tname) and not lay.has(tname) and (not groups.has(tname) or groups[tname].is_empty()):
 		return
 	if tname == cur_track:
 		pending = {}
@@ -571,7 +667,10 @@ func play_music(tname: String) -> void:
 	stinger.stop()
 	var now := _now()
 	var old := cur_track
-	if seq.has(old) and old.begins_with("battle") and tname.begins_with("battle"):
+	if lay.has(old) and old.begins_with("battle") and lay.has(tname) and tname.begins_with("battle"):
+		# 战斗换段：当前曲照常放到下一条小节线，新曲在小节线上从头开（淡入 / 淡出速度 6 / 秒 ≈ 0.17 秒，近乎硬切）
+		pending = {"track": tname, "at": _lay_next_bar_at(old), "fade_in": 6.0, "out": 6.0}
+	elif seq.has(old) and old.begins_with("battle") and tname.begins_with("battle"):
 		pending = {"track": tname, "boundary": true}
 	elif (tname == "boss" or tname == "final") and now - float(overlay_t.get("boss_in", -99.0)) < BOSS_HIT:
 		pending = {"track": tname, "at": float(overlay_t["boss_in"]) + BOSS_HIT, "fade_in": 8.0, "out": 1.5}
@@ -598,7 +697,15 @@ func _start(tname: String, fade_in: float, old_out: float, from := 0.0) -> void:
 	group_rate[tname] = [fade_in, 0.6]
 	if not MENU_TRACKS.has(tname):
 		menu_pos.clear()
-	if seq.has(tname):
+	if lay.has(tname):
+		for i in stem_on[tname].size():
+			stem_on[tname][i] = _stem_want(tname, i)
+			stem_vol[tname][i] = stem_on[tname][i]
+		for pl in lay[tname].players:
+			pl.play(from)
+		track_t0[tname] = _now() - from
+		music = lay[tname].players[0]
+	elif seq.has(tname):
 		for i in stem_on[tname].size():
 			stem_on[tname][i] = _stem_want(tname, i)
 			stem_vol[tname][i] = stem_on[tname][i]
@@ -639,6 +746,9 @@ func _release(out: float) -> void:
 
 ## 游戏请求的分层 -> 某曲目第 i 层该不该开
 func _stem_want(tname: String, i: int) -> float:
+	if lay.has(tname) and tname.begins_with("battle"):
+		# 整首分层没有单独的危险层：危险时把驱动层（吉他 / 铜管）拉出来代替（原先危险层 = 高频紧张音）
+		return 1.0 if [true, battle_lv >= 1, battle_lv >= 2 or battle_danger][i] else 0.0
 	if tname.begins_with("battle"):
 		return 1.0 if [true, battle_lv >= 1, battle_lv >= 2, battle_danger][i] else 0.0
 	if tname == "final":
@@ -693,6 +803,8 @@ func track_playing(tname: String) -> bool:
 		return false
 	if seq.has(tname):
 		return true
+	if lay.has(tname):
+		return (lay[tname].players[0] as AudioStreamPlayer).playing
 	return not groups[tname].is_empty() and (groups[tname][0] as AudioStreamPlayer).playing
 
 
@@ -871,6 +983,25 @@ func _process(delta: float) -> void:
 		_start(p.track, float(p.fade_in), float(p.out), now - float(p.at))
 	if seq.has(cur_track):
 		_seq_tick(cur_track)
+	elif lay.has(cur_track):
+		_lay_tick(cur_track)
+	for tname in lay:
+		var want := 1.0 if tname == cur_track else 0.0
+		var rate: Array = group_rate[tname]
+		var gv: float = move_toward(group_vol[tname], want, delta * (rate[0] if want > group_vol[tname] else rate[1]))
+		group_vol[tname] = gv
+		var on: Array = stem_on[tname]
+		var sv: Array = stem_vol[tname]
+		var pls: Array = lay[tname].players
+		for i in pls.size():
+			sv[i] = move_toward(sv[i], on[i], delta * (STEM_IN if on[i] > sv[i] else STEM_OUT))
+			var pl: AudioStreamPlayer = pls[i]
+			if pl.playing:
+				var sdb: float = linear_to_db(maxf(gv * sv[i], 0.0001)) + vol_target
+				if absf(pl.volume_db - sdb) > 0.0001:
+					pl.volume_db = sdb
+				if gv <= 0.0:
+					pl.stop()
 	for tname in groups:
 		var want := 1.0 if tname == cur_track else 0.0
 		var rate: Array = group_rate[tname]
