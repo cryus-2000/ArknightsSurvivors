@@ -562,9 +562,42 @@ func _power_step() -> bool:
 	return nm == "pause" or nm == "choice"
 
 
+## --webshot=<对局秒>（tools/probes/shot_web.py，docs/50 §34）：到点后定格（Engine.time_scale = 0，要带 --realtime），window.__shot = 1；
+## 之后每帧读 window.__cmd 执行：q:<low|mid|high> 运行中换档（同设置面板：set_quality_mode + apply）、levelup 打开选卡（恢复时间让卡片动效走完）、
+## freeze 再定格。测量脚本按顺序截图，同一时刻对比各档镜头 / 清晰度
+var _ws := -2.0
+func _webshot_step() -> bool:
+	if _ws == -2.0:
+		_ws = -1.0
+		for a in Cfg.dev_args():
+			if a.begins_with("--webshot="):
+				_ws = float(a.substr(10))
+	if _ws < 0.0 or not OS.has_feature("web"):
+		return false
+	if _ws > 0.0:
+		if g.state != g.S.PLAY or g.t < _ws:
+			return false
+		_ws = 0.0
+		Engine.time_scale = 0.0
+		JavaScriptBridge.eval("window.__shot=1", true)
+	var cmd = JavaScriptBridge.eval("window.__cmd||''", true)
+	if cmd is String and cmd != "":
+		JavaScriptBridge.eval("window.__cmd=''", true)
+		if cmd.begins_with("q:"):
+			Cfg.set_quality_mode(cmd.substr(2))
+			Cfg.apply()
+		elif cmd == "levelup":
+			Engine.time_scale = 1.0
+			g.progression.open_levelup()
+		elif cmd == "freeze":
+			Engine.time_scale = 0.0
+		print("PF WEBSHOT cmd=%s q=%s zoom=%.3f view_h=%.0f" % [cmd, Cfg.quality, g.cam.zoom.x, g.view_size().y])
+	return true
+
+
 func step() -> void:
 	g.at_frames += 1
-	if _power_step():
+	if _power_step() or _webshot_step():
 		return
 	if g.rt_from >= 0.0 and not g.realtime and g.t >= g.rt_from:
 		g.realtime = true   # --rtfrom：快进结束，之后按真实步长（--fixed-fps 60 时每帧 1/60 秒）
