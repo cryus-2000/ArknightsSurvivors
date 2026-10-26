@@ -1046,7 +1046,6 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		_dmg_depth -= 1
 		if _dmg_depth == 0:
 			g.prof_add("dmg_total", _t0)
-		g.prof["dmg_calls"] = int(g.prof.get("dmg_calls", 0)) + 1000
 		return
 	_damage(e, dmg, h)
 
