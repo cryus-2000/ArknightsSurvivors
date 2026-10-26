@@ -1,5 +1,5 @@
 extends Node
-## 静默录帧夹具（docs/161）：紧急作战精英小队（endings._spawn_elites）从画面边缘压上来：红色描边 + 脚下红光 + 共用词缀。
+## 静默录帧夹具（docs/161）：紧急作战精英小队（endings._spawn_elites）从画面边缘压上来：红色描边 + 共用词缀。
 ## 游戏时间 5:30（中段怪池）。只推进敌人 AI / 预警 / 状态与紧急作战计时，不刷普通怪、队长不动、无敌。
 ## 用法：经 tools/godot_runner.py 启动，-- --capture=<绝对目录>；每 4 个 1/30 秒步长存一帧（7.5 fps 实时），共 30 秒；第 300 帧（10 秒）另存 shot.png
 var vp: SubViewport

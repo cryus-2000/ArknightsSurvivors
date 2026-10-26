@@ -300,7 +300,7 @@ func _rest(k: int) -> void:
 
 
 ## 紧急作战：精英小队（docs/161）。按阶段从 squad_pool 抽 squad_n 只高一阶的普通怪，从画面边缘同一侧成群出现；
-## 生命 × squad_hp、伤害 × squad_dmg，全队共用一个词缀；e.squad 让画面画红色描边与脚下红光（world，开局写定、不变，不影响画法缓存签名）。
+## 生命 × squad_hp、伤害 × squad_dmg，全队共用一个词缀；e.squad 让画面画红色描边（world，开局写定、不变，不影响画法缓存签名）。
 ## 同屏上限（spawner.alive_cap，手机自动档第 2 级 65）放不下的成员记进 squad_pending，_tick_elites 有空位再刷。随机只用 g.rng_spawn
 func _spawn_elites() -> void:
 	elites.clear()

@@ -92,7 +92,7 @@ var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 
 ##   render/elite_rim_gain  亮度倍数（颜色 = 冷青 × gain，缺省 2.2；> 1 才能在暗处透出来）
 ## 场上精英通常只有几只，每只多一次贴图切换；每帧在 _update 里读一次旋钮
 const ELITE_RIM_RGB := Color(0.55, 0.9, 1.0)
-## 紧急作战精英小队（docs/161，e.squad）：危险红描边（> 1 抵消环境暗色）+ 脚下红光（_draw_squad_glow，地面层）；颜色语言：红只给危险
+## 紧急作战精英小队（docs/161，e.squad）：危险红描边（> 1 抵消环境暗色）；颜色语言：红只给危险。脚下红光 10-26 用户去掉（「红色描边就可以」）
 const SQUAD_RIM_COL := Color(2.6, 0.45, 0.45, 0.85)
 var elite_rim := 0.0
 var elite_rim_col := Color(0, 0, 0, 0)
@@ -842,25 +842,10 @@ func _draw_shadows(evr: Rect2) -> void:
 			var sc2: float = Game.PX * er / 10.0 * (1.0 - minf(e.kb.length() * 0.03, 14.0) / 40.0)
 			var size := Vector2(sw, sh) * sc2
 			g.draw_texture_rect_region(stx, Rect2((ep + Vector2(0, er * 0.8) + doff - size * Vector2(0.5, 0.5)).round(), size), src, scol)
-	_draw_squad_glow(evr)
 	g.squad.draw_shadows()
 	if g.knight.alive:
 		g.vfx.spr("shadow", 1, 0, g.knight.pos + Vector2(0, 18), Game.PX * 1.6)
 	g.squad.draw_entities_floor()
-
-
-## 精英小队脚下红光（docs/161）：只遍历紧急作战的小队名单（最多十几只），地面椭圆两层；不闪、不随时间变，手机上也看得清
-func _draw_squad_glow(evr: Rect2) -> void:
-	var lst: Array = g.endg.elites
-	if lst.is_empty():
-		return
-	for e in lst:
-		if e.dead or not evr.has_point(e.pos):
-			continue
-		g.draw_set_transform(e.pos + Vector2(0, e.r * 0.8), 0.0, Vector2(1.0, 0.42))
-		g.draw_circle(Vector2.ZERO, e.r * 1.9, Color(1.0, 0.12, 0.15, 0.22))
-		g.draw_circle(Vector2.ZERO, e.r * 1.25, Color(1.4, 0.2, 0.22, 0.30))
-	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 2.5D 前后遮挡：敌人 / 博士 / 干员（含额外身体）/ 骑士 / 排序道具按脚底 y 排序后依次绘制
