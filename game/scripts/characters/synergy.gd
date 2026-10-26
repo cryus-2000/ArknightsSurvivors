@@ -118,6 +118,8 @@ static func _pick_target(o, p, reach: float) -> Variant:
 static func _pair_try(sq, o, pr: Dictionary, dr: Dictionary, skill := -1) -> bool:
 	var g = o.g
 	var st: Dictionary = sq.syn
+	if BalS.vi("synergy/off_%s_%s" % [dr.from, dr.to], 0) > 0:
+		return false   # 云端消融用：--bal=synergy/off_<放技能的干员>_<搭档>=1 单独关掉一个方向（docs/160 §10.4）
 	if g.t < float(st.cd.get(str(pr.id), -99.0)) or _active(sq) >= BalS.vi("synergy/max_active", 2):
 		return false
 	var p: Variant = _ready_partner(sq, str(dr.to))
