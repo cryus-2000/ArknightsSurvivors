@@ -11,6 +11,7 @@ func _ready() -> void:
 		FR.mark("title_ready")
 		RenderingServer.frame_post_draw.connect(func(): FR.mark("title"), CONNECT_ONE_SHOT)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(preload("res://scripts/core/idle_fps.gd").new())   # 手机网页闲置降帧（docs/50 §33）
 	_bg_game.call_deferred()
 	# 触屏：标题页（含图鉴 / 设置 / Boss 演练子面板）整体放大 Cfg.ui_k（手机 1.3）；背景 / 转场在各自的 CanvasLayer 不受影响
 	Cfg.ui_k = Cfg.ui_scale()
@@ -464,11 +465,13 @@ func _power_title() -> void:
 	_pw_t += get_process_delta_time()
 	if _pw_t >= 5.0 and _pw_fr == 0:
 		_pw_fr = Engine.get_frames_drawn()
+		FR.mark("pw_title")
 		if OS.has_feature("web"):
 			JavaScriptBridge.eval("window.__phase='title'", true)
 	elif _pw_t >= 25.0:
 		_pw_on = false
 		print("PF POWER title secs=20.0 fps=%.1f max_fps=%d" % [(Engine.get_frames_drawn() - _pw_fr) / 20.0, Engine.max_fps])
+		FR.mark("pw_end")
 		if OS.has_feature("web"):
 			JavaScriptBridge.eval("window.__phase='end'", true)
 		print("PF FTDONE")

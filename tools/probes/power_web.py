@@ -64,7 +64,7 @@ def main():
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", port), H)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     run_args = ["--balance", "--realtime", "--nodeath", "--bot=expert", "--seed=13", "--op=skalter", "--squad=texas,exusiai", "--mobilecap", "--memguard=100000"]
-    gargs = ["--", "--powerseq"] + ([] if a.title else run_args) + extra
+    gargs = ["--", "--powerseq", "--ftrec"] + ([] if a.title else run_args) + extra
     url = "http://127.0.0.1:%d/index_power.html?%s" % (port, urllib.parse.urlencode([("a", x) for x in gargs]))
     ud = os.path.join(pw.BASE, "_edge_" + a.tag)
     shutil.rmtree(ud, ignore_errors=True)
@@ -148,7 +148,7 @@ def main():
         res[ph] = {"wall": round(w, 1), "main": round(mm, 1), "renderer": round(rr, 1), "gpu": round(gg, 1)}
         print("%s\t%.0f\t%.0f\t%.0f\t%.0f" % (ph, w, mm, rr, gg))
     for l in open(log_p, encoding="utf-8").read().splitlines():
-        if l.startswith("PF POWER") or l.startswith("SCRIPT ERROR"):
+        if l.startswith("PF POWER") or l.startswith("PF FTBUSY pw_") or l.startswith("SCRIPT ERROR"):
             print(l)
     print("POWERJSON " + json.dumps(res, ensure_ascii=False))
 

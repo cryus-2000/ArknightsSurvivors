@@ -522,6 +522,7 @@ var _pw_t0 := -1
 var _pw_fr := 0
 
 func _pw_mark(nm: String) -> void:
+	preload("res://scripts/core/frame_rec.gd").mark("pw_" + nm)   # 带 --ftrec 时按段打 PF FTBUSY（每秒忙碌毫秒）
 	if OS.has_feature("web"):
 		JavaScriptBridge.eval("window.__phase='%s'" % nm, true)
 
