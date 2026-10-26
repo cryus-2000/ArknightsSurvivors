@@ -105,3 +105,12 @@
 - Windows 实机渲染有仓库既有的退出资源清理 / 渲染器告警，无 SCRIPT ERROR 或 Parse Error。未进行手机真机性能验收，也未用自动回归代替玩家手感评估。
 
 成品从本次冻结代码提交执行 `python tools/release_all.py --ref <提交> --only internal` 生成，包内资源与启动另由发布验证器检查。成品及验证报告归档于 `build/release/final_<提交>/`；最终交付记录随包保存。遵循当前 AGENTS.md，代码交付在 `codex/final-boss-complete`，不修改 main 源码或向外发布。
+
+
+### 已交付成品
+
+- 冻结游戏代码：`e84c73386`，分支 `codex/final-boss-complete`。
+- Windows 内部包：`E:/ArknightsSurvivors/build/release/final_e84c73386/internal/开始游戏.bat`。仓库原有 `启动对内测试版.bat` 同样选到此包。
+- ZIP：同目录 `方舟幸存者_Internal_EA_Encrypted_20261027_e84c73386.zip`，99.9 MiB。
+- 发布验证通过：1835 张图片、384 份音频、40 份 JSON，包内资源可读、实际启动、存档隔离、ZIP 一致性均通过；复制到主目录后再次 SHA-256 核对 11 个包文件一致。
+- 回归、响度与保色记录存于成品目录 `verification/`。内部包独立存档目录为 `ArknightsSurvivors_Internal_e84c73386`，不继承或改写旧版本进度。没有合入 main 或向外发布。

@@ -29,9 +29,11 @@
 - [x] Run python tools/check.py --auto --jobs 3, focused boss/mechanic/audio tests and same-seed reproducibility. Gameplay differs intentionally; no requirement that changed encounters match old outcomes. No local balance A/B batches.
 - [x] Review every new move's natural reachability, cancellation, damage, performance bounds, and preview integration; render proof sheets through godot_runner only, silent non-focusing windows only if needed.
 - [x] Separate spec compliance and code quality review, address all material findings.
-- [ ] Commit selected files only, preserve generated/unrelated files. Deliver tested commit and runnable internal build; integration subject to current Git collaboration rules. Do not publish externally.
+- [x] Commit selected files only, preserve generated/unrelated files. Deliver tested commit and runnable internal build; integration subject to current Git collaboration rules. Do not publish externally.
 
 ## Acceptance
 All listed user issues addressed; final active attacks >=7 each, usable in actual encounters and previews; foes create pressure through readable combinations rather than unavoidable hits. Same seed reproducible, low quality changes drawing only. Automated launches silent/headless except required offscreen captures. Record actual checks and any platform limitations without claiming untested playability.
 
 Plan review accepted with clarifications: audit every Boss entrance, including paired and mid bosses, for mob preservation and ordinary spawn policy. Naturally exercise all seven moves across phases and verify late fight pressure with no inherited mobs (not only force_move). Tear promotion ownership must handle purification, host death, transformation and boss death; remove only its own modifiers, preserve HP ratio and never duplicate rewards. User autonomous authority resolves routine choices without approval gates.
+
+Delivery completed: frozen game commit e84c73386; 126 checks passed; encrypted internal Windows package validated and copied with matching hashes to E:/ArknightsSurvivors/build/release/final_e84c73386. Main source unchanged. See docs/165 for evidence and launch path.
