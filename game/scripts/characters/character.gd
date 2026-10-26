@@ -165,6 +165,27 @@ func col() -> Color:
 	return CLASS_COL.get(cls, Color(0.6, 0.9, 1.0))
 
 
+## 跑动拖尾（灯火余烬，optical_particles.embers）的两个代表色 [主色, 辅色]（用户 10-26「每个人跑步后面跟随的粒子特效换成自己的代表色」，docs/146）：
+## 数据在 data/characters/<id>.json 的 trail_col {main, alt}（取色依据见 docs/146 色表），没写退回 col()。深色系提亮到亮度 ≥ TRAIL_LUM（深海地面上才看得见）；只算一次
+const TRAIL_LUM := 0.55
+var _trail_c: Array = []
+func trail_cols() -> Array:
+	if _trail_c.is_empty():
+		var tc = def.get("trail_col", null)
+		var cs: Array = []
+		for k in ["main", "alt"]:
+			var a = tc.get(k, null) if tc is Dictionary else null
+			cs.append(Color(float(a[0]), float(a[1]), float(a[2])) if a is Array and a.size() >= 3 else col())
+		for i in cs.size():
+			var c: Color = cs[i]
+			var lum: float = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b
+			if lum < TRAIL_LUM:
+				c = c.lerp(Color.WHITE, (TRAIL_LUM - lum) / (1.0 - lum))
+			cs[i] = Color(c.r, c.g, c.b, 1.0)
+		_trail_c = cs
+	return _trail_c
+
+
 ## 任一持续型技能是否生效中（音乐强度 / 黑色郁金香）
 func skill_active() -> bool:
 	for i in 3:

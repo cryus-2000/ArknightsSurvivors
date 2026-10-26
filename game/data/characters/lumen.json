@@ -1,5 +1,6 @@
 {
  "id": "lumen",
+ "trail_col": {"main": [0.5, 0.85, 1], "alt": [1, 0.88, 0.5]},
  "name": "流明",
  "en": "LUMEN",
  "class": "医疗",

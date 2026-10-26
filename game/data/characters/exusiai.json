@@ -1,5 +1,6 @@
 {
  "id": "exusiai",
+ "trail_col": {"main": [1, 0.32, 0.3], "alt": [1, 0.85, 0.4]},
  "name": "能天使",
  "en": "EXUSIAI",
  "class": "狙击",

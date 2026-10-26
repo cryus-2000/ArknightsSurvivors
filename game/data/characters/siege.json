@@ -1,5 +1,6 @@
 {
  "id": "siege",
+ "trail_col": {"main": [1, 0.78, 0.35], "alt": [0.7, 0.72, 0.78]},
  "name": "推进之王",
  "en": "SIEGE",
  "class": "先锋",

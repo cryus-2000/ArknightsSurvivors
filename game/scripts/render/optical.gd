@@ -570,7 +570,8 @@ func _process(_dt: float) -> void:
 			particles.set_active(pa)
 			_pa_last = pa
 		if pa and g.cam != null and g.lamp_light != null:
-			particles.step(g.cam.get_screen_center_position(), g.lamp_light.global_position, col_env, col_lamp)
+			var ld = g.squad.leader() if g.squad != null else null
+			particles.step(g.cam.get_screen_center_position(), g.lamp_light.global_position, col_env, col_lamp, ld.trail_cols() if ld != null and ld.has_method("trail_cols") and Bal.v("render/trail_col", 1.0) > 0.0 else [])
 	_was_on = on
 	pt = _pt("op_particles", pt)
 	if glow_layer.visible:

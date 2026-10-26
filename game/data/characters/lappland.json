@@ -1,5 +1,6 @@
 {
  "id": "lappland",
+ "trail_col": {"main": [0.9, 0.92, 1], "alt": [0.55, 0.65, 0.85]},
  "name": "拉普兰德",
  "en": "LAPPLAND",
  "class": "近卫",
