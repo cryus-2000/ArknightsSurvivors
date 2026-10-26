@@ -5,6 +5,7 @@
 extends RefCounted
 
 const D = preload("res://scripts/data.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 const NodeIcons = preload("res://scripts/screens/node_icons.gd")
 const UM = preload("res://scripts/ui_motion.gd")
 
@@ -34,7 +35,10 @@ var picks: Array = []           # 作战记录：[路口, 卡种, 事件 id]
 var incidents := 0              # 不期而遇次数（作战记录）
 var shop_visit := -1            # 诡意行商：第几位商人（merchant_idx）货架 +1、首件打折
 var wish_rare := false          # 得偿所愿：下一次藏品三选一稀有 / 核心加权
-var elites: Array = []          # 紧急作战刷出的精英
+var elites: Array = []          # 紧急作战刷出的精英小队成员
+var squad_pending: Array = []   # 精英小队里同屏上限放不下、推迟刷出的成员：[类型, 出生点]
+var squad_affix := ""           # 这支小队共用的词缀（armor 甲壳 / shield 潮盾）
+var squad_at := -1.0            # --squadat=秒（调试构建）：到点强制刷一支精英小队
 var elite_pos := Vector2.ZERO
 var _mh_n := 0                  # 事件改最大生命的次数（stats 来源名）
 var route := ""                 # --route=knight|heart|memory|none|rand（机器人走哪条线；空 = 按 seed 轮换）
@@ -56,6 +60,9 @@ func _init(game) -> void:
 	deck_cfg = w.get("cross_deck", {})
 	all_unlocked = Cfg.dev_args().has("--allend")
 	for a in Cfg.dev_args():
+		if a.begins_with("--squadat="):
+			squad_at = float(a.substr(10))   # 测试用：到这个游戏秒数强制刷一支精英小队（docs/159 帧时 / 录屏，只在调试构建读）
+	for a in Cfg.dev_args():
 		if a.begins_with("--route="):
 			route = a.substr(8)
 
@@ -74,6 +81,9 @@ func update(_dt: float) -> void:
 	if not _checked:
 		_checked = true
 		enabled = _cross_on()
+	if squad_at >= 0.0 and g.t >= squad_at:
+		squad_at = -1.0
+		_spawn_elites()
 	_tick_elites()
 	if frozen:
 		return
@@ -289,28 +299,74 @@ func _rest(k: int) -> void:
 			_recruit()
 
 
-## 紧急作战：在画面边缘刷 elite_n 只精英，全灭后额外掉一个宝箱 + 源石锭
+## 紧急作战：精英小队（docs/159）。按阶段从 squad_pool 抽 squad_n 只高一阶的普通怪，从画面边缘同一侧成群出现；
+## 生命 × squad_hp、伤害 × squad_dmg，全队共用一个词缀；e.squad 让画面画红色描边与脚下红光（world，开局写定、不变，不影响画法缓存签名）。
+## 同屏上限（spawner.alive_cap，手机自动档第 2 级 65）放不下的成员记进 squad_pending，_tick_elites 有空位再刷。随机只用 g.rng_spawn
 func _spawn_elites() -> void:
 	elites.clear()
-	g.spawner._norm = true
-	for k in int(deck_cfg.get("elite_n", 2)):
-		var e: Dictionary = g.spawner.spawn_enemy(g.spawner.pick_elite(), g.spawner.edge_pos())
-		e.cross_elite = true
-		elites.append(e)
-	g.spawner._norm = false
-	g.vfx.show_banner("紧急作战：精英小队来袭！全部击败可获得额外宝箱")
+	squad_pending.clear()
+	var tt: Array = deck_cfg.get("squad_t", [280, 520])
+	var st: int = 0 if g.t < float(tt[0]) else (1 if g.t < float(tt[1]) else 2)
+	var pools: Array = deck_cfg.get("squad_pool", [["tracer"]])
+	var pool: Array = pools[mini(st, pools.size() - 1)]
+	var ns: Array = deck_cfg.get("squad_n", [10])
+	var n: int = int(ns[mini(st, ns.size() - 1)])
+	squad_affix = "armor" if g.rng_spawn.randf() < 0.5 else "shield"
+	var base: float = g.rng_spawn.randf() * TAU
+	for k in n:
+		var ang: float = base + g.rng_spawn.randf_range(-0.45, 0.45)
+		var p: Vector2 = g.ppos + Vector2.from_angle(ang) * g.rng_spawn.randf_range(720.0, 840.0)
+		squad_pending.append([str(pool[g.rng_spawn.randi() % pool.size()]), p - g.ppos])
+	_squad_release()
+	g.vfx.show_banner("紧急作战：精英小队来袭 · %s —— 全部击败获得宝箱与源石锭" % ("甲壳" if squad_affix == "armor" else "潮盾"))
 	Sfx.play("roar", -3.0)
 
 
-func _tick_elites() -> void:
-	if elites.is_empty():
+## 把推迟的小队成员按同屏余量放出来（出生点相对队长记，推迟后仍在画面边缘）
+func _squad_release() -> void:
+	if squad_pending.is_empty():
 		return
+	var cap: int = g.spawner.alive_cap()
+	if cap <= 0:
+		cap = g.spawner.max_alive()
+	var room: int = cap - g.spawner.mob_count()
+	if room <= 0:
+		return
+	g.spawner._norm = true
+	while room > 0 and not squad_pending.is_empty():
+		var it: Array = squad_pending.pop_front()
+		var e: Dictionary = g.spawner.spawn_enemy(str(it[0]), g.ppos + it[1])
+		e.cross_elite = true
+		e["squad"] = true
+		e.hp *= float(deck_cfg.get("squad_hp", 2.0))
+		e.maxhp = e.hp
+		e.dmg *= float(deck_cfg.get("squad_dmg", 1.3))
+		e.dormant = false   # 收割者不休眠，直接追
+		e["rush"] = float(deck_cfg.get("squad_rush", 2.2))   # 入场冲锋（同大群 rush：离队长 horde_rush_r 外 × 倍率，进圈恢复原速）；奠基者 / 巢涌者太慢，不冲要走二十多秒
+		e.affix = squad_affix
+		if squad_affix == "armor":
+			e.def *= Bal.v("enemy/affix_armor", 0.75)
+		else:
+			e.shield_hp = e.maxhp * Bal.v("enemy/affix_shield", 0.30)
+		elites.append(e)
+		room -= 1
+	g.spawner._norm = false
+
+
+func _tick_elites() -> void:
+	if elites.is_empty() and squad_pending.is_empty():
+		return
+	_squad_release()
 	for e in elites:
 		if not e.dead:
 			elite_pos = e.pos
 			return
+	if not squad_pending.is_empty():
+		return
 	g.pickups.drop(elite_pos, "chest", 1.0)
-	g.rfx.gain_ingots(int(deck_cfg.get("elite_ingots", 10)), "紧急作战 · ")
+	wish_rare = true   # 这个宝箱的藏品三选一按稀有 / 核心加权（同得偿所愿，progression 读后清掉）
+	g.rfx.gain_ingots(int(deck_cfg.get("squad_ingots", 20)), "紧急作战 · ")
+	g.vfx.show_banner("精英小队已全灭 —— 拾取宝箱")
 	elites.clear()
 
 
