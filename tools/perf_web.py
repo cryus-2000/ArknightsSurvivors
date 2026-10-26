@@ -76,6 +76,9 @@ def export(ref):
     if not os.path.exists(os.path.join(tmp, "index.pck")):
         print(p.stdout[-3000:], p.stderr[-3000:])
         sys.exit("导出失败")
+    sys.path.insert(0, os.path.join(TOOLS, "web"))
+    import engine_patch
+    engine_patch.patch_index_js(os.path.join(tmp, "index.js"))   # 同发布包（docs/50 §40）
     html = open(os.path.join(tmp, "index.html"), encoding="utf-8").read()
     gl = open(os.path.join(TOOLS, "web", "gl_state.js"), encoding="utf-8").read()
     gl += "\n" + open(os.path.join(TOOLS, "web", "power.js"), encoding="utf-8").read()   # 页面隐藏挂起音频（同发布版，docs/50 §33）
