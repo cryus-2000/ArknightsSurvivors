@@ -373,3 +373,10 @@ i1（819711 DaVoiceActor「Chain Impact」1.75–2.30 s）「挺好听」→ 作
 - 分支里先接了 A 套（最短、重心 2.3–3.2 kHz、连射最不累）：`op_exusiai_atk` / `_atk_b` / `_atk_c` / `_s1` / `_s2` / `_s3` / `_big` 七个文件，QOA 后约 +60 KB。
 - `sfx.gd`：`OP_SFX["exusiai"]` 加 `atk_b` `atk_c` `s1` `s2` `s3`；`OP_ROT["op_exusiai_atk"]` 按次轮换三条（只改声音，不碰玩法随机）；`OP_GAP["op_exusiai_atk"] = 0.05` 合并同帧多发；音高随机沿用 `OP_PVAR` 9%；删掉 OP_ALT 里能天使三条技能借用。
 - 来源 / 许可：g3 areniporgen、g5 / g6 morganpurkis（Freesound，CC0）；致谢页 credits.json 已补作者名。B / C 套来源见试听页。
+
+## 18. 能天使音效第四轮：不是没换，是太轻（10-26 用户 itch 5559c3e62「能天使的音效是不是还是没有替换」）
+
+- **查证**：①`--sfxstat` 100 秒局（`--op=exusiai`）：`op_exusiai_atk / _b / _c` 三条轮换、`hit / s1 / s2 / s3 / big` 全走专属文件，没有 `op_irene_*` / `op_wisadel_*` 借用，所有出枪路径（普攻、技能、响应补射）都经 `_release_body` 的 `_sfx_op("atk")` 或对应技能音；②网页包 `final` 里文件齐全（`ae4f5be91` 在 5559c3e62 里）。
+- **真因**：§17 默认接的 A 套选了消音枪，rms100 -19.7 / -16.8 dBFS，叠上普攻 -11 dB 后播放电平约 -31 dB，比命中（-18）、击杀（-16）、拾取（-19）低 12 dB 以上；命中同样约 -33；密集战斗里优先级 2 的音在同时 ≥12 个在响时还要再压 6 dB、满槽先被丢。能天使普攻每秒约 3 次，却几乎听不见 = 「没换」。
+- **改法**（`game/tools/gen_sfx_exu4_1026.py`）：枪声改不带消音的 g7（自动步枪 punchy）/ g10（游戏用射击）/ g9（步枪点射），2–6 kHz 抬一档、尾部收到 0.11 秒，rms100 对齐 -9.5 dBFS（播放电平约 -21，和命中 / 击杀同档，比之前 +9 dB）；命中改「弹着点脆响 + 金属叮」（-12.8 dBFS，播放约 -25，+8 dB）；技能连射（s1 装填 + 3 连 / s2 6 连渐快 / s3 18 连渐快 + 末发加重 / big 9 连 + 重的一声）用同一套样本重拼，同步抬到 -10 dBFS 上下；`sfx.gd` 的 `PRIO_NAME` 把能天使普攻 / 命中提到优先级 3（不被 DUCK、不先被丢）。来源仍是 §16 的 Freesound CC0，致谢页不变（g7 serøutōnin--deprivəd、g10 BaggoNotes、g9 Keatonmcq；见试听页第六节）。
+- **对比音频**（主仓库 `build/sfx_review_1024/exu4/`）：`before_combat.ogg` / `after_combat.ogg` / `alt_combat.ogg`（6 秒战斗片段：普攻 3 次 / 秒轮换 + 命中 + 击杀 / 拾取 / 通用命中背景，按游戏里的播放音量混）、`*_skills.ogg`（s1 / s2 / s3 / big 依次）、各单发。alt = 科幻版（g11 / g8 / g13，`--apply alt` 写入）。
