@@ -869,6 +869,10 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		_late_hp_apply(e, float(d.hp_late))
 	if _norm and role == "":
 		_trim_apply(e)
+	if _norm and d.has("tier_cap"):
+		var th: float = float(D.THREAT[g.threat].get("tier_hp", 1.0))   # 分级调整（docs/158 §6）：中后段换进来的高阶怪生命打折，三段生命池不变
+		e.hp *= th
+		e.maxhp = e.hp
 	if _norm and (role == "" or role == "elite") and escale() != 1.0:
 		e.r *= escale()   # 怪物体型：判定半径 × scale，r0 不动，画面缩放 enemy_scale = PX × r / r0 跟着放大
 		e["sc"] = escale()
