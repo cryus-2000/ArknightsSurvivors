@@ -9,4 +9,4 @@
 - [x] Audio worker: trace beam consumers, measure spectra/RMS, replace harsh beam charge/hit with lower-frequency cues preserving warning timing and priority, bound overlapping voices; focused regression and reproducible generator.
 - [x] Performance reviewer: identify current hotspots read-only. Root: implement only evidenced bounded optimizations, regress lifecycle/geometry, measure desktop frame/memory effects with clear limits.
 - [x] Run focused tests, full required branch check and same-seed reproduction; read-only review changes.
-- [ ] Commit selected files, export/verify updated internal Windows and web artifacts as relevant. Do not merge main or publish externally. Document evidence and platform limits.
+- [x] Commit selected files, export/verify updated internal Windows and web artifacts as relevant. Do not merge main or publish externally. Document evidence and platform limits.

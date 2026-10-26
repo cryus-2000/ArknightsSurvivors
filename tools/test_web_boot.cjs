@@ -52,6 +52,8 @@ const server = http.createServer((req,res) => {
     await page.goto(`http://127.0.0.1:${server.address().port}/`,{waitUntil:'domcontentloaded',timeout:60000});
     await page.waitForFunction(()=>window.bootProbe.calls.some(c=>c.key==='__syBootDone'),{},{timeout:240000});
     await page.waitForFunction(()=>!document.getElementById('sy-load'),{},{timeout:10000});
+    // Title intro is 2.6 seconds; capture its completed menu, not its initial background frame.
+    await page.waitForTimeout(3000);
     const result=await page.evaluate(()=>window.bootProbe);
     assert.equal(result.maxLoaders,1);
     assert.equal(result.removedBeforeDone,false);

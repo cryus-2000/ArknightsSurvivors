@@ -28,3 +28,11 @@
 定向命令：`node tools/test_web_loader.cjs`、`python tools/test_beam_audio.py`；`beam_audio_test` 与 `render_perf_test` 已加入 `tools/check.py`。真实浏览器入口：`node tools/test_web_boot.cjs <网页导出目录>`；加 `--bypass` 需 debug 导出，用于验证跳过预热的生命周期。
 
 分支完整检查已通过：128 项、0 失败、449 秒，含同 seed 复现，日志 `build/optimization_check.txt`。独立复审发现的网页跳过入口遮罩不退出问题已修复。实际网页启动及最终本地产物的结果随 `build/release/final_<提交>/verification/` 保存。代码交付在独立分支，不合入 main、不上传外部平台。
+
+
+### 已交付成品
+
+- 游戏代码冻结提交 `9560d1a6b`；Windows 内部包 99.9 MB，资源与实际启动验证通过。新包包含此前完整 Boss 改造及骑士跟进修正。
+- 网页内部包 41.2 MiB，最大单文件 9.42 MiB，资源及版本探针无失败。静音 headless Edge 实测正式包完整启动：同一加载页、19 次实际进度回报、菜单就绪后只关闭一次；调试包 `--memlog` 跳过路径也正常关闭。两条路径均无脚本错误，菜单截图已核对。
+- 主目录可运行包：`E:/ArknightsSurvivors/build/release/final_9560d1a6b/internal/开始游戏.bat`；根目录原有 `启动对内测试版.bat` 自动选取此新版。网页包位于同目录 `web_internal/`，尚未上传。
+- 验证日志、音频测量、渲染测量及网页截图位于同目录 `verification/`。复制后逐文件 SHA-256 核对一致。独立版本存档目录 `ArknightsSurvivors_Internal_9560d1a6b`；未合入 main。
