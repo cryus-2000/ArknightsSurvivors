@@ -20,6 +20,7 @@ var last_us := 0
 var buckets := {"g1": [], "g0": []}
 var gbuckets := {"g1": [], "g0": []}
 var rec_i := 0
+var click := false   # --ulpclick：左键点击释放演示（10-26），见 _click_demo
 var n_alive := 0
 
 
@@ -29,6 +30,8 @@ func _ready() -> void:
 			n_en = int(a.substr(7))
 		elif a == "--ulprec":
 			rec = true
+		elif a == "--ulpclick":
+			click = true
 		elif a == "--ulpold":
 			old = true
 		elif a.begins_with("--ulpperf="):
@@ -55,6 +58,9 @@ func _process(_d: float) -> void:
 	if o == null:
 		print("ULPPERF no ulpianus")
 		get_tree().quit(1)
+		return
+	if click:
+		_click_demo(o)
 		return
 	var gr = game.optical.grains if game.optical != null else null
 	if (frames - 40) % 120 == 0:
@@ -93,6 +99,39 @@ func _set_new(on: bool) -> void:
 		Bal._data["fx"] = {}
 	Bal._data.fx["ulp_charge_grains"] = 1.0 if on else 0.0
 	Bal._data.fx["ulp_burst"] = 1.0 if on else 0.0   # 落地冲击环（docs/143 §8）随新旧一起切
+
+
+## --ulpclick：左键点击释放 S3 的演示（10-26 用户「三技能要设置成鼠标点击也能够触发」），往视口推真实的鼠标事件（不动系统光标）：
+## 第 55 帧技力半满点地面（不放、点击照旧）→ 第 110 帧技力满时点右下编队栏（HUD，不放）→ 第 150 帧技力满时点地面（放出）。
+## 每帧存 rec_<帧>.png；每次点击打印 ULPCLICK <录制帧号> <视口 x> <视口 y> <是否放出>，出片时据此画光标与点击圈
+func _click_demo(o) -> void:
+	var f: int = frames - 40
+	if f == 0:
+		o.elite = 2
+		o.sp[2] = o.sp_need(2) * 0.5
+	if f == 108 or f == 150:
+		o.sp[2] = o.sp_need(2)   # 点击那一帧前后才充满：--bot=afk 的机器人技力一满会自己放 S3（本节点先于游戏处理，点击当帧机器人抢不到）
+	if f == 112:
+		o.sp[2] = o.sp_need(2) * 0.6
+	var vs: Vector2 = get_viewport().get_visible_rect().size
+	var tgt: Vector2 = game.get_viewport().get_canvas_transform() * (game.ppos + Vector2(280, 30))
+	for c in [[55, tgt], [110, vs - Vector2(70, 70)], [150, tgt]]:
+		if f == c[0]:
+			var sp0: float = o.sp[2]
+			for down in [true, false]:
+				var ev := InputEventMouseButton.new()
+				ev.button_index = MOUSE_BUTTON_LEFT
+				ev.pressed = down
+				ev.position = c[1]
+				ev.global_position = c[1]
+				get_viewport().push_input(ev)
+			print("ULPCLICK %d %.0f %.0f %s" % [rec_i, (c[1] as Vector2).x, (c[1] as Vector2).y, str(o.sp[2] < sp0 or o.manual_buf > 0.0 or not o.hw.get("anchor", {}).is_empty())])
+	if shot_dir != "":
+		get_viewport().get_texture().get_image().save_png(shot_dir + "/rec_%03d.png" % rec_i)
+		rec_i += 1
+	if f >= 240:
+		print("ULPSHOT done frames=%d rec=%d" % [frames, rec_i])
+		get_tree().quit(0)
 
 
 func _setup() -> void:

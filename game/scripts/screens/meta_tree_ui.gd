@@ -709,6 +709,20 @@ func _draw_star(ci: CanvasItem, id: String, selected: bool) -> void:
 	if halo > 0.0:
 		ci.draw_circle(p, r * 0.9, Color(C_SAP, 0.07 * g))
 		ci.draw_circle(p, r * 0.5, Color(C_SAP, 0.14 * g))
+	# 下一颗提示（10-26 用户「先点哪个」）：每个星座里第一颗还没塑造、前置已满足的星（只有它会是 ok / poor）——
+	# 呼吸光晕 + 四道斜向长星芒慢慢亮暗（2.4 秒一呼吸，和本身的十字星芒错开 45°）。买得起暖白、买不起冷灰蓝且弱一档；
+	# 减少动态效果时不呼吸，停在中间亮度。只有几个圆和像素点，手机 30 帧无负担
+	if st == "ok" or st == "poor":
+		var br := 0.5 if rm else 0.5 + 0.5 * sin(t * TAU / 2.4 + ph * 0.3)
+		var hc := Color8(255, 236, 190) if st == "ok" else Color8(150, 170, 200)
+		var k0 := (1.0 if st == "ok" else 0.55) * g
+		ci.draw_circle(p, r * 1.6, Color(hc, 0.05 * k0 * (0.6 + 0.4 * br)))
+		ci.draw_circle(p, r * 1.1, Color(hc, 0.08 * k0 * (0.5 + 0.5 * br)))
+		var ln := r + 6.0 + 4.0 * br
+		for k in 4:
+			var dv := Vector2.from_angle(PI / 4.0 + k * PI / 2.0)
+			for q in range(int(r * 0.6), int(ln)):
+				ci.draw_rect(Rect2((p + dv * q).floor(), Vector2(1, 1)), Color(hc, (1.0 - float(q) / ln) * 0.55 * k0 * (0.35 + 0.65 * br)))
 	# 星团：质变节点周围的小伴星（位置按 id 固定）
 	if key:
 		var rng := RandomNumberGenerator.new()

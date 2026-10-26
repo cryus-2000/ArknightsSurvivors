@@ -92,6 +92,8 @@ var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 
 ##   render/elite_rim_gain  亮度倍数（颜色 = 冷青 × gain，缺省 2.2；> 1 才能在暗处透出来）
 ## 场上精英通常只有几只，每只多一次贴图切换；每帧在 _update 里读一次旋钮
 const ELITE_RIM_RGB := Color(0.55, 0.9, 1.0)
+## 紧急作战精英小队（docs/161，e.squad）：危险红描边（> 1 抵消环境暗色）；颜色语言：红只给危险。脚下红光 10-26 用户去掉（「红色描边就可以」）
+const SQUAD_RIM_COL := Color(2.6, 0.45, 0.45, 0.85)
 var elite_rim := 0.0
 var elite_rim_col := Color(0, 0, 0, 0)
 var _afast := false               # 本帧缓存路径走图集快速路径（_dc_emit）
@@ -2441,11 +2443,13 @@ func _ol_sig() -> int:
 
 ## 这只敌人画不画精英冷色描边
 func _rim_on(e: Dictionary) -> bool:
-	return elite_rim > 0.0 and e.elite and not e.boss
+	return (elite_rim > 0.0 and e.elite and not e.boss) or e.get("squad", false)
 
 
 ## 描边颜色：精英冷色描边开着时用冷青（旧写法 ol_norm 下的橙红只在旋钮关时保留）；普通怪中性淡紫白
 func _ol_col(e: Dictionary) -> Color:
+	if e.get("squad", false):
+		return SQUAD_RIM_COL
 	if e.elite:
 		return elite_rim_col if _rim_on(e) else Color(3.2, 1.1, 0.7, 0.75)
 	var oc := Color(2.2, 2.0, 2.6, 0.5)
@@ -2965,9 +2969,11 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	# 精英冷色描边（render/elite_rim）不受「Boss 轮廓光」开关影响
 	if g.tex.has(name + "_white") and ((Cfg.outline and (e.boss or e.get("part", false))) or _rim_on(e)):
 		var oc := Color(2.2, 2.0, 2.6, 0.5) if not e.elite else (elite_rim_col if _rim_on(e) else Color(3.2, 1.1, 0.7, 0.75))
+		if e.get("squad", false):
+			oc = SQUAD_RIM_COL
 		if e.get("part", false):
 			oc = Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.7 + 0.3 * _heartbeat(e))   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
-		if not e.elite and not e.boss:
+		if not e.elite and not e.boss and not e.get("squad", false):
 			oc.a *= ol_mul   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1；下限 render/declutter ol_floor，缺省 0.4）；精英 / Boss 不变
 		_espr_outline(name, frames, frame, bpos, sc, flip, oc, anc, sq)
 	# 囊海爬行者破膜（Codex docs/96 §1.3）：back（本体后）→ 本体 → front（本体前），两层同原点 (24,28)、同起播时间与帧号；

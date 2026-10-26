@@ -86,6 +86,7 @@ var seen_shows: Array = []   # 已看过的解锁演出
 var gallery_seen: Array = []
 var seen_relics: Array = []  # 获得过的藏品 id（图鉴用）
 var seen_intro := false      # 已看过开局引导（聚光框，screens/tour.gd；旧版翻页指南也用它）
+var title_tour := 0          # 主界面引导（screens/title_tour.gd）：0 没有 / 1 新手十连做完待引导 / 2 已引导（老存档恒为 0，不弹）
 var seen_tips: Array = []    # 已弹过的到点小提示 id（tour.gd TIPS；每样只弹一次）
 const TIP_IDS := ["elite", "boss", "lamp", "levelup"]
 var endings_cleared: Array = []   # 已达成的结局 id（通关结局一后才出现其余结局的事件）
@@ -516,6 +517,7 @@ func _read_cfg(c: ConfigFile) -> void:
 	seen_relics = c.get_value("progress", "seen_relics", seen_relics)
 	seen_intro = c.get_value("progress", "seen_intro", seen_intro)
 	seen_tips = c.get_value("progress", "seen_tips", seen_tips)
+	title_tour = int(c.get_value("progress", "title_tour", title_tour))
 	if not c.has_section_key("progress", "seen_tips") and seen_intro:
 		seen_tips = TIP_IDS.duplicate()   # 老存档（已看过旧指南）：到点小提示按「都看过」处理，不再打扰
 	opening_seen = c.get_value("progress", "opening_seen", opening_seen)
@@ -832,6 +834,7 @@ func save() -> void:
 	c.set_value("progress", "seen_relics", _real_progress.get("seen_relics", seen_relics))
 	c.set_value("progress", "seen_intro", seen_intro)
 	c.set_value("progress", "seen_tips", seen_tips)
+	c.set_value("progress", "title_tour", title_tour)
 	c.set_value("progress", "opening_seen", opening_seen)
 	c.set_value("progress", "endings_cleared", _real_progress.get("endings_cleared", endings_cleared))
 	c.set_value("roster", "unlocked", roster_unlocked)

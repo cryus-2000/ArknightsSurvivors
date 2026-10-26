@@ -27,6 +27,9 @@ const PRIORITY := {"lumen": 2.0, "skadi": 2.0, "specter_unchained": 2.0, "lappla
 ## 寻访凭证（存档 Cfg.roster_tickets["hunt"]）：每次探索结束发 RUN_TICKETS 张，通关再 +WIN_BONUS
 const T_HUNT := "hunt"
 const RUN_TICKETS := 3
+## 倒下时探索不足这么多秒不发凭证（10-26 用户反馈「一局没打完却多了三张券」：开局即倒下 / 重开也照发 3 张，可以刷券）；
+## 通关不受影响。中途从暂停回标题 / 重新开始不走局终结算，本来就不发
+const RUN_MIN_T := 180.0
 const WIN_BONUS := 1
 const COST_RANDOM := 1
 const COST_PICK := 2
@@ -187,6 +190,14 @@ static func choose_hunt() -> String:
 	return _weighted(fresh if not fresh.is_empty() else locked)
 
 
+## 纯随机：未解锁干员里等概率抽一名（新手十连用）；同一存档种子 + 已抽次数结果固定
+static func choose_any() -> String:
+	var locked := locked_ids()
+	if locked.is_empty():
+		return ""
+	return locked[_rng().randi() % locked.size()]
+
+
 ## 未解锁干员按职业分组（定向寻访：先选职业，再在该职业里点名）
 static func locked_in_class(cls: String) -> Array:
 	return locked_ids().filter(func(c): return class_of(c) == cls)
@@ -226,16 +237,19 @@ static func redeem_pick(cid: String) -> Dictionary:
 	return _result("pick", cid, COST_PICK)
 
 
-## 新手十连（TEN 张，只在名册为空时可用）：连抽 TEN 次随机寻访，不重复；choose_hunt 先补齐缺的职业，所以 10 人覆盖全部 8 个职业
-## （名册 20 人、每职业 ≥ 2 人时必然如此），保证队里有医疗与输出。返回每一抽的结果（同 redeem_random）；条件不满足返回 []，什么也不扣
+## 新手十连（TEN 张，只在名册为空时可用）：从全部未招募干员里纯随机抽 TEN 名、不重复（10-26 用户：开局十连不限定职业，
+## 不走「先补齐职业」也不按「上手快」加权；之后的随机寻访仍按 choose_hunt）。返回每一抽的结果（同 redeem_random）；条件不满足返回 []，什么也不扣
 static func redeem_ten() -> Array:
 	if not needs_first() or tickets() < TEN or locked_ids().size() < TEN:
 		return []
 	var out: Array = []
 	for _i in TEN:
-		var r := _result("ten", choose_hunt(), COST_RANDOM)
+		var r := _result("ten", choose_any(), COST_RANDOM)
 		if str(r.id) != "":
 			out.append(r)
+	if not out.is_empty():
+		Cfg.title_tour = 1   # 新手十连做完：回主界面后聚光框引导 图鉴 → 返回 → 集结出发（screens/title_tour.gd）
+		Cfg.save()
 	return out
 
 
@@ -250,14 +264,18 @@ static func mark_seen(cid: String) -> void:
 		Cfg.save()
 
 
-## 一次探索结束（state 进入 DEAD / WIN，game.gd _process 调一次）：发寻访凭证 3 张（通关 4 张）。
-## 不发：演练、练习、图鉴演示、非 PLAY 模式、全部解锁 / 测试局（active() 为假）。名册已满时不再发（剩下的凭证由 spill_to_cells 折成生机细胞）
+## 一次探索结束（state 进入 DEAD / WIN，run_end.settle 每局只调一次）：发寻访凭证 3 张（通关 4 张）。
+## 不发：演练、练习、图鉴演示、非 PLAY 模式、全部解锁 / 测试局（active() 为假）、倒下时探索不足 RUN_MIN_T 秒（g.roster_new.short = true，结算页写明）。
+## 名册已满时不再发（剩下的凭证由 spill_to_cells 折成生机细胞）
 static func on_run_end(g, won: bool) -> void:
 	if not active() or g.mode != g.Mode.PLAY or g.trial.active or g.demo_op != "" or Cfg.practice_active:
 		return
 	if locked_ids().is_empty():
 		g.roster_new = {}
 		spill_to_cells()
+		return
+	if not won and float(g.t) < RUN_MIN_T:
+		g.roster_new = {T_HUNT: 0, "short": true}
 		return
 	var n := RUN_TICKETS + (WIN_BONUS if won else 0)
 	Cfg.roster_tickets[T_HUNT] = tickets() + n

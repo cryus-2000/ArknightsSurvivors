@@ -4,6 +4,7 @@ extends Node
 ## 第 5 帧直接查 choice_panel.option_description：公共成长 / 填充 / 支援卡描述等于原文，不含技能名与按键提示；
 ## 干员卡只提自己的技能；招募 / 藏品卡不带技能提示。全部通过打印 "CARD DESC failures=0"。
 
+const Character = preload("res://scripts/characters/character.gd")
 var game: Node
 var frames := 0
 var n := 0
@@ -20,6 +21,7 @@ func _process(_d: float) -> void:
 	if frames != 5:
 		return
 	test_card_desc_isolation()
+	test_brief_all()
 	print("%d checks, %d failed" % [n, fails])
 	print("CARD DESC failures=%d" % fails)
 	get_tree().quit(1 if fails > 0 else 0)
@@ -72,3 +74,47 @@ func test_card_desc_isolation() -> void:
 		var d: String = game.panel_ui.option_description({"kind": "relic", "id": rid, "name": rid, "desc": game.rfx.display_desc(rid)})
 		for h in hints:
 			ok(not d.contains(h), "藏品卡 %s 不含「%s」" % [rid, h])
+
+
+## 一句话版 / 全文版全量检查（10-26 用户：水月「病理性依恋·缠缚」卡上只剩「「囚徒困境」期间每秒」）：
+## 全部干员的成长节点（含分支 / 路线 / 精英化选项）、全部藏品、招募卡——全文不含没替换的 {…} 占位；
+## 一句话（choice_panel.brief）不以「每秒 / 期间 / 的」这类半截词结尾；全文第一句有数字时一句话也要有数字；精英化卡的「解锁N技能 · 名」带技能名
+func test_brief_all() -> void:
+	var CP = game.panel_ui
+	var re_num := RegEx.create_from_string("[0-9]")
+	var texts: Array = []   # [来源, 全文]
+	for cid in Character.list_ids():
+		var d: Dictionary = Character.load_def(cid)
+		_collect(d.get("progression", []), cid, texts)
+	for rid in game.RL.keys():
+		texts.append(["藏品 %s %s" % [rid, game.RL[rid].name], game.rfx.display_desc(rid)])
+	for c in game.progression.recruit_cards():
+		texts.append(["招募 %s" % c.get("name", ""), CP.option_description(c)])
+	ok(texts.size() > 200, "一句话检查样本 %d 条" % texts.size())
+	for t in texts:
+		var full: String = str(t[1])
+		ok(not (full.contains("{") and full.contains("}")), "%s 全文含没替换的占位：%s" % [t[0], full])
+		var b: String = CP.brief(full)
+		ok(CP.brief_whole(b), "%s 一句话是半截：「%s」（全文：%s）" % [t[0], b, full])
+		var first: String = full.split("\n")[0]
+		for sep in ["；", "。"]:
+			if first.find(sep) > 0:
+				first = first.substr(0, first.find(sep))
+		ok(re_num.search(first) == null or re_num.search(b) != null, "%s 一句话丢了数字：「%s」（全文：%s）" % [t[0], b, full])
+	# 精英化卡：每位在队干员的精英化一句话带技能名
+	for o in game.squad.ops:
+		for lv in [1, 2]:
+			var hl: String = CP.headline({"kind": "prog", "op": o.id, "elite": lv})
+			ok(hl == "" or (hl.begins_with("解锁") and hl.length() > 8), "%s 精英%d 一句话「%s」" % [o.id, lv, hl])
+
+
+func _collect(v, src: String, out: Array) -> void:
+	if v is Dictionary:
+		if v.get("desc") is String and str(v.desc) != "":
+			out.append(["%s · %s" % [src, v.get("name", v.get("id", ""))], str(v.desc)])
+		for k in v:
+			if v[k] is Dictionary or v[k] is Array:
+				_collect(v[k], src, out)
+	elif v is Array:
+		for x in v:
+			_collect(x, src, out)

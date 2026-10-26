@@ -635,8 +635,14 @@
   "rest_heal": 0.4,
   "rest_maxhp": 0.05,
   "rest_light": 15,
-  "elite_n": 2,
-  "elite_ingots": 10,
+  "_squad": "紧急作战 = 精英小队（docs/161，用户 10-26「两只精英太简单、奖励不够，一下子多一些高阶普通怪，身上带红光标识」）：按阶段（g.t < squad_t[0] / < squad_t[1] / 之后）从 squad_pool 抽 squad_n 只高一阶的普通怪，生命 × squad_hp、伤害 × squad_dmg，全队共用一个词缀（甲壳 / 潮盾），红色描边（脚下红光 10-26 用户去掉）；同屏上限放不下的推迟刷出。全灭：宝箱（下一次藏品三选一稀有 / 核心加权，同得偿所愿）+ squad_ingots 源石锭",
+  "squad_t": [280, 520],
+  "squad_n": [8, 10, 12],
+  "squad_pool": [["stone", "spitter", "floater", "tracer"], ["tracer", "reaper", "founder", "nest", "spitter"], ["tracer", "reaper", "founder", "nest", "offspring"]],
+  "squad_hp": 2.0,
+  "squad_dmg": 1.3,
+  "squad_ingots": 20,
+  "squad_rush": 2.2,
   "wish_rare": 1.5
  },
  "events": [

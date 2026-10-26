@@ -8,6 +8,10 @@ const Medals = preload("res://scripts/core/medals.gd")
 
 
 static func settle(g) -> void:
+	# 每局只结算一次（防守：状态机若从胜 / 负切出去再切回来，不会重复发凭证 / 细胞）
+	if g.get_meta("run_settled", false):
+		return
+	g.set_meta("run_settled", true)
 	var won: bool = g.state == g.S.WIN
 	Roster.on_run_end(g, won)   # 干员解锁：发寻访凭证（docs/109 §12；不碰 g.rng）
 	Meta.on_run_end(g, won)   # 局外成长：记生机细胞（docs/109 §3.1）

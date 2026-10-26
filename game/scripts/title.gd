@@ -89,6 +89,7 @@ func _ready() -> void:
 	add_child(loading_layer)
 	loading = preload("res://scripts/screens/loading_screen.gd").new()
 	loading_layer.add_child(loading)
+	_add_title_tour.call_deferred()   # 主界面引导（新手十连之后）：要盖在图鉴等所有叠层之上，等 _ready 里的子节点都建完再作为最后一个子节点加
 	for a in Cfg.dev_args():
 		if a.begins_with("--compareshot="):
 			_compare_shot(a.substr(14))
@@ -111,6 +112,8 @@ func _ready() -> void:
 					gallery.select_id(a2.substr(12))   # 按干员 / 条目 id 选（新干员加进来下标会变）
 				if a2.begins_with("--galleryfilter="):
 					gallery._set_filter(a2.substr(16))
+				if a2 == "--gallerygroup":
+					gallery._set_group(true)   # 截图自测：干员页按职业分组（10-26）
 				if a2.begins_with("--galleryrow="):
 					gallery.row_sel = int(a2.substr(13))   # 手机：技能 / 成长页展开第几行
 				if a2 == "--reducemotion":
@@ -233,6 +236,8 @@ func _ready() -> void:
 			get_tree().quit())
 	if Cfg.dev_args().has("--settingsshot"):
 		settings.open()
+		if Cfg.dev_args().has("--perfview"):
+			settings.open_perf()   # 截图自测：性能报告页（数据读 user://perf_reports_test.json，先跑一局带 --perfreport 的测试写进去）
 		for a in Cfg.dev_args():
 			if a.begins_with("--settingstab="):
 				settings._set_tab(int(a.substr(14)))   # 截图自测：设置面板的分类页
@@ -660,6 +665,13 @@ func _input(event: InputEvent) -> void:
 		for i in item_rects.size():
 			if item_rects[i].has_point(make_input_local(event).position):
 				_activate(i)
+
+
+## 主界面引导（screens/title_tour.gd）：作为最后一个子节点，_input 先于图鉴 / 标题，盖在所有叠层之上
+func _add_title_tour() -> void:
+	var tt: Control = preload("res://scripts/screens/title_tour.gd").new()
+	add_child(tt)
+	tt.setup(self)
 
 
 func _close_info() -> void:

@@ -975,6 +975,8 @@ const PRIO_NAME := {
 	"atk_gate": 4, "ui_move": 4, "ui_ok": 4, "start": 4, "skill": 3, "hurt_heavy": 4, "kill_big": 3, "kill_shell": 3,
 	"beacon_tick": 3, "beacon_lit": 3, "beacon_end": 3, "beacon_fizzle": 3, "mire_clear": 3, "crit_tick": 3, "break_hit": 3, "break_open": 5, "lamp_empty": 4, "heartbeat_hi": 4,
 	"pickup": 1, "kill": 1, "hit": 1,
+	# 能天使枪声 / 命中（10-26 用户「还是没替换」，docs/113 §18）：普攻每秒约 3 次、命中约 2.5 次，优先级 2 时同时 ≥12 个在响会被压 6 dB、满槽先被丢；提到 3 = 不压、不先丢
+	"op_exusiai_atk": 3, "op_exusiai_atk_b": 3, "op_exusiai_atk_c": 3, "op_exusiai_hit": 3,
 }
 ## ---- 连发节流（用户 10-13「冲锋的音效触发太频繁了有点吵闹」）：在 LIMIT（同名最短间隔）之外再加两道旋钮——
 ## VOICE_CAP：同名音同时在响的上限（到上限就丢弃这次，不抢占）；带位置的音（play_at）按离画面多远降音量：

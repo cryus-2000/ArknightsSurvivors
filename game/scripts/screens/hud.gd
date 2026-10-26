@@ -698,3 +698,22 @@ func phone_quiet() -> bool:
 
 func overlay_left() -> bool:
 	return g.state == Game.S.SHOP or (g.state == Game.S.CHOICE and g.choice_kind == "event")
+
+
+## 鼠标左键落在对局 HUD 上（mp 为界面坐标）：顶栏三块、藏品栏、暂停 / 倍速键、右下编队栏（含上方指挥模式与作战时限）、左下声呐。
+## 点在这些地方不算点场地（doctor.click_skill：乌尔比安 S3 左键点击释放，10-26）。各块是缓存层、没有逐帧登记，这里按布局常量算外框，宁大勿小
+func blocks_click(mp: Vector2) -> bool:
+	var vs: Vector2 = g.hud.size
+	for r in [g.speed_btn, g.pause_btn]:
+		if (r as Rect2).has_area() and (r as Rect2).grow(6.0).has_point(mp):
+			return true
+	for c in g.tray_cells:
+		if (c[0] as Rect2).grow(4.0).has_point(mp):
+			return true
+	if mp.y < 104.0 and (mp.x < 400.0 or mp.x > vs.x - 260.0 or absf(mp.x - vs.x * 0.5) < 190.0):
+		return true
+	var sw: float = maxf(maxi(1, g.squad.size()) * HudSquad.SQ_COL_W, 250.0) + 16.0
+	if mp.x > vs.x - sw and mp.y > squad.squad_top(vs) - 44.0:
+		return true
+	var rad: float = 58.0 if Cfg.phone_ui() else 78.0   # 同 hud_bars.draw_minimap
+	return mp.distance_to(Vector2(16.0 + rad + 8.0, vs.y - rad - 24.0)) < rad + 14.0

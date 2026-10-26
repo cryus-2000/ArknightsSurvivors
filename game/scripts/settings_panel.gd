@@ -44,6 +44,8 @@ const ROWS := [
 	{"cn": "云存档", "en": "CLOUD SAVE", "key": "cloud", "type": "cloud"},
 	{"cn": "从云端恢复", "en": "RESTORE", "key": "cloud_pull", "type": "cloud_pull"},
 	{"cn": "以本地覆盖云端", "en": "", "key": "cloud_push", "type": "cloud_push"},
+	# 性能报告（10-27 用户：真机采集用）：点「查看」打开最近一局的性能摘要与「复制报告」（screens/perf_view.gd；数据 core/perf_report.gd，只存本机）
+	{"cn": "性能报告", "en": "PERF REPORT", "key": "perf", "type": "perf"},
 	{"cn": "返回", "en": "BACK", "key": "", "type": "back"},
 ]
 const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
@@ -52,7 +54,7 @@ const RUNS_HINT := "测试版：本地记录对局摘要（不上传）"
 ## ROWS 与存档键都保留（旧存档兼容），后期四项跟画质档走，对局记录挪到作战结算底栏
 const TABS := [
 	["声音", "SOUND", ["master", "music", "sfx", "voice"]],
-	["画面", "DISPLAY", ["quality", "max_fps", "fullscreen", "res_index", "brightness", "ui_size_pct", "dmg_numbers", "reduce_motion"]],
+	["画面", "DISPLAY", ["quality", "max_fps", "fullscreen", "res_index", "brightness", "ui_size_pct", "dmg_numbers", "reduce_motion", "perf"]],
 	["操作", "CONTROLS", ["manual_attack", "pad_rumble", "touch_layout"]],
 ]
 
@@ -73,6 +75,7 @@ const TOUCH_ONLY := ["touch_layout"]
 ## 局内打开设置时由 game.gd 设：触屏按键布局编辑页按本次探索实际的普攻方式决定是否摆出攻击键（标题页为 null，按设置）
 var game_ref: Node = null
 var editor: Control = null   # 触屏按键布局编辑页（第一次打开时建）
+var perf_view: Control = null   # 性能报告页（第一次打开时建）
 var eat_release := false     # 编辑页在按下时关掉：同一次点击的松手不能落到设置面板上（触屏版松手才算点选，会误点下面的行）
 
 var font: Font
@@ -217,8 +220,8 @@ func close() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if not visible or (editor != null and editor.visible):
-		return   # 触屏按键布局编辑页开着：输入归它（_gui_input）
+	if not visible or (editor != null and editor.visible) or (perf_view != null and perf_view.visible):
+		return   # 触屏按键布局编辑页 / 性能报告页开着：输入归它
 	if eat_release and event is InputEventMouseButton:
 		if not event.pressed:
 			eat_release = false
@@ -379,6 +382,9 @@ func _adjust(i: int, dir: int) -> void:
 		"touchpad":
 			open_touch_editor()
 			return
+		"perf":
+			open_perf()
+			return
 		"cloud":
 			Cloud.flush("manual")
 			Sfx.play("ui_ok")
@@ -404,6 +410,17 @@ func _adjust(i: int, dir: int) -> void:
 			return
 	Cfg.apply()
 	Sfx.play("ui_move")
+
+
+## 打开性能报告页（盖在设置面板上，关掉回到设置）
+func open_perf() -> void:
+	if perf_view == null:
+		perf_view = preload("res://scripts/screens/perf_view.gd").new()
+		add_child(perf_view)
+		perf_view.closed.connect(func():
+			eat_release = true
+			drag_on = false)
+	perf_view.open()
 
 
 ## 打开触屏按键布局编辑页（盖在设置面板上，关掉回到设置）
@@ -550,6 +567,16 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 			ci.draw_rect(br, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.04, 0.09, 0.12, 0.8))
 			ci.draw_rect(br, UI.CYAN if on else UI.CYAN_DIM, false, 1.0)
 			UI.text(ci, font, br.position + Vector2(0, 18 if not touch else 22), "打开记录文件夹", 14 if not touch else 16, UI.CYAN if on else UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, br.size.x)
+		"perf":
+			# 右侧「查看」按钮；左边一行最近一局摘要（没有记录写「暂无记录」）
+			var pr: Array = preload("res://scripts/core/perf_report.gd").load_all()
+			var ph: String = "暂无记录" if pr.is_empty() else "最近一局 P95 %.1f 毫秒 · 最低 %s 帧" % [float(pr[0].get("p95", 0)), ("%.0f" % float(pr[0].get("min1s", 0))) if float(pr[0].get("min1s", 0)) > 0.0 else "—"]
+			UI.text(ci, font, Vector2(vx - 14 - 300.0, rr.position.y + ty0), ph, 13 if touch else 12, UI.SUB if pr.is_empty() else UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 300)
+			var bh4: float = 32.0 if touch else 26.0
+			var br4 := Rect2(vx + 10, rr.position.y + (ty0 - 15.0 - (3.0 if touch else 0.0)), 180, bh4)
+			ci.draw_rect(br4, Color(0.05, 0.2, 0.24, 0.9) if on else Color(0.04, 0.09, 0.12, 0.8))
+			ci.draw_rect(br4, UI.CYAN if on else UI.CYAN_DIM, false, 1.0)
+			UI.text(ci, font, br4.position + Vector2(0, 18 if not touch else 22), "查看", 14 if not touch else 16, UI.CYAN if on else UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, br4.size.x)
 		"touchpad":
 			# 右侧「调整」按钮；左边一行说明（有自定义时写「已自定义」）
 			var custom: bool = not Cfg.touch_layout.is_empty()

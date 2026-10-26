@@ -260,6 +260,30 @@ func run_checks() -> void:
 		g.enemies_sys.update(1.0 / 30.0)
 	check(hb.all(func(x): return x[0].dead or x[0].pos.distance_to(Vector2.ZERO) < float(x[1].distance_to(Vector2.ZERO)) - 60.0), "every horde member leaves its spawn point after its batch delay (no one stays frozen)")
 	g.enemies.clear()
+	# 紧急作战精英小队（docs/161）：中段 10 只高一阶普通怪、生命 ×squad_hp、全队同一词缀、红色标识；同屏上限放不下的推迟刷出；全灭给宝箱 + 稀有加权 + 源石锭
+	var dc: Dictionary = g.endg.deck_cfg
+	g.t = 330.0
+	g.ppos = Vector2.ZERO
+	g.spawner.auto_cap = 4   # 手机同屏上限（自动档第 2 级）压到 4：只能先放 4 只
+	g.endg._spawn_elites()
+	var sq: Array = g.endg.elites
+	check(sq.size() == 4 and g.endg.squad_pending.size() == 6, "squad respects the on-screen cap and defers the rest (got %d + %d)" % [sq.size(), g.endg.squad_pending.size()])
+	check(sq.all(func(x): return x.get("squad", false) and x.affix == g.endg.squad_affix and (dc.squad_pool[1] as Array).has(x.type)), "squad members are flagged, share one affix and come from the mid-stage pool")
+	g.spawner._norm = true   # 基准按普通刷怪同一路径算（含怪物密度换算），与小队成员一致
+	var base_hp: float = g.spawner.new_enemy(str(sq[0].type), Vector2.ZERO).maxhp
+	g.spawner._norm = false
+	check(is_equal_approx(float(sq[0].maxhp), base_hp * float(dc.squad_hp)), "squad hp is scaled by squad_hp")
+	g.spawner.auto_cap = 0
+	g.endg._tick_elites()
+	check(g.endg.squad_pending.is_empty() and g.endg.elites.size() == 10, "deferred squad members arrive once there is room")
+	var ing0: int = g.ingots
+	var gems0: int = g.gems.size()
+	for x in g.endg.elites:
+		x.dead = true
+	g.endg._tick_elites()
+	check(g.ingots == ing0 + int(dc.squad_ingots) and g.gems.size() == gems0 + 1 and g.endg.wish_rare and g.endg.elites.is_empty(), "wiping the squad drops a chest with rare weighting and squad_ingots ingots")
+	g.endg.wish_rare = false
+	g.enemies.clear()
 	print("ENEMY ATTACK VARIETY failures=", failures)
 	g.warns.clear()
 	g.enemies.clear()

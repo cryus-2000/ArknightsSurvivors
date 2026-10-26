@@ -254,6 +254,8 @@ func draw(ci: CanvasItem, vs: Vector2) -> void:
 	_text(ci,754,140,"+%d" % int(cells*count),32)
 	_text(ci,944,116,"寻访凭证",13,HH.MUTE)
 	_text(ci,944,140,"×%d" % int(vouchers*count),32,HH.CYB)
+	if bool(g.roster_new.get("short", false)):
+		_text(ci,944,176,"探索不足 %d 分钟，不发放" % int(Roster.RUN_MIN_T / 60.0),11,HH.MUTE)
 	ci.draw_rect(Rect2(1148,76,100,116),HH.MUTE,false)
 	_text(ci,1168,86,"RATING",11,HH.MUTE)
 	if elapsed >= 0.68:
