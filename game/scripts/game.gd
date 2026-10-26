@@ -1313,15 +1313,19 @@ func _mem_guard(delta: float) -> void:
 	if vid + aud <= budget:
 		return
 	Cfg.slim_fonts(true)   # 字形缓存清掉重建（按需栅格化，卡一下；docs/50 §30 字体缓存能到 60 MB）
-	var acted: bool = Cfg.quality != "low" or not Cfg.render_scaled
+	# 分两步（10-27 用户要清晰，docs/50 §34）：先降低画质（关光学层，它的全屏渲染目标最大）；5 秒后再查仍超线才开分辨率缩放（整屏放大会糊，最后兜底防崩）
+	var step := ""
 	if Cfg.quality != "low":
 		Cfg.set_quality("low")
 		Cfg.guard_lowered = true
 		quality_note = "内存紧张，本局已临时降低画质" if Cfg.quality_mode != "auto" else "内存紧张，已自动降低画质（可在设置里改）"
 		quality_note_t = 5.0
-	Cfg.set_render_scale(true)
-	if acted and not Cfg.dev_args().is_empty():
-		print("PF MEMGUARD vid=%.0fMB audio=%.0fMB -> 低画质 + 分辨率缩放 t=%.0f" % [vid, aud, t])
+		step = "低画质"
+	elif not Cfg.render_scaled:
+		Cfg.set_render_scale(true)
+		step = "分辨率缩放"
+	if step != "" and not Cfg.dev_args().is_empty():
+		print("PF MEMGUARD vid=%.0fMB audio=%.0fMB -> %s t=%.0f" % [vid, aud, step, t])
 
 
 const AQ_WIN := 2.0

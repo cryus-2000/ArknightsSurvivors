@@ -366,6 +366,14 @@ func _music_lite() -> bool:
 	return _lite == 1
 
 
+func _music_cap_hit() -> bool:
+	if not _music_lite():
+		return false
+	var cfg = get_node_or_null("/root/Cfg")
+	var cap: float = load("res://scripts/core/balance.gd").v("web/mobile_music_cap_mb", 64.0)
+	return cfg != null and cap > 0.0 and sample_mem_mb() > cap
+
+
 ## 乐句式曲目：载入每句每层的流（不循环），建两组播放器（各层 + 危险层）
 func _seq_init(tname: String) -> void:
 	var cfg: Dictionary = SEQ[tname]
@@ -440,6 +448,18 @@ func _seq_next(tname: String) -> String:
 			v *= 0.4
 		w[sname] = v
 		total += v
+	if _music_cap_hit():
+		# 手机网页音频封顶（docs/50 §34）：网页样本注册了就释放不掉，后期每句新乐句约 5.5 MB；超过 web/mobile_music_cap_mb 后只在已经响过的句里挑
+		var reg := {}
+		var rt := 0.0
+		for sname in w:
+			var sts: Array = q.segs.get(sname, [])
+			if not sts.is_empty() and sts[0] != null and AudioServer.is_stream_registered_as_sample(sts[0]):
+				reg[sname] = w[sname]
+				rt += float(w[sname])
+		if rt > 0.0:
+			w = reg
+			total = rt
 	var r := music_rng.randf() * total
 	for sname in w:
 		r -= float(w[sname])
