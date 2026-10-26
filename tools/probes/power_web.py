@@ -75,6 +75,7 @@ def main():
     p = subprocess.Popen([pw.EDGE, "--user-data-dir=" + ud, "--app=about:blank", "--window-position=%d,%d" % (px, py), "--window-size=844,390",
                           "--no-first-run", "--no-default-browser-check", "--disable-background-timer-throttling", "--disable-renderer-backgrounding",
                           "--disable-backgrounding-occluded-windows", "--disable-features=CalculateNativeWinOcclusion", "--mute-audio",
+                          "--autoplay-policy=no-user-gesture-required",
                           "--remote-debugging-port=%d" % dbg])
     page = pw._cdp_setup(dbg, url, 0, True, False, a.dpr)
     ver = json.loads(urllib.request.urlopen("http://127.0.0.1:%d/json/version" % dbg, timeout=5).read())
@@ -93,8 +94,16 @@ def main():
         r = bcmd("SystemInfo.getProcessInfo").get("result", {}).get("processInfo", [])
         out = {}
         for x in r:
+            types_seen.add(x["type"])
             out[x["type"]] = out.get(x["type"], 0.0) + float(x["cpuTime"])
         return out
+
+    def main_busy():
+        r = page.cmd("Performance.getMetrics").get("result", {}).get("metrics", [])
+        return {m["name"]: m["value"] for m in r}.get("TaskDuration", 0.0)
+
+    page.cmd("Performance.enable")
+    types_seen = set()
 
     def phase():
         r = page.cmd("Runtime.evaluate", {"expression": "window.__phase||''", "returnByValue": True})
@@ -103,11 +112,13 @@ def main():
     acc = {}
     t0 = time.time()
     last = proc_cpu()
+    last["main"] = main_busy()
     lt = time.time()
     while time.time() - t0 < a.secs:
         time.sleep(1.0)
         ph = phase()
         cur = proc_cpu()
+        cur["main"] = main_busy()
         now = time.time()
         if ph and ph != "end":
             a_ = acc.setdefault(ph, {"wall": 0.0})
@@ -127,13 +138,15 @@ def main():
     srv.shutdown()
     shutil.rmtree(ud, ignore_errors=True)
     res = {}
-    print("段\t秒\t渲染进程 ms/s\tGPU 进程 ms/s\t合计 ms/s")
+    print("进程类型", sorted(types_seen))
+    print("段\t秒\t主线程 ms/s\t渲染进程 ms/s\tGPU 进程 ms/s")
     for ph, v in acc.items():
         w = max(0.01, v["wall"])
+        mm = v.get("main", 0.0) * 1000 / w
         rr = v.get("renderer", 0.0) * 1000 / w
-        gg = v.get("gpu", 0.0) * 1000 / w
-        res[ph] = {"wall": round(w, 1), "renderer": round(rr, 1), "gpu": round(gg, 1), "sum": round(rr + gg, 1)}
-        print("%s\t%.0f\t%.0f\t%.0f\t%.0f" % (ph, w, rr, gg, rr + gg))
+        gg = sum(v.get(k, 0.0) for k in v if "gpu" in k.lower()) * 1000 / w
+        res[ph] = {"wall": round(w, 1), "main": round(mm, 1), "renderer": round(rr, 1), "gpu": round(gg, 1)}
+        print("%s\t%.0f\t%.0f\t%.0f\t%.0f" % (ph, w, mm, rr, gg))
     for l in open(log_p, encoding="utf-8").read().splitlines():
         if l.startswith("PF POWER") or l.startswith("SCRIPT ERROR"):
             print(l)

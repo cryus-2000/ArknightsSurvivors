@@ -516,7 +516,7 @@ func _cmd_step() -> void:
 
 ## --powerseq（tools/probes/power_web.py，docs/50 §33 发烫代理指标）：按墙钟走 对局 → 暂停 → 对局 → 选卡 → 对局；
 ## 段名写进 window.__phase 给测量脚本按段记账各进程 CPU 时间，段末打 PF POWER（实际帧率）。暂停 / 选卡段里机器人不动
-const PW_SEQ := [["play", 15.0], ["pause", 12.0], ["play2", 3.0], ["choice", 12.0], ["play3", 6.0]]
+const PW_SEQ := [["play", 20.0], ["pause", 20.0], ["play2", 3.0], ["choice", 20.0], ["play3", 6.0]]
 var _pw := -2
 var _pw_t0 := -1
 var _pw_fr := 0
