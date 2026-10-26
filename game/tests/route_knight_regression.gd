@@ -232,29 +232,43 @@ func _final_flow() -> void:
 	check(game.knight_alive and not game.knight.alive and not game.knight.submerged, "after take_over the ally slot is gone, ending flag stays")
 
 
-## 9:00 之后、到达之前阵亡：走原阵亡逻辑（退行 223、结局回退），不入潮
+## 入潮移动无敌；道中阵亡立即转为一名精英，并保留退行和结局回退。
 func _walk_death() -> void:
-	const Dt = preload("res://scripts/data.gd")
 	_fresh_knight_game(Vector2(900, 0))
 	game.t = 540.0
 	_final_step(0.05)
 	check(game.knight.state == "walk", "knight walking at 9:00")
 	game.knight.hp = 1.0
-	var mob: Dictionary = {}
-	for k in Dt.ENEMIES:
-		var dd: Dictionary = Dt.ENEMIES[k]
-		if dd.get("ai", "") == "melee" and not dd.get("boss", false) and not dd.get("no_spawn", false) and float(dd.get("dmg", 0.0)) > 0.0:
-			mob = game.spawner.spawn_enemy(k, game.knight.pos)
-			break
-	if not mob.is_empty():
-		mob.elite = true
-		for i in 10:
-			mob.pos = game.knight.pos
-			game.enemies_sys.build_grid()
-			_final_step(0.05)
-	check(game.knight.fallen and not game.knight.alive and not game.knight.submerged, "knight killed on the way falls (no submerge)")
-	check(game.relics.has("223") and game.endg.cur != "knight", "walk death grants 223 and the ending falls back")
-	check(_count_banner("没入") == 0, "no submerge banner after a walk death")
+	game.knight._hurt(9999.0)
+	check(game.knight.hp == 1.0, "walk rejects direct damage")
+	var mob: Dictionary = game.spawner.spawn_enemy("bone", game.knight.pos)
+	mob.elite = true
+	mob.dmg = 9999.0
+	var bullet := {"life": 2.0, "pos": game.knight.pos + Vector2(0, -20), "r": 80.0, "dmg": 9999.0}
+	game.ebullets.append(bullet)
+	game.enemies_sys.build_grid()
+	_final_step(0.05)
+	check(game.knight.alive and not game.knight.fallen and game.knight.hp == 1.0, "walk ignores lethal contact and bullets")
+	check(bullet.life == 2.0, "invulnerable walking knight does not absorb bullets")
+	check(game.endg.cur == "knight" and not game.relics.has("223"), "walk keeps knight route")
+	game.knight._arrive()
+	game.knight._hurt(9999.0)
+	check(game.knight.hp == 1.0, "sink rejects direct damage too")
+
+	_fresh_knight_game(Vector2(300, 0))
+	game.t = 300.0
+	game.knight.hp = 1.0
+	game.knight._hurt(9999.0)
+	game.knight.update(0.01)
+	var hostile: Array = game.enemies.filter(func(e): return e.type == "knight" and not e.dead)
+	check(game.knight.fallen and not game.knight.alive and not game.knight.submerged, "ordinary fatal damage kills companion")
+	check(game.relics.has("223") and game.endg.cur != "knight", "ordinary death grants 223 and falls back")
+	check(hostile.size() == 1, "ordinary death immediately spawns exactly one hostile knight")
+	if hostile.size() == 1:
+		check(hostile[0].elite and not hostile[0].boss and not hostile[0].get("friendly", false), "fallen knight uses actual elite enemy classification")
+		check(hostile[0].maxhp > 110.0 and hostile[0].hp == hostile[0].maxhp, "elite conversion uses normal scaled enemy stats")
+	game.knight.die()
+	check(game.enemies.filter(func(e): return e.type == "knight" and not e.dead).size() == 1, "death is idempotent")
 
 
 ## 10-20 修：enter_arena 的 freeze_zone 会把场地圆心拉向主控，take_over 当时给的落点可能被后面的 arena_clamp 挪走；
