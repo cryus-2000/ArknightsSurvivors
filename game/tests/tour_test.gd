@@ -2,7 +2,7 @@ extends Node
 ## 首局聚光框引导 + 到点小提示单元测试（screens/tour.gd，check.py 场景回归 tour）。
 ## 1. TIPS 的 id 与 Cfg.TIP_IDS 一一对应；2. show_tip：弹一次、记进 Cfg.seen_tips、重复不再弹、第二个排队、过期后轮到队列；
 ## 3. force（演示用）不记存档；4. 存档往返：seen_tips 写读一致；5. 老存档（seen_intro = true、没有 seen_tips 键）读入后按「都看过」处理，
-## 全新存档读入后为空；6. 没有对局（g = null）时不查触发条件。
+## 全新存档读入后为空；6. 没有对局（g = null）时不查触发条件；7. 主界面引导：老存档 title_tour = 0 不弹、新手十连做完置 1、存档读入。
 const Tour = preload("res://scripts/screens/tour.gd")
 
 var failures := 0
@@ -63,6 +63,21 @@ func _ready() -> void:
 	Cfg.seen_tips = []
 	Cfg._read_cfg(fresh)
 	check(Cfg.seen_tips.is_empty(), "全新存档读入后 seen_tips 为空：" + str(Cfg.seen_tips))
+	# 7. 主界面引导：老存档 / 全新存档 title_tour 为 0；新手十连做完置 1（--roster=new 启动：名册为空 + 新手 10 张）
+	Cfg.title_tour = 0
+	Cfg._read_cfg(old)
+	check(Cfg.title_tour == 0, "老存档 title_tour 恒为 0（不弹主界面引导）")
+	var rost = preload("res://scripts/core/roster.gd")
+	if rost.needs_first() and rost.tickets() >= rost.TEN:
+		var ten: Array = rost.redeem_ten()
+		check(ten.size() == rost.TEN, "新手十连 10 人：" + str(ten.size()))
+		check(Cfg.title_tour == 1, "新手十连做完 title_tour = 1：" + str(Cfg.title_tour))
+	else:
+		check(false, "测试要用 --roster=new 启动（名册为空 + 新手 10 张）")
+	var cf2 := ConfigFile.new()
+	cf2.set_value("progress", "title_tour", 2)
+	Cfg._read_cfg(cf2)
+	check(Cfg.title_tour == 2, "title_tour 读入")
 	# 6. 没有对局不查触发
 	check(not tour._eligible(), "g 为空时 _eligible 为假")
 	print("TOUR failures=%d" % failures)

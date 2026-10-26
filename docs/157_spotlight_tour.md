@@ -20,3 +20,11 @@
 - `python tools/check.py --only tour`：`tests/tour_test.gd`（小提示只弹一次 / 排队 / force 不记 / 存档往返 / 老存档迁移 / TIPS 与 `Cfg.TIP_IDS` 一致）。
 - 演示：`godot … -- --tourdemo`（真人局、跳过开场、第 25 帧起走一遍引导，每步 2.2 秒自动下一步）、`--tipdemo=<elite|boss|lamp|levelup>`（第 25 帧弹该提示 8 秒）；配 `--fixed-fps 30 --shotdir=<目录>` 每帧存 `rec_%05d.png`，再用 ffmpeg 合成 mp4；加 `--touch` + 手机比例分辨率（1170×540）录手机版。
 - 引导新玩家时名册已有 10 人（对内包）或寻访会话的新开局，不影响引导：框的只是 HUD。
+
+## 4. 主界面引导（10-26 协调人转用户：新手十连之后）
+
+新玩家开局名册为空，先做新手十连（寻访会话）。十连做完回到主界面后，再用聚光框指引三步：① 点「图鉴」（看抽到的干员）→ ② 点图鉴右上「返回」→ ③ 点「集结出发」。每步一句，文案在 `screens/title_tour.gd STEPS`。
+
+- 触发：`Roster.redeem_ten()` 成功时置存档 `[progress] title_tour = 1`；标题页（开场结束、无叠层、不在转场）等 0.7 秒后开始；走完 / 跳过置 2。老存档没做过新手十连，恒为 0，不弹；中途退出游戏时仍为 1，下次启动再引导。
+- 实现：聚光框画法抽到 `screens/spotlight.gd`（局内引导 `tour.gd` 与这里共用）；`title_tour.gd` 是标题页的最后一个子节点（`title._add_title_tour` 延后加），`_input` 先于图鉴 / 标题：点在高亮外的点击被吞掉，点在高亮内原样交给标题 / 图鉴；第 ② 步不压暗、不画「跳过」（玩家要看图鉴，Esc 自然关图鉴）；图鉴「返回」键的位置取 `gallery.back_screen_rect()`（桌面 / 手机各一份）。第 ③ 步点「集结出发」或 Enter（选中项被强制设成被框的那一项）；Esc / 「跳过引导」结束。
+- 演示：`--titletour --roster=full`（名册非空）自动走完三步，真实输入通路：先点高亮外（断言被吞）、再点高亮内；触屏演示因标题页按 `ui_k` 放大、合成事件坐标对不上，直接 `_activate`。配 `--fixed-fps 30 --shotdir=…` 存帧。

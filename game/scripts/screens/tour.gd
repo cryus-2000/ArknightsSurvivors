@@ -10,6 +10,7 @@ extends RefCounted
 
 const UI = preload("res://scripts/ui.gd")
 const Game = preload("res://scripts/game.gd")
+const Spotlight = preload("res://scripts/screens/spotlight.gd")
 
 const TIP_LIFE := 8.0
 const DEMO_STEP_SECS := 2.2
@@ -219,89 +220,10 @@ func show_tip(id: String, force := false) -> void:
 func draw(vs: Vector2) -> void:
 	if not active or _steps.is_empty():
 		return
-	var hud: CanvasItem = g.hud
-	var font: Font = g.font
 	var st: Dictionary = _steps[mini(step, _steps.size() - 1)]
-	var e: float = _ease(clampf(t / 0.28, 0.0, 1.0))
-	var holes: Array = []
-	for r in st.rects:
-		holes.append(r.grow((1.0 - e) * 26.0 + 5.0))
-	_dim(vs, holes, 0.68)
-	var pulse: float = 0.5 + 0.5 * sin(t * 4.2)
-	for r in holes:
-		_frame(r, e, pulse)
-	# 说明板
 	var touch: bool = g.touch.active
-	var pw: float = minf(vs.x - 32.0, 400.0 if touch else 380.0)
-	var fsz := 15
-	var lines: PackedStringArray = UI.wrap_lines(font, st.text, fsz, pw - 44.0)
-	var lh: float = font.get_height(UI.fs(fsz)) + 3.0
-	var ph: float = 78.0 + lines.size() * lh + 34.0
-	var ub: Rect2 = holes[0]
-	for r in holes:
-		ub = ub.merge(r)
-	var py: float = ub.end.y + 16.0
-	if py + ph > vs.y - 66.0:
-		py = ub.position.y - 16.0 - ph
-	py = clampf(py, 8.0, vs.y - ph - 8.0)
-	var px: float = clampf(ub.get_center().x - pw / 2.0, 16.0, vs.x - pw - 16.0)
-	var pr := Rect2(Vector2(px, py + (1.0 - e) * 10.0), Vector2(pw, ph))
-	UI.panel(hud, pr, Color(UI.BG2.r, UI.BG2.g, UI.BG2.b, 0.96 * e), Color(1, 1, 1, 0.16 * e), 12.0, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, e))
-	hud.draw_rect(Rect2(pr.position + Vector2(0, 12), Vector2(4, ph - 24)), Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, e))
-	UI.en(hud, font, pr.position + Vector2(22, 26), "GUIDE  %02d / %02d  ·  %s" % [step + 1, _steps.size(), st.en], 11, Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, e), 2.5)
-	UI.text(hud, font, pr.position + Vector2(22, 56), st.title, 22, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, e))
-	var asc: float = font.get_ascent(UI.fs(fsz))
-	var y: float = pr.position.y + 66.0
-	for i in lines.size():
-		hud.draw_string(font, Vector2(pr.position.x + 22, y + asc + i * lh), lines[i], HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(fsz), Color(0.85, 0.93, 0.95, e))
-	UI.text(hud, font, pr.position + Vector2(22, ph - 14), Pad.hint("点击 / 任意键：下一步　右键 / ←：上一步", "Ⓐ：下一步　Ⓑ：跳过", "点击：下一步"), 11, Color(UI.SUB.r, UI.SUB.g, UI.SUB.b, e))
-	# 跳过按钮：屏幕底部居中（顶部与两侧都有 HUD 键）
-	var bw := 150.0 if touch else 128.0
-	var bh := 44.0 if touch else 34.0
-	var br := Rect2(vs.x / 2.0 - bw / 2.0, vs.y - bh - 14.0, bw, bh)
-	skip_rect = br.grow_individual(12, 8, 12, 8) if touch else br
-	var hov: bool = br.has_point(hud.get_local_mouse_position())
-	UI.frame(hud, br, UI.GOLD, {"cut": 6.0, "bracket": 6.0, "glow": 1.0 if hov else 0.0, "alpha": (1.0 if hov else 0.75) * e})
-	UI.text(hud, font, br.position + Vector2(0, bh * 0.66), "跳过引导", 15 if touch else 14, Color(UI.TEXT.r, UI.TEXT.g, UI.TEXT.b, e), HORIZONTAL_ALIGNMENT_CENTER, bw)
-
-
-## 暗幕：按各个洞的边把全屏切成网格，洞内的格子不画
-func _dim(vs: Vector2, holes: Array, a: float) -> void:
-	var xs: Array = [0.0, vs.x]
-	var ys: Array = [0.0, vs.y]
-	for r in holes:
-		xs.append_array([clampf(r.position.x, 0.0, vs.x), clampf(r.end.x, 0.0, vs.x)])
-		ys.append_array([clampf(r.position.y, 0.0, vs.y), clampf(r.end.y, 0.0, vs.y)])
-	xs.sort()
-	ys.sort()
-	var col := Color(0.0, 0.012, 0.03, a)
-	for i in xs.size() - 1:
-		for j in ys.size() - 1:
-			var cell := Rect2(xs[i], ys[j], xs[i + 1] - xs[i], ys[j + 1] - ys[j])
-			if cell.size.x < 0.5 or cell.size.y < 0.5:
-				continue
-			var inside := false
-			for r in holes:
-				if r.has_point(cell.get_center()):
-					inside = true
-					break
-			if not inside:
-				g.hud.draw_rect(cell, col)
-
-
-## 聚光框：淡黄底 + 细边 + 四角 L 形括号，呼吸闪烁
-func _frame(r: Rect2, e: float, pulse: float) -> void:
-	var hud: CanvasItem = g.hud
-	var gold := Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 1.0)
-	hud.draw_rect(r, Color(gold.r, gold.g, gold.b, (0.04 + 0.05 * pulse) * e))
-	hud.draw_rect(r, Color(gold.r, gold.g, gold.b, 0.5 * e), false, 1.0)
-	var cl := 16.0
-	for sx in [0.0, 1.0]:
-		for sy in [0.0, 1.0]:
-			var q := Vector2(r.position.x + sx * r.size.x, r.position.y + sy * r.size.y)
-			var dx: float = -cl if sx > 0.5 else cl
-			var dy: float = -cl if sy > 0.5 else cl
-			hud.draw_polyline(PackedVector2Array([q + Vector2(0, dy), q, q + Vector2(dx, 0)]), Color(gold.r, gold.g, gold.b, (0.75 + 0.25 * pulse) * e), 3.0)
+	skip_rect = Spotlight.draw(g.hud, g.font, vs, st.rects, {"idx": step, "n": _steps.size(), "en": st.en, "title": st.title, "text": st.text, "touch": touch,
+		"e": _ease(clampf(t / 0.28, 0.0, 1.0)), "t": t, "hint": Pad.hint("点击 / 任意键：下一步　右键 / ←：上一步", "Ⓐ：下一步　Ⓑ：跳过", "点击：下一步")})
 
 
 ## 到点小提示：左上角（生命 / 灯火条下方）斜切小框 + 黄条，滑入 / 淡出；不拦输入

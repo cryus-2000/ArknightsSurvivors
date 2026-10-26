@@ -89,6 +89,7 @@ func _ready() -> void:
 	add_child(loading_layer)
 	loading = preload("res://scripts/screens/loading_screen.gd").new()
 	loading_layer.add_child(loading)
+	_add_title_tour.call_deferred()   # 主界面引导（新手十连之后）：要盖在图鉴等所有叠层之上，等 _ready 里的子节点都建完再作为最后一个子节点加
 	for a in Cfg.dev_args():
 		if a.begins_with("--compareshot="):
 			_compare_shot(a.substr(14))
@@ -660,6 +661,13 @@ func _input(event: InputEvent) -> void:
 		for i in item_rects.size():
 			if item_rects[i].has_point(make_input_local(event).position):
 				_activate(i)
+
+
+## 主界面引导（screens/title_tour.gd）：作为最后一个子节点，_input 先于图鉴 / 标题，盖在所有叠层之上
+func _add_title_tour() -> void:
+	var tt: Control = preload("res://scripts/screens/title_tour.gd").new()
+	add_child(tt)
+	tt.setup(self)
 
 
 func _close_info() -> void:

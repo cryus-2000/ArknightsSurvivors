@@ -149,6 +149,15 @@ func _warm_demo() -> void:
 	A.warm_begin(G.preload_tex_names() + G.demo_warm_names(), enemies)
 
 
+## 「返回」键在屏幕（本节点局部）坐标里的矩形（主界面引导框它；hits 每次绘制重建，桌面 / 手机各一份）；还没画过返回空
+func back_screen_rect() -> Rect2:
+	for h in hits:
+		if h[1] == "back":
+			var r: Rect2 = h[0]
+			return Rect2(r.position * dk + doff, r.size * dk)
+	return Rect2()
+
+
 func close() -> void:
 	visible = false
 	rail_focus = false
