@@ -875,6 +875,8 @@ func _process(delta: float) -> void:
 				pl.stop()
 		if gv <= 0.0:
 			_maybe_free(tname)
+		else:
+			_last_on[tname] = _now()
 	for tname in seq:
 		var want := 1.0 if tname == cur_track else 0.0
 		var rate: Array = group_rate[tname]
@@ -895,6 +897,8 @@ func _process(delta: float) -> void:
 						pl.stop()
 		if gv <= 0.0:
 			_maybe_free(tname)
+		else:
+			_last_on[tname] = _now()
 	if stinger.playing:
 		if absf(stinger.volume_db - (vol_target + 4.0)) > 0.0001:
 			stinger.volume_db = vol_target + 4.0
@@ -912,8 +916,14 @@ func _process(delta: float) -> void:
 var _freed := {}
 var _free_ok := -1
 
+var _last_on := {}   # 曲目最后一次是当前曲目的时刻（墙钟）：离开满 FREE_AFTER 秒才放，刚点播还没开起来的不放
+const FREE_AFTER := 3.0
+
 func _maybe_free(tname: String) -> void:
-	if _freed.has(tname) or tname == cur_track or tname == str(pending.get("track", "")) or tname == after_stinger or cur_track == "":
+	if tname == cur_track or tname == str(pending.get("track", "")):
+		_last_on[tname] = _now()
+		return
+	if _freed.has(tname) or tname == after_stinger or cur_track == "" or _now() - float(_last_on.get(tname, -99.0)) < FREE_AFTER:
 		return
 	if MENU_TRACKS.has(tname) and MENU_TRACKS.has(cur_track):
 		return
