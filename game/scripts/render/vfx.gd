@@ -366,7 +366,7 @@ func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 		col = g.world.mate_col(col)   # 队友命中颗粒：去饱和、压透明度（docs/139 §10；敌人身上的白闪不动）
 		col.a = g.world.mate_dim
 
-	if g.optical_on and g.optical.grains != null and g.optical.grains.on() and not g.optical.grains.off:
+	if (g.optical_on or Cfg.quality == "low") and g.optical.grains != null and g.optical.grains.on() and not g.optical.grains.off:   # 低档也走颗粒火星（按 low_grains 少量，docs/50 §36）
 		g.optical.grains.spark(head, (e.pos as Vector2).y + float(e.get("r", 12.0)) * 0.8, col, n)   # 刀光第四版：带重力、落到脚底高度停住冷却的火星（docs/136）
 	elif g.optical_on and g.optical.particles != null:
 		g.optical.particles.tier_burst(head, col, tier)   # GPU 颗粒（池化、局部预算、中画质减半）

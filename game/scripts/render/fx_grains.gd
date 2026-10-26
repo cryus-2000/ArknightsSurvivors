@@ -154,6 +154,8 @@ func material_on() -> bool:
 
 ## fx/grains、fx/material_grains 每帧读一次（on() 每帧被调十几次；docs/50 §26）
 var _k_frame := -1
+var low_k := 1.0
+var _low_acc := 0.0
 var _k_grains := true
 var _k_mat := false
 func _knobs() -> void:
@@ -165,6 +167,9 @@ func _knobs() -> void:
 	if Cfg.quality == "mid" and Bal.v("render/mid_full_fx", 1.0) > 0.0:
 		lv0 = 2
 	level = lv0
+	# 低档的「少量」（10-27 用户「最低的特效保留一点点粒子效果，一点点不保留有点太干枯了」，docs/50 §36）：所有颗粒（命中火星、技能、Boss 特效）
+	# 按中档的 render/low_grains（0.35）保留——push 按累加器均匀抽（不抽随机数），火星按颗数缩；后期与光学层照旧关
+	low_k = clampf(Bal.v("render/low_grains", 0.35), 0.0, 1.0) if Cfg.quality == "low" else 1.0
 	_k_frame = fr
 	_k_grains = Bal.v("fx/grains", 1.0) > 0.0
 	_k_mat = Bal.v("fx/material_grains", 0.0) > 0.0
@@ -197,6 +202,11 @@ func _adapt(dt: float) -> void:
 func push(name: String, p: Vector2, dir: Vector2, c: Color, emit_delay := 0.0) -> void:
 	if pos.size() >= budget() or not view.has_point(p):
 		return
+	if low_k < 1.0:
+		_low_acc += low_k
+		if _low_acc < 1.0:
+			return
+		_low_acc -= 1.0
 	var t: Dictionary = templates.get(name, {})
 	if t.is_empty():
 		return
@@ -227,6 +237,8 @@ func spark(p: Vector2, ground_y: float, c: Color, n: int) -> void:
 	if not on() or not view.has_point(p):
 		return
 	var smax: int = int(float(SPARK_MAX[level]) * adapt_k)
+	if low_k < 1.0:
+		n = maxi(1, roundi(float(n) * low_k))   # 低档少量（同 push）
 	for i in n:
 		if sparks.size() >= smax:
 			return
