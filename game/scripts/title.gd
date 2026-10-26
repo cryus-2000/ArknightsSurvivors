@@ -236,6 +236,8 @@ func _ready() -> void:
 			get_tree().quit())
 	if Cfg.dev_args().has("--settingsshot"):
 		settings.open()
+		if Cfg.dev_args().has("--perfview"):
+			settings.open_perf()   # 截图自测：性能报告页（数据读 user://perf_reports_test.json，先跑一局带 --perfreport 的测试写进去）
 		for a in Cfg.dev_args():
 			if a.begins_with("--settingstab="):
 				settings._set_tab(int(a.substr(14)))   # 截图自测：设置面板的分类页
