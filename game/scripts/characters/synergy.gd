@@ -67,9 +67,27 @@ static func _active(sq) -> int:
 
 static func _ready_partner(sq, cid: String) -> Variant:
 	var p = sq.get_op(cid)
-	if p == null or p.pos == Vector2.INF or p.cmd_down > 0.0 or not p.syn_mv.is_empty():
+	if p == null or p.pos == Vector2.INF or p.cmd_down > 0.0 or not p.syn_mv.is_empty() or _has_act(sq, p):
 		return null
 	return p
+
+
+## 这名搭档是不是已经在做一次合击（同一个人同一时间只走一条，不重复位移）
+static func _has_act(sq, p) -> bool:
+	for a in sq.syn.acts:
+		if a.p == p:
+			return true
+	return false
+
+
+## 搭档正忙，现在不能被拉去合击位移：放技能 / 引导 / 蓄力 / 技能动画、突击冲锋、德克萨斯自己的冲刺、手写技能序列（喷发 / 锚在外面）
+static func _busy_move(p) -> bool:
+	if p.rush_t > 0.0 or (p.act_kind == "skill" and p.attack_t > 0.0) or p.skills_occupied():
+		return true
+	var tx = p.get("tx")
+	if tx is Dictionary and tx.has("dash"):
+		return true
+	return not p.hw.is_empty() and p.ObHw.hw_busy(p)
 
 
 ## 精英 / Boss 优先（用户 10-26「控场 → 收割对精英怪释放更合理」）：列表（已按距离排好）里先取 Boss，其次第一个精英，都没有取第一个活的
@@ -112,7 +130,7 @@ static func _pair_try(sq, o, pr: Dictionary, dr: Dictionary, skill := -1) -> boo
 	st.n += 1
 	var gid: int = st.n
 	_announce(sq, pr, dr, o, p)
-	sq.syn.acts.append(_act(gid, pr, dr, o, p, tgt, 0.0, _cl(dr, skill if skill >= 0 else _first_skill(dr))))
+	sq.syn.acts.append(_act(gid, pr, dr, o, p, tgt, 0.0, _cl(dr, skill if skill >= 0 else _first_skill(dr)), sq))
 	return true
 
 
@@ -149,7 +167,7 @@ static func _group_try(sq, o, gr: Dictionary, skill := -1) -> bool:
 	_announce(sq, gr, gr, o, movers[0])
 	var k := 0
 	for h in movers:
-		sq.syn.acts.append(_act(gid, gr, gr, o, h, tgt, float(gr.stagger) * k, gr.has("cluster") and _has_skill(gr.get("cluster_skills", []), skill) and skill >= 0))
+		sq.syn.acts.append(_act(gid, gr, gr, o, h, tgt, float(gr.stagger) * k, gr.has("cluster") and _has_skill(gr.get("cluster_skills", []), skill) and skill >= 0, sq))
 		k += 1
 	if float(gr.get("mark", 0.0)) > 0.0:   # 集群狩猎：同一目标在窗口里多吃一点伤害（沿用铃兰「印记」的受伤加成通道，取较大值不叠）
 		tgt["frag_t"] = maxf(float(tgt.get("frag_t", 0.0)), g.t + float(gr.mark_t))
@@ -157,8 +175,8 @@ static func _group_try(sq, o, gr: Dictionary, skill := -1) -> bool:
 	return true
 
 
-static func _act(gid: int, pr: Dictionary, dr: Dictionary, o, p, tgt, delay: float, cl := false) -> Dictionary:
-	return {"cl": cl, "gid": gid, "pr": pr, "dr": dr, "from": o, "p": p, "tgt": tgt, "tpos": tgt.pos, "age": 0.0, "delay": delay, "phase": 0, "shots": 0, "t_phase": 0.0}
+static func _act(gid: int, pr: Dictionary, dr: Dictionary, o, p, tgt, delay: float, cl := false, sq = null) -> Dictionary:
+	return {"sq": sq, "cl": cl, "gid": gid, "pr": pr, "dr": dr, "from": o, "p": p, "tgt": tgt, "tpos": tgt.pos, "age": 0.0, "delay": delay, "phase": 0, "shots": 0, "t_phase": 0.0}
 
 
 ## 连线 + 头顶小字 + 台词（每次触发一次）
@@ -195,8 +213,18 @@ static func tick(sq, dt: float) -> void:
 	var acts: Array = sq.syn.acts
 	if acts.is_empty():
 		return
+	if sq.g.state != sq.g.S.PLAY:   # 结算 / 死亡 / 切场景：残留合击全部作废、位移解除
+		for a in acts:
+			if a.p != null:
+				a.p.syn_mv = {}
+		acts.clear()
+		return
 	for k in range(acts.size() - 1, -1, -1):
 		var a: Dictionary = acts[k]
+		if str(a.dr.kind) in ["dash_strike", "dash_cast"] and (a.p.is_leader or sq.stance == sq.RECALL or a.p.cmd_down > 0.0):
+			a.p.syn_mv = {}   # 切队长（搭档成了队长）/ 指挥归队 / 倒地：位移类合击当场作废，搭档由编队跟随拉回，不卡状态
+			acts.remove_at(k)
+			continue
 		if a.delay > 0.0:
 			a.delay -= dt
 			continue
@@ -275,7 +303,7 @@ static func _step_volley(a: Dictionary, dt: float) -> bool:
 		g.fx.append({"kind": "tracer", "a": from, "b": tp + Vector2(0, -8), "life": 0.16, "max": 0.16, "col": c, "wid": 6.0})
 		p.sparks(from, (tp - from).normalized(), c, 3, 120.0)
 		p._set_face(1.0 if tp.x >= p.pos.x else -1.0)
-		if a.shots == 1:
+		if a.shots == 1 and not p.acting():
 			p.play_vis_anim("attack")
 		var hits: Array = p.nearest_enemies(1, 56.0, tp)
 		if not hits.is_empty():
@@ -294,6 +322,13 @@ static func _step_dash(a: Dictionary, dt: float) -> bool:
 	if a.phase == 0:
 		if a.age < float(dr.wind):
 			return false
+		if _busy_move(p):   # 搭档正在放技能 / 冲锋 / 自己的冲刺：不打断，最多等 0.5 秒，还忙就放弃并退回冷却
+			a["bwait"] = float(a.get("bwait", 0.0)) + dt
+			if float(a.bwait) < 0.5:
+				return false
+			if a.sq != null:
+				a.sq.syn.cd[str(a.pr.id)] = -99.0
+			return true
 		var tp: Vector2 = _tpos(a)
 		var p0: Vector2 = p.pos
 		var dv: Vector2 = tp - p0
@@ -352,7 +387,8 @@ static func _step_dash(a: Dictionary, dt: float) -> bool:
 			g.fx.append({"kind": "beam", "a": stop + Vector2(0, -20), "b": tp + Vector2(0, -12), "life": 0.3, "max": 0.3, "col": c, "w": 2.5})
 		g.fx.append({"kind": "ring", "pos": tp, "r": rr, "r0": rr * 0.4, "life": 0.3, "max": 0.3, "col": c, "floor": true, "w": 2.0, "alpha": 0.6})
 		p.sparks(tp, a.dir, c, 6, 160.0)
-		p.play_vis_anim("attack")
+		if not p.acting():
+			p.play_vis_anim("attack")
 		p.screen_shake(0.12)
 		a.phase = 2
 		a.t_phase = a.age
@@ -373,7 +409,8 @@ static func _step_hook(a: Dictionary, dt: float) -> bool:
 	var from: Vector2 = p.pos + Vector2(0, -24.0)
 	g.fx.append({"kind": "beam", "a": from, "b": tp + Vector2(0, -8), "life": 0.32, "max": 0.32, "col": c, "w": 3.0})
 	p._set_face(1.0 if tp.x >= p.pos.x else -1.0)
-	p.play_vis_anim("attack")
+	if not p.acting():
+		p.play_vis_anim("attack")
 	var hits: Array = p.nearest_enemies(1, 56.0, tp)
 	if not hits.is_empty():
 		var e: Dictionary = hits[0]
