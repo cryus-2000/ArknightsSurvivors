@@ -1,0 +1,151 @@
+[
+  {
+    "id": 220,
+    "name": "主教的研究",
+    "original": "每次战斗结束后灯火额外-5",
+    "cat": "负面藏品",
+    "tier": "B",
+    "adapt": "商人售价 +15%（docs/154：结局线不再拿灯火当代价；只从「开端」得到）",
+    "rarity": "遭诅古物",
+    "lanes": [],
+    "tags": [
+      "economy",
+      "curse",
+      "ending"
+    ],
+    "first_batch": true,
+    "boss_only": false,
+    "shop_allowed": false
+  },
+  {
+    "id": 221,
+    "name": "深蓝之心",
+    "original": "灯火-50，获得时立即使随机一名干员产生排异反应，让探索走向不同的结局",
+    "cat": "结局",
+    "tier": "C",
+    "adapt": "灯火 -50，获得排异反应，开启另一个结局",
+    "rarity": "结局",
+    "lanes": [],
+    "tags": [
+      "light",
+      "ending"
+    ],
+    "first_batch": false,
+    "boss_only": false,
+    "shop_allowed": false
+  },
+  {
+    "id": 222,
+    "name": "海潮的气息",
+    "original": "可同时部署人数+1；获得后【猎潮的骑士】出现在战场，直至被击败",
+    "cat": "结局",
+    "tier": "C",
+    "adapt": "获得后一名强力敌人「猎潮的骑士」追击博士，直到被击败（需原创造型）",
+    "rarity": "结局",
+    "lanes": [],
+    "tags": [
+      "on_kill",
+      "ending"
+    ],
+    "first_batch": false,
+    "boss_only": false,
+    "shop_allowed": false
+  },
+  {
+    "id": 223,
+    "name": "退行的罗辛南特",
+    "original": "【猎潮的骑士】不再出现在战场",
+    "cat": "结局",
+    "tier": "C",
+    "adapt": "「猎潮的骑士」不再出现",
+    "rarity": "结局",
+    "lanes": [],
+    "tags": [
+      "ending"
+    ],
+    "first_batch": false,
+    "boss_only": false,
+    "shop_allowed": false
+  },
+  {
+    "id": 225,
+    "name": "骑士骨血",
+    "original": "【猎潮的骑士】的防御力-80%",
+    "cat": "结局",
+    "tier": "C",
+    "adapt": "「猎潮的骑士」受到伤害 +80%",
+    "rarity": "结局",
+    "lanes": [],
+    "tags": [
+      "ending"
+    ],
+    "first_batch": false,
+    "boss_only": false,
+    "shop_allowed": false
+  },
+  {
+    "id": 238,
+    "name": "“决心”",
+    "original": "所有我方干员阻挡数+2，防御力和生命+120%，法术抗性+20，让探索走向不同的结局",
+    "cat": "结局",
+    "tier": "C",
+    "adapt": "开启另一个结局，并获得大幅强化",
+    "rarity": "结局",
+    "lanes": [],
+    "tags": [
+      "ending"
+    ],
+    "first_batch": false,
+    "boss_only": false,
+    "shop_allowed": false
+  },
+  {
+    "id": 239,
+    "name": "“观望”",
+    "original": "所有我方干员阻挡数+1，让探索走向不同的结局",
+    "cat": "结局",
+    "tier": "C",
+    "adapt": "开启另一个结局",
+    "rarity": "结局",
+    "lanes": [],
+    "tags": [
+      "ending"
+    ],
+    "first_batch": false,
+    "boss_only": false,
+    "shop_allowed": false
+  },
+  {
+    "id": 240,
+    "name": "“犹疑”",
+    "original": "所有我方干员阻挡数-1（不会低于1），让探索走向不同的结局",
+    "cat": "结局",
+    "tier": "C",
+    "adapt": "开启另一个结局",
+    "rarity": "结局",
+    "lanes": [],
+    "tags": [
+      "ending"
+    ],
+    "first_batch": false,
+    "boss_only": false,
+    "shop_allowed": false
+  },
+  {
+    "id": 242,
+    "name": "深蓝回忆",
+    "original": "灯火-100，获得时立即使随机一名干员产生排异反应",
+    "cat": "结局",
+    "tier": "C",
+    "adapt": "灯火 -100，获得排异反应",
+    "rarity": "结局",
+    "lanes": [],
+    "tags": [
+      "light",
+      "ending"
+    ],
+    "first_batch": false,
+    "boss_only": false,
+    "shop_allowed": false
+  }
+]

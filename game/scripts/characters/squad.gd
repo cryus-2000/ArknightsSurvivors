@@ -336,11 +336,25 @@ func validate_squad() -> bool:
 
 # ---------------------------------------------------------------- 每帧
 
+## ---- 连携技（docs/160）：状态在 syn（冷却 / 进行中的合击），逻辑在 synergy.gd；synergy/on = 0 时两个入口都直接返回
+const Synergy = preload("res://scripts/characters/synergy.gd")
+var syn := {"cd": {}, "acts": [], "n": 0}
+
+
+func syn_skill(o, i: int) -> void:
+	Synergy.on_skill(self, o, i)
+
+
 func update(dt: float) -> void:
+	var pf: bool = g.prof_on   # --prof：编队段细分（sq_follow / sq_ticks / sq_op_<编号> / sq_pfx，docs/50 §35）
+	var t0 := Time.get_ticks_usec() if pf else 0
 	g.doctor.tick_input(dt)   # 手动普攻按键 / 选落点蓄距离（契约 v2.5）
 	side = move_toward(side, g.facing, dt * 2.5)
+	Synergy.tick(self, dt)
 	for o in ops:
 		o.follow(dt, g.ppos if o.is_leader else g.ppos + _slot_offset(o.slot))
+	if pf:
+		t0 = g.prof_add("sq_follow", t0)
 	if stance == RECALL:
 		_tick_recall(dt)
 	_tick_lead(dt)
@@ -348,6 +362,8 @@ func update(dt: float) -> void:
 	_tick_stamina(dt)
 	_tick_hp(dt)
 	_tick_rush_buff()
+	if pf:
+		t0 = g.prof_add("sq_ticks", t0)
 	for o in ops:
 		if o.cmd_down > 0.0:
 			continue   # 倒地：不充技力、不出手（docs/114 §7）
@@ -361,7 +377,11 @@ func update(dt: float) -> void:
 			g.ppos = o.pos
 			g.invuln = maxf(g.invuln, 0.12)
 			g.invuln_move_until = g.t + 0.12
+		if pf:
+			t0 = g.prof_add("sq_op_" + str(o.id), t0)
 		o._tick_pfx(dt)
+		if pf:
+			t0 = g.prof_add("sq_pfx", t0)
 
 
 ## ---------------------------------------------------------------- 切换队长（10-23 用户定，docs/128）

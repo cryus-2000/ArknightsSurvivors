@@ -353,6 +353,18 @@ func draw_bg() -> void:
 					if cd is Button:
 						rects.append(inv * (cd as Control).get_global_rect())
 				NodeCardsUI.draw_bg(g.panel_fg, vs, rects, g.endg.flipped, UM.now(), cards_top())
+				# 卡外结局名：只给悬停 / 选中且真带路线的那张；切卡淡入淡出；翻开后消失。电脑压在操作说明下面，手机贴卡底、不出画面
+				var bi := 0
+				for cd in g.panel_box.get_children():
+					if not (cd is Button) or bi >= rects.size() or bi >= g.choices.size():
+						continue
+					var nc: Dictionary = g.choices[bi].get("node", {})
+					var ne: Array = (nc.get("ends", []) as Array).filter(func(e): return Cfg.endings_cleared.has(e))
+					var on: bool = g.endg.flipped < 0 and not ne.is_empty() and card_hot(cd as Button, bi)
+					var al: float = _ease_meta(cd, "names_a", 1.0 if on else 0.0, 0.16)
+					var y_min: float = (CARDS_TOP + CARD_H * row_k + 34.0) if not lay().touch else 0.0
+					NodeCardsUI.draw_route_names(g.panel_fg, rects[bi], ne, al, g.font, y_min, vs.y - 6.0, 16 if lay().touch else 14)
+					bi += 1
 
 
 ## 面板标题（原作「选择支援」）：英文小标签 + 大标题（两侧渐隐细线 + 靠近文字的短粗线）+ 一行说明
@@ -1108,10 +1120,13 @@ func draw_event_bar(card: Button, o: Dictionary, i: int) -> void:
 func draw_node_card(card: Button, o: Dictionary, i: int) -> void:
 	var c: Dictionary = o.get("node", {})
 	var ends: Array = (c.get("ends", []) as Array).filter(func(e): return Cfg.endings_cleared.has(e))
+	var hot: bool = card_hot(card, i) and g.endg.flipped < 0
 	var st := {
-		"i": i, "n": g.choices.size(), "hot": card_hot(card, i) and g.endg.flipped < 0, "flipped": g.endg.flipped,
+		"i": i, "n": g.choices.size(), "hot": hot, "flipped": g.endg.flipped,
 		"deal_t": motion.t0, "flip_t": g.endg.flip_t, "ends": ends, "ends_cols": ends.map(func(e): return g.endg.ending_col(e)),
 		"center_x": (card.get_global_transform().affine_inverse() * g.panel_box.get_global_rect().get_center()).x,
+		"hover_k": _ease_meta(card, "hover_k", 1.0 if hot else 0.0, 0.14),
+		"relic_tex": {"222": g.tex.get("relic_222"), "220": g.tex.get("relic_220"), "242": g.tex.get("relic_242")},
 	}
 	if g.endg.flipped == i:
 		var t: String = str(c.get("type", ""))
@@ -1120,8 +1135,8 @@ func draw_node_card(card: Button, o: Dictionary, i: int) -> void:
 				var ev: Dictionary = g.endg.ev_by_id.get(str(c.get("event", "")), {})
 				st.face_title = str(ev.get("name", "不期而遇"))
 				st.face_body = str(ev.get("text", ""))
-				if c.get("must", false):
-					st.face_tag = "结局线 · " + " / ".join((c.get("ends", []) as Array).map(func(e): return NodeCardsUI.ROMAN.get(e, "")))
+				if c.get("must", false) and not ends.is_empty():   # 只写已达成过的结局（未知路线不泄露）
+					st.face_tag = " / ".join(ends.map(func(e): return NodeCardsUI.ROUTE_NAME.get(e, "")))
 			"wish":
 				st.face_title = "消失的习俗"
 				st.face_body = "亮出三件藏品，选一件带走。"
@@ -1136,6 +1151,20 @@ func draw_node_card(card: Button, o: Dictionary, i: int) -> void:
 				st.face_body = "一支精英小队从边缘压上来。全部击败，得宝箱与源石锭。"
 	card.self_modulate.a = 1.0
 	NodeCardsUI.draw_card(card, card.size, c, st, g.font, serif)
+
+
+## 卡片上的平滑量（悬停抬起、卡外文字淡入淡出）：按界面时钟朝 target 线性逼近，dur 秒走完 0→1；减少动态 / 无头时直接到位
+func _ease_meta(node: Object, key: String, target: float, dur: float) -> float:
+	var now := UM.now()
+	var v: float = float(node.get_meta(key, target))
+	var last: float = float(node.get_meta(key + "_t", now))
+	if UM.rm() or UM.skip_all():
+		v = target
+	else:
+		v = move_toward(v, target, (now - last) / maxf(0.01, dur))
+	node.set_meta(key, v)
+	node.set_meta(key + "_t", now)
+	return v
 
 
 ## 干员待机条的第一帧：{tex, fw, fh}（按 data/characters/<id>.json 的 sprites.idle；没有返回空）

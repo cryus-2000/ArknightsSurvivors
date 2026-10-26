@@ -639,6 +639,8 @@ func freeze_zone(r: float) -> void:
 ## 怪物留下的溟痕统一入口（docs/155）：拖痕 trail / 落点 lob / 神经弹 shot / 死亡留痕 death。打上 src 与出生时间 t0，
 ## 怪物溟痕超过 enemy/mire_enemy_cap 时最老的一片开始淡出（mire_fade 秒后移除，淡出中不再伤人）。常驻规则不变：没被挤掉的照旧常驻
 func add_enemy_mire(m: Dictionary, src: String) -> void:
+	if g.beacon_sys.holds(m.pos):
+		return   # 生效中的引航灯标清除圈内不落怪物溟痕（10-26，用户「灯塔范围内的溟痕全部消失」）
 	m["src"] = src
 	m["t0"] = g.t
 	var cap := int(Bal.v("enemy/mire_enemy_cap", 16.0))
@@ -1039,6 +1041,20 @@ func gate_pass(e: Dictionary) -> void:
 
 
 func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
+	if g.prof_on:   # --prof：伤害结算总耗时（含嵌套触发，docs/50 §35）
+		var _t0 := Time.get_ticks_usec()
+		_dmg_depth += 1
+		_damage(e, dmg, h)
+		_dmg_depth -= 1
+		if _dmg_depth == 0:
+			g.prof_add("dmg_total", _t0)
+		return
+	_damage(e, dmg, h)
+
+
+var _dmg_depth := 0
+
+func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	if e.dead or e.get("friendly", false):
 		return
 	if h.is_empty():
@@ -1065,6 +1081,8 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		e.hidden = false
 		g.spawner.reveal_mimic(e)
 		return
+	var _pf: bool = g.prof_on and _dmg_depth == 1
+	var _pt := Time.get_ticks_usec() if _pf else 0
 	var ty: Array = [h.range, h.kind]
 	var weak_hit := false
 	if ty[1] != "真实":
@@ -1111,6 +1129,8 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 			dmg *= 1.0 + g.low_hp_bonus
 		if e.boss and g.final_boss != null and is_same(e, g.final_boss):
 			dmg *= 1.0 + 0.01 * g.rfx.rule("final_taken") + (0.8 if g.rfx.rule("bone_blood") > 0 else 0.0)
+	if _pf:
+		_pt = g.prof_add("dm_mult", _pt)
 	# Boss 脚本自己的受伤倍率（骑士重甲、破绽期另算，docs/142b §3.1；缺省 1）
 	if bh != null:
 		dmg *= bh.taken_mult(e)
@@ -1132,7 +1152,11 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		var ab: float = minf(e.shield_hp, dmg)
 		e.shield_hp -= ab
 		dmg -= ab
+	if _pf:
+		_pt = g.prof_add("dm_boss", _pt)
 	g.rfx.on_hit(e, h, dmg)
+	if _pf:
+		_pt = g.prof_add("dm_rfx_on_hit", _pt)
 	e.hp -= dmg
 	# 认知塑造「攻击性」末节「处决」：普通敌人生命低于 meta/execute_pct、精英低于 meta/execute_elite_pct 时直接击杀（Boss / 补给箱除外）
 	if e.hp > 0.0 and not e.boss and not e.chest and g.rfx.rule("execute") > 0 and e.hp < e.maxhp * Bal.v("meta/execute_elite_pct" if e.elite else "meta/execute_pct", 0.08 if e.elite else 0.15):
@@ -1145,7 +1169,11 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		add_tough(e, minf(dmg, maxf(e.hp + dmg, 0.0)) / e.maxhp * 100.0)
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
 	g.dmg_out[h.src] = g.dmg_out.get(h.src, 0.0) + eff
+	if _pf:
+		_pt = g.prof_add("dm_misc", _pt)
 	g.telemetry.on_dmg(e, eff, dmg, h)   # 作战记录：按干员拆的输出、时间线、最高单次（docs/77）
+	if _pf:
+		_pt = g.prof_add("dm_telemetry", _pt)
 	if h.origin == "relic":
 		g.relic_out += eff
 	g.dmg_type_out[ty[1]] = g.dmg_type_out.get(ty[1], 0.0) + eff
@@ -1154,12 +1182,18 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	if e.hits == 0:
 		e["h0"] = g.t   # 首次受击时刻（遥测 kill_hits 的实际 TTK，docs/116 §6）
 	e.hits += 1
+	if _pf:
+		_pt = g.prof_add("dm_misc", _pt)
 	g.vfx.hit_react(e, g.crit_hit, weak_hit, h, dmg)   # 白闪 / 形变 / 命中粒子按普攻、技能、暴击、弱点、破绽分档（纯画面，界面与美术；参数 balance.json fx 段）
 	# 伤害数字的位置抖动是纯画面，用 g.vrng：飘字数量取决于画面随机数（上面的「无效」），设置里还能关掉伤害数字，
 	# 用 g.rng 会让机器负载 / 玩家设置改变对局随机数（docs/36 §3）
 	if g.crit_hit:
 		Sfx.play("crit_tick", -6.8, 1.0, 0.05)   # 暴击：清脆的「叮」叠在命中声上
+	if _pf:
+		_pt = g.prof_add("dm_hit_react", _pt)
 	g.vfx.dmg_number(e, dmg, g.crit_hit, weak_hit, h)   # 对 Boss 0.3 秒合并、Boss 战期间普通怪只飘暴击（docs/38 §1.15，显示逻辑在 vfx）
+	if _pf:
+		_pt = g.prof_add("dm_number", _pt)
 	# Boss 受击后（最后的骑士寒冷滑窗、圣徒装填打断）：dmg = 扣完潮盾的伤害，eff = 实际掉的血
 	if bh != null:
 		bh.on_damaged(e, dmg, eff)
@@ -1177,7 +1211,11 @@ func damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		if bh != null and bh.on_lethal(e):
 			return
 		g.telemetry.on_kill_credit(e)   # 作战记录：参与击杀（死前 3 秒内命中过的干员各记一次，docs/77）
+		if _pf:
+			_pt = g.prof_add("dm_misc", _pt)
 		kill(e, h)
+		if _pf:
+			_pt = g.prof_add("dm_kill", _pt)
 
 
 func heal(v: float, src: String = "其他", sub: String = "") -> void:

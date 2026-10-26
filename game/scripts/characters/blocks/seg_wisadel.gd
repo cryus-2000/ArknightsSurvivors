@@ -16,10 +16,13 @@ extends "res://scripts/characters/blocks/seg_suzuran.gd"
 #                   维什戴尔每打出一发炮击（普攻 / 次数型补丁 / 巨炮），各影子依次（第 k 个晚 fire.gap × k 秒）朝主目标附近 fire.spread 内
 #                   优先未标记、两个影子不重复的敌人（没有就主目标）开一炮（攻击 × fire.mult、同样余震）；魂炮命中时给它的目标挂上残影标记（标记机制照旧）
 
+const BalW = preload("res://scripts/core/balance.gd")
+
+
 static func _h4wd(o) -> Dictionary:
 	var h := hw_st(o)
 	if not h.has("wd"):
-		h["wd"] = {"shells": [], "quakes": [], "shades": [], "ammo": 0, "marks": {}, "souls": []}
+		h["wd"] = {"shells": [], "quakes": [], "shades": [], "ammo": 0, "marks": {}, "souls": [], "booms": [], "qbooms": [], "dup_skipped": 0, "dup_kinds": {}}
 	return h.wd
 
 
@@ -528,6 +531,21 @@ static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src:
 			if mark_hit:   # 亡者回响：凋零处刑炸到的敌人全部挂上残影标记
 				_h4_mark(o, a, e)
 	var sh: Dictionary = a.get("shade", {})
+	if not _h4_boom_dup(o, c, kind):   # 同一处短时间内只画一次爆炸动画 / 只响一次（10-26 用户）；上面的伤害判定每发都照打
+		_h4_boom_visual(o, a, c, r, kind, light, rings)
+	var shc: Dictionary = _h4_sub(o, sh)
+	if not shc.is_empty() and depth < 1:
+		var wd := _h4wd(o)
+		for k in mini(killed.size(), 3):
+			if wd.shades.size() >= int(sh.get("max", 12)):
+				break
+			wd.shades.append({"pos": killed[k], "t": 0.25, "dmg": dmg * float(sh.get("mult", 0.4)), "r": r * float(sh.get("r", 0.8)), "depth": depth + 1})
+			o.fx({"kind": "h4_shade", "pos": killed[k], "life": 0.3, "col": H4_DARK})
+
+
+## 爆炸的画面 + 音效（伤害在 _h4_explode 里先结算，这里只管看和听）
+static func _h4_boom_visual(o, a: Dictionary, c: Vector2, r: float, kind: String, light: bool, rings: bool) -> void:
+	var g = o.g
 	if kind == "quake":
 		# 只在地面：双红环 + 裂纹 + 一圈向上的余烬，不闪光不冒烟
 		o.fx({"kind": "ring", "pos": c, "r": r, "r0": r * 0.2, "life": 0.35, "col": H4_RED, "floor": true, "w": 3.0})
@@ -557,14 +575,27 @@ static func _h4_explode(o, a: Dictionary, c: Vector2, dmg: float, r: float, src:
 		_h3_sfx(o, "big", -1.0, 1.0, 0.04)
 	else:
 		_h3_sfx(o, "hit", -3.0 if light else 0.0, 1.0, 0.08)
-	var shc: Dictionary = _h4_sub(o, sh)
-	if not shc.is_empty() and depth < 1:
-		var wd := _h4wd(o)
-		for k in mini(killed.size(), 3):
-			if wd.shades.size() >= int(sh.get("max", 12)):
-				break
-			wd.shades.append({"pos": killed[k], "t": 0.25, "dmg": dmg * float(sh.get("mult", 0.4)), "r": r * float(sh.get("r", 0.8)), "depth": depth + 1})
-			o.fx({"kind": "h4_shade", "pos": killed[k], "life": 0.3, "col": H4_DARK})
+
+
+## 同一处（半径 fx/boom_dedup_r 以内）fx/boom_dedup_t 秒内已经画过爆炸 / 余震就返回 true（并记数）；余震圈和爆炸动画各记各的，fx/boom_dedup_t = 0 关闭
+static func _h4_boom_dup(o, c: Vector2, kind: String) -> bool:
+	var win: float = BalW.v("fx/boom_dedup_t", 0.2)
+	if win <= 0.0:
+		return false
+	var wd := _h4wd(o)
+	var key: String = "qbooms" if kind == "quake" else "booms"
+	var now: float = o.g.t
+	var log_: Array = wd[key].filter(func(e): return now - float(e.t) < win)
+	var rr: float = BalW.v("fx/boom_dedup_r", 24.0)
+	for e in log_:
+		if Vector2(e.pos).distance_to(c) <= rr:
+			wd[key] = log_
+			wd.dup_skipped = int(wd.dup_skipped) + 1
+			wd.dup_kinds[kind] = int(wd.dup_kinds.get(kind, 0)) + 1
+			return true
+	log_.append({"pos": c, "t": now})
+	wd[key] = log_
+	return false
 
 
 ## 炮击帧条按爆炸半径放大（10-24 范围改版，docs/137 §8）。fx_wisadel_cannon 最亮那帧的实心部分（不透明像素 90 分位）离中心约 37 美术像素，
@@ -577,7 +608,9 @@ static func _h4_cannon_sprite(o, c: Vector2, r: float, fill: float) -> float:
 	var g = o.g
 	var cap: float = floorf(g.vfx.FX_SCALE_MAX)
 	var want: float = r * fill / H4_BOOM_CORE
-	var sc: float = clampf(ceilf(want - 0.3), 1.0, cap)
+	# 10-26 用户「爆炸半径 78 → 66 之后特效也得跟着变」：原来取整进位（r 66 和 78 都落在 2 档，画面一点没缩，66 的实心边还比判定圈大 12%），
+	# 现在实心边直接 = 判定半径 × fill（小数倍率，帧条本来就支持）；fx/boom_scale_exact = 0 回到旧的取整档（对照用）
+	var sc: float = clampf(want, 1.0, cap) if BalW.v("fx/boom_scale_exact", 1.0) > 0.0 else clampf(ceilf(want - 0.3), 1.0, cap)
 	if not o.spawn_fx_sprite("fx_wisadel_cannon", c, sc):
 		return 0.0
 	var rv: float = sc * H4_BOOM_CORE

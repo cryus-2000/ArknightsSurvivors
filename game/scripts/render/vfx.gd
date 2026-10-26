@@ -366,7 +366,7 @@ func _tier_fx(e: Dictionary, h: Dictionary, tier: int) -> void:
 		col = g.world.mate_col(col)   # 队友命中颗粒：去饱和、压透明度（docs/139 §10；敌人身上的白闪不动）
 		col.a = g.world.mate_dim
 
-	if g.optical_on and g.optical.grains != null and g.optical.grains.on() and not g.optical.grains.off:
+	if (g.optical_on or Cfg.quality == "low") and g.optical.grains != null and g.optical.grains.on() and not g.optical.grains.off:   # 低档也走颗粒火星（按 low_grains 少量，docs/50 §36）
 		g.optical.grains.spark(head, (e.pos as Vector2).y + float(e.get("r", 12.0)) * 0.8, col, n)   # 刀光第四版：带重力、落到脚底高度停住冷却的火星（docs/136）
 	elif g.optical_on and g.optical.particles != null:
 		g.optical.particles.tier_burst(head, col, tier)   # GPU 颗粒（池化、局部预算、中画质减半）
@@ -1218,7 +1218,10 @@ func beacon_ignite(b: Dictionary) -> void:
 	var cleared: Array = b.get("cleared", [])
 	if not cleared.is_empty():
 		# tex = true：每片溟痕按 fx_mire_dissolve（64×64 × 6，8 fps = 0.75 秒）播退散，world 不再画收缩环
-		g.fx.append({"kind": "mire_recoil", "pts": cleared.slice(0, 24), "from": pos, "life": 0.75, "max": 0.75, "tex": strip("fx_mire_dissolve")})
+		# 10-26：自中心向外扫开（每片带延迟，beacon._light 写），总长 = 扫到圈边 sweep_t + 每片碎散 pd，约 0.55 秒
+		var st: float = Bal.v("beacon/sweep_t", 0.3)
+		var pd: float = 0.25
+		g.fx.append({"kind": "mire_recoil", "pts": cleared.slice(0, 40), "from": pos, "life": st + pd, "max": st + pd, "pd": pd, "sweep_r": cr, "sweep_t": st, "tex": strip("fx_mire_dissolve")})
 		for c in cleared.slice(0, 8):
 			motes(c[0], Vector2.UP, Color(0.9, 0.55, 1.4, 0.8), 4, 60.0, 0.9, -30.0, 1.0, 2.0, 1.2, float(c[1]) * 0.5)
 

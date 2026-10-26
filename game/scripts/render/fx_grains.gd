@@ -83,18 +83,10 @@ var _names: Array = []
 var _ramps: Array = []   # 模板序号 → [[阈值（年龄比例）, 颜色], …]
 var _frame_n := {}
 var sparks: Array = []   # CPU 火星：[pos, vel, ground_y, life, max, col]
-## 帧时自适应（docs/50 §26，fx/grains_adapt 缺省 1）：每帧量真实帧间隔（墙钟），平滑后持续超过目标间隔 × ADAPT_HI 就把颗粒 / 火星上限按比例往下降
-## （每秒最多降 ADAPT_DOWN，最低 ADAPT_MIN），回到目标 × ADAPT_LO 以下再慢慢升回（每秒 ADAPT_UP）。只影响「还能新发多少颗」，已有颗粒照旧走完。
-## 目标间隔 = 60 帧、玩家「最高帧率」30 档、低于 60 Hz 的显示器三者里最长的那个（30 帧档不当成掉帧）
-const ADAPT_HI := 1.08
-const ADAPT_LO := 1.03
-var _refresh_ms := 1000.0 / 60.0
-const ADAPT_MIN := 0.35
-const ADAPT_DOWN := 1.2
-const ADAPT_UP := 0.15
+## 颗粒 / 火星上限的设备系数 adapt_k（10-27 起固定，docs/50 §36）：原来按帧时自适应、掉帧时每秒往下收到最低 0.35（docs/50 §26），
+## 手机后期几乎一直贴在 0.35——也是「局中自动降特效」，用户要求去掉。现在启动时按设备定一次：手机网页 render/grains_mobile_k（0.35，
+## 与原来手机后期实际得到的量相同，帧时不变），其余 1；局中不变
 var adapt_k := 1.0
-var _ema := 16.7
-var _last_us := 0
 ## 屏外不发（docs/50 §26）：镜头可见范围外扩 VIEW_PAD 世界像素，范围外的 push / spark 直接丢，整团材质颗粒按「已处理」返回（不退回帧条）
 const VIEW_PAD := 64.0
 var view := Rect2(-1e9, -1e9, 2e9, 2e9)
@@ -118,7 +110,7 @@ func setup(game) -> void:
 	g = game
 	level = {"high": 2, "mid": 1, "low": 0}.get(Cfg.quality, 2)
 	if level == 1 and Bal.v("render/mid_full_fx", 1.0) > 0.0:
-		level = 2   # 中档颗粒量同高档（render/mid_full_fx，docs/50 §26）：上限 900 / 火星 240，满帧时靠帧时自适应往下收
+		level = 2   # 中档颗粒量同高档（render/mid_full_fx，docs/50 §26）：上限 900 / 火星 240（手机再乘固定的 adapt_k）
 	templates.merge(MATERIALS)
 	for name in templates:
 		_names.append(name)
@@ -135,8 +127,7 @@ func setup(game) -> void:
 		for j in RAMP_N:
 			_rth.append(rt[j] if j < rt.size() else 2.0)
 			_rcol.append(rc[mini(j, rc.size() - 1)])
-	var hz: float = DisplayServer.screen_get_refresh_rate() if DisplayServer.get_name() != "headless" else -1.0
-	_refresh_ms = 1000.0 / clampf(hz if hz > 1.0 else 60.0, 20.0, 60.0)
+	adapt_k = clampf(Bal.v("render/grains_mobile_k", 0.35), 0.05, 1.0) if Cfg.mobile_web() else 1.0
 	_blade_i = _names.find("blade")
 	_fire_i = _names.find("fire")
 	_slash_i = _names.find("slash")
@@ -154,6 +145,8 @@ func material_on() -> bool:
 
 ## fx/grains、fx/material_grains 每帧读一次（on() 每帧被调十几次；docs/50 §26）
 var _k_frame := -1
+var low_k := 1.0
+var _low_acc := 0.0
 var _k_grains := true
 var _k_mat := false
 func _knobs() -> void:
@@ -165,29 +158,21 @@ func _knobs() -> void:
 	if Cfg.quality == "mid" and Bal.v("render/mid_full_fx", 1.0) > 0.0:
 		lv0 = 2
 	level = lv0
+	# 低档的「少量」（10-27 用户「最低的特效保留一点点粒子效果，一点点不保留有点太干枯了」，docs/50 §36）：所有颗粒（命中火星、技能、Boss 特效）
+	# 按中档的 render/low_grains（0.4）保留——push 按累加器均匀抽（不抽随机数），火星按颗数缩；后期与光学层照旧关
+	low_k = clampf(Bal.v("render/low_grains", 0.4), 0.0, 1.0) if Cfg.quality == "low" else 1.0
 	_k_frame = fr
 	_k_grains = Bal.v("fx/grains", 1.0) > 0.0
 	_k_mat = Bal.v("fx/material_grains", 0.0) > 0.0
 
 
 func budget() -> int:
-	return int(float(TEMPLATES.slash.budget[0 if level >= 2 else 1]) * adapt_k)
+	# 低档：中档上限 × low_k（不再用旧的「中档减半」那一列，免得叠成更少）
+	return int(float(TEMPLATES.slash.budget[0 if level >= 2 or low_k < 1.0 else 1]) * adapt_k * low_k)
 
 
-## 每帧（step 开头）：真实帧间隔的平滑值 → 上限比例 adapt_k；镜头可见范围 → view
-func _adapt(dt: float) -> void:
-	var now := Time.get_ticks_usec()
-	if _last_us > 0 and Bal.v("fx/grains_adapt", 1.0) > 0.0:
-		var ms: float = minf(50.0, (now - _last_us) / 1000.0)   # 暂停 / 切后台回来的长间隔截到 50
-		_ema = lerpf(_ema, ms, 0.1)
-		var tgt: float = maxf(_refresh_ms, 1000.0 / float(Engine.max_fps) if Engine.max_fps > 0 else 0.0)
-		if _ema > tgt * ADAPT_HI:
-			adapt_k = maxf(ADAPT_MIN, adapt_k - ADAPT_DOWN * dt)
-		elif _ema < tgt * ADAPT_LO:
-			adapt_k = minf(1.0, adapt_k + ADAPT_UP * dt)
-	else:
-		adapt_k = 1.0
-	_last_us = now
+## 每帧（step 开头）：镜头可见范围 → view（帧时自适应已删，见 adapt_k）
+func _adapt(_dt: float) -> void:
 	if g != null and g.cam != null and is_inside_tree():
 		var vs: Vector2 = get_viewport().get_visible_rect().size / g.cam.zoom
 		view = Rect2(g.cam.get_screen_center_position() - vs * 0.5, vs).grow(VIEW_PAD)
@@ -197,6 +182,11 @@ func _adapt(dt: float) -> void:
 func push(name: String, p: Vector2, dir: Vector2, c: Color, emit_delay := 0.0) -> void:
 	if pos.size() >= budget() or not view.has_point(p):
 		return
+	if low_k < 1.0:
+		_low_acc += low_k
+		if _low_acc < 1.0:
+			return
+		_low_acc -= 1.0
 	var t: Dictionary = templates.get(name, {})
 	if t.is_empty():
 		return
@@ -227,6 +217,8 @@ func spark(p: Vector2, ground_y: float, c: Color, n: int) -> void:
 	if not on() or not view.has_point(p):
 		return
 	var smax: int = int(float(SPARK_MAX[level]) * adapt_k)
+	if low_k < 1.0:
+		n = maxi(1, roundi(float(n) * low_k))   # 低档少量（同 push）
 	for i in n:
 		if sparks.size() >= smax:
 			return

@@ -8,7 +8,7 @@ const UI = preload("res://scripts/ui.gd")
 
 ## holes：要框的矩形（画布局部坐标）；o：
 ##   idx / n（第几步 / 共几步）、tag（小标前缀，缺省 GUIDE）、en（英文小标）、title、text、hint（操作提示）、
-##   e（入场 0..1，缺省 1）、t（本步已过秒，呼吸用）、dim（压暗，缺省 0.68；0 = 不压暗，只框）、skip（画「跳过引导」，缺省 true）、touch（触屏尺寸）
+##   panel（缺省 true；false = 只画框、不画说明板和跳过键）、e（入场 0..1，缺省 1）、t（本步已过秒，呼吸用）、dim（压暗，缺省 0.68；0 = 不压暗，只框）、skip（画「跳过引导」，缺省 true）、touch（触屏尺寸）
 static func draw(ci: CanvasItem, font: Font, vs: Vector2, holes: Array, o: Dictionary) -> Rect2:
 	var e: float = float(o.get("e", 1.0))
 	var t: float = float(o.get("t", 0.0))
@@ -22,6 +22,8 @@ static func draw(ci: CanvasItem, font: Font, vs: Vector2, holes: Array, o: Dicti
 	var pulse: float = 0.5 + 0.5 * sin(t * 4.2)
 	for r in hs:
 		_frame(ci, r, e, pulse)
+	if not bool(o.get("panel", true)):
+		return Rect2()   # 只框不说明（主界面引导的「返回」步）
 	# 说明板
 	var pw: float = minf(vs.x - 32.0, 400.0 if touch else 380.0)
 	var fsz := 15

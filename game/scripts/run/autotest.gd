@@ -562,14 +562,58 @@ func _power_step() -> bool:
 	return nm == "pause" or nm == "choice"
 
 
+## --webshot=<对局秒>（tools/probes/shot_web.py，docs/50 §34）：到点后定格（Engine.time_scale = 0，要带 --realtime），window.__shot = 1；
+## 不带 --realtime 时按固定步长快进到点（同 seed 两版同一时刻），定格同时把 bal_dt 置 0；之后每帧读 window.__cmd 执行：q:<low|mid|high> 运行中换档（同设置面板：set_quality_mode + apply）、levelup 打开选卡（恢复时间让卡片动效走完）、
+## freeze 再定格。测量脚本按顺序截图，同一时刻对比各档镜头 / 清晰度
+var _ws := -2.0
+func _webshot_step() -> bool:
+	if _ws == -2.0:
+		_ws = -1.0
+		for a in Cfg.dev_args():
+			if a.begins_with("--webshot="):
+				_ws = float(a.substr(10))
+	if _ws < 0.0 or not OS.has_feature("web"):
+		return false
+	if _ws > 0.0:
+		if g.state != g.S.PLAY or g.t < _ws:
+			return false
+		_ws = 0.0
+		Engine.time_scale = 0.0
+		g.bal_dt = 0.0   # 固定步长快进时（不带 --realtime）模拟步长是 bal_dt，也定住
+		JavaScriptBridge.eval("window.__shot=1", true)
+		var kinds := {}
+		for f in g.fx:
+			kinds[f.kind] = int(kinds.get(f.kind, 0)) + 1
+		var gpu = g.optical.particles if g.optical != null else null
+		print("PF WEBSHOT freeze q=%s grains=%d fx=%d gpu_active=%s kinds=%s" % [Cfg.quality, g.optical.grains.pos.size() if g.optical != null and g.optical.grains != null else -1,
+			g.fx.size(), str(gpu.active) if gpu != null else "-", str(kinds)])
+	var cmd = JavaScriptBridge.eval("window.__cmd||''", true)
+	if cmd is String and cmd != "":
+		JavaScriptBridge.eval("window.__cmd=''", true)
+		if cmd.begins_with("q:"):
+			Cfg.set_quality_mode(cmd.substr(2))
+			Cfg.apply()
+		elif cmd == "levelup":
+			Engine.time_scale = 1.0
+			g.progression.open_levelup()
+		elif cmd == "freeze":
+			Engine.time_scale = 0.0
+		print("PF WEBSHOT cmd=%s q=%s zoom=%.3f view_h=%.0f" % [cmd, Cfg.quality, g.cam.zoom.x, g.view_size().y])
+	return true
+
+
 func step() -> void:
 	g.at_frames += 1
-	if _power_step():
+	if g.prof_on:   # --prof：同屏敌弹 / 我方子弹峰值（docs/50 §37 子弹系统量测）
+		g.prof["peak_ebul"] = maxi(int(g.prof.get("peak_ebul", 0)), g.ebullets.size())
+		g.prof["peak_bul"] = maxi(int(g.prof.get("peak_bul", 0)), g.bullets.size())
+	if _power_step() or _webshot_step():
 		return
 	if g.rt_from >= 0.0 and not g.realtime and g.t >= g.rt_from:
 		g.realtime = true   # --rtfrom：快进结束，之后按真实步长（--fixed-fps 60 时每帧 1/60 秒）
 		preload("res://scripts/core/frame_rec.gd").mark("late")   # 帧时 / 内存记录（--ftrec --memlog）：快进结束那一刻
 		print("PF RTFROM t=%.1f" % g.t)   # 网页低配测量（tools/perf_web.py --throttle）：看到这行才开 CPU 节流，快进段不节流
+		g.prof.clear()   # --prof 只记快进之后的实时段（docs/50 §37：Boss 弹幕段分段计时）
 	if vfxab < 0:
 		vfxab = 0
 		for a in Cfg.dev_args():

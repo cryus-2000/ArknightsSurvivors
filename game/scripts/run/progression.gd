@@ -113,6 +113,8 @@ func open_levelup() -> void:
 	if must_recruit:
 		# 保底画面（docs/119 §4.3）：有合格人选时保证一名与已持有藏品有实际互动的候选（build_affinity.forced_recruit_order；开关关 = 只洗牌）
 		var n_show: int = want + g.rfx.rule("recruit_extra")   # 罗德岛战术电台：招募多一个选项
+		recruit_offers.append([int(g.t), "forced", g.squad.size()])
+		levelup_t.append(int(g.t))
 		g.panel_ui.show_choices("招募干员", affinity.forced_recruit_order(recruit, n_show).slice(0, n_show), "level")
 		return
 	# ---- 干员深度：Lv.2–4 只养开局干员；之后至少一张
@@ -145,10 +147,15 @@ func open_levelup() -> void:
 					picks.append(rc)
 					break
 	# ---- 招募卡：Lv.5 起、编队未满时约 45% 出一张
-	# 编队满员：同一个概率出「更换队友」卡（swap_cards；关掉时为空，随机数消耗与改前相同）
+	# 编队满员：出「更换队友」卡（swap_cards），概率降为 swap_chance、7:00 后再降为 swap_chance_late；
+	# 本次已有两张干员深度卡时不出，换人卡不挤掉成长卡（docs/162，用户 10-26）
+	var chance: float = Bal.v("levelup/recruit_chance", 0.45)
+	var can_offer := true
 	if recruit.is_empty():
 		recruit = swap_cards()
-	if g.level >= Bal.vi("levelup/recruit_from_level", 5) and not recruit.is_empty() and g.rng.randf() < Bal.v("levelup/recruit_chance", 0.45):
+		chance = Bal.v("levelup/swap_chance_late", 0.12) if g.t >= Bal.v("levelup/swap_late_t", 420.0) else Bal.v("levelup/swap_chance", 0.25)
+		can_offer = Bal.vi("levelup/swap_keep_growth", 1) == 0 or picks.size() < want - 1
+	if g.level >= Bal.vi("levelup/recruit_from_level", 5) and not recruit.is_empty() and can_offer and g.rng.randf() < chance:
 		picks.append(recruit[g.rng.randi() % recruit.size()])
 	# ---- 生存 / 机动 / 协同被动：种类上限 生存 4、机动 levelup/mobility_kinds（3）、协同 4（docs/83）
 	var passives: Array = g.doctor.passive_cards("doctor") + g.doctor.passive_cards("mobility") + g.doctor.passive_cards("squad") + g.doctor.passive_cards("fire")
@@ -184,6 +191,10 @@ func open_levelup() -> void:
 			heal_offer += 1
 			if low:
 				heal_offer_low += 1
+	levelup_t.append(int(g.t))
+	for c in picks.slice(0, want):
+		if c.kind == "recruit":
+			recruit_offers.append([int(g.t), "swap" if c.get("swap", false) else "recruit", g.squad.size()])
 	g.panel_ui.show_choices("升级！ Lv.%d" % g.level, picks.slice(0, want), "level")
 
 
@@ -286,6 +297,8 @@ func open_relic_choice() -> void:
 ## 「更换队友」画面的上下文：{opts, kind, title, sub, sel, new}。选「不替换」时按它恢复刚才的三选一（这次选择不消耗）
 var swap_ctx: Dictionary = {}
 var swaps: Array = []   # 本局换人记录 [秒, 换下, 换上]（遥测 / 作战记录）
+var recruit_offers: Array = []   # 升级面板里出现招募 / 换人 / 保底招募的记录 [秒, "recruit"|"swap"|"forced", 编队人数]（遥测）
+var levelup_t: Array = []        # 每次升级面板的时刻（遥测：换人选择间隔）
 
 
 ## ---- 机器人 / 自动测试的换人（bot/swap 旋钮，缺省 0 = 一律「不替换」：满员招募卡不进候选，局面与没有这张卡时一样）。

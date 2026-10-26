@@ -25,6 +25,12 @@ const TINT := {
 	"fog": [Color(0.11, 0.12, 0.15), Color(0.04, 0.045, 0.06)],
 }
 const ROMAN := {"standard": "Ⅰ", "knight": "Ⅱ", "deep": "Ⅲ", "resolve": "Ⅳ"}
+## C 版信物提示（Codex 交付 art/incoming/node_route_c_delivery_1026，用户 10-26 定稿）：结局入口卡底放该路线的现有信物图标（32×32，原色）+ 信物名，
+## 中心距 80；只画已达成过的结局（未知路线不泄露）；图标只是路线提示，不是奖励承诺也不是持有状态
+const ROUTE_RELIC := {"knight": "222", "deep": "220", "resolve": "242"}
+const TOKEN_NAME := {"knight": "海潮的气息", "deep": "主教的研究", "resolve": "深蓝回忆"}
+const ROUTE_NAME := {"knight": "静谧时代", "deep": "息潮的代价", "resolve": "如星空般深蓝"}
+const INCIDENT_BACK := preload("res://art/ui/node_cards/incident.png")   # 不期而遇精修底纹（272×408，Codex）
 
 
 static func _h(i: float, j: float) -> float:
@@ -100,9 +106,16 @@ static func draw_card(ci: CanvasItem, size: Vector2, c: Dictionary, st: Dictiona
 	var r := Rect2(Vector2.ZERO, size)
 	var ctr := r.get_center()
 	# 发牌：从整排中心下方扇出升起
+	var rm := UM.rm()
 	var dp := UM.out_cubic(clampf((now - float(st.deal_t) - i * 0.09) / 0.42, 0.0, 1.0)) if not UM.skip_all() else 1.0
 	var off := Vector2((float(st.center_x) - ctr.x) * (1.0 - dp), 120.0 * (1.0 - dp))
 	var rot := deg_to_rad((i - (float(st.n) - 1.0) / 2.0) * 9.0) * (1.0 - dp)
+	if rm:
+		# 减少动态：发牌只做 0.12 秒淡入，不飞不转
+		off = Vector2.ZERO
+		rot = 0.0
+		dp = clampf((now - float(st.deal_t)) / UM.T1, 0.0, 1.0)
+	st.token_k = clampf((now - float(st.deal_t) - i * 0.09 - 0.36) / 0.22, 0.0, 1.0) if not rm else dp   # 信物提示在卡落定后浮现
 	var sc := 1.0
 	var sx := 1.0
 	var a := clampf(dp * 1.6, 0.0, 1.0)
@@ -111,14 +124,18 @@ static func draw_card(ci: CanvasItem, size: Vector2, c: Dictionary, st: Dictiona
 	var flip_age := now - float(st.flip_t)
 	if fl >= 0 and fl == i:
 		# 起手 → 翻转 → 揭示
-		var lift := UM.out_cubic(clampf(flip_age / LIFT_T, 0.0, 1.0))
+		var lift := UM.out_cubic(clampf(flip_age / LIFT_T, 0.0, 1.0)) if not rm else 0.0
 		off.y -= 22.0 * lift
 		sc = 1.0 + 0.06 * lift
 		var fe := clampf((flip_age - LIFT_T) / FLIP_T, 0.0, 1.0)
 		face = fe >= 0.5
 		# 翻转同时滑到整排中央，揭示在正中
-		off.x += (float(st.center_x) - ctr.x) * UM.in_out_cubic(clampf((flip_age - LIFT_T * 0.5) / (FLIP_T + LIFT_T * 0.5), 0.0, 1.0))
-		sx = maxf(0.04, absf(1.0 - 2.0 * UM.in_out_cubic(fe)))
+		if not rm:
+			off.x += (float(st.center_x) - ctr.x) * UM.in_out_cubic(clampf((flip_age - LIFT_T * 0.5) / (FLIP_T + LIFT_T * 0.5), 0.0, 1.0))
+			sx = maxf(0.04, absf(1.0 - 2.0 * UM.in_out_cubic(fe)))
+		else:
+			a *= absf(1.0 - 2.0 * fe)   # 减少动态：背面淡出、正面淡入
+			reveal = 1.0
 		reveal = clampf((flip_age - LIFT_T - FLIP_T * 0.5) / REVEAL_T, 0.0, 1.0)
 	elif fl >= 0:
 		# 未选卡退场：下沉淡出
@@ -126,9 +143,10 @@ static func draw_card(ci: CanvasItem, size: Vector2, c: Dictionary, st: Dictiona
 		off.y += 46.0 * ex
 		a *= 1.0 - ex
 		sc = 1.0 - 0.06 * ex
-	elif st.hot:
-		off.y -= 12.0
-		sc = 1.02
+	else:
+		var hk: float = float(st.get("hover_k", 1.0 if st.hot else 0.0))
+		off.y -= (0.0 if rm else 12.0) * UM.out_cubic(hk)
+		sc = 1.0 + (0.0 if rm else 0.02) * hk
 	if a <= 0.01:
 		return
 	# 选中卡起手时脚下一道光（压在卡下）
@@ -145,7 +163,7 @@ static func draw_card(ci: CanvasItem, size: Vector2, c: Dictionary, st: Dictiona
 		_back(ci, r, c, st, font, serif, col, t, now, a)
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 	# 翻转中线闪光（不随卡片压扁）：竖亮线 + 两侧台阶光
-	if fl == i and flip_age > LIFT_T and flip_age < LIFT_T + FLIP_T:
+	if fl == i and not rm and flip_age > LIFT_T and flip_age < LIFT_T + FLIP_T:
 		var k := 1.0 - absf((flip_age - LIFT_T) / FLIP_T - 0.5) * 2.0
 		var cx := ctr.x + off.x
 		var y0 := off.y + (1.0 - sc) * ctr.y - 8.0
@@ -156,6 +174,9 @@ static func draw_card(ci: CanvasItem, size: Vector2, c: Dictionary, st: Dictiona
 
 
 static func _back(ci: CanvasItem, r: Rect2, c: Dictionary, st: Dictionary, font: Font, serif: Font, col: Color, t: String, now: float, a: float) -> void:
+	if t == "incident":
+		_back_incident(ci, r, st, font, serif, now, a)
+		return
 	var tint: Array = TINT.get(t, TINT.incident)
 	var hot: bool = st.hot
 	var poly := step_poly(r)
@@ -177,10 +198,6 @@ static func _back(ci: CanvasItem, r: Rect2, c: Dictionary, st: Dictionary, font:
 		var cc := Color(col.r, col.g, col.b, 0.9 * a)
 		ci.draw_rect(Rect2(cp + Vector2(0 if sxn > 0 else -4.0 * P, 0 if syn > 0 else -P), Vector2(4.0 * P, P)), cc)
 		ci.draw_rect(Rect2(cp + Vector2(0 if sxn > 0 else -P, 0 if syn > 0 else -4.0 * P), Vector2(P, 4.0 * P)), cc)
-	# 结局色边：粗色框 + 沿框跑动的高光段 + 顶部罗马数字徽记
-	var ecs: Array = st.get("ends_cols", [])
-	if not ecs.is_empty():
-		_ending_edge(ci, r, ecs, st.get("ends", []), now, a, font)
 	# 中央图标（悬停时轻浮动）+ 光晕台阶
 	var ic := Vector2(r.get_center().x, r.position.y + r.size.y * 0.42 + (roundf(2.0 * sin(now * 4.0)) if hot else 0.0))
 	for k in 3:
@@ -287,6 +304,67 @@ static func _dash(ci: CanvasItem, a: Vector2, b: Vector2, col: Color, clip: Rect
 
 
 ## 结局色边：2 格粗的色框（两色时左右各半）+ 一段沿框跑动的亮白高光 + 顶边中央罗马数字徽记
+## 不期而遇卡背（C 版）：精修底纹 + 细银边（左上受光、右下回暗）+ 白色节点图标 + 名字；结局入口在卡底放信物提示
+static func _back_incident(ci: CanvasItem, r: Rect2, st: Dictionary, font: Font, serif: Font, now: float, a: float) -> void:
+	var hot: bool = st.hot
+	ci.draw_rect(r, Color(0.025, 0.04, 0.06, a))
+	ci.draw_texture_rect(INCIDENT_BACK, r.grow(-2.0), false, Color(1, 1, 1, a))
+	ci.draw_rect(r.grow(-1.0), Color(0.24, 0.30, 0.35, a), false, 2.0)
+	var tl := r.position + Vector2(2, 2)
+	var br := r.end - Vector2(3, 3)
+	ci.draw_line(tl, Vector2(br.x, tl.y), Color(0.67, 0.73, 0.76, a), 1.0)
+	ci.draw_line(tl, Vector2(tl.x, br.y), Color(0.49, 0.57, 0.63, a), 1.0)
+	ci.draw_line(Vector2(br.x, tl.y), br, Color(0.19, 0.25, 0.30, a), 1.0)
+	ci.draw_line(Vector2(tl.x, br.y), br, Color(0.35, 0.43, 0.48, a), 1.0)
+	ci.draw_line(tl + Vector2(0, 1), tl + Vector2(34, 1), Color(0.87, 0.91, 0.92, a), 1.0)
+	if hot:
+		ci.draw_line(tl + Vector2(35, 0), tl + Vector2(r.size.x * 0.64, 0), Color(0.79, 0.86, 0.91, a), 2.0)
+		step_line(ci, r.grow(5.0), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.4 * a * float(st.get("hover_k", 1.0))), 2.0, 4)
+	var ic := Vector2(r.get_center().x, roundf(r.position.y + r.size.y * 0.40))
+	NodeIcons.draw(ci, "incident", ic, 7.0, Color(0.89, 0.93, 0.95, a))
+	ci.draw_string(serif, Vector2(r.position.x, roundf(ic.y + 104.0)), "不期而遇", HORIZONTAL_ALIGNMENT_CENTER, r.size.x, 28, Color(0.89, 0.92, 0.94, a))
+	route_tokens(ci, r, st, font, a)
+
+
+## 卡底信物提示：分隔细线 + 每条路线一枚现有信物图标（32×32 原色）+ 结局色短线 + 信物名，中心距 80；卡落定后浮现（token_k）
+static func route_tokens(ci: CanvasItem, r: Rect2, st: Dictionary, font: Font, a: float) -> void:
+	var ends: Array = st.get("ends", [])
+	if ends.is_empty():
+		return
+	var k: float = float(st.get("token_k", 1.0))
+	if k <= 0.0:
+		return
+	var ta := a * UM.out_cubic(k)
+	var cols: Array = st.get("ends_cols", [])
+	var texs: Dictionary = st.get("relic_tex", {})
+	var center := r.get_center().x
+	var span := ends.size() * 80.0
+	var y := roundf(r.end.y - 67.0 + 6.0 * (1.0 - UM.out_cubic(k)))
+	ci.draw_line(Vector2(center - span * 0.5 - 20.0, y - 8.0), Vector2(center + span * 0.5 + 20.0, y - 8.0), Color(0.38, 0.49, 0.59, ta * 0.35), 1.0)
+	for q in ends.size():
+		var e: String = str(ends[q])
+		var x := roundf(center - span * 0.5 + q * 80.0 + 24.0)
+		var tx: Texture2D = texs.get(ROUTE_RELIC.get(e, ""), null)
+		if tx != null:
+			ci.draw_texture_rect(tx, Rect2(Vector2(x, y), Vector2(32, 32)), false, Color(1, 1, 1, ta))
+		var cc: Color = cols[mini(q, cols.size() - 1)] if not cols.is_empty() else UI.CYAN
+		ci.draw_line(Vector2(x + 8.0, y + 38.0), Vector2(x + 24.0, y + 38.0), Color(cc.r, cc.g, cc.b, ta * 0.7), 2.0)
+		ci.draw_string(font, Vector2(x - 24.0, y + 55.0), TOKEN_NAME.get(e, ""), HORIZONTAL_ALIGNMENT_CENTER, 80.0, 12, Color(0.70, 0.77, 0.82, ta))
+
+
+## 卡外结局名（用户 10-26）：只在悬停 / 选中的那张卡真带路线时，在它下方写对应结局名（双路线两行）；切卡淡入淡出（alpha 由 choice_panel 平滑）
+## cr：卡片在 ci 坐标里的矩形；y_min：不得高于此（避开操作说明行）；y_max：底边不超出画面
+static func draw_route_names(ci: CanvasItem, cr: Rect2, ends: Array, alpha: float, font: Font, y_min: float, y_max: float, fs := 14) -> void:
+	if alpha <= 0.01 or ends.is_empty():
+		return
+	var lh := float(fs) + 8.0
+	var y: float = maxf(cr.end.y + 22.0, y_min)
+	y = minf(y, y_max - lh * float(ends.size()))
+	for q in ends.size():
+		var e: String = str(ends[q])
+		ci.draw_string(font, Vector2(cr.get_center().x - 170.0, y + lh * (q + 1) - 6.0), ROUTE_NAME.get(e, ""), HORIZONTAL_ALIGNMENT_CENTER, 340.0, fs, Color(0.80, 0.86, 0.90, alpha))
+
+
 static func _ending_edge(ci: CanvasItem, r: Rect2, cols: Array, ends: Array, now: float, a: float, font: Font) -> void:
 	var w := r.size.x
 	var bw := P * 2.0
@@ -357,7 +435,7 @@ static func _face(ci: CanvasItem, r: Rect2, c: Dictionary, st: Dictionary, font:
 	ci.draw_rect(Rect2(r.position.x + 20.0, r.end.y - 22.0, (r.size.x - 40.0) * k, P), Color(col.r, col.g, col.b, 0.9))
 	# 颗粒迸散（翻到正面后 0.5 秒内）
 	var pa := age - LIFT_T - FLIP_T * 0.5
-	if pa > 0.0 and pa < 0.6:
+	if pa > 0.0 and pa < 0.6 and not UM.rm():
 		var ctr := r.get_center() + Vector2(0, -60)
 		for q in 28:
 			var ang := _h(q, 1.0) * TAU

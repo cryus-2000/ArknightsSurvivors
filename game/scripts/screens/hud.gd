@@ -171,7 +171,10 @@ func _layer_draw(key: String) -> void:
 		return
 	var keep: Control = g.hud
 	g.hud = L.node
+	var t0 := Time.get_ticks_usec() if g.prof_on else 0
 	g._timed("draw_hud", L.fn)   # --prof：各块的绘制也计进 draw_hud（与拆块前口径相同：整个局内 HUD 的脚本时间）
+	if g.prof_on:
+		g.prof_add("hud_" + key, t0)   # 每块分开计（docs/50 §37）
 	g.hud = keep
 
 
@@ -598,6 +601,16 @@ func draw_elite_marks(ct: Transform2D) -> void:
 		var tri := PackedVector2Array([tip + Vector2(-6, -10 + bob), tip + Vector2(6, -10 + bob), tip + Vector2(0, -3 + bob)])
 		tb.poly(PackedVector2Array([tri[0] + Vector2(-2, -1), tri[1] + Vector2(2, -1), tri[2] + Vector2(0, 2)]), Color(0, 0, 0, 0.7))
 		tb.poly(tri, ELITE_COL)
+	# Boss 头顶短血条（10-27 Boss 细血条改版：顶部细条之外，战场里一眼看出哪只是哪只、各剩多少；离屏不画）
+	for b in g.bosses:
+		if b.dead or b.get("friendly", false) or not D.ENEMIES[b.type].get("role", "") == "boss":
+			continue
+		var bp: Vector2 = ct * (b.pos + Vector2(0, -b.r - 22.0))
+		if bp.x < -40 or bp.y < -40 or bp.x > vs.x + 40 or bp.y > vs.y + 40:
+			continue
+		var bw: float = 64.0
+		tb.rect(Rect2(bp + Vector2(-bw / 2.0 - 1.0, -1.0), Vector2(bw + 2.0, 5)), Color(0, 0, 0, 0.7))
+		tb.rect(Rect2(bp + Vector2(-bw / 2.0, 0), Vector2(bw * clampf(b.hp / maxf(1.0, b.maxhp), 0.0, 1.0), 3)), UI.RED)
 	tb.flush(g.hud)
 
 

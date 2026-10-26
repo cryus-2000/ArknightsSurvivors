@@ -92,8 +92,9 @@ var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 
 ##   render/elite_rim_gain  亮度倍数（颜色 = 冷青 × gain，缺省 2.2；> 1 才能在暗处透出来）
 ## 场上精英通常只有几只，每只多一次贴图切换；每帧在 _update 里读一次旋钮
 const ELITE_RIM_RGB := Color(0.55, 0.9, 1.0)
-## 紧急作战精英小队（docs/161，e.squad）：危险红描边（> 1 抵消环境暗色）；颜色语言：红只给危险。脚下红光 10-26 用户去掉（「红色描边就可以」）
-const SQUAD_RIM_COL := Color(2.6, 0.45, 0.45, 0.85)
+## 紧急作战精英小队（docs/161，e.squad）：危险红描边（> 1 抵消环境暗色）；颜色语言：红只给危险。脚下红光 10-26 用户去掉（「红色描边就可以」）；
+## 原 (2.6, 0.45, 0.45) 过曲线后发粉，压低绿蓝通道成正红（10-26 第二次反馈）；身体本色不调
+const SQUAD_RIM_COL := Color(2.4, 0.16, 0.12, 0.95)
 var elite_rim := 0.0
 var elite_rim_col := Color(0, 0, 0, 0)
 var _afast := false               # 本帧缓存路径走图集快速路径（_dc_emit）
@@ -928,7 +929,10 @@ func _sorted_fast(evr: Rect2) -> bool:
 				5:
 					var d0: float = fx_dim
 					fx_dim = d0 * (lead_dim if ob.is_leader else mate_dim)
+					var t0 := Time.get_ticks_usec() if g.prof_on else 0
 					ob.draw_body()
+					if g.prof_on:
+						g.prof_add("op_body_" + str(ob.id), t0)   # 干员本体绘制（docs/50 §37）
 					fx_dim = d0
 				6:
 					ob[0].draw_extra(ob[1])
@@ -1336,19 +1340,34 @@ func _draw_fx() -> void:
 					var ms: float = f.sz * (0.5 + 0.5 * minf(1.0, a * 2.0))
 					tb_quad(mp, mp + Vector2(ms, 0), mp + Vector2(ms, ms), mp + Vector2(0, ms), Color(f.col.r, f.col.g, f.col.b, f.col.a * minf(1.0, a * 1.5)))
 			"mire_recoil":
-				# 灯标点燃时被清掉的溟痕退散（docs/54）：每片一圈紫环向中心收缩、深色底渐隐，再一道从灯标推出去的淡光弧
+				# 灯标点燃时被清掉的溟痕退散（docs/54）：每片一圈紫环向中心收缩、深色底渐隐，再一道从灯标推出去的淡光弧。
+				# 10-26：每片带延迟 c[2]（自灯标向外扫开），各自在 pd 秒里播完；sweep_r > 0 时再画一道从中心扫到圈边的驱散环
+				var el: float = f.max - f.life
+				var pd: float = float(f.get("pd", f.max))
+				if float(f.get("sweep_r", 0.0)) > 0.0:
+					var sk: float = clampf(el / maxf(0.01, float(f.sweep_t)), 0.0, 1.0)
+					if sk < 1.0 or el < float(f.sweep_t) + 0.12:
+						var sa: float = 1.0 - clampf((el - float(f.sweep_t)) / 0.12, 0.0, 1.0)
+						var srr: float = float(f.sweep_r) * (1.0 - pow(1.0 - sk, 3.0))
+						g.draw_set_transform(f.from, 0.0, Vector2(1.0, ground_y()))   # 与清除圈同一个地面椭圆
+						g.draw_arc(Vector2.ZERO, srr, 0.0, TAU, 64, Color(1.7, 1.25, 2.1, 0.75 * sa), 5.0)
+						g.draw_arc(Vector2.ZERO, srr * 0.94, 0.0, TAU, 64, Color(2.0, 1.9, 1.6, 0.5 * sa), 2.0)
+						g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 				if g.vfx.p2 and f.get("tex", false):
 					# 溟痕退散帧条 fx_mire_dissolve（64×64 × 6 原生 1x，world_spec_1024）：按 PX 1:1，不按半径拉伸；
 					# 一块 64 美术像素 = 128 世界单位，大溟痕在圆内按 96 世界单位间距多点铺（块与块叠一圈、格心离圆心 ≤ 半径）；_emit 层进光学发光层
-					var mfr: int = clampi(int((1.0 - a) * 6.0), 0, 5)
 					var dtx: Texture2D = g.tex.get("fx_mire_dissolve")
 					var dhs: float = A.hires_of(dtx) if dtx != null else 1.0
-					var dcol := Color(1.0, 1.0, 1.0, minf(1.0, a * 2.0))
 					var detx: Texture2D = _mire_dissolve_emit() if g.optical_on else null
 					var step: float = 64.0 * Game.PX
 					var pitch: float = 48.0 * Game.PX
 					var me: float = Bal.v("render/optical_mire_emit", 0.35)   # 每格都用，循环外读一次（docs/50 §26）
 					for c in f.pts:
+						var lp: float = (el - (float(c[2]) if c.size() > 2 else 0.0)) / maxf(0.01, pd)
+						if lp <= 0.0 or lp >= 1.0:
+							continue
+						var mfr: int = clampi(int(lp * 6.0), 0, 5)
+						var dcol := Color(1.0, 1.0, 1.0, minf(1.0, (1.0 - lp) * 2.0))
 						var nn: int = maxi(0, ceili((float(c[1]) - step * 0.5) / pitch))
 						for iy in range(-nn, nn + 1):
 							for ix in range(-nn, nn + 1):
@@ -1360,9 +1379,13 @@ func _draw_fx() -> void:
 								if detx != null:
 									g.glow_tex_next.append([detx, Rect2(dp - Vector2(step, step) * 0.5, Vector2(step, step)), Rect2(mfr * 64, 0, 64, 64), Color(1, 1, 1, dcol.a * me)])
 				elif g.vfx.p2:
-					var k := 1.0 - a
 					var gy: float = ground_y()
 					for c in f.pts:
+						var lp2: float = (el - (float(c[2]) if c.size() > 2 else 0.0)) / maxf(0.01, pd)
+						if lp2 <= 0.0 or lp2 >= 1.0:
+							continue
+						var k := lp2
+						a = 1.0 - lp2
 						var rr: float = float(c[1]) * (1.0 - pow(k, 0.7))
 						if rr < 2.0:
 							continue
@@ -2810,7 +2833,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		name = e.tex + "_enraged"
 		frames = 2
 		frame = int(g.t * 5.0 + e.id * 0.37) % 2
-	var rage_fx: bool = e.get("enraged", false) and not D.ENEMIES.get(e.type, _NO_DEF).get("rage_keep_tint", false)   # rage_keep_tint：收割者的狂奔保持冷蓝本色；波纹另画。
+	var rage_fx: bool = e.get("enraged", false) and not D.ENEMIES.get(e.type, _NO_DEF).get("rage_keep_tint", false) and not e.get("squad", false)   # rage_keep_tint：收割者的狂奔保持冷蓝本色；波纹另画。精英小队不叠狂暴的脚下红椭圆和全身红调（红描边已标危险；10-26 用户「还是有红色的底，并且全身发红」）
 	# 巢涌者神经光环改到地面层画（draw_nest_auras），不再按 4.6 倍放大帧条盖在实体上
 	# 染色复用贴图的敌人（巨海、撕裂者、潜地者、吐酸者）按自身半径放大：enemies.json 的 draw_scale（docs/48 §1 第 7 项）
 	var sc: float = enemy_scale(e)
