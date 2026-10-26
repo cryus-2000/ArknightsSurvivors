@@ -690,6 +690,13 @@
   "anim_k_cap": 3.0,
   "legacy_floor": 0
  },
+ "synergy": {
+  "_doc": "干员连携技（docs/160、docs/161）：on 总开关（0 = 完全不求值）；max_active 同时进行的连携条数；cd_mult 冷却倍率；dmg_mult 连携伤害倍率（云端校准用）",
+  "on": 1,
+  "max_active": 2,
+  "cd_mult": 1.0,
+  "dmg_mult": 1.0
+ },
  "feel": {
   "_doc": "移动粘滞（用户 10-24 试，缺省关 = 同 seed 不变）：move_sticky 1 = 开；队长普攻出手瞬间 fire_slow_t 秒移速 −fire_slow；起步 / 停步 accel_t 秒线性加减速",
   "move_sticky": 0.0,

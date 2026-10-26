@@ -933,6 +933,12 @@ def check_blocks_eq(godot):
 SCENE_REGRESSIONS = {
     "command_ai": ("指挥接敌、站定、护主", "command_ai_test", r"COMMAND_AI checks=\d+ failures=0", []),
     "assault_dash": ("突击模式低频自冲刺（随行不冲、突击每 7 秒 / 德克萨斯 4.5 秒、归队后不冲）", "assault_dash_test", r"ASSAULT DASH checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=skadi", "--squad=texas,lappland"]),
+    "synergy_a": ("干员连携技（德克萨斯 × 能天使「默契」/ 拉普兰德「恩怨」）：合击动作、冷却、总开关、队长不位移", "synergy_test", r"SYNERGY checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=texas", "--squad=exusiai,lappland"]),
+    "synergy_b": ("干员连携技（集群狩猎：猎人 ≥ 3 人一起扑向同一目标）", "synergy_test", r"SYNERGY checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=skadi", "--squad=ulpianus,gladiia"]),
+    "synergy_c": ("干员连携技（乌尔比安 × 斯卡蒂「手段应当有效」）", "synergy_test", r"SYNERGY checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=ulpianus", "--squad=skadi"]),
+    "synergy_d": ("干员连携技（战争设计：歌蕾蒂娅 S3 控场 → 乌尔比安收割；技能就绪才放、队长不位移）", "synergy_test", r"SYNERGY checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=gladiia", "--squad=ulpianus"]),
+    "synergy_conflict_a": ("干员连携技冲突检查（搭档忙 / 冲锋 / 倒地 / 归队 / 切队长 / 目标死亡 / 非 PLAY / 语音不叠）", "synergy_conflict_test", r"SYNERGY CONFLICT checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=ulpianus", "--squad=skadi,texas"]),
+    "synergy_conflict_b": ("干员连携技冲突检查（同帧只走一条：战争设计取代集群狩猎）", "synergy_conflict_test", r"SYNERGY CONFLICT checks=\d+ failures=0", ["--regression", "--balance", "--seed=1", "--op=gladiia", "--squad=ulpianus,skadi"]),
     "voice_command": ("指挥语音轮换、节流、登场去重", "voice_command_test", r"VOICE COMMAND checks=\d+ failures=0", []),
     "command_wheel": ("指挥圆盘索敌优先级（队友按优先级重排、队长不受影响）", "command_wheel_test", r"COMMAND WHEEL checks=\d+ failures=0", []),
     "eyja_volcanic_weight": ("熔岩弹连续起落点与浮空持续投弹", "eyja_volcanic_weight_test", r"EYJA VOLCANIC WEIGHT failures=0", ["--balance", "--seed=1", "--op=eyjafjalla", "--route=eyjafjalla:meteor"]),
