@@ -50,9 +50,9 @@ var brightness := 1.1    # 画面亮度 0.8 ~ 1.4（缺省值随观感预设 ren
 var pad_rumble := true   # 手柄震动
 var quality := ""        # 生效中的画质档 "high" / "mid" / "low"（由 quality_mode 决定）：中 = 关法线光照 / 辉光；低 = 四项后期全关（再关景深 / 水下滤镜）+ 粒子减半、真人局同屏敌人上限 300、演出简化
 var quality_mode := "auto"   # 玩家选的画质档：auto / low / mid / high（10-22 用户：设置精简 + 画质自动档，Codex 界面单 §4）
-var quality_probed := false  # （旧）自动档首局前 2 秒测帧时；10-25 起改逐级降（auto_level），保留键兼容
+var quality_probed := false  # （旧）自动档首局前 2 秒测帧时，保留键兼容存档；10-27 起局中不再降档
+var guard_prev := ""   # 护栏降档前的画质（推荐档时下局恢复它）
 var guard_lowered := false   # 内存护栏本局临时降过画质（手动档也会，提示玩家；下局开局恢复手选的档）
-var auto_level := 0          # 画质自动档逐级降到第几级（本次启动有效，不存档；game._auto_quality，docs/50 §28）
 const QUALITY_NAME := {"low": "低", "mid": "中", "high": "高"}
 const QUALITY_MODES := ["auto", "low", "mid", "high"]
 ## 界面大小（设置 → 画面，用户 10-13「手机横屏太拥挤」）：在设备缺省的界面放大倍数（ui_scale）上再乘 ui_size_pct / 100，80–120，步长 5
@@ -773,21 +773,9 @@ func _guess_quality() -> String:
 ## 设置里选档：自动 = 立刻按本机检测；手选 = 用那一档（之后不再自动降）
 func set_quality_mode(m: String) -> void:
 	quality_mode = m if QUALITY_MODES.has(m) else "auto"
-	auto_level = 0   # 换档 / 重选自动：逐级降从头算
 	guard_lowered = false   # 手动换档压过护栏这一局的临时降档
 	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)
 	quality_probed = quality_mode != "auto"
-
-
-## 自动档：首局前 2 秒平均帧时 > 25 ms 时降一档（game.gd 调）；返回降到的档（没降返回空）
-func auto_downgrade() -> String:
-	quality_probed = true
-	if quality_mode != "auto":
-		return ""
-	var nxt: String = {"high": "mid", "mid": "low"}.get(quality, "")
-	if nxt != "":
-		set_quality(nxt)
-	return nxt
 
 
 ## 开发用参数（--allend / --allrelics 这类解锁开关）：只在 debug 构建（编辑器、测试、debug 导出）里读命令行；

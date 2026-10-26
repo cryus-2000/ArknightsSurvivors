@@ -379,10 +379,7 @@ var shake := 0.0
 var hurt_vignette := 0.0
 var hurt_duck := 0.0         # 重击后配乐低通保持的剩余秒数（combat.hurt 写，music_director 读，world.update_player_feel 衰减；docs/53）
 var tab_hint := 0.0          # 首次升级后再提醒一次 Tab
-var aq_win := Vector3.ZERO   # 画质自动档逐级降：当前窗口（x = 帧时和（秒）、y = 帧数、z = 连续超线的窗口数）
-var aq_hold := 0.0           # 刚降过一级：这几秒不判（等画面和帧时稳下来）
-var aq_on := false           # 本局是否启用（真人局 + 自动档；测试加 --autoq）
-var _aq_us := 0
+var _aq_us := 0             # 上一帧的真实时刻（网页帧率自动 _fps_probe 用）
 var quality_note := ""       # 自动降档后的提示（hud_banners.draw_open_hints 画）
 var quality_note_t := 0.0
 var tab_used := false
@@ -769,23 +766,25 @@ func _white_names(n: String) -> Array:
 	return out
 
 
-func _white_release(delta: float) -> void:
+func _white_release(delta: float, now := false) -> void:
 	if not lazy_white:
 		return
 	_white_t += delta
-	if _white_t < 5.0:
+	if _white_t < 5.0 and not now:
 		return
 	_white_t = 0.0
+	var keep_w: float = 0.0 if now else WHITE_KEEP   # now：内存护栏要立刻腾（不在场就放，不等 20 / 60 秒）
+	var keep_e: float = 0.0 if now else ENEMY_KEEP
 	for e in enemies:
 		_white_alive[str(e.get("tex", ""))] = t
 	for n in _white_alive.keys():
-		if t - float(_white_alive[n]) > WHITE_KEEP and tex.has(n + "_white"):
+		if t - float(_white_alive[n]) > keep_w and tex.has(n + "_white"):
 			for nm in _white_names(n):
 				if tex.has(nm + "_white"):
 					tex.erase(nm + "_white")
 					if tex.get(nm) != null:
 						A.white_drop(tex[nm])
-		if t - float(_white_alive[n]) > ENEMY_KEEP and _evict_on:
+		if t - float(_white_alive[n]) > keep_e and _evict_on:
 			_enemy_evict(n)
 			_white_alive.erase(n)
 	_font_t += 5.0
@@ -1117,16 +1116,17 @@ func _ready() -> void:
 	A.mark("ready_end")
 	if Cfg.mobile_fonts_slim():
 		Cfg.slim_fonts(true)   # 手机网页：进局清掉标题页 / 载入页用过的字号缓存（docs/50 §30）
-	aq_on = demo_op == "" and ((mode == Mode.PLAY and Cfg.quality_mode == "auto" and Cfg.dev_args().is_empty()) or Cfg.dev_args().has("--autoq"))
 	if Cfg.dev_args().has("--fpsosd") and demo_op == "":
 		_fps_osd_add()
 	if mobile_cap():
 		spawner.auto_cap = AQ_CAP
-	if Cfg.guard_lowered and Cfg.quality_mode != "auto":
+	if Cfg.guard_lowered:
 		Cfg.guard_lowered = false
-		Cfg.set_quality(Cfg.quality_mode)   # 上局护栏临时降过：这局开局恢复玩家手选的档
-	if aq_on:
-		_apply_auto_level()   # 同一次启动里前一局已经降过的，这局开局就沿用
+		# 上局护栏临时降过：这局开局恢复（手选档恢复手选的；推荐档恢复降档前的）
+		Cfg.set_quality(Cfg.quality_mode if Cfg.quality_mode != "auto" else (Cfg.guard_prev if Cfg.guard_prev != "" else Cfg.quality))
+		Cfg.guard_prev = ""
+		if not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_rscale", 0.0)):
+			Cfg.set_render_scale(false)
 	if mode == Mode.PLAY and demo_op == "" and not trial.active:
 		_cover_begin()
 	RenderingServer.frame_post_draw.connect(func():
@@ -1280,23 +1280,19 @@ func cam_center() -> Vector2:
 # =====================================================================
 # 主循环
 # =====================================================================
-## 画质自动档逐级降（10-25 用户「帧率你也要考虑到别人的电脑和手机配置不一定有我高」，docs/50 §28；取代 10-22 的「首局前 2 秒降一档」）：
-## 整局都看真实帧间隔，每 AQ_WIN 秒一窗；连续 AQ_NEED 窗平均帧时超过一帧预算 × AQ_OVER（60 帧时约 44 帧以下）才降一级（低于 30 帧一窗就降），降完 AQ_HOLD 秒不判。
-## 只降不升，本次启动内一直有效（Cfg.auto_level，不存档：下次启动从头测，偶尔一次卡顿不会永久降低观感）。高配机不掉帧就一级都不降。
-## 各级按「省得多、看着差得少」排（docs/50 §28 实测）：
-##   1 关光学 GPU 粒子 + 特效动态照明
-##   2 同屏普通怪上限 65（满了合并进后来的怪，生命 / 伤害 / 经验按补偿放大，docs/50 §26.13；后期满屏 −21%，是各级里省得最多的）
-##   3 再关发光层（CPU 颗粒不关：退回帧条画法更慢；颗粒密度已由 fx_grains 按帧时自动收到最低 0.35）
-##   4 分辨率缩放（只在高像素密度屏：手机网页；普通桌面跳过这级）    5 画质「低」（光学整套关、后期全关、粒子减半）
-## 只在真人局 + 自动档时启用（测试加 --autoq 才开；都是纯画面，同 seed 结果不变）
+## 局中不再按帧率自动降画质（10-27 用户「自动降低特效之类的是不是可以关掉，一般游戏里面都不会这么做吧」，docs/50 §36）：
+## 画质只在启动时按设备定一个推荐档（Cfg._guess_quality，设置里「推荐」），之后不变；玩家手选永远优先。原来的逐级降（10-25 docs/50 §28）已删。
+## 帧率上限（手机 30、网页开局测一次定 60 / 30）不是降特效，照旧
 ## 网页内存护栏（10-26 用户「重点是要让所有机型和网页版都不会崩溃」，docs/50 §30）：手机网页每 MG_EVERY 秒估一次内存
-## （引擎显存统计 + 网页音频样本解码估算）；超过 MG_BUDGET 就画质「低」+ 分辨率缩放（手机自动档开局已是这样；兜手选中 / 高档的手机）。
+## （引擎显存统计 + 网页音频样本解码估算），超线时按下面 10-27 的三步处理。
 ## 音频样本没法从脚本注销（引擎没开放 unregister），所以手机上战斗乐分轨不预先解码（sfx.warm_begin）。
 ## 局中后期新怪 / 新音效越积越多时兜底，不等 WebKit 杀页。纯画面 / 声音缓存，不碰对局
+## 10-27 改（docs/50 §36）：只作防崩的最后手段——阈值 MG_BUDGET_MB 440（中档整局峰值约 350）；超线先只做不改画面的事（清字形缓存、
+## 立刻释放不在场的白剪影 / 敌人帧条），下一次（MG_EVERY 秒后）仍超才降画质「低」（提示玩家），再不行才分辨率缩放。手选档与推荐档同一阈值
 const MG_EVERY := 5.0
-const MG_BUDGET_MB := 380.0
-const MG_MANUAL_EXTRA := 140.0
+const MG_BUDGET_MB := 440.0
 var _mg_t := 0.0
+var _mg_stage := 0   # 本局连续超线的次数：1 只清缓存、2 降画质、3 分辨率缩放；回到线下清零
 
 func _mem_guard(delta: float) -> void:
 	if not (Cfg.mobile_web() or Cfg.dev_args().has("--memguard")):
@@ -1311,79 +1307,43 @@ func _mem_guard(delta: float) -> void:
 	for a in Cfg.dev_args():
 		if a.begins_with("--memguard="):
 			budget = float(a.substr(11))
-	if Cfg.quality_mode != "auto":
-		budget += MG_MANUAL_EXTRA   # 玩家手选了档：只在真逼近时才临时降（10-26 晚用户「玩家手动选了某档就按它」）
 	if vid + aud <= budget:
+		_mg_stage = 0
 		return
+	_mg_stage += 1
+	var step := "清缓存"
 	Cfg.slim_fonts(true)   # 字形缓存清掉重建（按需栅格化，卡一下；docs/50 §30 字体缓存能到 60 MB）
-	# 分两步（10-27 用户要清晰，docs/50 §34）：先降低画质（关光学层，它的全屏渲染目标最大）；5 秒后再查仍超线才开分辨率缩放（整屏放大会糊，最后兜底防崩）
-	var step := ""
-	if Cfg.quality != "low":
+	_white_release(0.0, true)   # 不在场的白剪影 / 敌人帧条立刻释放（平时要等 20 / 60 秒）
+	if _mg_stage >= 2 and Cfg.quality != "low":
+		Cfg.guard_prev = Cfg.quality
 		Cfg.set_quality("low")
 		Cfg.guard_lowered = true
-		quality_note = "内存紧张，本局已临时降低画质" if Cfg.quality_mode != "auto" else "内存紧张，已自动降低画质（可在设置里改）"
+		quality_note = "内存紧张，本局已临时降低画质"
 		quality_note_t = 5.0
 		step = "低画质"
-	elif not Cfg.render_scaled:
+	elif _mg_stage >= 3 and not Cfg.render_scaled:
 		Cfg.set_render_scale(true)
+		Cfg.guard_lowered = true
 		step = "分辨率缩放"
 	if step != "" and not Cfg.dev_args().is_empty():
 		print("PF MEMGUARD vid=%.0fMB audio=%.0fMB -> %s t=%.0f" % [vid, aud, step, t])
 
 
-const AQ_WIN := 2.0
-const AQ_NEED := 2
-const AQ_OVER := 1.35
-const AQ_HOLD := 3.0
-const AQ_MAX := 5
-const AQ_CAP := 65   # 第 2 级的同屏上限（帧率会话 10-26 定的低配档参数）
+const AQ_CAP := 65   # 手机网页开局就开的同屏上限（mobile_cap；帧率会话 10-26 定的低配档参数）
 
 func _auto_quality(delta: float) -> void:
 	quality_note_t = maxf(0.0, quality_note_t - delta)
 	var now := Time.get_ticks_usec()
 	var rd: float = (now - _aq_us) / 1e6 if _aq_us > 0 else 0.0   # 真实帧间隔（--fixed-fps 测量时 delta 是定值，看不出掉帧）
 	_aq_us = now
-	if aq_on and Cfg.quality_mode != "auto" and Cfg.dev_args().is_empty():
-		aq_on = false   # 对局里在设置里手选了档：自动降档停手、已关的层撤掉（10-26 晚用户「从低切到高没有反应」）
-		Cfg.auto_level = 0
-		_apply_auto_level()
-	if not aq_on or state != S.PLAY or t < 1.0 or Cfg.auto_level >= AQ_MAX or (rt_from >= 0.0 and not realtime):   # 测量的快进段不算
-		aq_win = Vector3(0, 0, aq_win.z)
+	if demo_op != "" or state != S.PLAY or t < 1.0 or (rt_from >= 0.0 and not realtime) or rd > 0.25 or rd <= 0.0:   # 切窗口 / 读盘那种单次长停顿不算
 		return
-	if aq_hold > 0.0:
-		aq_hold -= delta
-		return
-	if rd > 0.25 or rd <= 0.0:
-		aq_win = Vector3.ZERO   # 切窗口 / 读盘那种单次长停顿不算掉帧
-		return
-	if OS.has_feature("web") and Cfg.max_fps == 0 and not Cfg.fps_probed:
-		_fps_probe(rd)   # 网页帧率自动：先定 60 还是 30，定完再按那个预算判降档
-		return
-	aq_win.x += rd
-	aq_win.y += 1.0
-	if aq_win.x < AQ_WIN:
-		return
-	var avg_ms: float = aq_win.x / aq_win.y * 1000.0
-	var budget := _frame_budget_ms()
-	var over: bool = avg_ms > budget * AQ_OVER
-	aq_win = Vector3(0, 0, aq_win.z + 1.0 if over else 0.0)
-	if aq_win.z < (1.0 if avg_ms > budget * 2.0 else float(AQ_NEED)):   # 慢到一半帧率以下：一窗就降，弱手机十来秒内降到合适的级
-		return
-	aq_win = Vector3.ZERO
-	Cfg.auto_level += 1
-	if Cfg.auto_level == 4 and not Cfg.hidpi_render():
-		Cfg.auto_level = 5   # 普通桌面：分辨率缩放没收益，直接下一级
-	aq_hold = AQ_HOLD
-	_apply_auto_level()
-	if not Cfg.dev_args().is_empty():
-		print("AUTOQ level=%d avg=%.1fms t=%.1f" % [Cfg.auto_level, avg_ms, t])
-	if Cfg.auto_level == 1:
-		quality_note = "帧率偏低，已自动精简特效（可在设置里改画质）"
-		quality_note_t = 5.0
+	if OS.has_feature("web") and Cfg.max_fps == 0 and not Cfg.fps_probed and ((mode == Mode.PLAY and Cfg.dev_args().is_empty()) or Cfg.dev_args().has("--autoq")):
+		_fps_probe(rd)   # 网页帧率自动：开局测一次定 60 还是 30（帧率上限，不改画质）
 
 
 ## 网页帧率自动（10-25 用户定）：先按 60 帧跑，开局 AQ_FPS_T 秒的平均帧率 ≥ 50 就保持 60，否则本次启动锁 30（Engine.max_fps = 30）；
-## 只测一次，不在两者之间来回跳；锁 30 之后降档按 30 帧预算判（_frame_budget_ms 读 Engine.max_fps）。桌面不锁。逻辑按 PlayClock 固定步长，与渲染帧率无关
+## 只测一次，不在两者之间来回跳。桌面不锁。逻辑按 PlayClock 固定步长，与渲染帧率无关
 const AQ_FPS_T := 4.0
 var _fps_win := Vector2.ZERO
 
@@ -1415,26 +1375,10 @@ func _fps_osd_add() -> void:
 	var tm := Timer.new()
 	tm.wait_time = 0.25
 	tm.autostart = true
-	tm.timeout.connect(func(): lb.text = "FPS %.0f   上限 %d%s   降档 %d   %d:%02d" % [Engine.get_frames_per_second(), Engine.max_fps,
+	tm.timeout.connect(func(): lb.text = "FPS %.0f   上限 %d%s   画质 %s   %d:%02d" % [Engine.get_frames_per_second(), Engine.max_fps,
 		"（自动锁 30）" if Cfg.fps_lock30 else ("（自动 · 测量中）" if Cfg.max_fps == 0 and not Cfg.fps_probed and OS.has_feature("web") else ""),
-		Cfg.auto_level, int(t) / 60, int(t) % 60])
+		Cfg.quality, int(t) / 60, int(t) % 60])
 	layer.add_child(tm)
-
-
-## 按 Cfg.auto_level 关层（开局也调一次：同一次启动里前一局已经降过的，这局直接沿用）
-func _apply_auto_level() -> void:
-	var lv: int = Cfg.auto_level
-	if optical != null:
-		optical.auto_mask = (6 if lv >= 1 else 0) | (8 if lv >= 3 else 0)   # 2 GPU 粒子 + 4 动态照明；8 发光层（CPU 颗粒不关：关了退回帧条画法反而慢 0.8–1 ms，docs/50 §28；颗粒量由 fx_grains 帧时自适应自己往下收）
-	if spawner != null:
-		spawner.auto_cap = AQ_CAP if (lv >= 2 or mobile_cap()) else 0
-	# 第 4 级分辨率缩放：手机网页跳过（10-27 用户要清晰，先牺牲帧率余量：掉帧时直接走第 5 级低画质，不糊画面；docs/50 §34）
-	if lv >= 4 and Cfg.hidpi_render() and not Cfg.mobile_web():
-		Cfg.set_render_scale(true)
-	elif lv < 4 and not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_rscale", 0.0)) and not Cfg.guard_lowered:
-		Cfg.set_render_scale(false)
-	if lv >= 5 and Cfg.quality != "low":
-		Cfg.set_quality("low")
 
 
 ## 手机网页静止界面降帧（10-27 用户「手机发烫」，docs/50 §33）：暂停 / 选卡 / 商店 / 结算这些画面不跑模拟，照 30 帧整屏重画是空耗电。
@@ -1455,17 +1399,6 @@ func _static_fps() -> void:
 ## 手机网页开局就开同屏上限 65（10-26 晚：满屏帧时约 −21%，用户批过存活上限做软限制；合并补偿照 §26.13）。真人局才开，测试 / 机器人局不变
 func mobile_cap() -> bool:
 	return Cfg.mobile_web() and Cfg.mobile_knob("mobile_cap", 1.0) and (mode == Mode.PLAY or Cfg.dev_args().has("--mobilecap"))
-
-
-## 一帧预算（毫秒）：60 帧；显示器刷新率更低或设了 30 帧上限时取更长的那个
-func _frame_budget_ms() -> float:
-	var fps := 60.0
-	var hz := DisplayServer.screen_get_refresh_rate()
-	if hz > 1.0:
-		fps = minf(fps, hz)
-	if Engine.max_fps > 0:
-		fps = minf(fps, float(Engine.max_fps))
-	return 1000.0 / fps
 
 
 func _process(delta: float) -> void:

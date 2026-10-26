@@ -334,7 +334,7 @@ func _tap(mp: Vector2, button: int) -> void:
 						Cfg.apply()
 						Sfx.play("ui_move")
 				elif ROWS[i].type == "quality" and mp.x >= control_x - 40.0:
-					# 四格（自动 / 低 / 中 / 高，各 56 宽、间距 4）：点哪格选哪档
+					# 四格（推荐 / 低 / 中 / 高，各 56 宽、间距 4）：点哪格选哪档
 					var qi := clampi(int((mp.x - (control_x - 40.0)) / 60.0), 0, 3)
 					if Cfg.QUALITY_MODES[qi] != Cfg.quality_mode:
 						Cfg.set_quality_mode(Cfg.QUALITY_MODES[qi])
@@ -574,15 +574,15 @@ func _draw_row(ci: CanvasItem, rr: Rect2, si: int, touch: bool, ty0: float) -> v
 			ci.draw_rect(Rect2(track.position + Vector2(44 if enabled else 4, 4), Vector2(24, 20)), UI.CYAN if enabled else UI.SUB)
 			UI.text(ci, font, Vector2(vx, rr.position.y + ty0), str(row.get("on", "开启")) if enabled else str(row.get("off", "关闭")), fs_v - 2, UI.CYAN if enabled else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 116)
 		"quality":
-			# 四格 自动 / 低 / 中 / 高；自动时行尾左侧写检测结果「已按本机选：中」
+			# 四格 推荐 / 低 / 中 / 高（10-27：「自动」改「推荐」——只在启动时按设备定档，局中不再自动降，docs/50 §36）；推荐时行尾左侧写「按设备推荐：中」
 			for qi in 4:
 				var m: String = Cfg.QUALITY_MODES[qi]
 				var active: bool = m == Cfg.quality_mode
 				var qr := Rect2(vx - 40 + qi * 60, rr.position.y + ty0 - 25, 56, 36)
 				ci.draw_rect(qr, UI.CYAN if active else Color("1b252e"))
-				UI.text(ci, font, qr.position + Vector2(0, 25), "自动" if m == "auto" else Cfg.QUALITY_NAME[m], fs_v - (2 if m == "auto" else 0), Color("10151b") if active else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, qr.size.x)
+				UI.text(ci, font, qr.position + Vector2(0, 25), "推荐" if m == "auto" else Cfg.QUALITY_NAME[m], fs_v - (2 if m == "auto" else 0), Color("10151b") if active else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, qr.size.x)
 			if Cfg.quality_mode == "auto":
-				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "已按本机选：%s" % Cfg.QUALITY_NAME.get(Cfg.quality, "高"), 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 186)
+				UI.text(ci, font, Vector2(vx - 236, rr.position.y + ty0 - 1.0), "按设备推荐：%s" % Cfg.QUALITY_NAME.get(Cfg.quality, "高"), 12 if not touch else 13, UI.CYAN_DIM, HORIZONTAL_ALIGNMENT_RIGHT, 186)
 		"fps":
 			# 三格 自动 / 60 / 30（同画质格的样式，右对齐到数值块末端）
 			for fi in 3:

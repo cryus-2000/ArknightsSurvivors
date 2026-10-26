@@ -671,7 +671,7 @@ func alive_hard() -> int:
 	return v if v > 0 else auto_cap
 
 
-## 画质自动档第 2 级开的同屏上限（game._apply_auto_level，docs/50 §28；0 = 没开）：上限与硬上限都取它，合并补偿照 balance.json（§26.13）
+## 同屏上限（手机网页开局就开，game.mobile_cap，docs/50 §30.6；0 = 没开）：上限与硬上限都取它，合并补偿照 balance.json（§26.13）
 var auto_cap := 0
 
 
