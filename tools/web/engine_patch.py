@@ -6,17 +6,32 @@
 """
 
 ANCHOR = "GodotAudio.samples.set(params.id,sample);"
-INJECT = ("if(!window.__syAudioFree){window.__syAudioFree=function(id){const s=GodotAudio.Sample.getSampleOrNull(String(id));if(s){s.clear();}};"
+LEGACY_INJECT = ("if(!window.__syAudioFree){window.__syAudioFree=function(id){const s=GodotAudio.Sample.getSampleOrNull(String(id));if(s){s.clear();}};"
           "window.__syAudioMB=function(){let b=0;for(const [k,s] of GodotAudio.samples){const a=s._audioBuffer;if(a){b+=a.length*a.numberOfChannels*4;}}return b/1048576;};}")
+# AudioBuffer is immutable during playback; each source keeps its own cursor, pitch and bus.
+# Godot 4.7.2 otherwise duplicates the entire PCM on every play / loop / resume.
+COPY = "getAudioBuffer(){return this._duplicateAudioBuffer()}"
+SHARE = "getAudioBuffer(){return this._audioBuffer}"
+INJECT = ("if(!window.__syAudioFree){window.__syAudioFree=function(id){id=String(id);"
+          "for(const n of GodotAudio.sampleNodes.values()){if(n.streamObjectId===id)return false;}"
+          "const s=GodotAudio.Sample.getSampleOrNull(id);if(s)s.clear();return true;};"
+          "window.__syAudioMB=function(){const buffers=new Set;"
+          "for(const s of GodotAudio.samples.values()){if(s._audioBuffer)buffers.add(s._audioBuffer);}"
+          "for(const n of GodotAudio.sampleNodes.values()){if(n._source&&n._source.buffer)buffers.add(n._source.buffer);}"
+          "let b=0;for(const a of buffers){b+=a.length*a.numberOfChannels*4;}return b/1048576;};}")
 
 
 def patch_index_js(path: str) -> None:
     with open(path, encoding="utf-8") as fh:
         s = fh.read()
-    if "window.__syAudioFree" in s:
-        return
-    if ANCHOR not in s:
-        raise SystemExit("index.js 里找不到 %s（Godot 网页引擎变了？docs/50 §40）" % ANCHOR)
-    s = s.replace(ANCHOR, ANCHOR + INJECT, 1)
+    # Validate every anchor before writing, including when upgrading an older export.
+    if s.count(ANCHOR) != 1 or (s.count(COPY) + s.count(SHARE)) != 1:
+        raise SystemExit("index.js 音频补丁锚点不匹配（Godot 网页引擎变了？docs/50 §40）")
+    s = s.replace(LEGACY_INJECT, "", 1)
+    if INJECT not in s:
+        if "window.__syAudioFree" in s:
+            raise SystemExit("index.js 带有未知版本的音频补丁")
+        s = s.replace(ANCHOR, ANCHOR + INJECT, 1)
+    s = s.replace(COPY, SHARE, 1)
     with open(path, "w", encoding="utf-8", newline="\n") as fh:
         fh.write(s)

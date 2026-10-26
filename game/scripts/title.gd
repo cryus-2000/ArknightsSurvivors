@@ -137,7 +137,6 @@ func _ready() -> void:
 	Sfx.cut_target = 20000.0
 	Sfx.vol_target = -6.0
 	Sfx.play_music("title")
-	Sfx.warm_begin()   # 网页：出发后的「载入中」里把战斗乐分轨 / 音效注册成样本（sfx.gd，10-22 开局掉帧）
 	# 截图 / 自动测试 / 从对局返回标题：不播开场动画
 	var args := Cfg.dev_args()
 	if (not args.is_empty() and not args.has("--introshot") and not args.has("--introshort") and not args.has("--titlemotion") and not args.has("--ftrec")) or Cfg.title_seen:
@@ -542,6 +541,7 @@ func _process_main(delta: float) -> void:
 	if leaving >= 0.0 or auto_go:
 		if not _op_warm_begun:
 			_op_warm_begun = true
+			Sfx.warm_begin()   # 选人 / 难度菜单切曲后，在实际载入页排队，避免菜单取消首段预热
 			A.warm_begin(_op_fx_names(), [])
 			_wl_pending = true   # 对局贴图名单要 game.gd：桌面后台还在编译就先等（载入页照常动），编完再取（下面）
 			for cid in _op_ids():
