@@ -28,6 +28,7 @@ const RunSetup = preload("res://scripts/run/run_setup.gd")   # 开局：难度�
 const RunEnd = preload("res://scripts/run/run_end.gd")   # 局终：局外结算
 const Bot = preload("res://scripts/core/bot.gd")       # --balance 四档机器人 + 指标采集（docs/29）
 const Telemetry = preload("res://scripts/run/telemetry.gd")
+const PerfReport = preload("res://scripts/core/perf_report.gd")
 const WorldView = preload("res://scripts/render/world.gd")
 const HudView = preload("res://scripts/screens/hud.gd")
 const ShopScreen = preload("res://scripts/screens/shop_screen.gd")
@@ -128,6 +129,7 @@ var shop_ui = ShopScreen.new(self)   # 界面 · 商店（state SHOP）
 var hud_view = HudView.new(self)   # 界面 · 局内 HUD（hud 画布节点的 draw 信号）
 var world = WorldView.new(self)   # 世界绘制（2.5D）
 var telemetry = Telemetry.new(self)   # 局内数据记录（docs/40）
+var perf_rep = PerfReport.new(self)   # 性能报告（core/perf_report.gd；设置 → 画面 → 性能报告）
 var rng := RandomNumberGenerator.new()
 var t := 0.0
 
@@ -1320,6 +1322,8 @@ func _mem_guard(delta: float) -> void:
 		quality_note = "内存紧张，本局已临时降低画质" if Cfg.quality_mode != "auto" else "内存紧张，已自动降低画质（可在设置里改）"
 		quality_note_t = 5.0
 	Cfg.set_render_scale(true)
+	if acted:
+		perf_rep.guard_hit = true
 	if acted and not Cfg.dev_args().is_empty():
 		print("PF MEMGUARD vid=%.0fMB audio=%.0fMB -> 低画质 + 分辨率缩放 t=%.0f" % [vid, aud, t])
 
@@ -1473,6 +1477,7 @@ func _process(delta: float) -> void:
 			telemetry.on_state(state)   # 进入胜 / 负时把这一局写进本地记录（docs/40）
 			if state == S.WIN or state == S.DEAD:
 				RunEnd.settle(self)   # 局外结算：寻访凭证、生机细胞、最佳成绩、云存档（run/run_end.gd）
+				perf_rep.finish("win" if state == S.WIN else "dead")
 		state_age = 0.0
 		ui_skip = false
 		res_sel = 0
@@ -1493,6 +1498,7 @@ func _process(delta: float) -> void:
 	_auto_quality(delta)
 	_static_fps()
 	_mem_guard(delta)
+	perf_rep.tick(delta)   # 性能报告：帧时分桶 / 最低 1 秒帧率 / 内存与敌人峰值（只加计数）
 	_white_release(delta)
 	if victory.active and state == S.PLAY:
 		simulated_dt = victory.step(minf(delta, 0.05))   # 最终 Boss 击破演出按慢动作缩放画面步长（run/victory_flow.gd）
@@ -2236,6 +2242,8 @@ func _exit_tree() -> void:
 		trial.leave()
 	else:
 		telemetry.on_exit()
+		if demo_op == "":
+			perf_rep.finish("quit")
 
 
 ## --prof：给某个绘制回调计时（HUD / 加色层 / 前景），不开 --prof 时直接调用
