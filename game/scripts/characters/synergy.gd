@@ -72,12 +72,29 @@ static func _ready_partner(sq, cid: String) -> Variant:
 	return p
 
 
-## 目标：施放者最近的敌人（nearest_enemies 已按指挥优先级排序、不抽随机数）里，搭档够得着的第一个
-static func _pick_target(o, p, reach: float) -> Variant:
-	for e in o.nearest_enemies(4, 460.0, o.pos):
-		if not e.dead and p.pos.distance_to(e.pos) <= reach:
+## 精英 / Boss 优先（用户 10-26「控场 → 收割对精英怪释放更合理」）：列表（已按距离排好）里先取 Boss，其次第一个精英，都没有取第一个活的
+static func _pri(list: Array) -> Variant:
+	var elite: Variant = null
+	var first: Variant = null
+	for e in list:
+		if e.dead:
+			continue
+		if first == null:
+			first = e
+		if e.boss:
 			return e
-	return null
+		if elite == null and e.elite:
+			elite = e
+	return elite if elite != null else first
+
+
+## 目标：施放者周围（nearest_enemies 已按指挥优先级排序、不抽随机数）搭档够得着的敌人里，精英 / Boss 优先，没有精英就取最近的
+static func _pick_target(o, p, reach: float) -> Variant:
+	var cand: Array = []
+	for e in o.nearest_enemies(8, 460.0, o.pos):
+		if not e.dead and p.pos.distance_to(e.pos) <= reach:
+			cand.append(e)
+	return _pri(cand) if not cand.is_empty() else null
 
 
 static func _pair_try(sq, o, pr: Dictionary, dr: Dictionary, skill := -1) -> bool:
@@ -208,11 +225,17 @@ static func _alive(a: Dictionary) -> bool:
 static func _tpos(a: Dictionary) -> Vector2:
 	if a.tgt != null and not a.tgt.dead:
 		a.tpos = a.tgt.pos
-		if a.cl:   # 聚怪中心：目标周围敌人最密处（聚怪涡 / 钩锁把怪拉拢以后）
+		if a.cl:   # 聚怪中心（聚怪涡 / 钩锁把怪拉拢以后）：聚怪范围里有精英 / Boss 就瞄它，没有再取敌人最密处
 			var cdr: Dictionary = a.dr if a.dr.has("cluster") else a.pr
-			var c: Vector2 = a.p.densest_point(float(cdr.cluster), a.tgt.pos)
-			if c != Vector2.INF:
-				a.tpos = c
+			var near: Array = a.p.nearest_enemies(16, float(cdr.cluster) * 1.6, a.tgt.pos)
+			var top: Variant = _pri(near)
+			if top != null and (top.boss or top.elite):
+				a.tgt = top
+				a.tpos = top.pos
+			else:
+				var c: Vector2 = a.p.densest_point(float(cdr.cluster), a.tgt.pos)
+				if c != Vector2.INF:
+					a.tpos = c
 	return a.tpos
 
 
@@ -230,8 +253,9 @@ static func _step_volley(a: Dictionary, dt: float) -> bool:
 			var stunned: Array = a.from.nearest_enemies(12, float(dr.range), a.from.pos).filter(func(e): return float(e.get("stun", 0.0)) > 0.0 and not e.dead)
 			if not stunned.is_empty():
 				stunned.sort_custom(func(x, y): return x.pos.distance_squared_to(a.tpos) < y.pos.distance_squared_to(a.tpos))
-				a.tgt = stunned[0]
-				a.tpos = stunned[0].pos
+				var top: Variant = _pri(stunned)   # 被晕的这一批里精英 / Boss 优先，没有精英取离原目标最近的
+				a.tgt = top
+				a.tpos = top.pos
 		if dr.get("cast", false) and not p.is_leader:   # 搭档的技能正好就绪（自动档、够门槛）就对准放出去；没就绪就照常打弹，不白送技能、不回技力
 			var idx: int = int(p.charge_skills(0.0))
 			if idx >= 0 and p.acting() and float(a.get("cwait", 0.0)) < 0.6:

@@ -106,6 +106,22 @@ func scene_texas() -> void:
 	ex.spend_sp(0)
 	step(0.3)
 	ok(int(g.squad.syn.n) == n1 and tx.syn_mv.is_empty(), "队长当搭档时不位移：能天使放技能不触发德克萨斯的冲刺")
+	# 精英优先：被晕的一批里有精英，能天使的弹幕瞄它（而不是离原目标最近的杂兵）
+	g.squad.syn.cd.clear()
+	step(0.3)
+	var elite := foe(g.ppos + Vector2(330.0, 90.0))
+	elite.elite = true
+	elite.stun = 3.0
+	e.stun = 3.0
+	g.enemies_sys.build_grid()
+	ex.sp = [0.0, 0.0, 0.0]
+	tx.spend_sp(0)
+	step(0.5)
+	var tgt_pos: Vector2 = g.squad.syn.acts[0].tpos if not g.squad.syn.acts.is_empty() else Vector2.INF
+	ok(tgt_pos != Vector2.INF and tgt_pos.distance_to(elite.pos) < tgt_pos.distance_to(e.pos), "被晕的一批里有精英：弹幕瞄精英（%s）" % [tgt_pos])
+	step(2.0)
+	elite.dead = true
+	g.enemies_sys.build_grid()
 	# 控场 → 收割：德克萨斯剑雨（S1）后，能天使技能就绪就放，没就绪才打弹
 	g.squad.syn.cd.clear()
 	step(0.2)
@@ -167,6 +183,19 @@ func scene_pair() -> void:
 	ok(e.hp < hp0, "合击伤害落在目标上")
 	step(3.0)
 	ok(g.squad.syn.acts.is_empty() and sk.syn_mv.is_empty(), "收势后位移解除")
+	# 精英优先：聚怪范围里有精英，斯卡蒂冲向精英而不是最密处
+	g.squad.syn.cd.clear()
+	step(0.3)
+	var elite := foe(g.ppos + Vector2(330.0, 80.0))
+	elite.elite = true
+	g.enemies_sys.build_grid()
+	ul.spend_sp(0)
+	step(0.9)
+	var tp2: Vector2 = g.squad.syn.acts[0].tpos if not g.squad.syn.acts.is_empty() else Vector2.INF
+	ok(tp2 != Vector2.INF and tp2.distance_to(elite.pos) < 40.0, "聚怪范围里有精英：斯卡蒂冲向精英（%s vs %s）" % [tp2, elite.pos])
+	step(3.0)
+	elite.dead = true
+	g.enemies_sys.build_grid()
 	# 控场 → 收割：乌尔比安 S1 后，斯卡蒂技能就绪才放
 	g.squad.syn.cd.clear()
 	step(0.3)
