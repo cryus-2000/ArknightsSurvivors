@@ -583,6 +583,12 @@ func _webshot_step() -> bool:
 		Engine.time_scale = 0.0
 		g.bal_dt = 0.0   # 固定步长快进时（不带 --realtime）模拟步长是 bal_dt，也定住
 		JavaScriptBridge.eval("window.__shot=1", true)
+		var kinds := {}
+		for f in g.fx:
+			kinds[f.kind] = int(kinds.get(f.kind, 0)) + 1
+		var gpu = g.optical.particles if g.optical != null else null
+		print("PF WEBSHOT freeze q=%s grains=%d fx=%d gpu_active=%s kinds=%s" % [Cfg.quality, g.optical.grains.pos.size() if g.optical != null and g.optical.grains != null else -1,
+			g.fx.size(), str(gpu.active) if gpu != null else "-", str(kinds)])
 	var cmd = JavaScriptBridge.eval("window.__cmd||''", true)
 	if cmd is String and cmd != "":
 		JavaScriptBridge.eval("window.__cmd=''", true)
