@@ -326,7 +326,8 @@
    "rate_mult": 0.85,
    "horde_mult": 0.85,
    "cap_mult": 2.0,
-   "tier_hp": 0.6
+   "tier_hp": 0.6,
+   "tier_dmg": 0.7
   },
   {
    "name": "深渊",
@@ -497,7 +498,8 @@
    "rate_mult": 0.75,
    "horde_mult": 0.75,
    "cap_mult": 3.0,
-   "tier_hp": 0.45
+   "tier_hp": 0.45,
+   "tier_dmg": 0.6
   },
   {
    "name": "深蓝之树",
@@ -699,7 +701,8 @@
    "rate_mult": 0.6,
    "horde_mult": 0.55,
    "cap_mult": 5.0,
-   "tier_hp": 0.35
+   "tier_hp": 0.35,
+   "tier_dmg": 0.5
   }
  ],
  "boss_times": [
@@ -1505,6 +1508,6 @@
    ]
   }
  ],
- "_tier_doc": "分级调整（docs/158 §6，10-26 用户「可以按照这个建议改」）：裂隙 / 深渊 / 深蓝之树三级的刷怪池与大群混编加入高阶（收割者 / 奠基者 / 引痕者 / 巢涌者），大群主体不再全是滑动者；rate_mult = 普通刷新率倍率（最终 Boss 少量补怪不乘）、horde_mult = 大群只数倍率（经验按只数折算守恒）、cap_mult = 高阶（enemies.json tier_cap）同种上限倍率、tier_hp = 这一级普通刷怪 / 大群里高阶的生命倍率（换进来的高阶单只更多，按生命池不变打折），缺省 1",
+ "_tier_doc": "分级调整（docs/158 §6，10-26 用户「可以按照这个建议改」）：裂隙 / 深渊 / 深蓝之树三级的刷怪池与大群混编加入高阶（收割者 / 奠基者 / 引痕者 / 巢涌者），大群主体不再全是滑动者；rate_mult = 普通刷新率倍率（最终 Boss 少量补怪不乘）、horde_mult = 大群只数倍率（经验按只数折算守恒）、cap_mult = 高阶（enemies.json tier_cap）同种上限倍率、tier_hp / tier_dmg = 这一级普通刷怪 / 大群里高阶的生命 / 伤害倍率（换进来的高阶单只更多，按生命池与压力不变打折），缺省 1",
  "_horde_mix_doc": "大群混编（EA 1.1）：每个威胁等级的 horde_mix 随机抽一套（同 seed 可复现，不连续重复）；body 主体按列表循环，extra 特种 pct 占总数比例（夹在 min–max，合计最多一半），at 站位 ring 整圈 / back 后排 / front 前排 / pack 一段弧上成群。没写 horde_mix 时用旧的 horde 列表。实现见 run/spawner.gd horde_plan()"
 }
