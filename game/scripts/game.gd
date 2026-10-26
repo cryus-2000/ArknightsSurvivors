@@ -736,6 +736,7 @@ var _font_t := 0.0
 func _enemy_evict(n: String) -> void:
 	if not _enemy_loaded.has(n):
 		return
+	perf_rep.tag("释放帧条")
 	_enemy_loaded.erase(n)
 	for nm in _white_names(n) + [n + "_death"]:
 		if tex.has(nm):
@@ -749,6 +750,7 @@ func ensure_white(n: String) -> void:
 	_white_alive[n] = t
 	if tex.has(n + "_white"):
 		return
+	perf_rep.tag("建白剪影")
 	for nm in _white_names(n):
 		if tex.get(nm) != null and not tex.has(nm + "_white"):
 			tex[nm + "_white"] = A.white_of(tex[nm])
@@ -787,9 +789,11 @@ func _white_release(delta: float, now := false) -> void:
 			_enemy_evict(n)
 			_white_alive.erase(n)
 	_font_t += 5.0
-	if _font_t >= 60.0:
+	if _font_t >= 60.0 and Bal.v("web/font_clear_minutely", 0.0) > 0.0:
 		_font_t = 0.0
-		Cfg.slim_fonts(true)   # 手机网页：字形缓存每分钟清一次（局中各面板的字号会越攒越多，10 分钟约 80 个字号 / 18 MB，docs/50 §30.7）
+		perf_rep.tag("清字形")
+		Cfg.slim_fonts(true)   # （10-27 起缺省关，docs/50 §39）原来手机网页每分钟清一次字形缓存（10 分钟约 18 MB），清完全部界面字重新栅格化，
+		# 网页仿真里 60 秒前后连着几帧 270–450 ms；内存护栏超线时第一步就清，平时不清
 
 
 func ensure_enemy_tex(n: String) -> void:
@@ -803,7 +807,10 @@ func ensure_enemy_tex(n: String) -> void:
 	for k in names:
 		tex_deferred.erase(k)
 		_load_enemy_tex(k)
-	print("TEXLAZY %s ms=%d" % [",".join(names), Time.get_ticks_msec() - t0])
+	var ms: int = Time.get_ticks_msec() - t0
+	perf_rep.tag("读帧条")   # 性能报告：这一秒里补读过推迟的敌人帧条（docs/50 §39 尖峰定位）
+	if not Cfg.dev_args().is_empty():
+		print("PF TEXLAZY t=%.1f %s ms=%d" % [t, ",".join(names), ms])
 
 
 ## 网页版推迟加载漏网的贴图（画到了还没读的敌人）：记一次日志，顺手把它读进来。正常跑不该出现，网页版测试在控制台里 grep TEXMISS
@@ -1286,10 +1293,11 @@ func cam_center() -> Vector2:
 ## （引擎显存统计 + 网页音频样本解码估算），超线时按下面 10-27 的三步处理。
 ## 音频样本没法从脚本注销（引擎没开放 unregister），所以手机上战斗乐分轨不预先解码（sfx.warm_begin）。
 ## 局中后期新怪 / 新音效越积越多时兜底，不等 WebKit 杀页。纯画面 / 声音缓存，不碰对局
-## 10-27 改（docs/50 §36）：只作防崩的最后手段——阈值 MG_BUDGET_MB 440（中档整局峰值约 350）；超线先只做不改画面的事（清字形缓存、
-## 立刻释放不在场的白剪影 / 敌人帧条），下一次（MG_EVERY 秒后）仍超才降画质「低」（提示玩家），再不行才分辨率缩放。手选档与推荐档同一阈值
+## 10-27 改（docs/50 §36 / §39）：只作防崩的最后手段——阈值 MG_BUDGET_MB 520（真机 iPhone 453–533 没崩、766 才崩）；超线先只做不改画面的事（清字形缓存、
+## 立刻释放不在场的白剪影 / 敌人帧条），下一次（MG_EVERY 秒后）仍超才降画质「低」（提示玩家），超过 MG_RSCALE_MB 600 才分辨率缩放（会糊）。手选档与推荐档同一阈值
 const MG_EVERY := 5.0
-const MG_BUDGET_MB := 440.0
+const MG_BUDGET_MB := 520.0   # 10-27 真机 iPhone：453 / 471–533 MB 都没崩、766 才崩（docs/50 §39）
+const MG_RSCALE_MB := 600.0   # 分辨率缩放（会糊）只在超过这个数时才开
 var _mg_t := 0.0
 var _mg_stage := 0   # 本局连续超线的次数：1 只清缓存、2 降画质、3 分辨率缩放；回到线下清零
 
@@ -1320,11 +1328,13 @@ func _mem_guard(delta: float) -> void:
 		quality_note = "内存紧张，本局已临时降低画质"
 		quality_note_t = 5.0
 		step = "低画质"
-	elif _mg_stage >= 3 and not Cfg.render_scaled:
+	elif _mg_stage >= 3 and not Cfg.render_scaled and vid + aud > MG_RSCALE_MB + (budget - MG_BUDGET_MB):
 		Cfg.set_render_scale(true)
 		Cfg.guard_lowered = true
 		step = "分辨率缩放"
 	perf_rep.guard_hit = true   # 性能报告：任一阶段触发都记（core/perf_report.gd）
+	perf_rep.guard_stage = maxi(perf_rep.guard_stage, 3 if step == "分辨率缩放" else (2 if step == "低画质" else 1))
+	perf_rep.tag("护栏" + step)
 	if step != "" and not Cfg.dev_args().is_empty():
 		print("PF MEMGUARD vid=%.0fMB audio=%.0fMB -> %s t=%.0f" % [vid, aud, step, t])
 
