@@ -6,9 +6,9 @@ extends Control
 ## 全部读完再读 main.tscn（此时都在缓存里），把标题页建在本页下面（本页挪进最上层盖层），离屏画一遍对局 / 图鉴的着色器（render/shader_warm.gd），
 ## 等连续 GOOD_N 帧稳在一帧预算内再淡出，标题开场从头播（10-25 用户「等能渲染到稳定 60 帧之后再正式进入游戏主界面」，docs/50 §27）。
 ## 以前这一段（桌面调试版 8–12 秒、网页十几秒）全在 Godot 静态启动图下面，没有进度。
-## 引擎初始化与自动加载（Sfx / Cfg …）在本页之前，仍由静态启动图（art/ui/boot_splash.png，同一版式）盖着。
+## 桌面引擎初始化只显示同色背景，不再先放一张静态加载图。
 ## 网页：前面还有 HTML 加载页（tools/web/loader.js，下载占 0–60%、引擎启动 60–80%），这里接着它的百分比走、不倒退；
-## 本页第一帧画完就通知它淡出（__syBootUp），不再等引擎自带的 #status 撤掉（那要到标题页出来以后）。
+## 网页只保留 HTML 加载页；本页不另绘制，实际进度经 __syBootProgress 回传，主菜单就绪才 __syBootDone。
 ## 测试（带命令行参数、无界面）直接切标题页，不走本页；--bootshot / --loadprof 才走（--bootshot 在读到一半时截图退出）。
 
 const Tips = preload("res://scripts/screens/loading_tips.gd")
@@ -54,6 +54,8 @@ var _good := 0
 var _good_slow := 0
 var _last_us := 0
 var _budget_ms := 16.7
+var _web_overlay := false
+var _web_last := ""
 
 
 func _ready() -> void:
@@ -61,31 +63,36 @@ func _ready() -> void:
 	var args := Cfg.dev_args()
 	shot = args.has("--bootshot")
 	if DisplayServer.get_name() == "headless" or (not args.is_empty() and not shot and not args.has("--loadprof") and not args.has("--ftrec")):
-		get_tree().change_scene_to_file.call_deferred(MAIN)   # 测试直接进标题页
+		if OS.has_feature("web"):
+			_skip_web_boot.call_deferred(get_tree())
+		else:
+			get_tree().change_scene_to_file.call_deferred(MAIN)   # 测试直接进标题页
 		set_process(false)
 		return
 	if args.has("--loadprof"):
 		print("BOOTPROF boot_ready=%d" % Time.get_ticks_msec())
 	FR.mark("boot")
-	font = load("res://fonts/ui.ttf")
-	var img: Image = load("res://art/ui/title_deep/logo_mark.png").get_image()
-	img.generate_mipmaps()
-	tex_logo = ImageTexture.create_from_image(img)
-	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS   # 标志缩小显示；其余都是矢量图形
-	bg = GradientTexture2D.new()
-	bg.fill = GradientTexture2D.FILL_RADIAL
-	bg.fill_from = Vector2(0.5, 0.5)
-	bg.fill_to = Vector2(1.1, 1.1)
-	var g := Gradient.new()
-	g.set_color(0, Color8(13, 24, 32))
-	g.set_color(1, Color8(4, 7, 10))
-	g.add_point(0.7, Color8(7, 12, 17))
-	bg.gradient = g
 	if OS.has_feature("web"):
-		# 接着 HTML 加载页的进度走（loader.js 的 __syPct，缺省 80%），第一帧画完后让它淡出，露出这一页
-		var v = JavaScriptBridge.eval("window.__syPct || 0.8", true)
-		base = clampf(float(v) if v != null else 0.8, 0.0, 0.95)
-		RenderingServer.frame_post_draw.connect(func(): JavaScriptBridge.eval("window.__syBootUp && window.__syBootUp()", true), CONNECT_ONE_SHOT)
+		_web_overlay = bool(JavaScriptBridge.eval("typeof window.__syBootProgress === 'function' && !!document.getElementById('sy-load')", true))
+		if _web_overlay:
+			base = clampf(float(JavaScriptBridge.eval("window.__syPct || 0.6", true)), 0.0, 0.95)
+			visible = false
+			JavaScriptBridge.eval("window.__syBootUp()", true)
+	if not _web_overlay:
+		font = load("res://fonts/ui.ttf")
+		var img: Image = load("res://art/ui/title_deep/logo_mark.png").get_image()
+		img.generate_mipmaps()
+		tex_logo = ImageTexture.create_from_image(img)
+		texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS   # 标志缩小显示；其余都是矢量图形
+		bg = GradientTexture2D.new()
+		bg.fill = GradientTexture2D.FILL_RADIAL
+		bg.fill_from = Vector2(0.5, 0.5)
+		bg.fill_to = Vector2(1.1, 1.1)
+		var g := Gradient.new()
+		g.set_color(0, Color8(13, 24, 32))
+		g.set_color(1, Color8(4, 7, 10))
+		g.add_point(0.7, Color8(7, 12, 17))
+		bg.gradient = g
 	var f := FileAccess.open(ORDER, FileAccess.READ)
 	if f != null:
 		var d = JSON.parse_string(f.get_as_text())
@@ -96,7 +103,17 @@ func _ready() -> void:
 	_budget_ms = _frame_budget_ms()
 
 
+## 静态协程不依附即将释放的启动节点；测试跳过预热时也要在新场景画出后关闭 HTML 遮罩。
+static func _skip_web_boot(tree: SceneTree) -> void:
+	if tree.change_scene_to_file(MAIN) != OK:
+		return
+	await tree.scene_changed
+	await RenderingServer.frame_post_draw
+	JavaScriptBridge.eval("window.__syBootDone && window.__syBootDone()", true)
+
+
 func _process(delta: float) -> void:
+	_web_progress()
 	var now := Time.get_ticks_usec()
 	var dt_ms := (now - _last_us) / 1000.0 if _last_us > 0 else 0.0
 	_last_us = now
@@ -224,6 +241,7 @@ func _open_title() -> void:
 ## 到不了 60 的设备：盖满 GATE_SLOW 秒后连续 GOOD_N 帧都在两帧预算内也放行；最多等 GATE_MAX 秒（被别的程序占满时照样进），至少盖 GATE_MIN 秒。标题页中途切走（测试直接进局）就立刻撤掉盖层。
 func _gate(dt_ms: float) -> void:
 	if not is_instance_valid(title) or get_tree().current_scene != title:
+		_web_progress(true)
 		set_process(false)
 		get_parent().queue_free()
 		return
@@ -247,7 +265,22 @@ func _gate(dt_ms: float) -> void:
 			title.boot_reveal()
 		FR.mark("reveal")
 		out_t = 0.0
+		_web_progress(true)
 
+
+
+## HTML 页从下载一直保留到主菜单可用；只在百分比或阶段变化时跨桥更新。
+func _web_progress(done := false) -> void:
+	if not _web_overlay:
+		return
+	var label := "准备主菜单" if _opened else "读取 · " + cur_label
+	var value := _progress()
+	var key := str(int(value * 100.0)) + label
+	if key != _web_last or done:
+		_web_last = key
+		JavaScriptBridge.eval("window.__syBootProgress && window.__syBootProgress(%s,%s)" % [value, JSON.stringify(label)], true)
+	if done:
+		JavaScriptBridge.eval("window.__syBootDone && window.__syBootDone()", true)
 
 ## 一帧预算（毫秒）：60 帧，显示器刷新率更低或设了帧率上限时取更长的那个
 func _frame_budget_ms() -> float:

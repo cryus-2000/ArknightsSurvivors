@@ -18,12 +18,16 @@ var zone_hole := Vector3(0.5, 0.5, 0.0)
 var zone_mask: SubViewport
 var mask_canvas: Node2D
 var mask_game
+const MASK_IDLE_SECONDS := 2.0
+var _mask_idle := 0.0
+var _mask_targets: Array[WeakRef] = []
 
 ## 只用友方当前动画帧的透明度遮罩，避免矩形保色区把周围地面也挖出色块。
 func refresh_zone_guards(g) -> void:
 	mask_game = g
 	if zone_amt <= 0.001:
 		return
+	_mask_idle = 0.0
 	if zone_mask == null:
 		zone_mask = SubViewport.new()
 		zone_mask.world_2d = World2D.new()
@@ -71,9 +75,42 @@ func _draw_zone_mask() -> void:
 func apply_zone_guards(target: ShaderMaterial) -> void:
 	target.set_shader_parameter("zone_mask_on", zone_mask != null and zone_amt > 0.001)
 	if zone_mask != null:
+		var tracked := false
+		for ref in _mask_targets:
+			if ref.get_ref() == target:
+				tracked = true
+				break
+		if not tracked:
+			_mask_targets.append(weakref(target))
 		target.set_shader_parameter("zone_mask", zone_mask.get_texture())
 		if zone_amt <= 0.001:
 			zone_mask.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	else:
+		target.set_shader_parameter("zone_mask", null)
+
+func _retire_zone_mask(delta: float) -> void:
+	if zone_mask == null:
+		return
+	if zone_amt > 0.001:
+		_mask_idle = 0.0
+		return
+	_mask_idle += delta
+	if _mask_idle < MASK_IDLE_SECONDS:
+		return
+	# Both optical and ordinary post materials may retain this ViewportTexture.
+	# Unbind before deferred destruction; weak references do not retain old scenes.
+	for ref in _mask_targets:
+		var target = ref.get_ref()
+		if target != null:
+			target.set_shader_parameter("zone_mask_on", false)
+			target.set_shader_parameter("zone_mask", null)
+	_mask_targets.clear()
+	zone_mask.render_target_update_mode = SubViewport.UPDATE_DISABLED
+	zone_mask.queue_free()
+	zone_mask = null
+	mask_canvas = null
+	mask_game = null
+
 var t := 0.0
 var world := false    # 对局画面（game.gd 在 add_child 前设）：才叠观感曲线
 var _curve := false   # 观感曲线开着时整层常显
@@ -100,6 +137,7 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	_retire_zone_mask(delta)
 	t += delta
 	mat.set_shader_parameter("time", t)
 	mat.set_shader_parameter("bloom", 0.3 * (1.0 - bloom_cut * crowd) if Cfg.bloom and not crisp else 0.0)

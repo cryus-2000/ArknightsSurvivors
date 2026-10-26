@@ -995,6 +995,8 @@ SCENE_REGRESSIONS = {
     "boss_trial": ("Boss 演练流程", "boss_trial_test", r"boss_trial_test: 0 failures", []),
     "boss_pressure": ("Boss 攻击节奏", "boss_pressure_test", r"BOSS PRESSURE failures=0", []),
     "final_boss_completion": ("最终四 Boss 完整改造", "final_boss_completion_test", r"FINAL BOSS COMPLETION failures=0", []),
+    "beam_audio": ("激光提示音独立声部与并发", "beam_audio_test", r"BEAM AUDIO: 0 failures", []),
+    "render_perf": ("遮罩显存回收与圆环几何一致性", "render_perf_test", r"RENDER PERF failures=0", []),
     "boss_support": ("Boss 保留杂兵、友方保色与枪声混音", "boss_support_test", r"BOSS SUPPORT failures=0", []),
     "boss_boundary": ("Boss 黑潮边界", "boss_boundary_test", r"BOSS BOUNDARY failures=0", []),
     "route_knight": ("结局线事件链（骑士 / 深蓝之心 / 升华）与骑士路线", "route_knight_regression", r"ROUTE KNIGHT REGRESSION: 0 failures", []),

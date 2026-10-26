@@ -99,6 +99,7 @@
 
 | 文档 | 标题 | 状态 | 说明 | 被谁引用 |
 |---|---|---|---|---|
+| [166_loading_render_audio_1027](166_loading_render_audio_1027.md) | 单一启动加载页、渲染回收与激光混音 | 已实施记录 | 网页加载交接、遮罩闲置回收 7.03 MiB、圆环局部优化与低频光束提示；含测量边界 | boot_screen.gd、post_fx.gd、boss_attack_draw.gd、sfx.gd、tools/web/loader.js |
 | [165_final_boss_complete_1027](165_final_boss_complete_1027.md) | 最终 Boss 完整改造与联动修正 | 已实施记录 | 最终四 Boss 主动攻击 7/8/7/7，特效、追踪、冰柱、泪滴精英、友方保色、枪声与保留杂兵；覆盖 95/142b 的旧口径 | final_attacks.gd、boss_attack_draw.gd、ishar_encounter.gd、post_fx.gd、sfx.gd |
 | [95_boss_moves](95_boss_moves.md) | Boss 招式改版 | 进行中 | 每 Boss 4 招；第 1、2 批已合入（§15、§16），第 3 批（接潮组）与 Boss @2x 补单待做；最终四 Boss 以 165 为准，其余招式以本文为准 | 36、38、98；boss_ai.gd、render/world.gd、tests/boss_variety_test.gd 等 20 个文件 |
 | [150_hunt_into_hordes](150_hunt_into_hordes.md) | 围猎并入大群 + 难度曲线 A / B + 收紧 | 已实施记录 | 10-25：独立围猎关掉，3:45 / 5:00 / 6:15 固定节拍大群（5:00、6:15 围猎型：画面外合拢、缺口 16°、只数 ×1.5、HUD 只画缺口箭头）；所有大群速度散布 + 分批 + 左右摆「慢慢来」；方案 B dmg_late_cap 0.25（10:45 才封顶，影响很小）；合并 trim 后常规高手 76.8%，收紧 dmg_div 340 + horde_dmg 1.4 → 三档高手 58.9 / 35.7 / 14.3%；7:00 后压力回落待补；工具 tools/horde_rec.py | 146、147、149；run/spawner.gd、enemies.gd、screens/hud.gd |

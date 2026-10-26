@@ -50,20 +50,19 @@ def charge_hit():    # 撞击 + 风声
     return at(impact, 0.0, n) * 1.2 + wind * 1.1
 
 
-def beam_start():    # 高频充能：上扬的锯齿 + 颤音
+def beam_start():    # 中低频蓄能：圆润的上扬音 + 窄带气流，不用高频锯齿
     d = 0.9; t = T(d)
-    f = 400 * (2600 / 400) ** (t / d)
-    ph = np.cumsum(f) / SR
-    saw = (2 * (ph % 1.0) - 1) * (1 + 0.3 * np.sin(2 * np.pi * 18 * t))
-    return lp(saw, 5000) * (t / d) ** 1.4 * 0.7
+    tone = glide(d, 260, 620) + 0.18 * glide(d, 520, 1240)
+    air = bp(_rng(5).standard_normal(len(t)), 350, 1200) * 0.3
+    return lp(tone + air, 1500, 4) * (t / d) ** 1.4
 
 
-def beam_hit():      # 光束贯穿：亮的嘶声 + 下滑的主音 + 低频推力
+def beam_hit():      # 短促气流脉冲：中频下滑 + 低频推力，避开 2.5–9 kHz 嘶声
     r = _rng(6); d = 0.8; n = int(d * SR)
-    hiss = bp(r.standard_normal(n), 2500, 9000) * env(d, 0.003, 0.25)
-    tone = glide(d, 1800, 700) * env(d, 0.003, 0.3) * 0.5
-    push = glide(d, 70, 45) * env(d, 0.005, 0.2)
-    return hiss * 0.9 + tone + push
+    air = bp(r.standard_normal(n), 300, 1500) * env(d, 0.006, 0.11)
+    tone = glide(d, 700, 220) * env(d, 0.004, 0.12) * 0.45
+    push = glide(d, 110, 65) * env(d, 0.006, 0.14) * 0.5
+    return lp(air * 0.6 + tone + push, 1800, 4)
 
 
 def melee_start():   # 拔刃 / 吸气：金属刮擦 + 气流上扬
@@ -143,4 +142,4 @@ for _b, (_kind, _k) in BOSSES.items():
 
 if __name__ == "__main__":
     for name in (sys.argv[1:] or SOUNDS):
-        save(name, SOUNDS[name]())
+        save(name, SOUNDS[name](), peak=0.32 if name in ("cue_beam_start", "cue_beam_hit") else 0.89)

@@ -8,17 +8,17 @@
 //    浏览器若自作主张解压（Content-Encoding: gzip 被服务器改写），读到的就是原始字节，照样按位置写入。
 //    没有 DecompressionStream 的老浏览器（Safari 16.3 以前）：收齐 gz 字节再 inflate（纯 JS，下面的 inflate）。
 // 2. 加载画面「声呐测绘」（用户 10-25 定，样式在 loader.css）：声呐进度环 = 下载字节进度占 0–60%，下载解压完以后是引擎启动（拿不到真实进度），
-//    环按已等秒数向 80% 渐近、日志行显示已等秒数；引擎起来后游戏内启动页（game/scripts/screens/boot_screen.gd，同一版式）从 80% 接着走，
-//    逐个编译脚本、显示真实进度与正在读的类别；扫描扇面是 CSS 动画，主线程被引擎占住时也在转。左下日志：下载资源 → 解压校验 → 启动引擎；
+//    环按已等秒数向 80% 渐近；引擎起来后 boot_screen.gd 回传实际进度，仍显示这同一页，
+//    逐个编译脚本并准备主菜单；扫描扇面是 CSS 动画，主线程被引擎占住时也在转。左下日志：下载资源 → 解压校验 → 准备主菜单；
 //    右下提示每 4 秒换一句（同 game/scripts/screens/loading_tips.gd，改机制时一起核对）。
-//    引擎移除自带的 #status 后撤掉；引擎报错（#status-notice 显示）时也撤掉，让报错露出来。
+//    Godot 主菜单就绪（__syBootDone）后撤掉；引擎报错时撤掉，让报错露出来。
 (function () {
   var M = /*SHUIYUE_MANIFEST*/null;
   if (!M) return;
   var total = 0, got = 0, done = false;
   Object.keys(M).forEach(function (k) { M[k].parts.forEach(function (p) { total += p[1]; }); });
 
-  var el = {}, bootT0 = 0;
+  var el = {}, bootT0 = 0, bootProgress = null, bootLabel = "", shownProgress = 0;
   var TIPS = [
     '「大群来袭」前 3 秒有紫色预警。包围圈总留一个缺口，没有箭头的一侧就是突围方向。',
     '冲刺中无敌。',
@@ -34,13 +34,15 @@
   function upd() {
     if (!el.ring) return;
     var f, busy = false;
-    if (!done) f = 0.6 * Math.min(got / total, 1);
+    if (bootProgress !== null) { f = bootProgress; busy = true; }
+    else if (!done) f = 0.6 * Math.min(got / Math.max(1, total), 1);
     else {
       if (!bootT0) bootT0 = performance.now();
       var s = (performance.now() - bootT0) / 1000;
       f = 0.6 + 0.2 * (1 - Math.exp(-s / 6));   // 引擎启动：拿不到真实进度，按已等秒数向 80% 渐近；之后游戏内启动页（boot_screen.gd）从 80% 接着走
       busy = true;
     }
+    f = shownProgress = Math.max(shownProgress, Math.min(1, f));
     window.__syPct = f;   // 游戏内启动页从这里接着走（boot_screen.gd）
     el.ring.style.strokeDashoffset = String(C * (1 - f));
     el.num.innerHTML = Math.floor(f * 100) + '<span>%</span>';
@@ -51,6 +53,7 @@
     el.l2.innerHTML = (done ? '<b>[ OK ]</b>' : (dl ? '<b>[ .. ]</b>' : '<b>[ -- ]</b>')) + '解压校验';
     el.l3.className = busy ? 'now' : '';
     el.l3.innerHTML = (busy ? '<b>[ .. ]</b>' : '<b>[ -- ]</b>') + '启动引擎' + (busy ? '　' + Math.floor((performance.now() - bootT0) / 1000) + ' s' : '');
+    if (bootProgress !== null) el.l3.textContent = (bootProgress >= 1 ? '[ OK ] ' : '[ .. ] ') + bootLabel;
   }
 
   function build() {
@@ -79,23 +82,43 @@
     var ti = Math.floor(Math.random() * TIPS.length);
     el.tip.textContent = TIPS[ti];
     upd();
-    var tick = 0;
+    var tick = 0, closing = false, tipTimer = 0;
     var out = function () {
+      if (closing) return;
+      closing = true;
       clearInterval(t);
+      clearTimeout(tipTimer);
       d.classList.add('sy-out');
       setTimeout(function () { d.remove(); }, 400);
     };
-    // 游戏内启动页（同一版式）画出第一帧后调用：交给它显示真实的编译进度。以前要等引擎自带 #status 撤掉（标题页都出来了）才撤
-    window.__syBootUp = function () { if (d.parentNode) out(); };
+    // One visual owner: download, engine and Godot warm-up update this same page.
+    window.__syBootUp = function () {
+      bootProgress = Math.max(shownProgress, 0.6);
+      bootLabel = '准备主菜单';
+      upd();
+    };
+    window.__syBootProgress = function (value, label) {
+      if (closing || !Number.isFinite(value)) return;
+      bootProgress = Math.max(shownProgress, Math.min(1, value));
+      bootLabel = String(label || '准备主菜单');
+      upd();
+    };
+    window.__syBootDone = function () {
+      if (closing) return;
+      bootProgress = 1;
+      bootLabel = '进入主菜单';
+      upd();
+      out();
+    };
     var t = setInterval(function () {
       upd();   // 启动阶段没有字节进度：靠这里按时间推进
       if (++tick % 27 === 0) {
         ti = (ti + 1) % TIPS.length;
         el.tip.style.opacity = '0';
-        setTimeout(function () { el.tip.textContent = TIPS[ti]; el.tip.style.opacity = '1'; }, 220);
+        tipTimer = setTimeout(function () { el.tip.textContent = TIPS[ti]; el.tip.style.opacity = '1'; }, 220);
       }
-      var st = document.getElementById('status'), nt = document.getElementById('status-notice');
-      if (!st || (nt && nt.style.display === 'block')) out();
+      var nt = document.getElementById('status-notice');
+      if (nt && nt.style.display === 'block') out();
     }, 150);
   }
   if (document.body) build(); else document.addEventListener('DOMContentLoaded', build);

@@ -1,5 +1,18 @@
 extends RefCounted
 ## Pure drawing. No RNG or quality-dependent damage geometry; low quality keeps all outlines.
+# Cache the exact projected vertices, including TAU's original closing point.
+# Project before storing Vector2 so float32 rounding matches the original path.
+static var _circle_points := PackedVector2Array()
+static var _circle_gy := -INF
+static func _circle_geometry(gy: float) -> PackedVector2Array:
+	if _circle_gy != gy:
+		_circle_points.resize(41)
+		for i in 41:
+			var a: float = TAU * i / 40.0
+			_circle_points[i] = Vector2(cos(a), sin(a) * gy)
+		_circle_gy = gy
+	return _circle_points
+
 static func draw(g, impacts := false) -> void:
 	if not impacts:
 		for w in g.warns:
@@ -27,11 +40,10 @@ static func _shape(g, w: Dictionary, alpha: float, warning: bool) -> void:
 			var inner: float = float(w.get("inner_r", 0.0))
 			var gy: float = g.combat.GROUND_Y
 			# Draw annuli as individual quads: no filled safe center and exact ground projection.
+			var points := _circle_geometry(gy)
 			for i in 40:
-				var a: float = TAU * i / 40.0
-				var b: float = TAU * (i + 1) / 40.0
-				var va := Vector2(cos(a), sin(a) * gy)
-				var vb := Vector2(cos(b), sin(b) * gy)
+				var va := points[i]
+				var vb := points[i + 1]
 				r.tb_quad(w.pos + va * inner, w.pos + va * w.r, w.pos + vb * w.r, w.pos + vb * inner,
 					Color(c.r, c.g, c.b, alpha * 0.22))
 			r.tb_arc(w.pos, w.r, 0.0, TAU, 5.0, edge, 40, gy)
