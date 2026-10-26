@@ -231,6 +231,9 @@ func finish(result: String) -> void:
 		"enemy_peak": enemy_peak, "guard": guard_hit or Cfg.guard_lowered,
 		"q0": q0, "guard_stage": guard_stage, "enemy_mix": enemy_mix, "mem_mix": mem_mix, "slow": slow,
 	}
+	if Cfg.dev_args().has("--perfreport"):
+		print("PF PERFREPORT " + report_text(rec).replace("
+", " | "))   # 测试：网页测量副本只回传 PF 开头的行
 	var all := load_all().duplicate()
 	all.push_front(rec)
 	save_all(all.slice(0, KEEP))
