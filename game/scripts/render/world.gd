@@ -92,6 +92,8 @@ var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 
 ##   render/elite_rim_gain  亮度倍数（颜色 = 冷青 × gain，缺省 2.2；> 1 才能在暗处透出来）
 ## 场上精英通常只有几只，每只多一次贴图切换；每帧在 _update 里读一次旋钮
 const ELITE_RIM_RGB := Color(0.55, 0.9, 1.0)
+## 紧急作战精英小队（docs/161，e.squad）：危险红描边（> 1 抵消环境暗色）+ 脚下红光（_draw_squad_glow，地面层）；颜色语言：红只给危险
+const SQUAD_RIM_COL := Color(2.6, 0.45, 0.45, 0.85)
 var elite_rim := 0.0
 var elite_rim_col := Color(0, 0, 0, 0)
 var _afast := false               # 本帧缓存路径走图集快速路径（_dc_emit）
@@ -840,10 +842,25 @@ func _draw_shadows(evr: Rect2) -> void:
 			var sc2: float = Game.PX * er / 10.0 * (1.0 - minf(e.kb.length() * 0.03, 14.0) / 40.0)
 			var size := Vector2(sw, sh) * sc2
 			g.draw_texture_rect_region(stx, Rect2((ep + Vector2(0, er * 0.8) + doff - size * Vector2(0.5, 0.5)).round(), size), src, scol)
+	_draw_squad_glow(evr)
 	g.squad.draw_shadows()
 	if g.knight.alive:
 		g.vfx.spr("shadow", 1, 0, g.knight.pos + Vector2(0, 18), Game.PX * 1.6)
 	g.squad.draw_entities_floor()
+
+
+## 精英小队脚下红光（docs/161）：只遍历紧急作战的小队名单（最多十几只），地面椭圆两层；不闪、不随时间变，手机上也看得清
+func _draw_squad_glow(evr: Rect2) -> void:
+	var lst: Array = g.endg.elites
+	if lst.is_empty():
+		return
+	for e in lst:
+		if e.dead or not evr.has_point(e.pos):
+			continue
+		g.draw_set_transform(e.pos + Vector2(0, e.r * 0.8), 0.0, Vector2(1.0, 0.42))
+		g.draw_circle(Vector2.ZERO, e.r * 1.9, Color(1.0, 0.12, 0.15, 0.22))
+		g.draw_circle(Vector2.ZERO, e.r * 1.25, Color(1.4, 0.2, 0.22, 0.30))
+	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
 ## 2.5D 前后遮挡：敌人 / 博士 / 干员（含额外身体）/ 骑士 / 排序道具按脚底 y 排序后依次绘制
@@ -2438,11 +2455,13 @@ func _ol_sig() -> int:
 
 ## 这只敌人画不画精英冷色描边
 func _rim_on(e: Dictionary) -> bool:
-	return elite_rim > 0.0 and e.elite and not e.boss
+	return (elite_rim > 0.0 and e.elite and not e.boss) or e.get("squad", false)
 
 
 ## 描边颜色：精英冷色描边开着时用冷青（旧写法 ol_norm 下的橙红只在旋钮关时保留）；普通怪中性淡紫白
 func _ol_col(e: Dictionary) -> Color:
+	if e.get("squad", false):
+		return SQUAD_RIM_COL
 	if e.elite:
 		return elite_rim_col if _rim_on(e) else Color(3.2, 1.1, 0.7, 0.75)
 	var oc := Color(2.2, 2.0, 2.6, 0.5)
@@ -2962,9 +2981,11 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	# 精英冷色描边（render/elite_rim）不受「Boss 轮廓光」开关影响
 	if g.tex.has(name + "_white") and ((Cfg.outline and (e.boss or e.get("part", false))) or _rim_on(e)):
 		var oc := Color(2.2, 2.0, 2.6, 0.5) if not e.elite else (elite_rim_col if _rim_on(e) else Color(3.2, 1.1, 0.7, 0.75))
+		if e.get("squad", false):
+			oc = SQUAD_RIM_COL
 		if e.get("part", false):
 			oc = Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.7 + 0.3 * _heartbeat(e))   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
-		if not e.elite and not e.boss:
+		if not e.elite and not e.boss and not e.get("squad", false):
 			oc.a *= ol_mul   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1；下限 render/declutter ol_floor，缺省 0.4）；精英 / Boss 不变
 		_espr_outline(name, frames, frame, bpos, sc, flip, oc, anc, sq)
 	# 囊海爬行者破膜（Codex docs/96 §1.3）：back（本体后）→ 本体 → front（本体前），两层同原点 (24,28)、同起播时间与帧号；

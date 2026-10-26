@@ -1133,7 +1133,7 @@ func draw_node_card(card: Button, o: Dictionary, i: int) -> void:
 				st.face_body = "下一位商人多带一件货，第一件打折。" if g.merchant_idx < g.MERCHANT_TIMES.size() else "商人已经走远，留下了一笔源石锭。"
 			"elite":
 				st.face_title = "紧急作战"
-				st.face_body = "精英小队来袭。全部击败，多得一个宝箱。"
+				st.face_body = "一支精英小队从边缘压上来。全部击败，得宝箱与源石锭。"
 	card.self_modulate.a = 1.0
 	NodeCardsUI.draw_card(card, card.size, c, st, g.font, serif)
 
