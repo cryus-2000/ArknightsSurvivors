@@ -209,6 +209,8 @@ func _ready() -> void:
 			if st == null:
 				continue
 			st.loop = not ONESHOT.has(tname)
+			if tname == "shop":
+				st.loop_offset = 972797.0 / 44100.0   # 用户提供的前奏只播一次，之后循环正文（docs/21）
 			var pl := AudioStreamPlayer.new()
 			pl.stream = st
 			pl.bus = "Music"

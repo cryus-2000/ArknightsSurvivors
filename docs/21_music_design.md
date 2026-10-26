@@ -1,6 +1,6 @@
 # 配乐与音效设计（配乐 v3 2026-09-26；音效与混音 2026-09-30）
 
-全部曲目程序化合成，旋律、和声、riff 原创：
+原有曲目程序化合成，旋律、和声、riff 原创；商人曲目已于 2026-10-27 按用户提供的音频替换，见下方「商人配乐替换」。
 - `game/tools/gen_music.py`：标题、开场引子、商人、结算短乐句与结算循环、Boss 登场 / 击破短乐句（v1.0 起只修过竖琴音准，见版本沿革）；
   2026-10-12 加局外配乐 archive / deploy（见「局外配乐」，`python gen_music.py archive deploy`，两首自带随机种子，单独重做结果不变）；
   同日图鉴改用电子版 archive_v2「卫戍」（`python gen_music.py archive_v2`；V0《潮汐档案》、V1「本舰」的生成代码保留，文件已删）。
@@ -44,8 +44,16 @@
 | boss_{A,B,D,C}_full | 中期 Boss《海嗣之主》D 弗里吉亚 150 BPM：A riff / B 主题 / D 半速间奏（管风琴呼应主题头）/ C 高潮（主题高八度 + 三度和声） | 乐句 | `_boss_alive()` |
 | final_{A–D}_{p1,p2} | 最终 Boss《深蓝之树》D 小调 150 BPM：A 灯火动机 / B 标题主旋律 / C Boss 主题对峙 / D 主旋律高潮（+ 三度和声）；p2 是二阶段加强层 | 乐句 | `final_boss`；生命 < 50% 叠 p2 |
 | boss_in / boss_down | Boss 登场 / 击破叠加短乐句 | 否 | `play_overlay` |
-| shop | 商人《灯下小憩》 | 是 | `S.SHOP` |
+| shop | 用户提供的 `m_sys_rglk1shop_intro` + `m_sys_rglk1shop_loop` | 前奏一次、正文循环 | `S.SHOP` |
 | win / lose → win_loop / lose_loop | 结算短乐句，播完接循环 | 否 / 是 | `play_stinger` |
+
+### 商人配乐替换（2026-10-27）
+
+- 来源：用户指定的 `E:/download_chrome/m_sys_rglk1shop_intro.mp3` 与 `m_sys_rglk1shop_loop.mp3`。前奏解码为 972797 帧（22.058889 秒），循环段 3434813 帧（77.886916 秒），均为 44100 Hz 双声道。
+- 按前奏 → 正文顺序解码拼接，再编码为 `game/audio/music/shop.ogg`（Vorbis quality 4）；不裁切、不拉伸、不额外淡化两段接点，保留原音量。总长 99.945805 秒。
+- Godot 的 `loop_offset` 设在前奏结束处；导入配置与 `sfx.gd` 同时设置，保证有导入缓存和直接读原文件时一致。进入商店从头播放，正文结束回到 22.058889 秒，离开商店沿用原有淡出和选曲，再次进入重新播放前奏。
+- 音乐仍走 Music 总线，音量、静音和自动测试静音规则照旧。`gen_music.py shop` 是旧合成曲生成器，不要用于重建现用 `shop.ogg`。
+- 复现转换：FFmpeg 分别解码两份 MP3 为 44100 Hz 双声道 float32 PCM，按上述顺序拼接，使用 `-c:a libvorbis -q:a 4` 编码；循环点按解码后的帧数计算，不能用含 MP3 编码填充的容器时长。
 
 ### 战斗曲的段、句、层
 
