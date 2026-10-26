@@ -11,6 +11,8 @@ func _ready() -> void:
 		FR.mark("title_ready")
 		RenderingServer.frame_post_draw.connect(func(): FR.mark("title"), CONNECT_ONE_SHOT)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_idle_fps = preload("res://scripts/core/idle_fps.gd").new()   # 手机网页闲置降帧（docs/50 §33）：boot_reveal 后才开
+	add_child(_idle_fps)
 	_bg_game.call_deferred()
 	# 触屏：标题页（含图鉴 / 设置 / Boss 演练子面板）整体放大 Cfg.ui_k（手机 1.3）；背景 / 转场在各自的 CanvasLayer 不受影响
 	Cfg.ui_k = Cfg.ui_scale()
@@ -402,7 +404,14 @@ func boot_cover() -> void:
 	intro = INTRO_LEN
 
 
+var _idle_fps: Node = null
+
 func boot_reveal() -> void:
+	if _idle_fps != null:
+		_idle_fps.set("armed", true)
+	if _pw_on and not _pw_rev:
+		_pw_rev = true
+		print("PF POWER reveal t=%.1f" % (Time.get_ticks_msec() / 1000.0))
 	if _intro0 >= 0.0:
 		intro = _intro0
 		_intro0 = -1.0
@@ -452,6 +461,32 @@ func _process(delta: float) -> void:
 	var ft := FR.tic()
 	_process_main(delta)
 	FR.toc("title_proc", ft)
+	if _pw_on:
+		_power_title()
+
+
+## --powerseq 停在标题页（tools/probes/power_web.py --title，docs/50 §33）：启动页揭开（boot_reveal）6 秒后记 20 秒「title」段（闲置降帧 4 秒后才开）；
+## 另打 PF POWER reveal（揭开时刻），看降帧有没有拖慢启动
+var _pw_on: bool = Cfg.dev_args().has("--powerseq") and not Cfg.dev_args().has("--balance")
+var _pw_t := 0.0
+var _pw_fr := 0
+var _pw_rev := false
+func _power_title() -> void:
+	if not _pw_rev:
+		return
+	_pw_t += get_process_delta_time()
+	if _pw_t >= 6.0 and _pw_fr == 0:
+		_pw_fr = Engine.get_frames_drawn()
+		FR.mark("pw_title")
+		if OS.has_feature("web"):
+			JavaScriptBridge.eval("window.__phase='title'", true)
+	elif _pw_t >= 26.0:
+		_pw_on = false
+		print("PF POWER title secs=20.0 fps=%.1f max_fps=%d" % [(Engine.get_frames_drawn() - _pw_fr) / 20.0, Engine.max_fps])
+		FR.mark("pw_end")
+		if OS.has_feature("web"):
+			JavaScriptBridge.eval("window.__phase='end'", true)
+		print("PF FTDONE")
 
 
 func _process_main(delta: float) -> void:

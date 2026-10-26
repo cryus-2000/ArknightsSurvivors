@@ -514,8 +514,58 @@ func _cmd_step() -> void:
 		g.toggle_command()
 
 
+## --powerseq（tools/probes/power_web.py，docs/50 §33 发烫代理指标）：按墙钟走 对局 → 暂停 → 对局 → 选卡 → 对局；
+## 段名写进 window.__phase 给测量脚本按段记账各进程 CPU 时间，段末打 PF POWER（实际帧率）。暂停 / 选卡段里机器人不动
+const PW_SEQ := [["play", 20.0], ["pause", 20.0], ["play2", 3.0], ["choice", 20.0], ["play3", 6.0]]
+var _pw := -2
+var _pw_t0 := -1
+var _pw_fr := 0
+
+func _pw_mark(nm: String) -> void:
+	preload("res://scripts/core/frame_rec.gd").mark("pw_" + nm)   # 带 --ftrec 时按段打 PF FTBUSY（每秒忙碌毫秒）
+	if OS.has_feature("web"):
+		JavaScriptBridge.eval("window.__phase='%s'" % nm, true)
+
+
+func _power_step() -> bool:
+	if _pw == -2:
+		_pw = 0 if Cfg.dev_args().has("--powerseq") else -1
+	if _pw < 0:
+		return false
+	if _pw_t0 < 0:
+		if g.state != g.S.PLAY or g.t < 3.0 or (g.rt_from >= 0.0 and g.t < g.rt_from + 2.0):   # 带 --rtfrom：快进完再开始（后期场景）
+			return false
+		_pw_t0 = Time.get_ticks_msec()
+		_pw_fr = Engine.get_frames_drawn()
+		g.power_cap = true   # 按玩家的帧率上限跑（批跑缺省不限帧；手机网页自动档 = 30），静止界面降帧也照玩家
+		Engine.max_fps = Cfg.effective_max_fps()
+		_pw_mark(PW_SEQ[0][0])
+	var el: float = (Time.get_ticks_msec() - _pw_t0) / 1000.0
+	if el >= float(PW_SEQ[_pw][1]):
+		print("PF POWER %s secs=%.1f fps=%.1f max_fps=%d" % [PW_SEQ[_pw][0], el, (Engine.get_frames_drawn() - _pw_fr) / el, Engine.max_fps])
+		if PW_SEQ[_pw][0] == "pause":
+			g.state = g.S.PLAY
+		_pw += 1
+		if _pw >= PW_SEQ.size():
+			_pw = -1
+			_pw_mark("end")
+			print("PF FTDONE")
+			return true
+		_pw_t0 = Time.get_ticks_msec()
+		_pw_fr = Engine.get_frames_drawn()
+		_pw_mark(PW_SEQ[_pw][0])
+	var nm: String = PW_SEQ[_pw][0]
+	if nm == "pause" and g.state == g.S.PLAY:
+		g.state = g.S.PAUSE
+	if nm == "choice" and g.state == g.S.PLAY:
+		g.progression.open_levelup()
+	return nm == "pause" or nm == "choice"
+
+
 func step() -> void:
 	g.at_frames += 1
+	if _power_step():
+		return
 	if g.rt_from >= 0.0 and not g.realtime and g.t >= g.rt_from:
 		g.realtime = true   # --rtfrom：快进结束，之后按真实步长（--fixed-fps 60 时每帧 1/60 秒）
 		preload("res://scripts/core/frame_rec.gd").mark("late")   # 帧时 / 内存记录（--ftrec --memlog）：快进结束那一刻

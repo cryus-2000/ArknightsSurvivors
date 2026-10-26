@@ -231,9 +231,41 @@ func cam_zoom() -> float:
 	return clampi(cam_zoom_pct if cam_zoom_pct > 0 else zoom_default_pct(), ZOOM_PCT_MIN, ZOOM_PCT_MAX) / 100.0
 
 
-## 本设备的战斗镜头缺省百分比（手机横屏 ZOOM_PHONE_DEF、其余 ZOOM_DESK_DEF）
+## 本设备的战斗镜头缺省百分比（手机横屏 ZOOM_PHONE_DEF、桌面 ZOOM_DESK_DEF2 / 退回时 ZOOM_DESK_DEF；镜头实际 zoom 见 battle_zoom）
 func zoom_default_pct() -> int:
-	return ZOOM_PHONE_DEF if phone_ui() else ZOOM_DESK_DEF
+	if phone_ui():
+		return ZOOM_PHONE_DEF
+	return ZOOM_DESK_DEF2 if cam_unified() else ZOOM_DESK_DEF
+
+
+## 三档画质同一个镜头（10-27 用户实机，docs/50 §32）。原来低档不开光学，镜头直接是 cam_zoom（手机 1.2 / 桌面 1.15）；中 / 高走光学的整数像素镜头
+## （1 美术像素占整数 k 个物理像素，再乘设置里的缩放），两者在高像素密度屏上差很多：iPhone 横屏低 522 / 中 780 世界像素高，1080p 桌面低 626 / 中 939。
+## 现在三档都用 battle_zoom()：低档 cam.zoom 与光学 _lo_step 同一个值。
+##   手机：「低和中之间取个偏向低画质下的镜头距离」——k 按可见高约 render/phone_view_h（300）美术像素取整：iPhone 横屏（1170 物理像素高）k = 4、可见 585
+##        （低 522 → 中 780 的 0.24 处），像素宽也整齐；
+##   桌面：「稍微放大一点」——缺省缩放 115 → ZOOM_DESK_DEF2 126（可见范围 −9%，相对原来中 / 高档的镜头）。
+## --bal=render/cam_unify=0 退回（低档照旧 cam_zoom、桌面缺省 115、手机 k 按 360 取）
+const ZOOM_DESK_DEF2 := 126
+
+func cam_unified() -> bool:
+	return load("res://scripts/core/balance.gd").v("render/cam_unify", 1.0) > 0.0
+
+
+## 整数像素镜头的 k：按窗口物理像素高 / 目标可见高（美术像素）取整，至少 2
+func view_k() -> int:
+	var vp := get_viewport()
+	var ph: float = vp.get_visible_rect().size.y * maxf(0.01, vp.get_final_transform().x.x)
+	var Bal = load("res://scripts/core/balance.gd")
+	var target: float = Bal.v("render/optical_view_h", 450.0)
+	if phone_ui():
+		target = Bal.v("render/phone_view_h", 300.0) if cam_unified() else Bal.v("render/optical_view_h_phone", 360.0)
+	return maxi(2, roundi(ph / target))
+
+
+## 战斗镜头 zoom = k / (2 × 拉伸倍率)（1 美术像素 = 2 世界像素 = k 个物理像素）× 设置里的「战斗画面缩放」（相对本设备缺省：手机缺省那档 = 1；桌面 1.26 拉近）
+func battle_zoom() -> float:
+	var sx: float = maxf(0.01, get_viewport().get_final_transform().x.x)
+	return view_k() / (2.0 * sx) * cam_zoom() / (ZOOM_PHONE_DEF / 100.0 if phone_ui() else 1.0)
 
 
 ## 系统安全边距（UI 逻辑像素，[左, 上, 右, 下]）：刘海 / 灵动岛 / 圆角 / 底部横条。

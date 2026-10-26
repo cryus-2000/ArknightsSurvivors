@@ -31,11 +31,18 @@ var _mem_tick := -1
 
 ## --memlog（docs/50 §30）：引擎堆 / 贴图显存 / 显存合计（Godot 自己的统计），加网页音频样本解码后的估算（Web Audio 缓冲在 JS 里，引擎看不到）
 func _print_mem(tag: String) -> void:
-	print("PF MEM %s heap=%.1fMB tex=%.1fMB vid=%.1fMB audio=%.1fMB win=%s scaled=%s q=%s" % [tag,
+	print("PF MEM %s heap=%.1fMB tex=%.1fMB buf=%.1fMB vid=%.1fMB audio=%.1fMB win=%s scaled=%s q=%s" % [tag,
 		Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0,
 		Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0,
+		Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED) / 1048576.0,
 		Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0,
 		Sfx.sample_mem_mb(), get_tree().root.size, Cfg.render_scaled, Cfg.quality])
+	var sc = get_tree().current_scene
+	if sc != null and sc.has_method("view_size") and "cam" in sc and sc.cam != null:
+		var vp := get_viewport()
+		# 镜头：可见世界高（世界像素，2 世界像素 = 1 美术像素）、zoom、1 美术像素占几个物理像素（手机三档统一镜头用，docs/50 §32）
+		print("PF VIEW %s view_h=%.0f zoom=%.3f art_px=%.2f phys_h=%.0f" % [tag, sc.view_size().y, sc.cam.zoom.x,
+			2.0 * sc.cam.zoom.x * vp.get_final_transform().x.x, vp.get_visible_rect().size.y * vp.get_final_transform().x.x])
 	if tag == "game+5s" or tag.begins_with("t="):
 		_print_tex_breakdown()
 
@@ -181,6 +188,7 @@ func _ready() -> void:
 	add_child(e)
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_vp = get_tree().root.get_viewport_rid()
+	RenderingServer.frame_post_draw.connect(_on_post_draw)
 	RenderingServer.viewport_set_measure_render_time(_vp, true)
 	_memlog = (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--memlog")
 	for a in (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()):   # 发布版不读命令行（check_release）；不依赖 Cfg 加载顺序，同 balance.gd 写法
@@ -248,6 +256,15 @@ func _process(_delta: float) -> void:
 		get_tree().quit()
 
 
+## 每帧忙碌时间（docs/50 §33 发烫代理指标）：本帧第一个 _process 起到渲染提交完（frame_post_draw）——含脚本、_draw、渲染 CPU，
+## 不含帧率上限 / 垂直同步的等待。段末打 PF FTBUSY：每秒忙多少毫秒（= 帧率 × 每帧忙碌），越低越省电
+func _on_post_draw() -> void:
+	if _proc_start > 0 and not _segs.is_empty():
+		var s: Dictionary = _segs[-1]
+		s["busy"] = float(s.get("busy", 0.0)) + (Time.get_ticks_usec() - _proc_start) / 1000.0
+		s["bn"] = int(s.get("bn", 0)) + 1
+
+
 func _exit_tree() -> void:
 	_close_seg()
 
@@ -279,5 +296,8 @@ func _close_seg() -> void:
 			parts.append("%s=%.2f" % [k, _acc[k] / 1000.0 / n])
 		print("PF FTACC %s %s" % [s.name, " ".join(parts)])
 		_acc.clear()
+	var wall: float = (Time.get_ticks_usec() - int(s.t0)) / 1e6
+	if int(s.get("bn", 0)) > 0 and wall > 0.0:
+		print("PF FTBUSY %s secs=%.1f fps=%.1f busy_per_frame=%.2fms busy_per_s=%.0fms" % [s.name, wall, int(s.bn) / wall, float(s.busy) / int(s.bn), float(s.busy) / wall])
 	print("PF FTSEG %s n=%d mean=%.2f p50=%.2f p95=%.2f p99=%.2f max=%.1f over16=%d over33=%d" % [s.name, n, sum / n,
 		d[int(n * 0.5)], d[mini(n - 1, int(n * 0.95))], d[mini(n - 1, int(n * 0.99))], d[n - 1], over, over2])
