@@ -12,8 +12,8 @@ dest_files=["res://.godot/imported/shop.ogg-400b949d2344df87132fbd58413e16a5.ogg
 
 [params]
 
-loop=false
-loop_offset=0
+loop=true
+loop_offset=22.058889
 bpm=0
 beat_count=0
 bar_beats=4
