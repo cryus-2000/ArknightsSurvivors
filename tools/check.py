@@ -952,6 +952,8 @@ SCENE_REGRESSIONS = {
     "esc_layers": ("各层 Esc 关闭当前层级 / 设置页键盘与输入法物理键码 / 设置 70% 面板与 × 关闭", "esc_layers_test", r"ESC LAYERS: 0 failures", []),
     "title_menu": ("标题磁贴群 / 难度页：四种菜单组、二维导航、键鼠 / 手柄 / 触屏", "title_menu_input_test", r"TITLE MENU INPUT: 0 failures", []),
     "touch_move": ("触屏摇杆移动：桌面 --touch / 手机比例、大 / 负触点编号（iOS Safari）、两指", "touch_move_test", r"TOUCH MOVE: 0 failures", ["--touch"]),
+    "cam_resize": ("换分辨率 / 拖窗口 / 全屏 / 换档后战斗镜头可见高与进局时一致（桌面五种分辨率，docs/50 §38）", "cam_resize_test", r"CAM RESIZE failures=0", []),
+    "cam_resize_touch": ("同上，手机横屏比例 + iPhone 1 美术像素 = 4 物理像素", "cam_resize_test", r"CAM RESIZE failures=0", ["--touch"]),
     "touch_layout": ("触屏按键布局：存档往返 / 换比例锚点 / 越界夹进安全区 / 局内按新位置点击 / 编辑页拖动推开调大小 / 选卡让位 / 转屏重算 ui_k", "touch_layout_test", r"TOUCH LAYOUT failures=0", ["--touch"]),
     "economy": ("经济与收藏品上限", "economy_regression", r"ECONOMY REGRESSION: 0 failures", []),
     "node_cards": ("翻节点卡：卡组可复现 / 结局入口必出 / 首通前不开 / 互斥 / 结局只看信物 / 升华三句 / 最晚时刻 / 面板顺序（docs/159）", "node_cards_test", r"NODE CARDS: 0 failures", []),
