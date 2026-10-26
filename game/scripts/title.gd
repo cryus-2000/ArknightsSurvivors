@@ -11,7 +11,8 @@ func _ready() -> void:
 		FR.mark("title_ready")
 		RenderingServer.frame_post_draw.connect(func(): FR.mark("title"), CONNECT_ONE_SHOT)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	add_child(preload("res://scripts/core/idle_fps.gd").new())   # 手机网页闲置降帧（docs/50 §33）
+	_idle_fps = preload("res://scripts/core/idle_fps.gd").new()   # 手机网页闲置降帧（docs/50 §33）：boot_reveal 后才开
+	add_child(_idle_fps)
 	_bg_game.call_deferred()
 	# 触屏：标题页（含图鉴 / 设置 / Boss 演练子面板）整体放大 Cfg.ui_k（手机 1.3）；背景 / 转场在各自的 CanvasLayer 不受影响
 	Cfg.ui_k = Cfg.ui_scale()
@@ -403,7 +404,11 @@ func boot_cover() -> void:
 	intro = INTRO_LEN
 
 
+var _idle_fps: Node = null
+
 func boot_reveal() -> void:
+	if _idle_fps != null:
+		_idle_fps.set("armed", true)
 	if _intro0 >= 0.0:
 		intro = _intro0
 		_intro0 = -1.0

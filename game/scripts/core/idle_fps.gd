@@ -1,11 +1,13 @@
 ## 手机网页局外界面闲置降帧（10-27 用户「手机发烫」，docs/50 §33）：标题页 / 图鉴 / 设置这些界面没人碰时照 30 帧整屏重画是空耗电。
 ## 挂在界面节点下：IDLE_AFTER 秒没有任何输入就降到 render/static_fps（缺省 20），一碰屏幕 / 按键立刻回到玩家的帧率上限。
-## 只在手机网页、帧率设置为「自动」时生效；不吞输入（_input 里只记时间）。--bal=web/mobile_static_fps=0 退回
+## 只在手机网页、帧率设置为「自动」时生效；不吞输入（_input 里只记时间）。--bal=web/mobile_static_fps=0 退回。
+## armed 由界面在开场放完后打开（标题页：启动页稳帧门放行 boot_reveal 之后）——稳帧门按帧间隔判，开场 / 后台预热时降帧会把揭开拖慢好几秒
 extends Node
 
-const IDLE_AFTER := 2.0
+const IDLE_AFTER := 4.0   # 揭开后的开场动效约 3 秒，之后才算闲置
 var _idle := 0.0
 var _on := false
+var armed := false
 
 
 func _ready() -> void:
@@ -21,7 +23,7 @@ func _input(_e: InputEvent) -> void:
 
 
 func _process(delta: float) -> void:
-	if Cfg.max_fps != 0:
+	if Cfg.max_fps != 0 or not armed:
 		return
 	_idle += delta
 	var want: int = int(load("res://scripts/core/balance.gd").v("render/static_fps", 20.0)) if _idle > IDLE_AFTER else Cfg.effective_max_fps()

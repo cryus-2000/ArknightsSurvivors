@@ -533,7 +533,7 @@ func _power_step() -> bool:
 	if _pw < 0:
 		return false
 	if _pw_t0 < 0:
-		if g.state != g.S.PLAY or g.t < 3.0:
+		if g.state != g.S.PLAY or g.t < 3.0 or (g.rt_from >= 0.0 and g.t < g.rt_from + 2.0):   # 带 --rtfrom：快进完再开始（后期场景）
 			return false
 		_pw_t0 = Time.get_ticks_msec()
 		_pw_fr = Engine.get_frames_drawn()
