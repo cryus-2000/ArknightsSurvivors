@@ -94,13 +94,13 @@ const MUSIC := {
 	"shop": ["shop"],
 	"win_loop": ["win_loop"],
 	"lose_loop": ["lose_loop"],
+	"final": ["final_suno"],   # 10-27 最终 Boss 换 Suno《The Deep Sea Awakens》整首循环（暂无分轨，二阶段不叠层）
 }
 const SEQ := {
 	"battle1": {"bpm": 144.0, "layers": ["base", "pulse", "drive"], "danger": true, "kind": "battle"},
 	"battle2": {"bpm": 144.0, "layers": ["base", "pulse", "drive"], "danger": true, "kind": "battle"},
 	"battle3": {"bpm": 150.0, "layers": ["base", "pulse", "drive"], "danger": true, "kind": "battle"},
 	"boss": {"bpm": 150.0, "layers": ["full"], "danger": false, "kind": "boss"},
-	"final": {"bpm": 150.0, "layers": ["p1", "p2"], "danger": false, "kind": "final"},
 }
 ## 句与句的衔接权重（没写的不接，自己不接自己）。战斗：A 和弦墙 / B 标题主旋律 / C 灯火动机 / D 半速间奏 / E B 主题；
 ## Boss：A riff / B 主题 / D 半速间奏 / C 高潮；最终 Boss：A 灯火动机 / B 标题主旋律 / C Boss 主题对峙 / D 主旋律高潮
