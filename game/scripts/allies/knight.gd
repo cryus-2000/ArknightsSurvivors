@@ -370,7 +370,7 @@ func _target() -> Dictionary:
 
 
 ## 队友使用独立步行部件；敌对骑士仍使用 e_knight 骑乘帧条。
-func draw() -> void:
+func draw(mask: CanvasItem = null) -> void:
 	if not alive:
 		return
 	var name := "e_knight_walk"
@@ -400,7 +400,7 @@ func draw() -> void:
 		frame = A.enemy_remap_frame(name, frames, frame)
 		frames = nfr
 	if g.tex.get(name) == null:
-		g.draw_circle(pos, R, Color(0.6, 0.8, 1.0))
+		(mask if mask != null else g).draw_circle(pos, R, Color(0.6, 0.8, 1.0))
 		return
 	var anc := A.enemy_pixel_anchor(name, Vector2(0.5, 77.0 / 80.0))
 	var sc: float = g.PX * DRAW_K * A.enemy_pixel_scale(name)
@@ -409,6 +409,15 @@ func draw() -> void:
 	var tsc: float = sc / A.hires_of(g.tex.get(name))
 	var bpos: Vector2 = pos + Vector2(0, R * 0.8 + 3.0 * sc)
 	var flip: bool = face < 0.0
+	# 保色遮罩复用同一动画选帧与脚底，只画身体，不重复触发火花、残影或血条。
+	if mask != null:
+		var tx: Texture2D = g.tex[name]
+		var sz := Vector2(float(tx.get_width()) / frames, tx.get_height())
+		var sink: float = clampf(st / SINK_T, 0.0, 1.0) if state == "sink" else 0.0
+		mask.draw_set_transform((bpos + g.draw_off + Vector2(0, 26.0 * sink)).round(), 0.0, Vector2(-tsc if flip else tsc, tsc))
+		mask.draw_texture_rect_region(tx, Rect2(-sz * anc, sz), Rect2(Vector2(sz.x * frame, 0), sz), Color(1, 1, 1, 1.0 - sink))
+		mask.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
 	# 入潮演出：向下沉入 + 淡出，脚下一圈冰环收拢；不画描边 / 血条
 	if state == "sink":
 		var k: float = clampf(st / SINK_T, 0.0, 1.0)

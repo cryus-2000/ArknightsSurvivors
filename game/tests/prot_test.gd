@@ -846,7 +846,7 @@ func test_final_mob_cap() -> void:
 	ok(sp.boss_mob_room() == cap - 5, "最终 Boss 在场：余量 = 上限（按密度 %d）− 存活杂兵（%d）" % [cap, sp.boss_mob_room()])
 	Bal._data["final"] = {"stop_mobs": 1.0, "trickle_mult": 0.35, "trickle_cap": 40.0}
 	# trickle_cap 10-21 起不再乘密度（docs/117：和 final_mob_cap / mid_mob_cap 不同口径，直接是场上允许的真实数量）
-	ok(sp.boss_mob_room() == 40 - 5, "少量补怪开：余量 = trickle_cap 40（不按密度）− 存活杂兵（%d）" % sp.boss_mob_room())
+	ok(sp.boss_mob_room() == cap - 5 and not sp.trickling(), "旧 trickle 配置不再恢复 Boss 战补怪")
 	if keep_fin == null:
 		Bal._data.erase("final")
 	else:
@@ -866,221 +866,52 @@ func test_final_mob_cap() -> void:
 	game.enemies = keep_e
 	game.final_boss = keep_f
 
-## 最终 Boss 战停刷（用户 10-11，docs/38 §8.14）：final/stop_mobs 只在最终 Boss 在场时停普通刷怪 / 精英 / 大群 / 威胁新种类；
-## 中期 Boss 不停；Boss 召唤物照常；旋钮关 = 旧行为；难度表 final_stop_mobs 按档覆盖；clear_mobs_s > 0 时现有杂兵由远到近逐只消散，
-## 不掉经验、不计击杀；停刷那一帧 spawner.update 不掷随机数。
-## 10-12 少量补怪（final/trickle_mult / trickle_cap / trickle_fresh_w）：普通怪按低倍率补、不超上限，新种类权重降低，无精英 / 大群 / 威胁那一小波
 	if keep_duel == null:
 		Bal._data["boss"].erase("final_duel")
 	else:
 		Bal._data["boss"]["final_duel"] = keep_duel
+
+## 所有 Boss 在场均停普通刷怪，保留已有杂兵和机制召唤；停刷帧不消耗刷怪随机流。
 func test_final_stop_mobs() -> void:
-	var keep_duel = Bal._data["boss"].get("final_duel")   # 这组测的是旧的少量补怪：先关掉最终 Boss 停刷（docs/142b §1.5）
-	Bal._data["boss"]["final_duel"] = 0.0
-	var D = preload("res://scripts/data.gd")
 	var sp = game.spawner
-	var keep_e: Array = game.enemies
-	var keep_f = game.final_boss
-	var keep_b: Array = game.bosses.duplicate()
-	var keep_fin = Bal._data.get("final", null)
-	var keep_t: float = game.t
-	var keep_idx: int = sp.boss_idx
-	var keep_elite: float = sp.next_elite
-	var keep_chest: float = sp.next_chest
-	var keep_acc: float = sp.spawn_acc
-	var keep_hw: float = sp.horde_warned
-	var keep_mire: float = game.next_mire
-	var keep_merch: int = game.merchant_idx
-	var keep_horde: float = game.next_horde
-	var keep_threat: int = game.threat
-	var keep_d: Dictionary = game.dmod
-	sp.boss_idx = D.BOSS_TIMES.size()   # 不再有 Boss 登场
+	var saved := {}
+	for key in ["enemies", "bosses", "final_boss", "t", "next_mire", "merchant_idx", "next_horde", "threat", "horde_warn"]:
+		saved[key] = game.get(key)
+	var saved_sp := {}
+	for key in ["boss_idx", "next_elite", "next_chest", "spawn_acc", "horde_warned"]:
+		saved_sp[key] = sp.get(key)
+	sp.boss_idx = preload("res://scripts/data.gd").BOSS_TIMES.size()
 	sp.next_chest = 1.0e9
 	game.next_mire = 1.0e9
 	game.merchant_idx = game.MERCHANT_TIMES.size()
 	game.next_horde = 1.0e9
-	game.t = 560.0   # 大群仍允许（< 570）、最后一级威胁（520）已到
-	game.threat = D.THREAT.size() - 1
-	var fb := {"dead": false, "boss": true, "type": "paranoia", "pos": game.ppos + Vector2(3000, 0), "r": 30.0}
-	var mb := {"dead": false, "boss": true, "type": "path", "pos": game.ppos + Vector2(3000, 0), "r": 30.0}
-	# 跑一帧 spawner.update：攒 3 只普通怪的累积、精英到点；返回新刷的非 Boss 敌人数
-	var step := func() -> int:
-		for e in game.enemies:
-			if not e.boss:
-				e.dead = true
-		game.enemies = game.enemies.filter(func(e): return e.boss)
-		sp.spawn_acc = 3.0
+	game.t = 560.0
+	game.threat = preload("res://scripts/data.gd").THREAT.size() - 1
+	for kind in ["path", "bishop", "paranoia", "knight_boss", "ishar", "izumik"]:
+		var boss: Dictionary = sp.new_enemy(kind, Vector2(300, 0))
+		var mob: Dictionary = sp.new_enemy("bone", Vector2(150, 0))
+		var hp: float = mob.hp
+		game.enemies = [boss, mob]
+		game.bosses = [boss]
+		game.final_boss = boss if sp.is_final_boss_type(kind) else null
+		sp.spawn_acc = 10.0
 		sp.next_elite = game.t - 1.0
+		var state: Array = game.rng_states()
 		sp.update(0.0)
-		return game.enemies.filter(func(e): return not e.dead and not e.boss).size()
-	# 旋钮关（stop_mobs 0）+ 最终 Boss 在场：照常刷（旧行为，仍受 final_mob_cap）
-	Bal._data["final"] = {"stop_mobs": 0.0, "clear_mobs_s": 0.0}
-	game.enemies = [fb]
-	game.bosses = [fb]
-	game.final_boss = fb
-	var n0: int = step.call()
-	ok(not sp.mobs_stopped() and n0 >= 4 and sp.next_elite > game.t, "stop_mobs 0：最终 Boss 在场照常刷普通怪 + 精英（%d 只）" % n0)
-	# 旋钮开、trickle_mult 0（全停，10-11）：普通怪 / 精英 / 大群 / 威胁新种类都不刷，精英计时照走，不掷随机数
-	Bal._data["final"] = {"stop_mobs": 1.0, "clear_mobs_s": 0.0, "trickle_mult": 0.0}
-	game.threat = D.THREAT.size() - 2
-	game.next_horde = game.t - 50.0
-	sp.horde_warned = -1.0
-	game.horde_warn = 0.0
-	var nh: int = game.horde_log.size()
-	var s0: Array = game.rng_states()
-	var n1: int = step.call()
-	ok(sp.mobs_stopped() and n1 == 0, "stop_mobs 1 + 最终 Boss 在场：不刷普通怪 / 精英 / 威胁新种类（%d 只）" % n1)
-	ok(sp.spawn_acc < 1.0 and sp.next_elite > game.t, "停刷时累积照常扣掉、精英计时照走（Boss 倒下后不会补刷一大波）")
-	ok(game.horde_log.size() == nh and game.horde_warn <= 0.0 and game.threat == D.THREAT.size() - 1, "停刷时大群不来、不出预警；威胁等级照常升")
-	ok(game.rng_states() == s0, "停刷那一帧 spawner.update 不掷随机数")
-	game.next_horde = 1.0e9
-	# 难度表覆盖：final_stop_mobs 0 按档关
-	game.dmod = keep_d.duplicate()
-	game.dmod["final_stop_mobs"] = 0.0
-	ok(not sp.mobs_stopped() and step.call() >= 3, "difficulty final_stop_mobs 0 覆盖：按档照常刷")
-	game.dmod = keep_d
-	# 少量补怪（10-12）：stop_mobs 1 + trickle_mult 0.35 + trickle_cap 5，场上已有 3 只杂兵；攒 10 只的累积、精英到点、大群到点、威胁待升
-	# trickle_cap 10-21 起不再乘密度（docs/117），填 5 就是 5
-	Bal._data["final"] = {"stop_mobs": 1.0, "clear_mobs_s": 0.0, "trickle_mult": 0.35, "trickle_cap": 5.0, "trickle_fresh_w": 0.5}
-	game.enemies = [fb]
-	game.bosses = [fb]
-	for k in 3:
-		sp.spawn_enemy("bone", game.ppos + Vector2(500 + k * 20, 0))
-	game.threat = D.THREAT.size() - 2
-	game.next_horde = game.t - 50.0
-	sp.horde_warned = -1.0
-	game.horde_warn = 0.0
-	nh = game.horde_log.size()
-	sp.spawn_acc = 10.0
-	sp.next_elite = game.t - 1.0
-	sp.update(0.0)
-	var live: Array = game.enemies.filter(func(e): return not e.dead and not e.boss)
-	var n_el: int = live.filter(func(e): return e.elite).size()
-	ok(sp.trickling() and sp.mob_count() == 5 and live.size() == 5, "少量补怪：普通怪补到 trickle_cap 5 为止（%d 只，威胁那一小波不刷）" % live.size())
-	ok(n_el == 0 and sp.next_elite > game.t, "少量补怪：精英不刷、计时照走")
-	ok(game.horde_log.size() == nh and game.horde_warn <= 0.0 and game.threat == D.THREAT.size() - 1, "少量补怪：大群不来、不出预警；威胁等级照常升")
-	ok(sp.boss_mob_room() == 0, "少量补怪：余量按 trickle_cap 算（%d）" % sp.boss_mob_room())
-	game.next_horde = 1.0e9
-	# 刷怪率 = 正常刷怪率 × trickle_mult（不再乘 spawn_boss_mult）
-	var keep_lamp: float = game.lamp
-	game.lamp = 100.0
-	sp.spawn_acc = 0.0
-	sp.next_elite = 1.0e9
-	sp.update(0.1)
-	var knee: float = Bal.v("enemy/spawn_knee", 1.0e9)
-	var base: float = Bal.v("enemy/spawn_base", 1.6) + minf(game.t, knee) / Bal.v("enemy/spawn_div", 30.0) + maxf(game.t - knee, 0.0) / Bal.v("enemy/spawn_late_div", Bal.v("enemy/spawn_div", 30.0))
-	var want_acc: float = base * 0.35 * 0.1 * sp.density()   # 普通刷怪率另 × 怪物密度 k（docs/50 §16）
-	ok(absf(sp.spawn_acc - want_acc) < 0.001, "少量补怪：累积 = 正常刷怪率 × 0.35 × 密度（%.4f / %.4f）" % [sp.spawn_acc, want_acc])
-	game.lamp = keep_lamp
-	# 新种类（本级威胁池里上一级没有的）抽取权重 × trickle_fresh_w
-	var keep_rs: int = game.rng_spawn.state   # pick_type 走刷怪流（docs/101 B7）
-	var pool: Array = D.THREAT[game.threat].pool
-	var prev: Array = D.THREAT[game.threat - 1].pool
-	var fresh: Array = pool.filter(func(x): return not prev.has(x))
-	for e in game.enemies:
-		if not e.boss:
-			e.dead = true
-	game.enemies = [fb]
-	var cnt := func(n: int) -> int:
-		var c := 0
-		for k in n:
-			if fresh.has(sp.pick_type()):
-				c += 1
-		return c
-	Bal._data["final"]["trickle_fresh_w"] = 0.0
-	var c0: int = cnt.call(400)
-	Bal._data["final"]["trickle_fresh_w"] = 0.5
-	var c5: int = cnt.call(4000)
-	var nf := float(fresh.size())
-	var want: float = 0.5 * nf / (float(pool.size()) - nf + 0.5 * nf)
-	ok(fresh.is_empty() or (c0 == 0 and absf(float(c5) / 4000.0 - want) < 0.03), "少量补怪：新种类 %s 权重 × 0.5（占比 %.3f，期望 %.3f；权重 0 时 %d 次）" % [str(fresh), float(c5) / 4000.0, want, c0])
-	game.rng_spawn.state = keep_rs
-	# 难度表覆盖：final_trickle_mult 0 按档回到全停
-	game.dmod = keep_d.duplicate()
-	game.dmod["final_trickle_mult"] = 0.0
-	ok(sp.mobs_stopped() and not sp.trickling() and step.call() == 0, "difficulty final_trickle_mult 0 覆盖：按档全停")
-	game.dmod = keep_d
-	Bal._data["final"] = {"stop_mobs": 1.0, "clear_mobs_s": 0.0, "trickle_mult": 0.0}
-	# 只有中期 Boss：不停
-	fb.dead = true
-	game.final_boss = null
-	game.enemies = [mb]
-	game.bosses = [mb]
-	ok(not sp.mobs_stopped() and step.call() >= 3, "只有中期 Boss 在场：stop_mobs 1 也照常刷")
-	# 最终 Boss 倒下：恢复（stop 只看在场）
-	game.final_boss = fb
-	ok(not sp.mobs_stopped(), "最终 Boss 倒下后 mobs_stopped 为 false")
-	fb.dead = false
-	mb.dead = true
-	game.enemies = [fb]
-	game.bosses = [fb]
-	# Boss 召唤物照常：伊祖米克学习阶段吐子代
-	var iz: Dictionary = sp.spawn_enemy("izumik", game.ppos + Vector2(400, 0))
-	iz.phase = 1
-	iz.bt = 100.0
-	var ne: int = game.enemies.size()
-	game.bai.boss("izumik").step(iz, 0.01, Vector2.LEFT, 400.0, true, null)
-	var offs: Array = game.enemies.filter(func(e): return e.type == "offspring" and not e.dead)
-	ok(sp.mobs_stopped() and game.enemies.size() == ne + 2 and offs.size() == 2, "stop_mobs 1：伊祖米克的子代（Boss 召唤物）照常刷出")
-	iz.dead = true
-	for o in offs:
-		o.dead = true
-	# clear_mobs_s 4：现有杂兵由远到近逐只消散；宝箱 / 友方 / 之后的召唤物不动；不掉经验、不计击杀、不掷随机数
-	Bal._data["final"] = {"stop_mobs": 1.0, "clear_mobs_s": 4.0}
-	game.enemies = [fb]
-	var m1: Dictionary = sp.spawn_enemy("bone", game.ppos + Vector2(100, 0))
-	var m2: Dictionary = sp.spawn_enemy("bone", game.ppos + Vector2(200, 0))
-	var m3: Dictionary = sp.spawn_enemy("bone", game.ppos + Vector2(300, 0))
-	var fr := {"dead": false, "boss": false, "friendly": true, "type": "tear", "pos": game.ppos, "r": 10.0}
-	var ch := {"dead": false, "boss": false, "chest": true, "type": "chest", "pos": game.ppos, "r": 10.0}
-	game.enemies.append(fr)
-	game.enemies.append(ch)
-	var k0: int = game.kills
-	var x0: float = game.pickups.xp_dropped
-	sp.queue_clear(sp.final_knob("clear_mobs_s"))
-	var late: Dictionary = sp.spawn_enemy("offspring", game.ppos + Vector2(150, 0))   # 登场之后才出现的召唤物
-	var s2: Array = game.rng_states()
-	game.t += 1.5
-	sp.spawn_acc = 0.0
-	sp.next_elite = 1.0e9
-	sp.update(0.0)
-	ok(m3.dead and not m2.dead and not m1.dead, "1.5 秒：最远的先消散（4 秒分 3 只，每只 1.33 秒）")
-	game.t += 3.0
-	sp.update(0.0)
-	ok(m1.dead and m2.dead and m3.dead and sp.fading.is_empty(), "4 秒内三只全部消散")
-	ok(not fr.dead and not ch.dead and not late.dead and not fb.dead, "友方 / 宝箱 / 登场后的召唤物 / Boss 不消散")
-	ok(game.kills == k0 and absf(game.pickups.xp_dropped - x0) < 0.001, "消散不计击杀、不掉经验")
-	ok(game.rng_states() == s2, "消散不掷随机数")
-	late.dead = true
-	fr.dead = true
-	ch.dead = true
-	fb.dead = true
-	# 还原
-	if keep_fin == null:
-		Bal._data.erase("final")
-	else:
-		Bal._data["final"] = keep_fin
-	game.enemies = keep_e
-	game.bosses = keep_b
-	game.final_boss = keep_f
-	game.t = keep_t
-	sp.boss_idx = keep_idx
-	sp.next_elite = keep_elite
-	sp.next_chest = keep_chest
-	sp.spawn_acc = keep_acc
-	sp.horde_warned = keep_hw
-	game.next_mire = keep_mire
-	game.merchant_idx = keep_merch
-	game.next_horde = keep_horde
-	game.threat = keep_threat
-	game.horde_warn = 0.0
+		ok(sp.mobs_stopped() and not sp.trickling() and game.enemies.size() == 2, kind + " stops ordinary/elite reinforcements")
+		ok(not mob.dead and mob.hp == hp, kind + " preserves existing mobs without fading")
+		ok(sp.spawn_acc < 1.0 and sp.next_elite > game.t, "stopped queues do not build a later burst")
+		ok(game.rng_states() == state, "stopped spawning consumes no RNG")
+		var summoned: Dictionary = sp.spawn_enemy("offspring", Vector2(250, 0))
+		ok(not summoned.dead and game.enemies.size() == 3, "boss summons remain available")
+		boss.dead = true
+		ok(not sp.mobs_stopped(), "ordinary spawning resumes once all bosses are gone")
+	for key in saved:
+		game.set(key, saved[key])
+	for key in saved_sp:
+		sp.set(key, saved_sp[key])
 
 
-## 伊莎玛拉提速（协调人 9/30）：离远了带预警冲近（潮涌迫近，② 直线），落地给破绽；人形阶段充能 ×ishar_p1_scale
-	if keep_duel == null:
-		Bal._data["boss"].erase("final_duel")
-	else:
-		Bal._data["boss"]["final_duel"] = keep_duel
 func test_ishar_close() -> void:
 	var keep: Array = game.bosses.duplicate()
 	var e: Dictionary = game.spawner.spawn_enemy("ishar", game.ppos + Vector2(500, 0))
@@ -1851,7 +1682,7 @@ func test_lore3() -> void:
 		bai._paranoia_cocoon_step(pa, 0.1)
 		tt += 0.1
 		c.damage(pa, pa.shell_max * 10.0)
-	ok(pa.phase == 2 and pa.break_t > 0.0 and absf(pa.hp - pa.maxhp * 0.4) < 1.0 and tt >= Bal.v("boss/paranoia_shell_min", 4.0) - 0.3, "输出拉满也要约 %.1f 秒打破外壳：复活到 40%% 并破绽" % tt)
+	ok(pa.phase == 2 and pa.break_t > 0.0 and absf(pa.hp - pa.maxhp * 0.8) < 1.0 and tt >= Bal.v("boss/paranoia_shell_min", 4.0) - 0.3, "输出拉满也要约 %.1f 秒打破外壳：复活到 80%% 并破绽" % tt)
 	pa.dead = true
 	var pb: Dictionary = sp.spawn_enemy("paranoia", game.ppos + Vector2(1600, 0))
 	bai.paranoia_cocoon(pb)
@@ -1938,6 +1769,7 @@ func test_lore5() -> void:
 	bai._knight_stakes(kn, 0.01)
 	ok(kn.stakes.size() == int(Bal.v("boss/knight_stakes", 3.0)), "66%% 卡点后立 %d 根冰枪桩" % kn.stakes.size())
 	kn.stakes[0].pos = kn.pos
+	game.t += 1.1   # 冰柱先预告 1 秒，破土后才参与碰撞。
 	kn.kb = Vector2(900, 0)
 	kn.kb_self = true
 	bai._knight_stakes(kn, 0.01)

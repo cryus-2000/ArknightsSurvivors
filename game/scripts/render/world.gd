@@ -3,6 +3,7 @@ extends RefCounted
 ## game.gd 的 _draw 只转发到这里。地图本身在 world/map.gd，HUD 在 screens/hud.gd。2026-09-26 从 game.gd 拆出。
 
 const LaserDraw = preload("res://scripts/render/laser_draw.gd")
+const FinalAttackDraw = preload("res://scripts/render/boss_attack_draw.gd")
 const BossBeam = preload("res://scripts/render/boss_beam.gd")   # Boss 改版样板：Kanpelle 光束、骑士寒气圈 / 寒冷条（docs/142b）
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
@@ -479,6 +480,7 @@ func _draw_warns_auras() -> void:
 	classify_tells()   # 先判哪些预警会打到主控（可读性 1.1.1）：地面填充 / 轮廓 / 冲刺线都读这个结果
 	if not _dbg_foe and not _dbg_warn:
 		TeleDraw.draw_fills(g)
+		FinalAttackDraw.draw(g)
 	if not _dbg_aura:
 		draw_nest_auras()
 	draw_beacons()
@@ -1160,6 +1162,8 @@ func _bfx_grains(f: Dictionary) -> void:
 
 
 func _draw_fx() -> void:
+	if not _dbg_foe and not _dbg_foefx:
+		FinalAttackDraw.draw(g, true)
 	bfx_grains = BossBeam.grains(g)
 	# 友方火花绘制预算（render/declutter spark_budget；缺省不限）：超出时跳过最早的（快淡完的），只影响绘制
 	var skip_sparks := 0
@@ -2478,11 +2482,13 @@ func _ol_sig() -> int:
 
 ## 这只敌人画不画精英冷色描边
 func _rim_on(e: Dictionary) -> bool:
-	return (elite_rim > 0.0 and e.elite and not e.boss) or e.get("squad", false)
+	return e.get("ishar_blessed", false) or (elite_rim > 0.0 and e.elite and not e.boss) or e.get("squad", false)
 
 
 ## 描边颜色：精英冷色描边开着时用冷青（旧写法 ol_norm 下的橙红只在旋钮关时保留）；普通怪中性淡紫白
 func _ol_col(e: Dictionary) -> Color:
+	if e.get("ishar_blessed", false):
+		return Color(3.2, 0.24, 0.3, 0.9)
 	if e.get("squad", false):
 		return SQUAD_RIM_COL
 	if e.elite:
@@ -3012,6 +3018,8 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			oc = SQUAD_RIM_COL
 		if e.get("part", false):
 			oc = Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.7 + 0.3 * _heartbeat(e))   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
+		if e.get("ishar_blessed", false):
+			oc = _ol_col(e)
 		if not e.elite and not e.boss and not e.get("squad", false):
 			oc.a *= ol_mul   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1；下限 render/declutter ol_floor，缺省 0.4）；精英 / Boss 不变
 		_espr_outline(name, frames, frame, bpos, sc, flip, oc, anc, sq)
@@ -3722,6 +3730,8 @@ func beacon_burst(b: Dictionary) -> void:
 ## 最后的骑士冰柱（e.stakes = [{pos, until, born}]，判定 r 22）：冰柱帧条（没有就退回冰枪桩 / 程序长枪）+ 脚下冰霜圈；快到期（< 2 秒）时闪烁
 func _draw_stakes(e: Dictionary) -> void:
 	for st in e.stakes:
+		if g.t < float(st.get("born", -99.0)):
+			continue   # Placement preview remains visible; pillar rises only at its announced time.
 		var left: float = float(st.until) - g.t
 		if left <= 0.0:
 			continue
@@ -3996,7 +4006,7 @@ func tear_zone_info(e: Dictionary) -> Dictionary:
 		"ground_scale": 1.0 if neutral else ground_y(),
 		"blocked": blocked, "owner": owner,
 		"col": (Color(0.25, 1.0, 0.85) if blocked else Color(0.55, 0.7, 1.0)) if neutral else ENEMY_TELL,
-		"label": ("充能已压制" if blocked else "靠近压制充能") if neutral else ""
+		"label": ("泪滴已净化" if blocked else "触碰净化泪滴") if neutral else ""
 	}
 
 

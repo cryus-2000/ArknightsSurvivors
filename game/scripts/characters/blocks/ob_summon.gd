@@ -637,6 +637,7 @@ static func _mark_draw(o) -> void:
 			post.zone_c = (xf * o.pos) / vs
 			post.zone_r = r_now * sc / vs.y
 			post.zone_hole = Vector3(hc.x, hc.y, 34.0 * sc / vs.y)
+			post.refresh_zone_guards(g)
 		else:
 			post.zone_amt = 0.0
 	if rr > 0.0 and k_amt > 0.0 and o.pos != Vector2.INF:

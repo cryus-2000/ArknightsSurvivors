@@ -105,7 +105,7 @@ func _ready() -> void:
 	g.enemy_demo.configure(0)
 	g.enemy_demo.step(0.01)
 	check(g.enemy_demo.subject.friendly and g.enemy_demo.subject.get("blocked", false), "tear gallery uses genuine neutral suppressible tear")
-	check("压制" in g.demo_label, "tear gallery explains changed non-damaging behavior")
+	check("净化" in g.demo_label, "tear gallery explains permanent purification")
 	# Reduced HP and exit mode cannot carry into a fresh gallery preview.
 	g.demo_enemy = "mimic"
 	g.enemy_demo.configure(0)

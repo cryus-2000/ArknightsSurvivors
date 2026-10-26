@@ -12,6 +12,7 @@ const SKILL_COOLDOWN_SCALE := 0.70
 const Patterns = preload("res://scripts/enemies/boss_patterns.gd")
 const TeleDraw = preload("res://scripts/render/telegraph_draw.gd")
 var patterns
+var finals
 # 招式令牌（docs/49d：7:00 两只 Boss 共存时不同时放大招）：有名字的 Boss 招式占用，结算后 0.6 秒释放
 var token_owner = null
 var token_until := 0.0
@@ -21,6 +22,7 @@ var g  # Game (Node2D)
 func _init(game) -> void:
 	g = game
 	patterns = Patterns.new(game)
+	finals = load("res://scripts/enemies/final_attacks.gd").new(game)
 
 
 ## Boss 行为
@@ -98,6 +100,9 @@ func boss_step(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 	# 招式令牌（docs/38 §1.10）：同一时刻只允许一个有名字的大招，接潮组两具也共用这一个名额（9/30 前误把搭档排除在外，7:00 双体大招会叠）；
 	# 不在 g.bosses 里的（演练 / 图鉴）不算
 	if ready and token_owner != null and not is_same(token_owner, e) and not token_owner.dead and g.t < token_until 			and g.bosses.has(token_owner):
+		ready = false
+	finals.update(e, dt)
+	if ready and finals.try_attack(e, dir, dist):
 		ready = false
 	if ready and patterns.try_attack(e, dir, dist):
 		ready = false

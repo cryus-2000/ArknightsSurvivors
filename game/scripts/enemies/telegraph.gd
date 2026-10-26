@@ -114,6 +114,11 @@ func update_warns(dt: float) -> void:
 	for w in g.warns:
 		w.t += dt
 		var e: Dictionary = w.owner
+		var source = w.get("source")
+		if source is Dictionary and source.get("dead", false):
+			w.done = true
+			w.t = w.dur + 1.0
+			continue
 		if w.follow and not e.dead:
 			w.pos = e.pos
 		var bo = w.get("b_owner")
@@ -130,8 +135,18 @@ func update_warns(dt: float) -> void:
 				e.wind = maxf(e.get("wind", 0.0), rem)
 				bo.wind = maxf(bo.get("wind", 0.0), rem)
 		if w.track > 0.0 and w.t < w.track:
-			if w.shape != "circle" and not (bo is Dictionary):
-				var want: float = (g.ppos + Vector2(0, -14) - w.pos).angle()
+			if w.get("track_center", false):
+				w.pos = g.ppos - Vector2.from_angle(w.ang) * w.len * 0.5
+			elif w.shape != "circle" and not (bo is Dictionary):
+				var target: Vector2 = g.ppos + Vector2(0, -14)
+				var op = w.get("aim_op")
+				if is_instance_valid(op) and op.pos != Vector2.INF:
+					target = op.pos + Vector2(0, -14)
+				if source is Dictionary:
+					w.pos = source.pos
+				var want: float = (target - w.pos).angle() + float(w.get("aim_offset", 0.0))
+				if w.get("aim_extend", false):
+					w.len = maxf(w.len, w.pos.distance_to(target) + 40.0)
 				w.ang = lerp_angle(w.ang, want, minf(1.0, dt * 10.0))
 			elif w.get("track_pos", "") != "":
 				# 落点圈追踪（叠影跟主控、寒冷跟本体）：track 秒内跟着走，之后冻结在锁定时刻的位置
@@ -148,6 +163,8 @@ func hits_leader(w: Dictionary) -> bool:
 	var pp: Vector2 = g.ppos + Vector2(0, -14)
 	match w.shape:
 		"circle":
+			if g.combat.ground_d(g.ppos, w.pos) < float(w.get("inner_r", 0.0)):
+				return false
 			if g.combat.ground_d(g.ppos, w.pos) >= w.r:   # 画即判：主控脚底落在画出的椭圆里才算中（§1.9）
 				return false
 			return not in_gap(w, (g.ppos - w.pos).angle())   # 缺口环（长枪回旋等一次性判定）：站在缺口弧里不算中
@@ -186,6 +203,8 @@ func warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	var true_damage: bool = w.get("true", false)
 	if true_damage:
 		it = ["远程" if w.act in ["ishar_strike", "ishar_line", "ishar_volley", "ishar_echo"] else "近战", "真实"]
+	if w.has("hit_range"):
+		it[0] = str(w.hit_range)
 	if g.invuln <= 0.0:
 		var hp_before: float = g.hp
 		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss, "nerve": float(w.get("nerve", 0.0)),
@@ -238,6 +257,9 @@ func _resolve(w: Dictionary) -> void:
 	if w.get("secondary", false):
 		e.atk_until = g.t + 0.35
 	var dv := Vector2.from_angle(w.ang)
+	if w.act == "final_attack":
+		g.bai.finals.resolve(w)
+		return
 	if str(w.act).begins_with("pattern_"):
 		g.bai.patterns.resolve(w)
 		return
@@ -249,8 +271,9 @@ func _resolve(w: Dictionary) -> void:
 		_atk_fx(e, w, dv)
 	match w.act:
 		"frost_track":
-			g.fx.append({"kind": "frost_track", "a": w.pos, "b": w.pos + dv * w.len,
-				"life": 1.0, "max": 1.0, "enemy": true})
+			var ice_fx: Dictionary = w.duplicate()
+			ice_fx.merge({"kind": "final_impact", "skin": "ice", "life": 0.36, "max": 0.36, "enemy": true}, true)
+			g.fx.append(ice_fx)
 			for i in 8:
 				var pos: Vector2 = w.pos + dv * w.len * (float(i) + 0.5) / 8.0
 				g.fx.append({"kind": "frost_step", "pos": pos, "r": 13.0, "life": 0.9, "max": 0.9, "enemy": true})

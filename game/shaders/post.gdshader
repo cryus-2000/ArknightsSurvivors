@@ -24,6 +24,8 @@ uniform vec2 zone_c = vec2(0.5);
 uniform float zone_r = 0.0;
 uniform float zone_ratio = 0.6;
 uniform vec3 zone_hole = vec3(0.5, 0.5, 0.0);
+uniform bool zone_mask_on = false;
+uniform sampler2D zone_mask : filter_nearest, repeat_disable;
 
 vec3 sample_rgb(vec2 uv) {
 	return texture(screen_tex, uv).rgb;
@@ -96,8 +98,9 @@ void fragment() {
 		float asp = SCREEN_PIXEL_SIZE.y / SCREEN_PIXEL_SIZE.x;
 		vec2 dz = vec2((uv.x - zone_c.x) * asp, (uv.y - zone_c.y) / zone_ratio);
 		float f = 1.0 - smoothstep(zone_r * 0.9, zone_r, length(dz));
-		vec2 dh = vec2((uv.x - zone_hole.x) * asp, (uv.y - zone_hole.y) / 1.7);
-		f *= smoothstep(zone_hole.z * 0.65, zone_hole.z, length(dh));
+		if (zone_mask_on) {
+			f *= 1.0 - texture(zone_mask, uv).a;
+		}
 		float l = dot(col, vec3(0.299, 0.587, 0.114));
 		col = mix(col, clamp(vec3(l) * 1.35 + vec3(0.06), 0.0, 1.0) * vec3(0.84, 0.93, 1.08), f * zone_amt);   // 冷银偏蓝（用户 10-25）：去色 + 提亮 + 冷调
 	}

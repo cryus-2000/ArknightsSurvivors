@@ -20,7 +20,6 @@ var mid_used: Array = []
 ## 同一人物的不同档（docs/38 §2.2，用户 10-01 按原作核对：圣徒卡门 / 圣徒伊比利亚是同一人两档）：中期 Boss 抽取按人物排除，同局只出一位
 const SAME_PERSON := {"carmen": "saint", "iberia": "saint"}
 var next_chest := 20.0
-var fading: Array = []   # 最终 Boss 登场时排队消散的杂兵（final/clear_mobs_s > 0 才有；元素 [敌人, 消散时刻]）
 
 
 func _init(game: Game) -> void:
@@ -224,55 +223,22 @@ func final_knob(key: String, def := 0.0) -> float:
 	return v if v >= 0.0 else Bal.v("final/" + key, def)
 
 
-## 最终 Boss 在场且 final/stop_mobs 开：普通刷怪 / 精英 / 大群 / 威胁上升的新种类都不刷；Boss 召唤物、剧本刷怪（伊莎玛拉练习靶、
-## 子代蜕变等）、补给箱、灯标、商人照常——那些不走这几条路径
+## 任意 Boss 在场时停止普通刷怪、精英、大群与威胁增援；保留既有敌人和机制召唤。
 func mobs_stopped() -> bool:
-	return g.final_boss != null and not g.final_boss.dead and final_knob("stop_mobs") > 0.0
+	return boss_alive()
 
 
-## 最终 Boss 战少量补怪（用户 10-12「最后 boss 还是需要刷新点小怪的，但是频率和数量可以下降点」「新怪中也可以有，可以少一点」，docs/38 §8.14）：
-## 停刷开着且 final/trickle_mult > 0 时，普通刷怪按「正常刷怪率 × trickle_mult」继续（替代 enemy/spawn_boss_mult），存活杂兵上限改读
-## final/trickle_cap；本级威胁新种类在补怪里的抽取权重 × final/trickle_fresh_w。精英 / 大群 / 威胁上升那一小波仍按 mobs_stopped() 不刷。
-## trickle_mult 0（代码缺省）= 10-11 的全停
+## 兼容旧调用口；10-27 起 Boss 战不再启用低频补怪。
 func trickling() -> bool:
-	return mobs_stopped() and final_knob("trickle_mult") > 0.0 and not final_duel()
+	return false
 
 
 ## 最终 Boss 战不刷普通小怪（用户 10-25：「最终 boss 那里小怪就不刷了，换成我们设定里面的」，docs/142b §1.5）：
 ## 最终 Boss 在场时不补怪、不来护卫波；场上只有 Boss 自己机制里的小怪（伊莎玛拉的合唱海嗣、伊祖米克的子代、骑士重生那一波），
-## 登场时现有杂兵由远到近消散（spawner 登场处 queue_clear）。boss/final_duel 0 = 旧行为（少量补怪 + 护卫波）
+## 10-27：现有杂兵保留；该旋钮不再覆盖统一的 Boss 战停刷规则。
 func final_duel() -> bool:
 	var fb = g.final_boss
 	return fb != null and not fb.get("dead", false) and Bal.v("boss/final_duel", 1.0) > 0.0
-
-
-## 最终 Boss 登场时 final/clear_mobs_s > 0：场上现有的普通杂兵（不含 Boss / 宝箱 / 友方 / 事件物件）在 N 秒内由远到近逐只消散。
-## 消散不算击杀：不掉经验 / 灯油 / 道具、不触发击杀类藏品与干员被动、不计 kills（理由见 docs/38 §8.14）。不掷随机数
-func queue_clear(dur: float) -> void:
-	var mobs: Array = []
-	for e in g.enemies:
-		if not e.dead and not e.boss and not e.get("chest", false) and not e.get("friendly", false) and str(e.get("event", "")) == "":
-			mobs.append(e)
-	mobs.sort_custom(func(a, b): return a.pos.distance_squared_to(g.ppos) > b.pos.distance_squared_to(g.ppos))
-	var n := mobs.size()
-	for k in n:
-		fading.append([mobs[k], g.t + dur * float(k + 1) / float(n)])
-
-
-func _update_fading() -> void:
-	var keep: Array = []
-	for f in fading:
-		var e: Dictionary = f[0]
-		if e.dead:
-			continue
-		if g.t < float(f[1]):
-			keep.append(f)
-			continue
-		e.dead = true
-		g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
-		if not g.vfx.fx_sprite("fx_death_dissolve", e.pos, g.PX * maxf(1.0, e.r / 12.0)):
-			g.vfx.anim("fx_death", e.pos, 0.3, g.PX * maxf(1.0, e.r / 12.0))
-	fading = keep
 
 
 func boss_alive() -> bool:
@@ -335,10 +301,7 @@ func update(dt: float) -> void:
 			g.bosses.append(b)
 			spawned.append(b)
 			g.boss = b
-		if boss_idx == D.BOSS_TIMES.size() and mobs_stopped() and final_knob("clear_mobs_s") > 0.0:
-			queue_clear(final_knob("clear_mobs_s"))
-		elif boss_idx == D.BOSS_TIMES.size() and Bal.v("boss/final_duel", 1.0) > 0.0:
-			queue_clear(Bal.v("boss/final_duel_clear", 3.0))   # 最终 Boss 清场（docs/142b §1.5）
+		# Boss arrival stops reinforcements; existing enemies remain alive and keep their drops.
 		if spawned.size() == 2:
 			spawned[0].partner = spawned[1]
 			spawned[1].partner = spawned[0]
@@ -397,8 +360,6 @@ func update(dt: float) -> void:
 	var mob_room: int = boss_mob_room()
 	var stop := mobs_stopped()   # 最终 Boss 战停刷（final/stop_mobs）：累积照常扣掉，不刷
 	var mobs_off := stop and not trickling()   # 少量补怪开着时普通怪仍按低倍率 + 低上限补；精英 / 大群仍看 stop
-	if not fading.is_empty():
-		_update_fading()
 	var cap: int = alive_cap()
 	if int(g.t) != _samp_s and g.t >= 420.0 and not Cfg.dev_args().is_empty():
 		_samp_s = int(g.t)
@@ -1027,6 +988,7 @@ func _dens_apply(e: Dictionary) -> void:
 	e.shield_hp *= hpm
 	e.xp *= inv
 	e.dmg *= pow(inv, Bal.v("enemy/density_dmg_exp", 1.0))
+	e.normal_scale = e.get("normal_scale", Vector3.ONE) * Vector3(hpm, pow(inv, Bal.v("enemy/density_dmg_exp", 1.0)), inv)
 	e["dk"] = inv
 
 
@@ -1051,6 +1013,7 @@ func _trim_apply(e: Dictionary) -> void:
 		e.maxhp *= f
 		e.shield_hp *= f
 	e.dmg *= fd
+	e.normal_scale = e.get("normal_scale", Vector3.ONE) * Vector3(f, fd, 1.0)
 
 
 func _late_hp_apply(e: Dictionary, mult: float) -> void:
@@ -1060,6 +1023,7 @@ func _late_hp_apply(e: Dictionary, mult: float) -> void:
 	e.hp *= f
 	e.maxhp *= f
 	e.shield_hp *= f
+	e.normal_scale = e.get("normal_scale", Vector3.ONE) * Vector3(f, 1.0, 1.0)
 
 
 ## 大群「慢慢来」（docs/150，10-25 用户：不要整圈像平移飘过来）：每只怪速度散布 ±horde_spd_spread、分 horde_batches 批先后出发（批间 horde_batch_gap 秒 + 每只 0–horde_jitter 秒抖动），

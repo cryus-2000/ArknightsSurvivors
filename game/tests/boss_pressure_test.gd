@@ -33,7 +33,7 @@ func _ready() -> void:
 	e.dash2 = true
 	g.warns.clear()
 	g.bai._boss_ai(e, 0.01, Vector2.RIGHT, 300.0)
-	check(g.warns.size() == 1, "second charge cannot overlap another move")
+	check(g.warns.filter(func(w): return float(w.dmg) > 0.0).size() == 1, "second charge cannot overlap another damaging move (pillar spawn tells are harmless)")
 	g.ppos = Vector2(0, 500)
 	g.fx.clear()
 	var w: Dictionary = g.bai._warn(e, "cone", 0.6, {"act": "bite", "ang": 0.0, "half": 0.8, "r": 125.0})

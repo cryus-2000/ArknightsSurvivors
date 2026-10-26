@@ -169,7 +169,7 @@ func _ready() -> void:
 	check(ice_marks.size() == 1 and ice_marks[0].dur >= 0.6, "knight announces frost-track pursuit")
 	if not ice_marks.is_empty():
 		g.bai._warn_resolve(ice_marks[0])
-		check(g.fx.any(func(f): return f.kind == "frost_track") and g.fx.any(func(f): return f.kind == "frost_step"), "knight frost track has ice art")
+		check(g.fx.any(func(f): return f.kind == "final_impact" and f.get("skin", "") == "ice") and g.fx.any(func(f): return f.kind == "frost_step"), "knight frost track has ice art")
 		g.t = float(hunter.get("hunt_follow_at", INF)) + 0.01
 		hunter.wind = 0.0
 		g.warns.clear()
@@ -200,10 +200,11 @@ func _ready() -> void:
 	var quiet_tear: Dictionary = g.spawner.new_enemy("tear", Vector2(250, 0))
 	active_tear.owner = sea
 	quiet_tear.owner = sea
+	quiet_tear.purified = true
 	g.enemies = [active_tear, quiet_tear]
 	g.ppos = quiet_tear.pos
 	g.bai.transform_ishar(sea)
-	check(sea.get("tear_echoes", []).size() == 1 and active_tear.dead and quiet_tear.dead, "only unblocked tears leave a resonance trace")
+	check(sea.get("tear_echoes", []).size() == 1 and not active_tear.dead and active_tear.get("song_eye", false) and quiet_tear.dead, "only unpurified tears survive as hostile song eyes")
 	check(g.fx.any(func(f): return f.kind == "tide_link" and f.a == active_tear.pos), "unsuppressed tear visibly links at transformation")
 	g.t += 2.0
 	sea.wind = 0.0

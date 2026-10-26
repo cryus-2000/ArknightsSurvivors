@@ -44,6 +44,8 @@ uniform vec2 zone_c = vec2(0.5);
 uniform float zone_r = 0.0;
 uniform float zone_ratio = 0.6;
 uniform vec3 zone_hole = vec3(0.5, 0.5, 0.0);
+uniform bool zone_mask_on = false;
+uniform sampler2D zone_mask : filter_nearest, repeat_disable;
 uniform float brightness = 1.0;
 uniform float sat = 1.0;               // docs/139 §6 试验旋钮 render/optical_sat：LUT 之后整体饱和度（1 = 不变）
 
@@ -175,8 +177,9 @@ void fragment() {
 		float asp = SCREEN_PIXEL_SIZE.y / SCREEN_PIXEL_SIZE.x;
 		vec2 dz = vec2((SCREEN_UV.x - zone_c.x) * asp, (SCREEN_UV.y - zone_c.y) / zone_ratio);
 		float zf = 1.0 - smoothstep(zone_r * 0.9, zone_r, length(dz));
-		vec2 dh = vec2((SCREEN_UV.x - zone_hole.x) * asp, (SCREEN_UV.y - zone_hole.y) / 1.7);
-		zf *= smoothstep(zone_hole.z * 0.65, zone_hole.z, length(dh));
+		if (zone_mask_on) {
+			zf *= 1.0 - texture(zone_mask, SCREEN_UV).a;
+		}
 		base = mix(base, clamp(vec3(luma(base)) * 1.35 + vec3(0.06), 0.0, 1.0) * vec3(0.84, 0.93, 1.08), zf * zone_amt);   // 冷银偏蓝（用户 10-25）
 	}
 	if (hurt > 0.001) {

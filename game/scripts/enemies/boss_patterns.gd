@@ -104,6 +104,7 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 		match str(move.mode):
 			"fan":
 				data.act = "pattern_fan"
+				data.track = 0.35 + 0.6 * k
 				data.half = float(move.spread) * 0.5
 				data.r = float(move.get("warn_r", 140.0))
 			"ring":
@@ -157,7 +158,7 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 				data.seq_no = k + 1
 				data.pos = g.ppos
 				dur = data.track + float(move.get("lock", 0.65))
-		if move.has("track"):
+		if move.has("track") and str(move.mode) != "stack":
 			data.track = float(move.track)
 		var w: Dictionary = g.tele.warn(e, shape, dur, data)
 		end = maxf(end, w.dur)

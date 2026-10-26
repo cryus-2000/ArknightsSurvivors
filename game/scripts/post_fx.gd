@@ -3,6 +3,7 @@ extends CanvasLayer
 
 const Bal = preload("res://scripts/core/balance.gd")
 const Look = preload("res://scripts/render/look.gd")
+const A = preload("res://scripts/art.gd")
 
 var rect: ColorRect
 var mat: ShaderMaterial
@@ -14,6 +15,65 @@ var zone_amt := 0.0    # 失色区强度 0..1（拉普兰德 S3「噤声」，ob
 var zone_c := Vector2(0.5, 0.5)   # 屏幕 uv
 var zone_r := 0.0      # uv（按屏幕高）
 var zone_hole := Vector3(0.5, 0.5, 0.0)
+var zone_mask: SubViewport
+var mask_canvas: Node2D
+var mask_game
+
+## 只用友方当前动画帧的透明度遮罩，避免矩形保色区把周围地面也挖出色块。
+func refresh_zone_guards(g) -> void:
+	mask_game = g
+	if zone_amt <= 0.001:
+		return
+	if zone_mask == null:
+		zone_mask = SubViewport.new()
+		zone_mask.world_2d = World2D.new()
+		zone_mask.disable_3d = true
+		zone_mask.transparent_bg = true
+		zone_mask.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+		add_child(zone_mask)
+		mask_canvas = Node2D.new()
+		zone_mask.add_child(mask_canvas)
+		mask_canvas.draw.connect(_draw_zone_mask)
+	zone_mask.size = Vector2i(g.get_viewport().get_visible_rect().size)
+	zone_mask.canvas_transform = g.get_viewport().get_canvas_transform()
+	zone_mask.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	mask_canvas.queue_redraw()
+
+func _draw_zone_mask() -> void:
+	var g = mask_game
+	if g == null or not is_instance_valid(g) or g.squad == null:
+		return
+	# 复用高清干员层的绘制路由：只重画本体与召唤物，不推进动画或玩法。
+	var bc = g.squad.cv
+	var old = bc.g
+	var old_target = g.world.draw_target
+	bc.g = mask_canvas
+	g.world.draw_target = mask_canvas
+	for o in g.squad.ops:
+		if o.pos.is_finite():
+			o.draw_body()
+			for body in o.extra_bodies():
+				o.draw_extra(body)
+	bc.flush()
+	bc.g = old
+	g.world.draw_target = old_target
+	if g.knight.alive:
+		g.knight.draw(mask_canvas)
+	var tx: Texture2D = g.sprite.texture
+	if tx != null:
+		var size := Vector2(float(tx.get_width()) / g.sprite.hframes, tx.get_height())
+		var pk: float = g.PX / A.hires_of(tx)
+		var sx := -pk if g.sprite.flip_h else pk
+		mask_canvas.draw_set_transform(g.sprite.position + g.p_off, g.sprite.rotation + g.p_lean, Vector2(sx * g.p_sq.x, pk * g.p_sq.y))
+		mask_canvas.draw_texture_rect_region(tx, Rect2(-size * 0.5 + g.sprite.offset, size), Rect2(Vector2(size.x * g.sprite.frame, 0), size))
+		mask_canvas.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+func apply_zone_guards(target: ShaderMaterial) -> void:
+	target.set_shader_parameter("zone_mask_on", zone_mask != null and zone_amt > 0.001)
+	if zone_mask != null:
+		target.set_shader_parameter("zone_mask", zone_mask.get_texture())
+		if zone_amt <= 0.001:
+			zone_mask.render_target_update_mode = SubViewport.UPDATE_DISABLED
 var t := 0.0
 var world := false    # 对局画面（game.gd 在 add_child 前设）：才叠观感曲线
 var _curve := false   # 观感曲线开着时整层常显
@@ -53,6 +113,7 @@ func _process(delta: float) -> void:
 	mat.set_shader_parameter("zone_c", zone_c)
 	mat.set_shader_parameter("zone_r", zone_r)
 	mat.set_shader_parameter("zone_hole", zone_hole)
+	apply_zone_guards(mat)
 	# 全关时整层隐藏，省一次全屏采样
 	rect.visible = ((Cfg.bloom or Cfg.water_filter) and not crisp) or absf(br - 1.0) > 0.01 or hurt > 0.001 or desat > 0.001 or zone_amt > 0.001 or _curve
 	# 图鉴开着时，手机网页 / 苹果 WebKit 不叠后期（不读屏，亮度不乘）：iOS 上这一层会把整屏盖成图鉴中途拷屏时的画面（Cfg.screen_copy_ok）
