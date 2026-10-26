@@ -50,10 +50,22 @@
 ### 商人配乐替换（2026-10-27）
 
 - 来源：用户指定的 `E:/download_chrome/m_sys_rglk1shop_intro.mp3` 与 `m_sys_rglk1shop_loop.mp3`。前奏解码为 972797 帧（22.058889 秒），循环段 3434813 帧（77.886916 秒），均为 44100 Hz 双声道。
-- 按前奏 → 正文顺序解码拼接，再编码为 `game/audio/music/shop.ogg`（Vorbis quality 4）；不裁切、不拉伸、不额外淡化两段接点，保留原音量。总长 99.945805 秒。
+- 按前奏 → 正文顺序解码拼接，降采样至 **32000 Hz、双声道**，再编码为 `game/audio/music/shop.ogg`（Vorbis quality 4）；不裁切、不拉伸、不额外淡化两段接点，保留原音量。降采样后 3198266 帧、99.945813 秒（帧取整差小于一个输出采样）。文件 1576615 → 1468956 字节（减少 6.83%）。
 - Godot 的 `loop_offset` 设在前奏结束处；导入配置与 `sfx.gd` 同时设置，保证有导入缓存和直接读原文件时一致。进入商店从头播放，正文结束回到 22.058889 秒，离开商店沿用原有淡出和选曲，再次进入重新播放前奏。
 - 音乐仍走 Music 总线，音量、静音和自动测试静音规则照旧。`gen_music.py shop` 是旧合成曲生成器，不要用于重建现用 `shop.ogg`。
-- 复现转换：FFmpeg 分别解码两份 MP3 为 44100 Hz 双声道 float32 PCM，按上述顺序拼接，使用 `-c:a libvorbis -q:a 4` 编码；循环点按解码后的帧数计算，不能用含 MP3 编码填充的容器时长。
+- 复现转换：FFmpeg 分别解码两份 MP3 为 44100 Hz 双声道 float32 PCM，按上述顺序拼接，输出使用 `-ar 32000 -c:a libvorbis -q:a 4`；从原 MP3 重做，不对旧 OGG 二次转码。循环点是秒数，仍为 972797 / 44100，不应随输出采样率改成除以 32000。
+
+#### 网页音频内存核查（2026-10-27，仅方案，未改播放引擎）
+
+- 本地导出 `build/release/final_2f7c7d76f/web/index.js`：`_godot_audio_sample_register_stream` 固定 `numberOfChannels = 2`、`sampleRate = GodotAudio.ctx.sampleRate`。上游 `AudioDriverWeb::register_sample` 先按 `mix_rate * length` 生成样本。因此只降源文件采样率、码率或改源文件为单声道，不能按同样比例削减这条网页样本路径的 PCM 缓冲。
+- 商人整曲单份缓冲估算：48 kHz 混音时 **36.60 MiB**；真正以 32 kHz 混音时 **24.40 MiB**。这是 `时长 × 混音采样率 × 2 × 4` 的理论值，不是浏览器总内存实测。
+- 同一导出的 `Sample.getAudioBuffer()` 调用 `_duplicateAudioBuffer()`，播放节点另拿一份完整 AudioBuffer，复制过程中还有临时 Float32Array。48 kHz 下，缓存加一个播放副本约 **73.20 MiB**，不含临时解码数据、浏览器内部副本与引擎堆。
+- 当前 `Sfx.sample_mem_mb()` 只遍历 `streams` 和 `seq`，漏掉 `groups`（标题、商人、整首最终 Boss 等）、语音缓存及其他独立播放器，也未计播放副本。旧性能记录中的音频数字不能视为全部音频占用；应先按实际注册缓冲及播放副本补齐统计。
+- 优先方案：① 验证网页混音率降至 32 kHz（影响所有声音，必须读取实际 AudioContext.sampleRate，并检查 Safari / Chrome）；② 网页播放节点共享不修改的 AudioBuffer，避免每次整段复制（须检查播放、暂停、循环、重入及独立节点状态）；③ 曲目退出且所有使用者停播后释放样本缓存，回来时重新注册（可能产生解码卡顿，需预载）。这些改动尚未实施。
+- 引擎有内部注销入口，当前上游 `_bind_methods()` 未将 `unregister_stream_as_sample` 公开给 GDScript；本机 Godot 4.7.2 无头探针也确认 `AudioServer.has_method(...) == false`。本地网页 JS 有清理入口，接入需处理引用和播放生命周期。仅把曲子拆成多段而不回收样本，全部播过之后仍会累计完整曲长的缓存。
+- 降采样验证：FFmpeg 解码确认 32 kHz / 双声道、时长差小于一个输出采样、峰值约 -2.25 dBFS；Godot 直接读取新 OGG 并从末尾循环，回到 23.397 秒（循环点 22.059 秒之后），断言通过。按用户要求不跑快检；未做手机实机听感或内存实测。
+- 流式 BGM 可避免完整 PCM 常驻，但本项目已记录无线程网页流式几乎无声（docs/50 §30.5），本次未重新启用。浏览器媒体元素流式播放属于另一条实现路线，还需处理首次手势、Music 音量、页面隐藏和前奏接循环。
+- 依据：[Godot 网页音频驱动](https://github.com/godotengine/godot/blob/master/platform/web/audio_driver_web.cpp)、[网页音频 JS](https://github.com/godotengine/godot/blob/master/platform/web/js/libs/library_godot_audio.js)、[AudioServer 方法绑定](https://github.com/godotengine/godot/blob/master/servers/audio/audio_server.cpp)，并与上述本地导出代码交叉核对。上游链接为核查时的 master，后续引擎升级需重新确认。
 
 ### 战斗曲的段、句、层
 
