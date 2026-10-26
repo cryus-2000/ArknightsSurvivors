@@ -254,7 +254,7 @@ func _snipe(e: Dictionary, dir: Vector2) -> void:
 
 
 ## 卡门 · 封锁线（docs/142b §3.4，本作拟；取材 PRTS 弹药 3）：k = 这一轮第几枪（0–2），耗 1 发。
-## 第一枪瞄主控（追踪 0.6、总 1.2）；一幕后两枪与第一枪锁定的方向平行、起点左右偏 carmen_lane_off（150），不追踪（总 1.0）；
+## 第一枪瞄主控（追踪 0.6、总 1.2）；一幕后两枪出手即锁定主控当时的位置、从本体两侧斜穿过去（boss_base._aim_fan，不追踪，总 1.0；10-25 用户「都要瞄准人打」）；
 ## 二幕第三枪垂直于第一枪、穿过主控当前位置（追踪 0.3、总 1.0）。结算画 Kanpelle 象牙白光束，然后留一条火线（_fire_step）
 func _lane_shot(e: Dictionary, dir: Vector2, k: int) -> void:
 	var p2: bool = int(e.get("gates_passed", 0)) >= 1
@@ -275,8 +275,10 @@ func _lane_shot(e: Dictionary, dir: Vector2, k: int) -> void:
 		track = 0.3
 		dur = 1.0
 	else:
-		ang = base_ang
-		pos = e.pos + Vector2.from_angle(base_ang).orthogonal() * Bal.v("boss/carmen_lane_off", 150.0) * (1.0 if k == 1 else -1.0)
+		# 10-25 用户「三条激光都要瞄准人打」：后两枪出手即锁定主控当时的位置，从本体两侧斜穿过去（原来与第一枪平行、左右偏 carmen_lane_off）
+		var f: Dictionary = _aim_fan(e, 3, 1100.0)[0 if k == 1 else 2]
+		pos = f.pos
+		ang = f.ang
 		track = 0.0
 		dur = 1.0
 	var q: Array = e.get("lane_gaps", [])

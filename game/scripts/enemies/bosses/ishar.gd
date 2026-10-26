@@ -101,8 +101,9 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 		1:
 			# B · 三线扫射：三条 660 × 14 条纹线，夹角 0.38；逐条锁定（第 1 条 0.3 秒、之后各晚 0.15 秒），同时结算；每条锁定 ≥0.4；e.dmg × 0.7 真伤 / 线。
 			# Kanpelle 青绿光束（§8.5）。三幕「分锁三人」：第 2、3 条改瞄两名队友（没有就照旧张开），之后 2 秒不出招（§8.2「定拍」：拆网的空档）
-			var sp: float = float(d.get("line_spread", 0.38))
-			var aims: Array = [dir.angle(), dir.angle() - sp, dir.angle() + sp, dir.angle() + sp * 2.0 * (1.0 if g.rng_enemy.randf() < 0.5 else -1.0)]   # 第 4 条（10-25 加密）：再往一侧张开一格
+			# 10-25 用户「三条激光都要瞄准人打」：出招时锁定主控位置，4 条从本体两侧出发、都穿过锁定点（_aim_fan），之后不再转向；原来扇形张开 line_spread
+			var fan: Array = _aim_fan(e, 4, float(d.get("range", 660.0)))
+			var aims: Array = fan.map(func(f): return f.ang)
 			if act3:
 				var n := 1
 				for o in g.squad.ops:
@@ -110,12 +111,13 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 						break
 					if not o.is_leader and o.pos != Vector2.INF and o.pos.distance_to(e.pos) > 60.0:
 						aims[n] = (o.pos - e.pos).angle()
+						fan[n] = {"pos": e.pos, "ang": aims[n], "len": float(d.get("range", 660.0))}
 						n += 1
 				pause = Bal.v("boss/ishar_line_pause", 2.0)
 			for k in 4:
 				var w := _warn(e, "line", float(d.get("line_warn", 1.0)),
-					{"ang": aims[[1, 0, 2, 3][k]],
-					"len": float(d.get("range", 660.0)), "wid": float(d.get("line_width", 14.0)), "track": (0.3 + 0.15 * k) if not act3 or k == 1 else 0.0, "seq_no": k + 1,
+					{"pos": fan[k].pos, "ang": fan[k].ang,
+					"len": fan[k].len, "wid": float(d.get("line_width", 14.0)), "track": 0.0, "seq_no": k + 1,
 					"act": "ishar_line", "true": true, "name": "三线扫射" if k == 0 else "", "col": COL, "kp": "ishar", "kp_k": 2.0,
 					"dmg": e.dmg * float(d.get("line_mult", 0.7)) * 0.78, "cancel_dead": true, "lock": k == 0})   # ×0.78：10-25 加密
 				end = maxf(end, w.dur)

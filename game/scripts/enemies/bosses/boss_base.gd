@@ -152,6 +152,19 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 	return g.tele.warn(e, shape, dur, d)
 
 
+## 瞄准主控的多道激光（10-25 用户「三条激光都要瞄准人打」）：出招这一刻锁定主控位置（沿移动方向提前 boss/aim_lead 秒），
+## n 道的起点在本体两侧等距排开（相邻 boss/aim_fan_px 像素），全部穿过锁定点，带一点点夹角；之后不再转向（调用方 track 写 0）。
+## 返回每道的 {pos, ang, len}；len 至少穿过锁定点再延伸 200
+func _aim_fan(e: Dictionary, n: int, len_px: float) -> Array:
+	var tgt: Vector2 = g.ppos + Vector2(0, -14) + g.pvel * Bal.v("boss/aim_lead", 0.12)
+	var fwd: Vector2 = (tgt - e.pos).normalized() if tgt.distance_to(e.pos) > 1.0 else Vector2.RIGHT
+	var out := []
+	for k in n:
+		var o: Vector2 = e.pos + fwd.orthogonal() * Bal.v("boss/aim_fan_px", 60.0) * (float(k) - (n - 1) * 0.5)
+		out.append({"pos": o, "ang": (tgt - o).angle(), "len": maxf(len_px, o.distance_to(tgt) + 200.0)})
+	return out
+
+
 func _cd(e: Dictionary, key: String, dur: float) -> bool:
 	return g.bai.cd_ready(e, key, dur)
 
