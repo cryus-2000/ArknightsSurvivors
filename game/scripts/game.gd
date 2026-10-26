@@ -1421,9 +1421,10 @@ func _apply_auto_level() -> void:
 		optical.auto_mask = (6 if lv >= 1 else 0) | (8 if lv >= 3 else 0)   # 2 GPU 粒子 + 4 动态照明；8 发光层（CPU 颗粒不关：关了退回帧条画法反而慢 0.8–1 ms，docs/50 §28；颗粒量由 fx_grains 帧时自适应自己往下收）
 	if spawner != null:
 		spawner.auto_cap = AQ_CAP if (lv >= 2 or mobile_cap()) else 0
-	if lv >= 4 and Cfg.hidpi_render():
+	# 第 4 级分辨率缩放：手机网页跳过（10-27 用户要清晰，先牺牲帧率余量：掉帧时直接走第 5 级低画质，不糊画面；docs/50 §34）
+	if lv >= 4 and Cfg.hidpi_render() and not Cfg.mobile_web():
 		Cfg.set_render_scale(true)
-	elif lv < 4 and not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_rscale", 1.0)):
+	elif lv < 4 and not (Cfg.mobile_web() and Cfg.mobile_knob("mobile_rscale", 0.0)) and not Cfg.guard_lowered:
 		Cfg.set_render_scale(false)
 	if lv >= 5 and Cfg.quality != "low":
 		Cfg.set_quality("low")
@@ -1492,6 +1493,10 @@ func _process(delta: float) -> void:
 	# 图鉴演示 / 精英化演出不顿帧：演示里攻击不停，每下重击都冻 0.05–0.1 秒，走路看起来一卡一卡（2026-09-26 用户反馈）
 	_auto_quality(delta)
 	_static_fps()
+	if cam != null and not optical_lo and demo_op == "" and demo_enemy == "" and Cfg.cam_unified():
+		var bz: float = Cfg.battle_zoom()
+		if absf(cam.zoom.x - bz) > 0.0001:
+			cam.zoom = Vector2(bz, bz)   # 低档也每帧对齐（中 / 高由光学 _lo_step 每帧算）：漏掉尺寸变化通知时不会停在旧镜头（10-27 用户「低中镜头还是不一样」）
 	_mem_guard(delta)
 	_white_release(delta)
 	if victory.active and state == S.PLAY:

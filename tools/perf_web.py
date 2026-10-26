@@ -145,7 +145,7 @@ class _Sock(socket.socket):
     pass
 
 
-def _cdp_setup(port, url, throttle, mobile, throttle_late=False, dpr=3):
+def _cdp_setup(port, url, throttle, mobile, throttle_late=False, dpr=3, vw=844, vh=390):
     """等 Edge 起来，按需开 CPU 节流 / 手机视口 + 触屏，再导航到游戏页（先设好再加载，游戏启动时就认成触屏设备）"""
     t0 = time.time()
     tgt = None
@@ -172,7 +172,7 @@ def _cdp_setup(port, url, throttle, mobile, throttle_late=False, dpr=3):
     if throttle and throttle > 1 and not throttle_late:
         cmd("Emulation.setCPUThrottlingRate", {"rate": throttle})
     if mobile:
-        cmd("Emulation.setDeviceMetricsOverride", {"width": 844, "height": 390, "deviceScaleFactor": dpr, "mobile": True,
+        cmd("Emulation.setDeviceMetricsOverride", {"width": vw, "height": vh, "deviceScaleFactor": dpr, "mobile": True,
                                                     "screenOrientation": {"type": "landscapePrimary", "angle": 90}})
         cmd("Emulation.setTouchEmulationEnabled", {"enabled": True, "maxTouchPoints": 5})
         cmd("Emulation.setUserAgentOverride", {"userAgent": "Mozilla/5.0 (Linux; Android 13; Pixel 6a) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0 Mobile Safari/537.36",

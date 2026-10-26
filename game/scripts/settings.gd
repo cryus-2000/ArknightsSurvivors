@@ -441,8 +441,10 @@ func _ready() -> void:
 	set_quality(_guess_quality() if quality_mode == "auto" else quality_mode)   # 自动档：每次启动按本机检测；手选档：按档位统一开关后期
 	if mobile_fonts_slim():
 		slim_fonts()
-	if mobile_web() and mobile_knob("mobile_rscale", 1.0):
-		set_render_scale.call_deferred(true)   # 手机网页开局就按逻辑分辨率（约 1280×720）画再放大：iPhone 3 倍像素屏的画布 / 全屏层显存约降到 1/3–1/7
+	if mobile_web() and mobile_knob("mobile_rscale", 0.0):
+		# 手机网页开局按逻辑分辨率（约 1113×626）画再放大：显存省，但整屏线性放大约 2.27 倍，像素边和文字都糊（10-27 用户 iPhone「好糊」）。
+		# 10-27 起缺省关（docs/50 §34）：按设备像素画，美术像素落整数倍（光学 k = 4）、文字原生分辨率；内存护栏超线时仍会开它兜底
+		set_render_scale.call_deferred(true)
 	for a in dev_args():
 		if a.begins_with("--quality="):
 			set_quality(a.substr(10))   # 截图自测：强制画质档（测试模式不写存档）

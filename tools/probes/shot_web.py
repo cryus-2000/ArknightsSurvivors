@@ -29,6 +29,9 @@ def main():
     ap.add_argument("--steps", default=DEFAULT_STEPS)
     ap.add_argument("--dpr", type=float, default=3)
     ap.add_argument("--timeout", type=float, default=900)
+    ap.add_argument("--vw", type=int, default=844, help="手机视口宽（CSS 像素）")
+    ap.add_argument("--vh", type=int, default=390)
+    ap.add_argument("--desktop", action="store_true", help="桌面网页：不开手机仿真，窗口 1280×720")
     a = ap.parse_args(argv)
     d = pw.export(a.ref)
     out = os.path.join(gr.common_root(), "build", "perf_stack", "webshot_" + a.tag)
@@ -65,11 +68,11 @@ def main():
     with socket.socket() as s2:
         s2.bind(("127.0.0.1", 0))
         dbg = s2.getsockname()[1]
-    p = subprocess.Popen([pw.EDGE, "--user-data-dir=" + ud, "--app=about:blank", "--window-position=%d,%d" % (px, py), "--window-size=844,390",
+    p = subprocess.Popen([pw.EDGE, "--user-data-dir=" + ud, "--app=about:blank", "--window-position=%d,%d" % (px, py), "--window-size=%s" % ("1280,720" if a.desktop else "%d,%d" % (a.vw, a.vh)),
                           "--no-first-run", "--no-default-browser-check", "--disable-background-timer-throttling", "--disable-renderer-backgrounding",
                           "--disable-backgrounding-occluded-windows", "--disable-features=CalculateNativeWinOcclusion", "--mute-audio",
                           "--remote-debugging-port=%d" % dbg])
-    page = pw._cdp_setup(dbg, url, 0, True, False, a.dpr)
+    page = pw._cdp_setup(dbg, url, 0, not a.desktop, False, a.dpr, a.vw, a.vh)
 
     def ev(js):
         r = page.cmd("Runtime.evaluate", {"expression": js, "returnByValue": True})
