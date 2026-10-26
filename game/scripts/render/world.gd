@@ -92,8 +92,9 @@ var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 
 ##   render/elite_rim_gain  亮度倍数（颜色 = 冷青 × gain，缺省 2.2；> 1 才能在暗处透出来）
 ## 场上精英通常只有几只，每只多一次贴图切换；每帧在 _update 里读一次旋钮
 const ELITE_RIM_RGB := Color(0.55, 0.9, 1.0)
-## 紧急作战精英小队（docs/161，e.squad）：危险红描边（> 1 抵消环境暗色）；颜色语言：红只给危险。脚下红光 10-26 用户去掉（「红色描边就可以」）
-const SQUAD_RIM_COL := Color(2.6, 0.45, 0.45, 0.85)
+## 紧急作战精英小队（docs/161，e.squad）：危险红描边（> 1 抵消环境暗色）；颜色语言：红只给危险。脚下红光 10-26 用户去掉（「红色描边就可以」）；
+## 原 (2.6, 0.45, 0.45) 过曲线后发粉，压低绿蓝通道成正红（10-26 第二次反馈）；身体本色不调
+const SQUAD_RIM_COL := Color(2.4, 0.16, 0.12, 0.95)
 var elite_rim := 0.0
 var elite_rim_col := Color(0, 0, 0, 0)
 var _afast := false               # 本帧缓存路径走图集快速路径（_dc_emit）
@@ -2794,7 +2795,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		name = e.tex + "_enraged"
 		frames = 2
 		frame = int(g.t * 5.0 + e.id * 0.37) % 2
-	var rage_fx: bool = e.get("enraged", false) and not D.ENEMIES.get(e.type, _NO_DEF).get("rage_keep_tint", false)   # rage_keep_tint：收割者的狂奔保持冷蓝本色；波纹另画。
+	var rage_fx: bool = e.get("enraged", false) and not D.ENEMIES.get(e.type, _NO_DEF).get("rage_keep_tint", false) and not e.get("squad", false)   # rage_keep_tint：收割者的狂奔保持冷蓝本色；波纹另画。精英小队不叠狂暴的脚下红椭圆和全身红调（红描边已标危险；10-26 用户「还是有红色的底，并且全身发红」）
 	# 巢涌者神经光环改到地面层画（draw_nest_auras），不再按 4.6 倍放大帧条盖在实体上
 	# 染色复用贴图的敌人（巨海、撕裂者、潜地者、吐酸者）按自身半径放大：enemies.json 的 draw_scale（docs/48 §1 第 7 项）
 	var sc: float = enemy_scale(e)
