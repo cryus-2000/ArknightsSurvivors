@@ -247,6 +247,9 @@ static func redeem_ten() -> Array:
 		var r := _result("ten", choose_any(), COST_RANDOM)
 		if str(r.id) != "":
 			out.append(r)
+	if not out.is_empty():
+		Cfg.title_tour = 1   # 新手十连做完：回主界面后聚光框引导 图鉴 → 返回 → 集结出发（screens/title_tour.gd）
+		Cfg.save()
 	return out
 
 
