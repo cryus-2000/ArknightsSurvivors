@@ -13,6 +13,7 @@ func _shot(name: String) -> void:
 
 
 var rec := false
+var fresh := false
 var rec_n := 0
 
 
@@ -33,11 +34,15 @@ func _ready() -> void:
 			od = arg.get_slice("=", 1)
 		if arg == "--rec":
 			rec = true
+		if arg == "--fresh":
+			fresh = true   # 首次未通关：一个结局都没达成过，卡底不出信物提示
+		if arg == "--rm":
+			Cfg.reduce_motion = true   # 减少动态效果（只在内存里）
 	out = ProjectSettings.globalize_path("res://../build/" + od)
 	DirAccess.make_dir_recursive_absolute(out)
-	for e in ["standard", "knight", "deep", "resolve"]:
-		if not Cfg.endings_cleared.has(e):
-			Cfg.endings_cleared.append(e)   # 只在内存里：让入口卡描上结局色边
+	Cfg.endings_cleared.clear()
+	for e in (["standard"] if fresh else ["standard", "knight", "deep", "resolve"]):
+		Cfg.endings_cleared.append(e)   # 只在内存里：全部达成 = 入口卡带信物提示；--fresh 只有结局一
 	g = load("res://game.tscn").instantiate()
 	add_child(g)
 	await _wait(1.5)
@@ -70,6 +75,13 @@ func _ready() -> void:
 	for i in g.endg.deck.size():
 		if str(g.endg.deck[i].get("event", "")) == "opening":
 			want = i
+	# 逐张悬停：带路线的卡下方出结局名，普通卡不出；切卡中途截一张看淡入淡出
+	for k in g.endg.deck.size():
+		g.nav_sel = k
+		await _wait(0.08)
+		await _shot("3_switch_%d" % k)
+		await _wait(0.35)
+		await _shot("3_hover_%d" % k)
 	g.nav_sel = want
 	await _wait(0.4)
 	await _shot("3_hover")

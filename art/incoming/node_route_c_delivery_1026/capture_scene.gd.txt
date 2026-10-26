@@ -1,0 +1,34 @@
+extends Node
+const Cards = preload("res://tests/_card_a_preview.gd")
+var g
+func wait_frames(n: int) -> void:
+ for i in n:
+  await get_tree().process_frame
+func _ready() -> void:
+ var out := ProjectSettings.globalize_path("res://../art/incoming/node_route_c_refined_1026/shots")
+ DirAccess.make_dir_recursive_absolute(out)
+ for e in ["standard", "knight", "deep", "resolve"]:
+  if not Cfg.endings_cleared.has(e): Cfg.endings_cleared.append(e)
+ g = load("res://game.tscn").instantiate()
+ add_child(g)
+ await wait_frames(90)
+ g.state = g.S.PLAY
+ g.show_queue.clear()
+ g.pending_levelups = 0
+ g.pending_chests = 0
+ g.t = 214
+ g.endg.enabled = true
+ g.endg._checked = true
+ g.rng.seed = 11
+ g.endg._deal(1)
+ await wait_frames(70)
+ g.kb_nav = true
+ for mode in [2]:
+  Cards.route_variant = mode
+  for selected in 3:
+   g.nav_sel = selected
+   await wait_frames(16)
+   await RenderingServer.frame_post_draw
+   get_viewport().get_texture().get_image().save_png(out.path_join("v%d_%d.png" % [mode,selected]))
+ print("NODE SHOTS done")
+ get_tree().quit(0)
