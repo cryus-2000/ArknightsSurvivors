@@ -111,6 +111,8 @@ func _ready() -> void:
 					gallery.select_id(a2.substr(12))   # 按干员 / 条目 id 选（新干员加进来下标会变）
 				if a2.begins_with("--galleryfilter="):
 					gallery._set_filter(a2.substr(16))
+				if a2 == "--gallerygroup":
+					gallery._set_group(true)   # 截图自测：干员页按职业分组（10-26）
 				if a2.begins_with("--galleryrow="):
 					gallery.row_sel = int(a2.substr(13))   # 手机：技能 / 成长页展开第几行
 				if a2 == "--reducemotion":

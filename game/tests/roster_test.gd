@@ -20,6 +20,7 @@ class FakeG:
 	var trial := FakeTrial.new()
 	var demo_op := ""
 	var tier := 0
+	var t := 600.0
 	var roster_new := {}
 
 
@@ -117,6 +118,18 @@ func run() -> void:
 	Roster.on_run_end(fg, false)
 	check(Roster.tickets() == 7, "非 PLAY 模式不发")
 	fg.mode = 0
+	# 倒下时探索不足 RUN_MIN_T 秒不发（10-26：开局即倒下 / 重开刷券）；通关不受限；刚好到线照发
+	fg.t = Roster.RUN_MIN_T - 1.0
+	Roster.on_run_end(fg, false)
+	check(Roster.tickets() == 7 and int(fg.roster_new.get("hunt", -1)) == 0 and bool(fg.roster_new.get("short", false)), "倒下时不足 %d 秒：不发（%d 张，%s）" % [int(Roster.RUN_MIN_T), Roster.tickets(), fg.roster_new])
+	fg.t = 30.0
+	Roster.on_run_end(fg, true)
+	check(Roster.tickets() == 11, "通关不受时长限制：+4（%d）" % Roster.tickets())
+	fg.t = Roster.RUN_MIN_T
+	Roster.on_run_end(fg, false)
+	check(Roster.tickets() == 14 and not fg.roster_new.has("short"), "倒下时刚好 %d 秒：照发 3 张（%d）" % [int(Roster.RUN_MIN_T), Roster.tickets()])
+	Cfg.roster_tickets = {"hunt": 7}
+	fg.t = 600.0
 	Cfg.roster_unlocked = Roster.all_ids()
 	Cfg.meta_earned = {}
 	Cfg.meta_dev = "dtest"

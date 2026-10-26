@@ -27,6 +27,9 @@ const PRIORITY := {"lumen": 2.0, "skadi": 2.0, "specter_unchained": 2.0, "lappla
 ## 寻访凭证（存档 Cfg.roster_tickets["hunt"]）：每次探索结束发 RUN_TICKETS 张，通关再 +WIN_BONUS
 const T_HUNT := "hunt"
 const RUN_TICKETS := 3
+## 倒下时探索不足这么多秒不发凭证（10-26 用户反馈「一局没打完却多了三张券」：开局即倒下 / 重开也照发 3 张，可以刷券）；
+## 通关不受影响。中途从暂停回标题 / 重新开始不走局终结算，本来就不发
+const RUN_MIN_T := 180.0
 const WIN_BONUS := 1
 const COST_RANDOM := 1
 const COST_PICK := 2
@@ -250,14 +253,18 @@ static func mark_seen(cid: String) -> void:
 		Cfg.save()
 
 
-## 一次探索结束（state 进入 DEAD / WIN，game.gd _process 调一次）：发寻访凭证 3 张（通关 4 张）。
-## 不发：演练、练习、图鉴演示、非 PLAY 模式、全部解锁 / 测试局（active() 为假）。名册已满时不再发（剩下的凭证由 spill_to_cells 折成生机细胞）
+## 一次探索结束（state 进入 DEAD / WIN，run_end.settle 每局只调一次）：发寻访凭证 3 张（通关 4 张）。
+## 不发：演练、练习、图鉴演示、非 PLAY 模式、全部解锁 / 测试局（active() 为假）、倒下时探索不足 RUN_MIN_T 秒（g.roster_new.short = true，结算页写明）。
+## 名册已满时不再发（剩下的凭证由 spill_to_cells 折成生机细胞）
 static func on_run_end(g, won: bool) -> void:
 	if not active() or g.mode != g.Mode.PLAY or g.trial.active or g.demo_op != "" or Cfg.practice_active:
 		return
 	if locked_ids().is_empty():
 		g.roster_new = {}
 		spill_to_cells()
+		return
+	if not won and float(g.t) < RUN_MIN_T:
+		g.roster_new = {T_HUNT: 0, "short": true}
 		return
 	var n := RUN_TICKETS + (WIN_BONUS if won else 0)
 	Cfg.roster_tickets[T_HUNT] = tickets() + n

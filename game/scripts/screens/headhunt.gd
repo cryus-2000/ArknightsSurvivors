@@ -785,7 +785,7 @@ func _draw_entry() -> void:
 	HS.voucher(ci, vr.position + Vector2(52, 38), 1.0)
 	UI.text_at(ci, f, vr.position + Vector2(110, 38), "寻访凭证", 20, HS.INK, "lm", true)
 	UI.text_at(ci, f, Vector2(vr.end.x - 20, vr.position.y + 38), "× %d" % n, 30, HS.INK, "rm", true)
-	var rules := ["每次探索结算获得 %d 张，通关获得 %d 张" % [_per_run(), _per_clear()], "未解锁 %d 名 · 不会抽到重复干员" % locked.size()]
+	var rules := ["探索 %d 分钟以上结算获得 %d 张，通关获得 %d 张" % [int(Roster.RUN_MIN_T / 60.0), _per_run(), _per_clear()], "未解锁 %d 名 · 不会抽到重复干员" % locked.size()]
 	var first := Roster.needs_first()
 	if locked.is_empty():
 		rules = ["干员已全部入职", "此后获得的凭证每张折算为 %d 生机细胞" % Roster.CELLS_PER_TICKET]
