@@ -2,8 +2,8 @@
 
   python tools/probes/power_web.py --ref HEAD --tag base [-- <额外游戏参数…>]
 
-和 tools/perf_web.py 共用测量副本（build/_perfweb/<提交>/），但页面用真的 requestAnimationFrame（跟显示器 60 Hz + 游戏自己的帧率上限，
-同玩家），不用测帧时用的 MessageChannel 空转。游戏带 --powerseq（run/autotest.gd）：对局 → 暂停 → 选卡 → 对局，各段把段名写进 window.__phase；
+和 tools/perf_web.py 共用测量副本（build/_perfweb/<提交>/），但页面的 requestAnimationFrame 按 60 Hz 节拍（模拟显示器刷新 + 游戏自己的帧率上限，
+同玩家；屏幕外窗口不发真 rAF），不用测帧时用的 MessageChannel 空转。游戏带 --powerseq（run/autotest.gd）：对局 → 暂停 → 选卡 → 对局，各段把段名写进 window.__phase；
 这里每秒用 CDP SystemInfo.getProcessInfo 取各进程累计 CPU 时间，按段名把增量记账。iPhone 横屏 844×390、3 倍像素、触屏（同 perf_web --mobile）。
 标题页段：--title 不进局，停在标题页 20 秒。
 """
@@ -15,6 +15,11 @@ sys.path.insert(0, TOOLS)
 import godot_runner as gr
 import perf_web as pw
 
+HIDE_JS = """(async()=>{const L=window.__syAudioCtx||[];const w=()=>new Promise(r=>setTimeout(r,500));const b=L.map(c=>c.state);
+const set=v=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>v});document.dispatchEvent(new Event('visibilitychange'));};
+set(true);await w();const h=L.map(c=>c.state);set(false);await w();return JSON.stringify({n:L.length,before:b,hidden:h,after:L.map(c=>c.state)});})()"""
+# 屏幕外窗口浏览器不发真 rAF：换成按 60 Hz 节拍的定时器（模拟显示器刷新；后台定时器节流已关），不是测帧时用的空转
+RAF_60 = "window.requestAnimationFrame=function(cb){q.push(cb);if(q.length===1){var n=performance.now(),p=1000/60;setTimeout(function(){ch.port2.postMessage(0);},Math.max(0,p-(n%p)));}return q.length;};window.cancelAnimationFrame=function(){};"
 RAF_OVERRIDE = "window.requestAnimationFrame=function(cb){q.push(cb);if(q.length===1)ch.port2.postMessage(0);return q.length;};window.cancelAnimationFrame=function(){};"
 
 
@@ -30,11 +35,12 @@ def main():
     ap.add_argument("--title", action="store_true")
     ap.add_argument("--secs", type=float, default=400, help="最长等多久（含启动；段走完写 end 就提前结束）")
     ap.add_argument("--dpr", type=float, default=3)
+    ap.add_argument("--hidecheck", action="store_true", help="对局开始后模拟页面隐藏 / 再显示，读 AudioContext 状态（tools/web/power.js 自测）")
     a = ap.parse_args(argv)
     d = pw.export(a.ref)
     html = open(os.path.join(d, "index.html"), encoding="utf-8").read()
     assert RAF_OVERRIDE in html, "测量副本的 rAF 替身变了"
-    open(os.path.join(d, "index_power.html"), "w", encoding="utf-8").write(html.replace(RAF_OVERRIDE, ""))
+    open(os.path.join(d, "index_power.html"), "w", encoding="utf-8").write(html.replace(RAF_OVERRIDE, RAF_60))
     log_p = os.path.join(d, "out_%s.txt" % a.tag)
     open(log_p, "w").close()
 
@@ -111,6 +117,10 @@ def main():
         last, lt = cur, now
         if ph == "end":
             break
+        if a.hidecheck and ph:
+            r = page.cmd("Runtime.evaluate", {"expression": HIDE_JS, "awaitPromise": True, "returnByValue": True})
+            print("HIDECHECK", r.get("result", {}).get("result", {}).get("value"))
+            a.hidecheck = False
     page.close()
     bs.close()
     subprocess.run(["taskkill", "/PID", str(p.pid), "/T", "/F"], capture_output=True)

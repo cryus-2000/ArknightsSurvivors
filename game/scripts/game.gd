@@ -1190,7 +1190,7 @@ func _apply_zoom() -> void:
 		var dz: float = Bal.v("gallery/demo_zoom", 0.68)
 		cam.zoom = Vector2(dz, dz)
 		return
-	var z: float = Cfg.cam_zoom()
+	var z: float = Cfg.battle_zoom() if Cfg.cam_unified() else Cfg.cam_zoom()   # 三档同一个镜头（Cfg.battle_zoom，docs/50 §32）
 	cam.zoom = Vector2(z, z)
 
 

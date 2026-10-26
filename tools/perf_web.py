@@ -78,6 +78,7 @@ def export(ref):
         sys.exit("导出失败")
     html = open(os.path.join(tmp, "index.html"), encoding="utf-8").read()
     gl = open(os.path.join(TOOLS, "web", "gl_state.js"), encoding="utf-8").read()
+    gl += "\n" + open(os.path.join(TOOLS, "web", "power.js"), encoding="utf-8").read()   # 页面隐藏挂起音频（同发布版，docs/50 §33）
     html = html.replace("<head>", "<head>\n" + RAF_JS + "\n<script>\n" + gl + "\n</script>", 1)
     html, k = re.subn(r'"args":\s*\[\]', '"args":new URLSearchParams(location.search).getAll("a")', html)
     if k != 1:
