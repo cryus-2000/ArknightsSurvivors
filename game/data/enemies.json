@@ -241,6 +241,7 @@
    "reap_cd": 2.2,
    "atk_anim": true,
    "cap": 4,
+   "tier_cap": true,
    "chips": [
     "休眠"
    ],
@@ -280,6 +281,7 @@
    "death_mire": 64,
    "atk_anim": true,
    "cap": 4,
+   "tier_cap": true,
    "chips": [
     "厚甲",
     "溟痕"
@@ -320,6 +322,7 @@
    "trail_mire": true,
    "atk_anim": true,
    "cap": 4,
+   "tier_cap": true,
    "chips": [
     "狂暴",
     "溟痕"
@@ -363,6 +366,7 @@
    "lash_cd": 5.0,
    "atk_anim": true,
    "cap": 3,
+   "tier_cap": true,
    "chips": [
     "神经光环"
    ],

@@ -2341,7 +2341,7 @@ func enemy_scale(e: Dictionary) -> float:
 ## 帧号（同一表达式按 g.t 算）、翻转、击退偏移、白闪、描边透明度（随 ecrowd 连续变）、词条、弱点每帧照算（_dc_emit）。
 ## 不进缓存、走 _draw_enemy_full 原路径（_dc_ok）：Boss、宝箱、部件、潜地、骑士（专用帧条）、DC_SKIP_TYPES，
 ## 以及正在受击形变 / 蓄力 / 冲刺 / 鼓胀 / 唤醒 / 狂暴 / 阶段护盾 / 空中 / 剑光 / 装填跪地 / 出招姿态 / 攻击帧窗口 / 灯边硬直（bstag，docs/56 §10）里的敌人。
-## 签名（e.dc[0..7]）：moving、stun > 0、coma、invuln、dormant、e.r、[6]、[7] 两位恒为 false（原为普通怪 / 精英描边的 outline_skip、ol_norm，10-15 随旧写法删掉，保留下标免得改缓存格式）。
+## 签名（e.dc[0..7]）：moving、stun > 0、coma、invuln、dormant、e.r、[6] 举肢准备（_dc_prep，10-26 docs/158 §7）、[7] 描边开关（_ol_sig）。
 ## 以后给敌人加会影响画面的新状态：要么加进 _dc_ok 的排除条件，要么加进签名；--dccheck（快检冒烟开着）会抓漏。
 ## enemies.json draw_full：带专用帧条挂点的几只 Boss（卡门 / 伊比利亚 / 伊祖米克 / 塑路者 / 伊莎玛拉 / 偏执泡影）
 
@@ -2367,7 +2367,7 @@ func draw_enemy(e: Dictionary) -> void:
 		e.dpos = e.pos
 	var moving: bool = e.tex_move and g.t < e.mv_until and e.stun <= 0.0 and not e.coma
 	var c = e.get("dc")
-	if c == null or c[0] != moving or c[1] != (e.stun > 0.0) or c[2] != e.coma or c[3] != e.invuln or c[4] != e.dormant or c[5] != e.r or c[6] != false or c[7] != _ol_sig():
+	if c == null or c[0] != moving or c[1] != (e.stun > 0.0) or c[2] != e.coma or c[3] != e.invuln or c[4] != e.dormant or c[5] != e.r or c[6] != _dc_prep(e) or c[7] != _ol_sig():
 		c = _dc_compute(e, moving)
 		e["dc"] = c
 	if dc_check and (e.id + Engine.get_process_frames()) % 8 == 0:
@@ -2397,8 +2397,8 @@ func _dc_ok(e: Dictionary) -> bool:
 		return false   # 现形 / 复苏 / 落地变身一次性帧条在播（_vis_anim）：走原路径
 	if e.get("bstag", 0.0) > 0.0 or float(e.get("hatch_until", 0.0)) > g.t:
 		return false
-	if e.tex_attack and (g.t < e.atk_until or e.get("attack_preparing", false) or float(e.get("shot_wind_until", 0.0)) > g.t):
-		return false
+	if e.tex_attack and (g.t < e.atk_until or float(e.get("shot_wind_until", 0.0)) > g.t):
+		return false   # 举肢准备（attack_preparing）进缓存（签名 [6]，_dc_prep）：高阶四种在 300 像素内几乎一直处在准备态，原来六七成走原路径（docs/158 §7）
 	if g.t - float(e.get("burst_fx_t", -9.0)) < BURST_FX_FRAMES / BURST_FX_FPS:
 		return false   # 囊海爬行者破膜帧条在播（docs/96 §1.3）：本体前后各一层，走原路径
 	return true
@@ -2406,7 +2406,7 @@ func _dc_ok(e: Dictionary) -> bool:
 
 
 ## 缓存内容：[0..7] 签名，[8] 贴图名，[9] 帧数，[10] 帧率，[11] 颜色，[12] 缩放（已除高清倍率），[13] 锚点，[14] 相对 e.pos 的偏移，
-## [15] 画不画描边，[16] 白剪影名。每一项都按 _draw_enemy_full 里的同一段代码算（只保留能缓存的敌人会走到的分支）
+## [15] 画不画描边，[16] 白剪影名，[17]–[21] 图集区域 / 受击姿态，[22] 举肢准备选帧，[23] 准备帧要不要换算到帧条真实帧数。每一项都按 _draw_enemy_full 里的同一段代码算（只保留能缓存的敌人会走到的分支）
 func _dc_compute(e: Dictionary, moving: bool) -> Array:
 	var name: String = e.tex
 	if e.coma and e.tex_feign:
@@ -2417,11 +2417,21 @@ func _dc_compute(e: Dictionary, moving: bool) -> Array:
 		name += "_move"
 		frames = A.enemy_frames(name, 4)
 		fps = A.enemy_loop_fps(name, float(D.ENEMIES.get(e.type, {}).get("move_fps", 6.0)))
+	var prep: bool = _dc_prep(e)
+	if prep:
+		name = e.tex + "_attack"   # 远处举肢准备：攻击帧条前两帧按 3 fps 来回（_draw_enemy_full 同段）；帧号在 _dc_emit 按 prepare_started 算
+		frames = 4
 	if e.dormant and g.tex.get(e.tex + "_dormant") != null:
 		name = e.tex + "_dormant"
 		frames = A.enemy_frames(name, 2)
 		fps = A.enemy_loop_fps(name, 3.0)
-	var wname: String = (e.tex + "_wound") if (g.tex.get(e.tex + "_wound") != null and (name == e.tex or name == e.tex + "_move")) else ""   # 受击姿态（重画 *_wound，1 帧）：_dc_emit 在 flash > 0 时换它
+		prep = false
+	var remap: bool = false
+	if prep:
+		var nfr: int = A.enemy_frames(name, frames)
+		remap = nfr != frames
+		frames = nfr
+	var wname: String = (e.tex + "_wound") if (g.tex.get(e.tex + "_wound") != null and (name == e.tex or name == e.tex + "_move" or prep)) else ""   # 受击姿态（重画 *_wound，1 帧）：_dc_emit 在 flash > 0 时换它
 	var sc: float = enemy_scale(e)
 	var col: Color = D.ENEMIES.get(e.type, {}).get("tint", Color.WHITE)
 	if e.evo:
@@ -2452,8 +2462,13 @@ func _dc_compute(e: Dictionary, moving: bool) -> Array:
 		wrw = atlas.reg.get(wname + "_white") if atlas != null else null
 	else:
 		wname = ""
-	return [moving, e.stun > 0.0, e.coma, e.invuln, e.dormant, e.r, false, _ol_sig(),
-		name, frames, fps, col, sc, anc, off, ol, name + "_white", ra, rw, wname, wra, wrw]
+	return [moving, e.stun > 0.0, e.coma, e.invuln, e.dormant, e.r, _dc_prep(e), _ol_sig(),
+		name, frames, fps, col, sc, anc, off, ol, name + "_white", ra, rw, wname, wra, wrw, prep, remap]
+
+
+## 缓存签名第 [6] 项：举肢准备态（atk_anim 的敌人在 prepare_range 内、还没蓄力 / 出手时换攻击帧条前两帧，_draw_enemy_full 同条件）
+func _dc_prep(e: Dictionary) -> bool:
+	return e.tex_attack and e.get("attack_preparing", false) and D.ENEMIES.get(e.type, _NO_DEF).get("atk_anim", false)
 
 
 ## 缓存签名第 [7] 项：旧写法的普通怪描边开关 + 精英冷色描边开关（任一变了缓存作废）
@@ -2481,6 +2496,10 @@ func _ol_col(e: Dictionary) -> Color:
 func _dc_emit(e: Dictionary, c: Array) -> void:
 	var frames: int = c[9]
 	var frame: int = int(g.t * float(c[10]) + e.id * 0.37) % frames
+	if c[22]:
+		frame = int((g.t - float(e.get("prepare_started", g.t))) * 3.0) % 2   # 举肢准备（_dc_prep）：和 _draw_enemy_full 同一选帧，再换算到帧条真实帧数
+		if c[23]:
+			frame = A.enemy_remap_frame(c[8], 4, frame)
 	var ra = c[17]
 	var rw_all = c[18]
 	var body: String = c[8]

@@ -89,14 +89,23 @@ func pick_type() -> String:
 	else:
 		pick = pool[g.rng_spawn.randi() % pool.size()]
 	if type_cap(pick) > 0 and type_n(pick) >= dens_cap(type_cap(pick)):   # 同种上限按怪物密度同比缩（density 1 = 原值）
-		pick = "slider" if g.threat >= 3 else "bone"
+		# 中后段（裂隙起）到上限时改从本级池里没到上限的种类里抽（docs/158 §6）；原来一律换成底海滑动者，中后段滑动者因此占到七成
+		# 前段照旧换骨海漂流体（改成从池里抽会把同种上限挡下的狂奔者换进来，前段明显变难）
+		var ok: Array = []
+		if g.threat >= 3:
+			for x in pool:
+				if type_cap(x) <= 0 or type_n(x) < dens_cap(type_cap(x)):
+					ok.append(x)
+		# 池里全到上限（怪物密度 0.4 把同种上限缩得很小，后段常见）：中后段在骨海漂流体 / 底海滑动者里二选一，不再全给滑动者
+		pick = ok[g.rng_spawn.randi() % ok.size()] if not ok.is_empty() else ((["bone", "slider"][g.rng_spawn.randi() % 2]) if g.threat >= 3 else "bone")
 	return pick
 
 
 ## 场上同种存活上限（0 = 不限；和 alive_cap 的全场存活上限是两回事）：普通刷怪抽到已满的种类换成杂兵；投嗣育母的投嗣落地时拟嗣到上限只造成伤害不孵化（run/enemies._brood_land）
 func type_cap(kind: String) -> int:
 	if D.ENEMIES[kind].has("cap"):
-		return int(D.ENEMIES[kind].cap)   # enemies.json 的 cap：场上同种上限（V8 新敌人）
+		var cm: float = float(D.THREAT[g.threat].get("cap_mult", 1.0)) if D.ENEMIES[kind].has("tier_cap") else 1.0
+		return int(round(float(D.ENEMIES[kind].cap) * cm))   # enemies.json 的 cap：场上同种上限（V8 新敌人）；tier_cap 的高阶怪在中后段 × threat.cap_mult（docs/158 §6）
 	match kind:
 		"stone":
 			return 6 if g.t < 180.0 else (8 if g.t < 420.0 else 12)
@@ -380,6 +389,8 @@ func update(dt: float) -> void:
 		rate *= dens   # 怪物密度：普通刷怪率 × density（spawn_acc 本身就是累计余数）
 	if g.t < Bal.v("enemy/early_until", 0.0):
 		rate *= Bal.v("enemy/early_spawn_mult", 1.0)   # 前期压力段：大群加密的那部分从普通刷怪里扣（总经验约不变，docs/116 §7）
+	if not (g.final_boss != null and not g.final_boss.dead and trickling()):
+		rate *= float(D.THREAT[g.threat].get("rate_mult", 1.0))   # 分级调整（docs/158 §6）：中后段换高阶、压普通刷怪只数，waves.json threat.rate_mult；最终 Boss 少量补怪不乘
 	spawn_acc += rate * dt
 	# Boss 在场时的存活杂兵上限（协调人 9/30 定，最终 boss/final_mob_cap / 中期 boss/mid_mob_cap，0 = 关）：活着的非 Boss 敌人到上限就不再刷普通怪，
 	# 现有的不杀；精英、Boss 召唤物照常。杂兵墙挡住干员索敌是伊莎玛拉 / 偏执泡影超时的主因（Boss A/B 9/30）
@@ -495,6 +506,7 @@ func update(dt: float) -> void:
 		if hunt_type:
 			n = int(round(n * Bal.v("enemy/horde_hunt_count_mult", 1.0)))   # 围猎型多来一些（docs/150），经验同样按只数折算守恒
 		n = int(round(n * Bal.v("enemy/horde_count_mult", 1.0)))   # 压力型大群（docs/116 §7.3）：只数倍率，经验按只数折算守恒（下面 xp）
+		n = int(round(n * float(D.THREAT[g.threat].get("horde_mult", 1.0))))   # 分级调整（docs/158 §6）：中后段大群只数倍率，经验同样按只数折算守恒
 		n = dens_count(n, "horde")   # 怪物密度：只数 × density（累计余数取整；在 Boss 余量裁剪之前）
 		# Boss 在场时（Ⅷ horde_in_boss 让大群不顺延）超出存活杂兵上限的部分裁掉（协调人 9/30）；没有 Boss 时余量 = 同屏上限 max_alive()，不裁
 		n = mini(n, maxi(0, boss_mob_room()))
@@ -925,6 +937,11 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 		_late_hp_apply(e, float(d.hp_late))
 	if _norm and role == "":
 		_trim_apply(e)
+	if _norm and d.has("tier_cap"):
+		var th: float = float(D.THREAT[g.threat].get("tier_hp", 1.0)) * Bal.v("enemy/tier_hp_scale", 1.0)   # 分级调整（docs/158 §6）：中后段换进来的高阶怪生命打折，三段生命池不变
+		e.hp *= th
+		e.maxhp = e.hp
+		e.dmg *= float(D.THREAT[g.threat].get("tier_dmg", 1.0)) * Bal.v("enemy/tier_dmg_scale", 1.0)   # 同上，单只伤害打折（高阶接触伤害是普通怪的 1.5–3 倍，只数多了以后中后段死亡集中）
 	if _norm and (role == "" or role == "elite") and escale() != 1.0:
 		e.r *= escale()   # 怪物体型：判定半径 × scale，r0 不动，画面缩放 enemy_scale = PX × r / r0 跟着放大
 		e["sc"] = escale()
