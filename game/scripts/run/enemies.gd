@@ -208,8 +208,8 @@ func _motion_core(n: int, dt: float) -> void:
 		var p: Vector2 = _hp[i]
 		var ri: float = _hr[i]
 		var absorbed := false
-		# ---- 分离 + 吞噬（远处降频的怪沿用速度的那帧不分离，docs/50 §35）
-		if not (fi & HF_STATIC) and _seg_on[i] != 2:
+		# ---- 分离 + 吞噬
+		if not (fi & HF_STATIC):
 			# 分离：同样的格子顺序、同样的越界与阵营判断；查询范围按进循环前的位置定
 			var qr: float = ri + 20.0
 			var qp: Vector2 = p
@@ -287,23 +287,7 @@ static func _build_drain() -> Dictionary:
 	return out
 
 
-## 远处普通怪降频（docs/50 §35，10-27 用户「手机发烫」）：离队长 |dx| > LOD_X 或 |dy| > LOD_Y（世界像素，比桌面 1080p / 手机的可见范围都大，
-## 不按视口算：玩法不读视口）的普通怪，A 决策段隔帧算一次、步长取两帧之和；没算的那帧沿用上次的速度照常移动（B 段每帧都走），分离也隔帧。
-## Boss / 精英 / 补给箱 / 静止 / 被吞噬目标 / 围猎等特殊状态不降。同 seed 结果会变（决策时刻差一帧），画面不变（降频的怪都在屏幕外）。
-## g.opt_old & OPT_ELOD 置位 = 每帧都算（--optab 同局对照）
-const LOD_X := 800.0
-const LOD_Y := 460.0
-
-func _lod_ok(e: Dictionary) -> bool:
-	return not e.boss and not e.elite and not e.chest and e.ai != "static" and not e.feed and not e.get("enc", false) \
-		and not e.get("dormant", false) and float(e.get("channel", 0.0)) <= 0.0 and not g.eai.busy(e)
-
-
-func update(dt_frame: float) -> void:
-	var dt: float = dt_frame   # 每只敌人的决策步长（远处降频的怪在算的那帧 = 两帧之和）；A 段之后恢复成本帧步长
-	var lod_on: bool = not (g.opt_old & Game.OPT_ELOD)
-	var fn: int = g.frame_n
-	var lc: Vector2 = g.ppos
+func update(dt: float) -> void:
 	var dark_mod: float = Bal.v("lamp/dark_enemy", 1.2) if g.lamp < 30.0 else 1.0   # 灯火暗淡时敌人移速 / 接触伤害倍率（docs/88 旋钮，缺省 1.2 不变）
 	# 敌人更新分三段（docs/101 B7 ③，10-15 起换基线）：
 	#   A 决策（逐只：计时、持续伤害、远距回收、进化、Boss 步、AI 意图 → 本帧速度 v）
@@ -322,24 +306,9 @@ func update(dt_frame: float) -> void:
 	# ---- A 决策段
 	for i in n:
 		_seg_on[i] = 0
-		dt = dt_frame
 		var e: Dictionary = g.enemies[i]
 		if e.dead:
 			continue
-		var far := false
-		if lod_on:
-			var ep: Vector2 = e.pos
-			far = (absf(ep.x - lc.x) > LOD_X or absf(ep.y - lc.y) > LOD_Y) and _lod_ok(e)
-			if far:
-				if (int(e.id) + fn) % 2 == 1 and e.has("lod_v"):
-					e["lod_acc"] = float(e.get("lod_acc", 0.0)) + dt_frame
-					_seg_v[i] = e.lod_v
-					_seg_on[i] = 2   # 2 = 沿用上次速度的这一帧：B 段照常积分、不做分离
-					_seg_d[i] = float(e.lod_d)
-					continue
-			if float(e.get("lod_acc", 0.0)) > 0.0:
-				dt = dt_frame + float(e.lod_acc)   # 补上没算的那帧（含刚回到近处的第一帧）
-				e.lod_acc = 0.0
 		e.age += dt
 		if float(e.get("set_t", 0.0)) > 0.0:
 			e.set_t = maxf(0.0, e.set_t - dt)
@@ -512,12 +481,6 @@ func update(dt_frame: float) -> void:
 		_seg_v[i] = v
 		_seg_on[i] = 1
 		_seg_d[i] = dist
-		if far:
-			e["lod_v"] = v
-			e["lod_d"] = dist
-		elif lod_on and e.has("lod_v"):
-			e.erase("lod_v")   # 回到近处：下次再走远时先完整算一帧再开始隔帧
-	dt = dt_frame
 
 	# ---- B 运动段（docs/101 B8：段首把热字段读进平行数组，核心只读写数组，段尾写回字典；核心将来换原生 EnemyCore.step，OPT_CPP 对照）
 	_hot_gather(n)
