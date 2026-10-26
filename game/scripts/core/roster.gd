@@ -190,6 +190,14 @@ static func choose_hunt() -> String:
 	return _weighted(fresh if not fresh.is_empty() else locked)
 
 
+## 纯随机：未解锁干员里等概率抽一名（新手十连用）；同一存档种子 + 已抽次数结果固定
+static func choose_any() -> String:
+	var locked := locked_ids()
+	if locked.is_empty():
+		return ""
+	return locked[_rng().randi() % locked.size()]
+
+
 ## 未解锁干员按职业分组（定向寻访：先选职业，再在该职业里点名）
 static func locked_in_class(cls: String) -> Array:
 	return locked_ids().filter(func(c): return class_of(c) == cls)
@@ -229,14 +237,14 @@ static func redeem_pick(cid: String) -> Dictionary:
 	return _result("pick", cid, COST_PICK)
 
 
-## 新手十连（TEN 张，只在名册为空时可用）：连抽 TEN 次随机寻访，不重复；choose_hunt 先补齐缺的职业，所以 10 人覆盖全部 8 个职业
-## （名册 20 人、每职业 ≥ 2 人时必然如此），保证队里有医疗与输出。返回每一抽的结果（同 redeem_random）；条件不满足返回 []，什么也不扣
+## 新手十连（TEN 张，只在名册为空时可用）：从全部未招募干员里纯随机抽 TEN 名、不重复（10-26 用户：开局十连不限定职业，
+## 不走「先补齐职业」也不按「上手快」加权；之后的随机寻访仍按 choose_hunt）。返回每一抽的结果（同 redeem_random）；条件不满足返回 []，什么也不扣
 static func redeem_ten() -> Array:
 	if not needs_first() or tickets() < TEN or locked_ids().size() < TEN:
 		return []
 	var out: Array = []
 	for _i in TEN:
-		var r := _result("ten", choose_hunt(), COST_RANDOM)
+		var r := _result("ten", choose_any(), COST_RANDOM)
 		if str(r.id) != "":
 			out.append(r)
 	return out

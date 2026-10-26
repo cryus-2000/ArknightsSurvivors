@@ -190,7 +190,7 @@ func run() -> void:
 	check(not nb.prog.meta.has("bought"), "没兑换过的存档不写 bought（与旧版本往返相同）")
 	reset()
 
-	# 9. 新手开局 + 新手十连（10-26 用户）：名册为空、10 张；十连 10 名不同干员、覆盖全部 8 个职业（含医疗）；只在名册为空时可用；
+	# 9. 新手开局 + 新手十连（10-26 用户）：名册为空、10 张；十连从全部干员纯随机抽 10 名、不重复（不限定职业）；只在名册为空时可用；
 	# 凭证不够不扣；同一存档种子结果固定；旧云档（没有 rv）补开局 5 人
 	reset()
 	Cfg.roster_unlocked = []
@@ -204,7 +204,6 @@ func run() -> void:
 		tids[r.id] = true
 		tcls[Roster.class_of(r.id)] = true
 	check(ten.size() == Roster.TEN and tids.size() == Roster.TEN and Roster.tickets() == 0 and Cfg.roster_draws == Roster.TEN, "十连：10 名不同干员、10 张用完（%s）" % [tids.keys()])
-	check(tcls.size() == 8 and tcls.has("医疗"), "十连覆盖全部 8 个职业（%s）" % [tcls.keys()])
 	check(not Roster.needs_first() and Roster.locked_ids().size() == Roster.all_ids().size() - Roster.TEN, "十连后新手引导结束、剩 %d 人待寻访" % Roster.locked_ids().size())
 	Cfg.roster_tickets = {"hunt": 10}
 	check(Roster.redeem_ten().is_empty() and Roster.tickets() == 10, "名册不为空时不能再十连")
@@ -217,18 +216,29 @@ func run() -> void:
 	Cfg.roster_unlocked = []
 	Cfg.roster_tickets = {"hunt": 10}
 	check(Roster.redeem_ten().map(func(r): return r.id) == first_ids, "同一存档种子十连结果相同")
-	var bad := 0
+	# 纯随机（不补齐职业）：40 个种子里每次 10 人不重复；全体出现次数应铺开到整个池子（每名干员都被抽到过），
+	# 且至少有一次没覆盖全部 8 个职业（证明不再强制补齐）
+	var seen := {}
+	var partial := 0
+	var dup := 0
 	for sd in range(1, 41):
 		reset()
 		Cfg.roster_seed = sd
 		Cfg.roster_unlocked = []
 		Cfg.roster_tickets = {"hunt": 10}
 		var cs := {}
+		var ids2 := {}
 		for r in Roster.redeem_ten():
 			cs[Roster.class_of(r.id)] = true
-		if cs.size() != 8:
-			bad += 1
-	check(bad == 0, "40 个种子的十连都覆盖 8 个职业（%d 个没有）" % bad)
+			ids2[r.id] = true
+			seen[r.id] = true
+		if ids2.size() != Roster.TEN:
+			dup += 1
+		if cs.size() < 8:
+			partial += 1
+	check(dup == 0, "40 个种子的十连都 10 人不重复（%d 次重复）" % dup)
+	check(seen.size() == Roster.all_ids().size(), "纯随机铺满整个池子（抽到过 %d / %d 名）" % [seen.size(), Roster.all_ids().size()])
+	check(partial > 0, "不再强制补齐职业（40 次里 %d 次没覆盖全部职业）" % partial)
 	# 旧版本写的云档（没有 rv）：开局 5 人不在 ops 里，读进新设备（空名册）时补上
 	reset()
 	Cfg.roster_unlocked = []

@@ -88,7 +88,7 @@ func _ready() -> void:
 	for r in hh.results:
 		ids[r.id] = true
 		cls[Roster.class_of(r.id)] = true
-	check(ids.size() == Roster.TEN and cls.size() == 8 and cls.has("医疗"), "十连不重复、覆盖 8 职业（%d 名 / %d 职业）" % [ids.size(), cls.size()])
+	check(ids.size() == Roster.TEN, "十连不重复（%d 名 / %d 职业，纯随机不限定职业）" % [ids.size(), cls.size()])
 	# 开包（10-26 用户）：按住往左拖到一半 → 停一下 → 往回拖合上（光收回）→ 再往左拖到底，拉开触发光炸
 	await _wait(0.8)
 	check(hh.mode == "bag" and hh._open == 0.0, "落包后等玩家拉开（mode=%s open=%.2f）" % [hh.mode, hh._open])

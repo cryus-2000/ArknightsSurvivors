@@ -790,7 +790,7 @@ func _draw_entry() -> void:
 	if locked.is_empty():
 		rules = ["干员已全部入职", "此后获得的凭证每张折算为 %d 生机细胞" % Roster.CELLS_PER_TICKET]
 	elif first:
-		rules = ["新手寻访：一次招募 %d 名不同干员" % Roster.TEN, "必定覆盖全部 8 个职业，招募后即可编队出发"]
+		rules = ["新手寻访：一次招募 %d 名不同干员" % Roster.TEN, "从全部干员中随机，招募后即可编队出发"]
 	elif Cfg.roster_draws == 0:
 		rules.append("首次寻访必定获得医疗干员")
 	for j in rules.size():
