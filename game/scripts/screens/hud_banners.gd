@@ -320,7 +320,7 @@ func draw_hunt_pointer(vs: Vector2, ct: Transform2D) -> void:
 	if g.state != Game.S.PLAY or hu == null or hu.state != 2:
 		return
 	var pz := 0.5 + 0.5 * sin(g.t * 6.0)
-	var zy := (126.0 if g.touch.active else 116.0) + 54.0 * mini(h.bars.boss_bars().size(), Bars.BOSS_BARS_MAX)   # 触屏的威胁字号大一号，再往下让 10
+	var zy := maxf(126.0 if g.touch.active else 116.0, h.bars.boss_bottom + 22.0)   # Boss 细血条之下（10-27 改版后用实际底边）   # 触屏的威胁字号大一号，再往下让 10
 	if g.zone_state != 0:
 		zy += 22.0   # 黑潮提示在场时让到它下面
 	var dur: float = Bal.v("hunt/dur", 20.0) * float(g.dmod.get("hunt_dur", 1.0))
@@ -375,7 +375,7 @@ func draw_zone_warning(vs: Vector2) -> void:
 			UI.text(g.hud, g.font, Vector2(0, vs.y * 0.5 - 130), "身处黑潮！返回安全区", 20, Color(1.0, 0.7, 1.0, 0.7 + 0.3 * pz), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 5)
 		else:
 			# 顶栏楼层条下方；有 Boss 血条时再往下让出位置
-			var zy := 116.0 + 54.0 * mini(h.bars.boss_bars().size(), Bars.BOSS_BARS_MAX)
+			var zy := maxf(116.0, h.bars.boss_bottom + 22.0)
 			if g.zone_state == 1:
 				UI.text(g.hud, g.font, Vector2(0, zy), "黑潮将至  %d" % int(ceil(20.0 - g.zone_t)), 15, Color(0.9, 0.6, 1.0), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
 			elif g.zone_state == 2:
