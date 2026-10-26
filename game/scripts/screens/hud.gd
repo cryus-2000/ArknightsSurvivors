@@ -171,7 +171,10 @@ func _layer_draw(key: String) -> void:
 		return
 	var keep: Control = g.hud
 	g.hud = L.node
+	var t0 := Time.get_ticks_usec() if g.prof_on else 0
 	g._timed("draw_hud", L.fn)   # --prof：各块的绘制也计进 draw_hud（与拆块前口径相同：整个局内 HUD 的脚本时间）
+	if g.prof_on:
+		g.prof_add("hud_" + key, t0)   # 每块分开计（docs/50 §37）
 	g.hud = keep
 
 

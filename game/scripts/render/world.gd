@@ -926,7 +926,10 @@ func _sorted_fast(evr: Rect2) -> bool:
 				5:
 					var d0: float = fx_dim
 					fx_dim = d0 * (lead_dim if ob.is_leader else mate_dim)
+					var t0 := Time.get_ticks_usec() if g.prof_on else 0
 					ob.draw_body()
+					if g.prof_on:
+						g.prof_add("op_body_" + str(ob.id), t0)   # 干员本体绘制（docs/50 §37）
 					fx_dim = d0
 				6:
 					ob[0].draw_extra(ob[1])
