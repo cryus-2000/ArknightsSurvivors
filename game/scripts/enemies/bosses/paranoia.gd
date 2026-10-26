@@ -64,7 +64,7 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 
 
 ## A · 凝视：直线 820 × 26，e.dmg × 2.0，侵蚀 0.5，Kanpelle 淡紫光束（docs/142b §8.5）。按幕换形（§8.2）：
-##   一幕两道平行——第一道追踪 0.65 秒瞄你，第二道 0.3 秒后在它旁边 90 像素（随机一侧）平行落下：往另一侧横移；
+##   一幕三道——一道追踪 0.65 秒瞄你，两侧两道出手即锁定你当时的位置、从她两侧斜穿过来（10-25 用户「都要瞄准人打」，原为平行跑道）：锁定后横移；
 ##   二幕 X 交叉——两道以你脚下为交点、与「她 → 你」各成 ±0.6 弧度，出手即锁定：斜着离开交点；
 ##   三幕 / 茧后（落地）——原来的 3 道依次追踪（每道间隔 0.6 秒）。茧没打破 +1 道（依次追踪接在后面）
 func _gaze(e: Dictionary, dir: Vector2) -> void:
@@ -79,9 +79,10 @@ func _gaze(e: Dictionary, dir: Vector2) -> void:
 				"name": "凝视" if s < 0.0 else "", "seq_no": 1 if s < 0.0 else (2 if s > 0.0 else 3), "lock": s < 0.0}))
 	elif e.phase == 1:
 		ng = 1
-		# 一幕：瞄你的一道 + 两侧各一道平行（10-25 加密：原只一侧），中间那条跑道 1.6 秒后才落
-		for side in [-1.0, 1.0]:
-			_warn(e, "line", 1.6, base.merged({"pos": e.pos + dir.orthogonal() * 90.0 * side, "ang": dir.angle(), "track": 0.0, "seq_no": 2, "name": "", "lock": false}))
+		# 一幕：追踪的一道 + 两侧各一道；10-25 用户「三条激光都要瞄准人打」：两侧这两道出手即锁定你当时的位置、从她两侧斜穿过来（原来是平行跑道），1.6 秒后落
+		var fan: Array = _aim_fan(e, 3, 820.0)
+		for i in [0, 2]:
+			_warn(e, "line", 1.6, base.merged({"pos": fan[i].pos, "ang": fan[i].ang, "len": fan[i].len, "track": 0.0, "seq_no": 2, "name": "", "lock": false}))
 	for k in ng + int(e.get("gaze_bonus", 0)):
 		_warn(e, "line", 1.3 + 0.6 * k, base.merged({"ang": dir.angle(), "track": 0.65 + 0.6 * k, "seq_no": k + 1, "name": "凝视" if k == 0 and ng != 0 else "", "lock": k == 0 and ng != 0}))
 

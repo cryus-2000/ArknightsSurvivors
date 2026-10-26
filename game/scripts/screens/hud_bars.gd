@@ -127,7 +127,11 @@ func draw_lamp_strip(vs: Vector2) -> void:
 	if h.panel_over_top():
 		return   # 触屏选卡：这一行会被卡片压住截断，不画
 	if Cfg.phone_ui():
-		st_txt = st_txt.get_slice(" · ", 0)   # 手机：只写灯火档名，效果在属性面板（Tab）里看
+		# 手机（10-27 用户嫌左上胶囊太多）：灯火正常时不常驻（顶上的灯火条已经看得出），只在寂灭时写；
+		# 暗淡由状态胶囊「灯火暗淡」提示，这里不重复
+		if g.lamp > 0.0:
+			return
+		st_txt = st_txt.get_slice(" · ", 0)
 	h.batch_begin()
 	UI.strip(g.hud, g.font, o + Vector2(2, 66), st_en, st_txt, st_col, st_col.lerp(UI.TEXT, 0.45))
 	h.batch_end()
@@ -192,119 +196,195 @@ var boss_bottom := 0.0
 const MOVE_NAME_T := 1.6
 
 
-## 顶部 Boss 大血条的对象（2026-09-27 用户报 bug：碎片 / 之泪这类召唤物进了 g.bosses，屏幕中间叠了 6 条）：
-## 只算活着、且 enemies.json 里 role == "boss" 的；两体 Boss（接潮双体等）正好 2 条，所以上限 2
+## 顶部 Boss 血条的对象（2026-09-27 用户报 bug：碎片 / 之泪这类召唤物进了 g.bosses，屏幕中间叠了 6 条）：
+## 只算活着、且 enemies.json 里 role == "boss" 的；上限按行算（双体 Boss 合成一行），最多 2 行
 const BOSS_BARS_MAX := 2
 
 
-## Boss 大血条（最多 BOSS_BARS_MAX 条，多的写一行「另有 N 个 Boss」），画完记下 boss_bottom
+## Boss 血条（10-27 用户 iPhone 实机：双 Boss 两条宽厚血条叠在屏幕中上部挡战场，重做，手机优先、电脑统一）：
+## 顶栏下贴顶一条细条，宽 ≤ 屏宽一半、居中；一行小字（名字 + 形态点 / 吸收层 + 右侧状态）+ 细血条（单体 5 px）。
+## 双体 Boss（pair）合成一个框：上下两根 3 px 细条并排，左侧一枚连环小标表示「同时击倒」（说明只在出场横幅提示一次，spawner）；
+## 一体进入假死时那一根闪。掉血：受击白闪 + 延迟白条（BT_HOLD 秒后追上）；阶段刻度、阶段护盾、破绽、无敌、韧性都在细条内表现。
+## 最多 BOSS_BARS_MAX 行（双体算一行），多出来的写一行「另有 N 个 Boss」
+const BB_Y := 94.0          # 名字行顶边（顶部中央计时器、海域名、威胁行之下）
+const BB_W_MAX := 560.0
+const BB_ROW := 30.0        # 一行（名字行 + 细条）的高度
+const BT_HOLD := 0.45       # 延迟白条停多久再追
+const BT_RATE := 0.6        # 追的速度（每秒满条的比例）
+var _bt := {}               # Boss id -> {trail, last, hold, flash}
+
+
+## 本帧要画的行：[[Boss] 或 [Boss, 搭档]]（双体合一行）
+func _boss_rows(bars: Array) -> Array:
+	var rows: Array = []
+	var used := {}
+	for e in bars:
+		if used.has(e.id):
+			continue
+		used[e.id] = true
+		var p = e.get("partner")
+		if p is Dictionary and not p.dead and bars.has(p) and not used.has(p.id):
+			used[p.id] = true
+			rows.append([e, p])
+		else:
+			rows.append([e])
+	return rows
+
+
+## 延迟白条 / 受击闪烁：按真实时间推进（暂停时 HUD 照画，白条照追）
+func _bt_step(e: Dictionary, r: float) -> Dictionary:
+	var now := Time.get_ticks_msec() / 1000.0
+	var s: Dictionary = _bt.get(e.id, {})
+	if s.is_empty():
+		s = {"trail": r, "last": r, "hold": 0.0, "flash": -9.0, "t": now}
+		_bt[e.id] = s
+	var dt: float = clampf(now - float(s.t), 0.0, 0.1)
+	s.t = now
+	if r < float(s.last) - 0.0005:
+		s.flash = now
+		s.hold = BT_HOLD
+	elif r > float(s.trail):
+		s.trail = r   # 回血：白条直接跟上
+	s.last = r
+	if float(s.hold) > 0.0:
+		s.hold = float(s.hold) - dt
+	else:
+		s.trail = maxf(r, float(s.trail) - BT_RATE * dt)
+	return s
+
+
+## 一根细条：底 → 延迟白条 → 血量（颜色按状态）→ 受击白闪 → 阶段刻度
+func _boss_strip(e: Dictionary, r: Rect2, bcol: Color) -> void:
+	var ratio: float = clampf(e.hp / maxf(1.0, e.maxhp), 0.0, 1.0)
+	var s := _bt_step(e, ratio)
+	g.hud.draw_rect(r.grow(1.0), Color(0.02, 0.02, 0.03, 0.85))
+	g.hud.draw_rect(r, Color(1, 1, 1, 0.08))
+	g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * float(s.trail), r.size.y)), Color(1, 1, 1, 0.55))
+	g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * ratio, r.size.y)), bcol)
+	var fl: float = 1.0 - (Time.get_ticks_msec() / 1000.0 - float(s.flash)) / 0.12
+	if fl > 0.0:
+		g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * ratio, r.size.y)), Color(1, 1, 1, 0.6 * fl))
+	var gl: Array = e.get("gates", [])
+	var hold: bool = e.get("gate_hold", false)
+	for gi in gl.size():
+		var gx: float = r.position.x + r.size.x * float(gl[gi])
+		var lit: bool = hold and gi == 0
+		if lit:
+			g.hud.draw_rect(Rect2(gx - 2, r.position.y - 3, 4, r.size.y + 6), Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.35 + 0.25 * sin(g.t * 10.0)))
+		g.hud.draw_rect(Rect2(gx - 0.5, r.position.y - 2, 1, r.size.y + 4), UI.GOLD if lit else Color(1, 1, 1, 0.85))
+	var tn: float = e.get("tough_need", 0.0)
+	if tn > 0.0 and e.get("tough", 0.0) > 0.0 and e.get("break_t", 0.0) <= 0.0:
+		g.hud.draw_rect(Rect2(r.position.x, r.end.y + 1, r.size.x * clampf(e.tough / tn, 0.0, 1.0), 1), Color(0.95, 0.85, 0.55))
+
+
+## 状态色：破绽中金色；阶段护盾时金色闪；无敌灰蓝；假死时洋红闪；平时洋红
+func _boss_col(e: Dictionary) -> Color:
+	if e.get("break_t", 0.0) > 0.0:
+		return UI.GOLD
+	if e.get("gate_hold", false):
+		return UI.RED.lerp(UI.GOLD, 0.5 + 0.5 * sin(g.t * 10.0))
+	if e.get("invuln", false):
+		return Color(0.45, 0.6, 0.7)
+	if e.get("coma", false):
+		return UI.RED.lerp(Color.WHITE, 0.35 + 0.35 * sin(g.t * 12.0))
+	return UI.RED
+
+
+## 右侧一行状态小字（只取最要紧的一条）
+func _boss_sub(e: Dictionary) -> Array:
+	var brk: float = e.get("break_t", 0.0)
+	var mv_name: String = e.get("move_name", "")
+	if brk > 0.0:
+		return ["破绽 %.1f 秒 · 受伤 +%d%%" % [brk, roundi((Game.Bal.v("boss/break_mult", 1.4) - 1.0) * 100.0)], UI.GOLD]
+	if e.get("gate_hold", false):
+		return ["阶段护盾 · 时限到后破碎", UI.GOLD]
+	if e.get("coma", false):
+		return ["假死中 —— 趁现在击倒另一体", Color(1, 0.82, 0.88)]
+	if mv_name != "" and g.t - float(e.get("move_t", -99.0)) < MOVE_NAME_T:
+		return [mv_name, Color(1, 0.82, 0.88)]
+	if e.type == "izumik":
+		return ["学习阶段 · 无敌（击杀子代阻止它成长）" if e.phase == 1 else "阐释阶段", UI.SUB]
+	if e.type == "ishar":
+		return ["转化中" if e.phase == 1 else "已完成转化 · 敌对", UI.SUB]
+	if e.has("ammo"):
+		return ["装填中 —— 攻击以打断！" if e.channel > 0.0 else ("弹药 %d / 3" % e.ammo if e.ammo > 0 else "近战中"), UI.SUB]
+	if e.type == "paranoia":
+		return [("悬浮形态（打到 1/3 血坠落）" if Game.Bal.v("boss/paranoia_p2_at_gate", 1.0) > 0.0 else "悬浮形态（结茧后坠落）") if e.phase == 1 else "第二形态", UI.SUB]
+	return ["", UI.SUB]
+
+
 func draw_boss_bars(vs: Vector2) -> void:
-	# Boss 血条：只给真 Boss 画（boss_bars），最多 BOSS_BARS_MAX 条，多出来的写一行「另有 N 个 Boss」
 	var bby := 0.0
 	if h.panel_over_top():
 		return   # 触屏选卡：面板标题占顶部中央（boss_bottom 保持上一帧的值，关面板后横幅位置不跳）
 	var bars: Array = boss_bars()
-	for bi in mini(bars.size(), BOSS_BARS_MAX):
-		var shown: Dictionary = bars[bi]
-		var bw := 620.0
-		var bx := vs.x / 2 - bw / 2
-		g.hud.draw_set_transform(Vector2(0, bby), 0.0, Vector2.ONE)
-		bby += 54.0
-		if shown.type == "ishar" and shown.get("friendly", false):
-			draw_ishar_human(shown, bx, bw)
-			g.hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var rows := _boss_rows(bars)
+	var bw: float = minf(BB_W_MAX, vs.x * 0.5)
+	var bx: float = round(vs.x / 2.0 - bw / 2.0)
+	for ri in mini(rows.size(), BOSS_BARS_MAX):
+		var row: Array = rows[ri]
+		var y0: float = BB_Y + bby
+		var e: Dictionary = row[0]
+		if row.size() == 1 and e.type == "ishar" and e.get("friendly", false):
+			draw_ishar_human(e, bx, bw, y0)
+			bby += BB_ROW
 			continue
-		# 洋红 = 危险（原作「险路恶敌」）：暗底 + 顶部洋红细线 + BOSS 节点标签条
-		var bbr := Rect2(bx - 12, 100, bw + 24, 46)
-		g.hud.draw_rect(bbr, Color(0.03, 0.035, 0.045, 0.8))
-		g.hud.draw_rect(Rect2(bbr.position, Vector2(bbr.size.x, 1)), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.7))
-		var sw: float = UI.strip(g.hud, g.font, Vector2(bx, 106), "BOSS", shown.name, UI.RED, Color(1, 0.82, 0.88), 12)
-		# 名字旁的形态小圆点（§1.15）：总幕数 = 剩余刻度 + 已过刻度 + 1，亮的是还没打完的幕（含当前这一幕）
-		var gl: Array = shown.get("gates", [])
-		var gp: int = int(shown.get("gates_passed", 0))
-		var acts: int = gl.size() + gp + 1
-		if acts > 1:
-			for q in acts:
-				var dc := Vector2(bx + sw + 10.0 + q * 11.0, 116.0)
-				if q >= gp:
-					g.hud.draw_circle(dc, 3.5, UI.RED)
-				else:
-					g.hud.draw_arc(dc, 3.5, 0.0, TAU, 12, Color(1, 1, 1, 0.3), 1.0)
-		# 伊祖米克学习期吸收层数（e.izu_layers 0–5）：名字旁五枚小菱形，亮的是已吸收层
-		if shown.has("izu_layers"):
-			var izx: float = bx + sw + 14.0 + (acts * 11.0 if acts > 1 else 0.0)
-			UI.text(g.hud, g.font, Vector2(izx, 121), "吸收", 10, UI.SUB)
-			for q in 5:
-				var lit_l: bool = q < int(shown.izu_layers)
-				UI.diamond(g.hud, Vector2(izx + 30 + q * 11.0, 116.0), 4.0, Color(0.55, 1.0, 0.95) if lit_l else Color(1, 1, 1, 0.08), Color(0.6, 1.0, 1.0, 0.8 if lit_l else 0.3))
-		var brk: float = shown.get("break_t", 0.0)
-		var hold: bool = shown.get("gate_hold", false)
-		var sub := ""
-		var sub_col := UI.SUB
-		var mv_name: String = shown.get("move_name", "")
-		if brk > 0.0:
-			sub = "破绽 %.1f 秒 · 受到的伤害 +%d%%" % [brk, roundi((Game.Bal.v("boss/break_mult", 1.4) - 1.0) * 100.0)]
-			sub_col = UI.GOLD
-		elif hold:
-			sub = "阶段护盾 · 本幕时限到后破碎"
-			sub_col = UI.GOLD
-		elif mv_name != "" and g.t - float(shown.get("move_t", -99.0)) < MOVE_NAME_T:
-			sub = mv_name   # 招式名进副标题行，不再头顶浮字（§1.15）
-			sub_col = Color(1, 0.82, 0.88)
-		elif shown.type == "izumik":
-			sub = "学习阶段 · 无敌（击杀子代阻止它成长）" if shown.phase == 1 else "阐释阶段"   # 原作技能名「阐释」（docs/95 §14 第 1 条）
-		elif shown.type == "ishar":
-			sub = "转化中" if shown.phase == 1 else "已完成转化 · 敌对"
-		elif shown.has("ammo"):
-			sub = "装填中 —— 攻击以打断！" if shown.channel > 0.0 else ("弹药 %d / 3" % shown.ammo if shown.ammo > 0 else "近战中")
-		elif shown.get("coma", false):
-			sub = "假死中 —— 趁现在击倒另一体！"
-		elif D.ENEMIES[shown.type].get("pair", false):
-			sub = "两体需同时击倒"
-		elif shown.type == "paranoia":
-			sub = ("悬浮形态（打到 1/3 血坠落）" if Game.Bal.v("boss/paranoia_p2_at_gate", 1.0) > 0.0 else "悬浮形态（结茧后坠落）") if shown.phase == 1 else "第二形态"
-		UI.text(g.hud, g.font, Vector2(bx + bw - 400, 122), sub, 12, sub_col, HORIZONTAL_ALIGNMENT_RIGHT, 400)
-		# 血条颜色：破绽中金色；阶段护盾时金色闪；无敌灰蓝；平时洋红
-		var bcol: Color = UI.RED
-		if brk > 0.0:
-			bcol = UI.GOLD
-		elif hold:
-			bcol = UI.RED.lerp(UI.GOLD, 0.5 + 0.5 * sin(g.t * 10.0))
-		elif shown.invuln:
-			bcol = Color(0.45, 0.6, 0.7)
-		UI.gbar(g.hud, Rect2(bx, 131, bw, 6), shown.hp / shown.maxhp, bcol, 20)
-		# 阶段刻度：剩余刻度画在血条上（最大生命比例），停在刻度上（阶段护盾）时那一道发光
-		for gi in gl.size():
-			var gx: float = bx + bw * float(gl[gi])
-			var lit: bool = hold and gi == 0
-			var gc: Color = UI.GOLD if lit else Color(1, 1, 1, 0.85)
-			if lit:
-				g.hud.draw_rect(Rect2(gx - 3, 126, 6, 16), Color(UI.GOLD.r, UI.GOLD.g, UI.GOLD.b, 0.35 + 0.25 * sin(g.t * 10.0)))
-			g.hud.draw_rect(Rect2(gx - 1, 128, 2, 12), Color(0.02, 0.02, 0.03, 0.9))
-			g.hud.draw_rect(Rect2(gx - 0.5, 129, 1, 10), gc)
-		# 韧性条（§1.15）：贴在血条下沿 3px，只有开了韧性的 Boss（tough_need > 0 且在白名单里被累计）才画
-		var tn: float = shown.get("tough_need", 0.0)
-		if tn > 0.0 and shown.get("tough", 0.0) > 0.0 and brk <= 0.0:
-			g.hud.draw_rect(Rect2(bx, 138, bw, 3), Color(1, 1, 1, 0.1))
-			g.hud.draw_rect(Rect2(bx, 138, bw * clampf(shown.tough / tn, 0.0, 1.0), 3), Color(0.95, 0.85, 0.55))
-		g.hud.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-	if bars.size() > BOSS_BARS_MAX:
-		var ot := "另有 %d 个 Boss" % (bars.size() - BOSS_BARS_MAX)
-		var ow: float = g.font.get_string_size(ot, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(12)).x + 24.0
-		g.hud.draw_rect(Rect2(vs.x / 2.0 - ow / 2.0, 100 + bby - 2, ow, 20), Color(0.03, 0.035, 0.045, 0.8))
-		UI.text(g.hud, g.font, Vector2(0, 100 + bby + 13), ot, 12, Color(1, 0.82, 0.88), HORIZONTAL_ALIGNMENT_CENTER, vs.x, 3)
-		bby += 22.0
-	boss_bottom = 100.0 + bby if bby > 0.0 else 0.0
+		var pair: bool = row.size() == 2
+		# 名字行：左边名字（双体用「 · 」连），形态点 / 吸收层跟在后面；右边状态小字（双体取更要紧的那体）
+		var nm: String = str(e.name) if not pair else "%s · %s" % [row[0].name, row[1].name]
+		var nx: float = bx + (14.0 if pair else 0.0)
+		var nw: float = g.font.get_string_size(nm, HORIZONTAL_ALIGNMENT_LEFT, -1, UI.fs(13)).x
+		UI.text(g.hud, g.font, Vector2(nx, y0 + 12.0), nm, 13, Color(1, 0.86, 0.9), HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
+		var tx: float = nx + nw + 8.0
+		if not pair:
+			var gl: Array = e.get("gates", [])
+			var acts: int = gl.size() + int(e.get("gates_passed", 0)) + 1
+			if acts > 1:
+				for q in acts:
+					var dc := Vector2(tx + q * 8.0, y0 + 7.0)
+					if q >= int(e.get("gates_passed", 0)):
+						g.hud.draw_circle(dc, 2.5, UI.RED)
+					else:
+						g.hud.draw_arc(dc, 2.5, 0.0, TAU, 10, Color(1, 1, 1, 0.3), 1.0)
+				tx += acts * 8.0 + 6.0
+			if e.has("izu_layers"):
+				for q in 5:
+					var lit_l: bool = q < int(e.izu_layers)
+					UI.diamond(g.hud, Vector2(tx + q * 8.0, y0 + 7.0), 3.0, Color(0.55, 1.0, 0.95) if lit_l else Color(1, 1, 1, 0.08), Color(0.6, 1.0, 1.0, 0.8 if lit_l else 0.3))
+		var sub: Array = _boss_sub(e)
+		if pair and str(sub[0]) == "":
+			sub = _boss_sub(row[1])
+		if str(sub[0]) != "":
+			UI.text(g.hud, g.font, Vector2(bx + bw - 320.0, y0 + 12.0), str(sub[0]), 12, sub[1], HORIZONTAL_ALIGNMENT_RIGHT, 320, 2)
+		if pair:
+			# 两根 3 px 细条并在一个框里；左侧连环小标 = 两体需同时击倒
+			_boss_strip(row[0], Rect2(bx + 14.0, y0 + 18.0, bw - 14.0, 3.0), _boss_col(row[0]))
+			_boss_strip(row[1], Rect2(bx + 14.0, y0 + 23.0, bw - 14.0, 3.0), _boss_col(row[1]))
+			# 连体标：两根细条左端各一个小方块，竖线连起来（两体同生共死）
+			var lc := Color(1, 0.86, 0.9, 0.95)
+			g.hud.draw_rect(Rect2(bx + 3.0, y0 + 17.5, 4.0, 4.0), lc)
+			g.hud.draw_rect(Rect2(bx + 3.0, y0 + 22.5, 4.0, 4.0), lc)
+			g.hud.draw_rect(Rect2(bx + 4.5, y0 + 19.0, 1.0, 6.0), lc)
+			g.hud.draw_rect(Rect2(bx + 7.0, y0 + 19.0, 7.0, 1.0), Color(lc, 0.5))
+			g.hud.draw_rect(Rect2(bx + 7.0, y0 + 24.0, 7.0, 1.0), Color(lc, 0.5))
+		else:
+			_boss_strip(e, Rect2(bx, y0 + 19.0, bw, 5.0), _boss_col(e))
+		bby += BB_ROW
+	if rows.size() > BOSS_BARS_MAX:
+		var ot := "另有 %d 个 Boss" % (rows.size() - BOSS_BARS_MAX)
+		UI.text(g.hud, g.font, Vector2(bx, BB_Y + bby + 10.0), ot, 12, Color(1, 0.82, 0.88), HORIZONTAL_ALIGNMENT_CENTER, bw, 2)
+		bby += 16.0
+	boss_bottom = BB_Y + bby + 4.0 if bby > 0.0 else 0.0
 
 
-func draw_ishar_human(e: Dictionary, bx: float, bw: float) -> void:
-	var rect := Rect2(bx - 12, 100, bw + 24, 46)
-	g.hud.draw_rect(rect, Color(0.03, 0.035, 0.045, 0.8))
-	g.hud.draw_rect(Rect2(rect.position, Vector2(rect.size.x, 1)), Color(UI.CYAN, 0.7))
-	UI.strip(g.hud, g.font, Vector2(bx, 106), "NEUTRAL", e.name, UI.CYAN, UI.TEXT, 12)
+func draw_ishar_human(e: Dictionary, bx: float, bw: float, y0 := BB_Y) -> void:
 	var progress: float = clampf(float(e.get("ally_charge", 0.0)) / maxf(0.01, float(e.get("ally_charge_need", 30.0))), 0.0, 1.0)
-	UI.text(g.hud, g.font, Vector2(bx + bw - 300, 122), "人形 · 治疗海嗣 / 转化充能 %d%%" % roundi(progress * 100.0), 12, UI.CYAN, HORIZONTAL_ALIGNMENT_RIGHT, 300)
-	UI.gbar(g.hud, Rect2(bx, 131, bw, 6), progress, UI.CYAN, 20)
+	UI.text(g.hud, g.font, Vector2(bx, y0 + 12.0), str(e.name), 13, UI.CYAN, HORIZONTAL_ALIGNMENT_LEFT, -1, 2)
+	UI.text(g.hud, g.font, Vector2(bx + bw - 320.0, y0 + 12.0), "人形 · 治疗海嗣 / 转化充能 %d%%" % roundi(progress * 100.0), 12, UI.CYAN, HORIZONTAL_ALIGNMENT_RIGHT, 320, 2)
+	var r := Rect2(bx, y0 + 19.0, bw, 5.0)
+	g.hud.draw_rect(r.grow(1.0), Color(0.02, 0.02, 0.03, 0.85))
+	g.hud.draw_rect(r, Color(1, 1, 1, 0.08))
+	g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x * progress, r.size.y)), UI.CYAN)
 
 
 func hostile_boss_bars() -> Array:
@@ -402,13 +482,18 @@ func status_items() -> Array:
 func draw_status(vs: Vector2, items: Array) -> void:
 	if items.is_empty():
 		return
+	var ph: bool = Cfg.phone_ui()
 	var x := 18.0
-	var y := 104.0
-	var fs := 14 if Cfg.phone_ui() else 12   # 手机：字号不低于 14（10-26 实机可读下限）
-	# 换行宽度（§1.15）：min(360, Boss 血条框左边 − 8)，有 Boss 血条时不钻到血条框下面
+	var y := 80.0 if ph and g.lamp > 0.0 else 104.0   # 手机：灯火行不常驻，胶囊上移补位
+	var fs := 12   # 手机局内经 UI.fs 放大到约 14（docs/37 下限之上）
+	# 换行宽度（§1.15）：min(360, Boss 细血条左边 − 8)，有 Boss 血条时不钻到血条下面
 	var wrap_x := 360.0
 	if not boss_bars().is_empty():
-		wrap_x = minf(360.0, g.hud.size.x / 2.0 - 310.0 - 12.0 - 8.0)
+		wrap_x = minf(360.0, g.hud.size.x / 2.0 - minf(BB_W_MAX, g.hud.size.x * 0.5) / 2.0 - 8.0)
+	# 手机：最多 3 枚，其余收成「+N」（全部在属性面板里看；10-27 用户嫌左上胶囊太大太多）
+	if ph and items.size() > 3:
+		var more: int = items.size() - 2
+		items = items.slice(0, 2) + [["+%d" % more, Color(0.8, 0.84, 0.88), -1.0]]
 	# 合批（docs/50 §13）：标签片的底 / 色条 / 进度细条一批，字（同字体同字号）一批；各片互不重叠，字画在最后与原来相同
 	var tb := TriBatch.new()
 	var tx: Array = []

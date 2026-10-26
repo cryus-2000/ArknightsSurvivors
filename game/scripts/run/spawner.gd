@@ -336,7 +336,9 @@ func update(dt: float) -> void:
 		var names: Array = []
 		for g_item in group:
 			names.append(D.ENEMIES[g_item].name)
-		g.vfx.show_banner("%s 出现了" % " 与 ".join(names))
+		# 双体 Boss：「两体需同时击倒」只在出场横幅里说一次（10-27 Boss 细血条改版后血条上不再常驻这行字，只留连环小标）
+		var pair_note: String = " —— 两体需同时击倒" if spawned.size() == 2 and D.ENEMIES[spawned[0].type].get("pair", false) else ""
+		g.vfx.show_banner("%s 出现了%s" % [" 与 ".join(names), pair_note])
 		Sfx.play("roar", 2.0, 0.7, 0.0)
 		Sfx.play_overlay("boss_in")
 		g.boss_intro.on_spawn(spawned)   # 登场演出（纯覆盖层；无头批跑 / 设置关时不跑，不碰 g.rng）

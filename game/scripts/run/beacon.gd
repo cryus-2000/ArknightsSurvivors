@@ -2,7 +2,10 @@ extends RefCounted
 ## 引航灯标（名字文案暂定；docs/49d §13.5 方案 C，用户 9/29 定）：溟痕的主动清理手段，只靠走位。
 ## 自然溟痕出现后，每 60–75 秒在主控 250–400 外、溟痕最密的点（缩圈后只刷在圈内）立一座熄灭的灯标，场上最多 1 座未点燃（Boss 在场也刷）；
 ## 主控站进半径 70 的光圈累计 2.5 秒点燃（离开时进度缓慢回退，不清零）。
-## 点燃：清除半径 260 内的自然 / 小怪溟痕（Boss 溟痕只把剩余寿命缩到 ≤ 2 秒，不删），这片区域 30 秒内不再生成自然溟痕
+## 点燃（10-26 用户「灯塔范围内的溟痕全部消失」）：清除圈 clear_r 内的溟痕全部驱散——中心在圈内的整片移除，中心在圈外、边压进圈里的削到圈外；
+## 自中心向外扫开（sweep_t 秒扫到圈边，每片到点碎散淡出 sweep_fade 秒），被驱散的溟痕当下就不伤人、不计数（= 移除）。
+## 生效期间（block_t 秒）圈内不留任何非 Boss 溟痕：怪物新留的溟痕不落、圈外长进 / 逼近进来的削掉或驱散；Boss 招式新落的溟痕照常（见 _sweep_hold）。
+## 旧说明：这片区域 30 秒内不再生成自然溟痕
 ## （map.mire_new 落点检查 blocks()），灯标亮着当安全区标记，+5 灯火；同时清空主控与光圈内队友的神经损伤。
 ## 联动：灯火 < 30 时点燃时间 ×1.5；流明灯塔区覆盖灯标时点燃速度 ×2；缩圈把灯标卷到圈外即熄灭消失。
 ## 定位（协调人 9/30）：灯标给的是「局部安全区」，不是清图——Ⅷ 常驻溟痕下存量 25–30 属预期；加强用的旋钮 clear_all_r / block_r 缺省关闭。
@@ -20,6 +23,8 @@ var charging = null      # 本帧主控正在读条的那座灯标（未点燃�
 var guide = null         # 本帧「引路」生效的那座灯标（未点燃、寿命 < beacon/guide_life、beacon/guide_r > 0）；圈内安全外扩读它（docs/56 候选 a）
 var stagger = null       # 本帧「灯边硬直」生效的那座灯标（未点燃、主控在它 beacon/stagger_r 内、stagger_r > 0）；enemy_ai 近战起手读它（docs/56 §10）
 var lit_n := 0           # 本局点燃数（平衡输出）
+var zone_on := false     # 队长此刻在生效中的灯标清除圈里（回复 / 攻速加成生效中，_zone_buff）
+var zone_s := 0.0        # 本局在灯标庇护里待了多少秒（遥测）
 var spawned_n := 0
 
 
@@ -50,6 +55,8 @@ func update(dt: float) -> void:
 		next_at = g.t + g.rng.randf_range(_k("every_min", 60.0), _k("every_max", 75.0)) * float(g.dmod.get("beacon_every", 1.0))
 		if not g.beacons.any(func(b): return not b.lit):
 			_spawn()
+	_sweep_hold()
+	_zone_buff(dt)
 	var r: float = _k("r", 70.0)
 	for b in g.beacons:
 		# 缩圈把灯标卷到圈外：熄灭消失
@@ -178,17 +185,23 @@ func _light(b: Dictionary) -> void:
 	b.count_end = 0.0
 	lit_n += 1
 	# beacon/clear_all_r（缺省 0 = 关）：> 0 时点燃清痕半径改用它（取两者较大者），留给真人反馈后加强用（协调人 9/30 ①）
-	var cr: float = maxf(_k("clear_r", 260.0), _k("clear_all_r", 0.0))
+	var cr: float = clear_radius()
 	var cleared := 0
-	var cleared_pts: Array = []   # 被清掉的溟痕 [pos, r]：只给画面用（world.beacon_burst 的退散动画，docs/54），不影响模拟
+	var cleared_pts: Array = []   # 被驱散的溟痕 [pos, r, 延迟秒]：只给画面用（world 的 mire_recoil 退散动画按延迟依次碎散），不影响模拟
 	for m in g.mires:
-		if m.pos.distance_to(b.pos) > cr:
+		if m.life <= 0.0 or m.has("fade"):
 			continue
-		if m.life <= 0.0:
+		var d: float = m.pos.distance_to(b.pos)
+		if d - float(m.get("maxr", m.r)) >= cr and d - float(m.r) >= cr:
 			continue
-		m.life = 0.0   # 各来源都净化（含 Boss 溟痕）
-		cleared += 1
-		cleared_pts.append([m.pos, float(m.r)])
+		var delay: float = clampf(d / cr, 0.0, 1.0) * _k("sweep_t", 0.3)
+		if d <= cr:
+			_dispel(m, delay)   # 各来源都净化（含点燃时已在场的 Boss 溟痕）
+			cleared += 1
+			cleared_pts.append([m.pos, float(m.r), delay])
+		else:
+			_trim(m, d - cr, delay)   # 中心在圈外：压进圈里的部分削掉
+			cleared_pts.append([m.pos + (b.pos - m.pos).normalized() * (d - cr + 8.0), minf(float(m.r), 48.0), delay])
 	b["cleared"] = cleared_pts
 	if cleared > 0:
 		Sfx.play("mire_clear", -10.2, 1.0, 0.0)   # 清掉溟痕：溶解嘶声，叠在点亮光爆下（tools/gen_sfx_events.py）
@@ -204,6 +217,88 @@ func _light(b: Dictionary) -> void:
 	_log("lit cleared=%d via=%s relay_p=%.2f in_s=%.1f relay_s=%.1f min_d=%.0f hold_s=%.1f stag=%d" % [cleared, str(b.get("via", "ring")),
 		float(b.get("relay_p", 0.0)) / maxf(0.1, float(b.need)), float(b.get("in_s", 0.0)), float(b.get("relay_s", 0.0)),
 		minf(float(b.get("min_d", INF)), 9999.0), float(b.get("hold_s", 0.0)), int(b.get("stag_n", 0))])
+
+
+## 点燃清除半径（clear_all_r 旋钮 > 0 时取较大者）
+func clear_radius() -> float:
+	return maxf(_k("clear_r", 260.0), _k("clear_all_r", 0.0))
+
+
+## 灯标正在生效（点燃后 block_t 秒内）
+func active(b: Dictionary) -> bool:
+	return b.lit and not b.dead and g.t - float(b.lit_t) <= _k("block_t", 30.0)
+
+
+## 驱散一片：当下就不伤人、不长、不计数（走淡出分支），delay 秒后扫到它、再 sweep_fade 秒碎散淡出后移除
+func _dispel(m: Dictionary, delay: float) -> void:
+	m["fade"] = delay + _k("sweep_fade", 0.25)
+	m["fade_len"] = _k("sweep_fade", 0.25)
+
+
+## 削掉压进圈里的部分：最大半径立刻收到 keep（不再往圈里长），画面半径 delay 秒后跟着收（beacon.update 里）；剩得太小就整片驱散
+func _trim(m: Dictionary, keep: float, delay: float) -> void:
+	if keep < 16.0:
+		_dispel(m, delay)
+		return
+	m.maxr = minf(float(m.get("maxr", m.r)), keep)
+	m["trim_r"] = keep
+	m["trim_at"] = g.t + delay
+
+
+## 生效期间每帧：圈内的非 Boss 溟痕（怪物新留的、灯火低时逼近进来的、圈外长进来的）随到随散；削边到点后收画面半径。
+## Boss 招式在生效期间新落的溟痕不管（docs/49g：圈内安全只管非 Boss，Boss 的预警 / 子弹 / 落点照常，免得站灯里就能无视 Boss 招式）；
+## 点燃那一刻已在场的 Boss 溟痕照旧一起驱散（点燃是一次性的净化，与改前相同）
+func _sweep_hold() -> void:
+	var lit_now: Array = g.beacons.filter(func(b): return active(b))
+	for m in g.mires:
+		if m.has("trim_at") and g.t >= float(m.trim_at):
+			m.r = minf(float(m.r), float(m.trim_r))
+			m.erase("trim_at")
+		if lit_now.is_empty() or m.life <= 0.0 or m.has("fade") or m.get("boss", false):
+			continue
+		var cr: float = clear_radius()
+		for b in lit_now:
+			var d: float = m.pos.distance_to(b.pos)
+			if d - float(m.r) >= cr and d - float(m.get("maxr", m.r)) >= cr:
+				continue
+			if d <= cr:
+				_dispel(m, 0.0)
+				g.fx.append({"kind": "mire_recoil", "pts": [[m.pos, float(m.r), 0.0]], "from": b.pos, "life": 0.35, "max": 0.35, "tex": g.vfx.strip("fx_mire_dissolve")})
+			else:
+				_trim(m, d - cr, 0.0)
+			break
+
+
+## 灯标庇护（10-26 用户「提供一些回血加速和攻速加速」）：队长在生效中的灯标清除圈里时，每秒回复 zone_regen_pct × 最大生命、全队攻速 +zone_aspd；
+## 出圈或生效结束即撤（stats 来源 "beacon_zone"）。两个旋钮都 0 = 关
+func _zone_buff(dt: float) -> void:
+	var cr: float = clear_radius()
+	var inside: bool = g.beacons.any(func(b): return active(b) and b.pos.distance_to(g.ppos) <= cr)
+	if inside:
+		zone_s += dt
+	if inside == zone_on:
+		return
+	zone_on = inside
+	g.stats.remove_source("beacon_zone")
+	if inside:
+		var rp: float = _k("zone_regen_pct", 0.015)
+		var asp: float = _k("zone_aspd", 0.25)
+		if rp > 0.0:
+			g.stats.add(&"regen_pct", "flat", rp, "beacon_zone")   # regen_pct 基础 0：用 flat（add 是百分比加成）
+		if asp > 0.0:
+			g.stats.add(&"op_aspd", "add", asp, "beacon_zone")
+		if rp > 0.0 or asp > 0.0:
+			g.vfx.add_text(g.ppos + Vector2(0, -96), "灯标庇护 · 回复 +%d%%/秒 · 攻速 +%d%%" % [int(round(rp * 100.0)), int(round(asp * 100.0))], UI.GOLD, 15)
+	g.sync_stats()
+
+
+## 怪物溟痕落点检查（combat.add_enemy_mire）：落在生效中的灯标清除圈内就不落
+func holds(p: Vector2) -> bool:
+	var cr: float = clear_radius()
+	for b in g.beacons:
+		if active(b) and b.pos.distance_to(p) <= cr:
+			return true
+	return false
 
 
 ## ---- 圈内安全（docs/49g，协调人 10-01 定候选 e；三个旋钮缺省 0 = 关，可按档开：difficulty/<档>/beacon_safe_* ≥ 0 时优先）
