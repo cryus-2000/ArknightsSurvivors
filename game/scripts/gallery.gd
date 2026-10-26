@@ -530,6 +530,13 @@ const DESK := Vector2(1280, 720)
 const PHONE := Vector2(740, 360)
 const ART_K := 4.0                 # 立绘倍数上限（@2x 像素）：与选人页 title.gd OP_ART_K 相同，手机 ×0.6
 const CLASS_ORDER: Array = D.CLASS_ORDER
+## 原作职业线稿图标（寻访同一套，来源见 art/incoming/headhunt_professions_1025/sources.json）
+const CLASS_ICONS := {
+	"先锋": preload("res://art/ui/professions/pioneer.png"), "近卫": preload("res://art/ui/professions/warrior.png"),
+	"重装": preload("res://art/ui/professions/tank.png"), "狙击": preload("res://art/ui/professions/sniper.png"),
+	"术师": preload("res://art/ui/professions/caster.png"), "医疗": preload("res://art/ui/professions/medic.png"),
+	"辅助": preload("res://art/ui/professions/support.png"), "特种": preload("res://art/ui/professions/special.png"),
+}
 ## 非干员页斜带颜色（干员页用干员色）：敌人 / 精英 / Boss / 道具 / 藏品；结局用各结局自己的颜色
 const TAB_COL := [Color(0.212, 0.886, 0.863), Color(0.85, 0.3, 0.42), Color(0.957, 0.753, 0.306), Color(1.0, 0.239, 0.545),
 	Color(0.212, 0.886, 0.863), Color(0.66, 0.52, 1.0), Color(0.66, 0.52, 1.0)]
@@ -550,6 +557,11 @@ var dk := 1.0
 var doff := Vector2.ZERO
 var hits: Array = []               # [Rect2（设计坐标）, 种类, 值]：按绘制顺序，命中从后往前查
 var vlist: Array = []              # 网格里显示的条目（entries 下标，干员页按职业筛选）
+## 干员页「按职业」分组查看（10-26 用户；同日改：职业标记不要占一张卡，学原作只用小图标）：每个职业另起一行，
+## 行前一条细分组条（原作职业小图标 + 职业名 + 人数 + 细线），干员卡照常铺满整行。只在「全部」筛选下生效；本次运行内记住
+static var group_cls := false
+var vcell: Array = []              # vlist 每一项在网格里的格号（行 × 列数 + 列）；不分组时就是下标
+var vhead: Array = []              # 分组条：[该职业第一行的行号, 职业]
 var filter := ""                   # 干员页职业筛选（"" = 全部）
 var rail_focus := false            # 键盘 / 手柄：焦点在左侧职业轨（↑↓ 换筛选，→ 回网格）
 var hover := {}                    # 卡（entries 下标）→ 悬停 0–1
@@ -610,7 +622,78 @@ func rows_vis() -> int:
 
 
 func _max_scroll() -> int:
-	return maxi(0, ceili(vlist.size() / float(cols())) - rows_vis())
+	if not _grouped():
+		return maxi(0, _rows_total() - rows_vis())
+	var last := _rows_total() - 1
+	for s0 in last + 1:
+		if _row_fits(last, s0):
+			return s0
+	return maxi(0, last)
+
+
+## 分组条高度（设计单位）：字在上半，下半留给选中卡抬起（10 px + 黄线 7 px）不压字
+func _band_h() -> float:
+	return 30.0
+
+
+## 第 r 行卡片顶端相对第 0 行分组条顶端的偏移：行距 × r + 到这一行为止（含）的分组条数 × 条高
+func _row_y(r: int) -> float:
+	var n := 0
+	for h in vhead:
+		if int(h[0]) <= r:
+			n += 1
+	return r * float(_grid().step.y) + n * _band_h()
+
+
+## 从第 s0 行起显示时，第 r 行卡片顶端的设计 y（分组时 s0 行前的分组条也算进可视区）
+func _row_top(r: int, s0: int) -> float:
+	var g := _grid()
+	if not _grouped():
+		return g.y0 + (r - s0) * g.step.y
+	var top := _row_y(s0) - (_band_h() if _has_head(s0) else 0.0)
+	return g.y0 + _row_y(r) - top
+
+
+func _has_head(r: int) -> bool:
+	for h in vhead:
+		if int(h[0]) == r:
+			return true
+	return false
+
+
+## 第 r 行整张卡是否落在可视区内（从第 s0 行起显示）
+func _row_fits(r: int, s0: int) -> bool:
+	if r < s0:
+		return false
+	var g := _grid()
+	var bottom: float = g.y0 + (g.rows - 1) * g.step.y + g.card.y
+	return _row_top(r, s0) + g.card.y <= bottom + 0.5
+
+
+func _grouped() -> bool:
+	return tab == 0 and filter == "" and group_cls
+
+
+## vlist 第 vi 项的格号
+func _cell(vi: int) -> int:
+	return vcell[vi] if vi >= 0 and vi < vcell.size() else vi
+
+
+func _rows_total() -> int:
+	var last := -1
+	for c in vcell:
+		last = maxi(last, int(c))
+	return ceili((last + 1) / float(cols()))
+
+
+func _set_group(on: bool) -> void:
+	if on == group_cls:
+		return
+	group_cls = on
+	_rebuild_view()
+	scroll = 0
+	_follow()
+	Sfx.play("ui_move")
 
 
 func _stage() -> Rect2:
@@ -619,9 +702,38 @@ func _stage() -> Rect2:
 
 func _rebuild_view() -> void:
 	vlist.clear()
+	vcell.clear()
+	vhead.clear()
 	for i in entries.size():
 		if tab != 0 or filter == "" or entries[i].get("cls", "") == filter:
 			vlist.append(i)
+	if not _grouped():
+		for k in vlist.size():
+			vcell.append(k)
+		return
+	var c := cols()
+	var cell := 0
+	var order: Array = []
+	for cls in CLASS_ORDER:
+		var mem: Array = vlist.filter(func(i): return entries[i].has("op") and str(entries[i].get("cls", "")) == cls)
+		if mem.is_empty():
+			continue
+		vhead.append([cell / c, cls])
+		var col := 0
+		for i in mem:
+			if col >= c:
+				cell += c
+				col = 0
+			order.append(i)
+			vcell.append(cell + col)
+			col += 1
+		cell += c
+	for i in vlist:   # 其余（博士）另起一行，不加分组条
+		if not order.has(i):
+			order.append(i)
+			vcell.append(cell)
+			cell += 1
+	vlist = order
 
 
 # ---------------------------------------------------------------- 动效进度
@@ -796,6 +908,8 @@ func _hit(kind: String, v) -> void:
 		"card":
 			rail_focus = false
 			_set_sel(v)
+		"group":
+			_set_group(v)
 		"demo":
 			_demo_click(v[0], v[1])
 		"row":
@@ -833,7 +947,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 			_set_tab((tab + 1) % TABS.size())
 		KEY_LEFT, KEY_A:
 			# 网格最左一列再往左：焦点进职业轨（桌面干员页）
-			if tab == 0 and not phone() and vlist.find(sel) % cols() == 0:
+			if tab == 0 and not phone() and _cell(vlist.find(sel)) % cols() == 0:
 				rail_focus = true
 				Sfx.play("ui_move")
 			else:
@@ -856,6 +970,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_1, KEY_2, KEY_3, KEY_4:
 			if _is_op():
 				_set_info(k - KEY_1)
+		KEY_G:
+			if tab == 0 and filter == "":
+				_set_group(not group_cls)   # 干员页：全部 ↔ 按职业
 
 
 func _is_op() -> bool:
@@ -866,7 +983,26 @@ func _step(d: int) -> void:
 	if vlist.is_empty():
 		return
 	var vi := vlist.find(sel)
-	_set_sel(vlist[clampi(vi + d, 0, vlist.size() - 1)])
+	var c := cols()
+	if not _grouped() or absi(d) < c:
+		_set_sel(vlist[clampi(vi + d, 0, vlist.size() - 1)])
+		return
+	# 分组时上下：到上 / 下一行里列最近的那张（中间只有职业格的空行跳过）
+	var cur := _cell(vi)
+	var dir := signi(d)
+	var r := cur / c + dir
+	var last := _rows_total() - 1
+	while r >= 0 and r <= last:
+		var best := -1
+		var bd := 99
+		for k in vlist.size():
+			if _cell(k) / c == r and absi(_cell(k) % c - cur % c) < bd:
+				bd = absi(_cell(k) % c - cur % c)
+				best = k
+		if best >= 0:
+			_set_sel(vlist[best])
+			return
+		r += dir
 
 
 func _form_step(d: int) -> void:
@@ -922,9 +1058,12 @@ func _follow() -> void:
 	var vi := vlist.find(sel)
 	if vi < 0:
 		return
-	var row: int = vi / cols()
+	var row: int = _cell(vi) / cols()
 	if row < scroll:
 		scroll = row
+	elif _grouped():
+		while not _row_fits(row, scroll) and scroll < row:
+			scroll += 1
 	elif row >= scroll + rows_vis():
 		scroll = row - rows_vis() + 1
 	scroll = clampi(scroll, 0, _max_scroll())
@@ -1432,16 +1571,27 @@ func _draw_grid(ph: bool) -> void:
 	var rows_n: int = g.rows
 	scroll = clampi(scroll, 0, _max_scroll())
 	if not ph:
-		var hdr := "%s  //  %s" % [["OPERATORS", "ENEMIES", "ELITES", "BOSSES", "ITEMS", "RELICS", "ENDINGS"][tab], "SORT: CLASS" if tab == 0 and filter == "" else (filter if tab == 0 else "%d ENTRIES" % vlist.size())]
+		var hdr := "%s  //  %s" % [["OPERATORS", "ENEMIES", "ELITES", "BOSSES", "ITEMS", "RELICS", "ENDINGS"][tab], ("GROUP: CLASS" if group_cls else "SORT: CLASS") if tab == 0 and filter == "" else (filter if tab == 0 else "%d ENTRIES" % vlist.size())]
 		UI.code(self, font, Vector2(g.x0, 56), hdr, 8, UI.C_D_SUB)
+	if tab == 0 and filter == "":
+		_draw_group_toggle(g, ph)
 	var u := _now() - open_t0
-	for vi in vlist.size():
-		var row: int = vi / cols_n - scroll
-		if row < 0 or row >= rows_n:
+	var grp := _grouped()
+	for h in vhead:
+		var hr0: int = int(h[0])
+		if not _row_fits(hr0, scroll):
 			continue
-		var cc: int = vi % cols_n
+		var hr: int = hr0 - scroll
+		var ha := 1.0 if _still() else UI.ease_out(clampf((u - 0.02 * hr * cols_n) / 0.2, 0.0, 1.0))
+		_class_band(Vector2(g.x0, _row_top(hr0, scroll) - _band_h()), cols_n * g.step.x - (g.step.x - g.card.x), str(h[1]), ha, ph)
+	for vi in vlist.size():
+		var row0: int = _cell(vi) / cols_n
+		var row: int = row0 - scroll
+		if (grp and not _row_fits(row0, scroll)) or (not grp and (row < 0 or row >= rows_n)):
+			continue
+		var cc: int = _cell(vi) % cols_n
 		var i: int = vlist[vi]
-		var r := Rect2(g.x0 + cc * g.step.x, g.y0 + row * g.step.y, g.card.x, g.card.y)
+		var r := Rect2(g.x0 + cc * g.step.x, _row_top(row0, scroll), g.card.x, g.card.y)
 		hits.append([r, "card", i])
 		var a := 1.0
 		var flash := 0.0
@@ -1467,8 +1617,53 @@ func _draw_grid(ph: bool) -> void:
 		var th := maxf(16.0, gh * rows_n / float(rows_n + ms))
 		draw_rect(Rect2(gx, g.y0 + (gh - th) * scroll / float(ms), 2, th), UI.C_ACC)
 		if ph:
-			var more := maxi(0, vlist.size() - (scroll + rows_n) * cols_n)
-			UI.code(self, font, Vector2(g.x0 + (cols_n * g.step.x - 6.0) / 2.0, PHONE.y - 14), "SWIPE  +%d" % more if more > 0 else "SWIPE  ▲", 7, UI.C_D_SUB, "ma")
+			var more := 0
+			for vi in vlist.size():
+				var rv: int = _cell(vi) / cols_n
+				if (grp and rv > scroll and not _row_fits(rv, scroll)) or (not grp and rv >= scroll + rows_n):
+					more += 1
+			var sx: float = (g.x0 + cols_n * g.step.x - 6.0) if tab == 0 and filter == "" else (g.x0 + (cols_n * g.step.x - 6.0) / 2.0)
+			var tg: bool = tab == 0 and filter == ""   # 干员页底行左侧是分组切换，提示缩短
+			UI.code(self, font, Vector2(sx, PHONE.y - 14), ("+%d" % more if more > 0 else "▲") if tg else ("SWIPE  +%d" % more if more > 0 else "SWIPE  ▲"), 7, UI.C_D_SUB, "ra" if tg else "ma")
+
+
+## 「全部 / 按职业」切换：桌面在网格表头右侧，手机在网格下方左侧（SWIPE 提示挪到右侧）；键盘 G
+func _draw_group_toggle(g: Dictionary, ph: bool) -> void:
+	var w := 40.0 if ph else 58.0
+	var h := 13.0 if ph else 18.0
+	var x1: float = (g.x0 + 2.0 * (w + 2.0)) if ph else (g.x0 + g.cols * g.step.x - 8.0)
+	var y: float = (PHONE.y - 17.0) if ph else 50.0
+	var labels := ["全部", "按职业"]
+	for k in 2:
+		var r := Rect2(x1 - (2 - k) * (w + 2.0), y, w, h)
+		var on := (k == 1) == group_cls
+		draw_rect(r, UI.C_ACC if on else UI.C_D_PANEL)
+		draw_rect(r, UI.C_D_INK if on else UI.fa(UI.C_D_INK, 0.6), false, 1.0)
+		UI.text_at(self, font, r.get_center() + Vector2(0, 1), labels[k], 10 if ph else 11, UI.C_HZ if on else UI.C_D_INK, "mm", on)
+		hits.append([r.grow(3.0), "group", k == 1])
+	if not ph and not Pad.touch:
+		UI.code(self, font, Vector2(x1 - 2.0 * (w + 2.0) - 8.0, y + h * 0.5 - 4.0), "G", 8, UI.C_D_SUB, "ra")
+
+
+## 分组条（学原作：只用小图标，不占卡位）：原作职业线稿小图标 + 职业名 + 人数，后面一条细线，左端职业色短竖条
+func _class_band(p: Vector2, w: float, cls: String, a: float, ph: bool) -> void:
+	if a <= 0.0:
+		return
+	var h := _band_h()
+	var col: Color = Character.CLASS_COL.get(cls, UI.C_D_INK)
+	var cy := p.y + (5.0 if phone() else 7.0)
+	draw_rect(Rect2(p.x, cy - 5.0, 2.0, 10.0), UI.fa(col, a))
+	var isz := 12.0 if ph else 14.0
+	var ic: Texture2D = CLASS_ICONS.get(cls)
+	if ic != null:
+		draw_texture_rect(ic, Rect2(Vector2(p.x + 6.0, cy - isz * 0.5).round(), Vector2(isz, isz)), false, UI.fa(UI.C_D_INK, a))
+	var tx := p.x + 6.0 + isz + 5.0
+	var fs := 11 if ph else 12
+	UI.text_at(self, font, Vector2(tx, cy + 1.0), cls, fs, UI.fa(UI.C_D_INK, a), "lm", true)
+	var nx := tx + UI.cwidth(font, cls, fs) + 6.0
+	UI.text_at(self, font, Vector2(nx, cy + 1.0), str(_class_count(cls)), fs - 2, UI.fa(UI.C_D_SUB, a), "lm")
+	var lx := nx + UI.cwidth(font, str(_class_count(cls)), fs - 2) + 8.0
+	draw_line(Vector2(lx, cy + 1.0), Vector2(p.x + w, cy + 1.0), UI.fa(UI.C_D_INK, 0.25 * a), 1.0)
 
 
 ## C4' 名册卡（暗场）：顶部 4 px 色条、左上职业框、右上精英菱形、底部反色名字条；选中 = 抬起 10 px + 黑投影 + 2 px 框 + 底部黄条 + 卡上方黄线
