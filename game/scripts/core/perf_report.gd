@@ -8,6 +8,9 @@ extends RefCounted
 ## - 内存峰值：每 MEM_EVERY 秒取一次。网页 = 引擎显存统计 + 网页音频样本解码估算（同 game._mem_guard / --memlog 口径）；
 ##   桌面 = 引擎静态内存 + 显存
 ## - 同屏敌人峰值、是否触发过内存护栏（game._mem_guard 置 guard_hit）、局长、画质档、帧率上限、版本、设备
+## - 10-27 加（真机 iPhone 报告定位用，docs/50 §39）：开局画质档（局末的档可能已被护栏降过）、护栏走到第几步、敌人峰值那一刻的构成
+##   （普通 / 精英 / Boss / 补给箱 / 事件与召唤）、内存峰值那一刻的构成（贴图 / 缓冲区 / 其余显存 / 音频）、最慢的 SLOW_N 个 1 秒（对局时间、
+##   帧数、最长一帧、那一秒里发生了什么：Boss 登场 / 大群 / 精英 / 读贴图 N 张 / 升级 / 刷怪 N 只 / 护栏…）
 ## 存档：user://perf_reports.json（网页落在浏览器本地存储里）。测试运行（带命令行参数）只有加 --perfreport 才记，且写到 _test 文件，不碰玩家的
 const Game = preload("res://scripts/game.gd")
 
@@ -27,6 +30,15 @@ var min_late := 0.0
 var enemy_peak := 0
 var mem_peak := 0.0
 var guard_hit := false
+var guard_stage := 0     # 护栏这局走到第几步（game._mem_guard：1 清缓存 / 2 降画质 / 3 分辨率缩放）
+var q0 := ""             # 开局画质档
+var enemy_mix := {}      # 敌人峰值那一刻的构成
+var mem_mix := {}        # 内存峰值那一刻的构成
+const SLOW_N := 5
+var slow: Array = []     # 最慢的 1 秒：[fps, 对局时间, 最长一帧 ms, 标签数组]，按 fps 升序
+var _sec_max := 0.0
+var _sec_tags := {}      # 这一秒里打上的事件标签（tag()）
+var _snap := {}          # 这一秒开头的计数快照（自动标签用）
 var done := false
 var _last_us := 0
 var _sec_t0 := 0
@@ -49,6 +61,8 @@ func tick(delta: float) -> void:
 	var now := Time.get_ticks_usec()
 	var last := _last_us
 	_last_us = now
+	if q0 == "":
+		q0 = Cfg.quality
 	if g.state != Game.S.PLAY or g.t < WARM or last == 0:
 		_sec_t0 = 0
 		return
@@ -63,23 +77,104 @@ func tick(delta: float) -> void:
 		h_late[b] += 1
 	# 最低 1 秒帧率（真实时间）
 	if _sec_t0 == 0:
-		_sec_t0 = now
-		_sec_n = 0
-		_sec_late = late
+		_sec_begin(now, late)
 	_sec_n += 1
+	_sec_max = maxf(_sec_max, ms)
 	if now - _sec_t0 >= 1000000:
 		var fps := _sec_n * 1000000.0 / float(now - _sec_t0)
 		min_all = fps if min_all <= 0.0 else minf(min_all, fps)
 		if _sec_late:
 			min_late = fps if min_late <= 0.0 else minf(min_late, fps)
-		_sec_t0 = now
-		_sec_n = 0
-		_sec_late = late
-	enemy_peak = maxi(enemy_peak, g.enemies.size())
+		_sec_end(fps)
+		_sec_begin(now, late)
+	if g.enemies.size() > enemy_peak:
+		enemy_peak = g.enemies.size()
+		enemy_mix = _enemy_mix()
 	_mem_t += delta
 	if _mem_t >= MEM_EVERY:
 		_mem_t = 0.0
-		mem_peak = maxf(mem_peak, mem_mb())
+		var m := mem_mb()
+		if m > mem_peak:
+			mem_peak = m
+			mem_mix = _mem_mix()
+
+
+## 事件标签（Boss 登场、护栏动作等调用方主动打的）：记进这一秒
+func tag(name: String) -> void:
+	if on and not done:
+		_sec_tags[name] = int(_sec_tags.get(name, 0)) + 1
+
+
+func _counts() -> Dictionary:
+	var A = load("res://scripts/art.gd")
+	var el := 0
+	for e in g.enemies:
+		if e.get("elite", false) and not e.dead:
+			el += 1
+	return {"tex": A._cache.size(), "boss": g.bosses.size(), "horde": g.horde_log.size(), "lv": g.level, "elite": el, "mob": int(g.spawner.n_mob)}
+
+
+func _sec_begin(now: int, late: bool) -> void:
+	_sec_t0 = now
+	_sec_n = 0
+	_sec_late = late
+	_sec_max = 0.0
+	_sec_tags = {}
+	_snap = _counts()
+
+
+func _sec_end(fps: float) -> void:
+	if slow.size() >= SLOW_N and fps >= float(slow[-1][0]):
+		return
+	var c := _counts()
+	var tags: Array = []
+	if g.boss_intro != null and g.boss_intro.active():
+		tags.append("Boss 演出")
+	if int(c.boss) > int(_snap.get("boss", 0)):
+		tags.append("Boss 登场")
+	if int(c.horde) > int(_snap.get("horde", 0)):
+		tags.append("大群")
+	if int(c.elite) > int(_snap.get("elite", 0)):
+		tags.append("精英 +%d" % (int(c.elite) - int(_snap.get("elite", 0))))
+	if int(c.tex) > int(_snap.get("tex", 0)):
+		tags.append("读贴图 %d 张" % (int(c.tex) - int(_snap.get("tex", 0))))
+	if int(c.lv) > int(_snap.get("lv", 0)):
+		tags.append("升级")
+	var mob: int = int(c.mob) - int(_snap.get("mob", 0))
+	if mob >= 8:
+		tags.append("刷怪 %d 只" % mob)
+	for k in _sec_tags:
+		tags.append(str(k) if int(_sec_tags[k]) == 1 else "%s ×%d" % [k, int(_sec_tags[k])])
+	slow.append([snappedf(fps, 0.1), snappedf(g.t, 1.0), snappedf(_sec_max, 1.0), tags])
+	slow.sort_custom(func(a, b): return float(a[0]) < float(b[0]))
+	if slow.size() > SLOW_N:
+		slow.resize(SLOW_N)
+
+
+func _enemy_mix() -> Dictionary:
+	var m := {"普通": 0, "精英": 0, "Boss": 0, "补给箱": 0, "事件 / 召唤": 0}
+	for e in g.enemies:
+		if e.dead:
+			continue
+		if e.boss:
+			m["Boss"] += 1
+		elif e.get("elite", false):
+			m["精英"] += 1
+		elif e.get("chest", false):
+			m["补给箱"] += 1
+		elif e.get("friendly", false) or str(e.get("event", "")) != "" or e.get("enc", false) or e.has("owner") or e.has("feed_to_id"):
+			m["事件 / 召唤"] += 1
+		else:
+			m["普通"] += 1
+	return m
+
+
+static func _mem_mix() -> Dictionary:
+	var tex: float = Performance.get_monitor(Performance.RENDER_TEXTURE_MEM_USED) / 1048576.0
+	var buf: float = Performance.get_monitor(Performance.RENDER_BUFFER_MEM_USED) / 1048576.0
+	var vid: float = Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0
+	return {"贴图": snappedf(tex, 1.0), "缓冲区": snappedf(buf, 1.0), "其余显存": snappedf(maxf(0.0, vid - tex - buf), 1.0),
+		"音频": snappedf(Sfx.sample_mem_mb() if OS.has_feature("web") else 0.0, 1.0)}
 
 
 static func mem_mb() -> float:
@@ -134,6 +229,7 @@ func finish(result: String) -> void:
 		"late": {} if _count(h_late) == 0 else {"frames": _count(h_late), "p50": pct(h_late, 0.5), "p95": pct(h_late, 0.95), "p99": pct(h_late, 0.99), "min1s": snappedf(min_late, 0.1)},
 		"mem_peak": snappedf(mem_peak, 1.0), "mem_src": "显存 + 音频估算" if OS.has_feature("web") else "引擎内存 + 显存",
 		"enemy_peak": enemy_peak, "guard": guard_hit or Cfg.guard_lowered,
+		"q0": q0, "guard_stage": guard_stage, "enemy_mix": enemy_mix, "mem_mix": mem_mix, "slow": slow,
 	}
 	var all := load_all().duplicate()
 	all.push_front(rec)
@@ -240,7 +336,25 @@ static func report_text(r: Dictionary) -> String:
 	var late: Dictionary = r.get("late", {})
 	lines.append(("7 分钟后 " + frame_line(late)) if not late.is_empty() else "7 分钟后 —（本局未到 7 分钟）")
 	lines.append("内存峰值 %d MB（%s）· 同屏敌人峰值 %d · 内存护栏 %s" % [int(r.get("mem_peak", 0)), str(r.get("mem_src", "")), int(r.get("enemy_peak", 0)), "已触发" if r.get("guard", false) else "未触发"])
+	if r.has("q0"):   # 10-27 加的字段（旧记录没有）
+		var gs: int = int(r.get("guard_stage", 0))
+		lines.append("开局画质 %s · 护栏 %s" % [Cfg.QUALITY_NAME.get(str(r.q0), str(r.q0)), ["未触发", "只清缓存", "降画质", "分辨率缩放"][clampi(gs, 0, 3)]])
+		lines.append("敌人峰值构成 " + _mix_text(r.get("enemy_mix", {}), "") + " · 内存峰值构成 " + _mix_text(r.get("mem_mix", {}), " MB"))
+		var sl: Array = r.get("slow", [])
+		if not sl.is_empty():
+			var parts: Array = []
+			for s in sl:
+				var tg: Array = s[3] if s.size() > 3 else []
+				parts.append("%s %d 帧（最长 %d 毫秒%s）" % [_mmss(float(s[1])), int(round(float(s[0]))), int(s[2]), ("：" + "、".join(PackedStringArray(tg.map(func(x): return str(x))))) if not tg.is_empty() else ""])
+			lines.append("最慢 %d 秒 " % sl.size() + "；".join(PackedStringArray(parts)))
 	return "\n".join(PackedStringArray(lines))
+
+
+static func _mix_text(m: Dictionary, unit: String) -> String:
+	var parts: Array = []
+	for k in m:
+		parts.append("%s %s%s" % [k, str(m[k]), unit])
+	return " / ".join(PackedStringArray(parts)) if not parts.is_empty() else "—"
 
 
 ## 一局一行（设置页「更早的记录」）
