@@ -10,9 +10,9 @@ const Spotlight = preload("res://scripts/screens/spotlight.gd")
 const Roster = preload("res://scripts/core/roster.gd")
 
 const STEPS := [
-	{"en": "ARCHIVE", "title": "图鉴", "text": "点「图鉴」，查看抽到的干员。"},
-	{"en": "RETURN", "title": "返回", "text": "看完点「返回」，回到主界面。"},
-	{"en": "DEPLOY", "title": "集结出发", "text": "点「集结出发」，开始第一次探索。"},
+	{"en": "ARCHIVE", "title": "图鉴", "text": "点击「图鉴」。"},
+	{"en": "RETURN", "title": "返回", "text": "", "panel": false},   # 只框不说明
+	{"en": "DEPLOY", "title": "集结出发", "text": "开始探索。"},
 ]
 
 var tl: Control            # 标题页（screens/title.gd）
@@ -147,7 +147,7 @@ func _draw() -> void:
 	var st: Dictionary = STEPS[step]
 	skip_rect = Spotlight.draw(self, tl.font, size, [h], {"idx": step, "n": STEPS.size(), "tag": "TOUR", "en": st.en, "title": st.title, "text": st.text,
 		"hint": Pad.hint("点击高亮处　Esc：跳过", "Ⓐ：确认　Ⓑ：跳过", "点击高亮处"), "e": 1.0 - pow(1.0 - clampf(t / 0.28, 0.0, 1.0), 3.0), "t": t,
-		"dim": 0.0 if step == 1 else 0.68, "skip": step != 1, "touch": Cfg.touch_device()})
+		"dim": 0.0 if step == 1 else 0.68, "skip": step != 1, "panel": st.get("panel", true), "touch": Cfg.touch_device()})
 
 
 # ---------------------------------------------------------------- 演示 / 录片（--titletour）
