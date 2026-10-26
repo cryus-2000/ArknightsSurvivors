@@ -1709,6 +1709,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			Sfx.play("ui_ok", -4.0)
 			state = S.PAUSE
 			return
+		if state == S.PLAY and doctor.click_skill(event.position):   # 左键点场地放选落点技能（乌尔比安 S3，10-26）；放不了时点击照旧
+			get_viewport().set_input_as_handled()
+			return
 	if event is InputEventKey and event.device == Pad.SYNTH_DEVICE and state_age < 0.35 and state != S.PLAY:
 		return
 	if state == S.SHOW:

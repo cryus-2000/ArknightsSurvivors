@@ -260,6 +260,26 @@ func point_preview(ld, i: int) -> Vector2:
 	return p
 
 
+## 鼠标左键点场地放选落点技能（用户 10-26「乌尔比安的三技能要设置成鼠标点击也能够触发，否则的话太鸡肋了」）：
+## 队长的手动技能是选落点（JSON "aim": "point"）、已解锁、技力满且此刻放得出时接管这次点击，落点 = 点击处（press_manual 里夹在 aim_range 内）；
+## 其余情况（技力没满、不是选落点技能、正在出手放不了…）返回 false，点击照旧。触屏（会模拟鼠标左键）、开了手动普攻（左键 = 攻击）、
+## 键盘正在蓄距离、点在 HUD 上（hud.blocks_click）不接管。E / J、手柄、触屏技能键照旧。vp = 视口坐标（事件 position）
+func click_skill(vp: Vector2) -> bool:
+	if _touching() or manual_attack or not charge.is_empty() or Bal.v("manual/click_cast", 1.0) <= 0.0:
+		return false
+	if g.hud_view.blocks_click(vp / Cfg.ui_k):
+		return false
+	var ld = g.squad.leader()
+	var i: int = ld.manual_index() if ld != null else -1
+	if i < 0 or not ld.skill_unlocked(i) or not ld.manual_point(i) or ld.perm[i]:
+		return false
+	if ld.sp[i] < ld.sp_need(i) or ld.skill_active_left(i) > 0.0 or ld.manual_block_reason(i, Vector2.RIGHT) != "":
+		return false
+	_mouse_t = g.t
+	_press_point(ld, i, g.get_viewport().get_canvas_transform().affine_inverse() * vp)
+	return true
+
+
 ## 光标在对局右上角的倍速 / 暂停按钮上：左键是点按钮，不算攻击（game.gd 处理那次点击）
 func _over_hud_btn() -> bool:
 	var mp: Vector2 = g.get_viewport().get_mouse_position() / Cfg.ui_k   # 两个按钮记的是界面坐标（界面大小 ≠ 100% 时要换算）

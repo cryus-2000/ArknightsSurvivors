@@ -2,6 +2,7 @@
 """乌尔比安 S3 冲锋特效（docs/143）：录帧对照 / 同局轮换量帧时。走 tools/godot_runner（并发上限、窗口放副屏 / 屏幕外、静音）。
 用法：
   python tools/probes/ulp_charge_shot.py rec  <输出目录> [old] [mid] [n=100]   第一次放技能起连存 90 帧 rec_*.png（old = 冲锋颗粒关 / 旧画法；mid = 中画质）
+  python tools/probes/ulp_charge_shot.py click <输出目录> [n=100]                  左键点击释放演示（10-26）：技力没满点地面 → 点编队栏 → 点地面放出，每帧存图 + ULPCLICK 行
   python tools/probes/ulp_charge_shot.py perf <输出目录> [casts=24] [n=100]     同局轮换：单数次冲锋颗粒开 / 双数次关（前 2 次预热不计），打印 ULPPERF
 缺省 1280x720、高画质、--fixed-fps 60（录帧逐帧确定）；perf 不加 --fixed-fps 也照样按真实帧间隔记
 """
@@ -36,7 +37,9 @@ if __name__ == "__main__":
     mode, out = sys.argv[1], os.path.abspath(sys.argv[2])
     rest = sys.argv[3:]
     n = next((a[2:] for a in rest if a.startswith("n=")), "100")
-    if mode == "rec":
+    if mode == "click":
+        run(out, ["--ulpclick", "--ulpn=" + n])
+    elif mode == "rec":
         extra = ["--ulprec", "--ulpn=" + n] + (["--ulpold"] if "old" in rest else [])
         run(out, extra, "mid" if "mid" in rest else "high")
     else:
