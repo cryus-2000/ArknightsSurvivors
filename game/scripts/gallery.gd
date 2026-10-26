@@ -605,9 +605,10 @@ func _xf(dx := 0.0, dy := 0.0) -> void:
 func _grid() -> Dictionary:
 	var op := tab == 0
 	if phone():
-		var c := Vector2(62, 90 if op else 74)
-		var s := Vector2(68, 98 if op else 80)
-		return {"x0": 8.0, "y0": 42.0, "card": c, "step": s, "cols": 2, "rows": maxi(1, int((PHONE.y - 18.0 - 42.0 + s.y - c.y) / s.y))}
+		# 干员页左侧是职业筛选栏（10-26 用户：手机也只留这一条，好选），卡缩到 54 宽，网格整体右移，不压立绘区（x 146 起）
+		var c := Vector2(54, 86) if op else Vector2(62, 74)
+		var s := Vector2(57, 94) if op else Vector2(68, 80)
+		return {"x0": 32.0 if op else 8.0, "y0": 42.0, "card": c, "step": s, "cols": 2, "rows": maxi(1, int((PHONE.y - 18.0 - 42.0 + s.y - c.y) / s.y))}
 	var c2 := Vector2(80, 110 if op else 92)
 	var s2 := Vector2(88, 120 if op else 100)
 	return {"x0": 76.0 if op else 24.0, "y0": 86.0, "card": c2, "step": s2, "cols": 4, "rows": maxi(1, int((684.0 - 86.0 + s2.y - c2.y) / s2.y))}
@@ -671,7 +672,7 @@ func _row_fits(r: int, s0: int) -> bool:
 
 
 func _grouped() -> bool:
-	return tab == 0 and filter == "" and group_cls
+	return tab == 0 and filter == "" and group_cls and not phone()   # 手机只用左侧职业栏筛选，不分组
 
 
 ## vlist 第 vi 项的格号
@@ -1206,8 +1207,8 @@ func _draw() -> void:
 	var demo := _demo_form(e)
 	_draw_panel_edge(ph, vr)
 	_draw_top(ph, vr)
-	if tab == 0 and not ph:
-		_draw_rail()
+	if tab == 0:
+		_draw_rail(ph)
 	_draw_grid(ph)
 	if not e.is_empty():
 		_draw_name(e, ph, demo)
@@ -1537,13 +1538,14 @@ func _draw_top(ph: bool, vr: Rect2) -> void:
 
 
 ## 左职业框轨（桌面干员页）：ALL + 8 职业；当前筛选 = 黄底黑图标；当前干员的职业 = 黄色细框；没有干员的职业变暗、不可点
-func _draw_rail() -> void:
+func _draw_rail(ph := false) -> void:
 	var cs: Array = [""]
 	cs.append_array(CLASS_ORDER)
 	var cur_cls: String = entries[sel].get("cls", "") if sel < entries.size() else ""
+	var sz := 24.0 if ph else 36.0
 	for i in cs.size():
 		var c: String = cs[i]
-		var r := Rect2(24, 64 + i * 44, 36, 36)
+		var r := Rect2(4, 42 + i * 33, sz, sz) if ph else Rect2(24, 64 + i * 44, sz, sz)
 		var n := _class_count(c)
 		var dim := 1.0 if n > 0 else 0.3
 		var on := c == filter
@@ -1554,9 +1556,9 @@ func _draw_rail() -> void:
 			draw_rect(r, UI.fa(UI.C_D_INK, dim), false, 1.0)
 		var gc := UI.C_HZ if on else UI.fa(UI.C_D_INK, dim)
 		if c == "":
-			UI.text_at(self, font, r.get_center() + Vector2(0, 1), "ALL", 10, gc, "mm", true)
+			UI.text_at(self, font, r.get_center() + Vector2(0, 1), "ALL", 8 if ph else 10, gc, "mm", true)
 		else:
-			UI.class_glyph(self, c, r.get_center(), 9.0, gc, 2.0)
+			UI.class_glyph(self, c, r.get_center(), 6.0 if ph else 9.0, gc, 1.5 if ph else 2.0)
 			if c == cur_cls and not on:
 				draw_rect(r.grow(2.0), UI.C_ACC, false, 1.0)
 		if rail_focus and on:
@@ -1573,7 +1575,7 @@ func _draw_grid(ph: bool) -> void:
 	if not ph:
 		var hdr := "%s  //  %s" % [["OPERATORS", "ENEMIES", "ELITES", "BOSSES", "ITEMS", "RELICS", "ENDINGS"][tab], ("GROUP: CLASS" if group_cls else "SORT: CLASS") if tab == 0 and filter == "" else (filter if tab == 0 else "%d ENTRIES" % vlist.size())]
 		UI.code(self, font, Vector2(g.x0, 56), hdr, 8, UI.C_D_SUB)
-	if tab == 0 and filter == "":
+	if tab == 0 and filter == "" and not ph:
 		_draw_group_toggle(g, ph)
 	var u := _now() - open_t0
 	var grp := _grouped()
@@ -1622,17 +1624,15 @@ func _draw_grid(ph: bool) -> void:
 				var rv: int = _cell(vi) / cols_n
 				if (grp and rv > scroll and not _row_fits(rv, scroll)) or (not grp and rv >= scroll + rows_n):
 					more += 1
-			var sx: float = (g.x0 + cols_n * g.step.x - 6.0) if tab == 0 and filter == "" else (g.x0 + (cols_n * g.step.x - 6.0) / 2.0)
-			var tg: bool = tab == 0 and filter == ""   # 干员页底行左侧是分组切换，提示缩短
-			UI.code(self, font, Vector2(sx, PHONE.y - 14), ("+%d" % more if more > 0 else "▲") if tg else ("SWIPE  +%d" % more if more > 0 else "SWIPE  ▲"), 7, UI.C_D_SUB, "ra" if tg else "ma")
+			UI.code(self, font, Vector2(g.x0 + (cols_n * g.step.x - 6.0) / 2.0, PHONE.y - 14), "SWIPE  +%d" % more if more > 0 else "SWIPE  ▲", 7, UI.C_D_SUB, "ma")
 
 
-## 「全部 / 按职业」切换：桌面在网格表头右侧，手机在网格下方左侧（SWIPE 提示挪到右侧）；键盘 G
+## 「全部 / 按职业」切换：桌面在网格表头右侧，键盘 G；手机不显示（只用左侧职业栏）
 func _draw_group_toggle(g: Dictionary, ph: bool) -> void:
-	var w := 40.0 if ph else 58.0
-	var h := 13.0 if ph else 18.0
-	var x1: float = (g.x0 + 2.0 * (w + 2.0)) if ph else (g.x0 + g.cols * g.step.x - 8.0)
-	var y: float = (PHONE.y - 17.0) if ph else 50.0
+	var w := 58.0
+	var h := 18.0
+	var x1: float = g.x0 + g.cols * g.step.x - 8.0
+	var y := 50.0
 	var labels := ["全部", "按职业"]
 	for k in 2:
 		var r := Rect2(x1 - (2 - k) * (w + 2.0), y, w, h)
