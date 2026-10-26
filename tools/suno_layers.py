@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Suno 分轨 → 整首分层循环配乐（docs/163，10-27 用户把 Suno 新配乐接进游戏）。
+"""Suno 分轨 → 整首分层循环配乐（docs/164，10-27 用户把 Suno 新配乐接进游戏）。
 
 输入：art/incoming/music_suno/*.zip（Suno 分轨，每条 3–3.5 分钟、48 kHz、同步对齐；原始 WAV / zip 不进 git）。
 流程（和 tools/suno_track.py 同口径）：分轨按下表预混成层 → 重采样 32 kHz → 去尾部静音 → 尾首等功率交叉淡化成无缝循环

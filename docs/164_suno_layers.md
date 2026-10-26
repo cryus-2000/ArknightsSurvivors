@@ -1,4 +1,4 @@
-# 163 · Suno 整首分层配乐（10-27）
+# 164 · Suno 整首分层配乐（10-27）
 
 > 用户把 Suno 新配乐接进游戏、替换程序合成曲。状态：已实现（分支 `claude/suno-layers`），待用户听。素材 `art/incoming/music_suno/*.zip`（分轨原件不提交）；处理脚本 `tools/suno_layers.py`（同 `tools/suno_track.py` 口径）。标题 / 出发前 / 最终 Boss 整曲是第一批（main 7e8296b92），本批把战斗三段、中期 Boss、最终 Boss 分层、图鉴接上。
 

@@ -137,7 +137,7 @@ var group_vol := {}       # 曲目 -> 当前整体音量（0~1）
 var group_rate := {}      # 曲目 -> [淡入, 淡出] 速度（每秒）
 var stem_on := {}         # 乐句式曲目 -> 各层当前开关（小节线上才从游戏请求同步过来；战斗最后一层是危险层）
 var stem_vol := {}        # 乐句式曲目 -> 各层实际音量
-## Suno 整首分层循环（docs/163，10-27）：曲目 -> {players 各层播放器, bpm, offset 首拍偏移秒, len 时长秒}；各层同长度、同时开播、各层单独控音量（stem_on / stem_vol 复用）、
+## Suno 整首分层循环（docs/164，10-27）：曲目 -> {players 各层播放器, bpm, offset 首拍偏移秒, len 时长秒}；各层同长度、同时开播、各层单独控音量（stem_on / stem_vol 复用）、
 ## 小节线上切层。开关 balance.json music/suno_layers（缺省 1；0 = 回到旧的 SEQ 乐句拼接 / MUSIC 整首，旧文件与代码都还在）
 var lay := {}
 var cur_track := ""
@@ -209,7 +209,7 @@ func _ready() -> void:
 		var arr: Array = []
 		var files: Array = MUSIC[tname]
 		if tname == "archive" and _suno_on() and ResourceLoader.exists("res://audio/music/suno_archive_full.ogg"):
-			files = ["suno_archive_full"]   # 图鉴：Suno 分轨相加成整曲（docs/163）；关开关 music/suno_layers = 0 回到 archive_v2
+			files = ["suno_archive_full"]   # 图鉴：Suno 分轨相加成整曲（docs/164）；关开关 music/suno_layers = 0 回到 archive_v2
 		for f in files:
 			var st: AudioStreamOggVorbis = _load_ogg("res://audio/music/%s.ogg" % f)
 			if st == null:

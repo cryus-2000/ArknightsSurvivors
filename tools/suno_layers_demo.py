@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Suno 整首分层配乐演示（docs/163）：按 sfx.gd 同一套调度（小节线切层 / 战斗换段等小节线 / 淡入淡出速率 / vol_target）离线渲染一段带声音的 mp4。
+"""Suno 整首分层配乐演示（docs/164）：按 sfx.gd 同一套调度（小节线切层 / 战斗换段等小节线 / 淡入淡出速率 / vol_target）离线渲染一段带声音的 mp4。
 
 为什么离线：自动测试 / 录制的 Godot 一律静音 Master（AGENTS.md 硬规定，不能加绕过的测试模式），所以没法从游戏里直接录出声音；
 这里把 sfx.gd 的调度逻辑原样搬到 Python（同样的 bpm / 首拍偏移 / BAR_AHEAD / STEM_IN / STEM_OUT / 组淡入淡出速率），用同一批 ogg 混出来，

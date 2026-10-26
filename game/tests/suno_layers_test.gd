@@ -1,5 +1,5 @@
 extends Node
-## Suno 整首分层配乐回归（docs/163，10-27）：五首（battle1-3 三层 / boss 一层 / final 两层）载入、同曲各层同长度（±3 毫秒）、
+## Suno 整首分层配乐回归（docs/164，10-27）：五首（battle1-3 三层 / boss 一层 / final 两层）载入、同曲各层同长度（±3 毫秒）、
 ## 开播后各层同时在放、战斗强度（set_battle）在小节线上开关层、战斗换段等当前曲小节线再换、Boss / 最终 Boss 二阶段叠层、
 ## 回到战斗时清层状态。只看 Sfx 的调度状态（不依赖真的出声，自动测试本来就静音 Master）。
 ## 全部通过时打印 "SUNO LAYERS: 0 failures"。
