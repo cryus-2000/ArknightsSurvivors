@@ -798,7 +798,11 @@ func _release_body() -> void:
 		_exec_list([far_fp])
 		last_hit_pos = Vector2.INF
 	else:
+		var _pt0 := Time.get_ticks_usec() if g.prof_on else 0
 		exec_any_shape(a, Vector2.INF, true)
+		if g.prof_on:
+			g.prof_add("rel_shape_" + str(id), _pt0)
+	var _pt1 := Time.get_ticks_usec() if g.prof_on else 0
 	atk_live = false
 	atk_far = -1
 	if not str(a.get("shape", "")) in ObHw.H4_ATTACKS + ["umbrella"]:
@@ -823,6 +827,8 @@ func _release_body() -> void:
 						pending.append({"t": dl, "do": t.get("do", []), "bs": ObHw.hw_snap(self), "at": hw.atk_c if str(t.get("at", "")) == "attack" else Vector2.INF})
 				else:
 					_exec_list(t.get("do", []), hw.atk_c if not hw.is_empty() and str(t.get("at", "")) == "attack" else Vector2.INF)
+	if g.prof_on:
+		g.prof_add("rel_trigs_" + str(id), _pt1)
 	if not hw.is_empty():
 		if not rp.is_empty() and rp.get("no_combo", false):
 			ObHw.hw_combo_end(self)   # replace 的 every_n 带 no_combo（德克萨斯疾刃三连）：这一次出手自己连斩，不再接 attack.combo 的第二斩

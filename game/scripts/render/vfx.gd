@@ -623,13 +623,16 @@ func add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
 				continue
 			if t.get("pos0", t.pos).distance_to(pos) > mr:
 				continue
-			var tp: Array = _num_parts(str(t.text))
+			var tp: Array = t.np if t.has("np") else _num_parts(str(t.text))
 			if tp.is_empty() or tp[0] != pn[0]:
 				continue
 			t["base"] = t.get("base", t.size)
 			t.text = pn[0] + str(int(tp[1]) + int(pn[1]))
 			t.size = mini(t.base + 6, t.size + 1)
 			t.life = t.max
+			if t.has("np"):   # 缓存跟着改过的字更新（docs/50 §35）
+				t.np = [pn[0], str(int(tp[1]) + int(pn[1]))]
+				t.tw = _text_w(str(t.text), int(t.size))
 			return
 	# 避让（可读性，1.1.1）：和刚冒出（text_nudge_t 秒内）的飘字框重叠就往上错一行，最多错 text_nudge_max 行
 	var p0: Vector2 = pos
@@ -643,15 +646,21 @@ func add_text(pos: Vector2, text: String, col: Color, size := 14) -> void:
 			var t: Dictionary = g.texts[i]
 			if t.max - t.life > nt:
 				continue
-			var tw: float = _text_w(str(t.text), int(t.size))
+			var tw: float = float(t.tw) if t.has("tw") else _text_w(str(t.text), int(t.size))
 			if absf(t.pos.x - pos.x) < (tw + w) * 0.5 and absf(t.pos.y - pos.y) < (float(t.size) + size) * 0.5 + 1.0:
 				pos.y = t.pos.y - (float(t.size) + size) * 0.5 - 2.0
 				moved = true
 				tries -= 1
 				break
-	g.texts.append({"pos": pos, "pos0": p0, "text": text, "col": col, "life": 0.65, "max": 0.65, "size": size})
+	if text_cache:
+		g.texts.append({"pos": pos, "pos0": p0, "text": text, "col": col, "life": 0.65, "max": 0.65, "size": size, "np": pn, "tw": w})   # np / tw：合并与避让时不再逐条重算（docs/50 §35）
+	else:
+		g.texts.append({"pos": pos, "pos0": p0, "text": text, "col": col, "life": 0.65, "max": 0.65, "size": size})
 	if g.texts.size() > TEXT_CAP:
 		g.texts.pop_front()
+
+
+var text_cache := true   # 飘字宽度 / 数字前缀缓存（--optab 同局对照位 OPT_TEXTC 置位时走旧写法）
 
 
 ## 可合并的数字飘字：["前缀", "数字"]（纯数字前缀为空；「弱点 94」「破绽 382」按前缀分开合并），其余返回 []

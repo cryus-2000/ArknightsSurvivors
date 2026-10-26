@@ -480,6 +480,8 @@ func _opt_ab() -> void:
 				g.opt_old = int(a.substr(9))
 	if _optab > 0 and g.at_frames % _optab == 0 and g.realtime:
 		g.opt_old = 0 if g.opt_old != 0 else _optmask
+	Bal.split_cache = not (g.opt_old & g.OPT_BALC)
+	g.vfx.text_cache = not (g.opt_old & g.OPT_TEXTC)
 
 
 ## 仅用于开发自测：快速模拟一整局，自动选择升级，打印状态后退出

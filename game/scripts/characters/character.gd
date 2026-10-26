@@ -1132,6 +1132,8 @@ func follow(dt: float, target: Vector2) -> void:
 		return
 	var prev: Vector2 = pos
 	var slot: Vector2 = target   # 编队位（follow_target 之前的原值）：跟随冲刺时奔向它
+	var _pf: bool = g.prof_on   # --prof：follow 细分（fo_move / fo_release / fo_anim，docs/50 §35）
+	var _pt := Time.get_ticks_usec() if _pf else 0
 	if is_leader:
 		pos = target   # 主控：位置就是玩家位置（g.ppos），不走编队跟随 / 近战前压
 	else:
@@ -1171,6 +1173,8 @@ func follow(dt: float, target: Vector2) -> void:
 	if st == 1:
 		_cmd_progress(prev, target, dt)
 		_roam_dash_tick(dt)
+	if _pf:
+		_pt = g.prof_add("fo_move", _pt)
 	var vel: Vector2 = (pos - prev) / maxf(dt, 0.0001)
 	_sample_motion(vel, dt)
 	_rush_age(dt)
@@ -1184,6 +1188,8 @@ func follow(dt: float, target: Vector2) -> void:
 		elif mv < 20.0 and g.t - face_flip_t > FACE_IDLE:
 			_set_face(g.facing)   # 站定回正：离上次翻身满 FACE_IDLE 秒才回，免得出手转向后立刻翻回来
 	attack_t = maxf(0.0, attack_t - dt)
+	if _pf:
+		_pt = g.prof_add("fo_motion_face", _pt)
 	if fire_t >= 0.0:
 		fire_t -= dt
 		if fire_t < 0.0:
@@ -1194,7 +1200,11 @@ func follow(dt: float, target: Vector2) -> void:
 				_release()
 				_notify_attack()
 	mt += dt
+	if _pf:
+		_pt = g.prof_add("fo_release_" + str(id), _pt)
 	_tick_sq(dt)
+	if _pf:
+		_pt = g.prof_add("fo_tick_sq", _pt)
 	# 动画状态
 	var want := "idle"
 	var sqk := _sq_kind()   # 多条技能帧条当前阶段的帧条（"" = 不在序列里）
@@ -1220,6 +1230,8 @@ func follow(dt: float, target: Vector2) -> void:
 	# 跑步帧率按实际移动速度缩放（原固定 fps：快速前压的近战队友脚步打滑 3 倍以上）；帧条按主控基础移速 RUN_REF 画
 	if anim_kind == "run" or (sq_ph == 2 and sq.has("run") and anim_kind == seq_anim(sq.run)):
 		advance_run_phase(dt)   # 技能循环里的跑动段（sprites.skills.sN.run，如星熊格挡移动）也按移速推进同一相位
+	if _pf:
+		g.prof_add("fo_anim", _pt)
 
 
 ## 原生画面让位跑步时也使用同一速度时钟；不被攻击起手重置。

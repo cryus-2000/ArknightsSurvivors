@@ -88,10 +88,20 @@ static func _preset(key: String, table: Dictionary) -> void:
 
 
 ## 按「段/键」路径取数值
+## 路径拆分缓存（docs/50 §35）：原来每次调用都 split 一个新数组（命中一下十几次、全局每帧上千次）；只缓存拆分结果，仍按现时 _data 逐级取，
+## 测试里直接改 _data 照样生效。split_cache = false 走旧写法（--optab 同局对照位 OPT_BALC）
+static var _keys := {}
+static var split_cache := true
+
 static func v(path: String, default: float) -> float:
 	_load()
 	var cur: Variant = _data
-	for k in path.split("/"):
+	var ks = _keys.get(path) if split_cache else null
+	if ks == null:
+		ks = path.split("/")
+		if split_cache:
+			_keys[path] = ks
+	for k in ks:
 		if cur is Dictionary and cur.has(k):
 			cur = cur[k]
 		else:
