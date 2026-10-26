@@ -271,23 +271,20 @@ var _warm_q: Array = []
 var _warm_total := 0
 
 func warm_begin() -> void:
-	if not OS.has_feature("web") or _warm_total > 0:
+	if not OS.has_feature("web"):
 		return
-	var list: Array = []
-	var q = seq.get("battle1")
+	var list: Array = _track_streams("battle1")
 	var cfg = get_node_or_null("/root/Cfg")   # sfx 比 Cfg 先加载，不能直接写 Cfg
 	if cfg != null and cfg.mobile_web() and not cfg.mobile_knob("mobile_warm_music", 1.0):   # 10-27 起缺省开（docs/50 §40）：24 kHz + 切曲释放后内存够，局内首段解码改在载入页做
-		q = null   # 手机网页：战斗乐分轨（每句约 13 秒 × 十几句）预先全解码成 PCM 要几十 MB，iPhone 进局即崩的嫌疑之一；改为播到才解码（10-26，docs/50 §30）
-	if q != null:
-		for sname in q.segs:
-			for st in q.segs[sname]:
-				list.append(st)
-		list.append(q.danger)
+		list.clear()
+	if not list.is_empty():
+		_next["battle1"] = true   # 载入页预热后保留到第一首开播；不预解码后续整首分层曲
+		_freed.erase("battle1")
 	for n in streams:
 		list.append(streams[n])
 	var seen := {}
 	for st in list:
-		if st is AudioStream and not seen.has(st) and not AudioServer.is_stream_registered_as_sample(st):
+		if st is AudioStream and not seen.has(st) and not _warm_q.has(st) and not AudioServer.is_stream_registered_as_sample(st):
 			seen[st] = true
 			_warm_q.append(st)
 	_warm_total = _warm_q.size()
@@ -316,14 +313,11 @@ func sample_mem_mb() -> float:
 	var seen := {}
 	var total := 0.0
 	var lists: Array = streams.values()
-	for tn in seq:
-		var q = seq[tn]
-		for sname in q.segs:
-			lists.append_array(q.segs[sname])
-		lists.append(q.danger)
-	for tn in lay:
-		for pl in lay[tn].players:
-			lists.append(pl.stream)
+	for tn in seq.keys() + lay.keys() + groups.keys():
+		lists.append_array(_track_streams(tn))
+	for child in get_children():
+		if child is AudioStreamPlayer:
+			lists.append(child.stream)
 	for st in lists:
 		if st is AudioStream and not seen.has(st) and AudioServer.is_stream_registered_as_sample(st):
 			seen[st] = true
@@ -411,8 +405,6 @@ func _suno_init() -> void:
 	var meta = JSON.parse_string(FileAccess.get_file_as_string(SUNO_META))
 	if not meta is Dictionary:
 		return
-	# 手机网页（只载底层）：这时 Cfg 还没加载，不能用 _music_lite()（它会缓存成「不是手机」），按平台特性直接判
-	var lite: bool = OS.has_feature("web") and (OS.has_feature("web_android") or OS.has_feature("web_ios") or DisplayServer.is_touchscreen_available()) 		and load("res://scripts/core/balance.gd").v("web/mobile_music_lite", 1.0) > 0.0
 	for tname in SUNO_TRACKS:
 		var m = meta.get(tname, null)
 		if not m is Dictionary:
@@ -420,8 +412,6 @@ func _suno_init() -> void:
 		var pls: Array = []
 		var ok := true
 		for i in m.files.size():
-			if lite and i > 0:
-				break   # 手机网页只载入底层（docs/50 §30：每层整段解码后约 50 MB）
 			var st: AudioStreamOggVorbis = _load_ogg("res://audio/music/%s.ogg" % m.files[i])
 			if st == null:
 				ok = false
@@ -438,6 +428,8 @@ func _suno_init() -> void:
 				pl.queue_free()
 			continue
 		lay[tname] = {"players": pls, "bpm": float(m.bpm), "offset": float(m.offset), "len": float(m.len)}
+		for old_pl in groups.get(tname, []):
+			old_pl.queue_free()   # 释放被分层版取代的整曲播放器及资源引用
 		groups.erase(tname)   # MUSIC 里同名的整首（final_suno）让位
 		group_vol[tname] = 0.0
 		group_rate[tname] = [0.8, 0.6]
@@ -646,14 +638,9 @@ func _seq_tick(tname: String) -> void:
 ## - Boss 登场：旧曲马上淡出，Boss 曲落在 boss_in 的太鼓重击上
 ## - Boss 倒下回到战斗：先让击破乐句响 1.2 秒，战斗曲再从头缓缓回来
 ## - 其余：新曲从头淡入，旧曲淡出后停止
-## 手机网页的配乐合并（10-26 晚：流式播放在无线程网页上几乎无声，退回样本播放；样本解码后注销不掉，就少放几首不同的曲子）：
-## 战斗二 / 三段沿用战斗一（只放底层）、最终 Boss 沿用 Boss 曲、出发 / 图鉴沿用标题曲。全部配乐解码后约 486 MB，合并后最多约 100 MB
-## 10-27 临时保留（协调人）：Suno 分层曲三层同解码约 99 MB / 首，按需加载方案尚未覆盖分层曲，手机先沿用合并映射防崩；接手后按 docs/132 §3 解除
-const MOBILE_MUSIC_MAP := {"battle2": "battle1", "battle3": "battle1", "final": "boss"}
+## 手机与桌面使用相同曲目与分层；网页用共享样本、切曲释放及 24 kHz 上下文控制内存。
 
 func play_music(tname: String) -> void:
-	if _music_lite() and MOBILE_MUSIC_MAP.has(tname) and (seq.has(MOBILE_MUSIC_MAP[tname]) or groups.has(MOBILE_MUSIC_MAP[tname]) or lay.has(MOBILE_MUSIC_MAP[tname])):
-		tname = MOBILE_MUSIC_MAP[tname]
 	if not MENU_TRACKS.has(tname):
 		driven_t = 0.0
 	if not seq.has(tname) and not lay.has(tname) and (not groups.has(tname) or groups[tname].is_empty()):
@@ -698,6 +685,11 @@ func _start(tname: String, fade_in: float, old_out: float, from := 0.0) -> void:
 	if not MENU_TRACKS.has(tname):
 		menu_pos.clear()
 	if lay.has(tname):
+		if OS.has_feature("web"):
+			# 先注册全部层再一起 play，避免逐层解码把三层的起点拉开。
+			for st in _track_streams(tname):
+				if not AudioServer.is_stream_registered_as_sample(st):
+					AudioServer.register_stream_as_sample(st)
 		for i in stem_on[tname].size():
 			stem_on[tname][i] = _stem_want(tname, i)
 			stem_vol[tname][i] = stem_on[tname][i]
@@ -1002,6 +994,10 @@ func _process(delta: float) -> void:
 					pl.volume_db = sdb
 				if gv <= 0.0:
 					pl.stop()
+		if gv <= 0.0:
+			_maybe_free(tname)
+		else:
+			_last_on[tname] = now
 	for tname in groups:
 		var want := 1.0 if tname == cur_track else 0.0
 		var rate: Array = group_rate[tname]
@@ -1053,21 +1049,25 @@ func _process(delta: float) -> void:
 
 ## 网页切曲释放（docs/50 §40）：引擎把每段配乐整段解码成样本、脚本没有注销接口，播过的曲子会一直占着（48 kHz 时 15 秒一句 5.5 MB）。
 ## 发布包 / 测量副本给引擎 JS 打了 window.__syAudioFree（tools/web/engine_patch.py）：一首曲子完全淡出、不是当前也不是下一首时，
-## 把它所有句 / 层的样本按流的 instance id 释放；再播时引擎重新解码注册。局外曲目之间来回切不放（回到标题接着放、免得重新解码），进局才放；
-## 局内曲目回到局外时放。不是网页或没打补丁时什么也不做
+## 把它所有句 / 层的样本按流的 instance id 释放；再播时引擎重新解码注册。局外也释放，保留 menu_pos 供返回时续播。
+## 当前、待播、预热中的曲目不释放，JS 还会保护仍在播放或暂停的样本。不是网页或没打补丁时什么也不做。
 var _freed := {}
 var _next := {}
 var _free_ok := -1
 
 
-## 下一批可能要放的曲目提前排进解码队列（docs/50 §40）：由局内静止界面（暂停 / 选卡 / 商店，game._process 调 warm_step）慢慢解码，
-## 不在对局画面里卡。战斗 N 开播时排 战斗 N+1 + Boss（战斗三再加最终 Boss）
+## 仅旧乐句曲预解码下一段；整首分层曲只在载入页预热第一首，避免提前驻留两三首完整 PCM。
 func _queue_next(tname: String) -> void:
-	if not OS.has_feature("web") or not tname.begins_with("battle"):
+	if tname == "opening" and _next.has("battle1"):
+		return   # 第一首已在载入页预热，开场引子期间继续保留
+	for old in _next:
+		for st in _track_streams(old):
+			_warm_q.erase(st)   # 换曲 / 退出后，取消尚未执行的旧音乐预热，音效队列保留
+	_next.clear()
+	if not OS.has_feature("web") or not tname.begins_with("battle") or lay.has(tname):
 		return
 	var k := int(tname.substr(6))
 	var nxt: Array = ["boss"]
-	_next = {}
 	if seq.has("battle%d" % (k + 1)):
 		nxt.push_front("battle%d" % (k + 1))
 	if k >= 3:
@@ -1092,32 +1092,44 @@ func warm_pending() -> bool:
 var _last_on := {}   # 曲目最后一次是当前曲目的时刻（墙钟）：离开满 FREE_AFTER 秒才放，刚点播还没开起来的不放
 const FREE_AFTER := 3.0
 
+## 三种音乐容器共用的流清单：预热、释放与内存统计必须覆盖同一批资源。
+func _track_streams(tname: String) -> Array:
+	var sts: Array = []
+	if lay.has(tname):
+		for pl in lay[tname].players:
+			sts.append(pl.stream)
+	elif seq.has(tname):
+		for sname in seq[tname].segs:
+			sts.append_array(seq[tname].segs[sname])
+		if seq[tname].danger is AudioStream:
+			sts.append(seq[tname].danger)
+	elif groups.has(tname):
+		for pl in groups[tname]:
+			sts.append(pl.stream)
+	return sts
+
 func _maybe_free(tname: String) -> void:
 	if tname == cur_track or tname == str(pending.get("track", "")):
 		_last_on[tname] = _now()
 		return
 	if _freed.has(tname) or _next.has(tname) or tname == after_stinger or cur_track == "" or _now() - float(_last_on.get(tname, -99.0)) < FREE_AFTER:
 		return
-	if MENU_TRACKS.has(tname) and MENU_TRACKS.has(cur_track):
-		return
-	_freed[tname] = true
 	if _free_ok < 0:
 		_free_ok = 1 if OS.has_feature("web") and str(JavaScriptBridge.eval("typeof window.__syAudioFree", true)) == "function" else 0
 	if _free_ok == 0:
 		return
-	var sts: Array = []
-	if seq.has(tname):
-		for sname in seq[tname].segs:
-			sts.append_array(seq[tname].segs[sname])
-		sts.append(seq[tname].danger)
-	elif groups.has(tname):
-		for pl in groups[tname]:
-			sts.append((pl as AudioStreamPlayer).stream)
+	var sts: Array = _track_streams(tname)
+	var released := true
 	var n := 0
 	for st in sts:
 		if st is AudioStream and AudioServer.is_stream_registered_as_sample(st):
-			JavaScriptBridge.eval("window.__syAudioFree('%d')" % st.get_instance_id(), true)
-			n += 1
+			var result = JavaScriptBridge.eval("window.__syAudioFree('%d')" % st.get_instance_id(), true)
+			if result != null and not bool(result):   # JS Boolean 经 eval 返回 int 0 / 1
+				released = false   # 尚有播放引用：下一帧重试，不能提前标记已释放
+			else:
+				n += 1
+	if released:
+		_freed[tname] = true
 	if n > 0 and not (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).is_empty():
 		print("PF AUDIOFREE track=%s n=%d mb=%s" % [tname, n, str(JavaScriptBridge.eval("window.__syAudioMB?window.__syAudioMB().toFixed(1):-1", true))])
 

@@ -55,7 +55,9 @@
 - 音乐仍走 Music 总线，音量、静音和自动测试静音规则照旧。`gen_music.py shop` 是旧合成曲生成器，不要用于重建现用 `shop.ogg`。
 - 复现转换：FFmpeg 分别解码两份 MP3 为 44100 Hz 双声道 float32 PCM，按上述顺序拼接，输出使用 `-ar 32000 -c:a libvorbis -q:a 4`；从原 MP3 重做，不对旧 OGG 二次转码。循环点是秒数，仍为 972797 / 44100，不应随输出采样率改成除以 32000。
 
-#### 网页音频内存核查（2026-10-27，仅方案，未改播放引擎）
+#### 网页音频内存核查（2026-10-27，初始审计）
+
+> 后续已实现共享 PCM、分层曲与局外曲回收、网页 B 档 24 kHz 文件压缩；手机保留全部曲目与分层。现行实现和浏览器实测见 [docs/164 §6](164_suno_layers.md)。商人稳定音频 PCM 实测 18.30 MiB（24 kHz 上下文），下列 48 / 32 kHz 数字仍为理论值。
 
 - 本地导出 `build/release/final_2f7c7d76f/web/index.js`：`_godot_audio_sample_register_stream` 固定 `numberOfChannels = 2`、`sampleRate = GodotAudio.ctx.sampleRate`。上游 `AudioDriverWeb::register_sample` 先按 `mix_rate * length` 生成样本。因此只降源文件采样率、码率或改源文件为单声道，不能按同样比例削减这条网页样本路径的 PCM 缓冲。
 - 商人整曲单份缓冲估算：48 kHz 混音时 **36.60 MiB**；真正以 32 kHz 混音时 **24.40 MiB**。这是 `时长 × 混音采样率 × 2 × 4` 的理论值，不是浏览器总内存实测。

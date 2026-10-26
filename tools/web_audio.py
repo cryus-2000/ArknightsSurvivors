@@ -2,15 +2,15 @@
 """网页包专用的音频再压缩（10-26 用户批：网页包压音频，「听感无损」优先；docs/121 §4）。
 
 只改 export_web.py 的打包副本（git archive 出来的 src/game/audio），仓库里的原文件和桌面包一律不动。
-- 配乐（audio/music/*.ogg）：解码后按档位重新编码 Ogg Vorbis（保留立体声与采样率，帧数必须和原文件一模一样——
-  乐句式曲目按帧接缝，循环曲的首尾衔接靠样本数不变；只在变小时替换）。
+- 配乐（audio/music/*.ogg）：保留立体声、完整曲长与所有层，按档位降采样后重新编码 Ogg Vorbis；只在变小时替换。
+  同曲各层使用相同采样率与长度，循环位置仍以秒为单位；重采样长度误差不超过一个输出采样点。
 - 语音（audio/voice/*.ogg）：从 masters/ 的 WAV 母带重新编码（不在已有损的 OGG 上再压），采样率与档位按档位表。
 - 音效（audio/sfx/*.wav）：不动（导入时已是 QOA，只占约 2.4 MiB，换格式要改播放代码）。
 档位（compression_level：0 最好、1 最小；libsndfile 把它映射成 Vorbis 质量 1 - level）：
-  A 近无损：配乐全 0.85（约 64 kbps）；语音 24 kHz / 0.85
-  B 平衡：配乐 0.85，但战斗叠层 pulse / drive / 危险层用 1.0（它们叠在底层之上，量化噪声被底层盖住）；语音同 A
-  C 激进：配乐全 1.0（约 50 kbps）；语音 22.05 kHz / 0.9
-样本播放是解码后放进内存的，降码率不改变解码后的大小（只减下载量 / 包体）。
+  A：配乐最多 32 kHz / 0.85；语音 24 kHz / 0.85
+  B 平衡：配乐最多 24 kHz / 0.85，战斗 pulse / drive / 危险层 1.0；语音同 A
+  C 激进：配乐最多 22.05 kHz / 1.0；语音 22.05 kHz / 0.9
+这是有损压缩。网页 PCM 大小取决于 AudioContext 采样率，文件降采样本身只减包体；手机上下文另由 power.js 设为 24 kHz。
 用法：export_web.py --audio-tier B（缺省）；单独试：python tools/web_audio.py <game 目录副本> <A|B|C> （只改传进去的目录）
 """
 import io, json, os, sys
@@ -20,9 +20,9 @@ import numpy as np
 import soundfile as sf
 
 TIERS = {
-    "A": {"music": {"default": 0.85}, "voice": (24000, 0.85)},
-    "B": {"music": {"default": 0.85, "battle_pulse": 1.0, "battle_drive": 1.0, "danger": 1.0}, "voice": (24000, 0.85)},
-    "C": {"music": {"default": 1.0}, "voice": (22050, 0.9)},
+    "A": {"music_rate": 32000, "music": {"default": 0.85}, "voice": (24000, 0.85)},
+    "B": {"music_rate": 24000, "music": {"default": 0.85, "battle_pulse": 1.0, "battle_drive": 1.0, "danger": 1.0}, "voice": (24000, 0.85)},
+    "C": {"music_rate": 22050, "music": {"default": 1.0}, "voice": (22050, 0.9)},
 }
 
 
@@ -60,9 +60,17 @@ def shrink(gamedir, tier):
         p = os.path.join(mdir, f)
         old = os.path.getsize(p)
         x, sr = sf.read(p, dtype="float32")
+        sr_out = min(sr, t["music_rate"])
+        duration = len(x) / sr
+        if sr_out != sr:
+            from scipy.signal import resample_poly
+            g = gcd(sr_out, sr)
+            # Periodic padding preserves the tail/head neighbourhood of looped music.
+            x = resample_poly(x, sr_out // g, sr // g, padtype="wrap").astype(np.float32)
         lv = t["music"].get(music_group(f[:-4]), t["music"]["default"])
-        new = encode(x, sr, lv)
+        new = encode(x, sr_out, lv)
         assert sf.info(io.BytesIO(new)).frames == len(x), "%s：重新编码后帧数变了" % f
+        assert abs(len(x) / sr_out - duration) <= 1 / sr_out, "%s：重采样时长变了" % f
         stat["music"][0] += old
         if len(new) < old:
             with open(p, "wb") as fh:

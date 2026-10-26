@@ -88,4 +88,8 @@ func run() -> void:
 	check(Sfx.cur_track == "battle3", "回战斗 battle3：" + Sfx.cur_track)
 	check(Sfx.stem_on["battle3"][0] == 1.0, "battle3 底层开")
 	print("SUNO LAYERS: %d failures" % failures)
-	get_tree().quit(1 if failures > 0 else 0)
+	# 长曲的流式解码任务先停止，再退出树，避免把仍在混音的资源算成退出泄漏。
+	for pl in Sfx.find_children("*", "AudioStreamPlayer", true, false):
+		pl.stop()
+	await wait(0.1)
+	get_tree().quit.call_deferred(1 if failures > 0 else 0)

@@ -31,14 +31,44 @@ bpm / 首拍偏移 / 时长写在 `game/audio/music/suno_layers.json`（脚本�
 - 战斗强度：lv 0 = base；lv 1 = + pulse；lv 2 = + drive（`set_battle`，`music_director` 不用改）。**危险层**：没有素材（Suno 分轨没有高频紧张层），危险时把 drive 拉出来顶替。
 - **战斗换段**（battle1 → 2 → 3）：当前曲放到下一条小节线，新曲在小节线上从头开（淡入 / 淡出速度 6 / 秒 ≈ 0.17 秒，近乎硬切）。Boss / 最终 Boss 进出沿用原来的 pending 逻辑（Boss 登场落在 boss_in 的鼓点上）。最终 Boss 二阶段 = `set_final_phase(true)`，p2 在小节线上叠入。
 - **回退开关**：`balance.json music/suno_layers`（缺省 1；0 = 回到旧的 SEQ 乐句拼接、`archive_v2`、`final_suno` 整首）。旧文件与旧代码都在。
-- 手机网页：`_suno_init` 只载入各曲第一层（底层 / 整曲 / p1），沿用 `MOBILE_MUSIC_MAP`（battle2 / 3 → battle1，final → boss）；`sample_mem_mb` 已把分层曲目的流算进内存估计。**fps-first 的「按需加载 + 用完释放 + 手机降采样」方案落地后要在它上面对接**（已给 fps-first 会话发消息问分支与接口，回复后再接；三层同时解码约 51 MB × 3 / 曲，桌面是流式不解码）。
+- 手机网页：**已恢复全部曲目和分层**，移除 `_suno_init` 的只载首层分支及 `MOBILE_MUSIC_MAP`；通过共享 PCM、切曲释放与既有 24 kHz 上下文控制内存，见 §6。桌面继续流式播放。
 
 ## 4. 包体
 
 - 新增 13 个 ogg 共约 26.7 MiB（桌面包 / 仓库）。网页包导出时 `tools/web_audio.py drop_unused_music` 把被取代的旧文件不打进去（battle*_A–E_*、danger、boss_A–D_full、final_A–D_p1/p2、final_suno、archive_v2，约 13.6 MiB；`suno_layers.json` 或任一层缺失时不删）。
-- **网页包估计**：B 档（配乐 22.6 MiB）约 46–47 MiB，C 档（19.2 MiB）约 43 MiB——比 docs/121 §4 的 33.4 MiB 大 10–13 MiB，远超 25 MiB 目标，接近 Toy 50 MB 线。要压只能继续降码率 / 层数（pulse 改单声道、手机网页不带 pulse / drive），这是产品取舍，没做。
+- 初次接入时估计网页包约 46–47 MiB；**后续导出压缩已调整**，现行 B 档配乐 16.75 MiB，见 §6。本次没有删曲、删层、改为单声道或缩短循环。
 
 ## 5. 验证
 
 - `tests/suno_layers_test.tscn`（`check.py --only suno_layers`）：五首载入、层数、同长度（±3 ms）、bpm 合理；战斗 lv 0 → 1 → 2 → 危险 → 回 0 在小节线上开关层；战斗换段最多等一小节且新曲从头；Boss 在放；最终 Boss 一阶段只开 p1、二阶段叠 p2；回战斗不残留。另跑 core / menu_bgm / repro / boss_trial 通过。
 - 演示 mp4（`tools/suno_layers_demo.py`，主仓库 `build/suno_layers/suno_layers_demo.mp4`）：战斗从平静 → 交战 → 激战 → 回平静 → 换段 → Boss → 最终 Boss 一阶段 → 半血二阶段，**带声音**。声音是离线渲染（同一套调度逻辑搬到 Python 混同一批 ogg，Master 限幅 −0.5 dB、vol_target −4 dB），不是游戏里直接录的：自动测试 / 录制一律静音 Master（AGENTS.md 硬规定）。
+
+## 6. 完整配乐的压缩与内存回收（10-27，codex/bgm-memory）
+
+用户要求压缩 BGM、解决内存占用；按此前授权只做定向检查，不跑整套快检。范围是网页导出与音频生命周期，仓库 OGG 和桌面音质保留。
+
+- `web_audio.py`：A / B / C 配乐采样率上限分别为 32 / 24 / 22.05 kHz，其余 Vorbis 档位沿用；保留立体声、全部层和完整曲长，只替换更小的结果。这是有损压缩；B 档不保留 12 kHz 以上频率，不宣称听感无损。23 个文件时长误差均 ≤ 一个输出采样点，同曲各层保持等长，商人循环偏移仍为 22.058889 秒。
+- 同一组在用配乐：仓库源文件 **35.57 MiB**，此前网页 B 档 **23.19 MiB**，新 B 档 **16.75 MiB**（比原 B 档减少 **27.8%**）。这是 OGG 总大小，不是完整网页包大小；旧替代曲排除规则沿用。
+- `engine_patch.py`：Godot 4.7.2 原先每次播放 / 恢复 / 循环都会复制整段 PCM；现在播放器共享样本，播放位置、音高、总线仍独立。释放接口保护正在播放或暂停的样本；内存统计对样本表与播放节点持有的缓冲去重。锚点不匹配时导出失败，旧补丁可升级，重复执行不重复注入。
+- `sfx.gd`：`lay / seq / groups` 共用流清单。分层曲也记录最后播放时间，完全淡出并经过 3 秒宽限后释放；局外曲目同样回收，`menu_pos` 保留以供续播。移除手机裁层与替曲。首段预热改在 `title.gd` 实际开始载入时排队，开场引子期间保留；后续整首分层曲不推测性预载，取消旧音乐队列时保留音效队列。开播前先注册全部层，再同时播放，避免逐层解码拉开起点。
+- 普通 Windows / Web 与加密 Windows 的导出预设加入 `audio/music/*.json`，确保分层配置进入包。
+
+### 浏览器实测
+
+Godot 4.7.2、无窗口静音 Edge、手机视口与触屏仿真、24 kHz 上下文，实际 Sfx + 完整配乐的独立导出探针。基线 `946920f40` 也开启全部层、使用同一批压缩素材；两版均计样本表与播放节点持有的**唯一 AudioBuffer PCM**，不沿用旧版漏计播放副本的指标。
+
+| 切曲后稳定值（MiB） | 基线 | 修复后 |
+|---|---:|---:|
+| 战斗一 | 219.45 | 109.73 |
+| 战斗二 | 320.08 | 105.18 |
+| 战斗三 | 442.06 | 113.58 |
+| 中期 Boss | 396.31 | 33.91 |
+| 最终 Boss | 511.23 | 74.42 |
+| 商人 | 473.41 | 18.30 |
+| 回到标题（经过图鉴 / 选人） | 580.09 | 36.62 |
+| 重回战斗一再进商人 | 473.41 | 18.30 |
+| 全流程观测峰值（每秒采样） | 619.78 | 218.75 |
+
+`tests/bgm_memory_test.tscn` 覆盖菜单 → 载入 → 引子 → 战斗、12 次切曲、全部层、预热、淡出释放、释放后再播、暂停保护 / 恢复无额外 PCM、最终 Boss 二阶段。修复版 **0 failures / 0 SCRIPT ERROR**；基线按同样回收要求产生 120 项失败，复现旧问题。Python 五项压缩 / 补丁 / 导出回归与原有 Suno、菜单续播回归通过。Suno 测试先停止长曲解码再退出，消除资源仍在使用的退出错误；菜单测试仍有既有的一个 ObjectDB 退出警告。
+
+证据在工作分支目录 `build/bgm_memory/compression.json`、`build/bgm_memory/{suno_layers,menu_bgm}.log`、`output/playwright/bgm-memory-{fixed,baseline}.json`。这是音频独立探针，不含整局贴图、WASM 堆、音效 / 语音及解码临时分配；不能将 218.75 MiB 当成整局总峰值。未做手机真机试听 / 整局内存验收，首次解码长曲的卡顿也未据此宣称解决。
