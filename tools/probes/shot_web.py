@@ -59,8 +59,8 @@ def main():
         port = s.getsockname()[1]
     srv = http.server.ThreadingHTTPServer(("127.0.0.1", port), H)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
-    gargs = ["--", "--webshot=%g" % a.at, "--balance", "--realtime", "--nodeath", "--bot=expert", "--seed=13", "--op=skalter", "--squad=texas,exusiai",
-             "--mobilecap", "--memguard=100000", "--rtfrom=%g" % max(0.0, a.at - 5)] + extra
+    gargs = ["--", "--webshot=%g" % a.at, "--balance", "--nodeath", "--bot=expert", "--seed=13", "--op=skalter", "--squad=texas,exusiai",
+             "--mobilecap", "--memguard=100000"] + extra   # 固定步长快进（同 seed 同一时刻，前后两版截图可逐像素对照）
     url = "http://127.0.0.1:%d/index.html?%s" % (port, urllib.parse.urlencode([("a", x) for x in gargs]))
     ud = os.path.join(pw.BASE, "_edge_shot_" + a.tag)
     shutil.rmtree(ud, ignore_errors=True)
