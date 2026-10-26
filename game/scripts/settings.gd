@@ -265,17 +265,17 @@ func view_k() -> int:
 
 ## 战斗镜头 zoom：可见世界高固定（10-27 用户「调整分辨率之后会出现缩放镜头视角的问题」，docs/50 §38）——原来按整数像素 k = round(物理像素高 / 目标)
 ## 定，换分辨率 / 拖窗口 / 全屏 / 手机浏览器地址栏收放时 k 在整数间跳，可见范围跟着跳（1080p → 1440p 少 11%）。现在可见高只看设置：
-##   桌面 render/view_h_desk（1080）÷ 战斗画面缩放（缺省 1.26 → 857，与 1080p 上原来一样）；手机 render/view_h_phone（585）÷（缩放 / 1.2）
-##   （iPhone 横屏 1 美术像素正好 4 物理像素，同原来）。zoom = 视口设计高 ÷ 可见高；--bal=render/cam_unify=0 退回旧的按 k 算
+##   桌面 render/view_h_desk（1080）÷ 缺省缩放 1.26 = 857（与 1080p 上原来一样）；触屏设备 render/view_h_phone（585）
+##   （iPhone 横屏 1 美术像素正好 4 物理像素，同原来）；设置里的战斗画面缩放相对本设备缺省再乘。zoom = 视口设计高 ÷ 可见高；--bal=render/cam_unify=0 退回旧的按 k 算
 func battle_zoom() -> float:
 	var Bal = load("res://scripts/core/balance.gd")
 	if not cam_unified():
 		var sx: float = maxf(0.01, get_viewport().get_final_transform().x.x)
 		return view_k() / (2.0 * sx) * cam_zoom() / (ZOOM_PHONE_DEF / 100.0 if phone_ui() else 1.0)
 	var vy: float = maxf(1.0, get_viewport().get_visible_rect().size.y)
-	if phone_ui():
-		return vy / Bal.v("render/view_h_phone", 585.0) * cam_zoom() / (ZOOM_PHONE_DEF / 100.0)
-	return vy / Bal.v("render/view_h_desk", 1080.0) * cam_zoom()
+	# 触屏设备一律按手机的可见高（16:9 的小屏手机 / 平板不算手机版式，原来落到桌面算法会拉得很远）；缩放相对本设备缺省
+	var h: float = Bal.v("render/view_h_phone", 585.0) if touch_device() else Bal.v("render/view_h_desk", 1080.0) / (ZOOM_DESK_DEF2 / 100.0)
+	return vy / h * cam_zoom() / (zoom_default_pct() / 100.0)
 
 
 ## 系统安全边距（UI 逻辑像素，[左, 上, 右, 下]）：刘海 / 灵动岛 / 圆角 / 底部横条。

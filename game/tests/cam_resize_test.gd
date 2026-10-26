@@ -28,7 +28,7 @@ func view_h() -> float:
 
 func run() -> void:
 	var touch: bool = Cfg.touch_device()
-	var sizes: Array = [Vector2i(2532, 1170), Vector2i(1560, 720), Vector2i(1792, 828), Vector2i(2340, 1080)] if touch else \
+	var sizes: Array = [Vector2i(2532, 1170), Vector2i(1560, 720), Vector2i(1792, 828), Vector2i(2340, 1080), Vector2i(1334, 750)] if touch else \
 		[Vector2i(1280, 720), Vector2i(1920, 1080), Vector2i(2560, 1440), Vector2i(1366, 768), Vector2i(1600, 900)]
 	get_tree().root.size = sizes[0]
 	await frames(2)
@@ -53,11 +53,9 @@ func run() -> void:
 			await frames(4)
 			var h: float = view_h()
 			check(absf(h - h0) < 1.0, "%s 档 窗口 %s：可见高 %.1f，进局 %.1f" % [q, str(sz), h, h0])
-	# 全屏 / 窗口来回切（无头 / 屏幕外窗口里全屏可能不生效，只验证切换前后一致）。--touch 时跳过：本机显示器 16:9 全屏后不再是手机比例，会按桌面算
+	# 全屏 / 窗口来回切（无头 / 屏幕外窗口里全屏可能不生效，只验证切换前后一致）；--touch 时全屏是本机 16:9 显示器——触屏非手机比例也要同一可见高
 	var mode0 := DisplayServer.window_get_mode()
-	if touch:
-		mode0 = -1
-	if mode0 >= 0:
+	if true:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 		await frames(6)
 		check(absf(view_h() - h0) < 1.0, "全屏后可见高 %.1f，进局 %.1f" % [view_h(), h0])
