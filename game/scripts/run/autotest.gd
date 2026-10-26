@@ -604,12 +604,16 @@ func _webshot_step() -> bool:
 
 func step() -> void:
 	g.at_frames += 1
+	if g.prof_on:   # --prof：同屏敌弹 / 我方子弹峰值（docs/50 §37 子弹系统量测）
+		g.prof["peak_ebul"] = maxi(int(g.prof.get("peak_ebul", 0)), g.ebullets.size())
+		g.prof["peak_bul"] = maxi(int(g.prof.get("peak_bul", 0)), g.bullets.size())
 	if _power_step() or _webshot_step():
 		return
 	if g.rt_from >= 0.0 and not g.realtime and g.t >= g.rt_from:
 		g.realtime = true   # --rtfrom：快进结束，之后按真实步长（--fixed-fps 60 时每帧 1/60 秒）
 		preload("res://scripts/core/frame_rec.gd").mark("late")   # 帧时 / 内存记录（--ftrec --memlog）：快进结束那一刻
 		print("PF RTFROM t=%.1f" % g.t)   # 网页低配测量（tools/perf_web.py --throttle）：看到这行才开 CPU 节流，快进段不节流
+		g.prof.clear()   # --prof 只记快进之后的实时段（docs/50 §37：Boss 弹幕段分段计时）
 	if vfxab < 0:
 		vfxab = 0
 		for a in Cfg.dev_args():
