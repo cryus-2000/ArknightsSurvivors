@@ -1220,6 +1220,19 @@ func _audio_free_test() -> void:
 	pl = null
 	await get_tree().create_timer(1.0).timeout
 	print("PF AUDIOFREE player_freed " + _js_samples())
+	print("PF AUDIOFREE ids keys=%s mine=%d" % [str(JavaScriptBridge.eval("Array.from(window.__GAS.keys()).join(',')", true)), st.get_instance_id()])
+	JavaScriptBridge.eval("(()=>{const s=window.__GAS.get('%d');if(s)s.clear();})()" % st.get_instance_id(), true)
+	await get_tree().create_timer(1.0).timeout
+	print("PF AUDIOFREE js_cleared %s registered=%s" % [_js_samples(), str(AudioServer.is_stream_registered_as_sample(st))])
+	AudioServer.register_stream_as_sample(st)
+	var pl2 := AudioStreamPlayer.new()
+	pl2.stream = st
+	pl2.bus = "Music"
+	add_child(pl2)
+	pl2.play()
+	await get_tree().create_timer(1.5).timeout
+	print("PF AUDIOFREE reregistered_playing %s playing=%s pos=%.2f" % [_js_samples(), str(pl2.playing), pl2.get_playback_position()])
+	pl2.queue_free()
 	st = null
 	await get_tree().create_timer(2.0).timeout
 	print("PF AUDIOFREE stream_dropped " + _js_samples())

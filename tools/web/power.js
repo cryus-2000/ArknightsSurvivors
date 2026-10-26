@@ -5,7 +5,16 @@
 	var A = window.AudioContext || window.webkitAudioContext;
 	if (!A) return;
 	var list = [];
+	// 手机网页的音频上下文采样率（docs/50 §40）：引擎把每段样本按「上下文采样率 × 双声道 × float32」整段解码进内存，48 kHz 时 15 秒一句 5.5 MB；
+	// 手机上按 24 kHz 建上下文，样本内存约减半（外放听不出）。网址带 ?sr=<Hz> 可覆盖（0 = 不改）
+	var q = new URLSearchParams(location.search).get("sr");
+	var phone = (navigator.maxTouchPoints > 1 || "ontouchstart" in window) && Math.min(screen.width, screen.height) <= 600;
+	var want = q !== null ? Number(q) : (phone ? 24000 : 0);
+	window.__sySampleRate = want;
 	function Wrapped(opts) {
+		if (want > 0) {
+			opts = Object.assign({}, opts || {}, { sampleRate: want });
+		}
 		var c = opts === undefined ? new A() : new A(opts);
 		list.push(c);
 		return c;
