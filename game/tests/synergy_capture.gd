@@ -9,9 +9,9 @@ func _ready() -> void:
 	var skill := 0
 	var secs := 5.0
 	var out_dir := "synergy_cap"
-	var n_foes := 16
+	var n_foes := 9
 	var elite := true
-	var zoom := 1.4
+	var zoom := 1.5
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--cast="): cast = arg.get_slice("=", 1)
 		if arg.begins_with("--skill="): skill = int(arg.get_slice("=", 1))
@@ -45,32 +45,46 @@ func _ready() -> void:
 	if str(atk.get("r", "")) == "zone":
 		fb = o.zone_r() / maxf(0.01, o.stat(&"op_range"))
 	var gate: float = o.ObCore.skill_gate_base(sk[skill], atk, {}, fb) * o.stat(&"op_range") if skill < sk.size() else 260.0
-	var dist: float = clampf(gate * 0.7, 130.0, 300.0)
-	var spread: float = clampf(gate * 0.35, 40.0, 80.0)
+	var dist: float = clampf(gate * 0.8, 150.0, 300.0)
+	var vs: float = clampf(dist * 0.42, 45.0, 100.0)    # 三个小团上下错开
+	var cr: float = clampf(dist * 0.13, 14.0, 26.0)     # 每个小团的半径：团与团之间留出空地
+	var centres: Array = [Vector2(dist * 0.92, -vs), Vector2(dist * 1.05, 0.0), Vector2(dist * 0.92, vs)]
 	var foes: Array = []
-	for k in n_foes:   # 一团怪，在门槛以内、队长右前方，真实移动速度（不钉死）
-		var at: Vector2 = g.ppos + Vector2(dist, 0.0) + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(0.0, spread)
+	for k in n_foes:   # 9 只左右的杂兵分成 3 个小团（真实移动，但慢一些，团不会立刻糊在一起）
+		var at: Vector2 = g.ppos + centres[k % 3] + Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(0.0, cr)
 		foes.append(g.spawner.spawn_enemy("bone", at))
 	if elite:
-		foes.append(g.spawner.spawn_enemy("knight", g.ppos + Vector2(dist + spread * 0.6, -spread * 0.5)))
+		foes.append(g.spawner.spawn_enemy("knight", g.ppos + centres[1] + Vector2(cr * 0.4, 0.0)))
 		foes[-1].elite = true
 	for e in foes:
 		e.hp = 1.0e9
 		e.maxhp = 1.0e9
 		e.dmg = 0.0   # 怪不打人：画面不被受击红边 / 飘字干扰，只看技能和合击
+		e.spd = float(e.spd) * 0.3   # 慢慢逼近：小团散着的时间长一点，冲刺路线和落点看得清
 	for op in g.squad.ops:   # 其余人技力清零：没点名「就绪」的搭档一律是没就绪（演示「没就绪 → 重击 / 弹幕」那一支）
 		if op.id != cast:
 			for si in 3:
 				op.sp[si] = 0.0
-	if ready != "" and g.squad.get_op(ready) != null:
-		g.squad.get_op(ready).pos = g.ppos + Vector2(90.0, 10.0)   # 站进技能门槛（攻击射程）以内，演示才放得出来；技力在放技能那一帧才充满（否则她自己先放掉了）
 	var dt := 1.0 / 60.0
 	var cast_frame := int(0.8 / dt)
 	var log := {"cast_at": 0.8, "acts": 0, "casts": {}, "frames": [], "gate": gate, "dist": dist}
 	var stage_seen := false
+	var cc: Vector2 = g.ppos + Vector2(dist * 0.5, 0.0)   # 镜头中心：慢慢跟向「动作中心」
 	for frame in int(secs / dt):
 		g.hp = g.max_hp
 		g.move_in = Vector2.ZERO
+		var tgt_c: Vector2 = g.ppos
+		var alive: Array = foes.filter(func(e): return not e.dead)
+		if not alive.is_empty():
+			var fc := Vector2.ZERO
+			for e in alive: fc += e.pos
+			tgt_c = (g.ppos + fc / alive.size()) * 0.5
+		for a in g.squad.syn.acts:
+			if a.p != null and a.tpos != Vector2.INF:
+				tgt_c = (a.p.pos + Vector2(a.tpos) + g.ppos) / 3.0
+		cc = cc.lerp(tgt_c, 0.06)
+		g.glance_pos = cc   # 借「镜头一瞥」把镜头固定在 cc（每帧重设，一直处于 hold）
+		g.glance_t = g.glance_ease
 		for e in foes:
 			e.hp = 1.0e9
 		if frame == cast_frame:
@@ -89,14 +103,17 @@ func _ready() -> void:
 						due = float(a.age) - float(a.t_phase) + dt >= float(a.dr.get("dur", 0.2))
 					if due and a.p.sp[0] < a.p.sp_need(0):
 						a.p.sp[0] = a.p.sp_need(0)
+		if not stage_seen:   # 合击开始之前，队友一律站在编队位（近战队友会自己前压到怪堆里，冲刺的路线就看不见了）
+			for op in g.squad.ops:
+				if not op.is_leader and op.syn_mv.is_empty():
+					op.pos = g.ppos + g.squad._slot_offset(op.slot)
 		g.enemies_sys.build_grid()
 		g._update(dt)
 		g.world.update_visuals(dt)
 		g.world.present_step()
 		if frame % 2 != 0: continue
 		var stage := "pre" if frame < cast_frame else "cast"
-		var marks: Array = []
-		var tf: Transform2D = get_viewport().get_canvas_transform() * get_viewport().get_final_transform().affine_inverse()
+		var marks: Array = []   # 世界坐标，渲染完成后（镜头已就位）再换算成屏幕坐标
 		for a in g.squad.syn.acts:
 			if str(a.dr.kind) == "volley":
 				stage = "cast" if int(a.shots) == 0 and float(a.age) < float(a.dr.get("wind", 0.0)) else "hit"
@@ -104,10 +121,13 @@ func _ready() -> void:
 				stage = ["cast", "dash", "hit"][clampi(int(a.phase), 0, 2)]   # 0 起手 / 1 冲刺途中 / 2 命中收势
 			stage_seen = true
 			if a.p != null:
-				marks.append({"who": a.p.id, "p": _xy(tf * a.p.pos), "t": _xy(tf * Vector2(a.tpos)) if a.tpos != Vector2.INF else []})
+				marks.append({"who": a.p.id, "p": a.p.pos, "t": Vector2(a.tpos)})
 		if frame > cast_frame and g.squad.syn.acts.is_empty() and stage_seen:
 			stage = "after"
-		log.frames.append({"f": frame, "stage": stage, "marks": marks, "casts": g.telemetry.op_casts.duplicate()})
+		var opos := {}
+		for op in g.squad.ops:
+			opos[op.id] = op.pos
+		var entry := {"f": frame, "stage": stage, "marks": marks, "casts": g.telemetry.op_casts.duplicate(), "ops": opos, "lead": g.squad.leader().id}
 		g.queue_redraw()
 		g.fx_add.queue_redraw()
 		g.fg.queue_redraw()
@@ -116,6 +136,13 @@ func _ready() -> void:
 		await RenderingServer.frame_post_draw
 		var im := get_viewport().get_texture().get_image()
 		assert(im.save_png(output.path_join("f_%04d.png" % frame)) == OK)
+		var tf: Transform2D = get_viewport().get_canvas_transform() * get_viewport().get_final_transform().affine_inverse()
+		for m in entry.marks:
+			m["p"] = _xy(tf * Vector2(m.p))
+			m["t"] = _xy(tf * Vector2(m.t)) if Vector2(m.t) != Vector2.INF else []
+		for k in entry.ops.keys():
+			entry.ops[k] = _xy(tf * Vector2(entry.ops[k]))
+		log.frames.append(entry)
 	log.acts = int(g.squad.syn.n)
 	log.casts = g.telemetry.op_casts.duplicate()
 	log["size"] = [get_viewport().get_visible_rect().size.x, get_viewport().get_visible_rect().size.y]
