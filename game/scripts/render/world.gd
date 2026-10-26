@@ -92,7 +92,7 @@ var ecrowd := 0.0                 # 敌人密度 0–1（活着的敌人 90 → 
 ##   render/elite_rim_gain  亮度倍数（颜色 = 冷青 × gain，缺省 2.2；> 1 才能在暗处透出来）
 ## 场上精英通常只有几只，每只多一次贴图切换；每帧在 _update 里读一次旋钮
 const ELITE_RIM_RGB := Color(0.55, 0.9, 1.0)
-## 紧急作战精英小队（docs/159，e.squad）：危险红描边（> 1 抵消环境暗色）+ 脚下红光（_draw_squad_glow，地面层）；颜色语言：红只给危险
+## 紧急作战精英小队（docs/161，e.squad）：危险红描边（> 1 抵消环境暗色）+ 脚下红光（_draw_squad_glow，地面层）；颜色语言：红只给危险
 const SQUAD_RIM_COL := Color(2.6, 0.45, 0.45, 0.85)
 var elite_rim := 0.0
 var elite_rim_col := Color(0, 0, 0, 0)
@@ -849,7 +849,7 @@ func _draw_shadows(evr: Rect2) -> void:
 	g.squad.draw_entities_floor()
 
 
-## 精英小队脚下红光（docs/159）：只遍历紧急作战的小队名单（最多十几只），地面椭圆两层；不闪、不随时间变，手机上也看得清
+## 精英小队脚下红光（docs/161）：只遍历紧急作战的小队名单（最多十几只），地面椭圆两层；不闪、不随时间变，手机上也看得清
 func _draw_squad_glow(evr: Rect2) -> void:
 	var lst: Array = g.endg.elites
 	if lst.is_empty():
