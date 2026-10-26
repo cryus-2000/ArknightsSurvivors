@@ -688,25 +688,63 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 	g.panel_fg.queue_redraw()
 
 
-## 手机卡片上的一句核心效果：说明第一行的第一句（到「；」「。」或冒号为止），去掉括号里的补充说明；还长于 BRIEF_MAX 字
-## 就只留第一个逗号前的部分。招募卡第一句是干员概述，特性看标签行
+## 手机卡片上的一句核心效果：说明第一行的第一句（到「；」「。」为止），去掉括号里的补充说明；还长于 BRIEF_MAX 字
+## 就在冒号 / 逗号处取一个完整的前半句（brief_whole）。招募卡第一句是干员概述，特性看标签行
 const BRIEF_MAX := 24
 static var _re_paren: RegEx
 
 static func brief(desc: String) -> String:
-	var s0 := desc.strip_edges().split("\n")[0]
-	for sep in ["；", "。", "："]:
-		var k := s0.find(sep)
-		if k >= (4 if sep == "：" else 1):
-			s0 = s0.substr(0, k)
 	if _re_paren == null:
 		_re_paren = RegEx.create_from_string("（[^）]*）|\\([^)]*\\)")
-	s0 = _re_paren.sub(s0, "", true).strip_edges()
-	if s0.length() > BRIEF_MAX:
-		var c := s0.find("，")
-		if c >= 6:
-			s0 = s0.substr(0, c)
-	return s0.strip_edges()
+		_re_digit = RegEx.create_from_string("[0-9]")
+		_re_numparen = RegEx.create_from_string("（([^）]*[0-9][^）]*)）")
+	var raw: String = desc.strip_edges().split("\n")[0]
+	var sent: String = _re_paren.sub(raw, "", true)
+	for sep in ["；", "。"]:
+		var k := sent.find(sep)
+		if k > 0:
+			sent = sent.substr(0, k)
+	sent = sent.strip_edges()
+	# 括号外没有数字、数值全在括号里（「…再落第三波（40% 伤害）」）：留括号里第一个带数字的短语，别把数值整个丢掉
+	if _re_digit.search(sent) == null:
+		var m := _re_numparen.search(raw)
+		if m != null:
+			for piece in m.get_string(1).split("，"):
+				var pc: String = piece.get_slice("；", 0).strip_edges()
+				if _re_digit.search(pc) != null:
+					sent += "（%s）" % pc
+					break
+	if sent.length() <= BRIEF_MAX:
+		return sent
+	# 整句太长：在冒号 / 逗号处找一个完整的前半句——不以「每秒 / 期间 / 的」这类半截词结尾，原句有数字时前半句也要有数字
+	# （10-26：水月「病理性依恋·缠缚」以前切成「「囚徒困境」期间每秒」）。都不行就整句（字号由 fit 往下缩）
+	var has_num := _re_digit.search(sent) != null
+	for sep in ["：", "，"]:
+		var k := sent.find(sep)
+		while k >= 4:
+			var head := sent.substr(0, k).strip_edges()
+			if head.length() > BRIEF_MAX + 8:
+				break
+			if brief_whole(head) and (not has_num or _re_digit.search(head) != null):
+				return head
+			k = sent.find(sep, k + 1)
+	return sent
+
+
+## 一句话是不是完整的：不以半截词结尾（card_desc 回归同一规则）
+const BRIEF_WEAK_TAIL := ["每秒", "期间", "的", "时", "中", "内", "与", "和", "并", "对", "在", "被", "将", "使", "及", "或", "把", "向", "从", "为", "让", "且"]
+static var _re_digit: RegEx
+static var _re_numparen: RegEx
+
+
+static func brief_whole(t: String) -> bool:
+	t = t.strip_edges()
+	if t.length() < 4:
+		return false
+	for w in BRIEF_WEAK_TAIL:
+		if t.ends_with(w):
+			return false
+	return true
 
 
 ## 记下选中卡的屏幕矩形（progression.pick 调用；事件选项条、翻节点卡同样适用）
@@ -750,7 +788,7 @@ func headline(o: Dictionary) -> String:
 		# 招募卡：第一句里讲到技能的半句不写（「普攻熔岩弹清理敌群，技能喷发火山…」只留前半），技能看详情
 		var b := brief(option_description(o))
 		var c := b.find("，")
-		return b.substr(0, c) if c >= 4 and b.substr(c).contains("技能") else ""
+		return b.substr(0, c) if c >= 4 and b.substr(c).contains("技能") and brief_whole(b.substr(0, c)) else ""
 	if str(o.get("kind", "")) != "prog" or int(o.get("elite", 0)) <= 0 or o.get("branch", false):
 		return ""
 	var op = g.squad.get_op(str(o.get("op", ""))) if g.squad != null else null
