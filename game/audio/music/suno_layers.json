@@ -1,0 +1,88 @@
+{
+ "battle1": {
+  "bpm": 140.805,
+  "offset": 0.363,
+  "len": 199.751,
+  "layers": [
+   "base",
+   "pulse",
+   "drive"
+  ],
+  "files": [
+   "suno_battle1_base",
+   "suno_battle1_pulse",
+   "suno_battle1_drive"
+  ],
+  "xf": 3.409
+ },
+ "battle2": {
+  "bpm": 145.99,
+  "offset": 0.111,
+  "len": 191.472,
+  "layers": [
+   "base",
+   "pulse",
+   "drive"
+  ],
+  "files": [
+   "suno_battle2_base",
+   "suno_battle2_pulse",
+   "suno_battle2_drive"
+  ],
+  "xf": 3.288
+ },
+ "battle3": {
+  "bpm": 149.94,
+  "offset": 0.156,
+  "len": 206.759,
+  "layers": [
+   "base",
+   "pulse",
+   "drive"
+  ],
+  "files": [
+   "suno_battle3_base",
+   "suno_battle3_pulse",
+   "suno_battle3_drive"
+  ],
+  "xf": 3.201
+ },
+ "boss": {
+  "bpm": 150.14,
+  "offset": 0.149,
+  "len": 185.204,
+  "layers": [
+   "full"
+  ],
+  "files": [
+   "suno_boss_full"
+  ],
+  "xf": 4.796
+ },
+ "final": {
+  "bpm": 150.455,
+  "offset": 0.298,
+  "len": 203.215,
+  "layers": [
+   "p1",
+   "p2"
+  ],
+  "files": [
+   "suno_final_p1",
+   "suno_final_p2"
+  ],
+  "xf": 4.785
+ },
+ "archive": {
+  "bpm": 100.005,
+  "offset": 0.179,
+  "len": 189.52,
+  "layers": [
+   "full"
+  ],
+  "files": [
+   "suno_archive_full"
+  ],
+  "xf": 4.8
+ }
+}

@@ -953,6 +953,7 @@ SCENE_REGRESSIONS = {
     "ea_ui": ("EA 标题与 HUD", "ea_ui_test", r"EA UI regression: 0 failures", []),
     "op_select": ("选人页 B+ 键鼠 / 手柄 / 触屏输入", "op_select_input_test", r"OP SELECT INPUT: 0 failures", []),
     "codex": ("图鉴 C4' 键鼠 / 手柄 / 触屏输入与立绘适配", "codex_input_test", r"CODEX INPUT: 0 failures", []),
+    "suno_layers": ("Suno 整首分层配乐：载入 / 各层同长 / 小节线切层 / 战斗换段 / Boss / 最终 Boss 二阶段（docs/163）", "suno_layers_test", r"SUNO LAYERS: 0 failures", []),
     "menu_bgm": ("局外配乐：各界面选曲、回标题接着放、选人 ↔ 难度不重开、进局清记忆", "menu_bgm_test", r"MENU BGM: 0 failures", []),
     "credits": ("致谢与声明滚动：键鼠 / 手柄 / 触屏输入", "credits_input_test", r"CREDITS INPUT: 0 failures", []),
     "esc_layers": ("各层 Esc 关闭当前层级 / 设置页键盘与输入法物理键码 / 设置 70% 面板与 × 关闭", "esc_layers_test", r"ESC LAYERS: 0 failures", []),
