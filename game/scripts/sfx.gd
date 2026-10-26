@@ -166,6 +166,8 @@ static func is_automated() -> bool:
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	if OS.has_feature("web") and (OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()).has("--audiofree"):
+		_audio_free_test.call_deferred()
 	if is_automated():
 		AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), true)
 	var mbus := _ensure_bus("Music")
@@ -1188,3 +1190,50 @@ func enemy(kind: String, distance := 0.0) -> void:
 		return
 	var attenuation := clampf(distance / 800.0, 0.0, 1.0) * 18.0
 	play("enemy_" + kind, -13.0 - attenuation, 1.0, 0.07)
+
+
+## --audiofree（仅测试，网页，docs/50 §40）：量网页样本解码后的实际字节、以及丢掉流 / 播放器后样本是否真释放。
+## 要配合 tools/probes/audio_web.py（测量副本里把引擎的 GodotAudio.samples 挂到 window.__GAS 才读得到）
+func _js_samples() -> String:
+	var r = JavaScriptBridge.eval("(()=>{const m=window.__GAS;if(!m)return 'nomap';let n=0,live=0,b=0;for(const [k,s] of m){n++;const a=s._audioBuffer;if(a){live++;b+=a.length*a.numberOfChannels*4;}}return n+' live='+live+' MB='+(b/1048576).toFixed(1)+' sr='+(window.__GACTX?window.__GACTX.sampleRate:0);})()", true)
+	return str(r)
+
+
+func _audio_free_test() -> void:
+	await get_tree().create_timer(2.0).timeout
+	print("PF AUDIOFREE start " + _js_samples())
+	var path := "res://audio/music/battle1_A_base.ogg"
+	var st: AudioStream = ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE)
+	print("PF AUDIOFREE len=%.2fs" % st.get_length())
+	AudioServer.register_stream_as_sample(st)
+	await get_tree().create_timer(1.0).timeout
+	print("PF AUDIOFREE registered " + _js_samples())
+	var pl := AudioStreamPlayer.new()
+	pl.stream = st
+	pl.bus = "Music"
+	add_child(pl)
+	pl.play()
+	await get_tree().create_timer(2.0).timeout
+	print("PF AUDIOFREE playing " + _js_samples())
+	pl.stop()
+	pl.queue_free()
+	pl = null
+	await get_tree().create_timer(1.0).timeout
+	print("PF AUDIOFREE player_freed " + _js_samples())
+	st = null
+	await get_tree().create_timer(2.0).timeout
+	print("PF AUDIOFREE stream_dropped " + _js_samples())
+	# 再试：一次读 15 句底层、全注册，再全部丢掉
+	var arr: Array = []
+	for sname in ["A", "B", "C", "D", "E"]:
+		for layer in ["base", "pulse", "drive"]:
+			var s2: AudioStream = ResourceLoader.load("res://audio/music/battle2_%s_%s.ogg" % [sname, layer], "", ResourceLoader.CACHE_MODE_IGNORE)
+			if s2 != null:
+				AudioServer.register_stream_as_sample(s2)
+				arr.append(s2)
+	await get_tree().create_timer(2.0).timeout
+	print("PF AUDIOFREE battle2_all_registered n=%d %s" % [arr.size(), _js_samples()])
+	arr.clear()
+	await get_tree().create_timer(2.0).timeout
+	print("PF AUDIOFREE battle2_dropped " + _js_samples())
+	print("PF FTDONE")
