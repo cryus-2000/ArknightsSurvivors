@@ -101,15 +101,10 @@ def build(key):
     names = SETS[key]
     atk = [to_rms(crisp(rd_ogg(g)), -9.5) for g in names]
     main = crisp(rd_ogg(names[1]))
-    # 命中：弹着点脆响（第一条枪声前 35 ms 升调高通）+ 金属叮（现用命中，低 5 dB，晚 6 ms）
-    tick = shift(rd_ogg(names[0])[:int(0.035 * SR)], 1.6)
-    tick = sosfilt(butter(2, 1500, btype="high", fs=SR, output="sos"), tick)
+    # 命中（10-26 修：原来叠了一声「枪声前 35 ms 升调」的弹着点脆响，听起来像第二声枪响 = 用户听到的「新旧枪声叠在一起」）：
+    # 只留金属叮（首次接入的 Kenney impactMetal_light，4 kHz 低通、0.12 s），响度抬到 -11 dBFS，不再带任何枪声成分
     ping = rd_wav("op_exusiai_hit", "547edc5f1")
-    hit = np.zeros(int(0.14 * SR))
-    hit[:len(tick)] += tick * 1.0
-    off = int(0.006 * SR)
-    hit[off:off + len(ping)] += ping[:len(hit) - off] * 0.55
-    hit = to_rms(hit, -11.0)
+    hit = to_rms(ping[:int(0.14 * SR)].copy(), -11.0)
     s1 = np.concatenate([click(), np.zeros(int(0.06 * SR)), burst(main, 3, 0.85, 0.85, 0.075, 0.075)])
     s2 = burst(main, 6, 0.7, 1.0, 0.1, 0.055)
     s3 = burst(main, 18, 0.75, 1.0, 0.065, 0.038, last=3.0)
