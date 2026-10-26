@@ -65,6 +65,7 @@ def main():
     ap.add_argument("--out", default=os.path.join(ROOT, "build", "web"))
     ap.add_argument("--part-mib", type=float, default=10)
     ap.add_argument("--worktree-presets", action="store_true", help="用工作区的 export_presets.cfg（改预设时本地试导出用）")
+    ap.add_argument("--audio-tier", default="B", choices=["off", "A", "B", "C"], help="网页包音频再压缩档位（tools/web_audio.py：A 近无损 / B 平衡 / C 激进；off = 不压）")
     ap.add_argument("--ea", action="store_true", help="对内网页版：build.json audience = internal（演练开、全部解锁）")
     ap.add_argument("--toy", action="store_true", help="B站 Toy 包：一律加载 Toy SDK、分片不带 .gz 后缀、另打 zip（缺省输出 build/toy/web）")
     a = ap.parse_args()
@@ -119,6 +120,10 @@ def main():
     gpath = os.path.join(src, "game")
     # 字体按实际用字子集化（release_slim，docs/33 §包体瘦身）：只换打包副本里的字体，仓库原字体不动
     release_slim.print_font_rows(release_slim.subset_fonts(gpath))
+    # 网页包专用音频再压缩（tools/web_audio.py，docs/121 §4）：只改打包副本，桌面包与仓库不动；--audio-tier off 关闭
+    if a.audio_tier != "off":
+        import web_audio
+        print("[瘦身] " + web_audio.report(web_audio.shrink(gpath, a.audio_tier)) + "（档位 %s）" % a.audio_tier, flush=True)
     tmp = os.path.join(WORK, "out")
     os.makedirs(tmp)
     run([GODOT, "--headless", "--path", gpath, "--import"], check=False)  # 无头导入退出时偶发崩溃，结果以导出为准
