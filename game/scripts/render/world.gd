@@ -4,6 +4,7 @@ extends RefCounted
 
 const LaserDraw = preload("res://scripts/render/laser_draw.gd")
 const FinalAttackDraw = preload("res://scripts/render/boss_attack_draw.gd")
+const IsharTell = preload("res://scripts/render/ishar_tell_draw.gd")
 const BossBeam = preload("res://scripts/render/boss_beam.gd")   # Boss 改版样板：Kanpelle 光束、骑士寒气圈 / 寒冷条（docs/142b）
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
@@ -480,6 +481,7 @@ func _draw_warns_auras() -> void:
 	classify_tells()   # 先判哪些预警会打到主控（可读性 1.1.1）：地面填充 / 轮廓 / 冲刺线都读这个结果
 	if not _dbg_foe and not _dbg_warn:
 		TeleDraw.draw_fills(g)
+		IsharTell.draw(g)   # 伊莎玛拉预警（docs/170）
 		FinalAttackDraw.draw(g)
 	if not _dbg_aura:
 		draw_nest_auras()
@@ -4454,6 +4456,8 @@ func draw_warn_outlines(ground := false) -> void:
 	for w in g.warns:
 		if w.done or TeleDraw.quiet(w) or bool(w.get("ground", false)) != ground:
 			continue   # ground：小怪踏地的轮廓在地面层画（_draw_ground_foe_fx），不压在单位上
+		if IsharTell.owns(w):
+			continue   # 伊莎玛拉：涟漪勾边已在 ishar_tell_draw 画（docs/170）
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var tr: float = float(w.get("track", 0.0))
 		var tracking: bool = tr > 0.0 and w.t < tr

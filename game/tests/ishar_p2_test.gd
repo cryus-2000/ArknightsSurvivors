@@ -67,7 +67,8 @@ func _ready() -> void:
 		check(regular_names.size() >= 6 and regular_names[0] == regular_names[3], "complete rotation repeats rather than priority starving")   # 一幕 3 招轮转（泪落只在二幕有泪时进）
 		if not (regular_names.size() >= 6 and regular_names[0] == regular_names[3]):
 			print("  names at %d: %s" % [distance, str(regular_names)])
-		for move in g.bai.finals.NAMES.ishar:
+		# 一幕连段（docs/170）只含合唱齐射 / 深海触腕；合唱压境在二幕抚愈连段，见 ishar_combo_test
+		for move in g.bai.finals.NAMES.ishar.filter(func(m): return g.bai.boss("ishar").Cards.CARDS[0].any(func(c): return c.seq.has(m))):
 			check(names.has(move), "new choir move naturally scheduled: " + move)
 	# Warning resolution must forward true damage and the existing protection budget.
 	g.t += 20.0

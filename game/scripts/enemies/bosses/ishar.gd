@@ -12,6 +12,19 @@ extends "res://scripts/enemies/bosses/boss_base.gd"
 
 const COL := Color(0.3, 1.0, 0.65)   # 青绿（docs/142b §8.4）
 const MOVES := ["泪落", "三线扫射", "大群之歌", "撕咬"]   # 下标 = 轮转序号；泪落只在二幕有泪时进轮转
+## 10-27 连段（docs/170）：二阶段改由 ishar_combos.gd 按幕出有限连段 + 图案弹幕；boss/ishar_combos 0 = 回到旧的固定轮转（云端对照用）
+const Cards = preload("res://scripts/enemies/bosses/ishar_combos.gd")
+var _cards
+
+
+func cards():
+	if _cards == null:
+		_cards = Cards.new(g, self)
+	return _cards
+
+
+func cards_on() -> bool:
+	return Bal.v("boss/ishar_combos", 1.0) > 0.0
 
 
 ## 每帧（boss_ai._boss_ai 公共段之后）：ready = 本帧可以出招；mate = 接潮搭档（没有则 null）
@@ -22,8 +35,11 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	if e.phase == 2 and g.t >= float(e.get("transform_until", 0.0)):
 		_web_step(e, dt)
 		_eye_step(e)
-	if e.phase == 2 and ready and g.t >= float(e.get("transform_until", 0.0)):
-		_ishar_phase2(e, dir, dist)
+	if e.phase == 2 and g.t >= float(e.get("transform_until", 0.0)):
+		if cards_on():
+			cards().step(e, dir, dist, ready)
+		elif ready:
+			_ishar_phase2(e, dir, dist)
 
 
 
@@ -33,14 +49,21 @@ func setup_preview_phase2(e: Dictionary) -> void:
 
 
 func demo_moves(_e: Dictionary) -> Array:
-	return MOVES + g.bai.finals.NAMES["ishar"]
+	return MOVES + g.bai.finals.NAMES["ishar"] + Cards.NEW_MOVES + Cards.card_names()
 
 
 func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 	if g.bai.finals.force_move(e, name, dir, dist):
+		if cards_on():
+			e.final_next = INF
 		return true
 	if e.phase != 2:
 		return false
+	if cards().force(e, name):
+		return true
+	if Cards.NEW_MOVES.has(name):
+		cards().play(e, name, dir, dist)
+		return true
 	var i: int = MOVES.find(name)
 	if i < 0:
 		return false
@@ -54,40 +77,26 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 
 
 ## 以原作「三目标真实伤害」为基础的幸存者玩法改编。固定轮转避免近身招式永久压住远程招式。
-func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
+func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float, forced := -1) -> void:
 	var d: Dictionary = D.ENEMIES.ishar.get("attack", {})
-	# 潮涌迫近（协调人 9/30 定，见 _close_in）：原来她站在 660 射程边上、躲在杂兵墙后，近战队伍打不到（Boss A/B 9/30：高手用时中位 199 秒、15/50 没打死）
-	if g.t >= float(e.get("ishar_next_at", 0.0)):
-		var cdur := _close_in(e, dir, dist, "ishar", "潮涌迫近", COL)
-		if cdur >= 0.0:
-			e.ishar_next_at = g.t + cdur + 0.6
-			return
-	if dist > float(d.get("range", 660.0)) or g.t < float(e.get("ishar_next_at", 0.0)):
-		return
-	var move: int = int(e.get("ishar_cycle", 0)) % 4
+	var move: int = forced
 	var end := 0.0
-	var echoes: Array = e.get("tear_echoes", [])
-	if not echoes.is_empty():
-		# 只保存变身前未压制的泪滴；锁定一刻的主控位置，各束同时结算。
-		var target: Vector2 = g.combat.arena_clamp(g.ppos, 80.0)
-		for eye in echoes:
-			if eye.dead:
-				continue
-			var source: Vector2 = eye.pos
-			var to_target: Vector2 = target - source
-			var w := _warn(e, "line", 1.0, {"pos": source, "ang": to_target.angle(), "len": to_target.length(),
-				"wid": 13.0, "act": "ishar_echo", "true": true, "name": "泪滴共鸣" if is_same(eye, echoes[0]) else "", "kp": "ishar", "kp_k": 2.0,
-				"col": COL, "dmg": e.dmg * Bal.v("boss/ishar_echo_mult", 0.6), "cancel_dead": true, "source": eye, "lock": is_same(eye, echoes[0])})
-			end = maxf(end, w.dur)
-		e.tear_echoes = []
-		e.wind = maxf(e.wind, end)
-		e.cdt = maxf(e.cdt, end)
-		e.ishar_next_at = g.t + end + float(d.get("recovery", 1.25)) * SKILL_COOLDOWN_SCALE * _ishar_haste(e)
-		return
-	if move == 0 and not e.get("force_cycle", false) and e.get("eyes", []).size() < 2:
-		move = 1   # 泪落只在二幕两泪都在时进轮转（演练强制出招除外）
-	e.force_cycle = false
-	e.ishar_cycle = (move + 1) % 4
+	if forced < 0:
+		# 潮涌迫近（协调人 9/30 定，见 _close_in）：原来她站在 660 射程边上、躲在杂兵墙后，近战队伍打不到（Boss A/B 9/30：高手用时中位 199 秒、15/50 没打死）
+		if g.t >= float(e.get("ishar_next_at", 0.0)):
+			var cdur := _close_in(e, dir, dist, "ishar", "潮涌迫近", COL)
+			if cdur >= 0.0:
+				e.ishar_next_at = g.t + cdur + 0.6
+				return
+		if dist > float(d.get("range", 660.0)) or g.t < float(e.get("ishar_next_at", 0.0)):
+			return
+		move = int(e.get("ishar_cycle", 0)) % 4
+		if _fire_echoes(e):
+			return
+		if move == 0 and not e.get("force_cycle", false) and e.get("eyes", []).size() < 2:
+			move = 1   # 泪落只在二幕两泪都在时进轮转（演练强制出招除外）
+		e.force_cycle = false
+		e.ishar_cycle = (move + 1) % 4
 	var enraged: bool = _enraged(e)
 	var act3: bool = int(e.get("gates_passed", 0)) >= 2
 	var pause: float = 0.0
@@ -165,6 +174,31 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 	e.wind = maxf(e.wind, end)
 	e.cdt = maxf(e.cdt, end)
 	e["ishar_next_at"] = g.t + end + pause + float(d.get("recovery", 1.25)) * SKILL_COOLDOWN_SCALE * _ishar_haste(e)
+	e["ishar_pause"] = pause
+
+
+## 变身前未压制的泪滴齐射一次（锁定一刻的主控位置，各束同时结算）；放了返回 true
+func _fire_echoes(e: Dictionary) -> bool:
+	var d: Dictionary = D.ENEMIES.ishar.get("attack", {})
+	var echoes: Array = e.get("tear_echoes", [])
+	if echoes.is_empty():
+		return false
+	var end := 0.0
+	var target: Vector2 = g.combat.arena_clamp(g.ppos, 80.0)
+	for eye in echoes:
+		if eye.dead:
+			continue
+		var source: Vector2 = eye.pos
+		var to_target: Vector2 = target - source
+		var w := _warn(e, "line", 1.0, {"pos": source, "ang": to_target.angle(), "len": to_target.length(),
+			"wid": 13.0, "act": "ishar_echo", "true": true, "name": "泪滴共鸣" if is_same(eye, echoes[0]) else "", "kp": "ishar", "kp_k": 2.0,
+			"col": COL, "dmg": e.dmg * Bal.v("boss/ishar_echo_mult", 0.6), "cancel_dead": true, "source": eye, "lock": is_same(eye, echoes[0])})
+		end = maxf(end, w.dur)
+	e.tear_echoes = []
+	e.wind = maxf(e.wind, end)
+	e.cdt = maxf(e.cdt, end)
+	e.ishar_next_at = g.t + end + float(d.get("recovery", 1.25)) * SKILL_COOLDOWN_SCALE * _ishar_haste(e)
+	return true
 
 
 ## 濒死强化（docs/95 §2.2 D）：过第一道卡点（66%）之后
@@ -185,6 +219,11 @@ func transform_ishar(e: Dictionary) -> void:
 	e["ishar_next_at"] = g.t + 0.9
 	e["tear_echoes"] = []
 	e.eyes = []
+	e.card_live = false
+	e.card_act = -1
+	e.ishar_emits = []
+	if cards_on():
+		e.final_next = INF
 	for o in g.enemies:
 		if o.type == "tear" and is_same(o.get("owner", {}), e):
 			if not o.dead and not o.get("purified", false):
@@ -392,12 +431,16 @@ func taken_mult(e: Dictionary) -> float:
 func on_gate(e: Dictionary) -> void:
 	if e.phase != 2:
 		return
+	if cards_on():
+		cards().on_gate(e)   # 转幕清掉未出的段，下一组按新幕选
 	if int(e.get("gates_passed", 0)) == 1:
 		_eyes_spawn(e)
 
 
 ## 本体倒下：网与泪一起散
 func on_kill(e: Dictionary) -> void:
+	e.ishar_emits = []
+	e.card_live = false
 	for tear in g.ishar.tears(e):
 		g.ishar.release_blessing(tear)
 		tear.dead = true
