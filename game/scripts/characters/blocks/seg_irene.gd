@@ -1,5 +1,6 @@
 ## 干员积木 · seg_irene（docs/101 §7.3 B6 ①，10-15：由 op_blocks.gd 按段拆出，内容与注释照搬；继承链与门面见 op_blocks.gd）
 extends "res://scripts/characters/blocks/seg_ulpianus.gd"
+const IrVg = preload("res://scripts/characters/blocks/vis_growth.gd")   # 老近卫军之锋 #56（docs/163D）：刺击 / 环斩命中 ≥ 3 名
 
 
 # ---------------------------------------------------------------- shape.thrust
@@ -157,6 +158,8 @@ static func _h3_thrust(o, a: Dictionary, ang: float, mult: float, patch: Diction
 		hits.append([along, e])
 	hits.sort_custom(func(x, y): return x[0] < y[0])
 	var dmg: float = o.base(str(a.get("atk_key", "atk")), 0.0) * o._dmg_bonus() * mult
+	if hits.size() >= 3:   # 老近卫军之锋 #56：这一段刺击的实际目标 ≥ 3 名
+		dmg *= IrVg.crowd_mult(o, hits.map(func(x): return x[1]), a.get("tags", []))
 	var gust: bool = not patch.is_empty()
 	var src: String = str(patch.get("src", a.get("src", ""))) if gust else str(a.get("src", ""))
 	var pu: Dictionary = _h3_pursue(o, a)
@@ -192,13 +195,13 @@ static func _h3_thrust_fx(o, a: Dictionary, d: Vector2, L: float, ang: float, gu
 	ir.tn = int(ir.tn) + 1
 	var side: float = 4.0 if int(ir.tn) % 2 == 0 else -4.0
 	var st: Vector2 = o.pos + Vector2(0, -32) + d * 12.0 + d.orthogonal() * side
-	var tsc: float = g.PX * clampf(L / 128.0, 0.9, 1.1)
+	var tsc: float = g.PX * clampf(L / 128.0, 0.9, 1.1)   # 帧条限幅（再放大颗粒过粗）；判定被范围藏品拉长时下面用程序光束补齐全长
 	var star: String = str(lk.get("star", "fx_star_hit_rose"))
 	if not o.spawn_fx_sprite(str(lk.get("beam", "fx_irene_thrust")), st + d * 32.0 * tsc, tsc, ang, false, false, Color(1.1, 0.8, 1.0) if gust else Color.WHITE):
 		o.fx({"kind": "h3_thrust", "pos": st, "dir": d, "len": L, "w": 9.0 if gust else 7.0, "life": 0.16, "col": gcol if gust else col, "star": star})
 		o.spawn_fx_sprite(star, st + d * (L + 10.0), g.PX * 0.8)
-	elif h3_thrust_w(o, a) > float(a.get("w", 26.0)) * 1.01:
-		var wk: float = h3_thrust_w(o, a) / maxf(1.0, float(a.get("w", 26.0)))
+	elif h3_thrust_w(o, a) > float(a.get("w", 26.0)) * 1.01 or o.stat(&"op_range") > 1.01:   # 163B §3：范围藏品拉长刺击时画面跟判定走
+		var wk: float = maxf(1.0, h3_thrust_w(o, a) / maxf(1.0, float(a.get("w", 26.0))))
 		o.fx({"kind": "h3_thrust", "pos": st, "dir": d, "len": L, "w": 7.0 * wk, "life": 0.16, "col": gcol if gust else col, "star": star})
 		o.spawn_fx_sprite(star, st + d * (L + 6.0), g.PX * 0.8)
 	if stage == 3:

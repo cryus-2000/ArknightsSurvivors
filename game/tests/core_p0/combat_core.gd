@@ -104,6 +104,9 @@ func validate() -> Array:
 						errs.append("%s：未知动作 %s" % [where, ef.do])
 				"status", "rule":
 					pass
+				"growth":   # 可见成长（docs/163，vis_growth.gd）
+					if not str(ef.get("kind", "")) in ["scatter", "burst", "qi", "range", "crowd", "summon_n", "summon_size"]:
+						errs.append("%s：未知可见成长 kind %s" % [where, ef.get("kind", "")])
 				_:
 					errs.append("%s：未知效果类型 %s" % [where, ty])
 		for q in r.requirements:

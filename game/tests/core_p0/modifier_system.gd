@@ -73,6 +73,8 @@ func apply(owner_id: String, effects: Array) -> void:
 				_rules[ef.rule] = _rules.get(ef.rule, 0) + int(ef.get("value", 1))
 			"on_gain":
 				_run(ef.do, ef.get("args", {}), {}, owner_id)
+			"growth":
+				pass   # 可见成长（docs/163）：运行时在 characters/blocks/vis_growth.gd，契约核心不模拟
 			_:
 				push_warning("未知效果类型: %s" % ef)
 

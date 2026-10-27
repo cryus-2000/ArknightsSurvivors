@@ -78,8 +78,9 @@ static func _h3_spin(o, a: Dictionary, dmg: float, kind: int) -> void:
 	var heavy: bool = _h3_heavy(o, a)
 	var src: String = str(a.get("src", ""))
 	var kb: float = float(a.get("kb", 70.0))
+	var cm: float = IrVg.crowd_mult(o, hits, a.get("tags", []))   # 老近卫军之锋 #56：一圈命中 ≥ 3 名
 	for e in hits:
-		var d: float = dmg
+		var d: float = dmg * cm
 		if low_on and e.hp < e.maxhp * float(lh.get("below", 0.5)):
 			d *= float(lh.get("mult", 1.5))
 		o.log_hit(src, a.get("tags", []))

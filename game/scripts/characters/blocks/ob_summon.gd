@@ -2,6 +2,7 @@
 extends "res://scripts/characters/blocks/ob_vortex.gd"
 
 const SummonVisual = preload("res://scripts/characters/summon_visual.gd")
+const VisGrowth = preload("res://scripts/characters/blocks/vis_growth.gd")   # 可见成长（docs/163）：召唤物体型 / 持续时间
 
 
 # ================================================================ 召唤 / 封印 / 护盾 / 治疗光环（docs/61 §15，10-12 通用积木，下一批干员备用）
@@ -418,7 +419,7 @@ static func sm_strike(o, s: Dictionary, a: Dictionary, tg: Dictionary) -> Array:
 	s.anim = 0.22
 	var hits: Array = []
 	var c: Vector2 = s.pos
-	var r: float = float(a.get("r", 30.0)) * kr
+	var r: float = float(a.get("r", 30.0)) * kr * VisGrowth.summon_reach(g)   # 可见成长 #130：攻击覆盖与体型同步放大（summon_r_follow）
 	match str(a.get("shape", "circle")):
 		"cone":
 			hits = o.melee_hit(src, s.pos, ang, deg_to_rad(float(a.get("half_deg", 45.0))), r, dmg, kb, stun, tags, max_n)
@@ -516,14 +517,14 @@ static func sm_draw(o, s: Dictionary) -> void:
 		var av = body.get("anchor", [])
 		if av is Array and av.size() == 2:
 			an = Vector2(float(av[0]), float(av[1])) * h
-		var sc: float = g.PX * float(body.get("scale", 1.0))
+		var sc: float = g.PX * float(body.get("scale", 1.0)) * VisGrowth.summon_scale(g)
 		var fl: float = -1.0 if body.get("flip", true) and float(s.face) < 0.0 else 1.0
 		o._cv_flush()
 		o.cv.draw_set_transform(p + lunge, 0.0, Vector2(fl * sc / h, sc / h))
 		o.cv.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * fr, 0, fw, fh), tint)
 		o.cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	else:
-		var r: float = float(kd.get("r", 10.0))
+		var r: float = float(kd.get("r", 10.0)) * VisGrowth.summon_scale(g)
 		var cc: Color = _sm_col(o, kd)
 		var q: Vector2 = p + lunge + Vector2(0, -r)
 		o.cv.draw_circle(q, r + 1.5, Color(0.03, 0.03, 0.06, 0.8 * al))
@@ -1319,7 +1320,7 @@ static func mf_rest(o, mv: Dictionary) -> Vector2:
 
 ## 攻击距离：r × op_range × 各 reach 倍率（依次乘）
 static func mf_reach(o, a: Dictionary, mods: Dictionary) -> float:
-	var r: float = float(a.get("r", 30.0)) * o.stat(&"op_range")
+	var r: float = float(a.get("r", 30.0)) * o.stat(&"op_range") * VisGrowth.summon_reach(o.g)
 	for f in mods.reach:
 		r *= f
 	return r
@@ -1707,7 +1708,7 @@ static func mf_draw(o, s: Dictionary, kd: Dictionary) -> bool:
 	var col := Color.WHITE
 	if float(s.pout) <= 0.0 and s.pcur.has("tint"):
 		col = _mf_col(s.pcur.tint)
-	o.draw_sprite_at(s.pos + Vector2(0, hov), (float(s.face) < 0.0) != o.sprite_mirror(str(fr[3])), col, fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]))
+	o.draw_sprite_at(s.pos + Vector2(0, hov), (float(s.face) < 0.0) != o.sprite_mirror(str(fr[3])), col, fr[1], fr[0], fr[2], o.foot_off(fr[0], fr[3]), VisGrowth.summon_scale(g))
 	for f in fl:
 		if f is Dictionary and f.has("side") and fx_on(o, f):
 			_mf_side(o, s, f.side, hov)

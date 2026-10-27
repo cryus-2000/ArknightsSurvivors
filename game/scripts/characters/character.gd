@@ -1877,6 +1877,7 @@ func draw_extra_shadows() -> void:
 ## 各段直接调 arc_targets 的都经过这里）在同一处画一道像素刀光弧，半径与半角 = 这次判定的实际值（数值改判定会自动跟随）。
 ## 只画画面（g.vfx.melee_arc），不改判定；远程职业与技能不画
 const MELEE_CLASS := ["近卫", "重装", "特种", "先锋"]
+const CrowdVg = preload("res://scripts/characters/blocks/vis_growth.gd")
 const NO_ARC := ["specter_unchained"]   # 10-24 用户「归溟幽灵鲨不需要刀光特效」：只留她自己的帧条（血锯等）
 func arc_targets(origin: Vector2, ang: float, half: float, radius: float) -> Array:
 	if act_kind == "attack" and attack_t > 0.0 and g.vfx != null and not g.headless_batch and (cls in MELEE_CLASS or id == "skalter") and not id in NO_ARC:
@@ -1890,6 +1891,7 @@ func melee_hit(src: String, origin: Vector2, ang: float, half: float, radius: fl
 	var hits: Array = arc_targets(origin, ang, half, radius)
 	if max_n > 0 and hits.size() > max_n:
 		hits = cap_targets(hits, origin, max_n)
+	dmg *= CrowdVg.crowd_mult(self, hits, tags)   # 老近卫军之锋 #56：一个主判定命中 ≥ 3 名（没有该藏品 = 1.0）
 	var ve: float = vs_elite()
 	for e in hits:
 		log_hit(src, tags)
