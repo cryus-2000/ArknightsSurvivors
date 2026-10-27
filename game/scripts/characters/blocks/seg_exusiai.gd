@@ -11,6 +11,10 @@ extends "res://scripts/characters/blocks/seg_texas.gd"
 
 const EXU_IMPL := {"shape": ["projectile"], "verb": ["counter", "counter_cap", "attack_lock", "ricochet"], "st": ["pause"], "trig": ["on_attack"]}
 
+## 每轮枪声的 [音量偏移 dB, 音高]：普攻 / 扫射 / 补射用本色；冲锋模式强力弹沉一点；过载连射每轮略轻略高（一轮 4 声，免得糊）
+const EXU_SND_NORMAL := [0.0, 1.0]
+const EXU_SND_AMMO := [1.5, 0.88]
+const EXU_SND_BURST := [-1.5, 1.04]
 const EXU_PATCH_KEYS := ["mult", "pierce", "src", "tags", "tex", "power", "burst", "burst_gap", "range_mult", "elite_prio", "last_on_hit", "muzzle_fx", "spread_deg", "focus_boss", "kb", "hit_fx"]
 
 const EXU_BULLET_MAX := 96            # 同时在场的弹体上限（docs/59 §4：上限约 36 发/秒 × 寿命 0.7 秒）
@@ -236,12 +240,14 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 	var speed: float = maxf(60.0, float(p.get("speed", 520.0)))
 	var ap: Array = _exu_ammo_patch(o) if main else [-1, {}]
 	var mfx: String = str(p.get("muzzle_fx", "fx_exusiai_muzzle"))
+	var ammo_round := false   # 这一轮用的是冲锋模式的强力弹（只看第一发，同枪口焰）
 	for k in n:
 		var q := p
 		if ap[0] >= 0 and int(st.ammo[ap[0]]) > 0:
 			q = _exu_merge(p, ap[1])
 			st.ammo[ap[0]] = int(st.ammo[ap[0]]) - 1
 			if k == 0:
+				ammo_round = true
 				mfx = str(q.get("muzzle_fx", mfx))   # 次数型技能的补丁是逐发合并的：枪口焰跟第一发子弹走（冲锋模式的青色焰）
 		var dir: Vector2
 		var btex: String = str(q.get("tex", ""))
@@ -264,6 +270,15 @@ static func _exu_volley(o, p: Dictionary, main: bool, last: bool) -> void:
 			st.bul.append({"p": mz, "v": dir * speed, "life": _exu_range(o, q) * 1.15 / speed, "dmg": dmg, "src": str(q.get("src", "")),
 				"tags": q.get("tags", []), "pierce": o.atk_pierce(int(q.get("pierce", 0))) if main else int(q.get("pierce", 0)), "main": main, "kb": float(q.get("kb", 0.0)), "hit": {}, "tex": btex, "hfx": str(q.get("hit_fx", "fx_exusiai_hit")), "on_hit": oh, "ric": true})
 	o.spawn_fx_sprite(mfx, mz + d0 * 7.0 * g.PX * 0.8, g.PX * 0.8, d0.angle())
+	if not fan:
+		# 枪声跟出弹同一帧：每一轮射击一声（连射的后几轮、掩护射击补射也各一声；原来整个普攻出手只在 _release_body 末尾响一声，技能连射靠发动时的预混音频）。
+		# 弹匣倾泻（fan）那一下有自己的 big 音。冲锋模式强力弹低一点更沉，过载连射（burst > 1）每轮略轻免得糊
+		var snd := EXU_SND_NORMAL
+		if ammo_round:
+			snd = EXU_SND_AMMO
+		elif int(p.get("burst", 1)) > 1:
+			snd = EXU_SND_BURST
+		o._sfx_op("atk", snd[0], snd[1])
 
 
 ## 每帧（data_operator.update 在常驻积木之后调）：技能结束 → end；普攻锁；连射队列；弹体推进与命中

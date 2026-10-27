@@ -810,7 +810,7 @@ func _release_body() -> void:
 	var _pt1 := Time.get_ticks_usec() if g.prof_on else 0
 	atk_live = false
 	atk_far = -1
-	if not str(a.get("shape", "")) in ObHw.H4_ATTACKS + ["umbrella"]:
+	if not str(a.get("shape", "")) in ObHw.H4_ATTACKS + ["umbrella", "projectile"]:   # projectile（能天使）：枪声在 _exu_volley 出弹那一帧逐轮播
 		_sfx_op("atk")
 	if not far_fp.is_empty() and not far_fp.get("count", true):
 		far_n += 1
@@ -992,10 +992,10 @@ func on_kill(e: Dictionary) -> void:
 	kill_w = 1.0
 
 
-func _sfx_op(kind: String) -> void:
+func _sfx_op(kind: String, db := 0.0, pitch := 1.0) -> void:
 	var sfx: Node = g.get_node_or_null("/root/Sfx") if g != null and g.is_inside_tree() else null
 	if sfx != null:
-		sfx.op(id, kind)
+		sfx.op(id, kind, db, pitch)
 
 
 # ---------------------------------------------------------------- 绘制
