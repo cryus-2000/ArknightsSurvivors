@@ -30,7 +30,7 @@ setup)
     } | tee "$OUT/env.txt"
     rm -rf "$WT"; git worktree prune
     git worktree add --detach "$WT" "$NEW"
-    if ! ( cd "$WT" && git -c user.name=bench -c user.email=bench@local cherry-pick --no-edit "$BENCH" ); then
+    if ! ( cd "$WT" && git -c user.name=bench -c user.email=bench@local cherry-pick --no-edit $BENCH ); then
         ( cd "$WT" && git status -s && git diff ) > "$OUT/CHERRY_PICK_CONFLICT.txt" 2>&1 || true
         echo "cherry-pick 冲突：手动解决 $WT 里的冲突（测试台钩子行照抄 $BENCH，两边改动都保留）后 git -C $WT cherry-pick --continue"
         exit 2

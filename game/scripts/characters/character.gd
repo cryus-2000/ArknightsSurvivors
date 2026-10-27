@@ -524,6 +524,13 @@ func fill_sp() -> void:
 
 ## 排异反应（深蓝之心线）：随机一个已解锁、未海嗣化的技能被海嗣化——技能强度 +40%、充能需求 +30%，主控最大生命 -10
 func apply_rejection() -> String:
+	BossBench.rb("rej", [id])   # Boss 单场测试台录制（docs/170）
+	var r := _apply_rejection()
+	BossBench.re()
+	return r
+
+
+func _apply_rejection() -> String:
 	var cands: Array = []
 	for i in 3:
 		if skill_unlocked(i) and not rej.has(i):
@@ -541,6 +548,13 @@ func apply_rejection() -> String:
 
 ## 解除一个排异反应（docs/57 P18）：撤销那次排异加的属性来源。没有排异时返回 false
 func clear_rejection() -> bool:
+	BossBench.rb("unrej", [id])
+	var r := _clear_rejection()
+	BossBench.re()
+	return r
+
+
+func _clear_rejection() -> bool:
 	if rej.is_empty():
 		return false
 	var i: int = rej.keys()[0]
