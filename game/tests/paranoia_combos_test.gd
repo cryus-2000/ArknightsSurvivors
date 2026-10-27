@@ -27,6 +27,7 @@ func _ready() -> void:
 	check_beam_hold()
 	check_rush()
 	check_rest_break()
+	check_mire()
 	print("PARANOIA COMBOS failures=", failures)
 	g.queue_free()
 	await get_tree().process_frame
@@ -252,3 +253,22 @@ func check_rest_break() -> void:
 	s._drop_step(e)
 	g.dash_t = 0.0
 	check(float(e.get("drop_until", 0.0)) > g.t, "dash-through during recovery still drops her")
+
+
+## 侵蚀泡沼：二阶段沉浮双层的慢大泡破开留下限时 Boss 溟痕，数量有上限
+func check_mire() -> void:
+	var e := fresh(3)
+	e.pc_act = 3
+	g.mires.clear()
+	var c = g.bai.boss("paranoia").combos()
+	c._emit(e, "沉浮双层", Vector2.RIGHT)
+	for i in 400:
+		g.t += 0.05
+		c._update_emitters(e)
+		for b in e.get("pc_buls", []):
+			b.life -= 0.05
+		c._update_bullets(e, 0.05)
+	var pools: Array = g.mires.filter(func(m): return m.get("pc_mire", false))
+	check(not pools.is_empty(), "big cysts leave corrosion pools in phase 2")
+	check(pools.size() <= Combos.MIRE_MAX, "pool count capped (%d)" % pools.size())
+	check(pools.all(func(m): return float(m.life) <= Combos.MIRE_LIFE and m.get("boss", false)), "pools are short-lived boss mires")

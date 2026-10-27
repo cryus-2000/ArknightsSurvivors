@@ -43,6 +43,8 @@ const REST_P2 := 3.0
 const LOW_BULLETS := 20
 const REST_SPD := 90.0
 const REST_NEAR := 110.0
+const MIRE_LIFE := 3.0
+const MIRE_MAX := 8
 const BUL_CAP := 120   # 同屏上限（协调人 10-28：二阶段峰值约 120）
 ## 密度与缺口按幕递进（用户 10-28「三幕区别不大、挺好躲」）：按 act 取一行
 ## [眼数, 眼圈轮数, 眼开枪间隔, 狙击向数, 狙击轮数, 双旋每环发数, 双旋轮数, 波环每圈发数, 波环缺口半角, 帘幕间距, 帘幕缝半宽, 群愿每朵发数]
@@ -374,7 +376,9 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 			# 先穿快弹的缺口，再在慢泡之间绕
 			var ga: float = _aim(o)
 			for i in 10:
-				_shot(e, o, float(em.a0) + TAU * i / 10.0 + 0.3 * k, 70.0, "l")
+				var bl: Dictionary = _shot(e, o, float(em.a0) + TAU * i / 10.0 + 0.3 * k, 70.0, "l")
+				if not bl.is_empty() and i % 3 == 0:
+					bl.p_mire = true   # 侵蚀泡沼：每 3 颗慢大泡里 1 颗破开时留一小块 Boss 溟痕
 			for i in 18:
 				var a4: float = TAU * i / 18.0 + 0.17 * k
 				if absf(angle_difference(a4, ga)) < 0.35:
@@ -405,6 +409,20 @@ func _fake(e: Dictionary, from: Vector2, ang: float, spd: float, r: float) -> vo
 	e.pc_fakes = fakes
 
 
+## 侵蚀泡沼（10-28 方案：二阶段加压迫，不靠加血）：Boss 溟痕（减速 45%、每秒 2% 最大生命、累积神经损伤，enemies.gd），
+## 半径 30→40、存在 MIRE_LIFE 秒；场上本 Boss 留的泡沼最多 MIRE_MAX 块
+func _mire(pos: Vector2) -> void:
+	var n := 0
+	for m in g.mires:
+		if m.get("pc_mire", false) and m.life > 0.0:
+			n += 1
+	if n >= MIRE_MAX:
+		return
+	if g.zone_frozen and pos.distance_to(g.zone_next_c) > g.zone_next_r - 60.0:
+		return
+	g.mires.append({"pos": pos + Vector2(0, 10), "r": 30.0, "maxr": 40.0, "life": MIRE_LIFE, "seed": g.vrng.randf() * 100.0, "boss": true, "pc_mire": true})
+
+
 func _update_bullets(e: Dictionary, dt: float) -> void:
 	var buls: Array = e.get("pc_buls", [])
 	if not buls.is_empty():
@@ -412,6 +430,8 @@ func _update_bullets(e: Dictionary, dt: float) -> void:
 		var gr = BossBeam.grains(g)
 		for b in buls:
 			if b.life <= 0.0:
+				if b.get("p_mire", false):
+					_mire(b.pos)
 				# 泡破：到期 / 命中 / 被消掉时散几颗淡紫颗粒（纯画面，走预算）
 				if gr != null and BossBeam.take(g, 3) == 3:
 					for q in 3:
