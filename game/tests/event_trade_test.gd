@@ -219,5 +219,27 @@ func _process(_dt: float) -> void:
 	_close()
 	print("ET options run: %d" % ran)
 	check(ran >= 40 and stuck == 0, "every v2 option resolves back to battle (%d stuck)" % stuck)
+	print("ET step 10")
+	# 10 诡意行商 = 进一次商店：地图上的商人与货架不受影响，买一件后关店回战斗
+	_close()
+	game.merchant = {"pos": game.ppos + Vector2(500, 0), "life": 40.0, "near": false, "purchases": 0}
+	var real_items: Array = [{"kind": "oil", "id": "oil", "name": "灯油", "desc": "", "price": 5, "sold": false}]
+	game.shop_items = real_items
+	game.ingots = 200
+	E.deck = [{"type": "shop", "must": false, "ends": []}]
+	E.flipped = -1
+	game.choice_kind = "cross"
+	E.flip(0)
+	check(game.state == game.S.SHOP and game.shop_sys.trader and game.shop_items != real_items and game.shop_items.size() >= 3, "trader card opens its own shop")
+	var r0: int = game.relics.size()
+	for i in game.shop_items.size():
+		if game.shop_items[i].kind == "relic" and game.shop_sys.can_buy(game.shop_items[i]):
+			game.shop_sys.buy(i)
+			break
+	check(game.relics.size() == r0 + 1 and int(game.merchant.get("purchases", 0)) == 0, "buying at the trader does not touch the map merchant")
+	game.shop_sys.close()
+	check(game.state == game.S.PLAY and game.shop_items == real_items and not game.merchant.is_empty(), "closing restores the map merchant and its shelf")
+	game.merchant = {}
+	game.shop_items = []
 	print("EVENT TRADE: %d failures" % fails)
 	get_tree().quit(1 if fails > 0 else 0)

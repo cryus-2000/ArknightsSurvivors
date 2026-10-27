@@ -47,7 +47,7 @@ func build(restart := false) -> void:
 	var sep: float = 14.0 if n <= 5 else 10.0
 	g.panel_box.add_theme_constant_override("separation", int(sep))
 	var cw: float = minf(160.0, (868.0 - sep * (n - 1)) / maxf(1.0, n))
-	g.panel_title_text = "流浪商人"
+	g.panel_title_text = "诡意行商" if g.shop_sys.trader else "流浪商人"
 	g.panel_ui.detail_i = -1
 	for a in Cfg.dev_args():   # --carddetail=<n>（截图验收）：直接展开第 n 张货品的详情
 		if a.begins_with("--carddetail="):

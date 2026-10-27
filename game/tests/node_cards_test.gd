@@ -141,7 +141,14 @@ func _process(_dt: float) -> void:
 	E.flipped = -1
 	var ing0: int = game.ingots
 	E.flip(0)
-	check(game.ingots > ing0 and game.state == game.S.PLAY, "trader card after the last merchant gives ingots (%d -> %d)" % [ing0, game.ingots])
+	if E.redesign:
+		game.bosses = []   # 上面造的假中 Boss 没有 type，关店横幅会读它
+		# 事件改版（用户 10-28）：诡意行商 = 进一次商店，最后一位商人之后照样能开；关店回战斗
+		check(game.state == game.S.SHOP and game.shop_sys.trader, "trader card opens a shop visit even after the last merchant")
+		game.shop_sys.close()
+		check(game.state == game.S.PLAY and not game.shop_sys.trader, "closing the trader shop returns to battle")
+	else:
+		check(game.ingots > ing0 and game.state == game.S.PLAY, "trader card after the last merchant gives ingots (%d -> %d)" % [ing0, game.ingots])
 	# 8 升级面板开着时到点：等它关掉再弹
 	E.cross_done = 0
 	E.cross_due = 0

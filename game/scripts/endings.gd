@@ -467,6 +467,9 @@ func _resolve() -> void:
 			wish_rare = true
 			g.pending_chests += 1
 		"shop":
+			if redesign:
+				g.shop_sys.open_trader()   # 原作语义：进一次商店（用户 10-28；docs/173 §3），买完关掉回战斗
+				return
 			var mt: Array = g.MERCHANT_TIMES
 			if g.merchant_idx < mt.size():
 				shop_visit = g.merchant_idx + 1
@@ -1312,7 +1315,7 @@ func _card_value(c: Dictionary, greedy: bool) -> float:
 		"rest":
 			return 3.0 if hp_k < 0.5 else 1.0
 		"shop":
-			return 1.2 if g.merchant_idx < g.MERCHANT_TIMES.size() else 2.0
+			return 0.3 + minf(float(g.ingots) / 14.0, 3.0) * 0.8   # 一次商店：值多少看手里的源石锭（藏品基价 14）
 		"wish":
 			return 2.2
 		"elite":
