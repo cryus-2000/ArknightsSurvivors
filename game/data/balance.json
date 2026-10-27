@@ -443,7 +443,7 @@
   "ishar_heal_range": 480.0,
   "ishar_tear_block_radius": 32.0,
   "_ishar_1028": "伊莎玛拉拉长与持续压迫（docs/170 §9，10-28 协调人转用户「都按推荐做」）：hp_x_ishar 血量倍率；ishar_p1_hit 1 = 人形可受伤，打到 ishar_p1_line 血线或充能满先到先转化（0 = 旧版不可索敌）；ishar_p1_scale 充能时长倍率；ishar_web_heal 每只连线海嗣每秒给她回最大生命的比例（不超过本幕起点）；ishar_web_shield 连线海嗣护盾 = 自身最大生命比例；ishar_zone_linger / ishar_zone_tick 歌声涟漪留存秒数与每 0.5 秒伤害（× e.dmg）；ishar_shot_mult 连段弹伤倍率；ishar_combo_gap 一二幕段间收势秒数",
-  "hp_x_ishar": 1.5,
+  "hp_x_ishar": 1.7,
   "ishar_p1_hit": 1,
   "ishar_p1_line": 0.85,
   "ishar_p1_scale": 1.0,
