@@ -21,7 +21,7 @@ func on_warning(e: Dictionary, w: Dictionary) -> void:
 	if not e.get("knight_combo_active",false):
 		var chain: Array = []
 		match str(w.name):
-			"断潮劈击": chain = ["冲锋","@近身收招"]
+			"断潮劈击": chain = ["冲锋","再冲锋","@近身收招"] if e.phase==2 else ["冲锋","@近身收招"]
 			"踏冰裂阵": chain = ["掷枪" if e.phase==1 and _act(e)>=1 else "断潮劈击","冲锋"]
 			"侧踏挑枪": chain = ["@侧击"]
 			"掷枪": chain = ["冲锋"]
@@ -35,7 +35,7 @@ func on_warning(e: Dictionary, w: Dictionary) -> void:
 		e.knight_combo_phase = e.phase
 		e.knight_combo_until = g.t + 18.0
 		e.knight_combo_next = g.t
-	e.knight_combo_next = maxf(float(e.knight_combo_next),g.t+w.dur+0.22)
+	e.knight_combo_next = maxf(float(e.knight_combo_next),g.t+w.dur+(0.10 if e.phase==2 else 0.22))
 
 func cancel_combo(e: Dictionary) -> void:
 	e.knight_combo_active = false
@@ -61,10 +61,11 @@ func combo_step(e: Dictionary, dir: Vector2, dist: float, ready: bool) -> bool:
 	# Entering a break cancels hazards: let the final blade finish before granting recovery.
 	if queue.is_empty() and g.bai.finals.hazards.any(func(h):return is_same(h.owner,e)): return true
 	var next: String = str(queue.pop_front()) if not queue.is_empty() else ""
+	var close_distance: float = g.combat.ground_d(g.ppos,e.pos) if e.phase==2 else dist
 	if next=="@近身收招":
-		next = ("长枪回旋" if e.phase==2 else "长枪连刺") if dist<185.0 else ""
+		next = ("长枪回旋" if e.phase==2 else "长枪连刺") if close_distance<300.0 else ""
 	elif next=="@侧击":
-		next = ("长枪回旋" if e.phase==2 else "长枪连刺") if dist<185.0 else "冲锋"
+		next = ("长枪回旋" if e.phase==2 else "长枪连刺") if close_distance<300.0 else "冲锋"
 	if next=="":
 		e.knight_combo_active = false
 		e.knight_combo_queue = []
@@ -76,8 +77,8 @@ func combo_step(e: Dictionary, dir: Vector2, dist: float, ready: bool) -> bool:
 		return true
 	if next in ["再冲锋","寒冷追击"]:
 		var angle: float = float(e.get("hunt_angle",dir.angle())) if next=="寒冷追击" else dir.angle()
-		_warn(e,"line",0.8,{"ang":angle,"len":520.0 if next=="寒冷追击" else 364.0,"wid":34.0,
-			"track":0.0 if next=="寒冷追击" else 0.35,"act":"dash","fit_len":true,"name":next,"col":ICE,
+		_warn(e,"line",0.6 if e.phase==2 else 0.8,{"ang":angle,"len":520.0 if next=="寒冷追击" else 364.0,"wid":34.0,
+			"track":0.0 if next=="寒冷追击" else (0.2 if e.phase==2 else 0.35),"act":"dash","fit_len":true,"name":next,"col":ICE,
 			"dmg":_bite(e,e.dmg*1.35)})
 	else:
 		force_move(e,next,dir,dist)
@@ -126,7 +127,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		if e.phase == 2:
 			e.dash2 = int(Bal.v("boss/knight_p2_chain", 2.0))
 		return
-	if dist < 160.0 and e.phase == 2 and float(e.get("cds", {}).get("spin", 0.0)) <= g.t:
+	if g.combat.ground_d(g.ppos,e.pos) < 280.0 and e.phase == 2 and float(e.get("cds", {}).get("spin", 0.0)) <= g.t:
 		# D 长枪回旋：二阶段近身先回旋后连刺（和连刺互斥）；第一次先亮招式名 0.6 秒（§0.2）——喘气结束时还贴着它就吃这一下
 		if _first_tell(e, "spin", "长枪回旋") and _cd(e, "spin", 7.0):
 			_spin(e, dir)
@@ -136,9 +137,9 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 			and _cd(e, "spear", Bal.v("boss/knight_spear_cd", 8.0)):
 		_spear(e, dir, dist)
 		return
-	if dist < 140.0 and _cd(e, "stab", 5.0):
+	if dist < 260.0 and _cd(e, "stab", 5.0):
 		_stab(e, dir)
-	elif dist >= 140.0 and _cd(e, "charge", 4.5 if e.phase == 2 else 6.0):
+	elif dist >= 260.0 and _cd(e, "charge", 4.5 if e.phase == 2 else 6.0):
 		# A 冲锋；冰线是它的变体：hunt 冷却到了（18 秒）且主控在 120–600 时改放冰线，0.25 秒后沿线寒冷追击
 		if Bal.v("boss/knight_hunt", 1.0) > 0.0 and dist >= 120.0 and dist <= 600.0 and _cd(e, "hunt", 18.0):
 			_hunt(e, dir, dist)
@@ -198,7 +199,7 @@ func _bite(e: Dictionary, dmg: float) -> float:
 
 ## A · 冲锋：520 × 34 条纹线，追踪 0.4 秒后锁定，总 0.8 秒；e.dmg × 1.7（冲锋期间碰到结算一次）；重生后带三连；三幕后面再转向冲一次（折线）
 func _charge(e: Dictionary, dir: Vector2) -> void:
-	_warn(e, "line", 0.8, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.4, "act": "dash", "fit_len": true, "name": "冲锋", "col": ICE,
+	_warn(e, "line", 0.6 if e.phase==2 else 0.8, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.2 if e.phase==2 else 0.4, "act": "dash", "fit_len": true, "name": "冲锋", "col": ICE,
 		"dmg": _bite(e, e.dmg * Bal.v("boss/knight_charge_mult", 1.7))})
 	if e.get("knight_combo_active",false):
 		e.dash2 = 0
@@ -214,12 +215,12 @@ func _hunt(e: Dictionary, dir: Vector2, dist: float) -> void:
 		"track": 0.25, "act": "frost_track", "name": "冰线", "col": Color(0.65, 0.95, 1.4), "dmg": e.dmg * 0.4})
 
 
-## B · 长枪连刺：三段扇形，每段间隔 0.6 秒、锁定 0.4 秒；前两段 r125 半角 0.8，第 3 段改 r150 半角 0.5 的前刺（更长更窄，锁定 ≥0.44）；e.dmg × 1.1 / 段
+## B · 长枪连刺：三段扇形，每段间隔 0.6 秒、锁定 0.4 秒；前两段 r280 半角 0.8，第 3 段改 r360 半角 0.5 的前刺（更长更窄，锁定 ≥0.44）；e.dmg × 1.1 / 段
 func _stab(e: Dictionary, dir: Vector2) -> void:
 	var m: float = _bite(e, e.dmg * 1.1)
 	for k in 3:
 		var thrust: bool = k == 2
-		_warn(e, "cone", 0.6 + 0.6 * k, {"ang": dir.angle(), "half": 0.5 if thrust else 0.8, "r": 150.0 if thrust else 125.0, "track": 0.2 + 0.6 * k,
+		_warn(e, "cone", 0.6 + 0.6 * k, {"ang": dir.angle(), "half": 0.5 if thrust else 0.8, "r": 360.0 if thrust else 280.0, "track": 0.2 + 0.6 * k,
 			"act": "bite", "name": "长枪连刺" if k == 0 else "", "col": ICE, "dmg": m, "lock": k == 0, "thrust": thrust})
 	e.wind = 1.9
 
@@ -233,10 +234,10 @@ func _spear(e: Dictionary, dir: Vector2, dist: float) -> void:
 			"name": "掷枪", "col": Color(0.75, 0.95, 1.4), "dmg": e.dmg, "lock": k == 0, "spear": true})
 
 
-## D · 长枪回旋（二阶段，本作原创）：以骑士为心 r150 的空心环（刀光轨迹），缺口在面向主控的反方向 ±40°（弧长 ≥80px），总 1.0 秒；
-## 躲法：走进缺口（绕到他身后）或走出 r150；e.dmg × 1.3，附寒冷 2 秒
+## D · 长枪回旋（二阶段，本作原创）：以骑士为心 r300 的空心环（刀光轨迹），缺口在面向主控的反方向 ±40°（弧长 ≥80px），总 1.0 秒；
+## 躲法：走进缺口（绕到他身后）或走出 r300；e.dmg × 1.3，附寒冷 2 秒
 func _spin(e: Dictionary, dir: Vector2) -> void:
-	_warn(e, "circle", 1.0, {"follow": true, "r": 150.0, "act": "spin_ring", "gap_ang": dir.angle() + PI, "gap_half": 0.7, "ang": dir.angle(),
+	_warn(e, "circle", 1.0, {"follow": true, "r": 300.0, "act": "spin_ring", "gap_ang": dir.angle() + PI, "gap_half": 0.7, "ang": dir.angle(),
 		"name": "长枪回旋", "col": ICE, "dmg": _bite(e, e.dmg * 1.3), "chill": 2.0})
 
 

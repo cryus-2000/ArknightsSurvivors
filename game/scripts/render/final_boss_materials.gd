@@ -11,6 +11,7 @@ static func draw(g, w: Dictionary, alpha: float) -> bool:
 	var r = g.world
 	match skin:
 		"ice": _ice(r, w, age, alpha)
+		"ice_field": _ice_field(r,w,age,alpha)
 		"crescent": _blade(r, w, age, alpha)
 		"spear", "step": _spear(r, w, age, alpha)
 		"choir":
@@ -77,6 +78,29 @@ static func _ice(r, w: Dictionary, age: float, alpha: float) -> void:
 		for j in 3:
 			var q := p + Vector2((_n(i*3+j,4)-.5)*34,-(8+_n(i*3+j,6)*22)-age*18)
 			_grain(r,q,_c(Color(.55,.83,.9),alpha*.7))
+
+static func _ice_field(r, w: Dictionary, age: float, alpha: float) -> void:
+	var d := Vector2.from_angle(w.ang)
+	var n := d.orthogonal()
+	var end: Vector2 = w.pos+d*w.len
+	_poly(r,[w.pos-n*w.wid,end-n*w.wid,end+n*w.wid,w.pos+n*w.wid],_c(Color(.14,.30,.40),alpha*.38))
+	for row in 3:
+		for col in 20:
+			var k: int = row*20+col
+			var along: float = (col+.3+_n(k,5)*.4)*w.len/20
+			var p: Vector2 = w.pos+d*along+n*((row-1)*46+(_n(k,4)-.5)*12)
+			var height: float = 24+_n(k,9)*33
+			var half: float = 9+_n(k,3)*7
+			var tip: Vector2 = p+Vector2((_n(k,7)-.5)*15,-height)
+			_oval(r,p,22,12,_c(Color(.11,.27,.35),alpha*.75),w.ang)
+			_poly(r,[p-Vector2(half,0),p+Vector2(0,7),p+Vector2(half,0),tip],_c(Color(.08,.22,.33),alpha))
+			var seam: Vector2 = p+Vector2(2,-height*.25)
+			_poly(r,[p-Vector2(half,0),tip,seam],_c(Color(.31,.55,.70),alpha))
+			_poly(r,[seam,tip,p+Vector2(half,0)],_c(Color(.66,.85,.93),alpha))
+			_band(r,seam,tip,1,1,_c(Color(.89,.97,1),alpha))
+			_poly(r,[p+Vector2(half*.4,2),p+Vector2(half+8,-height*.55),p+Vector2(half+10,3)],_c(Color(.39,.66,.8),alpha))
+			_band(r,p-d*20,p+n*16,1,1,_c(Color(.51,.73,.85),alpha*.75))
+			_grain(r,tip+Vector2(4,-age*25),_c(FOAM,alpha*.7))
 
 static func _blade(r, w: Dictionary, age: float, alpha: float) -> void:
 	var formation: float = float(w.get("formation", 1.0))

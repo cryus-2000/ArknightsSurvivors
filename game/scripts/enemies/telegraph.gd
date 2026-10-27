@@ -73,7 +73,9 @@ func warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary
 	# 按击退每秒衰减 900 算，距离 = v²/1800 + 本体半径（自冲不受重型削减）。fit_len：按设计线长反推速度（骑士冲锋、塑路者冲撞要真冲到位）
 	if w.act in ["dash", "stab"] and shape == "line":
 		if w.get("fit_len", false):
-			w.spd = sqrt(1800.0 * maxf(w.len - e.r, 40.0))
+			# Reborn Knight travels 1.4x faster at the same telegraphed distance.
+			w.dash_decel = 1764.0 if w.act=="dash" and e.type=="knight_boss" and e.phase==2 else 900.0
+			w.spd = sqrt(2.0 * w.dash_decel * maxf(w.len - e.r, 40.0))
 		else:
 			var v: float = float(w.get("spd", 600.0 if w.act == "dash" else 800.0))
 			w.len = v * v / 1800.0 + e.r
@@ -502,6 +504,7 @@ func _resolve(w: Dictionary) -> void:
 		"dash":
 			e.land_break = float(w.get("close_break", 0.0))
 			e.kb = dv * w.get("spd", 600.0)
+			e.dash_decel = float(w.get("dash_decel",900.0))
 			e.kb_self = true
 			e.dash_dir = dv
 			e.dash_t = 0.45
@@ -511,6 +514,7 @@ func _resolve(w: Dictionary) -> void:
 			Sfx.play("swing", -4.0, 0.5)
 		"stab":
 			e.kb = dv * w.get("spd", 800.0)
+			e.dash_decel = 900.0
 			e.kb_self = true
 			e.dash_dir = dv
 			e.dash_t = 0.2

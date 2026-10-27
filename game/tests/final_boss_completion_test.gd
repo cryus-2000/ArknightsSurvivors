@@ -110,6 +110,7 @@ func _ready() -> void:
 	_test_fixes()
 	_test_bubble_tracking()
 	_test_knight_arc()
+	_test_ice_field()
 	if DisplayServer.get_name() != "headless" and Cfg.dev_args().has("--capture-ui"):
 		await _capture()
 	print("FINAL BOSS COMPLETION failures=", failures)
@@ -292,7 +293,24 @@ func _test_knight_arc() -> void:
 	var first: float = h.pos.x
 	g.bai.finals.update(boss,0.1)
 	check(h.pos.x-first>first and h.velocity.x>h.speed,"slash accelerates forward")
-	check(is_equal_approx(h.pos.x,27.0),"accelerated travel integrates elapsed time exactly")
+	check(is_equal_approx(h.pos.x,92.0),"accelerated travel integrates elapsed time exactly")
 	check(h.pos.y==0.0,"slash does not travel sideways")
 	var test_h: Dictionary = h.duplicate()
 	check(g.bai.finals._accelerated_distance(test_h,2.0)>g.bai.finals._accelerated_distance(test_h,1.0),"capped speed continues moving")
+
+func _test_ice_field() -> void:
+	var boss: Dictionary = fresh("knight_boss")
+	g.ppos=Vector2.ZERO
+	g.bai.finals.force_move(boss,"踏冰裂阵",Vector2.RIGHT,200)
+	check(g.warns.size()==6,"ice array is two waves of three broad lanes")
+	var first: Array = g.warns.filter(func(w):return w.get("ice_wave",-1)==0)
+	var second: Array = g.warns.filter(func(w):return w.get("ice_wave",-1)==1)
+	for w in second:
+		check(w.tell_after==first[0].dur and w.dur>w.tell_after+1.0,"second ice tell starts after first release with escape time")
+		check(w.track==0.0,"complementary ice lanes never retarget")
+	for lane in 6:
+		g.ppos=Vector2(0,375-lane*150)+Vector2(0,14)
+		var a: bool = first.any(func(w):return g.tele.hits_leader(w))
+		var b: bool = second.any(func(w):return g.tele.hits_leader(w))
+		check(a!=b,"every lane center is safe in exactly one wave")
+		check(a==(lane%2==0),"second wave covers first safe lanes")

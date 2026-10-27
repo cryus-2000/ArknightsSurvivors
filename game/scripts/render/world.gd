@@ -2251,7 +2251,7 @@ func _final_boss_strip(e: Dictionary, skin: String) -> String:
 		"izumik": return "e_izumik_attack" if skin == "tentacle" else "e_izumik_share"
 		"knight_boss":
 			match skin:
-				"ice": return "e_knight_plant"
+				"ice", "ice_field": return "e_knight_plant"
 				"crescent": return "e_knight_spin"
 				"spear": return "e_knight_thrust"
 				"step": return "e_knight_charge_form"
@@ -2304,7 +2304,8 @@ func final_boss_animation(e: Dictionary) -> Dictionary:
 		if since >= 0.0 and since < 0.12:
 			return _final_boss_frame(e, str(last.get("skin", "")), 1.0, since)
 	if not pending.is_empty():
-		return _final_boss_frame(e, str(pending.get("skin", "")), float(pending.t) / maxf(0.01, float(pending.dur)), -1.0)
+		var delay: float = float(pending.get("tell_after",0.0))
+		return _final_boss_frame(e, str(pending.get("skin", "")), maxf(0.0,float(pending.t)-delay) / maxf(0.01,float(pending.dur)-delay), -1.0)
 	if not other_cast and since >= 0.0 and since < INF:
 		return _final_boss_frame(e, str(last.get("skin", "")), 1.0, since)
 	return {}
@@ -4156,10 +4157,14 @@ func _boss_state(e: Dictionary) -> void:
 		return
 	var brk: float = e.get("break_t", 0.0)
 	if e.stun > 0.05 or brk > 0.0:
-		for q in 3:
-			var a: float = g.t * 5.0 + q * TAU / 3.0
-			var sp: Vector2 = top + Vector2(cos(a) * 18.0, sin(a) * 5.0)
-			UI.diamond(g, sp, 4.0, Color(1.8, 1.6, 0.6), Color(0, 0, 0, 0.6))
+		var recovering: bool = e.type=="knight_boss" and e.stun<=0.05 and str(e.get("brk_label",""))=="破绽"
+		if recovering:
+			UI.text(g, g.font, top + Vector2(-120,-12), "收招 · 破绽 %.1f" % brk, 13, Color(.65,.85,.95), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
+		else:
+			for q in 3:
+				var a: float = g.t * 5.0 + q * TAU / 3.0
+				var sp: Vector2 = top + Vector2(cos(a) * 18.0, sin(a) * 5.0)
+				UI.diamond(g, sp, 4.0, Color(1.8, 1.6, 0.6), Color(0, 0, 0, 0.6))
 		if e.has("ammo") and brk > 0.0:
 			UI.text(g, g.font, top + Vector2(-120, -12), "装填被打断 · 破绽 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 		elif brk > 0.0 and e.type == "knight_boss":

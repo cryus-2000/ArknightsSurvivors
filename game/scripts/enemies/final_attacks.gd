@@ -69,12 +69,20 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 					"r": 18.0, "skin": "bubble", "motion": "pursuit", "ang": a + PI, "speed": 100.0, "life": 5.5, "turn_rate": 0.85})
 				named = true
 		"踏冰裂阵":
-			for k in 3:
-				_warn(e, "line", 1.35 + 0.2 * k, {"name": name if k == 0 else "", "ang": dir.angle() + (k - 1) * 0.5,
-					"len": 530.0, "wid": 19.0, "skin": "ice", "chill": 0.5})
+			# Frozen complementary lanes: wave two fills wave one's safe strips.
+			var center: Vector2 = g.ppos
+			var first_duration := 1.3
+			for wave in 2:
+				for lane in 3:
+					var index: int = lane*2+wave
+					var p: Vector2 = center-dir*500.0+side*(-375.0+150.0*index)
+					var w: Dictionary = _warn(e,"line",1.3 if wave==0 else 2.7,{"name":name if lane==0 else "", "pos":p,
+						"ang":dir.angle(),"len":1000.0,"wid":75.0,"skin":"ice_field","chill":0.5,"ice_wave":wave,
+						"tell_after":0.0 if wave==0 else first_duration})
+					if wave==0: first_duration=w.dur
 		"断潮劈击":
 			_warn(e, "arc", 1.7, {"name": name, "ang": dir.angle(), "track": 0.85, "r": 640.0, "half": 0.52, "arc_back": 480.0, "wid": 26.0, "style": 3,
-				"skin": "crescent", "motion": "crescent", "speed": 65.0, "accel": 700.0, "max_speed": 740.0, "life": 1.65, "dmg": e.dmg * 1.15})
+				"skin": "crescent", "motion": "crescent", "speed": 220.0, "accel": 2400.0, "max_speed": 1000.0, "life": 1.05, "dmg": e.dmg * 1.15})
 			e.fx = dir.x
 		"侧踏挑枪":
 			var sign_side: float = -1.0 if int(e.get("final_cycle", 0)) % 2 else 1.0

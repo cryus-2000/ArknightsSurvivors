@@ -100,7 +100,7 @@
 | 文档 | 标题 | 状态 | 说明 | 被谁引用 |
 |---|---|---|---|---|
 | [166_loading_render_audio_1027](166_loading_render_audio_1027.md) | 单一启动加载页、渲染回收与激光混音 | 已实施记录 | 网页加载交接、遮罩闲置回收 7.03 MiB、圆环局部优化与低频光束提示；含测量边界 | boot_screen.gd、post_fx.gd、boss_attack_draw.gd、sfx.gd、tools/web/loader.js |
-| [169_knight_combos_1027](169_knight_combos_1027.md) | 骑士攻击连段与喘息 | 已实现，待视觉审阅 | 弧斩追冲、冰阵压制、近身收招；撞柱与阶段切换取消队列 | knight_boss.gd、boss_ai.gd、telegraph.gd |
+| [169_knight_combos_1027](169_knight_combos_1027.md) | 骑士攻击连段与喘息 | 已实现，待视觉审阅 | 加速弧斩、交替双冰阵、二阶段折返连冲、近身收招；区分喘息与眩晕 | knight_boss.gd、boss_ai.gd、telegraph.gd |
 | [168_boss_volume_tracking_1027](168_boss_volume_tracking_1027.md) | 最终 Boss 材质、薄膜泡与攻击动作返修 | 实机审阅中 | 透明薄膜泡、独立持续追踪、破裂、三 Boss 材质与已有骨骼动作接线 | paranoia_bubble.gd、final_boss_materials.gd、final_attacks.gd、world.gd |
 | [167_boss_pixel_fx_1027](167_boss_pixel_fx_1027.md) | 最终 Boss 新增招式像素材质返修 | 已否定候选 | 历史版本；后续材质、泡影追踪及动作接线以 168 为准 | boss_attack_draw.gd、final_attack_grains.gd |
 | [165_final_boss_complete_1027](165_final_boss_complete_1027.md) | 最终 Boss 完整改造与联动修正 | 已实施记录 | 最终四 Boss 主动攻击 7/8/7/7，特效、追踪、冰柱、泪滴精英、友方保色、枪声与保留杂兵；覆盖 95/142b 的旧口径 | final_attacks.gd、boss_attack_draw.gd、ishar_encounter.gd、post_fx.gd、sfx.gd |

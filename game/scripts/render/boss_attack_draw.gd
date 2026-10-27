@@ -82,7 +82,9 @@ static func _circle_fill(r, w: Dictionary, gy: float, c: Color) -> void:
 static func _warning(g, w: Dictionary, alpha: float) -> void:
 	var r = g.world
 	var p: Vector2 = w.pos
-	var progress: float = clampf(float(w.get("t", 0.0)) / maxf(0.01, float(w.get("dur", 1.0))), 0.0, 1.0)
+	var delay: float = float(w.get("tell_after",0.0))
+	if float(w.get("t",0.0)) < delay: return
+	var progress: float = clampf((float(w.get("t", 0.0))-delay) / maxf(0.01, float(w.get("dur", 1.0))-delay), 0.0, 1.0)
 	var edge := _ink(DANGER, alpha)
 	var fill := Color(0.24, 0.035, 0.085, 0.09 + progress * 0.06)
 	var gy: float = g.combat.GROUND_Y
@@ -117,6 +119,13 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 				_strip(r, p + n * w.wid * side, end + n * w.wid * side, 2.0, edge)
 			_strip(r, p - n * w.wid, p + n * w.wid, 2.0, edge)
 			_strip(r, end - n * w.wid, end + n * w.wid, 2.0, edge)
+			if w.get("skin", "") == "ice_field":
+				for j in 20:
+					var at: Vector2 = p+d*w.len*(j+.5)/20.0+n*(_noise(j,3)*2-1)*w.wid*.7
+					var reach: float = 5+progress*15
+					_strip(r,at-d*reach,at+n*reach*.6,2,_ink(Color(.45,.68,.79),alpha*progress*.75))
+					_strip(r,at+n*reach*.6,at+d*reach*.7,2,_ink(Color(.45,.68,.79),alpha*progress*.75))
+				return
 			var lead: Vector2 = p + d * w.len * progress
 			_strip(r, lead - d * 12.0 - n * minf(w.wid * 0.35, 10.0), lead, 2.0, edge)
 			_strip(r, lead - d * 12.0 + n * minf(w.wid * 0.35, 10.0), lead, 2.0, edge)

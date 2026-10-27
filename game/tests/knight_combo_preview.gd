@@ -49,7 +49,7 @@ func _ready() -> void:
 		visual_step(DT)
 		await get_tree().process_frame
 		if not check_only: await RenderingServer.frame_post_draw
-	for scenario in [{"name":"弧斩接冲锋", "move":"断潮劈击", "phase":1}, {"name":"冰阵连招", "move":"踏冰裂阵", "phase":1}, {"name":"二阶段连续冲锋", "move":"冲锋", "phase":2}]:
+	for scenario in [{"name":"弧斩接冲锋", "move":"断潮劈击", "phase":1}, {"name":"双冰阵连招", "move":"踏冰裂阵", "phase":1}, {"name":"二阶段弧斩追击", "move":"断潮劈击", "phase":2}]:
 		fresh()
 		g.enemies = [boss]
 		if scenario.phase == 2:
@@ -63,6 +63,7 @@ func _ready() -> void:
 		var travel := 0.0
 		var previous_break := 0.0
 		var current_move := "准备"
+		var player_status := {"pstun_max":0.0,"root_max":0.0,"pstun_samples":0,"root_samples":0,"pstun_stages":{}}
 		for frame_i in 540:
 			var elapsed: float = frame_i * DT
 			g.invuln = 999.0
@@ -81,19 +82,23 @@ func _ready() -> void:
 			g.enemies_sys.update(DT)
 			g.vfx.mark_enemy_fx(nfx)
 			travel += before.distance_to(boss.pos)
+			inspect_player_status(player_status,"after_enemies")
 			g.shots.step(DT)
+			inspect_player_status(player_status,"after_shots")
 			g.tele.update_warns(DT)
+			inspect_player_status(player_status,"before_status_conversion")
 			g.enemies_sys.update_status(DT)
+			inspect_player_status(player_status,"after_status_conversion")
 			for w in g.warns:
 				if not is_same(w.owner,boss) or w.dmg <= 0.0: continue
 				if watched.any(func(old):return is_same(old,w)): continue
 				watched.append(w)
 				if not str(w.name).is_empty(): current_move = str(w.name)
-				events.append({"event":"warning","name":str(w.name),"act":str(w.act),"t":elapsed,"duration":w.dur,"frame":shot_i})
+				events.append({"event":"warning","name":str(w.name),"act":str(w.act),"skin":str(w.get("skin","")),"angle":float(w.get("ang",0.0)),"t":elapsed,"duration":w.dur,"frame":shot_i})
 			for w in watched:
 				if not w.done or seen_release.any(func(old):return is_same(old,w)): continue
 				seen_release.append(w)
-				events.append({"event":"release","name":str(w.name),"act":str(w.act),"t":elapsed,"frame":shot_i})
+				events.append({"event":"release","name":str(w.name),"act":str(w.act),"skin":str(w.get("skin","")),"angle":float(w.get("ang",0.0)),"boss_pos":[boss.pos.x,boss.pos.y],"t":elapsed,"frame":shot_i})
 			var brk: float = boss.get("break_t",0.0)
 			if brk > previous_break + 0.1:
 				events.append({"event":"recovery","name":str(boss.get("brk_label","破绽")),"t":elapsed,"duration":brk,"frame":shot_i})
@@ -114,8 +119,17 @@ func _ready() -> void:
 					get_tree().quit(4)
 					return
 				shot_i += 1
-		print("FX_PREVIEW_METRICS ",JSON.stringify({"move":scenario.name,"phase":scenario.phase,"forced_openers":1,"boss_travel":travel,"events":events}))
+		print("FX_PREVIEW_METRICS ",JSON.stringify({"move":scenario.name,"phase":scenario.phase,"forced_openers":1,"boss_travel":travel,"player_status":player_status,"events":events}))
 	print("FX_PREVIEW_DONE boss=%s quality=%s frames=%d combos=true optical=%s" % [kind,quality,shot_i,g.optical_on])
 	g.queue_free()
 	await get_tree().process_frame
 	get_tree().quit()
+
+## Sample before and after production status conversion so a transient direct pstun write is not hidden.
+func inspect_player_status(metrics: Dictionary, stage: String) -> void:
+	metrics.pstun_max = maxf(float(metrics.pstun_max),g.pstun)
+	metrics.root_max = maxf(float(metrics.root_max),g.root_t)
+	if g.pstun > 0.0:
+		metrics.pstun_samples += 1
+		metrics.pstun_stages[stage] = int(metrics.pstun_stages.get(stage,0)) + 1
+	if g.root_t > 0.0: metrics.root_samples += 1

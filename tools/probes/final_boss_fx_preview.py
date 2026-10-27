@@ -73,7 +73,7 @@ def main():
             folder.mkdir(exist_ok=True)
             # Pin the code that the process loads, even while another worker edits it.
             sources = {}
-            for name in ["game/scripts/render/boss_attack_draw.gd", "game/scripts/enemies/final_attacks.gd", "game/scripts/render/final_attack_grains.gd", "game/scripts/render/final_boss_materials.gd", "game/scripts/render/paranoia_bubble.gd", "game/tests/final_boss_fx_preview.gd", "game/tests/knight_combo_preview.gd", "game/scripts/boss_ai.gd", "game/scripts/enemies/bosses/knight_boss.gd", "game/scripts/run/enemies.gd", "game/scripts/enemies/telegraph.gd"]:
+            for name in ["game/scripts/render/boss_attack_draw.gd", "game/scripts/enemies/final_attacks.gd", "game/scripts/render/final_attack_grains.gd", "game/scripts/render/final_boss_materials.gd", "game/scripts/render/paranoia_bubble.gd", "game/tests/final_boss_fx_preview.gd", "game/tests/knight_combo_preview.gd", "game/scripts/boss_ai.gd", "game/scripts/enemies/bosses/knight_boss.gd", "game/scripts/run/enemies.gd", "game/scripts/enemies/telegraph.gd", "game/scripts/render/world.gd", "game/scripts/run/combat.gd"]:
                 path = ROOT / name
                 if path.exists():
                     data = path.read_bytes()
