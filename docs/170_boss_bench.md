@@ -84,7 +84,7 @@ python tools/boss_bench.py table build/boss_bench/res/base.json build/boss_bench
 
 - 满血开打；超时按失败计。之前的「最终 Boss 超时 10–20%」作参考，不再单列。
 - **两档认知**：10-27 测得 18 细胞编队与无认知几乎相同（§7 注），用户已批 docs/179 把前 18 个细胞换成看得见的数值（生命 +12%、受伤 −5%、回复 +0.3、伤害 +8%），在 `claude/meta-first18` 实现；推出后 18 细胞快照基于该分支重拍，之前各轮的 18 细胞列只作参考。
-- **保护规则**以 `claude/danger-pass`（5da2f2f50）为准，测试台对照基线随它更新。
+- **测试基线（10-28 协调人）**：`claude/bench-base-1028` @ 333569d3f = danger-pass（5da2f2f50，保护规则口径）⊕ meta-first18（6903e49f1，docs/179 前 18 细胞）。之后所有复测 CONTROL 用它（`tools/cloud/boss_bench_ab.sh` 的 CONTROL 模式：对照 = 基线，改版 = 基线 merge 被测提交），快照（含 18 细胞）在它上面录。72f41c3c7 / danger-pass 上的旧轮次只作参考。
 
 - **时长是最终 Boss 的主要难度旋钮**：Boss 来源伤害被保护截住（单次 ≤ 最大生命 40%、2 秒窗口 ≤ 50%、满血保护一轮连击最多压到 10%，`combat._boss_clamp` / `_guard`），只能靠持续压力击倒队长，打得越久翻车越多；60 秒内结束的最终 Boss 怎么设计都构不成门槛。
 - **旋钮分开调**：用时 ← Boss 血量 / 减伤阶段；胜率 ← 持续伤害（连段、封走位、场地侵蚀，单发大伤害会被上限截掉）；破绽输出 ← 破绽窗口频率与受伤倍率。
