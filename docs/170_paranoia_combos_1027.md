@@ -193,12 +193,6 @@ r5（b9ddd1aae，danger-pass 保护口径，96 局）：胜率无认知 44% / 18
 
 调整：破茧复活 `paranoia_revive` 0.8→0.5，`hp_x_paranoia` 1.6→1.45；总血池从 1.8 倍降到 1.5 倍最大生命，再乘 0.9，预计用时约 −25%。伤害、保护规则不动。r5 中 1 局脚本错误（skadi 开局 18 细胞 seed 2，「Out of bounds get index '3' (on base: 'Array')」）在本地用 eff971faf 同一快照重跑未复现（胜，75.8 秒，0 错误），已向测试台要回溯行号。
 
-## 3p. 云端 r7 后加二阶段伤害（10-28）
-
-r7（ecba70136，bench-base-1028，96 局）：胜率无认知 73% / 18 细胞 90% / 全部 81%（改前对照 67%）；阵亡 2%；超时 17%（无认知 23%、18 细胞 10%）；胜局用时中位 110 秒（p10–p90 70–154）；破绽期输出 36%；二幕 / 三幕到达 97 / 90%。r5 那条脚本错误 96 局 0 次，未复现。
-
-无认知、用时、破绽达标；18 细胞比约 80% 高 10 点。按测试台建议加能击倒人的伤害、不加血（加血会把无认知超时推回去）：二阶段新弹幕 `paranoia_bullet_mult_p2` 1.3→1.45、幻象冲撞 `paranoia_rush_mult` 1.3→1.45。一阶段不动。
-
 ## 4. 公共文件改动（合并时注意）
 
 - `render/boss_beam.gd`：`_paranoia_top` / `_paranoia_ground` 第一行各调 `ParanoiaComboDraw.draw_top` / `draw_ground`，加一条 preload。只碰泡影分支。
