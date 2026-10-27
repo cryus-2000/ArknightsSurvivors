@@ -104,6 +104,8 @@ func update_ebullets(dt: float) -> void:
 			b.vel = b.vel.lerp(want, clampf(dt * 1.6, 0.0, 1.0))
 		b.pos += b.vel * dt
 		b.life -= dt
+		if g.zone_frozen and b.get("boss", false) and _arena_fly(b):
+			continue
 		if not b.get("boss", false) and g.beacon_sys.bullet_eaten(b.pos):
 			b.life = 0.0   # 圈内安全：非 Boss 子弹进入读条光圈即消散（docs/49g）
 			b["_die"] = "eaten"   # 已有 eat_fx，公共消失画面不叠
@@ -137,6 +139,25 @@ func update_ebullets(dt: float) -> void:
 				g.atk_slow = 3.0
 			if g.invuln <= 0.0:
 				g.combat.enemy_hit(b.dmg * Bal.v("enemy/bullet_dmg_mult", 1.0), b, b["true"], false, ["远程", "真实" if b["true"] else b.get("atk", "法术")], "bullet")
+
+
+## 最终 Boss 场地里的 Boss 直线弹飞到场地边缘才消失（用户 10-28「弹幕消失的距离可以到 Boss 站场地的边缘」）：
+## 寿命到点但还在场内、还在动的弹续命接着飞；出场地边（zone_next_r）就按到期消失（render/bullet_fx.gd 的到期消散）。
+## 不续：追踪弹、落地留溟痕 / 酸团（寿命 = 落点）、刀光、几乎不动的弹、带 no_extend 的弹；同屏敌弹超 boss/arena_bullet_cap 不续；
+## 每颗最多续 boss/arena_bullet_ext 秒（防绕圈弹永不消失）。返回 true = 本帧已在场边消失，调用方跳过后续判定。
+func _arena_fly(b: Dictionary) -> bool:
+	var out: bool = b.pos.distance_squared_to(g.zone_next_c) > g.zone_next_r * g.zone_next_r
+	if b.has("_ext"):
+		if out:
+			b.life = 0.0
+			b["_die"] = "expire"
+			return true
+		return false
+	if b.life > 0.0 or out or b.get("home", false) or b.get("mire", false) or b.has("no_extend") 			or str(b.get("kind", "")) in ["acid", "boss_blade"] or b.vel.length_squared() < 900.0 			or g.ebullets.size() > int(Bal.v("boss/arena_bullet_cap", 520.0)):
+		return false
+	b["_ext"] = true
+	b.life = Bal.v("boss/arena_bullet_ext", 6.0)
+	return false
 
 
 ## Boss 溟痕上限（docs/38 §1.7）：同时最多 12 块；场地冻结后不生成在离圈边 120 以内。

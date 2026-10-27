@@ -370,7 +370,7 @@ func _camlog_step() -> void:
 ## --flashrec=<起始秒>,<帧数>[,<宽>]（docs/137 Boss 频闪测量，配 --balance --realtime --fixed-fps 30）：游戏时间过了起始秒后每帧
 ## 存一张缩到 <宽>（缺省 480）的 fr_<帧>.png 到 --shotdir，并在同目录 flashrec.csv 记同一帧的画面状态（Boss 白闪 / 阶段 / 茧、
 ## 震屏、全屏闪光、顿帧、命中星、预警数、登场演出），tools/boss_flash_measure.py 统计亮度跳变。
-## --flashspawn=<boss>[2|_cocoon]：第 20 帧在主控旁刷出该 Boss（二阶段加 2，同 --bosstest；paranoia_cocoon 直接结茧），但时间照常走、自测不扣 Boss 血
+## --flashspawn=<boss>[2|_cocoon]：第 20 帧在主控旁刷出该 Boss（二阶段加 2，同 --bosstest；paranoia_cocoon 直接结茧），但时间照常走、自测不扣 Boss 血；加 --flasharena 同正式登场冻结最终 Boss 场地
 var _fr_t0 := -2.0
 var _fr_left := 0
 var _fr_w := 480
@@ -404,6 +404,8 @@ func _flashrec_step() -> void:
 		g.boss = b
 		if g.final_boss == null and g.spawner.is_final_boss_type(b.type):
 			g.final_boss = b
+			if Cfg.dev_args().has("--flasharena"):
+				g.spawner.enter_arena(b.type)   # 同正式登场冻结最终 Boss 场地（弹幕飞到场边才消失，shot_pool._arena_fly）
 	if _fr_spawn != "" and g.at_frames == 25 and Cfg.dev_args().has("--texdump"):
 		for k in g.tex.keys():
 			var ks := str(k)
