@@ -166,7 +166,7 @@ func check_patterns() -> void:
 	e.izu_stacks = 4
 	s.force_move(e, "习得弹", Vector2.RIGHT, 260.0)
 	tick(e, 0.0)
-	check(g.ebullets.size() == 20, "absorption stacks deform the learned ring (%d)" % g.ebullets.size())
+	check(g.ebullets.size() == 12, "absorption stacks deform the learned ring (%d)" % g.ebullets.size())
 	# 三幕灯柱吞弹
 	e = fresh()
 	e.gates_passed = 2
@@ -185,4 +185,9 @@ func check_patterns() -> void:
 	c2.dead = true
 	for i in int(2.0 / DT): tick(e, 0.0)
 	var fans: int = g.ebullets.filter(func(b): return b.get("izu", "") == "fan").size()
-	check(fans == 9, "only living offspring resonate (%d bullets)" % fans)
+	check(fans == 6, "only living offspring resonate (%d bullets)" % fans)
+	# 批次子代只走路：无接触伤害、不出横扫、不放自己的孢子环
+	e = fresh()
+	e.batch_next = g.t
+	g.bai._boss_ai(e, DT, Vector2.RIGHT, 260.0)
+	check(not e.batch.is_empty() and e.batch.all(func(o): return o.dmg == 0.0 and o.extra_next == INF and o.nova_cd == INF), "batch offspring are harmless walkers")

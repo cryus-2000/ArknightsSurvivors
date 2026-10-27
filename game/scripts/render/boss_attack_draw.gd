@@ -37,6 +37,7 @@ static func draw(g, impacts := false) -> void:
 	if impacts:
 		for f in g.fx:
 			if f.kind == "bubble_pop" and f.life > 0: Bubble.pop(g,f)
+			elif f.kind == "izu_shock" and f.life > 0: IzumikDraw.shock(g,f)   # 伊祖米克全场海浪（docs/170）
 			elif f.kind == "final_impact" and f.life > 0:
 				_shape(g,f,clampf(float(f.life)/float(f.max)*1.5,0,1),false)
 		for e in g.bosses:
@@ -187,6 +188,12 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 static func _shape(g, w: Dictionary, alpha: float, warning: bool) -> void:
 	if warning:
 		_warning(g,w,alpha)
+		if w.get("skin","") == "tentacle" and w.shape == "cone":   # 伊祖米克护群触腕：出土点鼓包（docs/170）
+			IzumikDraw.tentacle_warning(g,w,clampf(float(w.get("t",0.0))/maxf(0.01,float(w.dur)),0,1))
+	elif w.get("skin","") == "tide":
+		IzumikDraw.tide_wall(g,w,alpha)
+	elif w.get("skin","") == "tentacle" and w.shape == "cone" and w.has("max"):
+		IzumikDraw.tentacles(g,w)
 	elif w.get("skin", "") == "bubble":
 		Bubble.shadow(g.world,w,alpha)
 	else:

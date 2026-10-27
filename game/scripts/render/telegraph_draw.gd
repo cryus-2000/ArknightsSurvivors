@@ -69,8 +69,8 @@ static func draw_fills(g) -> void:
 	for w in g.warns:
 		if w.get("dim", false) or quiet(w):
 			continue   # 打不到主控的杂兵预警只画淡轮廓（world.classify_tells / draw_warn_outlines，可读性 1.1.1，界面与美术）
-		if w.get("act", "") == "izu_wave" and g.optical_on and not w.done:
-			continue   # 伊祖米克全场震撼 / 分享：低填充 + 浪纹点环由 izumik_attack_draw 画（docs/170），不铺整屏斜线
+		if w.get("act", "") == "izu_wave" and g.optical_on:
+			continue   # 伊祖米克全场震撼 / 分享：预警浪纹与结算海浪由 izumik_attack_draw 画（docs/170），不铺整屏斜线、结算不整屏白闪
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var c: Color = w.col
 		if g.optical_on:
@@ -95,7 +95,11 @@ static func draw_fills(g) -> void:
 		elif st == 3:
 			fa *= 0.45
 		fa *= g.world.tell_fill   # 后期降噪（render/declutter tell_fill_k，缺省 1）：填充减淡、轮廓（world.draw_warn_outlines）加粗
-		var hatched: bool = g.optical_on and g.optical.fx1 and not w.done
+		# 伊祖米克（docs/170）：预警不铺斜线，退回低填充 + 描边；补充攻击的填充与材质边已由 boss_attack_draw 画
+		var izu: bool = w.get("owner") is Dictionary and str(w.owner.get("type", "")) == "izumik"
+		if izu and w.get("act", "") == "final_attack":
+			continue
+		var hatched: bool = g.optical_on and g.optical.fx1 and not w.done and not izu
 		if hatched:
 			if st != 0 and st != 4:
 				_hatch(g, w, c, clampf(fa * 4.2, 0.4, 0.85), k)   # 光学观感 ④（10-23）：地面预警一律斜线填充 + 闪烁描边（world.draw_warn_outlines），危险色

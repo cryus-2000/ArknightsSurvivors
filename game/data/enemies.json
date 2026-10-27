@@ -639,7 +639,7 @@
      "recover": 0.8,
      "cd_p2": 3.2,
      "mode": "ring",
-     "count": 50,
+     "count": 32,
      "waves": 3,
      "speed": 345,
      "gap": 0.38,

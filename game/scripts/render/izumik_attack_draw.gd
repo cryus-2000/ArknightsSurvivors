@@ -91,3 +91,133 @@ static func field_warning(g, w: Dictionary) -> void:
 static func _seg(r, a: Vector2, b: Vector2, wd: float, c: Color) -> void:
 	var n := (b - a).normalized().orthogonal() * wd * 0.5
 	r.tb_quad((a - n).snapped(Vector2(2, 2)), (b - n).snapped(Vector2(2, 2)), (b + n).snapped(Vector2(2, 2)), (a + n).snapped(Vector2(2, 2)), c)
+
+const DEEP := Color(0.04, 0.12, 0.26)
+const SEA := Color(0.16, 0.36, 0.72)
+const CREST := Color(0.55, 0.78, 1.0)
+const LAMP := Color(1.0, 0.82, 0.45)
+
+static func _ease(k: float) -> float:
+	return 1.0 - pow(1.0 - clampf(k, 0.0, 1.0), 2.4)
+
+## 震撼 / 分享·全场结算：从本体推开的一圈海浪（深色浪身 + 亮浪尖 + 断续泡沫），浪后留一层渐淡的水膜；点亮灯柱外沿亮一圈暖光
+static func shock(g, f: Dictionary) -> void:
+	var r = g.world
+	var e = f.get("owner")
+	var c: Vector2 = f.pos
+	var gy: float = g.combat.GROUND_Y
+	var k: float = 1.0 - float(f.life) / maxf(0.01, float(f.max))
+	var rad: float = 50.0 + 950.0 * _ease(k)
+	var fade: float = 1.0 - k * k
+	var n: int = clampi(int(rad / 6.0), 24, 200)
+	var body: float = 34.0 + 30.0 * (1.0 - k)
+	for i in n:
+		var a: float = TAU * float(i) / n
+		var b: float = TAU * float(i + 1) / n
+		var wa: float = sin(a * 9.0 + k * 20.0) * 7.0 + sin(a * 23.0) * 3.0
+		var wb: float = sin(b * 9.0 + k * 20.0) * 7.0 + sin(b * 23.0) * 3.0
+		var va := Vector2(cos(a), sin(a) * gy)
+		var vb := Vector2(cos(b), sin(b) * gy)
+		r.tb_quad(c + va * maxf(0.0, rad - body * 3.0), c + va * (rad - body), c + vb * (rad - body), c + vb * maxf(0.0, rad - body * 3.0), Color(SEA.r, SEA.g, SEA.b, 0.10 * fade))
+		r.tb_quad(c + va * (rad - body), c + va * (rad + wa), c + vb * (rad + wb), c + vb * (rad - body), Color(DEEP.r, DEEP.g, DEEP.b, 0.55 * fade))
+		r.tb_quad(c + va * (rad - body * 0.55), c + va * (rad + wa - 4.0), c + vb * (rad + wb - 4.0), c + vb * (rad - body * 0.55), Color(SEA.r, SEA.g, SEA.b, 0.6 * fade))
+		_seg(r, c + va * (rad + wa) + Vector2(0, -6), c + vb * (rad + wb) + Vector2(0, -6), 4.0, Color(CREST.r, CREST.g, CREST.b, 0.9 * fade))
+		if _n(i, 11) > 0.55:
+			_dot(r, c + va * (rad + wa + 6.0 + 10.0 * _n(i, 12)) + Vector2(0, -10.0 * _n(i, 13)), Color(0.85, 0.95, 1.0, 0.85 * fade))
+		if _n(i, 14) > 0.7:
+			_dot(r, c + va * (rad - body * (0.6 + _n(i, 15))), Color(CREST.r, CREST.g, CREST.b, 0.5 * fade))
+	if e is Dictionary:
+		var lr: float = float(e.get("lamp_r", 120.0))
+		for l in e.get("lamps", []):
+			if not (l.get("lit", false) or l.get("out", false)): continue
+			var d: float = g.combat.ground_d(l.pos, c)
+			var near: float = 1.0 - clampf(absf(d - rad) / 160.0, 0.0, 1.0)
+			if near <= 0.0: continue
+			for q in 36:
+				var a: float = TAU * q / 36.0
+				var a2: float = a + TAU / 36.0
+				_seg(r, l.pos + Vector2(cos(a), sin(a) * gy) * lr, l.pos + Vector2(cos(a2), sin(a2) * gy) * lr, 4.0, Color(LAMP.r, LAMP.g, LAMP.b, 0.85 * near))
+				if _n(q, 21) > 0.6:
+					_dot(r, l.pos + Vector2(cos(a), sin(a) * gy) * (lr + 4.0 + 10.0 * near) + Vector2(0, -6.0 * near), Color(1.0, 0.9, 0.6, near))
+
+## 迁徙潮水墙：立起来的浪墙——地面浪身 + 向上卷起的浪面（高 20–34）+ 白色浪尖与脚下泡沫，沿墙长有起伏
+static func tide_wall(g, w: Dictionary, alpha: float) -> void:
+	var r = g.world
+	var d := Vector2.from_angle(w.ang)
+	var v: Vector2 = Vector2(w.get("velocity", d.orthogonal())).normalized()
+	var length: float = float(w.len)
+	var wid: float = float(w.wid)
+	var age: float = float(w.get("age", 0.0))
+	var steps: int = clampi(int(length / 8.0), 3, 140)
+	for i in steps:
+		var u0: float = float(i) / steps
+		var u1: float = float(i + 1) / steps
+		var a: Vector2 = w.pos + d * length * u0
+		var b: Vector2 = w.pos + d * length * u1
+		var ha: float = 26.0 + sin(u0 * length * 0.045 + age * 5.0) * 6.0 + sin(u0 * length * 0.13 - age * 7.0) * 3.0
+		var hb: float = 26.0 + sin(u1 * length * 0.045 + age * 5.0) * 6.0 + sin(u1 * length * 0.13 - age * 7.0) * 3.0
+		r.tb_quad(a - v * wid * 3.0, b - v * wid * 3.0, b - v * wid, a - v * wid, Color(SEA.r, SEA.g, SEA.b, 0.16 * alpha))
+		r.tb_quad(a - v * wid, b - v * wid, b + v * wid, a + v * wid, Color(DEEP.r, DEEP.g, DEEP.b, 0.8 * alpha))
+		var fa: Vector2 = a + v * wid
+		var fb: Vector2 = b + v * wid
+		r.tb_quad(fa, fb, fb + Vector2(0, -hb), fa + Vector2(0, -ha), Color(SEA.r, SEA.g, SEA.b, 0.82 * alpha))
+		r.tb_quad(fa + Vector2(0, -ha * 0.55), fb + Vector2(0, -hb * 0.55), fb + Vector2(0, -hb), fa + Vector2(0, -ha), Color(0.3, 0.55, 0.9, 0.85 * alpha))
+		_seg(r, fa + Vector2(0, -ha) + v * 4.0, fb + Vector2(0, -hb) + v * 4.0, 4.0, Color(CREST.r, CREST.g, CREST.b, 0.95 * alpha))
+		if _n(i, 31) > 0.5:
+			_dot(r, fa + Vector2(0, -ha - 4.0 - 6.0 * _n(i, 32)) + v * (6.0 + 6.0 * _n(i, 33)), Color(0.9, 0.97, 1.0, alpha))
+		if _n(i, 34) > 0.45:
+			_dot(r, fa + v * (3.0 + 8.0 * _n(i + int(age * 10.0), 35)), Color(0.85, 0.95, 1.0, 0.8 * alpha))
+
+## 护群触腕预警：扇形里每个出土点先鼓起土包、裂纹慢慢张开，告诉你触手会从哪钻出来
+static func tentacle_warning(g, w: Dictionary, progress: float) -> void:
+	var r = g.world
+	for p in _sprouts(w):
+		var at: Vector2 = p[0]
+		var s: float = clampf(progress * 1.4 - float(p[1]) * 0.4, 0.0, 1.0)
+		if s <= 0.0: continue
+		var rx: float = 6.0 + 6.0 * s
+		for q in 6:
+			var a: float = TAU * q / 6.0 + float(p[1]) * 3.0
+			_seg(r, at, at + Vector2(cos(a), sin(a) * 0.5) * rx, 2.0, Color(0.05, 0.03, 0.05, 0.7 * s))
+		r.tb_quad(at + Vector2(-8, 0), at + Vector2(0, -6.0 * s), at + Vector2(8, 0), at + Vector2(0, 3), Color(0.14, 0.12, 0.17, 0.9 * s))
+		_dot(r, at + Vector2(-2, -4.0 * s), Color(0.3, 0.42, 0.6, 0.8 * s), 4.0)
+
+## 护群触腕结算：从扇形内侧往外一根接一根钻出地面——先崩土，触手向上伸出摆动再缩回，土坑留到消失
+static func tentacles(g, f: Dictionary) -> void:
+	var r = g.world
+	var k: float = 1.0 - float(f.life) / maxf(0.01, float(f.max))
+	for p in _sprouts(f):
+		var at: Vector2 = p[0]
+		var u: float = p[1]
+		var t: float = clampf((k - u * 0.35) / 0.65, 0.0, 1.0)
+		if t <= 0.0: continue
+		var rise: float = sin(t * PI)
+		for q in 8:
+			var a: float = TAU * q / 8.0 + u * 5.0
+			var o := Vector2(cos(a), sin(a) * 0.45) * (8.0 + 10.0 * minf(1.0, t * 3.0))
+			_dot(r, at + o + Vector2(0, -12.0 * sin(minf(1.0, t * 2.5) * PI) * _n(q, int(u * 97.0))), Color(0.12, 0.1, 0.14, 0.9 * (1.0 - t * 0.5)))
+		r.tb_quad(at + Vector2(-9, -2), at + Vector2(9, -2), at + Vector2(9, 3), at + Vector2(-9, 3), Color(0.02, 0.02, 0.04, 0.7 * (1.0 - t * 0.6)))
+		if rise <= 0.02: continue
+		var height: float = (40.0 + 34.0 * float(p[2])) * rise
+		var prev: Vector2 = at
+		for j in 6:
+			var h: float = float(j + 1) / 6.0
+			var sway: float = sin(h * 3.0 + t * 9.0 + u * 7.0) * 9.0 * h
+			var nxt: Vector2 = at + Vector2(sway, -height * h)
+			var wd: float = lerpf(11.0, 3.0, h)
+			_seg(r, prev, nxt, wd + 2.0, Color(0.02, 0.04, 0.08, 0.9))
+			_seg(r, prev, nxt, wd, Color(0.22 + 0.25 * h, 0.4 + 0.3 * h, 0.7 + 0.25 * h, 0.95))
+			prev = nxt
+		_dot(r, prev + Vector2(-2, -3), Color(0.8, 0.92, 1.0, 0.95), 4.0)
+
+## 出土点：沿扇形从内到外 9 个（确定性噪声），[位置, 内外次序 0..1, 粗细]
+static func _sprouts(w: Dictionary) -> Array:
+	var out: Array = []
+	var p: Vector2 = w.pos
+	var half: float = float(w.get("half", 0.5))
+	for i in 9:
+		var u: float = (float(i) + 0.5) / 9.0
+		var a: float = float(w.ang) + (_n(i, 41) * 2.0 - 1.0) * half * 0.8
+		var d: float = float(w.r) * (0.18 + 0.78 * u)
+		out.append([p + Vector2(cos(a), sin(a) * 0.72) * d, u, _n(i, 43)])
+	return out
