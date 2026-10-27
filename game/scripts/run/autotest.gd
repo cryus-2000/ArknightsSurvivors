@@ -54,7 +54,8 @@ var perf_slow: Array = []      # 慢帧（≥ 33 毫秒）明细，结束时取�
 var perf_kills := 0
 const A_ = preload("res://scripts/art.gd")
 const PlayClockT = preload("res://scripts/run/play_clock.gd")
-const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（--clutterab / --clutterlog 量测，tools/late_clutter.py）
+const Dc = preload("res://scripts/render/declutter.gd")
+const IceGrains = preload("res://scripts/render/final_attack_grains.gd")   # --iceab：骑士冰颗粒同局轮换（10-27 骑士特效打磨）   # 后期降噪预设（--clutterab / --clutterlog 量测，tools/late_clutter.py）
 var perf_upd := 0
 var perf_min := false          # --perfmin：按游戏分钟分段（docs/50 §10）
 var perf_ab := 0               # --perfab=N：每 N 帧轮换 g.perf_alt，分 /a /b 两桶
@@ -67,6 +68,7 @@ var opticalab := -1           # --opticalab=N（docs/50 §25）：每 N 帧轮�
 var fx1ab := 0                # --fx1ab=N（docs/50 §25.2）：每 N 帧轮换特效处理第 1 步开 / 关（光学观感开着时）
 var partab := 0               # --partab=N（docs/136 §2 排查）：每 N 帧轮换光学 GPU 粒子开 / 关（--perf 分 /p1 /p0 两桶）
 var matab := 0                # --matab=N：每 N 帧轮换材质颗粒（fx/material_grains）开 / 关（--perf 分 /m1 /m0；要同时 --bal=fx/material_grains=1）
+var iceab := 0                # --iceab=N：每 N 帧轮换骑士冰颗粒开 / 关（--perf 分 /i1 /i0）
 var grainab := 0              # --grainab=N：每 N 帧轮换刀光第四版（粒子）开 / 关（--perf 分 /g1 /g0）
 var tierab := 0               # --tierab=N（docs/50 §25.3）：每 N 帧轮换命中三档开 / 关
 # --stackab=N:m1,m2,…（docs/50 §26）：每 N 帧换下一个掩码（optical.ab_mask：1 CPU 颗粒 / 2 GPU 粒子 / 4 特效照明 / 8 发光层 / 16 低分辨率层 / 32 整套光学），
@@ -372,6 +374,7 @@ var _fr_w := 480
 var _fr_i := 0
 var _fr_csv: FileAccess = null
 var _fr_spawn := ""
+var _fr_spawned := false
 func _flashrec_step() -> void:
 	if _fr_t0 < -1.0:
 		_fr_t0 = -1.0
@@ -384,7 +387,10 @@ func _flashrec_step() -> void:
 					_fr_w = int(p[2])
 			if a.begins_with("--flashspawn="):
 				_fr_spawn = a.substr(13)
-	if _fr_spawn != "" and g.at_frames == 20:
+	# 带 --rtfrom 时等快进结束再刷（10-27 骑士特效帧时：后期 100 只同屏 + Boss 战），否则照旧第 20 帧
+	var fr_due: bool = g.at_frames == 20 if g.rt_from < 0.0 else (not _fr_spawned and g.t >= g.rt_from)
+	if _fr_spawn != "" and fr_due:
+		_fr_spawned = true
 		var b: Dictionary = g.spawner.spawn_enemy(_fr_spawn.trim_suffix("2").trim_suffix("_cocoon"), g.ppos + Vector2(230, -40))
 		b.age = 5.0
 		if _fr_spawn.ends_with("2"):
@@ -634,6 +640,8 @@ func step() -> void:
 				matab = int(a.substr(8))
 			if a.begins_with("--grainab="):
 				grainab = int(a.substr(10))
+			if a.begins_with("--iceab="):
+				iceab = int(a.substr(8))
 			if a.begins_with("--stackab="):
 				var sp: PackedStringArray = a.substr(10).split(":")
 				stackab = int(sp[0])
@@ -660,6 +668,8 @@ func step() -> void:
 		g.optical.force = 0 if g.optical.force == 1 else 1   # --opticalab=N：同局轮换光学观感开 / 关（--perf 分 /opt /base 两桶）
 	if partab > 0 and g.at_frames % partab == 0 and g.optical != null and g.optical.particles != null:
 		g.optical.particles.set_active(not g.optical.particles.active)   # --partab=N：同局轮换 GPU 粒子（--perf 分 /p1 /p0）
+	if iceab > 0 and g.at_frames % iceab == 0:
+		IceGrains.ice_off = not IceGrains.ice_off   # --iceab=N：同局轮换骑士冰颗粒
 	if grainab > 0 and g.at_frames % grainab == 0 and g.optical != null and g.optical.grains != null:
 		g.optical.grains.off = not g.optical.grains.off   # --grainab=N：同局轮换刀光第四版
 	if stackab > 0 and g.at_frames % stackab == 0 and g.optical != null:
@@ -1706,6 +1716,8 @@ func _perf_sample() -> void:
 			w += "/m0" if g.optical.grains.mat_off else "/m1"
 		if grainab > 0:
 			w += "/g0" if g.optical.grains.off else "/g1"
+		if iceab > 0:
+			w += "/i0" if IceGrains.ice_off else "/i1"
 		if stackab > 0:
 			w += "/sx" if g.at_frames - stack_sw <= 3 else "/s%d" % (g.optical.ab_mask | (128 if Cfg.render_scaled else 0))   # 采样在轮换之前：记的是上一帧所用掩码
 		if tierab > 0:

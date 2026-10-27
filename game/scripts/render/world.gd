@@ -1229,11 +1229,16 @@ func _draw_fx() -> void:
 					var reach: float = 10.0 + float(q % 3) * 4.0
 					g.draw_line(at, at + side * reach * (1.0 if q % 2 == 0 else -1.0), Color(0.8, 1.4, 1.9, 0.8 * a), 2.0)
 			"frost_step":
-				# 骑士冲锋脚下的冰霜拖尾：扁平冰斑 + 两道冰晶
-				g.draw_set_transform(f.pos, 0.0, Vector2(1.0, 0.45))
-				g.draw_circle(Vector2.ZERO, f.r, Color(0.6, 0.85, 1.3, 0.28 * a))
-				g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-				g.draw_line(f.pos + Vector2(-5, 1), f.pos + Vector2(5, -1), Color(1.2, 1.5, 2.0, 0.6 * a), 1.5)
+				# 骑士冲锋脚下的冰霜拖尾（10-27 打磨）：不再画一串圆斑，改为 2 像素格的霜点 + 一道短冰裂，按格冷却变暗（白 → 青 → 暗蓝）
+				var fp: Vector2 = ((f.pos as Vector2) * 0.5).floor() * 2.0
+				var fk: int = int(absf(fp.x) * 0.5 + absf(fp.y) * 1.5)
+				var fcol := Color(0.85, 0.97, 1.0) if a > 0.75 else (Color(0.5, 0.78, 0.92) if a > 0.4 else Color(0.2, 0.34, 0.5))
+				for q in 7:
+					var h: int = (fk * 73 + q * 977) & 1023
+					var off := Vector2(float(h % 15) - 7.0, float((h >> 4) % 7) - 3.0) * 2.0
+					g.draw_rect(Rect2(fp + (off * 0.5).floor() * 2.0, Vector2(2, 2)), Color(fcol.r, fcol.g, fcol.b, 0.75 * a))
+				g.draw_line(fp + Vector2(-8, 2), fp + Vector2(0, -2), Color(0.45, 0.68, 0.82, 0.5 * a), 2.0)
+				g.draw_line(fp + Vector2(0, -2), fp + Vector2(6, 0), Color(0.45, 0.68, 0.82, 0.5 * a), 2.0)
 			"lead_mark":
 				# 队长命中记号（vfx.lead_mark，docs/139 §11）：敌人身上四个像素角标（暖白），跟着敌人走；前 70% 寿命满亮不闪，之后两阶熄灭
 				var me = f.get("e")
@@ -3189,7 +3194,7 @@ func _enemy_act_fx() -> void:
 				Sfx.play_at("knight_charge", e.pos, -6.0 if e.boss else -10.0, 1.0, 0.05)   # 冰面急冲（音频，tools/gen_sfx_events.py）
 				var L: float = float(la.get("len", 200.0))
 				var dv := Vector2.from_angle(ang)
-				var s := 0.0
+				var s := 0.0 if not e.boss or Bal.v("render/knight_frost_tell", 1.0) <= 0.0 else L   # 骑士 Boss 的冲锋霜纹改由 boss_attack_draw._dash_frost 按到达时间显露
 				while s < L:
 					g.fx.append({"kind": "frost_step", "pos": p0 + dv * s + Vector2(0, 8), "life": 0.9, "max": 0.9, "r": 14.0, "enemy": true})
 					s += 30.0
