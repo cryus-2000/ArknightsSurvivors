@@ -37,6 +37,8 @@ func _process(_dt: float) -> void:
 	var E = game.endg
 	E.enabled = true
 	E._checked = true
+	E.lines_on = true
+	E.mid_done = 2   # 途中路口（docs/173）另在 event_trade_test 测
 	# 1 同 seed 同卡组
 	game.rng.seed = 4242
 	var d1: Array = _deck_ids(E.build_deck(1))
@@ -78,9 +80,9 @@ func _process(_dt: float) -> void:
 	var cleared0: Array = Cfg.endings_cleared.duplicate()
 	game.mode = game.Mode.PLAY
 	Cfg.endings_cleared.clear()
-	check(not E._cross_on() or Cfg.dev_args().has("--allend"), "before clearing ending 1 the node cards are off")
+	check(not E._cross_on() or Cfg.dev_args().has("--allend"), "before clearing ending 1 the ending-line cards are off")
 	Cfg.endings_cleared.append("standard")
-	check(E._cross_on(), "after clearing ending 1 the node cards are on")
+	check(E._cross_on(), "after clearing ending 1 the ending-line cards are on")
 	Cfg.endings_cleared = cleared0
 	game.mode = mode0
 	# 4 互斥：走了开端（持 220），路口二没有骑士仍在
@@ -139,7 +141,14 @@ func _process(_dt: float) -> void:
 	E.flipped = -1
 	var ing0: int = game.ingots
 	E.flip(0)
-	check(game.ingots > ing0 and game.state == game.S.PLAY, "trader card after the last merchant gives ingots (%d -> %d)" % [ing0, game.ingots])
+	if E.redesign:
+		game.bosses = []   # 上面造的假中 Boss 没有 type，关店横幅会读它
+		# 事件改版（用户 10-28）：诡意行商 = 进一次商店，最后一位商人之后照样能开；关店回战斗
+		check(game.state == game.S.SHOP and game.shop_sys.trader, "trader card opens a shop visit even after the last merchant")
+		game.shop_sys.close()
+		check(game.state == game.S.PLAY and not game.shop_sys.trader, "closing the trader shop returns to battle")
+	else:
+		check(game.ingots > ing0 and game.state == game.S.PLAY, "trader card after the last merchant gives ingots (%d -> %d)" % [ing0, game.ingots])
 	# 8 升级面板开着时到点：等它关掉再弹
 	E.cross_done = 0
 	E.cross_due = 0

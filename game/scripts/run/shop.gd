@@ -14,6 +14,8 @@ func _init(game: Game) -> void:
 
 
 func update(dt: float) -> void:
+	if trader:
+		return   # 诡意行商卡的一次商店开着：地图上的商人不走倒计时
 	if g.merchant.is_empty():
 		g.merchant_light.visible = false
 		return
@@ -47,7 +49,7 @@ func merchant_col() -> Color:
 func price_mult() -> float:
 	var visit: int = clampi(g.merchant_idx, 1, 3)
 	var wave: float = [1.0, Bal.v("shop/second_visit_mult", 1.5), Bal.v("shop/third_visit_mult", 2.0)][visit - 1]
-	var bought: int = int(g.merchant.get("purchases", 0))
+	var bought: int = trader_buys if trader else int(g.merchant.get("purchases", 0))
 	# 翻节点卡「诡意行商」（docs/154）：这位商人第一件打折（没买过时全部按折扣价，买一件后照常重算）
 	var disc: float = float(g.endg.deck_cfg.get("shop_disc", 0.7)) if g.merchant_idx == g.endg.shop_visit and bought == 0 else 1.0
 	return g.shop_price_mult * wave * (1.0 + bought * Bal.v("shop/purchase_step", 0.2)) * disc
@@ -86,6 +88,11 @@ func price(kind: String) -> int:
 func roll(first := false) -> void:
 	g.shop_items.clear()
 	var pool: Array = g.progression.relic_pool_ids(true)
+	if trader:
+		# 诡意行商卡（docs/173 §3）：前两格换成主流派里排最前的两件（只重排，不多取随机数）
+		var ml: String = g.endg.main_lane()
+		var on_lane: Array = pool.filter(func(id): return (g.RL[id].get("lanes", []) as Array).has(ml)).slice(0, 2)
+		pool = on_lane + pool.filter(func(id): return not on_lane.has(id))
 	var slots: int = 3 + (int(g.endg.deck_cfg.get("shop_extra", 1)) if g.merchant_idx == g.endg.shop_visit else 0)   # 诡意行商卡：货架 +1（docs/154）
 	for i in min(slots, pool.size()):
 		var r: Dictionary = g.RL[pool[i]]
@@ -176,12 +183,15 @@ func buy(i: int) -> void:
 	g.ingots -= it.price
 	g.telemetry.ingots_spent += it.price   # 作战记录（docs/77）
 	it.sold = true
-	if not g.merchant.is_empty():
+	if trader:
+		trader_buys += 1
+	elif not g.merchant.is_empty():
 		g.merchant["bought"] = true
 		g.merchant["purchases"] = int(g.merchant.get("purchases", 0)) + 1
 	match it.kind:
 		"relic":
-			g.merchant["relic_purchases"] = int(g.merchant.get("relic_purchases", 0)) + 1
+			if not trader:
+				g.merchant["relic_purchases"] = int(g.merchant.get("relic_purchases", 0)) + 1
 			g.progression.gain_relic(it.id)
 		"heal":
 			g.combat.heal(g.max_hp * 0.4, "商店")
@@ -193,7 +203,7 @@ func buy(i: int) -> void:
 		if not item.sold:
 			item.price = g.rfx.db.price(item.id, price_mult()) if item.kind == "relic" else price(item.kind)
 	# 预告的商品售出即撤销（docs/119 §4.5）；预告价格由 preview_item 从货架现价读，这里不用改
-	if not g.merchant.is_empty() and g.merchant.has("preview") and str(g.merchant.preview) == str(it.id):
+	if not trader and not g.merchant.is_empty() and g.merchant.has("preview") and str(g.merchant.preview) == str(it.id):
 		g.merchant.erase("preview")
 	Sfx.play("ui_ok")
 	g.shop_ui.build()
@@ -219,6 +229,23 @@ func refresh() -> void:
 	g.shop_ui.build(true)
 
 
+## 诡意行商卡（用户 10-28「原作诡意行商是进一次商店」，docs/173 §3）：翻开即打开一次商店，货架同商人（价格按当前是第几拨商人）、
+## 前两格主流派；关掉即结束，路口二之后没有商人也能用。地图上若正有一位商人，它和它的货架不动（货架先收起，关店后放回）
+var trader := false
+var trader_buys := 0
+var _trader_stash: Dictionary = {}
+
+
+func open_trader() -> void:
+	_trader_stash = {"items": g.shop_items, "refreshed": g.shop_refreshed}
+	trader = true
+	trader_buys = 0
+	g.shop_items = []
+	g.shop_refreshed = false
+	g.panel.visible = true
+	open()
+
+
 func close() -> void:
 	for c in g.panel.get_children():
 		if c.has_meta("shopbtn"):
@@ -226,6 +253,14 @@ func close() -> void:
 	g.panel.visible = false
 	g.state = g.S.PLAY
 	Sfx.play("ui_ok", -4.0)
+	if trader:
+		trader = false
+		g.shop_items = _trader_stash.get("items", [])
+		g.shop_refreshed = bool(_trader_stash.get("refreshed", false))
+		_trader_stash = {}
+		g.vfx.show_banner("诡意行商收起货摊离开了")
+		g.check_pending()
+		return
 	# 交易过就离开，避免走回去反复触发；等下一次出现
 	if not g.merchant.is_empty() and g.merchant.get("bought", false):
 		g.vfx.sparks(g.merchant.pos, Vector2.UP, UI.GOLD, 12, 160.0)

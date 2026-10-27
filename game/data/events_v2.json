@@ -1,0 +1,1000 @@
+{
+ "_doc": "事件改版（docs/173）：cross = 并进 waves.json cross_deck 的键；patch = 按 id 并进现有事件的字段；events = 新事件（v2 = 只在改版出现）。cross/redesign = 0 时整份不生效",
+ "cross": {
+  "_redesign": "事件改版（docs/173，用户 10-27 定）：balance.json cross/redesign = 1 开（缺省），0 = 旧翻卡（云端对照）。开着时：首通前也翻卡（不出结局入口卡）；mid = 途中一 / 途中二的 [最早, 最晚] 秒（等精英 / 中 Boss / 委托清场再弹，最晚到点照弹），mid_n 张；每次摊牌至少一张交易卡（不期而遇里带 trade 的事件 / 得偿所愿 / 紧急作战）、最多一张无代价卡（安全的角落 / 诡意行商）；事件带 lanes 时含主流派 ×lane_event_w；events 里 v2 = 只在改版出现，v1 = 只在旧版出现，options_v2 = 改版换用的选项",
+  "mid": [
+   [
+    80,
+    110
+   ],
+   [
+    360,
+    390
+   ]
+  ],
+  "mid_n": 2,
+  "lane_event_w": 2.0,
+  "away_t": 120,
+  "chal_grace": 30
+ },
+ "patch": {
+  "inherit": {
+   "v1": true
+  },
+  "glimmer": {
+   "trade": true,
+   "options_v2": [
+    {
+     "label": "送上提灯",
+     "desc": "灯火 +40",
+     "ops": [
+      {
+       "light": 40
+      }
+     ]
+    },
+    {
+     "label": "悄悄接近",
+     "desc": "队长生命 -10%，灯火 +15",
+     "ops": [
+      {
+       "hp_pct": -0.1
+      },
+      {
+       "light": 15
+      }
+     ]
+    },
+    {
+     "label": "上前攀谈",
+     "desc": "源石锭 +6",
+     "ops": [
+      {
+       "ingots": 6
+      }
+     ]
+    }
+   ]
+  },
+  "spark": {
+   "trade": true,
+   "options_v2": [
+    {
+     "label": "冒险去取",
+     "desc": "队长生命 -15%，获得一件主流派藏品",
+     "ops": [
+      {
+       "hp_pct": -0.15
+      },
+      {
+       "relic_lane": {
+        "n": 1
+       }
+      }
+     ]
+    },
+    {
+     "label": "拾取安全区域的物资",
+     "desc": "源石锭 +5",
+     "ops": [
+      {
+       "ingots": 5
+      }
+     ]
+    }
+   ]
+  },
+  "singer": {
+   "trade": true,
+   "options_v2": [
+    {
+     "label": "驻足倾听",
+     "desc": "源石锭 -12，获得一件主流派藏品",
+     "ops": [
+      {
+       "ingots": -12
+      },
+      {
+       "relic_lane": {
+        "n": 1
+       }
+      }
+     ],
+     "cost": 12
+    },
+    {
+     "label": "转身离开",
+     "desc": "先捂住耳朵",
+     "ops": []
+    }
+   ]
+  },
+  "watcher": {
+   "trade": true,
+   "options_v2": [
+    {
+     "label": "冒险帮他回收装备",
+     "desc": "队长生命 -15%，获得一件主流派稀有藏品",
+     "ops": [
+      {
+       "hp_pct": -0.15
+      },
+      {
+       "relic_lane": {
+        "n": 1,
+        "rarity": "稀有"
+       }
+      }
+     ]
+    },
+    {
+     "label": "打听观潮的结果",
+     "desc": "队长最大生命 +3%",
+     "ops": [
+      {
+       "maxhp_pct": 0.03
+      }
+     ]
+    },
+    {
+     "label": "离开",
+     "desc": "这地方太危险了",
+     "ops": []
+    }
+   ]
+  },
+  "meeting": {
+   "trade": true
+  },
+  "legacy": {
+   "trade": true,
+   "options_v2": [
+    {
+     "label": "拿了再说",
+     "desc": "获得一件主流派藏品和一件遭诅藏品",
+     "ops": [
+      {
+       "relic_lane": {
+        "n": 1
+       }
+      },
+      {
+       "curse": 1
+      }
+     ]
+    },
+    {
+     "label": "安全第一",
+     "desc": "获得一件主流派藏品",
+     "ops": [
+      {
+       "relic_lane": {
+        "n": 1
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "survive": {
+   "trade": true
+  },
+  "tinder": {
+   "trade": true
+  }
+ },
+ "events": [
+  {
+   "id": "task",
+   "name": "郁金香的委托",
+   "pool": "common",
+   "v2": true,
+   "trade": true,
+   "lanes": [
+    "A",
+    "D",
+    "E"
+   ],
+   "req": {
+    "before": 480
+   },
+   "src": "原作 rogue_2 scene_ro2_task（三档委托）；限时强敌、击杀数条件为本作拟（docs/173 §4.2）",
+   "text": "终端上有三条新委托，发件人是罗德岛驻伊比利亚的总负责人郁金香。每条末尾都附了一行小字。",
+   "options": [
+    {
+     "label": "点开最棘手的委托",
+     "desc": "接下来 90 秒刷出的敌人生命与伤害 +30%，并来一支精英小队。小队全灭且坚持到时间结束：主流派藏品三选一，源石锭 +15",
+     "ops": [
+      {
+       "threat": {
+        "t": 90,
+        "mult": 0.3,
+        "squad": true,
+        "name": "最棘手的委托",
+        "win": [
+         {
+          "lane_choice": 1
+         },
+         {
+          "ingots": 15
+         }
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "label": "点开稍有挑战性的委托",
+     "desc": "接下来 90 秒刷出的敌人生命与伤害 +20%。坚持到时间结束：整局经验 +15%",
+     "ops": [
+      {
+       "threat": {
+        "t": 90,
+        "mult": 0.2,
+        "name": "稍有挑战性的委托",
+        "win": [
+         {
+          "xp": 0.15
+         }
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "label": "点开看似轻松的委托",
+     "desc": "60 秒内击败 150 名敌人：源石锭 +10",
+     "ops": [
+      {
+       "kills": {
+        "n": 150,
+        "t": 60,
+        "name": "看似轻松的委托",
+        "win": [
+         {
+          "ingots": 10
+         }
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "label": "关闭终端",
+     "desc": "就此离开",
+     "ops": []
+    }
+   ]
+  },
+  {
+   "id": "expedition",
+   "name": "紧急调遣",
+   "pool": "common",
+   "v2": true,
+   "trade": true,
+   "lanes": [
+    "G"
+   ],
+   "req": {
+    "mate": 1,
+    "before": 540
+   },
+   "src": "原作 rogue_2 scene_ro2_expedition（由干员运送 / 委托后勤部门）；归队时间与奖励为本作拟",
+   "text": "一批支援物资送到了最近的安全屋。可以交给后勤部门转运，也可以派一名熟悉周边的干员去接。",
+   "options": [
+    {
+     "label": "由干员运送",
+     "desc": "选一名队友离队 120 秒；归队时该干员精英化一级，并带回一件主流派藏品",
+     "ops": [
+      {
+       "away": {
+        "reward": [
+         {
+          "elite_up": "self"
+         },
+         {
+          "relic_lane": {
+           "n": 1
+          }
+         }
+        ]
+       }
+      }
+     ],
+     "need": {
+      "mate": 1
+     }
+    },
+    {
+     "label": "委托后勤部门",
+     "desc": "源石锭 +8",
+     "ops": [
+      {
+       "ingots": 8
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "vanguard",
+   "name": "先遣小队",
+   "pool": "common",
+   "v2": true,
+   "trade": true,
+   "lanes": [
+    "G"
+   ],
+   "req": {
+    "mate": 1,
+    "after_cross": 1
+   },
+   "src": "原作 rogue_2 scene_ro2_up1（交换情报：获得进阶券）；队友撤离代价与「补给他们」为本作拟",
+   "cg": "",
+   "text": "你找到了最初发出求助信号的罗德岛小队。他们也在探索周边，愿意和你交换情报。",
+   "options": [
+    {
+     "label": "交换情报",
+     "desc": "选一名干员立即精英化一级（已精英二改为两次成长三选一）；再选一名队友随先遣小队撤离，离开编队，之后可再招募",
+     "ops": [
+      {
+       "elite_up": "pick"
+      },
+      {
+       "leave": true
+      }
+     ],
+     "need": {
+      "mate": 1
+     }
+    },
+    {
+     "label": "补给他们",
+     "desc": "源石锭 -10，队长最大生命 +6%",
+     "ops": [
+      {
+       "ingots": -10
+      },
+      {
+       "maxhp_pct": 0.06
+      }
+     ],
+     "cost": 10
+    },
+    {
+     "label": "各自行动",
+     "desc": "就此离开",
+     "ops": []
+    }
+   ]
+  },
+  {
+   "id": "sellout",
+   "name": "变卖身家",
+   "pool": "common",
+   "v2": true,
+   "trade": true,
+   "lanes": [
+    "H"
+   ],
+   "req": {
+    "ingots": 15
+   },
+   "src": "原作 rogue_2 scene_ro2_5（买下这件仪器：消耗所有源石锭 / 试用仪器：消耗 5 目标生命）；主流派为本作拟",
+   "text": "一位阿戈尔人捧着一件监测洋流的仪器，说它是秘宝。他想换一笔钱，去陆上最强大的国家。",
+   "options": [
+    {
+     "label": "买下这件仪器",
+     "desc": "消耗全部源石锭，获得一件主流派核心藏品",
+     "ops": [
+      {
+       "ingots_all": true
+      },
+      {
+       "relic_lane": {
+        "n": 1,
+        "rarity": "核心"
+       }
+      }
+     ]
+    },
+    {
+     "label": "试用仪器",
+     "desc": "队长生命 -25%，获得一件主流派稀有藏品",
+     "ops": [
+      {
+       "hp_pct": -0.25
+      },
+      {
+       "relic_lane": {
+        "n": 1,
+        "rarity": "稀有"
+       }
+      }
+     ]
+    },
+    {
+     "label": "听起来不太可信",
+     "desc": "源石锭 +3",
+     "ops": [
+      {
+       "ingots": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "boxes",
+   "name": "是非黑白",
+   "pool": "common",
+   "v2": true,
+   "trade": true,
+   "src": "原作 rogue_2 scene_ro2_10（剑与铳 / 提灯 / 祈求双手 / 交错密钥四个盒子、不求回报）；盒子到流派的对应为本作拟",
+   "text": "你从恐鱼群里救下一个穿长袍的伊比利亚人。他捧出几只盒子答谢，你分不清他是教徒还是深海教徒。",
+   "options": [
+    {
+     "label": "选择印有剑与铳的盒子",
+     "desc": "获得一件前锋·近战 / 收割·弱点 / 远程·火力藏品",
+     "ops": [
+      {
+       "relic_lane": {
+        "n": 1,
+        "lanes": [
+         "A",
+         "D",
+         "E"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "label": "选择印有提灯的盒子",
+     "desc": "获得一件深蓝·低灯火 / 守护·续航藏品",
+     "ops": [
+      {
+       "relic_lane": {
+        "n": 1,
+        "lanes": [
+         "F",
+         "H"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "label": "选择印有祈求双手的盒子",
+     "desc": "获得一件遭诅藏品，源石锭 +25",
+     "ops": [
+      {
+       "curse": 1
+      },
+      {
+       "ingots": 25
+      }
+     ]
+    },
+    {
+     "label": "选择印有交错密钥的盒子",
+     "desc": "获得一件遭诅藏品和一件主流派稀有藏品",
+     "ops": [
+      {
+       "curse": 1
+      },
+      {
+       "relic_lane": {
+        "n": 1,
+        "rarity": "稀有"
+       }
+      }
+     ]
+    },
+    {
+     "label": "不求回报",
+     "desc": "回复 10% 最大生命",
+     "ops": [
+      {
+       "heal": 0.1
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "shelter",
+   "name": "守望相助",
+   "pool": "common",
+   "v2": true,
+   "trade": true,
+   "req": {
+    "tradeable": 1
+   },
+   "src": "原作 rogue_2 scene_ro2_sacrifice（答应交换 / 委婉拒绝：回复 4 目标生命）；主流派、不降档、只换纯属性藏品为本作拟",
+   "text": "一位阿戈尔人把你带进避难所。窗外大雨，只有他手里的提灯亮着。架上摆着审判庭留下的装备，他愿意拿来换你带的东西。",
+   "options": [
+    {
+     "label": "答应交换",
+     "desc": "交出一件藏品（只能交纯属性藏品），从主流派亮出三件稀有度不低于它的藏品，选一件",
+     "ops": [
+      {
+       "trade": true
+      }
+     ],
+     "need": {
+      "tradeable": 1
+     }
+    },
+    {
+     "label": "委婉拒绝",
+     "desc": "回复 20% 最大生命",
+     "ops": [
+      {
+       "heal": 0.2
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "craft",
+   "name": "传统技术",
+   "pool": "common",
+   "v2": true,
+   "trade": true,
+   "lanes": [
+    "A",
+    "E"
+   ],
+   "src": "原作 rogue_2 scene_ro2_4（看向巨锤 / 看向长矛 / 不做选择）；锤 = 近战、矛 = 远程与「两件都要」为本作拟",
+   "text": "溶洞里，一位老工匠在保养两把比他还高的武器。他说阿戈尔已经没有猎人了，让你挑一把。",
+   "options": [
+    {
+     "label": "看向巨锤",
+     "desc": "获得一件前锋·近战核心藏品",
+     "ops": [
+      {
+       "relic_lane": {
+        "n": 1,
+        "rarity": "核心",
+        "lanes": [
+         "A"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "label": "看向长矛",
+     "desc": "获得一件远程·火力核心藏品",
+     "ops": [
+      {
+       "relic_lane": {
+        "n": 1,
+        "rarity": "核心",
+        "lanes": [
+         "E"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "label": "两件都要",
+     "desc": "队长最大生命 -12%，两件都拿",
+     "ops": [
+      {
+       "maxhp_pct": -0.12
+      },
+      {
+       "relic_lane": {
+        "n": 1,
+        "rarity": "核心",
+        "lanes": [
+         "A"
+        ]
+       }
+      },
+      {
+       "relic_lane": {
+        "n": 1,
+        "rarity": "核心",
+        "lanes": [
+         "E"
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "label": "不做选择",
+     "desc": "源石锭 +5",
+     "ops": [
+      {
+       "ingots": 5
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "flame",
+   "name": "敬奉火焰",
+   "pool": "common",
+   "v2": true,
+   "trade": true,
+   "lanes": [
+    "C"
+   ],
+   "cg": "tinder",
+   "src": "原作 rogue_2 scene_ro2_san1（四个选项名与收藏品 / 麻烦 / 15 灯火 / 艰难的战斗）；精英化与最大生命代价、「麻烦」折成下一路口的紧急作战为本作拟",
+   "text": "一队伊比利亚教士抬着火炉走过，炉里钉着一只还在扭动的恐鱼。为首的教士说，火焰能杀死所有海嗣。",
+   "options": [
+    {
+     "label": "为受苦的干员请求火焰",
+     "desc": "选一名干员立即精英化一级，队长最大生命 -10%",
+     "ops": [
+      {
+       "maxhp_pct": -0.1
+      },
+      {
+       "elite_up": "pick"
+      }
+     ]
+    },
+    {
+     "label": "火焰拯救不了这片大地",
+     "desc": "下一个路口必出一张紧急作战，小队全灭掉两个宝箱",
+     "ops": [
+      {
+       "trouble": true
+      }
+     ],
+     "need": {
+      "later": 1
+     }
+    },
+    {
+     "label": "应付了事",
+     "desc": "灯火 +15",
+     "ops": [
+      {
+       "light": 15
+      }
+     ]
+    },
+    {
+     "label": "进入战斗",
+     "desc": "立即来一支精英小队，全灭得主流派藏品三选一",
+     "ops": [
+      {
+       "squad_now": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "wish_v2",
+   "name": "消失的习俗",
+   "pool": "card",
+   "v2": true,
+   "cg": "wish",
+   "src": "原作 rogue_2 scene_ro2_wish（得偿所愿节点事件名）；「再拿一件」为本作拟",
+   "text": "桌上摆着几件没人认领的东西。旧习俗说，路过的人可以带走一件。",
+   "options": [
+    {
+     "label": "带走一件",
+     "desc": "主流派藏品三选一（稀有 / 核心加权）",
+     "ops": [
+      {
+       "lane_choice": 1,
+       "rare": true
+      }
+     ]
+    },
+    {
+     "label": "再拿一件",
+     "desc": "队长生命 -20%，主流派藏品三选一两次",
+     "ops": [
+      {
+       "hp_pct": -0.2
+      },
+      {
+       "lane_choice": 2,
+       "rare": true
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "penance",
+   "name": "苦路",
+   "pool": "common",
+   "v2": true,
+   "trade": true,
+   "repeat": true,
+   "lanes": [
+    "H"
+   ],
+   "src": "原作 rogue_2 scene_ro2_7（四项劳作各消耗 2 目标生命）；钥匙项删去、可连选为本作拟",
+   "text": "审判庭把苦修仪式和重体力活绑在了一起，完成的人能领到奖赏。来报名的人不少，走完的没几个。",
+   "options": [
+    {
+     "label": "从搬运食物开始",
+     "desc": "队长生命 -12%，源石锭 +6",
+     "ops": [
+      {
+       "hp_pct": -0.12
+      },
+      {
+       "ingots": 6
+      }
+     ]
+    },
+    {
+     "label": "田间农活",
+     "desc": "队长生命 -12%，队长最大生命 +4%",
+     "ops": [
+      {
+       "hp_pct": -0.12
+      },
+      {
+       "maxhp_pct": 0.04
+      }
+     ]
+    },
+    {
+     "label": "将石料与燃料运上瞭望塔",
+     "desc": "队长生命 -12%，获得一件主流派藏品",
+     "ops": [
+      {
+       "hp_pct": -0.12
+      },
+      {
+       "relic_lane": {
+        "n": 1
+       }
+      }
+     ]
+    },
+    {
+     "label": "提前离开",
+     "desc": "还是算了",
+     "ops": [],
+     "end": true
+    }
+   ]
+  },
+  {
+   "id": "dream",
+   "name": "梦中之会",
+   "pool": "common",
+   "v2": true,
+   "trade": true,
+   "repeat": true,
+   "max_picks": 3,
+   "lanes": [
+    "C",
+    "H"
+   ],
+   "src": "原作 rogue_2 scene_ro2_exchange（消耗源石锭 / 希望 / 目标生命换上限、护盾值、掷骰，可重复）；技力回复一项替原作掷骰，为本作拟",
+   "text": "迷雾把你送进一艘沉船的残骸。舱顶上站着一群同胞，它们在交谈，你听得出每个声音都不一样。",
+   "options": [
+    {
+     "label": "分辨它们的发声方式",
+     "desc": "源石锭 -10，队长最大生命 +8%",
+     "ops": [
+      {
+       "ingots": -10
+      },
+      {
+       "maxhp_pct": 0.08
+      }
+     ],
+     "cost": 10
+    },
+    {
+     "label": "观察它们的形貌",
+     "desc": "队长最大生命 -5%，护盾层数 +2",
+     "ops": [
+      {
+       "maxhp_pct": -0.05
+      },
+      {
+       "shield": 2
+      }
+     ]
+    },
+    {
+     "label": "尝试加入它们的交流",
+     "desc": "队长生命 -20%，全队技力回复 +8%",
+     "ops": [
+      {
+       "hp_pct": -0.2
+      },
+      {
+       "sp_gain": 0.08
+      }
+     ]
+    },
+    {
+     "label": "直接醒来",
+     "desc": "梦境不是现实",
+     "ops": [],
+     "end": true
+    }
+   ]
+  },
+  {
+   "id": "feeding",
+   "name": "设身处地",
+   "pool": "common",
+   "v2": true,
+   "trade": true,
+   "src": "原作 rogue_2 scene_ro2_8（准备食物：消耗 2 目标生命，再选喂哪一种）；钥匙项与「再喂喂看」删去",
+   "text": "你混进了一处深海教徒的聚居地。恐鱼和人在这里相安无事，前提是食物管够，也没人露出敌意。",
+   "options": [
+    {
+     "label": "准备食物",
+     "desc": "队长生命 -10%，再选喂哪一种",
+     "ops": [
+      {
+       "hp_pct": -0.1
+      }
+     ],
+     "next": "feeding_2"
+    },
+    {
+     "label": "还是赶紧离开吧",
+     "desc": "源石锭 +3",
+     "ops": [
+      {
+       "ingots": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "feeding_2",
+   "name": "设身处地",
+   "pool": "card",
+   "v2": true,
+   "cg": "feeding",
+   "src": "原作 rogue_2 scene_ro2_8 第二屏",
+   "text": "食物备好了。水池边、浅滩上、洞穴深处，都有东西在等。",
+   "options": [
+    {
+     "label": "喂食底海滑动者",
+     "desc": "灯火 +20",
+     "ops": [
+      {
+       "light": 20
+      }
+     ]
+    },
+    {
+     "label": "喂食水池边的溟痕",
+     "desc": "队长最大生命 +4%",
+     "ops": [
+      {
+       "maxhp_pct": 0.04
+      }
+     ]
+    },
+    {
+     "label": "喂食投嗣育母",
+     "desc": "招募一名干员（从随机两个职业里选）",
+     "ops": [
+      {
+       "recruit_pick": 2
+      }
+     ],
+     "need": {
+      "room": 1
+     }
+    }
+   ]
+  },
+  {
+   "id": "homecoming",
+   "name": "重返家园",
+   "pool": "common",
+   "v2": true,
+   "trade": true,
+   "lanes": [
+    "G"
+   ],
+   "req": {
+    "room": 1
+   },
+   "src": "原作 rogue_2 scene_ro2_recruit1（消耗 2 源石锭招募 2 职业选 1 / 消耗 5 源石锭招募任意一名 / 信仰见证）",
+   "text": "寻找信使驿站时，你遇到一位要回伊比利亚的教士。他愿意帮你联络当地的干员，但只负责联络。",
+   "options": [
+    {
+     "label": "意思意思",
+     "desc": "源石锭 -5，招募一名干员（从随机两个职业里选）",
+     "ops": [
+      {
+       "ingots": -5
+      },
+      {
+       "recruit_pick": 2
+      }
+     ],
+     "cost": 5,
+     "need": {
+      "room": 1
+     }
+    },
+    {
+     "label": "重金酬谢",
+     "desc": "源石锭 -15，招募任意一名干员",
+     "ops": [
+      {
+       "ingots": -15
+      },
+      {
+       "recruit_pick": 0
+      }
+     ],
+     "cost": 15,
+     "need": {
+      "room": 1
+     }
+    },
+    {
+     "label": "信仰见证",
+     "desc": "源石锭 +3",
+     "ops": [
+      {
+       "ingots": 3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "scholar",
+   "name": "海嗣学者",
+   "pool": "common",
+   "v2": true,
+   "trade": true,
+   "lanes": [
+    "B"
+   ],
+   "src": "原作 rogue_2 scene_ro2_trade3（要不试试：获得一件随机收藏品，但可能不是什么好东西）；稀有度与 50% 为本作拟",
+   "text": "一位老阿戈尔人在用恐鱼的尸体做装备。他说自己待过研究海嗣的科学院，现在只想让研究派上用场。",
+   "options": [
+    {
+     "label": "要不试试",
+     "desc": "获得一件主流派稀有藏品；50% 同时获得一件遭诅藏品",
+     "ops": [
+      {
+       "relic_lane": {
+        "n": 1,
+        "rarity": "稀有"
+       }
+      },
+      {
+       "chance": 0.5,
+       "curse": 1
+      }
+     ]
+    },
+    {
+     "label": "还是算了",
+     "desc": "源石锭 +3",
+     "ops": [
+      {
+       "ingots": 3
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

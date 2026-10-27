@@ -104,6 +104,7 @@ func _process(_dt: float) -> void:
 	# 翻节点卡（docs/154）：还没翻的路口各留 1 格给结局线信物
 	game.endg.enabled = true
 	game.endg._checked = true
+	game.endg.lines_on = true   # 结局线入口开（docs/173：改版后翻卡一直开，结局线另算）
 	check(game.endg.reserved_relic_slots() == 2, "two crossroads reserve one route slot each")
 	for r in ordinary:
 		game.progression.gain_relic(r.id)

@@ -470,6 +470,8 @@ func status_items() -> Array:
 		items.append(it if it.size() >= 3 else [it[0], it[1], -1.0])
 	if g.shield > 0:
 		items.append(["护盾 ×%d" % g.shield, Color(0.6, 0.9, 1.0), -1.0])
+	if g.endg != null:
+		items.append_array(g.endg.status_items())   # 事件改版：委托倒计时、暂离队友（docs/173）
 	var rush_t: String = g.squad.rush_text() if g.squad != null else ""
 	if rush_t != "":
 		items.append(["突击 · 队友" + rush_t, Color(1.0, 0.82, 0.3), g.squad.stamina if g.squad.stamina_on() else -1.0])

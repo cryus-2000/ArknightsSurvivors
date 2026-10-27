@@ -161,6 +161,8 @@ static func draw_card(ci: CanvasItem, size: Vector2, c: Dictionary, st: Dictiona
 		_face(ci, r, c, st, font, serif, col, reveal, flip_age)
 	else:
 		_back(ci, r, c, st, font, serif, col, t, now, a)
+		if c.get("trade", false):
+			_cost_tag(ci, r, font, a)
 	ci.draw_set_transform_matrix(Transform2D.IDENTITY)
 	# 翻转中线闪光（不随卡片压扁）：竖亮线 + 两侧台阶光
 	if fl == i and not rm and flip_age > LIFT_T and flip_age < LIFT_T + FLIP_T:
@@ -305,6 +307,18 @@ static func _dash(ci: CanvasItem, a: Vector2, b: Vector2, col: Color, clip: Rect
 
 ## 结局色边：2 格粗的色框（两色时左右各半）+ 一段沿框跑动的亮白高光 + 顶边中央罗马数字徽记
 ## 不期而遇卡背（C 版）：精修底纹 + 细银边（左上受光、右下回暗）+ 白色节点图标 + 名字；结局入口在卡底放信物提示
+## 交易卡角标（docs/173 §2.1）：卡背右上角红色台阶三角 +「代价」，翻开前就知道这张要付东西
+static func _cost_tag(ci: CanvasItem, r: Rect2, font: Font, a: float) -> void:
+	var tr := Vector2(r.end.x - 2.0, r.position.y + 2.0)
+	var red := Color(0.86, 0.32, 0.38, 0.95 * a)
+	var w := 56.0
+	var k := 0.0
+	while k < w:
+		ci.draw_rect(Rect2(tr.x - w + k, tr.y + k, w - k, P), red)
+		k += P
+	UI.ctext(ci, font, Vector2(tr.x - 34.0, tr.y + 4.0), "代价", 12, Color(0.05, 0.06, 0.08, a), HORIZONTAL_ALIGNMENT_CENTER, 32.0)
+
+
 static func _back_incident(ci: CanvasItem, r: Rect2, st: Dictionary, font: Font, serif: Font, now: float, a: float) -> void:
 	var hot: bool = st.hot
 	ci.draw_rect(r, Color(0.025, 0.04, 0.06, a))
