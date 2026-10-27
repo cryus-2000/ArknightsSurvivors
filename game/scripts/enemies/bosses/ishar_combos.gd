@@ -52,7 +52,7 @@ func step(e: Dictionary, dir: Vector2, dist: float, ready: bool) -> void:
 		if _broken(e):
 			cancel(e)
 			return
-		var gap: float = 0.22 if act_of(e) == 2 else 0.32
+		var gap: float = 0.22 if act_of(e) == 2 else Bal.v("boss/ishar_combo_gap", 0.26)   # 10-28：一二幕 0.32 → 0.26，衔接更紧
 		if not ready or _pending(e):
 			e.card_next = maxf(float(e.card_next), g.t + gap)
 			return
@@ -292,7 +292,7 @@ func _shot(e: Dictionary, own: int, p: Vector2, ang: float, spd: float, r: float
 func _shot_ref(e: Dictionary, own: int, p: Vector2, ang: float, spd: float, r: float, mult: float, kind: String, life := 6.5):
 	if own >= OWN_CAP:
 		return null
-	var b := {"pos": p, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * mult, "r": r, "life": life,
+	var b := {"pos": p, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * mult * Bal.v("boss/ishar_shot_mult", 1.2), "r": r, "life": life,
 		"slow": false, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "true": true, "kind": kind, "home": false, "boss": true,
 		"atk": "法术", "hit_cap": e.get("hit_cap", 0.0), "source_id": e.id, "col": COL, "src_type": "ishar"}
 	g.ebullets.append(b)
@@ -432,7 +432,7 @@ func _fade_fx(w: Dictionary) -> void:
 
 
 ## 歌声涟漪（非弹幕，取材她的歌声笼罩战场）：主控脚下、移动方向前方 200、再前方偏侧各一处 r105 的涟漪区，1.3 秒预警后
-## 结算一次 e.dmg × 0.35，之后留 3 秒：站在里面每 0.5 秒 e.dmg × 0.12 并减速（移速 × 0.75）。逼主控换方向走，不追人。
+## 结算一次 e.dmg × 0.35，之后留 boss/ishar_zone_linger（4）秒：站在里面每 0.5 秒 e.dmg × boss/ishar_zone_tick（0.16） 并减速（移速 × 0.75）。逼主控换方向走，不追人。
 func _song_zones(e: Dictionary) -> void:
 	var p0: Vector2 = g.combat.arena_clamp(g.ppos, 90.0)
 	var fwd: Vector2 = g.pvel.normalized() if g.pvel.length() > 20.0 else (g.ppos - e.pos).normalized().orthogonal()
@@ -443,7 +443,7 @@ func _song_zones(e: Dictionary) -> void:
 			"name": "歌声涟漪" if k == 0 else "", "col": COL, "dmg": e.dmg * 0.35, "cancel_dead": true, "lock": k == 0})
 		if not e.has("ishar_zones"):
 			e.ishar_zones = []
-		e.ishar_zones.append({"pos": p, "r": 105.0, "born": g.t + w.dur, "until": g.t + w.dur + 3.0, "next": g.t + w.dur + 0.5, "w": w})
+		e.ishar_zones.append({"pos": p, "r": 105.0, "born": g.t + w.dur, "until": g.t + w.dur + Bal.v("boss/ishar_zone_linger", 4.0), "next": g.t + w.dur + 0.5, "w": w})
 	e.wind = maxf(e.wind, 1.8)
 	e.cdt = maxf(e.cdt, 1.8)
 
@@ -464,6 +464,6 @@ func _zone_step(e: Dictionary) -> void:
 			g.combat.slow_leader("ishar_song", 0.6, 0.75)
 			if g.invuln <= 0.0:
 				var hd: Dictionary = z.w.duplicate()
-				hd.dmg = e.dmg * 0.12
+				hd.dmg = e.dmg * Bal.v("boss/ishar_zone_tick", 0.16)
 				g.tele.warn_damage(hd)
 	e.ishar_zones = keep

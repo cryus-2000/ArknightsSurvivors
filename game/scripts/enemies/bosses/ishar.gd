@@ -213,6 +213,8 @@ func transform_ishar(e: Dictionary) -> void:
 	Sfx.play_cue("phase", e.type, "start")
 	e.phase = 2
 	e.friendly = false
+	e.ishar_p1 = false
+	e.act_top = e.hp / maxf(1.0, e.maxhp)   # 连线回血的上限 = 本幕起点（_web_heal）
 	e.invuln = false   # 0.9 秒变身免伤由 combat 的 transform_until 护栏控制，不留永久无敌。
 	e.ai = "melee"   # 接近主控，但伤害只从有预警的轮转招式结算。
 	e["ishar_cycle"] = 0
@@ -298,6 +300,7 @@ func _web_step(e: Dictionary, dt: float) -> void:
 	e.web = slots
 	e.web_n = live
 	e.web_cap = cap
+	_web_heal(e, dt, live)
 	# 召唤合唱：从场边叫来最多 3 只，补进空位（第一次在变身后 1 秒）
 	if not e.has("choir_next"):
 		e.choir_next = g.t + 1.0
@@ -328,8 +331,31 @@ func _web_mob(e: Dictionary, pos: Vector2, i: int) -> Dictionary:
 	o.extra_next = INF
 	o.web_of = e
 	o.part = true
+	o.shield_hp = float(o.get("shield_hp", 0.0)) + o.maxhp * Bal.v("boss/ishar_web_shield", 0.4)   # 连线护盾（10-28）：拆网要多打一层
 	g.enemies_sys.part_add(o)
 	return o
+
+
+## 网的持续回复（10-28 协调人「伤害做成持续压迫…破网海嗣治疗与护盾」）：每只连线海嗣每秒回她 maxhp × boss/ishar_web_heal，
+## 不超过本幕起点 e.act_top（过卡点 / 变身时记），不回到已过的卡点之上。每 1.5 秒飘一次合计数字 + 一条回复连线。拆网 = 停回血。
+func _web_heal(e: Dictionary, dt: float, live: int) -> void:
+	var rate: float = Bal.v("boss/ishar_web_heal", 0.0003)
+	if live <= 0 or rate <= 0.0 or e.dead:
+		return
+	var top: float = e.maxhp * float(e.get("act_top", 1.0))
+	var add: float = minf(e.maxhp * rate * live * dt, maxf(0.0, top - e.hp))
+	if add <= 0.0:
+		return
+	e.hp += add
+	e.web_heal_acc = float(e.get("web_heal_acc", 0.0)) + add
+	if g.t >= float(e.get("web_heal_next", 0.0)):
+		e.web_heal_next = g.t + 1.5
+		g.vfx.add_text(e.pos + Vector2(0, -e.r - 20.0), "+%d" % roundi(float(e.web_heal_acc)), COL, 13)
+		e.web_heal_acc = 0.0
+		for sl in e.get("web", []):
+			if sl.o != null and not sl.o.dead:
+				g.fx.append({"kind": "tide_link", "a": sl.o.pos, "b": e.pos, "life": 0.5, "max": 0.5, "col": COL, "enemy": true})
+				break
 
 
 func _unlink(o: Dictionary) -> void:
@@ -433,6 +459,7 @@ func taken_mult(e: Dictionary) -> float:
 func on_gate(e: Dictionary) -> void:
 	if e.phase != 2:
 		return
+	e.act_top = e.hp / maxf(1.0, e.maxhp)
 	if cards_on():
 		cards().on_gate(e)   # 转幕清掉未出的段，下一组按新幕选
 	if int(e.get("gates_passed", 0)) == 1:
@@ -458,3 +485,9 @@ func on_kill(e: Dictionary) -> void:
 ## 变身动画保护（transform_until，0.9 秒）：独立计时，结束后无需清理永久无敌标记
 func block_damage(e: Dictionary) -> bool:
 	return g.t < float(e.get("transform_until", 0.0))
+
+
+## 人形可受伤（boss/ishar_p1_hit）：一阶段最多打到 boss/ishar_p1_line 血线，越线的部分截回，下一帧 IsharEncounter 转化
+func on_damaged(e: Dictionary, _dmg: float, _eff: float) -> void:
+	if e.get("ishar_p1", false) and e.phase == 1:
+		e.hp = maxf(e.hp, e.maxhp * Bal.v("boss/ishar_p1_line", 0.85))

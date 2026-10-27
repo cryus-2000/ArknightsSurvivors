@@ -172,6 +172,31 @@ func _ready() -> void:
 	e.gates_passed = 1
 	g.bai.boss("ishar").on_gate(e)
 	check(not e.card_live and e.card_q.is_empty(), "act change clears the queued segments")
+	# 7. 10-28 拉长：人形可受伤、打到血线截住并转化；连线回血不超过本幕起点；连线海嗣带护盾
+	var Bal = preload("res://scripts/core/balance.gd")
+	g.enemies.clear()
+	g.warns.clear()
+	var p1: Dictionary = g.spawner.spawn_enemy("ishar", Vector2(100, 0))
+	check(p1.ishar_p1 and not p1.friendly and not p1.invuln, "human form is damageable when boss/ishar_p1_hit is on")
+	g.ishar.step_ally(p1, 0.01)
+	g.combat.hit("真实")
+	for i in 40:
+		g.combat.damage(p1, p1.maxhp * 0.03)
+	var line: float = p1.maxhp * Bal.v("boss/ishar_p1_line", 0.85)
+	check(p1.phase == 1 and is_equal_approx(p1.hp, line), "human-form damage stops at the transform line (%.0f / %.0f)" % [p1.hp, line])
+	g.ishar.step_ally(p1, 0.01)
+	check(p1.phase == 2 and not p1.ishar_p1 and is_equal_approx(p1.act_top, Bal.v("boss/ishar_p1_line", 0.85)), "reaching the line transforms early")
+	e = fresh(0)
+	e.act_top = 0.9
+	e.hp = e.maxhp * 0.8
+	var h0: float = e.hp
+	tick_n(e, int(1.0 / DT))
+	check(e.hp > h0, "linked sea-born heal her over time")
+	e.hp = e.maxhp * 0.8995
+	tick_n(e, int(2.0 / DT))
+	check(e.hp <= e.maxhp * 0.9 + 0.01, "web healing never rises above the act start")
+	var wm: Dictionary = g.bai.boss("ishar")._web_mob(e, Vector2(200, 0), 0)
+	check(float(wm.shield_hp) >= wm.maxhp * Bal.v("boss/ishar_web_shield", 0.4) - 0.01, "linked sea-born carry a shield")
 	# 6. 同输入复现
 	var a: Array = trace()
 	var b: Array = trace()
