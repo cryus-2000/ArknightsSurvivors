@@ -10,10 +10,10 @@
 "--trace=1",
 "--sptest"
 ],
-"own": "aab341caf4bacc6fa4559db56b4bc5e88bbc287a5b8e143fb0b752318d4db26a",
-"other": "d943dee13ae96d591f39304d9c69f325d920b7fc5fcfc76a5cb546c6b9076241",
-"commit": "df3b6d14",
-"time": "2026-10-26 04:36:58",
+"own": "548c3db6cff5dbf935d2b9ef31d8c3fe70a6fa5a882c53efef427d0cd1af5639",
+"other": "e1e44e9a2062e24bb7ec3bca265093be028658180479b7bdb0af7a72bd6f349a",
+"commit": "b09917e0",
+"time": "2026-10-27 07:22:59",
 "trace": [
 "TRACE t=0.00 lv=1 k=0 hp=117.00 n=0 rng=1254182217022189551/-3354552597471257016/1304877216402051367/7096428374354212531/6495007508610584553 pos=0.00,0.00 h=0.000",
 "TRACE t=1.06 lv=1 k=0 hp=117.00 n=0 rng=1254182217022189551/-3354552597471257016/1304877216402051367/7096428374354212531/6495007508610584553 pos=158.40,0.00 h=0.000",
@@ -306,6 +306,10 @@
 },
 "kills": 39,
 "lamp": 96,
+"levelup_t": [
+12,
+33
+],
 "low_levelups": 0,
 "lv": 3,
 "lv_times": [
@@ -343,6 +347,7 @@
 },
 "recall_backstop": 0,
 "recall_n": 0,
+"recruit_offers": [],
 "rej": {},
 "relic_offer": [],
 "relic_out": 0.0,
