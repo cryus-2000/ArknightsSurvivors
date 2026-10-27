@@ -31,6 +31,8 @@ static func draw(g, impacts := false) -> void:
 			if b.type != "knight_boss": continue
 			if b.get("kb_self", false): Grains.dash_frost(g, b)
 			_dash_frost(g, b)
+		for e in g.bosses:
+			if e.type == "izumik" and not e.dead and int(e.get("phase", 1)) == 2: IzumikDraw.arena(g,e)   # 伊祖米克分幕场地（docs/170 §16）
 	for w in g.warns:
 		if w.act == "izu_wave" and not w.done and not impacts and g.optical_on:
 			IzumikDraw.field_warning(g,w)   # 伊祖米克全场预警（docs/170）
@@ -214,13 +216,13 @@ static func _shape(g, w: Dictionary, alpha: float, warning: bool) -> void:
 		_warning(g,w,alpha)
 		if w.get("skin","") == "current":   # 伊祖米克海流牵引：向心流线（docs/170）
 			IzumikDraw.current_warning(g,w)
-		if w.get("skin","") == "tentacle" and w.shape == "cone":   # 伊祖米克护群触腕：出土点鼓包（docs/170）
+		if w.get("skin","") == "tentacle" and w.shape in ["cone", "circle"]:   # 伊祖米克护群触腕：出土点鼓包（docs/170）
 			IzumikDraw.tentacle_warning(g,w,clampf(float(w.get("t",0.0))/maxf(0.01,float(w.dur)),0,1))
 	elif w.get("skin","") == "current":
 		IzumikDraw.current_burst(g,w)
 	elif w.get("skin","") == "tide":
 		IzumikDraw.tide_wall(g,w,alpha)
-	elif w.get("skin","") == "tentacle" and w.shape == "cone" and w.has("max"):
+	elif w.get("skin","") == "tentacle" and w.shape in ["cone", "circle"] and w.has("max"):
 		IzumikDraw.tentacles(g,w)
 	elif w.get("skin", "") == "bubble":
 		Bubble.shadow(g.world,w,alpha)

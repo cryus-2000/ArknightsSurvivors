@@ -1783,7 +1783,7 @@ func _eb_mod(b: Dictionary, base: Color) -> Color:
 	if b.has("bcol"):
 		return b.bcol   # 弹自带弹芯色（伊莎玛拉按幕换色，docs/170 §15）
 	var t: String = str(b.get("src_type", ""))
-	var c: Color = D.ENEMIES.get(t, {}).get("bcol_core", g.vfx.boss_color(t))   # 有弹芯色（伊比利亚）用弹芯色
+	var c: Color = b.own_col if b.has("own_col") else D.ENEMIES.get(t, {}).get("bcol_core", g.vfx.boss_color(t))   # 有弹芯色（伊比利亚）用弹芯色；own_col = 弹自带专属色（伊祖米克分幕，docs/170 §16）
 	return Color(c.r * 1.1, c.g * 1.1, c.b * 1.1)
 
 
