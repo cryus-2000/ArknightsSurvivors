@@ -20,6 +20,7 @@ static func draw_top(g, e: Dictionary) -> void:
 	var blink: bool = int(g.t * 10.0) % 2 == 0
 	var tw = g.world   # 泡膜走无贴图批（world.tb_*），一百颗弹也只提交一次
 	var skin: bool = Bal.v("render/paranoia_bubble_skin", 1.0) > 0.0   # 0 = 不画泡膜（帧时对照）
+	var p2_look: bool = e.phase == 2
 	for b in e.get("pc_buls", []):
 		if b.life <= 0.0 or not skin:
 			continue
@@ -30,6 +31,13 @@ static func draw_top(g, e: Dictionary) -> void:
 			rr += 3.0
 		# 泡膜：极淡内填 + 2 像素淡紫膜 + 左上一道白高光；1 倍画面下要能看出是泡
 		# 10-27 用户「泡泡颜色明显一点，太透明」：内填 0.1→0.3、膜 0.7→0.95 加粗到 2.5、内侧再一圈淡色厚膜
+		if p2_look:
+			# 二阶段「囊泡」（用户 10-28「不同阶段做出不同风格」）：暗洋红紫内填、双层膜、中心一颗亮核，没有白高光
+			tw.tb_circle(p2, rr, Color(0.32, 0.05, 0.4, 0.55))
+			tw.tb_ring(p2, rr, 2.5, Color(0.95, 0.35, 0.9, 1.0 if held and blink else 0.95))
+			tw.tb_ring(p2, rr - 4.0, 1.5, Color(0.75, 0.25, 0.85, 0.8))
+			tw.tb_circle(p2, 2.5, Color(1.0, 0.8, 1.0, 0.95))
+			continue
 		# 10-27 用户「换成紫色泡泡」：淡紫 → 饱和紫（高光仍白）
 		tw.tb_circle(p2, rr, Color(0.58, 0.2, 0.95, 0.34))
 		tw.tb_ring(p2, rr - 2.0, 3.0, Color(0.66, 0.26, 1.0, 0.4))
@@ -149,6 +157,18 @@ static func draw_ground(g, e: Dictionary) -> void:
 	if e.phase == 2 and float(e.get("cocoon_t", 0.0)) <= 0.0:
 		for q in 3:
 			g.draw_circle(e.pos, 900.0 - q * 260.0, Color(0.06, 0.0, 0.1, 0.09))
+		# 场地：从她脚下放射的 9 道暗紫裂纹（形状由序号决定、不随机），缓慢明灭；二阶段独有
+		var pulse: float = 0.5 + 0.5 * sin(g.t * 1.6)
+		for q in 9:
+			var a: float = TAU * q / 9.0 + 0.3
+			var pts := PackedVector2Array([e.pos])
+			var p: Vector2 = e.pos
+			for k in 7:
+				var aa: float = a + 0.35 * sin(q * 2.7 + k * 1.9)
+				p += Vector2(cos(aa), sin(aa) * 0.55) * 70.0
+				pts.append(p)
+			g.draw_polyline(pts, Color(0.55, 0.12, 0.65, 0.25 + 0.2 * pulse), 4.0)
+			g.draw_polyline(pts, Color(0.95, 0.45, 1.0, 0.18 + 0.22 * pulse), 1.5)
 	_rush_lanes(g, e)
 	for w in g.warns:
 		if w.done or not is_same(w.owner, e):
