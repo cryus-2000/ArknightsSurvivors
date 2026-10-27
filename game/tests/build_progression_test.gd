@@ -349,7 +349,7 @@ func test_focus_guard() -> void:
 	Bal._data["levelup"]["catchup"] = cu
 
 
-## 精英化落后补偿（docs/172）：权重按落后阶段 ×catchup_mult^gap 封顶；排序只重排不加卡；保底让给落后 ≥ catchup_focus_gap 的队友；关 = 旧行为
+## 精英化落后补偿（docs/173）：权重按落后阶段 ×catchup_mult^gap 封顶；排序只重排不加卡；保底让给落后 ≥ catchup_focus_gap 的队友；关 = 旧行为
 func test_catchup() -> void:
 	var P = game.progression
 	var cu = Bal._data["levelup"].get("catchup", 1)
@@ -372,7 +372,7 @@ func test_catchup() -> void:
 	var n0 := deep.size()
 	var ord: Array = P.catchup_order(deep.duplicate())
 	ok(ord.size() == n0, "加权排序不增减卡（%d → %d）" % [n0, ord.size()])
-	ok(P.catchup_focus(deep, "texas") == "eyjafjalla", "最近培养对象领先最落后者 ≥ 3 节点：保底让给最落后的艾雅法拉")
+	ok(P.catchup_focus(deep, "texas") == "eyjafjalla", "最近培养对象领先最落后者 ≥ catchup_focus_gap 节点：保底让给最落后的艾雅法拉")
 	ok(P.catchup_focus(deep, "hoshiguma") == "hoshiguma", "最近培养对象本身不领先：保底不变")
 	# 统计：多次升级里第一深度位的归属，落后者应多于领先者
 	var first := {}
