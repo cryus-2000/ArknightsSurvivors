@@ -58,7 +58,7 @@ func _ready() -> void:
 		g.t += DT
 		cards._emit_step(e)
 	var notes: int = g.ebullets.filter(func(b): return b.kind == "ishar_note").size()
-	check(notes == 10 * 6, "killed source cancels its rings (%d notes)" % notes)
+	check(notes == 9 * 6, "killed source cancels its rings (%d notes)" % notes)
 	# 无网：本体两圈
 	e = fresh(0)
 	for sl in e.web:
@@ -73,11 +73,36 @@ func _ready() -> void:
 	var nearest := INF
 	for b in g.ebullets:
 		nearest = minf(nearest, absf(angle_difference(b.vel.angle(), aim)))
-	check(g.ebullets.size() == 10 and nearest > 0.15, "first ring leaves the player's line between two bullets (%.2f)" % nearest)
+	check(g.ebullets.size() == 9 and nearest > 0.4, "first ring leaves the player's line between two bullets (%.2f)" % nearest)
 	for i in 42:
 		g.t += DT
 		cards._emit_step(e)
-	check(g.ebullets.size() == 20, "empty web falls back to two body rings (%d)" % g.ebullets.size())
+	check(g.ebullets.size() == 18, "empty web falls back to two body rings (%d)" % g.ebullets.size())
+	# 2b. 缺口按幕递进：二幕缺口每圈转动；三幕先停后射；第三次环颂最后一圈是整墙
+	e = fresh(1)
+	for sl in e.web:
+		if sl.o != null: sl.o.dead = true
+	g.ebullets.clear()
+	cards.play(e, "合唱环颂", Vector2.RIGHT, 300.0)
+	check(e.ishar_emits.size() == 2 and not is_equal_approx(float(e.ishar_emits[0].gc), float(e.ishar_emits[1].gc)), "act two gap rotates between rings")
+	e = fresh(2)
+	for sl in e.web:
+		if sl.o != null: sl.o.dead = true
+	g.ebullets.clear()
+	cards.play(e, "合唱环颂", Vector2.RIGHT, 300.0)
+	for i in 18:
+		g.t += DT
+		cards._emit_step(e)
+	check(g.ebullets.size() == 13 and g.ebullets.all(func(b): return b.vel == Vector2.ZERO), "act three ring hangs before firing (%d)" % g.ebullets.size())
+	for i in 14:
+		g.t += DT
+		cards._emit_step(e)
+	check(g.ebullets.all(func(b): return b.vel.length() > 90.0), "held ring releases together")
+	e.ishar_emits.clear()
+	cards.play(e, "合唱环颂", Vector2.RIGHT, 300.0)
+	e.ishar_emits.clear()
+	cards.play(e, "合唱环颂", Vector2.RIGHT, 300.0)
+	check(int(e.ishar_emits[-1].n) == 20 and int(e.ishar_emits[-1].gap) == 0, "every third chorus ends in a dash-through wall")
 	# 3. 泪雨：大泪按时碎成 6 枚快弹
 	e = fresh(1)
 	g.ebullets.clear()
@@ -86,7 +111,7 @@ func _ready() -> void:
 		g.t += DT
 		cards._emit_step(e)
 	var big: int = g.ebullets.filter(func(b): return b.kind == "ishar_tear" and b.life > 0.0).size()
-	check(big == 5 + e.eyes.size(), "body fan plus one drop per song eye (%d)" % big)
+	check(big == 6 + e.eyes.size(), "body fan plus one drop per song eye (%d)" % big)
 	for i in 60:
 		g.t += DT
 		cards._emit_step(e)

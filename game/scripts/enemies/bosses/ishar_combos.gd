@@ -140,7 +140,8 @@ func _pending(e: Dictionary) -> bool:
 
 func _finish(e: Dictionary) -> void:
 	e.card_live = false
-	var rec: float = 1.8 if act_of(e) == 2 else 2.0
+	# 破绽时长（10-28 测试台：破绽期输出只占 12%，目标 ≥35%）：一二幕 boss/ishar_break_t（3.0）、三幕 boss/ishar_break_t3（2.6）；破绽期网的减伤失效（ishar.taken_mult）
+	var rec: float = Bal.v("boss/ishar_break_t3", 2.6) if act_of(e) == 2 else Bal.v("boss/ishar_break_t", 3.0)
 	g.combat.start_break(e, rec)
 	e.brk_label = "破绽"
 	e.wind = maxf(e.wind, rec)
@@ -222,9 +223,30 @@ func _emit_step(e: Dictionary) -> void:
 					own += 1
 		match str(d.kind):
 			"ring":
+				# gap = 去掉的相邻弹位数（缺口中心在 gc）；hold > 0 = 先在原地排成圈停 hold 秒再一起射出；gap 0 = 整圈（a0 起算，旧写法）
 				var p: Vector2 = src.pos if src is Dictionary else e.pos
-				for k in int(d.n):
-					own += _shot(e, own, p, float(d.a0) + TAU * k / float(d.n), 95.0, 6.0, 0.28, "ishar_note")
+				var n: int = int(d.n)
+				var gap: int = int(d.get("gap", 0))
+				var hold: float = float(d.get("hold", 0.0))
+				var off: float = 0.5 if gap > 0 and gap % 2 == 0 else 0.0
+				var c0: float = float(d.get("gc", d.get("a0", 0.0)))
+				var held: Array = []
+				for k in n:
+					if gap > 0 and (k < ((gap + 1) >> 1) or k >= n - (gap >> 1)):
+						continue
+					var b = _shot_ref(e, own, p, c0 + TAU * (k + off) / float(n), float(d.get("spd", 95.0)), 6.0, float(d.get("mult", 0.28)), "ishar_note", 5.0 + hold)
+					if b != null:
+						own += 1
+						if hold > 0.0:
+							b.hold_v = b.vel
+							b.vel = Vector2.ZERO
+							held.append(b)
+				if not held.is_empty():
+					keep.append({"at": g.t + hold, "kind": "release", "bs": held})
+			"release":
+				for b in d.bs:
+					if b.life > 0.0:
+						b.vel = b.hold_v
 			"drop":
 				var p: Vector2 = src.pos if src is Dictionary else e.pos
 				var b = _shot_ref(e, own, p, float(d.ang), 72.0, 13.0, 0.42, "ishar_tear", 7.0)
@@ -303,30 +325,46 @@ func _aim(p: Vector2) -> float:
 	return (g.ppos - p).angle() if g.ppos.distance_to(p) > 1.0 else 0.0
 
 
-## 合唱环颂：每个合唱源（≤3 只连线海嗣，网空时本体）0.8 秒蓄音后每秒一圈、连发 3 圈 10 枚慢速音弹，各源错开 0.25 秒；
-## 主控方向正好落在两弹之间，每圈错开半格、每个源再错 0.4 弧度，形成交错相位。击杀源取消它剩下的圈。
+## 合唱环颂：每个合唱源（≤3 只连线海嗣，网空时本体）0.8 秒蓄音后连发 3 圈慢速音弹（95px/s），各源错开 0.25 秒。缺口按幕递进（用户 10-28）：
+##   一幕（教学）：12 位去 3 位的固定缺口，三圈都对准出招时主控的方向，站进缺口就过；
+##   二幕：14 位去 3 位，缺口每圈转 0.55 弧度（相邻两个源方向相反），要跟着缺口绕；圈距 0.9 秒；
+##   三幕：15 位去 2 位（缝更窄），每圈先在源周围排成圈停 0.6 秒再一起射出（停顿 = 看清缺口的时间窗），缺口每圈转 0.45 弧度；
+##   二、三幕每第 3 次环颂的最后一圈是不留缺口的慢速整墙（20 枚、70px/s、单发伤害低），用冲刺穿过。击杀源取消它剩下的圈。
 func _chorus_rings(e: Dictionary) -> void:
 	var sources: Array = g.bai.finals.choir_sources(e)
 	var solo: bool = sources.size() == 1 and is_same(sources[0], e)
-	var n := 10
+	var act: int = act_of(e)
+	var n: int = [12, 14, 15][act]
+	var gap: int = [3, 3, 2][act]
+	var spin: float = [0.0, 0.55, 0.45][act]
+	var hold: float = 0.6 if act == 2 else 0.0
+	var step_t: float = 1.0 if act == 0 else 0.9
 	var waves: int = 2 if solo else 3
+	e.chorus_k = int(e.get("chorus_k", 0)) + 1
+	var wall: bool = act >= 1 and int(e.chorus_k) % 3 == 0
 	for k in sources.size():
 		var s: Dictionary = sources[k]
 		g.fx.append({"kind": "ring", "pos": s.pos, "r": 30.0, "life": 0.8, "max": 0.8, "col": COL, "enemy": true})
 		_grains(s.pos, 12, "mote_in", true)
-		var base: float = _aim(s.pos) + PI / n + 0.4 * k
+		var gc: float = _aim(s.pos)
+		var sgn: float = 1.0 if k % 2 == 0 else -1.0
 		for w in waves:
-			_emit(e, g.t + 0.8 + 1.0 * w + 0.25 * k, {"kind": "ring", "src": null if is_same(s, e) else s, "n": n, "a0": base + w * PI / n})
-	var dur: float = 0.8 + 1.0 * (waves - 1) + 0.25 * (sources.size() - 1)
+			var d := {"kind": "ring", "src": null if is_same(s, e) else s, "n": n, "gap": gap, "gc": gc + sgn * spin * w, "hold": hold}
+			if wall and w == waves - 1:
+				d.merge({"n": 20, "gap": 0, "a0": gc, "spd": 70.0, "mult": 0.16, "hold": 0.0}, true)
+			_emit(e, g.t + 0.8 + step_t * w + 0.25 * k, d)
+	if wall:
+		g.vfx.add_text(e.pos + Vector2(0, -70), "合唱成墙 · 冲刺穿过", COL, 16)
+	var dur: float = 0.8 + step_t * (waves - 1) + 0.25 * (sources.size() - 1) + hold
 	e.wind = maxf(e.wind, dur)
 	e.cdt = maxf(e.cdt, dur)
 	Sfx.play("tentacle", -8.0, 1.25)
 
 
-## 泪雨：本体朝主控扇形落 5 颗大泪（三幕 7 颗，r13、72px/s），每颗 1.6 秒后碎成 6 枚快速小弹（165px/s）；
+## 泪雨：本体朝主控扇形落 5 颗大泪（二幕 6、三幕 7 颗，r13、72px/s），每颗 1.6 秒后碎成 6 枚快速小弹（165px/s）；
 ## 每个仍在的歌眼也朝主控落 1 颗。慢弹控走位，碎片考验离大泪的距离。
 func _tear_rain(e: Dictionary) -> void:
-	var n: int = 7 if act_of(e) == 2 else 5
+	var n: int = [5, 6, 7][act_of(e)]   # 10-28：二幕 5 → 6
 	var aim: float = _aim(e.pos)
 	var spread := 1.3
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": 40.0, "life": 0.6, "max": 0.6, "col": COL, "enemy": true})
@@ -346,14 +384,14 @@ func _tear_rain(e: Dictionary) -> void:
 	Sfx.play("tentacle", -8.0, 0.85)
 
 
-## 抚愈之歌（取材人形的治疗）：2.4 秒歌声，期间连线常亮，同时放五瓣慢速花形弹（每 0.3 秒一层、每层转 0.21 弧度，85px/s）；
+## 抚愈之歌（取材人形的治疗）：2.4 秒歌声，期间连线常亮，同时放四瓣慢速花形弹（二幕起五瓣；每 0.4 秒一层、每层转 0.26 弧度，85px/s）；
 ## 歌声结束时仍连着的海嗣回满生命。眩晕 / 破绽打断整首歌（治疗也取消）。
 func _heal_song(e: Dictionary) -> void:
 	var base: float = _aim(e.pos) + PI / 4.0
 	for k in 8:
 		_emit(e, g.t + 0.3 * k, {"kind": "link", "src": null})
 	for k in 6:
-		_emit(e, g.t + 0.3 + 0.4 * k, {"kind": "arms", "src": null, "n": 4, "a0": base + 0.26 * k, "spd": 85.0, "r": 7.0})
+		_emit(e, g.t + 0.3 + 0.4 * k, {"kind": "arms", "src": null, "n": 4 if act_of(e) == 0 else 5, "a0": base + 0.26 * k, "spd": 85.0, "r": 7.0})
 	_emit(e, g.t + 2.4, {"kind": "heal", "src": null})
 	e.wind = maxf(e.wind, 2.4)
 	e.cdt = maxf(e.cdt, 2.4)
