@@ -1,12 +1,14 @@
 extends "res://tests/final_boss_fx_preview.gd"
 ## 伊祖米克连携实机录制（docs/170）：每段只强制一次起手组，之后全部走正式 AI、子代批次、弹幕与预警；玩家无敌、以 105px/s 绕行。
 const SEG := 16.0
+var only: Array = []   # 只录这几组（从 0 起）
 
 func _ready() -> void:
 	kind = "izumik"
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--shotdir="): out_dir = arg.substr(10)
 		if arg.begins_with("--quality="): quality = arg.substr(10)
+		if arg.begins_with("--only="): only = Array(arg.substr(7).split(",")).map(func(x): return int(x))
 	if out_dir.is_empty():
 		push_error("Expected --shotdir")
 		get_tree().quit(2)
@@ -51,6 +53,8 @@ func _ready() -> void:
 	var script = g.bai.boss(kind)
 	var names: Array = script.card_names()
 	for si in names.size():
+		if not only.is_empty() and not only.has(si):
+			continue
 		var act: int = si / 2
 		fresh()
 		g.enemies = [boss]

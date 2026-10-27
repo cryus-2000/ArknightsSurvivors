@@ -19,6 +19,9 @@ static func _circle_geometry(gy: float) -> PackedVector2Array:
 
 static func draw(g, impacts := false) -> void:
 	for w in g.warns:
+		if w.act == "izu_wave" and not w.done and not impacts and g.optical_on:
+			IzumikDraw.field_warning(g,w)   # 伊祖米克全场预警（docs/170）
+			continue
 		if w.act != "final_attack" or w.done: continue
 		if w.get("skin", "") == "bubble":
 			if impacts: Bubble.draw(g,w,0.95,true)

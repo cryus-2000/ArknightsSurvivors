@@ -69,6 +69,8 @@ static func draw_fills(g) -> void:
 	for w in g.warns:
 		if w.get("dim", false) or quiet(w):
 			continue   # 打不到主控的杂兵预警只画淡轮廓（world.classify_tells / draw_warn_outlines，可读性 1.1.1，界面与美术）
+		if w.get("act", "") == "izu_wave" and g.optical_on and not w.done:
+			continue   # 伊祖米克全场震撼 / 分享：低填充 + 浪纹点环由 izumik_attack_draw 画（docs/170），不铺整屏斜线
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var c: Color = w.col
 		if g.optical_on:

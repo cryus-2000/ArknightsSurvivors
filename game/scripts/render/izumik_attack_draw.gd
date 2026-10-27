@@ -56,3 +56,38 @@ static func learn_marks(g, e: Dictionary) -> void:
 		for q in 6:
 			var a: float = TAU * q / 6.0 + k * 1.5
 			_dot(r, b.pos + Vector2(cos(a), sin(a)) * rad, Color(0.7, 0.85, 1.0, 0.85))
+
+## 全场震撼 / 分享·全场：整场极低的暗红填充 + 从本体外扩的三圈浪纹点环（越到结算越密越亮），灯柱光圈由原灯柱绘制压在上面
+static func field_warning(g, w: Dictionary) -> void:
+	var r = g.world
+	var e: Dictionary = w.owner
+	var c: Vector2 = e.pos
+	var gy: float = g.combat.GROUND_Y
+	var k: float = clampf(float(w.t) / maxf(0.01, float(w.dur)), 0.0, 1.0)
+	var reach := 900.0
+	var fill := Color(0.3, 0.04, 0.1, 0.08 + 0.1 * k)
+	for i in 40:
+		var a: float = TAU * i / 40.0
+		var b: float = TAU * (i + 1) / 40.0
+		var va := Vector2(cos(a), sin(a) * gy)
+		var vb := Vector2(cos(b), sin(b) * gy)
+		r.tb_quad(c + va * 60.0, c + va * reach, c + vb * reach, c + vb * 60.0, fill)
+	var crest := Color(1.0, 0.48, 0.57)
+	for q in 3:
+		var rad: float = fmod(float(w.t) * (140.0 + 120.0 * k) + q * reach / 3.0, reach)
+		var fade: float = 1.0 - rad / reach
+		var n: int = clampi(int(rad / 7.0), 16, 140)
+		for i in n:
+			if _n(i, q) < 0.3 - 0.25 * k: continue   # 断续浪纹，越到结算越连贯
+			var a: float = TAU * float(i) / n
+			var b: float = TAU * float(i + 1) / n
+			var ra: float = rad + sin(a * 6.0 + float(w.t) * 4.0) * 6.0
+			var rb: float = rad + sin(b * 6.0 + float(w.t) * 4.0) * 6.0
+			var pa: Vector2 = c + Vector2(cos(a), sin(a) * gy) * ra
+			var pb: Vector2 = c + Vector2(cos(b), sin(b) * gy) * rb
+			_seg(r, pa, pb, 6.0, Color(DARK.r, DARK.g, DARK.b, 0.7 * fade))
+			_seg(r, pa, pb, 3.0, Color(crest.r, crest.g, crest.b, (0.45 + 0.5 * k) * fade))
+
+static func _seg(r, a: Vector2, b: Vector2, wd: float, c: Color) -> void:
+	var n := (b - a).normalized().orthogonal() * wd * 0.5
+	r.tb_quad((a - n).snapped(Vector2(2, 2)), (b - n).snapped(Vector2(2, 2)), (b + n).snapped(Vector2(2, 2)), (a + n).snapped(Vector2(2, 2)), c)
