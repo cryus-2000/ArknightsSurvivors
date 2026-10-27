@@ -47,7 +47,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	# 永远打不空也不近身（9/29 实测伊比利亚卡在 50% 190 秒）
 	if not e.has("dmg_k"):
 		# 单发伤害旋钮（协调人 10-27：弹幕变密，整体先 ×0.8，云端测完再定）：出场第一帧乘到 e.dmg 上，所有招式 / 弹体 / 火线 / 接触伤害一起缩
-		e.dmg_k = Bal.v("boss/saint_dmg_mult", 0.8) if e.type == "iberia" else Bal.v("boss/carmen_dmg_mult", 0.9)   # 测试台 10-27：卡门 ×0.8 承伤只剩 15%，回调到 0.9
+		e.dmg_k = Bal.v("boss/saint_dmg_mult", 0.8) if e.type == "iberia" else Bal.v("boss/carmen_dmg_mult", 1.15)   # 测试台 10-27 / 10-28：卡门 ×0.8 承伤只剩 15%，加收束后仍偏软
 		e.dmg = float(e.dmg) * float(e.dmg_k)
 		# 血量旋钮（协调人 10-27 测试台：单场 24–30 秒招式放不全，目标 45–75 秒）：出场第一帧乘到生命上（在 hp_mid / hp_x_ 之后）
 		var hk: float = Bal.v("boss/iberia_hp_k", 2.9) if e.type == "iberia" else Bal.v("boss/carmen_hp_k", 2.4)
@@ -62,6 +62,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	_card_tick(e, p2)
 	_bullets_step(e, dt)
 	_watch_step(e)
+	_pressure_step(e, dt, p2)
 	# 打断后起身：直接补满弹药、转回远程，0.8 秒后开火（不再装填——不然每次装填都能被打断，永远开不了火）
 	if e.get("refill_on_rise", false) and float(e.get("break_t", 0.0)) <= 0.0 and e.stun <= 0.0:
 		e.refill_on_rise = false
@@ -364,8 +365,11 @@ func _fire_step(e: Dictionary, dt: float) -> void:
 		var gt: float = float(q.pop_front()) if not q.is_empty() else 0.5
 		e.lane_gaps = q
 		var a: Vector2 = la.pos
-		lines.append({"a": a, "b": a + Vector2.from_angle(float(la.ang)) * float(la.len), "gap_t": gt, "gap_len": Bal.v("boss/carmen_fire_gap", 80.0),
-			"until": g.t + Bal.v("boss/carmen_fire_life", 6.0), "born": g.t})   # 6 秒（10-25 曾加到 7.5，10-26 用户嫌激光收得慢，退回）
+		var fb: Vector2 = a + Vector2.from_angle(float(la.ang)) * float(la.len)
+		var nn: Vector2 = (fb - a).normalized().orthogonal()
+		lines.append({"a": a, "b": fb, "gap_t": gt, "gap_len": Bal.v("boss/carmen_fire_gap", 80.0),
+			"until": g.t + Bal.v("boss/carmen_fire_life", 6.0), "born": g.t,
+			"push": nn * (1.0 if (g.ppos - a).dot(nn) >= 0.0 else -1.0)})   # 收束方向：朝落枪时主控所在一侧平移（docs/171 §9）   # 6 秒（10-25 曾加到 7.5，10-26 用户嫌激光收得慢，退回）
 	lines = lines.filter(func(fl): return g.t < float(fl.until))
 	e.fire_lines = lines
 	if g.invuln > 0.0 or g.t < float(e.get("fire_hit_at", 0.0)):
@@ -382,7 +386,7 @@ func _fire_step(e: Dictionary, dt: float) -> void:
 		if absf(t - float(fl.gap_t)) * L < float(fl.gap_len) * 0.5:
 			continue   # 站在缺口里
 		e.fire_hit_at = g.t + 0.5
-		g.combat.enemy_hit(e.dmg * Bal.v("boss/carmen_fire_mult", 0.35), {"boss": true, "src_type": e.type}, false, true, ["远程", "物理"], "boss_" + e.type)
+		g.combat.enemy_hit(e.dmg * Bal.v("boss/carmen_fire_mult", 0.5), {"boss": true, "src_type": e.type}, false, true, ["远程", "物理"], "boss_" + e.type)
 		g.combat.slow_leader("carmen_fire", 1.0, 0.8)
 		break
 
@@ -450,6 +454,48 @@ func on_damaged(e: Dictionary, dmg: float, _eff: float) -> void:
 		e.reload_dmg = e.get("reload_dmg", 0.0) + dmg
 		if e.reload_dmg >= e.maxhp * Bal.v("boss/saint_break_dmg", 0.05):
 			saint_interrupt(e)
+
+
+## ---- 持续压力（docs/171 §9，用户 10-28「加不停顿的新招」）：出招之间也在压场，装填 / 破绽 / 起身前停下 = 输出窗口不受影响
+## 卡门「收束」：火线落下后朝主控一侧平移（carmen_fire_drift 像素/秒），跑道越来越窄，要从缺口穿过去
+## 伊比利亚「余烬」：每 iberia_ember_cd 秒往主控前进方向抛一团余烬，0.6 秒落地预警后烧 iberia_ember_life 秒，站在里面每 0.5 秒受伤 + 减速
+func _calm(e: Dictionary) -> bool:
+	return e.channel > 0.0 or float(e.get("break_t", 0.0)) > 0.0 or e.stun > 0.0 or float(e.get("gate_inv", 0.0)) > 0.0 or e.get("refill_on_rise", false)
+
+
+func _pressure_step(e: Dictionary, dt: float, p2: bool) -> void:
+	var calm: bool = _calm(e)
+	if e.type == "carmen":
+		if calm:
+			return
+		var v: float = Bal.v("boss/carmen_fire_drift_p2", 46.0) if p2 else Bal.v("boss/carmen_fire_drift", 36.0)
+		for fl in e.get("fire_lines", []):
+			if fl.has("push") and g.t - float(fl.born) > 0.6:
+				fl.a += fl.push * v * dt
+				fl.b += fl.push * v * dt
+		return
+	var em: Array = e.get("embers", [])
+	if calm:
+		for x in em:
+			x.until = minf(float(x.until), g.t + 0.6)   # 窗口里余烬很快熄掉，近战压上去不踩火
+	elif e.age > 3.0:
+		e.ember_t = float(e.get("ember_t", 1.5)) - dt
+		if e.ember_t <= 0.0 and em.size() < int(Bal.v("boss/iberia_ember_max", 6.0)):
+			e.ember_t = Bal.v("boss/iberia_ember_cd_p2", 1.0) if p2 else Bal.v("boss/iberia_ember_cd", 1.4)
+			var at: Vector2 = g.ppos + g.pvel * Bal.v("boss/iberia_ember_lead", 0.7) + Vector2.from_angle(g.rng_enemy.randf() * TAU) * g.rng_enemy.randf_range(0.0, 36.0)
+			var arm: float = Bal.v("boss/iberia_ember_arm", 0.6)
+			em.append({"pos": at, "from": e.pos + Vector2(0, -20), "r": Bal.v("boss/iberia_ember_r", 44.0), "born": g.t, "arm": g.t + arm,
+				"until": g.t + arm + Bal.v("boss/iberia_ember_life", 3.2)})
+	em = em.filter(func(x): return g.t < float(x.until))
+	e.embers = em
+	if g.invuln > 0.0 or g.t < float(e.get("ember_hit_at", 0.0)):
+		return
+	for x in em:
+		if g.t >= float(x.arm) and g.ppos.distance_to(x.pos) < float(x.r):
+			e.ember_hit_at = g.t + 0.5
+			g.combat.enemy_hit(e.dmg * Bal.v("boss/iberia_ember_mult", 0.21), {"boss": true, "src_type": e.type}, false, true, ["远程", "法术"], "boss_" + e.type)
+			g.combat.slow_leader("iberia_ember", 0.6, 0.8)
+			break
 
 
 ## ---- 出招组（docs/171，10-27）：每幕 2 组、每组一串有限连携（≤4 段），打空弹药 → 装填 = 收招破绽，主轴（打断 / 封锁线）照旧
@@ -693,6 +739,7 @@ func _on_resolved(e: Dictionary, w: Dictionary, kind: String) -> void:
 ## 打断时：自己的在飞弹体与未出膛的弹全部作废，化成淡金白颗粒（最多 48 个发射点，走颗粒预算；颗粒关着时直接消失）
 func _clear_screen(e: Dictionary) -> void:
 	e.sp = []
+	e.embers = []
 	var n := 0
 	var gr = g.optical.grains if g.get("optical") != null else null
 	var grains_on: bool = gr != null and gr.on() and not gr.off

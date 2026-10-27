@@ -38,7 +38,35 @@ static func charge(g, w: Dictionary) -> void:
 			gr.push("mote_in", a + q * g.vrng.randf_range(34.0, 60.0), -q, bc)
 
 
+## 伊比利亚「余烬」（docs/171 §9）：落地前 = 落点危险色细圈由大收小 + 从她头顶飞来的火点；落地后 = 暗橙烧地 + 闪烁外沿 + 余烬上飘，最后 0.5 秒变淡
+static func embers(g, e: Dictionary) -> void:
+	var em: Array = e.get("embers", [])
+	if em.is_empty():
+		return
+	var bc: Color = g.vfx.boss_color(str(e.type))
+	var dc: Color = g.optical.col_danger if g.optical_on else Color(1.0, 0.3, 0.3)
+	var gr = BossBeam.grains(g)
+	for x in em:
+		var r: float = float(x.r)
+		if g.t < float(x.arm):
+			var k: float = clampf((g.t - float(x.born)) / maxf(0.01, float(x.arm) - float(x.born)), 0.0, 1.0)
+			g.draw_arc(x.pos, r * (1.35 - 0.35 * k), 0.0, TAU, 32, Color(dc.r, dc.g, dc.b, 0.35 + 0.5 * k), 2.0)
+			var fp: Vector2 = Vector2(x.from).lerp(x.pos, k) + Vector2(0, -90.0 * 4.0 * k * (1.0 - k))
+			g.draw_circle(fp, 5.0, Color(1.4, 1.0, 0.7))
+			g.draw_circle(fp, 8.0, Color(bc.r, bc.g, bc.b, 0.45))
+			continue
+		var fade: float = clampf((float(x.until) - g.t) / 0.5, 0.0, 1.0)
+		var fl: float = 0.85 + 0.15 * sin(g.t * 17.0 + float(x.born) * 5.0)
+		g.draw_circle(x.pos, r, Color(bc.r * 0.6, bc.g * 0.35, bc.b * 0.2, 0.32 * fade))
+		g.draw_circle(x.pos, r * 0.55, Color(bc.r, bc.g * 0.7, bc.b * 0.4, 0.22 * fade * fl))
+		g.draw_arc(x.pos, r, 0.0, TAU, 32, Color(bc.r * 1.3, bc.g, bc.b, 0.75 * fade * fl), 2.0)
+		if gr != null and g.vrng.randf() < 0.3 * fade:
+			for i in BossBeam.take(g, 1):
+				gr.push("mote_up", x.pos + Vector2.from_angle(g.vrng.randf() * TAU) * g.vrng.randf() * r, Vector2.UP, bc)
+
+
 static func fades(g, e: Dictionary) -> void:
+	embers(g, e)
 	var fl: Array = e.get("beam_fades", [])
 	if fl.is_empty():
 		return
