@@ -972,6 +972,8 @@ func step() -> void:
 				break
 	# --relics=id,id… 或 --relics=all（仅 --balance）：开局第 20 帧直接获得这些藏品，冒烟测试藏品效果（docs/35 / docs/36）
 	# --maxprog（仅 --balance）：同一帧把编队里每名干员推到成长线末端（精二 + 全部节点），让所有技能与成长钩子都跑一遍
+	if g.mode == g.Mode.BALANCE:
+		g.bench.step()   # Boss 单场测试台（docs/170）：录制快照 / 还原队伍 / 结算这场 Boss
 	if g.mode == g.Mode.BALANCE and g.at_frames == 20:
 		for a in Cfg.dev_args():
 			if a.begins_with("--relics="):

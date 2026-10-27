@@ -5,6 +5,7 @@
 ## 干员调用 game.gd 的能力一律走 op_api.gd（本类的父类），不直接调用 g._ 开头的内部函数。
 extends "res://scripts/characters/op_api.gd"
 
+const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
 const LaserDraw = preload("res://scripts/render/laser_draw.gd")
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")   # 地裂共用画法
 const A = preload("res://scripts/art.gd")
@@ -523,6 +524,13 @@ func fill_sp() -> void:
 
 ## 排异反应（深蓝之心线）：随机一个已解锁、未海嗣化的技能被海嗣化——技能强度 +40%、充能需求 +30%，主控最大生命 -10
 func apply_rejection() -> String:
+	BossBench.rb("rej", [id])   # Boss 单场测试台录制（docs/170）
+	var r := _apply_rejection()
+	BossBench.re()
+	return r
+
+
+func _apply_rejection() -> String:
 	var cands: Array = []
 	for i in 3:
 		if skill_unlocked(i) and not rej.has(i):
@@ -540,6 +548,13 @@ func apply_rejection() -> String:
 
 ## 解除一个排异反应（docs/57 P18）：撤销那次排异加的属性来源。没有排异时返回 false
 func clear_rejection() -> bool:
+	BossBench.rb("unrej", [id])
+	var r := _clear_rejection()
+	BossBench.re()
+	return r
+
+
+func _clear_rejection() -> bool:
 	if rej.is_empty():
 		return false
 	var i: int = rej.keys()[0]
@@ -895,6 +910,12 @@ func bot_route(n: Dictionary) -> String:
 ## 分支节点没给路线、也没选过时：玩家局交给 progression.branch_defer 进路线选择画面（本次不推进，确认后再调一次），
 ## 机器人 / 测试 / 演示按 bot_route 固定选。节点 4 / 5 的 id、文字按 node_view 解析后再应用，所以同一节点不会重复加成
 func advance(choice: String = "") -> void:
+	BossBench.rb("adv", [id, choice])   # Boss 单场测试台录制（docs/170）：只记最外层
+	_advance(choice)
+	BossBench.re()
+
+
+func _advance(choice: String) -> void:
 	var n := next_node()
 	if n.is_empty():
 		return

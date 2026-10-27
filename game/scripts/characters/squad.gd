@@ -2,6 +2,7 @@
 ## 常规上限 3 人，第 4 位由事件 / 藏品 / 商店解锁（extra_slot）。干员没有生命值，敌人只追主控。
 extends RefCounted
 
+const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
 const Character = preload("res://scripts/characters/character.gd")
 const BatchCanvas = preload("res://scripts/characters/batch_canvas.gd")
 const Bal = preload("res://scripts/core/balance.gd")
@@ -100,6 +101,13 @@ func ids() -> Array:
 ## 招募：实例化干员、登记专属属性与伤害来源、放到主控身边。满员返回 null。
 ## recruit_event = false：中途换人（replace）时不触发「招募」类藏品（否则换一次人就能刷一次源石锭 / 成长三选一）
 func add(cid: String, recruit_event := true):
+	BossBench.rb("add", [cid, recruit_event])   # Boss 单场测试台录制（docs/170）：只记最外层
+	var op = _add(cid, recruit_event)
+	BossBench.re()
+	return op
+
+
+func _add(cid: String, recruit_event: bool):
 	if has(cid) or is_full():
 		return null
 	if g.panel_ui != null:
@@ -186,6 +194,13 @@ var _hold_size := false   # replace 中途：人数先减后加，不重算入�
 ## 人数不变 → 入队加成（最大生命 / 回复台阶）不重算，也不触发「招募」类藏品。失败返回 null
 ## route：分支培养（docs/119 §4.1）——换入会继承到节点 4 及以上时，在换人流程里选好的路线 id（progression.open_branch），继承按它一次性重建
 func replace(old_id: String, new_id: String, route := ""):
+	BossBench.rb("replace", [old_id, new_id, route])   # Boss 单场测试台录制（docs/170）
+	var op = _replace(old_id, new_id, route)
+	BossBench.re()
+	return op
+
+
+func _replace(old_id: String, new_id: String, route: String):
 	var old = get_op(old_id)
 	if old == null or old.is_leader or has(new_id):
 		return null

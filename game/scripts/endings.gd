@@ -4,6 +4,7 @@
 ## 数据：data/waves.json 的 cross_deck / events / endings；进度：Cfg.endings_cleared（通关过结局一才开启翻卡）。
 extends RefCounted
 
+const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
 const D = preload("res://scripts/data.gd")
 const Bal = preload("res://scripts/core/balance.gd")
 const NodeIcons = preload("res://scripts/screens/node_icons.gd")
@@ -492,6 +493,8 @@ func _light(v: float) -> void:
 
 ## 队长最大生命按比例增减（事件来源，走 stats，叠乘）
 func _max_hp(pct: float) -> void:
+	BossBench.rb("maxhp", [pct])   # Boss 单场测试台录制（docs/170）
+	BossBench.re()
 	_mh_n += 1
 	g.rfx._apply_stat("max_hp", "mult", 1.0 + pct, "event:%d" % _mh_n, "")   # 每次一个来源名，叠乘
 	g.hp = minf(g.hp, g.max_hp)
