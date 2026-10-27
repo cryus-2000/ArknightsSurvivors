@@ -54,8 +54,10 @@ var perf_slow: Array = []      # 慢帧（≥ 33 毫秒）明细，结束时取�
 var perf_kills := 0
 const A_ = preload("res://scripts/art.gd")
 const PlayClockT = preload("res://scripts/run/play_clock.gd")
-const Dc = preload("res://scripts/render/declutter.gd")
-const IceGrains = preload("res://scripts/render/final_attack_grains.gd")   # --iceab：骑士冰颗粒同局轮换（10-27 骑士特效打磨）   # 后期降噪预设（--clutterab / --clutterlog 量测，tools/late_clutter.py）
+const Dc = preload("res://scripts/render/declutter.gd")   # 后期降噪预设（--clutterab / --clutterlog 量测，tools/late_clutter.py）
+const IceGrains = preload("res://scripts/render/final_attack_grains.gd")   # --iceab：骑士冰颗粒同局轮换（10-27 骑士特效打磨）
+const OutWin = preload("res://scripts/run/outwin_probe.gd")   # --outwin：骑士战输出窗口统计（10-27）
+var outwin = null
 var perf_upd := 0
 var perf_min := false          # --perfmin：按游戏分钟分段（docs/50 §10）
 var perf_ab := 0               # --perfab=N：每 N 帧轮换 g.perf_alt，分 /a /b 两桶
@@ -655,6 +657,10 @@ func step() -> void:
 				g.optical.force = 0
 	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--perf"):
 		_perf_sample()
+	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--outwin"):
+		if outwin == null:
+			outwin = OutWin.new()
+		outwin.step(g)
 	if g.mode == g.Mode.BALANCE and g.t >= sfx_win_t + 30.0 and Cfg.dev_args().has("--sfxstat"):
 		_sfx_win()
 	_rec_step()
@@ -1037,6 +1043,8 @@ func step() -> void:
 			bal_done = true
 			if perf_on:
 				print("PERF ", JSON.stringify(_perf_summary()))
+			if outwin != null:
+				print("OUTWIN ", JSON.stringify(outwin.report()))
 			if perf_dump != null:
 				perf_dump.close()
 				perf_dump = null

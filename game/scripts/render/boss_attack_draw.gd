@@ -46,6 +46,8 @@ static func draw(g, impacts := false) -> void:
 	if impacts:
 		for f in g.fx:
 			if f.kind == "bubble_pop" and f.life > 0: Bubble.pop(g,f)
+			elif f.kind == "knight_crash" and f.life > 0:
+				_crash(g, f)
 			elif f.kind == "final_impact" and f.life > 0:
 				_shape(g,f,clampf(float(f.life)/float(f.max)*1.5,0,1),false)
 	g.world.tb_flush()
@@ -310,6 +312,8 @@ static func _dash_frost(g, e: Dictionary) -> void:
 	var d := Vector2.from_angle(float(la.ang))
 	var n := d.orthogonal()
 	var length: float = float(la.len)
+	if str(e.get("brk_label", "")) == "眩晕":
+		length = clampf((Vector2(e.pos) - Vector2(la.pos)).dot(d), 8.0, length)   # 撞柱停下：冰面只铺到柱前
 	var half: float = clampf(float(la.get("wid", 34.0)) * 0.7, 16.0, 26.0)
 	var origin: Vector2 = Vector2(la.pos) + Vector2(0, 10)
 	var salt: int = (int(absf(origin.x)) * 7 + int(absf(origin.y)) * 13) & 1023
@@ -358,3 +362,30 @@ static func _dash_frost(g, e: Dictionary) -> void:
 	if front >= 0 and front < steps - 1:
 		var fp: Vector2 = origin + d * length * float(front + 1) / steps
 		_strip(r, fp - n * half * 0.9, fp + n * half * 0.9, 2.0, Color(0.9, 0.98, 1.0, 0.8))
+
+## 撞柱冲锋的地面冰爆（骑士独有招，10-27）：圆盘霜面 + 8 道参差冰裂从柱根向外长（0.15 秒长满），白 → 青 → 暗蓝后淡出。纯画面
+static func _crash(g, f: Dictionary) -> void:
+	var r = g.world
+	var age: float = float(f.max) - float(f.life)
+	var k: float = clampf(age / 0.15, 0.0, 1.0)
+	var fade: float = clampf(float(f.life) / 0.5, 0.0, 1.0)
+	var gy: float = g.combat.GROUND_Y
+	var p: Vector2 = f.pos
+	var salt: int = (int(absf(p.x)) * 7 + int(absf(p.y)) * 3) & 1023
+	var disc := Color(0.4, 0.6, 0.72, 0.22 * fade) if age > 0.06 else Color(0.85, 0.96, 1.0, 0.5)
+	for i in 20:
+		var a0: float = TAU * i / 20.0
+		var a1: float = TAU * (i + 1) / 20.0
+		var rr: float = 46.0 * k * (0.8 + 0.25 * _noise(i, salt))
+		r.tb_quad(p, p, p + Vector2(cos(a0), sin(a0) * gy) * rr, p + Vector2(cos(a1), sin(a1) * gy) * rr, disc)
+	var crack := Color(0.88, 0.97, 1.0, 0.9) if age < 0.12 else (Color(0.58, 0.82, 0.94, 0.75 * fade) if age < 0.6 else Color(0.25, 0.4, 0.56, 0.6 * fade))
+	for j in 8:
+		var ang: float = TAU * (j + _noise(j, salt + 3) * 0.6) / 8.0
+		var reach: float = (60.0 + _noise(j, salt + 5) * 50.0) * k
+		var last: Vector2 = p
+		for s in 5:
+			var u: float = float(s + 1) / 5.0
+			var jitter: float = (_noise(j * 5 + s, salt + 7) - 0.5) * 0.5
+			var at: Vector2 = p + Vector2(cos(ang + jitter), sin(ang + jitter) * gy) * reach * u
+			_strip(r, last, at, 2.0, crack)
+			last = at

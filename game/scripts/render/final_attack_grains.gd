@@ -314,3 +314,18 @@ static func finish(g, h: Dictionary) -> void:
 	# A travelling bubble breaks into a few droplets rather than leaving a hard disappearing disk.
 	if str(h.get("skin", "")) == "bubble":
 		burst(g, h)
+
+## 撞柱冲锋（骑士独有招，10-27）：碎柱冰爆——白闪碎片向上四溅后落地、根部一圈冷雾；地面星形冰裂由 boss_attack_draw 的 knight_crash 画
+static func pillar_crash(g, at: Vector2) -> void:
+	var pool = _ice_pool(g)
+	if pool == null:
+		return
+	var count: int = Beam.take(g, 30)
+	for i in count:
+		if i % 3 == 2:
+			var v := Vector2.from_angle(TAU * float(i) / maxf(1.0, count))
+			pool.push("frost_mist", at + Vector2(v.x * 26.0, v.y * 12.0), Vector2.UP, ICE_TINT)
+		else:
+			var dir := Vector2(g.vrng.randf_range(-1.0, 1.0), -g.vrng.randf_range(0.6, 1.4)).normalized()
+			var p: Vector2 = at + Vector2(g.vrng.randf_range(-10.0, 10.0), -g.vrng.randf_range(10.0, 60.0))
+			pool.push("ice", p, dir, ICE_TINT, 0.0, at.y + g.vrng.randf_range(-6.0, 14.0))

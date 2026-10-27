@@ -11,6 +11,8 @@
 extends "res://scripts/enemies/bosses/boss_base.gd"
 
 const ICE := Color(0.6, 0.9, 1.4)
+const IceFx = preload("res://scripts/render/final_attack_grains.gd")
+const SHARD_CAP := 18
 const MOVES := ["冲锋", "冰线", "长枪连刺", "掷枪", "长枪回旋"]
 
 
@@ -72,7 +74,10 @@ func combo_step(e: Dictionary, dir: Vector2, dist: float, ready: bool) -> bool:
 	if next=="":
 		e.knight_combo_active = false
 		e.knight_combo_queue = []
-		var recovery := 2.5 if e.phase==2 else 1.6
+		# 收招破绽（用户 10-27「每个 Boss 都要给干员输出的机会和时间」）：一阶段 1.6→2.4、二阶段 2.5→3.0 秒；
+		# 收招时离队长远（冲锋连段常停在 360–520 外）再按距离补最多 1.2 秒，近战走得过去。只延长破绽，不改单发伤害
+		var recovery: float = Bal.v("boss/knight_combo_brk2", 3.0) if e.phase==2 else Bal.v("boss/knight_combo_brk1", 2.4)
+		recovery += clampf((g.combat.ground_d(g.ppos, e.pos) - 200.0) / 220.0, 0.0, 1.2) * Bal.v("boss/knight_brk_far", 1.0)
 		g.combat.start_break(e,recovery)
 		e.brk_label = "破绽"
 		e.wind = maxf(e.wind,recovery)
@@ -108,6 +113,14 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		e.fx = float(e.get("stun_fx", e.fx))
 	_cold_step(e, dt)
 	_ice_step(e)
+	# 冲锋自然停下：向前碎出 3 片冰屑（撞柱眩晕不出）
+	if e.get("kb_self", false):
+		e.kn_dashing = true
+	elif e.get("kn_dashing", false):
+		e.kn_dashing = false
+		var la: Dictionary = e.get("last_act", {})
+		if str(la.get("act", "")) == "dash" and str(e.get("brk_label", "")) != "眩晕":
+			ice_shards(e, e.pos, float(la.get("ang", 0.0)), 3, 0.8, 150.0)
 	# 连冲：重生后一组 1 + knight_p2_chain 次（第一次全长、后两次 70%，docs/49d 11.8）；三幕冲锋后再转向冲一次。连冲完喘气 2.5 秒（普通破绽，docs/38 §8.8）
 	if int(e.get("dash2", 0)) > 0 and e.get("dash_t", 0.0) <= 0.0 and e.get("wind", 0.0) <= 0.0:
 		e.dash2 = int(e.dash2) - 1
@@ -324,7 +337,9 @@ func _knight_stakes(e: Dictionary, _dt: float) -> void:
 				e.brk_label = "眩晕"
 				e.stun_fx = e.fx
 				Sfx.play("stake_hit", 2.0, 1.0, 0.0)   # 撞桩、长枪脱手
-				g.fx.append({"kind": "ring", "pos": s.pos, "r": 70.0, "life": 0.5, "max": 0.5, "col": Color(0.6, 0.9, 1.4), "enemy": true})
+				# 撞柱冲锋是骑士独有的招（10-27）：碎柱冰爆 = 地面星形冰裂 + 冰霜圆盘（render/boss_attack_draw）+ 碎冰 / 冷雾颗粒
+				g.fx.append({"kind": "knight_crash", "pos": s.pos, "ang": float(e.get("fx", 1.0)), "life": 1.4, "max": 1.4, "enemy": true})
+				IceFx.pillar_crash(g, s.pos)
 				Sfx.play("boom", -4.0, 1.2, 0.0)
 				break
 
@@ -463,3 +478,25 @@ func on_lethal(e: Dictionary) -> bool:
 
 func on_kill(e: Dictionary) -> void:
 	cancel_combo(e)
+
+
+## 冰屑弹（用户 10-27「可以增加一些弹幕，但是不用太多，因为是近战攻击为主」）：冰锋 / 冰波 / 冲锋自然收尾时碎出几片慢速冰屑，
+## 同屏最多 SHARD_CAP（18）片；走公共 g.ebullets（判定、机器人躲避、干员消弹同一管线）。单发 e.dmg × 0.35 × knight_ice_dmg_k。
+## 只在自然结束时出：被打断 / 撞柱 / 转幕不出。开关 boss/knight_shards（0 = 关）
+func ice_shards(e: Dictionary, from: Vector2, ang: float, n: int, spread: float, spd: float, gap_ang := INF, gap_half := 0.0) -> void:
+	if Bal.v("boss/knight_shards", 1.0) <= 0.0 or e.get("dead", false):
+		return
+	var own := 0
+	for b in g.ebullets:
+		if b.get("knight_shard", false) and b.get("source_id", -1) == e.id:
+			own += 1
+	for i in n:
+		if own >= SHARD_CAP:
+			return
+		var a: float = ang + (lerpf(-spread * 0.5, spread * 0.5, float(i) / maxf(1.0, n - 1)) if spread < TAU else TAU * float(i) / n)
+		if gap_ang != INF and absf(angle_difference(a, gap_ang)) < gap_half:
+			continue
+		g.ebullets.append({"pos": from, "vel": Vector2.from_angle(a) * spd, "dmg": e.dmg * 0.35 * Bal.v("boss/knight_ice_dmg_k", 0.8),
+			"r": 9.0, "life": 1.8, "slow": false, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "true": false, "kind": "boss_blade",
+			"home": false, "boss": true, "atk": "物理", "source_id": e.id, "col": Color(0.62, 0.88, 1.0), "src_type": e.type, "knight_shard": true})
+		own += 1
