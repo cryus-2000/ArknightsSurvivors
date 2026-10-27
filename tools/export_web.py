@@ -165,6 +165,9 @@ def main():
     # B站 Toy 云存档的 JS 薄封装（tools/web/cloud.js，docs/89）：非 B站环境 probe 回 unsupported，Godot 侧不启用
     with open(os.path.join(WEB, "cloud.js"), encoding="utf-8") as fh:
         js += "\n" + fh.read()
+    # 战绩分享卡（tools/web/share.js）：头像昵称 / 二维码 / 存相册；非 B站环境 probe 全 false，保存退回 <a download>
+    with open(os.path.join(WEB, "share.js"), encoding="utf-8") as fh:
+        js += "\n" + fh.read()
     with open(os.path.join(WEB, "loader.css"), encoding="utf-8") as fh:
         css = fh.read()
     html = html.replace(MARK, "<style>\n%s</style>\n<script>\n%s</script>" % (css, js))

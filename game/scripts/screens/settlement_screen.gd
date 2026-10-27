@@ -38,11 +38,12 @@ var focus := -1        # 键盘 / 手柄焦点在底栏第几个按钮（-1 = �
 var press_id := ""     # 正在播按下态的按钮
 var press_t := 0.0
 var _pending := ""     # 按下后待执行的动作
-## 战绩分享卡（10-28 协调人单，先出两版样式给用户挑；screens/share_card.gd）
+## 战绩分享卡（10-28 用户定样式 B「深海海报」；卡面 screens/share_card.gd，Toy 头像 / 二维码 / 保存 screens/share_toy.gd）
 const ShareCard = preload("res://scripts/screens/share_card.gd")
+const ShareToy = preload("res://scripts/screens/share_toy.gd")
 var share
+var share_toy
 var share_open := false
-var share_style := 0
 var share_t := 0.0
 var share_data := {}
 const SHARE_K := 0.78                       # 卡 600×800 → 468×624
@@ -203,6 +204,12 @@ func _run(id: String) -> void:
 func _open_share() -> void:
 	if share == null:
 		share = ShareCard.new(g)
+	if share_toy == null:
+		share_toy = ShareToy.new()
+		g.add_child(share_toy)
+		share_toy.setup(g)
+	share_toy.want_profile()   # 紧跟玩家点按：平台的头像昵称确认弹窗要用户操作触发
+	share_toy.status = ""
 	share_data = share.data(self)
 	share_open = true
 	share_t = 0.0
@@ -217,14 +224,12 @@ func _close_share() -> void:
 	g.hud.queue_redraw()
 
 
-## 分享卡打开时的输入：Esc / Ⓑ / 点卡外 关闭；← → / Tab / 点样式签 换样式（挑样式阶段）
+## 分享卡打开时的输入：Esc / Ⓑ / 点卡外 关闭；Enter / S / 点「保存图片」保存
 func _share_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo:
 		match Pad.kc(event):
 			KEY_ESCAPE, KEY_T, KEY_V: _close_share()
-			KEY_LEFT, KEY_RIGHT, KEY_A, KEY_D, KEY_TAB:
-				share_style = 1 - share_style
-				Sfx.play("ui_move", -8.0)
+			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE, KEY_S: _save_share()
 		g.hud.queue_redraw()
 		return
 	var p := Vector2.INF
@@ -234,18 +239,21 @@ func _share_input(event: InputEvent) -> void:
 		p = _point(event.position)
 	if p == Vector2.INF:
 		return
-	for i in 2:
-		if _share_tab(i).has_point(p):
-			share_style = i
-			Sfx.play("ui_ok", -8.0)
-			g.hud.queue_redraw()
-			return
-	if _share_close().has_point(p) or not Rect2(SHARE_POS, Vector2(ShareCard.W, ShareCard.H) * SHARE_K).has_point(p):
+	if _share_save().has_point(p):
+		_save_share()
+	elif _share_close().has_point(p) or not Rect2(SHARE_POS, Vector2(ShareCard.W, ShareCard.H) * SHARE_K).has_point(p):
 		_close_share()
 
 
-func _share_tab(i: int) -> Rect2:
-	return Rect2(SHARE_POS.x + ShareCard.W * SHARE_K + 24, SHARE_POS.y + 40 + i * 52, 150, 42)
+func _save_share() -> void:
+	if share_toy == null or share_toy.busy:
+		return
+	Sfx.play("ui_ok", -8.0)
+	share_toy.save(share, share_toy.fill(share_data.duplicate()))
+
+
+func _share_save() -> Rect2:
+	return Rect2(SHARE_POS.x + ShareCard.W * SHARE_K + 24, SHARE_POS.y + 40, 150, 42)
 
 
 func _share_close() -> Rect2:
@@ -259,16 +267,15 @@ func _draw_share(ci: CanvasItem) -> void:
 	var sz := Vector2(ShareCard.W, ShareCard.H) * k
 	var pos: Vector2 = SHARE_POS + (Vector2(ShareCard.W, ShareCard.H) * SHARE_K - sz) * 0.5
 	ci.draw_set_transform(origin, 0, Vector2.ONE * scale)
-	share.draw(ci, share_data, share_style, origin + pos * scale, k * scale)
+	share.draw(ci, share_toy.fill(share_data), origin + pos * scale, k * scale)
 	ci.draw_set_transform(origin, 0, Vector2.ONE * scale)
 	ci.draw_rect(Rect2(pos, sz).grow(2), HH.CYB, false, 2.0)
-	_text(ci, _share_tab(0).position.x, SHARE_POS.y + 6, "分享战绩", 20, HH.LIGHT)
-	for i in 2:
-		var r := _share_tab(i)
-		var on: bool = share_style == i
-		ci.draw_rect(r, HH.CYB if on else HH.DARK2)
-		_text(ci, r.position.x + 16, r.position.y + 10, ["样式 A  档案卡", "样式 B  深海海报"][i], 16, HH.INK if on else HH.LIGHT)
-	_text(ci, _share_tab(0).position.x, _share_tab(1).end.y + 14, "← → 切换样式", 13, HH.MUTE)
+	var sv := _share_save()
+	_text(ci, sv.position.x, SHARE_POS.y + 6, "分享战绩", 20, HH.LIGHT)
+	ci.draw_rect(sv, HH.CYB.lightened(0.2) if share_toy.busy else HH.CYB)
+	_text(ci, sv.position.x + 16, sv.position.y + 10, "保存图片" if Pad.touch_ui() else "保存图片  Enter", 16, HH.INK)
+	if share_toy.status != "":
+		_text(ci, sv.position.x, sv.end.y + 12, share_toy.status, 13, HH.MUTE, 200)
 	var c := _share_close()
 	ci.draw_rect(c, HH.DARK2)
 	_text(ci, c.position.x + 16, c.position.y + 10, "关闭" if Pad.touch_ui() else "关闭  Esc", 16, HH.LIGHT)

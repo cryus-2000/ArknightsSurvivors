@@ -28,9 +28,9 @@ const SEQ := [
 	[126, "key", KEY_ENTER, "键盘 / 手柄：确认"], [142, "key", KEY_UP, "键盘 / 手柄：↑ 回编队"],
 	[156, "touch", "meta", "触屏按下"], [176, "end", "", ""],
 ]
-## --share：分享卡两版样式（悬停 → 点「分享」→ 停 2 秒 → → 换样式 B → 停 2 秒 → Esc 关）
+## --share：分享卡（悬停 → 点「分享」→ 停 2.5 秒 → Enter 保存图片（写到 --shotdir 的 share_card/）→ 停 2 秒 → Esc 关）
 const SEQ_SHARE := [
-	[10, "mouse", "share", ""], [24, "click", "share", ""], [100, "key", KEY_RIGHT, ""], [176, "key", KEY_LEFT, ""], [236, "key", KEY_ESCAPE, ""], [256, "end", "", ""],
+	[10, "mouse", "share", ""], [24, "click", "share", ""], [100, "key", KEY_ENTER, ""], [176, "key", KEY_ESCAPE, ""], [196, "end", "", ""],
 ]
 var seq: Array = SEQ
 
@@ -77,6 +77,8 @@ func _do(ev: Array) -> void:
 			u.pressed = false
 			s.input(u)
 		"key":
+			if s.share_toy != null:
+				s.share_toy.out_dir = shot_dir.get_base_dir().path_join("share_card")   # 别写进玩家的「图片」
 			var k := InputEventKey.new()
 			k.pressed = true
 			k.keycode = int(ev[2])
