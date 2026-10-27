@@ -88,6 +88,19 @@
 - 用户「换成紫色泡泡」：泡膜 / 内填 / 弹芯改饱和紫（芯 [0.7, 0.32, 1.0]，膜 (0.82, 0.45, 1.0)），高光仍白；泡破颗粒同色。Boss 专属色 bcol（光束、光环等）不变。
 - 用户截图指出大泡（追猎泡 / 泡影收束 / 溟泡迸裂，Codex 的 `paranoia_bubble.gd` 水泡贴图）还是青色：贴图改紫并加厚（内填 0.035→0.18、外膜 0.28→0.7），破泡碎片、移动颗粒（`final_attack_grains` bubble / phantom）、她的 Codex 招式预警色（`final_attacks._warn` 泡影分支）同改紫。
 
+## 3g. 单场节奏（10-28，协调人转用户「都按推荐做」）
+
+测试台 boss-bench：10:00 血量 47 400、编队中位秒伤 548、悬浮期受伤 ×0.5，单场中位 149 秒、约四成 180 秒超时。目标中位 90–120 秒（强队约 60、弱队约 150）、超时 <10%、胜率 70–80%，压力保持持续型、保护规则不放松。
+
+| 旋钮（balance.json boss 段） | 原 | 新 |
+|---|---|---|
+| hp_x_paranoia | 1.6 | 1.35（血量 −16%） |
+| paranoia_hover_taken（一、二幕悬浮受伤） | 0.5 | 0.65 |
+| paranoia_aura_taken（三幕起光环张开时受伤） | 0.5 | 0.65 |
+| paranoia_drop_t（冲刺打落坠地秒数） | 4 | 5（坠地合计受伤 ×1.8 不变） |
+
+粗估单场用时 ×0.84 × 约 0.77 ≈ 0.65 → 中位约 95–105 秒；以 boss-bench 云端复测为准，偏快先回调 hp_x_paranoia，偏慢再调两个受伤倍率。输出窗口占比不受影响（§3d）。
+
 ## 4. 公共文件改动（合并时注意）
 
 - `render/boss_beam.gd`：`_paranoia_top` / `_paranoia_ground` 第一行各调 `ParanoiaComboDraw.draw_top` / `draw_ground`，加一条 preload。只碰泡影分支。
@@ -97,6 +110,7 @@
 - `enemies/telegraph.gd` `_kp()`：读可选 `kp_life` / `kp_on`（缺省 KP_LIFE / 0.06，其余 Boss 不变）；`render/boss_beam.gd` `draw()`：开合时长读 fx 的 `on_t`（缺省 ON_T）。
 - `game/data/enemies.json`：paranoia 条目加 `bcol_core`、`bcol_outline` 两行。
 - `tools/check.py`：加 `paranoia_combos` 一项。
+- `game/data/balance.json` boss 段：hp_x_paranoia 改值，新增 paranoia_hover_taken / paranoia_aura_taken / paranoia_drop_t 三行与说明（§3g）。
 - 未改 `final_attacks.gd`、`boss_attack_draw.gd`、`final_attack_grains.gd`、`boss_ai.gd`、粒子模板。
 
 新文件：`enemies/bosses/paranoia_combos.gd`、`render/paranoia_combo_draw.gd`、`tests/paranoia_combos_test.gd`、`tests/paranoia_combo_preview.gd`、`tools/probes/paranoia_combo_preview.py`。
