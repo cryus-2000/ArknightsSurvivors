@@ -19,6 +19,8 @@ func _init(game) -> void:
 func cue_cat(w: Dictionary) -> String:
 	if w.get("must_dash", false):
 		return "global"
+	if w.act == "final_attack" and w.shape == "line" and w.get("skin", "") in ["phantom", "choir"]:
+		return "beam"
 	match str(w.act):
 		"dash", "stab":
 			return "charge"
@@ -245,8 +247,15 @@ func warn_resolve(w: Dictionary) -> void:
 func _resolve(w: Dictionary) -> void:
 	var e: Dictionary = w.owner
 	var c: Color = w.col
+	if w.act == "final_attack" and g.bai.finals.cancelled(w):
+		return
+	if w.act == "tide_link" and (e.get("partner") == null or e.partner.dead):
+		return
 	if w.has("cue"):
 		Sfx.play_cue(w.cue, e.type, "hit")
+	elif e.boss and cue_cat(w) == "beam":
+		# 连发后续轮次通常省略招式名，但每轮实际发射仍需提示音。
+		Sfx.play_cue("beam", e.type, "hit")
 	if e.boss:
 		# 预警结束后明确重新起攻击动作，而不是沿用蓄力末帧。
 		e.pose = 0.35
@@ -262,8 +271,6 @@ func _resolve(w: Dictionary) -> void:
 		return
 	if str(w.act).begins_with("pattern_"):
 		g.bai.patterns.resolve(w)
-		return
-	if w.act == "tide_link" and (e.get("partner") == null or e.partner.dead):
 		return
 	if e.get("boss", false):
 		g.vfx.boss_signature(w)

@@ -1228,7 +1228,7 @@ const PRIO_NAME := {
 ## 冲锋类预警同时最多 1 个；骑士冲锋按位置降音量（world.gd 用 play_at）
 const SIEGE_S1_GAP := 4.5
 const VOICE_CAP := {"op_siege_s1": 1, "cue_charge_start": 1, "cue_charge_hit": 1, "knight_charge": 2,
-	"cue_beam_start": 1, "cue_beam_hit": 1, # 连发光束不叠尾音，起手与命中各保留一个
+	"cue_beam_start": 1, "cue_beam_hit": 1, # 后续轮次重启同名音，起手与命中各保留一个
 	"op_wisadel_quake": 2, "op_wisadel_hit": 3, "op_wisadel_big": 2, "op_kaltsit_big": 2, "op_eyjafjalla_big": 3,
 	"exusiai_gun": 2, "exusiai_burst": 1, "op_exusiai_hit": 1}
 const OFF_FADE := 480.0
@@ -1313,6 +1313,11 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 		sfx_stat.merged += 1
 		_by(name, 2)
 		return
+	# 同轮已在 MERGE_T 内合并；新一轮替换旧尾音，不能因上一轮仍在响而吞掉。
+	if name in ["cue_beam_start", "cue_beam_hit"]:
+		for c in players:
+			if c.playing and c.get_meta("sname", "") == name:
+				c.stop()
 	var prio := sfx_prio(name)
 	var cfg: Node = get_node_or_null("/root/Cfg")
 	var low: bool = cfg != null and str(cfg.get("quality")) == "low"
