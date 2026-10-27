@@ -24,6 +24,8 @@ var g: Game
 var sample_next := 0.0          # 下一个采样时间点（按局内时间对齐到 0 / 30 / 60 …）
 var curve: Array = []           # 每 30 秒：{t, hp, lamp, lv, kills, squad, taken, enemies}
 var low_hp_s := 0.0             # 生命 < 35% 的累计秒数
+var king_low_s := 0.0           # 带国王套且低血（relic/king_low）的累计秒数
+var low20_s := 0.0              # 生命 < 20% 的累计秒数
 var dark_s := 0.0               # 灯火熄灭的累计秒数
 var dark_dmg := 0.0             # 熄灯每秒 3 点的持续掉血（不进 dmg_log，单独记）
 var hits := 0                   # 受击次数
@@ -149,6 +151,10 @@ func tick(dt: float) -> void:
 	last_pos = g.ppos
 	if g.hp < g.max_hp * 0.35:
 		low_hp_s += dt
+	if g.rfx.king_n > 0 and g.rfx.king_low():
+		king_low_s += dt   # 危险感回调（10-28）：带国王套且处于低血的累计秒数
+	if g.hp < g.max_hp * 0.2:
+		low20_s += dt
 	if g.in_mire >= 0.5:
 		mire_win += dt
 	lampmin_win = minf(lampmin_win, g.lamp)
@@ -609,7 +615,7 @@ func curve_tail() -> Dictionary:
 func metrics(profile: String) -> Dictionary:
 	var t: float = maxf(1.0, g.t)
 	return {"profile": profile, "hits": hits, "hits_pm": snappedf(hits / t * 60.0, 0.1), "taken": int(taken_last),
-		"taken_pm": int(taken_last / t * 60.0), "low_hp_s": int(low_hp_s), "dark_s": int(dark_s), "dark_dmg": int(dark_dmg), "death_src": last_src,
+		"taken_pm": int(taken_last / t * 60.0), "low_hp_s": int(low_hp_s), "king_low_s": int(king_low_s), "low20_s": int(low20_s), "dark_s": int(dark_s), "dark_dmg": int(dark_dmg), "death_src": last_src,
 		"lamp_s": lamp_s.map(func(v): return int(v)), "lamp_gain": _rounded(lamp_gain), "lamp_loss": _rounded(lamp_loss), "lamp_taken": lamp_taken.map(func(v): return int(v)), "lamp_end": int(g.lamp),
 		"moved_pm": int(dist_moved / t * 60.0), "still_pct": int(100.0 * still_s / t),
 		"bosses": boss_seen.values(), "elite_t": elite_t, "recruit_t": recruit_t, "curve": curve, "curve_tail": curve_tail(),

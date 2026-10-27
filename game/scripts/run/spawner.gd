@@ -842,6 +842,13 @@ func is_final_boss_type(type: String) -> bool:
 	return false
 
 
+## 普通怪移速加成（用户 10-28：队长基础移速 150 → 165 的同时普通怪 +5%）：基础移速 ≥ enemy/spd_gain_below（90）的快怪（狂奔者 / 收割者 / 裂变体）不加，Boss 不动；1 = 关
+func _spd_gain(base_spd: float, role: String) -> float:
+	if role == "boss" or base_spd >= Bal.v("enemy/spd_gain_below", 90.0):
+		return 1.0
+	return Bal.v("enemy/spd_gain", 1.0)
+
+
 func new_enemy(type: String, pos: Vector2) -> Dictionary:
 	var d: Dictionary = D.ENEMIES[type]
 	var role: String = d.get("role", "")
@@ -866,11 +873,14 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 	var late_cap: float = g.combat.enemy_knob("dmg_late_cap", 0.0)
 	if late_cap > 0.0:
 		dmg_t += minf(maxf(g.t - Bal.v("enemy/dmg_late_start", 420.0), 0.0) / maxf(1.0, Bal.v("enemy/dmg_late_div", 900.0)), late_cap)
+	# 危险感回调（用户 10-28）：开局到 enemy/dmg_gain_from 秒 ×dmg_gain_early，之后 ×dmg_gain_late；Boss 不吃，1 = 关
+	if role != "boss":
+		dmg_t *= Bal.v("enemy/dmg_gain_early", 1.0) if g.t < Bal.v("enemy/dmg_gain_from", 300.0) else Bal.v("enemy/dmg_gain_late", 1.0)
 	next_id += 1
 	var e := {
 		"id": next_id, "type": type, "name": d.name, "tex": d.tex, "pos": pos,
 		"hp": d.hp * hpm * g.enemy_hp_mult, "maxhp": d.hp * hpm * g.enemy_hp_mult,
-		"spd": d.spd * g.rng_spawn.randf_range(0.9, 1.1) * D.THREAT[g.threat].get("spd", 1.0), "dmg": d.dmg * dmg_t * dmm * g.enemy_dmg_mult,
+		"spd": d.spd * _spd_gain(d.spd, role) * g.rng_spawn.randf_range(0.9, 1.1) * D.THREAT[g.threat].get("spd", 1.0), "dmg": d.dmg * dmg_t * dmm * g.enemy_dmg_mult,
 		"r": d.r, "r0": d.r, "xp": d.xp, "age": 0.0,
 		"evo": false, "elite": role == "elite", "boss": role == "boss", "stun": 0.0,
 		"kb": Vector2.ZERO, "flash": 0.0, "squash": 0.0, "slow": 0.0, "jhit": 0.0, "dead": false, "bt": 0.0, "fx": 1.0,

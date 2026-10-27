@@ -287,6 +287,12 @@
   "affix_start": 420,
   "ctrl_start": 400,
   "dmg_early": 1.3,
+  "dmg_gain_early": 1.05,
+  "spd_gain": 1.05,
+  "spd_gain_below": 90,
+  "dmg_gain_late": 1.1,
+  "dmg_gain_from": 300,
+  "_dmg_gain": "危险感回调（用户 10-28）：普通怪 / 精英的伤害再乘一道不给奖励的倍率：dmg_gain_from 秒（5 分钟）之前 ×dmg_gain_early、之后 ×dmg_gain_late；Boss 不吃（Boss 的 e.dmg 另算）。1 = 关",
   "dmg_late_start": 420,
   "dmg_late_div": 900,
   "dmg_late_cap": 0.25,
@@ -346,7 +352,7 @@
  "levelup": {
   "_doc": "升级卡池（game.gd _open_levelup）",
   "recruit_from_level": 4,
-  "recruit_chance": 0.55,
+  "recruit_chance": 0.55, "heal_weight": 1.2, "heal_low_hp": 0.5, "heal_low_hp_mult": 1.3,
   "_swap_offer": "更换队友（用户 10-13 批准）：编队满员后招募卡照常按 recruit_chance 出现，选中后换下一名队友（可以不替换）。0 = 关（满员后不出招募卡，随机数消耗同改前）",
   "swap_offer": 1,
   "_swap_chance": "10-26 用户「后期换干员的频率高吗，过高就降」：实测（docs/162）满员后过半的升级面板带换人卡（中段约每 46 秒一张）。满员后换人卡出现率 swap_chance，swap_late_t 秒后再降为 swap_chance_late；本次已有两张干员深度卡时不出（不挤成长卡）。swap_chance = recruit_chance、swap_late_t 极大、swap_keep_growth 0 = 改前",
@@ -371,6 +377,7 @@
   "catchup_focus_gap": 3
  },
  "relic": {
+  "king_low": 0.3,
   "_doc": "藏品层旋钮（docs/35）：流派加权、守护·续航随时间的权重、藏品直接伤害（按敌人生命的时间倍率缩放）、技力类藏品上限。代码里的缺省值与这里一致",
   "carry_cap": -1,
   "_carry_cap": "藏品携带上限；-1 = 不限（用户 10-12 取消上限，爆率即软上限）。设为 15 恢复旧规则（含为结局信物预留槽），只供对照测试",
@@ -441,6 +448,10 @@
   }
  },
  "boss": {
+  "_danger_pass": "危险感回调（用户 10-28：防暴毙保护让队长几乎不掉到低血、国王套只好把低血门槛提到 70%、最终 Boss 伤害被 2 秒上限截掉）：单次 leader_hit_cap 0.40 不动（防一发秒杀）；2 秒合计 leader_2s_cap 0.50 → 0.68（任意来源的 protect/any_2s_cap 0.55 → 0.70）；满血保护冷却 fullhp_guard_cd 30 → 60 秒、保底 fullhp_guard_left 0.10 → 0.05。三项都是代码缺省的显式值，写在这里方便云端对照",
+  "leader_2s_cap": 0.68,
+  "fullhp_guard_cd": 60,
+  "fullhp_guard_left": 0.05,
   "aim_lead": 0.12,
   "aim_fan_px": 60,
   "_aim_fan": "瞄准主控的多道激光（10-25 用户「三条激光都要瞄准人打」，boss_base._aim_fan）：出招时锁定主控位置并沿移动方向提前 aim_lead 秒，各道起点在本体两侧相隔 aim_fan_px 像素、全部穿过锁定点；用于伊莎玛拉三线扫射、偏执泡影一幕凝视两侧、卡门封锁线后两枪",
@@ -556,6 +567,7 @@
   "hp_per_member": 0.15,
   "hp_member_cap": 3,
   "regen_per_member": 0.15,
+  "leader_speed_mult": 1.1,
   "leader_hp_mult": 0.9,
   "op_atk_base": 0.9,
   "_base_trim": "基础砍（docs/109 §14 v4，用户 10-22「局外树满点数值太碎，砍干员基础数值，把差值留给树」）：leader_hp_mult 乘队长最大生命的基础值（JSON leader 段 / 博士），op_atk_base 是干员攻击倍率 op_atk 的基础值（全员攻击同比）；入队回复 0.6 → 0.2（r3，用户 10-22：基础砍优先放在入队回复和攻击，队长生命 ×0.85 偏多回到 ×0.9；攻击不砍超 10%）。都是基础值，不在属性面板里另列来源",
@@ -571,8 +583,8 @@
   "_doc": "主控生命回复随探索时间提高（docs/82）。10-13 用户改设计：时间成长删掉，改成入队台阶（squad/regen_per_member，docs/83），regen_div 0 = 关（恒为 1）；保留旋钮可回退：300 / 480 = docs/82 定档（8:00 起 ×2.6）",
   "regen_div": 0,
   "regen_knee": 480,
-  "_regen_card": "博士被动「自愈」每级加的生命回复（生命 / 秒；docs/83）",
-  "regen_card": 0.6,
+  "_regen_card": "博士被动「自愈」每级加的生命回复（生命 / 秒；docs/83；10-28 用户「自愈的回血也得砍一点」0.6 → 0.4，满 5 张 +3.0 → +2.0；回复类卡权重 levelup/heal_weight 1.5 → 1.2、低血再乘 1.5 → 1.3，避免自愈被过度推送）",
+  "regen_card": 0.4,
   "_base_regen_mult": "队长自带基础回复（干员 leader 段 regen）的倍率，缺省 1；不影响入队台阶、「自愈」、藏品",
   "base_regen_mult": 0.8
  },
@@ -602,7 +614,7 @@
  },
  "protect": {
   "_doc": "任意来源 2 秒合计掉血上限（docs/46 §6）：超过最大生命 × any_2s_cap 的部分乘 any_excess_mult",
-  "any_2s_cap": 0.55,
+  "any_2s_cap": 0.7,
   "any_excess_mult": 0.6
  },
  "crate": {
