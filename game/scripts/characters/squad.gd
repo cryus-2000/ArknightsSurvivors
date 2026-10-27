@@ -21,11 +21,14 @@ var side := 1.0                # 编队站位的左右（-1..1），主控转身
 ## 指挥模式（docs/114）：全队站位。一个键循环 随行 → 突击 → 归队；归队归位完自动回随行（下一次按键进突击）
 enum { GUARD, ROAM, RECALL }
 const STANCE_NAMES := ["随行", "突击", "归队"]
-## 索敌优先级（指挥圆盘，docs/114 §13）：0 Boss 优先（缺省 = 改动前的逻辑）/ 1 清杂优先；只影响队友（op_api.prio_mode），队长恒为 0；机器人缺省 0
+## 索敌优先级（指挥圆盘，docs/114 §13）：0 Boss 优先 / 1 清杂优先；只影响队友（op_api.prio_mode），队长恒为 0。
+## 缺省 = command/priority_default（10-27 用户定改为 1 清杂优先，机器人也跟缺省；Boss 优先只在玩家圆盘里主动选时生效 = 全队集火，docs/114 §15）
 ## （10-24 用户定：去掉「就近」——它和 Boss 优先在有 Boss 时几乎一样）
 const PRIO_NAMES := ["Boss 优先", "清杂优先"]
 const PRIO_SHORT := ["Boss", "清杂"]
-var priority := 0
+var priority: int = default_priority()
+static func default_priority() -> int:
+	return clampi(int(Bal.v("command/priority_default", 1.0)), 0, 1)
 var stance := GUARD
 var recall_t := 0.0
 var gather_t := -1.0          # 归队：全员到位后站定的剩余秒数（-1 = 还在往回跑）

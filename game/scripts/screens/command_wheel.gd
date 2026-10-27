@@ -15,7 +15,7 @@ const ITEMS := [
 	{"id": "roam", "name": "突击", "en": "ASSAULT", "sub": "离队索敌，限时行动", "col": Color(0.957, 0.753, 0.306)},
 	{"id": "recall", "name": "归队", "en": "REGROUP", "sub": "立即回到队长身边", "col": Color(0.184, 0.827, 0.627)},
 	{"id": "mob", "name": "清杂优先", "en": "SWARM", "sub": "优先杂兵，向密集处开火", "col": Color(1.0, 0.62, 0.3)},
-	{"id": "boss", "name": "Boss 优先", "en": "BOSS", "sub": "优先 Boss；小怪贴近队长时先护主", "col": Color(1.0, 0.239, 0.545)},
+	{"id": "boss", "name": "Boss 优先", "en": "BOSS", "sub": "全队集火 Boss，突击时紧追不放", "col": Color(1.0, 0.239, 0.545)},
 ]
 const ANG := [-150.0, -90.0, -30.0, 45.0, 135.0]
 const HALF := [30.0, 30.0, 30.0, 45.0, 45.0]

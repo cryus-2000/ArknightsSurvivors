@@ -1,6 +1,17 @@
 extends Node
 
+class Sys extends RefCounted:   # prio_order 的护主检查（boss_rush 0 / 队长）要查队长身边最近的敌人
+	var gm
+	func nearest(n: int, r: float, origin: Vector2) -> Array:
+		var es: Array = gm.enemies.filter(func(e): return not e.dead and e.pos.distance_to(origin) < r)
+		es.sort_custom(func(a,b): return a.pos.distance_to(origin) < b.pos.distance_to(origin))
+		return es.slice(0,n)
+
 class TestGame extends RefCounted:
+	var enemies_sys := Sys.new()
+	var frame_n := 0
+	func _init() -> void:
+		enemies_sys.gm = self
 	var ppos := Vector2.ZERO
 	var squad = {"lead_dir": Vector2.RIGHT, "priority": 0}   # priority：指挥圆盘索敌优先级（docs/114 §13），0 = 原逻辑
 	var enemies: Array = []
@@ -10,6 +21,8 @@ class TestGame extends RefCounted:
 	var opt_old := 0
 	var t := 0.0
 	var map = null
+	var warns: Array = []
+	var ebullets: Array = []
 
 class Obstacle extends RefCounted:
 	func segment_blocked(a: Vector2, b: Vector2) -> bool:
@@ -41,8 +54,10 @@ func check(v: bool, message: String) -> void:
 		failures += 1
 		printerr("FAIL: ", message)
 
+var _eid := 0
 func enemy(p: Vector2) -> Dictionary:
-	return {"pos": p, "r": 12.0, "dead": false, "boss": false}
+	_eid += 1
+	return {"id": _eid, "pos": p, "r": 12.0, "dead": false, "boss": false, "elite": false}
 
 func _ready() -> void:
 	var g := TestGame.new()
@@ -53,7 +68,8 @@ func _ready() -> void:
 	check(dst.distance_to(g.enemies[0].pos) < o.cmd_attack_range(), "heavy closes to attack range instead of camping at centroid fraction")
 	o.cls = "近卫"
 	o.roam_tgt = null
-	g.enemies = [enemy(Vector2(-390,0)),enemy(Vector2(-400,0)),enemy(Vector2(-410,0)),enemy(Vector2(-420,0)),enemy(Vector2(100,0))]
+	var rr: float = preload("res://scripts/core/balance.gd").v("command/roam_r", 840.0)
+	g.enemies = [enemy(Vector2(-rr - 10,0)),enemy(Vector2(-rr - 20,0)),enemy(Vector2(-rr - 30,0)),enemy(Vector2(-rr - 40,0)),enemy(Vector2(100,0))]
 	o.roam_target(Vector2(40,14))
 	check(o.roam_tgt != null and o.roam_tgt.pos == Vector2(100,0), "outside-circle candidates cannot hide legal target")
 	o.cls = "狙击"
@@ -70,6 +86,32 @@ func _ready() -> void:
 	g.enemies = [o.roam_tgt, urgent]
 	o.roam_target(Vector2(40,14))
 	check(is_same(o.roam_tgt,urgent), "immediate leader threat overrides distant locked target")
+	# 全队集火（10-27 用户，command/boss_rush）：Boss 优先 + 圈里有 Boss 时不做紧急护主，直接冲 Boss，射程外追过去（可以出屏）
+	var boss := enemy(Vector2(-700,0))
+	boss.boss = true
+	o.roam_tgt = null
+	g.enemies = [urgent, enemy(Vector2(-200,0)), boss]
+	var bdst: Vector2 = o.roam_target(Vector2(40,14))
+	check(is_same(o.roam_tgt,boss), "boss priority: squad focuses the boss and ignores the leader-guard threat")
+	check(bdst.distance_to(boss.pos) < o.cmd_attack_range() and bdst.distance_to(g.ppos) > 640.0, "boss priority: chases the boss off-screen into attack range")
+	var part := enemy(Vector2(-400,60))
+	part["part"] = true
+	g.enemies = [urgent, boss, part]
+	o.roam_target(Vector2(40,14))
+	check(is_same(o.roam_tgt,part), "boss priority: a boss part takes over from the boss")
+	g.enemies = [urgent, boss]
+	o.roam_tgt = null
+	g.squad.priority = 1
+	o.roam_target(Vector2(40,14))
+	check(is_same(o.roam_tgt,urgent), "mob priority still guards the leader even with a boss on field")
+	g.squad.priority = 0
+	var cmd: Dictionary = preload("res://scripts/core/balance.gd").sec("command")
+	cmd["boss_rush"] = 0
+	o.roam_tgt = null
+	o.roam_target(Vector2(40,14))
+	check(is_same(o.roam_tgt,urgent), "boss_rush 0 keeps the old leader guard")
+	cmd["boss_rush"] = 1
+	o.roam_tgt = urgent
 	o.roam_tgt.dead = true
 	g.enemies = [enemy(Vector2(-140,0))]
 	o.roam_target(Vector2(40,14))
@@ -110,5 +152,50 @@ func _ready() -> void:
 		check(o.roam_tgt != null, "blocked enemy becomes eligible again after retry delay")
 		o._cmd_progress(o.pos, o.pos, 2.0)
 		check(o.roam_tgt != null, "normal stationary attack or cooldown is not a stall")
+	# 闪避意识（10-27，docs/114 §16）：站在未结算的圆形预警里 → 躲到圈外；迎面敌弹 → 让开；没有危险就照原目标
+	g.map = null
+	g.enemies = []
+	g.t = 50.0
+	var ev := Probe.new(g, {"id":"ev", "class":"近卫"})
+	ev.pos = Vector2(300, 0)
+	check(ev._cmd_evade(Vector2(400, 0)) == Vector2(400, 0), "no danger: evade keeps the goal")
+	g.warns = [{"shape": "circle", "pos": Vector2(300, 0), "r": 60.0, "done": false}]
+	var ep: Vector2 = ev._cmd_evade(Vector2(300, 0))
+	check(ep.distance_to(Vector2(300, 0)) >= 60.0 + 16.0, "standing in a telegraph circle: moves out of it")
+	check(ev._cmd_evade(Vector2(300, 0)) == ep, "evade point is held (no flip-flop)")
+	g.warns[0].done = true
+	g.t += 1.0
+	check(ev._cmd_evade(Vector2(300, 0)) == Vector2(300, 0), "resolved telegraph is ignored")
+	g.warns = []
+	g.ebullets = [{"pos": Vector2(140, 0), "vel": Vector2(400, 0), "r": 6.0, "life": 1.0}]
+	ep = ev._cmd_evade(Vector2(300, 0))
+	check(absf(ep.y) > 20.0, "incoming bullet on the line: sidesteps off the line")
+	g.ebullets = [{"pos": Vector2(140, 0), "vel": Vector2(-400, 0), "r": 6.0, "life": 1.0}]
+	g.t += 1.0
+	check(ev._cmd_evade(Vector2(300, 0)) == Vector2(300, 0), "bullet flying away is ignored")
+	g.ebullets = []
+	var cmd2: Dictionary = preload("res://scripts/core/balance.gd").sec("command")
+	cmd2["evade"] = 0
+	g.warns = [{"shape": "circle", "pos": Vector2(300, 0), "r": 60.0, "done": false}]
+	g.t += 1.0
+	check(ev._cmd_evade(Vector2(300, 0)) == Vector2(300, 0), "evade 0: no dodge")
+	cmd2["evade"] = 1
+	g.warns = []
+	# 走位意识：近战挑近战怪最少的一侧（目标朝队长那侧被围 → 换到另一侧），side 0 = 永远朝队长侧
+	var sd := Probe.new(g, {"id":"sd", "class":"近卫"})
+	g.ppos = Vector2.ZERO
+	var tgt := enemy(Vector2(300, 0))
+	g.enemies = [tgt, enemy(Vector2(262, -14)), enemy(Vector2(262, 14)), enemy(Vector2(250, 0))]
+	sd.pos = Vector2(300, 200)
+	sd.roam_tgt = tgt
+	g.squad.priority = 1
+	var sp: Vector2 = sd.roam_target(Vector2(40,14))
+	check(is_same(sd.roam_tgt, tgt) and (sp.x > 299.0 or absf(sp.y) > 20.0), "melee avoids the crowded leader-side and stands on a free side")
+	cmd2["side"] = 0
+	sd._cmd_side_ang = INF
+	sp = sd.roam_target(Vector2(40,14))
+	check(sp.x < 300.0 and absf(sp.y) < 1.0, "side 0: old rule, leader-side of the target")
+	cmd2["side"] = 1
+	g.squad.priority = 0
 	print("COMMAND_AI checks=%d failures=%d" % [checks, failures])
 	get_tree().quit(1 if failures else 0)
