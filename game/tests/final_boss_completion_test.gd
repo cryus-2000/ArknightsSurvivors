@@ -32,6 +32,11 @@ func _ready() -> void:
 	add_child(g)
 	await get_tree().process_frame
 	g.set_process(false)
+	# 自然流程里的招式表验 Codex 版轮转；偏执泡影 / 伊莎玛拉的连段版（boss/paranoia_combos、ishar_combos，10-27）各有自己的测试，这里关掉
+	var Bal = preload("res://scripts/core/balance.gd")
+	Bal.v("boss/paranoia_combos", 1.0)
+	Bal._data["boss"]["paranoia_combos"] = 0
+	Bal._data["boss"]["ishar_combos"] = 0
 	g.t = 100.0
 	g.zone_frozen = true
 	g.zone_state = 3
@@ -135,7 +140,7 @@ func _test_fixes() -> void:
 		g.tele.update_warns(0.2)
 		check(stack[0].pos == first and stack[1].pos != first, "stack individually follows moving player")
 	g.bai.boss("paranoia").paranoia_hatch(p, true)
-	check(is_equal_approx(p.hp / p.maxhp, 0.8), "paranoia revive 80 percent")
+	check(is_equal_approx(p.hp / p.maxhp, preload("res://scripts/core/balance.gd").v("boss/paranoia_revive", 0.8)), "paranoia revive = boss/paranoia_revive (10-28 0.5)")
 	var knight: Dictionary = fresh("knight_boss")
 	var script = g.bai.boss("knight_boss")
 	script._knight_stakes(knight, 0.1)
@@ -274,7 +279,7 @@ func _test_bubble_tracking() -> void:
 		check(g.bai.finals.hazards.is_empty(),move+" finite lifetime")
 		check(g.fx.filter(func(f): return f.kind=="bubble_pop").size()==angles.size(),move+" each expiry ruptures once")
 	var image = preload("res://scripts/render/paranoia_bubble.gd").make_image(0)
-	check(image.get_pixel(20,20).a<0.1,"bubble center transmits the background")
+	check(image.get_pixel(20,20).a<0.25,"bubble center transmits the background")   # 10-27 用户「换成紫色泡泡」内填加厚 0.035 → 0.18（e1d024a4f），仍透底
 	check(image.get_pixel(20,3).a>0.05 and image.get_pixel(3,20).a>0.05,"sphere uses full height and width")
 	check(image.get_pixel(0,0).a==0,"transparent sphere corners")
 	check(image.get_pixel(7,7).a>image.get_pixel(20,20).a,"curved reflection is stronger than transparent center")

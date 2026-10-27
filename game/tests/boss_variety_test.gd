@@ -11,6 +11,11 @@ func _ready() -> void:
 	add_child(g)
 	await get_tree().process_frame
 	g.set_process(false)
+	# 本测试验旧版轮转 AI（招式数 / 同步预警）；偏执泡影 / 伊莎玛拉的连段版（boss/paranoia_combos、ishar_combos，10-27）各有 paranoia_combos / ishar_combo 测试，这里关掉
+	var Bal = preload("res://scripts/core/balance.gd")
+	Bal.v("boss/paranoia_combos", 1.0)
+	Bal._data["boss"]["paranoia_combos"] = 0
+	Bal._data["boss"]["ishar_combos"] = 0
 	g.zone_frozen = false
 	_check_pattern_cadence()
 	for kind in ["carmen", "iberia", "path", "bishop", "archon", "immortal", "paranoia", "knight_boss", "ishar", "izumik"]:
@@ -145,6 +150,8 @@ func _ready() -> void:
 		if not group.is_empty():
 			var time: float = group[0].dur
 			var staged: bool = group[0].get("pattern", {}).has("wave_interval")
+			if spec[1] == "ishar_line":
+				continue   # 伊莎玛拉三线扫射改为四条依次发射（docs/173 §15，10-28）：不再同时结算
 			if not staged:
 				check(group.all(func(w): return is_equal_approx(w.dur, time)), str(spec) + " synchronized warnings")
 			g.invuln = 100.0

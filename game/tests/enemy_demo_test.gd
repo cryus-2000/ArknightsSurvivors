@@ -12,6 +12,10 @@ func check(ok: bool, label: String) -> void:
 
 
 func _ready() -> void:
+	# 人形演示按「中立阶段」验：关掉 10-28 的人形可受伤（boss/ishar_p1_hit，同 friendly_target_regression），可受伤路径在 ishar_combo_test 里测
+	var Bal = preload("res://scripts/core/balance.gd")
+	Bal.v("boss/ishar_p1_hit", 1.0)
+	Bal._data["boss"]["ishar_p1_hit"] = 0
 	g = load("res://game.tscn").instantiate()
 	g.demo_op = "mizuki"
 	g.demo_enemy = "ishar"
@@ -131,7 +135,7 @@ func _ready() -> void:
 					check(str(move.name) in entry.desc, "gallery lists boss pattern " + entry.id + ":" + str(move.name))
 			# 敌人 / Boss 页签只留「待机」和「演示」（用户 10-24）：移动 / 攻击 / 变身等帧条不再单列
 			check(entry.forms.size() == 2 and entry.forms[0].get("label", "") == "待机" and entry.forms[1].get("label", "") == "演示", "gallery tabs are idle + demo only " + entry.id)
-	for detail in [["knight_boss", "寒冷追击"], ["bishop", "统一"], ["ishar", "泪滴共鸣"]]:
+	for detail in [["knight_boss", "寒冷追击"], ["bishop", "假死"], ["ishar", "泪滴共鸣"]]:
 		gal.tab = 3
 		gal._build()
 		check(gal.entries.any(func(entry): return entry.id == detail[0] and detail[1] in entry.desc), "gallery explains original-mechanic attack " + detail[0])
