@@ -120,7 +120,7 @@ func check_audio() -> void:
 	Sfx.last.clear()
 	for name in ["op_exusiai_atk", "op_exusiai_atk_b", "op_exusiai_atk_c"]:
 		Sfx.play(name, -20.0, 1.0, 0.0)
-	ok(Sfx.players.filter(func(p): return p.playing and Sfx.voice_group(p.get_meta("sname", "")) == "exusiai_gun").size() == 2, "real rotating gun samples share two-voice cap")
+	ok(Sfx.players.filter(func(p): return p.playing and Sfx.voice_group(p.get_meta("sname", "")) == "exusiai_gun").size() == mini(3, int(Sfx.VOICE_CAP["exusiai_gun"])), "real rotating gun samples share the exusiai_gun voice cap")   # 上限 2 → 4（exu-sync 对拍，10-28）
 	Sfx.play("op_exusiai_s3", -20.0, 1.0, 0.0)
 	Sfx.play("op_exusiai_big", -20.0, 1.0, 0.0)
 	ok(Sfx.players.filter(func(p): return p.playing and Sfx.voice_group(p.get_meta("sname", "")) == "exusiai_burst").size() == 1, "real burst samples share one-voice cap")

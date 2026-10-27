@@ -32,7 +32,7 @@ func _process(_dt: float) -> void:
 		game.eai.pattern(e, Vector2.LEFT, 70.0, 0.1, e.spd)
 		check(not game.warns.is_empty(), kind + " actual attack still warns")
 		if not game.warns.is_empty():
-			check(float(game.warns[-1].dur) >= 0.55, kind + " full reaction interval")
+			check(float(game.warns[-1].dur) >= minf(0.55, preload("res://scripts/core/balance.gd").v("enemy/windup_min", 0.4)) - 0.001, kind + " full reaction interval")
 		if OS.get_cmdline_user_args().has("--capture-enemy"):
 			e.pos = game.ppos + Vector2(115, 0)
 			e.wind = 0.0

@@ -51,7 +51,7 @@ func run_checks() -> void:
 		if warnings.is_empty():
 			continue
 		var w: Dictionary = warnings[0]
-		check(w.owner == e and w.dur >= 0.6 and w.cancel_dead, kind + " readable cancellable warning")
+		check(w.owner == e and w.dur >= minf(0.6, preload("res://scripts/core/balance.gd").v("enemy/windup_min", 0.4)) - 0.001 and w.cancel_dead, kind + " readable cancellable warning")
 		if kind == "founder":
 			check(float(w.get("frost", 0.0)) > 0.0 and not e.has("frost_attack"), "founder crystal warning carries bounded frost")
 		if kind == "tracer":

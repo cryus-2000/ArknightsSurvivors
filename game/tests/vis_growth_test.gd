@@ -221,6 +221,9 @@ func test_live(g) -> void:
 	Cfg.quality = "low"
 	ok(VG.cap_of("cap_shots", 48) == 2, "低画质：上限不变")
 	exu.vg.n_merged = 0
+	for o in g.squad.ops:   # 前面段落留在场上的额外弹先清掉（10-28 整合后开测时已有 3 颗，上限只管新生成）
+		if not o.vg.is_empty():
+			o.vg.bul.clear()
 	var cap_ok := true
 	for f in 240:
 		g._update(DT)

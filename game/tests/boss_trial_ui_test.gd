@@ -18,6 +18,11 @@ func capture(name: String) -> void:
 	get_viewport().get_texture().get_image().save_png("res://../build/" + name + ".png")
 
 func run() -> void:
+	if Cfg.dev_args().has("--ishar-human"):
+		# 人形演练按「中立阶段」验：关掉 10-28 的人形可受伤（boss/ishar_p1_hit，同 friendly_target_regression），可受伤路径在 ishar_combo_test
+		var Bal = preload("res://scripts/core/balance.gd")
+		Bal.v("boss/ishar_p1_hit", 1.0)
+		Bal._data["boss"]["ishar_p1_hit"] = 0
 	var menu := Menu.new()
 	add_child(menu)
 	menu.open()
