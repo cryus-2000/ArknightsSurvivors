@@ -312,7 +312,8 @@ static func _fire_qi(o, s: Dictionary) -> void:
 
 
 ## 剑气按武器分类（用户 10-27「每个人的武器类型不一样」，docs/170 §7）：balance.json sword_ease/style 表，
-## blade 刀剑一字斩 / thrust 细剑·长柄突刺 / blunt 锤·盾·锚贴地冲击波；表里没有的 = 通用（拉普兰德剑气帧条按代表色重染）。
+## blade 刀剑一字斩 / thrust 细剑·长柄突刺 / blunt 锤·盾·锚贴地冲击波 / saw 贝壳圆锯（归溟幽灵鲨）/ tentacle 水母触手（水月）；
+## 表里没有的 = 通用（拉普兰德剑气帧条按代表色重染）。
 ## 只换画法与速度曲线，判定（qi_w 宽、飞行距离）与伤害各类相同。
 static func qi_style(o) -> String:
 	var m = Bal.sec("sword_ease").get("style", {})
@@ -378,6 +379,11 @@ static func tick(o, dt: float) -> void:
 				qa = q.p
 			if q.life <= 0.0:
 				continue
+			if str(q.get("style", "")) == "saw" and quality() != "low" and g.vrng.randf() < 0.6:   # 圆锯边缘甩火花（画面，g.vrng）
+				var dn2: Vector2 = q.v.normalized()
+				var sa: float = g.vrng.randf_range(0.0, TAU)
+				o.fx({"kind": "spark", "pos": q.p + Vector2(0, -16.0) + Vector2.from_angle(sa) * 12.0, "vel": Vector2.from_angle(sa + PI * 0.5) * 140.0 - dn2 * 60.0,
+					"life": 0.16, "col": Color(1.3, 1.05, 0.7), "sz": 1.6, "drag": 3.0})
 			if str(q.get("style", "")) == "blunt" and quality() != "low":   # 冲击波沿地面甩起尘土（画面，g.vrng，不影响玩法随机）
 				var dn: Vector2 = q.v.normalized()
 				for _m in 2:
@@ -454,6 +460,10 @@ static func draw(o) -> void:
 					_qi_blade(cv, p2, ang, qc, f, stc, gap, ng, ssc)
 				"thrust":
 					_qi_thrust(cv, p2, ang, qc, f, stc, gap, ng, low, ssc)
+				"saw":
+					_qi_saw(cv, p2, ang, qc, f, gap, ng, float(q.t), ssc)
+				"tentacle":
+					_qi_tentacle(cv, p2, ang, qc, f, stc, float(q.t), ssc)
 				"blunt":
 					if q.has("p0"):   # 地上犁出的一道沟：从出手点到波前，越靠后越淡（读作重物推过去）
 						var fa: float = qc.a * (0.25 + 0.3 * f)
@@ -540,6 +550,43 @@ static func _qi_blunt(cv, p: Vector2, ang: float, qc: Color, f: float, stc: floa
 		var c: Vector2 = _lw(p, d, 3.0 * k - absf(y) * 0.35, y * 0.75) + Vector2(0, -h)
 		var sz: float = (1.5 + float(i % 2)) * k
 		cv.draw_colored_polygon(PackedVector2Array([c + Vector2(-sz, -sz), c + Vector2(sz, -sz), c + Vector2(sz, sz), c + Vector2(-sz, sz)]), rc)
+
+
+## 贝壳圆锯（归溟幽灵鲨，docs/31「贝壳状圆锯」）：旋转的齿盘，转速跟飞行速度走；猛冲段身后拖淡影
+static func _qi_saw(cv, p: Vector2, ang: float, qc: Color, f: float, gap: float, ng: int, t: float, k: float) -> void:
+	var d := Vector2.from_angle(ang)
+	var r: float = 11.0 * k
+	var spin: float = t * (18.0 + 30.0 * f)   # 出手转得最快
+	for gi in range(ng, 0, -1):
+		cv.draw_circle(p - d * gap * gi, r, Color(qc.r, qc.g, qc.b, qc.a * f * 0.25 / gi))
+	var teeth := PackedVector2Array()   # 齿：外圈 10 齿，齿尖 r+3、齿根 r
+	var NT := 10
+	for i in NT * 2:
+		var a: float = spin + float(i) / float(NT * 2) * TAU
+		teeth.append(p + Vector2.from_angle(a) * (r + (3.0 * k if i % 2 == 0 else 0.0)))
+	cv.draw_colored_polygon(teeth, qc)
+	cv.draw_circle(p, r * 0.72, qc.darkened(0.35))
+	for i in 4:   # 贝壳纹：四道弧形肋，跟着转
+		var a0: float = spin * 1.0 + float(i) * TAU / 4.0
+		cv.draw_arc(p + Vector2.from_angle(a0) * r * 0.25, r * 0.5, a0 - 1.2, a0 + 0.6, 6, qc.lerp(Color(1.5, 1.5, 1.5, qc.a), 0.3), 1.2)
+	cv.draw_circle(p, r * 0.22, qc.lerp(Color(1.6, 1.6, 1.6, qc.a), 0.5))
+
+
+## 水母触手（水月，docs/31「原作普攻是苍白水母触手抽打」）：一根向前抽出的波状触手，越往尾越摆得开，头上一颗光点
+static func _qi_tentacle(cv, p: Vector2, ang: float, qc: Color, f: float, stc: float, t: float, k: float) -> void:
+	var d := Vector2.from_angle(ang)
+	var L: float = 34.0 * k * stc
+	var pts := PackedVector2Array()
+	var N := 14
+	for i in N + 1:
+		var u: float = float(i) / N   # 0 = 头，1 = 尾
+		var amp: float = (1.5 + 7.0 * u) * k * (0.6 + 0.4 * (1.0 - f))   # 猛冲时拉直、滑行时摆开
+		pts.append(_lw(p, d, -L * u, sin(u * 7.0 - t * 26.0) * amp))
+	var pale := qc.lerp(Color(1.4, 1.4, 1.5, qc.a), 0.25)
+	cv.draw_polyline(pts, Color(qc.r, qc.g, qc.b, qc.a * 0.75), 4.0 * k)
+	cv.draw_polyline(pts, pale, 1.6 * k)
+	cv.draw_circle(p, 3.6 * k, pale)
+	cv.draw_circle(p, 1.8 * k, Color(1.6, 1.6, 1.7, qc.a))
 
 
 # ---------------------------------------------------------------- 召唤物（ob_summon / seg_wisadel 调）

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""藏品剑气按武器分类的对照录像（用户 10-27，docs/170 §7）：同一场景、同 seed，德克萨斯 / 推进之王 / 艾丽妮 / 星熊 / 乌尔比安 / 归溟幽灵鲨
+"""藏品剑气按武器分类的对照录像（用户 10-27，docs/170 §7）：同一场景、同 seed，德克萨斯 / 推进之王 / 艾丽妮 / 乌尔比安 / 水月 / 归溟幽灵鲨
 各拿锈蚀刀片 + 老近卫军之锋跑一次，3 × 2 宫格；出原速与 1/3 速两段 mp4（H.264、原色）到 build/sword_wave_speed/styles_1x.mp4、styles_slow.mp4（10-27 口径：给用户看录像，不用 gif）。
 开窗口走 godot_runner（屏幕外、不抢焦点、静音）。
 
@@ -18,7 +18,7 @@ GAME = os.path.join(ROOT, "game")
 OUT = os.path.join(ROOT, "build", "sword_wave_speed")
 RAW = os.path.join(OUT, "raw", "styles")
 OPS = [("texas", "德克萨斯 · 刀剑一字斩"), ("siege", "推进之王 · 钝器冲击波"), ("irene", "艾丽妮 · 细剑突刺"),
-       ("hoshiguma", "星熊 · 盾冲击波"), ("ulpianus", "乌尔比安 · 锚冲击波"), ("specter_unchained", "归溟幽灵鲨 · 通用（待做）")]
+       ("ulpianus", "乌尔比安 · 锚冲击波"), ("mizuki", "水月 · 水母触手"), ("specter_unchained", "归溟幽灵鲨 · 贝壳圆锯")]
 COLS = 3
 FRAMES = 300   # 原速 5 秒 / 1/3 速 15 秒
 
@@ -27,7 +27,7 @@ def run(op):
     out, err, to = GR.run_godot([GR.find_godot(), "--path", GAME, "res://tests/sword_wave_capture.tscn", "--",
                                  "--balance", "--seed=1", "--op=" + op, "--sw_case=qi", "--sw_frames=%d" % FRAMES,
                                  "--sw_tag=" + op, "--sw_out=" + RAW], 300)
-    ok = "SW CAPTURE done" in out
+    ok = "SW CAPTURE done" in out and "SCRIPT ERROR" not in out + err   # 画法只在开窗口时跑，脚本错要在这里抓
     if not ok:
         print(op, "失败", (out + err)[-1500:])
     return ok

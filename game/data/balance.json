@@ -835,12 +835,14 @@
   "ghost": 2,
   "pause": 0.025,
   "ops": {},
-  "_style": "藏品近战剑气按武器分类（用户 10-27，docs/170 §7）：blade 刀剑一字斩 / thrust 细剑·长柄突刺 / blunt 锤·盾·锚贴地冲击波；不在表里 = 通用（拉普兰德剑气帧条重染）。styles/<类> 覆盖曲线旋钮，判定与伤害各类相同",
-  "style": {"texas": "blade", "irene": "thrust", "gladiia": "thrust", "siege": "blunt", "hoshiguma": "blunt", "saria": "blunt", "ulpianus": "blunt"},
+  "_style": "藏品近战剑气按武器分类（用户 10-27，docs/170 §7）：blade 刀剑一字斩 / thrust 细剑·长柄突刺 / blunt 锤·盾·锚贴地冲击波 / saw 贝壳圆锯 / tentacle 水母触手；不在表里 = 通用（拉普兰德剑气帧条重染）。styles/<类> 覆盖曲线旋钮，判定与伤害各类相同",
+  "style": {"texas": "blade", "irene": "thrust", "gladiia": "thrust", "siege": "blunt", "hoshiguma": "blunt", "saria": "blunt", "ulpianus": "blunt", "specter_unchained": "saw", "mizuki": "tentacle"},
   "styles": {
    "blade": {"k": 4.0, "glide": 0.12, "stretch": 0.6},
    "thrust": {"k": 1.8, "glide": 0.45, "stretch": 0.5},
-   "blunt": {"k": 5.0, "glide": 0.05, "stretch": 0.2, "pause": 0.035}
+   "blunt": {"k": 5.0, "glide": 0.05, "stretch": 0.2, "pause": 0.035},
+   "saw": {"k": 2.2, "glide": 0.35, "stretch": 0.0},
+   "tentacle": {"k": 3.5, "glide": 0.15, "stretch": 0.4}
   }
  },
  "vgrowth": {
