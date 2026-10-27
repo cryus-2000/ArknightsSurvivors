@@ -168,9 +168,10 @@ func _ready() -> void:
 	var ice_marks: Array = g.warns.filter(func(w): return w.act == "frost_track")
 	check(ice_marks.size() == 1 and ice_marks[0].dur >= 0.6, "knight announces frost-track pursuit")
 	if not ice_marks.is_empty():
+		g.t += ice_marks[0].dur # Advance the real windup before resolving its release.
 		g.bai._warn_resolve(ice_marks[0])
 		check(g.fx.any(func(f): return f.kind == "final_impact" and f.get("skin", "") == "ice") and g.fx.any(func(f): return f.kind == "frost_step"), "knight frost track has ice art")
-		g.t = float(hunter.get("hunt_follow_at", INF)) + 0.01
+		g.t = maxf(float(hunter.knight_combo_next),float(hunter.get("hunt_follow_at",0.0))) + 0.01
 		hunter.wind = 0.0
 		g.warns.clear()
 		g.bai._boss_ai(hunter, 0.01, Vector2.RIGHT, 260.0)

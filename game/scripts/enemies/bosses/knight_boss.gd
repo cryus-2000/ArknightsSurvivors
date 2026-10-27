@@ -14,6 +14,76 @@ const ICE := Color(0.6, 0.9, 1.4)
 const MOVES := ["冲锋", "冰线", "长枪连刺", "掷枪", "长枪回旋"]
 
 
+## Bounded authored chains. Each child warning still owns its full tell and lock window.
+func on_warning(e: Dictionary, w: Dictionary) -> void:
+	if e.dead or e.get("friendly",false) or e.get("invuln",false): return
+	if w.dmg <= 0.0 and not (w.act=="final_attack" and w.get("motion","")=="sidestep"): return
+	if not e.get("knight_combo_active",false):
+		var chain: Array = []
+		match str(w.name):
+			"断潮劈击": chain = ["冲锋","@近身收招"]
+			"踏冰裂阵": chain = ["掷枪" if e.phase==1 and _act(e)>=1 else "断潮劈击","冲锋"]
+			"侧踏挑枪": chain = ["@侧击"]
+			"掷枪": chain = ["冲锋"]
+			"长枪回旋": chain = ["长枪连刺"]
+			"长枪连刺": chain = ["断潮劈击"]
+			"冲锋": chain = ["再冲锋","再冲锋"] if e.phase==2 else (["再冲锋","@近身收招"] if _act(e)>=2 else ["@近身收招"])
+			"冰线": chain = ["寒冷追击","再冲锋"] if e.phase==2 else ["寒冷追击","@近身收招"]
+		if chain.is_empty(): return
+		e.knight_combo_active = true
+		e.knight_combo_queue = chain
+		e.knight_combo_phase = e.phase
+		e.knight_combo_until = g.t + 18.0
+		e.knight_combo_next = g.t
+	e.knight_combo_next = maxf(float(e.knight_combo_next),g.t+w.dur+0.22)
+
+func cancel_combo(e: Dictionary) -> void:
+	e.knight_combo_active = false
+	e.knight_combo_queue = []
+	e.dash2 = 0
+	e.hunt_follow_at = INF
+	e.erase("breath_at")
+	g.warns = g.warns.filter(func(w):return not is_same(w.owner,e) or (w.dmg<=0.0 and w.act!="final_attack"))
+	g.bai.finals.hazards = g.bai.finals.hazards.filter(func(h):return not is_same(h.owner,e))
+
+## Called before the shared optional attacks, so a reserved follow-up cannot be stolen.
+func combo_step(e: Dictionary, dir: Vector2, dist: float, ready: bool) -> bool:
+	if not e.get("knight_combo_active",false): return false
+	if e.dead or e.get("friendly",false) or e.get("invuln",false) or e.stun>0.0 or e.get("break_t",0.0)>0.0 \
+		or e.phase!=e.knight_combo_phase or g.t>float(e.knight_combo_until):
+		cancel_combo(e)
+		return true
+	# The old ice-line follow-up timer must not dispatch a second charge alongside this chain.
+	e.hunt_follow_at = INF
+	if not ready or g.t<float(e.knight_combo_next) or (e.get("kb_self",false) and e.kb.length()>40.0): return true
+	if g.warns.any(func(w):return is_same(w.owner,e) and not w.done and w.dmg>0.0): return true
+	var queue: Array = e.knight_combo_queue
+	# Entering a break cancels hazards: let the final blade finish before granting recovery.
+	if queue.is_empty() and g.bai.finals.hazards.any(func(h):return is_same(h.owner,e)): return true
+	var next: String = str(queue.pop_front()) if not queue.is_empty() else ""
+	if next=="@近身收招":
+		next = ("长枪回旋" if e.phase==2 else "长枪连刺") if dist<185.0 else ""
+	elif next=="@侧击":
+		next = ("长枪回旋" if e.phase==2 else "长枪连刺") if dist<185.0 else "冲锋"
+	if next=="":
+		e.knight_combo_active = false
+		e.knight_combo_queue = []
+		var recovery := 2.5 if e.phase==2 else 1.6
+		g.combat.start_break(e,recovery)
+		e.brk_label = "破绽"
+		e.wind = maxf(e.wind,recovery)
+		e.final_next = maxf(float(e.get("final_next",0.0)),g.t+recovery)
+		return true
+	if next in ["再冲锋","寒冷追击"]:
+		var angle: float = float(e.get("hunt_angle",dir.angle())) if next=="寒冷追击" else dir.angle()
+		_warn(e,"line",0.8,{"ang":angle,"len":520.0 if next=="寒冷追击" else 364.0,"wid":34.0,
+			"track":0.0 if next=="寒冷追击" else 0.35,"act":"dash","fit_len":true,"name":next,"col":ICE,
+			"dmg":_bite(e,e.dmg*1.35)})
+	else:
+		force_move(e,next,dir,dist)
+	return true
+
+
 ## 当前第几幕：0 = 一幕，1 = 二幕（66%），2 = 三幕（33%）；重生后按 phase 2 另算
 func _act(e: Dictionary) -> int:
 	return int(e.get("gates_passed", 0))
@@ -78,6 +148,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 
 ## 图鉴 / Boss 演练：直接进入二阶段的完整状态
 func setup_preview_phase2(e: Dictionary) -> void:
+	cancel_combo(e)
 	e.phase = 2
 	e.hp = e.maxhp * 0.5
 	e.spd *= Bal.v("boss/knight_reborn_spd", 0.5)
@@ -129,7 +200,9 @@ func _bite(e: Dictionary, dmg: float) -> float:
 func _charge(e: Dictionary, dir: Vector2) -> void:
 	_warn(e, "line", 0.8, {"ang": dir.angle(), "len": 520.0, "wid": 34.0, "track": 0.4, "act": "dash", "fit_len": true, "name": "冲锋", "col": ICE,
 		"dmg": _bite(e, e.dmg * Bal.v("boss/knight_charge_mult", 1.7))})
-	if e.phase == 2:
+	if e.get("knight_combo_active",false):
+		e.dash2 = 0
+	elif e.phase == 2:
 		e.dash2 = int(Bal.v("boss/knight_p2_chain", 2.0))
 	elif _act(e) >= 2:
 		e.dash2 = 1
@@ -245,6 +318,7 @@ func _knight_stakes(e: Dictionary, _dt: float) -> void:
 				e.kb_self = false
 				e.dash_t = 0.0
 				e.dash2 = 0
+				cancel_combo(e)
 				e.erase("breath_at")
 				g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
 				# 撞柱眩晕（用户 10-25）：knight_stake_break（2.5）秒不动不出招、受伤 × knight_break_taken（2.0）；头顶星 + 「眩晕」读秒（world 读 brk_label；骑士别的破绽不写字）
@@ -291,12 +365,13 @@ func taken_mult(e: Dictionary) -> float:
 
 
 ## 转幕保留当前冰柱批次，不额外补柱。
-func on_gate(_e: Dictionary) -> void:
-	pass   # Existing pillars persist across acts; only an exhausted batch is renewed.
+func on_gate(e: Dictionary) -> void:
+	cancel_combo(e) # Existing pillars persist; only the attack sequence ends.
 
 
 ## 第一次归零不死，寒冰重生（二阶段「冲锋形态」）
 func on_lethal(e: Dictionary) -> bool:
+	cancel_combo(e)
 	if e.phase != 1:
 		return super.on_lethal(e)
 	Sfx.play_cue("phase", e.type, "start")
@@ -320,3 +395,6 @@ func on_lethal(e: Dictionary) -> bool:
 	for k in int(Bal.v("boss/knight_rebirth_wave", 16.0)):
 		g.spawner.spawn_enemy(g.spawner.pick_type(), g.combat.arena_clamp(g.spawner.edge_pos(), 60.0))   # 夹进场地圈内：别刷到够不着的地方
 	return true
+
+func on_kill(e: Dictionary) -> void:
+	cancel_combo(e)

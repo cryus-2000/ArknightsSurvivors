@@ -102,6 +102,8 @@ func boss_step(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 	if ready and token_owner != null and not is_same(token_owner, e) and not token_owner.dead and g.t < token_until 			and g.bosses.has(token_owner):
 		ready = false
 	finals.update(e, dt)
+	if e.type == "knight_boss" and boss(e.type).combo_step(e,dir,dist,ready):
+		ready = false
 	if ready and finals.try_attack(e, dir, dist):
 		ready = false
 	if ready and patterns.try_attack(e, dir, dist):

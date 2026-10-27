@@ -1781,7 +1781,7 @@ func test_lore5() -> void:
 	kn.wind = 0.0
 	kn.stun = 0.0
 	bai._boss_ai(kn, 0.01, Vector2.LEFT, 400.0)
-	ok(int(kn.get("dash2", 0)) == int(Bal.v("boss/knight_p2_chain", 2.0)), "二阶段冲锋后还要再冲 %d 次（一组 3 次）" % int(kn.get("dash2", 0)))
+	ok(kn.get("knight_combo_queue", []).count("再冲锋") == int(Bal.v("boss/knight_p2_chain", 2.0)) and int(kn.get("dash2",0)) == 0, "二阶段冲锋由连段队列再冲两次，旧计数不重复出招")
 	kn.dead = true
 	game.warns.clear()
 	var ish: Dictionary = sp.spawn_enemy("ishar", game.ppos + Vector2(1600, 0))

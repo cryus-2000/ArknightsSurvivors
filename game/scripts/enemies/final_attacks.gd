@@ -46,6 +46,7 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool:
 	if not NAMES.has(e.type) or not NAMES[e.type].has(name) or not enabled(e):
 		return false
+	var chained: bool = e.type == "knight_boss" and e.get("knight_combo_active", false)
 	var side: Vector2 = dir.orthogonal()
 	match name:
 		"追猎泡":
@@ -124,7 +125,7 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 			for k in 2:
 				_warn(e, "circle", 1.5 + 0.85 * k, {"name": name if k == 0 else "", "pos": e.pos,
 					"r": 360.0 - k * 120.0, "inner_r": 240.0 - k * 120.0, "skin": "abyss", "dmg": e.dmg})
-	e.final_next = g.t + float(e.wind) + 7.0
+	if not chained: e.final_next = g.t + float(e.wind) + 7.0
 	return true
 
 func choir_sources(e: Dictionary) -> Array:

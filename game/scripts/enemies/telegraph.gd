@@ -93,6 +93,8 @@ func warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary
 		w.dur *= wm
 		w.track *= wm
 	g.warns.append(w)
+	if e.type == "knight_boss":
+		g.bai.boss(e.type).on_warning(e,w)
 	# 大招固定音效（docs/38 §8.11）：有名字的 Boss 招式起手播「类别起手音 + Boss 专属音色」，结算时播命中音
 	if e.boss and w.name != "":
 		w.cue = cue_cat(w)

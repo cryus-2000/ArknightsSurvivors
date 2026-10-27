@@ -52,7 +52,11 @@ def main():
     parser.add_argument("--quality", choices=["high", "low"], default="high")
     parser.add_argument("--tag", required=True)
     parser.add_argument("--encode-only", action="store_true")
+    parser.add_argument("--combos", action="store_true", help="Knight only: three 18-second segments with one forced opener and live AI")
     args = parser.parse_args()
+    if args.combos and args.boss != "knight_boss":
+        parser.error("--combos requires --boss knight_boss")
+    move_seconds = 18.0 if args.combos else MOVE_SECONDS
     base = (ROOT / "build/boss_fx_review" / args.tag).resolve()
     if not base.is_relative_to((ROOT / "build/boss_fx_review").resolve()):
         raise ValueError("Output must remain under build/boss_fx_review")
@@ -69,7 +73,7 @@ def main():
             folder.mkdir(exist_ok=True)
             # Pin the code that the process loads, even while another worker edits it.
             sources = {}
-            for name in ["game/scripts/render/boss_attack_draw.gd", "game/scripts/enemies/final_attacks.gd", "game/scripts/render/final_attack_grains.gd", "game/scripts/render/final_boss_materials.gd", "game/scripts/render/paranoia_bubble.gd", "game/tests/final_boss_fx_preview.gd"]:
+            for name in ["game/scripts/render/boss_attack_draw.gd", "game/scripts/enemies/final_attacks.gd", "game/scripts/render/final_attack_grains.gd", "game/scripts/render/final_boss_materials.gd", "game/scripts/render/paranoia_bubble.gd", "game/tests/final_boss_fx_preview.gd", "game/tests/knight_combo_preview.gd", "game/scripts/boss_ai.gd", "game/scripts/enemies/bosses/knight_boss.gd", "game/scripts/run/enemies.gd", "game/scripts/enemies/telegraph.gd"]:
                 path = ROOT / name
                 if path.exists():
                     data = path.read_bytes()
@@ -77,14 +81,14 @@ def main():
                     sources[name] = hashlib.sha256(data).hexdigest()
             (folder / "source_hashes.json").write_text(json.dumps(sources, indent=2), encoding="utf-8")
             command = [runner.find_godot(), "--path", str(ROOT / "game"), "--audio-driver", "Dummy", "--resolution", "1280x720", "--fixed-fps", "30",
-                       "res://tests/final_boss_fx_preview.tscn", "--", "--fx-preview", "--seed=271027", "--boss=" + boss, "--quality=" + args.quality, "--shotdir=" + folder.as_posix()]
+                       ("res://tests/knight_combo_preview.tscn" if args.combos else "res://tests/final_boss_fx_preview.tscn"), "--", "--fx-preview", "--seed=271027", "--boss=" + boss, "--quality=" + args.quality, "--shotdir=" + folder.as_posix()]
             out, err, timed_out = runner.run_godot(command, 480)
             (folder / "run.log").write_text(out + "\n" + err, encoding="utf-8")
             if timed_out or runner.script_errors(out, err) or "FX_PREVIEW_DONE" not in out:
                 raise RuntimeError("Preview failed: " + str(folder / "run.log") + "\n" + (out + err)[-4000:])
         count = encode(folder)
-        if not args.encode_only and count != int(3 * MOVE_SECONDS * FPS):
-            raise RuntimeError("Incomplete capture: expected 540 frames, got " + str(count))
+        if not args.encode_only and count != int(3 * move_seconds * FPS):
+            raise RuntimeError("Incomplete capture: expected " + str(int(3 * move_seconds * FPS)) + " frames, got " + str(count))
         log = (folder / "run.log").read_text(encoding="utf-8")
         metrics = [json.loads(line.removeprefix("FX_PREVIEW_METRICS ")) for line in log.splitlines() if line.startswith("FX_PREVIEW_METRICS ")]
         if not args.encode_only and len(metrics) != 3:
@@ -92,7 +96,7 @@ def main():
         report = {"move_metrics": metrics, "boss": boss, "quality": args.quality, "frames": count, "fps": 15, "source_size": [1280, 720], "gif_size": [640, 360], "gif_fps": 12,
                   "move_seconds": count / (3 * FPS), "duration_seconds": count / FPS,
                   "sheet_sample_seconds": [min(t, (count // 3 - 1) / FPS) for t in SHEET_SECONDS],
-                  "simulation": "Actual force_move + telegraph + hazard + optical rendering; ordinary AI paused; invulnerable player follows a continuous 100px/s route with turns at 2.6, 4.4, 6.5 and 8.7 seconds; wind/cooldown/pose clocks advance"}
+                  "simulation": "Production enemies_sys.update + boss AI + shots/telegraphs/status; one forced opener per segment, continuous invulnerable player, no scripted follow-up" if args.combos else "Actual force_move + telegraph + hazard + optical rendering; ordinary AI paused; invulnerable player follows a continuous 100px/s route with turns at 2.6, 4.4, 6.5 and 8.7 seconds; wind/cooldown/pose clocks advance"}
         (folder / "capture.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         print(json.dumps(report), flush=True)
 
