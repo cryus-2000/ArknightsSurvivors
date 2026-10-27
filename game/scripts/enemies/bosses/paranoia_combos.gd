@@ -413,6 +413,13 @@ func _update_rush(e: Dictionary, dt: float) -> void:
 		if g.t < float(ln.t_go):
 			live.append(ln)
 			continue
+		if not ln.get("launched", false):
+			# 起冲：身后一圈泡沫迸开（纯画面）
+			ln.launched = true
+			if gr != null:
+				for q in BossBeam.take(g, 16):
+					gr.push("mote_burst", ln.a + Vector2(0, -24), -ln.d.rotated((q - 7.5) * 0.18), CORE)
+			Sfx.play("swing", -10.0, 0.8, 0.05)
 		var el: float = minf(g.t, float(ln.end)) - float(ln.t_go)
 		var prev: Vector2 = ln.pos
 		ln.pos = ln.a + ln.d * RUSH_SPD * el
@@ -421,9 +428,11 @@ func _update_rush(e: Dictionary, dt: float) -> void:
 			ln.hit = true
 			if g.invuln <= 0.0:
 				g.combat.enemy_hit(e.dmg * Bal.v("boss/paranoia_rush_mult", 1.0), {"boss": true, "src_type": e.type, "corrode": 0.3}, false, true, ["近战", "法术"], "boss_" + e.type)
-		if gr != null and BossBeam.take(g, 2) == 2:
-			gr.push("mote_shed", ln.pos + Vector2(0, -20), -ln.d, CORE)
-			gr.push("mote_shed", ln.pos + Vector2(0, -40), -ln.d, CORE)
+		if gr != null and BossBeam.take(g, 4) == 4:
+			# 尾流：身后两侧各一串泡沫，向外散开
+			for sd in [-1.0, 1.0]:
+				gr.push("mote_shed", ln.pos + Vector2(0, -20) + ln.d.orthogonal() * 18.0 * sd, -ln.d + ln.d.orthogonal() * 0.6 * sd, CORE)
+				gr.push("mote_burst", ln.pos + Vector2(0, -36) - ln.d * 20.0, -ln.d + ln.d.orthogonal() * 0.3 * sd, CORE)
 		if g.t >= float(ln.end):
 			# 冲到头碎成泡
 			if gr != null:

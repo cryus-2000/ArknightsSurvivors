@@ -48,17 +48,39 @@ static func draw_top(g, e: Dictionary) -> void:
 			var a0: float = q * TAU / 18.0
 			var rq: float = o.r * 1.15 + 3.0 * sin(g.t * 11.0 + q * 1.9)
 			g.draw_arc(cpos, rq, a0, a0 + TAU / 22.0, 3, Color(0.7, 0.9, 1.0, 0.55), 1.5)
-	# 幻象冲撞：预告期幻象从透明渐显、身前一道泡沫通道（地面层 draw_ground）；冲刺中半透明冷色本体
+	# 幻象冲撞（用户 10-28「冲锋只是平移，加动态」）：预告期渐显并上下浮动；最后 0.35 秒向后蓄势（后退 + 压扁）；
+	# 冲刺中沿方向拉长、身后 4 个渐淡残影、本体轻微抖动；地面层另画泡沫通道（draw_ground）
+	var frames: int = A.enemy_frames(str(e.tex), 2)
+	var foot: bool = g.foot_anchor.has(str(e.tex))
+	var sc: float = g.world.enemy_scale(e) / A.hires_of(g.tex.get(str(e.tex)))
+	var anc: Vector2 = Vector2(0.5, 1.0) if foot else Vector2(0.5, 0.5)
+	var foot_off: Vector2 = Vector2(0, float(e.r) * 0.8 + 3.0 * g.PX) if foot else Vector2.ZERO
 	for ln in e.get("pc_rush", []):
 		if g.t < float(ln.t0):
 			continue
-		var fade: float = clampf((g.t - float(ln.t0)) / 0.4, 0.0, 1.0)
-		var frames: int = A.enemy_frames(str(e.tex), 2)
-		# 缩放 / 锚点同本体（world._draw_enemy_full：enemy_scale 已含 PX；脚底锚点的帧条画在脚下）
-		var foot: bool = g.foot_anchor.has(str(e.tex))
-		var bp: Vector2 = ln.pos + (Vector2(0, float(e.r) * 0.8 + 3.0 * g.PX) if foot else Vector2.ZERO)
-		g.vfx.spr(str(e.tex), frames, int(g.t * 6.0) % frames, bp, g.world.enemy_scale(e) / A.hires_of(g.tex.get(str(e.tex))), ln.d.x < 0.0,
-			Color(0.7, 0.85, 1.3, 0.5 * fade), Vector2(0.5, 1.0) if foot else Vector2(0.5, 0.5))
+		var d: Vector2 = ln.d
+		var horiz: bool = absf(d.x) >= absf(d.y)
+		var fr: int = int(g.t * 6.0) % frames
+		var flip: bool = d.x < 0.0
+		if g.t < float(ln.t_go):
+			var fade: float = clampf((g.t - float(ln.t0)) / 0.4, 0.0, 1.0)
+			var left: float = float(ln.t_go) - g.t
+			var wind: float = clampf(1.0 - left / 0.35, 0.0, 1.0)   # 0 → 1：蓄势
+			var p: Vector2 = ln.pos - d * 26.0 * wind * wind + Vector2(0, sin(g.t * 4.0 + float(ln.t0)) * 3.0 * (1.0 - wind))
+			# 蓄势时沿冲刺方向压扁、垂直方向鼓起；抖动随蓄势加剧
+			var k: float = 1.0 - 0.18 * wind
+			var sq: Vector2 = Vector2(k, 2.0 - k) if horiz else Vector2(2.0 - k, k)
+			p += Vector2(sin(g.t * 60.0), cos(g.t * 53.0)) * 1.5 * wind
+			g.vfx.spr(str(e.tex), frames, fr, p + foot_off, sc, flip, Color(0.7, 0.85, 1.3, 0.5 * fade + 0.2 * wind), anc, sq)
+			continue
+		# 冲刺中：残影（越远越淡、越小），本体拉长
+		var stretch: Vector2 = Vector2(1.3, 0.82) if horiz else Vector2(0.85, 1.25)
+		for k2 in [4, 3, 2, 1]:
+			var gp: Vector2 = ln.pos - d * 30.0 * k2
+			var ga: float = 0.28 * (1.0 - k2 / 5.0)
+			g.vfx.spr(str(e.tex), frames, fr, gp + foot_off, sc * (1.0 - 0.04 * k2), flip, Color(0.6, 0.45, 1.2, ga), anc, stretch)
+		var jit: Vector2 = d.orthogonal() * sin(g.t * 45.0) * 2.0
+		g.vfx.spr(str(e.tex), frames, fr, ln.pos + jit + foot_off, sc, flip, Color(0.75, 0.88, 1.35, 0.62), anc, stretch)
 	# 千目注视：杏仁形的眼，0.25 秒内睁开；开过枪的那只瞳孔短暂放亮
 	for ey in e.get("pc_eyes", []):
 		var ot: float = g.t - float(ey.open)
