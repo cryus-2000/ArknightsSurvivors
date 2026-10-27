@@ -70,7 +70,7 @@
 
 - `paranoia_combos_test`：每幕两组、段数 2–4、两组轮换并以收招结束、上屏无「符卡」字样、坠地打断但保留在飞弹、转幕从新幕第一组起、被控作废弹幕段、同输入两遍弹幕位置一致。
 - `paranoia_combo_preview --pc-check`：7 组各 16 秒走正式 AI，无 SCRIPT ERROR；同屏弹数峰值 ≤98。
-- 录像：`build/boss_paranoia/combos_v4/`（每组原速 GIF + 连播 mp4 + capture.json；PNG 帧用完即删）。录像是无敌玩家沿固定路线移动，不代表难度。v1–v3 为历史版本。
+- 录像：`build/boss_paranoia/combos_v4/`（每组原色原速 mp4 + capture.json；PNG 帧编码完即删，旧版录像已删）。录像是无敌玩家沿固定路线移动，不代表难度。v1–v3 为历史版本。
 - 帧时：`tools/probes/paranoia_combo_preview.py --timing --quality low` 写 `timing_low.json`（本机墙钟，含模拟与绘制提交；不是手机实测）。10-27 本机（24 核、多会话同时在跑）低画质：连段 + 弹幕模拟每帧约 0.5–1.0 ms；泡膜同局逐帧开关对照，~95 发时多 0.8–2 ms（泡膜已走 world.tb_* 批）。整帧墙钟两次运行间波动大（同一组 11 ↔ 24 ms），主要是机器负载，不能当手机帧时；手机网页未实测，建议协调人在帧率会话的手机基线里加一局泡影三幕（同屏峰值 ~96 发）。
 
 ## 6. 待云端

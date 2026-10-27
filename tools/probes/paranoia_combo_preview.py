@@ -1,7 +1,7 @@
 """偏执泡影连携攻势录像（docs/170）：每组连段 16 秒，起手后走正式 AI；输出到 build/boss_paranoia/<tag>/。
 
 python tools/probes/paranoia_combo_preview.py --tag cards_v1 [--quality high|low] [--encode-only]
-产物：<序号>_<连段>.gif（每组原速，10 fps、宽 560）、all_combos.mp4（连播）、capture.json（每段事件、弹数峰值、帧时）；PNG 帧用完即删。
+产物：<序号>_<连段>.mp4（每组原色原速 H.264）、all_combos.mp4（连播）、capture.json（每段事件、弹数峰值、帧时）；PNG 帧用完即删。
 --timing：只测帧时（窗口在屏幕外、不截图），结果写 timing_<quality>.json。
 窗口由 godot_runner 挪到副屏 / 屏幕外、静音；不覆盖已有帧。
 """
@@ -25,21 +25,20 @@ def ffmpeg(*args):
     subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-hide_banner", "-loglevel", "error", "-y", *args], check=True)
 
 
-GIF_FILTER = "fps=10,scale=560:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=96:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle"
-
-
 def encode(folder, out, cards):
-    """每组一个原速 GIF（10 fps、宽 560）+ 全部连播 mp4；用完删掉 PNG 帧（用户 10-27 只看 gif）"""
+    """每组一个原色原速 mp4（H.264，≤30 MB）+ 全部连播 mp4；编码完立即删 PNG 帧（用户 10-27：只看录像，不要 gif / 拼图）"""
     paths = sorted(folder.glob("frame_*.png"))
     per = int(SEG * FPS)
-    ffmpeg("-framerate", str(FPS), "-i", str(folder / "frame_%05d.png"), "-c:v", "libx264", "-crf", "20", "-preset", "fast",
+    ffmpeg("-framerate", str(FPS), "-i", str(folder / "frame_%05d.png"), "-c:v", "libx264", "-crf", "23", "-preset", "slow",
            "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out / "all_combos.mp4"))
     for i, c in enumerate(cards):
         ffmpeg("-framerate", str(FPS), "-start_number", str(i * per), "-i", str(folder / "frame_%05d.png"), "-frames:v", str(per),
-               "-filter_complex", GIF_FILTER, "-loop", "0", str(out / ("%d_%s.gif" % (i + 1, c))))
+               "-c:v", "libx264", "-crf", "20", "-preset", "slow", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
+               str(out / ("%d_%s.mp4" % (i + 1, c))))
     n = len(paths)
     for p in paths:
         p.unlink()
+    folder.rmdir() if not any(folder.iterdir()) else None
     return n
 
 
