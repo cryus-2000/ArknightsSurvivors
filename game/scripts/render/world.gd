@@ -4454,7 +4454,7 @@ func _warn_dash_arc(r: float, a0: float, a1: float, col: Color, wdt: float) -> v
 
 func draw_warn_outlines(ground := false) -> void:
 	for w in g.warns:
-		if w.done or TeleDraw.quiet(w) or bool(w.get("ground", false)) != ground:
+		if w.done or TeleDraw.quiet(w) or bool(w.get("ground", false)) != ground or w.get("saint_beam", false):   # saint_beam：圣徒光束蓄力自己画（render/saint_draw）
 			continue   # ground：小怪踏地的轮廓在地面层画（_draw_ground_foe_fx），不压在单位上
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var tr: float = float(w.get("track", 0.0))

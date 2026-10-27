@@ -109,13 +109,17 @@ static func _tile(g, tex: Texture2D, a: Vector2, b: Vector2, k: float, fr: int, 
 	g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 
-## 卡门的封锁线（saint.gd _fire_step 写 e.fire_lines）：Kanpelle 象牙白中段压暗平铺，缺口空出来、画白圈；最后 0.6 秒淡出
+## 卡门的封锁线（saint.gd _fire_step 写 e.fire_lines）：贴地余烬带，缺口空出来、画白圈；
+## 生成 0.25 秒由细变粗（2 → 4），最后 0.4 秒变细并断成碎段逐段熄灭（docs/171 §7 消散），余烬颗粒往上飘
 static func _fire_lines(g, e: Dictionary) -> void:
 	var bc: Color = g.vfx.boss_color(str(e.type))
 	var ember := Color(bc.r * 0.95, bc.g * 0.62, bc.b * 0.38)   # 余烬：专属色往暖、往暗压（象牙白 → 焦橙）
 	for fl in e.get("fire_lines", []):
 		var left: float = float(fl.until) - g.t
-		var al: float = 0.55 * clampf(left / 0.6, 0.0, 1.0) * clampf((g.t - float(fl.get("born", 0.0))) / 0.15, 0.0, 1.0)
+		var age: float = g.t - float(fl.get("born", 0.0))
+		var al: float = 0.55 * clampf(left / 0.4, 0.35, 1.0) * clampf(age / 0.15, 0.0, 1.0)
+		var brk: float = 1.0 - clampf(left / 0.4, 0.0, 1.0)   # 0 → 1：最后 0.4 秒断裂进度
+		var lw: float = lerpf(2.0, 4.0, clampf(age / 0.25, 0.0, 1.0)) * (1.0 - 0.6 * brk)
 		var a: Vector2 = fl.a
 		var b: Vector2 = fl.b
 		var L: float = a.distance_to(b)
@@ -137,13 +141,19 @@ static func _fire_lines(g, e: Dictionary) -> void:
 			if absf((u0 + u1) * 0.5 - gt) < gh:
 				continue   # 缺口里不画
 			var h: float = fposmod(sin(float(i) * 12.9898 + tick * 4.11 + float(fl.born) * 7.0) * 43758.5453, 1.0)
+			if brk > 0.0 and fposmod(sin(float(i) * 78.233 + float(fl.born)) * 43758.5453, 1.0) < brk:
+				continue   # 断成碎段
 			var j: float = (h - 0.5) * 4.0
 			pts.append(a + dirv * (L * u0) + nrm * j)
 			pts.append(a + dirv * (L * u1) + nrm * j)
 			var k: float = 0.45 + 0.55 * h
 			cols.append(Color(ember.r * (0.8 + 0.5 * k), ember.g * (0.8 + 0.5 * k), ember.b * (0.8 + 0.5 * k), al * k))
 		if not cols.is_empty():
-			g.draw_multiline_colors(pts, cols, 4.0)
+			g.draw_multiline_colors(pts, cols, lw)
+		var fgr = grains(g)
+		if brk > 0.0 and fgr != null and g.vrng.randf() < 0.5:
+			for i in take(g, 2):
+				fgr.push("mote_up", a.lerp(b, g.vrng.randf()), Vector2.UP, ember)
 		var gp: Vector2 = a.lerp(b, gt)
 		g.draw_set_transform(gp, 0.0, Vector2(1.0, 0.6))
 		g.draw_arc(Vector2.ZERO, 14.0, 0.0, TAU, 20, Color(1, 1, 1, minf(1.0, al * 1.6)), 2.0)
@@ -483,6 +493,8 @@ static func draw_ground(g) -> void:
 	for e in g.bosses:
 		if not e.dead and e.type == "carmen" and not e.get("fire_lines", []).is_empty():
 			_fire_lines(g, e)
+		if not e.dead and e.type in ["iberia", "carmen"]:
+			load("res://scripts/render/saint_draw.gd").fades(g, e)   # 圣徒光束消散（docs/171 §7）；运行时 load：saint_draw 反过来 preload 本文件
 		if not e.dead and e.type == "path" and not e.get("paths", []).is_empty():
 			_paths(g, e)
 		if not e.dead and e.type == "paranoia":

@@ -45,6 +45,10 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	# 圣徒（本项目设定：同一人物两档，原作依据 PRTS 圣徒卡门 / 圣徒伊比利亚；docs/38 §2.2）：弹药（enemies.json ammo：卡门 3、伊比利亚 1）打空后近战；
 	# 打空才装填，装填中被打断会跪地破绽。远程段最长 boss/saint_ranged_max 秒：到时弹药作废转近战追击。不然她剩一发子弹、站在射程外被签名招式拖着，
 	# 永远打不空也不近身（9/29 实测伊比利亚卡在 50% 190 秒）
+	if not e.has("dmg_k"):
+		# 单发伤害旋钮（协调人 10-27：弹幕变密，整体先 ×0.8，云端测完再定）：出场第一帧乘到 e.dmg 上，所有招式 / 弹体 / 火线 / 接触伤害一起缩
+		e.dmg_k = Bal.v("boss/saint_dmg_mult", 0.8)
+		e.dmg = float(e.dmg) * float(e.dmg_k)
 	var p2: bool = int(e.get("gates_passed", 0)) >= 1
 	if p2:
 		_tint2(e, TINT2_IBERIA if e.type == "iberia" else TINT2_CARMEN)
@@ -243,7 +247,7 @@ func _empty(e: Dictionary) -> void:
 ## 耗 1 发（原作弹药 1）；出手后原地站 boss/saint_stand 秒不动、不出招（协调人 9/27：给低射程编队输出窗口）
 func _cannon(e: Dictionary, dir: Vector2) -> Dictionary:
 	var w := _warn(e, "line", 1.1, {"ang": dir.angle(), "len": 980.0, "wid": 16.0, "track": 0.55, "act": "shot", "name": "手炮", "col": Color(1.0, 0.75, 0.3), "dmg": e.dmg * Bal.v("boss/iberia_judge_mult", 2.6),
-		"kp": "iberia", "kp_k": 3.0})   # 结算画 Kanpelle 橙色光束 3 倍粗（docs/142b §8.5）
+		"kp": "iberia", "kp_k": 3.0, "saint_beam": true})   # 结算画 Kanpelle 橙色光束 3 倍粗（docs/142b §8.5）；蓄力 / 消散画在 render/saint_draw（docs/171 §7）
 	e.wind = maxf(e.wind, 1.1 + Bal.v("boss/saint_stand", 1.5))
 	_spend(e, 1)
 	return w
@@ -288,7 +292,8 @@ func _volley(e: Dictionary, dir: Vector2, delay: float) -> void:
 	e.wind = maxf(float(e.get("wind", 0.0)), 0.9 + 1.2 + delay + 0.6)   # 三连打完收势 0.6 秒再出下一组（输出窗口，docs/171 §6）
 	for k in 3:
 		var vw := _warn(e, "line", 0.9 + 0.6 * k + delay, {"ang": dir.angle(), "len": 980.0, "wid": 14.0, "track": 0.3 + 0.6 * k + delay, "act": "shot",
-			"name": nm if k == 0 else "", "col": Color(1.0, 0.8, 0.4), "dmg": e.dmg * Bal.v("boss/saint_volley_mult", 1.2), "lock": k == 0})
+			"name": nm if k == 0 else "", "col": Color(1.0, 0.8, 0.4), "dmg": e.dmg * Bal.v("boss/saint_volley_mult", 1.2), "lock": k == 0, "saint_beam": true})
+		_watch(e, vw, "fade")
 		if e.type == "iberia":
 			vw.kp = "iberia"   # 三连也画 Kanpelle 光束（1 倍粗）
 			vw.kp_k = 2.0
@@ -302,7 +307,7 @@ func _snipe(e: Dictionary, dir: Vector2) -> void:
 ## 卡门 · 封锁线（docs/142b §3.4，本作拟；取材 PRTS 弹药 3）：k = 这一轮第几枪（0–2），耗 1 发。
 ## 第一枪瞄主控（追踪 0.6、总 1.2）；一幕后两枪出手即锁定主控当时的位置、从本体两侧斜穿过去（boss_base._aim_fan，不追踪，总 1.0；10-25 用户「都要瞄准人打」）；
 ## 二幕第三枪垂直于第一枪、穿过主控当前位置（追踪 0.3、总 1.0）。结算画 Kanpelle 象牙白光束，然后留一条火线（_fire_step）
-func _lane_shot(e: Dictionary, dir: Vector2, k: int) -> void:
+func _lane_shot(e: Dictionary, dir: Vector2, k: int) -> Dictionary:
 	var p2: bool = int(e.get("gates_passed", 0)) >= 1
 	var la: Dictionary = e.get("last_act", {})
 	var base_ang: float = float(e.get("lane_ang", dir.angle()))
@@ -330,9 +335,10 @@ func _lane_shot(e: Dictionary, dir: Vector2, k: int) -> void:
 	var q: Array = e.get("lane_gaps", [])
 	q.append(g.rng_enemy.randf_range(0.3, 0.7))
 	e.lane_gaps = q
-	_warn(e, "line", dur, {"pos": pos, "ang": ang, "len": 1100.0, "wid": 10.0, "track": track, "track_center": p2 and k == 2, "act": "shot", "name": "狙击",
-		"col": Color(1.0, 0.94, 0.82), "dmg": e.dmg * Bal.v("boss/carmen_lane_mult", 1.56), "kp": "carmen", "kp_k": 2.0, "lock": k == 0})   # 原 2.0（10-25 加密 ×0.78）
+	var w := _warn(e, "line", dur, {"pos": pos, "ang": ang, "len": 1100.0, "wid": 10.0, "track": track, "track_center": p2 and k == 2, "act": "shot", "name": "狙击",
+		"col": Color(1.0, 0.94, 0.82), "dmg": e.dmg * Bal.v("boss/carmen_lane_mult", 1.56), "kp": "carmen", "kp_k": 2.0, "lock": k == 0, "saint_beam": true})   # 原 2.0（10-25 加密 ×0.78）
 	_spend(e, 1)
+	return w
 
 
 ## 封锁线：每枪狙击结算后（last_act「狙击」、新的一次）沿线留一条火线 carmen_fire_life（6）秒，线上一处缺口（gap_t 处、长 carmen_fire_gap 80）；
@@ -480,7 +486,9 @@ func _card_run(e: Dictionary, dir: Vector2, dist: float) -> void:
 func _seg(e: Dictionary, seg: String, dir: Vector2, dist: float) -> float:
 	match seg:
 		"cannon":
-			_watch(e, _cannon(e, dir), "trail")
+			var cw := _cannon(e, dir)
+			_watch(e, cw, "trail")
+			_watch(e, cw, "fade")
 		"lob":
 			_watch(e, _lob(e), "crater")
 		"lob_free":
@@ -500,7 +508,7 @@ func _seg(e: Dictionary, seg: String, dir: Vector2, dist: float) -> float:
 		"xstream":
 			_stream(e, dir, true)
 		"snipe":
-			_lane_shot(e, dir, int(D.ENEMIES[e.type].get("ammo", 3)) - int(e.ammo))
+			_watch(e, _lane_shot(e, dir, int(D.ENEMIES[e.type].get("ammo", 3)) - int(e.ammo)), "fade")
 			return Bal.v("boss/carmen_lane_gap", 1.3)
 	return SEG_GAP
 
@@ -644,6 +652,11 @@ func _watch_step(e: Dictionary) -> void:
 func _on_resolved(e: Dictionary, w: Dictionary, kind: String) -> void:
 	var to_boss: float = (e.pos - w.pos).angle()
 	match kind:
+		"fade":
+			# 光束消散（render/saint_draw.fades）：Kanpelle 短闪之后接上，FADE 秒内变细断成碎段
+			var fl: Array = e.get("beam_fades", []).filter(func(f): return g.t - float(f.born) < 0.5)
+			fl.append({"a": w.pos + Vector2(0, -16), "b": w.pos + Vector2(0, -16) + Vector2.from_angle(float(w.ang)) * float(w.len), "wid": float(w.wid), "born": g.t + 0.12})
+			e.beam_fades = fl
 		"trail":
 			var dv := Vector2.from_angle(float(w.ang))
 			for k in 4:
