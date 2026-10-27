@@ -435,3 +435,12 @@ HUD 文案候选（用户挑）：
 - `check.py --only command_ai`（42 项，新增：有 Boss 时忽略护主直冲 Boss 且追到屏外射程内、部件接管 Boss、清杂优先有 Boss 时仍护主、`boss_rush 0` 回旧护主；「圈外候选」用例按新 `roam_r` 改位置）、`--only command_wheel`（19 项：缺省清杂优先、队友不再让开 Boss、队长仍护主、`boss_rush 0` 回旧规则）、`--only voice_command` / `data_lint` / `op_text`、`--only core`（3319 项）全过。
 - 旧逻辑可用旋钮完整还原：`--bal=command/priority_default=0 --bal=command/roam_r=380 --bal=command/leash=960 --bal=command/boss_rush=0` 与改前代码路径相同（缺省 Boss 优先、集火分支不进，护主照旧）。
 - 同 seed：缺省改清杂优先，缺省机器人局里队友选敌全变，TRACE / BALANCE 会变，属预期；同参数两次运行一致（`--only repro` 过；只用 g.rng，新逻辑不抽随机数）。
+
+### 15.3 云端配置（协调人建）
+
+`balance_run --preset squads --seeds 56`（常规 = 标准档 normal 机器人；高压 = 同协调人现用高压档参数），每组 56 对同 seed：
+- **对照（旧缺省）**：`--bal=command/priority_default=0 --bal=command/roam_r=380 --bal=command/leash=960 --bal=command/boss_rush=0`
+- **新缺省（清杂优先）**：不加参数
+- **玩家选 Boss 优先**：`--bal=command/priority_default=0`
+- 以上三组再各跑一份加 `--bal=command/bot_roam=1`（突击常开），看出屏追击、倒地率。看 Boss 战用时（BALANCE `bot.bosses` 的 t1 − t0）、队长承伤（`bot.taken_pm`）、胜率、`cmd.sortie_downs`。
+- 本地只跑了旧缺省 + 突击常开 18 局小样（Boss 战平均 39.6 秒、承伤 144/分、倒地 3/100 出击）作量级参考；新组按协调人 10-27 口径停跑，留给云端。
