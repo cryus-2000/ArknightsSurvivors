@@ -20,6 +20,7 @@ func _ready() -> void:
 		check_close_and_late_act()
 		check_revision()
 		check_super_armor()
+		check_reborn()
 	print("KNIGHT COMBO failures=",failures)
 	g.queue_free()
 	await get_tree().process_frame
@@ -55,7 +56,8 @@ func tick(e: Dictionary, dt := 0.05) -> void:
 func exercise() -> void:
 	var script = g.bai.boss("knight_boss")
 	for phase in [1,2]:
-		for opener in ["断潮劈击","踏冰裂阵","侧踏挑枪","冲锋","冰线","长枪连刺"] + (["掷枪"] if phase==1 else ["长枪回旋"]):
+		# 重生冲锋形态只剩冲锋连段（docs/171 v2）；回旋 / 一阶段大招在 check_reborn 单独查
+		for opener in (["断潮劈击","踏冰裂阵","侧踏挑枪","冲锋","冰线","长枪连刺","掷枪"] if phase==1 else ["冲锋"]):
 			var e: Dictionary = fresh(phase)
 			e.gates_passed = 1
 			script.force_move(e,opener,Vector2.RIGHT,350)
@@ -108,11 +110,11 @@ func exercise() -> void:
 
 func check_close_and_late_act() -> void:
 	var script = g.bai.boss("knight_boss")
-	for phase in [1,2]:
+	for phase in [1]:
 		var e: Dictionary = fresh(phase)
 		script.force_move(e,"侧踏挑枪",Vector2.RIGHT,350)
 		g.ppos = g.warns[0].destination+Vector2(50,0)
-		var expected: String = "长枪回旋" if phase==2 else "长枪连刺"
+		var expected: String = "长枪连刺"
 		var saw := false
 		for i in 250:
 			tick(e)
@@ -148,8 +150,7 @@ func check_revision() -> void:
 	g.tele.warn_resolve(b)
 	check(reborn.dash_decel==b.dash_decel,"release passes deceleration to movement")
 	var e: Dictionary = fresh(2)
-	script.force_move(e,"断潮劈击",Vector2.RIGHT,350)
-	check(e.knight_combo_queue==["冲锋","再冲锋","@近身收招"],"phase two slash has turning second charge variant")
+	check(not script.force_move(e,"断潮劈击",Vector2.RIGHT,350) and not script.force_move(e,"侧踏挑枪",Vector2.RIGHT,350),"reborn drops first-phase finals")
 	e = fresh()
 	script.force_move(e,"长枪连刺",Vector2.RIGHT,250)
 	check(g.warns[0].skin=="ice_thrust" and g.warns[2].len>g.warns[0].len,"finisher threatens medium range with longer final thrust")
@@ -188,3 +189,32 @@ func check_super_armor() -> void:
 	check(not g.bai.super_armor(f),"break window has no super armor")
 	g.enemies_sys.add_cc(f,1.0)
 	check(f.stun>0.0,"operator stun lands during break")
+
+## docs/171 v2 重生冲锋形态：回旋后外射冰锥 + 破绽；冲锋停下裂地；寒冷条照常涨
+func check_reborn() -> void:
+	var script = g.bai.boss("knight_boss")
+	var e: Dictionary = fresh(2)
+	g.ebullets.clear()
+	script.force_move(e,"长枪回旋",Vector2.RIGHT,250)
+	var cones := false
+	var brk := false
+	for i in 80:
+		tick(e)
+		cones = cones or g.ebullets.any(func(b):return b.get("knight_shard",false) and b.vel.length()>200.0)
+		brk = brk or e.get("break_t",0.0)>0.0
+	check(cones,"reborn spin fires fast ice cones")
+	check(brk,"reborn spin ends in a break window")
+	e = fresh(2)
+	g.warns.clear()
+	e.last_act = {"act":"dash","ang":0.0,"t":g.t}
+	e.kn_dashing = true
+	e.kb_self = false
+	tick(e)
+	check(g.warns.filter(func(w):return is_same(w.owner,e) and w.get("skin","")=="ice_lance").size()==3,"reborn charge stop cracks three ground lines")
+	e = fresh(2)
+	g.warns.clear()
+	g.ppos = e.pos+Vector2(60,0)
+	e.kcold = 0.0
+	e.wind = 99.0
+	tick(e)
+	check(float(e.get("kcold",0.0))>0.0,"cold builds again in charge form")

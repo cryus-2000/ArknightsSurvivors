@@ -14,7 +14,8 @@ var hazards: Array = []
 const PHASE2_NAMES := ["冰枪封径", "冻潮夹击"]
 
 func names_for(e: Dictionary) -> Array:
-	return (PHASE2_NAMES + NAMES[e.type]) if e.type=="knight_boss" and e.phase==2 else NAMES[e.type]
+	# 重生冲锋形态只轮换专属两招（docs/171 v2：一阶段的踏冰裂阵 / 断潮劈击 / 侧踏挑枪移出）
+	return PHASE2_NAMES if e.type=="knight_boss" and e.phase==2 else NAMES[e.type]
 
 func _init(game) -> void:
 	g = game

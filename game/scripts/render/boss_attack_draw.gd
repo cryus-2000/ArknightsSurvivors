@@ -56,7 +56,7 @@ static func draw(g, impacts := false) -> void:
 	for w in caps: g.world._stake_cap(w)   # 撞柱提示保持原样（world.draw_warn_outlines 不再画骑士线形预警）
 
 ## ---- 骑士分阶段风格（docs/169，10-28）：冰面 / 碎冰 / 冰颗粒按阶段乘色，场地按阶段加霜带、飘雪、重生裂冰。只画画面，不抽随机
-const STAGE_ICE := [Color(1, 1, 1), Color(0.9, 1.0, 1.0), Color(0.78, 0.88, 1.12), Color(0.46, 0.56, 0.8)]
+const STAGE_ICE := [Color(1, 1, 1), Color(0.9, 1.0, 1.0), Color(0.78, 0.88, 1.12), Color(1.0, 1.0, 1.06)]
 static var _tint := Color(1, 1, 1)
 
 static func _t(c: Color) -> Color:
@@ -80,8 +80,8 @@ static func _stage_ground(g, b) -> void:
 	# 霜带：场地边缘往里爬（二幕 24 → 60，三幕 / 重生 100）；只画视野附近的段
 	var grow: float = clampf(float(b.get("act_t", 0.0)) / 30.0, 0.0, 1.0)
 	var band: float = (24.0 + 36.0 * grow) if st == 1 else 100.0
-	var tone: Color = [Color(), Color(0.62, 0.86, 0.9, 0.12), Color(0.42, 0.56, 0.8, 0.12), Color(0.14, 0.2, 0.34, 0.26)][st]
-	var rim: Color = [Color(), Color(0.82, 0.96, 1.0, 0.32), Color(0.8, 0.88, 1.0, 0.3), Color(0.6, 0.72, 0.9, 0.34)][st]
+	var tone: Color = [Color(), Color(0.62, 0.86, 0.9, 0.12), Color(0.42, 0.56, 0.8, 0.12), Color(0.7, 0.84, 0.95, 0.12)][st]
+	var rim: Color = [Color(), Color(0.82, 0.96, 1.0, 0.32), Color(0.8, 0.88, 1.0, 0.3), Color(0.9, 0.97, 1.0, 0.34)][st]
 	var view: Vector2 = g.ppos
 	var seg := 96
 	for i in seg:
@@ -107,7 +107,7 @@ static func _stage_ground(g, b) -> void:
 			var px: float = fposmod(_noise(k, 71) * 1400.0 - t * (26.0 + 14.0 * _noise(k, 73)), 1400.0) - 700.0
 			var py: float = fposmod(_noise(k, 79) * 800.0 + t * (48.0 + 30.0 * _noise(k, 83)), 800.0) - 400.0
 			_dot(r, view + Vector2(px, py), Color(0.92, 0.97, 1.0, 0.3 + 0.3 * _noise(k, 89)), 2.0)
-	# 重生裂冰：重生点一片黑冰圆盘 + 放射状白裂纹
+	# 重生裂冰：重生点一片淡冰圆盘 + 放射状白裂纹（docs/171 v2：配色回冰白）
 	if st == 3 and b.has("kn_reborn_pos"):
 		var p: Vector2 = b.kn_reborn_pos
 		if p.distance_to(view) < 1100.0:
@@ -115,7 +115,7 @@ static func _stage_ground(g, b) -> void:
 				var a0: float = TAU * i / 28.0
 				var a1: float = TAU * (i + 1) / 28.0
 				var rr: float = 220.0 * (0.82 + 0.18 * _noise(i, 97))
-				r.tb_quad(p, p, p + Vector2(cos(a0), sin(a0) * gy) * rr, p + Vector2(cos(a1), sin(a1) * gy) * rr, Color(0.06, 0.1, 0.2, 0.32))
+				r.tb_quad(p, p, p + Vector2(cos(a0), sin(a0) * gy) * rr, p + Vector2(cos(a1), sin(a1) * gy) * rr, Color(0.62, 0.78, 0.92, 0.14))
 			for j in 14:
 				var ang: float = TAU * (j + _noise(j, 101) * 0.7) / 14.0
 				var reach: float = 120.0 + _noise(j, 103) * 110.0

@@ -27,7 +27,7 @@ func on_warning(e: Dictionary, w: Dictionary) -> void:
 			"踏冰裂阵": chain = ["掷枪" if e.phase==1 and _act(e)>=1 else "断潮劈击","冲锋"]
 			"侧踏挑枪": chain = ["@侧击"]
 			"掷枪": chain = ["冲锋"]
-			"长枪回旋": chain = ["长枪连刺"]
+			"长枪回旋": chain = [] if e.phase==2 else ["长枪连刺"]   # 重生：回旋后接冰锥 + 2 秒破绽（_reborn_step），不接连刺
 			"长枪连刺": chain = ["断潮劈击"]
 			"冲锋": chain = ["再冲锋","再冲锋"] if e.phase==2 else (["再冲锋","@近身收招"] if _act(e)>=2 else ["@近身收招"])
 			"冰线": chain = ["寒冷追击","再冲锋"] if e.phase==2 else ["寒冷追击","@近身收招"]
@@ -116,6 +116,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		return
 	_cold_step(e, dt)
 	_ice_step(e)
+	_reborn_step(e)
 	# 冲锋自然停下：向前碎出 3 片冰屑（撞柱眩晕不出）
 	if e.get("kb_self", false):
 		e.kn_dashing = true
@@ -124,6 +125,8 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		var la: Dictionary = e.get("last_act", {})
 		if str(la.get("act", "")) == "dash" and str(e.get("brk_label", "")) != "眩晕":
 			ice_shards(e, e.pos, float(la.get("ang", 0.0)), 3, 0.8, 150.0)
+			if e.phase == 2:
+				_crack_charge(e, float(la.get("ang", 0.0)))
 	# 连冲：重生后一组 1 + knight_p2_chain 次（第一次全长、后两次 70%，docs/49d 11.8）；三幕冲锋后再转向冲一次。连冲完喘气 2.5 秒（普通破绽，docs/38 §8.8）
 	if int(e.get("dash2", 0)) > 0 and e.get("dash_t", 0.0) <= 0.0 and e.get("wind", 0.0) <= 0.0:
 		e.dash2 = int(e.dash2) - 1
@@ -157,11 +160,11 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 			and _cd(e, "spear", Bal.v("boss/knight_spear_cd", 8.0)):
 		_spear(e, dir, dist)
 		return
-	if dist < 260.0 and _cd(e, "stab", 5.0):
+	if dist < 260.0 and e.phase == 1 and _cd(e, "stab", 5.0):
 		_stab(e, dir)
-	elif dist >= 260.0 and _cd(e, "charge", 4.5 if e.phase == 2 else 6.0):
+	elif (dist >= 260.0 or e.phase == 2) and _cd(e, "charge", 4.5 if e.phase == 2 else 6.0):
 		# A 冲锋；冰线是它的变体：hunt 冷却到了（18 秒）且主控在 120–600 时改放冰线，0.25 秒后沿线寒冷追击
-		if Bal.v("boss/knight_hunt", 1.0) > 0.0 and dist >= 120.0 and dist <= 600.0 and _cd(e, "hunt", 18.0):
+		if e.phase == 1 and Bal.v("boss/knight_hunt", 1.0) > 0.0 and dist >= 120.0 and dist <= 600.0 and _cd(e, "hunt", 18.0):
 			_hunt(e, dir, dist)
 		else:
 			_charge(e, dir)
@@ -261,12 +264,16 @@ func _spin(e: Dictionary, dir: Vector2) -> void:
 	g.bai.finals._warn(e,"circle",1.0,{"r":560.0,"inner_r":70.0,"ang":dir.angle(),"gap_ang":dir.angle()+PI,"gap_half":0.7,
 		"name":"长枪回旋","skin":"ice_wave","motion":"expanding","speed":0.0,"wave_speed":400.0,"life":1.4,
 		"dmg":_bite(e,e.dmg*1.3),"chill":1.0})
+	if e.phase == 2:
+		e.kn_cone_at = g.t + 1.4
+		e.kn_cone_gap = dir.angle() + PI
+		e.kn_spin_brk_at = g.t + 2.45
 
 ## 寒气圈与寒冷条（原作反冻，按自动攻击改，docs/142b §3.1）：队长在 kcold_r 内、或站在冲锋留下的冰面上 → 寒冷条每秒涨 1 / knight_cold_fill；
 ## 不在 → 每秒落 1 / knight_cold_decay。破绽期间不涨。满了「冻伤」：knight_frostbite 秒减速（受 Boss 战移速下限 0.7）、下一击 × 1.75，然后清零
 func _cold_step(e: Dictionary, dt: float) -> void:
 	e.kcold_r = Bal.v("boss/knight_cold_r3", 180.0) if (_act(e) >= 2 and e.phase == 1) else Bal.v("boss/knight_cold_r", 140.0)
-	if e.phase == 2 or float(e.get("break_t", 0.0)) > 0.0 or e.get("invuln", false):
+	if float(e.get("break_t", 0.0)) > 0.0 or e.get("invuln", false):
 		e.kcold = maxf(0.0, float(e.get("kcold", 0.0)) - dt / Bal.v("boss/knight_cold_decay", 2.5))
 		return
 	var near: bool = g.combat.ground_d(g.ppos, e.pos) < float(e.kcold_r)
@@ -276,12 +283,12 @@ func _cold_step(e: Dictionary, dt: float) -> void:
 			on_ice = true
 			break
 	if near or on_ice:
-		e.kcold = float(e.get("kcold", 0.0)) + dt / Bal.v("boss/knight_cold_fill", 3.0)
+		e.kcold = float(e.get("kcold", 0.0)) + dt / Bal.v("boss/knight_cold_fill", 3.0) * (Bal.v("boss/knight_cold_hot", 1.5) if _cold_hot(e) else 1.0)
 	else:
 		e.kcold = maxf(0.0, float(e.get("kcold", 0.0)) - dt / Bal.v("boss/knight_cold_decay", 2.5))
 	if float(e.kcold) >= 1.0:
 		e.kcold = 0.0
-		var t: float = Bal.v("boss/knight_frostbite", 1.5) * (1.35 if _act(e) >= 2 else 1.0)
+		var t: float = Bal.v("boss/knight_frostbite", 1.5) * (2.0 if _cold_hot(e) else (1.35 if _act(e) >= 2 else 1.0))
 		e.frostbite_until = g.t + t
 		e.frostbite_hit = true
 		g.combat.slow_leader("knight_frostbite", t, 0.5)
@@ -450,7 +457,7 @@ func taken_mult(e: Dictionary) -> float:
 
 ## 转幕保留当前冰柱批次，不额外补柱。
 ## 分阶段风格（docs/169，10-28 用户「每个 boss 不同阶段是不是得做出点不同的风格来？」）：过幕换本体乘色 + 横幅；场地与冰色由 render/boss_attack_draw 按阶段画
-const STAGE_TINT := [Color(1, 1, 1), Color(0.9, 1.0, 1.08), Color(0.8, 0.9, 1.28), Color(0.62, 0.72, 0.98)]
+const STAGE_TINT := [Color(1, 1, 1), Color(0.9, 1.0, 1.08), Color(0.8, 0.9, 1.28), Color(0.94, 1.0, 1.14)]
 const STAGE_BANNER := ["", "冰棱带：冲锋会留下冰面，开始掷枪", "寒潮：掷枪两连，冲锋会折返"]
 
 ## 0 一幕 / 1 二幕 / 2 三幕 / 3 重生
@@ -584,6 +591,39 @@ func super_armor(e: Dictionary) -> bool:
 	if g.warns.any(func(w): return is_same(w.owner, e) and not w.done):
 		return true
 	return g.bai.finals.hazards.any(func(h): return is_same(h.owner, e))
+
+
+## 原作「生命值低于 50% 时寒冷持续时间延长」（2 → 4 秒）：重生冲锋形态起寒冷条涨速 × knight_cold_hot（1.5）、冻伤时长 × 2（docs/171 v2）
+func _cold_hot(e: Dictionary) -> bool:
+	return e.phase == 2
+
+
+## ---- 重生冲锋形态专属（docs/171 v2）
+## 裂地冲锋：每段冲锋自然停下，向前扇形裂出 3 道地缝（ice_lance 直线，地面判定、不是弹），0.6 / 0.75 / 0.9 秒依次喷冰刺；
+## 三连的喘气推迟到最后一道地缝结算之后（破绽会取消在途的最终 Boss 招）。开关 boss/knight_crack（0 = 关）
+func _crack_charge(e: Dictionary, ang: float) -> void:
+	if Bal.v("boss/knight_crack", 1.0) <= 0.0:
+		return
+	for i in 3:
+		var a: float = ang + (i - 1) * 0.45
+		g.bai.finals._warn(e, "line", 0.6 + 0.15 * i, {"name": "裂地冲锋" if i == 0 else "", "pos": e.pos, "ang": a, "len": 260.0, "wid": 22.0,
+			"skin": "ice_lance", "dmg": e.dmg * 0.9, "chill": 0.6})
+	if e.has("breath_at"):
+		e.breath_at = maxf(float(e.breath_at), g.t + 1.0)
+
+
+## 黑冰回旋 → 回旋冰锥：长枪回旋起手后 1.4 秒（冲击环出去 0.4 秒）从本体外射 8 枚冰锥（220，缺口方向不放），
+## 冲击环走完（起手后 2.45 秒）给 knight_spin_brk（2.0）秒破绽。冰锥走公共 g.ebullets（冰屑同口径）
+func _reborn_step(e: Dictionary) -> void:
+	if e.has("kn_cone_at") and g.t >= float(e.kn_cone_at):
+		ice_shards(e, e.pos, float(e.kn_cone_gap) + PI, 8, TAU, 220.0, float(e.kn_cone_gap), 0.7)
+		e.erase("kn_cone_at")
+	if e.has("kn_spin_brk_at") and g.t >= float(e.kn_spin_brk_at):
+		e.erase("kn_spin_brk_at")
+		if float(e.get("break_t", 0.0)) <= 0.0 and not e.dead:
+			g.combat.start_break(e, Bal.v("boss/knight_spin_brk", 2.0))
+			e.brk_label = "破绽"
+			e.wind = maxf(float(e.wind), Bal.v("boss/knight_spin_brk", 2.0))
 
 
 func on_kill(e: Dictionary) -> void:
