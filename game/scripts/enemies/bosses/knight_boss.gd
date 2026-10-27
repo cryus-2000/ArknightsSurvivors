@@ -556,6 +556,21 @@ func _leap_step(e: Dictionary, dt: float, dir: Vector2) -> bool:
 	return true
 
 
+## 出招霸体（10-28 用户「骑士的攻击会被打断」）：自己的预警在走（起手到出手）、冰锋在结算、连段进行中、自冲、脱身跳期间，
+## 干员的眩晕 / 浮空 / 击退 / 拖拽都不生效（boss_ai.super_armor → enemies.add_cc / apply_kb / hold_at）。
+## 只有设计里的撞柱眩晕、收招破绽能打断；破绽期照常吃控制。开关 boss/knight_armor_cast（0 = 关）
+func super_armor(e: Dictionary) -> bool:
+	if Bal.v("boss/knight_armor_cast", 1.0) <= 0.0 or e.dead or float(e.get("break_t", 0.0)) > 0.0:
+		return false
+	if e.get("knight_combo_active", false) or e.has("kn_leap") or int(e.get("dash2", 0)) > 0:
+		return true
+	if e.get("kb_self", false) and (e.kb as Vector2).length() > 40.0:
+		return true
+	if g.warns.any(func(w): return is_same(w.owner, e) and not w.done):
+		return true
+	return g.bai.finals.hazards.any(func(h): return is_same(h.owner, e))
+
+
 func on_kill(e: Dictionary) -> void:
 	cancel_combo(e)
 

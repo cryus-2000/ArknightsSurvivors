@@ -19,6 +19,7 @@ func _ready() -> void:
 		await exercise()
 		check_close_and_late_act()
 		check_revision()
+		check_super_armor()
 	print("KNIGHT COMBO failures=",failures)
 	g.queue_free()
 	await get_tree().process_frame
@@ -166,3 +167,24 @@ func check_revision() -> void:
 	e.knight_combo_next=g.t
 	script.combo_step(e,Vector2.DOWN,250,true)
 	check(g.warns[0].act=="dash","vertical target outside spin ellipse gets charge instead of empty spin")
+
+## 10-28 用户「骑士的攻击会被打断」：出招期间（预警 / 连段）干员眩晕、击退、拖拽不生效，连段不被取消；破绽期照常吃眩晕
+func check_super_armor() -> void:
+	var script = g.bai.boss("knight_boss")
+	var e: Dictionary = fresh()
+	script.force_move(e,"断潮劈击",Vector2.RIGHT,350.0)
+	check(g.bai.super_armor(e),"knight casting has super armor")
+	g.enemies_sys.add_cc(e,2.0,1.0)
+	check(e.stun<=0.0,"operator stun ignored while casting")
+	check(e.slow>0.0,"slow still applies while casting")
+	var p0: Vector2 = e.pos
+	g.enemies_sys.apply_kb(e,Vector2(500,0))
+	g.enemies_sys.hold_at(e,Vector2(999,999))
+	check(e.kb.length()<1.0 and e.pos==p0,"knockback / drag ignored while casting")
+	tick(e)
+	check(e.get("knight_combo_active",false),"combo survives an operator stun")
+	var f: Dictionary = fresh()
+	g.combat.start_break(f,2.0)
+	check(not g.bai.super_armor(f),"break window has no super armor")
+	g.enemies_sys.add_cc(f,1.0)
+	check(f.stun>0.0,"operator stun lands during break")

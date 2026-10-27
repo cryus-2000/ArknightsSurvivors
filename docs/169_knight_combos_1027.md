@@ -275,3 +275,32 @@
 - 录像 `build/knight_circle/knight_circle_leap.mp4`（26 秒原速）。
 - 单项回归 knight_combo、final_attack_grains、boss_fx_geometry、route_knight 均 0 失败。
 - 测试台复测交给 boss-bench：专家机器人平时不贴身，预计影响很小。
+
+### 出招霸体（10-28 用户「骑士的攻击会被打断」）
+
+**根因**：干员的眩晕 / 浮空走 `enemies.add_cc` 直接写进 `e.stun`。骑士只要被晕一下就会被打断：
+- `knight_boss.combo_step` 见 `stun > 0` 取消整套连段；
+- `final_attacks.cancelled` 让已经起手的最终 Boss 招（踏冰裂阵 / 断潮劈击 / 侧踏挑枪及二阶段冰枪）作废；
+- 击退（`apply_kb`，重型只削到 0.3）和拖拽（`hold_at`）会在蓄力时挪动它。
+
+**改动**：新增 `boss_ai.super_armor(e)`，由 Boss 脚本选择实现，没实现的 Boss 不受影响。`enemies.add_cc` / `apply_kb` / `hold_at` 遇到霸体中的 Boss 时：
+- 不写眩晕；
+- 不吃击退；
+- 不被拖走；
+- 减速照常生效。
+
+骑士的霸体条件（任一满足即霸体）：
+- 自己的预警在走；
+- 冰锋在结算；
+- 连段进行中；
+- 自冲中；
+- 再冲锋未完；
+- 正在脱身跳。
+
+破绽期（撞柱眩晕、收招破绽、喘气）没有霸体，照常吃控制。开关 `boss/knight_armor_cast`（0 = 关）。`knight_combo_test` 加了 `check_super_armor`：出招中眩晕、击退、拖拽无效，连段不断，减速照常；破绽期眩晕生效。
+
+**其他最终 Boss 也有同样问题**（未改，转对应会话）：
+- `final_attacks.cancelled()` 对偏执泡影、伊莎玛拉、伊祖米克同样见 `e.stun > 0` 就作废已起手的最终 Boss 招；
+- `boss_patterns.resolve()` 见 `e.stun > 0` 直接不结算，放空的是弹幕模板招，也覆盖这三只。
+
+这些 Boss 实现 `super_armor(e)`（可参照骑士）就能接上同一套霸体。

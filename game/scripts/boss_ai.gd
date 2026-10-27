@@ -117,6 +117,13 @@ func boss_step(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 		h.step(e, dt, dir, dist, ready, mate)
 
 
+## Boss 出招霸体（10-28 用户「骑士的攻击会被打断」）：脚本实现 super_armor(e) 且返回 true 时，enemies.add_cc 不写眩晕、apply_kb / hold_at 不动它。
+## 没实现的 Boss 照旧（控制对 Boss 的减半 / 免疫口径不变）
+func super_armor(e: Dictionary) -> bool:
+	var h = boss(e.type)
+	return h != null and h.has_method("super_armor") and h.super_armor(e)
+
+
 ## 接潮「统一」一次（docs/95 §8.2 C）：两体之间 17 宽直线，幽灵线 0.9 秒双端跟随、锁定 0.6 秒冻结并让两体停步（_update_warns b_owner）；
 ## e.dmg × 0.55 法术、侵蚀 0.25（原接潮共鸣数值）。公共段和验收 --bossmoves 都走这里
 func unite(e: Dictionary, mate: Dictionary) -> Dictionary:
