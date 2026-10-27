@@ -14,6 +14,7 @@ extends RefCounted
 ## 玩法随机：不用。全部状态在 o.vg（每名干员）与 g.rfx.lv（藏品等级）里。
 
 const Bal = preload("res://scripts/core/balance.gd")
+const SwordEase = preload("res://scripts/characters/blocks/sword_ease.gd")   # 剑气非线性速度（10-27）
 
 ## 读 op_shots 之外的远程普攻形状（cmd_role 同一张表）
 const RANGED_SHAPES := ["projectile", "shell", "bolt", "cannon", "point_aoe", "foxfire", "lantern"]
@@ -24,6 +25,7 @@ const NO_SUB_KINDS := ["mon3tr"]
 ## 范围类的旧藏品（与 #64 共用递减曲线：它们算在前面的层）
 const RANGE_RELICS := ["81", "140"]
 const SHOT_Y := -18.0        # 弹体画在脚底上方（同能天使 EXU_AIM_Y 的量级）
+const BLUNT_DUST := Color(0.78, 0.7, 0.58, 0.85)   # 钝器冲击波的尘土色（docs/170 §7）
 const QI_PROJ := "proj_lappland_sword"   # 剑气复用拉普兰德剑气帧条，按干员代表色程序重染（§9 第 3 问）
 
 static var _ck: Array = []   # [rfx 实例, 版本号, 旋钮]
@@ -320,8 +322,26 @@ static func _fire_qi(o, s: Dictionary) -> void:
 			continue
 		var spd: float = kn("qi_speed", 520.0)
 		var skip: float = rr * kn("qi_skip", 0.7)   # 从刀光边缘飞出，不打刀光里（普攻已经打到）的敌人：剑气专补刀光够不到的
-		v.qi.append({"p": o.pos + Vector2.from_angle(a) * skip, "v": Vector2.from_angle(a) * spd, "life": (dist - skip) / spd, "dmg": dmg, "hit": {},
-			"max": int(s.qi_hits), "t": 0.0, "o0": o.pos, "skip": skip})
+		var q := {"p": o.pos + Vector2.from_angle(a) * skip, "v": Vector2.from_angle(a) * spd, "life": (dist - skip) / spd, "dmg": dmg, "hit": {},
+			"max": int(s.qi_hits), "t": 0.0, "o0": o.pos, "skip": skip}
+		var sty: String = qi_style(o)
+		q.style = sty
+		var ez: Dictionary = SwordEase.cfg(str(o.id), {}, true, sty)   # 非线性：总距离 dist − skip、总时长不变，只改中途快慢
+		if not ez.is_empty():
+			q.ez = ez
+			q.p0 = q.p
+			q.T = float(q.life)
+			q.len = dist - skip
+		v.qi.append(q)
+
+
+## 剑气按武器分类（用户 10-27「每个人的武器类型不一样」，docs/170 §7）：balance.json sword_ease/style 表，
+## blade 刀剑一字斩 / thrust 细剑·长柄突刺 / blunt 锤·盾·锚贴地冲击波 / saw 贝壳圆锯（归溟幽灵鲨）/ tentacle 水母触手（水月）；
+## 表里没有的 = 通用（拉普兰德剑气帧条按代表色重染）。
+## 只换画法与速度曲线，判定（qi_w 宽、飞行距离）与伤害各类相同。
+static func qi_style(o) -> String:
+	var m = Bal.sec("sword_ease").get("style", {})
+	return str(m.get(str(o.id), "")) if m is Dictionary else ""
 
 
 static func _hit(o, e: Dictionary, dmg: float, src: String) -> void:
@@ -373,15 +393,33 @@ static func tick(o, dt: float) -> void:
 		var mn: float = kn("qi_pierce_min", 0.5)
 		var w: float = kn("qi_w", 26.0) * 0.5
 		for q in v.qi:
-			q.p += q.v * dt
+			var qa: Vector2 = q.p   # 非线性：判定扫过上一帧 → 这一帧整段（出手几帧一帧走 20+ px）
 			q.t += dt
 			q.life -= dt
+			if q.has("ez"):
+				q.p = q.p0 + q.v.normalized() * float(q.len) * SwordEase.prog(q.ez, q.t / q.T)
+			else:
+				q.p += q.v * dt
+				qa = q.p
 			if q.life <= 0.0:
 				continue
-			for j in o.query_ids(q.p, w + 40.0):
+			if str(q.get("style", "")) == "saw" and quality() != "low" and g.vrng.randf() < 0.3:   # 圆锯边缘甩火花（画面，g.vrng）
+				var dn2: Vector2 = q.v.normalized()
+				var sa: float = g.vrng.randf_range(0.0, TAU)
+				o.fx({"kind": "spark", "pos": q.p + Vector2(0, -16.0) + Vector2.from_angle(sa) * 12.0, "vel": Vector2.from_angle(sa + PI * 0.5) * 140.0 - dn2 * 60.0,
+					"life": 0.14, "col": Color(0.95, 0.75, 0.45), "sz": 1.3, "drag": 3.0})
+			if str(q.get("style", "")) == "blunt" and quality() != "low":   # 冲击波沿地面甩起尘土（画面，g.vrng，不影响玩法随机）
+				var dn: Vector2 = q.v.normalized()
+				for _m in 2:
+					o.fx({"kind": "mote", "pos": q.p + dn.orthogonal() * g.vrng.randf_range(-18.0, 18.0), "vel": -dn * 50.0 + Vector2(g.vrng.randf_range(-30, 30), g.vrng.randf_range(-90, -40)),
+						"life": 0.4, "col": BLUNT_DUST.lerp(o.col(), 0.35), "sz": 2.5, "grav": 260.0})
+			for j in o.query_ids((qa + q.p) * 0.5, w + 40.0 + qa.distance_to(q.p) * 0.5):
 				var e: Dictionary = g.enemies[j]
-				if e.dead or q.hit.has(e.id) or e.pos.distance_to(q.p) > float(e.r) + w or e.pos.distance_to(q.o0) < float(q.skip):
+				if e.dead or q.hit.has(e.id) or SwordEase.seg_dist(e.pos, qa, q.p) > float(e.r) + w or e.pos.distance_to(q.o0) < float(q.skip):
 					continue
+				if q.has("ez") and not q.has("paused") and float(q.ez.pause) > 0.0 and SwordEase.fast(q.ez, q.t / q.T) > 0.3:   # 猛冲段头一下命中：极短顿帧（共享限频）
+					q.paused = true
+					o.impact_pause(float(q.ez.pause))
 				var pm: float = maxf(mn, 1.0 - loss * q.hit.size())
 				q.hit[e.id] = true
 				_hit(o, e, float(q.dmg) * pm, _src(o, "剑气", "近战"))
@@ -418,17 +456,167 @@ static func draw(o) -> void:
 	if v.qi.is_empty():
 		return
 	var has_tex: bool = o._fx_tex(QI_PROJ) != null
+	var oc: Color = o.col()
+	var ocn: float = 0.85 / maxf(maxf(oc.r, oc.g), maxf(oc.b, 0.05))   # 0.85：再高会被光学辉光吹成白（艾丽妮粉实测）
 	for q in v.qi:
 		var p2: Vector2 = q.p + Vector2(0, -16.0)
 		var a: float = clampf(q.life / 0.08, 0.0, 1.0)
 		var ang: float = q.v.angle()
-		var qc := Color(minf(tc.r * 1.5, 1.8), minf(tc.g * 1.5, 1.8), minf(tc.b * 1.5, 1.8), a)   # 代表色提亮（灰白干员也看得出）
+		var qc := Color(oc.r * ocn, oc.g * ocn, oc.b * ocn, a)   # 本人代表色（col）按最亮通道归一到 0.85：色相饱和、不洗白（用户 10-27：每人用自己的颜色）
+		var f := 0.0
+		if q.has("ez"):   # 力量感：猛冲段提亮 + 残影（间距跟速度走），滑行段变暗
+			var u: float = q.t / q.T
+			f = SwordEase.fast(q.ez, u)
+			var br: float = (1.0 + float(q.ez.bright) * f * (0.35 if str(q.get("style", "")) != "" else 1.0)) * SwordEase.fade(q.ez, u)   # 滑行段压暗颜色；分了武器类的只轻提，保住本人色相
+			qc = Color(minf(qc.r * br, 2.2), minf(qc.g * br, 2.2), minf(qc.b * br, 2.2), qc.a)
+			if has_tex and f > 0.05 and str(q.get("style", "")) == "":   # 分了武器类的自己画残影
+				var gap: float = float(q.len) / q.T * SwordEase.vel_mul(q.ez, u) * 0.022
+				for gi in range(int(q.ez.ghost), 0, -1):
+					o.draw_spr_rot(QI_PROJ, mini(int(q.t * 16.0), 1), p2 - Vector2.from_angle(ang) * gap * gi, ang, g.PX * kn("qi_scale", 1.4), Color(qc.r, qc.g, qc.b, qc.a * f * 0.38 / gi))
+		var sty: String = str(q.get("style", ""))
+		if sty != "":
+			var stc: float = 1.0 + (float(q.ez.stretch) if q.has("ez") else 0.0) * f
+			var ng: int = 0 if low or not q.has("ez") or f <= 0.05 else int(q.ez.ghost)
+			var gap: float = float(q.len) / q.T * SwordEase.vel_mul(q.ez, q.t / q.T) * 0.022 if q.has("ez") else 0.0
+			var ssc: float = kn("qi_style_scale", 1.4)
+			match sty:
+				"blade":
+					_qi_blade(cv, p2, ang, qc, f, stc, gap, ng, ssc)
+				"thrust":
+					_qi_thrust(cv, p2, ang, qc, f, stc, gap, ng, low, ssc)
+				"saw":
+					_qi_saw(cv, p2, ang, qc, f, gap, ng, float(q.t), ssc)
+				"tentacle":
+					_qi_tentacle(cv, p2, ang, qc, f, stc, float(q.t), ssc)
+				"blunt":
+					if q.has("p0"):   # 地上犁出的一道沟：从出手点到波前，越靠后越淡（读作重物推过去）
+						var fa: float = qc.a * (0.25 + 0.3 * f)
+						cv.draw_line(q.p0 + Vector2(0, -2.0), q.p + Vector2(0, -2.0), Color(BLUNT_DUST.r * 0.55, BLUNT_DUST.g * 0.5, BLUNT_DUST.b * 0.45, fa), 7.0 * ssc)
+						cv.draw_line(q.p0.lerp(q.p, 0.5) + Vector2(0, -2.0), q.p + Vector2(0, -2.0), Color(BLUNT_DUST.r, BLUNT_DUST.g, BLUNT_DUST.b, fa), 3.0 * ssc)
+					_qi_blunt(cv, q.p + Vector2(0, -3.0), ang, qc, f, stc, gap, ng, float(q.t), ssc)
+			continue
 		if not low:
-			cv.draw_arc(p2 - Vector2.from_angle(ang) * 8.0, 18.0, ang - 1.1, ang + 1.1, 14, Color(qc.r, qc.g, qc.b, 0.35 * a), 7.0)   # 外层光弧（低画质省掉）
+			cv.draw_arc(p2 - Vector2.from_angle(ang) * 8.0, 18.0, ang - 1.1 * (1.0 - 0.3 * f), ang + 1.1 * (1.0 - 0.3 * f), 14, Color(qc.r, qc.g, qc.b, 0.35 * a), 7.0)   # 外层光弧（猛冲时收窄、像被拉长）
 		if has_tex:
 			o.draw_spr_rot(QI_PROJ, mini(int(q.t * 16.0), 1), p2, ang, g.PX * kn("qi_scale", 1.4), qc)
 		else:
 			cv.draw_arc(p2 - Vector2.from_angle(ang) * 10.0, 15.0, ang - 1.0, ang + 1.0, 12, qc, 4.0)
+
+
+## 局部坐标 (x 沿飞行方向、y 沿法线) → 世界
+static func _lw(p: Vector2, d: Vector2, x: float, y: float) -> Vector2:
+	return p + d * x + d.orthogonal() * y
+
+
+## 新月形（刀剑一字斩 / 钝器冲击波共用）：半径 r、半张角 half、最厚 th；x 方向乘 stc 拉长、y 方向乘 wy
+static func _crescent(p: Vector2, d: Vector2, r: float, half: float, th: float, stc: float, wy := 1.0) -> PackedVector2Array:
+	var outer := PackedVector2Array()
+	var inner := PackedVector2Array()
+	var N := 10
+	for i in N + 1:
+		var t: float = float(i) / N * 2.0 - 1.0
+		var a: float = t * half
+		var ri: float = r - th * (1.0 - t * t)
+		outer.append(_lw(p, d, (r * cos(a) - r * 0.8) * stc, r * sin(a) * wy))
+		inner.append(_lw(p, d, (ri * cos(a) - r * 0.8) * stc, ri * sin(a) * wy))
+	inner.reverse()
+	outer.append_array(inner)
+	return outer
+
+
+## 刀剑（德克萨斯）：细长一字斩，白热刃芯，猛冲段拉得更长、身后残影
+static func _qi_blade(cv, p: Vector2, ang: float, qc: Color, f: float, stc: float, gap: float, ng: int, k: float) -> void:
+	var d := Vector2.from_angle(ang)
+	for gi in range(ng, 0, -1):
+		cv.draw_colored_polygon(_crescent(p - d * gap * gi, d, 22.0 * k, 1.05, 4.0 * k, stc, 1.2), Color(qc.r, qc.g, qc.b, qc.a * f * 0.32 / gi))
+	cv.draw_colored_polygon(_crescent(p, d, 22.0 * k, 1.05, 5.0 * k, stc, 1.2), qc)
+	var core := PackedVector2Array()
+	for i in 9:
+		var a: float = (float(i) / 8.0 * 2.0 - 1.0) * 0.9
+		core.append(_lw(p, d, (21.0 * cos(a) - 17.6) * k * stc, 21.0 * k * sin(a) * 1.2))
+	cv.draw_polyline(core, qc.lerp(Color(1.6, 1.6, 1.6, qc.a), 0.6), 2.0)
+
+
+## 细剑 / 长柄（艾丽妮、歌蕾蒂娅）：一根前尖后长的菱形突刺 + 破空速度线
+static func _qi_thrust(cv, p: Vector2, ang: float, qc: Color, f: float, stc: float, gap: float, ng: int, low: bool, k: float) -> void:
+	var d := Vector2.from_angle(ang)
+	var lf: float = 16.0 * k * stc
+	var lb: float = 13.0 * k * (1.0 + 1.4 * f)
+	var wd: float = 5.0 * k
+	for gi in range(ng, 0, -1):
+		var pg: Vector2 = p - d * gap * gi
+		cv.draw_colored_polygon(PackedVector2Array([_lw(pg, d, lf, 0), _lw(pg, d, 0, wd), _lw(pg, d, -lb, 0), _lw(pg, d, 0, -wd)]), Color(qc.r, qc.g, qc.b, qc.a * f * 0.3 / gi))
+	if not low:
+		for y in [-6.0, 0.0, 6.0]:
+			var la: float = qc.a * (0.18 + 0.5 * f) * (1.0 if y == 0.0 else 0.6)
+			cv.draw_line(_lw(p, d, -lb - (6.0 + 34.0 * f) * k, y * 0.8 * k), _lw(p, d, -lb * 0.5, y * 0.4 * k), Color(qc.r, qc.g, qc.b, la), 1.5)
+	cv.draw_colored_polygon(PackedVector2Array([_lw(p, d, lf, 0), _lw(p, d, 0, wd), _lw(p, d, -lb, 0), _lw(p, d, 0, -wd)]), qc)
+	cv.draw_line(_lw(p, d, lf * 0.1, 0), _lw(p, d, lf, 0), qc.lerp(Color(1.6, 1.6, 1.6, qc.a), 0.35), 1.0)   # 只在枪尖一段留细高光，本体保持本人色
+
+
+## 锤 / 盾 / 锚（推进之王、星熊、塞雷娅、乌尔比安）：贴地推进的厚冲击波 + 前沿跳动的碎石（尘土在 tick 里甩）
+static func _qi_blunt(cv, p: Vector2, ang: float, qc: Color, f: float, stc: float, gap: float, ng: int, t: float, k: float) -> void:
+	var d := Vector2.from_angle(ang)
+	k *= 1.2   # 钝器波更宽厚
+	var dc := qc   # 波身用本人代表色；土色只给压影 / 碎石 / 犁沟 / 尘
+	cv.draw_colored_polygon(_crescent(p + Vector2(0, 3.0), d, 19.0 * k, 1.25, 10.0 * k, stc, 0.75), Color(0.1, 0.08, 0.06, qc.a * 0.45))   # 地面压影：把波和地面分开
+	for gi in range(ng, 0, -1):
+		cv.draw_colored_polygon(_crescent(p - d * gap * gi, d, 19.0 * k, 1.25, 8.0 * k, stc, 0.75), Color(dc.r, dc.g, dc.b, dc.a * f * 0.3 / gi))
+	cv.draw_colored_polygon(_crescent(p, d, 19.0 * k, 1.25, 10.0 * k, stc, 0.75), dc)
+	var rim := PackedVector2Array()
+	for i in 9:
+		var a: float = (float(i) / 8.0 * 2.0 - 1.0) * 1.1
+		rim.append(_lw(p, d, (19.0 * cos(a) - 15.2) * k * stc, 19.0 * k * sin(a) * 0.75))
+	cv.draw_polyline(rim, qc.lerp(Color(1.6, 1.6, 1.6, qc.a), 0.45), 2.5)
+	var rc := Color(BLUNT_DUST.r * 0.7, BLUNT_DUST.g * 0.65, BLUNT_DUST.b * 0.6, qc.a)
+	for i in 5:   # 碎石：沿波前排开，按飞行时间跳（不取随机）
+		var y: float = (float(i) - 2.0) * 7.0 * k
+		var h: float = absf(sin(t * 24.0 + float(i) * 1.7)) * (3.0 + 8.0 * f) * k
+		var c: Vector2 = _lw(p, d, 3.0 * k - absf(y) * 0.35, y * 0.75) + Vector2(0, -h)
+		var sz: float = (1.5 + float(i % 2)) * k
+		cv.draw_colored_polygon(PackedVector2Array([c + Vector2(-sz, -sz), c + Vector2(sz, -sz), c + Vector2(sz, sz), c + Vector2(-sz, sz)]), rc)
+
+
+## 贝壳圆锯（归溟幽灵鲨，docs/31「贝壳状圆锯」）：旋转的齿盘，转速跟飞行速度走；猛冲段身后拖淡影
+static func _qi_saw(cv, p: Vector2, ang: float, qc: Color, f: float, gap: float, ng: int, t: float, k: float) -> void:
+	var d := Vector2.from_angle(ang)
+	var r: float = 11.0 * k
+	var spin: float = t * (18.0 + 30.0 * f)   # 出手转得最快
+	for gi in range(ng, 0, -1):
+		cv.draw_circle(p - d * gap * gi, r, Color(qc.r * 0.6, qc.g * 0.6, qc.b * 0.6, qc.a * f * 0.2 / gi))
+	var teeth := PackedVector2Array()   # 齿：外圈 10 齿，齿尖 r+3、齿根 r
+	var NT := 10
+	for i in NT * 2:
+		var a: float = spin + float(i) / float(NT * 2) * TAU
+		teeth.append(p + Vector2.from_angle(a) * (r + (3.0 * k if i % 2 == 0 else 0.0)))
+	# 10-27 用户「亮度有点高，看不太清楚」：本人色偏浅（钢蓝白），整体压暗一档、加深色描边，齿和肋靠明暗对比读，不靠高光
+	var body := qc.darkened(0.3)
+	var outl := teeth.duplicate()
+	outl.append(teeth[0])
+	cv.draw_colored_polygon(teeth, body)
+	cv.draw_polyline(outl, Color(0.06, 0.08, 0.12, qc.a * 0.9), 1.5)
+	cv.draw_circle(p, r * 0.72, qc.darkened(0.6))
+	for i in 4:   # 贝壳纹：四道弧形肋，跟着转
+		var a0: float = spin * 1.0 + float(i) * TAU / 4.0
+		cv.draw_arc(p + Vector2.from_angle(a0) * r * 0.25, r * 0.5, a0 - 1.2, a0 + 0.6, 6, qc.darkened(0.05), 1.2)
+	cv.draw_circle(p, r * 0.22, qc.darkened(0.15))
+
+
+## 水母触手（水月，docs/31「原作普攻是苍白水母触手抽打」）：一根向前抽出的波状触手，越往尾越摆得开，头上一颗光点
+static func _qi_tentacle(cv, p: Vector2, ang: float, qc: Color, f: float, stc: float, t: float, k: float) -> void:
+	var d := Vector2.from_angle(ang)
+	var L: float = 34.0 * k * stc
+	var pts := PackedVector2Array()
+	var N := 14
+	for i in N + 1:
+		var u: float = float(i) / N   # 0 = 头，1 = 尾
+		var amp: float = (1.5 + 7.0 * u) * k * (0.6 + 0.4 * (1.0 - f))   # 猛冲时拉直、滑行时摆开
+		pts.append(_lw(p, d, -L * u, sin(u * 7.0 - t * 26.0) * amp))
+	var pale := qc.lerp(Color(1.4, 1.4, 1.5, qc.a), 0.25)
+	cv.draw_polyline(pts, Color(qc.r, qc.g, qc.b, qc.a * 0.75), 4.0 * k)
+	cv.draw_polyline(pts, pale, 1.6 * k)
+	cv.draw_circle(p, 3.6 * k, pale)
+	cv.draw_circle(p, 1.8 * k, Color(1.6, 1.6, 1.7, qc.a))
 
 
 # ---------------------------------------------------------------- 召唤物（ob_summon / seg_wisadel 调）
