@@ -1,0 +1,161 @@
+{
+ "groups": {},
+ "pairs": [
+  {
+   "A": "旧版",
+   "B": "新版",
+   "pairs": 28,
+   "unpaired_A": 0,
+   "unpaired_B": 0,
+   "identical": 27,
+   "both_win": 0,
+   "both_lose": 28,
+   "only_A": 0,
+   "only_B": 0,
+   "mcnemar_p": 1.0,
+   "win_A": 0.0,
+   "win_B": 0.0,
+   "win_diff": 0.0,
+   "win_diff_ci": [
+    0.0,
+    0.0
+   ],
+   "need_pairs_pm5": 55,
+   "need_unpaired_per_group_pm5": 0,
+   "metrics": {
+    "t": {
+     "median_diff": 0.0,
+     "ci": [
+      0.0,
+      0.0
+     ],
+     "mean_diff": -4.75,
+     "mean_ci": [
+      -14.25,
+      0.0
+     ],
+     "n": 28
+    },
+    "dps": {
+     "median_diff": 0.0,
+     "ci": [
+      0.0,
+      0.0
+     ],
+     "mean_diff": -10.236480201974583,
+     "mean_ci": [
+      -30.70944060592375,
+      0.0
+     ],
+     "n": 28
+    },
+    "boss0": {
+     "median_diff": 0.0,
+     "ci": [
+      0.0,
+      0.0
+     ],
+     "mean_diff": 0.0,
+     "mean_ci": [
+      0.0,
+      0.0
+     ],
+     "n": 8
+    },
+    "boss1": {
+     "median_diff": null,
+     "ci": [
+      null,
+      null
+     ],
+     "mean_diff": null,
+     "mean_ci": [
+      null,
+      null
+     ],
+     "n": 0
+    },
+    "boss2": {
+     "median_diff": null,
+     "ci": [
+      null,
+      null
+     ],
+     "mean_diff": null,
+     "mean_ci": [
+      null,
+      null
+     ],
+     "n": 0
+    },
+    "low_hp_s": {
+     "median_diff": 0.0,
+     "ci": [
+      0.0,
+      0.0
+     ],
+     "mean_diff": -0.5714285714285714,
+     "mean_ci": [
+      -1.7142857142857142,
+      0.0
+     ],
+     "n": 28
+    },
+    "low_hp_pct": {
+     "median_diff": 0.0,
+     "ci": [
+      0.0,
+      0.0
+     ],
+     "mean_diff": -0.12575398033283844,
+     "mean_ci": [
+      -0.37726194099851534,
+      0.0
+     ],
+     "n": 28
+    },
+    "taken": {
+     "median_diff": 0.0,
+     "ci": [
+      0.0,
+      0.0
+     ],
+     "mean_diff": -13.892857142857142,
+     "mean_ci": [
+      -41.67857142857143,
+      0.0
+     ],
+     "n": 28
+    },
+    "taken_pm": {
+     "median_diff": 0.0,
+     "ci": [
+      0.0,
+      0.0
+     ],
+     "mean_diff": -1.0306390895706896,
+     "mean_ci": [
+      -3.091917268712069,
+      0.0
+     ],
+     "n": 28
+    },
+    "heal": {
+     "median_diff": 0.0,
+     "ci": [
+      0.0,
+      0.0
+     ],
+     "mean_diff": -16.162825715021704,
+     "mean_ci": [
+      -48.48847714506512,
+      0.0
+     ],
+     "n": 28
+    }
+   },
+   "significant": false,
+   "verdict": "胜率差 +0.0 点，**不显著**（McNemar p = 1），差距不到 10 点，不下结论。两边胜负逐对一致，没有不一致的对，下面的所需对数按「假设有 1 个不一致对」估，只是下限。现有 28 对，胜率差区间半宽约 ±0.0 点；要到 ±5 点约需 55 对（还差约 27 对），不配对的话每组约需 0 局。 连续指标的配对差区间都含 0。"
+  }
+ ]
+}
