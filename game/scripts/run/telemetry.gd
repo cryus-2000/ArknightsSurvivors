@@ -623,7 +623,7 @@ func record(marks = null) -> Dictionary:
 		prof_name = g.bot.profile
 	var bot_block: Dictionary = metrics(prof_name) if (g.bot != null or g.mode == g.Mode.PLAY) else {}
 	var rec := {"meta": g.meta_cells, "win": g.state == g.S.WIN or g.victory.recorded, "t": int(g.t), "lv": g.level, "marks": lv_marks if marks == null else marks, "lv_times": g.lv_times,
-		"ops": g.squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": g.dbg_offer, "prog_pick": g.dbg_pick,
+		"ops": g.squad.ops.map(func(o): return {"id": o.id, "elite": o.elite, "prog": o.prog}), "prog_offer": g.dbg_offer, "prog_pick": g.dbg_pick, "prog_log": g.progression.prog_log,
 		"heal_offer": g.progression.heal_offer, "heal_pick": g.progression.heal_pick,
 		"xp_total": snappedf(g.pickups.xp_total, 0.1),
 		# 经验分来源（docs/38 §8.13 方案 A，替代旧的 xp_overflow）：走近捡 / 磁铁吸回 / 视野外回收（含兜底），各带按分钟分段；

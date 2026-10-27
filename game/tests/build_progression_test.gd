@@ -85,6 +85,7 @@ func _process(_d: float) -> void:
 	test_bot_branch_pick()
 	test_others_compat()
 	test_focus_guard()
+	test_catchup()
 	print("%d checks, %d failed" % [n, fails])
 	print("BUILD PROGRESSION failures=%d" % fails)
 	get_tree().quit(1 if fails > 0 else 0)
@@ -315,6 +316,8 @@ func test_others_compat() -> void:
 func test_focus_guard() -> void:
 	if not Prog.focus_on():
 		return
+	var cu = Bal._data["levelup"].get("catchup", 1)
+	Bal._data["levelup"]["catchup"] = 0   # 这里测旧保底（只看最近培养对象）；落后补偿下的保底见 test_catchup
 	game.level = 6
 	game.progression.focus_op = "hoshiguma"
 	var hits := 0
@@ -342,4 +345,62 @@ func test_focus_guard() -> void:
 	ok(game.progression.focus_op == "", "对象不在编队：清除")
 	game.panel.visible = false
 	game.state = game.S.PLAY
+	game.pending_levelups = 0
+	Bal._data["levelup"]["catchup"] = cu
+
+
+## 精英化落后补偿（docs/172）：权重按落后阶段 ×catchup_mult^gap 封顶；排序只重排不加卡；保底让给落后 ≥ catchup_focus_gap 的队友；关 = 旧行为
+func test_catchup() -> void:
+	var P = game.progression
+	var cu = Bal._data["levelup"].get("catchup", 1)
+	Bal._data["levelup"]["catchup"] = 1
+	var m: float = Bal.v("levelup/catchup_mult", 1.8)
+	var cap: float = Bal.v("levelup/catchup_cap", 3.0)
+	ok(is_equal_approx(P.catchup_weight(4, 4), 1.0), "进度最高者权重 1")
+	ok(is_equal_approx(P.catchup_weight(1, 4), m), "落后 1 个精英阶段（3 节点）×%.1f" % m)
+	ok(is_equal_approx(P.catchup_weight(0, 6), minf(m * m, cap)), "落后 2 阶段按封顶")
+	ok(P.catchup_weight(0, 6) <= cap, "不超过封顶 %.1f" % cap)
+	# 造一个断层：德克萨斯（队长）比星熊 / 艾雅法拉领先 ≥ 3 节点
+	var tx = game.squad.get_op("texas")
+	var hs = game.squad.get_op("hoshiguma")
+	var ey = game.squad.get_op("eyjafjalla")
+	tx.prog = 5
+	hs.prog = 1
+	ey.prog = 0
+	game.level = 8
+	var deep: Array = P.deep_cards()
+	var n0 := deep.size()
+	var ord: Array = P.catchup_order(deep.duplicate())
+	ok(ord.size() == n0, "加权排序不增减卡（%d → %d）" % [n0, ord.size()])
+	ok(P.catchup_focus(deep, "texas") == "eyjafjalla", "最近培养对象领先最落后者 ≥ 3 节点：保底让给最落后的艾雅法拉")
+	ok(P.catchup_focus(deep, "hoshiguma") == "hoshiguma", "最近培养对象本身不领先：保底不变")
+	# 统计：多次升级里第一深度位的归属，落后者应多于领先者
+	var first := {}
+	for k in 60:
+		var o2: Array = P.catchup_order(deep.duplicate())
+		var who := str(o2[0].get("op", ""))
+		first[who] = first.get(who, 0) + 1
+	ok(int(first.get("eyjafjalla", 0)) > int(first.get("texas", 0)), "第一深度位：落后者多于领先者 %s" % str(first))
+	P.focus_op = "texas"
+	var hits := 0
+	for k in 6:
+		game.pending_levelups = 1
+		P.open_levelup()
+		if idx(func(c): return c.kind == "prog" and str(c.op) == "eyjafjalla") >= 0:
+			hits += 1
+		game.panel.visible = false
+		game.state = game.S.PLAY
+	ok(hits == 6, "队长领先时保底位给最落后的队友（%d/6）" % hits)
+	# 关：同一状态下保底仍给最近培养对象
+	Bal._data["levelup"]["catchup"] = 0
+	hits = 0
+	for k in 6:
+		game.pending_levelups = 1
+		P.open_levelup()
+		if idx(func(c): return c.kind == "prog" and str(c.op) == "texas") >= 0:
+			hits += 1
+		game.panel.visible = false
+		game.state = game.S.PLAY
+	ok(hits == 6, "catchup=0：保底仍给最近培养对象（%d/6）" % hits)
+	Bal._data["levelup"]["catchup"] = cu
 	game.pending_levelups = 0
