@@ -1,4 +1,4 @@
-快检：本次最多 8 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1027_171741
+快检：本次最多 8 个 Godot 并行（全机上限 4，开始时全机已有 0 个）；日志 /home/user/ArknightsSurvivors/build/check/quick_1027_193642
 通过 数据 JSON 解析  game/data 全部可解析
 通过 美术帧条 art_lint  21 人：未豁免 FAIL 0、已豁免 69、WARN 77；豁免可删：拉普兰德 · 非正面、拉普兰德 · 待机呼吸、维什戴尔 · 朝向、维什戴尔 · 非正面（明细 python tools/art_lint.py）
 通过 发行包瘦身 release_slim  审阅图 0 张（0.00 MB）不进包，未误伤运行时引用；字体子集 ui.ttf 1.64 → 0.90 MB，serif.ttf 1.67 → 0.94 MB（明细 python tools/release_slim.py --report）
@@ -8,28 +8,28 @@
 通过 数据契约 data_lint  balance.json 无字面读点的键 283 个（提示）
 通过 敌人控制直写 cc_lint  207 个脚本：击退累加只在 apply_kb；干员代码不直写敌人 stun / slow / air
 通过 核心契约测试  3319 checks, 0 failed
-通过 冒烟 · angelina  t=90  · 77s
-通过 冒烟 · exusiai  t=90  · 26s
-通过 冒烟 · eyjafjalla  t=90  · 24s
-通过 冒烟 · gladiia  t=90  · 164s
-通过 冒烟 · hoshiguma  t=90  · 25s
-通过 冒烟 · irene  t=90  · 47s
-通过 冒烟 · kaltsit  t=90  · 32s
-通过 冒烟 · lappland  t=90  · 147s
-通过 冒烟 · logos  t=90  · 49s
-通过 冒烟 · lumen  t=90  · 115s
-通过 冒烟 · mizuki  t=90  · 52s
-通过 冒烟 · saria  t=90  · 55s
-通过 冒烟 · siege  t=90  · 67s
-通过 冒烟 · skadi  t=90  · 70s
-通过 冒烟 · skalter  t=90  · 73s
-通过 冒烟 · specter_unchained  t=90  · 352s
-通过 冒烟 · suzuran  t=90  · 88s
-通过 冒烟 · texas  t=90  · 89s
-通过 冒烟 · ulpianus  t=90  · 92s
-通过 冒烟 · wisadel  t=90  · 97s
-通过 自然流程 · 高手  t=150  · 106s
-通过 自然流程 · 普通  t=150  · 107s
+通过 冒烟 · angelina  t=90  · 0s
+通过 冒烟 · exusiai  t=90  · 0s
+通过 冒烟 · eyjafjalla  t=90  · 0s
+通过 冒烟 · gladiia  t=90  · 0s
+通过 冒烟 · hoshiguma  t=90  · 0s
+通过 冒烟 · irene  t=90  · 0s
+通过 冒烟 · kaltsit  t=90  · 0s
+通过 冒烟 · lappland  t=90  · 0s
+通过 冒烟 · logos  t=90  · 0s
+通过 冒烟 · lumen  t=90  · 0s
+通过 冒烟 · mizuki  t=90  · 0s
+通过 冒烟 · saria  t=90  · 0s
+通过 冒烟 · siege  t=90  · 0s
+通过 冒烟 · skadi  t=90  · 0s
+通过 冒烟 · skalter  t=90  · 0s
+通过 冒烟 · specter_unchained  t=90  · 0s
+通过 冒烟 · suzuran  t=90  · 0s
+通过 冒烟 · texas  t=90  · 0s
+通过 冒烟 · ulpianus  t=90  · 0s
+通过 冒烟 · wisadel  t=90  · 0s
+通过 自然流程 · 高手  t=150  · 0s
+通过 自然流程 · 普通  t=150  · 0s
 通过 成长节点当场生效  20 名干员 × 6 节点
 通过 手动普攻全员验收  20 名干员 × 6 场景
 通过 主控保护  417 checks, 0 failed
@@ -157,5 +157,5 @@
 通过 卡片描述不串台：公共成长 / 填充 / 支援卡不含队长手动技能提示（10-22 截图），干员卡只提自己的技能  CARD DESC failures=0
 通过 第一位商人预告（docs/119 §4.5）：生成时定货架、进店不重抽、联动位、价格同步、售出 / 刷新 / 离开撤销、开关关不提前抽  MERCHANT BUILD OFFER failures=0
 
-快检通过：157 项，失败 0 项，耗时 557 秒（开始时全机 0 个 Godot，结束时 0 个）；未用缓存
+快检通过：157 项，失败 0 项，耗时 97 秒（开始时全机 0 个 Godot，结束时 0 个）；Godot 结果缓存命中 157 / 201（不用缓存加 --nocache）
 rc=0
