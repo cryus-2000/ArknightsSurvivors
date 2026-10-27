@@ -20,6 +20,14 @@ const TEMPLATES := {
 }
 # 材质仅改变颗粒运动与冷却，所有材质共享 slash 的总预算。
 const MATERIALS := {
+	# 冰（骑士冰锋 / 冰面 / 碎冰，10-27）：白 → 青 → 暗蓝，重力轻，push 带 ground 时落到地面停住再冷却熄灭。色相在色阶里，调用方本色传近白
+	# 冰（骑士冰锋 / 碎冰，10-27；做法参照常见冰系特效分层：白闪 → 有棱角的主碎片 → 低处冷雾 → 地面霜纹 → 零星碎屑落地）：
+	# 碎片少而大——按速度方向画成 2 格长条 + 下方 1 格暗面（_draw 的 _ice_i 分支），头 10% 寿命全白；带 ground 时落地弹一下再停住、淡出，不留暗点
+	"ice": {"life": 0.65, "life_rand": 0.3, "speed": Vector2(40, 110), "spread": 18.0, "grav": 220.0, "drag": 1.6, "per_frame": 60,
+		"ramp": [[0.0, Color(1.5, 1.6, 1.7)], [0.1, Color(0.75, 0.92, 1.0)], [0.5, Color(0.42, 0.64, 0.84, 0.8)], [0.75, Color(0.22, 0.34, 0.5, 0.25)]]},
+	# 冷雾：贴地慢慢上飘的淡青灰，画成 4×4（_mist_i 分支），低 α——让冰「冷」，不是又一层亮点
+	"frost_mist": {"life": 1.1, "life_rand": 0.35, "speed": Vector2(4, 14), "spread": 70.0, "grav": -12.0, "drag": 1.5, "per_frame": 40,
+		"ramp": [[0.0, Color(0.78, 0.9, 0.96, 0.22)], [0.4, Color(0.62, 0.76, 0.86, 0.16)], [0.75, Color(0.42, 0.52, 0.62, 0.08)]]},
 	"blade": {"life": 0.42, "life_rand": 0.2, "speed": Vector2(90, 175), "spread": 9.0, "grav": 35.0, "drag": 2.8, "per_frame": 144,
 		"ramp": [[0.0, Color(1.2, 1.2, 1.2)], [0.25, Color(0.85, 0.95, 1)], [0.6, Color(0.4, 0.55, 0.65, 0.8)], [0.85, Color(0.2, 0.3, 0.35, 0.35)]]},
 	"lava": {"life": 0.4, "life_rand": 0.2, "speed": Vector2(25, 65), "spread": 60.0, "grav": 220.0, "drag": 3.0, "per_frame": 96,
@@ -79,6 +87,7 @@ var lmax := PackedFloat32Array()
 var delay := PackedFloat32Array()   # 待发射颗粒也占总预算，防止延迟队列绕过上限
 var col := PackedColorArray()
 var tpl := PackedInt32Array()
+var gnd := PackedFloat32Array()   # 落地高度（世界 y）：往下越过就停住；INF = 不落地（缺省，原有模板行为不变）
 var _names: Array = []
 var _ramps: Array = []   # 模板序号 → [[阈值（年龄比例）, 颜色], …]
 var _frame_n := {}
@@ -99,6 +108,8 @@ const RAMP_N := 4     # 颜色阶摊平成每模板 4 段（不足的用 2.0 阈
 var _rth := PackedFloat32Array()
 var _rcol := PackedColorArray()
 var _blade_i := -1
+var _ice_i := -1
+var _mist_i := -1
 var _fire_i := -1
 var _slash_i := -1
 var lights: Array = []   # 颗粒簇登记的灯（docs/138 §8）：[pos, r, col, life, max]；optical._dyn_lights 当候选，同 12 灯预算
@@ -129,6 +140,8 @@ func setup(game) -> void:
 			_rcol.append(rc[mini(j, rc.size() - 1)])
 	adapt_k = clampf(Bal.v("render/grains_mobile_k", 0.35), 0.05, 1.0) if Cfg.mobile_web() else 1.0
 	_blade_i = _names.find("blade")
+	_ice_i = _names.find("ice")
+	_mist_i = _names.find("frost_mist")
 	_fire_i = _names.find("fire")
 	_slash_i = _names.find("slash")
 
@@ -178,8 +191,8 @@ func _adapt(_dt: float) -> void:
 		view = Rect2(g.cam.get_screen_center_position() - vs * 0.5, vs).grow(VIEW_PAD)
 
 
-## 生成一颗：p 世界坐标、dir 初速基准方向（单位向量；模板 spread 内散开）、c 颜色（乘在颜色阶上）
-func push(name: String, p: Vector2, dir: Vector2, c: Color, emit_delay := 0.0) -> void:
+## 生成一颗：p 世界坐标、dir 初速基准方向（单位向量；模板 spread 内散开）、c 颜色（乘在颜色阶上）；ground 落地高度（世界 y，INF = 不落地）
+func push(name: String, p: Vector2, dir: Vector2, c: Color, emit_delay := 0.0, ground := INF) -> void:
 	if pos.size() >= budget() or not view.has_point(p):
 		return
 	if low_k < 1.0:
@@ -203,6 +216,7 @@ func push(name: String, p: Vector2, dir: Vector2, c: Color, emit_delay := 0.0) -
 	delay.append(maxf(0.0, emit_delay))
 	col.append(c)
 	tpl.append(_names.find(name))
+	gnd.append(ground)
 
 
 ## 颗粒簇登记一盏短灯（乌尔比安冲锋前沿等，docs/138 §8）：p 世界坐标、r 半径（世界像素）、c 颜色、life 秒；按剩余寿命线性变暗。纯画面
@@ -241,6 +255,7 @@ func step(dt: float) -> void:
 		delay.clear()
 		col.clear()
 		tpl.clear()
+		gnd.clear()
 		sparks.clear()
 		lights.clear()
 	_lappland_step()
@@ -256,8 +271,14 @@ func step(dt: float) -> void:
 		var v: Vector2 = vel[i]
 		v.y += _grav[ti] * active_dt
 		v *= maxf(0.0, 1.0 - _drag[ti] * active_dt)
-		pos[k] = pos[i] + v * active_dt
+		var np: Vector2 = pos[i] + v * active_dt
+		var gy: float = gnd[i]
+		if np.y > gy and v.y > 0.0:
+			np.y = gy   # 落到地面高度：快的弹一下（碎冰），慢的停住，按色阶继续冷却
+			v = Vector2(v.x * 0.45, -v.y * 0.3) if v.y > 70.0 else Vector2.ZERO
+		pos[k] = np
 		vel[k] = v
+		gnd[k] = gy
 		life[k] = l
 		lmax[k] = lmax[i]
 		delay[k] = wait
@@ -272,6 +293,7 @@ func step(dt: float) -> void:
 		delay.resize(k)
 		col.resize(k)
 		tpl.resize(k)
+		gnd.resize(k)
 	var lk := 0
 	for L in lights:
 		L[3] = float(L[3]) - dt
@@ -329,7 +351,16 @@ func _draw() -> void:
 			var hot: float = maxf(0.0, rc.r - 1.0) * 0.5
 			gc = Color(c.r * rc.r + hot, c.g * rc.g + hot, c.b * rc.b + hot, c.a * rc.a)
 		var p: Vector2 = (pos[i] * 0.5).floor() * 2.0
-		if ti == _blade_i and lf > 0.45:
+		if ti == _ice_i:
+			# 碎冰：亮格 + 沿速度反方向的第 2 格（飞行中拉成棱角长条）+ 下方暗面；停住后只剩亮格 + 暗面
+			var vv: Vector2 = vel[i]
+			draw_rect(Rect2(p, sz), gc)
+			if vv.length_squared() > 400.0:
+				draw_rect(Rect2(p - (vv.normalized() * 2.0).round(), sz), Color(gc.r * 0.8, gc.g * 0.85, gc.b * 0.9, gc.a))
+			draw_rect(Rect2(p + Vector2(0, 2), sz), Color(gc.r * 0.4, gc.g * 0.48, gc.b * 0.6, gc.a * 0.7))
+		elif ti == _mist_i:
+			draw_rect(Rect2(p - sz, sz * 2.0), gc)
+		elif ti == _blade_i and lf > 0.45:
 			draw_line(((pos[i] - vel[i] * 0.045) * 0.5).floor() * 2.0, p, gc, 2.0, false)
 		else:
 			draw_rect(Rect2(p, sz), gc)

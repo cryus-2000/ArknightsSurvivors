@@ -1,6 +1,9 @@
 extends RefCounted
 const Bubble = preload("res://scripts/render/paranoia_bubble.gd")
 const Materials = preload("res://scripts/render/final_boss_materials.gd")
+const TeleDraw = preload("res://scripts/render/telegraph_draw.gd")
+const Grains = preload("res://scripts/render/final_attack_grains.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 ## Candidate presentation: exact tells underneath coarse pixel material bodies. No simulation writes.
 static var _circle_points := PackedVector2Array()
 static var _circle_gy := -INF
@@ -17,6 +20,16 @@ static func _circle_geometry(gy: float) -> PackedVector2Array:
 	return _circle_points
 
 static func draw(g, impacts := false) -> void:
+	var caps: Array = []
+	if not impacts:
+		for w in g.warns:
+			if not TeleDraw.knight_line(w): continue
+			_knight_line_tell(g, w)
+			if not w.done and w.owner.get("stakes", []) is Array and not w.owner.get("stakes", []).is_empty(): caps.append(w)
+		for b in g.bosses:
+			if b.type != "knight_boss": continue
+			if b.get("kb_self", false): Grains.dash_frost(g, b)
+			_dash_frost(g, b)
 	for w in g.warns:
 		if w.act != "final_attack" or w.done: continue
 		if w.get("skin", "") == "bubble":
@@ -33,9 +46,12 @@ static func draw(g, impacts := false) -> void:
 	if impacts:
 		for f in g.fx:
 			if f.kind == "bubble_pop" and f.life > 0: Bubble.pop(g,f)
+			elif f.kind == "knight_crash" and f.life > 0:
+				_crash(g, f)
 			elif f.kind == "final_impact" and f.life > 0:
 				_shape(g,f,clampf(float(f.life)/float(f.max)*1.5,0,1),false)
 	g.world.tb_flush()
+	for w in caps: g.world._stake_cap(w)   # 撞柱提示保持原样（world.draw_warn_outlines 不再画骑士线形预警）
 
 static func _snap(p: Vector2) -> Vector2:
 	return p.snapped(Vector2(2.0, 2.0))
@@ -122,6 +138,12 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 			# A short filling arc encodes time, not a solid white spell body.
 			_ring(r, p, w.r, gy, 3.0, _ink(Color(1.0, 0.48, 0.57), alpha), -PI * 0.5, -PI * 0.5 + maxf(0.02, progress) * TAU)
 		"line":
+			if w.get("skin", "") in ["ice_thrust", "spear"]:
+				var tr: float = float(w.get("track", 0.0))
+				var since_lock: float = float(w.get("t", 0.0)) - tr
+				var lock_flash: float = 1.0 - since_lock / 0.15 if tr > 0.0 and since_lock >= 0.0 and since_lock < 0.15 else 0.0
+				_frost_line(r, p, w.ang, w.len, w.wid, progress, tr <= 0.0 or since_lock >= 0.0, alpha, lock_flash * 0.6)
+				return
 			var d := Vector2.from_angle(w.ang)
 			var n := d.orthogonal()
 			var end: Vector2 = p + d * w.len
@@ -182,3 +204,188 @@ static func _shape(g, w: Dictionary, alpha: float, warning: bool) -> void:
 		Bubble.shadow(g.world,w,alpha)
 	else:
 		Materials.draw(g,w,alpha)
+
+## ---- Knight frost tells (10-27 polish): no hatch, chevrons or white slab. Low dark-red fill plus an ice-crack border;
+## a ground crack spreads from the Knight along the route. The outer boundary is exactly the hit rectangle (jitter only moves inward).
+const CRACK_ICE := Color(0.6, 0.84, 0.95)
+const CRACK_EDGE := Color(0.6, 0.14, 0.27)
+const CRACK_SHADE := Color(0.03, 0.04, 0.07)
+
+## Generic Knight line warnings from g.warns (charge, re-charge, cold pursuit, ice line, spear throw).
+static func _knight_line_tell(g, w: Dictionary) -> void:
+	var t: float = float(w.t)
+	var dur: float = maxf(0.01, float(w.dur))
+	if w.done:
+		# Release: the crack flashes ice-white and fades within 0.25 s instead of a translucent white slab.
+		var f: float = clampf(1.0 - (t - dur) / 0.25, 0.0, 1.0)
+		if f > 0.0: _frost_line(g.world, w.pos, w.ang, w.len, w.wid, 1.0, true, 0.9 * f, f, true)
+		return
+	var tr: float = float(w.get("track", 0.0))
+	var since_lock: float = t - tr
+	var lock_flash: float = 1.0 - since_lock / 0.15 if tr > 0.0 and since_lock >= 0.0 and since_lock < 0.15 else 0.0
+	var k: float = clampf(t / dur, 0.0, 1.0)
+	_frost_line(g.world, w.pos, w.ang, w.len, w.wid, k, tr <= 0.0 or since_lock >= 0.0, 0.7 + 0.25 * k, lock_flash * 0.6)
+
+static func _frost_line(r, p: Vector2, ang: float, length: float, half_w: float, k: float, locked: bool, alpha: float, flash := 0.0, released := false) -> void:
+	var d := Vector2.from_angle(ang)
+	var n := d.orthogonal()
+	var end: Vector2 = p + d * length
+	var salt: int = int(length) & 255
+	var white := Color(0.88, 0.98, 1.0)
+	# 1. Low dark-red fill: the complete hit area, quiet enough to read terrain through it.
+	if not released:
+		r.tb_quad(p - n * half_w, end - n * half_w, end + n * half_w, p + n * half_w, Color(0.24, 0.035, 0.085, 0.08 + 0.07 * k))
+	# 2. Frozen border: a ragged dark-red crack (random-length runs that step inward 0-4 px, never outward), feathered by
+	# short pale frost needles. While the tell still tracks, runs are broken; once the direction locks they close.
+	var edge_a: float = alpha * (0.85 if locked else 0.6)
+	var edge_c: Color = CRACK_EDGE.lerp(white, flash)
+	var frost_c: Color = CRACK_ICE.lerp(white, flash)
+	var steps: int = maxi(2, ceili(length / 6.0))
+	for side in [-1.0, 1.0]:
+		var salt_side: int = salt + (3 if side > 0.0 else 7)
+		var prev: Vector2 = p + n * side * half_w
+		for i in steps:
+			var u: float = float(i + 1) / steps
+			# Inset holds for a few cells, then jumps: reads as a fractured ice rim rather than a ruled line.
+			var inset: float = 0.0 if i + 1 == steps else floorf(_noise(int(i / 3.0), salt_side) * 3.0) * 2.0
+			var at: Vector2 = p + d * length * u + n * side * (half_w - inset)
+			if locked or _noise(i, salt + 11) > 0.45:
+				_strip(r, prev, at, 2.0, _ink(edge_c, edge_a))
+			prev = at
+			# Frost needles grow inward from the rim, creeping from the Knight toward the far end over the tell.
+			if u <= k and _noise(i, salt_side + 13) < 0.42:
+				var reach_in: float = 4.0 + _noise(i, salt_side + 19) * 8.0
+				var lean: float = (_noise(i, salt_side + 23) - 0.5) * 6.0
+				_strip(r, at - n * side * 2.0, at - n * side * reach_in + d * lean, 2.0, _ink(frost_c, alpha * 0.7))
+				if _noise(i, salt_side + 29) < 0.3:
+					_dot(r, at - n * side * (reach_in + 3.0), _ink(white, alpha * 0.6))
+	# 3. Stop line: a jagged crack across the far end.
+	var across: int = maxi(2, ceili(half_w * 2.0 / 6.0))
+	var prev_end: Vector2 = end - n * half_w
+	for i in across:
+		var v: float = -half_w + half_w * 2.0 * float(i + 1) / across
+		var at: Vector2 = end + n * v - d * (0.0 if i + 1 == across else _noise(i, salt + 29) * 4.0)
+		_strip(r, prev_end, at, 2.0, _ink(edge_c, edge_a))
+		prev_end = at
+	# 4. Route crack spreading from the Knight: shows direction and timing without arrows. Kinks every ~32 px with
+	# straight runs between (ice fracture), not a per-cell zigzag that would read as lightning.
+	var reach: float = length * k
+	if reach < 4.0: return
+	var seg: int = maxi(1, ceili(reach / 8.0))
+	var last: Vector2 = p
+	var crack_c: Color = CRACK_ICE.lerp(white, maxf(flash, 0.25 if released else 0.0))
+	for i in seg:
+		var s: float = minf(reach, float(i + 1) * 8.0)
+		var knot: float = s / 32.0
+		var a0: float = (_noise(int(knot), salt + 31) - 0.5) * half_w * 0.5
+		var a1: float = (_noise(int(knot) + 1, salt + 31) - 0.5) * half_w * 0.5
+		var wob: float = lerpf(a0, a1, knot - floorf(knot))
+		var at: Vector2 = p + d * s + n * wob
+		_strip(r, last, at, 4.0, _ink(CRACK_SHADE, alpha * 0.4))
+		_strip(r, last, at, 2.0, _ink(crack_c, alpha * 0.7))
+		# Side fractures at some knots, leaning forward, never past the border.
+		if i % 4 == 3 and _noise(i, salt + 43) < 0.7:
+			var bs: float = 1.0 if _noise(i, salt + 37) < 0.5 else -1.0
+			var blen: float = half_w * (0.4 + 0.45 * _noise(i, salt + 41))
+			var tip: Vector2 = at + d * minf(blen * 0.7, length - 4.0 - s) + n * bs * maxf(0.0, minf(blen, half_w - absf(wob) - 4.0))
+			_strip(r, at, tip, 2.0, _ink(crack_c, alpha * 0.45))
+		last = at
+	if not released and k < 1.0:
+		_dot(r, last, _ink(white, alpha), 4.0)   # Advancing crack tip.
+
+## Dash ice sheet (user 10-27: a wide frozen surface, not a line): the charge path freezes into a translucent ice band about
+## the Knight's width with a ragged rim. Each cell freezes when the Knight arrives (white freezing front), holds, then fades.
+## The pattern is fixed per charge (seeded by its path), so nothing flickers; sheen streaks and a few glints read as ice.
+const DASH_SLIDE := 0.45
+const SHEET_HOLD := 0.9
+const SHEET_FADE := 0.45
+static func _dash_frost(g, e: Dictionary) -> void:
+	var la = e.get("last_act")
+	if Grains.ice_off or not (la is Dictionary) or str(la.get("act", "")) != "dash": return   # --iceab 同局轮换一并关冰面
+	var since: float = g.t - float(la.t)
+	# Phase one from the second act leaves a real 3 s ice strip (knight_boss._ice_step, cold build-up): show the sheet that long.
+	var hold: float = SHEET_HOLD
+	if int(e.get("phase", 1)) == 1 and int(e.get("gates_passed", 0)) >= 1:
+		hold = maxf(SHEET_HOLD, Bal.v("boss/knight_ice_life", 3.0) - SHEET_FADE)
+	if since < 0.0 or since > DASH_SLIDE + hold + SHEET_FADE: return
+	var r = g.world
+	var d := Vector2.from_angle(float(la.ang))
+	var n := d.orthogonal()
+	var length: float = float(la.len)
+	if str(e.get("brk_label", "")) == "眩晕":
+		length = clampf((Vector2(e.pos) - Vector2(la.pos)).dot(d), 8.0, length)   # 撞柱停下：冰面只铺到柱前
+	var half: float = clampf(float(la.get("wid", 34.0)) * 0.7, 16.0, 26.0)
+	var origin: Vector2 = Vector2(la.pos) + Vector2(0, 10)
+	var salt: int = (int(absf(origin.x)) * 7 + int(absf(origin.y)) * 13) & 1023
+	var steps: int = maxi(2, ceili(length / 6.0))
+	var front := -1
+	for i in steps:
+		var u0: float = float(i) / steps
+		var u1: float = float(i + 1) / steps
+		# Constant-deceleration slide: fraction u is reached at T·(1 − sqrt(1 − u)).
+		var age: float = since - DASH_SLIDE * (1.0 - sqrt(maxf(0.0, 1.0 - u1)))
+		if age < 0.0: continue
+		front = i
+		var fade: float = 1.0 if age < hold else clampf(1.0 - (age - hold) / SHEET_FADE, 0.0, 1.0)
+		if fade <= 0.0: continue
+		var a: Vector2 = origin + d * length * u0
+		var b: Vector2 = origin + d * length * u1
+		# Ragged rim: each side steps inward 0–6 px in runs of three cells; the taper keeps the ends from reading as a box.
+		var taper: float = minf(1.0, minf(u1, 1.0 - u0) * 8.0)
+		for side in [-1.0, 1.0]:
+			var inset: float = floorf(_noise(int(i / 3.0), salt + (3 if side > 0.0 else 7)) * 4.0) * 2.0
+			var w_side: float = (half - inset) * (0.45 + 0.55 * taper)
+			# Two bands per side; each picks a tone that holds for ~18 px, so the sheet reads as mottled ice slabs, not a flat bar.
+			for band in 2:
+				var c0: float = w_side * band * 0.5
+				var tone: float = _noise(int(i / 3.0) * 4 + band * 2 + (1 if side > 0.0 else 0), salt + 41)
+				var sheet := Color(0.85, 0.96, 1.0, 0.5)
+				if age >= 0.08:
+					if tone < 0.3: sheet = Color(0.2, 0.34, 0.46, 0.24 * fade)
+					elif tone < 0.75: sheet = Color(0.38, 0.58, 0.7, 0.17 * fade)
+					else: sheet = Color(0.6, 0.8, 0.9, 0.2 * fade)
+				_strip(r, a + n * side * (c0 + w_side * 0.25), b + n * side * (c0 + w_side * 0.25), w_side * 0.5, sheet)
+			# Frozen rim: a lighter 2 px lip along the edge.
+			_strip(r, a + n * side * w_side, b + n * side * w_side, 2.0, Color(0.7, 0.86, 0.94, 0.38 * fade))
+		# Sheen: short diagonal highlights across the sheet, as on polished ice.
+		if i % 7 == 3:
+			var across: float = (_noise(i, salt + 17) - 0.5) * half
+			var c: Vector2 = (a + b) * 0.5 + n * across
+			_strip(r, c - (d + n) * 5.0, c + (d + n) * 5.0, 2.0, Color(0.88, 0.96, 1.0, 0.35 * fade))
+		# Hairline cracks frozen into the sheet.
+		if i % 5 == 1 and _noise(i, salt + 21) < 0.6:
+			var c0: Vector2 = a + n * (_noise(i, salt + 23) - 0.5) * half * 1.2
+			_strip(r, c0, c0 + (d * 0.6 + n * (_noise(i, salt + 29) - 0.5) * 1.6).normalized() * (6.0 + _noise(i, salt + 31) * 10.0), 2.0, Color(0.22, 0.36, 0.5, 0.5 * fade))
+		if _noise(i, salt + 9) < 0.07 and age > 0.1 and age < 0.7 and int((age + _noise(i, salt + 11)) * 12.0) % 3 == 0:
+			_dot(r, a + n * (_noise(i, salt + 13) - 0.5) * half, Color(0.92, 0.98, 1.0, 0.9))   # Ice glint.
+	# Freezing front: a bright line across the band at the newest frozen cell while the Knight is still sliding.
+	if front >= 0 and front < steps - 1:
+		var fp: Vector2 = origin + d * length * float(front + 1) / steps
+		_strip(r, fp - n * half * 0.9, fp + n * half * 0.9, 2.0, Color(0.9, 0.98, 1.0, 0.8))
+
+## 撞柱冲锋的地面冰爆（骑士独有招，10-27）：圆盘霜面 + 8 道参差冰裂从柱根向外长（0.15 秒长满），白 → 青 → 暗蓝后淡出。纯画面
+static func _crash(g, f: Dictionary) -> void:
+	var r = g.world
+	var age: float = float(f.max) - float(f.life)
+	var k: float = clampf(age / 0.15, 0.0, 1.0)
+	var fade: float = clampf(float(f.life) / 0.5, 0.0, 1.0)
+	var gy: float = g.combat.GROUND_Y
+	var p: Vector2 = f.pos
+	var salt: int = (int(absf(p.x)) * 7 + int(absf(p.y)) * 3) & 1023
+	var disc := Color(0.4, 0.6, 0.72, 0.22 * fade) if age > 0.06 else Color(0.85, 0.96, 1.0, 0.5)
+	for i in 20:
+		var a0: float = TAU * i / 20.0
+		var a1: float = TAU * (i + 1) / 20.0
+		var rr: float = 46.0 * k * (0.8 + 0.25 * _noise(i, salt))
+		r.tb_quad(p, p, p + Vector2(cos(a0), sin(a0) * gy) * rr, p + Vector2(cos(a1), sin(a1) * gy) * rr, disc)
+	var crack := Color(0.88, 0.97, 1.0, 0.9) if age < 0.12 else (Color(0.58, 0.82, 0.94, 0.75 * fade) if age < 0.6 else Color(0.25, 0.4, 0.56, 0.6 * fade))
+	for j in 8:
+		var ang: float = TAU * (j + _noise(j, salt + 3) * 0.6) / 8.0
+		var reach: float = (60.0 + _noise(j, salt + 5) * 50.0) * k
+		var last: Vector2 = p
+		for s in 5:
+			var u: float = float(s + 1) / 5.0
+			var jitter: float = (_noise(j * 5 + s, salt + 7) - 0.5) * 0.5
+			var at: Vector2 = p + Vector2(cos(ang + jitter), sin(ang + jitter) * gy) * reach * u
+			_strip(r, last, at, 2.0, crack)
+			last = at

@@ -1,5 +1,7 @@
 extends RefCounted
 const MaterialGrains = preload("res://scripts/render/final_attack_grains.gd")
+const Bal = preload("res://scripts/core/balance.gd")
+const KNIGHT_ICE := ["ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_wall", "crescent"]
 ## 最终首领的补充攻击。状态只存敌人字典；预警、命中与绘制使用同一份几何。
 ## 招式为本作改编：泡影的侵蚀与幻觉、骑士的长枪与寒冰、合唱与海流。
 const NAMES := {
@@ -41,6 +43,8 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 		"true": e.type == "ishar", "arts": e.type in ["paranoia", "izumik"]}
 	if e.type == "paranoia": base.col = Color(0.36, 0.78, 0.88)
 	base.merge(d, true)
+	if e.type == "knight_boss" and str(base.get("skin", "")) in KNIGHT_ICE:
+		base.dmg = float(base.dmg) * Bal.v("boss/knight_ice_dmg_k", 0.8)   # 用户 10-27：弹幕变密后骑士冰锋 / 冰阵单发 ×0.8（旋钮，云端测完再定）
 	base.hit_range = "近战" if shape == "cone" or str(d.get("skin", "")) == "spear" else "远程"
 	var w: Dictionary = g.tele.warn(e, shape, dur, base)
 	e.wind = maxf(e.wind, w.dur)
@@ -256,6 +260,7 @@ func update(e: Dictionary, dt: float) -> void:
 			continue
 		MaterialGrains.trail(g, h, step_dt)
 		if finish_motion and h.age>=h.life:
+			_knight_shards(h)
 			_pop(h)
 			continue
 		live.append(h)
@@ -283,3 +288,15 @@ func _pop(h: Dictionary) -> void:
 static func _accelerated_distance(h: Dictionary, age: float) -> float:
 	var ramp := minf(age, (h.max_speed-h.speed)/h.accel)
 	return h.speed*ramp + 0.5*h.accel*ramp*ramp + h.max_speed*(age-ramp)
+
+## 骑士冰锋 / 冰波自然收尾碎出少量冰屑弹（knight_boss.ice_shards，10-27）；打断、撞柱不出
+func _knight_shards(h: Dictionary) -> void:
+	var e: Dictionary = h.owner
+	var kb = g.bai.boss("knight_boss")
+	if kb == null:
+		return
+	match str(h.get("skin", "")):
+		"crescent":
+			kb.ice_shards(e, h.pos + Vector2.from_angle(h.ang) * (float(h.r) - float(h.get("arc_back", 0.0))), float(h.ang), 5, 1.0, 160.0)
+		"ice_thrust":
+			kb.ice_shards(e, h.pos + Vector2.from_angle(h.ang) * float(h.len), float(h.ang), 3, 0.7, 150.0)
