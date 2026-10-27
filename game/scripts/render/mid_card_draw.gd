@@ -51,9 +51,17 @@ static func warns(g) -> void:
 	var w = g.world
 	var drawn := false
 	for t in g.warns:
-		if t.done or not str(t.get("skin", "")).begins_with("mc_"):
+		if not str(t.get("skin", "")).begins_with("mc_"):
+			continue
+		var beam: bool = t.shape == "line" and (str(t.get("kp", "")) != "" or str(t.act) == "tide_link")
+		if t.done:
+			if beam:
+				_beam_fade(g, w, t)
+				drawn = true
 			continue
 		drawn = true
+		if beam:
+			_beam_charge(g, w, t)
 		var k: float = clampf(t.t / maxf(0.01, t.dur), 0.0, 1.0)
 		var c: Color = g.optical.col_danger if g.optical_on else Color(t.col)
 		var flow: float = g.t * 40.0
@@ -119,3 +127,47 @@ static func warns(g) -> void:
 				w.tb_poly(pts, Color(c.r, c.g, c.b, 0.04 + 0.07 * k))
 	if drawn:
 		w.tb_flush()
+
+
+## ---- 光束类（主教统一 / 换位连线、蔑死体蚀潮吐息；用户 10-27「蓄力」与「消散」）
+## 蓄力：中线光芯从 1 像素粗到 0.6 × 半宽、亮度递增，两侧颗粒向中线内收（越近结算收得越快）；开火瞬间由正式光束（kp_beam）接手
+static func _beam_charge(g, w, t: Dictionary) -> void:
+	var k: float = clampf(t.t / maxf(0.01, t.dur), 0.0, 1.0)
+	var c: Color = g.vfx.boss_color(str(t.owner.type)) if t.owner is Dictionary else Color(t.col)
+	var d := Vector2.from_angle(float(t.ang))
+	var nrm: Vector2 = d.orthogonal()
+	var L: float = float(t.len)
+	var hw: float = lerpf(1.0, float(t.wid) * 0.6, k * k)
+	var lum: float = 0.6 + 0.9 * k
+	w.tb_quad(t.pos + nrm * hw, t.pos + d * L + nrm * hw, t.pos + d * L - nrm * hw, t.pos - nrm * hw, Color(c.r * lum, c.g * lum, c.b * lum, 0.25 + 0.55 * k))
+	var n: int = clampi(int(L / 14.0), 6, 60)
+	for i in n:
+		var u: float = (float(i) + 0.5) / n
+		var ph: float = fmod(g.t * (1.2 + 2.8 * k) + float(i) * 0.37, 1.0)   # 0 → 1：从外侧收到中线
+		var off: float = float(t.wid) * 1.8 * (1.0 - ph)
+		var side: float = 1.0 if i % 2 == 0 else -1.0
+		_dot(w, t.pos + d * (u * L) + nrm * off * side, Color(c.r * 1.4, c.g * 1.4, c.b * 1.4, (0.3 + 0.6 * k) * ph))
+
+
+## 消散：结算后 0.25 秒（预警在 g.warns 里多留的这段），光束变细、按 12 像素断成碎段逐段熄灭，碎段上冒颗粒点
+static func _beam_fade(g, w, t: Dictionary) -> void:
+	var f: float = clampf((t.t - t.dur) / 0.25, 0.0, 1.0)
+	if f >= 1.0:
+		return
+	var c: Color = g.vfx.boss_color(str(t.owner.type)) if t.owner is Dictionary else Color(t.col)
+	var d := Vector2.from_angle(float(t.ang))
+	var nrm: Vector2 = d.orthogonal()
+	var L: float = float(t.len)
+	var hw: float = float(t.wid) * 0.5 * (1.0 - f)
+	var seg := 12.0
+	var i := 0
+	var x := 0.0
+	while x < L:
+		var keep: float = fmod(float(i) * 0.618, 1.0)   # 固定的熄灭顺序（不用随机）
+		if keep > f:
+			var a: Vector2 = t.pos + d * x
+			var b: Vector2 = t.pos + d * minf(L, x + seg * 0.7)
+			w.tb_quad(a + nrm * hw, b + nrm * hw, b - nrm * hw, a - nrm * hw, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, 0.8 * (1.0 - f)))
+			_dot(w, a + nrm * (hw + 4.0 + 10.0 * f) * (1.0 if i % 2 == 0 else -1.0), Color(c.r * 1.5, c.g * 1.5, c.b * 1.5, 0.7 * (1.0 - f)))
+		x += seg
+		i += 1

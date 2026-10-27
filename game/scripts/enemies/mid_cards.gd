@@ -17,7 +17,7 @@ const Q_GUARD := 16.0      # 每组保护性上限（秒）
 ## ---- 弹体
 ## 弹：tier 0 小（r5）/ 1 中（r7）/ 2 大（r10）；画面 render/mid_card_draw（暗描边 + 本色 + 热白芯）。
 ## o：hold 秒（原地显形，之后才以 v0 出发；东方式「先排出图案再放」，本身就是预警）、acc 每秒加速、vmax / vmin、turn 每秒转角、
-##    split {t, n, spread, spd, tier, depth}（到点分裂成 n 颗，depth > 0 时子弹再分）、mult 伤害倍率（× e.dmg）
+##    split {t, n, spread, spd, tier, depth}（到点分裂成 n 颗，depth > 0 时子弹再分）、mult 伤害倍率（× e.dmg × boss/mid_pattern_dmg，缺省 0.8：弹幕变密后单发整体下调，10-27 用户，云端测完再定）
 static func shot(g, e: Dictionary, pos: Vector2, ang: float, spd: float, tier: int, o := {}) -> bool:
 	var own := 0
 	var total := 0
@@ -36,7 +36,7 @@ static func _add(g, e: Dictionary, pos: Vector2, ang: float, spd: float, tier: i
 	var r: float = [5.0, 7.0, 10.0][clampi(tier, 0, 2)]
 	var hold: float = float(o.get("hold", 0.0))
 	var v0: Vector2 = Vector2.from_angle(ang) * spd
-	var b := {"pos": pos, "vel": Vector2.ZERO if hold > 0.0 else v0, "v0": v0, "dmg": e.dmg * float(o.get("mult", 0.45)), "r": r,
+	var b := {"pos": pos, "vel": Vector2.ZERO if hold > 0.0 else v0, "v0": v0, "dmg": e.dmg * float(o.get("mult", 0.45)) * Bal.v("boss/mid_pattern_dmg", 0.8), "r": r,
 		"life": float(o.get("life", 5.0)) + hold, "slow": false, "frost": 0.0, "corrode": float(o.get("corrode", 0.0)), "nerve": 0.0, "true": false,
 		"kind": "mc", "mc": true, "tier": tier, "age": 0.0, "hold": hold, "home": false, "boss": true, "atk": "法术", "hit_cap": e.get("hit_cap", 0.0),
 		"source_id": e.id, "col": o.get("col", g.vfx.boss_color(e.type)), "src_type": e.type, "no_rock": o.get("no_rock", false)}
