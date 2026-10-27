@@ -86,11 +86,13 @@
 - 泡泡更明显：泡膜内填 0.1→0.3、膜不透明度 0.7→0.95 加粗到 2.5、内侧加一圈淡色厚膜；弹芯色提亮到 [0.74, 0.58, 1.0]。
 - 无声波环改为先慢后加速（见 §3 表）。
 - 用户「换成紫色泡泡」：泡膜 / 内填 / 弹芯改饱和紫（芯 [0.7, 0.32, 1.0]，膜 (0.82, 0.45, 1.0)），高光仍白；泡破颗粒同色。Boss 专属色 bcol（光束、光环等）不变。
+- 用户截图指出大泡（追猎泡 / 泡影收束 / 溟泡迸裂，Codex 的 `paranoia_bubble.gd` 水泡贴图）还是青色：贴图改紫并加厚（内填 0.035→0.18、外膜 0.28→0.7），破泡碎片、移动颗粒（`final_attack_grains` bubble / phantom）、她的 Codex 招式预警色（`final_attacks._warn` 泡影分支）同改紫。
 
 ## 4. 公共文件改动（合并时注意）
 
 - `render/boss_beam.gd`：`_paranoia_top` / `_paranoia_ground` 第一行各调 `ParanoiaComboDraw.draw_top` / `draw_ground`，加一条 preload。只碰泡影分支。
 - `render/telegraph_draw.gd`：`quiet()` 多一个条件 `skin in ["gaze", "howl"]`（泡影凝视、呼号自己画预警）。
+- `render/final_attack_grains.gd`：`_color` 的 phantom / bubble 改紫（这两个皮肤只有泡影用）；`enemies/final_attacks.gd`：`_warn` 泡影分支颜色改紫（各 1 行）。
 - `render/world.gd`：`_burden_ring`（泡影专用函数）外圈改泡沫。
 - `enemies/telegraph.gd` `_kp()`：读可选 `kp_life` / `kp_on`（缺省 KP_LIFE / 0.06，其余 Boss 不变）；`render/boss_beam.gd` `draw()`：开合时长读 fx 的 `on_t`（缺省 ON_T）。
 - `game/data/enemies.json`：paranoia 条目加 `bcol_core`、`bcol_outline` 两行。
@@ -103,7 +105,7 @@
 
 - `paranoia_combos_test`：每幕两组、段数 2–4、两组轮换并以收招结束、上屏无「符卡」字样、坠地打断但保留在飞弹、转幕从新幕第一组起、被控作废弹幕段、同输入两遍弹幕位置一致。
 - `paranoia_combo_preview --pc-check`：7 组各 16 秒走正式 AI，无 SCRIPT ERROR；同屏弹数峰值 ≤98。
-- 录像：`build/boss_paranoia/combos_v11/`（每组原色原速 mp4 + capture.json；PNG 帧编码完即删，旧版录像已删）。录像是无敌玩家沿固定路线移动，不代表难度。旧版录像已删。
+- 录像：`build/boss_paranoia/combos_v13/`（每组原色原速 mp4 + capture.json；PNG 帧编码完即删，旧版录像已删）。录像是无敌玩家沿固定路线移动，不代表难度。旧版录像已删。
 - 帧时：`tools/probes/paranoia_combo_preview.py --timing --quality low` 写 `timing_low.json`（本机墙钟，含模拟与绘制提交；不是手机实测）。10-27 本机（24 核、多会话同时在跑）低画质：连段 + 弹幕模拟每帧约 0.5–1.0 ms；泡膜同局逐帧开关对照，~95 发时多 0.8–2 ms（泡膜已走 world.tb_* 批）。整帧墙钟两次运行间波动大（同一组 11 ↔ 24 ms），主要是机器负载，不能当手机帧时；手机网页未实测，建议协调人在帧率会话的手机基线里加一局泡影三幕（同屏峰值 ~96 发）。
 
 ## 6. 待云端
