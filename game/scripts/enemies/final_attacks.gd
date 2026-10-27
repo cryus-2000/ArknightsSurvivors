@@ -3,7 +3,7 @@ const MaterialGrains = preload("res://scripts/render/final_attack_grains.gd")
 ## 最终首领的补充攻击。状态只存敌人字典；预警、命中与绘制使用同一份几何。
 ## 招式为本作改编：泡影的侵蚀与幻觉、骑士的长枪与寒冰、合唱与海流。
 const NAMES := {
-	"paranoia": ["追猎泡", "幻影合围", "泡影收束"],
+	"paranoia": ["追猎泡", "溟泡迸裂", "泡影收束"],
 	"knight_boss": ["踏冰裂阵", "断潮劈击", "侧踏挑枪"],
 	"ishar": ["合唱齐射", "合唱压境", "深海触腕"],
 	"izumik": ["护群触腕", "迁徙潮", "深渊涌流"]}
@@ -34,6 +34,7 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 	var base := {"act": "final_attack", "col": g.vfx.boss_color(e.type), "dmg": e.dmg * 0.85,
 		"cancel_dead": true, "track": 0.0, "corrode": 0.3 if e.type == "paranoia" else 0.0,
 		"true": e.type == "ishar", "arts": e.type in ["paranoia", "izumik"]}
+	if e.type == "paranoia": base.col = Color(0.36, 0.78, 0.88)
 	base.merge(d, true)
 	base.hit_range = "近战" if shape == "cone" or str(d.get("skin", "")) == "spear" else "远程"
 	var w: Dictionary = g.tele.warn(e, shape, dur, base)
@@ -50,30 +51,30 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 		"追猎泡":
 			for k in 2:
 				_warn(e, "circle", 1.0 + 0.3 * k, {"name": name if k == 0 else "", "pos": e.pos + dir * 70.0 + side * (130.0 if k == 0 else -130.0),
-					"r": 24.0, "skin": "bubble", "motion": "pursuit", "ang": dir.angle(), "speed": 115.0, "life": 4.5, "home_t": 1.8})
-		"幻影合围":
-			for k in 2:
-				var p: Vector2 = g.combat.arena_clamp(e.pos + side * (210.0 if k == 0 else -210.0), 70.0)
-				_warn(e, "line", 1.25 + 0.65 * k, {"name": name if k == 0 else "", "pos": p, "ang": (g.ppos - p).angle(),
-					"len": 700.0, "wid": 24.0, "track": 0.55 + 0.65 * k, "skin": "phantom", "cancel_break": true})
+					"r": 24.0, "skin": "bubble", "motion": "pursuit", "ang": dir.angle(), "speed": 115.0, "life": 6.0, "turn_rate": 1.35})
+		"溟泡迸裂":
+			_warn(e, "circle", 1.5, {"name": name, "pos": e.pos + dir * 85.0,
+				"r": 42.0, "skin": "bubble", "motion": "swelling", "ang": dir.angle(),
+				"speed": 100.0, "life": 4.0, "dmg": e.dmg * 1.1})
 		"泡影收束":
 			var center: Vector2 = g.combat.arena_clamp(g.ppos, 140.0)
 			var named := false
 			for k in 16:
 				var a: float = TAU * k / 16.0
-				# 朝首领反方向留下约 90 度逃生口；向内移动，区别于原扩散环。
+				# 留出生长时的出口；每颗成熟后独立追踪，靠有限转向留出绕行空间。
 				if absf(angle_difference(a, dir.angle())) < 0.7:
 					continue
-				_warn(e, "circle", 1.3, {"name": "" if named else name, "pos": center + Vector2.from_angle(a) * 300.0,
-					"r": 18.0, "skin": "bubble", "motion": "linear", "ang": a + PI, "speed": 100.0, "life": 2.5})
+				_warn(e, "circle", 1.3 + (k % 4) * 0.18, {"name": "" if named else name, "pos": center + Vector2.from_angle(a) * 300.0,
+					"r": 18.0, "skin": "bubble", "motion": "pursuit", "ang": a + PI, "speed": 100.0, "life": 5.5, "turn_rate": 0.85})
 				named = true
 		"踏冰裂阵":
 			for k in 3:
 				_warn(e, "line", 1.35 + 0.2 * k, {"name": name if k == 0 else "", "ang": dir.angle() + (k - 1) * 0.5,
 					"len": 530.0, "wid": 19.0, "skin": "ice", "chill": 0.5})
 		"断潮劈击":
-			_warn(e, "line", 1.3, {"name": name, "ang": dir.angle(), "track": 0.55, "len": 550.0, "wid": 96.0,
-				"skin": "crescent", "motion": "crescent", "speed": 245.0, "life": 2.25, "dmg": e.dmg * 1.15})
+			_warn(e, "arc", 1.7, {"name": name, "ang": dir.angle(), "track": 0.85, "r": 640.0, "half": 0.52, "arc_back": 480.0, "wid": 26.0, "style": 3,
+				"skin": "crescent", "motion": "crescent", "speed": 65.0, "accel": 700.0, "max_speed": 740.0, "life": 1.65, "dmg": e.dmg * 1.15})
+			e.fx = dir.x
 		"侧踏挑枪":
 			var sign_side: float = -1.0 if int(e.get("final_cycle", 0)) % 2 else 1.0
 			var to: Vector2 = g.combat.arena_clamp(g.map.push_out(e.pos + side * 170.0 * sign_side, e.r), 90.0)
@@ -160,13 +161,8 @@ func resolve(w: Dictionary) -> void:
 		var h: Dictionary = w.duplicate()
 		h.age = 0.0
 		h.hit = false
+		h.base_r = float(w.r)
 		h.velocity = w.get("velocity", Vector2.from_angle(w.ang) * float(w.get("speed", 0.0)))
-		if motion == "crescent":
-			var side := Vector2.from_angle(w.ang).orthogonal()
-			h.pos = w.pos - side * 90.0
-			h.ang = side.angle()
-			h.len = 180.0
-			h.wid = 18.0
 		if hazards.size() < 80:
 			hazards.append(h)
 			MaterialGrains.burst(g, h)
@@ -192,18 +188,41 @@ func update(e: Dictionary, dt: float) -> void:
 			continue
 		h.age += dt
 		if h.age >= h.life:
-			MaterialGrains.finish(g, h)
+			_pop(h)
 			continue
-		if h.motion == "pursuit" and h.age < float(h.home_t):
-			var a: float = lerp_angle(h.velocity.angle(), (g.ppos - h.pos).angle(), minf(1.0, dt * 1.8))
+		if h.motion == "swelling":
+			h.r = h.base_r * lerpf(1.0, 1.3, minf(1.0, h.age / 1.2))
+		if h.motion == "pursuit":
+			var a: float = rotate_toward(h.velocity.angle(), (g.ppos - h.pos).angle(), float(h.get("turn_rate", 1.0)) * dt)
 			h.velocity = Vector2.from_angle(a) * h.speed
+		var travel: Vector2 = h.velocity * dt
+		if h.motion == "crescent":
+			var forward := Vector2.from_angle(h.ang)
+			travel = forward * (_accelerated_distance(h, h.age) - _accelerated_distance(h, maxf(0.0, h.age-dt)))
+			h.velocity = forward * minf(h.max_speed, h.speed + h.accel*h.age)
 		# Substeps bound swept movement to 10px even when a frame stalls.
-		var steps: int = maxi(1, ceili(h.velocity.length() * dt / 10.0))
+		var steps: int = maxi(1, ceili(travel.length() / 10.0))
 		for k in steps:
-			h.pos += h.velocity * dt / steps
+			h.pos += travel / steps
 			if not h.hit and g.tele.hits_leader(h):
 				g.tele.warn_damage(h)
 				h.hit = true
+				if h.skin == "bubble": break
+		if h.hit and h.skin == "bubble":
+			_pop(h)
+			continue
 		MaterialGrains.trail(g, h, dt)
 		live.append(h)
 	hazards = live
+
+func _pop(h: Dictionary) -> void:
+	if h.get("skin", "") != "bubble":
+		MaterialGrains.finish(g, h)
+		return
+	g.fx.append({"kind":"bubble_pop", "pos":h.pos, "r":float(h.r), "life":0.48, "max":0.48,
+		"ang":h.velocity.angle(), "enemy":true})
+	MaterialGrains.finish(g, h)
+
+static func _accelerated_distance(h: Dictionary, age: float) -> float:
+	var ramp := minf(age, (h.max_speed-h.speed)/h.accel)
+	return h.speed*ramp + 0.5*h.accel*ramp*ramp + h.max_speed*(age-ramp)

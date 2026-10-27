@@ -2243,6 +2243,73 @@ func boss_strip_animation(e: Dictionary) -> Dictionary:
 	return {}
 
 
+## Added final attacks use the existing native Spine strips, with the authored release event aligned to damage.
+func _final_boss_strip(e: Dictionary, skin: String) -> String:
+	match str(e.type):
+		"paranoia": return "e_paranoia_gaze" if e.phase == 1 else "e_paranoia_phase2_howl"
+		"ishar": return "e_ishar_t_attack" if e.phase == 2 else "e_ishar_attack"
+		"izumik": return "e_izumik_attack" if skin == "tentacle" else "e_izumik_share"
+		"knight_boss":
+			match skin:
+				"ice": return "e_knight_plant"
+				"crescent": return "e_knight_spin"
+				"spear": return "e_knight_thrust"
+				"step": return "e_knight_charge_form"
+	return ""
+
+func _final_boss_frame(e: Dictionary, skin: String, progress: float, since: float) -> Dictionary:
+	var strip := _final_boss_strip(e, skin)
+	if strip == "" or _lazy_tex(strip) == null:
+		return {}
+	var rd := A.enemy_redraw(strip)
+	var times: Array = rd.get("sample_times", [])
+	var n: int = int(rd.get("frames", 0))
+	if times.is_empty() or n < 2:
+		return {}
+	var events: Array = rd.get("event_frames", [])
+	var event: int = int(events[0]) if not events.is_empty() else int(rd.get("release_frame") if rd.get("release_frame") != null else n / 2)
+	event = clampi(event, 1, n - 1)
+	var event_time: float = float(times[event])
+	var animation_time: float
+	if since < 0.0:
+		animation_time = minf(event_time - 0.001, maxf(0.0, progress) * event_time)
+	else:
+		# Preserve the source follow-through; a terminal contact pose holds briefly instead of disappearing at once.
+		if since >= maxf(0.25, float(rd.duration) - event_time):
+			return {}
+		animation_time = event_time + since
+	var frame := 0
+	for i in n:
+		if float(times[i]) <= animation_time:
+			frame = i
+	return {"name":strip, "frames":n, "frame":frame}
+
+func final_boss_animation(e: Dictionary) -> Dictionary:
+	if e.get("dead", false) or e.get("coma", false) or e.get("stun", 0.0) > 0.0 or e.get("break_t", 0.0) > 0.0:
+		return {}
+	var pending: Dictionary = {}
+	var other_cast := false
+	for w in g.warns:
+		if w.done or not is_same(w.owner, e):
+			continue
+		if str(w.act) != "final_attack":
+			other_cast = true
+		elif pending.is_empty() or float(w.dur) - float(w.t) < float(pending.dur) - float(pending.t):
+			pending = w
+	var last = e.get("last_act")
+	var since := INF
+	if last is Dictionary and str(last.get("act", "")) == "final_attack":
+		since = g.t - float(last.get("t", -99.0))
+		# A subsequent warning must not hide the release pose of the projectile that just left the body.
+		if since >= 0.0 and since < 0.12:
+			return _final_boss_frame(e, str(last.get("skin", "")), 1.0, since)
+	if not pending.is_empty():
+		return _final_boss_frame(e, str(pending.get("skin", "")), float(pending.t) / maxf(0.01, float(pending.dur)), -1.0)
+	if not other_cast and since >= 0.0 and since < INF:
+		return _final_boss_frame(e, str(last.get("skin", "")), 1.0, since)
+	return {}
+
+
 ## 重画新增动作（10-23）的一次性画面：现形 reveal / 复苏 revive / 落地变身 change / 扎根收势 root_end，由触发点写 e.vis_act / e.vis_t0（纯画面字段）。
 ## 条名 = 基础帧条名 + "_" + 动作；时长取原作动画时长，播完清掉。没有这条帧条返回 {}
 func _vis_anim(e: Dictionary) -> Dictionary:
@@ -2964,6 +3031,11 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			name = ia.name
 			frames = ia.frames
 			frame = ia.frame
+	var final_pose := final_boss_animation(e) if e.boss else {}
+	if not final_pose.is_empty():
+		name = final_pose.name
+		frames = final_pose.frames
+		frame = final_pose.frame
 	var va := _vis_anim(e)
 	if not va.is_empty():
 		name = va.name

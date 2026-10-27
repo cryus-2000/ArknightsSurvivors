@@ -55,7 +55,6 @@ func run() -> void:
 			var w: Dictionary = g.tele.warn(boss, "line", 0.8, {"act": "beam", "name": "凝视" if round_i == 0 and beam_i == 0 else "", "dmg": 0.0})
 			g.tele._resolve(w)
 	check(Sfx.trace.filter(func(row): return row[1] == "cue_beam_hit").size() == 3, "three firing rounds produce three cues including unnamed follow-ups")
-	await check_final_rounds(g, "paranoia", "幻影合围", 2)
 	await check_final_rounds(g, "ishar", "合唱齐射", 3)
 	Sfx.trace_on = false
 	g.queue_free()

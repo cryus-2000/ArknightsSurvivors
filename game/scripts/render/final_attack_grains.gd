@@ -16,7 +16,7 @@ static func _color(w: Dictionary) -> Color:
 		"ice", "spear", "crescent", "step":
 			return Color(0.48, 0.81, 1.0, 0.9)
 		"phantom", "bubble":
-			return c.lerp(Color(0.66, 0.49, 0.93, 0.9), 0.35)
+			return Color(0.48, 0.86, 0.96, 0.9)
 		"choir":
 			return Color(0.46, 0.92, 0.84, 0.9)
 		"tide", "tentacle":
@@ -50,6 +50,10 @@ static func burst(g, w: Dictionary) -> void:
 		var p: Vector2 = w.pos
 		var direction := Vector2.UP
 		match str(w.shape):
+			"arc":
+				var radial := Vector2.from_angle(w.ang + g.vrng.randf_range(-w.half, w.half))
+				p += radial * w.r - d*float(w.get("arc_back",0.0))
+				direction = -d
 			"line":
 				# Jitter within strata: even coverage without a dotted grid across the beam.
 				var u: float = (float(i) + g.vrng.randf()) / maxf(1.0, count)
@@ -84,6 +88,7 @@ static func burst(g, w: Dictionary) -> void:
 				var angle: float = float(w.ang) + g.vrng.randf_range(-float(w.half), float(w.half))
 				direction = Vector2.from_angle(angle)
 				p += direction * float(w.r) * g.vrng.randf_range(0.78, 0.98)
+		if skin == "bubble": p.y -= float(w.get("r", 24.0)) + 14.0
 		pool.push(material, p, direction, color)
 
 static func trail(g, h: Dictionary, dt: float) -> void:
@@ -107,7 +112,10 @@ static func trail(g, h: Dictionary, dt: float) -> void:
 	for i in count:
 		var p: Vector2 = h.pos
 		var direction := -heading
-		if h.shape == "line":
+		if h.shape == "arc":
+			var radial := Vector2.from_angle(h.ang + g.vrng.randf_range(-h.half, h.half))
+			p += radial*h.r - heading*(h.wid+float(h.get("arc_back",0.0)))
+		elif h.shape == "line":
 			var u: float = g.vrng.randf()
 			var along: float = lerpf(GAP_MARGIN, float(h.len) - GAP_MARGIN, u) if skin == "tide" else u * float(h.len)
 			p += axis * along
@@ -123,6 +131,7 @@ static func trail(g, h: Dictionary, dt: float) -> void:
 			p -= heading * radius * 0.7
 			p += across * radius * side
 			direction = (-heading + across * side * 0.5).normalized()
+		if skin == "bubble": p.y -= float(h.get("r", 24.0)) + 14.0
 		pool.push(material, p, direction, color)
 
 static func finish(g, h: Dictionary) -> void:

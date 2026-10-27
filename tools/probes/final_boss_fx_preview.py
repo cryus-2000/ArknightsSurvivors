@@ -69,7 +69,7 @@ def main():
             folder.mkdir(exist_ok=True)
             # Pin the code that the process loads, even while another worker edits it.
             sources = {}
-            for name in ["game/scripts/render/boss_attack_draw.gd", "game/scripts/enemies/final_attacks.gd", "game/scripts/render/final_attack_grains.gd"]:
+            for name in ["game/scripts/render/boss_attack_draw.gd", "game/scripts/enemies/final_attacks.gd", "game/scripts/render/final_attack_grains.gd", "game/scripts/render/final_boss_materials.gd", "game/scripts/render/paranoia_bubble.gd", "game/tests/final_boss_fx_preview.gd"]:
                 path = ROOT / name
                 if path.exists():
                     data = path.read_bytes()
@@ -85,10 +85,14 @@ def main():
         count = encode(folder)
         if not args.encode_only and count != int(3 * MOVE_SECONDS * FPS):
             raise RuntimeError("Incomplete capture: expected 540 frames, got " + str(count))
-        report = {"boss": boss, "quality": args.quality, "frames": count, "fps": 15, "source_size": [1280, 720], "gif_size": [640, 360], "gif_fps": 12,
+        log = (folder / "run.log").read_text(encoding="utf-8")
+        metrics = [json.loads(line.removeprefix("FX_PREVIEW_METRICS ")) for line in log.splitlines() if line.startswith("FX_PREVIEW_METRICS ")]
+        if not args.encode_only and len(metrics) != 3:
+            raise RuntimeError("Missing per-move metrics: " + str(folder))
+        report = {"move_metrics": metrics, "boss": boss, "quality": args.quality, "frames": count, "fps": 15, "source_size": [1280, 720], "gif_size": [640, 360], "gif_fps": 12,
                   "move_seconds": count / (3 * FPS), "duration_seconds": count / FPS,
                   "sheet_sample_seconds": [min(t, (count // 3 - 1) / FPS) for t in SHEET_SECONDS],
-                  "simulation": "Actual force_move + telegraph + hazard + optical rendering; ordinary AI paused; invulnerable player sidesteps on a fixed path"}
+                  "simulation": "Actual force_move + telegraph + hazard + optical rendering; ordinary AI paused; invulnerable player follows a continuous 100px/s route with turns at 2.6, 4.4, 6.5 and 8.7 seconds; wind/cooldown/pose clocks advance"}
         (folder / "capture.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         print(json.dumps(report), flush=True)
 

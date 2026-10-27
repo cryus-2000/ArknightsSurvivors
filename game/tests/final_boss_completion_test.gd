@@ -108,6 +108,8 @@ func _ready() -> void:
 			check(seen.has(move), kind + " natural extra " + move)
 		check(seen.size() >= 7, kind + " natural seven distinct attacks")
 	_test_fixes()
+	_test_bubble_tracking()
+	_test_knight_arc()
 	if DisplayServer.get_name() != "headless" and Cfg.dev_args().has("--capture-ui"):
 		await _capture()
 	print("FINAL BOSS COMPLETION failures=", failures)
@@ -235,3 +237,62 @@ func _capture() -> void:
 			g.queue_redraw()
 			await RenderingServer.frame_post_draw
 			get_viewport().get_texture().get_image().save_png("res://../build/final_%s_%d_hit.png" % [kind, index])
+
+func _test_bubble_tracking() -> void:
+	for move in ["追猎泡","泡影收束"]:
+		var boss: Dictionary = fresh("paranoia")
+		g.bai.finals.force_move(boss,move,Vector2.RIGHT,220.0)
+		for w in g.warns: g.tele.warn_resolve(w)
+		g.warns.clear()
+		check(g.bai.finals.hazards.all(func(h): return h.motion == "pursuit"),move+" every bubble pursues")
+		for h in g.bai.finals.hazards:
+			h.age = 3.5
+			h.pos = Vector2.ZERO
+			h.velocity = Vector2.RIGHT*h.speed
+		g.ppos=Vector2(0,500)
+		g.bai.finals.update(boss,0.1)
+		check(g.bai.finals.hazards.all(func(h): return h.velocity.y>0),move+" turns after old tracking cutoff")
+		check(g.bai.finals.hazards.all(func(h): return h.velocity.angle()<=float(h.turn_rate)*0.1+0.001),move+" bounded turning")
+		g.ppos=Vector2(0,-500)
+		var angles: Array = g.bai.finals.hazards.map(func(h): return h.velocity.angle())
+		g.bai.finals.update(boss,0.1)
+		for i in angles.size(): check(g.bai.finals.hazards[i].velocity.angle()<angles[i],move+" re-aims at new position")
+		g.fx.clear()
+		for h in g.bai.finals.hazards: h.age=h.life-0.01
+		g.bai.finals.update(boss,0.02)
+		check(g.bai.finals.hazards.is_empty(),move+" finite lifetime")
+		check(g.fx.filter(func(f): return f.kind=="bubble_pop").size()==angles.size(),move+" each expiry ruptures once")
+	var image = preload("res://scripts/render/paranoia_bubble.gd").make_image(0)
+	check(image.get_pixel(20,20).a<0.1,"bubble center transmits the background")
+	check(image.get_pixel(20,3).a>0.05 and image.get_pixel(3,20).a>0.05,"sphere uses full height and width")
+	check(image.get_pixel(0,0).a==0,"transparent sphere corners")
+	check(image.get_pixel(7,7).a>image.get_pixel(20,20).a,"curved reflection is stronger than transparent center")
+
+func _test_knight_arc() -> void:
+	var boss: Dictionary = fresh("knight_boss")
+	g.bai.finals.force_move(boss,"断潮劈击",Vector2.RIGHT,220.0)
+	var w: Dictionary = g.warns[0]
+	check(w.shape == "arc" and 2*w.r*sin(w.half)>600,"knight slash spans over 600px")
+	g.tele.update_warns(0.2)
+	check(g.bai.finals.hazards.is_empty(),"forming arc cannot damage early")
+	w.ang = 0.0
+	var center: Vector2 = w.pos - Vector2.RIGHT*w.arc_back
+	check(w.r-w.arc_back<=170 and w.r*cos(w.half)-w.arc_back>60,"entire slash forms close in front of the boss")
+	for a in [-w.half*.9,0.0,w.half*.9]:
+		g.ppos = center + Vector2.from_angle(a)*w.r + Vector2(0,14)
+		check(g.tele.hits_leader(w),"curved blade hits across its actual surface")
+	for point in [Vector2.ZERO,Vector2(-330,0),Vector2(50,0),Vector2(0,330)]:
+		g.ppos = point+Vector2(0,14)
+		check(not g.tele.hits_leader(w),"arc hollow/back/end gaps stay safe")
+	g.ppos = Vector2(0,1500)
+	g.bai.finals.resolve(w)
+	var h: Dictionary = g.bai.finals.hazards[0]
+	check(h.ang==w.ang and h.pos==w.pos,"release keeps forward orientation and exact warning origin")
+	g.bai.finals.update(boss,0.1)
+	var first: float = h.pos.x
+	g.bai.finals.update(boss,0.1)
+	check(h.pos.x-first>first and h.velocity.x>h.speed,"slash accelerates forward")
+	check(is_equal_approx(h.pos.x,27.0),"accelerated travel integrates elapsed time exactly")
+	check(h.pos.y==0.0,"slash does not travel sideways")
+	var test_h: Dictionary = h.duplicate()
+	check(g.bai.finals._accelerated_distance(test_h,2.0)>g.bai.finals._accelerated_distance(test_h,1.0),"capped speed continues moving")

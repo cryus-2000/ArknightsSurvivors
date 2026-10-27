@@ -1,5 +1,5 @@
 extends Node
-## Staged real-world rendering: actual warning/resolution/hazard code, no ordinary AI or damage.
+## Staged real-world rendering: actual warning/resolution/hazard code; ordinary AI paused, player invulnerable.
 var g
 var boss: Dictionary
 var kind := "paranoia"
@@ -60,6 +60,8 @@ func _ready() -> void:
 	for move in g.bai.finals.NAMES[kind]:
 		fresh()
 		title.text = str(move) + "  ·  " + quality + "  ·  实机特效预览"
+		var metrics := {"move":str(move), "hazard_peak":0, "bubble_pops":0, "pop_frames":[], "late_tracking_samples":0, "late_tracking_turn_samples":0, "latest_turn_age":0.0, "max_player_speed":0.0}
+		var seen_pops: Array = []
 		for frame_i in int(SLOT / DT):
 			if frame_i == 15:
 				var dir: Vector2 = (g.ppos - boss.pos).normalized()
@@ -67,14 +69,23 @@ func _ready() -> void:
 					push_error("Preview failed to schedule " + str(move))
 					get_tree().quit(3)
 					return
-			# Slow repeatable sidestep demonstrates tracking and keeps the player readable at normal scale.
-			g.ppos = Vector2(180, sin(frame_i * DT * 0.9) * 48.0)
+			# A bounded continuous route changes direction after launch, including late in a bubble's life.
+			var previous_player: Vector2 = g.ppos
+			g.ppos = g.ppos.move_toward(path_target(frame_i * DT), 100.0 * DT)
+			g.doc_pos = g.ppos + Vector2(10,35)
+			metrics.max_player_speed = maxf(float(metrics.max_player_speed), g.ppos.distance_to(previous_player) / DT)
 			g.t += DT
 			boss.age += DT
 			boss.pose = maxf(0.0, float(boss.get("pose", 0.0)) - DT)
+			boss.wind = maxf(0.0, float(boss.get("wind", 0.0)) - DT)
+			boss.cdt = maxf(0.0, float(boss.get("cdt", 0.0)) - DT)
 			g.invuln = 999.0
 			g.tele.update_warns(DT)
+			var previous_hazards: Array = []
+			for h in g.bai.finals.hazards:
+				previous_hazards.append({"hazard":h,"velocity":h.velocity})
 			g.bai.finals.update(boss, DT)
+			collect_metrics(metrics, seen_pops, previous_hazards)
 			g.vfx.update(DT)
 			g.fx = g.fx.filter(func(f): return f.life > 0.0)
 			visual_step(DT)
@@ -87,13 +98,45 @@ func _ready() -> void:
 					get_tree().quit(4)
 					return
 				shot_i += 1
+		print("FX_PREVIEW_METRICS ", JSON.stringify(metrics))
 		print("FX_PREVIEW_MOVE ", kind, " ", move)
 	print("FX_PREVIEW_DONE boss=%s quality=%s frames=%d optical=%s" % [kind, quality, shot_i, g.optical_on])
 	g.queue_free()
 	await get_tree().process_frame
 	get_tree().quit()
 
+func path_target(t: float) -> Vector2:
+	if t < 2.6: return Vector2(180,140)
+	if t < 4.4: return Vector2(350,140)
+	if t < 6.5: return Vector2(350,-80)
+	if t < 8.7: return Vector2(160,-80)
+	return Vector2(160,100)
+
+func collect_metrics(metrics: Dictionary, seen_pops: Array, previous_hazards: Array) -> void:
+	metrics.hazard_peak = maxi(int(metrics.hazard_peak), g.bai.finals.hazards.size())
+	for f in g.fx:
+		if str(f.kind) != "bubble_pop": continue
+		var known := false
+		for previous in seen_pops:
+			if is_same(previous,f):
+				known = true
+				break
+		if not known:
+			seen_pops.append(f)
+			metrics.bubble_pops += 1
+			metrics.pop_frames.append(shot_i)
+	for previous in previous_hazards:
+		var h: Dictionary = previous.hazard
+		if str(h.get("skin", "")) != "bubble" or float(h.age) < float(h.life) * 0.5: continue
+		if not g.bai.finals.hazards.any(func(live): return is_same(live,h)): continue
+		metrics.late_tracking_samples += 1
+		var turn: float = absf(angle_difference(previous.velocity.angle(), h.velocity.angle()))
+		if turn > 0.0001:
+			metrics.late_tracking_turn_samples += 1
+			metrics.latest_turn_age = maxf(float(metrics.latest_turn_age), float(h.age))
+
 func fresh() -> void:
+	g.ppos = Vector2(180,0)
 	g.warns.clear()
 	g.enemies.clear()
 	g.fx.clear()

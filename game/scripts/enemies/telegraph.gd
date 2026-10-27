@@ -153,6 +153,8 @@ func update_warns(dt: float) -> void:
 			elif w.get("track_pos", "") != "":
 				# 落点圈追踪（叠影跟主控、寒冷跟本体）：track 秒内跟着走，之后冻结在锁定时刻的位置
 				w.pos = g.combat.arena_clamp(e.pos if str(w.track_pos) == "self" else g.ppos, 90.0)
+		if w.act == "final_attack" and w.get("skin", "") == "crescent" and not w.done:
+			e.fx = cos(w.ang)
 		if w.t >= w.dur and not w.done:
 			w.done = true
 			if not e.dead or (w.shape == "circle" and not w.get("cancel_dead", false)):
@@ -164,6 +166,12 @@ func update_warns(dt: float) -> void:
 func hits_leader(w: Dictionary) -> bool:
 	var pp: Vector2 = g.ppos + Vector2(0, -14)
 	match w.shape:
+		"arc":
+			var center: Vector2 = w.pos - Vector2.from_angle(w.ang)*float(w.get("arc_back",0.0))
+			var delta: Vector2 = pp - center
+			var offset := clampf(angle_difference(w.ang, delta.angle()), -float(w.half), float(w.half))
+			var nearest: Vector2 = center + Vector2.from_angle(w.ang + offset) * w.r
+			return nearest.distance_to(pp) < w.wid + 12.0
 		"circle":
 			if g.combat.ground_d(g.ppos, w.pos) < float(w.get("inner_r", 0.0)):
 				return false
@@ -262,7 +270,7 @@ func _resolve(w: Dictionary) -> void:
 		e.pose_max = 0.35
 	# 出手事件（给画面层画攻击特效用，界面与美术读）：动作、形状、位置、朝向、范围、时刻
 	e.last_act = {"act": w.act, "shape": w.shape, "pos": w.pos, "ang": w.ang, "r": w.r, "len": w.len, "wid": w.wid, "half": w.half, "t": g.t,
-		"thrust": w.get("thrust", false), "name": w.name}
+		"thrust": w.get("thrust", false), "name": w.name, "skin": w.get("skin", "")}
 	if w.get("secondary", false):
 		e.atk_until = g.t + 0.35
 	var dv := Vector2.from_angle(w.ang)
