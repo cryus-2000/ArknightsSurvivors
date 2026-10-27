@@ -109,3 +109,4 @@
   - 二幕：冰棱阵列（掷枪落地硬直 1 秒，连段内不硬直）、冰面碎屑，冰线移出。
 - 公共层：所有 Boss 受击画面抖动（vfx.hit_react → data.enemy_offset，`fx/boss_shake_px` / `fx/boss_shake_t`），霸体期也有受击反馈。
 - 录像：`build/knight_circle/knight_act1_frost.mp4`、`knight_act2_prism.mp4`、`knight_act3_tide.mp4`、`knight_reborn_v2.mp4`（同一局按幕切段）。
+- 10-28 测试台新基线 bench-base-1028（ec3556048）：无认知 46%、18 细胞 69%、超时 27%、胜局用时中位 114 秒、三幕到达 77%。骑士血量 2.55 → 2.3（−10%），用来压超时、把无认知拉回区间；改版各招一起复测。

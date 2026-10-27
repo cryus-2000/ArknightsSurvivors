@@ -429,7 +429,7 @@
   "hp_final": 2.0,
   "hp_x_path": 1.6,
   "hp_x_paranoia": 1.6,
-  "hp_x_knight_boss": 2.55,
+  "hp_x_knight_boss": 2.3,
   "dmg_x_knight_boss": 2.5,
   "_dmg_x": "dmg_x_<id>：单只 Boss 伤害再乘（缺省 1.0）。骑士 10-28 按测试台（docs/170）：血 3.0 → 2.55 压超时、伤害 ×2.5 让持续压力能击倒队长，docs/169 §输出窗口 末尾有表",
   "_knight_axis": "骑士「斗牛」样板（docs/142b §3.1 / §9）：knight_stakes 每批冰柱数量，全毁后才补下一批；knight_stake_break 撞柱眩晕秒数；knight_armor 平时受伤倍率；knight_break_taken 撞柱 / 喘气破绽期合计受伤倍率",
