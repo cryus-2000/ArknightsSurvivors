@@ -555,6 +555,8 @@ func _web_shield(e: Dictionary) -> void:
 	e.shield_hp = sum
 	e.web_sh_sum = sum
 	e.web_sh_up = up
+	e.shield_layers = up   # 新 Boss 血条（screens/hud_bossbar.gd，claude/boss-hpbar）读这两个字段画护盾层
+	e.shield_max = keep.size()
 
 
 func _layer_break(e: Dictionary, src: Dictionary) -> void:
