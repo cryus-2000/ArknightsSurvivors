@@ -57,14 +57,14 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, mate
 	if not ready:
 		return
 	var p = e.get("partner")
-	# 配合连段（docs/170）：取代原来单放的潮汐柱 / 接潮扇浪
-	if live and not panic and _cd(e, "pair_combo", 8.0 if p2 else 9.0):
+	# 配合连段（docs/170）：取代原来单放的潮汐柱 / 接潮扇浪；冷却与收招破绽时长走旋钮（10-27 测试台：破绽期输出目标 ≥25%）
+	if live and not panic and _cd(e, "pair_combo", Bal.v("boss/tide_combo_cd2", 7.0) if p2 else Bal.v("boss/tide_combo_cd1", 7.5)):
 		var m2: String = "跃击" if mate.type == "archon" else "连斩"
 		if p2:
 			MC.q_start(g, e, [{"actor": mate, "move": "横扫" if mate.type == "archon" else "连斩"}, {"actor": e, "move": "潮汐柱"},
-				{"actor": mate, "move": "蚀潮吐息" if mate.type == "archon" else "迸发"}], 2.6, [mate])
+				{"actor": mate, "move": "蚀潮吐息" if mate.type == "archon" else "迸发"}], Bal.v("boss/tide_brk2", 3.4), [mate])
 		else:
-			MC.q_start(g, e, [{"actor": e, "move": "潮汐柱"}, {"actor": mate, "move": m2}, {"actor": e, "move": "镜潮"}], 2.2, [mate])
+			MC.q_start(g, e, [{"actor": e, "move": "潮汐柱"}, {"actor": mate, "move": m2}, {"actor": e, "move": "镜潮"}], Bal.v("boss/tide_brk1", 3.0), [mate])
 	elif not live and _cd(e, "pillar", 7.0):
 		_pillar(e, dir)
 	elif not live and not panic and _cd(e, "solo_ring", 8.0):
