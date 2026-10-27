@@ -388,7 +388,7 @@ func _shot(e: Dictionary, from: Vector2, ang: float, spd: float, tier: String) -
 	if buls.size() >= BUL_CAP:
 		return {}
 	var t: Array = TIER[tier]
-	var b := {"pos": from, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * float(t[1]) * Bal.v("boss/paranoia_bullet_mult", 0.8), "slow": false, "r": float(t[0]),
+	var b := {"pos": from, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * float(t[1]) * (Bal.v("boss/paranoia_bullet_mult_p2", 1.3) if e.phase == 2 else Bal.v("boss/paranoia_bullet_mult", 1.0)), "slow": false, "r": float(t[0]),
 		"life": 6.5, "corrode": 0.15, "nerve": 0.0, "true": false, "kind": "orb", "home": false, "boss": true, "src_type": e.type,
 		"no_rock": true, "atk": "法术", "pc_tier": tier}
 	g.ebullets.append(b)
