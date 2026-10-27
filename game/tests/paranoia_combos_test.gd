@@ -275,7 +275,6 @@ func check_rest_break() -> void:
 ## 侵蚀泡沼：二阶段沉浮双层的慢大泡破开留下限时 Boss 溟痕，数量有上限
 func check_mire() -> void:
 	check_tide_ring()
-	check_wound()
 	var e := fresh(3)
 	e.pc_act = 3
 	g.mires.clear()
@@ -306,24 +305,3 @@ func check_tide_ring() -> void:
 	var rings: Array = g.shocks.filter(func(sh): return str(sh.get("src_type", "")) == "paranoia")
 	check(rings.size() == 3, "tide ring emits three rings (got %d)" % rings.size())
 	check(rings.all(func(sh): return (sh.gaps as Array).size() == 1 and float(sh.gap_half) > 0.3), "each ring has one gap")
-
-
-## 侵蚀创口（§3q）：二阶段弹命中叠层（减受治疗 + 持续掉血），一阶段弹不叠
-func check_wound() -> void:
-	var c = g.bai.boss("paranoia").combos()
-	var e1 := fresh(0)
-	var b1: Dictionary = c._shot(e1, Vector2.ZERO, 0.0, 100.0, "m")
-	check(int(b1.get("wound", 0)) == 0, "phase 1 bullets carry no wound")
-	var e2 := fresh(3)
-	var b2: Dictionary = c._shot(e2, Vector2.ZERO, 0.0, 100.0, "m")
-	check(int(b2.get("wound", 0)) == 1, "phase 2 bullets carry one wound stack")
-	g.wound = 0
-	g.hp = g.max_hp
-	var dop: String = g.demo_op
-	g.demo_op = ""   # 预览模式下主控不受伤，这里临时关掉
-	g.shield = 0
-	g.combat.enemy_hit(5.0, b2, false, true)
-	g.demo_op = dop
-	check(g.wound == 1, "phase 2 hit adds a wound stack (got %d)" % g.wound)
-	g.wound = 0
-	g.wound_t = 0.0

@@ -439,8 +439,6 @@
   "paranoia_bullet_mult": 1.0,
   "paranoia_bullet_mult_p2": 1.45,
   "paranoia_rush_mult": 1.45,
-  "paranoia_p2_wound": 1,
-  "_paranoia_wound": "10-28 r8（514f48e41）：二阶段单发 ×1.45 被单次 / 2 秒保护截住，18 细胞仍 92%；二阶段新弹幕命中叠 1 层侵蚀创口（enemy/wound_*：每层受治疗 −10%、每秒 −0.25% 最大生命，3 层，6 秒），0 = 关（docs/170 §3q）",
   "_paranoia_len": "10-28 云端 r5（b9ddd1aae，danger-pass 保护）：无认知超时 52%、阵亡 2%，输在二阶段太长（50% + 复活 80%）；破茧复活 paranoia_revive 0.8→0.5、hp_x 1.6→1.45，总血池 1.8→1.5 倍最大生命",
   "paranoia_revive": 0.5,
   "hp_x_knight_boss": 3.0,

@@ -94,10 +94,6 @@ func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := f
 	ctrl_hit_cat = ctrl_cat(src)   # 控制遥测：这一下吃到的冰霜 / 寒霜 / 束缚记到这个来源
 	if float(src.get("frost", 0.0)) > 0.0:
 		frost_leader(float(src.frost), ctrl_hit_cat)
-	# 子弹自带侵蚀创口层数（偏执泡影二阶段，docs/170 §3q）：不受 ctrl_start 限制
-	if int(src.get("wound", 0)) > 0:
-		add_wound(int(src.wound))
-		g.telemetry.on_status("wound", g.telemetry.hit_type, float(src.wound))
 	# 小怪控制：按来源敌人的 enemies.json 字段（cold_hit 寒霜层 / wound_hit 侵蚀创口 / root_hit 束缚秒数，束缚只认预警招式）
 	if ctrl_on():
 		var sd: Dictionary = D.ENEMIES.get(str(src.get("type", src.get("src_type", ""))), {})
