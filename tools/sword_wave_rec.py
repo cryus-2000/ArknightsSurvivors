@@ -5,7 +5,7 @@
 
 用法：python tools/sword_wave_rec.py [lap qi]
 """
-import os, sys, glob
+import os, sys, glob, shutil
 from concurrent.futures import ThreadPoolExecutor
 from PIL import Image, ImageDraw, ImageFont
 
@@ -84,6 +84,7 @@ def main():
         sys.exit(1)
     for c in cases:
         compose(c)
+    shutil.rmtree(RAW, ignore_errors=True)   # 静帧用完即删（10-27 口径：给用户只看 gif）
 
 
 if __name__ == "__main__":

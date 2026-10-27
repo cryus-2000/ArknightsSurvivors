@@ -5,7 +5,7 @@
 
 用法：python tools/sword_wave_styles_rec.py
 """
-import os, sys, glob
+import os, sys, glob, shutil
 from concurrent.futures import ThreadPoolExecutor
 from PIL import Image, ImageDraw, ImageFont
 
@@ -77,6 +77,7 @@ def main():
         sys.exit(1)
     compose(2, 33, "styles_1x.gif")     # 原速：隔帧取、每张 33 ms
     compose(1, 50, "styles_slow.gif")   # 1/3 速：逐帧、每张 50 ms
+    shutil.rmtree(RAW, ignore_errors=True)   # 静帧用完即删（10-27 口径：给用户只看 gif）
 
 
 if __name__ == "__main__":
