@@ -1,0 +1,132 @@
+16 局（izumik）
+izumik           wisadel    m0  s11    11s  win 77s 承伤21% 破绽输出51%
+izumik           wisadel    m0  s10    14s  win 147s 承伤219% 破绽输出41%
+izumik           wisadel    m0  s13    14s  win 139s 承伤68% 破绽输出41%
+izumik           wisadel    m0  s12    15s  win 151s 承伤72% 破绽输出48%
+izumik           wisadel    m0  s14    12s  win 116s 承伤71% 破绽输出0%
+izumik           wisadel    m0  s15    12s  win 109s 承伤38% 破绽输出50%
+izumik           wisadel    m0  s16    14s  win 155s 承伤136% 破绽输出46%
+izumik           wisadel    m0  s1     17s  timeout 180s 承伤46% 破绽输出55%
+izumik           wisadel    m0  s2     10s  win 70s 承伤6% 破绽输出40%
+izumik           wisadel    m0  s3     12s  win 109s 承伤94% 破绽输出47%
+izumik           wisadel    m0  s4     10s  win 77s 承伤60% 破绽输出45%
+izumik           wisadel    m0  s6     11s  win 103s 承伤32% 破绽输出44%
+izumik           wisadel    m0  s5     14s  win 130s 承伤71% 破绽输出46%
+izumik           wisadel    m0  s8     13s  win 151s 承伤252% 破绽输出0%
+izumik           wisadel    m0  s7     15s  timeout 180s 承伤120% 破绽输出45%
+izumik           wisadel    m0  s9     14s  win 179s 承伤93% 破绽输出10%
+# Boss 单场测试台结果（new_wisadel_m0_izumik）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（izumik）
+izumik           wisadel    m18 s10    11s  win 74s 承伤72% 破绽输出39%
+izumik           wisadel    m18 s11    13s  win 108s 承伤56% 破绽输出47%
+izumik           wisadel    m18 s13    13s  win 113s 承伤34% 破绽输出54%
+izumik           wisadel    m18 s12    16s  timeout 180s 承伤105% 破绽输出51%
+izumik           wisadel    m18 s15     9s  win 57s 承伤26% 破绽输出29%
+izumik           wisadel    m18 s16    13s  win 125s 承伤87% 破绽输出46%
+izumik           wisadel    m18 s14    15s  timeout 180s 承伤126% 破绽输出56%
+izumik           wisadel    m18 s1     13s  win 116s 承伤68% 破绽输出0%
+izumik           wisadel    m18 s2     10s  win 81s 承伤28% 破绽输出18%
+izumik           wisadel    m18 s4     11s  win 78s 承伤0% 破绽输出63%
+izumik           wisadel    m18 s3     12s  win 120s 承伤78% 破绽输出58%
+izumik           wisadel    m18 s5     13s  win 134s 承伤44% 破绽输出53%
+izumik           wisadel    m18 s6     13s  win 148s 承伤153% 破绽输出44%
+izumik           wisadel    m18 s7     10s  win 73s 承伤52% 破绽输出23%
+izumik           wisadel    m18 s8     13s  win 116s 承伤39% 破绽输出48%
+izumik           wisadel    m18 s9     14s  win 148s 承伤86% 破绽输出54%
+# Boss 单场测试台结果（new_wisadel_m18_izumik）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（izumik）
+izumik           skadi      m0  s10    16s  timeout 180s 承伤89% 破绽输出41%
+izumik           skadi      m0  s13    16s  timeout 180s 承伤170% 破绽输出56%
+izumik           skadi      m0  s11    17s  timeout 180s 承伤87% 破绽输出44%
+izumik           skadi      m0  s12    17s  timeout 180s 承伤77% 破绽输出52%
+izumik           skadi      m0  s14    12s  win 122s 承伤134% 破绽输出49%
+izumik           skadi      m0  s16    13s  win 140s 承伤24% 破绽输出47%
+izumik           skadi      m0  s1     14s  timeout 180s 承伤307% 破绽输出47%
+izumik           skadi      m0  s15    17s  timeout 180s 承伤96% 破绽输出48%
+izumik           skadi      m0  s2     11s  win 82s 承伤97% 破绽输出15%
+izumik           skadi      m0  s3     15s  timeout 180s 承伤155% 破绽输出44%
+izumik           skadi      m0  s4     15s  timeout 180s 承伤70% 破绽输出40%
+izumik           skadi      m0  s5     15s  timeout 180s 承伤147% 破绽输出51%
+izumik           skadi      m0  s6     12s  win 96s 承伤38% 破绽输出0%
+izumik           skadi      m0  s7     14s  win 169s 承伤68% 破绽输出58%
+izumik           skadi      m0  s8     15s  win 178s 承伤162% 破绽输出49%
+izumik           skadi      m0  s9     15s  timeout 180s 承伤174% 破绽输出62%
+# Boss 单场测试台结果（new_skadi_m0_izumik）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（izumik）
+izumik           skadi      m18 s13    12s  win 113s 承伤4% 破绽输出27%
+izumik           skadi      m18 s12    15s  win 165s 承伤140% 破绽输出0%
+izumik           skadi      m18 s11    16s  timeout 180s 承伤138% 破绽输出48%
+izumik           skadi      m18 s10    17s  timeout 180s 承伤73% 破绽输出47%
+izumik           skadi      m18 s14    10s  win 55s 承伤35% 破绽输出28%
+izumik           skadi      m18 s15    11s  win 109s 承伤23% 破绽输出29%
+izumik           skadi      m18 s1     13s  win 139s 承伤84% 破绽输出57%
+izumik           skadi      m18 s16    16s  timeout 180s 承伤58% 破绽输出48%
+izumik           skadi      m18 s2     10s  win 50s 承伤32% 破绽输出0%
+izumik           skadi      m18 s3     16s  timeout 180s 承伤64% 破绽输出38%
+izumik           skadi      m18 s4     15s  timeout 180s 承伤89% 破绽输出44%
+izumik           skadi      m18 s6     13s  win 97s 承伤38% 破绽输出32%
+izumik           skadi      m18 s5     16s  timeout 180s 承伤27% 破绽输出57%
+izumik           skadi      m18 s8     11s  win 84s 承伤85% 破绽输出0%
+izumik           skadi      m18 s7     14s  timeout 180s 承伤78% 破绽输出40%
+izumik           skadi      m18 s9     14s  win 178s 承伤104% 破绽输出48%
+# Boss 单场测试台结果（new_skadi_m18_izumik）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（izumik）
+izumik           kaltsit    m0  s11    15s  win 174s 承伤299% 破绽输出46%
+izumik           kaltsit    m0  s10    15s  timeout 180s 承伤206% 破绽输出56%
+izumik           kaltsit    m0  s12    16s  timeout 180s 承伤36% 破绽输出43%
+izumik           kaltsit    m0  s13    18s  timeout 180s 承伤204% 破绽输出0%
+izumik           kaltsit    m0  s14     7s  dead 14s 承伤149% 破绽输出0%
+izumik           kaltsit    m0  s16    11s  win 104s 承伤172% 破绽输出42%
+izumik           kaltsit    m0  s15    14s  timeout 180s 承伤275% 破绽输出51%
+izumik           kaltsit    m0  s1     14s  timeout 180s 承伤137% 破绽输出44%
+izumik           kaltsit    m0  s2     13s  win 165s 承伤44% 破绽输出50%
+izumik           kaltsit    m0  s3     16s  timeout 180s 承伤449% 破绽输出42%
+izumik           kaltsit    m0  s4     15s  timeout 180s 承伤156% 破绽输出47%
+izumik           kaltsit    m0  s5     15s  timeout 180s 承伤224% 破绽输出53%
+izumik           kaltsit    m0  s6     12s  win 91s 承伤98% 破绽输出29%
+izumik           kaltsit    m0  s8     10s  win 74s 承伤61% 破绽输出0%
+izumik           kaltsit    m0  s7     14s  win 140s 承伤57% 破绽输出49%
+izumik           kaltsit    m0  s9     14s  timeout 180s 承伤144% 破绽输出30%
+# Boss 单场测试台结果（new_kaltsit_m0_izumik）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（izumik）
+izumik           kaltsit    m18 s12    12s  win 73s 承伤38% 破绽输出24%
+izumik           kaltsit    m18 s13    13s  win 118s 承伤48% 破绽输出0%
+izumik           kaltsit    m18 s11    14s  win 132s 承伤142% 破绽输出47%
+izumik           kaltsit    m18 s10    14s  win 136s 承伤233% 破绽输出43%
+izumik           kaltsit    m18 s14    11s  win 102s 承伤14% 破绽输出47%
+izumik           kaltsit    m18 s15    12s  win 104s 承伤47% 破绽输出32%
+izumik           kaltsit    m18 s1     12s  win 103s 承伤89% 破绽输出58%
+izumik           kaltsit    m18 s16    13s  win 127s 承伤109% 破绽输出0%
+izumik           kaltsit    m18 s3     11s  win 110s 承伤64% 破绽输出60%
+izumik           kaltsit    m18 s2     15s  timeout 180s 承伤62% 破绽输出54%
+izumik           kaltsit    m18 s4     14s  win 139s 承伤150% 破绽输出46%
+izumik           kaltsit    m18 s5     16s  timeout 180s 承伤214% 破绽输出48%
+izumik           kaltsit    m18 s7     11s  win 105s 承伤45% 破绽输出38%
+izumik           kaltsit    m18 s6     13s  win 143s 承伤233% 破绽输出13%
+izumik           kaltsit    m18 s8     11s  win 66s 承伤41% 破绽输出24%
+izumik           kaltsit    m18 s9     16s  timeout 180s 承伤144% 破绽输出41%
+# Boss 单场测试台结果（new_kaltsit_m18_izumik）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
