@@ -469,3 +469,10 @@ HUD 文案候选（用户挑）：
 - 圣徒战单局（seed 3，突击常开，240 秒）开 / 关都无脚本错误。
 - 本地小样（`--preset squads --seeds 2`，突击常开，每组 12 局，噪声大、不下结论）：开 / 关（`evade=0 side=0 spread_r=0`）倒地 10 / 9、输出 448 / 389 每秒、Boss 战平均 35.1 / 39.3 秒、队长承伤 143 / 135 每分，均无脚本错误。大样本随 §15.3 一起上云（加一组 `--bal=command/evade=0 --bal=command/side=0 --bal=command/spread_r=0` 对照）。
 - 观感录像：`build/command_rec/ai_dodge_third.mp4`（圣徒战，25 秒切突击，1/3 速）。
+
+## 18. 自动选敌不打无敌目标（10-28 用户：「自动攻击的索敌会打无敌的敌人，特别是打伊祖米克的时候刚开始都在打它，没有打水母（子代）」，分支 `claude/target-invuln`）
+
+- `op_api.hittable(e)`：与 `combat.damage` 挡伤害的条件对齐——`invuln`（伊祖米克学习期等）、Boss `gate_inv` / `gate_hold`（过卡点无敌、阶段护盾）、Boss 脚本 `block_damage`（伊莎玛拉变身）、`burst_w`（囊海爬行者鼓胀）、`coma`（假死）、`under`（潜地）都算打不动。
+- `op_api.hit_first`：稳定重排，能受击的在前、打不动的垫底；能受击里「喂食」子代（`feed`，伊祖米克学习期游向本体的水母）提到最前（docs/142b 主轴目标先打）。范围里只剩打不动的时照旧返回它们（不空转）。
+- 接入：`nearest_enemies`（部件分支跳过打不动的部件；Boss 优先 / 清杂优先两档都垫底；最近 n 个里有打不动的才放宽到 6n 候选，平时开销不变）、`focusable_boss` 改用 `hittable`（Boss 优先 / 集火同样不打无敌）、`random_enemy`、突击 `roam_target`（打不动的只在圈里没别的时当候选；已锁的目标变无敌会换走）、能天使 `_exu_targets`、德克萨斯 `_tx_densest`。队长手动瞄准（瞄准锥）不受影响。
+- 同 seed TRACE 会变（属预期）。验证：`command_ai` 60 项（新增 9 项：无敌 Boss + 喂食子代先打子代、无敌 Boss 垫底、清杂档同样跳过、解除无敌照常打、只有无敌目标仍返回、阶段护盾跳过、无敌部件不提前、突击换掉已锁的无敌 Boss、圈里只有无敌 Boss 仍是目标）。录像 `build/command_rec/izu_before.mp4` / `izu_after.mp4`（伊祖米克开场学习期，原速）。

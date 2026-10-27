@@ -3,9 +3,13 @@ extends Node
 class Sys extends RefCounted:   # prio_order 的护主检查（boss_rush 0 / 队长）要查队长身边最近的敌人
 	var gm
 	func nearest(n: int, r: float, origin: Vector2) -> Array:
+		if origin == Vector2.INF:
+			origin = gm.ppos   # 同 enemies.gd：INF = 队长位置
 		var es: Array = gm.enemies.filter(func(e): return not e.dead and e.pos.distance_to(origin) < r)
 		es.sort_custom(func(a,b): return a.pos.distance_to(origin) < b.pos.distance_to(origin))
 		return es.slice(0,n)
+	func parts_live() -> Array:
+		return gm.enemies.filter(func(e): return not e.dead and e.get("part", false))
 
 class TestGame extends RefCounted:
 	var enemies_sys := Sys.new()
@@ -41,6 +45,10 @@ class Probe extends "res://scripts/characters/character.gd":
 		var es: Array = g.enemies.filter(func(e): return not e.dead and e.pos.distance_to(origin) < r)
 		es.sort_custom(func(a,b): return a.pos.distance_to(origin) < b.pos.distance_to(origin))
 		return es.slice(0,n)
+
+class RealProbe extends "res://scripts/characters/character.gd":   # 用真的 op_api.nearest_enemies（无敌不打，10-28）
+	func query_ids(_p: Vector2, _r: float) -> Array:
+		return range(g.enemies.size())
 
 class DataProbe extends "res://scripts/characters/data_operator.gd":
 	func stat(_name: StringName) -> float:
@@ -197,5 +205,54 @@ func _ready() -> void:
 	check(sp.x < 300.0 and absf(sp.y) < 1.0, "side 0: old rule, leader-side of the target")
 	cmd2["side"] = 1
 	g.squad.priority = 0
+	# 无敌不打（10-28 用户「打伊祖米克的时候刚开始都在打它，没有打水母」）：自动选敌跳过打不动的，喂食子代先打
+	var rp := RealProbe.new(g, {"id":"rp", "class":"近卫"})
+	rp.pos = Vector2.ZERO
+	var izu := enemy(Vector2(50,0))
+	izu.boss = true
+	izu["invuln"] = true
+	var mob := enemy(Vector2(100,0))
+	var kid := enemy(Vector2(150,0))
+	kid["feed"] = true
+	g.enemies = [izu, mob, kid]
+	var ne: Array = rp.nearest_enemies(1, 400.0)
+	check(ne.size() == 1 and is_same(ne[0], kid), "invulnerable boss skipped, feeding offspring first")
+	g.enemies = [izu, mob]
+	ne = rp.nearest_enemies(2, 400.0)
+	check(ne.size() == 2 and is_same(ne[0], mob) and is_same(ne[1], izu), "invulnerable boss goes last, mob first")
+	g.squad.priority = 1
+	ne = rp.nearest_enemies(1, 400.0)
+	check(ne.size() == 1 and is_same(ne[0], mob), "mob priority also skips the invulnerable boss")
+	g.squad.priority = 0
+	izu["invuln"] = false
+	g.frame_n += 1
+	ne = rp.nearest_enemies(1, 400.0)
+	check(ne.size() == 1 and is_same(ne[0], izu), "boss targeted again once invulnerability ends")
+	izu["invuln"] = true
+	g.enemies = [izu]
+	ne = rp.nearest_enemies(1, 400.0)
+	check(ne.size() == 1 and is_same(ne[0], izu), "only invulnerable targets in range: still returns it, no error")
+	izu["gate_hold"] = true
+	izu["invuln"] = false
+	g.enemies = [izu, mob]
+	g.frame_n += 1
+	ne = rp.nearest_enemies(1, 400.0)
+	check(ne.size() == 1 and is_same(ne[0], mob), "phase-shield boss (gate_hold) skipped")
+	izu.erase("gate_hold")
+	izu["invuln"] = true
+	var ipart := enemy(Vector2(30,0))
+	ipart["part"] = true
+	ipart["invuln"] = true
+	g.enemies = [izu, ipart, mob]
+	ne = rp.nearest_enemies(1, 400.0)
+	check(ne.size() == 1 and is_same(ne[0], mob), "invulnerable part not forced to the front")
+	rp.roam_tgt = izu
+	g.enemies = [izu, mob]
+	rp.roam_target(Vector2(40,14))
+	check(is_same(rp.roam_tgt, mob), "assault: drops a locked invulnerable boss for a hittable mob")
+	g.enemies = [izu]
+	rp.roam_tgt = null
+	rp.roam_target(Vector2(40,14))
+	check(is_same(rp.roam_tgt, izu), "assault: invulnerable boss alone in circle is still the target")
 	print("COMMAND_AI checks=%d failures=%d" % [checks, failures])
 	get_tree().quit(1 if failures else 0)

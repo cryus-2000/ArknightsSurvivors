@@ -1549,9 +1549,13 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 	var focus_d := INF
 	var focus_part := false
 	var cands: Array = []   # [候选, 原得分]：再按优先级重排
+	var shut: Array = []   # 圈里打不动的（op_api.hittable）：只在没别的可打时才当候选（10-28）
 	for j in query_ids(g.ppos, radius):
 		var en: Dictionary = g.enemies[j]
 		if en.dead or en.pos.distance_to(g.ppos) > radius or (is_same(en, _cmd_failed) and g.t < _cmd_retry_at):
+			continue
+		if not hittable(en):
+			shut.append([en, en.pos.distance_to(rear)])
 			continue
 		if rush and (en.get("part", false) or focusable_boss(en)):
 			var is_part: bool = en.get("part", false)
@@ -1571,6 +1575,12 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 		if d < score:
 			score = d
 			best = en
+	if cands.is_empty() and not shut.is_empty():
+		cands = shut
+		for c in shut:
+			if c[1] < score:
+				score = c[1]
+				best = c[0]
 	if not cands.is_empty():
 		if prio == 1:
 			cands.sort_custom(func(a, b): return a[1] < b[1] or (a[1] == b[1] and int(a[0].id) < int(b[0].id)))
@@ -1589,7 +1599,7 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 			e = focus
 	elif e == null or e.dead or e.pos.distance_to(g.ppos) > radius or (is_same(e, _cmd_failed) and g.t < _cmd_retry_at):
 		e = best
-	elif best != null and not is_same(e, best) and prio_rank(e, prio) > prio_rank(best, prio):
+	elif best != null and not is_same(e, best) and (prio_rank(e, prio) > prio_rank(best, prio) or (not hittable(e) and hittable(best))):
 		e = best   # 换了优先级：当前目标不符合、而圈里有符合的，就换过去（不然要等当前目标死了才换）
 	if focus == null and urgent != null and (e == null or e.pos.distance_to(g.ppos) > guard + GUARD_MARGIN):
 		e = urgent

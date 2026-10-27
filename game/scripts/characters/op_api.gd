@@ -32,11 +32,11 @@ func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> 
 	var pd: float = max_dist * max_dist
 	for p in g.enemies_sys.parts_live():
 		var d2: float = p.pos.distance_squared_to(o)
-		if d2 < pd:
+		if d2 < pd and hittable(p):
 			pd = d2
 			part = p
 	if part != null:
-		var outp: Array = g.enemies_sys.nearest(n, max_dist, origin)
+		var outp: Array = hit_first(g.enemies_sys.nearest(n, max_dist, origin))
 		outp.erase(part)
 		outp.push_front(part)
 		if outp.size() > n:
@@ -45,12 +45,18 @@ func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> 
 	if prio_mode() == 1:
 		for e in g.enemies_sys.nearest(mini(maxi(n * 6, 14), 24), max_dist, origin):
 			cands.append([e, e.pos.distance_to(o)])
-		var out1: Array = prio_order(cands, 1)
+		var out1: Array = hit_first(prio_order(cands, 1))
 		if out1.size() > n:
 			out1.resize(n)
 		return out1
 	var near: Array = g.enemies_sys.nearest(n, max_dist, origin)
-	if near.is_empty() or near[0].boss or near[0].get("part", false):
+	for e in near:
+		if not hittable(e):   # 最近的几个里有打不动的（无敌 Boss 等）：放宽候选，能受击的排前、打不动的垫底
+			near = hit_first(g.enemies_sys.nearest(mini(maxi(n * 6, 14), 24), max_dist, origin))
+			break
+	if near.is_empty() or near[0].boss or near[0].get("part", false) or not hittable(near[0]):
+		if near.size() > n:
+			near.resize(n)
 		return near
 	for e in near:
 		cands.append([e, e.pos.distance_to(o)])
@@ -62,6 +68,38 @@ func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> 
 	if out.size() > n:
 		out.resize(n)
 	return out
+
+
+## 自动选敌认的「打得动」（10-28 用户：「自动攻击的索敌会打无敌的敌人，特别是打伊祖米克的时候刚开始都在打它，没有打水母」）：
+## 与 combat.damage 挡伤害的条件一致——无敌（伊祖米克学习期等）、过卡点无敌 / 阶段护盾、Boss 自己挡（伊莎玛拉变身）、
+## 囊海爬行者鼓胀、假死、潜地都算打不动。自动选敌（nearest_enemies / 突击走位 / 能天使 / 德克萨斯 / 随机目标）把它们排到最后，
+## 范围里只有它们时照旧打；队长手动瞄准（aim_targets 的瞄准锥）不受影响
+func hittable(e: Dictionary) -> bool:
+	if e.dead or e.get("invuln", false) or e.get("coma", false) or e.get("under", false) or e.get("burst_w", 0.0) > 0.0:
+		return false
+	if e.boss:
+		if e.get("gate_inv", 0.0) > 0.0 or e.get("gate_hold", false):
+			return false
+		var bai = g.get("bai")
+		var bh = bai.boss(str(e.type)) if bai != null else null
+		if bh != null and bh.block_damage(e):
+			return false
+	return true
+
+
+## 稳定重排：能受击的在前、打不动的垫底；能受击的里「喂食」中的子代（伊祖米克学习期游向本体的水母，docs/142b 主轴目标）提到最前
+func hit_first(arr: Array) -> Array:
+	var axis: Array = []
+	var ok: Array = []
+	var no: Array = []
+	for e in arr:
+		if not hittable(e):
+			no.append(e)
+		elif e.get("feed", false):
+			axis.append(e)
+		else:
+			ok.append(e)
+	return axis + ok + no
 
 
 ## 指挥优先级（docs/114 §13，指挥圆盘下半圈）：0 = Boss 优先（缺省，也是改动前的逻辑）/ 1 = 清杂优先。只对队友；队长与没有编队时恒为 0
@@ -150,16 +188,18 @@ func prio_rank(e: Dictionary, mode: int) -> int:
 	return 1 if (e.boss or e.elite or e.get("part", false)) else 0
 
 
-## Boss 优先认的 Boss：活着、没假死、不无敌、没在潜地 / 闸门无敌
+## Boss 优先认的 Boss：打得动的 Boss（hittable：活着、没假死、不无敌、没在潜地 / 闸门无敌 / 阶段护盾 / 自己挡伤害）
 func focusable_boss(e: Dictionary) -> bool:
-	return e.boss and not e.dead and not e.get("coma", false) and not e.get("invuln", false) \
-			and e.get("gate_inv", 0.0) <= 0.0 and not e.get("under", false)
+	return e.boss and hittable(e)
 
 
 ## 射程内随机一名敌人（docs/108 F4，持续攻击 target: random）：入选条件同 nearest_enemies（活着、距离 < max_dist），
 ## 但不排序、不做 Boss 优先；有候选时只抽一次 g.rng。没有候选返回空字典
 func random_enemy(max_dist: float, origin: Vector2 = Vector2.INF) -> Dictionary:
 	var c: Array = g.enemies_sys.in_range(max_dist, origin)
+	var ch: Array = c.filter(func(e): return hittable(e))
+	if not ch.is_empty():
+		c = ch   # 打不动的不抽（只剩它们时照旧）
 	return {} if c.is_empty() else c[g.rng.randi_range(0, c.size() - 1)]
 
 
