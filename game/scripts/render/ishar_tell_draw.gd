@@ -144,7 +144,7 @@ static func _arena(g) -> void:
 			for i in 49:
 				var an: float = TAU * i / 48.0
 				pts.append(g.zone_c + Vector2(cos(an), sin(an) * gy) * R)
-			g.draw_colored_polygon(pts, Color(0.5, 0.05, 0.14, 0.1 + 0.03 * sin(g.t * TAU / 4.0)))
+			g.draw_colored_polygon(pts, Color(0.55, 0.06, 0.16, 0.2 + 0.04 * sin(g.t * TAU / 4.0)))
 		if act >= 1:
 			var ph: float = fmod(g.t / 2.4, 1.0)
 			var rr: float = lerpf(60.0, R, ph)
