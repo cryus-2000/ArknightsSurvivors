@@ -273,6 +273,7 @@ func update(dt: float) -> void:
 					pick = int(a.substr(13))
 			mid_used.append(pick)
 			group = D.MID_POOL[pick]
+		group = g.bench.on_boss_group(boss_idx, group)   # Boss 单场测试台：录制快照 / 换成要测的 Boss（docs/170；不开时原样返回）
 		var base := edge_pos()
 		if g.zone_state != 0 and base.distance_to(g.zone_c) > g.zone_r - 90.0:
 			base = g.zone_c + (base - g.zone_c).normalized() * maxf(60.0, g.zone_r - 110.0)
