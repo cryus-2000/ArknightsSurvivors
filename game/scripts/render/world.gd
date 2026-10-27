@@ -4914,11 +4914,11 @@ func _zone_crest(pts: PackedVector2Array, pulse: float) -> void:
 	g.draw_polyline(pts, Color(0.35, 0.95, 0.95, 0.55 + 0.25 * pulse), 2.0)
 
 
-## 护盾（用户 10-28「护盾看不到，重新画」）：琥珀色像素虚线环绕队长身体中心，层数 = 同心环数（1 / 2 / 3 环，3 层以上环顶加方点计数），
+## 护盾（用户 10-28「护盾看不到，重新画」）：偏白淡金像素虚线环绕队长身体中心，层数 = 同心环数（1 / 2 / 3 环，3 层以上环顶加方点计数），
 ## 不填实心、不压脚下预警；未满时外侧细弧显示下一层充能进度。层数变化在画面这边比对得出（只画面，不改逻辑）：
 ## 少一层 = 碎裂（碎片颗粒 + 外扩闪环），之后 0.5 秒无敌期间环上流微光；多一层 = 新环亮一下 + 充能完成颗粒。
 ## 低画质照画形状与层数，颗粒由 fx_grains 按 low_k 稀疏。
-const SH_COL := Color(1.0, 0.74, 0.32)
+const SH_COL := Color(1.0, 0.9, 0.68)   # 偏白淡金（10-28 用户嫌原琥珀黄发光后像警示黄）
 var _sh_prev := -1
 var _sh_brk_t := -9.0      # 上次碎裂（g.t）
 var _sh_brk_n := 0         # 碎前层数（画碎掉那一环）
@@ -4949,7 +4949,7 @@ func draw_shield() -> void:
 		var ri := r0 - 5.0 * i
 		var w := 4.0 if i == 0 else 2.0
 		var fresh := clampf(1.0 - tc / 0.35, 0.0, 1.0) if i == rings - 1 else 0.0   # 新充好的那一环（最内）亮一下
-		var al := (0.78 if i == 0 else 0.55) + 0.4 * fresh
+		var al := (0.7 if i == 0 else 0.48) + 0.4 * fresh
 		var col := Color(SH_COL.r * (1.0 + 0.5 * fresh), SH_COL.g * (1.0 + 0.5 * fresh), SH_COL.b * (1.0 + 0.4 * fresh), al)
 		var rot: float = g.t * (0.5 if i % 2 == 0 else -0.5)
 		for s in 12:
@@ -4974,16 +4974,16 @@ func draw_shield() -> void:
 	if tb < 0.25:
 		var e := tb / 0.25
 		var rb := r0 - 5.0 * mini(_sh_brk_n - 1, 2) + 16.0 * e
-		tb_arc(c, rb, 0.0, TAU, 4.0 * (1.0 - e) + 1.0, Color(1.6, 1.25, 0.7, 0.9 * (1.0 - e)), 40)
+		tb_arc(c, rb, 0.0, TAU, 4.0 * (1.0 - e) + 1.0, Color(1.4, 1.3, 1.05, 0.9 * (1.0 - e)), 40)
 		if tb < 0.06:
-			tb_circle(c, r0, Color(1.3, 1.0, 0.6, 0.18 * (1.0 - tb / 0.06)), 1.0, 24)
+			tb_circle(c, r0, Color(1.3, 1.2, 1.0, 0.18 * (1.0 - tb / 0.06)), 1.0, 24)
 	if tb < 0.5 and g.invuln > 0.0:
 		var sa := 1.0 - tb / 0.5
 		tb_arc(c, r0, 0.0, TAU, 2.0, Color(SH_COL.r, SH_COL.g, SH_COL.b, (0.18 + 0.14 * sin(g.t * 40.0)) * sa), 40)
 		for q in 2:
 			var a: float = g.t * 9.0 + PI * q
 			var p := (c + Vector2.from_angle(a) * r0).snapped(Vector2(2, 2))
-			tb_quad(p - Vector2(2, 2), p + Vector2(2, -2), p + Vector2(2, 2), p + Vector2(-2, 2), Color(1.6, 1.3, 0.8, 0.85 * sa))
+			tb_quad(p - Vector2(2, 2), p + Vector2(2, -2), p + Vector2(2, 2), p + Vector2(-2, 2), Color(1.5, 1.4, 1.1, 0.85 * sa))
 
 
 ## 护盾碎片 / 充能颗粒：沿环一圈向外（fx_grains，docs/136；低画质 / 关颗粒时由 push 稀疏或不出）
