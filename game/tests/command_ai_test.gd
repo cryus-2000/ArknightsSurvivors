@@ -283,5 +283,16 @@ func _ready() -> void:
 	g.frame_n += 1
 	check(rp._izu_intercept() == null, "intercept: stops when all offspring are cleared")
 	rp.slot = 0
+	# 队长自动攻击（10-28 用户）：只剩无敌目标时不出手，有能打的照常
+	var lp := RealProbe.new(g, {"id":"lp", "class":"狙击"})
+	lp.is_leader = true
+	g.enemies = [izu]
+	g.frame_n += 1
+	check(lp.nearest_enemies(2, 400.0).is_empty(), "leader auto-attack holds fire on invulnerable-only targets")
+	var lk := enemy(Vector2(200, 0))
+	lk["feed"] = true
+	g.enemies = [izu, lk]
+	ne = lp.nearest_enemies(2, 400.0)
+	check(ne.size() == 1 and is_same(ne[0], lk), "leader auto-attack hits the offspring, never the invulnerable boss")
 	print("COMMAND_AI checks=%d failures=%d" % [checks, failures])
 	get_tree().quit(1 if failures else 0)

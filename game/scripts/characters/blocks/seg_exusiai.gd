@@ -127,6 +127,8 @@ static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 		if (e.elite or e.boss) and not mob_first:
 			d /= maxf(1.0, prio)
 		if not o.hittable(e):
+			if o.hold_fire():
+				continue   # 队长：打不动的不进候选（op_api.hold_fire）
 			d += 1.0e9   # 打不动的（无敌 Boss 等，op_api.hittable）垫底，只剩它们时照旧
 		keyed.append([d, int(e.id), e])
 	keyed.sort_custom(func(x, y): return x[0] < y[0] if x[0] != y[0] else x[1] < y[1])
