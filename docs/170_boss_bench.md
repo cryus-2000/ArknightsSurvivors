@@ -88,4 +88,15 @@ python tools/boss_bench.py table build/boss_bench/res/base.json build/boss_bench
 
 ## 7. 云端结果
 
-（云端例行任务跑完后填：每 Boss 对照 vs 改版的胜率、用时、承伤、破绽输出占比，见各 `cloud-results/boss-bench-<NAME>` 的 compare.md）
+10-27 12:06–12:11 UTC 建了 6 个一次性例行任务（环境 env_013k2Yzs5QQ2jwQXbaP8xaVj，opus），3 开局 × 2 档 × seed 1–16，对照 = claude/boss-bench，改版 = 各分支跑时的最新推送 + 4121e81ee：
+
+| 任务 | 被测分支 | Boss | 结果分支 |
+|---|---|---|---|
+| trig_013sntmqoaFzGwEUxGmdbKo1 | claude/boss-path-tide | 塑路者、接潮组 ×2 | cloud-results/boss-bench-path-tide |
+| trig_016uogsgPHCGfE69RLhTjHuG | claude/boss-saints | 圣徒卡门、圣徒伊比利亚 | cloud-results/boss-bench-saints |
+| trig_01TCNpNGry33rxncAi91NrVS | claude/boss-izumik-4931b3 | 伊祖米克 | cloud-results/boss-bench-izumik |
+| trig_012bKRBH7njPeVP4RqSDNjd1 | claude/boss-ishar | 伊莎玛拉 | cloud-results/boss-bench-ishar |
+| trig_01HavnZn5Z7VY5q6nq5753Y1 | claude/boss-paranoia | 偏执泡影 | cloud-results/boss-bench-paranoia |
+| trig_01BV9jtF7WUZSApnRTQ6FV2z | claude/knight-fx-polish | 最后的骑士 | cloud-results/boss-bench-knight |
+
+（结果回来后在下面填表）
