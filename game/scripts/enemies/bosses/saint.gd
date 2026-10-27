@@ -49,6 +49,11 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		# 单发伤害旋钮（协调人 10-27：弹幕变密，整体先 ×0.8，云端测完再定）：出场第一帧乘到 e.dmg 上，所有招式 / 弹体 / 火线 / 接触伤害一起缩
 		e.dmg_k = Bal.v("boss/saint_dmg_mult", 0.8)
 		e.dmg = float(e.dmg) * float(e.dmg_k)
+		# 血量旋钮（协调人 10-27 测试台：单场 24–30 秒招式放不全，目标 45–75 秒）：出场第一帧乘到生命上（在 hp_mid / hp_x_ 之后）
+		var hk: float = Bal.v("boss/iberia_hp_k", 2.3) if e.type == "iberia" else Bal.v("boss/carmen_hp_k", 2.0)
+		e.hp = float(e.hp) * hk
+		e.maxhp = float(e.maxhp) * hk
+		e.budget_rate = float(e.get("budget_rate", 0.0)) * hk
 	var p2: bool = int(e.get("gates_passed", 0)) >= 1
 	if p2:
 		_tint2(e, TINT2_IBERIA if e.type == "iberia" else TINT2_CARMEN)
@@ -137,7 +142,14 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	else:
 		e.reload_t -= dt
 		# 弹药打空才装填（原来每 14 秒一次）；卡门第二幕先炮身近战
-		if e.ammo <= 0 and e.reload_t <= 0.0 and e.get("sword_t", 0.0) <= 0.0 and e.stun <= 0.0 and e.wind <= 0.0 and e.get("break_t", 0.0) <= 0.0:
+		var can_reload: bool = e.ammo <= 0 and e.reload_t <= 0.0 and e.get("sword_t", 0.0) <= 0.0 and e.stun <= 0.0 and e.wind <= 0.0 and e.get("break_t", 0.0) <= 0.0
+		# 伊比利亚装填前先压上来（协调人 10-27：装填窗口要让近战够得到）：离主控 > iberia_reload_r 时先追 iberia_reload_walk 秒再原地装填
+		if can_reload and e.type == "iberia" and dist > Bal.v("boss/iberia_reload_r", 160.0) and float(e.get("app_t", 0.0)) < Bal.v("boss/iberia_reload_walk", 1.8):
+			e.app_t = float(e.get("app_t", 0.0)) + dt
+			e.haste = maxf(e.get("haste", 0.0), 0.1)
+			can_reload = false
+		if can_reload:
+			e.app_t = 0.0
 			if false and e.type == "carmen" and p2 and not e.get("sword_done", false):   # 炮身近战段由封锁线取代（docs/142b §3.4）
 				e.sword_t = Bal.v("boss/carmen_sword", 8.0)
 				e.sword_done = true
@@ -146,9 +158,9 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 				Sfx.play("carmen_sword", -2.1, 1.0, 0.0)
 			else:
 				e.sword_done = false
-				var rt: float = Bal.v("boss/iberia_reload", 2.2) if e.type == "iberia" else Bal.v("boss/carmen_reload", 3.0)   # 伊比利亚强化档装填 4 → 2.2 秒（数值 10-01）
+				var rt: float = Bal.v("boss/iberia_reload", 3.0) if e.type == "iberia" else Bal.v("boss/carmen_reload", 3.0)   # 伊比利亚强化档装填 4 → 2.2 秒（数值 10-01）；10-27 测试台破绽输出 3%，2.2 → 3.0
 				if e.type == "iberia" and p2:
-					rt = Bal.v("boss/iberia_reload_p2", 1.8)   # 二幕「延生」装填更快（docs/142b §3.3 原 1.4；10-27 输出窗口探针 1.4 秒不够，docs/171 §6）
+					rt = Bal.v("boss/iberia_reload_p2", 2.6)   # 二幕「延生」装填更快（docs/142b §3.3 原 1.4；10-27 输出窗口探针 1.4 秒不够，docs/171 §6）
 					var tri: Array = _tri_lob(e)
 					if _card(e).get("tri_crater", false):
 						for tw in tri:
@@ -420,6 +432,13 @@ func saint_interrupt(e: Dictionary) -> void:
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.4, "life": 0.5, "max": 0.5, "col": Color(1.0, 0.85, 0.4), "enemy": true})
 	g.vfx.add_text(e.pos + Vector2(0, -60), "装填被打断！", Color(1.0, 0.85, 0.4), 20)
 	Sfx.play("boom", -6.0, 1.2, 0.0)
+
+
+## 伊比利亚装填读条中受伤 ×boss/iberia_reload_taken（协调人 10-27：破绽期输出目标 ≥25%；打断后的大破绽仍是 ×1.4 break_t）
+func taken_mult(e: Dictionary) -> float:
+	if e.type == "iberia" and float(e.get("channel", 0.0)) > 0.0:
+		return Bal.v("boss/iberia_reload_taken", 1.3)
+	return 1.0
 
 
 ## ---- 受击钩子（docs/101 B1c，10-15 从 combat.gd 搬来）
