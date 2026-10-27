@@ -1,6 +1,8 @@
 ## 干员积木 · seg_wisadel（docs/101 §7.3 B6 ①，10-15：由 op_blocks.gd 按段拆出，内容与注释照搬；继承链与门面见 op_blocks.gd）
 extends "res://scripts/characters/blocks/seg_suzuran.gd"
 
+const WdVg = preload("res://scripts/characters/blocks/vis_growth.gd")   # 可见成长 #129 / #130（docs/163 §5）：魂灵之影副体与体型
+
 
 # ---------------------------------------------------------------- 维什戴尔段（第 4 批续，WD_TAGS）
 #  shape.cannon     炮击（普攻，手动 A 类，落点 aim_land）：目标 = 离队长最近、几个距离相仿（slack 内）时挑落点周围敌人最多的；炮弹是本干员自己的实体（高速平射 → 落点爆炸 → quake_t 秒后原地余震）。
@@ -328,8 +330,9 @@ static func _h4_souls_tick(o, wd: Dictionary, a: Dictionary, dt: float) -> void:
 		return
 	var g = o.g
 	var souls: Array = wd.souls
-	while souls.size() < int(sb.get("n", 2)):
-		souls.append({"p": o.pos + Vector2(0, -50), "st": "idle", "tgt": null, "cd": 0.8 + 1.0 * souls.size()})
+	var n0: int = int(sb.get("n", 2))
+	while souls.size() < n0 + WdVg.summon_subs(g, "soul"):   # 可见成长 #129：副体排在本体之后（sub = true：伤害 × sub_dmg、体型 × sub_scale）
+		souls.append({"p": o.pos + Vector2(0, -50), "st": "idle", "tgt": null, "cd": 0.8 + 1.0 * souls.size(), "sub": souls.size() >= n0})
 	if sb.get("follow", false):
 		_h4_souls_follow_tick(o, wd, a, sb, dt)
 		return
@@ -431,7 +434,8 @@ static func _h4_soul_cannon_target(o, a: Dictionary, fc: Dictionary, s: Dictiona
 static func _h4_soul_shot(o, a: Dictionary, fc: Dictionary, s: Dictionary, tg: Dictionary) -> void:
 	var g = o.g
 	var from: Vector2 = s.p + Vector2(0, 4)
-	var sh: Dictionary = _h4_fire(o, a, tg.pos, o.base(str(a.get("atk_key", "atk")), 0.0) * float(fc.get("mult", 0.3)), str(fc.get("src", "")), float(fc.get("size", 1.0)), true, 0.0, false, false, "soul", null, from)
+	var sub_k: float = WdVg.kn("sub_dmg", 0.6) if s.get("sub", false) else 1.0
+	var sh: Dictionary = _h4_fire(o, a, tg.pos, o.base(str(a.get("atk_key", "atk")), 0.0) * float(fc.get("mult", 0.3)) * sub_k, str(fc.get("src", "")), float(fc.get("size", 1.0)) * (WdVg.kn("sub_scale", 0.85) if s.get("sub", false) else 1.0), true, 0.0, false, false, "soul", null, from)
 	if fc.get("mark", false):
 		sh["mark_e"] = tg
 	var dir: Vector2 = (tg.pos - from).normalized()
@@ -497,6 +501,9 @@ static func _h4_souls_sync(o, a: Dictionary, tgt: Dictionary) -> void:
 
 
 static func _h4_soul_home(o, k: int) -> Vector2:
+	if k >= 2:   # 可见成长 #129 的副体：本体两侧之外再往外、略高，左右交替
+		var side2: float = -1.0 if k % 2 == 0 else 1.0
+		return o.pos + Vector2(side2 * (52.0 + 12.0 * int((k - 2) / 2)) - o.face * 6.0, -96.0 + sin(o.g.t * 2.2 + k * 2.0) * 4.0)
 	var side: float = -1.0 if k == 0 else 1.0
 	return o.pos + Vector2(side * 32.0 - o.face * 6.0, -78.0 + sin(o.g.t * 2.2 + k * 2.0) * 4.0)
 
@@ -856,10 +863,13 @@ static func _h4wd_draw_souls(o) -> void:
 				var fl: bool = tg != null and not tg.dead and tg.pos.x < p.x
 				o._fx_strip("fx_wisadel_soul", 6, 4 + mini(1, int((g.t - float(s.get("gt", g.t))) * 12.0)), p, Vector2(0.5, 0.5), 0.0, Color.WHITE, fl)
 			else:
+				var sub: bool = s.get("sub", false)
+				var sk: float = WdVg.summon_scale(g) * (WdVg.kn("sub_scale", 0.85) if sub else 1.0)
+				var scol: Color = Color(1.25, 1.2, 1.3, 0.85) if sub else Color.WHITE   # 副体：同款贴图、略浅、小一号
 				if native.is_empty():
-					o._fx_strip("fx_wisadel_soul", 6, (int(g.t * 8.0) + i * 2) % 4, p)
+					o._fx_strip("fx_wisadel_soul", 6, (int(g.t * 8.0) + i * 2) % 4, p, Vector2(0.5, 0.5), 0.0, scol)
 				else:
-					o.draw_sprite_at(p, false, Color.WHITE, native[1], native[0], native[2], o.foot_off(native[0], native[3]))
+					o.draw_sprite_at(p, false, scol, native[1], native[0], native[2], o.foot_off(native[0], native[3]), sk)
 			continue
 		var tail := PackedVector2Array()
 		for q in 5:
