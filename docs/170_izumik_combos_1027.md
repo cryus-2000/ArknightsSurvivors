@@ -1,6 +1,6 @@
 # 170 · 伊祖米克：分幕连携、专属弹幕与拦截通道（2026-10-27）
 
-分支 `claude/boss-izumik`（起点 `codex/boss-fx-rework` 72f41c3c7），未合入 main。用户 10-27 要求每只 Boss 分别改特效、招式间连携、招式数量，并要有「打 Boss 的感觉」；协调人转达更正：东方 Project 只是例子，**不照搬符卡制度**（不做符卡名横幅、不按符卡清屏）。本文按这个口径：弹幕有图案、有规律可学、可读、有节奏，Boss 存在感强，用海嗣 / 伊祖米克自己的语言表现，阶段沿用现有三幕。
+分支 `claude/boss-izumik-4931b3`（起点 `codex/boss-fx-rework` 72f41c3c7），未合入 main。用户 10-27 要求每只 Boss 分别改特效、招式间连携、招式数量，并要有「打 Boss 的感觉」；协调人转达更正：东方 Project 只是例子，**不照搬符卡制度**（不做符卡名横幅、不按符卡清屏）。本文按这个口径：弹幕有图案、有规律可学、可读、有节奏，Boss 存在感强，用海嗣 / 伊祖米克自己的语言表现，阶段沿用现有三幕。
 
 连携组与新弹幕全部是**本作改编**，不是原作技能。原作依据只有：学习（召唤子代）、吸收子代计数强化并回血、分享（对我方全体溅射）、震撼（75 / 50 / 25% 强制）。组名只在文档、测试、录像标题里出现，不上游戏界面。
 
@@ -43,6 +43,7 @@
 ## 4. 特效
 
 - 迁徙潮预警改成暗红低填充的水墙带 + 像素波峰勾边（浪尖随时间起伏），行进通道只画稀疏泡沫点，去掉原来的矩形框、行进四边形与箭头（`render/izumik_attack_draw.gd`）。
+- 全场震撼 / 分享·全场（光学观感）：不再铺通用的整屏斜线，改为暗红低填充 + 从本体外扩的三道断续浪纹弧（暗底亮芯，越到结算越连贯），点亮的灯柱暖光圈压在上面，安全区一眼可辨。
 - 起手蓄势、灯柱吞弹、本体倒下清弹都走现有 Boss 颗粒池（`boss_beam.grains`，低画质不画，只用 g.vrng）。
 - 其他预警（潮汐坠落圆、深渊涌流环、触腕扇）沿用 167/168 的暗红低填充 + 材质边。
 
@@ -51,14 +52,19 @@
 | 文件 | 改动 |
 |---|---|
 | `render/boss_attack_draw.gd` | +6 行：预载 `izumik_attack_draw.gd`；skin `tide` 的线形预警转给它；impacts 遍历时给伊祖米克画习得弹停顿标记 |
+| `render/telegraph_draw.gd` | +2 行：光学观感下跳过 `act == izu_wave` 的整屏斜线（只影响伊祖米克） |
+| `render/boss_attack_draw.gd`（续） | +3 行：`izu_wave` 预警转 `izumik_attack_draw.field_warning` |
 | `tools/check.py` | +1 行：登记专项 `izumik_card` |
+| `gallery.gd` | 伊祖米克机制说明一行 |
 
 `final_attacks.gd`、`boss_ai.gd`、`final_attack_grains.gd`、粒子模板均未改。
 
 ## 6. 验证
 
 - 新回归 `game/tests/izumik_card_test.gd`（`check.py --only izumik_card`）：三幕各 70 秒正式 AI，每幕出两组、每组 2–4 段、每组结束有收招、弹数峰值 ≤160；转幕清队列并进下一幕的组；外部眩晕结束连携且不送破绽；潮汐相位流避开子代来向 ±0.5 rad；习得弹先停后转向；4 层吸收时 20 颗；点亮灯柱吞弹；死掉的子代不再共鸣；**同 seed 两次运行连携日志与弹道轨迹哈希一致**。
-- 实机录像：`python tools/probes/izumik_combo_preview.py --tag v1` → `build/boss_izumik/v1/`（每组 16 秒 mp4、整段 mp4、拼图、metrics）。玩家无敌、105px/s 绕行，只用于看画面与节奏，不是难度验收。
+- 相关单项 `final_boss_completion`、`boss_variety` 通过（自然轮转仍出齐 7 招以上）；按协调人 10-27 口径未跑全量，由协调人上云统一跑。
+- 实机录像：`python tools/probes/izumik_combo_preview.py --tag v4` → `build/boss_izumik/v4/`（每组 16 秒 mp4、metrics）。玩家无敌、105px/s 绕行，只用于看画面与节奏，不是难度验收。v1–v3 已被取代并删除。
+- v1 录像中弹数峰值（含数据招式环弹）：迁徙潮汐 70、护群共鸣 86、解读螺旋 160、习得变形 183、灯下三叶 56、深蓝回流 37。二幕两组最密，云端要重点看二幕受击。
 
 ## 7. 建议云端同 seed 配置
 
