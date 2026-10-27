@@ -3,7 +3,7 @@
 ## 主轴「斗牛」：平时重甲（受伤 × knight_armor 0.4），引它冲锋撞上冰柱 → 眩晕 knight_stake_break（2.5）秒（受伤 × knight_break_taken 2.0；用户 10-25「撞上冰柱之后让他眩晕一会」）。
 ##   原作反冻（受到伤害时给来源附加寒冷）按自动攻击改成「寒气圈」：队长在它脚下 knight_cold_r 内寒冷条上涨，满了冻伤（减速 + 下一击 × 1.75，原作打冻结 175%）。
 ##   五根冰柱分散成批；全部撞完后统一预告再生，不到期、不由掷枪或转幕补齐。
-##   二幕「冰原」（66%）：桩撞一次就碎、不再自动补，靠新招「掷枪」落地立桩（最多 4 根）；冲锋路径留冰面 3 秒，站上去寒冷条照涨
+##   首次插枪布五柱；整批耗尽后等连招结束，掷枪落地补五柱。普通攻击掷枪不补柱。
 ##   三幕「掷枪」（33%）：掷枪两连；冲锋后再转向冲一次（折线）；寒气圈 180、冻伤更久
 ##   重生「冲锋形态」（原作）：桩挡不住它（撞碎继续冲）；平时走得慢（× knight_reborn_spd 0.5），靠冲锋三连追人，连冲后喘气破绽；
 ##       重生时原作「释放当前波次」：刷一波 knight_rebirth_wave（16）只
@@ -38,6 +38,7 @@ func on_warning(e: Dictionary, w: Dictionary) -> void:
 	e.knight_combo_next = maxf(float(e.knight_combo_next),g.t+w.dur+(0.10 if e.phase==2 else 0.22))
 
 func cancel_combo(e: Dictionary) -> void:
+	_cancel_stake_cast(e)
 	e.knight_combo_active = false
 	e.knight_combo_queue = []
 	e.dash2 = 0
@@ -105,7 +106,6 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		e.wind = maxf(float(e.get("wind", 0.0)), float(e.break_t))
 		e.kb = Vector2.ZERO
 		e.fx = float(e.get("stun_fx", e.fx))
-	_knight_stakes(e, dt)
 	_cold_step(e, dt)
 	_ice_step(e)
 	# 连冲：重生后一组 1 + knight_p2_chain 次（第一次全长、后两次 70%，docs/49d 11.8）；三幕冲锋后再转向冲一次。连冲完喘气 2.5 秒（普通破绽，docs/38 §8.8）
@@ -134,7 +134,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		if _first_tell(e, "spin", "长枪回旋") and _cd(e, "spin", 7.0):
 			_spin(e, dir)
 		return
-	# 掷枪（二幕起，重生后不放）：桩少于 4 根、主控在 160–620 时；落点立一根新桩（_spear_land）
+	# 普通掷枪（二幕起，重生后不放）：主控在 160–620 时；不补柱。
 	if e.phase == 1 and _act(e) >= 1 and dist >= 160.0 and dist <= 620.0 \
 			and _cd(e, "spear", Bal.v("boss/knight_spear_cd", 8.0)):
 		_spear(e, dir, dist)
@@ -228,7 +228,7 @@ func _stab(e: Dictionary, dir: Vector2) -> void:
 	e.wind=maxf(e.wind,1.9)
 
 ## 掷枪（本作拟，docs/142b §3.1 / §8.2；二幕起）：朝主控掷出长枪，直线 14 宽、追踪 0.4 秒、总 1.0 秒；e.dmg × 1.0；
-## 落地处立一根新冰枪桩（_spear_land 读 last_act）——它是威胁，也是你下一次引它撞桩的资源。三幕两连（第二枪晚 0.6 秒，各自追踪）
+## 普通掷枪只攻击，不补冰柱。整批耗尽后由独立布柱动作补充；三幕普通掷枪两连。
 func _spear(e: Dictionary, dir: Vector2, dist: float) -> void:
 	var n: int = 2 if _act(e) >= 2 else 1
 	for k in n:
@@ -285,25 +285,22 @@ func _ice_step(e: Dictionary) -> void:
 	e.ice_strips = st
 
 
-## 掷枪落地立桩（docs/142b §3.1）：last_act 是「掷枪」且是新的一次 → 线端立一根桩（离场地边 ≥100）
+## 布柱是独立动作，普通掷枪的 last_act 不再生成单柱。
 
 
 ## ---- 最后的骑士：冰柱（docs/38 §8.8 的冰枪桩；docs/142b §3.1 改为开局就有，10-25 用户「设置成冰柱，多一点，4–5 个」）。
 ## 场上 boss/knight_stakes（5）根冰柱（判定 r 22），离主控 ≥120、离场地边 ≥100、彼此 ≥90；破土升起帧条见 tools/gen_ice_pillar.py。
-## 冰柱只挡骑士：冲锋撞柱后眩晕；整批耗尽再等 1.5 秒，随后预告 1 秒升起新柱。
+## 冰柱只挡骑士：整批耗尽至少等 1.5 秒及当前连招结束，掷枪落地后预告 1 秒升起新柱。
 ## 重生后（冲锋形态，原作不可阻挡）撞碎桩继续冲。主控和子弹都不受影响。冲锋预警会标出这一冲会不会撞桩（w.stake_hit，画面画「破」字端盖）
 func _knight_stakes(e: Dictionary, _dt: float) -> void:
 	if not e.has("stakes"):
 		e.stakes = []
-		_place_stakes(e, int(Bal.v("boss/knight_stakes", 5.0)))
-		g.vfx.add_text(e.pos + Vector2(0, -70), "长枪插地 · 冰柱破土", Color(0.6, 0.9, 1.4), 18)
+		e.stakes_empty_at = g.t
 	e.stakes = e.stakes.filter(func(s): return float(s.until) > 0.0)
 	if e.stakes.is_empty():
 		if not e.has("stakes_empty_at"):
 			e.stakes_empty_at = g.t + 1.5
-		elif g.t >= float(e.stakes_empty_at):
-			e.erase("stakes_empty_at")
-			_place_stakes(e, int(Bal.v("boss/knight_stakes", 5.0)))
+
 	# 冲锋中撞桩
 	if e.get("kb_self", false) and e.kb.length() > 100.0:
 		for s in e.stakes:
@@ -341,6 +338,59 @@ func _shatter(pos: Vector2, a: float) -> void:
 		g.vfx.fx_sprite("prop_ice_stake_break", pos, g.PX, 0.0, false, true, Color(1, 1, 1, a))
 
 
+## Reserve a real action before replenishment; timers only make the action eligible.
+func stake_cast_step(e: Dictionary, dir: Vector2, ready: bool) -> bool:
+	if e.has("stake_cast"):
+		var cast: Dictionary=e.stake_cast
+		e.fx=cast.face
+		if e.dead or e.get("friendly",false) or e.get("invuln",false) or e.stun>0.0 or e.get("break_t",0.0)>0.0 or e.phase!=cast.phase:
+			_cancel_stake_cast(e)
+			return false
+		if cast.stage=="wind" and cast.warning.done:
+			cast.stage="flight"
+			cast.release_at=g.t
+			cast.at=g.t
+			cast.land_at=g.t+(0.55 if cast.throw else 0.0)
+			if cast.throw:
+				g.fx.append({"kind":"final_impact","skin":"stake_flight","pos":e.pos,"target":cast.target,"life":.55,"max":.55,"enemy":true,"owner":e})
+		if cast.stage=="flight" and g.t>=cast.land_at:
+			cast.stage="rise"
+			cast.at=g.t
+			_place_stakes(e,int(Bal.v("boss/knight_stakes",5)))
+			e.stakes_seeded=true
+			e.erase("stakes_empty_at")
+			var ends: Array=[]
+			cast.end_at=g.t+1.25
+			for stake in e.stakes:
+				ends.append(stake.pos)
+				cast.end_at=maxf(cast.end_at,float(stake.born)+.25)
+			g.fx.append({"kind":"final_impact","skin":"stake_roots","pos":cast.target,"ends":ends,"life":1.25,"max":1.25,"enemy":true,"owner":e})
+			g.vfx.fx_sprite("fx_knight_ice_hit",cast.target,g.PX,0.0)
+			Sfx.play("stake_shatter",-12.0,.8,0.0)
+		if cast.stage=="rise" and g.t>=cast.end_at:
+			e.erase("stake_cast")
+			e.cdt=maxf(e.cdt,.3)
+			return true
+		e.wind=maxf(e.wind,.1)
+		return true
+	if not ready or not e.get("stakes",[]).is_empty() or e.get("knight_combo_active",false) \
+		or e.get("invuln",false) or e.get("friendly",false) or e.dead or int(e.get("dash2",0))>0 \
+		or e.has("breath_at") or float(e.get("hunt_follow_at",INF))<INF \
+		or g.t<float(e.get("stakes_empty_at",INF)):
+		return false
+	var throwing: bool=e.get("stakes_seeded",false)
+	var target: Vector2=g.combat.arena_clamp(e.pos+dir*(240.0 if throwing else 45.0),110.0)
+	e.fx=dir.x
+	var w: Dictionary=_warn(e,"circle",1.0,{"act":"knight_seed","name":"掷枪布柱" if throwing else "插枪布柱","pos":target,"r":34.0,"dmg":0.0,"cancel_dead":true,"col":Color(.48,.65,.72)})
+	e.stake_cast={"stage":"wind","warning":w,"throw":throwing,"target":target,"phase":e.phase,"at":g.t,"face":e.fx}
+	return true
+
+func _cancel_stake_cast(e: Dictionary) -> void:
+	if not e.has("stake_cast"): return
+	e.erase("stake_cast")
+	g.warns=g.warns.filter(func(w):return not is_same(w.owner,e) or w.act!="knight_seed")
+	g.fx=g.fx.filter(func(f):return not (f.get("skin","") in ["stake_flight","stake_roots"] and is_same(f.get("owner"),e)))
+
 func _place_stakes(e: Dictionary, want: int) -> void:
 	# Batch invariant: no source (throw, phase change, time) fills a partially used batch.
 	if not e.stakes.is_empty():
@@ -354,8 +404,8 @@ func _place_stakes(e: Dictionary, want: int) -> void:
 		if p.distance_to(g.ppos) < 100.0:
 			p = center + Vector2.from_angle(offset + TAU * k / want) * radius * 0.6
 		p = g.combat.arena_clamp(p, 110.0)
-		e.stakes.append({"pos": p, "until": INF, "born": g.t + 1.0})
-		_warn(e, "circle", 1.0, {"pos": p, "r": 24.0, "act": "", "dmg": 0.0, "lock": false, "col": ICE})
+		var warning: Dictionary=_warn(e, "circle", 1.0, {"pos": p, "r": 24.0, "act": "", "dmg": 0.0, "lock": false, "col": ICE})
+		e.stakes.append({"pos": p, "until": INF, "born": g.t + warning.dur})
 
 
 ## ---- 受击钩子

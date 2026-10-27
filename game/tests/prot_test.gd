@@ -1767,6 +1767,11 @@ func test_lore5() -> void:
 	kn.age = 10.0
 	kn.gates_passed = 1
 	bai._knight_stakes(kn, 0.01)
+	var planter=bai.boss("knight_boss")
+	planter.stake_cast_step(kn,Vector2.RIGHT,true)
+	game.t+=1.1
+	game.tele.update_warns(1.1)
+	planter.stake_cast_step(kn,Vector2.RIGHT,false)
 	ok(kn.stakes.size() == int(Bal.v("boss/knight_stakes", 3.0)), "66%% 卡点后立 %d 根冰枪桩" % kn.stakes.size())
 	kn.stakes[0].pos = kn.pos
 	game.t += 1.1   # 冰柱先预告 1 秒，破土后才参与碰撞。

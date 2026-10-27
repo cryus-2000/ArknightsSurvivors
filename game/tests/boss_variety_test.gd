@@ -169,6 +169,9 @@ func _ready() -> void:
 	var hunter: Dictionary = g.spawner.new_enemy("knight_boss", Vector2.ZERO)
 	hunter.age = 20.0
 	hunter.pattern_next = INF
+	# This test isolates the frost-track chain after initial planting.
+	hunter.stakes=[{"pos":Vector2(-300,0),"until":INF,"born":0.0}]
+	hunter.stakes_seeded=true
 	g.ppos = Vector2(260, 0)
 	g.bai._boss_ai(hunter, 0.01, Vector2.RIGHT, 260.0)
 	var ice_marks: Array = g.warns.filter(func(w): return w.act == "frost_track")

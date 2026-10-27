@@ -113,6 +113,7 @@ func _ready() -> void:
 	_test_ice_field()
 	_test_arena_ice_and_closing_walls()
 	_test_ishar_pressure()
+	_test_stake_cast_interruptions()
 	if DisplayServer.get_name() != "headless" and Cfg.dev_args().has("--capture-ui"):
 		await _capture()
 	print("FINAL BOSS COMPLETION failures=", failures)
@@ -138,7 +139,9 @@ func _test_fixes() -> void:
 	var knight: Dictionary = fresh("knight_boss")
 	var script = g.bai.boss("knight_boss")
 	script._knight_stakes(knight, 0.1)
-	check(knight.stakes.size() == 5, "initial five pillars")
+	check(knight.stakes.is_empty(), "initial pillars wait for planting action")
+	_finish_stake_cast(knight)
+	check(knight.stakes.size() == 5, "plant action creates five pillars")
 	for a in knight.stakes:
 		for b in knight.stakes:
 			if not is_same(a, b):
@@ -155,7 +158,12 @@ func _test_fixes() -> void:
 	script._knight_stakes(knight, 0.1)
 	g.t += 1.6
 	script._knight_stakes(knight, 0.1)
-	check(knight.stakes.size() == 5, "exhausted batch replenishes together")
+	check(knight.stakes.is_empty(), "empty timer alone cannot spawn pillars")
+	knight.knight_combo_active=true
+	check(not script.stake_cast_step(knight,Vector2.RIGHT,true),"refill waits for combo completion")
+	knight.knight_combo_active=false
+	_finish_stake_cast(knight)
+	check(knight.stakes.size() == 5, "throw action replenishes exhausted batch together")
 	var izu: Dictionary = fresh("izumik")
 	izu.pos = Vector2(570, 0)
 	for k in 24:
@@ -442,3 +450,57 @@ func _test_ishar_pressure() -> void:
 		for i in range(1,rings.size()):
 			check(absf(rings[i].dur-rings[i-1].dur-1.0)<.01,"song waves retain one second travel interval")
 			check(absf(angle_difference(rings[i-1].gaps[0],rings[i].gaps[0])-.28)<.01,"song gap rotates gradually")
+
+func _finish_stake_cast(e:Dictionary) -> void:
+	var script=g.bai.boss("knight_boss")
+	g.warns.clear()
+	e.invuln=false
+	e.stun=0.0
+	check(script.stake_cast_step(e,Vector2.RIGHT,true),"stake action starts")
+	check(e.has("stake_cast") and e.stakes.is_empty(),"windup does not spawn pillars")
+	g.t+=1.1
+	g.tele.update_warns(1.1)
+	script.stake_cast_step(e,Vector2.RIGHT,false)
+	if e.stake_cast.throw:
+		check(e.stakes.is_empty(),"flying spear does not spawn pillars early")
+		g.t+=.6
+		script.stake_cast_step(e,Vector2.RIGHT,false)
+	check(e.stakes.size()==5 and e.stakes.all(func(s):return s.born>g.t),"landing starts five pillar warnings")
+	g.t+=1.3
+	g.tele.update_warns(1.3)
+	script.stake_cast_step(e,Vector2.RIGHT,false)
+	check(not e.has("stake_cast"),"planting releases boss after rise")
+
+func _test_stake_cast_interruptions() -> void:
+	var script=g.bai.boss("knight_boss")
+	for phase in [1,2]:
+		var e:Dictionary=fresh("knight_boss")
+		e.phase=phase
+		script._knight_stakes(e,.01)
+		e.stakes_seeded=true
+		script.stake_cast_step(e,Vector2.RIGHT,true)
+		e.stake_cast.warning.t=.8
+		check(g.world.knight_animation(e).frame==1,"refill holds windup until actual release")
+		g.t+=1.1
+		g.tele.update_warns(1.1)
+		script.stake_cast_step(e,Vector2.RIGHT,false)
+		check(g.world.knight_animation(e).frame==2,"refill spear flight aligns with release frame")
+		check(e.stake_cast.stage=="flight","both phases release refill spear")
+		e.break_t=1.0
+		script.stake_cast_step(e,Vector2.RIGHT,false)
+		check(not e.has("stake_cast") and e.stakes.is_empty(),"poise break cancels flight before spawning")
+	var e:Dictionary=fresh("knight_boss")
+	e.stakes=[{"pos":e.pos,"born":0.0,"until":INF}]
+	e.kb_self=true
+	e.kb=Vector2(500,0)
+	e.final_next=0.0
+	g.bai.boss_step(e,.01,Vector2.RIGHT,220)
+	check(e.break_t>0.0 and not g.warns.any(func(w):return w.dmg>0.0),"collision cannot dispatch an attack using stale ready state")
+
+	var old_warn:float=g.dmod.boss_warn
+	g.dmod.boss_warn=1.5
+	e=fresh("knight_boss")
+	e.stakes=[]
+	script._place_stakes(e,5)
+	check(e.stakes.all(func(st):return absf(st.born-g.t-1.5)<.01),"pillar collision waits for difficulty-adjusted warning")
+	g.dmod.boss_warn=old_warn

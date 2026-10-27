@@ -2356,6 +2356,13 @@ func _boss_warn_strip(e: Dictionary, acts: Array, strip: String, frames: int) ->
 
 ## 骑士冲锋形态 / 插枪帧（逻辑帧选择不依赖 draw 次数）；不适用时返回空字典，沿用原帧条
 func knight_animation(e: Dictionary) -> Dictionary:
+	if e.has("stake_cast"):
+		var cast: Dictionary=e.stake_cast
+		var strip: String="e_knight_attack" if cast.throw else "e_knight_plant"
+		var frame: int=3
+		if cast.stage=="wind": frame=clampi(int(cast.warning.t/cast.warning.dur*(2 if cast.throw else 3)),0,1 if cast.throw else 2)
+		elif cast.throw and g.t-float(cast.get("release_at",g.t))<.2: frame=2
+		return {"name":strip,"frames":4,"frame":frame}
 	if e.get("dash_t", 0.0) > 0.0:
 		return {"name": "e_knight_charge_form", "frames": 4, "frame": int(g.t * 10.0 + e.id * 0.37) % 4}
 	for w in g.warns:

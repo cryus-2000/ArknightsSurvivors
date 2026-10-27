@@ -2,6 +2,7 @@ extends "res://tests/final_boss_fx_preview.gd"
 ## One forced opener per segment; follow-ups, movement and recovery use the production AI.
 func _ready() -> void:
 	var check_only := "--combo-check" in OS.get_cmdline_user_args()
+	var stake_review := "--knight-stake-review" in OS.get_cmdline_user_args()
 	var ice_review := "--knight-ice-review" in OS.get_cmdline_user_args()
 	kind = "knight_boss"
 	for arg in OS.get_cmdline_user_args():
@@ -57,6 +58,8 @@ func _ready() -> void:
 		scenarios = [{"name":"环形冰波", "move":"长枪回旋", "phase":2}, {"name":"三段冰锋", "move":"长枪连刺", "phase":1}, {"name":"放射双冰阵", "move":"踏冰裂阵", "phase":1}, {"name":"快速弧斩", "move":"断潮劈击", "phase":2}, {"name":"冰枪封径", "move":"冰枪封径", "phase":2}, {"name":"冻潮夹击", "move":"冻潮夹击", "phase":2}]
 	if "--knight-wall-review" in OS.get_cmdline_user_args():
 		scenarios=scenarios.filter(func(s):return s.move=="冻潮夹击")
+	if stake_review:
+		scenarios=[{"name":"首次插枪布柱","move":"","phase":1},{"name":"末柱冲撞后掷枪补柱 · 已破四柱","move":"冲锋","phase":1},{"name":"二阶段末柱冲撞与补柱 · 已破四柱","move":"冲锋","phase":2}]
 	for scenario in scenarios:
 		fresh()
 		g.enemies = [boss]
@@ -64,6 +67,9 @@ func _ready() -> void:
 			g.bai.setup_preview_phase2(boss)
 			boss.channel = 0.0
 			boss.invuln = false
+		if stake_review and scenario.move!="":
+			boss.stakes=[{"pos":boss.pos+Vector2(170,0),"born":0.0,"until":INF}]
+			boss.stakes_seeded=true
 		boss.wind = 0.6 # Only hold until the one forced opener; the rest is ordinary AI.
 		var events: Array = []
 		var watched: Array = []
@@ -78,8 +84,9 @@ func _ready() -> void:
 			g.ppos = g.ppos.move_toward(path_target(fmod(elapsed, 12.0)), 100.0 * DT)
 			g.doc_pos = g.ppos + Vector2(10,35)
 			g.t += DT
-			if frame_i == 15:
+			if frame_i == 15 and scenario.move!="":
 				var dir: Vector2 = (g.ppos - boss.pos).normalized()
+				if stake_review: boss.stakes[0].pos=boss.pos+dir*170.0
 				if not g.bai.boss(kind).force_move(boss, scenario.move, dir, boss.pos.distance_to(g.ppos)):
 					push_error("Combo opener failed")
 					get_tree().quit(3)
@@ -98,7 +105,7 @@ func _ready() -> void:
 			g.enemies_sys.update_status(DT)
 			inspect_player_status(player_status,"after_status_conversion")
 			for w in g.warns:
-				if not is_same(w.owner,boss) or w.dmg <= 0.0: continue
+				if not is_same(w.owner,boss) or (w.dmg <= 0.0 and w.act!="knight_seed"): continue
 				if watched.any(func(old):return is_same(old,w)): continue
 				watched.append(w)
 				if not str(w.name).is_empty(): current_move = str(w.name)
@@ -114,7 +121,7 @@ func _ready() -> void:
 				events.append({"event":"recovery_end","t":elapsed,"frame":shot_i})
 			previous_break = brk
 			var status: String = "破绽 %.1fs" % brk if brk > 0.0 else ("连段" if boss.get("knight_combo_active",false) else "调整")
-			title.text = str(scenario.name) + " · " + quality + " · %.1fs\n" % elapsed + current_move + " · " + status
+			title.text = str(scenario.name) + " · " + quality + " · %.1fs\n" % elapsed + current_move + " · " + status + (" · 冰柱 %d" % boss.get("stakes",[]).size() if stake_review else "")
 			g.vfx.update(DT)
 			g.fx = g.fx.filter(func(f):return f.life > 0.0)
 			visual_step(DT)
@@ -127,7 +134,7 @@ func _ready() -> void:
 					get_tree().quit(4)
 					return
 				shot_i += 1
-		print("FX_PREVIEW_METRICS ",JSON.stringify({"move":scenario.name,"phase":scenario.phase,"forced_openers":1,"boss_travel":travel,"player_status":player_status,"events":events}))
+		print("FX_PREVIEW_METRICS ",JSON.stringify({"move":scenario.name,"phase":scenario.phase,"forced_openers":0 if scenario.move=="" else 1,"boss_travel":travel,"player_status":player_status,"events":events}))
 	print("FX_PREVIEW_DONE boss=%s quality=%s frames=%d combos=true optical=%s" % [kind,quality,shot_i,g.optical_on])
 	g.queue_free()
 	await get_tree().process_frame

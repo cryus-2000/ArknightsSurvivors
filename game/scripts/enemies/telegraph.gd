@@ -280,6 +280,7 @@ func _resolve(w: Dictionary) -> void:
 		"thrust": w.get("thrust", false), "name": w.name, "skin": w.get("skin", "")}
 	if w.get("secondary", false):
 		e.atk_until = g.t + 0.35
+	if w.act=="knight_seed": return # The spear landing, not release, emits the impact and pillar warnings.
 	var dv := Vector2.from_angle(w.ang)
 	if w.act == "final_attack":
 		g.bai.finals.resolve(w)

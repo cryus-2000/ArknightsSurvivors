@@ -55,15 +55,17 @@ def main():
     parser.add_argument("--combos", action="store_true", help="Knight only: three 18-second segments with one forced opener and live AI")
     parser.add_argument("--ice-review", action="store_true", help="Knight only: six 12-second live-AI ice attack reviews")
     parser.add_argument("--wall-review", action="store_true", help="With --ice-review: capture closing walls only")
+    parser.add_argument("--stake-review", action="store_true", help="Knight planting and last-pillar replenishment, three 18-second segments")
     args = parser.parse_args()
+    if args.stake_review and (args.boss!="knight_boss" or args.ice_review or args.combos): parser.error("--stake-review requires knight_boss without other modes")
     if args.wall_review and not args.ice_review: parser.error("--wall-review requires --ice-review")
     if args.ice_review and (args.boss != "knight_boss" or args.combos):
         parser.error("--ice-review requires --boss knight_boss and cannot be combined with --combos")
-    live_ai = args.combos or args.ice_review
+    live_ai = args.combos or args.ice_review or args.stake_review
     move_count = 1 if args.wall_review else (6 if args.ice_review else 3)
     if args.combos and args.boss != "knight_boss":
         parser.error("--combos requires --boss knight_boss")
-    move_seconds = 18.0 if args.combos else MOVE_SECONDS
+    move_seconds = 18.0 if args.combos or args.stake_review else MOVE_SECONDS
     base = (ROOT / "build/boss_fx_review" / args.tag).resolve()
     if not base.is_relative_to((ROOT / "build/boss_fx_review").resolve()):
         raise ValueError("Output must remain under build/boss_fx_review")
@@ -92,6 +94,7 @@ def main():
             if args.ice_review:
                 command.append("--knight-ice-review")
             if args.wall_review: command.append("--knight-wall-review")
+            if args.stake_review: command.append("--knight-stake-review")
             out, err, timed_out = runner.run_godot(command, 480)
             (folder / "run.log").write_text(out + "\n" + err, encoding="utf-8")
             if timed_out or runner.script_errors(out, err) or "FX_PREVIEW_DONE" not in out:
@@ -106,7 +109,7 @@ def main():
         report = {"move_metrics": metrics, "boss": boss, "quality": args.quality, "segments":move_count, "ice_review":args.ice_review, "frames": count, "fps": 15, "source_size": [1280, 720], "gif_size": [640, 360], "gif_fps": 12,
                   "move_seconds": count / (move_count * FPS), "duration_seconds": count / FPS,
                   "sheet_sample_seconds": [min(t, (count // move_count - 1) / FPS) for t in SHEET_SECONDS],
-                  "simulation": "Production enemies_sys.update + boss AI + shots/telegraphs/status; one forced opener per segment, continuous invulnerable player, no scripted follow-up" if live_ai else "Actual force_move + telegraph + hazard + optical rendering; ordinary AI paused; invulnerable player follows a continuous 100px/s route with turns at 2.6, 4.4, 6.5 and 8.7 seconds; wind/cooldown/pose clocks advance"}
+                  "simulation": "Production AI; initial planting has no forced opener; replenishment segments start with four pillars already broken and one forced charge into the final pillar; invulnerable moving player" if args.stake_review else "Production enemies_sys.update + boss AI + shots/telegraphs/status; one forced opener per segment, continuous invulnerable player, no scripted follow-up" if live_ai else "Actual force_move + telegraph + hazard + optical rendering; ordinary AI paused; invulnerable player follows a continuous 100px/s route with turns at 2.6, 4.4, 6.5 and 8.7 seconds; wind/cooldown/pose clocks advance"}
         (folder / "capture.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         print(json.dumps(report), flush=True)
 

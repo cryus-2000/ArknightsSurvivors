@@ -15,6 +15,7 @@ static func draw(g, w: Dictionary, alpha: float) -> bool:
 		_dissolve(g,w,age,alpha)
 		return true
 	match skin:
+		"stake_flight", "stake_roots": _stake_seed(g,w,age,alpha)
 		"ice": _ice(r, w, age, alpha)
 		"ice_field": _ice_field(g,w,age,alpha)
 		"ice_wave":
@@ -484,3 +485,32 @@ static func _surge(r, w: Dictionary, gy: float, age: float, alpha: float) -> voi
 			if _n(i,ridge+12)>.4:
 				_grain(r,ca-va*5,_c(FOAM,alpha))
 				_grain(r,ca-va*8+Vector2(3,2),_c(FOAM,alpha*.8))
+
+static func _stake_seed(g,w:Dictionary,age:float,alpha:float) -> void:
+	var r=g.world
+	if w.skin=="stake_flight":
+		var t:float=clampf(age/w.max,0,1)
+		var p:Vector2=w.pos.lerp(w.target,t)+Vector2(0,-42*(1-t)-sin(t*PI)*95)
+		var velocity:Vector2=w.target-w.pos+Vector2(0,42-cos(t*PI)*PI*95)
+		_band(r,p-velocity.normalized()*48,p,3,1,_c(Color(.55,.72,.77),alpha*.7))
+		if not g is Dictionary and r._lazy_tex("proj_knight_spear")!=null:
+			r.tb_flush()
+			g.vfx.spr_rot("proj_knight_spear",int(age*12)%2,p.snapped(Vector2.ONE),velocity.angle(),g.PX,Color(.8,.9,1,alpha))
+		# Ice edging keeps the narrow dark source lance readable over the arena.
+		var d:Vector2=velocity.normalized()
+		var n:Vector2=d.orthogonal()
+		_band(r,p-d*52,p+d*7,3,2,_c(Color(.43,.60,.68),alpha))
+		_band(r,p-d*48-n,p+d*5-n,1,1,_c(Color(.79,.88,.88),alpha))
+		_poly(r,[p+d*23,p+d*3+n*7,p-d*3,p+d*3-n*7],_c(Color(.65,.82,.85),alpha))
+		_poly(r,[p+d*23,p+d*3,p+d*3-n*7],_c(Color(.89,.94,.91),alpha))
+	else:
+		var t:float=clampf(age/.85,0,1)
+		for end in w.ends:
+			var tip:Vector2=w.pos.lerp(end,t)
+			var direction:Vector2=(end-w.pos).normalized()
+			_band(r,w.pos,tip,2,1,_c(Color(.25,.43,.51),alpha*.65))
+			for i in 12:
+				var p:Vector2=w.pos.lerp(tip,(i+.5)/12)
+				var side:Vector2=direction.orthogonal()*(5+_n(i,4)*9)
+				_band(r,p-direction*8,p+side,1,1,_c(Color(.55,.72,.77),alpha*.8))
+			_grain(r,tip,_c(Color(.77,.86,.86),alpha))
