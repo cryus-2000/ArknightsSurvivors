@@ -23,6 +23,7 @@ func _ready() -> void:
 	check_act_change()
 	check_stun()
 	check_repro()
+	check_beam_hold()
 	print("PARANOIA COMBOS failures=", failures)
 	g.queue_free()
 	await get_tree().process_frame
@@ -175,3 +176,30 @@ func check_repro() -> void:
 			acc += b.pos
 		sig.append([e.get("pc_buls", []).size(), snappedf(acc.x, 0.01), snappedf(acc.y, 0.01), str(e.get("move_name", ""))])
 	check(sig[0] == sig[1], "same input reproduces the same bullets %s" % str(sig))
+
+
+## 凝视持续光束：结算时不在线上，保持段内走进光束 → 结算一次（离开保持段 / 收拢段不再算）
+func check_beam_hold() -> void:
+	var e := fresh(2)
+	e.pc_act = 2   # 不让连段接管，单独测凝视
+	var s = g.bai.boss("paranoia")
+	g.ppos = Vector2(0, 300)
+	s._gaze(e, Vector2.RIGHT)
+	var gw: Array = g.warns.filter(func(w): return is_same(w.owner, e) and str(w.get("skin", "")) == "gaze")
+	check(not gw.is_empty() and float(gw[0].get("hold", 0.0)) > 0.0 and float(gw[0].get("kp_life", 0.0)) > 0.5, "gaze is a sustained beam")
+	if gw.is_empty():
+		return
+	var w: Dictionary = gw[0]
+	w.track = 0.0
+	w.ang = 0.0
+	w.pos = Vector2.ZERO
+	w.len = 800.0
+	while not w.done:
+		g.t += 0.05
+		g.tele.update_warns(0.05)
+	s._beam_hold(e)
+	check((e.get("gaze_beams", []) as Array).has(w), "missed beam enters hold window")
+	g.ppos = Vector2(300, 14)   # 走进光束
+	g.t += 0.1
+	s._beam_hold(e)
+	check(not (e.get("gaze_beams", []) as Array).has(w), "stepping into the held beam resolves it once")

@@ -568,7 +568,9 @@ func _resolve(w: Dictionary) -> void:
 func _kp(w: Dictionary, a: Vector2, b: Vector2) -> bool:
 	if str(w.get("kp", "")) == "":
 		return false
-	g.fx.append({"kind": "kp_beam", "a": a, "b": b, "life": KP_LIFE, "max": KP_LIFE, "boss": str(w.kp), "k": float(w.get("kp_k", 2.0)), "enemy": true})
+	# kp_life / kp_on：可选的画面总长与开合时长（偏执泡影凝视是持续光束，docs/170；缺省 KP_LIFE / 0.06）
+	var kl: float = float(w.get("kp_life", KP_LIFE))
+	g.fx.append({"kind": "kp_beam", "a": a, "b": b, "life": kl, "max": kl, "on_t": float(w.get("kp_on", 0.06)), "boss": str(w.kp), "k": float(w.get("kp_k", 2.0)), "enemy": true})
 	return true
 
 

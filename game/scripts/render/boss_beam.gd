@@ -65,12 +65,13 @@ static func draw(g, f: Dictionary) -> bool:
 	var left: float = float(f.max) - el
 	if left <= 0.0:
 		return true   # 真实时间已到（掉帧 / 顿帧时模拟还没走完）：不再画
-	var on: bool = el < ON_T or left < ON_T
+	var on_t: float = float(f.get("on_t", ON_T))   # 开合时长：缺省 ON_T，泡影凝视持续光束 0.15（docs/170）
+	var on: bool = el < on_t or left < on_t
 	var fr: int
-	if el < ON_T:
-		fr = clampi(int(el / ON_T * 4.0), 0, 3)
-	elif left < ON_T:
-		fr = clampi(int(left / ON_T * 4.0), 0, 3)   # 关闭 = 开启倒放
+	if el < on_t:
+		fr = clampi(int(el / on_t * 4.0), 0, 3)
+	elif left < on_t:
+		fr = clampi(int(left / on_t * 4.0), 0, 3)   # 关闭 = 开启倒放
 	else:
 		fr = int(el * FPS) % 4
 	var suf: String = "_on" if on else ""

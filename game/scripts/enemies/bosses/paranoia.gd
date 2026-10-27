@@ -31,6 +31,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		_paranoia_cocoon_step(e, dt)
 		return
 	_drop_step(e)
+	_beam_hold(e)
 	_decoy_step(e, dt)
 	_paranoia_aura(e, dist)
 	if Combos.on(e) and combos().step(e, dt, dir, dist, ready):
@@ -85,7 +86,8 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 ##   二幕 X 交叉——两道以你脚下为交点、与「她 → 你」各成 ±0.6 弧度，出手即锁定：斜着离开交点；
 ##   三幕 / 茧后（落地）——原来的 3 道依次追踪（每道间隔 0.6 秒）。茧没打破 +1 道（依次追踪接在后面）
 func _gaze(e: Dictionary, dir: Vector2) -> void:
-	var base: Dictionary = {"len": 820.0, "wid": 26.0, "act": "beam", "col": COL, "dmg": e.dmg * Bal.v("boss/paranoia_gaze_mult", 1.56), "corrode": 0.5, "kp": "paranoia", "kp_k": 2.0, "skin": "gaze"}   # skin gaze：预警由 paranoia_combo_draw 画（暗红低填充 + 泡沫边）   # 原 2.0（10-25 加密 ×0.78）
+	var base: Dictionary = {"len": 820.0, "wid": 26.0, "act": "beam", "col": COL, "dmg": e.dmg * Bal.v("boss/paranoia_gaze_mult", 1.56), "corrode": 0.5, "kp": "paranoia", "kp_k": 2.0, "skin": "gaze",
+		"kp_life": 0.95, "kp_on": 0.15, "hold": 0.8}   # 持续光束：0.15 秒张开、保持到 0.8 秒（期间碰到算一次伤害）、0.15 秒收拢（用户 10-27「激光出现和消失太快」）   # skin gaze：预警由 paranoia_combo_draw 画（暗红低填充 + 泡沫边）   # 原 2.0（10-25 加密 ×0.78）
 	var ng: int = 4   # 落地后依次 4 道（10-25 加密：原 3）
 	if e.phase == 1 and int(e.get("gates_passed", 0)) >= 1:
 		ng = 0
@@ -102,6 +104,26 @@ func _gaze(e: Dictionary, dir: Vector2) -> void:
 			_warn(e, "line", 1.6, base.merged({"pos": fan[i].pos, "ang": fan[i].ang, "len": fan[i].len, "track": 0.7, "seq_no": 2, "name": "", "lock": false}))
 	for k in ng + int(e.get("gaze_bonus", 0)):
 		_warn(e, "line", 1.3 + 0.6 * k, base.merged({"ang": dir.angle(), "track": 0.65 + 0.6 * k, "seq_no": k + 1, "name": "凝视" if k == 0 and ng != 0 else "", "lock": k == 0 and ng != 0}))
+
+
+## 凝视持续光束的保持段（docs/170）：结算后 hold 秒内光束仍在，队长碰到就按同一道预警结算一次（结算瞬间已中的不再算）。
+## 画面是 kp_beam 的 kp_life，判定只到保持段结束、收拢的 0.15 秒不伤人
+func _beam_hold(e: Dictionary) -> void:
+	var beams: Array = e.get("gaze_beams", [])
+	for w in g.warns:
+		if w.done and is_same(w.owner, e) and str(w.get("skin", "")) == "gaze" and float(w.get("hold", 0.0)) > 0.0 and not w.has("hold_until"):
+			w.hold_until = g.t + float(w.hold) - (w.t - w.dur)
+			if not g.tele.hits_leader(w):
+				beams.append(w)   # 结算瞬间没中的才进保持段
+	var live: Array = []
+	for w in beams:
+		if g.t >= float(w.hold_until):
+			continue
+		if g.tele.hits_leader(w):
+			g.tele.warn_damage(w)
+			continue
+		live.append(w)
+	e.gaze_beams = live
 
 
 ## D · 呼号（二阶段，新；PRTS「大群的祈望堵住了她的喉咙，她发不出声音」→ 张口无声、只喷泡沫）：

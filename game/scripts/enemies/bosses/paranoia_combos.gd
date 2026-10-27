@@ -21,8 +21,8 @@ const COMBOS := {
 const ACT_COMBOS := [["千目凝望", "泡影环流"], ["镜中众影", "偏执双旋"], ["无声呼号", "侵蚀帘幕"], ["群愿回响", "侵蚀帘幕"]]
 ## 弹幕段：发数 n、间隔 iv（秒）；起手前 WINDUP 秒聚光
 const EMITTERS := {
-	"千目注视": {"n": 14, "iv": 0.16}, "环流狙击": {"n": 3, "iv": 0.6}, "镜影齐射": {"n": 3, "iv": 0.7},
-	"偏执双旋": {"n": 8, "iv": 0.38}, "无声波环": {"n": 2, "iv": 1.1}, "侵蚀帘幕": {"n": 2, "iv": 1.5}, "群愿回响": {"n": 2, "iv": 1.3}}
+	"千目注视": {"n": 7, "iv": 0.24}, "环流狙击": {"n": 3, "iv": 0.7}, "镜影齐射": {"n": 2, "iv": 0.8},
+	"偏执双旋": {"n": 6, "iv": 0.42}, "无声波环": {"n": 2, "iv": 1.1}, "侵蚀帘幕": {"n": 2, "iv": 1.5}, "群愿回响": {"n": 2, "iv": 1.3}}
 const WINDUP := 0.55
 const BUL_CAP := 200
 ## 弹体分级：r 判定半径、伤害倍率（× e.dmg）
@@ -161,13 +161,13 @@ func _emit(e: Dictionary, seg: String, dir: Vector2) -> void:
 		"flip": 1.0 if int(e.get("pc_flip", 0)) % 2 == 0 else -1.0}
 	e.pc_flip = int(e.get("pc_flip", 0)) + 1
 	if seg == "千目注视":
-		# 7 只眼在你身边 280 处睁开（缺口在她那一侧，那里是冲进去的路），睁眼 0.8 秒后顺时针依次朝你开一枪，转两圈
+		# 7 只眼在你身边 280 处睁开（缺口在她那一侧，那里是冲进去的路），睁眼 0.8 秒后顺时针依次朝你开一枪，转一圈
 		var c: Vector2 = g.combat.arena_clamp(g.ppos, 60.0) if g.zone_frozen else g.ppos
 		var to_boss: float = (e.pos - c).angle()
 		var eyes: Array = []
 		for i in 7:
 			var ang: float = to_boss + TAU * (i + 0.5) / 8.0 + TAU / 16.0
-			eyes.append({"pos": c + Vector2.from_angle(ang) * 280.0, "open": g.t + 0.25, "close": g.t + WINDUP + 0.8 + 0.16 * 14 + 0.3})
+			eyes.append({"pos": c + Vector2.from_angle(ang) * 280.0, "open": g.t + 0.25, "close": g.t + WINDUP + 0.8 + 0.24 * 7 + 0.3})
 		e.pc_eyes = eyes
 		em.t0 = g.t + WINDUP + 0.8
 		em.next = em.t0
@@ -217,17 +217,17 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 	var o: Vector2 = e.pos
 	match str(em.name):
 		"千目注视":
-			# 被注视：眼按顺时针轮流朝你当时的位置开一枪（两圈 14 枪），一直走动就落在身后
+			# 被注视：眼按顺时针轮流朝你当时的位置开一枪（一圈 7 枪），一直走动就落在身后
 			var eyes: Array = e.get("pc_eyes", [])
 			if not eyes.is_empty():
 				var ey: Dictionary = eyes[k % eyes.size()]
 				ey.fired = g.t
 				_shot(e, ey.pos, _aim(ey.pos), 150.0, "m")
 		"环流狙击":
-			# 自机狙：每轮重新瞄准的 5 向扇，中间一发打你当时的位置；一直横移就不会中
+			# 自机狙：每轮重新瞄准的 3 向扇，中间一发打你当时的位置；一直横移就不会中
 			var a: float = _aim(o)
-			for i in 5:
-				_shot(e, o, a + (i - 2) * 0.24, 165.0, "m")
+			for i in 3:
+				_shot(e, o, a + (i - 1) * 0.32, 165.0, "m")
 		"镜影齐射":
 			# 真身与幻影各放 3 向自机狙；只有真身的弹是实心、有伤害，幻影放的是空心泡
 			var srcs: Array = [e]
@@ -242,35 +242,35 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 					else:
 						_fake(e, s.pos, aa + (i - 1) * 0.26, 150.0, 8.0)
 		"偏执双旋":
-			# 正反两组 12 发环交替，转角相反，交织成菱形格
+			# 正反两组 10 发环交替，转角相反，交织成菱形格
 			var sgn: float = 1.0 if k % 2 == 0 else -1.0
-			for i in 12:
-				_shot(e, o, float(em.a0) + TAU * i / 12.0 + sgn * 0.26 * floorf(k / 2.0) + (0.13 if k % 2 else 0.0), 115.0, "s")
+			for i in 10:
+				_shot(e, o, float(em.a0) + TAU * i / 10.0 + sgn * 0.3 * floorf(k / 2.0) + (0.15 if k % 2 else 0.0), 115.0, "s")
 		"无声波环":
-			# 两道减速泡环，缺口错位：第一道缺口朝你，第二道偏 0.95
+			# 两道 18 发减速泡环，缺口约 1.2 弧度且错位：第一道缺口朝你，第二道偏 0.95
 			var gap_c: float = _aim(o) + (0.0 if k == 0 else 0.95 * float(em.flip))
-			for i in 24:
-				var a2: float = TAU * i / 24.0
-				if absf(angle_difference(a2, gap_c)) < 0.5:
+			for i in 18:
+				var a2: float = TAU * i / 18.0
+				if absf(angle_difference(a2, gap_c)) < 0.6:
 					continue
 				var b: Dictionary = _shot(e, o, a2, 190.0, "m")
 				if not b.is_empty():
 					b.p_acc = -130.0
 					b.p_vmin = 75.0
 		"侵蚀帘幕":
-			# 一排向前推进的弹墙，留一道 120 宽的缝；第二排的缝向侧面错开 170
+			# 一排向前推进的弹墙（间距 40），留一道 150 宽的缝；第二排的缝向侧面错开 170
 			var d: Vector2 = Vector2.from_angle(float(em.a0))
 			var side: Vector2 = d.orthogonal()
 			var gc: float = float(em.gap) if k == 0 else float(em.gap2)
 			var s0: float = -450.0
 			while s0 <= 450.0:
-				if absf(s0 - gc) >= 60.0:
+				if absf(s0 - gc) >= 75.0:
 					_shot(e, o + d * 30.0 + side * s0, float(em.a0), 120.0, "s")
-				s0 += 30.0
+				s0 += 40.0
 		"群愿回响":
 			# 五瓣花：先按花瓣速度散开，1 秒后全部停住 0.5 秒，再各自对准你当时的位置射出
-			for i in 28:
-				var a3: float = TAU * i / 28.0 + 0.11 * k
+			for i in 20:
+				var a3: float = TAU * i / 20.0 + 0.16 * k
 				var spd: float = 70.0 + 70.0 * absf(cos(2.5 * (a3 - float(em.a0))))
 				var b2: Dictionary = _shot(e, o, a3, spd, "m")
 				if not b2.is_empty():
