@@ -85,6 +85,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 			_bullet_step(e, dt)
 			_emit_step(e)
 			_current_step(e, dt)
+			_share_fx_step(e)
 			_card_step(e, dir, dist)
 			return
 		var shock: Array = [0.75, 0.5, 0.25]
@@ -716,3 +717,15 @@ func _current_step(e: Dictionary, dt: float) -> void:
 			continue
 		var k: float = clampf(float(w.t) / 0.6, 0.0, 1.0) * (1.0 - 0.5 * d / float(w.pull_r))
 		g.ppos = g.map.push_out(g.ppos + to.normalized() * 70.0 * k * dt, 12.0)
+
+
+## 分享（扇形）结算画面：通用 sweep 只有一道细刀光，这里补喷涌——扇形里的水流喷射 + 孢子雾 + 扇缘浪沫（render/izumik_attack_draw.share），纯画面
+func _share_fx_step(e: Dictionary) -> void:
+	for w in g.warns:
+		if not w.done or w.get("izu_fx", false) or not is_same(w.owner, e) or str(w.get("act", "")) != "sweep":
+			continue
+		w.izu_fx = true
+		g.fx.append({"kind": "izu_share", "pos": w.pos, "ang": float(w.ang), "half": float(w.half), "r": float(w.r), "life": 0.7, "max": 0.7, "enemy": true})
+		for k in 18:
+			var a: float = float(w.ang) + lerpf(-float(w.half), float(w.half), (k + 0.5) / 18.0)
+			_puff(w.pos + Vector2.from_angle(a) * float(w.r) * 0.85, 1, Color(0.62, 0.82, 1.0), Vector2.from_angle(a))

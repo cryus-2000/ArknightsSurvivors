@@ -139,13 +139,10 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 		"迁徙潮":
 			var center: Vector2 = g.zone_c if g.zone_state != 0 else e.pos
 			var radius: float = minf(650.0, g.zone_r - 55.0) if g.zone_state != 0 else 550.0
-			var gap: float = clampf((g.ppos - center).dot(side), -radius * 0.5, radius * 0.5)
-			for k in 2:
-				var lo: float = -radius if k == 0 else gap + 90.0
-				var hi: float = gap - 90.0 if k == 0 else radius
-				_warn(e, "line", 1.6, {"name": name if k == 0 else "", "pos": center - dir * radius + side * lo,
-					"ang": side.angle(), "len": hi - lo, "wid": 19.0, "skin": "tide", "motion": "wall",
-					"velocity": dir * 150.0, "life": radius * 2.0 / 150.0, "dmg": e.dmg})
+			# 一整道浪墙横穿场地，不留中间通道（用户 10-27）；冲刺穿浪躲开
+			_warn(e, "line", 1.6, {"name": name, "pos": center - dir * radius - side * radius,
+				"ang": side.angle(), "len": radius * 2.0, "wid": 19.0, "skin": "tide", "motion": "wall",
+				"velocity": dir * 150.0, "life": radius * 2.0 / 150.0, "dmg": e.dmg})
 		"深渊涌流":
 			# 环带会向内塌陷，中心明确安全；两段不同半径要求一次内外位置选择。
 			for k in 2:

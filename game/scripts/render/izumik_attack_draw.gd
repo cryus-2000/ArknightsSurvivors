@@ -264,3 +264,36 @@ static func current_burst(g, f: Dictionary) -> void:
 		var a: float = TAU * _n(i, 61)
 		var d: float = (20.0 + 60.0 * _n(i, 62)) * k
 		_dot(r, c + Vector2(cos(a) * d, sin(a) * d * 0.6 - h * (1.0 - k) * _n(i, 63)), Color(0.85, 0.95, 1.0, 0.85 * (1.0 - k)))
+
+
+## 分享结算：从本体向扇形喷出 16 道水流（头部亮、尾部拖水滴），随后孢子雾在扇里散开淡出，扇缘一道浪沫弧
+static func share(g, f: Dictionary) -> void:
+	var r = g.world
+	var c: Vector2 = f.pos
+	var k: float = 1.0 - float(f.life) / maxf(0.01, float(f.max))
+	var half: float = float(f.half)
+	var reach: float = float(f.r)
+	var fade: float = 1.0 - k
+	for i in 16:
+		var a: float = float(f.ang) + lerpf(-half, half, (float(i) + 0.5) / 16.0) + (_n(i, 71) - 0.5) * half / 12.0
+		var d := Vector2.from_angle(a)
+		var head: float = reach * minf(1.0, k / 0.45) * (0.8 + 0.2 * _n(i, 72))
+		var tail: float = maxf(0.0, head - 70.0 - 40.0 * _n(i, 73))
+		_seg(r, c + d * tail, c + d * head, 6.0, Color(DEEP.r, DEEP.g, DEEP.b, 0.6 * fade))
+		_seg(r, c + d * tail, c + d * head, 3.0, Color(SEA.r, SEA.g, SEA.b, 0.85 * fade))
+		_dot(r, c + d * head, Color(CREST.r, CREST.g, CREST.b, fade), 4.0)
+		for j in 3:
+			var u: float = tail + (head - tail) * _n(i * 3 + j, 74)
+			_dot(r, c + d * u + d.orthogonal() * (_n(i * 3 + j, 75) - 0.5) * 10.0, Color(0.85, 0.95, 1.0, 0.7 * fade))
+	if k > 0.25:
+		var m: float = (k - 0.25) / 0.75
+		for i in 40:
+			var a: float = float(f.ang) + (_n(i, 76) * 2.0 - 1.0) * half
+			var dd: float = reach * (0.3 + 0.7 * _n(i, 77)) + 20.0 * m
+			_dot(r, c + Vector2.from_angle(a) * dd + Vector2(0, -14.0 * m * _n(i, 78)), Color(0.55, 0.75, 1.0, 0.55 * (1.0 - m)))
+	var steps := 24
+	for i in steps:
+		var a0: float = float(f.ang) - half + 2.0 * half * i / steps
+		var a1: float = float(f.ang) - half + 2.0 * half * (i + 1) / steps
+		var rr: float = reach * minf(1.0, k / 0.45)
+		_seg(r, c + Vector2.from_angle(a0) * rr, c + Vector2.from_angle(a1) * rr, 3.0, Color(CREST.r, CREST.g, CREST.b, 0.6 * fade))

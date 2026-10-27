@@ -38,6 +38,7 @@ static func draw(g, impacts := false) -> void:
 		for f in g.fx:
 			if f.kind == "bubble_pop" and f.life > 0: Bubble.pop(g,f)
 			elif f.kind == "izu_shock" and f.life > 0: IzumikDraw.shock(g,f)   # 伊祖米克全场海浪（docs/170）
+			elif f.kind == "izu_share" and f.life > 0: IzumikDraw.share(g,f)   # 伊祖米克分享喷涌（docs/170）
 			elif f.kind == "final_impact" and f.life > 0:
 				_shape(g,f,clampf(float(f.life)/float(f.max)*1.5,0,1),false)
 		for e in g.bosses:
