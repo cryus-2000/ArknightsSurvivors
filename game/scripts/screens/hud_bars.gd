@@ -313,10 +313,56 @@ func _boss_sub(e: Dictionary) -> Array:
 	return ["", UI.SUB]
 
 
+## Boss 血条（10-28 用户「boss的血条的UI是不是也可以更有设计感一点」，选定 B「刻纹槽」）：缺省由 hud_bossbar 画；--bbstyle=0（开发版）回下面的旧细条作对照，--bbdemo 画演示
+var _bb = null
+var _bbs := -1
+var _bbd := false
+
+func _bb_style() -> int:
+	if _bbs < 0:
+		_bbs = 2   # 10-28 用户选 B「刻纹槽」（hud_bossbar）
+		for a in Cfg.dev_args():
+			if a.begins_with("--bbstyle="):
+				_bbs = clampi(int(a.substr(10)), 0, 2)   # 0 = 旧细条（对照用）
+			if a == "--bbdemo":
+				_bbd = true
+	return _bbs
+
+
 func draw_boss_bars(vs: Vector2) -> void:
 	var bby := 0.0
 	if h.panel_over_top():
 		return   # 触屏选卡：面板标题占顶部中央（boss_bottom 保持上一帧的值，关面板后横幅位置不跳）
+	if _bb_style() > 0:
+		if _bb == null:
+			_bb = preload("res://scripts/screens/hud_bossbar.gd").new(h)
+		if _bbd:
+			_bb.draw_demo(vs)
+			boss_bottom = 98.0 + 5.0 * 44.0 + 8.0
+			return
+		var bw2: float = minf(BB_W_MAX, vs.x * 0.5)
+		var bx2: float = round(vs.x / 2.0 - bw2 / 2.0)
+		var vrows: Array = []
+		var y2: float = BB_Y
+		var allrows: Array = _boss_rows(boss_bars())
+		for ri in mini(allrows.size(), BOSS_BARS_MAX):
+			var row: Array = allrows[ri]
+			if row.size() == 1 and row[0].type == "ishar" and row[0].get("friendly", false):
+				draw_ishar_human(row[0], bx2, bw2, y2)   # 伊莎玛拉人形（友方充能条）照旧，排在最前
+				y2 += BB_ROW
+				continue
+			var vv: Array = []
+			for e in row:
+				var v: Dictionary = _bb.view_of(e)
+				v["sub"] = _boss_sub(e)
+				vv.append(v)
+			vrows.append(vv if vv.size() == 2 else vv[0])
+		var used: float = _bb.draw_views(vrows, bx2, y2, bw2) + (y2 - BB_Y)
+		if allrows.size() > BOSS_BARS_MAX:
+			UI.text(g.hud, g.font, Vector2(bx2, BB_Y + used + 10.0), "另有 %d 个 Boss" % (allrows.size() - BOSS_BARS_MAX), 12, Color(1, 0.82, 0.88), HORIZONTAL_ALIGNMENT_CENTER, bw2, 2)
+			used += 16.0
+		boss_bottom = BB_Y + used + 4.0 if used > 0.0 else 0.0
+		return
 	var bars: Array = boss_bars()
 	var rows := _boss_rows(bars)
 	var bw: float = minf(BB_W_MAX, vs.x * 0.5)
