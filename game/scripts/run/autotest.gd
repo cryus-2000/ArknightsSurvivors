@@ -72,6 +72,7 @@ var partab := 0               # --partab=N（docs/136 §2 排查）：每 N 帧�
 var matab := 0                # --matab=N：每 N 帧轮换材质颗粒（fx/material_grains）开 / 关（--perf 分 /m1 /m0；要同时 --bal=fx/material_grains=1）
 var iceab := 0                # --iceab=N：每 N 帧轮换骑士冰颗粒开 / 关（--perf 分 /i1 /i0）
 var grainab := 0              # --grainab=N：每 N 帧轮换刀光第四版（粒子）开 / 关（--perf 分 /g1 /g0）
+var shdemo_full_t := INF      # --shielddemo：护盾充满的时刻
 var bulfxab := 0              # --bulfxab=N：每 N 帧轮换子弹出现 / 消失画面开 / 关（render/bullet_fx.gd；--perf 分 /b1 /b0）
 var tierab := 0               # --tierab=N（docs/50 §25.3）：每 N 帧轮换命中三档开 / 关
 # --stackab=N:m1,m2,…（docs/50 §26）：每 N 帧换下一个掩码（optical.ab_mask：1 CPU 颗粒 / 2 GPU 粒子 / 4 特效照明 / 8 发光层 / 16 低分辨率层 / 32 整套光学），
@@ -990,6 +991,20 @@ func step() -> void:
 				while not o.next_node().is_empty() and guard < 12:
 					o.advance("")
 					guard += 1
+	if g.mode == g.Mode.BALANCE and Cfg.dev_args().has("--shielddemo") and g.state == g.S.PLAY:
+		# 护盾画面录像（render/world.gd draw_shield，10-28）：每帧钉住 3 层上限、1.2 秒一层，从 0 充起；每次充满后停 1 秒挡一次（假受击）
+		if g.shield_max != 3:
+			g.shield = 0
+			g.shield_cd = 1.2
+		g.shield_max = 3
+		g.shield_every = 1.2
+		if g.shield < 3:
+			shdemo_full_t = INF
+		else:
+			shdemo_full_t = minf(shdemo_full_t, g.t)
+			if g.t - shdemo_full_t > 1.0:
+				g.combat.shield_block()
+				print("SHIELDDEMO block t=%.2f" % g.t)
 	if Cfg.dev_args().has("--tierdemo") and g.at_frames % 30 == 10 and g.ch != null and g.ch.pos != Vector2.INF:
 		# 特效第 2 步对照图：主控面前从左到右同时放一次轻 / 中 / 重命中 + 同档刀光（纯画面，不扣血、不碰随机数）
 		for t in [1, 2, 3]:

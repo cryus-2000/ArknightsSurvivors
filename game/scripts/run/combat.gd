@@ -700,13 +700,9 @@ func shield_block() -> void:
 	g.invuln = 0.5
 	if g.shield < g.shield_max and g.shield_cd <= 0.0:
 		g.shield_cd = g.shield_every
-	Sfx.play("dodge", -2.0, 1.4, 0.0)
-	g.vfx.add_text(g.ppos + Vector2(0, -84), "护盾抵挡", Color(0.6, 0.9, 1.0), 16)
-	# 碎片
-	for k in 14:
-		g.fx.append({"kind": "shard", "pos": g.ppos + Vector2(0, -24), "vel": Vector2.from_angle(randf() * TAU) * randf_range(120, 260),
-			"life": 0.5, "max": 0.5, "rot": randf() * TAU})
-	g.fx.append({"kind": "ring", "pos": g.ppos + Vector2(0, -20), "r": 50.0, "life": 0.3, "max": 0.3, "col": Color(0.6, 0.9, 1.0)})
+	Sfx.play("stake_shatter", -9.0, 1.5, 0.0)   # 轻脆碎裂声（原 dodge 呼声读不出「碎了」）
+	g.vfx.add_text(g.ppos + Vector2(0, -84), "护盾抵挡", Color(1.0, 0.9, 0.7), 16)
+	# 碎片 / 闪环 / 无敌微光：render/world.gd draw_shield 比对层数变化自己画（淡金色，用户 10-28 重画）
 	if g.shield_heal:
 		heal(g.max_hp * 0.03, "藏品")
 	if g.shield_burst:
@@ -1270,7 +1266,7 @@ func kill(e: Dictionary, h: Dictionary = {}) -> void:
 			if g.rng_drop.randf() < Bal.v("crate/shield_p", 0.0):
 				g.shield = mini(g.shield + 1, maxi(g.shield_max, 1) + 1)
 				g.shield_pop = 0.4
-				g.vfx.add_text(e.pos + Vector2(0, -30), "护盾 +1", Color(0.55, 0.85, 1.0), 16)
+				g.vfx.add_text(e.pos + Vector2(0, -30), "护盾 +1", Color(1.0, 0.9, 0.7), 16)
 				g.pickups.item_log["crate_shield"] += 1
 		return
 	if e.type != "tear":
