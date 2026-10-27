@@ -1,11 +1,11 @@
-# 172 · 事件改版：有代价的取舍 + 按构筑出对口交易（10-27 设计稿，待用户拍板）
+# 173 · 事件改版：有代价的取舍 + 按构筑出对口交易（10-27 设计稿；10-28 用户「都按推荐做」，P1 已实装，见 §9）
 
 > 来源：用户 10-27「现在游戏里的事件没什么用」。协调人分析（首通前看不到、主要用来选结局、奖励弱无取舍、一局两次）并给出五个方向，本稿按此展开。
-> 范围：只写方案，不改代码。基线 origin/main `d88b56b56`；现行规则是 [154 翻节点卡](154_node_cards.md)（§9–§11 已实装），事件链出处见 [148](148_route_choice.md) §2–§3，插图见 [156](156_event_cg.md)，紧急作战见 [161](161_elite_squad.md)，流派见 [35](35_relic_lanes.md) 与 163D（分支 `claude/build-growth-impl`）。
+> 范围：§0–§8 是方案（10-27）；§9 是实装记录（10-28，分支 `claude/event-redesign`）。基线 origin/main `d88b56b56`；现行规则是 [154 翻节点卡](154_node_cards.md)（§9–§11 已实装），事件链出处见 [148](148_route_choice.md) §2–§3，插图见 [156](156_event_cg.md)，紧急作战见 [161](161_elite_squad.md)，流派见 [35](35_relic_lanes.md) 与 163D（分支 `claude/build-growth-impl`）。
 > 原作出处：解包数据 `zh_CN/gamedata/excel/roguelike_topic_table.json`（Kengxxiao/ArknightsGameData，10-27 取）的 `rogue_2.choiceScenes` / `choices`，下文写作 `scene_ro2_<id>`；PRTS「[水月与深蓝之树/事件一览](https://prts.wiki/w/水月与深蓝之树/事件一览)」用的是同一套数据。事件名、选项名取原作；效果数值一律是本作折算，标「本作拟」的是原作没有的部分。
-> 示意图（手机竖屏，程序画的线框）：`docs/reference/172_event_redesign.png`，生成脚本 `tools/probes/event_redesign_sheet.py`。
+> 示意图（手机竖屏，程序画的线框）：`docs/reference/173_event_redesign.png`，生成脚本 `tools/probes/event_redesign_sheet.py`。
 
-![事件改版示意](reference/172_event_redesign.png)
+![事件改版示意](reference/173_event_redesign.png)
 
 ---
 
@@ -292,3 +292,26 @@
 | 5 | 对口的程度 | **加权**：主流派三选一里 2 件对口、1 件随机 | 锁定：对口奖励只从主流派出 |
 
 数值（V 口径、各代价初值、首通前收益折扣）不用拍板，数值会话按云端结果调（self-tune 授权）。
+
+**10-28 用户定：五条全部按推荐。**
+
+---
+
+## 9. 实装记录（10-28，P1 + P2）
+
+- 开关：`balance.json` 的 `cross/redesign`（缺省 1，未写进文件，靠代码缺省；`--bal=cross/redesign=0` = 旧翻卡，云端对照用，旧版的卡组、事件、机器人逐项不变）。
+- 数据：新文件 `game/data/events_v2.json`（改版开着时 `endings.gd` 载入后并进 waves.json）：`cross` = 途中路口时刻 `mid`、张数 `mid_n`、`lane_event_w`、`away_t`、`chal_grace`；`patch` = 现有事件的 `trade` 标记、`options_v2`、继承的 `v1`（改版不出）；`events` = P1 8 件 + P2 5 件（设身处地第二屏 `feeding_2`）+ `wish_v2`。waves.json 本身没动。每件新事件带 `src`（原作出处，见 §4.2）。
+- 代码：`endings.gd`（途中路口 `_tick_mid`、`build_deck(0)`、交易保底与无代价上限、主流派 `main_lane`、加权抽事件、新选项原语、选干员 / 交藏品的二级屏 `_next_sub` / `_sub_pick`、委托 `_start_threat` / `_tick_chal`、暂离 `_tick_away`、状态栏 `status_items`、机器人 `_bot_v2`）；`progression.open_relic_choice`（`lane_bias`：三选一前两张换成主流派）；`hud_bars`（委托倒计时、暂离队友）；`node_cards_ui`（交易卡右上角红色「代价」角标）；`choice_panel`（插画键 `cg_key`：敬奉火焰用引火之木的图）。
+- 与 §2–§4 的出入：
+  1. 得偿所愿：不是「选完再多一个按钮」，而是翻开后先弹一屏「带走一件 / 再拿一件（队长生命 −20%，三选一两次）」，两次都是主流派加权。
+  2. 守望相助只收**纯属性藏品**（效果全是 stat 的）：交出时撤掉它的属性来源；带规则 / 触发的藏品撤不干净，不收。
+  3. 「立即精英化一级」：中间的分支节点按干员固定路线（`bot_route`，同典训 / 赠送推进），精英化节点的选项取第一项；玩家没法在这里选路线。
+  4. 敬奉火焰「进入战斗」：小队全灭照紧急作战给宝箱（主流派三选一）+ 源石锭 20。
+  5. 先遣小队只有一名队友时，精英化只能给队长（那名队友要撤离）。
+  6. 限时强敌只加在这段时间**刷出**的敌人上（走 `enemy_hp` / `enemy_dmg` 属性，已在场的不回溯）。
+  7. 大海的遗产原来的「遭诅藏品」走 `random_relic`，三选一池不出遭诅，实际给的是 12 源石锭；改版换成新的 `curse` 原语，真的给遭诅藏品（旧版不动）。
+- 机器人：`_bot_v2` 按 §2.4 的 V 口径估值（付生命后低于 40% 记 −5，限时强敌在生命 < 60% 时记 −5），取最大；结局线照 `bot_route`。`bot/event_greedy = 0` 是稳妥档（不选带代价的项），云端两种策略都跑。
+- P2 与 §4.2 的出入：设身处地删掉「再喂喂看？」（第二屏只喂一次）；梦中之会每项一次、最多连选三项；重返家园「意思意思」的两个职业按主流派加权抽（近战流派偏近卫 / 重装 / 先锋 / 特种，远程流派偏其余）。
+- 测试：新 `event_trade`（§7.2 的 1–7，加途中路口时序；第 9 步把 13 件新事件的每个可选项都走一遍，含二级屏与委托 / 暂离结算，40 项）；`node_cards`、`economy` 改为显式打开结局线（`lines_on`）、跳过途中路口，原断言照旧。本地跑过 event_trade / node_cards / route_knight / economy / run_stats，两局整局机器人（seed 3 / 4，拉普兰德）无脚本报错。
+- 云端测法（docs/36 §7.5.1）：常规 / 高压各 56 对同 seed，改版 vs `--bal=cross/redesign=0`（旧翻卡）；机器人两档 `--bal=bot/event_greedy=1`（贪）/ `=0`（稳妥）各跑一组；加 `--allend` 让结局线也在。看胜率（差 < 10 点不下结论）、ENDEV 日志里各路口卡种与选项分布、接受交易后 60 秒内阵亡比例；首通前另跑一组去掉 `--allend`、玩家口径（结局线关）。
+- 未做（P2 / 后续）：§4.2 P2 五件；新事件 CG（没图的退回墨色底）；作战记录里「每个路口选了哪项」（`endg.picks` 已记 `[路口, 卡种, 事件, 选项]`，局终统计还没显示）；首通前收益折扣（等云端数据）。

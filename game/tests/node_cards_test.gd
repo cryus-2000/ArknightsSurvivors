@@ -37,6 +37,8 @@ func _process(_dt: float) -> void:
 	var E = game.endg
 	E.enabled = true
 	E._checked = true
+	E.lines_on = true
+	E.mid_done = 2   # 途中路口（docs/173）另在 event_trade_test 测
 	# 1 同 seed 同卡组
 	game.rng.seed = 4242
 	var d1: Array = _deck_ids(E.build_deck(1))
@@ -78,9 +80,9 @@ func _process(_dt: float) -> void:
 	var cleared0: Array = Cfg.endings_cleared.duplicate()
 	game.mode = game.Mode.PLAY
 	Cfg.endings_cleared.clear()
-	check(not E._cross_on() or Cfg.dev_args().has("--allend"), "before clearing ending 1 the node cards are off")
+	check(not E._cross_on() or Cfg.dev_args().has("--allend"), "before clearing ending 1 the ending-line cards are off")
 	Cfg.endings_cleared.append("standard")
-	check(E._cross_on(), "after clearing ending 1 the node cards are on")
+	check(E._cross_on(), "after clearing ending 1 the ending-line cards are on")
 	Cfg.endings_cleared = cleared0
 	game.mode = mode0
 	# 4 互斥：走了开端（持 220），路口二没有骑士仍在

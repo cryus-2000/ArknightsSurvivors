@@ -964,6 +964,7 @@ SCENE_REGRESSIONS = {
     "touch_layout": ("触屏按键布局：存档往返 / 换比例锚点 / 越界夹进安全区 / 局内按新位置点击 / 编辑页拖动推开调大小 / 选卡让位 / 转屏重算 ui_k", "touch_layout_test", r"TOUCH LAYOUT failures=0", ["--touch"]),
     "economy": ("经济与收藏品上限", "economy_regression", r"ECONOMY REGRESSION: 0 failures", []),
     "node_cards": ("翻节点卡：卡组可复现 / 结局入口必出 / 首通前不开 / 互斥 / 结局只看信物 / 升华三句 / 最晚时刻 / 面板顺序（docs/159）", "node_cards_test", r"NODE CARDS: 0 failures", []),
+    "event_trade": ("事件改版：卡组可复现 / 首通前无结局卡 / 交易保底与无代价上限 / 代价灰掉 / 主流派 / 委托 / 暂离归队 / 途中路口（docs/173）", "event_trade_test", r"EVENT TRADE: 0 failures", []),
     # "hunt_approach" 停用（10-25 围猎并进大群，hunt/enabled 0，docs/150）：独立围猎事件不再触发，run/hunt.gd 与测试保留，恢复围猎时一起放回
     "friendly_target": ("中立单位索敌与治疗", "friendly_target_regression", r"FRIENDLY TARGET REGRESSION: 0 failures", []),
     "ishar_p2": ("伊莎玛拉敌对二阶段", "ishar_p2_test", r"ISHAR P2 failures=0", ["--balance", "--bosstest=ishar2"]),

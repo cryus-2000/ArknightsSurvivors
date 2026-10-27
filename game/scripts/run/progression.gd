@@ -286,6 +286,12 @@ func open_relic_choice() -> void:
 		g.rfx.use_rule("chest_keys")
 		extra += 1
 		g.vfx.add_text(g.ppos + Vector2(0, -96), "钥匙 · 多一个选项", UI.GOLD, 15)
+	# 事件改版的对口三选一（docs/173 §2.2）：前两张换成主流派里排最前的两件，其余照原顺序（只重排，不多取随机数）
+	var lb: String = g.endg.lane_bias
+	if lb != "":
+		var on_lane: Array = pool.filter(func(c): return (g.RL[c.id].get("lanes", []) as Array).has(lb)).slice(0, 2)
+		pool = on_lane + pool.filter(func(c): return not on_lane.has(c))
+		g.endg.lane_bias = ""
 	var shown: Array = pool.slice(0, 3 + g.rfx.rule("four_choices") + extra)
 	g.meta_basic_pick = false
 	g.endg.wish_rare = false

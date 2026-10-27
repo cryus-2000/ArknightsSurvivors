@@ -527,7 +527,7 @@ func _draw_event_bg_phone(vs: Vector2) -> void:
 
 ## 当前事件的插画（没有对应图返回 null，退回墨色底 + 节点图标）
 func event_cg() -> Texture2D:
-	var key: String = g.endg.opened_id if g.endg != null else ""
+	var key: String = g.endg.cg_key() if g.endg != null else ""
 	if key != ev_cg_key:
 		ev_cg_key = key
 		ev_cg = null
@@ -1139,7 +1139,7 @@ func draw_node_card(card: Button, o: Dictionary, i: int) -> void:
 					st.face_tag = " / ".join(ends.map(func(e): return NodeCardsUI.ROUTE_NAME.get(e, "")))
 			"wish":
 				st.face_title = "消失的习俗"
-				st.face_body = "亮出三件藏品，选一件带走。"
+				st.face_body = "亮出三件藏品，选一件带走；也可以付生命多拿一件。" if g.endg.redesign else "亮出三件藏品，选一件带走。"
 			"rest":
 				st.face_title = "安全屋"
 				st.face_body = "休整、添加燃料，或重整编制。"
