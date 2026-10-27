@@ -1,7 +1,7 @@
 extends Node
 ## 全局音频（自动加载为 Sfx）：背景音乐 + 音效池。标题界面与游戏共用，切换场景时音乐不中断。
 
-const NAMES := ["heartbeat", "swing", "swing_heavy", "hit", "kill", "tentacle", "hurt", "dodge", "pickup", "oil",
+const NAMES := ["op_siege_s1_soft", "op_texas_s2_soft", "heartbeat", "swing", "swing_heavy", "hit", "kill", "tentacle", "hurt", "dodge", "pickup", "oil",
 	"levelup", "relic", "skill", "roar", "boom", "ui_move", "ui_ok", "start", "lamp_out",
 	"knight_charge", "knight_stab", "knight_frost", "hunt_warn", "hunt_close", "hunt_break", "enemy_screech", "enemy_spit", "enemy_bite", "enemy_nerve", "mire_clear", "enemy_acid", "enemy_elite", "crit_tick", "break_open", "break_hit", "lamp_empty", "heartbeat_hi", "beacon_tick", "beacon_lit", "beacon_end", "nerve_burst", "mire_splat",
 	"cocoon_form", "shell_break", "cocoon_revive", "izu_lamp_lit", "izu_absorb", "izu_wave_count", "apop_pause", "apop_resume", "stake_hit", "stake_shatter", "carmen_sword", "ishar_land_break", "paranoia_land_break", "bishop_panic",
@@ -42,7 +42,7 @@ const OP_LIMIT := {"atk": 0.06, "hit": 0.06, "quake": 0.08, "big": 0.1, "heal": 
 ## OP_DB 音量偏移（dB，叠在 OP_VOL 与调用处偏移上）；OP_GAP 最短间隔（秒，按请求名算，借用同一文件的干员各算各的）；
 ## OP_PVAR 音高随机（±，取它与调用处的较大值）。数字来自 docs/113 §2 实测：混音里最响的是长尾低频重击的高频连发
 const OP_DB := {"op_eyjafjalla_big": -3.0, "op_kaltsit_big": -2.0, "op_wisadel_quake": -3.0, "op_wisadel_hit": -1.5, "op_exusiai_hit": -5.0,
-	"op_exusiai_s1": -3.0, "op_exusiai_s2": -3.0, "op_exusiai_s3": -3.0, "op_exusiai_big": -3.0, "op_texas_hit": -3.0}
+	"op_siege_s1_soft": -2.0, "op_texas_s2_soft": -2.0, "op_exusiai_s1": -3.0, "op_exusiai_s2": -3.0, "op_exusiai_s3": -3.0, "op_exusiai_big": -3.0, "op_texas_hit": -3.0}
 const OP_GAP := {"op_exusiai_atk": 0.03, "op_exusiai_hit": 0.14, "op_exusiai_big": 0.5, "op_eyjafjalla_big": 0.2}
 const OP_PVAR := {"op_exusiai_atk": 0.09, "op_exusiai_hit": 0.1, "op_irene_atk": 0.08, "op_texas_atk": 0.08, "op_eyjafjalla_atk": 0.08, "op_lumen_atk": 0.07, "op_wisadel_quake": 0.12}
 var op_last := {}          # 请求名 -> 上次放行的墙钟秒（OP_GAP）
@@ -195,6 +195,10 @@ func _ready() -> void:
 	if cfg != null and "voice" in cfg:
 		AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Voice"), linear_to_db(maxf(float(cfg.voice), 0.0001)))
 	voice_log = cfg != null and cfg.has_method("dev_args") and cfg.dev_args().has("--voicelog")
+	if cfg != null and cfg.has_method("dev_args"):
+		for a in cfg.dev_args():
+			if a.begins_with("--cmdcue="):
+				cmd_cue = a.substr(9)
 	for n in NAMES:
 		streams[n] = _load_wav("res://audio/sfx/%s.wav" % n)
 	for oid in OP_SFX:
@@ -1381,8 +1385,26 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 
 
 ## 干员音效：op("skadi", "atk")；vol 为相对该类别默认音量的偏移。没有专属文件时退回通用音效
+## 「冲锋号令·γ型」（推进之王 S1、德克萨斯 S2）发动音（10-28 用户「有点烦」→「碎响一声就行」）：
+## "soft"（定稿缺省）= 发动时只响一下约 0.1 秒、比普攻轻约 6 dB 的碎响（op_*_soft，tools/gen_sfx_cmd_cue_1028.py）；两个技能共用一道节流
+## CMD_SOFT_GAP，同时触发 / 连续触发合并成一声；"old" 原样（推进之王 0.91 秒号角 / 德克萨斯借跃空锤风声）、"mute" 不播，测试用 --cmdcue=old|mute 对照
+const CMD_CUE_NAMES := ["op_siege_s1", "op_texas_s2"]
+const CMD_SOFT_GAP := 0.6
+var cmd_cue := "soft"
+
+
 func op(oid: String, kind: String, vol := 0.0, pitch := 1.0, pitch_var := 0.05) -> void:
 	var sn := "op_%s_%s" % [oid, kind]
+	if sn in CMD_CUE_NAMES and cmd_cue != "old":
+		if cmd_cue == "mute":
+			return
+		sn += "_soft"
+		pitch = 1.0
+		var nowc := Time.get_ticks_usec() / 1000000.0
+		if nowc - float(op_last.get("cmd_cue", -99.0)) < CMD_SOFT_GAP:
+			sfx_stat.merged += 1
+			return
+		op_last["cmd_cue"] = nowc
 	if OP_GAP.has(sn):
 		var now := Time.get_ticks_usec() / 1000000.0
 		if now - float(op_last.get(sn, -99.0)) < float(OP_GAP[sn]):
