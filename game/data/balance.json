@@ -834,7 +834,14 @@
   "bright": 0.45,
   "ghost": 2,
   "pause": 0.025,
-  "ops": {}
+  "ops": {},
+  "_style": "藏品近战剑气按武器分类（用户 10-27，docs/170 §7）：blade 刀剑一字斩 / thrust 细剑·长柄突刺 / blunt 锤·盾·锚贴地冲击波；不在表里 = 通用（拉普兰德剑气帧条重染）。styles/<类> 覆盖曲线旋钮，判定与伤害各类相同",
+  "style": {"texas": "blade", "irene": "thrust", "gladiia": "thrust", "siege": "blunt", "hoshiguma": "blunt", "saria": "blunt", "ulpianus": "blunt"},
+  "styles": {
+   "blade": {"k": 4.0, "glide": 0.12, "stretch": 0.6},
+   "thrust": {"k": 1.8, "glide": 0.45, "stretch": 0.5},
+   "blunt": {"k": 5.0, "glide": 0.05, "stretch": 0.2, "pause": 0.035}
+  }
  },
  "vgrowth": {
   "_doc": "可见成长藏品的数值（docs/163 §2 / §6，scripts/characters/blocks/vis_growth.gd）。count_decay / size_decay = 叠层递减（第 i 层 × decay^(i-1)，渐近不封顶）；sub_* = 召唤物副体；qi_* = 近战剑气；burst_gap = 连发补射间隔；cap_* = 同屏上限，按画质档 高 / 中 / 低 取 [0] / [1] / [2]，超出的不生成实体、伤害直接结算到目标（起点值，等 perf 实测再定）",
@@ -850,6 +857,7 @@
   "qi_pierce_min": 0.5,
   "qi_fan_deg": 12,
   "qi_scale": 1.4,
+  "qi_style_scale": 1.4,
   "qi_skip": 0.7,
   "shot_speed": 560,
   "shot_spread_deg": 10,

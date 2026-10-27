@@ -33,7 +33,7 @@ func _ready() -> void:
 	g.invuln = 1.0e9
 	g.xp_need = 1.0e12
 	var c: Dictionary = CASES[cs]
-	var o = g.squad.get_op(str(c.op))
+	var o = g.squad.get_op(_arg("op", str(c.op)))   # qi 可换干员看各武器类（docs/170 §7）
 	o.sp = [-1.0e9, -1.0e9, -1.0e9]
 	for e in g.enemies:
 		e.dead = true
@@ -71,7 +71,7 @@ func _ready() -> void:
 		if _arg("sw_dbg", "") == "2" and o.hw is Dictionary and not o.hw.get("waves", []).is_empty():
 			print("W f=%d %s" % [f, o.hw.waves.map(func(w): return "%.0f" % w.dist)])
 		if _arg("sw_dbg", "") == "3" and o.vg is Dictionary and not o.vg.get("qi", []).is_empty():
-			print("Q f=%d %s" % [f, o.vg.qi.map(func(q): return "%.0f" % q.p.distance_to(q.o0))])
+			print("Q f=%d %s" % [f, o.vg.qi.map(func(q): return "%s@%s" % [q.get("style", ""), q.p - ctr])])
 		if f % 120 == 0 and _arg("sw_dbg", "") == "1":
 			print("DBG f=%d n=%d alive=%d waves=%d pos=%s e0=%s hp=%.0f dead=%s" % [f, g.enemies.size(), es.filter(func(e): return not e.dead).size(), o.hw.get("waves", []).size() if o.hw is Dictionary else -1, o.pos, es[0].pos, es[0].hp, es[0].dead])
 		for e in es:
@@ -90,7 +90,7 @@ func _ready() -> void:
 			g.fg.queue_redraw()
 			await get_tree().process_frame
 			await RenderingServer.frame_post_draw
-			get_viewport().get_texture().get_image().save_png(out.path_join("%s_%03d.png" % [cs, f]))
+			get_viewport().get_texture().get_image().save_png(out.path_join("%s_%03d.png" % [_arg("sw_tag", cs), f]))
 	print("SW COUNT %s frames=%d hit_frames=%d dmg=%.1f first=%d update_ms=%.3f" % [cs, frames, hits, dmg, first, us / 1000.0 / frames])
 	print("SW CAPTURE done %s" % cs)
 	get_tree().quit(0)

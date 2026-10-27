@@ -6,7 +6,7 @@ extends RefCounted
 ## p(0) = 0、p(1) = 1，所以飞行总距离、存活时间与改前匀速完全相同；判定宽度 / 厚度不变，碰撞改为扫过「上一帧 → 这一帧」整段
 ## （出手那几帧一帧走 20+ px，不扫会穿过小怪），覆盖的路径与匀速相同，命中范围与伤害期望不变（只是命中时刻提前）。
 ## 旋钮 balance.json sword_ease：k / glide / stretch / bright / ghost / pause；按干员覆盖 sword_ease/ops/<干员 id>/<键>，
-## 积木上写 "ease": {键: 值} 再覆盖一层、"ease": 0 关掉（回到匀速）。缺省只给带 proj 的弹体式刀波；浪墙（斯卡蒂跃浪）要写 "ease": {} 才开。
+## 藏品剑气另按武器类取 sword_ease/styles/<类>/<键>（style 表见 vis_growth.qi_style）；积木上写 "ease": {键: 值} 再覆盖一层、"ease": 0 关掉（回到匀速）。缺省只给带 proj 的弹体式刀波；浪墙（斯卡蒂跃浪）要写 "ease": {} 才开。
 
 const Bal = preload("res://scripts/core/balance.gd")
 const KEYS := ["k", "glide", "stretch", "bright", "ghost", "pause"]
@@ -14,7 +14,7 @@ const DEF := {"k": 3.0, "glide": 0.2, "stretch": 0.35, "bright": 0.45, "ghost": 
 
 
 ## 这一道刀波的曲线参数；空字典 = 匀速（总开关 sword_ease/on 为 0、积木写 "ease": 0、或浪墙没写 ease）
-static func cfg(op_id: String, b: Dictionary, default_on: bool) -> Dictionary:
+static func cfg(op_id: String, b: Dictionary, default_on: bool, style := "") -> Dictionary:
 	if Bal.v("sword_ease/on", 1.0) <= 0.0:
 		return {}
 	var be = b.get("ease", null)
@@ -25,6 +25,8 @@ static func cfg(op_id: String, b: Dictionary, default_on: bool) -> Dictionary:
 	var c := {}
 	for k in KEYS:
 		var d: float = Bal.v("sword_ease/" + k, float(DEF[k]))
+		if style != "":   # 按武器类（docs/170 §7）：styles/<类>/<键> 盖在全局缺省上，再被 ops/<干员> 覆盖
+			d = Bal.v("sword_ease/styles/" + style + "/" + k, d)
 		c[k] = Bal.v("sword_ease/ops/" + op_id + "/" + k, d)
 		if be is Dictionary and be.has(k):
 			c[k] = float(be[k])
