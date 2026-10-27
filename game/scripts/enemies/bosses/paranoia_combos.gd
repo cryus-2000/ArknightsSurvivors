@@ -37,6 +37,9 @@ const LOW_BULLETS := 20
 const REST_SPD := 90.0
 const REST_NEAR := 110.0
 const BUL_CAP := 200
+## 缺口按幕递进（用户 10-28）：一幕固定缺口（眼圈缺她那一格、泡影环缺口朝你）→ 二幕错位（正反旋菱形格）→
+## 三幕 / 破茧后错位缺口、缝隙墙、停滞时间窗；破茧后缝收窄、弹数略增。表：[无声波环每圈发数, 缺口半角, 帘幕间距, 帘幕缝半宽, 群愿每朵发数]
+const LATE := {false: [18, 0.6, 40.0, 75.0, 20], true: [22, 0.5, 34.0, 60.0, 24]}
 ## 弹体分级：r 判定半径、伤害倍率（× e.dmg）
 const TIER := {"s": [6.0, 0.34], "m": [9.0, 0.42], "l": [12.0, 0.5]}
 const CORE := Color(0.85, 0.55, 1.0)   # 颗粒（泡破 / 聚光）同泡泡的紫
@@ -288,9 +291,10 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 		"无声波环":
 			# 两道 18 发泡环，先慢后加速，缺口约 1.2 弧度且错位：第一道缺口朝你，第二道偏 0.95
 			var gap_c: float = _aim(o) + (0.0 if k == 0 else 0.95 * float(em.flip))
-			for i in 18:
-				var a2: float = TAU * i / 18.0
-				if absf(angle_difference(a2, gap_c)) < 0.6:
+			var lw: Array = LATE[act(e) >= 3]
+			for i in int(lw[0]):
+				var a2: float = TAU * i / float(lw[0])
+				if absf(angle_difference(a2, gap_c)) < float(lw[1]):
 					continue
 				# 10-27 用户「打出去以后弹幕可以加速」：先以 80 慢慢鼓出（看清缺口），0.45 秒后每秒 +260 加速到 280
 				var b: Dictionary = _shot(e, o, a2, 80.0, "m")
@@ -306,13 +310,14 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 			var gc: float = float(em.gap) if k == 0 else float(em.gap2)
 			var s0: float = -450.0
 			while s0 <= 450.0:
-				if absf(s0 - gc) >= 75.0:
+				if absf(s0 - gc) >= float(LATE[act(e) >= 3][3]):
 					_shot(e, o + d * 30.0 + side * s0, float(em.a0), 120.0, "s")
-				s0 += 40.0
+				s0 += float(LATE[act(e) >= 3][2])
 		"群愿回响":
 			# 五瓣花：先按花瓣速度散开，1 秒后全部停住 0.5 秒，再各自对准你当时的位置射出
-			for i in 20:
-				var a3: float = TAU * i / 20.0 + 0.16 * k
+			var nf: int = int(LATE[act(e) >= 3][4])
+			for i in nf:
+				var a3: float = TAU * i / float(nf) + 0.16 * k
 				var spd: float = 70.0 + 70.0 * absf(cos(2.5 * (a3 - float(em.a0))))
 				var b2: Dictionary = _shot(e, o, a3, spd, "m")
 				if not b2.is_empty():
