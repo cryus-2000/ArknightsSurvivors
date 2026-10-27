@@ -6,6 +6,7 @@ extends RefCounted
 ## 3. 卡门火线、塑路者生路、泡影悬浮圈、伊莎玛拉连线、伊祖米克子代与茧（地面层）；接潮组同步护盾、泡影坠地 / 光环散开倒计时、伊莎玛拉音符与护盾格、伊祖米克来向箭头与强化层数（顶层）。
 const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const ParanoiaComboDraw = preload("res://scripts/render/paranoia_combo_draw.gd")
 
 const SEG := 16.0     # 每段宽（美术像素）
 const HALF_H := 24.0  # 帧高 48 的一半（光束竖直居中）
@@ -183,6 +184,7 @@ static func _paranoia_ground(g, e: Dictionary) -> void:
 
 
 static func _paranoia_top(g, e: Dictionary) -> void:
+	ParanoiaComboDraw.draw_top(g, e)   # 连携攻势：幻影空心泡 / 起手聚光（docs/170）
 	var left: float = 0.0
 	if e.phase == 1 and float(e.get("drop_until", 0.0)) > g.t:
 		left = (float(e.drop_until) - g.t) / maxf(0.1, Bal.v("boss/paranoia_drop_t", 4.0))

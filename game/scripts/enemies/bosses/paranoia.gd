@@ -9,10 +9,20 @@
 ##     冲刺穿过幻影 = 幻影炸开（小伤害 + 减速 1 秒），丢一次冲刺。凝视改 X 交叉（交点在你脚下）
 ##   三幕「失声」（落地二阶段，茧后同）：光环张开时她受伤 × paranoia_aura_taken（0.5，取代原作的重攻速减益——攻速削减上限 −15%，§1.11）；
 ##     冲刺穿身 = 光环散掉 paranoia_aura_off（5）秒，正常受伤；呼号只在光环张开时放（每 6 秒）；泡影环 2 波错位缺口
+##   连携攻势（docs/170，10-27）：每幕两组有限连段轮流 + 本作弹幕图案，在 paranoia_combos.gd；boss/paranoia_combos 0 = 回到下面的独立轮换
 extends "res://scripts/enemies/bosses/boss_base.gd"
 
 const COL := Color(0.9, 0.4, 1.0)
 const MOVES := ["叠影", "凝视", "泡影环", "呼号"]
+const Combos = preload("res://scripts/enemies/bosses/paranoia_combos.gd")
+
+var _pc = null
+
+
+func combos():
+	if _pc == null:
+		_pc = Combos.new(g, self)
+	return _pc
 
 
 ## 每帧（boss_ai._boss_ai 公共段之后）：ready = 本帧可以出招；mate = 接潮搭档（没有则 null）
@@ -23,6 +33,8 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	_drop_step(e)
 	_decoy_step(e, dt)
 	_paranoia_aura(e, dist)
+	if Combos.on(e) and combos().step(e, dt, dir, dist, ready):
+		return
 	if not ready:
 		return
 	# 一阶段悬浮远程时的迫近（泡影漂近，协调人 9/30 定 b；close6b：落地前 on_boss 0.01–0.10，用时一一对应）
@@ -44,11 +56,14 @@ func setup_preview_phase2(e: Dictionary) -> void:
 
 
 func demo_moves(_e: Dictionary) -> Array:
-	return MOVES + g.bai.finals.NAMES["paranoia"]
+	return MOVES + g.bai.finals.NAMES["paranoia"] + Combos.EMITTERS.keys()
 
 
 func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 	if g.bai.finals.force_move(e, name, dir, dist):
+		return true
+	if Combos.EMITTERS.has(name):
+		combos()._emit(e, name, dir)
 		return true
 	match name:
 		"凝视":
@@ -122,6 +137,7 @@ func _drop_step(e: Dictionary) -> void:
 		e.drop_until = g.t + t
 		e.drop_ok_at = g.t + t + Bal.v("boss/paranoia_drop_cd", 2.0)
 		g.warns = g.warns.filter(func(w): return not is_same(w.owner, e) or w.done)
+		combos().interrupt(e)   # 打落打断连段
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.4, "life": 0.5, "max": 0.5, "col": Color(0.45, 0.95, 1.0), "enemy": true})
 		g.vfx.add_text(e.pos + Vector2(0, -70), "坠地", Color(0.45, 0.95, 1.0), 20)
 		g.vfx.shake_screen(0.6)
@@ -130,6 +146,7 @@ func _drop_step(e: Dictionary) -> void:
 		var t2: float = Bal.v("boss/paranoia_aura_off", 5.0)
 		e.aura_off_until = g.t + t2
 		e.aura_off_max = t2
+		combos().interrupt(e)   # 打散光环打断连段
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": float(e.get("burden_r", 300.0)), "life": 0.6, "max": 0.6, "col": Color(0.45, 0.95, 1.0), "enemy": true})
 		g.vfx.add_text(e.pos + Vector2(0, -70), "光环散开", Color(0.45, 0.95, 1.0), 18)
 		Sfx.play("shell_break", -6.0, 1.1, 0.0)
@@ -268,6 +285,7 @@ func paranoia_cocoon(e: Dictionary) -> void:
 	e.count_max = e.cocoon_t
 	e.shell_shot = 0.0
 	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
+	combos().reset(e)
 	g.stats.remove_source("paranoia_aura")
 	e.burden_in = false
 	e.burden_k = 0
@@ -340,6 +358,7 @@ func on_lethal(e: Dictionary) -> bool:
 
 ## 认知负担光环、幻影随本体撤掉
 func on_kill(e: Dictionary) -> void:
+	combos().reset(e)
 	for sl in e.get("decoys", []):
 		if sl.o != null and not sl.o.dead:
 			sl.o.dead = true
