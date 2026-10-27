@@ -134,6 +134,8 @@ static func q_step(g, e: Dictionary, exec: Callable, p2: bool) -> bool:
 			for a in actors:
 				g.combat.start_break(a, float(e.mc_q_brk))
 				a.brk_label = "收招 · 破绽"
+			# 破绽里与破绽后 0.6 秒不出新的图案弹幕（输出窗口不叠弹幕，协调人 10-27）
+			e.pat_beat = maxf(float(e.get("pat_beat", 0.0)), g.t + float(e.mc_q_brk) + 0.6)
 		return true
 	if g.t < float(e.mc_q_at):
 		return true

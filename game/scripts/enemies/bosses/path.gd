@@ -37,14 +37,14 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	if not ready:
 		return
 	if dist < 240.0 and _cd(e, "slam", 9.0):   # 震地砸在主控脚下，240 内都会放
-		MC.q_start(g, e, [{"actor": e, "move": "震地"}, {"actor": e, "move": "冲撞"}], 1.2 if not p2 else 1.6)
+		MC.q_start(g, e, [{"actor": e, "move": "震地"}, {"actor": e, "move": "冲撞"}], 1.8 if not p2 else 2.2)
 		_third(e)
 	elif dist > 150.0 and _cd(e, "dash", 7.0):
 		var follow: String = "错误路线" if int(e.get("beat_n", 0)) % 2 == 1 else "震地"
 		if p2:
-			MC.q_start(g, e, [{"actor": e, "move": "冲撞"}, {"actor": e, "move": "冲撞折"}, {"actor": e, "move": "震地"}], 1.8)
+			MC.q_start(g, e, [{"actor": e, "move": "冲撞"}, {"actor": e, "move": "冲撞折"}, {"actor": e, "move": "震地"}], 2.4)
 		else:
-			MC.q_start(g, e, [{"actor": e, "move": "冲撞"}, {"actor": e, "move": "震地"}, {"actor": e, "move": follow}], 1.4)
+			MC.q_start(g, e, [{"actor": e, "move": "冲撞"}, {"actor": e, "move": "震地"}, {"actor": e, "move": follow}], 2.0)
 		_third(e)
 
 

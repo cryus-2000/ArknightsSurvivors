@@ -4,6 +4,7 @@ extends Node
 var g
 var failures := 0
 const DT := 1.0 / 30.0
+var chase := false   # 输出窗口探针：队长追着 Boss 打，tick 不改队长位置
 
 
 func check(ok: bool, label: String) -> void:
@@ -23,6 +24,7 @@ func _ready() -> void:
 	for partner in ["archon", "immortal"]:
 		tide_acts(partner)
 	tide_mirror()
+	output_windows()
 	var a: Array = path_digest()
 	var b: Array = path_digest()
 	check(a == b, "path same seed reproduces bullets and combos")
@@ -63,8 +65,9 @@ func spawn(kind: String, at: Vector2) -> Dictionary:
 func tick(stats: Dictionary) -> void:
 	g.t += DT
 	g.invuln = 999.0
-	var a: float = (g.t - 200.0) * 120.0 / 260.0
-	g.ppos = Vector2(cos(a), sin(a) * 0.8) * 260.0
+	if not chase:
+		var a: float = (g.t - 200.0) * 120.0 / 260.0
+		g.ppos = Vector2(cos(a), sin(a) * 0.8) * 260.0
 	g.doc_pos = g.ppos + Vector2(10, 35)
 	g.enemies_sys.build_grid()
 	g.enemies_sys.update(DT)
@@ -218,3 +221,58 @@ func tide_digest() -> Array:
 		if b.life > 0.0:
 			s += b.pos
 	return [snappedf(s.x, 0.01), snappedf(s.y, 0.01), snappedf(ab[0].pos.x, 0.01), int(ab[0].get("beat_n", 0)), int(st.get("brk", 0)), g.rng_enemy.state]
+
+
+## 输出窗口（协调人 10-27）：队长贴着打（追最近一具 Boss，保持 100）时，「Boss 在近战射程 150 内且屏幕内（队长 ±320 × ±180）符卡弹 < 20」的时间占比；每次收招破绽时长
+func window_run(kind: String, p2: bool, partner := "") -> Dictionary:
+	var bosses: Array = []
+	if partner == "":
+		bosses = [path_boss(p2)]
+	else:
+		bosses = tide_pair(partner, p2)
+	var ok := 0
+	var n := 0
+	var brks: Array = []
+	var cur := 0.0
+	var both := 0
+	var st := {}
+	chase = true
+	for i in int(60.0 / DT):
+		var near: Dictionary = bosses[0]
+		for b in bosses:
+			if b.pos.distance_to(g.ppos) < near.pos.distance_to(g.ppos):
+				near = b
+		var want: Vector2 = near.pos + (g.ppos - near.pos).normalized() * 100.0
+		g.ppos = g.ppos.move_toward(want, 120.0 * DT)
+		tick(st)
+		var dense := 0
+		for b in g.ebullets:
+			if b.life > 0.0 and b.get("mc", false) and absf(b.pos.x - g.ppos.x) < 320.0 and absf(b.pos.y - g.ppos.y) < 180.0:
+				dense += 1
+		var reach := false
+		for b in bosses:
+			if b.pos.distance_to(g.ppos) < 150.0:
+				reach = true
+		n += 1
+		if reach and dense < 20:
+			ok += 1
+		var bt: float = bosses[0].get("break_t", 0.0)
+		if str(bosses[0].get("brk_label", "")) == "收招 · 破绽" and bt > cur + 0.05:
+			brks.append(snappedf(bt, 0.1))
+			if bosses.size() > 1 and float(bosses[1].get("break_t", 0.0)) > 0.0:
+				both += 1
+		cur = bt
+	chase = false
+	return {"kind": kind, "act": 2 if p2 else 1, "low_pressure": snappedf(float(ok) / n, 0.01), "breaks": brks, "pair_breaks_together": both}
+
+
+func output_windows() -> void:
+	var rows: Array = []
+	for p2 in [false, true]:
+		rows.append(window_run("path", p2))
+		rows.append(window_run("bishop+archon", p2, "archon"))
+		rows.append(window_run("bishop+immortal", p2, "immortal"))
+	for r in rows:
+		print("WINDOW ", JSON.stringify(r))
+		check(float(r.low_pressure) >= 0.35, "%s act %d low-pressure share >= 35%% (%.2f)" % [r.kind, r.act, r.low_pressure])
+		check(not r.breaks.is_empty(), "%s act %d has combo recoveries" % [r.kind, r.act])
