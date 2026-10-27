@@ -4,6 +4,7 @@ const Materials = preload("res://scripts/render/final_boss_materials.gd")
 const TeleDraw = preload("res://scripts/render/telegraph_draw.gd")
 const Grains = preload("res://scripts/render/final_attack_grains.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const IzumikDraw = preload("res://scripts/render/izumik_attack_draw.gd")
 ## Candidate presentation: exact tells underneath coarse pixel material bodies. No simulation writes.
 static var _circle_points := PackedVector2Array()
 static var _circle_gy := -INF
@@ -31,6 +32,9 @@ static func draw(g, impacts := false) -> void:
 			if b.get("kb_self", false): Grains.dash_frost(g, b)
 			_dash_frost(g, b)
 	for w in g.warns:
+		if w.act == "izu_wave" and not w.done and not impacts and g.optical_on:
+			IzumikDraw.field_warning(g,w)   # 伊祖米克全场预警（docs/170）
+			continue
 		if w.act != "final_attack" or w.done: continue
 		if preload("res://scripts/render/ishar_tell_draw.gd").owns(w): continue   # 伊莎玛拉线形预警走涟漪画法（docs/170）
 		if w.get("skin", "") == "bubble":
@@ -49,8 +53,12 @@ static func draw(g, impacts := false) -> void:
 			if f.kind == "bubble_pop" and f.life > 0: Bubble.pop(g,f)
 			elif f.kind == "knight_crash" and f.life > 0:
 				_crash(g, f)
+			elif f.kind == "izu_shock" and f.life > 0: IzumikDraw.shock(g,f)   # 伊祖米克全场海浪（docs/170）
+			elif f.kind == "izu_share" and f.life > 0: IzumikDraw.share(g,f)   # 伊祖米克分享喷涌（docs/170）
 			elif f.kind == "final_impact" and f.life > 0:
 				_shape(g,f,clampf(float(f.life)/float(f.max)*1.5,0,1),false)
+		for e in g.bosses:
+			if e.type == "izumik": IzumikDraw.learn_marks(g,e)   # 伊祖米克习得弹停顿标记（docs/170）
 	g.world.tb_flush()
 	for w in caps: g.world._stake_cap(w)   # 撞柱提示保持原样（world.draw_warn_outlines 不再画骑士线形预警）
 
@@ -145,6 +153,9 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 				var lock_flash: float = 1.0 - since_lock / 0.15 if tr > 0.0 and since_lock >= 0.0 and since_lock < 0.15 else 0.0
 				_frost_line(r, p, w.ang, w.len, w.wid, progress, tr <= 0.0 or since_lock >= 0.0, alpha, lock_flash * 0.6)
 				return
+			if w.get("skin","") == "tide":   # 伊祖米克迁徙潮：波峰勾边，不画矩形框（docs/170）
+				IzumikDraw.tide_warning(g,w,alpha,progress)
+				return
 			var d := Vector2.from_angle(w.ang)
 			var n := d.orthogonal()
 			var end: Vector2 = p + d * w.len
@@ -201,6 +212,16 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 static func _shape(g, w: Dictionary, alpha: float, warning: bool) -> void:
 	if warning:
 		_warning(g,w,alpha)
+		if w.get("skin","") == "current":   # 伊祖米克海流牵引：向心流线（docs/170）
+			IzumikDraw.current_warning(g,w)
+		if w.get("skin","") == "tentacle" and w.shape == "cone":   # 伊祖米克护群触腕：出土点鼓包（docs/170）
+			IzumikDraw.tentacle_warning(g,w,clampf(float(w.get("t",0.0))/maxf(0.01,float(w.dur)),0,1))
+	elif w.get("skin","") == "current":
+		IzumikDraw.current_burst(g,w)
+	elif w.get("skin","") == "tide":
+		IzumikDraw.tide_wall(g,w,alpha)
+	elif w.get("skin","") == "tentacle" and w.shape == "cone" and w.has("max"):
+		IzumikDraw.tentacles(g,w)
 	elif w.get("skin", "") == "bubble":
 		Bubble.shadow(g.world,w,alpha)
 	else:

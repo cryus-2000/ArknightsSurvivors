@@ -10,10 +10,30 @@
 ##   三幕「分享」（33–0）：不再来子代；4 根灯柱全部点亮；每 12 秒「分享·全场」（预告 3 秒 + 蓄力 1.6 秒），站在灯柱光圈里或冲刺无敌不受伤，
 ##     每次分享后你躲进的那根灯柱熄灭（不能再点）；分享扇形改三叶扇
 ##   震撼：原来 66% / 33% 后的周期地波改成按原作阈值 75 / 50 / 25% 各强制一次（izumik_shock_at）
+## 连携（docs/170，10-27）：阐释阶段每幕轮换两组连携，每组 = 起手蓄势（海嗣根须颗粒、短停）→ ≤4 段 → 收招破绽。
+##   转幕 / 外部眩晕 / 韧性破绽 / 震撼 清掉未出的段；弹幕只用 izu_* 字段由本文件逐帧改速度，移动与命中仍走 shot_pool。
+##   boss/izumik_cards = 0 退回旧轮转（云端 A/B）。连携组与新弹幕都是本作改编，组名只给文档 / 测试用，不上界面。
 extends "res://scripts/enemies/bosses/boss_base.gd"
 
+const Beam = preload("res://scripts/render/boss_beam.gd")
 const COL := Color(0.4, 0.6, 1.0)   # 群青蓝（docs/142b §8.4）
 const MOVES := ["潮汐坠落", "解读旋涡", "分享", "震撼"]
+const PATTERNS := ["潮汐相位流", "子代共鸣", "螺旋弹臂", "习得弹", "回流弹"]
+const CURRENT := "海流牵引"   # 非弹幕专属招：海流把你往漩涡中心拖，中心最后涌起
+## 每幕两组；「@近身分享」= 贴近时分享扇、否则潮汐坠落
+const CARDS := [
+	[{"name": "迁徙潮汐", "segs": ["@潮汐相位流", "海流牵引", "迁徙潮"]},
+		{"name": "护群共鸣", "segs": ["护群触腕", "@子代共鸣", "@近身分享"]}],
+	[{"name": "解读螺旋", "segs": ["@螺旋弹臂", "解读旋涡", "深渊涌流"]},
+		{"name": "习得变形", "segs": ["@习得弹", "海流牵引", "护群触腕"]}],
+	[{"name": "灯下三叶", "segs": ["分享·全场", "@潮汐相位流", "分享"]},
+		{"name": "深蓝回流", "segs": ["分享·全场", "@回流弹", "海流牵引"]}]]
+const DECLARE := 1.0      # 起手蓄势短停
+const SEG_GAP := 0.5      # 段间收势（用户 10-27：给玩家出手机会）
+const RECOVER := [2.6, 3.0, 3.2]   # 每幕收招破绽（用户 10-27：给干员输出的时间）
+const REST := 1.6         # 破绽后到下一组起手之间的空档
+const CARD_CAP := 30.0    # 保护性上限
+const OWN_CAP := 150      # 本体同时在场弹数
 
 
 ## 每帧（boss_ai._boss_ai 公共段之后）：ready = 本帧可以出招；mate = 接潮搭档（没有则 null）
@@ -34,6 +54,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 				o.feed = true
 				o.feed_to_id = e.id   # 喂食目标存 id 句柄（docs/101 B5：原生端只认 id）
 				o.spd = 45.0
+				_tame(o)
 		if e.learn_t <= 0.0:
 			e.phase = 2
 			e.vis_act = "root_end"   # 扎根收势 e_izumik_root_end（纯画面）
@@ -57,6 +78,16 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		if gp >= 2 and not e.has("tint2"):
 			_tint2(e, Color(0.82, 1.1, 1.0))   # 33% 后常驻青绿着色（docs/95 §3.2 D）
 		_batch_step(e)
+		if Bal.v("boss/izumik_cards", 1.0) > 0.0:
+			# 符卡接管全部出招：旧共用轮转与数据招式只经 force_move 点名
+			e.final_next = INF
+			e.pattern_next = INF
+			_bullet_step(e, dt)
+			_emit_step(e)
+			_current_step(e, dt)
+			_share_fx_step(e)
+			_card_step(e, dir, dist)
+			return
 		var shock: Array = [0.75, 0.5, 0.25]
 		var si: int = int(e.get("shock_i", 0))
 		if ready and si < shock.size() and e.hp < e.maxhp * float(shock[si]):
@@ -77,10 +108,28 @@ func setup_preview_phase2(e: Dictionary) -> void:
 
 
 func demo_moves(e: Dictionary) -> Array:
-	return MOVES + g.bai.finals.NAMES["izumik"] if e.phase == 2 else ["分享"]   # 学习期只有吸收即放的小「分享」
+	return MOVES + g.bai.finals.NAMES["izumik"] + PATTERNS + [CURRENT] if e.phase == 2 else ["分享"]   # 学习期只有吸收即放的小「分享」
+
+
+## 全部连携组名（按幕顺序；文档 / 测试 / 预览用）
+func card_names() -> Array:
+	var out: Array = []
+	for act in CARDS:
+		for c in act:
+			out.append(c.name)
+	return out
 
 
 func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
+	if e.phase == 2 and card_names().has(name):
+		_end_card(e)
+		_start_card(e, name)
+		return true
+	if e.phase == 2 and PATTERNS.has(name):
+		return _emit_start(e, name, dir)
+	if e.phase == 2 and name == CURRENT:
+		_current(e)
+		return true
 	if g.bai.finals.force_move(e, name, dir, dist):
 		return true
 	if e.phase != 2:
@@ -131,6 +180,15 @@ func _wave(e: Dictionary) -> void:
 	_warn(e, "circle", wt, {"follow": true, "r": 2400.0, "act": "izu_wave", "name": "震撼", "must_dash": true, "col": COL,
 		"dmg": minf(e.dmg * 2.0, g.max_hp * Bal.v("boss/izumik_wave_cap", 0.25)), "burn": (e.dmg * 0.12) if gp >= 2 else 0.0})
 	Sfx.play("skill", -2.0, 0.6)
+
+
+## 震撼 / 分享·全场结算画面（telegraph izu_wave 调用）：从本体推开一圈海浪（render/izumik_attack_draw.shock），浪头甩出水沫颗粒；纯画面
+func wave_fx(e: Dictionary, _w: Dictionary) -> void:
+	g.fx.append({"kind": "izu_shock", "pos": e.pos, "owner": e, "life": 1.1, "max": 1.1, "enemy": true})
+	for k in 40:
+		var d := Vector2.from_angle(TAU * k / 40.0)
+		_puff(e.pos + Vector2(d.x * 60.0, d.y * 43.0), 1, Color(0.6, 0.82, 1.0), d)
+	g.vfx.shake_screen(0.6)
 
 
 ## 震撼命中后的持续法伤（boss_ai 的 izu_wave 结算写 e.burn_t / e.burn_dps）：每 0.5 秒结算一跳，来源 izu_burn（combat.BOSS_DOT）
@@ -236,7 +294,7 @@ func _batch_step(e: Dictionary) -> void:
 		dirs.append(a0 + PI + g.rng_enemy.randf_range(-0.7, 0.7))
 	for di in dirs.size():
 		var a: float = dirs[di]
-		var n: int = g.rng_enemy.randi_range(4, 6) if dirs.size() == 1 else g.rng_enemy.randi_range(3, 4)
+		var n: int = g.rng_enemy.randi_range(4, 6) if dirs.size() == 1 else 3   # 二幕两路各 3 只（用户 10-27：二幕少一点）
 		for k in n:
 			var p: Vector2 = _offspring_edge(e, a + (float(k) - (n - 1) * 0.5) * 0.09)
 			var o: Dictionary = g.spawner.spawn_enemy("offspring", p)
@@ -245,6 +303,7 @@ func _batch_step(e: Dictionary) -> void:
 			o.spd = Bal.v("boss/izumik_batch_spd", 45.0)
 			o.part = true
 			o.izu_dir = di
+			_tame(o)
 			g.enemies_sys.part_add(o)
 			live.append(o)
 	e.batch = live
@@ -294,6 +353,9 @@ func _share_all(e: Dictionary) -> void:
 func on_gate(e: Dictionary) -> void:
 	if e.phase != 2:
 		return
+	# 转幕：清掉未出的段，短停后进下一幕的连携（在场弹幕与已出的预警照常结算）
+	_end_card(e)
+	e.izu_next = g.t + 1.5
 	var gp: int = int(e.get("gates_passed", 0))
 	if gp >= 2:
 		e.lamp_r = Bal.v("boss/izumik_lamp_r", 120.0)
@@ -310,6 +372,8 @@ func on_gate(e: Dictionary) -> void:
 func on_kill(e: Dictionary) -> void:
 	for o in e.get("batch", []):
 		o.dead = true
+	_end_card(e)
+	_clear_bullets(e)
 
 
 func izumik_safe(e: Dictionary) -> bool:
@@ -317,6 +381,13 @@ func izumik_safe(e: Dictionary) -> bool:
 		if l.lit and g.combat.ground_d(g.ppos, l.pos) < float(e.get("lamp_r", 120.0)):
 			return true
 	return false
+
+
+## 子代只走路、不伤人（用户 10-27：取消小水母近战、远程少一点）：无接触伤害、不出横扫、不放自己的孢子环；远程只剩本体点名的「子代共鸣」
+func _tame(o: Dictionary) -> void:
+	o.dmg = 0.0
+	o.extra_next = INF
+	o.nova_cd = INF
 
 
 ## Actual arena boundary, never a radius around the boss. Opposite sector prevents instant feeding.
@@ -335,3 +406,326 @@ func _offspring_edge(e: Dictionary, angle: float) -> Vector2:
 		if not g.map.segment_blocked(p, e.pos):
 			return p
 	return g.combat.arena_clamp(fallback, 65.0)
+
+
+## ---- 连携（docs/170）
+func _blocked(e: Dictionary) -> bool:
+	return e.dead or e.get("invuln", false) or e.get("coma", false) or float(e.stun) > 0.0 or float(e.get("break_t", 0.0)) > 0.0 \
+		or float(e.get("channel", 0.0)) > 0.0 or float(e.get("dash_t", 0.0)) > 0.0
+
+
+func _card_step(e: Dictionary, dir: Vector2, dist: float) -> void:
+	var active: bool = str(e.get("izu_card", "")) != ""
+	# 外部眩晕 / 韧性破绽 / 超时：清队列，不给收招（破绽本身已是奖励）
+	if active and (float(e.stun) > 0.0 or float(e.get("break_t", 0.0)) > 0.0 or g.t > float(e.get("izu_card_until", INF))):
+		_end_card(e)
+		return
+	if not e.get("izu_emit", {}).is_empty() or g.t < float(e.get("izu_next", 0.0)) or _blocked(e):
+		return
+	if g.warns.any(func(w): return is_same(w.owner, e) and not w.done and w.dmg > 0.0):
+		return
+	if active:
+		var queue: Array = e.izu_queue
+		if queue.is_empty():
+			# 破绽会取消移动中的水墙：等它走完再收招；破绽窗口不叠弹幕——在场弹散到 8 颗以下再收招
+			if g.bai.finals.hazards.any(func(h): return is_same(h.owner, e)) or int(e.get("izu_live", 0)) >= 8:
+				return
+			_finish_card(e)
+			return
+		_run_seg(e, str(queue.pop_front()), dir, dist)
+		return
+	# 组间先结算到阈值的震撼（原作 75 / 50 / 25%）
+	var shock: Array = [0.75, 0.5, 0.25]
+	var si: int = int(e.get("shock_i", 0))
+	if si < shock.size() and e.hp < e.maxhp * float(shock[si]):
+		e.shock_i = si + 1
+		_rise(e)
+		_wave(e)
+		e.izu_next = g.t + 0.6
+		return
+	_start_card(e, "")
+
+
+func _start_card(e: Dictionary, name: String) -> void:
+	var act: int = clampi(int(e.get("gates_passed", 0)), 0, CARDS.size() - 1)
+	var card: Dictionary = {}
+	if name == "":
+		var n: int = int(e.get("izu_card_n", 0))
+		card = CARDS[act][n % CARDS[act].size()]
+		e.izu_card_n = n + 1
+	else:
+		for cards in CARDS:
+			for c in cards:
+				if c.name == name:
+					card = c
+	e.izu_card = card.name
+	e.izu_queue = card.segs.duplicate()
+	e.izu_card_until = g.t + CARD_CAP
+	e.izu_next = g.t + DECLARE
+	_rise(e)
+
+
+func _finish_card(e: Dictionary) -> void:
+	var rec: float = RECOVER[clampi(int(e.get("gates_passed", 0)), 0, RECOVER.size() - 1)]
+	_end_card(e)
+	g.combat.start_break(e, rec)
+	e.izu_next = g.t + rec + REST
+
+
+func _end_card(e: Dictionary) -> void:
+	e.izu_card = ""
+	e.izu_queue = []
+	e.izu_emit = {}
+
+
+## 起手蓄势：本体脚下一圈群青颗粒向外扩、根须亮环，不闪白不出字
+func _rise(e: Dictionary) -> void:
+	e.izu_rise_t = g.t
+	g.fx.append({"kind": "ring", "pos": e.pos, "r": 150.0, "life": 0.7, "max": 0.7, "col": Color(0.55, 0.75, 1.2), "enemy": true})
+	for k in 24:
+		var d := Vector2.from_angle(TAU * k / 24.0)
+		_puff(e.pos + Vector2(d.x * 70.0, d.y * 50.0), 1, Color(0.62, 0.8, 1.0), d)
+	Sfx.play("skill", -5.0, 0.7)
+
+
+func _run_seg(e: Dictionary, seg: String, dir: Vector2, dist: float) -> void:
+	e.izu_next = g.t + SEG_GAP
+	if seg == "@近身分享":
+		if g.combat.ground_d(g.ppos, e.pos) < 320.0:
+			_share(e, dir, false)
+		else:
+			_force_pattern(e, "潮汐坠落", dir, dist)
+		return
+	if seg.begins_with("@"):
+		_emit_start(e, seg.substr(1), dir)
+		return
+	match seg:
+		"分享·全场":
+			_share_all(e)
+		CURRENT:
+			_current(e)
+		"分享":
+			_share(e, dir, false)
+		"潮汐坠落", "解读旋涡":
+			_force_pattern(e, seg, dir, dist)
+		_:
+			g.bai.finals.force_move(e, seg, dir, dist)
+
+
+func _force_pattern(e: Dictionary, name: String, dir: Vector2, dist: float) -> void:
+	e.pattern_force = name
+	g.bai.patterns.try_attack(e, dir, minf(dist, 700.0))
+	e.erase("pattern_force")
+	e.pattern_next = INF
+
+
+## 本体倒下：在场弹（含数据招式的环弹）化成颗粒
+func _clear_bullets(e: Dictionary) -> void:
+	var k := 0
+	for b in g.ebullets:
+		if b.life > 0.0 and int(b.get("source_id", -1)) == int(e.id):
+			b.life = 0.0
+			if k < 40:
+				_puff(b.pos, 2, Color(0.6, 0.78, 1.0), Vector2.UP)
+				k += 1
+
+
+## 纯画面颗粒（g.vrng；低画质 / 颗粒层关闭时不画）
+func _puff(p: Vector2, n: int, col: Color, d := Vector2.ZERO) -> void:
+	if Cfg.quality == "low":
+		return
+	var pool = Beam.grains(g)
+	if pool == null:
+		return
+	for i in Beam.take(g, n):
+		pool.push("bfx_flash", p, d if d != Vector2.ZERO else Vector2.from_angle(g.vrng.randf() * TAU), col)
+
+
+## ---- 弹幕（本作改编）：一段 = 一次发射计划 e.izu_emit；弹体进 g.ebullets，izu_* 字段由 _bullet_step 改速度
+func _emit_start(e: Dictionary, kind: String, dir: Vector2) -> bool:
+	var em := {"kind": kind, "t0": g.t, "next": g.t, "n": 0, "a0": dir.angle(), "until": g.t}
+	match kind:
+		"潮汐相位流":
+			# 五条摆动水流；拦截路线（这一批子代的来向）落在两条流之间
+			em.a0 = _lane_angle(e, dir) + TAU / 8.0
+			em.until = g.t + 2.4
+		"子代共鸣":
+			var src: Array = []
+			for o in e.get("batch", []):
+				if not o.dead and src.size() < 3:
+					src.append(o)
+			if src.is_empty():
+				src.append(e)
+			em.sources = src
+			em.next = g.t + 0.8
+			em.until = g.t + 1.35
+			for s in src:
+				g.fx.append({"kind": "ring", "pos": s.pos, "r": 34.0, "life": 0.8, "max": 0.8, "col": Color(0.55, 0.75, 1.2), "enemy": true})
+		"螺旋弹臂":
+			em.until = g.t + 3.0
+			em.spin = 0.7 if int(e.get("izu_card_n", 0)) % 2 == 0 else -0.7
+			em.arms = 2
+		"习得弹":
+			em.until = g.t + 0.65
+		"回流弹":
+			em.until = g.t + 0.95
+		_:
+			return false
+	e.izu_emit = em
+	e.move_name = kind
+	e.move_t = g.t
+	Sfx.play("tentacle", -8.0, 1.15)
+	return true
+
+
+func _lane_angle(e: Dictionary, dir: Vector2) -> float:
+	for o in e.get("batch", []):
+		if not o.dead and not o.get("izu_cocoon", false):
+			return (o.pos - e.pos).angle()
+	return dir.angle()
+
+
+func _emit_step(e: Dictionary) -> void:
+	var em: Dictionary = e.get("izu_emit", {})
+	if em.is_empty():
+		return
+	if _blocked(e):
+		e.izu_emit = {}
+		return
+	var guard := 0
+	while g.t >= float(em.next) and float(em.next) <= float(em.until) + 0.001 and guard < 8:
+		guard += 1
+		_emit_once(e, em)
+		em.n = int(em.n) + 1
+	if g.t > float(em.until):
+		e.izu_emit = {}
+		e.izu_next = maxf(float(e.get("izu_next", 0.0)), g.t + SEG_GAP)
+
+
+func _emit_once(e: Dictionary, em: Dictionary) -> void:
+	var n: int = int(em.n)
+	var a0: float = float(em.a0)
+	match str(em.kind):
+		"潮汐相位流":
+			for k in 4:
+				var a: float = a0 + TAU * k / 4.0
+				_shot(e, e.pos + Vector2.from_angle(a) * 30.0, a, 125.0, 6.0, 4.5, 0.45, {"izu": "wave", "izu_ph": PI * (k % 2), "izu_amp": 0.9})
+			em.next = float(em.next) + 0.3
+		"子代共鸣":
+			for s in em.sources:
+				if s.dead:
+					continue
+				var me: bool = is_same(s, e)
+				var aim: float = (g.ppos - s.pos).angle()
+				var cnt: int = 4 if me else 3
+				for j in cnt:
+					_shot(e, s.pos, aim + (j - (cnt - 1) * 0.5) * 0.2, 150.0, 7.0, 4.5, 0.45, {"izu": "fan"})
+			em.next = float(em.next) + 0.5
+		"螺旋弹臂":
+			var t: float = float(em.next) - float(em.t0)
+			for arm in int(em.arms):
+				var a: float = a0 + TAU * arm / float(em.arms) + float(em.spin) * t
+				_shot(e, e.pos + Vector2.from_angle(a) * 30.0, a, 115.0, 7.0, 4.5, 0.45, {"izu": "spiral"})
+			em.next = float(em.next) + 0.2
+		"习得弹":
+			# 先散开、停住「学习」0.5 秒，再各自转向停住那一刻的你；吸收层数越多弹越多
+			var cnt: int = mini(8 + int(e.get("izu_stacks", 0)), 12)
+			var v0: float = 2.0 * (150.0 + 80.0 * n) / 0.9
+			for i in cnt:
+				var a: float = a0 + (float(i) + 0.5 * n) * TAU / cnt
+				_shot(e, e.pos, a, v0, 9.0, 5.0, 0.55, {"izu": "learn", "izu_v0": v0, "izu_ang": a})
+			em.next = float(em.next) + 0.6
+		"回流弹":
+			# 两圈反向卷回的水流，交叉成格子；三幕点亮的灯柱光圈会吞掉它们
+			for i in 12:
+				var a: float = a0 + (float(i) + 0.5 * n) * TAU / 12.0
+				_shot(e, e.pos + Vector2.from_angle(a) * 30.0, a, 140.0, 8.0, 5.0, 0.5, {"izu": "back", "izu_curl": 1.5 if n % 2 == 0 else -1.5})
+			em.next = float(em.next) + 0.9
+
+
+## 弹体分级：r 6 细流 / 7–8 中弹 / 9 大弹；暗描边 + 发光核心由 world 的敌弹三遍绘制给出，颜色 = Boss 专属群青
+func _shot(e: Dictionary, p: Vector2, a: float, spd: float, r: float, life: float, mult: float, extra: Dictionary) -> void:
+	if int(e.get("izu_live", 0)) >= OWN_CAP:
+		return
+	e.izu_live = int(e.get("izu_live", 0)) + 1
+	# 单发伤害旋钮（协调人 10-27：弹幕变密，先 ×0.8，云端测完再定）
+	var b := {"pos": p, "vel": Vector2.from_angle(a) * spd, "dmg": e.dmg * mult * Bal.v("boss/izumik_bullet_mult", 0.8), "r": r, "life": life,
+		"slow": false, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "true": false, "kind": "orb", "home": false, "boss": true,
+		"atk": "法术", "hit_cap": e.get("hit_cap", 0.0), "source_id": e.id, "col": COL, "src_type": e.type, "izu_t": 0.0}
+	b.merge(extra, true)
+	g.ebullets.append(b)
+
+
+func _bullet_step(e: Dictionary, dt: float) -> void:
+	var lamps: Array = []
+	if int(e.get("gates_passed", 0)) >= 2:
+		for l in e.get("lamps", []):
+			if l.lit and not l.get("out", false):
+				lamps.append(l.pos)
+	var lr: float = float(e.get("lamp_r", 120.0))
+	var target: Vector2 = g.ppos + Vector2(0, -14)
+	var n := 0
+	for b in g.ebullets:
+		if b.life <= 0.0 or int(b.get("source_id", -1)) != int(e.id):
+			continue
+		n += 1
+		var kind: String = str(b.get("izu", ""))
+		if kind != "":
+			b.izu_t = float(b.izu_t) + dt
+			var t: float = b.izu_t
+			match kind:
+				"wave":
+					b.vel = b.vel.rotated(float(b.izu_amp) * sin(float(b.izu_ph) + 2.4 * t) * dt)
+				"learn":
+					if t < 0.9:
+						b.vel = Vector2.from_angle(float(b.izu_ang)) * float(b.izu_v0) * (1.0 - t / 0.9)
+					elif t < 1.4:
+						b.vel = Vector2.ZERO
+					else:
+						if not b.has("izu_aim"):
+							b.izu_aim = (target - b.pos).angle()
+						b.vel = Vector2.from_angle(float(b.izu_aim)) * minf(150.0, (t - 1.4) * 300.0)
+				"back":
+					if t > 1.1 and t < 2.6:
+						b.vel = b.vel.rotated(float(b.izu_curl) * dt)
+		for lp in lamps:
+			if g.combat.ground_d(b.pos, lp) < lr:
+				b.life = 0.0
+				_puff(b.pos, 2, Color(1.0, 0.85, 0.5), Vector2.UP)
+				break
+	e.izu_live = n
+
+
+## ---- 海流牵引（本作改编，非弹幕）：在你脚下锁一个漩涡，2.6 秒内半径 320 内的海流把你往中心拖（最高 70px/s，低于步行速度，顶着流走得出去），
+## 结束时中心 r80 涌起一次（e.dmg × 1.0）。读法：地面向心流线 + 中心暗红圈；冲刺也能直接脱出。破绽 / 眩晕会取消（finals.cancelled）
+func _current(e: Dictionary) -> void:
+	var p: Vector2 = g.combat.arena_clamp(g.ppos, 110.0)
+	g.bai.finals._warn(e, "circle", 2.6, {"name": CURRENT, "pos": p, "r": 80.0, "skin": "current", "pull_r": 320.0,
+		"dmg": e.dmg * Bal.v("boss/izumik_current_mult", 1.0)})
+	Sfx.play("tentacle", -6.0, 0.6)
+
+
+func _current_step(e: Dictionary, dt: float) -> void:
+	if g.invuln > 0.0 and float(g.get("dash_t")) > 0.0:
+		return   # 冲刺中不拖
+	for w in g.warns:
+		if w.done or not is_same(w.owner, e) or str(w.get("skin", "")) != "current" or g.bai.finals.cancelled(w):
+			continue
+		var to: Vector2 = w.pos - g.ppos
+		var d: float = g.combat.ground_d(g.ppos, w.pos)
+		if d > float(w.pull_r) or d < 6.0:
+			continue
+		var k: float = clampf(float(w.t) / 0.6, 0.0, 1.0) * (1.0 - 0.5 * d / float(w.pull_r))
+		g.ppos = g.map.push_out(g.ppos + to.normalized() * 70.0 * k * dt, 12.0)
+
+
+## 分享（扇形）结算画面：通用 sweep 只有一道细刀光，这里补喷涌——扇形里的水流喷射 + 孢子雾 + 扇缘浪沫（render/izumik_attack_draw.share），纯画面
+func _share_fx_step(e: Dictionary) -> void:
+	for w in g.warns:
+		if not w.done or w.get("izu_fx", false) or not is_same(w.owner, e) or str(w.get("act", "")) != "sweep":
+			continue
+		w.izu_fx = true
+		g.fx.append({"kind": "izu_share", "pos": w.pos, "ang": float(w.ang), "half": float(w.half), "r": float(w.r), "life": 0.7, "max": 0.7, "enemy": true})
+		for k in 18:
+			var a: float = float(w.ang) + lerpf(-float(w.half), float(w.half), (k + 0.5) / 18.0)
+			_puff(w.pos + Vector2.from_angle(a) * float(w.r) * 0.85, 1, Color(0.62, 0.82, 1.0), Vector2.from_angle(a))

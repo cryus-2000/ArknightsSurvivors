@@ -530,9 +530,7 @@ func _resolve(w: Dictionary) -> void:
 		"izu_wave":
 			# 震撼（原全场地波）：没有缺口、覆盖全场；冲刺无敌或站在点亮的灯柱光圈里才躲得开。伤害 ≤ 最大生命 25%，减速 1.5 秒，不僵直；
 			# 33% 后（w.burn > 0）命中者 4 秒持续法伤（izumik.gd _burn_step），地波环改双层
-			g.fx.append({"kind": "ring", "pos": w.pos, "r": 900.0, "life": 0.7, "max": 0.7, "col": c, "enemy": true})
-			if float(w.get("burn", 0.0)) > 0.0:
-				g.fx.append({"kind": "ring", "pos": w.pos, "r": 760.0, "life": 0.9, "max": 0.9, "col": Color(c.r * 0.8, c.g * 1.1, c.b * 1.2), "enemy": true})
+			g.bai.boss("izumik").wave_fx(e, w)   # 伊祖米克全场海浪 + 颗粒（docs/170，原来两道细环）
 			g.fx.append({"kind": "gcrack", "pos": e.pos, "r": 170.0, "life": 0.9, "max": 0.9, "col": Color(0.9, 0.4, 1.15), "enemy": true, "opts": {"n": 12}})   # 地波源头：伊祖米克脚下大地裂（纯画面，界面与美术 10-01）
 			Sfx.play("boom", -2.0, 0.5, 0.0)
 			var safe: bool = g.bai.izumik_safe(e)   # 先判安全再熄灯（熄掉的灯柱这一下仍算庇护）
