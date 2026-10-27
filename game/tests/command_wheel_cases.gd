@@ -56,9 +56,15 @@ func run(check: Callable) -> void:
 	var r: Array = mate.nearest_enemies(2, 600.0)
 	check.call(r.size() == 2 and r[0].id == 6 and r[1].id == 1, "boss priority: boss first, then the rest by distance (elite not promoted)")
 	check.call(mate.nearest_enemies(1, 400.0)[0].id == 1, "boss priority: boss outside max_dist is ignored")
-	# 护主：队长 60 内有小怪贴脸时不强制 Boss
+	# 全队集火（10-27 用户，command/boss_rush）：队友不再因小怪贴近队长让开 Boss；队长自己仍护主
 	setl.call([_e(7, 40.0), _e(1, 100.0), _e(6, 500.0, "boss")])
-	check.call(mate.nearest_enemies(1, 600.0)[0].id == 7, "boss priority: mob hugging the leader overrides boss focus")
+	check.call(mate.nearest_enemies(1, 600.0)[0].id == 6, "boss priority: mate keeps focusing boss even with a mob hugging the leader")
+	check.call(leader.nearest_enemies(1, 600.0)[0].id == 7, "leader still guards itself: mob hugging the leader goes first")
+	var cmd: Dictionary = preload("res://scripts/core/balance.gd").sec("command")
+	var old_rush = cmd.get("boss_rush", 1)
+	cmd["boss_rush"] = 0
+	check.call(mate.nearest_enemies(1, 600.0)[0].id == 7, "boss_rush 0: old guard rule (mob hugging the leader overrides boss focus)")
+	cmd["boss_rush"] = old_rush
 	setl.call([_e(1, 100.0), _e(2, 150.0, "elite"), _e(3, 300.0), _e(4, 360.0), _e(5, 420.0), _e(6, 500.0, "boss")])
 	squad.apply_command("mob")
 	check.call(squad.priority == 1, "mob command sets priority 1")

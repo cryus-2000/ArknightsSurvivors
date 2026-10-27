@@ -72,9 +72,17 @@ func prio_mode() -> int:
 	return int(sq.priority) if sq != null else 0
 
 
+## Boss 优先档要不要护主：队长 / 没有编队时照旧护主；队友在 command/boss_rush 开时全队集火、不护主（docs/114 §15）
+func prio_mode_guard() -> bool:
+	if bool(get("is_leader")) or g.get("squad") == null:
+		return true
+	return preload("res://scripts/core/balance.gd").v("command/boss_rush", 1.0) <= 0.0
+
+
 ## 指挥优先级的统一排序：攻击选敌（nearest_enemies）与突击走位选敌（character.roam_target）共用，两边口径一致。
 ## cands = [[敌人, 得分], …]，得分越小越优先、按得分升序排好（攻击侧 = 离 origin 的距离，走位侧 = 离队尾的距离等）；返回重排后的敌人数组。
 ## 0 Boss 优先：第一个是 Boss / 部件就不动；否则得分最小的可受击 Boss 提到最前；ai/boss_focus 关、或队长 ai/boss_focus_guard 内有非 Boss 贴脸（护主）时不提。
+##   护主只留给队长自己的选敌（prio_mode_guard）：队友全队集火（command/boss_rush，10-27 用户），不再因小怪贴近队长让开 Boss。
 ## 1 清杂优先：杂兵（非 Boss / 精英 / 部件）在前，按周围 PRIO_DENSE_R 内的杂兵数（含自己，封顶 PRIO_DENSE_CAP）由多到少、同数按得分；
 ##   密集度只在得分最小的 PRIO_POOL 个杂兵里算；没有杂兵保持原顺序。不抽随机数，同分按原次序（稳定）
 const PRIO_DENSE_R := 90.0
@@ -101,9 +109,10 @@ func prio_order(cands: Array, mode: int) -> Array:
 				best = c[0]
 		if best == null:
 			return out
-		var guard: Array = g.enemies_sys.nearest(1, BalS.v("ai/boss_focus_guard", 60.0), g.ppos)
-		if not guard.is_empty() and not guard[0].boss:
-			return out   # 小怪贴着主控：先护主，不强制打 Boss
+		if prio_mode_guard():
+			var guard: Array = g.enemies_sys.nearest(1, BalS.v("ai/boss_focus_guard", 60.0), g.ppos)
+			if not guard.is_empty() and not guard[0].boss:
+				return out   # 小怪贴着主控：先护主，不强制打 Boss（只剩队长自己 / 关了集火时）
 		out.erase(best)
 		out.push_front(best)
 		return out

@@ -1128,7 +1128,7 @@ func follow(dt: float, target: Vector2) -> void:
 		mv = 0.0
 		cmd_d = 0.0
 		return
-	if syn_mv.is_empty() and (pos == Vector2.INF or pos.distance_to(target) > (700.0 if st == 0 else CmdBal.v("command/leash", 960.0) * 1.6)):
+	if syn_mv.is_empty() and (pos == Vector2.INF or pos.distance_to(target) > (700.0 if st == 0 else CmdBal.v("command/leash", 1200.0) * 1.6)):
 		pos = target
 		mv = 0.0
 		return
@@ -1509,8 +1509,10 @@ var cmd_inv := 0.0
 var cmd_show := 0.0
 
 ## 只在队长活动圈里选目标；按指挥优先级挑（op_api.prio_order，与攻击选敌同一套口径：Boss 优先 / 清杂优先）。
+## Boss 优先 + 圈里有可受击的 Boss / 部件（command/boss_rush 开，10-27 用户「我选择全队打 boss 必然是想让他们去输出一波的」）：
+## 全队集火——直接锁最近的部件，没有部件锁最近的 Boss，不做紧急护主，射程外就追过去；没有 Boss / 部件时照旧
 func roam_target(slot_pos: Vector2) -> Vector2:
-	var radius: float = CmdBal.v("command/roam_r", 380.0)
+	var radius: float = CmdBal.v("command/roam_r", 840.0)
 	var ld: Vector2 = g.squad.lead_dir
 	var rear: Vector2 = g.ppos - ld * CmdBal.v("command/rear_d", 160.0)
 	var guard: float = CmdBal.v("command/guard_r", 80.0)
@@ -1519,11 +1521,22 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 	var score := INF
 	var urgent_d := guard
 	var prio: int = prio_mode()   # 指挥圆盘的索敌优先级（docs/114 §13）：0 Boss 优先 / 1 清杂优先
+	var rush: bool = prio == 0 and CmdBal.v("command/boss_rush", 1.0) > 0.0
+	var focus = null   # 集火目标：最近的部件，没有部件就最近的可受击 Boss（离自己）
+	var focus_d := INF
+	var focus_part := false
 	var cands: Array = []   # [候选, 原得分]：再按优先级重排
 	for j in query_ids(g.ppos, radius):
 		var en: Dictionary = g.enemies[j]
 		if en.dead or en.pos.distance_to(g.ppos) > radius or (is_same(en, _cmd_failed) and g.t < _cmd_retry_at):
 			continue
+		if rush and (en.get("part", false) or focusable_boss(en)):
+			var is_part: bool = en.get("part", false)
+			var fd: float = en.pos.distance_to(pos)
+			if (is_part and not focus_part) or (is_part == focus_part and fd < focus_d):
+				focus = en
+				focus_d = fd
+				focus_part = is_part
 		var leader_d: float = en.pos.distance_to(g.ppos)
 		if leader_d < urgent_d:
 			urgent = en
@@ -1547,11 +1560,15 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 					break
 		best = prio_order(cands, prio)[0]
 	var e = roam_tgt
-	if e == null or e.dead or e.pos.distance_to(g.ppos) > radius or (is_same(e, _cmd_failed) and g.t < _cmd_retry_at):
+	if focus != null:
+		# 全队集火：已锁着的部件 / Boss 还在圈里就不换（同档才保留，Boss → 部件出现时换去打部件）
+		if e == null or e.dead or e.pos.distance_to(g.ppos) > radius or not (e.get("part", false) == focus_part and (focus_part or focusable_boss(e))):
+			e = focus
+	elif e == null or e.dead or e.pos.distance_to(g.ppos) > radius or (is_same(e, _cmd_failed) and g.t < _cmd_retry_at):
 		e = best
 	elif best != null and not is_same(e, best) and prio_rank(e, prio) > prio_rank(best, prio):
 		e = best   # 换了优先级：当前目标不符合、而圈里有符合的，就换过去（不然要等当前目标死了才换）
-	if urgent != null and (e == null or e.pos.distance_to(g.ppos) > guard + GUARD_MARGIN):
+	if focus == null and urgent != null and (e == null or e.pos.distance_to(g.ppos) > guard + GUARD_MARGIN):
 		e = urgent
 	roam_tgt = e
 	if e == null:
@@ -1694,7 +1711,7 @@ func begin_rush() -> void:
 		_rush_impact(pos)   # 已经贴着怪：原地顶一下
 		return
 	var goal: Vector2 = pos + dv.normalized() * minf(run, CmdBal.v("command/rush_dist", 260.0))
-	goal = g.ppos + (goal - g.ppos).limit_length(CmdBal.v("command/roam_r", 380.0))
+	goal = g.ppos + (goal - g.ppos).limit_length(CmdBal.v("command/roam_r", 840.0))
 	if g.get("map") != null and g.map.segment_blocked(pos, goal):
 		return
 	rush_goal = goal
@@ -1812,7 +1829,7 @@ func _cmd_walk(target: Vector2) -> Vector2:
 	_cmd_walk_goal = target
 	var direction: Vector2 = (target - pos).normalized()
 	var best := INF
-	var radius: float = CmdBal.v("command/roam_r", 380.0)
+	var radius: float = CmdBal.v("command/roam_r", 840.0)
 	var step: float = CmdBal.v("command/detour_step", 80.0)
 	for scale in [1.0, 2.0, 3.0]:
 		for angle in [PI / 3.0, -PI / 3.0, PI / 2.0, -PI / 2.0, PI * 2.0 / 3.0, -PI * 2.0 / 3.0]:

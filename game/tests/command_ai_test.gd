@@ -1,6 +1,17 @@
 extends Node
 
+class Sys extends RefCounted:   # prio_order 的护主检查（boss_rush 0 / 队长）要查队长身边最近的敌人
+	var gm
+	func nearest(n: int, r: float, origin: Vector2) -> Array:
+		var es: Array = gm.enemies.filter(func(e): return not e.dead and e.pos.distance_to(origin) < r)
+		es.sort_custom(func(a,b): return a.pos.distance_to(origin) < b.pos.distance_to(origin))
+		return es.slice(0,n)
+
 class TestGame extends RefCounted:
+	var enemies_sys := Sys.new()
+	var frame_n := 0
+	func _init() -> void:
+		enemies_sys.gm = self
 	var ppos := Vector2.ZERO
 	var squad = {"lead_dir": Vector2.RIGHT, "priority": 0}   # priority：指挥圆盘索敌优先级（docs/114 §13），0 = 原逻辑
 	var enemies: Array = []
@@ -41,8 +52,10 @@ func check(v: bool, message: String) -> void:
 		failures += 1
 		printerr("FAIL: ", message)
 
+var _eid := 0
 func enemy(p: Vector2) -> Dictionary:
-	return {"pos": p, "r": 12.0, "dead": false, "boss": false}
+	_eid += 1
+	return {"id": _eid, "pos": p, "r": 12.0, "dead": false, "boss": false, "elite": false}
 
 func _ready() -> void:
 	var g := TestGame.new()
@@ -53,7 +66,8 @@ func _ready() -> void:
 	check(dst.distance_to(g.enemies[0].pos) < o.cmd_attack_range(), "heavy closes to attack range instead of camping at centroid fraction")
 	o.cls = "近卫"
 	o.roam_tgt = null
-	g.enemies = [enemy(Vector2(-390,0)),enemy(Vector2(-400,0)),enemy(Vector2(-410,0)),enemy(Vector2(-420,0)),enemy(Vector2(100,0))]
+	var rr: float = preload("res://scripts/core/balance.gd").v("command/roam_r", 840.0)
+	g.enemies = [enemy(Vector2(-rr - 10,0)),enemy(Vector2(-rr - 20,0)),enemy(Vector2(-rr - 30,0)),enemy(Vector2(-rr - 40,0)),enemy(Vector2(100,0))]
 	o.roam_target(Vector2(40,14))
 	check(o.roam_tgt != null and o.roam_tgt.pos == Vector2(100,0), "outside-circle candidates cannot hide legal target")
 	o.cls = "狙击"
@@ -70,6 +84,32 @@ func _ready() -> void:
 	g.enemies = [o.roam_tgt, urgent]
 	o.roam_target(Vector2(40,14))
 	check(is_same(o.roam_tgt,urgent), "immediate leader threat overrides distant locked target")
+	# 全队集火（10-27 用户，command/boss_rush）：Boss 优先 + 圈里有 Boss 时不做紧急护主，直接冲 Boss，射程外追过去（可以出屏）
+	var boss := enemy(Vector2(-700,0))
+	boss.boss = true
+	o.roam_tgt = null
+	g.enemies = [urgent, enemy(Vector2(-200,0)), boss]
+	var bdst: Vector2 = o.roam_target(Vector2(40,14))
+	check(is_same(o.roam_tgt,boss), "boss priority: squad focuses the boss and ignores the leader-guard threat")
+	check(bdst.distance_to(boss.pos) < o.cmd_attack_range() and bdst.distance_to(g.ppos) > 640.0, "boss priority: chases the boss off-screen into attack range")
+	var part := enemy(Vector2(-400,60))
+	part["part"] = true
+	g.enemies = [urgent, boss, part]
+	o.roam_target(Vector2(40,14))
+	check(is_same(o.roam_tgt,part), "boss priority: a boss part takes over from the boss")
+	g.enemies = [urgent, boss]
+	o.roam_tgt = null
+	g.squad.priority = 1
+	o.roam_target(Vector2(40,14))
+	check(is_same(o.roam_tgt,urgent), "mob priority still guards the leader even with a boss on field")
+	g.squad.priority = 0
+	var cmd: Dictionary = preload("res://scripts/core/balance.gd").sec("command")
+	cmd["boss_rush"] = 0
+	o.roam_tgt = null
+	o.roam_target(Vector2(40,14))
+	check(is_same(o.roam_tgt,urgent), "boss_rush 0 keeps the old leader guard")
+	cmd["boss_rush"] = 1
+	o.roam_tgt = urgent
 	o.roam_tgt.dead = true
 	g.enemies = [enemy(Vector2(-140,0))]
 	o.roam_target(Vector2(40,14))
