@@ -22,6 +22,7 @@
 ##   源石锭熔铸：最后一位商人离开后源石锭一律走 gain_ingots 进熔铸池（relic/fuse_*）；条目字段 late_fuse = 熔铸后获得时折算的源石锭
 extends RefCounted
 
+const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
 const D = preload("res://scripts/data.gd")
 const RelicDb = preload("res://scripts/core/relic_db.gd")
 const Bal = preload("res://scripts/core/balance.gd")
@@ -417,6 +418,12 @@ func apply(id: String) -> void:
 
 
 func _on_gain(what: String, args: Dictionary) -> void:
+	BossBench.rb("gain", [what, args])   # Boss 单场测试台录制（docs/170）：事件直接给的效果
+	_on_gain_impl(what, args)
+	BossBench.re()
+
+
+func _on_gain_impl(what: String, args: Dictionary) -> void:
 	var amt: float = float(args.get("amount", 0))
 	match what:
 		"light":
