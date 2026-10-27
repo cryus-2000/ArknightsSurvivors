@@ -2999,7 +2999,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 	if e.get("blast_w", 0.0) > 0.0:
 		# 壳海狂奔者自爆鼓胀：爆炸范围预警圈从小到大，本体胀大变亮
 		var xd: Dictionary = D.ENEMIES.get(e.type, {})
-		var xk: float = 1.0 - e.blast_w / float(xd.get("blast_fuse", 0.55))
+		var xk: float = 1.0 - e.blast_w / float(e.get("blast_w0", xd.get("blast_fuse", 0.55)))
 		# 范围圈改在特效之上的覆盖层画（draw_enemy_tells，docs/48 ②），这里只留本体胀大变亮
 		col = col.lerp(Color(2.4, 1.1, 1.6), xk * 0.7)
 		e.squash = maxf(e.squash, 0.14 * xk * (0.6 + 0.4 * sin(g.t * 40.0)))
@@ -3024,7 +3024,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		bpos = e.pos + Vector2(0, (31.0 if e.type == "ishar" else e.r) * 0.8 + 3.0 * Game.PX)
 	# 冲刺蓄力的身体表现（docs/139 §7.4，render/dash_tell_style ≥ 1）：往冲刺反方向缩 render/dash_pull 美术像素、按蓄力进度渐变到危险色（不闪）
 	if e.get("dash_w", 0.0) > 0.0 and e.has("dash_dir") and not e.boss and Bal.vi("render/dash_tell_style", 0) >= 1:
-		var dwk: float = clampf(1.0 - e.dash_w / float(D.ENEMIES.get(e.type, {}).get("dash_wind", 0.5)), 0.0, 1.0)
+		var dwk: float = clampf(1.0 - e.dash_w / float(e.get("dash_w0", D.ENEMIES.get(e.type, {}).get("dash_wind", 0.5))), 0.0, 1.0)
 		bpos -= (e.dash_dir as Vector2) * Bal.v("render/dash_pull", 3.0) * Game.PX * dwk
 		var dfl: float = dwk * Bal.v("render/dash_flash", 0.6)   # 随蓄力进度平滑变色，不闪（10-24 Boss 频闪教训）
 		var dc: Color = g.optical.col_danger if g.optical_on else ENEMY_TELL
@@ -3252,7 +3252,7 @@ func draw_enemy_tells() -> void:
 			continue
 		if e.get("blast_w", 0.0) > 0.0:
 			var xd: Dictionary = D.ENEMIES.get(e.type, {})
-			var xk: float = clampf(1.0 - e.blast_w / float(xd.get("blast_fuse", 0.55)), 0.0, 1.0)
+			var xk: float = clampf(1.0 - e.blast_w / float(e.get("blast_w0", xd.get("blast_fuse", 0.55))), 0.0, 1.0)
 			_tell_circle(e.pos, float(xd.get("blast_r", 62)), xk, ENEMY_TELL)
 		if e.get("burst_w", 0.0) > 0.0:
 			_tell_circle(e.pos, float(D.ENEMIES.get(e.type, {}).get("burst_r", 80.0)), clampf(1.0 - e.burst_w / float(e.get("burst_dur", 0.4)), 0.0, 1.0), TELL_BURST)

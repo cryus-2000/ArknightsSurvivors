@@ -64,6 +64,14 @@ func busy(e: Dictionary) -> bool:
 	return e.get("dash_w", 0.0) > 0.0 or e.get("dash_t", 0.0) > 0.0 or e.get("nova_w", 0.0) > 0.0 or e.get("blast_w", 0.0) > 0.0
 
 
+## 普通怪的蓄力 / 预警时长（用户 10-28「收割者这种小怪的蓄力也可以加速」，docs/179）：非精英非 Boss 的蓄力 × enemy/windup_mult（0.7），
+## 但不短于 enemy/windup_min（0.4 秒，手机上看得清；原本就更短的不拉长）；预警圈 / 线 / 扇形的显示与判定读同一个时长，伤害不改。1 = 关
+func _wu(e: Dictionary, dur: float) -> float:
+	if e.elite or e.boss:
+		return dur
+	return maxf(dur * Bal.v("enemy/windup_mult", 1.0), minf(dur, Bal.v("enemy/windup_min", 0.4)))
+
+
 ## 额外招式由 enemies.json 配置；只在独立窗口释放，群怪共享预警上限。
 func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool:
 	var a: Dictionary = d.get("extra", _NONE)
@@ -103,7 +111,7 @@ func _secondary(e: Dictionary, d: Dictionary, dir: Vector2, dist: float) -> bool
 			data.merge({"act": "extra_volley", "half": float(a.spread) * 0.5, "r": reach}, true)
 		_:
 			return false
-	g.tele.warn(e, shape, dur, data)
+	g.tele.warn(e, shape, _wu(e, dur), data)
 	if g.t >= 280.0:
 		next_secondary_at = g.t + 0.9
 	e.extra_next = g.t + float(a.cd)
@@ -191,7 +199,8 @@ func _blast(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 			e.dead = true
 		return Vector2.ZERO
 	if dist < float(d.get("blast_range", 60)):
-		e.blast_w = float(d.get("blast_fuse", 0.8))
+		e.blast_w = _wu(e, float(d.get("blast_fuse", 0.8)))
+		e["blast_w0"] = e.blast_w   # 画面按这一次实际引信时长算进度（render/world.gd）
 		return Vector2.ZERO
 	return Vector2.INF
 
@@ -248,7 +257,7 @@ func _reap(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float) -
 		# 扇形斩前摇 enemy/reaper_windup（0.8 秒），醒来后第一下再加 reaper_first_extra（0.2 秒）：数值 9/29「先让它可躲」；倍率读 reap_mult
 		var wu: float = Bal.v("enemy/reaper_windup", 0.8) + (Bal.v("enemy/reaper_first_extra", 0.2) if not e.get("reaped", false) else 0.0)
 		e.reaped = true
-		g.tele.warn(e, "cone", wu, {"ang": dir.angle(), "half": 0.9, "r": rr + 10.0, "track": 0.2, "act": "bite", "name": "镰肢劈砍", "col": Color(0.35, 0.72, 1.0), "dmg": e.dmg * float(d.get("reap_mult", 1.2)),
+		g.tele.warn(e, "cone", _wu(e, wu), {"ang": dir.angle(), "half": 0.9, "r": rr + 10.0, "track": 0.2, "act": "bite", "name": "镰肢劈砍", "col": Color(0.35, 0.72, 1.0), "dmg": e.dmg * float(d.get("reap_mult", 1.2)),
 			"atk_fx": str(d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})
 	return Vector2.INF
 
@@ -281,7 +290,7 @@ func _thrust(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float)
 		if _stag(e):
 			return Vector2.INF
 		Sfx.enemy("bite", dist)
-		g.tele.warn(e, "line", 0.55, {"ang": dir.angle(), "len": tr + 20.0, "wid": 12.0, "track": 0.25, "act": "stab", "spd": 700.0, "col": Color(1.0, 0.35, 0.45), "dmg": e.dmg * float(d.get("thrust_mult", 1.2)),
+		g.tele.warn(e, "line", _wu(e, 0.55), {"ang": dir.angle(), "len": tr + 20.0, "wid": 12.0, "track": 0.25, "act": "stab", "spd": 700.0, "col": Color(1.0, 0.35, 0.45), "dmg": e.dmg * float(d.get("thrust_mult", 1.2)),
 			"atk_fx": str(d.get("atk_fx_enraged", d.get("atk_fx", "")) if e.enraged else d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})
 	return Vector2.INF
 
@@ -299,7 +308,7 @@ func _nest(e: Dictionary, d: Dictionary, dist: float, dt: float) -> Vector2:
 		if _stag(e):
 			return Vector2.INF
 		Sfx.enemy("screech", dist)
-		g.tele.warn(e, "circle", 0.7, {"follow": true, "r": float(d.get("lash_r", 105)), "act": "burst", "col": Color(0.75, 0.45, 1.0), "dmg": e.dmg * 1.3,
+		g.tele.warn(e, "circle", _wu(e, 0.7), {"follow": true, "r": float(d.get("lash_r", 105)), "act": "burst", "col": Color(0.75, 0.45, 1.0), "dmg": e.dmg * 1.3,
 			"atk_fx": str(d.get("atk_fx", "")), "atk_fx_origin": d.get("atk_fx_origin", [-1, -1])})
 	return Vector2.INF
 
@@ -333,7 +342,7 @@ func _stomp(e: Dictionary, d: Dictionary, dist: float) -> Vector2:
 		if _stag(e):
 			return Vector2.INF
 		Sfx.enemy("screech", dist)
-		g.tele.warn(e, "circle", 0.9, {"follow": true, "r": float(d.get("stomp_r", 135)), "act": "slam", "col": Color(1.0, 0.8, 0.5), "dmg": e.dmg * 1.2, "ground": true})   # ground：轮廓画在地面层，不盖住单位（用户 10-24）
+		g.tele.warn(e, "circle", _wu(e, 0.9), {"follow": true, "r": float(d.get("stomp_r", 135)), "act": "slam", "col": Color(1.0, 0.8, 0.5), "dmg": e.dmg * 1.2, "ground": true})   # ground：轮廓画在地面层，不盖住单位（用户 10-24）
 	return Vector2.INF
 
 
@@ -362,7 +371,8 @@ func _dash(e: Dictionary, d: Dictionary, dir: Vector2, dist: float, dt: float, s
 		return e.dash_dir * spd * float(d.get("dash_speed", 3.8))
 	if e.dash_cd <= 0.0 and dist < float(d.get("dash_range", 240)) and dist > 40.0 and g.beacon_sys.slow_mult(e) >= 1.0:   # safe_slow 对照组：读条光圈附近不起冲刺
 		e.dash_cd = g.rng_enemy.randf_range(3.0, 4.5)
-		e["dash_w"] = float(d.get("dash_wind", 0.5))
+		e["dash_w"] = _wu(e, float(d.get("dash_wind", 0.5)))
+		e["dash_w0"] = e.dash_w   # 画面按这一次实际蓄力时长算进度（render/world.gd）
 		e["dash_dir"] = dir
 		# 冲刺时长按起冲时的距离算，保证能冲到主控身上再多 30（原来固定 0.35 秒，滑动者只冲 96、骑士精英 135，起冲距离却是 240 / 300，
 		# 根本碰不到人——用户实机反馈 9/27）；夹在 0.2–1.0 秒。dash_len = 实际冲出距离，画冲刺预警线用
