@@ -17,7 +17,7 @@ func check(value: bool, label: String) -> void:
 		printerr("FAIL: " + label)
 func _ready() -> void:
 	var rec = Recorder.new()
-	var g = {"world":rec,"combat":{"GROUND_Y":0.62}}
+	var g = {"world":rec,"combat":{"GROUND_Y":0.62},"t":0.0}   # t：伊祖米克迁徙潮预警按 g.t 走浪纹相位（docs/174）
 	for skin in ["bubble","phantom","ice","ice_field","ice_wave","ice_thrust","ice_lance","ice_wall","crescent","step","spear","choir","tentacle","tide"]:
 		for shape in ["circle","line","cone","arc"]:
 			var w = {"skin":skin,"shape":shape,"pos":Vector2(103.25,-81.5),"ang":0.7,"len":530.0,"wid":24.0,"r":280.0,"inner_r":220.0,"half":0.8,"col":Color.CYAN,"velocity":Vector2(70,40),"life":2.0,"age":0.15,"t":0.5,"dur":1.3}

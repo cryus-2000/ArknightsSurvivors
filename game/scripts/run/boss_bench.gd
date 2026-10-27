@@ -30,7 +30,7 @@ static var cur = null     # 开着的那一个（录制钩子走静态函数：�
 
 func _init(game) -> void:
 	g = game
-	for a in Cfg.dev_args():
+	for a in _dev_args():
 		if a.begins_with("--benchsnap="):
 			rec_prefix = a.substr(12)
 		elif a.begins_with("--bossbench="):
@@ -234,7 +234,7 @@ func _write_snap(slot: int, group: Array) -> void:
 	for m in g.mires:
 		mires.append(var_to_str({"pos": m.pos, "r": m.r, "maxr": m.maxr, "life": m.life, "seed": m.get("seed", 0.0)}))
 	var args: Array = []
-	for a in Cfg.dev_args():
+	for a in _dev_args():
 		for p in ["--seed=", "--op=", "--squad=", "--bot=", "--meta=", "--metanodes=", "--tide=", "--diff=", "--tier=", "--bal=", "--dens="]:
 			if a.begins_with(p):
 				args.append(a)
@@ -414,3 +414,8 @@ func _replay(kind: String, a: Array) -> void:
 					ro.apply_rejection()
 				else:
 					ro.clear_rejection()
+
+
+## 与 Cfg.dev_args 同口径（只在 debug 构建读命令行）；不直接引用 Cfg：settings.gd → relic_db → … → 本脚本 → Cfg 会循环编译失败（-s 测试里 core 挂）
+static func _dev_args() -> PackedStringArray:
+	return OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()
