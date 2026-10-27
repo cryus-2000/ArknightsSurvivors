@@ -1,0 +1,92 @@
+M  docs/170_paranoia_combos_1027.md
+UU game/data/balance.json
+M  game/data/enemies.json
+M  game/scripts/enemies/bosses/paranoia.gd
+M  game/scripts/enemies/bosses/paranoia_combos.gd
+M  game/scripts/render/boss_beam.gd
+M  game/scripts/render/paranoia_combo_draw.gd
+UU game/scripts/render/world.gd
+M  game/tests/paranoia_combo_preview.gd
+M  game/tests/paranoia_combos_test.gd
+diff --cc game/data/balance.json
+index 6e231177,10fe6fae..00000000
+--- a/game/data/balance.json
++++ b/game/data/balance.json
+@@@ -458,13 -427,9 +458,19 @@@
+    "_doc": "Boss 血量与受伤旋钮（docs/42 §8，EA v2，云端 ea-v1 验证）。hp_mid：3:30 / 7:00 中期 Boss；hp_final：10:00 最终 Boss（10-24 用户：直接缩血 15%，2.35 → 2.0）；hp_x_<id>：单只再乘；hit_cap_pct：Boss 单次受伤最多为最大生命的该比例（0 = 关）。其余 boss/* 旋钮仍用代码缺省值（docs/38）",
+    "hp_mid": 1.3,
+    "hp_final": 2.0,
+++<<<<<<< HEAD
+ +  "hp_x_path": 2.6,
+ +  "_mid_fight_len": "10-27 测试台（boss-bench）：中期 Boss 单场 20–37 秒招式放不全；按单场 45–75 秒提血：塑路者 1.6 → 2.6（37 → 约 60 秒），接潮组三只各 2.3（23–25 → 约 55 秒；假死复苏按最大生命比例，跟着放大）。tide_combo_cd1/2 配合连段冷却、tide_brk1/2 收招破绽秒数（docs/170 §4.3）",
+ +  "hp_x_bishop": 2.3,
+ +  "hp_x_archon": 2.3,
+ +  "hp_x_immortal": 2.3,
+ +  "hp_x_paranoia": 1.35,
+ +  "_paranoia_pace": "偏执泡影单场节奏（docs/170 §3g，10-28 测试台 boss-bench：原中位 149 秒、约四成超时）：hp_x_paranoia 1.6→1.35；悬浮期受伤 paranoia_hover_taken 与落地光环张开时受伤 paranoia_aura_taken 0.5→0.65；冲刺打落坠地 paranoia_drop_t 4→5 秒（合计受伤 paranoia_drop_taken 1.8 不变）。目标中位 90–120 秒、超时 <10%",
+++=======
++   "hp_x_path": 1.6,
++   "hp_x_paranoia": 1.45,
++   "_paranoia_pace": "偏执泡影单场节奏（docs/170 §3g，10-28 测试台 boss-bench：原中位 149 秒、约四成超时）：hp_x_paranoia 1.6→1.35→1.5→1.8（收招改真破绽后回调；本地测试台 24 局：胜率 96%、中位 102 秒、超时 4%、破绽期输出 37%，样本偏易约 20 点）；连段收招 = 破绽，受伤合计 paranoia_rest_taken 1.25；三幕光环散开受伤 paranoia_aura_off_taken 1→1.25；悬浮期受伤 paranoia_hover_taken 与落地光环张开时受伤 paranoia_aura_taken 0.5→0.65；冲刺打落坠地 paranoia_drop_t 4→5 秒（合计受伤 paranoia_drop_taken 1.8 不变）。目标中位 90–120 秒、超时 <10%",
+++>>>>>>> 514f48e41
+    "paranoia_hover_taken": 0.65,
+    "paranoia_aura_taken": 0.65,
+    "paranoia_drop_t": 5.0,
+diff --cc game/scripts/render/world.gd
+index ffd068c0,1a9c4637..00000000
+--- a/game/scripts/render/world.gd
++++ b/game/scripts/render/world.gd
+@@@ -1820,10 -1806,9 +1820,10 @@@ func _draw_ebullets_lobs_shocks() -> vo
+  	# 敌方弹幕分三遍画（性能 9/30：原来每颗子弹影子 / 底圈 / 光晕 / 贴图 / 描边交替，有贴图和无贴图来回切，每颗约 5 次绘制调用；
+  	# 分遍后同类连续提交能合批）：① 无贴图：影子椭圆、深色底圈、光晕；② 贴图：弹体；③ 无贴图：弹芯、亮描边
+  	var blades: Array = []
+ +	var mcs: Array = []   # 中期 Boss 分级弹（docs/170，render/mid_card_draw 单独画）
+  	for b in g.ebullets:
+- 		if b.life <= 0.0:
+- 			continue   # 命中 / 到期、还没被回收的敌弹不画（同我方子弹；正式局 _cleanup 每帧回收，图鉴演示由 enemy_demo 回收）
++ 		if b.life <= 0.0 or b.get("own_draw", false):
++ 			continue   # 命中 / 到期、还没被回收的敌弹不画（同我方子弹；正式局 _cleanup 每帧回收，图鉴演示由 enemy_demo 回收）；own_draw = 弹体由 Boss 自己画（偏执泡影二阶段，docs/170）
+  		if b.get("kind", "") == "boss_blade":
+  			blades.append(b)
+  			continue
+@@@ -1844,16 -1825,16 +1844,20 @@@
+  			continue
+  		match b.get("kind", "orb"):
+  			"acid":
+ -				tb_circle(bp, b.r + 5.0, Color(0.5, 1.4, 0.3, 0.3))
+ +				tb_circle(bp, (b.r + 5.0) * vk, Color(0.5, 1.4, 0.3, 0.3))
+  			"nova":
+ -				tb_circle(bp, b.r + 5.0, Color(1.2, 0.4, 1.8, 0.3))
+ +				tb_circle(bp, (b.r + 5.0) * vk, Color(1.2, 0.4, 1.8, 0.3))
+  			"nerve":
+ -				tb_circle(bp, b.r + 5.0, Color(1.0, 0.9, 0.3, 0.25))
+ +				tb_circle(bp, (b.r + 5.0) * vk, Color(1.0, 0.9, 0.3, 0.25))
+  			_:
+ -				tb_circle(bp, b.r + 4.0, Color(1.0, 0.3, 0.6, 0.25))
+ +				tb_circle(bp, (b.r + 4.0) * vk, Color(1.0, 0.3, 0.6, 0.25))
+  	tb_flush()
+  	for b in g.ebullets:
+++<<<<<<< HEAD
+ +		if b.life <= 0.0 or b.get("mc", false):
+++=======
++ 		if b.life <= 0.0 or b.get("own_draw", false):
+++>>>>>>> 514f48e41
+  			continue
+  		var kd: String = b.get("kind", "orb")
+  		var bp: Vector2 = _ebp(b)
+@@@ -1875,11 -1855,9 +1879,15 @@@
+  	var eb_ow: float = Bal.v("render/ebullet_outline", 0.0) if g.optical_on else 0.0
+  	for b in g.ebullets:
+  		var kd: String = b.get("kind", "orb")
+++<<<<<<< HEAD
+ +		if kd == "boss_blade" or kd == "mc" or b.life <= 0.0:
+++=======
++ 		if kd == "boss_blade" or b.life <= 0.0 or b.get("own_draw", false):
+++>>>>>>> 514f48e41
+  			continue
+  		var bp: Vector2 = _ebp(b)
+ +		var vk: float = bulfx.k(b)
+ +		var br: float = b.r * vk   # 出现动画缩放后的画面半径（判定仍是 b.r）
+  		if _bullet_tex(b) != "":
+  			if eb_ow > 0.0:   # 专属弹体（漂移体侵蚀弹）也加同一圈外描边
+  				var dc0: Color = g.optical.col_danger
