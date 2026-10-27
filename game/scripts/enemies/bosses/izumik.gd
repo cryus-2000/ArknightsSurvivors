@@ -45,7 +45,7 @@ const OWN_CAP := 150      # 本体同时在场弹数
 ## 潮门环每幕参数：一圈弹数 / 缺口占几格（三幕两道对开窄缝各占这么多）/ 圈数 / 圈间隔 / 每圈缺口错开（弧度）
 const GATE_N := [20, 24, 24]
 const GATE_SLOTS := [4, 3, 2]
-const GATE_RINGS := [3, 4, 3]
+const GATE_RINGS := [3, 4, 4]
 const GATE_GAP := [0.8, 0.75, 0.65]
 const GATE_STEP := [0.0, 0.3, 0.25]
 
@@ -578,7 +578,7 @@ func _emit_start(e: Dictionary, kind: String, dir: Vector2) -> bool:
 				src.append(e)
 			em.sources = src
 			em.next = g.t + 0.8
-			em.until = g.t + 1.35
+			em.until = g.t + 1.85   # 三轮（10-28 加压，原两轮）
 			for s in src:
 				g.fx.append({"kind": "ring", "pos": s.pos, "r": 34.0, "life": 0.8, "max": 0.8, "col": Color(0.55, 0.75, 1.2), "enemy": true})
 		"螺旋弹臂":
@@ -588,7 +588,7 @@ func _emit_start(e: Dictionary, kind: String, dir: Vector2) -> bool:
 		"习得弹":
 			em.until = g.t + 0.65
 		"回流弹":
-			em.until = g.t + 0.95
+			em.until = g.t + (1.85 if _act(e) >= 2 else 0.95)   # 三幕三圈（10-28 加压）
 		"习得路径":
 			# 二幕独有：沿你最近 2.5 秒的路线先亮起落点，0.5 秒后落下孢子针、停住 0.9 秒再一齐朝你射
 			var pts: Array = []
@@ -684,7 +684,7 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 			em.next = float(em.next) + 0.9
 		"习得路径":
 			for p in em.trail:
-				for j in 2:
+				for j in 3:
 					var a: float = TAU * _n01(int(p.x) + j * 7)
 					_shot(e, p, a, 0.0, 7.0, 4.0, 0.45, {"izu": "echo"})
 			em.next = float(em.next) + 1.0
@@ -841,10 +841,10 @@ func taken_mult(e: Dictionary) -> float:
 	return Bal.v("boss/izumik_break_taken", 1.1) if float(e.get("break_t", 0.0)) > 0.0 else Bal.v("boss/izumik_taken_out", 0.7)
 
 
-## ---- 护群触腕（用户 10-28：换圆形、追着人打）：在队长脚下连落 boss/izumik_tentacle_n（3）个圆（半径 izumik_tentacle_r 110），
+## ---- 护群触腕（用户 10-28：换圆形、追着人打）：在队长脚下连落 boss/izumik_tentacle_n（4）个圆（半径 izumik_tentacle_r 110），
 ## 每隔 izumik_tentacle_gap（0.6）秒按队长当时的位置落下一个，每个预警 1.1 秒后触手从圆里钻出（e.dmg × 1.1）；一直走动就躲得开
 func _tentacles(e: Dictionary) -> void:
-	e.izu_tent_n = int(Bal.v("boss/izumik_tentacle_n", 3.0))
+	e.izu_tent_n = int(Bal.v("boss/izumik_tentacle_n", 4.0))
 	e.izu_tent_next = g.t
 	Sfx.play("tentacle", -4.0, 0.8)
 
@@ -860,7 +860,7 @@ func _tentacle_step(e: Dictionary) -> void:
 		return
 	e.izu_tent_n = n - 1
 	e.izu_tent_next = g.t + Bal.v("boss/izumik_tentacle_gap", 0.6)
-	g.bai.finals._warn(e, "circle", 1.1, {"name": TENTACLE if n == int(Bal.v("boss/izumik_tentacle_n", 3.0)) else "",
+	g.bai.finals._warn(e, "circle", 1.1, {"name": TENTACLE if n == int(Bal.v("boss/izumik_tentacle_n", 4.0)) else "",
 		"pos": g.combat.arena_clamp(g.ppos, 60.0), "r": Bal.v("boss/izumik_tentacle_r", 110.0), "skin": "tentacle",
 		"dmg": e.dmg * 1.1, "izu_last": n == 1})
 
