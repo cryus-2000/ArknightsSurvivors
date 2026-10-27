@@ -23,7 +23,7 @@ func on_warning(e: Dictionary, w: Dictionary) -> void:
 	if not e.get("knight_combo_active",false):
 		var chain: Array = []
 		match str(w.name):
-			"断潮劈击": chain = ["冲锋","再冲锋","@近身收招"] if e.phase==2 else ["冲锋","@近身收招"]
+			"断潮劈击", "雪幕劈": chain = ["冲锋","再冲锋","@近身收招"] if e.phase==2 else ["冲锋","@近身收招"]
 			"踏冰裂阵": chain = ["掷枪" if e.phase==1 and _act(e)>=1 else "断潮劈击","冲锋"]
 			"侧踏挑枪": chain = ["@侧击"]
 			"掷枪": chain = ["冲锋"]
@@ -155,16 +155,20 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		if _first_tell(e, "spin", "长枪回旋") and _cd(e, "spin", 7.0):
 			_spin(e, dir)
 		return
+	# 冻结重击（三幕，原作「攻击被冻结的目标攻击力 175%」）：冻伤期间、主控在 220 内优先放
+	if e.phase == 1 and _act(e) >= 2 and g.t < float(e.get("frostbite_until", 0.0)) and dist < 220.0 and _cd(e, "fzhit", 4.0):
+		_frost_hit(e)
+		return
 	# 普通掷枪（二幕起，重生后不放）：主控在 160–620 时；不补柱。
 	if e.phase == 1 and _act(e) >= 1 and dist >= 160.0 and dist <= 620.0 \
 			and _cd(e, "spear", Bal.v("boss/knight_spear_cd", 8.0)):
 		_spear(e, dir, dist)
 		return
-	if dist < 260.0 and e.phase == 1 and _cd(e, "stab", 5.0):
+	if dist < 260.0 and e.phase == 1 and _cd(e, "stab", 8.0 if _act(e) >= 2 else 5.0):   # 三幕让位给寒潮回卷
 		_stab(e, dir)
 	elif (dist >= 260.0 or e.phase == 2) and _cd(e, "charge", 4.5 if e.phase == 2 else 6.0):
 		# A 冲锋；冰线是它的变体：hunt 冷却到了（18 秒）且主控在 120–600 时改放冰线，0.25 秒后沿线寒冷追击
-		if e.phase == 1 and Bal.v("boss/knight_hunt", 1.0) > 0.0 and dist >= 120.0 and dist <= 600.0 and _cd(e, "hunt", 18.0):
+		if e.phase == 1 and _act(e) != 1 and Bal.v("boss/knight_hunt", 1.0) > 0.0 and dist >= 120.0 and dist <= 600.0 and _cd(e, "hunt", 26.0 if _act(e) >= 2 else 18.0):   # 冰线移出二幕
 			_hunt(e, dir, dist)
 		else:
 			_charge(e, dir)
@@ -254,6 +258,8 @@ func _stab(e: Dictionary, dir: Vector2) -> void:
 ## 普通掷枪只攻击，不补冰柱。整批耗尽后由独立布柱动作补充；三幕普通掷枪两连。
 func _spear(e: Dictionary, dir: Vector2, dist: float) -> void:
 	var n: int = 2 if _act(e) >= 2 else 1
+	if e.phase == 1 and _act(e) == 1 and Bal.v("boss/knight_prisms", 1.0) > 0.0:
+		_prism_plan(e, dir, clampf(dist, 160.0, 520.0))
 	for k in n:
 		_warn(e, "line", 1.0 + 0.6 * k, {"ang": dir.angle(), "len": clampf(dist, 160.0, 520.0), "wid": 14.0, "track": 0.4 + 0.6 * k, "act": "shot",
 			"name": "掷枪", "col": Color(0.75, 0.95, 1.4), "dmg": e.dmg, "lock": k == 0, "spear": true})
@@ -288,7 +294,7 @@ func _cold_step(e: Dictionary, dt: float) -> void:
 		e.kcold = maxf(0.0, float(e.get("kcold", 0.0)) - dt / Bal.v("boss/knight_cold_decay", 2.5))
 	if float(e.kcold) >= 1.0:
 		e.kcold = 0.0
-		var t: float = Bal.v("boss/knight_frostbite", 1.5) * (2.0 if _cold_hot(e) else (1.35 if _act(e) >= 2 else 1.0))
+		var t: float = Bal.v("boss/knight_frostbite", 1.5) * (2.0 if _cold_hot(e) else 1.0)
 		e.frostbite_until = g.t + t
 		e.frostbite_hit = true
 		g.combat.slow_leader("knight_frostbite", t, 0.5)
@@ -301,6 +307,10 @@ func _cold_step(e: Dictionary, dt: float) -> void:
 ## 二幕起冲锋路径留冰面 3 秒（冰棱带）：读 last_act（warn_resolve 写），每次冲锋记一条
 func _ice_step(e: Dictionary) -> void:
 	var st: Array = e.get("ice_strips", [])
+	if e.phase == 1 and _act(e) == 1:
+		for s in st:
+			if g.t >= float(s.until):
+				_strip_shards(e, s)   # 冰面碎屑（二幕，docs/171 v2）
 	st = st.filter(func(s): return g.t < float(s.until))
 	var la: Dictionary = e.get("last_act", {})
 	if e.phase == 1 and _act(e) >= 1 and str(la.get("act", "")) == "dash" and float(la.get("t", -1.0)) > float(e.get("ice_last_t", -1.0)):
@@ -467,6 +477,8 @@ static func stage(e: Dictionary) -> int:
 func on_gate(e: Dictionary) -> void:
 	cancel_combo(e) # Existing pillars persist; only the attack sequence ends.
 	var st := stage(e)
+	if Cfg.dev_args().has("--kgate"):
+		print("KNIGHT_GATE %d t=%.2f" % [st, g.t])   # 仅测试：录像按幕切段
 	if st > 0 and st < 3:
 		_tint2(e, STAGE_TINT[st])
 		g.vfx.show_banner(STAGE_BANNER[st])
@@ -584,7 +596,7 @@ func _leap_step(e: Dictionary, dt: float, dir: Vector2) -> bool:
 func super_armor(e: Dictionary) -> bool:
 	if Bal.v("boss/knight_armor_cast", 1.0) <= 0.0 or e.dead or float(e.get("break_t", 0.0)) > 0.0:
 		return false
-	if e.get("knight_combo_active", false) or e.has("kn_leap") or int(e.get("dash2", 0)) > 0:
+	if e.get("knight_combo_active", false) or e.has("kn_leap") or e.has("kn_roll_end") or int(e.get("dash2", 0)) > 0:
 		return true
 	if e.get("kb_self", false) and (e.kb as Vector2).length() > 40.0:
 		return true
@@ -593,9 +605,105 @@ func super_armor(e: Dictionary) -> bool:
 	return g.bai.finals.hazards.any(func(h): return is_same(h.owner, e))
 
 
+## ---- 三幕 · 寒潮（docs/171 v2）
+## 冻结重击：主控脚下 r70 圈，0.8 秒预警；冻伤那一下由 _bite × 1.75（原作 175%）。范围小，躲开即可
+func _frost_hit(e: Dictionary) -> void:
+	g.bai.finals._warn(e, "circle", 0.8, {"name": "冻结重击", "pos": g.ppos, "r": 70.0, "skin": "ice_field", "dmg": _bite(e, e.dmg * 1.2), "chill": 0.6})
+
+
+## 寒潮回卷：插枪站定 0.8 秒起手，之后 4 秒两臂螺旋雪片（每臂每 0.12 秒 1 片、110 速、自转 1.5 弧度/秒），
+## 从身外 90 处起射：贴身的风眼是安全的；结束给 3 秒破绽。雪片走公共 g.ebullets，同屏 ≤ ROLL_CAP
+const ROLL_CAP := 60
+func roll_start(e: Dictionary, dir: Vector2) -> void:
+	g.bai.finals._warn(e, "circle", 0.8, {"name": "寒潮回卷", "pos": e.pos, "r": 90.0, "skin": "ice_field", "dmg": 0.0})
+	e.kn_roll_next = g.t + 0.8
+	e.kn_roll_end = g.t + 0.8 + Bal.v("boss/knight_roll_t", 4.0)
+	e.kn_roll_a = dir.angle()
+	e.wind = maxf(float(e.wind), 0.8 + Bal.v("boss/knight_roll_t", 4.0))
+
+
+func _roll_step(e: Dictionary) -> void:
+	if not e.has("kn_roll_end"):
+		return
+	if e.dead or float(e.get("break_t", 0.0)) > 0.0 or e.phase != 1:
+		e.erase("kn_roll_end")
+		return
+	e.kb = Vector2.ZERO
+	while g.t >= float(e.kn_roll_next) and float(e.kn_roll_next) < float(e.kn_roll_end):
+		var a: float = float(e.kn_roll_a) + (float(e.kn_roll_next) - float(e.kn_roll_end)) * 1.5
+		for arm in 2:
+			var d: Vector2 = Vector2.from_angle(a + PI * arm)
+			_snow(e, e.pos + Vector2(d.x, d.y * 0.72) * 90.0, d * 110.0)
+		e.kn_roll_next = float(e.kn_roll_next) + 0.12
+	if g.t >= float(e.kn_roll_end):
+		e.erase("kn_roll_end")
+		g.combat.start_break(e, Bal.v("boss/knight_roll_brk", 3.0))
+		e.brk_label = "破绽"
+
+
+func _snow(e: Dictionary, from: Vector2, vel: Vector2) -> void:
+	var own := 0
+	for b in g.ebullets:
+		if b.get("knight_snow", false) and b.get("source_id", -1) == e.id:
+			own += 1
+	if own >= ROLL_CAP:
+		return
+	g.ebullets.append({"pos": from, "vel": vel, "dmg": e.dmg * 0.35 * Bal.v("boss/knight_ice_dmg_k", 0.8),
+		"r": 7.0, "life": 6.0, "slow": false, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "true": false, "kind": "boss_blade",
+		"home": false, "boss": true, "atk": "物理", "source_id": e.id, "col": Color(0.92, 0.97, 1.0), "src_type": e.type, "knight_snow": true})
+
+
+## ---- 二幕 · 冰棱带（docs/171 v2）
+## 冰棱阵列：掷枪落地（1.0 秒）后沿投掷路径每 60 立一根冰棱（无伤低亮预告），再 1 秒同时炸开，向路径两侧各射 1 发细长冰棱弹（180）；
+## 落地同时给 knight_spear_brk（1.0）秒硬直。开关 boss/knight_prisms（0 = 关）
+func _prism_plan(e: Dictionary, dir: Vector2, length: float) -> void:
+	var pts: Array = []
+	var n: int = int(length / 60.0)
+	for i in n:
+		pts.append(e.pos + dir * (60.0 * (i + 1)))
+	e.kn_prisms = {"land": g.t + 1.0, "burst": g.t + 2.0, "pts": pts, "ang": dir.angle(), "shown": false}
+
+
+func _prism_step(e: Dictionary) -> void:
+	var pr = e.get("kn_prisms")
+	if pr == null:
+		return
+	if not pr.shown and g.t >= float(pr.land):
+		pr.shown = true
+		for p in pr.pts:
+			g.tele.warn(e, "circle", 1.0, {"pos": p, "r": 16.0, "act": "knight_prism", "name": "", "col": ICE, "dmg": 0.0})
+		if float(e.get("break_t", 0.0)) <= 0.0 and not e.get("knight_combo_active", false):   # 连段里的掷枪不硬直（破绽会取消连段）
+			g.combat.start_break(e, Bal.v("boss/knight_spear_brk", 1.0))
+			e.brk_label = "破绽"
+	if g.t >= float(pr.burst):
+		e.erase("kn_prisms")
+		var side: Vector2 = Vector2.from_angle(float(pr.ang)).orthogonal()
+		for p in pr.pts:
+			for sgn in [-1.0, 1.0]:
+				_prism_bolt(e, p, side * sgn * 180.0)
+			g.fx.append({"kind": "knight_crash", "pos": p, "r": 26.0, "life": 0.5, "max": 0.5, "enemy": true})
+
+
+func _prism_bolt(e: Dictionary, from: Vector2, vel: Vector2) -> void:
+	g.ebullets.append({"pos": from, "vel": vel, "dmg": e.dmg * 0.35 * Bal.v("boss/knight_ice_dmg_k", 0.8),
+		"r": 8.0, "life": 2.2, "slow": false, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "true": false, "kind": "boss_blade",
+		"home": false, "boss": true, "atk": "物理", "source_id": e.id, "col": Color(0.55, 0.95, 1.0), "src_type": e.type, "knight_prism": true})
+
+
+## 冰面碎屑：冲锋冰面（3 秒）消失时，沿冰面均匀碎出 ≤ 6 片冰屑，向两侧慢飞（120）
+func _strip_shards(e: Dictionary, s: Dictionary) -> void:
+	var a: Vector2 = s.a
+	var b: Vector2 = s.b
+	var n: int = clampi(int(a.distance_to(b) / 90.0), 2, 6)
+	var side: Vector2 = (b - a).normalized().orthogonal()
+	for i in n:
+		var p: Vector2 = a.lerp(b, (i + 0.5) / n)
+		ice_shards(e, p, (side * (1.0 if i % 2 == 0 else -1.0)).angle(), 1, 0.0, 120.0)
+
+
 ## 原作「生命值低于 50% 时寒冷持续时间延长」（2 → 4 秒）：重生冲锋形态起寒冷条涨速 × knight_cold_hot（1.5）、冻伤时长 × 2（docs/171 v2）
 func _cold_hot(e: Dictionary) -> bool:
-	return e.phase == 2
+	return e.phase == 2 or _act(e) >= 2
 
 
 ## ---- 重生冲锋形态专属（docs/171 v2）
@@ -615,6 +723,8 @@ func _crack_charge(e: Dictionary, ang: float) -> void:
 ## 黑冰回旋 → 回旋冰锥：长枪回旋起手后 1.4 秒（冲击环出去 0.4 秒）从本体外射 8 枚冰锥（220，缺口方向不放），
 ## 冲击环走完（起手后 2.45 秒）给 knight_spin_brk（2.0）秒破绽。冰锥走公共 g.ebullets（冰屑同口径）
 func _reborn_step(e: Dictionary) -> void:
+	_prism_step(e)
+	_roll_step(e)
 	if e.has("kn_cone_at") and g.t >= float(e.kn_cone_at):
 		ice_shards(e, e.pos, float(e.kn_cone_gap) + PI, 8, TAU, 220.0, float(e.kn_cone_gap), 0.7)
 		e.erase("kn_cone_at")

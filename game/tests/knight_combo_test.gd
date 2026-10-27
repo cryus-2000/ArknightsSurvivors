@@ -21,6 +21,7 @@ func _ready() -> void:
 		check_revision()
 		check_super_armor()
 		check_reborn()
+		check_acts()
 	print("KNIGHT COMBO failures=",failures)
 	g.queue_free()
 	await get_tree().process_frame
@@ -59,7 +60,7 @@ func exercise() -> void:
 		# 重生冲锋形态只剩冲锋连段（docs/171 v2）；回旋 / 一阶段大招在 check_reborn 单独查
 		for opener in (["断潮劈击","踏冰裂阵","侧踏挑枪","冲锋","冰线","长枪连刺","掷枪"] if phase==1 else ["冲锋"]):
 			var e: Dictionary = fresh(phase)
-			e.gates_passed = 1
+			e.gates_passed = 1 if opener=="掷枪" else 0   # 每幕自己的大招组（docs/171 v2）：一幕原三招，掷枪二幕起
 			script.force_move(e,opener,Vector2.RIGHT,350)
 			var seen: Array = [opener]
 			var prior: String = opener
@@ -218,3 +219,37 @@ func check_reborn() -> void:
 	e.wind = 99.0
 	tick(e)
 	check(float(e.get("kcold",0.0))>0.0,"cold builds again in charge form")
+
+## docs/171 v2 每幕招式组 + 三幕寒潮 + 二幕冰棱
+func check_acts() -> void:
+	var script = g.bai.boss("knight_boss")
+	var names: Array = []
+	for act in 3:
+		var e: Dictionary = fresh(1)
+		e.gates_passed = act
+		names.append(g.bai.finals.names_for(e))
+	check(names[0] != names[1] and names[1] != names[2] and not names[2].has("断潮劈击"),"each act has its own final-move set")
+	var e: Dictionary = fresh(1)
+	e.gates_passed = 2
+	g.ebullets.clear()
+	check(script.force_move(e,"寒潮回卷",Vector2.RIGHT,300),"act three rolls the cold tide")
+	var snow := 0
+	var brk := false
+	for i in 120:
+		tick(e)
+		snow = maxi(snow, g.ebullets.filter(func(b):return b.get("knight_snow",false)).size())
+		brk = brk or e.get("break_t",0.0)>0.0
+	check(snow>=20,"cold tide spirals snow bullets")
+	check(brk,"cold tide ends in a break")
+	check(g.ebullets.all(func(b):return not b.get("knight_snow",false) or g.combat.ground_d(b.pos,e.pos)>=80.0),"cold tide eye stays clear")
+	e = fresh(1)
+	e.gates_passed = 1
+	g.ebullets.clear()
+	script.force_move(e,"掷枪",Vector2.RIGHT,400)
+	var bolts := false
+	for i in 60:
+		tick(e)
+		bolts = bolts or g.ebullets.any(func(b):return b.get("knight_prism",false))
+	check(bolts,"act two spear raises bursting ice prisms")
+	var ej: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/enemies.json"))
+	check(is_equal_approx(float(ej.enemies.knight_boss.gates[1]),0.5),"third act starts at 50 percent")

@@ -316,6 +316,15 @@ func hit_react(e: Dictionary, crit: bool, weak: bool, hd: Dictionary = {}, dmg :
 	# 受击后坐（docs/53，纯画面）：本体沿「远离主控」的方向顶开 fx/recoil_px，fx/recoil_t 秒内回位；技能 / 暴击 / 弱点 ×fx/recoil_skill_k。
 	# 只写 rc_at / rc_dir / rc_k 三个字段，位移在 render/world.gd 的 _eoff 里按 g.t 算（缓存路径和原路径同一个表达式，不进签名）。
 	# 持续伤害不顶；Boss 不顶（韧性的观感，Boss 的受击反馈走破绽）
+	# Boss 受击抖动（10-28 用户「boss霸体时候挨打没有受击动画」）：Boss 不做后坐，原来的受击反馈靠击退把本体顶起一点（data.enemy_offset 按 kb），
+	# 霸体不吃击退后就只剩限频白闪。所有 Boss 命中时画面抖一下：沿远离队长方向顶出再回位（fx/boss_shake_px 世界像素、fx/boss_shake_t 秒），
+	# 抖动中的再次命中不重启（不嗡嗡响）。只挪画面，不碰位置 / 击退；Boss 不走普通怪缓存画法，不涉及 _dc_ok
+	if not dot and e.get("boss", false) and g.t - float(e.get("bh_at", -99.0)) >= Bal.v("fx/boss_shake_t", 0.1):
+		var bd: Vector2 = (e.pos as Vector2) - g.ppos
+		e.bh_dir = bd.normalized() if bd.length_squared() > 1.0 else Vector2.RIGHT
+		e.bh_at = g.t
+		e.bh_px = Bal.v("fx/boss_shake_px", 4.0) * (1.5 if (skill or crit or weak or tier >= 2) else 1.0)
+		e.bh_t = Bal.v("fx/boss_shake_t", 0.1)
 	if not dot and not e.get("boss", false):
 		var d: Vector2 = (e.pos as Vector2) - g.ppos
 		e.rc_dir = d.normalized() if d.length_squared() > 1.0 else Vector2(1.0, 0.0)

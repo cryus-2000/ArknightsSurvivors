@@ -102,3 +102,10 @@
   - 配色回冰白。
 - 录像 `build/knight_circle/knight_reborn.mp4`。
 - 旋钮 `boss/knight_crack`、`knight_cold_hot`、`knight_spin_brk`。
+- 10-28 第 2、3 批（三幕寒潮、二幕冰棱带）已做：
+  - 第二道卡点 33% → 50%（enemies.json knight_boss.gates）；
+  - 每幕自己的大招组（final_attacks.KNIGHT_ACT_NAMES）；
+  - 三幕：寒潮回卷（螺旋雪片 + 风眼 + 3 秒破绽）、雪幕劈、冻结重击、寒冷增强；连刺 / 冰线降频；
+  - 二幕：冰棱阵列（掷枪落地硬直 1 秒，连段内不硬直）、冰面碎屑，冰线移出。
+- 公共层：所有 Boss 受击画面抖动（vfx.hit_react → data.enemy_offset，`fx/boss_shake_px` / `fx/boss_shake_t`），霸体期也有受击反馈。
+- 录像：`build/knight_circle/knight_act1_frost.mp4`、`knight_act2_prism.mp4`、`knight_act3_tide.mp4`、`knight_reborn_v2.mp4`（同一局按幕切段）。
