@@ -1,0 +1,132 @@
+16 局（knight_boss）
+knight_boss      wisadel    m0  s13    10s  win 54s 承伤166% 破绽输出44%
+knight_boss      wisadel    m0  s10    12s  win 118s 承伤171% 破绽输出67%
+knight_boss      wisadel    m0  s11    14s  win 145s 承伤142% 破绽输出65%
+knight_boss      wisadel    m0  s12    14s  timeout 180s 承伤110% 破绽输出29%
+knight_boss      wisadel    m0  s14    12s  win 124s 承伤217% 破绽输出68%
+knight_boss      wisadel    m0  s15    12s  win 127s 承伤276% 破绽输出69%
+knight_boss      wisadel    m0  s16    12s  win 112s 承伤155% 破绽输出41%
+knight_boss      wisadel    m0  s1     14s  win 156s 承伤202% 破绽输出13%
+knight_boss      wisadel    m0  s2      9s  win 67s 承伤39% 破绽输出70%
+knight_boss      wisadel    m0  s3     10s  win 82s 承伤113% 破绽输出59%
+knight_boss      wisadel    m0  s4     12s  win 149s 承伤115% 破绽输出70%
+knight_boss      wisadel    m0  s5     13s  win 162s 承伤106% 破绽输出64%
+knight_boss      wisadel    m0  s6     15s  timeout 180s 承伤350% 破绽输出70%
+knight_boss      wisadel    m0  s7     14s  timeout 180s 承伤100% 破绽输出0%
+knight_boss      wisadel    m0  s8     13s  timeout 180s 承伤73% 破绽输出66%
+knight_boss      wisadel    m0  s9     11s  win 116s 承伤135% 破绽输出67%
+# Boss 单场测试台结果（base_wisadel_m0_knight_boss）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（knight_boss）
+knight_boss      wisadel    m18 s10    10s  win 97s 承伤101% 破绽输出64%
+knight_boss      wisadel    m18 s11    12s  win 93s 承伤110% 破绽输出66%
+knight_boss      wisadel    m18 s13    12s  win 114s 承伤105% 破绽输出63%
+knight_boss      wisadel    m18 s12    14s  timeout 180s 承伤155% 破绽输出18%
+knight_boss      wisadel    m18 s14    10s  win 79s 承伤31% 破绽输出51%
+knight_boss      wisadel    m18 s15    11s  win 117s 承伤60% 破绽输出65%
+knight_boss      wisadel    m18 s16    13s  timeout 180s 承伤230% 破绽输出49%
+knight_boss      wisadel    m18 s1     12s  win 119s 承伤326% 破绽输出40%
+knight_boss      wisadel    m18 s2     11s  win 115s 承伤262% 破绽输出60%
+knight_boss      wisadel    m18 s3     11s  win 120s 承伤58% 破绽输出62%
+knight_boss      wisadel    m18 s5     11s  win 97s 承伤198% 破绽输出66%
+knight_boss      wisadel    m18 s4     15s  timeout 180s 承伤204% 破绽输出67%
+knight_boss      wisadel    m18 s6     13s  win 168s 承伤291% 破绽输出68%
+knight_boss      wisadel    m18 s7     12s  win 146s 承伤289% 破绽输出65%
+knight_boss      wisadel    m18 s8     11s  win 97s 承伤41% 破绽输出59%
+knight_boss      wisadel    m18 s9     14s  win 172s 承伤103% 破绽输出60%
+# Boss 单场测试台结果（base_wisadel_m18_knight_boss）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（knight_boss）
+knight_boss      skadi      m0  s12    12s  win 116s 承伤63% 破绽输出65%
+knight_boss      skadi      m0  s13    15s  win 171s 承伤190% 破绽输出70%
+knight_boss      skadi      m0  s11    15s  timeout 180s 承伤340% 破绽输出64%
+knight_boss      skadi      m0  s10    15s  timeout 180s 承伤448% 破绽输出64%
+knight_boss      skadi      m0  s14     9s  win 56s 承伤74% 破绽输出65%
+knight_boss      skadi      m0  s16     9s  win 72s 承伤115% 破绽输出78%
+knight_boss      skadi      m0  s1     10s  win 71s 承伤142% 破绽输出68%
+knight_boss      skadi      m0  s15    10s  win 91s 承伤160% 破绽输出59%
+knight_boss      skadi      m0  s2     13s  win 140s 承伤195% 破绽输出67%
+knight_boss      skadi      m0  s4     10s  win 61s 承伤41% 破绽输出59%
+knight_boss      skadi      m0  s3     11s  win 105s 承伤77% 破绽输出64%
+knight_boss      skadi      m0  s5     12s  win 100s 承伤266% 破绽输出66%
+knight_boss      skadi      m0  s6     12s  win 125s 承伤230% 破绽输出64%
+knight_boss      skadi      m0  s7     13s  timeout 180s 承伤284% 破绽输出52%
+knight_boss      skadi      m0  s8     13s  timeout 180s 承伤71% 破绽输出46%
+knight_boss      skadi      m0  s9     11s  win 81s 承伤61% 破绽输出68%
+# Boss 单场测试台结果（base_skadi_m0_knight_boss）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（knight_boss）
+knight_boss      skadi      m18 s11    11s  win 83s 承伤181% 破绽输出55%
+knight_boss      skadi      m18 s13    13s  timeout 180s 承伤70% 破绽输出70%
+knight_boss      skadi      m18 s10    13s  timeout 180s 承伤432% 破绽输出69%
+knight_boss      skadi      m18 s12    14s  timeout 180s 承伤168% 破绽输出66%
+knight_boss      skadi      m18 s14    12s  win 142s 承伤151% 破绽输出70%
+knight_boss      skadi      m18 s1     11s  win 94s 承伤187% 破绽输出66%
+knight_boss      skadi      m18 s16    13s  timeout 180s 承伤149% 破绽输出69%
+knight_boss      skadi      m18 s15    14s  timeout 180s 承伤183% 破绽输出68%
+knight_boss      skadi      m18 s2      9s  win 54s 承伤36% 破绽输出58%
+knight_boss      skadi      m18 s3     13s  timeout 180s 承伤100% 破绽输出62%
+knight_boss      skadi      m18 s5     13s  timeout 180s 承伤189% 破绽输出66%
+knight_boss      skadi      m18 s4     14s  timeout 180s 承伤192% 破绽输出64%
+knight_boss      skadi      m18 s6     14s  timeout 180s 承伤63% 破绽输出50%
+knight_boss      skadi      m18 s8      9s  win 57s 承伤39% 破绽输出65%
+knight_boss      skadi      m18 s7     11s  win 139s 承伤156% 破绽输出70%
+knight_boss      skadi      m18 s9     11s  win 114s 承伤130% 破绽输出68%
+# Boss 单场测试台结果（base_skadi_m18_knight_boss）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（knight_boss）
+knight_boss      kaltsit    m0  s10    11s  win 91s 承伤204% 破绽输出55%
+knight_boss      kaltsit    m0  s12    14s  timeout 180s 承伤157% 破绽输出70%
+knight_boss      kaltsit    m0  s11    14s  timeout 180s 承伤155% 破绽输出14%
+knight_boss      kaltsit    m0  s13    14s  win 163s 承伤352% 破绽输出71%
+knight_boss      kaltsit    m0  s14    11s  win 125s 承伤39% 破绽输出68%
+knight_boss      kaltsit    m0  s1     11s  win 113s 承伤228% 破绽输出57%
+knight_boss      kaltsit    m0  s16    13s  win 141s 承伤389% 破绽输出68%
+knight_boss      kaltsit    m0  s15    14s  timeout 180s 承伤179% 破绽输出68%
+knight_boss      kaltsit    m0  s2     10s  win 72s 承伤100% 破绽输出52%
+knight_boss      kaltsit    m0  s5     11s  win 98s 承伤132% 破绽输出58%
+knight_boss      kaltsit    m0  s4     12s  win 130s 承伤167% 破绽输出68%
+knight_boss      kaltsit    m0  s3     14s  timeout 180s 承伤74% 破绽输出69%
+knight_boss      kaltsit    m0  s6     15s  timeout 180s 承伤218% 破绽输出68%
+knight_boss      kaltsit    m0  s7     11s  win 146s 承伤271% 破绽输出65%
+knight_boss      kaltsit    m0  s9     12s  win 112s 承伤252% 破绽输出57%
+knight_boss      kaltsit    m0  s8     13s  timeout 180s 承伤123% 破绽输出42%
+# Boss 单场测试台结果（base_kaltsit_m0_knight_boss）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（knight_boss）
+knight_boss      kaltsit    m18 s12     9s  win 55s 承伤64% 破绽输出62%
+knight_boss      kaltsit    m18 s10    11s  win 122s 承伤36% 破绽输出53%
+knight_boss      kaltsit    m18 s13    12s  win 152s 承伤135% 破绽输出26%
+knight_boss      kaltsit    m18 s11    14s  win 144s 承伤181% 破绽输出64%
+knight_boss      kaltsit    m18 s14    11s  win 111s 承伤141% 破绽输出44%
+knight_boss      kaltsit    m18 s15    14s  timeout 180s 承伤163% 破绽输出69%
+knight_boss      kaltsit    m18 s16    13s  win 160s 承伤125% 破绽输出66%
+knight_boss      kaltsit    m18 s1     13s  win 134s 承伤184% 破绽输出67%
+knight_boss      kaltsit    m18 s2     12s  win 128s 承伤153% 破绽输出67%
+knight_boss      kaltsit    m18 s3      8s  dead 46s 承伤231% 破绽输出73%
+knight_boss      kaltsit    m18 s4      9s  win 60s 承伤26% 破绽输出51%
+knight_boss      kaltsit    m18 s5     13s  timeout 180s 承伤102% 破绽输出42%
+knight_boss      kaltsit    m18 s7     10s  win 81s 承伤118% 破绽输出67%
+knight_boss      kaltsit    m18 s8      9s  win 64s 承伤57% 破绽输出55%
+knight_boss      kaltsit    m18 s6     13s  timeout 180s 承伤134% 破绽输出51%
+knight_boss      kaltsit    m18 s9     10s  win 82s 承伤52% 破绽输出54%
+# Boss 单场测试台结果（base_kaltsit_m18_knight_boss）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+

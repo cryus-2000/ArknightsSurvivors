@@ -1,0 +1,90 @@
+AA game/scripts/run/boss_bench.gd
+AA tools/boss_bench.py
+diff --cc game/scripts/run/boss_bench.gd
+index 0217fe3d,ee5e762f..00000000
+--- a/game/scripts/run/boss_bench.gd
++++ b/game/scripts/run/boss_bench.gd
+@@@ -317,7 -317,6 +317,10 @@@ func _restore() -> void
+  		var m = str_to_var(str(ms))
+  		if m is Dictionary:
+  			g.mires.append(m)
+++<<<<<<< HEAD
+ +	_backfill_mods()
+++=======
+++>>>>>>> 4121e81e (feat: Boss 单场测试台（--benchsnap 录队伍快照 / --bossbench 从快照直接开打 Boss）)
+  	g.pickups.sync_level_pickup()   # 拾取范围随等级（来源「等级」）：等级是直接写回的，不经过升级
+  	g.rfx._fuse_sync()              # 源石锭熔铸的伤害加成按恢复后的熔铸池重算
+  	g.show_queue.clear()
+@@@ -360,27 -359,6 +363,30 @@@
+  	print("BENCHRESTORE events=%d mobs=%d fp_diff=%d %s" % [snap.get("events", []).size(), snap.get("mobs", []).size(), fp_diff.size(), JSON.stringify(fp_diff)])
+  
+  
+++<<<<<<< HEAD
+ +## 局中按击杀 / 击败 Boss / 放技能累加、又不经过上面那批函数的长期修正（如「生还者合约」每击败一只 Boss +20%、
+ +## 叠层藏品）：按快照指纹里逐条的修正补齐缺的那几条（只补藏品与事件来源；临时减益、站位加成不补）
+ +const BACKFILL := ["relic:", "relic_stack:", "event:", "rej:"]
+ +
+ +
+ +func _backfill_mods() -> void:
+ +	var want: Dictionary = (snap.get("fp", {}) as Dictionary).get("mods", {})
+ +	var have: Dictionary = fingerprint().mods
+ +	for k in want:
+ +		var pool: Array = (have.get(k, []) as Array).duplicate()
+ +		for row in want[k]:
+ +			var i := pool.find(row)
+ +			if i >= 0:
+ +				pool.remove_at(i)
+ +				continue
+ +			var f: PackedStringArray = str(row).split("|")
+ +			if f.size() == 4 and BACKFILL.any(func(p): return f[2].begins_with(p)) and g.stats.has_stat(StringName(k)):
+ +				g.stats.add(StringName(k), int(f[0]), float(f[1]), f[2], f[3])
+ +	g.sync_stats()
+ +
+ +
+++=======
+++>>>>>>> 4121e81e (feat: Boss 单场测试台（--benchsnap 录队伍快照 / --bossbench 从快照直接开打 Boss）)
+  func _replay(kind: String, a: Array) -> void:
+  	match kind:
+  		"relic":
+@@@ -407,10 -385,3 +413,13 @@@
+  			g.endg._max_hp(float(a[0]))
+  		"gain":
+  			g.rfx._on_gain(str(a[0]), a[1] if a[1] is Dictionary else {})
+++<<<<<<< HEAD
+ +		"rej", "unrej":
+ +			var ro = g.squad.get_op(str(a[0]))
+ +			if ro != null:
+ +				if kind == "rej":
+ +					ro.apply_rejection()
+ +				else:
+ +					ro.clear_rejection()
+++=======
+++>>>>>>> 4121e81e (feat: Boss 单场测试台（--benchsnap 录队伍快照 / --bossbench 从快照直接开打 Boss）)
+diff --cc tools/boss_bench.py
+index 7854ff25,815317b0..00000000
+--- a/tools/boss_bench.py
++++ b/tools/boss_bench.py
+@@@ -218,7 -218,7 +218,11 @@@ def main()
+      r.add_argument("--game", default=GAME)
+      r.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2) - 1))
+      r.add_argument("--timeout", type=int, default=1800)
+++<<<<<<< HEAD
+ +    r.add_argument("--extra", nargs="*", action="extend", default=[])
+++=======
++     r.add_argument("--extra", nargs="*", default=[])
+++>>>>>>> 4121e81e (feat: Boss 单场测试台（--benchsnap 录队伍快照 / --bossbench 从快照直接开打 Boss）)
+      b = sub.add_parser("run")
+      b.add_argument("--snaps", default=os.path.join(ROOT, "build", "boss_bench", "snaps"))
+      b.add_argument("--bosses", default="all")
+@@@ -232,7 -232,7 +236,11 @@@
+      b.add_argument("--game", default=GAME)
+      b.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2) - 1))
+      b.add_argument("--timeout", type=int, default=900)
+++<<<<<<< HEAD
+ +    b.add_argument("--extra", nargs="*", action="extend", default=[])
+++=======
++     b.add_argument("--extra", nargs="*", default=[])
+++>>>>>>> 4121e81e (feat: Boss 单场测试台（--benchsnap 录队伍快照 / --bossbench 从快照直接开打 Boss）)
+      t = sub.add_parser("table")
+      t.add_argument("paths", nargs="+")
+      a = ap.parse_args()
