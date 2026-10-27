@@ -254,5 +254,34 @@ func _ready() -> void:
 	rp.roam_tgt = null
 	rp.roam_target(Vector2(40,14))
 	check(is_same(rp.roam_tgt, izu), "assault: invulnerable boss alone in circle is still the target")
+	# 截子代（10-28 用户定 B）：Boss 无敌 + 喂食子代 → 队友去截离本体最近的，站在子代与本体之间；Boss 解除无敌 / 子代清完就不截
+	izu["invuln"] = true
+	izu.pos = Vector2(0, 0)
+	izu["id"] = 900
+	var k1 := enemy(Vector2(500, 0))
+	k1["feed"] = true
+	k1["feed_to_id"] = 900
+	var k2 := enemy(Vector2(-300, 0))
+	k2["feed"] = true
+	k2["feed_to_id"] = 900
+	g.enemies = [izu, k1, k2]
+	rp.slot = 0
+	g.frame_n += 1
+	var ic = rp._izu_intercept()
+	check(ic != null and is_same(ic[0], k2), "intercept: nearest-to-boss offspring first")
+	var ip: Vector2 = rp._intercept_pos(ic)
+	check(ip.x > k2.pos.x and ip.x < 0.0 and absf(ip.y) < 0.01, "intercept: stands between offspring and boss")
+	rp.slot = 1
+	ic = rp._izu_intercept()
+	check(ic != null and is_same(ic[0], k1), "intercept: second teammate takes the next offspring")
+	izu["invuln"] = false
+	g.frame_n += 1
+	check(rp._izu_intercept() == null, "intercept: stops once the boss is no longer invulnerable")
+	izu["invuln"] = true
+	k1.dead = true
+	k2.dead = true
+	g.frame_n += 1
+	check(rp._izu_intercept() == null, "intercept: stops when all offspring are cleared")
+	rp.slot = 0
 	print("COMMAND_AI checks=%d failures=%d" % [checks, failures])
 	get_tree().quit(1 if failures else 0)
