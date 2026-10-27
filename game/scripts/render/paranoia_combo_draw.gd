@@ -30,9 +30,10 @@ static func draw_top(g, e: Dictionary) -> void:
 			rr += 3.0
 		# 泡膜：极淡内填 + 2 像素淡紫膜 + 左上一道白高光；1 倍画面下要能看出是泡
 		# 10-27 用户「泡泡颜色明显一点，太透明」：内填 0.1→0.3、膜 0.7→0.95 加粗到 2.5、内侧再一圈淡色厚膜
-		tw.tb_circle(p2, rr, Color(0.66, 0.5, 1.0, 0.3))
-		tw.tb_ring(p2, rr - 2.0, 3.0, Color(0.72, 0.56, 1.0, 0.35))
-		tw.tb_ring(p2, rr, 2.5, Color(0.84, 0.7, 1.0, 1.0 if held and blink else 0.95))
+		# 10-27 用户「换成紫色泡泡」：淡紫 → 饱和紫（高光仍白）
+		tw.tb_circle(p2, rr, Color(0.58, 0.2, 0.95, 0.34))
+		tw.tb_ring(p2, rr - 2.0, 3.0, Color(0.66, 0.26, 1.0, 0.4))
+		tw.tb_ring(p2, rr, 2.5, Color(0.82, 0.45, 1.0, 1.0 if held and blink else 0.95))
 		tw.tb_arc(p2, rr - 3.5, PI * 1.05, PI * 1.5, 2.0, Color(1.0, 0.97, 1.0, 0.95), 5)
 	tw.tb_flush()
 	# 幻影：外缘一圈抖动的冷色虚边（真身没有），和更透的本体一起认

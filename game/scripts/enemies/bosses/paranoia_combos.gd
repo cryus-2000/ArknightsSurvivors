@@ -39,7 +39,7 @@ const REST_NEAR := 110.0
 const BUL_CAP := 200
 ## 弹体分级：r 判定半径、伤害倍率（× e.dmg）
 const TIER := {"s": [6.0, 0.34], "m": [9.0, 0.42], "l": [12.0, 0.5]}
-const CORE := Color(0.95, 0.88, 1.0)
+const CORE := Color(0.85, 0.55, 1.0)   # 颗粒（泡破 / 聚光）同泡泡的紫
 
 var g
 var bs   # paranoia.gd 实例
