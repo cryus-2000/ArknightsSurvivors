@@ -768,6 +768,12 @@ func _share_fx_step(e: Dictionary) -> void:
 			w.izu_mire = true
 			if not g.bai.finals.cancelled(w):
 				_tide_mires(e, w)
+				if str(w.skin) == "current":
+					# 收尾浪甩出的水沫颗粒（docs/136 颗粒模板，纯画面）
+					for q in 24:
+						var d := Vector2.from_angle(TAU * q / 24.0)
+						_puff(w.pos + Vector2(d.x, d.y * 0.72) * float(w.r), 1, Color(0.7, 0.88, 1.0), (d + Vector2.UP).normalized())
+					g.vfx.shake_screen(0.25)
 		if not w.done or w.get("izu_fx", false) or not is_same(w.owner, e) or str(w.get("act", "")) != "sweep":
 			continue
 		w.izu_fx = true

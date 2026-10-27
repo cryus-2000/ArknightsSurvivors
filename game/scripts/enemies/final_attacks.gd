@@ -202,7 +202,7 @@ func resolve(w: Dictionary) -> void:
 		g.tele.warn_damage(w)
 		var f: Dictionary = w.duplicate()
 		f.kind = "final_impact"
-		f.life = 0.95 if w.get("skin","")=="ice_field" else 0.5
+		f.life = 0.95 if w.get("skin","") in ["ice_field", "current"] else 0.5   # 海流牵引收尾浪 1 秒（10-28，纯画面）
 		f.max = f.life
 		f.enemy = true
 		g.fx.append(f)
