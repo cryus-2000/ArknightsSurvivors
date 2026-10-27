@@ -47,7 +47,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	# 永远打不空也不近身（9/29 实测伊比利亚卡在 50% 190 秒）
 	if not e.has("dmg_k"):
 		# 单发伤害旋钮（协调人 10-27：弹幕变密，整体先 ×0.8，云端测完再定）：出场第一帧乘到 e.dmg 上，所有招式 / 弹体 / 火线 / 接触伤害一起缩
-		e.dmg_k = Bal.v("boss/saint_dmg_mult", 0.8) if e.type == "iberia" else Bal.v("boss/carmen_dmg_mult", 1.3)   # 测试台 10-27 / 10-28：卡门 ×0.8 承伤只剩 15%，加收束后仍偏软
+		e.dmg_k = Bal.v("boss/saint_dmg_mult", 0.8) if e.type == "iberia" else Bal.v("boss/carmen_dmg_mult", 1.5)   # 测试台 10-27 / 10-28：卡门 ×0.8 承伤只剩 15%，加收束后仍偏软
 		e.dmg = float(e.dmg) * float(e.dmg_k)
 		# 血量旋钮（协调人 10-27 测试台：单场 24–30 秒招式放不全，目标 45–75 秒）：出场第一帧乘到生命上（在 hp_mid / hp_x_ 之后）
 		var hk: float = Bal.v("boss/iberia_hp_k", 2.9) if e.type == "iberia" else Bal.v("boss/carmen_hp_k", 2.4)
@@ -386,7 +386,7 @@ func _fire_step(e: Dictionary, dt: float) -> void:
 		if absf(t - float(fl.gap_t)) * L < float(fl.gap_len) * 0.5:
 			continue   # 站在缺口里
 		e.fire_hit_at = g.t + 0.5
-		g.combat.enemy_hit(e.dmg * Bal.v("boss/carmen_fire_mult", 0.5), {"boss": true, "src_type": e.type}, false, true, ["远程", "物理"], "boss_" + e.type)
+		g.combat.enemy_hit(e.dmg * Bal.v("boss/carmen_fire_mult", 0.65), {"boss": true, "src_type": e.type}, false, true, ["远程", "物理"], "boss_" + e.type)
 		g.combat.slow_leader("carmen_fire", 1.0, 0.8)
 		break
 
@@ -473,6 +473,8 @@ func _pressure_step(e: Dictionary, dt: float, p2: bool) -> void:
 			if fl.has("push") and g.t - float(fl.born) > 0.6:
 				fl.a += fl.push * v * dt
 				fl.b += fl.push * v * dt
+				# 封路：缺口随收束变窄（carmen_fire_gap → carmen_fire_gap_min，约 3 秒收完），越晚越难钻
+				fl.gap_len = maxf(Bal.v("boss/carmen_fire_gap_min", 46.0), float(fl.gap_len) - Bal.v("boss/carmen_gap_shrink", 12.0) * dt)
 		return
 	var em: Array = e.get("embers", [])
 	if calm:
@@ -481,7 +483,7 @@ func _pressure_step(e: Dictionary, dt: float, p2: bool) -> void:
 	elif e.age > 3.0:
 		e.ember_t = float(e.get("ember_t", 1.5)) - dt
 		if e.ember_t <= 0.0 and em.size() < int(Bal.v("boss/iberia_ember_max", 6.0)):
-			e.ember_t = Bal.v("boss/iberia_ember_cd_p2", 1.0) if p2 else Bal.v("boss/iberia_ember_cd", 1.4)
+			e.ember_t = Bal.v("boss/iberia_ember_cd_p2", 1.3) if p2 else Bal.v("boss/iberia_ember_cd", 1.8)
 			var at: Vector2 = g.ppos + g.pvel * Bal.v("boss/iberia_ember_lead", 0.7) + Vector2.from_angle(g.rng_enemy.randf() * TAU) * g.rng_enemy.randf_range(0.0, 36.0)
 			var arm: float = Bal.v("boss/iberia_ember_arm", 0.6)
 			em.append({"pos": at, "from": e.pos + Vector2(0, -20), "r": Bal.v("boss/iberia_ember_r", 44.0), "born": g.t, "arm": g.t + arm,
@@ -493,7 +495,7 @@ func _pressure_step(e: Dictionary, dt: float, p2: bool) -> void:
 	for x in em:
 		if g.t >= float(x.arm) and g.ppos.distance_to(x.pos) < float(x.r):
 			e.ember_hit_at = g.t + 0.5
-			g.combat.enemy_hit(e.dmg * Bal.v("boss/iberia_ember_mult", 0.17), {"boss": true, "src_type": e.type}, false, true, ["远程", "法术"], "boss_" + e.type)
+			g.combat.enemy_hit(e.dmg * Bal.v("boss/iberia_ember_mult", 0.14), {"boss": true, "src_type": e.type}, false, true, ["远程", "法术"], "boss_" + e.type)
 			g.combat.slow_leader("iberia_ember", 0.6, 0.8)
 			break
 
