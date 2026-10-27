@@ -57,7 +57,18 @@ func _ready() -> void:
 	key.pressed=true
 	key.keycode=KEY_F
 	probe.input(key)
+	ok(probe.action_called=="" and probe.press_id=="meta","button press shows its pressed state before acting")
+	probe.tick(0.2)   # 按下态 PRESS_T 后才执行（10-28 底栏按钮反馈）
 	ok(probe.action_called=="meta","game-menu controller Y opens growth")
+	var mv := InputEventMouseMotion.new()
+	mv.position = (probe._btn_rect(probe._buttons()[probe._buttons().size() - 1]).get_center() * probe.scale + probe.origin) * Cfg.ui_k
+	probe.input(mv)
+	ok(probe.hover=="hunt","mouse hover highlights the hovered footer button")
+	var down := InputEventKey.new()
+	down.pressed=true
+	down.keycode=KEY_DOWN
+	probe.input(down)
+	ok(probe.focus==probe._buttons().size() - 1,"down moves keyboard / pad focus into the footer")
 	key.keycode=KEY_END
 	s.input(key)
 	ok(s.selected==6,"public keyboard selects final operator")

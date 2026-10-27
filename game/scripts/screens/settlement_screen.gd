@@ -30,6 +30,14 @@ var squad_canvas: Control
 var cells := 0
 var vouchers := 0
 const STRIDE := 224.0
+## 底栏按钮反馈（10-28 用户「结算画面最下面点击按钮没有交互反馈」）：悬停高亮 + 青边、按下缩小变亮、点击音（ui_ok，悬停换按钮 ui_move）、
+## 键盘 / 手柄焦点框（↓ 进入底栏、← → 换按钮、↑ 回编队、Enter / Ⓐ 按下）、触屏按下态；动作在按下后 PRESS_T 秒执行，按下态看得见
+const PRESS_T := 0.09
+var hover := ""        # 鼠标悬停的按钮 id
+var focus := -1        # 键盘 / 手柄焦点在底栏第几个按钮（-1 = 焦点在编队卡）
+var press_id := ""     # 正在播按下态的按钮
+var press_t := 0.0
+var _pending := ""     # 按下后待执行的动作
 const VIEW := Rect2(28, 288, 884, 350)
 
 func _init(host) -> void:
@@ -63,6 +71,15 @@ func tick(dt: float) -> void:
 	squad_canvas.visible = not g.run_stats.open and not g.headhunt.open and (g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T)
 	if g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T:
 		elapsed = 0.9 if UM.rm() or UM.skip_all() or g.ui_skip else minf(0.9, elapsed + dt)
+	if press_t > 0.0:
+		press_t = maxf(0.0, press_t - dt)
+		g.hud.queue_redraw()
+		if press_t <= 0.0:
+			press_id = ""
+			if _pending != "":
+				var act := _pending
+				_pending = ""
+				_run(act)
 	var signature := [offset, selected, scale, elapsed, rows.size(), squad_canvas.visible]
 	if signature != _signature:
 		_signature = signature
@@ -125,6 +142,56 @@ static func grade(m: Dictionary, preset: int) -> String:
 			return "B"
 	return "C"
 
+## 底栏按钮：[id, x, 宽, 文字, 主按钮]（与画法、点击区同一张表）
+func _buttons() -> Array:
+	var tch: bool = Pad.touch_ui()   # 触屏（手机 / 平板）不写键位
+	var out: Array = [["records", 28, 160, "作战数据  SELECT" if Pad.using else ("作战数据" if tch else "作战数据  Tab"), false]]
+	if Cfg.runs_log_enabled():   # 对局记录（测试版 / 对内包）：点一下打开记录文件夹（10-22 用户）
+		out.append(["runs", 206, 150, "对局记录", false])
+	out.append(["title", 374, 250, "返回主界面  B" if Pad.using else ("返回主界面" if tch else "返回主界面  Esc"), false])
+	out.append(["meta", 642, 250, "认知塑造  Y" if Pad.using else ("认知塑造" if tch else "认知塑造  X"), false])
+	out.append(["hunt", 910, 342, ("寻访 ×%d  A" if Pad.using else ("寻访 ×%d" if tch else "寻访 ×%d  Enter")) % Roster.tickets(), Roster.tickets() > 0])
+	return out
+
+
+func _btn_rect(b: Array) -> Rect2:
+	var ph: bool = Cfg.phone_ui()   # 手机：按钮 52 高
+	return Rect2(float(b[1]), 660.0 if ph else 666.0, float(b[2]), 52.0 if ph else 40.0)
+
+
+func _btn_at(p: Vector2) -> String:
+	for b in _buttons():
+		if _btn_rect(b).grow(2.0).has_point(p):
+			return str(b[0])
+	return ""
+
+
+## 按下：先播按下态 + 点击音，PRESS_T 秒后再执行（换场景的动作立刻执行就看不到反馈）
+func _press(id: String) -> void:
+	if id == "" or _pending != "":
+		return
+	press_id = id
+	press_t = PRESS_T
+	_pending = id
+	Sfx.play("ui_ok", -6.0)
+	g.hud.queue_redraw()
+
+
+func _run(id: String) -> void:
+	match id:
+		"records": _records()
+		"runs": Cfg.show_runs_folder()
+		"title", "meta", "hunt": _action(id)
+
+
+func _set_hover(id: String) -> void:
+	if id != hover:
+		hover = id
+		if id != "":
+			Sfx.play("ui_move", -10.0)
+		g.hud.queue_redraw()
+
+
 func _point(p: Vector2) -> Vector2:
 	return (p / Cfg.ui_k - origin) / scale
 
@@ -135,20 +202,42 @@ func input(event: InputEvent) -> bool:
 		return true
 	if event is InputEventKey and event.pressed and not event.echo:
 		var key: int = Pad.kc(event)
+		var bs: Array = _buttons()
 		match key:
-			KEY_LEFT, KEY_A: select(selected - 1)
-			KEY_RIGHT, KEY_D: select(selected + 1)
+			KEY_DOWN, KEY_S:
+				if focus < 0:
+					focus = bs.size() - 1   # 进底栏：先落在主按钮（寻访）
+					Sfx.play("ui_move", -10.0)
+			KEY_UP, KEY_W:
+				if focus >= 0:
+					focus = -1
+					Sfx.play("ui_move", -10.0)
+			KEY_LEFT, KEY_A:
+				if focus >= 0:
+					focus = maxi(0, focus - 1)
+					Sfx.play("ui_move", -10.0)
+				else:
+					select(selected - 1)
+			KEY_RIGHT, KEY_D:
+				if focus >= 0:
+					focus = mini(bs.size() - 1, focus + 1)
+					Sfx.play("ui_move", -10.0)
+				else:
+					select(selected + 1)
 			KEY_HOME: select(0)
 			KEY_END: select(rows.size() - 1)
-			KEY_TAB, KEY_C: _records()
-			KEY_X, KEY_F: _action("meta")
-			KEY_ESCAPE, KEY_T: _action("title")
+			KEY_TAB, KEY_C: _press("records")
+			KEY_X, KEY_F: _press("meta")
+			KEY_ESCAPE, KEY_T: _press("title")
 			KEY_R: g._do_action("restart")
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
 				if elapsed < 0.9:
 					elapsed = 0.9
+				elif focus >= 0:
+					_press(str(bs[mini(focus, bs.size() - 1)][0]))
 				else:
-					_action("hunt")
+					_press("hunt")
+		g.hud.queue_redraw()
 		return true
 	if event is InputEventScreenDrag:
 		if dragging:
@@ -157,6 +246,10 @@ func input(event: InputEvent) -> bool:
 	if event is InputEventMouseMotion:
 		if dragging:
 			_drag(_point(event.position))
+		else:
+			_set_hover(_btn_at(_point(event.position)))
+			if hover != "":
+				focus = -1   # 鼠标接管：焦点框让给悬停
 		return true
 	if event is InputEventMouseButton:
 		var p := _point(event.position)
@@ -191,11 +284,10 @@ func _pointer(p: Vector2, pressed: bool) -> void:
 		elif Rect2(28,638,884,14).has_point(p):
 			scroll(offset + (-STRIDE if p.x < 470 else STRIDE))
 		elif p.y >= (656 if Cfg.phone_ui() else 666):
-			if p.x >= 910: _action("hunt")
-			elif p.x >= 642: _action("meta")
-			elif p.x >= 374: _action("title")
-			elif p.x >= 200 and Cfg.runs_log_enabled(): Cfg.show_runs_folder()
-			elif p.x >= 28: _records()
+			var id := _btn_at(p)
+			if id == "" and p.x >= 28 and p.x < 200:
+				id = "records"
+			_press(id)   # 触屏按下也走这里：按下态 + 点击音，PRESS_T 后执行
 	elif dragging:
 		if not moved:
 			select(int((p.x - VIEW.position.x + offset) / STRIDE))
@@ -275,15 +367,45 @@ func draw(ci: CanvasItem, vs: Vector2) -> void:
 	_text(ci,895,631,"›",18,HH.CYB)
 	_timeline(ci)
 	ci.draw_rect(Rect2(0,652,1280,68),HH.INK)
-	var tch: bool = Pad.touch_ui()   # 触屏（手机 / 平板）不写键位
-	_text(ci,28,679,"作战数据  SELECT" if Pad.using else ("作战数据" if tch else "作战数据  Tab"),16,HH.MUTE)
-	if Cfg.runs_log_enabled():   # 对局记录（测试版 / 对内包）：从设置页挪到这里（10-22 用户），点一下打开记录文件夹
-		_text(ci,206,679,"对局记录",16,HH.MUTE)
-	var ph: bool = Cfg.phone_ui()   # 手机：按钮 52 高、字 20
-	for b in [[374,250,"返回主界面  B" if Pad.using else ("返回主界面" if tch else "返回主界面  Esc")],[642,250,"认知塑造  Y" if Pad.using else ("认知塑造" if tch else "认知塑造  X")],[910,342,("寻访 ×%d  A" if Pad.using else ("寻访 ×%d" if tch else "寻访 ×%d  Enter")) % Roster.tickets()]]:
-		ci.draw_rect(Rect2(b[0],660 if ph else 666,b[1],52 if ph else 40),HH.CYB if b[0]==910 and Roster.tickets()>0 else HH.DARK2)
-		_text(ci,b[0]+20,673 if ph else 676,b[2],20 if ph else 18,HH.INK if b[0]==910 and Roster.tickets()>0 else HH.LIGHT)
+	_draw_buttons(ci)
 	ci.draw_set_transform(Vector2.ZERO)
+
+## 底栏按钮：常态 / 悬停（提亮 + 青边）/ 按下（缩到 96%、更亮）/ 焦点（青色四角括号）；作战数据、对局记录是文字按钮（悬停才出底色）
+func _draw_buttons(ci: CanvasItem) -> void:
+	var ph: bool = Cfg.phone_ui()   # 手机：按钮 52 高、字 20
+	var bs: Array = _buttons()
+	for i in bs.size():
+		var b: Array = bs[i]
+		var id: String = b[0]
+		var r := _btn_rect(b)
+		var primary: bool = b[4]
+		var text_btn: bool = id == "records" or id == "runs"
+		var hov: bool = hover == id
+		var foc: bool = focus == i
+		var prs: bool = press_id == id
+		if prs:
+			r = Rect2(r.get_center() - r.size * 0.48, r.size * 0.96)
+		var bg: Color = HH.CYB if primary else HH.DARK2
+		if text_btn and not (hov or foc or prs):
+			bg = Color(0, 0, 0, 0)
+		elif hov or foc:
+			bg = bg.lerp(HH.CYB, 0.18) if not primary else bg.lightened(0.18)
+		if prs:
+			bg = (HH.CYB if not primary else bg).lightened(0.3)
+		if bg.a > 0.0:
+			ci.draw_rect(r, bg)
+		if hov or prs:
+			ci.draw_rect(r, HH.CYB, false, 2.0)
+		if foc:
+			var c := 10.0
+			for corner in [[r.position, Vector2(1, 0), Vector2(0, 1)], [Vector2(r.end.x, r.position.y), Vector2(-1, 0), Vector2(0, 1)], [Vector2(r.position.x, r.end.y), Vector2(1, 0), Vector2(0, -1)], [r.end, Vector2(-1, 0), Vector2(0, -1)]]:
+				var o: Vector2 = corner[0] + (corner[1] + corner[2]) * -3.0
+				ci.draw_line(o, o + corner[1] * c, HH.CYB, 3.0)
+				ci.draw_line(o, o + corner[2] * c, HH.CYB, 3.0)
+		var fg: Color = HH.INK if (primary or prs) else (HH.LIGHT if (hov or foc or not text_btn) else HH.MUTE)
+		var fs: int = (20 if ph else 18) if not text_btn else 16
+		_text(ci, r.position.x + (20.0 if not text_btn else 0.0) + (4.0 if text_btn and (hov or foc or prs) else 0.0), r.position.y + (r.size.y - fs) * 0.5 - 2.0, str(b[3]), fs, fg)
+
 
 func draw_cards(ci: CanvasItem) -> void:
 	ci.draw_set_transform(-VIEW.position * scale, 0, Vector2.ONE * scale)
