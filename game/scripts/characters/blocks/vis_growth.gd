@@ -379,11 +379,11 @@ static func tick(o, dt: float) -> void:
 				qa = q.p
 			if q.life <= 0.0:
 				continue
-			if str(q.get("style", "")) == "saw" and quality() != "low" and g.vrng.randf() < 0.6:   # 圆锯边缘甩火花（画面，g.vrng）
+			if str(q.get("style", "")) == "saw" and quality() != "low" and g.vrng.randf() < 0.3:   # 圆锯边缘甩火花（画面，g.vrng）
 				var dn2: Vector2 = q.v.normalized()
 				var sa: float = g.vrng.randf_range(0.0, TAU)
 				o.fx({"kind": "spark", "pos": q.p + Vector2(0, -16.0) + Vector2.from_angle(sa) * 12.0, "vel": Vector2.from_angle(sa + PI * 0.5) * 140.0 - dn2 * 60.0,
-					"life": 0.16, "col": Color(1.3, 1.05, 0.7), "sz": 1.6, "drag": 3.0})
+					"life": 0.14, "col": Color(0.95, 0.75, 0.45), "sz": 1.3, "drag": 3.0})
 			if str(q.get("style", "")) == "blunt" and quality() != "low":   # 冲击波沿地面甩起尘土（画面，g.vrng，不影响玩法随机）
 				var dn: Vector2 = q.v.normalized()
 				for _m in 2:
@@ -558,18 +558,23 @@ static func _qi_saw(cv, p: Vector2, ang: float, qc: Color, f: float, gap: float,
 	var r: float = 11.0 * k
 	var spin: float = t * (18.0 + 30.0 * f)   # 出手转得最快
 	for gi in range(ng, 0, -1):
-		cv.draw_circle(p - d * gap * gi, r, Color(qc.r, qc.g, qc.b, qc.a * f * 0.25 / gi))
+		cv.draw_circle(p - d * gap * gi, r, Color(qc.r * 0.6, qc.g * 0.6, qc.b * 0.6, qc.a * f * 0.2 / gi))
 	var teeth := PackedVector2Array()   # 齿：外圈 10 齿，齿尖 r+3、齿根 r
 	var NT := 10
 	for i in NT * 2:
 		var a: float = spin + float(i) / float(NT * 2) * TAU
 		teeth.append(p + Vector2.from_angle(a) * (r + (3.0 * k if i % 2 == 0 else 0.0)))
-	cv.draw_colored_polygon(teeth, qc)
-	cv.draw_circle(p, r * 0.72, qc.darkened(0.35))
+	# 10-27 用户「亮度有点高，看不太清楚」：本人色偏浅（钢蓝白），整体压暗一档、加深色描边，齿和肋靠明暗对比读，不靠高光
+	var body := qc.darkened(0.3)
+	var outl := teeth.duplicate()
+	outl.append(teeth[0])
+	cv.draw_colored_polygon(teeth, body)
+	cv.draw_polyline(outl, Color(0.06, 0.08, 0.12, qc.a * 0.9), 1.5)
+	cv.draw_circle(p, r * 0.72, qc.darkened(0.6))
 	for i in 4:   # 贝壳纹：四道弧形肋，跟着转
 		var a0: float = spin * 1.0 + float(i) * TAU / 4.0
-		cv.draw_arc(p + Vector2.from_angle(a0) * r * 0.25, r * 0.5, a0 - 1.2, a0 + 0.6, 6, qc.lerp(Color(1.5, 1.5, 1.5, qc.a), 0.3), 1.2)
-	cv.draw_circle(p, r * 0.22, qc.lerp(Color(1.6, 1.6, 1.6, qc.a), 0.5))
+		cv.draw_arc(p + Vector2.from_angle(a0) * r * 0.25, r * 0.5, a0 - 1.2, a0 + 0.6, 6, qc.darkened(0.05), 1.2)
+	cv.draw_circle(p, r * 0.22, qc.darkened(0.15))
 
 
 ## 水母触手（水月，docs/31「原作普攻是苍白水母触手抽打」）：一根向前抽出的波状触手，越往尾越摆得开，头上一颗光点
