@@ -441,6 +441,9 @@
   }
  },
  "boss": {
+  "arena_bullet_cap": 520,
+  "arena_bullet_ext": 6.0,
+  "_arena_bullet": "最终 Boss 场地内 Boss 直线弹飞到场地边才消失（用户 10-28，shot_pool._arena_fly）：寿命到点仍在场内就续最多 arena_bullet_ext 秒，出场地边按到期消散；同屏敌弹超过 arena_bullet_cap 颗时不再续（开销上限，网页 / 手机同口径免得判定分平台）",
   "aim_lead": 0.12,
   "aim_fan_px": 60,
   "_aim_fan": "瞄准主控的多道激光（10-25 用户「三条激光都要瞄准人打」，boss_base._aim_fan）：出招时锁定主控位置并沿移动方向提前 aim_lead 秒，各道起点在本体两侧相隔 aim_fan_px 像素、全部穿过锁定点；用于伊莎玛拉三线扫射、偏执泡影一幕凝视两侧、卡门封锁线后两枪",
