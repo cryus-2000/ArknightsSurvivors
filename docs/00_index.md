@@ -101,7 +101,7 @@
 |---|---|---|---|---|
 | [166_loading_render_audio_1027](166_loading_render_audio_1027.md) | 单一启动加载页、渲染回收与激光混音 | 已实施记录 | 网页加载交接、遮罩闲置回收 7.03 MiB、圆环局部优化与低频光束提示；含测量边界 | boot_screen.gd、post_fx.gd、boss_attack_draw.gd、sfx.gd、tools/web/loader.js |
 | [170_ishar_combos_1027](170_ishar_combos_1027.md) | 伊莎玛拉二阶段连段与图案弹幕 | 已接入，待视觉验收与云端对照 | 三幕各两组 ≤4 段连段 + 破绽；新招合唱环颂 / 泪雨 / 抚愈之歌 / 网鸣 / 大群之声粗光束 / 非弹幕歌声涟漪（7→13 招）；放松弹密度、光束蓄力与消散、伤害旋钮 ishar_combo_dmg 0.8、输出窗口 45–70%，拆网减弹；专属涟漪预警取代斜线填充；boss/ishar_combos 0 回旧轮转 | ishar.gd、ishar_combos.gd、ishar_tell_draw.gd、ishar_combo_test.gd |
-| [170b_ishar_acts_plan](170b_ishar_acts_plan.md) | 伊莎玛拉三幕方案（一页） | 待用户确认 | 每幕主色 / 场地、招式表（新招 / 旧招变体）、弹幕形态、节奏与破绽；二幕潮涡（螺旋）、三幕侵蚀之泪（追踪）与双束交叉追扫待确认 | ishar_combos.gd、ishar_tell_draw.gd |
+| [170b_ishar_acts_plan](170b_ishar_acts_plan.md) | 伊莎玛拉三幕方案（一页） | §2 已做（每幕一个躲法主题），待测试台定数值 | 每幕主色 / 场地、招式表（新招 / 旧招变体）、弹幕形态、节奏与破绽；二幕潮涡（螺旋）、三幕侵蚀之泪（追踪）与双束交叉追扫待确认 | ishar_combos.gd、ishar_tell_draw.gd |
 | [169_knight_combos_1027](169_knight_combos_1027.md) | 骑士连招与冰系材质 | 已接入，待视觉验收 | 放射双冰阵、冰波与三刺、二阶段新招；用户提供 Pimen / CreativeKind 素材，统一冷灰蓝及碰撞柱，实机 v4；场地裁剪、闭合夹击、四 Boss 分拍压力；一阶段插枪与耗尽后掷枪布柱，二阶段清柱并停止生成；含接手说明 | knight_boss.gd、final_boss_materials.gd、import_knight_ice.py |
 | [168_boss_volume_tracking_1027](168_boss_volume_tracking_1027.md) | 最终 Boss 材质、薄膜泡与攻击动作返修 | 实机审阅中 | 透明薄膜泡、独立持续追踪、破裂、三 Boss 材质与已有骨骼动作接线 | paranoia_bubble.gd、final_boss_materials.gd、final_attacks.gd、world.gd |
 | [167_boss_pixel_fx_1027](167_boss_pixel_fx_1027.md) | 最终 Boss 新增招式像素材质返修 | 已否定候选 | 历史版本；后续材质、泡影追踪及动作接线以 168 为准 | boss_attack_draw.gd、final_attack_grains.gd |
