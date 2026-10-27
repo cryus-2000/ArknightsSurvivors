@@ -1,4 +1,5 @@
 extends RefCounted
+const MaterialGrains = preload("res://scripts/render/final_attack_grains.gd")
 ## 最终首领的补充攻击。状态只存敌人字典；预警、命中与绘制使用同一份几何。
 ## 招式为本作改编：泡影的侵蚀与幻觉、骑士的长枪与寒冰、合唱与海流。
 const NAMES := {
@@ -150,6 +151,7 @@ func resolve(w: Dictionary) -> void:
 	var e: Dictionary = w.owner
 	var motion: String = str(w.get("motion", ""))
 	if motion == "sidestep":
+		MaterialGrains.burst(g, w)
 		e.pos = w.destination
 		_warn(e, "line", 1.0, {"name": "侧踏挑枪", "pos": e.pos, "ang": (g.ppos - e.pos).angle(), "len": 420.0,
 			"wid": 28.0, "track": 0.4, "skin": "spear", "dmg": e.dmg * 1.2})
@@ -167,6 +169,7 @@ func resolve(w: Dictionary) -> void:
 			h.wid = 18.0
 		if hazards.size() < 80:
 			hazards.append(h)
+			MaterialGrains.burst(g, h)
 	else:
 		g.tele.warn_damage(w)
 		var f: Dictionary = w.duplicate()
@@ -175,6 +178,7 @@ func resolve(w: Dictionary) -> void:
 		f.max = 0.38
 		f.enemy = true
 		g.fx.append(f)
+		MaterialGrains.burst(g, w)
 	if w.name != "":   # One cue for the cast, not one loud layer per bubble/segment.
 		Sfx.play("tentacle" if e.type != "knight_boss" else "swing", -9.0, 0.9)
 
@@ -188,6 +192,7 @@ func update(e: Dictionary, dt: float) -> void:
 			continue
 		h.age += dt
 		if h.age >= h.life:
+			MaterialGrains.finish(g, h)
 			continue
 		if h.motion == "pursuit" and h.age < float(h.home_t):
 			var a: float = lerp_angle(h.velocity.angle(), (g.ppos - h.pos).angle(), minf(1.0, dt * 1.8))
@@ -199,5 +204,6 @@ func update(e: Dictionary, dt: float) -> void:
 			if not h.hit and g.tele.hits_leader(h):
 				g.tele.warn_damage(h)
 				h.hit = true
+		MaterialGrains.trail(g, h, dt)
 		live.append(h)
 	hazards = live

@@ -996,6 +996,8 @@ SCENE_REGRESSIONS = {
     "boss_pressure": ("Boss 攻击节奏", "boss_pressure_test", r"BOSS PRESSURE failures=0", []),
     "final_boss_completion": ("最终四 Boss 完整改造", "final_boss_completion_test", r"FINAL BOSS COMPLETION failures=0", []),
     "beam_audio": ("激光提示音独立声部与并发", "beam_audio_test", r"BEAM AUDIO: 0 failures", []),
+    "final_attack_grains": ("最终 Boss 材质颗粒与安全区", "final_attack_grains_test", r"FINAL ATTACK GRAINS failures=0", []),
+    "boss_fx_geometry": ("Boss 特效几何与预警约束", "boss_fx_geometry_test", r"BOSS FX GEOMETRY failures=0", []),
     "render_perf": ("遮罩显存回收与圆环几何一致性", "render_perf_test", r"RENDER PERF failures=0", []),
     "boss_support": ("Boss 保留杂兵、友方保色与枪声混音", "boss_support_test", r"BOSS SUPPORT failures=0", []),
     "boss_boundary": ("Boss 黑潮边界", "boss_boundary_test", r"BOSS BOUNDARY failures=0", []),

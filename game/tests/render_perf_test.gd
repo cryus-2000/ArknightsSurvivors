@@ -33,7 +33,7 @@ func _ready():
 	rec.capture=false
 	for pass_i in 4:
 		var start = Time.get_ticks_usec()
-		for i in 10000: Draw._shape(fake,w,0.8,true)
+		for i in 10000: Draw._circle_fill(rec,w,0.62,Color.CYAN)
 		print("CIRCLE_US_10000=",Time.get_ticks_usec()-start)
 	var post = load("res://scripts/post_fx.gd").new()
 	add_child(post)
