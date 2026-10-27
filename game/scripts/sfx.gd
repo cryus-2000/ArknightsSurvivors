@@ -41,8 +41,9 @@ const OP_LIMIT := {"atk": 0.06, "hit": 0.06, "quake": 0.08, "big": 0.1, "heal": 
 ## 音效盘点（docs/113，10-21 用户「枪击、锁链等各种音效都需要优化」）按请求名（op_<干员>_<类别>）的三张旋钮表：
 ## OP_DB 音量偏移（dB，叠在 OP_VOL 与调用处偏移上）；OP_GAP 最短间隔（秒，按请求名算，借用同一文件的干员各算各的）；
 ## OP_PVAR 音高随机（±，取它与调用处的较大值）。数字来自 docs/113 §2 实测：混音里最响的是长尾低频重击的高频连发
-const OP_DB := {"op_eyjafjalla_big": -3.0, "op_kaltsit_big": -2.0, "op_wisadel_quake": -3.0, "op_wisadel_hit": -1.5, "op_exusiai_hit": -2.0, "op_texas_hit": -3.0}
-const OP_GAP := {"op_exusiai_atk": 0.05, "op_exusiai_hit": 0.1, "op_exusiai_big": 0.3, "op_eyjafjalla_big": 0.2}
+const OP_DB := {"op_eyjafjalla_big": -3.0, "op_kaltsit_big": -2.0, "op_wisadel_quake": -3.0, "op_wisadel_hit": -1.5, "op_exusiai_hit": -5.0,
+	"op_exusiai_s1": -4.0, "op_exusiai_s2": -5.0, "op_exusiai_s3": -6.0, "op_exusiai_big": -3.0, "op_texas_hit": -3.0}
+const OP_GAP := {"op_exusiai_atk": 0.085, "op_exusiai_hit": 0.14, "op_exusiai_big": 0.5, "op_eyjafjalla_big": 0.2}
 const OP_PVAR := {"op_exusiai_atk": 0.09, "op_exusiai_hit": 0.1, "op_irene_atk": 0.08, "op_texas_atk": 0.08, "op_eyjafjalla_atk": 0.08, "op_lumen_atk": 0.07, "op_wisadel_quake": 0.12}
 var op_last := {}          # 请求名 -> 上次放行的墙钟秒（OP_GAP）
 ## 轮换：同一请求名有多个录音时按次序轮着放（连射不像同一声复读）；次序只用于声音，不碰玩法随机
@@ -1142,9 +1143,10 @@ func toggle_music() -> bool:
 
 ## Boss 大招固定音效（docs/38 §8.11，tools/gen_sfx_cues.py）：同一类招式同一组音，听音就知道怎么躲；
 ## 起手音上再叠这只 Boss 的专属音色。CUE_VOL 把各文件拉到同一实际电平（外放口径）：起手 / 命中约 -18、专属层 -22、
+## 光束改用中低频脉冲，最响 100 ms 约 -24（起手）/ -23（命中），给配乐留空间。
 ## 全场警报最响（-11）。类别可用中文或英文键；缺文件时 play() 本来就静默
 const CUE_CAT := {"落地": "land", "冲锋": "charge", "光束": "beam", "近身": "melee", "全场": "global", "阶段": "phase"}
-const CUE_VOL := {"boss_archon": -10.2, "boss_bishop": -11.0, "boss_carmen": -11.5, "boss_iberia": -11.5, "boss_immortal": -11.2, "boss_ishar": -5.1, "boss_izumik": -6.1, "boss_knight_boss": -7.9, "boss_paranoia": -7.5, "boss_path": -7.1, "cue_beam_hit": -1.1, "cue_beam_start": -8.6, "cue_charge_hit": -0.6, "cue_charge_start": -3.6, "cue_global_hit": -1.8, "cue_global_start": -6.5, "cue_land_hit": -2.0, "cue_land_start": -1.3, "cue_melee_hit": 0.9, "cue_melee_start": -2.6, "cue_phase_start": -3.1}
+const CUE_VOL := {"boss_archon": -10.2, "boss_bishop": -11.0, "boss_carmen": -11.5, "boss_iberia": -11.5, "boss_immortal": -11.2, "boss_ishar": -5.1, "boss_izumik": -6.1, "boss_knight_boss": -7.9, "boss_paranoia": -7.5, "boss_path": -7.1, "cue_beam_hit": -4.1, "cue_beam_start": -8.6, "cue_charge_hit": -0.6, "cue_charge_start": -3.6, "cue_global_hit": -1.8, "cue_global_start": -6.5, "cue_land_hit": -2.0, "cue_land_start": -1.3, "cue_melee_hit": 0.9, "cue_melee_start": -2.6, "cue_phase_start": -3.1}
 
 
 func play_cue(cat: String, boss: String, stage := "start") -> void:
@@ -1214,8 +1216,8 @@ const PRIO_NAME := {
 	"atk_gate": 4, "ui_move": 4, "ui_ok": 4, "start": 4, "skill": 3, "hurt_heavy": 4, "kill_big": 3, "kill_shell": 3,
 	"beacon_tick": 3, "beacon_lit": 3, "beacon_end": 3, "beacon_fizzle": 3, "mire_clear": 3, "crit_tick": 3, "break_hit": 3, "break_open": 5, "lamp_empty": 4, "heartbeat_hi": 4,
 	"pickup": 1, "kill": 1, "hit": 1,
-	# 能天使枪声 / 命中（10-26 用户「还是没替换」，docs/113 §18）：普攻每秒约 3 次、命中约 2.5 次，优先级 2 时同时 ≥12 个在响会被压 6 dB、满槽先被丢；提到 3 = 不压、不先丢
-	"op_exusiai_atk": 3, "op_exusiai_atk_b": 3, "op_exusiai_atk_c": 3, "op_exusiai_hit": 3,
+	# Repeated gunfire yields to telegraphs and can be attenuated in a dense mix.
+	"op_exusiai_atk": 2, "op_exusiai_atk_b": 2, "op_exusiai_atk_c": 2, "op_exusiai_hit": 1,
 }
 ## ---- 连发节流（用户 10-13「冲锋的音效触发太频繁了有点吵闹」）：在 LIMIT（同名最短间隔）之外再加两道旋钮——
 ## VOICE_CAP：同名音同时在响的上限（到上限就丢弃这次，不抢占）；带位置的音（play_at）按离画面多远降音量：
@@ -1226,10 +1228,19 @@ const PRIO_NAME := {
 ## 冲锋类预警同时最多 1 个；骑士冲锋按位置降音量（world.gd 用 play_at）
 const SIEGE_S1_GAP := 4.5
 const VOICE_CAP := {"op_siege_s1": 1, "cue_charge_start": 1, "cue_charge_hit": 1, "knight_charge": 2,
-	"op_wisadel_quake": 2, "op_wisadel_hit": 3, "op_wisadel_big": 2, "op_kaltsit_big": 2, "op_eyjafjalla_big": 3, "op_exusiai_big": 2}
+	"cue_beam_start": 1, "cue_beam_hit": 1, # 后续轮次重启同名音，起手与命中各保留一个
+	"op_wisadel_quake": 2, "op_wisadel_hit": 3, "op_wisadel_big": 2, "op_kaltsit_big": 2, "op_eyjafjalla_big": 3,
+	"exusiai_gun": 2, "exusiai_burst": 1, "op_exusiai_hit": 1}
 const OFF_FADE := 480.0
 const OFF_DB := 12.0
 var view := Rect2()
+
+func voice_group(name: String) -> String:
+	if name in ["op_exusiai_atk", "op_exusiai_atk_b", "op_exusiai_atk_c"]:
+		return "exusiai_gun"
+	if name in ["op_exusiai_s1", "op_exusiai_s2", "op_exusiai_s3", "op_exusiai_big"]:
+		return "exusiai_burst"
+	return name
 
 
 ## 带世界坐标的音效：离画面越远越轻，太远不播（见 OFF_FADE / OFF_DB）
@@ -1302,6 +1313,11 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 		sfx_stat.merged += 1
 		_by(name, 2)
 		return
+	# 同轮已在 MERGE_T 内合并；新一轮替换旧尾音，不能因上一轮仍在响而吞掉。
+	if name in ["cue_beam_start", "cue_beam_hit"]:
+		for c in players:
+			if c.playing and c.get_meta("sname", "") == name:
+				c.stop()
 	var prio := sfx_prio(name)
 	var cfg: Node = get_node_or_null("/root/Cfg")
 	var low: bool = cfg != null and str(cfg.get("quality")) == "low"
@@ -1310,6 +1326,8 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 	var lowest: AudioStreamPlayer = null
 	var low_prio := 99
 	var same := 0
+	var group := voice_group(name)
+	var burst_playing := false
 	for i in players.size():
 		var c: AudioStreamPlayer = players[(next + i) % players.size()]
 		if not c.playing:
@@ -1318,13 +1336,16 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 				next = (next + i + 1) % players.size()
 			continue
 		busy += 1
-		if c.get_meta("sname", "") == name:
+		var cg := voice_group(str(c.get_meta("sname", "")))
+		if cg == "exusiai_burst":
+			burst_playing = true
+		if cg == group:
 			same += 1
 		var cp: int = c.get_meta("prio", 2)
 		if cp < low_prio:
 			low_prio = cp
 			lowest = c
-	if VOICE_CAP.has(name) and same >= int(VOICE_CAP[name]):   # 同名音已有 VOICE_CAP 个在响：丢弃
+	if VOICE_CAP.has(group) and same >= int(VOICE_CAP[group]):
 		sfx_stat.dropped += 1
 		_by(name, 3)
 		return
@@ -1344,6 +1365,8 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 		sfx_stat.stolen += 1
 		busy -= 1
 	last[name] = now
+	if group == "exusiai_gun" and burst_playing:
+		vol -= 5.0 # Skill recordings already contain gunfire; avoid doubling every shot.
 	if busy >= DUCK_AT and prio <= 2:
 		vol -= 6.0
 		sfx_stat.ducked += 1

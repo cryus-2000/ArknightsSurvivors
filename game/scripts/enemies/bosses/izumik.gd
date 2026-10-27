@@ -30,7 +30,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		if e.bt > 4.0 * SKILL_COOLDOWN_SCALE:
 			e.bt = 0.0
 			for k in 2:
-				var o: Dictionary = g.spawner.spawn_enemy("offspring", g.combat.arena_clamp(e.pos + Vector2.from_angle(g.rng_enemy.randf() * TAU) * 140.0))
+				var o: Dictionary = g.spawner.spawn_enemy("offspring", _offspring_edge(e, g.rng_enemy.randf() * TAU))
 				o.feed = true
 				o.feed_to_id = e.id   # 喂食目标存 id 句柄（docs/101 B5：原生端只认 id）
 				o.spd = 45.0
@@ -77,10 +77,12 @@ func setup_preview_phase2(e: Dictionary) -> void:
 
 
 func demo_moves(e: Dictionary) -> Array:
-	return MOVES if e.phase == 2 else ["分享"]   # 学习期只有吸收即放的小「分享」
+	return MOVES + g.bai.finals.NAMES["izumik"] if e.phase == 2 else ["分享"]   # 学习期只有吸收即放的小「分享」
 
 
 func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
+	if g.bai.finals.force_move(e, name, dir, dist):
+		return true
 	if e.phase != 2:
 		if name == "分享":
 			_share(e, dir, true)
@@ -111,7 +113,7 @@ func _share(e: Dictionary, dir: Vector2, small: bool) -> void:
 	elif int(e.get("gates_passed", 0)) >= 2:
 		# 三幕三叶扇（docs/142b §8.2「拦路」：在去下一根灯柱的路上）：三片窄扇（半角 0.35）互成 120°，第一片追踪你
 		for k in 3:
-			_warn(e, "cone", 1.6, {"ang": dir.angle() + TAU * k / 3.0, "r": 300.0, "half": 0.35, "track": 0.3 if k == 0 else 0.0, "act": "sweep",
+			_warn(e, "cone", 1.6, {"ang": dir.angle() + TAU * k / 3.0, "r": 300.0, "half": 0.35, "track": 0.3, "aim_offset": TAU * k / 3.0, "act": "sweep",
 				"name": "分享" if k == 0 else "", "col": COL, "dmg": e.dmg * Bal.v("boss/izumik_share_mult", 1.2), "arts": true, "lock": k == 0})
 	else:
 		_warn(e, "cone", 1.6, {"ang": dir.angle(), "r": 300.0, "half": 1.0, "track": 0.3, "act": "sweep", "name": "分享", "col": COL,
@@ -235,13 +237,12 @@ func _batch_step(e: Dictionary) -> void:
 	for di in dirs.size():
 		var a: float = dirs[di]
 		var n: int = g.rng_enemy.randi_range(4, 6) if dirs.size() == 1 else g.rng_enemy.randi_range(3, 4)
-		var c: Vector2 = g.combat.arena_clamp(e.pos + Vector2.from_angle(a) * Bal.v("boss/izumik_batch_dist", 700.0), 60.0)
 		for k in n:
-			var p: Vector2 = g.combat.arena_clamp(c + Vector2.from_angle(a + PI * 0.5) * (float(k) - (n - 1) * 0.5) * 34.0, 60.0)
+			var p: Vector2 = _offspring_edge(e, a + (float(k) - (n - 1) * 0.5) * 0.09)
 			var o: Dictionary = g.spawner.spawn_enemy("offspring", p)
 			o.feed = true
 			o.feed_to_id = e.id
-			o.spd = Bal.v("boss/izumik_batch_spd", 70.0)
+			o.spd = Bal.v("boss/izumik_batch_spd", 45.0)
 			o.part = true
 			o.izu_dir = di
 			g.enemies_sys.part_add(o)
@@ -316,3 +317,21 @@ func izumik_safe(e: Dictionary) -> bool:
 		if l.lit and g.combat.ground_d(g.ppos, l.pos) < float(e.get("lamp_r", 120.0)):
 			return true
 	return false
+
+
+## Actual arena boundary, never a radius around the boss. Opposite sector prevents instant feeding.
+func _offspring_edge(e: Dictionary, angle: float) -> Vector2:
+	var center: Vector2 = g.zone_next_c if g.zone_frozen else g.zone_c
+	var radius: float = maxf(200.0, g.zone_next_r - 65.0) if g.zone_frozen else maxf(500.0, g.zone_r - 65.0)
+	var fallback: Vector2 = center - (e.pos - center).normalized() * radius
+	if e.pos.distance_to(center) < 1.0:
+		fallback = center + Vector2.from_angle(angle) * radius
+	for k in 32:
+		var offset: float = (ceili(k / 2.0) * (1.0 if k % 2 else -1.0)) * 0.2
+		var p: Vector2 = center + Vector2.from_angle(angle + offset) * radius
+		if p.distance_to(e.pos) < 380.0 or g.map.push_out(p, 18.0).distance_to(p) > 1.0:
+			continue
+		fallback = p
+		if not g.map.segment_blocked(p, e.pos):
+			return p
+	return g.combat.arena_clamp(fallback, 65.0)

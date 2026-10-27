@@ -19,6 +19,8 @@ func _init(game) -> void:
 func cue_cat(w: Dictionary) -> String:
 	if w.get("must_dash", false):
 		return "global"
+	if w.act == "final_attack" and w.shape == "line" and w.get("skin", "") in ["phantom", "choir"]:
+		return "beam"
 	match str(w.act):
 		"dash", "stab":
 			return "charge"
@@ -71,7 +73,9 @@ func warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary
 	# 按击退每秒衰减 900 算，距离 = v²/1800 + 本体半径（自冲不受重型削减）。fit_len：按设计线长反推速度（骑士冲锋、塑路者冲撞要真冲到位）
 	if w.act in ["dash", "stab"] and shape == "line":
 		if w.get("fit_len", false):
-			w.spd = sqrt(1800.0 * maxf(w.len - e.r, 40.0))
+			# Reborn Knight travels 1.4x faster at the same telegraphed distance.
+			w.dash_decel = 1764.0 if w.act=="dash" and e.type=="knight_boss" and e.phase==2 else 900.0
+			w.spd = sqrt(2.0 * w.dash_decel * maxf(w.len - e.r, 40.0))
 		else:
 			var v: float = float(w.get("spd", 600.0 if w.act == "dash" else 800.0))
 			w.len = v * v / 1800.0 + e.r
@@ -91,6 +95,8 @@ func warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary
 		w.dur *= wm
 		w.track *= wm
 	g.warns.append(w)
+	if e.type == "knight_boss":
+		g.bai.boss(e.type).on_warning(e,w)
 	# 大招固定音效（docs/38 §8.11）：有名字的 Boss 招式起手播「类别起手音 + Boss 专属音色」，结算时播命中音
 	if e.boss and w.name != "":
 		w.cue = cue_cat(w)
@@ -114,6 +120,11 @@ func update_warns(dt: float) -> void:
 	for w in g.warns:
 		w.t += dt
 		var e: Dictionary = w.owner
+		var source = w.get("source")
+		if source is Dictionary and source.get("dead", false):
+			w.done = true
+			w.t = w.dur + 1.0
+			continue
 		if w.follow and not e.dead:
 			w.pos = e.pos
 		var bo = w.get("b_owner")
@@ -130,12 +141,24 @@ func update_warns(dt: float) -> void:
 				e.wind = maxf(e.get("wind", 0.0), rem)
 				bo.wind = maxf(bo.get("wind", 0.0), rem)
 		if w.track > 0.0 and w.t < w.track:
-			if w.shape != "circle" and not (bo is Dictionary):
-				var want: float = (g.ppos + Vector2(0, -14) - w.pos).angle()
+			if w.get("track_center", false):
+				w.pos = g.ppos - Vector2.from_angle(w.ang) * w.len * 0.5
+			elif w.shape != "circle" and not (bo is Dictionary):
+				var target: Vector2 = g.ppos + Vector2(0, -14)
+				var op = w.get("aim_op")
+				if is_instance_valid(op) and op.pos != Vector2.INF:
+					target = op.pos + Vector2(0, -14)
+				if source is Dictionary:
+					w.pos = source.pos
+				var want: float = (target - w.pos).angle() + float(w.get("aim_offset", 0.0))
+				if w.get("aim_extend", false):
+					w.len = maxf(w.len, w.pos.distance_to(target) + 40.0)
 				w.ang = lerp_angle(w.ang, want, minf(1.0, dt * 10.0))
 			elif w.get("track_pos", "") != "":
 				# 落点圈追踪（叠影跟主控、寒冷跟本体）：track 秒内跟着走，之后冻结在锁定时刻的位置
 				w.pos = g.combat.arena_clamp(e.pos if str(w.track_pos) == "self" else g.ppos, 90.0)
+		if w.act == "final_attack" and w.get("skin", "") == "crescent" and not w.done:
+			e.fx = cos(w.ang)
 		if w.t >= w.dur and not w.done:
 			w.done = true
 			if not e.dead or (w.shape == "circle" and not w.get("cancel_dead", false)):
@@ -147,7 +170,15 @@ func update_warns(dt: float) -> void:
 func hits_leader(w: Dictionary) -> bool:
 	var pp: Vector2 = g.ppos + Vector2(0, -14)
 	match w.shape:
+		"arc":
+			var center: Vector2 = w.pos - Vector2.from_angle(w.ang)*float(w.get("arc_back",0.0))
+			var delta: Vector2 = pp - center
+			var offset := clampf(angle_difference(w.ang, delta.angle()), -float(w.half), float(w.half))
+			var nearest: Vector2 = center + Vector2.from_angle(w.ang + offset) * w.r
+			return nearest.distance_to(pp) < w.wid + 12.0
 		"circle":
+			if g.combat.ground_d(g.ppos, w.pos) < float(w.get("inner_r", 0.0)):
+				return false
 			if g.combat.ground_d(g.ppos, w.pos) >= w.r:   # 画即判：主控脚底落在画出的椭圆里才算中（§1.9）
 				return false
 			return not in_gap(w, (g.ppos - w.pos).angle())   # 缺口环（长枪回旋等一次性判定）：站在缺口弧里不算中
@@ -156,6 +187,9 @@ func hits_leader(w: Dictionary) -> bool:
 			return Geometry2D.get_closest_point_to_segment(pp, w.pos, b).distance_to(pp) < w.wid + 12.0
 		"cone":
 			var dv: Vector2 = pp - w.pos
+			if w.get("skin","")=="ice_field":
+				if w.has("arena_radius") and pp.distance_to(w.arena_center)>w.arena_radius: return false
+				return dv.length()>=float(w.get("inner_r",0.0)) and dv.length()<w.r and absf(angle_difference(dv.angle(),w.ang))<w.half
 			return dv.length() < w.r + 10.0 and absf(angle_difference(dv.angle(), w.ang)) < w.half + 0.12
 	return false
 
@@ -186,6 +220,8 @@ func warn_damage(w: Dictionary, stun_t := 0.0, slow := false) -> void:
 	var true_damage: bool = w.get("true", false)
 	if true_damage:
 		it = ["远程" if w.act in ["ishar_strike", "ishar_line", "ishar_volley", "ishar_echo"] else "近战", "真实"]
+	if w.has("hit_range"):
+		it[0] = str(w.hit_range)
 	if g.invuln <= 0.0:
 		var hp_before: float = g.hp
 		g.combat.enemy_hit(w.dmg, {"corrode": w.corrode, "boss": e.boss, "nerve": float(w.get("nerve", 0.0)),
@@ -226,22 +262,31 @@ func warn_resolve(w: Dictionary) -> void:
 func _resolve(w: Dictionary) -> void:
 	var e: Dictionary = w.owner
 	var c: Color = w.col
+	if w.act == "final_attack" and g.bai.finals.cancelled(w):
+		return
+	if w.act == "tide_link" and (e.get("partner") == null or e.partner.dead):
+		return
 	if w.has("cue"):
 		Sfx.play_cue(w.cue, e.type, "hit")
+	elif e.boss and cue_cat(w) == "beam":
+		# 连发后续轮次通常省略招式名，但每轮实际发射仍需提示音。
+		Sfx.play_cue("beam", e.type, "hit")
 	if e.boss:
 		# 预警结束后明确重新起攻击动作，而不是沿用蓄力末帧。
 		e.pose = 0.35
 		e.pose_max = 0.35
 	# 出手事件（给画面层画攻击特效用，界面与美术读）：动作、形状、位置、朝向、范围、时刻
 	e.last_act = {"act": w.act, "shape": w.shape, "pos": w.pos, "ang": w.ang, "r": w.r, "len": w.len, "wid": w.wid, "half": w.half, "t": g.t,
-		"thrust": w.get("thrust", false), "name": w.name}
+		"thrust": w.get("thrust", false), "name": w.name, "skin": w.get("skin", "")}
 	if w.get("secondary", false):
 		e.atk_until = g.t + 0.35
+	if w.act=="knight_seed": return # The spear landing, not release, emits the impact and pillar warnings.
 	var dv := Vector2.from_angle(w.ang)
+	if w.act == "final_attack":
+		g.bai.finals.resolve(w)
+		return
 	if str(w.act).begins_with("pattern_"):
 		g.bai.patterns.resolve(w)
-		return
-	if w.act == "tide_link" and (e.get("partner") == null or e.partner.dead):
 		return
 	if e.get("boss", false):
 		g.vfx.boss_signature(w)
@@ -249,8 +294,9 @@ func _resolve(w: Dictionary) -> void:
 		_atk_fx(e, w, dv)
 	match w.act:
 		"frost_track":
-			g.fx.append({"kind": "frost_track", "a": w.pos, "b": w.pos + dv * w.len,
-				"life": 1.0, "max": 1.0, "enemy": true})
+			var ice_fx: Dictionary = w.duplicate()
+			ice_fx.merge({"kind": "final_impact", "skin": "ice", "life": 0.36, "max": 0.36, "enemy": true}, true)
+			g.fx.append(ice_fx)
 			for i in 8:
 				var pos: Vector2 = w.pos + dv * w.len * (float(i) + 0.5) / 8.0
 				g.fx.append({"kind": "frost_step", "pos": pos, "r": 13.0, "life": 0.9, "max": 0.9, "enemy": true})
@@ -462,6 +508,7 @@ func _resolve(w: Dictionary) -> void:
 		"dash":
 			e.land_break = float(w.get("close_break", 0.0))
 			e.kb = dv * w.get("spd", 600.0)
+			e.dash_decel = float(w.get("dash_decel",900.0))
 			e.kb_self = true
 			e.dash_dir = dv
 			e.dash_t = 0.45
@@ -471,6 +518,7 @@ func _resolve(w: Dictionary) -> void:
 			Sfx.play("swing", -4.0, 0.5)
 		"stab":
 			e.kb = dv * w.get("spd", 800.0)
+			e.dash_decel = 900.0
 			e.kb_self = true
 			e.dash_dir = dv
 			e.dash_t = 0.2

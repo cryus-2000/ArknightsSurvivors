@@ -3,6 +3,7 @@ extends RefCounted
 ## game.gd 的 _draw 只转发到这里。地图本身在 world/map.gd，HUD 在 screens/hud.gd。2026-09-26 从 game.gd 拆出。
 
 const LaserDraw = preload("res://scripts/render/laser_draw.gd")
+const FinalAttackDraw = preload("res://scripts/render/boss_attack_draw.gd")
 const BossBeam = preload("res://scripts/render/boss_beam.gd")   # Boss 改版样板：Kanpelle 光束、骑士寒气圈 / 寒冷条（docs/142b）
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
@@ -479,6 +480,7 @@ func _draw_warns_auras() -> void:
 	classify_tells()   # 先判哪些预警会打到主控（可读性 1.1.1）：地面填充 / 轮廓 / 冲刺线都读这个结果
 	if not _dbg_foe and not _dbg_warn:
 		TeleDraw.draw_fills(g)
+		FinalAttackDraw.draw(g)
 	if not _dbg_aura:
 		draw_nest_auras()
 	draw_beacons()
@@ -1160,6 +1162,8 @@ func _bfx_grains(f: Dictionary) -> void:
 
 
 func _draw_fx() -> void:
+	if not _dbg_foe and not _dbg_foefx:
+		FinalAttackDraw.draw(g, true)
 	bfx_grains = BossBeam.grains(g)
 	# 友方火花绘制预算（render/declutter spark_budget；缺省不限）：超出时跳过最早的（快淡完的），只影响绘制
 	var skip_sparks := 0
@@ -2239,6 +2243,76 @@ func boss_strip_animation(e: Dictionary) -> Dictionary:
 	return {}
 
 
+## Added final attacks use the existing native Spine strips, with the authored release event aligned to damage.
+func _final_boss_strip(e: Dictionary, skin: String) -> String:
+	match str(e.type):
+		"paranoia": return "e_paranoia_gaze" if e.phase == 1 else "e_paranoia_phase2_howl"
+		"ishar": return "e_ishar_t_attack" if e.phase == 2 else "e_ishar_attack"
+		"izumik": return "e_izumik_attack" if skin == "tentacle" else "e_izumik_share"
+		"knight_boss":
+			match skin:
+				"ice", "ice_field", "ice_lance", "ice_wall": return "e_knight_plant"
+				"ice_wave": return "e_knight_spin"
+				"ice_thrust": return "e_knight_thrust"
+				"crescent": return "e_knight_spin"
+				"spear": return "e_knight_thrust"
+				"step": return "e_knight_charge_form"
+	return ""
+
+func _final_boss_frame(e: Dictionary, skin: String, progress: float, since: float) -> Dictionary:
+	var strip := _final_boss_strip(e, skin)
+	if strip == "" or _lazy_tex(strip) == null:
+		return {}
+	var rd := A.enemy_redraw(strip)
+	var times: Array = rd.get("sample_times", [])
+	var n: int = int(rd.get("frames", 0))
+	if times.is_empty() or n < 2:
+		return {}
+	var events: Array = rd.get("event_frames", [])
+	var event: int = int(events[0]) if not events.is_empty() else int(rd.get("release_frame") if rd.get("release_frame") != null else n / 2)
+	event = clampi(event, 1, n - 1)
+	var event_time: float = float(times[event])
+	var animation_time: float
+	if since < 0.0:
+		animation_time = minf(event_time - 0.001, maxf(0.0, progress) * event_time)
+	else:
+		# Preserve the source follow-through; a terminal contact pose holds briefly instead of disappearing at once.
+		if since >= maxf(0.25, float(rd.duration) - event_time):
+			return {}
+		animation_time = event_time + since
+	var frame := 0
+	for i in n:
+		if float(times[i]) <= animation_time:
+			frame = i
+	return {"name":strip, "frames":n, "frame":frame}
+
+func final_boss_animation(e: Dictionary) -> Dictionary:
+	if e.get("dead", false) or e.get("coma", false) or e.get("stun", 0.0) > 0.0 or e.get("break_t", 0.0) > 0.0:
+		return {}
+	var pending: Dictionary = {}
+	var other_cast := false
+	for w in g.warns:
+		if w.done or not is_same(w.owner, e):
+			continue
+		if str(w.act) != "final_attack":
+			other_cast = true
+		elif pending.is_empty() or float(w.dur) - float(w.t) < float(pending.dur) - float(pending.t):
+			pending = w
+	var last = e.get("last_act")
+	var since := INF
+	if last is Dictionary and str(last.get("act", "")) == "final_attack":
+		since = g.t - float(last.get("t", -99.0))
+		# A subsequent warning must not hide the release pose of the projectile that just left the body.
+		if since >= 0.0 and since < 0.12:
+			return _final_boss_frame(e, str(last.get("skin", "")), 1.0, since)
+	if not pending.is_empty():
+		var delay: float = float(pending.get("tell_after",0.0))
+		return _final_boss_frame(e, str(pending.get("skin", "")), maxf(0.0,float(pending.t)-delay) / maxf(0.01,float(pending.dur)-delay), -1.0)
+	if not other_cast and since >= 0.0 and since < INF:
+		return _final_boss_frame(e, str(last.get("skin", "")), 1.0, since)
+	return {}
+
+
 ## 重画新增动作（10-23）的一次性画面：现形 reveal / 复苏 revive / 落地变身 change / 扎根收势 root_end，由触发点写 e.vis_act / e.vis_t0（纯画面字段）。
 ## 条名 = 基础帧条名 + "_" + 动作；时长取原作动画时长，播完清掉。没有这条帧条返回 {}
 func _vis_anim(e: Dictionary) -> Dictionary:
@@ -2282,6 +2356,13 @@ func _boss_warn_strip(e: Dictionary, acts: Array, strip: String, frames: int) ->
 
 ## 骑士冲锋形态 / 插枪帧（逻辑帧选择不依赖 draw 次数）；不适用时返回空字典，沿用原帧条
 func knight_animation(e: Dictionary) -> Dictionary:
+	if e.has("stake_cast"):
+		var cast: Dictionary=e.stake_cast
+		var strip: String="e_knight_attack" if cast.throw else "e_knight_plant"
+		var frame: int=3
+		if cast.stage=="wind": frame=clampi(int(cast.warning.t/cast.warning.dur*(2 if cast.throw else 3)),0,1 if cast.throw else 2)
+		elif cast.throw and g.t-float(cast.get("release_at",g.t))<.2: frame=2
+		return {"name":strip,"frames":4,"frame":frame}
 	if e.get("dash_t", 0.0) > 0.0:
 		return {"name": "e_knight_charge_form", "frames": 4, "frame": int(g.t * 10.0 + e.id * 0.37) % 4}
 	for w in g.warns:
@@ -2478,11 +2559,13 @@ func _ol_sig() -> int:
 
 ## 这只敌人画不画精英冷色描边
 func _rim_on(e: Dictionary) -> bool:
-	return (elite_rim > 0.0 and e.elite and not e.boss) or e.get("squad", false)
+	return e.get("ishar_blessed", false) or (elite_rim > 0.0 and e.elite and not e.boss) or e.get("squad", false)
 
 
 ## 描边颜色：精英冷色描边开着时用冷青（旧写法 ol_norm 下的橙红只在旋钮关时保留）；普通怪中性淡紫白
 func _ol_col(e: Dictionary) -> Color:
+	if e.get("ishar_blessed", false):
+		return Color(3.2, 0.24, 0.3, 0.9)
 	if e.get("squad", false):
 		return SQUAD_RIM_COL
 	if e.elite:
@@ -2958,6 +3041,11 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			name = ia.name
 			frames = ia.frames
 			frame = ia.frame
+	var final_pose := final_boss_animation(e) if e.boss else {}
+	if not final_pose.is_empty():
+		name = final_pose.name
+		frames = final_pose.frames
+		frame = final_pose.frame
 	var va := _vis_anim(e)
 	if not va.is_empty():
 		name = va.name
@@ -3012,6 +3100,8 @@ func _draw_enemy_full(e: Dictionary) -> void:
 			oc = SQUAD_RIM_COL
 		if e.get("part", false):
 			oc = Color(PART_COL.r * 2.0, PART_COL.g * 2.0, PART_COL.b * 2.0, 0.7 + 0.3 * _heartbeat(e))   # 普通怪：中性偏淡紫白（原青白，和经验结晶、击杀溶解同色连片，docs/48 P1）   # 精英：橙红（docs/48 ⑤，原金色和友方金圈、刀光撞色）
+		if e.get("ishar_blessed", false):
+			oc = _ol_col(e)
 		if not e.elite and not e.boss and not e.get("squad", false):
 			oc.a *= ol_mul   # 后期满屏敌人时普通怪描边变淡，不再连成一片（EA 1.1；下限 render/declutter ol_floor，缺省 0.4）；精英 / Boss 不变
 		_espr_outline(name, frames, frame, bpos, sc, flip, oc, anc, sq)
@@ -3722,23 +3812,25 @@ func beacon_burst(b: Dictionary) -> void:
 ## 最后的骑士冰柱（e.stakes = [{pos, until, born}]，判定 r 22）：冰柱帧条（没有就退回冰枪桩 / 程序长枪）+ 脚下冰霜圈；快到期（< 2 秒）时闪烁
 func _draw_stakes(e: Dictionary) -> void:
 	for st in e.stakes:
+		if g.t < float(st.get("born", -99.0)):
+			continue   # Placement preview remains visible; pillar rises only at its announced time.
 		var left: float = float(st.until) - g.t
 		if left <= 0.0:
 			continue
 		var a: float = 1.0 if left > 2.0 else 0.35 + 0.65 * absf(sin(g.t * 12.0))
 		var p: Vector2 = st.pos
 		g.draw_set_transform(p, 0.0, Vector2(1.0, ground_y()))
-		g.draw_circle(Vector2.ZERO, 22.0, Color(0.6, 0.85, 1.3, 0.14 * a))
-		g.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 24, Color(0.8, 1.1, 1.6, 0.6 * a), 1.5)
+		g.draw_circle(Vector2.ZERO, 22.0, Color(0.36, 0.52, 0.60, 0.10 * a))
+		g.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 24, Color(0.60, 0.74, 0.78, 0.45 * a), 1.5)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		if g.tex.get("prop_ice_pillar") != null:
-			# 冰柱（10-25 用户「骑士的桩设置成冰柱」，tools/gen_ice_pillar.py：ansimuz Ice_b，64 × 96、脚底第 94 行）：0.75 倍；新立的先播破土 0.25 秒
+		if g.tex.get("prop_knight_frost_stake") != null:
+			# 冰柱（10-25 用户「骑士的桩设置成冰柱」，tools/gen_ice_pillar.py：ansimuz Ice_b，64 × 96、脚底第 94 行）：统一冷灰蓝衍生帧条，整数像素；新立的先播破土 0.25 秒
 			var age: float = g.t - float(st.get("born", -99.0))
-			var pc := Color(1.15, 1.2, 1.3, a)
-			if age < 0.25 and g.tex.get("prop_ice_pillar_rise") != null:
-				g.vfx.spr("prop_ice_pillar_rise", 3, clampi(int(age / 0.25 * 3.0), 0, 2), p, g.PX * 0.75, false, pc, Vector2(0.5, 94.0 / 96.0))
+			var pc := Color(1.0, 1.0, 1.0, a)
+			if age < 0.25 and g.tex.get("prop_knight_frost_stake_rise") != null:
+				g.vfx.spr("prop_knight_frost_stake_rise", 3, clampi(int(age / 0.25 * 3.0), 0, 2), p, 1.0, false, pc, Vector2(0.5, 94.0 / 96.0))
 			else:
-				g.vfx.spr("prop_ice_pillar", 4, int(g.t * 4.0) % 4, p, g.PX * 0.75, false, pc, Vector2(0.5, 94.0 / 96.0))
+				g.vfx.spr("prop_knight_frost_stake", 4, int(g.t * 4.0) % 4, p, 1.0, false, pc, Vector2(0.5, 94.0 / 96.0))
 			continue
 		if g.tex.get("prop_ice_stake") != null:
 			# Codex v14 prop_ice_stake（24×56 × 2 帧，脚底第 53 行）；冰蓝过曝调色同骑士长矛（暗环境光下原色太暗）；到期前闪烁仍是程序改透明度，判定圈程序画
@@ -3996,7 +4088,7 @@ func tear_zone_info(e: Dictionary) -> Dictionary:
 		"ground_scale": 1.0 if neutral else ground_y(),
 		"blocked": blocked, "owner": owner,
 		"col": (Color(0.25, 1.0, 0.85) if blocked else Color(0.55, 0.7, 1.0)) if neutral else ENEMY_TELL,
-		"label": ("充能已压制" if blocked else "靠近压制充能") if neutral else ""
+		"label": ("泪滴已净化" if blocked else "触碰净化泪滴") if neutral else ""
 	}
 
 
@@ -4074,10 +4166,14 @@ func _boss_state(e: Dictionary) -> void:
 		return
 	var brk: float = e.get("break_t", 0.0)
 	if e.stun > 0.05 or brk > 0.0:
-		for q in 3:
-			var a: float = g.t * 5.0 + q * TAU / 3.0
-			var sp: Vector2 = top + Vector2(cos(a) * 18.0, sin(a) * 5.0)
-			UI.diamond(g, sp, 4.0, Color(1.8, 1.6, 0.6), Color(0, 0, 0, 0.6))
+		var recovering: bool = e.type=="knight_boss" and e.stun<=0.05 and str(e.get("brk_label",""))=="破绽"
+		if recovering:
+			UI.text(g, g.font, top + Vector2(-120,-12), "收招 · 破绽 %.1f" % brk, 13, Color(.65,.85,.95), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
+		else:
+			for q in 3:
+				var a: float = g.t * 5.0 + q * TAU / 3.0
+				var sp: Vector2 = top + Vector2(cos(a) * 18.0, sin(a) * 5.0)
+				UI.diamond(g, sp, 4.0, Color(1.8, 1.6, 0.6), Color(0, 0, 0, 0.6))
 		if e.has("ammo") and brk > 0.0:
 			UI.text(g, g.font, top + Vector2(-120, -12), "装填被打断 · 破绽 %.1f" % brk, 13, Color(1.0, 0.85, 0.4), HORIZONTAL_ALIGNMENT_CENTER, 240, 3)
 		elif brk > 0.0 and e.type == "knight_boss":

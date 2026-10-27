@@ -492,13 +492,18 @@ static func draw_ground(g) -> void:
 			_song_windup(g, e)
 		if not e.dead and e.type == "izumik" and e.phase == 2:
 			_izumik_ground(g, e)
-		if e.dead or e.type != "knight_boss" or float(e.get("kcold_r", 0.0)) <= 0.0:
+		if e.dead or e.type != "knight_boss" or e.phase == 2 or float(e.get("kcold_r", 0.0)) <= 0.0:
 			continue
 		var r: float = float(e.kcold_r)
 		var off: bool = float(e.get("break_t", 0.0)) > 0.0   # 破绽期不涨寒冷：圈变淡
 		var al: float = 0.05 if off else 0.11
 		g.draw_set_transform(e.pos, 0.0, Vector2(1.0, 0.72))
-		g.draw_circle(Vector2.ZERO, r, Color(0.55, 0.85, 1.0, al))
+		# Sparse fractures mark the active first-phase cold field without an opaque disc.
+		for j in 12:
+			var d := Vector2.from_angle(j*TAU/12)
+			var bend := d.rotated(.12 if j%2==0 else -.1)
+			g.draw_line(d*r*.42,bend*r*.69,Color(.43,.65,.75,al*1.1),1)
+			g.draw_line(bend*r*.69,d*r*.89,Color(.43,.65,.75,al*1.1),1)
 		g.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(0.75, 0.95, 1.0, al * 2.6), 2.0)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 

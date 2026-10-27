@@ -169,6 +169,6 @@ func step(dt: float) -> void:
 			var charge: float = float(subject.get("ally_charge", 0.0)) / maxf(0.01, float(subject.get("ally_charge_need", 30.0)))
 			g.demo_label = "人形 · 治疗海嗣 / 转化充能 %d%%" % roundi(clampf(charge, 0.0, 1.0) * 100.0)
 		elif subject.type == "tear":
-			g.demo_label = "泪滴不伤害队长 · " + ("靠近压制充能中" if subject.get("blocked", false) else "远离时加速转化")
+			g.demo_label = "泪滴不伤害队长 · " + ("泪滴已净化" if subject.get("purified", false) else "触碰可净化；未净化时强化海嗣")
 		else:
 			g.demo_label = "%s%s · %s · 队长为不死演示靶" % [subject.name, stage, action]

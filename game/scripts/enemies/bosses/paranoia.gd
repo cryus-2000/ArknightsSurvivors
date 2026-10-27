@@ -44,10 +44,12 @@ func setup_preview_phase2(e: Dictionary) -> void:
 
 
 func demo_moves(_e: Dictionary) -> Array:
-	return MOVES
+	return MOVES + g.bai.finals.NAMES["paranoia"]
 
 
 func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
+	if g.bai.finals.force_move(e, name, dir, dist):
+		return true
 	match name:
 		"凝视":
 			_gaze(e, dir)
@@ -75,14 +77,14 @@ func _gaze(e: Dictionary, dir: Vector2) -> void:
 		# 二幕交叉：两斜线 + 一道沿「她 → 你」的直线（米字，10-25 加密：原 X 两道），交点都在你脚下
 		for s in [-1.0, 1.0, 0.0]:
 			var a: float = dir.angle() + 0.6 * s
-			_warn(e, "line", 1.3 if s != 0.0 else 1.6, base.merged({"pos": g.ppos - Vector2.from_angle(a) * 410.0, "ang": a, "track": 0.0, "no_eye": true,
+			_warn(e, "line", 1.3 if s != 0.0 else 1.6, base.merged({"pos": g.ppos - Vector2.from_angle(a) * 410.0, "ang": a, "track": 0.6, "track_center": true, "no_eye": true,
 				"name": "凝视" if s < 0.0 else "", "seq_no": 1 if s < 0.0 else (2 if s > 0.0 else 3), "lock": s < 0.0}))
 	elif e.phase == 1:
 		ng = 1
 		# 一幕：追踪的一道 + 两侧各一道；10-25 用户「三条激光都要瞄准人打」：两侧这两道出手即锁定你当时的位置、从她两侧斜穿过来（原来是平行跑道），1.6 秒后落
 		var fan: Array = _aim_fan(e, 3, 820.0)
 		for i in [0, 2]:
-			_warn(e, "line", 1.6, base.merged({"pos": fan[i].pos, "ang": fan[i].ang, "len": fan[i].len, "track": 0.0, "seq_no": 2, "name": "", "lock": false}))
+			_warn(e, "line", 1.6, base.merged({"pos": fan[i].pos, "ang": fan[i].ang, "len": fan[i].len, "track": 0.7, "seq_no": 2, "name": "", "lock": false}))
 	for k in ng + int(e.get("gaze_bonus", 0)):
 		_warn(e, "line", 1.3 + 0.6 * k, base.merged({"ang": dir.angle(), "track": 0.65 + 0.6 * k, "seq_no": k + 1, "name": "凝视" if k == 0 and ng != 0 else "", "lock": k == 0 and ng != 0}))
 
@@ -297,7 +299,7 @@ func paranoia_hatch(e: Dictionary, broken: bool) -> void:
 	e.part = false
 	e.invuln = false
 	e.count_end = 0.0
-	e.hp = e.maxhp * Bal.v("boss/paranoia_revive", 0.4)
+	e.hp = e.maxhp * Bal.v("boss/paranoia_revive", 0.8)
 	_paranoia_p2(e)
 	e.vis_act = "revive"   # 二阶段破茧：e_paranoia_phase2_revive（纯画面）
 	e.vis_t0 = g.t

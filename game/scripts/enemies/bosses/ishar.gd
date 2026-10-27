@@ -33,10 +33,12 @@ func setup_preview_phase2(e: Dictionary) -> void:
 
 
 func demo_moves(_e: Dictionary) -> Array:
-	return MOVES
+	return MOVES + g.bai.finals.NAMES["ishar"]
 
 
 func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
+	if g.bai.finals.force_move(e, name, dir, dist):
+		return true
 	if e.phase != 2:
 		return false
 	var i: int = MOVES.find(name)
@@ -68,11 +70,14 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 	if not echoes.is_empty():
 		# 只保存变身前未压制的泪滴；锁定一刻的主控位置，各束同时结算。
 		var target: Vector2 = g.combat.arena_clamp(g.ppos, 80.0)
-		for source in echoes:
+		for eye in echoes:
+			if eye.dead:
+				continue
+			var source: Vector2 = eye.pos
 			var to_target: Vector2 = target - source
 			var w := _warn(e, "line", 1.0, {"pos": source, "ang": to_target.angle(), "len": to_target.length(),
-				"wid": 13.0, "act": "ishar_echo", "true": true, "name": "泪滴共鸣" if source == echoes[0] else "", "kp": "ishar", "kp_k": 2.0,
-				"col": COL, "dmg": e.dmg * Bal.v("boss/ishar_echo_mult", 0.6), "cancel_dead": true, "lock": source == echoes[0]})
+				"wid": 13.0, "act": "ishar_echo", "true": true, "name": "泪滴共鸣" if is_same(eye, echoes[0]) else "", "kp": "ishar", "kp_k": 2.0,
+				"col": COL, "dmg": e.dmg * Bal.v("boss/ishar_echo_mult", 0.6), "cancel_dead": true, "source": eye, "lock": is_same(eye, echoes[0])})
 			end = maxf(end, w.dur)
 		e.tear_echoes = []
 		e.wind = maxf(e.wind, end)
@@ -111,13 +116,13 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 						break
 					if not o.is_leader and o.pos != Vector2.INF and o.pos.distance_to(e.pos) > 60.0:
 						aims[n] = (o.pos - e.pos).angle()
-						fan[n] = {"pos": e.pos, "ang": aims[n], "len": float(d.get("range", 660.0))}
+						fan[n] = {"pos": e.pos, "ang": aims[n], "len": float(d.get("range", 660.0)), "aim_op": o}
 						n += 1
 				pause = Bal.v("boss/ishar_line_pause", 2.0)
 			for k in 4:
 				var w := _warn(e, "line", float(d.get("line_warn", 1.0)),
 					{"pos": fan[k].pos, "ang": fan[k].ang,
-					"len": fan[k].len, "wid": float(d.get("line_width", 14.0)), "track": 0.0, "seq_no": k + 1,
+					"len": fan[k].len, "wid": float(d.get("line_width", 14.0)), "track": 0.5, "aim_op": fan[k].get("aim_op"), "seq_no": k + 1,
 					"act": "ishar_line", "true": true, "name": "三线扫射" if k == 0 else "", "col": COL, "kp": "ishar", "kp_k": 2.0,
 					"dmg": e.dmg * float(d.get("line_mult", 0.7)) * 0.78, "cancel_dead": true, "lock": k == 0})   # ×0.78：10-25 加密
 				end = maxf(end, w.dur)
@@ -134,10 +139,10 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 				"maxr": 600.0, "spd": Bal.v("boss/ishar_song_spd", 220.0), "true": true, "name": "大群之歌", "col": COL,
 				"dmg": e.dmg * smult, "cancel_dead": true})
 			end = w.dur
-			# 后续圈（10-25 加密：一二幕 2 圈、三幕 3 圈；原一二幕 1 圈、三幕 2 圈）：每圈晚 0.9 秒、缺口转 90°（§8.2「拦路」：穿过一圈的缺口后要再找下一圈的）
-			for q in (2 if act3 else 1):
-				var ga: float = dir.angle() + PI * 0.5 * float(q + 1)
-				var w2 := _warn(e, "circle", 1.7 + 0.9 * q, {"r": 90.0, "act": "song_ring", "gaps": [ga, ga + PI], "gap_half": gh,
+			# 连续声波：普通三圈、末幕四圈，后续每秒一圈，缺口逐次转 0.28 弧度；避免突然转 90°，缩小贯穿整轮的共同安全方向。
+			for q in (3 if act3 else 2):
+				var ga: float = dir.angle() + 0.28 * float(q + 1)
+				var w2 := _warn(e, "circle", 1.8 + 1.0 * q, {"r": 90.0, "act": "song_ring", "gaps": [ga, ga + PI], "gap_half": gh,
 					"maxr": 600.0, "spd": Bal.v("boss/ishar_song_spd", 220.0), "true": true, "name": "", "col": COL,
 					"dmg": e.dmg * smult, "cancel_dead": true, "lock": false})
 				end = maxf(end, w2.dur)
@@ -179,15 +184,21 @@ func transform_ishar(e: Dictionary) -> void:
 	e["ishar_cycle"] = 0
 	e["ishar_next_at"] = g.t + 0.9
 	e["tear_echoes"] = []
+	e.eyes = []
 	for o in g.enemies:
 		if o.type == "tear" and is_same(o.get("owner", {}), e):
-			if not o.dead and not g.ishar.tear_blocked(o):
-				e.tear_echoes.append(o.pos)
+			if not o.dead and not o.get("purified", false):
+				e.tear_echoes.append(o)
+				_make_eye(e, o)
+				e.eyes.append(o)
 				g.fx.append({"kind": "ring", "pos": o.pos, "r": 34.0, "life": 1.4, "max": 1.4,
 					"col": COL, "enemy": true})
 				g.fx.append({"kind": "tide_link", "a": o.pos, "b": e.pos, "life": 1.0, "max": 1.0,
 					"col": COL, "enemy": true})
-			o.dead = true
+			else:
+				g.ishar.release_blessing(o)
+				o.dead = true
+	e.reso_next = g.t + 3.0
 	e.dmg *= 1.6
 	e.spd = maxf(e.spd, 58.0)
 	e.r = 46.0
@@ -298,6 +309,7 @@ func _echo_ring(e: Dictionary, pos: Vector2) -> void:
 
 ## 二幕「濒死强化」的泪（歌眼）：bone 底子换泪的贴图，血量 = 她最大生命 × ishar_eye_hp（0.025），主轴目标；每 6 秒与她之间「共鸣」直线结算
 func _eye_step(e: Dictionary) -> void:
+	g.ishar.cleanup_blessings(e)
 	var eyes: Array = e.get("eyes", []).filter(func(o): return not o.dead)
 	e.eyes = eyes
 	if eyes.is_empty() or g.t < float(e.get("reso_next", 0.0)):
@@ -307,14 +319,17 @@ func _eye_step(e: Dictionary) -> void:
 		var v: Vector2 = e.pos - o.pos
 		_warn(e, "line", 1.0, {"pos": o.pos, "ang": v.angle(), "len": v.length(), "wid": 13.0, "act": "ishar_echo", "true": true,
 			"name": "共鸣" if is_same(o, eyes[0]) else "", "col": COL, "kp": "ishar", "kp_k": 2.0,
-			"dmg": e.dmg * Bal.v("boss/ishar_echo_mult", 0.6), "cancel_dead": true, "lock": false})
+			"dmg": e.dmg * Bal.v("boss/ishar_echo_mult", 0.6), "cancel_dead": true, "source": o, "lock": false})
 
 
 func _eyes_spawn(e: Dictionary) -> void:
+	g.ishar.cleanup_blessings(e) # 清理先于过滤：已被敌人列表回收的死亡歌眼仍在 eyes 中。
 	g.ensure_enemy_tex("e_tear")
-	var eyes: Array = []
+	var eyes: Array = e.get("eyes", []).filter(func(o): return not o.dead)
 	var side: Vector2 = (g.ppos - e.pos).normalized().orthogonal() if g.ppos.distance_to(e.pos) > 1.0 else Vector2.RIGHT
 	for s in [-1.0, 1.0]:
+		if eyes.size() >= 3:
+			break
 		var o: Dictionary = g.spawner.spawn_enemy("bone", g.combat.arena_clamp(e.pos + side * 380.0 * s, 70.0))
 		o.name = "伊莎玛拉之泪"
 		o.tex = "e_tear"
@@ -345,6 +360,27 @@ func _eyes_spawn(e: Dictionary) -> void:
 	e.reso_next = g.t + 3.0
 
 
+## 人形留下的泪原地转为可破坏歌眼，不另外复制实体或掉落。
+func _make_eye(e: Dictionary, o: Dictionary) -> void:
+	o.erase("owner")
+	o.type = "bone" # 与阶段歌眼一致，不继承旧敌对泪滴的接触扣血。
+	o.friendly = false
+	o.invuln = false
+	o.ai = "static"
+	o.spd = 0.0
+	o.dmg = 0.0
+	o.xp = 0.0
+	o.extra_next = INF
+	o.affix = ""
+	o.shield_hp = 0.0
+	o.maxhp = e.maxhp * Bal.v("boss/ishar_eye_hp", 0.025)
+	o.hp = o.maxhp
+	o.song_eye = true
+	o.part = true
+	o["dcs"] = true
+	g.enemies_sys.part_add(o)
+
+
 ## 网的减伤：每只连线海嗣 −10%，下限 0.4（6 只；二幕上限 10 只也只到 0.4）
 func taken_mult(e: Dictionary) -> float:
 	if e.phase != 2:
@@ -362,6 +398,9 @@ func on_gate(e: Dictionary) -> void:
 
 ## 本体倒下：网与泪一起散
 func on_kill(e: Dictionary) -> void:
+	for tear in g.ishar.tears(e):
+		g.ishar.release_blessing(tear)
+		tear.dead = true
 	for sl in e.get("web", []):
 		if sl.o != null and not sl.o.dead:
 			_unlink(sl.o)

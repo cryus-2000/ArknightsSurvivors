@@ -475,7 +475,7 @@ func update(dt: float) -> void:
 							e["shot_ready"] = false
 							e.cdt = e.cd * (0.82 if e.boss else g.enemy_ranged_cd_mult)   # 捕鳞蓑（docs/57 P5）：远程杂兵开火间隔
 							g.eai.shoot(e, dir)
-		e.kb = e.kb.move_toward(Vector2.ZERO, 900.0 * dt)
+		e.kb = e.kb.move_toward(Vector2.ZERO, (float(e.get("dash_decel",900.0)) if e.get("kb_self",false) else 900.0) * dt)
 		if e.get("kb_self", false) and e.kb == Vector2.ZERO:
 			e.kb_self = false
 		_seg_v[i] = v

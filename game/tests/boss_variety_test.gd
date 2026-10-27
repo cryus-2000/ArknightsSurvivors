@@ -12,6 +12,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	g.set_process(false)
 	g.zone_frozen = false
+	_check_pattern_cadence()
 	for kind in ["carmen", "iberia", "path", "bishop", "archon", "immortal", "paranoia", "knight_boss", "ishar", "izumik"]:
 		g.t = 100.0
 		g.enemies.clear()
@@ -143,12 +144,17 @@ func _ready() -> void:
 		check(group.size() >= 3, str(spec) + " actual grouped attack")
 		if not group.is_empty():
 			var time: float = group[0].dur
-			check(group.all(func(w): return is_equal_approx(w.dur, time)), str(spec) + " synchronized warnings")
+			var staged: bool = group[0].get("pattern", {}).has("wave_interval")
+			if not staged:
+				check(group.all(func(w): return is_equal_approx(w.dur, time)), str(spec) + " synchronized warnings")
 			g.invuln = 100.0
 			g.bai._update_warns(time - 0.01)
 			check(group.all(func(w): return not w.done), "none fire before shared warning")
 			g.bai._update_warns(0.02)
-			check(group.all(func(w): return w.done), "all fire together at shared deadline")
+			if staged:
+				check(group[0].done and not group[1].done, "only first beat fires at first deadline")
+			else:
+				check(group.all(func(w): return w.done), "all fire together at shared deadline")
 	# The protected human / learning phases must never schedule new hostile patterns.
 	for kind in ["ishar", "izumik"]:
 		var e: Dictionary = g.spawner.new_enemy(kind, Vector2.ZERO)
@@ -163,14 +169,18 @@ func _ready() -> void:
 	var hunter: Dictionary = g.spawner.new_enemy("knight_boss", Vector2.ZERO)
 	hunter.age = 20.0
 	hunter.pattern_next = INF
+	# This test isolates the frost-track chain after initial planting.
+	hunter.stakes=[{"pos":Vector2(-300,0),"until":INF,"born":0.0}]
+	hunter.stakes_seeded=true
 	g.ppos = Vector2(260, 0)
 	g.bai._boss_ai(hunter, 0.01, Vector2.RIGHT, 260.0)
 	var ice_marks: Array = g.warns.filter(func(w): return w.act == "frost_track")
 	check(ice_marks.size() == 1 and ice_marks[0].dur >= 0.6, "knight announces frost-track pursuit")
 	if not ice_marks.is_empty():
+		g.t += ice_marks[0].dur # Advance the real windup before resolving its release.
 		g.bai._warn_resolve(ice_marks[0])
-		check(g.fx.any(func(f): return f.kind == "frost_track") and g.fx.any(func(f): return f.kind == "frost_step"), "knight frost track has ice art")
-		g.t = float(hunter.get("hunt_follow_at", INF)) + 0.01
+		check(g.fx.any(func(f): return f.kind == "final_impact" and f.get("skin", "") == "ice") and g.fx.any(func(f): return f.kind == "frost_step"), "knight frost track has ice art")
+		g.t = maxf(float(hunter.knight_combo_next),float(hunter.get("hunt_follow_at",0.0))) + 0.01
 		hunter.wind = 0.0
 		g.warns.clear()
 		g.bai._boss_ai(hunter, 0.01, Vector2.RIGHT, 260.0)
@@ -200,10 +210,11 @@ func _ready() -> void:
 	var quiet_tear: Dictionary = g.spawner.new_enemy("tear", Vector2(250, 0))
 	active_tear.owner = sea
 	quiet_tear.owner = sea
+	quiet_tear.purified = true
 	g.enemies = [active_tear, quiet_tear]
 	g.ppos = quiet_tear.pos
 	g.bai.transform_ishar(sea)
-	check(sea.get("tear_echoes", []).size() == 1 and active_tear.dead and quiet_tear.dead, "only unblocked tears leave a resonance trace")
+	check(sea.get("tear_echoes", []).size() == 1 and not active_tear.dead and active_tear.get("song_eye", false) and quiet_tear.dead, "only unpurified tears survive as hostile song eyes")
 	check(g.fx.any(func(f): return f.kind == "tide_link" and f.a == active_tear.pos), "unsuppressed tear visibly links at transformation")
 	g.t += 2.0
 	sea.wind = 0.0
@@ -243,15 +254,19 @@ func _ready() -> void:
 			continue
 		for w in mine:
 			w.t = w.dur * 0.7   # 预警后段（前刺第 3 段过 60% 才换帧）
-		var anim: Dictionary = g.world.knight_animation(b) if st[0] == "knight_boss" else (g.world.ishar_animation(b) if st[0] == "ishar" else g.world.boss_strip_animation(b))
-		check(anim.get("name", "") == st[2] and int(anim.get("frame", -1)) <= 1, "%s 预警中播 %s 蓄力帧（得 %s）" % [st[1], st[2], str(anim)])
+		var release_frame: int = int(st[3])
+		if st[0]=="knight_boss":
+			var rd: Dictionary = preload("res://scripts/art.gd").enemy_redraw(st[2])
+			release_frame=int(rd.event_frames[0]) if not rd.event_frames.is_empty() else int(rd.release_frame if rd.release_frame!=null else rd.frames/2)
+		var anim: Dictionary = g.world.final_boss_animation(b) if st[0] == "knight_boss" else (g.world.ishar_animation(b) if st[0] == "ishar" else g.world.boss_strip_animation(b))
+		check(anim.get("name", "") == st[2] and int(anim.get("frame", -1)) < release_frame, "%s 预警中播 %s 蓄力帧（得 %s）" % [st[1], st[2], str(anim)])
 		for w in mine:
 			w.t = w.dur
 		g.invuln = 100.0
 		g.bai._update_warns(0.0)
 		g.t += 0.05
-		anim = g.world.knight_animation(b) if st[0] == "knight_boss" else (g.world.ishar_animation(b) if st[0] == "ishar" else g.world.boss_strip_animation(b))
-		check(anim.get("name", "") == st[2] and int(anim.get("frame", -1)) == int(st[3]), "%s 结算后播 %s 出手帧 f%d（得 %s）" % [st[1], st[2], int(st[3]), str(anim)])
+		anim = g.world.final_boss_animation(b) if st[0] == "knight_boss" else (g.world.ishar_animation(b) if st[0] == "ishar" else g.world.boss_strip_animation(b))
+		check(anim.get("name", "") == st[2] and (int(anim.get("frame", -1)) >= release_frame if st[0]=="knight_boss" else int(anim.get("frame", -1)) == int(st[3])), "%s 结算后播 %s 出手帧 f%d（得 %s）" % [st[1], st[2], int(st[3]), str(anim)])
 		b.dead = true
 		g.warns.clear()
 	# docs/95 §8.2 C「统一」：两体之间的直线；幽灵线段终点跟随搭档、锁定后冻结并让两体停步、搭档死了作废
@@ -421,3 +436,51 @@ func capture_patterns() -> void:
 	g.queue_redraw()
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png("res://../build/ea_ishar_tear_echo.png")
+
+
+func _check_pattern_cadence() -> void:
+	for kind in ["paranoia", "izumik"]:
+		var e: Dictionary = g.spawner.new_enemy(kind, Vector2.ZERO)
+		e.phase = 2
+		e.age = 20.0
+		e.invuln = false
+		e.pattern_force = "泡影环" if kind == "paranoia" else "解读旋涡"
+		g.ppos = Vector2(760, 0)
+		g.warns.clear()
+		check(g.bai.patterns.try_attack(e, Vector2.RIGHT, 760.0), kind + " rotating ring starts")
+		var rings: Array = g.warns.filter(func(w): return w.get("act", "") == "pattern_ring")
+		check(rings.size() == 3, kind + " keeps original three waves")
+		if rings.size() != 3:
+			continue
+		check(absf(angle_difference(rings[0].gap_ang, rings[2].gap_ang)) > 2.0 * rings[0].gap_half, kind + " no common stationary gap")
+		# Construct a continuous route inside every gap, allowing the 12px player + 7px bullet radius.
+		# Even at 70% of the base 150px/s speed this route needs no dash, at near and far ranges.
+		for radius in [120.0, 200.0, 400.0, 760.0]:
+			var safe_half: float = rings[0].gap_half - asin(19.0 / radius) - 0.02
+			var first: float = rings[0].gap_ang + safe_half
+			var last: float = rings[2].gap_ang - safe_half
+			check(radius * absf(first) <= 105.0 * (rings[0].dur + radius / float(rings[0].pattern.speed)), kind + " first gap reachable from initial aim")
+			for k in 3:
+				var aim: float = lerpf(first, last, float(k) / 2.0)
+				check(absf(angle_difference(aim, rings[k].gap_ang)) <= safe_half + 0.001, kind + " route clears collision margin")
+				if k > 0:
+					var dt: float = rings[k].dur - rings[k - 1].dur
+					check(radius * absf(last - first) / 2.0 <= 105.0 * dt, kind + " gap route reachable while slowed")
+		for k in 3:
+			check(rings[k].dur - rings[k].track >= 0.4, kind + " warning lock retained")
+			g.ebullets.clear()
+			g.bai.patterns.resolve(rings[k])
+			for b in g.ebullets:
+				check(not g.tele.in_gap(rings[k], b.vel.angle()), kind + " actual bullets preserve moving gap")
+		check(e.pattern_next - g.t - rings[2].dur >= 2.799, kind + " explicit respite retained")
+	var tide: Dictionary = g.spawner.new_enemy("izumik", Vector2.ZERO)
+	tide.phase = 2
+	tide.invuln = false
+	tide.pattern_force = "潮汐坠落"
+	g.warns.clear()
+	g.bai.patterns.try_attack(tide, Vector2.RIGHT, 400.0)
+	check(g.warns.size() == 7, "tide keeps seven distinct warnings")
+	for k in range(1, g.warns.size()):
+		check(is_equal_approx(g.warns[k].dur - g.warns[k - 1].dur, 0.24), "tide resolves on successive beats")
+	g.warns.clear()
+	g.ebullets.clear()

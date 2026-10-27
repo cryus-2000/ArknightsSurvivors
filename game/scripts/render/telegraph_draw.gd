@@ -13,7 +13,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 ## 10-22b 用户：普通怪（非 Boss）远程攻击（直线射击 shot / 扇形连射 extra_volley）开火前不再画预警；预警本身照常计时、到点照常开火（纯画面）
 static func quiet(w: Dictionary) -> bool:
 	var o = w.get("owner")
-	return o is Dictionary and not o.get("boss", false) and str(w.get("act", "")) in ["shot", "extra_volley"]
+	return w.get("act", "") == "final_attack" or o is Dictionary and not o.get("boss", false) and str(w.get("act", "")) in ["shot", "extra_volley"]
 
 
 ## 预警形状的多边形（世界坐标；圆按贴地透视压扁）

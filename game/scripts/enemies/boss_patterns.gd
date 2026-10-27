@@ -18,6 +18,7 @@ extends RefCounted
 ##   gap_jitter  ring 每波缺口的左右错开（缺省 0.12；交错潮环 0 = 两波缺口同向，docs/95 §8.2 B）
 ##   cone_dmg  fan 结算时扇形本身再判定一次，伤害 = e.dmg × cone_dmg（接潮扇浪 0.9）
 ##   bullet    非刃弹的弹体种类（缺省 nova；圣徒的散射 / 清膛 / 环射用 orb = 普通实弹，不画成紫色新星弹）
+##   wave_interval / gap_step / recover  可选分拍间隔、每波缺口转角与收招时间；缺省保持旧节奏。
 ##   life      弹体寿命秒（缺省 2.8）；fx：结算时在出弹点放的特效帧条名（缺图不放）；fx_col：给 fx 乘色（卡门借伊比利亚的清膛环换金色）
 const D = preload("res://scripts/data.gd")
 const Game = preload("res://scripts/game.gd")
@@ -90,6 +91,7 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 	var waves: int = int(move.get("waves_p2", move.waves)) if enhanced else int(move.waves)
 	if e.has("ammo") and not move.get("no_ammo", false):
 		waves = mini(waves, int(e.ammo))
+	var interval: float = float(move.get("wave_interval", 0.6))
 	var end := 0.0
 	var base_mult: float = float(move.get("mult", 0.65 if FINAL_TYPES.has(e.type) else 0.8))
 	for k in waves:
@@ -100,10 +102,11 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 			"dmg": e.dmg * base_mult, "corrode": float(move.get("corrode", 0.0)),
 			"true": e.type == "ishar", "track": 0.0, "lock": k == 0}
 		var shape := "cone"
-		var dur: float = float(move.get("dur", 0.9)) + 0.6 * k
+		var dur: float = float(move.get("dur", 0.9)) + interval * k
 		match str(move.mode):
 			"fan":
 				data.act = "pattern_fan"
+				data.track = 0.35 + interval * k
 				data.half = float(move.spread) * 0.5
 				data.r = float(move.get("warn_r", 140.0))
 			"ring":
@@ -114,6 +117,8 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 				# gap_face 多波时缺口左右错开 gap_stagger（泡影环落地 2 波，docs/142b §8.2：冲进去要连穿两道缺口）
 				var gst: float = float(move.get("gap_stagger", 0.0)) * (1.0 if k % 2 else -1.0) if waves > 1 else 0.0
 				data.gap_ang = dir.angle() + (gst if move.get("gap_face", false) else PI * 0.5 + (gj if k % 2 else -gj))
+				if move.has("gap_step"):
+					data.gap_ang = dir.angle() + (0.0 if move.get("gap_face", false) else PI * 0.5) + float(move.gap_step) * k
 				data.gap_half = float(move.gap)
 				var ng: int = int(move.get("gaps", 1))
 				if ng > 1:
@@ -131,7 +136,7 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 					data.pos = g.combat.arena_clamp(g.ppos + Vector2.from_angle(to_boss + (k - (waves - 1) * 0.5) * float(move.get("arc_step", 0.5))) * float(move.get("arc_r", 108.0)), 90.0)
 				else:
 					data.pos = g.combat.arena_clamp(g.ppos + dir.orthogonal() * (ceili(k / 2.0) * (1 if k % 2 else -1)) * 108.0, 90.0)
-				dur = 0.9
+				dur = 0.9 + (interval * k if move.has("wave_interval") else 0.0)
 			"line":
 				shape = "line"
 				data.act = "pattern_line"
@@ -139,7 +144,7 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 				data.wid = float(move.width)
 				data.track = 0.35
 				data.ang = dir.angle() + (0.16 * (2 * k - (waves - 1)) if waves > 1 else 0.0)
-				dur = 0.9
+				dur = 0.9 + (interval * k if move.has("wave_interval") else 0.0)
 			"cleave":
 				data.act = "pattern_cleave"
 				data.r = float(move.radius)
@@ -153,19 +158,19 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 				data.act = "burst"
 				data.r = float(move.get("radius", 45.0))
 				data.track_pos = "leader"
-				data.track = float(move.get("track", 0.5)) + 0.6 * k
+				data.track = float(move.get("track", 0.5)) + interval * k
 				data.seq_no = k + 1
 				data.pos = g.ppos
 				dur = data.track + float(move.get("lock", 0.65))
-		if move.has("track"):
+		if move.has("track") and str(move.mode) != "stack":
 			data.track = float(move.track)
 		var w: Dictionary = g.tele.warn(e, shape, dur, data)
 		end = maxf(end, w.dur)
 	e.pattern_cycle = (index + 1) % moves.size()
 	var cd_key: String = "cd_p2" if (enhanced and move.has("cd_p2")) else "cd"
 	e.pattern_next = g.t + end + float(move.get(cd_key, 5.0 if FINAL_TYPES.has(e.type) else 6.5))
-	e.wind = maxf(e.wind, end + 1.0)
-	e.cdt = maxf(e.cdt, end + 1.0)
+	e.wind = maxf(e.wind, end + float(move.get("recover", 1.0)))
+	e.cdt = maxf(e.cdt, end + float(move.get("recover", 1.0)))
 	return true
 
 func resolve(w: Dictionary) -> void:

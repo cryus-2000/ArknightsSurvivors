@@ -279,12 +279,12 @@ func _lane_shot(e: Dictionary, dir: Vector2, k: int) -> void:
 		var f: Dictionary = _aim_fan(e, 3, 1100.0)[0 if k == 1 else 2]
 		pos = f.pos
 		ang = f.ang
-		track = 0.0
+		track = 0.5
 		dur = 1.0
 	var q: Array = e.get("lane_gaps", [])
 	q.append(g.rng_enemy.randf_range(0.3, 0.7))
 	e.lane_gaps = q
-	_warn(e, "line", dur, {"pos": pos, "ang": ang, "len": 1100.0, "wid": 10.0, "track": track, "act": "shot", "name": "狙击",
+	_warn(e, "line", dur, {"pos": pos, "ang": ang, "len": 1100.0, "wid": 10.0, "track": track, "track_center": p2 and k == 2, "act": "shot", "name": "狙击",
 		"col": Color(1.0, 0.94, 0.82), "dmg": e.dmg * Bal.v("boss/carmen_lane_mult", 1.56), "kp": "carmen", "kp_k": 2.0, "lock": k == 0})   # 原 2.0（10-25 加密 ×0.78）
 	_spend(e, 1)
 

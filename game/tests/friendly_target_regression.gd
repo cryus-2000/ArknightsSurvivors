@@ -12,6 +12,10 @@ func _ready() -> void:
 	add_child(game)
 func check_husk_healing(ally: Dictionary, hostile: Dictionary) -> void:
 	var saved_enemies: Array = game.enemies.duplicate()
+	# Isolate healing from promotion; promotion has its own lifecycle regression.
+	for drop in game.ishar.tears(ally):
+		drop.purified = true
+		game.ishar.release_blessing(drop)
 	var old_self_hp: float = ally.hp
 	var old_hostile_hp: float = hostile.hp
 	var old_hostile_max: float = hostile.maxhp
@@ -137,7 +141,9 @@ func _process(_dt: float) -> void:
 	game.enemies_sys.update(0.01)
 	check(game.hp == game.max_hp and game.ebullets.is_empty(), "friendly update skips hostile contact and shooting")
 	check_husk_healing(ally, hostile)
-	var tear: Dictionary = game.ishar.spawn_tear(ally)
+	var tear: Dictionary = game.ishar.tears(ally)[0]
+	tear.purified = false
+	tear.blocked = false
 	tear.pos = game.ppos
 	game.enemies_sys.update(0.01)
 	check(tear.get("friendly", false) and tear.blocked and not tear.dead, "neutral tear dispatches to blocked-charge behavior")
@@ -151,7 +157,7 @@ func _process(_dt: float) -> void:
 	tear.pos = game.ppos + Vector2(100, 0)
 	ally.ally_charge = 0.0
 	game.ishar.step_ally(ally, 2.0)
-	check(is_equal_approx(pressed_gain, 2.0) and is_equal_approx(ally.ally_charge - pressed_gain, 0.35 * 2.0), "pressing one tear removes exactly its 0.35-per-second bonus")
+	check(is_equal_approx(pressed_gain, 2.0) and is_equal_approx(ally.ally_charge, pressed_gain), "purification remains effective after moving away; baseline charge continues")
 	tear.dead = true
 	# An actual map collision fixture pushes outward beyond the visible circle margin.
 	var old_big: Dictionary = game.map.theme.big_props

@@ -34,7 +34,7 @@ func _ready() -> void:
 	g.enemies.append_array([own, other])
 	g.bai.transform_ishar(e)
 	check(not e.friendly and not e.invuln and e.phase == 2, "transformation changes allegiance")
-	check(own.dead and not other.dead, "transformation removes only own tears")
+	check(not own.dead and own.get("song_eye", false) and not other.dead and not other.get("song_eye", false), "transformation promotes only own unpurified tears to hostile eyes")
 	check(e.ai == "melee", "P2 uses deliberate attack scheduler, no generic ranged insertion")
 	g.warns.clear()
 	g.bai._boss_ai(e, 0.1, Vector2.RIGHT, 350.0)
@@ -63,10 +63,12 @@ func _ready() -> void:
 			g.bai._update_warns(0.04)
 		check(seen.has("ishar_line") and seen.has("song_ring"), "line + song ranged patterns at distance %d" % distance)   # docs/142b §3.6：一幕三点落击删掉，轮转 三线扫射 → 大群之歌 → 撕咬
 		check(seen.has("bite") or seen.has("sweep"), "near bite or far fan in rotation")
-		var regular_names: Array = names.filter(func(n): return n != "泪滴共鸣" and n != "潮涌迫近" and n != "共鸣")   # 泪滴共鸣 / 潮涌迫近 / 共鸣是机制，不在轮转里（docs/95 §2、docs/142b §3.6）
+		var regular_names: Array = names.filter(func(n): return n in ["三线扫射", "大群之歌", "撕咬", "横扫"])   # 泪滴共鸣 / 潮涌迫近 / 共鸣是机制，不在轮转里（docs/95 §2、docs/142b §3.6）
 		check(regular_names.size() >= 6 and regular_names[0] == regular_names[3], "complete rotation repeats rather than priority starving")   # 一幕 3 招轮转（泪落只在二幕有泪时进）
 		if not (regular_names.size() >= 6 and regular_names[0] == regular_names[3]):
 			print("  names at %d: %s" % [distance, str(regular_names)])
+		for move in g.bai.finals.NAMES.ishar:
+			check(names.has(move), "new choir move naturally scheduled: " + move)
 	# Warning resolution must forward true damage and the existing protection budget.
 	g.t += 20.0
 	g.invuln = 0.0
@@ -126,7 +128,7 @@ func _ready() -> void:
 		check(not visual.blocked and is_same(visual.owner, source) and visual.col.b > visual.col.r, "neutral tear shows approach cue and only its owner")
 		g.ppos = Vector2.ZERO
 		visual = g.world.tear_zone_info(drop)
-		check(visual.blocked and visual.col.g > visual.col.r and visual.label == "充能已压制", "standing on tear switches to suppressed teal status")
+		check(visual.blocked and visual.col.g > visual.col.r and visual.label == "泪滴已净化", "standing on tear switches to suppressed teal status")
 		check(is_equal_approx(visual.r, 32.0) and is_equal_approx(visual.ground_scale, 1.0), "suppression ring matches circular gameplay radius")
 		source.phase = 2
 		check(g.world.tear_zone_info(drop).owner.is_empty(), "transformed owner receives no charge link")

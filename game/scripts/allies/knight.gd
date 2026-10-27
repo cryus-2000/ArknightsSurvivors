@@ -1,8 +1,8 @@
 ## 猎潮的骑士（结局二同伴，docs/18 §2）：不占援护位；跟在水月侧后方，每 4 秒对 320 内目标冲锋→刺击；
 ## 有生命（固定 600，不随时间涨），会被接触与弹幕伤害，50% 的近战敌人把他当目标；血量 <30% 退到水月身后 3 秒（2026-09-27 协调人定）。
-## 阵亡 → 退行的罗辛南特 (223)，结局回退。
+## 道中阵亡 → 退行的罗辛南特 (223)，结局回退，并立即生成敌对精英骑士。
 ## 终局（2026-10-14 用户定）：结局为骑士时 9:00 起走向黑潮中心（game.gd 每帧调 tick_final），到达即「入潮」消失（0.6 秒沉入，
-## 之后不再被打、不出手、不拉仇恨、不吃治疗；HUD 骑士格变灰「已入潮」）；10:00 spawner 调 take_over，Boss 从黑潮中心出现。
+## 走向中心及入潮期间无敌；之后不出手、不拉仇恨、不吃治疗；HUD 骑士格变灰「已入潮」）；10:00 spawner 调 take_over，Boss 从黑潮中心出现。
 ## 9:00 的提醒只由 endings.tick_final_warning 的终局预告播一次，这里不再重复播「走向黑潮中心」。
 extends RefCounted
 
@@ -88,6 +88,8 @@ func leave() -> void:
 
 ## 道中阵亡：退行为罗辛南特
 func die() -> void:
+	if not alive or state in ["walk", "sink"]:
+		return
 	if g.mode == g.Mode.BALANCE:
 		print("KNIGHT died t=%d hp_max=%d" % [int(g.t), int(maxhp)])
 	alive = false
@@ -105,6 +107,7 @@ func die() -> void:
 	g.vfx.shake_screen(0.8)
 	if D.ENEMIES.has("knight"):
 		D.ENEMIES.knight.no_spawn = false
+		g.spawner.spawn_enemy("knight", pos)
 	if not g.rfx.has_relic("rocinante"):
 		g.progression.gain_relic("223")
 
@@ -301,10 +304,10 @@ func update(dt: float) -> void:
 	# 移动量（帧条选择用）
 	var vel: Vector2 = (pos - prev) / maxf(dt, 0.0001)
 	mv = lerpf(mv, vel.length(), clampf(dt * 10.0, 0.0, 1.0))
-	if state == "sink":
-		return   # 入潮演出中：不再受伤、不拉仇恨
+	if state in ["walk", "sink"]:
+		return   # 终局入潮期间无敌，不拉仇恨，也不替队长挡掉弹幕。
 	# 仇恨：50% 的近战敌人把骑士当目标（按 id 固定，避免来回摇摆；2026-09-27 原 30%）。走向黑潮中心时不再拉仇恨，
-	# 但仍会被路上的敌人碰到 / 被弹幕打到——途中阵亡走原阵亡逻辑（退行、结局回退），不入潮
+	# 入潮期间已在上方退出。
 	if state != "walk":
 		for j in g.enemies_sys.query(pos, 420.0):
 			var e: Dictionary = g.enemies[j]
@@ -345,6 +348,8 @@ func update(dt: float) -> void:
 
 
 func _hurt(v: float) -> void:
+	if not alive or state in ["walk", "sink"]:
+		return
 	hp -= v
 	flash = 0.1
 	g.vfx.sparks(pos + Vector2(0, -24), Vector2.UP, Color(0.7, 0.85, 1.0), 3, 160.0)
@@ -370,7 +375,7 @@ func _target() -> Dictionary:
 
 
 ## 队友使用独立步行部件；敌对骑士仍使用 e_knight 骑乘帧条。
-func draw() -> void:
+func draw(mask: CanvasItem = null) -> void:
 	if not alive:
 		return
 	var name := "e_knight_walk"
@@ -400,7 +405,7 @@ func draw() -> void:
 		frame = A.enemy_remap_frame(name, frames, frame)
 		frames = nfr
 	if g.tex.get(name) == null:
-		g.draw_circle(pos, R, Color(0.6, 0.8, 1.0))
+		(mask if mask != null else g).draw_circle(pos, R, Color(0.6, 0.8, 1.0))
 		return
 	var anc := A.enemy_pixel_anchor(name, Vector2(0.5, 77.0 / 80.0))
 	var sc: float = g.PX * DRAW_K * A.enemy_pixel_scale(name)
@@ -409,6 +414,15 @@ func draw() -> void:
 	var tsc: float = sc / A.hires_of(g.tex.get(name))
 	var bpos: Vector2 = pos + Vector2(0, R * 0.8 + 3.0 * sc)
 	var flip: bool = face < 0.0
+	# 保色遮罩复用同一动画选帧与脚底，只画身体，不重复触发火花、残影或血条。
+	if mask != null:
+		var tx: Texture2D = g.tex[name]
+		var sz := Vector2(float(tx.get_width()) / frames, tx.get_height())
+		var sink: float = clampf(st / SINK_T, 0.0, 1.0) if state == "sink" else 0.0
+		mask.draw_set_transform((bpos + g.draw_off + Vector2(0, 26.0 * sink)).round(), 0.0, Vector2(-tsc if flip else tsc, tsc))
+		mask.draw_texture_rect_region(tx, Rect2(-sz * anc, sz), Rect2(Vector2(sz.x * frame, 0), sz), Color(1, 1, 1, 1.0 - sink))
+		mask.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		return
 	# 入潮演出：向下沉入 + 淡出，脚下一圈冰环收拢；不画描边 / 血条
 	if state == "sink":
 		var k: float = clampf(st / SINK_T, 0.0, 1.0)
