@@ -118,9 +118,13 @@ static func _beam_body(g, a: Vector2, d: Vector2, L: float, wid: float, open: fl
 
 static func _sweeps(g) -> void:
 	for e in g.bosses:
-		var s: Dictionary = e.get("ishar_sweep", {})
+		for key in Combos.SWEEPS:
+			_sweep_draw(g, e.get(key, {}))
+
+
+static func _sweep_draw(g, s: Dictionary) -> void:
 		if s.is_empty():
-			continue
+			return
 		var el: float = g.t - float(s.t0)
 		var d := Vector2.from_angle(float(s.ang))
 		_beam_body(g, s.pos, d, float(s.len), float(s.wid), clampf(el / 0.1, 0.25, 1.0), clampf(1.0 - el / 0.12, 0.0, 1.0))

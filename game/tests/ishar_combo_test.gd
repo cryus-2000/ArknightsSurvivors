@@ -242,6 +242,36 @@ func _ready() -> void:
 	check(e.web_layers.size() == 2 and e.shield_hp <= per * 2.0 + 0.01, "killing a linked sea-born removes its layer")
 	var wm: Dictionary = g.bai.boss("ishar")._web_mob(e, Vector2(200, 0), 0)
 	check(float(wm.shield_hp) >= wm.maxhp * Bal.v("boss/ishar_web_shield", 0.4) - 0.01, "linked sea-born carry a shield")
+	# 8. 三幕方案新招（docs/170b）：潮涡两臂螺旋并反向；侵蚀之泪先追后直；双束两条追扫在队长两侧、中间留缝
+	e = fresh(1)
+	g.ebullets.clear()
+	cards.play(e, "潮涡", Vector2.RIGHT, 300.0)
+	for i in int(3.6 / DT):
+		g.t += DT
+		cards._emit_step(e)
+	check(g.ebullets.size() == 50, "vortex fires two arms for three seconds (%d)" % g.ebullets.size())
+	e = fresh(2)
+	g.ebullets.clear()
+	cards.play(e, "侵蚀之泪", Vector2.RIGHT, 300.0)
+	for i in int(1.6 / DT):
+		g.t += DT
+		cards._emit_step(e)
+	check(g.ebullets.size() == 5 and g.ebullets.all(func(bl): return bl.home), "five seeking tears home in at first")
+	for i in int(2.2 / DT):
+		g.t += DT
+		cards._emit_step(e)
+	check(g.ebullets.all(func(bl): return not bl.home), "seeking tears stop homing and fly straight")
+	e = fresh(2)
+	g.warns.clear()
+	cards.play(e, "大群之声·双束", Vector2.RIGHT, 300.0)
+	tick_n(e, int(1.7 / DT))
+	check(not e.ishar_sweep.is_empty() and not e.ishar_sweep2.is_empty(), "twin beam starts two sweeps")
+	tick_n(e, int(2.0 / DT))
+	var pa: float = (g.ppos - e.pos).angle()
+	if not e.ishar_sweep.is_empty() and not e.ishar_sweep2.is_empty():
+		var d1: float = angle_difference(pa, float(e.ishar_sweep.ang))
+		var d2: float = angle_difference(pa, float(e.ishar_sweep2.ang))
+		check(signf(d1) != signf(d2) and absf(d1) > 0.15 and absf(d2) > 0.15, "twin beams close in from both sides and leave a lane (%.2f, %.2f)" % [d1, d2])
 	# 6. 同输入复现
 	var a: Array = trace()
 	var b: Array = trace()

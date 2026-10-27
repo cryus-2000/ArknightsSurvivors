@@ -8,15 +8,15 @@ const Bal = preload("res://scripts/core/balance.gd")
 const Beam = preload("res://scripts/render/boss_beam.gd")
 
 const COL := Color(0.3, 1.0, 0.65)
-const NEW_MOVES := ["合唱环颂", "泪雨", "抚愈之歌", "网鸣", "大群之声", "歌声涟漪"]
+const NEW_MOVES := ["合唱环颂", "泪雨", "抚愈之歌", "网鸣", "大群之声", "歌声涟漪", "潮涡", "侵蚀之泪", "大群之声·双束"]
 ## [幕][组]：name 只用于演练列表与测试（不出横幅），seq 为连段各段（撕咬按距离自动变横扫）
 const CARDS := [
 	[{"name": "合唱连段", "seq": ["合唱环颂", "合唱齐射", "歌声涟漪", "撕咬"]},
 	 {"name": "锁定连段", "seq": ["三线扫射", "大群之声", "深海触腕"]}],
-	[{"name": "泪雨连段", "seq": ["泪雨", "歌声涟漪", "泪落"]},
+	[{"name": "泪雨连段", "seq": ["泪雨", "潮涡", "泪落"]},
 	 {"name": "抚愈连段", "seq": ["抚愈之歌", "合唱压境", "大群之歌"]}],
-	[{"name": "网鸣连段", "seq": ["网鸣", "大群之声", "撕咬"]},
-	 {"name": "终曲连段", "seq": ["合唱环颂", "大群之歌", "泪雨", "三线扫射"]}],
+	[{"name": "网鸣连段", "seq": ["网鸣", "侵蚀之泪", "撕咬"]},
+	 {"name": "终曲连段", "seq": ["合唱环颂", "大群之声·双束", "大群之歌"]}],
 ]
 const OWN_CAP := 170   # 她同时在场的弹上限（boss_patterns 单体 160 / 全局 320 同量级）
 const CARD_GUARD := 22.0   # 每组保护性上限
@@ -140,7 +140,7 @@ func _own_live(e: Dictionary) -> int:
 
 
 func _pending(e: Dictionary) -> bool:
-	if not e.get("ishar_emits", []).is_empty() or not e.get("ishar_sweep", {}).is_empty():
+	if not e.get("ishar_emits", []).is_empty() or not e.get("ishar_sweep", {}).is_empty() or not e.get("ishar_sweep2", {}).is_empty():
 		return true
 	for w in g.warns:
 		if is_same(w.owner, e) and not w.done and w.dmg > 0.0 and w.act != "ishar_echo":
@@ -194,6 +194,9 @@ func play(e: Dictionary, mv: String, dir: Vector2, dist: float) -> float:
 		"抚愈之歌": _heal_song(e)
 		"网鸣": _web_chime(e)
 		"大群之声": _big_beam(e)
+		"潮涡": _vortex(e)
+		"侵蚀之泪": _seeking_tears(e)
+		"大群之声·双束": _twin_beam(e)
 		"歌声涟漪": _song_zones(e)
 		_: return 0.0
 	e.move_name = mv
@@ -287,7 +290,18 @@ func _emit_step(e: Dictionary) -> void:
 				for k in 4:
 					own += _shot(e, own, src.pos, float(d.a0) + (k - 1.5) * 0.5, 110.0, 6.0, 0.25, "ishar_note")
 			"sweep":
-				_sweep_start(e, d.w)
+				_sweep_start(e, d.w, str(d.get("key", "ishar_sweep")), float(d.get("aim_off", 0.0)))
+			"spiral":
+				for k in int(d.arms):
+					own += _shot(e, own, e.pos, float(d.a) + TAU * k / float(d.arms), 105.0, 6.0, 0.25, "ishar_tear", 5.5)
+			"seek":
+				var b = _shot_ref(e, own, e.pos + Vector2.from_angle(float(d.a)) * 40.0, float(d.a), 85.0, 9.0, 0.4, "ishar_tear", 7.0)
+				if b != null:
+					own += 1
+					b.home = true
+					keep.append({"at": g.t + Bal.v("boss/ishar_seek_t", 2.0), "kind": "unseek", "b": b})
+			"unseek":
+				d.b.home = false   # 追 2 秒后改走直线：急停 / 绕圈就能甩开
 			"hold":
 				# （旧）定向持续段：沿锁定线每 0.1 秒补画光束并判定；10-28 起大群之声改追扫，不再使用
 				var w: Dictionary = d.w
@@ -347,7 +361,7 @@ func _chorus_rings(e: Dictionary) -> void:
 	var sources: Array = g.bai.finals.choir_sources(e)
 	var solo: bool = sources.size() == 1 and is_same(sources[0], e)
 	var act: int = act_of(e)
-	var n: int = [12, 14, 15][act]
+	var n: int = [12, 14, 14][act]
 	var gap: int = [3, 3, 2][act]
 	var spin: float = [0.0, 0.55, 0.45][act]
 	var hold: float = 0.6 if act == 2 else 0.0
@@ -466,25 +480,33 @@ func _big_beam(e: Dictionary) -> void:
 ## 那会让激光画法每次从起点重新伸出、宽度从头走 = 10 Hz 频闪）。转向有惯性：角速度朝「对准队长」加速，上限 boss/ishar_sweep_max（0.5 rad/s），
 ## 角加速度 boss/ishar_sweep_acc（1.4 rad/s²）；队长绕她跑（距离 250 时约 0.5 rad/s 以上）就能甩开，冲刺穿过也行。
 ## 持续 boss/ishar_sweep_t（2.4）秒，每 0.15 秒判一次 e.dmg × 0.35（命中后有通用无敌帧）；结束 / 被打断都走消散。
-func _sweep_start(e: Dictionary, w: Dictionary) -> void:
-	e.ishar_sweep = {"pos": e.pos, "ang": float(w.ang), "av": 0.0, "len": float(w.len), "wid": float(w.wid), "t0": g.t,
-		"t1": g.t + Bal.v("boss/ishar_sweep_t", 2.4), "next": g.t, "w": w}
+const SWEEPS := ["ishar_sweep", "ishar_sweep2"]
+
+
+func _sweep_start(e: Dictionary, w: Dictionary, key := "ishar_sweep", aim_off := 0.0) -> void:
+	e[key] = {"pos": e.pos, "ang": float(w.ang), "av": 0.0, "len": float(w.len), "wid": float(w.wid), "t0": g.t,
+		"t1": g.t + Bal.v("boss/ishar_sweep_t", 2.4), "next": g.t, "w": w, "off": aim_off}
 	Sfx.play_cue("beam", "ishar", "hit")
 	g.vfx.shake_screen(0.3)
 	_grains(e.pos, 12, "bfx_flash", false)
 
 
 func _sweep_step(e: Dictionary) -> void:
-	var s: Dictionary = e.get("ishar_sweep", {})
+	for key in SWEEPS:
+		_sweep_one(e, key)
+
+
+func _sweep_one(e: Dictionary, key: String) -> void:
+	var s: Dictionary = e.get(key, {})
 	if s.is_empty():
 		return
 	if e.dead or g.t >= float(s.t1):
-		_sweep_end(e)
+		_sweep_end(e, key)
 		return
 	var dt: float = clampf(g.t - float(s.get("last", g.t)), 0.0, 0.1)
 	s.last = g.t
 	s.pos = e.pos
-	var want: float = angle_difference(float(s.ang), (g.ppos + Vector2(0, -14) - e.pos).angle())
+	var want: float = angle_difference(float(s.ang), (g.ppos + Vector2(0, -14) - e.pos).angle() + float(s.get("off", 0.0)))
 	var vmax: float = Bal.v("boss/ishar_sweep_max", 0.5)
 	var tgt_av: float = clampf(want * 2.0, -vmax, vmax)
 	s.av = move_toward(float(s.av), tgt_av, Bal.v("boss/ishar_sweep_acc", 1.4) * dt)
@@ -500,12 +522,13 @@ func _sweep_step(e: Dictionary) -> void:
 			g.tele.warn_damage(hd)
 
 
-func _sweep_end(e: Dictionary) -> void:
-	var s: Dictionary = e.get("ishar_sweep", {})
-	if s.is_empty():
-		return
-	_fade_fx({"pos": e.pos, "ang": float(s.ang), "len": float(s.len), "wid": float(s.wid)})
-	e.ishar_sweep = {}
+func _sweep_end(e: Dictionary, key := "") -> void:
+	for k in (SWEEPS if key == "" else [key]):
+		var s: Dictionary = e.get(k, {})
+		if s.is_empty():
+			continue
+		_fade_fx({"pos": e.pos, "ang": float(s.ang), "len": float(s.len), "wid": float(s.wid)})
+		e[k] = {}
 
 
 ## ---- 光束的开火与消散（用户 10-27：蓄力从细到粗、开火短闪、结束变细断成碎段散开，不硬切）
@@ -572,3 +595,51 @@ func _zone_step(e: Dictionary) -> void:
 				hd.dmg = e.dmg * Bal.v("boss/ishar_zone_tick", 0.16)
 				g.tele.warn_damage(hd)
 	e.ishar_zones = keep
+
+
+## ---- 三幕方案新招（docs/170b，10-28 用户「每幕招式和弹幕要真的不同」）
+
+## 潮涡（二幕，本作自拟）：两臂螺旋从她身上转出（每 0.12 秒一对、105px/s），前 1.5 秒顺时针转、之后反向 1.5 秒；读出转向才能穿过臂间
+func _vortex(e: Dictionary) -> void:
+	var a0: float = _aim(e.pos) + PI * 0.5
+	var w0: float = Bal.v("boss/ishar_vortex_spin", 1.8)
+	var a: float = a0
+	var n: int = 25
+	for k in n:
+		var t: float = 0.5 + 0.12 * k
+		_emit(e, g.t + t, {"kind": "spiral", "src": null, "a": a, "arms": 2})
+		a += (w0 if k < n / 2 else -w0) * 0.12
+	g.fx.append({"kind": "ring", "pos": e.pos, "r": 46.0, "life": 0.5, "max": 0.5, "col": act_col(e), "enemy": true})
+	_grains(e.pos, 14, "mote_in", true)
+	var dur: float = 0.5 + 0.12 * (n - 1)
+	e.wind = maxf(e.wind, dur)
+	e.cdt = maxf(e.cdt, dur)
+	Sfx.play("tentacle", -8.0, 0.75)
+
+
+## 侵蚀之泪（三幕，本作自拟）：身边依次放出 5 颗慢速泪球（r9、85px/s），各追队长 boss/ishar_seek_t（2）秒（转向迟缓）后改走直线；绕圈或急停甩开
+func _seeking_tears(e: Dictionary) -> void:
+	var a0: float = _aim(e.pos)
+	for k in 5:
+		_emit(e, g.t + 0.4 + 0.25 * k, {"kind": "seek", "src": null, "a": a0 + (k - 2) * 0.7})
+	g.vfx.add_text(e.pos + Vector2(0, -70), "侵蚀之泪 · 绕开它", act_col(e), 15)
+	_grains(e.pos, 14, "mote_in", true)
+	var dur: float = 0.4 + 0.25 * 4 + 1.0
+	e.wind = maxf(e.wind, dur)
+	e.cdt = maxf(e.cdt, dur)
+	Sfx.play("tentacle", -8.0, 0.6)
+
+
+## 大群之声·双束（三幕终曲）：两束较细的追扫（宽 64）从队长两侧 ±1.0 弧度起，各自追向「队长方向 ±0.32」，向你合拢后在两侧掠过，中间留一条可走的缝
+func _twin_beam(e: Dictionary) -> void:
+	var a: float = _aim(e.pos)
+	var off: float = Bal.v("boss/ishar_twin_gap", 0.32)
+	for k in 2:
+		var sg: float = -1.0 if k == 0 else 1.0
+		var w: Dictionary = h._warn(e, "line", 1.6, {"pos": e.pos, "ang": a + sg * 1.0, "len": 900.0, "wid": 32.0, "track": 0.0, "follow": true,
+			"act": "ishar_sweep", "true": true, "name": "大群之声·双束" if k == 0 else "", "col": COL, "dmg": e.dmg * 0.9, "cancel_dead": true, "lock": k == 0, "fade_delay": true})
+		_emit(e, g.t + w.dur, {"kind": "sweep", "src": null, "w": w, "key": SWEEPS[k], "aim_off": sg * off})
+	_grains(e.pos, 16, "mote_in", true)
+	var t: float = 1.6 + Bal.v("boss/ishar_sweep_t", 2.4)
+	e.wind = maxf(e.wind, t)
+	e.cdt = maxf(e.cdt, t)
