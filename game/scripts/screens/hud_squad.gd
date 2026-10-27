@@ -5,6 +5,7 @@ const A = preload("res://scripts/art.gd")
 const UI = preload("res://scripts/ui.gd")
 const Game = preload("res://scripts/game.gd")   # 带类型：g.xxx 能推断类型，成员名拼错在加载时就报错
 const Tris = preload("res://scripts/screens/hud_tris.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 var g: Game
 var h   # screens/hud.gd：合批段（batch_begin / _hb）、共用助手（edge_glow / corrode_seg / draw_tooltip）与兄弟模块都从这里取
 
@@ -52,7 +53,7 @@ func _frame_sig(br: Vector2) -> Array:
 	for i in n:
 		var o = g.squad.ops[i]
 		var x: float = br.x - (n - i) * SQ_COL_W + (SQ_COL_W - SQ_CARD.x)
-		sig.append([o.skill_active(), o == g.ch, o.col()])
+		sig.append([o.skill_active(), o == g.ch, o.col(), _hp_vis(o)])
 		var items: Array = _items_of(i)
 		for k in 3:
 			var it: Array = items[k]
@@ -182,6 +183,7 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 				elif o == sqd.next_leader() and not (g.touch != null and g.touch.active):
 					var kc: String = Pad.GLYPH.RB if Pad.using else "Q"
 					txt.append(func(): UI.keycap(g.hud, g.font, cr.position + Vector2(4, 4), kc, UI.SUB, 10))
+			_card_hp(o, cr, fg, txt)
 		if o == g.ch and Dn:
 			var lt := Rect2(Vector2(cr.position.x + 18, card_y - 11), Vector2(cr.size.x - 36, 14))
 			fg.rect(lt, UI.VIOLET)
@@ -254,6 +256,45 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 	h.icons_draw(texq)
 	fg.flush(g.hud)
 	h.text_flush(txt)
+
+
+## 队友血条（10-28 用户「突击模式下队伍的血条我觉得可以放在右下角」）：突击时队友常在屏外，头顶小血条看不到，
+## 在编队卡正下方（卡底到屏幕底 16 像素的空当）画整卡宽的血条——卡本身就是头像 + 名字，不另起一排。
+## 受击：血条白闪 + 卡框红闪 HP_FLASH 秒；倒地：卡上暗幕写「倒地」+ 复活剩余秒数，血条换灰色复活进度；
+## 随行 / 归队时满血的条变淡（回血中、倒地照常亮）。队长不画（队长生命在左上）；command/hp 关时不画
+const HP_FLASH := 0.35
+
+## 本帧血条状态（每帧层签名与绘制共用）：[]= 不画；否则 [突击中, 血量像素, 倒地剩余整秒（-1 = 没倒地）, 受击闪强度（1/8 量化）]
+func _hp_vis(o) -> Array:
+	if o.is_leader or o.pos == Vector2.INF or not g.squad.cmd_on() or not g.squad.hp_on():
+		return []
+	var fl: float = clampf(1.0 - (g.t - o.cmd_hit_t) / HP_FLASH, 0.0, 1.0)
+	return [g.squad.stance == g.squad.ROAM, h.qpx(SQ_CARD.x * clampf(o.cmd_hp, 0.0, 1.0)), int(ceil(o.cmd_down)) if o.cmd_down > 0.0 else -1, snappedf(fl, 0.125)]
+
+
+func _card_hp(o, cr: Rect2, fg, txt: Array[Callable]) -> void:
+	var v: Array = _hp_vis(o)
+	if v.is_empty():
+		return
+	var r := Rect2(Vector2(cr.position.x, cr.end.y + 4.0), Vector2(cr.size.x, 6.0))
+	var down: bool = int(v[2]) >= 0
+	var a: float = 1.0 if v[0] or down or o.cmd_hp < 0.999 else 0.4
+	fg.rect(r.grow(1.0), Color(0.02, 0.03, 0.04, 0.85 * a))
+	if down:
+		var k: float = 1.0 - clampf(o.cmd_down / maxf(0.1, Bal.v("command/revive_secs", 25.0)), 0.0, 1.0)
+		fg.rect(Rect2(r.position, Vector2(r.size.x * k, r.size.y)), Color(0.55, 0.57, 0.6))
+		var left := str(v[2])
+		txt.append(func():
+			UI.text(g.hud, g.font, Vector2(cr.position.x, cr.position.y + 40), "倒地", 13, UI.RED, HORIZONTAL_ALIGNMENT_CENTER, cr.size.x)
+			UI.ctext(g.hud, g.font, Vector2(cr.position.x, cr.position.y + 66), left, 22, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, cr.size.x))
+		return
+	var hc: Color = UI.GREEN if o.cmd_hp > 0.5 else (UI.GOLD if o.cmd_hp > 0.25 else UI.RED)
+	fg.rect(Rect2(r.position, Vector2(float(v[1]), r.size.y)), Color(hc.r, hc.g, hc.b, a))
+	var f: float = v[3]
+	if f > 0.0:
+		fg.rect(r, Color(1, 1, 1, 0.7 * f))
+		fg.rect(cr, Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.22 * f))
+		fg.frame(cr.grow(1.0), Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.95 * f), 2.0)
 
 
 ## 立绘卡的名字 / 职业 / 精英标签（静态层；S = false 时只算不画，OPT_HUDSQ 旧写法的每帧层照旧算一遍）

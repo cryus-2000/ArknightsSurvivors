@@ -608,6 +608,7 @@ func _tick_hp(dt: float) -> void:
 				o.cmd_hp -= e.dmg * Bal.v("command/op_dmg_k", 1.0) / op_maxhp(o)
 				o.cmd_inv = Bal.v("command/op_inv", 0.5)
 				o.cmd_show = 3.0
+				o.cmd_hit_t = g.t
 				if o.cmd_hp <= 0.0:
 					o.cmd_hp = 0.0
 					o.cmd_down = Bal.v("command/revive_secs", 25.0)
