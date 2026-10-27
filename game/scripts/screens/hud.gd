@@ -297,7 +297,8 @@ func _draw_body() -> void:
 		banners.draw_zone_hint(vs)
 		squad.draw_manual_aim()
 		squad.draw_manual_hint()
-		g.boss_intro.draw_hud(vs))   # Boss 登场 / 击破演出：黑边、暗角、名片，压在全部 HUD 之上（screens/boss_intro.gd）
+		g.boss_intro.draw_hud(vs)
+		g.victory.draw_hud(vs))   # 胜利收尾：暖金光环 + 「探索完成」（run/victory_flow.gd，docs/62 §3.21c）   # Boss 登场 / 击破演出：黑边、暗角、名片，压在全部 HUD 之上（screens/boss_intro.gd）
 	g.wheel.draw(vs)   # 指挥圆盘（docs/114 §12）：打开时盖在 HUD 上，直接画在 hud 画布（缓存层之上）
 	match g.state:
 		Game.S.SHOW:
@@ -614,12 +615,15 @@ func draw_elite_marks(ct: Transform2D) -> void:
 	tb.flush(g.hud)
 
 
-## 主控倒下后的过渡（2026-09-27 用户：结算弹得太快）：画面定格在倒下那一刻，约 1.7 秒——
-## 0–1.2 秒灯火熄灭（world 里灯光半径收到 0）、画面沉进深海色（整屏压暗 + 海水青黑暗角从四周合拢）；
-## 0.7 秒起「探索终止」浮出（中文大字 + 英文 + 洋红细线从中间向两边展开）；1.7 秒后结算面板淡入。任意键 / 点击跳过（game.gd）
-const DEATH_T := 1.7
+## 主控倒下后的过渡（2026-09-27 用户：结算弹得太快）：画面定格在倒下那一刻，约 2.4 秒（10-28 起，加最后一击定格 + 队友化光尘，docs/62 §3.21c）——
+## 0–1.6 秒灯火熄灭（world 里灯光半径收到 0）、画面沉进深海色（整屏压暗 + 海水青黑暗角从四周合拢）；
+## 1.3 秒起「探索终止」浮出（中文大字 + 英文 + 洋红细线从中间向两边展开）；2.4 秒后结算面板淡入。任意键 / 点击跳过（game.gd）
+const DEATH_T := 2.4   # 10-28 退场演出（docs/62 §3.21c）：1.7 → 2.4
 
 func draw_death_transition(vs: Vector2) -> void:
+	# 最后一击：全屏红白一闪（run/defeat_outro.gd 同时放冲击环 + 火花）
+	if g.state_age < 0.22:
+		g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(1.0, 0.82, 0.78, 0.42 * (1.0 - g.state_age / 0.22)))
 	var k: float = clampf(g.state_age / DEATH_LAMP_T, 0.0, 1.0)
 	var e: float = 1.0 - pow(1.0 - k, 2.0)
 	g.hud.draw_rect(Rect2(Vector2.ZERO, vs), Color(0.01, 0.03, 0.05, 0.62 * e))
@@ -634,7 +638,7 @@ func draw_death_transition(vs: Vector2) -> void:
 		g.hud.draw_rect(Rect2(0, 0, w, vs.y), c)
 		g.hud.draw_rect(Rect2(vs.x - w, 0, w, vs.y), c)
 	# 标题
-	var ta: float = clampf((g.state_age - 0.7) / 0.5, 0.0, 1.0)
+	var ta: float = clampf((g.state_age - 1.3) / 0.5, 0.0, 1.0)
 	if ta > 0.0:
 		var cy: float = vs.y * 0.42
 		var lw: float = 260.0 * (1.0 - pow(1.0 - ta, 3.0))
@@ -690,7 +694,7 @@ func corrode_seg(r: Rect2, a: float) -> void:
 
 
 ## 倒下过渡里灯火熄灭的时刻（灯光半径收到 0；音频 music_director 在这一刻播「灯灭」，引用本常量）
-const DEATH_LAMP_T := 1.2
+const DEATH_LAMP_T := 1.6
 
 
 ## 商人 / 事件界面把左半屏占满：这时不画声呐和状态小牌，免得从面板边上露出来
