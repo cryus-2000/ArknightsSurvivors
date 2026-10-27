@@ -307,6 +307,7 @@ static func _exu_bullets(o, dt: float) -> void:
 		var q: Vector2 = bu.p - Vector2(0, EXU_AIM_Y)
 		if g.map.tb_bul and g.map.bullet_blocked(bu, q):   # 地形阻挡：弹道（含跳弹）撞景物底座即消失
 			bu.life = 0.0
+			bu["_die"] = "rock"   # 消失原因（只给画面，render/bullet_fx.gd）
 			continue
 		for j in o.query_ids(q, 32.0):
 			var e: Dictionary = g.enemies[j]
@@ -410,12 +411,14 @@ static func exu_draw(o) -> void:
 		return
 	var g = o.g
 	var fr: int = int(g.t * 20.0) % 2
+	var bfx = g.world.bulfx
+	bfx.observe("exu:" + str(o.id), o.ext.bul, "p", false, true, Color(1.0, 0.82, 0.5))   # 子弹出现 / 到期画面（命中有 fx_exusiai_hit，不叠）
 	for bu in o.ext.bul:
 		var tn: String = str(bu.tex)
 		var tx = g.tex.get(tn) if tn != "" else null
 		if tx != null:
 			var an: Vector2 = EXU_TEX_ANCHOR[tn] * EXU_ART.hires_of(tx) if EXU_TEX_ANCHOR.has(tn) else Vector2(-1, -1)
-			o.draw_spr_rot(tn, fr, bu.p, bu.v.angle(), g.PX, Color.WHITE, an)
+			o.draw_spr_rot(tn, fr, bu.p, bu.v.angle(), g.PX * bfx.k(bu), Color.WHITE, an)
 		else:
 			o.cv.draw_line(bu.p - bu.v.normalized() * 12.0, bu.p, Color(1.0, 0.45, 0.45, 0.85), 3.0)
 	for t in o._trigs():

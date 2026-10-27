@@ -334,6 +334,7 @@ func update(dt: float) -> void:
 			continue
 		if b.pos.distance_to(pos + Vector2(0, -20)) < b.r + 16.0:
 			b.life = 0.0
+			b["_die"] = "block"   # 消失原因（只给画面，render/bullet_fx.gd）
 			_hurt(b.dmg * 0.6)
 	if hp <= 0.0:
 		die()

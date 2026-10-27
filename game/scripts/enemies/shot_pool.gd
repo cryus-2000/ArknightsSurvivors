@@ -90,6 +90,7 @@ func cancel_in(pred: Callable) -> PackedVector2Array:
 	for bl in g.ebullets:
 		if bl.life > 0.0 and pred.call(bl.pos):
 			bl.life = 0.0
+			bl["_die"] = "cancel"   # 消失原因（只给画面：render/bullet_fx.gd 统一溶解）
 			out.append(bl.pos)
 	return out
 
@@ -105,12 +106,14 @@ func update_ebullets(dt: float) -> void:
 		b.life -= dt
 		if not b.get("boss", false) and g.beacon_sys.bullet_eaten(b.pos):
 			b.life = 0.0   # 圈内安全：非 Boss 子弹进入读条光圈即消散（docs/49g）
+			b["_die"] = "eaten"   # 已有 eat_fx，公共消失画面不叠
 			g.beacon_sys.eat_fx(b.pos)
 			continue
 		# 地形阻挡：敌方直线弹撞景物底座即消失（酸弹溅开 / 神经弹留溟痕照常走 life <= 0 分支）；追踪弹与预警类弹幕（no_rock）不挡，Boss 弹看 terrain/block_boss_bullets
 		var rock: bool = g.map.tb_ebul and not b.get("home", false) and (g.map.tb_boss or not b.get("boss", false)) and not b.has("no_rock") and g.map.bullet_blocked(b, b.pos, true)
 		if rock:
 			b.life = 0.0
+			b["_die"] = "rock"
 		var hitp: bool = not rock and b.pos.distance_to(g.ppos + Vector2(0, -14)) < b.r + 12.0
 		if b.get("kind", "") == "acid" and (hitp or b.life <= 0.0):
 			g.vfx.fx_sprite("fx_acid_splash", b.pos + Vector2(0, 6), Game.PX, 0.0, false, true)   # Codex v14 酸团落地 / 命中溅开
@@ -127,6 +130,7 @@ func update_ebullets(dt: float) -> void:
 				Sfx.play("mire_splat", -10.0, 1.0, 0.1)   # 神经弹落地留溟痕
 		if hitp:
 			b.life = 0.0
+			b["_die"] = "hit"
 			if str(b.get("hit_fx", "")) != "":
 				g.vfx.fx_sprite(b.hit_fx, b.pos + Vector2(0, -10), Game.PX, 0.0, false, false, Color.WHITE, false, Vector2(float(b.get("hit_org", [12, 19])[0]), float(b.get("hit_org", [12, 19])[1])))   # 专属命中帧条（docs/96 §1.2 漂移体 fx_corrode_hit，原点 (12,19)，纯画面）
 			if b.get("slow", false) and not g.combat.atk_slow_as_slow(3.0, b.get("boss", false)):   # Boss 来源不写 atk_slow（docs/38 §1.11）
