@@ -80,7 +80,7 @@ static func _zones(g) -> void:
 			for i in 33:
 				var an: float = TAU * i / 32.0
 				pts.append(z.pos + Vector2(cos(an), sin(an) * gy) * float(z.r))
-			g.draw_colored_polygon(pts, Color(FILL.r, FILL.g, FILL.b, 0.2 * fade))
+			g.draw_colored_polygon(pts, Color(FILL.r, FILL.g, FILL.b, 0.3 * fade))   # 10-28：地带内受治疗降低，底色比预警更实
 			for q in 2:
 				var ph: float = fmod((g.t - float(z.born)) / 0.6 + q * 0.5, 1.0)
 				var rr: float = float(z.r) * ph

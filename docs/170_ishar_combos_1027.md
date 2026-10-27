@@ -152,3 +152,10 @@ Boss 本体 ai = melee 会靠近，远了有潮涌迫近，探针里 100% 时间
 - 破绽期输出 29%，离 35% 还差；下一档可以把 `ishar_break_taken` 1.4 → 1.7，或 `ishar_break_t` 3.0 → 3.5（会缩短用时，要一起提 `hp_x_ishar`）。
 
 新旋钮（boss 段）：`ishar_corrode`（音弹侵蚀系数，0 = 关）、`ishar_break_taken`（破绽期受伤倍率，同时关掉网减伤）、`ishar_break_t` / `ishar_break_t3`、`ishar_web_floor`（原有，0.4 → 0.5）。
+
+## 12. 歌声侵蚀与破绽 ×1.7（10-28，协调人定两项都做）
+
+- **歌声侵蚀**（取材她「歌声治愈大群、侵蚀对手」）：队长站在歌声涟漪留下的地带内时，受治疗 × (1 − `ishar_song_heal_cut`)，缺省 −50%；离开即恢复（每帧判定，0.1 秒内失效）。三条回血路径都吃：`combat.heal`（干员治疗、拾取药剂）、`combat.regen_per_sec`（自身回复，属性面板同步显示）、补给箱应急补给（`pickups.gd` 独立路径，以免绕过）。进入时飘「歌声侵蚀 · 受治疗 −50%」（3 秒一次）；地带底色加深（填充 0.2 → 0.3），边缘涟漪不变。
+- **破绽**：`ishar_break_taken` 1.4 → 1.7；同步 `hp_x_ishar` 1.9 → 2.0（按 r4 破绽期输出占 29% 估，总输出约 +6%）。
+- 共享文件单行改动：`run/combat.gd`（新增 `song_heal_mult()`，heal / regen_per_sec 各乘一项）、`run/pickups.gd`（应急补给乘一项）。
+- 本地只跑 ishar_combo / ishar_p2；云端复测交 boss-bench。

@@ -495,6 +495,12 @@ func _zone_step(e: Dictionary) -> void:
 		if g.t >= float(z.until) or e.dead:
 			continue
 		keep.append(z)
+		if g.t >= float(z.born) and g.combat.ground_d(g.ppos, z.pos) < float(z.r):
+			# 歌声侵蚀（10-28 协调人：「歌声治愈大群、侵蚀对手」）：站在地带内受治疗降低，离开即恢复（combat.song_heal_mult）
+			if float(e.get("song_cut_until", 0.0)) < g.t and g.t >= float(e.get("song_tip_next", 0.0)):
+				e.song_tip_next = g.t + 3.0
+				g.vfx.add_text(g.ppos + Vector2(0, -80), "歌声侵蚀 · 受治疗 −%d%%" % roundi(100.0 * Bal.v("boss/ishar_song_heal_cut", 0.5)), Color(0.86, 0.26, 0.42), 15)
+			e.song_cut_until = g.t + 0.1
 		if g.t < float(z.born) or g.t < float(z.next):
 			continue
 		z.next = float(z.next) + 0.5
