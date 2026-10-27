@@ -215,6 +215,7 @@ r8（514f48e41，96 局）：无认知 73% / 18 细胞 92% / 全部 82%；阵亡
 - `enemies/telegraph.gd` `_kp()`：读可选 `kp_life` / `kp_on`（缺省 KP_LIFE / 0.06，其余 Boss 不变）；`render/boss_beam.gd` `draw()`：开合时长读 fx 的 `on_t`（缺省 ON_T）。
 - `game/data/enemies.json`：paranoia 条目加 `bcol_core`、`bcol_outline` 两行。
 - `tools/check.py`：加 `paranoia_combos` 一项。
+- `run/combat.gd` `enemy_hit`：读子弹可选字段 `wound`（叠侵蚀创口层数，缺省 0 = 不变；只有泡影二阶段弹带，§3q），4 行。
 - `game/data/balance.json` boss 段：hp_x_paranoia 改值，新增 paranoia_hover_taken / paranoia_aura_taken / paranoia_drop_t 三行与说明（§3g）。
 - 未改 `final_attacks.gd`、`boss_attack_draw.gd`、`final_attack_grains.gd`、`boss_ai.gd`、粒子模板。
 
