@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""普通怪蓄力改前 / 改后录像（docs/179）：开窗口局（走 godot_runner：屏外、静音、全机并发上限），同 seed 同时段各录一段原速 mp4。
+"""普通怪蓄力改前 / 改后录像（docs/182）：开窗口局（走 godot_runner：屏外、静音、全机并发上限），同 seed 同时段各录一段原速 mp4。
 用法：python tools/windup_rec.py <起始秒> <秒数> [名]    例：python tools/windup_rec.py 330 14 windup
 改前 = --bal=enemy/windup_mult=1；改后 = 缺省。20 fps 原速；输出 build/windup_rec/<名>_before.mp4 / <名>_after.mp4。
 """

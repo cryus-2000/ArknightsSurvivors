@@ -57,7 +57,7 @@
 | [154_node_cards](154_node_cards.md) | 翻节点卡：多结局选路正式方案 | 已实装（§9），待合入 | 10-25：取代 148 与海嗣祭坛；首通结局一后，3:30 / 7:00 中 Boss 后翻 3 张节点卡；结局只看信物、不绑灯火，结局入口每局必出、达成过的描结局色边；卡组权重、事件清单（原作 / 本作拟）、接口、机器人与测试、约 6 人日；示意图 reference/154_node_cards.png | 148、18、19；endings.gd、waves.json、choice_panel.gd |
 | [156_event_cg](156_event_cg.md) | 事件插图：原作 CG 像素重构调研 | 调研待用户看 | 10-26：docs/154 用到的 18 件事件在原作都有 1600×900 专属 CG（rogue_2 choiceScenes.background）；PRTS 链接、裁切、难度、优先级（P1 结局线 7 张）；3 张 64 色草稿在 build/event_cg/ | 154；tools/probes/event_cg_pixel_draft.py |
 | [162_swap_frequency](162_swap_frequency.md) | 后期换人频率 | 已改，待合入 | 10-26：满员后换人卡出现率 0.55 → 0.25（7:00 后 0.12）、两张深度卡时不出；后期换人卡间隔 46–59 秒 → 184–265 秒 | balance.json levelup；progression.gd；tools/probes/recruit_freq.py |
-| [173_elite_catchup](173_elite_catchup.md) | 精英化落后补偿 | 已改，待云端对照 | 10-28 定档：深度卡按落后精英阶段加权（×1.8^差 封顶 3）、队长领先 ≥5 节点时保底让给落后者；队长精二 2:08 → 3:29、队友比队长晚 4:04 → 2:42（队友绝对时刻不变）；全队累计培养曲线不变 | balance.json levelup/catchup*；progression.gd |
+| [172_elite_catchup](172_elite_catchup.md) | 精英化落后补偿 | 已改，待云端对照 | 10-28 定档：深度卡按落后精英阶段加权（×1.8^差 封顶 3）、队长领先 ≥5 节点时保底让给落后者；队长精二 2:08 → 3:29、队友比队长晚 4:04 → 2:42（队友绝对时刻不变）；全队累计培养曲线不变 | balance.json levelup/catchup*；progression.gd |
 | [22_mobile_web](22_mobile_web.md) | 移动端适配（网页） | 现行规范 | 触屏、缩放、超宽、iOS；部署与加载器两节已作废，见 33 | 33、38、41、62、89；tools/export_web.py |
 | [35_relic_lanes](35_relic_lanes.md) | 藏品流派 A–H | 现行规范 | 流派划分、职业门槛、流派加权；部分数值已被 65 §6 改（以 relic_effects.json 为准） | 27、29、36、38、41、57 等 7 篇；relic_fx.gd、characters/character.gd、run/combat.gd 等 15 个文件 |
 | [40_run_telemetry](40_run_telemetry.md) | 局内数据记录 | 现行规范 | runs.jsonl 格式，按包类型决定写不写 | 33、41、43、89、归档59；game.gd、run/telemetry.gd、settings.gd 等 11 个文件 |
@@ -129,11 +129,15 @@
 | [163c_relic_inventory_codex](163c_relic_inventory_codex.md) | 全量藏品分类底表（Codex 163A，265 件 + 同名 JSON） | 参考 | 12 个机制主类、当前效果 / 等级 / 渠道 / 前置 / 反馈方式 | 163B、163D |
 | [163_visible_build_growth_codex](163_visible_build_growth_codex.md) | Codex 版可见成长草稿（历史） | 已被 163B 取代 | 弹体 / 范围 / 剑气 / 召唤的技术讨论 | 163D |
 | [163d_build_fusion](163d_build_fusion.md) | 构筑改造融合稿（163B × 可见成长 7 件） | 已定稿、已实现 | 10-27：以 163B 七流派为骨架逐件对号；五条按推荐定稿（#56 清群倍率、#129 副体只 +1、#130 覆盖不延寿、四流派第二批、固定上限）；§6 含 5 件范围画面核对与三件闪避藏品保底 | 163、163B、163C |
-| [178_card_text_1028](178_card_text_1028.md) | 卡面受益标签与文案修订 | 已实现 | 10-28：主效果 / 附带数值标签分开（淡色「仅物伤」）；点名干员卡只写当前编队；职业分支代指干员的文案改写（旧 → 新）；手机详情不截断 | 163D、76、37 |
-| [179_operator_lanes](179_operator_lanes.md) | 干员流派标签重做 | 待审 | 10-28 用户提出：每人 1–2 个流派（7 个），流派件主效果只给本流派，宽泛附带删或改专属；全员流派表 + 逐件改法 + 4 个待定 | 163B、178、76 |
+| [186_integ_1028b](186_integ_1028b.md) | 整合分支 integ-1028b 冲突处理记录 | 记录 | 10-28 对内体验包：每处合并冲突一行 + docs 撞号重编表 | — |
+| [183_knight_stage_plan](183_knight_stage_plan.md) | 最后的骑士 · 分阶段方案 v2 | 已接入 | 10-28：每幕招式组、三幕寒潮、二幕冰棱带、重生冲锋形态（原 171，撞号改 183） | knight_boss.gd、final_attacks.gd |
+| [182_enemy_windup](182_enemy_windup.md) | 普通怪蓄力加速 | 已实现 | 10-28：非精英非 Boss 的蓄力 / 预警 / 引信 × windup_mult（原 179，撞号改 182） | enemy_ai.gd |
+| [178_danger_pass](178_danger_pass.md) | 难度危险感回调 | 已实现 | 10-28：防暴毙保护收窄、普通怪伤害增益（claude/danger-pass） | balance.json |
+| [185_card_text_1028](185_card_text_1028.md) | 卡面受益标签与文案修订 | 已实现 | 10-28：主效果 / 附带数值标签分开（淡色「仅物伤」）；点名干员卡只写当前编队；职业分支代指干员的文案改写（旧 → 新）；手机详情不截断 | 163D、76、37 |
+| [181_operator_lanes](181_operator_lanes.md) | 干员流派标签重做 | 待审 | 10-28 用户提出：每人 1–2 个流派（7 个），流派件主效果只给本流派，宽泛附带删或改专属；全员流派表 + 逐件改法 + 4 个待定 | 163B、178、76 |
 | [176_sword_wave_ease](176_sword_wave_ease.md) | 剑气非线性速度 | 已实现（待合入） | 10-27 用户：剑气改「爆发出手 → 衰减滑行」，总距离 / 存活时间 / 判定宽度不变；拉普兰德剑气、斯卡蒂潮刃、可见成长近战剑气共用 sword_ease.gd，旋钮 balance.json sword_ease | 163、136；sword_ease.gd、seg_skadi、vis_growth、sword_wave_capture |
 | [161_elite_squad](161_elite_squad.md) | 紧急作战改「精英小队」 | 已实施记录 | 10-26：按阶段 8 / 10 / 12 只高一阶普通怪，生命 ×2、伤害 ×1.3、共用甲壳 / 潮盾词缀、红色描边 + 脚下红光、入场冲锋；计入同屏上限、放不下的推迟；全灭宝箱（稀有加权）+ 20 源石锭；iPhone 仿真帧时 | 158、154；endings.gd、render/world.gd、waves.json |
-| [173_event_redesign](173_event_redesign.md) | 事件改版：有代价的取舍 + 对口交易 | 已实装（§9，P1 + P2），待合入；10-28 用户五条按推荐 | 10-27：每次摊牌至少一张交易卡、最多一张无代价卡，每件事件留稳妥项；按藏品 lanes 算主流派出对口奖励；一局 4 次翻卡（加 1:20 / 6:00 两张卡的途中路口），首通前也开但无结局入口；结局线规则不变；P1 8 件 + P2 5 件原作事件（rogue_2 choiceScenes 出处）、继承退役；V 价值口径、难度估计、约 7.5 人日、测试口径；示意图 reference/173_event_redesign.png | 154、148、156、161、35；endings.gd、events_v2.json、event_trade_test |
+| [184_event_redesign](184_event_redesign.md) | 事件改版：有代价的取舍 + 对口交易 | 已实装（§9，P1 + P2），待合入；10-28 用户五条按推荐 | 10-27：每次摊牌至少一张交易卡、最多一张无代价卡，每件事件留稳妥项；按藏品 lanes 算主流派出对口奖励；一局 4 次翻卡（加 1:20 / 6:00 两张卡的途中路口），首通前也开但无结局入口；结局线规则不变；P1 8 件 + P2 5 件原作事件（rogue_2 choiceScenes 出处）、继承退役；V 价值口径、难度估计、约 7.5 人日、测试口径；示意图 reference/184_event_redesign.png | 154、148、156、161、35；endings.gd、events_v2.json、event_trade_test |
 | [158_horde_stuck_fix](158_horde_stuck_fix.md) | 「怪物冒红光卡在原地」修复 | 已实施记录 | 10-26：大群分批出发延迟借用了收割者专用的 wake_t（只有收割者倒计时），其他怪永远站着，引痕者半血狂暴变红；改用 depart_t 统一倒计时；修前 / 修后对比 build/horde_stuck_before_after.mp4；§5 分级配比本作 vs 原作；§6 分级调整已实施（中后段高阶 10% / 25%、后段每局约 720 只，t5 定档高手 m0 30.4% / m18 55.4%）；§7 高阶单只帧时开销 | 150；spawner.gd、run/enemies.gd、enemy_ai.gd |
 | [179_meta_first18](179_meta_first18.md) | 前 18 个细胞换成看得见的数值（方案） | 待用户确认 | 10-28：18 细胞 = 攻击性Ⅰ + 生存本能Ⅰ +12% + 生命感悟Ⅰ +0.3 + 自我保护Ⅰ -5%；危机感Ⅰ挪到第五位；总量 / 满点不变，预计 m18 50–58% |
 | [145_enemy_canon_and_reach](145_enemy_canon_and_reach.md) | 小怪原作核对 + 攻击范围加强方案 | 方案待用户看 | 10-24：19 种普通怪 / 精英对照 PRTS 与解包数据（名字全对；奠基者 / 引痕者 / 育母弱点与原作相反、箱形恐鱼免疫非原作、囊海爬行者档案不符）；攻击范围现状表；加强 5 只（育母落点圈 30→46、狂奔者 62→90、收割者 / 巢涌者光环待定；囊海爬行者爆裂 80→160 已做），伤害不动；§4 箱形恐鱼新攻击方案；§5 奠基者踏地特效改地面层、骑士图鉴归 Boss 页（已做） | 49b、76、94、96；enemies.json、lore.json、gallery.gd |

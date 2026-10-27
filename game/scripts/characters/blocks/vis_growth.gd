@@ -11,7 +11,7 @@ extends RefCounted
 ## 第 i 层权重 count_decay^(i-1)（数量）或 size_decay^(i-1)（尺寸）。额外数量 E 的小数部分进每名干员的累加器，满 1 多一发（不取随机数）。
 ## 伤害预算（§2.3，实现取舍见 docs/163 §11）：主弹不削；额外弹每发 = 普攻参考伤害 × (T − 1) / E，T = 1 + Σ eps_i·w_i，所以普攻总伤 ×T；
 ## 没有普攻弹体的远程干员改为本人作用域伤害 ×T（refresh 里挂 stats 来源 "vgrowth"）。
-## 对象（docs/179，10-28）：远程三类只给多弹火力干员（lane multi），近战三类只给近战扩域干员（lane melee），不再按近战 / 远程职业。
+## 对象（docs/181，10-28）：远程三类只给多弹火力干员（lane multi），近战三类只给近战扩域干员（lane melee），不再按近战 / 远程职业。
 ## 玩法随机：不用。全部状态在 o.vg（每名干员）与 g.rfx.lv（藏品等级）里。
 
 const Bal = preload("res://scripts/core/balance.gd")

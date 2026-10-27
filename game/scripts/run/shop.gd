@@ -89,7 +89,7 @@ func roll(first := false) -> void:
 	g.shop_items.clear()
 	var pool: Array = g.progression.relic_pool_ids(true)
 	if trader:
-		# 诡意行商卡（docs/173 §3）：前两格换成主流派里排最前的两件（只重排，不多取随机数）
+		# 诡意行商卡（docs/184 §3）：前两格换成主流派里排最前的两件（只重排，不多取随机数）
 		var ml: String = g.endg.main_lane()
 		var on_lane: Array = pool.filter(func(id): return (g.RL[id].get("lanes", []) as Array).has(ml)).slice(0, 2)
 		pool = on_lane + pool.filter(func(id): return not on_lane.has(id))
@@ -229,7 +229,7 @@ func refresh() -> void:
 	g.shop_ui.build(true)
 
 
-## 诡意行商卡（用户 10-28「原作诡意行商是进一次商店」，docs/173 §3）：翻开即打开一次商店，货架同商人（价格按当前是第几拨商人）、
+## 诡意行商卡（用户 10-28「原作诡意行商是进一次商店」，docs/184 §3）：翻开即打开一次商店，货架同商人（价格按当前是第几拨商人）、
 ## 前两格主流派；关掉即结束，路口二之后没有商人也能用。地图上若正有一位商人，它和它的货架不动（货架先收起，关店后放回）
 var trader := false
 var trader_buys := 0

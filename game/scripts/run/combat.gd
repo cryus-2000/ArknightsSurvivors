@@ -1083,7 +1083,7 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	var _pt := Time.get_ticks_usec() if _pf else 0
 	var ty: Array = [h.range, h.kind]
 	var weak_hit := false
-	# 出手干员：流派藏品（docs/179）把近战 / 远程 / 追击倍率、弱点与低血加成挂在 lane:<键> 作用域上，按干员取值（全局 + 本人作用域）
+	# 出手干员：流派藏品（docs/181）把近战 / 远程 / 追击倍率、弱点与低血加成挂在 lane:<键> 作用域上，按干员取值（全局 + 本人作用域）
 	var hop = g.squad.get_op(str(h.get("op", ""))) if h.has("op") and g.squad != null else null
 	if ty[1] != "真实":
 		# 养育者基因种（docs/57 P6）：无视敌人一部分防御（e.def < 1 的部分按比例折回）

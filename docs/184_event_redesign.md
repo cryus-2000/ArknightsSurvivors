@@ -3,9 +3,9 @@
 > 来源：用户 10-27「现在游戏里的事件没什么用」。协调人分析（首通前看不到、主要用来选结局、奖励弱无取舍、一局两次）并给出五个方向，本稿按此展开。
 > 范围：§0–§8 是方案（10-27）；§9 是实装记录（10-28，分支 `claude/event-redesign`）。基线 origin/main `d88b56b56`；现行规则是 [154 翻节点卡](154_node_cards.md)（§9–§11 已实装），事件链出处见 [148](148_route_choice.md) §2–§3，插图见 [156](156_event_cg.md)，紧急作战见 [161](161_elite_squad.md)，流派见 [35](35_relic_lanes.md) 与 163D（分支 `claude/build-growth-impl`）。
 > 原作出处：解包数据 `zh_CN/gamedata/excel/roguelike_topic_table.json`（Kengxxiao/ArknightsGameData，10-27 取）的 `rogue_2.choiceScenes` / `choices`，下文写作 `scene_ro2_<id>`；PRTS「[水月与深蓝之树/事件一览](https://prts.wiki/w/水月与深蓝之树/事件一览)」用的是同一套数据。事件名、选项名取原作；效果数值一律是本作折算，标「本作拟」的是原作没有的部分。
-> 示意图（手机竖屏，程序画的线框）：`docs/reference/173_event_redesign.png`，生成脚本 `tools/probes/event_redesign_sheet.py`。
+> 示意图（手机竖屏，程序画的线框）：`docs/reference/184_event_redesign.png`，生成脚本 `tools/probes/event_redesign_sheet.py`。
 
-![事件改版示意](reference/173_event_redesign.png)
+![事件改版示意](reference/184_event_redesign.png)
 
 ---
 

@@ -307,7 +307,7 @@ static func _dash(ci: CanvasItem, a: Vector2, b: Vector2, col: Color, clip: Rect
 
 ## 结局色边：2 格粗的色框（两色时左右各半）+ 一段沿框跑动的亮白高光 + 顶边中央罗马数字徽记
 ## 不期而遇卡背（C 版）：精修底纹 + 细银边（左上受光、右下回暗）+ 白色节点图标 + 名字；结局入口在卡底放信物提示
-## 交易卡角标（docs/173 §2.1）：卡背右上角红色台阶三角 +「代价」，翻开前就知道这张要付东西
+## 交易卡角标（docs/184 §2.1）：卡背右上角红色台阶三角 +「代价」，翻开前就知道这张要付东西
 static func _cost_tag(ci: CanvasItem, r: Rect2, font: Font, a: float) -> void:
 	var tr := Vector2(r.end.x - 2.0, r.position.y + 2.0)
 	var red := Color(0.86, 0.32, 0.38, 0.95 * a)

@@ -12,11 +12,11 @@ const NAMES := {
 var g
 var hazards: Array = []
 const PHASE2_NAMES := ["冰枪封径", "冻潮夹击"]
-## 骑士一阶段每幕的最终 Boss 招（docs/171 v2）：一幕原三招；二幕去掉劈击（主角换成掷枪冰棱）；三幕只有寒潮两招
+## 骑士一阶段每幕的最终 Boss 招（docs/183 v2）：一幕原三招；二幕去掉劈击（主角换成掷枪冰棱）；三幕只有寒潮两招
 const KNIGHT_ACT_NAMES := [["踏冰裂阵", "断潮劈击", "侧踏挑枪"], ["踏冰裂阵", "侧踏挑枪"], ["寒潮回卷", "雪幕劈"]]
 
 func names_for(e: Dictionary) -> Array:
-	# 重生冲锋形态只轮换专属两招（docs/171 v2：一阶段的踏冰裂阵 / 断潮劈击 / 侧踏挑枪移出）
+	# 重生冲锋形态只轮换专属两招（docs/183 v2：一阶段的踏冰裂阵 / 断潮劈击 / 侧踏挑枪移出）
 	if e.type == "knight_boss":
 		if e.phase == 2:
 			return PHASE2_NAMES
@@ -108,7 +108,7 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 					"ang":dir.angle(),"len":900.0,"wid":36.0,"skin":"ice_wall","motion":"wall",
 					"velocity":side*(-sign_side*420.0),"life":1.0,"chill":0.8})
 		"断潮劈击", "雪幕劈":
-			# 雪幕劈（三幕变体，docs/171 v2）：同一道弧斩，收尾碎成 8 片两层速度的雪片（_knight_shards 读 snow）
+			# 雪幕劈（三幕变体，docs/183 v2）：同一道弧斩，收尾碎成 8 片两层速度的雪片（_knight_shards 读 snow）
 			_warn(e, "arc", 1.7, {"name": name, "ang": dir.angle(), "track": 0.85, "r": 640.0, "half": 0.52, "arc_back": 480.0, "wid": 26.0, "style": 3,
 				"skin": "crescent", "motion": "crescent", "speed": 450.0, "accel": 5000.0, "max_speed": 1450.0, "life": 0.8, "dmg": e.dmg * 1.15,
 				"snow": name == "雪幕劈"})

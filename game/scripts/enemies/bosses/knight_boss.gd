@@ -310,7 +310,7 @@ func _ice_step(e: Dictionary) -> void:
 	if e.phase == 1 and _act(e) == 1:
 		for s in st:
 			if g.t >= float(s.until):
-				_strip_shards(e, s)   # 冰面碎屑（二幕，docs/171 v2）
+				_strip_shards(e, s)   # 冰面碎屑（二幕，docs/183 v2）
 	st = st.filter(func(s): return g.t < float(s.until))
 	var la: Dictionary = e.get("last_act", {})
 	if e.phase == 1 and _act(e) >= 1 and str(la.get("act", "")) == "dash" and float(la.get("t", -1.0)) > float(e.get("ice_last_t", -1.0)):
@@ -605,7 +605,7 @@ func super_armor(e: Dictionary) -> bool:
 	return g.bai.finals.hazards.any(func(h): return is_same(h.owner, e))
 
 
-## ---- 三幕 · 寒潮（docs/171 v2）
+## ---- 三幕 · 寒潮（docs/183 v2）
 ## 冻结重击：主控脚下 r70 圈，0.8 秒预警；冻伤那一下由 _bite × 1.75（原作 175%）。范围小，躲开即可
 func _frost_hit(e: Dictionary) -> void:
 	g.bai.finals._warn(e, "circle", 0.8, {"name": "冻结重击", "pos": g.ppos, "r": 70.0, "skin": "ice_field", "dmg": _bite(e, e.dmg * 1.2), "chill": 0.6})
@@ -653,7 +653,7 @@ func _snow(e: Dictionary, from: Vector2, vel: Vector2) -> void:
 		"home": false, "boss": true, "atk": "物理", "source_id": e.id, "col": Color(0.92, 0.97, 1.0), "src_type": e.type, "knight_snow": true})
 
 
-## ---- 二幕 · 冰棱带（docs/171 v2）
+## ---- 二幕 · 冰棱带（docs/183 v2）
 ## 冰棱阵列：掷枪落地（1.0 秒）后沿投掷路径每 60 立一根冰棱（无伤低亮预告），再 1 秒同时炸开，向路径两侧各射 1 发细长冰棱弹（180）；
 ## 落地同时给 knight_spear_brk（1.0）秒硬直。开关 boss/knight_prisms（0 = 关）
 func _prism_plan(e: Dictionary, dir: Vector2, length: float) -> void:
@@ -701,12 +701,12 @@ func _strip_shards(e: Dictionary, s: Dictionary) -> void:
 		ice_shards(e, p, (side * (1.0 if i % 2 == 0 else -1.0)).angle(), 1, 0.0, 120.0)
 
 
-## 原作「生命值低于 50% 时寒冷持续时间延长」（2 → 4 秒）：重生冲锋形态起寒冷条涨速 × knight_cold_hot（1.5）、冻伤时长 × 2（docs/171 v2）
+## 原作「生命值低于 50% 时寒冷持续时间延长」（2 → 4 秒）：重生冲锋形态起寒冷条涨速 × knight_cold_hot（1.5）、冻伤时长 × 2（docs/183 v2）
 func _cold_hot(e: Dictionary) -> bool:
 	return e.phase == 2 or _act(e) >= 2
 
 
-## ---- 重生冲锋形态专属（docs/171 v2）
+## ---- 重生冲锋形态专属（docs/183 v2）
 ## 裂地冲锋：每段冲锋自然停下，向前扇形裂出 3 道地缝（ice_lance 直线，地面判定、不是弹），0.6 / 0.75 / 0.9 秒依次喷冰刺；
 ## 三连的喘气推迟到最后一道地缝结算之后（破绽会取消在途的最终 Boss 招）。开关 boss/knight_crack（0 = 关）
 func _crack_charge(e: Dictionary, ang: float) -> void:

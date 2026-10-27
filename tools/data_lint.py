@@ -131,7 +131,7 @@ def check_balance(errs, verbose):
 
 
 def check_lanes(errs):
-    """干员流派（docs/179）：每名干员 1–2 个、取值在七个流派里；藏品效果的 lane:<键> 作用域 / if.lane 也要是这七个之一"""
+    """干员流派（docs/181）：每名干员 1–2 个、取值在七个流派里；藏品效果的 lane:<键> 作用域 / if.lane 也要是这七个之一"""
     lanes = {"multi", "melee", "summon", "control", "weak", "shield", "heal"}
     for f in sorted(glob.glob(os.path.join(DATA, "characters", "*.json"))):
         d = json.load(open(f, encoding="utf-8"))

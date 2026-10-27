@@ -64,7 +64,7 @@ func busy(e: Dictionary) -> bool:
 	return e.get("dash_w", 0.0) > 0.0 or e.get("dash_t", 0.0) > 0.0 or e.get("nova_w", 0.0) > 0.0 or e.get("blast_w", 0.0) > 0.0
 
 
-## 普通怪的蓄力 / 预警时长（用户 10-28「收割者这种小怪的蓄力也可以加速」，docs/179）：非精英非 Boss 的蓄力 × enemy/windup_mult（0.7），
+## 普通怪的蓄力 / 预警时长（用户 10-28「收割者这种小怪的蓄力也可以加速」，docs/182）：非精英非 Boss 的蓄力 × enemy/windup_mult（0.7），
 ## 但不短于 enemy/windup_min（0.4 秒，手机上看得清；原本就更短的不拉长）；预警圈 / 线 / 扇形的显示与判定读同一个时长，伤害不改。1 = 关
 func _wu(e: Dictionary, dur: float) -> float:
 	if e.elite or e.boss:

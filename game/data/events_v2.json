@@ -1,7 +1,7 @@
 {
- "_doc": "事件改版（docs/173）：cross = 并进 waves.json cross_deck 的键；patch = 按 id 并进现有事件的字段；events = 新事件（v2 = 只在改版出现）。cross/redesign = 0 时整份不生效",
+ "_doc": "事件改版（docs/184）：cross = 并进 waves.json cross_deck 的键；patch = 按 id 并进现有事件的字段；events = 新事件（v2 = 只在改版出现）。cross/redesign = 0 时整份不生效",
  "cross": {
-  "_redesign": "事件改版（docs/173，用户 10-27 定）：balance.json cross/redesign = 1 开（缺省），0 = 旧翻卡（云端对照）。开着时：首通前也翻卡（不出结局入口卡）；mid = 途中一 / 途中二的 [最早, 最晚] 秒（等精英 / 中 Boss / 委托清场再弹，最晚到点照弹），mid_n 张；每次摊牌至少一张交易卡（不期而遇里带 trade 的事件 / 得偿所愿 / 紧急作战）、最多一张无代价卡（安全的角落 / 诡意行商）；事件带 lanes 时含主流派 ×lane_event_w；events 里 v2 = 只在改版出现，v1 = 只在旧版出现，options_v2 = 改版换用的选项",
+  "_redesign": "事件改版（docs/184，用户 10-27 定）：balance.json cross/redesign = 1 开（缺省），0 = 旧翻卡（云端对照）。开着时：首通前也翻卡（不出结局入口卡）；mid = 途中一 / 途中二的 [最早, 最晚] 秒（等精英 / 中 Boss / 委托清场再弹，最晚到点照弹），mid_n 张；每次摊牌至少一张交易卡（不期而遇里带 trade 的事件 / 得偿所愿 / 紧急作战）、最多一张无代价卡（安全的角落 / 诡意行商）；事件带 lanes 时含主流派 ×lane_event_w；events 里 v2 = 只在改版出现，v1 = 只在旧版出现，options_v2 = 改版换用的选项",
   "mid": [
    [
     80,
@@ -198,7 +198,7 @@
    "req": {
     "before": 480
    },
-   "src": "原作 rogue_2 scene_ro2_task（三档委托）；限时强敌、击杀数条件为本作拟（docs/173 §4.2）",
+   "src": "原作 rogue_2 scene_ro2_task（三档委托）；限时强敌、击杀数条件为本作拟（docs/184 §4.2）",
    "text": "终端上有三条新委托，发件人是罗德岛驻伊比利亚的总负责人郁金香。每条末尾都附了一行小字。",
    "options": [
     {

@@ -1,7 +1,7 @@
-"""docs/173 事件改版示意图（手机竖屏）：程序画的线框，不是游戏截图。
+"""docs/184 事件改版示意图（手机竖屏）：程序画的线框，不是游戏截图。
 
 用法：D:/Anaconda/python.exe tools/probes/event_redesign_sheet.py [输出路径]
-缺省输出 docs/reference/173_event_redesign.png。卡背、图标、配色沿用 node_cards_sheet.py。
+缺省输出 docs/reference/184_event_redesign.png。卡背、图标、配色沿用 node_cards_sheet.py。
 """
 import os
 import sys
@@ -27,7 +27,7 @@ def main(out):
     img = Image.new("RGB", (W, H), BG)
     d = ImageDraw.Draw(img)
     text(d, (40, 40), "事件改版 · 有代价的取舍", 52, INK, True)
-    text(d, (40, 112), "docs/173 · 程序画的线框，不是游戏截图", 26, DIM)
+    text(d, (40, 112), "docs/184 · 程序画的线框，不是游戏截图", 26, DIM)
 
     # ---------- 时间线 ----------
     y0 = 180
@@ -119,4 +119,4 @@ def main(out):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1] if len(sys.argv) > 1 else os.path.join("docs", "reference", "173_event_redesign.png"))
+    main(sys.argv[1] if len(sys.argv) > 1 else os.path.join("docs", "reference", "184_event_redesign.png"))

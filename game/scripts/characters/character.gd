@@ -481,7 +481,7 @@ func atk_pierce_mult(prev: int) -> float:
 
 func _pierce_all() -> bool:
 	var rf = g.get("rfx")
-	return rf != null and rf.rule("atk_pierce_all") > 0 and in_lane("multi")   # 穿甲弹只给多弹火力（docs/179 §3.1）
+	return rf != null and rf.rule("atk_pierce_all") > 0 and in_lane("multi")   # 穿甲弹只给多弹火力（docs/181 §3.1）
 
 
 ## 手动普攻沿指向打空时的伪目标（同 aim_land 的写法）：只有 pos / id / dead / r 等只读字段可用，id = -1
@@ -738,7 +738,7 @@ func scopes() -> Array:
 	return out
 
 
-## 本干员的流派（docs/179）：lane:<键> 作用域与 in_lane 用
+## 本干员的流派（docs/181）：lane:<键> 作用域与 in_lane 用
 func lanes() -> Array:
 	return def.get("lanes", [])
 

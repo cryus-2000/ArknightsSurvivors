@@ -1159,7 +1159,7 @@ func dmg_extra() -> float:
 ## 追击与召唤物的额外倍率：无字珊瑚（低灯火）
 func followup_extra(op = null) -> float:
 	if op != null and not op.in_lane("summon"):
-		return 1.0   # 召唤驻场专属（docs/179 §3.3）
+		return 1.0   # 召唤驻场专属（docs/181 §3.3）
 	return 1.0 + Bal.v("relic/coral_followup", 0.6) if has_relic("coral") and g.lamp < DEEP_LAMP else 1.0
 
 
@@ -1475,7 +1475,7 @@ func on_hit(e: Dictionary, h: Dictionary, amount := 0.0) -> void:
 		wrath_q.append(e.pos)
 
 
-## 触发条件里的流派（docs/179：if.lane）：出手干员要属于这一流派；没写 lane 的藏品不限
+## 触发条件里的流派（docs/181：if.lane）：出手干员要属于这一流派；没写 lane 的藏品不限
 func _lane_ok(id: String, h: Dictionary) -> bool:
 	var l: String = str(_trigger(id).get("if", {}).get("lane", ""))
 	if l == "":

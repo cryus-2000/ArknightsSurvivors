@@ -43,7 +43,7 @@ var squad_at := -1.0            # --squadat=秒（调试构建）：到点强制
 var elite_pos := Vector2.ZERO
 var _mh_n := 0                  # 事件改最大生命的次数（stats 来源名）
 var route := ""                 # --route=knight|heart|memory|none|rand（机器人走哪条线；空 = 按 seed 轮换）
-# ---- 事件改版（docs/173；balance cross/redesign，0 = 旧翻卡，云端对照用）
+# ---- 事件改版（docs/184；balance cross/redesign，0 = 旧翻卡，云端对照用）
 var redesign := true            # 改版开着
 var lines_on := false           # 结局线入口卡开不开（通关结局一后；测试 / 批跑缺省开）
 var mid_done := 0               # 途中路口已发几次（0 / 1 / 2）
@@ -107,7 +107,7 @@ func _merge_v2() -> void:
 
 
 ## 结局线入口开不开：玩家局要通关过结局一；测试 / 批跑缺省开（--nocross 关）。
-## 旧翻卡（cross/redesign = 0）时它同时决定翻卡开不开；改版后翻卡一直开，它只管结局入口卡（docs/173 §5.1）
+## 旧翻卡（cross/redesign = 0）时它同时决定翻卡开不开；改版后翻卡一直开，它只管结局入口卡（docs/184 §5.1）
 func _cross_on() -> bool:
 	if Cfg.dev_args().has("--nocross"):
 		return false
@@ -175,7 +175,7 @@ func _show_deck(title: String) -> void:
 	g.panel_ui.show_choices(title, opts, "cross", "选一张翻开，翻开即生效")
 
 
-## 途中路口（docs/173 §2.5）：1:20 / 6:00 起等中 Boss、精英小队、委托都清场再弹，最晚到点照弹；2 张卡、没有结局卡。
+## 途中路口（docs/184 §2.5）：1:20 / 6:00 起等中 Boss、精英小队、委托都清场再弹，最晚到点照弹；2 张卡、没有结局卡。
 ## 路口一拖到途中二最早时刻之后才发，途中二取消
 func _tick_mid() -> void:
 	if mid_done >= 2 or cross_due > 0:
@@ -203,7 +203,7 @@ func _later_slot() -> bool:
 	return cross_done < 2 or (mid_done < 2 and cross_done < 1)
 
 
-## 卡是不是交易卡（docs/173 §2.1）：得偿所愿 / 紧急作战，或不期而遇里带 trade 的事件
+## 卡是不是交易卡（docs/184 §2.1）：得偿所愿 / 紧急作战，或不期而遇里带 trade 的事件
 func _is_trade(c: Dictionary) -> bool:
 	match str(c.get("type", "")):
 		"wish", "elite":
@@ -368,7 +368,7 @@ func _pick_common(need_trade := false) -> String:
 	return id
 
 
-## ---------- 主流派（docs/173 §2.2）：持有藏品 lanes 计数最多且 ≥ 3 件的流派（并列取最近拿到的）；不足 3 件按队长职业 ----------
+## ---------- 主流派（docs/184 §2.2）：持有藏品 lanes 计数最多且 ≥ 3 件的流派（并列取最近拿到的）；不足 3 件按队长职业 ----------
 func main_lane() -> String:
 	var cnt := {}
 	var last := {}
@@ -463,13 +463,13 @@ func _resolve() -> void:
 			return
 		"wish":
 			if redesign and ev_by_id.has("wish_v2"):
-				open("wish_v2")   # 改版：带走一件 / 付生命再拿一件（docs/173 §3）
+				open("wish_v2")   # 改版：带走一件 / 付生命再拿一件（docs/184 §3）
 				return
 			wish_rare = true
 			g.pending_chests += 1
 		"shop":
 			if redesign:
-				g.shop_sys.open_trader()   # 原作语义：进一次商店（用户 10-28；docs/173 §3），买完关掉回战斗
+				g.shop_sys.open_trader()   # 原作语义：进一次商店（用户 10-28；docs/184 §3），买完关掉回战斗
 				return
 			var mt: Array = g.MERCHANT_TIMES
 			if g.merchant_idx < mt.size():
@@ -591,7 +591,7 @@ func _tick_elites() -> void:
 		g.pickups.drop(elite_pos + Vector2(36, 0), "chest", 1.0)
 	wish_rare = true   # 这个宝箱的藏品三选一按稀有 / 核心加权（同得偿所愿，progression 读后清掉）
 	if rw != "":
-		lane_bias = main_lane()   # 改版：三选一里 2 件主流派（docs/173 §2.2）
+		lane_bias = main_lane()   # 改版：三选一里 2 件主流派（docs/184 §2.2）
 	g.rfx.gain_ingots(int(deck_cfg.get("squad_ingots", 20)), "紧急作战 · ")
 	g.vfx.show_banner("精英小队已全灭 —— 拾取宝箱")
 
@@ -667,7 +667,7 @@ func cg_key() -> String:
 	return str(ev.get("cg", opened_id)) if ev.has("cg") and str(ev.cg) != "" else opened_id
 
 
-## 选项灰掉的原因（docs/173 §2.1）：付生命的选项在生命 < 30% 时不可选；need = 队友 / 可交藏品 / 后面还有路口
+## 选项灰掉的原因（docs/184 §2.1）：付生命的选项在生命 < 30% 时不可选；need = 队友 / 可交藏品 / 后面还有路口
 func _blocked(op: Dictionary) -> String:
 	for o in op.get("ops", []):
 		if float(o.get("hp_pct", 0.0)) < 0.0 and g.hp < g.max_hp * 0.3:
@@ -765,7 +765,7 @@ func pick(o: Dictionary) -> bool:
 		opened_id = ""
 	if ev.get("repeat", false) and not op.get("end", false):
 		searched.append(str(o.id))
-		var mp: int = int(ev.get("max_picks", 0))   # 梦中之会：最多连选三项（docs/173 §4.2）
+		var mp: int = int(ev.get("max_picks", 0))   # 梦中之会：最多连选三项（docs/184 §4.2）
 		if mp <= 0 or searched.filter(func(s): return str(s).begins_with(str(ev.id) + ":")).size() < mp:
 			open(str(ev.id))
 			return true
@@ -798,7 +798,7 @@ func _apply_op(x: Dictionary) -> void:
 		g.progression.gain_relic(str(x.relic))
 	if x.has("relic_choice"):
 		g.pending_chests += int(x.relic_choice)
-	# ---- 事件改版（docs/173 §2.3–§2.4、§4.2）
+	# ---- 事件改版（docs/184 §2.3–§2.4、§4.2）
 	if x.has("heal"):
 		g.combat.heal(g.max_hp * float(x.heal), "事件")
 		g.vfx.add_text(g.ppos + Vector2(0, -70), "生命 +%d%%" % int(round(float(x.heal) * 100.0)), Color(0.55, 1.0, 0.6), 16)
@@ -843,7 +843,7 @@ func _apply_op(x: Dictionary) -> void:
 		_spawn_elites()
 
 
-## 主流派藏品一件（docs/173 §2.2）：lanes 给定时从这些流派抽，否则主流派；rarity 限定稀有度；对口池空了退回同稀有度全池。
+## 主流派藏品一件（docs/184 §2.2）：lanes 给定时从这些流派抽，否则主流派；rarity 限定稀有度；对口池空了退回同稀有度全池。
 ## 按稀有度加权（基础 60 / 稀有 39 / 核心 18，同得偿所愿 ×1.5），不出升华 / 遭诅 / 结局；随机只用 g.rng
 func _gain_lane_relic(rarity: String, lanes: Array) -> void:
 	var want: Array = lanes if not lanes.is_empty() else [main_lane()]
@@ -881,7 +881,7 @@ func _gain_curse() -> void:
 	g.vfx.show_banner("获得遭诅藏品：%s" % g.rfx.db.get_relic(rid).name)
 
 
-## 一名干员立即精英化一级（docs/173 §5.2）：连推到下一个精英阶段，中间节点一并给、不看节点条件；
+## 一名干员立即精英化一级（docs/184 §5.2）：连推到下一个精英阶段，中间节点一并给、不看节点条件；
 ## 分支节点按干员的固定路线（bot_route）、精英化选项取第一项；已精英二改为两次成长三选一
 func _elite_up(o) -> void:
 	if o == null:
@@ -916,7 +916,7 @@ func _elite_up(o) -> void:
 		g.pending_levelups += 1
 
 
-## ---------- 要再选一次的选项（选干员 / 交藏品，docs/173 §4.2） ----------
+## ---------- 要再选一次的选项（选干员 / 交藏品，docs/184 §4.2） ----------
 ## 逐个弹选择屏；返回 true = 弹了一屏
 func _next_sub() -> bool:
 	var q: Array = sub_ctx.get("queue", [])
@@ -1066,7 +1066,7 @@ func _trade_offer(min_rank: int) -> Array:
 	return out
 
 
-## ---------- 委托（郁金香的委托：限时强敌 / 击杀数，docs/173 §4.2） ----------
+## ---------- 委托（郁金香的委托：限时强敌 / 击杀数，docs/184 §4.2） ----------
 func _start_threat(a: Dictionary) -> void:
 	var m: float = 1.0 + float(a.get("mult", 0.3))
 	g.stats.add(&"enemy_hp", "mult", m, "event:threat", "")
@@ -1269,7 +1269,7 @@ func bot_choice() -> int:
 	return 0
 
 
-## 改版机器人（docs/173 §7.2）：按 V 口径粗估每张卡 / 每个选项的净值取最大；结局线卡与结局事件仍按 bot_route 走（返回 -1 交给旧逻辑）。
+## 改版机器人（docs/184 §7.2）：按 V 口径粗估每张卡 / 每个选项的净值取最大；结局线卡与结局事件仍按 bot_route 走（返回 -1 交给旧逻辑）。
 ## 稳妥档（bot/event_greedy = 0）只选不带代价的选项。不取随机数
 func _bot_v2(want: String) -> int:
 	var greedy: bool = Bal.vi("bot/event_greedy", 1) == 1
@@ -1346,7 +1346,7 @@ func _opt_cost(op: Dictionary) -> bool:
 	return false
 
 
-## V 口径（docs/173 §2.4）：1 V ≈ 基础藏品 ≈ 源石锭 10 ≈ 最大生命 5%
+## V 口径（docs/184 §2.4）：1 V ≈ 基础藏品 ≈ 源石锭 10 ≈ 最大生命 5%
 func _opt_value(op: Dictionary) -> float:
 	var hp_k: float = g.hp / maxf(1.0, g.max_hp)
 	var v := 0.0

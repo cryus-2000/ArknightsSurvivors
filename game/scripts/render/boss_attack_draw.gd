@@ -118,7 +118,7 @@ static func _stage_ground(g, b) -> void:
 			var px: float = fposmod(_noise(k, 71) * 1400.0 - t * (26.0 + 14.0 * _noise(k, 73)), 1400.0) - 700.0
 			var py: float = fposmod(_noise(k, 79) * 800.0 + t * (48.0 + 30.0 * _noise(k, 83)), 800.0) - 400.0
 			_dot(r, view + Vector2(px, py), Color(0.92, 0.97, 1.0, 0.3 + 0.3 * _noise(k, 89)), 2.0)
-	# 重生裂冰：重生点一片淡冰圆盘 + 放射状白裂纹（docs/171 v2：配色回冰白）
+	# 重生裂冰：重生点一片淡冰圆盘 + 放射状白裂纹（docs/183 v2：配色回冰白）
 	if st == 3 and b.has("kn_reborn_pos"):
 		var p: Vector2 = b.kn_reborn_pos
 		if p.distance_to(view) < 1100.0:

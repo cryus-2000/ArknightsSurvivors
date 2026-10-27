@@ -1194,7 +1194,7 @@ func _op_squad(ci: CanvasItem, box: Rect2, od: Dictionary, m: Dictionary, ph: bo
 				UI.text_at(ci, font, Vector2(r.end.x - 10, r.get_center().y), "探索中通过升级招募", 10, UI.fa(UI.B_SUB, a), "rm")
 		y += sh + 6.0
 	y += 4.0
-	# 流派（docs/179）：流派藏品的主效果只给本流派干员
+	# 流派（docs/181）：流派藏品的主效果只给本流派干员
 	var lanes: Array = d.get("lanes", [])
 	if not lanes.is_empty() and y + 20.0 < box.end.y:
 		var lx := box.position.x + UI.btab(ci, font, Vector2(box.position.x, y + 3), "流派", UI.TAB_HP, 9) + 8.0

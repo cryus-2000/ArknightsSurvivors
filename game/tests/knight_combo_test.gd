@@ -57,10 +57,10 @@ func tick(e: Dictionary, dt := 0.05) -> void:
 func exercise() -> void:
 	var script = g.bai.boss("knight_boss")
 	for phase in [1,2]:
-		# 重生冲锋形态只剩冲锋连段（docs/171 v2）；回旋 / 一阶段大招在 check_reborn 单独查
+		# 重生冲锋形态只剩冲锋连段（docs/183 v2）；回旋 / 一阶段大招在 check_reborn 单独查
 		for opener in (["断潮劈击","踏冰裂阵","侧踏挑枪","冲锋","冰线","长枪连刺","掷枪"] if phase==1 else ["冲锋"]):
 			var e: Dictionary = fresh(phase)
-			e.gates_passed = 1 if opener=="掷枪" else 0   # 每幕自己的大招组（docs/171 v2）：一幕原三招，掷枪二幕起
+			e.gates_passed = 1 if opener=="掷枪" else 0   # 每幕自己的大招组（docs/183 v2）：一幕原三招，掷枪二幕起
 			script.force_move(e,opener,Vector2.RIGHT,350)
 			var seen: Array = [opener]
 			var prior: String = opener
@@ -191,7 +191,7 @@ func check_super_armor() -> void:
 	g.enemies_sys.add_cc(f,1.0)
 	check(f.stun>0.0,"operator stun lands during break")
 
-## docs/171 v2 重生冲锋形态：回旋后外射冰锥 + 破绽；冲锋停下裂地；寒冷条照常涨
+## docs/183 v2 重生冲锋形态：回旋后外射冰锥 + 破绽；冲锋停下裂地；寒冷条照常涨
 func check_reborn() -> void:
 	var script = g.bai.boss("knight_boss")
 	var e: Dictionary = fresh(2)
@@ -220,7 +220,7 @@ func check_reborn() -> void:
 	tick(e)
 	check(float(e.get("kcold",0.0))>0.0,"cold builds again in charge form")
 
-## docs/171 v2 每幕招式组 + 三幕寒潮 + 二幕冰棱
+## docs/183 v2 每幕招式组 + 三幕寒潮 + 二幕冰棱
 func check_acts() -> void:
 	var script = g.bai.boss("knight_boss")
 	var names: Array = []
