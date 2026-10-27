@@ -28,6 +28,7 @@ def main():
     ap.add_argument("--keep-frames", action="store_true")
     ap.add_argument("--only", default="", help="只录这几组，逗号分隔，从 0 起")
     ap.add_argument("--bal", action="append", default=[], help="旋钮覆盖，段/键=值，可多次")
+    ap.add_argument("--shock", action="store_true", help="只录一段震撼冲刺躲避")
     a = ap.parse_args()
     out = (ROOT / "build/boss_izumik" / a.tag).resolve()
     frames = out / ("frames_" + a.quality)
@@ -36,7 +37,7 @@ def main():
             raise SystemExit("choose a new --tag: " + str(frames))
         frames.mkdir(parents=True, exist_ok=True)
         cmd = [runner.find_godot(), "--path", str(ROOT / "game"), "--audio-driver", "Dummy", "--resolution", "1280x720", "--fixed-fps", "30",
-               "res://tests/izumik_combo_preview.tscn", "--", "--shotdir=" + frames.as_posix(), "--quality=" + a.quality] + (["--only=" + a.only] if a.only else []) + ["--bal=" + b for b in a.bal]
+               "res://tests/izumik_combo_preview.tscn", "--", "--shotdir=" + frames.as_posix(), "--quality=" + a.quality] + (["--only=" + a.only] if a.only else []) + ["--bal=" + b for b in a.bal] + (["--shock"] if a.shock else [])
         so, se, timed_out = runner.run_godot(cmd, 900)
         (out / ("run_" + a.quality + ".log")).write_text(so + "\n" + se, encoding="utf-8")
         if timed_out or runner.script_errors(so, se) or "FX_PREVIEW_DONE" not in so:

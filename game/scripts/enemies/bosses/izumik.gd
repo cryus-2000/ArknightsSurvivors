@@ -182,17 +182,16 @@ func _share(e: Dictionary, dir: Vector2, small: bool) -> void:
 			"dmg": e.dmg * Bal.v("boss/izumik_share_mult", 1.2), "arts": true})
 
 
-## D · 震撼（PRTS 技能「震撼」）：蓄力 2 秒的全场地波，冲刺无敌或站在点亮的灯柱光圈里才躲得开；66% 后每 25 秒、33% 后每 20 秒，
+## D · 震撼（PRTS 技能「震撼」）：蓄力 3 秒（10-28 由 2 秒加长）的全场地波，冲刺无敌或站在点亮的灯柱光圈里才躲得开；66% 后每 25 秒、33% 后每 20 秒，
 ## 33% 后命中者额外每秒 e.dmg × 0.12 法伤持续 4 秒（PRTS「每秒攻击力 12%」；走 lose_hp 的 Boss 持续伤害口径 ≤4%/秒）
 func _wave(e: Dictionary) -> void:
 	var gp: int = int(e.get("gates_passed", 0))
 	var cd: float = Bal.v("boss/izumik_wave_cd2", 20.0) if gp >= 2 else Bal.v("boss/izumik_wave_cd", 25.0)
-	var wt: float = Bal.v("boss/izumik_wave_charge", 2.0)
+	# 蓄力 2 → 3 秒（用户 10-28：1.5 倍速下反应不过来；3 秒在 1.5 倍速下 = 原速的 2 秒）；读秒警告音取消（同日用户）
+	var wt: float = Bal.v("boss/izumik_wave_charge", 3.0)
 	e.wave_next = g.t + wt + cd
-	Sfx.play("izu_wave_count", 0.7, 2.0 / maxf(wt, 0.5), 0.0)   # 地波读秒：文件 2 秒，按蓄力时长 wt 变速，结束正好落在结算
 	_warn(e, "circle", wt, {"follow": true, "r": 2400.0, "act": "izu_wave", "name": "震撼", "must_dash": true, "col": COL,
 		"dmg": minf(e.dmg * 2.0, g.max_hp * Bal.v("boss/izumik_wave_cap", 0.25)), "burn": (e.dmg * 0.12) if gp >= 2 else 0.0})
-	Sfx.play("skill", -2.0, 0.6)
 
 
 ## 震撼 / 分享·全场结算画面（telegraph izu_wave 调用）：从本体推开一圈海浪（render/izumik_attack_draw.shock），浪头甩出水沫颗粒；纯画面
