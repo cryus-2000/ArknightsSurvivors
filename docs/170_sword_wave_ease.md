@@ -53,9 +53,9 @@
 
 测试：`lappland_presentation_test` 的探针改为不把残影（alpha < 0.5）计入弹体，并按飞行时间 `w.t` 驱动；新增「猛冲段画残影」一项。
 
-## 6. 对照 gif
+## 6. 对照录像
 
-`python tools/sword_wave_rec.py` → `build/sword_wave_speed/lap.gif`、`qi.gif`（左改前、右改后，逐帧 1/3 速）。
+`python tools/sword_wave_rec.py` → `build/sword_wave_speed/lap.mp4`、`qi.mp4`（左改前、右改后，1/3 速；10-27 起录像一律 mp4、中间帧自动删）。
 
 ## 7. 藏品剑气按武器分类（用户 10-27「每个人的武器类型不一样」→「根据不同的武器来，先做一下看看」）
 
@@ -74,4 +74,4 @@
 
 同场景命中（1800 帧，on 0 → 1）：德克萨斯 70 / 2150.7 → 70 / 2150.7；推进之王 33 / 624.3 → 33 / 624.3（首中提前 3 帧）；艾丽妮 87 / 2310.3 → 87 / 2330.2（命中数同，穿透第二目标的先后变了，+0.9%）。
 
-对照：`python tools/sword_wave_styles_rec.py` → `build/sword_wave_speed/styles_1x.gif`（原速）、`styles_slow.gif`（1/3 速）。
+对照：`python tools/sword_wave_styles_rec.py` → `build/sword_wave_speed/styles_1x.mp4`（原速 5 秒）、`styles_slow.mp4`（1/3 速 15 秒），3 × 2 宫格 6 人。
