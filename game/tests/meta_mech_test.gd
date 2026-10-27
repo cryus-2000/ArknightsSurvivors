@@ -1,10 +1,10 @@
 extends Node
 ## 认知塑造质变 / 非数值节点契约（docs/109 §14 v5，check.py 场景回归 meta_mech）：
-##   godot --headless --path game res://tests/meta_mech_test.tscn -- --balance --seed=1 --op=wisadel --metanodes=sh1,reg3,atk5,hp5,def4,xp4,disp1,disp2,disp3,disp4
+##   godot --headless --path game res://tests/meta_mech_test.tscn -- --balance --seed=1 --op=wisadel --metanodes=sh1,reg3,atk5,hp5,def4,xp4,disp1,disp2,disp3,disp4,dodge1,dodge2,dodge3
 ## 把 game.tscn 当子节点跑起来，第 5 帧直接调结算入口逐条检查：
 ##   护盾反震（危机感）：护盾被击碎时周围敌人受伤并被击退；低血回复翻倍（生命感悟Ⅲ）；处决（攻击性Ⅴ）：普通 <15% / 精英 <8% 直接击杀、Boss 不受；
 ##   濒死免死（生存本能Ⅴ）：每局一次保留 1 点并无敌；静守（自我保护Ⅳ）：连续 5 秒未受伤后下一击减半；升级再升（领导欲Ⅳ）：100 次升级里有再升；
-##   开局四选一（多程信息处理）只在第一次升级；行商免费刷新（自我审视）每局一次；首个藏品三选一（战利品意识）开局自动打开。
+##   开局四选一（多程信息处理）只在第一次升级；行商免费刷新（自我审视）每局一次；首个藏品三选一（战利品意识）开局自动打开；未雨绸缪Ⅰ–Ⅲ 闪避 +15%、闪避补偿的受到伤害倍率。
 ## 全部通过时打印 "META MECH failures=0"。
 
 const Game = preload("res://scripts/game.gd")
@@ -78,6 +78,12 @@ func test_rules() -> void:
 	for r in ["shield_shatter", "low_hp_regen", "execute", "last_stand", "calm_guard", "double_level", "first_choice_extra", "shop_free_refresh", "revive"]:
 		ok(game.rfx.rule(r) > 0, "开局写进 rfx.rules：" + r)
 	ok(game.shield_max == 1, "危机感：护盾上限 1（%d）" % game.shield_max)
+	# 未雨绸缪Ⅰ–Ⅲ（10-27 闪避移进局外成长，docs/109 §17）：队长基础闪避 squad/leader_dodge（缺省 0）+ 三级各 +5% × meta/stat_scale
+	var dg: float = Bal.v("squad/leader_dodge", 0.0) + 0.15 * Bal.v("meta/stat_scale", 1.0)
+	ok(is_equal_approx(game.dodge, dg), "未雨绸缪Ⅲ：闪避率 %.3f（应为 %.3f）" % [game.dodge, dg])
+	# 补偿：受到伤害倍率基础值 squad/dodge_comp_taken，自我保护Ⅳ（-4%）照常再乘
+	var tk: float = Bal.v("squad/dodge_comp_taken", 1.0) * (1.0 - 0.04 * Bal.v("meta/stat_scale", 1.0))
+	ok(is_equal_approx(game.dmg_taken_mult, tk), "闪避补偿：受到伤害倍率 %.4f（应为 %.4f）" % [game.dmg_taken_mult, tk])
 	ok(game.meta_start_relic == 3 or relic_seen or game.relics.size() > 0, "战利品意识：开局待选 3 件（%d，t=%.2f，见过 %s）" % [game.meta_start_relic, game.t, relic_seen])
 	ok(Meta.leader_atk(game) > 0.0, "队长攻击基数 > 0（%.1f）" % Meta.leader_atk(game))
 

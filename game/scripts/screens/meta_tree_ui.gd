@@ -25,7 +25,7 @@ const ROOT_ORDER := ["disp1", "shop1", "gold1", "pick1", "xp1", "sh1", "atk1", "
 const RULE_TAG := {"atk5": "处决", "hp5": "濒死免死", "def4": "久守减伤", "reg3": "低血回复", "sh1": "碎盾反震", "xp4": "升级再升",
 	"disp1": "四选一", "disp2": "免费刷新", "disp3": "开局藏品", "disp4": "绝处逢生"}
 ## 分组（主根）：前缀 → 组；组名 / 英文 / 组色（详情卡标签与主根旁的小标）
-const GROUP_OF := {"shop": 0, "gold": 0, "pick": 0, "xp": 1, "disp": 1, "atk": 2, "sh": 2, "hp": 3, "def": 3, "reg": 3}
+const GROUP_OF := {"shop": 0, "gold": 0, "pick": 0, "xp": 1, "disp": 1, "atk": 2, "sh": 2, "hp": 3, "def": 3, "reg": 3, "dodge": 3}
 const GROUPS := [["探索", "EXPLORE", Color8(255, 196, 70)], ["成长", "GROWTH", Color8(168, 150, 255)], ["战斗", "COMBAT", Color8(255, 112, 98)],
 	["生存", "SURVIVAL", Color8(92, 214, 152)]]
 

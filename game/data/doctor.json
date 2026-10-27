@@ -21,7 +21,7 @@
   "max_hp": 120,
   "regen": 1.0,
   "move_speed": 150,
-  "dodge": 0.25,
+  "dodge": 0.0,
   "pickup": 70
  },
  "command": null
