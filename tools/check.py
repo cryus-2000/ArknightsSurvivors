@@ -967,6 +967,7 @@ SCENE_REGRESSIONS = {
     # "hunt_approach" 停用（10-25 围猎并进大群，hunt/enabled 0，docs/150）：独立围猎事件不再触发，run/hunt.gd 与测试保留，恢复围猎时一起放回
     "friendly_target": ("中立单位索敌与治疗", "friendly_target_regression", r"FRIENDLY TARGET REGRESSION: 0 failures", []),
     "ishar_p2": ("伊莎玛拉敌对二阶段", "ishar_p2_test", r"ISHAR P2 failures=0", ["--balance", "--bosstest=ishar2"]),
+    "ishar_combo": ("伊莎玛拉二阶段连段与图案弹幕", "ishar_combo_test", r"ISHAR COMBO failures=0", []),
     "enemy_demo": ("图鉴敌人攻击演示", "enemy_demo_test", r"ENEMY DEMO failures=0", []),
     "knight_pixel_split": ("队友步行与Boss骑乘资源分离", "knight_pixel_split", r"KNIGHT_PIXEL_SPLIT_OK", []),
     "enemy_pixels": ("怪物像素帧条与锚点", "enemy_pixel_contract", r"ENEMY PIXEL CONTRACT: .*failures=0", []),

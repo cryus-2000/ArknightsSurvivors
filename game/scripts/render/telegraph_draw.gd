@@ -77,6 +77,8 @@ static func draw_fills(g) -> void:
 	for w in g.warns:
 		if w.get("dim", false) or quiet(w):
 			continue   # 打不到主控的杂兵预警只画淡轮廓（world.classify_tells / draw_warn_outlines，可读性 1.1.1，界面与美术）
+		if preload("res://scripts/render/ishar_tell_draw.gd").owns(w):
+			continue   # 伊莎玛拉地面预警由 ishar_tell_draw 画（docs/170）
 		var k: float = clampf(w.t / w.dur, 0.0, 1.0)
 		var c: Color = w.col
 		if g.optical_on:

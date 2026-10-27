@@ -32,6 +32,7 @@ static func draw(g, impacts := false) -> void:
 			_dash_frost(g, b)
 	for w in g.warns:
 		if w.act != "final_attack" or w.done: continue
+		if preload("res://scripts/render/ishar_tell_draw.gd").owns(w): continue   # 伊莎玛拉线形预警走涟漪画法（docs/170）
 		if w.get("skin", "") == "bubble":
 			if impacts: Bubble.draw(g,w,0.95,true)
 			else: Bubble.shadow(g.world,w,0.7)
