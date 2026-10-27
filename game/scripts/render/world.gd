@@ -2833,7 +2833,7 @@ func _draw_enemy_full(e: Dictionary) -> void:
 		name = e.tex + "_enraged"
 		frames = 2
 		frame = int(g.t * 5.0 + e.id * 0.37) % 2
-	var rage_fx: bool = e.get("enraged", false) and not D.ENEMIES.get(e.type, _NO_DEF).get("rage_keep_tint", false) and not e.get("squad", false)   # rage_keep_tint：收割者的狂奔保持冷蓝本色；波纹另画。精英小队不叠狂暴的脚下红椭圆和全身红调（红描边已标危险；10-26 用户「还是有红色的底，并且全身发红」）
+	var rage_fx: bool = e.get("enraged", false) and not D.ENEMIES.get(e.type, _NO_DEF).get("rage_keep_tint", false) and not e.get("squad", false) and Bal.v("render/rage_tint", 0.0) > 0.0   # rage_keep_tint：收割者的狂奔保持冷蓝本色；波纹另画。精英小队不叠狂暴的脚下红椭圆和全身红调（红描边已标危险；10-26 用户「还是有红色的底，并且全身发红」）；10-27 用户：普通怪狂暴也不染红、不画脚下红椭圆（render/rage_tint 缺省 0，1 = 恢复）
 	# 巢涌者神经光环改到地面层画（draw_nest_auras），不再按 4.6 倍放大帧条盖在实体上
 	# 染色复用贴图的敌人（巨海、撕裂者、潜地者、吐酸者）按自身半径放大：enemies.json 的 draw_scale（docs/48 §1 第 7 项）
 	var sc: float = enemy_scale(e)
