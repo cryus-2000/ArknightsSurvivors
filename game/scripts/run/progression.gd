@@ -2,6 +2,7 @@ extends RefCounted
 ## 升级与藏品发放（逻辑）：升级卡池（招募 / 干员深度 / 博士与全队被动 / 填充，docs/23 §6）、藏品候选池、选中后的结算与藏品获得。
 ## 选卡界面（卡片绘制、动画）在 screens/ 下。2026-09-26 从 game.gd 拆出。
 
+const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
 const Character = preload("res://scripts/characters/character.gd")
@@ -577,13 +578,17 @@ func pick(i: int) -> void:
 			if g.endg.pick(o):
 				return   # 又弹了下一屏（继续搜寻 / 仪式 → 升华 / 园林 → 赞歌）
 		"growth":
+			BossBench.rb("growth", [o.id, o.get("op", g.ch.id)])
 			g.growth[o.id] = g.growth.get(o.id, 0) + 1
 			if not g.doctor.apply_passive(o.id):
 				var gop = g.squad.get_op(o.get("op", g.ch.id))
 				if gop != null:
 					gop._apply_growth(o.id)
+			BossBench.re()
 		"filler":
+			BossBench.rb("filler", [o.id])
 			g.doctor.apply_filler(o.id)
+			BossBench.re()
 		"prog":
 			g.dbg_pick[o.op] = g.dbg_pick.get(o.op, 0) + 1
 			var pop = g.squad.get_op(o.op)
@@ -611,6 +616,8 @@ func pick(i: int) -> void:
 		"relic":
 			gain_relic(o.id)
 		"weapon":
+			BossBench.rb("weapon", [o.id, o.wlv])
+			BossBench.re()
 			g.weapons[o.id] = o.wlv
 			var W: Dictionary = D.WEAPONS[o.id]
 			g.vfx.show_banner(("「%s」加入支援" % W.name) if o.wlv == 1 else ("「%s」升至 Lv.%d" % [W.name, o.wlv]))
@@ -672,6 +679,7 @@ func can_gain_relic(id: String) -> bool:
 func gain_relic(id: String) -> bool:
 	if not can_gain_relic(id):
 		return false
+	BossBench.rb("relic", [id])   # Boss 单场测试台录制（docs/170）：只记最外层
 	g.dbg_relic_take.append([int(g.t), id, g.squad.ops.map(func(o): return o.cls)])   # 玩家局也记（docs/40）
 	if not g.relics.has(id):
 		g.relics.append(id)
@@ -684,4 +692,5 @@ func gain_relic(id: String) -> bool:
 	elif id == "221" and g.knight.alive:
 		g.knight.leave()
 	g.endg.on_relic(id)
+	BossBench.re()
 	return true

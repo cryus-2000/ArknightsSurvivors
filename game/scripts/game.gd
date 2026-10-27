@@ -56,6 +56,7 @@ const Spawner = preload("res://scripts/run/spawner.gd")
 const PlayClock = preload("res://scripts/run/play_clock.gd")
 const IsharEncounter = preload("res://scripts/run/ishar_encounter.gd")
 const BossTrial = preload("res://scripts/run/boss_trial.gd")
+const BossBench = preload("res://scripts/run/boss_bench.gd")
 const VictoryFlow = preload("res://scripts/run/victory_flow.gd")
 const EnemyDemo = preload("res://scripts/run/enemy_demo.gd")
 const GalleryProgress = preload("res://scripts/run/gallery_progress.gd")
@@ -93,6 +94,7 @@ const MERCHANT_TIMES := [120.0, 300.0, 480.0]   # 每次都在 Boss（3:30 / 7:0
 
 var ishar = IsharEncounter.new(self)
 var trial = BossTrial.new(self)
+var bench = BossBench.new(self)   # Boss 单场测试台（--benchsnap 录制 / --bossbench 开打，docs/170；只在 --balance）
 var victory = VictoryFlow.new(self)
 var speed_btn := Rect2()
 var state: int = S.PLAY

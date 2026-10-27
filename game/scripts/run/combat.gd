@@ -352,6 +352,8 @@ func lose_hp(amount: float, src: String, boss := false) -> float:
 		amount = _boss_clamp(amount, src)
 	amount = _any_clamp(amount)
 	g.hp -= amount
+	if g.bench.live:
+		g.bench.on_lose(amount)   # Boss 单场测试台：队长承伤（docs/170）
 	g.telemetry.on_lose(amount, src)   # 作战记录：击倒者归属（持续伤害记给施加它的敌人，docs/77）
 	if not src in NO_LOG:
 		g.dmg_log[src] = g.dmg_log.get(src, 0.0) + amount
@@ -1169,6 +1171,8 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		add_tough(e, minf(dmg, maxf(e.hp + dmg, 0.0)) / e.maxhp * 100.0)
 	var eff: float = minf(dmg, maxf(e.hp + dmg, 0.0))
 	g.dmg_out[h.src] = g.dmg_out.get(h.src, 0.0) + eff
+	if e.boss and g.bench.live:
+		g.bench.boss_hit(e, eff)   # Boss 单场测试台：破绽期输出占比（docs/170）
 	if _pf:
 		_pt = g.prof_add("dm_misc", _pt)
 	g.telemetry.on_dmg(e, eff, dmg, h)   # 作战记录：按干员拆的输出、时间线、最高单次（docs/77）

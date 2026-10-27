@@ -5,6 +5,7 @@
 ## 干员调用 game.gd 的能力一律走 op_api.gd（本类的父类），不直接调用 g._ 开头的内部函数。
 extends "res://scripts/characters/op_api.gd"
 
+const BossBench = preload("res://scripts/run/boss_bench.gd")   # 录制钩子（docs/170）
 const LaserDraw = preload("res://scripts/render/laser_draw.gd")
 const GroundCrack = preload("res://scripts/render/ground_crack.gd")   # 地裂共用画法
 const A = preload("res://scripts/art.gd")
@@ -895,6 +896,12 @@ func bot_route(n: Dictionary) -> String:
 ## 分支节点没给路线、也没选过时：玩家局交给 progression.branch_defer 进路线选择画面（本次不推进，确认后再调一次），
 ## 机器人 / 测试 / 演示按 bot_route 固定选。节点 4 / 5 的 id、文字按 node_view 解析后再应用，所以同一节点不会重复加成
 func advance(choice: String = "") -> void:
+	BossBench.rb("adv", [id, choice])   # Boss 单场测试台录制（docs/170）：只记最外层
+	_advance(choice)
+	BossBench.re()
+
+
+func _advance(choice: String) -> void:
 	var n := next_node()
 	if n.is_empty():
 		return
