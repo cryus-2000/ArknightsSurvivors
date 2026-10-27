@@ -317,6 +317,7 @@ func _restore() -> void:
 		var m = str_to_var(str(ms))
 		if m is Dictionary:
 			g.mires.append(m)
+	_backfill_mods()
 	g.pickups.sync_level_pickup()   # 拾取范围随等级（来源「等级」）：等级是直接写回的，不经过升级
 	g.rfx._fuse_sync()              # 源石锭熔铸的伤害加成按恢复后的熔铸池重算
 	g.show_queue.clear()
@@ -359,6 +360,27 @@ func _restore() -> void:
 	print("BENCHRESTORE events=%d mobs=%d fp_diff=%d %s" % [snap.get("events", []).size(), snap.get("mobs", []).size(), fp_diff.size(), JSON.stringify(fp_diff)])
 
 
+## 局中按击杀 / 击败 Boss / 放技能累加、又不经过上面那批函数的长期修正（如「生还者合约」每击败一只 Boss +20%、
+## 叠层藏品）：按快照指纹里逐条的修正补齐缺的那几条（只补藏品与事件来源；临时减益、站位加成不补）
+const BACKFILL := ["relic:", "relic_stack:", "event:", "rej:"]
+
+
+func _backfill_mods() -> void:
+	var want: Dictionary = (snap.get("fp", {}) as Dictionary).get("mods", {})
+	var have: Dictionary = fingerprint().mods
+	for k in want:
+		var pool: Array = (have.get(k, []) as Array).duplicate()
+		for row in want[k]:
+			var i := pool.find(row)
+			if i >= 0:
+				pool.remove_at(i)
+				continue
+			var f: PackedStringArray = str(row).split("|")
+			if f.size() == 4 and BACKFILL.any(func(p): return f[2].begins_with(p)) and g.stats.has_stat(StringName(k)):
+				g.stats.add(StringName(k), int(f[0]), float(f[1]), f[2], f[3])
+	g.sync_stats()
+
+
 func _replay(kind: String, a: Array) -> void:
 	match kind:
 		"relic":
@@ -385,3 +407,10 @@ func _replay(kind: String, a: Array) -> void:
 			g.endg._max_hp(float(a[0]))
 		"gain":
 			g.rfx._on_gain(str(a[0]), a[1] if a[1] is Dictionary else {})
+		"rej", "unrej":
+			var ro = g.squad.get_op(str(a[0]))
+			if ro != null:
+				if kind == "rej":
+					ro.apply_rejection()
+				else:
+					ro.clear_rejection()
