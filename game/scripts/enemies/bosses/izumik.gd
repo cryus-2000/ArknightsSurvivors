@@ -18,7 +18,7 @@ extends "res://scripts/enemies/bosses/boss_base.gd"
 const Beam = preload("res://scripts/render/boss_beam.gd")
 const COL := Color(0.4, 0.6, 1.0)   # 群青蓝（docs/142b §8.4）
 const MOVES := ["潮汐坠落", "解读旋涡", "分享", "震撼"]
-const PATTERNS := ["潮汐相位流", "子代共鸣", "螺旋弹臂", "习得弹", "回流弹", "潮门环", "习得路径"]
+const PATTERNS := ["潮汐相位流", "子代共鸣", "螺旋弹臂", "习得弹", "回流弹", "潮门环", "习得路径", "孢子潮"]
 const TENTACLE := "护群触腕"   # 追人圆形触腕（用户 10-28：换圆形、追着人打），不走 finals 的扇形
 const CURRENT := "海流牵引"   # 非弹幕专属招：海流把你往漩涡中心拖，中心最后涌起
 ## 每幕两组；「@近身分享」= 贴近时分享扇、否则潮汐坠落
@@ -26,11 +26,13 @@ const CURRENT := "海流牵引"   # 非弹幕专属招：海流把你往漩涡�
 ## 冲刺穿越的整墙（迁徙潮）只在三幕偶尔用
 const CARDS := [
 	[{"name": "迁徙潮汐", "segs": ["@潮汐相位流", "海流牵引", "@潮门环"]},
-		{"name": "护群共鸣", "segs": ["护群触腕", "@子代共鸣", "@近身分享"]}],
+		{"name": "护群共鸣", "segs": ["护群触腕", "@子代共鸣", "潮汐坠落"]}],
 	[{"name": "解读螺旋", "segs": ["@螺旋弹臂", "解读旋涡", "深渊涌流"]},
-		{"name": "习得变形", "segs": ["@习得弹", "@习得路径", "@潮门环"]}],
+		{"name": "习得变形", "segs": ["@习得弹", "@习得路径", "解读旋涡"]}],
 	[{"name": "灯下三叶", "segs": ["分享·全场", "迁徙潮", "分享"]},
-		{"name": "深蓝回流", "segs": ["@回流弹", "@潮门环", "分享"]}]]
+		{"name": "深蓝回流", "segs": ["@回流弹", "@孢子潮", "分享"]}]]
+## 每幕躲法主题与行为（用户 10-28「每个阶段重复少、有自己的特色」，docs/170 §18）：一幕站定（在海流里找路）/ 二幕游走（读针阵）/ 三幕追人（孢子间穿行）
+const ACT_MOVE := [0.0, 45.0, 50.0]
 ## 分阶段风格（用户 10-28「每个阶段做出不同风格」，docs/170 §16）：每幕段间节奏 / 弹色 / 弹形不同，招式各幕独有（潮门环按幕变体）
 const SEG_GAPS := [0.7, 0.4, 0.65]   # 一幕慢、二幕快碎、三幕重（每段之间停顿长、段本身重）
 const ACT_COL := [Color(0.4, 0.6, 1.0), Color(0.72, 0.48, 1.0), Color(0.55, 1.0, 0.88)]   # 群青 / 紫晶 / 青白
@@ -100,6 +102,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 			_bullet_step(e, dt)
 			_emit_step(e)
 			_current_step(e, dt)
+			_move_step(e, dt)
 			_tentacle_step(e)
 			_share_fx_step(e)
 			_card_step(e, dir, dist)
@@ -446,14 +449,14 @@ func _card_step(e: Dictionary, dir: Vector2, dist: float) -> void:
 		var queue: Array = e.izu_queue
 		if queue.is_empty():
 			# 破绽会取消移动中的水墙：等它走完再收招；破绽窗口不叠弹幕——在场弹散到 8 颗以下再收招
-			if g.bai.finals.hazards.any(func(h): return is_same(h.owner, e)) or int(e.get("izu_live", 0)) >= 8:
+			if g.bai.finals.hazards.any(func(h): return is_same(h.owner, e)) or int(e.get("izu_live", 0)) >= 8 or g.ebullets.any(func(b): return b.life > 0.0 and str(b.get("izu", "")) == "spore"):   # 大孢子胀破完再收招
 				return
 			_finish_card(e)
 			return
 		_run_seg(e, str(queue.pop_front()), dir, dist)
 		return
-	# 组间先结算到阈值的震撼（原作 75 / 50 / 25%）
-	var shock: Array = [0.75, 0.5, 0.25]
+	# 组间先结算到阈值的震撼：只在一幕（75%）一次（docs/170 §18：标志招只放一幕；原作 75 / 50 / 25%）
+	var shock: Array = [0.75]
 	var si: int = int(e.get("shock_i", 0))
 	if si < shock.size() and e.hp < e.maxhp * float(shock[si]):
 		e.shock_i = si + 1
@@ -602,6 +605,9 @@ func _emit_start(e: Dictionary, kind: String, dir: Vector2) -> bool:
 			em.until = g.t + 0.5
 			for p in pts:
 				g.fx.append({"kind": "ring", "pos": p, "r": 18.0, "life": 0.5, "max": 0.5, "col": ACT_COL[1], "enemy": true})
+		"孢子潮":
+			# 三幕独有：5 颗大孢子慢慢朝你漂（略微追踪），漂到尽头胀破成一圈 8 根小孢子针
+			em.until = g.t
 		"潮门环":
 			# 一幕：缺口朝拦截路线、圈圈对齐不动（教学）；二幕：每圈错开；三幕：两道对开窄缝、圈更密
 			var act: int = _act(e)
@@ -682,6 +688,11 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 				var a: float = a0 + (float(i) + 0.5 * n) * TAU / float(cnt)
 				_shot(e, e.pos + Vector2.from_angle(a) * 30.0, a, 140.0, 8.0, 5.0, 0.5, {"izu": "back", "izu_curl": 1.5 if n % 2 == 0 else -1.5})
 			em.next = float(em.next) + 0.9
+		"孢子潮":
+			for k in 5:
+				var a: float = a0 + (float(k) - 2.0) * 0.55
+				_shot(e, e.pos + Vector2.from_angle(a) * 40.0, a, 55.0, 15.0, 3.6, 0.6, {"izu": "spore"})
+			em.next = float(em.next) + 1.0
 		"习得路径":
 			for p in em.trail:
 				for j in 3:
@@ -732,6 +743,7 @@ func _bullet_step(e: Dictionary, dt: float) -> void:
 	var lr: float = float(e.get("lamp_r", 120.0))
 	var target: Vector2 = g.ppos + Vector2(0, -14)
 	var n := 0
+	var bursts: Array = []
 	for b in g.ebullets:
 		if b.life <= 0.0 or int(b.get("source_id", -1)) != int(e.id):
 			continue
@@ -755,6 +767,11 @@ func _bullet_step(e: Dictionary, dt: float) -> void:
 				"back":
 					if t > 1.1 and t < 2.6:
 						b.vel = b.vel.rotated(float(b.izu_curl) * dt)
+				"spore":
+					b.vel = b.vel.rotated(clampf(angle_difference(b.vel.angle(), (target - b.pos).angle()), -0.6 * dt, 0.6 * dt))
+					if b.life <= 0.15:
+						b.life = 0.0
+						bursts.append(b.pos)
 				"echo":
 					if t >= 0.9:
 						if not b.has("izu_aim"):
@@ -766,6 +783,10 @@ func _bullet_step(e: Dictionary, dt: float) -> void:
 				_puff(b.pos, 2, Color(1.0, 0.85, 0.5), Vector2.UP)
 				break
 	e.izu_live = n
+	for p in bursts:
+		for k in 8:
+			_shot(e, p, TAU * k / 8.0 + 0.2, 125.0, 6.0, 2.4, 0.35, {})
+		_puff(p, 6, ACT_COL[2])
 
 
 ## ---- 海流牵引（本作改编，非弹幕）：在你脚下锁一个漩涡，2.6 秒内半径 320 内的海流把你往中心拖（最高 70px/s，低于步行速度，顶着流走得出去），
@@ -847,6 +868,7 @@ func _tentacles(e: Dictionary) -> void:
 	e.izu_tent_n = int(Bal.v("boss/izumik_tentacle_n", 4.0))
 	e.izu_tent_next = g.t
 	Sfx.play("tentacle", -4.0, 0.8)
+	_tentacle_step(e)   # 第一个圈当帧落下
 
 
 func _tentacle_step(e: Dictionary) -> void:
@@ -881,3 +903,25 @@ static func _n01(i: int) -> float:
 	var k: int = (i * 73471 + 137) & 65535
 	k = ((k ^ (k >> 7)) * 127) & 65535
 	return float(k) / 65535.0
+
+
+## 每幕行为（docs/170 §18）：阐释阶段不走通用远程 AI（e.spd = 0，也就不放通用普通弹），位置由这里定——
+## 一幕扎根不动；二幕每组连携换一个落点（场地中心 320 内）缓慢漂过去；三幕缓缓逼近队长，贴到 200 内停；出招预警（wind）期间都不动
+func _move_step(e: Dictionary, dt: float) -> void:
+	e.spd = 0.0
+	var act: int = _act(e)
+	var v: float = ACT_MOVE[act]
+	if v <= 0.0 or float(e.get("wind", 0.0)) > 0.0 or float(e.get("break_t", 0.0)) > 0.0 or float(e.stun) > 0.0:
+		return
+	var c: Vector2 = g.zone_c if g.zone_state != 0 else Vector2.ZERO
+	var goal: Vector2
+	if act == 1:
+		if int(e.get("izu_wander_n", -1)) != int(e.get("izu_card_n", 0)):
+			e.izu_wander_n = int(e.get("izu_card_n", 0))
+			e.izu_wander = c + Vector2.from_angle(g.rng_enemy.randf() * TAU) * g.rng_enemy.randf_range(120.0, 320.0)
+		goal = e.izu_wander
+	else:
+		if g.combat.ground_d(e.pos, g.ppos) < 200.0:
+			return
+		goal = g.ppos
+	e.pos = g.combat.arena_clamp(e.pos.move_toward(goal, v * dt), 80.0)
