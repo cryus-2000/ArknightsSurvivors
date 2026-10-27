@@ -4,6 +4,10 @@ extends RefCounted
 ## 全是静态函数，不碰局内状态
 
 
+## 干员流派（docs/179，10-28 用户定）：每名干员 1–2 个，数据 data/characters/<id>.json 的 lanes；流派藏品主效果只给本流派（作用域 lane:<键>）
+const LANES := {"multi": "多弹火力", "melee": "近战扩域", "summon": "召唤驻场", "control": "控场引爆", "weak": "弱点收割", "shield": "护盾反击", "heal": "治疗转伤"}
+
+
 ## 目录内容运行中不变：第一次扫完记住（10-25 帧率：界面每帧经 op_idle 调到，每次都是一次目录扫描）。返回副本，调用方改了不影响缓存
 static var _ids: Array = []
 

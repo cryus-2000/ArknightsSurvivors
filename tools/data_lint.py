@@ -130,11 +130,29 @@ def check_balance(errs, verbose):
     return unread
 
 
+def check_lanes(errs):
+    """干员流派（docs/179）：每名干员 1–2 个、取值在七个流派里；藏品效果的 lane:<键> 作用域 / if.lane 也要是这七个之一"""
+    lanes = {"multi", "melee", "summon", "control", "weak", "shield", "heal"}
+    for f in sorted(glob.glob(os.path.join(DATA, "characters", "*.json"))):
+        d = json.load(open(f, encoding="utf-8"))
+        ls = d.get("lanes")
+        if not isinstance(ls, list) or not 1 <= len(ls) <= 2 or any(x not in lanes for x in ls) or len(set(ls)) != len(ls):
+            errs.append("characters/%s：lanes 要 1–2 个不重复的流派键（%s），现在是 %s" % (os.path.basename(f), "/".join(sorted(lanes)), ls))
+    fx = json.load(open(os.path.join(DATA, "relic_effects.json"), encoding="utf-8")).get("relics", {})
+    for rid, r in fx.items():
+        for ef in r.get("effects", []):
+            sc = str(ef.get("scope", ""))
+            l = sc[5:] if sc.startswith("lane:") else str(ef.get("if", {}).get("lane", ""))
+            if l and l not in lanes:
+                errs.append("relic_effects.json #%s：流派「%s」不在七个流派里" % (rid, l))
+
+
 def main():
     verbose = "--verbose" in sys.argv
     errs = []
     n = check_dupes(errs)
     check_waves(errs)
+    check_lanes(errs)
     unread = check_balance(errs, verbose)
     for e in errs:
         print("FAIL " + e)

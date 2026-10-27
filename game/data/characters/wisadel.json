@@ -3,6 +3,7 @@
  "name": "维什戴尔",
  "en": "WIS'ADEL",
  "class": "狙击",
+ "lanes": ["multi", "summon"],
  "col": [
   0.95,
   0.22,

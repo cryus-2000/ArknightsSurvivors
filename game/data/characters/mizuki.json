@@ -3,6 +3,7 @@
   "name": "水月",
   "en": "MIZUKI",
   "class": "特种",
+  "lanes": ["summon", "weak"],
   "script": "res://scripts/characters/data_operator.gd",
   "sprites": {
   "move_attack": {"tex": "op_mizuki_move_attack", "frames": 8, "foot": [48, 75.50702040908614], "_doc": "10-23 移动攻击（docs/128 §3）：普攻上半身 + 跑步步态腿，原作 Spine 1 倍像素化（tools/op_1x/make_op_1x.py）；帧序与普攻一一对应，只换贴图"},

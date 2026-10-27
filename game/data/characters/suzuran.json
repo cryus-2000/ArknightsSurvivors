@@ -3,6 +3,7 @@
   "name": "铃兰",
   "en": "SUZURAN",
   "class": "辅助",
+  "lanes": ["control"],
   "command": {
     "roam": false,
     "_doc": "指挥模式（docs/114）：医疗 / 辅助突击时照旧随行"

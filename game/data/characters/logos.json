@@ -3,6 +3,7 @@
  "name": "逻各斯",
  "en": "LOGOS",
  "class": "术师",
+ "lanes": ["weak"],
  "col": [
   0.55,
   0.6,

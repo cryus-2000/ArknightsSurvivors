@@ -93,7 +93,7 @@ func test_curves(db) -> void:
 		var r: Dictionary = db.get_relic(id)
 		ok(int(r.get("max_lv", 0)) == 3, "#%s 仍可叠到 3 级" % id)
 		ok(str(r.desc).contains("每多一层，增益递减"), "#%s 卡面写「每多一层，增益递减」" % id)
-	ok(str(db.get_relic("129").desc).contains("Mon3tr 不增加数量"), "#129 卡面写明 Mon3tr 例外")
+	ok(str(db.get_relic("129").desc).contains("Mon3tr、归溟幽灵鲨的替身不增加数量"), "#129 卡面写明 Mon3tr / 替身例外")
 
 
 ## 旋钮 relic/visible_growth = 0：载入 legacy（旧数值、旧说明、旧等级上限）
@@ -161,7 +161,7 @@ func test_live(g) -> void:
 	# ---- 远程：散射 + 连发
 	ok(g.progression.gain_relic("58"), "获得银餐叉")
 	ok(g.progression.gain_relic("59"), "获得损坏的左轮弹巢")
-	near(kal.stat(&"dmg") / kal_d0, 1.355, "凯尔希（没有普攻弹体）：伤害 ×T（远程伤害 +10% 另由属性给）")
+	near(kal.stat(&"dmg") / kal_d0, 1.0, "凯尔希不属多弹火力（docs/179）：散射 / 连发不改她的伤害")
 	near(exu.stat(&"dmg") / exu_d0, 1.0, "能天使（吃弹）：不加直接伤害")
 	var atk0: int = exu.atk_n
 	step(g, 300)
@@ -236,17 +236,26 @@ func test_live(g) -> void:
 	Cfg.quality = q0
 
 
-## 卡底作用对象标签（run/affects.gd，10-28）：主效果受益照常，只吃附带数值（"minor"）的淡色 +「仅物伤」，排在最后
+## 卡底作用对象标签（run/affects.gd）：流派件（docs/179）先写流派名，后跟编队里的本流派干员；不再有「仅物伤」类附带标签
 func test_tags(g) -> void:
 	var Aff = load("res://scripts/run/affects.gd")
 	var r64: Dictionary = Aff.of_choice(g, {"kind": "relic", "id": "64"})
-	ok(r64.ops.has("lappland") and not r64.ops.has("exusiai"), "#64 长鞭：拉普兰德主效果受益，能天使不算（%s）" % str(r64.ops))
-	ok(r64.minor.get("exusiai", "") == "物伤", "#64 长鞭：能天使只吃物理伤害 +8%%（%s）" % str(r64.minor))
+	ok(r64.ops.has("lappland") and not r64.ops.has("exusiai") and not r64.ops.has("wisadel"), "#64 长鞭：只给近战扩域（拉普兰德）（%s）" % str(r64.ops))
+	ok(r64.minor.is_empty() and r64.lanes == ["melee"], "#64 长鞭：没有附带标签，流派 = 近战扩域（%s / %s）" % [str(r64.minor), str(r64.lanes)])
 	var ch: Array = Aff.chips(g, {"kind": "relic", "id": "64"})
-	var ex: Array = ch.filter(func(c): return c[0].begins_with(g.squad.get_op("exusiai").display_name()))
-	ok(ex.size() == 1 and ex[0].size() > 3 and ex[0][0].ends_with("仅物伤") and ex[0][1].a < 0.6, "#64 标签：能天使淡色「仅物伤」（%s）" % str(ex))
-	ok(ch[0][0] == g.squad.get_op("lappland").display_name() and ch[0].size() == 3, "#64 标签：主效果受益排在最前")
+	ok(ch.size() >= 2 and ch[0][0] == "近战扩域" and ch[1][0] == g.squad.get_op("lappland").display_name(), "#64 标签：「近战扩域」在前，拉普兰德在后（%s）" % str(ch.map(func(c): return c[0])))
 	var r58: Dictionary = Aff.of_choice(g, {"kind": "relic", "id": "58"})
-	ok(r58.ops.has("exusiai") and not r58.ops.has("lappland"), "#58 银餐叉：散射给远程干员（%s）" % str(r58.ops))
+	ok(r58.ops.has("exusiai") and r58.ops.has("wisadel") and not r58.ops.has("lappland") and not r58.ops.has("kaltsit"), "#58 银餐叉：只给多弹火力（%s）" % str(r58.ops))
 	var r129: Dictionary = Aff.of_choice(g, {"kind": "relic", "id": "129"})
-	ok(r129.ops.has("wisadel") and not r129.ops.has("kaltsit"), "#129 散轶诗简：数量 +1 给维什戴尔，Mon3tr 不加（%s / 附带 %s）" % [str(r129.ops), str(r129.minor)])
+	ok(r129.ops.has("wisadel") and r129.ops.has("kaltsit") and not r129.ops.has("exusiai") and not r129.ops.has("lappland"), "#129 散轶诗简：只给召唤驻场（%s）" % str(r129.ops))
+	var r98: Dictionary = Aff.of_choice(g, {"kind": "relic", "id": "98"})
+	ok(r98.ops.is_empty() and r98.miss == "编队无控场引爆干员", "#98 高闪相机：编队无控场引爆干员（%s / %s）" % [str(r98.ops), r98.miss])
+	ok(Aff.trait_chips(g, "irene").map(func(c): return c[0]).slice(0, 2) == ["近战扩域", "控场引爆"], "招募卡特性：艾丽妮 = 近战扩域 + 控场引爆")
+	# 流派作用域（lane:melee）：长鞭的伤害 +8% 只落在近战扩域干员
+	var lap = g.squad.get_op("lappland")
+	var exu = g.squad.get_op("exusiai")
+	var l0: float = lap.stat(&"dmg")
+	var e0: float = exu.stat(&"dmg")
+	g.stats.add(&"dmg", "add", 0.08, "lane_probe", "lane:melee")
+	ok(lap.stat(&"dmg") > l0 and is_equal_approx(exu.stat(&"dmg"), e0), "lane:melee 修正只落在拉普兰德（%.3f→%.3f / 能天使 %.3f→%.3f）" % [l0, lap.stat(&"dmg"), e0, exu.stat(&"dmg")])
+	g.stats.remove_source("lane_probe")

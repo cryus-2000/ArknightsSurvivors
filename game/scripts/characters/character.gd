@@ -481,7 +481,7 @@ func atk_pierce_mult(prev: int) -> float:
 
 func _pierce_all() -> bool:
 	var rf = g.get("rfx")
-	return rf != null and rf.rule("atk_pierce_all") > 0
+	return rf != null and rf.rule("atk_pierce_all") > 0 and in_lane("multi")   # 穿甲弹只给多弹火力（docs/179 §3.1）
 
 
 ## 手动普攻沿指向打空时的伪目标（同 aim_land 的写法）：只有 pos / id / dead / r 等只读字段可用，id = -1
@@ -732,7 +732,19 @@ func range_cls() -> String:
 
 ## 本干员命中的作用域（docs/23 §5）；range:近战 / range:远程 给按近远生效的藏品用（docs/35）
 func scopes() -> Array:
-	return ["class:" + cls, "range:" + range_cls(), "op:" + id]
+	var out := ["class:" + cls, "range:" + range_cls(), "op:" + id]
+	for l in lanes():
+		out.append("lane:" + str(l))
+	return out
+
+
+## 本干员的流派（docs/179）：lane:<键> 作用域与 in_lane 用
+func lanes() -> Array:
+	return def.get("lanes", [])
+
+
+func in_lane(l: String) -> bool:
+	return lanes().has(l)
 
 
 ## 干员视角的属性值：全局修正 + 职业 / 本人作用域的修正。作用域数组与拼好的键按职业缓存（docs/101 S9；g.opt_old 的 OPT_OPS 位走旧写法）

@@ -3,6 +3,7 @@
  "name": "艾丽妮",
  "en": "IRENE",
  "class": "近卫",
+ "lanes": ["melee", "control"],
  "col": [
   0.95,
   0.6,

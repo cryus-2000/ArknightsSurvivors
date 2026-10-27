@@ -3,6 +3,7 @@
  "name": "德克萨斯",
  "en": "TEXAS",
  "class": "先锋",
+ "lanes": ["melee", "control"],
  "branch": "尖兵",
  "faction": [
   "企鹅物流"
