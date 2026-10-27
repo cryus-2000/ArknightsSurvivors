@@ -826,12 +826,12 @@
   "revive_inv": 3.0
  },
  "vgrowth": {
-  "_doc": "可见成长藏品的数值（docs/163 §2 / §6，scripts/characters/blocks/vis_growth.gd）。count_decay / size_decay = 叠层递减（第 i 层 × decay^(i-1)，渐近不封顶）；sub_* = 召唤物副体；qi_* = 近战剑气；burst_gap = 连发补射间隔；cap_* = 同屏上限，按画质档 高 / 中 / 低 取 [0] / [1] / [2]，超出的不生成实体、伤害直接结算到目标（起点值，等 perf 实测再定）",
+  "_doc": "可见成长藏品的数值（docs/163 §2 / §6，scripts/characters/blocks/vis_growth.gd）。count_decay / size_decay = 叠层递减（第 i 层 × decay^(i-1)，渐近不封顶）；sub_* = 召唤物副体；qi_* = 近战剑气；burst_gap = 连发补射间隔；cap_* = 同屏上限（固定玩法上限，各画质相同，163D §4 第 5 条），超出的不生成实体、伤害直接结算到目标；summon_r_follow 1 = #130 攻击覆盖与体型同步放大",
   "count_decay": 0.7,
   "size_decay": 0.8,
   "sub_dmg": 0.6,
   "sub_scale": 0.85,
-  "summon_r_follow": 0.5,
+  "summon_r_follow": 1.0,
   "qi_range": 1.6,
   "qi_speed": 520,
   "qi_w": 26,
@@ -844,8 +844,8 @@
   "shot_spread_deg": 10,
   "shot_scale": 0.8,
   "burst_gap": 0.08,
-  "cap_shots": [64, 32, 16],
-  "cap_qi": [24, 12, 6]
+  "cap_shots": 48,
+  "cap_qi": 18
  },
  "hunt": {
   "enabled": 0,

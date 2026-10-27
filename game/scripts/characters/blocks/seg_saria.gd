@@ -76,7 +76,8 @@ static func _h4_bash_release(o, a: Dictionary) -> void:
 		return
 	var hits: Array = o.melee_hit(str(a.get("src", "")), o.pos + Vector2(0, float(a.get("y", -10.0))), ang, float(a.get("half", 1.1)), reach, _h4_bash_dmg(o), float(a.get("kb", 200.0)), float(a.get("stun", 0.2)), a.get("tags", []))
 	var d := Vector2.from_angle(ang)
-	if not o.spawn_fx_sprite("fx_saria_shield_bash", o.pos + Vector2(0, -12) + d * (14.0 + 20.0 * g.PX * 0.9), g.PX * 0.9, ang):
+	var fk: float = reach / maxf(1.0, float(a.get("r", 115.0)))   # 盾击帧条跟判定半径走（范围藏品放大判定时一起放大，163B §3）
+	if not o.spawn_fx_sprite("fx_saria_shield_bash", o.pos + Vector2(0, -12) + d * (14.0 + 20.0 * g.PX * 0.9) * fk, g.PX * 0.9 * fk, ang):
 		o.slash_fx(o.pos + Vector2(0, -14), ang, 1.0, reach * 0.8, H4_AMBER)
 		o.fx({"kind": "line", "pos": o.pos + Vector2(0, -12) + d * 14.0, "to": o.pos + Vector2(0, -12) + d * reach * 1.3, "life": 0.15, "col": H4_AMBER, "w": 3.0})
 	_h3_sfx(o, "hit" if not hits.is_empty() else "atk")
@@ -110,7 +111,7 @@ static func _h4_bash_after(o, a: Dictionary, hits: Array) -> void:
 
 ## 莱茵充能护服：以自身为中心的全方位冲击；六道琥珀冲击向外撞出 + 两道贴地冲击环
 static func _h4_suit_blast(o, a: Dictionary, su: Dictionary) -> void:
-	var r: float = float(su.get("r", 110.0))
+	var r: float = float(su.get("r", 110.0)) * o.stat(&"op_range")   # 范围藏品同样放大满格冲击（判定与六道冲击 / 环一起）
 	var hits: Array = o.melee_hit(str(a.get("src", "")), o.pos + Vector2(0, -6), 0.0, PI, r, _h4_bash_dmg(o) * float(su.get("mult", 1.8)), float(su.get("kb", 320.0)), float(su.get("stun", 0.3)), su.get("tags", ["empowered"]))
 	for k in 6:
 		o.fx({"kind": "h4_bash", "pos": o.pos + Vector2(0, -14), "ang": k * TAU / 6.0, "reach": r * 0.8, "life": 0.26, "big": true})

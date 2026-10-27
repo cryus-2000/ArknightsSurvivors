@@ -55,7 +55,7 @@ static func _h3_low_hp_near(o, r: float, below: float) -> bool:
 
 
 static func h3_umb_radius(o, a: Dictionary) -> float:
-	return _h3_mults(o, float(a.get("r", 142.0)) * _h3_st(o, "area", 1.0), a.get("r_mults", []))
+	return _h3_mults(o, float(a.get("r", 142.0)) * _h3_st(o, "area", 1.0) * o.stat(&"op_range"), a.get("r_mults", []))   # op_range：漆黑的舞鞋 / 长鞭等范围藏品（163B §3 核对：原来不吃）
 
 
 ## 常驻效果每帧推进一次；起手和命中由公共动作时钟驱动。
@@ -176,7 +176,7 @@ static func _h3_umbrella(o, a: Dictionary, at: Vector2) -> void:
 		mz.s3_fx = 0.3
 		mz.s3_fx_radius = radius
 	g.crit_hit = empowered
-	dmg *= g.rfx.single_hit_mult(hit.size())
+	dmg *= g.rfx.single_hit_mult(hit.size()) * MzVg.crowd_mult(o, hit)
 	var src: String = str(a.get("src", ""))
 	for e in hit:
 		o.log_hit(src, ["empowered"] if empowered else [])

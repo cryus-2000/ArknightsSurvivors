@@ -2,10 +2,11 @@ extends RefCounted
 ## 可见成长藏品（docs/163，10-27 用户拍板 §9）：藏品效果里 {"type": "growth", "kind": …} 的运行时。
 ##   scatter  远程普攻多射 1 发小弹，射向另一名敌人（#58 银餐叉，eps 0.25）
 ##   burst    远程普攻后 burst_gap 秒沿同一方向补射 1 发（#59 损坏的左轮弹巢，eps 0.35）
-##   qi       近战普攻额外射出 1 道剑气（#63 锈蚀刀片 mult 0.35 / hits 1；#56 老近卫军之锋 mult 0.6 / hits 2）
+##   qi       近战普攻额外射出 1 道剑气（#63 锈蚀刀片 mult 0.35 / hits 1）
+##   crowd    近战普攻的一个主判定命中 ≥ min 名敌人时，这一判定伤害 ×(1 + value)（#56 老近卫军之锋，163D §4 第 1 条 = 163B §3）
 ##   range    近战攻击范围 +value（#64 赶车夫的长鞭），持有其他攻击范围藏品（#81 / #140）时按层递减
-##   summon_n 召唤物 +1 副体（#129 散轶诗简）：维什戴尔魂灵之影；Mon3tr 例外不 +1
-##   summon_size  召唤物体型 / 限时召唤物持续时间（#130 衍生者终端-超级改）
+##   summon_n 召唤物 +1 副体（#129 散轶诗简）：维什戴尔魂灵之影；Mon3tr 例外不 +1；不随藏品升级再加（163D §4 第 2 条）
+##   summon_size  召唤物体型与攻击覆盖（#130 衍生者终端-超级改；不延长持续时间，163D §4 第 3 条）
 ## 叠层（§2.2）：同一类的所有层（藏品等级 × 件数）按 eps 从大到小排（与获得顺序无关，同 seed 可复现），
 ## 第 i 层权重 count_decay^(i-1)（数量）或 size_decay^(i-1)（尺寸）。额外数量 E 的小数部分进每名干员的累加器，满 1 多一发（不取随机数）。
 ## 伤害预算（§2.3，实现取舍见 docs/163 §11）：主弹不削；额外弹每发 = 普攻参考伤害 × (T − 1) / E，T = 1 + Σ eps_i·w_i，所以普攻总伤 ×T；
@@ -33,16 +34,12 @@ static func kn(k: String, d: float) -> float:
 	return Bal.v("vgrowth/" + k, d)
 
 
-## 同屏上限：按画质档 高 / 中 / 低 取 [0] / [1] / [2]（§6，起点值）
+## 同屏上限：固定玩法上限，不随画质变（163D §4 第 5 条：不同画质同实体、同目标、同时序；画质只减拖尾 / 光弧）
 static func cap_of(k: String, dflt: int) -> int:
-	var arr = Bal.sec("vgrowth").get(k, [])
-	var i: int = {"high": 0, "mid": 1, "low": 2}.get(quality(), 0)
-	if arr is Array and arr.size() > i:
-		return int(arr[i])
-	return dflt
+	return int(kn(k, float(dflt)))
 
 
-## 生效中的画质档（autoload Cfg；核心契约测试没有 autoload 时按 high）
+## 生效中的画质档（只管画面）（autoload Cfg；核心契约测试没有 autoload 时按 high）
 static func quality() -> String:
 	var ml = Engine.get_main_loop()
 	var c = ml.root.get_node_or_null("Cfg") if ml is SceneTree else null
@@ -73,7 +70,9 @@ static func compute(lv: Dictionary, db) -> Dictionary:
 	var rng_v: Array = []     # #64 的每层基础值
 	var other_range := 0
 	var sum_n := 0
-	var size_l: Array = []    # [size, life]
+	var out_min := 3
+	var crowd: Array = []     # #56 的每层增量
+	var size_l: Array = []    # 每层体型
 	for id in lv:
 		var n: int = int(lv[id])
 		if n <= 0:
@@ -91,12 +90,15 @@ static func compute(lv: Dictionary, db) -> Dictionary:
 						qi.append([float(ef.get("mult", 0.35)), int(ef.get("hits", 1))])
 					"range":
 						rng_v.append(float(ef.get("value", 0.18)))
+					"crowd":
+						crowd.append(float(ef.get("value", 0.25)))
+						out_min = int(ef.get("min", 3))
 					"summon_n":
 						sum_n += 1
 					"summon_size":
-						size_l.append([float(ef.get("size", 0.15)), float(ef.get("life", 0.2))])
+						size_l.append(float(ef.get("size", 0.15)))
 	var out := {"e_scatter": 0.0, "e_burst": 0.0, "e_shots": 0.0, "t_shots": 1.0, "e_qi": 0.0, "qi_mult": 0.0, "qi_hits": 1,
-		"range": 0.0, "sub_e": 0.0, "sub_n": 0, "size": 1.0, "life": 1.0}
+		"range": 0.0, "sub_n": 0, "size": 1.0, "crowd": 0.0, "crowd_min": out_min}
 	ranged.sort_custom(func(a, b): return a[0] > b[0] if a[0] != b[0] else a[1] < b[1])
 	for i in ranged.size():
 		var w: float = pow(cd, i)
@@ -113,14 +115,36 @@ static func compute(lv: Dictionary, db) -> Dictionary:
 	rng_v.reverse()
 	for i in rng_v.size():
 		out.range += rng_v[i] * pow(sd, other_range + i)
-	for i in sum_n:
-		out.sub_e += pow(cd, i)
-	out.sub_n = int(floor(out.sub_e + 1e-6))
-	size_l.sort_custom(func(a, b): return a[0] > b[0])
+	out.sub_n = 1 if sum_n > 0 else 0   # 每种合资格召唤物只 +1，升级不再加（163B §9）
+	crowd.sort()
+	crowd.reverse()
+	for i in crowd.size():   # 增量按 100% / 70% / 50%（同藏品等级曲线，163B §9「#56 多人主判定的额外伤害增量」）
+		out.crowd += crowd[i] * LV_W[mini(i, LV_W.size() - 1)]
+	size_l.sort()
+	size_l.reverse()
 	for i in size_l.size():
-		out.size += float(size_l[i][0]) * pow(sd, i)
-		out.life += float(size_l[i][1]) * pow(sd, i)
+		out.size += float(size_l[i]) * pow(sd, i)
 	return out
+
+
+const LV_W := [1.0, 0.7, 0.5]
+
+
+## #56：近战普攻的一个主判定（一记刀弧 / 一次盾击 / 一段刺击的实际目标列表）命中 ≥ crowd_min 名时的伤害倍率。
+## 只算普攻出手中的近战干员；带 follow_up / skill 标签的段（手炮追击、触手等）不吃。没有该藏品 = 1.0
+static func crowd_mult(o, hits: Array, tags: Array = []) -> float:
+	if hits.size() < 3:
+		return 1.0
+	var s := summary(o.g)
+	if s.is_empty() or float(s.crowd) <= 0.0:
+		return 1.0
+	if o.act_kind != "attack" or o.attack_t <= 0.0 or o.range_cls() != "近战" or "follow_up" in tags or "skill" in tags:
+		return 1.0
+	var n := 0
+	for e in hits:
+		if not e.dead and int(e.get("id", -1)) >= 0:
+			n += 1
+	return 1.0 + float(s.crowd) if n >= int(s.crowd_min) else 1.0
 
 
 ## 藏品 / 编队变化后：重挂属性来源 "vgrowth"（近战范围、没有普攻弹体的远程干员的伤害 ×T）
@@ -259,7 +283,7 @@ static func _spawn_shot(o, tg: Dictionary, off: float, dmg: float, key: String, 
 	v.n_shots += 1
 	var from: Vector2 = o.pos
 	var a: float = ((tg.pos - from).angle() if ang == INF else ang) + off
-	if _live_total(g, "bul") >= cap_of("cap_shots", 64):   # §6：超出同屏上限不生成实体，伤害直接结算到目标（总伤不变）
+	if _live_total(g, "bul") >= cap_of("cap_shots", 48):   # 固定玩法上限：超出时不生成实体，伤害直接结算到目标（总伤不变；各画质一致）
 		v.n_merged += 1
 		if not tg.get("dead", true) and int(tg.get("id", -1)) >= 0:
 			_hit(o, tg, dmg, _src(o, key, "远程"))
@@ -289,7 +313,7 @@ static func _fire_qi(o, s: Dictionary) -> void:
 			off = fan * float(v.qside) * (1.0 + int(k / 2))
 		v.n_qi += 1
 		var a: float = a0 + off
-		if _live_total(o.g, "qi") >= cap_of("cap_qi", 24):
+		if _live_total(o.g, "qi") >= cap_of("cap_qi", 18):
 			v.n_merged += 1
 			if not ts.is_empty():
 				_hit(o, ts[0], dmg, _src(o, "剑气", "近战"))
@@ -399,7 +423,8 @@ static func draw(o) -> void:
 		var a: float = clampf(q.life / 0.08, 0.0, 1.0)
 		var ang: float = q.v.angle()
 		var qc := Color(minf(tc.r * 1.5, 1.8), minf(tc.g * 1.5, 1.8), minf(tc.b * 1.5, 1.8), a)   # 代表色提亮（灰白干员也看得出）
-		cv.draw_arc(p2 - Vector2.from_angle(ang) * 8.0, 18.0, ang - 1.1, ang + 1.1, 14, Color(qc.r, qc.g, qc.b, 0.35 * a), 7.0)   # 外层光弧
+		if not low:
+			cv.draw_arc(p2 - Vector2.from_angle(ang) * 8.0, 18.0, ang - 1.1, ang + 1.1, 14, Color(qc.r, qc.g, qc.b, 0.35 * a), 7.0)   # 外层光弧（低画质省掉）
 		if has_tex:
 			o.draw_spr_rot(QI_PROJ, mini(int(q.t * 16.0), 1), p2, ang, g.PX * kn("qi_scale", 1.4), qc)
 		else:
@@ -408,7 +433,7 @@ static func draw(o) -> void:
 
 # ---------------------------------------------------------------- 召唤物（ob_summon / seg_wisadel 调）
 
-## 体型倍率（贴图缩放；攻击半径另乘 1 + (x − 1) × summon_r_follow）
+## 体型倍率（贴图缩放；攻击半径另乘 1 + (x − 1) × summon_r_follow，缺省 1 = 覆盖与显示同步放大）
 static func summon_scale(g) -> float:
 	var s := summary(g)
 	return float(s.get("size", 1.0)) if not s.is_empty() else 1.0
@@ -416,11 +441,6 @@ static func summon_scale(g) -> float:
 
 static func summon_reach(g) -> float:
 	return 1.0 + (summon_scale(g) - 1.0) * kn("summon_r_follow", 0.5)
-
-
-static func summon_life(g) -> float:
-	var s := summary(g)
-	return float(s.get("life", 1.0)) if not s.is_empty() else 1.0
 
 
 ## 某种召唤物的副体数（Mon3tr 例外 = 0）

@@ -51,9 +51,12 @@ func test_curves(db) -> void:
 	s = VG.compute({"58": 3, "59": 3}, db)
 	near(s.e_shots, 1.0 + 0.7 + 0.49 + 0.343 + 0.2401 + 0.16807, "6 层 E 渐近不封顶")
 	s = VG.compute({"63": 1, "56": 1}, db)
-	near(s.e_qi, 1.7, "两件剑气：道数 1 + 0.7")
-	near(s.qi_mult, 0.6, "剑气按锋芒档 60%")
-	ok(int(s.qi_hits) == 2, "锋芒：可命中 2 名")
+	near(s.e_qi, 1.0, "老近卫军之锋不再出剑气：只有锈蚀刀片 1 道（163D §4 第 1 条）")
+	s = VG.compute({"56": 1}, db)
+	near(s.crowd, 0.25, "老近卫军之锋 1 层：命中 ≥3 名 ×1.25")
+	ok(int(s.crowd_min) == 3, "老近卫军之锋：门槛 3 名")
+	s = VG.compute({"56": 3}, db)
+	near(s.crowd, 0.25 * (1.0 + 0.7 + 0.5), "老近卫军之锋 3 层：增量 100% / 70% / 50%")
 	s = VG.compute({"63": 1}, db)
 	near(s.qi_mult, 0.35, "锈蚀刀片：剑气 35%")
 	ok(int(s.qi_hits) == 1, "锈蚀刀片：命中 1 名后消失")
@@ -66,12 +69,19 @@ func test_curves(db) -> void:
 	s = VG.compute({"129": 1}, db)
 	ok(int(s.sub_n) == 1, "散轶诗简 1 层：副体 1")
 	s = VG.compute({"129": 2}, db)
-	ok(int(s.sub_n) == 1, "2 层：E 1.7 → 副体仍 1（向下取整）")
+	ok(int(s.sub_n) == 1, "2 层：副体仍 1")
 	s = VG.compute({"129": 3}, db)
-	ok(int(s.sub_n) == 2, "3 层：E 2.19 → 副体 2")
+	ok(int(s.sub_n) == 1, "3 层：副体仍 1（数量不随升级加，163D §4 第 2 条）")
 	s = VG.compute({"130": 1}, db)
 	near(s.size, 1.15, "衍生者终端：体型 +15%")
-	near(s.life, 1.2, "衍生者终端：时长 +20%")
+	ok(not s.has("life"), "衍生者终端：不再延长持续时间（163D §4 第 3 条）")
+	var r130: Dictionary = db.get_relic("130")
+	near(float(r130.effects[1].get("value", 0.0)), 0.25, "衍生者终端：追击与召唤物伤害回到 +25%")
+	for id in ["120", "121", "166"]:   # 闪避归零后的保底（dodge-meta）：自带闪避 +8%，与闪避线同池相加
+		var rd: Dictionary = db.get_relic(id)
+		var ef0: Dictionary = rd.effects[0]
+		ok(str(ef0.get("stat", "")) == "dodge" and str(ef0.get("op", "")) == "flat" and absf(float(ef0.get("value", 0.0)) - 0.08) < 1e-6, "#%s 自带队长闪避 +8%%" % id)
+		ok(str(rd.desc).begins_with("队长闪避率 +8%"), "#%s 卡面先写闪避 +8%%" % id)
 	s = VG.compute({}, db)
 	ok(s.e_shots == 0.0 and s.e_qi == 0.0 and s.range == 0.0 and int(s.sub_n) == 0 and s.size == 1.0, "不持有：全部为零")
 	var v := {"a": 0.0}
@@ -171,25 +181,44 @@ func test_live(g) -> void:
 	var vl: Dictionary = lap.vg
 	ok(not vl.is_empty() and int(vl.n_qi) > 0, "拉普兰德：拿到后普攻带剑气（%d 道）" % int(vl.get("n_qi", 0)))
 	ok(exu.vg.n_qi == 0, "能天使（远程）：没有剑气")
+	# ---- 老近卫军之锋：一个主判定命中 ≥3 名 ×1.25
+	var three: Array = g.enemies.slice(0, 3)
+	var two: Array = g.enemies.slice(0, 2)
+	lap.act_kind = "attack"
+	lap.attack_t = 0.1
+	near(VG.crowd_mult(lap, three), 1.0, "没有老近卫军之锋：不加成")
+	ok(g.progression.gain_relic("56"), "获得老近卫军之锋")
+	near(VG.crowd_mult(lap, three), 1.25, "近战普攻一个判定命中 3 名：×1.25")
+	near(VG.crowd_mult(lap, two), 1.0, "只命中 2 名：不加成")
+	near(VG.crowd_mult(lap, three, ["follow_up"]), 1.0, "追击段不吃")
+	near(VG.crowd_mult(exu, three), 1.0, "远程干员不吃")
+	lap.act_kind = "skill"
+	near(VG.crowd_mult(lap, three), 1.0, "技能不吃")
+	lap.attack_t = 0.0
+	ok(int(lap.vg.get("n_qi", 0)) >= 0 and is_equal_approx(VG.summary(g).qi_mult, 0.35), "老近卫军之锋不改剑气档（仍是锈蚀刀片 35%）")
 	# ---- 召唤物：副体、Mon3tr 例外
 	ok(g.progression.gain_relic("129"), "获得散轶诗简")
 	ok(g.progression.gain_relic("130"), "获得衍生者终端-超级改")
 	ok(VG.summon_subs(g, "mon3tr") == 0, "Mon3tr 例外：数量不 +1")
 	ok(VG.summon_subs(g, "soul") == 1, "其他召唤物：副体 +1")
 	ok(VG.summon_subs(g, "stake") == 1, "水月触手桩：在场上限 +1")
+	near(VG.summon_reach(g), 1.15, "衍生者终端：攻击覆盖与体型同步 ×1.15")
 	near(VG.summon_scale(g), 1.15, "召唤物体型 ×1.15")
 	step(g, 30)
 	var souls: Array = wis.hw.get("wd", {}).get("souls", [])
 	ok(souls.size() == 3, "维什戴尔：魂灵之影 2 → 3（实际 %d）" % souls.size())
 	ok(souls.size() == 3 and souls[2].get("sub", false) and not souls[0].get("sub", false), "第 3 个是副体，本体不是")
 	ok(kal.sm.is_empty() or kal.sm.list.filter(func(q): return str(q.kind) == "mon3tr").size() <= 1, "Mon3tr 仍只有 1 只")
-	# ---- 手机降级：低画质档同屏额外弹上限
+	# ---- 同屏额外弹上限：固定玩法上限，与画质无关（163D §4 第 5 条）
 	var q0: String = Cfg.quality
-	Cfg.quality = "low"
+	Cfg.quality = "high"
 	if not Bal._data.has("vgrowth"):
 		Bal._data["vgrowth"] = {}
-	var caps = Bal._data["vgrowth"].get("cap_shots", [64, 32, 16])
-	Bal._data["vgrowth"]["cap_shots"] = [64, 32, 2]
+	var caps = Bal._data["vgrowth"].get("cap_shots", 48)
+	Bal._data["vgrowth"]["cap_shots"] = 2
+	ok(VG.cap_of("cap_shots", 48) == 2, "上限读固定值")
+	Cfg.quality = "low"
+	ok(VG.cap_of("cap_shots", 48) == 2, "低画质：上限不变")
 	exu.vg.n_merged = 0
 	var cap_ok := true
 	for f in 240:
@@ -200,7 +229,7 @@ func test_live(g) -> void:
 				live += o.vg.bul.size()
 		if live > 2:
 			cap_ok = false
-	ok(cap_ok, "低画质档：同屏额外弹不超过上限 2")
+	ok(cap_ok, "同屏额外弹不超过上限 2")
 	ok(int(exu.vg.n_merged) + int(wis.vg.n_merged) > 0, "超出上限的额外弹并入直接伤害（%d）" % (int(exu.vg.n_merged) + int(wis.vg.n_merged)))
 	Bal._data["vgrowth"]["cap_shots"] = caps
 	Cfg.quality = q0

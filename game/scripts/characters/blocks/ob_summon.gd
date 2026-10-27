@@ -114,7 +114,7 @@ static func sm_spawn(o, b: Dictionary, at: Vector2) -> void:
 		if lv == "skill":
 			sk = o.cur_skill
 	elif float(lv) > 0.0:
-		life = float(lv) * VisGrowth.summon_life(g)   # 可见成长 #130：限时召唤物持续时间（没有该藏品 = 1.0）
+		life = float(lv)
 	var n: int = int(b.get("n", 1))
 	var spread: float = float(b.get("spread", 28.0))
 	var cap: int = int(kd.get("cap", 1))
@@ -419,7 +419,7 @@ static func sm_strike(o, s: Dictionary, a: Dictionary, tg: Dictionary) -> Array:
 	s.anim = 0.22
 	var hits: Array = []
 	var c: Vector2 = s.pos
-	var r: float = float(a.get("r", 30.0)) * kr * VisGrowth.summon_reach(g)   # 可见成长 #130：体型变大，攻击半径跟一半
+	var r: float = float(a.get("r", 30.0)) * kr * VisGrowth.summon_reach(g)   # 可见成长 #130：攻击覆盖与体型同步放大（summon_r_follow）
 	match str(a.get("shape", "circle")):
 		"cone":
 			hits = o.melee_hit(src, s.pos, ang, deg_to_rad(float(a.get("half_deg", 45.0))), r, dmg, kb, stun, tags, max_n)
