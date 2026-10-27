@@ -1,0 +1,324 @@
+48 局（path, bishop+archon, bishop+immortal）
+path             wisadel    m0  s13     9s  win 24s 承伤50% 破绽输出18%
+path             wisadel    m0  s10    10s  win 54s 承伤19% 破绽输出33%
+path             wisadel    m0  s11    10s  win 61s 承伤20% 破绽输出37%
+path             wisadel    m0  s12    10s  win 51s 承伤3% 破绽输出4%
+path             wisadel    m0  s14     9s  win 61s 承伤10% 破绽输出46%
+path             wisadel    m0  s15     9s  win 30s 承伤25% 破绽输出49%
+path             wisadel    m0  s16    10s  win 40s 承伤22% 破绽输出8%
+path             wisadel    m0  s1     10s  win 52s 承伤17% 破绽输出9%
+path             wisadel    m0  s2      8s  win 39s 承伤15% 破绽输出40%
+path             wisadel    m0  s4      9s  win 51s 承伤12% 破绽输出43%
+path             wisadel    m0  s3     10s  win 60s 承伤33% 破绽输出42%
+path             wisadel    m0  s5      9s  win 38s 承伤62% 破绽输出47%
+path             wisadel    m0  s6      8s  win 53s 承伤46% 破绽输出42%
+path             wisadel    m0  s7      8s  win 40s 承伤8% 破绽输出0%
+path             wisadel    m0  s9      9s  win 60s 承伤70% 破绽输出47%
+path             wisadel    m0  s8      9s  win 54s 承伤16% 破绽输出36%
+bishop+archon    wisadel    m0  s10     9s  win 49s 承伤23% 破绽输出57%
+bishop+archon    wisadel    m0  s12     8s  dead 22s 承伤114% 破绽输出0%
+bishop+archon    wisadel    m0  s11    10s  win 46s 承伤210% 破绽输出60%
+bishop+archon    wisadel    m0  s13     9s  win 30s 承伤103% 破绽输出50%
+bishop+archon    wisadel    m0  s14     9s  win 51s 承伤55% 破绽输出22%
+bishop+archon    wisadel    m0  s16     8s  win 27s 承伤96% 破绽输出41%
+bishop+archon    wisadel    m0  s15    10s  win 44s 承伤124% 破绽输出59%
+bishop+archon    wisadel    m0  s1     10s  win 57s 承伤14% 破绽输出0%
+bishop+archon    wisadel    m0  s2      8s  win 22s 承伤14% 破绽输出59%
+bishop+archon    wisadel    m0  s3      9s  win 55s 承伤82% 破绽输出51%
+bishop+archon    wisadel    m0  s5     10s  win 54s 承伤15% 破绽输出27%
+bishop+archon    wisadel    m0  s4     11s  win 122s 承伤12% 破绽输出13%
+bishop+archon    wisadel    m0  s6     10s  win 54s 承伤41% 破绽输出44%
+bishop+archon    wisadel    m0  s7      8s  win 45s 承伤91% 破绽输出0%
+bishop+archon    wisadel    m0  s8      9s  win 55s 承伤121% 破绽输出66%
+bishop+archon    wisadel    m0  s9      8s  win 38s 承伤56% 破绽输出57%
+bishop+immortal  wisadel    m0  s10     9s  win 51s 承伤18% 破绽输出60%
+bishop+immortal  wisadel    m0  s11     9s  win 33s 承伤133% 破绽输出48%
+bishop+immortal  wisadel    m0  s13     8s  win 22s 承伤65% 破绽输出41%
+bishop+immortal  wisadel    m0  s12    10s  win 59s 承伤113% 破绽输出0%
+bishop+immortal  wisadel    m0  s14     9s  win 54s 承伤97% 破绽输出46%
+bishop+immortal  wisadel    m0  s15     9s  win 47s 承伤63% 破绽输出39%
+bishop+immortal  wisadel    m0  s16     9s  win 39s 承伤44% 破绽输出0%
+bishop+immortal  wisadel    m0  s1      9s  win 56s 承伤88% 破绽输出0%
+bishop+immortal  wisadel    m0  s2      8s  win 28s 承伤12% 破绽输出38%
+bishop+immortal  wisadel    m0  s3      9s  win 51s 承伤11% 破绽输出33%
+bishop+immortal  wisadel    m0  s4      9s  win 57s 承伤20% 破绽输出40%
+bishop+immortal  wisadel    m0  s5      9s  win 35s 承伤26% 破绽输出56%
+bishop+immortal  wisadel    m0  s6      8s  win 38s 承伤38% 破绽输出43%
+bishop+immortal  wisadel    m0  s7      8s  win 36s 承伤61% 破绽输出0%
+bishop+immortal  wisadel    m0  s8     11s  win 88s 承伤189% 破绽输出46%
+bishop+immortal  wisadel    m0  s9      9s  win 55s 承伤79% 破绽输出48%
+# Boss 单场测试台结果（new_wisadel_m0_path-bishop_archon-bishop_immortal）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+48 局（path, bishop+archon, bishop+immortal）
+path             wisadel    m18 s10     9s  win 42s 承伤17% 破绽输出33%
+path             wisadel    m18 s11    10s  win 46s 承伤3% 破绽输出43%
+path             wisadel    m18 s13    10s  win 59s 承伤10% 破绽输出39%
+path             wisadel    m18 s12    10s  win 53s 承伤96% 破绽输出22%
+path             wisadel    m18 s14     7s  win 30s 承伤0% 破绽输出32%
+path             wisadel    m18 s15     8s  win 26s 承伤0% 破绽输出37%
+path             wisadel    m18 s16     9s  win 50s 承伤2% 破绽输出33%
+path             wisadel    m18 s1      9s  win 42s 承伤2% 破绽输出13%
+path             wisadel    m18 s2      8s  win 52s 承伤47% 破绽输出39%
+path             wisadel    m18 s3      8s  win 50s 承伤0% 破绽输出42%
+path             wisadel    m18 s5      8s  win 39s 承伤28% 破绽输出41%
+path             wisadel    m18 s4     10s  win 64s 承伤26% 破绽输出42%
+path             wisadel    m18 s6      8s  win 56s 承伤28% 破绽输出40%
+path             wisadel    m18 s7      8s  win 54s 承伤32% 破绽输出42%
+path             wisadel    m18 s9      9s  win 60s 承伤1% 破绽输出44%
+path             wisadel    m18 s8      9s  win 70s 承伤8% 破绽输出48%
+bishop+archon    wisadel    m18 s11     8s  win 23s 承伤19% 破绽输出27%
+bishop+archon    wisadel    m18 s10     9s  win 49s 承伤14% 破绽输出16%
+bishop+archon    wisadel    m18 s13     9s  win 36s 承伤26% 破绽输出65%
+bishop+archon    wisadel    m18 s12     9s  dead 44s 承伤148% 破绽输出23%
+bishop+archon    wisadel    m18 s14     9s  win 38s 承伤74% 破绽输出51%
+bishop+archon    wisadel    m18 s15     9s  win 42s 承伤10% 破绽输出52%
+bishop+archon    wisadel    m18 s16     9s  win 46s 承伤47% 破绽输出52%
+bishop+archon    wisadel    m18 s1      9s  win 53s 承伤32% 破绽输出0%
+bishop+archon    wisadel    m18 s2      8s  win 27s 承伤8% 破绽输出63%
+bishop+archon    wisadel    m18 s3      8s  win 27s 承伤5% 破绽输出68%
+bishop+archon    wisadel    m18 s5      8s  win 25s 承伤6% 破绽输出66%
+bishop+archon    wisadel    m18 s4      9s  win 50s 承伤37% 破绽输出59%
+bishop+archon    wisadel    m18 s7      8s  win 26s 承伤12% 破绽输出54%
+bishop+archon    wisadel    m18 s6      9s  dead 32s 承伤148% 破绽输出60%
+bishop+archon    wisadel    m18 s8      9s  win 51s 承伤6% 破绽输出51%
+bishop+archon    wisadel    m18 s9      9s  win 35s 承伤9% 破绽输出76%
+bishop+immortal  wisadel    m18 s11     8s  win 22s 承伤18% 破绽输出29%
+bishop+immortal  wisadel    m18 s10     8s  win 28s 承伤21% 破绽输出42%
+bishop+immortal  wisadel    m18 s13     9s  win 49s 承伤16% 破绽输出34%
+bishop+immortal  wisadel    m18 s12     9s  dead 52s 承伤152% 破绽输出0%
+bishop+immortal  wisadel    m18 s14    10s  win 39s 承伤76% 破绽输出43%
+bishop+immortal  wisadel    m18 s15    10s  win 48s 承伤39% 破绽输出34%
+bishop+immortal  wisadel    m18 s16    10s  win 71s 承伤104% 破绽输出2%
+bishop+immortal  wisadel    m18 s1     10s  win 67s 承伤117% 破绽输出0%
+bishop+immortal  wisadel    m18 s2     10s  win 39s 承伤1% 破绽输出39%
+bishop+immortal  wisadel    m18 s3     10s  win 53s 承伤34% 破绽输出29%
+bishop+immortal  wisadel    m18 s5      8s  win 37s 承伤30% 破绽输出48%
+bishop+immortal  wisadel    m18 s4      9s  win 55s 承伤52% 破绽输出40%
+bishop+immortal  wisadel    m18 s7      8s  win 36s 承伤14% 破绽输出41%
+bishop+immortal  wisadel    m18 s6     10s  win 48s 承伤91% 破绽输出63%
+bishop+immortal  wisadel    m18 s8      9s  win 38s 承伤26% 破绽输出46%
+bishop+immortal  wisadel    m18 s9      8s  win 40s 承伤7% 破绽输出47%
+# Boss 单场测试台结果（new_wisadel_m18_path-bishop_archon-bishop_immortal）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+48 局（path, bishop+archon, bishop+immortal）
+path             skadi      m0  s12    10s  win 49s 承伤3% 破绽输出38%
+path             skadi      m0  s13    10s  win 65s 承伤41% 破绽输出43%
+path             skadi      m0  s11    11s  win 63s 承伤51% 破绽输出51%
+path             skadi      m0  s10    12s  win 126s 承伤137% 破绽输出34%
+path             skadi      m0  s14     8s  win 32s 承伤1% 破绽输出32%
+path             skadi      m0  s15     8s  win 36s 承伤0% 破绽输出50%
+path             skadi      m0  s1      8s  win 30s 承伤0% 破绽输出35%
+path             skadi      m0  s16    10s  win 83s 承伤50% 破绽输出46%
+path             skadi      m0  s2      8s  win 50s 承伤0% 破绽输出41%
+path             skadi      m0  s3      9s  win 75s 承伤28% 破绽输出41%
+path             skadi      m0  s5      8s  win 30s 承伤17% 破绽输出34%
+path             skadi      m0  s4      9s  win 40s 承伤59% 破绽输出39%
+path             skadi      m0  s6      8s  win 31s 承伤39% 破绽输出42%
+path             skadi      m0  s9      8s  win 34s 承伤24% 破绽输出46%
+path             skadi      m0  s7      9s  win 65s 承伤57% 破绽输出23%
+path             skadi      m0  s8     10s  win 103s 承伤67% 破绽输出31%
+bishop+archon    skadi      m0  s12     8s  win 23s 承伤39% 破绽输出50%
+bishop+archon    skadi      m0  s11    10s  win 60s 承伤28% 破绽输出71%
+bishop+archon    skadi      m0  s10    16s  win 152s 承伤112% 破绽输出49%
+bishop+archon    skadi      m0  s13    12s  win 84s 承伤49% 破绽输出65%
+bishop+archon    skadi      m0  s14     8s  win 29s 承伤2% 破绽输出58%
+bishop+archon    skadi      m0  s15     8s  win 32s 承伤41% 破绽输出55%
+bishop+archon    skadi      m0  s16     8s  win 26s 承伤19% 破绽输出70%
+bishop+archon    skadi      m0  s1      9s  win 38s 承伤4% 破绽输出55%
+bishop+archon    skadi      m0  s2      8s  win 35s 承伤53% 破绽输出59%
+bishop+archon    skadi      m0  s3      8s  win 26s 承伤33% 破绽输出50%
+bishop+archon    skadi      m0  s4      7s  win 24s 承伤14% 破绽输出60%
+bishop+archon    skadi      m0  s5      8s  win 46s 承伤57% 破绽输出4%
+bishop+archon    skadi      m0  s6      8s  win 38s 承伤23% 破绽输出58%
+bishop+archon    skadi      m0  s7     10s  win 46s 承伤71% 破绽输出4%
+bishop+archon    skadi      m0  s8      9s  win 64s 承伤134% 破绽输出18%
+bishop+archon    skadi      m0  s9      9s  win 45s 承伤1% 破绽输出43%
+bishop+immortal  skadi      m0  s11     9s  win 51s 承伤40% 破绽输出40%
+bishop+immortal  skadi      m0  s10    13s  win 114s 承伤171% 破绽输出48%
+bishop+immortal  skadi      m0  s12     9s  win 31s 承伤3% 破绽输出16%
+bishop+immortal  skadi      m0  s14     8s  win 31s 承伤38% 破绽输出25%
+bishop+immortal  skadi      m0  s15     9s  win 46s 承伤72% 破绽输出31%
+bishop+immortal  skadi      m0  s13    14s  win 124s 承伤58% 破绽输出48%
+bishop+immortal  skadi      m0  s16    10s  win 50s 承伤37% 破绽输出20%
+bishop+immortal  skadi      m0  s1      8s  win 27s 承伤57% 破绽输出50%
+bishop+immortal  skadi      m0  s2      8s  win 37s 承伤14% 破绽输出57%
+bishop+immortal  skadi      m0  s4      8s  win 22s 承伤11% 破绽输出25%
+bishop+immortal  skadi      m0  s3     10s  win 65s 承伤51% 破绽输出34%
+bishop+immortal  skadi      m0  s5      8s  win 28s 承伤57% 破绽输出42%
+bishop+immortal  skadi      m0  s6      8s  win 32s 承伤67% 破绽输出41%
+bishop+immortal  skadi      m0  s7      9s  win 35s 承伤69% 破绽输出0%
+bishop+immortal  skadi      m0  s8     11s  win 71s 承伤93% 破绽输出7%
+bishop+immortal  skadi      m0  s9      9s  win 43s 承伤8% 破绽输出48%
+# Boss 单场测试台结果（new_skadi_m0_path-bishop_archon-bishop_immortal）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+48 局（path, bishop+archon, bishop+immortal）
+path             skadi      m18 s11     9s  win 41s 承伤19% 破绽输出34%
+path             skadi      m18 s12    10s  win 59s 承伤56% 破绽输出36%
+path             skadi      m18 s13    10s  win 62s 承伤29% 破绽输出45%
+path             skadi      m18 s10    10s  win 80s 承伤16% 破绽输出40%
+path             skadi      m18 s14     9s  win 62s 承伤34% 破绽输出17%
+path             skadi      m18 s16     9s  win 57s 承伤32% 破绽输出36%
+path             skadi      m18 s15    10s  win 104s 承伤37% 破绽输出30%
+path             skadi      m18 s1     10s  win 85s 承伤12% 破绽输出33%
+path             skadi      m18 s2      7s  win 30s 承伤4% 破绽输出37%
+path             skadi      m18 s3      9s  win 60s 承伤12% 破绽输出47%
+path             skadi      m18 s4      9s  win 64s 承伤14% 破绽输出38%
+path             skadi      m18 s5     10s  win 98s 承伤25% 破绽输出38%
+path             skadi      m18 s6      8s  win 50s 承伤64% 破绽输出33%
+path             skadi      m18 s8      7s  win 15s 承伤0% 破绽输出38%
+path             skadi      m18 s7      8s  win 44s 承伤57% 破绽输出40%
+path             skadi      m18 s9      7s  win 18s 承伤0% 破绽输出40%
+bishop+archon    skadi      m18 s11     9s  win 34s 承伤78% 破绽输出67%
+bishop+archon    skadi      m18 s12     9s  win 28s 承伤28% 破绽输出54%
+bishop+archon    skadi      m18 s10    13s  win 124s 承伤103% 破绽输出66%
+bishop+archon    skadi      m18 s13    14s  win 172s 承伤73% 破绽输出44%
+bishop+archon    skadi      m18 s15    11s  win 89s 承伤36% 破绽输出66%
+bishop+archon    skadi      m18 s14    12s  win 118s 承伤88% 破绽输出46%
+bishop+archon    skadi      m18 s16    11s  win 81s 承伤77% 破绽输出17%
+bishop+archon    skadi      m18 s1      8s  dead 19s 承伤137% 破绽输出79%
+bishop+archon    skadi      m18 s2      8s  win 22s 承伤9% 破绽输出71%
+bishop+archon    skadi      m18 s3      9s  win 50s 承伤28% 破绽输出61%
+bishop+archon    skadi      m18 s4     14s  win 119s 承伤98% 破绽输出57%
+bishop+archon    skadi      m18 s5     11s  win 80s 承伤48% 破绽输出63%
+bishop+archon    skadi      m18 s7      8s  win 25s 承伤50% 破绽输出65%
+bishop+archon    skadi      m18 s6     12s  win 129s 承伤80% 破绽输出12%
+bishop+archon    skadi      m18 s8      7s  win 20s 承伤5% 破绽输出63%
+bishop+archon    skadi      m18 s9      8s  win 20s 承伤1% 破绽输出51%
+bishop+immortal  skadi      m18 s10    10s  win 77s 承伤84% 破绽输出57%
+bishop+immortal  skadi      m18 s11     9s  win 52s 承伤25% 破绽输出63%
+bishop+immortal  skadi      m18 s12     8s  win 28s 承伤28% 破绽输出46%
+bishop+immortal  skadi      m18 s13     8s  win 34s 承伤18% 破绽输出45%
+bishop+immortal  skadi      m18 s14     8s  win 22s 承伤37% 破绽输出51%
+bishop+immortal  skadi      m18 s1     10s  dead 58s 承伤213% 破绽输出49%
+bishop+immortal  skadi      m18 s15    12s  win 125s 承伤75% 破绽输出44%
+bishop+immortal  skadi      m18 s16    12s  win 112s 承伤53% 破绽输出41%
+bishop+immortal  skadi      m18 s2      9s  win 37s 承伤14% 破绽输出23%
+bishop+immortal  skadi      m18 s3     11s  win 99s 承伤26% 破绽输出51%
+bishop+immortal  skadi      m18 s4     11s  win 93s 承伤71% 破绽输出55%
+bishop+immortal  skadi      m18 s6     12s  win 85s 承伤76% 破绽输出0%
+bishop+immortal  skadi      m18 s5     14s  win 146s 承伤73% 破绽输出40%
+bishop+immortal  skadi      m18 s7      8s  win 23s 承伤26% 破绽输出46%
+bishop+immortal  skadi      m18 s8      8s  win 26s 承伤12% 破绽输出33%
+bishop+immortal  skadi      m18 s9      9s  win 60s 承伤12% 破绽输出39%
+# Boss 单场测试台结果（new_skadi_m18_path-bishop_archon-bishop_immortal）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+48 局（path, bishop+archon, bishop+immortal）
+path             kaltsit    m0  s10    10s  win 65s 承伤62% 破绽输出46%
+path             kaltsit    m0  s13    10s  win 57s 承伤24% 破绽输出42%
+path             kaltsit    m0  s11    10s  win 73s 承伤50% 破绽输出34%
+path             kaltsit    m0  s12    11s  win 77s 承伤34% 破绽输出46%
+path             kaltsit    m0  s14     9s  win 62s 承伤7% 破绽输出47%
+path             kaltsit    m0  s16     9s  win 67s 承伤33% 破绽输出54%
+path             kaltsit    m0  s15    10s  win 87s 承伤2% 破绽输出43%
+path             kaltsit    m0  s1      9s  win 47s 承伤35% 破绽输出38%
+path             kaltsit    m0  s2      8s  win 42s 承伤26% 破绽输出44%
+path             kaltsit    m0  s5      8s  win 27s 承伤0% 破绽输出45%
+path             kaltsit    m0  s3     10s  win 96s 承伤2% 破绽输出50%
+path             kaltsit    m0  s4     10s  win 76s 承伤16% 破绽输出37%
+path             kaltsit    m0  s6     11s  win 107s 承伤48% 破绽输出41%
+path             kaltsit    m0  s7     12s  win 125s 承伤22% 破绽输出48%
+path             kaltsit    m0  s8     11s  win 83s 承伤63% 破绽输出38%
+path             kaltsit    m0  s9     11s  win 74s 承伤64% 破绽输出45%
+bishop+archon    kaltsit    m0  s10     9s  win 57s 承伤68% 破绽输出24%
+bishop+archon    kaltsit    m0  s11     9s  win 54s 承伤74% 破绽输出10%
+bishop+archon    kaltsit    m0  s12    12s  win 103s 承伤226% 破绽输出60%
+bishop+archon    kaltsit    m0  s13    14s  win 135s 承伤227% 破绽输出48%
+bishop+archon    kaltsit    m0  s14    10s  win 93s 承伤9% 破绽输出10%
+bishop+archon    kaltsit    m0  s15     8s  dead 38s 承伤179% 破绽输出54%
+bishop+archon    kaltsit    m0  s16     9s  win 58s 承伤143% 破绽输出53%
+bishop+archon    kaltsit    m0  s1      9s  win 48s 承伤196% 破绽输出52%
+bishop+archon    kaltsit    m0  s2      9s  win 44s 承伤7% 破绽输出44%
+bishop+archon    kaltsit    m0  s3     12s  win 99s 承伤27% 破绽输出52%
+bishop+archon    kaltsit    m0  s4      8s  win 29s 承伤6% 破绽输出71%
+bishop+archon    kaltsit    m0  s5     10s  win 48s 承伤209% 破绽输出47%
+bishop+archon    kaltsit    m0  s6     11s  win 79s 承伤63% 破绽输出63%
+bishop+archon    kaltsit    m0  s7     11s  win 74s 承伤222% 破绽输出52%
+bishop+archon    kaltsit    m0  s8     13s  win 133s 承伤120% 破绽输出3%
+bishop+archon    kaltsit    m0  s9     11s  win 73s 承伤116% 破绽输出53%
+bishop+immortal  kaltsit    m0  s10     9s  win 50s 承伤107% 破绽输出39%
+bishop+immortal  kaltsit    m0  s11    10s  win 65s 承伤161% 破绽输出9%
+bishop+immortal  kaltsit    m0  s12     8s  dead 31s 承伤197% 破绽输出64%
+bishop+immortal  kaltsit    m0  s14     9s  win 49s 承伤22% 破绽输出37%
+bishop+immortal  kaltsit    m0  s13    12s  dead 94s 承伤373% 破绽输出50%
+bishop+immortal  kaltsit    m0  s15    10s  win 60s 承伤43% 破绽输出50%
+bishop+immortal  kaltsit    m0  s16    10s  win 72s 承伤148% 破绽输出51%
+bishop+immortal  kaltsit    m0  s1      9s  win 36s 承伤13% 破绽输出59%
+bishop+immortal  kaltsit    m0  s2      8s  win 33s 承伤10% 破绽输出53%
+bishop+immortal  kaltsit    m0  s3     10s  win 58s 承伤2% 破绽输出53%
+bishop+immortal  kaltsit    m0  s4      8s  win 25s 承伤2% 破绽输出57%
+bishop+immortal  kaltsit    m0  s5      9s  dead 28s 承伤164% 破绽输出37%
+bishop+immortal  kaltsit    m0  s6     10s  win 66s 承伤89% 破绽输出66%
+bishop+immortal  kaltsit    m0  s7     11s  win 83s 承伤286% 破绽输出42%
+bishop+immortal  kaltsit    m0  s9     10s  win 58s 承伤75% 破绽输出52%
+bishop+immortal  kaltsit    m0  s8     14s  win 130s 承伤198% 破绽输出7%
+# Boss 单场测试台结果（new_kaltsit_m0_path-bishop_archon-bishop_immortal）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+48 局（path, bishop+archon, bishop+immortal）
+path             kaltsit    m18 s12     9s  win 19s 承伤0% 破绽输出44%
+path             kaltsit    m18 s11    10s  win 76s 承伤31% 破绽输出37%
+path             kaltsit    m18 s10    11s  win 81s 承伤19% 破绽输出40%
+path             kaltsit    m18 s13    11s  win 83s 承伤31% 破绽输出15%
+path             kaltsit    m18 s14     9s  win 59s 承伤15% 破绽输出36%
+path             kaltsit    m18 s16     8s  win 25s 承伤1% 破绽输出53%
+path             kaltsit    m18 s1     10s  win 68s 承伤17% 破绽输出28%
+path             kaltsit    m18 s15    11s  win 91s 承伤44% 破绽输出36%
+path             kaltsit    m18 s2      8s  win 58s 承伤18% 破绽输出39%
+path             kaltsit    m18 s3      9s  win 66s 承伤61% 破绽输出49%
+path             kaltsit    m18 s4      7s  win 22s 承伤0% 破绽输出41%
+path             kaltsit    m18 s5      9s  win 73s 承伤36% 破绽输出33%
+path             kaltsit    m18 s6      9s  win 64s 承伤5% 破绽输出16%
+path             kaltsit    m18 s7      7s  win 28s 承伤9% 破绽输出43%
+path             kaltsit    m18 s8      9s  win 37s 承伤23% 破绽输出26%
+path             kaltsit    m18 s9      9s  win 70s 承伤31% 破绽输出43%
+bishop+archon    kaltsit    m18 s10     8s  win 39s 承伤1% 破绽输出69%
+bishop+archon    kaltsit    m18 s11    10s  win 59s 承伤36% 破绽输出24%
+bishop+archon    kaltsit    m18 s12     8s  win 23s 承伤0% 破绽输出60%
+bishop+archon    kaltsit    m18 s13     9s  win 53s 承伤60% 破绽输出0%
+bishop+archon    kaltsit    m18 s14     9s  win 49s 承伤121% 破绽输出54%
+bishop+archon    kaltsit    m18 s15     9s  win 52s 承伤23% 破绽输出60%
+bishop+archon    kaltsit    m18 s16     9s  win 41s 承伤59% 破绽输出43%
+bishop+archon    kaltsit    m18 s1     11s  win 77s 承伤38% 破绽输出62%
+bishop+archon    kaltsit    m18 s2      8s  win 32s 承伤4% 破绽输出55%
+bishop+archon    kaltsit    m18 s4      8s  win 32s 承伤12% 破绽输出55%
+bishop+archon    kaltsit    m18 s3     10s  win 47s 承伤224% 破绽输出67%
+bishop+archon    kaltsit    m18 s6     10s  win 71s 承伤106% 破绽输出22%
+bishop+archon    kaltsit    m18 s7      9s  win 26s 承伤82% 破绽输出62%
+bishop+archon    kaltsit    m18 s8      9s  win 25s 承伤13% 破绽输出54%
+bishop+archon    kaltsit    m18 s5     15s  win 157s 承伤297% 破绽输出17%
+bishop+archon    kaltsit    m18 s9      9s  win 57s 承伤23% 破绽输出65%
+bishop+immortal  kaltsit    m18 s11     9s  win 47s 承伤18% 破绽输出48%
+bishop+immortal  kaltsit    m18 s10    10s  win 69s 承伤5% 破绽输出51%
+bishop+immortal  kaltsit    m18 s12     8s  win 28s 承伤5% 破绽输出34%
+bishop+immortal  kaltsit    m18 s13     8s  win 38s 承伤35% 破绽输出0%
+bishop+immortal  kaltsit    m18 s16    10s  win 74s 承伤172% 破绽输出53%
+bishop+immortal  kaltsit    m18 s15    10s  win 66s 承伤13% 破绽输出52%
+bishop+immortal  kaltsit    m18 s14    13s  dead 129s 承伤289% 破绽输出15%
+bishop+immortal  kaltsit    m18 s1     10s  win 51s 承伤13% 破绽输出52%
+bishop+immortal  kaltsit    m18 s2      8s  win 25s 承伤82% 破绽输出52%
+bishop+immortal  kaltsit    m18 s3     10s  win 54s 承伤216% 破绽输出54%
+bishop+immortal  kaltsit    m18 s4      9s  win 41s 承伤29% 破绽输出28%
+bishop+immortal  kaltsit    m18 s6     10s  win 68s 承伤42% 破绽输出0%
+bishop+immortal  kaltsit    m18 s5     13s  win 118s 承伤57% 破绽输出0%
+bishop+immortal  kaltsit    m18 s8      9s  win 25s 承伤8% 破绽输出56%
+bishop+immortal  kaltsit    m18 s7     11s  win 51s 承伤116% 破绽输出44%
+bishop+immortal  kaltsit    m18 s9      8s  win 33s 承伤36% 破绽输出43%
+# Boss 单场测试台结果（new_kaltsit_m18_path-bishop_archon-bishop_immortal）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
