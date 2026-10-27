@@ -3,6 +3,7 @@
  "name": "凯尔希",
  "en": "KAL'TSIT",
  "class": "医疗",
+ "lanes": ["heal", "summon"],
  "command": {
   "roam": false,
   "_doc": "指挥模式（docs/114）：医疗 / 辅助突击时照旧随行"

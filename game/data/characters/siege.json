@@ -3,6 +3,7 @@
  "name": "推进之王",
  "en": "SIEGE",
  "class": "先锋",
+ "lanes": ["melee"],
  "col": [
   1.0,
   0.78,

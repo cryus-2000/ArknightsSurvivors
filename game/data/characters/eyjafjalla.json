@@ -3,6 +3,7 @@
  "name": "艾雅法拉",
  "en": "EYJAFJALLA",
  "class": "术师",
+ "lanes": ["multi"],
  "col": [
   1.0,
   0.5,

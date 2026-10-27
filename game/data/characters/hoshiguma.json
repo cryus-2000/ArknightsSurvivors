@@ -3,6 +3,7 @@
  "name": "星熊",
  "en": "HOSHIGUMA",
  "class": "重装",
+ "lanes": ["melee", "shield"],
  "faction": [
   "龙门近卫局"
  ],

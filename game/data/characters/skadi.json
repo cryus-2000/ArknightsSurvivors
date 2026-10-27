@@ -3,6 +3,7 @@
  "name": "斯卡蒂",
  "en": "SKADI",
  "class": "近卫",
+ "lanes": ["melee"],
  "faction": [
   "深海猎人"
  ],

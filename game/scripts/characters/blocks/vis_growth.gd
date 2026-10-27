@@ -11,6 +11,7 @@ extends RefCounted
 ## 第 i 层权重 count_decay^(i-1)（数量）或 size_decay^(i-1)（尺寸）。额外数量 E 的小数部分进每名干员的累加器，满 1 多一发（不取随机数）。
 ## 伤害预算（§2.3，实现取舍见 docs/163 §11）：主弹不削；额外弹每发 = 普攻参考伤害 × (T − 1) / E，T = 1 + Σ eps_i·w_i，所以普攻总伤 ×T；
 ## 没有普攻弹体的远程干员改为本人作用域伤害 ×T（refresh 里挂 stats 来源 "vgrowth"）。
+## 对象（docs/179，10-28）：远程三类只给多弹火力干员（lane multi），近战三类只给近战扩域干员（lane melee），不再按近战 / 远程职业。
 ## 玩法随机：不用。全部状态在 o.vg（每名干员）与 g.rfx.lv（藏品等级）里。
 
 const Bal = preload("res://scripts/core/balance.gd")
@@ -140,7 +141,7 @@ static func crowd_mult(o, hits: Array, tags: Array = []) -> float:
 	var s := summary(o.g)
 	if s.is_empty() or float(s.crowd) <= 0.0:
 		return 1.0
-	if o.act_kind != "attack" or o.attack_t <= 0.0 or o.range_cls() != "近战" or "follow_up" in tags or "skill" in tags:
+	if o.act_kind != "attack" or o.attack_t <= 0.0 or not _lane(o, "melee") or "follow_up" in tags or "skill" in tags:
 		return 1.0
 	var n := 0
 	for e in hits:
@@ -158,10 +159,10 @@ static func refresh(g) -> void:
 		return
 	g.stats.remove_source("vgrowth")
 	if s.range > 0.0:
-		g.stats.add(&"op_range", "add", s.range, "vgrowth", "range:近战")
+		g.stats.add(&"op_range", "add", s.range, "vgrowth", "lane:melee")
 	if s.e_shots > 0.0 and g.get("squad") != null:
 		for o in g.squad.ops:
-			if o.range_cls() == "远程" and not shot_eater(o):
+			if _lane(o, "multi") and not shot_eater(o):
 				g.stats.add(&"dmg", "mult", s.t_shots, "vgrowth", "op:" + str(o.id))
 	g.sync_stats()
 
@@ -172,19 +173,26 @@ static func _atk(o) -> Dictionary:
 	return o.cur_attack() if o.has_method("cur_attack") else {}
 
 
-## 吃「多一发」：普攻是远程弹体形状
+## 吃「多一发」：多弹火力干员、普攻是远程弹体形状
 static func shot_eater(o) -> bool:
-	if not o.has_method("cur_attack"):
+	if not o.has_method("cur_attack") or not _lane(o, "multi"):
 		return false
 	return str(o.B.get("attack", {}).get("shape", "")) in RANGED_SHAPES
 
 
-## 吃剑气：近战职业、普攻是近战形状（不是支援 / 远程弹体）
+## 吃剑气：近战扩域干员、普攻是近战形状（不是支援 / 远程弹体）
 static func qi_eater(o) -> bool:
-	if not o.has_method("cur_attack") or o.range_cls() != "近战":
+	if not o.has_method("cur_attack") or not _lane(o, "melee"):
 		return false
 	var sh: String = str(o.B.get("attack", {}).get("shape", ""))
 	return sh != "" and sh != "support" and not sh in RANGED_SHAPES
+
+
+## 流派判定（测试替身没有 in_lane 时按职业近远退回）
+static func _lane(o, l: String) -> bool:
+	if o.has_method("in_lane"):
+		return o.in_lane(l)
+	return {"melee": "近战", "multi": "远程"}.get(l, "") == o.range_cls()
 
 
 ## 普攻参考伤害：积木 base 攻击（atk_key → atk → bolt_atk）× attack.mult × 局部倍率 × 伤害加成（同 ob_core.exec_shape 的缺省算法）

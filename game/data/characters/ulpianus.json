@@ -3,6 +3,7 @@
  "name": "乌尔比安",
  "en": "ULPIANUS",
  "class": "近卫",
+ "lanes": ["melee"],
  "faction": [
   "深海猎人"
  ],

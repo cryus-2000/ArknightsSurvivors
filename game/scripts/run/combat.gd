@@ -1087,6 +1087,8 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 	var _pt := Time.get_ticks_usec() if _pf else 0
 	var ty: Array = [h.range, h.kind]
 	var weak_hit := false
+	# 出手干员：流派藏品（docs/179）把近战 / 远程 / 追击倍率、弱点与低血加成挂在 lane:<键> 作用域上，按干员取值（全局 + 本人作用域）
+	var hop = g.squad.get_op(str(h.get("op", ""))) if h.has("op") and g.squad != null else null
 	if ty[1] != "真实":
 		# 养育者基因种（docs/57 P6）：无视敌人一部分防御（e.def < 1 的部分按比例折回）
 		var edef: float = e.def
@@ -1110,16 +1112,19 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		# 弱点：对应类型伤害 +50%（藏品可加成 / 赋予双弱点）
 		var wk: String = e.get("weak", "")
 		if wk == ty[1] or (wk == "双" and ty[1] != "真实") or (g.rfx.rule("all_weak") > 0):
-			dmg *= 1.5 + g.weak_bonus
+			dmg *= 1.5 + (hop.stat(&"weak_bonus") if hop != null else g.weak_bonus)
 			weak_hit = true
-		dmg *= g.melee_mult if ty[0] == "近战" else g.ranged_mult
+		if hop != null:
+			dmg *= hop.stat(&"melee_dmg") if ty[0] == "近战" else hop.stat(&"ranged_dmg")
+		else:
+			dmg *= g.melee_mult if ty[0] == "近战" else g.ranged_mult
 		if e.get("aura_weak", 0.0) > 0.0:
 			dmg *= 1.1
 		if float(e.get("frag_t", 0.0)) > g.t:   # 铃兰精一「狐火灼印」：frag_t 之前受到的伤害 + frag_v（docs/91 §15；同名取最高）
 			dmg *= 1.0 + float(e.frag_v)
 		dmg *= g.arts_mult if ty[1] == "法术" else g.phys_mult
 		if is_followup(h):
-			dmg *= g.followup_mult * g.rfx.followup_extra()
+			dmg *= (hop.stat(&"followup_dmg") if hop != null else g.followup_mult) * g.rfx.followup_extra(hop)
 		dmg *= g.rfx.hit_mult(h, e)
 		# Logos「安魂」：受到的法术伤害 +base.requiem_bonus（缺省 15%，e.requiem_v）；精一「剜魂」叠层时每层 +6%（e.requiem_k，docs/91 §7）
 		if ty[1] == "法术" and e.get("requiem", 0.0) > 0.0:
@@ -1127,8 +1132,9 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		# 艾雅法拉精一「熔蚀」：melt_t 之前受到的法术伤害 + melt_v（docs/91 §3）
 		if ty[1] == "法术" and float(e.get("melt_t", 0.0)) > g.t:
 			dmg *= 1.0 + float(e.melt_v)
-		if g.low_hp_bonus > 0.0 and e.hp < e.maxhp * 0.5:
-			dmg *= 1.0 + g.low_hp_bonus
+		var lowb: float = (hop.stat(&"enemy_low_hp_dmg_taken") - 1.0) if hop != null else g.low_hp_bonus
+		if lowb > 0.0 and e.hp < e.maxhp * 0.5:
+			dmg *= 1.0 + lowb
 		if e.boss and g.final_boss != null and is_same(e, g.final_boss):
 			dmg *= 1.0 + 0.01 * g.rfx.rule("final_taken") + (0.8 if g.rfx.rule("bone_blood") > 0 else 0.0)
 	if _pf:

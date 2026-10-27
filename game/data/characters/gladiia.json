@@ -3,6 +3,7 @@
  "name": "歌蕾蒂娅",
  "en": "GLADIIA",
  "class": "特种",
+ "lanes": ["control"],
  "branch": "钩索师",
  "faction": [
   "深海猎人"

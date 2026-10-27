@@ -1156,7 +1156,9 @@ func dmg_extra() -> float:
 
 
 ## 追击与召唤物的额外倍率：无字珊瑚（低灯火）
-func followup_extra() -> float:
+func followup_extra(op = null) -> float:
+	if op != null and not op.in_lane("summon"):
+		return 1.0   # 召唤驻场专属（docs/179 §3.3）
 	return 1.0 + Bal.v("relic/coral_followup", 0.6) if has_relic("coral") and g.lamp < DEEP_LAMP else 1.0
 
 
@@ -1453,21 +1455,32 @@ func on_hit(e: Dictionary, h: Dictionary, amount := 0.0) -> void:
 		var cond: Dictionary = t[1].get("if", {})
 		if cond.has("tags_any") and not g.combat.is_followup(h):
 			continue
+		if not _lane_ok(t[0], h):
+			continue
 		_budget_sp(t[0], h.get("op", "") if a.has("class") or cond.has("tags_any") else "", float(a.get("pct", 0.002)), float(a.get("cap", 0.01)))
 	if not g.combat.is_followup(h):
 		return
 	# 追击命中：扣挠之手（目标当前生命 pct，Boss boss_pct，每个敌人每 icd 秒一次；数据 #170）
-	if has_relic("scratch_hand") and not e.dead and g.t >= float(e.get("claw_t", 0.0)):
+	if has_relic("scratch_hand") and not e.dead and g.t >= float(e.get("claw_t", 0.0)) and _lane_ok("170", h):
 		var a: Dictionary = _targs("170")
 		e["claw_t"] = g.t + float(a.get("icd", 0.5))
 		g.combat.damage(e, e.hp * (float(a.get("boss_pct", 0.005)) if e.boss else float(a.get("pct", 0.03))), g.combat.make_hit("真实"))
 	# 炸裂之手：造成这次追击的干员回技力（每秒最多 2.5%）
-	if has_relic("burst_hand"):
+	if has_relic("burst_hand") and _lane_ok("171", h):
 		_budget_sp("171", h.get("op", ""), 0.005, 0.025)
 	# 岁怒：冷却好了就在这次追击的目标处引爆
-	if has_relic("wrath") and wrath_cd <= 0.0:
+	if has_relic("wrath") and wrath_cd <= 0.0 and _lane_ok("234", h):
 		wrath_cd = 8.0
 		wrath_q.append(e.pos)
+
+
+## 触发条件里的流派（docs/179：if.lane）：出手干员要属于这一流派；没写 lane 的藏品不限
+func _lane_ok(id: String, h: Dictionary) -> bool:
+	var l: String = str(_trigger(id).get("if", {}).get("lane", ""))
+	if l == "":
+		return true
+	var o = g.squad.get_op(str(h.get("op", "")))
+	return o != null and o.in_lane(l)
 
 
 ## 狙击命中：扼喉之手处决（该职业干员的任意命中；数据 #169：args.class / not_boss、if.target_hp_below）

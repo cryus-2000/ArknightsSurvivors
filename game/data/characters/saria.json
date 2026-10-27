@@ -3,6 +3,7 @@
  "name": "塞雷娅",
  "en": "SARIA",
  "class": "重装",
+ "lanes": ["heal"],
  "col": [
   1.0,
   0.72,

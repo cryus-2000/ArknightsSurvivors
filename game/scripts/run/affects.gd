@@ -11,6 +11,7 @@ extends RefCounted
 ##   miss    有职业 / 特征条件、但编队里没人满足时的说明（「编队无近卫」）
 ##   minor   只吃「附带数值」的对象（{干员 id / "all" / "leader": 附带说明}）：藏品效果里标 "minor": true 的那条（主效果之外顺带的
 ##           小数值，如赶车夫的长鞭的物理伤害 +8%）只落到这些对象、主效果没落到时记在这里（10-28 用户截图：长鞭标了能天使）
+##   lanes   流派藏品（docs/179）落到的流派键：标签先写流派、再写编队里的本流派干员
 ## chips(g, o) 把结果排成标签：[[文字, 颜色, 只有坏处, 只吃附带]…]；只和干员无关的卡返回空数组（不画标签）
 
 const UI = preload("res://scripts/ui.gd")
@@ -26,7 +27,10 @@ const GLOBAL_STATS := ["shop_price", "light_decay", "light_loss", "oil_gain", "x
 const LOWER_BETTER := ["dmg_taken", "phys_taken", "corrode_taken", "nerve_taken", "shield_interval", "enemy_dmg", "enemy_atk_speed", "enemy_hp", "enemy_speed",
 	"shop_price", "light_decay", "light_loss"]
 ## 按伤害特征生效的属性 → 特征（见 traits）
-const TRAIT_STATS := {"melee_dmg": "近战", "ranged_dmg": "远程", "physical_dmg": "物理", "arts_dmg": "法术", "followup_dmg": "追击", "control_dur": "控制"}
+const TRAIT_STATS := {"melee_dmg": "近战", "ranged_dmg": "远程", "physical_dmg": "物理", "arts_dmg": "法术", "followup_dmg": "追击"}
+## 流派件（docs/179）：控制时长只收窄标签（效果仍全局，§4 第 2 条）；穿甲弹按流派生效
+const LANE_STATS := {"control_dur": "control"}
+const LANE_RULES := {"atk_pierce_all": "multi", "all_weak": "weak"}
 const LEADER_RULES := ["shield_burst", "shield_heal", "king_cake", "revive_once"]
 const GLOBAL_RULES := ["four_choices", "rare_weight", "deep_sea", "tree_light", "resolve_elite"]
 const LEADER_GAINS := ["heal", "shield_fill"]
@@ -62,11 +66,11 @@ static func traits(g, def: Dictionary, live := true) -> Dictionary:
 
 
 static func of_choice(g, o: Dictionary) -> Dictionary:
-	var res := {"ops": {}, "all": null, "leader": null, "global": false, "miss": "", "minor": {}}
+	var res := {"ops": {}, "all": null, "leader": null, "global": false, "miss": "", "minor": {}, "lanes": []}
 	match o.get("kind", ""):
 		"relic":
 			var r: Dictionary = g.rfx.db.get_relic(o.id)
-			var side := {"ops": {}, "all": null, "leader": null, "global": false, "miss": ""}
+			var side := {"ops": {}, "all": null, "leader": null, "global": false, "miss": "", "lanes": []}
 			for ef in r.get("effects", []):
 				_effect(g, side if ef.get("minor", false) else res, ef)
 			# 附带数值：主效果已覆盖的对象不重复；其余记进 minor（不算「受益」，缺条件说明也不用它的）
@@ -105,7 +109,11 @@ static func _effect(g, res: Dictionary, ef: Dictionary) -> void:
 		"stat":
 			var bad := _is_bad(str(ef.stat), str(ef.get("op", "add")), float(ef.get("value", 0.0)))
 			var scope: String = ef.get("scope", "")
-			if scope.begins_with("class:"):
+			if scope.begins_with("lane:"):
+				_by_lane(g, res, scope.substr(5), bad)
+			elif LANE_STATS.has(str(ef.stat)):
+				_by_lane(g, res, LANE_STATS[str(ef.stat)], bad)
+			elif scope.begins_with("class:"):
 				_by_class(g, res, [scope.substr(6)], bad)
 			elif scope.begins_with("range:"):
 				_by_range(g, res, scope.substr(6), bad)
@@ -113,7 +121,9 @@ static func _effect(g, res: Dictionary, ef: Dictionary) -> void:
 				_by_stat(g, res, str(ef.stat), bad)
 		"trigger":
 			var cond: Dictionary = ef.get("if", {})
-			if a.has("class"):
+			if cond.has("lane"):
+				_by_lane(g, res, str(cond.lane), false)
+			elif a.has("class"):
 				_by_class(g, res, [a["class"]], false)
 			elif cond.has("tags_any"):
 				_by_trait(g, res, "追击", false)
@@ -136,7 +146,9 @@ static func _effect(g, res: Dictionary, ef: Dictionary) -> void:
 					_mark(res, "all", false)
 					_mark(res, "leader", true)
 				var rn:
-					if rn in LEADER_RULES:
+					if LANE_RULES.has(rn):
+						_by_lane(g, res, LANE_RULES[rn], false)
+					elif rn in LEADER_RULES:
 						_mark(res, "leader", false)
 					elif rn in GLOBAL_RULES:
 						_mark(res, "global", false)
@@ -160,7 +172,7 @@ static func _effect(g, res: Dictionary, ef: Dictionary) -> void:
 			else:
 				_mark(res, "global", false)
 		"status":
-			_by_trait(g, res, "控制", false)   # 受控敌人每秒受法术伤害：要有人控场
+			_by_lane(g, res, "control", false)   # 受控敌人每秒受法术伤害：控场引爆干员供给控制
 		"growth":
 			_growth(g, res, str(ef.get("kind", "")))
 		_:
@@ -172,17 +184,19 @@ static func _effect(g, res: Dictionary, ef: Dictionary) -> void:
 static func _growth(g, res: Dictionary, kind: String) -> void:
 	match kind:
 		"scatter", "burst":
-			_by_range(g, res, "远程", false)
+			_by_lane(g, res, "multi", false)
 		"crowd", "qi", "range":
-			_by_range(g, res, "近战", false)
+			_by_lane(g, res, "melee", false)
 		"summon_size":
-			_by_trait(g, res, "追击", false)
+			_by_lane(g, res, "summon", false)
 		"summon_n":
 			var n := 0
 			for op in g.squad.ops:
 				if str(op.id) in SUB_SUMMONERS:
 					_mark(res, "op:" + str(op.id), false)
 					n += 1
+			if not res.lanes.has("summon"):
+				res.lanes.append("summon")
 			if n == 0:
 				_miss(res, "编队无维什戴尔 / 水月")
 		_:
@@ -205,6 +219,19 @@ static func _by_stat(g, res: Dictionary, stat: String, bad: bool) -> void:
 		_mark(res, "global", bad)
 	else:
 		_mark(res, "all", bad)   # 全伤害、攻速、射程、技力、敌人生命、弱点加成……
+
+
+## 流派（docs/179）：编队里属于这一流派的干员；没人时缺条件说明「编队无<流派>干员」
+static func _by_lane(g, res: Dictionary, l: String, bad: bool) -> void:
+	if not res.lanes.has(l):
+		res.lanes.append(l)
+	var n := 0
+	for op in g.squad.ops:
+		if op.in_lane(l):
+			_mark(res, "op:" + str(op.id), bad)
+			n += 1
+	if n == 0:
+		_miss(res, "编队无%s干员" % Character.OpDefs.LANES.get(l, l))
 
 
 static func _by_class(g, res: Dictionary, classes: Array, bad: bool) -> void:
@@ -325,6 +352,10 @@ static func chips(g, o: Dictionary) -> Array:
 			out.append(_minor_chip("全队", UI.CYAN, res.minor.all))
 		if res.minor.has("leader") and res.leader == null and ld != null:
 			out.append(_minor_chip("队长 · " + ld.display_name(), ld.col(), res.minor.leader))
+	# 流派件（docs/179）：最前面写流派名，后面跟编队里的本流派干员；编队里没有本流派干员时只出缺条件说明
+	var lane_on: Array = res.lanes.filter(func(l): return g.squad.ops.any(func(op): return op.in_lane(l) and res.ops.get(op.id, true) == false))
+	for k in range(lane_on.size() - 1, -1, -1):
+		out.push_front([Character.OpDefs.LANES.get(lane_on[k], lane_on[k]), LANE_COL, false])
 	if res.has("random"):
 		out.append(_chip(g, "随机一名干员", UI.CYAN, false))
 	if res.has("recruit"):
@@ -336,6 +367,10 @@ static func chips(g, o: Dictionary) -> Array:
 
 
 ## 只吃附带数值：淡色（UI.chip_row 按颜色 alpha 画底、色条和字）+「仅物伤」；第 4 项 true 供悬停提示区分
+## 流派名标签的颜色（暖金，和干员色、全队青区分开）
+const LANE_COL := Color(0.9, 0.78, 0.5)
+
+
 static func _minor_chip(s: String, col: Color, short: String) -> Array:
 	return [s + " 仅" + short, Color(col.r, col.g, col.b, 0.45), false, true]
 
@@ -346,17 +381,21 @@ static func _chip(g, s: String, col: Color, bad: bool) -> Array:
 	return [s, col, false]
 
 
-## 招募卡：列出这名干员的常驻伤害特征（近战 / 远程、物理 / 法术、追击、控制）和奶位标签（净化 / 回复），灰色，方便对照已有藏品。
+## 招募卡：列出这名干员的流派（docs/179，暖金）和奶位标签（净化 / 回复），方便对照已有藏品。
 ## 近战远程两样都有时（如艾丽妮的远程追诉）只写职业对应的那个，免得标签太多
 static func trait_chips(g, cid: String) -> Array:
 	var def: Dictionary = Character.load_def(cid)
 	var t := traits(g, def, false)
 	if t.has("近战") and t.has("远程"):
 		t.erase("远程" if def.get("class", "") in Character.MELEE_CLASSES else "近战")
+	# 流派（docs/179）放最前；近战 / 远程、物理 / 法术、追击、控制这些伤害特征只在没有流派数据时退回显示
 	var out: Array = []
-	for k in ["近战", "远程", "物理", "法术", "追击", "控制"]:
-		if t.get(k, false):
-			out.append([k, Color(0.62, 0.66, 0.7), false])
+	for l in def.get("lanes", []):
+		out.append([Character.OpDefs.LANES.get(l, l), LANE_COL, false])
+	if out.is_empty():
+		for k in ["近战", "远程", "物理", "法术", "追击", "控制"]:
+			if t.get(k, false):
+				out.append([k, Color(0.62, 0.66, 0.7), false])
 	for k in care_labels(def):
 		out.append([k, Color(0.62, 0.66, 0.7), false])
 	return out

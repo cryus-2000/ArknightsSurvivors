@@ -3,6 +3,7 @@
  "name": "拉普兰德",
  "en": "LAPPLAND",
  "class": "近卫",
+ "lanes": ["melee"],
  "branch": "领主",
  "col": [
   0.86,
