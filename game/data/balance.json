@@ -448,8 +448,8 @@
   "ishar_p1_line": 0.85,
   "ishar_p1_scale": 1.0,
   "ishar_web_heal": 0,
-  "ishar_web_layer": 0.015,
-  "ishar_layer_regen": 8.0,
+  "ishar_web_layer": 0.01,
+  "ishar_layer_regen": 10.0,
   "ishar_web_floor": 0.5,
   "ishar_web_shield": 0.2,
   "ishar_zone_linger": 6.0,
@@ -461,7 +461,7 @@
   "ishar_corrode": 1.0,
   "ishar_break_taken": 1.7,
   "ishar_song_heal_cut": 0.7,
-  "ishar_break_t": 3.8,
+  "ishar_break_t": 4.2,
   "ishar_break_t3": 3.2
  },
  "final": {
