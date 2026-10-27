@@ -1,0 +1,132 @@
+16 局（ishar）
+ishar            wisadel    m0  s13     9s  win 49s 承伤41% 破绽输出6%
+ishar            wisadel    m0  s10     9s  win 54s 承伤15% 破绽输出19%
+ishar            wisadel    m0  s12    10s  win 73s 承伤34% 破绽输出12%
+ishar            wisadel    m0  s11    11s  win 76s 承伤41% 破绽输出22%
+ishar            wisadel    m0  s15     9s  win 71s 承伤54% 破绽输出6%
+ishar            wisadel    m0  s14    10s  win 81s 承伤145% 破绽输出10%
+ishar            wisadel    m0  s16     9s  win 49s 承伤16% 破绽输出0%
+ishar            wisadel    m0  s1     10s  win 51s 承伤18% 破绽输出0%
+ishar            wisadel    m0  s3      8s  win 56s 承伤13% 破绽输出7%
+ishar            wisadel    m0  s2      9s  win 54s 承伤29% 破绽输出5%
+ishar            wisadel    m0  s4     10s  win 72s 承伤41% 破绽输出31%
+ishar            wisadel    m0  s5     11s  win 76s 承伤18% 破绽输出9%
+ishar            wisadel    m0  s7      8s  win 56s 承伤39% 破绽输出0%
+ishar            wisadel    m0  s6     11s  win 98s 承伤94% 破绽输出18%
+ishar            wisadel    m0  s9      9s  win 66s 承伤41% 破绽输出21%
+ishar            wisadel    m0  s8     12s  win 159s 承伤52% 破绽输出18%
+# Boss 单场测试台结果（new_wisadel_m0_ishar）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（ishar）
+ishar            wisadel    m18 s10    10s  win 57s 承伤5% 破绽输出15%
+ishar            wisadel    m18 s13    10s  win 52s 承伤6% 破绽输出5%
+ishar            wisadel    m18 s12    10s  win 66s 承伤46% 破绽输出4%
+ishar            wisadel    m18 s11    10s  win 58s 承伤12% 破绽输出17%
+ishar            wisadel    m18 s14     8s  win 54s 承伤2% 破绽输出12%
+ishar            wisadel    m18 s15     9s  win 59s 承伤43% 破绽输出20%
+ishar            wisadel    m18 s1     10s  win 48s 承伤109% 破绽输出4%
+ishar            wisadel    m18 s16    12s  win 124s 承伤93% 破绽输出10%
+ishar            wisadel    m18 s2      9s  win 55s 承伤23% 破绽输出16%
+ishar            wisadel    m18 s3      9s  win 59s 承伤12% 破绽输出16%
+ishar            wisadel    m18 s4     10s  win 84s 承伤59% 破绽输出28%
+ishar            wisadel    m18 s5      9s  win 52s 承伤40% 破绽输出17%
+ishar            wisadel    m18 s7      9s  win 66s 承伤56% 破绽输出17%
+ishar            wisadel    m18 s6     10s  win 82s 承伤79% 破绽输出18%
+ishar            wisadel    m18 s8      9s  win 53s 承伤10% 破绽输出2%
+ishar            wisadel    m18 s9     10s  win 62s 承伤51% 破绽输出10%
+# Boss 单场测试台结果（new_wisadel_m18_ishar）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（ishar）
+ishar            skadi      m0  s12     9s  win 54s 承伤24% 破绽输出5%
+ishar            skadi      m0  s11    11s  win 95s 承伤46% 破绽输出21%
+ishar            skadi      m0  s13    12s  win 129s 承伤123% 破绽输出18%
+ishar            skadi      m0  s10    14s  timeout 180s 承伤132% 破绽输出20%
+ishar            skadi      m0  s14     8s  win 49s 承伤56% 破绽输出4%
+ishar            skadi      m0  s15     8s  win 52s 承伤44% 破绽输出18%
+ishar            skadi      m0  s16     8s  win 49s 承伤32% 破绽输出4%
+ishar            skadi      m0  s1      9s  win 62s 承伤18% 破绽输出28%
+ishar            skadi      m0  s2      9s  win 73s 承伤129% 破绽输出24%
+ishar            skadi      m0  s4      8s  win 49s 承伤0% 破绽输出0%
+ishar            skadi      m0  s3      9s  win 67s 承伤36% 破绽输出5%
+ishar            skadi      m0  s5     10s  win 89s 承伤197% 破绽输出13%
+ishar            skadi      m0  s6      9s  win 70s 承伤15% 破绽输出12%
+ishar            skadi      m0  s8      8s  win 52s 承伤13% 破绽输出6%
+ishar            skadi      m0  s7     10s  win 88s 承伤57% 破绽输出14%
+ishar            skadi      m0  s9      8s  win 52s 承伤6% 破绽输出7%
+# Boss 单场测试台结果（new_skadi_m0_ishar）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（ishar）
+ishar            skadi      m18 s11     9s  win 51s 承伤26% 破绽输出9%
+ishar            skadi      m18 s12    12s  win 107s 承伤32% 破绽输出14%
+ishar            skadi      m18 s13    12s  win 156s 承伤63% 破绽输出15%
+ishar            skadi      m18 s10    12s  win 134s 承伤30% 破绽输出22%
+ishar            skadi      m18 s15     9s  win 61s 承伤26% 破绽输出16%
+ishar            skadi      m18 s14    12s  win 168s 承伤45% 破绽输出9%
+ishar            skadi      m18 s1      9s  win 52s 承伤38% 破绽输出16%
+ishar            skadi      m18 s16    13s  timeout 180s 承伤70% 破绽输出19%
+ishar            skadi      m18 s2      8s  win 50s 承伤5% 破绽输出8%
+ishar            skadi      m18 s3     11s  win 122s 承伤72% 破绽输出17%
+ishar            skadi      m18 s4     13s  win 168s 承伤166% 破绽输出12%
+ishar            skadi      m18 s5     11s  win 130s 承伤44% 破绽输出12%
+ishar            skadi      m18 s6     11s  win 119s 承伤25% 破绽输出7%
+ishar            skadi      m18 s7      9s  win 92s 承伤64% 破绽输出8%
+ishar            skadi      m18 s8      8s  win 49s 承伤3% 破绽输出5%
+ishar            skadi      m18 s9     10s  win 101s 承伤46% 破绽输出13%
+# Boss 单场测试台结果（new_skadi_m18_ishar）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（ishar）
+ishar            kaltsit    m0  s10     9s  win 54s 承伤17% 破绽输出3%
+ishar            kaltsit    m0  s11    10s  win 80s 承伤8% 破绽输出3%
+ishar            kaltsit    m0  s12    12s  win 116s 承伤100% 破绽输出21%
+ishar            kaltsit    m0  s13    13s  win 115s 承伤59% 破绽输出18%
+ishar            kaltsit    m0  s14     9s  win 77s 承伤17% 破绽输出7%
+ishar            kaltsit    m0  s15    10s  win 94s 承伤97% 破绽输出15%
+ishar            kaltsit    m0  s1      9s  win 58s 承伤47% 破绽输出15%
+ishar            kaltsit    m0  s16    13s  timeout 180s 承伤319% 破绽输出31%
+ishar            kaltsit    m0  s2      8s  win 49s 承伤35% 破绽输出11%
+ishar            kaltsit    m0  s4      8s  win 59s 承伤8% 破绽输出13%
+ishar            kaltsit    m0  s3     14s  timeout 180s 承伤72% 破绽输出17%
+ishar            kaltsit    m0  s5      9s  win 69s 承伤50% 破绽输出17%
+ishar            kaltsit    m0  s7     10s  win 102s 承伤68% 破绽输出8%
+ishar            kaltsit    m0  s6     14s  timeout 180s 承伤271% 破绽输出21%
+ishar            kaltsit    m0  s9     10s  win 61s 承伤78% 破绽输出24%
+ishar            kaltsit    m0  s8     11s  win 128s 承伤24% 破绽输出8%
+# Boss 单场测试台结果（new_kaltsit_m0_ishar）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（ishar）
+ishar            kaltsit    m18 s12     9s  win 49s 承伤63% 破绽输出6%
+ishar            kaltsit    m18 s13     9s  win 57s 承伤40% 破绽输出1%
+ishar            kaltsit    m18 s10     9s  win 55s 承伤4% 破绽输出6%
+ishar            kaltsit    m18 s11    10s  win 56s 承伤22% 破绽输出15%
+ishar            kaltsit    m18 s14     8s  win 48s 承伤10% 破绽输出0%
+ishar            kaltsit    m18 s16    11s  win 110s 承伤71% 破绽输出18%
+ishar            kaltsit    m18 s1     11s  win 81s 承伤32% 破绽输出11%
+ishar            kaltsit    m18 s15    12s  win 151s 承伤130% 破绽输出22%
+ishar            kaltsit    m18 s2      9s  win 65s 承伤40% 破绽输出17%
+ishar            kaltsit    m18 s4      8s  win 48s 承伤4% 破绽输出0%
+ishar            kaltsit    m18 s3     11s  win 109s 承伤166% 破绽输出17%
+ishar            kaltsit    m18 s5     11s  win 134s 承伤40% 破绽输出7%
+ishar            kaltsit    m18 s6      9s  win 75s 承伤26% 破绽输出15%
+ishar            kaltsit    m18 s7      8s  win 54s 承伤25% 破绽输出10%
+ishar            kaltsit    m18 s8      8s  win 49s 承伤31% 破绽输出6%
+ishar            kaltsit    m18 s9      8s  win 54s 承伤8% 破绽输出6%
+# Boss 单场测试台结果（new_kaltsit_m18_ishar）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
