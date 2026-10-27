@@ -131,3 +131,5 @@
 作者页面均允许个人/商业项目使用及修改，禁止转售或分发原素材。原压缩包未包含独立许可文档；来源与页面许可按 2026-10-27 核对记录。只将处理后的游戏帧条交付至 `art/incoming`，遵循本项目既有第三方素材流程。
 另有三条骑士碰撞桩专用衍生帧条，读取既有 ansimuz 冰柱并使用同一色板；原共享素材未覆盖。
 转换工具 `tools/import_knight_ice.py`；来源文件 SHA256、切帧序号、输出尺寸记录在 `art/incoming/knight_ice_manifest.json`。帧数以实际 PNG 为准，部分与网页说明不一致。
+
+10-27 连续冰墙追加：CreativeKind ice_prison-Sheet.png 生成 fx_knight_ice_wall（64×64，36 帧），沿用上列许可与冷灰蓝转换，不另引入来源。

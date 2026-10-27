@@ -139,10 +139,10 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float) -> void:
 				"maxr": 600.0, "spd": Bal.v("boss/ishar_song_spd", 220.0), "true": true, "name": "大群之歌", "col": COL,
 				"dmg": e.dmg * smult, "cancel_dead": true})
 			end = w.dur
-			# 后续圈（10-25 加密：一二幕 2 圈、三幕 3 圈；原一二幕 1 圈、三幕 2 圈）：每圈晚 0.9 秒、缺口转 90°（§8.2「拦路」：穿过一圈的缺口后要再找下一圈的）
-			for q in (2 if act3 else 1):
-				var ga: float = dir.angle() + PI * 0.5 * float(q + 1)
-				var w2 := _warn(e, "circle", 1.7 + 0.9 * q, {"r": 90.0, "act": "song_ring", "gaps": [ga, ga + PI], "gap_half": gh,
+			# 连续声波：普通三圈、末幕四圈，后续每秒一圈，缺口逐次转 0.28 弧度；避免突然转 90°，缩小贯穿整轮的共同安全方向。
+			for q in (3 if act3 else 2):
+				var ga: float = dir.angle() + 0.28 * float(q + 1)
+				var w2 := _warn(e, "circle", 1.8 + 1.0 * q, {"r": 90.0, "act": "song_ring", "gaps": [ga, ga + PI], "gap_half": gh,
 					"maxr": 600.0, "spd": Bal.v("boss/ishar_song_spd", 220.0), "true": true, "name": "", "col": COL,
 					"dmg": e.dmg * smult, "cancel_dead": true, "lock": false})
 				end = maxf(end, w2.dur)

@@ -55,6 +55,8 @@ func _ready() -> void:
 	if ice_review:
 		segment_seconds = 12.0
 		scenarios = [{"name":"环形冰波", "move":"长枪回旋", "phase":2}, {"name":"三段冰锋", "move":"长枪连刺", "phase":1}, {"name":"放射双冰阵", "move":"踏冰裂阵", "phase":1}, {"name":"快速弧斩", "move":"断潮劈击", "phase":2}, {"name":"冰枪封径", "move":"冰枪封径", "phase":2}, {"name":"冻潮夹击", "move":"冻潮夹击", "phase":2}]
+	if "--knight-wall-review" in OS.get_cmdline_user_args():
+		scenarios=scenarios.filter(func(s):return s.move=="冻潮夹击")
 	for scenario in scenarios:
 		fresh()
 		g.enemies = [boss]

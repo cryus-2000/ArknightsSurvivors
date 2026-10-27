@@ -54,11 +54,13 @@ def main():
     parser.add_argument("--encode-only", action="store_true")
     parser.add_argument("--combos", action="store_true", help="Knight only: three 18-second segments with one forced opener and live AI")
     parser.add_argument("--ice-review", action="store_true", help="Knight only: six 12-second live-AI ice attack reviews")
+    parser.add_argument("--wall-review", action="store_true", help="With --ice-review: capture closing walls only")
     args = parser.parse_args()
+    if args.wall_review and not args.ice_review: parser.error("--wall-review requires --ice-review")
     if args.ice_review and (args.boss != "knight_boss" or args.combos):
         parser.error("--ice-review requires --boss knight_boss and cannot be combined with --combos")
     live_ai = args.combos or args.ice_review
-    move_count = 6 if args.ice_review else 3
+    move_count = 1 if args.wall_review else (6 if args.ice_review else 3)
     if args.combos and args.boss != "knight_boss":
         parser.error("--combos requires --boss knight_boss")
     move_seconds = 18.0 if args.combos else MOVE_SECONDS
@@ -78,7 +80,7 @@ def main():
             folder.mkdir(exist_ok=True)
             # Pin the code that the process loads, even while another worker edits it.
             sources = {}
-            for name in ["game/scripts/art.gd", "art/incoming/knight_ice_manifest.json", "game/scripts/render/boss_attack_draw.gd", "game/scripts/enemies/final_attacks.gd", "game/scripts/render/final_attack_grains.gd", "game/scripts/render/final_boss_materials.gd", "game/scripts/render/paranoia_bubble.gd", "game/tests/final_boss_fx_preview.gd", "game/tests/knight_combo_preview.gd", "game/scripts/boss_ai.gd", "game/scripts/enemies/bosses/knight_boss.gd", "game/scripts/run/enemies.gd", "game/scripts/enemies/telegraph.gd", "game/scripts/render/world.gd", "game/scripts/render/vfx.gd", "game/scripts/render/boss_beam.gd", "game/scripts/run/combat.gd"]:
+            for name in ["game/scripts/enemies/boss_patterns.gd", "game/data/enemies.json", "game/scripts/enemies/bosses/ishar.gd", "game/scripts/art.gd", "art/incoming/knight_ice_manifest.json", "game/scripts/render/boss_attack_draw.gd", "game/scripts/enemies/final_attacks.gd", "game/scripts/render/final_attack_grains.gd", "game/scripts/render/final_boss_materials.gd", "game/scripts/render/paranoia_bubble.gd", "game/tests/final_boss_fx_preview.gd", "game/tests/knight_combo_preview.gd", "game/scripts/boss_ai.gd", "game/scripts/enemies/bosses/knight_boss.gd", "game/scripts/run/enemies.gd", "game/scripts/enemies/telegraph.gd", "game/scripts/render/world.gd", "game/scripts/render/vfx.gd", "game/scripts/render/boss_beam.gd", "game/scripts/run/combat.gd"]:
                 path = ROOT / name
                 if path.exists():
                     data = path.read_bytes()
@@ -89,6 +91,7 @@ def main():
                        ("res://tests/knight_combo_preview.tscn" if live_ai else "res://tests/final_boss_fx_preview.tscn"), "--", "--fx-preview", "--seed=271027", "--boss=" + boss, "--quality=" + args.quality, "--shotdir=" + folder.as_posix()]
             if args.ice_review:
                 command.append("--knight-ice-review")
+            if args.wall_review: command.append("--knight-wall-review")
             out, err, timed_out = runner.run_godot(command, 480)
             (folder / "run.log").write_text(out + "\n" + err, encoding="utf-8")
             if timed_out or runner.script_errors(out, err) or "FX_PREVIEW_DONE" not in out:

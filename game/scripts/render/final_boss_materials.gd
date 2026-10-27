@@ -9,6 +9,11 @@ static func draw(g, w: Dictionary, alpha: float) -> bool:
 	var age: float = float(w.get("age", float(w.get("max", 0.0)) - float(w.get("life", 0.0))))
 	var skin: String = str(w.get("skin", ""))
 	var r = g.world
+	if w.get("kind","")=="final_impact" and skin in ["ice","spear","step"] and age>float(w.max)*.4:
+		_dissolve(g,w,age,alpha)
+	if w.get("retiring",false) and skin in ["crescent","ice_thrust","ice_wave","spear","step"]:
+		_dissolve(g,w,age,alpha)
+		return true
 	match skin:
 		"ice": _ice(r, w, age, alpha)
 		"ice_field": _ice_field(g,w,age,alpha)
@@ -121,19 +126,56 @@ static func _crystal(g, p: Vector2, age: float, scale: float, alpha: float, rema
 static func _ice_field(g, w: Dictionary, age: float, alpha: float) -> void:
 	var r = g.world
 	var inner: float = float(w.get("inner_r",0.0))
-	var radius: float = float(w.get("r",560.0))
 	var half: float = float(w.get("half",PI/16))
 	# Ground frost follows the exact sector. Tall columns have roots inside it.
 	for i in 16:
 		var a := Vector2.from_angle(w.ang-half+2*half*i/16)
 		var b := Vector2.from_angle(w.ang-half+2*half*(i+1)/16)
-		_poly(r,[w.pos+a*inner,w.pos+a*radius,w.pos+b*radius,w.pos+b*inner],_c(Color(.18,.32,.40),alpha*.32))
-		if i%3==1:
-			_band(r,w.pos+a*maxf(inner,55),w.pos+a*(radius-15),1,1,_c(Color(.43,.62,.72),alpha*.5))
+		var ra := field_radius(w,a.angle())
+		var rb := field_radius(w,b.angle())
+		if minf(ra,rb)<=inner: continue
+		_poly(r,[w.pos+a*inner,w.pos+a*ra,w.pos+b*rb,w.pos+b*inner],_c(Color(.18,.32,.40),alpha*.32))
+		if i%3==1 and ra>maxf(inner,55)+15:
+			_band(r,w.pos+a*maxf(inner,55),w.pos+a*(ra-15),1,1,_c(Color(.43,.62,.72),alpha*.5))
 	for j in 6:
-		var distance: float = lerpf(maxf(85,inner+35),radius-35,(j+.5)/6)
 		var angle: float = w.ang+sin(j*2.7)*half*.36
+		var edge: float=field_radius(w,angle)-30
+		if edge<=maxf(65,inner+5): continue
+		var distance: float = lerpf(maxf(65,inner+5),edge,(j+.5)/6)
 		_crystal(g,w.pos+Vector2.from_angle(angle)*distance,age,.55+_n(j,5)*.20,alpha,float(w.get("life",INF)))
+
+static func field_radius(w: Dictionary, angle: float) -> float:
+	if not w.has("arena_radius"): return float(w.r)
+	var offset: Vector2 = w.pos-w.arena_center
+	var projection: float = offset.dot(Vector2.from_angle(angle))
+	return maxf(0,-projection+sqrt(maxf(0,projection*projection+w.arena_radius*w.arena_radius-offset.length_squared())))
+
+static func _remaining(w: Dictionary, age: float) -> float:
+	if w.get("retiring",false): return .299*float(w.life)/float(w.max)
+	return INF if w.has("age") else float(w.get("life",INF))
+
+static func _dissolve(g,w: Dictionary,age: float,alpha: float) -> void:
+	# Detached shards are visual-only; their source hazard has already been removed.
+	var progress: float = clampf(age/float(w.max),0,1)
+	var r=g.world
+	if progress<.4:
+		if w.skin=="crescent": _blade(r,w,age,alpha*pow(1-progress/.4,2))
+		elif w.skin=="ice_wave": _ice_wave(r,w,g.combat.GROUND_Y,age,alpha*pow(1-progress/.4,2))
+	for i in 30:
+		var t: float = (i+.5)/30
+		var at: Vector2
+		var direction := Vector2.from_angle(w.ang)
+		if w.skin=="crescent":
+			direction=Vector2.from_angle(w.ang+lerpf(-w.half,w.half,t))
+			at=w.pos-Vector2.from_angle(w.ang)*float(w.get("arc_back",0))+direction*w.r
+		elif w.skin=="ice_wave":
+			direction=Vector2(cos(TAU*t),sin(TAU*t)*g.combat.GROUND_Y)
+			if w.has("gap_ang") and absf(angle_difference(direction.angle(),w.gap_ang))<w.gap_half: continue
+			at=w.pos+direction*w.r
+		else: at=w.pos+direction*w.len*t
+		at+=direction*progress*(10+_n(i,7)*24)+Vector2(0,progress*progress*22)
+		var size: float = (2+_n(i,3)*5)*(1-progress)
+		_poly(r,[at-Vector2(size,0),at-Vector2(0,size*2),at+Vector2(size,0),at+Vector2(0,size)],_c(Color(.56,.72,.77),alpha*(1-progress)))
 
 static func _wave_segments(w: Dictionary, gy: float) -> Array:
 	var intervals: Array = [Vector2(0,TAU)]
@@ -208,16 +250,38 @@ static func _ice_lance(g, w: Dictionary, age: float, alpha: float) -> void:
 		var d := Vector2.from_angle(i*TAU/9)
 		_band(r,w.pos+d*12,w.pos+Vector2(d.x,d.y*.62)*w.r*.9,1,1,_c(Color(.48,.65,.76),alpha*.6))
 	for j in 3:
-		_crystal(g,w.pos+Vector2((j-1)*w.r*.45,(j%2)*10),age,.47 if j!=1 else .7,alpha,float(w.get("life",INF))-age)
+		_crystal(g,w.pos+Vector2((j-1)*w.r*.45,(j%2)*10),age,.47 if j!=1 else .7,alpha,_remaining(w,age))
 
 static func _ice_wall(g, w: Dictionary, age: float, alpha: float) -> void:
 	var d := Vector2.from_angle(w.ang)
 	var n := d.orthogonal()
 	var end: Vector2 = w.pos+d*w.len
 	_poly(g.world,[w.pos-n*w.wid,end-n*w.wid,end+n*w.wid,w.pos+n*w.wid],_c(Color(.19,.35,.44),alpha*.4))
-	for i in 12:
-		var p: Vector2 = w.pos+d*w.len*(i+.5)/12
-		_crystal(g,p,age,.44+_n(i,4)*.16,alpha,float(w.get("life",INF))-age)
+	# A joined ice face supports overlapping broad crests; no isolated pillar silhouettes.
+	var remaining: float=_remaining(w,age)
+	var grow: float=clampf(age/.22,0,1) if not w.get("retiring",false) else 1.0
+	var fade: float=clampf(remaining/.30,0,1) if remaining<.30 else 1.0
+	var count: int=maxi(2,ceili(w.len/28.0))
+	for i in count:
+		var a: Vector2=w.pos+d*w.len*i/count
+		var b: Vector2=w.pos+d*w.len*(i+1)/count
+		var up:=Vector2(0,-32*grow)
+		_poly(g.world,[a-n*w.wid*.5,b-n*w.wid*.5,b+up,a+up],_c(Color(.25,.40,.47),alpha*fade))
+		_poly(g.world,[a+up,b+up,b+n*w.wid*.5,a+n*w.wid*.5],_c(Color(.37,.54,.60),alpha*fade))
+		_band(g.world,a+up,b+up,1,1,_c(Color(.63,.75,.76),alpha*fade))
+	if not g is Dictionary and g.world._lazy_tex("fx_knight_ice_wall")!=null:
+		g.world.tb_flush()
+		var frame: int=clampi(10+int(age/.22*8),10,17) if age<.22 else 17+int(age*8)%3
+		if remaining<.30: frame=clampi(23+int((.30-remaining)/.30*13),23,35)
+		# Sort roots from back to front, including a second row across the wall thickness.
+		var roots: Array[Vector2]=[]
+		for i in count:
+			var p: Vector2=w.pos+d*w.len*(i+.5)/count
+			roots.append(p-n*w.wid*.32)
+			roots.append(p+n*w.wid*.32)
+		roots.sort_custom(func(a:Vector2,b:Vector2):return a.y<b.y)
+		for p in roots:
+			g.vfx.spr("fx_knight_ice_wall",36,frame,p.snapped(Vector2.ONE),1.0,false,Color(.78,.86,.88,alpha),Vector2(.5,60.0/64))
 
 static func _blade(r, w: Dictionary, age: float, alpha: float) -> void:
 	if age>0.0 and not w.has("formation"):

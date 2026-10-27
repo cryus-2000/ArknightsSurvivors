@@ -157,13 +157,17 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 				for i in 16:
 					var va := Vector2.from_angle(w.ang-w.half+2*w.half*i/16)
 					var vb := Vector2.from_angle(w.ang-w.half+2*w.half*(i+1)/16)
-					r.tb_quad(p+va*inner,p+va*w.r,p+vb*w.r,p+vb*inner,fill)
-					if i%4==1: _strip(r,p+va*(inner+15),p+va*(inner+(w.r-inner)*progress),1,_ink(Color(.45,.68,.79),alpha*.6))
-				_ring(r,p,w.r,1,2,edge,w.ang-w.half,w.ang+w.half)
-				_ring(r,p,inner,1,2,edge,w.ang-w.half,w.ang+w.half)
+					var ra: float = Materials.field_radius(w,va.angle())
+					var rb: float = Materials.field_radius(w,vb.angle())
+					if minf(ra,rb)<=inner: continue
+					r.tb_quad(p+va*inner,p+va*ra,p+vb*rb,p+vb*inner,fill)
+					_strip(r,p+va*ra,p+vb*rb,2,edge)
+					_strip(r,p+va*inner,p+vb*inner,2,edge)
+					if i%4==1: _strip(r,p+va*(inner+15),p+va*(inner+(ra-inner)*progress),1,_ink(Color(.45,.68,.79),alpha*.6))
 				for side in [-1.0,1.0]:
 					var direction := Vector2.from_angle(w.ang+side*w.half)
-					_strip(r,p+direction*inner,p+direction*w.r,2,edge)
+					if Materials.field_radius(w,direction.angle())>inner:
+						_strip(r,p+direction*inner,p+direction*Materials.field_radius(w,direction.angle()),2,edge)
 				return
 			var pts := PackedVector2Array([p])
 			for i in 25: pts.append(p + Vector2.from_angle(w.ang - w.half + w.half * 2.0 * i / 24.0) * w.r)

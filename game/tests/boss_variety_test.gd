@@ -12,6 +12,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	g.set_process(false)
 	g.zone_frozen = false
+	_check_pattern_cadence()
 	for kind in ["carmen", "iberia", "path", "bishop", "archon", "immortal", "paranoia", "knight_boss", "ishar", "izumik"]:
 		g.t = 100.0
 		g.enemies.clear()
@@ -143,12 +144,17 @@ func _ready() -> void:
 		check(group.size() >= 3, str(spec) + " actual grouped attack")
 		if not group.is_empty():
 			var time: float = group[0].dur
-			check(group.all(func(w): return is_equal_approx(w.dur, time)), str(spec) + " synchronized warnings")
+			var staged: bool = group[0].get("pattern", {}).has("wave_interval")
+			if not staged:
+				check(group.all(func(w): return is_equal_approx(w.dur, time)), str(spec) + " synchronized warnings")
 			g.invuln = 100.0
 			g.bai._update_warns(time - 0.01)
 			check(group.all(func(w): return not w.done), "none fire before shared warning")
 			g.bai._update_warns(0.02)
-			check(group.all(func(w): return w.done), "all fire together at shared deadline")
+			if staged:
+				check(group[0].done and not group[1].done, "only first beat fires at first deadline")
+			else:
+				check(group.all(func(w): return w.done), "all fire together at shared deadline")
 	# The protected human / learning phases must never schedule new hostile patterns.
 	for kind in ["ishar", "izumik"]:
 		var e: Dictionary = g.spawner.new_enemy(kind, Vector2.ZERO)
@@ -427,3 +433,51 @@ func capture_patterns() -> void:
 	g.queue_redraw()
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png("res://../build/ea_ishar_tear_echo.png")
+
+
+func _check_pattern_cadence() -> void:
+	for kind in ["paranoia", "izumik"]:
+		var e: Dictionary = g.spawner.new_enemy(kind, Vector2.ZERO)
+		e.phase = 2
+		e.age = 20.0
+		e.invuln = false
+		e.pattern_force = "泡影环" if kind == "paranoia" else "解读旋涡"
+		g.ppos = Vector2(760, 0)
+		g.warns.clear()
+		check(g.bai.patterns.try_attack(e, Vector2.RIGHT, 760.0), kind + " rotating ring starts")
+		var rings: Array = g.warns.filter(func(w): return w.get("act", "") == "pattern_ring")
+		check(rings.size() == 3, kind + " keeps original three waves")
+		if rings.size() != 3:
+			continue
+		check(absf(angle_difference(rings[0].gap_ang, rings[2].gap_ang)) > 2.0 * rings[0].gap_half, kind + " no common stationary gap")
+		# Construct a continuous route inside every gap, allowing the 12px player + 7px bullet radius.
+		# Even at 70% of the base 150px/s speed this route needs no dash, at near and far ranges.
+		for radius in [120.0, 200.0, 400.0, 760.0]:
+			var safe_half: float = rings[0].gap_half - asin(19.0 / radius) - 0.02
+			var first: float = rings[0].gap_ang + safe_half
+			var last: float = rings[2].gap_ang - safe_half
+			check(radius * absf(first) <= 105.0 * (rings[0].dur + radius / float(rings[0].pattern.speed)), kind + " first gap reachable from initial aim")
+			for k in 3:
+				var aim: float = lerpf(first, last, float(k) / 2.0)
+				check(absf(angle_difference(aim, rings[k].gap_ang)) <= safe_half + 0.001, kind + " route clears collision margin")
+				if k > 0:
+					var dt: float = rings[k].dur - rings[k - 1].dur
+					check(radius * absf(last - first) / 2.0 <= 105.0 * dt, kind + " gap route reachable while slowed")
+		for k in 3:
+			check(rings[k].dur - rings[k].track >= 0.4, kind + " warning lock retained")
+			g.ebullets.clear()
+			g.bai.patterns.resolve(rings[k])
+			for b in g.ebullets:
+				check(not g.tele.in_gap(rings[k], b.vel.angle()), kind + " actual bullets preserve moving gap")
+		check(e.pattern_next - g.t - rings[2].dur >= 2.799, kind + " explicit respite retained")
+	var tide: Dictionary = g.spawner.new_enemy("izumik", Vector2.ZERO)
+	tide.phase = 2
+	tide.invuln = false
+	tide.pattern_force = "潮汐坠落"
+	g.warns.clear()
+	g.bai.patterns.try_attack(tide, Vector2.RIGHT, 400.0)
+	check(g.warns.size() == 7, "tide keeps seven distinct warnings")
+	for k in range(1, g.warns.size()):
+		check(is_equal_approx(g.warns[k].dur - g.warns[k - 1].dur, 0.24), "tide resolves on successive beats")
+	g.warns.clear()
+	g.ebullets.clear()

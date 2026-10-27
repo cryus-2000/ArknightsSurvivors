@@ -188,6 +188,7 @@ func hits_leader(w: Dictionary) -> bool:
 		"cone":
 			var dv: Vector2 = pp - w.pos
 			if w.get("skin","")=="ice_field":
+				if w.has("arena_radius") and pp.distance_to(w.arena_center)>w.arena_radius: return false
 				return dv.length()>=float(w.get("inner_r",0.0)) and dv.length()<w.r and absf(angle_difference(dv.angle(),w.ang))<w.half
 			return dv.length() < w.r + 10.0 and absf(angle_difference(dv.angle(), w.ang)) < w.half + 0.12
 	return false

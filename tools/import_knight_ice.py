@@ -9,6 +9,7 @@ LIB = next(p for p in [ROOT / 'art/third_party/ice_20261027', ROOT.parents[1] / 
 P1 = 'pimen_01/Ice Effect 01/'
 P2 = 'pimen_02/Ice Effect 02/'
 SPECS = {
+    'fx_knight_ice_wall': ('creativekind/ice_prison-Sheet.png', 64, list(range(36))),
     'prop_knight_frost_stake': ('repo:art/incoming/prop_ice_pillar.png', 64, list(range(4))),
     'prop_knight_frost_stake_rise': ('repo:art/incoming/prop_ice_pillar_rise.png', 64, list(range(3))),
     'prop_knight_frost_stake_break': ('repo:art/incoming/prop_ice_pillar_break.png', 64, list(range(6))),

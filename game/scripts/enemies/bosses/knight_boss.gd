@@ -44,6 +44,8 @@ func cancel_combo(e: Dictionary) -> void:
 	e.hunt_follow_at = INF
 	e.erase("breath_at")
 	g.warns = g.warns.filter(func(w):return not is_same(w.owner,e) or (w.dmg<=0.0 and w.act!="final_attack"))
+	for h in g.bai.finals.hazards:
+		if is_same(h.owner,e): g.bai.finals._pop(h)
 	g.bai.finals.hazards = g.bai.finals.hazards.filter(func(h):return not is_same(h.owner,e))
 
 ## Called before the shared optional attacks, so a reserved follow-up cannot be stolen.

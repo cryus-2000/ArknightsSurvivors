@@ -75,10 +75,12 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 				named = true
 		"踏冰裂阵":
 			var first_duration := 1.3
+			var center: Vector2 = g.zone_next_c if g.zone_frozen else e.pos
+			var radius: float = g.zone_next_r if g.zone_frozen else 560.0
 			for wave in 2:
 				for spoke in 8:
 					var w: Dictionary = _warn(e,"cone",1.3 if wave==0 else 2.7,{"name":name if spoke==0 else "", "pos":e.pos,
-						"ang":dir.angle()+spoke*PI/4+wave*PI/8,"r":560.0,"inner_r":60.0,"half":PI/16,"skin":"ice_field","chill":0.5,"ice_wave":wave,
+						"ang":dir.angle()+spoke*PI/4+wave*PI/8,"r":radius+e.pos.distance_to(center),"arena_center":center,"arena_radius":radius,"inner_r":60.0,"half":PI/16,"skin":"ice_field","chill":0.5,"ice_wave":wave,
 						"tell_after":0.0 if wave==0 else first_duration})
 					if wave==0: first_duration=w.dur
 		"冰枪封径":
@@ -86,10 +88,14 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 				_warn(e,"circle",1.2+k*.45,{"name":name if k==0 else "","pos":g.ppos+side*(k-1)*160.0,
 					"r":105.0,"skin":"ice_lance","motion":"frost_zone","speed":0.0,"life":2.0,"chill":1.0})
 		"冻潮夹击":
+			# Keep the near-end escape inside the arena, even when aiming tangentially at its edge.
+			if g.zone_frozen and (g.ppos-dir*228.0).distance_to(g.zone_next_c)>g.zone_next_r-20.0:
+				dir=(g.ppos-g.zone_next_c).normalized()
+				side=dir.orthogonal()
 			for sign_side in [-1.0,1.0]:
-				_warn(e,"line",1.4,{"name":name if sign_side<0 else "","pos":g.ppos-dir*350.0+side*320.0*sign_side,
-					"ang":dir.angle(),"len":700.0,"wid":28.0,"skin":"ice_wall","motion":"wall",
-					"velocity":side*(-sign_side*210.0),"life":1.05,"chill":0.8})
+				_warn(e,"line",1.4,{"name":name if sign_side<0 else "","pos":g.ppos-dir*180.0+side*420.0*sign_side,
+					"ang":dir.angle(),"len":900.0,"wid":36.0,"skin":"ice_wall","motion":"wall",
+					"velocity":side*(-sign_side*420.0),"life":1.0,"chill":0.8})
 		"断潮劈击":
 			_warn(e, "arc", 1.7, {"name": name, "ang": dir.angle(), "track": 0.85, "r": 640.0, "half": 0.52, "arc_back": 480.0, "wid": 26.0, "style": 3,
 				"skin": "crescent", "motion": "crescent", "speed": 450.0, "accel": 5000.0, "max_speed": 1450.0, "life": 0.8, "dmg": e.dmg * 1.15})
@@ -108,11 +114,13 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 					"len": 780.0, "wid": 17.0, "track": 0.5 + 0.4 * k, "skin": "choir", "source": source, "dmg": e.dmg * 0.6})
 		"合唱压境":
 			var sources: Array = choir_sources(e)
-			for k in sources.size():
-				var source: Dictionary = sources[k]
-				_warn(e, "circle", 1.35, {"name": name if k == 0 else "", "pos": source.pos, "r": 34.0,
-					"skin": "choir", "motion": "linear", "ang": (g.ppos - source.pos).angle(), "source": source,
-					"speed": 130.0, "life": 3.0, "dmg": e.dmg * 0.8})
+			for wave in 3:
+				for k in sources.size():
+					var source: Dictionary = sources[k]
+					for lane in [-1,0,1]:
+						_warn(e,"circle",1.35+.8*wave,{"name":name if wave==0 and k==0 and lane==0 else "","pos":source.pos,"r":18.0,
+							"skin":"choir","motion":"linear","ang":(g.ppos-source.pos).angle()+lane*.32+(wave-1)*.12,"source":source,
+							"speed":190.0,"life":4.2,"dmg":e.dmg*.6})
 		"深海触腕":
 			# 两条触腕从两侧夹击；中心通道与外侧都可躲，非近身咬击的换名。
 			for k in 2:
@@ -143,7 +151,7 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 			for k in 2:
 				_warn(e, "circle", 1.5 + 0.85 * k, {"name": name if k == 0 else "", "pos": e.pos,
 					"r": 360.0 - k * 120.0, "inner_r": 240.0 - k * 120.0, "skin": "abyss", "dmg": e.dmg})
-	if not chained: e.final_next = g.t + float(e.wind) + 7.0
+	if not chained: e.final_next = g.t + float(e.wind) + (5.0 if e.phase==2 else 7.0)
 	return true
 
 func choir_sources(e: Dictionary) -> Array:
@@ -196,7 +204,7 @@ func resolve(w: Dictionary) -> void:
 		g.tele.warn_damage(w)
 		var f: Dictionary = w.duplicate()
 		f.kind = "final_impact"
-		f.life = 0.65 if w.get("skin","")=="ice_field" else 0.38
+		f.life = 0.95 if w.get("skin","")=="ice_field" else 0.5
 		f.max = f.life
 		f.enemy = true
 		g.fx.append(f)
@@ -208,6 +216,7 @@ func update(e: Dictionary, dt: float) -> void:
 	var live: Array = []
 	for h in hazards:
 		if cancelled(h) or not g.bosses.has(h.owner):
+			if h.owner.type=="knight_boss": _pop(h)
 			continue
 		if not is_same(h.owner, e):
 			live.append(h)
@@ -253,6 +262,15 @@ func update(e: Dictionary, dt: float) -> void:
 	hazards = live
 
 func _pop(h: Dictionary) -> void:
+	if h.owner.type=="knight_boss":
+		var tail: Dictionary = h.duplicate()
+		tail.erase("age")
+		tail.kind="final_impact"
+		tail.retiring=true
+		tail.dmg=0.0
+		tail.life=0.38
+		tail.max=0.38
+		g.fx.append(tail)
 	if h.get("skin", "") == "ice_thrust" and not g is Dictionary:
 		g.vfx.fx_sprite("fx_knight_ice_hit",h.pos+Vector2.from_angle(h.ang)*h.len,g.PX,h.ang)
 	if h.get("skin", "") != "bubble":

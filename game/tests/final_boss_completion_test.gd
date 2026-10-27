@@ -111,6 +111,8 @@ func _ready() -> void:
 	_test_bubble_tracking()
 	_test_knight_arc()
 	_test_ice_field()
+	_test_arena_ice_and_closing_walls()
+	_test_ishar_pressure()
 	if DisplayServer.get_name() != "headless" and Cfg.dev_args().has("--capture-ui"):
 		await _capture()
 	print("FINAL BOSS COMPLETION failures=", failures)
@@ -381,3 +383,62 @@ func _test_knight_ice_motion() -> void:
 	check(thrust.hit,"final partial frame sweeps telegraphed thrust endpoint")
 	check(is_equal_approx(thrust.pos.x+thrust.len,400),"thrust reaches exact endpoint before expiring")
 	check(g.bai.finals.hazards.is_empty(),"endpoint sweep still expires on time")
+
+func _test_arena_ice_and_closing_walls() -> void:
+	var boss: Dictionary=fresh("knight_boss")
+	g.zone_frozen=true
+	g.zone_next_c=Vector2(100,20)
+	g.zone_next_r=700.0
+	boss.pos=Vector2(-170,50)
+	g.bai.finals.force_move(boss,"踏冰裂阵",Vector2.RIGHT,220)
+	var w: Dictionary=g.warns[0]
+	check(w.arena_radius==700.0 and w.pos==boss.pos,"ice field uses arena boundary but keeps boss origin")
+	var materials=preload("res://scripts/render/final_boss_materials.gd")
+	for i in 64:
+		var angle: float=TAU*i/64
+		var edge: Vector2=w.pos+Vector2.from_angle(angle)*materials.field_radius(w,angle)
+		check(absf(edge.distance_to(g.zone_next_c)-700.0)<.01,"off-center ice reaches arena edge in every direction")
+	g.ppos=Vector2(801,34)
+	check(not g.tele.hits_leader(w),"ice cannot damage beyond arena boundary")
+	g.zone_frozen=false
+	boss=fresh("knight_boss")
+	boss.phase=2
+	g.bai.finals.force_move(boss,"冻潮夹击",Vector2.RIGHT,220)
+	var a: Dictionary=g.warns[0]
+	var b: Dictionary=g.warns[1]
+	check((g.ppos-a.pos).dot(Vector2.from_angle(a.ang))+36.0+12.0 < 105.0*(a.dur+1.0),"closing wall near endpoint is reachable at seventy percent move speed")
+	check(a.len==900 and a.wid==36 and a.velocity.length()==420,"closing walls are wider longer and faster")
+	check((a.pos+a.velocity*a.life).distance_to(b.pos+b.velocity*b.life)<.01,"both walls meet without a permanent center gap")
+	for warn in g.warns: g.bai.finals.resolve(warn)
+	g.warns.clear()
+	g.bai.finals.update(boss,1.0)
+	check(g.bai.finals.hazards.is_empty(),"closing walls stop damaging at contact")
+	var tails: Array=g.fx.filter(func(f):return f.get("retiring",false))
+	check(tails.size()==2 and tails.all(func(f):return f.dmg==0.0 and f.life>0),"both walls retain harmless break animations")
+
+	g.zone_frozen=true
+	g.zone_next_c=Vector2.ZERO
+	g.zone_next_r=650.0
+	g.ppos=Vector2(640,0)
+	boss.pos=Vector2(640,50)
+	g.bai.finals.force_move(boss,"冻潮夹击",Vector2.UP,50)
+	var edge_wall: Dictionary=g.warns[0]
+	var escape: Vector2=g.ppos-Vector2.from_angle(edge_wall.ang)*228.0
+	check(escape.distance_to(g.zone_next_c)<630.0,"wall endpoint escape turns inward near arena boundary")
+	g.zone_frozen=false
+
+func _test_ishar_pressure() -> void:
+	var boss: Dictionary=fresh("ishar")
+	g.bai.finals.force_move(boss,"合唱压境",Vector2.RIGHT,220)
+	check(g.warns.size()==9,"single choir source launches three three-lane waves")
+	for i in 3:
+		check(absf(g.warns[i*3].dur-(1.35+0.8*i))<.01,"choir volleys are separated in time")
+	for gates in [0,2]:
+		boss=fresh("ishar")
+		boss.gates_passed=gates
+		g.bai.boss("ishar").force_move(boss,"大群之歌",Vector2.RIGHT,220)
+		var rings: Array=g.warns.filter(func(w):return w.act=="song_ring")
+		check(rings.size()==(4 if gates==2 else 3),"song gains a fourth wave in final act")
+		for i in range(1,rings.size()):
+			check(absf(rings[i].dur-rings[i-1].dur-1.0)<.01,"song waves retain one second travel interval")
+			check(absf(angle_difference(rings[i-1].gaps[0],rings[i].gaps[0])-.28)<.01,"song gap rotates gradually")

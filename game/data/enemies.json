@@ -621,6 +621,9 @@
    "patterns": [
     {
      "name": "潮汐坠落",
+     "wave_interval": 0.24,
+     "recover": 0.8,
+     "cd_p2": 3.2,
      "mode": "rain",
      "waves": 7,
      "radius": 56,
@@ -630,6 +633,11 @@
     },
     {
      "name": "解读旋涡",
+     "gap_face": true,
+     "gap_step": 0.42,
+     "wave_interval": 1.0,
+     "recover": 0.8,
+     "cd_p2": 3.2,
      "mode": "ring",
      "count": 50,
      "waves": 3,
@@ -952,6 +960,10 @@
      "waves_p2": 3,
      "gap_face": true,
      "gap_stagger": 0.35,
+     "gap_step": 0.42,
+     "wave_interval": 1.0,
+     "recover": 0.8,
+     "cd_p2": 2.8,
      "speed": 330,
      "gap": 0.38,
      "mult": 0.468,
