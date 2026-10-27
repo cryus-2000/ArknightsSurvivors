@@ -2571,6 +2571,11 @@ func draw_body() -> void:
 			st = ds
 	# 主控：受击闪白 / 闪红 / 无敌闪烁沿用 game.gd 算好的 sprite.modulate
 	var mod: Color = g.sprite.modulate if is_leader else Color.WHITE
+	if not is_leader and g.state == g.S.DEAD:   # 失败退场：队友泛青白、化成光尘消散（run/defeat_outro.gd 放光尘，docs/62 §3.21c）
+		var k: float = g.defeat_outro.fade(g.state_age)
+		if k >= 1.0:
+			return
+		mod = Color(1.0 + 0.5 * k, 1.0 + 0.8 * k, 1.0 + 0.9 * k, 1.0 - k)
 	draw_sprite_at(pos + Vector2(foot_dx(st), 0) + Vector2(0, arrive_dy()), st.flip, mod, st.frame, st.tex, st.hf, foot_off(st.tex, st.get("kind", "")))
 
 

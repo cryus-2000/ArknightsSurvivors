@@ -94,6 +94,7 @@ const MERCHANT_TIMES := [120.0, 300.0, 480.0]   # 每次都在 Boss（3:30 / 7:0
 var ishar = IsharEncounter.new(self)
 var trial = BossTrial.new(self)
 var victory = VictoryFlow.new(self)
+var defeat_outro = preload("res://scripts/run/defeat_outro.gd").new(self)   # 失败退场演出（docs/62 §3.21c）
 var speed_btn := Rect2()
 var state: int = S.PLAY
 var autotest_sys = AutoTest.new(self)   # 自动测试 / 平衡机器人（docs/29、docs/36）
@@ -1482,6 +1483,7 @@ func _process(delta: float) -> void:
 		banner_t -= delta   # 选卡 / 商人面板 / 精英化演出 / 暂停 / 指南时横幅暂停，关掉后再显示（不然会透过压暗带叠在面板标题下）
 	_pm("")
 	world.update_visuals(simulated_dt if state == S.PLAY else 0.0)
+	defeat_outro.step(delta)   # 倒下过渡里只推进画面：最后一击定格 + 慢放、队友化光尘（run/defeat_outro.gd）
 	_pm("visuals")
 	music_dir.update(delta)
 	boss_intro.update(delta)
@@ -1525,6 +1527,10 @@ func _do_action(act: String) -> void:
 ## 指南页的输入放在 _input：先于 GUI 控件处理，左键（或面板右半 / 下一页按钮）下一页，右键 / 面板左半 / 上一页按钮上一页，页码点可直接点
 func _input(event: InputEvent) -> void:
 	if victory.active:
+		# 胜利演出（慢动作 + 收尾）：任意按键 / 点击 / 触屏跳过，直接进结算；这一下不传给结算（docs/62 §3.21c）
+		if mode == Mode.PLAY and ((event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed) or (event is InputEventScreenTouch and event.pressed)):
+			victory.skip()
+			get_viewport().set_input_as_handled()
 		return
 	if event is InputEventMouseMotion and event.relative.length() > 6.0:
 		kb_nav = false
