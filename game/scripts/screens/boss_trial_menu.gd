@@ -4,7 +4,10 @@ signal closed
 const UI = preload("res://scripts/ui.gd")
 const D = preload("res://scripts/data.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const Squads = preload("res://scripts/run/practice_squads.gd")
 var boss_pick: OptionButton
+var squad_pick: OptionButton
+var squad_ids: Array = []   # 下标 0 = 自选队长（""）
 var op_pick: OptionButton
 var growth_pick: OptionButton
 var phase_pick: OptionButton
@@ -62,6 +65,13 @@ func _ready() -> void:
 		_add_boss_group(group)
 	for ending in D.ENDINGS.values():
 		_add_boss_group([ending.boss])
+	squad_pick = _select_row(box, "分队")
+	squad_ids = [""]
+	squad_pick.add_item("自选队长 · 成长补到打到该 Boss 时的平均水平")
+	for s in Squads.list():
+		squad_ids.append(s.id)
+		squad_pick.add_item(s.label)
+	squad_pick.item_selected.connect(func(_i): _sync_squad())
 	op_pick = _select_row(box, "队长")
 	op_ids = Character.list_ids()
 	for id in op_ids:
@@ -89,7 +99,20 @@ func _ready() -> void:
 		b.pressed.connect(_start if label == "开始演练" else close)
 		buttons.add_child(b)
 	_resize_panel()
+	_sync_squad()
 	hide()
+
+
+## 选了成品分队：队长与成长阶段由分队决定，两行置灰
+func _sync_squad() -> void:
+	var own: bool = squad_pick.selected <= 0
+	op_pick.disabled = not own
+	growth_pick.disabled = not own
+	if not own:
+		var op := str(Squads.squad(squad_ids[squad_pick.selected]).get("op", ""))
+		if op_ids.has(op):
+			op_pick.select(op_ids.find(op))   # 置灰的两行显示分队的开局干员与完整成长
+		growth_pick.select(2)
 func _resize_panel() -> void:
 	if is_instance_valid(panel):
 		panel.custom_minimum_size.x = clampf(size.x - 64.0, 320.0, 660.0)
@@ -127,7 +150,7 @@ func close() -> void:
 func _start() -> void:
 	if not Cfg.can_boss_trial() or boss_groups.is_empty():
 		return
-	Cfg.boss_trial_request = {"group": boss_groups[boss_pick.selected].duplicate(), "operator": op_ids[op_pick.selected], "growth": growth_pick.selected, "phase": phase_pick.selected + 1, "safe": safe_pick.button_pressed}
+	Cfg.boss_trial_request = {"group": boss_groups[boss_pick.selected].duplicate(), "operator": op_ids[op_pick.selected], "growth": growth_pick.selected, "phase": phase_pick.selected + 1, "safe": safe_pick.button_pressed, "squad": squad_ids[maxi(0, squad_pick.selected)]}
 	get_tree().change_scene_to_file("res://game.tscn")
 func _input(event: InputEvent) -> void:
 	if visible and event is InputEventKey and event.pressed and Pad.kc(event) == KEY_ESCAPE:
