@@ -3,17 +3,21 @@ extends RefCounted
 const Game = preload("res://scripts/game.gd")
 const D = preload("res://scripts/data.gd")
 const Character = preload("res://scripts/characters/character.gd")
+const Squads = preload("res://scripts/run/practice_squads.gd")   # 成品分队（测试台到场快照，docs/170）
+const Meta = preload("res://scripts/core/meta.gd")
 var g: Game
 var active := false
 var started_at := 0.0
 var config: Dictionary = {}
 var saved_progress: Dictionary = {}
 var targets: Array = []
+var squad_snap: Dictionary = {}   # 选了成品分队时：这组 Boss 对应登场位的快照
 
 func _init(game: Game) -> void:
 	g = game
 
 func consume() -> void:
+	Meta.practice_budget = -1
 	if g.demo_op != "" or Cfg.boss_trial_request.is_empty():
 		return
 	var request: Dictionary = Cfg.boss_trial_request.duplicate(true)
@@ -28,6 +32,16 @@ func consume() -> void:
 		return
 	config = request
 	config.group = group
+	# 成品分队：开局干员、认知档都按快照（认知在 Meta.apply_run 读 practice_budget，那一步在本函数之后、setup 之前）
+	Meta.practice_budget = -1
+	squad_snap = {}
+	var sq := str(config.get("squad", ""))
+	if sq != "":
+		squad_snap = Squads.snap_for(sq, group)
+		var info: Dictionary = Squads.squad(sq)
+		if not squad_snap.is_empty():
+			config.operator = str(info.get("op", config.get("operator", "")))
+			Meta.practice_budget = int(info.get("meta", 0))
 	if not Character.list_ids().has(config.get("operator", "")):
 		config.operator = "mizuki"
 	active = true
@@ -48,14 +62,22 @@ func setup() -> void:
 	g.spawner.enter_arena(config.group[0])
 	g.ppos = g.map.push_out(g.zone_c + Vector2(150, 50), 12.0)
 	g.ch.pos = g.ppos
-	var guard := 0
-	while g.ch.elite < int(config.get("growth", 2)) and not g.ch.next_node().is_empty() and guard < 24:
-		guard += 1
-		var node: Dictionary = g.ch.next_node()
-		var choices: Dictionary = g.ch.elite_choices(node) if node.get("type", "") == "elite" else {}
-		g.ch.advance(choices.keys()[0] if not choices.is_empty() else "")
-	g.show_queue.clear()
-	g.sync_stats()
+	if not squad_snap.is_empty():
+		g.bench.apply_build(squad_snap)   # 成品分队：重放那支队伍打到这只 Boss 时的成长（干员 / 精英化 / 藏品 / 选卡）
+		g.ppos = g.map.push_out(g.zone_c + Vector2(150, 50), 12.0)   # 换队长会把位置挪到新队长身上：摆回演练起点
+		g.ch.pos = g.ppos
+		g.show_queue.clear()
+		g.sync_stats()
+	else:
+		var guard := 0
+		while g.ch.elite < int(config.get("growth", 2)) and not g.ch.next_node().is_empty() and guard < 24:
+			guard += 1
+			var node: Dictionary = g.ch.next_node()
+			var choices: Dictionary = g.ch.elite_choices(node) if node.get("type", "") == "elite" else {}
+			g.ch.advance(choices.keys()[0] if not choices.is_empty() else "")
+		g.show_queue.clear()
+		g.sync_stats()
+		Squads.lift(g, config.group)   # 自选队长：等级与属性补到打到这只 Boss 时的平均水平（不再是 1 级白板）
 	g.hp = g.max_hp
 	g.hp_trail = g.hp
 	for i in config.group.size():
@@ -98,3 +120,4 @@ func leave() -> void:
 	for key in saved_progress:
 		Cfg.set(key, saved_progress[key])
 	Cfg.practice_active = false
+	Meta.practice_budget = -1

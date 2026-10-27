@@ -7,6 +7,7 @@ extends RefCounted
 
 const PATH := "res://data/meta_tree.json"
 static var _data := {}
+static var practice_budget := -1   # Boss 演练 · 成品分队的认知档（细胞数）；-1 = 不覆盖
 
 
 ## 「队长攻击」（护盾反震等质变节点的基数）：队长 JSON base.atk；没有这一项的干员（水月伞击 / 凯尔希 / 流明）用 balance meta/leader_atk_fallback
@@ -74,6 +75,8 @@ static func shape_for(budget: int) -> Dictionary:
 
 ## 本局用哪一份局外成长：测试局只认 --meta=；正式游玩用存档
 static func run_shape() -> Dictionary:
+	if practice_budget >= 0:
+		return shape_for(practice_budget)   # Boss 演练 · 成品分队：按分队那一档的细胞数点（run/boss_trial.gd 设、每次演练重设）
 	var test := false
 	for a in Cfg.dev_args():
 		if a.begins_with("--meta="):

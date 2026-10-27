@@ -360,6 +360,51 @@ func _restore() -> void:
 	print("BENCHRESTORE events=%d mobs=%d fp_diff=%d %s" % [snap.get("events", []).size(), snap.get("mobs", []).size(), fp_diff.size(), JSON.stringify(fp_diff)])
 
 
+## Boss 演练 · 成品分队（run/practice_squads.gd）：只把快照里的队伍成长还原到当前局——事件日志重放、等级 / 经验、
+## 藏品与选卡的运行期变量、当时的队长、长期修正补齐；不碰时间、场地、刷怪、杂兵与随机数口径（演练自己摆场）。
+## 调用方之后自己 sync_stats / 回满血。
+const BUILD_VARS := ["level", "xp", "xp_need", "lamp_cap", "meta_once_heal"]
+
+
+func apply_build(s: Dictionary) -> void:
+	var keep_snap := snap
+	snap = s
+	var t0: float = g.t
+	g.meta_start_relic = 0
+	for ev in s.get("events", []):
+		g.t = float(ev[3])
+		g.rng.state = int(str(ev[2]))
+		_replay(str(ev[0]), ev[1])
+	g.t = t0
+	var vars: Dictionary = s.get("vars", {})
+	for k in BUILD_VARS:
+		if vars.has(k):
+			g.set(k, str_to_var(str(vars[k])))
+	var objs: Dictionary = s.get("objs", {})
+	for on_ in ["rfx", "progression"]:
+		var o = g.get(on_)
+		if o == null or not objs.has(on_):
+			continue
+		for k in objs[on_]:
+			if k in o:
+				o.set(k, str_to_var(str(objs[on_][k])))
+	var ld = g.squad.get_op(str(s.get("leader", "")))
+	if ld != null and not ld.is_leader:
+		g.squad.swap_cd = 0.0
+		g.squad.swap_leader(ld)
+	g.squad.swap_cd = 0.0
+	_backfill_mods()
+	g.pickups.sync_level_pickup()
+	g.rfx._fuse_sync()
+	g.show_queue.clear()
+	g.pending_levelups = 0
+	g.pending_chests = 0
+	g.choices = []
+	g.panel.visible = false
+	g.state = g.S.PLAY
+	snap = keep_snap
+
+
 ## 局中按击杀 / 击败 Boss / 放技能累加、又不经过上面那批函数的长期修正（如「生还者合约」每击败一只 Boss +20%、
 ## 叠层藏品）：按快照指纹里逐条的修正补齐缺的那几条（只补藏品与事件来源；临时减益、站位加成不补）
 const BACKFILL := ["relic:", "relic_stack:", "event:", "rej:"]

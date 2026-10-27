@@ -1,6 +1,8 @@
 extends Node
 var failures := 0
 const D = preload("res://scripts/data.gd")
+const Squads = preload("res://scripts/run/practice_squads.gd")
+const Meta = preload("res://scripts/core/meta.gd")
 
 func check(ok: bool, what: String) -> void:
 	if not ok:
@@ -91,6 +93,30 @@ func run() -> void:
 	check(g.state == g.S.DEAD, "real combat mode can fail")
 	g.queue_free()
 	await get_tree().process_frame
+	Cfg.boss_trial_request.clear()
+	# 成品分队（docs/170 测试台到场快照，用户 10-28）：队伍按快照重放成长、认知按分队那一档；自选队长补到到场平均水平
+	var sq: Array = Squads.list()
+	check(sq.size() >= 6, "practice squads shipped with the game data")
+	if not sq.is_empty():
+		var sid: String = str(sq[sq.size() - 1].id)
+		var snap: Dictionary = Squads.snap_for(sid, ["paranoia"])
+		Cfg.boss_trial_request = {"group": ["paranoia"], "operator": "mizuki", "growth": 0, "phase": 1, "safe": true, "squad": sid}
+		g = load("res://game.tscn").instantiate()
+		add_child(g)
+		g.set_process(false)
+		check(g.trial.active and g.squad.ops.size() == snap.fp.squad.size(), "squad members rebuilt from snapshot")
+		check(g.level == int(snap.fp.level) and g.relics.size() == snap.fp.relics.size(), "squad level and relics from snapshot")
+		check(str(g.ch.id) == str(snap.leader), "snapshot leader leads the practice")
+		check(Meta.practice_budget == int(Squads.squad(sid).meta), "squad cognition tier applied")
+		check(g.state == g.S.PLAY and g.hp == g.max_hp and g.bosses.size() == 1, "squad practice starts in play at full HP")
+		g.queue_free()
+		await get_tree().process_frame
+		check(Meta.practice_budget == -1, "squad cognition tier cleared on exit")
+		g = trial_game(["paranoia"])
+		var av: Dictionary = Squads.data().get("avg", {}).get("3", {})
+		check(g.level >= int(av.get("level", 1)) and g.max_hp >= float(av.get("max_hp", 0.0)) - 0.5, "custom leader lifted to arrival average")
+		g.queue_free()
+		await get_tree().process_frame
 	Cfg.boss_trial_request.clear()
 	# Invalid requests safely fall back; no practice/save lock is left behind.
 	g = trial_game(["bone", "not_a_boss"])
