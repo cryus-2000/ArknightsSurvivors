@@ -72,7 +72,7 @@ func tick(e: Dictionary, elapsed: float) -> void:
 ## 三幕各跑 70 秒：记录宣言、每张卡出的段、收招
 func run_cards() -> Dictionary:
 	var e: Dictionary = fresh()
-	var out := {"log": [], "hash": 0, "cards": [], "breaks": 0, "peak": 0}
+	var out := {"log": [], "hash": 0, "cards": [], "breaks": 0, "peak": 0, "acts": []}
 	var cur: Dictionary = {}
 	var last_break := 0.0
 	var seen_warn: Array = []
@@ -82,6 +82,8 @@ func run_cards() -> Dictionary:
 			e.gates_passed = act
 			g.bai.boss("izumik").on_gate(e)
 		e.hp = e.maxhp * [0.8, 0.55, 0.3][act]
+		var pa := {"act": act, "low": 0.0, "total": 0.0, "peak": 0, "breaks": []}
+		out.acts.append(pa)
 		for i in int(70.0 / DT):
 			var elapsed: float = act * 70.0 + i * DT
 			tick(e, elapsed)
@@ -100,9 +102,18 @@ func run_cards() -> Dictionary:
 			var brk: float = float(e.get("break_t", 0.0))
 			if brk > last_break + 0.1:
 				out.breaks += 1
+				pa.breaks.append(snappedf(brk, 0.01))
 				out.log.append(["break", snappedf(elapsed, 0.01)])
 			last_break = brk
 			out.peak = maxi(out.peak, g.ebullets.size())
+			# 低压可输出（docs/170 §9）：贴在本体身边（以本体为中心一屏 1280×720）同屏敌弹 < 20，且没有未结算的伊祖米克有伤预警、没有移动水墙
+			var near := 0
+			for b in g.ebullets:
+				if b.life > 0.0 and absf(b.pos.x - e.pos.x) < 640.0 and absf(b.pos.y - e.pos.y) < 360.0: near += 1
+			pa.peak = maxi(pa.peak, near)
+			var busy: bool = g.warns.any(func(w): return is_same(w.owner, e) and not w.done and w.dmg > 0.0) or g.bai.finals.hazards.any(func(h): return is_same(h.owner, e))
+			pa.total += DT
+			if near < 20 and not busy: pa.low += DT
 			if i % 10 == 0:
 				var s := 0.0
 				for b in g.ebullets: s += b.pos.x * 0.37 + b.pos.y
@@ -121,7 +132,11 @@ func check_cards(r: Dictionary) -> void:
 	for act in 3:
 		check(by_act[act].size() >= 2, "act %d shows two combos %s" % [act, by_act[act].keys()])
 	check(int(r.breaks) >= 6, "each finished combo grants recovery (%d)" % r.breaks)
-	check(int(r.peak) <= 160, "bullet peak bounded (%d)" % r.peak)
+	check(int(r.peak) <= 100, "bullet peak <= 100 (%d)" % r.peak)
+	for pa in r.acts:
+		var frac: float = pa.low / maxf(0.01, pa.total)
+		check(frac >= 0.38, "act %d low-pressure share %.2f >= 0.38" % [pa.act, frac])
+		print("IZUMIK PRESSURE act=%d low=%.2f peak_on_screen=%d breaks=%s" % [pa.act, frac, pa.peak, pa.breaks])
 	print("IZUMIK CARDS ", JSON.stringify(r.cards))
 
 func check_interrupts() -> void:
@@ -191,3 +206,16 @@ func check_patterns() -> void:
 	e.batch_next = g.t
 	g.bai._boss_ai(e, DT, Vector2.RIGHT, 260.0)
 	check(not e.batch.is_empty() and e.batch.all(func(o): return o.dmg == 0.0 and o.extra_next == INF and o.nova_cd == INF), "batch offspring are harmless walkers")
+	# 海流牵引：把人往中心拖，但慢于步行；中心结算后不再拖
+	e = fresh()
+	g.ppos = Vector2(200, 0)
+	s.force_move(e, "海流牵引", Vector2.RIGHT, 200.0)
+	var w0: Dictionary = g.warns.filter(func(w): return w.get("skin", "") == "current")[0]
+	g.ppos = w0.pos + Vector2(200, 0)
+	var p0: Vector2 = g.ppos
+	for i in 20:
+		g.t += DT
+		w0.t = float(w0.t) + DT
+		s._current_step(e, DT)
+	var moved: float = p0.distance_to(g.ppos)
+	check(moved > 10.0 and moved < 70.0 * 20 * DT + 0.01 and g.ppos.distance_to(w0.pos) < 200.0, "current pulls toward center slower than walking (%.1f px / 1 s)" % moved)

@@ -221,3 +221,46 @@ static func _sprouts(w: Dictionary) -> Array:
 		var d: float = float(w.r) * (0.18 + 0.78 * u)
 		out.append([p + Vector2(cos(a), sin(a) * 0.72) * d, u, _n(i, 43)])
 	return out
+
+
+## 海流牵引预警：半径 pull_r 内一圈圈向心旋流（水色短线顺流往中心挪），中心 r 的暗红低填充圈由通用 circle 预警给出
+static func current_warning(g, w: Dictionary) -> void:
+	var r = g.world
+	var gy: float = g.combat.GROUND_Y
+	var c: Vector2 = w.pos
+	var pr: float = float(w.get("pull_r", 320.0))
+	var t: float = float(w.get("t", 0.0))
+	var k: float = clampf(t / maxf(0.01, float(w.dur)), 0.0, 1.0)
+	for i in 54:
+		var lane: float = _n(i, 51)
+		var phase: float = fmod(lane + t * 0.45, 1.0)
+		var rad: float = lerpf(pr, float(w.r) * 0.6, phase)
+		var a: float = TAU * _n(i, 52) + phase * 2.2
+		var p: Vector2 = c + Vector2(cos(a), sin(a) * gy) * rad
+		var tang: Vector2 = Vector2(-sin(a), cos(a) * gy).normalized()
+		var inward: Vector2 = (c - p).normalized()
+		var dirv: Vector2 = (inward * 0.7 + tang * 0.5).normalized()
+		var alpha: float = (0.35 + 0.45 * k) * sin(phase * PI)
+		_seg(r, p, p + dirv * (10.0 + 8.0 * k), 3.0, Color(SEA.r, SEA.g, SEA.b, alpha))
+		_seg(r, p + dirv * 4.0, p + dirv * (10.0 + 8.0 * k), 1.5, Color(CREST.r, CREST.g, CREST.b, alpha))
+	for q in 48:
+		var a0: float = TAU * q / 48.0 + t * 0.6
+		var a1: float = a0 + TAU / 96.0
+		_seg(r, c + Vector2(cos(a0), sin(a0) * gy) * pr, c + Vector2(cos(a1), sin(a1) * gy) * pr, 2.0, Color(SEA.r, SEA.g, SEA.b, 0.35 + 0.3 * k))
+
+## 海流牵引结算：中心水柱涌起后塌落（深色水身 + 浪尖 + 四散泡沫）
+static func current_burst(g, f: Dictionary) -> void:
+	if not f.has("max"):
+		return
+	var r = g.world
+	var c: Vector2 = f.pos
+	var k: float = 1.0 - float(f.life) / maxf(0.01, float(f.max))
+	var h: float = 70.0 * sin(minf(1.0, k * 1.6) * PI * 0.5) * (1.0 - k * 0.7)
+	var wid: float = float(f.r) * (0.6 + 0.4 * k)
+	r.tb_quad(c + Vector2(-wid, 0), c + Vector2(wid, 0), c + Vector2(wid * 0.4, -h), c + Vector2(-wid * 0.4, -h), Color(DEEP.r, DEEP.g, DEEP.b, 0.75 * (1.0 - k)))
+	r.tb_quad(c + Vector2(-wid * 0.6, -h * 0.3), c + Vector2(wid * 0.6, -h * 0.3), c + Vector2(wid * 0.3, -h), c + Vector2(-wid * 0.3, -h), Color(SEA.r, SEA.g, SEA.b, 0.8 * (1.0 - k)))
+	_seg(r, c + Vector2(-wid * 0.3, -h), c + Vector2(wid * 0.3, -h), 4.0, Color(CREST.r, CREST.g, CREST.b, 0.9 * (1.0 - k)))
+	for i in 18:
+		var a: float = TAU * _n(i, 61)
+		var d: float = (20.0 + 60.0 * _n(i, 62)) * k
+		_dot(r, c + Vector2(cos(a) * d, sin(a) * d * 0.6 - h * (1.0 - k) * _n(i, 63)), Color(0.85, 0.95, 1.0, 0.85 * (1.0 - k)))
