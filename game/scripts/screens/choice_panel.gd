@@ -1267,10 +1267,17 @@ func _draw_phone_detail(card: Button, title: String, desc: String) -> void:
 	var gr: Rect2 = card.get_global_rect()
 	var o: Vector2 = gr.position - tip.get_global_rect().position + Vector2(0, card.get_meta("oy", 0.0) * sc)
 	var r := Rect2(o + Vector2(6.0, 42.0) * sc, Vector2(card.size.x - 12.0, card.size.y - 42.0 - 60.0) * sc)
+	var pad := 14.0 * sc
+	var sizes := [17, 16, 15, 14]
+	var fd := UI.fit(g.font, desc, r.size.x - 2.0 * pad, r.size.y - 48.0 * sc - pad, sizes, 3.0)
+	if not fd.fit:
+		# 详情就是完整说明，不截断（10-28 用户截图「已持有…」）：最小字号仍放不下就把框加高，先向下盖住操作条，再整体上移，以面板为界
+		var need: float = UI.fit(g.font, desc, r.size.x - 2.0 * pad, 1e6, [sizes[-1]], 3.0).h + 48.0 * sc + pad
+		r.size.y = minf(need, tip.size.y - 12.0)
+		r.position.y = clampf(r.position.y, 6.0, maxf(6.0, tip.size.y - 6.0 - r.size.y))
+		fd = UI.fit(g.font, desc, r.size.x - 2.0 * pad, r.size.y - 48.0 * sc - pad, sizes, 3.0)
 	tip.draw_rect(r, Color(0.035, 0.045, 0.06, 0.97))
 	tip.draw_rect(r, Color(UI.CYAN, 0.7), false, 1.0)
 	tip.draw_rect(Rect2(r.position, Vector2(3.0, r.size.y)), UI.CYAN)
-	var pad := 14.0 * sc
 	UI.text_fit(tip, g.font, r.position + Vector2(pad, 28.0 * sc), title, 19, Color.WHITE, r.size.x - 2.0 * pad, 14)
-	var fd := UI.fit(g.font, desc, r.size.x - 2.0 * pad, r.size.y - 48.0 * sc - pad, [17, 16, 15, 14], 3.0)
 	UI.draw_fit(tip, g.font, r.position + Vector2(pad, 46.0 * sc), fd, Color(0.86, 0.92, 0.95))

@@ -9,7 +9,9 @@ extends RefCounted
 ##           两者的值为 null（不涉及）/ false（有好处）/ true（只有坏处）
 ##   global  与干员无关（源石锭、灯火、商店、编队规模……）
 ##   miss    有职业 / 特征条件、但编队里没人满足时的说明（「编队无近卫」）
-## chips(g, o) 把结果排成标签：[[文字, 颜色, 只有坏处]…]；只和干员无关的卡返回空数组（不画标签）
+##   minor   只吃「附带数值」的对象（{干员 id / "all" / "leader": 附带说明}）：藏品效果里标 "minor": true 的那条（主效果之外顺带的
+##           小数值，如赶车夫的长鞭的物理伤害 +8%）只落到这些对象、主效果没落到时记在这里（10-28 用户截图：长鞭标了能天使）
+## chips(g, o) 把结果排成标签：[[文字, 颜色, 只有坏处, 只吃附带]…]；只和干员无关的卡返回空数组（不画标签）
 
 const UI = preload("res://scripts/ui.gd")
 const Character = preload("res://scripts/characters/character.gd")
@@ -28,6 +30,10 @@ const TRAIT_STATS := {"melee_dmg": "近战", "ranged_dmg": "远程", "physical_d
 const LEADER_RULES := ["shield_burst", "shield_heal", "king_cake", "revive_once"]
 const GLOBAL_RULES := ["four_choices", "rare_weight", "deep_sea", "tree_light", "resolve_elite"]
 const LEADER_GAINS := ["heal", "shield_fill"]
+## 附带数值的短名（标签后缀「仅物伤」，docs/76 简称）
+const MINOR_SHORT := {"physical_dmg": "物伤", "arts_dmg": "法伤", "melee_dmg": "近战伤害", "ranged_dmg": "远程伤害", "followup_dmg": "追击伤害"}
+## 可见成长（characters/blocks/vis_growth.gd）：数量 +1 副体只给这几名干员的召唤物（Mon3tr 不加数量）
+const SUB_SUMMONERS := ["wisadel", "mizuki"]
 
 
 ## 干员的伤害特征 {近战, 远程, 物理, 法术, 追击, 单体, 控制}：常驻来源（core / talent）一直算；
@@ -56,12 +62,24 @@ static func traits(g, def: Dictionary, live := true) -> Dictionary:
 
 
 static func of_choice(g, o: Dictionary) -> Dictionary:
-	var res := {"ops": {}, "all": null, "leader": null, "global": false, "miss": ""}
+	var res := {"ops": {}, "all": null, "leader": null, "global": false, "miss": "", "minor": {}}
 	match o.get("kind", ""):
 		"relic":
 			var r: Dictionary = g.rfx.db.get_relic(o.id)
+			var side := {"ops": {}, "all": null, "leader": null, "global": false, "miss": ""}
 			for ef in r.get("effects", []):
-				_effect(g, res, ef)
+				_effect(g, side if ef.get("minor", false) else res, ef)
+			# 附带数值：主效果已覆盖的对象不重复；其余记进 minor（不算「受益」，缺条件说明也不用它的）
+			var short: String = ""
+			for ef in r.get("effects", []):
+				if ef.get("minor", false) and short == "":
+					short = MINOR_SHORT.get(str(ef.get("stat", "")), "附带")
+			for id in side.ops:
+				if not res.ops.has(id) and not side.ops[id]:
+					res.minor[id] = short
+			for k in ["all", "leader"]:
+				if side[k] == false and res[k] == null:
+					res.minor[k] = short
 		"prog":
 			_mark(res, "op:" + str(o.op), false)
 		"growth":
@@ -143,8 +161,32 @@ static func _effect(g, res: Dictionary, ef: Dictionary) -> void:
 				_mark(res, "global", false)
 		"status":
 			_by_trait(g, res, "控制", false)   # 受控敌人每秒受法术伤害：要有人控场
+		"growth":
+			_growth(g, res, str(ef.get("kind", "")))
 		_:
 			_mark(res, "global", false)
+
+
+## 可见成长（vis_growth.gd）的作用对象：远程三类按职业远程、近战三类按职业近战（同 vis_growth 的 range_cls 判定）；
+## 召唤体型 = 有追击 / 召唤伤害的干员；召唤数量只给维什戴尔的魂灵之影、水月的触手桩
+static func _growth(g, res: Dictionary, kind: String) -> void:
+	match kind:
+		"scatter", "burst":
+			_by_range(g, res, "远程", false)
+		"crowd", "qi", "range":
+			_by_range(g, res, "近战", false)
+		"summon_size":
+			_by_trait(g, res, "追击", false)
+		"summon_n":
+			var n := 0
+			for op in g.squad.ops:
+				if str(op.id) in SUB_SUMMONERS:
+					_mark(res, "op:" + str(op.id), false)
+					n += 1
+			if n == 0:
+				_miss(res, "编队无维什戴尔 / 水月")
+		_:
+			_mark(res, "all", false)
 
 
 static func _is_bad(stat: String, op: String, v: float) -> bool:
@@ -265,6 +307,8 @@ static func chips(g, o: Dictionary) -> Array:
 				marks.append(res[k])
 		if ld != null and not marks.is_empty():
 			out.append(_chip(g, ld.display_name(), ld.col(), not marks.has(false)))
+		elif ld != null and not res.minor.is_empty():
+			out.append(_minor_chip(ld.display_name(), ld.col(), res.minor.values()[0]))
 	else:
 		for op in g.squad.ops:
 			if res.ops.has(op.id):
@@ -273,14 +317,27 @@ static func chips(g, o: Dictionary) -> Array:
 			out.append(_chip(g, "全队", UI.CYAN, res.all))
 		if res.leader != null and ld != null:
 			out.append(_chip(g, "队长 · " + ld.display_name(), ld.col(), res.leader))
+		# 只吃附带数值的干员排在最后（放不下先收进「+N」）：淡色 + 「仅物伤」
+		for op in g.squad.ops:
+			if res.minor.has(op.id):
+				out.append(_minor_chip(op.display_name(), op.col(), res.minor[op.id]))
+		if res.minor.has("all") and res.all == null:
+			out.append(_minor_chip("全队", UI.CYAN, res.minor.all))
+		if res.minor.has("leader") and res.leader == null and ld != null:
+			out.append(_minor_chip("队长 · " + ld.display_name(), ld.col(), res.minor.leader))
 	if res.has("random"):
 		out.append(_chip(g, "随机一名干员", UI.CYAN, false))
 	if res.has("recruit"):
 		out.append(_chip(g, "新干员 · 精英一", UI.GREEN, false))
 	# 缺条件：没人受益、或者落到编队上的只有坏处时（如编队无近卫时的折戟-破釜沉舟），放在最前面说明原因
-	if res.miss != "" and out.all(func(c): return c[2]):
+	if res.miss != "" and out.all(func(c): return c[2] or c.size() > 3):
 		out.push_front([res.miss, Color(UI.RED.r, UI.RED.g, UI.RED.b, 0.7), true])
 	return out
+
+
+## 只吃附带数值：淡色（UI.chip_row 按颜色 alpha 画底、色条和字）+「仅物伤」；第 4 项 true 供悬停提示区分
+static func _minor_chip(s: String, col: Color, short: String) -> Array:
+	return [s + " 仅" + short, Color(col.r, col.g, col.b, 0.45), false, true]
 
 
 static func _chip(g, s: String, col: Color, bad: bool) -> Array:

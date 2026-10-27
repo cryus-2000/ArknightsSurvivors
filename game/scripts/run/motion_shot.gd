@@ -143,7 +143,10 @@ func open(s: String) -> void:
 func _relic_opts(n := 3) -> Array:
 	var want := ["基础", "稀有", "核心"]
 	var ids: Array = []
-	for rar in want:
+	for a in Cfg.dev_args():   # --motionrelics=64,129,…：指定这几件（作用对象标签 / 说明溢出验收截图）
+		if a.begins_with("--motionrelics="):
+			ids = Array(a.substr(15).split(",")).filter(func(x): return g.RL.has(x))
+	for rar in ([] if not ids.is_empty() else want):
 		for rid in g.RL.keys():
 			if g.RL[rid].get("rarity", "") == rar and g.tex.get("relic_" + str(rid)) != null:
 				ids.append(rid)

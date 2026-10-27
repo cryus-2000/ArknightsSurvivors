@@ -148,6 +148,7 @@ func test_live(g) -> void:
 		o.pos = g.ppos + Vector2(-10, 0)
 	wis.elite = 2
 	wis.refresh_stats()
+	test_tags(g)
 	setup_field(g)
 	step(g, 240)
 	ok(exu.vg.is_empty() and lap.vg.is_empty(), "不持有：干员不建可见成长状态（vg 空）")
@@ -233,3 +234,19 @@ func test_live(g) -> void:
 	ok(int(exu.vg.n_merged) + int(wis.vg.n_merged) > 0, "超出上限的额外弹并入直接伤害（%d）" % (int(exu.vg.n_merged) + int(wis.vg.n_merged)))
 	Bal._data["vgrowth"]["cap_shots"] = caps
 	Cfg.quality = q0
+
+
+## 卡底作用对象标签（run/affects.gd，10-28）：主效果受益照常，只吃附带数值（"minor"）的淡色 +「仅物伤」，排在最后
+func test_tags(g) -> void:
+	var Aff = load("res://scripts/run/affects.gd")
+	var r64: Dictionary = Aff.of_choice(g, {"kind": "relic", "id": "64"})
+	ok(r64.ops.has("lappland") and not r64.ops.has("exusiai"), "#64 长鞭：拉普兰德主效果受益，能天使不算（%s）" % str(r64.ops))
+	ok(r64.minor.get("exusiai", "") == "物伤", "#64 长鞭：能天使只吃物理伤害 +8%%（%s）" % str(r64.minor))
+	var ch: Array = Aff.chips(g, {"kind": "relic", "id": "64"})
+	var ex: Array = ch.filter(func(c): return c[0].begins_with(g.squad.get_op("exusiai").display_name()))
+	ok(ex.size() == 1 and ex[0].size() > 3 and ex[0][0].ends_with("仅物伤") and ex[0][1].a < 0.6, "#64 标签：能天使淡色「仅物伤」（%s）" % str(ex))
+	ok(ch[0][0] == g.squad.get_op("lappland").display_name() and ch[0].size() == 3, "#64 标签：主效果受益排在最前")
+	var r58: Dictionary = Aff.of_choice(g, {"kind": "relic", "id": "58"})
+	ok(r58.ops.has("exusiai") and not r58.ops.has("lappland"), "#58 银餐叉：散射给远程干员（%s）" % str(r58.ops))
+	var r129: Dictionary = Aff.of_choice(g, {"kind": "relic", "id": "129"})
+	ok(r129.ops.has("wisadel") and not r129.ops.has("kaltsit"), "#129 散轶诗简：数量 +1 给维什戴尔，Mon3tr 不加（%s / 附带 %s）" % [str(r129.ops), str(r129.minor)])
