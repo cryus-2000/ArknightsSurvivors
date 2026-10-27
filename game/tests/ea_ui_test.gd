@@ -69,10 +69,10 @@ func run() -> void:
 	var op = game.ch
 	op.is_leader = true
 	var option := {"kind": "prog", "op": "ulpianus", "elite": 2, "desc": "解锁技能"}
-	check("按 E" in game.panel_ui.option_description(option), "leader growth hints E")
-	check("按 E" in game.show_screen.skill_item(op, 2).desc, "leader elite show hints E")
+	check("按 Q" in game.panel_ui.option_description(option), "leader growth hints Q")
+	check("按 Q" in game.show_screen.skill_item(op, 2).desc, "leader elite show hints Q")
 	op.is_leader = false
-	check(not "按 E" in game.panel_ui.option_description(option), "ally growth never asks E")
+	check(not "按 Q" in game.panel_ui.option_description(option), "ally growth never asks Q")
 	check("自动" in game.show_screen.skill_item(op, 2).desc, "ally elite show says auto")
 	# 干员卡只写一句（10-26 用户）：精英化卡 =「解锁N技能 · 原作技能名」
 	var hl: String = game.panel_ui.headline({"kind": "prog", "op": "ulpianus", "elite": 2})

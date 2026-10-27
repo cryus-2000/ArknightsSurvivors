@@ -171,7 +171,7 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 			# 切换队长（10-23）：触屏点卡切人（touch.card_rects）；冷却中非队长卡从上往下盖一层暗幕，倒地的灰暗；下一名（Q / RB 会切到的）卡左上角标键
 			if i == 0 and g.touch != null:
 				g.touch.card_rects.clear()
-			if g.touch != null and g.touch.active:
+			if g.touch != null and g.touch.active and g.squad.swap_on():
 				g.touch.card_rects.append([cr, o])
 			if not o.is_leader:
 				var sqd = g.squad
@@ -290,9 +290,9 @@ func draw_manual_hint() -> void:
 			manual_hinted = true
 			manual_hint_t = 3.5
 			var nm: String = ld.skill_def(i).get("name", "技能")
-			manual_hint_text = ("点技能键释放「%s」" % nm) if g.touch.active else ("按 %s 释放「%s」" % [Pad.hint("E / J", "Ⓐ / Ⓨ"), nm])
+			manual_hint_text = ("点技能键释放「%s」" % nm) if g.touch.active else ("按 %s 释放「%s」" % [Pad.hint("E / J" if g.squad.swap_on() else "Q / E", "Ⓐ / Ⓨ"), nm])
 			if not g.touch.active and not Pad.using and not g.doctor.manual_attack and ld.manual_point(i):
-				manual_hint_text = "左键点地面或按 E / J 释放「%s」" % nm   # 选落点技能可左键点击释放（doctor.click_skill，10-26）
+				manual_hint_text = "左键点地面或按 %s 释放「%s」" % ["E / J" if g.squad.swap_on() else "Q / E", nm]   # 选落点技能可左键点击释放（doctor.click_skill，10-26）
 	if manual_hint_t <= 0.0:
 		return
 	manual_hint_t -= g.get_process_delta_time()

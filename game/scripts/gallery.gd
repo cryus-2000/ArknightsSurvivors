@@ -510,10 +510,10 @@ func _doctor_entry() -> Dictionary:
 	var f0: Dictionary = forms[0]
 	return {"id": "doctor", "name": dd.get("name", "博士"), "en": dd.get("en", "DOCTOR"), "tag": "指挥 · 随行", "forms": forms,
 		"stats": [["回复", "%.1f / 秒" % float(ds.get("regen", 0.0))], ["移速", str(int(ds.get("move_speed", 150)))],
-			["闪避", "%d%%" % int(float(ds.get("dodge", 0.0)) * 100.0)], ["拾取", str(int(ds.get("pickup", 70)))]],
+			["闪避", "%d%%" % int(Bal.v("squad/leader_dodge", float(ds.get("dodge", 0.0))) * 100.0)], ["拾取", str(int(ds.get("pickup", 70)))]],
 		"chips": ["随行", "指挥", "排异"], "cls": "", "col": UI.STEEL,
 		"od": {"tex": f0.tex, "frames": int(f0.frames), "hires": A.hires_of(f0.tex)},
-		"desc": _lore_text("doctor", "跟在队长身后指挥小队，不攻击，也不会受到攻击。队长的回复、移速、闪避、拾取的初始值来自博士，生命与减伤由队长干员决定。灯火照亮的是队长身边，队长受击时灯火熄灭一截。升级时的生存 / 机动 / 协同卡是博士给小队的指挥加成；排异反应记在博士名下，可在属性面板查看。")}
+		"desc": _lore_text("doctor", "跟在队长身后指挥小队，不攻击，也不会受到攻击。队长的回复、移速、拾取的初始值来自博士（初始没有闪避，靠认知塑造、升级与藏品获得），生命与减伤由队长干员决定。灯火照亮的是队长身边，队长受击时灯火熄灭一截。升级时的生存 / 机动 / 协同卡是博士给小队的指挥加成；排异反应记在博士名下，可在属性面板查看。")}
 
 
 ## 介绍文字：lore.json 的档案文字在前，机制说明在后

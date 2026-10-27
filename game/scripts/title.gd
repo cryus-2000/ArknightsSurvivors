@@ -163,6 +163,8 @@ func _ready() -> void:
 			if a.begins_with("--metasel="):
 				var ps := a.substr(10).split(",")
 				meta_ui.sel = Vector2i(int(ps[0]), int(ps[1]) if ps.size() > 1 else 0)
+		if Cfg.dev_args().has("--metahide"):   # 详情卡收起时的截图（10-27）
+			meta_ui.card_hide = true
 		if Cfg.dev_args().has("--metalit"):   # 解锁演出截图：0.6 秒时塑造选中节点，演出进行到 0.35 秒时截
 			get_tree().create_timer(0.6).timeout.connect(func(): meta_ui._buy(meta_ui._sel_id()))
 		get_tree().create_timer(0.95 if Cfg.dev_args().has("--metalit") else 1.0).timeout.connect(func():
@@ -1005,9 +1007,8 @@ func _draw_emblem(c: Vector2, r: float, col: Color) -> void:
 ## 操作说明（10-22 用户：每条一行，只写键位 + 动作；页面换寻访 hh_style 模板）：[动作, 键鼠, 手柄]；触屏只用前两列
 const GUIDE_ROWS := [
 	["移动", "WASD / 方向键", "左摇杆"],
-	["冲刺", "空格", "Ⓑ"],
-	["队长技能", "E / J", "Ⓐ / Ⓨ"],
-	["切换队长", "Q", "RB"],
+	["冲刺", "空格", "Ⓑ / RB"],
+	["队长技能", "Q / E", "Ⓐ / Ⓨ"],
 	["指挥圆盘", "F（按住选，松开确认）", "LB"],
 	["手动普攻", "左键 / J", "Ⓧ / RT"],
 	["瞄准", "鼠标", "右摇杆"],
@@ -1025,7 +1026,6 @@ const TOUCH_GUIDE := [
 	["队长技能", "技能键 · 按住拖动瞄准"],
 	["手动普攻", "攻击键 · 按住拖动瞄准"],
 	["指挥圆盘", "指挥键 · 点选"],
-	["切换队长", "点编队栏头像"],
 	["选卡", "点卡片"],
 	["暂停 / 属性", "暂停键 / 属性键"],
 	["重看指南", "暂停菜单 · 指南"],

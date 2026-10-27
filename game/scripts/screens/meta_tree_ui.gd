@@ -25,7 +25,7 @@ const ROOT_ORDER := ["disp1", "shop1", "gold1", "pick1", "xp1", "sh1", "atk1", "
 const RULE_TAG := {"atk5": "处决", "hp5": "濒死免死", "def4": "久守减伤", "reg3": "低血回复", "sh1": "碎盾反震", "xp4": "升级再升",
 	"disp1": "四选一", "disp2": "免费刷新", "disp3": "开局藏品", "disp4": "绝处逢生"}
 ## 分组（主根）：前缀 → 组；组名 / 英文 / 组色（详情卡标签与主根旁的小标）
-const GROUP_OF := {"shop": 0, "gold": 0, "pick": 0, "xp": 1, "disp": 1, "atk": 2, "sh": 2, "hp": 3, "def": 3, "reg": 3}
+const GROUP_OF := {"shop": 0, "gold": 0, "pick": 0, "xp": 1, "disp": 1, "atk": 2, "sh": 2, "hp": 3, "def": 3, "reg": 3, "dodge": 3}
 const GROUPS := [["探索", "EXPLORE", Color8(255, 196, 70)], ["成长", "GROWTH", Color8(168, 150, 255)], ["战斗", "COMBAT", Color8(255, 112, 98)],
 	["生存", "SURVIVAL", Color8(92, 214, 152)]]
 
@@ -81,6 +81,7 @@ var motes: Array = []
 var pxu := 2.0                # 1 像素格 = pxu 设计单位：一格恰好是整数个屏幕像素（720p / 1080p = 2，900p = 2.4），任何分辨率都是整齐的方块
 var rn := 8                   # 普通 / 质变节点半径（像素格）
 var rk := 11
+var card_hide := false        # 详情卡收起（10-27 用户：左下角的卡要能点掉，被挡住的节点才看得见、点得到）：卡外「收起」/ 左下「详情」标签 / Z（手柄 Ⓧ）切换
 var fit_all := false          # --metafit（开发截图）：整棵树缩进一屏、不画详情卡，做「原作 | 本作」对照用
 
 static var _re_head: RegEx
@@ -255,8 +256,8 @@ func _pannable() -> bool:
 ## 选中节点应当落在的视口区域（设计坐标）：桌面在详情卡右边、顶栏下面；手机在底条上面
 func _safe() -> Rect2:
 	if Cfg.phone_ui():
-		return Rect2(40.0, 120.0, vs.x - 80.0, vs.y - 120.0 - SHEET_H - 80.0)
-	return Rect2(380.0, 130.0, vs.x - 420.0, vs.y - 196.0)
+		return Rect2(40.0, 120.0, vs.x - 80.0, vs.y - 120.0 - (64.0 if card_hide else SHEET_H + 80.0))
+	return Rect2(80.0 if card_hide else 380.0, 130.0, vs.x - (120.0 if card_hide else 420.0), vs.y - 196.0)
 
 
 ## 镜头能去的范围：世界比视口大的那一维 = 世界范围（四周留一点）；比视口小 = 在余量里平移（世界始终整个可见）；
@@ -389,6 +390,10 @@ func _act(a: String) -> void:
 		"back":
 			Sfx.play("ui_ok")
 			close()
+		"card":
+			card_hide = not card_hide
+			follow = true
+			Sfx.play("ui_move", -6.0)
 
 
 ## 世界坐标 → 设计坐标（取整到像素格，文字和像素层对齐）
@@ -486,6 +491,8 @@ func _input(event: InputEvent) -> void:
 				_act("rec")
 			KEY_X:
 				_act("reset")
+			KEY_Z:
+				_act("card")
 			KEY_UP, KEY_W:
 				_nav(Vector2.UP)
 			KEY_DOWN, KEY_S:
@@ -896,7 +903,7 @@ func _draw_chrome(ci: CanvasItem) -> void:
 	if tch:
 		hint = "点节点选中 · 再点塑造" + (" · 拖动平移" if pan else "")
 	else:
-		hint = Pad.hint("方向键 选择  ·  Enter 塑造" + ("  ·  拖动 平移" if pan else ""), "十字键 选择  ·  Ⓐ 塑造", "")
+		hint = Pad.hint("方向键 选择  ·  Enter 塑造  ·  Z 详情" + ("  ·  拖动 平移" if pan else ""), "十字键 选择  ·  Ⓐ 塑造  ·  Ⓧ 详情", "")
 	UI.text_at(ci, font, Vector2(24, 84), hint, 12, UI.fa(T_SUB, 0.85))
 
 
@@ -907,6 +914,9 @@ func _draw_card(ci: CanvasItem) -> void:
 	if id == "" or fit_all:
 		return
 	var slide := 1.0 if Cfg.reduce_motion else UI.ease_out(clampf((t - open_t0 - 0.15) / 0.3, 0.0, 1.0))
+	if card_hide:
+		_draw_card_tab(ci, id)
+		return
 	if Cfg.phone_ui():
 		_draw_sheet(ci, id, slide)
 		return
@@ -922,6 +932,30 @@ func _draw_card(ci: CanvasItem) -> void:
 	_card_body(ci, r.position, w, id, true)
 	var br := Rect2(r.position.x + 18.0, r.end.y - 50.0, w - 40.0, 36.0)
 	_card_button(ci, br, id)
+	_card_fold_btn(ci, Rect2(r.end.x - 96.0, r.position.y - 40.0, 96.0, 30.0))
+
+
+## 卡外的「收起」键（卡上沿上方，压在暗场上）
+func _card_fold_btn(ci: CanvasItem, r: Rect2) -> void:
+	HS.ghost_btn(ci, font, r, "收起", Pad.hint("Z", "Ⓧ", ""), 0.72)
+	buttons.append([r, "card"])
+
+
+## 卡收起后左下角的小标签：「详情」+ 选中节点名与消耗，点一下展开
+func _draw_card_tab(ci: CanvasItem, id: String) -> void:
+	var nd: Dictionary = Meta.nodes()[id]
+	var s1 := "%s · %s" % [str(nd.name), "已塑造" if _state(id) == "on" else "%d 生机细胞" % int(nd.cost)]
+	var key := Pad.hint("Z", "Ⓧ", "")
+	var w := UI.cwidth(font, s1, 13) + UI.cwidth(font, "详情", 15) + (UI.cwidth(font, key, 12) + 12.0 if key != "" else 0.0) + 52.0
+	var r := Rect2(16.0 if Cfg.phone_ui() else 24.0, vs.y - (12.0 if Cfg.phone_ui() else 20.0) - 34.0, w, 34.0)
+	HS.para(ci, r, Color(0, 0, 0, 0.55), UI.fa(UI.TEXT, 0.85), 1.5)
+	ci.draw_rect(Rect2(r.position.x + 8.0, r.position.y + 7.0, 4.0, r.size.y - 14.0), HS.YEL)
+	var x := r.position.x + 20.0
+	x += UI.text_at(ci, font, Vector2(x, r.get_center().y), "详情", 15, UI.TEXT, "lm", true) + 10.0
+	x += UI.text_at(ci, font, Vector2(x, r.get_center().y + 1.0), s1, 13, UI.fa(UI.TEXT, 0.8), "lm") + 10.0
+	if key != "":
+		UI.text_at(ci, font, Vector2(x, r.get_center().y + 1.0), key, 12, UI.fa(UI.TEXT, 0.7), "lm")
+	buttons.append([r, "card"])
 
 
 ## 卡片正文（不含按钮）：draw = false 时只量高度。返回正文高度
@@ -1051,6 +1085,7 @@ func _draw_sheet(ci: CanvasItem, id: String, slide: float) -> void:
 	UI.text_at(ci, font, Vector2(col2 + ch.size() * 15.0 + 8.0, r.position.y + 14.0), "%d / %d" % [ch.find(id) + 1, ch.size()], 13, HS.INK2, "la", true)
 	UI.text_at(ci, font, Vector2(col2, r.position.y + 48.0), _state_line(id), 14, HS.RIB if st == "ok" else HS.INK2)
 	_card_button(ci, Rect2(r.end.x - 232.0, r.position.y + 22.0, 210.0, 46.0), id)
+	_card_fold_btn(ci, Rect2(r.end.x - 108.0, r.position.y - 42.0, 108.0, 34.0))
 
 
 ## 本线已塑造部分的合计：同前缀数值相加（「全体伤害 +4%」×3 → 「全体伤害 +12%」）；纯规则的线列规则名

@@ -395,13 +395,18 @@ func swap_cd_max() -> float:
 	return Bal.v("leader_swap/cd", 2.0)
 
 
+## 切换队长的玩家入口开没开（balance leader_swap/on，10-27 起缺省关）：关时 Q 是技能键、RB 是冲刺、点头像不切
+static func swap_on() -> bool:
+	return Bal.v("leader_swap/on", 0.0) > 0.0
+
+
 func can_swap_to(o) -> bool:
 	return o != null and not o.is_leader and o.cmd_down <= 0.0 and o.pos != Vector2.INF and swap_cd <= 0.0 and g.state == g.S.PLAY and g.demo_op == ""
 
 
 ## 下一名能当队长的干员（按编队栏从左到右，绕回开头）；没有返回 null（HUD 在它的卡上标 Q）
 func next_leader():
-	if ops.size() < 2:
+	if ops.size() < 2 or not swap_on():
 		return null
 	var cur: int = ops.find(leader())
 	for k in range(1, ops.size()):

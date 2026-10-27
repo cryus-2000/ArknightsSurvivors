@@ -148,7 +148,7 @@ var dmg_mult := 1.0
 var lamp_decay := 1.0
 var xp_mult := 1.0
 var oil_mult := 1.0
-var dodge := 0.25
+var dodge := 0.0
 var invuln := 0.0
 var invuln_move_until := -1.0   # 纯画面：技能位移给的短暂无敌截止时刻（g.t）；这段无敌不闪烁（world.gd，10-21 推进之王跃空锤「虚化」）
 var hurt_flash := 0.0
@@ -873,7 +873,7 @@ func _ready() -> void:
 	A.mark("map+doctor")
 	ch = squad.add(demo_op if demo_op != "" else (str(trial.config.operator) if trial.active else Cfg.character_id))
 	# 主控干员的受击属性（2026-09-26 用户要求，按原作换算）：JSON leader 段的 生命 / 物理减伤 / 法抗 覆盖博士 JSON 的基础值；
-	# 回复、移速、闪避、拾取仍由博士 JSON 统一给
+	# 回复、移速、拾取仍由博士 JSON 统一给（闪避 10-27 起归零，见下方 squad/leader_dodge）
 	# --noleader：平衡对照用，退回改动前「所有主控同一条血、无减伤」
 	var lead: Dictionary = {} if Cfg.dev_args().has("--noleader") else ch.def.get("leader", {})
 	for k in ["max_hp", "armor", "arts_res"]:
@@ -884,6 +884,11 @@ func _ready() -> void:
 		stats.set_base(&"max_hp", float(stats._base[&"max_hp"]) * Bal.v("squad/leader_hp_mult", 1.0))
 	if stats.has_stat(&"op_atk"):
 		stats.set_base(&"op_atk", Bal.v("squad/op_atk_base", 1.0))
+	# 闪避移进局外成长（用户 10-27，docs/109 §17）：队长基础闪避归零，少掉的有效生命用最大生命 × dodge_comp_hp、受到伤害 × dodge_comp_taken 部分补回（用户定只补受伤 ×0.9，有意削弱无成长）
+	# 回退：squad/leader_dodge 0.25、两个补偿 1
+	stats.set_base(&"dodge", Bal.v("squad/leader_dodge", 0.0))
+	stats.set_base(&"max_hp", float(stats._base[&"max_hp"]) * Bal.v("squad/dodge_comp_hp", 1.0))
+	stats.set_base(&"dmg_taken", Bal.v("squad/dodge_comp_taken", 1.0))
 	# 博士动画条（data/doctor.json 的 sprites：idle / run / hurt / death）
 	for kind in ["idle", "run", "hurt", "death"]:
 		var dn = doctor.def.get("sprites", {}).get(kind, "")
@@ -1691,12 +1696,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	# 手动技能：Q / E（手柄 Ⓐ / Ⓨ 注入 Q）；没开手动普攻时 J 仍兼作手动技能键，开了 J 让给攻击（契约 v2.5，攻击键由 doctor 每帧直接读）
-	if k == KEY_Q and state == S.PLAY:   # 切换队长（10-23）：Q / 手柄 RB / 触屏点编队卡；技能键只剩 E / J
+	# 切换队长（10-23；10-27 起缺省关，balance leader_swap/on）：开着时 Q / 手柄 RB / 触屏点编队卡切人，技能键只剩 E / J
+	if k == KEY_Q and state == S.PLAY and Squad.swap_on():
 		if squad.cycle_leader():
 			Sfx.play("ui_ok", -8.0)
 		get_viewport().set_input_as_handled()
 		return
-	if (k == KEY_E or (k == KEY_J and not doctor.get("manual_attack"))) and state == S.PLAY:
+	if (k == KEY_Q or k == KEY_E or (k == KEY_J and not doctor.get("manual_attack"))) and state == S.PLAY:
 		# 唯一的手动技能入口：路由到角色已解锁的 manual 技能（三自动角色无动作）
 		if doctor.try_manual_skill():
 			get_viewport().set_input_as_handled()
