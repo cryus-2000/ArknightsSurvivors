@@ -671,7 +671,7 @@ func _act_step(e: Dictionary) -> void:
 	if not e.get("ishar_dash", {}).is_empty() or act == 2:
 		e.spd = 0.0
 	else:
-		e.spd = float(e.spd_base) * (0.7 if far else (1.0 if act == 1 else 0.0))
+		e.spd = float(e.spd_base) * (1.0 if far or act == 1 else 0.0)
 	_fence_step(e)
 
 
@@ -716,14 +716,14 @@ func _dash_step(e: Dictionary) -> void:
 		e.ishar_dash = {}
 
 
-## 歌声围拢（三幕）：场边一圈歌声从场地边缘（r0）在 boss/ishar_fence_t（18）秒内收到 boss/ishar_fence_min（260，r9 后从 380 收紧：她在中央、圈太大打不到）；
+## 歌声围拢（三幕）：场边一圈歌声从场地边缘（r0）在 boss/ishar_fence_t（18）秒内收到 boss/ishar_fence_min（320；380 时圈太大打不到她，260 时阵亡 42%）；
 ## 队长站在圈外：每 0.5 秒 e.dmg × boss/ishar_fence_tick（0.2）+ 减速 + 歌声侵蚀（受治疗降低）。圈内照常打
 func _fence_r(e: Dictionary) -> float:
 	var f: Dictionary = e.get("ishar_fence", {})
 	if f.is_empty():
 		return INF
 	var k: float = clampf((g.t - float(f.t0)) / Bal.v("boss/ishar_fence_t", 18.0), 0.0, 1.0)
-	return lerpf(float(f.r0), Bal.v("boss/ishar_fence_min", 260.0), k)
+	return lerpf(float(f.r0), Bal.v("boss/ishar_fence_min", 320.0), k)
 
 
 func _fence_step(e: Dictionary) -> void:
