@@ -89,17 +89,17 @@ func roll(first := false) -> void:
 	var slots: int = 3 + (int(g.endg.deck_cfg.get("shop_extra", 1)) if g.merchant_idx == g.endg.shop_visit else 0)   # 诡意行商卡：货架 +1（docs/154）
 	for i in min(slots, pool.size()):
 		var r: Dictionary = g.RL[pool[i]]
-		g.shop_items.append({"kind": "relic", "id": pool[i], "name": ("【遭诅】" if r.rarity == "遭诅古物" else "") + g.rfx.display_name(pool[i]), "desc": g.rfx.display_desc(pool[i]), "price": g.rfx.db.price(pool[i], price_mult()), "sold": false})
+		g.shop_items.append({"kind": "relic", "id": pool[i], "name": ("【遭诅】" if r.rarity == "遭诅古物" else "") + g.rfx.display_name(pool[i]), "desc": g.rfx.display_desc(pool[i]), "full": g.rfx.display_desc(pool[i], true), "price": g.rfx.db.price(pool[i], price_mult()), "sold": false})
 	if first:
 		var link: String = g.progression.affinity.merchant_link_pick(pool)
 		if link != "" and not g.shop_items.any(func(it): return it.id == link) and not g.shop_items.is_empty():
-			g.shop_items[g.shop_items.size() - 1] = {"kind": "relic", "id": link, "name": g.rfx.display_name(link), "desc": g.rfx.display_desc(link), "price": g.rfx.db.price(link, price_mult()), "sold": false}
+			g.shop_items[g.shop_items.size() - 1] = {"kind": "relic", "id": link, "name": g.rfx.display_name(link), "desc": g.rfx.display_desc(link), "full": g.rfx.display_desc(link, true), "price": g.rfx.db.price(link, price_mult()), "sold": false}
 	# 深蓝线：商店多一栏必为遭诅古物（深海的馈赠）
 	if g.rfx.rule("deep_sea") > 0:
 		var cursed: Array = pool.filter(func(id): return g.RL[id].rarity == "遭诅古物" and not g.shop_items.any(func(it): return it.id == id))
 		if not cursed.is_empty():
 			var cid: String = cursed[0]
-			g.shop_items.append({"kind": "relic", "id": cid, "name": "【遭诅】" + g.rfx.display_name(cid), "desc": g.rfx.display_desc(cid), "price": g.rfx.db.price(cid, price_mult()), "sold": false, "deep": true})
+			g.shop_items.append({"kind": "relic", "id": cid, "name": "【遭诅】" + g.rfx.display_name(cid), "desc": g.rfx.display_desc(cid), "full": g.rfx.display_desc(cid, true), "price": g.rfx.db.price(cid, price_mult()), "sold": false, "deep": true})
 	if g.mode == g.Mode.BALANCE:
 		g.dbg_relic_offer.append([int(g.t), "shop", g.shop_items.map(func(it): return it.id)])
 	g.shop_items.append({"kind": "heal", "id": "heal", "name": "急救包", "desc": "回复 40% 最大生命", "price": price("heal"), "sold": false})

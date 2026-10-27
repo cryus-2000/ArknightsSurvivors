@@ -265,18 +265,36 @@ func display_name(id: String) -> String:
 	return r.name + ("  Lv.%d → %d" % [cur, cur + 1] if cur > 0 else ("  (可升级)" if max_lv(id) > 1 else ""))
 
 
-func display_desc(id: String) -> String:
+func display_desc(id: String, full := false) -> String:
 	var r: Dictionary = db.get_relic(id)
 	var cur: int = lv.get(id, 0)
+	var d: String = r.desc if full else squad_desc(id)
 	if cur > 0:
-		return "%s\n（可叠加，本级 %d%%）" % [r.desc, int(LV_SCALE[cur] * 100.0)]
+		return "%s\n（可叠加，本级 %d%%）" % [d,int(LV_SCALE[cur] * 100.0)]
 	# 源石锭熔铸之后（docs/74）：给源石锭 / 商店折扣的藏品写出折算后的伤害
 	if fuse_on:
 		var n := ingot_value_of(id)
 		if n > 0:
 			return "%s\n（商人已全部离开：源石锭改为熔铸，%d 枚 ≈ 全队伤害 +%s%%；当前熔铸 +%s%% / 上限 +%d%%）" % [
-				r.desc, n, _pct_s(n * fuse_rate()), _pct_s(fuse_pct()), int(round(Bal.v("relic/fuse_cap", 0.2) * 100.0))]
-	return r.desc
+				d, n, _pct_s(n * fuse_rate()), _pct_s(fuse_pct()), int(round(Bal.v("relic/fuse_cap", 0.2) * 100.0))]
+	return d
+
+
+## 点名干员的藏品（数据 desc_squad，如 #129 散轶诗简）卡面只写当前编队相关的那部分（10-28 用户：编队一个都没有时三人规则全写读起来乱）：
+## head + 在队干员的分句（按 ops 顺序，「；」连接）+ tail；没人在队时整句换成 none（把能吃到的部分写在最前，手机一句话取它）。完整规则 = desc（悬停 / 详情 / 图鉴）
+func squad_desc(id: String) -> String:
+	var r: Dictionary = db.get_relic(id)
+	var ds: Dictionary = r.get("desc_squad", {})
+	if ds.is_empty() or g == null or g.get("squad") == null:
+		return r.desc
+	var parts: Array = []
+	var ops: Dictionary = ds.get("ops", {})
+	for cid in ops:
+		if g.squad.has(cid):
+			parts.append(str(ops[cid]))
+	if parts.is_empty():
+		return RelicDb.fill_desc(str(ds.get("none", r.desc)))
+	return RelicDb.fill_desc(str(ds.get("head", "")) + "；".join(PackedStringArray(parts)) + str(ds.get("tail", "")))
 
 
 ## 这件藏品在熔铸后折算成多少枚源石锭：获得时的源石锭 + 招募 / 击败 Boss 时的源石锭（按一次计）+ late_fuse（锈蚀的铁锤）

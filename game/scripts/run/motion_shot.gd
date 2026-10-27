@@ -105,6 +105,10 @@ func open(s: String) -> void:
 			g.panel_ui.show_choices("获得藏品", _relic_opts(n), "relic")
 		"recruit":
 			var rc: Array = g.progression.recruit_cards()
+			for a in Cfg.dev_args():   # --motionrecruits=lappland,…：指定这几名（招募卡一句话验收截图）
+				if a.begins_with("--motionrecruits="):
+					var want := Array(a.substr(17).split(","))
+					rc = rc.filter(func(c): return c.id in want)
 			g.panel_ui.show_choices("招募干员", rc.slice(0, n), "level")
 		"swapcard", "swap":
 			# 更换队友（用户 10-13）：编队补满，第一名队友推到精英一；swapcard = 混有换人卡的升级三选一，swap = 选中后的更换画面
@@ -159,7 +163,7 @@ func _relic_opts(n := 3) -> Array:
 	var out: Array = []
 	for rid in ids.slice(0, n):
 		var r: Dictionary = g.RL[rid]
-		out.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [r.cat, g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid)})
+		out.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [r.cat, g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid), "full": g.rfx.display_desc(rid, true)})
 	return out
 
 

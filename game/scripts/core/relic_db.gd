@@ -58,6 +58,7 @@ func load_files(meta_path: String = "res://data/relics.json", fx_path: String = 
 		var rarity: String = str(e.get("rarity", r.rarity))
 		items[id] = {
 			"id": id, "name": r.name, "cat": r.get("cat", ""), "desc": fill_desc(str(e.get("desc", r.adapt))), "rarity": rarity,
+			"desc_squad": e.get("desc_squad", {}),
 			"effect_category": e.get("effect_category", ""),
 			"tags": e.get("tags", r.tags), "lanes": e.get("lanes", r.lanes), "tier": r.tier,
 			"source": e.get("source", "boss" if r.get("boss_only", false) else "any"),

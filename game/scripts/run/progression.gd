@@ -324,7 +324,7 @@ func open_relic_choice() -> void:
 	var pool: Array = []
 	for rid in relic_pool_ids():
 		var r: Dictionary = g.RL[rid]
-		pool.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [r.cat, g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid)})
+		pool.append({"kind": "relic", "id": rid, "name": "【%s】%s" % [r.cat, g.rfx.display_name(rid)], "desc": g.rfx.display_desc(rid), "full": g.rfx.display_desc(rid, true)})
 	if pool.is_empty():
 		# 每个待开的宝箱各补 12 源石锭
 		var n: int = maxi(1, g.pending_chests)
