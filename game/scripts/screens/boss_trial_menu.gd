@@ -108,6 +108,11 @@ func _sync_squad() -> void:
 	var own: bool = squad_pick.selected <= 0
 	op_pick.disabled = not own
 	growth_pick.disabled = not own
+	if not own:
+		var op := str(Squads.squad(squad_ids[squad_pick.selected]).get("op", ""))
+		if op_ids.has(op):
+			op_pick.select(op_ids.find(op))   # 置灰的两行显示分队的开局干员与完整成长
+		growth_pick.select(2)
 func _resize_panel() -> void:
 	if is_instance_valid(panel):
 		panel.custom_minimum_size.x = clampf(size.x - 64.0, 320.0, 660.0)
