@@ -458,7 +458,7 @@ func taken_mult(e: Dictionary) -> float:
 	if float(e.get("break_t", 0.0)) > 0.0 and Bal.v("boss/ishar_break_web", 1.0) > 0.0:
 		return Bal.v("boss/ishar_break_taken", 1.7)   # 破绽：网的减伤失效，另外受伤 ×1.7（10-28，拉高破绽期输出占比）
 	if Bal.v("boss/ishar_web_layer", 0.025) > 0.0:
-		return 1.0   # 10-28 起连线海嗣给护盾层（_web_shield），不再减伤
+		return Bal.v("boss/ishar_nonbreak_taken", 1.0)   # 10-28 起连线海嗣给护盾层（_web_shield），不再减伤；非破绽期受伤另乘此值（拉高破绽期输出占比）
 	return maxf(Bal.v("boss/ishar_web_floor", 0.4), 1.0 - Bal.v("boss/ishar_web_each", 0.1) * float(e.get("web_n", 0)))
 
 
