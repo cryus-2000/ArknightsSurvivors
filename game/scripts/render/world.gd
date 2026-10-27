@@ -4914,31 +4914,85 @@ func _zone_crest(pts: PackedVector2Array, pulse: float) -> void:
 	g.draw_polyline(pts, Color(0.35, 0.95, 0.95, 0.55 + 0.25 * pulse), 2.0)
 
 
-## 护盾：淡蓝色六边形能量泡，层数越多越厚
+## 护盾（用户 10-28「护盾看不到，重新画」）：琥珀色像素虚线环绕队长身体中心，层数 = 同心环数（1 / 2 / 3 环，3 层以上环顶加方点计数），
+## 不填实心、不压脚下预警；未满时外侧细弧显示下一层充能进度。层数变化在画面这边比对得出（只画面，不改逻辑）：
+## 少一层 = 碎裂（碎片颗粒 + 外扩闪环），之后 0.5 秒无敌期间环上流微光；多一层 = 新环亮一下 + 充能完成颗粒。
+## 低画质照画形状与层数，颗粒由 fx_grains 按 low_k 稀疏。
+const SH_COL := Color(1.0, 0.74, 0.32)
+var _sh_prev := -1
+var _sh_brk_t := -9.0      # 上次碎裂（g.t）
+var _sh_brk_n := 0         # 碎前层数（画碎掉那一环）
+var _sh_chg_t := -9.0      # 上次充好一层（g.t）
+
 func draw_shield() -> void:
-	if g.shield <= 0:
-		return
 	var c := g.ppos + Vector2(0, -26)
-	var pop := 1.0 + 0.3 * (g.shield_pop / 0.4)
-	var r := (38.0 + 2.0 * sin(g.t * 3.0)) * pop
-	var fl := g.shield_flash / 0.3
-	# 整个护盾进一批（性能 docs/50 §9 ②：原来 1 + 层数 + 12 + 2 次绘制调用）
-	tb_circle(c, r, Color(0.35, 0.7, 1.0, 0.10 + 0.05 * g.shield + 0.3 * fl), 1.0, 40)
-	# 外圈 + 内圈（多层时叠加）
-	for q in g.shield:
-		tb_arc(c, r - q * 4.0, 0.0, TAU, 2.0, Color(0.8, 1.6, 2.4, 0.55 - q * 0.1 + 0.4 * fl), 48)
-	# 六边形网格高光
-	for q in 6:
-		var an := TAU * q / 6.0 + g.t * 0.4
-		var p0 := c + Vector2.from_angle(an) * r * 0.62
-		var p1 := c + Vector2.from_angle(an + TAU / 6.0) * r * 0.62
-		tb_line(p0, p1, Color(0.9, 1.6, 2.2, 0.22), 1.0)
-		tb_line(p0, c + Vector2.from_angle(an) * r, Color(0.9, 1.6, 2.2, 0.15), 1.0)
-	# 流光
-	var sw := fmod(g.t * 1.2, 1.0)
-	tb_arc(c, r, -PI * 0.9 + sw * TAU, -PI * 0.6 + sw * TAU, 3.0, Color(2.4, 2.8, 3.0, 0.8), 12)
-	tb_circle(c + Vector2(-r * 0.4, -r * 0.45), 4.0, Color(2.4, 2.6, 3.0, 0.5), 1.0, 10)
-	tb_flush()
+	var r0 := 34.0
+	var n: int = g.shield
+	if _sh_prev < 0:
+		_sh_prev = n
+	if n < _sh_prev:
+		_sh_brk_t = g.t
+		_sh_brk_n = _sh_prev
+		_sh_burst(c, r0 - 5.0 * mini(_sh_prev - 1, 2), "sh_shard", 14)
+	elif n > _sh_prev:
+		_sh_chg_t = g.t
+		_sh_burst(c, r0 - 5.0 * mini(n - 1, 2), "sh_glint", 6)
+	_sh_prev = n
+	var tb: float = g.t - _sh_brk_t
+	var tc: float = g.t - _sh_chg_t
+	if n <= 0 and g.shield_max <= 0 and tb > 0.6:
+		return
+	var a_dim := 1.0 if n > 0 else 0.0
+	# 层数环：外环 2 美术像素宽、内环 1 像素；12 段虚线，相邻环反向慢转（与地面预警圈区分）
+	var rings: int = mini(n, 3)
+	for i in rings:
+		var ri := r0 - 5.0 * i
+		var w := 4.0 if i == 0 else 2.0
+		var fresh := clampf(1.0 - tc / 0.35, 0.0, 1.0) if i == rings - 1 else 0.0   # 新充好的那一环（最内）亮一下
+		var al := (0.78 if i == 0 else 0.55) + 0.4 * fresh
+		var col := Color(SH_COL.r * (1.0 + 0.5 * fresh), SH_COL.g * (1.0 + 0.5 * fresh), SH_COL.b * (1.0 + 0.4 * fresh), al)
+		var rot: float = g.t * (0.5 if i % 2 == 0 else -0.5)
+		for s in 12:
+			var a := rot + TAU * s / 12.0
+			tb_arc(c, ri + 3.0 * fresh, a, a + TAU / 12.0 * 0.7, w, col, 3)
+	# 3 层以上：外环顶上方点计数（每层一个 2×2 美术像素）
+	if n >= 3:
+		var k: int = mini(n, 8)
+		for i in k:
+			var p := c + Vector2((i - (k - 1) * 0.5) * 6.0, -r0 - 7.0)
+			p = p.snapped(Vector2(2, 2))
+			tb_quad(p, p + Vector2(4, 0), p + Vector2(4, 4), p + Vector2(0, 4), Color(SH_COL.r * 1.2, SH_COL.g * 1.2, SH_COL.b, 0.9))
+	# 充能进度：外侧细弧从正上方顺时针走；0 层时再加一圈极淡的空槽环
+	if g.shield_max > 0 and n < g.shield_max:
+		var p := clampf(1.0 - g.shield_cd / maxf(g.shield_every, 0.1), 0.0, 1.0)
+		var rp := r0 + 5.0
+		if n == 0:
+			tb_arc(c, r0, 0.0, TAU, 2.0, Color(SH_COL.r, SH_COL.g, SH_COL.b, 0.14), 40)
+		if p > 0.01:
+			tb_arc(c, rp, -PI * 0.5, -PI * 0.5 + TAU * p, 2.0, Color(SH_COL.r, SH_COL.g, SH_COL.b, 0.42), maxi(4, int(40 * p)))
+	# 碎裂：碎掉的那一环外扩淡出 0.25 秒；之后无敌期间（0.5 秒）环位上两点微光绕行
+	if tb < 0.25:
+		var e := tb / 0.25
+		var rb := r0 - 5.0 * mini(_sh_brk_n - 1, 2) + 16.0 * e
+		tb_arc(c, rb, 0.0, TAU, 4.0 * (1.0 - e) + 1.0, Color(1.6, 1.25, 0.7, 0.9 * (1.0 - e)), 40)
+		if tb < 0.06:
+			tb_circle(c, r0, Color(1.3, 1.0, 0.6, 0.18 * (1.0 - tb / 0.06)), 1.0, 24)
+	if tb < 0.5 and g.invuln > 0.0:
+		var sa := 1.0 - tb / 0.5
+		tb_arc(c, r0, 0.0, TAU, 2.0, Color(SH_COL.r, SH_COL.g, SH_COL.b, (0.18 + 0.14 * sin(g.t * 40.0)) * sa), 40)
+		for q in 2:
+			var a: float = g.t * 9.0 + PI * q
+			var p := (c + Vector2.from_angle(a) * r0).snapped(Vector2(2, 2))
+			tb_quad(p - Vector2(2, 2), p + Vector2(2, -2), p + Vector2(2, 2), p + Vector2(-2, 2), Color(1.6, 1.3, 0.8, 0.85 * sa))
+
+
+## 护盾碎片 / 充能颗粒：沿环一圈向外（fx_grains，docs/136；低画质 / 关颗粒时由 push 稀疏或不出）
+func _sh_burst(c: Vector2, r: float, tpl: String, k: int) -> void:
+	if g.optical == null or g.optical.grains == null or not g.optical.grains.on():
+		return
+	for i in k:
+		var d := Vector2.from_angle(TAU * (i + 0.5 * (i % 2)) / k)
+		g.optical.grains.push(tpl, c + d * r, d, SH_COL)
 
 
 ## 用 Sprite2D 的动画状态手动绘制水月，以便和怪物、海草按前后排序
