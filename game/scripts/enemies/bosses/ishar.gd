@@ -129,9 +129,11 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float, forced := -1) -> vo
 						n += 1
 				pause = Bal.v("boss/ishar_line_pause", 2.0)
 			for k in 4:
-				var w := _warn(e, "line", float(d.get("line_warn", 1.0)),
+				# 10-28 用户「一个个出现，而不是四个一起打」：每条晚 boss/ishar_fan_step（0.3）秒，各自追踪、开火前 ishar_fan_lock（0.6）秒锁定后发射
+				var wdur: float = float(d.get("line_warn", 1.0)) + Bal.v("boss/ishar_fan_step", 0.3) * k
+				var w := _warn(e, "line", wdur,
 					{"pos": fan[k].pos, "ang": fan[k].ang,
-					"len": fan[k].len, "wid": float(d.get("line_width", 14.0)), "track": 0.5, "aim_op": fan[k].get("aim_op"), "seq_no": k + 1,
+					"len": fan[k].len, "wid": float(d.get("line_width", 14.0)), "track": maxf(0.3, wdur - Bal.v("boss/ishar_fan_lock", 0.6)), "aim_op": fan[k].get("aim_op"), "seq_no": k + 1,
 					"act": "ishar_line", "true": true, "name": "三线扫射" if k == 0 else "", "col": COL, "kp": "ishar", "kp_k": 2.0,
 					"dmg": e.dmg * float(d.get("line_mult", 0.7)) * 0.78, "cancel_dead": true, "lock": k == 0})   # ×0.78：10-25 加密
 				end = maxf(end, w.dur)
@@ -213,6 +215,8 @@ func transform_ishar(e: Dictionary) -> void:
 	Sfx.play_cue("phase", e.type, "start")
 	e.phase = 2
 	e.friendly = false
+	e.ishar_p1 = false
+	e.act_top = e.hp / maxf(1.0, e.maxhp)   # 连线回血的上限 = 本幕起点（_web_heal）
 	e.invuln = false   # 0.9 秒变身免伤由 combat 的 transform_until 护栏控制，不留永久无敌。
 	e.ai = "melee"   # 接近主控，但伤害只从有预警的轮转招式结算。
 	e["ishar_cycle"] = 0
@@ -298,6 +302,8 @@ func _web_step(e: Dictionary, dt: float) -> void:
 	e.web = slots
 	e.web_n = live
 	e.web_cap = cap
+	_web_heal(e, dt, live)
+	_web_shield(e)
 	# 召唤合唱：从场边叫来最多 3 只，补进空位（第一次在变身后 1 秒）
 	if not e.has("choir_next"):
 		e.choir_next = g.t + 1.0
@@ -328,8 +334,31 @@ func _web_mob(e: Dictionary, pos: Vector2, i: int) -> Dictionary:
 	o.extra_next = INF
 	o.web_of = e
 	o.part = true
+	o.shield_hp = float(o.get("shield_hp", 0.0)) + o.maxhp * Bal.v("boss/ishar_web_shield", 0.4)   # 连线护盾（10-28）：拆网要多打一层
 	g.enemies_sys.part_add(o)
 	return o
+
+
+## 网的持续回复（10-28 协调人「伤害做成持续压迫…破网海嗣治疗与护盾」）：每只连线海嗣每秒回她 maxhp × boss/ishar_web_heal，
+## 不超过本幕起点 e.act_top（过卡点 / 变身时记），不回到已过的卡点之上。每 1.5 秒飘一次合计数字 + 一条回复连线。拆网 = 停回血。
+func _web_heal(e: Dictionary, dt: float, live: int) -> void:
+	var rate: float = Bal.v("boss/ishar_web_heal", 0.0003)
+	if live <= 0 or rate <= 0.0 or e.dead:
+		return
+	var top: float = e.maxhp * float(e.get("act_top", 1.0))
+	var add: float = minf(e.maxhp * rate * live * dt, maxf(0.0, top - e.hp))
+	if add <= 0.0:
+		return
+	e.hp += add
+	e.web_heal_acc = float(e.get("web_heal_acc", 0.0)) + add
+	if g.t >= float(e.get("web_heal_next", 0.0)):
+		e.web_heal_next = g.t + 1.5
+		g.vfx.add_text(e.pos + Vector2(0, -e.r - 20.0), "+%d" % roundi(float(e.web_heal_acc)), COL, 13)
+		e.web_heal_acc = 0.0
+		for sl in e.get("web", []):
+			if sl.o != null and not sl.o.dead:
+				g.fx.append({"kind": "tide_link", "a": sl.o.pos, "b": e.pos, "life": 0.5, "max": 0.5, "col": COL, "enemy": true})
+				break
 
 
 func _unlink(o: Dictionary) -> void:
@@ -426,6 +455,10 @@ func _make_eye(e: Dictionary, o: Dictionary) -> void:
 func taken_mult(e: Dictionary) -> float:
 	if e.phase != 2:
 		return 1.0
+	if float(e.get("break_t", 0.0)) > 0.0 and Bal.v("boss/ishar_break_web", 1.0) > 0.0:
+		return Bal.v("boss/ishar_break_taken", 1.7)   # 破绽：网的减伤失效，另外受伤 ×1.7（10-28，拉高破绽期输出占比）
+	if Bal.v("boss/ishar_web_layer", 0.025) > 0.0:
+		return 1.0   # 10-28 起连线海嗣给护盾层（_web_shield），不再减伤
 	return maxf(Bal.v("boss/ishar_web_floor", 0.4), 1.0 - Bal.v("boss/ishar_web_each", 0.1) * float(e.get("web_n", 0)))
 
 
@@ -433,6 +466,7 @@ func taken_mult(e: Dictionary) -> float:
 func on_gate(e: Dictionary) -> void:
 	if e.phase != 2:
 		return
+	e.act_top = e.hp / maxf(1.0, e.maxhp)
 	if cards_on():
 		cards().on_gate(e)   # 转幕清掉未出的段，下一组按新幕选
 	if int(e.get("gates_passed", 0)) == 1:
@@ -441,7 +475,12 @@ func on_gate(e: Dictionary) -> void:
 
 ## 本体倒下：网与泪一起散
 func on_kill(e: Dictionary) -> void:
+	e.shield_hp = 0.0
 	e.ishar_emits = []
+	e.ishar_sweep = {}
+	e.ishar_sweep2 = {}
+	e.ishar_dash = {}
+	e.ishar_fence = {}
 	e.ishar_zones = []
 	e.card_live = false
 	for tear in g.ishar.tears(e):
@@ -458,3 +497,70 @@ func on_kill(e: Dictionary) -> void:
 ## 变身动画保护（transform_until，0.9 秒）：独立计时，结束后无需清理永久无敌标记
 func block_damage(e: Dictionary) -> bool:
 	return g.t < float(e.get("transform_until", 0.0))
+
+
+## 人形可受伤（boss/ishar_p1_hit）：一阶段最多打到 boss/ishar_p1_line 血线，越线的部分截回，下一帧 IsharEncounter 转化
+func on_damaged(e: Dictionary, _dmg: float, _eff: float) -> void:
+	if e.get("ishar_p1", false) and e.phase == 1:
+		e.hp = maxf(e.hp, e.maxhp * Bal.v("boss/ishar_p1_line", 0.85))
+
+
+## ---- 连线护盾（用户 10-28「小怪有什么用？可以给她提供护盾」）：每只连线中的海嗣给她一层护盾，每层 = 最大生命 × boss/ishar_web_layer（2.5%）。
+## 护盾走通用潮盾 e.shield_hp（combat 在卡点之后、扣血之前先扣），这里每帧把被打掉的量从最上层往下摊到各层：
+##   一层被打空 → 碎（飘「护盾 −1」+ 颗粒 + 碎裂环），boss/ishar_layer_regen（5）秒后只要那只海嗣还连着就重新长满；
+##   海嗣被杀或断线 → 那一层当场碎掉、不再回来（直到空位重新接上新的海嗣）。所以打本体只能暂时破盾，清海嗣才是永久拆。
+## 破绽照常出现；画法在 render/ishar_tell_draw._shield（与连线同色的护罩 + 层数刻度）。
+func _web_shield(e: Dictionary) -> void:
+	var per: float = e.maxhp * Bal.v("boss/ishar_web_layer", 0.025)
+	if per <= 0.0 or e.dead:
+		return
+	var layers: Array = e.get("web_layers", [])
+	# 1. 被打掉的量：上一帧写入的总和 − 现在剩下的潮盾，从最上层往下扣
+	var lost: float = maxf(0.0, float(e.get("web_sh_sum", 0.0)) - float(e.get("shield_hp", 0.0)))
+	for i in range(layers.size() - 1, -1, -1):
+		if lost <= 0.0:
+			break
+		var L: Dictionary = layers[i]
+		var take: float = minf(lost, float(L.hp))
+		L.hp = float(L.hp) - take
+		lost -= take
+		if L.hp <= 0.0 and take > 0.0:
+			L.regen_at = g.t + Bal.v("boss/ishar_layer_regen", 5.0)
+			_layer_break(e, L.o if L.o is Dictionary else e)
+	# 2. 层与连线对齐：断线 / 死掉的海嗣那层碎掉；新接上的海嗣加一层（满）
+	var keep: Array = []
+	for L in layers:
+		var o = L.o
+		var linked: bool = o is Dictionary and not o.dead and is_same(o.get("web_of"), e)
+		if not linked:
+			if float(L.hp) > 0.0:
+				_layer_break(e, o if o is Dictionary else e)
+			continue
+		if float(L.hp) <= 0.0 and g.t >= float(L.get("regen_at", INF)):
+			L.hp = per
+			L.erase("regen_at")
+			g.fx.append({"kind": "tide_link", "a": o.pos, "b": e.pos, "life": 0.5, "max": 0.5, "col": COL, "enemy": true})
+		keep.append(L)
+	for sl in e.get("web", []):
+		var o = sl.get("o")
+		if o is Dictionary and not o.dead and not keep.any(func(L): return is_same(L.o, o)):
+			keep.append({"o": o, "hp": per})
+	e.web_layers = keep
+	var sum := 0.0
+	var up := 0
+	for L in keep:
+		sum += float(L.hp)
+		if float(L.hp) > 0.0:
+			up += 1
+	e.shield_hp = sum
+	e.web_sh_sum = sum
+	e.web_sh_up = up
+	e.shield_layers = up   # 新 Boss 血条（screens/hud_bossbar.gd，claude/boss-hpbar）读这两个字段画护盾层
+	e.shield_max = keep.size()
+
+
+func _layer_break(e: Dictionary, src: Dictionary) -> void:
+	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r + 22.0, "life": 0.35, "max": 0.35, "col": COL, "enemy": true})
+	g.vfx.add_text(e.pos + Vector2(0, -e.r - 44.0), "护盾 −1", COL, 15)
+	g.vfx.sparks(e.pos + Vector2(0, -e.r * 0.5), (e.pos - src.pos).normalized() if not is_same(src, e) else Vector2.UP, COL, 10, 220.0)
+	Sfx.play("break_open", -6.0, 1.3, 0.05)

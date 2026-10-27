@@ -764,7 +764,7 @@ func regen_time_mult() -> float:
 ## add_flat / add_pct：预览「再加一张卡」时额外加进 regen / regen_pct 的量
 func regen_per_sec(add_flat := 0.0, add_pct := 0.0, max_hp := -1.0) -> float:
 	var mh: float = g.max_hp if max_hp < 0.0 else max_hp
-	var v: float = (g.regen + add_flat + (g.regen_pct + add_pct) * mh) * g.heal_mult * regen_time_mult()
+	var v: float = (g.regen + add_flat + (g.regen_pct + add_pct) * mh) * g.heal_mult * regen_time_mult() * song_heal_mult()
 	# 认知塑造「生命感悟」末节：队长生命低于 meta/low_regen_at 最大生命时回复 × meta/low_regen_mult
 	if g.rfx.rule("low_hp_regen") > 0 and g.hp < mh * Bal.v("meta/low_regen_at", 0.35):
 		v *= Bal.v("meta/low_regen_mult", 2.0)
@@ -1222,8 +1222,16 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 			_pt = g.prof_add("dm_kill", _pt)
 
 
+## 伊莎玛拉歌声地带（docs/170 §12）：队长站在地带内时受治疗 × (1 − boss/ishar_song_heal_cut)，离开即恢复；地带由 ishar_combos 每帧写 e.song_cut_until
+func song_heal_mult() -> float:
+	for b in g.bosses:
+		if not b.dead and float(b.get("song_cut_until", 0.0)) > g.t:
+			return maxf(0.0, 1.0 - Bal.v("boss/ishar_song_heal_cut", 0.5))
+	return 1.0
+
+
 func heal(v: float, src: String = "其他", sub: String = "") -> void:
-	v *= g.heal_mult * maxf(0.0, 1.0 - Bal.v("enemy/wound_heal_cut", 0.10) * g.wound)   # 侵蚀创口减受治疗
+	v *= g.heal_mult * maxf(0.0, 1.0 - Bal.v("enemy/wound_heal_cut", 0.10) * g.wound) * song_heal_mult()   # 侵蚀创口 / 歌声地带减受治疗
 	var got: float = minf(v, maxf(0.0, g.max_hp - g.hp))
 	g.heal_log[src] = float(g.heal_log.get(src, 0.0)) + got
 	if g.bot != null:
