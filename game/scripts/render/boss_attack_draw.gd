@@ -1,6 +1,7 @@
 extends RefCounted
 const Bubble = preload("res://scripts/render/paranoia_bubble.gd")
 const Materials = preload("res://scripts/render/final_boss_materials.gd")
+const IzumikDraw = preload("res://scripts/render/izumik_attack_draw.gd")
 ## Candidate presentation: exact tells underneath coarse pixel material bodies. No simulation writes.
 static var _circle_points := PackedVector2Array()
 static var _circle_gy := -INF
@@ -35,6 +36,8 @@ static func draw(g, impacts := false) -> void:
 			if f.kind == "bubble_pop" and f.life > 0: Bubble.pop(g,f)
 			elif f.kind == "final_impact" and f.life > 0:
 				_shape(g,f,clampf(float(f.life)/float(f.max)*1.5,0,1),false)
+		for e in g.bosses:
+			if e.type == "izumik": IzumikDraw.learn_marks(g,e)   # 伊祖米克习得弹停顿标记（docs/170）
 	g.world.tb_flush()
 
 static func _snap(p: Vector2) -> Vector2:
@@ -122,6 +125,9 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 			# A short filling arc encodes time, not a solid white spell body.
 			_ring(r, p, w.r, gy, 3.0, _ink(Color(1.0, 0.48, 0.57), alpha), -PI * 0.5, -PI * 0.5 + maxf(0.02, progress) * TAU)
 		"line":
+			if w.get("skin","") == "tide":   # 伊祖米克迁徙潮：波峰勾边，不画矩形框（docs/170）
+				IzumikDraw.tide_warning(g,w,alpha,progress)
+				return
 			var d := Vector2.from_angle(w.ang)
 			var n := d.orthogonal()
 			var end: Vector2 = p + d * w.len
