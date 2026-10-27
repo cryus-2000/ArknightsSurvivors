@@ -85,7 +85,7 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 ##   二幕 X 交叉——两道以你脚下为交点、与「她 → 你」各成 ±0.6 弧度，出手即锁定：斜着离开交点；
 ##   三幕 / 茧后（落地）——原来的 3 道依次追踪（每道间隔 0.6 秒）。茧没打破 +1 道（依次追踪接在后面）
 func _gaze(e: Dictionary, dir: Vector2) -> void:
-	var base: Dictionary = {"len": 820.0, "wid": 26.0, "act": "beam", "col": COL, "dmg": e.dmg * Bal.v("boss/paranoia_gaze_mult", 1.56), "corrode": 0.5, "kp": "paranoia", "kp_k": 2.0}   # 原 2.0（10-25 加密 ×0.78）
+	var base: Dictionary = {"len": 820.0, "wid": 26.0, "act": "beam", "col": COL, "dmg": e.dmg * Bal.v("boss/paranoia_gaze_mult", 1.56), "corrode": 0.5, "kp": "paranoia", "kp_k": 2.0, "skin": "gaze"}   # skin gaze：预警由 paranoia_combo_draw 画（暗红低填充 + 泡沫边）   # 原 2.0（10-25 加密 ×0.78）
 	var ng: int = 4   # 落地后依次 4 道（10-25 加密：原 3）
 	if e.phase == 1 and int(e.get("gates_passed", 0)) >= 1:
 		ng = 0
@@ -108,7 +108,7 @@ func _gaze(e: Dictionary, dir: Vector2) -> void:
 ## 扇形 r220 半角 0.8 暗填 + 亮边，追踪 0.4 + 锁定 0.9（§1.9 按扇边半宽的一半算）；e.dmg × 1.3，侵蚀 0.5，命中 1.5 秒移速 −30%
 func _howl(e: Dictionary, dir: Vector2) -> void:
 	_warn(e, "cone", 1.3, {"ang": dir.angle(), "r": 220.0, "half": 0.8, "track": 0.4, "act": "sweep", "name": "呼号", "col": Color(0.85, 0.45, 1.0),
-		"dmg": e.dmg * 1.3, "corrode": 0.5, "slow_t": 1.5, "slow_mult": 0.7, "slow_kind": "howl", "howl": true})
+		"dmg": e.dmg * 1.3, "corrode": 0.5, "slow_t": 1.5, "slow_mult": 0.7, "slow_kind": "howl", "howl": true, "skin": "howl"})
 
 
 ## ---- 偏执泡影（docs/38 §8.5）
@@ -187,6 +187,8 @@ func _decoy_step(e: Dictionary, dt: float) -> void:
 		o.pos = o.pos.move_toward(want, 160.0 * dt)
 		o.kb = Vector2.ZERO
 		o.hp = o.maxhp
+		# 幻影：整体更透、偏冷，透明度轻微闪动（纯画面字段，只读 g.t）；真身不变
+		o["tint2"] = Color(0.78, 0.9, 1.25, 0.5 + 0.12 * sin(g.t * 7.0 + float(sl.k) * 2.1))
 		o.phase = 1
 		if int(o.hits) >= int(Bal.v("boss/paranoia_decoy_hits", 3.0)):
 			_decoy_pop(e, sl, false)

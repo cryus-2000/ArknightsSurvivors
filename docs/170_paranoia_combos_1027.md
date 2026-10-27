@@ -45,11 +45,21 @@
 | 侵蚀帘幕 | 2 排横向弹墙向前推进，留 120 宽的缝；第一道缝在你当前横向位置，第二道向较宽一侧错开 170 | 先站在缝里，再横移 170 |
 | 群愿回响 | 2 朵五瓣花，按花瓣速度散开，1 秒后全部停住 0.5 秒（弹芯闪），再各自对准你当时的位置射出 | 停住时离开原地 |
 
-弹体分三级：小 r5（×0.34 e.dmg）、中 r8（×0.42）、大 r11（×0.5），侵蚀 0.15。专属色：`enemies.json` paranoia 加 `bcol_core`（淡紫白弹芯）与 `bcol_outline`（深紫外描边），沿用公共 Boss 弹绘制的「亮芯 + 暗描边」。同屏上限 200 发。红 / 洋红仍只给危险预警。
+弹体分三级：小 r6（×0.34 e.dmg）、中 r9（×0.42）、大 r12（×0.5），侵蚀 0.15。专属色：`enemies.json` paranoia 加 `bcol_core`（淡紫弹芯，不用白，避免满屏白点）与 `bcol_outline`（深紫外描边），沿用公共 Boss 弹绘制的「芯 + 暗描边」，外面再套判定半径 +6 的泡膜（2 像素膜 + 白高光，1 倍画面可见）。同屏上限 200 发。红 / 洋红仍只给危险预警。
+
+## 3b. 协调人审阅后的画面修改（10-27 v3）
+
+- 弹放大一档、弹芯改淡紫、泡膜加粗（见上）。
+- 凝视、呼号预警不再用公共的红色斜线填充：`skin: "gaze"` 的预警由 `paranoia_combo_draw.draw_ground` 画，暗红低填充 + 两条长边各一串大小不一的小泡（随进度变亮、沿光束漂动），锁定后中线收成细亮线；呼号扇形同样暗红低填充，外弧一串小泡，进度是一道向外推的泡弧。形状仍等于判定。
+- 认知负担光环：去掉整片平涂和实线外圈，外缘改成一圈缓慢漂移的小泡沫；符文保留。
+- 幻影：本体乘冷色、半透明并轻微闪动，外缘一圈抖动的冷色虚边；真身不变。
+- 帧时：见 §5。
 
 ## 4. 公共文件改动（合并时注意）
 
-- `render/boss_beam.gd`：`_paranoia_top` 第一行调 `ParanoiaComboDraw.draw_top`，加一条 preload。只碰泡影分支。
+- `render/boss_beam.gd`：`_paranoia_top` / `_paranoia_ground` 第一行各调 `ParanoiaComboDraw.draw_top` / `draw_ground`，加一条 preload。只碰泡影分支。
+- `render/telegraph_draw.gd`：`quiet()` 多一个条件 `skin in ["gaze", "howl"]`（泡影凝视、呼号自己画预警）。
+- `render/world.gd`：`_burden_ring`（泡影专用函数）外圈改泡沫。
 - `game/data/enemies.json`：paranoia 条目加 `bcol_core`、`bcol_outline` 两行。
 - `tools/check.py`：加 `paranoia_combos` 一项。
 - 未改 `final_attacks.gd`、`boss_attack_draw.gd`、`final_attack_grains.gd`、`boss_ai.gd`、粒子模板。
@@ -60,7 +70,8 @@
 
 - `paranoia_combos_test`：每幕两组、段数 2–4、两组轮换并以收招结束、上屏无「符卡」字样、坠地打断但保留在飞弹、转幕从新幕第一组起、被控作废弹幕段、同输入两遍弹幕位置一致。
 - `paranoia_combo_preview --pc-check`：7 组各 16 秒走正式 AI，无 SCRIPT ERROR；同屏弹数峰值 ≤98。
-- 录像：`build/boss_paranoia/combos_v1/`（每组单独 mp4 + 连播 + 拼图 + capture.json）。录像是无敌玩家沿固定路线移动，不代表难度。
+- 录像：`build/boss_paranoia/combos_v4/`（每组原速 GIF + 连播 mp4 + capture.json；PNG 帧用完即删）。录像是无敌玩家沿固定路线移动，不代表难度。v1–v3 为历史版本。
+- 帧时：`tools/probes/paranoia_combo_preview.py --timing --quality low` 写 `timing_low.json`（本机墙钟，含模拟与绘制提交；不是手机实测）。10-27 本机（24 核、多会话同时在跑）低画质：连段 + 弹幕模拟每帧约 0.5–1.0 ms；泡膜同局逐帧开关对照，~95 发时多 0.8–2 ms（泡膜已走 world.tb_* 批）。整帧墙钟两次运行间波动大（同一组 11 ↔ 24 ms），主要是机器负载，不能当手机帧时；手机网页未实测，建议协调人在帧率会话的手机基线里加一局泡影三幕（同屏峰值 ~96 发）。
 
 ## 6. 待云端
 

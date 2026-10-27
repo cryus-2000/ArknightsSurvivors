@@ -26,7 +26,7 @@ const EMITTERS := {
 const WINDUP := 0.55
 const BUL_CAP := 200
 ## 弹体分级：r 判定半径、伤害倍率（× e.dmg）
-const TIER := {"s": [5.0, 0.34], "m": [8.0, 0.42], "l": [11.0, 0.5]}
+const TIER := {"s": [6.0, 0.34], "m": [9.0, 0.42], "l": [12.0, 0.5]}
 const CORE := Color(0.95, 0.88, 1.0)
 
 var g

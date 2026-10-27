@@ -174,6 +174,7 @@ static func _paths(g, e: Dictionary) -> void:
 ## 偏执泡影「打落」读法（docs/142b §3.5）：悬浮时身下白色双描边椭圆（主控冲刺可用时加亮）；
 ## 坠地 / 三幕光环散开时青色倒计时环（弧长 = 剩余比例）
 static func _paranoia_ground(g, e: Dictionary) -> void:
+	ParanoiaComboDraw.draw_ground(g, e)   # 凝视预警（暗红低填充 + 泡沫边，docs/170）
 	if e.get("cocoon_t", 0.0) > 0.0 or e.phase != 1 or float(e.get("break_t", 0.0)) > 0.0:
 		return
 	var al: float = 0.75 if g.dash_ready() else 0.3

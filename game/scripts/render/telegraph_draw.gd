@@ -13,7 +13,8 @@ const Bal = preload("res://scripts/core/balance.gd")
 ## 10-22b 用户：普通怪（非 Boss）远程攻击（直线射击 shot / 扇形连射 extra_volley）开火前不再画预警；预警本身照常计时、到点照常开火（纯画面）
 static func quiet(w: Dictionary) -> bool:
 	var o = w.get("owner")
-	return w.get("act", "") == "final_attack" or o is Dictionary and not o.get("boss", false) and str(w.get("act", "")) in ["shot", "extra_volley"]
+	# skin gaze / howl：偏执泡影凝视、呼号自己画预警（render/paranoia_combo_draw.gd，docs/170）
+	return w.get("act", "") == "final_attack" or w.get("skin", "") in ["gaze", "howl"] or o is Dictionary and not o.get("boss", false) and str(w.get("act", "")) in ["shot", "extra_volley"]
 
 
 ## 预警形状的多边形（世界坐标；圆按贴地透视压扁）

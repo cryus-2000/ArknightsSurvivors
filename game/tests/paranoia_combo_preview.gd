@@ -2,10 +2,13 @@ extends "res://tests/final_boss_fx_preview.gd"
 ## 偏执泡影连携攻势录像（docs/170）：每组连段一段，从该组起手，其后全部走正式 AI / 弹幕 / 预警管线（组间按正式轮换）；玩家无敌、沿固定路线一直移动。
 ## --pc-check：只跑模拟不截图（回归用）。输出 FX_PREVIEW_METRICS（每段事件）与 FX_PREVIEW_DONE
 const SEG_SECONDS := 16.0
+const Bal = preload("res://scripts/core/balance.gd")
+var skin_ab := false
 
 
 func _ready() -> void:
 	var check_only := "--pc-check" in OS.get_cmdline_user_args()
+	skin_ab = "--skin-ab" in OS.get_cmdline_user_args()
 	kind = "paranoia"
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--shotdir="): out_dir = arg.substr(10)
@@ -80,12 +83,20 @@ func _ready() -> void:
 		var hits := 0
 		var segs: Array = []
 		var last_seg := ""
+		var frame_ms: Array = []
+		var t_prev: int = Time.get_ticks_usec()
+		var ab_ms: Array = [[], []]
+		var sim_ms: Array = []
+		var live := 0
 		for frame_i in int(SEG_SECONDS / DT):
 			var elapsed: float = frame_i * DT
+			if skin_ab:
+				Bal.sec("render")["paranoia_bubble_skin"] = float(frame_i % 2)   # 同局逐帧轮换泡膜开 / 关
 			g.invuln = 999.0
 			g.ppos = g.ppos.move_toward(path_target(fmod(elapsed, 12.0)), 120.0 * DT)
 			g.doc_pos = g.ppos + Vector2(10, 35)
 			g.t += DT
+			var t_sim0: int = Time.get_ticks_usec()
 			g.enemies_sys.build_grid()
 			var nfx: int = g.fx.size()
 			g.enemies_sys.update(DT)
@@ -93,6 +104,8 @@ func _ready() -> void:
 			g.shots.step(DT)
 			g.tele.update_warns(DT)
 			g.enemies_sys.update_status(DT)
+			if live >= 0:
+				sim_ms.append(float(Time.get_ticks_usec() - t_sim0) / 1000.0)
 			for w in g.warns:
 				if not is_same(w.owner, boss) or w.dmg <= 0.0 or watched.any(func(o): return is_same(o, w)):
 					continue
@@ -102,7 +115,7 @@ func _ready() -> void:
 			if mv != last_seg:
 				last_seg = mv
 				segs.append([snappedf(elapsed, 0.01), mv])
-			var live: int = (boss.get("pc_buls", []) as Array).size()
+			live = (boss.get("pc_buls", []) as Array).size()
 			peak = maxi(peak, live)
 			# 无敌玩家：数一下实弹贴身次数（只作密度参考，不代表难度）
 			for b in boss.get("pc_buls", []):
@@ -114,6 +127,11 @@ func _ready() -> void:
 			visual_step(DT)
 			await get_tree().process_frame
 			if not check_only: await RenderingServer.frame_post_draw
+			var t_now: int = Time.get_ticks_usec()
+			frame_ms.append([float(t_now - t_prev) / 1000.0, live])
+			if skin_ab and live >= 60 and frame_i > 5:
+				ab_ms[frame_i % 2].append(float(t_now - t_prev) / 1000.0)
+			t_prev = t_now
 			if frame_i % 2 == 0:
 				if not check_only:
 					var result: Error = get_viewport().get_texture().get_image().save_png(out_dir.path_join("frame_%05d.png" % shot_i))
@@ -122,7 +140,14 @@ func _ready() -> void:
 						get_tree().quit(4)
 						return
 				shot_i += 1
-		print("FX_PREVIEW_METRICS ", JSON.stringify({"combo": sc.name, "act": sc.act, "segments": segs, "bullet_peak": peak, "contact_frames": hits, "events": events}))
+		# 帧时（本机墙钟，含模拟 + 绘制提交；不截图时才有意义）：全段均值、p95、弹数 ≥ 60 时的均值
+		var all_ms: Array = frame_ms.slice(5).map(func(x): return x[0])
+		all_ms.sort()
+		var busy: Array = frame_ms.filter(func(x): return x[1] >= 60).map(func(x): return x[0])
+		var avg := func(arr: Array) -> float: return 0.0 if arr.is_empty() else arr.reduce(func(a2, b2): return a2 + b2, 0.0) / arr.size()
+		var ab := {"skin_on_busy": snappedf(avg.call(ab_ms[1]), 0.01), "skin_off_busy": snappedf(avg.call(ab_ms[0]), 0.01)} if skin_ab else {}
+		var timing := {"ab": ab, "sim_ms_avg": snappedf(avg.call(sim_ms), 0.01), "ms_avg": snappedf(avg.call(all_ms), 0.01), "ms_p95": snappedf(all_ms[int(all_ms.size() * 0.95)] if not all_ms.is_empty() else 0.0, 0.01), "ms_busy_avg": snappedf(avg.call(busy), 0.01), "busy_frames": busy.size()}
+		print("FX_PREVIEW_METRICS ", JSON.stringify({"timing": timing, "combo": sc.name, "act": sc.act, "segments": segs, "bullet_peak": peak, "contact_frames": hits, "events": events}))
 	print("FX_PREVIEW_DONE boss=%s quality=%s frames=%d combos=%d optical=%s" % [kind, quality, shot_i, scenarios.size(), g.optical_on])
 	g.queue_free()
 	await get_tree().process_frame
