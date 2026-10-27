@@ -315,7 +315,7 @@ func _shot_ref(e: Dictionary, own: int, p: Vector2, ang: float, spd: float, r: f
 	if own >= OWN_CAP:
 		return null
 	var b := {"pos": p, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * mult * Bal.v("boss/ishar_shot_mult", 1.2), "r": r, "life": life,
-		"slow": false, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "true": true, "kind": kind, "home": false, "boss": true,
+		"slow": false, "frost": 0.0, "corrode": Bal.v("boss/ishar_corrode", 0.5), "nerve": 0.0, "true": true, "kind": kind, "home": false, "boss": true,
 		"atk": "法术", "hit_cap": e.get("hit_cap", 0.0), "source_id": e.id, "col": COL, "src_type": "ishar"}
 	g.ebullets.append(b)
 	return b

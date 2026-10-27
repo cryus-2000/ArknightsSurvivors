@@ -453,7 +453,7 @@ func taken_mult(e: Dictionary) -> float:
 	if e.phase != 2:
 		return 1.0
 	if float(e.get("break_t", 0.0)) > 0.0 and Bal.v("boss/ishar_break_web", 1.0) > 0.0:
-		return 1.0   # 破绽：网的减伤失效（10-28，拉高破绽期输出占比）
+		return Bal.v("boss/ishar_break_taken", 1.4)   # 破绽：网的减伤失效，另外受伤 ×1.4（10-28，拉高破绽期输出占比）
 	return maxf(Bal.v("boss/ishar_web_floor", 0.4), 1.0 - Bal.v("boss/ishar_web_each", 0.1) * float(e.get("web_n", 0)))
 
 
