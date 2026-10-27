@@ -4,6 +4,7 @@ extends RefCounted
 
 const LaserDraw = preload("res://scripts/render/laser_draw.gd")
 const FinalAttackDraw = preload("res://scripts/render/boss_attack_draw.gd")
+const MidCardDraw = preload("res://scripts/render/mid_card_draw.gd")   # 塑路者 / 接潮组弹体与预警（docs/170）
 const BossBeam = preload("res://scripts/render/boss_beam.gd")   # Boss 改版样板：Kanpelle 光束、骑士寒气圈 / 寒冷条（docs/142b）
 const D = preload("res://scripts/data.gd")
 const UI = preload("res://scripts/ui.gd")
@@ -481,6 +482,7 @@ func _draw_warns_auras() -> void:
 	if not _dbg_foe and not _dbg_warn:
 		TeleDraw.draw_fills(g)
 		FinalAttackDraw.draw(g)
+		MidCardDraw.warns(g)
 	if not _dbg_aura:
 		draw_nest_auras()
 	draw_beacons()
@@ -1806,11 +1808,15 @@ func _draw_ebullets_lobs_shocks() -> void:
 	# 敌方弹幕分三遍画（性能 9/30：原来每颗子弹影子 / 底圈 / 光晕 / 贴图 / 描边交替，有贴图和无贴图来回切，每颗约 5 次绘制调用；
 	# 分遍后同类连续提交能合批）：① 无贴图：影子椭圆、深色底圈、光晕；② 贴图：弹体；③ 无贴图：弹芯、亮描边
 	var blades: Array = []
+	var mcs: Array = []   # 中期 Boss 分级弹（docs/170，render/mid_card_draw 单独画）
 	for b in g.ebullets:
 		if b.life <= 0.0:
 			continue   # 命中 / 到期、还没被回收的敌弹不画（同我方子弹；正式局 _cleanup 每帧回收，图鉴演示由 enemy_demo 回收）
 		if b.get("kind", "") == "boss_blade":
 			blades.append(b)
+			continue
+		if b.get("mc", false):
+			mcs.append(b)
 			continue
 		# 2.5D：子弹在离地约 16px 的高度飞行，影子落在判定位置（椭圆直接算顶点，不切画布变换）
 		tb_circle(b.pos + Vector2(0, 2), b.r + 1.0, Color(0, 0, 0, 0.4), 0.45, 10)
@@ -1834,7 +1840,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 				tb_circle(bp, b.r + 4.0, Color(1.0, 0.3, 0.6, 0.25))
 	tb_flush()
 	for b in g.ebullets:
-		if b.life <= 0.0:
+		if b.life <= 0.0 or b.get("mc", false):
 			continue
 		var kd: String = b.get("kind", "orb")
 		var bp: Vector2 = _ebp(b)
@@ -1855,7 +1861,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 	var eb_ow: float = Bal.v("render/ebullet_outline", 0.0) if g.optical_on else 0.0
 	for b in g.ebullets:
 		var kd: String = b.get("kind", "orb")
-		if kd == "boss_blade" or b.life <= 0.0:
+		if kd == "boss_blade" or kd == "mc" or b.life <= 0.0:
 			continue
 		var bp: Vector2 = _ebp(b)
 		if _bullet_tex(b) != "":
@@ -1895,6 +1901,8 @@ func _draw_ebullets_lobs_shocks() -> void:
 	tb_flush()
 	for b in blades:
 		g.vfx.boss_blade(b, b.pos + Vector2(0, -16))
+	if not mcs.is_empty():
+		MidCardDraw.bullets(self, g, mcs)
 	# 抛射碎石 / 投嗣弹：落点预警 + 空中石块（投嗣育母投出的拟嗣：低弧，弹体 proj_mother_brood，缺图时 e_brood 基础帧缩小旋转）
 	for l in g.lobs:
 		var k: float = l.t / l.dur

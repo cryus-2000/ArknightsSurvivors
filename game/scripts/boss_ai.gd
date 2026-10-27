@@ -121,7 +121,7 @@ func boss_step(e: Dictionary, dt: float, dir: Vector2, dist: float) -> void:
 ## e.dmg × 0.55 法术、侵蚀 0.25（原接潮共鸣数值）。公共段和验收 --bossmoves 都走这里
 func unite(e: Dictionary, mate: Dictionary) -> Dictionary:
 	return g.tele.warn(e, "line", 1.5, {"ang": (mate.pos - e.pos).angle(), "len": e.pos.distance_to(mate.pos), "wid": 17.0, "track": 0.9, "act": "tide_link", "name": "统一",
-		"col": g.vfx.boss_color(e.type), "corrode": 0.25, "dmg": e.dmg * 0.55, "arts": false, "cancel_dead": true, "b_owner": mate, "lock": false})
+		"col": g.vfx.boss_color(e.type), "corrode": 0.25, "dmg": e.dmg * 0.55, "arts": false, "cancel_dead": true, "b_owner": mate, "lock": false, "skin": "mc_link"})   # skin：点描边预警（render/mid_card_draw，docs/170）
 
 
 ## 远程 Boss 的迫近（协调人 9/30）：离主控超过 boss/<key>_close_min（300，0 = 关）时，每 <key>_close_cd（6）秒带直线预警冲到主控前约 140 处，

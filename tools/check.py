@@ -998,6 +998,7 @@ SCENE_REGRESSIONS = {
     "beam_audio": ("激光提示音独立声部与并发", "beam_audio_test", r"BEAM AUDIO: 0 failures", []),
     "final_attack_grains": ("最终 Boss 材质颗粒与安全区", "final_attack_grains_test", r"FINAL ATTACK GRAINS failures=0", []),
     "knight_combo": ("骑士连段、取消与喘息", "knight_combo_test", r"KNIGHT COMBO failures=0", []),
+    "mid_boss": ("塑路者 / 接潮组弹幕与连段（docs/170）", "mid_boss_test", r"MID BOSS failures=0", []),
     "final_boss_materials": ("Boss 实体材质与安全区", "final_boss_materials_test", r"FINAL BOSS MATERIALS failures=0", []),
     "final_boss_animation": ("Boss 原生动作与发射时刻", "final_boss_animation_test", r"FINAL BOSS ANIMATION failures=0", []),
     "boss_fx_geometry": ("Boss 特效几何与预警约束", "boss_fx_geometry_test", r"BOSS FX GEOMETRY failures=0", []),
