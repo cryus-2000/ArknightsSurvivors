@@ -1874,6 +1874,8 @@ func _draw_ebullets_lobs_shocks() -> void:
 			"nerve":
 				if g.tex.get("proj_floater_nerve") == null:
 					tb_circle(bp, b.r, Color(1.8, 1.6, 0.5))
+		if b.has("core_r"):
+			tb_circle(bp, float(b.core_r), b.get("core_col", Color(1.8, 1.7, 1.5)))   # 弹体分级：大弹发光核心（圣徒符卡，docs/171）
 		if g.optical_on:
 			var ebc: Color = g.optical.eb_col(b)
 			var bk: float = 1.3 if b.get("boss", false) and _eb_own() else 2.0   # Boss 弹专属色亮描边只提到 ×1.3（×2 叠辉光后色相偏）
