@@ -3827,7 +3827,10 @@ func draw_beacons() -> void:
 			if lf > 0.0:
 				UI.text(g, g.font, pos + Vector2(-80, 30), "安全区 %d 秒" % ceili(lf), 12, Color(1.0, 0.85, 0.55), HORIZONTAL_ALIGNMENT_CENTER, 160, 3)
 		else:
-			g.draw_circle(lamp, 6.0, Color(0.5, 0.6, 0.7, 0.2 + 0.15 * pulse))
+			# 未点燃：灯室一点琥珀色呼吸光（10-28 用户「灯塔还没被激活时加提醒」；原来是很淡的灰蓝，看不出在等人点）
+			var br: float = 0.5 + 0.5 * sin(g.t * 2.4)
+			g.draw_circle(lamp, 9.0 + 3.0 * br, Color(1.0, 0.68, 0.32, 0.16 + 0.16 * br))
+			g.draw_circle(lamp, 4.0, Color(1.5, 1.05, 0.55, 0.55 + 0.35 * br))
 
 
 ## 点燃瞬间：暖白爆闪 + 一道光环扩到清痕半径 + 放射光束 + 火花

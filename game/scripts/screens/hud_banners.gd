@@ -211,7 +211,8 @@ func draw_field_wave(vs: Vector2) -> void:
 		break
 
 
-## 未点燃的灯标在屏幕外：边缘暖金小圈 + 箭头 +「灯标 Nm」（同商人 / 祭坛指示）
+## 未点燃的灯标在屏幕外：边缘暖金小圈 + 箭头 +「灯标 Nm」（同商人 / 祭坛指示）；
+## 在画面内（10-28 用户「灯塔还没被激活时加提醒」）：灯标头顶一个小琥珀箭头上下轻跳，主控进了光圈或点燃后不画
 func draw_beacon_pointers(vs: Vector2, ct: Transform2D) -> void:
 	var bs = g.get("beacons")
 	if g.state != Game.S.PLAY or not (bs is Array):
@@ -223,6 +224,12 @@ func draw_beacon_pointers(vs: Vector2, ct: Transform2D) -> void:
 			continue
 		var sp: Vector2 = ct * b.get("pos", Vector2.ZERO)
 		if Rect2(Vector2(40, 40), vs - Vector2(80, 80)).has_point(sp):
+			if (b.get("pos", Vector2.ZERO) as Vector2).distance_to(g.ppos) > float(b.get("r", 70.0)):
+				var bob: float = absf(sin(g.t * 3.2)) * 6.0
+				var top: Vector2 = sp + Vector2(0, -(41.0 + 12.0) * 2.0 * ct.get_scale().y - 10.0 - bob)
+				var ac := Color(1.0, 0.72, 0.36, 0.9)
+				h._hb.poly(PackedVector2Array([top + Vector2(0, 9), top + Vector2(-8, -2), top + Vector2(8, -2)]), Color(0.06, 0.05, 0.03, 0.8))
+				h._hb.poly(PackedVector2Array([top + Vector2(0, 6), top + Vector2(-5, -1), top + Vector2(5, -1)]), ac)
 			continue
 		var c := vs / 2.0
 		var d := (sp - c).normalized()

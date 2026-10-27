@@ -84,7 +84,7 @@ func update(dt: float) -> void:
 			if pd < 560.0:
 				g.vfx.add_text(b.pos + Vector2(0, -70), "引航灯标熄灭了", Color(0.7, 0.78, 0.85), 15)
 			else:
-				g.vfx.show_banner("远处的引航灯标熄灭了 —— 稍后会有新的一座")
+				g.vfx.show_banner("远处的引航灯标熄灭了")   # 10-28 用户：去掉「稍后会有新的一座」
 			# quit：none = 从没走到寻灯半径（bot/beacon_seek_r 300）内；approach = 进过寻灯半径但没到 2×r（半路放弃）；edge = 到过 2×r（圈边 / 进过圈）没点
 			var md: float = float(b.get("min_d", INF))
 			var quit := "none" if md >= Bal.v("bot/beacon_seek_r", 300.0) else ("approach" if md >= 2.0 * r else "edge")
