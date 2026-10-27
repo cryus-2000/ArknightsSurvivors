@@ -1,7 +1,7 @@
 """伊莎玛拉连段实机录像（docs/170）：六组连段各 16 秒，正式 AI，窗口放屏外 / 副屏、静音。
 
 python tools/probes/ishar_combo_preview.py --tag v1 [--quality low]
-输出 build/boss_ishar/<tag>/：每组 mp4 + 原速 GIF、整段 mp4、capture.json；编码后删除 PNG 帧。已有帧不覆盖。
+输出 build/boss_ishar/<tag>/：每组一个 mp4（原色原速，--slow 另出 1/3 速）、capture.json；编码后删除 PNG 帧。已有帧不覆盖。
 """
 import argparse
 import hashlib
@@ -33,7 +33,7 @@ def main():
     ap.add_argument("--tag", required=True)
     ap.add_argument("--quality", choices=["high", "low"], default="high")
     ap.add_argument("--encode-only", action="store_true")
-    ap.add_argument("--slow", action="store_true", help="另出 1/3 速 GIF")
+    ap.add_argument("--slow", action="store_true", help="另出 1/3 速 mp4")
     ap.add_argument("--keep-frames", action="store_true", help="编码后保留 PNG 帧（缺省删除）")
     a = ap.parse_args()
     base = (ROOT / "build/boss_ishar" / a.tag).resolve()
@@ -55,23 +55,15 @@ def main():
     log = (base / ("run_%s.log" % a.quality)).read_text(encoding="utf-8")
     metrics = [json.loads(l.removeprefix("FX_PREVIEW_METRICS ")) for l in log.splitlines() if l.startswith("FX_PREVIEW_METRICS ")]
     suffix = "" if a.quality == "high" else "_low"
-    ffmpeg("-framerate", str(FPS), "-i", str(frames / "frame_%05d.png"), "-c:v", "libx264", "-crf", "18", "-preset", "fast",
-           "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(base / ("ishar_combos_all%s.mp4" % suffix)))
+    # 给用户看的一律 mp4（协调人 10-27：H.264 原色原速，≤30 MB；不出 GIF / 拼图 / 整段长片）；--slow 另出 1/3 速
     for s in range(SEGMENTS):
         name = metrics[s]["move"] if s < len(metrics) else str(s)
-        ffmpeg("-framerate", str(FPS), "-start_number", str(s * per), "-i", str(frames / "frame_%05d.png"), "-frames:v", str(per),
-               "-c:v", "libx264", "-crf", "18", "-preset", "fast", "-pix_fmt", "yuv420p", "-movflags", "+faststart",
-               str(base / ("%d_%s%s.mp4" % (s + 1, name, suffix))))
-    # 给用户看的一律 GIF（协调人 10-27）：原速，8 fps、宽 480、96 色（6 段各约 10.5 MB）；--slow 另出 1/3 速；单个 ≤25 MB
-    pal = "split[a][b];[a]palettegen=max_colors=96:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=5:diff_mode=rectangle"
-    for s in range(SEGMENTS):
-        name = metrics[s]["move"] if s < len(metrics) else str(s)
-        for tag, pts in [("", "")] + ([("_slow3", "setpts=3*PTS,")] if a.slow else []):
-            gif = base / ("%d_%s%s%s.gif" % (s + 1, name, suffix, tag))
+        for tag, vf in [("", "null")] + ([("_slow3", "setpts=3*PTS")] if a.slow else []):
+            out = base / ("%d_%s%s%s.mp4" % (s + 1, name, suffix, tag))
             ffmpeg("-framerate", str(FPS), "-start_number", str(s * per), "-i", str(frames / "frame_%05d.png"), "-frames:v", str(per),
-                   "-filter_complex", pts + "fps=8,scale=480:-2:flags=lanczos," + pal, "-loop", "0", str(gif))
-            if gif.stat().st_size > 25 * 1024 * 1024:
-                print("WARN gif > 25MB", gif)
+                   "-vf", vf, "-c:v", "libx264", "-crf", "18", "-preset", "fast", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out))
+            if out.stat().st_size > 30 * 1024 * 1024:
+                print("WARN mp4 > 30MB，需降码率：", out)
     if not a.keep_frames:
         for f in paths:
             f.unlink()
