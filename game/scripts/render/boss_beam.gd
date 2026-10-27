@@ -186,8 +186,8 @@ static func _paths(g, e: Dictionary) -> void:
 ## 坠地 / 三幕光环散开时青色倒计时环（弧长 = 剩余比例）
 static func _paranoia_ground(g, e: Dictionary) -> void:
 	ParanoiaComboDraw.draw_ground(g, e)   # 凝视预警（暗红低填充 + 泡沫边，docs/170）
-	if e.get("cocoon_t", 0.0) > 0.0 or e.phase != 1 or float(e.get("break_t", 0.0)) > 0.0:
-		return
+	if e.get("cocoon_t", 0.0) > 0.0 or e.phase != 1 or float(e.get("drop_until", 0.0)) > g.t:
+		return   # 收招破绽期间照常画（可以打落），只有已坠地时不画
 	var al: float = 0.75 if g.dash_ready() else 0.3
 	g.draw_set_transform(e.pos + Vector2(0, e.r * 0.8), 0.0, Vector2(1.0, 0.45))
 	g.draw_arc(Vector2.ZERO, e.r * 1.25, 0.0, TAU, 40, Color(1, 1, 1, al), 2.0)

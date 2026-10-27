@@ -20,6 +20,7 @@ static func draw_top(g, e: Dictionary) -> void:
 	var blink: bool = int(g.t * 10.0) % 2 == 0
 	var tw = g.world   # 泡膜走无贴图批（world.tb_*），一百颗弹也只提交一次
 	var skin: bool = Bal.v("render/paranoia_bubble_skin", 1.0) > 0.0   # 0 = 不画泡膜（帧时对照）
+	var p2_look: bool = e.phase == 2
 	for b in e.get("pc_buls", []):
 		if b.life <= 0.0 or not skin:
 			continue
@@ -30,6 +31,25 @@ static func draw_top(g, e: Dictionary) -> void:
 			rr += 3.0
 		# 泡膜：极淡内填 + 2 像素淡紫膜 + 左上一道白高光；1 倍画面下要能看出是泡
 		# 10-27 用户「泡泡颜色明显一点，太透明」：内填 0.1→0.3、膜 0.7→0.95 加粗到 2.5、内侧再一圈淡色厚膜
+		if p2_look:
+			# 二阶段「海嗣滴」（用户 10-28：二阶段换主色和弹体）：青蓝水滴形，尖端朝飞行方向，深色描边 + 亮芯；
+			# 不透明，盖住公共管线画的紫色圆芯
+			var fwd: Vector2 = b.vel.normalized() if b.vel.length_squared() > 1.0 else Vector2.RIGHT
+			var side: Vector2 = fwd.orthogonal()
+			var rb: float = float(b.r) + 3.0
+			var pts := PackedVector2Array()
+			for q in 10:
+				var a: float = PI * 0.5 + PI * q / 9.0
+				pts.append(p2 - fwd * rb * 0.2 + (side * cos(a) + fwd * sin(a)) * rb)
+			pts.append(p2 + fwd * rb * 2.0)
+			tw.tb_flush()
+			g.draw_colored_polygon(pts, Color(0.02, 0.12, 0.16, 1.0))
+			var inner := PackedVector2Array()
+			for pt in pts:
+				inner.append(p2 + (pt - p2) * 0.78)
+			g.draw_colored_polygon(inner, Color(0.3, 0.85, 0.95, 1.0 if held and blink else 0.92))
+			tw.tb_circle(p2 + fwd * 1.5, 2.5, Color(0.9, 1.0, 1.0, 1.0))
+			continue
 		# 10-27 用户「换成紫色泡泡」：淡紫 → 饱和紫（高光仍白）
 		tw.tb_circle(p2, rr, Color(0.58, 0.2, 0.95, 0.34))
 		tw.tb_ring(p2, rr - 2.0, 3.0, Color(0.66, 0.26, 1.0, 0.4))
@@ -48,17 +68,39 @@ static func draw_top(g, e: Dictionary) -> void:
 			var a0: float = q * TAU / 18.0
 			var rq: float = o.r * 1.15 + 3.0 * sin(g.t * 11.0 + q * 1.9)
 			g.draw_arc(cpos, rq, a0, a0 + TAU / 22.0, 3, Color(0.7, 0.9, 1.0, 0.55), 1.5)
-	# 幻象冲撞：预告期幻象从透明渐显、身前一道泡沫通道（地面层 draw_ground）；冲刺中半透明冷色本体
+	# 幻象冲撞（用户 10-28「冲锋只是平移，加动态」）：预告期渐显并上下浮动；最后 0.35 秒向后蓄势（后退 + 压扁）；
+	# 冲刺中沿方向拉长、身后 4 个渐淡残影、本体轻微抖动；地面层另画泡沫通道（draw_ground）
+	var frames: int = A.enemy_frames(str(e.tex), 2)
+	var foot: bool = g.foot_anchor.has(str(e.tex))
+	var sc: float = g.world.enemy_scale(e) / A.hires_of(g.tex.get(str(e.tex)))
+	var anc: Vector2 = Vector2(0.5, 1.0) if foot else Vector2(0.5, 0.5)
+	var foot_off: Vector2 = Vector2(0, float(e.r) * 0.8 + 3.0 * g.PX) if foot else Vector2.ZERO
 	for ln in e.get("pc_rush", []):
 		if g.t < float(ln.t0):
 			continue
-		var fade: float = clampf((g.t - float(ln.t0)) / 0.4, 0.0, 1.0)
-		var frames: int = A.enemy_frames(str(e.tex), 2)
-		# 缩放 / 锚点同本体（world._draw_enemy_full：enemy_scale 已含 PX；脚底锚点的帧条画在脚下）
-		var foot: bool = g.foot_anchor.has(str(e.tex))
-		var bp: Vector2 = ln.pos + (Vector2(0, float(e.r) * 0.8 + 3.0 * g.PX) if foot else Vector2.ZERO)
-		g.vfx.spr(str(e.tex), frames, int(g.t * 6.0) % frames, bp, g.world.enemy_scale(e) / A.hires_of(g.tex.get(str(e.tex))), ln.d.x < 0.0,
-			Color(0.7, 0.85, 1.3, 0.5 * fade), Vector2(0.5, 1.0) if foot else Vector2(0.5, 0.5))
+		var d: Vector2 = ln.d
+		var horiz: bool = absf(d.x) >= absf(d.y)
+		var fr: int = int(g.t * 6.0) % frames
+		var flip: bool = d.x < 0.0
+		if g.t < float(ln.t_go):
+			var fade: float = clampf((g.t - float(ln.t0)) / 0.4, 0.0, 1.0)
+			var left: float = float(ln.t_go) - g.t
+			var wind: float = clampf(1.0 - left / 0.35, 0.0, 1.0)   # 0 → 1：蓄势
+			var p: Vector2 = ln.pos - d * 26.0 * wind * wind + Vector2(0, sin(g.t * 4.0 + float(ln.t0)) * 3.0 * (1.0 - wind))
+			# 蓄势时沿冲刺方向压扁、垂直方向鼓起；抖动随蓄势加剧
+			var k: float = 1.0 - 0.18 * wind
+			var sq: Vector2 = Vector2(k, 2.0 - k) if horiz else Vector2(2.0 - k, k)
+			p += Vector2(sin(g.t * 60.0), cos(g.t * 53.0)) * 1.5 * wind
+			g.vfx.spr(str(e.tex), frames, fr, p + foot_off, sc, flip, Color(0.7, 0.85, 1.3, 0.5 * fade + 0.2 * wind), anc, sq)
+			continue
+		# 冲刺中：残影（越远越淡、越小），本体拉长
+		var stretch: Vector2 = Vector2(1.3, 0.82) if horiz else Vector2(0.85, 1.25)
+		for k2 in [4, 3, 2, 1]:
+			var gp: Vector2 = ln.pos - d * 30.0 * k2
+			var ga: float = 0.28 * (1.0 - k2 / 5.0)
+			g.vfx.spr(str(e.tex), frames, fr, gp + foot_off, sc * (1.0 - 0.04 * k2), flip, Color(0.6, 0.45, 1.2, ga), anc, stretch)
+		var jit: Vector2 = d.orthogonal() * sin(g.t * 45.0) * 2.0
+		g.vfx.spr(str(e.tex), frames, fr, ln.pos + jit + foot_off, sc, flip, Color(0.75, 0.88, 1.35, 0.62), anc, stretch)
 	# 千目注视：杏仁形的眼，0.25 秒内睁开；开过枪的那只瞳孔短暂放亮
 	for ey in e.get("pc_eyes", []):
 		var ot: float = g.t - float(ey.open)
@@ -123,6 +165,22 @@ static func _rush_lanes(g, e: Dictionary) -> void:
 ## 地面层（boss_beam._paranoia_ground）：凝视预警。形状 = 判定（pos 起、长 len、半宽 wid 的矩形）；
 ## 暗红低填充，两条长边是一串大小不一的小泡（随进度变亮、沿光束方向缓慢漂），锁定后中线收成一道细亮线
 static func draw_ground(g, e: Dictionary) -> void:
+	# 二阶段：以她为中心的大片深青压暗地面（越远越淡，三层叠出渐变），「她认真了」
+	if e.phase == 2 and float(e.get("cocoon_t", 0.0)) <= 0.0:
+		for q in 3:
+			g.draw_circle(e.pos, 900.0 - q * 260.0, Color(0.0, 0.05, 0.08, 0.1))
+		# 场地：从她脚下放射的 9 道青蓝裂纹（海嗣色；形状由序号决定、不随机），缓慢明灭；二阶段独有
+		var pulse: float = 0.5 + 0.5 * sin(g.t * 1.6)
+		for q in 9:
+			var a: float = TAU * q / 9.0 + 0.3
+			var pts := PackedVector2Array([e.pos])
+			var p: Vector2 = e.pos
+			for k in 7:
+				var aa: float = a + 0.35 * sin(q * 2.7 + k * 1.9)
+				p += Vector2(cos(aa), sin(aa) * 0.55) * 70.0
+				pts.append(p)
+			g.draw_polyline(pts, Color(0.05, 0.35, 0.45, 0.3 + 0.2 * pulse), 4.0)
+			g.draw_polyline(pts, Color(0.4, 0.95, 1.0, 0.2 + 0.25 * pulse), 1.5)
 	_rush_lanes(g, e)
 	for w in g.warns:
 		if w.done or not is_same(w.owner, e):

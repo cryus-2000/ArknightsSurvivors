@@ -58,7 +58,7 @@ func setup_preview_phase2(e: Dictionary) -> void:
 
 
 func demo_moves(_e: Dictionary) -> Array:
-	return MOVES + g.bai.finals.NAMES["paranoia"] + Combos.EMITTERS.keys() + ["幻象冲撞"]
+	return MOVES + g.bai.finals.NAMES["paranoia"] + Combos.EMITTERS.keys() + ["幻象冲撞"]   # 共 17 招
 
 
 func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
@@ -172,14 +172,15 @@ func _paranoia_p2(e: Dictionary) -> void:
 	e.hover_lost = true
 	e.ai = "melee"
 	e.spd = 70.0
-	_tint2(e, Color(0.92, 0.82, 1.12))
+	_tint2(e, Color(0.72, 1.0, 1.25))   # 二阶段「她认真了」：偏海嗣青蓝的着色（10-28 用户：二阶段换主色，原 0.92/0.82/1.12）
 
 
 ## ---- 主轴「打落」（docs/142b §3.5）
 ## 一 / 二幕（悬浮）：冲刺穿过真身 → 坠地 4 秒（借破绽：不出招、受伤 × break_mult，taken_mult 再补到合计 1.8）；三幕起（落地）：冲刺穿身 = 光环散掉 5 秒
 func _drop_step(e: Dictionary) -> void:
 	if e.phase == 1:
-		if float(e.get("break_t", 0.0)) > 0.0 or g.t < float(e.get("drop_ok_at", 0.0)) or not _dash_through(e):
+		# 收招破绽（break_t）期间也能打落：只有正在坠地才不能再打（10-28 docs/170 §3h）
+		if float(e.get("drop_until", 0.0)) > g.t or g.t < float(e.get("drop_ok_at", 0.0)) or not _dash_through(e):
 			return
 		var t: float = Bal.v("boss/paranoia_drop_t", 4.0)
 		g.combat.start_break(e, t)
@@ -289,15 +290,19 @@ func _decoy_pop(e: Dictionary, sl: Dictionary, dashed: bool) -> void:
 		Sfx.play("shell_break", -8.0, 1.6, 0.0)
 
 
-## 主轴受伤倍率（combat.damage，乘在破绽倍率之前）：茧期 1；悬浮 0.5 / 坠地合计 1.8；落地光环张开 0.5、散开 1
+## 主轴受伤倍率（combat.damage，乘在破绽倍率之前）：茧期 1；坠地合计 paranoia_drop_taken（1.8）；连段收招 / 破茧等其他破绽合计 paranoia_rest_taken（1.25）；
+## 悬浮 paranoia_hover_taken；落地光环张开 paranoia_aura_taken、散开 paranoia_aura_off_taken（1.25）
 func taken_mult(e: Dictionary) -> float:
 	if e.get("cocoon_t", 0.0) > 0.0:
 		return 1.0
+	var bm: float = maxf(0.01, Bal.v("boss/break_mult", 1.4))
+	if e.phase == 1 and float(e.get("drop_until", 0.0)) > g.t:
+		return Bal.v("boss/paranoia_drop_taken", 1.8) / bm
+	if float(e.get("break_t", 0.0)) > 0.0:
+		return Bal.v("boss/paranoia_rest_taken", 1.25) / bm
 	if e.phase == 1:
-		if float(e.get("break_t", 0.0)) > 0.0:
-			return Bal.v("boss/paranoia_drop_taken", 1.8) / maxf(0.01, Bal.v("boss/break_mult", 1.4))
 		return Bal.v("boss/paranoia_hover_taken", 0.5)
-	return 1.0 if _aura_off(e) else Bal.v("boss/paranoia_aura_taken", 0.5)
+	return Bal.v("boss/paranoia_aura_off_taken", 1.25) if _aura_off(e) else Bal.v("boss/paranoia_aura_taken", 0.5)
 
 
 ## 认知负担光环：主控站在 boss/paranoia_aura_r（220；二阶段 paranoia_aura_r2 300）内时，全队攻速 ×(1 − paranoia_aura_aspd)（一阶段 0.10、二阶段 paranoia_aura_aspd2 0.15；
@@ -319,7 +324,7 @@ func _paranoia_aura(e: Dictionary, dist: float) -> void:
 
 
 ## 第一次血量归零：结成泡影茧 boss/paranoia_cocoon 秒。本体无敌，外壳是部件（shell_hp = 最大生命 × paranoia_shell），会吐慢速弹；
-## 场地收到 paranoia_arena2。打破外壳 → 复活到 paranoia_revive（40%）并进入 5 秒大破绽；没打破 → 同样复活，但凝视永久 +1 道
+## 场地收到 paranoia_arena2。打破外壳 → 复活到 paranoia_revive（50%，balance.json）并进入 5 秒大破绽；没打破 → 同样复活，但凝视永久 +1 道
 func paranoia_cocoon(e: Dictionary) -> void:
 	Sfx.play_cue("phase", e.type, "start")
 	e.cocoon_done = true
