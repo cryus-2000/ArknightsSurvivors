@@ -126,12 +126,16 @@ static func _exu_targets(o, n: int, rr: float, prio: float) -> Array:
 		var d: float = float(i) if mob_first else o.pos.distance_to(e.pos)
 		if (e.elite or e.boss) and not mob_first:
 			d /= maxf(1.0, prio)
+		if not o.hittable(e):
+			if o.hold_fire():
+				continue   # 队长：打不动的不进候选（op_api.hold_fire）
+			d += 1.0e9   # 打不动的（无敌 Boss 等，op_api.hittable）垫底，只剩它们时照旧
 		keyed.append([d, int(e.id), e])
 	keyed.sort_custom(func(x, y): return x[0] < y[0] if x[0] != y[0] else x[1] < y[1])
 	var out: Array = []
 	for k in mini(n, keyed.size()):
 		out.append(keyed[k][2])
-	if not mob_first and not pool.is_empty() and pool[0].boss and not pool[0].dead and (out.is_empty() or not is_same(out[0], pool[0])):
+	if not mob_first and not pool.is_empty() and pool[0].boss and o.hittable(pool[0]) and (out.is_empty() or not is_same(out[0], pool[0])):
 		out.erase(pool[0])
 		out.push_front(pool[0])   # 保留 op_api 的 Boss 优先（ai/boss_focus）
 		if out.size() > n:

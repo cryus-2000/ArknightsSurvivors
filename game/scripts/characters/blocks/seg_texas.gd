@@ -193,6 +193,9 @@ static func tx_dash_start(o, b: Dictionary, dmg: float) -> Array:
 ## 队友在「清杂优先」（docs/114 §13）下只数杂兵（非 Boss / 精英 / 部件），没有杂兵时照旧数全部
 static func _tx_densest(o, rr: float) -> Vector2:
 	var cand: Array = o.g.enemies_sys.nearest(24, rr, o.pos)
+	var hit: Array = cand.filter(func(e): return o.hittable(e))
+	if not hit.is_empty() or o.hold_fire():
+		cand = hit   # 打不动的（无敌 Boss 等，op_api.hittable）不算进敌群，只剩它们时照旧
 	if o.prio_mode() == 1:
 		var mobs: Array = cand.filter(func(e): return o.prio_rank(e, 1) == 0)
 		if not mobs.is_empty():

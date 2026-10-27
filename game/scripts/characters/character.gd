@@ -1149,7 +1149,8 @@ func follow(dt: float, target: Vector2) -> void:
 		mv = 0.0
 		cmd_d = 0.0
 		return
-	if syn_mv.is_empty() and (pos == Vector2.INF or pos.distance_to(target) > (700.0 if st == 0 else CmdBal.v("command/leash", 1200.0) * 1.6)):
+	var ic = _izu_intercept() if not is_leader and st != 2 and syn_mv.is_empty() and pos != Vector2.INF else null   # 截子代（10-28 用户定 B）
+	if syn_mv.is_empty() and (pos == Vector2.INF or pos.distance_to(target) > (700.0 if st == 0 and ic == null else CmdBal.v("command/leash", 1200.0) * 1.6)):
 		pos = target
 		mv = 0.0
 		return
@@ -1163,10 +1164,13 @@ func follow(dt: float, target: Vector2) -> void:
 		pos = syn_step(dt)   # 连携技的合击位移（synergy.gd）：脚本推着走，不跟编队
 		fp_moving = true
 	else:
-		target = _cmd_walk(roam_target(target)) if st == 1 else follow_target(target)
+		if ic != null:
+			target = _cmd_walk(_intercept_pos(ic))
+		else:
+			target = _cmd_walk(roam_target(target)) if st == 1 else follow_target(target)
 		if st != 2 and rush_t <= 0.0:
 			target = _cmd_evade(target)   # 闪避意识（10-27 用户）：预警区 / 迎面敌弹先躲开，再回到原来的目标
-		if st != 1:
+		if st != 1 and ic == null:
 			_cmd_waypoint = Vector2.INF
 			_cmd_stall = 0.0
 			_cmd_failed = null
@@ -1177,12 +1181,12 @@ func follow(dt: float, target: Vector2) -> void:
 		var d: float = pos.distance_to(target)
 		var k: float = clampf(dt * (3.0 if d < 20.0 else (9.0 if st == 2 else 6.0)), 0.0, 1.0)
 		cmd_d = d
-		if st == 0 and g.dash_t > 0.0 and CmdBal.v("command/dash_follow", 1.0) > 0.0:
+		if st == 0 and ic == null and g.dash_t > 0.0 and CmdBal.v("command/dash_follow", 1.0) > 0.0:
 			# 跟随冲刺（用户 10-25「冲锋的时候一起冲锋，平时就跑动攻击」）：队长冲刺期间队友不停顿、不前压追怪，快步贴着编队位一起冲；
 			# 平时队友只跑动（跑动中攻击），不再自动突进 / 冲刺
 			fp_moving = true
 			pos = pos.lerp(slot, clampf(dt * CmdBal.v("command/dash_follow_k", 22.0), 0.0, 1.0))
-		elif st == 0:
+		elif st == 0 and ic == null:
 			if not _follow_paused(dt, d):   # 随行：到位停 + 错开起步（10-21 用户定方案 C）
 				pos = pos.lerp(target, k)
 		else:
@@ -1192,7 +1196,7 @@ func follow(dt: float, target: Vector2) -> void:
 			if st == 1 and rush_t > 0.0:
 				step = _rush_step(dt)   # 爆发窗口的第一下冲锋：不受突击限速，冲到目标面前或撞上怪就停（docs/114 §14）
 			else:
-				var vmax: float = g.speed * CmdBal.v("command/roam_speed" if st == 1 else "command/recall_speed", 1.3 if st == 1 else 4.0) * dt
+				var vmax: float = g.speed * CmdBal.v("command/roam_speed" if st == 1 or ic != null else "command/recall_speed", 1.3 if st == 1 or ic != null else 4.0) * dt
 				if step.length() > vmax:
 					step = step.normalized() * vmax
 			pos += step
@@ -1550,9 +1554,13 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 	var focus_d := INF
 	var focus_part := false
 	var cands: Array = []   # [候选, 原得分]：再按优先级重排
+	var shut: Array = []   # 圈里打不动的（op_api.hittable）：只在没别的可打时才当候选（10-28）
 	for j in query_ids(g.ppos, radius):
 		var en: Dictionary = g.enemies[j]
 		if en.dead or en.pos.distance_to(g.ppos) > radius or (is_same(en, _cmd_failed) and g.t < _cmd_retry_at):
+			continue
+		if not hittable(en):
+			shut.append([en, en.pos.distance_to(rear)])
 			continue
 		if rush and (en.get("part", false) or focusable_boss(en)):
 			var is_part: bool = en.get("part", false)
@@ -1572,6 +1580,12 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 		if d < score:
 			score = d
 			best = en
+	if cands.is_empty() and not shut.is_empty():
+		cands = shut
+		for c in shut:
+			if c[1] < score:
+				score = c[1]
+				best = c[0]
 	if not cands.is_empty():
 		if prio == 1:
 			cands.sort_custom(func(a, b): return a[1] < b[1] or (a[1] == b[1] and int(a[0].id) < int(b[0].id)))
@@ -1590,7 +1604,7 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 			e = focus
 	elif e == null or e.dead or e.pos.distance_to(g.ppos) > radius or (is_same(e, _cmd_failed) and g.t < _cmd_retry_at):
 		e = best
-	elif best != null and not is_same(e, best) and prio_rank(e, prio) > prio_rank(best, prio):
+	elif best != null and not is_same(e, best) and (prio_rank(e, prio) > prio_rank(best, prio) or (not hittable(e) and hittable(best))):
 		e = best   # 换了优先级：当前目标不符合、而圈里有符合的，就换过去（不然要等当前目标死了才换）
 	if focus == null and urgent != null and (e == null or e.pos.distance_to(g.ppos) > guard + GUARD_MARGIN):
 		e = urgent
@@ -1833,6 +1847,47 @@ func _draw_rush_trail() -> void:
 
 
 var _cmd_waypoint := Vector2.INF
+
+## 截子代（10-28 用户定 B：「伊祖米克学习期，队友主动走位去截正在游向本体的子代」）：Boss 无敌、有「喂食」子代（feed，游向 feed_to_id 的 Boss）
+## 在队长 command/intercept_r 内时，随行 / 突击都改为去截——子代按离本体由近到远排（最先到的在前），队友按编队位轮流分（slot 取模），
+## 站到子代与本体之间、攻击距离上；子代清完或学习期结束（Boss 不再无敌）就回原来的走位。队长、归队、连携位移、倒地不截。
+## 只剩无敌目标时的打法不变（op_api.hit_first：喂食子代最先打，打不动的垫底）。全队一帧算一次（静态缓存）
+static var _icpt_frame := -1
+static var _icpt_list: Array = []   # [[子代, 本体], …]，按离本体由近到远
+
+func _izu_intercept():
+	if CmdBal.v("command/intercept", 1.0) <= 0.0:
+		return null
+	if _icpt_frame != g.frame_n:
+		_icpt_frame = g.frame_n
+		_icpt_list = []
+		var bosses := {}
+		var kids: Array = []
+		for e in g.enemies:
+			if e.dead:
+				continue
+			if e.boss and e.get("invuln", false):
+				bosses[int(e.id)] = e
+			elif e.get("feed", false) and e.has("feed_to_id"):
+				kids.append(e)
+		if not bosses.is_empty():
+			var r: float = CmdBal.v("command/intercept_r", 1200.0)
+			for k in kids:
+				var b = bosses.get(int(k.feed_to_id))
+				if b != null and k.pos.distance_to(g.ppos) <= r and hittable(k):
+					_icpt_list.append([k, b, k.pos.distance_to(b.pos)])
+			_icpt_list.sort_custom(func(a, c): return a[2] < c[2] or (a[2] == c[2] and int(a[0].id) < int(c[0].id)))
+	if _icpt_list.is_empty():
+		return null
+	return _icpt_list[posmod(slot, _icpt_list.size())]
+
+
+## 截击站位：子代朝本体那一侧、攻击距离上（挡在它游向本体的路上）
+func _intercept_pos(ic: Array) -> Vector2:
+	var k: Dictionary = ic[0]
+	var to_b: Vector2 = ic[1].pos - k.pos
+	var reach: float = minf(cmd_reach() + float(k.r), cmd_attack_range() * CmdBal.v("command/stop_range_k", 0.85))
+	return k.pos + (to_b.normalized() if to_b.length_squared() > 1.0 else Vector2.RIGHT) * reach
 var _cmd_walk_goal := Vector2.INF
 var _cmd_wp_until := 0.0
 
