@@ -210,16 +210,21 @@ static func tentacles(g, f: Dictionary) -> void:
 			prev = nxt
 		_dot(r, prev + Vector2(-2, -3), Color(0.8, 0.92, 1.0, 0.95), 4.0)
 
-## 出土点：沿扇形从内到外 9 个（确定性噪声），[位置, 内外次序 0..1, 粗细]
+## 出土点：铺满整个扇形（和预警扇形同一几何，不压扁）——5 排由内到外，每排按弧长约 42px 一根，带确定性错位；[位置, 内外次序 0..1, 粗细]
 static func _sprouts(w: Dictionary) -> Array:
 	var out: Array = []
 	var p: Vector2 = w.pos
 	var half: float = float(w.get("half", 0.5))
-	for i in 9:
-		var u: float = (float(i) + 0.5) / 9.0
-		var a: float = float(w.ang) + (_n(i, 41) * 2.0 - 1.0) * half * 0.8
-		var d: float = float(w.r) * (0.18 + 0.78 * u)
-		out.append([p + Vector2(cos(a), sin(a) * 0.72) * d, u, _n(i, 43)])
+	var reach: float = float(w.r)
+	for row in 5:
+		var u: float = (float(row) + 0.6) / 5.0
+		var d: float = reach * lerpf(0.16, 0.93, u)
+		var cols: int = maxi(2, int(round(2.0 * half * d / 42.0)))
+		for col in cols:
+			var i: int = row * 31 + col
+			var a: float = float(w.ang) + lerpf(-half, half, (float(col) + 0.5) / cols) + (_n(i, 41) - 0.5) * half / cols
+			var dd: float = d + (_n(i, 42) - 0.5) * reach * 0.12
+			out.append([p + Vector2.from_angle(a) * dd, u + _n(i, 44) * 0.08, _n(i, 43)])
 	return out
 
 

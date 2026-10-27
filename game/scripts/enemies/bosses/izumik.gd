@@ -294,7 +294,7 @@ func _batch_step(e: Dictionary) -> void:
 		dirs.append(a0 + PI + g.rng_enemy.randf_range(-0.7, 0.7))
 	for di in dirs.size():
 		var a: float = dirs[di]
-		var n: int = g.rng_enemy.randi_range(4, 6) if dirs.size() == 1 else g.rng_enemy.randi_range(3, 4)
+		var n: int = g.rng_enemy.randi_range(4, 6) if dirs.size() == 1 else 3   # 二幕两路各 3 只（用户 10-27：二幕少一点）
 		for k in n:
 			var p: Vector2 = _offspring_edge(e, a + (float(k) - (n - 1) * 0.5) * 0.09)
 			var o: Dictionary = g.spawner.spawn_enemy("offspring", p)
