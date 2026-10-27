@@ -61,11 +61,12 @@ func _ready() -> void:
 						names.append(w.name)
 			g.invuln = 100.0
 			g.bai._update_warns(0.04)
-		check(seen.has("ishar_line") and seen.has("song_ring"), "line + song ranged patterns at distance %d" % distance)   # docs/142b §3.6：一幕三点落击删掉，轮转 三线扫射 → 大群之歌 → 撕咬
+		# 10-27 连段（docs/170）：一幕 合唱连段（环颂 → 齐射 → 撕咬）与 锁定连段（三线扫射 → 大群之声 → 深海触腕）交替；大群之歌在二幕
+		check(seen.has("ishar_line"), "line ranged patterns at distance %d" % distance)
 		check(seen.has("bite") or seen.has("sweep"), "near bite or far fan in rotation")
-		var regular_names: Array = names.filter(func(n): return n in ["三线扫射", "大群之歌", "撕咬", "横扫"])   # 泪滴共鸣 / 潮涌迫近 / 共鸣是机制，不在轮转里（docs/95 §2、docs/142b §3.6）
-		check(regular_names.size() >= 6 and regular_names[0] == regular_names[3], "complete rotation repeats rather than priority starving")   # 一幕 3 招轮转（泪落只在二幕有泪时进）
-		if not (regular_names.size() >= 6 and regular_names[0] == regular_names[3]):
+		var regular_names: Array = names.filter(func(n): return n in ["三线扫射", "大群之声", "撕咬", "横扫", "合唱齐射", "深海触腕"])   # 泪滴共鸣 / 潮涌迫近 / 共鸣是机制，不在轮转里
+		check(regular_names.count("三线扫射") >= 2 and regular_names.count("大群之声") >= 2 and regular_names.count("合唱齐射") >= 2, "both act-one combos repeat rather than priority starving")
+		if not (regular_names.count("三线扫射") >= 2 and regular_names.count("合唱齐射") >= 2):
 			print("  names at %d: %s" % [distance, str(regular_names)])
 		# 一幕连段（docs/170）只含合唱齐射 / 深海触腕；合唱压境在二幕抚愈连段，见 ishar_combo_test
 		for move in g.bai.finals.NAMES.ishar.filter(func(m): return g.bai.boss("ishar").Cards.CARDS[0].any(func(c): return c.seq.has(m))):

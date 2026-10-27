@@ -3,6 +3,9 @@ extends RefCounted
 ## 暗红低填充 + 2 像素格「涟漪」勾边（落点圈：三道涟漪向中心收拢 = 读条；直线：两侧点列 + 沿线推进的水纹；扇形：外弧点列 + 内弧推进）。
 ## 范围与判定几何完全一致（同一份 pos / r / len / wid / half）；只画面，不写模拟状态、不用随机数。render/ishar_tell 0 = 退回通用画法。
 const Bal = preload("res://scripts/core/balance.gd")
+const Beam = preload("res://scripts/render/boss_beam.gd")
+const Combos = preload("res://scripts/enemies/bosses/ishar_combos.gd")
+const CORE := Color(0.62, 1.0, 0.86)   # 光束本体 = 她的专属青绿；预警底仍是暗红
 const ACTS := ["ishar_strike", "ishar_line", "ishar_echo", "bite", "sweep"]
 const FILL := Color(0.42, 0.05, 0.12)
 const EDGE := Color(0.86, 0.26, 0.42)
@@ -20,7 +23,81 @@ static func _sq(g, p: Vector2, c: Color) -> void:
 	g.draw_rect(Rect2((p * 0.5).floor() * 2.0, Vector2(2, 2)), c)
 
 
+## 光束蓄力：本体从 1 像素细线长到半宽的 35%，亮度随读条递增；发射口光点变大，聚光颗粒向内收
+static func _charge(g, w: Dictionary, d: Vector2, k: float) -> void:
+	var kk: float = k * k
+	var half: float = lerpf(1.0, float(w.wid) * 0.35, kk)
+	var a: float = 0.15 + 0.6 * kk
+	var nrm: Vector2 = d.orthogonal() * half
+	var b: Vector2 = w.pos + d * float(w.len)
+	g.draw_colored_polygon(PackedVector2Array([w.pos + nrm, b + nrm, b - nrm, w.pos - nrm]), Color(CORE.r, CORE.g, CORE.b, a))
+	g.draw_circle(w.pos, 3.0 + 9.0 * kk, Color(1.0, 1.0, 1.0, 0.25 + 0.6 * kk))
+	var pool = Beam.grains(g) if Cfg.quality != "low" else null
+	if pool != null and Beam.take(g, 2) > 0:
+		var ang: float = g.t * 7.0 + w.pos.x
+		var dir := Vector2.from_angle(ang)
+		pool.push("mote_in", w.pos + dir * (28.0 + 20.0 * (1.0 - k)), -dir, CORE)
+
+
+## 开火短闪 + 消散：前 0.06 秒整条白闪；之后光束变细、断成碎段、淡出（g.fx kind = ishar_beam_fade，由 ishar_combos 在结算帧写入）
+static func _fades(g) -> void:
+	for f in g.fx:
+		if f.kind != "ishar_beam_fade" or f.life <= 0.0:
+			continue
+		var p: float = 1.0 - float(f.life) / float(f.max)
+		var a: Vector2 = f.a
+		var b: Vector2 = f.b
+		var d: Vector2 = (b - a).normalized()
+		var L: float = a.distance_to(b)
+		if p < 0.17:
+			var n0: Vector2 = d.orthogonal() * float(f.wid) * 0.9
+			g.draw_colored_polygon(PackedVector2Array([a + n0, b + n0, b - n0, a - n0]), Color(1.0, 1.0, 1.0, 0.55 * (1.0 - p / 0.17)))
+		var half: float = float(f.wid) * 0.45 * (1.0 - p)
+		var seg := 22.0
+		var gap: float = 2.0 + 18.0 * p   # 断口随时间变宽
+		var col := Color(CORE.r, CORE.g, CORE.b, 0.8 * (1.0 - p))
+		var s0 := 0.0
+		var i := 0
+		while s0 < L:
+			var drift: float = (float((i * 37) % 7) - 3.0) * 3.0 * p   # 碎段各自轻微侧漂
+			var o: Vector2 = d.orthogonal() * drift
+			var s1: float = minf(L, s0 + seg - gap)
+			var nn: Vector2 = d.orthogonal() * maxf(1.0, half)
+			g.draw_colored_polygon(PackedVector2Array([a + d * s0 + nn + o, a + d * s1 + nn + o, a + d * s1 - nn + o, a + d * s0 - nn + o]), col)
+			s0 += seg
+			i += 1
+
+
+## 歌声涟漪留下的地带：暗红低填充 + 每 0.6 秒从中心扩出一道像素涟漪，最后 0.4 秒淡出
+static func _zones(g) -> void:
+	var gy: float = g.combat.GROUND_Y
+	for e in g.bosses:
+		for z in e.get("ishar_zones", []):
+			if g.t < float(z.born):
+				continue
+			var fade: float = clampf((float(z.until) - g.t) / 0.4, 0.0, 1.0)
+			var pts := PackedVector2Array()
+			for i in 33:
+				var an: float = TAU * i / 32.0
+				pts.append(z.pos + Vector2(cos(an), sin(an) * gy) * float(z.r))
+			g.draw_colored_polygon(pts, Color(FILL.r, FILL.g, FILL.b, 0.2 * fade))
+			for q in 2:
+				var ph: float = fmod((g.t - float(z.born)) / 0.6 + q * 0.5, 1.0)
+				var rr: float = float(z.r) * ph
+				var m: int = clampi(int(rr * TAU / 12.0), 6, 60)
+				for i in m:
+					var an: float = TAU * i / m
+					_sq(g, z.pos + Vector2(cos(an), sin(an) * gy) * rr, Color(EDGE.r, EDGE.g, EDGE.b, 0.55 * (1.0 - ph) * fade))
+			var n: int = clampi(int(float(z.r) * TAU / 9.0), 16, 90)
+			for i in n:
+				if i % 2 == 0:
+					var an: float = TAU * i / n
+					_sq(g, z.pos + Vector2(cos(an), sin(an) * gy) * float(z.r), Color(EDGE.r, EDGE.g, EDGE.b, 0.5 * fade))
+
+
 static func draw(g) -> void:
+	_zones(g)
+	_fades(g)
 	var gy: float = g.combat.GROUND_Y
 	for w in g.warns:
 		if w.done or not owns(w):
@@ -71,6 +148,8 @@ static func draw(g) -> void:
 					var amp: float = sin(f * 0.09 - g.t * 6.0) * float(w.wid) * 0.45
 					_sq(g, w.pos + d * f + d.orthogonal() * amp, ripple)
 					f += 6.0
+				if Combos.is_beam(w):
+					_charge(g, w, d, k)
 			"cone":
 				var pts := PackedVector2Array([w.pos])
 				for i in 17:

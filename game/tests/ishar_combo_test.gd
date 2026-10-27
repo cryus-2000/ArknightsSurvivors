@@ -54,11 +54,11 @@ func _ready() -> void:
 	check(src.size() == 3 and not is_same(src[0], e), "chorus rings come from three linked sea-born")
 	check(e.ishar_emits.size() == 9, "three sources x three rings queued (%d)" % e.ishar_emits.size())
 	src[0].dead = true
-	for i in 60:
+	for i in 80:
 		g.t += DT
 		cards._emit_step(e)
 	var notes: int = g.ebullets.filter(func(b): return b.kind == "ishar_note").size()
-	check(notes == 14 * 6, "killed source cancels its rings (%d notes)" % notes)
+	check(notes == 10 * 6, "killed source cancels its rings (%d notes)" % notes)
 	# 无网：本体两圈
 	e = fresh(0)
 	for sl in e.web:
@@ -73,11 +73,11 @@ func _ready() -> void:
 	var nearest := INF
 	for b in g.ebullets:
 		nearest = minf(nearest, absf(angle_difference(b.vel.angle(), aim)))
-	check(g.ebullets.size() == 14 and nearest > 0.15, "first ring leaves the player's line between two bullets (%.2f)" % nearest)
+	check(g.ebullets.size() == 10 and nearest > 0.15, "first ring leaves the player's line between two bullets (%.2f)" % nearest)
 	for i in 42:
 		g.t += DT
 		cards._emit_step(e)
-	check(g.ebullets.size() == 28, "empty web falls back to two body rings (%d)" % g.ebullets.size())
+	check(g.ebullets.size() == 20, "empty web falls back to two body rings (%d)" % g.ebullets.size())
 	# 3. 泪雨：大泪按时碎成 6 枚快弹
 	e = fresh(1)
 	g.ebullets.clear()
@@ -110,8 +110,43 @@ func _ready() -> void:
 			b.pos += b.vel * DT
 		cards._emit_step(e)
 	var fans: int = g.ebullets.filter(func(b): return b.kind == "ishar_note").size()
-	check(fans == 2 * 5, "only surviving nodes scatter their five-note fans (%d)" % fans)
-	check(g.ebullets.filter(func(b): return b.kind == "ishar_tear" and b.life > 0.0).size() == 4, "later waves skip the broken node; first-wave pulses end at their nodes")
+	check(fans == 2 * 4, "only surviving nodes scatter their four-note fans (%d)" % fans)
+	check(g.ebullets.filter(func(b): return b.kind == "ishar_tear" and b.life > 0.0).size() == 2, "later waves skip the broken node; first-wave pulses end at their nodes")
+	# 3c. 大群之声：粗光束预警锁定后结算，再持续 1 秒；侧移出光束不再受伤
+	e = fresh(0)
+	g.warns.clear()
+	cards.play(e, "大群之声", Vector2.RIGHT, 300.0)
+	var beam: Array = g.warns.filter(func(w): return w.name == "大群之声")
+	check(beam.size() == 1 and float(beam[0].wid) >= 40.0 and beam[0].dur - beam[0].track >= 0.6, "big beam is wide with a long locked window")
+	check(e.ishar_emits.filter(func(d): return d.kind == "hold").size() == 10, "big beam sustains for one second")
+	# 3d. 歌声涟漪：三处地带预警后留 3 秒，站在里面持续受伤并减速；光束结算后留消散记录
+	e = fresh(0)
+	g.warns.clear()
+	cards.play(e, "歌声涟漪", Vector2.RIGHT, 300.0)
+	check(e.ishar_zones.size() == 3 and g.warns.filter(func(w): return w.act == "ishar_strike").size() == 3, "song ripple places three telegraphed zones")
+	g.invuln = 0.0
+	g.hp = g.max_hp
+	g.ppos = e.ishar_zones[0].pos
+	var hp0: float = g.hp
+	for i in int(2.6 / DT):
+		g.t += DT
+		g.invuln = 0.0
+		cards._zone_step(e)
+	check(g.hp < hp0 and g.combat.slows.has("ishar_song"), "standing in a ripple zone hurts and slows")
+	g.t += 4.0
+	cards._zone_step(e)
+	check(e.ishar_zones.is_empty(), "ripple zones expire")
+	g.invuln = 999.0
+	e = fresh(0)
+	g.warns.clear()
+	g.fx.clear()
+	cards.play(e, "大群之声", Vector2.RIGHT, 300.0)
+	for i in int(1.9 / DT):
+		tick(e)
+	check(not g.fx.any(func(f): return f.kind == "ishar_beam_fade"), "big beam does not fade while it is still firing")
+	for i in int(1.2 / DT):
+		tick(e)
+	check(g.fx.any(func(f): return f.kind == "ishar_beam_fade"), "big beam dissolves after its hold")
 	# 4. 抚愈之歌：歌声结束治疗连线海嗣；眩晕打断取消治疗
 	e = fresh(0)
 	var mob: Dictionary = e.web[0].o

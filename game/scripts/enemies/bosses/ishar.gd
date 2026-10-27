@@ -239,6 +239,8 @@ func transform_ishar(e: Dictionary) -> void:
 				o.dead = true
 	e.reso_next = g.t + 3.0
 	e.dmg *= 1.6
+	if cards_on():
+		e.dmg *= Bal.v("boss/ishar_combo_dmg", 0.8)   # 连段弹量多，单发伤害整体下调（10-27 协调人：先 ×0.8，云端测完再定）
 	e.spd = maxf(e.spd, 58.0)
 	e.r = 46.0
 	e.r0 = 46.0
@@ -440,6 +442,7 @@ func on_gate(e: Dictionary) -> void:
 ## 本体倒下：网与泪一起散
 func on_kill(e: Dictionary) -> void:
 	e.ishar_emits = []
+	e.ishar_zones = []
 	e.card_live = false
 	for tear in g.ishar.tears(e):
 		g.ishar.release_blessing(tear)
