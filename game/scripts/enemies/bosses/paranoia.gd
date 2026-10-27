@@ -172,7 +172,7 @@ func _paranoia_p2(e: Dictionary) -> void:
 	e.hover_lost = true
 	e.ai = "melee"
 	e.spd = 70.0
-	_tint2(e, Color(0.92, 0.82, 1.12))
+	_tint2(e, Color(1.0, 0.72, 1.32))   # 二阶段「她认真了」：比一阶段更深的紫着色（10-28，原 0.92/0.82/1.12）
 
 
 ## ---- 主轴「打落」（docs/142b §3.5）

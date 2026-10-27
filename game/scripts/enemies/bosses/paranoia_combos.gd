@@ -13,16 +13,23 @@ const COMBOS := {
 	"泡影环流": {"seq": ["泡影环", "幻象冲撞", "环流狙击"]},
 	"镜中众影": {"seq": ["镜影齐射", "凝视", "幻象冲撞", "泡影收束"]},
 	"偏执双旋": {"seq": ["偏执双旋", "溟泡迸裂", "叠影"]},
-	"无声呼号": {"seq": ["呼号", "无声波环", "追猎泡"]},
-	"侵蚀帘幕": {"seq": ["侵蚀帘幕", "幻象冲撞", "凝视", "呼号"]},
-	"群愿回响": {"seq": ["群愿回响", "幻象冲撞", "无声波环", "呼号"]},
+	"侵蚀帘幕": {"seq": ["侵蚀帘幕", "幻象冲撞", "凝视"]},
+	"错位回廊": {"seq": ["无声波环", "千目注视", "追猎泡"]},
+	# 二阶段（落地，「她认真了」）：「A+B」= 同一段里两种弹幕叠放（快慢分层、追踪 + 环、旋 + 狙）
+	"无声呼号": {"seq": ["呼号", "无声波环+追猎泡", "幻象冲撞", "偏执双旋+环流狙击"]},
+	"沉浮之潮": {"seq": ["沉浮双层", "侵蚀帘幕+环流狙击", "呼号", "千目注视+无声波环"]},
+	"群愿回响": {"seq": ["群愿回响+偏执双旋", "幻象冲撞", "呼号"]},
+	"破茧群潮": {"seq": ["侵蚀帘幕+千目注视", "沉浮双层+追猎泡", "呼号"]},
 }
-## 每幕两组，轮流：0 凝望（悬浮）/ 1 狂望（幻影）/ 2 失声（落地）/ 3 破茧后
-const ACT_COMBOS := [["千目凝望", "泡影环流"], ["镜中众影", "偏执双旋"], ["无声呼号", "侵蚀帘幕"], ["群愿回响", "侵蚀帘幕"]]
+## 每幕两组，轮流（10-28 用户：一阶段三幕拉开差异、二阶段从 50% 起质变）：
+## 0 凝望（悬浮，固定缺口、慢）/ 1 狂望（悬浮 + 幻影，错位菱形格）/ 2 侵染（悬浮，缝隙墙 + 错位缺口，要读）/
+## 3 失声（落地二阶段，叠放弹幕）/ 4 破茧后
+const ACT_COMBOS := [["千目凝望", "泡影环流"], ["镜中众影", "偏执双旋"], ["侵蚀帘幕", "错位回廊"], ["无声呼号", "沉浮之潮"], ["群愿回响", "破茧群潮"]]
 ## 弹幕段：发数 n、间隔 iv（秒）；起手前 WINDUP 秒聚光
 const EMITTERS := {
 	"千目注视": {"n": 7, "iv": 0.24}, "环流狙击": {"n": 3, "iv": 0.7}, "镜影齐射": {"n": 2, "iv": 0.8},
-	"偏执双旋": {"n": 6, "iv": 0.42}, "无声波环": {"n": 2, "iv": 1.1}, "侵蚀帘幕": {"n": 2, "iv": 1.5}, "群愿回响": {"n": 2, "iv": 1.3}}
+	"偏执双旋": {"n": 6, "iv": 0.42}, "无声波环": {"n": 2, "iv": 1.1}, "侵蚀帘幕": {"n": 2, "iv": 1.5}, "群愿回响": {"n": 2, "iv": 1.3},
+	"沉浮双层": {"n": 3, "iv": 0.95}}
 const WINDUP := 0.55
 ## 幻象冲撞（非弹幕，泡影独有）：两只幻象在队长两侧现形，沿穿过队长的两条交叉通道冲过去；1.1 秒预告、第二只晚 0.6 秒
 const RUSH_TELL := 1.1
@@ -36,10 +43,15 @@ const REST_P2 := 3.0
 const LOW_BULLETS := 20
 const REST_SPD := 90.0
 const REST_NEAR := 110.0
-const BUL_CAP := 200
-## 缺口按幕递进（用户 10-28）：一幕固定缺口（眼圈缺她那一格、泡影环缺口朝你）→ 二幕错位（正反旋菱形格）→
-## 三幕 / 破茧后错位缺口、缝隙墙、停滞时间窗；破茧后缝收窄、弹数略增。表：[无声波环每圈发数, 缺口半角, 帘幕间距, 帘幕缝半宽, 群愿每朵发数]
-const LATE := {false: [18, 0.6, 40.0, 75.0, 20], true: [22, 0.5, 34.0, 60.0, 24]}
+const BUL_CAP := 120   # 同屏上限（协调人 10-28：二阶段峰值约 120）
+## 密度与缺口按幕递进（用户 10-28「三幕区别不大、挺好躲」）：按 act 取一行
+## [眼数, 眼圈轮数, 眼开枪间隔, 狙击向数, 狙击轮数, 双旋每环发数, 双旋轮数, 波环每圈发数, 波环缺口半角, 帘幕间距, 帘幕缝半宽, 群愿每朵发数]
+const DENS := [
+	[7, 2, 0.22, 3, 4, 10, 6, 16, 0.65, 44.0, 80.0, 18],
+	[8, 1, 0.22, 3, 3, 10, 6, 18, 0.6, 40.0, 75.0, 20],
+	[9, 1, 0.2, 5, 3, 12, 7, 20, 0.55, 36.0, 68.0, 22],
+	[10, 1, 0.18, 5, 3, 11, 7, 20, 0.52, 36.0, 64.0, 22],
+	[11, 1, 0.17, 5, 3, 12, 7, 22, 0.5, 34.0, 60.0, 22]]
 ## 弹体分级：r 判定半径、伤害倍率（× e.dmg）
 const TIER := {"s": [6.0, 0.34], "m": [9.0, 0.42], "l": [12.0, 0.5]}
 const CORE := Color(0.85, 0.55, 1.0)   # 颗粒（泡破 / 聚光）同泡泡的紫
@@ -57,11 +69,15 @@ static func on(e: Dictionary) -> bool:
 	return Bal.v("boss/paranoia_combos", 1.0) > 0.0 and e.type == "paranoia"
 
 
-## 幕：0 / 1 悬浮两幕，2 落地，3 破茧后
+## 幕：0 / 1 / 2 悬浮三幕（卡点 enemies.json gates [0.84, 0.67, 0.5]，过 50% 落地），3 落地，4 破茧后
 func act(e: Dictionary) -> int:
 	if e.phase == 2:
-		return 3 if e.get("cocoon_done", false) else 2
-	return mini(1, int(e.get("gates_passed", 0)))
+		return 4 if e.get("cocoon_done", false) else 3
+	return mini(2, int(e.get("gates_passed", 0)))
+
+
+func _dn(e: Dictionary, i: int):
+	return DENS[clampi(act(e), 0, DENS.size() - 1)][i]
 
 
 ## 每帧（paranoia.step 在主轴机制之后调用）；返回 true = 出招由连段接管
@@ -119,7 +135,16 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool) -> b
 
 ## 进入新的一幕：清队列，从该幕第一组开始；起手前聚光 1 秒（只是画面上的收拢环 + 颗粒）
 func start_act(e: Dictionary, a: int) -> void:
+	var was: int = int(e.get("pc_act", -1))
 	interrupt(e)
+	if a >= 3 and was >= 0 and was < 3:
+		# 进入二阶段：一圈紫色泡沫向外迸开 + 震屏（「她认真了」；落地着色 / 地面压暗见 paranoia._paranoia_p2 与 paranoia_combo_draw）
+		g.vfx.shake_screen(0.8)
+		Sfx.play("roar", -3.0, 0.9, 0.0)
+		var gr0 = BossBeam.grains(g)
+		if gr0 != null:
+			for k in BossBeam.take(g, 60):
+				gr0.push("mote_burst", e.pos + Vector2(0, -20), Vector2.from_angle(TAU * k / 60.0), CORE)
 	e.pc_act = a
 	e.pc_idx = 0
 	e.pc_rested = true
@@ -178,6 +203,12 @@ func _cast(e: Dictionary, seg: String, dir: Vector2, dist: float) -> void:
 	if EMITTERS.has(seg):
 		_emit(e, seg, dir)
 		return
+	if seg.contains("+"):
+		# 叠放：两种弹幕同一段起手（二阶段）；各自独立计时，连段等两个都放完
+		for part in seg.split("+"):
+			_cast(e, part, dir, dist)
+		e["move_name"] = seg.replace("+", " · ")
+		return
 	if seg == "幻象冲撞":
 		rush(e, dir)
 		return
@@ -197,19 +228,29 @@ func _cast(e: Dictionary, seg: String, dir: Vector2, dist: float) -> void:
 
 ## ---- 弹幕段
 func _emit(e: Dictionary, seg: String, dir: Vector2) -> void:
-	var spec: Dictionary = EMITTERS[seg]
+	var spec: Dictionary = EMITTERS[seg].duplicate()
+	if seg == "千目注视":
+		spec.n = int(_dn(e, 0)) * int(_dn(e, 1))
+		spec.iv = float(_dn(e, 2))
+	elif seg == "环流狙击":
+		spec.n = int(_dn(e, 4))
+	elif seg == "偏执双旋":
+		spec.n = int(_dn(e, 6))
+	elif seg in ["侵蚀帘幕", "无声波环"] and act(e) >= 2:
+		spec.n = 3   # 三幕起多一道：缝 / 缺口来回错位，要读
 	var t0: float = g.t + WINDUP
 	var em := {"name": seg, "t0": t0, "next": t0, "k": 0, "n": int(spec.n), "iv": float(spec.iv), "a0": dir.angle(),
 		"flip": 1.0 if int(e.get("pc_flip", 0)) % 2 == 0 else -1.0}
 	e.pc_flip = int(e.get("pc_flip", 0)) + 1
 	if seg == "千目注视":
-		# 7 只眼在你身边 280 处睁开（缺口在她那一侧，那里是冲进去的路），睁眼 0.8 秒后顺时针依次朝你开一枪，转一圈
+		# 眼在你身边 280 处睁开（缺口在她那一侧，那里是冲进去的路），睁眼 0.8 秒后顺时针依次朝你开一枪；眼数 / 圈数按幕（DENS）
 		var c: Vector2 = g.combat.arena_clamp(g.ppos, 60.0) if g.zone_frozen else g.ppos
 		var to_boss: float = (e.pos - c).angle()
 		var eyes: Array = []
-		for i in 7:
-			var ang: float = to_boss + TAU * (i + 0.5) / 8.0 + TAU / 16.0
-			eyes.append({"pos": c + Vector2.from_angle(ang) * 280.0, "open": g.t + 0.25, "close": g.t + WINDUP + 0.8 + 0.24 * 7 + 0.3})
+		var ne: int = int(_dn(e, 0))
+		for i in ne:
+			var ang: float = to_boss + TAU * (i + 1) / float(ne + 1)
+			eyes.append({"pos": c + Vector2.from_angle(ang) * 280.0, "open": g.t + 0.25, "close": g.t + WINDUP + 0.8 + float(spec.iv) * int(spec.n) + 0.3})
 		e.pc_eyes = eyes
 		em.t0 = g.t + WINDUP + 0.8
 		em.next = em.t0
@@ -266,10 +307,11 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 				ey.fired = g.t
 				_shot(e, ey.pos, _aim(ey.pos), 150.0, "m")
 		"环流狙击":
-			# 自机狙：每轮重新瞄准的 3 向扇，中间一发打你当时的位置；一直横移就不会中
+			# 自机狙：每轮重新瞄准的扇（3 / 5 向按幕），中间一发打你当时的位置；一直横移就不会中
 			var a: float = _aim(o)
-			for i in 3:
-				_shot(e, o, a + (i - 1) * 0.32, 165.0, "m")
+			var nw: int = int(_dn(e, 3))
+			for i in nw:
+				_shot(e, o, a + (i - (nw - 1) * 0.5) * 0.3, 165.0, "m")
 		"镜影齐射":
 			# 真身与幻影各放 3 向自机狙；只有真身的弹是实心、有伤害，幻影放的是空心泡
 			var srcs: Array = [e]
@@ -284,17 +326,19 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 					else:
 						_fake(e, s.pos, aa + (i - 1) * 0.26, 150.0, 8.0)
 		"偏执双旋":
-			# 正反两组 10 发环交替，转角相反，交织成菱形格
+			# 正反两组环交替（每环发数按幕），转角相反，交织成菱形格
 			var sgn: float = 1.0 if k % 2 == 0 else -1.0
-			for i in 10:
-				_shot(e, o, float(em.a0) + TAU * i / 10.0 + sgn * 0.3 * floorf(k / 2.0) + (0.15 if k % 2 else 0.0), 115.0, "s")
+			var nr: int = int(_dn(e, 5))
+			for i in nr:
+				_shot(e, o, float(em.a0) + TAU * i / float(nr) + sgn * 0.3 * floorf(k / 2.0) + (PI / nr if k % 2 else 0.0), 115.0, "s")
 		"无声波环":
 			# 两道 18 发泡环，先慢后加速，缺口约 1.2 弧度且错位：第一道缺口朝你，第二道偏 0.95
-			var gap_c: float = _aim(o) + (0.0 if k == 0 else 0.95 * float(em.flip))
-			var lw: Array = LATE[act(e) >= 3]
-			for i in int(lw[0]):
-				var a2: float = TAU * i / float(lw[0])
-				if absf(angle_difference(a2, gap_c)) < float(lw[1]):
+			# 第三道（三幕起）错到另一侧
+			var gap_c: float = _aim(o) + (0.0 if k == 0 else (0.95 if k == 1 else -0.95) * float(em.flip))
+			var nwr: int = int(_dn(e, 7))
+			for i in nwr:
+				var a2: float = TAU * i / float(nwr)
+				if absf(angle_difference(a2, gap_c)) < float(_dn(e, 8)):
 					continue
 				# 10-27 用户「打出去以后弹幕可以加速」：先以 80 慢慢鼓出（看清缺口），0.45 秒后每秒 +260 加速到 280
 				var b: Dictionary = _shot(e, o, a2, 80.0, "m")
@@ -307,15 +351,15 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 			# 一排向前推进的弹墙（间距 40），留一道 150 宽的缝；第二排的缝向侧面错开 170
 			var d: Vector2 = Vector2.from_angle(float(em.a0))
 			var side: Vector2 = d.orthogonal()
-			var gc: float = float(em.gap) if k == 0 else float(em.gap2)
+			var gc: float = float(em.gap2) if k == 1 else float(em.gap)   # 第三排（三幕起）缝回到第一道的位置
 			var s0: float = -450.0
 			while s0 <= 450.0:
-				if absf(s0 - gc) >= float(LATE[act(e) >= 3][3]):
+				if absf(s0 - gc) >= float(_dn(e, 10)):
 					_shot(e, o + d * 30.0 + side * s0, float(em.a0), 120.0, "s")
-				s0 += float(LATE[act(e) >= 3][2])
+				s0 += float(_dn(e, 9))
 		"群愿回响":
 			# 五瓣花：先按花瓣速度散开，1 秒后全部停住 0.5 秒，再各自对准你当时的位置射出
-			var nf: int = int(LATE[act(e) >= 3][4])
+			var nf: int = int(_dn(e, 11))
 			for i in nf:
 				var a3: float = TAU * i / float(nf) + 0.16 * k
 				var spd: float = 70.0 + 70.0 * absf(cos(2.5 * (a3 - float(em.a0))))
@@ -325,6 +369,17 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 					b2.p_go_at = g.t + 1.5
 					b2.p_v2 = 150.0
 					b2.life = 8.0
+		"沉浮双层":
+			# 快慢分层（二阶段）：一圈 10 颗慢大泡缓缓漂开，同时一圈 18 发快小弹，快弹缺口 0.7 弧度朝你当时的位置；
+			# 先穿快弹的缺口，再在慢泡之间绕
+			var ga: float = _aim(o)
+			for i in 10:
+				_shot(e, o, float(em.a0) + TAU * i / 10.0 + 0.3 * k, 70.0, "l")
+			for i in 18:
+				var a4: float = TAU * i / 18.0 + 0.17 * k
+				if absf(angle_difference(a4, ga)) < 0.35:
+					continue
+				_shot(e, o, a4, 210.0, "s")
 
 
 ## 一发实弹（进 g.ebullets，判定 / 机器人躲避 / 干员消弹都走公共管线）；超上限返回 {}

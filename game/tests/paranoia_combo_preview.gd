@@ -61,8 +61,6 @@ func _ready() -> void:
 	var scenarios: Array = []
 	for a in Combos.ACT_COMBOS.size():
 		for i in (Combos.ACT_COMBOS[a] as Array).size():
-			if a == 3 and i == 1:
-				continue   # 破茧后第二张与落地幕相同
 			scenarios.append({"act": a, "idx": i, "name": Combos.ACT_COMBOS[a][i]})
 	if melee:
 		scenarios = scenarios.filter(func(x): return int(x.idx) == 0)   # 每幕一段，两组自然轮换
@@ -71,13 +69,14 @@ func _ready() -> void:
 	for sc in scenarios:
 		fresh()
 		g.enemies = [boss]
-		if sc.act == 1:
-			boss.gates_passed = 1
-			if not boss.get("gates", []).is_empty():
-				boss.gates.pop_front()
-		elif sc.act >= 2:
+		if sc.act == 1 or sc.act == 2:
+			boss.gates_passed = int(sc.act)
+			for q in int(sc.act):
+				if not boss.get("gates", []).is_empty():
+					boss.gates.pop_front()
+		elif sc.act >= 3:
 			g.bai.setup_preview_phase2(boss)
-			if sc.act == 3:
+			if sc.act == 4:
 				boss.cocoon_done = true
 		boss.wind = 0.0
 		hs.combos().start_act(boss, int(sc.act))

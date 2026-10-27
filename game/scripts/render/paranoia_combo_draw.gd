@@ -145,6 +145,10 @@ static func _rush_lanes(g, e: Dictionary) -> void:
 ## 地面层（boss_beam._paranoia_ground）：凝视预警。形状 = 判定（pos 起、长 len、半宽 wid 的矩形）；
 ## 暗红低填充，两条长边是一串大小不一的小泡（随进度变亮、沿光束方向缓慢漂），锁定后中线收成一道细亮线
 static func draw_ground(g, e: Dictionary) -> void:
+	# 二阶段：以她为中心的大片暗紫压暗地面（越远越淡，三层叠出渐变），「她认真了」
+	if e.phase == 2 and float(e.get("cocoon_t", 0.0)) <= 0.0:
+		for q in 3:
+			g.draw_circle(e.pos, 900.0 - q * 260.0, Color(0.06, 0.0, 0.1, 0.09))
 	_rush_lanes(g, e)
 	for w in g.warns:
 		if w.done or not is_same(w.owner, e):

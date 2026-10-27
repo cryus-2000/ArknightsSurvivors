@@ -50,11 +50,11 @@ func fresh(a := 0) -> Dictionary:
 	g.final_boss = e
 	g.enemies.append(e)
 	g.ppos = Vector2(220, 0)
-	if a == 1:
-		e.gates_passed = 1
-	elif a >= 2:
+	if a == 1 or a == 2:
+		e.gates_passed = a
+	elif a >= 3:
 		g.bai.setup_preview_phase2(e)
-		e.cocoon_done = a == 3
+		e.cocoon_done = a == 4
 	return e
 
 
@@ -74,7 +74,7 @@ func tick(e: Dictionary, dt := 0.05) -> void:
 
 
 func check_table() -> void:
-	check(Combos.ACT_COMBOS.size() == 4, "four acts")
+	check(Combos.ACT_COMBOS.size() == 5, "five acts (three hover + grounded + after cocoon)")
 	for a in Combos.ACT_COMBOS.size():
 		check((Combos.ACT_COMBOS[a] as Array).size() >= 2, "act %d has two combos" % a)
 		for c in Combos.ACT_COMBOS[a]:
@@ -86,7 +86,7 @@ func check_table() -> void:
 
 ## 起手 → 依次出段 → 收招 → 换另一组；不会无限连下去
 func check_loop() -> void:
-	for a in 4:
+	for a in 5:
 		var e := fresh(a)
 		var seen: Array = []
 		var combos_seen: Array = []
@@ -183,8 +183,8 @@ func check_repro() -> void:
 
 ## 凝视持续光束：结算时不在线上，保持段内走进光束 → 结算一次（离开保持段 / 收拢段不再算）
 func check_beam_hold() -> void:
-	var e := fresh(2)
-	e.pc_act = 2   # 不让连段接管，单独测凝视
+	var e := fresh(3)
+	e.pc_act = 3   # 不让连段接管，单独测凝视
 	var s = g.bai.boss("paranoia")
 	g.ppos = Vector2(0, 300)
 	s._gaze(e, Vector2.RIGHT)
