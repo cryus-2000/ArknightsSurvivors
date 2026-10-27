@@ -51,3 +51,6 @@ game/bin/
 native/**/*.o
 native/**/*.os
 native/.sconsign*.dblite
+
+# 云端批跑本机配置（docs/36 §7；setup_linux.sh 生成，含本机 Godot 路径，不入库）
+tools/cloud/env.sh
