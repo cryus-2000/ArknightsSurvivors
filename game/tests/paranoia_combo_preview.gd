@@ -4,11 +4,13 @@ extends "res://tests/final_boss_fx_preview.gd"
 const SEG_SECONDS := 16.0
 const Bal = preload("res://scripts/core/balance.gd")
 var skin_ab := false
+var melee := false   # --melee：队长贴身绕 Boss 跑（地面距离 110），量「近战够得着且同屏敌弹 < 20」的时间占比与收招时长（协调人 10-27）
 
 
 func _ready() -> void:
 	var check_only := "--pc-check" in OS.get_cmdline_user_args()
 	skin_ab = "--skin-ab" in OS.get_cmdline_user_args()
+	melee = "--melee" in OS.get_cmdline_user_args()
 	kind = "paranoia"
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--shotdir="): out_dir = arg.substr(10)
@@ -62,6 +64,9 @@ func _ready() -> void:
 			if a == 3 and i == 1:
 				continue   # 破茧后第二张与落地幕相同
 			scenarios.append({"act": a, "idx": i, "name": Combos.ACT_COMBOS[a][i]})
+	if melee:
+		scenarios = scenarios.filter(func(x): return int(x.idx) == 0)   # 每幕一段，两组自然轮换
+	var seg_s: float = 40.0 if melee else SEG_SECONDS
 	var hs = g.bai.boss(kind)
 	for sc in scenarios:
 		fresh()
@@ -88,12 +93,23 @@ func _ready() -> void:
 		var ab_ms: Array = [[], []]
 		var sim_ms: Array = []
 		var live := 0
-		for frame_i in int(SEG_SECONDS / DT):
+		var low_frames := 0
+		var near_frames := 0
+		var rests: Array = []
+		var rest_seen := 0.0
+		var orbit := 0.0
+		for frame_i in int(seg_s / DT):
 			var elapsed: float = frame_i * DT
 			if skin_ab:
 				Bal.sec("render")["paranoia_bubble_skin"] = float(frame_i % 2)   # 同局逐帧轮换泡膜开 / 关
 			g.invuln = 999.0
-			g.ppos = g.ppos.move_toward(path_target(fmod(elapsed, 12.0)), 120.0 * DT)
+			if melee:
+				# 贴身绕圈：目标点在 Boss 周围地面距离 110，切向 120 像素 / 秒；队长移速上限 160 追过去
+				orbit += 120.0 / 110.0 * DT
+				var want: Vector2 = boss.pos + Vector2(cos(orbit) * 110.0, sin(orbit) * 110.0 * g.combat.GROUND_Y)
+				g.ppos = g.ppos.move_toward(want, 160.0 * DT)
+			else:
+				g.ppos = g.ppos.move_toward(path_target(fmod(elapsed, 12.0)), 120.0 * DT)
 			g.doc_pos = g.ppos + Vector2(10, 35)
 			g.t += DT
 			var t_sim0: int = Time.get_ticks_usec()
@@ -116,6 +132,17 @@ func _ready() -> void:
 				last_seg = mv
 				segs.append([snappedf(elapsed, 0.01), mv])
 			live = (boss.get("pc_buls", []) as Array).size()
+			var view := Rect2(g.ppos - Vector2(640, 360), Vector2(1280, 720))
+			var on_screen: int = g.ebullets.filter(func(b): return b.life > 0.0 and view.has_point(b.pos)).size()
+			var near: bool = g.combat.ground_d(g.ppos, boss.pos) <= 150.0
+			if near:
+				near_frames += 1
+				if on_screen < 20:
+					low_frames += 1
+			var ru: float = float(boss.get("pc_rest_until", 0.0))
+			if ru > rest_seen and ru > g.t:
+				rest_seen = ru
+				rests.append(snappedf(ru - g.t, 0.01))
 			peak = maxi(peak, live)
 			# 无敌玩家：数一下实弹贴身次数（只作密度参考，不代表难度）
 			for b in boss.get("pc_buls", []):
@@ -147,7 +174,9 @@ func _ready() -> void:
 		var avg := func(arr: Array) -> float: return 0.0 if arr.is_empty() else arr.reduce(func(a2, b2): return a2 + b2, 0.0) / arr.size()
 		var ab := {"skin_on_busy": snappedf(avg.call(ab_ms[1]), 0.01), "skin_off_busy": snappedf(avg.call(ab_ms[0]), 0.01)} if skin_ab else {}
 		var timing := {"ab": ab, "sim_ms_avg": snappedf(avg.call(sim_ms), 0.01), "ms_avg": snappedf(avg.call(all_ms), 0.01), "ms_p95": snappedf(all_ms[int(all_ms.size() * 0.95)] if not all_ms.is_empty() else 0.0, 0.01), "ms_busy_avg": snappedf(avg.call(busy), 0.01), "busy_frames": busy.size()}
-		print("FX_PREVIEW_METRICS ", JSON.stringify({"timing": timing, "combo": sc.name, "act": sc.act, "segments": segs, "bullet_peak": peak, "contact_frames": hits, "events": events}))
+		var total_frames: int = int(seg_s / DT)
+		var melee_m := {"near_pct": snappedf(100.0 * near_frames / total_frames, 0.1), "near_low_pct": snappedf(100.0 * low_frames / total_frames, 0.1), "rests": rests}
+		print("FX_PREVIEW_METRICS ", JSON.stringify({"melee": melee_m, "timing": timing, "combo": sc.name, "act": sc.act, "segments": segs, "bullet_peak": peak, "contact_frames": hits, "events": events}))
 	print("FX_PREVIEW_DONE boss=%s quality=%s frames=%d combos=%d optical=%s" % [kind, quality, shot_i, scenarios.size(), g.optical_on])
 	g.queue_free()
 	await get_tree().process_frame

@@ -24,6 +24,12 @@ const EMITTERS := {
 	"千目注视": {"n": 7, "iv": 0.24}, "环流狙击": {"n": 3, "iv": 0.7}, "镜影齐射": {"n": 2, "iv": 0.8},
 	"偏执双旋": {"n": 6, "iv": 0.42}, "无声波环": {"n": 2, "iv": 1.1}, "侵蚀帘幕": {"n": 2, "iv": 1.5}, "群愿回响": {"n": 2, "iv": 1.3}}
 const WINDUP := 0.55
+## 收招窗口：悬浮幕 / 落地后秒数；开始前要求本 Boss 同屏弹 < LOW_BULLETS；期间以 REST_SPD 靠近队长，停在 REST_NEAR（地面距离）内
+const REST_P1 := 2.5
+const REST_P2 := 3.0
+const LOW_BULLETS := 20
+const REST_SPD := 90.0
+const REST_NEAR := 110.0
 const BUL_CAP := 200
 ## 弹体分级：r 判定半径、伤害倍率（× e.dmg）
 const TIER := {"s": [6.0, 0.34], "m": [9.0, 0.42], "l": [12.0, 0.5]}
@@ -58,6 +64,8 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool) -> b
 	# 独立轮换（finals / patterns）由连段接管
 	e.final_next = INF
 	e.pattern_next = INF
+	if g.t < float(e.get("pc_rest_until", 0.0)) and float(e.get("break_t", 0.0)) <= 0.0:
+		_rest_approach(e, dt)
 	var a: int = act(e)
 	if a != int(e.get("pc_act", -1)):
 		start_act(e, a)
@@ -69,8 +77,11 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool) -> b
 	var queue: Array = e.get("pc_queue", [])
 	if queue.is_empty():
 		if not e.get("pc_rested", true):
-			# 收招：一组连段结束，不出招、不走动；悬浮幕正好冲刺打落
-			var rec: float = 1.6 if e.phase == 1 else 2.0
+			# 收招（输出窗口，协调人 10-27「给干员输出的机会」）：等上一组的弹散到 < LOW_BULLETS 才开始，不和密集段叠；
+			# 收招期间不出招，慢慢靠近队长（停在 REST_NEAR 内，近战够得着）；悬浮幕正好冲刺打落
+			if live_bullets(e) >= LOW_BULLETS:
+				return true
+			var rec: float = REST_P1 if e.phase == 1 else REST_P2
 			e.pc_rested = true
 			e.pc_idx = int(e.get("pc_idx", 0)) + 1
 			e.wind = maxf(float(e.get("wind", 0.0)), rec)
@@ -125,6 +136,21 @@ func interrupt(e: Dictionary) -> void:
 			if is_same(h.owner, e):
 				g.bai.finals._pop(h)
 		g.bai.finals.hazards = g.bai.finals.hazards.filter(func(h): return not is_same(h.owner, e))
+
+
+func live_bullets(e: Dictionary) -> int:
+	var n := 0
+	for b in e.get("pc_buls", []):
+		if b.life > 0.0:
+			n += 1
+	return n
+
+
+func _rest_approach(e: Dictionary, dt: float) -> void:
+	if g.combat.ground_d(g.ppos, e.pos) <= REST_NEAR:
+		return
+	var to: Vector2 = e.pos.move_toward(g.ppos, REST_SPD * dt)
+	e.pos = g.combat.arena_clamp(to, 80.0) if g.zone_frozen else to
 
 
 ## 结茧 / 死亡
