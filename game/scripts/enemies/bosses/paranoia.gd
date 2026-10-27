@@ -324,7 +324,7 @@ func _paranoia_aura(e: Dictionary, dist: float) -> void:
 
 
 ## 第一次血量归零：结成泡影茧 boss/paranoia_cocoon 秒。本体无敌，外壳是部件（shell_hp = 最大生命 × paranoia_shell），会吐慢速弹；
-## 场地收到 paranoia_arena2。打破外壳 → 复活到 paranoia_revive（40%）并进入 5 秒大破绽；没打破 → 同样复活，但凝视永久 +1 道
+## 场地收到 paranoia_arena2。打破外壳 → 复活到 paranoia_revive（50%，balance.json）并进入 5 秒大破绽；没打破 → 同样复活，但凝视永久 +1 道
 func paranoia_cocoon(e: Dictionary) -> void:
 	Sfx.play_cue("phase", e.type, "start")
 	e.cocoon_done = true
