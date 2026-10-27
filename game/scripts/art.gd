@@ -1005,6 +1005,9 @@ const FXF := {"fx_s1_burst": 6, "fx_s1_slash": 4, "fx_s2_aura": 4, "fx_s2_bind":
 
 ## 美术 V6 帧条：名称 -> [帧数, fps]
 const V6_FRAMES := {
+	"prop_knight_frost_stake": [4, 4.0], "prop_knight_frost_stake_rise": [3, 12.0], "prop_knight_frost_stake_break": [6, 14.0],
+	"fx_knight_crystal_rise": [7, 28.0], "fx_knight_crystal_hold": [3, 8.0], "fx_knight_crystal_break": [10, 32.0],
+	"fx_knight_ice_crest": [11, 30.0], "proj_knight_ice": [10, 18.0], "fx_knight_ice_hit": [12, 24.0],
 	"fx_wisadel_cannon": [4, 12.0],
 	"fx_mon3tr_claw": [4, 16.0], "fx_mon3tr_melt_slash": [4, 16.0],
 	"proj_arrow": [1, 0.0], "proj_fireball": [4, 12.0], "proj_arcane": [4, 12.0],

@@ -9,6 +9,10 @@ const NAMES := {
 	"izumik": ["护群触腕", "迁徙潮", "深渊涌流"]}
 var g
 var hazards: Array = []
+const PHASE2_NAMES := ["冰枪封径", "冻潮夹击"]
+
+func names_for(e: Dictionary) -> Array:
+	return (PHASE2_NAMES + NAMES[e.type]) if e.type=="knight_boss" and e.phase==2 else NAMES[e.type]
 
 func _init(game) -> void:
 	g = game
@@ -26,9 +30,10 @@ func try_attack(e: Dictionary, dir: Vector2, dist: float) -> bool:
 		e.final_next = g.t + 5.0
 	if g.t < float(e.final_next):
 		return false
-	var index: int = int(e.get("final_cycle", 0)) % 3
+	var names: Array = names_for(e)
+	var index: int = int(e.get("final_cycle", 0)) % names.size()
 	e.final_cycle = index + 1
-	return force_move(e, str(NAMES[e.type][index]), dir, dist)
+	return force_move(e, str(names[index]), dir, dist)
 
 func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionary:
 	var base := {"act": "final_attack", "col": g.vfx.boss_color(e.type), "dmg": e.dmg * 0.85,
@@ -44,7 +49,7 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 	return w
 
 func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool:
-	if not NAMES.has(e.type) or not NAMES[e.type].has(name) or not enabled(e):
+	if not NAMES.has(e.type) or not names_for(e).has(name) or not enabled(e):
 		return false
 	var chained: bool = e.type == "knight_boss" and e.get("knight_combo_active", false)
 	var side: Vector2 = dir.orthogonal()
@@ -69,20 +74,25 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 					"r": 18.0, "skin": "bubble", "motion": "pursuit", "ang": a + PI, "speed": 100.0, "life": 5.5, "turn_rate": 0.85})
 				named = true
 		"踏冰裂阵":
-			# Frozen complementary lanes: wave two fills wave one's safe strips.
-			var center: Vector2 = g.ppos
 			var first_duration := 1.3
 			for wave in 2:
-				for lane in 3:
-					var index: int = lane*2+wave
-					var p: Vector2 = center-dir*500.0+side*(-375.0+150.0*index)
-					var w: Dictionary = _warn(e,"line",1.3 if wave==0 else 2.7,{"name":name if lane==0 else "", "pos":p,
-						"ang":dir.angle(),"len":1000.0,"wid":75.0,"skin":"ice_field","chill":0.5,"ice_wave":wave,
+				for spoke in 8:
+					var w: Dictionary = _warn(e,"cone",1.3 if wave==0 else 2.7,{"name":name if spoke==0 else "", "pos":e.pos,
+						"ang":dir.angle()+spoke*PI/4+wave*PI/8,"r":560.0,"inner_r":60.0,"half":PI/16,"skin":"ice_field","chill":0.5,"ice_wave":wave,
 						"tell_after":0.0 if wave==0 else first_duration})
 					if wave==0: first_duration=w.dur
+		"冰枪封径":
+			for k in 3:
+				_warn(e,"circle",1.2+k*.45,{"name":name if k==0 else "","pos":g.ppos+side*(k-1)*160.0,
+					"r":105.0,"skin":"ice_lance","motion":"frost_zone","speed":0.0,"life":2.0,"chill":1.0})
+		"冻潮夹击":
+			for sign_side in [-1.0,1.0]:
+				_warn(e,"line",1.4,{"name":name if sign_side<0 else "","pos":g.ppos-dir*350.0+side*320.0*sign_side,
+					"ang":dir.angle(),"len":700.0,"wid":28.0,"skin":"ice_wall","motion":"wall",
+					"velocity":side*(-sign_side*210.0),"life":1.05,"chill":0.8})
 		"断潮劈击":
 			_warn(e, "arc", 1.7, {"name": name, "ang": dir.angle(), "track": 0.85, "r": 640.0, "half": 0.52, "arc_back": 480.0, "wid": 26.0, "style": 3,
-				"skin": "crescent", "motion": "crescent", "speed": 220.0, "accel": 2400.0, "max_speed": 1000.0, "life": 1.05, "dmg": e.dmg * 1.15})
+				"skin": "crescent", "motion": "crescent", "speed": 450.0, "accel": 5000.0, "max_speed": 1450.0, "life": 0.8, "dmg": e.dmg * 1.15})
 			e.fx = dir.x
 		"侧踏挑枪":
 			var sign_side: float = -1.0 if int(e.get("final_cycle", 0)) % 2 else 1.0
@@ -171,7 +181,14 @@ func resolve(w: Dictionary) -> void:
 		h.age = 0.0
 		h.hit = false
 		h.base_r = float(w.r)
-		h.velocity = w.get("velocity", Vector2.from_angle(w.ang) * float(w.get("speed", 0.0)))
+		if motion=="expanding":
+			h.r=70.0
+			h.inner_r=float(w.get("inner_r",70.0))
+			h.base_inner_r=h.inner_r
+		if w.get("skin","")=="ice_thrust":
+			h.len=90.0
+			h.speed=(w.len-h.len)/h.life
+		h.velocity = w.get("velocity", Vector2.from_angle(w.ang) * float(h.get("speed", 0.0)))
 		if hazards.size() < 80:
 			hazards.append(h)
 			MaterialGrains.burst(g, h)
@@ -179,8 +196,8 @@ func resolve(w: Dictionary) -> void:
 		g.tele.warn_damage(w)
 		var f: Dictionary = w.duplicate()
 		f.kind = "final_impact"
-		f.life = 0.38
-		f.max = 0.38
+		f.life = 0.65 if w.get("skin","")=="ice_field" else 0.38
+		f.max = f.life
 		f.enemy = true
 		g.fx.append(f)
 		MaterialGrains.burst(g, w)
@@ -195,8 +212,12 @@ func update(e: Dictionary, dt: float) -> void:
 		if not is_same(h.owner, e):
 			live.append(h)
 			continue
-		h.age += dt
-		if h.age >= h.life:
+		# Knight ice fronts must sweep the final partial frame before expiring.
+		var finish_motion: bool = h.owner.type=="knight_boss"
+		var step_dt: float = minf(dt,maxf(0.0,h.life-h.age)) if finish_motion else dt
+		if finish_motion and is_equal_approx(step_dt,h.life-h.age): step_dt=h.life-h.age
+		h.age += step_dt
+		if h.age >= h.life and not finish_motion:
 			_pop(h)
 			continue
 		if h.motion == "swelling":
@@ -204,15 +225,19 @@ func update(e: Dictionary, dt: float) -> void:
 		if h.motion == "pursuit":
 			var a: float = rotate_toward(h.velocity.angle(), (g.ppos - h.pos).angle(), float(h.get("turn_rate", 1.0)) * dt)
 			h.velocity = Vector2.from_angle(a) * h.speed
-		var travel: Vector2 = h.velocity * dt
+		var travel: Vector2 = h.velocity * step_dt
 		if h.motion == "crescent":
 			var forward := Vector2.from_angle(h.ang)
-			travel = forward * (_accelerated_distance(h, h.age) - _accelerated_distance(h, maxf(0.0, h.age-dt)))
+			travel = forward * (_accelerated_distance(h, h.age) - _accelerated_distance(h, maxf(0.0, h.age-step_dt)))
 			h.velocity = forward * minf(h.max_speed, h.speed + h.accel*h.age)
 		# Substeps bound swept movement to 10px even when a frame stalls.
-		var steps: int = maxi(1, ceili(travel.length() / 10.0))
+		var expansion: float = float(h.get("wave_speed",0.0))*step_dt
+		var steps: int = maxi(1, ceili(maxf(travel.length(),expansion) / 10.0))
 		for k in steps:
 			h.pos += travel / steps
+			if h.motion=="expanding":
+				h.r=minf(h.base_r,h.r+expansion/steps)
+				h.inner_r=maxf(h.base_inner_r,h.r-46.0)
 			if not h.hit and g.tele.hits_leader(h):
 				g.tele.warn_damage(h)
 				h.hit = true
@@ -220,11 +245,16 @@ func update(e: Dictionary, dt: float) -> void:
 		if h.hit and h.skin == "bubble":
 			_pop(h)
 			continue
-		MaterialGrains.trail(g, h, dt)
+		MaterialGrains.trail(g, h, step_dt)
+		if finish_motion and h.age>=h.life:
+			_pop(h)
+			continue
 		live.append(h)
 	hazards = live
 
 func _pop(h: Dictionary) -> void:
+	if h.get("skin", "") == "ice_thrust" and not g is Dictionary:
+		g.vfx.fx_sprite("fx_knight_ice_hit",h.pos+Vector2.from_angle(h.ang)*h.len,g.PX,h.ang)
 	if h.get("skin", "") != "bubble":
 		MaterialGrains.finish(g, h)
 		return

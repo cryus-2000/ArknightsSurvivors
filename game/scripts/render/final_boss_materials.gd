@@ -11,7 +11,14 @@ static func draw(g, w: Dictionary, alpha: float) -> bool:
 	var r = g.world
 	match skin:
 		"ice": _ice(r, w, age, alpha)
-		"ice_field": _ice_field(r,w,age,alpha)
+		"ice_field": _ice_field(g,w,age,alpha)
+		"ice_wave":
+			_ice_wave(r,w,g.combat.GROUND_Y,age,alpha)
+			_ice_wave_sprites(g,w,age,alpha)
+		"ice_thrust":
+			if not _ice_projectile(g,w,age,alpha): _ice_thrust(r,w,age,alpha)
+		"ice_lance": _ice_lance(g,w,age,alpha)
+		"ice_wall": _ice_wall(g,w,age,alpha)
 		"crescent": _blade(r, w, age, alpha)
 		"spear", "step": _spear(r, w, age, alpha)
 		"choir":
@@ -79,30 +86,149 @@ static func _ice(r, w: Dictionary, age: float, alpha: float) -> void:
 			var q := p + Vector2((_n(i*3+j,4)-.5)*34,-(8+_n(i*3+j,6)*22)-age*18)
 			_grain(r,q,_c(Color(.55,.83,.9),alpha*.7))
 
-static func _ice_field(r, w: Dictionary, age: float, alpha: float) -> void:
+static func _crystal(g, p: Vector2, age: float, scale: float, alpha: float, remaining := INF) -> void:
+	if not g is Dictionary and g.world._lazy_tex("fx_knight_crystal_rise") != null:
+		g.world.tb_flush()
+		var name := "fx_knight_crystal_hold"
+		var count := 3
+		var frame := int(age*8)%3
+		if remaining<.30:
+			name="fx_knight_crystal_break"
+			count=10
+			frame=clampi(int((.30-remaining)/.30*10),0,9)
+		elif age<.23:
+			name="fx_knight_crystal_rise"
+			count=7
+			frame=clampi(int(age/.23*7),0,6)
+		g.world._lazy_tex(name)
+		g.vfx.spr(name,count,frame,p.snapped(Vector2.ONE),1.0,false,Color(1,1,1,alpha),Vector2(.5,124.0/128))
+		return
+	# Existing pixel pillar art is shared with the Knight stakes, including its rising frames.
+	if not g is Dictionary and g.world._lazy_tex("prop_ice_pillar") != null:
+		g.world.tb_flush()
+		var col := Color(.72,.88,.96,alpha)
+		if remaining<.3 and g.world._lazy_tex("prop_ice_pillar_break") != null:
+			g.vfx.spr("prop_ice_pillar_break",6,clampi(int((.3-remaining)/.3*6),0,5),p,g.PX*scale,false,col,Vector2(.5,94.0/96))
+		elif age<.2 and g.world._lazy_tex("prop_ice_pillar_rise") != null:
+			g.vfx.spr("prop_ice_pillar_rise",3,clampi(int(age/.2*3),0,2),p,g.PX*scale,false,col,Vector2(.5,94.0/96))
+		else:
+			g.vfx.spr("prop_ice_pillar",4,int(age*4)%4,p,g.PX*scale,false,col,Vector2(.5,94.0/96))
+		return
+	var top := p+Vector2(3,-70)*scale
+	_poly(g.world,[p-Vector2(15,0)*scale,top,p+Vector2(18,0)*scale],_c(Color(.25,.48,.64),alpha))
+	_poly(g.world,[p,top,p+Vector2(18,0)*scale],_c(Color(.65,.83,.92),alpha))
+
+static func _ice_field(g, w: Dictionary, age: float, alpha: float) -> void:
+	var r = g.world
+	var inner: float = float(w.get("inner_r",0.0))
+	var radius: float = float(w.get("r",560.0))
+	var half: float = float(w.get("half",PI/16))
+	# Ground frost follows the exact sector. Tall columns have roots inside it.
+	for i in 16:
+		var a := Vector2.from_angle(w.ang-half+2*half*i/16)
+		var b := Vector2.from_angle(w.ang-half+2*half*(i+1)/16)
+		_poly(r,[w.pos+a*inner,w.pos+a*radius,w.pos+b*radius,w.pos+b*inner],_c(Color(.18,.32,.40),alpha*.32))
+		if i%3==1:
+			_band(r,w.pos+a*maxf(inner,55),w.pos+a*(radius-15),1,1,_c(Color(.43,.62,.72),alpha*.5))
+	for j in 6:
+		var distance: float = lerpf(maxf(85,inner+35),radius-35,(j+.5)/6)
+		var angle: float = w.ang+sin(j*2.7)*half*.36
+		_crystal(g,w.pos+Vector2.from_angle(angle)*distance,age,.55+_n(j,5)*.20,alpha,float(w.get("life",INF)))
+
+static func _wave_segments(w: Dictionary, gy: float) -> Array:
+	var intervals: Array = [Vector2(0,TAU)]
+	if w.has("gap_ang"):
+		var wa: float = w.gap_ang-w.gap_half
+		var wb: float = w.gap_ang+w.gap_half
+		var a: float = fposmod(atan2(sin(wa)/gy,cos(wa)),TAU)
+		var b: float = fposmod(atan2(sin(wb)/gy,cos(wb)),TAU)
+		intervals = [Vector2(b,a)] if a>b else [Vector2(0,a),Vector2(b,TAU)]
+	var result: Array = []
+	for interval in intervals:
+		var count: int = ceili((interval.y-interval.x)/(TAU/100))
+		for i in count:
+			result.append(Vector2(lerpf(interval.x,interval.y,float(i)/count),lerpf(interval.x,interval.y,float(i+1)/count)))
+	return result
+
+static func _ice_wave(r, w: Dictionary, gy: float, age: float, alpha: float) -> void:
+	var inner: float = float(w.get("inner_r",maxf(0,w.r-46)))
+	for segment in _wave_segments(w,gy):
+		var a: float = segment.x
+		var b: float = segment.y
+		var i: int = int((a+b)*.5*100/TAU)
+		var va := Vector2(cos(a),sin(a)*gy)
+		var vb := Vector2(cos(b),sin(b)*gy)
+		_poly(r,[w.pos+va*inner,w.pos+va*w.r,w.pos+vb*w.r,w.pos+vb*inner],_c(Color(.16,.31,.42),alpha*.38))
+		var rr: float = w.r-6-_n(i,3)*10
+		var p: Vector2 = w.pos+va*rr
+		var q: Vector2 = w.pos+vb*rr
+		_band(r,p,q,4+_n(i,4)*4,3,_c(Color(.41,.65,.79),alpha*.8))
+		if i%3!=0: _band(r,p-va*3,q-vb*3,1,1,_c(Color(.76,.9,.97),alpha))
+		if i%4==1:
+			_poly(r,[p-va*8,p+Vector2(2,-12-_n(i,8)*12),q],_c(Color(.62,.81,.9),alpha))
+		_grain(r,p-va*(8+_n(i)*14),_c(LIT,alpha*.65))
+
+static func _ice_thrust(r, w: Dictionary, age: float, alpha: float) -> void:
+	var d := Vector2.from_angle(w.ang)
+	var n := d.orthogonal()
+	var tip: Vector2 = w.pos+d*w.len
+	var mid: Vector2 = w.pos+d*w.len*.42
+	_poly(r,[w.pos-n*w.wid,mid-n*w.wid,tip,mid+n*w.wid,w.pos+n*w.wid*.5],_c(Color(.12,.29,.42),alpha))
+	_poly(r,[w.pos,mid-n*w.wid,tip,mid+n*w.wid*.2],_c(Color(.48,.72,.85),alpha))
+	_band(r,mid-n*w.wid*.65,tip,1.5,.5,_c(FOAM,alpha))
+	for j in 5:
+		var p: Vector2 = w.pos+d*w.len*_n(j,3)
+		_band(r,p-n*w.wid*.65,p+n*w.wid*.35,1,1,_c(DEEP,alpha*.8))
+		_grain(r,p-d*(age*20),_c(LIT,alpha*.65))
+
+static func _ice_projectile(g,w: Dictionary,age: float,alpha: float) -> bool:
+	if g is Dictionary or g.world._lazy_tex("proj_knight_ice")==null: return false
+	g.world.tb_flush()
+	var d := Vector2.from_angle(w.ang)
+	# The 30px painted projectile occupies the same 90px moving damage segment.
+	g.vfx.spr_rot("proj_knight_ice",int(age*18)%10,w.pos+d*w.len*.5,w.ang,3.0,Color(1,1,1,alpha),Vector2(20,16))
+	return true
+
+static func _ice_wave_sprites(g,w: Dictionary,age: float,alpha: float) -> void:
+	if g is Dictionary or g.world._lazy_tex("fx_knight_ice_crest")==null: return
+	g.world.tb_flush()
+	var gy: float = g.combat.GROUND_Y
+	var count: int = clampi(int(TAU*w.r/65),6,32)
+	for i in count:
+		var angle: float = TAU*i/count
+		var direction := Vector2(cos(angle),sin(angle)*gy)
+		if w.has("gap_ang") and absf(angle_difference(direction.angle(),w.gap_ang))<w.gap_half+.10: continue
+		var p: Vector2 = w.pos+direction*(w.r-18)
+		g.vfx.spr("fx_knight_ice_crest",11,2+int(age*14+i%3)%5,p.snapped(Vector2.ONE),1.0,false,Color(1,1,1,alpha*.85),Vector2(.5,.94))
+
+static func _ice_lance(g, w: Dictionary, age: float, alpha: float) -> void:
+	var r = g.world
+	_oval(r,w.pos,w.r,w.r*.62,_c(Color(.14,.29,.39),alpha*.35))
+	for i in 9:
+		var d := Vector2.from_angle(i*TAU/9)
+		_band(r,w.pos+d*12,w.pos+Vector2(d.x,d.y*.62)*w.r*.9,1,1,_c(Color(.48,.65,.76),alpha*.6))
+	for j in 3:
+		_crystal(g,w.pos+Vector2((j-1)*w.r*.45,(j%2)*10),age,.47 if j!=1 else .7,alpha,float(w.get("life",INF))-age)
+
+static func _ice_wall(g, w: Dictionary, age: float, alpha: float) -> void:
 	var d := Vector2.from_angle(w.ang)
 	var n := d.orthogonal()
 	var end: Vector2 = w.pos+d*w.len
-	_poly(r,[w.pos-n*w.wid,end-n*w.wid,end+n*w.wid,w.pos+n*w.wid],_c(Color(.14,.30,.40),alpha*.38))
-	for row in 3:
-		for col in 20:
-			var k: int = row*20+col
-			var along: float = (col+.3+_n(k,5)*.4)*w.len/20
-			var p: Vector2 = w.pos+d*along+n*((row-1)*46+(_n(k,4)-.5)*12)
-			var height: float = 24+_n(k,9)*33
-			var half: float = 9+_n(k,3)*7
-			var tip: Vector2 = p+Vector2((_n(k,7)-.5)*15,-height)
-			_oval(r,p,22,12,_c(Color(.11,.27,.35),alpha*.75),w.ang)
-			_poly(r,[p-Vector2(half,0),p+Vector2(0,7),p+Vector2(half,0),tip],_c(Color(.08,.22,.33),alpha))
-			var seam: Vector2 = p+Vector2(2,-height*.25)
-			_poly(r,[p-Vector2(half,0),tip,seam],_c(Color(.31,.55,.70),alpha))
-			_poly(r,[seam,tip,p+Vector2(half,0)],_c(Color(.66,.85,.93),alpha))
-			_band(r,seam,tip,1,1,_c(Color(.89,.97,1),alpha))
-			_poly(r,[p+Vector2(half*.4,2),p+Vector2(half+8,-height*.55),p+Vector2(half+10,3)],_c(Color(.39,.66,.8),alpha))
-			_band(r,p-d*20,p+n*16,1,1,_c(Color(.51,.73,.85),alpha*.75))
-			_grain(r,tip+Vector2(4,-age*25),_c(FOAM,alpha*.7))
+	_poly(g.world,[w.pos-n*w.wid,end-n*w.wid,end+n*w.wid,w.pos+n*w.wid],_c(Color(.19,.35,.44),alpha*.4))
+	for i in 12:
+		var p: Vector2 = w.pos+d*w.len*(i+.5)/12
+		_crystal(g,p,age,.44+_n(i,4)*.16,alpha,float(w.get("life",INF))-age)
 
 static func _blade(r, w: Dictionary, age: float, alpha: float) -> void:
+	if age>0.0 and not w.has("formation"):
+		var direction := Vector2.from_angle(w.ang)
+		for i in range(3,0,-1):
+			var ghost: Dictionary = w.duplicate()
+			ghost.pos = w.pos-direction*minf(age*300.0,26.0*i)
+			_blade_body(r,ghost,age,alpha*(.25-.05*i))
+	_blade_body(r,w,age,alpha)
+
+static func _blade_body(r, w: Dictionary, age: float, alpha: float) -> void:
 	var formation: float = float(w.get("formation", 1.0))
 	var extent: float = float(w.half) * formation
 	var forward := Vector2.from_angle(w.ang)

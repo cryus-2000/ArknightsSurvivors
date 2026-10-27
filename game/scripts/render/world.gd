@@ -2251,7 +2251,9 @@ func _final_boss_strip(e: Dictionary, skin: String) -> String:
 		"izumik": return "e_izumik_attack" if skin == "tentacle" else "e_izumik_share"
 		"knight_boss":
 			match skin:
-				"ice", "ice_field": return "e_knight_plant"
+				"ice", "ice_field", "ice_lance", "ice_wall": return "e_knight_plant"
+				"ice_wave": return "e_knight_spin"
+				"ice_thrust": return "e_knight_thrust"
 				"crescent": return "e_knight_spin"
 				"spear": return "e_knight_thrust"
 				"step": return "e_knight_charge_form"
@@ -3811,17 +3813,17 @@ func _draw_stakes(e: Dictionary) -> void:
 		var a: float = 1.0 if left > 2.0 else 0.35 + 0.65 * absf(sin(g.t * 12.0))
 		var p: Vector2 = st.pos
 		g.draw_set_transform(p, 0.0, Vector2(1.0, ground_y()))
-		g.draw_circle(Vector2.ZERO, 22.0, Color(0.6, 0.85, 1.3, 0.14 * a))
-		g.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 24, Color(0.8, 1.1, 1.6, 0.6 * a), 1.5)
+		g.draw_circle(Vector2.ZERO, 22.0, Color(0.36, 0.52, 0.60, 0.10 * a))
+		g.draw_arc(Vector2.ZERO, 22.0, 0.0, TAU, 24, Color(0.60, 0.74, 0.78, 0.45 * a), 1.5)
 		g.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
-		if g.tex.get("prop_ice_pillar") != null:
-			# 冰柱（10-25 用户「骑士的桩设置成冰柱」，tools/gen_ice_pillar.py：ansimuz Ice_b，64 × 96、脚底第 94 行）：0.75 倍；新立的先播破土 0.25 秒
+		if g.tex.get("prop_knight_frost_stake") != null:
+			# 冰柱（10-25 用户「骑士的桩设置成冰柱」，tools/gen_ice_pillar.py：ansimuz Ice_b，64 × 96、脚底第 94 行）：统一冷灰蓝衍生帧条，整数像素；新立的先播破土 0.25 秒
 			var age: float = g.t - float(st.get("born", -99.0))
-			var pc := Color(1.15, 1.2, 1.3, a)
-			if age < 0.25 and g.tex.get("prop_ice_pillar_rise") != null:
-				g.vfx.spr("prop_ice_pillar_rise", 3, clampi(int(age / 0.25 * 3.0), 0, 2), p, g.PX * 0.75, false, pc, Vector2(0.5, 94.0 / 96.0))
+			var pc := Color(1.0, 1.0, 1.0, a)
+			if age < 0.25 and g.tex.get("prop_knight_frost_stake_rise") != null:
+				g.vfx.spr("prop_knight_frost_stake_rise", 3, clampi(int(age / 0.25 * 3.0), 0, 2), p, 1.0, false, pc, Vector2(0.5, 94.0 / 96.0))
 			else:
-				g.vfx.spr("prop_ice_pillar", 4, int(g.t * 4.0) % 4, p, g.PX * 0.75, false, pc, Vector2(0.5, 94.0 / 96.0))
+				g.vfx.spr("prop_knight_frost_stake", 4, int(g.t * 4.0) % 4, p, 1.0, false, pc, Vector2(0.5, 94.0 / 96.0))
 			continue
 		if g.tex.get("prop_ice_stake") != null:
 			# Codex v14 prop_ice_stake（24×56 × 2 帧，脚底第 53 行）；冰蓝过曝调色同骑士长矛（暗环境光下原色太暗）；到期前闪烁仍是程序改透明度，判定圈程序画

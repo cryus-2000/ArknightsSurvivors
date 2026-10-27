@@ -2,6 +2,7 @@ extends "res://tests/final_boss_fx_preview.gd"
 ## One forced opener per segment; follow-ups, movement and recovery use the production AI.
 func _ready() -> void:
 	var check_only := "--combo-check" in OS.get_cmdline_user_args()
+	var ice_review := "--knight-ice-review" in OS.get_cmdline_user_args()
 	kind = "knight_boss"
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--boss="): kind = arg.substr(7)
@@ -49,7 +50,12 @@ func _ready() -> void:
 		visual_step(DT)
 		await get_tree().process_frame
 		if not check_only: await RenderingServer.frame_post_draw
-	for scenario in [{"name":"弧斩接冲锋", "move":"断潮劈击", "phase":1}, {"name":"双冰阵连招", "move":"踏冰裂阵", "phase":1}, {"name":"二阶段弧斩追击", "move":"断潮劈击", "phase":2}]:
+	var scenarios := [{"name":"弧斩接冲锋", "move":"断潮劈击", "phase":1}, {"name":"双冰阵连招", "move":"踏冰裂阵", "phase":1}, {"name":"二阶段弧斩追击", "move":"断潮劈击", "phase":2}]
+	var segment_seconds := 18.0
+	if ice_review:
+		segment_seconds = 12.0
+		scenarios = [{"name":"环形冰波", "move":"长枪回旋", "phase":2}, {"name":"三段冰锋", "move":"长枪连刺", "phase":1}, {"name":"放射双冰阵", "move":"踏冰裂阵", "phase":1}, {"name":"快速弧斩", "move":"断潮劈击", "phase":2}, {"name":"冰枪封径", "move":"冰枪封径", "phase":2}, {"name":"冻潮夹击", "move":"冻潮夹击", "phase":2}]
+	for scenario in scenarios:
 		fresh()
 		g.enemies = [boss]
 		if scenario.phase == 2:
@@ -64,7 +70,7 @@ func _ready() -> void:
 		var previous_break := 0.0
 		var current_move := "准备"
 		var player_status := {"pstun_max":0.0,"root_max":0.0,"pstun_samples":0,"root_samples":0,"pstun_stages":{}}
-		for frame_i in 540:
+		for frame_i in int(segment_seconds / DT):
 			var elapsed: float = frame_i * DT
 			g.invuln = 999.0
 			g.ppos = g.ppos.move_toward(path_target(fmod(elapsed, 12.0)), 100.0 * DT)

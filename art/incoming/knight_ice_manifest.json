@@ -1,0 +1,554 @@
+{
+  "prop_knight_frost_stake": {
+    "source": "repo:art/incoming/prop_ice_pillar.png",
+    "source_sha256": "1b1c4303c6df938c67e310c7335b20d037dc17750c91bf9b93ca5043ef8ebebc",
+    "frames": 4,
+    "frame_size": [
+      64,
+      96
+    ],
+    "indices": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "palette": [
+      [
+        12,
+        27,
+        40
+      ],
+      [
+        25,
+        49,
+        65
+      ],
+      [
+        40,
+        72,
+        92
+      ],
+      [
+        63,
+        101,
+        121
+      ],
+      [
+        94,
+        137,
+        151
+      ],
+      [
+        143,
+        181,
+        189
+      ],
+      [
+        196,
+        218,
+        218
+      ],
+      [
+        228,
+        238,
+        229
+      ]
+    ],
+    "output_sha256": "79e646f9b6de0c8ffeeb103d3836072165b9ac36a20df56a39a51a5b760fc294"
+  },
+  "prop_knight_frost_stake_rise": {
+    "source": "repo:art/incoming/prop_ice_pillar_rise.png",
+    "source_sha256": "f6a56720162ab72b4b5bdf3a10caefbc02ef448c113e6685091f23bad0f0275b",
+    "frames": 3,
+    "frame_size": [
+      64,
+      96
+    ],
+    "indices": [
+      0,
+      1,
+      2
+    ],
+    "palette": [
+      [
+        12,
+        27,
+        40
+      ],
+      [
+        25,
+        49,
+        65
+      ],
+      [
+        40,
+        72,
+        92
+      ],
+      [
+        63,
+        101,
+        121
+      ],
+      [
+        94,
+        137,
+        151
+      ],
+      [
+        143,
+        181,
+        189
+      ],
+      [
+        196,
+        218,
+        218
+      ],
+      [
+        228,
+        238,
+        229
+      ]
+    ],
+    "output_sha256": "0d5e5ef4289a63c12029683c7a6a55d16ddef0436559f72798647e33e52d0039"
+  },
+  "prop_knight_frost_stake_break": {
+    "source": "repo:art/incoming/prop_ice_pillar_break.png",
+    "source_sha256": "2e1948a705926652c53aad2e5b5f83d56e82e3d8dd654aaa518b2c69ecca6ee5",
+    "frames": 6,
+    "frame_size": [
+      64,
+      96
+    ],
+    "indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "palette": [
+      [
+        12,
+        27,
+        40
+      ],
+      [
+        25,
+        49,
+        65
+      ],
+      [
+        40,
+        72,
+        92
+      ],
+      [
+        63,
+        101,
+        121
+      ],
+      [
+        94,
+        137,
+        151
+      ],
+      [
+        143,
+        181,
+        189
+      ],
+      [
+        196,
+        218,
+        218
+      ],
+      [
+        228,
+        238,
+        229
+      ]
+    ],
+    "output_sha256": "cd302b4113b6de59b3ed6d8d04331a52bfa2eb5c76b45e2114a727fd95c4fb6f"
+  },
+  "fx_knight_crystal_rise": {
+    "source": "creativekind/ice crystal-Sheet.png",
+    "source_sha256": "74550bf58b440c8c0f89d1bce13a14f0388c426c7832cbd2cfabd14ff93c8b2d",
+    "frames": 7,
+    "frame_size": [
+      64,
+      128
+    ],
+    "indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "palette": [
+      [
+        12,
+        27,
+        40
+      ],
+      [
+        25,
+        49,
+        65
+      ],
+      [
+        40,
+        72,
+        92
+      ],
+      [
+        63,
+        101,
+        121
+      ],
+      [
+        94,
+        137,
+        151
+      ],
+      [
+        143,
+        181,
+        189
+      ],
+      [
+        196,
+        218,
+        218
+      ],
+      [
+        228,
+        238,
+        229
+      ]
+    ],
+    "output_sha256": "62d5cecaf5320b309919712522667524eea258be493c33bd472b3b2ef2b2c49e"
+  },
+  "fx_knight_crystal_hold": {
+    "source": "creativekind/ice crystal-Sheet.png",
+    "source_sha256": "74550bf58b440c8c0f89d1bce13a14f0388c426c7832cbd2cfabd14ff93c8b2d",
+    "frames": 3,
+    "frame_size": [
+      64,
+      128
+    ],
+    "indices": [
+      7,
+      8,
+      9
+    ],
+    "palette": [
+      [
+        12,
+        27,
+        40
+      ],
+      [
+        25,
+        49,
+        65
+      ],
+      [
+        40,
+        72,
+        92
+      ],
+      [
+        63,
+        101,
+        121
+      ],
+      [
+        94,
+        137,
+        151
+      ],
+      [
+        143,
+        181,
+        189
+      ],
+      [
+        196,
+        218,
+        218
+      ],
+      [
+        228,
+        238,
+        229
+      ]
+    ],
+    "output_sha256": "2e2bf1f25474b2306a3aec92424929a9cade564f1ca4cd1f5dc929af226b304a"
+  },
+  "fx_knight_crystal_break": {
+    "source": "creativekind/ice crystal-Sheet.png",
+    "source_sha256": "74550bf58b440c8c0f89d1bce13a14f0388c426c7832cbd2cfabd14ff93c8b2d",
+    "frames": 10,
+    "frame_size": [
+      64,
+      128
+    ],
+    "indices": [
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "palette": [
+      [
+        12,
+        27,
+        40
+      ],
+      [
+        25,
+        49,
+        65
+      ],
+      [
+        40,
+        72,
+        92
+      ],
+      [
+        63,
+        101,
+        121
+      ],
+      [
+        94,
+        137,
+        151
+      ],
+      [
+        143,
+        181,
+        189
+      ],
+      [
+        196,
+        218,
+        218
+      ],
+      [
+        228,
+        238,
+        229
+      ]
+    ],
+    "output_sha256": "0723b9069549c783da7be4682fd1373c09ee2ef468e1dcf7f5c2cb61742f6864"
+  },
+  "fx_knight_ice_crest": {
+    "source": "pimen_02/Ice Effect 02/Ice VFX 5/Ice VFX 5(48x32).png",
+    "source_sha256": "a6c0389149db5bb221ad124be9123bdcebfde26f5409103d03d4c19678f87e30",
+    "frames": 11,
+    "frame_size": [
+      48,
+      32
+    ],
+    "indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "palette": [
+      [
+        12,
+        27,
+        40
+      ],
+      [
+        25,
+        49,
+        65
+      ],
+      [
+        40,
+        72,
+        92
+      ],
+      [
+        63,
+        101,
+        121
+      ],
+      [
+        94,
+        137,
+        151
+      ],
+      [
+        143,
+        181,
+        189
+      ],
+      [
+        196,
+        218,
+        218
+      ],
+      [
+        228,
+        238,
+        229
+      ]
+    ],
+    "output_sha256": "fc5ede997368b4af87d7b8ddf179448fefe387f94e971ce07aed0235c23e45fd"
+  },
+  "proj_knight_ice": {
+    "source": "pimen_01/Ice Effect 01/Ice VFX 1/IceVFX 1 Repeatable.png",
+    "source_sha256": "f23c5360054f25127d6ad4d8ba33865983873bb994a830c721ae12105fa49098",
+    "frames": 10,
+    "frame_size": [
+      48,
+      32
+    ],
+    "indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "palette": [
+      [
+        12,
+        27,
+        40
+      ],
+      [
+        25,
+        49,
+        65
+      ],
+      [
+        40,
+        72,
+        92
+      ],
+      [
+        63,
+        101,
+        121
+      ],
+      [
+        94,
+        137,
+        151
+      ],
+      [
+        143,
+        181,
+        189
+      ],
+      [
+        196,
+        218,
+        218
+      ],
+      [
+        228,
+        238,
+        229
+      ]
+    ],
+    "output_sha256": "454bacb703abbea6e80a3592c233aa5be9cf7c536160fb6a893f472ed6c8bb5f"
+  },
+  "fx_knight_ice_hit": {
+    "source": "pimen_01/Ice Effect 01/Ice VFX 1/Ice VFX 1 Hit.png",
+    "source_sha256": "c12576ea77914aa4dad87323892efa6a5821706fa7f76dfb47580fadf114e20d",
+    "frames": 12,
+    "frame_size": [
+      32,
+      32
+    ],
+    "indices": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "palette": [
+      [
+        12,
+        27,
+        40
+      ],
+      [
+        25,
+        49,
+        65
+      ],
+      [
+        40,
+        72,
+        92
+      ],
+      [
+        63,
+        101,
+        121
+      ],
+      [
+        94,
+        137,
+        151
+      ],
+      [
+        143,
+        181,
+        189
+      ],
+      [
+        196,
+        218,
+        218
+      ],
+      [
+        228,
+        238,
+        229
+      ]
+    ],
+    "output_sha256": "42f60247b403c0f710e8b22c6eb6f02423d252d360e68c14cad4fdf47cddcb32"
+  }
+}

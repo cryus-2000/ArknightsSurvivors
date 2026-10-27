@@ -118,3 +118,16 @@
 - **护盾**：11（1）
 
 **当前需求的推荐**：蓝色 / 靛蓝能量（逻各斯二技能）先看 03（Dragon head blue、Energy comet）、11、21、22 / 25 / 26 的 `_blue` 变体；冰 / 寒气（Boss）看 01、18、31（31 另有 `_emerald` 变体）；声波 / 冲击环看 23（圣光环）与 27（雷环），需要再调色。
+## 冰系素材三包（2026-10-27，用户提供下载文件）
+
+本地原包解压位于主工作区 `art/third_party/ice_20261027/`，按协作规则忽略素材本体，不提交原包。
+
+| 子目录 | 作者 / 来源 | 使用范围 |
+|---|---|---|
+| `pimen_01` | [Pimen Ice Spell Effect 01](https://pimen.itch.io/ice-spell-effect-01) | 骑士连刺冰弹与终点碎冰 |
+| `pimen_02` | [Pimen Ice Spell Effect 02](https://pimen.itch.io/ice-spell-effect-02) | 骑士冰冲击波前缘冰簇 |
+| `creativekind` | [CreativeKind Ice spell effects](https://creativekind.itch.io/ice-spell-effect) | 骑士放射冰阵、封径与夹击冰晶 |
+
+作者页面均允许个人/商业项目使用及修改，禁止转售或分发原素材。原压缩包未包含独立许可文档；来源与页面许可按 2026-10-27 核对记录。只将处理后的游戏帧条交付至 `art/incoming`，遵循本项目既有第三方素材流程。
+另有三条骑士碰撞桩专用衍生帧条，读取既有 ansimuz 冰柱并使用同一色板；原共享素材未覆盖。
+转换工具 `tools/import_knight_ice.py`；来源文件 SHA256、切帧序号、输出尺寸记录在 `art/incoming/knight_ice_manifest.json`。帧数以实际 PNG 为准，部分与网页说明不一致。

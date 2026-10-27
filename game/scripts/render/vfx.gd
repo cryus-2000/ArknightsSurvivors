@@ -1025,6 +1025,7 @@ func boss_color(type: String) -> Color:
 
 func boss_signature(w: Dictionary) -> void:
 	var e: Dictionary = w.owner
+	if e.type == "knight_boss" and w.get("skin", "") in ["ice_wave","ice_thrust","ice_field","ice_lance","ice_wall"]: return
 	if not BOSS_STYLE.has(e.type):
 		return
 	var start := g.fx.size()

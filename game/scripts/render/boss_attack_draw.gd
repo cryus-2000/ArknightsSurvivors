@@ -88,6 +88,18 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 	var edge := _ink(DANGER, alpha)
 	var fill := Color(0.24, 0.035, 0.085, 0.09 + progress * 0.06)
 	var gy: float = g.combat.GROUND_Y
+	if w.get("skin","") == "ice_wave":
+		for segment in Materials._wave_segments(w,gy):
+			var a: float = segment.x
+			var b: float = segment.y
+			var i: int = int((a+b)*.5*100/TAU)
+			var va := Vector2(cos(a),sin(a)*gy)
+			var vb := Vector2(cos(b),sin(b)*gy)
+			var inner: float = float(w.get("inner_r",0))
+			r.tb_quad(p+va*inner,p+va*w.r,p+vb*w.r,p+vb*inner,Color(.18,.31,.4,.045+progress*.04))
+			_strip(r,p+va*w.r,p+vb*w.r,2,edge)
+			if i%6==1: _strip(r,p+va*inner,p+va*(inner+(w.r-inner)*progress),1,_ink(Color(.42,.63,.75),alpha*.5))
+		return
 	match str(w.shape):
 		"arc":
 			var arc_center: Vector2 = p - Vector2.from_angle(w.ang)*float(w.get("arc_back",0.0))
@@ -129,7 +141,7 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 			var lead: Vector2 = p + d * w.len * progress
 			_strip(r, lead - d * 12.0 - n * minf(w.wid * 0.35, 10.0), lead, 2.0, edge)
 			_strip(r, lead - d * 12.0 + n * minf(w.wid * 0.35, 10.0), lead, 2.0, edge)
-			if w.get("skin", "") == "tide":
+			if w.get("skin", "") in ["tide","ice_wall"]:
 				var travel: Vector2 = w.velocity * w.life
 				r.tb_quad(p, end, end + travel, p + travel, Color(0.25, 0.06, 0.1, 0.045))
 				_strip(r, p, p + travel, 2.0, _ink(DANGER, 0.55))
@@ -140,6 +152,19 @@ static func _warning(g, w: Dictionary, alpha: float) -> void:
 					_strip(r, at - v * 12 + d * 8, at, 2.0, edge)
 					_strip(r, at - v * 12 - d * 8, at, 2.0, edge)
 		"cone":
+			if w.get("skin","") == "ice_field":
+				var inner: float = float(w.get("inner_r",0))
+				for i in 16:
+					var va := Vector2.from_angle(w.ang-w.half+2*w.half*i/16)
+					var vb := Vector2.from_angle(w.ang-w.half+2*w.half*(i+1)/16)
+					r.tb_quad(p+va*inner,p+va*w.r,p+vb*w.r,p+vb*inner,fill)
+					if i%4==1: _strip(r,p+va*(inner+15),p+va*(inner+(w.r-inner)*progress),1,_ink(Color(.45,.68,.79),alpha*.6))
+				_ring(r,p,w.r,1,2,edge,w.ang-w.half,w.ang+w.half)
+				_ring(r,p,inner,1,2,edge,w.ang-w.half,w.ang+w.half)
+				for side in [-1.0,1.0]:
+					var direction := Vector2.from_angle(w.ang+side*w.half)
+					_strip(r,p+direction*inner,p+direction*w.r,2,edge)
+				return
 			var pts := PackedVector2Array([p])
 			for i in 25: pts.append(p + Vector2.from_angle(w.ang - w.half + w.half * 2.0 * i / 24.0) * w.r)
 			r.tb_poly(pts, fill)

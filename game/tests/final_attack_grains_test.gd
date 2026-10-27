@@ -29,7 +29,7 @@ func _ready() -> void:
 		var quality: String = Cfg.quality
 		Cfg.quality = "high"
 		var state := gameplay.state
-		for skin in ["bubble", "phantom", "ice", "crescent", "step", "spear", "choir", "tentacle", "tide"]:
+		for skin in ["bubble", "phantom", "ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_wall", "crescent", "step", "spear", "choir", "tentacle", "tide"]:
 			var w := {"skin": skin, "shape": "circle" if skin == "bubble" else "line", "pos": Vector2(400, 300), "ang": 0.2,
 				"r": 26.0, "wid": 18.0, "len": 400.0, "age": 0.1, "life": 2.0, "velocity": Vector2(50, 0), "col": Color(0.4, 0.8, 1)}
 			var original := w.duplicate(true)

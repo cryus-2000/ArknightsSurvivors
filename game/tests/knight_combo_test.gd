@@ -151,10 +151,10 @@ func check_revision() -> void:
 	check(e.knight_combo_queue==["冲锋","再冲锋","@近身收招"],"phase two slash has turning second charge variant")
 	e = fresh()
 	script.force_move(e,"长枪连刺",Vector2.RIGHT,250)
-	check(g.warns[0].r==280.0 and g.warns[2].r==360.0,"finisher threatens medium range with longer final thrust")
+	check(g.warns[0].skin=="ice_thrust" and g.warns[2].len>g.warns[0].len,"finisher threatens medium range with longer final thrust")
 	e = fresh(2)
 	script.force_move(e,"长枪回旋",Vector2.RIGHT,250)
-	check(g.warns[0].r==300.0 and g.warns[0].gap_half>=0.7,"larger spin retains rear escape gap")
+	check(g.warns[0].r==560.0 and g.warns[0].motion=="expanding" and g.warns[0].gap_half>=0.7,"larger spin retains rear escape gap")
 
 	# A vertically distant target is outside the ground ellipse, despite Euclidean proximity.
 	e = fresh(2)

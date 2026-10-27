@@ -187,6 +187,8 @@ func hits_leader(w: Dictionary) -> bool:
 			return Geometry2D.get_closest_point_to_segment(pp, w.pos, b).distance_to(pp) < w.wid + 12.0
 		"cone":
 			var dv: Vector2 = pp - w.pos
+			if w.get("skin","")=="ice_field":
+				return dv.length()>=float(w.get("inner_r",0.0)) and dv.length()<w.r and absf(angle_difference(dv.angle(),w.ang))<w.half
 			return dv.length() < w.r + 10.0 and absf(angle_difference(dv.angle(), w.ang)) < w.half + 0.12
 	return false
 

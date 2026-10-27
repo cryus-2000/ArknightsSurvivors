@@ -245,15 +245,19 @@ func _ready() -> void:
 			continue
 		for w in mine:
 			w.t = w.dur * 0.7   # 预警后段（前刺第 3 段过 60% 才换帧）
-		var anim: Dictionary = g.world.knight_animation(b) if st[0] == "knight_boss" else (g.world.ishar_animation(b) if st[0] == "ishar" else g.world.boss_strip_animation(b))
-		check(anim.get("name", "") == st[2] and int(anim.get("frame", -1)) <= 1, "%s 预警中播 %s 蓄力帧（得 %s）" % [st[1], st[2], str(anim)])
+		var release_frame: int = int(st[3])
+		if st[0]=="knight_boss":
+			var rd: Dictionary = preload("res://scripts/art.gd").enemy_redraw(st[2])
+			release_frame=int(rd.event_frames[0]) if not rd.event_frames.is_empty() else int(rd.release_frame if rd.release_frame!=null else rd.frames/2)
+		var anim: Dictionary = g.world.final_boss_animation(b) if st[0] == "knight_boss" else (g.world.ishar_animation(b) if st[0] == "ishar" else g.world.boss_strip_animation(b))
+		check(anim.get("name", "") == st[2] and int(anim.get("frame", -1)) < release_frame, "%s 预警中播 %s 蓄力帧（得 %s）" % [st[1], st[2], str(anim)])
 		for w in mine:
 			w.t = w.dur
 		g.invuln = 100.0
 		g.bai._update_warns(0.0)
 		g.t += 0.05
-		anim = g.world.knight_animation(b) if st[0] == "knight_boss" else (g.world.ishar_animation(b) if st[0] == "ishar" else g.world.boss_strip_animation(b))
-		check(anim.get("name", "") == st[2] and int(anim.get("frame", -1)) == int(st[3]), "%s 结算后播 %s 出手帧 f%d（得 %s）" % [st[1], st[2], int(st[3]), str(anim)])
+		anim = g.world.final_boss_animation(b) if st[0] == "knight_boss" else (g.world.ishar_animation(b) if st[0] == "ishar" else g.world.boss_strip_animation(b))
+		check(anim.get("name", "") == st[2] and (int(anim.get("frame", -1)) >= release_frame if st[0]=="knight_boss" else int(anim.get("frame", -1)) == int(st[3])), "%s 结算后播 %s 出手帧 f%d（得 %s）" % [st[1], st[2], int(st[3]), str(anim)])
 		b.dead = true
 		g.warns.clear()
 	# docs/95 §8.2 C「统一」：两体之间的直线；幽灵线段终点跟随搭档、锁定后冻结并让两体停步、搭档死了作废

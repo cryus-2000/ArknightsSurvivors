@@ -15,13 +15,13 @@ func _ready() -> void:
 	g.ppos = Vector2(200,0)
 	for kind in ["paranoia","knight_boss","ishar","izumik"]:
 		var e: Dictionary = g.spawner.new_enemy(kind,Vector2.ZERO)
-		e.phase = 2 if kind in ["ishar","izumik"] else 1
+		e.phase = 2 if kind in ["ishar","izumik"] else (2 if kind=="knight_boss" else 1)
 		e.invuln = false
 		e.friendly = false
 		e.cocoon_t = 0.0
 		g.bosses=[e]
 		g.enemies=[e]
-		for move in g.bai.finals.NAMES[kind]:
+		for move in g.bai.finals.names_for(e):
 			e.erase("last_act")
 			g.warns.clear()
 			check(g.bai.finals.force_move(e,move,Vector2.RIGHT,200.0),move+" scheduled")

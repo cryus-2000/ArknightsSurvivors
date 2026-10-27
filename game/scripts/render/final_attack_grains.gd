@@ -13,7 +13,7 @@ static func _pool(g):
 static func _color(w: Dictionary) -> Color:
 	var c: Color = w.col
 	match str(w.get("skin", "")):
-		"ice", "ice_field", "spear", "crescent", "step":
+		"ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_wall", "spear", "crescent", "step":
 			return Color(0.48, 0.81, 1.0, 0.9)
 		"phantom", "bubble":
 			return Color(0.48, 0.86, 0.96, 0.9)
@@ -25,7 +25,7 @@ static func _color(w: Dictionary) -> Color:
 
 static func _material(skin: String) -> String:
 	match skin:
-		"ice", "ice_field", "spear", "crescent", "step": return "blade"
+		"ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_wall", "spear", "crescent", "step": return "blade"
 		"phantom", "choir": return "bfx_flash"
 		"tentacle": return "fluid"
 	return "water"
@@ -62,7 +62,7 @@ static func burst(g, w: Dictionary) -> void:
 				var along: float = lerpf(GAP_MARGIN, float(w.len) - GAP_MARGIN, u) if skin == "tide" else u * float(w.len)
 				p += d * along + n * side * width * g.vrng.randf_range(0.45, 0.9)
 				direction = (n * side + d * g.vrng.randf_range(-0.25, 0.45)).normalized()
-				if skin in ["ice", "ice_field", "spear"]:
+				if skin in ["ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_wall", "spear"]:
 					# Broken crystal shards kick upward/outward instead of a radial firework.
 					direction = (Vector2.UP * 1.2 + n * side * 0.55 + d * 0.3).normalized()
 				elif skin == "tentacle":
@@ -74,6 +74,7 @@ static func burst(g, w: Dictionary) -> void:
 					direction = -d.rotated(g.vrng.randf_range(-0.3, 0.3))
 			"circle":
 				var angle: float = g.vrng.randf_range(0.0, TAU)
+				if w.has("gap_ang") and absf(angle_difference(Vector2(cos(angle),sin(angle)*g.combat.GROUND_Y).angle(),float(w.gap_ang)))<float(w.gap_half)+.08: continue
 				var radial := Vector2.from_angle(angle)
 				var gy: float = g.combat.GROUND_Y
 				var inner: float = float(w.get("inner_r", 0.0))
@@ -83,7 +84,7 @@ static func burst(g, w: Dictionary) -> void:
 				direction = Vector2(radial.x, radial.y / gy).normalized()
 				if inner > 0.0:
 					# No gravity on an annulus: droplets must not fall back into its safe center.
-					material = "bfx_flash"
+					material = "blade" if skin == "ice_wave" else "bfx_flash"
 			"cone":
 				var angle: float = float(w.ang) + g.vrng.randf_range(-float(w.half), float(w.half))
 				direction = Vector2.from_angle(angle)

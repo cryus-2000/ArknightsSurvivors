@@ -104,7 +104,7 @@ func _ready() -> void:
 			g.ebullets.clear()
 			g.shocks.clear()
 		print("NATURAL ", kind, " ", seen.keys())
-		for move in g.bai.finals.NAMES[kind]:
+		for move in g.bai.finals.names_for(e):
 			check(seen.has(move), kind + " natural extra " + move)
 		check(seen.size() >= 7, kind + " natural seven distinct attacks")
 	_test_fixes()
@@ -293,7 +293,7 @@ func _test_knight_arc() -> void:
 	var first: float = h.pos.x
 	g.bai.finals.update(boss,0.1)
 	check(h.pos.x-first>first and h.velocity.x>h.speed,"slash accelerates forward")
-	check(is_equal_approx(h.pos.x,92.0),"accelerated travel integrates elapsed time exactly")
+	check(is_equal_approx(h.pos.x,190.0),"accelerated travel integrates elapsed time exactly")
 	check(h.pos.y==0.0,"slash does not travel sideways")
 	var test_h: Dictionary = h.duplicate()
 	check(g.bai.finals._accelerated_distance(test_h,2.0)>g.bai.finals._accelerated_distance(test_h,1.0),"capped speed continues moving")
@@ -302,15 +302,82 @@ func _test_ice_field() -> void:
 	var boss: Dictionary = fresh("knight_boss")
 	g.ppos=Vector2.ZERO
 	g.bai.finals.force_move(boss,"踏冰裂阵",Vector2.RIGHT,200)
-	check(g.warns.size()==6,"ice array is two waves of three broad lanes")
+	check(g.warns.size()==16,"ice array is two waves of eight radial sectors")
+	g.ppos=Vector2(30,14)
+	check(g.warns.all(func(w):return not g.tele.hits_leader(w)),"ice spokes retain advertised center shelter")
 	var first: Array = g.warns.filter(func(w):return w.get("ice_wave",-1)==0)
 	var second: Array = g.warns.filter(func(w):return w.get("ice_wave",-1)==1)
 	for w in second:
 		check(w.tell_after==first[0].dur and w.dur>w.tell_after+1.0,"second ice tell starts after first release with escape time")
-		check(w.track==0.0,"complementary ice lanes never retarget")
-	for lane in 6:
-		g.ppos=Vector2(0,375-lane*150)+Vector2(0,14)
+		check(w.track==0.0 and w.pos==boss.pos,"radial array is fixed at boss")
+	for spoke in 16:
+		g.ppos=Vector2.from_angle(spoke*PI/8)*400+Vector2(0,14)
 		var a: bool = first.any(func(w):return g.tele.hits_leader(w))
 		var b: bool = second.any(func(w):return g.tele.hits_leader(w))
-		check(a!=b,"every lane center is safe in exactly one wave")
-		check(a==(lane%2==0),"second wave covers first safe lanes")
+		check(a!=b,"each spoke center is safe in exactly one wave")
+		check(a==(spoke%2==0),"second wave covers first safe sectors")
+	_test_knight_ice_motion()
+
+func _test_knight_ice_motion() -> void:
+	var boss: Dictionary = fresh("knight_boss")
+	boss.phase=2
+	var script = g.bai.boss("knight_boss")
+	script.force_move(boss,"长枪回旋",Vector2.RIGHT,220)
+	g.bai.finals.resolve(g.warns[0])
+	g.warns.clear()
+	var ring: Dictionary = g.bai.finals.hazards[0]
+	g.ppos=Vector2(45,0)
+	check(not g.tele.hits_leader(ring),"inner safe area never becomes an unannounced hit")
+	g.ppos=Vector2(250,0)
+	check(not g.tele.hits_leader(ring),"ice ring does not hit outer radius immediately")
+	g.invuln=100
+	g.bai.finals.update(boss,.6)
+	check(ring.hit and ring.inner_r>70,"expanding ring sweeps intermediate player position")
+	g.ppos=Vector2(-290,0)
+	check(not g.tele.hits_leader(ring),"expanding ice keeps rear escape gap")
+	g.ppos=Vector2(0,0)
+	check(not g.tele.hits_leader(ring),"spent inner ice stays harmless")
+	boss=fresh("knight_boss")
+	script.force_move(boss,"长枪连刺",Vector2.RIGHT,220)
+	var promised_range: float = g.warns[0].len
+	g.bai.finals.resolve(g.warns[0])
+	g.warns.clear()
+	var thrust: Dictionary=g.bai.finals.hazards[0]
+	check(is_equal_approx(thrust.len+thrust.speed*thrust.life,promised_range),"ice thrust full travel fits warning range exactly")
+	g.ppos=Vector2(250,14)
+	check(thrust.len==90 and not g.tele.hits_leader(thrust),"ice thrust starts as short physical blade")
+	g.bai.finals.update(boss,.3)
+	check(thrust.hit and thrust.pos.x>200,"thrust travels and swept collision hits along path")
+	for move in g.bai.finals.PHASE2_NAMES:
+		boss=fresh("knight_boss")
+		check(not script.force_move(boss,move,Vector2.RIGHT,220),"new phase two attack cannot appear in phase one")
+		boss.phase=2
+		check(script.force_move(boss,move,Vector2.RIGHT,220),move+" is executable in phase two")
+		check(g.warns.all(func(w):return w.dur-w.track>=.4),move+" has full fixed warning")
+		for w in g.warns: g.bai.finals.resolve(w)
+		g.warns.clear()
+		for i in 50: g.bai.finals.update(boss,.05)
+		check(g.bai.finals.hazards.is_empty(),move+" has finite hazards")
+	# Exercise the actual selector, rather than only forced preview dispatch.
+	boss=fresh("knight_boss")
+	boss.phase=2
+	var seen: Array=[]
+	for i in 5:
+		boss.final_next=g.t
+		boss.knight_combo_active=false
+		g.warns.clear()
+		check(g.bai.finals.try_attack(boss,Vector2.RIGHT,220),"phase two natural selector dispatches")
+		seen.append(g.warns[0].name)
+	check(seen.has("冰枪封径") and seen.has("冻潮夹击"),"both distinct phase two moves are in natural rotation")
+
+	boss=fresh("knight_boss")
+	script.force_move(boss,"长枪连刺",Vector2.RIGHT,220)
+	g.bai.finals.resolve(g.warns[0])
+	g.warns.clear()
+	thrust=g.bai.finals.hazards[0]
+	g.ppos=Vector2(399,14)
+	g.invuln=100
+	for i in 3: g.bai.finals.update(boss,.15)
+	check(thrust.hit,"final partial frame sweeps telegraphed thrust endpoint")
+	check(is_equal_approx(thrust.pos.x+thrust.len,400),"thrust reaches exact endpoint before expiring")
+	check(g.bai.finals.hazards.is_empty(),"endpoint sweep still expires on time")

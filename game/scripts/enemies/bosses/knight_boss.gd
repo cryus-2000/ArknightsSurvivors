@@ -151,6 +151,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 func setup_preview_phase2(e: Dictionary) -> void:
 	cancel_combo(e)
 	e.phase = 2
+	e.final_cycle = 0
 	e.hp = e.maxhp * 0.5
 	e.spd *= Bal.v("boss/knight_reborn_spd", 0.5)
 	e.invuln = true
@@ -162,8 +163,8 @@ func setup_preview_phase2(e: Dictionary) -> void:
 	g.vfx.fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), g.PX * 1.4, 0.0)
 
 
-func demo_moves(_e: Dictionary) -> Array:
-	return MOVES + g.bai.finals.NAMES["knight_boss"]
+func demo_moves(e: Dictionary) -> Array:
+	return MOVES + g.bai.finals.names_for(e)
 
 
 func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
@@ -215,15 +216,14 @@ func _hunt(e: Dictionary, dir: Vector2, dist: float) -> void:
 		"track": 0.25, "act": "frost_track", "name": "冰线", "col": Color(0.65, 0.95, 1.4), "dmg": e.dmg * 0.4})
 
 
-## B · 长枪连刺：三段扇形，每段间隔 0.6 秒、锁定 0.4 秒；前两段 r280 半角 0.8，第 3 段改 r360 半角 0.5 的前刺（更长更窄，锁定 ≥0.44）；e.dmg × 1.1 / 段
+## B · 长枪连刺：三次独立追踪与锁定，逐刺发出向前飞行的短冰锋；末刺射程更长。
 func _stab(e: Dictionary, dir: Vector2) -> void:
-	var m: float = _bite(e, e.dmg * 1.1)
+	var m: float = _bite(e,e.dmg*1.1)
 	for k in 3:
-		var thrust: bool = k == 2
-		_warn(e, "cone", 0.6 + 0.6 * k, {"ang": dir.angle(), "half": 0.5 if thrust else 0.8, "r": 360.0 if thrust else 280.0, "track": 0.2 + 0.6 * k,
-			"act": "bite", "name": "长枪连刺" if k == 0 else "", "col": ICE, "dmg": m, "lock": k == 0, "thrust": thrust})
-	e.wind = 1.9
-
+		g.bai.finals._warn(e,"line",0.6+0.6*k,{"name":"长枪连刺" if k==0 else "","ang":dir.angle(),
+			"len":520.0 if k==2 else 400.0,"wid":24.0,"track":0.2+0.6*k,"skin":"ice_thrust",
+			"motion":"linear","speed":700.0,"life":0.62 if k==2 else 0.45,"dmg":m,"chill":0.4})
+	e.wind=maxf(e.wind,1.9)
 
 ## 掷枪（本作拟，docs/142b §3.1 / §8.2；二幕起）：朝主控掷出长枪，直线 14 宽、追踪 0.4 秒、总 1.0 秒；e.dmg × 1.0；
 ## 落地处立一根新冰枪桩（_spear_land 读 last_act）——它是威胁，也是你下一次引它撞桩的资源。三幕两连（第二枪晚 0.6 秒，各自追踪）
@@ -234,12 +234,11 @@ func _spear(e: Dictionary, dir: Vector2, dist: float) -> void:
 			"name": "掷枪", "col": Color(0.75, 0.95, 1.4), "dmg": e.dmg, "lock": k == 0, "spear": true})
 
 
-## D · 长枪回旋（二阶段，本作原创）：以骑士为心 r300 的空心环（刀光轨迹），缺口在面向主控的反方向 ±40°（弧长 ≥80px），总 1.0 秒；
-## 躲法：走进缺口（绕到他身后）或走出 r300；e.dmg × 1.3，附寒冷 2 秒
+## D · 长枪回旋（二阶段，本作改编）：冰面冲击环由内向外扩张，中心与身后缺口安全；只在波前抵达时判定。
 func _spin(e: Dictionary, dir: Vector2) -> void:
-	_warn(e, "circle", 1.0, {"follow": true, "r": 300.0, "act": "spin_ring", "gap_ang": dir.angle() + PI, "gap_half": 0.7, "ang": dir.angle(),
-		"name": "长枪回旋", "col": ICE, "dmg": _bite(e, e.dmg * 1.3), "chill": 2.0})
-
+	g.bai.finals._warn(e,"circle",1.0,{"r":560.0,"inner_r":70.0,"ang":dir.angle(),"gap_ang":dir.angle()+PI,"gap_half":0.7,
+		"name":"长枪回旋","skin":"ice_wave","motion":"expanding","speed":0.0,"wave_speed":400.0,"life":1.4,
+		"dmg":_bite(e,e.dmg*1.3),"chill":1.0})
 
 ## 寒气圈与寒冷条（原作反冻，按自动攻击改，docs/142b §3.1）：队长在 kcold_r 内、或站在冲锋留下的冰面上 → 寒冷条每秒涨 1 / knight_cold_fill；
 ## 不在 → 每秒落 1 / knight_cold_decay。破绽期间不涨。满了「冻伤」：knight_frostbite 秒减速（受 Boss 战移速下限 0.7）、下一击 × 1.75，然后清零
@@ -332,10 +331,10 @@ func _knight_stakes(e: Dictionary, _dt: float) -> void:
 				break
 
 
-## 冰柱崩碎：有冰柱帧条用 prop_ice_pillar_break（0.75 倍，同 world._draw_stakes），没有退回旧冰枪桩碎裂；a = 透明度（自然到期半透明）
+## 冰柱崩碎：有冰柱帧条用 prop_knight_frost_stake_break（整数像素，同 world._draw_stakes），没有退回旧冰枪桩碎裂；a = 透明度（自然到期半透明）
 func _shatter(pos: Vector2, a: float) -> void:
-	if g.tex.get("prop_ice_pillar_break") != null:
-		g.vfx.fx_sprite("prop_ice_pillar_break", pos, g.PX * 0.75, 0.0, false, true, Color(1, 1, 1, a))
+	if g.tex.get("prop_knight_frost_stake_break") != null:
+		g.vfx.fx_sprite("prop_knight_frost_stake_break", pos, 1.0, 0.0, false, true, Color(1, 1, 1, a))
 	else:
 		g.vfx.fx_sprite("prop_ice_stake_break", pos, g.PX, 0.0, false, true, Color(1, 1, 1, a))
 
@@ -377,6 +376,7 @@ func on_lethal(e: Dictionary) -> bool:
 		return super.on_lethal(e)
 	Sfx.play_cue("phase", e.type, "start")
 	e.phase = 2
+	e.final_cycle = 0
 	e.hp = e.maxhp * 0.5
 	e.spd *= Bal.v("boss/knight_reborn_spd", 0.5)   # 原作冲锋形态：移速 −50%，靠冲锋三连追人
 	e.invuln = true
