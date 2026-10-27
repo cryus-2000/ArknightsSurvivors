@@ -1,15 +1,15 @@
 """Record Saint Iberia / Saint Carmen attack groups (docs/171): four 14-second live-AI segments per boss.
 
 python tools/probes/saint_card_preview.py --boss iberia --tag v1
-Writes build/boss_saints/<tag>/<boss>/frame_*.png, <boss>_cards.mp4 and <boss>_sheet.png. Window is moved off-screen and muted by godot_runner.
+Writes build/boss_saints/<tag>/<boss>_cards.mp4 and <boss>.gif (frames are deleted after encoding). Window is moved off-screen and muted by godot_runner.
 """
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 from pathlib import Path
 
-from PIL import Image
 import imageio_ffmpeg
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -19,7 +19,6 @@ import godot_runner as runner
 FPS = 15
 SEGS = 4
 SEG_SECONDS = 14.0
-SHEET_SECONDS = [1.5, 3.5, 6.0, 9.0, 12.5]
 
 
 def encode(folder, out_base):
@@ -27,13 +26,10 @@ def encode(folder, out_base):
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
     subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-framerate", str(FPS), "-i", str(folder / "frame_%05d.png"),
                     "-c:v", "libx264", "-crf", "20", "-preset", "fast", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out_base) + "_cards.mp4"], check=True)
-    per = len(paths) // SEGS
-    sheet = Image.new("RGB", (640 * len(SHEET_SECONDS), 360 * SEGS))
-    for s in range(SEGS):
-        for i, sec in enumerate(SHEET_SECONDS):
-            with Image.open(paths[s * per + min(per - 1, int(sec * FPS))]) as im:
-                sheet.paste(im.convert("RGB").resize((640, 360), Image.Resampling.LANCZOS), (i * 640, s * 360))
-    sheet.save(str(out_base) + "_sheet.png")
+    # 给用户看的是 gif（协调人 10-27：单个 ≤25 MB，不发静帧 / 拼图）：12 帧、640 宽、128 色
+    filters = "fps=12,scale=640:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=3:diff_mode=rectangle"
+    subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-framerate", str(FPS), "-i", str(folder / "frame_%05d.png"),
+                    "-filter_complex", filters, "-loop", "0", str(out_base) + ".gif"], check=True)
     return len(paths)
 
 
@@ -55,6 +51,8 @@ def main():
     if timed_out or runner.script_errors(out, err) or "FX_PREVIEW_DONE" not in out:
         raise SystemExit("Preview failed: " + str(folder / "run.log") + "\n" + (out + err)[-3000:])
     n = encode(folder, base / a.boss)
+    for f in folder.glob("frame_*.png"):
+        f.unlink()   # 中间帧用完就删
     metrics = [json.loads(l.removeprefix("FX_PREVIEW_METRICS ")) for l in out.splitlines() if l.startswith("FX_PREVIEW_METRICS ")]
     (base / (a.boss + "_capture.json")).write_text(json.dumps({"frames": n, "fps": FPS, "segments": metrics}, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({"boss": a.boss, "frames": n, "segments": metrics}, ensure_ascii=False))
