@@ -7,6 +7,7 @@
 #   STEP=run SIDE=base OP=wisadel META=0 bash tools/cloud/boss_bench_ab.sh       # 开打（SIDE=base / new；每个 OP × META 各一次；可加 BOSSES=单只 拆小）
 #   STEP=finish bash tools/cloud/boss_bench_ab.sh                          # 合并、出 compare.md、推 cloud-results/boss-bench-$NAME
 # 对照 = 当前检出（测试台分支，基于 codex/boss-fx-rework 72f41c3c7，各 Boss 分支的共同起点）；改版 = $NEW + cherry-pick $BENCH。
+# CONTROL=<ref>（10-28 起，如 origin/claude/danger-pass）：对照 = CONTROL，改版 = CONTROL merge $NEW，快照也在 CONTROL 上录；BENCH 不用。
 set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO"
@@ -18,7 +19,9 @@ export PYTHONIOENCODING=utf-8
 JOBS="${GODOT_MAX_PROCS:-$(nproc)}"
 OUT="$REPO/build/boss_bench_cloud/$NAME"
 WT="$REPO/../bench_new_$NAME"
+CW="$REPO/../bench_ctrl_$NAME"   # CONTROL=<ref> 时的对照工作树（10-28 起对照 = 整合 / 保护规则分支，如 claude/danger-pass）
 mkdir -p "$OUT/snaps" "$OUT/parts"
+GAME_CTRL="$REPO/game"; [ -d "$CW/game" ] && GAME_CTRL="$CW/game"
 
 case "$STEP" in
 setup)
@@ -28,9 +31,25 @@ setup)
         echo "new: $NEW @ $(git rev-parse --short "$NEW") + cherry-pick $BENCH"; echo "bosses: $BOSSES"
         echo "godot: $("$GODOT" --version)"; echo "cpu: $(nproc) jobs: $JOBS"; echo "start(UTC): $(date -u +%F_%T)"
     } | tee "$OUT/env.txt"
-    rm -rf "$WT"; git worktree prune
+    rm -rf "$WT" "$CW"; git worktree prune
+    if [ -n "${CONTROL:-}" ]; then
+        # 对照 = CONTROL 本身（已带测试台）；改版 = CONTROL 上合入被测提交（被测分支相对共同祖先的改动叠上去）
+        git worktree add --detach "$CW" "$CONTROL"
+        git worktree add --detach "$WT" "$CONTROL"
+        echo "control: $CONTROL @ $(git rev-parse --short "$CONTROL")（CONTROL 模式；改版 = 它 + merge $NEW）" | tee -a "$OUT/env.txt"
+        if ! ( cd "$WT" && git -c user.name=bench -c user.email=bench@local merge --no-edit "$NEW" ); then
+            ( cd "$WT" && git status -s && git diff ) > "$OUT/MERGE_CONFLICT.txt" 2>&1 || true
+            echo "合入冲突：手动解决 $WT 里的冲突（被测 Boss 的文件以 $NEW 为准，其余以 $CONTROL 为准）后 git -C $WT commit --no-edit"
+            exit 3
+        fi
+        cp -r "$REPO/game/.godot" "$CW/game/" 2>/dev/null || true
+        cp -r "$REPO/game/.godot" "$WT/game/" 2>/dev/null || true
+        python3 -c "import sys; sys.path.insert(0,'tools'); import godot_runner as GR; GR.ensure_imported('$CW/game'); GR.ensure_imported('$WT/game')"
+        exit 0
+    fi
     git worktree add --detach "$WT" "$NEW"
-    if ! ( cd "$WT" && git -c user.name=bench -c user.email=bench@local cherry-pick --no-edit $BENCH ); then
+    # BENCH=- ：被测分支已自带测试台钩子（自己 cherry-pick 过），不再挑
+    if [ "$BENCH" != "-" ] && ! ( cd "$WT" && git -c user.name=bench -c user.email=bench@local cherry-pick --no-edit $BENCH ); then
         ( cd "$WT" && git status -s && git diff ) > "$OUT/CHERRY_PICK_CONFLICT.txt" 2>&1 || true
         echo "cherry-pick 冲突：手动解决 $WT 里的冲突（测试台钩子行照抄 $BENCH，两边改动都保留）后 git -C $WT cherry-pick --continue"
         exit 2
@@ -41,11 +60,11 @@ setup)
 record)
     : "${OP:?}" "${META:?}"
     python3 tools/boss_bench.py record --ops "$OP" --metas "$META" --seeds "${SEEDS:-1-16}" --maxt "${MAXT_REC:-605}" \
-        --out "$OUT/snaps" --jobs "$JOBS" 2>&1 | tee -a "$OUT/record.log"
+        --game "$GAME_CTRL" --out "$OUT/snaps" --jobs "$JOBS" 2>&1 | tee -a "$OUT/record.log"
     ;;
 run)
     : "${SIDE:?}" "${OP:?}" "${META:?}" "${BOSSES:?}"
-    GAME_DIR="$REPO/game"; [ "$SIDE" = new ] && GAME_DIR="$WT/game"
+    GAME_DIR="$GAME_CTRL"; [ "$SIDE" = new ] && GAME_DIR="$WT/game"
     TAG="${SIDE}_${OP}_m${META}_$(echo "$BOSSES" | tr ',+' '-_')"
     python3 tools/boss_bench.py run --snaps "$OUT/snaps" --bosses "$BOSSES" --ops "$OP" --metas "$META" --tag "$TAG" \
         --game "$GAME_DIR" --out "$OUT/parts" --jobs "$JOBS" 2>&1 | grep -v "^|" | tee -a "$OUT/run_$SIDE.log"
