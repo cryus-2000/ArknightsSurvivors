@@ -101,7 +101,7 @@ func _process(d: float) -> void:
 		game.settlement = s
 		s.set_model(RunStats.model(_raw()))
 		s.tick(1.0)
-		s.elapsed = 0.9
+		s.skip()
 	if s == null:
 		return
 	s.tick(d)

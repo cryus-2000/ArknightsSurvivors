@@ -48,6 +48,20 @@ var share_data := {}
 const SHARE_K := 0.78                       # 卡 600×800 → 468×624
 const SHARE_POS := Vector2(406, 40)         # 卡在 1280×720 里的左上角
 const VIEW := Rect2(28, 288, 884, 350)
+## 入场分段（docs/62 §3.21b，10-28 用户「出现的太快了」）：时间点按胜利写，失败整体拉长到 END_LOSS（打捞，慢一档）；
+## 出场完成前任意按键 / 点击 / 触屏只跳到终态，按钮不响应
+const END_WIN := 3.2
+const END_LOSS := 3.8
+const T_TITLE := 0.2     # 结果标题盖章
+const T_RATE := 1.85     # 评级盖章
+const T_CARDS := 1.9     # 编队卡开始升入
+const T_LINE := 2.3      # 关键事件时间线
+const T_FOOT := 2.85     # 底栏按钮升起
+const LOSS_BAND := Color8(150, 160, 172)   # 失败：顶部浅色带压暗偏冷
+var _o := Vector2.ZERO   # 当前页面原点（含盖章轻抖）
+var _fa := 1.0           # 当前绘制组透明度（_text 乘上）
+var _dx := 0.0           # 当前绘制组水平偏移（失败打捞的晃动）
+var _blur := 0.0         # 失败打捞的失焦虚影（0 = 对焦）
 
 func _init(host) -> void:
 	g = host
@@ -79,7 +93,14 @@ func tick(dt: float) -> void:
 	squad_canvas.modulate.a = clampf((g.state_age-g.hud_view.DEATH_T)/0.35,0,1) if g.state==g.S.DEAD else 1.0
 	squad_canvas.visible = not share_open and not g.run_stats.open and not g.headhunt.open and (g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T)
 	if g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T:
-		elapsed = 0.9 if UM.rm() or UM.skip_all() or g.ui_skip else minf(0.9, elapsed + dt)
+		var prev := elapsed
+		elapsed = _end() if UM.rm() or UM.skip_all() or g.ui_skip else minf(_end(), elapsed + dt)
+		if _won() and elapsed < _end():
+			for t0 in [T_TITLE + 0.15, T_RATE + 0.15]:   # 盖章落定：低沉一声
+				if prev < t0 and elapsed >= t0:
+					Sfx.play("ui_ok", -7.0, 0.62, 0.0)
+		if prev < _end():
+			g.hud.queue_redraw()
 	if share_open:
 		share_t += dt
 		g.hud.queue_redraw()
@@ -121,6 +142,67 @@ func set_model(value: Dictionary) -> void:
 		var region := Rect2i(0, 0, int(idle.fw), int(idle.fh))
 		var bounds := image.get_region(region).get_used_rect()
 		art[row.key] = {"tex": tx, "bounds": Rect2(bounds)}
+
+func _won() -> bool:
+	return str(model.get("result", "")) == "win"
+
+func _end() -> float:
+	return END_WIN if _won() else END_LOSS
+
+## 出场是否完成（完成前输入只跳过）
+func done() -> bool:
+	return elapsed >= _end()
+
+func skip() -> void:
+	elapsed = _end()
+	g.hud.queue_redraw()
+
+## 时间轴进度：t0 / dur 按胜利写，失败按 END_LOSS / END_WIN 拉长
+func _k(t0: float, dur: float) -> float:
+	var s: float = 1.0 if _won() else END_LOSS / END_WIN
+	return clampf((elapsed - t0 * s) / (dur * s), 0.0, 1.0)
+
+## 一组元素进场：胜利从左 14 px 滑入淡入；失败水平晃动 + 失焦虚影，逐渐对焦变实（§3.20 打捞）
+func _enter(t0: float, dur: float) -> float:
+	var p := _k(t0, dur)
+	var e := UM.out_cubic(p)
+	_fa = e
+	if _won():
+		_dx = -14.0 * (1.0 - e)
+		_blur = 0.0
+	else:
+		_dx = sin(elapsed * 13.0 + t0 * 7.0) * 6.0 * (1.0 - e)
+		_blur = 1.0 - e
+	return p
+
+## 盖章（胜利）：1.45 倍砸到 1 倍；失败改成打捞进场。画完调 _plain 复位
+func _stamp(ci: CanvasItem, pivot: Vector2, t0: float) -> void:
+	if not _won():
+		_enter(t0, 0.5)
+		return
+	var p := _k(t0, 0.15)
+	var s := lerpf(1.45, 1.0, UM.out_cubic(p))
+	ci.draw_set_transform(_o + pivot * scale * (1.0 - s), 0, Vector2.ONE * scale * s)
+	_fa = 0.0 if p <= 0.0 else minf(1.0, p * 2.5)
+	_dx = 0.0
+	_blur = 0.0
+
+func _plain(ci: CanvasItem) -> void:
+	ci.draw_set_transform(_o, 0, Vector2.ONE * scale)
+	_fa = 1.0
+	_dx = 0.0
+	_blur = 0.0
+
+## 盖章落定后 0.16 秒轻抖 2–3 px（只动结算页面绘制偏移）
+func _shake() -> Vector2:
+	if not _won() or UM.rm():
+		return Vector2.ZERO
+	for t0 in [T_TITLE + 0.15, T_RATE + 0.15]:
+		var q: float = (elapsed - t0) / 0.16
+		if q >= 0.0 and q < 1.0:
+			var a := 3.0 * (1.0 - q)
+			return Vector2(sin(q * 40.0) * a, cos(q * 33.0) * a * 0.6)
+	return Vector2.ZERO
 
 func max_offset() -> float:
 	return maxf(0.0, rows.size() * STRIDE - VIEW.size.x)
@@ -294,6 +376,10 @@ func input(event: InputEvent) -> bool:
 	if share_open:
 		_share_input(event)
 		return true
+	if not done():   # 出场中：第一下只跳到终态，不落到按钮上；悬停也不响应
+		if (event is InputEventKey and event.pressed and not event.echo) or (event is InputEventMouseButton and event.pressed) or (event is InputEventScreenTouch and event.pressed):
+			skip()
+		return true
 	if event is InputEventKey and event.pressed and not event.echo:
 		var key: int = Pad.kc(event)
 		var bs: Array = _buttons()
@@ -326,9 +412,7 @@ func input(event: InputEvent) -> bool:
 			KEY_ESCAPE, KEY_T: _press("title")
 			KEY_R: g._do_action("restart")
 			KEY_ENTER, KEY_KP_ENTER, KEY_SPACE:
-				if elapsed < 0.9:
-					elapsed = 0.9
-				elif focus >= 0:
+				if focus >= 0:
 					_press(str(bs[mini(focus, bs.size() - 1)][0]))
 				else:
 					_press("hunt")
@@ -368,9 +452,6 @@ func _drag(p: Vector2) -> void:
 
 func _pointer(p: Vector2, pressed: bool) -> void:
 	if pressed:
-		if elapsed < 0.9:
-			elapsed = 0.9
-			return
 		var hit := _btn_at(p)
 		if hit != "":
 			_press(hit)   # 底栏与右侧「分享」按钮：按下态 + 点击音，PRESS_T 后执行（鼠标与触屏同一路）
@@ -414,32 +495,51 @@ const PHONE_MIN_FS := 15
 
 
 func _text(ci: CanvasItem, x: float, y: float, text: String, size := 18, color := HH.LIGHT, width := -1.0) -> void:
+	if _fa <= 0.0:
+		return
 	var fs := maxi(size, PHONE_MIN_FS) if Cfg.phone_ui() else size
-	ci.draw_string(g.font, Vector2(x, y + size), text, HORIZONTAL_ALIGNMENT_LEFT, width, fs, color)
+	var c := Color(color, color.a * _fa)
+	if _blur > 0.0:   # 失焦虚影：右侧错开一道淡影
+		ci.draw_string(g.font, Vector2(x + _dx + 5.0 * _blur, y + size), text, HORIZONTAL_ALIGNMENT_LEFT, width, fs, Color(color, color.a * 0.35 * _blur))
+	ci.draw_string(g.font, Vector2(x + _dx, y + size), text, HORIZONTAL_ALIGNMENT_LEFT, width, fs, c)
 
 func draw(ci: CanvasItem, vs: Vector2) -> void:
 	if model.is_empty():
 		return
 	ci.draw_rect(Rect2(Vector2.ZERO, vs), HH.DARK)
-	ci.draw_set_transform(origin, 0, Vector2.ONE * scale)
+	_o = origin + _shake() * scale
+	_plain(ci)
 	HH.backdrop(ci, Vector2(1280,720))
 	ci.draw_texture(topography, Vector2.ZERO)
 	ci.draw_rect(Rect2(0,0,1280,44), HH.INK)
 	_text(ci,28,10,"作战结算",18)
 	_text(ci,150,14,"OPERATION / REPORT",12,HH.MUTE)
 	_text(ci,1120,12,"方舟幸存者",15,HH.LIGHT)
-	HH.fill(ci, PackedVector2Array([Vector2(0,46),Vector2(716,46),Vector2(680,207),Vector2(0,207)]),HH.LIGHT)
-	ci.draw_texture_rect_region(navigation, Rect2(426,46,230,160), Rect2(0,140,230,160), Color(1,1,1,0.33))
-	var won: bool = model.result == "win"
+	var won := _won()
+	# ① 顶部浅色带斜切扫入（失败压暗偏冷）
+	var w := UM.out_cubic(_k(0.0, 0.35))
+	if w > 0.0:
+		HH.fill(ci, PackedVector2Array([Vector2(0,46),Vector2(716*w,46),Vector2(716*w-36,207),Vector2(0,207)]),HH.LIGHT if won else LOSS_BAND)
+		ci.draw_texture_rect_region(navigation, Rect2(426,46,230,160), Rect2(0,140,230,160), Color(1,1,1,0.33*_k(0.2, 0.3)))
+	# ② 结果标题（胜利盖章 / 失败打捞）
+	_enter(0.35, 0.3)
 	_text(ci,32,64,"01 / RESULT",12,HH.INK2)
-	_text(ci,29,85,"探索完成" if won else "探索终止",52,HH.INK)
 	_text(ci,33,147,"OPERATION COMPLETE" if won else "OPERATION FAILED",21,HH.INK2)
+	_stamp(ci, Vector2(130, 112), T_TITLE)
+	_text(ci,29,85,"探索完成" if won else "探索终止",52,HH.INK)
+	_plain(ci)
+	# ③ 结局 / 用时 / 难度逐项
+	_enter(0.55, 0.3)
 	_text(ci,33,183,str(model.get("ending_name", "")) if won else str(model.get("killer", {}).get("name", "")),13,HH.INK2,340)
+	_enter(0.67, 0.3)
 	_text(ci,382,155,"探索用时",12,HH.INK2)
 	_text(ci,382,176,RS_time(float(model.t)),21,HH.INK)
+	_enter(0.79, 0.3)
 	_text(ci,518,155,"难度档",12,HH.INK2)
 	_text(ci,518,178,str(D.DIFF_PRESETS[clampi(g.preset,0,D.DIFF_PRESETS.size()-1)].name),18,HH.INK)
-	var count := 1.0 - pow(1.0-clampf((elapsed-0.12)/0.38,0,1),3)
+	# ④ 数字滚动：本局获得 → 总伤害 / 击败敌人
+	_enter(0.9, 0.3)
+	var count := UM.out_cubic(_k(0.95, 0.8))
 	_text(ci,754,80,"本局获得",14,HH.MUTE)
 	_text(ci,754,116,"生机细胞",13,HH.MUTE)
 	_text(ci,754,140,"+%d" % int(cells*count),32)
@@ -447,38 +547,54 @@ func draw(ci: CanvasItem, vs: Vector2) -> void:
 	_text(ci,944,140,"×%d" % int(vouchers*count),32,HH.CYB)
 	if bool(g.roster_new.get("short", false)):
 		_text(ci,944,176,"探索不足 %d 分钟，不发放" % int(Roster.RUN_MIN_T / 60.0),11,HH.MUTE)
-	ci.draw_rect(Rect2(1148,76,100,116),HH.MUTE,false)
-	_text(ci,1168,86,"RATING",11,HH.MUTE)
-	if elapsed >= 0.68:
-		_text(ci,1156,108,grade(model,g.preset),42)
+	_enter(1.0, 0.3)
+	var roll := UM.out_cubic(_k(1.05, 0.8))
 	_text(ci,32,232,"本局编队",20)
 	_text(ci,140,239,"%d–%d / 共 %d 名" % [0 if rows.is_empty() else int(offset/STRIDE)+1,mini(rows.size(),ceili((offset+VIEW.size.x)/STRIDE)),rows.size()],12,HH.MUTE)
 	_text(ci,440,237,"总伤害",12,HH.MUTE)
-	_text(ci,500,231,g.run_stats.fmt_n(float(model.total)),25)
+	_text(ci,500,231,g.run_stats.fmt_n(float(model.total)*roll),25)
 	_text(ci,720,237,"击败敌人",12,HH.MUTE)
-	_text(ci,810,231,str(model.kills),25)
-	ci.draw_line(Vector2(28,269),Vector2(912,269),HH.MUTE)
-	ci.draw_line(Vector2(64,643),Vector2(876,643),HH.DARK3,2)
+	_text(ci,810,231,str(int(float(model.kills)*roll)),25)
+	ci.draw_line(Vector2(28,269),Vector2(28+884*UM.out_cubic(_k(1.0, 0.5)),269),HH.MUTE)
+	# ⑤ 评级：框先淡入，字母盖章落定
+	_enter(1.6, 0.3)
+	ci.draw_rect(Rect2(1148,76,100,116),Color(HH.MUTE, _fa),false)
+	_text(ci,1168,86,"RATING",11,HH.MUTE)
+	_stamp(ci, Vector2(1180, 132), T_RATE)
+	_text(ci,1156,108,grade(model,g.preset),42)
+	_plain(ci)
+	# ⑥ 编队卡在 squad_canvas 里逐张升入；滚动条随第一张卡出现
+	_enter(T_CARDS, 0.4)
+	ci.draw_line(Vector2(64,643),Vector2(876,643),Color(HH.DARK3, _fa),2)
 	if max_offset() > 0:
 		var thumb := 812.0*VIEW.size.x/(rows.size()*STRIDE)
-		ci.draw_rect(Rect2(64+(812-thumb)*offset/max_offset(),641,thumb,3),HH.CYB)
+		ci.draw_rect(Rect2(64+(812-thumb)*offset/max_offset(),641,thumb,3),Color(HH.CYB, _fa))
 	_text(ci,28,631,"‹",18,HH.CYB)
 	_text(ci,895,631,"›",18,HH.CYB)
+	_plain(ci)
+	# ⑦ 关键事件沿时间线逐条点亮
 	_timeline(ci)
-	ci.draw_rect(Rect2(0,652,1280,68),HH.INK)
-	_draw_buttons(ci)
+	# ⑧ 底栏升起
+	var fp := UM.out_cubic(_k(T_FOOT, 0.35))
+	ci.draw_rect(Rect2(0,652+80.0*(1.0-fp),1280,68),HH.INK)
+	_draw_buttons(ci, fp)
+	_plain(ci)
 	ci.draw_set_transform(Vector2.ZERO)
 	if share_open and share != null:
 		_draw_share(ci)
 
 ## 底栏按钮：常态 / 悬停（提亮 + 青边）/ 按下（缩到 96%、更亮）/ 焦点（青色四角括号）；作战数据、对局记录是文字按钮（悬停才出底色）
-func _draw_buttons(ci: CanvasItem) -> void:
+func _draw_buttons(ci: CanvasItem, fp := 1.0) -> void:
 	var ph: bool = Cfg.phone_ui()   # 手机：按钮 52 高、字 20
 	var bs: Array = _buttons()
 	for i in bs.size():
 		var b: Array = bs[i]
 		var id: String = b[0]
 		var r := _btn_rect(b)
+		# 出场：底栏按钮随底栏升起，右上「分享」淡入
+		_fa = fp if b.size() > 5 else 1.0
+		if b.size() <= 5:
+			r.position.y += 80.0 * (1.0 - fp)
 		var primary: bool = b[4]
 		var text_btn: bool = id == "records" or id == "runs"
 		var hov: bool = hover == id
@@ -493,6 +609,7 @@ func _draw_buttons(ci: CanvasItem) -> void:
 			bg = bg.lerp(HH.CYB, 0.18) if not primary else bg.lightened(0.18)
 		if prs:
 			bg = (HH.CYB if not primary else bg).lightened(0.3)
+		bg.a *= _fa
 		if bg.a > 0.0:
 			ci.draw_rect(r, bg)
 		if hov or prs:
@@ -509,14 +626,28 @@ func _draw_buttons(ci: CanvasItem) -> void:
 
 
 func draw_cards(ci: CanvasItem) -> void:
-	ci.draw_set_transform(-VIEW.position * scale, 0, Vector2.ONE * scale)
+	var first := int(offset / STRIDE)
 	for i in rows.size():
 		var x := 28.0 + i * STRIDE - offset
 		if x + 212 < VIEW.position.x or x > VIEW.end.x:
 			continue
-		_card(ci, rows[i], x, i)
+		# 逐张从视窗下沿升入（错开 0.12 秒，最多 5 张参与错开）；失败升得慢、带晃动
+		var t0 := T_CARDS + 0.12 * mini(maxi(i - first, 0), 4)
+		var p := _k(t0, 0.4)
+		if p <= 0.0:
+			continue
+		var e := UM.out_cubic(p)
+		var sway := 0.0 if _won() else sin(elapsed * 11.0 + i) * 5.0 * (1.0 - e)
+		ci.draw_set_transform(-VIEW.position * scale + Vector2(sway, 220.0 * (1.0 - e)) * scale, 0, Vector2.ONE * scale)
+		_card(ci, rows[i], x, i, t0)
+	_fa = 1.0
+	_dx = 0.0
+	_blur = 0.0
 
-func _card(ci: CanvasItem, r: Dictionary, x: float, index: int) -> void:
+func _card(ci: CanvasItem, r: Dictionary, x: float, index: int, t0 := 0.0) -> void:
+	_fa = 1.0
+	_dx = 0.0
+	_blur = 0.0
 	HH.fill(ci,PackedVector2Array([Vector2(x+16,288),Vector2(x+210,288),Vector2(x+194,459),Vector2(x,459)]),HH.LIGHT if r.leader else HH.DARK2)
 	ci.draw_rect(Rect2(x+16,288,40,3),HH.CYB if index==selected else r.col)
 	if art.has(r.key):
@@ -532,7 +663,7 @@ func _card(ci: CanvasItem, r: Dictionary, x: float, index: int) -> void:
 	_text(ci,x+8,513,"伤害占比",12,HH.MUTE)
 	_text(ci,x+142,506,"%d%%" % int(r.pct),24)
 	ci.draw_rect(Rect2(x+8,539,186,5),HH.DARK3)
-	var fill := clampf((elapsed-0.24)/0.3,0,1)
+	var fill := UM.out_cubic(_k(t0 + 0.3, 0.4))   # 卡落定后伤害条充满
 	ci.draw_rect(Rect2(x+8,539,186*float(r.share)*fill,5),r.col)
 	_text(ci,x+8,559,"参与击杀",13,HH.MUTE)
 	_text(ci,x+145,553,str(r.kills),23)
@@ -542,8 +673,12 @@ func _card(ci: CanvasItem, r: Dictionary, x: float, index: int) -> void:
 	_text(ci,x+172,612,str(r.casts),17)
 
 func _timeline(ci: CanvasItem) -> void:
+	var lp := UM.out_cubic(_k(T_LINE, 0.55))   # 时间线自上而下画出，事件点随线头逐条点亮
+	_enter(T_LINE - 0.1, 0.3)
 	_text(ci,962,235,"关键事件",16,HH.MUTE)
-	ci.draw_line(Vector2(995,304),Vector2(995,608),HH.MUTE)
+	_plain(ci)
+	if lp > 0.0:
+		ci.draw_line(Vector2(995,304),Vector2(995,304+304*lp),HH.MUTE)
 	var events: Array = [[0.0,"探索开始"]]
 	for b in model.get("bosses",[]):
 		if float(b.t1)>=0 and not bool(b.get("retreat",false)):
@@ -558,7 +693,7 @@ func _timeline(ci: CanvasItem) -> void:
 		labels[j] = minf(float(labels[j]),608.0 if j==labels.size()-1 else float(labels[j+1])-48.0)
 	for i in events.size():
 		var y := 304.0+304.0*float(events[i][0])/maxf(1.0,float(model.t))
-		if y>304+304*clampf((elapsed-0.3)/0.42,0,1):
+		if lp <= 0.0 or y > 304.0 + 304.0 * lp + 0.5:
 			continue
 		ci.draw_rect(Rect2(991,y-4,8,8),HH.CYB)
 		_text(ci,1014,float(labels[i])-12,RS_time(float(events[i][0])),12,HH.MUTE)

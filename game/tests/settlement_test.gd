@@ -45,7 +45,7 @@ func _ready() -> void:
 	ok(s.offset==s.max_offset(),"right clamp")
 	s.scroll(-100)
 	ok(s.offset==0,"left clamp")
-	s.elapsed=0.9
+	s.skip()
 	s._pointer(Vector2(700,400),true)
 	s._drag(Vector2(200,400))
 	s._pointer(Vector2(200,400),false)
@@ -56,6 +56,8 @@ func _ready() -> void:
 	var key := InputEventKey.new()
 	key.pressed=true
 	key.keycode=KEY_F
+	probe.input(key)
+	ok(probe.done() and probe.press_id=="","first input during the entrance only skips to the final state (docs/62 §3.21b)")
 	probe.input(key)
 	ok(probe.action_called=="" and probe.press_id=="meta","button press shows its pressed state before acting")
 	probe.tick(0.2)   # 按下态 PRESS_T 后才执行（10-28 底栏按钮反馈）
