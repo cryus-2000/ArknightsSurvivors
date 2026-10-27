@@ -93,7 +93,7 @@ func _ready() -> void:
 	for i in 18:
 		g.t += DT
 		cards._emit_step(e)
-	check(g.ebullets.size() == 13 and g.ebullets.all(func(b): return b.vel == Vector2.ZERO), "act three ring hangs before firing (%d)" % g.ebullets.size())
+	check(g.ebullets.size() == 10 and g.ebullets.all(func(b): return b.vel == Vector2.ZERO), "act three ring hangs before firing (%d)" % g.ebullets.size())
 	for i in 14:
 		g.t += DT
 		cards._emit_step(e)
@@ -190,14 +190,14 @@ func _ready() -> void:
 	var mob: Dictionary = e.web[0].o
 	mob.hp = mob.maxhp * 0.3
 	cards.force(e, "抚愈连段")
-	tick_until(e, func(): return e.ishar_emits.size() > 0)
+	tick_until(e, func(): return e.ishar_emits.any(func(d): return d.kind == "heal"))
 	tick_n(e, int(3.0 / DT))
 	check(mob.hp >= mob.maxhp, "heal song restores linked sea-born")
 	e = fresh(0)
 	mob = e.web[0].o
 	mob.hp = mob.maxhp * 0.3
 	cards.force(e, "抚愈连段")
-	tick_until(e, func(): return e.ishar_emits.size() > 0)
+	tick_until(e, func(): return e.ishar_emits.any(func(d): return d.kind == "heal"))
 	e.stun = 0.5
 	tick_n(e, 2)
 	check(not e.card_live and e.ishar_emits.is_empty(), "stun cancels the remaining combo and queued song")

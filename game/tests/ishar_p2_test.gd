@@ -63,7 +63,7 @@ func _ready() -> void:
 			g.bai._update_warns(0.04)
 		# 10-27 连段（docs/170）：一幕 合唱连段（环颂 → 齐射 → 撕咬）与 锁定连段（三线扫射 → 大群之声 → 深海触腕）交替；大群之歌在二幕
 		check(seen.has("ishar_line"), "line ranged patterns at distance %d" % distance)
-		check(seen.has("bite") or seen.has("sweep"), "near bite or far fan in rotation")
+		check(not seen.has("bite") and not seen.has("sweep"), "act one reads lines only, no melee bite (docs/170b)")
 		var regular_names: Array = names.filter(func(n): return n in ["三线扫射", "大群之声", "撕咬", "横扫", "合唱齐射", "深海触腕"])   # 泪滴共鸣 / 潮涌迫近 / 共鸣是机制，不在轮转里
 		check(regular_names.count("三线扫射") >= 2 and regular_names.count("大群之声") >= 2 and regular_names.count("合唱齐射") >= 2, "both act-one combos repeat rather than priority starving")
 		if not (regular_names.count("三线扫射") >= 2 and regular_names.count("合唱齐射") >= 2):

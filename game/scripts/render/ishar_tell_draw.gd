@@ -6,7 +6,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const Beam = preload("res://scripts/render/boss_beam.gd")
 const Combos = preload("res://scripts/enemies/bosses/ishar_combos.gd")
 const CORE := Color(0.62, 1.0, 0.86)   # 光束本体 = 她的专属青绿；预警底仍是暗红
-const ACTS := ["ishar_strike", "ishar_line", "ishar_echo", "ishar_sweep", "bite", "sweep"]
+const ACTS := ["ishar_strike", "ishar_line", "ishar_echo", "ishar_sweep", "ishar_dash", "bite", "sweep"]
 const FILL := Color(0.42, 0.05, 0.12)
 const EDGE := Color(0.86, 0.26, 0.42)
 
@@ -189,8 +189,31 @@ static func _shield(g) -> void:
 			g.draw_rect(Rect2((q * 0.5).floor() * 2.0 - Vector2(2, 2), Vector2(6, 6)), Color(c.r, c.g, c.b, 0.95) if on else Color(1, 1, 1, 0.18))
 
 
+## 三幕歌声围拢：一圈 2 像素格点列（三幕主色）+ 圈外暗红薄雾；格点沿圈慢慢流动，向内收时清楚可见
+static func _fence(g) -> void:
+	var gy: float = g.combat.GROUND_Y
+	for e in g.bosses:
+		var f: Dictionary = e.get("ishar_fence", {})
+		if e.dead or f.is_empty():
+			continue
+		var R: float = g.bai.boss("ishar").cards()._fence_r(e)
+		var c: Color = Combos.act_col(e)
+		var n: int = clampi(int(R * TAU / 7.0), 40, 360)
+		for i in n:
+			var an: float = TAU * (float(i) + fmod(g.t * 2.0, 1.0)) / n
+			_sq(g, f.c + Vector2(cos(an), sin(an) * gy) * R, Color(c.r, c.g, c.b, 0.85 if i % 3 != 0 else 0.4))
+		for q in 2:
+			var rr: float = R + 14.0 + 12.0 * q
+			var m: int = clampi(int(rr * TAU / 18.0), 30, 240)
+			for i in m:
+				if (i + q) % 2 == 0:
+					var an: float = TAU * i / m
+					_sq(g, f.c + Vector2(cos(an), sin(an) * gy) * rr, Color(FILL.r, FILL.g, FILL.b, 0.5 - 0.2 * q))
+
+
 static func draw(g) -> void:
 	_arena(g)
+	_fence(g)
 	_zones(g)
 	_fades(g)
 	_sweeps(g)

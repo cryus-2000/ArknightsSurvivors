@@ -479,6 +479,8 @@ func on_kill(e: Dictionary) -> void:
 	e.ishar_emits = []
 	e.ishar_sweep = {}
 	e.ishar_sweep2 = {}
+	e.ishar_dash = {}
+	e.ishar_fence = {}
 	e.ishar_zones = []
 	e.card_live = false
 	for tear in g.ishar.tears(e):
