@@ -3,6 +3,7 @@ extends Node
 var g
 var failures := 0
 const Combos = preload("res://scripts/enemies/bosses/paranoia_combos.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 
 func check(ok: bool, label: String) -> void:
@@ -25,6 +26,7 @@ func _ready() -> void:
 	check_repro()
 	check_beam_hold()
 	check_rush()
+	check_rest_break()
 	print("PARANOIA COMBOS failures=", failures)
 	g.queue_free()
 	await get_tree().process_frame
@@ -230,3 +232,23 @@ func check_rush() -> void:
 		check(e.get("pc_rush", []).is_empty(), "rush clears after both phantoms pass")
 		var hit_any: bool = lanes.any(func(l): return l.hit)
 		check(hit_any == on_lane, "rush hits only on its lane (on_lane=%s)" % on_lane)
+
+
+## 收招 = 真破绽：期间受伤合计 > 1（含公共破绽倍率），且仍可冲刺打落
+func check_rest_break() -> void:
+	var e := fresh(0)
+	var s = g.bai.boss("paranoia")
+	var rested := false
+	for i in 600:
+		tick(e)
+		if float(e.get("pc_rest_until", 0.0)) > g.t:
+			rested = true
+			break
+	check(rested and float(e.get("break_t", 0.0)) > 0.0, "combo recovery is a real break")
+	var total: float = s.taken_mult(e) * Bal.v("boss/break_mult", 1.4)
+	check(total > 1.0, "recovery damage multiplier > 1 (got %.2f)" % total)
+	g.ppos = e.pos
+	g.dash_t = 0.3
+	s._drop_step(e)
+	g.dash_t = 0.0
+	check(float(e.get("drop_until", 0.0)) > g.t, "dash-through during recovery still drops her")

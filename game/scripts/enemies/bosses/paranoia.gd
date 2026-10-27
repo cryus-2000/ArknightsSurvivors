@@ -179,7 +179,8 @@ func _paranoia_p2(e: Dictionary) -> void:
 ## 一 / 二幕（悬浮）：冲刺穿过真身 → 坠地 4 秒（借破绽：不出招、受伤 × break_mult，taken_mult 再补到合计 1.8）；三幕起（落地）：冲刺穿身 = 光环散掉 5 秒
 func _drop_step(e: Dictionary) -> void:
 	if e.phase == 1:
-		if float(e.get("break_t", 0.0)) > 0.0 or g.t < float(e.get("drop_ok_at", 0.0)) or not _dash_through(e):
+		# 收招破绽（break_t）期间也能打落：只有正在坠地才不能再打（10-28 docs/170 §3h）
+		if float(e.get("drop_until", 0.0)) > g.t or g.t < float(e.get("drop_ok_at", 0.0)) or not _dash_through(e):
 			return
 		var t: float = Bal.v("boss/paranoia_drop_t", 4.0)
 		g.combat.start_break(e, t)
@@ -289,15 +290,19 @@ func _decoy_pop(e: Dictionary, sl: Dictionary, dashed: bool) -> void:
 		Sfx.play("shell_break", -8.0, 1.6, 0.0)
 
 
-## 主轴受伤倍率（combat.damage，乘在破绽倍率之前）：茧期 1；悬浮 0.5 / 坠地合计 1.8；落地光环张开 0.5、散开 1
+## 主轴受伤倍率（combat.damage，乘在破绽倍率之前）：茧期 1；坠地合计 paranoia_drop_taken（1.8）；连段收招 / 破茧等其他破绽合计 paranoia_rest_taken（1.25）；
+## 悬浮 paranoia_hover_taken；落地光环张开 paranoia_aura_taken、散开 paranoia_aura_off_taken（1.25）
 func taken_mult(e: Dictionary) -> float:
 	if e.get("cocoon_t", 0.0) > 0.0:
 		return 1.0
+	var bm: float = maxf(0.01, Bal.v("boss/break_mult", 1.4))
+	if e.phase == 1 and float(e.get("drop_until", 0.0)) > g.t:
+		return Bal.v("boss/paranoia_drop_taken", 1.8) / bm
+	if float(e.get("break_t", 0.0)) > 0.0:
+		return Bal.v("boss/paranoia_rest_taken", 1.25) / bm
 	if e.phase == 1:
-		if float(e.get("break_t", 0.0)) > 0.0:
-			return Bal.v("boss/paranoia_drop_taken", 1.8) / maxf(0.01, Bal.v("boss/break_mult", 1.4))
 		return Bal.v("boss/paranoia_hover_taken", 0.5)
-	return 1.0 if _aura_off(e) else Bal.v("boss/paranoia_aura_taken", 0.5)
+	return Bal.v("boss/paranoia_aura_off_taken", 1.25) if _aura_off(e) else Bal.v("boss/paranoia_aura_taken", 0.5)
 
 
 ## 认知负担光环：主控站在 boss/paranoia_aura_r（220；二阶段 paranoia_aura_r2 300）内时，全队攻速 ×(1 − paranoia_aura_aspd)（一阶段 0.10、二阶段 paranoia_aura_aspd2 0.15；

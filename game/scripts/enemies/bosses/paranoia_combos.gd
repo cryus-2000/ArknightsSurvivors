@@ -65,12 +65,12 @@ func act(e: Dictionary) -> int:
 func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool) -> bool:
 	_update_bullets(e, dt)
 	if float(e.get("stun", 0.0)) > 0.0 or float(e.get("break_t", 0.0)) > 0.0:
-		interrupt(e)
+		interrupt(e)   # 收招破绽时队列本来就空，不会误清
 	_update_emitters(e)
 	# 独立轮换（finals / patterns）由连段接管
 	e.final_next = INF
 	e.pattern_next = INF
-	if g.t < float(e.get("pc_rest_until", 0.0)) and float(e.get("break_t", 0.0)) <= 0.0:
+	if g.t < float(e.get("pc_rest_until", 0.0)) and float(e.get("drop_until", 0.0)) <= g.t:
 		_rest_approach(e, dt)
 	var a: int = act(e)
 	if a != int(e.get("pc_act", -1)):
@@ -89,6 +89,8 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool) -> b
 			if live_bullets(e) >= LOW_BULLETS:
 				return true
 			var rec: float = REST_P1 if e.phase == 1 else REST_P2
+			# 收招 = 真破绽（10-28 测试台：破绽期输出只有 10%，目标 ≥35%）：break_t 期间受伤合计 paranoia_rest_taken，头顶写「破绽」读秒
+			g.combat.start_break(e, rec)
 			e.pc_rested = true
 			e.pc_idx = int(e.get("pc_idx", 0)) + 1
 			e.wind = maxf(float(e.get("wind", 0.0)), rec)
