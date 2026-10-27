@@ -191,13 +191,13 @@ static func _shape(g, w: Dictionary, alpha: float, warning: bool) -> void:
 		_warning(g,w,alpha)
 		if w.get("skin","") == "current":   # 伊祖米克海流牵引：向心流线（docs/170）
 			IzumikDraw.current_warning(g,w)
-		if w.get("skin","") == "tentacle" and w.shape == "cone":   # 伊祖米克护群触腕：出土点鼓包（docs/170）
+		if w.get("skin","") == "tentacle" and w.shape in ["cone", "circle"]:   # 伊祖米克护群触腕：出土点鼓包（docs/170）
 			IzumikDraw.tentacle_warning(g,w,clampf(float(w.get("t",0.0))/maxf(0.01,float(w.dur)),0,1))
 	elif w.get("skin","") == "current":
 		IzumikDraw.current_burst(g,w)
 	elif w.get("skin","") == "tide":
 		IzumikDraw.tide_wall(g,w,alpha)
-	elif w.get("skin","") == "tentacle" and w.shape == "cone" and w.has("max"):
+	elif w.get("skin","") == "tentacle" and w.shape in ["cone", "circle"] and w.has("max"):
 		IzumikDraw.tentacles(g,w)
 	elif w.get("skin", "") == "bubble":
 		Bubble.shadow(g.world,w,alpha)

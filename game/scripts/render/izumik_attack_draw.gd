@@ -214,6 +214,18 @@ static func tentacles(g, f: Dictionary) -> void:
 static func _sprouts(w: Dictionary) -> Array:
 	var out: Array = []
 	var p: Vector2 = w.pos
+	if str(w.get("shape", "")) == "circle":
+		# 圆形（追人触腕，10-28）：中心一根 + 两圈，按周长约 40 像素一根，地面椭圆压扁；从中心往外依次钻出
+		var gy: float = 0.72
+		out.append([p, 0.0, _n(0, 43)])
+		for ring in 2:
+			var rr: float = float(w.r) * (0.45 if ring == 0 else 0.85)
+			var cnt: int = maxi(5, int(round(TAU * rr / 40.0)))
+			for k in cnt:
+				var i: int = ring * 37 + k
+				var a: float = TAU * (float(k) + 0.5 * ring + (_n(i, 41) - 0.5) * 0.4) / cnt
+				out.append([p + Vector2(cos(a), sin(a) * gy) * rr * (0.92 + 0.12 * _n(i, 42)), 0.35 + 0.55 * ring + _n(i, 44) * 0.08, _n(i, 43)])
+		return out
 	var half: float = float(w.get("half", 0.5))
 	var reach: float = float(w.r)
 	for row in 5:

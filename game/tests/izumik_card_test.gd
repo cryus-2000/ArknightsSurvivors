@@ -219,3 +219,12 @@ func check_patterns() -> void:
 		s._current_step(e, DT)
 	var moved: float = p0.distance_to(g.ppos)
 	check(moved > 10.0 and moved < 70.0 * 20 * DT + 0.01 and g.ppos.distance_to(w0.pos) < 200.0, "current pulls toward center slower than walking (%.1f px / 1 s)" % moved)
+	# 潮痕：海流牵引结算后在涌起点留一块伊祖米克溟痕；受伤倍率连携期 < 1、破绽期 > 1
+	g.mires.clear()
+	for i in int(3.0 / DT): tick(e, 0.0)
+	check(g.mires.any(func(m): return m.get("izu", false) and m.pos.distance_to(w0.pos) < 70.0), "current leaves a tide mire at its center")
+	e.break_t = 0.0
+	var tm0: float = s.taken_mult(e)
+	e.break_t = 1.0
+	check(tm0 < 1.0 and s.taken_mult(e) > 1.0, "taken mult pushes damage into breaks (%.2f / %.2f)" % [tm0, s.taken_mult(e)])
+	e.break_t = 0.0

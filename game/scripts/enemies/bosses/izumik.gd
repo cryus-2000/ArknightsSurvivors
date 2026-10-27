@@ -19,6 +19,7 @@ const Beam = preload("res://scripts/render/boss_beam.gd")
 const COL := Color(0.4, 0.6, 1.0)   # 群青蓝（docs/142b §8.4）
 const MOVES := ["潮汐坠落", "解读旋涡", "分享", "震撼"]
 const PATTERNS := ["潮汐相位流", "子代共鸣", "螺旋弹臂", "习得弹", "回流弹"]
+const TENTACLE := "护群触腕"   # 追人圆形触腕（用户 10-28：换圆形、追着人打），不走 finals 的扇形
 const CURRENT := "海流牵引"   # 非弹幕专属招：海流把你往漩涡中心拖，中心最后涌起
 ## 每幕两组；「@近身分享」= 贴近时分享扇、否则潮汐坠落
 const CARDS := [
@@ -85,6 +86,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 			_bullet_step(e, dt)
 			_emit_step(e)
 			_current_step(e, dt)
+			_tentacle_step(e)
 			_share_fx_step(e)
 			_card_step(e, dir, dist)
 			return
@@ -129,6 +131,9 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 		return _emit_start(e, name, dir)
 	if e.phase == 2 and name == CURRENT:
 		_current(e)
+		return true
+	if e.phase == 2 and name == TENTACLE:
+		_tentacles(e)
 		return true
 	if g.bai.finals.force_move(e, name, dir, dist):
 		return true
@@ -420,7 +425,7 @@ func _card_step(e: Dictionary, dir: Vector2, dist: float) -> void:
 	if active and (float(e.stun) > 0.0 or float(e.get("break_t", 0.0)) > 0.0 or g.t > float(e.get("izu_card_until", INF))):
 		_end_card(e)
 		return
-	if not e.get("izu_emit", {}).is_empty() or g.t < float(e.get("izu_next", 0.0)) or _blocked(e):
+	if not e.get("izu_emit", {}).is_empty() or int(e.get("izu_tent_n", 0)) > 0 or g.t < float(e.get("izu_next", 0.0)) or _blocked(e):
 		return
 	if g.warns.any(func(w): return is_same(w.owner, e) and not w.done and w.dmg > 0.0):
 		return
@@ -466,7 +471,7 @@ func _start_card(e: Dictionary, name: String) -> void:
 
 
 func _finish_card(e: Dictionary) -> void:
-	var rec: float = RECOVER[clampi(int(e.get("gates_passed", 0)), 0, RECOVER.size() - 1)]
+	var rec: float = RECOVER[clampi(int(e.get("gates_passed", 0)), 0, RECOVER.size() - 1)] * Bal.v("boss/izumik_recover_mult", 1.25)
 	_end_card(e)
 	g.combat.start_break(e, rec)
 	e.izu_next = g.t + rec + REST
@@ -504,6 +509,8 @@ func _run_seg(e: Dictionary, seg: String, dir: Vector2, dist: float) -> void:
 			_share_all(e)
 		CURRENT:
 			_current(e)
+		TENTACLE:
+			_tentacles(e)
 		"分享":
 			_share(e, dir, false)
 		"潮汐坠落", "解读旋涡":
@@ -722,6 +729,10 @@ func _current_step(e: Dictionary, dt: float) -> void:
 ## 分享（扇形）结算画面：通用 sweep 只有一道细刀光，这里补喷涌——扇形里的水流喷射 + 孢子雾 + 扇缘浪沫（render/izumik_attack_draw.share），纯画面
 func _share_fx_step(e: Dictionary) -> void:
 	for w in g.warns:
+		if w.done and not w.get("izu_mire", false) and is_same(w.owner, e) and str(w.get("skin", "")) in ["current", "tentacle"]:
+			w.izu_mire = true
+			if not g.bai.finals.cancelled(w):
+				_tide_mires(e, w)
 		if not w.done or w.get("izu_fx", false) or not is_same(w.owner, e) or str(w.get("act", "")) != "sweep":
 			continue
 		w.izu_fx = true
@@ -729,3 +740,55 @@ func _share_fx_step(e: Dictionary) -> void:
 		for k in 18:
 			var a: float = float(w.ang) + lerpf(-float(w.half), float(w.half), (k + 0.5) / 18.0)
 			_puff(w.pos + Vector2.from_angle(a) * float(w.r) * 0.85, 1, Color(0.62, 0.82, 1.0), Vector2.from_angle(a))
+
+
+## ---- 持续压迫与输出窗口（协调人 10-27，测试台 docs/170_boss_bench：单场 54 秒、队长从没危险过）
+## 潮痕（场地侵蚀）：海流牵引的涌起点、护群触腕最后一圈留下 Boss 溟痕（减速 + 每秒 2% 最大生命，走 Boss 持续伤害上限），
+## 存在 boss/izumik_mire_life（8）秒；一次最多 boss/izumik_mire_max（6）块伊祖米克溟痕。被破绽 / 眩晕取消的招不留
+func _tide_mires(e: Dictionary, w: Dictionary) -> void:
+	var life: float = Bal.v("boss/izumik_mire_life", 8.0)
+	if life <= 0.0:
+		return
+	var pts: Array = []
+	if str(w.skin) == "current":
+		pts.append(w.pos)
+	elif w.get("izu_last", false):
+		pts.append(w.pos)
+	var cap: int = int(Bal.v("boss/izumik_mire_max", 6.0))
+	for p in pts:
+		if g.mires.filter(func(m): return m.get("izu", false) and m.life > 0.0).size() >= cap:
+			return
+		g.mires.append({"pos": g.combat.arena_clamp(p, 60.0), "r": 10.0, "maxr": Bal.v("boss/izumik_mire_r", 90.0), "life": life,
+			"seed": g.vrng.randf() * 100.0, "boss": true, "izu": true})
+
+
+## 受伤倍率（combat 经 boss 脚本询问）：阐释阶段连携期间受伤 × boss/izumik_taken_out（0.7），破绽期 × boss/izumik_break_taken（1.1，再乘通用破绽 1.4）——
+## 把输出往收招破绽里挤（测试台破绽输出 8% → 目标 ≥ 35%）；连携关掉时不变
+func taken_mult(e: Dictionary) -> float:
+	if e.phase != 2 or Bal.v("boss/izumik_cards", 1.0) <= 0.0:
+		return 1.0
+	return Bal.v("boss/izumik_break_taken", 1.1) if float(e.get("break_t", 0.0)) > 0.0 else Bal.v("boss/izumik_taken_out", 0.7)
+
+
+## ---- 护群触腕（用户 10-28：换圆形、追着人打）：在队长脚下连落 boss/izumik_tentacle_n（3）个圆（半径 izumik_tentacle_r 110），
+## 每隔 izumik_tentacle_gap（0.6）秒按队长当时的位置落下一个，每个预警 1.1 秒后触手从圆里钻出（e.dmg × 1.1）；一直走动就躲得开
+func _tentacles(e: Dictionary) -> void:
+	e.izu_tent_n = int(Bal.v("boss/izumik_tentacle_n", 3.0))
+	e.izu_tent_next = g.t
+	Sfx.play("tentacle", -4.0, 0.8)
+
+
+func _tentacle_step(e: Dictionary) -> void:
+	var n: int = int(e.get("izu_tent_n", 0))
+	if n <= 0:
+		return
+	if float(e.get("break_t", 0.0)) > 0.0 or float(e.stun) > 0.0:
+		e.izu_tent_n = 0
+		return
+	if g.t < float(e.izu_tent_next):
+		return
+	e.izu_tent_n = n - 1
+	e.izu_tent_next = g.t + Bal.v("boss/izumik_tentacle_gap", 0.6)
+	g.bai.finals._warn(e, "circle", 1.1, {"name": TENTACLE if n == int(Bal.v("boss/izumik_tentacle_n", 3.0)) else "",
+		"pos": g.combat.arena_clamp(g.ppos, 60.0), "r": Bal.v("boss/izumik_tentacle_r", 110.0), "skin": "tentacle",
+		"dmg": e.dmg * 1.1, "izu_last": n == 1})
