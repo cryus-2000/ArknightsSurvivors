@@ -58,7 +58,7 @@ func _ready() -> void:
 		g.t += DT
 		cards._emit_step(e)
 	var notes: int = g.ebullets.filter(func(b): return b.kind == "ishar_note").size()
-	check(notes == 10 * 6, "killed source cancels its rings (%d notes)" % notes)
+	check(notes == 9 * 6, "killed source cancels its rings (%d notes)" % notes)
 	# 无网：本体两圈
 	e = fresh(0)
 	for sl in e.web:
@@ -73,11 +73,36 @@ func _ready() -> void:
 	var nearest := INF
 	for b in g.ebullets:
 		nearest = minf(nearest, absf(angle_difference(b.vel.angle(), aim)))
-	check(g.ebullets.size() == 10 and nearest > 0.15, "first ring leaves the player's line between two bullets (%.2f)" % nearest)
+	check(g.ebullets.size() == 9 and nearest > 0.4, "first ring leaves the player's line between two bullets (%.2f)" % nearest)
 	for i in 42:
 		g.t += DT
 		cards._emit_step(e)
-	check(g.ebullets.size() == 20, "empty web falls back to two body rings (%d)" % g.ebullets.size())
+	check(g.ebullets.size() == 18, "empty web falls back to two body rings (%d)" % g.ebullets.size())
+	# 2b. 缺口按幕递进：二幕缺口每圈转动；三幕先停后射；第三次环颂最后一圈是整墙
+	e = fresh(1)
+	for sl in e.web:
+		if sl.o != null: sl.o.dead = true
+	g.ebullets.clear()
+	cards.play(e, "合唱环颂", Vector2.RIGHT, 300.0)
+	check(e.ishar_emits.size() == 2 and not is_equal_approx(float(e.ishar_emits[0].gc), float(e.ishar_emits[1].gc)), "act two gap rotates between rings")
+	e = fresh(2)
+	for sl in e.web:
+		if sl.o != null: sl.o.dead = true
+	g.ebullets.clear()
+	cards.play(e, "合唱环颂", Vector2.RIGHT, 300.0)
+	for i in 18:
+		g.t += DT
+		cards._emit_step(e)
+	check(g.ebullets.size() == 10 and g.ebullets.all(func(b): return b.vel == Vector2.ZERO), "act three ring hangs before firing (%d)" % g.ebullets.size())
+	for i in 14:
+		g.t += DT
+		cards._emit_step(e)
+	check(g.ebullets.all(func(b): return b.vel.length() > 90.0), "held ring releases together")
+	e.ishar_emits.clear()
+	cards.play(e, "合唱环颂", Vector2.RIGHT, 300.0)
+	e.ishar_emits.clear()
+	cards.play(e, "合唱环颂", Vector2.RIGHT, 300.0)
+	check(int(e.ishar_emits[-1].n) == 20 and int(e.ishar_emits[-1].gap) == 0, "every third chorus ends in a dash-through wall")
 	# 3. 泪雨：大泪按时碎成 6 枚快弹
 	e = fresh(1)
 	g.ebullets.clear()
@@ -86,7 +111,7 @@ func _ready() -> void:
 		g.t += DT
 		cards._emit_step(e)
 	var big: int = g.ebullets.filter(func(b): return b.kind == "ishar_tear" and b.life > 0.0).size()
-	check(big == 5 + e.eyes.size(), "body fan plus one drop per song eye (%d)" % big)
+	check(big == 6 + e.eyes.size(), "body fan plus one drop per song eye (%d)" % big)
 	for i in 60:
 		g.t += DT
 		cards._emit_step(e)
@@ -117,8 +142,8 @@ func _ready() -> void:
 	g.warns.clear()
 	cards.play(e, "大群之声", Vector2.RIGHT, 300.0)
 	var beam: Array = g.warns.filter(func(w): return w.name == "大群之声")
-	check(beam.size() == 1 and float(beam[0].wid) >= 40.0 and beam[0].dur - beam[0].track >= 0.6, "big beam is wide with a long locked window")
-	check(e.ishar_emits.filter(func(d): return d.kind == "hold").size() == 10, "big beam sustains for one second")
+	check(beam.size() == 1 and float(beam[0].wid) >= 40.0 and beam[0].dur - beam[0].track >= 0.3, "big beam is wide and locks before firing")
+	check(e.ishar_emits.filter(func(d): return d.kind == "sweep").size() == 1, "big beam hands over to a chasing sweep")
 	# 3d. 歌声涟漪：三处地带预警后留 3 秒，站在里面持续受伤并减速；光束结算后留消散记录
 	e = fresh(0)
 	g.warns.clear()
@@ -133,7 +158,12 @@ func _ready() -> void:
 		g.invuln = 0.0
 		cards._zone_step(e)
 	check(g.hp < hp0 and g.combat.slows.has("ishar_song"), "standing in a ripple zone hurts and slows")
-	g.t += 4.0
+	check(is_equal_approx(g.combat.song_heal_mult(), 1.0 - preload("res://scripts/core/balance.gd").v("boss/ishar_song_heal_cut", 0.5)), "song zone cuts healing while inside")
+	g.ppos = e.ishar_zones[0].pos + Vector2(0, 1500)
+	g.t += 0.2
+	cards._zone_step(e)
+	check(g.combat.song_heal_mult() == 1.0, "healing recovers on leaving the zone")
+	g.t += preload("res://scripts/core/balance.gd").v("boss/ishar_zone_linger", 4.0) + 1.0
 	cards._zone_step(e)
 	check(e.ishar_zones.is_empty(), "ripple zones expire")
 	g.invuln = 999.0
@@ -144,22 +174,30 @@ func _ready() -> void:
 	for i in int(1.9 / DT):
 		tick(e)
 	check(not g.fx.any(func(f): return f.kind == "ishar_beam_fade"), "big beam does not fade while it is still firing")
-	for i in int(1.2 / DT):
+	check(not e.ishar_sweep.is_empty(), "big beam is sweeping after its charge")
+	# 追扫转速有上限：队长瞬移到正对面，一秒内光束最多转 boss/ishar_sweep_max
+	var a0: float = float(e.ishar_sweep.ang)
+	g.ppos = e.pos - Vector2.from_angle(a0) * 250.0
+	for i in int(1.0 / DT):
 		tick(e)
-	check(g.fx.any(func(f): return f.kind == "ishar_beam_fade"), "big beam dissolves after its hold")
+	var turned: float = absf(angle_difference(a0, float(e.ishar_sweep.ang)))
+	check(turned > 0.05 and turned <= preload("res://scripts/core/balance.gd").v("boss/ishar_sweep_max", 0.5) + 0.01, "sweep chases the leader with a capped turn rate (%.2f)" % turned)
+	for i in int(1.6 / DT):
+		tick(e)
+	check(e.ishar_sweep.is_empty() and g.fx.any(func(f): return f.kind == "ishar_beam_fade"), "big beam dissolves after the sweep")
 	# 4. 抚愈之歌：歌声结束治疗连线海嗣；眩晕打断取消治疗
 	e = fresh(0)
 	var mob: Dictionary = e.web[0].o
 	mob.hp = mob.maxhp * 0.3
 	cards.force(e, "抚愈连段")
-	tick_until(e, func(): return e.ishar_emits.size() > 0)
+	tick_until(e, func(): return e.ishar_emits.any(func(d): return d.kind == "heal"))
 	tick_n(e, int(3.0 / DT))
 	check(mob.hp >= mob.maxhp, "heal song restores linked sea-born")
 	e = fresh(0)
 	mob = e.web[0].o
 	mob.hp = mob.maxhp * 0.3
 	cards.force(e, "抚愈连段")
-	tick_until(e, func(): return e.ishar_emits.size() > 0)
+	tick_until(e, func(): return e.ishar_emits.any(func(d): return d.kind == "heal"))
 	e.stun = 0.5
 	tick_n(e, 2)
 	check(not e.card_live and e.ishar_emits.is_empty(), "stun cancels the remaining combo and queued song")
@@ -172,6 +210,68 @@ func _ready() -> void:
 	e.gates_passed = 1
 	g.bai.boss("ishar").on_gate(e)
 	check(not e.card_live and e.card_q.is_empty(), "act change clears the queued segments")
+	# 7. 10-28 拉长：人形可受伤、打到血线截住并转化；连线回血不超过本幕起点；连线海嗣带护盾
+	var Bal = preload("res://scripts/core/balance.gd")
+	g.enemies.clear()
+	g.warns.clear()
+	var p1: Dictionary = g.spawner.spawn_enemy("ishar", Vector2(100, 0))
+	check(p1.ishar_p1 and not p1.friendly and not p1.invuln, "human form is damageable when boss/ishar_p1_hit is on")
+	g.ishar.step_ally(p1, 0.01)
+	g.combat.hit("真实")
+	for i in 40:
+		g.combat.damage(p1, p1.maxhp * 0.03)
+	var line: float = p1.maxhp * Bal.v("boss/ishar_p1_line", 0.85)
+	check(p1.phase == 1 and is_equal_approx(p1.hp, line), "human-form damage stops at the transform line (%.0f / %.0f)" % [p1.hp, line])
+	g.ishar.step_ally(p1, 0.01)
+	check(p1.phase == 2 and not p1.ishar_p1 and is_equal_approx(p1.act_top, Bal.v("boss/ishar_p1_line", 0.85)), "reaching the line transforms early")
+	e = fresh(0)
+	# 连线护盾：每只连线海嗣一层；打空一层会碎、5 秒后回来；杀掉海嗣那层不回来
+	tick_n(e, 2)
+	var per: float = e.maxhp * Bal.v("boss/ishar_web_layer", 0.025)
+	check(e.web_layers.size() == 3 and is_equal_approx(e.shield_hp, per * 3.0), "each linked sea-born adds one shield layer (%d, %.0f)" % [e.web_layers.size(), e.shield_hp])
+	var hp_before: float = e.hp
+	g.combat.hit("真实")
+	g.combat.damage(e, per * 0.5)
+	g.combat.damage(e, per * 0.7)
+	tick_n(e, 1)
+	check(e.web_sh_up == 2 and is_equal_approx(e.hp, hp_before), "shield absorbs damage and the top layer breaks first (%d)" % e.web_sh_up)
+	tick_n(e, int(Bal.v("boss/ishar_layer_regen", 5.0) / DT) + 2)
+	check(e.web_sh_up == 3, "a broken layer regrows while its sea-born stays linked")
+	e.web[0].o.dead = true
+	tick_n(e, 2)
+	check(e.web_layers.size() == 2 and e.shield_hp <= per * 2.0 + 0.01, "killing a linked sea-born removes its layer")
+	var wm: Dictionary = g.bai.boss("ishar")._web_mob(e, Vector2(200, 0), 0)
+	check(float(wm.shield_hp) >= wm.maxhp * Bal.v("boss/ishar_web_shield", 0.4) - 0.01, "linked sea-born carry a shield")
+	# 8. 三幕方案新招（docs/170b）：潮涡两臂螺旋并反向；侵蚀之泪先追后直；双束两条追扫在队长两侧、中间留缝
+	e = fresh(1)
+	g.ebullets.clear()
+	cards.play(e, "潮涡", Vector2.RIGHT, 300.0)
+	for i in int(3.6 / DT):
+		g.t += DT
+		cards._emit_step(e)
+	check(g.ebullets.size() == 50, "vortex fires two arms for three seconds (%d)" % g.ebullets.size())
+	e = fresh(2)
+	g.ebullets.clear()
+	cards.play(e, "侵蚀之泪", Vector2.RIGHT, 300.0)
+	for i in int(1.6 / DT):
+		g.t += DT
+		cards._emit_step(e)
+	check(g.ebullets.size() == 5 and g.ebullets.all(func(bl): return bl.home), "five seeking tears home in at first")
+	for i in int(2.2 / DT):
+		g.t += DT
+		cards._emit_step(e)
+	check(g.ebullets.all(func(bl): return not bl.home), "seeking tears stop homing and fly straight")
+	e = fresh(2)
+	g.warns.clear()
+	cards.play(e, "大群之声·双束", Vector2.RIGHT, 300.0)
+	tick_n(e, int(1.7 / DT))
+	check(not e.ishar_sweep.is_empty() and not e.ishar_sweep2.is_empty(), "twin beam starts two sweeps")
+	tick_n(e, int(2.0 / DT))
+	var pa: float = (g.ppos - e.pos).angle()
+	if not e.ishar_sweep.is_empty() and not e.ishar_sweep2.is_empty():
+		var d1: float = angle_difference(pa, float(e.ishar_sweep.ang))
+		var d2: float = angle_difference(pa, float(e.ishar_sweep2.ang))
+		check(signf(d1) != signf(d2) and absf(d1) > 0.15 and absf(d2) > 0.15, "twin beams close in from both sides and leave a lane (%.2f, %.2f)" % [d1, d2])
 	# 6. 同输入复现
 	var a: Array = trace()
 	var b: Array = trace()

@@ -305,6 +305,9 @@ func _boss_sub(e: Dictionary) -> Array:
 	if e.type == "izumik":
 		return ["学习阶段 · 无敌（击杀子代阻止它成长）" if e.phase == 1 else "阐释阶段", UI.SUB]
 	if e.type == "ishar":
+		if e.phase == 1 and e.get("ishar_p1", false):   # 人形可受伤（10-28）：充能与提前转化的血线都写明
+			var pc: int = roundi(100.0 * clampf(float(e.get("ally_charge", 0.0)) / maxf(0.01, float(e.get("ally_charge_need", 30.0))), 0.0, 1.0))
+			return ["人形 · 转化充能 %d%%（打到 %d%% 血提前转化）" % [pc, roundi(100.0 * Game.Bal.v("boss/ishar_p1_line", 0.85))], UI.SUB]
 		return ["转化中" if e.phase == 1 else "已完成转化 · 敌对", UI.SUB]
 	if e.has("ammo"):
 		return ["装填中 —— 攻击以打断！" if e.channel > 0.0 else ("弹药 %d / 3" % e.ammo if e.ammo > 0 else "近战中"), UI.SUB]
