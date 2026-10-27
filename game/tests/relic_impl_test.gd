@@ -199,10 +199,12 @@ func test_batch_b_c() -> void:
 	var e2: Dictionary = spawn(game.ppos + Vector2(80, 0))
 	var h := {"src": "t", "emitter": "operator", "origin": "core", "range": "近战", "kind": "物理", "tags": ["follow_up"], "class": "先锋", "op": van.id}
 	rfx.on_hit(e2, h)
-	near(van.sp[0], van.sp_need(0) * 0.002, "衍生者终端：追击命中 +0.2% 技力")
+	# 10-28 流派（docs/181）：回技力只给召唤流派干员（if.lane = summon）
+	var sp_k: float = 1.0 if van.in_lane("summon") else 0.0
+	near(van.sp[0], van.sp_need(0) * 0.002 * sp_k, "衍生者终端：追击命中 +0.2% 技力（非召唤流派 0）")
 	for k in 20:
 		rfx.on_hit(e2, h)
-	near(van.sp[0], van.sp_need(0) * 0.01, "衍生者终端：每秒最多 1%")
+	near(van.sp[0], van.sp_need(0) * 0.01 * sp_k, "衍生者终端：每秒最多 1%（非召唤流派 0）")
 	e2.dead = true
 
 
@@ -211,12 +213,13 @@ func test_batch_d_f() -> void:
 	grant("230")
 	near(game.enemy_speed_mult, 0.85, "苦痛的快乐：敌人移速 ×0.85")
 	var t0: float = game.stats.value(&"dmg_taken")
+	var dk: float = game.stats.value_with(&"dmg_taken", "add", 1.0) - t0   # 加法修正的实际倍率（已有乘区会缩放它，10-28 整合后 0.9）
 	grant("253")
 	near(game.stats.value(&"dmg_taken") - t0, 0.0, "蓝卡坞安全衣：没有遭诅古物时无效果")
 	grant("216")
-	near(game.stats.value(&"dmg_taken") - t0, -0.08, "蓝卡坞安全衣：1 件遭诅古物 -8%")
+	near(game.stats.value(&"dmg_taken") - t0, -0.08 * dk, "蓝卡坞安全衣：1 件遭诅古物 -8%")
 	grant("218")
-	near(game.stats.value(&"dmg_taken") - t0, -0.16, "蓝卡坞安全衣：2 件 -16%")
+	near(game.stats.value(&"dmg_taken") - t0, -0.16 * dk, "蓝卡坞安全衣：2 件 -16%")
 	var a0: float = game.stats.value(&"op_aspd")
 	grant("254")
 	near(game.stats.value(&"op_aspd") - a0, 0.3, "刀光剑影：2 件遭诅古物攻速 +30%")
@@ -237,8 +240,9 @@ func test_batch_g() -> void:
 		near(rfx.hit_mult(h, e), 1.0, "Scout的狙击镜：近战不加成")
 		e.dead = true
 	var t0: float = game.stats.value(&"dmg_taken")
+	var dk: float = game.stats.value_with(&"dmg_taken", "add", 1.0) - t0
 	grant("180")
-	near(game.stats.value(&"dmg_taken") - t0, -0.03 * game.squad.size(), "地形图：按编队人数 -3%% / 人（%d 人）" % game.squad.size())
+	near(game.stats.value(&"dmg_taken") - t0, -0.03 * game.squad.size() * dk, "地形图：按编队人数 -3%% / 人（%d 人）" % game.squad.size())
 	# 招募事件：残弩-突破只对狙击、一份演讲稿只一次、地区行动方案给源石锭、人事部密信给三选一
 	grant("147")
 	grant("187")
@@ -358,8 +362,9 @@ func test_batch_general() -> void:
 	var tk0: float = rfx.taken_mult()
 	grant("126")
 	near(rfx.taken_mult() / tk0, 0.95, "国王的圆饼：满血受伤 ×0.95")
-	game.hp = game.max_hp * 0.65
-	near(rfx.taken_mult() / tk0, 0.7, "国王的圆饼：生命 65%（< 70%）时 ×0.7（docs/65）")
+	var kl: float = Bal.v("relic/king_low", 0.3)   # 低血门槛 0.7 → 0.3（docs/178 危险感回调）
+	game.hp = game.max_hp * (kl - 0.05)
+	near(rfx.taken_mult() / tk0, 0.7, "国王的圆饼：生命低于 relic/king_low 时 ×0.7（docs/65 / 178）")
 	reset_hp()
 	grant("105")
 	rfx.tulip_t = 30.0

@@ -751,13 +751,15 @@ func test_gates() -> void:
 	ok(m.dead, "最后一幕打完正常死亡（%d 击）" % k)
 	# 最终 Boss：两道刻度；这一幕已满时长则越过刻度立刻过卡点、不升护盾
 	var f: Dictionary = sp.spawn_enemy("paranoia", game.ppos + Vector2(1700, 0))
-	ok(f.gates == [0.66, 0.33] and absf(f.act_min - Bal.v("boss/act_min_final", 13.0)) < EPS, "最终 Boss 刻度 0.66 / 0.33、每幕 %.0f 秒" % f.act_min)
+	# 刻度按 enemies.json（偏执泡影 10-28 改三道 0.84 / 0.67 / 0.5，docs/170）；没写才是缺省 0.66 / 0.33
+	var fg: Array = preload("res://scripts/data.gd").ENEMIES["paranoia"].get("gates", [0.66, 0.33])
+	ok(f.gates == fg and absf(f.act_min - Bal.v("boss/act_min_final", 13.0)) < EPS, "最终 Boss 刻度 %s、每幕 %.0f 秒" % [str(fg), f.act_min])
 	f.act_t = 99.0
 	k = 0
-	while f.gates.size() == 2 and k < 200:
+	while f.gates.size() == fg.size() and k < 200:
 		c.damage(f, f.maxhp)
 		k += 1
-	ok(not f.gate_hold and f.gates == [0.33] and absf(f.hp - f.maxhp * 0.66) < 0.01, "满时长越过刻度：直接过卡点、截在 66%")
+	ok(not f.gate_hold and f.gates == fg.slice(1) and absf(f.hp - f.maxhp * float(fg[0])) < 0.01, "满时长越过刻度：直接过卡点、截在第一道刻度 %.0f%%" % (float(fg[0]) * 100.0))
 	f.dead = true
 	var iz: Dictionary = sp.spawn_enemy("izumik", game.ppos + Vector2(1800, 0))
 	ok(absf(iz.act_min - 10.0) < EPS, "伊祖米克每幕 10 秒")
@@ -1610,11 +1612,12 @@ func test_lore2() -> void:
 		e.stun = 0.0
 		e.cds = {"judge": INF, "snipe": INF, "hop": INF, "sword": INF}   # 其他招式冷却中：出招后的站定窗口会顺延装填（这是设计），测试里只看装填本身
 		e.pattern_next = INF
+		e.app_t = INF   # 跳过伊比利亚装填前的压上段（iberia_reload_walk，协调人 10-27）：这里只看装填本身
 		bai._boss_ai(e, dt, Vector2.LEFT, 500.0)
 	ib.ammo = 0
 	ib.reload_t = 0.0
 	go.call(ib, 0.01)
-	ok(absf(ib.channel - Bal.v("boss/iberia_reload", 2.2)) < 0.05 and ib.count_max > 0.0, "伊比利亚弹药打空开始读条 %.1f 秒" % ib.channel)
+	ok(absf(ib.channel - Bal.v("boss/iberia_reload", 3.0)) < 0.05 and ib.count_max > 0.0, "伊比利亚弹药打空开始读条 %.1f 秒" % ib.channel)
 	var k := 0
 	while ib.channel > 0.0 and k < 100:
 		c.damage(ib, ib.maxhp * 0.01)
@@ -1682,7 +1685,7 @@ func test_lore3() -> void:
 		bai._paranoia_cocoon_step(pa, 0.1)
 		tt += 0.1
 		c.damage(pa, pa.shell_max * 10.0)
-	ok(pa.phase == 2 and pa.break_t > 0.0 and absf(pa.hp - pa.maxhp * 0.8) < 1.0 and tt >= Bal.v("boss/paranoia_shell_min", 4.0) - 0.3, "输出拉满也要约 %.1f 秒打破外壳：复活到 80%% 并破绽" % tt)
+	ok(pa.phase == 2 and pa.break_t > 0.0 and absf(pa.hp - pa.maxhp * Bal.v("boss/paranoia_revive", 0.8)) < 1.0 and tt >= Bal.v("boss/paranoia_shell_min", 4.0) - 0.3, "输出拉满也要约 %.1f 秒打破外壳：复活到 paranoia_revive 并破绽" % tt)
 	pa.dead = true
 	var pb: Dictionary = sp.spawn_enemy("paranoia", game.ppos + Vector2(1600, 0))
 	bai.paranoia_cocoon(pb)

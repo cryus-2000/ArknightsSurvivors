@@ -575,8 +575,10 @@ def check_manual_all(godot, only=None):
 def check_prot(godot):
     """主控保护（tests/prot_test.tscn，docs/38 §1.11）：Boss 来源单发 ≤40%、2 秒合计 ≤50%、满血保护、Boss 持续伤害每秒 ≤4%"""
     ids = op_ids()
+    # 保护机制按参照档验（10-28 danger-pass 把缺省放松到 2 秒 0.68 / 任意来源 0.70 / 满血保护 60 秒、5%，docs/178；机制不变、断言写的是旧档数字）
+    ref = ["--bal=boss/leader_2s_cap=0.5", "--bal=protect/any_2s_cap=0.55", "--bal=boss/fullhp_guard_cd=30", "--bal=boss/fullhp_guard_left=0.1"]
     out, err, to, log = _run([godot, "--headless", "--path", GAME, "res://tests/prot_test.tscn", "--", "--balance", "--seed=1",
-                              "--op=" + ("wisadel" if "wisadel" in ids else ids[0])], 300, "prot")
+                              "--op=" + ("wisadel" if "wisadel" in ids else ids[0])] + ref, 300, "prot")
     errs = GR.script_errors(out, err)
     m = re.search(r"(\d+) checks, (\d+) failed", out)
     fails = re.findall(r"^FAIL: .*$", out + "\n" + err, re.M)
