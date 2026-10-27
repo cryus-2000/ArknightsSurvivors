@@ -9,10 +9,21 @@
 ##     冲刺穿过幻影 = 幻影炸开（小伤害 + 减速 1 秒），丢一次冲刺。凝视改 X 交叉（交点在你脚下）
 ##   三幕「失声」（落地二阶段，茧后同）：光环张开时她受伤 × paranoia_aura_taken（0.5，取代原作的重攻速减益——攻速削减上限 −15%，§1.11）；
 ##     冲刺穿身 = 光环散掉 paranoia_aura_off（5）秒，正常受伤；呼号只在光环张开时放（每 6 秒）；泡影环 2 波错位缺口
+##   连携攻势（docs/170，10-27）：每幕两组有限连段轮流 + 本作弹幕图案，在 paranoia_combos.gd；boss/paranoia_combos 0 = 回到下面的独立轮换
 extends "res://scripts/enemies/bosses/boss_base.gd"
 
 const COL := Color(0.9, 0.4, 1.0)
+const BossBeam = preload("res://scripts/render/boss_beam.gd")
 const MOVES := ["叠影", "凝视", "泡影环", "呼号"]
+const Combos = preload("res://scripts/enemies/bosses/paranoia_combos.gd")
+
+var _pc = null
+
+
+func combos():
+	if _pc == null:
+		_pc = Combos.new(g, self)
+	return _pc
 
 
 ## 每帧（boss_ai._boss_ai 公共段之后）：ready = 本帧可以出招；mate = 接潮搭档（没有则 null）
@@ -21,8 +32,11 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		_paranoia_cocoon_step(e, dt)
 		return
 	_drop_step(e)
+	_beam_hold(e)
 	_decoy_step(e, dt)
 	_paranoia_aura(e, dist)
+	if Combos.on(e) and combos().step(e, dt, dir, dist, ready):
+		return
 	if not ready:
 		return
 	# 一阶段悬浮远程时的迫近（泡影漂近，协调人 9/30 定 b；close6b：落地前 on_boss 0.01–0.10，用时一一对应）
@@ -44,11 +58,17 @@ func setup_preview_phase2(e: Dictionary) -> void:
 
 
 func demo_moves(_e: Dictionary) -> Array:
-	return MOVES + g.bai.finals.NAMES["paranoia"]
+	return MOVES + g.bai.finals.NAMES["paranoia"] + Combos.EMITTERS.keys() + ["幻象冲撞"]
 
 
 func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 	if g.bai.finals.force_move(e, name, dir, dist):
+		return true
+	if Combos.EMITTERS.has(name):
+		combos()._emit(e, name, dir)
+		return true
+	if name == "幻象冲撞":
+		combos().rush(e, dir)
 		return true
 	match name:
 		"凝视":
@@ -70,7 +90,8 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 ##   二幕 X 交叉——两道以你脚下为交点、与「她 → 你」各成 ±0.6 弧度，出手即锁定：斜着离开交点；
 ##   三幕 / 茧后（落地）——原来的 3 道依次追踪（每道间隔 0.6 秒）。茧没打破 +1 道（依次追踪接在后面）
 func _gaze(e: Dictionary, dir: Vector2) -> void:
-	var base: Dictionary = {"len": 820.0, "wid": 26.0, "act": "beam", "col": COL, "dmg": e.dmg * Bal.v("boss/paranoia_gaze_mult", 1.56), "corrode": 0.5, "kp": "paranoia", "kp_k": 2.0}   # 原 2.0（10-25 加密 ×0.78）
+	var base: Dictionary = {"len": 820.0, "wid": 26.0, "act": "beam", "col": COL, "dmg": e.dmg * Bal.v("boss/paranoia_gaze_mult", 1.56), "corrode": 0.5, "kp": "paranoia", "kp_k": 2.0, "skin": "gaze",
+		"kp_life": 1.0, "kp_on": 0.2, "hold": 0.8}   # 持续光束：预警期蓄力（paranoia_combo_draw）→ 开火短闪 → 0.2 秒张开、保持到 0.8 秒（期间碰到算一次伤害）→ 0.2 秒变细并碎成颗粒（用户 10-27）   # skin gaze：预警由 paranoia_combo_draw 画（暗红低填充 + 泡沫边）   # 原 2.0（10-25 加密 ×0.78）
 	var ng: int = 4   # 落地后依次 4 道（10-25 加密：原 3）
 	if e.phase == 1 and int(e.get("gates_passed", 0)) >= 1:
 		ng = 0
@@ -89,11 +110,54 @@ func _gaze(e: Dictionary, dir: Vector2) -> void:
 		_warn(e, "line", 1.3 + 0.6 * k, base.merged({"ang": dir.angle(), "track": 0.65 + 0.6 * k, "seq_no": k + 1, "name": "凝视" if k == 0 and ng != 0 else "", "lock": k == 0 and ng != 0}))
 
 
+## 凝视持续光束的保持段（docs/170）：结算后 hold 秒内光束仍在，队长碰到就按同一道预警结算一次（结算瞬间已中的不再算）。
+## 画面是 kp_beam 的 kp_life，判定只到保持段结束、收拢的 0.15 秒不伤人
+func _beam_hold(e: Dictionary) -> void:
+	var beams: Array = e.get("gaze_beams", [])
+	for w in g.warns:
+		if w.done and is_same(w.owner, e) and str(w.get("skin", "")) == "gaze" and float(w.get("hold", 0.0)) > 0.0 and not w.has("hold_until"):
+			w.hold_until = g.t + float(w.hold) - (w.t - w.dur)
+			if not g.tele.hits_leader(w):
+				beams.append(w)   # 结算瞬间没中的才进保持段
+			_beam_fx(w, "bfx_flash", 16)   # 开火瞬间沿线短闪
+			var fxl: Array = e.get("gaze_fx", [])
+			fxl.append(w)
+			e.gaze_fx = fxl
+	# 保持段结束：光束碎成颗粒散开（画面里 kp_beam 同时 0.2 秒变细收拢）
+	var fx_live: Array = []
+	for w in e.get("gaze_fx", []):
+		if g.t >= float(w.hold_until):
+			_beam_fx(w, "mote_burst", 30)
+		else:
+			fx_live.append(w)
+	e.gaze_fx = fx_live
+	var live: Array = []
+	for w in beams:
+		if g.t >= float(w.hold_until):
+			continue
+		if g.tele.hits_leader(w):
+			g.tele.warn_damage(w)
+			continue
+		live.append(w)
+	e.gaze_beams = live
+
+
+func _beam_fx(w: Dictionary, tpl: String, n: int) -> void:
+	var gr = BossBeam.grains(g)
+	if gr == null:
+		return
+	var d := Vector2.from_angle(w.ang)
+	var k: int = BossBeam.take(g, n)
+	for i in k:
+		var p: Vector2 = w.pos + Vector2(0, -18) + d * float(w.len) * (i + 0.5) / maxf(1.0, k)
+		gr.push(tpl, p, d.orthogonal() * (1.0 if i % 2 == 0 else -1.0), Color(0.92, 0.82, 1.0))
+
+
 ## D · 呼号（二阶段，新；PRTS「大群的祈望堵住了她的喉咙，她发不出声音」→ 张口无声、只喷泡沫）：
 ## 扇形 r220 半角 0.8 暗填 + 亮边，追踪 0.4 + 锁定 0.9（§1.9 按扇边半宽的一半算）；e.dmg × 1.3，侵蚀 0.5，命中 1.5 秒移速 −30%
 func _howl(e: Dictionary, dir: Vector2) -> void:
 	_warn(e, "cone", 1.3, {"ang": dir.angle(), "r": 220.0, "half": 0.8, "track": 0.4, "act": "sweep", "name": "呼号", "col": Color(0.85, 0.45, 1.0),
-		"dmg": e.dmg * 1.3, "corrode": 0.5, "slow_t": 1.5, "slow_mult": 0.7, "slow_kind": "howl", "howl": true})
+		"dmg": e.dmg * 1.3, "corrode": 0.5, "slow_t": 1.5, "slow_mult": 0.7, "slow_kind": "howl", "howl": true, "skin": "howl"})
 
 
 ## ---- 偏执泡影（docs/38 §8.5）
@@ -122,6 +186,7 @@ func _drop_step(e: Dictionary) -> void:
 		e.drop_until = g.t + t
 		e.drop_ok_at = g.t + t + Bal.v("boss/paranoia_drop_cd", 2.0)
 		g.warns = g.warns.filter(func(w): return not is_same(w.owner, e) or w.done)
+		combos().interrupt(e)   # 打落打断连段
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 2.4, "life": 0.5, "max": 0.5, "col": Color(0.45, 0.95, 1.0), "enemy": true})
 		g.vfx.add_text(e.pos + Vector2(0, -70), "坠地", Color(0.45, 0.95, 1.0), 20)
 		g.vfx.shake_screen(0.6)
@@ -130,6 +195,7 @@ func _drop_step(e: Dictionary) -> void:
 		var t2: float = Bal.v("boss/paranoia_aura_off", 5.0)
 		e.aura_off_until = g.t + t2
 		e.aura_off_max = t2
+		combos().interrupt(e)   # 打散光环打断连段
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": float(e.get("burden_r", 300.0)), "life": 0.6, "max": 0.6, "col": Color(0.45, 0.95, 1.0), "enemy": true})
 		g.vfx.add_text(e.pos + Vector2(0, -70), "光环散开", Color(0.45, 0.95, 1.0), 18)
 		Sfx.play("shell_break", -6.0, 1.1, 0.0)
@@ -170,6 +236,8 @@ func _decoy_step(e: Dictionary, dt: float) -> void:
 		o.pos = o.pos.move_toward(want, 160.0 * dt)
 		o.kb = Vector2.ZERO
 		o.hp = o.maxhp
+		# 幻影：整体更透、偏冷，透明度轻微闪动（纯画面字段，只读 g.t）；真身不变
+		o["tint2"] = Color(0.78, 0.9, 1.25, 0.5 + 0.12 * sin(g.t * 7.0 + float(sl.k) * 2.1))
 		o.phase = 1
 		if int(o.hits) >= int(Bal.v("boss/paranoia_decoy_hits", 3.0)):
 			_decoy_pop(e, sl, false)
@@ -268,6 +336,7 @@ func paranoia_cocoon(e: Dictionary) -> void:
 	e.count_max = e.cocoon_t
 	e.shell_shot = 0.0
 	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))
+	combos().reset(e)
 	g.stats.remove_source("paranoia_aura")
 	e.burden_in = false
 	e.burden_k = 0
@@ -340,6 +409,7 @@ func on_lethal(e: Dictionary) -> bool:
 
 ## 认知负担光环、幻影随本体撤掉
 func on_kill(e: Dictionary) -> void:
+	combos().reset(e)
 	for sl in e.get("decoys", []):
 		if sl.o != null and not sl.o.dead:
 			sl.o.dead = true

@@ -14,19 +14,20 @@ static func make_image(frame: int) -> Image:
 			var radial := sqrt(rr)
 			var angle := uv.angle()
 			# A bubble transmits the scene; only its grazing-angle membrane catches light.
-			var col := Color(0.50, 0.81, 0.84, 0.035)
+			# 10-27 用户「换成紫色泡泡」：原青色水泡改紫（与连段弹幕同色），透光感与高光位置不变
+			var col := Color(0.6, 0.28, 0.95, 0.18)
 			var shimmer := sin(angle * 3.0 + frame * TAU / 12.0)
 			if radial > 0.94:
-				col = Color(0.48, 0.78, 0.84, 0.28 + 0.12 * shimmer)
+				col = Color(0.74, 0.4, 1.0, 0.7 + 0.15 * shimmer)
 			elif radial > 0.84:
-				col = Color(0.65, 0.89, 0.89, 0.12)
+				col = Color(0.72, 0.42, 1.0, 0.34)
 			# Broken curved reflections, never diffuse shading across a solid sphere.
 			if radial > 0.79 and radial < 0.94 and angle > -2.9 and angle < -1.5:
-				col = Color(0.88, 0.97, 0.94, 0.88 if radial > 0.85 else 0.38)
+				col = Color(0.97, 0.9, 1.0, 0.9 if radial > 0.85 else 0.4)
 			if radial > 0.87 and angle > 0.25 and angle < 1.25:
-				col = Color(0.52, 0.86, 0.88, 0.62)
+				col = Color(0.68, 0.4, 1.0, 0.7)
 			if radial > 0.62 and radial < 0.70 and angle > -2.6 and angle < -2.1:
-				col = Color(0.87, 0.97, 0.95, 0.48)
+				col = Color(0.95, 0.88, 1.0, 0.5)
 			img.set_pixel(x, y, col)
 	return img
 
@@ -44,7 +45,7 @@ static func shadow(r, w: Dictionary, alpha: float) -> void:
 		var half_width := radius * 0.8 * sqrt(maxf(0.0, 1.0 - pow(y / 7.0, 2)))
 		var a: Vector2 = (w.pos + Vector2(-half_width, y)).snapped(Vector2(2,2))
 		var b: Vector2 = (w.pos + Vector2(half_width, y)).snapped(Vector2(2,2))
-		r.tb_quad(a,b,b+Vector2(0,2),a+Vector2(0,2),Color(0.015,0.045,0.06,alpha*0.16))
+		r.tb_quad(a,b,b+Vector2(0,2),a+Vector2(0,2),Color(0.05,0.015,0.07,alpha*0.18))
 
 static func draw(g, w: Dictionary, alpha: float, charging := false) -> void:
 	var age: float = float(w.get("age", w.get("t", 0.0)))
@@ -72,7 +73,7 @@ static func pop(g, f: Dictionary) -> void:
 		var q := p + d * float(f.r) * (0.92 + t*1.1) + Vector2(0,t*t*22)
 		var sz := 2.0
 		q = q.snapped(Vector2(2,2))
-		var c := Color(0.76, 0.94, 0.94)
+		var c := Color(0.85, 0.6, 1.0)
 		c.a = 1.0-t
 		r.tb_quad(q,q+Vector2(sz,0),q+Vector2(sz,sz),q+Vector2(0,sz),c)
 		if t < 0.55 and k % 2 == 0:

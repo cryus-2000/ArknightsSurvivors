@@ -6,6 +6,7 @@ extends RefCounted
 ## 3. 卡门火线、塑路者生路、泡影悬浮圈、伊莎玛拉连线、伊祖米克子代与茧（地面层）；接潮组同步护盾、泡影坠地 / 光环散开倒计时、伊莎玛拉音符与护盾格、伊祖米克来向箭头与强化层数（顶层）。
 const A = preload("res://scripts/art.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const ParanoiaComboDraw = preload("res://scripts/render/paranoia_combo_draw.gd")
 
 const SEG := 16.0     # 每段宽（美术像素）
 const HALF_H := 24.0  # 帧高 48 的一半（光束竖直居中）
@@ -64,12 +65,13 @@ static func draw(g, f: Dictionary) -> bool:
 	var left: float = float(f.max) - el
 	if left <= 0.0:
 		return true   # 真实时间已到（掉帧 / 顿帧时模拟还没走完）：不再画
-	var on: bool = el < ON_T or left < ON_T
+	var on_t: float = float(f.get("on_t", ON_T))   # 开合时长：缺省 ON_T，泡影凝视持续光束 0.15（docs/170）
+	var on: bool = el < on_t or left < on_t
 	var fr: int
-	if el < ON_T:
-		fr = clampi(int(el / ON_T * 4.0), 0, 3)
-	elif left < ON_T:
-		fr = clampi(int(left / ON_T * 4.0), 0, 3)   # 关闭 = 开启倒放
+	if el < on_t:
+		fr = clampi(int(el / on_t * 4.0), 0, 3)
+	elif left < on_t:
+		fr = clampi(int(left / on_t * 4.0), 0, 3)   # 关闭 = 开启倒放
 	else:
 		fr = int(el * FPS) % 4
 	var suf: String = "_on" if on else ""
@@ -173,6 +175,7 @@ static func _paths(g, e: Dictionary) -> void:
 ## 偏执泡影「打落」读法（docs/142b §3.5）：悬浮时身下白色双描边椭圆（主控冲刺可用时加亮）；
 ## 坠地 / 三幕光环散开时青色倒计时环（弧长 = 剩余比例）
 static func _paranoia_ground(g, e: Dictionary) -> void:
+	ParanoiaComboDraw.draw_ground(g, e)   # 凝视预警（暗红低填充 + 泡沫边，docs/170）
 	if e.get("cocoon_t", 0.0) > 0.0 or e.phase != 1 or float(e.get("break_t", 0.0)) > 0.0:
 		return
 	var al: float = 0.75 if g.dash_ready() else 0.3
@@ -183,6 +186,7 @@ static func _paranoia_ground(g, e: Dictionary) -> void:
 
 
 static func _paranoia_top(g, e: Dictionary) -> void:
+	ParanoiaComboDraw.draw_top(g, e)   # 连携攻势：幻影空心泡 / 起手聚光（docs/170）
 	var left: float = 0.0
 	if e.phase == 1 and float(e.get("drop_until", 0.0)) > g.t:
 		left = (float(e.drop_until) - g.t) / maxf(0.1, Bal.v("boss/paranoia_drop_t", 4.0))

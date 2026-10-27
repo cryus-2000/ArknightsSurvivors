@@ -3635,8 +3635,12 @@ func _burden_ring(e: Dictionary) -> void:
 	var gy: float = ground_y()
 	var o: Vector2 = e.pos
 	var sq := func(v: Vector2) -> Vector2: return o + Vector2(v.x, v.y * gy)   # 地面椭圆：纵向按 GROUND_Y 压（原来用画布变换，改算顶点好进批）
-	tb_circle(o, r, Color(c.r, c.g, c.b, 0.06 if inn else 0.03), gy, 48)
-	tb_arc(o, r, 0.0, TAU, 2.0, Color(c.r, c.g, c.b, 0.5 * a), 72, gy)
+	# 10-27（docs/170）：去掉整片平涂和实线外圈（像 UI 光盘），外缘改成一圈缓慢漂移的小泡沫
+	tb_circle(o, r, Color(c.r, c.g, c.b, 0.02 if inn else 0.008), gy, 48)
+	for q in 44:
+		var fa: float = q * TAU / 44.0 + g.t * 0.08 + 0.05 * sin(g.t * 1.3 + q * 1.7)
+		var fr: float = 2.0 + 1.5 * absf(sin(q * 2.3 + g.t * 0.9))
+		tb_arc(sq.call(Vector2.from_angle(fa) * (r - 3.0 + 4.0 * sin(q * 0.9 + g.t))), fr, 0.0, TAU, 1.0, Color(c.r, c.g, c.b, 0.55 * a), 8)
 	if Bal.v("render/burden_lite", 0.0) > 0.0:
 		return   # docs/139 §8：只留淡底 + 外圈（不画内圈与转动符文）
 	tb_arc(o, r - 14.0, 0.0, TAU, 1.0, Color(c.r, c.g, c.b, 0.3 * a), 72, gy)

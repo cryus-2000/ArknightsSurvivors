@@ -41,7 +41,7 @@ func _warn(e: Dictionary, shape: String, dur: float, d: Dictionary) -> Dictionar
 	var base := {"act": "final_attack", "col": g.vfx.boss_color(e.type), "dmg": e.dmg * 0.85,
 		"cancel_dead": true, "track": 0.0, "corrode": 0.3 if e.type == "paranoia" else 0.0,
 		"true": e.type == "ishar", "arts": e.type in ["paranoia", "izumik"]}
-	if e.type == "paranoia": base.col = Color(0.36, 0.78, 0.88)
+	if e.type == "paranoia": base.col = Color(0.7, 0.38, 1.0)   # 紫（用户 10-27「换成紫色泡泡」，原青 0.36/0.78/0.88）
 	base.merge(d, true)
 	if e.type == "knight_boss" and str(base.get("skin", "")) in KNIGHT_ICE:
 		base.dmg = float(base.dmg) * Bal.v("boss/knight_ice_dmg_k", 0.8)   # 用户 10-27：弹幕变密后骑士冰锋 / 冰阵单发 ×0.8（旋钮，云端测完再定）

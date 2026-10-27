@@ -179,7 +179,7 @@ static func _color(w: Dictionary) -> Color:
 		"ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_wall", "spear", "crescent", "step":
 			return Color(0.48, 0.81, 1.0, 0.9)
 		"phantom", "bubble":
-			return Color(0.48, 0.86, 0.96, 0.9)
+			return Color(0.78, 0.48, 1.0, 0.9)   # 偏执泡影：紫（用户 10-27，原青）
 		"choir":
 			return Color(0.46, 0.92, 0.84, 0.9)
 		"tide", "tentacle":
