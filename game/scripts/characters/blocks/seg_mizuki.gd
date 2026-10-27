@@ -1,6 +1,8 @@
 ## 干员积木 · seg_mizuki（docs/101 §7.3 B6 ①，10-15：由 op_blocks.gd 按段拆出，内容与注释照搬；继承链与门面见 op_blocks.gd）
 extends "res://scripts/characters/blocks/seg_lumen.gd"
 
+const MzVg = preload("res://scripts/characters/blocks/vis_growth.gd")   # 可见成长 #129（docs/163 / 163D）：触手桩在场上限 +1
+
 const MizukiS3Fx = preload("res://scripts/characters/mizuki_s3_fx.gd")
 
 const H3_GOLD := Color(0.957, 0.753, 0.306)   # 同 ui.gd GOLD（灯火金：唤醒）
@@ -266,7 +268,7 @@ static func _h3_tentacle(o, a: Dictionary, target: Dictionary, dmg: float, stun:
 		_e3_mark(o, target)   # 精英化第 3 批：深蓝之籽优先打被触手打过的
 	var sk = tb.get("stake", null)
 	if sk is Dictionary and cond_true(o, sk.get("cond", _ED)):
-		if mz.stakes.size() >= int(sk.get("max", 6)):
+		if mz.stakes.size() >= int(sk.get("max", 6)) + MzVg.summon_subs(g, "stake"):   # 只扩容量，仍由原触手攻击创建（163B §4）
 			mz.stakes.pop_front()
 		mz.stakes.append({"pos": p, "t": float(sk.get("life", 1.5)), "tick": float(sk.get("every", 0.5)), "dmg": dmg * float(sk.get("mult", 0.4)), "flip": g.vrng.randf() < 0.5, "b": sk})
 	if h3_full_circle(o, a):

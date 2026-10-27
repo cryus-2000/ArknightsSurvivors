@@ -42,12 +42,12 @@ func _ready() -> void:
 func test_curves(db) -> void:
 	var s: Dictionary = VG.compute({"58": 1}, db)
 	near(s.e_scatter, 1.0, "银餐叉 1 层：额外 1 发")
-	near(s.t_shots, 1.25, "银餐叉 1 层：总伤 ×1.25（eps 0.25，§9 第 2 问）")
+	near(s.t_shots, 1.15, "银餐叉 1 层：额外弹部分 ×1.15（eps 0.15；另有远程伤害 +10% 属性，合计同旧稿 25%）")
 	s = VG.compute({"58": 1, "59": 1}, db)
 	near(s.e_shots, 1.7, "散射 + 连发：E = 1 + 0.7")
 	near(s.e_burst, 1.0, "eps 大的连发排第一层（与获得顺序无关）")
 	near(s.e_scatter, 0.7, "散射排第二层 ×0.7")
-	near(s.t_shots, 1.0 + 0.35 + 0.25 * 0.7, "T = 1 + Σ eps·w")
+	near(s.t_shots, 1.0 + 0.25 + 0.15 * 0.7, "T = 1 + Σ eps·w")
 	s = VG.compute({"58": 3, "59": 3}, db)
 	near(s.e_shots, 1.0 + 0.7 + 0.49 + 0.343 + 0.2401 + 0.16807, "6 层 E 渐近不封顶")
 	s = VG.compute({"63": 1, "56": 1}, db)
@@ -150,7 +150,7 @@ func test_live(g) -> void:
 	# ---- 远程：散射 + 连发
 	ok(g.progression.gain_relic("58"), "获得银餐叉")
 	ok(g.progression.gain_relic("59"), "获得损坏的左轮弹巢")
-	near(kal.stat(&"dmg") / kal_d0, 1.525, "凯尔希（没有普攻弹体）：伤害 ×T")
+	near(kal.stat(&"dmg") / kal_d0, 1.355, "凯尔希（没有普攻弹体）：伤害 ×T（远程伤害 +10% 另由属性给）")
 	near(exu.stat(&"dmg") / exu_d0, 1.0, "能天使（吃弹）：不加直接伤害")
 	var atk0: int = exu.atk_n
 	step(g, 300)
@@ -176,6 +176,7 @@ func test_live(g) -> void:
 	ok(g.progression.gain_relic("130"), "获得衍生者终端-超级改")
 	ok(VG.summon_subs(g, "mon3tr") == 0, "Mon3tr 例外：数量不 +1")
 	ok(VG.summon_subs(g, "soul") == 1, "其他召唤物：副体 +1")
+	ok(VG.summon_subs(g, "stake") == 1, "水月触手桩：在场上限 +1")
 	near(VG.summon_scale(g), 1.15, "召唤物体型 ×1.15")
 	step(g, 30)
 	var souls: Array = wis.hw.get("wd", {}).get("souls", [])
