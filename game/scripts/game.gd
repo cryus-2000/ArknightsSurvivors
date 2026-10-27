@@ -884,7 +884,7 @@ func _ready() -> void:
 		stats.set_base(&"max_hp", float(stats._base[&"max_hp"]) * Bal.v("squad/leader_hp_mult", 1.0))
 	if stats.has_stat(&"op_atk"):
 		stats.set_base(&"op_atk", Bal.v("squad/op_atk_base", 1.0))
-	# 闪避移进局外成长（用户 10-27，docs/109 §17）：队长基础闪避归零，少掉的有效生命用最大生命 × dodge_comp_hp、受到伤害 × dodge_comp_taken 补回
+	# 闪避移进局外成长（用户 10-27，docs/109 §17）：队长基础闪避归零，少掉的有效生命用最大生命 × dodge_comp_hp、受到伤害 × dodge_comp_taken 部分补回（用户定只补受伤 ×0.9，有意削弱无成长）
 	# 回退：squad/leader_dodge 0.25、两个补偿 1
 	stats.set_base(&"dodge", Bal.v("squad/leader_dodge", 0.0))
 	stats.set_base(&"max_hp", float(stats._base[&"max_hp"]) * Bal.v("squad/dodge_comp_hp", 1.0))
