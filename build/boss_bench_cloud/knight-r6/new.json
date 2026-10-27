@@ -1,0 +1,4156 @@
+{
+ "tag": "new",
+ "game": "/home/user/bench_new_knight-r6/game",
+ "records": [
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 10,
+   "wall": 18.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.941,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.331,
+   "brk_time_share": 0.232,
+   "dmg": 3110.0,
+   "fight_t": 24.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 22,
+   "max_hp": 172.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "kaltsit_m0_s10_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "skadi"
+   ],
+   "taken": 330.2,
+   "taken_pct": 1.922,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 11,
+   "wall": 26.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.779,
+   "brk_time_share": 0.35,
+   "dmg": 79563.0,
+   "fight_t": 139.0,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 140.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     95.1
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s11_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "eyjafjalla"
+   ],
+   "taken": 389.9,
+   "taken_pct": 2.777,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 12,
+   "wall": 32.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.428,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.736,
+   "brk_time_share": 0.355,
+   "dmg": 30364.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 22,
+   "max_hp": 140.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s12_slot3",
+   "squad": [
+    "kaltsit",
+    "saria",
+    "angelina"
+   ],
+   "taken": 232.1,
+   "taken_pct": 1.653,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 13,
+   "wall": 28.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.731,
+   "brk_time_share": 0.343,
+   "dmg": 79563.0,
+   "fight_t": 126.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 171.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     91.7
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s13_slot3",
+   "squad": [
+    "kaltsit",
+    "ulpianus",
+    "skalter"
+   ],
+   "taken": 569.6,
+   "taken_pct": 3.323,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 14,
+   "wall": 27.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.76,
+   "brk_time_share": 0.382,
+   "dmg": 79563.0,
+   "fight_t": 161.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.906,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 186.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     111.8
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s14_slot3",
+   "squad": [
+    "kaltsit",
+    "exusiai",
+    "ulpianus"
+   ],
+   "taken": 523.0,
+   "taken_pct": 2.813,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 15,
+   "wall": 28.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.314,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.736,
+   "brk_time_share": 0.36,
+   "dmg": 62928.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.999,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 166.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     140.1
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s15_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "gladiia"
+   ],
+   "taken": 995.1,
+   "taken_pct": 5.98,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 16,
+   "wall": 22.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.755,
+   "brk_time_share": 0.354,
+   "dmg": 79563.0,
+   "fight_t": 83.0,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.903,
+   "leader": "kaltsit",
+   "level": 27,
+   "max_hp": 192.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     55.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s16_slot3",
+   "squad": [
+    "kaltsit",
+    "logos",
+    "specter_unchained"
+   ],
+   "taken": 234.7,
+   "taken_pct": 1.22,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 1,
+   "wall": 29.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.133,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.694,
+   "brk_time_share": 0.352,
+   "dmg": 46003.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 23,
+   "max_hp": 166.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s1_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "saria"
+   ],
+   "taken": 295.9,
+   "taken_pct": 1.778,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 2,
+   "wall": 23.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 42434.0,
+   "brk_dmg_share": 0.644,
+   "brk_time_share": 0.354,
+   "dmg": 63650.0,
+   "fight_t": 142.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.911,
+   "leader": "kaltsit",
+   "level": 22,
+   "max_hp": 197.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     104.9
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s2_slot3",
+   "squad": [
+    "kaltsit",
+    "hoshiguma",
+    "specter_unchained"
+   ],
+   "taken": 172.7,
+   "taken_pct": 0.879,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 3,
+   "wall": 16.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.983,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.537,
+   "brk_time_share": 0.261,
+   "dmg": 885.0,
+   "fight_t": 23.0,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 22,
+   "max_hp": 140.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "kaltsit_m0_s3_slot3",
+   "squad": [
+    "kaltsit",
+    "exusiai",
+    "texas"
+   ],
+   "taken": 249.9,
+   "taken_pct": 1.78,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 4,
+   "wall": 26.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 43494.0,
+   "brk_dmg_share": 0.764,
+   "brk_time_share": 0.347,
+   "dmg": 65242.0,
+   "fight_t": 114.3,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 231.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     71.2
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s4_slot3",
+   "squad": [
+    "kaltsit",
+    "exusiai",
+    "suzuran"
+   ],
+   "taken": 450.9,
+   "taken_pct": 1.948,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 5,
+   "wall": 27.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.44,
+   "boss_maxhp": 43494.0,
+   "brk_dmg_share": 0.752,
+   "brk_time_share": 0.38,
+   "dmg": 46088.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.768,
+   "leader": "kaltsit",
+   "level": 22,
+   "max_hp": 127.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     167.9
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s5_slot3",
+   "squad": [
+    "kaltsit",
+    "saria",
+    "hoshiguma"
+   ],
+   "taken": 623.9,
+   "taken_pct": 4.897,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 6,
+   "wall": 19.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.588,
+   "brk_time_share": 0.307,
+   "dmg": 79563.0,
+   "fight_t": 58.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.884,
+   "leader": "kaltsit",
+   "level": 27,
+   "max_hp": 192.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     39.7
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s6_slot3",
+   "squad": [
+    "kaltsit",
+    "logos",
+    "specter_unchained"
+   ],
+   "taken": 244.7,
+   "taken_pct": 1.272,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 7,
+   "wall": 28.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.347,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.652,
+   "brk_time_share": 0.332,
+   "dmg": 61138.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 140.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     159.7
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s7_slot3",
+   "squad": [
+    "kaltsit",
+    "angelina",
+    "lappland"
+   ],
+   "taken": 236.2,
+   "taken_pct": 1.683,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 8,
+   "wall": 18.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 45086.0,
+   "brk_dmg_share": 0.488,
+   "brk_time_share": 0.352,
+   "dmg": 67629.0,
+   "fight_t": 75.1,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|0.92|cold|\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.902,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 140.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     51.3
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s8_slot3",
+   "squad": [
+    "kaltsit",
+    "skalter",
+    "specter_unchained"
+   ],
+   "taken": 145.4,
+   "taken_pct": 1.036,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 9,
+   "wall": 25.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.033,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.592,
+   "brk_time_share": 0.293,
+   "dmg": 51267.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.986,
+   "leader": "kaltsit",
+   "level": 23,
+   "max_hp": 156.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s9_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "mizuki"
+   ],
+   "taken": 720.5,
+   "taken_pct": 5.483,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 10,
+   "wall": 24.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.745,
+   "brk_time_share": 0.367,
+   "dmg": 79563.0,
+   "fight_t": 137.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 172.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     95.4
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s10_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "eyjafjalla"
+   ],
+   "taken": 145.3,
+   "taken_pct": 0.846,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 11,
+   "wall": 24.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.712,
+   "brk_time_share": 0.351,
+   "dmg": 79563.0,
+   "fight_t": 121.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 172.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     74.3
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s11_slot3",
+   "squad": [
+    "kaltsit",
+    "suzuran",
+    "wisadel"
+   ],
+   "taken": 569.4,
+   "taken_pct": 3.314,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 12,
+   "wall": 27.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.727,
+   "brk_time_share": 0.344,
+   "dmg": 79498.0,
+   "fight_t": 154.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 290.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     108.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s12_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "wisadel"
+   ],
+   "taken": 116.8,
+   "taken_pct": 0.402,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 13,
+   "wall": 20.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.59,
+   "brk_time_share": 0.323,
+   "dmg": 79563.0,
+   "fight_t": 102.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.628,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 157.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     87.8
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s13_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "specter_unchained"
+   ],
+   "taken": 333.4,
+   "taken_pct": 2.12,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 14,
+   "wall": 23.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.737,
+   "brk_time_share": 0.366,
+   "dmg": 79563.0,
+   "fight_t": 131.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 161.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     97.9
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s14_slot3",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "ulpianus",
+    "skalter"
+   ],
+   "taken": 142.9,
+   "taken_pct": 0.99,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 15,
+   "wall": 27.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.429,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.693,
+   "brk_time_share": 0.356,
+   "dmg": 56819.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.899,
+   "leader": "kaltsit",
+   "level": 23,
+   "max_hp": 157.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     158.5
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m18_s15_slot3",
+   "squad": [
+    "kaltsit",
+    "skalter",
+    "gladiia"
+   ],
+   "taken": 464.3,
+   "taken_pct": 2.953,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 16,
+   "wall": 26.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 45086.0,
+   "brk_dmg_share": 0.785,
+   "brk_time_share": 0.361,
+   "dmg": 67629.0,
+   "fight_t": 145.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 23,
+   "max_hp": 165.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     100.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s16_slot3",
+   "squad": [
+    "kaltsit",
+    "exusiai",
+    "irene"
+   ],
+   "taken": 270.3,
+   "taken_pct": 1.643,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 1,
+   "wall": 16.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.763,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.755,
+   "brk_time_share": 0.274,
+   "dmg": 12566.0,
+   "fight_t": 38.0,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|0.92|cold|\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 24,
+   "max_hp": 157.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "kaltsit_m18_s1_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "texas"
+   ],
+   "taken": 558.9,
+   "taken_pct": 3.554,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 2,
+   "wall": 24.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47738.0,
+   "brk_dmg_share": 0.71,
+   "brk_time_share": 0.325,
+   "dmg": 71607.0,
+   "fight_t": 129.0,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|0.92|cold|\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.678,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 157.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     79.5
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s2_slot3",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "suzuran"
+   ],
+   "taken": 642.7,
+   "taken_pct": 4.087,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 3,
+   "wall": 23.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.456,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.724,
+   "brk_time_share": 0.349,
+   "dmg": 55394.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 24,
+   "max_hp": 206.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     161.8
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m18_s3_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "irene"
+   ],
+   "taken": 675.3,
+   "taken_pct": 3.273,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 4,
+   "wall": 22.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.697,
+   "brk_time_share": 0.362,
+   "dmg": 79563.0,
+   "fight_t": 94.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.857,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 140.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     63.4
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s4_slot3",
+   "squad": [
+    "kaltsit",
+    "skadi",
+    "specter_unchained"
+   ],
+   "taken": 437.4,
+   "taken_pct": 3.129,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 5,
+   "wall": 31.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.328,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.696,
+   "brk_time_share": 0.346,
+   "dmg": 62175.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 23,
+   "max_hp": 179.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     129.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m18_s5_slot3",
+   "squad": [
+    "kaltsit",
+    "saria",
+    "suzuran"
+   ],
+   "taken": 544.1,
+   "taken_pct": 3.038,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 6,
+   "wall": 26.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.756,
+   "brk_time_share": 0.365,
+   "dmg": 79563.0,
+   "fight_t": 155.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 163.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     107.4
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s6_slot3",
+   "squad": [
+    "kaltsit",
+    "saria",
+    "wisadel"
+   ],
+   "taken": 194.6,
+   "taken_pct": 1.195,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 7,
+   "wall": 23.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.653,
+   "brk_time_share": 0.336,
+   "dmg": 79563.0,
+   "fight_t": 111.8,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 142.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     70.4
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s7_slot3",
+   "squad": [
+    "kaltsit",
+    "angelina",
+    "suzuran"
+   ],
+   "taken": 516.8,
+   "taken_pct": 3.652,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 8,
+   "wall": 24.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.737,
+   "brk_time_share": 0.339,
+   "dmg": 79563.0,
+   "fight_t": 145.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 186.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     96.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s8_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "lappland"
+   ],
+   "taken": 181.4,
+   "taken_pct": 0.974,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 9,
+   "wall": 19.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.644,
+   "brk_time_share": 0.295,
+   "dmg": 79563.0,
+   "fight_t": 84.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.52,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 157.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     57.2
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s9_slot3",
+   "squad": [
+    "kaltsit",
+    "exusiai",
+    "specter_unchained"
+   ],
+   "taken": 583.6,
+   "taken_pct": 3.712,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 10,
+   "wall": 29.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.156,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.756,
+   "brk_time_share": 0.343,
+   "dmg": 71302.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 158.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     140.8
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s10_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "wisadel"
+   ],
+   "taken": 355.0,
+   "taken_pct": 2.244,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 11,
+   "wall": 30.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.187,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.686,
+   "brk_time_share": 0.366,
+   "dmg": 69655.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 24,
+   "max_hp": 190.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     130.2
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s11_slot3",
+   "squad": [
+    "skadi",
+    "suzuran",
+    "lumen"
+   ],
+   "taken": 520.1,
+   "taken_pct": 2.736,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 12,
+   "wall": 32.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.242,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.717,
+   "brk_time_share": 0.357,
+   "dmg": 40215.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 19,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s12_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "angelina"
+   ],
+   "taken": 816.3,
+   "taken_pct": 5.367,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 13,
+   "wall": 18.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.995,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.645,
+   "brk_time_share": 0.329,
+   "dmg": 267.0,
+   "fight_t": 14.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 22,
+   "max_hp": 178.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "skadi_m0_s13_slot3",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "irene"
+   ],
+   "taken": 199.5,
+   "taken_pct": 1.12,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 14,
+   "wall": 14.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.856,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.737,
+   "brk_time_share": 0.224,
+   "dmg": 7631.0,
+   "fight_t": 22.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 235.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "skadi_m0_s14_slot3",
+   "squad": [
+    "skadi",
+    "eyjafjalla",
+    "suzuran"
+   ],
+   "taken": 338.4,
+   "taken_pct": 1.442,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 15,
+   "wall": 28.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.296,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.7,
+   "brk_time_share": 0.344,
+   "dmg": 37358.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 226.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s15_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "exusiai"
+   ],
+   "taken": 313.3,
+   "taken_pct": 1.576,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 16,
+   "wall": 16.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.955,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.229,
+   "brk_time_share": 0.216,
+   "dmg": 2382.0,
+   "fight_t": 24.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 140.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "skadi_m0_s16_slot3",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "wisadel"
+   ],
+   "taken": 271.3,
+   "taken_pct": 1.451,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 15.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.974,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.821,
+   "brk_time_share": 0.28,
+   "dmg": 1376.0,
+   "fight_t": 28.3,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 180.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "skadi_m0_s1_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "angelina"
+   ],
+   "taken": 317.9,
+   "taken_pct": 1.764,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 21.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 43494.0,
+   "brk_dmg_share": 0.674,
+   "brk_time_share": 0.347,
+   "dmg": 65242.0,
+   "fight_t": 64.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 137.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     44.7
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s2_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "siege"
+   ],
+   "taken": 212.7,
+   "taken_pct": 1.554,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 29.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.118,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.773,
+   "brk_time_share": 0.363,
+   "dmg": 46794.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.937,
+   "leader": "skadi",
+   "level": 23,
+   "max_hp": 172.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s3_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "exusiai"
+   ],
+   "taken": 1078.7,
+   "taken_pct": 6.276,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 18.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.652,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.779,
+   "brk_time_share": 0.327,
+   "dmg": 18454.0,
+   "fight_t": 54.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 160.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "skadi_m0_s4_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "eyjafjalla"
+   ],
+   "taken": 420.7,
+   "taken_pct": 2.634,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 27.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.677,
+   "brk_time_share": 0.334,
+   "dmg": 79563.0,
+   "fight_t": 168.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 335.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     102.9
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s5_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "suzuran"
+   ],
+   "taken": 964.4,
+   "taken_pct": 2.875,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 19.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.647,
+   "brk_time_share": 0.317,
+   "dmg": 79563.0,
+   "fight_t": 68.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 228.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     50.3
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s6_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "kaltsit"
+   ],
+   "taken": 157.9,
+   "taken_pct": 0.692,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 7,
+   "wall": 27.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.313,
+   "boss_maxhp": 47738.0,
+   "brk_dmg_share": 0.694,
+   "brk_time_share": 0.36,
+   "dmg": 56671.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.866,
+   "leader": "skadi",
+   "level": 24,
+   "max_hp": 143.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     164.9
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s7_slot3",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "lappland"
+   ],
+   "taken": 417.6,
+   "taken_pct": 2.914,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 8,
+   "wall": 25.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.686,
+   "brk_time_share": 0.373,
+   "dmg": 79563.0,
+   "fight_t": 155.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.8,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 212.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     103.4
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s8_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "eyjafjalla"
+   ],
+   "taken": 525.7,
+   "taken_pct": 2.838,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 9,
+   "wall": 16.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.979,
+   "boss_maxhp": 43494.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.195,
+   "dmg": 919.0,
+   "fight_t": 17.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 22,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "skadi_m0_s9_slot3",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "taken": 181.5,
+   "taken_pct": 1.193,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 10,
+   "wall": 33.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.451,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.718,
+   "brk_time_share": 0.355,
+   "dmg": 55619.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.994,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 170.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     153.7
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s10_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "angelina"
+   ],
+   "taken": 721.1,
+   "taken_pct": 4.233,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 11,
+   "wall": 29.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.428,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.759,
+   "brk_time_share": 0.364,
+   "dmg": 56846.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.836,
+   "leader": "skadi",
+   "level": 23,
+   "max_hp": 189.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     154.6
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s11_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "taken": 925.5,
+   "taken_pct": 5.749,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 12,
+   "wall": 23.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.739,
+   "brk_time_share": 0.33,
+   "dmg": 79563.0,
+   "fight_t": 112.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 259.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     82.6
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s12_slot3",
+   "squad": [
+    "skadi",
+    "gladiia",
+    "ulpianus"
+   ],
+   "taken": 336.8,
+   "taken_pct": 1.3,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 13,
+   "wall": 22.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 43494.0,
+   "brk_dmg_share": 0.707,
+   "brk_time_share": 0.313,
+   "dmg": 65242.0,
+   "fight_t": 74.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 180.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     51.3
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s13_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "logos"
+   ],
+   "taken": 258.5,
+   "taken_pct": 1.44,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 14,
+   "wall": 25.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.762,
+   "brk_time_share": 0.354,
+   "dmg": 79563.0,
+   "fight_t": 147.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 218.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     102.5
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s14_slot3",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "lumen"
+   ],
+   "taken": 325.7,
+   "taken_pct": 1.495,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 15,
+   "wall": 28.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.175,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.675,
+   "brk_time_share": 0.361,
+   "dmg": 70276.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 23,
+   "max_hp": 184.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     125.1
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s15_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "siege"
+   ],
+   "taken": 988.9,
+   "taken_pct": 5.805,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 16,
+   "wall": 30.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 43494.0,
+   "brk_dmg_share": 0.774,
+   "brk_time_share": 0.342,
+   "dmg": 65242.0,
+   "fight_t": 163.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.871,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 199.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     104.3
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s16_slot3",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "lumen"
+   ],
+   "taken": 624.4,
+   "taken_pct": 3.666,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 26.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.687,
+   "brk_time_share": 0.341,
+   "dmg": 79563.0,
+   "fight_t": 130.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 170.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     92.7
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s1_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "lappland"
+   ],
+   "taken": 150.5,
+   "taken_pct": 0.884,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 16.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.658,
+   "brk_time_share": 0.289,
+   "dmg": 79563.0,
+   "fight_t": 54.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.701,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 185.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     40.7
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s2_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "siege"
+   ],
+   "taken": 114.1,
+   "taken_pct": 0.617,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 29.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.437,
+   "boss_maxhp": 43494.0,
+   "brk_dmg_share": 0.742,
+   "brk_time_share": 0.375,
+   "dmg": 46253.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.88,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 228.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     156.9
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s3_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "exusiai"
+   ],
+   "taken": 836.0,
+   "taken_pct": 3.663,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 27.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.112,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.699,
+   "brk_time_share": 0.342,
+   "dmg": 73639.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.916,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 128.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     114.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s4_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "gladiia"
+   ],
+   "taken": 864.9,
+   "taken_pct": 6.77,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 20.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 43494.0,
+   "brk_dmg_share": 0.727,
+   "brk_time_share": 0.302,
+   "dmg": 65242.0,
+   "fight_t": 55.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.8,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 184.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     40.1
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s5_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "texas"
+   ],
+   "taken": 104.3,
+   "taken_pct": 0.568,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 17.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.677,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.66,
+   "brk_time_share": 0.319,
+   "dmg": 17111.0,
+   "fight_t": 42.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 229.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "skadi_m18_s6_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "exusiai"
+   ],
+   "taken": 422.9,
+   "taken_pct": 1.85,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 7,
+   "wall": 25.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.178,
+   "boss_maxhp": 43494.0,
+   "brk_dmg_share": 0.723,
+   "brk_time_share": 0.354,
+   "dmg": 57485.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.618,
+   "leader": "skadi",
+   "level": 22,
+   "max_hp": 150.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     136.6
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s7_slot3",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "lappland"
+   ],
+   "taken": 482.5,
+   "taken_pct": 3.226,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 8,
+   "wall": 18.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 45086.0,
+   "brk_dmg_share": 0.707,
+   "brk_time_share": 0.291,
+   "dmg": 67629.0,
+   "fight_t": 77.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 153.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     52.9
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s8_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "lumen"
+   ],
+   "taken": 245.3,
+   "taken_pct": 1.6,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 9,
+   "wall": 15.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.861,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.64,
+   "brk_time_share": 0.289,
+   "dmg": 7379.0,
+   "fight_t": 34.5,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 23,
+   "max_hp": 199.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "skadi_m18_s9_slot3",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "gladiia"
+   ],
+   "taken": 320.9,
+   "taken_pct": 1.609,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 10,
+   "wall": 33.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.729,
+   "brk_time_share": 0.36,
+   "dmg": 79563.0,
+   "fight_t": 156.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     115.2
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s10_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "suzuran"
+   ],
+   "taken": 475.0,
+   "taken_pct": 3.691,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 11,
+   "wall": 26.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.661,
+   "brk_time_share": 0.336,
+   "dmg": 79563.0,
+   "fight_t": 124.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 115.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     81.5
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s11_slot3",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "lumen"
+   ],
+   "taken": 374.4,
+   "taken_pct": 3.269,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 12,
+   "wall": 35.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.002,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.724,
+   "brk_time_share": 0.353,
+   "dmg": 79478.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 181.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     117.9
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m0_s12_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "exusiai"
+   ],
+   "taken": 444.2,
+   "taken_pct": 2.458,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 13,
+   "wall": 36.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.016,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.753,
+   "brk_time_share": 0.361,
+   "dmg": 78692.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 174.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     126.4
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m0_s13_slot3",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "lappland"
+   ],
+   "taken": 290.4,
+   "taken_pct": 1.877,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 14,
+   "wall": 22.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.722,
+   "brk_time_share": 0.315,
+   "dmg": 79563.0,
+   "fight_t": 104.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 28,
+   "max_hp": 155.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     68.9
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s14_slot3",
+   "squad": [
+    "wisadel",
+    "ulpianus",
+    "lumen"
+   ],
+   "taken": 197.1,
+   "taken_pct": 1.274,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 15,
+   "wall": 24.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.785,
+   "brk_time_share": 0.352,
+   "dmg": 79563.0,
+   "fight_t": 121.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.901,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     84.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s15_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "lappland"
+   ],
+   "taken": 167.4,
+   "taken_pct": 1.301,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 16,
+   "wall": 18.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.963,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.678,
+   "brk_time_share": 0.174,
+   "dmg": 1955.0,
+   "fight_t": 17.8,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 155.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "wisadel_m0_s16_slot3",
+   "squad": [
+    "wisadel",
+    "irene",
+    "siege"
+   ],
+   "taken": 208.9,
+   "taken_pct": 1.351,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 35.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.75,
+   "brk_time_share": 0.361,
+   "dmg": 79563.0,
+   "fight_t": 179.4,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 181.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     114.8
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s1_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "angelina"
+   ],
+   "taken": 251.5,
+   "taken_pct": 1.392,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 22.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 45086.0,
+   "brk_dmg_share": 0.722,
+   "brk_time_share": 0.321,
+   "dmg": 67629.0,
+   "fight_t": 71.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 193.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     52.5
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s2_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "lappland"
+   ],
+   "taken": 220.9,
+   "taken_pct": 1.144,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 27.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.629,
+   "brk_time_share": 0.344,
+   "dmg": 79563.0,
+   "fight_t": 123.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.986,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 142.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     75.6
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s3_slot3",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "suzuran"
+   ],
+   "taken": 685.7,
+   "taken_pct": 5.927,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 22.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.145,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.716,
+   "brk_time_share": 0.318,
+   "dmg": 71881.0,
+   "fight_t": 77.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     54.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "wisadel_m0_s4_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "skalter"
+   ],
+   "taken": 343.1,
+   "taken_pct": 2.666,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 24.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.708,
+   "brk_time_share": 0.344,
+   "dmg": 79563.0,
+   "fight_t": 115.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.831,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 194.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     80.3
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s5_slot3",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "eyjafjalla"
+   ],
+   "taken": 296.6,
+   "taken_pct": 1.531,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 23.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.768,
+   "brk_time_share": 0.316,
+   "dmg": 79563.0,
+   "fight_t": 89.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 314.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     61.6
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s6_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "suzuran"
+   ],
+   "taken": 311.4,
+   "taken_pct": 0.992,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 7,
+   "wall": 31.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.494,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.756,
+   "brk_time_share": 0.365,
+   "dmg": 53355.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 174.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     177.3
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m0_s7_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "kaltsit"
+   ],
+   "taken": 490.6,
+   "taken_pct": 2.816,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 8,
+   "wall": 16.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.876,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.676,
+   "brk_time_share": 0.156,
+   "dmg": 6555.0,
+   "fight_t": 18.2,
+   "fp_diff": [
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 148.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "wisadel_m0_s8_slot3",
+   "squad": [
+    "wisadel",
+    "ulpianus",
+    "angelina"
+   ],
+   "taken": 205.1,
+   "taken_pct": 1.384,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 9,
+   "wall": 25.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.696,
+   "brk_time_share": 0.322,
+   "dmg": 79563.0,
+   "fight_t": 177.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.735,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 242.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     118.3
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s9_slot3",
+   "squad": [
+    "wisadel",
+    "siege",
+    "mizuki"
+   ],
+   "taken": 551.0,
+   "taken_pct": 2.276,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 10,
+   "wall": 30.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 45086.0,
+   "brk_dmg_share": 0.749,
+   "brk_time_share": 0.36,
+   "dmg": 67629.0,
+   "fight_t": 150.4,
+   "fp_diff": [
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 149.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     96.6
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s10_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "angelina"
+   ],
+   "taken": 369.4,
+   "taken_pct": 2.474,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 11,
+   "wall": 21.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 43494.0,
+   "brk_dmg_share": 0.767,
+   "brk_time_share": 0.354,
+   "dmg": 65242.0,
+   "fight_t": 62.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 130.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     45.7
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s11_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "eyjafjalla"
+   ],
+   "taken": 62.9,
+   "taken_pct": 0.484,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 12,
+   "wall": 26.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.691,
+   "brk_time_share": 0.325,
+   "dmg": 79563.0,
+   "fight_t": 101.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 144.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     72.7
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s12_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "ulpianus"
+   ],
+   "taken": 361.7,
+   "taken_pct": 2.509,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 13,
+   "wall": 22.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.692,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.717,
+   "brk_time_share": 0.285,
+   "dmg": 16357.0,
+   "fight_t": 56.8,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 24,
+   "max_hp": 144.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "wisadel_m18_s13_slot3",
+   "squad": [
+    "wisadel",
+    "irene",
+    "kaltsit"
+   ],
+   "taken": 568.4,
+   "taken_pct": 3.943,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 14,
+   "wall": 26.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.239,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.749,
+   "brk_time_share": 0.347,
+   "dmg": 66861.0,
+   "fight_t": 122.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 202.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     95.6
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "wisadel_m18_s14_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "suzuran"
+   ],
+   "taken": 675.1,
+   "taken_pct": 3.336,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 15,
+   "wall": 24.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.686,
+   "brk_time_share": 0.339,
+   "dmg": 79563.0,
+   "fight_t": 110.9,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.714,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 105.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     75.8
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s15_slot3",
+   "squad": [
+    "wisadel",
+    "angelina",
+    "irene"
+   ],
+   "taken": 415.5,
+   "taken_pct": 3.953,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 16,
+   "wall": 28.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.76,
+   "brk_time_share": 0.356,
+   "dmg": 79563.0,
+   "fight_t": 128.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 159.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     86.8
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s16_slot3",
+   "squad": [
+    "wisadel",
+    "irene",
+    "lumen"
+   ],
+   "taken": 137.8,
+   "taken_pct": 0.87,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 27.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.663,
+   "brk_time_share": 0.349,
+   "dmg": 79563.0,
+   "fight_t": 137.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     93.5
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s1_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "ulpianus"
+   ],
+   "taken": 232.7,
+   "taken_pct": 1.533,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 17.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 42434.0,
+   "brk_dmg_share": 0.66,
+   "brk_time_share": 0.329,
+   "dmg": 63650.0,
+   "fight_t": 53.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.659,
+   "leader": "wisadel",
+   "level": 28,
+   "max_hp": 173.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     39.1
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s2_slot3",
+   "squad": [
+    "wisadel",
+    "logos",
+    "siege"
+   ],
+   "taken": 199.6,
+   "taken_pct": 1.152,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 28.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.05,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.708,
+   "brk_time_share": 0.35,
+   "dmg": 76854.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 160.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     125.1
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m18_s3_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lumen"
+   ],
+   "taken": 426.5,
+   "taken_pct": 2.673,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 16.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.7,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.763,
+   "brk_time_share": 0.276,
+   "dmg": 15894.0,
+   "fight_t": 29.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 246.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "wisadel_m18_s4_slot3",
+   "squad": [
+    "wisadel",
+    "logos",
+    "irene"
+   ],
+   "taken": 286.3,
+   "taken_pct": 1.164,
+   "win": false
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 24.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.788,
+   "brk_time_share": 0.354,
+   "dmg": 79563.0,
+   "fight_t": 119.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.465,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 156.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     73.4
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s5_slot3",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "eyjafjalla"
+   ],
+   "taken": 363.5,
+   "taken_pct": 2.334,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 26.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.75,
+   "brk_time_share": 0.363,
+   "dmg": 79563.0,
+   "fight_t": 144.7,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|0.84|cold|\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 224.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     97.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s6_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "eyjafjalla"
+   ],
+   "taken": 528.7,
+   "taken_pct": 2.36,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 7,
+   "wall": 18.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.724,
+   "brk_time_share": 0.32,
+   "dmg": 79563.0,
+   "fight_t": 80.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 148.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     55.3
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s7_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "specter_unchained"
+   ],
+   "taken": 156.2,
+   "taken_pct": 1.052,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 8,
+   "wall": 19.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.606,
+   "brk_time_share": 0.336,
+   "dmg": 79563.0,
+   "fight_t": 73.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 28,
+   "max_hp": 173.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     55.8
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s8_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "specter_unchained"
+   ],
+   "taken": 37.8,
+   "taken_pct": 0.218,
+   "win": true
+  },
+  {
+   "boss": "knight_boss",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 9,
+   "wall": 20.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 53042.0,
+   "brk_dmg_share": 0.768,
+   "brk_time_share": 0.343,
+   "dmg": 79563.0,
+   "fight_t": 91.9,
+   "fp_diff": [
+    "stats.speed: 184.437 -> 148.5"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 131.0,
+   "phases": [
+    [
+     "knight_boss",
+     1,
+     0.0
+    ],
+    [
+     "knight_boss",
+     2,
+     52.2
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s9_slot3",
+   "squad": [
+    "wisadel",
+    "angelina",
+    "gladiia"
+   ],
+   "taken": 82.0,
+   "taken_pct": 0.625,
+   "win": true
+  }
+ ]
+}
