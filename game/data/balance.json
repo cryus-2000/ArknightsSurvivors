@@ -825,6 +825,17 @@
   "revive_hp": 0.5,
   "revive_inv": 3.0
  },
+ "sword_ease": {
+  "_doc": "剑气非线性速度（用户 10-27，scripts/characters/blocks/sword_ease.gd）：拉普兰德剑气、斯卡蒂潮刃（shape.wave 带 proj）与可见成长近战剑气共用。已飞比例 p(u) = (1 − glide)(1 − (1 − u)^k) + glide·u，出手 ≈ (1 − glide)k + glide 倍原速、末段 glide 倍；总距离 / 存活时间 / 判定宽度与改前匀速相同。stretch = 猛冲段沿朝向拉长、bright = 提亮、ghost = 残影道数、pause = 猛冲段头一下命中的顿帧秒（走 impact_pause 共享限频，0 关）。ops/<干员 id>/<键> 单干员覆盖；积木写 \"ease\": {…} 再覆盖、\"ease\": 0 关。on = 0 全部退回匀速（改前）",
+  "on": 1,
+  "k": 3.0,
+  "glide": 0.2,
+  "stretch": 0.35,
+  "bright": 0.45,
+  "ghost": 2,
+  "pause": 0.025,
+  "ops": {}
+ },
  "vgrowth": {
   "_doc": "可见成长藏品的数值（docs/163 §2 / §6，scripts/characters/blocks/vis_growth.gd）。count_decay / size_decay = 叠层递减（第 i 层 × decay^(i-1)，渐近不封顶）；sub_* = 召唤物副体；qi_* = 近战剑气；burst_gap = 连发补射间隔；cap_* = 同屏上限，按画质档 高 / 中 / 低 取 [0] / [1] / [2]，超出的不生成实体、伤害直接结算到目标（起点值，等 perf 实测再定）",
   "count_decay": 0.7,

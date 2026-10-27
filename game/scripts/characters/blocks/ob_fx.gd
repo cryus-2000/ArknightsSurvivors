@@ -231,7 +231,7 @@ static func fx_draw(ci, g, f: Dictionary, dim: float) -> void:
 
 
 ## 帧条的第 fr 帧：sc = 每个 1x 美术像素的世界像素数；anc = 1x 帧内锚点（(-1,-1) = 帧中心），@2x 贴图自动换算（docs/25 §6 的 ×A.hires 规则）
-static func fx_frame(ci, g, name: String, frames: int, fr: int, pos: Vector2, sc: float, col: Color, anc := Vector2(-1, -1), ang := 0.0) -> void:
+static func fx_frame(ci, g, name: String, frames: int, fr: int, pos: Vector2, sc: float, col: Color, anc := Vector2(-1, -1), ang := 0.0, stretch := 1.0) -> void:
 	var tx: Texture2D = g.tex.get(name)
 	if tx == null or col.a <= 0.0:
 		return
@@ -239,7 +239,7 @@ static func fx_frame(ci, g, name: String, frames: int, fr: int, pos: Vector2, sc
 	var fw: int = tx.get_width() / frames
 	var fh: int = tx.get_height()
 	var an: Vector2 = anc * h if anc.x >= 0.0 else Vector2(fw, fh) / 2.0
-	ci.draw_set_transform(pos, ang, Vector2(sc / h, sc / h))
+	ci.draw_set_transform(pos, ang, Vector2(sc * stretch / h, sc / h))   # stretch：沿朝向拉长（剑气猛冲段，sword_ease.gd）
 	ci.draw_texture_rect_region(tx, Rect2(-an, Vector2(fw, fh)), Rect2(fw * (fr % frames), 0, fw, fh), col)
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 

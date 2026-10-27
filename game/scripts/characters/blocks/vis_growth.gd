@@ -13,6 +13,7 @@ extends RefCounted
 ## 玩法随机：不用。全部状态在 o.vg（每名干员）与 g.rfx.lv（藏品等级）里。
 
 const Bal = preload("res://scripts/core/balance.gd")
+const SwordEase = preload("res://scripts/characters/blocks/sword_ease.gd")   # 剑气非线性速度（10-27）
 
 ## 读 op_shots 之外的远程普攻形状（cmd_role 同一张表）
 const RANGED_SHAPES := ["projectile", "shell", "bolt", "cannon", "point_aoe", "foxfire", "lantern"]
@@ -296,8 +297,15 @@ static func _fire_qi(o, s: Dictionary) -> void:
 			continue
 		var spd: float = kn("qi_speed", 520.0)
 		var skip: float = rr * kn("qi_skip", 0.7)   # 从刀光边缘飞出，不打刀光里（普攻已经打到）的敌人：剑气专补刀光够不到的
-		v.qi.append({"p": o.pos + Vector2.from_angle(a) * skip, "v": Vector2.from_angle(a) * spd, "life": (dist - skip) / spd, "dmg": dmg, "hit": {},
-			"max": int(s.qi_hits), "t": 0.0, "o0": o.pos, "skip": skip})
+		var q := {"p": o.pos + Vector2.from_angle(a) * skip, "v": Vector2.from_angle(a) * spd, "life": (dist - skip) / spd, "dmg": dmg, "hit": {},
+			"max": int(s.qi_hits), "t": 0.0, "o0": o.pos, "skip": skip}
+		var ez: Dictionary = SwordEase.cfg(str(o.id), {}, true)   # 非线性：总距离 dist − skip、总时长不变，只改中途快慢
+		if not ez.is_empty():
+			q.ez = ez
+			q.p0 = q.p
+			q.T = float(q.life)
+			q.len = dist - skip
+		v.qi.append(q)
 
 
 static func _hit(o, e: Dictionary, dmg: float, src: String) -> void:
@@ -349,15 +357,23 @@ static func tick(o, dt: float) -> void:
 		var mn: float = kn("qi_pierce_min", 0.5)
 		var w: float = kn("qi_w", 26.0) * 0.5
 		for q in v.qi:
-			q.p += q.v * dt
+			var qa: Vector2 = q.p   # 非线性：判定扫过上一帧 → 这一帧整段（出手几帧一帧走 20+ px）
 			q.t += dt
 			q.life -= dt
+			if q.has("ez"):
+				q.p = q.p0 + q.v.normalized() * float(q.len) * SwordEase.prog(q.ez, q.t / q.T)
+			else:
+				q.p += q.v * dt
+				qa = q.p
 			if q.life <= 0.0:
 				continue
-			for j in o.query_ids(q.p, w + 40.0):
+			for j in o.query_ids((qa + q.p) * 0.5, w + 40.0 + qa.distance_to(q.p) * 0.5):
 				var e: Dictionary = g.enemies[j]
-				if e.dead or q.hit.has(e.id) or e.pos.distance_to(q.p) > float(e.r) + w or e.pos.distance_to(q.o0) < float(q.skip):
+				if e.dead or q.hit.has(e.id) or SwordEase.seg_dist(e.pos, qa, q.p) > float(e.r) + w or e.pos.distance_to(q.o0) < float(q.skip):
 					continue
+				if q.has("ez") and not q.has("paused") and float(q.ez.pause) > 0.0 and SwordEase.fast(q.ez, q.t / q.T) > 0.3:   # 猛冲段头一下命中：极短顿帧（共享限频）
+					q.paused = true
+					o.impact_pause(float(q.ez.pause))
 				var pm: float = maxf(mn, 1.0 - loss * q.hit.size())
 				q.hit[e.id] = true
 				_hit(o, e, float(q.dmg) * pm, _src(o, "剑气", "近战"))
@@ -399,7 +415,17 @@ static func draw(o) -> void:
 		var a: float = clampf(q.life / 0.08, 0.0, 1.0)
 		var ang: float = q.v.angle()
 		var qc := Color(minf(tc.r * 1.5, 1.8), minf(tc.g * 1.5, 1.8), minf(tc.b * 1.5, 1.8), a)   # 代表色提亮（灰白干员也看得出）
-		cv.draw_arc(p2 - Vector2.from_angle(ang) * 8.0, 18.0, ang - 1.1, ang + 1.1, 14, Color(qc.r, qc.g, qc.b, 0.35 * a), 7.0)   # 外层光弧
+		var f := 0.0
+		if q.has("ez"):   # 力量感：猛冲段提亮 + 残影（间距跟速度走），滑行段变暗
+			var u: float = q.t / q.T
+			f = SwordEase.fast(q.ez, u)
+			var br: float = (1.0 + float(q.ez.bright) * f) * SwordEase.fade(q.ez, u)   # 滑行段压暗颜色
+			qc = Color(minf(qc.r * br, 2.2), minf(qc.g * br, 2.2), minf(qc.b * br, 2.2), qc.a)
+			if has_tex and f > 0.05:
+				var gap: float = float(q.len) / q.T * SwordEase.vel_mul(q.ez, u) * 0.022
+				for gi in range(int(q.ez.ghost), 0, -1):
+					o.draw_spr_rot(QI_PROJ, mini(int(q.t * 16.0), 1), p2 - Vector2.from_angle(ang) * gap * gi, ang, g.PX * kn("qi_scale", 1.4), Color(qc.r, qc.g, qc.b, qc.a * f * 0.38 / gi))
+		cv.draw_arc(p2 - Vector2.from_angle(ang) * 8.0, 18.0, ang - 1.1 * (1.0 - 0.3 * f), ang + 1.1 * (1.0 - 0.3 * f), 14, Color(qc.r, qc.g, qc.b, 0.35 * a), 7.0)   # 外层光弧（猛冲时收窄、像被拉长）
 		if has_tex:
 			o.draw_spr_rot(QI_PROJ, mini(int(q.t * 16.0), 1), p2, ang, g.PX * kn("qi_scale", 1.4), qc)
 		else:

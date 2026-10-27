@@ -8,7 +8,11 @@ class CanvasProbe extends RefCounted:
 	var frames: Array = []
 	var alphas: Array = []
 	func draw_set_transform(_pos, _ang, _scale): pass
+	var ghosts := 0
 	func draw_texture_rect_region(tx, _rect, region, _col):
+		if _col.a < 0.5:   # 剑气猛冲段的残影（sword_ease.gd，docs/170）：不计入弹体本身
+			ghosts += 1
+			return
 		frames.append(int(region.position.x / (tx.get_width()/4)))
 		alphas.append(_col.a)
 class WaveView extends RefCounted:
@@ -58,11 +62,14 @@ func _ready():
 	for age in [0.0,0.04,0.07,0.2,0.4]:
 		for global_time in [0.0,0.1,13.7]:
 			g.t = global_time
-			for w in o.hw.waves: w.dist = age*500.0
+			for w in o.hw.waves:
+				w.dist = age*500.0
+				if w.has("ez"): w.t = age   # 非线性剑气（docs/170）按飞行时间取帧
 			probe.frames.clear()
 			Wave.hw_draw_waves(view)
 			ok(probe.frames.size()==3 and probe.frames.all(func(fr):return fr==(0 if age<0.0625 else 1)), "blade holds local flight pose age=%s clock=%s" % [age,global_time])
 	ok(probe.alphas.all(func(a): return is_equal_approx(a,1.0)), "flight never fades before terminal frames")
+	ok(probe.ghosts > 0, "sword ease draws burst afterimages")
 	b["proj_front"]=true
 	probe.frames.clear()
 	Wave.hw_draw_waves(view)
@@ -105,6 +112,7 @@ func _ready():
 	for w in o.hw.waves:
 		w.dist=219.0
 		w.pos=o.pos+w.dir*219.0
+		if w.has("ez"): w.t = w.T - 0.005
 	o.pfx.clear()
 	Wave._hw_waves(o,0.01)
 	ok(o.hw.waves.is_empty(), "range completion removes damaging waves")
