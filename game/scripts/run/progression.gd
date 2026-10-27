@@ -18,6 +18,7 @@ var heal_offer := 0   # 平衡输出：回复类卡被提供 / 被选中的张�
 var heal_pick := 0
 var low_levelups := 0        # 主控生命低于门槛时弹出的升级次数
 var heal_offer_low := 0      # 其中提供的回复类卡张数
+var prog_log: Array = []      # 培养记录 [秒, 干员 id, 推进后 prog]（telemetry：精英化落后补偿对照，docs/172）
 var focus_op := ""           # docs/119 §4.2 培养保底（简化版）：最近一次选中培养卡的干员 id；它还有合法成长卡时固定占第一个深度卡槽
 var branch_ctx: Dictionary = {}   # 培养路线二选一（docs/119 §4.1）：{opts, kind, title, sub, sel, card, source: level / swap / free}
 var branch_queue: Array = []      # 赠送推进（典训 / 博士银印）碰到分支节点、等玩家选路线的干员 id（按触发顺序排队）
@@ -26,6 +27,51 @@ var branch_queue: Array = []      # 赠送推进（典训 / 博士银印）碰�
 ## 培养保底开关（balance levelup/focus_guard，缺省 1；关 = 旧发牌，随机数消耗不变）
 static func focus_on() -> bool:
 	return Bal.vi("levelup/focus_guard", 1) == 1
+
+## 精英化落后补偿开关（balance levelup/catchup，缺省 1；0 = 旧发牌：均匀洗牌 + 保底只看最近培养对象，随机数消耗同改前）
+static func catchup_on() -> bool:
+	return Bal.vi("levelup/catchup", 1) == 1
+
+
+## 落后补偿权重：比编队里培养进度最高者落后 gap 个精英阶段（每阶段 = 3 个节点，prog 0–6）→ ×catchup_mult^gap，封顶 catchup_cap
+func catchup_weight(op_prog: int, top: int) -> float:
+	var gap: float = maxf(0.0, float(top - op_prog)) / 3.0
+	return minf(pow(Bal.v("levelup/catchup_mult", 1.8), gap), Bal.v("levelup/catchup_cap", 3.0))
+
+
+## 深度卡按落后补偿加权排序（同 weighted_order 的取法，用 g.rng）：总卡数、每次给几张深度卡都不变，只改哪名干员排在前面
+func catchup_order(deep: Array) -> Array:
+	var top := 0
+	for c in deep:
+		var o = g.squad.get_op(str(c.get("op", "")))
+		if o != null:
+			top = maxi(top, o.prog)
+	var keyed: Array = []
+	for c in deep:
+		var o = g.squad.get_op(str(c.get("op", "")))
+		var w: float = catchup_weight(o.prog, top) if o != null else 1.0
+		keyed.append([-log(g.rng.randf() + 0.0001) / w, c])
+	keyed.sort_custom(func(a, b): return a[0] < b[0])
+	return keyed.map(func(x): return x[1])
+
+
+## 培养保底的对象（落后补偿开时）：最近培养对象比本次有成长卡的最落后队友领先 ≥ catchup_focus_gap 个节点 → 保底让给最落后的那位
+## （同样落后时取 deep 里排在前面的）；否则仍是最近培养对象。不多取随机数
+func catchup_focus(deep: Array, cur: String) -> String:
+	var fo = g.squad.get_op(cur)
+	if fo == null:
+		return cur
+	var low_id := ""
+	var low := 99
+	for c in deep:
+		var o = g.squad.get_op(str(c.get("op", "")))
+		if o != null and o.prog < low:
+			low = o.prog
+			low_id = o.id
+	if low_id != "" and fo.prog - low >= Bal.vi("levelup/catchup_focus_gap", 3):
+		return low_id
+	return cur
+
 
 ## 回复类升级卡（1.1 用户要求：回血偏弱，出现率调高）：[kind, id]——博士被动「自愈」「坚韧」、医疗无人机、填充卡「急救补给」。
 ## 吸血 / 击杀回复等在藏品池（relic_pool_ids），不在这里
@@ -126,13 +172,17 @@ func open_levelup() -> void:
 			if c.kind == "prog" and not c.get("avail", true):
 				continue
 			deep.append(c)
-	g.shuffle(deep)
+	if catchup_on():
+		deep = catchup_order(deep)   # 精英化落后补偿（docs/172）：落后越多的干员，成长卡越靠前；只重排，不加卡
+	else:
+		g.shuffle(deep)
 	# 培养保底（docs/119 §4.2 简化版）：最近培养的干员有合法成长卡就挪到 deep[0]（只重排，不多取随机数、不加选项）；离队 / 养满自然失效
 	if focus_on() and focus_op != "" and not deep.is_empty():
 		if not g.squad.has(focus_op):
 			focus_op = ""
+		var target: String = catchup_focus(deep, focus_op) if catchup_on() else focus_op
 		for k in deep.size():
-			if str(deep[k].get("op", "")) == focus_op:
+			if str(deep[k].get("op", "")) == target:
 				if k > 0:
 					var fc: Dictionary = deep[k]
 					deep.remove_at(k)
@@ -589,6 +639,7 @@ func pick(i: int) -> void:
 			var pop = g.squad.get_op(o.op)
 			if pop != null:
 				pop.advance(o.get("choice", ""))
+				prog_log.append([int(g.t), str(o.op), pop.prog])
 				focus_op = str(o.op)   # 培养保底：成为「最近培养对象」
 				g.fx.append({"kind": "ring", "pos": pop.pos, "r": 90.0, "life": 0.45, "max": 0.45, "col": Color(0.6, 0.9, 1.0)})
 				g.vfx.promote_burst(pop.pos, o.get("elite", 0) > 0)   # docs/54 ⑥（fx/promote_burst）
