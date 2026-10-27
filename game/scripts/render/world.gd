@@ -3051,14 +3051,14 @@ func _draw_enemy_full(e: Dictionary) -> void:
 ## 以脚底为锚点画一帧（干员本体 / 分身 / 残影）：foot_off = 帧内脚底距底边的像素（贴图像素）
 var draw_target: CanvasItem = null   # 光学观感的高清干员层：干员本体临时画到这里（render/optical.gd _draw_ops 设，画完清回 null）
 
-func draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D, hf: int, foot_off: float) -> void:
+func draw_sprite_at(pos: Vector2, flip: bool, col: Color, frame: int, tx: Texture2D, hf: int, foot_off: float, sc := 1.0) -> void:
 	if tx == null:
 		return
 	var ci: CanvasItem = draw_target if draw_target != null else g
 	var fw := tx.get_width() / hf
 	var fh := tx.get_height()
 	var src := Rect2(fw * (frame % hf), 0, fw, fh)
-	var pk: float = Game.PX / A.hires_of(tx)
+	var pk: float = Game.PX / A.hires_of(tx) * sc   # sc：召唤物体型（可见成长 #130，docs/163）；缺省 1
 	ci.draw_set_transform((pos + g.draw_off).round(), 0.0, Vector2(-pk if flip else pk, pk))
 	ci.draw_texture_rect_region(tx, Rect2(Vector2(-fw / 2.0, -fh + foot_off), Vector2(fw, fh)), src, Look.op_mod(g, pos, col))
 	ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

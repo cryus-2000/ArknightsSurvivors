@@ -1012,6 +1012,7 @@ SCENE_REGRESSIONS = {
     "angelina_skill_anim": ("统一技能动画契约（安洁莉娜）", "angelina_skill_anim_test", r"ANGELINA SKILL ANIM failures=0", ["--balance", "--op=angelina", "--squad=lumen"]),
     "skalter_specter_anim": ("浊心 / 归溟新美术：出手帧对齐、S3 重锯 / 反向圈换条", "skalter_specter_anim_test", r"SKALTER SPECTER ANIM failures=0", ["--balance", "--op=specter_unchained", "--squad=skalter"]),
     "mizuki_runtime": ("水月完整出手、持续状态、退出与成长", "mizuki_runtime_test", r"MIZUKI RUNTIME .* 0 failed", ["--balance", "--seed=1", "--op=mizuki", "--squad=skadi"]),
+    "vis_growth": ("可见成长藏品：散射 / 连发 / 剑气 / 范围 / 召唤物副体与体型、叠层递减、Mon3tr 例外、手机上限（docs/163）", "vis_growth_test", r"VIS GROWTH failures=0", ["--balance", "--seed=1", "--op=exusiai", "--squad=lappland,wisadel"]),
     "lappland_presentation": ("拉普兰德剑气生命周期与技能动作接续", "lappland_presentation_test", r"LAPPLAND PRESENTATION .* 0 failed", ["--balance", "--op=lappland"]),
     "gladiia_presentation": ("歌蕾蒂娅牵引、水柱锚点与场特效收尾", "gladiia_presentation_test", r"GLADIIA PRESENTATION .* 0 failed", ["--balance", "--op=gladiia"]),
     "operator_transitions": ("全员技能起手、移动接续与强化重锤", "operator_transition_test", r"OPERATOR TRANSITIONS .* 0 failed", ["--balance", "--op=mizuki"]),

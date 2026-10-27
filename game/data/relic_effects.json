@@ -1095,20 +1095,36 @@
   "56": {
    "effects": [
     {
+     "type": "growth",
+     "kind": "qi",
+     "mult": 0.6,
+     "hits": 2
+    },
+    {
      "type": "stat",
      "stat": "melee_dmg",
      "op": "add",
-     "value": 0.32
+     "value": 0.1
     }
    ],
-   "desc": "近战伤害 +32%（近战攻击与技能）",
+   "desc": "剑气·锋芒：近战干员每次普攻额外从刀光边缘射出 1 道剑气（飞到普攻范围的 1.6 倍），伤害为普攻的 60%，可命中 2 名敌人（第 2 名伤害 -10%）；近战伤害 +10%。与锈蚀刀片同时持有时，剑气按本件结算、道数一起递减。每多一层，增益递减",
    "tags": [
     "melee",
     "basic_attack",
     "physical"
    ],
    "rarity": "核心",
-   "effect_category": "damage"
+   "effect_category": "damage",
+   "legacy": [
+    {
+     "type": "stat",
+     "stat": "melee_dmg",
+     "op": "add",
+     "value": 0.32
+    }
+   ],
+   "legacy_desc": "近战伤害 +32%（近战攻击与技能）",
+   "max_lv": 3
   },
   "57": {
    "effects": [
@@ -1129,21 +1145,43 @@
   "58": {
    "effects": [
     {
+     "type": "growth",
+     "kind": "scatter",
+     "eps": 0.25
+    }
+   ],
+   "desc": "散射：远程干员每次普攻多射出 1 发小弹，射向另一名敌人（不够时扇形错开），伤害为普攻的 25%；没有普攻弹体的远程干员改为伤害 +25%。每多一层，增益递减",
+   "tags": [
+    "ranged"
+   ],
+   "rarity": "稀有",
+   "effect_category": "damage",
+   "legacy": [
+    {
      "type": "stat",
      "stat": "ranged_dmg",
      "op": "add",
      "value": 0.2
     }
    ],
-   "desc": "远程伤害 +20%（远程攻击与技能）",
-   "tags": [
-    "ranged"
-   ],
-   "rarity": "稀有",
-   "effect_category": "damage"
+   "legacy_desc": "远程伤害 +20%（远程攻击与技能）",
+   "max_lv": 3
   },
   "59": {
    "effects": [
+    {
+     "type": "growth",
+     "kind": "burst",
+     "eps": 0.35
+    }
+   ],
+   "desc": "连发：远程干员每次普攻后 0.08 秒对同一方向补射 1 发小弹，伤害为普攻的 35%；没有普攻弹体的远程干员改为伤害 +35%。每多一层，增益递减",
+   "tags": [
+    "ranged"
+   ],
+   "rarity": "核心",
+   "effect_category": "damage",
+   "legacy": [
     {
      "type": "stat",
      "stat": "ranged_dmg",
@@ -1151,12 +1189,8 @@
      "value": 0.3
     }
    ],
-   "desc": "远程伤害 +30%（远程攻击与技能）",
-   "tags": [
-    "ranged"
-   ],
-   "rarity": "核心",
-   "effect_category": "damage"
+   "legacy_desc": "远程伤害 +30%（远程攻击与技能）",
+   "max_lv": 3
   },
   "60": {
    "effects": [
@@ -1210,13 +1244,19 @@
   "63": {
    "effects": [
     {
+     "type": "growth",
+     "kind": "qi",
+     "mult": 0.35,
+     "hits": 1
+    },
+    {
      "type": "stat",
      "stat": "physical_dmg",
      "op": "add",
-     "value": 0.15
+     "value": 0.04
     }
    ],
-   "desc": "物理伤害 +15%",
+   "desc": "剑气：近战干员每次普攻额外从刀光边缘射出 1 道剑气，打普攻够不到的敌人（飞到普攻范围的 1.6 倍），伤害为普攻的 35%，命中 1 名敌人后消失；物理伤害 +4%。每多一层，增益递减",
    "rarity": "基础",
    "tags": [
     "melee",
@@ -1224,10 +1264,42 @@
     "physical"
    ],
    "effect_category": "damage",
-   "new": true
+   "new": true,
+   "legacy": [
+    {
+     "type": "stat",
+     "stat": "physical_dmg",
+     "op": "add",
+     "value": 0.15
+    }
+   ],
+   "legacy_desc": "物理伤害 +15%",
+   "max_lv": 3
   },
   "64": {
    "effects": [
+    {
+     "type": "growth",
+     "kind": "range",
+     "value": 0.18
+    },
+    {
+     "type": "stat",
+     "stat": "physical_dmg",
+     "op": "add",
+     "value": 0.08
+    }
+   ],
+   "desc": "增幅：近战干员攻击范围 +18%（刀光与判定一起放大，剑气飞得更远）；物理伤害 +8%。已持有其他攻击范围藏品时，每多一层，增益递减",
+   "rarity": "稀有",
+   "tags": [
+    "melee",
+    "basic_attack",
+    "physical"
+   ],
+   "effect_category": "range",
+   "new": true,
+   "legacy": [
     {
      "type": "stat",
      "stat": "physical_dmg",
@@ -1235,15 +1307,8 @@
      "value": 0.25
     }
    ],
-   "desc": "物理伤害 +25%",
-   "rarity": "稀有",
-   "tags": [
-    "melee",
-    "basic_attack",
-    "physical"
-   ],
-   "effect_category": "damage",
-   "new": true
+   "legacy_desc": "物理伤害 +25%",
+   "max_lv": 3
   },
   "65": {
    "effects": [
@@ -2566,23 +2631,77 @@
   "129": {
    "effects": [
     {
+     "type": "growth",
+     "kind": "summon_n"
+    },
+    {
      "type": "stat",
      "stat": "followup_dmg",
      "op": "add",
-     "value": 0.35
+     "value": 0.15
     }
    ],
-   "desc": "追击与召唤物伤害 +35%",
+   "desc": "增殖：维什戴尔的魂灵之影 +1 个（副体：伤害为本体的 60%，体型 85%）；凯尔希的 Mon3tr 不增加数量；追击与召唤物伤害 +15%。每多一层，增益递减",
    "rarity": "稀有",
    "tags": [
     "follow_up",
     "summon"
    ],
    "shop_allowed": true,
-   "effect_category": "followup"
+   "effect_category": "followup",
+   "legacy": [
+    {
+     "type": "stat",
+     "stat": "followup_dmg",
+     "op": "add",
+     "value": 0.35
+    }
+   ],
+   "legacy_desc": "追击与召唤物伤害 +35%",
+   "max_lv": 3
   },
   "130": {
    "effects": [
+    {
+     "type": "growth",
+     "kind": "summon_size",
+     "size": 0.15,
+     "life": 0.2
+    },
+    {
+     "type": "stat",
+     "stat": "followup_dmg",
+     "op": "add",
+     "value": 0.1
+    },
+    {
+     "type": "trigger",
+     "event": "Hit",
+     "if": {
+      "tags_any": [
+       "follow_up",
+       "aftershock",
+       "detonation",
+       "entity"
+      ]
+     },
+     "do": "sp",
+     "args": {
+      "pct": 0.002,
+      "cap": 0.01
+     }
+    }
+   ],
+   "desc": "增幅：召唤物体型 +15%，限时召唤物持续时间 +20%；追击与召唤物伤害 +10%；追击每命中一个敌人，造成这次追击的干员回复 0.2% 技力（每秒最多 1%）。",
+   "rarity": "基础",
+   "tags": [
+    "follow_up",
+    "summon",
+    "skill"
+   ],
+   "effect_category": "followup",
+   "new": true,
+   "legacy": [
     {
      "type": "stat",
      "stat": "followup_dmg",
@@ -2607,15 +2726,8 @@
      }
     }
    ],
-   "desc": "追击与召唤物伤害 +25%；追击每命中一个敌人，造成这次追击的干员回复 0.2% 技力（每秒最多 1%）",
-   "rarity": "基础",
-   "tags": [
-    "follow_up",
-    "summon",
-    "skill"
-   ],
-   "effect_category": "followup",
-   "new": true
+   "legacy_desc": "追击与召唤物伤害 +25%；追击每命中一个敌人，造成这次追击的干员回复 0.2% 技力（每秒最多 1%）",
+   "max_lv": 1
   },
   "131": {
    "effects": [

@@ -44,6 +44,9 @@ var revived := false
 var king_n := 0            # 国王套装件数
 var lv := {}               # id -> 等级（纯属性型藏品可叠到 3 级，每级效果递减 100% / 70% / 50%）
 const LV_SCALE := [1.0, 0.7, 0.5]
+var vg_ver := 0            # 可见成长（docs/163）：藏品等级变化计数，vis_growth.summary 的缓存键
+var vg_on := false         # 拿到过带 growth 效果的藏品（之后编队变化要重挂 vgrowth 属性来源）
+const VisGrowth = preload("res://scripts/characters/blocks/vis_growth.gd")
 # ---- docs/35 新增
 var sp_budget := {}        # 按「藏品:干员」计的本秒已回复技力（每秒上限），每秒清零
 var sp_budget_t := 0.0
@@ -361,6 +364,10 @@ func apply(id: String) -> void:
 		return
 	lv[id] = cur + 1
 	var sc: float = LV_SCALE[cur]
+	if (r.effects as Array).any(func(x): return x is Dictionary and x.get("type", "") == "growth"):
+		vg_ver += 1
+		vg_on = true
+		VisGrowth.refresh(g)
 	if cur > 0:
 		# 升级：只重复属性型效果（按递减系数）
 		for ef in r.effects:
@@ -620,6 +627,8 @@ func _apply_stat(stat: String, op: String, v: float, source := "relic", scope :=
 func refresh_squad() -> void:
 	if g.stats == null:
 		return
+	if vg_on:
+		VisGrowth.refresh(g)
 	g.stats.remove_source("relic_squad")
 	var classes: Array = g.squad.ops.map(func(o): return o.cls)
 	for id in g.relics:

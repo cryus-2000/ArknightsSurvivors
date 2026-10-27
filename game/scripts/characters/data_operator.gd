@@ -19,6 +19,7 @@ const Responses = preload("res://scripts/characters/blocks/responses.gd")
 var rsp: Dictionary = {}   # 响应动作（docs/118）：触发沿 / 冷却记录
 var native_motion: Dictionary = {}
 
+const VisGrowth = preload("res://scripts/characters/blocks/vis_growth.gd")   # 可见成长藏品（docs/163）
 const SegSkalter = preload("res://scripts/characters/blocks/seg_skalter.gd")
 const ObCore = SegSkalter
 const ObElite = SegSkalter
@@ -280,6 +281,7 @@ func update(dt: float) -> void:
 	if hw.has("mz"):
 		SegMizuki.h3_tick_effects(self, dt)
 	_tick_shots(dt)
+	VisGrowth.tick(self, dt)   # 可见成长：额外弹 / 连发队列 / 剑气（vg 为空时直接返回）
 	SegExusiai.exu_tick(self, dt)   # 能天使段：技能 end、普攻锁、连射队列、弹体
 	ObSummon.sm_tick(self, dt)    # 召唤 / 封印段：召唤物、护盾计时、封印标记（sm 为空时直接返回）
 	ObElite.el_tick(self, dt)    # 精英化段：往返弹体（el 为空时直接返回）
@@ -727,6 +729,7 @@ func _exec_list(arr: Array, at: Vector2 = Vector2.INF) -> void:
 # ---------------------------------------------------------------- 出手
 
 var in_release := false                # 正在执行普攻出手（_release 整段，含 replace / far / 连斩排队 / every_n 追加）：手动普攻时剑气 / 钩索按玩家指向（10-23）
+var vg := {}                           # 可见成长藏品（docs/163，blocks/vis_growth.gd）：额外弹 / 剑气 / 累加器；空 = 用不到
 var pierce_atk := false                # 普攻子弹能穿透（能天使弹道 / 流明光弹 / 带 max_hits 的普攻剑气）：升级卡「贯穿」只在编队有这样的人时进池（10-23）
 
 
@@ -802,6 +805,8 @@ func _release_body() -> void:
 		exec_any_shape(a, Vector2.INF, true)
 		if g.prof_on:
 			g.prof_add("rel_shape_" + str(id), _pt0)
+	if far_fp.is_empty():
+		VisGrowth.on_release(self)   # 可见成长（docs/163）：散射 / 连发 / 剑气；没有这些藏品时不做事
 	var _pt1 := Time.get_ticks_usec() if g.prof_on else 0
 	atk_live = false
 	atk_far = -1
@@ -1741,6 +1746,7 @@ func _draw_shots() -> void:
 func _draw_skill_over() -> void:
 	_draw_shots()      # 安洁莉娜段：重力弹
 	SegExusiai.exu_draw(self)  # 能天使段：弹体
+	VisGrowth.draw(self)       # 可见成长：额外弹 / 剑气
 	ObSummon.sm_draw_over(self)   # 召唤 / 封印段：封印标记、护盾
 	ObSummon.mf_draw_guards(self)  # 召唤物扩展段：限时减伤护壳
 	ObElite.el_draw_over(self)    # 精英化段：往返弹体

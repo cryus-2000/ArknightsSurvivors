@@ -9,6 +9,7 @@ const RARITY_WEIGHT := {"基础": 60.0, "稀有": 26.0, "核心": 12.0, "升华"
 const PRICE := {"基础": 10, "稀有": 14, "核心": 20, "升华": 30, "遭诅古物": 6, "结局": 0}
 ## Soft Steering 强度（框架第 13 节：只轻微提高相关 Tag 出现率）
 const STEER := 0.6
+const VBal = preload("res://scripts/core/balance.gd")
 
 var items := {}       # id(String) -> RelicData Dictionary
 var effect_category_names := {}  # 实装效果主分类；独立于构筑流派和抽取 Tag
@@ -49,6 +50,11 @@ func load_files(meta_path: String = "res://data/relics.json", fx_path: String = 
 	for r in meta.items:
 		var id := str(int(r.id))
 		var e: Dictionary = effects.get(id, {})
+		if e.has("legacy") and VBal.v("relic/visible_growth", 1.0) <= 0.0:   # 可见成长（docs/163）：旋钮 0 = 退回改造前的纯数值版（effects / desc / 等级上限）
+			e = e.duplicate()
+			e.effects = e.legacy
+			e.desc = e.legacy_desc
+			e.erase("max_lv")
 		var rarity: String = str(e.get("rarity", r.rarity))
 		items[id] = {
 			"id": id, "name": r.name, "cat": r.get("cat", ""), "desc": fill_desc(str(e.get("desc", r.adapt))), "rarity": rarity,
