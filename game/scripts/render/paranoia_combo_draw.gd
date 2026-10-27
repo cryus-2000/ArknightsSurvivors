@@ -32,11 +32,23 @@ static func draw_top(g, e: Dictionary) -> void:
 		# 泡膜：极淡内填 + 2 像素淡紫膜 + 左上一道白高光；1 倍画面下要能看出是泡
 		# 10-27 用户「泡泡颜色明显一点，太透明」：内填 0.1→0.3、膜 0.7→0.95 加粗到 2.5、内侧再一圈淡色厚膜
 		if p2_look:
-			# 二阶段「囊泡」（用户 10-28「不同阶段做出不同风格」）：暗洋红紫内填、双层膜、中心一颗亮核，没有白高光
-			tw.tb_circle(p2, rr, Color(0.32, 0.05, 0.4, 0.55))
-			tw.tb_ring(p2, rr, 2.5, Color(0.95, 0.35, 0.9, 1.0 if held and blink else 0.95))
-			tw.tb_ring(p2, rr - 4.0, 1.5, Color(0.75, 0.25, 0.85, 0.8))
-			tw.tb_circle(p2, 2.5, Color(1.0, 0.8, 1.0, 0.95))
+			# 二阶段「海嗣滴」（用户 10-28：二阶段换主色和弹体）：青蓝水滴形，尖端朝飞行方向，深色描边 + 亮芯；
+			# 不透明，盖住公共管线画的紫色圆芯
+			var fwd: Vector2 = b.vel.normalized() if b.vel.length_squared() > 1.0 else Vector2.RIGHT
+			var side: Vector2 = fwd.orthogonal()
+			var rb: float = float(b.r) + 3.0
+			var pts := PackedVector2Array()
+			for q in 10:
+				var a: float = PI * 0.5 + PI * q / 9.0
+				pts.append(p2 - fwd * rb * 0.2 + (side * cos(a) + fwd * sin(a)) * rb)
+			pts.append(p2 + fwd * rb * 2.0)
+			tw.tb_flush()
+			g.draw_colored_polygon(pts, Color(0.02, 0.12, 0.16, 1.0))
+			var inner := PackedVector2Array()
+			for pt in pts:
+				inner.append(p2 + (pt - p2) * 0.78)
+			g.draw_colored_polygon(inner, Color(0.3, 0.85, 0.95, 1.0 if held and blink else 0.92))
+			tw.tb_circle(p2 + fwd * 1.5, 2.5, Color(0.9, 1.0, 1.0, 1.0))
 			continue
 		# 10-27 用户「换成紫色泡泡」：淡紫 → 饱和紫（高光仍白）
 		tw.tb_circle(p2, rr, Color(0.58, 0.2, 0.95, 0.34))
@@ -153,11 +165,11 @@ static func _rush_lanes(g, e: Dictionary) -> void:
 ## 地面层（boss_beam._paranoia_ground）：凝视预警。形状 = 判定（pos 起、长 len、半宽 wid 的矩形）；
 ## 暗红低填充，两条长边是一串大小不一的小泡（随进度变亮、沿光束方向缓慢漂），锁定后中线收成一道细亮线
 static func draw_ground(g, e: Dictionary) -> void:
-	# 二阶段：以她为中心的大片暗紫压暗地面（越远越淡，三层叠出渐变），「她认真了」
+	# 二阶段：以她为中心的大片深青压暗地面（越远越淡，三层叠出渐变），「她认真了」
 	if e.phase == 2 and float(e.get("cocoon_t", 0.0)) <= 0.0:
 		for q in 3:
-			g.draw_circle(e.pos, 900.0 - q * 260.0, Color(0.06, 0.0, 0.1, 0.09))
-		# 场地：从她脚下放射的 9 道暗紫裂纹（形状由序号决定、不随机），缓慢明灭；二阶段独有
+			g.draw_circle(e.pos, 900.0 - q * 260.0, Color(0.0, 0.05, 0.08, 0.1))
+		# 场地：从她脚下放射的 9 道青蓝裂纹（海嗣色；形状由序号决定、不随机），缓慢明灭；二阶段独有
 		var pulse: float = 0.5 + 0.5 * sin(g.t * 1.6)
 		for q in 9:
 			var a: float = TAU * q / 9.0 + 0.3
@@ -167,8 +179,8 @@ static func draw_ground(g, e: Dictionary) -> void:
 				var aa: float = a + 0.35 * sin(q * 2.7 + k * 1.9)
 				p += Vector2(cos(aa), sin(aa) * 0.55) * 70.0
 				pts.append(p)
-			g.draw_polyline(pts, Color(0.55, 0.12, 0.65, 0.25 + 0.2 * pulse), 4.0)
-			g.draw_polyline(pts, Color(0.95, 0.45, 1.0, 0.18 + 0.22 * pulse), 1.5)
+			g.draw_polyline(pts, Color(0.05, 0.35, 0.45, 0.3 + 0.2 * pulse), 4.0)
+			g.draw_polyline(pts, Color(0.4, 0.95, 1.0, 0.2 + 0.25 * pulse), 1.5)
 	_rush_lanes(g, e)
 	for w in g.warns:
 		if w.done or not is_same(w.owner, e):

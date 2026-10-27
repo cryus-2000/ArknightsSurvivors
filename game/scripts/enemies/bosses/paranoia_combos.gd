@@ -7,29 +7,32 @@ extends RefCounted
 const Bal = preload("res://scripts/core/balance.gd")
 const BossBeam = preload("res://scripts/render/boss_beam.gd")
 
-## 连段表（名字只在文档与回归里用，不上屏）
+## 连段表（名字只在文档与回归里用，不上屏）。用户 10-28「每个阶段重复少、有自己的特色、攻击招式不一样」：
+## 每幕一个躲法主题，招式不跨幕复用（MOVES_BY_ACT 由 paranoia_combos_test 检查）
 const COMBOS := {
-	"千目凝望": {"seq": ["千目注视", "凝视", "叠影"]},
-	"泡影环流": {"seq": ["泡影环", "幻象冲撞", "环流狙击"]},
-	"镜中众影": {"seq": ["镜影齐射", "凝视", "幻象冲撞", "泡影收束"]},
-	"偏执双旋": {"seq": ["偏执双旋", "溟泡迸裂", "叠影"]},
-	"侵蚀帘幕": {"seq": ["侵蚀帘幕", "幻象冲撞", "凝视"]},
-	"错位回廊": {"seq": ["无声波环", "千目注视", "追猎泡"]},
-	# 二阶段（落地，「她认真了」）：「A+B」= 同一段里两种弹幕叠放（快慢分层、追踪 + 环、旋 + 狙）
-	"无声呼号": {"seq": ["呼号", "无声波环+追猎泡", "幻象冲撞", "偏执双旋+环流狙击"]},
-	"沉浮之潮": {"seq": ["沉浮双层", "侵蚀帘幕+环流狙击", "呼号", "千目注视+无声波环"]},
-	"群愿回响": {"seq": ["群愿回响+偏执双旋", "幻象冲撞", "呼号"]},
-	"破茧群潮": {"seq": ["侵蚀帘幕+千目注视", "沉浮双层+追猎泡", "呼号"]},
+	# 一 · 凝望：横移躲直线（光束、自机狙、眼圈）
+	"千目凝望": {"seq": ["千目注视", "凝视", "环流狙击"]},
+	"凝视环流": {"seq": ["凝视", "环流狙击", "千目注视"]},
+	# 二 · 狂望：认真身、走菱形格（幻影、正反旋、冲撞、叠影）
+	"镜中众影": {"seq": ["镜影齐射", "幻象冲撞", "叠影"]},
+	"偏执双旋": {"seq": ["偏执双旋", "叠影", "镜影齐射"]},
+	# 三 · 侵染：找缝（缝隙墙、错位缺口环、泡影环、追猎泡）
+	"侵蚀帘幕": {"seq": ["侵蚀帘幕", "泡影环", "追猎泡"]},
+	"错位回廊": {"seq": ["无声波环", "侵蚀帘幕", "泡影环"]},
+	# 二阶段 · 失声（海嗣青蓝，「她被拖向海嗣」）：区域与时机（呼号扇区、沉浮双层 + 侵蚀泡沼、潮涌环）
+	"无声呼号": {"seq": ["呼号", "潮涌环", "沉浮双层"]},
+	"沉浮之潮": {"seq": ["沉浮双层", "呼号", "潮涌环+沉浮双层"]},
+	# 破茧后：停顿与收束（群愿回响、泡影收束、溟泡迸裂）
+	"群愿回响": {"seq": ["群愿回响", "泡影收束", "溟泡迸裂"]},
+	"破茧群潮": {"seq": ["溟泡迸裂", "群愿回响+泡影收束", "群愿回响"]},
 }
-## 每幕两组，轮流（10-28 用户：一阶段三幕拉开差异、二阶段从 50% 起质变）：
-## 0 凝望（悬浮，固定缺口、慢）/ 1 狂望（悬浮 + 幻影，错位菱形格）/ 2 侵染（悬浮，缝隙墙 + 错位缺口，要读）/
-## 3 失声（落地二阶段，叠放弹幕）/ 4 破茧后
-const ACT_COMBOS := [["千目凝望", "泡影环流"], ["镜中众影", "偏执双旋"], ["侵蚀帘幕", "错位回廊"], ["无声呼号", "沉浮之潮"], ["群愿回响", "破茧群潮"]]
+## 每幕两组，轮流：0 凝望 / 1 狂望 / 2 侵染（悬浮，卡点 enemies.json gates [0.84, 0.67, 0.5]）/ 3 失声（落地二阶段）/ 4 破茧后
+const ACT_COMBOS := [["千目凝望", "凝视环流"], ["镜中众影", "偏执双旋"], ["侵蚀帘幕", "错位回廊"], ["无声呼号", "沉浮之潮"], ["群愿回响", "破茧群潮"]]
 ## 弹幕段：发数 n、间隔 iv（秒）；起手前 WINDUP 秒聚光
 const EMITTERS := {
 	"千目注视": {"n": 7, "iv": 0.24}, "环流狙击": {"n": 3, "iv": 0.7}, "镜影齐射": {"n": 2, "iv": 0.8},
 	"偏执双旋": {"n": 6, "iv": 0.42}, "无声波环": {"n": 2, "iv": 1.1}, "侵蚀帘幕": {"n": 2, "iv": 1.5}, "群愿回响": {"n": 2, "iv": 1.3},
-	"沉浮双层": {"n": 3, "iv": 0.95}}
+	"沉浮双层": {"n": 3, "iv": 0.95}, "潮涌环": {"n": 3, "iv": 0.9}}
 const WINDUP := 0.55
 ## 幻象冲撞（非弹幕，泡影独有）：两只幻象在队长两侧现形，沿穿过队长的两条交叉通道冲过去；1.1 秒预告、第二只晚 0.6 秒
 const RUSH_TELL := 1.1
@@ -57,6 +60,12 @@ const DENS := [
 ## 弹体分级：r 判定半径、伤害倍率（× e.dmg）
 const TIER := {"s": [6.0, 0.34], "m": [9.0, 0.42], "l": [12.0, 0.5]}
 const CORE := Color(0.85, 0.55, 1.0)   # 颗粒（泡破 / 聚光）同泡泡的紫
+## 二阶段主色：海嗣青蓝（与一阶段紫色对比；她的档案「被那股力量拖着，一点点变成自己最痛恨的模样」）
+const SEA := Color(0.35, 0.9, 1.0)
+
+
+func core(e: Dictionary) -> Color:
+	return SEA if e.phase == 2 else CORE
 
 var g
 var bs   # paranoia.gd 实例
@@ -384,6 +393,14 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 				if absf(angle_difference(a4, ga)) < 0.35:
 					continue
 				_shot(e, o, a4, 210.0, "s")
+		"潮涌环":
+			# 二阶段专属：从她脚下扩出一道水环（≤ 200 像素 / 秒），环上一个缺口，三道缺口依次转开 1.1 弧度；
+			# 抓环靠近的时机，从缺口穿过（判定走公共冲击环：地面椭圆、环带宽 22、命中一次、站在缺口里不算）
+			var gap: float = _aim(o) + 1.1 * k * float(em.flip)
+			g.shocks.append({"pos": o, "r": 40.0, "maxr": 640.0, "spd": 190.0, "hit": false, "boss": true, "src_type": e.type,
+				"dmg": e.dmg * 0.6 * Bal.v("boss/paranoia_bullet_mult_p2", 1.3), "gaps": [gap], "gap_half": 0.42, "true": false,
+				"col": SEA, "owner": e})
+			g.fx.append({"kind": "ring", "pos": o, "r": 60.0, "life": 0.35, "max": 0.35, "col": SEA, "enemy": true})
 
 
 ## 一发实弹（进 g.ebullets，判定 / 机器人躲避 / 干员消弹都走公共管线）；超上限返回 {}
@@ -394,7 +411,7 @@ func _shot(e: Dictionary, from: Vector2, ang: float, spd: float, tier: String) -
 	var t: Array = TIER[tier]
 	var b := {"pos": from, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * float(t[1]) * (Bal.v("boss/paranoia_bullet_mult_p2", 1.3) if e.phase == 2 else Bal.v("boss/paranoia_bullet_mult", 1.0)), "slow": false, "r": float(t[0]),
 		"life": 6.5, "corrode": 0.15, "nerve": 0.0, "true": false, "kind": "orb", "home": false, "boss": true, "src_type": e.type,
-		"no_rock": true, "atk": "法术", "pc_tier": tier}
+		"no_rock": true, "atk": "法术", "pc_tier": tier, "own_draw": e.phase == 2}   # 二阶段海嗣滴由 paranoia_combo_draw 整颗画
 	g.ebullets.append(b)
 	buls.append(b)
 	e.pc_buls = buls
@@ -432,10 +449,10 @@ func _update_bullets(e: Dictionary, dt: float) -> void:
 			if b.life <= 0.0:
 				if b.get("p_mire", false):
 					_mire(b.pos)
-				# 泡破：到期 / 命中 / 被消掉时散几颗淡紫颗粒（纯画面，走预算）
+				# 泡破：到期 / 命中 / 被消掉时散几颗颗粒（一阶段紫、二阶段青蓝；纯画面，走预算）
 				if gr != null and BossBeam.take(g, 3) == 3:
 					for q in 3:
-						gr.push("mote_burst", b.pos + Vector2(0, -16), Vector2.from_angle(TAU * q / 3.0 + b.pos.x * 0.01), CORE)
+						gr.push("mote_burst", b.pos + Vector2(0, -16), Vector2.from_angle(TAU * q / 3.0 + b.pos.x * 0.01), core(e))
 				continue
 			if b.has("p_acc") and g.t >= float(b.get("p_acc_at", 0.0)):
 				var sp: float = clampf(b.vel.length() + float(b.p_acc) * dt, float(b.p_vmin), float(b.get("p_vmax", INF)))

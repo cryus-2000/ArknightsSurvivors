@@ -1807,8 +1807,8 @@ func _draw_ebullets_lobs_shocks() -> void:
 	# 分遍后同类连续提交能合批）：① 无贴图：影子椭圆、深色底圈、光晕；② 贴图：弹体；③ 无贴图：弹芯、亮描边
 	var blades: Array = []
 	for b in g.ebullets:
-		if b.life <= 0.0:
-			continue   # 命中 / 到期、还没被回收的敌弹不画（同我方子弹；正式局 _cleanup 每帧回收，图鉴演示由 enemy_demo 回收）
+		if b.life <= 0.0 or b.get("own_draw", false):
+			continue   # 命中 / 到期、还没被回收的敌弹不画（同我方子弹；正式局 _cleanup 每帧回收，图鉴演示由 enemy_demo 回收）；own_draw = 弹体由 Boss 自己画（偏执泡影二阶段，docs/170）
 		if b.get("kind", "") == "boss_blade":
 			blades.append(b)
 			continue
@@ -1834,7 +1834,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 				tb_circle(bp, b.r + 4.0, Color(1.0, 0.3, 0.6, 0.25))
 	tb_flush()
 	for b in g.ebullets:
-		if b.life <= 0.0:
+		if b.life <= 0.0 or b.get("own_draw", false):
 			continue
 		var kd: String = b.get("kind", "orb")
 		var bp: Vector2 = _ebp(b)
@@ -1855,7 +1855,7 @@ func _draw_ebullets_lobs_shocks() -> void:
 	var eb_ow: float = Bal.v("render/ebullet_outline", 0.0) if g.optical_on else 0.0
 	for b in g.ebullets:
 		var kd: String = b.get("kind", "orb")
-		if kd == "boss_blade" or b.life <= 0.0:
+		if kd == "boss_blade" or b.life <= 0.0 or b.get("own_draw", false):
 			continue
 		var bp: Vector2 = _ebp(b)
 		if _bullet_tex(b) != "":

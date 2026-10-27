@@ -82,7 +82,24 @@ func check_table() -> void:
 			var seq: Array = Combos.COMBOS[c].seq
 			check(seq.size() >= 2 and seq.size() <= 4, c + " combo has 2..4 segments")
 	var s = g.bai.boss("paranoia")
-	check(s.demo_moves({}).size() >= 15, "fifteen distinct active moves exposed")
+	check(s.demo_moves({}).size() >= 16, "sixteen distinct active moves exposed")
+	# 用户 10-28：招式不跨幕复用（同一幕两组之间可以共用）
+	var owner := {}
+	for a in Combos.ACT_COMBOS.size():
+		for c in Combos.ACT_COMBOS[a]:
+			for seg in Combos.COMBOS[c].seq:
+				for m in str(seg).split("+"):
+					if owner.has(m) and int(owner[m]) != a:
+						check(false, "move %s used in act %d and act %d" % [m, owner[m], a])
+					owner[m] = a
+	var p2: Array = []
+	for a in [3, 4]:
+		for c in Combos.ACT_COMBOS[a]:
+			for seg in Combos.COMBOS[c].seq:
+				for m in str(seg).split("+"):
+					if not p2.has(m):
+						p2.append(m)
+	check(p2.has("潮涌环") and p2.has("沉浮双层") and p2.has("群愿回响"), "phase 2 has its own new moves %s" % str(p2))
 
 
 ## 起手 → 依次出段 → 收招 → 换另一组；不会无限连下去
@@ -257,6 +274,7 @@ func check_rest_break() -> void:
 
 ## 侵蚀泡沼：二阶段沉浮双层的慢大泡破开留下限时 Boss 溟痕，数量有上限
 func check_mire() -> void:
+	check_tide_ring()
 	var e := fresh(3)
 	e.pc_act = 3
 	g.mires.clear()
@@ -272,3 +290,18 @@ func check_mire() -> void:
 	check(not pools.is_empty(), "big cysts leave corrosion pools in phase 2")
 	check(pools.size() <= Combos.MIRE_MAX, "pool count capped (%d)" % pools.size())
 	check(pools.all(func(m): return float(m.life) <= Combos.MIRE_LIFE and m.get("boss", false)), "pools are short-lived boss mires")
+
+
+## 潮涌环（二阶段专属）：进公共冲击环、带一个缺口、青蓝色
+func check_tide_ring() -> void:
+	var e := fresh(3)
+	e.pc_act = 3
+	g.shocks.clear()
+	var c = g.bai.boss("paranoia").combos()
+	c._emit(e, "潮涌环", Vector2.RIGHT)
+	for i in 80:
+		g.t += 0.05
+		c._update_emitters(e)
+	var rings: Array = g.shocks.filter(func(sh): return str(sh.get("src_type", "")) == "paranoia")
+	check(rings.size() == 3, "tide ring emits three rings (got %d)" % rings.size())
+	check(rings.all(func(sh): return (sh.gaps as Array).size() == 1 and float(sh.gap_half) > 0.3), "each ring has one gap")
