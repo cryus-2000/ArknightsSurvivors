@@ -68,6 +68,7 @@ var fx1ab := 0                # --fx1ab=N（docs/50 §25.2）：每 N 帧轮换�
 var partab := 0               # --partab=N（docs/136 §2 排查）：每 N 帧轮换光学 GPU 粒子开 / 关（--perf 分 /p1 /p0 两桶）
 var matab := 0                # --matab=N：每 N 帧轮换材质颗粒（fx/material_grains）开 / 关（--perf 分 /m1 /m0；要同时 --bal=fx/material_grains=1）
 var grainab := 0              # --grainab=N：每 N 帧轮换刀光第四版（粒子）开 / 关（--perf 分 /g1 /g0）
+var bulfxab := 0              # --bulfxab=N：每 N 帧轮换子弹出现 / 消失画面开 / 关（render/bullet_fx.gd；--perf 分 /b1 /b0）
 var tierab := 0               # --tierab=N（docs/50 §25.3）：每 N 帧轮换命中三档开 / 关
 # --stackab=N:m1,m2,…（docs/50 §26）：每 N 帧换下一个掩码（optical.ab_mask：1 CPU 颗粒 / 2 GPU 粒子 / 4 特效照明 / 8 发光层 / 16 低分辨率层 / 32 整套光学），
 # --perf 分 /s<掩码> 桶；切换后 3 帧记进 /sx 不算（低分辨率层重挂、粒子重启）
@@ -634,6 +635,8 @@ func step() -> void:
 				matab = int(a.substr(8))
 			if a.begins_with("--grainab="):
 				grainab = int(a.substr(10))
+			if a.begins_with("--bulfxab="):
+				bulfxab = int(a.substr(10))
 			if a.begins_with("--stackab="):
 				var sp: PackedStringArray = a.substr(10).split(":")
 				stackab = int(sp[0])
@@ -670,6 +673,8 @@ func step() -> void:
 		stack_sw = g.at_frames
 	if matab > 0 and g.at_frames % matab == 0 and g.optical != null and g.optical.grains != null:
 		g.optical.grains.mat_off = not g.optical.grains.mat_off   # --matab=N：同局轮换材质颗粒
+	if bulfxab > 0 and g.at_frames % bulfxab == 0:
+		g.world.bulfx.off = not g.world.bulfx.off   # --bulfxab=N：同局轮换子弹出现 / 消失画面
 	if tierab > 0 and g.at_frames % tierab == 0:
 		g.vfx.tier_off = not g.vfx.tier_off   # --tierab=N：同局轮换命中三档（--perf 分 /t1 /t0 两桶）
 	if fx1ab > 0 and g.at_frames % fx1ab == 0 and g.optical != null:
@@ -1708,6 +1713,8 @@ func _perf_sample() -> void:
 			w += "/g0" if g.optical.grains.off else "/g1"
 		if stackab > 0:
 			w += "/sx" if g.at_frames - stack_sw <= 3 else "/s%d" % (g.optical.ab_mask | (128 if Cfg.render_scaled else 0))   # 采样在轮换之前：记的是上一帧所用掩码
+		if bulfxab > 0:
+			w += "/b0" if g.world.bulfx.off else "/b1"   # --bulfxab：上一帧的子弹出现 / 消失画面开关
 		if tierab > 0:
 			w += "/t0" if g.vfx.tier_off else "/t1"   # --tierab：上一帧的命中三档开关
 		if fx1ab > 0:
@@ -1746,7 +1753,7 @@ func _perf_sample() -> void:
 		if perf_dump != null:
 			var row := PackedStringArray([str(g.at_frames), str(snappedf(g.t, 0.01)), str(snappedf(ft, 0.01)),
 				str(snappedf(RenderingServer.viewport_get_measured_render_time_cpu(rid), 0.01)), str(snappedf(RenderingServer.viewport_get_measured_render_time_gpu(rid), 0.01)),
-				str(int(g.perf_alt) + 2 * int(g.opt_old != 0)), str(g.upd_n - perf_upd), str(g.enemies.size()), str(g.bullets.size()), str(g.ebullets.size()), str(g.fx.size()), str(g.texts.size()),
+				str(int(g.perf_alt) + 2 * int(g.opt_old != 0) + 4 * int(g.world.bulfx.off)), str(g.upd_n - perf_upd), str(g.enemies.size()), str(g.bullets.size()), str(g.ebullets.size()), str(g.fx.size()), str(g.texts.size()),
 				str(g.gems.size()), str(g.warns.size()), str(g.mires.size()), str(g.bosses.size()), str(int(g.final_boss != null and not g.final_boss.dead)),
 				str(int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))), str(int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)))])
 			for k in PERF_DUMP_KEYS:
@@ -1795,6 +1802,8 @@ func _perf_summary() -> Dictionary:
 	perf_slow.sort_custom(func(a, b): return a.ft > b.ft)
 	out["slow_top"] = perf_slow.slice(0, 25)
 	out["realtime"] = g.realtime
+	var bf = g.world.bulfx
+	out["bulfx"] = {"spawn": bf.stat_spawn, "die": bf.stat_die, "why": bf.stat_why, "grains": bf.stat_grains}   # 子弹出现 / 消失画面计数（render/bullet_fx.gd）
 	out["hitstop"] = g.vfx.stop_stat   # 顿帧：kind -> [请求, 实给, 实给秒数]（docs/50 §10）
 	var sfx: Node = g.get_node_or_null("/root/Sfx")
 	if sfx != null and "sfx_by" in sfx and not sfx.sfx_by.is_empty():

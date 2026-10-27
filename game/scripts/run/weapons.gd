@@ -84,6 +84,7 @@ func update_bullets(dt: float) -> void:
 		# 地形阻挡：直线弹（艾雅法拉熔岩弹等）撞景物底座即消失；追踪弹（home）不挡
 		if g.map.tb_bul and not b.has("home") and g.map.bullet_blocked(b, b.pos):
 			b.life = 0.0
+			b["_die"] = "rock"   # 消失原因（只给画面，render/bullet_fx.gd）
 			continue
 		if b.kind == "fire" and not b.get("hidden", false):
 			b.trail = b.get("trail", 0.0) - dt

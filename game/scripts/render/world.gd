@@ -121,6 +121,7 @@ const P48 := {"idle": [4.0, true], "run": [10.0, true], "hurt": [10.0, false], "
 
 func _init(game: Game) -> void:
 	g = game
+	bulfx = preload("res://scripts/render/bullet_fx.gd").new(game, self)
 	_gc_sink = GroundCrack.TbSink.new(self)
 	dc_check = Cfg.dev_args().has("--dccheck")
 	dc_on = Bal.v("fx/enemy_draw_cache", 1.0) > 0.0   # 开局读一次（--bal=fx/enemy_draw_cache=0 对照旧路径；测量脚本可直接改 world.dc_on 轮换）
@@ -377,6 +378,7 @@ func _pk(k: String) -> void:
 
 func draw_world() -> void:
 	_pk("")
+	bulfx.frame()   # 子弹出现 / 消失（render/bullet_fx.gd）：先认出本帧新弹 / 消失的弹，下面各遍画弹时乘出现缩放
 	scr_flash = maxf(0.0, scr_flash - g.get_process_delta_time())
 	if _dbg_ground:
 		g.draw_rect(view_rect(0.0), Color(0.16, 0.17, 0.2))   # --clutterdbg=noground（量测）：地面 / 地形道具换成平涂底色
@@ -416,6 +418,7 @@ func draw_world() -> void:
 	_pk("fx")
 	if not _dbg_foe:   # --clutterdbg=nofoe：敌方弹幕 / 预警整层不画（量测）
 		_draw_ebullets_lobs_shocks()
+	bulfx.draw_top()   # 新弹亮芯闪 + 消失残影（压在弹体之上）
 	_pk("ebullets_lobs_shocks")
 	_draw_tells_outlines()
 	_pk("tells_outlines")
@@ -1019,6 +1022,7 @@ func _draw_bullets() -> void:
 		_bmate = mate_on and b.has("op") and str(b.op) != lid   # 队友的弹：再乘队友系数（docs/139 §10）
 		_blead = lead_lv > 0 and b.has("op") and str(b.op) == lid   # 队长的弹：提亮 / 暖色（docs/139 §11）
 		var n: Vector2 = b.vel.normalized()
+		var vk: float = bulfx.k(b)   # 出现动画缩放（render/bullet_fx.gd）
 		# 美术 V6：投射物帧条（朝右绘制，按速度方向旋转）；程序只画拖尾
 		var ptex: String = PROJ_TEX.get(b.kind, "")
 		if ptex != "" and g.tex.get(ptex) != null:
@@ -1028,10 +1032,10 @@ func _draw_bullets() -> void:
 				"arrow":
 					g.draw_line(b.pos - n * 34.0, b.pos - n * 12.0, _bc(Color(1.6, 1.4, 1.0, 0.3)), 2.0)
 				"fire":
-					g.draw_circle(b.pos, 14.0, _bc(Color(1.4, 0.6, 2.2, 0.2)))
+					g.draw_circle(b.pos, 14.0 * vk, _bc(Color(1.4, 0.6, 2.2, 0.2)))
 				"arcane":
 					g.draw_line(b.pos - n * 20.0, b.pos, _bc(Color(1.4, 0.6, 2.2, 0.35)), 4.0)
-			g.vfx.spr_rot(ptex, pfr, b.pos, b.vel.angle(), Game.PX, _bc(Color.WHITE))
+			g.vfx.spr_rot(ptex, pfr, b.pos, b.vel.angle(), Game.PX * vk, _bc(Color.WHITE))
 			continue
 		match b.kind:
 			"arrow":
@@ -1039,15 +1043,15 @@ func _draw_bullets() -> void:
 				g.draw_line(b.pos - n * 14.0, b.pos + n * 4.0, _bc(Color(2.2, 2.0, 1.6)), 3.0)
 			"fire":
 				var fl := 1.0 + 0.2 * sin(g.t * 40.0 + b.pos.x)
-				g.draw_circle(b.pos, 13.0 * fl, _bc(Color(2.0, 0.8, 0.2, 0.25)))
-				g.draw_circle(b.pos, 8.0 * fl, _bc(Color(2.4, 1.1, 0.3, 0.8)))
-				g.draw_circle(b.pos, 4.0, _bc(Color(2.8, 2.4, 1.4)))
+				g.draw_circle(b.pos, 13.0 * fl * vk, _bc(Color(2.0, 0.8, 0.2, 0.25)))
+				g.draw_circle(b.pos, 8.0 * fl * vk, _bc(Color(2.4, 1.1, 0.3, 0.8)))
+				g.draw_circle(b.pos, 4.0 * vk, _bc(Color(2.8, 2.4, 1.4)))
 			"arcane":
 				g.draw_line(b.pos - n * 18.0, b.pos, _bc(Color(1.4, 0.6, 2.2, 0.4)), 4.0)
-				g.draw_circle(b.pos, 8.0, _bc(Color(1.2, 0.5, 2.0, 0.35)))
-				UI.diamond(g, b.pos, 5.0, _bc(Color(1.8, 1.0, 2.6)), _bc(Color(2.2, 1.6, 2.8)))
+				g.draw_circle(b.pos, 8.0 * vk, _bc(Color(1.2, 0.5, 2.0, 0.35)))
+				UI.diamond(g, b.pos, 5.0 * vk, _bc(Color(1.8, 1.0, 2.6)), _bc(Color(2.2, 1.6, 2.8)))
 			_:
-				g.vfx.spr("orb", 1, 0, b.pos, Game.PX, false, _bc(Color.WHITE))
+				g.vfx.spr("orb", 1, 0, b.pos, Game.PX * vk, false, _bc(Color.WHITE))
 
 
 var _bk := 1.0
@@ -1103,6 +1107,7 @@ class _BfxCap:
 			return
 		left -= 1
 		gr.push(name, p, dir, c, delay)
+var bulfx   # render/bullet_fx.gd： 子弹出现 / 消失画面（用户 10-27；Boss 覆盖钩子 bulfx.set_hook / set_spawn_hook）
 var bfx_grains = null   # 本帧可用的颗粒层（光学观感颗粒开着且 boss_fx_grains 开时），_draw_fx 开头取
 
 
@@ -1772,12 +1777,12 @@ func _eb_mod(b: Dictionary, base: Color) -> Color:
 
 
 ## Boss 弹的同色系外描边（enemies.json bcol_outline，目前只伊比利亚，用户 10-25「描边要同调、有层次」）：压在亮边外侧、2 世界像素（1 个低分辨率格）、不闪
-func _eb_boss_outline(b: Dictionary, bp: Vector2) -> void:
+func _eb_boss_outline(b: Dictionary, bp: Vector2, br := -1.0) -> void:
 	if not (b.get("boss", false) and _eb_own()):
 		return
 	var oc = D.ENEMIES.get(str(b.get("src_type", "")), {}).get("bcol_outline")
 	if oc is Color:
-		tb_ring(bp, b.r + 3.5, 2.0, Color(oc.r, oc.g, oc.b, 1.0))
+		tb_ring(bp, (b.r if br < 0.0 else br) + 3.5, 2.0, Color(oc.r, oc.g, oc.b, 1.0))
 
 
 ## 弹体贴图的灰度版 g.tex[名 + "@gray"]（第一次用时从原色版做：按最亮通道提到 0.35–1.0 的灰、保留透明度），画时乘专属色。纯画面
@@ -1813,25 +1818,26 @@ func _draw_ebullets_lobs_shocks() -> void:
 			blades.append(b)
 			continue
 		# 2.5D：子弹在离地约 16px 的高度飞行，影子落在判定位置（椭圆直接算顶点，不切画布变换）
-		tb_circle(b.pos + Vector2(0, 2), b.r + 1.0, Color(0, 0, 0, 0.4), 0.45, 10)
+		var vk: float = bulfx.k(b)   # 出现动画缩放（只画面，判定半径 b.r 不变）
+		tb_circle(b.pos + Vector2(0, 2), (b.r + 1.0) * vk, Color(0, 0, 0, 0.4), 0.45, 10)
 		if _bullet_tex(b) != "":
 			continue   # 专属弹体帧条（docs/96：漂移体侵蚀弹）自带 #080E18 描边，不垫底圈、不描洋红边
 		var bp: Vector2 = _ebp(b)
 		# 敌方弹幕高对比：深色外圈垫底，画完再描一圈亮洋红边，压在友方特效上也一眼看得出
-		tb_circle(bp, b.r + 3.0, Color(0.02, 0.0, 0.05, 0.85))
+		tb_circle(bp, (b.r + 3.0) * vk, Color(0.02, 0.0, 0.05, 0.85))
 		if g.optical_on:
 			var ec: Color = g.optical.eb_col(b)   # 光学观感颜色语言：杂兵弹敌弹色、Boss 弹危险色（docs/139 §6.7 / §7.3）
-			tb_circle(bp, b.r + 4.0, Color(ec.r, ec.g, ec.b, 0.3))
+			tb_circle(bp, (b.r + 4.0) * vk, Color(ec.r, ec.g, ec.b, 0.3))
 			continue
 		match b.get("kind", "orb"):
 			"acid":
-				tb_circle(bp, b.r + 5.0, Color(0.5, 1.4, 0.3, 0.3))
+				tb_circle(bp, (b.r + 5.0) * vk, Color(0.5, 1.4, 0.3, 0.3))
 			"nova":
-				tb_circle(bp, b.r + 5.0, Color(1.2, 0.4, 1.8, 0.3))
+				tb_circle(bp, (b.r + 5.0) * vk, Color(1.2, 0.4, 1.8, 0.3))
 			"nerve":
-				tb_circle(bp, b.r + 5.0, Color(1.0, 0.9, 0.3, 0.25))
+				tb_circle(bp, (b.r + 5.0) * vk, Color(1.0, 0.9, 0.3, 0.25))
 			_:
-				tb_circle(bp, b.r + 4.0, Color(1.0, 0.3, 0.6, 0.25))
+				tb_circle(bp, (b.r + 4.0) * vk, Color(1.0, 0.3, 0.6, 0.25))
 	tb_flush()
 	for b in g.ebullets:
 		if b.life <= 0.0:
@@ -1839,59 +1845,62 @@ func _draw_ebullets_lobs_shocks() -> void:
 		var kd: String = b.get("kind", "orb")
 		var bp: Vector2 = _ebp(b)
 		var btex: String = _bullet_tex(b)
+		var vk: float = bulfx.k(b)
 		if btex != "":
 			# 小怪专属弹体（enemies.json shot_tex，docs/96 第 1 批：漂移体 proj_skimmer_corrode）：朝右绘制、按速度方向旋转，帧率按 V6_FRAMES
 			var bspec: Array = Game.V6_FRAMES[btex]
-			g.vfx.spr_rot(btex, int(g.t * float(bspec[1]) + b.pos.x * 0.01) % int(bspec[0]), bp, b.vel.angle(), Game.PX)
+			g.vfx.spr_rot(btex, int(g.t * float(bspec[1]) + b.pos.x * 0.01) % int(bspec[0]), bp, b.vel.angle(), Game.PX * vk)
 		elif kd == "nerve" and g.tex.get("proj_floater_nerve") != null:
 			# 浮海飘航者神经弹（V8 proj_floater_nerve，朝右绘制按速度方向旋转）
-			g.vfx.spr_rot(_eb_tex(b, "proj_floater_nerve"), int(g.t * 12.0 + b.pos.x * 0.01) % 4, bp, b.vel.angle(), Game.PX, _eb_mod(b, Color.WHITE))
+			g.vfx.spr_rot(_eb_tex(b, "proj_floater_nerve"), int(g.t * 12.0 + b.pos.x * 0.01) % 4, bp, b.vel.angle(), Game.PX * vk, _eb_mod(b, Color.WHITE))
 		elif kd == "acid" and g.tex.get("proj_acid") != null:
-			g.vfx.spr("proj_acid", 2, int(g.t * 8.0 + b.pos.x * 0.01) % 2, bp, _hpx("proj_acid"), false, Color(1.5, 1.5, 1.5))   # Codex v14 酸团（暗橄榄，避开友方黄绿）；×1.5 提亮，压过地图暗环境光（原程序圆也是过曝色）
+			g.vfx.spr("proj_acid", 2, int(g.t * 8.0 + b.pos.x * 0.01) % 2, bp, _hpx("proj_acid") * vk, false, Color(1.5, 1.5, 1.5))   # Codex v14 酸团（暗橄榄，避开友方黄绿）；×1.5 提亮，压过地图暗环境光（原程序圆也是过曝色）
 		elif kd == "nova" and g.tex.get("proj_nova") != null:
-			g.vfx.spr(_eb_tex(b, "proj_nova"), 4, int(g.t * 10.0 + b.pos.x * 0.01) % 4, bp, _hpx("proj_nova") * _eb_pulse(b), false, _eb_mod(b, Color(1.5, 1.5, 1.5)))   # Codex v14 新星弹；×1.5 提亮同上；Boss 弹 = 专属色
+			g.vfx.spr(_eb_tex(b, "proj_nova"), 4, int(g.t * 10.0 + b.pos.x * 0.01) % 4, bp, _hpx("proj_nova") * _eb_pulse(b) * vk, false, _eb_mod(b, Color(1.5, 1.5, 1.5)))   # Codex v14 新星弹；×1.5 提亮同上；Boss 弹 = 专属色
 		elif kd != "acid" and kd != "nova" and kd != "nerve" and kd != "boss_blade":
-			g.vfx.spr(_eb_tex(b, "ebullet"), 1, 0, bp, Game.PX * b.r / 5.0 * _eb_pulse(b), false, _eb_mod(b, Color.WHITE))
+			g.vfx.spr(_eb_tex(b, "ebullet"), 1, 0, bp, Game.PX * b.r / 5.0 * _eb_pulse(b) * vk, false, _eb_mod(b, Color.WHITE))
 	var eb_ow: float = Bal.v("render/ebullet_outline", 0.0) if g.optical_on else 0.0
 	for b in g.ebullets:
 		var kd: String = b.get("kind", "orb")
 		if kd == "boss_blade" or b.life <= 0.0:
 			continue
 		var bp: Vector2 = _ebp(b)
+		var vk: float = bulfx.k(b)
+		var br: float = b.r * vk   # 出现动画缩放后的画面半径（判定仍是 b.r）
 		if _bullet_tex(b) != "":
 			if eb_ow > 0.0:   # 专属弹体（漂移体侵蚀弹）也加同一圈外描边
 				var dc0: Color = g.optical.col_danger
-				tb_ring(bp, b.r + 3.0 + eb_ow * 0.5, eb_ow, Color(dc0.r, dc0.g, dc0.b, 1.0))
+				tb_ring(bp, br + 3.0 + eb_ow * 0.5, eb_ow, Color(dc0.r, dc0.g, dc0.b, 1.0))
 			continue
 		match kd:
 			"acid":
 				if g.tex.get("proj_acid") == null:
-					tb_circle(bp, b.r, Color(0.6, 1.8, 0.4))
+					tb_circle(bp, br, Color(0.6, 1.8, 0.4))
 					tb_circle(bp + Vector2(-1.5, -1.5), 1.5, Color(2.2, 2.4, 1.6), 1.0, 6)
 			"nova":
 				if g.tex.get("proj_nova") == null:
-					tb_circle(bp, b.r, b.get("col", Color(1.5, 0.6, 2.0)))
+					tb_circle(bp, br, b.get("col", Color(1.5, 0.6, 2.0)))
 			"nerve":
 				if g.tex.get("proj_floater_nerve") == null:
-					tb_circle(bp, b.r, Color(1.8, 1.6, 0.5))
+					tb_circle(bp, br, Color(1.8, 1.6, 0.5))
 		if g.optical_on:
 			var ebc: Color = g.optical.eb_col(b)
 			var bk: float = 1.3 if b.get("boss", false) and _eb_own() else 2.0   # Boss 弹专属色亮描边只提到 ×1.3（×2 叠辉光后色相偏）
-			tb_ring(bp, b.r + 2.0, 1.5, Color(ebc.r * bk, ebc.g * bk, ebc.b * bk, 0.9))   # 亮描边改敌弹色（原亮洋红）；Boss 弹 = 专属色
+			tb_ring(bp, br + 2.0, 1.5, Color(ebc.r * bk, ebc.g * bk, ebc.b * bk, 0.9))   # 亮描边改敌弹色（原亮洋红）；Boss 弹 = 专属色
 			var ow: float = eb_ow
 			if ow > 0.0:
 				# docs/139 §7 敌弹外描边（用户 10-24「敌方子弹加一个描边看一下」）：危险色、不闪，宽 ow 世界像素（2 = 1 个低分辨率格），压在亮描边外侧
 				var dc: Color = g.optical.col_danger
-				tb_ring(bp, b.r + 3.0 + ow * 0.5, ow, Color(dc.r, dc.g, dc.b, 1.0))
-			_eb_boss_outline(b, bp)
+				tb_ring(bp, br + 3.0 + ow * 0.5, ow, Color(dc.r, dc.g, dc.b, 1.0))
+			_eb_boss_outline(b, bp, br)
 			if bfx_grains != null and b.get("boss", false) and g.vrng.randf() < 0.08 and BossBeam.take(g, 1) > 0:
 				bfx_grains.push("mote_shed", bp, -b.vel.normalized(), ebc)   # 沿途散颗粒（拖尾之外的「活」，走预算）
 		elif b.get("boss", false) and _eb_own():
 			var bc: Color = g.vfx.boss_color(str(b.get("src_type", "")))
-			tb_ring(bp, b.r + 2.0, 1.5, Color(bc.r * 1.3, bc.g * 1.3, bc.b * 1.3, 0.9))   # Boss 弹亮描边 = 专属色（不加危险色外圈，用户 10-25「描边不要加」）
-			_eb_boss_outline(b, bp)
+			tb_ring(bp, br + 2.0, 1.5, Color(bc.r * 1.3, bc.g * 1.3, bc.b * 1.3, 0.9))   # Boss 弹亮描边 = 专属色（不加危险色外圈，用户 10-25「描边不要加」）
+			_eb_boss_outline(b, bp, br)
 		else:
-			tb_ring(bp, b.r + 2.0, 1.5, Color(2.4, 0.8, 1.8, 0.9))
+			tb_ring(bp, br + 2.0, 1.5, Color(2.4, 0.8, 1.8, 0.9))
 	tb_flush()
 	for b in blades:
 		g.vfx.boss_blade(b, b.pos + Vector2(0, -16))

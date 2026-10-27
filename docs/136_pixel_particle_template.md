@@ -51,3 +51,23 @@
 - 电：`life` 很短（0.08–0.12）、`speed` 0、沿电弧折线逐段发射。
 - 海嗣体液：青蓝发光（敌方本体色），`grav` 正，落地用 `spark` 冷却变暗。
 - 每加一个模板只改 `TEMPLATES` 一条和调用点，不新建节点、不新增绘制路径；预算按模板分配，加起来不超过画质档的总上限。
+
+## 6. 子弹出现 / 消失（10-27 用户「子弹的出现和消失都要有对应的动画或者粒子效果，开销自己想办法」，`render/bullet_fx.gd`）
+
+公共层，挂在 `world.bulfx`。纯画面：只往弹字典里写下划线字段（`_bid` / `_bt` 由本层写，`_die` 由结算处写原因），同 seed TRACE 逐行相同。
+
+**怎么认出生成 / 消失**：不在各个生产点加调用，而是 `world.draw_world` 开头 `bulfx.frame()` 对弹表做「上一帧 / 这一帧」比对（按 `_bid` + `is_same` 认同一颗）。敌弹 `g.ebullets`、我方 `g.bullets` 每帧自动观察；干员自管的弹表在画弹处调 `bulfx.observe("渠道名", 表, 位置字段, 是否敌弹, 突然消失是否自带命中画面, 本色)`（能天使已接）。
+
+| 路径 | 原因 | 画面 |
+|---|---|---|
+| 新出现 | 各生产点（enemy_ai / boss_patterns / telegraph / Boss 脚本 / 干员） | 0.09 秒 0.3 → 1.15 → 1 倍缩放（绘制处乘 `bulfx.k(b)`，判定半径不变）+ 亮芯闪 + 本色晕；同帧 40 px 格内成批出现 = 一个出膛环 + 至多 8 颗沿弹道颗粒，单发 = 2 颗 |
+| 命中队长 / 撞景物 / 被骑士挡下 / 未标原因的突然消失 | `_die` = hit / rock / block，或 life 恰为 0 | 白芯一闪 + 本色细环外扩 + 爆散颗粒（Boss 弹 6、大弹 8、普通 4、景物 3） |
+| 寿命到期 | life < 0 | 缩小淡出 0.12 秒 + 2 颗冷却颗粒 |
+| 干员消弹 `shots.cancel_in` / 清屏（胜利清弹等，仍有寿命却被移出弹表） | `_die` = cancel，或 life > 0 | 统一溶解：缩小褪成冷白 + 向上飘的颗粒；同帧 > 6 颗时按离队长距离依次扫过（`render/bullet_fx_sweep` 1600 px/秒，最多延 0.25 秒），颗粒只给最近的 40（中档 24）颗，远的只做缩放淡出 |
+| 读条光圈吞弹 | `_die` = eaten | 不叠（已有 eat_fx） |
+| 出界 | 没有这条路径（弹只按寿命走）；屏外的消失不出画面 | — |
+| 专属命中帧条（`hit_fx`）/ 酸团溅开 / 我方弹命中（爆炸、命中帧条） | — | 不叠，用各自已有的 |
+
+**Boss 覆盖钩子**：`g.world.bulfx.set_hook(src_type, func(b, reason, pos) -> bool)`、`set_spawn_hook(src_type, func(b, pos) -> bool)`，返回 true = 这只 Boss 自己画了，公共层不画（例如偏执泡影的泡泡碎裂）。
+
+**开销**：颗粒走本页模板 `bul_spawn` / `bul_pop` / `bul_cool` / `bul_dis`，共用 slash 总预算；另有本层令牌桶 `render/bullet_fx_rate`（700 颗 / 秒）、`render/bullet_fx_burst`（160），手机网页再乘 `grains.adapt_k`；颗粒层用到上限 85% 时不再要。要不到 = 只剩缩放 / 残影（world 的无贴图合批，1 次提交）。低画质、关光学观感、`fx/bullet_grains` = 0 只做缩放淡出；`render/bullet_fx` = 0 整层关。同局轮换量帧 `--bulfxab=N`（/b1 /b0）。帧时见 docs/50 §41。

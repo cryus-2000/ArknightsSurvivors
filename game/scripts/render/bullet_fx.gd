@@ -1,0 +1,349 @@
+## 子弹出现 / 消失画面（用户 10-27「子弹的出现和消失都要有对应的动画或者粒子效果，开销自己想办法」）。纯画面：只读弹表、只往弹字典里写
+## 下划线开头的画面字段（_bid 观察序号、_bt 首见时刻；_die 由结算处标消失原因），不改任何判定量，同 seed TRACE 不变；随机只用 g.vrng。
+##
+## 怎么接：world.draw_world 开头调 frame()，按渠道观察弹表（敌弹 g.ebullets、我方 g.bullets，能天使等干员自管的弹由各段画弹时调 observe）：
+##   新出现的弹记 _bt → 绘制处乘 k(b)（0.09 秒由小到大、略过冲回 1）并叠亮芯闪（draw_top）；同帧同处成批出现（环形弹幕）合成一个出膛环 + 少量颗粒，不逐弹发；
+##   上一帧还在、这一帧不在（或 life <= 0）的弹按原因出消失画面：
+##     hit / rock / block / pop（命中、撞景物、被友方挡下、未标原因的突然消失）= 白芯一闪 + 本色爆散颗粒（Boss 弹 6、大弹 8、普通 4、景物 3）；
+##     expire（life 自然耗尽）= 缩小淡出 + 2 颗冷却颗粒；
+##     cancel / clear（干员消弹 cancel_in、清屏 / 演出清弹：仍有寿命却被移出弹表）= 统一溶解：缩小褪成冷白 + 向上飘的颗粒，按离队长的距离依次扫过，
+##       超过同帧颗粒名额的按距离抽稀（远的只做缩放淡出）；
+##     eaten（读条光圈吞弹，已有 eat_fx）、出界（没有出界消失：弹只按寿命走）不出画面。
+## Boss 覆盖：set_hook(src_type, Callable(b, reason, pos) -> bool)，返回 true = 这只 Boss 自己画了，公共层不画；
+##   set_spawn_hook(src_type, Callable(b, pos) -> bool) 同理管出现。弹自己带 hit_fx（专属命中帧条）或是酸团（落地溅开）时命中 / 到期不再叠公共画面。
+## 开销：颗粒走 fx_grains（docs/136），另有本层令牌桶（render/bullet_fx_rate 每秒、render/bullet_fx_burst 攒量，手机网页再乘 grains.adapt_k），
+##   且颗粒层已用到上限的 85% 时不再要；要不到就只剩缩放 / 淡出（几个合批三角形）。低画质、关光学观感、fx/bullet_grains = 0 时只做缩放淡出；
+##   render/bullet_fx = 0 整层关（--bulfxab=N 同局轮换量帧，--perf 分 /b1 /b0）
+extends RefCounted
+
+const Bal = preload("res://scripts/core/balance.gd")
+
+const SPAWN_T := 0.09        # 出现动画时长（秒）
+const GHOST_MAX := 220       # 同屏消失残影上限（超了新的直接不画）
+const CLUSTER := 40.0        # 同帧出现按 40 世界像素格聚成一簇
+const EB_LIFT := Vector2(0, -16)   # 敌弹画在脚下 16 像素上方（同 world._ebp）
+
+var g
+var w   # render/world.gd
+var clock := 0.0             # 画面时钟：按渲染帧间隔走（受 Engine.time_scale 影响；bosstest 的 g.t 冻结也照走）
+var off := false             # --bulfxab 同局轮换：true = 这一段整层关（旧画面）
+var _id := 0
+var _prev := {}              # 渠道名 → {_bid: 弹字典}
+var _young: Array = []       # 还在出现动画里的弹 [弹字典, 画面偏移, 半径, 颜色]
+var ghosts: Array = []       # [种类, 位置, 半径, 颜色, 已过, 时长, 延迟]；种类 0 闪 / 1 缩 / 2 溶 / 3 出膛环
+var _spawns: Array = []      # 本帧新出现 [起点（画面位置）, 方向, 颜色, 半径, 弹字典, 渠道]
+var _dq: Array = []          # 本帧待溶解 [位置, 半径, 颜色]
+var hooks := {}
+var spawn_hooks := {}
+var _tok := 0.0
+var _tok_us := 0
+var _on := true
+var _was_on := false
+var _silent := false
+var _grains_ok := false
+var stat_spawn := 0          # 计数（--perf 之外的自测用）
+var stat_die := 0
+var stat_why := {}           # 消失原因 → 次数（只计画面里出了效果的）
+var stat_grains := 0         # 实际发出的颗粒数
+
+
+func _init(game, world) -> void:
+	g = game
+	w = world
+
+
+## Boss 覆盖消失画面：f(b, reason, pos) -> bool（true = 已自己画）
+func set_hook(src_type: String, f: Callable) -> void:
+	hooks[src_type] = f
+
+
+## Boss 覆盖出现画面：f(b, pos) -> bool
+func set_spawn_hook(src_type: String, f: Callable) -> void:
+	spawn_hooks[src_type] = f
+
+
+## 每帧（world.draw_world 开头）：推进时钟、残影，观察敌弹 / 我方弹
+func frame() -> void:
+	var dt: float = clampf(g.get_process_delta_time(), 0.0, 0.1)
+	clock += dt
+	_on = not off and Bal.v("render/bullet_fx", 1.0) > 0.0
+	var gr = _grains()
+	_grains_ok = gr != null and Cfg.quality != "low" and Bal.v("fx/bullet_grains", 1.0) > 0.0
+	var k := 0
+	for gh in ghosts:
+		gh[4] = float(gh[4]) + dt
+		if float(gh[4]) < float(gh[5]) + float(gh[6]):
+			ghosts[k] = gh
+			k += 1
+	ghosts.resize(k)
+	if not _on:
+		_young.clear()
+		_prev.clear()
+		_was_on = false
+		return
+	_silent = not _was_on   # 刚从关切回开（--bulfxab 轮换 / 开关）：这一帧只认弹不出画面，免得把在飞的弹全当新弹
+	_was_on = true
+	observe("e", g.ebullets, "pos", true, false)
+	observe("p", g.bullets, "pos", false, true)
+	_silent = false
+	flush()
+
+
+## 观察一张弹表。ch 渠道名（各表独立）；pk 位置字段（"pos" / "p"）；enemy 敌弹（画在 16 像素上方、敌弹色）；
+## abrupt_own：未标原因的突然消失（life 恰为 0）当作「命中且有自己的命中画面」，公共层不画（我方弹：命中都有爆炸 / 命中帧条）
+func observe(ch: String, arr: Array, pk := "pos", enemy := false, abrupt_own := false, col := Color(0, 0, 0, 0)) -> void:
+	if not _on:
+		return
+	var prev: Dictionary = _prev.get(ch, {})
+	var cur := {}
+	for b in arr:
+		var id: int = int(b.get("_bid", -1))
+		if id >= 0 and prev.has(id) and is_same(prev[id], b):
+			if float(b.life) > 0.0:
+				cur[id] = b
+			continue
+		if float(b.life) <= 0.0:
+			continue   # 生出即消失（同一帧内）：不出画面
+		_id += 1
+		b["_bid"] = _id
+		cur[_id] = b
+		if _silent or not _prev.has(ch):
+			b["_bt"] = clock - SPAWN_T   # 渠道第一次观察（开局 / 刚打开）：已在飞的弹不补出现动画
+			continue
+		b["_bt"] = clock
+		_spawn(b, pk, enemy, ch, col)
+	if _silent:
+		_prev[ch] = cur
+		return
+	for id in prev:
+		if not cur.has(id):
+			_die(prev[id], pk, enemy, abrupt_own, col)
+	_prev[ch] = cur
+	if ch == "e" or ch == "p":
+		return
+	# 干员自管弹表：本帧就结算（敌弹 / 我方弹在 flush 里统一结算）
+	flush()
+
+
+## 出现动画的缩放（绘制处乘在半径 / 贴图缩放上）：0.3 → 1.15（前 70%）→ 1.0；不在动画里 = 1
+func k(b: Dictionary) -> float:
+	var t0 = b.get("_bt")
+	if t0 == null or not _on:
+		return 1.0
+	var u: float = (clock - float(t0)) / SPAWN_T
+	if u >= 1.0:
+		return 1.0
+	if u < 0.7:
+		return lerpf(0.3, 1.15, u / 0.7)
+	return lerpf(1.15, 1.0, (u - 0.7) / 0.3)
+
+
+func _col(b: Dictionary, enemy: bool, col: Color) -> Color:
+	if col.a > 0.0:
+		return col
+	if enemy:
+		if g.optical_on and g.optical != null:
+			return g.optical.eb_col(b)
+		match str(b.get("kind", "orb")):
+			"acid":
+				return Color(0.6, 1.4, 0.4)
+			"nova":
+				var bc = b.get("col")
+				return bc if bc is Color else Color(1.3, 0.55, 1.7)
+			"nerve":
+				return Color(1.4, 1.25, 0.45)
+		return Color(1.0, 0.35, 0.65)
+	if g.optical != null and g.optical.particles != null:
+		return g.optical.particles._bullet_col(b)
+	var fc = b.get("fx_col")
+	return fc if fc is Color else Color(1.0, 0.75, 0.4)
+
+
+func _vpos(b: Dictionary, pk: String, enemy: bool) -> Vector2:
+	return (b[pk] as Vector2) + (EB_LIFT if enemy else Vector2.ZERO)
+
+
+func _r(b: Dictionary) -> float:
+	return clampf(float(b.get("r", 5.0)), 3.0, 14.0)
+
+
+func _spawn(b: Dictionary, pk: String, enemy: bool, ch: String, col: Color) -> void:
+	stat_spawn += 1
+	var p: Vector2 = _vpos(b, pk, enemy)
+	var st: String = str(b.get("src_type", ""))
+	if st != "" and spawn_hooks.has(st) and bool(spawn_hooks[st].call(b, p)):
+		return
+	if str(b.get("kind", "")) == "boss_blade" or b.get("hidden", false):
+		return   # 骑士飞刃有自己的画法（vfx.boss_blade）
+	if not w.view_rect(48.0).has_point(p):
+		return
+	var c: Color = _col(b, enemy, col)
+	var r: float = _r(b)
+	var v: Vector2 = b.get("vel", b.get("v", Vector2.ZERO))
+	_young.append([b, EB_LIFT if enemy else Vector2.ZERO, r, c, pk])
+	_spawns.append([p, v.normalized() if v.length_squared() > 1.0 else Vector2.RIGHT, c, r])
+
+
+func _die(b: Dictionary, pk: String, enemy: bool, abrupt_own: bool, col: Color) -> void:
+	stat_die += 1
+	var reason: String = str(b.get("_die", ""))
+	var lf: float = float(b.life)
+	if reason == "":
+		reason = "clear" if lf > 0.0 else ("expire" if lf < 0.0 else "pop")
+	if reason == "eaten" or (reason == "pop" and abrupt_own):
+		return
+	var p: Vector2 = _vpos(b, pk, enemy)
+	if not w.view_rect(24.0).has_point(p):
+		return
+	var st: String = str(b.get("src_type", ""))
+	if st != "" and hooks.has(st) and bool(hooks[st].call(b, reason, p)):
+		return
+	if reason in ["hit", "expire"] and (str(b.get("hit_fx", "")) != "" or str(b.get("kind", "")) == "acid"):
+		return   # 专属命中帧条 / 酸团溅开已经是消失画面
+	var c: Color = _col(b, enemy, col)
+	var r: float = _r(b)
+	stat_why[reason] = int(stat_why.get(reason, 0)) + 1
+	match reason:
+		"cancel", "clear":
+			_dq.append([p, r, c])
+		"expire":
+			_ghost(1, p, r, c, 0.12)
+			_burst("bul_cool", p, c, 2)
+		_:
+			_ghost(0, p, r, c, 0.1)
+			var n: int = 3 if reason == "rock" else (8 if r >= 9.0 else (6 if b.get("boss", false) else 4))
+			_burst("bul_pop", p, c, n)
+
+
+## 本帧结算：出现（按簇合批）+ 溶解（按距离扫过、超名额抽稀）
+func flush() -> void:
+	if not _spawns.is_empty():
+		var cl := {}
+		for s in _spawns:
+			var key := Vector2i(floori((s[0] as Vector2).x / CLUSTER), floori((s[0] as Vector2).y / CLUSTER))
+			if not cl.has(key):
+				cl[key] = []
+			cl[key].append(s)
+		for key in cl:
+			var ss: Array = cl[key]
+			if ss.size() == 1:
+				var s: Array = ss[0]
+				_burst("bul_spawn", s[0], s[2], 2, s[1])
+				continue
+			# 成批出现（环形弹幕 / 散射）：一圈出膛环 + 至多 8 颗沿弹道的颗粒（均匀挑几发的方向）
+			var ctr := Vector2.ZERO
+			for s in ss:
+				ctr += s[0]
+			ctr /= float(ss.size())
+			var s0: Array = ss[0]
+			_ghost(3, ctr, clampf(8.0 + float(ss.size()) * 1.2, 12.0, 40.0), s0[2], 0.12)
+			var m: int = mini(8, ss.size())
+			var gv: int = _take(m)
+			for i in gv:
+				var s: Array = ss[i * ss.size() / m]
+				_push("bul_spawn", s[0], s[1], s[2])
+		_spawns.clear()
+	if not _dq.is_empty():
+		var pp: Vector2 = g.ppos + EB_LIFT
+		_dq.sort_custom(func(a, b): return (a[0] as Vector2).distance_squared_to(pp) < (b[0] as Vector2).distance_squared_to(pp))
+		var gn: int = 40 if g.optical == null or g.optical.grains == null or g.optical.grains.level >= 2 else 24
+		var sweep: float = Bal.v("render/bullet_fx_sweep", 1600.0)   # 扫过速度（世界像素 / 秒）：离队长近的先溶
+		for i in _dq.size():
+			var q: Array = _dq[i]
+			var d: float = minf(0.25, (q[0] as Vector2).distance_to(pp) / sweep) if _dq.size() > 6 else 0.0
+			_ghost(2, q[0], q[1], q[2], 0.16, d)
+			if i < gn:
+				_burst("bul_dis", q[0], q[2], 3, Vector2.UP, d)
+		_dq.clear()
+
+
+func _ghost(kind: int, p: Vector2, r: float, c: Color, dur: float, delay := 0.0) -> void:
+	if ghosts.size() >= GHOST_MAX:
+		return
+	ghosts.append([kind, p, r, c, 0.0, dur, delay])
+
+
+func _grains():
+	if g.optical == null or g.optical.grains == null or not g.optical.grains.on():
+		return null
+	return g.optical.grains
+
+
+## 本层颗粒令牌桶：要 n 颗，给 0..n（颗粒层已近上限 / 低画质 / 关粒子 = 0）
+func _take(n: int) -> int:
+	if not _grains_ok:
+		return 0
+	var gr = g.optical.grains
+	if gr.pos.size() >= int(float(gr.budget()) * 0.85):
+		return 0
+	var now: int = Time.get_ticks_usec()
+	var ak: float = float(gr.adapt_k)
+	var rate: float = Bal.v("render/bullet_fx_rate", 700.0) * ak
+	var cap: float = Bal.v("render/bullet_fx_burst", 160.0) * ak
+	if _tok_us > 0:
+		_tok = minf(cap, _tok + rate * float(now - _tok_us) / 1000000.0)
+	else:
+		_tok = cap
+	_tok_us = now
+	var give: int = mini(n, int(_tok))
+	_tok -= float(give)
+	stat_grains += give
+	return give
+
+
+func _burst(tpl: String, p: Vector2, c: Color, n: int, dir := Vector2.ZERO, delay := 0.0) -> void:
+	var gv: int = _take(n)
+	for i in gv:
+		var d: Vector2 = dir if dir != Vector2.ZERO else Vector2.from_angle(TAU * (float(i) + g.vrng.randf()) / float(gv))
+		g.optical.grains.push(tpl, p, d, c, delay)
+
+
+func _push(tpl: String, p: Vector2, d: Vector2, c: Color) -> void:
+	g.optical.grains.push(tpl, p, d, c)
+
+
+## 弹体上层（world 画完敌弹之后）：新弹亮芯闪 + 消失残影，全部进 world 的无贴图批
+func draw_top() -> void:
+	if not _on and ghosts.is_empty():
+		return
+	var k := 0
+	for y in _young:
+		var b: Dictionary = y[0]
+		var u: float = (clock - float(b.get("_bt", -9.0))) / SPAWN_T
+		if u >= 1.0 or float(b.life) <= 0.0:
+			continue
+		_young[k] = y
+		k += 1
+		var p: Vector2 = (b[y[4]] as Vector2) + (y[1] as Vector2)
+		var r: float = float(y[2])
+		var c: Color = y[3]
+		var a: float = 1.0 - u
+		w.tb_circle(p, r * (1.5 - 0.6 * u), Color(c.r, c.g, c.b, 0.35 * a))   # 本色晕
+		w.tb_circle(p, maxf(1.5, r * 0.75 * a), Color(2.2, 2.2, 2.2, a))      # 亮芯闪
+	_young.resize(k)
+	for gh in ghosts:
+		var el: float = float(gh[4]) - float(gh[6])
+		var p: Vector2 = gh[1]
+		var r: float = float(gh[2])
+		var c: Color = gh[3]
+		if el < 0.0:
+			if int(gh[0]) == 2:   # 溶解等待扫到：原样留着（弹已移出弹表，由残影替它多停一会儿）
+				w.tb_circle(p, r, Color(c.r, c.g, c.b, 0.9))
+			continue
+		var u: float = clampf(el / float(gh[5]), 0.0, 1.0)
+		match int(gh[0]):
+			0:   # 命中：白芯一闪外扩 + 本色细环
+				w.tb_circle(p, r * (0.9 + 0.6 * u), Color(2.0, 2.0, 2.0, 1.0 - u))
+				w.tb_ring(p, r * (1.2 + 1.4 * u), 1.5, Color(c.r * 1.3, c.g * 1.3, c.b * 1.3, 1.0 - u))
+			1:   # 到期：缩小淡出
+				w.tb_circle(p, r * (1.0 - u), Color(c.r, c.g, c.b, 1.0 - 0.6 * u))
+				w.tb_circle(p, r * 0.4 * (1.0 - u), Color(1.6, 1.6, 1.6, 1.0 - u))
+			2:   # 溶解：缩小并褪成冷白
+				var cc: Color = c.lerp(Color(0.85, 0.95, 1.1), u)
+				w.tb_circle(p, r * (1.0 - 0.8 * u), Color(cc.r, cc.g, cc.b, 0.9 * (1.0 - u)))
+				w.tb_ring(p, r * (1.0 + 0.5 * u), 1.0, Color(cc.r, cc.g, cc.b, 0.6 * (1.0 - u)))
+			3:   # 出膛环：由小到大、淡出
+				w.tb_ring(p, 4.0 + r * u, 2.0 - u, Color(c.r * 1.5, c.g * 1.5, c.b * 1.5, 0.9 * (1.0 - u)))
+				if u < 0.5:
+					w.tb_circle(p, 6.0 * (1.0 - u * 2.0), Color(2.0, 2.0, 2.0, 1.0 - u * 2.0))
+	w.tb_flush()
