@@ -59,7 +59,7 @@ func _ready() -> void:
 	if "--knight-wall-review" in OS.get_cmdline_user_args():
 		scenarios=scenarios.filter(func(s):return s.move=="冻潮夹击")
 	if stake_review:
-		scenarios=[{"name":"首次插枪布柱","move":"","phase":1},{"name":"末柱冲撞后掷枪补柱 · 已破四柱","move":"冲锋","phase":1},{"name":"二阶段末柱冲撞与补柱 · 已破四柱","move":"冲锋","phase":2}]
+		scenarios=[{"name":"首次插枪布柱","move":"","phase":1},{"name":"末柱冲撞后掷枪补柱 · 已破四柱","move":"冲锋","phase":1},{"name":"二阶段连续追击 · 不再布柱","move":"冲锋","phase":2}]
 	for scenario in scenarios:
 		fresh()
 		g.enemies = [boss]
@@ -67,7 +67,7 @@ func _ready() -> void:
 			g.bai.setup_preview_phase2(boss)
 			boss.channel = 0.0
 			boss.invuln = false
-		if stake_review and scenario.move!="":
+		if stake_review and scenario.move!="" and scenario.phase==1:
 			boss.stakes=[{"pos":boss.pos+Vector2(170,0),"born":0.0,"until":INF}]
 			boss.stakes_seeded=true
 		boss.wind = 0.6 # Only hold until the one forced opener; the rest is ordinary AI.
@@ -86,7 +86,7 @@ func _ready() -> void:
 			g.t += DT
 			if frame_i == 15 and scenario.move!="":
 				var dir: Vector2 = (g.ppos - boss.pos).normalized()
-				if stake_review: boss.stakes[0].pos=boss.pos+dir*170.0
+				if stake_review and scenario.phase==1: boss.stakes[0].pos=boss.pos+dir*170.0
 				if not g.bai.boss(kind).force_move(boss, scenario.move, dir, boss.pos.distance_to(g.ppos)):
 					push_error("Combo opener failed")
 					get_tree().quit(3)

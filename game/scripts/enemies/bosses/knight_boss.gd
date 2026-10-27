@@ -5,7 +5,7 @@
 ##   五根冰柱分散成批；全部撞完后统一预告再生，不到期、不由掷枪或转幕补齐。
 ##   首次插枪布五柱；整批耗尽后等连招结束，掷枪落地补五柱。普通攻击掷枪不补柱。
 ##   三幕「掷枪」（33%）：掷枪两连；冲锋后再转向冲一次（折线）；寒气圈 180、冻伤更久
-##   重生「冲锋形态」（原作）：桩挡不住它（撞碎继续冲）；平时走得慢（× knight_reborn_spd 0.5），靠冲锋三连追人，连冲后喘气破绽；
+##   重生「冲锋形态」（原作）：残柱碎裂且不再布柱；平时走得慢（× knight_reborn_spd 0.5），靠冲锋三连追人，连冲后喘气破绽；
 ##       重生时原作「释放当前波次」：刷一波 knight_rebirth_wave（16）只
 ## 最终 Boss 保留已有小怪，停止普通刷新；重生那一波属于机制召唤。
 extends "res://scripts/enemies/bosses/boss_base.gd"
@@ -153,6 +153,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 func setup_preview_phase2(e: Dictionary) -> void:
 	cancel_combo(e)
 	e.phase = 2
+	_clear_stakes(e)
 	e.final_cycle = 0
 	e.hp = e.maxhp * 0.5
 	e.spd *= Bal.v("boss/knight_reborn_spd", 0.5)
@@ -291,8 +292,11 @@ func _ice_step(e: Dictionary) -> void:
 ## ---- 最后的骑士：冰柱（docs/38 §8.8 的冰枪桩；docs/142b §3.1 改为开局就有，10-25 用户「设置成冰柱，多一点，4–5 个」）。
 ## 场上 boss/knight_stakes（5）根冰柱（判定 r 22），离主控 ≥120、离场地边 ≥100、彼此 ≥90；破土升起帧条见 tools/gen_ice_pillar.py。
 ## 冰柱只挡骑士：整批耗尽至少等 1.5 秒及当前连招结束，掷枪落地后预告 1 秒升起新柱。
-## 重生后（冲锋形态，原作不可阻挡）撞碎桩继续冲。主控和子弹都不受影响。冲锋预警会标出这一冲会不会撞桩（w.stake_hit，画面画「破」字端盖）
+## 仅一阶段布柱；重生时清除残柱，二阶段不再布柱。主控和子弹不受冰柱阻挡。
 func _knight_stakes(e: Dictionary, _dt: float) -> void:
+	if e.phase != 1:
+		_clear_stakes(e)
+		return
 	if not e.has("stakes"):
 		e.stakes = []
 		e.stakes_empty_at = g.t
@@ -308,11 +312,6 @@ func _knight_stakes(e: Dictionary, _dt: float) -> void:
 				s.until = 0.0
 				_shatter(s.pos, 1.0)   # 撞柱崩碎
 				g.vfx.sparks(s.pos, Vector2.UP, Color(0.8, 1.2, 1.6), 16, 260.0)
-				if e.phase == 2:
-					# 冲锋形态：桩挡不住，撞碎继续冲
-					Sfx.play("stake_shatter", -4.0, 0.9, 0.0)
-					g.vfx.add_text(s.pos + Vector2(0, -40), "撞碎", Color(0.8, 0.95, 1.4), 14)
-					continue
 				e.kb = Vector2.ZERO
 				e.kb_self = false
 				e.dash_t = 0.0
@@ -330,6 +329,15 @@ func _knight_stakes(e: Dictionary, _dt: float) -> void:
 				break
 
 
+func _clear_stakes(e: Dictionary) -> void:
+	_cancel_stake_cast(e)
+	for stake in e.get("stakes", []):
+		if float(stake.until) > 0.0:
+			_shatter(stake.pos, 1.0)
+	e.stakes = []
+	e.erase("stakes_empty_at")
+
+
 ## 冰柱崩碎：有冰柱帧条用 prop_knight_frost_stake_break（整数像素，同 world._draw_stakes），没有退回旧冰枪桩碎裂；a = 透明度（自然到期半透明）
 func _shatter(pos: Vector2, a: float) -> void:
 	if g.tex.get("prop_knight_frost_stake_break") != null:
@@ -340,6 +348,9 @@ func _shatter(pos: Vector2, a: float) -> void:
 
 ## Reserve a real action before replenishment; timers only make the action eligible.
 func stake_cast_step(e: Dictionary, dir: Vector2, ready: bool) -> bool:
+	if e.phase != 1:
+		_cancel_stake_cast(e)
+		return false
 	if e.has("stake_cast"):
 		var cast: Dictionary=e.stake_cast
 		e.fx=cast.face
@@ -393,7 +404,7 @@ func _cancel_stake_cast(e: Dictionary) -> void:
 
 func _place_stakes(e: Dictionary, want: int) -> void:
 	# Batch invariant: no source (throw, phase change, time) fills a partially used batch.
-	if not e.stakes.is_empty():
+	if e.phase != 1 or not e.stakes.is_empty():
 		return
 	var center: Vector2 = g.zone_next_c if g.zone_frozen else e.pos
 	var radius: float = minf(360.0, (g.zone_next_r - 110.0) * 0.72) if g.zone_frozen else 320.0
@@ -428,6 +439,7 @@ func on_lethal(e: Dictionary) -> bool:
 		return super.on_lethal(e)
 	Sfx.play_cue("phase", e.type, "start")
 	e.phase = 2
+	_clear_stakes(e)
 	e.final_cycle = 0
 	e.hp = e.maxhp * 0.5
 	e.spd *= Bal.v("boss/knight_reborn_spd", 0.5)   # 原作冲锋形态：移速 −50%，靠冲锋三连追人
@@ -441,7 +453,7 @@ func on_lethal(e: Dictionary) -> bool:
 	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))   # 重生清预警（§4.3 节奏表）
 	if not g.vfx.fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), g.PX * 1.4, 0.0):
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.9, 1.4)})
-	g.vfx.show_banner("冲锋形态：冰柱挡不住了——躲过三连冲，趁喘气打")
+	g.vfx.show_banner("冲锋形态：连续冲锋后出现破绽")
 	Sfx.play("roar", 0.0, 0.9, 0.0)
 	g.vfx.shake_screen(1.2)
 	# 原作「释放当前波次」：刷一波普通海嗣（场地边缘）

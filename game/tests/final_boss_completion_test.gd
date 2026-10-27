@@ -473,7 +473,7 @@ func _finish_stake_cast(e:Dictionary) -> void:
 
 func _test_stake_cast_interruptions() -> void:
 	var script=g.bai.boss("knight_boss")
-	for phase in [1,2]:
+	for phase in [1]:
 		var e:Dictionary=fresh("knight_boss")
 		e.phase=phase
 		script._knight_stakes(e,.01)
@@ -485,7 +485,7 @@ func _test_stake_cast_interruptions() -> void:
 		g.tele.update_warns(1.1)
 		script.stake_cast_step(e,Vector2.RIGHT,false)
 		check(g.world.knight_animation(e).frame==2,"refill spear flight aligns with release frame")
-		check(e.stake_cast.stage=="flight","both phases release refill spear")
+		check(e.stake_cast.stage=="flight","phase one releases refill spear")
 		e.break_t=1.0
 		script.stake_cast_step(e,Vector2.RIGHT,false)
 		check(not e.has("stake_cast") and e.stakes.is_empty(),"poise break cancels flight before spawning")
@@ -504,3 +504,24 @@ func _test_stake_cast_interruptions() -> void:
 	script._place_stakes(e,5)
 	check(e.stakes.all(func(st):return absf(st.born-g.t-1.5)<.01),"pillar collision waits for difficulty-adjusted warning")
 	g.dmod.boss_warn=old_warn
+
+	# Phase two removes remaining stakes and cannot reserve or directly spawn a batch.
+	e=fresh("knight_boss")
+	e.stakes=[{"pos":e.pos+Vector2(100,0),"born":0.0,"until":INF}]
+	script.on_lethal(e)
+	check(e.phase==2 and e.stakes.is_empty(),"rebirth clears remaining stakes")
+	e.invuln=false
+	e.stun=0.0
+	e.wind=0.0
+	e.stakes_empty_at=0.0
+	for tick in 3:
+		g.t+=10.0
+		script._knight_stakes(e,.1)
+		check(not script.stake_cast_step(e,Vector2.RIGHT,true),"phase two never reserves planting action")
+		script._place_stakes(e,5)
+		check(e.stakes.is_empty() and not e.has("stake_cast"),"phase two never regenerates stakes")
+	e=fresh("knight_boss")
+	script._knight_stakes(e,.1)
+	script.stake_cast_step(e,Vector2.RIGHT,true)
+	script.setup_preview_phase2(e)
+	check(e.stakes.is_empty() and not e.has("stake_cast"),"preview phase switch cancels pending planting")
