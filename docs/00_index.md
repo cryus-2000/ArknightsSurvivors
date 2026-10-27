@@ -57,7 +57,7 @@
 | [154_node_cards](154_node_cards.md) | 翻节点卡：多结局选路正式方案 | 已实装（§9），待合入 | 10-25：取代 148 与海嗣祭坛；首通结局一后，3:30 / 7:00 中 Boss 后翻 3 张节点卡；结局只看信物、不绑灯火，结局入口每局必出、达成过的描结局色边；卡组权重、事件清单（原作 / 本作拟）、接口、机器人与测试、约 6 人日；示意图 reference/154_node_cards.png | 148、18、19；endings.gd、waves.json、choice_panel.gd |
 | [156_event_cg](156_event_cg.md) | 事件插图：原作 CG 像素重构调研 | 调研待用户看 | 10-26：docs/154 用到的 18 件事件在原作都有 1600×900 专属 CG（rogue_2 choiceScenes.background）；PRTS 链接、裁切、难度、优先级（P1 结局线 7 张）；3 张 64 色草稿在 build/event_cg/ | 154；tools/probes/event_cg_pixel_draft.py |
 | [162_swap_frequency](162_swap_frequency.md) | 后期换人频率 | 已改，待合入 | 10-26：满员后换人卡出现率 0.55 → 0.25（7:00 后 0.12）、两张深度卡时不出；后期换人卡间隔 46–59 秒 → 184–265 秒 | balance.json levelup；progression.gd；tools/probes/recruit_freq.py |
-| [172_elite_catchup](172_elite_catchup.md) | 精英化落后补偿 | 已改，待云端对照 | 10-27：深度卡按落后精英阶段加权（×1.8^差 封顶 3）、保底让给落后者；队友精二比队长晚 4:04 → 1:48，但靠队长精二 2:08 → 4:28 推迟；全队累计培养曲线不变 | balance.json levelup/catchup*；progression.gd |
+| [173_elite_catchup](173_elite_catchup.md) | 精英化落后补偿 | 已改，待云端对照 | 10-28 定档：深度卡按落后精英阶段加权（×1.8^差 封顶 3）、队长领先 ≥5 节点时保底让给落后者；队长精二 2:08 → 3:29、队友比队长晚 4:04 → 2:42（队友绝对时刻不变）；全队累计培养曲线不变 | balance.json levelup/catchup*；progression.gd |
 | [22_mobile_web](22_mobile_web.md) | 移动端适配（网页） | 现行规范 | 触屏、缩放、超宽、iOS；部署与加载器两节已作废，见 33 | 33、38、41、62、89；tools/export_web.py |
 | [35_relic_lanes](35_relic_lanes.md) | 藏品流派 A–H | 现行规范 | 流派划分、职业门槛、流派加权；部分数值已被 65 §6 改（以 relic_effects.json 为准） | 27、29、36、38、41、57 等 7 篇；relic_fx.gd、characters/character.gd、run/combat.gd 等 15 个文件 |
 | [40_run_telemetry](40_run_telemetry.md) | 局内数据记录 | 现行规范 | runs.jsonl 格式，按包类型决定写不写 | 33、41、43、89、归档59；game.gd、run/telemetry.gd、settings.gd 等 11 个文件 |

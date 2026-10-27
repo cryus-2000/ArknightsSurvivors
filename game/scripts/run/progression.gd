@@ -18,7 +18,7 @@ var heal_offer := 0   # 平衡输出：回复类卡被提供 / 被选中的张�
 var heal_pick := 0
 var low_levelups := 0        # 主控生命低于门槛时弹出的升级次数
 var heal_offer_low := 0      # 其中提供的回复类卡张数
-var prog_log: Array = []      # 培养记录 [秒, 干员 id, 推进后 prog]（telemetry：精英化落后补偿对照，docs/172）
+var prog_log: Array = []      # 培养记录 [秒, 干员 id, 推进后 prog]（telemetry：精英化落后补偿对照，docs/173）
 var focus_op := ""           # docs/119 §4.2 培养保底（简化版）：最近一次选中培养卡的干员 id；它还有合法成长卡时固定占第一个深度卡槽
 var branch_ctx: Dictionary = {}   # 培养路线二选一（docs/119 §4.1）：{opts, kind, title, sub, sel, card, source: level / swap / free}
 var branch_queue: Array = []      # 赠送推进（典训 / 博士银印）碰到分支节点、等玩家选路线的干员 id（按触发顺序排队）
@@ -68,7 +68,7 @@ func catchup_focus(deep: Array, cur: String) -> String:
 		if o != null and o.prog < low:
 			low = o.prog
 			low_id = o.id
-	if low_id != "" and fo.prog - low >= Bal.vi("levelup/catchup_focus_gap", 3):
+	if low_id != "" and fo.prog - low >= Bal.vi("levelup/catchup_focus_gap", 5):
 		return low_id
 	return cur
 
@@ -173,7 +173,7 @@ func open_levelup() -> void:
 				continue
 			deep.append(c)
 	if catchup_on():
-		deep = catchup_order(deep)   # 精英化落后补偿（docs/172）：落后越多的干员，成长卡越靠前；只重排，不加卡
+		deep = catchup_order(deep)   # 精英化落后补偿（docs/173）：落后越多的干员，成长卡越靠前；只重排，不加卡
 	else:
 		g.shuffle(deep)
 	# 培养保底（docs/119 §4.2 简化版）：最近培养的干员有合法成长卡就挪到 deep[0]（只重排，不多取随机数、不加选项）；离队 / 养满自然失效
