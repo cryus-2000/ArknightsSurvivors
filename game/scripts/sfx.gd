@@ -42,8 +42,8 @@ const OP_LIMIT := {"atk": 0.06, "hit": 0.06, "quake": 0.08, "big": 0.1, "heal": 
 ## OP_DB 音量偏移（dB，叠在 OP_VOL 与调用处偏移上）；OP_GAP 最短间隔（秒，按请求名算，借用同一文件的干员各算各的）；
 ## OP_PVAR 音高随机（±，取它与调用处的较大值）。数字来自 docs/113 §2 实测：混音里最响的是长尾低频重击的高频连发
 const OP_DB := {"op_eyjafjalla_big": -3.0, "op_kaltsit_big": -2.0, "op_wisadel_quake": -3.0, "op_wisadel_hit": -1.5, "op_exusiai_hit": -5.0,
-	"op_exusiai_s1": -4.0, "op_exusiai_s2": -5.0, "op_exusiai_s3": -6.0, "op_exusiai_big": -3.0, "op_texas_hit": -3.0}
-const OP_GAP := {"op_exusiai_atk": 0.085, "op_exusiai_hit": 0.14, "op_exusiai_big": 0.5, "op_eyjafjalla_big": 0.2}
+	"op_exusiai_s1": -3.0, "op_exusiai_s2": -3.0, "op_exusiai_s3": -3.0, "op_exusiai_big": -3.0, "op_texas_hit": -3.0}
+const OP_GAP := {"op_exusiai_atk": 0.03, "op_exusiai_hit": 0.14, "op_exusiai_big": 0.5, "op_eyjafjalla_big": 0.2}
 const OP_PVAR := {"op_exusiai_atk": 0.09, "op_exusiai_hit": 0.1, "op_irene_atk": 0.08, "op_texas_atk": 0.08, "op_eyjafjalla_atk": 0.08, "op_lumen_atk": 0.07, "op_wisadel_quake": 0.12}
 var op_last := {}          # 请求名 -> 上次放行的墙钟秒（OP_GAP）
 ## 轮换：同一请求名有多个录音时按次序轮着放（连射不像同一声复读）；次序只用于声音，不碰玩法随机
@@ -1230,7 +1230,7 @@ const SIEGE_S1_GAP := 4.5
 const VOICE_CAP := {"op_siege_s1": 1, "cue_charge_start": 1, "cue_charge_hit": 1, "knight_charge": 2,
 	"cue_beam_start": 1, "cue_beam_hit": 1, # 后续轮次重启同名音，起手与命中各保留一个
 	"op_wisadel_quake": 2, "op_wisadel_hit": 3, "op_wisadel_big": 2, "op_kaltsit_big": 2, "op_eyjafjalla_big": 3,
-	"exusiai_gun": 2, "exusiai_burst": 1, "op_exusiai_hit": 1}
+	"exusiai_gun": 4, "exusiai_burst": 1, "op_exusiai_hit": 1}
 const OFF_FADE := 480.0
 const OFF_DB := 12.0
 var view := Rect2()
@@ -1327,7 +1327,6 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 	var low_prio := 99
 	var same := 0
 	var group := voice_group(name)
-	var burst_playing := false
 	for i in players.size():
 		var c: AudioStreamPlayer = players[(next + i) % players.size()]
 		if not c.playing:
@@ -1337,8 +1336,6 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 			continue
 		busy += 1
 		var cg := voice_group(str(c.get_meta("sname", "")))
-		if cg == "exusiai_burst":
-			burst_playing = true
 		if cg == group:
 			same += 1
 		var cp: int = c.get_meta("prio", 2)
@@ -1365,8 +1362,6 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 		sfx_stat.stolen += 1
 		busy -= 1
 	last[name] = now
-	if group == "exusiai_gun" and burst_playing:
-		vol -= 5.0 # Skill recordings already contain gunfire; avoid doubling every shot.
 	if busy >= DUCK_AT and prio <= 2:
 		vol -= 6.0
 		sfx_stat.ducked += 1

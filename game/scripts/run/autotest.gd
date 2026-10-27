@@ -314,6 +314,8 @@ func _knight_shots() -> void:
 ## rec_<帧>.png 到 --shotdir；--legacyfeel：整局用旧的切步与顿帧规则（g.perf_alt + PlayClock.test_legacy）
 var _rec_t0 := -2.0
 var _rec_left := 0
+var _rec_sfx0 := {}
+var _rec_f0 := 0               # --sfxtrace：第一张录屏帧的渲染帧号
 var _rec_i := 0
 func _rec_step() -> void:
 	if _rec_t0 < -1.0:
@@ -327,10 +329,25 @@ func _rec_step() -> void:
 				g.perf_alt = true
 				PlayClockT.test_legacy = true
 	if _rec_t0 >= 0.0 and _rec_left > 0 and g.t >= _rec_t0 and g.state == g.S.PLAY and DisplayServer.get_name() != "headless":
+		if _rec_i == 0 and Cfg.dev_args().has("--sfxtrace"):
+			Sfx.trace_on = true   # --sfxtrace：录屏配音（测试局照样静音）：记下每次真正放出的音效，结束时打印 SFXTRACE，离线混音合进 mp4（tools/exu_sync_rec.py）
+			_rec_f0 = Engine.get_process_frames()
+			_rec_sfx0 = Sfx.sfx_by.duplicate(true)   # 配 --sfxstat：录像这段里各音名的 [请求, 实播, 合并, 丢弃, 降音量] 增量，结束时打印 SFXREQ
 		g.get_viewport().get_texture().get_image().save_png(g.shot_dir + "/rec_%05d.png" % _rec_i)
 		_rec_i += 1
 		_rec_left -= 1
 		if _rec_left == 0:
+			if Sfx.trace_on:
+				print("SFXTRACE " + JSON.stringify({"frame0": _rec_f0, "trace": Sfx.trace}))
+				var dq := {}
+				for n in Sfx.sfx_by:
+					var b: Array = _rec_sfx0.get(n, [0, 0, 0, 0, 0])
+					var d: Array = []
+					for i in 5:
+						d.append(int(Sfx.sfx_by[n][i]) - int(b[i]))
+					if d[0] > 0:
+						dq[n] = d
+				print("SFXREQ " + JSON.stringify(dq))
 			g.get_tree().quit()
 
 
