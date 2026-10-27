@@ -284,16 +284,19 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 			for i in 10:
 				_shot(e, o, float(em.a0) + TAU * i / 10.0 + sgn * 0.3 * floorf(k / 2.0) + (0.15 if k % 2 else 0.0), 115.0, "s")
 		"无声波环":
-			# 两道 18 发减速泡环，缺口约 1.2 弧度且错位：第一道缺口朝你，第二道偏 0.95
+			# 两道 18 发泡环，先慢后加速，缺口约 1.2 弧度且错位：第一道缺口朝你，第二道偏 0.95
 			var gap_c: float = _aim(o) + (0.0 if k == 0 else 0.95 * float(em.flip))
 			for i in 18:
 				var a2: float = TAU * i / 18.0
 				if absf(angle_difference(a2, gap_c)) < 0.6:
 					continue
-				var b: Dictionary = _shot(e, o, a2, 190.0, "m")
+				# 10-27 用户「打出去以后弹幕可以加速」：先以 80 慢慢鼓出（看清缺口），0.45 秒后每秒 +260 加速到 280
+				var b: Dictionary = _shot(e, o, a2, 80.0, "m")
 				if not b.is_empty():
-					b.p_acc = -130.0
-					b.p_vmin = 75.0
+					b.p_acc = 260.0
+					b.p_vmin = 80.0
+					b.p_vmax = 280.0
+					b.p_acc_at = g.t + 0.45
 		"侵蚀帘幕":
 			# 一排向前推进的弹墙（间距 40），留一道 150 宽的缝；第二排的缝向侧面错开 170
 			var d: Vector2 = Vector2.from_angle(float(em.a0))
@@ -352,8 +355,8 @@ func _update_bullets(e: Dictionary, dt: float) -> void:
 					for q in 3:
 						gr.push("mote_burst", b.pos + Vector2(0, -16), Vector2.from_angle(TAU * q / 3.0 + b.pos.x * 0.01), CORE)
 				continue
-			if b.has("p_acc"):
-				var sp: float = maxf(float(b.p_vmin), b.vel.length() + float(b.p_acc) * dt)
+			if b.has("p_acc") and g.t >= float(b.get("p_acc_at", 0.0)):
+				var sp: float = clampf(b.vel.length() + float(b.p_acc) * dt, float(b.p_vmin), float(b.get("p_vmax", INF)))
 				b.vel = b.vel.normalized() * sp
 			if b.has("p_stop_at") and g.t >= float(b.p_stop_at):
 				b.erase("p_stop_at")
