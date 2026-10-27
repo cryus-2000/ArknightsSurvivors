@@ -49,7 +49,7 @@ func _ready() -> void:
 		g.warns.clear()
 		var seen: Dictionary = {}
 		var names: Array = []
-		for i in 1500:
+		for i in 2000:   # 80 秒：10-28 起破绽 3.8 秒、追扫 2.4 秒、四线依次发射，每组连段更长
 			g.t += 0.04
 			e.wind = maxf(0.0, e.wind - 0.04)
 			g.bai._boss_ai(e, 0.04, Vector2.RIGHT, distance)

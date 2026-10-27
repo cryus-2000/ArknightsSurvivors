@@ -130,10 +130,67 @@ static func _sweeps(g) -> void:
 			pool.push("bfx_flash", s.pos + d * float(s.len) * t, d.orthogonal() * (1.0 if int(el * 30.0) % 2 == 0 else -1.0), CORE)
 
 
+## 每幕场地（docs/170 §15）：二幕每 2.4 秒从她脚下扩出一道很淡的海嗣潮纹（压迫）；三幕整个场地罩一层腐红底色，亮度 4 秒一呼吸（缓慢、不闪）。一幕不加
+static func _arena(g) -> void:
+	var gy: float = g.combat.GROUND_Y
+	for e in g.bosses:
+		if e.dead or e.phase != 2 or Bal.v("render/ishar_act_style", 1.0) <= 0.0:
+			continue
+		var act: int = clampi(int(e.get("gates_passed", 0)), 0, 2)
+		var c: Color = Combos.act_col(e)
+		var R: float = g.zone_r if g.zone_frozen else 650.0
+		if act == 2:
+			var pts := PackedVector2Array()
+			for i in 49:
+				var an: float = TAU * i / 48.0
+				pts.append(g.zone_c + Vector2(cos(an), sin(an) * gy) * R)
+			g.draw_colored_polygon(pts, Color(0.5, 0.05, 0.14, 0.1 + 0.03 * sin(g.t * TAU / 4.0)))
+		if act >= 1:
+			var ph: float = fmod(g.t / 2.4, 1.0)
+			var rr: float = lerpf(60.0, R, ph)
+			var m: int = clampi(int(rr * TAU / 16.0), 12, 160)
+			for i in m:
+				if i % 3 == 0:
+					continue
+				var an: float = TAU * i / m
+				_sq(g, e.pos + Vector2(cos(an), sin(an) * gy) * rr, Color(c.r, c.g, c.b, 0.22 * (1.0 - ph)))
+
+
+## 连线护盾（ishar._web_shield）：与连线同色的护罩（层数越多越实）+ 头顶层数刻度（亮 = 在、暗 = 碎了等回复）
+static func _shield(g) -> void:
+	var gy: float = g.combat.GROUND_Y
+	for e in g.bosses:
+		var layers: Array = e.get("web_layers", [])
+		if e.dead or layers.is_empty():
+			continue
+		var up: int = int(e.get("web_sh_up", 0))
+		var c: Color = Combos.COL
+		var r: float = e.r + 18.0
+		if up > 0:
+			var pts := PackedVector2Array()
+			for i in 33:
+				var an: float = TAU * i / 32.0
+				pts.append(e.pos + Vector2(0, -e.r * 0.5) + Vector2(cos(an), sin(an) * 0.85) * r)
+			g.draw_colored_polygon(pts, Color(c.r, c.g, c.b, 0.06 + 0.03 * up))
+			var n: int = clampi(int(r * TAU / 8.0), 16, 60)
+			for i in n:
+				if (i + int(g.t * 6.0)) % 4 == 0:
+					continue
+				var an: float = TAU * i / n
+				_sq(g, e.pos + Vector2(0, -e.r * 0.5) + Vector2(cos(an), sin(an) * 0.85) * r, Color(c.r, c.g, c.b, 0.3 + 0.08 * up))
+		var w0: float = layers.size() * 8.0
+		for k in layers.size():
+			var on: bool = float(layers[k].hp) > 0.0
+			var q: Vector2 = e.pos + Vector2(-w0 * 0.5 + k * 8.0 + 4.0, -e.r * 2.0 - 30.0)
+			g.draw_rect(Rect2((q * 0.5).floor() * 2.0 - Vector2(2, 2), Vector2(6, 6)), Color(c.r, c.g, c.b, 0.95) if on else Color(1, 1, 1, 0.18))
+
+
 static func draw(g) -> void:
+	_arena(g)
 	_zones(g)
 	_fades(g)
 	_sweeps(g)
+	_shield(g)
 	var gy: float = g.combat.GROUND_Y
 	for w in g.warns:
 		if w.done or not owns(w):

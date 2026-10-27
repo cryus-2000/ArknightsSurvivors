@@ -42,6 +42,15 @@ func act_of(e: Dictionary) -> int:
 	return clampi(int(e.get("gates_passed", 0)), 0, 2)
 
 
+## 每幕主色（docs/170 §15，用户 10-28「每个 Boss 不同阶段要有不同风格」）：弹芯（world._eb_mod 读 b.bcol）、光束本体、地带与场地底色都跟着换。
+## 一幕「余韵」：近白的浅青（人形歌声，稀疏优雅）；二幕「海嗣化」：深海青绿（压迫）；三幕「腐化之心」：腐红（整场变色）
+const ACT_COL := [Color(0.8, 1.0, 0.94), Color(0.36, 0.95, 0.72), Color(1.0, 0.42, 0.55)]
+
+
+static func act_col(e: Dictionary) -> Color:
+	return ACT_COL[clampi(int(e.get("gates_passed", 0)), 0, 2)]
+
+
 ## 每帧（变身完成后）。补充招式改由连段调度：压住 final_attacks 的独立轮换
 func step(e: Dictionary, dir: Vector2, dist: float, ready: bool) -> void:
 	e.final_next = INF
@@ -53,7 +62,7 @@ func step(e: Dictionary, dir: Vector2, dist: float, ready: bool) -> void:
 		if _broken(e):
 			cancel(e)
 			return
-		var gap: float = 0.22 if act_of(e) == 2 else Bal.v("boss/ishar_combo_gap", 0.26)   # 10-28：一二幕 0.32 → 0.26，衔接更紧
+		var gap: float = [Bal.v("boss/ishar_combo_gap", 0.3), 0.24, 0.2][act_of(e)]   # 每幕节奏（docs/170 §15）：一幕留呼吸、二幕压迫、三幕最紧
 		if not ready or _pending(e):
 			e.card_next = maxf(float(e.card_next), g.t + gap)
 			return
@@ -236,7 +245,7 @@ func _emit_step(e: Dictionary) -> void:
 				for k in n:
 					if gap > 0 and (k < ((gap + 1) >> 1) or k >= n - (gap >> 1)):
 						continue
-					var b = _shot_ref(e, own, p, c0 + TAU * (k + off) / float(n), float(d.get("spd", 95.0)), 6.0, float(d.get("mult", 0.28)), "ishar_note", 5.0 + hold)
+					var b = _shot_ref(e, own, p, c0 + TAU * (k + off) / float(n), float(d.get("spd", 95.0)), 6.0, float(d.get("mult", 0.28)), ["ishar_note", "ishar_tear", "ishar_shard"][act_of(e)], 5.0 + hold)
 					if b != null:
 						own += 1
 						if hold > 0.0:
@@ -318,7 +327,7 @@ func _shot(e: Dictionary, own: int, p: Vector2, ang: float, spd: float, r: float
 func _shot_ref(e: Dictionary, own: int, p: Vector2, ang: float, spd: float, r: float, mult: float, kind: String, life := 6.5):
 	if own >= OWN_CAP:
 		return null
-	var b := {"pos": p, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * mult * Bal.v("boss/ishar_shot_mult", 1.2), "r": r, "life": life,
+	var b := {"bcol": act_col(e), "pos": p, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * mult * Bal.v("boss/ishar_shot_mult", 1.2), "r": r, "life": life,
 		"slow": false, "frost": 0.0, "corrode": Bal.v("boss/ishar_corrode", 0.5), "nerve": 0.0, "true": true, "kind": kind, "home": false, "boss": true,
 		"atk": "法术", "hit_cap": e.get("hit_cap", 0.0), "source_id": e.id, "col": COL, "src_type": "ishar"}
 	g.ebullets.append(b)

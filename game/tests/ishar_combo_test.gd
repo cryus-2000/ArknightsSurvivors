@@ -225,14 +225,21 @@ func _ready() -> void:
 	g.ishar.step_ally(p1, 0.01)
 	check(p1.phase == 2 and not p1.ishar_p1 and is_equal_approx(p1.act_top, Bal.v("boss/ishar_p1_line", 0.85)), "reaching the line transforms early")
 	e = fresh(0)
-	e.act_top = 0.9
-	e.hp = e.maxhp * 0.8
-	var h0: float = e.hp
-	tick_n(e, int(1.0 / DT))
-	check(e.hp > h0, "linked sea-born heal her over time")
-	e.hp = e.maxhp * 0.8995
-	tick_n(e, int(2.0 / DT))
-	check(e.hp <= e.maxhp * 0.9 + 0.01, "web healing never rises above the act start")
+	# 连线护盾：每只连线海嗣一层；打空一层会碎、5 秒后回来；杀掉海嗣那层不回来
+	tick_n(e, 2)
+	var per: float = e.maxhp * Bal.v("boss/ishar_web_layer", 0.025)
+	check(e.web_layers.size() == 3 and is_equal_approx(e.shield_hp, per * 3.0), "each linked sea-born adds one shield layer (%d, %.0f)" % [e.web_layers.size(), e.shield_hp])
+	var hp_before: float = e.hp
+	g.combat.hit("真实")
+	g.combat.damage(e, per * 0.5)
+	g.combat.damage(e, per * 0.7)
+	tick_n(e, 1)
+	check(e.web_sh_up == 2 and is_equal_approx(e.hp, hp_before), "shield absorbs damage and the top layer breaks first (%d)" % e.web_sh_up)
+	tick_n(e, int(Bal.v("boss/ishar_layer_regen", 5.0) / DT) + 2)
+	check(e.web_sh_up == 3, "a broken layer regrows while its sea-born stays linked")
+	e.web[0].o.dead = true
+	tick_n(e, 2)
+	check(e.web_layers.size() == 2 and e.shield_hp <= per * 2.0 + 0.01, "killing a linked sea-born removes its layer")
 	var wm: Dictionary = g.bai.boss("ishar")._web_mob(e, Vector2(200, 0), 0)
 	check(float(wm.shield_hp) >= wm.maxhp * Bal.v("boss/ishar_web_shield", 0.4) - 0.01, "linked sea-born carry a shield")
 	# 6. 同输入复现
