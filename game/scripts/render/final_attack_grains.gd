@@ -16,6 +16,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 ## Low quality keeps them at the template's low_k share instead of switching them off; every hazard outline is drawn separately.
 const KNIGHT_ICE := ["ice", "ice_field", "ice_wave", "ice_thrust", "ice_lance", "ice_wall", "spear", "crescent"]
 const ICE_TINT := Color(1.0, 1.0, 1.0, 0.95)
+static var ice_tint := ICE_TINT   # 分阶段冰色（docs/169）：boss_attack_draw 每帧按骑士阶段写
 static var ice_off := false # --iceab same-run perf rotation only
 
 static func knight_ice(w: Dictionary) -> bool:
@@ -30,9 +31,9 @@ static func _ice_pool(g):
 static func _chip(g, pool, p: Vector2, direction: Vector2, delay := 0.0, drop := 4.0, mist := false) -> void:
 	# Shards land on a ground line a little below the emission point; every few emissions are low cold mist instead.
 	if mist:
-		pool.push("frost_mist", p + Vector2(0, -4), Vector2.UP, ICE_TINT, delay)
+		pool.push("frost_mist", p + Vector2(0, -4), Vector2.UP, ice_tint, delay)
 		return
-	pool.push("ice", p, direction, ICE_TINT, delay, p.y + g.vrng.randf_range(1.0, drop))
+	pool.push("ice", p, direction, ice_tint, delay, p.y + g.vrng.randf_range(1.0, drop))
 
 static func _ring_dir(g, w: Dictionary) -> Vector2:
 	# Elliptic ground ring direction outside a safe gap; ZERO when the sample lands inside the gap.
@@ -104,7 +105,7 @@ static func _ice_burst(g, pool, w: Dictionary) -> void:
 				else:
 					# Crystal break starts 0.30 s before the 0.95 s impact ends: shards spill from the column and settle.
 					var at: Vector2 = root + Vector2(g.vrng.randf_range(-8.0, 8.0), -g.vrng.randf_range(10.0, 44.0))
-					pool.push("ice", at, (Vector2.UP * 0.4 + Vector2(g.vrng.randf_range(-1.0, 1.0), 0)).normalized(), ICE_TINT, 0.65, root.y + g.vrng.randf_range(0.0, 6.0))
+					pool.push("ice", at, (Vector2.UP * 0.4 + Vector2(g.vrng.randf_range(-1.0, 1.0), 0)).normalized(), ice_tint, 0.65, root.y + g.vrng.randf_range(0.0, 6.0))
 		"ice_lance":
 			var count: int = Beam.take(g, 12)
 			for i in count:
@@ -154,9 +155,9 @@ static func _ice_shatter(g, pool, h: Dictionary) -> void:
 		var at: Vector2 = points[i]
 		var side := Vector2(g.vrng.randf_range(-1.0, 1.0), 0.0)
 		if i % 3 == 2:
-			pool.push("frost_mist", at, Vector2.UP, ICE_TINT)
+			pool.push("frost_mist", at, Vector2.UP, ice_tint)
 		else:
-			pool.push("ice", at, (Vector2.UP * 0.7 + side).normalized(), ICE_TINT, 0.0, at.y + g.vrng.randf_range(6.0, drop))
+			pool.push("ice", at, (Vector2.UP * 0.7 + side).normalized(), ice_tint, 0.0, at.y + g.vrng.randf_range(6.0, drop))
 
 ## Knight dash: low cold mist and a rare kicked shard behind the charging body; the ground frost itself is a fixed hairline
 ## pattern revealed by arrival time (boss_attack_draw._dash_frost), not airborne specks. Called once per drawn frame, token-limited.
@@ -324,8 +325,8 @@ static func pillar_crash(g, at: Vector2) -> void:
 	for i in count:
 		if i % 3 == 2:
 			var v := Vector2.from_angle(TAU * float(i) / maxf(1.0, count))
-			pool.push("frost_mist", at + Vector2(v.x * 26.0, v.y * 12.0), Vector2.UP, ICE_TINT)
+			pool.push("frost_mist", at + Vector2(v.x * 26.0, v.y * 12.0), Vector2.UP, ice_tint)
 		else:
 			var dir := Vector2(g.vrng.randf_range(-1.0, 1.0), -g.vrng.randf_range(0.6, 1.4)).normalized()
 			var p: Vector2 = at + Vector2(g.vrng.randf_range(-10.0, 10.0), -g.vrng.randf_range(10.0, 60.0))
-			pool.push("ice", p, dir, ICE_TINT, 0.0, at.y + g.vrng.randf_range(-6.0, 14.0))
+			pool.push("ice", p, dir, ice_tint, 0.0, at.y + g.vrng.randf_range(-6.0, 14.0))

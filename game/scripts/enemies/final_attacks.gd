@@ -12,9 +12,16 @@ const NAMES := {
 var g
 var hazards: Array = []
 const PHASE2_NAMES := ["冰枪封径", "冻潮夹击"]
+## 骑士一阶段每幕的最终 Boss 招（docs/171 v2）：一幕原三招；二幕去掉劈击（主角换成掷枪冰棱）；三幕只有寒潮两招
+const KNIGHT_ACT_NAMES := [["踏冰裂阵", "断潮劈击", "侧踏挑枪"], ["踏冰裂阵", "侧踏挑枪"], ["寒潮回卷", "雪幕劈"]]
 
 func names_for(e: Dictionary) -> Array:
-	return (PHASE2_NAMES + NAMES[e.type]) if e.type=="knight_boss" and e.phase==2 else NAMES[e.type]
+	# 重生冲锋形态只轮换专属两招（docs/171 v2：一阶段的踏冰裂阵 / 断潮劈击 / 侧踏挑枪移出）
+	if e.type == "knight_boss":
+		if e.phase == 2:
+			return PHASE2_NAMES
+		return KNIGHT_ACT_NAMES[clampi(int(e.get("gates_passed", 0)), 0, 2)]   # 每幕自己的一组，重复少（用户 10-28）
+	return NAMES[e.type]
 
 func _init(game) -> void:
 	g = game
@@ -100,10 +107,14 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 				_warn(e,"line",1.4,{"name":name if sign_side<0 else "","pos":g.ppos-dir*180.0+side*420.0*sign_side,
 					"ang":dir.angle(),"len":900.0,"wid":36.0,"skin":"ice_wall","motion":"wall",
 					"velocity":side*(-sign_side*420.0),"life":1.0,"chill":0.8})
-		"断潮劈击":
+		"断潮劈击", "雪幕劈":
+			# 雪幕劈（三幕变体，docs/171 v2）：同一道弧斩，收尾碎成 8 片两层速度的雪片（_knight_shards 读 snow）
 			_warn(e, "arc", 1.7, {"name": name, "ang": dir.angle(), "track": 0.85, "r": 640.0, "half": 0.52, "arc_back": 480.0, "wid": 26.0, "style": 3,
-				"skin": "crescent", "motion": "crescent", "speed": 450.0, "accel": 5000.0, "max_speed": 1450.0, "life": 0.8, "dmg": e.dmg * 1.15})
+				"skin": "crescent", "motion": "crescent", "speed": 450.0, "accel": 5000.0, "max_speed": 1450.0, "life": 0.8, "dmg": e.dmg * 1.15,
+				"snow": name == "雪幕劈"})
 			e.fx = dir.x
+		"寒潮回卷":
+			g.bai.boss("knight_boss").roll_start(e, dir)
 		"侧踏挑枪":
 			var sign_side: float = -1.0 if int(e.get("final_cycle", 0)) % 2 else 1.0
 			var to: Vector2 = g.combat.arena_clamp(g.map.push_out(e.pos + side * 170.0 * sign_side, e.r), 90.0)
@@ -295,6 +306,11 @@ func _knight_shards(h: Dictionary) -> void:
 		return
 	match str(h.get("skin", "")):
 		"crescent":
-			kb.ice_shards(e, h.pos + Vector2.from_angle(h.ang) * (float(h.r) - float(h.get("arc_back", 0.0))), float(h.ang), 5, 1.0, 160.0)
+			var tip: Vector2 = h.pos + Vector2.from_angle(h.ang) * (float(h.r) - float(h.get("arc_back", 0.0)))
+			if h.get("snow", false):
+				kb.ice_shards(e, tip, float(h.ang), 4, 1.3, 120.0)
+				kb.ice_shards(e, tip, float(h.ang) + 0.16, 4, 1.3, 170.0)
+			else:
+				kb.ice_shards(e, tip, float(h.ang), 5, 1.0, 160.0)
 		"ice_thrust":
 			kb.ice_shards(e, h.pos + Vector2.from_angle(h.ang) * float(h.len), float(h.ang), 3, 0.7, 150.0)

@@ -282,4 +282,8 @@ static func enemy_offset(e: Dictionary, t: float, rc_px: float, rc_t: float) -> 
 		var k: float = (t - ra) / float(e.get("rc_t", rc_t))   # 三档后坐自带回弹时长（vfx.hit_react）
 		if k >= 0.0 and k < 1.0:
 			off += (e.rc_dir as Vector2) * (rc_px * float(e.rc_k) * (1.0 - k))
+	if e.has("bh_at"):   # Boss 受击抖动（vfx.hit_react，10-28）：顶出再回位
+		var bk: float = (t - float(e.bh_at)) / float(e.bh_t)
+		if bk >= 0.0 and bk < 1.0:
+			off += (e.bh_dir as Vector2) * float(e.bh_px) * sin(bk * PI)
 	return off

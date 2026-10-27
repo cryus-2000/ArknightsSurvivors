@@ -798,6 +798,8 @@ static func kb_taken(e: Dictionary, t: float) -> float:
 
 
 func apply_kb(e: Dictionary, v: Vector2, wl := true) -> void:
+	if e.boss and g.bai.super_armor(e):
+		return   # Boss 出招霸体（10-28 用户「骑士的攻击会被打断」）：起手到出手结束不吃外来击退
 	e.kb += v * kb_taken(e, g.t) if wl else v
 
 
@@ -812,6 +814,8 @@ func add_cc(e: Dictionary, stun := -INF, slow := -INF, kind := "") -> void:
 		return
 	if kind == "cold" and d.get("cold_immune", false):
 		return
+	if stun > -INF and e.boss and g.bai.super_armor(e):
+		stun = -INF   # Boss 出招霸体：眩晕 / 浮空不取消已开始的招（减速照常）
 	if stun > -INF and (kind == "airborne" or not d.get("stun_immune", false)):
 		e.stun = maxf(e.stun, stun * (1.0 if kind == "airborne" else mult))
 	if slow > -INF:
@@ -828,6 +832,8 @@ func set_air(e: Dictionary, h: float, hold_kb := false) -> void:
 
 ## 强制位移：本帧把敌人放到 p 并清击退（锚 / 钩拖拽）
 func hold_at(e: Dictionary, p: Vector2) -> void:
+	if e.boss and g.bai.super_armor(e):
+		return   # Boss 出招霸体：不被锚 / 钩拖走
 	e.pos = p
 	e.kb = Vector2.ZERO
 

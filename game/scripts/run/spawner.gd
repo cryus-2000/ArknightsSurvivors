@@ -931,7 +931,7 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 			e.hp *= float(g.dmod.get("final_boss_hp", 1.0))   # 按档只加最终 Boss 的血（停刷补偿，docs/38 §8.14；缺省 1.0）
 		e.maxhp = e.hp
 		e.spd = d.spd
-		e.dmg = d.dmg * dmm * float(g.dmod.boss_dmg) * g.enemy_dmg_mult
+		e.dmg = d.dmg * dmm * float(g.dmod.boss_dmg) * g.enemy_dmg_mult * Bal.v("boss/dmg_x_" + type, 1.0)   # 单只 Boss 伤害旋钮（缺省 1.0，同 hp_x_<id>）
 		g.combat.gate_init(e, type)   # 阶段卡点与每幕最短时长（docs/38 §1.3）
 	if type == "pocket":
 		e.burst_at = e.maxhp * (2.0 / 3.0)   # 节点 66% / 33%（enemies.gd 囊海爬行者）

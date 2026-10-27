@@ -19,6 +19,9 @@ func _ready() -> void:
 		await exercise()
 		check_close_and_late_act()
 		check_revision()
+		check_super_armor()
+		check_reborn()
+		check_acts()
 	print("KNIGHT COMBO failures=",failures)
 	g.queue_free()
 	await get_tree().process_frame
@@ -54,9 +57,10 @@ func tick(e: Dictionary, dt := 0.05) -> void:
 func exercise() -> void:
 	var script = g.bai.boss("knight_boss")
 	for phase in [1,2]:
-		for opener in ["断潮劈击","踏冰裂阵","侧踏挑枪","冲锋","冰线","长枪连刺"] + (["掷枪"] if phase==1 else ["长枪回旋"]):
+		# 重生冲锋形态只剩冲锋连段（docs/171 v2）；回旋 / 一阶段大招在 check_reborn 单独查
+		for opener in (["断潮劈击","踏冰裂阵","侧踏挑枪","冲锋","冰线","长枪连刺","掷枪"] if phase==1 else ["冲锋"]):
 			var e: Dictionary = fresh(phase)
-			e.gates_passed = 1
+			e.gates_passed = 1 if opener=="掷枪" else 0   # 每幕自己的大招组（docs/171 v2）：一幕原三招，掷枪二幕起
 			script.force_move(e,opener,Vector2.RIGHT,350)
 			var seen: Array = [opener]
 			var prior: String = opener
@@ -107,11 +111,11 @@ func exercise() -> void:
 
 func check_close_and_late_act() -> void:
 	var script = g.bai.boss("knight_boss")
-	for phase in [1,2]:
+	for phase in [1]:
 		var e: Dictionary = fresh(phase)
 		script.force_move(e,"侧踏挑枪",Vector2.RIGHT,350)
 		g.ppos = g.warns[0].destination+Vector2(50,0)
-		var expected: String = "长枪回旋" if phase==2 else "长枪连刺"
+		var expected: String = "长枪连刺"
 		var saw := false
 		for i in 250:
 			tick(e)
@@ -147,8 +151,7 @@ func check_revision() -> void:
 	g.tele.warn_resolve(b)
 	check(reborn.dash_decel==b.dash_decel,"release passes deceleration to movement")
 	var e: Dictionary = fresh(2)
-	script.force_move(e,"断潮劈击",Vector2.RIGHT,350)
-	check(e.knight_combo_queue==["冲锋","再冲锋","@近身收招"],"phase two slash has turning second charge variant")
+	check(not script.force_move(e,"断潮劈击",Vector2.RIGHT,350) and not script.force_move(e,"侧踏挑枪",Vector2.RIGHT,350),"reborn drops first-phase finals")
 	e = fresh()
 	script.force_move(e,"长枪连刺",Vector2.RIGHT,250)
 	check(g.warns[0].skin=="ice_thrust" and g.warns[2].len>g.warns[0].len,"finisher threatens medium range with longer final thrust")
@@ -166,3 +169,87 @@ func check_revision() -> void:
 	e.knight_combo_next=g.t
 	script.combo_step(e,Vector2.DOWN,250,true)
 	check(g.warns[0].act=="dash","vertical target outside spin ellipse gets charge instead of empty spin")
+
+## 10-28 用户「骑士的攻击会被打断」：出招期间（预警 / 连段）干员眩晕、击退、拖拽不生效，连段不被取消；破绽期照常吃眩晕
+func check_super_armor() -> void:
+	var script = g.bai.boss("knight_boss")
+	var e: Dictionary = fresh()
+	script.force_move(e,"断潮劈击",Vector2.RIGHT,350.0)
+	check(g.bai.super_armor(e),"knight casting has super armor")
+	g.enemies_sys.add_cc(e,2.0,1.0)
+	check(e.stun<=0.0,"operator stun ignored while casting")
+	check(e.slow>0.0,"slow still applies while casting")
+	var p0: Vector2 = e.pos
+	g.enemies_sys.apply_kb(e,Vector2(500,0))
+	g.enemies_sys.hold_at(e,Vector2(999,999))
+	check(e.kb.length()<1.0 and e.pos==p0,"knockback / drag ignored while casting")
+	tick(e)
+	check(e.get("knight_combo_active",false),"combo survives an operator stun")
+	var f: Dictionary = fresh()
+	g.combat.start_break(f,2.0)
+	check(not g.bai.super_armor(f),"break window has no super armor")
+	g.enemies_sys.add_cc(f,1.0)
+	check(f.stun>0.0,"operator stun lands during break")
+
+## docs/171 v2 重生冲锋形态：回旋后外射冰锥 + 破绽；冲锋停下裂地；寒冷条照常涨
+func check_reborn() -> void:
+	var script = g.bai.boss("knight_boss")
+	var e: Dictionary = fresh(2)
+	g.ebullets.clear()
+	script.force_move(e,"长枪回旋",Vector2.RIGHT,250)
+	var cones := false
+	var brk := false
+	for i in 80:
+		tick(e)
+		cones = cones or g.ebullets.any(func(b):return b.get("knight_shard",false) and b.vel.length()>200.0)
+		brk = brk or e.get("break_t",0.0)>0.0
+	check(cones,"reborn spin fires fast ice cones")
+	check(brk,"reborn spin ends in a break window")
+	e = fresh(2)
+	g.warns.clear()
+	e.last_act = {"act":"dash","ang":0.0,"t":g.t}
+	e.kn_dashing = true
+	e.kb_self = false
+	tick(e)
+	check(g.warns.filter(func(w):return is_same(w.owner,e) and w.get("skin","")=="ice_lance").size()==3,"reborn charge stop cracks three ground lines")
+	e = fresh(2)
+	g.warns.clear()
+	g.ppos = e.pos+Vector2(60,0)
+	e.kcold = 0.0
+	e.wind = 99.0
+	tick(e)
+	check(float(e.get("kcold",0.0))>0.0,"cold builds again in charge form")
+
+## docs/171 v2 每幕招式组 + 三幕寒潮 + 二幕冰棱
+func check_acts() -> void:
+	var script = g.bai.boss("knight_boss")
+	var names: Array = []
+	for act in 3:
+		var e: Dictionary = fresh(1)
+		e.gates_passed = act
+		names.append(g.bai.finals.names_for(e))
+	check(names[0] != names[1] and names[1] != names[2] and not names[2].has("断潮劈击"),"each act has its own final-move set")
+	var e: Dictionary = fresh(1)
+	e.gates_passed = 2
+	g.ebullets.clear()
+	check(script.force_move(e,"寒潮回卷",Vector2.RIGHT,300),"act three rolls the cold tide")
+	var snow := 0
+	var brk := false
+	for i in 120:
+		tick(e)
+		snow = maxi(snow, g.ebullets.filter(func(b):return b.get("knight_snow",false)).size())
+		brk = brk or e.get("break_t",0.0)>0.0
+	check(snow>=20,"cold tide spirals snow bullets")
+	check(brk,"cold tide ends in a break")
+	check(g.ebullets.all(func(b):return not b.get("knight_snow",false) or g.combat.ground_d(b.pos,e.pos)>=80.0),"cold tide eye stays clear")
+	e = fresh(1)
+	e.gates_passed = 1
+	g.ebullets.clear()
+	script.force_move(e,"掷枪",Vector2.RIGHT,400)
+	var bolts := false
+	for i in 60:
+		tick(e)
+		bolts = bolts or g.ebullets.any(func(b):return b.get("knight_prism",false))
+	check(bolts,"act two spear raises bursting ice prisms")
+	var ej: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/enemies.json"))
+	check(is_equal_approx(float(ej.enemies.knight_boss.gates[1]),0.5),"third act starts at 50 percent")

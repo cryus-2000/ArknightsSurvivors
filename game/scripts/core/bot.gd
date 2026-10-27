@@ -11,7 +11,7 @@ extends RefCounted
 ##
 ## 所有随机都走自己的 RandomNumberGenerator（按 --seed 派生），不碰全局随机流，同 seed 可复现性不变差。
 
-const PROFILES := ["afk", "bad", "normal", "expert", "master"]
+const PROFILES := ["afk", "bad", "normal", "expert", "master", "circle"]
 
 var g                           # game.gd
 var profile := "normal"
@@ -71,7 +71,35 @@ func move(dt: float) -> Vector2:
 			return _move_expert()
 		"master":
 			return _move_master(dt)
+		"circle":
+			return _move_circle(dt)
 	return g.autotest_sys.bot_move()
+
+
+## 绕圈（仅测试，10-28 用户实玩「一直在骑士旁边转圈，他放不出攻击」）：不躲，贴着最近的 Boss 按 circle_gap（缺省 50）绕圈；
+## 每 0.5 秒打一行 CIRCLE（距离 / 硬直 / 连段 / 本帧的有伤预警）
+var circle_log := 0.0
+func _move_circle(dt: float) -> Vector2:
+	var e = null
+	for b in g.bosses:
+		if not b.dead:
+			e = b
+	if e == null:
+		return g.autotest_sys.bot_move()
+	var d: Vector2 = g.ppos - e.pos
+	var gap: float = d.length() - float(e.r)
+	circle_log -= dt
+	if circle_log <= 0.0:
+		circle_log = 0.5
+		var ws: Array = []
+		for w in g.warns:
+			if is_same(w.owner, e) and not w.done:
+				ws.append("%s%s" % [str(w.get("name", "")), "" if float(w.get("dmg", 0.0)) > 0.0 else "(0)"])
+		print("CIRCLE t=%.1f gap=%.0f wind=%.2f brk=%.2f stun=%.2f combo=%s q=%s kb_self=%s hz=%d warns=%s hp=%.0f" % [g.t, gap, float(e.get("wind", 0.0)),
+			float(e.get("break_t", 0.0)), float(e.stun), str(e.get("knight_combo_active", false)), str(e.get("knight_combo_queue", [])),
+			str(e.get("kb_self", false)), g.bai.finals.hazards.filter(func(h): return is_same(h.owner, e)).size(), str(ws), float(g.hp)])
+	var tang := Vector2(-d.y, d.x).normalized()
+	return (tang + d.normalized() * clampf((g.Bal.v("bot/circle_gap", 50.0) - gap) / 40.0, -1.0, 1.0)).normalized()
 
 
 ## 手残：随机方向走 0.8–2.2 秒再换；每 0.5 秒检查一次危险，30% 概率在 0.4 秒后躲 0.5 秒（用普通机器人的躲法）
