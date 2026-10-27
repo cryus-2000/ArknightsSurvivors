@@ -1696,12 +1696,13 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 		return
 	# 手动技能：Q / E（手柄 Ⓐ / Ⓨ 注入 Q）；没开手动普攻时 J 仍兼作手动技能键，开了 J 让给攻击（契约 v2.5，攻击键由 doctor 每帧直接读）
-	if k == KEY_Q and state == S.PLAY:   # 切换队长（10-23）：Q / 手柄 RB / 触屏点编队卡；技能键只剩 E / J
+	# 切换队长（10-23；10-27 起缺省关，balance leader_swap/on）：开着时 Q / 手柄 RB / 触屏点编队卡切人，技能键只剩 E / J
+	if k == KEY_Q and state == S.PLAY and Squad.swap_on():
 		if squad.cycle_leader():
 			Sfx.play("ui_ok", -8.0)
 		get_viewport().set_input_as_handled()
 		return
-	if (k == KEY_E or (k == KEY_J and not doctor.get("manual_attack"))) and state == S.PLAY:
+	if (k == KEY_Q or k == KEY_E or (k == KEY_J and not doctor.get("manual_attack"))) and state == S.PLAY:
 		# 唯一的手动技能入口：路由到角色已解锁的 manual 技能（三自动角色无动作）
 		if doctor.try_manual_skill():
 			get_viewport().set_input_as_handled()

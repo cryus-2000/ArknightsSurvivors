@@ -2,7 +2,8 @@
  "version": "p5.0",
  "_doc": "docs/27_balance_framework.md。所有全局数值旋钮集中在这里；干员各自的基础数值在 data/characters/<id>.json 的 base 段。",
  "leader_swap": {
-  "_doc": "切换队长（10-23，docs/128）：cd 切换冷却秒数；镜头缓动 0.25 秒写在 game.swap_ease。",
+  "_doc": "切换队长（10-23，docs/128 / docs/135）：on 总开关（10-27 用户「Q 直接删掉吧」：缺省 0 = 关，Q / 手柄 RB / 触屏点头像都不切，技能键恢复 Q / E / J、手柄 Ⓐ / Ⓨ = Q、RB = 冲刺；1 = 恢复切换，技能键改回 E / J）；cd 切换冷却秒数；镜头缓动 0.25 秒写在 game.swap_ease。",
+  "on": 0,
   "cd": 2.0
  },
  "command": {

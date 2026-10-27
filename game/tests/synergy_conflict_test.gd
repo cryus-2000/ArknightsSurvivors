@@ -1,6 +1,6 @@
 extends Node
 ## 干员连携技与其他动作的冲突检查（docs/160 §11，协调人 10-26 清单）：
-##   --op=ulpianus --squad=skadi,texas   搭档忙（技能 / 冲锋 / 德克萨斯式自冲刺）→ 等待后放弃并退回冷却；倒地 / 归队 / 切队长 / 目标中途死亡 / 非 PLAY 状态；语音不叠
+##   --op=ulpianus --squad=skadi,texas   搭档忙（技能 / 冲锋 / 德克萨斯式自冲刺）→ 等待后放弃并退回冷却；倒地 / 归队 / 切队长（玩家入口缺省关）/ 目标中途死亡 / 非 PLAY 状态；语音不叠
 ##   --op=gladiia --squad=ulpianus,skadi 同帧只走一条（R6 取代集群狩猎，不重复位移）
 ## 全部通过时打印 "SYNERGY CONFLICT checks=N failures=0"
 
@@ -122,6 +122,9 @@ func scene_busy() -> void:
 	ul.spend_sp(0)
 	step(0.75)
 	g.squad.swap_cd = 0.0
+	# 切换队长缺省关（10-27 用户「Q 直接删掉吧」，balance leader_swap/on）：Q / RB / 点头像的入口不切人；下面直接调 swap_leader 只测连携
+	var ld0 = g.squad.leader()
+	ok(g.squad.swap_on() or (g.squad.next_leader() == null and not g.squad.cycle_leader() and g.squad.leader() == ld0), "切换队长缺省关：Q 不切人")
 	var ok_swap: bool = g.squad.swap_leader(sk)
 	step(0.1)
 	ok(ok_swap and sk.is_leader and sk.syn_mv.is_empty() and g.squad.syn.acts.is_empty(), "切队长：作废、位移解除（切成功 %s）" % [ok_swap])

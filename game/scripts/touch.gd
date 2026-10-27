@@ -83,7 +83,7 @@ func handle(event: InputEvent) -> bool:
 				skill_aim = Vector2.ZERO
 				return true
 			# 编队卡（切换队长）：只在对局里、点到非队长卡时；点到队长卡 / 冷却中 / 倒地的吞掉不穿透到摇杆
-			if g.state == g.S.PLAY:
+			if g.state == g.S.PLAY and g.squad.swap_on():
 				for cd in card_rects:
 					if (cd[0] as Rect2).has_point(p):
 						if g.squad.swap_leader(cd[1]):

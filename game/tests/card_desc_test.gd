@@ -39,7 +39,7 @@ func ok(cond: bool, what: String) -> void:
 func test_card_desc_isolation() -> void:
 	ok(game.ch.id == "ulpianus" and game.ch.skill_def(2).get("mode", "auto") == "manual", "队长是乌尔比安（S3 手动技能）")
 	game.ch.elite = 2   # 截图里是精二：S3 已解锁，提示才会出现（精零时 i > stage 直接跳过）
-	var hints := ["释放", "技能键", "按 E", "技力满后", "解锁后"]
+	var hints := ["释放", "技能键", "按 Q", "技力满后", "解锁后"]
 	var skill_names: Array = []
 	for o in game.squad.ops:
 		for i in 3:
@@ -54,11 +54,11 @@ func test_card_desc_isolation() -> void:
 			ok(not d.contains(h), "公共卡「%s」不含「%s」" % [c.get("name", ""), h])
 		for sn in skill_names:
 			ok(sn == "" or not d.contains(sn), "公共卡「%s」不含技能名「%s」" % [c.get("name", ""), sn])
-	# 干员卡：只提自己的技能，队友写「自动释放」、不写「按 E」
+	# 干员卡：只提自己的技能，队友写「自动释放」、不写「按 Q」
 	for o in game.squad.ops:
 		for c in o.deep_cards():
 			var d: String = game.panel_ui.option_description(c)
-			ok(not d.contains("按 E") or o.is_leader, "干员卡「%s」（%s）队友不写按 E" % [c.get("name", ""), o.id])
+			ok(not d.contains("按 Q") or o.is_leader, "干员卡「%s」（%s）队友不写按 Q" % [c.get("name", ""), o.id])
 			for o2 in game.squad.ops:
 				if o2 == o:
 					continue

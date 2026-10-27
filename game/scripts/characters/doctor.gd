@@ -263,7 +263,7 @@ func point_preview(ld, i: int) -> Vector2:
 ## 鼠标左键点场地放选落点技能（用户 10-26「乌尔比安的三技能要设置成鼠标点击也能够触发，否则的话太鸡肋了」）：
 ## 队长的手动技能是选落点（JSON "aim": "point"）、已解锁、技力满且此刻放得出时接管这次点击，落点 = 点击处（press_manual 里夹在 aim_range 内）；
 ## 其余情况（技力没满、不是选落点技能、正在出手放不了…）返回 false，点击照旧。触屏（会模拟鼠标左键）、开了手动普攻（左键 = 攻击）、
-## 键盘正在蓄距离、点在 HUD 上（hud.blocks_click）不接管。E / J、手柄、触屏技能键照旧。vp = 视口坐标（事件 position）
+## 键盘正在蓄距离、点在 HUD 上（hud.blocks_click）不接管。Q / E / J、手柄、触屏技能键照旧。vp = 视口坐标（事件 position）
 func click_skill(vp: Vector2) -> bool:
 	if _touching() or manual_attack or not charge.is_empty() or Bal.v("manual/click_cast", 1.0) <= 0.0:
 		return false
@@ -295,7 +295,7 @@ func _touching() -> bool:
 
 
 func _skill_key_held() -> bool:
-	if Pad.key_down(KEY_E) or (not manual_attack and Pad.key_down(KEY_J)):
+	if (Pad.key_down(KEY_Q) and not g.squad.swap_on()) or Pad.key_down(KEY_E) or (not manual_attack and Pad.key_down(KEY_J)):
 		return true
 	for dev in Input.get_connected_joypads():
 		if Input.is_joy_button_pressed(dev, JOY_BUTTON_A) or Input.is_joy_button_pressed(dev, JOY_BUTTON_Y) \
