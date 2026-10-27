@@ -111,6 +111,8 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		e.wind = maxf(float(e.get("wind", 0.0)), float(e.break_t))
 		e.kb = Vector2.ZERO
 		e.fx = float(e.get("stun_fx", e.fx))
+	if _leap_step(e, dt, dir):
+		return
 	_cold_step(e, dt)
 	_ice_step(e)
 	# 冲锋自然停下：向前碎出 3 片冰屑（撞柱眩晕不出）
@@ -142,7 +144,9 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		if e.phase == 2:
 			e.dash2 = int(Bal.v("boss/knight_p2_chain", 2.0))
 		return
-	if g.combat.ground_d(g.ppos,e.pos) < 280.0 and e.phase == 2 and float(e.get("cds", {}).get("spin", 0.0)) <= g.t:
+	# 一阶段被贴身绕圈（贴身挨打 ≥ knight_hug_spin 秒）也放长枪回旋：连刺 / 劈击都是从身体中心瞄人的窄线，贴身绕圈角速度大，锁定后总扫空（10-28 用户实玩）
+	var hugged: bool = e.phase == 1 and float(e.get("kn_hug", 0.0)) >= Bal.v("boss/knight_hug_spin", 1.5)
+	if g.combat.ground_d(g.ppos,e.pos) < 280.0 and (e.phase == 2 or hugged) and float(e.get("cds", {}).get("spin", 0.0)) <= g.t:
 		# D 长枪回旋：二阶段近身先回旋后连刺（和连刺互斥）；第一次先亮招式名 0.6 秒（§0.2）——喘气结束时还贴着它就吃这一下
 		if _first_tell(e, "spin", "长枪回旋") and _cd(e, "spin", 7.0):
 			_spin(e, dir)
@@ -475,6 +479,82 @@ func on_lethal(e: Dictionary) -> bool:
 	for k in int(Bal.v("boss/knight_rebirth_wave", 16.0)):
 		g.spawner.spawn_enemy(g.spawner.pick_type(), g.combat.arena_clamp(g.spawner.edge_pos(), 60.0))   # 夹进场地圈内：别刷到够不着的地方
 	return true
+
+## 脱身跳（10-28 用户实玩「一直在骑士旁边转圈，他放不出攻击并且一直挨打 … 挨打超过一段时间一下子跳走」）：
+## 贴身（地面距离扣半径 < knight_hug_r 130）且 0.5 秒内掉过血 → 贴身挨打计时涨；离开或没挨打按 0.5 倍落回。破绽 / 眩晕 / 重生读条期间不计（那是给的输出窗口）。
+## 计时满 knight_hug_t（3.5 秒）、冷却 knight_leap_cd（12 秒）到了、手上没有在结算的有伤招 → 取消连段，下蹲 LEAP_CROUCH 后向远离队长的方向
+## 跃出 knight_leap_len（280，贴墙时在 ±70° 里挑离队长最远的落点），空中 LEAP_AIR 秒；不算破绽、照常受伤、空中无接触伤害。
+## 落地：冰爆（knight_crash 画法缩小）+ 朝队长 5 片冰屑，随后立刻接冲锋（一阶段二幕起改掷枪）。开关 boss/knight_leap（0 = 关）
+const LEAP_CROUCH := 0.3
+const LEAP_AIR := 0.5
+
+func _leap_step(e: Dictionary, dt: float, dir: Vector2) -> bool:
+	var lp = e.get("kn_leap")
+	if lp != null:
+		e.kb = Vector2.ZERO
+		var k: float = (g.t - float(lp.t0)) / LEAP_AIR
+		if k < 1.0:
+			e.wind = maxf(float(e.wind), 0.05)
+			if k >= 0.0:
+				var q: float = 1.0 - (1.0 - k) * (1.0 - k)   # 起跳快、落地收
+				e.pos = (lp.a as Vector2).lerp(lp.b, q)
+				e.air = sin(k * PI) * 56.0
+			return true
+		e.pos = lp.b
+		e.air = 0.0
+		e.erase("kn_leap")
+		e.wind = 0.0
+		e.kn_hug = 0.0
+		g.fx.append({"kind": "knight_crash", "pos": e.pos, "r": 70.0, "life": 0.9, "max": 0.9, "enemy": true})
+		IceFx.pillar_crash(g, e.pos)
+		g.vfx.shake_screen(0.6)
+		Sfx.play("stake_shatter", -6.0, 0.9, 0.0)
+		var to: Vector2 = g.ppos - e.pos
+		ice_shards(e, e.pos, to.angle(), 5, 0.9, 170.0)
+		var dd: float = to.length()
+		if e.phase == 1 and _act(e) >= 1 and dd >= 160.0 and dd <= 620.0:
+			_spear(e, to.normalized(), dd)
+			_cd(e, "spear", Bal.v("boss/knight_spear_cd", 8.0))   # 照常记冷却
+		else:
+			_charge(e, to.normalized())
+			_cd(e, "charge", 4.5 if e.phase == 2 else 6.0)
+		return true
+	var calm: bool = float(e.get("break_t", 0.0)) > 0.0 or e.stun > 0.0 or float(e.get("channel", 0.0)) > 0.0 or e.get("invuln", false)
+	if e.hp < float(e.get("kn_hp_prev", e.hp)) - 0.01 and not calm:
+		e.kn_hit_t = g.t
+	e.kn_hp_prev = e.hp
+	var near: bool = g.combat.ground_d(g.ppos, e.pos) - float(e.r) < Bal.v("boss/knight_hug_r", 130.0)
+	if near and not calm and g.t - float(e.get("kn_hit_t", -9.0)) < 0.5:
+		e.kn_hug = float(e.get("kn_hug", 0.0)) + dt
+	else:
+		e.kn_hug = maxf(0.0, float(e.get("kn_hug", 0.0)) - dt * 0.5)
+	if Bal.v("boss/knight_leap", 1.0) <= 0.0 or float(e.kn_hug) < Bal.v("boss/knight_hug_t", 3.5) or g.t < float(e.get("kn_leap_at", 0.0)):
+		return false
+	if calm or e.get("kb_self", false) or int(e.get("dash2", 0)) > 0 or float(e.get("dash_t", 0.0)) > 0.0 or e.has("breath_at"):
+		return false
+	if g.warns.any(func(w): return is_same(w.owner, e) and not w.done and float(w.dmg) > 0.0):
+		return false
+	if g.bai.finals.hazards.any(func(h): return is_same(h.owner, e)):
+		return false
+	cancel_combo(e)
+	var away: Vector2 = (e.pos - g.ppos).normalized() if e.pos != g.ppos else Vector2.from_angle(-dir.angle())
+	var best: Vector2 = e.pos
+	for da in [0.0, 0.6, -0.6, 1.2, -1.2]:
+		var c: Vector2 = g.combat.arena_clamp(e.pos + away.rotated(da) * Bal.v("boss/knight_leap_len", 280.0), 80.0)
+		if c.distance_to(g.ppos) > best.distance_to(g.ppos) + 1.0:
+			best = c
+	e.kn_leap = {"a": e.pos, "b": best, "t0": g.t + LEAP_CROUCH}
+	e.kn_leap_at = g.t + Bal.v("boss/knight_leap_cd", 12.0)
+	e.kn_hug = 0.0
+	e.wind = maxf(float(e.wind), LEAP_CROUCH + LEAP_AIR)
+	e.pose = LEAP_CROUCH
+	e.pose_max = LEAP_CROUCH
+	# 落点预告：无伤低亮圈（样式 0），只告诉玩家它要落在哪
+	_warn(e, "circle", LEAP_CROUCH + LEAP_AIR, {"pos": best, "r": 64.0, "act": "knight_leap", "name": "", "col": ICE, "dmg": 0.0})
+	g.vfx.sparks(e.pos, away, Color(0.8, 1.0, 1.4), 10, 140.0)
+	Sfx.play("swing", -4.0, 0.6, 0.0)
+	return true
+
 
 func on_kill(e: Dictionary) -> void:
 	cancel_combo(e)
