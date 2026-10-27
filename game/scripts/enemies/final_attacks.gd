@@ -140,9 +140,10 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 			var center: Vector2 = g.zone_c if g.zone_state != 0 else e.pos
 			var radius: float = minf(650.0, g.zone_r - 55.0) if g.zone_state != 0 else 550.0
 			# 一整道浪墙横穿场地，不留中间通道（用户 10-27）；冲刺穿浪躲开
+			var spd: float = 230.0 if int(e.get("gates_passed", 0)) >= 2 else 150.0   # 三幕浪更快（10-28：整墙移到三幕，过墙不拖长压力段）
 			_warn(e, "line", 1.6, {"name": name, "pos": center - dir * radius - side * radius,
 				"ang": side.angle(), "len": radius * 2.0, "wid": 19.0, "skin": "tide", "motion": "wall",
-				"velocity": dir * 150.0, "life": radius * 2.0 / 150.0, "dmg": e.dmg})
+				"velocity": dir * spd, "life": radius * 2.0 / spd, "dmg": e.dmg})
 		"深渊涌流":
 			# 环带会向内塌陷，中心明确安全；两段不同半径要求一次内外位置选择。
 			for k in 2:

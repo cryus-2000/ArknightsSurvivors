@@ -18,23 +18,31 @@ extends "res://scripts/enemies/bosses/boss_base.gd"
 const Beam = preload("res://scripts/render/boss_beam.gd")
 const COL := Color(0.4, 0.6, 1.0)   # 群青蓝（docs/142b §8.4）
 const MOVES := ["潮汐坠落", "解读旋涡", "分享", "震撼"]
-const PATTERNS := ["潮汐相位流", "子代共鸣", "螺旋弹臂", "习得弹", "回流弹"]
+const PATTERNS := ["潮汐相位流", "子代共鸣", "螺旋弹臂", "习得弹", "回流弹", "潮门环"]
 const TENTACLE := "护群触腕"   # 追人圆形触腕（用户 10-28：换圆形、追着人打），不走 finals 的扇形
 const CURRENT := "海流牵引"   # 非弹幕专属招：海流把你往漩涡中心拖，中心最后涌起
 ## 每幕两组；「@近身分享」= 贴近时分享扇、否则潮汐坠落
+## 缺口按幕递进（用户 10-28）：一幕固定缺口教学；二幕旋转 / 错位缺口 + 停住再射；三幕缝隙收窄、弹数与段数加多，
+## 冲刺穿越的整墙（迁徙潮）只在三幕偶尔用
 const CARDS := [
-	[{"name": "迁徙潮汐", "segs": ["@潮汐相位流", "海流牵引", "迁徙潮"]},
+	[{"name": "迁徙潮汐", "segs": ["@潮汐相位流", "海流牵引", "@潮门环"]},
 		{"name": "护群共鸣", "segs": ["护群触腕", "@子代共鸣", "@近身分享"]}],
 	[{"name": "解读螺旋", "segs": ["@螺旋弹臂", "解读旋涡", "深渊涌流"]},
-		{"name": "习得变形", "segs": ["@习得弹", "海流牵引", "护群触腕"]}],
-	[{"name": "灯下三叶", "segs": ["分享·全场", "@潮汐相位流", "分享"]},
-		{"name": "深蓝回流", "segs": ["分享·全场", "@回流弹", "海流牵引"]}]]
+		{"name": "习得变形", "segs": ["@习得弹", "海流牵引", "@潮门环", "护群触腕"]}],
+	[{"name": "灯下三叶", "segs": ["分享·全场", "@潮汐相位流", "迁徙潮"]},
+		{"name": "深蓝回流", "segs": ["分享·全场", "@回流弹", "@潮门环", "海流牵引"]}]]
 const DECLARE := 1.0      # 起手蓄势短停
 const SEG_GAP := 0.5      # 段间收势（用户 10-27：给玩家出手机会）
 const RECOVER := [2.6, 3.0, 3.2]   # 每幕收招破绽（用户 10-27：给干员输出的时间）
 const REST := 1.6         # 破绽后到下一组起手之间的空档
 const CARD_CAP := 30.0    # 保护性上限
 const OWN_CAP := 150      # 本体同时在场弹数
+## 潮门环每幕参数：一圈弹数 / 缺口占几格（三幕两道对开窄缝各占这么多）/ 圈数 / 圈间隔 / 每圈缺口错开（弧度）
+const GATE_N := [20, 24, 24]
+const GATE_SLOTS := [4, 3, 2]
+const GATE_RINGS := [3, 4, 3]
+const GATE_GAP := [0.8, 0.75, 0.65]
+const GATE_STEP := [0.0, 0.3, 0.25]
 
 
 ## 每帧（boss_ai._boss_ai 公共段之后）：ready = 本帧可以出招；mate = 接潮搭档（没有则 null）
@@ -554,7 +562,7 @@ func _emit_start(e: Dictionary, kind: String, dir: Vector2) -> bool:
 	match kind:
 		"潮汐相位流":
 			# 五条摆动水流；拦截路线（这一批子代的来向）落在两条流之间
-			em.a0 = _lane_angle(e, dir) + TAU / 8.0
+			em.a0 = _lane_angle(e, dir) + TAU / (12.0 if _act(e) >= 2 else 8.0)   # 拦截路线正好在两条流中间
 			em.until = g.t + 2.4
 		"子代共鸣":
 			var src: Array = []
@@ -576,6 +584,12 @@ func _emit_start(e: Dictionary, kind: String, dir: Vector2) -> bool:
 			em.until = g.t + 0.65
 		"回流弹":
 			em.until = g.t + 0.95
+		"潮门环":
+			# 一幕：缺口朝拦截路线、圈圈对齐不动（教学）；二幕：每圈错开；三幕：两道对开窄缝、圈更密
+			var act: int = _act(e)
+			em.a0 = _lane_angle(e, dir) if act == 0 else dir.angle()
+			em.spin = GATE_STEP[act] * (1.0 if int(e.get("izu_card_n", 0)) % 2 == 0 else -1.0)
+			em.until = g.t + GATE_GAP[act] * (GATE_RINGS[act] - 1)
 		_:
 			return false
 	e.izu_emit = em
@@ -614,8 +628,9 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 	var a0: float = float(em.a0)
 	match str(em.kind):
 		"潮汐相位流":
-			for k in 4:
-				var a: float = a0 + TAU * k / 4.0
+			var arms: int = 6 if _act(e) >= 2 else 4   # 三幕六条流，流间更窄
+			for k in arms:
+				var a: float = a0 + TAU * k / float(arms)
 				_shot(e, e.pos + Vector2.from_angle(a) * 30.0, a, 125.0, 6.0, 4.5, 0.45, {"izu": "wave", "izu_ph": PI * (k % 2), "izu_amp": 0.9})
 			em.next = float(em.next) + 0.3
 		"子代共鸣":
@@ -644,10 +659,30 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 			em.next = float(em.next) + 0.6
 		"回流弹":
 			# 两圈反向卷回的水流，交叉成格子；三幕点亮的灯柱光圈会吞掉它们
-			for i in 12:
-				var a: float = a0 + (float(i) + 0.5 * n) * TAU / 12.0
+			var cnt: int = 16 if _act(e) >= 2 else 12   # 三幕每圈 16 颗
+			for i in cnt:
+				var a: float = a0 + (float(i) + 0.5 * n) * TAU / float(cnt)
 				_shot(e, e.pos + Vector2.from_angle(a) * 30.0, a, 140.0, 8.0, 5.0, 0.5, {"izu": "back", "izu_curl": 1.5 if n % 2 == 0 else -1.5})
 			em.next = float(em.next) + 0.9
+		"潮门环":
+			var act: int = _act(e)
+			var cnt: int = GATE_N[act]
+			var slits: int = 2 if act >= 2 else 1
+			var ga: float = a0 + float(em.spin) * n
+			for i in cnt:
+				var a: float = ga + TAU * (float(i) + 0.5) / cnt
+				var skip := false
+				for sl in slits:
+					if absf(angle_difference(ga + TAU * sl / slits, a)) < TAU * GATE_SLOTS[act] * 0.5 / cnt:
+						skip = true
+				if not skip:
+					_shot(e, e.pos + Vector2.from_angle(a) * 30.0, a, 130.0, 7.0, 4.5, 0.45, {"izu": "gate"})
+			em.next = float(em.next) + GATE_GAP[act]
+
+
+## 当前幕（0 / 1 / 2）
+func _act(e: Dictionary) -> int:
+	return clampi(int(e.get("gates_passed", 0)), 0, 2)
 
 
 ## 弹体分级：r 6 细流 / 7–8 中弹 / 9 大弹；暗描边 + 发光核心由 world 的敌弹三遍绘制给出，颜色 = Boss 专属群青

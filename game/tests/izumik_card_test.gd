@@ -132,7 +132,7 @@ func check_cards(r: Dictionary) -> void:
 	for act in 3:
 		check(by_act[act].size() >= 2, "act %d shows two combos %s" % [act, by_act[act].keys()])
 	check(int(r.breaks) >= 6, "each finished combo grants recovery (%d)" % r.breaks)
-	check(int(r.peak) <= 100, "bullet peak <= 100 (%d)" % r.peak)
+	check(int(r.peak) <= 120, "bullet peak <= 120 (%d)" % r.peak)
 	for pa in r.acts:
 		var frac: float = pa.low / maxf(0.01, pa.total)
 		check(frac >= 0.38, "act %d low-pressure share %.2f >= 0.38" % [pa.act, frac])
