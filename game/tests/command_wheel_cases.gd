@@ -51,7 +51,9 @@ func run(check: Callable) -> void:
 		game.frame_n += 1   # _focus_bosses 按帧缓存
 	# 近处一只孤立杂兵 100、精英 150、一串三只杂兵 300 / 360 / 420（相邻 60、首尾 120，中间那只周围最密）、Boss 500
 	setl.call([_e(1, 100.0), _e(2, 150.0, "elite"), _e(3, 300.0), _e(4, 360.0), _e(5, 420.0), _e(6, 500.0, "boss")])
-	check.call(squad.priority == 0, "default priority is Boss first (0)")
+	check.call(squad.priority == 1 and Squad.default_priority() == 1, "default priority is mob first (1, user 10-27)")
+	squad.apply_command("boss")
+	check.call(squad.priority == 0, "boss command sets priority 0")
 	check.call(mate.nearest_enemies(1, 600.0)[0].id == 6, "boss priority: boss in range goes first")
 	var r: Array = mate.nearest_enemies(2, 600.0)
 	check.call(r.size() == 2 and r[0].id == 6 and r[1].id == 1, "boss priority: boss first, then the rest by distance (elite not promoted)")
