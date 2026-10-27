@@ -13,6 +13,7 @@
 extends "res://scripts/enemies/bosses/boss_base.gd"
 
 const COL := Color(0.9, 0.4, 1.0)
+const BossBeam = preload("res://scripts/render/boss_beam.gd")
 const MOVES := ["叠影", "凝视", "泡影环", "呼号"]
 const Combos = preload("res://scripts/enemies/bosses/paranoia_combos.gd")
 
@@ -57,7 +58,7 @@ func setup_preview_phase2(e: Dictionary) -> void:
 
 
 func demo_moves(_e: Dictionary) -> Array:
-	return MOVES + g.bai.finals.NAMES["paranoia"] + Combos.EMITTERS.keys()
+	return MOVES + g.bai.finals.NAMES["paranoia"] + Combos.EMITTERS.keys() + ["幻象冲撞"]
 
 
 func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
@@ -65,6 +66,9 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 		return true
 	if Combos.EMITTERS.has(name):
 		combos()._emit(e, name, dir)
+		return true
+	if name == "幻象冲撞":
+		combos().rush(e, dir)
 		return true
 	match name:
 		"凝视":
@@ -87,7 +91,7 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 ##   三幕 / 茧后（落地）——原来的 3 道依次追踪（每道间隔 0.6 秒）。茧没打破 +1 道（依次追踪接在后面）
 func _gaze(e: Dictionary, dir: Vector2) -> void:
 	var base: Dictionary = {"len": 820.0, "wid": 26.0, "act": "beam", "col": COL, "dmg": e.dmg * Bal.v("boss/paranoia_gaze_mult", 1.56), "corrode": 0.5, "kp": "paranoia", "kp_k": 2.0, "skin": "gaze",
-		"kp_life": 0.95, "kp_on": 0.15, "hold": 0.8}   # 持续光束：0.15 秒张开、保持到 0.8 秒（期间碰到算一次伤害）、0.15 秒收拢（用户 10-27「激光出现和消失太快」）   # skin gaze：预警由 paranoia_combo_draw 画（暗红低填充 + 泡沫边）   # 原 2.0（10-25 加密 ×0.78）
+		"kp_life": 1.0, "kp_on": 0.2, "hold": 0.8}   # 持续光束：预警期蓄力（paranoia_combo_draw）→ 开火短闪 → 0.2 秒张开、保持到 0.8 秒（期间碰到算一次伤害）→ 0.2 秒变细并碎成颗粒（用户 10-27）   # skin gaze：预警由 paranoia_combo_draw 画（暗红低填充 + 泡沫边）   # 原 2.0（10-25 加密 ×0.78）
 	var ng: int = 4   # 落地后依次 4 道（10-25 加密：原 3）
 	if e.phase == 1 and int(e.get("gates_passed", 0)) >= 1:
 		ng = 0
@@ -115,6 +119,18 @@ func _beam_hold(e: Dictionary) -> void:
 			w.hold_until = g.t + float(w.hold) - (w.t - w.dur)
 			if not g.tele.hits_leader(w):
 				beams.append(w)   # 结算瞬间没中的才进保持段
+			_beam_fx(w, "bfx_flash", 16)   # 开火瞬间沿线短闪
+			var fxl: Array = e.get("gaze_fx", [])
+			fxl.append(w)
+			e.gaze_fx = fxl
+	# 保持段结束：光束碎成颗粒散开（画面里 kp_beam 同时 0.2 秒变细收拢）
+	var fx_live: Array = []
+	for w in e.get("gaze_fx", []):
+		if g.t >= float(w.hold_until):
+			_beam_fx(w, "mote_burst", 30)
+		else:
+			fx_live.append(w)
+	e.gaze_fx = fx_live
 	var live: Array = []
 	for w in beams:
 		if g.t >= float(w.hold_until):
@@ -124,6 +140,17 @@ func _beam_hold(e: Dictionary) -> void:
 			continue
 		live.append(w)
 	e.gaze_beams = live
+
+
+func _beam_fx(w: Dictionary, tpl: String, n: int) -> void:
+	var gr = BossBeam.grains(g)
+	if gr == null:
+		return
+	var d := Vector2.from_angle(w.ang)
+	var k: int = BossBeam.take(g, n)
+	for i in k:
+		var p: Vector2 = w.pos + Vector2(0, -18) + d * float(w.len) * (i + 0.5) / maxf(1.0, k)
+		gr.push(tpl, p, d.orthogonal() * (1.0 if i % 2 == 0 else -1.0), Color(0.92, 0.82, 1.0))
 
 
 ## D · 呼号（二阶段，新；PRTS「大群的祈望堵住了她的喉咙，她发不出声音」→ 张口无声、只喷泡沫）：

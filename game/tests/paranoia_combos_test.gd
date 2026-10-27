@@ -24,6 +24,7 @@ func _ready() -> void:
 	check_stun()
 	check_repro()
 	check_beam_hold()
+	check_rush()
 	print("PARANOIA COMBOS failures=", failures)
 	g.queue_free()
 	await get_tree().process_frame
@@ -78,7 +79,7 @@ func check_table() -> void:
 			var seq: Array = Combos.COMBOS[c].seq
 			check(seq.size() >= 2 and seq.size() <= 4, c + " combo has 2..4 segments")
 	var s = g.bai.boss("paranoia")
-	check(s.demo_moves({}).size() >= 14, "fourteen distinct active moves exposed")
+	check(s.demo_moves({}).size() >= 15, "fifteen distinct active moves exposed")
 
 
 ## 起手 → 依次出段 → 收招 → 换另一组；不会无限连下去
@@ -203,3 +204,29 @@ func check_beam_hold() -> void:
 	g.t += 0.1
 	s._beam_hold(e)
 	check(not (e.get("gaze_beams", []) as Array).has(w), "stepping into the held beam resolves it once")
+
+
+## 幻象冲撞：站在通道上挨一次（用受伤记录判断），站在通道外不挨；冲完幻象清空
+func check_rush() -> void:
+	for on_lane in [true, false]:
+		var e := fresh(0)
+		e.pc_act = 0
+		g.invuln = 0.0
+		g.ppos = Vector2(300, 0)
+		var c = g.bai.boss("paranoia").combos()
+		c.rush(e, Vector2.RIGHT)
+		var lanes: Array = e.pc_rush
+		check(lanes.size() == 2, "rush makes two lanes")
+		if not on_lane:
+			g.ppos = Vector2(600, 300)   # 两条通道都不经过
+		var hits := 0
+		for i in 80:
+			g.t += 0.05
+			var before: Array = lanes.map(func(l): return l.hit)
+			c._update_rush(e, 0.05)
+			for l in lanes:
+				if l.hit:
+					hits += 1
+		check(e.get("pc_rush", []).is_empty(), "rush clears after both phantoms pass")
+		var hit_any: bool = lanes.any(func(l): return l.hit)
+		check(hit_any == on_lane, "rush hits only on its lane (on_lane=%s)" % on_lane)

@@ -10,12 +10,12 @@ const BossBeam = preload("res://scripts/render/boss_beam.gd")
 ## 连段表（名字只在文档与回归里用，不上屏）
 const COMBOS := {
 	"千目凝望": {"seq": ["千目注视", "凝视", "叠影"]},
-	"泡影环流": {"seq": ["泡影环", "环流狙击", "追猎泡"]},
-	"镜中众影": {"seq": ["镜影齐射", "凝视", "泡影收束"]},
+	"泡影环流": {"seq": ["泡影环", "幻象冲撞", "环流狙击"]},
+	"镜中众影": {"seq": ["镜影齐射", "凝视", "幻象冲撞", "泡影收束"]},
 	"偏执双旋": {"seq": ["偏执双旋", "溟泡迸裂", "叠影"]},
 	"无声呼号": {"seq": ["呼号", "无声波环", "追猎泡"]},
-	"侵蚀帘幕": {"seq": ["侵蚀帘幕", "凝视", "呼号"]},
-	"群愿回响": {"seq": ["群愿回响", "无声波环", "凝视", "呼号"]},
+	"侵蚀帘幕": {"seq": ["侵蚀帘幕", "幻象冲撞", "凝视", "呼号"]},
+	"群愿回响": {"seq": ["群愿回响", "幻象冲撞", "无声波环", "呼号"]},
 }
 ## 每幕两组，轮流：0 凝望（悬浮）/ 1 狂望（幻影）/ 2 失声（落地）/ 3 破茧后
 const ACT_COMBOS := [["千目凝望", "泡影环流"], ["镜中众影", "偏执双旋"], ["无声呼号", "侵蚀帘幕"], ["群愿回响", "侵蚀帘幕"]]
@@ -24,6 +24,12 @@ const EMITTERS := {
 	"千目注视": {"n": 7, "iv": 0.24}, "环流狙击": {"n": 3, "iv": 0.7}, "镜影齐射": {"n": 2, "iv": 0.8},
 	"偏执双旋": {"n": 6, "iv": 0.42}, "无声波环": {"n": 2, "iv": 1.1}, "侵蚀帘幕": {"n": 2, "iv": 1.5}, "群愿回响": {"n": 2, "iv": 1.3}}
 const WINDUP := 0.55
+## 幻象冲撞（非弹幕，泡影独有）：两只幻象在队长两侧现形，沿穿过队长的两条交叉通道冲过去；1.1 秒预告、第二只晚 0.6 秒
+const RUSH_TELL := 1.1
+const RUSH_STAGGER := 0.6
+const RUSH_SPD := 900.0
+const RUSH_LEN := 780.0
+const RUSH_R := 34.0
 ## 收招窗口：悬浮幕 / 落地后秒数；开始前要求本 Boss 同屏弹 < LOW_BULLETS；期间以 REST_SPD 靠近队长，停在 REST_NEAR（地面距离）内
 const REST_P1 := 2.5
 const REST_P2 := 3.0
@@ -70,7 +76,8 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool) -> b
 	if a != int(e.get("pc_act", -1)):
 		start_act(e, a)
 		return true
-	if not ready or g.t < float(e.get("pc_next", 0.0)) or not (e.get("pc_emit", []) as Array).is_empty():
+	_update_rush(e, dt)
+	if not ready or g.t < float(e.get("pc_next", 0.0)) or not (e.get("pc_emit", []) as Array).is_empty() 			or not (e.get("pc_rush", []) as Array).is_empty():
 		return true
 	if g.warns.any(func(w): return is_same(w.owner, e) and not w.done and float(w.dmg) > 0.0):
 		return true
@@ -123,7 +130,8 @@ func start_act(e: Dictionary, a: int) -> void:
 
 ## 打断（坠地 / 打散光环 / 被控 / 转幕）：没放完的弹幕段、队列、未结算的有伤预警与移动泡撤掉；已在飞的弹照旧。下一组从收招开始
 func interrupt(e: Dictionary) -> void:
-	var had: bool = not (e.get("pc_queue", []) as Array).is_empty() or not (e.get("pc_emit", []) as Array).is_empty()
+	var had: bool = not (e.get("pc_queue", []) as Array).is_empty() or not (e.get("pc_emit", []) as Array).is_empty() 		or not (e.get("pc_rush", []) as Array).is_empty()
+	e.pc_rush = []   # 没冲完的幻象一并散掉
 	if not (e.get("pc_emit", []) as Array).is_empty():
 		e.pc_eyes = []   # 没开完枪的眼一起闭上
 	e.pc_emit = []
@@ -164,6 +172,9 @@ func reset(e: Dictionary) -> void:
 func _cast(e: Dictionary, seg: String, dir: Vector2, dist: float) -> void:
 	if EMITTERS.has(seg):
 		_emit(e, seg, dir)
+		return
+	if seg == "幻象冲撞":
+		rush(e, dir)
 		return
 	match seg:
 		"凝视":
@@ -312,7 +323,7 @@ func _shot(e: Dictionary, from: Vector2, ang: float, spd: float, tier: String) -
 	if buls.size() >= BUL_CAP:
 		return {}
 	var t: Array = TIER[tier]
-	var b := {"pos": from, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * float(t[1]), "slow": false, "r": float(t[0]),
+	var b := {"pos": from, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * float(t[1]) * Bal.v("boss/paranoia_bullet_mult", 0.8), "slow": false, "r": float(t[0]),
 		"life": 6.5, "corrode": 0.15, "nerve": 0.0, "true": false, "kind": "orb", "home": false, "boss": true, "src_type": e.type,
 		"no_rock": true, "atk": "法术", "pc_tier": tier}
 	g.ebullets.append(b)
@@ -361,3 +372,59 @@ func _update_bullets(e: Dictionary, dt: float) -> void:
 			if f.life > 0.0:
 				lf.append(f)
 		e.pc_fakes = lf
+
+
+## ---- 幻象冲撞（docs/170 §3e）：第一只的通道沿「她 → 你」的横向穿过你，第二只与之垂直；通道只按出手时的你定位，之后不追
+func rush(e: Dictionary, dir: Vector2) -> void:
+	var c: Vector2 = g.ppos
+	var lanes: Array = []
+	for k in 2:
+		var d: Vector2 = dir.orthogonal() if k == 0 else dir
+		if k == 1 and int(e.get("pc_flip", 0)) % 2 == 1:
+			d = -d
+		var a: Vector2 = c - d * RUSH_LEN * 0.5
+		if g.zone_frozen:
+			a = g.combat.arena_clamp(a, 40.0)
+		var t_go: float = g.t + RUSH_TELL + RUSH_STAGGER * k
+		lanes.append({"a": a, "d": d, "t0": g.t + RUSH_STAGGER * k, "t_go": t_go, "pos": a, "hit": false, "end": t_go + RUSH_LEN / RUSH_SPD})
+	e.pc_flip = int(e.get("pc_flip", 0)) + 1
+	e.pc_rush = lanes
+	var cast_t: float = RUSH_TELL + RUSH_STAGGER + RUSH_LEN / RUSH_SPD
+	e.wind = maxf(float(e.get("wind", 0.0)), cast_t)
+	g.bai.claim_token(e, g.t + cast_t + 0.3)
+	e["move_name"] = "幻象冲撞"
+	e["move_t"] = g.t
+	Sfx.play("skill", -12.0, 1.4)
+	Sfx.play_cue("charge", e.type, "start")
+
+
+func _update_rush(e: Dictionary, dt: float) -> void:
+	var lanes: Array = e.get("pc_rush", [])
+	if lanes.is_empty():
+		return
+	var live: Array = []
+	var gr = BossBeam.grains(g)
+	for ln in lanes:
+		if g.t < float(ln.t_go):
+			live.append(ln)
+			continue
+		var el: float = minf(g.t, float(ln.end)) - float(ln.t_go)
+		var prev: Vector2 = ln.pos
+		ln.pos = ln.a + ln.d * RUSH_SPD * el
+		# 扫掠判定：本帧走过的线段离队长 < 冲撞半径 + 12 算中一次
+		if not ln.hit and Geometry2D.get_closest_point_to_segment(g.ppos, prev, ln.pos).distance_to(g.ppos) < RUSH_R + 12.0:
+			ln.hit = true
+			if g.invuln <= 0.0:
+				g.combat.enemy_hit(e.dmg * Bal.v("boss/paranoia_rush_mult", 1.0), {"boss": true, "src_type": e.type, "corrode": 0.3}, false, true, ["近战", "法术"], "boss_" + e.type)
+		if gr != null and BossBeam.take(g, 2) == 2:
+			gr.push("mote_shed", ln.pos + Vector2(0, -20), -ln.d, CORE)
+			gr.push("mote_shed", ln.pos + Vector2(0, -40), -ln.d, CORE)
+		if g.t >= float(ln.end):
+			# 冲到头碎成泡
+			if gr != null:
+				for q in BossBeam.take(g, 14):
+					gr.push("mote_burst", ln.pos + Vector2(0, -24), Vector2.from_angle(TAU * q / 14.0), CORE)
+			Sfx.play("shell_break", -10.0, 1.5, 0.0)
+			continue
+		live.append(ln)
+	e.pc_rush = live
