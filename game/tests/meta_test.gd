@@ -57,10 +57,10 @@ func run() -> void:
 			var nd: Dictionary = nodes[id]
 			if nd.has("req"):
 				check(sh.has(str(nd.req)), "预算 %d：%s 没有前置 %s" % [b, id, nd.req])
-	check(Meta.shape_for(13).has("sh1"), "推荐点法第一个应是危机感Ⅰ（13，10-26 前置加强由 35 降价）")
-	check(not Meta.shape_for(13).has("atk1"), "预算 13 只点危机感Ⅰ")
+	check(Meta.shape_for(5).has("atk1") and Meta.shape_for(5).size() == 1, "推荐点法第一个应是攻击性Ⅰ")
 	var s18 := Meta.shape_for(18)
-	check(s18.has("sh1") and s18.has("atk1") and Meta.spent(s18) == 18 and s18.size() == 2, "预算 18 = 危机感Ⅰ + 攻击性Ⅰ（--meta=18 的前置加强口径）：%s" % [s18])
+	check(s18.size() == 4 and Meta.spent(s18) == 18 and s18.has("atk1") and s18.has("hp1") and s18.has("reg1") and s18.has("def1"), "预算 18 = 攻击性Ⅰ + 生存本能Ⅰ + 生命感悟Ⅰ + 自我保护Ⅰ（docs/179 看得见的前 18）：%s" % [s18])
+	check(not s18.has("sh1") and Meta.shape_for(31).has("sh1"), "危机感Ⅰ（13）在第五位：18 细胞没有它，31 细胞有")
 	check(Meta.run_shape().is_empty(), "测试局缺省不带局外成长")
 	# 生机细胞（§3.1）
 	Cfg.meta_earned = {}
