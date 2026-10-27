@@ -14,6 +14,8 @@ const SaintDraw = preload("res://scripts/render/saint_draw.gd")
 ## 10-22b 用户：普通怪（非 Boss）远程攻击（直线射击 shot / 扇形连射 extra_volley）开火前不再画预警；预警本身照常计时、到点照常开火（纯画面）
 static func quiet(w: Dictionary) -> bool:
 	var o = w.get("owner")
+	if str(w.get("skin", "")).begins_with("mc_"):
+		return true   # 塑路者 / 接潮组的颗粒点预警（render/mid_card_draw，docs/170）
 	# skin gaze / howl：偏执泡影凝视、呼号自己画预警（render/paranoia_combo_draw.gd，docs/170）
 	return w.get("act", "") == "final_attack" or knight_line(w) or w.get("skin", "") in ["gaze", "howl"] or o is Dictionary and not o.get("boss", false) and str(w.get("act", "")) in ["shot", "extra_volley"]
 

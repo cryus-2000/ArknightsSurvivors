@@ -2,7 +2,10 @@
 ## Boss 行为脚本（docs/55 §6 拆分，10-10）：状态仍在敌人字典 e 上，预警 / 冷却 / 迫近经基类转给 boss_ai.gd。本文件只有这只 Boss 自己的招式与阶段逻辑。
 ## 4 招：A 横扫（③ 双爪 2 段）/ B 跃击（①）/ C 蚀潮吐息（② 直线，命中后 3 秒侵蚀结算 +25%）/ D 裂潮（④ 跃击落点为心的缺口刃环，第二幕，patterns manual）
 ## 机制不占名额：假死、复苏
+## 弹幕与配合连段（docs/170）：主教指挥两具的镜像弹幕与配合连段；连段进行中本体不自己选招（pair_move 由主教调）
 extends "res://scripts/enemies/bosses/boss_base.gd"
+
+const MC = preload("res://scripts/enemies/mid_cards.gd")
 
 const MOVES := ["横扫", "跃击", "蚀潮吐息", "裂潮"]
 const COL := Color(0.6, 1.0, 0.9)
@@ -15,7 +18,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	var p2: bool = _pair_p2(e)
 	if p2:
 		_tint2(e, TINT2)
-	if ready:
+	if ready and not MC.in_pair_combo(e):
 		if dist < 160.0 and _cd(e, "sweep", 5.0):
 			_sweep(e, dir)
 		elif dist >= 100.0 and dist <= 320.0 and _cd(e, "breath", 8.0):
@@ -71,14 +74,14 @@ func force_move(e: Dictionary, name: String, dir: Vector2, _dist: float) -> bool
 ## A · 横扫（保留 + 合并双爪交斩）：扇形 r165 半角 1.05，跟随本体；第 1 段追踪 0.4 秒总 1.2 秒，第 2 段同时画出、方向偏 0.42、晚 0.6 秒结算（双爪）；
 ## e.dmg × 1.6 每段，侵蚀 0.5（两段合计受 2 秒上限）
 func _sweep(e: Dictionary, dir: Vector2) -> void:
-	_warn(e, "cone", 1.2, {"follow": true, "ang": dir.angle(), "half": 1.05, "r": 165.0, "track": 0.4, "act": "sweep", "name": "横扫", "col": COL, "dmg": e.dmg * 1.6, "corrode": 0.5})
-	_warn(e, "cone", 1.8, {"follow": true, "ang": dir.angle() + 0.42, "half": 1.05, "r": 165.0, "act": "sweep", "name": "", "col": COL, "dmg": e.dmg * 1.6, "corrode": 0.5, "lock": false})
+	_warn(e, "cone", 1.2, {"follow": true, "ang": dir.angle(), "half": 1.05, "r": 165.0, "track": 0.4, "act": "sweep", "name": "横扫", "col": COL, "dmg": e.dmg * 1.6, "corrode": 0.5, "skin": "mc_cone"})
+	_warn(e, "cone", 1.8, {"follow": true, "ang": dir.angle() + 0.42, "half": 1.05, "r": 165.0, "act": "sweep", "name": "", "col": COL, "dmg": e.dmg * 1.6, "corrode": 0.5, "lock": false, "skin": "mc_cone"})
 
 
 ## B · 跃击（保留）：主控位置 r84 实填圈 1.0 秒，e.dmg × 1.5 侵蚀 0.5，冲击环 ≤ 预警圆；
 ## 第二幕同时以落点为心画出 D 裂潮的缺口环（同一次预警的两层，不另占令牌），落地后 0.3 秒结算 10 片刃弹
 func _leap(e: Dictionary, rift: bool) -> void:
-	var w := _warn(e, "circle", 1.0, {"pos": g.ppos, "r": 84.0, "act": "leap", "name": "跃击", "col": COL, "dmg": e.dmg * 1.5, "corrode": 0.5})
+	var w := _warn(e, "circle", 1.0, {"pos": g.ppos, "r": 84.0, "act": "leap", "name": "跃击", "col": COL, "dmg": e.dmg * 1.5, "corrode": 0.5, "skin": "mc_slam"})
 	e.leap = w
 	e.leap_from = e.pos
 	e.erase("rift_w")
@@ -100,9 +103,24 @@ func _leap(e: Dictionary, rift: bool) -> void:
 ## e.dmg × 1.0 法术、侵蚀 0.5，命中后 3 秒内侵蚀结算 +25%（boss_ai _warn_damage → combat.drain_corrode，仍受 Boss 持续伤害上限）
 func _breath(e: Dictionary, dir: Vector2) -> void:
 	_warn(e, "line", 1.0, {"ang": dir.angle(), "len": 320.0, "wid": 30.0, "track": 0.4, "act": "breath", "kp": "archon", "kp_k": 2.0, "name": "蚀潮吐息", "col": COL, "dmg": e.dmg * 1.0,
-		"corrode": 0.5, "corrode_amp": 0.25, "corrode_amp_t": 3.0, "arts": true})
+		"corrode": 0.5, "corrode_amp": 0.25, "corrode_amp_t": 3.0, "arts": true, "skin": "mc_line"})
 
 
 ## 同步护盾（docs/142b §3.8）：血量比搭档低出门槛时受伤 × 0.4
 func taken_mult(e: Dictionary) -> float:
 	return _pair_shield(e)
+
+
+## 主教的配合连段调这里（docs/170）：返回这一段占用的秒数，放不出 -1
+func pair_move(e: Dictionary, move: String, dir: Vector2) -> float:
+	match move:
+		"跃击":
+			_leap(e, _pair_p2(e))
+			return 1.0
+		"横扫":
+			_sweep(e, dir)
+			return 1.8
+		"蚀潮吐息":
+			_breath(e, dir)
+			return 1.0
+	return -1.0

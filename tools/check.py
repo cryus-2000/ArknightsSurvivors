@@ -1001,6 +1001,7 @@ SCENE_REGRESSIONS = {
     "knight_combo": ("骑士连段、取消与喘息", "knight_combo_test", r"KNIGHT COMBO failures=0", []),
     "paranoia_combos": ("偏执泡影连携攻势：连段轮换、打断、转幕、复现", "paranoia_combos_test", r"PARANOIA COMBOS failures=0", []),
     "izumik_card": ("伊祖米克连携、弹幕与拦截通道", "izumik_card_test", r"IZUMIK CARD failures=0", []),
+    "mid_boss": ("塑路者 / 接潮组弹幕与连段（docs/170）", "mid_boss_test", r"MID BOSS failures=0", []),
     "final_boss_materials": ("Boss 实体材质与安全区", "final_boss_materials_test", r"FINAL BOSS MATERIALS failures=0", []),
     "final_boss_animation": ("Boss 原生动作与发射时刻", "final_boss_animation_test", r"FINAL BOSS ANIMATION failures=0", []),
     "boss_fx_geometry": ("Boss 特效几何与预警约束", "boss_fx_geometry_test", r"BOSS FX GEOMETRY failures=0", []),

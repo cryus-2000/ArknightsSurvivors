@@ -2,7 +2,10 @@
 ## Boss 行为脚本（docs/55 §6 拆分，10-10）：状态仍在敌人字典 e 上，预警 / 冷却 / 迫近经基类转给 boss_ai.gd。本文件只有这只 Boss 自己的招式与阶段逻辑。
 ## 4 招：A 连斩（② 3 段突刺，第二幕 4 段）/ B 斥亡旋刃（④，patterns）/ C 迸发（① 自身为心落点圈：狂暴开始、复苏各一次，平时 12 秒）/ D 掠海飞刃（③，第二幕，patterns manual）
 ## 机制不占名额：狂暴（搭档假死时）、假死、复苏
+## 弹幕与配合连段（docs/170）：主教指挥两具的镜像弹幕与配合连段；连段进行中本体不自己选招（连斩续段照走）；第二幕掠海飞刃不再自动放（镜像弹幕取代，force_move 仍可放）
 extends "res://scripts/enemies/bosses/boss_base.gd"
+
+const MC = preload("res://scripts/enemies/mid_cards.gd")
 
 const MOVES := ["连斩", "斥亡旋刃", "迸发", "掠海飞刃"]
 const COL := Color(0.6, 0.8, 1.0)
@@ -35,10 +38,12 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	if ready and e.get("combo_n", 0) > 0 and e.get("combo_t", 0.0) <= g.t:
 		e.combo_n -= 1
 		# 每段 0.6 秒（原写 0.38 被 _warn 的 0.6 下限钳住，docs/95 §10.1 文档和代码对不上，这里直接写 0.6）、段间 0.62 秒
-		_warn(e, "line", 0.6, {"ang": dir.angle(), "len": 190.0, "wid": 22.0, "track": 0.19, "act": "stab", "spd": 820.0, "name": "连斩" if e.get("combo_first", false) else "", "col": COL, "dmg": e.dmg * 1.1, "corrode": 0.5})
+		_warn(e, "line", 0.6, {"ang": dir.angle(), "len": 190.0, "wid": 22.0, "track": 0.19, "act": "stab", "spd": 820.0, "name": "连斩" if e.get("combo_first", false) else "", "col": COL, "dmg": e.dmg * 1.1, "corrode": 0.5, "skin": "mc_line"})
 		e.combo_first = false
 		e.combo_t = g.t + 0.62
-	elif ready and p2 and dist >= 120.0 and dist <= 360.0 and float(e.get("cds", {}).get("fan", 0.0)) <= g.t:
+	elif ready and MC.in_pair_combo(e):
+		pass   # 主教的配合连段进行中：不自己选招
+	elif ready and p2 and Bal.v("boss/immortal_auto_fan", 0.0) > 0.0 and dist >= 120.0 and dist <= 360.0 and float(e.get("cds", {}).get("fan", 0.0)) <= g.t:
 		# D 掠海飞刃：第二幕、主控 120–360、fan 7 秒；第一次先亮招式名 0.6 秒（§0.2）
 		if _first_tell(e, "fan", "掠海飞刃") and _cd(e, "fan", 7.0):
 			_fan(e, dir, dist)
@@ -90,7 +95,7 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 ## e.dmg × 1.2（狂暴期间 e.dmg 已 ×1.2，沿用）、侵蚀 0.5；结算 boss_ai erupt（Codex fx_immortal_burst）
 func _erupt(e: Dictionary) -> void:
 	_warn(e, "circle", 0.9, {"pos": e.pos, "r": 120.0, "track_pos": "self", "track": 0.3, "act": "erupt", "name": "迸发", "col": g.vfx.boss_color(e.type),
-		"dmg": e.dmg * 1.2, "corrode": 0.5})
+		"dmg": e.dmg * 1.2, "corrode": 0.5, "skin": "mc_slam"})
 
 
 ## D · 掠海飞刃（第二幕）：enemies.json patterns「掠海飞刃」（manual）——扇形 r300 半角 0.85，追踪 0.3 总 1.5；7 片刃弹 430px/s，e.dmg × 0.8 / 片
@@ -102,3 +107,17 @@ func _fan(e: Dictionary, dir: Vector2, dist: float) -> void:
 ## 同步护盾（docs/142b §3.8）：血量比搭档低出门槛时受伤 × 0.4
 func taken_mult(e: Dictionary) -> float:
 	return _pair_shield(e)
+
+
+## 主教的配合连段调这里（docs/170）：返回这一段占用的秒数，放不出 -1
+func pair_move(e: Dictionary, move: String, _dir: Vector2) -> float:
+	match move:
+		"连斩":
+			e.combo_n = 4 if _pair_p2(e) else 3
+			e.combo_first = true
+			e.combo_t = 0.0
+			return 1.22 * float(e.combo_n) + 0.4
+		"迸发":
+			_erupt(e)
+			return 0.9
+	return -1.0

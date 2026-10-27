@@ -803,7 +803,8 @@
      "speed": 300,
      "gap": 0.38,
      "gap_jitter": 0.0,
-     "mult": 0.507
+     "mult": 0.507,
+     "manual": true
     },
     {
      "name": "接潮扇浪",
@@ -894,7 +895,8 @@
      "speed": 350,
      "gap": 0.42,
      "blade": true,
-     "mult": 0.624
+     "mult": 0.624,
+     "manual": true
     },
     {
      "name": "掠海飞刃",
