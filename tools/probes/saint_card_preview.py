@@ -1,7 +1,7 @@
 """Record Saint Iberia / Saint Carmen attack groups (docs/171): four 14-second live-AI segments per boss.
 
 python tools/probes/saint_card_preview.py --boss iberia --tag v1
-Writes build/boss_saints/<tag>/<boss>_cards.mp4 and <boss>.gif (frames are deleted after encoding). Window is moved off-screen and muted by godot_runner.
+Writes build/boss_saints/<tag>/<boss>_cards.mp4 only (H.264, original colour/speed; frames deleted after encoding). Delete clips once confirmed or superseded. Window is moved off-screen and muted by godot_runner.
 """
 import argparse
 import json
@@ -26,10 +26,6 @@ def encode(folder, out_base):
     ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
     subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-framerate", str(FPS), "-i", str(folder / "frame_%05d.png"),
                     "-c:v", "libx264", "-crf", "20", "-preset", "fast", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out_base) + "_cards.mp4"], check=True)
-    # 给用户看的是 gif（协调人 10-27：单个 ≤25 MB，不发静帧 / 拼图）：12 帧、640 宽、128 色
-    filters = "fps=12,scale=640:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=128:stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=3:diff_mode=rectangle"
-    subprocess.run([ffmpeg, "-hide_banner", "-loglevel", "error", "-y", "-framerate", str(FPS), "-i", str(folder / "frame_%05d.png"),
-                    "-filter_complex", filters, "-loop", "0", str(out_base) + ".gif"], check=True)
     return len(paths)
 
 
