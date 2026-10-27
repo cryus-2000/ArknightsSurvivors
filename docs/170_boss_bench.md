@@ -48,7 +48,7 @@ python tools/boss_bench.py table build/boss_bench/res/base.json build/boss_bench
 
 `--bosses` 键：`path, carmen, iberia, bishop+archon, bishop+immortal, paranoia, knight_boss, ishar, izumik`。录一局约 50 秒（本机），开打一局 15–70 秒（Boss 战本身 20–180 秒模拟时间）。
 
-云端（docs/36 §7.5.1）：`NAME=… NEW=origin/<分支> BOSSES=… BENCH=4121e81ee bash tools/cloud/boss_bench_ab.sh`，同机顺序跑 录快照 → 对照 → 改版 → 对照表，推 `cloud-results/boss-bench-<NAME>`（`compare.md` 是表，`base.json` / `new.json` 是逐局记录，快照打包在 `snaps.tar.gz`）。
+云端（docs/36 §7.5.1）：`tools/cloud/boss_bench_ab.sh` 分步跑（云端单条命令 10 分钟上限）：`STEP=setup`（改版工作树 = 被测分支 + cherry-pick 测试台代码提交 4121e81ee）→ `STEP=record OP=… META=…`（3 开局 × 2 档）→ `STEP=run SIDE=base|new OP=… META=…` → `STEP=finish`（合并、出表、推 `cloud-results/boss-bench-<NAME>`：`compare.md` 是表，`base.json` / `new.json` 是逐局记录，快照打包在 `snaps.tar.gz`）。分块结果用 `boss_bench.py merge` 合并。
 
 ## 4. 本机小样（10-27，对照代码，3 开局 × 2 档 × seed 2，每 Boss 6 局）
 

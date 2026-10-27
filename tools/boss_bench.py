@@ -86,7 +86,7 @@ def cmd_record(a):
 
     with ThreadPoolExecutor(max_workers=a.jobs) as ex:
         recs = list(ex.map(one, jobs))
-    with open(os.path.join(a.out, "record.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(a.out, "record_%s_m%s_s%s.json" % (a.ops.replace(",", "-"), a.metas.replace(",", "-"), a.seeds.replace(",", "-"))), "w", encoding="utf-8") as f:
         json.dump(recs, f, ensure_ascii=False, indent=1)
     print("快照目录：%s（%d 局）" % (a.out, len(recs)))
 
@@ -204,6 +204,18 @@ def table(paths):
     return "\n".join(L) + "\n"
 
 
+def cmd_merge(a):
+    """分块跑的结果（云端单条命令 10 分钟上限，按开局 / 认知拆开跑）合成一份"""
+    recs, game = [], ""
+    for p in a.parts:
+        d = json.load(open(p, encoding="utf-8"))
+        recs += d["records"]
+        game = d.get("game", game)
+    with open(a.out, "w", encoding="utf-8") as f:
+        json.dump({"tag": a.tag, "game": game, "records": recs}, f, ensure_ascii=False, indent=1)
+    print("%s：%d 局（%d 份）" % (a.out, len(recs), len(a.parts)))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -233,6 +245,10 @@ def main():
     b.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2) - 1))
     b.add_argument("--timeout", type=int, default=900)
     b.add_argument("--extra", nargs="*", default=[])
+    mg = sub.add_parser("merge")
+    mg.add_argument("--tag", required=True)
+    mg.add_argument("--out", required=True)
+    mg.add_argument("parts", nargs="+")
     t = sub.add_parser("table")
     t.add_argument("paths", nargs="+")
     a = ap.parse_args()
@@ -240,6 +256,8 @@ def main():
         cmd_record(a)
     elif a.cmd == "run":
         cmd_run(a)
+    elif a.cmd == "merge":
+        cmd_merge(a)
     else:
         print(table(a.paths))
 
