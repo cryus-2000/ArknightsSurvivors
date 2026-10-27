@@ -121,10 +121,17 @@ func _pair_shield(e: Dictionary) -> float:
 	var m = e.get("partner")
 	if m == null or m.dead or m.get("coma", false) or e.get("coma", false):
 		e.pair_shield = false
-		return 1.0
+		return _tide_armor(e)
 	var gap: float = Bal.v("boss/pair_shield_gap2", 0.15) if _pair_p2(e) else Bal.v("boss/pair_shield_gap", 0.25)
 	e.pair_shield = e.hp / maxf(1.0, e.maxhp) < m.hp / maxf(1.0, m.maxhp) - gap
-	return Bal.v("boss/pair_shield_mult", 0.4) if e.pair_shield else 1.0
+	return (Bal.v("boss/pair_shield_mult", 0.4) if e.pair_shield else 1.0) * _tide_armor(e)
+
+
+## 接潮组破绽输出（10-27 测试台：目标破绽期输出 ≥35%）：平时受伤 × tide_armor，收招破绽期合计 × tide_break_taken（除掉公共破绽加成 boss/break_mult），同骑士重甲
+func _tide_armor(e: Dictionary) -> float:
+	if float(e.get("break_t", 0.0)) > 0.0:
+		return Bal.v("boss/tide_break_taken", 2.0) / maxf(0.01, Bal.v("boss/break_mult", 1.4))
+	return Bal.v("boss/tide_armor", 0.7)
 
 
 ## 接潮组一幕两具保持 ≥ pair_sep（360，比大多数干员射程远）的距离：近了每秒互相推开 60 像素（站位分得开，才分得出打谁）
