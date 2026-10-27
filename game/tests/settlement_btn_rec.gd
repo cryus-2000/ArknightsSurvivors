@@ -11,7 +11,9 @@ const Screen = preload("res://scripts/screens/settlement_screen.gd")
 class Probe extends Screen:
 	var last := ""
 	func _run(id: String) -> void:
-		last = id   # 录像里不真的跳转
+		last = id   # 录像里不真的跳转（分享卡照常打开）
+		if id == "share":
+			super._run(id)
 
 var game: Node
 var frames := 0
@@ -26,12 +28,19 @@ const SEQ := [
 	[126, "key", KEY_ENTER, "键盘 / 手柄：确认"], [142, "key", KEY_UP, "键盘 / 手柄：↑ 回编队"],
 	[156, "touch", "meta", "触屏按下"], [176, "end", "", ""],
 ]
+## --share：分享卡两版样式（悬停 → 点「分享」→ 停 2 秒 → → 换样式 B → 停 2 秒 → Esc 关）
+const SEQ_SHARE := [
+	[10, "mouse", "share", ""], [24, "click", "share", ""], [100, "key", KEY_RIGHT, ""], [176, "key", KEY_LEFT, ""], [236, "key", KEY_ESCAPE, ""], [256, "end", "", ""],
+]
+var seq: Array = SEQ
 
 
 func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--shotdir="):
 			shot_dir = a.substr(10)
+		elif a == "--share":
+			seq = SEQ_SHARE
 	game = load("res://game.tscn").instantiate()
 	add_child(game)
 
@@ -97,7 +106,7 @@ func _process(d: float) -> void:
 		return
 	s.tick(d)
 	var f := frames - 4
-	for ev in SEQ:
+	for ev in seq:
 		if int(ev[0]) == f:
 			_do(ev)
 	game.hud.queue_redraw()

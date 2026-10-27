@@ -38,6 +38,15 @@ var focus := -1        # 键盘 / 手柄焦点在底栏第几个按钮（-1 = �
 var press_id := ""     # 正在播按下态的按钮
 var press_t := 0.0
 var _pending := ""     # 按下后待执行的动作
+## 战绩分享卡（10-28 协调人单，先出两版样式给用户挑；screens/share_card.gd）
+const ShareCard = preload("res://scripts/screens/share_card.gd")
+var share
+var share_open := false
+var share_style := 0
+var share_t := 0.0
+var share_data := {}
+const SHARE_K := 0.78                       # 卡 600×800 → 468×624
+const SHARE_POS := Vector2(406, 40)         # 卡在 1280×720 里的左上角
 const VIEW := Rect2(28, 288, 884, 350)
 
 func _init(host) -> void:
@@ -68,9 +77,12 @@ func tick(dt: float) -> void:
 	squad_canvas.position = origin + VIEW.position * scale
 	squad_canvas.size = VIEW.size * scale
 	squad_canvas.modulate.a = clampf((g.state_age-g.hud_view.DEATH_T)/0.35,0,1) if g.state==g.S.DEAD else 1.0
-	squad_canvas.visible = not g.run_stats.open and not g.headhunt.open and (g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T)
+	squad_canvas.visible = not share_open and not g.run_stats.open and not g.headhunt.open and (g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T)
 	if g.state == g.S.WIN or g.state_age >= g.hud_view.DEATH_T:
 		elapsed = 0.9 if UM.rm() or UM.skip_all() or g.ui_skip else minf(0.9, elapsed + dt)
+	if share_open:
+		share_t += dt
+		g.hud.queue_redraw()
 	if press_t > 0.0:
 		press_t = maxf(0.0, press_t - dt)
 		g.hud.queue_redraw()
@@ -145,7 +157,8 @@ static func grade(m: Dictionary, preset: int) -> String:
 ## 底栏按钮：[id, x, 宽, 文字, 主按钮]（与画法、点击区同一张表）
 func _buttons() -> Array:
 	var tch: bool = Pad.touch_ui()   # 触屏（手机 / 平板）不写键位
-	var out: Array = [["records", 28, 160, "作战数据  SELECT" if Pad.using else ("作战数据" if tch else "作战数据  Tab"), false]]
+	var out: Array = [["share", 1148, 100, "分享战绩" if (Pad.using or tch) else "分享  V", false, Rect2(1148, 202, 100, 34)],
+		["records", 28, 160, "作战数据  SELECT" if Pad.using else ("作战数据" if tch else "作战数据  Tab"), false]]
 	if Cfg.runs_log_enabled():   # 对局记录（测试版 / 对内包）：点一下打开记录文件夹（10-22 用户）
 		out.append(["runs", 206, 150, "对局记录", false])
 	out.append(["title", 374, 250, "返回主界面  B" if Pad.using else ("返回主界面" if tch else "返回主界面  Esc"), false])
@@ -155,6 +168,8 @@ func _buttons() -> Array:
 
 
 func _btn_rect(b: Array) -> Rect2:
+	if b.size() > 5:
+		return b[5]
 	var ph: bool = Cfg.phone_ui()   # 手机：按钮 52 高
 	return Rect2(float(b[1]), 660.0 if ph else 666.0, float(b[2]), 52.0 if ph else 40.0)
 
@@ -182,6 +197,82 @@ func _run(id: String) -> void:
 		"records": _records()
 		"runs": Cfg.show_runs_folder()
 		"title", "meta", "hunt": _action(id)
+		"share": _open_share()
+
+
+func _open_share() -> void:
+	if share == null:
+		share = ShareCard.new(g)
+	share_data = share.data(self)
+	share_open = true
+	share_t = 0.0
+	if is_instance_valid(squad_canvas):
+		squad_canvas.hide()
+	g.hud.queue_redraw()
+
+
+func _close_share() -> void:
+	share_open = false
+	Sfx.play("ui_move", -8.0)
+	g.hud.queue_redraw()
+
+
+## 分享卡打开时的输入：Esc / Ⓑ / 点卡外 关闭；← → / Tab / 点样式签 换样式（挑样式阶段）
+func _share_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo:
+		match Pad.kc(event):
+			KEY_ESCAPE, KEY_T, KEY_V: _close_share()
+			KEY_LEFT, KEY_RIGHT, KEY_A, KEY_D, KEY_TAB:
+				share_style = 1 - share_style
+				Sfx.play("ui_move", -8.0)
+		g.hud.queue_redraw()
+		return
+	var p := Vector2.INF
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		p = _point(event.position)
+	elif event is InputEventScreenTouch and event.pressed:
+		p = _point(event.position)
+	if p == Vector2.INF:
+		return
+	for i in 2:
+		if _share_tab(i).has_point(p):
+			share_style = i
+			Sfx.play("ui_ok", -8.0)
+			g.hud.queue_redraw()
+			return
+	if _share_close().has_point(p) or not Rect2(SHARE_POS, Vector2(ShareCard.W, ShareCard.H) * SHARE_K).has_point(p):
+		_close_share()
+
+
+func _share_tab(i: int) -> Rect2:
+	return Rect2(SHARE_POS.x + ShareCard.W * SHARE_K + 24, SHARE_POS.y + 40 + i * 52, 150, 42)
+
+
+func _share_close() -> Rect2:
+	return Rect2(SHARE_POS.x + ShareCard.W * SHARE_K + 24, SHARE_POS.y + ShareCard.H * SHARE_K - 42, 150, 42)
+
+
+func _draw_share(ci: CanvasItem) -> void:
+	var a: float = clampf(share_t / 0.18, 0.0, 1.0)
+	ci.draw_rect(Rect2(-200, -200, 1680, 1120), Color(0.02, 0.03, 0.05, 0.78 * a))
+	var k: float = SHARE_K * (0.94 + 0.06 * (1.0 - pow(1.0 - a, 3.0)))
+	var sz := Vector2(ShareCard.W, ShareCard.H) * k
+	var pos: Vector2 = SHARE_POS + (Vector2(ShareCard.W, ShareCard.H) * SHARE_K - sz) * 0.5
+	ci.draw_set_transform(origin, 0, Vector2.ONE * scale)
+	share.draw(ci, share_data, share_style, origin + pos * scale, k * scale)
+	ci.draw_set_transform(origin, 0, Vector2.ONE * scale)
+	ci.draw_rect(Rect2(pos, sz).grow(2), HH.CYB, false, 2.0)
+	_text(ci, _share_tab(0).position.x, SHARE_POS.y + 6, "分享战绩", 20, HH.LIGHT)
+	for i in 2:
+		var r := _share_tab(i)
+		var on: bool = share_style == i
+		ci.draw_rect(r, HH.CYB if on else HH.DARK2)
+		_text(ci, r.position.x + 16, r.position.y + 10, ["样式 A  档案卡", "样式 B  深海海报"][i], 16, HH.INK if on else HH.LIGHT)
+	_text(ci, _share_tab(0).position.x, _share_tab(1).end.y + 14, "← → 切换样式", 13, HH.MUTE)
+	var c := _share_close()
+	ci.draw_rect(c, HH.DARK2)
+	_text(ci, c.position.x + 16, c.position.y + 10, "关闭" if Pad.touch_ui() else "关闭  Esc", 16, HH.LIGHT)
+	ci.draw_set_transform(Vector2.ZERO)
 
 
 func _set_hover(id: String) -> void:
@@ -199,6 +290,9 @@ func input(event: InputEvent) -> bool:
 	if not active() or model.is_empty():
 		return false
 	if (event is InputEventMouseButton or event is InputEventMouseMotion) and event.device == InputEvent.DEVICE_ID_EMULATION:
+		return true
+	if share_open:
+		_share_input(event)
 		return true
 	if event is InputEventKey and event.pressed and not event.echo:
 		var key: int = Pad.kc(event)
@@ -227,6 +321,7 @@ func input(event: InputEvent) -> bool:
 			KEY_HOME: select(0)
 			KEY_END: select(rows.size() - 1)
 			KEY_TAB, KEY_C: _press("records")
+			KEY_V: _press("share")
 			KEY_X, KEY_F: _press("meta")
 			KEY_ESCAPE, KEY_T: _press("title")
 			KEY_R: g._do_action("restart")
@@ -275,6 +370,10 @@ func _pointer(p: Vector2, pressed: bool) -> void:
 	if pressed:
 		if elapsed < 0.9:
 			elapsed = 0.9
+			return
+		var hit := _btn_at(p)
+		if hit != "":
+			_press(hit)   # 底栏与右侧「分享」按钮：按下态 + 点击音，PRESS_T 后执行（鼠标与触屏同一路）
 			return
 		if VIEW.has_point(p):
 			dragging = true
@@ -369,6 +468,8 @@ func draw(ci: CanvasItem, vs: Vector2) -> void:
 	ci.draw_rect(Rect2(0,652,1280,68),HH.INK)
 	_draw_buttons(ci)
 	ci.draw_set_transform(Vector2.ZERO)
+	if share_open and share != null:
+		_draw_share(ci)
 
 ## 底栏按钮：常态 / 悬停（提亮 + 青边）/ 按下（缩到 96%、更亮）/ 焦点（青色四角括号）；作战数据、对局记录是文字按钮（悬停才出底色）
 func _draw_buttons(ci: CanvasItem) -> void:
