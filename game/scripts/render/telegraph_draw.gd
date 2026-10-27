@@ -4,6 +4,7 @@ extends RefCounted
 
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")
+const SaintDraw = preload("res://scripts/render/saint_draw.gd")
 
 
 ## 预警绘制（地面填充层；轮廓 / 出口 / 端盖在 world.draw_warn_outlines）：结算瞬间闪白。
@@ -75,6 +76,10 @@ static func _poly_line_k(w: Dictionary, k: float) -> PackedVector2Array:
 
 static func draw_fills(g) -> void:
 	for w in g.warns:
+		if w.get("saint_beam", false):
+			if not w.done:
+				SaintDraw.charge(g, w)   # 圣徒光束蓄力（docs/171 §7）：代替斜纹填充与轮廓；结算白闪也不画（由消散接上）
+			continue
 		if w.get("dim", false) or quiet(w):
 			continue   # 打不到主控的杂兵预警只画淡轮廓（world.classify_tells / draw_warn_outlines，可读性 1.1.1，界面与美术）
 		if preload("res://scripts/render/ishar_tell_draw.gd").owns(w):

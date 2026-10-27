@@ -1881,6 +1881,8 @@ func _draw_ebullets_lobs_shocks() -> void:
 			"nerve":
 				if g.tex.get("proj_floater_nerve") == null:
 					tb_circle(bp, b.r, Color(1.8, 1.6, 0.5))
+		if b.has("core_r"):
+			tb_circle(bp, float(b.core_r), b.get("core_col", Color(1.8, 1.7, 1.5)))   # 弹体分级：大弹发光核心（圣徒符卡，docs/171）
 		if g.optical_on:
 			var ebc: Color = g.optical.eb_col(b)
 			var bk: float = 1.3 if b.get("boss", false) and _eb_own() else 2.0   # Boss 弹专属色亮描边只提到 ×1.3（×2 叠辉光后色相偏）
@@ -4463,7 +4465,7 @@ func _warn_dash_arc(r: float, a0: float, a1: float, col: Color, wdt: float) -> v
 
 func draw_warn_outlines(ground := false) -> void:
 	for w in g.warns:
-		if w.done or TeleDraw.quiet(w) or bool(w.get("ground", false)) != ground:
+		if w.done or TeleDraw.quiet(w) or bool(w.get("ground", false)) != ground or w.get("saint_beam", false):   # saint_beam：圣徒光束蓄力自己画（render/saint_draw）
 			continue   # ground：小怪踏地的轮廓在地面层画（_draw_ground_foe_fx），不压在单位上
 		if IsharTell.owns(w):
 			continue   # 伊莎玛拉：涟漪勾边已在 ishar_tell_draw 画（docs/170）
