@@ -10,7 +10,7 @@ const NAMES := ["op_siege_s1_soft", "op_texas_s2_soft", "heartbeat", "swing", "s
 ## 倒下过渡的「灯灭」（music_director 触发）：-8 dB 时比同时段的 lose 乐句低约 3 dB（全频段），不盖过配乐
 const LAMP_OUT_DB := -8.0
 ## 同一音效的最短间隔（秒），避免大量敌人同时被击中时声音糊成一片
-const LIMIT := {"crit_tick": 0.08, "break_hit": 0.12, "enemy_acid": 0.25, "enemy_elite": 0.25, "enemy_nerve": 0.25, "atk_gate": 0.1, "mire_splat": 0.12, "enemy_screech": 1.2, "enemy_spit": 0.22, "enemy_bite": 0.18, "op_wisadel_atk": 0.12, "op_wisadel_hit": 0.16, "op_wisadel_big": 0.25, "op_wisadel_quake": 0.25, "op_kaltsit_big": 0.3, "knight_charge": 0.15, "knight_stab": 0.08, "hit": 0.035, "kill": 0.045, "kill_big": 0.045, "kill_shell": 0.045, "hurt_heavy": 0.1, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}
+const LIMIT := {"crit_tick": 0.08, "break_hit": 0.25, "enemy_acid": 0.25, "enemy_elite": 0.25, "enemy_nerve": 0.25, "atk_gate": 0.1, "mire_splat": 0.12, "enemy_screech": 1.2, "enemy_spit": 0.22, "enemy_bite": 0.18, "op_wisadel_atk": 0.12, "op_wisadel_hit": 0.16, "op_wisadel_big": 0.25, "op_wisadel_quake": 0.25, "op_kaltsit_big": 0.3, "knight_charge": 0.15, "knight_stab": 0.08, "hit": 0.035, "kill": 0.045, "kill_big": 0.045, "kill_shell": 0.045, "hurt_heavy": 0.1, "pickup": 0.04, "tentacle": 0.07, "swing": 0.05, "dodge": 0.1, "hurt": 0.1}
 
 ## 干员专属音效（docs/28，tools/gen_sfx_ops.py 合成）：audio/sfx/op_<干员>_<类别>.wav
 ## 类别：atk 普攻出手 / hit 命中 / s1 s2 s3 技能发动（character.spend_sp 统一播放）/ big 大招落点 / heal 治疗 / quake 余震
@@ -45,6 +45,7 @@ const OP_DB := {"op_eyjafjalla_big": -3.0, "op_kaltsit_big": -2.0, "op_wisadel_q
 	"op_siege_s1_soft": -2.0, "op_texas_s2_soft": -2.0, "op_exusiai_s1": -3.0, "op_exusiai_s2": -3.0, "op_exusiai_s3": -3.0, "op_exusiai_big": -3.0, "op_texas_hit": -3.0}
 const OP_GAP := {"op_exusiai_atk": 0.03, "op_exusiai_hit": 0.14, "op_exusiai_big": 0.5, "op_eyjafjalla_big": 0.2}
 const OP_PVAR := {"op_exusiai_atk": 0.09, "op_exusiai_hit": 0.1, "op_irene_atk": 0.08, "op_texas_atk": 0.08, "op_eyjafjalla_atk": 0.08, "op_lumen_atk": 0.07, "op_wisadel_quake": 0.12}
+var limit_override := {}
 var op_last := {}          # 请求名 -> 上次放行的墙钟秒（OP_GAP）
 ## 轮换：同一请求名有多个录音时按次序轮着放（连射不像同一声复读）；次序只用于声音，不碰玩法随机
 const OP_ROT := {"op_exusiai_atk": ["op_exusiai_atk_b", "op_exusiai_atk_c"]}
@@ -199,6 +200,9 @@ func _ready() -> void:
 		for a in cfg.dev_args():
 			if a.begins_with("--cmdcue="):
 				cmd_cue = a.substr(9)
+			if a.begins_with("--sfxgap="):   # 仅测试：--sfxgap=名字:秒 覆盖这个音名的最短间隔（录像对照新旧节流用）
+				var kv: PackedStringArray = a.substr(9).split(":")
+				limit_override[kv[0]] = float(kv[1])
 	for n in NAMES:
 		streams[n] = _load_wav("res://audio/sfx/%s.wav" % n)
 	for oid in OP_SFX:
@@ -1312,7 +1316,7 @@ func play(name: String, vol := 0.0, pitch := 1.0, pitch_var := 0.08) -> void:
 	var t0 := Time.get_ticks_usec()
 	var now := t0 / 1000000.0
 	_by(name, 0)
-	var lim: float = maxf(MERGE_T, float(LIMIT.get(name, op_limit.get(name, 0.0))))
+	var lim: float = maxf(MERGE_T, float(limit_override.get(name, LIMIT.get(name, op_limit.get(name, 0.0)))))
 	if now - float(last.get(name, -1.0)) < lim:
 		sfx_stat.merged += 1
 		_by(name, 2)

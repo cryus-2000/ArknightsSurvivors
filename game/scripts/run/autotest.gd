@@ -318,6 +318,27 @@ var _rec_left := 0
 var _rec_sfx0 := {}
 var _rec_f0 := 0               # --sfxtrace：第一张录屏帧的渲染帧号
 var _rec_i := 0
+## --breakloop=<周期秒>:<持续秒>（仅测试，录像用）：每过一个周期给所有活着的 Boss 开一次破绽窗口（combat.start_break），看 / 听「打在破绽上」（break_hit）
+var _brk_next := -1.0
+var _brk_period := 0.0
+var _brk_dur := 0.0
+func _breakloop_step() -> void:
+	if _brk_next == -1.0:
+		_brk_next = -2.0
+		for a in Cfg.dev_args():
+			if a.begins_with("--breakloop="):
+				var p: PackedStringArray = a.substr(12).split(":")
+				_brk_period = float(p[0])
+				_brk_dur = float(p[1])
+				_brk_next = 0.0
+	if _brk_next < 0.0 or g.state != g.S.PLAY or g.t < _brk_next:
+		return
+	_brk_next = g.t + _brk_period
+	for e in g.enemies:
+		if e.boss and not e.dead:
+			g.combat.start_break(e, _brk_dur)
+
+
 func _rec_step() -> void:
 	if _rec_t0 < -1.0:
 		_rec_t0 = -1.0
@@ -686,6 +707,7 @@ func step() -> void:
 		outwin.step(g)
 	if g.mode == g.Mode.BALANCE and g.t >= sfx_win_t + 30.0 and Cfg.dev_args().has("--sfxstat"):
 		_sfx_win()
+	_breakloop_step()
 	_rec_step()
 	_camlog_step()
 	_flashrec_step()
