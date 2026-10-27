@@ -1,0 +1,228 @@
+32 局（carmen, iberia）
+carmen           wisadel    m0  s13     8s  win 23s 承伤0% 破绽输出16%
+carmen           wisadel    m0  s12     8s  win 50s 承伤19% 破绽输出47%
+carmen           wisadel    m0  s11     9s  win 44s 承伤16% 破绽输出28%
+carmen           wisadel    m0  s10     9s  win 44s 承伤14% 破绽输出25%
+carmen           wisadel    m0  s14     8s  win 55s 承伤12% 破绽输出33%
+carmen           wisadel    m0  s15     8s  win 40s 承伤19% 破绽输出4%
+carmen           wisadel    m0  s1      9s  win 45s 承伤0% 破绽输出22%
+carmen           wisadel    m0  s16     9s  win 46s 承伤6% 破绽输出30%
+carmen           wisadel    m0  s2      7s  win 39s 承伤0% 破绽输出18%
+carmen           wisadel    m0  s3      8s  win 49s 承伤13% 破绽输出40%
+carmen           wisadel    m0  s5      8s  win 49s 承伤14% 破绽输出35%
+carmen           wisadel    m0  s4      8s  win 47s 承伤26% 破绽输出24%
+carmen           wisadel    m0  s6      8s  win 51s 承伤26% 破绽输出14%
+carmen           wisadel    m0  s7      8s  win 35s 承伤21% 破绽输出24%
+carmen           wisadel    m0  s8      8s  win 52s 承伤34% 破绽输出30%
+carmen           wisadel    m0  s9      8s  win 53s 承伤26% 破绽输出37%
+iberia           wisadel    m0  s10     9s  win 54s 承伤10% 破绽输出39%
+iberia           wisadel    m0  s11    10s  dead 61s 承伤358% 破绽输出4%
+iberia           wisadel    m0  s13     8s  win 26s 承伤48% 破绽输出19%
+iberia           wisadel    m0  s12    10s  win 57s 承伤24% 破绽输出27%
+iberia           wisadel    m0  s14     8s  win 51s 承伤31% 破绽输出38%
+iberia           wisadel    m0  s16     8s  win 31s 承伤8% 破绽输出16%
+iberia           wisadel    m0  s15     9s  win 42s 承伤44% 破绽输出27%
+iberia           wisadel    m0  s1      9s  win 48s 承伤32% 破绽输出32%
+iberia           wisadel    m0  s2      8s  win 34s 承伤36% 破绽输出6%
+iberia           wisadel    m0  s3      9s  win 54s 承伤48% 破绽输出39%
+iberia           wisadel    m0  s4      9s  win 58s 承伤35% 破绽输出38%
+iberia           wisadel    m0  s5      9s  win 61s 承伤5% 破绽输出25%
+iberia           wisadel    m0  s6      9s  win 55s 承伤101% 破绽输出29%
+iberia           wisadel    m0  s7      8s  win 40s 承伤53% 破绽输出20%
+iberia           wisadel    m0  s8     10s  win 69s 承伤82% 破绽输出45%
+iberia           wisadel    m0  s9      8s  win 38s 承伤34% 破绽输出34%
+# Boss 单场测试台结果（new_wisadel_m0_carmen-iberia）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+32 局（carmen, iberia）
+carmen           wisadel    m18 s11     9s  win 42s 承伤35% 破绽输出24%
+carmen           wisadel    m18 s10     9s  win 52s 承伤64% 破绽输出29%
+carmen           wisadel    m18 s13     9s  win 50s 承伤12% 破绽输出20%
+carmen           wisadel    m18 s12    10s  win 56s 承伤13% 破绽输出30%
+carmen           wisadel    m18 s14     7s  win 32s 承伤10% 破绽输出30%
+carmen           wisadel    m18 s15     7s  win 32s 承伤5% 破绽输出32%
+carmen           wisadel    m18 s16     9s  win 61s 承伤20% 破绽输出18%
+carmen           wisadel    m18 s1      8s  win 38s 承伤24% 破绽输出25%
+carmen           wisadel    m18 s2      8s  win 58s 承伤16% 破绽输出26%
+carmen           wisadel    m18 s3      8s  win 57s 承伤27% 破绽输出43%
+carmen           wisadel    m18 s4      9s  win 54s 承伤22% 破绽输出31%
+carmen           wisadel    m18 s5      9s  win 46s 承伤13% 破绽输出35%
+carmen           wisadel    m18 s6      8s  win 49s 承伤8% 破绽输出34%
+carmen           wisadel    m18 s7      8s  win 59s 承伤41% 破绽输出21%
+carmen           wisadel    m18 s8      8s  win 56s 承伤12% 破绽输出32%
+carmen           wisadel    m18 s9      8s  win 52s 承伤9% 破绽输出34%
+iberia           wisadel    m18 s11     8s  win 30s 承伤0% 破绽输出15%
+iberia           wisadel    m18 s10     8s  win 47s 承伤11% 破绽输出34%
+iberia           wisadel    m18 s12    10s  win 66s 承伤4% 破绽输出33%
+iberia           wisadel    m18 s13    10s  win 57s 承伤15% 破绽输出37%
+iberia           wisadel    m18 s14     8s  win 40s 承伤98% 破绽输出41%
+iberia           wisadel    m18 s15     9s  win 44s 承伤25% 破绽输出23%
+iberia           wisadel    m18 s1      8s  win 46s 承伤9% 破绽输出28%
+iberia           wisadel    m18 s16    10s  win 69s 承伤3% 破绽输出39%
+iberia           wisadel    m18 s3      8s  win 30s 承伤2% 破绽输出22%
+iberia           wisadel    m18 s2      8s  win 42s 承伤15% 破绽输出13%
+iberia           wisadel    m18 s4      9s  win 63s 承伤28% 破绽输出50%
+iberia           wisadel    m18 s5      8s  win 41s 承伤82% 破绽输出37%
+iberia           wisadel    m18 s7      9s  win 58s 承伤41% 破绽输出19%
+iberia           wisadel    m18 s6     10s  win 59s 承伤178% 破绽输出55%
+iberia           wisadel    m18 s9      8s  win 54s 承伤30% 破绽输出32%
+iberia           wisadel    m18 s8      9s  win 72s 承伤23% 破绽输出27%
+# Boss 单场测试台结果（new_wisadel_m18_carmen-iberia）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+32 局（carmen, iberia）
+carmen           skadi      m0  s13     8s  win 62s 承伤11% 破绽输出54%
+carmen           skadi      m0  s12     9s  win 51s 承伤34% 破绽输出52%
+carmen           skadi      m0  s11     9s  win 63s 承伤27% 破绽输出43%
+carmen           skadi      m0  s10    11s  win 145s 承伤62% 破绽输出55%
+carmen           skadi      m0  s14     7s  win 28s 承伤6% 破绽输出51%
+carmen           skadi      m0  s15     8s  win 53s 承伤25% 破绽输出40%
+carmen           skadi      m0  s16     9s  win 87s 承伤47% 破绽输出24%
+carmen           skadi      m0  s1      7s  win 34s 承伤2% 破绽输出32%
+carmen           skadi      m0  s2      8s  win 67s 承伤17% 破绽输出42%
+carmen           skadi      m0  s3      9s  win 85s 承伤37% 破绽输出70%
+carmen           skadi      m0  s4      8s  win 51s 承伤19% 破绽输出28%
+carmen           skadi      m0  s5      8s  win 39s 承伤15% 破绽输出34%
+carmen           skadi      m0  s6      7s  win 44s 承伤26% 破绽输出38%
+carmen           skadi      m0  s9      7s  win 41s 承伤23% 破绽输出32%
+carmen           skadi      m0  s7      8s  win 60s 承伤28% 破绽输出28%
+carmen           skadi      m0  s8      9s  win 71s 承伤74% 破绽输出48%
+iberia           skadi      m0  s12     8s  win 29s 承伤33% 破绽输出9%
+iberia           skadi      m0  s11     9s  win 55s 承伤38% 破绽输出38%
+iberia           skadi      m0  s10    13s  win 137s 承伤78% 破绽输出37%
+iberia           skadi      m0  s14     7s  win 17s 承伤12% 破绽输出0%
+iberia           skadi      m0  s13    14s  win 162s 承伤3% 破绽输出34%
+iberia           skadi      m0  s15     8s  win 34s 承伤67% 破绽输出14%
+iberia           skadi      m0  s16     8s  win 34s 承伤30% 破绽输出32%
+iberia           skadi      m0  s1      8s  win 33s 承伤67% 破绽输出20%
+iberia           skadi      m0  s2      9s  win 54s 承伤58% 破绽输出44%
+iberia           skadi      m0  s3      9s  win 50s 承伤8% 破绽输出35%
+iberia           skadi      m0  s4      8s  win 35s 承伤0% 破绽输出16%
+iberia           skadi      m0  s5      8s  win 29s 承伤17% 破绽输出14%
+iberia           skadi      m0  s6      8s  win 38s 承伤40% 破绽输出36%
+iberia           skadi      m0  s7      8s  dead 30s 承伤146% 破绽输出8%
+iberia           skadi      m0  s8     10s  win 66s 承伤61% 破绽输出38%
+iberia           skadi      m0  s9      8s  win 35s 承伤15% 破绽输出13%
+# Boss 单场测试台结果（new_skadi_m0_carmen-iberia）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+32 局（carmen, iberia）
+carmen           skadi      m18 s12     8s  win 48s 承伤15% 破绽输出51%
+carmen           skadi      m18 s11     9s  win 72s 承伤21% 破绽输出39%
+carmen           skadi      m18 s10    10s  win 97s 承伤62% 破绽输出59%
+carmen           skadi      m18 s13    10s  win 101s 承伤45% 破绽输出40%
+carmen           skadi      m18 s14     9s  win 97s 承伤28% 破绽输出22%
+carmen           skadi      m18 s16     9s  win 90s 承伤2% 破绽输出56%
+carmen           skadi      m18 s1     10s  win 102s 承伤53% 破绽输出54%
+carmen           skadi      m18 s15    12s  timeout 180s 承伤117% 破绽输出38%
+carmen           skadi      m18 s2      8s  win 58s 承伤9% 破绽输出21%
+carmen           skadi      m18 s3      9s  win 72s 承伤6% 破绽输出50%
+carmen           skadi      m18 s4      9s  win 81s 承伤65% 破绽输出49%
+carmen           skadi      m18 s5      9s  win 80s 承伤15% 破绽输出59%
+carmen           skadi      m18 s6      9s  win 87s 承伤10% 破绽输出46%
+carmen           skadi      m18 s7      8s  win 47s 承伤12% 破绽输出54%
+carmen           skadi      m18 s8      7s  win 26s 承伤3% 破绽输出5%
+carmen           skadi      m18 s9      7s  win 37s 承伤3% 破绽输出1%
+iberia           skadi      m18 s11     9s  win 56s 承伤44% 破绽输出44%
+iberia           skadi      m18 s12    10s  win 82s 承伤34% 破绽输出27%
+iberia           skadi      m18 s10    12s  win 135s 承伤79% 破绽输出49%
+iberia           skadi      m18 s13    11s  win 97s 承伤0% 破绽输出36%
+iberia           skadi      m18 s16    10s  win 84s 承伤7% 破绽输出42%
+iberia           skadi      m18 s14    12s  win 143s 承伤87% 破绽输出24%
+iberia           skadi      m18 s15    11s  win 107s 承伤21% 破绽输出44%
+iberia           skadi      m18 s1     12s  dead 113s 承伤320% 破绽输出32%
+iberia           skadi      m18 s2      8s  win 24s 承伤12% 破绽输出20%
+iberia           skadi      m18 s3      9s  win 60s 承伤22% 破绽输出35%
+iberia           skadi      m18 s4     13s  win 141s 承伤39% 破绽输出31%
+iberia           skadi      m18 s5     12s  win 129s 承伤29% 破绽输出30%
+iberia           skadi      m18 s7      9s  win 43s 承伤84% 破绽输出26%
+iberia           skadi      m18 s6     10s  win 82s 承伤14% 破绽输出50%
+iberia           skadi      m18 s8      7s  win 23s 承伤23% 破绽输出10%
+iberia           skadi      m18 s9      8s  win 36s 承伤10% 破绽输出43%
+# Boss 单场测试台结果（new_skadi_m18_carmen-iberia）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+32 局（carmen, iberia）
+carmen           kaltsit    m0  s13     8s  win 52s 承伤47% 破绽输出28%
+carmen           kaltsit    m0  s11     9s  win 60s 承伤24% 破绽输出26%
+carmen           kaltsit    m0  s10     9s  win 49s 承伤14% 破绽输出30%
+carmen           kaltsit    m0  s12    10s  win 61s 承伤6% 破绽输出41%
+carmen           kaltsit    m0  s14     8s  win 56s 承伤12% 破绽输出40%
+carmen           kaltsit    m0  s15     9s  win 73s 承伤3% 破绽输出48%
+carmen           kaltsit    m0  s1      8s  win 47s 承伤28% 破绽输出36%
+carmen           kaltsit    m0  s16     9s  win 84s 承伤59% 破绽输出18%
+carmen           kaltsit    m0  s2      8s  win 52s 承伤36% 破绽输出34%
+carmen           kaltsit    m0  s5      8s  win 40s 承伤14% 破绽输出18%
+carmen           kaltsit    m0  s3      9s  win 69s 承伤19% 破绽输出39%
+carmen           kaltsit    m0  s4      9s  win 71s 承伤21% 破绽输出32%
+carmen           kaltsit    m0  s7     10s  win 89s 承伤37% 破绽输出39%
+carmen           kaltsit    m0  s9      9s  win 49s 承伤18% 破绽输出44%
+carmen           kaltsit    m0  s8      9s  win 62s 承伤2% 破绽输出40%
+carmen           kaltsit    m0  s6     13s  timeout 180s 承伤136% 破绽输出31%
+iberia           kaltsit    m0  s11     8s  win 46s 承伤57% 破绽输出36%
+iberia           kaltsit    m0  s10     9s  win 54s 承伤42% 破绽输出50%
+iberia           kaltsit    m0  s12    11s  dead 90s 承伤397% 破绽输出63%
+iberia           kaltsit    m0  s13    12s  win 78s 承伤188% 破绽输出30%
+iberia           kaltsit    m0  s14     9s  win 63s 承伤16% 破绽输出37%
+iberia           kaltsit    m0  s15    10s  win 69s 承伤76% 破绽输出35%
+iberia           kaltsit    m0  s16     9s  win 57s 承伤188% 破绽输出36%
+iberia           kaltsit    m0  s1      9s  win 59s 承伤13% 破绽输出29%
+iberia           kaltsit    m0  s2      9s  win 50s 承伤16% 破绽输出13%
+iberia           kaltsit    m0  s3     10s  win 59s 承伤13% 破绽输出53%
+iberia           kaltsit    m0  s4      8s  win 47s 承伤4% 破绽输出47%
+iberia           kaltsit    m0  s5      9s  win 58s 承伤239% 破绽输出42%
+iberia           kaltsit    m0  s6     10s  win 72s 承伤43% 破绽输出54%
+iberia           kaltsit    m0  s7     10s  win 76s 承伤92% 破绽输出27%
+iberia           kaltsit    m0  s8     12s  win 108s 承伤61% 破绽输出53%
+iberia           kaltsit    m0  s9     10s  win 65s 承伤55% 破绽输出30%
+# Boss 单场测试台结果（new_kaltsit_m0_carmen-iberia）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+32 局（carmen, iberia）
+carmen           kaltsit    m18 s12     8s  win 26s 承伤1% 破绽输出33%
+carmen           kaltsit    m18 s10     9s  win 65s 承伤21% 破绽输出41%
+carmen           kaltsit    m18 s11     9s  win 64s 承伤30% 破绽输出42%
+carmen           kaltsit    m18 s13     9s  win 73s 承伤51% 破绽输出44%
+carmen           kaltsit    m18 s14     8s  win 63s 承伤20% 破绽输出34%
+carmen           kaltsit    m18 s15     9s  win 61s 承伤36% 破绽输出35%
+carmen           kaltsit    m18 s16     8s  win 50s 承伤14% 破绽输出8%
+carmen           kaltsit    m18 s1      9s  win 61s 承伤10% 破绽输出34%
+carmen           kaltsit    m18 s2      8s  win 47s 承伤4% 破绽输出31%
+carmen           kaltsit    m18 s4      8s  win 41s 承伤12% 破绽输出38%
+carmen           kaltsit    m18 s3      8s  win 64s 承伤17% 破绽输出44%
+carmen           kaltsit    m18 s5      8s  win 58s 承伤25% 破绽输出44%
+carmen           kaltsit    m18 s6      8s  win 51s 承伤4% 破绽输出60%
+carmen           kaltsit    m18 s7      8s  win 37s 承伤10% 破绽输出26%
+carmen           kaltsit    m18 s8      8s  win 46s 承伤50% 破绽输出35%
+carmen           kaltsit    m18 s9      9s  win 72s 承伤13% 破绽输出29%
+iberia           kaltsit    m18 s10     8s  win 35s 承伤0% 破绽输出38%
+iberia           kaltsit    m18 s11     9s  win 45s 承伤23% 破绽输出28%
+iberia           kaltsit    m18 s12     8s  win 29s 承伤37% 破绽输出27%
+iberia           kaltsit    m18 s13     8s  win 37s 承伤8% 破绽输出50%
+iberia           kaltsit    m18 s14     8s  win 38s 承伤5% 破绽输出47%
+iberia           kaltsit    m18 s16     9s  win 50s 承伤119% 破绽输出44%
+iberia           kaltsit    m18 s15    11s  win 84s 承伤15% 破绽输出41%
+iberia           kaltsit    m18 s1      9s  win 50s 承伤33% 破绽输出23%
+iberia           kaltsit    m18 s2      8s  win 37s 承伤46% 破绽输出23%
+iberia           kaltsit    m18 s4      8s  win 22s 承伤14% 破绽输出4%
+iberia           kaltsit    m18 s3     10s  win 71s 承伤152% 破绽输出38%
+iberia           kaltsit    m18 s5     12s  win 93s 承伤15% 破绽输出45%
+iberia           kaltsit    m18 s6      9s  win 61s 承伤14% 破绽输出41%
+iberia           kaltsit    m18 s7      8s  win 36s 承伤139% 破绽输出22%
+iberia           kaltsit    m18 s8      8s  win 22s 承伤2% 破绽输出15%
+iberia           kaltsit    m18 s9      9s  win 55s 承伤7% 破绽输出36%
+# Boss 单场测试台结果（new_kaltsit_m18_carmen-iberia）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
