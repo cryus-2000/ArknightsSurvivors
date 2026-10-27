@@ -47,10 +47,10 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	# 永远打不空也不近身（9/29 实测伊比利亚卡在 50% 190 秒）
 	if not e.has("dmg_k"):
 		# 单发伤害旋钮（协调人 10-27：弹幕变密，整体先 ×0.8，云端测完再定）：出场第一帧乘到 e.dmg 上，所有招式 / 弹体 / 火线 / 接触伤害一起缩
-		e.dmg_k = Bal.v("boss/saint_dmg_mult", 0.8)
+		e.dmg_k = Bal.v("boss/saint_dmg_mult", 0.8) if e.type == "iberia" else Bal.v("boss/carmen_dmg_mult", 0.9)   # 测试台 10-27：卡门 ×0.8 承伤只剩 15%，回调到 0.9
 		e.dmg = float(e.dmg) * float(e.dmg_k)
 		# 血量旋钮（协调人 10-27 测试台：单场 24–30 秒招式放不全，目标 45–75 秒）：出场第一帧乘到生命上（在 hp_mid / hp_x_ 之后）
-		var hk: float = Bal.v("boss/iberia_hp_k", 2.3) if e.type == "iberia" else Bal.v("boss/carmen_hp_k", 2.0)
+		var hk: float = Bal.v("boss/iberia_hp_k", 2.9) if e.type == "iberia" else Bal.v("boss/carmen_hp_k", 2.4)
 		e.hp = float(e.hp) * hk
 		e.maxhp = float(e.maxhp) * hk
 		e.budget_rate = float(e.get("budget_rate", 0.0)) * hk
@@ -436,8 +436,8 @@ func saint_interrupt(e: Dictionary) -> void:
 
 ## 伊比利亚装填读条中受伤 ×boss/iberia_reload_taken（协调人 10-27：破绽期输出目标 ≥25%；打断后的大破绽仍是 ×1.4 break_t）
 func taken_mult(e: Dictionary) -> float:
-	if e.type == "iberia" and float(e.get("channel", 0.0)) > 0.0:
-		return Bal.v("boss/iberia_reload_taken", 1.3)
+	if float(e.get("channel", 0.0)) > 0.0:
+		return Bal.v("boss/iberia_reload_taken", 1.8) if e.type == "iberia" else Bal.v("boss/carmen_reload_taken", 1.5)
 	return 1.0
 
 
