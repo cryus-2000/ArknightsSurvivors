@@ -1,0 +1,147 @@
+UU docs/00_index.md
+A  docs/170b_ishar_acts_plan.md
+M  docs/173_ishar_combos_1027.md
+M  game/data/balance.json
+M  game/scripts/enemies/bosses/ishar.gd
+M  game/scripts/enemies/bosses/ishar_combos.gd
+M  game/scripts/render/ishar_tell_draw.gd
+M  game/scripts/render/world.gd
+AA game/scripts/run/boss_bench.gd
+M  game/scripts/run/combat.gd
+M  game/scripts/run/enemies.gd
+M  game/scripts/run/ishar_encounter.gd
+M  game/scripts/run/pickups.gd
+M  game/scripts/run/spawner.gd
+M  game/scripts/screens/hud_bars.gd
+M  game/tests/friendly_target_regression.gd
+M  game/tests/ishar_combo_preview.gd
+M  game/tests/ishar_combo_test.gd
+M  game/tests/ishar_p2_test.gd
+AA tools/boss_bench.py
+M  tools/probes/ishar_combo_preview.py
+diff --cc docs/00_index.md
+index 07acf268,b12dc5f0..00000000
+--- a/docs/00_index.md
++++ b/docs/00_index.md
+@@@ -101,12 -100,9 +101,17 @@@
+  | 文档 | 标题 | 状态 | 说明 | 被谁引用 |
+  |---|---|---|---|---|
+  | [166_loading_render_audio_1027](166_loading_render_audio_1027.md) | 单一启动加载页、渲染回收与激光混音 | 已实施记录 | 网页加载交接、遮罩闲置回收 7.03 MiB、圆环局部优化与低频光束提示；含测量边界 | boot_screen.gd、post_fx.gd、boss_attack_draw.gd、sfx.gd、tools/web/loader.js |
+++<<<<<<< HEAD
+ +| [170_paranoia_combos_1027](170_paranoia_combos_1027.md) | 偏执泡影连携攻势与弹幕图案 | 已接入，待视觉验收 | 每幕两组有限连段轮换、收招破绽、打断规则；新增 7 种弹幕（身边睁眼轮射、正反旋、自机狙、错位缺口、缝隙墙、停滞再瞄准、幻影空心弹），主动攻击 7→14；开关 boss/paranoia_combos | paranoia_combos.gd、paranoia_combo_draw.gd、paranoia_combos_test.gd |
+ +| [173_ishar_combos_1027](173_ishar_combos_1027.md) | 伊莎玛拉二阶段连段与图案弹幕 | 已接入，待视觉验收与云端对照 | 三幕各两组 ≤4 段连段 + 破绽；新招合唱环颂 / 泪雨 / 抚愈之歌 / 网鸣 / 大群之声粗光束 / 非弹幕歌声涟漪（7→13 招）；放松弹密度、光束蓄力与消散、伤害旋钮 ishar_combo_dmg 0.8、输出窗口 45–70%，拆网减弹；专属涟漪预警取代斜线填充；boss/ishar_combos 0 回旧轮转 | ishar.gd、ishar_combos.gd、ishar_tell_draw.gd、ishar_combo_test.gd |
+ +| [174_izumik_combos_1027](174_izumik_combos_1027.md) | 伊祖米克分幕连携与专属弹幕 | 已接入，待视觉 / 难度验收 | 每幕两组连携（≤4 段 + 收招破绽），5 种新弹幕（潮汐相位流、子代共鸣、螺旋弹臂、习得弹、回流弹）与拦截主轴挂钩；迁徙潮预警改波峰勾边；boss/izumik_cards 可 A/B | izumik.gd、izumik_attack_draw.gd、izumik_card_test.gd |
+++=======
++ | [170_ishar_combos_1027](170_ishar_combos_1027.md) | 伊莎玛拉二阶段连段与图案弹幕 | 已接入，待视觉验收与云端对照 | 三幕各两组 ≤4 段连段 + 破绽；新招合唱环颂 / 泪雨 / 抚愈之歌 / 网鸣 / 大群之声粗光束 / 非弹幕歌声涟漪（7→13 招）；放松弹密度、光束蓄力与消散、伤害旋钮 ishar_combo_dmg 0.8、输出窗口 45–70%，拆网减弹；专属涟漪预警取代斜线填充；boss/ishar_combos 0 回旧轮转 | ishar.gd、ishar_combos.gd、ishar_tell_draw.gd、ishar_combo_test.gd |
++ | [170b_ishar_acts_plan](170b_ishar_acts_plan.md) | 伊莎玛拉三幕方案（一页） | §2 已做（每幕一个躲法主题），待测试台定数值 | 每幕主色 / 场地、招式表（新招 / 旧招变体）、弹幕形态、节奏与破绽；二幕潮涡（螺旋）、三幕侵蚀之泪（追踪）与双束交叉追扫待确认 | ishar_combos.gd、ishar_tell_draw.gd |
+++>>>>>>> da27bb487
+  | [169_knight_combos_1027](169_knight_combos_1027.md) | 骑士连招与冰系材质 | 已接入，待视觉验收 | 放射双冰阵、冰波与三刺、二阶段新招；用户提供 Pimen / CreativeKind 素材，统一冷灰蓝及碰撞柱，实机 v4；场地裁剪、闭合夹击、四 Boss 分拍压力；一阶段插枪与耗尽后掷枪布柱，二阶段清柱并停止生成；含接手说明 | knight_boss.gd、final_boss_materials.gd、import_knight_ice.py |
+ +| [171_saints_1027](171_saints_1027.md) | 圣徒两只：出招组、连携与分级弹幕 | 已接入，待视觉验收 | 每幕 2 组连携、打空弹药装填 = 破绽；伊比利亚重炮 → 碎弹（炮线残弹、弹坑、重炮弹），卡门直线弹列 / 交叉弹列 + 封锁线；大弹发光核心；不照搬符卡制度 | saint.gd、saint_card_preview.gd |
+ +| [175_path_tide_1027](175_path_tide_1027.md) | 塑路者 / 接潮组弹幕图案与连段 | 已接入，待视觉与难度验收 | 每幕两套图案逐拍交替、分级弹体与显形、颗粒点预警；塑路者分形 / 树枝 / 回流 / 冲撞留弹，接潮组两体镜像弹幕与配合连段；光束蓄力 / 消散、图案弹伤害 ×0.8 旋钮；录像 build/boss_path_tide/v3 | path.gd、bishop.gd、archon.gd、immortal.gd、mid_cards.gd、mid_card_draw.gd、mid_boss_test.gd |
+  | [168_boss_volume_tracking_1027](168_boss_volume_tracking_1027.md) | 最终 Boss 材质、薄膜泡与攻击动作返修 | 实机审阅中 | 透明薄膜泡、独立持续追踪、破裂、三 Boss 材质与已有骨骼动作接线 | paranoia_bubble.gd、final_boss_materials.gd、final_attacks.gd、world.gd |
+  | [167_boss_pixel_fx_1027](167_boss_pixel_fx_1027.md) | 最终 Boss 新增招式像素材质返修 | 已否定候选 | 历史版本；后续材质、泡影追踪及动作接线以 168 为准 | boss_attack_draw.gd、final_attack_grains.gd |
+  | [165_final_boss_complete_1027](165_final_boss_complete_1027.md) | 最终 Boss 完整改造与联动修正 | 已实施记录 | 最终四 Boss 主动攻击 7/8/7/7，特效、追踪、冰柱、泪滴精英、友方保色、枪声与保留杂兵；覆盖 95/142b 的旧口径 | final_attacks.gd、boss_attack_draw.gd、ishar_encounter.gd、post_fx.gd、sfx.gd |
+diff --cc game/scripts/run/boss_bench.gd
+index 7ec55901,0217fe3d..00000000
+--- a/game/scripts/run/boss_bench.gd
++++ b/game/scripts/run/boss_bench.gd
+@@@ -30,7 -30,7 +30,11 @@@ static var cur = null     # 开着的�
+  
+  func _init(game) -> void:
+  	g = game
+++<<<<<<< HEAD
+ +	for a in _dev_args():
+++=======
++ 	for a in Cfg.dev_args():
+++>>>>>>> da27bb487
+  		if a.begins_with("--benchsnap="):
+  			rec_prefix = a.substr(12)
+  		elif a.begins_with("--bossbench="):
+@@@ -234,7 -234,7 +238,11 @@@ func _write_snap(slot: int, group: Arra
+  	for m in g.mires:
+  		mires.append(var_to_str({"pos": m.pos, "r": m.r, "maxr": m.maxr, "life": m.life, "seed": m.get("seed", 0.0)}))
+  	var args: Array = []
+++<<<<<<< HEAD
+ +	for a in _dev_args():
+++=======
++ 	for a in Cfg.dev_args():
+++>>>>>>> da27bb487
+  		for p in ["--seed=", "--op=", "--squad=", "--bot=", "--meta=", "--metanodes=", "--tide=", "--diff=", "--tier=", "--bal=", "--dens="]:
+  			if a.begins_with(p):
+  				args.append(a)
+@@@ -414,8 -414,3 +422,11 @@@ func _replay(kind: String, a: Array) -
+  					ro.apply_rejection()
+  				else:
+  					ro.clear_rejection()
+++<<<<<<< HEAD
+ +
+ +
+ +## 与 Cfg.dev_args 同口径（只在 debug 构建读命令行）；不直接引用 Cfg：settings.gd → relic_db → … → 本脚本 → Cfg 会循环编译失败（-s 测试里 core 挂）
+ +static func _dev_args() -> PackedStringArray:
+ +	return OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()
+++=======
+++>>>>>>> da27bb487
+diff --cc tools/boss_bench.py
+index b8ee12c0,815317b0..00000000
+--- a/tools/boss_bench.py
++++ b/tools/boss_bench.py
+@@@ -86,7 -86,7 +86,11 @@@ def cmd_record(a)
+  
+      with ThreadPoolExecutor(max_workers=a.jobs) as ex:
+          recs = list(ex.map(one, jobs))
+++<<<<<<< HEAD
+ +    with open(os.path.join(a.out, "record_%s_m%s_s%s.json" % (a.ops.replace(",", "-"), a.metas.replace(",", "-"), a.seeds.replace(",", "-"))), "w", encoding="utf-8") as f:
+++=======
++     with open(os.path.join(a.out, "record.json"), "w", encoding="utf-8") as f:
+++>>>>>>> da27bb487
+          json.dump(recs, f, ensure_ascii=False, indent=1)
+      print("快照目录：%s（%d 局）" % (a.out, len(recs)))
+  
+@@@ -204,18 -204,6 +208,21 @@@ def table(paths)
+      return "\n".join(L) + "\n"
+  
+  
+++<<<<<<< HEAD
+ +def cmd_merge(a):
+ +    """分块跑的结果（云端单条命令 10 分钟上限，按开局 / 认知拆开跑）合成一份"""
+ +    recs, game = [], ""
+ +    for p in a.parts:
+ +        d = json.load(open(p, encoding="utf-8"))
+ +        recs += d["records"]
+ +        game = d.get("game", game)
+ +    with open(a.out, "w", encoding="utf-8") as f:
+ +        json.dump({"tag": a.tag, "game": game, "records": recs}, f, ensure_ascii=False, indent=1)
+ +    print("%s：%d 局（%d 份）" % (a.out, len(recs), len(a.parts)))
+ +
+ +
+++=======
+++>>>>>>> da27bb487
+  def main():
+      ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+      sub = ap.add_subparsers(dest="cmd", required=True)
+@@@ -245,10 -233,6 +252,13 @@@
+      b.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2) - 1))
+      b.add_argument("--timeout", type=int, default=900)
+      b.add_argument("--extra", nargs="*", default=[])
+++<<<<<<< HEAD
+ +    mg = sub.add_parser("merge")
+ +    mg.add_argument("--tag", required=True)
+ +    mg.add_argument("--out", required=True)
+ +    mg.add_argument("parts", nargs="+")
+++=======
+++>>>>>>> da27bb487
+      t = sub.add_parser("table")
+      t.add_argument("paths", nargs="+")
+      a = ap.parse_args()
+@@@ -256,8 -240,6 +266,11 @@@
+          cmd_record(a)
+      elif a.cmd == "run":
+          cmd_run(a)
+++<<<<<<< HEAD
+ +    elif a.cmd == "merge":
+ +        cmd_merge(a)
+++=======
+++>>>>>>> da27bb487
+      else:
+          print(table(a.paths))
+  
