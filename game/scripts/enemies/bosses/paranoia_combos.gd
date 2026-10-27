@@ -411,7 +411,8 @@ func _shot(e: Dictionary, from: Vector2, ang: float, spd: float, tier: String) -
 	var t: Array = TIER[tier]
 	var b := {"pos": from, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * float(t[1]) * (Bal.v("boss/paranoia_bullet_mult_p2", 1.3) if e.phase == 2 else Bal.v("boss/paranoia_bullet_mult", 1.0)), "slow": false, "r": float(t[0]),
 		"life": 6.5, "corrode": 0.15, "nerve": 0.0, "true": false, "kind": "orb", "home": false, "boss": true, "src_type": e.type,
-		"no_rock": true, "atk": "法术", "pc_tier": tier, "own_draw": e.phase == 2}   # 二阶段海嗣滴由 paranoia_combo_draw 整颗画
+		"no_rock": true, "atk": "法术", "pc_tier": tier, "own_draw": e.phase == 2,   # 二阶段海嗣滴由 paranoia_combo_draw 整颗画
+		"wound": int(Bal.v("boss/paranoia_p2_wound", 1.0)) if e.phase == 2 else 0}   # 二阶段命中叠侵蚀创口：减受治疗 + 持续掉血，打穿回复（§3q）
 	g.ebullets.append(b)
 	buls.append(b)
 	e.pc_buls = buls
