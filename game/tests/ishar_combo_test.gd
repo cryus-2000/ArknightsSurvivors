@@ -158,12 +158,12 @@ func _ready() -> void:
 		g.invuln = 0.0
 		cards._zone_step(e)
 	check(g.hp < hp0 and g.combat.slows.has("ishar_song"), "standing in a ripple zone hurts and slows")
-	check(is_equal_approx(g.combat.song_heal_mult(), 0.5), "song zone halves healing while inside")
+	check(is_equal_approx(g.combat.song_heal_mult(), 1.0 - preload("res://scripts/core/balance.gd").v("boss/ishar_song_heal_cut", 0.5)), "song zone cuts healing while inside")
 	g.ppos = e.ishar_zones[0].pos + Vector2(0, 1500)
 	g.t += 0.2
 	cards._zone_step(e)
 	check(g.combat.song_heal_mult() == 1.0, "healing recovers on leaving the zone")
-	g.t += 4.0
+	g.t += preload("res://scripts/core/balance.gd").v("boss/ishar_zone_linger", 4.0) + 1.0
 	cards._zone_step(e)
 	check(e.ishar_zones.is_empty(), "ripple zones expire")
 	g.invuln = 999.0
