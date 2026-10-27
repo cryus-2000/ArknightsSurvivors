@@ -1143,6 +1143,8 @@ func follow(dt: float, target: Vector2) -> void:
 		fp_moving = true
 	else:
 		target = _cmd_walk(roam_target(target)) if st == 1 else follow_target(target)
+		if st != 2 and rush_t <= 0.0:
+			target = _cmd_evade(target)   # 闪避意识（10-27 用户）：预警区 / 迎面敌弹先躲开，再回到原来的目标
 		if st != 1:
 			_cmd_waypoint = Vector2.INF
 			_cmd_stall = 0.0
@@ -1602,12 +1604,9 @@ func roam_target(slot_pos: Vector2) -> Vector2:
 				return slot_pos
 		elif distance > attack_range * CmdBal.v("command/stop_range_k", 0.85):
 			p = e.pos + (pos - e.pos).normalized() * reach
-	elif distance > reach:
-		var toward: Vector2 = g.ppos - e.pos
-		if toward.length_squared() < 1.0:
-			toward = Vector2(-face, 0)
-		p = e.pos + toward.normalized() * reach
-	return g.ppos + (p - g.ppos).limit_length(radius)
+	elif distance > reach or _cmd_side_bad(e, reach):
+		p = e.pos + Vector2.from_angle(_cmd_side(e, reach)) * reach
+	return _cmd_spread(g.ppos + (p - g.ppos).limit_length(radius))
 
 
 ## 射程内也可能隔着景物；先找射线通畅的位置，行走路径交给局部绕行。
@@ -1813,6 +1812,153 @@ func _draw_rush_trail() -> void:
 
 var _cmd_waypoint := Vector2.INF
 var _cmd_walk_goal := Vector2.INF
+var _cmd_wp_until := 0.0
+
+
+## ---- 走位意识（10-27 用户「给队友的 ai 加上闪避意识和走位意识」，docs/114 §16）：近战围着目标挑一侧站——
+## 目标周围 8 个方位里，站位点 command/side_r 内近战怪最少的那一侧（同数偏向队长一侧）；现在这侧只有多出 command/side_hyst 只怪才换边，
+## 不在两侧之间来回跳。command/side 0 = 旧规则（始终站在目标朝队长的一侧）
+var _cmd_side_ang := INF
+var _cmd_side_e = null
+
+
+func _side_crowd(q: Vector2, skip) -> int:
+	var n := 0
+	var r: float = CmdBal.v("command/side_r", 60.0)
+	for j in query_ids(q, r + 24.0):
+		var en: Dictionary = g.enemies[j]
+		if not en.dead and not is_same(en, skip) and en.get("ai", "melee") == "melee" and float(en.get("dmg", 1.0)) > 0.0 and en.pos.distance_to(q) < r + float(en.r):
+			n += 1
+	return n
+
+
+func _cmd_side(e: Dictionary, reach: float) -> float:
+	var lead: Vector2 = g.ppos - e.pos
+	var la: float = lead.angle() if lead.length_squared() >= 1.0 else (PI if face > 0.0 else 0.0)
+	if CmdBal.v("command/side", 1.0) <= 0.0:
+		return la
+	if not is_same(e, _cmd_side_e) or _cmd_side_ang == INF:
+		_cmd_side_e = e
+		_cmd_side_ang = la
+	var cur: int = _side_crowd(e.pos + Vector2.from_angle(_cmd_side_ang) * reach, e)
+	var best_a: float = _cmd_side_ang
+	var best_n: int = cur
+	var best_dev := absf(angle_difference(_cmd_side_ang, la))
+	for k in 8:
+		var a: float = la + TAU * k / 8.0
+		var n: int = _side_crowd(e.pos + Vector2.from_angle(a) * reach, e)
+		var dev := absf(angle_difference(a, la))
+		if n < best_n or (n == best_n and dev < best_dev - 0.01):
+			best_n = n
+			best_a = a
+			best_dev = dev
+	if best_n + int(CmdBal.v("command/side_hyst", 2.0)) <= cur or (best_n == cur and best_dev < absf(angle_difference(_cmd_side_ang, la)) - 0.01):
+		_cmd_side_ang = best_a
+	return _cmd_side_ang
+
+
+## 已在射程内，但站的这一侧被怪围住（多出 side_hyst 只）：也要换边，不站着挨打
+func _cmd_side_bad(e: Dictionary, reach: float) -> bool:
+	if CmdBal.v("command/side", 1.0) <= 0.0:
+		return false
+	var here: int = _side_crowd(pos, e)
+	return here >= int(CmdBal.v("command/side_hyst", 2.0)) and here > _side_crowd(e.pos + Vector2.from_angle(_cmd_side(e, reach)) * reach, e)
+
+
+## 队友之间互相让开：别的出击队友的位置 command/spread_r 内就把站位点往外推（不叠在同一个点上围着打）
+func _cmd_spread(p: Vector2) -> Vector2:
+	var r: float = CmdBal.v("command/spread_r", 40.0)
+	if r <= 0.0 or g.get("squad") == null or not (g.squad is Object):
+		return p
+	var push := Vector2.ZERO
+	for o in g.squad.ops:
+		if is_same(o, self) or o.is_leader or o.pos == Vector2.INF or o.cmd_down > 0.0:
+			continue
+		var dv: Vector2 = p - o.pos
+		var d: float = dv.length()
+		if d < r:
+			push += (dv / d if d > 0.5 else Vector2.from_angle(float(slot) * 2.1)) * (r - d)
+	return p + push
+
+
+## ---- 闪避意识（10-27 用户，docs/114 §16）：随行 / 突击中，脚下要是敌方预警区（未结算）或 command/evade_t 秒内会被敌弹擦到，
+## 就在身边 8 个方向 × 2 档距离里挑一个安全且离原目标最近的点先躲过去；躲点保持 command/evade_hold 秒（不来回切）。
+## 只改移动目标，不抽随机数；command/evade 0 = 关。预警区形状判定同 bot._in_warn（与游戏判定共用地面椭圆）
+var _evade_pt := Vector2.INF
+var _evade_until := 0.0
+
+
+func _cmd_evade(goal: Vector2) -> Vector2:
+	if CmdBal.v("command/evade", 1.0) <= 0.0 or is_leader:
+		return goal
+	# 先把附近的敌弹 / 未结算预警筛一遍，17 个候选点共用（弹幕多时每点扫全表太贵）
+	var bls: Array = []
+	for bl in (g.get("ebullets") if g.get("ebullets") != null else []):
+		if bl.life > 0.0 and bl.pos.distance_squared_to(pos) < 420.0 * 420.0:
+			bls.append(bl)
+	var ws: Array = []
+	for w in (g.get("warns") if g.get("warns") != null else []):
+		if not w.get("done", false):
+			ws.append(w)
+	if bls.is_empty() and ws.is_empty():
+		_evade_pt = Vector2.INF
+		return goal
+	if _evade_pt != Vector2.INF and g.t < _evade_until and not _in_danger(_evade_pt, ws, bls):
+		return _evade_pt
+	_evade_pt = Vector2.INF
+	if not _in_danger(pos, ws, bls):
+		return goal
+	var best := Vector2.INF
+	var cost := INF
+	for step in [CmdBal.v("command/evade_step", 56.0), CmdBal.v("command/evade_step", 56.0) * 2.0]:
+		for k in 8:
+			var q: Vector2 = pos + Vector2.from_angle(TAU * k / 8.0) * step
+			if g.get("map") != null and g.map.segment_blocked(pos, q):
+				continue
+			if _in_danger(q, ws, bls):
+				continue
+			var c: float = q.distance_to(goal)
+			if c < cost:
+				cost = c
+				best = q
+		if best != Vector2.INF:
+			break
+	if best == Vector2.INF:
+		return goal
+	_evade_pt = best
+	_evade_until = g.t + CmdBal.v("command/evade_hold", 0.25)
+	return best
+
+
+func _in_danger(q: Vector2, ws: Array, bls: Array) -> bool:
+	var pad: float = CmdBal.v("command/evade_pad", 16.0)
+	for w in ws:
+		if _warn_has(w, q, pad):
+			return true
+	var tau: float = CmdBal.v("command/evade_t", 0.5)
+	for bl in bls:
+		if bl.pos.distance_squared_to(q) > 250.0 * 250.0:
+			continue
+		var v: Vector2 = bl.get("vel", Vector2.ZERO)
+		var t: float = 0.0 if v.length_squared() < 1.0 else clampf((q - bl.pos).dot(v) / v.length_squared(), 0.0, tau)
+		if (bl.pos + v * t).distance_to(q) < float(bl.get("r", 6.0)) + pad:
+			return true
+	return false
+
+
+func _warn_has(w: Dictionary, q: Vector2, pad: float) -> bool:
+	match w.get("shape", ""):
+		"circle":
+			return q.distance_to(w.pos) < float(w.r) + pad
+		"line":
+			var b: Vector2 = w.pos + Vector2.from_angle(w.ang) * float(w.len)
+			return Geometry2D.get_closest_point_to_segment(q, w.pos, b).distance_to(q) < float(w.wid) + pad
+		"cone":
+			var dv: Vector2 = q - w.pos
+			if dv.length() > float(w.r) + pad:
+				return false
+			return absf(angle_difference(dv.angle(), float(w.ang))) < float(w.get("half", 0.8)) + 0.15
+	return q.distance_to(w.pos) < float(w.get("r", 60.0)) + pad
 
 ## shortcut: 局部绕行只处理可绕过的景物，不是全图寻路；复杂封闭地形需要导航网格时再升级。
 func _cmd_walk(target: Vector2) -> Vector2:
@@ -1820,10 +1966,15 @@ func _cmd_walk(target: Vector2) -> Vector2:
 	if map == null or pos.distance_to(target) < 1.0:
 		_cmd_waypoint = Vector2.INF
 		return target
+	# 绕行点选定后至少走 command/detour_hold 秒（或走到）：直线擦着底座边缘时，原来「这帧挡、下帧不挡」每 ~9 帧切一次绕行点，
+	# 队友被往回拽 1–3 像素，看着一顿一顿（10-27 用户「队友的运动有点卡帧」）
+	var keep: bool = _cmd_waypoint != Vector2.INF and target.distance_to(_cmd_walk_goal) < 32.0 and pos.distance_to(_cmd_waypoint) > 10.0 and not map.segment_blocked(pos, _cmd_waypoint)
+	if keep and g.t < _cmd_wp_until:
+		return _cmd_waypoint
 	if not map.segment_blocked(pos, target):
 		_cmd_waypoint = Vector2.INF
 		return target
-	if _cmd_waypoint != Vector2.INF and target.distance_to(_cmd_walk_goal) < 32.0 and pos.distance_to(_cmd_waypoint) > 10.0 and not map.segment_blocked(pos, _cmd_waypoint):
+	if keep:
 		return _cmd_waypoint
 	_cmd_waypoint = Vector2.INF
 	_cmd_walk_goal = target
@@ -1844,6 +1995,8 @@ func _cmd_walk(target: Vector2) -> Vector2:
 			if cost < best:
 				best = cost
 				_cmd_waypoint = p
+	if _cmd_waypoint != Vector2.INF:
+		_cmd_wp_until = g.t + CmdBal.v("command/detour_hold", 0.3)
 	return _cmd_waypoint if _cmd_waypoint != Vector2.INF else target
 
 
