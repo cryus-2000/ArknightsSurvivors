@@ -18,6 +18,9 @@ static func _circle_geometry(gy: float) -> PackedVector2Array:
 	return _circle_points
 
 static func draw(g, impacts := false) -> void:
+	if not impacts:
+		for e in g.bosses:
+			if e.type == "izumik" and not e.dead and int(e.get("phase", 1)) == 2: IzumikDraw.arena(g,e)   # 伊祖米克分幕场地（docs/170 §16）
 	for w in g.warns:
 		if w.act == "izu_wave" and not w.done and not impacts and g.optical_on:
 			IzumikDraw.field_warning(g,w)   # 伊祖米克全场预警（docs/170）

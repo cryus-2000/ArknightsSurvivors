@@ -18,7 +18,7 @@ extends "res://scripts/enemies/bosses/boss_base.gd"
 const Beam = preload("res://scripts/render/boss_beam.gd")
 const COL := Color(0.4, 0.6, 1.0)   # 群青蓝（docs/142b §8.4）
 const MOVES := ["潮汐坠落", "解读旋涡", "分享", "震撼"]
-const PATTERNS := ["潮汐相位流", "子代共鸣", "螺旋弹臂", "习得弹", "回流弹", "潮门环"]
+const PATTERNS := ["潮汐相位流", "子代共鸣", "螺旋弹臂", "习得弹", "回流弹", "潮门环", "习得路径"]
 const TENTACLE := "护群触腕"   # 追人圆形触腕（用户 10-28：换圆形、追着人打），不走 finals 的扇形
 const CURRENT := "海流牵引"   # 非弹幕专属招：海流把你往漩涡中心拖，中心最后涌起
 ## 每幕两组；「@近身分享」= 贴近时分享扇、否则潮汐坠落
@@ -28,12 +28,17 @@ const CARDS := [
 	[{"name": "迁徙潮汐", "segs": ["@潮汐相位流", "海流牵引", "@潮门环"]},
 		{"name": "护群共鸣", "segs": ["护群触腕", "@子代共鸣", "@近身分享"]}],
 	[{"name": "解读螺旋", "segs": ["@螺旋弹臂", "解读旋涡", "深渊涌流"]},
-		{"name": "习得变形", "segs": ["@习得弹", "海流牵引", "@潮门环", "护群触腕"]}],
-	[{"name": "灯下三叶", "segs": ["分享·全场", "@潮汐相位流", "迁徙潮"]},
-		{"name": "深蓝回流", "segs": ["分享·全场", "@回流弹", "@潮门环", "海流牵引"]}]]
+		{"name": "习得变形", "segs": ["@习得弹", "@习得路径", "@潮门环"]}],
+	[{"name": "灯下三叶", "segs": ["分享·全场", "迁徙潮", "分享"]},
+		{"name": "深蓝回流", "segs": ["@回流弹", "@潮门环", "分享"]}]]
+## 分阶段风格（用户 10-28「每个阶段做出不同风格」，docs/170 §16）：每幕段间节奏 / 弹色 / 弹形不同，招式各幕独有（潮门环按幕变体）
+const SEG_GAPS := [0.7, 0.4, 0.65]   # 一幕慢、二幕快碎、三幕重（每段之间停顿长、段本身重）
+const ACT_COL := [Color(0.4, 0.6, 1.0), Color(0.72, 0.48, 1.0), Color(0.55, 1.0, 0.88)]   # 群青 / 紫晶 / 青白
+const ACT_KIND := ["orb", "nerve", "nova"]   # 圆珠 / 梭形孢子针（按速度方向转）/ 脉动大孢子
+const ACT_TINT := [Color(1, 1, 1), Color(1.0, 0.86, 1.14), Color(0.82, 1.1, 1.0)]
 const DECLARE := 1.0      # 起手蓄势短停
 const SEG_GAP := 0.5      # 段间收势（用户 10-27：给玩家出手机会）
-const RECOVER := [2.6, 3.0, 3.2]   # 每幕收招破绽（用户 10-27：给干员输出的时间）
+const RECOVER := [2.6, 3.0, 3.6]   # 每幕收招破绽（用户 10-27：给干员输出的时间）
 const REST := 1.6         # 破绽后到下一组起手之间的空档
 const CARD_CAP := 30.0    # 保护性上限
 const OWN_CAP := 150      # 本体同时在场弹数
@@ -84,8 +89,9 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		_izumik_lamp_step(e, dt)
 		_burn_step(e, dt)
 		var gp: int = int(e.get("gates_passed", 0))
-		if gp >= 2 and not e.has("tint2"):
-			_tint2(e, Color(0.82, 1.1, 1.0))   # 33% 后常驻青绿着色（docs/95 §3.2 D）
+		if gp >= 1 and e.get("tint2") != ACT_TINT[mini(gp, 2)]:
+			_tint2(e, ACT_TINT[mini(gp, 2)])   # 二幕紫晶、三幕常驻青绿着色（docs/95 §3.2 D；docs/170 §16）
+		_trail_step(e)
 		_batch_step(e)
 		if Bal.v("boss/izumik_cards", 1.0) > 0.0:
 			# 符卡接管全部出招：旧共用轮转与数据招式只经 force_move 点名
@@ -501,7 +507,7 @@ func _rise(e: Dictionary) -> void:
 
 
 func _run_seg(e: Dictionary, seg: String, dir: Vector2, dist: float) -> void:
-	e.izu_next = g.t + SEG_GAP
+	e.izu_next = g.t + SEG_GAPS[_act(e)]
 	if seg == "@近身分享":
 		if g.combat.ground_d(g.ppos, e.pos) < 320.0:
 			_share(e, dir, false)
@@ -583,6 +589,19 @@ func _emit_start(e: Dictionary, kind: String, dir: Vector2) -> bool:
 			em.until = g.t + 0.65
 		"回流弹":
 			em.until = g.t + 0.95
+		"习得路径":
+			# 二幕独有：沿你最近 2.5 秒的路线先亮起落点，0.5 秒后落下孢子针、停住 0.9 秒再一齐朝你射
+			var pts: Array = []
+			for p in e.get("izu_trail", []):
+				if p.distance_to(g.ppos) > 90.0:
+					pts.append(p)
+			if pts.is_empty():
+				return false
+			em.trail = pts
+			em.next = g.t + 0.5
+			em.until = g.t + 0.5
+			for p in pts:
+				g.fx.append({"kind": "ring", "pos": p, "r": 18.0, "life": 0.5, "max": 0.5, "col": ACT_COL[1], "enemy": true})
 		"潮门环":
 			# 一幕：缺口朝拦截路线、圈圈对齐不动（教学）；二幕：每圈错开；三幕：两道对开窄缝、圈更密
 			var act: int = _act(e)
@@ -619,7 +638,7 @@ func _emit_step(e: Dictionary) -> void:
 		em.n = int(em.n) + 1
 	if g.t > float(em.until):
 		e.izu_emit = {}
-		e.izu_next = maxf(float(e.get("izu_next", 0.0)), g.t + SEG_GAP)
+		e.izu_next = maxf(float(e.get("izu_next", 0.0)), g.t + SEG_GAPS[_act(e)])
 
 
 func _emit_once(e: Dictionary, em: Dictionary) -> void:
@@ -663,6 +682,12 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 				var a: float = a0 + (float(i) + 0.5 * n) * TAU / float(cnt)
 				_shot(e, e.pos + Vector2.from_angle(a) * 30.0, a, 140.0, 8.0, 5.0, 0.5, {"izu": "back", "izu_curl": 1.5 if n % 2 == 0 else -1.5})
 			em.next = float(em.next) + 0.9
+		"习得路径":
+			for p in em.trail:
+				for j in 2:
+					var a: float = TAU * _n01(int(p.x) + j * 7)
+					_shot(e, p, a, 0.0, 7.0, 4.0, 0.45, {"izu": "echo"})
+			em.next = float(em.next) + 1.0
 		"潮门环":
 			var act: int = _act(e)
 			var cnt: int = GATE_N[act]
@@ -690,9 +715,10 @@ func _shot(e: Dictionary, p: Vector2, a: float, spd: float, r: float, life: floa
 		return
 	e.izu_live = int(e.get("izu_live", 0)) + 1
 	# 单发伤害旋钮（协调人 10-27：弹幕变密，先 ×0.8，云端测完再定）
+	var act: int = _act(e)
 	var b := {"pos": p, "vel": Vector2.from_angle(a) * spd, "dmg": e.dmg * mult * Bal.v("boss/izumik_bullet_mult", 0.8), "r": r, "life": life,
-		"slow": false, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "true": false, "kind": "orb", "home": false, "boss": true,
-		"atk": "法术", "hit_cap": e.get("hit_cap", 0.0), "source_id": e.id, "col": COL, "src_type": e.type, "izu_t": 0.0}
+		"slow": false, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "true": false, "kind": ACT_KIND[act], "home": false, "boss": true,
+		"atk": "法术", "hit_cap": e.get("hit_cap", 0.0), "source_id": e.id, "col": ACT_COL[act], "own_col": ACT_COL[act], "src_type": e.type, "izu_t": 0.0}
 	b.merge(extra, true)
 	g.ebullets.append(b)
 
@@ -729,6 +755,11 @@ func _bullet_step(e: Dictionary, dt: float) -> void:
 				"back":
 					if t > 1.1 and t < 2.6:
 						b.vel = b.vel.rotated(float(b.izu_curl) * dt)
+				"echo":
+					if t >= 0.9:
+						if not b.has("izu_aim"):
+							b.izu_aim = (target - b.pos).angle() + (float(absi(int(b.pos.x)) % 5) - 2.0) * 0.06
+						b.vel = Vector2.from_angle(float(b.izu_aim)) * minf(170.0, (t - 0.9) * 340.0)
 		for lp in lamps:
 			if g.combat.ground_d(b.pos, lp) < lr:
 				b.life = 0.0
@@ -832,3 +863,21 @@ func _tentacle_step(e: Dictionary) -> void:
 	g.bai.finals._warn(e, "circle", 1.1, {"name": TENTACLE if n == int(Bal.v("boss/izumik_tentacle_n", 3.0)) else "",
 		"pos": g.combat.arena_clamp(g.ppos, 60.0), "r": Bal.v("boss/izumik_tentacle_r", 110.0), "skin": "tentacle",
 		"dmg": e.dmg * 1.1, "izu_last": n == 1})
+
+
+## 习得路径：每 0.25 秒记一次队长位置，留最近 10 个（2.5 秒）
+func _trail_step(e: Dictionary) -> void:
+	if g.t < float(e.get("izu_trail_t", 0.0)):
+		return
+	e.izu_trail_t = g.t + 0.25
+	var tr: Array = e.get("izu_trail", [])
+	tr.append(g.ppos)
+	if tr.size() > 10:
+		tr.pop_front()
+	e.izu_trail = tr
+
+
+static func _n01(i: int) -> float:
+	var k: int = (i * 73471 + 137) & 65535
+	k = ((k ^ (k >> 7)) * 127) & 65535
+	return float(k) / 65535.0

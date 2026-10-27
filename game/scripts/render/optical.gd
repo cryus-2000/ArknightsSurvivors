@@ -227,7 +227,7 @@ func eb_col(b: Dictionary) -> Color:
 	if Bal.v("render/ebullet_boss_danger", 0.0) > 0.0:
 		return col_danger
 	if Bal.v("render/ebullet_boss_own", 1.0) > 0.0:
-		return g.vfx.boss_color(str(b.get("src_type", "")))
+		return b.own_col if b.has("own_col") else g.vfx.boss_color(str(b.get("src_type", "")))   # own_col：伊祖米克分幕弹色（docs/170 §16）
 	var bc = b.get("col")
 	return bc if bc is Color else col_boss
 

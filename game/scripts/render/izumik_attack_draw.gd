@@ -241,147 +241,14 @@ static func _sprouts(w: Dictionary) -> Array:
 	return out
 
 
-## 海流牵引预警：半径 pull_r 内一圈圈向心旋流（水色短线顺流往中心挪），中心 r 的暗红低填充圈由通用 circle 预警给出
+## 海流牵引预警 → 漩涡（中心 r 的暗红低填充圈由通用 circle 预警给出）
 static func current_warning(g, w: Dictionary) -> void:
-	if Bal.v("boss/izumik_current_style", 1.0) > 0.0:
-		vortex_warning(g, w)
-		return
-	var r = g.world
-	var gy: float = g.combat.GROUND_Y
-	var c: Vector2 = w.pos
-	var pr: float = float(w.get("pull_r", 320.0))
-	var t: float = float(w.get("t", 0.0))
-	var k: float = clampf(t / maxf(0.01, float(w.dur)), 0.0, 1.0)
-	for i in 54:
-		var lane: float = _n(i, 51)
-		var phase: float = fmod(lane + t * 0.45, 1.0)
-		var rad: float = lerpf(pr, float(w.r) * 0.6, phase)
-		var a: float = TAU * _n(i, 52) + phase * 2.2
-		var p: Vector2 = c + Vector2(cos(a), sin(a) * gy) * rad
-		var tang: Vector2 = Vector2(-sin(a), cos(a) * gy).normalized()
-		var inward: Vector2 = (c - p).normalized()
-		var dirv: Vector2 = (inward * 0.7 + tang * 0.5).normalized()
-		var alpha: float = (0.35 + 0.45 * k) * sin(phase * PI)
-		_seg(r, p, p + dirv * (10.0 + 8.0 * k), 3.0, Color(SEA.r, SEA.g, SEA.b, alpha))
-		_seg(r, p + dirv * 4.0, p + dirv * (10.0 + 8.0 * k), 1.5, Color(CREST.r, CREST.g, CREST.b, alpha))
-	for q in 48:
-		var a0: float = TAU * q / 48.0 + t * 0.6
-		var a1: float = a0 + TAU / 96.0
-		_seg(r, c + Vector2(cos(a0), sin(a0) * gy) * pr, c + Vector2(cos(a1), sin(a1) * gy) * pr, 2.0, Color(SEA.r, SEA.g, SEA.b, 0.35 + 0.3 * k))
+	vortex_warning(g, w)   # 用户 10-28 定漩涡（浪版已删）
 
-## 海流牵引结算（用户 10-28：原来的梯形水柱太丑，重做）：判定圈 r 不变（外形 = 判定），1 秒内
-##   ① 地面：湿痕从中心铺到判定圈外沿、留一圈泡沫点；② 外圈：判定圈边立起一圈三阶深浅的浪墙（深蓝浪脚 / 海蓝浪身 / 浅蓝浪肩 + 白沫浪尖），
-##   先涌高再塌落，后半圈先画、前半圈后画出体积；③ 中心：颗粒堆成的水柱涌起再坍塌；④ 溅水：浪尖与水柱甩出的水珠走抛物线落地、落点溅一小圈。
-##   全部确定性噪声（_n），不写模拟；低画质只画浪墙轮廓与浪尖
+## 海流牵引结算 → 漩涡收尾（用户 10-28 定漩涡，浪版删除）
 static func current_burst(g, f: Dictionary) -> void:
-	if not f.has("max"):
-		return
-	if Bal.v("boss/izumik_current_style", 1.0) > 0.0:
+	if f.has("max"):
 		vortex_burst(g, f)
-		return
-	var r = g.world
-	var c: Vector2 = f.pos
-	var R: float = float(f.r)
-	var gy: float = g.combat.GROUND_Y
-	var k: float = 1.0 - float(f.life) / maxf(0.01, float(f.max))
-	var low: bool = Cfg.quality == "low"
-	var fade: float = 1.0 - smoothstep(0.65, 1.0, k)
-	# 浪墙高度：0–0.3 涌起，0.3–0.75 塌落；浪墙半径从 0.55R 推到 R 就停在判定圈上
-	var rise: float = _ease(k / 0.3) if k < 0.3 else 1.0 - smoothstep(0.3, 0.75, k)
-	var H: float = 36.0 * rise
-	var rad: float = R * lerpf(0.55, 1.0, _ease(k / 0.3))
-	# ① 地面湿痕 + 泡沫圈
-	if not low:
-		var wet: float = R * (0.4 + 0.75 * _ease(k / 0.4))
-		for q in 28:
-			var a0: float = TAU * q / 28.0
-			var a1: float = TAU * (q + 1) / 28.0
-			r.tb_quad(c, c + Vector2(cos(a0), sin(a0) * gy) * wet, c + Vector2(cos(a1), sin(a1) * gy) * wet, c, Color(DEEP.r, DEEP.g, DEEP.b, 0.32 * fade))
-		for q in 36:
-			if _n(q, 81) < 0.35: continue
-			var a: float = TAU * (q + _n(q, 82)) / 36.0
-			var rr: float = R * (1.02 + 0.12 * _n(q, 83))
-			_dot(r, c + Vector2(cos(a), sin(a) * gy) * rr, Color(0.82, 0.93, 1.0, 0.7 * fade * smoothstep(0.25, 0.45, k)), 2.0 + 2.0 * _n(q, 84))
-	# ② 外圈浪墙：后半圈（屏幕上方）先画
-	var n: int = 44
-	for pass_i in 2:
-		for q in n:
-			var a: float = TAU * (q + 0.5) / n
-			var back: bool = sin(a) < 0.0
-			if back != (pass_i == 0): continue
-			var a1: float = TAU * (q + 1.5) / n
-			var wob0: float = 1.0 + 0.18 * sin(a * 5.0 + k * 9.0) + 0.1 * (_n(q, 85) - 0.5)
-			var wob1: float = 1.0 + 0.18 * sin(a1 * 5.0 + k * 9.0) + 0.1 * (_n(q + 1, 85) - 0.5)
-			var p0: Vector2 = c + Vector2(cos(a), sin(a) * gy) * rad
-			var p1: Vector2 = c + Vector2(cos(a1), sin(a1) * gy) * rad
-			var h0: float = H * wob0
-			var h1: float = H * wob1
-			if h0 < 1.0 and h1 < 1.0: continue
-			var dim: float = 0.8 if back else 1.0
-			if not low:
-				r.tb_quad(p0, p1, p1 + Vector2(0, -h1 * 0.45), p0 + Vector2(0, -h0 * 0.45), Color(DEEP.r * dim, DEEP.g * dim, DEEP.b * dim, 0.9 * fade))
-				r.tb_quad(p0 + Vector2(0, -h0 * 0.4), p1 + Vector2(0, -h1 * 0.4), p1 + Vector2(0, -h1 * 0.8), p0 + Vector2(0, -h0 * 0.8), Color(SEA.r * dim, SEA.g * dim, SEA.b * dim, 0.9 * fade))
-				r.tb_quad(p0 + Vector2(0, -h0 * 0.75), p1 + Vector2(0, -h1 * 0.75), p1 + Vector2(0, -h1), p0 + Vector2(0, -h0), Color(0.32 * dim, 0.58 * dim, 0.92 * dim, 0.92 * fade))
-			var crest_a: float = 0.95 * fade * clampf((minf(h0, h1) - 4.0) / 12.0, 0.0, 1.0)   # 塌平后浪尖白线跟着消失，不留单线圈
-			if k < 0.3 or _n(q, 120) > (1.0 - rise) * 0.9:   # 塌落时浪尖断成一截截泡沫
-				_seg(r, p0 + Vector2(0, -h0), p1 + Vector2(0, -h1), 3.0, Color(0.88, 0.96, 1.0, crest_a))
-			if not low and _n(q, 90) > 0.6:   # 浪面上的白沫斑
-				_dot(r, p0.lerp(p1, _n(q, 91)) + Vector2(0, -minf(h0, h1) * (0.55 + 0.3 * _n(q, 92))), Color(0.9, 0.97, 1.0, 0.8 * crest_a), 2.0)
-			if not low and _n(q, 86) > 0.45:
-				_dot(r, p0 + Vector2(2.0 * (_n(q, 87) - 0.5), -h0 - 2.0 - 5.0 * _n(q, 88)), Color(1.0, 1.0, 1.0, 0.9 * fade), 2.0 + 2.0 * _n(q, 89))
-		# ③ 中心水柱：细颗粒（2–4px）按「下粗上细、顶部散成冠」堆出来，暗色偏移一层当体积；涌起 0–0.25，坍塌 0.25–0.6
-		if pass_i == 0 and not low:
-			var ch: float = 78.0 * (_ease(k / 0.25) if k < 0.25 else 1.0 - smoothstep(0.25, 0.6, k))
-			if ch > 2.0:
-				# 实心水体：自下而上叠 12 片椭圆（深 → 海蓝 → 浅），下粗上细，给颗粒打底
-				for L in 12:
-					var u: float = float(L) / 11.0
-					var hw: float = R * (0.36 - 0.2 * u)
-					var at: Vector2 = c + Vector2(0, -ch * u * 0.85)
-					var col: Color = DEEP.lerp(SEA, smoothstep(0.0, 0.5, u)).lerp(Color(0.5, 0.75, 1.0), smoothstep(0.6, 1.0, u))
-					for q in 10:
-						var a0: float = TAU * q / 10.0
-						var a1: float = TAU * (q + 1) / 10.0
-						r.tb_quad(at, at + Vector2(cos(a0), sin(a0) * 0.45) * hw, at + Vector2(cos(a1), sin(a1) * 0.45) * hw, at, Color(col.r, col.g, col.b, 0.9 * fade))
-				for b in 150:
-					var u: float = _n(b, 101)
-					var half_w: float = R * (0.42 - 0.24 * u) * (0.6 + 0.4 * _n(b, 102))
-					var x: float = (2.0 * _n(b, 103) - 1.0) * half_w
-					var crown: float = smoothstep(0.75, 1.0, u)
-					x += signf(x) * crown * 22.0 * _n(b, 104)   # 顶上向外翻成水冠
-					var at: Vector2 = c + Vector2(x, -ch * u + crown * 8.0 * _n(b, 105))
-					var sz: float = 6.0 if u < 0.45 else (5.0 if u < 0.8 else 3.0)
-					var col: Color = DEEP.lerp(SEA, smoothstep(0.0, 0.5, u)).lerp(Color(0.62, 0.84, 1.0), smoothstep(0.55, 1.0, u))
-					_dot(r, at + Vector2(1, 2), Color(0.02, 0.05, 0.12, 0.5 * fade), sz)
-					_dot(r, at, Color(col.r, col.g, col.b, 0.95 * fade), sz)
-					if crown > 0.3 and _n(b, 106) > 0.5:
-						_dot(r, at + Vector2(0, -3), Color(1.0, 1.0, 1.0, fade), 2.0)
-	if low:
-		return
-	# ④ 溅水：从浪尖和柱顶甩出，抛物线落地后在落点溅开一小圈
-	for i in 64:
-		var from_col: bool = i < 20
-		var a: float = TAU * _n(i, 94)
-		var start: Vector2 = c + (Vector2(0, -50.0 * _n(i, 95)) if from_col else Vector2(cos(a), sin(a) * gy) * R * (0.85 + 0.15 * _n(i, 96)) + Vector2(0, -26.0))
-		var t0: float = 0.12 + 0.2 * _n(i, 97)
-		var tt: float = (k - t0) * float(f.max)
-		if tt <= 0.0: continue
-		var out: Vector2 = Vector2(cos(a), sin(a) * gy) * (60.0 + 110.0 * _n(i, 98))
-		var vy: float = -(150.0 + 150.0 * _n(i, 99))
-		var y: float = vy * tt + 0.5 * 900.0 * tt * tt
-		var ground_t: float = (-2.0 * vy) / 900.0 + 0.06
-		if tt < ground_t:
-			var pos: Vector2 = start + out * tt + Vector2(0, y)
-			_dot(r, pos + Vector2(1, 1), Color(0.05, 0.12, 0.26, 0.6), 3.0 + float(i % 2))
-			_dot(r, pos, Color(0.85, 0.95, 1.0, 0.95), 3.0 + float(i % 2))
-		else:
-			var land: Vector2 = start + out * ground_t + Vector2(0, 26.0 if not from_col else 50.0 * _n(i, 95))
-			var s: float = clampf((tt - ground_t) / 0.25, 0.0, 1.0)
-			if s < 1.0:
-				for q in 4:
-					var aa: float = TAU * q / 4.0 + _n(i, 100)
-					_dot(r, land + Vector2(cos(aa), sin(aa) * 0.5) * (3.0 + 9.0 * s), Color(0.8, 0.92, 1.0, 0.8 * (1.0 - s)))
-
 
 ## 分享结算：从本体向扇形喷出 16 道水流（头部亮、尾部拖水滴），随后孢子雾在扇里散开淡出，扇缘一道浪沫弧
 static func share(g, f: Dictionary) -> void:
@@ -416,7 +283,7 @@ static func share(g, f: Dictionary) -> void:
 		_seg(r, c + Vector2.from_angle(a0) * rr, c + Vector2.from_angle(a1) * rr, 3.0, Color(CREST.r, CREST.g, CREST.b, 0.6 * fade))
 
 
-## ---- 海流牵引 · 漩涡版（用户 10-28「做成漩涡也可以」；boss/izumik_current_style 1 = 漩涡、0 = 浪）
+## ---- 海流牵引 · 漩涡（用户 10-28 定）
 ## 预警：4 条螺旋水流颗粒从牵引半径卷向中心，越到出手转得越快；判定圈 r 内是越来越深的漏斗（同心椭圆由浅到黑），外形 = 判定
 static func vortex_warning(g, w: Dictionary) -> void:
 	var r = g.world
@@ -553,3 +420,47 @@ static func vortex_burst(g, f: Dictionary) -> void:
 			for q in 4:
 				var aa: float = TAU * q / 4.0 + _n(i, 143)
 				_dot(r, land + Vector2(cos(aa), sin(aa) * 0.5) * (3.0 + 9.0 * s3), Color(0.8, 0.92, 1.0, 0.8 * (1.0 - s3)))
+
+
+## 分幕场地（docs/170 §16，纯画面、确定性）：一幕本体脚下慢速同心水纹；二幕紫色孢子微粒在本体周围缓缓上浮；三幕点亮的灯柱周围暖金光点 + 本体脚下青白暗潮
+static func arena(g, e: Dictionary) -> void:
+	if Cfg.quality == "low":
+		return
+	var r = g.world
+	var gy: float = g.combat.GROUND_Y
+	var c: Vector2 = e.pos
+	var t: float = float(g.t)
+	var act: int = clampi(int(e.get("gates_passed", 0)), 0, 2)
+	match act:
+		0:
+			for ring in 4:
+				var u: float = fmod(t * 0.18 + ring * 0.25, 1.0)
+				var rr: float = lerpf(60.0, 520.0, u)
+				var a_: float = 0.22 * (1.0 - u)
+				for q in 56:
+					if q % 3 == 2: continue
+					var a0: float = TAU * q / 56.0 + ring
+					var a1: float = a0 + TAU / 84.0
+					_seg(r, c + Vector2(cos(a0), sin(a0) * gy) * rr, c + Vector2(cos(a1), sin(a1) * gy) * rr, 2.0, Color(SEA.r, SEA.g, SEA.b, a_))
+		1:
+			for i in 70:
+				var u: float = fmod(_n(i, 151) + t * (0.05 + 0.05 * _n(i, 152)), 1.0)
+				var a: float = TAU * _n(i, 153) + t * 0.1
+				var d: float = 90.0 + 480.0 * _n(i, 154)
+				var p: Vector2 = c + Vector2(cos(a) * d, sin(a) * d * gy) + Vector2(sin(t + i) * 6.0, -60.0 * u)
+				var al: float = sin(u * PI) * 0.6
+				_dot(r, p, Color(0.78, 0.55, 1.0, al), 2.0 + 2.0 * float(i % 2))
+		2:
+			for q in 40:
+				var a0: float = TAU * q / 40.0
+				var a1: float = TAU * (q + 1) / 40.0
+				r.tb_quad(c, c + Vector2(cos(a0), sin(a0) * gy) * 260.0, c + Vector2(cos(a1), sin(a1) * gy) * 260.0, c, Color(0.03, 0.12, 0.12, 0.18))
+			var lr: float = float(e.get("lamp_r", 120.0))
+			for li in e.get("lamps", []).size():
+				var l: Dictionary = e.lamps[li]
+				if not l.get("lit", false) or l.get("out", false): continue
+				for i in 14:
+					var u: float = fmod(_n(i + li * 31, 155) + t * 0.12, 1.0)
+					var a: float = TAU * _n(i + li * 31, 156)
+					var p: Vector2 = l.pos + Vector2(cos(a), sin(a) * gy) * lr * (0.3 + 0.6 * _n(i, 157)) + Vector2(0, -50.0 * u)
+					_dot(r, p, Color(LAMP.r, LAMP.g, LAMP.b, sin(u * PI) * 0.7), 2.0 + 2.0 * float(i % 2))

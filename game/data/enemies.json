@@ -605,7 +605,7 @@
   "izumik": {
    "bcol": [0.35, 0.55, 1.0],
    "apop_hit": 15.0,
-   "wound_hit": 1,
+   "wound_hit": 2,
    "draw_scale": 1.0,
    "name": "伊祖米克，生态泉源",
    "hp": 5200.0,
