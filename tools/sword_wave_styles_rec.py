@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""藏品剑气按武器分类的对照 gif（用户 10-27，docs/170 §7）：同一场景、同 seed，德克萨斯（刀剑）/ 推进之王（钝器）/ 艾丽妮（细剑突刺）
-各拿锈蚀刀片 + 老近卫军之锋跑一次，三格并排；出原速（30 帧 / 秒）与 1/3 速两张到 build/sword_wave_speed/styles_1x.gif、styles_slow.gif。
+"""藏品剑气按武器分类的对照 gif（用户 10-27，docs/170 §7）：同一场景、同 seed，德克萨斯 / 推进之王 / 艾丽妮 / 星熊 / 乌尔比安 / 归溟幽灵鲨
+各拿锈蚀刀片 + 老近卫军之锋跑一次，3 × 2 宫格；出原速（30 帧 / 秒）与 1/3 速两张到 build/sword_wave_speed/styles_1x.gif、styles_slow.gif。
 开窗口走 godot_runner（屏幕外、不抢焦点、静音）。
 
 用法：python tools/sword_wave_styles_rec.py
@@ -17,9 +17,11 @@ import godot_runner as GR
 GAME = os.path.join(ROOT, "game")
 OUT = os.path.join(ROOT, "build", "sword_wave_speed")
 RAW = os.path.join(OUT, "raw", "styles")
-OPS = [("texas", "德克萨斯 · 刀剑一字斩"), ("siege", "推进之王 · 钝器冲击波"), ("irene", "艾丽妮 · 细剑突刺")]
+OPS = [("texas", "德克萨斯 · 刀剑一字斩"), ("siege", "推进之王 · 钝器冲击波"), ("irene", "艾丽妮 · 细剑突刺"),
+       ("hoshiguma", "星熊 · 盾冲击波"), ("ulpianus", "乌尔比安 · 锚冲击波"), ("specter_unchained", "归溟幽灵鲨 · 通用（待做）")]
+COLS = 3
 FRAMES = 150
-ZOOM = 1.2
+ZOOM = 1.0
 
 
 def run(op):
@@ -52,11 +54,13 @@ def compose(step, ms, name):
             c = im.crop((w // 2 - 70, h // 2 - 110, w // 2 + 250, h // 2 + 200))   # 剑气朝右下最近的敌人飞（队长在左上角）
             cells.append(c.resize((int(c.width * ZOOM), int(c.height * ZOOM)), Image.NEAREST))
         cw, ch = cells[0].size
-        im = Image.new("RGB", (cw * 3 + 12, ch + 28), (12, 14, 20))
+        rows = (len(cells) + COLS - 1) // COLS
+        im = Image.new("RGB", (cw * COLS + 6 * (COLS - 1), (ch + 28) * rows), (12, 14, 20))
         d = ImageDraw.Draw(im)
         for k, c in enumerate(cells):
-            im.paste(c, (k * (cw + 6), 28))
-            d.text((k * (cw + 6) + 8, 4), OPS[k][1], fill=(255, 220, 140), font=f)
+            x, y = (k % COLS) * (cw + 6), (k // COLS) * (ch + 28)
+            im.paste(c, (x, y + 28))
+            d.text((x + 8, y + 4), OPS[k][1], fill=(255, 220, 140), font=f)
         frames.append(im.quantize(colors=128, method=Image.Quantize.MEDIANCUT))
     path = os.path.join(OUT, name)
     frames[0].save(path, save_all=True, append_images=frames[1:], duration=ms, loop=0, optimize=True)
@@ -67,7 +71,7 @@ def main():
     os.makedirs(RAW, exist_ok=True)
     for p in glob.glob(os.path.join(RAW, "*.png")):
         os.remove(p)
-    with ThreadPoolExecutor(3) as ex:
+    with ThreadPoolExecutor(6) as ex:
         res = list(ex.map(run, [op for op, _ in OPS]))
     if not all(res):
         sys.exit(1)

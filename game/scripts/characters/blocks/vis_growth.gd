@@ -382,7 +382,7 @@ static func tick(o, dt: float) -> void:
 				var dn: Vector2 = q.v.normalized()
 				for _m in 2:
 					o.fx({"kind": "mote", "pos": q.p + dn.orthogonal() * g.vrng.randf_range(-18.0, 18.0), "vel": -dn * 50.0 + Vector2(g.vrng.randf_range(-30, 30), g.vrng.randf_range(-90, -40)),
-						"life": 0.4, "col": BLUNT_DUST, "sz": 2.5, "grav": 260.0})
+						"life": 0.4, "col": BLUNT_DUST.lerp(o.col(), 0.35), "sz": 2.5, "grav": 260.0})
 			for j in o.query_ids((qa + q.p) * 0.5, w + 40.0 + qa.distance_to(q.p) * 0.5):
 				var e: Dictionary = g.enemies[j]
 				if e.dead or q.hit.has(e.id) or SwordEase.seg_dist(e.pos, qa, q.p) > float(e.r) + w or e.pos.distance_to(q.o0) < float(q.skip):
@@ -426,16 +426,18 @@ static func draw(o) -> void:
 	if v.qi.is_empty():
 		return
 	var has_tex: bool = o._fx_tex(QI_PROJ) != null
+	var oc: Color = o.col()
+	var ocn: float = 0.85 / maxf(maxf(oc.r, oc.g), maxf(oc.b, 0.05))   # 0.85：再高会被光学辉光吹成白（艾丽妮粉实测）
 	for q in v.qi:
 		var p2: Vector2 = q.p + Vector2(0, -16.0)
 		var a: float = clampf(q.life / 0.08, 0.0, 1.0)
 		var ang: float = q.v.angle()
-		var qc := Color(minf(tc.r * 1.5, 1.8), minf(tc.g * 1.5, 1.8), minf(tc.b * 1.5, 1.8), a)   # 代表色提亮（灰白干员也看得出）
+		var qc := Color(oc.r * ocn, oc.g * ocn, oc.b * ocn, a)   # 本人代表色（col）按最亮通道归一到 0.85：色相饱和、不洗白（用户 10-27：每人用自己的颜色）
 		var f := 0.0
 		if q.has("ez"):   # 力量感：猛冲段提亮 + 残影（间距跟速度走），滑行段变暗
 			var u: float = q.t / q.T
 			f = SwordEase.fast(q.ez, u)
-			var br: float = (1.0 + float(q.ez.bright) * f) * SwordEase.fade(q.ez, u)   # 滑行段压暗颜色
+			var br: float = (1.0 + float(q.ez.bright) * f * (0.35 if str(q.get("style", "")) != "" else 1.0)) * SwordEase.fade(q.ez, u)   # 滑行段压暗颜色；分了武器类的只轻提，保住本人色相
 			qc = Color(minf(qc.r * br, 2.2), minf(qc.g * br, 2.2), minf(qc.b * br, 2.2), qc.a)
 			if has_tex and f > 0.05 and str(q.get("style", "")) == "":   # 分了武器类的自己画残影
 				var gap: float = float(q.len) / q.T * SwordEase.vel_mul(q.ez, u) * 0.022
@@ -505,7 +507,7 @@ static func _qi_thrust(cv, p: Vector2, ang: float, qc: Color, f: float, stc: flo
 	var d := Vector2.from_angle(ang)
 	var lf: float = 16.0 * k * stc
 	var lb: float = 13.0 * k * (1.0 + 1.4 * f)
-	var wd: float = 4.0 * k
+	var wd: float = 5.0 * k
 	for gi in range(ng, 0, -1):
 		var pg: Vector2 = p - d * gap * gi
 		cv.draw_colored_polygon(PackedVector2Array([_lw(pg, d, lf, 0), _lw(pg, d, 0, wd), _lw(pg, d, -lb, 0), _lw(pg, d, 0, -wd)]), Color(qc.r, qc.g, qc.b, qc.a * f * 0.3 / gi))
@@ -514,14 +516,14 @@ static func _qi_thrust(cv, p: Vector2, ang: float, qc: Color, f: float, stc: flo
 			var la: float = qc.a * (0.18 + 0.5 * f) * (1.0 if y == 0.0 else 0.6)
 			cv.draw_line(_lw(p, d, -lb - (6.0 + 34.0 * f) * k, y * 0.8 * k), _lw(p, d, -lb * 0.5, y * 0.4 * k), Color(qc.r, qc.g, qc.b, la), 1.5)
 	cv.draw_colored_polygon(PackedVector2Array([_lw(p, d, lf, 0), _lw(p, d, 0, wd), _lw(p, d, -lb, 0), _lw(p, d, 0, -wd)]), qc)
-	cv.draw_line(_lw(p, d, -lb * 0.4, 0), _lw(p, d, lf, 0), qc.lerp(Color(1.6, 1.6, 1.6, qc.a), 0.6), 1.5)
+	cv.draw_line(_lw(p, d, lf * 0.1, 0), _lw(p, d, lf, 0), qc.lerp(Color(1.6, 1.6, 1.6, qc.a), 0.35), 1.0)   # 只在枪尖一段留细高光，本体保持本人色
 
 
 ## 锤 / 盾 / 锚（推进之王、星熊、塞雷娅、乌尔比安）：贴地推进的厚冲击波 + 前沿跳动的碎石（尘土在 tick 里甩）
 static func _qi_blunt(cv, p: Vector2, ang: float, qc: Color, f: float, stc: float, gap: float, ng: int, t: float, k: float) -> void:
 	var d := Vector2.from_angle(ang)
 	k *= 1.2   # 钝器波更宽厚
-	var dc := qc.lerp(Color(1.05, 0.82, 0.52, qc.a), 0.65)   # 偏土黄，不跟命中白光混在一起
+	var dc := qc   # 波身用本人代表色；土色只给压影 / 碎石 / 犁沟 / 尘
 	cv.draw_colored_polygon(_crescent(p + Vector2(0, 3.0), d, 19.0 * k, 1.25, 10.0 * k, stc, 0.75), Color(0.1, 0.08, 0.06, qc.a * 0.45))   # 地面压影：把波和地面分开
 	for gi in range(ng, 0, -1):
 		cv.draw_colored_polygon(_crescent(p - d * gap * gi, d, 19.0 * k, 1.25, 8.0 * k, stc, 0.75), Color(dc.r, dc.g, dc.b, dc.a * f * 0.3 / gi))
@@ -530,7 +532,7 @@ static func _qi_blunt(cv, p: Vector2, ang: float, qc: Color, f: float, stc: floa
 	for i in 9:
 		var a: float = (float(i) / 8.0 * 2.0 - 1.0) * 1.1
 		rim.append(_lw(p, d, (19.0 * cos(a) - 15.2) * k * stc, 19.0 * k * sin(a) * 0.75))
-	cv.draw_polyline(rim, Color(1.5, 1.3, 0.95, qc.a), 2.5)
+	cv.draw_polyline(rim, qc.lerp(Color(1.6, 1.6, 1.6, qc.a), 0.45), 2.5)
 	var rc := Color(BLUNT_DUST.r * 0.7, BLUNT_DUST.g * 0.65, BLUNT_DUST.b * 0.6, qc.a)
 	for i in 5:   # 碎石：沿波前排开，按飞行时间跳（不取随机）
 		var y: float = (float(i) - 2.0) * 7.0 * k
