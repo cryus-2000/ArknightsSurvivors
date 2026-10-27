@@ -57,6 +57,14 @@ func _ready() -> void:
 		await get_tree().process_frame
 		if not check_only: await RenderingServer.frame_post_draw
 	var saint = g.bai.boss(kind)
+	if "--card-measure" in OS.get_cmdline_user_args():
+		for ph in 2:
+			for dash in [false, true]:
+				_measure(saint, ph, dash)
+		g.queue_free()
+		await get_tree().process_frame
+		get_tree().quit()
+		return
 	for ph in 2:
 		for ci in 2:
 			fresh()
@@ -119,3 +127,79 @@ func _ready() -> void:
 	g.queue_free()
 	await get_tree().process_frame
 	get_tree().quit()
+
+
+## 输出窗口探针（协调人 10-27「给干员输出的机会」）：自然流程（出招组照常轮换）MEASURE 秒，玩家无敌、绕 Boss 130 处转圈（0.6 rad/s，一直在跑）。
+## dash = true：每次装填读条 0.4 秒时调用正式 saint_interrupt（模拟冲刺穿身）。指标：
+##   low   Boss 在近战射程（≤180）内、她 / 他的同屏敌弹 < 20、且没有未结算的伤害预警 的时间占比
+##   windows  每段装填 / 破绽（channel 或 break_t > 0）时长；dense_in_window 窗口内同屏敌弹 ≥ 20 的占比
+##   blocked（卡门）玩家到 Boss 的连线被火线（缺口外）挡住的时间占比
+const MEASURE := 60.0
+
+
+func _measure(saint, ph: int, dash: bool) -> void:
+	fresh()
+	g.enemies = [boss]
+	if ph == 1:
+		g.bai.setup_preview_phase2(boss)
+		boss.channel = 0.0
+		boss.invuln = false
+	boss.reload_t = 0.0
+	g.ppos = boss.pos + Vector2(130, 0)
+	var low := 0
+	var blocked := 0
+	var dense_w := 0
+	var win_frames := 0
+	var windows: Array = []
+	var cur := 0.0
+	var ch_t := 0.0
+	var n := int(MEASURE / DT)
+	for frame_i in n:
+		g.invuln = 999.0
+		var th: float = frame_i * DT * 0.6
+		g.ppos = g.ppos.move_toward(boss.pos + Vector2.from_angle(th) * Vector2(130, 130 * 0.72), 150.0 * DT)
+		g.doc_pos = g.ppos + Vector2(10, 35)
+		g.t += DT
+		if boss.channel > 0.0:
+			ch_t += DT
+			if dash and ch_t >= 0.4:
+				saint.saint_interrupt(boss)
+		else:
+			ch_t = 0.0
+		g.enemies_sys.build_grid()
+		g.enemies_sys.update(DT)
+		g.shots.step(DT)
+		g.tele.update_warns(DT)
+		g.enemies_sys.update_status(DT)
+		g.ebullets = g.ebullets.filter(func(b): return b.life > 0.0)
+		g.fx.clear()
+		var own := 0
+		for b in g.ebullets:
+			if b.get("source_id", -1) == boss.id:
+				own += 1
+		var threat := false
+		for w in g.warns:
+			if is_same(w.owner, boss) and float(w.dmg) > 0.0 and not w.done:
+				threat = true
+				break
+		if g.ppos.distance_to(boss.pos) <= 180.0 and own < 20 and not threat:
+			low += 1
+		var inwin: bool = boss.channel > 0.0 or float(boss.get("break_t", 0.0)) > 0.0
+		if inwin:
+			cur += DT
+			win_frames += 1
+			if own >= 20:
+				dense_w += 1
+		elif cur > 0.0:
+			windows.append(snappedf(cur, 0.1))
+			cur = 0.0
+		for fl in boss.get("fire_lines", []):
+			var ab: Vector2 = fl.b - fl.a
+			var hit = Geometry2D.segment_intersects_segment(g.ppos, boss.pos, fl.a, fl.b)
+			if hit != null and absf((hit - fl.a).dot(ab) / ab.length_squared() - float(fl.gap_t)) * ab.length() > float(fl.gap_len) * 0.5:
+				blocked += 1
+				break
+	if cur > 0.0:
+		windows.append(snappedf(cur, 0.1))
+	print("SAINT_MEASURE ", JSON.stringify({"boss": kind, "phase": ph + 1, "dash": dash, "low": snappedf(float(low) / n, 0.01),
+		"windows": windows, "dense_in_window": snappedf(float(dense_w) / maxi(1, win_frames), 0.01), "blocked": snappedf(float(blocked) / n, 0.01)}))

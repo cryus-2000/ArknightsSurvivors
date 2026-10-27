@@ -144,7 +144,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 				e.sword_done = false
 				var rt: float = Bal.v("boss/iberia_reload", 2.2) if e.type == "iberia" else Bal.v("boss/carmen_reload", 3.0)   # 伊比利亚强化档装填 4 → 2.2 秒（数值 10-01）
 				if e.type == "iberia" and p2:
-					rt = Bal.v("boss/iberia_reload_p2", 1.4)   # 二幕「延生」装填更快（docs/142b §3.3）
+					rt = Bal.v("boss/iberia_reload_p2", 1.8)   # 二幕「延生」装填更快（docs/142b §3.3 原 1.4；10-27 输出窗口探针 1.4 秒不够，docs/171 §6）
 					var tri: Array = _tri_lob(e)
 					if _card(e).get("tri_crater", false):
 						for tw in tri:
@@ -285,6 +285,7 @@ func _clear(e: Dictionary, dir: Vector2, dist: float) -> void:
 ## delay：前面先放了清膛时整体往后挪
 func _volley(e: Dictionary, dir: Vector2, delay: float) -> void:
 	var nm: String = "手炮·三连" if e.type == "iberia" else "狙击·三连"
+	e.wind = maxf(float(e.get("wind", 0.0)), 0.9 + 1.2 + delay + 0.6)   # 三连打完收势 0.6 秒再出下一组（输出窗口，docs/171 §6）
 	for k in 3:
 		var vw := _warn(e, "line", 0.9 + 0.6 * k + delay, {"ang": dir.angle(), "len": 980.0, "wid": 14.0, "track": 0.3 + 0.6 * k + delay, "act": "shot",
 			"name": nm if k == 0 else "", "col": Color(1.0, 0.8, 0.4), "dmg": e.dmg * Bal.v("boss/saint_volley_mult", 1.2), "lock": k == 0})
@@ -504,7 +505,7 @@ func _seg(e: Dictionary, seg: String, dir: Vector2, dist: float) -> float:
 	return SEG_GAP
 
 
-## 伊比利亚二幕 · 重炮弹（本作改编）：0.55 秒枪口红闪后打出 3 发大弹（扇形 ±0.34），减速滑行，1.15 秒后各炸成 8 片碎弹（相邻大弹错开）；耗 1 发。
+## 伊比利亚二幕 · 重炮弹（本作改编）：0.6 秒枪口预警后打出 3 发大弹（扇形 ±0.34），减速滑行，1.15 秒后各炸成 6 片碎弹（寿命 1.4，相邻大弹错开）；耗 1 发。
 ## 大弹 e.dmg × 0.6、碎弹 × 0.3；大弹有发光核心（world.gd core_r），碎弹没有
 func _shell(e: Dictionary, dir: Vector2) -> void:
 	var muzzle: Vector2 = e.pos + dir * 28.0
@@ -512,7 +513,7 @@ func _shell(e: Dictionary, dir: Vector2) -> void:
 	for k in 3:
 		var a: float = dir.angle() + (k - 1) * 0.34
 		_queue(e, muzzle, Vector2.from_angle(a) * 230.0, 0.6, 12.0, 0.6, {"life": 1.15, "core_r": 5.0, "core_col": Color(2.0, 1.55, 1.05),
-			"acc": -170.0, "vmin": 45.0, "vmax": 230.0, "sp_t": 1.15, "sp_n": 8, "sp_spd": 115.0, "sp_rot": a + PI / 8.0 * k}, false)
+			"acc": -170.0, "vmin": 45.0, "vmax": 230.0, "sp_t": 1.15, "sp_n": 6, "sp_spd": 120.0, "sp_life": 1.4, "sp_rot": a + PI / 6.0 * k}, false)
 	e.wind = maxf(e.wind, 0.6 + Bal.v("boss/saint_stand", 1.5) * 0.7)
 	Sfx.play("skill", -8.0, 0.7)
 	_spend(e, 1)
@@ -600,16 +601,16 @@ func _bullets_step(e: Dictionary, dt: float) -> void:
 				b.life = 0.0
 				born.append(b)
 	for b in born:
-		_split(e, b.pos, int(b.sp_n), float(b.sp_spd), float(b.sp_rot), float(b.get("sp_gap", 0.0)), float(b.get("sp_gh", 0.0)))
+		_split(e, b.pos, int(b.sp_n), float(b.sp_spd), float(b.sp_rot), float(b.get("sp_gap", 0.0)), float(b.get("sp_gh", 0.0)), float(b.get("sp_life", 1.8)))
 
 
 ## 一处炸开：n 片碎弹（r5、无核心、寿命 2.3、e.dmg × 0.3），gh > 0 时朝 gap 方向留 ±gh 缺口；炸点放一圈颗粒迸散
-func _split(e: Dictionary, at: Vector2, n: int, spd: float, rot: float, gap: float, gh: float) -> void:
+func _split(e: Dictionary, at: Vector2, n: int, spd: float, rot: float, gap: float, gh: float, life := 2.3) -> void:
 	for k in n:
 		var a: float = rot + TAU * k / n
 		if gh > 0.0 and absf(angle_difference(a, gap)) < gh:
 			continue
-		_bullet(e, at, Vector2.from_angle(a) * spd, 5.0, 0.3, {"life": 2.3})
+		_bullet(e, at, Vector2.from_angle(a) * spd, 5.0, 0.3, {"life": life})
 	var bc: Color = g.vfx.boss_color(e.type)
 	g.fx.append({"kind": "ring", "pos": at, "r": 22.0, "life": 0.3, "max": 0.3, "col": bc, "enemy": true, "bfx": bc})
 	Sfx.play("hit", -14.0, 1.3, 0.1)
@@ -645,16 +646,16 @@ func _on_resolved(e: Dictionary, w: Dictionary, kind: String) -> void:
 	match kind:
 		"trail":
 			var dv := Vector2.from_angle(float(w.ang))
-			for k in 5:
-				var p: Vector2 = w.pos + dv * (150.0 + 120.0 * k)
+			for k in 4:
+				var p: Vector2 = w.pos + dv * (170.0 + 140.0 * k)
 				if g.combat.arena_clamp(p, 30.0).distance_to(p) > 1.0:
 					break
 				_bullet(e, p, Vector2.ZERO, 11.0, 0.4, {"life": 0.6, "core_r": 4.0, "core_col": Color(2.0, 1.55, 1.05),
-					"sp_t": 0.55, "sp_n": 6, "sp_spd": 90.0, "sp_rot": float(w.ang) + (PI / 6.0 if k % 2 else 0.0)})
+					"sp_t": 0.45, "sp_n": 5, "sp_spd": 120.0, "sp_life": 1.4, "sp_rot": float(w.ang) + (PI / 6.0 if k % 2 else 0.0)})
 		"crater":
-			_split(e, w.pos, 12, 120.0, to_boss + PI / 12.0, to_boss, 0.5)
+			_split(e, w.pos, 12, 120.0, to_boss + PI / 12.0, to_boss, 0.5, 1.8)
 		"crater_tri":
-			_split(e, w.pos, 8, 110.0, to_boss + PI / 8.0, to_boss, 0.7)
+			_split(e, w.pos, 6, 120.0, to_boss + PI / 6.0, to_boss, 0.7, 1.4)
 
 
 ## 打断时：自己的在飞弹体与未出膛的弹全部作废，化成淡金白颗粒（最多 48 个发射点，走颗粒预算；颗粒关着时直接消失）
