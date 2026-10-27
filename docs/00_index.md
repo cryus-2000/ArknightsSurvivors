@@ -129,6 +129,7 @@
 | [163c_relic_inventory_codex](163c_relic_inventory_codex.md) | 全量藏品分类底表（Codex 163A，265 件 + 同名 JSON） | 参考 | 12 个机制主类、当前效果 / 等级 / 渠道 / 前置 / 反馈方式 | 163B、163D |
 | [163_visible_build_growth_codex](163_visible_build_growth_codex.md) | Codex 版可见成长草稿（历史） | 已被 163B 取代 | 弹体 / 范围 / 剑气 / 召唤的技术讨论 | 163D |
 | [163d_build_fusion](163d_build_fusion.md) | 构筑改造融合稿（163B × 可见成长 7 件） | 已定稿、已实现 | 10-27：以 163B 七流派为骨架逐件对号；五条按推荐定稿（#56 清群倍率、#129 副体只 +1、#130 覆盖不延寿、四流派第二批、固定上限）；§6 含 5 件范围画面核对与三件闪避藏品保底 | 163、163B、163C |
+| [178_card_text_1028](178_card_text_1028.md) | 卡面受益标签与文案修订 | 已实现 | 10-28：主效果 / 附带数值标签分开（淡色「仅物伤」）；点名干员卡只写当前编队；职业分支代指干员的文案改写（旧 → 新）；手机详情不截断 | 163D、76、37 |
 | [176_sword_wave_ease](176_sword_wave_ease.md) | 剑气非线性速度 | 已实现（待合入） | 10-27 用户：剑气改「爆发出手 → 衰减滑行」，总距离 / 存活时间 / 判定宽度不变；拉普兰德剑气、斯卡蒂潮刃、可见成长近战剑气共用 sword_ease.gd，旋钮 balance.json sword_ease | 163、136；sword_ease.gd、seg_skadi、vis_growth、sword_wave_capture |
 | [161_elite_squad](161_elite_squad.md) | 紧急作战改「精英小队」 | 已实施记录 | 10-26：按阶段 8 / 10 / 12 只高一阶普通怪，生命 ×2、伤害 ×1.3、共用甲壳 / 潮盾词缀、红色描边 + 脚下红光、入场冲锋；计入同屏上限、放不下的推迟；全灭宝箱（稀有加权）+ 20 源石锭；iPhone 仿真帧时 | 158、154；endings.gd、render/world.gd、waves.json |
 | [158_horde_stuck_fix](158_horde_stuck_fix.md) | 「怪物冒红光卡在原地」修复 | 已实施记录 | 10-26：大群分批出发延迟借用了收割者专用的 wake_t（只有收割者倒计时），其他怪永远站着，引痕者半血狂暴变红；改用 depart_t 统一倒计时；修前 / 修后对比 build/horde_stuck_before_after.mp4；§5 分级配比本作 vs 原作；§6 分级调整已实施（中后段高阶 10% / 25%、后段每局约 720 只，t5 定档高手 m0 30.4% / m18 55.4%）；§7 高阶单只帧时开销 | 150；spawner.gd、run/enemies.gd、enemy_ai.gd |

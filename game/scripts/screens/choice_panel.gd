@@ -625,12 +625,19 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 		var display_desc := option_description(o)
 		var card := Button.new()
 		card.set_meta("full_desc", display_desc)
+		if str(o.get("full", o.get("desc", ""))) != str(o.get("desc", "")):
+			# 卡面只写本编队相关的部分（relic_fx.squad_desc，10-28）：完整规则进悬停 / 详情
+			var of := o.duplicate()
+			of.desc = o.full
+			card.set_meta("full_desc", option_description(of))
+			card.set_meta("squad_cut", true)
+			card.set_meta("face_desc", display_desc)   # 统一紧凑版式重排时用卡面这段，不用完整规则
 		if briefs or (row_cards and is_op_card(o)):
 			# 一句话（手机全部卡；电脑 / 平板只有干员卡，10-26 用户「干员相关卡别再细说技能」）。完整说明：手机 / 平板点「详情」，电脑悬停
 			var hl := headline(o)
 			var bf := hl if hl != "" else brief(display_desc)
 			card.set_meta("brief", bf)
-			card.set_meta("more", bf != display_desc.strip_edges())
+			card.set_meta("more", bf != display_desc.strip_edges() or card.has_meta("squad_cut"))
 			display_desc = bf
 		card.custom_minimum_size = Vector2(ev_w, ev_h0) if ev else Vector2(card_w, row_h if row_h > 0.0 else card_h())
 		if L.touch:
@@ -695,7 +702,7 @@ func show_choices(title: String, opts: Array, kind: String, sub := "", quiet := 
 			for c in cards:
 				if not c.get_meta("compact"):
 					c.set_meta("compact", true)
-					c.set_meta("fit", UI.fit(g.font, c.get_meta("full_desc", ""), card_w - 40.0, 108.0, [15, 14, 13, 12, 11] if Pad.touch_ui() else [13, 12, 11]))
+					c.set_meta("fit", UI.fit(g.font, c.get_meta("face_desc", c.get_meta("full_desc", "")), card_w - 40.0, 108.0, [15, 14, 13, 12, 11] if Pad.touch_ui() else [13, 12, 11]))
 	g.panel.visible = true
 	g.panel_fg.queue_redraw()
 
@@ -719,7 +726,19 @@ static func brief(desc: String) -> String:
 	sent = sent.strip_edges()
 	# 括号外没有数字、数值全在括号里（「…再落第三波（40% 伤害）」）：留括号里第一个带数字的短语，别把数值整个丢掉
 	if _re_digit.search(sent) == null:
-		var m := _re_numparen.search(raw)
+		# 只在第一句（括号外第一个「；」/「。」之前）里找：10-28 乌尔比安的一句话拼进了后半句「（最多 10 层）」
+		var depth := 0
+		var end := raw.length()
+		for ci in raw.length():
+			var chr := raw[ci]
+			if chr == "（" or chr == "(":
+				depth += 1
+			elif chr == "）" or chr == ")":
+				depth = maxi(0, depth - 1)
+			elif depth == 0 and (chr == "；" or chr == "。"):
+				end = ci
+				break
+		var m := _re_numparen.search(raw.substr(0, end))
 		if m != null:
 			for piece in m.get_string(1).split("，"):
 				var pc: String = piece.get_slice("；", 0).strip_edges()
@@ -1235,7 +1254,7 @@ func draw_panel_tip() -> void:
 			# 电脑：干员卡只写了一句，悬停时给完整说明
 			if not (card.get_meta("more", false) or cut or links != "") or not g.panel_ui.card_hot(card, card.get_index()):
 				continue
-		elif ((fd.is_empty() or fd.get("fit", true)) and not cut and links == "") or not g.panel_ui.card_hot(card, card.get_index()):
+		elif ((fd.is_empty() or fd.get("fit", true)) and not cut and links == "" and not card.has_meta("squad_cut")) or not g.panel_ui.card_hot(card, card.get_index()):
 			continue
 		var gr: Rect2 = card.get_global_rect()
 		var it: Dictionary = card.get_meta("item", {})
@@ -1267,10 +1286,17 @@ func _draw_phone_detail(card: Button, title: String, desc: String) -> void:
 	var gr: Rect2 = card.get_global_rect()
 	var o: Vector2 = gr.position - tip.get_global_rect().position + Vector2(0, card.get_meta("oy", 0.0) * sc)
 	var r := Rect2(o + Vector2(6.0, 42.0) * sc, Vector2(card.size.x - 12.0, card.size.y - 42.0 - 60.0) * sc)
+	var pad := 14.0 * sc
+	var sizes := [17, 16, 15, 14]
+	var fd := UI.fit(g.font, desc, r.size.x - 2.0 * pad, r.size.y - 48.0 * sc - pad, sizes, 3.0)
+	if not fd.fit:
+		# 详情就是完整说明，不截断（10-28 用户截图「已持有…」）：最小字号仍放不下就把框加高，先向下盖住操作条，再整体上移，以面板为界
+		var need: float = UI.fit(g.font, desc, r.size.x - 2.0 * pad, 1e6, [sizes[-1]], 3.0).h + 48.0 * sc + pad
+		r.size.y = minf(need, tip.size.y - 12.0)
+		r.position.y = clampf(r.position.y, 6.0, maxf(6.0, tip.size.y - 6.0 - r.size.y))
+		fd = UI.fit(g.font, desc, r.size.x - 2.0 * pad, r.size.y - 48.0 * sc - pad, sizes, 3.0)
 	tip.draw_rect(r, Color(0.035, 0.045, 0.06, 0.97))
 	tip.draw_rect(r, Color(UI.CYAN, 0.7), false, 1.0)
 	tip.draw_rect(Rect2(r.position, Vector2(3.0, r.size.y)), UI.CYAN)
-	var pad := 14.0 * sc
 	UI.text_fit(tip, g.font, r.position + Vector2(pad, 28.0 * sc), title, 19, Color.WHITE, r.size.x - 2.0 * pad, 14)
-	var fd := UI.fit(g.font, desc, r.size.x - 2.0 * pad, r.size.y - 48.0 * sc - pad, [17, 16, 15, 14], 3.0)
 	UI.draw_fit(tip, g.font, r.position + Vector2(pad, 46.0 * sc), fd, Color(0.86, 0.92, 0.95))

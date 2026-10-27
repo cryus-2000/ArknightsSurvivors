@@ -117,11 +117,17 @@ func build(restart := false) -> void:
 			var bline: String = g.progression.affinity.relic_lines(str(it.id), true)
 			if bline != "":
 				sdesc += "\n" + bline
+		var sfull := sdesc
+		if str(it.get("full", it.desc)) != str(it.desc):
+			# 卡面只写本编队相关的部分（relic_fx.squad_desc，10-28）：完整规则进悬停 / 详情
+			sfull = str(it.full) + sdesc.substr(str(it.desc).length())
+			card.set_meta("full_desc", sfull)
+			card.set_meta("squad_cut", true)
 		if ph:
-			card.set_meta("full_desc", sdesc)
+			card.set_meta("full_desc", sfull)
 			var bf: String = g.panel_ui.brief(sdesc)
 			card.set_meta("brief", bf)
-			card.set_meta("more", bf != sdesc.strip_edges())
+			card.set_meta("more", bf != sfull.strip_edges())
 			sdesc = bf
 		var fs0 := UI.fit(g.font, sdesc, cw - 20.0, (ch - 164.0 - bot) if touch else 64.0, szs)
 		var sc_compact: bool = not fs0.fit
