@@ -1,0 +1,39 @@
+M  docs/174_izumik_combos_1027.md
+M  game/data/balance.json
+M  game/data/enemies.json
+M  game/scripts/enemies/bosses/izumik.gd
+M  game/scripts/enemies/final_attacks.gd
+UU game/scripts/render/boss_attack_draw.gd
+M  game/scripts/render/izumik_attack_draw.gd
+M  game/scripts/render/optical.gd
+M  game/scripts/render/world.gd
+M  game/tests/izumik_card_test.gd
+M  game/tests/izumik_combo_preview.gd
+M  tools/probes/izumik_combo_preview.py
+diff --cc game/scripts/render/boss_attack_draw.gd
+index 35dc2d84,f0f74c89..00000000
+--- a/game/scripts/render/boss_attack_draw.gd
++++ b/game/scripts/render/boss_attack_draw.gd
+@@@ -21,16 -18,9 +21,22 @@@ static func _circle_geometry(gy: float
+  	return _circle_points
+  
+  static func draw(g, impacts := false) -> void:
+++<<<<<<< HEAD
+ +	var caps: Array = []
+ +	if not impacts:
+ +		for w in g.warns:
+ +			if not TeleDraw.knight_line(w): continue
+ +			_knight_line_tell(g, w)
+ +			if not w.done and w.owner.get("stakes", []) is Array and not w.owner.get("stakes", []).is_empty(): caps.append(w)
+ +		for b in g.bosses:
+ +			if b.type != "knight_boss": continue
+ +			if b.get("kb_self", false): Grains.dash_frost(g, b)
+ +			_dash_frost(g, b)
+++=======
++ 	if not impacts:
++ 		for e in g.bosses:
++ 			if e.type == "izumik" and not e.dead and int(e.get("phase", 1)) == 2: IzumikDraw.arena(g,e)   # 伊祖米克分幕场地（docs/170 §16）
+++>>>>>>> c7ad8282e
+  	for w in g.warns:
+  		if w.act == "izu_wave" and not w.done and not impacts and g.optical_on:
+  			IzumikDraw.field_warning(g,w)   # 伊祖米克全场预警（docs/170）

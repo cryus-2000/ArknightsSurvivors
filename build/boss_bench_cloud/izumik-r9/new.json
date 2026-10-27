@@ -1,0 +1,4255 @@
+{
+ "tag": "new",
+ "game": "/home/user/bench_new_izumik-r9/game",
+ "records": [
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 10,
+   "wall": 34.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.851,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.419,
+   "brk_time_share": 0.17,
+   "dmg": 11614.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 22,
+   "max_hp": 172.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s10_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "skadi"
+   ],
+   "taken": 261.2,
+   "taken_pct": 1.52,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 11,
+   "wall": 33.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.593,
+   "brk_time_share": 0.169,
+   "dmg": 47842.0,
+   "fight_t": 171.7,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 140.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s11_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "eyjafjalla"
+   ],
+   "taken": 234.2,
+   "taken_pct": 1.668,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 12,
+   "wall": 39.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.728,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.434,
+   "brk_time_share": 0.173,
+   "dmg": 15381.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 22,
+   "max_hp": 140.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s12_slot3",
+   "squad": [
+    "kaltsit",
+    "saria",
+    "angelina"
+   ],
+   "taken": 51.7,
+   "taken_pct": 0.368,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 13,
+   "wall": 39.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.339,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 31620.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 171.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s13_slot3",
+   "squad": [
+    "kaltsit",
+    "ulpianus",
+    "skalter"
+   ],
+   "taken": 329.2,
+   "taken_pct": 1.921,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 14,
+   "wall": 16.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.813,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 0.0,
+   "fight_t": 14.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 24,
+   "max_hp": 186.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "kaltsit_m0_s14_slot3",
+   "squad": [
+    "kaltsit",
+    "exusiai",
+    "ulpianus"
+   ],
+   "taken": 277.8,
+   "taken_pct": 1.494,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 15,
+   "wall": 31.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.184,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.594,
+   "brk_time_share": 0.203,
+   "dmg": 39059.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 166.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s15_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "gladiia"
+   ],
+   "taken": 294.8,
+   "taken_pct": 1.771,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 16,
+   "wall": 26.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.451,
+   "brk_time_share": 0.114,
+   "dmg": 47842.0,
+   "fight_t": 95.8,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.998,
+   "leader": "kaltsit",
+   "level": 27,
+   "max_hp": 192.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s16_slot3",
+   "squad": [
+    "kaltsit",
+    "logos",
+    "specter_unchained"
+   ],
+   "taken": 253.0,
+   "taken_pct": 1.315,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 1,
+   "wall": 32.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.563,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.494,
+   "brk_time_share": 0.168,
+   "dmg": 25676.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 24,
+   "max_hp": 166.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s1_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "saria"
+   ],
+   "taken": 147.2,
+   "taken_pct": 0.885,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 2,
+   "wall": 31.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 38273.0,
+   "brk_dmg_share": 0.309,
+   "brk_time_share": 0.188,
+   "dmg": 42101.0,
+   "fight_t": 159.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 23,
+   "max_hp": 197.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s2_slot3",
+   "squad": [
+    "kaltsit",
+    "hoshiguma",
+    "specter_unchained"
+   ],
+   "taken": 58.9,
+   "taken_pct": 0.3,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 3,
+   "wall": 18.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 1.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 21.0,
+   "fight_t": 29.4,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "kaltsit",
+   "level": 22,
+   "max_hp": 140.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 3,
+   "snap": "kaltsit_m0_s3_slot3",
+   "squad": [
+    "kaltsit",
+    "exusiai",
+    "texas"
+   ],
+   "taken": 313.1,
+   "taken_pct": 2.23,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 4,
+   "wall": 28.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 39230.0,
+   "brk_dmg_share": 0.574,
+   "brk_time_share": 0.154,
+   "dmg": 41017.0,
+   "fight_t": 125.6,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 231.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s4_slot3",
+   "squad": [
+    "kaltsit",
+    "exusiai",
+    "suzuran"
+   ],
+   "taken": 276.2,
+   "taken_pct": 1.194,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 5,
+   "wall": 30.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.941,
+   "boss_maxhp": 39230.0,
+   "brk_dmg_share": 0.36,
+   "brk_time_share": 0.165,
+   "dmg": 4849.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 22,
+   "max_hp": 127.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s5_slot3",
+   "squad": [
+    "kaltsit",
+    "saria",
+    "hoshiguma"
+   ],
+   "taken": 269.8,
+   "taken_pct": 2.118,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 6,
+   "wall": 22.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.274,
+   "brk_time_share": 0.084,
+   "dmg": 47842.0,
+   "fight_t": 78.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 27,
+   "max_hp": 192.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s6_slot3",
+   "squad": [
+    "kaltsit",
+    "logos",
+    "specter_unchained"
+   ],
+   "taken": 107.6,
+   "taken_pct": 0.559,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 7,
+   "wall": 32.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.471,
+   "brk_time_share": 0.183,
+   "dmg": 47842.0,
+   "fight_t": 167.8,
+   "fp_diff": [
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 140.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s7_slot3",
+   "squad": [
+    "kaltsit",
+    "angelina",
+    "lappland"
+   ],
+   "taken": 65.7,
+   "taken_pct": 0.468,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 8,
+   "wall": 22.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 40666.0,
+   "brk_dmg_share": 0.184,
+   "brk_time_share": 0.06,
+   "dmg": 40666.0,
+   "fight_t": 63.7,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|0.92|cold|\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.983,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 140.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m0_s8_slot3",
+   "squad": [
+    "kaltsit",
+    "skalter",
+    "specter_unchained"
+   ],
+   "taken": 102.7,
+   "taken_pct": 0.732,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 0,
+   "seed": 9,
+   "wall": 31.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.809,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.336,
+   "brk_time_share": 0.128,
+   "dmg": 18706.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 23,
+   "max_hp": 131.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m0_s9_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "mizuki"
+   ],
+   "taken": 111.0,
+   "taken_pct": 0.844,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 10,
+   "wall": 25.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.568,
+   "brk_time_share": 0.17,
+   "dmg": 47842.0,
+   "fight_t": 100.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 172.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s10_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "eyjafjalla"
+   ],
+   "taken": 128.3,
+   "taken_pct": 0.747,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 11,
+   "wall": 27.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.483,
+   "brk_time_share": 0.177,
+   "dmg": 47842.0,
+   "fight_t": 120.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 172.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s11_slot3",
+   "squad": [
+    "kaltsit",
+    "suzuran",
+    "wisadel"
+   ],
+   "taken": 185.7,
+   "taken_pct": 1.081,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 12,
+   "wall": 28.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.519,
+   "brk_time_share": 0.176,
+   "dmg": 47842.0,
+   "fight_t": 105.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 290.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s12_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "wisadel"
+   ],
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 13,
+   "wall": 22.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.121,
+   "brk_time_share": 0.125,
+   "dmg": 47842.0,
+   "fight_t": 70.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 157.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s13_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "specter_unchained"
+   ],
+   "taken": 50.8,
+   "taken_pct": 0.323,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 14,
+   "wall": 30.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.906,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.018,
+   "dmg": 11490.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.991,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 144.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m18_s14_slot3",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "ulpianus"
+   ],
+   "taken": 143.9,
+   "taken_pct": 0.997,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 15,
+   "wall": 33.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.514,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.512,
+   "brk_time_share": 0.166,
+   "dmg": 25661.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 23,
+   "max_hp": 157.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m18_s15_slot3",
+   "squad": [
+    "kaltsit",
+    "skalter",
+    "gladiia"
+   ],
+   "taken": 92.6,
+   "taken_pct": 0.589,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 16,
+   "wall": 31.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 40666.0,
+   "brk_dmg_share": 0.508,
+   "brk_time_share": 0.168,
+   "dmg": 40902.0,
+   "fight_t": 142.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 23,
+   "max_hp": 165.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s16_slot3",
+   "squad": [
+    "kaltsit",
+    "exusiai",
+    "irene"
+   ],
+   "taken": 76.0,
+   "taken_pct": 0.462,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 1,
+   "wall": 32.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.635,
+   "brk_time_share": 0.192,
+   "dmg": 47842.0,
+   "fight_t": 150.5,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|0.92|cold|\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.87,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 157.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s1_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "texas"
+   ],
+   "taken": 406.8,
+   "taken_pct": 2.587,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 2,
+   "wall": 29.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 43058.0,
+   "brk_dmg_share": 0.518,
+   "brk_time_share": 0.181,
+   "dmg": 47363.0,
+   "fight_t": 143.1,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|0.92|cold|\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 157.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s2_slot3",
+   "squad": [
+    "kaltsit",
+    "eyjafjalla",
+    "suzuran"
+   ],
+   "taken": 393.8,
+   "taken_pct": 2.504,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 3,
+   "wall": 28.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.516,
+   "brk_time_share": 0.175,
+   "dmg": 47842.0,
+   "fight_t": 155.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 24,
+   "max_hp": 206.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s3_slot3",
+   "squad": [
+    "kaltsit",
+    "wisadel",
+    "irene"
+   ],
+   "taken": 290.5,
+   "taken_pct": 1.408,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 4,
+   "wall": 21.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.321,
+   "brk_time_share": 0.129,
+   "dmg": 47842.0,
+   "fight_t": 80.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 140.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s4_slot3",
+   "squad": [
+    "kaltsit",
+    "skadi",
+    "specter_unchained"
+   ],
+   "taken": 104.2,
+   "taken_pct": 0.746,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 5,
+   "wall": 34.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.668,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.42,
+   "brk_time_share": 0.165,
+   "dmg": 24932.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 23,
+   "max_hp": 179.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m18_s5_slot3",
+   "squad": [
+    "kaltsit",
+    "saria",
+    "suzuran"
+   ],
+   "taken": 312.5,
+   "taken_pct": 1.745,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 6,
+   "wall": 29.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.015,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.554,
+   "brk_time_share": 0.207,
+   "dmg": 47107.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 163.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m18_s6_slot3",
+   "squad": [
+    "kaltsit",
+    "saria",
+    "wisadel"
+   ],
+   "taken": 33.2,
+   "taken_pct": 0.204,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 7,
+   "wall": 23.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.459,
+   "brk_time_share": 0.162,
+   "dmg": 47842.0,
+   "fight_t": 102.8,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 142.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s7_slot3",
+   "squad": [
+    "kaltsit",
+    "angelina",
+    "suzuran"
+   ],
+   "taken": 191.3,
+   "taken_pct": 1.351,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 8,
+   "wall": 29.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.711,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.626,
+   "brk_time_share": 0.165,
+   "dmg": 23411.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 26,
+   "max_hp": 186.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "kaltsit_m18_s8_slot3",
+   "squad": [
+    "kaltsit",
+    "irene",
+    "lappland"
+   ],
+   "taken": 104.5,
+   "taken_pct": 0.561,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "kaltsit",
+   "meta": 18,
+   "seed": 9,
+   "wall": 20.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.644,
+   "brk_time_share": 0.151,
+   "dmg": 47842.0,
+   "fight_t": 71.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "kaltsit",
+   "level": 25,
+   "max_hp": 157.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "kaltsit_m18_s9_slot3",
+   "squad": [
+    "kaltsit",
+    "exusiai",
+    "specter_unchained"
+   ],
+   "taken": 72.2,
+   "taken_pct": 0.459,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 10,
+   "wall": 36.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.169,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.576,
+   "brk_time_share": 0.203,
+   "dmg": 39747.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 158.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s10_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "wisadel"
+   ],
+   "taken": 111.5,
+   "taken_pct": 0.705,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 11,
+   "wall": 36.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.626,
+   "brk_time_share": 0.184,
+   "dmg": 50234.0,
+   "fight_t": 177.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 24,
+   "max_hp": 190.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s11_slot3",
+   "squad": [
+    "skadi",
+    "suzuran",
+    "lumen"
+   ],
+   "taken": 178.6,
+   "taken_pct": 0.939,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 12,
+   "wall": 39.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.592,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.392,
+   "brk_time_share": 0.168,
+   "dmg": 24323.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 19,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s12_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "angelina"
+   ],
+   "taken": 106.0,
+   "taken_pct": 0.697,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 13,
+   "wall": 38.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.536,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.441,
+   "brk_time_share": 0.17,
+   "dmg": 25013.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 23,
+   "max_hp": 178.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s13_slot3",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "irene"
+   ],
+   "taken": 376.7,
+   "taken_pct": 2.115,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 14,
+   "wall": 26.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.524,
+   "brk_time_share": 0.171,
+   "dmg": 47842.0,
+   "fight_t": 104.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 235.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s14_slot3",
+   "squad": [
+    "skadi",
+    "eyjafjalla",
+    "suzuran"
+   ],
+   "taken": 328.5,
+   "taken_pct": 1.4,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 15,
+   "wall": 38.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.639,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.585,
+   "brk_time_share": 0.165,
+   "dmg": 24902.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.985,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 199.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s15_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "exusiai"
+   ],
+   "taken": 248.8,
+   "taken_pct": 1.252,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 16,
+   "wall": 30.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.538,
+   "brk_time_share": 0.176,
+   "dmg": 47842.0,
+   "fight_t": 128.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 187.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s16_slot3",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "wisadel"
+   ],
+   "taken": 22.0,
+   "taken_pct": 0.117,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 32.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.952,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.369,
+   "brk_time_share": 0.167,
+   "dmg": 5629.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 180.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s1_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "angelina"
+   ],
+   "taken": 298.8,
+   "taken_pct": 1.658,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 26.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 39230.0,
+   "brk_dmg_share": 0.239,
+   "brk_time_share": 0.085,
+   "dmg": 39230.0,
+   "fight_t": 101.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.903,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 137.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s2_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "siege"
+   ],
+   "taken": 57.3,
+   "taken_pct": 0.419,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 37.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.486,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.622,
+   "brk_time_share": 0.168,
+   "dmg": 31549.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 24,
+   "max_hp": 172.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s3_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "exusiai"
+   ],
+   "taken": 329.5,
+   "taken_pct": 1.917,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 34.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.508,
+   "brk_time_share": 0.164,
+   "dmg": 47842.0,
+   "fight_t": 169.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 160.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s4_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "eyjafjalla"
+   ],
+   "taken": 109.7,
+   "taken_pct": 0.687,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 35.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.006,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.596,
+   "brk_time_share": 0.187,
+   "dmg": 54738.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 335.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s5_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "suzuran"
+   ],
+   "taken": 398.3,
+   "taken_pct": 1.187,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 25.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.192,
+   "brk_time_share": 0.048,
+   "dmg": 47842.0,
+   "fight_t": 78.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 228.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s6_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "kaltsit"
+   ],
+   "taken": 92.6,
+   "taken_pct": 0.406,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 7,
+   "wall": 32.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.336,
+   "boss_maxhp": 43058.0,
+   "brk_dmg_share": 0.584,
+   "brk_time_share": 0.201,
+   "dmg": 35069.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 24,
+   "max_hp": 143.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s7_slot3",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "lappland"
+   ],
+   "taken": 72.6,
+   "taken_pct": 0.507,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 8,
+   "wall": 31.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.474,
+   "brk_time_share": 0.178,
+   "dmg": 47842.0,
+   "fight_t": 151.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.768,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 185.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m0_s8_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "eyjafjalla"
+   ],
+   "taken": 192.9,
+   "taken_pct": 1.041,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 9,
+   "wall": 35.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.537,
+   "boss_maxhp": 39230.0,
+   "brk_dmg_share": 0.337,
+   "brk_time_share": 0.173,
+   "dmg": 20497.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 23,
+   "max_hp": 178.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m0_s9_slot3",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "taken": 277.3,
+   "taken_pct": 1.823,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 10,
+   "wall": 38.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.244,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.514,
+   "brk_time_share": 0.198,
+   "dmg": 40947.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 170.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s10_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "angelina"
+   ],
+   "taken": 132.8,
+   "taken_pct": 0.78,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 11,
+   "wall": 38.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.175,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.458,
+   "brk_time_share": 0.18,
+   "dmg": 40273.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 23,
+   "max_hp": 161.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s11_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "taken": 188.4,
+   "taken_pct": 1.171,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 12,
+   "wall": 38.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.016,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 47099.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 259.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s12_slot3",
+   "squad": [
+    "skadi",
+    "gladiia",
+    "ulpianus"
+   ],
+   "taken": 51.7,
+   "taken_pct": 0.2,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 13,
+   "wall": 28.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 39230.0,
+   "brk_dmg_share": 0.181,
+   "brk_time_share": 0.1,
+   "dmg": 41192.0,
+   "fight_t": 108.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 180.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s13_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "logos"
+   ],
+   "taken": 67.8,
+   "taken_pct": 0.378,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 14,
+   "wall": 30.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.513,
+   "brk_time_share": 0.176,
+   "dmg": 47842.0,
+   "fight_t": 130.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 218.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s14_slot3",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "lumen"
+   ],
+   "taken": 75.2,
+   "taken_pct": 0.345,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 15,
+   "wall": 38.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.397,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.631,
+   "brk_time_share": 0.194,
+   "dmg": 33464.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 23,
+   "max_hp": 170.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s15_slot3",
+   "squad": [
+    "skadi",
+    "lumen",
+    "siege"
+   ],
+   "taken": 245.2,
+   "taken_pct": 1.439,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 16,
+   "wall": 33.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 39230.0,
+   "brk_dmg_share": 0.517,
+   "brk_time_share": 0.202,
+   "dmg": 41192.0,
+   "fight_t": 145.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 170.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s16_slot3",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "lumen"
+   ],
+   "taken": 158.5,
+   "taken_pct": 0.931,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 35.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.455,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.485,
+   "brk_time_share": 0.206,
+   "dmg": 35645.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 170.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s1_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "lappland"
+   ],
+   "taken": 25.8,
+   "taken_pct": 0.152,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 25.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.248,
+   "brk_time_share": 0.089,
+   "dmg": 50234.0,
+   "fight_t": 105.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.8,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 185.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s2_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "siege"
+   ],
+   "taken": 66.4,
+   "taken_pct": 0.359,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 34.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.37,
+   "boss_maxhp": 39230.0,
+   "brk_dmg_share": 0.47,
+   "brk_time_share": 0.199,
+   "dmg": 26676.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 25,
+   "max_hp": 228.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s3_slot3",
+   "squad": [
+    "skadi",
+    "saria",
+    "exusiai"
+   ],
+   "taken": 179.4,
+   "taken_pct": 0.786,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 30.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.526,
+   "brk_time_share": 0.188,
+   "dmg": 47842.0,
+   "fight_t": 162.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.98,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 128.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s4_slot3",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "gladiia"
+   ],
+   "taken": 135.7,
+   "taken_pct": 1.062,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 23.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 39230.0,
+   "brk_dmg_share": 0.087,
+   "brk_time_share": 0.016,
+   "dmg": 39230.0,
+   "fight_t": 79.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.8,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 184.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s5_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "texas"
+   ],
+   "taken": 136.8,
+   "taken_pct": 0.745,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 28.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.396,
+   "brk_time_share": 0.138,
+   "dmg": 47842.0,
+   "fight_t": 105.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.8,
+   "leader": "skadi",
+   "level": 26,
+   "max_hp": 229.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s6_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "exusiai"
+   ],
+   "taken": 160.0,
+   "taken_pct": 0.7,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 7,
+   "wall": 29.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.621,
+   "boss_maxhp": 39230.0,
+   "brk_dmg_share": 0.402,
+   "brk_time_share": 0.201,
+   "dmg": 22707.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 22,
+   "max_hp": 150.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s7_slot3",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "lappland"
+   ],
+   "taken": 107.9,
+   "taken_pct": 0.721,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 8,
+   "wall": 21.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 40666.0,
+   "brk_dmg_share": 0.371,
+   "brk_time_share": 0.073,
+   "dmg": 40666.0,
+   "fight_t": 71.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 27,
+   "max_hp": 153.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "skadi_m18_s8_slot3",
+   "squad": [
+    "skadi",
+    "logos",
+    "lumen"
+   ],
+   "taken": 3.6,
+   "taken_pct": 0.024,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 9,
+   "wall": 31.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.368,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.52,
+   "brk_time_share": 0.178,
+   "dmg": 37421.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 24,
+   "max_hp": 199.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "skadi_m18_s9_slot3",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "gladiia"
+   ],
+   "taken": 428.9,
+   "taken_pct": 2.15,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 10,
+   "wall": 28.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.444,
+   "brk_time_share": 0.175,
+   "dmg": 47842.0,
+   "fight_t": 128.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.94,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s10_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "suzuran"
+   ],
+   "taken": 130.1,
+   "taken_pct": 1.011,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 11,
+   "wall": 25.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.359,
+   "brk_time_share": 0.162,
+   "dmg": 47842.0,
+   "fight_t": 90.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 115.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s11_slot3",
+   "squad": [
+    "wisadel",
+    "specter_unchained",
+    "lumen"
+   ],
+   "taken": 12.2,
+   "taken_pct": 0.107,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 12,
+   "wall": 33.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.555,
+   "brk_time_share": 0.185,
+   "dmg": 47842.0,
+   "fight_t": 144.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 181.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s12_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "exusiai"
+   ],
+   "taken": 70.7,
+   "taken_pct": 0.391,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 13,
+   "wall": 33.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.543,
+   "brk_time_share": 0.185,
+   "dmg": 47842.0,
+   "fight_t": 141.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 173.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s13_slot3",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "lappland"
+   ],
+   "taken": 69.1,
+   "taken_pct": 0.446,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 14,
+   "wall": 25.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 47842.0,
+   "fight_t": 107.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 28,
+   "max_hp": 155.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s14_slot3",
+   "squad": [
+    "wisadel",
+    "ulpianus",
+    "lumen"
+   ],
+   "taken": 166.2,
+   "taken_pct": 1.074,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 15,
+   "wall": 24.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.477,
+   "brk_time_share": 0.159,
+   "dmg": 47842.0,
+   "fight_t": 96.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.947,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s15_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "lappland"
+   ],
+   "taken": 83.9,
+   "taken_pct": 0.652,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 16,
+   "wall": 31.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.555,
+   "brk_time_share": 0.164,
+   "dmg": 49800.0,
+   "fight_t": 154.2,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 155.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s16_slot3",
+   "squad": [
+    "wisadel",
+    "irene",
+    "siege"
+   ],
+   "taken": 253.2,
+   "taken_pct": 1.637,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 1,
+   "wall": 34.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.582,
+   "brk_time_share": 0.187,
+   "dmg": 47842.0,
+   "fight_t": 161.7,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 181.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s1_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "angelina"
+   ],
+   "taken": 61.7,
+   "taken_pct": 0.341,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 2,
+   "wall": 21.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 40666.0,
+   "brk_dmg_share": 0.486,
+   "brk_time_share": 0.11,
+   "dmg": 40666.0,
+   "fight_t": 64.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 193.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s2_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "lappland"
+   ],
+   "taken": 19.5,
+   "taken_pct": 0.101,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 3,
+   "wall": 25.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.472,
+   "brk_time_share": 0.175,
+   "dmg": 47842.0,
+   "fight_t": 106.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 116.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s3_slot3",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "suzuran"
+   ],
+   "taken": 111.0,
+   "taken_pct": 0.959,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 4,
+   "wall": 22.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.488,
+   "brk_time_share": 0.153,
+   "dmg": 47842.0,
+   "fight_t": 75.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 28,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s4_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "skalter"
+   ],
+   "taken": 21.8,
+   "taken_pct": 0.169,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 5,
+   "wall": 28.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.402,
+   "brk_time_share": 0.158,
+   "dmg": 47842.0,
+   "fight_t": 118.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 194.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s5_slot3",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "eyjafjalla"
+   ],
+   "taken": 137.6,
+   "taken_pct": 0.71,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 6,
+   "wall": 23.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.633,
+   "brk_time_share": 0.18,
+   "dmg": 47842.0,
+   "fight_t": 80.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 314.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s6_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "suzuran"
+   ],
+   "taken": 73.1,
+   "taken_pct": 0.233,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 7,
+   "wall": 34.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.385,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.545,
+   "brk_time_share": 0.173,
+   "dmg": 31809.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 174.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m0_s7_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "kaltsit"
+   ],
+   "taken": 161.1,
+   "taken_pct": 0.925,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 8,
+   "wall": 26.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 47842.0,
+   "fight_t": 125.0,
+   "fp_diff": [
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.884,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 148.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s8_slot3",
+   "squad": [
+    "wisadel",
+    "ulpianus",
+    "angelina"
+   ],
+   "taken": 171.4,
+   "taken_pct": 1.156,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 0,
+   "seed": 9,
+   "wall": 28.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.42,
+   "brk_time_share": 0.151,
+   "dmg": 47842.0,
+   "fight_t": 156.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.968,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 271.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m0_s9_slot3",
+   "squad": [
+    "wisadel",
+    "siege",
+    "mizuki"
+   ],
+   "taken": 155.8,
+   "taken_pct": 0.643,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 10,
+   "wall": 29.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 40666.0,
+   "brk_dmg_share": 0.446,
+   "brk_time_share": 0.185,
+   "dmg": 40666.0,
+   "fight_t": 133.8,
+   "fp_diff": [
+    "stats.speed: 204.93 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 149.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s10_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "angelina"
+   ],
+   "taken": 70.6,
+   "taken_pct": 0.473,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 11,
+   "wall": 21.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 39230.0,
+   "brk_dmg_share": 0.19,
+   "brk_time_share": 0.057,
+   "dmg": 39230.0,
+   "fight_t": 58.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 130.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s11_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "eyjafjalla"
+   ],
+   "taken": 46.2,
+   "taken_pct": 0.355,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 12,
+   "wall": 26.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 47842.0,
+   "fight_t": 109.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.938,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 144.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s12_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "ulpianus"
+   ],
+   "taken": 210.7,
+   "taken_pct": 1.462,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 13,
+   "wall": 32.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.309,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.561,
+   "brk_time_share": 0.175,
+   "dmg": 33074.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 24,
+   "max_hp": 144.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m18_s13_slot3",
+   "squad": [
+    "wisadel",
+    "irene",
+    "kaltsit"
+   ],
+   "taken": 241.9,
+   "taken_pct": 1.678,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 14,
+   "wall": 25.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.604,
+   "brk_time_share": 0.188,
+   "dmg": 47842.0,
+   "fight_t": 115.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 202.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s14_slot3",
+   "squad": [
+    "wisadel",
+    "hoshiguma",
+    "suzuran"
+   ],
+   "taken": 127.0,
+   "taken_pct": 0.628,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 15,
+   "wall": 20.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.43,
+   "brk_time_share": 0.123,
+   "dmg": 47842.0,
+   "fight_t": 66.9,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 105.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s15_slot3",
+   "squad": [
+    "wisadel",
+    "angelina",
+    "irene"
+   ],
+   "taken": 27.0,
+   "taken_pct": 0.257,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 16,
+   "wall": 25.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.492,
+   "brk_time_share": 0.145,
+   "dmg": 47842.0,
+   "fight_t": 102.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 159.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s16_slot3",
+   "squad": [
+    "wisadel",
+    "irene",
+    "lumen"
+   ],
+   "taken": 107.2,
+   "taken_pct": 0.677,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 1,
+   "wall": 32.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.018,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 46985.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.917,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 3,
+   "snap": "wisadel_m18_s1_slot3",
+   "squad": [
+    "wisadel",
+    "saria",
+    "ulpianus"
+   ],
+   "taken": 179.4,
+   "taken_pct": 1.182,
+   "win": false
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 2,
+   "wall": 20.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 38273.0,
+   "brk_dmg_share": 0.097,
+   "brk_time_share": 0.01,
+   "dmg": 38273.0,
+   "fight_t": 69.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.915,
+   "leader": "wisadel",
+   "level": 28,
+   "max_hp": 173.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s2_slot3",
+   "squad": [
+    "wisadel",
+    "logos",
+    "siege"
+   ],
+   "taken": 159.3,
+   "taken_pct": 0.919,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 3,
+   "wall": 28.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.55,
+   "brk_time_share": 0.187,
+   "dmg": 47842.0,
+   "fight_t": 144.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 160.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s3_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "lumen"
+   ],
+   "taken": 53.0,
+   "taken_pct": 0.332,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 4,
+   "wall": 24.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.437,
+   "brk_time_share": 0.122,
+   "dmg": 50234.0,
+   "fight_t": 126.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 246.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s4_slot3",
+   "squad": [
+    "wisadel",
+    "logos",
+    "irene"
+   ],
+   "taken": 120.6,
+   "taken_pct": 0.49,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 5,
+   "wall": 26.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.503,
+   "brk_time_share": 0.165,
+   "dmg": 47842.0,
+   "fight_t": 113.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 156.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s5_slot3",
+   "squad": [
+    "wisadel",
+    "lumen",
+    "eyjafjalla"
+   ],
+   "taken": 170.0,
+   "taken_pct": 1.091,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 6,
+   "wall": 31.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.535,
+   "brk_time_share": 0.168,
+   "dmg": 47842.0,
+   "fight_t": 176.7,
+   "fp_diff": [
+    "mods.op_aspd: 缺 [\"2|0.84|cold|\"] 多 []"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 25,
+   "max_hp": 224.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s6_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "eyjafjalla"
+   ],
+   "taken": 236.5,
+   "taken_pct": 1.056,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 7,
+   "wall": 24.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.454,
+   "brk_time_share": 0.165,
+   "dmg": 47842.0,
+   "fight_t": 81.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 26,
+   "max_hp": 148.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s7_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "specter_unchained"
+   ],
+   "taken": 34.5,
+   "taken_pct": 0.233,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 8,
+   "wall": 22.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.274,
+   "brk_time_share": 0.059,
+   "dmg": 47842.0,
+   "fight_t": 63.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 28,
+   "max_hp": 173.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s8_slot3",
+   "squad": [
+    "wisadel",
+    "kaltsit",
+    "specter_unchained"
+   ],
+   "taken": 17.4,
+   "taken_pct": 0.1,
+   "win": true
+  },
+  {
+   "boss": "izumik",
+   "op": "wisadel",
+   "meta": 18,
+   "seed": 9,
+   "wall": 23.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 47842.0,
+   "brk_dmg_share": 0.545,
+   "brk_time_share": 0.174,
+   "dmg": 47842.0,
+   "fight_t": 85.5,
+   "fp_diff": [
+    "stats.speed: 184.437 -> 148.5"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "wisadel",
+   "level": 27,
+   "max_hp": 131.0,
+   "phases": [
+    [
+     "izumik",
+     1,
+     0.0
+    ],
+    [
+     "izumik",
+     2,
+     20.0
+    ]
+   ],
+   "result": "win",
+   "slot": 3,
+   "snap": "wisadel_m18_s9_slot3",
+   "squad": [
+    "wisadel",
+    "angelina",
+    "gladiia"
+   ],
+   "taken": 11.0,
+   "taken_pct": 0.084,
+   "win": true
+  }
+ ]
+}
