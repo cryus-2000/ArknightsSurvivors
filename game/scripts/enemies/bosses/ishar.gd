@@ -131,7 +131,7 @@ func _ishar_phase2(e: Dictionary, dir: Vector2, dist: float, forced := -1) -> vo
 			for k in 4:
 				var w := _warn(e, "line", float(d.get("line_warn", 1.0)),
 					{"pos": fan[k].pos, "ang": fan[k].ang,
-					"len": fan[k].len, "wid": float(d.get("line_width", 14.0)), "track": 0.5, "aim_op": fan[k].get("aim_op"), "seq_no": k + 1,
+					"len": fan[k].len, "wid": float(d.get("line_width", 14.0)), "track": maxf(0.3, float(d.get("line_warn", 1.0)) - Bal.v("boss/ishar_fan_lock", 0.6)), "aim_op": fan[k].get("aim_op"), "seq_no": k + 1,
 					"act": "ishar_line", "true": true, "name": "三线扫射" if k == 0 else "", "col": COL, "kp": "ishar", "kp_k": 2.0,
 					"dmg": e.dmg * float(d.get("line_mult", 0.7)) * 0.78, "cancel_dead": true, "lock": k == 0})   # ×0.78：10-25 加密
 				end = maxf(end, w.dur)
@@ -471,6 +471,7 @@ func on_gate(e: Dictionary) -> void:
 ## 本体倒下：网与泪一起散
 func on_kill(e: Dictionary) -> void:
 	e.ishar_emits = []
+	e.ishar_sweep = {}
 	e.ishar_zones = []
 	e.card_live = false
 	for tear in g.ishar.tears(e):

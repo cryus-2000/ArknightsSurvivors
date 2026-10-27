@@ -48,6 +48,7 @@ func step(e: Dictionary, dir: Vector2, dist: float, ready: bool) -> void:
 	_emit_step(e)
 	_beam_fades(e)
 	_zone_step(e)
+	_sweep_step(e)
 	if e.get("card_live", false):
 		if _broken(e):
 			cancel(e)
@@ -130,7 +131,7 @@ func _own_live(e: Dictionary) -> int:
 
 
 func _pending(e: Dictionary) -> bool:
-	if not e.get("ishar_emits", []).is_empty():
+	if not e.get("ishar_emits", []).is_empty() or not e.get("ishar_sweep", {}).is_empty():
 		return true
 	for w in g.warns:
 		if is_same(w.owner, e) and not w.done and w.dmg > 0.0 and w.act != "ishar_echo":
@@ -155,6 +156,7 @@ func cancel(e: Dictionary) -> void:
 	e.card_q = []
 	e.card_tail = INF
 	e.ishar_emits = []
+	_sweep_end(e)
 	if was:
 		g.warns = g.warns.filter(func(w): return not is_same(w.owner, e) or w.done or w.act == "ishar_echo")
 		e.ishar_next_at = maxf(float(e.get("ishar_next_at", 0.0)), g.t + 1.0)
@@ -275,8 +277,10 @@ func _emit_step(e: Dictionary) -> void:
 				_grains(src.pos, 6, "bfx_flash", false)
 				for k in 4:
 					own += _shot(e, own, src.pos, float(d.a0) + (k - 1.5) * 0.5, 110.0, 6.0, 0.25, "ishar_note")
+			"sweep":
+				_sweep_start(e, d.w)
 			"hold":
-				# 大群之声的持续段：沿锁定线每 0.1 秒补画光束并判定（进来的人照样受伤，命中后有通用无敌帧）
+				# （旧）定向持续段：沿锁定线每 0.1 秒补画光束并判定；10-28 起大群之声改追扫，不再使用
 				var w: Dictionary = d.w
 				var dv := Vector2.from_angle(w.ang)
 				g.fx.append({"kind": "bbeam", "a": w.pos, "b": w.pos + dv * w.len, "life": 0.14, "max": 0.14, "col": COL, "wid": w.wid, "enemy": true})
@@ -439,20 +443,67 @@ func _grains(p: Vector2, n: int, tmpl: String, inward: bool) -> void:
 ## 宽 92（半宽 46）、长 900；结算一次 e.dmg × 0.9，之后持续 1.0 秒，站在里面每次 × 0.45。锁定后侧移一个身位即可躲开。
 func _big_beam(e: Dictionary) -> void:
 	var a: float = _aim(e.pos)
-	var w: Dictionary = h._warn(e, "line", 1.8, {"pos": e.pos, "ang": a, "len": 900.0, "wid": 46.0, "track": 1.1,
-		"act": "ishar_line", "true": true, "name": "大群之声", "col": COL, "dmg": e.dmg * 0.9, "cancel_dead": true, "lock": true, "fade_delay": true})
-	for k in 10:
-		_emit(e, g.t + w.dur + 0.1 * (k + 1), {"kind": "hold", "src": null, "w": w, "last": k == 9})
+	# 蓄力 1.6 秒（前 1.2 秒跟着队长转，读条画法同其他光束）；act ishar_sweep：预警结算本身不出伤害，由 _sweep_start 接手
+	var w: Dictionary = h._warn(e, "line", 1.6, {"pos": e.pos, "ang": a, "len": 900.0, "wid": 46.0, "track": 1.2, "follow": true,
+		"act": "ishar_sweep", "true": true, "name": "大群之声", "col": COL, "dmg": e.dmg * 0.9, "cancel_dead": true, "lock": true, "fade_delay": true})
+	_emit(e, g.t + w.dur, {"kind": "sweep", "src": null, "w": w})
 	_grains(e.pos, 16, "mote_in", true)
-	e.wind = maxf(e.wind, w.dur + 1.0)
-	e.cdt = maxf(e.cdt, w.dur + 1.0)
+	var t: float = w.dur + Bal.v("boss/ishar_sweep_t", 2.4)
+	e.wind = maxf(e.wind, t)
+	e.cdt = maxf(e.cdt, t)
+
+
+## ---- 大群之声 · 追扫（用户 10-28「大激光改成追着玩家扫射」）：光束状态记在 e.ishar_sweep，每帧连续画同一条（不再每 0.1 秒新建光束特效，
+## 那会让激光画法每次从起点重新伸出、宽度从头走 = 10 Hz 频闪）。转向有惯性：角速度朝「对准队长」加速，上限 boss/ishar_sweep_max（0.5 rad/s），
+## 角加速度 boss/ishar_sweep_acc（1.4 rad/s²）；队长绕她跑（距离 250 时约 0.5 rad/s 以上）就能甩开，冲刺穿过也行。
+## 持续 boss/ishar_sweep_t（2.4）秒，每 0.15 秒判一次 e.dmg × 0.35（命中后有通用无敌帧）；结束 / 被打断都走消散。
+func _sweep_start(e: Dictionary, w: Dictionary) -> void:
+	e.ishar_sweep = {"pos": e.pos, "ang": float(w.ang), "av": 0.0, "len": float(w.len), "wid": float(w.wid), "t0": g.t,
+		"t1": g.t + Bal.v("boss/ishar_sweep_t", 2.4), "next": g.t, "w": w}
+	Sfx.play_cue("beam", "ishar", "hit")
+	g.vfx.shake_screen(0.3)
+	_grains(e.pos, 12, "bfx_flash", false)
+
+
+func _sweep_step(e: Dictionary) -> void:
+	var s: Dictionary = e.get("ishar_sweep", {})
+	if s.is_empty():
+		return
+	if e.dead or g.t >= float(s.t1):
+		_sweep_end(e)
+		return
+	var dt: float = clampf(g.t - float(s.get("last", g.t)), 0.0, 0.1)
+	s.last = g.t
+	s.pos = e.pos
+	var want: float = angle_difference(float(s.ang), (g.ppos + Vector2(0, -14) - e.pos).angle())
+	var vmax: float = Bal.v("boss/ishar_sweep_max", 0.5)
+	var tgt_av: float = clampf(want * 2.0, -vmax, vmax)
+	s.av = move_toward(float(s.av), tgt_av, Bal.v("boss/ishar_sweep_acc", 1.4) * dt)
+	s.ang = float(s.ang) + float(s.av) * dt
+	if g.t >= float(s.next):
+		s.next = float(s.next) + 0.15
+		var hd: Dictionary = s.w.duplicate()
+		hd.act = "ishar_line"
+		hd.pos = e.pos
+		hd.ang = s.ang
+		hd.dmg = e.dmg * 0.35
+		if g.invuln <= 0.0 and g.tele.hits_leader(hd):
+			g.tele.warn_damage(hd)
+
+
+func _sweep_end(e: Dictionary) -> void:
+	var s: Dictionary = e.get("ishar_sweep", {})
+	if s.is_empty():
+		return
+	_fade_fx({"pos": e.pos, "ang": float(s.ang), "len": float(s.len), "wid": float(s.wid)})
+	e.ishar_sweep = {}
 
 
 ## ---- 光束的开火与消散（用户 10-27：蓄力从细到粗、开火短闪、结束变细断成碎段散开，不硬切）
 ## 蓄力画在 render/ishar_tell_draw（读条进度）；这里在结算那一帧补一条 0.35 秒的消散记录 + 沿线颗粒。只写画面字典，不影响判定。
 static func is_beam(w: Dictionary) -> bool:
 	var act: String = str(w.get("act", ""))
-	return w.get("shape", "") == "line" and (act in ["ishar_line", "ishar_echo"] or (act == "final_attack" and str(w.get("skin", "")) == "choir"))
+	return w.get("shape", "") == "line" and (act in ["ishar_line", "ishar_echo", "ishar_sweep"] or (act == "final_attack" and str(w.get("skin", "")) == "choir"))
 
 
 func _beam_fades(e: Dictionary) -> void:
@@ -464,7 +515,8 @@ func _beam_fades(e: Dictionary) -> void:
 
 func _fade_fx(w: Dictionary) -> void:
 	var dv := Vector2.from_angle(w.ang)
-	g.fx.append({"kind": "ishar_beam_fade", "a": w.pos, "b": w.pos + dv * float(w.len), "wid": float(w.wid), "life": 0.35, "max": 0.35, "enemy": true})
+	var hold: float = 0.0 if w.has("t") == false else 0.3   # 预警结算的光束：先稳定亮 0.3 秒再消散；追扫收尾直接消散
+	g.fx.append({"kind": "ishar_beam_fade", "a": w.pos, "b": w.pos + dv * float(w.len), "wid": float(w.wid), "life": 0.35 + hold, "max": 0.35 + hold, "hold": hold, "enemy": true})
 	for k in 8:
 		_grains(w.pos + dv * float(w.len) * (k + 0.5) / 8.0, 2, "bfx_dust", false)
 

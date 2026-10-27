@@ -142,8 +142,8 @@ func _ready() -> void:
 	g.warns.clear()
 	cards.play(e, "大群之声", Vector2.RIGHT, 300.0)
 	var beam: Array = g.warns.filter(func(w): return w.name == "大群之声")
-	check(beam.size() == 1 and float(beam[0].wid) >= 40.0 and beam[0].dur - beam[0].track >= 0.6, "big beam is wide with a long locked window")
-	check(e.ishar_emits.filter(func(d): return d.kind == "hold").size() == 10, "big beam sustains for one second")
+	check(beam.size() == 1 and float(beam[0].wid) >= 40.0 and beam[0].dur - beam[0].track >= 0.3, "big beam is wide and locks before firing")
+	check(e.ishar_emits.filter(func(d): return d.kind == "sweep").size() == 1, "big beam hands over to a chasing sweep")
 	# 3d. 歌声涟漪：三处地带预警后留 3 秒，站在里面持续受伤并减速；光束结算后留消散记录
 	e = fresh(0)
 	g.warns.clear()
@@ -174,9 +174,17 @@ func _ready() -> void:
 	for i in int(1.9 / DT):
 		tick(e)
 	check(not g.fx.any(func(f): return f.kind == "ishar_beam_fade"), "big beam does not fade while it is still firing")
-	for i in int(1.2 / DT):
+	check(not e.ishar_sweep.is_empty(), "big beam is sweeping after its charge")
+	# 追扫转速有上限：队长瞬移到正对面，一秒内光束最多转 boss/ishar_sweep_max
+	var a0: float = float(e.ishar_sweep.ang)
+	g.ppos = e.pos - Vector2.from_angle(a0) * 250.0
+	for i in int(1.0 / DT):
 		tick(e)
-	check(g.fx.any(func(f): return f.kind == "ishar_beam_fade"), "big beam dissolves after its hold")
+	var turned: float = absf(angle_difference(a0, float(e.ishar_sweep.ang)))
+	check(turned > 0.05 and turned <= preload("res://scripts/core/balance.gd").v("boss/ishar_sweep_max", 0.5) + 0.01, "sweep chases the leader with a capped turn rate (%.2f)" % turned)
+	for i in int(1.6 / DT):
+		tick(e)
+	check(e.ishar_sweep.is_empty() and g.fx.any(func(f): return f.kind == "ishar_beam_fade"), "big beam dissolves after the sweep")
 	# 4. 抚愈之歌：歌声结束治疗连线海嗣；眩晕打断取消治疗
 	e = fresh(0)
 	var mob: Dictionary = e.web[0].o

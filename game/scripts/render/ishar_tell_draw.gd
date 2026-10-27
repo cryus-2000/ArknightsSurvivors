@@ -6,7 +6,7 @@ const Bal = preload("res://scripts/core/balance.gd")
 const Beam = preload("res://scripts/render/boss_beam.gd")
 const Combos = preload("res://scripts/enemies/bosses/ishar_combos.gd")
 const CORE := Color(0.62, 1.0, 0.86)   # 光束本体 = 她的专属青绿；预警底仍是暗红
-const ACTS := ["ishar_strike", "ishar_line", "ishar_echo", "bite", "sweep"]
+const ACTS := ["ishar_strike", "ishar_line", "ishar_echo", "ishar_sweep", "bite", "sweep"]
 const FILL := Color(0.42, 0.05, 0.12)
 const EDGE := Color(0.86, 0.26, 0.42)
 
@@ -44,12 +44,17 @@ static func _fades(g) -> void:
 	for f in g.fx:
 		if f.kind != "ishar_beam_fade" or f.life <= 0.0:
 			continue
-		var p: float = 1.0 - float(f.life) / float(f.max)
+		var hold: float = float(f.get("hold", 0.0))
+		var el: float = float(f.max) - float(f.life)
 		var a: Vector2 = f.a
 		var b: Vector2 = f.b
 		var d: Vector2 = (b - a).normalized()
 		var L: float = a.distance_to(b)
-		if p < 0.17:
+		if el < hold:
+			_beam_body(g, a, d, L, float(f.wid), 1.0, clampf(1.0 - el / 0.08, 0.0, 1.0))
+			continue
+		var p: float = clampf((el - hold) / maxf(0.01, float(f.max) - hold), 0.0, 1.0)
+		if hold <= 0.0 and p < 0.17:
 			var n0: Vector2 = d.orthogonal() * float(f.wid) * 0.9
 			g.draw_colored_polygon(PackedVector2Array([a + n0, b + n0, b - n0, a - n0]), Color(1.0, 1.0, 1.0, 0.55 * (1.0 - p / 0.17)))
 		var half: float = float(f.wid) * 0.45 * (1.0 - p)
@@ -95,9 +100,40 @@ static func _zones(g) -> void:
 					_sq(g, z.pos + Vector2(cos(an), sin(an) * gy) * float(z.r), Color(EDGE.r, EDGE.g, EDGE.b, 0.5 * fade))
 
 
+## 稳定光束本体（追扫持续段、小光束结算后的 0.3 秒）：外层专属青绿 → 亮芯 → 2 像素白芯，宽度与透明度每帧相同（不抖、不重伸）；flash = 开火瞬间的白色叠层（单调变暗）
+static func _beam_body(g, a: Vector2, d: Vector2, L: float, wid: float, open: float, flash: float) -> void:
+	var b: Vector2 = a + d * L
+	var o: Vector2 = d.orthogonal()
+	var n1: Vector2 = o * wid * 0.5 * open
+	var n2: Vector2 = o * wid * 0.22 * open
+	var n3: Vector2 = o * maxf(1.0, wid * 0.06) * open
+	g.draw_colored_polygon(PackedVector2Array([a + n1, b + n1, b - n1, a - n1]), Color(CORE.r, CORE.g, CORE.b, 0.5))
+	var hi: Color = CORE.lerp(Color.WHITE, 0.55)
+	g.draw_colored_polygon(PackedVector2Array([a + n2, b + n2, b - n2, a - n2]), Color(hi.r, hi.g, hi.b, 0.9))
+	g.draw_colored_polygon(PackedVector2Array([a + n3, b + n3, b - n3, a - n3]), Color(1, 1, 1, 0.95))
+	if flash > 0.0:
+		g.draw_colored_polygon(PackedVector2Array([a + n1, b + n1, b - n1, a - n1]), Color(1, 1, 1, 0.45 * flash))
+	g.draw_circle(a, wid * 0.32 * open, Color(1, 1, 1, 0.8))
+
+
+static func _sweeps(g) -> void:
+	for e in g.bosses:
+		var s: Dictionary = e.get("ishar_sweep", {})
+		if s.is_empty():
+			continue
+		var el: float = g.t - float(s.t0)
+		var d := Vector2.from_angle(float(s.ang))
+		_beam_body(g, s.pos, d, float(s.len), float(s.wid), clampf(el / 0.1, 0.25, 1.0), clampf(1.0 - el / 0.12, 0.0, 1.0))
+		var pool = Beam.grains(g) if Cfg.quality != "low" else null
+		if pool != null and Beam.take(g, 1) > 0:
+			var t: float = fmod(el * 1.7, 1.0)
+			pool.push("bfx_flash", s.pos + d * float(s.len) * t, d.orthogonal() * (1.0 if int(el * 30.0) % 2 == 0 else -1.0), CORE)
+
+
 static func draw(g) -> void:
 	_zones(g)
 	_fades(g)
+	_sweeps(g)
 	var gy: float = g.combat.GROUND_Y
 	for w in g.warns:
 		if w.done or not owns(w):
