@@ -28,6 +28,8 @@ static func draw(g, impacts := false) -> void:
 			if not w.done and w.owner.get("stakes", []) is Array and not w.owner.get("stakes", []).is_empty(): caps.append(w)
 		for b in g.bosses:
 			if b.type != "knight_boss": continue
+			_stage_set(b)
+			_stage_ground(g, b)
 			if b.get("kb_self", false): Grains.dash_frost(g, b)
 			_dash_frost(g, b)
 	for w in g.warns:
@@ -52,6 +54,81 @@ static func draw(g, impacts := false) -> void:
 				_shape(g,f,clampf(float(f.life)/float(f.max)*1.5,0,1),false)
 	g.world.tb_flush()
 	for w in caps: g.world._stake_cap(w)   # 撞柱提示保持原样（world.draw_warn_outlines 不再画骑士线形预警）
+
+## ---- 骑士分阶段风格（docs/169，10-28）：冰面 / 碎冰 / 冰颗粒按阶段乘色，场地按阶段加霜带、飘雪、重生裂冰。只画画面，不抽随机
+const STAGE_ICE := [Color(1, 1, 1), Color(0.9, 1.0, 1.0), Color(0.78, 0.88, 1.12), Color(0.46, 0.56, 0.8)]
+static var _tint := Color(1, 1, 1)
+
+static func _t(c: Color) -> Color:
+	return Color(c.r * _tint.r, c.g * _tint.g, c.b * _tint.b, c.a)
+
+static func _stage(b) -> int:
+	return 3 if int(b.get("phase", 1)) == 2 else clampi(int(b.get("gates_passed", 0)), 0, 2)
+
+static func _stage_set(b) -> void:
+	_tint = STAGE_ICE[_stage(b)]
+	Grains.ice_tint = Color(_tint.r, _tint.g, _tint.b, Grains.ICE_TINT.a)
+
+static func _stage_ground(g, b) -> void:
+	var st := _stage(b)
+	if st == 0 or Grains.ice_off or not g.zone_frozen:
+		return
+	var r = g.world
+	var gy: float = g.combat.GROUND_Y
+	var c: Vector2 = g.zone_c
+	var R: float = g.zone_r
+	# 霜带：场地边缘往里爬（二幕 24 → 60，三幕 / 重生 100）；只画视野附近的段
+	var grow: float = clampf(float(b.get("act_t", 0.0)) / 30.0, 0.0, 1.0)
+	var band: float = (24.0 + 36.0 * grow) if st == 1 else 100.0
+	var tone: Color = [Color(), Color(0.62, 0.86, 0.9, 0.12), Color(0.42, 0.56, 0.8, 0.12), Color(0.14, 0.2, 0.34, 0.26)][st]
+	var rim: Color = [Color(), Color(0.82, 0.96, 1.0, 0.32), Color(0.8, 0.88, 1.0, 0.3), Color(0.6, 0.72, 0.9, 0.34)][st]
+	var view: Vector2 = g.ppos
+	var seg := 96
+	for i in seg:
+		var a0: float = TAU * i / seg
+		var a1: float = TAU * (i + 1) / seg
+		var o0 := c + Vector2(cos(a0), sin(a0) * gy) * R
+		if o0.distance_to(view) > 900.0:
+			continue
+		var o1 := c + Vector2(cos(a1), sin(a1) * gy) * R
+		var w0: float = band * (0.65 + 0.35 * _noise(i, 41 + st))
+		var w1: float = band * (0.65 + 0.35 * _noise((i + 1) % seg, 41 + st))
+		var i0 := c + Vector2(cos(a0), sin(a0) * gy) * (R - w0)
+		var i1 := c + Vector2(cos(a1), sin(a1) * gy) * (R - w1)
+		r.tb_quad(_snap(o0), _snap(o1), _snap(i1), _snap(i0), tone)
+		_strip(r, i0, i1, 2.0, rim)
+		if _noise(i, 57 + st) > 0.6:   # 霜刺：从霜带内缘往里扎一小截
+			var m: Vector2 = (i0 + i1) * 0.5
+			_strip(r, m, m + (c - m).normalized() * (8.0 + 14.0 * _noise(i, 61)), 2.0, rim)
+	# 三幕飘雪：视野内 90 粒，按时间斜落；重生不下雪（换裂冰）
+	if st == 2:
+		var t: float = g.t
+		for k in 90:
+			var px: float = fposmod(_noise(k, 71) * 1400.0 - t * (26.0 + 14.0 * _noise(k, 73)), 1400.0) - 700.0
+			var py: float = fposmod(_noise(k, 79) * 800.0 + t * (48.0 + 30.0 * _noise(k, 83)), 800.0) - 400.0
+			_dot(r, view + Vector2(px, py), Color(0.92, 0.97, 1.0, 0.3 + 0.3 * _noise(k, 89)), 2.0)
+	# 重生裂冰：重生点一片黑冰圆盘 + 放射状白裂纹
+	if st == 3 and b.has("kn_reborn_pos"):
+		var p: Vector2 = b.kn_reborn_pos
+		if p.distance_to(view) < 1100.0:
+			for i in 28:
+				var a0: float = TAU * i / 28.0
+				var a1: float = TAU * (i + 1) / 28.0
+				var rr: float = 220.0 * (0.82 + 0.18 * _noise(i, 97))
+				r.tb_quad(p, p, p + Vector2(cos(a0), sin(a0) * gy) * rr, p + Vector2(cos(a1), sin(a1) * gy) * rr, Color(0.06, 0.1, 0.2, 0.32))
+			for j in 14:
+				var ang: float = TAU * (j + _noise(j, 101) * 0.7) / 14.0
+				var reach: float = 120.0 + _noise(j, 103) * 110.0
+				var last: Vector2 = p
+				for s in 6:
+					var u: float = float(s + 1) / 6.0
+					var jit: float = (_noise(j * 6 + s, 107) - 0.5) * 0.45
+					var at: Vector2 = p + Vector2(cos(ang + jit), sin(ang + jit) * gy) * reach * u
+					_strip(r, last, at, 2.0, Color(0.85, 0.94, 1.0, 0.7 - 0.4 * u))
+					if s == 3 and _noise(j, 109) > 0.5:   # 分叉
+						var br: float = ang + 0.5 * (1.0 if _noise(j, 113) > 0.5 else -1.0)
+						_strip(r, at, at + Vector2(cos(br), sin(br) * gy) * 34.0, 2.0, Color(0.7, 0.84, 0.98, 0.4))
+					last = at
 
 static func _snap(p: Vector2) -> Vector2:
 	return p.snapped(Vector2(2.0, 2.0))
@@ -339,29 +416,29 @@ static func _dash_frost(g, e: Dictionary) -> void:
 			for band in 2:
 				var c0: float = w_side * band * 0.5
 				var tone: float = _noise(int(i / 3.0) * 4 + band * 2 + (1 if side > 0.0 else 0), salt + 41)
-				var sheet := Color(0.85, 0.96, 1.0, 0.5)
+				var sheet := _t(Color(0.85, 0.96, 1.0, 0.5))
 				if age >= 0.08:
-					if tone < 0.3: sheet = Color(0.2, 0.34, 0.46, 0.24 * fade)
-					elif tone < 0.75: sheet = Color(0.38, 0.58, 0.7, 0.17 * fade)
-					else: sheet = Color(0.6, 0.8, 0.9, 0.2 * fade)
+					if tone < 0.3: sheet = _t(Color(0.2, 0.34, 0.46, 0.24 * fade))
+					elif tone < 0.75: sheet = _t(Color(0.38, 0.58, 0.7, 0.17 * fade))
+					else: sheet = _t(Color(0.6, 0.8, 0.9, 0.2 * fade))
 				_strip(r, a + n * side * (c0 + w_side * 0.25), b + n * side * (c0 + w_side * 0.25), w_side * 0.5, sheet)
 			# Frozen rim: a lighter 2 px lip along the edge.
-			_strip(r, a + n * side * w_side, b + n * side * w_side, 2.0, Color(0.7, 0.86, 0.94, 0.38 * fade))
+			_strip(r, a + n * side * w_side, b + n * side * w_side, 2.0, _t(Color(0.7, 0.86, 0.94, 0.38 * fade)))
 		# Sheen: short diagonal highlights across the sheet, as on polished ice.
 		if i % 7 == 3:
 			var across: float = (_noise(i, salt + 17) - 0.5) * half
 			var c: Vector2 = (a + b) * 0.5 + n * across
-			_strip(r, c - (d + n) * 5.0, c + (d + n) * 5.0, 2.0, Color(0.88, 0.96, 1.0, 0.35 * fade))
+			_strip(r, c - (d + n) * 5.0, c + (d + n) * 5.0, 2.0, _t(Color(0.88, 0.96, 1.0, 0.35 * fade)))
 		# Hairline cracks frozen into the sheet.
 		if i % 5 == 1 and _noise(i, salt + 21) < 0.6:
 			var c0: Vector2 = a + n * (_noise(i, salt + 23) - 0.5) * half * 1.2
-			_strip(r, c0, c0 + (d * 0.6 + n * (_noise(i, salt + 29) - 0.5) * 1.6).normalized() * (6.0 + _noise(i, salt + 31) * 10.0), 2.0, Color(0.22, 0.36, 0.5, 0.5 * fade))
+			_strip(r, c0, c0 + (d * 0.6 + n * (_noise(i, salt + 29) - 0.5) * 1.6).normalized() * (6.0 + _noise(i, salt + 31) * 10.0), 2.0, _t(Color(0.22, 0.36, 0.5, 0.5 * fade)))
 		if _noise(i, salt + 9) < 0.07 and age > 0.1 and age < 0.7 and int((age + _noise(i, salt + 11)) * 12.0) % 3 == 0:
-			_dot(r, a + n * (_noise(i, salt + 13) - 0.5) * half, Color(0.92, 0.98, 1.0, 0.9))   # Ice glint.
+			_dot(r, a + n * (_noise(i, salt + 13) - 0.5) * half, _t(Color(0.92, 0.98, 1.0, 0.9)))   # Ice glint.
 	# Freezing front: a bright line across the band at the newest frozen cell while the Knight is still sliding.
 	if front >= 0 and front < steps - 1:
 		var fp: Vector2 = origin + d * length * float(front + 1) / steps
-		_strip(r, fp - n * half * 0.9, fp + n * half * 0.9, 2.0, Color(0.9, 0.98, 1.0, 0.8))
+		_strip(r, fp - n * half * 0.9, fp + n * half * 0.9, 2.0, _t(Color(0.9, 0.98, 1.0, 0.8)))
 
 ## 撞柱冲锋的地面冰爆（骑士独有招，10-27）：圆盘霜面 + 8 道参差冰裂从柱根向外长（0.15 秒长满），白 → 青 → 暗蓝后淡出。纯画面
 static func _crash(g, f: Dictionary) -> void:
@@ -372,13 +449,13 @@ static func _crash(g, f: Dictionary) -> void:
 	var gy: float = g.combat.GROUND_Y
 	var p: Vector2 = f.pos
 	var salt: int = (int(absf(p.x)) * 7 + int(absf(p.y)) * 3) & 1023
-	var disc := Color(0.4, 0.6, 0.72, 0.22 * fade) if age > 0.06 else Color(0.85, 0.96, 1.0, 0.5)
+	var disc := _t(Color(0.4, 0.6, 0.72, 0.22 * fade)) if age > 0.06 else _t(Color(0.85, 0.96, 1.0, 0.5))
 	for i in 20:
 		var a0: float = TAU * i / 20.0
 		var a1: float = TAU * (i + 1) / 20.0
 		var rr: float = 46.0 * k * (0.8 + 0.25 * _noise(i, salt))
 		r.tb_quad(p, p, p + Vector2(cos(a0), sin(a0) * gy) * rr, p + Vector2(cos(a1), sin(a1) * gy) * rr, disc)
-	var crack := Color(0.88, 0.97, 1.0, 0.9) if age < 0.12 else (Color(0.58, 0.82, 0.94, 0.75 * fade) if age < 0.6 else Color(0.25, 0.4, 0.56, 0.6 * fade))
+	var crack := _t(Color(0.88, 0.97, 1.0, 0.9)) if age < 0.12 else (_t(Color(0.58, 0.82, 0.94, 0.75 * fade)) if age < 0.6 else _t(Color(0.25, 0.4, 0.56, 0.6 * fade)))
 	for j in 8:
 		var ang: float = TAU * (j + _noise(j, salt + 3) * 0.6) / 8.0
 		var reach: float = (60.0 + _noise(j, salt + 5) * 50.0) * k

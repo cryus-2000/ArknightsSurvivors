@@ -37,7 +37,8 @@ func on_warning(e: Dictionary, w: Dictionary) -> void:
 		e.knight_combo_phase = e.phase
 		e.knight_combo_until = g.t + 18.0
 		e.knight_combo_next = g.t
-	e.knight_combo_next = maxf(float(e.knight_combo_next),g.t+w.dur+(0.10 if e.phase==2 else 0.22))
+	# 分阶段节奏（docs/169 分阶段风格）：一幕 0.22、二幕 0.18、三幕 0.15、重生 0.10 秒
+	e.knight_combo_next = maxf(float(e.knight_combo_next),g.t+w.dur+(0.10 if e.phase==2 else [0.22,0.18,0.15][clampi(_act(e),0,2)]))
 
 func cancel_combo(e: Dictionary) -> void:
 	_cancel_stake_cast(e)
@@ -179,7 +180,8 @@ func setup_preview_phase2(e: Dictionary) -> void:
 	e.stun = 0.0
 	e.kb = Vector2.ZERO
 	e.stakes = []
-	_tint2(e, Color(0.82, 0.92, 1.25))
+	_tint2(e, STAGE_TINT[3])
+	e.kn_reborn_pos = e.pos
 	g.vfx.fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), g.PX * 1.4, 0.0)
 
 
@@ -447,8 +449,20 @@ func taken_mult(e: Dictionary) -> float:
 
 
 ## 转幕保留当前冰柱批次，不额外补柱。
+## 分阶段风格（docs/169，10-28 用户「每个 boss 不同阶段是不是得做出点不同的风格来？」）：过幕换本体乘色 + 横幅；场地与冰色由 render/boss_attack_draw 按阶段画
+const STAGE_TINT := [Color(1, 1, 1), Color(0.9, 1.0, 1.08), Color(0.8, 0.9, 1.28), Color(0.62, 0.72, 0.98)]
+const STAGE_BANNER := ["", "冰棱带：冲锋会留下冰面，开始掷枪", "寒潮：掷枪两连，冲锋会折返"]
+
+## 0 一幕 / 1 二幕 / 2 三幕 / 3 重生
+static func stage(e: Dictionary) -> int:
+	return 3 if int(e.get("phase", 1)) == 2 else clampi(int(e.get("gates_passed", 0)), 0, 2)
+
 func on_gate(e: Dictionary) -> void:
 	cancel_combo(e) # Existing pillars persist; only the attack sequence ends.
+	var st := stage(e)
+	if st > 0 and st < 3:
+		_tint2(e, STAGE_TINT[st])
+		g.vfx.show_banner(STAGE_BANNER[st])
 
 
 ## 第一次归零不死，寒冰重生（二阶段「冲锋形态」）
@@ -468,7 +482,8 @@ func on_lethal(e: Dictionary) -> bool:
 	e.kb = Vector2.ZERO
 	e.kcold = 0.0
 	e.ice_strips = []
-	e["tint2"] = Color(0.82, 0.92, 1.25)   # 二阶段常驻冰蓝着色（docs/95 §4.2；render/world 乘色，不改帧条）
+	e["tint2"] = STAGE_TINT[3]   # 重生常驻黑冰着色（docs/95 §4.2 → docs/169 分阶段风格；render/world 乘色，不改帧条）
+	e.kn_reborn_pos = e.pos   # 重生点：场地画放射状裂冰
 	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))   # 重生清预警（§4.3 节奏表）
 	if not g.vfx.fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), g.PX * 1.4, 0.0):
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.9, 1.4)})
