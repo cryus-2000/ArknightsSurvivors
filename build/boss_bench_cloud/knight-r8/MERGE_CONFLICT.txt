@@ -1,0 +1,165 @@
+M  docs/169_knight_combos_1027.md
+A  docs/171_knight_stage_plan.md
+UU game/data/balance.json
+M  game/data/enemies.json
+M  game/scripts/boss_ai.gd
+M  game/scripts/core/bot.gd
+M  game/scripts/data.gd
+M  game/scripts/enemies/bosses/knight_boss.gd
+M  game/scripts/enemies/final_attacks.gd
+M  game/scripts/render/boss_attack_draw.gd
+M  game/scripts/render/final_attack_grains.gd
+M  game/scripts/render/vfx.gd
+AA game/scripts/run/boss_bench.gd
+M  game/scripts/run/enemies.gd
+M  game/scripts/run/spawner.gd
+M  game/tests/knight_combo_test.gd
+AA tools/boss_bench.py
+diff --cc game/data/balance.json
+index 6e231177,f0dafcbb..00000000
+--- a/game/data/balance.json
++++ b/game/data/balance.json
+@@@ -458,17 -427,11 +458,25 @@@
+    "_doc": "Boss 血量与受伤旋钮（docs/42 §8，EA v2，云端 ea-v1 验证）。hp_mid：3:30 / 7:00 中期 Boss；hp_final：10:00 最终 Boss（10-24 用户：直接缩血 15%，2.35 → 2.0）；hp_x_<id>：单只再乘；hit_cap_pct：Boss 单次受伤最多为最大生命的该比例（0 = 关）。其余 boss/* 旋钮仍用代码缺省值（docs/38）",
+    "hp_mid": 1.3,
+    "hp_final": 2.0,
+++<<<<<<< HEAD
+ +  "hp_x_path": 2.6,
+ +  "_mid_fight_len": "10-27 测试台（boss-bench）：中期 Boss 单场 20–37 秒招式放不全；按单场 45–75 秒提血：塑路者 1.6 → 2.6（37 → 约 60 秒），接潮组三只各 2.3（23–25 → 约 55 秒；假死复苏按最大生命比例，跟着放大）。tide_combo_cd1/2 配合连段冷却、tide_brk1/2 收招破绽秒数（docs/170 §4.3）",
+ +  "hp_x_bishop": 2.3,
+ +  "hp_x_archon": 2.3,
+ +  "hp_x_immortal": 2.3,
+ +  "hp_x_paranoia": 1.35,
+ +  "_paranoia_pace": "偏执泡影单场节奏（docs/170 §3g，10-28 测试台 boss-bench：原中位 149 秒、约四成超时）：hp_x_paranoia 1.6→1.35；悬浮期受伤 paranoia_hover_taken 与落地光环张开时受伤 paranoia_aura_taken 0.5→0.65；冲刺打落坠地 paranoia_drop_t 4→5 秒（合计受伤 paranoia_drop_taken 1.8 不变）。目标中位 90–120 秒、超时 <10%",
+ +  "paranoia_hover_taken": 0.65,
+ +  "paranoia_aura_taken": 0.65,
+ +  "paranoia_drop_t": 5.0,
+ +  "hp_x_knight_boss": 3.0,
+++=======
++   "hp_x_path": 1.6,
++   "hp_x_paranoia": 1.6,
++   "hp_x_knight_boss": 2.3,
++   "dmg_x_knight_boss": 2.5,
++   "_dmg_x": "dmg_x_<id>：单只 Boss 伤害再乘（缺省 1.0）。骑士 10-28 按测试台（docs/170）：血 3.0 → 2.55 压超时、伤害 ×2.5 让持续压力能击倒队长，docs/169 §输出窗口 末尾有表",
+++>>>>>>> e40aa5956
+    "_knight_axis": "骑士「斗牛」样板（docs/142b §3.1 / §9）：knight_stakes 每批冰柱数量，全毁后才补下一批；knight_stake_break 撞柱眩晕秒数；knight_armor 平时受伤倍率；knight_break_taken 撞柱 / 喘气破绽期合计受伤倍率",
+    "knight_stakes": 5,
+    "knight_stake_break": 2.5,
+diff --cc game/scripts/run/boss_bench.gd
+index 7ec55901,0217fe3d..00000000
+--- a/game/scripts/run/boss_bench.gd
++++ b/game/scripts/run/boss_bench.gd
+@@@ -30,7 -30,7 +30,11 @@@ static var cur = null     # 开着的�
+  
+  func _init(game) -> void:
+  	g = game
+++<<<<<<< HEAD
+ +	for a in _dev_args():
+++=======
++ 	for a in Cfg.dev_args():
+++>>>>>>> e40aa5956
+  		if a.begins_with("--benchsnap="):
+  			rec_prefix = a.substr(12)
+  		elif a.begins_with("--bossbench="):
+@@@ -234,7 -234,7 +238,11 @@@ func _write_snap(slot: int, group: Arra
+  	for m in g.mires:
+  		mires.append(var_to_str({"pos": m.pos, "r": m.r, "maxr": m.maxr, "life": m.life, "seed": m.get("seed", 0.0)}))
+  	var args: Array = []
+++<<<<<<< HEAD
+ +	for a in _dev_args():
+++=======
++ 	for a in Cfg.dev_args():
+++>>>>>>> e40aa5956
+  		for p in ["--seed=", "--op=", "--squad=", "--bot=", "--meta=", "--metanodes=", "--tide=", "--diff=", "--tier=", "--bal=", "--dens="]:
+  			if a.begins_with(p):
+  				args.append(a)
+@@@ -414,8 -414,3 +422,11 @@@ func _replay(kind: String, a: Array) -
+  					ro.apply_rejection()
+  				else:
+  					ro.clear_rejection()
+++<<<<<<< HEAD
+ +
+ +
+ +## 与 Cfg.dev_args 同口径（只在 debug 构建读命令行）；不直接引用 Cfg：settings.gd → relic_db → … → 本脚本 → Cfg 会循环编译失败（-s 测试里 core 挂）
+ +static func _dev_args() -> PackedStringArray:
+ +	return OS.get_cmdline_user_args() if OS.is_debug_build() else PackedStringArray()
+++=======
+++>>>>>>> e40aa5956
+diff --cc tools/boss_bench.py
+index b8ee12c0,7854ff25..00000000
+--- a/tools/boss_bench.py
++++ b/tools/boss_bench.py
+@@@ -86,7 -86,7 +86,11 @@@ def cmd_record(a)
+  
+      with ThreadPoolExecutor(max_workers=a.jobs) as ex:
+          recs = list(ex.map(one, jobs))
+++<<<<<<< HEAD
+ +    with open(os.path.join(a.out, "record_%s_m%s_s%s.json" % (a.ops.replace(",", "-"), a.metas.replace(",", "-"), a.seeds.replace(",", "-"))), "w", encoding="utf-8") as f:
+++=======
++     with open(os.path.join(a.out, "record.json"), "w", encoding="utf-8") as f:
+++>>>>>>> e40aa5956
+          json.dump(recs, f, ensure_ascii=False, indent=1)
+      print("快照目录：%s（%d 局）" % (a.out, len(recs)))
+  
+@@@ -204,18 -204,6 +208,21 @@@ def table(paths)
+      return "\n".join(L) + "\n"
+  
+  
+++<<<<<<< HEAD
+ +def cmd_merge(a):
+ +    """分块跑的结果（云端单条命令 10 分钟上限，按开局 / 认知拆开跑）合成一份"""
+ +    recs, game = [], ""
+ +    for p in a.parts:
+ +        d = json.load(open(p, encoding="utf-8"))
+ +        recs += d["records"]
+ +        game = d.get("game", game)
+ +    with open(a.out, "w", encoding="utf-8") as f:
+ +        json.dump({"tag": a.tag, "game": game, "records": recs}, f, ensure_ascii=False, indent=1)
+ +    print("%s：%d 局（%d 份）" % (a.out, len(recs), len(a.parts)))
+ +
+ +
+++=======
+++>>>>>>> e40aa5956
+  def main():
+      ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+      sub = ap.add_subparsers(dest="cmd", required=True)
+@@@ -230,7 -218,7 +237,11 @@@
+      r.add_argument("--game", default=GAME)
+      r.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2) - 1))
+      r.add_argument("--timeout", type=int, default=1800)
+++<<<<<<< HEAD
+ +    r.add_argument("--extra", nargs="*", default=[])
+++=======
++     r.add_argument("--extra", nargs="*", action="extend", default=[])
+++>>>>>>> e40aa5956
+      b = sub.add_parser("run")
+      b.add_argument("--snaps", default=os.path.join(ROOT, "build", "boss_bench", "snaps"))
+      b.add_argument("--bosses", default="all")
+@@@ -244,11 -232,7 +255,15 @@@
+      b.add_argument("--game", default=GAME)
+      b.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2) - 1))
+      b.add_argument("--timeout", type=int, default=900)
+++<<<<<<< HEAD
+ +    b.add_argument("--extra", nargs="*", default=[])
+ +    mg = sub.add_parser("merge")
+ +    mg.add_argument("--tag", required=True)
+ +    mg.add_argument("--out", required=True)
+ +    mg.add_argument("parts", nargs="+")
+++=======
++     b.add_argument("--extra", nargs="*", action="extend", default=[])
+++>>>>>>> e40aa5956
+      t = sub.add_parser("table")
+      t.add_argument("paths", nargs="+")
+      a = ap.parse_args()
+@@@ -256,8 -240,6 +271,11 @@@
+          cmd_record(a)
+      elif a.cmd == "run":
+          cmd_run(a)
+++<<<<<<< HEAD
+ +    elif a.cmd == "merge":
+ +        cmd_merge(a)
+++=======
+++>>>>>>> e40aa5956
+      else:
+          print(table(a.paths))
+  
