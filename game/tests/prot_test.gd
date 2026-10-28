@@ -855,12 +855,13 @@ func test_final_mob_cap() -> void:
 		Bal._data["final"] = keep_fin
 	fb.dead = true
 	ok(sp.boss_mob_room() == sp.max_alive(), "最终 Boss 倒下后恢复不限")
-	# 中期 Boss（在 g.bosses 里、不是最终 Boss）：10-28 起按平时，不压存活上限
+	# 中期 Boss（在 g.bosses 里、不是最终 Boss）：10-28 起余量 = 同屏上限 × spawn/mid_boss_cap_mult − 存活杂兵
 	var mb := {"dead": false, "boss": true, "type": "path"}
 	game.enemies.append(mb)
 	game.bosses = [mb]
 	game.final_boss = null
-	ok(sp.boss_mob_room() == sp.max_alive(), "中期 Boss 在场：余量按平时（%d）" % sp.boss_mob_room())
+	var mid_cap: int = int(sp.max_alive() * Bal.v("spawn/mid_boss_cap_mult", 1.0)) - sp.mob_count()
+	ok(sp.mid_boss_up() and sp.boss_mob_room() == mid_cap, "中期 Boss 在场：余量按同屏上限 × mid_boss_cap_mult（%d）" % sp.boss_mob_room())
 	mb.dead = true
 	ok(sp.boss_mob_room() == sp.max_alive(), "中期 Boss 倒下后恢复不限")
 	game.bosses = keep_b
@@ -898,8 +899,21 @@ func test_final_stop_mobs() -> void:
 		sp.spawn_acc = 10.0
 		sp.next_elite = game.t - 1.0
 		if not sp.is_final_boss_type(kind):
+			# 中期 Boss：普通刷怪照常，精英名额挂起，Boss 倒下后 mid_release_delay 秒起放出（10-28 协调人定）
+			sp.set("_held_elite", 0)
 			sp.update(0.0)
-			ok(not sp.mobs_stopped() and game.enemies.size() > 2, kind + " (mid boss) keeps ordinary/elite spawning")
+			var n_mid: int = game.enemies.size()
+			ok(not sp.mobs_stopped() and n_mid > 2, kind + " (mid boss) keeps ordinary spawning")
+			ok(int(sp.get("_held_elite")) == 1 and sp.next_elite > game.t, kind + " (mid boss) holds the due elite")
+			boss.dead = true
+			sp.spawn_acc = 0.0
+			sp.update(0.0)
+			ok(game.enemies.size() == n_mid, kind + " held elite waits for the release delay")
+			game.t += Bal.v("spawn/mid_release_delay", 6.0) + 2.0 * Bal.v("spawn/mid_release_gap", 5.0) + 0.1
+			sp.next_elite = game.t + 1.0e6
+			sp.update(0.0)
+			ok(game.enemies.size() > n_mid and int(sp.get("_held_elite")) == 0, kind + " held elite released after the boss falls")
+			game.t = 560.0
 			continue
 		var state: Array = game.rng_states()
 		sp.update(0.0)
