@@ -31,7 +31,7 @@ func pattern(e: Dictionary, dir: Vector2, dist: float, dt: float, spd: float) ->
 		return _reap(e, d, dir, dist, dt)   # 受伤形态切换先于额外招式，避免同帧被直刺抢走
 	if d.get("pattern", "") == "thrust" and not e.enraged and e.hp <= e.maxhp * float(d.get("enrage_at", 0.5)):
 		return _thrust(e, d, dir, dist, dt)
-	if d.has("scream_r") and _scream(e, d, dist):
+	if d.has("scream_r") and _scream(e, d, dist, dt):
 		return Vector2.INF   # 箱形恐鱼尖叫期间照常移动，不啃咬、不出额外招式
 	if _secondary(e, d, dir, dist):
 		return Vector2.ZERO
@@ -129,7 +129,9 @@ func _stag(e: Dictionary) -> bool:
 ## 张口 scream_delay 秒后尖叫 scream_t 秒——队长在 scream_r 内就累积神经损伤（同巢涌者光环，走 g.nerve_aura_t），光环随它移动；
 ## 画面 world._scream_aura（地面层常亮淡底 + 不转的虚线边界、危险色、不闪）。返回 true = 尖叫中（含张口），这一帧不啃咬、不出额外招式。
 ## 原作「宝箱恐鱼」：惊醒后尖叫，周围持续神经损伤
-func _scream(e: Dictionary, d: Dictionary, dist: float) -> bool:
+## 用户 10-28：圈内除神经损伤（enemy/mimic_scream_nerve 倍率，缺省 1.6 = 约 19/秒）外还吞噬灯火（enemy/mimic_scream_lamp 每秒，缺省 7 ≈ 满 2.5 秒扣上限 17%）；
+## 流明光域里两样都不生效，灯火扣减走 lamp_loss_mult，每累计 ≥ 3 点飘一次「灯火 -N」
+func _scream(e: Dictionary, d: Dictionary, dist: float, dt := 0.0) -> bool:
 	if not e.has("scream_t0"):
 		if dist >= float(d.get("scream_wake_r", 260.0)):
 			return false
@@ -139,6 +141,15 @@ func _scream(e: Dictionary, d: Dictionary, dist: float) -> bool:
 	if g.t >= float(e.scream_t0) and dist < float(d.get("scream_r", 150.0)) and g.invuln <= 0.0:
 		g.telemetry.aura_type = str(e.type)
 		g.nerve_aura_t = 0.6
+		g.nerve_aura_k = Bal.v("enemy/mimic_scream_nerve", 1.6)
+		if not g.squad.in_sanctuary(g.ppos):
+			var l0: float = g.lamp
+			g.lamp = maxf(0.0, g.lamp - Bal.v("enemy/mimic_scream_lamp", 7.0) * dt * g.lamp_loss_mult)
+			g.telemetry.lamp_note("尖叫", g.lamp - l0)
+			e["scream_lamp"] = float(e.get("scream_lamp", 0.0)) + (l0 - g.lamp)
+			if float(e.scream_lamp) >= 3.0:
+				g.vfx.add_text(g.ppos + Vector2(20, -60), "灯火 -%d" % int(e.scream_lamp), Color(1.0, 0.6, 0.4), 13)
+				e["scream_lamp"] = 0.0
 	return true
 
 
