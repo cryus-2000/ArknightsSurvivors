@@ -13,7 +13,7 @@
   D / E（10-28 试听档，docs/187 §7，只动配乐、语音同 B）：配乐 22.05 / 16 kHz，level 1.1 = Vorbis 质量 -0.1。
     libsndfile 最低只到质量 0，这两档改用 imageio_ffmpeg 自带 ffmpeg 的 libvorbis 编码（global_quality = 质量 × 10 × 118）
 这是有损压缩。网页 PCM 大小取决于 AudioContext 采样率，文件降采样本身只减包体；手机上下文另由 power.js 设为 24 kHz。
-用法：export_web.py --audio-tier B（缺省）；单独试：python tools/web_audio.py <game 目录副本> <A|B|C> （只改传进去的目录）
+用法：export_web.py --audio-tier C（10-28 起缺省，B 可回退）；单独试：python tools/web_audio.py <game 目录副本> <A|B|C> （只改传进去的目录）
 """
 import io, json, os, sys
 from math import gcd
