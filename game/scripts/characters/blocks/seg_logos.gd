@@ -542,7 +542,7 @@ static func hw_draw_fan(o) -> void:
 	var fade: float = clampf(float(fn.t) / 0.5, 0.0, 1.0)
 	_hw_draw_shots(o)
 	if _hw_fan_sheets(o, b, fn, fa, r, fade):
-		return   # 咒域素材到位（docs/190）：整片扇形由帧条画，程序填充 / 边线不再画
+		return   # 咒域素材到位（docs/192）：整片扇形由帧条画，程序填充 / 边线不再画
 	var pts := PackedVector2Array([o.pos])
 	for k in 25:
 		pts.append(o.pos + Vector2.from_angle(fa - half + half * 2.0 * k / 24.0) * r)
@@ -556,7 +556,7 @@ static func hw_draw_fan(o) -> void:
 		cv.draw_circle(o.pos + Vector2.from_angle(fa - half + half * 2.0 * t) * r, 2.5, Color(HW_PALE.r, HW_PALE.g, HW_PALE.b, 0.7 * fade))
 
 
-## 咒域整片扇形素材（docs/190）：fx_logos_s3_fan_ground（循环）/ _open（起手 0.5 秒）/ _close（收尾 0.5 秒），三条同画布（1x 180×264，原点 (4,132)，
+## 咒域整片扇形素材（docs/192）：fx_logos_s3_fan_ground（循环）/ _open（起手 0.5 秒）/ _close（收尾 0.5 秒），三条同画布（1x 180×264，原点 (4,132)，
 ## 画的是参考半径 170 美术像素 = 340 世界像素、100° 的扇形，朝右），按 r / 340 等比缩放、绕原点转到咒域朝向。ground 没图就整体回退程序画法（返回 false）；
 ## open / close 缺图时只用 ground。起手 / 收尾期间 ground 淡入 / 淡出，不与 open / close 叠成双层
 const FAN_REF_R := 340.0
@@ -569,7 +569,7 @@ static func _s3_extra_on(g) -> bool:
 
 const S3_SHOT_MAX := 6     # 每 tick 最多画几道出手轨迹（同屏 ≤ 6 × 3 次绘制）
 const S3_SHOT_DUR := 0.3
-const SLOW_MARK_MAX := 40   # 被减速弹幕标记同屏上限（docs/190）
+const SLOW_MARK_MAX := 40   # 被减速弹幕标记同屏上限（docs/192）
 
 static func _hw_fan_sheets(o, b: Dictionary, fn: Dictionary, fa: float, r: float, fade: float) -> bool:
 	var g = o.g

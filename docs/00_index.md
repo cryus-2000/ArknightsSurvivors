@@ -132,7 +132,8 @@
 | [191_relic_pacing](191_relic_pacing.md) | 藏品节奏：来源拆分、降频与核心延后 | 已实现，待整局校准 | 10-28/29：遥测加来源；精英掉箱 0.15 + 2:00 前不掉、途中一后移 35 秒、商店藏品连买涨价；大时刻宝箱多选项 + 稀有加权；升华 / 核心 73 件第一只中期 Boss 倒下前不出。胜局 17 → 12 件，胜率掉，等统一校准 | balance.json relic/*、shop/relic_step、progression、relic_fx、endings |
 | [187_web_shrink_1028](187_web_shrink_1028.md) | 网页包再压缩评估 | 已实现 | 10-28：按类别拆分；无损四项（字体 WOFF2、WebP 最高档、wasm LZMA 分片 + 自写解码器、art/incoming 关透明渗色）41.62 → 36.10 MiB；音频 C 档 / 音效降采样等用户 | 121、164、22 |
 | [190_op_voice_more](190_op_voice_more.md) | 干员语音扩充 | 已实施 | 10-29：每人入队 4 / 突击 4 / 技能 4 / 闲聊 3 句原作语音（新增 110 条、+1.82 MiB），洗牌不重复 + 同句 60 秒；归队不再开口 | sfx.gd、voice_pools.json、tools/voice_more_1029.py |
-| [190_logos_s3_fx_order](190_logos_s3_fx_order.md) | Codex 特效单：逻各斯 S3 扇形咒域 | 待转 Codex | 10-28：现状（扇形程序画、绕身符咒已是帧条）、原作出处、三条 @2x 帧条规格、范围对齐与性能约束、接口（缺图回退已接入） | seg_logos.gd、art.gd、logos_fx_handoff.md |
+| [192_logos_s3_fx_order](192_logos_s3_fx_order.md) | Codex 特效单：逻各斯 S3 扇形咒域 | 待转 Codex | 10-28：现状（扇形程序画、绕身符咒已是帧条）、原作出处、三条 @2x 帧条规格、范围对齐与性能约束、接口（缺图回退已接入） | seg_logos.gd、art.gd、logos_fx_handoff.md |
+| [193_integ_1029](193_integ_1029.md) | integ-1029 整合记录 | 记录 | 10-29：第一批 15 个分支的合入顺序、冲突处理、docs 重编（190 → 192）、素材挪路径 |
 | [189_asset_layout_spec](189_asset_layout_spec.md) | 素材目录与命名规范 + 迁移方案 | 草案，待用户批 | 10-28：收货 art/incoming/<批次> → 在用 game/art/<类别> → 归档 art/archive；前缀 / id / 后缀规则；按索引找图；分 0–6 批迁移；检查 tools/asset_lint.py（只报告） | tools/asset_lint.py、art.gd |
 | [188_asset_audit_1028](188_asset_audit_1028.md) | 素材命名与目录核对 | 待用户看 | 10-28：art/incoming 归档留底、旧合成配乐已删；game/ 没人读的 2 个、语音母带 22 MB 在运行时目录、同内容不同名 16 组、命名不合约定 4 处，只列不改 | art/archive/incoming_1028、game/audio/voice/masters |
 | [186_integ_1028b](186_integ_1028b.md) | 整合分支 integ-1028b 冲突处理记录 | 记录 | 10-28 对内体验包：每处合并冲突一行 + docs 撞号重编表 | — |
