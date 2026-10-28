@@ -1059,7 +1059,7 @@ func draw_auras() -> void:
 	var c := zone_c()
 	var cc: Color = col()
 	if g.lamp >= 70.0:
-		cc = cc.lerp(Color(1.0, 0.92, 0.8), 0.4)
+		cc = cc.lerp(Color(1.0, 0.92, 0.8), 0.12)   # 灯火充盈只微微偏暖，不把设定色冲成灰白（10-29）
 	elif g.lamp < 30.0:
 		cc = cc.lerp(Color(0.45, 0.2, 0.75), 0.6)
 	var on := skill_active()
@@ -1074,7 +1074,7 @@ func draw_auras() -> void:
 		_draw_vortex(cv, "floor")
 		return
 	cv.draw_set_transform(c + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-	cv.draw_circle(Vector2.ZERO, zr, Color(cc.r, cc.g, cc.b, (0.08 if on else 0.045) * rm))
+	# 10-29 特效审查：去掉整片半透明填充圆盘（会把战场糊成灰白、遮敌人和弹幕），只留边线
 	var zring: float = float(B.zone.get("ring", 1.0))   # blocks.zone.ring：区域边线透明度倍率（0 = 不画边线；10-14 浊心斯卡蒂去掉歌域外圈红线，纯画面）
 	if zring > 0.0:
 		cv.draw_arc(Vector2.ZERO, zr, 0.0, TAU, 48, Color(cc.r, cc.g, cc.b, ((0.45 if on else 0.28) + 0.06 * sin(g.t * 3.0)) * rm * zring), 2.0)
