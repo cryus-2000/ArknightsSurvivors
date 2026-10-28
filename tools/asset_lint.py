@@ -162,14 +162,8 @@ def check_dups(rep, files):
             rep.add("H1", "INFO", "同内容不同名", " = ".join(sorted(v)))
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--all", action="store_true", help="列出全部条目")
-    ap.add_argument("--json", help="另写一份机器可读结果")
-    ap.add_argument("--strict", action="store_true", help="有 ERROR 时退出码 1（规范批准后接进 check.py 用）")
-    a = ap.parse_args()
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")
+def run():
+    """跑全部规则，返回 (Report, 运行时贴图数, game/ 文件数)"""
     ops, ens = load_ids()
     inc = git_files(INC)
     runtime = [f for f in inc if f.endswith(".png") and (f.count("/") == 2 or f.split("/")[2] in RUNTIME_SUBDIRS)]
@@ -180,6 +174,31 @@ def main():
     check_intake(rep, inc)
     check_dups(rep, runtime + [f for f in game if f.lower().endswith((".png", ".webp", ".ogg", ".wav")) and "/masters/" not in f
                                and not f.startswith(("game/tests/", "game/tools/", "game/addons/"))])
+    return rep, len(runtime), len(game)
+
+
+def check():
+    """check.py 用（只报告，docs/189 §5）：恒不失败，detail 给各级数量与 WARN 规则分布"""
+    rep, nr, ng = run()
+    tally = collections.Counter()
+    warn = collections.Counter()
+    for (rule, level, _), det in rep.items.items():
+        tally[level] += len(set(det))
+        if level != "INFO":
+            warn[rule] += len(set(det))
+    rules = "、".join("%s %d" % kv for kv in sorted(warn.items()))
+    return [], "只报告：ERROR %d、WARN %d、INFO %d（%s）" % (tally["ERROR"], tally["WARN"], tally["INFO"], rules or "无")
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--all", action="store_true", help="列出全部条目")
+    ap.add_argument("--json", help="另写一份机器可读结果")
+    ap.add_argument("--strict", action="store_true", help="有 ERROR 时退出码 1（规范批准后接进 check.py 用）")
+    a = ap.parse_args()
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    rep, nr, ng = run()
     order = {"ERROR": 0, "WARN": 1, "INFO": 2}
     tally = collections.Counter()
     out = []
@@ -193,7 +212,7 @@ def main():
         if not a.all and len(det) > 8:
             print("        …（共 %d，--all 看全部）" % len(det))
     print("\n素材检查（只报告）：运行时贴图 %d 张、game/ 文件 %d 个；ERROR %d、WARN %d、INFO %d" %
-          (len(runtime), len(game), tally["ERROR"], tally["WARN"], tally["INFO"]))
+          (nr, ng, tally["ERROR"], tally["WARN"], tally["INFO"]))
     if a.json:
         json.dump(out, open(a.json, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     sys.exit(1 if a.strict and tally["ERROR"] else 0)

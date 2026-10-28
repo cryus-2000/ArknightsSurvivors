@@ -1,8 +1,8 @@
-# 189 · 素材目录与命名规范（草案，待用户批）
+# 189 · 素材目录与命名规范（10-28 定稿）
 
 10-28 用户：「素材整理之后能不能进一步规整、分门别类，并写好规范，之后不会乱」。本文分两部分：**规范**（§1–§5，批了以后所有新素材按它放）和**迁移方案**（§6–§8，把现状搬成规范的样子，分批做，每批单独提交）。
 
-**现在什么文件都没挪。** 只新增了一条只报告的检查 `python tools/asset_lint.py`（§5）。需要用户定的点集中在 §9。
+用户 10-28 批准，§9 五点按推荐定。迁移进度：批 1 已做；批 0 等 claude/web-shrink 合入；批 2 起等 codex/art 收完（协调人安排）。检查 `python tools/asset_lint.py` 已接进 check.py（`--only asset_lint`），先只报告。
 
 相关：docs/188（10-28 现状清单）、docs/131（10-24 清理盘点）、docs/104（Codex 像素流程）、docs/87 / 98（人物帧条规格）、docs/93（特效规格）、docs/94（敌人重画）。
 
@@ -26,7 +26,7 @@
 - 收货区根目录只留 `README.md`（规则说明）和 Codex 的总入口单（`codex_handover_*.md`）；**一个批次一个子目录，子目录名 = 内容简称 + 交付日期（月日）**。
 - 在用目录里**不放**交接文档、清单、审阅图、源文件、母带。生成在用文件的脚本放 `tools/`（或随批次归档），不放 `game/`。
 - 一张图「在用」与否只看它在不在 `game/` 里；`art/` 下的一切都不进包。
-- 源文件、母带（WAV、PSD、Spine 源、大号母稿）放 `art/archive/` 或仓库外存档，不放 `game/`。
+- 源文件、母带（WAV、PSD、大号母稿）放 `art/source/<类别>/`（在仓库里、不进包，例：语音母带 `art/source/voice/`）；Spine 源等超大文件仍只留本地（不进仓库）。都不放 `game/`。
 
 ## 2. `game/` 目录分类
 
@@ -110,10 +110,10 @@ game/
 
 | 文档 | 关系 | 冲突 / 需要改的地方 |
 |---|---|---|
-| docs/104（Codex 像素流程） | 不冲突：104 只管制作与验收，没写交付路径 | 建议 §1 加一行「交付路径：`art/incoming/<批次>/`，命名按 docs/189 §3」。**未改，待用户定**（见 §9-④） |
+| docs/104（Codex 像素流程） | 不冲突：104 只管制作与验收，原来没写交付路径 | 已在 §1 加一行交付路径（用户 10-28 定） |
 | docs/87 §1「命名」 | 一致（`op_<id>_<动作>` + `@2x`） | 87 写「json 文件名」= 本文 id 口径，无冲突 |
-| docs/98 §1「命名」 | 一致；98 允许「水月 `player_*`」 | 本文把水月 `player_*` / `mizuki_runtime_*` 记为历史遗留，新素材一律 `op_mizuki_*`（§9-③ 定改不改旧名） |
-| docs/93 §0（特效） | 一致（`_back` / `_front`、ground） | 93 写「只动 `art/incoming/`」→ 迁移后改为「只动 `art/incoming/<批次>/`」，跟着 §9-④ 一起改 |
+| docs/98 §1「命名」 | 一致；98 允许「水月 `player_*`」 | 本文把水月 `player_*` / `mizuki_runtime_*` 记为历史遗留，新素材一律 `op_mizuki_*`（旧名这次不改，见批 6） |
+| docs/93 §0（特效） | 一致（`_back` / `_front`、ground） | 93 写「只动 `art/incoming/`」→ 迁移后改为「只动 `art/incoming/<批次>/`」，随迁移批 2 一起改 |
 | docs/05（旧交接说明） | 顶部已声明以 87 为准 | 「放进 incoming 后重开游戏就能看到」的热替换说法迁移后失效，第 2 批时改 05 |
 | docs/06（Git 协作）、AGENTS.md | Codex 范围写的是「art/incoming/ 中的 player_*、e_* …」 | 迁移后改为「art/incoming/<批次>/」；06 由迁移批次改，AGENTS.md 只给建议文字（§9） |
 
@@ -156,7 +156,7 @@ game/
 | operators/doctor/ | 8 | 0.03 | `doctor_*` |
 | operators/_reserve/ | 12 | 0.05 | `ally_*` |
 | enemies/<id>/ | 416 | 2.64 | `e_*` |
-| enemies/_portraits/ | 20 | 0.02 | `art/incoming/portraits/`（docs/131 记为死路径，§9-⑤ 定删还是搬） |
+| enemies/_portraits/ | 20 | 0.02 | `art/incoming/portraits/`（docs/131 记为死路径；用户定照搬，不删） |
 | fx/ | 237 | 1.83 | `fx_*` |
 | fx/proj/ | 37 | 0.05 | `proj_*` |
 | fx/_optical/ | 194 | 0.98 | `art/incoming/optical_fx/` |
@@ -167,7 +167,7 @@ game/
 | world/props、terrain、mire、pickups、npc | 35 | 0.21 | `prop_` `drone_` `terrain_` `mire_` `pickup_` `gem_` `merchant` |
 | world/_legacy/ | 16 | 0.01 | 初版占位 |
 
-`game/` 内部另有三处：`game/art/player.png` 删（无人读，docs/188 §2.1）、`game/art/px/mizuki_chibi_walk.png` 删、`game/audio/voice/masters/`（123 个 WAV，22 MB）移出 `game/`。
+`game/` 内部另有三处（批 1 已做）：`game/art/player.png` 删（无人读，docs/188 §2.1）、`game/art/px/mizuki_chibi_walk.png` 删、`game/audio/voice/masters/`（123 个 WAV，22 MB）移到 `art/source/voice/`。
 
 ### 6.3 要改的加载路径
 
@@ -187,12 +187,12 @@ game/
 | 批 | 内容 | 文件 | 风险 | 验证 |
 |---|---|---|---|---|
 | 0 | 索引工具 + art.gd 查索引（带 art/incoming 回退）+ `asset_paths.py` + lint 接进 check.py（只报告）。**不挪文件** | 0 | 中：加载器是全游戏入口 | `--auto`、smoke 全员、`--only op_select codex gallery_demo enemy_pixels look`、Windows 包 + 网页包各导一次、加密包 alias 校验 |
-| 1 | game/ 内部：删 2 张遗物图、语音母带移出、导出预设的 `player_cut` 死规则 | 3 + 123 | 低：语音 manifest.json 的 `master:` 字段与 `voice_ogg.py` 的母带目录要一起改 | data_lint、core（语音清单测试）、`--only voice_command` |
+| 1（已做） | game/ 内部：删 2 张遗物图、语音母带移到 art/source/voice、导出预设的 `player_cut` 死规则 | 3 + 123 | 低：语音 manifest.json 的 `master:` 字段与 `voice_ogg.py` 的母带目录要一起改 | data_lint、core（语音清单测试）、`--only voice_command` |
 | 2 | 干员：op_ / 水月 / 博士 / 预备干员 → `operators/` | 546 | **高**：最大一批、Codex 分支最常改 | 批 0 全套 + art_lint、`--only three_operator_art mizuki_runtime skill_lifecycle ea_ui run_stats`、同 seed 1 局画面对照 |
 | 3 | 敌人 + Boss + 名片 → `enemies/` | 436 | 中：Boss 分支在改 | `--only enemy_pixels knight_pixel_split boss_variety boss_trial enemy_demo`、`--dccheck`、bosstest 截图 |
 | 4 | 特效 / 弹体 / 光学压阶 / 图标 / 地图件 → `fx/` `ui/` `world/` | 863 | 中：名字最杂 | `--only look relic_impl card_desc settlement title_menu node_cards medals`、光学开 / 关各截一张、网页包 |
 | 5 | 收尾：art.gd 去掉 art/incoming 回退、lint 加 L1 / L2 并改 `--strict`、收货区根目录剩余 40 份文档进批次子目录或归档、改现行文档 | — | 低 | 全量（云端，按合入流程） |
-| 6（可选） | 改名：`op_mon3tr_*` → `op_kaltsit_mon3tr_*`、`fx_eyja_*` → `fx_eyjafjalla_*`、`*_specter_*` → `*_specter_unchained_*`、`op_skadi_attack_v2` → 正式名、水月旧名 | 约 100 + json / gd 字面量 | 中：改名要动数据和代码 | 同批 2 / 4；§9-③ 定做不做 |
+| 6（可选，这次不做） | 改名：`op_mon3tr_*` → `op_kaltsit_mon3tr_*`、`fx_eyja_*` → `fx_eyjafjalla_*`、`*_specter_*` → `*_specter_unchained_*`、`op_skadi_attack_v2` → 正式名、水月旧名 | 约 100 + json / gd 字面量 | 中：改名要动数据和代码 | 同批 2 / 4；§9-③ 定做不做 |
 
 每批：一个提交（`git mv` 保历史）+ 相关快检；批 2–4 之间可以隔几天，等其他分支合完。
 
@@ -212,15 +212,17 @@ game/
 - 不改 docs/104、AGENTS.md、CLAUDE.md（只给建议）。
 - 历史文档（归档、计划记录、交接页）里的旧路径不改。
 
-## 9. 需要用户定
+## 9. 用户已定（10-28）
 
-1. **运行时贴图放哪**：**A（推荐）** 搬进 `game/art/<类别>/`，Godot 导入、按索引找图、桌面与网页走同一条加载路；代价是热替换没了、每个工作树第一次导入多 1–2 分钟。B：留在仓库根下，改名 `art/runtime/<类别>/`，加载器只改目录与索引，不进 Godot 导入；改动小，但「在用的图不在 game/ 里」这件事不变。
-2. **语音母带 22 MB**：移到 `art/archive/voice_masters/`（还在仓库）还是移出仓库（`voice_ogg.py` 重编码改读外部路径）。
-3. **旧名改不改**（§6.4 批 6）：推荐改 `op_mon3tr`、`fx_eyja`、`*_specter`、`op_skadi_attack_v2`（约 60 个文件），水月旧名等干员美术大改时再统一。
-4. **Codex 交付路径**：同意后在 docs/104 §1 加一行「交付到 `art/incoming/<批次>/`，命名按 docs/189 §3」，docs/93 同步；需要用户点头才改 104。
-5. **`art/incoming/portraits/`**：docs/131 记为死路径（Boss 名片早已改用 `portrait_crop`）。删（连带删 enemies.json 字段与 `ART_SUBDIRS`）还是照搬到 `enemies/_portraits/`。
+1. **运行时贴图搬进 `game/art/<类别>/`**（A 方案）：Godot 导入、按索引找图，放弃收货区热替换。
+2. **语音母带**移到 `art/source/voice/`，在仓库里、不进包（批 1 已做）。
+3. **旧名这次不改**：`op_mon3tr`、`fx_eyja`、`*_specter`、`op_skadi_attack_v2`、水月旧名放批 6，可选。
+4. **docs/104 §1 加交付路径一行**（已加），docs/93 跟着迁移批次改。
+5. **`art/incoming/portraits/` 照搬**到 `enemies/_portraits/`，不删。
 
-### AGENTS.md / CLAUDE.md 建议文字（未改，需用户直接确认）
+开搬顺序：批 1 先做；批 0 等 claude/web-shrink 合入；批 2 起等 codex/art 收完。
+
+### AGENTS.md / CLAUDE.md 建议文字（未改，协调人另找用户确认）
 
 - AGENTS.md 第 16 行 Codex 范围改为：「Codex art scope: deliveries under `art/incoming/<batch>/` (characters, monsters and commissioned effects) with their handoff; runtime files live in `game/art/` and are installed by Claude. Naming and folders: docs/189.」
 - AGENTS.md 第 21 行后加一句：「Asset folders and file names follow docs/189; check with `python tools/asset_lint.py`.」
