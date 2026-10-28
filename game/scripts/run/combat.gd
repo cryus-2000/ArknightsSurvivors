@@ -1110,6 +1110,9 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		if pierce > 0 and edef < 1.0:
 			edef = 1.0 - (1.0 - edef) * (1.0 - 0.01 * pierce)
 		dmg *= edef * g.rfx.dmg_extra()
+		# 分类型抗性（enemies.json phys_taken / arts_taken，缺省 1 = 不变）：偏执泡影按原作防御 700 / 法抗 70（docs/170 §3v）
+		var edt: Dictionary = D.ENEMIES.get(e.type, {})
+		dmg *= float(edt.get("phys_taken" if ty[1] == "物理" else "arts_taken", 1.0))
 		if e.boss:
 			dmg *= g.boss_mult   # “文明的存续”（docs/57 P3）
 		elif e.elite:

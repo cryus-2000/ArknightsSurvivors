@@ -231,6 +231,12 @@ r9（e583d6806 二阶段合成一段，96 局）：无认知 73% / 18 细胞 90%
 
 画面提示统一一套：`render/break_ring.gd`（boss_beam.draw_top 调用）在四只脚下画金色地面环 + 剩余时间弧（满 → 空，`start_break` 记 `brk_len`）。另外三只原先进破绽只有头顶小金星 + 读秒字，没有不靠文字的提示，现在都有金环。偏执泡影另有破绽前 0.6 秒力竭（§3r）。录像 build/boss_paranoia/final_break_v1/最终Boss_破绽无字.mp4（四只各进一次 3 秒破绽）。
 
+## 3v. 按原作加抗性（10-28 用户「有点太弱，加物理或法术抗性，根据原作」）
+
+原作：PRTS「“偏执泡影”」条目（https://prts.wiki/w/%E2%80%9C%E5%81%8F%E6%89%A7%E6%B3%A1%E5%BD%B1%E2%80%9D ，0 级）最大生命 45000、攻击 500、**防御 700、法术抗性 70**、损伤抵抗 0、元素抗性 0。两项都高，法抗 70 更突出（原作法术承伤 ×0.3）。
+
+本作：防御（`e.def`，enemies.json `armor`）对物理、法术都乘，不分类型；新增分类型字段 `phys_taken` / `arts_taken`（combat.gd 伤害链里乘，缺省 1，其他敌人不变）。偏执泡影 物理 ×0.9、法术 ×0.8（方向同原作：都硬、法术更硬；幅度按本作目标压，不照搬原作比例，否则法术队一边倒）。同时撤回 §3s 的二阶段收招 3.5 秒 → 3.0；力竭 0.6 秒、潮涌环提示 1.0 秒保留。目标：18 细胞约 80%、无认知约 65%，物理队 / 法术队分开报。
+
 ## 4. 公共文件改动（合并时注意）
 
 - `render/boss_beam.gd`：`_paranoia_top` / `_paranoia_ground` 第一行各调 `ParanoiaComboDraw.draw_top` / `draw_ground`，加一条 preload。只碰泡影分支。
@@ -241,6 +247,7 @@ r9（e583d6806 二阶段合成一段，96 局）：无认知 73% / 18 细胞 90%
 - `enemies/telegraph.gd` `_kp()`：读可选 `kp_life` / `kp_on`（缺省 KP_LIFE / 0.06，其余 Boss 不变）；`render/boss_beam.gd` `draw()`：开合时长读 fx 的 `on_t`（缺省 ON_T）。
 - `game/data/enemies.json`：paranoia 条目加 `bcol_core`、`bcol_outline` 两行。
 - `tools/check.py`：加 `paranoia_combos` 一项。
+- `run/combat.gd` 伤害链：读 enemies.json 可选 `phys_taken` / `arts_taken`（缺省 1；只有偏执泡影写了，§3v），3 行。
 - `run/combat.gd` `start_break`：记 `brk_len`；最终 Boss 不弹「破绽」，新增 `final_break_quiet(e)`（旋钮 boss/break_text_final）。`render/world.gd` 头顶读秒、`render/vfx.gd` 破绽伤害数字前缀读它；`render/boss_beam.gd` draw_top 调新文件 `render/break_ring.gd`（四只最终 Boss 共用金环）。`tests/boss_variety_test.gd`：偏执泡影按出招名数招（弹幕段不出预警）。新文件 `tests/final_break_preview.gd`（四只破绽录像）。
 - `game/data/balance.json` boss 段：hp_x_paranoia 改值，新增 paranoia_hover_taken / paranoia_aura_taken / paranoia_drop_t 三行与说明（§3g）。
 - 未改 `final_attacks.gd`、`boss_attack_draw.gd`、`final_attack_grains.gd`、`boss_ai.gd`、粒子模板。
