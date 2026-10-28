@@ -11,6 +11,7 @@ extends RefCounted
 const UI = preload("res://scripts/ui.gd")
 const Game = preload("res://scripts/game.gd")
 const Spotlight = preload("res://scripts/screens/spotlight.gd")
+const Bal = preload("res://scripts/core/balance.gd")
 
 const TIP_LIFE := 8.0
 const DEMO_STEP_SECS := 2.2
@@ -69,7 +70,7 @@ func start() -> void:
 		finish()
 
 
-## 全部步骤：{title, en, rects, text}。指挥未开（command/on = 0）时去掉第 3 步
+## 全部步骤：{title, en, rects, text}。指挥未开（command/on = 0）时去掉第 3、4 步；队友生命关（command/hp = 0）或没有队友时去掉第 4 步
 func _build(vs: Vector2) -> Array:
 	var touch: bool = g.touch.active
 	var out: Array = []
@@ -96,6 +97,12 @@ func _build(vs: Vector2) -> Array:
 			crect = Rect2(vs.x - 306.0, y - 8.0, 296.0, 46.0)
 			ctext = "按 F（手柄 LB）打开指挥圆盘：队形（随行 / 突击 / 归队）与队友的索敌偏好。突击时队友离队索敌，耐力耗尽自动归队。"
 		out.append({"title": "指挥", "en": "COMMAND", "rects": [crect], "text": ctext})
+		# 队友生命（10-28 用户「开局指引的时候记得把他们的血条也得框一下」）：队友生命开（command/hp）且有队友时才出；框跟着血条样式走（hud_allyhp.guide_rect）
+		var hr: Rect2 = g.hud_view.allyhp.guide_rect(vs) if g.squad.hp_on() else Rect2()
+		if hr.has_area():
+			var where: String = ["编队卡下方", "编队卡下方", "队友头顶", "左侧"][clampi(int(Bal.v("command/hpbar_style", 0.0)), 0, 3)]
+			out.append({"title": "队友生命", "en": "SQUAD HP", "rects": [hr],
+				"text": where + "是队友的生命。突击中队友会受伤，生命归零即倒地，%d 秒后原地复活；队长站到倒地的队友身边，复活快 %d 倍。" % [int(Bal.v("command/revive_secs", 25.0)), int(Bal.v("command/revive_near_k", 4.0))]})
 	return out
 
 
