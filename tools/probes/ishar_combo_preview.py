@@ -34,6 +34,7 @@ def main():
     ap.add_argument("--quality", choices=["high", "low"], default="high")
     ap.add_argument("--encode-only", action="store_true")
     ap.add_argument("--slow", action="store_true", help="另出 1/3 速 mp4")
+    ap.add_argument("--only", default="", help="只录这一组连段（如 锁定连段）")
     ap.add_argument("--keep-frames", action="store_true", help="编码后保留 PNG 帧（缺省删除）")
     a = ap.parse_args()
     base = (ROOT / "build/boss_ishar" / a.tag).resolve()
@@ -45,18 +46,19 @@ def main():
         hashes = {n: hashlib.sha256((ROOT / n).read_bytes()).hexdigest() for n in SOURCES if (ROOT / n).exists()}
         (base / "source_hashes.json").write_text(json.dumps(hashes, indent=2), encoding="utf-8")
         cmd = [runner.find_godot(), "--path", str(ROOT / "game"), "--audio-driver", "Dummy", "--resolution", "1280x720", "--fixed-fps", "30",
-               "res://tests/ishar_combo_preview.tscn", "--", "--seed=271027", "--quality=" + a.quality, "--shotdir=" + frames.as_posix()]
+               "res://tests/ishar_combo_preview.tscn", "--", "--seed=271027", "--quality=" + a.quality, "--shotdir=" + frames.as_posix()] + (["--only=" + a.only] if a.only else [])
         out, err, timed_out = runner.run_godot(cmd, 900)
         (base / ("run_%s.log" % a.quality)).write_text(out + "\n" + err, encoding="utf-8")
         if timed_out or runner.script_errors(out, err) or "FX_PREVIEW_DONE" not in out:
             raise SystemExit("录制失败：" + (out + err)[-3000:])
     paths = sorted(frames.glob("frame_*.png"))
-    per = len(paths) // SEGMENTS
+    segs = SEGMENTS if not a.only else 1
+    per = len(paths) // segs
     log = (base / ("run_%s.log" % a.quality)).read_text(encoding="utf-8")
     metrics = [json.loads(l.removeprefix("FX_PREVIEW_METRICS ")) for l in log.splitlines() if l.startswith("FX_PREVIEW_METRICS ")]
     suffix = "" if a.quality == "high" else "_low"
     # 给用户看的一律 mp4（协调人 10-27：H.264 原色原速，≤30 MB；不出 GIF / 拼图 / 整段长片）；--slow 另出 1/3 速
-    for s in range(SEGMENTS):
+    for s in range(segs):
         name = metrics[s]["move"] if s < len(metrics) else str(s)
         for tag, vf in [("", "null")] + ([("_slow3", "setpts=3*PTS")] if a.slow else []):
             out = base / ("%d_%s%s%s.mp4" % (s + 1, name, suffix, tag))

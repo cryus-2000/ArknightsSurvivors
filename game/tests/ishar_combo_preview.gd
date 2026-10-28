@@ -2,12 +2,14 @@ extends "res://tests/final_boss_fx_preview.gd"
 ## 伊莎玛拉连段录像（docs/170）：每段只强制起一组连段，之后由正式 AI、弹幕、预警推进；玩家无敌并连续移动。
 ## 第 7 秒击破一只连线海嗣，演示拆网减弹。
 const SEG := 16.0
+var only := ""   # --only=<连段名>：只录这一组
 
 func _ready() -> void:
 	kind = "ishar"
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--shotdir="): out_dir = arg.substr(10)
 		if arg.begins_with("--quality="): quality = arg.substr(10)
+		if arg.begins_with("--only="): only = arg.substr(7)
 	var check_only := out_dir.is_empty()
 	Cfg.quality = quality
 	Cfg.character_id = "mizuki"
@@ -44,6 +46,8 @@ func _ready() -> void:
 	var cards = g.bai.boss("ishar").cards()
 	for act in 3:
 		for c in cards.CARDS[act]:
+			if only != "" and c.name != only:
+				continue
 			fresh()
 			g.ppos = Vector2(200, 60)
 			boss.gates_passed = act
