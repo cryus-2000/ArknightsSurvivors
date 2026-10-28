@@ -3,7 +3,7 @@ extends "res://scripts/characters/blocks/seg_saria.gd"
 
 const E5_ANIM_KEYS := ["idle", "run", "attack", "spawn"]
 
-const E5_LOOK_KEYS := ["strip", "fit", "scale", "max_scale", "tint", "ring", "fade", "edge"]   # edge：边线透明度倍率（10-14 加）
+const E5_LOOK_KEYS := ["strip", "fit", "scale", "max_scale", "tint", "ring", "fade", "edge", "particles", "col"]   # edge：边线透明度倍率（10-14 加）
 
 
 ## 普攻命中表（data_operator.exec_any_shape 记下、延迟队列带走）：敌人 id → true
@@ -200,6 +200,10 @@ static func e5_draw_zones(o, cc: Color, on: bool) -> void:
 			continue
 		var lk: Dictionary = sm_kind(o, str(s.kind)).get("zone", _ED).get("look", {})
 		var k: float = float(lk.get("ring", 0.6)) * e5_zone_fade(s, lk)
+		if lk.get("particles", false):   # 10-29：召唤物区域也改粒子（召唤物本色），淡入照旧
+			var sc: Color = _mf_col(lk.get("col", []), cc)
+			sk_draw_domain(o, s.pos, sk_vis_r(o, "sm_" + str(s.kind), s.pos, zr, sc) * e5_zone_fade(s, lk), sc, on, 3.7)
+			continue
 		if k <= 0.004:
 			continue
 		o.cv.draw_set_transform(s.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
@@ -319,3 +323,86 @@ static func e5_grow_to_ok(v, ctx: Dictionary) -> bool:
 		return false
 	var kd = ctx.summons.get(str(v).substr(7), null) if ctx.get("summons", null) is Dictionary else null
 	return kd is Dictionary and kd.has("zone")
+
+
+# ---------------------------------------------------------------- 浊心斯卡蒂：粒子领域 + 歌声命中（10-29 用户）
+## 原作依据（PRTS 浊心斯卡蒂）：职业吟游者「不攻击，持续恢复范围内友军」、S1「同归殊途之吟」、S3「潮涌，潮枯」——领域就是她的歌声所及之处。
+## 领域不再画实心半透明圆：边界由一圈缓慢流动的小方粒子勾出来（密），内部稀疏地漂几粒，颜色 = SK_DOM（立绘的深红，饱和、不随灯火偏色），不用白。
+## 粒子是按序号与时间算出来的（不存状态、不耗随机数），走 o.cv 的矩形合批（batch_canvas）；数量随半径、有上限。
+## 半径变化（技能 / 精英化）时画面半径 0.5 秒左右缓动追上（判定半径立即生效），同时放一道波纹。
+const SK_EDGE_MAX := 110
+const SK_DOM := Color(0.95, 0.22, 0.38)   # 领域粒子：立绘深红（json col 0.85 / 0.25 / 0.35 再提一点饱和）
+const SK_IN_MAX := 36
+
+
+static func _sk_h(i: int, s: float) -> float:
+	return fposmod(sin(float(i) * 12.9898 + s * 78.233) * 43758.5453, 1.0)
+
+
+## 画面半径：向判定半径缓动（指数趋近，约 0.5 秒到 95%）；判定半径跳变超过 4 时放一道波纹（新旧半径之间扩散）
+static func sk_vis_r(o, key: String, c: Vector2, zr: float, cc: Color) -> float:
+	var st: Dictionary = o.get_meta("sk_dom", {})
+	var e: Array = st.get(key, [zr, o.g.t, zr])
+	var dt: float = clampf(o.g.t - float(e[1]), 0.0, 0.1)
+	var zv: float = float(e[0])
+	if absf(zr - float(e[2])) > 4.0:
+		o.fx({"kind": "ring", "pos": c + Vector2(0, 4), "r": maxf(zr, zv) * 1.04, "r0": minf(zr, zv), "life": 0.55, "col": Color(cc.r * 1.4, cc.g * 1.4, cc.b * 1.4),
+			"floor": true, "w": 2.0, "alpha": 0.55, "keep": true})
+	zv = lerpf(zv, zr, 1.0 - exp(-dt * 6.0))
+	st[key] = [zv, o.g.t, zr]
+	o.set_meta("sk_dom", st)
+	return zv
+
+
+## 一个领域：c 中心、zr 画面半径、cc 颜色、on 技能中（粒子更亮更密一点）、seed 区分本人 / 召唤物
+static func sk_draw_domain(o, c: Vector2, zr: float, cc: Color, on: bool, seed: float) -> void:
+	if zr <= 4.0:
+		return
+	var t: float = o.g.t
+	var cv = o.cv
+	var ne: int = clampi(int(zr * (0.5 if on else 0.42)), 24, SK_EDGE_MAX)
+	var ni: int = clampi(int(zr * 0.1), 6, SK_IN_MAX)
+	var dim: float = float(o.g.world.fx_dim)
+	# 饱和的本色（不吃 lamp 的偏暖 / 偏紫，偏色会把深红洗成灰白）：本人 = 立绘深红，召唤物 = 海嗣青；高光粒子再亮一档
+	var base := cc
+	var hi := Color(minf(cc.r * 1.35, 1.5), minf(cc.g * 1.35, 1.5), minf(cc.b * 1.35, 1.5))
+	for i in ne:   # 边界：沿圈流动（单双号反向、速度略不同），半径微微起伏
+		var h1 := _sk_h(i, seed)
+		var h2 := _sk_h(i + 101, seed)
+		var sp: float = (0.10 + 0.08 * h2) * (1.0 if i % 2 == 0 else -0.7)
+		var an: float = TAU * (float(i) + h1 * 0.8) / float(ne) + t * sp
+		var rr: float = zr * (0.965 + 0.035 * sin(t * (1.1 + h2) + h1 * 6.0))
+		var tw: float = 0.5 + 0.5 * sin(t * (1.6 + 1.4 * h1) + h2 * 9.0)
+		var p := c + Vector2(cos(an) * rr, 4.0 + sin(an) * rr * 0.55)
+		var s: float = 4.0 if h1 > 0.72 else 3.0
+		var col := (hi if h2 > 0.8 else base)
+		cv.draw_rect(Rect2(p.round() - Vector2(s, s) * 0.5, Vector2(s, s)), Color(col.r, col.g, col.b, minf(1.0, (0.62 + 0.33 * tw) * (1.1 if on else 1.0)) * dim))
+	for i in ni:   # 内部：稀疏地慢慢绕中心漂，若隐若现
+		var h1 := _sk_h(i + 211, seed)
+		var h2 := _sk_h(i + 307, seed)
+		var rr: float = zr * 0.88 * sqrt(h1)
+		var an: float = h2 * TAU + t * (0.05 + 0.06 * h1) * (1.0 if i % 2 == 0 else -1.0)
+		var tw: float = maxf(0.0, sin(t * (0.7 + h2) + h1 * 11.0))
+		if tw <= 0.05:
+			continue
+		var p := c + Vector2(cos(an) * rr, 4.0 + sin(an) * rr * 0.55 - 6.0 * tw)
+		cv.draw_rect(Rect2(p.round() - Vector2.ONE, Vector2(2, 2)), Color(base.r, base.g, base.b, 0.5 * tw * dim))
+
+
+## 歌声命中（pfx kind = sk_song，at = hits）：命中点浮起两道淡淡的声波弧，单号粒子再带一枚小音符，上飘淡出
+static func sk_song_draw(o, f: Dictionary, a: float) -> bool:
+	var cv = o.cv
+	var u: float = 1.0 - a
+	var p: Vector2 = f.pos + Vector2(0, -16.0 * u)
+	var c: Color = f.get("col", o.col())
+	var r: float = float(f.get("r", 12.0))
+	var face: float = float(f.get("seed", 0.0))
+	var dir: float = -PI / 2.0 + (0.5 if face > PI else -0.5)
+	for k in 2:
+		var rk: float = r * (0.6 + 0.55 * k) * (0.8 + 0.5 * u)
+		cv.draw_arc(p, rk, dir - 0.75, dir + 0.75, 8, Color(c.r, c.g, c.b, (0.55 - 0.2 * k) * a), 1.5)
+	if face > PI:   # 音符：椭圆符头 + 符干（2 像素格）
+		var q := (p + Vector2(r * 0.9, -r * 0.2)).round()
+		cv.draw_rect(Rect2(q, Vector2(4, 3)), Color(c.r, c.g, c.b, 0.7 * a))
+		cv.draw_rect(Rect2(q + Vector2(3, -8), Vector2(1, 9)), Color(c.r, c.g, c.b, 0.7 * a))
+	return true

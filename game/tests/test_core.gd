@@ -712,15 +712,15 @@ func test_fx_hold() -> void:
 	var fo := {"g": {"tex": {"fx_have": ImageTexture.new()}}}
 	ok(OB.fx_on(fo, {"if_tex": "fx_have"}) and not OB.fx_on(fo, {"if_tex": "!fx_have"}), "if_tex：贴图在时只画正向条目")
 	ok(OB.fx_on(fo, {"if_tex": "!fx_none"}) and not OB.fx_on(fo, {"if_tex": "fx_none"}), "if_tex：缺图时只画回退条目")
-	# 扩散缓动 / 交叉淡入淡出 / 余波环（10-13 加，§5.6）：反例被拒、缓动曲线端点
+	# 扩散缓动 / 交叉淡入淡出 / 余波环（10-13 加，§5.6）：反例被拒、缓动曲线端点（10-29 浊心普攻改歌声纹后，样本换到 response 的同款波纹条目）
 	var bad2 := {
-		"ease 不认识": func(d): d.blocks.attack.fx[2]["ease"] = "bounce",
-		"grow 没配 ease": func(d): d.blocks.attack.fx[2].erase("ease"),
-		"grow_to 不是 zone": func(d): d.blocks.attack.fx[2]["grow_to"] = "screen",
-		"grow 超出范围": func(d): d.blocks.attack.fx[2]["grow"] = 9.0,
-		"wake 参数不认识": func(d): d.blocks.attack.fx[2].wake["glow"] = 1,
-		"wake.n 超出范围": func(d): d.blocks.attack.fx[2].wake["n"] = 9,
-		"xfade 没配 cond": func(d): d.blocks.attack.fx[2].erase("cond"),
+		"ease 不认识": func(d): d.blocks.response[0].do[0].fx[2]["ease"] = "bounce",
+		"grow 没配 ease": func(d): d.blocks.response[0].do[0].fx[2].erase("ease"),
+		"grow_to 不是 zone": func(d): d.blocks.response[0].do[0].fx[2]["grow_to"] = "screen",
+		"grow 超出范围": func(d): d.blocks.response[0].do[0].fx[2]["grow"] = 9.0,
+		"wake 参数不认识": func(d): d.blocks.response[0].do[0].fx[2].wake["glow"] = 1,
+		"wake.n 超出范围": func(d): d.blocks.response[0].do[0].fx[2].wake["n"] = 9,
+		"xfade 没配 cond": func(d): d.blocks.response[0].do[0].fx[2].erase("cond"),
 		"ease 配 hold": func(d): d.blocks.skills[2].do[0].fx[0]["ease"] = "out",
 	}
 	for why in bad2:

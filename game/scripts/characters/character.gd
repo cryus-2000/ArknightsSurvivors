@@ -2137,9 +2137,9 @@ func draw_extra_shadows() -> void:
 ## 只画画面（g.vfx.melee_arc），不改判定；远程职业与技能不画
 const MELEE_CLASS := ["近卫", "重装", "特种", "先锋"]
 const CrowdVg = preload("res://scripts/characters/blocks/vis_growth.gd")
-const NO_ARC := ["specter_unchained"]   # 10-24 用户「归溟幽灵鲨不需要刀光特效」：只留她自己的帧条（血锯等）
+const NO_ARC := ["specter_unchained", "skalter"]   # 10-24 用户「归溟幽灵鲨不需要刀光特效」：只留她自己的帧条（血锯等）；10-29 用户「浊心斯卡蒂不用刀光，她是领域内的攻击」：命中改为领域里的歌声纹（seg_skalter）
 func arc_targets(origin: Vector2, ang: float, half: float, radius: float) -> Array:
-	if act_kind == "attack" and attack_t > 0.0 and g.vfx != null and not g.headless_batch and (cls in MELEE_CLASS or id == "skalter") and not id in NO_ARC:
+	if act_kind == "attack" and attack_t > 0.0 and g.vfx != null and not g.headless_batch and cls in MELEE_CLASS and not id in NO_ARC:
 		g.vfx.melee_arc(self, origin, ang, half, radius)
 	return super(origin, ang, half, radius)
 
