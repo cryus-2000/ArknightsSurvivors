@@ -630,6 +630,8 @@ func pick(i: int) -> void:
 	g.panel.visible = false
 	Sfx.play("ui_ok", -4.0)
 	g.state = g.S.PLAY
+	if g.choice_kind == "event":
+		g.combat.panel_grace()   # 事件 / 安全的角落选完关面板：0.8 秒保护（升级、宝箱选卡不加）
 	if not tab_hinted and not g.tab_used:
 		tab_hinted = true
 		g.tab_hint = 6.0

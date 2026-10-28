@@ -152,6 +152,7 @@ var xp_mult := 1.0
 var oil_mult := 1.0
 var dodge := 0.25
 var invuln := 0.0
+var panel_grace_until := -1.0   # 低频面板关闭后的保护截止时刻（g.t）：combat.panel_grace 写，world 画脚下淡金环
 var invuln_move_until := -1.0   # 纯画面：技能位移给的短暂无敌截止时刻（g.t）；这段无敌不闪烁（world.gd，10-21 推进之王跃空锤「虚化」）
 var hurt_flash := 0.0
 var walk_t := 0.0

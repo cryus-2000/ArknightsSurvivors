@@ -225,6 +225,7 @@ func close() -> void:
 			c.queue_free()
 	g.panel.visible = false
 	g.state = g.S.PLAY
+	g.combat.panel_grace()   # 离开商人：0.8 秒保护
 	Sfx.play("ui_ok", -4.0)
 	# 交易过就离开，避免走回去反复触发；等下一次出现
 	if not g.merchant.is_empty() and g.merchant.get("bought", false):

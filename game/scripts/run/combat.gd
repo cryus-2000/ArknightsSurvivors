@@ -44,6 +44,16 @@ func _init(game: Game) -> void:
 	g = game
 
 
+## 低频面板（事件卡 / 路口卡 / 安全的角落 / 紧急作战 / 诡意行商）关闭后的保护（10-28 用户定 A：「选完事件被围着打到一滴血」）：
+## 队长 protect/panel_grace（0.8）秒无敌，脚下淡金环收拢表示保护中（world.draw_panel_grace）；升级 / 宝箱选卡不加，队友不加
+func panel_grace() -> void:
+	var t: float = Bal.v("protect/panel_grace", 0.8)
+	if t <= 0.0:
+		return
+	g.invuln = maxf(g.invuln, t)
+	g.panel_grace_until = g.t + t
+
+
 ## 敌人命中水月：闪避判定、侵蚀、神经损伤。src.boss 为真 = Boss 来源（src 是 Boss 本体，或带 boss 标记的预警 / 冲击环 / 子弹），
 ## 扣血和追加的侵蚀受主控保护（docs/38 §1.11）
 func enemy_hit(dmg: float, src: Dictionary, ignore_armor := false, no_dodge := false, in_type: Array = [], dmg_src := "") -> void:
