@@ -105,7 +105,7 @@ func draw_recall(lc0: Vector2) -> void:
 
 
 ## 经验通栏细条（10-28 用户「学习别的肉鸽，把升级进度条放在最上面，一个细条来记录进度」）：屏幕最上沿全宽 5 像素，
-## 触屏避开安全区（左右刘海、顶部胶囊）。紫色（UI.VIOLET，与队长生命青、灯火金、队友绿 / 金 / 红区分）；
+## 触屏避开安全区（左右刘海、顶部胶囊）。柠檬黄（10-28 用户「经验换成黄色」；比灯火的琥珀金 UI.GOLD 更亮更偏绿，与队长生命青、队友绿 / 金 / 红区分）；
 ## 吃到经验（g.xp_flash）时条头亮、一道流光扫过已填部分；升级（g.hud_lv_flash，pickups 置 1）时先满条白闪约 0.3 秒再清零回到新进度。
 ## 等级数字只在左上等级圆里（不重复）。每帧画在 hud 的 front 块
 const XP_H := 5.0
@@ -121,10 +121,10 @@ func draw_xp_top(vs: Vector2) -> void:
 	var k: float = 1.0 if full else clampf(g.xp / g.xp_need, 0.0, 1.0)
 	g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x, r.size.y + 1.0)), Color(0.02, 0.025, 0.04, 0.75))
 	var fw: float = r.size.x * k
-	var c: Color = UI.VIOLET.lerp(Color(0.75, 0.7, 1.0), 0.25)
+	var c := Color(1.0, 0.9, 0.36)   # #ffe65c
 	if fw > 0.0:
 		g.hud.draw_rect(Rect2(r.position, Vector2(fw, r.size.y)), c)
-		g.hud.draw_rect(Rect2(r.position, Vector2(fw, 1.0)), Color(0.85, 0.82, 1.0, 0.8))   # 顶部高光
+		g.hud.draw_rect(Rect2(r.position, Vector2(fw, 1.0)), Color(1.0, 0.97, 0.8, 0.85))   # 顶部高光
 	if g.xp_flash > 0.2 and g.t - _xp_t > 0.15:
 		_xp_t = g.t   # 新吃到经验（xp_flash 每次置 0.3、0.1 秒衰完）：起一道 0.5 秒的流光，连续拾取时不每帧重开
 	var ph: float = clampf((g.t - _xp_t) / 0.5, 0.0, 1.0)
