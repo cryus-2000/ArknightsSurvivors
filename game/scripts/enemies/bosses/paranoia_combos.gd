@@ -19,15 +19,16 @@ const COMBOS := {
 	# 三 · 侵染：找缝（缝隙墙、错位缺口环、泡影环、追猎泡）
 	"侵蚀帘幕": {"seq": ["侵蚀帘幕", "泡影环", "追猎泡"]},
 	"错位回廊": {"seq": ["无声波环", "侵蚀帘幕", "泡影环"]},
-	# 二阶段 · 失声（海嗣青蓝，「她被拖向海嗣」）：区域与时机（呼号扇区、沉浮双层 + 侵蚀泡沼、潮涌环）
-	"无声呼号": {"seq": ["呼号", "潮涌环", "沉浮双层"]},
-	"沉浮之潮": {"seq": ["沉浮双层", "呼号", "潮涌环+沉浮双层"]},
-	# 破茧后：停顿与收束（群愿回响、泡影收束、溟泡迸裂）
-	"群愿回响": {"seq": ["群愿回响", "泡影收束", "溟泡迸裂"]},
-	"破茧群潮": {"seq": ["溟泡迸裂", "群愿回响+泡影收束", "群愿回响"]},
+	# 二阶段 · 失声（海嗣青蓝，「她被拖向海嗣」）：用户 10-28 定二阶段只一段、原失声 / 破茧后两段的 6 招合成一个池子，
+	# 四组轮流（呼号扇区、潮涌环、沉浮双层 + 侵蚀泡沼、群愿回响、泡影收束、溟泡迸裂）；结茧保留，破茧后只收紧不换招（DENS 第 5 行等）
+	"无声呼号": {"seq": ["呼号", "潮涌环", "群愿回响"]},
+	"沉浮之潮": {"seq": ["沉浮双层", "泡影收束", "潮涌环+沉浮双层"]},
+	"群愿回响": {"seq": ["群愿回响", "溟泡迸裂", "呼号"]},
+	"破茧群潮": {"seq": ["溟泡迸裂", "沉浮双层", "群愿回响+泡影收束"]},
 }
-## 每幕两组，轮流：0 凝望 / 1 狂望 / 2 侵染（悬浮，卡点 enemies.json gates [0.84, 0.67, 0.5]）/ 3 失声（落地二阶段）/ 4 破茧后
-const ACT_COMBOS := [["千目凝望", "凝视环流"], ["镜中众影", "偏执双旋"], ["侵蚀帘幕", "错位回廊"], ["无声呼号", "沉浮之潮"], ["群愿回响", "破茧群潮"]]
+## 每幕轮流：0 凝望 / 1 狂望 / 2 侵染（悬浮，卡点 enemies.json gates [0.84, 0.67, 0.5]）/ 3 失声（落地二阶段）/ 4 破茧后（同一池子，收紧）
+const P2_COMBOS := ["无声呼号", "沉浮之潮", "群愿回响", "破茧群潮"]
+const ACT_COMBOS := [["千目凝望", "凝视环流"], ["镜中众影", "偏执双旋"], ["侵蚀帘幕", "错位回廊"], P2_COMBOS, P2_COMBOS]
 ## 弹幕段：发数 n、间隔 iv（秒）；起手前 WINDUP 秒聚光
 const EMITTERS := {
 	"千目注视": {"n": 7, "iv": 0.24}, "环流狙击": {"n": 3, "iv": 0.7}, "镜影齐射": {"n": 2, "iv": 0.8},
@@ -140,7 +141,8 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool) -> b
 		e.pc_start_t = g.t
 	var seg: String = str(queue.pop_front())
 	_cast(e, seg, dir, dist)
-	e.pc_next = g.t + (0.25 if e.phase == 1 else 0.15)
+	# 段间收势：悬浮 0.25、落地 0.15、破茧后 0.1（收紧）
+	e.pc_next = g.t + (0.25 if e.phase == 1 else (0.1 if a == 4 else 0.15))
 	return true
 
 
@@ -157,7 +159,8 @@ func start_act(e: Dictionary, a: int) -> void:
 			for k in BossBeam.take(g, 60):
 				gr0.push("mote_burst", e.pos + Vector2(0, -20), Vector2.from_angle(TAU * k / 60.0), CORE)
 	e.pc_act = a
-	e.pc_idx = 0
+	# 破茧后与失声同一池子：接着轮下一组，不从头再来
+	e.pc_idx = int(e.get("pc_idx", 0)) if a == 4 and was == 3 else 0
 	e.pc_rested = true
 	e.pc_next = g.t + 1.0
 	e.pc_gather_t = g.t
@@ -386,8 +389,8 @@ func _fire(e: Dictionary, em: Dictionary, k: int) -> void:
 			var ga: float = _aim(o)
 			for i in 10:
 				var bl: Dictionary = _shot(e, o, float(em.a0) + TAU * i / 10.0 + 0.3 * k, 70.0, "l")
-				if not bl.is_empty() and i % 3 == 0:
-					bl.p_mire = true   # 侵蚀泡沼：每 3 颗慢大泡里 1 颗破开时留一小块 Boss 溟痕
+				if not bl.is_empty() and i % (2 if act(e) == 4 else 3) == 0:
+					bl.p_mire = true   # 侵蚀泡沼：每 3 颗慢大泡里 1 颗（破茧后每 2 颗 1 颗）破开时留一小块 Boss 溟痕
 			for i in 18:
 				var a4: float = TAU * i / 18.0 + 0.17 * k
 				if absf(angle_difference(a4, ga)) < 0.35:
