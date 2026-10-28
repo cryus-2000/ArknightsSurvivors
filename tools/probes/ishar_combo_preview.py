@@ -36,6 +36,10 @@ def main():
     ap.add_argument("--slow", action="store_true", help="另出 1/3 速 mp4")
     ap.add_argument("--only", default="", help="只录这一组连段（如 锁定连段）")
     ap.add_argument("--keep-frames", action="store_true", help="编码后保留 PNG 帧（缺省删除）")
+    ap.add_argument("--act", type=int, default=0, help="只录这一幕（1–3）的第一组连段，之后正式 AI 接着出")
+    ap.add_argument("--seg", type=float, default=0.0, help="每段秒数（缺省 16）")
+    ap.add_argument("--realtime", action="store_true", help="每帧都存，30 帧/秒原速（缺省隔帧 15 帧/秒）")
+    ap.add_argument("--bal", action="append", default=[], help="旋钮覆盖 段/键=值，可多次（如 boss/graze_on=1）")
     a = ap.parse_args()
     base = (ROOT / "build/boss_ishar" / a.tag).resolve()
     frames = base / ("frames_" + a.quality)
@@ -46,13 +50,14 @@ def main():
         hashes = {n: hashlib.sha256((ROOT / n).read_bytes()).hexdigest() for n in SOURCES if (ROOT / n).exists()}
         (base / "source_hashes.json").write_text(json.dumps(hashes, indent=2), encoding="utf-8")
         cmd = [runner.find_godot(), "--path", str(ROOT / "game"), "--audio-driver", "Dummy", "--resolution", "1280x720", "--fixed-fps", "30",
-               "res://tests/ishar_combo_preview.tscn", "--", "--seed=271027", "--quality=" + a.quality, "--shotdir=" + frames.as_posix()] + (["--only=" + a.only] if a.only else [])
+               "res://tests/ishar_combo_preview.tscn", "--", "--seed=271027", "--quality=" + a.quality, "--shotdir=" + frames.as_posix()] + (["--only=" + a.only] if a.only else [])             + (["--act=%d" % a.act] if a.act else []) + (["--seg=%g" % a.seg] if a.seg else []) + (["--every=1"] if a.realtime else [])             + ["--bal=" + b for b in a.bal]
         out, err, timed_out = runner.run_godot(cmd, 900)
         (base / ("run_%s.log" % a.quality)).write_text(out + "\n" + err, encoding="utf-8")
         if timed_out or runner.script_errors(out, err) or "FX_PREVIEW_DONE" not in out:
             raise SystemExit("录制失败：" + (out + err)[-3000:])
     paths = sorted(frames.glob("frame_*.png"))
-    segs = SEGMENTS if not a.only else 1
+    segs = 1 if (a.only or a.act) else SEGMENTS
+    fps = 30 if a.realtime else FPS
     per = len(paths) // segs
     log = (base / ("run_%s.log" % a.quality)).read_text(encoding="utf-8")
     metrics = [json.loads(l.removeprefix("FX_PREVIEW_METRICS ")) for l in log.splitlines() if l.startswith("FX_PREVIEW_METRICS ")]
@@ -62,7 +67,7 @@ def main():
         name = metrics[s]["move"] if s < len(metrics) else str(s)
         for tag, vf in [("", "null")] + ([("_slow3", "setpts=3*PTS")] if a.slow else []):
             out = base / ("%d_%s%s%s.mp4" % (s + 1, name, suffix, tag))
-            ffmpeg("-framerate", str(FPS), "-start_number", str(s * per), "-i", str(frames / "frame_%05d.png"), "-frames:v", str(per),
+            ffmpeg("-framerate", str(fps), "-start_number", str(s * per), "-i", str(frames / "frame_%05d.png"), "-frames:v", str(per),
                    "-vf", vf, "-c:v", "libx264", "-crf", "18", "-preset", "fast", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(out))
             if out.stat().st_size > 30 * 1024 * 1024:
                 print("WARN mp4 > 30MB，需降码率：", out)

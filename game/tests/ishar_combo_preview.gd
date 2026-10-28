@@ -3,6 +3,9 @@ extends "res://tests/final_boss_fx_preview.gd"
 ## 第 7 秒击破一只连线海嗣，演示拆网减弹。
 const SEG := 16.0
 var only := ""   # --only=<连段名>：只录这一组
+var seg := SEG    # --seg=<秒>：每段时长（判定点 / 擦弹录像 40 秒，10-29）
+var act_only := -1   # --act=<1..3>：只录这一幕的第一组连段（之后由正式 AI 接着出）
+var every := 2    # --every=1：每帧都存（30 帧/秒原速）；缺省隔帧 15 帧/秒
 
 func _ready() -> void:
 	kind = "ishar"
@@ -10,6 +13,9 @@ func _ready() -> void:
 		if arg.begins_with("--shotdir="): out_dir = arg.substr(10)
 		if arg.begins_with("--quality="): quality = arg.substr(10)
 		if arg.begins_with("--only="): only = arg.substr(7)
+		if arg.begins_with("--seg="): seg = float(arg.substr(6))
+		if arg.begins_with("--act="): act_only = int(arg.substr(6)) - 1
+		if arg.begins_with("--every="): every = maxi(1, int(arg.substr(8)))
 	var check_only := out_dir.is_empty()
 	Cfg.quality = quality
 	Cfg.character_id = "mizuki"
@@ -48,6 +54,8 @@ func _ready() -> void:
 		for c in cards.CARDS[act]:
 			if only != "" and c.name != only:
 				continue
+			if act_only >= 0 and (act != act_only or c != cards.CARDS[act][0]):
+				continue
 			fresh()
 			g.ppos = Vector2(200, 60)
 			boss.gates_passed = act
@@ -60,7 +68,7 @@ func _ready() -> void:
 			var events: Array = []
 			var watched: Array = []
 			var peak := 0
-			for frame_i in int(SEG / DT):
+			for frame_i in int(seg / DT):
 				var elapsed: float = frame_i * DT
 				g.invuln = 999.0
 				g.ppos = g.ppos.move_toward(route(elapsed), 110.0 * DT)
@@ -94,7 +102,7 @@ func _ready() -> void:
 				visual_step(DT)
 				await get_tree().process_frame
 				if not check_only: await RenderingServer.frame_post_draw
-				if frame_i % 2 == 0 and not check_only:
+				if frame_i % every == 0 and not check_only:
 					if get_viewport().get_texture().get_image().save_png(out_dir.path_join("frame_%05d.png" % shot_i)) != OK:
 						push_error("Could not save frame")
 						get_tree().quit(4)
