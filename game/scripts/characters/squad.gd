@@ -369,8 +369,13 @@ func update(dt: float) -> void:
 	g.doctor.tick_input(dt)   # 手动普攻按键 / 选落点蓄距离（契约 v2.5）
 	side = move_toward(side, g.facing, dt * 2.5)
 	Synergy.tick(self, dt)
+	var bl: bool = _blink_on()
+	if bl:
+		_blink_pre()
 	for o in ops:
 		o.follow(dt, g.ppos if o.is_leader else g.ppos + _slot_offset(o.slot))
+	if bl:
+		_blink_check(dt, "")
 	if pf:
 		t0 = g.prof_add("sq_follow", t0)
 	if stance == RECALL:
@@ -400,6 +405,42 @@ func update(dt: float) -> void:
 		o._tick_pfx(dt)
 		if pf:
 			t0 = g.prof_add("sq_pfx", t0)
+	if bl:
+		_blink_check(dt, "update")
+
+
+## ---- 闪现遥测（10-28 用户「队友攻击时常常一下子闪现」，--blinklog，缺省关）：队友单帧位移超过「队长移速 × dt × 3」记一行 BLINK
+## （src = follow 分支 / update 段的技能位移 / 外部改位；ext 由 _recall_blink / _revive 标）。只读位置，不改玩法
+static var _blink_flag := -1
+var _bl_ext := {}
+
+
+static func _blink_on() -> bool:
+	if _blink_flag < 0:
+		_blink_flag = 1 if Cfg.dev_args().has("--blinklog") else 0
+	return _blink_flag == 1
+
+
+func _blink_pre() -> void:
+	for o in ops:
+		o.mv_src = ""   # bl_p 留着上一帧末的位置：输入里按归队的瞬回也算进本帧
+
+
+func _blink_check(dt: float, phase: String) -> void:
+	var lim: float = maxf(g.speed, 1.0) * dt * 3.0
+	for o in ops:
+		var p0: Vector2 = o.get_meta("bl_p", Vector2.INF)
+		o.set_meta("bl_p", o.pos)
+		if o.is_leader or p0 == Vector2.INF or o.pos == Vector2.INF:
+			continue
+		var d: float = p0.distance_to(o.pos)
+		if d <= lim:
+			continue
+		var src: String = str(_bl_ext.get(o.id, ""))
+		if src == "":
+			src = o.mv_src if phase == "" else "update:" + str(o.get("act_kind")) + ("/sq" if o.get("sq_ph") != null and int(o.sq_ph) > 0 else "")
+		print("BLINK t=%.2f id=%s st=%d src=%s d=%.0f lim=%.0f lead=%.0f dash=%d" % [g.t, o.id, stance, src, d, lim, o.pos.distance_to(g.ppos), 1 if g.dash_t > 0.0 else 0])
+	_bl_ext.clear()
 
 
 ## ---------------------------------------------------------------- 切换队长（10-23 用户定，docs/128）
@@ -637,16 +678,23 @@ func _recall_blink() -> void:
 		o.roam_tgt = null
 		if o.pos.distance_to(dst) <= lim:
 			continue
-		_leave_fx(o)
+		_bl_ext[o.id] = "recall_blink"
+		blink_fx(o, dst)
 		o.pos = dst
-		o.ghosts.clear()
-		if g.get("fx") != null:
-			g.fx.append({"kind": "ring", "pos": dst, "r": 34.0, "life": 0.35, "max": 0.35, "col": Color(0.85, 0.95, 1.0)})
+
+
+## 瞬移的出现 / 消失特效（归队瞬回、超出 leash 的掉队归位共用）：原地放退场闪光，落点一圈光；清残影免得拖一道线
+func blink_fx(o, dst: Vector2) -> void:
+	_leave_fx(o)
+	o.ghosts.clear()
+	if g.get("fx") != null:
+		g.fx.append({"kind": "ring", "pos": dst, "r": 34.0, "life": 0.35, "max": 0.35, "col": Color(0.85, 0.95, 1.0)})
 
 
 ## 突击 / 归队语音（10-22 用户确认）：队长优先、按编队轮换；非突击型随从与倒地干员不回应。
 ## 突击播已确认的 *_command 短回应，归队仍播 *_entry；队长不受职业是否突击的限制。
 ## 走 Sfx 语音通道（占线放弃、每人 15 秒间隔、整体 3 秒间隔照旧），另按 command/voice_gap 节流，连按不刷屏。纯声音，不碰玩法状态
+## 10-28 起缺省走合唱（command/voice_mode 1）：出击队友各自开口、错开 voice_stagger 秒，见 sfx.voice_chorus、docs/114 §19.3
 var _vo_i := 0
 var _vo_t := -999.0
 
@@ -655,25 +703,37 @@ func _stance_voice(s: int, shout := false) -> void:
 		return
 	var eligible: Array = ops.filter(func(o): return o.cmd_down <= 0.0 and (o.is_leader or o.cmd_roam()))
 	var order: Array = eligible.filter(func(o): return o.is_leader) + eligible.filter(func(o): return not o.is_leader)
-	if s == ROAM:   # 10-26 用户「切突击放这名队友自己的语音，别放成队长的」：出击的是队友，按编队序轮换放他们各自的「出击」；没有可出击的队友才轮到队长
+	if s == ROAM or int(Bal.v("command/voice_mode", 1.0)) > 0:   # 10-26 用户「切突击放这名队友自己的语音，别放成队长的」：出击的是队友，按编队序轮换放他们各自的「出击」；没有可出击的队友才轮到队长（10-28 合唱：归队也由队友开口）
 		var mates: Array = eligible.filter(func(o): return not o.is_leader)
 		if not mates.is_empty():
 			order = mates
 	if order.is_empty():
 		return
-	var o = order[_vo_i % order.size()]
-	_vo_i += 1
-	_vo_t = g.t
 	var sfx: Node = g.get_node_or_null("/root/Sfx")
 	var key: String = "command" if s == ROAM else "entry"
-	if sfx != null:
-		sfx.voice(o.id, key, false, true)   # urgent：玩家指挥回应，不被闲聊 / 间隔吃掉（10-23）
-	if shout and o.pos != Vector2.INF:
-		# 爆发窗口喊话（10-24）：头顶短字「出击」；这名干员没有对应语音素材就补一声通用音效
-		if g.get("vfx") != null:
-			g.vfx.add_text(o.pos + Vector2(0, -78), "出击", Color(1.0, 0.82, 0.3), 16)
-		if sfx != null and not sfx.has_voice(o.id, key):
-			sfx.play("swing_heavy", -4.0)
+	# 合唱（10-28 用户「两名队友的台词可以交替或一起喊」）：command/voice_mode 0 = 旧口径（按编队轮换只一人开口）；
+	# 1 = 交替（缺省）：轮换谁先开口，其余依次晚 voice_stagger 秒（0.4），允许尾部重叠；2 = 同时开口。重叠时每条压 voice_duck_db
+	var mode: int = int(Bal.v("command/voice_mode", 1.0))
+	var first: int = _vo_i % order.size()
+	var who: Array = [order[first]] if mode <= 0 else order.slice(first) + order.slice(0, first)
+	_vo_i += 1
+	_vo_t = g.t
+	var fallback := false
+	for i in who.size():
+		var o = who[i]
+		if sfx != null:
+			if mode <= 0:
+				sfx.voice(o.id, key, false, true)   # urgent：玩家指挥回应，不被闲聊 / 间隔吃掉（10-23）
+			else:
+				sfx.voice_chorus(o.id, key, 0.0 if mode >= 2 else i * Bal.v("command/voice_stagger", 0.4), Bal.v("command/voice_duck_db", -3.0))
+		if shout and o.pos != Vector2.INF:
+			# 爆发窗口喊话（10-24）：头顶短字「出击」；这名干员没有对应语音素材就补一声通用音效（一次喊话只补一声）
+			if g.get("vfx") != null:
+				g.vfx.add_text(o.pos + Vector2(0, -78), "出击", Color(1.0, 0.82, 0.3), 16)
+			if sfx != null and not sfx.has_voice(o.id, key):
+				fallback = true
+	if fallback:
+		sfx.play("swing_heavy", -4.0)
 
 
 func _tick_lead(dt: float) -> void:
@@ -694,6 +754,7 @@ func _revive(o, p: Vector2) -> void:
 	o.cmd_hp = maxf(o.cmd_hp, Bal.v("command/revive_hp", 0.5))
 	o.cmd_inv = Bal.v("command/revive_inv", 1.0)
 	o.cmd_show = 3.0
+	_bl_ext[o.id] = "revive"
 	o.pos = p
 
 

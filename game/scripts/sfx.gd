@@ -732,6 +732,9 @@ func voice_reset() -> void:
 	for lp in loops.values():
 		lp.stop()
 	voice_queue.clear()
+	chorus_pending.clear()
+	for cp in chorus.values():
+		cp.stop()
 	voice_player.stop()
 	if voice_fade_tw != null and voice_fade_tw.is_valid():
 		voice_fade_tw.kill()
@@ -741,8 +744,78 @@ func voice_reset() -> void:
 	voice_play_end = 0.0
 
 
+## ---- 指挥合唱（10-28 用户「突击时两名队友的台词可以交替或一起喊」）：突击 / 归队回应不走单通道，每名干员各一个播放器，
+## 两名队友可以重叠（squad._stance_voice 按 command/voice_mode 错开或同时触发）；同一名干员自己不重叠（他这条还在播就不再喊）。
+## 两条以上同时在播时每条压 duck_db（缺省 −3 dB）防爆音。其余口径同 urgent 指挥回应：不受同人 15 秒 / 全队静默间隔，
+## 正在说的战斗闲聊 / 部署语音淡出让路；正在播技能语音时等它播完补播，截止 1.5 秒。播完后照常记全队静默间隔（其它语音规则不变）
+var chorus := {}                       # 干员 id -> AudioStreamPlayer
+var chorus_pending: Array = []         # [干员, 事件, 开播时刻, 截止时刻, 压低 dB]
+
+
+func voice_chorus(cid: String, key: String, delay := 0.0, duck_db := -3.0) -> void:
+	var now := _vnow()
+	chorus_pending.append([cid, key, now + delay, now + delay + 1.5, duck_db])
+	_chorus_tick()
+
+
+func _chorus_tick() -> void:
+	if chorus_pending.is_empty():
+		return
+	var now := _vnow()
+	var keep: Array = []
+	for c in chorus_pending:
+		if now < float(c[2]):
+			keep.append(c)
+		elif not _chorus_play(c[0], c[1], float(c[4])) and now <= float(c[3]):
+			keep.append(c)
+	chorus_pending = keep
+
+
+## true = 处理完（播了或放弃）；false = 等技能语音播完再试
+func _chorus_play(cid: String, key: String, duck_db: float) -> bool:
+	var st := _voice_stream(cid, key)
+	if st == null:
+		return true
+	var now := _vnow()
+	var cp: AudioStreamPlayer = chorus.get(cid)
+	if cp != null and cp.playing:
+		return true   # 同一名干员自己不重叠
+	if voice_player.playing and now < voice_play_end:
+		if voice_key in VOICE_CHATTER or voice_key == "entry":
+			_voice_fade_out()
+		else:
+			return false   # 技能语音正在播：等它播完
+	if cp == null:
+		cp = AudioStreamPlayer.new()
+		cp.bus = "Voice"
+		add_child(cp)
+		chorus[cid] = cp
+	var others: Array = chorus.values().filter(func(p): return p != cp and p.playing)
+	var trim: float = float(VOICE_TRIM.get(cid, 0.0))
+	cp.stream = st
+	cp.volume_db = trim + (duck_db if not others.is_empty() else 0.0)
+	cp.set_meta("trim", trim)
+	if cp.is_inside_tree():
+		cp.play()
+	for p in others:
+		if is_equal_approx(float(p.volume_db), float(p.get_meta("trim", 0.0))):
+			p.volume_db = float(p.get_meta("trim", 0.0)) + duck_db   # 先开口的那条也压一点（只压一次）
+			if trace_on:
+				trace.append([Engine.get_process_frames(), "vduck:" + str(p.get_meta("vpath", "")), duck_db, 1.0])
+	cp.set_meta("vpath", "%s_%s" % [cid, key])
+	voice_last[cid + ":" + key] = now
+	voice_op_last[cid] = now
+	voice_end = maxf(voice_end, now + st.get_length() + VOICE_GAP)
+	if trace_on:
+		trace.append([Engine.get_process_frames(), "voice:%s_%s" % [cid, key], cp.volume_db, 1.0])
+	if voice_log:
+		print("VOICEPLAY %s %s chorus" % [cid, key])
+	return true
+
+
 func _process(delta: float) -> void:
 	_voice_tick()
+	_chorus_tick()
 	music_lp.cutoff_hz = lerp(music_lp.cutoff_hz, cut_target, clamp(delta * 3.0, 0.0, 1.0))
 	# 兜底：若游戏场景没有主动选曲（未接入分层逻辑的版本），进入战斗时自动播放战斗曲
 	driven_t += delta

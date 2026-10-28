@@ -1162,7 +1162,12 @@ func follow(dt: float, target: Vector2) -> void:
 		cmd_d = 0.0
 		return
 	var ic = _izu_intercept() if not is_leader and st != 2 and syn_mv.is_empty() and pos != Vector2.INF else null   # 截子代（10-28 用户定 B）
-	if syn_mv.is_empty() and (pos == Vector2.INF or pos.distance_to(target) > (700.0 if st == 0 and ic == null else CmdBal.v("command/leash", 1200.0) * 1.6)):
+	# 只在两种情况瞬移：开局 / 入队（pos 还没有）和离队长超过 command/leash × 1.6（屏外远远掉队）；后者在原地留退场闪光、落点一圈光（同归队瞬回）。
+	# 原来随行离编队位 700 以上也直接归位，10-28 改为限速跑回（follow_vmax），不再一下子出现在身边
+	if syn_mv.is_empty() and (pos == Vector2.INF or pos.distance_to(target) > CmdBal.v("command/leash", 1200.0) * 1.6):
+		mv_src = "snap_leash"
+		if pos != Vector2.INF and sq != null and not is_leader:
+			sq.blink_fx(self, target)
 		pos = target
 		mv = 0.0
 		return
@@ -1173,6 +1178,7 @@ func follow(dt: float, target: Vector2) -> void:
 	if is_leader:
 		pos = target   # 主控：位置就是玩家位置（g.ppos），不走编队跟随 / 近战前压
 	elif not syn_mv.is_empty():
+		mv_src = "synergy"
 		pos = syn_step(dt)   # 连携技的合击位移（synergy.gd）：脚本推着走，不跟编队
 		fp_moving = true
 	else:
@@ -1180,8 +1186,10 @@ func follow(dt: float, target: Vector2) -> void:
 			target = _cmd_walk(_intercept_pos(ic))
 		else:
 			target = _cmd_walk(roam_target(target)) if st == 1 else follow_target(target)
+		var t_pre: Vector2 = target
 		if st != 2 and rush_t <= 0.0:
 			target = _cmd_evade(target)   # 闪避意识（10-27 用户）：预警区 / 迎面敌弹先躲开，再回到原来的目标
+		var evd: bool = target != t_pre
 		if st != 1 and ic == null:
 			_cmd_waypoint = Vector2.INF
 			_cmd_stall = 0.0
@@ -1193,19 +1201,27 @@ func follow(dt: float, target: Vector2) -> void:
 		var d: float = pos.distance_to(target)
 		var k: float = clampf(dt * (3.0 if d < 20.0 else (9.0 if st == 2 else 6.0)), 0.0, 1.0)
 		cmd_d = d
+		mv_src = ("intercept" if ic != null else ["follow", "roam", "recall"][st]) + ("+evade" if evd else "")
+		if _bl_tgt != Vector2.INF and _bl_tgt.distance_to(target) > 60.0:
+			mv_src += "+tjump"   # 目标点一帧跳了 60 以上（换目标 / 换边 / 前压点跳）
+		_bl_tgt = target
 		if st == 0 and ic == null and g.dash_t > 0.0 and CmdBal.v("command/dash_follow", 1.0) > 0.0:
 			# 跟随冲刺（用户 10-25「冲锋的时候一起冲锋，平时就跑动攻击」）：队长冲刺期间队友不停顿、不前压追怪，快步贴着编队位一起冲；
 			# 平时队友只跑动（跑动中攻击），不再自动突进 / 冲刺
 			fp_moving = true
+			mv_src = "dash_follow"
 			pos = pos.lerp(slot, clampf(dt * CmdBal.v("command/dash_follow_k", 22.0), 0.0, 1.0))
 		elif st == 0 and ic == null:
 			if not _follow_paused(dt, d):   # 随行：到位停 + 错开起步（10-21 用户定方案 C）
-				pos = pos.lerp(target, k)
+				# 限速（10-28 用户「队友攻击时常常一下子闪现」）：原来不限速的 lerp 在近战前压点 / 闪避点一跳就一两帧冲过去（最快约 20 倍移速）；
+				# 现在最快 队长移速 × command/follow_vmax，近处照旧 lerp 减速
+				pos += ((target - pos) * k).limit_length(g.speed * CmdBal.v("command/follow_vmax", 2.8) * dt)
 		else:
 			fp_moving = true   # 突击 / 归队不停顿；回到随行时从「在走」开始
 			# 突击 / 归队：限速（随行原样不限）——突击按队长移速 × command/roam_speed 跑过去，归队 × command/recall_speed 快速归位
 			var step: Vector2 = (target - pos) * k
 			if st == 1 and rush_t > 0.0:
+				mv_src = "rush"
 				step = _rush_step(dt)   # 爆发窗口的第一下冲锋：不受突击限速，冲到目标面前或撞上怪就停（docs/114 §14）
 			else:
 				var vmax: float = g.speed * CmdBal.v("command/roam_speed" if st == 1 or ic != null else "command/recall_speed", 1.3 if st == 1 or ic != null else 4.0) * dt
@@ -1719,6 +1735,8 @@ var _rush_emit_t := 0.0
 ## 冲刺为主要输出的干员（德克萨斯，天赋 on_dash_end 收益）def.command.roam_dash = false，改走自己 json 里 cond roaming 的 dash_line（带伤害）。
 ## 起手错开（按编队序号），不改队长位置，冲完照常走突击 / 归队
 var _roam_dash_t := -1.0
+var _bl_tgt := Vector2.INF
+var mv_src := ""   # 闪现遥测（--blinklog，squad._blink_log）：本帧 follow 走的哪条位移分支
 
 
 func is_roaming() -> bool:
