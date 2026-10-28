@@ -18,7 +18,7 @@ import godot_runner as GR
 
 GAME = os.path.join(ROOT, "game")
 OUT = os.path.join(GR.common_root(), "build", "settle_redesign")
-NAMES = {"0": "旧样", "1": "作战报告"}
+NAMES = {"0": "旧样", "1": "作战报告", "2": "合约结算"}
 DEVS = [("desktop", "1280x720", []), ("phone", "1480x720", ["--touch"])]
 
 
@@ -49,7 +49,7 @@ def compose(style, lead, dirs, slow):
     import imageio_ffmpeg
     W, H = 1480, 720
     f = font(16)
-    path = os.path.join(OUT, "settle_%s_%s%s.mp4" % ("A" if style == "1" else style, lead, "_slow" if slow else ""))
+    path = os.path.join(OUT, "settle_%s_%s%s.mp4" % ({"1": "A", "2": "CC"}.get(style, style), lead, "_slow" if slow else ""))
     fps = 10 if slow else 30
     proc = subprocess.Popen([imageio_ffmpeg.get_ffmpeg_exe(), "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
                              "-s", "%dx%d" % (W, H), "-r", str(fps), "-i", "-",

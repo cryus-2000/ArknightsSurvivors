@@ -64,8 +64,8 @@ var _fa := 1.0           # 当前绘制组透明度（_text 乘上）
 var _dx := 0.0           # 当前绘制组水平偏移（失败打捞的晃动）
 var _blur := 0.0         # 失败打捞的失焦虚影（0 = 对焦）
 ## 结算样式（10-28 用户定方向 A「作战报告」，配色跟随本局队长）：项目设置 ui/settle_style 或测试参数 --settle_style=N；
-## 1 = 作战报告（缺省，screens/settle/settle_report.gd），0 = 旧样回退
-const STYLES := ["", "res://scripts/screens/settle/settle_report.gd"]
+## 1 = 作战报告（缺省，screens/settle/settle_report.gd），2 = 合约结算（10-28 用户「学习一下危机合约的结算界面」，待挑），0 = 旧样回退
+const STYLES := ["", "res://scripts/screens/settle/settle_report.gd", "res://scripts/screens/settle/settle_contract.gd"]
 var sty = null
 
 static func style_id() -> int:
