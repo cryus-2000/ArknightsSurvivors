@@ -1,0 +1,4 @@
+[gd_scene load_steps=2 format=3]
+[ext_resource type="Script" path="res://tests/event_maxhp_test.gd" id="1"]
+[node name="EventMaxhpTest" type="Node"]
+script = ExtResource("1")
