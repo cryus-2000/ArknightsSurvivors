@@ -109,6 +109,7 @@ func save(card, d: Dictionary) -> void:
 	var vp := SubViewport.new()
 	vp.size = Vector2i(int(ShareCard.W), int(ShareCard.H))
 	vp.transparent_bg = false
+	vp.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST   # 子视口缺省线性过滤，像素字 / 立绘会糊
 	vp.render_target_update_mode = SubViewport.UPDATE_ONCE
 	var c := CardCanvas.new()
 	c.card = card

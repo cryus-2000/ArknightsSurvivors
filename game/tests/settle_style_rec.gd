@@ -2,10 +2,13 @@ extends Node
 ## 结算录帧（10-28 结算改版；不进快检）：开窗口、--fixed-fps 30 逐帧存 rec_<段>_<帧>.png。
 ##   godot --fixed-fps 30 --path game res://tests/settle_style_rec.tscn -- --shotdir=<目录> [--settle_style=N] [--touch] [--rec_ops=N] [--rec_leader=<干员 id>]
 ## 两段：胜利完整出场 + 停 1.2 秒 → 失败完整出场 + 停 1.2 秒。--rec_ops = 编队人数（缺省 6）；--rec_leader 换队长（看配色跟随）。
+## 每段末尾按分享卡的保存流程（600×800 离屏视口，同 share_toy.save）导出 share_<段>.png。
 
 const RunStats = preload("res://scripts/run/run_stats.gd")
 const Game = preload("res://scripts/game.gd")
 const Screen = preload("res://scripts/screens/settlement_screen.gd")
+const ShareCard = preload("res://scripts/screens/share_card.gd")
+const ShareToy = preload("res://scripts/screens/share_toy.gd")
 
 class Probe extends Screen:
 	func _run(_id: String) -> void:
@@ -21,6 +24,7 @@ var seg_f := 0
 var seg_n := 0
 var n_ops := 6
 var leader := ""
+var busy := false
 const SEGS := ["win", "dead"]
 const EXTRA := [["texas", "德克萨斯", "TEXAS", [0.95, 0.62, 0.3], 300.0, -1.0], ["lumen", "流明", "LUMEN", [0.6, 0.85, 1.0], 520.0, -1.0],
 	["exusiai", "能天使", "EXUSIAI", [1.0, 0.45, 0.45], 560.0, -1.0], ["hoshiguma", "星熊", "HOSHIGUMA", [0.5, 0.9, 0.6], 610.0, -1.0]]
@@ -52,7 +56,7 @@ func _raw(result: String) -> Dictionary:
 		_set_leader(raw)
 	raw.result = result
 	if result != "win":
-		raw.killer = {"type": "", "env": "", "name": "被「溺亡的忏悔者」击倒", "cause": ""}
+		raw.killer = {"type": "", "env": "", "name": "溺亡的忏悔者", "cause": ""}
 		raw.t = 655.0
 		raw.bosses = [{"type": "path", "name": "塑路者", "t0": 210.0, "t1": 262.0}, {"type": "bishop", "name": "接潮主教", "t0": 420.0, "t1": 497.0},
 			{"type": "paranoia", "name": "偏执泡影", "t0": 600.0, "t1": -1.0}]
@@ -101,7 +105,29 @@ func _start(i: int) -> void:
 	seg_n = int(ceil((s._end() + 1.2) * 30.0))
 
 
+## 分享卡导出成图（与 share_toy.save 同一离屏视口画法）
+func _card(i: int) -> void:
+	var card = ShareCard.new(game)
+	var vp := SubViewport.new()
+	vp.size = Vector2i(int(ShareCard.W), int(ShareCard.H))
+	vp.transparent_bg = false
+	vp.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST   # 子视口缺省线性过滤，像素字 / 立绘会糊
+	vp.render_target_update_mode = SubViewport.UPDATE_ONCE
+	var c := ShareToy.CardCanvas.new()
+	c.card = card
+	c.d = card.data(s)
+	c.size = Vector2(ShareCard.W, ShareCard.H)
+	vp.add_child(c)
+	add_child(vp)
+	await get_tree().process_frame
+	await RenderingServer.frame_post_draw
+	vp.get_texture().get_image().save_png(shot_dir + "/share_%d.png" % i)
+	vp.queue_free()
+
+
 func _process(d: float) -> void:
+	if busy:
+		return
 	frames += 1
 	if frames == 4:
 		game.set_process(false)
@@ -115,6 +141,9 @@ func _process(d: float) -> void:
 	rec_i += 1
 	seg_f += 1
 	if seg_f >= seg_n:
+		busy = true
+		await _card(seg)
+		busy = false
 		if seg + 1 >= SEGS.size():
 			get_tree().quit(0)
 		else:

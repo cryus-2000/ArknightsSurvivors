@@ -38,7 +38,7 @@ var focus := -1        # 键盘 / 手柄焦点在底栏第几个按钮（-1 = �
 var press_id := ""     # 正在播按下态的按钮
 var press_t := 0.0
 var _pending := ""     # 按下后待执行的动作
-## 战绩分享卡（10-28 用户定样式 B「深海海报」；卡面 screens/share_card.gd，Toy 头像 / 二维码 / 保存 screens/share_toy.gd）
+## 战绩分享卡（10-28 用户：与结算「作战报告」同一视觉语言、配色跟随队长；卡面 screens/share_card.gd，Toy 头像 / 二维码 / 保存 screens/share_toy.gd）
 const ShareCard = preload("res://scripts/screens/share_card.gd")
 const ShareToy = preload("res://scripts/screens/share_toy.gd")
 var share

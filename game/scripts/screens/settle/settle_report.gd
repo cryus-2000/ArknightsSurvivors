@@ -18,16 +18,9 @@ func buttons() -> Array:
 	return footer(664.0, 42.0)
 
 
-## 队长主题色：OKHSL 明度夹 0.62–0.84、饱和封顶 0.85（过暗 / 过亮的设定色在暗底上仍能作字色）；失败同色降饱和、略压暗
 func theme() -> Color:
 	var r := leader_row()
-	var c: Color = r.get("col", HH.CYB) if not r.is_empty() else HH.CYB
-	var sa := minf(c.ok_hsl_s, 0.85)
-	var l := clampf(c.ok_hsl_l, 0.62, 0.84)
-	if not won:
-		sa *= 0.3
-		l = minf(l, 0.66)
-	return Color.from_ok_hsl(c.ok_hsl_h, sa, l)
+	return lead_theme(r.get("col", HH.CYB) if not r.is_empty() else HH.CYB, won)
 
 
 func draw(canvas: CanvasItem) -> void:

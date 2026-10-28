@@ -168,6 +168,17 @@ func grade() -> String:
 	return s.grade(s.model, s.g.preset)
 
 
+## 队长主题色（10-28 用户：结算 / 分享卡配色跟随本局队长；col 取 data/characters/*.json，选人 / 图鉴同一张）：
+## OKHSL 明度夹 0.62–0.84、饱和封顶 0.85（过暗 / 过亮的设定色在暗底上仍能作字色）；失败同色降饱和、略压暗
+static func lead_theme(c: Color, win: bool) -> Color:
+	var sa := minf(c.ok_hsl_s, 0.85)
+	var l := clampf(c.ok_hsl_l, 0.62, 0.84)
+	if not win:
+		sa *= 0.3
+		l = minf(l, 0.66)
+	return Color.from_ok_hsl(c.ok_hsl_h, sa, l)
+
+
 func m() -> Dictionary:
 	return s.model
 
@@ -195,7 +206,7 @@ func sub_line() -> String:
 		return str(m().get("ending_name", ""))
 	var kl: Dictionary = m().get("killer", {})
 	var n := str(kl.get("name", ""))
-	return n if n != "" else "探索终止"
+	return ("击倒：" + n) if n != "" else "探索终止"
 
 
 func boss_kills() -> int:

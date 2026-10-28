@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """结算录像（10-28 结算改版，定方向 A「作战报告」、配色跟随队长）：tests/settle_style_rec 逐帧存图 → H.264 mp4（原色原速）。
-每名队长一段：桌面 1280×720 胜利 + 失败，接手机横屏 1480×720（--touch）胜利 + 失败；各段左上角标注。录完即删帧目录。
+每名队长一段：桌面 1280×720 胜利 + 失败，接手机横屏 1480×720（--touch）胜利 + 失败，末尾 4 秒是导出的分享卡（胜 / 负并排，1:1 自上而下平移）；
+各段左上角标注。录完即删帧目录。
 另出 1/3 速版（--slow）。输出主仓库 build/settle_redesign/settle_A_<队长>.mp4。
 
 用法：python tools/probes/settle_style_rec.py [skadi texas gladiia] [--style=N] [--slow] [--shots]
@@ -65,6 +66,23 @@ def compose(style, lead, dirs, slow):
             dr.rectangle((0, 0, dr.textlength(label, font=f) + 16, 24), fill=(0, 0, 0))
             dr.text((8, 2), label, fill=(255, 220, 140), font=f)
             proc.stdin.write(canvas.tobytes())
+    cards = [os.path.join(dirs[0][1], "share_%d.png" % i) for i in range(2)]
+    if all(os.path.exists(c) for c in cards):
+        ims = [Image.open(c).convert("RGB") for c in cards]   # 1:1 不缩放（像素字不糊），卡高 800 > 720：从上往下慢慢平移
+        n = fps * 4
+        for fi in range(n):
+            q = min(1.0, max(0.0, (fi / n - 0.2) / 0.55))
+            oy = round((ims[0].height - H) * (q * q * (3 - 2 * q)))
+            canvas = Image.new("RGB", (W, H), (0, 0, 0))
+            for i, im in enumerate(ims):
+                canvas.paste(im.crop((0, oy, im.width, oy + H)), (W // 2 - im.width - 10 if i == 0 else W // 2 + 10, 0))
+            dr = ImageDraw.Draw(canvas)
+            label = "分享战绩  ·  导出图 1:1（胜 / 负）  ·  队长 %s" % lead
+            dr.rectangle((0, 0, dr.textlength(label, font=f) + 16, 24), fill=(0, 0, 0))
+            dr.text((8, 2), label, fill=(255, 220, 140), font=f)
+            proc.stdin.write(canvas.tobytes())
+    else:
+        print("缺分享卡导出图", cards)
     proc.stdin.close()
     proc.wait()
     print("写出", path, "%.1f MB" % (os.path.getsize(path) / 1048576))
@@ -86,6 +104,10 @@ def main():
             sd = os.path.join(OUT, "shots")
             os.makedirs(sd, exist_ok=True)
             for dev, d in dirs:
+                for i in range(2):
+                    c = os.path.join(d, "share_%d.png" % i)
+                    if os.path.exists(c):
+                        shutil.copy(c, os.path.join(sd, "s%s_%s_share%d.png" % (st, dev, i)))
                 for si, tag in [(0, "win"), (1, "dead")]:
                     fr = sorted(glob.glob(os.path.join(d, "rec_%d_*.png" % si)))
                     if not fr:
