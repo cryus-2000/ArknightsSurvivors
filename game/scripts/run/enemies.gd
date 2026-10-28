@@ -402,6 +402,8 @@ func update(dt: float) -> void:
 		# 重型怪只削外来击退；自己冲锋 / 突刺（kb_self，boss_ai 的 dash / stab）不削，否则骑士冲锋只冲出 1/3（用户实机反馈 9/27）
 		var v: Vector2 = e.kb * (0.3 if D.ENEMIES[e.type].get("heavy", false) and not e.get("kb_self", false) else 1.0)
 		var spd: float = e.spd * dark_mod * (0.65 if e.slow > 0.0 else 1.0) * g.beacon_sys.slow_mult(e)
+		if float(e.get("lite_slow_t", 0.0)) > g.t:
+			spd *= 1.0 - float(e.lite_slow)   # 轻减速（lite_slow，铃兰狐火命中，10-29）：与普通减速乘算
 		if e.get("lead_charge", false) and dist < Bal.v("enemy/horde_lead_charge_r", 320.0) and e.get("wake_t", 0.0) <= 0.0 and e.get("depart_t", 0.0) <= 0.0 and e.stun <= 0.0 and not g.eai.busy(e):
 			# 领头冲撞（docs/116 §7.4）：大群领头的重型怪 / 精英第一次逼近时起一次带地面预警的直线冲撞（复用 telegraph 的 dash）
 			e.lead_charge = false
@@ -844,6 +846,15 @@ func interrupt(e: Dictionary) -> void:
 	for k in ["wind", "dash_w", "dash_t", "nova_w", "blast_w"]:
 		if e.has(k):
 			e[k] = 0.0
+
+
+## 轻减速（用户 10-29，铃兰狐火命中）：dur 秒内移速 ×(1 − value)；同一目标不叠层，只刷新时长（取较大减速）；Boss 不吃
+func lite_slow(e: Dictionary, value: float, dur: float) -> void:
+	if e.boss or e.dead:
+		return
+	var on: bool = float(e.get("lite_slow_t", 0.0)) > g.t
+	e["lite_slow"] = maxf(float(e.get("lite_slow", 0.0)), value) if on else value
+	e["lite_slow_t"] = g.t + dur
 
 
 ## 沉默到 until（g.t）：不起特殊招式、不远程开火，可移动与接触攻击；Boss 不吃。只延长不缩短

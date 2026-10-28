@@ -23,6 +23,8 @@
     "shots": 2,
     "aoe": 26,
     "aura": 85,
+    "fox_slow": 0.2,
+    "fox_slow_dur": 0.8,
     "s1_shots": 5,
     "s1_mult": 1.2,
     "s2_buff": 0.15,
@@ -235,7 +237,7 @@
   "attack": {
     "mode": "auto",
     "name": "狐火",
-    "desc": "减速光域：光域内敌人移速 -35%；每 {$cd} 秒向 2 名敌人发射 {$shots} 团追踪狐火，命中时小范围溅射（法术）"
+    "desc": "减速光域：光域内敌人移速 -35%；每 {$cd} 秒向 2 名敌人发射 {$shots} 团追踪狐火，命中时小范围溅射（法术），被命中的敌人 {$fox_slow_dur} 秒内移速 -{$fox_slow*100}%（不叠加，Boss 除外）"
   },
   "skills": [
     {
@@ -458,6 +460,7 @@
         "tex": "fx_suzuran_ninetails",
         "alpha": 0.45
       },
+      "slow": {"value": "$fox_slow", "dur": "$fox_slow_dur", "_doc": "狐火命中轻减速（用户 10-29 方案 B：辅助开局自保）：同一目标只刷新不叠层，Boss 不吃（enemies.lite_slow）"},
       "brand": {
         "cond": "elite >= 1",
         "value": "$brand_value",
