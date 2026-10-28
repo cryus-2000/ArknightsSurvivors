@@ -9,6 +9,8 @@ const A = preload("res://scripts/art.gd")
 
 
 static func draw_top(g, e: Dictionary) -> void:
+	if e.get("gate_hold", false):
+		_hard_film(g, e)
 	var fakes: Array = e.get("pc_fakes", [])
 	for f in fakes:
 		# 空心：只有一圈淡紫细边 + 极淡内填，和实心弹（亮芯 + 暗描边）一眼分开
@@ -349,3 +351,28 @@ static func _howl_warn(g, w: Dictionary) -> void:
 		var d := Vector2.from_angle(w.ang + w.half * sd)
 		g.world.tb_line(w.pos, w.pos + d * w.r, Color(0.95, 0.35, 0.45, 0.3 + 0.4 * k), 1.5)
 	g.world.tb_flush()
+
+
+## 卡点泡膜硬化（10-28 防速杀，docs/170 §3w）：这一幕没满最短时长时伤害停在刻度上；身外一层硬化的多面泡壳（白紫棱面，缓慢转、棱上闪光），
+## 壳外一圈细弧 = 还要撑多久（满 → 空）。和破绽的地面金环分开：这个在身上、冷色、硬边，读作「暂时打不动」而不是 bug
+static func _hard_film(g, e: Dictionary) -> void:
+	var o: Vector2 = e.pos + Vector2(0, -16)
+	var r: float = float(e.r) * 1.35
+	var c := Color(0.88, 0.8, 1.0) if e.phase == 1 else Color(0.7, 0.95, 1.0)
+	var rot: float = g.t * 0.4
+	var n := 9
+	var pts := PackedVector2Array()
+	for k in n + 1:
+		pts.append(o + Vector2.from_angle(rot + TAU * k / n) * r)
+	g.draw_colored_polygon(pts.slice(0, n), Color(c.r, c.g, c.b, 0.14))
+	g.draw_polyline(pts, Color(0, 0, 0, 0.5), 5.0)
+	g.draw_polyline(pts, Color(c.r, c.g, c.b, 0.9), 2.5)
+	# 棱上闪光：一道亮点绕壳走
+	var sk: float = fmod(g.t * 1.5, 1.0) * n
+	var i0: int = int(sk)
+	var sp: Vector2 = pts[i0].lerp(pts[i0 + 1], sk - i0)
+	g.draw_circle(sp, 3.0, Color(1, 1, 1, 0.9))
+	for k in n:
+		g.draw_line(o + (pts[k] - o) * 0.72, pts[k], Color(1, 1, 1, 0.35), 1.0)
+	var left: float = clampf(1.0 - float(e.get("act_t", 0.0)) / maxf(0.1, float(e.get("act_min", 1.0))), 0.0, 1.0)
+	g.draw_arc(o, r + 9.0, -PI / 2.0, -PI / 2.0 + TAU * left, 40, Color(c.r, c.g, c.b, 0.85), 2.0)

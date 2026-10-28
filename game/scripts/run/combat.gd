@@ -906,7 +906,10 @@ func gate_init(e: Dictionary, type: String) -> void:
 	var fin: bool = g.spawner.is_final_boss_type(type)
 	var gl: Array = d.get("gates", [0.66, 0.33] if fin else [0.5])
 	e.gates = gl.duplicate() if Bal.v("boss/gates_on", 1.0) > 0.0 else []
-	e.act_min = float(d.get("act_min", Bal.v("boss/act_min_final", 13.0) if fin else Bal.v("boss/act_min_mid", 6.0)))
+	var am = d.get("act_min", Bal.v("boss/act_min_final", 13.0) if fin else Bal.v("boss/act_min_mid", 6.0))
+	# act_min 可写数组 = 逐幕最短时长（过一道卡点取下一项；多出的项由 Boss 脚本自己用，例如偏执泡影破茧后一段，docs/170 §3w）
+	e.act_mins = (am as Array).duplicate() if am is Array else []
+	e.act_min = float(e.act_mins.pop_front()) if am is Array else float(am)
 	e.act_t = 0.0
 	e.gate_hold = false
 	e.gate_inv = 0.0
@@ -921,6 +924,10 @@ func gate_init(e: Dictionary, type: String) -> void:
 	# 伤害预算（§1.4，B1 ④）：按结构最短用时算补充速度，开局存满 4 秒
 	var ng: int = e.gates.size()
 	var tmin: float = e.act_min * (ng + 1) + Bal.v("boss/gate_inv", 0.8) * ng
+	if am is Array:
+		tmin = Bal.v("boss/gate_inv", 0.8) * ng
+		for x in am:
+			tmin += float(x)
 	e.budget_rate = e.maxhp / maxf(1.0, tmin * 0.8)
 	e.budget = e.budget_rate * Bal.v("boss/budget_store", 4.0)
 
@@ -1030,6 +1037,8 @@ func gate_pass(e: Dictionary) -> void:
 	e.gates_passed += 1
 	e.gate_hold = false
 	e.act_t = 0.0
+	if not e.get("act_mins", []).is_empty():
+		e.act_min = float(e.act_mins.pop_front())
 	e.gate_inv = Bal.v("boss/gate_inv", 0.8)
 	e.wind = maxf(e.get("wind", 0.0), e.gate_inv)   # 0.8 秒内不出新招
 	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e) or w.done)
@@ -1110,6 +1119,9 @@ func _damage(e: Dictionary, dmg: float, h: Dictionary = {}) -> void:
 		if pierce > 0 and edef < 1.0:
 			edef = 1.0 - (1.0 - edef) * (1.0 - 0.01 * pierce)
 		dmg *= edef * g.rfx.dmg_extra()
+		# 分类型抗性（enemies.json phys_taken / arts_taken，缺省 1 = 不变）：偏执泡影按原作防御 700 / 法抗 70（docs/170 §3v）
+		var edt: Dictionary = D.ENEMIES.get(e.type, {})
+		dmg *= float(edt.get("phys_taken" if ty[1] == "物理" else "arts_taken", 1.0))
 		if e.boss:
 			dmg *= g.boss_mult   # “文明的存续”（docs/57 P3）
 		elif e.elite:

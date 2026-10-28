@@ -750,9 +750,9 @@ func test_gates() -> void:
 		k += 1
 	ok(m.dead, "最后一幕打完正常死亡（%d 击）" % k)
 	# 最终 Boss：两道刻度；这一幕已满时长则越过刻度立刻过卡点、不升护盾
-	var f: Dictionary = sp.spawn_enemy("paranoia", game.ppos + Vector2(1700, 0))
-	# 刻度按 enemies.json（偏执泡影 10-28 改三道 0.84 / 0.67 / 0.5，docs/170）；没写才是缺省 0.66 / 0.33
-	var fg: Array = preload("res://scripts/data.gd").ENEMIES["paranoia"].get("gates", [0.66, 0.33])
+	var f: Dictionary = sp.spawn_enemy("knight_boss", game.ppos + Vector2(1700, 0))   # 泡影自带刻度 / 逐幕时长（下面单测），这里用骑士
+	# 刻度按 enemies.json（骑士 10-28 改 0.66 / 0.5）；没写才是缺省 0.66 / 0.33
+	var fg: Array = preload("res://scripts/data.gd").ENEMIES["knight_boss"].get("gates", [0.66, 0.33])
 	ok(f.gates == fg and absf(f.act_min - Bal.v("boss/act_min_final", 13.0)) < EPS, "最终 Boss 刻度 %s、每幕 %.0f 秒" % [str(fg), f.act_min])
 	f.act_t = 99.0
 	k = 0
@@ -761,6 +761,25 @@ func test_gates() -> void:
 		k += 1
 	ok(not f.gate_hold and f.gates == fg.slice(1) and absf(f.hp - f.maxhp * float(fg[0])) < 0.01, "满时长越过刻度：直接过卡点、截在第一道刻度 %.0f%%" % (float(fg[0]) * 100.0))
 	f.dead = true
+	# 偏执泡影逐幕最短时长（act_min 数组，docs/170 §3w）：过卡点取下一项，破茧后再取一段并重新守 3%
+	var pa: Dictionary = sp.spawn_enemy("paranoia", game.ppos + Vector2(1750, 0))
+	ok(absf(pa.act_min - 12.0) < EPS and pa.act_mins.size() == 4, "泡影首幕 12 秒、还排着 4 段（%s）" % str(pa.act_mins))
+	pa.act_t = 3.0
+	k = 0
+	while not pa.gate_hold and k < 200:
+		c.damage(pa, pa.maxhp)
+		k += 1
+	ok(pa.gate_hold and absf(pa.hp - pa.maxhp * 0.84) < 0.01, "泡影打太快：停在 84% 泡膜硬化")
+	var hp0: float = pa.hp
+	c.damage(pa, pa.maxhp)
+	ok(absf(pa.hp - hp0) < 0.01, "硬化期间伤害不结转")
+	c.gate_update(pa, pa.act_min)
+	ok(not pa.gate_hold and absf(pa.act_min - 12.0) < EPS and pa.act_mins.size() == 3, "满 12 秒过卡点、取下一幕 12 秒")
+	pa.act_mins = [25.0]
+	pa.last_done = true
+	game.bai.boss("paranoia").paranoia_hatch(pa, false)
+	ok(absf(pa.act_min - 25.0) < EPS and pa.act_t == 0.0 and not pa.last_done, "破茧后再守一段 25 秒")
+	pa.dead = true
 	var iz: Dictionary = sp.spawn_enemy("izumik", game.ppos + Vector2(1800, 0))
 	ok(absf(iz.act_min - 10.0) < EPS, "伊祖米克每幕 10 秒")
 	iz.dead = true
