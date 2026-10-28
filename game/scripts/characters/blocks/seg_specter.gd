@@ -206,7 +206,7 @@ static func _h3_start_fall(o, sp: Dictionary, b: Dictionary) -> void:
 
 static func _h3_fall(o, sp: Dictionary) -> void:
 	var b: Dictionary = sp.sub
-	sp.doll_pos = o.pos
+	sp.doll_pos = o.g.ppos if o.is_leader else o.pos
 	sp.doll_t = float(b.get("life", 12.0))
 	sp.doll_tick = 0.0
 	sp.doll_at = 0.0
@@ -216,8 +216,13 @@ static func _h3_fall(o, sp: Dictionary) -> void:
 	_h3_vsparks(o, o.pos + Vector2(0, -20), H3_GHOST, 10, 120.0, 0.5, 2.5)
 
 
+## 替身光环半径（画面圈与判定同用这里；10-29 用户「替身范围太小」：json doll_r 120 → 168）
+static func h3_doll_r(au: Dictionary) -> float:
+	return float(au.get("r", 120.0))
+
+
 static func _h3_doll_slow_r(o, au: Dictionary) -> float:
-	return _h3_mults(o, float(au.get("r", 120.0)), au.get("slow_mults", []))
+	return _h3_mults(o, h3_doll_r(au), au.get("slow_mults", []))
 
 
 static func _h3_doll_tick(o, sp: Dictionary, dt: float) -> void:
@@ -228,9 +233,14 @@ static func _h3_doll_tick(o, sp: Dictionary, dt: float) -> void:
 	var au: Dictionary = b.get("doll_aura", {})
 	sp.doll_t = float(sp.doll_t) - dt
 	sp.doll_at = float(sp.doll_at) + dt
-	var fv = b.get("follow", [-46, 8])
-	var want: Vector2 = g.ppos + Vector2(float(fv[0]) * g.squad.side, float(fv[1]))
-	sp.doll_pos = (sp.doll_pos as Vector2).lerp(want, clampf(dt * 4.0, 0.0, 1.0))
+	if o.is_leader:
+		# 10-29 用户「二技能改成操作替身」：她当队长时替身就是玩家本身——摇杆 / 键盘移动的是替身，镜头、受击判定点、
+		# 敌人索敌都在 g.ppos 上，本体离场不画（原作：傀儡师受致命伤 / 生存的渴望结束后切换为替身作战）
+		sp.doll_pos = g.ppos
+	else:
+		var fv = b.get("follow", [-46, 8])
+		var want: Vector2 = g.ppos + Vector2(float(fv[0]) * g.squad.side, float(fv[1]))
+		sp.doll_pos = (sp.doll_pos as Vector2).lerp(want, clampf(dt * 4.0, 0.0, 1.0))
 	var el = b.get("elegy", null)
 	if el is Dictionary and cond_true(o, el.get("cond", _ED)):
 		sp.elegy_t = float(sp.elegy_t) - dt
@@ -246,7 +256,7 @@ static func _h3_doll_tick(o, sp: Dictionary, dt: float) -> void:
 		var ev: float = float(au.get("every", 1.0))
 		if float(sp.doll_tick) >= ev:
 			sp.doll_tick = float(sp.doll_tick) - ev
-			var r: float = float(au.get("r", 120.0))
+			var r: float = h3_doll_r(au)
 			var sr: float = _h3_doll_slow_r(o, au)
 			var dp2: Vector2 = sp.doll_pos
 			for j in o.query_ids(dp2, sr + 20.0):
@@ -269,6 +279,9 @@ static func _h3_doll_tick(o, sp: Dictionary, dt: float) -> void:
 		sp.doll_pos = Vector2.INF
 		o.float_text(o.pos + Vector2(0, -60), str(b.get("back_text", "归队")), H3_GHOST, 14)
 		o.fx({"kind": "glow", "pos": o.pos + Vector2(0, -24), "r": 24.0, "life": 0.4, "col": H3_GHOST, "alpha": 0.5})
+		if o.is_leader:   # 队长：操控回到本体，回归要看得出来——替身碎成光尘、地面一圈冷光环
+			o.fx({"kind": "ring", "pos": o.pos + Vector2(0, 2), "r": 70.0, "r0": 12.0, "life": 0.5, "col": H3_GHOST, "floor": true, "w": 3.0, "alpha": 0.8})
+			_h3_vsparks(o, o.pos + Vector2(0, -24), H3_GHOST, 16, 160.0, 0.6, 2.5)
 
 
 ## 第 3 批幽灵鲨段每帧（h3_tick 转来，手写 update 的先后：技能结束 → 倒下 → 替身 → 血痕 → 气焰 → 第二圈 / 持续旋转）。返回 true = 本帧不起手
@@ -438,7 +451,7 @@ static func _h3sp_draw_auras(o) -> void:
 		var au: Dictionary = sp.sub.get("doll_aura", {})
 		if not au.is_empty() and cond_true(o, au.get("cond", _ED)):
 			cv.draw_set_transform((sp.doll_pos as Vector2) + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-			cv.draw_arc(Vector2.ZERO, float(au.get("r", 120.0)), 0.0, TAU, 36, Color(H3_GHOST.r, H3_GHOST.g, H3_GHOST.b, 0.2 + 0.08 * sin(g.t * 3.0)), 2.0)
+			cv.draw_arc(Vector2.ZERO, h3_doll_r(au), 0.0, TAU, 48, Color(H3_GHOST.r, H3_GHOST.g, H3_GHOST.b, 0.2 + 0.08 * sin(g.t * 3.0)), 2.0)
 			cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
 

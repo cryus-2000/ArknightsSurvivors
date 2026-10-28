@@ -53,7 +53,7 @@ func _frame_sig(br: Vector2) -> Array:
 	for i in n:
 		var o = g.squad.ops[i]
 		var x: float = br.x - (n - i) * SQ_COL_W + (SQ_COL_W - SQ_CARD.x)
-		sig.append([o.skill_active(), o == g.ch, o.col(), _hp_vis(o)])
+		sig.append([o.skill_active(), o == g.ch, o.col(), _hp_vis(o), o.has_method("away") and o.away()])
 		var items: Array = _items_of(i)
 		for k in 3:
 			var it: Array = items[k]
@@ -187,7 +187,8 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 		if o == g.ch and Dn:
 			var lt := Rect2(Vector2(cr.position.x + 18, card_y - 11), Vector2(cr.size.x - 36, 14))
 			fg.rect(lt, UI.VIOLET)
-			txt.append(func(): UI.text(g.hud, g.font, lt.position + Vector2(0, 11), "队长", 10, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, lt.size.x))
+			var sub_on: bool = o.has_method("away") and o.away()   # 幽灵鲨二技能后操控替身（10-29）：标签换成「替身」
+			txt.append(func(): UI.text(g.hud, g.font, lt.position + Vector2(0, 11), "替身" if sub_on else "队长", 10, Color.WHITE, HORIZONTAL_ALIGNMENT_CENTER, lt.size.x))
 		# ---- 三枚技能格
 		var items: Array = _items_of(i)
 		for k in 3:

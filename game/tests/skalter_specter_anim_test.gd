@@ -3,6 +3,7 @@ extends Node
 ## 归溟 S3 重锯 / 反向第二圈换条、替身闪现现身 / 消散槽，全部纯画面、不消耗玩法 RNG。
 const Ch = preload("res://scripts/characters/character.gd")
 const NativeMotion = preload("res://scripts/characters/native_motion.gd")
+const SegSpecter = preload("res://scripts/characters/blocks/seg_specter.gd")
 const DT := 1.0 / 60.0
 var game: Node
 var frames := 0
@@ -28,6 +29,7 @@ func _process(_dt: float) -> void:
 		ok(Ch.validate_operator("skalter", sk.def), "浊心 json 通过契约校验")
 		test_specter(sp)
 		test_skalter(sk)
+		test_puppet(sp)
 		ok(game.rng_states() == rng, "动画不消耗玩法 RNG")
 	print("%d checks, %d failed" % [n, fails])
 	print("SKALTER SPECTER ANIM failures=%d" % fails)
@@ -97,3 +99,33 @@ func test_skalter(o) -> void:
 	step(o, 1.0)
 	ok(st(o).kind == "idle", "技能画面播完回待机")
 	ok(int(o.sprite_spec("idle").frames) == 36, "待机 36 帧加密")
+
+
+## 二技能「操作替身」（10-29 用户）：她当队长时替身就站在玩家位置（镜头 / 受击 / 索敌都在 g.ppos），本体不画；
+## 当队友时替身照旧跟在队长身侧；到期后本体回到替身所在处
+func test_puppet(o) -> void:
+	var sp: Dictionary = o.hw.sp
+	var sub: Dictionary = {}
+	for b in o.B.get("skills", [])[1].get("do", []):
+		if str(b.get("_tag", "")) == "verb.substitute":
+			sub = b
+	ok(not sub.is_empty(), "二技能带替身积木")
+	if sub.is_empty():
+		return
+	var was_leader: bool = o.is_leader
+	o.is_leader = true
+	game.ppos = Vector2(900, 700)
+	sp.sub = sub
+	SegSpecter._h3_fall(o, sp)
+	ok(o.away() and sp.doll_pos == game.ppos, "队长：替身现身在玩家位置，本体离场")
+	game.ppos = Vector2(1000, 640)
+	SegSpecter._h3_doll_tick(o, sp, DT)
+	ok(sp.doll_pos == game.ppos, "队长：移动的是替身（替身位置 = 玩家位置）")
+	o.is_leader = false
+	SegSpecter._h3_doll_tick(o, sp, DT)
+	ok(sp.doll_pos != game.ppos, "队友：替身照旧跟在队长身侧，不站到队长身上")
+	o.is_leader = true
+	sp.doll_t = DT * 0.5
+	SegSpecter._h3_doll_tick(o, sp, DT)
+	ok(not o.away() and o.pos == game.ppos, "替身到期：操控回到本体，本体就在玩家位置")
+	o.is_leader = was_leader
