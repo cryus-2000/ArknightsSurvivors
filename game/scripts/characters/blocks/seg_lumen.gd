@@ -500,7 +500,7 @@ static func _h3lm_draw_auras(o) -> void:
 	var cv = o.cv
 	var r: float = float(o.hw.lm.tower_b.get("r", 220.0))
 	cv.draw_set_transform((o.hw.lm.tower_pos as Vector2) + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-	cv.draw_circle(Vector2.ZERO, r, Color(H3_WARM.r, H3_WARM.g, H3_WARM.b, 0.05))
+	pass   # 10-29 特效审查：去掉整片半透明填充圆盘（遮敌人 / 弹幕），只留描边
 	cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(H3_WARM.r, H3_WARM.g, H3_WARM.b, 0.35 + 0.1 * sin(g.t * 4.0)), 2.5)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 
@@ -571,7 +571,7 @@ static func _h3lm_draw_rain(o) -> void:
 	var r: float = float(b.get("r", 140.0))
 	var fade: float = clampf(float(lm.rain_t) / 0.4, 0.0, 1.0) * clampf((float(b.get("dur", 3.0)) - float(lm.rain_t)) / 0.3, 0.0, 1.0)
 	cv.draw_set_transform(g.ppos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-	cv.draw_circle(Vector2.ZERO, r, Color(1.0, 0.85, 0.5, 0.06 * fade))
+	pass   # 10-29 特效审查：去掉整片半透明填充圆盘（遮敌人 / 弹幕），只留描边
 	cv.draw_arc(Vector2.ZERO, r, 0.0, TAU, 48, Color(1.3, 1.1, 0.7, 0.35 * fade), 1.5)
 	cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	for q in 28:
@@ -606,7 +606,7 @@ static func h3_draw_add(o, ci) -> void:
 		var k: float = 0.5 + 0.5 * sin(g.t * 3.0)
 		ci.draw_circle(_h3_tower_lamp(o), 26.0 + 4.0 * k, Color(0.9, 0.7, 0.35, 0.35))
 		ci.draw_set_transform((lm.tower_pos as Vector2) + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-		ci.draw_circle(Vector2.ZERO, float(lm.tower_b.get("r", 220.0)) * 0.9, Color(0.6, 0.45, 0.2, 0.06 + 0.02 * k))
+		pass   # 10-29 特效审查：去掉整片半透明填充圆盘（遮敌人 / 弹幕），只留描边
 		ci.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	for b in lm.bolts:
 		ci.draw_circle(b.pos, 14.0 if b.get("big", false) else 9.0, Color(0.9, 0.7, 0.3, 0.35))

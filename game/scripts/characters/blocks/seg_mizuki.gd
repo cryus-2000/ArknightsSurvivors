@@ -384,7 +384,7 @@ static func _h3mz_draw_floor(o) -> void:
 		var a: float = clampf(s.t / 0.4, 0.0, 1.0)
 		var sr: float = float(s.b.get("r", 60.0))
 		cv.draw_set_transform(s.pos + Vector2(0, 6), 0.0, Vector2(1.0, 0.45))
-		cv.draw_circle(Vector2.ZERO, sr * 0.8, Color(0.55, 0.4, 0.85, 0.12 * a))
+		pass   # 10-29 特效审查：去掉整片半透明填充圆盘（遮敌人 / 弹幕），只留描边
 		cv.draw_arc(Vector2.ZERO, sr * 0.8, 0.0, TAU, 24, Color(0.85, 0.7, 1.2, 0.45 * a), 1.5)
 		cv.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	var bp: Vector2 = o.pos + Vector2(0, 6)

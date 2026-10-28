@@ -439,7 +439,7 @@ static func _h4sg_draw_floor(o) -> void:
 		var dur: float = float(w.b.get("dur", 0.4))
 		var fade: float = clampf(1.0 - (w.t - dur) / 0.25, 0.0, 1.0) if w.t > dur else 1.0
 		cv.draw_set_transform(w.pos + Vector2(0, 4), 0.0, Vector2(1.0, 0.55))
-		cv.draw_circle(Vector2.ZERO, w.r, Color(H4_GOLD.r, H4_GOLD.g, H4_GOLD.b, 0.08 * fade))
+		pass   # 10-29 特效审查：去掉整片半透明填充圆盘（遮敌人 / 弹幕），只留描边
 		cv.draw_arc(Vector2.ZERO, w.r, 0.0, TAU, 56, Color(2.2, 1.7, 0.7, 0.9 * fade), 5.0)
 		cv.draw_arc(Vector2.ZERO, w.r * 0.86, 0.0, TAU, 48, Color(H4_GOLD.r, H4_GOLD.g, H4_GOLD.b, 0.45 * fade), 2.0)
 		for q in (16 if Dc.hit_spokes() else 0):   # 狮鬃放射纹（render/hit_spokes 缺省不画），号令波环照画
