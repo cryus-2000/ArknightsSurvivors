@@ -587,7 +587,7 @@ func _random_relics(n: int, rarity: String) -> void:
 			gain_ingots(12, "暂无可得藏品 · ")
 			continue
 		var rid: String = cands[g.rng.randi() % cands.size()]
-		g.progression.gain_relic(rid)
+		g.progression.gain_relic(rid, "relicfx")
 		g.vfx.show_banner("获得藏品：%s" % db.get_relic(rid).name)
 
 

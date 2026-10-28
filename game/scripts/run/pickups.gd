@@ -31,7 +31,7 @@ func count_items(kind := "") -> int:
 	return n
 
 
-func drop(pos: Vector2, kind: String, val: float) -> void:
+func drop(pos: Vector2, kind: String, val: float, src := "") -> void:
 	if kind == "xp":
 		xp_dropped += val
 		# 兜底（docs/38 §8.13 方案 A）：场上掉落物 > pickup/gem_overflow（400）时新掉的经验直接入账，算回收、另记次数。
@@ -49,6 +49,8 @@ func drop(pos: Vector2, kind: String, val: float) -> void:
 	g.gems.append({"pos": pos, "kind": kind, "val": val, "dead": false, "mag": false, "mag_t": 0.0,
 		"z": 6.0, "vz": r.randf_range(260.0, 300.0) if special else r.randf_range(190.0, 260.0), "vel": sp * (0.5 if special else 1.1),
 		"special": special, "landed": false, "age": 0.0, "seed": r.randf() * TAU, "out_t": 0.0})
+	if src != "":
+		g.gems[-1]["src"] = src   # 宝箱来源（遥测，docs/191）
 
 
 ## 掉落弹出用的独立随机流：第一次用时按局种子派生（g.rng.seed 只读、不消耗），同 seed 可复现
@@ -219,6 +221,7 @@ func _collect(g_item: Dictionary) -> void:
 			g.vfx.add_text(g.ppos + Vector2(0, -90), "灯火 +%d" % int(add), UI.GOLD, 16)
 		"chest":
 			g.pending_chests += 1
+			g.chest_src.append(str(g_item.get("src", "?")))
 		"ingot":
 			g.rfx.gain_ingots(int(g_item.val), "-")   # 最后一位商人离开后进熔铸池（docs/74）
 			Sfx.play("pickup", -10.0, 1.6, 0.05)

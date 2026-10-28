@@ -55,6 +55,21 @@ func price_mult() -> float:
 	return g.shop_price_mult * wave * (1.0 + bought * Bal.v("shop/purchase_step", 0.2)) * disc
 
 
+## 商店抬头的涨价说明（跟旋钮走，不写死）
+func step_note() -> String:
+	var s := "每购一件余货 +%d%%" % int(round(Bal.v("shop/purchase_step", 0.2) * 100.0))
+	var rs: float = Bal.v("shop/relic_step", 0.0)
+	if rs > 0.0:
+		s += "，藏品再 +%d%%" % int(round(rs * 100.0))
+	return s
+
+
+## 藏品价格倍率：在 price_mult 之上，本次每买一件藏品，余下藏品再 +shop/relic_step（docs/191：商人处连买藏品是高峰来源，用涨价做软限制，不设件数上限）
+func relic_mult() -> float:
+	var nb: int = trader_buys if trader else int(g.merchant.get("relic_purchases", 0))
+	return price_mult() * (1.0 + nb * Bal.v("shop/relic_step", 0.0))
+
+
 ## 每次商人可买藏品件数；balance shop/relic_buy_limit < 0 = 不限（用户 10-11：取消硬上限，只靠「每购一件余货 +20%」和藏品栏容量软限制）
 func relic_buy_unlimited() -> bool:
 	return Bal.vi("shop/relic_buy_limit", -1) < 0
@@ -96,17 +111,17 @@ func roll(first := false) -> void:
 	var slots: int = 3 + (int(g.endg.deck_cfg.get("shop_extra", 1)) if g.merchant_idx == g.endg.shop_visit else 0)   # 诡意行商卡：货架 +1（docs/154）
 	for i in min(slots, pool.size()):
 		var r: Dictionary = g.RL[pool[i]]
-		g.shop_items.append({"kind": "relic", "id": pool[i], "name": ("【遭诅】" if r.rarity == "遭诅古物" else "") + g.rfx.display_name(pool[i]), "desc": g.rfx.display_desc(pool[i]), "full": g.rfx.display_desc(pool[i], true), "price": g.rfx.db.price(pool[i], price_mult()), "sold": false})
+		g.shop_items.append({"kind": "relic", "id": pool[i], "name": ("【遭诅】" if r.rarity == "遭诅古物" else "") + g.rfx.display_name(pool[i]), "desc": g.rfx.display_desc(pool[i]), "full": g.rfx.display_desc(pool[i], true), "price": g.rfx.db.price(pool[i], relic_mult()), "sold": false})
 	if first:
 		var link: String = g.progression.affinity.merchant_link_pick(pool)
 		if link != "" and not g.shop_items.any(func(it): return it.id == link) and not g.shop_items.is_empty():
-			g.shop_items[g.shop_items.size() - 1] = {"kind": "relic", "id": link, "name": g.rfx.display_name(link), "desc": g.rfx.display_desc(link), "full": g.rfx.display_desc(link, true), "price": g.rfx.db.price(link, price_mult()), "sold": false}
+			g.shop_items[g.shop_items.size() - 1] = {"kind": "relic", "id": link, "name": g.rfx.display_name(link), "desc": g.rfx.display_desc(link), "full": g.rfx.display_desc(link, true), "price": g.rfx.db.price(link, relic_mult()), "sold": false}
 	# 深蓝线：商店多一栏必为遭诅古物（深海的馈赠）
 	if g.rfx.rule("deep_sea") > 0:
 		var cursed: Array = pool.filter(func(id): return g.RL[id].rarity == "遭诅古物" and not g.shop_items.any(func(it): return it.id == id))
 		if not cursed.is_empty():
 			var cid: String = cursed[0]
-			g.shop_items.append({"kind": "relic", "id": cid, "name": "【遭诅】" + g.rfx.display_name(cid), "desc": g.rfx.display_desc(cid), "full": g.rfx.display_desc(cid, true), "price": g.rfx.db.price(cid, price_mult()), "sold": false, "deep": true})
+			g.shop_items.append({"kind": "relic", "id": cid, "name": "【遭诅】" + g.rfx.display_name(cid), "desc": g.rfx.display_desc(cid), "full": g.rfx.display_desc(cid, true), "price": g.rfx.db.price(cid, relic_mult()), "sold": false, "deep": true})
 	if g.mode == g.Mode.BALANCE:
 		g.dbg_relic_offer.append([int(g.t), "shop", g.shop_items.map(func(it): return it.id)])
 	g.shop_items.append({"kind": "heal", "id": "heal", "name": "急救包", "desc": "回复 40% 最大生命", "price": price("heal"), "sold": false})
@@ -192,7 +207,7 @@ func buy(i: int) -> void:
 		"relic":
 			if not trader:
 				g.merchant["relic_purchases"] = int(g.merchant.get("relic_purchases", 0)) + 1
-			g.progression.gain_relic(it.id)
+			g.progression.gain_relic(it.id, "shop")
 		"heal":
 			g.combat.heal(g.max_hp * 0.4, "商店")
 		"oil":
@@ -201,7 +216,7 @@ func buy(i: int) -> void:
 			g.telemetry.lamp_note("商人", g.lamp - l0)
 	for item in g.shop_items:
 		if not item.sold:
-			item.price = g.rfx.db.price(item.id, price_mult()) if item.kind == "relic" else price(item.kind)
+			item.price = g.rfx.db.price(item.id, relic_mult()) if item.kind == "relic" else price(item.kind)
 	# 预告的商品售出即撤销（docs/119 §4.5）；预告价格由 preview_item 从货架现价读，这里不用改
 	if not trader and not g.merchant.is_empty() and g.merchant.has("preview") and str(g.merchant.preview) == str(it.id):
 		g.merchant.erase("preview")
