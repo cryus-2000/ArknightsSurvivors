@@ -304,7 +304,7 @@ func relic_pool_ids(for_shop := false) -> Array:
 			w *= 1.3
 		# 得偿所愿（翻节点卡，docs/154）：这一次三选一稀有 / 核心加权
 		if not for_shop and g.endg.wish_rare and r.rarity in ["稀有", "核心"]:
-			w *= float(g.endg.deck_cfg.get("wish_rare", 1.5))
+			w *= maxf(float(g.endg.deck_cfg.get("wish_rare", 1.5)), Bal.v("relic/wish_rare", 0.0))   # relic/wish_rare：补偿用，0 = 按卡组配置
 		# 护盾保底（10-21 用户：护盾常刷不到）：队长还没有护盾层数时，给层数的藏品（7 件）权重 ×relic/shield_weight；
 		# 一拿到层数就恢复原权重。权重只改排序、不改随机数抽取次数
 		if r.get("shield_layer", false) and g.shield_max <= 0:
@@ -321,10 +321,10 @@ func relic_pool_ids(for_shop := false) -> Array:
 
 
 func open_relic_choice() -> void:
-	# 大时刻补偿（docs/191）：Boss / 精英小队宝箱多 relic/big_extra 个选项，精英宝箱按 relic/elite_rare 走稀有 / 核心加权（同得偿所愿）；
-	# 都只改排序与张数，不多取随机数。缺省 0 = 关
+	# 大时刻补偿（docs/191）：Boss / 精英小队宝箱多 relic/big_extra 个选项，所有宝箱再多 relic/chest_extra 个；
+	# relic/chest_rare 1 = 精英 / Boss / 精英小队宝箱按稀有 / 核心加权（同得偿所愿）。都只改排序与张数，不多取随机数。缺省 0 = 关
 	var csrc: String = str(g.chest_src[0]) if not g.chest_src.is_empty() else ""
-	if csrc == "elite" and Bal.v("relic/elite_rare", 0.0) > 0.0:
+	if csrc in ["elite", "boss", "squad"] and Bal.v("relic/chest_rare", 0.0) > 0.0:
 		g.endg.wish_rare = true
 	var pool: Array = []
 	for rid in relic_pool_ids():
@@ -341,6 +341,8 @@ func open_relic_choice() -> void:
 	var extra: int = g.rfx.take_choice_extra()
 	if csrc == "boss" or csrc == "squad":
 		extra += Bal.vi("relic/big_extra", 0)
+	if csrc in ["elite", "boss", "squad"]:
+		extra += Bal.vi("relic/chest_extra", 0)
 	if g.rfx.rule("chest_keys") > 0:
 		g.rfx.use_rule("chest_keys")
 		extra += 1
