@@ -380,6 +380,12 @@ func paranoia_hatch(e: Dictionary, broken: bool) -> void:
 	e.count_end = 0.0
 	e.hp = e.maxhp * Bal.v("boss/paranoia_revive", 0.8)
 	_paranoia_p2(e)
+	# 防速杀（10-28 用户「30 秒就碾过去」）：破茧后再算一段最短时长（enemies.json act_min 最后一项），到 3% 处泡膜硬化挡住（combat.gate_clamp）
+	if not e.get("act_mins", []).is_empty():
+		e.act_min = float(e.act_mins.pop_front())
+		e.act_t = 0.0
+		e.last_done = false
+		e.gate_hold = false
 	e.vis_act = "revive"   # 二阶段破茧：e_paranoia_phase2_revive（纯画面）
 	e.vis_t0 = g.t
 	g.fx.append({"kind": "ring", "pos": e.pos, "r": e.r * 3.0, "life": 0.6, "max": 0.6, "col": Color(0.85, 0.45, 1.0), "enemy": true})

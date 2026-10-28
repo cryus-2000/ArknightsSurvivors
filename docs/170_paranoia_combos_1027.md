@@ -235,7 +235,16 @@ r9（e583d6806 二阶段合成一段，96 局）：无认知 73% / 18 细胞 90%
 
 原作：PRTS「“偏执泡影”」条目（https://prts.wiki/w/%E2%80%9C%E5%81%8F%E6%89%A7%E6%B3%A1%E5%BD%B1%E2%80%9D ，0 级）最大生命 45000、攻击 500、**防御 700、法术抗性 70**、损伤抵抗 0、元素抗性 0。两项都高，法抗 70 更突出（原作法术承伤 ×0.3）。
 
-本作：防御（`e.def`，enemies.json `armor`）对物理、法术都乘，不分类型；新增分类型字段 `phys_taken` / `arts_taken`（combat.gd 伤害链里乘，缺省 1，其他敌人不变）。偏执泡影 物理 ×0.9、法术 ×0.9（r11 试过法术 ×0.8：法术开局 18 细胞 62% vs 物理 79%、超时 38%，一边倒，r12 改 0.9；原作两项都硬，本作两类同压）。r12 同时把二阶段收招破绽 3.0 → 3.3 秒，补破绽期输出（r11 31%，目标 ≥35%）。r12 后定稿，偏差记后续。同时撤回 §3s 的二阶段收招 3.5 秒 → 3.0；力竭 0.6 秒、潮涌环提示 1.0 秒保留。目标：18 细胞约 80%、无认知约 65%，物理队 / 法术队分开报。
+本作：防御（`e.def`，enemies.json `armor`）对物理、法术都乘，不分类型；新增分类型字段 `phys_taken` / `arts_taken`（combat.gd 伤害链里乘，缺省 1，其他敌人不变）。偏执泡影 物理 ×0.9、法术 ×0.9（§3w 再拉到都 ×0.75）（r11 试过法术 ×0.8：法术开局 18 细胞 62% vs 物理 79%、超时 38%，一边倒，r12 改 0.9；原作两项都硬，本作两类同压）。r12 同时把二阶段收招破绽 3.0 → 3.3 秒，补破绽期输出（r11 31%，目标 ≥35%）。r12 后定稿，偏差记后续。同时撤回 §3s 的二阶段收招 3.5 秒 → 3.0；力竭 0.6 秒、潮涌环提示 1.0 秒保留。目标：18 细胞约 80%、无认知约 65%，物理队 / 法术队分开报。
+
+## 3w. 抗性 ×0.75 + 每幕最短时长防速杀（10-28 用户实玩「30 秒就碾过去，抗性拉高点」）
+
+协调人定两手一起做（r12 照看，但不按「最后一轮」定稿）：
+- 抗性：物理 / 法术都 ×0.75（两类相同，方向同原作防御 700 / 法抗 70 都硬）。
+- 防速杀：沿用阶段卡点（docs/38 §1.3），enemies.json `act_min` 改写成逐幕数组 `[12, 12, 12, 20, 25]`：一阶段三幕各 12 秒；二阶段破茧前 20 秒、破茧后 25 秒（茧期无敌不计时）。全程最快约 36 + 2.4（过卡点无敌）+ 45 + 茧期 ≈ 85 秒。没满时长就停在刻度（一阶段）或剩 3% 处（二阶段两段各守一次），溢出伤害不结转。
+- 画面：卡点期间身外一层硬化多面泡壳（9 棱、缓慢转、棱上一道闪光；一阶段白紫、二阶段青蓝），壳外细弧 = 还要撑多久（满 → 空）。和破绽的地面金环分开（在身上、冷色、硬边）。公共的金色护盾环、「阶段护盾」弹字、血条刻度闪仍照旧。录像 build/boss_paranoia/hold_v1/偏执泡影_泡膜硬化.mp4（tests/paranoia_hold_preview）。
+- 回归：prot_test 加泡影逐幕时长 4 项；原「最终 Boss 缺省刻度」那项改用骑士（泡影有自己的刻度）；泡影复活血量那项改读 boss/paranoia_revive（原写死 80%）。prot_test 余下 2 项（冲刺挣脱冻结、冲刺清凋亡）与本分支无关。
+- r13 目标：无认知 65–75、18 细胞约 80、两类开局差 ≤5、破绽期输出 ≥35%、最快胜局 ≥75 秒。
 
 ## 4. 公共文件改动（合并时注意）
 
@@ -248,6 +257,8 @@ r9（e583d6806 二阶段合成一段，96 局）：无认知 73% / 18 细胞 90%
 - `game/data/enemies.json`：paranoia 条目加 `bcol_core`、`bcol_outline` 两行。
 - `tools/check.py`：加 `paranoia_combos` 一项。
 - `run/combat.gd` 伤害链：读 enemies.json 可选 `phys_taken` / `arts_taken`（缺省 1；只有偏执泡影写了，§3v），3 行。
+- `run/combat.gd` gate_init / gate_pass：enemies.json `act_min` 可写数组（逐幕最短时长，过卡点取下一项；数字照旧），约 10 行（§3w）。
+- `tests/prot_test.gd`：缺省刻度那项改用骑士、加泡影逐幕时长 4 项、复活血量读数值表（§3w）。
 - `run/combat.gd` `start_break`：记 `brk_len`；最终 Boss 不弹「破绽」，新增 `final_break_quiet(e)`（旋钮 boss/break_text_final）。`render/world.gd` 头顶读秒、`render/vfx.gd` 破绽伤害数字前缀读它；`render/boss_beam.gd` draw_top 调新文件 `render/break_ring.gd`（四只最终 Boss 共用金环）。`tests/boss_variety_test.gd`：偏执泡影按出招名数招（弹幕段不出预警）。新文件 `tests/final_break_preview.gd`（四只破绽录像）。
 - `game/data/balance.json` boss 段：hp_x_paranoia 改值，新增 paranoia_hover_taken / paranoia_aura_taken / paranoia_drop_t 三行与说明（§3g）。
 - 未改 `final_attacks.gd`、`boss_attack_draw.gd`、`final_attack_grains.gd`、`boss_ai.gd`、粒子模板。
