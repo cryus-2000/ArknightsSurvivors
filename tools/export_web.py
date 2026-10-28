@@ -76,7 +76,7 @@ def main():
     ap.add_argument("--out", default=os.path.join(ROOT, "build", "web"))
     ap.add_argument("--part-mib", type=float, default=10)
     ap.add_argument("--worktree-presets", action="store_true", help="用工作区的 export_presets.cfg（改预设时本地试导出用）")
-    ap.add_argument("--audio-tier", default="B", choices=["off", "A", "B", "C"], help="网页包音频再压缩档位（tools/web_audio.py：A 近无损 / B 平衡 / C 激进；off = 不压）")
+    ap.add_argument("--audio-tier", default="B", choices=["off", "A", "B", "C", "D", "E"], help="网页包音频再压缩档位（tools/web_audio.py：A 近无损 / B 平衡 / C 激进 / D、E 试听档（docs/187 §7）；off = 不压）")
     ap.add_argument("--wasm-gzip", action="store_true", help="index.wasm 分片退回 gzip（缺省 LZMA，docs/187 §5）")
     ap.add_argument("--no-lossless", action="store_true", help="关掉无损瘦身（字体 WOFF2 + WebP 无损最高档，docs/187），对照用")
     ap.add_argument("--ea", action="store_true", help="对内网页版：build.json audience = internal（演练开、全部解锁）")

@@ -10,6 +10,8 @@
   A：配乐最多 32 kHz / 0.85；语音 24 kHz / 0.85
   B 平衡：配乐最多 24 kHz / 0.85，战斗 pulse / drive / 危险层 1.0；语音同 A
   C 激进：配乐最多 22.05 kHz / 1.0；语音 22.05 kHz / 0.9
+  D / E（10-28 试听档，docs/187 §7，只动配乐、语音同 B）：配乐 22.05 / 16 kHz，level 1.1 = Vorbis 质量 -0.1。
+    libsndfile 最低只到质量 0，这两档改用 imageio_ffmpeg 自带 ffmpeg 的 libvorbis 编码（global_quality = 质量 × 10 × 118）
 这是有损压缩。网页 PCM 大小取决于 AudioContext 采样率，文件降采样本身只减包体；手机上下文另由 power.js 设为 24 kHz。
 用法：export_web.py --audio-tier B（缺省）；单独试：python tools/web_audio.py <game 目录副本> <A|B|C> （只改传进去的目录）
 """
@@ -23,6 +25,8 @@ TIERS = {
     "A": {"music_rate": 32000, "music": {"default": 0.85}, "voice": (24000, 0.85)},
     "B": {"music_rate": 24000, "music": {"default": 0.85, "battle_pulse": 1.0, "battle_drive": 1.0, "danger": 1.0}, "voice": (24000, 0.85)},
     "C": {"music_rate": 22050, "music": {"default": 1.0}, "voice": (22050, 0.9)},
+    "D": {"music_rate": 22050, "music": {"default": 1.1}, "voice": (24000, 0.85)},
+    "E": {"music_rate": 16000, "music": {"default": 1.1}, "voice": (24000, 0.85)},
 }
 
 
@@ -41,12 +45,26 @@ def music_group(name):
 
 
 def encode(x, sr, level):
+    if level > 1.0:   # 质量 1 - level < 0：libsndfile 做不到，走 ffmpeg libvorbis（D / E 档）
+        return encode_ff(x, sr, 1.0 - level)
     b = io.BytesIO()
     ch = 1 if x.ndim == 1 else x.shape[1]
     with sf.SoundFile(b, "w", sr, ch, format="OGG", subtype="VORBIS", compression_level=level) as f:
         for i in range(0, len(x), 8192):   # libsndfile 一次写整段 Vorbis 会崩，分块写
             f.write(x[i:i + 8192])
     return b.getvalue()
+
+
+def encode_ff(x, sr, q):
+    import subprocess, tempfile
+    import imageio_ffmpeg
+    with tempfile.TemporaryDirectory() as td:
+        w, o = os.path.join(td, "a.wav"), os.path.join(td, "a.ogg")
+        sf.write(w, x, sr, subtype="FLOAT")
+        subprocess.run([imageio_ffmpeg.get_ffmpeg_exe(), "-v", "error", "-y", "-i", w, "-c:a", "libvorbis",
+                        "-flags", "+qscale", "-global_quality", str(int(round(q * 10 * 118))), o], check=True)
+        with open(o, "rb") as fh:
+            return fh.read()
 
 
 def shrink(gamedir, tier):
