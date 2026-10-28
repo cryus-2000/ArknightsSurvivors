@@ -1011,8 +1011,9 @@ func _dens_apply(e: Dictionary) -> void:
 ## 普通怪前后期微调（用户 10-25「后期小怪血量稍高、略降；前期小怪伤害和血量略提」）：
 ## 0 → trim_early_until 秒生命 / 伤害 × trim_early_hp / trim_early_dmg，其后 trim_early_fade 秒线性回到 ×1；
 ## trim_late_t0 → t1 秒生命从 ×1 线性降到 × trim_late_hp。只作用于普通怪（role ""），精英 / Boss / 友方 / 事件不动
+## trim_all_hp：全程普通怪生命再乘（10-29 整局校准用，缺省 1）
 func _trim_apply(e: Dictionary) -> void:
-	var f := 1.0
+	var f: float = Bal.v("enemy/trim_all_hp", 1.0)
 	var fd := 1.0
 	var u: float = Bal.v("enemy/trim_early_until", 180.0)
 	var k := 1.0 - clampf((g.t - u) / maxf(1.0, Bal.v("enemy/trim_early_fade", 60.0)), 0.0, 1.0)

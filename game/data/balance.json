@@ -313,6 +313,8 @@
   "trim_early_dmg": 1.08,
   "trim_late_t0": 420,
   "trim_late_t1": 480,
+  "_trim_all_hp": "全程普通怪生命再乘（spawner._trim_apply，10-29 整局校准用；精英 / Boss / 友方 / 事件不动）；1 = 关",
+  "trim_all_hp": 1.0,
   "trim_late_hp": 0.92,
   "_trim": "普通怪前后期微调（用户 10-25「后期小怪的血量稍微有点高，略微下调一点点，前期小怪的伤害和血量可以提高一点点」）：0–trim_early_until 秒（3:00）普通怪生命 / 接触与弹幕伤害 × 1.08，其后 trim_early_fade 秒线性回 ×1；trim_late_t0→t1（7:00→8:00）普通怪生命线性降到 × 0.92。精英 / Boss 不动。spawner.gd _trim_apply；对照：--bal=enemy/trim_early_hp=1 等",
   "hp_late_t0": 240,
