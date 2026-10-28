@@ -33,9 +33,8 @@ const CARDS := [
 		{"name": "深蓝回流", "segs": ["@回流弹", "@孢子潮", "分享"]}]]
 ## 每幕躲法主题与行为（用户 10-28「每个阶段重复少、有自己的特色」，docs/170 §18）：一幕站定（在海流里找路）/ 二幕游走（读针阵）/ 三幕追人（孢子间穿行）
 const ACT_MOVE := [0.0, 45.0, 50.0]
-## 分阶段风格（用户 10-28「每个阶段做出不同风格」，docs/170 §16）：每幕段间节奏 / 弹色 / 弹形不同，招式各幕独有（潮门环按幕变体）
+## 分阶段风格（用户 10-28「每个阶段做出不同风格」，docs/170 §16）：每幕段间节奏 / 弹形不同，弹色全程统一群青（用户 10-28「统一更有记忆点」），招式各幕独有
 const SEG_GAPS := [0.7, 0.4, 0.65]   # 一幕慢、二幕快碎、三幕重（每段之间停顿长、段本身重）
-const ACT_COL := [Color(0.4, 0.6, 1.0), Color(0.72, 0.48, 1.0), Color(0.55, 1.0, 0.88)]   # 群青 / 紫晶 / 青白
 const ACT_KIND := ["orb", "nerve", "nova"]   # 圆珠 / 梭形孢子针（按速度方向转）/ 脉动大孢子
 const ACT_TINT := [Color(1, 1, 1), Color(1.0, 0.86, 1.14), Color(0.82, 1.1, 1.0)]
 const DECLARE := 1.0      # 起手蓄势短停
@@ -604,7 +603,7 @@ func _emit_start(e: Dictionary, kind: String, dir: Vector2) -> bool:
 			em.next = g.t + 0.5
 			em.until = g.t + 0.5
 			for p in pts:
-				g.fx.append({"kind": "ring", "pos": p, "r": 18.0, "life": 0.5, "max": 0.5, "col": ACT_COL[1], "enemy": true})
+				g.fx.append({"kind": "ring", "pos": p, "r": 18.0, "life": 0.5, "max": 0.5, "col": COL, "enemy": true})
 		"孢子潮":
 			# 三幕独有：5 颗大孢子慢慢朝你漂（略微追踪），漂到尽头胀破成一圈 8 根小孢子针
 			em.until = g.t
@@ -729,7 +728,7 @@ func _shot(e: Dictionary, p: Vector2, a: float, spd: float, r: float, life: floa
 	var act: int = _act(e)
 	var b := {"pos": p, "vel": Vector2.from_angle(a) * spd, "dmg": e.dmg * mult * Bal.v("boss/izumik_bullet_mult", 0.8), "r": r, "life": life,
 		"slow": false, "frost": 0.0, "corrode": 0.0, "nerve": 0.0, "true": false, "kind": ACT_KIND[act], "home": false, "boss": true,
-		"atk": "法术", "hit_cap": e.get("hit_cap", 0.0), "source_id": e.id, "col": ACT_COL[act], "own_col": ACT_COL[act], "src_type": e.type, "izu_t": 0.0}
+		"atk": "法术", "hit_cap": e.get("hit_cap", 0.0), "source_id": e.id, "col": COL, "own_col": COL, "src_type": e.type, "izu_t": 0.0}
 	b.merge(extra, true)
 	g.ebullets.append(b)
 
@@ -786,7 +785,7 @@ func _bullet_step(e: Dictionary, dt: float) -> void:
 	for p in bursts:
 		for k in 8:
 			_shot(e, p, TAU * k / 8.0 + 0.2, 125.0, 6.0, 2.4, 0.35, {})
-		_puff(p, 6, ACT_COL[2])
+		_puff(p, 6, COL)
 
 
 ## ---- 海流牵引（本作改编，非弹幕）：在你脚下锁一个漩涡，2.6 秒内半径 320 内的海流把你往中心拖（最高 70px/s，低于步行速度，顶着流走得出去），
