@@ -97,6 +97,7 @@ var trial = BossTrial.new(self)
 var bench = BossBench.new(self)   # Boss 单场测试台（--benchsnap 录制 / --bossbench 开打，docs/170；只在 --balance）
 var victory = VictoryFlow.new(self)
 var defeat_outro = preload("res://scripts/run/defeat_outro.gd").new(self)   # 失败退场演出（docs/62 §3.21c）
+var vis_t := 0.0   # 只给画面用的时钟偏移：失败慢放里敌人走路帧照常走（g.t 已停）；平时恒为 0
 var speed_btn := Rect2()
 var state: int = S.PLAY
 var autotest_sys = AutoTest.new(self)   # 自动测试 / 平衡机器人（docs/29、docs/36）
