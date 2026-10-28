@@ -77,7 +77,7 @@
   "max_hp": 105,
   "armor": 1.0,
   "arts_res": 0.2,
-  "regen": 1.1
+  "regen": 0.8
  },
  "sprites": {
   "hover_attack": true,

@@ -55,8 +55,9 @@ static func sheet(cid: String, definition: Dictionary) -> Dictionary:
 	var lead: Dictionary = definition.get("leader", {})
 	var doc := _doctor_stats()
 	var mod: Dictionary = Bal.op(cid)
-	var hp: float = float(lead.get("max_hp", doc.get("max_hp", StatDefs.PLAYER[&"max_hp"].base)))
-	var atk: float = _first(b, ATK_KEYS) * (1.0 + float(mod.get("atk", 0.0)))
+	# 局内开局对基础值乘的旋钮（game.gd 开局 / squad._apply_leader_regen）这里同样乘上，面板数字 = 开局实际值（10-28 乌尔比安回复显示 2.0、实际 1.6）
+	var hp: float = float(lead.get("max_hp", doc.get("max_hp", StatDefs.PLAYER[&"max_hp"].base))) * Bal.v("squad/leader_hp_mult", 1.0) * Bal.v("squad/dodge_comp_hp", 1.0)
+	var atk: float = _first(b, ATK_KEYS) * (1.0 + float(mod.get("atk", 0.0))) * Bal.v("squad/op_atk_base", 1.0)
 	var interval: float = _first(b, CD_KEYS) / maxf(0.2, 1.0 + float(mod.get("aspd", 0.0)))
 	var reach_lbl: Array = ["攻击范围", "RANGE"]
 	var reach := 0.0
@@ -65,7 +66,7 @@ static func sheet(cid: String, definition: Dictionary) -> Dictionary:
 			reach = float(b[rk[0]]) * (1.0 + float(mod.get("range", 0.0)))
 			reach_lbl = [rk[1], rk[2]]
 			break
-	var speed: float = float(doc.get("move_speed", StatDefs.PLAYER[&"move_speed"].base))
+	var speed: float = float(doc.get("move_speed", StatDefs.PLAYER[&"move_speed"].base)) * Bal.v("squad/leader_speed_mult", 1.0)
 	# 普攻的段数 / 附加伤害：单体每秒伤害 = 攻击 × 段数 × (1 + 附加) ÷ 间隔
 	var atk_lbl := "Mon3tr 攻击" if b.has("m_atk") else "攻击"
 	var hits: int = int(b.get("shots", definition.get("stat_hits", 1)))   # stat_hits：干员 json（艾丽妮一次刺击 2 段）
@@ -104,7 +105,7 @@ static func sheet(cid: String, definition: Dictionary) -> Dictionary:
 	var dps := single / maxf(0.05, interval)
 	var armor: float = float(lead.get("armor", 0.0))
 	var arts: float = float(lead.get("arts_res", 0.0))
-	var regen: float = float(lead.get("regen", doc.get("regen", 1.0)))
+	var regen: float = float(lead.get("regen", doc.get("regen", 1.0))) * Bal.v("sustain/base_regen_mult", 1.0)
 	var rows := [
 		_row("hp", "生命", "HP", "%d" % int(round(hp)), hp),
 		_row("atk", atk_lbl, "ATK", _num(atk), atk, atk_sub),

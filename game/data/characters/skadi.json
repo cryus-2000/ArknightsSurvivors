@@ -80,7 +80,7 @@
   "max_hp": 130,
   "armor": 2.0,
   "arts_res": 0.0,
-  "regen": 1.6
+  "regen": 1.1
  },
  "sprites": {
   "move_attack": {

@@ -76,7 +76,7 @@
   "max_hp": 120,
   "armor": 1.5,
   "arts_res": 0.0,
-  "regen": 1.0
+  "regen": 0.8
  },
  "native_motion": {
   "clips": {

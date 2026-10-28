@@ -12,7 +12,7 @@
   },
   "regen": {
    "name": "自愈",
-   "desc": "队长生命回复 +0.6 / 秒",
+   "desc": "队长生命回复 +0.4 / 秒",
    "max": 5,
    "cat": "doctor",
    "stat": "regen",
