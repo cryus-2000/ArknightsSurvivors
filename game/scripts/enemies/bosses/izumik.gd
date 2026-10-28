@@ -18,9 +18,10 @@ extends "res://scripts/enemies/bosses/boss_base.gd"
 const Beam = preload("res://scripts/render/boss_beam.gd")
 const COL := Color(0.4, 0.6, 1.0)   # 群青蓝（docs/142b §8.4）
 const MOVES := ["潮汐坠落", "解读旋涡", "分享", "震撼"]
-const PATTERNS := ["潮汐相位流", "子代共鸣", "螺旋弹臂", "习得弹", "回流弹", "潮门环", "习得路径", "孢子潮"]
+const PATTERNS := ["潮汐相位流", "子代共鸣", "螺旋弹臂", "习得弹", "回流弹", "潮门环", "习得路径", "孢子潮", "信息回传"]
 const TENTACLE := "护群触腕"   # 追人圆形触腕（用户 10-28：换圆形、追着人打），不走 finals 的扇形
-const CURRENT := "海流牵引"   # 非弹幕专属招：海流把你往漩涡中心拖，中心最后涌起
+const CURRENT := "海流牵引"
+const BROOD := "子代化生"   # 三幕独有（PRTS 子代「被阻挡时立即变为随机敌人」；用户 10-28：去掉幕内重复招、结合原作设定）   # 非弹幕专属招：海流把你往漩涡中心拖，中心最后涌起
 ## 每幕两组；「@近身分享」= 贴近时分享扇、否则潮汐坠落
 ## 缺口按幕递进（用户 10-28）：一幕固定缺口教学；二幕旋转 / 错位缺口 + 停住再射；三幕缝隙收窄、弹数与段数加多，
 ## 冲刺穿越的整墙（迁徙潮）只在三幕偶尔用
@@ -28,9 +29,9 @@ const CARDS := [
 	[{"name": "迁徙潮汐", "segs": ["@潮汐相位流", "海流牵引", "@潮门环"]},
 		{"name": "护群共鸣", "segs": ["护群触腕", "@子代共鸣", "潮汐坠落"]}],
 	[{"name": "解读螺旋", "segs": ["@螺旋弹臂", "解读旋涡", "深渊涌流"]},
-		{"name": "习得变形", "segs": ["@习得弹", "@习得路径", "解读旋涡"]}],
+		{"name": "习得变形", "segs": ["@习得弹", "@习得路径", "@信息回传"]}],
 	[{"name": "灯下三叶", "segs": ["分享·全场", "迁徙潮", "分享"]},
-		{"name": "深蓝回流", "segs": ["@回流弹", "@孢子潮", "分享"]}]]
+		{"name": "深蓝回流", "segs": ["@回流弹", "@孢子潮", "子代化生"]}]]
 ## 每幕躲法主题与行为（用户 10-28「每个阶段重复少、有自己的特色」，docs/170 §18）：一幕站定（在海流里找路）/ 二幕游走（读针阵）/ 三幕追人（孢子间穿行）
 const ACT_MOVE := [0.0, 45.0, 50.0]
 ## 分阶段风格（用户 10-28「每个阶段做出不同风格」，docs/170 §16）：每幕段间节奏 / 弹形不同，弹色全程统一群青（用户 10-28「统一更有记忆点」），招式各幕独有
@@ -390,7 +391,7 @@ func on_gate(e: Dictionary) -> void:
 
 ## 本体倒下：茧一起散（还在走的子代由 combat 的喂食清理带走）
 func on_kill(e: Dictionary) -> void:
-	for o in e.get("batch", []):
+	for o in e.get("batch", []) + e.get("izu_brood", []):
 		o.dead = true
 	_end_card(e)
 	_clear_bullets(e)
@@ -526,6 +527,8 @@ func _run_seg(e: Dictionary, seg: String, dir: Vector2, dist: float) -> void:
 			_current(e)
 		TENTACLE:
 			_tentacles(e)
+		BROOD:
+			_brood(e)
 		"分享":
 			_share(e, dir, false)
 		"潮汐坠落", "解读旋涡":
@@ -604,6 +607,22 @@ func _emit_start(e: Dictionary, kind: String, dir: Vector2) -> bool:
 			em.until = g.t + 0.5
 			for p in pts:
 				g.fx.append({"kind": "ring", "pos": p, "r": 18.0, "life": 0.5, "max": 0.5, "col": COL, "enemy": true})
+		"信息回传":
+			# 二幕独有（PRTS 子代「携带着从泰拉各地收集到的遗传信息返回母体」）：她脚下的每个茧把带回的信息一齐放出，各向外两圈孢子针——
+			# 茧打得越干净这招越弱；没有茧时她身边结 2 个临时回传点
+			var src: Array = []
+			for o in e.get("batch", []):
+				if not o.dead and o.get("izu_cocoon", false) and src.size() < 4:
+					src.append(o.pos)
+			if src.is_empty():
+				var b0: float = (g.ppos - e.pos).angle()
+				for k in 2:
+					src.append(g.combat.arena_clamp(e.pos + Vector2.from_angle(b0 + PI * 0.5 + PI * k) * 110.0, 60.0))
+			em.sources = src
+			em.next = g.t + 0.7
+			em.until = g.t + 1.25
+			for p in src:
+				g.fx.append({"kind": "ring", "pos": p, "r": 30.0, "life": 0.7, "max": 0.7, "col": COL, "enemy": true})
 		"孢子潮":
 			# 三幕独有：5 颗大孢子慢慢朝你漂（略微追踪），漂到尽头胀破成一圈 8 根小孢子针
 			em.until = g.t
@@ -687,6 +706,12 @@ func _emit_once(e: Dictionary, em: Dictionary) -> void:
 				var a: float = a0 + (float(i) + 0.5 * n) * TAU / float(cnt)
 				_shot(e, e.pos + Vector2.from_angle(a) * 30.0, a, 140.0, 8.0, 5.0, 0.5, {"izu": "back", "izu_curl": 1.5 if n % 2 == 0 else -1.5})
 			em.next = float(em.next) + 0.9
+		"信息回传":
+			for p in em.sources:
+				for i in 10:
+					var a: float = a0 + (float(i) + 0.5 * n) * TAU / 10.0
+					_shot(e, p, a, 120.0, 7.0, 4.0, 0.45, {})
+			em.next = float(em.next) + 0.55
 		"孢子潮":
 			for k in 5:
 				var a: float = a0 + (float(k) - 2.0) * 0.55
@@ -924,3 +949,22 @@ func _move_step(e: Dictionary, dt: float) -> void:
 			return
 		goal = g.ppos
 	e.pos = g.combat.arena_clamp(e.pos.move_toward(goal, v * dt), 80.0)
+
+
+## ---- 子代化生（三幕独有，取材 PRTS 伊祖米克的子代：「被阻挡时立即变为随机敌人」）：她从身边放出 boss/izumik_brood_n（4）只子代直扑队长（每秒 60）；
+## 子代碰到队长 = 被阻挡，就地蜕变成两只海嗣（enemies.gd morph）。读法：在它们碰到你之前打掉（子代 70 血），或绕开；不放子代自己的孢子环 / 横扫
+func _brood(e: Dictionary) -> void:
+	var n: int = int(Bal.v("boss/izumik_brood_n", 4.0))
+	var a0: float = (g.ppos - e.pos).angle()
+	var live: Array = e.get("izu_brood", []).filter(func(o): return not o.dead)
+	for k in n:
+		var a: float = a0 + (float(k) - (n - 1) * 0.5) * 0.6
+		var o: Dictionary = g.spawner.spawn_enemy("offspring", g.combat.arena_clamp(e.pos + Vector2.from_angle(a) * (e.r + 30.0), 60.0))
+		o.spd = Bal.v("boss/izumik_brood_spd", 60.0)
+		o.extra_next = INF
+		o.nova_cd = INF
+		live.append(o)
+		g.fx.append({"kind": "ring", "pos": o.pos, "r": 30.0, "life": 0.5, "max": 0.5, "col": COL, "enemy": true})
+	e.izu_brood = live
+	g.vfx.add_text(e.pos + Vector2(0, -60), "子代化生", COL, 16)
+	Sfx.play("tentacle", -4.0, 0.7)
