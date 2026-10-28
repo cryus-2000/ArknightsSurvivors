@@ -308,9 +308,10 @@ func _knight_shards(h: Dictionary) -> void:
 		"crescent":
 			var tip: Vector2 = h.pos + Vector2.from_angle(h.ang) * (float(h.r) - float(h.get("arc_back", 0.0)))
 			if h.get("snow", false):
-				kb.ice_shards(e, tip, float(h.ang), 4, 1.3, 120.0)
-				kb.ice_shards(e, tip, float(h.ang) + 0.16, 4, 1.3, 170.0)
+				kb.ice_shards(e, tip, kb.aim(tip), 4, 1.3, 120.0)
+				kb.ice_shards(e, tip, kb.aim(tip) + 0.16, 4, 1.3, 170.0)
 			else:
-				kb.ice_shards(e, tip, float(h.ang), 5, 1.0, 160.0)
+				kb.ice_shards(e, tip, kb.aim(tip), 5, 1.0, 160.0)
 		"ice_thrust":
-			kb.ice_shards(e, h.pos + Vector2.from_angle(h.ang) * float(h.len), float(h.ang), 3, 0.7, 150.0)
+			var end: Vector2 = h.pos + Vector2.from_angle(h.ang) * float(h.len)
+			kb.ice_shards(e, end, kb.aim(end), 3, 0.7, 150.0)

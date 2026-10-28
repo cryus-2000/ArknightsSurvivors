@@ -468,6 +468,9 @@ func _draw_ground_sprites() -> void:
 ## 不盖住干员和其他单位。纯画面
 func _draw_ground_foe_fx() -> void:
 	for f in g.fx:
+		if f.kind == "ice_sheet" and f.life > 0.0:
+			_draw_ice_sheet(f)
+	for f in g.fx:
 		if f.kind == "gcrack" and f.get("ground", false) and f.life > 0.0:
 			if not f.has("cd"):
 				f["cd"] = GroundCrack.build(f.pos, f.r, f.get("ang"), f.get("opts", {}))
@@ -478,6 +481,51 @@ func _draw_ground_foe_fx() -> void:
 			_draw_shock(sh)
 	BossBeam.draw_ground(g)   # 骑士寒气圈（docs/142b §3.1）
 	draw_warn_outlines(true)
+
+
+## 骑士冲锋留下的冰面（10-28 用户「冰面的视觉效果需要修改」）：原来借「冰线」画法（黑底 + 锯齿亮脊）像焦痕 / 电弧。
+## 改为地面层的一整片浅冰：半透明冰白底 + 两侧亮边 + 偏一侧的高光带 + 短冰裂 + 闪点；宽 52（寒冷条判定半径 26 × 2），
+## 最后 30% 寿命淡出。只画画面，不抽随机（裂纹、闪点按段号取）
+func _draw_ice_sheet(f: Dictionary) -> void:
+	var pts: Array = f.pts
+	if pts.size() < 2:
+		return
+	var a: float = clampf(f.life / f.max / 0.3, 0.0, 1.0)
+	var w := 52.0
+	var body := PackedVector2Array()
+	var l := PackedVector2Array()
+	var r := PackedVector2Array()
+	var hi := PackedVector2Array()
+	for i in pts.size():
+		var p: Vector2 = pts[i]
+		var d: Vector2 = ((pts[mini(i + 1, pts.size() - 1)] as Vector2) - (pts[maxi(i - 1, 0)] as Vector2)).normalized()
+		var n := d.orthogonal()
+		body.append(p)
+		l.append(p + n * w * 0.5)
+		r.append(p - n * w * 0.5)
+		hi.append(p + n * w * 0.2)
+	g.draw_polyline(body, Color(0.7, 0.88, 1.0, 0.24 * a), w)
+	g.draw_polyline(hi, Color(0.95, 1.0, 1.0, 0.16 * a), 6.0)
+	g.draw_polyline(l, Color(0.88, 0.97, 1.0, 0.6 * a), 2.0)
+	g.draw_polyline(r, Color(0.6, 0.8, 0.95, 0.45 * a), 2.0)
+	for i in pts.size() - 1:
+		var p0: Vector2 = pts[i]
+		var p1: Vector2 = pts[i + 1]
+		var seg := p1 - p0
+		var sl := seg.length()
+		if sl < 1.0:
+			continue
+		var d2 := seg / sl
+		var n2 := d2.orthogonal()
+		var k := int(sl / 60.0) + 1
+		for q in k:
+			var h: int = (i * 131 + q * 977) & 1023
+			var at: Vector2 = p0 + d2 * sl * (float(q) + 0.5) / float(k) + n2 * (float(h % 31) - 15.0)
+			var ca := d2.rotated(0.6 if h & 1 else -0.6)
+			g.draw_line(at - ca * 8.0, at + ca * 8.0, Color(0.55, 0.78, 0.95, 0.55 * a), 2.0)
+			g.draw_line(at + ca * 8.0, at + ca * 8.0 + d2 * 6.0, Color(0.55, 0.78, 0.95, 0.4 * a), 2.0)
+			if (h >> 3) % 3 == 0 and fmod(g.t * 1.5 + float(h % 7) * 0.3, 2.0) < 0.35:
+				g.draw_rect(Rect2(((at + n2 * 10.0) * 0.5).floor() * 2.0, Vector2(2, 2)), Color(1.0, 1.0, 1.0, 0.9 * a))
 
 
 ## 预警分类 → Boss 招式预警填充（render/telegraph_draw）→ 巢涌者光环 → 灯标 → 藏品特效 → 商人

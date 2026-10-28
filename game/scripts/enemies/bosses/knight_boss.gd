@@ -47,6 +47,10 @@ func cancel_combo(e: Dictionary) -> void:
 	e.dash2 = 0
 	e.hunt_follow_at = INF
 	e.erase("breath_at")
+	e.erase("kn_drive")
+	e.erase("kn_lap")
+	e.erase("kn_lap_brk_at")
+	e.erase("kn_z")
 	g.warns = g.warns.filter(func(w):return not is_same(w.owner,e) or (w.dmg<=0.0 and w.act!="final_attack"))
 	for h in g.bai.finals.hazards:
 		if is_same(h.owner,e): g.bai.finals._pop(h)
@@ -86,8 +90,20 @@ func combo_step(e: Dictionary, dir: Vector2, dist: float, ready: bool) -> bool:
 		return true
 	if next in ["再冲锋","寒冷追击"]:
 		var angle: float = float(e.get("hunt_angle",dir.angle())) if next=="寒冷追击" else dir.angle()
+		var z: bool = e.phase==2 and next=="再冲锋" and e.has("kn_z") and g.t-float(e.kn_z.t)<8.0
+		if z:
+			# 重生 Z 字三连（docs/171 重生 v3）：第二冲朝队长那一侧折 90°，第三冲回到第一冲的方向（与第一冲平行）
+			if int(e.kn_z.k) == 0:
+				e.kn_z.a = float(e.get("last_act",{}).get("ang",dir.angle()))
+			var a0: float = float(e.kn_z.a)
+			if int(e.kn_z.k) == 0:
+				e.kn_z.s = 1.0 if Vector2.from_angle(a0).cross(g.ppos - e.pos) >= 0.0 else -1.0
+				angle = a0 + PI * 0.5 * float(e.kn_z.s)
+			else:
+				angle = a0
+			e.kn_z.k = int(e.kn_z.k) + 1
 		_warn(e,"line",0.6 if e.phase==2 else 0.8,{"ang":angle,"len":520.0 if next=="寒冷追击" else 364.0,"wid":34.0,
-			"track":0.0 if next=="寒冷追击" else (0.2 if e.phase==2 else 0.35),"act":"dash","fit_len":true,"name":next,"col":ICE,
+			"track":0.0 if (next=="寒冷追击" or z) else (0.2 if e.phase==2 else 0.35),"act":"dash","fit_len":true,"name":next,"col":ICE,
 			"dmg":_bite(e,e.dmg*1.35)})
 	else:
 		force_move(e,next,dir,dist)
@@ -117,6 +133,9 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 	_cold_step(e, dt)
 	_ice_step(e)
 	_reborn_step(e)
+	_big_hold(e)
+	if _drive_step(e, dt) or _lap_step(e, dt):
+		return
 	# 冲锋自然停下：向前碎出 3 片冰屑（撞柱眩晕不出）
 	if e.get("kb_self", false):
 		e.kn_dashing = true
@@ -124,7 +143,7 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 		e.kn_dashing = false
 		var la: Dictionary = e.get("last_act", {})
 		if str(la.get("act", "")) == "dash" and str(e.get("brk_label", "")) != "眩晕":
-			ice_shards(e, e.pos, float(la.get("ang", 0.0)), 3, 0.8, 150.0)
+			ice_shards(e, e.pos, aim(e.pos), 3, 0.8, 150.0)   # 冰屑一律朝队长（10-28 用户「boss 的子弹没有追着人打」）
 			if e.phase == 2:
 				_crack_charge(e, float(la.get("ang", 0.0)))
 	# 连冲：重生后一组 1 + knight_p2_chain 次（第一次全长、后两次 70%，docs/49d 11.8）；三幕冲锋后再转向冲一次。连冲完喘气 2.5 秒（普通破绽，docs/38 §8.8）
@@ -147,6 +166,9 @@ func step(e: Dictionary, dt: float, dir: Vector2, dist: float, ready: bool, _mat
 			"fit_len": true, "act": "dash", "name": "寒冷追击", "col": Color(0.65, 0.95, 1.4), "dmg": _bite(e, e.dmg * 1.35)})
 		if e.phase == 2:
 			e.dash2 = int(Bal.v("boss/knight_p2_chain", 2.0))
+		return
+	if e.phase == 2:
+		_reborn_pick(e, dir)
 		return
 	# 一阶段被贴身绕圈（贴身挨打 ≥ knight_hug_spin 秒）也放长枪回旋：连刺 / 劈击都是从身体中心瞄人的窄线，贴身绕圈角速度大，锁定后总扫空（10-28 用户实玩）
 	var hugged: bool = e.phase == 1 and float(e.get("kn_hug", 0.0)) >= Bal.v("boss/knight_hug_spin", 1.5)
@@ -214,6 +236,14 @@ func force_move(e: Dictionary, name: String, dir: Vector2, dist: float) -> bool:
 			if e.phase != 2:
 				return false
 			_spin(e, dir)
+		"长驱冲锋":
+			if e.phase != 2:
+				return false
+			_drive_start(e, dir)
+		"绕场巡猎":
+			if e.phase != 2 or not g.zone_frozen:
+				return false
+			_lap_start(e)
 		_:
 			return false
 	return true
@@ -318,7 +348,7 @@ func _ice_step(e: Dictionary) -> void:
 		var a: Vector2 = la.pos
 		var b: Vector2 = a + Vector2.from_angle(float(la.ang)) * float(la.len)
 		st.append({"a": a, "b": b, "until": g.t + Bal.v("boss/knight_ice_life", 3.0)})
-		g.fx.append({"kind": "frost_track", "a": a, "b": b, "life": Bal.v("boss/knight_ice_life", 3.0), "max": Bal.v("boss/knight_ice_life", 3.0), "enemy": true})
+		g.fx.append({"kind": "ice_sheet", "pts": [a, b], "life": Bal.v("boss/knight_ice_life", 3.0), "max": Bal.v("boss/knight_ice_life", 3.0), "enemy": true, "ground": true})
 	e.ice_strips = st
 
 
@@ -490,6 +520,8 @@ func on_lethal(e: Dictionary) -> bool:
 	if e.phase != 1:
 		return super.on_lethal(e)
 	Sfx.play_cue("phase", e.type, "start")
+	if Cfg.dev_args().has("--kgate"):
+		print("KNIGHT_GATE 3 t=%.2f" % g.t)   # 仅测试：录像按幕切段（重生）
 	e.phase = 2
 	_clear_stakes(e)
 	e.final_cycle = 0
@@ -506,7 +538,7 @@ func on_lethal(e: Dictionary) -> bool:
 	g.warns = g.warns.filter(func(w): return not is_same(w.owner, e))   # 重生清预警（§4.3 节奏表）
 	if not g.vfx.fx_sprite("fx_knight_rebirth", e.pos + Vector2(0, -20), g.PX * 1.4, 0.0):
 		g.fx.append({"kind": "ring", "pos": e.pos, "r": 90.0, "life": 0.6, "max": 0.6, "col": Color(0.6, 0.9, 1.4)})
-	g.vfx.show_banner("冲锋形态：连续冲锋后出现破绽")
+	g.vfx.show_banner("冲锋形态：引它撞上场边就会眩晕")
 	Sfx.play("roar", 0.0, 0.9, 0.0)
 	g.vfx.shake_screen(1.2)
 	# 原作「释放当前波次」：刷一波普通海嗣（场地边缘）
@@ -564,7 +596,7 @@ func _leap_step(e: Dictionary, dt: float, dir: Vector2) -> bool:
 		e.kn_hug = maxf(0.0, float(e.get("kn_hug", 0.0)) - dt * 0.5)
 	if Bal.v("boss/knight_leap", 1.0) <= 0.0 or float(e.kn_hug) < Bal.v("boss/knight_hug_t", 3.5) or g.t < float(e.get("kn_leap_at", 0.0)):
 		return false
-	if calm or e.get("kb_self", false) or int(e.get("dash2", 0)) > 0 or float(e.get("dash_t", 0.0)) > 0.0 or e.has("breath_at"):
+	if calm or e.get("kb_self", false) or int(e.get("dash2", 0)) > 0 or float(e.get("dash_t", 0.0)) > 0.0 or e.has("breath_at") or e.has("kn_drive") or e.has("kn_lap"):
 		return false
 	if g.warns.any(func(w): return is_same(w.owner, e) and not w.done and float(w.dmg) > 0.0):
 		return false
@@ -596,7 +628,7 @@ func _leap_step(e: Dictionary, dt: float, dir: Vector2) -> bool:
 func super_armor(e: Dictionary) -> bool:
 	if Bal.v("boss/knight_armor_cast", 1.0) <= 0.0 or e.dead or float(e.get("break_t", 0.0)) > 0.0:
 		return false
-	if e.get("knight_combo_active", false) or e.has("kn_leap") or e.has("kn_roll_end") or int(e.get("dash2", 0)) > 0:
+	if e.get("knight_combo_active", false) or e.has("kn_leap") or e.has("kn_roll_end") or int(e.get("dash2", 0)) > 0 or e.has("kn_drive") or e.has("kn_lap"):
 		return true
 	if e.get("kb_self", false) and (e.kb as Vector2).length() > 40.0:
 		return true
@@ -677,10 +709,8 @@ func _prism_step(e: Dictionary) -> void:
 			e.brk_label = "破绽"
 	if g.t >= float(pr.burst):
 		e.erase("kn_prisms")
-		var side: Vector2 = Vector2.from_angle(float(pr.ang)).orthogonal()
 		for p in pr.pts:
-			for sgn in [-1.0, 1.0]:
-				_prism_bolt(e, p, side * sgn * 180.0)
+			_prism_bolt(e, p, Vector2.from_angle(aim(p)) * 180.0)   # 每根冰棱朝队长射 1 发（10-28 用户：子弹要追着人打）
 			g.fx.append({"kind": "knight_crash", "pos": p, "r": 26.0, "life": 0.5, "max": 0.5, "enemy": true})
 
 
@@ -698,7 +728,7 @@ func _strip_shards(e: Dictionary, s: Dictionary) -> void:
 	var side: Vector2 = (b - a).normalized().orthogonal()
 	for i in n:
 		var p: Vector2 = a.lerp(b, (i + 0.5) / n)
-		ice_shards(e, p, (side * (1.0 if i % 2 == 0 else -1.0)).angle(), 1, 0.0, 120.0)
+		ice_shards(e, p, aim(p), 1, 0.0, 120.0)
 
 
 ## 原作「生命值低于 50% 时寒冷持续时间延长」（2 → 4 秒）：重生冲锋形态起寒冷条涨速 × knight_cold_hot（1.5）、冻伤时长 × 2（docs/183 v2）
@@ -736,6 +766,221 @@ func _reborn_step(e: Dictionary) -> void:
 			e.wind = maxf(float(e.wind), Bal.v("boss/knight_spin_brk", 2.0))
 
 
+## ---- 重生 v3 · 冲锋形态（docs/171「重生 v3」，10-28 用户批）
+## 大招洗牌轮换：长驱冲锋 / 长枪回旋 / 绕场巡猎 / Z 字三连，同一招不连续出；大招之间慢走 knight_big_walk（2.5）秒，期间由最终招轮换补冰枪封径 / 冻潮夹击
+const BIG_MOVES := ["drive", "spin", "lap", "triple"]
+
+## 忙（出招 / 破绽 / 读条）的每一帧把下一个大招往后推，保证两个大招之间至少慢走 knight_big_walk 秒
+func _big_hold(e: Dictionary) -> void:
+	if e.phase != 2:
+		return
+	if float(e.get("break_t", 0.0)) > 0.0 or e.get("knight_combo_active", false) or e.has("kn_drive") or e.has("kn_lap") \
+			or e.has("kn_lap_brk_at") or int(e.get("dash2", 0)) > 0 or e.has("breath_at") or e.has("kn_spin_brk_at") \
+			or float(e.get("channel", 0.0)) > 0.0:
+		e.kn_big_next = maxf(float(e.get("kn_big_next", 0.0)), g.t + Bal.v("boss/knight_big_walk", 2.5))
+
+
+func _big_ok(e: Dictionary, mv: String) -> bool:
+	match mv:
+		"drive":
+			return Bal.v("boss/knight_drive", 1.0) > 0.0 and g.zone_frozen
+		"lap":
+			return Bal.v("boss/knight_lap", 1.0) > 0.0 and g.zone_frozen
+		"spin":
+			return g.combat.ground_d(g.ppos, e.pos) < 420.0   # 冲击环 560，太远放了也打不到
+		"triple":
+			return g.t >= float(e.get("kn_triple_at", 0.0))
+	return false
+
+
+func _reborn_pick(e: Dictionary, dir: Vector2) -> void:
+	if g.t < float(e.get("kn_big_next", 0.0)):
+		return
+	var bag: Array = e.get("kn_bag", [])
+	for _i in BIG_MOVES.size():
+		if bag.is_empty():
+			bag = BIG_MOVES.duplicate()
+			for i in range(bag.size() - 1, 0, -1):
+				var j: int = g.rng_enemy.randi() % (i + 1)
+				var t = bag[i]
+				bag[i] = bag[j]
+				bag[j] = t
+			if str(bag[0]) == str(e.get("kn_big_last", "")):
+				bag.push_back(bag.pop_front())
+		var mv: String = str(bag.pop_front())
+		if not _big_ok(e, mv):
+			continue
+		e.kn_bag = bag
+		e.kn_big_last = mv
+		e.kn_big_next = g.t + 1.0
+		if Cfg.dev_args().has("--kgate"):
+			print("KNIGHT_BIG %s t=%.2f" % [mv, g.t])   # 仅测试：重生大招轮换
+		match mv:
+			"drive":
+				_drive_start(e, dir)
+			"spin":
+				_spin(e, dir)
+			"lap":
+				_lap_start(e)
+			"triple":
+				e.kn_z = {"k": 0, "t": g.t}
+				e.kn_triple_at = g.t + Bal.v("boss/knight_triple_cd", 20.0)
+				_charge(e, dir)
+		return
+	e.kn_bag = bag
+
+
+## 长驱冲锋：0.9 秒直线预警（追踪 0.5 秒）后起冲，速度 knight_drive_v0 → v1（320 → 900，knight_drive_acc 1.2 秒加满），
+## 每秒最多转 knight_drive_turn（0.52 弧度 ≈ 30°）追队长；冲过的路每 0.2 秒记一段冰面（3 秒，站上去寒冷条涨）。
+## 冲出 120 以后撞上场地边缘 → 眩晕 knight_drive_stun（2.5）秒（受伤 × 2，接替一幕撞柱），碎冰向场内反弹 5 片；
+## 超过 knight_drive_max（3.0）秒还没撞边 → 收招破绽 knight_drive_brk（1.0）秒。伤害 = 冲锋本体接触（同普通冲锋）
+## 骑士本体能到的场地半径：同 enemies._hot_gather 的 Boss 边距（骑士按整个画幅最远顶角留边），场边判定和绕场跑道都用它
+func _rim(e: Dictionary) -> float:
+	var ds: float = g.PX * float(D.ENEMIES[e.type].get("draw_scale", 1.0))
+	return maxf(0.0, g.zone_r - maxf(float(e.r), Vector2(48.0 * ds * 1.3 + 2.0, 80.0 * ds + 16.0).length()))
+
+
+func _drive_start(e: Dictionary, dir: Vector2) -> void:
+	var w := _warn(e, "line", 0.9, {"ang": dir.angle(), "len": 560.0, "wid": 40.0, "track": 0.5, "act": "knight_drive", "name": "长驱冲锋",
+		"col": ICE, "dmg": _bite(e, e.dmg * Bal.v("boss/knight_charge_mult", 1.7))})
+	e.kn_drive = {"w": w, "go": g.t + float(w.dur), "ang": dir.angle(), "v": 0.0, "dist": 0.0, "seg": e.pos, "seg_t": g.t + float(w.dur)}
+	e.wind = maxf(float(e.wind), float(w.dur))
+
+
+func _drive_step(e: Dictionary, dt: float) -> bool:
+	if not e.has("kn_drive"):
+		return false
+	var d: Dictionary = e.kn_drive
+	if g.t < float(d.go):
+		d.ang = float(d.w.ang)
+		e.wind = maxf(float(e.wind), 0.05)
+		return true
+	var k: float = clampf((g.t - float(d.go)) / Bal.v("boss/knight_drive_acc", 1.2), 0.0, 1.0)
+	d.v = lerpf(Bal.v("boss/knight_drive_v0", 320.0), Bal.v("boss/knight_drive_v1", 900.0), k)
+	var turn: float = Bal.v("boss/knight_drive_turn", 0.52) * dt
+	d.ang = float(d.ang) + clampf(angle_difference(float(d.ang), (g.ppos - e.pos).angle()), -turn, turn)
+	var dv := Vector2.from_angle(float(d.ang))
+	d.dist = float(d.dist) + float(d.v) * dt
+	e.kb = dv * float(d.v)
+	e.kb_self = true
+	e.dash_decel = 0.0
+	e.dash_dir = dv
+	e.dash_t = maxf(float(e.get("dash_t", 0.0)), 0.1)
+	e.wind = maxf(float(e.wind), 0.1)
+	if absf(dv.x) > 0.05:
+		e.fx = signf(dv.x)
+	if g.t - float(d.seg_t) >= 0.2:
+		var life: float = Bal.v("boss/knight_ice_life", 3.0)
+		var st: Array = e.get("ice_strips", [])
+		st.append({"a": d.seg, "b": e.pos, "until": g.t + life})
+		e.ice_strips = st
+		# 冰面画成一整条（ice_sheet 折线随冲锋延长），冲锋期间不淡，停下后按 knight_ice_life 整条淡出
+		if not d.has("sheet"):
+			d.sheet = {"kind": "ice_sheet", "pts": [d.seg], "life": life, "max": life, "enemy": true, "ground": true}
+			g.fx.append(d.sheet)
+		d.sheet.pts.append(e.pos)
+		d.sheet.life = life
+		d.seg = e.pos
+		d.seg_t = g.t
+	var edge: bool = g.zone_frozen and float(d.dist) > 120.0 and (e.pos - g.zone_c).length() >= _rim(e) - 8.0
+	if edge or g.t - float(d.go) >= Bal.v("boss/knight_drive_max", 3.0):
+		_drive_end(e, edge)
+	return true
+
+
+func _drive_end(e: Dictionary, edge: bool) -> void:
+	var ang: float = float(e.kn_drive.ang)
+	e.erase("kn_drive")
+	e.kb = Vector2.ZERO
+	e.kb_self = false
+	e.dash_t = 0.0
+	var t: float
+	if Cfg.dev_args().has("--kgate"):
+		print("KNIGHT_DRIVE_END edge=%s t=%.2f" % [edge, g.t])
+	if edge:
+		t = Bal.v("boss/knight_drive_stun", 2.5)
+		g.combat.start_break(e, t)
+		e.brk_label = "眩晕"
+		e.stun_fx = e.fx
+		g.fx.append({"kind": "knight_crash", "pos": e.pos, "ang": float(e.fx), "life": 1.4, "max": 1.4, "enemy": true})
+		IceFx.pillar_crash(g, e.pos)
+		Sfx.play("stake_hit", 2.0, 1.0, 0.0)
+		Sfx.play("boom", -4.0, 1.2, 0.0)
+		g.vfx.shake_screen(0.8)
+		ice_shards(e, e.pos, aim(e.pos), 5, 1.0, 150.0)
+	else:
+		t = Bal.v("boss/knight_drive_brk", 1.0)
+		g.combat.start_break(e, t)
+		e.brk_label = "破绽"
+	e.wind = maxf(float(e.wind), t)
+
+
+## 绕场巡猎（坐骑罗辛南特）：0.8 秒预告落点 → 以 800 速跑到场地内缘（离边 120）→ 沿内缘绕 knight_lap_t（4.0）秒（约 0.85 圈），
+## 每 0.5 秒从所在位置朝队长掷一根冰枪（直线预警 0.6 秒，地面判定、不是弹，e.dmg × knight_lap_lance 0.7）；
+## 绕完朝场心收尾冲锋（0.7 秒预警），冲完且自己的有伤预警都结算后给 knight_lap_brk（2.0）秒破绽
+func _lap_start(e: Dictionary) -> void:
+	var c: Vector2 = g.zone_c
+	var R: float = maxf(160.0, _rim(e) - 20.0)
+	var a0: float = (e.pos - c).angle() if e.pos.distance_to(c) > 1.0 else 0.0
+	var rim: Vector2 = c + Vector2.from_angle(a0) * R
+	var w := _warn(e, "circle", 0.8, {"pos": rim, "r": 60.0, "act": "knight_lap", "name": "绕场巡猎", "col": ICE, "dmg": 0.0})
+	e.kn_lap = {"stage": "wind", "go": g.t + float(w.dur), "c": c, "R": R, "a": a0, "rim": rim,
+		"s": 1.0 if g.rng_enemy.randf() < 0.5 else -1.0, "t0": 0.0, "throw": 0.0}
+	e.wind = maxf(float(e.wind), float(w.dur))
+
+
+func _lap_step(e: Dictionary, dt: float) -> bool:
+	if not e.has("kn_lap"):
+		if e.has("kn_lap_brk_at") and g.t >= float(e.kn_lap_brk_at) and not e.get("kb_self", false) \
+				and not g.warns.any(func(w): return is_same(w.owner, e) and not w.done and float(w.dmg) > 0.0):
+			e.erase("kn_lap_brk_at")
+			if float(e.get("break_t", 0.0)) <= 0.0 and not e.dead:
+				var t: float = Bal.v("boss/knight_lap_brk", 2.0)
+				g.combat.start_break(e, t)
+				e.brk_label = "破绽"
+				e.wind = maxf(float(e.wind), t)
+		return false
+	var L: Dictionary = e.kn_lap
+	e.wind = maxf(float(e.wind), 0.1)
+	e.kb = Vector2.ZERO
+	if g.t < float(L.go):
+		return true
+	var c: Vector2 = L.c
+	if str(L.stage) != "lap":
+		var to: Vector2 = (L.rim as Vector2) - e.pos
+		var mv: float = 800.0 * dt
+		if to.length() <= mv:
+			e.pos = L.rim
+			L.stage = "lap"
+			L.t0 = g.t
+			L.throw = g.t + 0.3
+		else:
+			e.pos += to.normalized() * mv
+			if absf(to.x) > 1.0:
+				e.fx = signf(to.x)
+		e.dash_t = maxf(float(e.get("dash_t", 0.0)), 0.1)
+		return true
+	var lt: float = Bal.v("boss/knight_lap_t", 4.0)
+	var k: float = g.t - float(L.t0)
+	var a: float = float(L.a) + float(L.s) * TAU * 0.85 * minf(k, lt) / lt
+	var np: Vector2 = c + Vector2.from_angle(a) * float(L.R)
+	if absf(np.x - e.pos.x) > 0.5:
+		e.fx = signf(np.x - e.pos.x)
+	e.pos = np
+	e.dash_t = maxf(float(e.get("dash_t", 0.0)), 0.1)
+	if g.t >= float(L.throw) and k < lt:
+		L.throw = float(L.throw) + 0.5
+		g.bai.finals._warn(e, "line", 0.6, {"name": "", "pos": e.pos, "ang": (g.ppos - e.pos).angle(), "len": 620.0, "wid": 20.0,
+			"skin": "ice_lance", "dmg": e.dmg * Bal.v("boss/knight_lap_lance", 0.7), "chill": 0.4})
+	if k >= lt:
+		e.erase("kn_lap")
+		var to_c: Vector2 = c - e.pos
+		var w := _warn(e, "line", 0.7, {"ang": to_c.angle(), "len": minf(520.0, to_c.length() + 120.0), "wid": 34.0, "track": 0.0, "act": "dash",
+			"fit_len": true, "name": "", "col": ICE, "dmg": _bite(e, e.dmg * Bal.v("boss/knight_charge_mult", 1.7))})
+		e.kn_lap_brk_at = g.t + float(w.dur) + 0.6
+	return true
+
+
 func on_kill(e: Dictionary) -> void:
 	cancel_combo(e)
 
@@ -743,6 +988,11 @@ func on_kill(e: Dictionary) -> void:
 ## 冰屑弹（用户 10-27「可以增加一些弹幕，但是不用太多，因为是近战攻击为主」）：冰锋 / 冰波 / 冲锋自然收尾时碎出几片慢速冰屑，
 ## 同屏最多 SHARD_CAP（18）片；走公共 g.ebullets（判定、机器人躲避、干员消弹同一管线）。单发 e.dmg × 0.35 × knight_ice_dmg_k。
 ## 只在自然结束时出：被打断 / 撞柱 / 转幕不出。开关 boss/knight_shards（0 = 关）
+## 从 from 指向队长的角度：骑士所有冰屑扇 / 冰棱弹都按这个瞄准（螺旋雪片、回旋冰锥是图案弹，不瞄）
+func aim(from: Vector2) -> float:
+	return (g.ppos - from).angle() if g.ppos.distance_to(from) > 1.0 else 0.0
+
+
 func ice_shards(e: Dictionary, from: Vector2, ang: float, n: int, spread: float, spd: float, gap_ang := INF, gap_half := 0.0) -> void:
 	if Bal.v("boss/knight_shards", 1.0) <= 0.0 or e.get("dead", false):
 		return

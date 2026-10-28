@@ -489,6 +489,7 @@
   "_break_text_final": "用户 10-28：四只最终 Boss（偏执泡影 / 骑士 / 伊祖米克 / 伊莎玛拉）破绽不写字（弹字、头顶读秒、伤害数字前缀），改由 render/break_ring 脚下金环 + 倒计时弧表示；1 = 恢复。中期 Boss 不受影响",
   "hp_x_knight_boss": 2.3,
   "dmg_x_knight_boss": 2.5,
+  "knight_big_walk": 1.5,
   "_dmg_x": "dmg_x_<id>：单只 Boss 伤害再乘（缺省 1.0）。骑士 10-28 按测试台（docs/170）：血 3.0 → 2.55 压超时、伤害 ×2.5 让持续压力能击倒队长，docs/169 §输出窗口 末尾有表",
   "hp_x_izumik": 2.3,
   "izumik_taken_out": 0.47,
