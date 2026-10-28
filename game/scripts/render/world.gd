@@ -421,6 +421,7 @@ func draw_world() -> void:
 	if not _dbg_foe:   # --clutterdbg=nofoe：敌方弹幕 / 预警整层不画（量测）
 		_draw_ebullets_lobs_shocks()
 	bulfx.draw_top()   # 新弹亮芯闪 + 消失残影（压在弹体之上）
+	_draw_hit_dot()
 	_pk("ebullets_lobs_shocks")
 	_draw_tells_outlines()
 	_pk("tells_outlines")
@@ -1028,6 +1029,17 @@ func _se_draw(ob, kd: int) -> void:
 
 
 ## 敌人身上层（词条特效批、弱点菱形）→ 干员技能上层 → 护盾 → 无人机三遍（影子光晕 / 机体 / 核心）
+## 判定点（10-29，boss/graze_on）：最终 Boss 战里队长身上一个 2 格白芯 + 暗细描边的小点（Boss 弹按弹芯打这里），压在弹幕之上；
+## 移动时 0.85、站定后 0.45，不抢画面
+func _draw_hit_dot() -> void:
+	if g.shots == null or not g.shots.graze_live():
+		return
+	var a: float = 0.45 if g.leader_still_t > 0.3 else 0.85
+	var c: Vector2 = ((g.ppos + Vector2(0, -14)) * 0.5).floor() * 2.0
+	g.draw_rect(Rect2(c - Vector2(4, 4), Vector2(8, 8)), Color(0.02, 0.05, 0.08, 0.55 * a))
+	g.draw_rect(Rect2(c - Vector2(2, 2), Vector2(4, 4)), Color(1.0, 1.0, 1.0, a))
+
+
 func _draw_overlays_shield_drones() -> void:
 	_afx_flush()
 	for wm in weak_marks:
