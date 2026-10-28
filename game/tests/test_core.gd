@@ -408,6 +408,7 @@ func test_voice_interrupt() -> void:
 	var S = load("res://scripts/sfx.gd").new()
 	S.voice_player = AudioStreamPlayer.new()
 	S.voice_fader = AudioStreamPlayer.new()
+	S.voice_pools = {"_": {}}   # 只验打断调度：不走语音池（docs/190），固定读 <干员>_<事件>.ogg
 	var GAP: float = S.VOICE_GAP
 	var fresh := func(t: float) -> void:
 		S.voice_reset()

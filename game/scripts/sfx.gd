@@ -620,7 +620,11 @@ var voice_queue: Array = []            # [cid, key]
 
 
 func _voice_stream(cid: String, key: String) -> AudioStream:
-	var path := "res://audio/voice/%s_%s.ogg" % [cid, key]   # WAV 母带在仓库 art/source/voice（不进包），见 tools/voice_ogg.py
+	return _voice_file("%s_%s" % [cid, key])
+
+
+func _voice_file(stem: String) -> AudioStream:
+	var path := "res://audio/voice/%s.ogg" % stem   # WAV 母带在仓库 art/source/voice（不进包），见 tools/voice_ogg.py
 	if not voice_streams.has(path):
 		var st: AudioStreamOggVorbis = _load_ogg(path)
 		if st != null:
@@ -629,6 +633,66 @@ func _voice_stream(cid: String, key: String) -> AudioStream:
 				st = null
 		voice_streams[path] = st
 	return voice_streams[path]
+
+
+## ---- 语音池（10-29 用户「语音多一点，否则歌蕾蒂娅一直重复『谁是猎物』」，docs/190）：
+## 每名干员按触发类别各有一池原作语音（audio/voice/voice_pools.json，tools/voice_more_1029.py 生成），事件只决定用哪个池：
+## 冷却 / 优先级 / 打断 / 间隔 / 合唱规则仍按事件名，完全不变。池内「洗牌不重复」：一轮放完再洗，新一轮第一句不接上一轮最后一句；
+## 同一句（同一文件，几个池共用的也算）VOICE_REPEAT_GAP 秒内不再播——都在间隔内时普通语音放弃，玩家指挥回应（urgent / 合唱）播最久没播的那句。
+## 选句用自己的 RNG，不碰玩法随机数（同 seed TRACE 不变）。没有池的事件（W 笑声、协同语音）照旧读 <干员>_<事件>.ogg。
+const VOICE_POOL_OF := {"entry": "entry", "command": "command", "skill_1": "skill", "skill_2": "skill", "skill_3": "skill", "battle": "battle"}
+const VOICE_REPEAT_GAP := 60.0
+var voice_pools := {}                  # 干员 -> 池 -> [文件主名]；空字典 = 还没读
+var voice_bags := {}                   # "干员:池" -> 这一轮还没放的
+var voice_bag_last := {}               # "干员:池" -> 上一句
+var voice_line_last := {}              # 文件主名 -> 上次播放时间
+var voice_rng := RandomNumberGenerator.new()
+
+
+func _voice_pool(cid: String, key: String) -> Array:
+	if voice_pools.is_empty():
+		var d = JSON.parse_string(FileAccess.get_file_as_string("res://audio/voice/voice_pools.json")) if FileAccess.file_exists("res://audio/voice/voice_pools.json") else null
+		voice_pools = d.get("pools", {}) if d is Dictionary else {}
+		voice_pools["_"] = {}   # 读过的标记
+	return voice_pools.get(cid, {}).get(VOICE_POOL_OF.get(key, ""), [])
+
+
+## 这次该播哪句（只看不改，真正开播时 _voice_commit）；"" = 池里都在同句间隔内
+func _voice_pick(cid: String, key: String, force: bool) -> String:
+	var pool := _voice_pool(cid, key)
+	if pool.is_empty():
+		return "%s_%s" % [cid, key]
+	var bk: String = cid + ":" + str(VOICE_POOL_OF[key])
+	var bag: Array = voice_bags.get(bk, [])
+	if bag.is_empty():
+		bag = pool.duplicate()
+		for i in range(bag.size() - 1, 0, -1):
+			var j := voice_rng.randi_range(0, i)
+			var t = bag[i]
+			bag[i] = bag[j]
+			bag[j] = t
+		if bag.size() > 1 and bag[0] == voice_bag_last.get(bk, ""):
+			bag.push_back(bag.pop_front())
+		voice_bags[bk] = bag
+	var now := _vnow()
+	for s in bag:
+		if now - float(voice_line_last.get(s, -999.0)) >= VOICE_REPEAT_GAP:
+			return s
+	if not force:
+		return ""
+	var best: String = bag[0]
+	for s in pool:
+		if float(voice_line_last.get(s, -999.0)) < float(voice_line_last.get(best, -999.0)):
+			best = s
+	return best
+
+
+func _voice_commit(cid: String, key: String, stem: String, now: float) -> void:
+	voice_line_last[stem] = now
+	if VOICE_POOL_OF.has(key):
+		var bk: String = cid + ":" + str(VOICE_POOL_OF[key])
+		voice_bags.get(bk, []).erase(stem)
+		voice_bag_last[bk] = stem
 
 
 func _vnow() -> float:
@@ -648,11 +712,12 @@ var voice_log := false                 # --voicelog（测试）：真正开播�
 
 ## 这名干员有没有这条语音素材（指挥喊话缺素材时退到通用音效）
 func has_voice(cid: String, key: String) -> bool:
-	return _voice_stream(cid, key) != null
+	return not _voice_pool(cid, key).is_empty() or _voice_stream(cid, key) != null
 
 
 func voice(cid: String, key: String, queue := false, urgent := false) -> void:
-	var st := _voice_stream(cid, key)
+	var stem := _voice_pick(cid, key, urgent)
+	var st: AudioStream = _voice_file(stem) if stem != "" else null
 	if st == null:
 		return
 	var now := _vnow()
@@ -683,6 +748,7 @@ func voice(cid: String, key: String, queue := false, urgent := false) -> void:
 		return
 	voice_last[lk] = now
 	voice_op_last[cid] = now
+	_voice_commit(cid, key, stem, now)
 	voice_prio = prio
 	voice_key = key
 	voice_cid = cid
@@ -692,8 +758,10 @@ func voice(cid: String, key: String, queue := false, urgent := false) -> void:
 		voice_player.play()
 	voice_play_end = now + st.get_length()
 	voice_end = voice_play_end + VOICE_GAP
+	if trace_on:
+		trace.append([Engine.get_process_frames(), "voice:" + stem, voice_player.volume_db, 1.0])
 	if voice_log:
-		print("VOICEPLAY %s %s" % [cid, key])
+		print("VOICEPLAY %s %s %s" % [cid, key, stem])
 
 
 ## 把正在播的那条换到 voice_fader 上淡出停掉，voice_player 腾出来给新语音
@@ -732,6 +800,8 @@ func voice_reset() -> void:
 	for lp in loops.values():
 		lp.stop()
 	voice_queue.clear()
+	voice_bags.clear()
+	voice_line_last.clear()
 	chorus_pending.clear()
 	for cp in chorus.values():
 		cp.stop()
@@ -773,7 +843,8 @@ func _chorus_tick() -> void:
 
 ## true = 处理完（播了或放弃）；false = 等技能语音播完再试
 func _chorus_play(cid: String, key: String, duck_db: float) -> bool:
-	var st := _voice_stream(cid, key)
+	var stem := _voice_pick(cid, key, true)
+	var st := _voice_file(stem)
 	if st == null:
 		return true
 	var now := _vnow()
@@ -802,14 +873,15 @@ func _chorus_play(cid: String, key: String, duck_db: float) -> bool:
 			p.volume_db = float(p.get_meta("trim", 0.0)) + duck_db   # 先开口的那条也压一点（只压一次）
 			if trace_on:
 				trace.append([Engine.get_process_frames(), "vduck:" + str(p.get_meta("vpath", "")), duck_db, 1.0])
-	cp.set_meta("vpath", "%s_%s" % [cid, key])
+	cp.set_meta("vpath", stem)
 	voice_last[cid + ":" + key] = now
+	_voice_commit(cid, key, stem, now)
 	voice_op_last[cid] = now
 	voice_end = maxf(voice_end, now + st.get_length() + VOICE_GAP)
 	if trace_on:
-		trace.append([Engine.get_process_frames(), "voice:%s_%s" % [cid, key], cp.volume_db, 1.0])
+		trace.append([Engine.get_process_frames(), "voice:" + stem, cp.volume_db, 1.0])
 	if voice_log:
-		print("VOICEPLAY %s %s chorus" % [cid, key])
+		print("VOICEPLAY %s %s %s chorus" % [cid, key, stem])
 	return true
 
 

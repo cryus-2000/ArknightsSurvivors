@@ -699,18 +699,20 @@ var _vo_i := 0
 var _vo_t := -999.0
 
 func _stance_voice(s: int, shout := false) -> void:
+	if s != ROAM:
+		return   # 10-29 用户「归队的时候不要语音了」：只有突击开口，归队 / 随行静默（也不占 voice_gap 节流）
 	if g.demo_op != "" or g.t - _vo_t < Bal.v("command/voice_gap", 6.0):
 		return
 	var eligible: Array = ops.filter(func(o): return o.cmd_down <= 0.0 and (o.is_leader or o.cmd_roam()))
 	var order: Array = eligible.filter(func(o): return o.is_leader) + eligible.filter(func(o): return not o.is_leader)
-	if s == ROAM or int(Bal.v("command/voice_mode", 1.0)) > 0:   # 10-26 用户「切突击放这名队友自己的语音，别放成队长的」：出击的是队友，按编队序轮换放他们各自的「出击」；没有可出击的队友才轮到队长（10-28 合唱：归队也由队友开口）
-		var mates: Array = eligible.filter(func(o): return not o.is_leader)
-		if not mates.is_empty():
-			order = mates
+	# 10-26 用户「切突击放这名队友自己的语音，别放成队长的」：出击的是队友，按编队序轮换放他们各自的「出击」；没有可出击的队友才轮到队长
+	var mates: Array = eligible.filter(func(o): return not o.is_leader)
+	if not mates.is_empty():
+		order = mates
 	if order.is_empty():
 		return
 	var sfx: Node = g.get_node_or_null("/root/Sfx")
-	var key: String = "command" if s == ROAM else "entry"
+	var key := "command"
 	# 合唱（10-28 用户「两名队友的台词可以交替或一起喊」）：command/voice_mode 0 = 旧口径（按编队轮换只一人开口）；
 	# 1 = 交替（缺省）：轮换谁先开口，其余依次晚 voice_stagger 秒（0.4），允许尾部重叠；2 = 同时开口。重叠时每条压 voice_duck_db
 	var mode: int = int(Bal.v("command/voice_mode", 1.0))

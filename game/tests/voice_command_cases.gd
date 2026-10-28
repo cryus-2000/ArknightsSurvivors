@@ -56,8 +56,11 @@ func run(check: Callable) -> void:
 	check.call(spy.calls.size() == called, "same stance does not request another voice")
 	game.t += 7.0
 	squad.set_stance(Squad.RECALL)
-	check.call(spy.calls.size() == 2 and spy.calls[-1] == ["texas", "entry", false], "recall retains entry; non-roaming and downed followers do not speak")
+	check.call(spy.calls.size() == 1, "recall is silent (user 10-29)")
+	squad.set_stance(Squad.ROAM)
+	check.call(spy.calls.size() == 2 and spy.calls[-1] == ["texas", "command", false], "assault after a silent recall still speaks; non-roaming and downed followers do not")
 	game.t += 1.0
+	squad.set_stance(Squad.RECALL)
 	squad.set_stance(Squad.ROAM)
 	check.call(spy.calls.size() == 2, "rapid command change is throttled")
 	game.t += 7.0
@@ -121,6 +124,7 @@ func run(check: Callable) -> void:
 	spy.free()
 	_asset_coverage(check)
 	_channel_rules(check)
+	_pool_rules(check)
 
 ## 指挥合唱（10-28 用户「突击时两名队友的台词可以交替或一起喊」）：两名出击队友都开口，轮换谁先、其余晚 voice_stagger 秒；
 ## voice_mode 0 = 旧口径只一人
@@ -139,7 +143,9 @@ func _chorus_rotation(check: Callable, game, spy) -> void:
 	check.call(spy.delays.size() == 2 and is_zero_approx(spy.delays[0]) and is_equal_approx(spy.delays[1], 0.4), "chorus alternates: second line 0.4 s after the first")
 	game.t += 7.0
 	sq._stance_voice(Squad.RECALL)
-	check.call(spy.calls.slice(2) == [["skadi", "entry", false], ["texas", "entry", false]], "recall chorus rotates who speaks first")
+	check.call(spy.calls.size() == 2, "recall chorus is silent (user 10-29)")
+	sq._stance_voice(Squad.ROAM)
+	check.call(spy.calls.slice(2) == [["skadi", "command", false], ["texas", "command", false]], "next assault chorus rotates who speaks first")
 	game.t += 7.0
 	var Bal = preload("res://scripts/core/balance.gd")
 	Bal.v("command/voice_mode", 1.0)   # 先载入，再临时改旋钮
@@ -154,13 +160,13 @@ func _chorus_rotation(check: Callable, game, spy) -> void:
 
 func _asset_coverage(check: Callable) -> void:
 	var manifest = JSON.parse_string(FileAccess.get_file_as_string("res://audio/voice/voice_manifest.json"))
-	check.call(manifest is Dictionary and manifest.get("clips", []).size() == 123, "runtime manifest retains 121 clips and adds 2 synergy lines (docs/160)")
+	check.call(manifest is Dictionary and manifest.get("clips", []).size() == 233, "runtime manifest: 121 clips + 2 synergy lines (docs/160) + 110 pooled lines (docs/190)")
 	if not manifest is Dictionary:
 		return
 	var have := {}
 	for clip in manifest.clips:
 		have[clip.operator + ":" + clip.event] = true
-	check.call(have.size() == 123, "runtime event pairs are unique")
+	check.call(have.size() == 233, "runtime event pairs are unique")
 	var ids := Character.list_ids()
 	check.call(manifest.operators.size() == 20 and ids.size() == 20, "runtime voice map covers20 operators")
 	for cid in ids:
@@ -173,6 +179,7 @@ func _asset_coverage(check: Callable) -> void:
 
 func _channel_rules(check: Callable) -> void:
 	var sfx = load("res://scripts/sfx.gd").new()
+	sfx.voice_pools = {"_": {}}   # 这里只验通道规则：不走语音池，固定读 <干员>_<事件>.ogg（池见 _pool_rules）
 	sfx.voice_player = AudioStreamPlayer.new()
 	sfx.voice_fader = AudioStreamPlayer.new()
 	var clip = sfx._voice_stream("skadi", "command")
@@ -215,6 +222,55 @@ func _channel_rules(check: Callable) -> void:
 		check.call(sfx.chorus.size() == 2, "one chorus player per operator")
 	for cp in sfx.chorus.values():
 		cp.free()
+	sfx.voice_player.free()
+	sfx.voice_fader.free()
+	sfx.free()
+
+
+## 语音池（10-29 用户「语音多一点」，docs/190）：每人每类条数够、文件能读；同一干员同一池洗牌不重复（一轮放完再洗、
+## 新一轮不接上一句）；同一句 60 秒内不重复（普通语音放弃，指挥回应播最久没播的）；冷却 / 间隔仍按事件名
+func _pool_rules(check: Callable) -> void:
+	var sfx = load("res://scripts/sfx.gd").new()
+	sfx.voice_player = AudioStreamPlayer.new()
+	sfx.voice_fader = AudioStreamPlayer.new()
+	var want := {"entry": 3, "command": 4, "skill": 4, "battle": 3}
+	for cid in Character.list_ids():
+		for pool in want:
+			var stems: Array = sfx._voice_pool(cid, {"skill": "skill_1"}.get(pool, pool))
+			var n := 0
+			for s in stems:
+				if sfx._voice_file(s) != null:
+					n += 1
+			check.call(n >= int(want[pool]) and n == stems.size(), "voice pool %s:%s has %d loadable lines (>= %d)" % [cid, pool, n, want[pool]])
+	# 洗牌不重复：歌蕾蒂娅一技能隔 100 秒放 4 次 = 技能池 4 句各一次；第 5 次不接第 4 句
+	var got: Array = []
+	for i in 5:
+		sfx.voice_now = 3000.0 + 100.0 * i
+		sfx.voice_player.stream = null
+		sfx.voice_end = 0.0
+		sfx.voice("gladiia", "skill_1")
+		got.append(str(sfx.voice_player.stream.get_instance_id()) if sfx.voice_player.stream != null else "")
+	var first4 := {}
+	for p in got.slice(0, 4):
+		first4[p] = true
+	check.call(first4.size() == 4 and not first4.has(""), "skill pool: one shuffled round plays all 4 lines once: %s" % [got])
+	check.call(got[4] != got[3] and got[4] != "", "skill pool: next round does not repeat the previous line")
+	# 同句 60 秒：池里都在 60 秒内时普通语音放弃，玩家指挥回应播最久没播的那句
+	var bat: Array = sfx._voice_pool("gladiia", "battle")
+	sfx.voice_now = 5000.0
+	for j in bat.size():
+		sfx.voice_line_last[bat[j]] = 4950.0 + j
+	check.call(sfx._voice_pick("gladiia", "battle", false) == "", "same line not repeated within 60 s (chatter gives up)")
+	check.call(sfx._voice_pick("gladiia", "battle", true) == bat[0], "urgent picks the least recently played line")
+	# 突击连按：4 句轮完前不重复（urgent 不受同人间隔）
+	var cmd := {}
+	for k in 4:
+		sfx.voice_now = 6000.0 + 7.0 * k
+		sfx.voice_player.stream = null
+		sfx.voice_end = 0.0
+		sfx.voice("gladiia", "command", false, true)
+		cmd[sfx.voice_player.stream.get_instance_id()] = true
+	check.call(cmd.size() == 4, "command pool: 4 presses give 4 different lines")
 	sfx.voice_player.free()
 	sfx.voice_fader.free()
 	sfx.free()
