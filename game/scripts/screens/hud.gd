@@ -14,6 +14,7 @@ const HudBars = preload("res://scripts/screens/hud_bars.gd")
 const HudRelics = preload("res://scripts/screens/hud_relics.gd")
 const HudSquad = preload("res://scripts/screens/hud_squad.gd")
 const HudBanners = preload("res://scripts/screens/hud_banners.gd")
+const HudAllyHp = preload("res://scripts/screens/hud_allyhp.gd")   # 队友血条原型（docs/114 §19）
 const HudIcons = preload("res://scripts/screens/hud_icons.gd")
 const TextQ = preload("res://scripts/screens/hud_textq.gd")
 const TriBatch = preload("res://scripts/render/tri_batch.gd")
@@ -22,6 +23,7 @@ var bars: HudBars
 var relics: HudRelics
 var squad: HudSquad
 var banners: HudBanners
+var allyhp: HudAllyHp
 
 
 func _init(game: Game) -> void:
@@ -30,6 +32,7 @@ func _init(game: Game) -> void:
 	relics = HudRelics.new(self)
 	squad = HudSquad.new(self)
 	banners = HudBanners.new(self)
+	allyhp = HudAllyHp.new(self)
 
 
 ## HUD 合批段：段内 UI 助手的色块进 Tris 批、文字延后，batch_end 时先一次提交色块再画字（段内各块互不重叠才能这样用）
@@ -282,6 +285,8 @@ func _draw_body() -> void:
 	if not pq:
 		squad.draw(vs)   # 登记编队栏静态层（squad）与每帧层（squad_fr）
 	_layer("front", null, func():
+		bars.draw_xp_top(vs)   # 经验通栏细条（屏幕最上沿）
+		allyhp.draw(vs)   # 队友血条原型（command/hpbar_style 1 / 3；0 = 编队卡缓存层里的原版）
 		banners.draw_command(vs, ct)   # 指挥模式：屏外队友方向标记 + 当前模式（docs/114）；压在顶栏 / 编队栏之上
 		banners.draw_banner(vs)
 		banners.draw_notices(vs)

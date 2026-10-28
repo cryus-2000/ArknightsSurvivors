@@ -280,6 +280,9 @@ func _card_hp(o, cr: Rect2, fg, txt: Array[Callable]) -> void:
 	var v: Array = _hp_vis(o)
 	if v.is_empty():
 		return
+	var hs: int = int(Bal.v("command/hpbar_style", 0.0))   # 队友血条（docs/114 §19）：1 / 3 / 4 由 hud_allyhp 画；2 卡上只留倒地读秒
+	if hs == 1 or hs >= 3 or (hs == 2 and int(v[2]) < 0):
+		return
 	var r := Rect2(Vector2(cr.position.x, cr.end.y + 4.0), Vector2(cr.size.x, 6.0))
 	var down: bool = int(v[2]) >= 0
 	var a: float = 1.0 if v[0] or down or o.cmd_hp < 0.999 else 0.4

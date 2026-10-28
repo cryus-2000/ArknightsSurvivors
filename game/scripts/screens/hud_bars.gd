@@ -31,9 +31,9 @@ func top_left_sig(vs: Vector2) -> Array:
 	var rt: float = float(p.recall_hud_t) if p != null and "recall_hud_t" in p else -INF
 	var rec: bool = g.t - rt >= 0.0 and g.t - rt <= 1.5
 	var low: bool = g.hp / g.max_hp < 0.3
-	var anim: bool = g.hud_lv_flash > 0.0 or g.xp_flash > 0.0 or g.hp_shake > 0.0 or low or g.lamp < 30.0 or g.corrode_pool > 0.0 or rec
+	var anim: bool = g.hud_lv_flash > 0.0 or g.hp_shake > 0.0 or low or g.lamp < 30.0 or g.corrode_pool > 0.0 or rec
 	return [vs, g.level, int(g.hp), int(g.max_hp), g.shield, g.shield_max, int(g.lamp), int(g.lamp_cap), g.nerve > 1.0, g.corrode_pool > 0.5, rt,
-		h.qpx(150.0 * g.hp / g.max_hp), h.qpx(150.0 * g.hp_trail / g.max_hp), h.qpx(1.2 * g.lamp), h.qpx(154.0 * g.xp / g.xp_need),
+		h.qpx(150.0 * g.hp / g.max_hp), h.qpx(150.0 * g.hp_trail / g.max_hp), h.qpx(1.2 * g.lamp),
 		h.qpx(1.5 * g.nerve), g.t if anim else 0.0]
 
 
@@ -43,10 +43,10 @@ func draw_top_left(vs: Vector2) -> void:
 	# 名字与编队人数移到右下编队卡；下面一条灯火状态标签条在后面画（和状态效果一起）
 	var o := Vector2(16, 12)
 	var lf := g.hud_lv_flash
-	var bc := UI.CYAN.lerp(UI.GOLD, lf).lerp(Color(0.8, 1.6, 1.8), g.xp_flash * 0.7)
+	var bc := UI.CYAN.lerp(UI.GOLD, lf)
 	var lc0 := o + Vector2(26, 30)
 	h.batch_begin()   # 左上面板：色块一批、字最后（性能 9/30）
-	UI.ring(g.hud, lc0, 22.0 + 3.0 * lf, g.xp / g.xp_need, bc, lf > 0.2)
+	UI.ring(g.hud, lc0, 22.0 + 3.0 * lf, 0.0, bc, lf > 0.2)   # 只显示等级数字；经验进度在屏幕最上沿的通栏细条（draw_xp_top，10-28 用户）
 	UI.ctext(g.hud, g.font, lc0 + Vector2(-20, -6), "LV", 9, UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 40)
 	UI.ctext(g.hud, g.font, lc0 + Vector2(-26, 13), str(g.level), int(20 * (1.0 + 0.3 * lf)), Color(1, 1, 1).lerp(UI.GOLD, lf), HORIZONTAL_ALIGNMENT_CENTER, 52)
 	draw_recall(lc0)
@@ -104,6 +104,39 @@ func draw_recall(lc0: Vector2) -> void:
 	UI.ctext(g.hud, g.font, lc0 + Vector2(-40, 35), "回收 +%d" % int(round(_rc_sum)), 11, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, a), HORIZONTAL_ALIGNMENT_CENTER, 80)
 
 
+## 经验通栏细条（10-28 用户「学习别的肉鸽，把升级进度条放在最上面，一个细条来记录进度」）：屏幕最上沿全宽 5 像素，
+## 触屏避开安全区（左右刘海、顶部胶囊）。柠檬黄（10-28 用户「经验换成黄色」；比灯火的琥珀金 UI.GOLD 更亮更偏绿，与队长生命青、队友绿 / 金 / 红区分）；
+## 吃到经验（g.xp_flash）时条头亮、一道流光扫过已填部分；升级（g.hud_lv_flash，pickups 置 1）时先满条白闪约 0.3 秒再清零回到新进度。
+## 等级数字只在左上等级圆里（不重复）。每帧画在 hud 的 front 块
+const XP_H := 5.0
+var _xp_t := -9.0
+
+func draw_xp_top(vs: Vector2) -> void:
+	if g.state == Game.S.OPENING or g.state == Game.S.SHOW or g.xp_need <= 0.0:
+		return
+	var ins: Array = Cfg.safe_insets()
+	var r := Rect2(Vector2(float(ins[0]), float(ins[1])), Vector2(vs.x - float(ins[0]) - float(ins[2]), XP_H))
+	var lf: float = g.hud_lv_flash
+	var full: bool = lf > 0.7   # 升级瞬间：满条白闪，之后回到新等级的进度
+	var k: float = 1.0 if full else clampf(g.xp / g.xp_need, 0.0, 1.0)
+	g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x, r.size.y + 1.0)), Color(0.02, 0.025, 0.04, 0.75))
+	var fw: float = r.size.x * k
+	var c := Color(1.0, 0.9, 0.36)   # #ffe65c
+	if fw > 0.0:
+		g.hud.draw_rect(Rect2(r.position, Vector2(fw, r.size.y)), c)
+		g.hud.draw_rect(Rect2(r.position, Vector2(fw, 1.0)), Color(1.0, 0.97, 0.8, 0.85))   # 顶部高光
+	if g.xp_flash > 0.2 and g.t - _xp_t > 0.15:
+		_xp_t = g.t   # 新吃到经验（xp_flash 每次置 0.3、0.1 秒衰完）：起一道 0.5 秒的流光，连续拾取时不每帧重开
+	var ph: float = clampf((g.t - _xp_t) / 0.5, 0.0, 1.0)
+	var xf: float = 1.0 - ph
+	if xf > 0.0 and fw > 2.0 and not full:
+		var sx: float = r.position.x + fw * ph   # 流光从左往右扫到条头
+		g.hud.draw_rect(Rect2(Vector2(maxf(r.position.x, sx - 40.0), r.position.y), Vector2(minf(40.0, sx - r.position.x), r.size.y)), Color(1, 1, 1, 0.35 * xf))
+		g.hud.draw_rect(Rect2(Vector2(r.position.x + fw - 3.0, r.position.y), Vector2(3.0, r.size.y + 2.0)), Color(1, 1, 1, 0.9 * xf))
+	if full:
+		g.hud.draw_rect(Rect2(r.position, Vector2(r.size.x, r.size.y + 2.0)), Color(1, 1, 1, clampf((lf - 0.7) / 0.3, 0.0, 1.0) * 0.85))
+
+
 ## 灯火状态标签条（左上面板下方）
 func draw_lamp_strip(vs: Vector2) -> void:
 	var o := Vector2(16, 12)
@@ -133,7 +166,7 @@ func draw_lamp_strip(vs: Vector2) -> void:
 			return
 		st_txt = st_txt.get_slice(" · ", 0)
 	h.batch_begin()
-	UI.strip(g.hud, g.font, o + Vector2(2, 66), st_en, st_txt, st_col, st_col.lerp(UI.TEXT, 0.45))
+	UI.strip(g.hud, g.font, o + Vector2(2, 66 + h.allyhp.top_shift()), st_en, st_txt, st_col, st_col.lerp(UI.TEXT, 0.45))   # 队友血条在队长血条下（hud_allyhp 样式 4）时整行下移
 	h.batch_end()
 
 
@@ -455,7 +488,7 @@ func draw_status_bar(vs: Vector2) -> void:
 
 ## 状态条缓存块（hud 的 status）的签名：本帧的标签片列表（文字 / 颜色 / 进度条长度按 1/8 像素量化）+ 换行宽度
 func status_sig(vs: Vector2, items: Array) -> Array:
-	var sig: Array = [vs, boss_bars().is_empty(), g.touch.active]
+	var sig: Array = [vs, boss_bars().is_empty(), g.touch.active, h.allyhp.top_shift()]
 	for it in items:
 		sig.append([it[0], it[1], h.qpx(100.0 * float(it[2])) if float(it[2]) >= 0.0 else -1])
 	return sig
@@ -535,7 +568,7 @@ func draw_status(vs: Vector2, items: Array) -> void:
 		return
 	var ph: bool = Cfg.phone_ui()
 	var x := 18.0
-	var y := 80.0 if ph and g.lamp > 0.0 else 104.0   # 手机：灯火行不常驻，胶囊上移补位
+	var y: float = (80.0 if ph and g.lamp > 0.0 else 104.0) + h.allyhp.top_shift()   # 手机：灯火行不常驻，胶囊上移补位；队友血条在队长血条下时下移
 	var fs := 12   # 手机局内经 UI.fs 放大到约 14（docs/37 下限之上）
 	# 换行宽度（§1.15）：min(360, Boss 细血条左边 − 8)，有 Boss 血条时不钻到血条下面
 	var wrap_x := 360.0

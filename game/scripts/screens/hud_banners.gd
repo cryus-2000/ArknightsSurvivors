@@ -572,18 +572,31 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 		return
 	var st: int = g.squad.stance
 	var col: Color = CMD_COLS[st]
+	var hs: int = h.allyhp.style()   # 队友血条原型（docs/114 §19）：1–3 时屏外头像外圈画血量 / 复活弧，挤在一起的标记错开
+	# 标记框：避开顶栏（生命 / 击杀 / 藏品）与底部提示，标记沿「屏幕中心 → 队友」的射线贴到框边
+	var box := Rect2(Vector2(56, 128), vs - Vector2(112, 128 + 64))
+	var c: Vector2 = box.get_center()
+	var offs: Array = []
+	var edges: Array = []
 	for o in g.squad.ops:
 		if o.is_leader or o.pos == Vector2.INF:
 			continue
 		var sp: Vector2 = ct * (o.pos + Vector2(0, -24))
 		if Rect2(Vector2(8, 8), vs - Vector2(16, 16)).has_point(sp):
-			_draw_op_hp(o, ct, st)
+			if hs == 2:
+				h.allyhp.overhead(o, ct)
+			else:
+				_draw_op_hp(o, ct, st)
 			continue
-		# 标记框：避开顶栏（生命 / 击杀 / 藏品）与底部提示，标记沿「屏幕中心 → 队友」的射线贴到框边
-		var box := Rect2(Vector2(56, 128), vs - Vector2(112, 128 + 64))
-		var c: Vector2 = box.get_center()
 		var d := (sp - c).normalized()
-		var edge: Vector2 = c + d * minf(absf(box.size.x / 2.0 / maxf(absf(d.x), 0.01)), absf(box.size.y / 2.0 / maxf(absf(d.y), 0.01)))
+		offs.append([o, d])
+		edges.append(c + d * minf(absf(box.size.x / 2.0 / maxf(absf(d.x), 0.01)), absf(box.size.y / 2.0 / maxf(absf(d.y), 0.01))))
+	if hs >= 1:
+		edges = h.allyhp.spread(edges, box)
+	for k in offs.size():
+		var o = offs[k][0]
+		var d: Vector2 = offs[k][1]
+		var edge: Vector2 = edges[k]
 		var oc: Color = Character.CLASS_COL.get(o.cls, UI.CYAN)   # 外圈 / 箭头 = 职业色（同图鉴、选人）
 		if o.cmd_down > 0.0:
 			oc = Color(0.5, 0.52, 0.55)   # 倒地：灰圈（docs/114 §7）
@@ -596,11 +609,15 @@ func draw_command(vs: Vector2, ct: Transform2D) -> void:
 		else:
 			UI.text(g.hud, g.font, edge + Vector2(-20, 6), o.cls.left(1), 15, oc, HORIZONTAL_ALIGNMENT_CENTER, 40)
 		g.hud.draw_arc(edge, 20.0, 0.0, TAU, 28, oc, 3.0)
-		g.hud.draw_arc(edge, 23.5, 0.0, TAU, 28, Color(col.r, col.g, col.b, 0.5), 1.0)
-		var tip: Vector2 = edge + d * 33.0
-		var base: Vector2 = edge + d * 24.0
+		var ao: float = 6.0 if hs >= 1 else 0.0   # 原型：外圈换成血量弧，箭头往外挪
+		if hs < 1:
+			g.hud.draw_arc(edge, 23.5, 0.0, TAU, 28, Color(col.r, col.g, col.b, 0.5), 1.0)
+		var tip: Vector2 = edge + d * (33.0 + ao)
+		var base: Vector2 = edge + d * (24.0 + ao)
 		var sd := d.orthogonal() * 7.0
 		g.hud.draw_colored_polygon(PackedVector2Array([tip, base + sd, base - sd]), oc)
+		if hs >= 1 and g.squad.hp_on():
+			h.allyhp.edge_ring(o, edge)
 	if g.touch.active:
 		return   # 触屏：模式写在「指挥」键上（touch.gd）
 	var y: float = h.squad.squad_top(vs) - 38.0

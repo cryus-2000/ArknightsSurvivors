@@ -660,6 +660,24 @@ func _draw_pickups_fast() -> void:
 	var quiet_col := Color(0.9, 0.95, 1.0, gem_qa)
 	var lit_s := Color(1.25, 1.25, 1.3)
 	var lit_b := Color(1.35, 1.2, 1.5)
+	var lit_m := Color(-1, 0, 0)   # 被磁铁 / 拾取范围吸起时的颜色（< 0 = 同落地）
+	var core := Color(-1, 0, 0)    # 发光层主高光颜色（< 0 = 同贴图调色）
+	var gs: int = int(Bal.v("render/gem_style", 0))
+	if gs > 0:
+		# 经验结晶调色候选（用户 10-29「地上的经验现在是白色，不明显」，docs/128 §6.1）：贴图本身淡金白，这里只改调色，零额外开销。
+		# 层级：小 = 浅、大 = 更饱和更亮 + 光晕大一圈、吸起 = 提亮近白 + 同色拖尾、远处安静 = 压暗去饱和
+		var hs: Array = GEM_TINT[gs - 1]
+		lit_s = hs[0]
+		lit_b = hs[1]
+		lit_m = hs[2]
+		quiet_col = Color(hs[3].r, hs[3].g, hs[3].b, gem_qa)
+		cy = hs[4]
+		pu = hs[5]
+		core = hs[6]
+		glow_s0 = Color(cy.r * 1.6, cy.g * 1.6, cy.b * 1.6, 0.16)
+		glow_s1 = Color(cy.r * 2.0, cy.g * 2.0, cy.b * 2.0, 0.22)
+		glow_b0 = Color(pu.r * 1.6, pu.g * 1.6, pu.b * 1.6, 0.2)
+		glow_b1 = Color(pu.r * 2.0, pu.g * 2.0, pu.b * 2.0, 0.26)
 	const NEAR2 := 170.0 * 170.0
 	for g_item in g.gems:
 		var pos: Vector2 = g_item.pos
@@ -691,6 +709,8 @@ func _draw_pickups_fast() -> void:
 				_gt_circle(gp, (7.0 if big else 4.5) * tw * GEM_VIS, glow_b1 if big else glow_s1, _gt_fan14, _gt_c42)
 			_gt_circle(gp + Vector2(0, 1), (6.5 if big else 4.5) * GEM_VIS, dark, _gt_fan10, _gt_c30)
 			var gcol: Color = quiet_col if quiet else (lit_b if big else lit_s)
+			if mag and lit_m.r >= 0.0:
+				gcol = lit_m.lerp(lit_b, 0.35) if big else lit_m
 			if big:
 				big_p.append(gp)
 				big_c.append(gcol)
@@ -716,8 +736,8 @@ func _draw_pickups_fast() -> void:
 	_gem_sprites("ingot", Game.PX, ing_p, wc1)
 	_gem_sprites("oil", Game.PX, oil_p, wc1)
 	_gt_flush()
-	_gem_sprites("gem_big", Game.PX, big_p, big_c)
-	_gem_sprites("gem_small", Game.PX, small_p, small_c)
+	_gem_sprites("gem_big", Game.PX, big_p, big_c, core)
+	_gem_sprites("gem_small", Game.PX, small_p, small_c, core)
 	for sk in spark:
 		var gp2: Vector2 = sk[0]
 		var sp3: float = sk[1]
@@ -848,7 +868,24 @@ func _mire_dissolve_emit() -> Texture2D:
 		_mde = A.tex("fx_mire_dissolve_emit") if A.has_override("fx_mire_dissolve_emit") else null
 	return _mde
 
-func _gem_sprites(name: String, sc: float, ps: PackedVector2Array, cs: PackedColorArray) -> void:
+## 经验结晶调色候选（render/gem_style 1 / 2）：[小, 大, 吸起, 远处安静, 小光晕 / 拖尾, 大光晕 / 拖尾, 发光层主高光]。
+## 贴图是淡金白（约 242,233,210），调色 = 目标色 ÷ 贴图色；>1 的分量在 HDR 下更亮
+const GEM_TINT := [
+	# 1 柠檬黄：与顶部经验细条 #ffe65c 同色；灯火是橙金（色相 0.075），结晶取 0.15 偏绿的黄，饱和更高
+	[Color(1.12, 1.06, 0.45), Color(1.3, 1.14, 0.3), Color(1.45, 1.4, 0.9), Color(0.85, 0.82, 0.45),
+		Color(1.0, 0.92, 0.35), Color(1.0, 0.85, 0.2), Color(1.0, 0.97, 0.75)],
+	# 2 淡青绿带亮芯：色相约 0.42，避开海嗣发光 / 敌弹青蓝（0.54–0.55）与环境暗青灰（低饱和）；高光像素近白
+	[Color(0.6, 1.12, 0.85), Color(0.4, 1.2, 0.75), Color(1.15, 1.45, 1.3), Color(0.6, 0.85, 0.75),
+		Color(0.45, 1.0, 0.72), Color(0.3, 1.0, 0.6), Color(1.6, 1.7, 1.65)],
+	# 3 宝蓝带白芯（用户 10-29「蓝色行不行」）：色相约 0.63，比海嗣发光 / 敌弹青蓝（0.54–0.55）偏紫、更深更饱和；高光像素近白
+	[Color(0.45, 0.64, 1.21), Color(0.3, 0.47, 1.25), Color(1.0, 1.15, 1.45), Color(0.5, 0.6, 0.85),
+		Color(0.4, 0.6, 1.0), Color(0.3, 0.45, 1.0), Color(1.6, 1.65, 1.75)],
+	# 4 金色（用户 10-29「或者金色」）：色相约 0.12，介于灯火橙金（0.075）与柠檬黄之间；灯油掉落贴图也是橙金，靠更亮的白芯区分
+	[Color(1.05, 0.86, 0.33), Color(1.1, 0.78, 0.2), Color(1.4, 1.25, 0.8), Color(0.85, 0.72, 0.4),
+		Color(1.0, 0.75, 0.25), Color(1.0, 0.65, 0.15), Color(1.7, 1.55, 1.2)],
+]
+
+func _gem_sprites(name: String, sc: float, ps: PackedVector2Array, cs: PackedColorArray, core := Color(-1, 0, 0)) -> void:
 	if ps.is_empty():
 		return
 	var tx: Texture2D = g.tex.get(name)
@@ -867,7 +904,7 @@ func _gem_sprites(name: String, sc: float, ps: PackedVector2Array, cs: PackedCol
 		var dst := Rect2(((ps[i] - half) / Game.PX).round() * Game.PX, size)
 		g.draw_texture_rect_region(tx, dst, src, cs[i])
 		if etx != null:
-			g.glow_tex_next.append([etx, dst, src, cs[i]])
+			g.glow_tex_next.append([etx, dst, src, cs[i] if core.r < 0.0 else core])
 
 
 ## Boss 登场聚光、博士 / 敌人 / 干员 / 骑士的影子、干员脚下层；evr：ENTITY_MARGIN 视野矩形（排序层共用）
