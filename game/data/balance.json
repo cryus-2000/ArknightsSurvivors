@@ -459,11 +459,11 @@
   "ishar_combo_gap": 0.26,
   "ishar_fence_tick": 0.2,
   "ishar_corrode": 1.0,
-  "ishar_break_taken": 1.7,
+  "ishar_break_taken": 2.0,
   "ishar_nonbreak_taken": 0.9,
   "ishar_song_heal_cut": 0.7,
-  "ishar_break_t": 4.2,
-  "ishar_break_t3": 3.2
+  "ishar_break_t": 5.0,
+  "ishar_break_t3": 4.0
  },
  "final": {
   "_doc": "10-27：所有 Boss 在场时停止普通怪、精英、大群及威胁增援，保留已有杂兵；机制召唤不受影响。旧 stop_mobs / trickle / clear 配置保留兼容数据，不再覆盖该规则。",
