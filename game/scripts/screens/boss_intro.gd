@@ -150,8 +150,8 @@ func _portrait_tex_1x_key(name: String) -> String:
 	var key: String = name + "@1x_portrait"
 	if g.tex.has(key):
 		return key
-	var p: String = A.incoming_dir().path_join(name + ".png")
-	var img: Image = Image.load_from_file(p) if FileAccess.file_exists(p) else null
+	var p: String = A._incoming_path(name)   # 已进 game/art 索引的图这里是空，走下面的导入贴图（docs/189 §6.1）
+	var img: Image = Image.load_from_file(p) if p != "" else null
 	if img != null and not img.is_empty():
 		g.tex[key] = ImageTexture.create_from_image(img)
 	else:

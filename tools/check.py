@@ -213,6 +213,14 @@ def check_asset_lint():
     return {"name": "素材命名与目录 asset_lint", "ok": not errs, "detail": detail + "（明细 python tools/asset_lint.py）", "errors": errs[:8]}
 
 
+def check_asset_index():
+    """不开 Godot（约 1 秒）：运行时贴图索引 game/art/index.json 与磁盘一致、名字不重（tools/asset_index.py，docs/189 §6.1）。
+    索引缺名字游戏里就画不出来，所以这项算失败"""
+    import asset_index
+    errs = asset_index.check()
+    return {"name": "贴图索引 asset_index", "ok": not errs, "detail": "game/art/index.json %d 个名字" % len(asset_index.build()[0]), "errors": errs[:8]}
+
+
 def check_px_lint():
     """不开 Godot（约 5 秒）：像素稿验收工具 tools/px_lint.py 在登记样本上跑通、数字等于校准值（干员美术路 1）；只在 --only px_lint 时跑"""
     import px_lint
@@ -1173,7 +1181,7 @@ def main():
     ap.add_argument("--ab", metavar="REF", help="与某个提交做 A/B 对比（机器人标准矩阵）")
     ap.add_argument("--seeds", type=int, default=4)
     ap.add_argument("--keep", action="store_true", help="A/B 结束后保留临时工作树")
-    ap.add_argument("--only", choices=["core", "smoke", "nodes", "manual_all", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "px_lint", "enemy_art", "asset_lint"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
+    ap.add_argument("--only", choices=["core", "smoke", "nodes", "manual_all", "prot", "repro", "native_eq", "blocks_eq", "regressions", "art_lint", "slim", "op_text", "ob_tag", "cc_lint", "data_lint", "px_lint", "enemy_art", "asset_lint", "asset_index"] + list(SCENE_REGRESSIONS), help="只跑快检里的某一项")
     ap.add_argument("--jobs", type=int, default=GR.MAX_PROCS,
                     help="本次快检最多同时开几个 Godot（缺省 = 全机上限）；全机总数另受 GODOT_MAX_PROCS 限制")
     ap.add_argument("--bal", action="append", default=[], metavar="段/键=值",
@@ -1216,6 +1224,8 @@ def main():
         jobs.append(check_enemy_art)
     if a.only in (None, "asset_lint"):
         jobs.append(check_asset_lint)   # 不开 Godot，只报告（docs/189）
+    if a.only in (None, "asset_index"):
+        jobs.append(check_asset_index)
     if a.only == "px_lint":
         jobs.append(check_px_lint)   # 不开 Godot；只在 --only px_lint 时跑（不进 --auto / 全量：样本在 codex-art 工作树，别人机器上可能没有）
     if a.only in (None, "data_lint"):

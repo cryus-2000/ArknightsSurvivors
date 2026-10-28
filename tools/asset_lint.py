@@ -23,20 +23,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INC = "art/incoming"
 RUNTIME_SUBDIRS = ("portraits", "optical_fx")   # art/incoming 下游戏按名字读的子目录（art.gd / export_build.ART_SUBDIRS）
 
-# 运行时贴图前缀登记表（docs/189 §3.1）：前缀 -> 目标目录（迁移后 game/art/ 下）
-PREFIXES = {
-    "op_": "operators", "e_": "enemies", "fx_": "fx", "proj_": "fx/proj", "relic_": "ui/relics", "skill_": "ui/skills",
-    "growth_": "ui/growth", "prop_": "world/props", "terrain_": "world/terrain", "mire_": "world/mire", "pickup_": "world/pickups",
-    "gem_": "world/pickups", "drone_": "world/props", "merchant": "world/npc", "ally_": "operators/_reserve", "doctor": "operators/doctor",
-    "ui_": "ui", "boss_": "enemies/_portraits",
-}
-LEGACY = {
-    "player_": "水月旧帧条名（docs/98 §1：水月 player_*）", "mizuki_": "水月原生像素帧条（mizuki.json 按名读）",
-    "boss": "初版占位", "chest": "初版占位", "coral": "初版占位", "crawler": "初版占位", "dart": "初版占位", "drifter": "初版占位",
-    "jelly": "初版占位", "logo": "初版占位", "oil": "初版占位", "rock": "初版占位", "seaweed": "初版占位", "shell": "初版占位",
-    "shell_prop": "初版占位", "slash": "初版占位", "tentacle": "初版占位", "tiles": "初版占位",
-}
-SUMMONS = {"mon3tr": "kaltsit"}   # 召唤物 -> 主人
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from asset_paths import LEGACY, PREFIXES, SUMMONS   # 前缀登记表与 asset_index / 接入工具共用（docs/189 §3.1）
 NAME_RX = re.compile(r"^[a-z0-9]+(_[a-z0-9]+)*(@[12]x)?$")
 VER_RX = re.compile(r"_(v\d+|old|new|bak|tmp|copy|test)(_|$)")
 VOICE_EVENTS = ("entry", "command", "battle", "skill_1", "skill_2", "skill_3", "w_laugh", "syn_team", "syn_rival")

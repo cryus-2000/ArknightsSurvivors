@@ -121,7 +121,32 @@ static func _alias_file(name: String) -> String:
 	return ""
 
 
+## 运行时贴图索引（docs/189 §6.1）：game/art/index.json 由 tools/asset_index.py 生成，贴图名（含 @1x / @2x、
+## "portraits/" / "optical_fx/" 前缀）→ res:// 路径。索引里有的名字只走导入后的贴图（_packed_path），
+## art/incoming 根目录的同名图不再读；索引里没有的照旧回退 art/incoming（过渡期，迁移批 5 去掉）
+const INDEX_PATH := "res://art/index.json"
+static var _index = null
+
+
+static func _indexed(name: String) -> String:
+	if _index == null:
+		_index = {}
+		var f := FileAccess.open(INDEX_PATH, FileAccess.READ)
+		if f != null:
+			var d = JSON.parse_string(f.get_as_text())
+			if d is Dictionary:
+				_index = d
+	var p: String = _index.get(name, "")
+	if p == "":
+		var al := _alias_file(name)
+		if al != "":
+			p = _index.get(al, "")
+	return p
+
+
 static func _incoming_path(name: String) -> String:
+	if _indexed(name) != "":
+		return ""
 	var p := incoming_dir().path_join(name + ".png")
 	if FileAccess.file_exists(p):
 		return p
@@ -145,6 +170,9 @@ static func incoming_dir() -> String:
 ## FileAccess / Image.load_from_file 读不到，要用 ResourceLoader 读导入后的贴图（2026-09-26 查到：网页版选人页没有头像、
 ## 技能 / 藏品图标全空，都是这个原因）。编辑器与桌面版读 art/incoming 原图，走不到这里
 static func _packed_path(name: String) -> String:
+	var ix := _indexed(name)
+	if ix != "" and ResourceLoader.exists(ix):
+		return ix
 	var p := "res://art/incoming/%s.png" % name
 	if ResourceLoader.exists(p):
 		return p
