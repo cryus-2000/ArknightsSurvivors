@@ -17,7 +17,8 @@ func _ready() -> void:
 		var b = g.spawner.new_enemy(kind, Vector2.ZERO)
 		g.bosses = [b]
 		if kind == "paranoia": g.final_boss = b
-		ok(g.spawner.mobs_stopped(), kind + " stops ordinary reinforcements")
+		# 10-28 用户：只有最终 Boss 停刷，中期 Boss 在场照常刷
+		ok(g.spawner.mobs_stopped() == (kind == "paranoia"), kind + (" stops" if kind == "paranoia" else " (mid) keeps") + " ordinary reinforcements")
 		ok(not g.spawner.trickling(), kind + " does not trickle mobs")
 		ok(not mob.dead and mob.hp == hp, "existing mob retained")
 		b.dead = true
