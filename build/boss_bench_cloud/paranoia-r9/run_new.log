@@ -1,0 +1,132 @@
+16 局（paranoia）
+paranoia         wisadel    m0  s11    13s  win 78s 承伤59% 破绽输出16%
+paranoia         wisadel    m0  s10    16s  win 123s 承伤134% 破绽输出31%
+paranoia         wisadel    m0  s13    17s  win 139s 承伤105% 破绽输出39%
+paranoia         wisadel    m0  s12    17s  win 143s 承伤171% 破绽输出41%
+paranoia         wisadel    m0  s14    12s  win 77s 承伤74% 破绽输出20%
+paranoia         wisadel    m0  s16    10s  dead 21s 承伤122% 破绽输出21%
+paranoia         wisadel    m0  s15    14s  win 102s 承伤70% 破绽输出33%
+paranoia         wisadel    m0  s1     17s  win 137s 承伤58% 破绽输出38%
+paranoia         wisadel    m0  s2     12s  win 67s 承伤22% 破绽输出44%
+paranoia         wisadel    m0  s3     14s  win 97s 承伤160% 破绽输出33%
+paranoia         wisadel    m0  s4     12s  win 71s 承伤75% 破绽输出35%
+paranoia         wisadel    m0  s5     15s  win 125s 承伤118% 破绽输出34%
+paranoia         wisadel    m0  s6     13s  win 98s 承伤88% 破绽输出32%
+paranoia         wisadel    m0  s8     13s  win 98s 承伤102% 破绽输出14%
+paranoia         wisadel    m0  s7     18s  timeout 180s 承伤181% 破绽输出42%
+paranoia         wisadel    m0  s9     15s  win 139s 承伤72% 破绽输出13%
+# Boss 单场测试台结果（new_wisadel_m0_paranoia）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（paranoia）
+paranoia         wisadel    m18 s11    12s  win 63s 承伤26% 破绽输出30%
+paranoia         wisadel    m18 s12    14s  win 77s 承伤67% 破绽输出17%
+paranoia         wisadel    m18 s10    16s  win 145s 承伤90% 破绽输出34%
+paranoia         wisadel    m18 s13    18s  timeout 180s 承伤323% 破绽输出42%
+paranoia         wisadel    m18 s14    15s  win 117s 承伤125% 破绽输出28%
+paranoia         wisadel    m18 s15    13s  win 80s 承伤196% 破绽输出25%
+paranoia         wisadel    m18 s16    14s  win 107s 承伤94% 破绽输出32%
+paranoia         wisadel    m18 s1     16s  win 119s 承伤34% 破绽输出13%
+paranoia         wisadel    m18 s2     12s  win 65s 承伤70% 破绽输出28%
+paranoia         wisadel    m18 s4     13s  win 101s 承伤68% 破绽输出24%
+paranoia         wisadel    m18 s3     17s  win 151s 承伤76% 破绽输出37%
+paranoia         wisadel    m18 s5     15s  win 119s 承伤148% 破绽输出36%
+paranoia         wisadel    m18 s6     15s  win 136s 承伤119% 破绽输出41%
+paranoia         wisadel    m18 s7     12s  win 75s 承伤99% 破绽输出19%
+paranoia         wisadel    m18 s8     13s  win 74s 承伤25% 破绽输出32%
+paranoia         wisadel    m18 s9     14s  win 98s 承伤104% 破绽输出25%
+# Boss 单场测试台结果（new_wisadel_m18_paranoia）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（paranoia）
+paranoia         skadi      m0  s13    12s  dead 22s 承伤119% 破绽输出60%
+paranoia         skadi      m0  s10    18s  win 156s 承伤183% 破绽输出38%
+paranoia         skadi      m0  s11    18s  win 166s 承伤107% 破绽输出47%
+paranoia         skadi      m0  s12    21s  timeout 180s 承伤90% 破绽输出34%
+paranoia         skadi      m0  s14    14s  win 112s 承伤201% 破绽输出43%
+paranoia         skadi      m0  s16    14s  win 120s 承伤148% 破绽输出37%
+paranoia         skadi      m0  s1     16s  timeout 180s 承伤288% 破绽输出36%
+paranoia         skadi      m0  s15    19s  timeout 180s 承伤214% 破绽输出33%
+paranoia         skadi      m0  s2     13s  win 70s 承伤71% 破绽输出22%
+paranoia         skadi      m0  s3     18s  timeout 180s 承伤230% 破绽输出43%
+paranoia         skadi      m0  s6     14s  win 73s 承伤33% 破绽输出29%
+paranoia         skadi      m0  s5     17s  win 164s 承伤119% 破绽输出42%
+paranoia         skadi      m0  s4     18s  timeout 180s 承伤118% 破绽输出40%
+paranoia         skadi      m0  s7     14s  win 119s 承伤60% 破绽输出38%
+paranoia         skadi      m0  s8     15s  win 130s 承伤133% 破绽输出48%
+paranoia         skadi      m0  s9     18s  win 180s 承伤269% 破绽输出33%
+# Boss 单场测试台结果（new_skadi_m0_paranoia）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（paranoia）
+paranoia         skadi      m18 s12    14s  win 74s 承伤31% 破绽输出35%
+paranoia         skadi      m18 s13    14s  win 83s 承伤47% 破绽输出29%
+paranoia         skadi      m18 s11    19s  win 174s 承伤203% 破绽输出36%
+paranoia         skadi      m18 s10    20s  timeout 180s 承伤142% 破绽输出47%
+paranoia         skadi      m18 s14    13s  win 92s 承伤40% 破绽输出30%
+paranoia         skadi      m18 s15    18s  win 178s 承伤244% 破绽输出43%
+paranoia         skadi      m18 s1     15s  win 111s 承伤105% 破绽输出33%
+paranoia         skadi      m18 s16    16s  win 134s 承伤149% 破绽输出33%
+paranoia         skadi      m18 s2     13s  win 73s 承伤47% 破绽输出16%
+paranoia         skadi      m18 s5     14s  win 65s 承伤89% 破绽输出32%
+paranoia         skadi      m18 s4     14s  win 128s 承伤186% 破绽输出51%
+paranoia         skadi      m18 s3     17s  win 155s 承伤155% 破绽输出44%
+paranoia         skadi      m18 s6     16s  win 118s 承伤169% 破绽输出16%
+paranoia         skadi      m18 s8     12s  win 73s 承伤74% 破绽输出24%
+paranoia         skadi      m18 s7     15s  win 135s 承伤136% 破绽输出35%
+paranoia         skadi      m18 s9     16s  win 154s 承伤233% 破绽输出46%
+# Boss 单场测试台结果（new_skadi_m18_paranoia）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（paranoia）
+paranoia         kaltsit    m0  s10    16s  win 119s 承伤197% 破绽输出35%
+paranoia         kaltsit    m0  s11    18s  win 155s 承伤287% 破绽输出33%
+paranoia         kaltsit    m0  s13    19s  win 143s 承伤122% 破绽输出11%
+paranoia         kaltsit    m0  s12    20s  timeout 180s 承伤79% 破绽输出45%
+paranoia         kaltsit    m0  s14    17s  win 128s 承伤92% 破绽输出19%
+paranoia         kaltsit    m0  s15    17s  win 167s 承伤459% 破绽输出42%
+paranoia         kaltsit    m0  s16    16s  win 88s 承伤180% 破绽输出39%
+paranoia         kaltsit    m0  s1     18s  timeout 180s 承伤112% 破绽输出42%
+paranoia         kaltsit    m0  s2     14s  win 123s 承伤51% 破绽输出22%
+paranoia         kaltsit    m0  s4     15s  win 112s 承伤155% 破绽输出39%
+paranoia         kaltsit    m0  s3     19s  timeout 180s 承伤329% 破绽输出39%
+paranoia         kaltsit    m0  s5     18s  timeout 180s 承伤255% 破绽输出31%
+paranoia         kaltsit    m0  s6     12s  win 78s 承伤56% 破绽输出19%
+paranoia         kaltsit    m0  s7     15s  win 139s 承伤84% 破绽输出44%
+paranoia         kaltsit    m0  s8     11s  win 80s 承伤50% 破绽输出29%
+paranoia         kaltsit    m0  s9     17s  timeout 180s 承伤180% 破绽输出18%
+# Boss 单场测试台结果（new_kaltsit_m0_paranoia）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
+16 局（paranoia）
+paranoia         kaltsit    m18 s11    14s  win 103s 承伤101% 破绽输出34%
+paranoia         kaltsit    m18 s13    14s  win 81s 承伤73% 破绽输出11%
+paranoia         kaltsit    m18 s12    14s  win 96s 承伤35% 破绽输出36%
+paranoia         kaltsit    m18 s10    16s  win 109s 承伤74% 破绽输出44%
+paranoia         kaltsit    m18 s16    15s  win 122s 承伤115% 破绽输出41%
+paranoia         kaltsit    m18 s15    18s  timeout 180s 承伤151% 破绽输出37%
+paranoia         kaltsit    m18 s14    18s  timeout 180s 承伤79% 破绽输出16%
+paranoia         kaltsit    m18 s1     17s  win 151s 承伤289% 破绽输出37%
+paranoia         kaltsit    m18 s4     12s  win 55s 承伤122% 破绽输出36%
+paranoia         kaltsit    m18 s2     14s  win 121s 承伤288% 破绽输出44%
+paranoia         kaltsit    m18 s3     16s  win 158s 承伤219% 破绽输出34%
+paranoia         kaltsit    m18 s5     18s  timeout 180s 承伤110% 破绽输出39%
+paranoia         kaltsit    m18 s7     13s  win 96s 承伤144% 破绽输出45%
+paranoia         kaltsit    m18 s6     16s  win 161s 承伤93% 破绽输出38%
+paranoia         kaltsit    m18 s8     15s  win 117s 承伤56% 破绽输出39%
+paranoia         kaltsit    m18 s9     12s  win 89s 承伤90% 破绽输出53%
+# Boss 单场测试台结果（new_kaltsit_m18_paranoia）
+
+胜率 = 打死该 Boss（最终 Boss = 进入胜利）；超时 = 登场后 N 秒没打死；承伤 = 队长掉血 / 最大生命；破绽输出 = 打在破绽（break_t 或 Boss 受伤倍率 > 1）上的伤害占比；破绽时间 = 有破绽的时间占比；用时取中位（胜局 / 全部）。fp = 还原后与快照不一致的局数，se = 有脚本错误的局数。
+
+
