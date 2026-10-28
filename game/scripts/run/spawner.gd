@@ -197,8 +197,8 @@ func max_alive() -> int:
 	return dens_cap(int(Bal.v("enemy/max_alive", float(MAX_ENEMIES))))
 
 
-## Boss 在场时还能刷几只普通怪：最终 Boss 读 boss/final_mob_cap（120），中期 Boss 读 boss/mid_mob_cap（160，协调人 9/30 定：
-## Ⅷ 7:00 双体战全场 230 只、主教 on_boss 0%）；没有 Boss 或上限为 0 时按同屏上限 max_alive()。final_mob_cap / mid_mob_cap
+## Boss 在场时还能刷几只普通怪：最终 Boss 读 boss/final_mob_cap（120）；中期 Boss 在场按平时（用户 10-28，不再走 mid_mob_cap）；
+## 没有 Boss 或上限为 0 时按同屏上限 max_alive()。final_mob_cap
 ## 按怪物密度同比缩（dens_cap），trickle_cap 不缩——它是「登场后 N 秒内场上敌人数不低于登场前百分之多少」这类目标直接
 ## 反推出来的只读数字（docs/117 §6），写多少就是多少，不想再绕一层密度换算（10-21 协调人定，同 seed 不变）
 func boss_mob_room() -> int:
@@ -209,8 +209,6 @@ func boss_mob_room() -> int:
 		if trickling() and final_knob("trickle_cap") > 0.0:
 			cap = int(final_knob("trickle_cap"))   # 少量补怪的存活杂兵上限（final/trickle_cap，直接数值）
 			raw = true
-	elif boss_alive():
-		cap = int(Bal.v("boss/mid_mob_cap", 160.0))
 	if cap <= 0:
 		return max_alive()
 	return (cap if raw else dens_cap(cap)) - mob_count()
@@ -223,9 +221,13 @@ func final_knob(key: String, def := 0.0) -> float:
 	return v if v >= 0.0 else Bal.v("final/" + key, def)
 
 
-## 任意 Boss 在场时停止普通刷怪、精英、大群与威胁增援；保留既有敌人和机制召唤。
+## 最终 Boss（10:00 四只，is_final_boss_type）在场时停止普通刷怪、精英、大群与威胁增援；保留既有敌人和机制召唤。
+## 中期 Boss 在场照常刷（用户 10-28「中期 Boss 在场的时候怪物还是要刷的，就最后 4 个 Boss 不刷」；10-27 曾是任意 Boss 都停）
 func mobs_stopped() -> bool:
-	return boss_alive()
+	for b in g.bosses:
+		if not b.dead and is_final_boss_type(str(b.get("type", ""))):
+			return true
+	return false
 
 
 ## 兼容旧调用口；10-27 起 Boss 战不再启用低频补怪。
@@ -339,13 +341,15 @@ func update(dt: float) -> void:
 	var sp_knee: float = Bal.v("enemy/spawn_knee", 1.0e9)
 	var rate := Bal.v("enemy/spawn_base", 1.6) + minf(g.t, sp_knee) / sp_div + maxf(g.t - sp_knee, 0.0) / Bal.v("enemy/spawn_late_div", sp_div)
 	# Boss 在场 / 灯火不足时的刷怪倍率（balance.json enemy 段，docs/38 B0 第 11 项；现值 0.8 / 1.15）
-	# 中期 / 最终 Boss 在场分开两个倍率（缺省都读原来的 spawn_boss_mult）；用户 9/27：中期 Boss 在场时普通刷怪照常，由数值填 mid 1.0
+	# 最终 Boss 在场停刷（mobs_stopped），这里的倍率只剩中期 Boss：spawn/mid_boss_rate（用户 10-28，缺省 1.0 = 与平时相同）
 	if boss_alive():
 		var fin: bool = g.final_boss != null and not g.final_boss.dead
 		if fin and trickling():
 			rate *= final_knob("trickle_mult")   # 少量补怪：相对正常刷怪率的倍率
+		elif fin:
+			rate *= Bal.v("enemy/spawn_boss_mult_final", Bal.v("enemy/spawn_boss_mult", 0.8))
 		else:
-			rate *= Bal.v("enemy/spawn_boss_mult_final" if fin else "enemy/spawn_boss_mult_mid", Bal.v("enemy/spawn_boss_mult", 0.8))
+			rate *= Bal.v("spawn/mid_boss_rate", 1.0)
 	if g.lamp < 30.0:
 		rate *= Bal.v("enemy/spawn_dark_mult", 1.15)
 	var dens := density()
@@ -356,7 +360,7 @@ func update(dt: float) -> void:
 	if not (g.final_boss != null and not g.final_boss.dead and trickling()):
 		rate *= float(D.THREAT[g.threat].get("rate_mult", 1.0))   # 分级调整（docs/158 §6）：中后段换高阶、压普通刷怪只数，waves.json threat.rate_mult；最终 Boss 少量补怪不乘
 	spawn_acc += rate * dt
-	# Boss 在场时的存活杂兵上限（协调人 9/30 定，最终 boss/final_mob_cap / 中期 boss/mid_mob_cap，0 = 关）：活着的非 Boss 敌人到上限就不再刷普通怪，
+	# Boss 在场时的存活杂兵上限（协调人 9/30 定，最终 boss/final_mob_cap，0 = 关；中期 Boss 10-28 起按平时）：活着的非 Boss 敌人到上限就不再刷普通怪，
 	# 现有的不杀；精英、Boss 召唤物照常。杂兵墙挡住干员索敌是伊莎玛拉 / 偏执泡影超时的主因（Boss A/B 9/30）
 	var mob_room: int = boss_mob_room()
 	var stop := mobs_stopped()   # 最终 Boss 战停刷（final/stop_mobs）：累积照常扣掉，不刷
@@ -953,7 +957,7 @@ func new_enemy(type: String, pos: Vector2) -> Dictionary:
 ## 怪物密度（docs/50 §16，用户 10-14「提高怪物血量和数值，削减同屏数量」「60只左右是不是比较合理的上限」，性能试验）：
 ## balance.json enemy/density = k（缺省 1.0 = 原行为，同 seed 逐行相同）。k < 1 时：
 ##   只数：普通刷怪率、大群只数、威胁上升那一小波只数 × k（后两者用各自的累计余数取整，不耗 g.rng）；
-##         同屏 / Boss 在场的存活杂兵上限（max_alive、boss/final_mob_cap、mid_mob_cap、final/trickle_cap）与同种上限（pick_type 的 caps）同比 × k；
+##         同屏 / Boss 在场的存活杂兵上限（max_alive、boss/final_mob_cap、final/trickle_cap）与同种上限（pick_type 的 caps）同比 × k；
 ##   单只（只对这三条路径刷出的普通怪，role 为空；精英 / Boss / 事件 / 剧本 / Boss 召唤 / 友方不动）：生命、潮盾、经验 ÷ k，
 ##         接触 / 子弹 / 招式伤害（都从 e.dmg 算）÷ k^density_dmg_exp（缺省 1）；e.dk = 1/k 记在敌人上，
 ##         击杀时灯油量、磁铁 / 回复药剂掉率、部件削血、击杀回复 / 252 的击杀权重按 dk 放大（combat.kill、relic_fx.on_kill），总量期望不变。

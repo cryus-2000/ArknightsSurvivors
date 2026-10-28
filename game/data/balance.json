@@ -215,7 +215,6 @@
   "first_elite": 60,
   "bullet_dmg_mult": 0.75,
   "spawn_boss_mult": 0.8,
-  "spawn_boss_mult_mid": 0.85,
   "spawn_dark_mult": 1.15,
   "density": 0.4,
   "_density_set": "10-14 用户定缺省：density 0.4（7–10 分钟同屏普通怪中位约 60）、density_dmg_exp 0.5、scale 1.5（docs/50 §16）；对照原行为用 --bal=enemy/density=1 --bal=enemy/density_dmg_exp=1 --bal=enemy/scale=1",

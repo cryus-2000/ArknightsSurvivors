@@ -855,13 +855,12 @@ func test_final_mob_cap() -> void:
 		Bal._data["final"] = keep_fin
 	fb.dead = true
 	ok(sp.boss_mob_room() == sp.max_alive(), "最终 Boss 倒下后恢复不限")
-	# 中期 Boss（在 g.bosses 里、不是最终 Boss）：读 boss/mid_mob_cap
-	var mb := {"dead": false, "boss": true}
+	# 中期 Boss（在 g.bosses 里、不是最终 Boss）：10-28 起按平时，不压存活上限
+	var mb := {"dead": false, "boss": true, "type": "path"}
 	game.enemies.append(mb)
 	game.bosses = [mb]
 	game.final_boss = null
-	var mcap: int = sp.dens_cap(int(Bal.v("boss/mid_mob_cap", 160.0)))
-	ok(sp.boss_mob_room() == mcap - 5, "中期 Boss 在场：余量 = mid_mob_cap（按密度 %d）− 存活杂兵（%d）" % [mcap, sp.boss_mob_room()])
+	ok(sp.boss_mob_room() == sp.max_alive(), "中期 Boss 在场：余量按平时（%d）" % sp.boss_mob_room())
 	mb.dead = true
 	ok(sp.boss_mob_room() == sp.max_alive(), "中期 Boss 倒下后恢复不限")
 	game.bosses = keep_b
@@ -873,7 +872,7 @@ func test_final_mob_cap() -> void:
 	else:
 		Bal._data["boss"]["final_duel"] = keep_duel
 
-## 所有 Boss 在场均停普通刷怪，保留已有杂兵和机制召唤；停刷帧不消耗刷怪随机流。
+## 最终 Boss 在场停普通刷怪，保留已有杂兵和机制召唤；停刷帧不消耗刷怪随机流。中期 Boss 在场照常刷（用户 10-28）。
 func test_final_stop_mobs() -> void:
 	var sp = game.spawner
 	var saved := {}
@@ -898,6 +897,10 @@ func test_final_stop_mobs() -> void:
 		game.final_boss = boss if sp.is_final_boss_type(kind) else null
 		sp.spawn_acc = 10.0
 		sp.next_elite = game.t - 1.0
+		if not sp.is_final_boss_type(kind):
+			sp.update(0.0)
+			ok(not sp.mobs_stopped() and game.enemies.size() > 2, kind + " (mid boss) keeps ordinary/elite spawning")
+			continue
 		var state: Array = game.rng_states()
 		sp.update(0.0)
 		ok(sp.mobs_stopped() and not sp.trickling() and game.enemies.size() == 2, kind + " stops ordinary/elite reinforcements")
