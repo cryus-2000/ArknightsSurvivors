@@ -417,7 +417,12 @@ static func _hw_reel_arrive(o) -> void:
 		var e: Dictionary = hk.e
 		if e.dead:
 			continue
-		o.add_cc(e, float(b.get("stun", 0.6)) * (0.5 if e.elite else 1.0) + 0.25)
+		var st: float = float(b.get("stun", 0.6)) * (0.5 if e.elite else 1.0) + 0.25
+		if e.elite and b.has("arrive_stun_elite"):   # 拖到身前的精英多晕一会（用户 10-28：拉精英到面前容易死）
+			st = maxf(st, float(b.arrive_stun_elite))
+		o.add_cc(e, st)
+		if b.get("defuse", false):
+			_hw_defuse(e)
 		o.fx({"kind": "glow", "pos": e.pos + Vector2(0, -e.r * 0.6), "r": 10.0, "life": 0.25, "col": Color(1.3, 1.5, 2.0), "alpha": 0.6})
 	o.impact_pause(0.05)
 	o.fx({"kind": "ulp_wave", "pos": c, "r": 34.0, "life": 0.2, "pull": true, "floor": true})
@@ -510,6 +515,13 @@ static func _hw_zip_land(o) -> void:
 		_hw_open_rift(o, rf, an.start, c)
 
 
+## 拆引信（用户 10-28「把自爆怪拉到面前很容易死」）：被锚链拖回的自爆怪（壳海狂奔者）鼓胀中断、引信清零；
+## 眩晕期间不会重新鼓胀（enemies.gd held 时不走 pattern），醒来后要重新进起爆距离、从头再鼓 blast_fuse 秒
+static func _hw_defuse(e: Dictionary) -> void:
+	if float(e.get("blast_w", 0.0)) > 0.0:
+		e.blast_w = 0.0
+
+
 static func _hw_drag_in(o, dg: Dictionary, c: Vector2, dmg: float) -> void:
 	var cands: Array = o.nearest_enemies(12, float(dg.get("r", 200.0)), c).filter(func(e): return e.pos.distance_to(c) > 36.0)
 	var src: String = str(dg.get("src", ""))
@@ -525,6 +537,8 @@ static func _hw_drag_in(o, dg: Dictionary, c: Vector2, dmg: float) -> void:
 		var v: float = minf(sqrt(1800.0 * dist), 620.0) * (0.5 if e.elite else 1.0)
 		o.apply_kb(e, (c - e.pos).normalized() * v)
 		o.add_cc(e, 0.3)
+		if dg.get("defuse", false):
+			_hw_defuse(e)
 
 
 static func _hw_open_rift(o, rf: Dictionary, a: Vector2, b: Vector2) -> void:
@@ -959,6 +973,9 @@ static func _hw4_block(b: Dictionary, p: String, kind: String, ctx: Dictionary, 
 			_num(b, "r", p, ctx, true, 1.0, 800.0)
 			_num(b, "mult", p, ctx, true, 0.0, 20.0)
 			_num(b, "stun", p, ctx, false, 0.0, 10.0)
+			_num(b, "arrive_stun_elite", p, ctx, false, 0.0, 10.0)
+			if b.has("defuse") and not b.defuse is bool:
+				errs.append(p + ".defuse 应是 true / false")
 			_num(b, "hold_frame", p, ctx, false, 0.0, 30.0)
 			_num(b, "path_w", p, ctx, false, 1.0, 300.0)
 			_num(b, "path_mult", p, ctx, false, 0.0, 20.0)
@@ -1134,7 +1151,12 @@ static func _hw5_hook_arrive(o, hk: Dictionary) -> void:
 		o.log_hit(src, b.get("tags", []))
 		o.deal_damage(e, dmg * (ve if e.elite or e.boss else 1.0))
 		if st_arr > 0.0 and not e.dead:
-			apply_status(o, e, {"st": "stun", "dur": st_arr}, e.pos)
+			if e.elite and not e.boss and b.has("arrive_stun_elite"):
+				o.add_cc(e, float(b.arrive_stun_elite))   # 精英不减半，直接用这个秒数（乌尔比安，用户 10-28）
+			else:
+				apply_status(o, e, {"st": "stun", "dur": st_arr}, e.pos)
+		if b.get("defuse", false) and not e.dead:
+			_hw_defuse(e)
 		hits.append(e)
 	if b.has("arrive_fx") and not hits.is_empty():
 		fx_play(o, b.arrive_fx, hk.front, 40.0, hits)
