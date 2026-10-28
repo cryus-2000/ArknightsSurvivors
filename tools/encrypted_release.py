@@ -38,9 +38,9 @@ def encrypted_preset(text,template):
             for name,value in {'encrypt_pck':'true','encrypt_directory':'true','encryption_include_filters':'"*"','encryption_exclude_filters':'""','script_encryption_key':'""','custom_features':'"packed_release"','export_filter':'"all_resources"'}.items():
                 block=set_value(block,name,value)
             match=re.search(r'^exclude_filter="(.*)"$',block,re.M)
-            exclude=[s.strip() for s in (match.group(1) if match else '').split(',') if s.strip() and s.strip()!='art/incoming/*']
+            exclude=[s.strip() for s in (match.group(1) if match else '').split(',') if s.strip()]
             block=set_value(block,'exclude_filter',json.dumps(','.join(exclude+[d for d in ('tests/*','tools/*') if d not in exclude])))
-            block=set_value(block,'include_filter','"data/*.json,data/maps/*.json,data/characters/*.json,audio/music/*.json,art/index.json,art/incoming/*.png"')
+            block=set_value(block,'include_filter','"data/*.json,data/maps/*.json,data/characters/*.json,audio/music/*.json,art/index.json"')
             blocks[i]=block
         elif block.startswith('['+preset+'.options]'):
             block=set_value(block,'custom_template/release',json.dumps(str(template).replace('\\','/')))

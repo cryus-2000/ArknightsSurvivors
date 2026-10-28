@@ -47,7 +47,7 @@
 2. **待机不得正面朝前**（脸、身体正对镜头、双脚并排对称）。选人 / 图鉴的大图就是 `_idle` f0 放大，正面待机在并排时最显眼（docs/86 艾雅法拉、铃兰）。
 3. **待机不得朝左**（docs/84 乌尔比安；本次基线又查出推进之王，附录 B-1）。
 4. 动作之间切换**不跳朝向**：idle → run → attack → skill → idle 全部朝右，skill 末帧回到 idle f0，attack 收势回到接近 idle 的姿势。
-5. 参考（朝右 3/4 侧身待机的标准样子）：斯卡蒂 `op_skadi_idle@2x.png`、浊心斯卡蒂 `op_skalter_idle@2x.png`、流明 `op_lumen_idle@2x.png`（均在 `art/incoming/`）。`python tools/art_lint.py --ops <id>` 会生成 `build/art_lint/compare_<id>.png`：上排是本人 idle f0 / run f0 / attack 出手帧 / skill 末帧 + 三名参考的待机，下排是本人待机 4 帧与跑步 6 帧，青线 = 脚底 92 行。
+5. 参考（朝右 3/4 侧身待机的标准样子）：斯卡蒂 `op_skadi_idle@2x.png`、浊心斯卡蒂 `op_skalter_idle@2x.png`、流明 `op_lumen_idle@2x.png`（均在 `game/art/operators/<id>/`，docs/189）。`python tools/art_lint.py --ops <id>` 会生成 `build/art_lint/compare_<id>.png`：上排是本人 idle f0 / run f0 / attack 出手帧 / skill 末帧 + 三名参考的待机，下排是本人待机 4 帧与跑步 6 帧，青线 = 脚底 92 行。
 6. 姿态细节照 `art/archive/incoming_1028/character_posture_constraints.md`：不伸脖子，前倾靠躯干整体倾斜。
 
 ## 3. 动作质量
@@ -184,7 +184,7 @@
 3. **qa.json**：`python tools/art_lint.py --ops <本次涉及的 id> --art <你的 art/incoming> --json <交付名>_qa.json` 生成，原样提交（不手填）。`ok` 必须是 `true`（即没有未豁免的 FAIL）；WARN 逐条在 handoff 里写理由。
 4. **并排预览**：`build/art_lint/compare_<id>.png`（工具自动生成）复制为 `<交付名>_compare_<id>.png` 提交；返修类交付另附 3 倍最近邻「返修前 / 返修后」GIF（跑步 10fps、待机 4fps）。
 5. handoff（.md）：本次改了什么、每帧是什么姿势（跑步写清哪帧着地 / 下沉 / 过渡）、出手帧、量得的脚底 x（如偏离 24）、WARN 理由、提交号。
-6. 只动 `art/incoming/`，不改 `game/`。一个返修单一个提交，交回时告诉 Claude 提交号。
+6. 只动 `art/incoming/<批次>/`（docs/189 §1），不改 `game/`。一个返修单一个提交，交回时告诉 Claude 提交号。
 
 **只有工具全绿（未豁免 FAIL = 0）才能交。** 工具误判时在 handoff 里写清楚并附图，由 Claude 判断后改工具或加豁免，不要自己改阈值。
 

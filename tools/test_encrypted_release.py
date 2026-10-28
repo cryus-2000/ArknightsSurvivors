@@ -15,7 +15,7 @@ class EncryptionContracts(unittest.TestCase):
         original='[preset.0]\nname="Windows Desktop"\nencrypt_pck=false\nexclude_filter="addons/*, art/incoming/*"\n[preset.0.options]\ncustom_template/release=""\n[preset.1]\nname="Web"\nencrypt_pck=false\n'
         result=enc.encrypted_preset(original, Path('C:/private/template.exe'))
         self.assertIn('encrypt_pck=true', result.split('[preset.1]')[0])
-        self.assertIn('exclude_filter="addons/*,tests/*,tools/*"', result)
+        self.assertIn('exclude_filter="addons/*,art/incoming/*,tests/*,tools/*"', result)   # 收货区不进包（docs/189）
         self.assertEqual(result.split('[preset.1]')[1], original.split('[preset.1]')[1])
         self.assertIn('encryption_include_filters="*"', result)
         self.assertIn('encrypt_directory=true', result)

@@ -207,7 +207,7 @@ def check_enemy_art():
 
 
 def check_asset_lint():
-    """不开 Godot（约 3 秒）：素材命名与目录（tools/asset_lint.py，docs/189 §5）。先只报告、不算失败；迁移完成后改 --strict"""
+    """不开 Godot（约 3 秒）：素材命名与目录（tools/asset_lint.py，docs/189 §5）。ERROR 算失败（运行时贴图留在收货区 L1、重名 L2、非法文件名 N1），WARN 只报告"""
     import asset_lint
     errs, detail = asset_lint.check()
     return {"name": "素材命名与目录 asset_lint", "ok": not errs, "detail": detail + "（明细 python tools/asset_lint.py）", "errors": errs[:8]}
@@ -1227,7 +1227,7 @@ def main():
     if a.only in (None, "enemy_art"):
         jobs.append(check_enemy_art)
     if a.only in (None, "asset_lint"):
-        jobs.append(check_asset_lint)   # 不开 Godot，只报告（docs/189）
+        jobs.append(check_asset_lint)   # 不开 Godot；ERROR 算失败（docs/189）
     if a.only in (None, "asset_index"):
         jobs.append(check_asset_index)
     if a.only == "px_lint":

@@ -2,7 +2,7 @@
 
 10-28 用户：「素材整理之后能不能进一步规整、分门别类，并写好规范，之后不会乱」。本文分两部分：**规范**（§1–§5，批了以后所有新素材按它放）和**迁移方案**（§6–§8，把现状搬成规范的样子，分批做，每批单独提交）。
 
-用户 10-28 批准，§9 五点按推荐定。迁移进度：批 1 已做；批 0 等 claude/web-shrink 合入；批 2 起等 codex/art 收完（协调人安排）。检查 `python tools/asset_lint.py` 已接进 check.py（`--only asset_lint`），先只报告。
+用户 10-28 批准，§9 五点按推荐定。**迁移进度（10-28）：批 0–5 全部做完**（用户 10-28「整理素材吧」，批 2 起不再等 codex/art，旧交付按映射表收，见 §6.5）。运行时贴图 1845 张全在 `game/art/<类别>/`，游戏按 `game/art/index.json` 找图，不再读 `art/incoming/`。检查：`--only asset_index`（索引与磁盘一致，失败算失败）、`--only asset_lint`（ERROR 算失败，WARN 只报告）。批 6（改旧名）这次不做。
 
 相关：docs/188（10-28 现状清单）、docs/131（10-24 清理盘点）、docs/104（Codex 像素流程）、docs/87 / 98（人物帧条规格）、docs/93（特效规格）、docs/94（敌人重画）。
 
@@ -135,7 +135,7 @@ game/
 | D3 | INFO | 收货区里的非运行时文件 | 40 |
 | H1 | INFO | 同内容不同名 | 42 组（多为 optical_fx 压阶后与原图相同、发光层空帧） |
 
-迁移完成后加两条：**L1 ERROR 运行时贴图仍在收货区根目录**、**L2 ERROR 同名文件出现在两个目录**。
+批 5 已加两条：**L1 ERROR 运行时贴图还在收货区**（art/incoming 根目录或旧的 portraits/ / optical_fx/）、**L2 ERROR 同名贴图出现在 game/art 两个目录**。check.py 的 asset_lint 项按 ERROR 判失败。
 
 ## 6. 迁移方案
 
@@ -144,7 +144,8 @@ game/
 现在 `A.tex(name)` 拼 `art/incoming/<name>.png`。迁移后：
 
 - 新工具 `tools/asset_index.py` 扫 `game/art/` 生成 `game/art/index.json`（名字 → `res://` 路径，含 @1x / @2x），check 项核对索引与磁盘一致；
-- art.gd `_incoming_path` / `_packed_path` / `incoming_dir` / `has_override` 改成查索引，**过渡期保留回退到 `art/incoming/` 根目录**（别的分支还往根目录加图时照样能用，lint 报 L1 提醒挪）；
+- art.gd `_packed_path` / `has_override` 查索引；过渡期（批 0–4）保留过回退到 `art/incoming/` 根目录，**批 5 已删**（`_incoming_path` / `incoming_dir` 不再存在），别的分支再往根目录加图会被 lint L1 拦下；
+- 法线图：编辑器里直接跑时导入贴图的源 PNG 还在磁盘上，预热线程读它、缓存键按它的大小 + 修改时间算（`art.gd _disk_source`）；导出包按尺寸作键（同原来的包内贴图）；
 - 贴图进 `game/` 后由 Godot 导入，桌面版不再读原图、改走和网页版同一条 `ResourceLoader` 路（网页版已经这样跑了一个多月）。代价：每个工作树第一次打开要导入约 1850 张小图；桌面包里不再带散装 PNG（在 pck 里）；「丢进 incoming 重开就生效」的热替换没了（改成跑一次接入工具）。
 
 ### 6.2 现状 → 目标（运行时贴图 1845 张，21.4 MB）
@@ -186,15 +187,24 @@ game/
 
 | 批 | 内容 | 文件 | 风险 | 验证 |
 |---|---|---|---|---|
-| 0 | 索引工具 + art.gd 查索引（带 art/incoming 回退）+ `asset_paths.py` + lint 接进 check.py（只报告）。**不挪文件** | 0 | 中：加载器是全游戏入口 | `--auto`、smoke 全员、`--only op_select codex gallery_demo enemy_pixels look`、Windows 包 + 网页包各导一次、加密包 alias 校验 |
+| 0（已做） | 索引工具 + art.gd 查索引（带 art/incoming 回退）+ `asset_paths.py` + lint 接进 check.py（只报告）。**不挪文件** | 0 | 中：加载器是全游戏入口 | `--auto`、smoke 全员、`--only op_select codex gallery_demo enemy_pixels look`、Windows 包 + 网页包各导一次、加密包 alias 校验 |
 | 1（已做） | game/ 内部：删 2 张遗物图、语音母带移到 art/source/voice、导出预设的 `player_cut` 死规则 | 3 + 123 | 低：语音 manifest.json 的 `master:` 字段与 `voice_ogg.py` 的母带目录要一起改 | data_lint、core（语音清单测试）、`--only voice_command` |
-| 2 | 干员：op_ / 水月 / 博士 / 预备干员 → `operators/` | 546 | **高**：最大一批、Codex 分支最常改 | 批 0 全套 + art_lint、`--only three_operator_art mizuki_runtime skill_lifecycle ea_ui run_stats`、同 seed 1 局画面对照 |
-| 3 | 敌人 + Boss + 名片 → `enemies/` | 436 | 中：Boss 分支在改 | `--only enemy_pixels knight_pixel_split boss_variety boss_trial enemy_demo`、`--dccheck`、bosstest 截图 |
-| 4 | 特效 / 弹体 / 光学压阶 / 图标 / 地图件 → `fx/` `ui/` `world/` | 863 | 中：名字最杂 | `--only look relic_impl card_desc settlement title_menu node_cards medals`、光学开 / 关各截一张、网页包 |
-| 5 | 收尾：art.gd 去掉 art/incoming 回退、lint 加 L1 / L2 并改 `--strict`、收货区根目录剩余 40 份文档进批次子目录或归档、改现行文档 | — | 低 | 全量（云端，按合入流程） |
+| 2（已做） | 干员：op_ / 水月 / 博士 / 预备干员 → `operators/` | 546 | **高**：最大一批、Codex 分支最常改 | 批 0 全套 + art_lint、`--only three_operator_art mizuki_runtime skill_lifecycle ea_ui run_stats`、同 seed 1 局画面对照 |
+| 3（已做） | 敌人 + Boss + 名片 → `enemies/` | 436 | 中：Boss 分支在改 | `--only enemy_pixels knight_pixel_split boss_variety boss_trial enemy_demo`、`--dccheck`、bosstest 截图 |
+| 4（已做） | 特效 / 弹体 / 光学压阶 / 图标 / 地图件 → `fx/` `ui/` `world/` | 863 | 中：名字最杂 | `--only look relic_impl card_desc settlement title_menu node_cards medals`、光学开 / 关各截一张、网页包 |
+| 5（已做） | 收尾：art.gd 去掉 art/incoming 回退、lint 加 L1 / L2 并按 ERROR 判失败、打包工具去掉散装 art/incoming（Windows 包不再带 art/ 文件夹，美术全在 pck）、改现行文档（docs/104、收货区 README、Codex 交接单）。收货区根目录 40 份文档**没挪**（Codex 单子是否完成没法从仓库判断，代码注释也点名其中一部分），lint 报 D3 INFO | — | 低 | 全量（云端，按合入流程） |
 | 6（可选，这次不做） | 改名：`op_mon3tr_*` → `op_kaltsit_mon3tr_*`、`fx_eyja_*` → `fx_eyjafjalla_*`、`*_specter_*` → `*_specter_unchained_*`、`op_skadi_attack_v2` → 正式名、水月旧名 | 约 100 + json / gd 字面量 | 中：改名要动数据和代码 | 同批 2 / 4；§9-③ 定做不做 |
 
-每批：一个提交（`git mv` 保历史）+ 相关快检；批 2–4 之间可以隔几天，等其他分支合完。
+每批：一个提交（`git mv` 保历史）+ 相关快检。
+
+实际做法（批 2–4）：`.import` 无损、不生成 mipmap；没有 alpha 1–19 淡像素的关透明边渗色（与桌面版原来读原图一致，网页无损 WebP 小约 1.6 倍，docs/187 §6），带淡像素的 40 张特效开（同网页包原口径）。导入后逐张比对：1806 张与原 PNG 像素一致，39 张淡像素特效只在 alpha < 20 的像素上 RGB 有渗色差。
+
+### 6.5 旧路径 → 新路径（从 codex/art 或任何旧分支收货）
+
+- 映射表 `tools/asset_path_map.json`：迁移时每个 `git mv` 的「旧仓库路径 → 新仓库路径」（1845 条，机器可读）。
+- 查新路径：`python tools/asset_paths.py <旧路径 ...>`（不给参数就从标准输入每行读一个）；映射表里没有的 `art/incoming/<名字>.png`（迁移后才新加的名字）按前缀登记表给目录；交接文档、批次子目录等原样返回。
+- 收旧交付：codex/art 上没合的旧交付按映射表落到新路径（同名图直接覆盖新位置），跑 `python tools/asset_index.py` 更新索引；**新交付一律进 `art/incoming/<内容简称>_<月日>/`**，接入时复制进 `game/art/`（生成 / 接入工具用 `asset_paths.out_png(名字)` 给写入位置）。
+- codex/art 不会整支合入（含不能合 main 的 Spine 源 zip）：按提交挑着收，收前先用映射表换路径，避免「改名 + 修改」冲突。
 
 ## 7. 对进行中分支的影响
 

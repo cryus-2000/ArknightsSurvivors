@@ -122,8 +122,8 @@ static func _alias_file(name: String) -> String:
 
 
 ## 运行时贴图索引（docs/189 §6.1）：game/art/index.json 由 tools/asset_index.py 生成，贴图名（含 @1x / @2x、
-## "portraits/" / "optical_fx/" 前缀）→ res:// 路径。索引里有的名字只走导入后的贴图（_packed_path），
-## art/incoming 根目录的同名图不再读；索引里没有的照旧回退 art/incoming（过渡期，迁移批 5 去掉）
+## "portraits/" / "optical_fx/" 前缀）→ res:// 路径。运行时贴图全在 game/art 里、由 Godot 导入，按索引读导入后的贴图；
+## 10-28 迁移完成后不再读项目外的 art/incoming（那里只是收货区）
 const INDEX_PATH := "res://art/index.json"
 static var _index = null
 
@@ -144,51 +144,27 @@ static func _indexed(name: String) -> String:
 	return p
 
 
-static func _incoming_path(name: String) -> String:
-	if _indexed(name) != "":
-		return ""
-	var p := incoming_dir().path_join(name + ".png")
-	if FileAccess.file_exists(p):
-		return p
-	var al := _alias_file(name)
-	if al != "":
-		var a := incoming_dir().path_join(al + ".png")
-		if FileAccess.file_exists(a):
-			return a
-	return ""
-
-
-static func incoming_dir() -> String:
-	if OS.has_feature("web"):
-		return "res://art/incoming"  # 网页版：导出时把 art/incoming 打进包里，但包里是导入后的贴图（原图读不到，见 _packed_path）
-	if OS.has_feature("editor"):
-		return ProjectSettings.globalize_path("res://").path_join("../art/incoming").simplify_path()
-	return OS.get_executable_path().get_base_dir().path_join("../art/incoming").simplify_path()
-
-
-## 网页版的 art/incoming：导出时被导入进 pck，包里只有 .import 与导入后的贴图，没有原始 PNG——
-## FileAccess / Image.load_from_file 读不到，要用 ResourceLoader 读导入后的贴图（2026-09-26 查到：网页版选人页没有头像、
-## 技能 / 藏品图标全空，都是这个原因）。编辑器与桌面版读 art/incoming 原图，走不到这里
+## 名字（含别名）→ 索引里的导入贴图路径；没有返回 ""。包里只有 .import 与导入后的贴图、没有原始 PNG，
+## 一律用 ResourceLoader 读（2026-09-26 网页版查到：Image.load_from_file 读不到包内原图）
 static func _packed_path(name: String) -> String:
 	var ix := _indexed(name)
-	if ix != "" and ResourceLoader.exists(ix):
-		return ix
-	var p := "res://art/incoming/%s.png" % name
-	if ResourceLoader.exists(p):
-		return p
-	var al := _alias_file(name)
-	if al != "":
-		var a := "res://art/incoming/%s.png" % al
-		if ResourceLoader.exists(a):
-			return a
-	return ""
+	return ix if ix != "" and ResourceLoader.exists(ix) else ""
 
 
-## art/incoming 里有没有这张图（基础名或 @2x）。10-24 起被 @2x 遮蔽的 1x 基础帧条已删（docs/131 §1.3），
+## 编辑器里直接跑（tools/godot_runner、快检）时导入贴图的源 PNG 还在磁盘上：法线预热线程读它（线程里不碰 RenderingServer），
+## 法线缓存键按它的大小 + 修改时间算（改了图就失效）。导出包里没有源 PNG，返回 ""
+static func _disk_source(path: String) -> String:
+	if not path.begins_with("res://") or not OS.has_feature("editor"):
+		return ""
+	var g := ProjectSettings.globalize_path(path)
+	return g if FileAccess.file_exists(g) else ""
+
+
+## 有没有交付的图（基础名或 @2x，game/art 索引里）。10-24 起被 @2x 遮蔽的 1x 基础帧条已删（docs/131 §1.3），
 ## 只查基础名会让敌人白闪 / _emit 发光层 / 落脚锚点误判为「没有新图」
 static func has_override(name: String) -> bool:
 	for n in [name, name + "@2x"]:
-		if _incoming_path(n) != "" or _packed_path(n) != "":
+		if _packed_path(n) != "":
 			return true
 	return false
 
@@ -214,16 +190,10 @@ static func tex_hi(name: String) -> Texture2D:
 	if _cache.has(key):
 		return _cache[key]
 	var t: Texture2D = null
-	if op_1x_on() and (_incoming_path(name + "@1x") != "" or _packed_path(name + "@1x") != ""):
-		var p2 := _incoming_path(name + "@2x")
-		if p2 != "":
-			var img2 := Image.load_from_file(p2)
-			if img2 != null and not img2.is_empty():
-				t = ImageTexture.create_from_image(img2)
-		else:
-			var q2 := _packed_path(name + "@2x")
-			if q2 != "":
-				t = load(q2)
+	if op_1x_on() and _packed_path(name + "@1x") != "":
+		var q2 := _packed_path(name + "@2x")
+		if q2 != "":
+			t = load(q2)
 		if t != null:
 			_hires_rid[t.get_rid()] = 2.0
 	if t == null:
@@ -386,35 +356,16 @@ static func tex(name: String) -> Texture2D:
 		return lt
 	var t: Texture2D = null
 	var density := 1.0
-	var src_path := ""   # 法线缓存键用：原图路径（磁盘 PNG 或包内资源）
-	var pop := pop_wanted(name)   # 普通 / 精英怪祛雾：磁盘原图在建贴图前烘，包内贴图读回像素再烘（法线仍按原图 alpha 算）
-	var p1 := _incoming_path(name + "@1x") if op_1x_on() else ""
-	if p1 != "":
-		var img1 := Image.load_from_file(p1)
-		if img1 != null and not img1.is_empty():
-			t = ImageTexture.create_from_image(img1)
-			src_path = p1
-	elif op_1x_on():
+	var src_path := ""   # 法线缓存键用：包内资源路径
+	var pop := pop_wanted(name)   # 普通 / 精英怪祛雾：贴图读回像素再烘（法线仍按原图 alpha 算）
+	if op_1x_on():
 		var q1 := _packed_path(name + "@1x")
 		if q1 != "":
 			t = load(q1)
 			if t != null:
 				src_path = q1
-	var p2 := _incoming_path(name + "@2x") if USE_HIRES and t == null else ""
 	var halve := half_enemy_on() and name.begins_with("e_") and not normal_maps
-	if p2 != "":
-		var img2 := Image.load_from_file(p2)
-		if img2 != null and not img2.is_empty():
-			density = 2.0
-			var h1: Image = _halve(img2) if halve else null
-			if h1 != null:
-				img2 = h1
-				density = 1.0
-			if pop:
-				pop_image(img2)
-			t = ImageTexture.create_from_image(img2)
-			src_path = p2
-	elif USE_HIRES and t == null:
+	if USE_HIRES and t == null:
 		var q2 := _packed_path(name + "@2x")
 		if q2 != "":
 			t = load(q2)
@@ -431,21 +382,12 @@ static func tex(name: String) -> Texture2D:
 					t = _pop_tex(t)
 				src_path = q2
 	if t == null:
-		var p := _incoming_path(name)
-		if p != "":
-			var img := Image.load_from_file(p)
-			if img != null and not img.is_empty():
-				if pop:
-					pop_image(img)
-				t = ImageTexture.create_from_image(img)
-				src_path = p
-		else:
-			var q := _packed_path(name)
-			if q != "":
-				t = load(q)
-				if t != null and pop:
-					t = _pop_tex(t)
-				src_path = q
+		var q := _packed_path(name)
+		if q != "":
+			t = load(q)
+			if t != null and pop:
+				t = _pop_tex(t)
+			src_path = q
 	if t == null and ResourceLoader.exists("res://art/px/%s.png" % name):
 		src_path = "res://art/px/%s.png" % name
 		t = load(src_path)
@@ -595,6 +537,9 @@ static func prewarm_step() -> bool:
 	var name: String = _nm_queue.pop_front()
 	_nm_mutex.unlock()
 	var path := _normal_source(name)
+	var disk := _disk_source(path)
+	if disk != "":
+		path = disk   # 编辑器里：读源 PNG，键与主线程 _with_normal 算的一致（_normal_key 同样换成源 PNG）
 	var packed := path.begins_with("res://")
 	if path == "" or (packed and OS.has_feature("threads")):
 		# 没图，或包内 / 占位贴图（线程里不碰 RenderingServer）：留给主线程 tex() 自己处理
@@ -666,19 +611,13 @@ static func prewarm_join() -> void:
 	_nm_threads.clear()
 
 
-## 法线图的原图路径：与 tex() 选图的顺序一致（@2x 原图 > @2x 包内 > 原图 > 包内 > 占位）
+## 法线图的原图路径：与 tex() 选图的顺序一致（@1x > @2x > 基础名 > 占位）
 static func _normal_source(name: String) -> String:
 	var path := ""
 	if op_1x_on():
-		path = _incoming_path(name + "@1x")
-		if path == "":
-			path = _packed_path(name + "@1x")
+		path = _packed_path(name + "@1x")
 	if USE_HIRES and path == "":
-		path = _incoming_path(name + "@2x")
-		if path == "":
-			path = _packed_path(name + "@2x")
-	if path == "":
-		path = _incoming_path(name)
+		path = _packed_path(name + "@2x")
 	if path == "":
 		path = _packed_path(name)
 	if path == "" and ResourceLoader.exists("res://art/px/%s.png" % name):
@@ -686,10 +625,12 @@ static func _normal_source(name: String) -> String:
 	return path
 
 
-## 缓存键：磁盘原图按 文件大小_改动时间（图换了就失效）；包内贴图按尺寸（包是整体替换的）
+## 缓存键：有源 PNG（编辑器里）按 文件大小_改动时间（图换了就失效）；导出包按尺寸（包是整体替换的）
 static func _normal_key(path: String, w: int, h: int) -> String:
 	if path == "":
 		return ""
+	if _disk_source(path) != "":
+		path = _disk_source(path)
 	if path.begins_with("res://"):
 		return "pck%dx%d" % [w, h]
 	var f := FileAccess.open(path, FileAccess.READ)

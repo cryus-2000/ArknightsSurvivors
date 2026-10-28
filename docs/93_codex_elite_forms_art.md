@@ -22,7 +22,7 @@
 
 **人物 / 召唤物帧条（`op_*`）**：一律按 docs/87（96px 为主、只画朝右 3/4 侧身、脚底 (24, 46)、二值透明、`#080E18` 描边、1x 与 @2x 逐帧对应、≤ 24 色、出手帧写进 manifest）。新动作与该干员现有帧条**同一套造型和色板**，首帧 / 末帧能接回 idle f0。
 
-**交付**：只动 `art/incoming/`；每批一个提交；每批附 `elite_art_<批号>_manifest.json`（每条：文件名、帧数、fps、帧尺寸、1x / @2x 原点、层、色数）+ `elite_art_<批号>_handoff.md` + 预览 GIF（深色地面底，特效按游戏缩放合成在人物 / 敌人旁边）。人物帧条交付前跑 `python tools/art_lint.py --ops <id>` 无未豁免 FAIL。
+**交付**：只动 `art/incoming/<批次>/`（docs/189 §1）；每批一个提交；每批附 `elite_art_<批号>_manifest.json`（每条：文件名、帧数、fps、帧尺寸、1x / @2x 原点、层、色数）+ `elite_art_<批号>_handoff.md` + 预览 GIF（深色地面底，特效按游戏缩放合成在人物 / 敌人旁边）。人物帧条交付前跑 `python tools/art_lint.py --ops <id>` 无未豁免 FAIL。
 
 尺寸记法：下表「尺寸」都是 **1x 单帧**（@2x 自动 ×2）；fps 写在帧数后面。
 
@@ -270,7 +270,7 @@
 ## 第 5 批（浊心斯卡蒂，召唤物帧条**必需**；实现先用 Boss 帧条缩小占位）
 
 ### 5.1 浊心斯卡蒂 · 精一「余音」/ 精二「远古血亲」
-参考色：`fx_skalter_*`、`fx_skalter_vortex_floor`（低饱和青 + 少量暗红）。海嗣用**伊莎玛拉**的形象（结局三「息潮的代价」Boss，本作 `ishar`，参考 `art/incoming/e_ishar.png` / `e_ishar_move.png` / `e_ishar_attack.png`，单帧 80×80），与浊心斯卡蒂立绘一致：按 `e_ishar` 造型缩画到召唤物尺寸，**保留原设计和配色**，只在外轮廓加一圈青色友方描光（在 `#080E18` 外描边之内或之外由 Codex 定，manifest 写明）以区分敌我。
+参考色：`fx_skalter_*`、`fx_skalter_vortex_floor`（低饱和青 + 少量暗红）。海嗣用**伊莎玛拉**的形象（结局三「息潮的代价」Boss，本作 `ishar`，参考 `game/art/enemies/ishar/` 的 `e_ishar` / `e_ishar_move` / `e_ishar_attack`，单帧 80×80），与浊心斯卡蒂立绘一致：按 `e_ishar` 造型缩画到召唤物尺寸，**保留原设计和配色**，只在外轮廓加一圈青色友方描光（在 `#080E18` 外描边之内或之外由 Codex 定，manifest 写明）以区分敌我。
 
 > 2026-10-14 更正：描光位置定为 `#080E18` 外描边**内侧**，1px（@2x 2px）（见本文末补单，已交 4d250ae0；以 98 §3 为准）。
 
@@ -310,4 +310,4 @@
 - 文件：`op_skalter_ishar_idle / _move / _attack / _summon`（+ @2x），**尺寸、帧数、脚底锚点、出手帧都不变**，造型不变（仍按浊心立绘里的深蓝盘曲海嗣）。
 - 在 1px `#080E18` 外描边**内侧**加一圈 1px（@2x 2px）友方青色亮边（参考 UI 青 `#36E2DC` 降一点饱和），沿剪影顶部和背光一侧连续，底部可断开；身上的青色光点与纹路再亮一阶、略多一些。
 - 目标：在 docs/94 的「暗」底（整体乘 0.55）下，和敌方海嗣并排一眼能分出敌我。交一张与 `e_tracer`、`e_reaper` 并排的亮 / 暗两行对比图。
-- 交付：只动 art/incoming/，一个提交，附简短 handoff。
+- 交付：只动 art/incoming/<批次>/（docs/189 §1），一个提交，附简短 handoff。

@@ -81,9 +81,9 @@ def index_key(rel):
     return stem
 
 
-# ---- 运行时贴图在哪（工具用，与 art.gd 同一顺序：索引 → art/incoming 回退；回退在迁移批 5 去掉）
+# ---- 运行时贴图在哪（工具用，与 art.gd 一致：只看 game/art 索引；art/incoming 只是收货区）
 INCOMING = os.path.join(ROOT, "art", "incoming")
-INCOMING_SUBDIRS = ("portraits", "optical_fx")   # art/incoming 下游戏按 "<子目录>/<名>" 读的子目录（迁移前）
+INCOMING_SUBDIRS = ("portraits", "optical_fx")   # 迁移前 art/incoming 下游戏按 "<子目录>/<名>" 读的子目录（map_path 认旧路径用）
 _IDX = {}
 
 
@@ -97,23 +97,21 @@ def load_index(game_art=GAME_ART):
     return _IDX[key]
 
 
-def runtime_png(name, game_art=GAME_ART, incoming=INCOMING):
-    """贴图名（可带 @1x / @2x、portraits/ / optical_fx/ 前缀）→ 游戏会读的 PNG 绝对路径；两处都没有时返回 art/incoming 下的位置（不存在）"""
+def runtime_png(name, game_art=GAME_ART, incoming=None):
+    """贴图名（可带 @1x / @2x、portraits/ / optical_fx/ 前缀）→ 游戏会读的 PNG 绝对路径（索引里的）。
+    索引里没有时：给了 incoming 就返回 <incoming>/<名>.png（测试 / 平铺目录用），否则返回按前缀该放的位置（不存在）"""
     p = load_index(game_art).get(name)
-    return p if p else os.path.join(incoming, name.replace("/", os.sep) + ".png")
+    if p:
+        return p
+    if incoming:
+        return os.path.join(incoming, name.replace("/", os.sep) + ".png")
+    d = out_dir(name)
+    return os.path.join(game_art, d, name.split("/")[-1] + ".png") if d else os.path.join(game_art, name.replace("/", os.sep) + ".png")
 
 
-def runtime_files(game_art=GAME_ART, incoming=INCOMING):
-    """全部运行时贴图 {名字: 绝对路径}：索引里的，加 art/incoming 根目录与运行时子目录里索引没有的（过渡期）"""
-    out = dict(load_index(game_art))
-    for sub in ("",) + INCOMING_SUBDIRS:
-        d = os.path.join(incoming, sub) if sub else incoming
-        if not os.path.isdir(d):
-            continue
-        for f in os.listdir(d):
-            if f.endswith(".png") and os.path.isfile(os.path.join(d, f)):
-                out.setdefault((sub + "/" if sub else "") + f[:-4], os.path.join(d, f))
-    return out
+def runtime_files(game_art=GAME_ART):
+    """全部运行时贴图 {名字: 绝对路径}（game/art 索引）"""
+    return dict(load_index(game_art))
 
 
 def out_png(name, game_art=GAME_ART):

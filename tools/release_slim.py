@@ -135,10 +135,9 @@ def runtime_text(game=GAME):
 # ---------- 1. 审阅图 ----------
 
 def art_files(incoming=INCOMING):
-    """随包候选：运行时贴图 [(文件名, 路径)]——game/art 索引里的加 art/incoming 根目录里索引没有的（docs/189 §6.1，过渡期两处都看）；
-    带前缀的 portraits/ / optical_fx/ 不在内（不受审阅图规则影响）"""
+    """随包候选：运行时贴图 [(文件名, 路径)]（game/art 索引，docs/189 §6.1）；带前缀的 portraits/ / optical_fx/ 不在内"""
     import asset_paths
-    return sorted((n + ".png", p) for n, p in asset_paths.runtime_files(incoming=incoming).items() if "/" not in n)
+    return sorted((n + ".png", p) for n, p in asset_paths.runtime_files().items() if "/" not in n)
 
 
 def prune_game_art(gpath, drop_fallback):

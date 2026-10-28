@@ -1,4 +1,4 @@
-"""素材命名与目录检查（docs/189 的机检部分）。只读，不改任何文件；现阶段只报告，退出码恒为 0（--strict 时有 ERROR 才返回 1）。
+"""素材命名与目录检查（docs/189 的机检部分）。只读，不改任何文件；退出码缺省 0，--strict 时有 ERROR 返回 1（check.py 按 ERROR 判失败，WARN / INFO 只报告）。
 
     python tools/asset_lint.py              # 汇总 + 每条规则前 8 例
     python tools/asset_lint.py --all        # 列出全部
@@ -16,12 +16,14 @@
     D2 WARN   源文件放在运行时目录（game/audio/voice/masters 等）
     D3 INFO   收货区 art/incoming 里的非运行时文件（交接文档、清单、批次子目录）：接入后应归档到 art/archive/
     H1 INFO   同内容不同名（sha256 相同）
+    L1 ERROR  运行时贴图还在收货区（art/incoming 根目录或 portraits/ / optical_fx/）：游戏不读这里，要搬进 game/art（tools/asset_paths.py 给新路径）
+    L2 ERROR  同名贴图出现在 game/art 两个目录（索引名必须全局唯一，docs/189 §2）
 """
 import argparse, collections, hashlib, json, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 INC = "art/incoming"
-RUNTIME_SUBDIRS = ("portraits", "optical_fx")   # art/incoming 下游戏按名字读的子目录（art.gd / export_build.ART_SUBDIRS）
+RUNTIME_SUBDIRS = ("portraits", "optical_fx")   # 迁移前 art/incoming 下游戏按名字读的子目录（L1 认旧位置用）
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from asset_paths import LEGACY, PREFIXES, SUMMONS, index_key   # 前缀登记表与 asset_index / 接入工具共用（docs/189 §3.1）
@@ -133,9 +135,10 @@ def check_game_dirs(rep, files, ops):
 def check_intake(rep, inc_files):
     for f in inc_files:
         parts = f.split("/")
-        if len(parts) == 3:
-            if not f.endswith(".png"):
-                rep.add("D3", "INFO", "收货区根目录的交接文档 / 清单", f)
+        if f.endswith(".png") and (len(parts) == 3 or (len(parts) == 4 and parts[2] in RUNTIME_SUBDIRS)):
+            rep.add("L1", "ERROR", "运行时贴图还在收货区（游戏不读，搬进 game/art：python tools/asset_paths.py <路径> 给新路径）", f)
+        elif len(parts) == 3:
+            rep.add("D3", "INFO", "收货区根目录的交接文档 / 清单", f)
         elif parts[2] not in RUNTIME_SUBDIRS:
             rep.add("D3", "INFO", "收货区批次子目录（接入后归档）", "/".join(parts[:3]) + "/")
 
@@ -155,10 +158,13 @@ def run():
     ops, ens = load_ids()
     inc = git_files(INC)
     game = git_files("game")
-    # 运行时贴图：art/incoming 根目录与运行时子目录（过渡期）+ 已搬进 game/art 进索引的（docs/189 §6.1）
-    moved = [f for f in game if f.startswith("game/art/") and index_key(f[len("game/art/"):]) is not None]
-    runtime = [f for f in inc if f.endswith(".png") and (f.count("/") == 2 or f.split("/")[2] in RUNTIME_SUBDIRS)] + moved
+    # 运行时贴图：game/art 里进索引的（docs/189 §6.1）；还留在收货区的报 L1
+    runtime = [f for f in game if f.startswith("game/art/") and index_key(f[len("game/art/"):]) is not None]
+    moved = runtime
     rep = Report()
+    import asset_index
+    for d in asset_index.build()[1]:
+        rep.add("L2", "ERROR", "同名贴图出现在 game/art 两个目录（索引名必须全局唯一）", d)
     check_runtime_names(rep, runtime, ops, ens)
     check_game_dirs(rep, [f for f in game if f not in set(moved)], ops)
     check_intake(rep, inc)
@@ -168,7 +174,7 @@ def run():
 
 
 def check():
-    """check.py 用（只报告，docs/189 §5）：恒不失败，detail 给各级数量与 WARN 规则分布"""
+    """check.py 用（docs/189 §5）：ERROR 算失败（返回明细），WARN / INFO 只报告；detail 给各级数量与 WARN 规则分布"""
     rep, nr, ng = run()
     tally = collections.Counter()
     warn = collections.Counter()
@@ -177,14 +183,15 @@ def check():
         if level != "INFO":
             warn[rule] += len(set(det))
     rules = "、".join("%s %d" % kv for kv in sorted(warn.items()))
-    return [], "只报告：ERROR %d、WARN %d、INFO %d（%s）" % (tally["ERROR"], tally["WARN"], tally["INFO"], rules or "无")
+    errs = ["%s %s：%s" % (rule, title, d) for (rule, level, title), det in sorted(rep.items.items()) if level == "ERROR" for d in sorted(set(det))]
+    return errs, "ERROR %d、WARN %d、INFO %d（%s）" % (tally["ERROR"], tally["WARN"], tally["INFO"], rules or "无")
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--all", action="store_true", help="列出全部条目")
     ap.add_argument("--json", help="另写一份机器可读结果")
-    ap.add_argument("--strict", action="store_true", help="有 ERROR 时退出码 1（规范批准后接进 check.py 用）")
+    ap.add_argument("--strict", action="store_true", help="有 ERROR 时退出码 1")
     a = ap.parse_args()
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -201,7 +208,7 @@ def main():
             print("        " + d)
         if not a.all and len(det) > 8:
             print("        …（共 %d，--all 看全部）" % len(det))
-    print("\n素材检查（只报告）：运行时贴图 %d 张、game/ 文件 %d 个；ERROR %d、WARN %d、INFO %d" %
+    print("\n素材检查：运行时贴图 %d 张、game/ 文件 %d 个；ERROR %d、WARN %d、INFO %d" %
           (nr, ng, tally["ERROR"], tally["WARN"], tally["INFO"]))
     if a.json:
         json.dump(out, open(a.json, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
