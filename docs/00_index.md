@@ -130,6 +130,7 @@
 | [163_visible_build_growth_codex](163_visible_build_growth_codex.md) | Codex 版可见成长草稿（历史） | 已被 163B 取代 | 弹体 / 范围 / 剑气 / 召唤的技术讨论 | 163D |
 | [163d_build_fusion](163d_build_fusion.md) | 构筑改造融合稿（163B × 可见成长 7 件） | 已定稿、已实现 | 10-27：以 163B 七流派为骨架逐件对号；五条按推荐定稿（#56 清群倍率、#129 副体只 +1、#130 覆盖不延寿、四流派第二批、固定上限）；§6 含 5 件范围画面核对与三件闪避藏品保底 | 163、163B、163C |
 | [186_integ_1028b](186_integ_1028b.md) | 整合分支 integ-1028b 冲突处理记录 | 记录 | 10-28 对内体验包：每处合并冲突一行 + docs 撞号重编表 | — |
+| [190_meta_lowhp_buffer](190_meta_lowhp_buffer.md) | 残血缓冲并入认知塑造（方案） | 待用户拍板 | 10-28：危机感Ⅲ「生命低于 35% 受伤 -45%，每局累计 ≤ 12 秒」（候选 A / B / C）；价格 24、点法第 6 位、m55 预计 +2–5；乘在 lose_hp 截断之后 |
 | [183_knight_stage_plan](183_knight_stage_plan.md) | 最后的骑士 · 分阶段方案 v2 | 已接入 | 10-28：每幕招式组、三幕寒潮、二幕冰棱带、重生冲锋形态（原 171，撞号改 183） | knight_boss.gd、final_attacks.gd |
 | [182_enemy_windup](182_enemy_windup.md) | 普通怪蓄力加速 | 已实现 | 10-28：非精英非 Boss 的蓄力 / 预警 / 引信 × windup_mult（原 179，撞号改 182） | enemy_ai.gd |
 | [178_danger_pass](178_danger_pass.md) | 难度危险感回调 | 已实现 | 10-28：防暴毙保护收窄、普通怪伤害增益（claude/danger-pass） | balance.json |
