@@ -72,3 +72,22 @@ Godot 4.7.2、无窗口静音 Edge、手机视口与触屏仿真、24 kHz 上下
 `tests/bgm_memory_test.tscn` 覆盖菜单 → 载入 → 引子 → 战斗、12 次切曲、全部层、预热、淡出释放、释放后再播、暂停保护 / 恢复无额外 PCM、最终 Boss 二阶段。修复版 **0 failures / 0 SCRIPT ERROR**；基线按同样回收要求产生 120 项失败，复现旧问题。Python 五项压缩 / 补丁 / 导出回归与原有 Suno、菜单续播回归通过。Suno 测试先停止长曲解码再退出，消除资源仍在使用的退出错误；菜单测试仍有既有的一个 ObjectDB 退出警告。
 
 证据在工作分支目录 `build/bgm_memory/compression.json`、`build/bgm_memory/{suno_layers,menu_bgm}.log`、`output/playwright/bgm-memory-{fixed,baseline}.json`。这是音频独立探针，不含整局贴图、WASM 堆、音效 / 语音及解码临时分配；不能将 218.75 MiB 当成整局总峰值。未做手机真机试听 / 整局内存验收，首次解码长曲的卡顿也未据此宣称解决。
+
+## 7. 结局二 / 三 / 四最终 Boss 分层曲（10-28）
+
+用户给了三首 Suno 分轨（每条 48 kHz，约 3.5–4 分钟）：《The Swarm Theme》→ 伊莎玛拉（结局三）、《Último Caballo sumergido》→ 最后的骑士（结局二）、《Tree of Evolution》→ 伊祖米克（结局四）。
+分轨解压在主仓库 `art/incoming/music_suno/{swarm_theme,ultimo_caballo,tree_of_evolution}/`（原件不提交），`python tools/suno_layers.py final_ishar final_izumik final_knight` 生成。结局一（偏执泡影）仍用 `final`，不动。
+
+- **层法同结局一**：p1 = Keyboard + Strings + Synth + Bass + Other（一阶段）；p2 = Drums + Percussion + Guitar + Brass（半血在小节线上叠入）。响度同 final：p1 单放 −15、全开 −13.5 LUFS。
+  p1 / p2 是同一首曲子的两组分轨同步循环，不是把曲子切成前后两段：切阶段时 p2 在小节线上叠进来，不会跳到曲子的另一处。
+- **分轨取舍**（整曲 RMS / 有声占比）：
+  - 伊莎玛拉：Lead −26 / Backing −25 dB、有声 81–84% 是主唱 → p1（一阶段就有歌，同结局一）；Brass −49 dB / 2% 是底噪，丢。
+  - 伊祖米克：人声 −35 dB、有声 18% 是零星哼唱 → 叠在 p2。
+  - 骑士：人声 −37 dB / 15–17% → p2；Woodwinds −52 dB / 2% 丢；**吉他 −25 dB、有声 95%，是全曲主旋律，放 p1**。
+    吉他留在 p2 时，p2 比 p1 响 3 LU，要对齐全开 −13.5 就得把 p2 压 11.7 dB，二阶段鼓点几乎听不见；放进 p1 后 p2 只压 4.5 dB（结局一参照压 4.8）。
+- 循环：尾首交叉淡化取整数个小节。伊莎玛拉 146.000 bpm、2 小节（3.29 秒）；伊祖米克 149.995 bpm、2 小节（3.20 秒）；骑士 160.205 bpm、3 小节（4.49 秒）。时长分别为 210.3 / 204.8 / 233.5 秒。
+- 接线：`music_director.final_track(type)`：knight_boss → final_knight、ishar → final_ishar、izumik → final_izumik，其余最终 Boss 和缺文件时用 final。
+  切阶段沿用原规则：半血以下，伊祖米克学习阶段除外。`sfx.gd` 把 `final*` 一律按两层「p1 + 半血叠 p2」处理，Boss 登场落拍、回战斗的规则同 final。`--musiclog` 记录里带 p1 / p2。
+- 包体：仓库新增 6 个 ogg，共 14.3 MiB。网页 C 档后 a6f340ddb → 916a22501：网页目录 34.0 → 40.3 MiB（**+6.35 MiB**），Toy zip 35.37 → **42.03 MB**（上限 50 MB）。
+- 验证：`check.py --only suno_layers`（八首载入、层数、同长度，选曲按类型，骑士 p1 → p2 叠层）和 `menu_bgm` 通过；`bgm_memory_test` 加了三首曲目及其二阶段，见下。
+- 录像：`tools/boss_bgm_rec.py` 生成，三只 Boss 各 30 秒原速，登场后 14 秒切 p2。画面用 `--bossacts`（骑士用 `knight_boss2` 直接进二阶段形态；`--actsp2` 到点把血放到 45%）。声音离线混音：配乐按 `--musiclog` 的时间点、用 sfx.gd 的规则混；音效按 `--sfxtrace` 混，不外放。

@@ -72,9 +72,10 @@ func update(_dt: float) -> void:
 		Sfx.play_music(final_track(g.final_boss.type))
 		# 二段：半血以下。伊祖米克以 35% 生命、无敌的学习阶段登场，要进入解读阶段（phase 2）后才算（docs/38 B0 第 9 项）
 		var fb: Dictionary = g.final_boss
-		Sfx.set_final_phase(fb.hp < fb.maxhp * 0.5 and not (fb.type == "izumik" and fb.phase == 1))
+		var p2: bool = fb.hp < fb.maxhp * 0.5 and not (fb.type == "izumik" and fb.phase == 1)
+		Sfx.set_final_phase(p2)
 		music_boss = true
-		write_log(final_track(g.final_boss.type))
+		write_log("%s %s" % [final_track(fb.type), "p2" if p2 else "p1"])
 		return
 	if g.spawner.boss_alive():
 		Sfx.play_music("boss")

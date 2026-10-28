@@ -30,6 +30,7 @@ var bm_boss: Dictionary = {}
 var ba_boss: Dictionary = {}   # --bossacts（docs/142b §9 逐幕演示 gif）：演示中的 Boss / 搭档 / 下一次过卡点的时刻
 var ba_mate: Dictionary = {}
 var ba_next := 0.0
+var ba_p2 := -2.0               # --actsp2：登场后几秒切二阶段血量（-2 = 未读参数，-1 = 没开）
 var ba_ft := {"a": [], "b": []}   # --bossacts --perfab：每帧用时（微秒），a = 新画法、b = g.perf_alt 旧画法
 var ba_us := 0
 var bm_mate: Dictionary = {}   # --bossmoves=<type>[2]+<搭档>：接潮组的搭档（停在主控左上、不出招、不死，供「统一」等两体招式验收）
@@ -1417,12 +1418,14 @@ func _bossacts_step(spec: String) -> void:
 		g.hp = 900.0
 		g.t = 150.0
 		g.hunt.state = 3   # 「围猎」（约 1:30）不在演示里触发：时间直接跳到 2:30 会让包围圈和 Boss 同场（正式局 Boss 最早 3:30，碰不到）
-		var b := g.spawner.spawn_enemy(parts[0], g.ppos + Vector2(260, -40))
+		var b := g.spawner.spawn_enemy(parts[0].trim_suffix("2"), g.ppos + Vector2(260, -40))
 		b.age = 5.0
 		g.bosses.append(b)
 		g.boss = b
 		if g.final_boss == null and g.spawner.is_final_boss_type(b.type):
 			g.final_boss = b
+		if parts[0] == "knight_boss2":
+			g.bai.setup_preview_phase2(b)   # 骑士直接二阶段（同 --bossmoves 的「2」后缀）：一阶段到半血卡点会入潮离场
 		if parts.size() > 1:
 			var m := g.spawner.spawn_enemy(parts[1], g.ppos + Vector2(-260, -60))
 			m.age = 5.0
@@ -1439,6 +1442,20 @@ func _bossacts_step(spec: String) -> void:
 		return
 	if g.at_frames < 20 or ba_boss.is_empty():
 		return
+	# --actsp2=<秒>（配乐录像 tools/boss_bgm_rec.py，docs/164 §7）：登场后这么多秒把 Boss 血放到 45% 并清掉卡点（music_director 半血切 p2），录屏录完就退出
+	if ba_p2 < -1.0:
+		ba_p2 = -1.0
+		for a in Cfg.dev_args():
+			if a.begins_with("--actsp2="):
+				ba_p2 = float(a.substr(9))
+	if ba_p2 >= 0.0:
+		if g.t >= 150.0 + ba_p2 and not ba_boss.get("acts_p2", false):
+			ba_boss.acts_p2 = true
+			ba_boss.gates = []
+			ba_boss.hp = ba_boss.maxhp * 0.45
+		if _rec_i > 0 and _rec_left == 0:
+			g.get_tree().quit()
+			return
 	g.hp = g.max_hp
 	# 队长绕 (1500, 900) 半径 230 慢走（约 100 像素 / 秒）：站着不动时 Boss 会贴脸近战，远程招和主轴画面（火线、路线）都看不到
 	g.ppos = Vector2(1500, 900) + Vector2.from_angle((g.t - 150.0) * 0.45) * 230.0
