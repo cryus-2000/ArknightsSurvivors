@@ -66,6 +66,7 @@ def main():
     ap.add_argument("--part-mib", type=float, default=10)
     ap.add_argument("--worktree-presets", action="store_true", help="用工作区的 export_presets.cfg（改预设时本地试导出用）")
     ap.add_argument("--audio-tier", default="B", choices=["off", "A", "B", "C"], help="网页包音频再压缩档位（tools/web_audio.py：A 近无损 / B 平衡 / C 激进；off = 不压）")
+    ap.add_argument("--no-lossless", action="store_true", help="关掉无损瘦身（字体 WOFF2 + WebP 无损最高档，docs/187），对照用")
     ap.add_argument("--ea", action="store_true", help="对内网页版：build.json audience = internal（演练开、全部解锁）")
     ap.add_argument("--toy", action="store_true", help="B站 Toy 包：一律加载 Toy SDK、分片不带 .gz 后缀、另打 zip（缺省输出 build/toy/web）")
     a = ap.parse_args()
@@ -119,7 +120,12 @@ def main():
 
     gpath = os.path.join(src, "game")
     # 字体按实际用字子集化（release_slim，docs/33 §包体瘦身）：只换打包副本里的字体，仓库原字体不动
-    release_slim.print_font_rows(release_slim.subset_fonts(gpath))
+    font_rows = release_slim.subset_fonts(gpath)
+    release_slim.print_font_rows(font_rows)
+    # 无损瘦身（docs/187）：子集字体转 WOFF2 容器（文件名不变，FreeType 按内容识别）；贴图 WebP 无损压到最高档（像素不变，只多花导入时间）
+    if not a.no_lossless:
+        woff2_fonts(gpath, [r[0] for r in font_rows])
+        webp_max(gpath)
     # 网页包专用音频再压缩（tools/web_audio.py，docs/121 §4）：只改打包副本，桌面包与仓库不动；--audio-tier off 关闭
     import web_audio
     freed = web_audio.drop_unused_music(gpath)   # Suno 分层配乐接入后旧乐句文件不进网页包（tools/web_audio.py drop_unused_music）
@@ -194,6 +200,41 @@ def main():
         sys.exit("有文件超过 25 MB 上限")
     if a.toy:
         make_toy_zip(a.out, commit)
+
+
+def woff2_fonts(gpath, names):
+    """打包副本里的子集字体就地换成 WOFF2 内容（docs/187 §3）：字形 / 度量不变，导入后的 fontdata 约小 30%。
+    文件名不改（场景 / 主题按路径引用），Godot 的 FreeType 带 brotli，按文件头 wOF2 识别"""
+    from fontTools.ttLib import TTFont
+    before = after = 0
+    for fn in names:
+        p = os.path.join(gpath, "fonts", fn)
+        before += os.path.getsize(p)
+        f = TTFont(p)
+        f.flavor = "woff2"
+        buf = io.BytesIO()
+        f.save(buf)
+        with open(p, "wb") as fh:
+            fh.write(buf.getvalue())
+        after += len(buf.getvalue())
+    print("[瘦身] 子集字体转 WOFF2：%.2f MiB → %.2f MiB" % (before / 1048576, after / 1048576), flush=True)
+
+
+WEBP_MAX = ("textures/webp_compression/compression_method=6\n"
+            "textures/webp_compression/lossless_compression_factor=100.0\n")
+
+
+def webp_max(gpath):
+    """打包副本的 project.godot：WebP 无损贴图用最高压缩力度（缺省 2 / 25）。无损，解码像素不变，只是导入慢（docs/187 §3）"""
+    p = os.path.join(gpath, "project.godot")
+    with open(p, encoding="utf-8") as fh:
+        txt = fh.read()
+    if "[rendering]\n" not in txt:
+        sys.exit("project.godot 里没有 [rendering] 段")
+    txt = txt.replace("[rendering]\n", "[rendering]\n\n" + WEBP_MAX, 1)
+    with open(p, "w", encoding="utf-8", newline="\n") as fh:
+        fh.write(txt)
+    print("[瘦身] 贴图 WebP 无损压缩力度：方法 6 / 系数 100", flush=True)
 
 
 TOY_LIMIT = 50 * 1000 * 1000   # Toy 新内测作者 50 MB（docs/99 §0），按十进制算更保守
