@@ -46,12 +46,18 @@ func act_of(e: Dictionary) -> int:
 	return clampi(int(e.get("gates_passed", 0)), 0, 2)
 
 
-## 每幕主色（docs/170 §15，用户 10-28「每个 Boss 不同阶段要有不同风格」）：弹芯（world._eb_mod 读 b.bcol）、光束本体、地带与场地底色都跟着换。
+## 每幕主色（docs/170 §15）：10-28 起只用于场地底色（act_mood）；弹芯走专属色（enemies.json ishar.bcol_core），见 act_col。
 ## 一幕「余韵」：近白的浅青（人形歌声，稀疏优雅）；二幕「海嗣化」：深海青绿（压迫）；三幕「腐化之心」：腐红（整场变色）
 const ACT_COL := [Color(0.8, 1.0, 0.94), Color(0.36, 0.95, 0.72), Color(1.0, 0.42, 0.55)]
 
 
-static func act_col(e: Dictionary) -> Color:
+## 10-28 用户「弹幕颜色统一，更有记忆点」：弹、光圈、冲刺拖尾、围拢圈一律用她的专属色（enemies.json ishar.bcol）；
+## 每幕主色只留给场地底色（act_mood：二幕潮纹、三幕腐红），各幕靠弹形（音符 / 泪 / 碎片）和招式区分
+static func act_col(_e: Dictionary) -> Color:
+	return COL
+
+
+static func act_mood(e: Dictionary) -> Color:
 	return ACT_COL[clampi(int(e.get("gates_passed", 0)), 0, 2)]
 
 
@@ -349,7 +355,7 @@ func _shot(e: Dictionary, own: int, p: Vector2, ang: float, spd: float, r: float
 func _shot_ref(e: Dictionary, own: int, p: Vector2, ang: float, spd: float, r: float, mult: float, kind: String, life := 6.5):
 	if own >= OWN_CAP:
 		return null
-	var b := {"bcol": act_col(e), "pos": p, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * mult * Bal.v("boss/ishar_shot_mult", 1.2), "r": r, "life": life,
+	var b := {"pos": p, "vel": Vector2.from_angle(ang) * spd, "dmg": e.dmg * mult * Bal.v("boss/ishar_shot_mult", 1.2), "r": r, "life": life,
 		"slow": false, "frost": 0.0, "corrode": Bal.v("boss/ishar_corrode", 0.5), "nerve": 0.0, "true": true, "kind": kind, "home": false, "boss": true,
 		"atk": "法术", "hit_cap": e.get("hit_cap", 0.0), "source_id": e.id, "col": COL, "src_type": "ishar"}
 	g.ebullets.append(b)
