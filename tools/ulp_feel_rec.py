@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """乌尔比安手感对照录像（10-28 用户「乌尔比安的手感不太好，钝感很强」）：乌尔比安当队长、高手机器人自动走位，原速 30 帧（--realtime --fixed-fps 30），
 音轨 = 真正放出的音效（测试局静音，--sfxtrace 记录后离线混，同 tools/exu_sync_rec.py）。
-用法：python tools/ulp_feel_rec.py <段名> <标签> [--game <game 目录>] [--t0 秒] [--sec 秒] [附加游戏参数…]
+用法：python tools/ulp_feel_rec.py <段名> <标签> [--game <game 目录>] [--op 干员] [--t0 秒] [--sec 秒] [附加游戏参数…]
   每次录一段，存 build/ulp_feel/seg_<段名>.mp4；--concat a,b 把已录的段按顺序拼成 build/ulp_feel/乌尔比安手感对照.mp4
 """
 import glob, json, os, shutil, subprocess, sys
@@ -19,13 +19,13 @@ def ffmpeg():
     return imageio_ffmpeg.get_ffmpeg_exe()
 
 
-def record(name, label, game, t0, sec, extra):
+def record(name, label, game, t0, sec, extra, op="ulpianus"):
     fdir = os.path.join(OUT, "frames_" + name)
     shutil.rmtree(fdir, ignore_errors=True)
     os.makedirs(fdir)
     GR.ensure_imported(game)
     args = [GR.find_godot(), "--path", game, "--audio-driver", "Dummy", "--fixed-fps", str(FPS), "--",
-            "--balance", "--realtime", "--rtfrom=%d" % max(0, t0 - 5), "--nodeath", "--seed=3", "--op=ulpianus", "--bot=master",
+            "--balance", "--realtime", "--rtfrom=%d" % max(0, t0 - 5), "--nodeath", "--seed=3", "--op=" + op, "--bot=master",
             "--recframes=%s,%d" % (t0, int(sec * FPS)), "--shotdir=" + fdir.replace(os.sep, "/"), "--maxt=%d" % (t0 + sec + 10),
             "--sfxtrace"] + extra
     out, err, to = GR.run_godot(args, 1800)
@@ -45,7 +45,7 @@ def record(name, label, game, t0, sec, extra):
     R.label_frames(fdir, label)
     mp4 = os.path.join(OUT, "seg_%s.mp4" % name)
     subprocess.run([ffmpeg(), "-y", "-loglevel", "error", "-framerate", str(FPS), "-i", os.path.join(fdir, "rec_%05d.png"), "-i", wav,
-                    "-vf", "scale=1280:-2", "-c:v", "libx264", "-crf", "24", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k", "-shortest", mp4], check=True)
+                    "-vf", "scale=1280:-2", "-c:v", "libx264", "-crf", "27", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k", "-shortest", mp4], check=True)
     os.remove(wav)
     print("段", mp4, os.path.getsize(mp4))
     return 0
@@ -67,19 +67,21 @@ def main():
         return 0
     name, label = a[0], a[1]
     rest = a[2:]
-    game, t0, sec, extra = os.path.join(R.ROOT, "game"), 40.0, 15.0, []
+    game, t0, sec, extra, op = os.path.join(R.ROOT, "game"), 40.0, 15.0, [], "ulpianus"
     i = 0
     while i < len(rest):
         if rest[i] == "--game":
             game = os.path.abspath(rest[i + 1]); i += 2
         elif rest[i] == "--t0":
             t0 = float(rest[i + 1]); i += 2
+        elif rest[i] == "--op":
+            op = rest[i + 1]; i += 2
         elif rest[i] == "--sec":
             sec = float(rest[i + 1]); i += 2
         else:
             extra.append(rest[i]); i += 1
     os.makedirs(OUT, exist_ok=True)
-    return record(name, label, game, t0, sec, extra)
+    return record(name, label, game, t0, sec, extra, op)
 
 
 if __name__ == "__main__":
