@@ -929,7 +929,7 @@
    "draw_scale": 1.0,
    "name": "\"偏执泡影\"",
    "phys_taken": 0.9,
-   "arts_taken": 0.8,
+   "arts_taken": 0.9,
    "hp": 7400.0,
    "spd": 34.0,
    "dmg": 15.0,
