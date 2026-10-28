@@ -17,7 +17,8 @@ var _kill_row: Array = []
 var hunt_rec_end := 0  # --huntrec：进寻访结果后又录了几张
 var touchtest_p0 := Vector2.ZERO
 var bal_done := false
-var _lampat_done := false   # --lampat 只生效一次
+var _mimicscream_done := false
+var _lampat_done := false  # --lampat 只生效一次
 var zone_out_since := -1.0   # 普通机器人：本次出圈的开始时间（-1 = 在圈内）
 var want_dash := false       # 普通机器人：这一帧要冲刺（出圈回圈用；game.gd 在记下移动方向后执行）
 var shop_visits := 0
@@ -980,6 +981,17 @@ func step() -> void:
 			if a.begins_with("--lampat=") and g.t >= float(a.substr(9).split(":")[0]):
 				_lampat_done = true
 				g.lamp = float(a.substr(9).split(":")[1])
+	# --mimicscream=<秒>：到这一秒在主控右侧 70 处刷一只箱形恐鱼并立刻现形尖叫、灯火 / 神经损伤归位（10-28 尖叫圈录像用，会改之后的对局）
+	if not _mimicscream_done and g.state == g.S.PLAY:
+		for a in Cfg.dev_args():
+			if a.begins_with("--mimicscream=") and g.t >= float(a.substr(14)):
+				_mimicscream_done = true
+				g.lamp = 100.0
+				g.nerve = 0.0
+				var mm: Dictionary = g.spawner.spawn_enemy("mimic", g.ppos + Vector2(70, 0))
+				mm.age = 5.0
+				mm.dormant = false
+				g.spawner.reveal_mimic(mm)
 	if Cfg.dev_args().has("--materialmovie") and not g.has_node("MaterialMovie"):
 		var movie = load("res://tests/material_movie.gd").new()
 		movie.name = "MaterialMovie"

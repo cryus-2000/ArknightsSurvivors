@@ -224,6 +224,13 @@ func run_checks() -> void:
 	g.eai.pattern(mi, Vector2.RIGHT, 40.0, 0.05, mi.spd)
 	check(g.nerve_aura_t > 0.0 and g.warns.is_empty(), "mimic scream builds nerve inside its radius without biting")
 	g.nerve_aura_t = 0.0
+	g.lamp = 100.0
+	g.eai.pattern(mi, Vector2.RIGHT, 40.0, 0.5, mi.spd)
+	check(g.lamp < 100.0 and g.nerve_aura_k > 1.0, "mimic scream drains lamp and boosts nerve rate inside its radius (lamp %.1f)" % g.lamp)
+	g.nerve_aura_t = 0.0
+	g.lamp = 100.0
+	g.eai.pattern(mi, Vector2.RIGHT, float(md.scream_r) + 20.0, 0.5, mi.spd)
+	check(g.lamp == 100.0, "mimic scream does not drain lamp outside its radius")
 	g.eai.pattern(mi, Vector2.RIGHT, float(md.scream_r) + 20.0, 0.05, mi.spd)
 	check(g.nerve_aura_t <= 0.0, "mimic scream does not reach outside its radius")
 	g.t = float(mi.scream_t1) + 0.01

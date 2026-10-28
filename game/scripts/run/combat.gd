@@ -180,9 +180,11 @@ func update_nerve(dt: float, in_src: bool, sanct: bool, mire_mult := 1.0) -> voi
 	g.nerve_lock = maxf(0.0, g.nerve_lock - dt)
 	var aura: bool = g.nerve_aura_t > 0.0 and not sanct
 	g.nerve_aura_t = maxf(0.0, g.nerve_aura_t - dt)
+	var aura_k: float = g.nerve_aura_k
+	g.nerve_aura_k = 1.0   # 箱形恐鱼尖叫每帧重设；其他光环不带倍率
 	if ((in_src and not sanct) or aura) and g.nerve_lock <= 0.0:
 		g.telemetry.on_status("nerve", "" if in_src else g.telemetry.aura_type, dt)   # 溟痕 = 环境；神经光环 = 放光环的敌人
-		add_nerve(Bal.v("enemy/nerve_mire", 12.0) * float(g.dmod.get("nerve_rate", 1.0)) * g.nerve_taken_mult * (1.0 if aura else mire_mult) * dt)
+		add_nerve(Bal.v("enemy/nerve_mire", 12.0) * float(g.dmod.get("nerve_rate", 1.0)) * g.nerve_taken_mult * (aura_k if aura else mire_mult) * dt)
 	else:
 		g.nerve = maxf(0.0, g.nerve - Bal.v("enemy/nerve_decay", 10.0) * (2.0 if sanct else 1.0) * dt)
 
