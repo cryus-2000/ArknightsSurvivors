@@ -4,7 +4,9 @@ extends RefCounted
 ## 1 = A 编队卡加强：卡下 9 像素分段条 + 受击残影；低血卡框红色呼吸；倒地整卡压灰、卡中央复活环 + 读秒，队长在旁写「加速」
 ## 2 = B 跟人走：编队卡不画血条；头顶条放大（44×6，分段 + 残影）、突击中常显，倒地头顶写读秒
 ## 3 = C 左侧生命列：屏幕左侧中段竖排「头像 + 名字 + 血条」，倒地行压灰写读秒；编队卡不画血条
-## 1–3 共用：屏外边缘头像外圈 = 血量弧（倒地 = 灰色复活进度弧 + 读秒），低血外圈红色呼吸；多个标记挤在一起时沿边错开。
+## 4 = 队长血条下（10-28 用户「队友的血条能不能挪到我们的血条下面」）：左上队长生命条正下方，每名队友一行「职业色小块 + 名字 + 分段条」，
+##     与队长条左对齐、同宽；倒地条换复活进度、条右写「倒地 N」；下面的灯火行与状态胶囊整体下移 top_shift()
+## 1–4 共用：屏外边缘头像外圈 = 血量弧（倒地 = 灰色复活进度弧 + 读秒），低血外圈红色呼吸；多个标记挤在一起时沿边错开。
 ## 全部每帧画在 hud 的 front 块（不进编队栏缓存层），原型阶段不追求合批
 const UI = preload("res://scripts/ui.gd")
 const Bal = preload("res://scripts/core/balance.gd")
@@ -95,6 +97,8 @@ func draw(vs: Vector2) -> void:
 		_draw_cards(vs)
 	elif s == 3:
 		_draw_column(vs)
+	elif s == 4:
+		_draw_under_leader()
 
 
 # ---------------------------------------------------------------- A：编队卡
@@ -163,7 +167,7 @@ func _draw_column(vs: Vector2) -> void:
 	var touch: bool = g.touch.active
 	var x0 := 16.0
 	var y0: float = 150.0 if not touch else 118.0
-	var w := 150.0
+	var w := 178.0
 	var roam: bool = g.squad.stance == g.squad.ROAM
 	var a: float = 1.0 if roam or ms.any(func(o): return o.cmd_down > 0.0 or o.cmd_hp < 0.999) else 0.5
 	for i in ms.size():
@@ -199,9 +203,11 @@ func guide_rect(vs: Vector2) -> Rect2:
 	var ms: Array = _mates()
 	if ms.is_empty():
 		return Rect2()
+	if int(Bal.v("command/hpbar_style", 0.0)) == 4:
+		return Rect2(Vector2(UL_X - 8.0, UL_Y - 4.0), Vector2(UL_W + 52.0, ms.size() * UL_ROW + 6.0))
 	if int(Bal.v("command/hpbar_style", 0.0)) == 3:
 		var y0: float = 150.0 if not g.touch.active else 118.0
-		return Rect2(Vector2(10.0, y0 - 6.0), Vector2(162.0, ms.size() * COL_ROW + 6.0))
+		return Rect2(Vector2(10.0, y0 - 6.0), Vector2(190.0, ms.size() * COL_ROW + 6.0))
 	var sq = h.squad
 	var br := Vector2(vs.x - 16, vs.y - 16)
 	var x_first := INF
@@ -213,6 +219,43 @@ func guide_rect(vs: Vector2) -> Rect2:
 		x_first = minf(x_first, x)
 		x_last = maxf(x_last, x + sq.SQ_CARD.x)
 	return Rect2(Vector2(x_first - 6.0, br.y - sq.SQ_CARD.y - 6.0), Vector2(x_last - x_first + 12.0, sq.SQ_CARD.y + 20.0))
+
+
+# ---------------------------------------------------------------- 4：队长血条下
+
+const UL_X := 80.0          # = hud_bars.draw_top_left 的生命条 hx（o.x 16 + 64）
+const UL_Y := 74.0          # 生命条底 63、神经细条底 68 之下
+const UL_ROW := 15.0
+const UL_W := 150.0         # 与队长生命条同宽
+
+## 样式 4 时左上灯火行 / 状态胶囊要下移的像素（没有队友或不是样式 4 = 0）
+func top_shift() -> float:
+	if style() != 4 or h.phone_quiet():
+		return 0.0
+	var n: int = _mates().size()
+	return n * UL_ROW + 4.0 if n > 0 else 0.0
+
+
+func _draw_under_leader() -> void:
+	if top_shift() <= 0.0:
+		return
+	var ms: Array = _mates()
+	var roam: bool = g.squad.stance == g.squad.ROAM
+	var a: float = 1.0 if roam or ms.any(func(o): return o.cmd_down > 0.0 or o.cmd_hp < 0.999) else 0.6
+	for i in ms.size():
+		var o = ms[i]
+		var y: float = UL_Y + i * UL_ROW
+		var oc: Color = Character.CLASS_COL.get(o.cls, UI.CYAN)
+		var down: bool = o.cmd_down > 0.0
+		g.hud.draw_rect(Rect2(UL_X - 4.0, y - 1.0, 2.0, 11.0), Color(oc.r, oc.g, oc.b, a))   # 职业色小块（同编队卡底条 / 屏外头像外圈）
+		var nm: String = o.display_name().substr(0, 4)
+		UI.text(g.hud, g.font, Vector2(UL_X + 1.0, y + 9.0), nm, 10, Color(0.81, 0.84, 0.86, a) if not down else Color(0.6, 0.62, 0.65, a), HORIZONTAL_ALIGNMENT_LEFT, 48.0, 2)
+		var r := Rect2(Vector2(UL_X + 52.0, y + 3.0), Vector2(UL_W - 52.0, 5.0))
+		if not down and o.cmd_hp <= LOW:
+			g.hud.draw_rect(r.grow(2.5), Color(UI.RED.r, UI.RED.g, UI.RED.b, (0.3 + 0.5 * pulse()) * a), false, 1.5)
+		bar(r, o, a)
+		if down:
+			UI.text(g.hud, g.font, Vector2(r.end.x + 6.0, y + 9.0), "倒地 %d" % int(ceil(o.cmd_down)), 10, UI.GOLD if boosted(o) else UI.RED, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 2)
 
 
 # ---------------------------------------------------------------- 屏外边缘头像（1–3 共用，banners.draw_command 调）

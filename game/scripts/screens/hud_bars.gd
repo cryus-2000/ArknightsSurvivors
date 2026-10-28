@@ -133,7 +133,7 @@ func draw_lamp_strip(vs: Vector2) -> void:
 			return
 		st_txt = st_txt.get_slice(" · ", 0)
 	h.batch_begin()
-	UI.strip(g.hud, g.font, o + Vector2(2, 66), st_en, st_txt, st_col, st_col.lerp(UI.TEXT, 0.45))
+	UI.strip(g.hud, g.font, o + Vector2(2, 66 + h.allyhp.top_shift()), st_en, st_txt, st_col, st_col.lerp(UI.TEXT, 0.45))   # 队友血条在队长血条下（hud_allyhp 样式 4）时整行下移
 	h.batch_end()
 
 
@@ -455,7 +455,7 @@ func draw_status_bar(vs: Vector2) -> void:
 
 ## 状态条缓存块（hud 的 status）的签名：本帧的标签片列表（文字 / 颜色 / 进度条长度按 1/8 像素量化）+ 换行宽度
 func status_sig(vs: Vector2, items: Array) -> Array:
-	var sig: Array = [vs, boss_bars().is_empty(), g.touch.active]
+	var sig: Array = [vs, boss_bars().is_empty(), g.touch.active, h.allyhp.top_shift()]
 	for it in items:
 		sig.append([it[0], it[1], h.qpx(100.0 * float(it[2])) if float(it[2]) >= 0.0 else -1])
 	return sig
@@ -535,7 +535,7 @@ func draw_status(vs: Vector2, items: Array) -> void:
 		return
 	var ph: bool = Cfg.phone_ui()
 	var x := 18.0
-	var y := 80.0 if ph and g.lamp > 0.0 else 104.0   # 手机：灯火行不常驻，胶囊上移补位
+	var y: float = (80.0 if ph and g.lamp > 0.0 else 104.0) + h.allyhp.top_shift()   # 手机：灯火行不常驻，胶囊上移补位；队友血条在队长血条下时下移
 	var fs := 12   # 手机局内经 UI.fs 放大到约 14（docs/37 下限之上）
 	# 换行宽度（§1.15）：min(360, Boss 细血条左边 − 8)，有 Boss 血条时不钻到血条下面
 	var wrap_x := 360.0
