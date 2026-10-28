@@ -22,6 +22,7 @@ func _ready() -> void:
 		check_super_armor()
 		check_reborn()
 		check_acts()
+		check_reborn3()
 	print("KNIGHT COMBO failures=",failures)
 	g.queue_free()
 	await get_tree().process_frame
@@ -253,3 +254,63 @@ func check_acts() -> void:
 	check(bolts,"act two spear raises bursting ice prisms")
 	var ej: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/enemies.json"))
 	check(is_equal_approx(float(ej.enemies.knight_boss.gates[1]),0.5),"third act starts at 50 percent")
+
+## docs/171 重生 v3：长驱冲锋撞场边眩晕、绕场巡猎掷冰枪后破绽、Z 字三连第二冲折 90°
+func check_reborn3() -> void:
+	var script = g.bai.boss("knight_boss")
+	var zf = g.zone_frozen
+	var zc = g.zone_next_c
+	var zr = g.zone_next_r
+	var zc2 = g.zone_c
+	var zr2 = g.zone_r
+	g.zone_frozen = true
+	g.zone_next_c = Vector2.ZERO
+	g.zone_next_r = 600.0
+	g.zone_c = Vector2.ZERO
+	g.zone_r = 600.0
+	var e: Dictionary = fresh(2)
+	check(script.force_move(e,"长驱冲锋",Vector2.RIGHT,350),"reborn drive starts")
+	var stunned := false
+	var moved := 0.0
+	for i in 100:
+		var p0: Vector2 = e.pos
+		e.pos += e.kb*0.05
+		tick(e)
+		moved += e.pos.distance_to(p0)
+		stunned = stunned or str(e.get("brk_label",""))=="眩晕"
+		if stunned: break
+	check(stunned and not e.has("kn_drive"),"reborn drive crashes into the arena edge and stuns")
+	check(e.get("ice_strips",[]).size()>=2,"reborn drive leaves ice behind")
+	e = fresh(2)
+	g.ppos = Vector2(100,0)
+	check(script.force_move(e,"绕场巡猎",Vector2.RIGHT,100),"reborn lap starts")
+	var lances := 0
+	var brk := false
+	var far := 0.0
+	for i in 200:
+		var n0: int = g.warns.size()
+		tick(e)
+		far = maxf(far,e.pos.length())
+		lances += g.warns.slice(n0).filter(func(w):return w.get("skin","")=="ice_lance").size()
+		if e.get("break_t",0.0)>0.0: brk = true
+		if brk: break
+		e.pos += e.kb*0.05
+	check(far>=script._rim(e)-40.0,"reborn lap runs along the arena rim")
+	check(lances>=6,"reborn lap throws ice lances")
+	check(brk,"reborn lap ends in a break")
+	e = fresh(2)
+	e.kn_z = {"k":0,"t":g.t}
+	script._charge(e,Vector2.RIGHT)
+	var angs: Array = []
+	for i in 120:
+		var n0: int = g.warns.size()
+		tick(e)
+		for w in g.warns.slice(n0):
+			if w.act=="dash": angs.append(float(w.ang))
+		if angs.size()>=1: break
+	check(angs.size()>=1 and absf(absf(angle_difference(float(e.kn_z.a),float(angs[0])))-PI*0.5)<0.05,"reborn triple turns 90 degrees")
+	g.zone_frozen = zf
+	g.zone_next_c = zc
+	g.zone_next_r = zr
+	g.zone_c = zc2
+	g.zone_r = zr2
