@@ -332,12 +332,25 @@ static func model(raw: Dictionary) -> Dictionary:
 
 
 ## 对局记录（10-29 用户：结算「对局记录」改游戏内面板，点一局看它的作战记录）：runs.jsonl 的一行 → 原始记录（喂 model）。
-## 文件写入不动，所以只还原记录里有的：每名干员的合计（op_stats，没有分来源明细，详情页只列主要来源）、承伤 / 回复来源、
+## 10-29 起的行带 run.rs（完整原始数据）直接用；更早的行只还原记录里有的：每名干员的合计（op_stats，没有分来源明细，详情页只列主要来源）、承伤 / 回复来源、
 ## 藏品（relic_take 的拾取顺序）、击倒者（bot.death_src 按 telemetry.on_lose 的归属规则）、Boss 击破数（bosses 的 dead）。
 ## 没记的（最高单次、源石锭、时间线）留空；rl = 藏品表（g.RL）
 static func from_log(line: Dictionary, rl: Dictionary) -> Dictionary:
 	var meta: Dictionary = line.get("meta", {})
 	var run: Dictionary = line.get("run", {})
+	if run.get("rs") is Dictionary:   # 10-29 起的记录存了完整原始数据（telemetry.rs_compact）：和结算里打开的一样全
+		var raw: Dictionary = (run.rs as Dictionary).duplicate(true)
+		for it in raw.get("relic_list", []):
+			var id := str(it.get("id", ""))
+			var rd: Dictionary = rl.get(id, rl.get(int(id), {})) if id.is_valid_int() else rl.get(id, {})
+			it["name"] = str(rd.get("name", id))
+			it["cat"] = str(rd.get("cat", ""))
+			it["rarity"] = str(rd.get("rarity", ""))
+			it["desc"] = str(rd.get("desc", ""))
+		raw["quit"] = str(meta.get("result", "")) == "quit"
+		if raw.quit:
+			raw.killer = {}
+		return raw
 	var bot: Dictionary = run.get("bot", {})
 	var won: bool = str(meta.get("result", "")) == "win"
 	var lead_id := str(meta.get("start_op", ""))
