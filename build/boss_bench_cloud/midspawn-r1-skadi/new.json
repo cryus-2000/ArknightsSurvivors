@@ -1,0 +1,6593 @@
+{
+ "tag": "new",
+ "game": "/home/user/bench_new_midspawn-r1-skadi/game",
+ "records": [
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 10,
+   "wall": 21.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.424,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.553,
+   "brk_time_share": 0.349,
+   "dmg": 6473.0,
+   "fight_t": 85.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 166.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s10_slot1",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "lumen"
+   ],
+   "taken": 386.1,
+   "taken_pct": 2.329,
+   "win": false
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 11,
+   "wall": 21.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.42,
+   "brk_time_share": 0.337,
+   "dmg": 11233.0,
+   "fight_t": 84.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s11_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "kaltsit"
+   ],
+   "taken": 204.3,
+   "taken_pct": 1.587,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 12,
+   "wall": 24.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.534,
+   "brk_time_share": 0.342,
+   "dmg": 11233.0,
+   "fight_t": 96.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.393,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s12_slot1",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "lappland"
+   ],
+   "taken": 419.0,
+   "taken_pct": 2.755,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 13,
+   "wall": 21.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.481,
+   "brk_time_share": 0.371,
+   "dmg": 11233.0,
+   "fight_t": 77.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s13_slot1",
+   "squad": [
+    "skadi",
+    "siege",
+    "lappland"
+   ],
+   "taken": 213.3,
+   "taken_pct": 1.403,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 14,
+   "wall": 25.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.315,
+   "brk_time_share": 0.214,
+   "dmg": 11233.0,
+   "fight_t": 128.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.997,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 160.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s14_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "mizuki"
+   ],
+   "taken": 576.5,
+   "taken_pct": 3.61,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 15,
+   "wall": 21.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.467,
+   "brk_time_share": 0.346,
+   "dmg": 11233.0,
+   "fight_t": 96.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.887,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s15_slot1",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "hoshiguma"
+   ],
+   "taken": 204.7,
+   "taken_pct": 1.346,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 16,
+   "wall": 14.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.947,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.246,
+   "brk_time_share": 0.296,
+   "dmg": 597.0,
+   "fight_t": 17.2,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s16_slot1",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "kaltsit"
+   ],
+   "taken": 206.0,
+   "taken_pct": 1.354,
+   "win": false
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 15.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.51,
+   "brk_time_share": 0.298,
+   "dmg": 11233.0,
+   "fight_t": 29.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.87,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 178.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s1_slot1",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "logos"
+   ],
+   "taken": 43.2,
+   "taken_pct": 0.243,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 17.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.481,
+   "brk_time_share": 0.321,
+   "dmg": 11233.0,
+   "fight_t": 51.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.892,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 167.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s2_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "logos"
+   ],
+   "taken": 108.9,
+   "taken_pct": 0.716,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 14.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.533,
+   "brk_time_share": 0.304,
+   "dmg": 11233.0,
+   "fight_t": 34.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s3_slot1",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "angelina"
+   ],
+   "taken": 14.9,
+   "taken_pct": 0.098,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 16.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.462,
+   "brk_time_share": 0.327,
+   "dmg": 11233.0,
+   "fight_t": 58.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s4_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "angelina"
+   ],
+   "taken": 63.8,
+   "taken_pct": 0.42,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 21.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.17,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.446,
+   "brk_time_share": 0.343,
+   "dmg": 9320.0,
+   "fight_t": 93.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s5_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "exusiai"
+   ],
+   "taken": 524.0,
+   "taken_pct": 3.445,
+   "win": false
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 17.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.158,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.405,
+   "brk_time_share": 0.378,
+   "dmg": 9457.0,
+   "fight_t": 69.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 12,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s6_slot1",
+   "squad": [
+    "skadi",
+    "angelina",
+    "kaltsit"
+   ],
+   "taken": 271.1,
+   "taken_pct": 1.782,
+   "win": false
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 7,
+   "wall": 20.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.335,
+   "brk_time_share": 0.323,
+   "dmg": 11233.0,
+   "fight_t": 82.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.789,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 165.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s7_slot1",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "lappland"
+   ],
+   "taken": 172.2,
+   "taken_pct": 1.043,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 8,
+   "wall": 19.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.429,
+   "brk_time_share": 0.356,
+   "dmg": 11233.0,
+   "fight_t": 104.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.53,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s8_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "taken": 356.1,
+   "taken_pct": 2.341,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 9,
+   "wall": 18.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.106,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.38,
+   "brk_time_share": 0.341,
+   "dmg": 10045.0,
+   "fight_t": 77.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s9_slot1",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "taken": 274.3,
+   "taken_pct": 1.803,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 10,
+   "wall": 28.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.72,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.044,
+   "brk_time_share": 0.37,
+   "dmg": 3175.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.881,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 166.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 1,
+   "snap": "skadi_m0_s10_slot1",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "lumen"
+   ],
+   "taken": 804.1,
+   "taken_pct": 4.85,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 11,
+   "wall": 21.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.405,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.203,
+   "brk_time_share": 0.295,
+   "dmg": 6745.0,
+   "fight_t": 122.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s11_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "kaltsit"
+   ],
+   "taken": 699.8,
+   "taken_pct": 5.438,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 12,
+   "wall": 27.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.471,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.653,
+   "brk_time_share": 0.44,
+   "dmg": 5994.0,
+   "fight_t": 162.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s12_slot1",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "lappland"
+   ],
+   "taken": 823.8,
+   "taken_pct": 5.416,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 13,
+   "wall": 18.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.452,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.443,
+   "brk_time_share": 0.34,
+   "dmg": 6215.0,
+   "fight_t": 98.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s13_slot1",
+   "squad": [
+    "skadi",
+    "siege",
+    "lappland"
+   ],
+   "taken": 560.5,
+   "taken_pct": 3.685,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 14,
+   "wall": 18.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.477,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.542,
+   "brk_time_share": 0.288,
+   "dmg": 5934.0,
+   "fight_t": 99.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 160.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s14_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "mizuki"
+   ],
+   "taken": 595.6,
+   "taken_pct": 3.729,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 15,
+   "wall": 19.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.616,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.064,
+   "brk_time_share": 0.31,
+   "dmg": 4359.0,
+   "fight_t": 97.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s15_slot1",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "hoshiguma"
+   ],
+   "taken": 412.0,
+   "taken_pct": 2.709,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 16,
+   "wall": 13.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.933,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 758.0,
+   "fight_t": 20.9,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s16_slot1",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "kaltsit"
+   ],
+   "taken": 223.1,
+   "taken_pct": 1.467,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 14.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.272,
+   "brk_time_share": 0.18,
+   "dmg": 11341.0,
+   "fight_t": 40.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.84,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 178.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s1_slot1",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "logos"
+   ],
+   "taken": 128.9,
+   "taken_pct": 0.724,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 27.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.344,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.723,
+   "brk_time_share": 0.439,
+   "dmg": 7444.0,
+   "fight_t": 149.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 167.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s2_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "logos"
+   ],
+   "taken": 953.3,
+   "taken_pct": 6.268,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 20.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.31,
+   "dmg": 11341.0,
+   "fight_t": 117.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.874,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s3_slot1",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "angelina"
+   ],
+   "taken": 380.5,
+   "taken_pct": 2.502,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 17.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.455,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.083,
+   "brk_time_share": 0.324,
+   "dmg": 6176.0,
+   "fight_t": 72.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s4_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "angelina"
+   ],
+   "taken": 324.1,
+   "taken_pct": 2.131,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 25.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.739,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.102,
+   "brk_time_share": 0.344,
+   "dmg": 2956.0,
+   "fight_t": 127.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s5_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "exusiai"
+   ],
+   "taken": 629.5,
+   "taken_pct": 4.139,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 13.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.691,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.489,
+   "brk_time_share": 0.343,
+   "dmg": 3508.0,
+   "fight_t": 47.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 12,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s6_slot1",
+   "squad": [
+    "skadi",
+    "angelina",
+    "kaltsit"
+   ],
+   "taken": 251.2,
+   "taken_pct": 1.652,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 7,
+   "wall": 22.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.154,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.054,
+   "brk_time_share": 0.331,
+   "dmg": 9597.0,
+   "fight_t": 141.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 165.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s7_slot1",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "lappland"
+   ],
+   "taken": 472.8,
+   "taken_pct": 2.864,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 8,
+   "wall": 20.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.121,
+   "brk_time_share": 0.258,
+   "dmg": 11341.0,
+   "fight_t": 141.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.644,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m0_s8_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "taken": 386.0,
+   "taken_pct": 2.538,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 9,
+   "wall": 19.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.541,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.077,
+   "brk_time_share": 0.307,
+   "dmg": 5204.0,
+   "fight_t": 98.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m0_s9_slot1",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "taken": 394.3,
+   "taken_pct": 2.592,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 10,
+   "wall": 32.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.367,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.418,
+   "brk_time_share": 0.229,
+   "dmg": 11868.0,
+   "fight_t": 152.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 162.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s10_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "lumen"
+   ],
+   "taken": 757.8,
+   "taken_pct": 5.079,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 11,
+   "wall": 26.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.487,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.079,
+   "brk_time_share": 0.273,
+   "dmg": 9613.0,
+   "fight_t": 120.8,
+   "fp_diff": [],
+   "hp0_frac": 0.998,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 18,
+   "max_hp": 135.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s11_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "kaltsit"
+   ],
+   "taken": 884.4,
+   "taken_pct": 6.872,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 12,
+   "wall": 34.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.612,
+   "brk_time_share": 0.327,
+   "dmg": 9208.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.977,
+   "leader": "skadi",
+   "level": 22,
+   "max_hp": 240.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m0_s12_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "lappland"
+   ],
+   "taken": 420.1,
+   "taken_pct": 3.069,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 13,
+   "wall": 16.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.22,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.429,
+   "brk_time_share": 0.222,
+   "dmg": 14619.0,
+   "fight_t": 25.6,
+   "fp_diff": [
+    "mods.followup_dmg: 多 [\"1|0.2|relic:80|lane:summon\"]",
+    "relics.80: 多 1.0"
+   ],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 19,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s13_slot2",
+   "squad": [
+    "skadi",
+    "siege",
+    "lappland"
+   ],
+   "taken": 226.4,
+   "taken_pct": 1.489,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 14,
+   "wall": 15.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.969,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.12,
+   "dmg": 578.0,
+   "fight_t": 24.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 17,
+   "max_hp": 144.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s14_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "mizuki"
+   ],
+   "taken": 284.3,
+   "taken_pct": 1.78,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 15,
+   "wall": 17.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.928,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.155,
+   "dmg": 1348.0,
+   "fight_t": 39.1,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 17,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s15_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "hoshiguma"
+   ],
+   "taken": 264.1,
+   "taken_pct": 1.736,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 16,
+   "wall": 17.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.344,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.729,
+   "brk_time_share": 0.323,
+   "dmg": 12295.0,
+   "fight_t": 40.1,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 18,
+   "max_hp": 139.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s16_slot2",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "kaltsit"
+   ],
+   "taken": 248.8,
+   "taken_pct": 1.789,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 16.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.237,
+   "brk_time_share": 0.127,
+   "dmg": 18735.0,
+   "fight_t": 41.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.936,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 178.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s1_slot2",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "logos"
+   ],
+   "taken": 53.6,
+   "taken_pct": 0.301,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 19.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.329,
+   "brk_time_share": 0.26,
+   "dmg": 18735.0,
+   "fight_t": 75.5,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.396,
+   "leader": "skadi",
+   "level": 18,
+   "max_hp": 139.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s2_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "logos"
+   ],
+   "taken": 496.6,
+   "taken_pct": 3.265,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 16.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.38,
+   "brk_time_share": 0.216,
+   "dmg": 18735.0,
+   "fight_t": 48.3,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s3_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "angelina"
+   ],
+   "taken": 38.8,
+   "taken_pct": 0.255,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 18.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.449,
+   "brk_time_share": 0.24,
+   "dmg": 18735.0,
+   "fight_t": 60.1,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 157.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s4_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "angelina"
+   ],
+   "taken": 118.8,
+   "taken_pct": 0.744,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 14.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.776,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.059,
+   "brk_time_share": 0.124,
+   "dmg": 4190.0,
+   "fight_t": 24.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 17,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s5_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "exusiai"
+   ],
+   "taken": 280.8,
+   "taken_pct": 1.846,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 26.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.369,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.456,
+   "brk_time_share": 0.273,
+   "dmg": 11823.0,
+   "fight_t": 111.1,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 183.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s6_slot2",
+   "squad": [
+    "skadi",
+    "angelina",
+    "kaltsit"
+   ],
+   "taken": 652.2,
+   "taken_pct": 3.573,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 7,
+   "wall": 13.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.504,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.114,
+   "brk_time_share": 0.175,
+   "dmg": 9292.0,
+   "fight_t": 24.2,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 18,
+   "max_hp": 165.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s7_slot2",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "lappland"
+   ],
+   "taken": 203.1,
+   "taken_pct": 1.23,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 8,
+   "wall": 35.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.365,
+   "brk_time_share": 0.235,
+   "dmg": 11768.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.94,
+   "leader": "skadi",
+   "level": 23,
+   "max_hp": 178.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m0_s8_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "taken": 764.2,
+   "taken_pct": 5.024,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 9,
+   "wall": 34.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.507,
+   "brk_time_share": 0.278,
+   "dmg": 11938.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.128,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 139.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m0_s9_slot2",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "taken": 536.6,
+   "taken_pct": 3.858,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 10,
+   "wall": 37.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.421,
+   "brk_time_share": 0.356,
+   "dmg": 18362.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 180.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m0_s10_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "lumen"
+   ],
+   "taken": 581.3,
+   "taken_pct": 3.896,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 11,
+   "wall": 20.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.392,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.729,
+   "brk_time_share": 0.334,
+   "dmg": 10413.0,
+   "fight_t": 59.2,
+   "fp_diff": [],
+   "hp0_frac": 0.998,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 17,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s11_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "kaltsit"
+   ],
+   "taken": 485.7,
+   "taken_pct": 3.774,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 12,
+   "wall": 22.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.653,
+   "brk_time_share": 0.348,
+   "dmg": 17137.0,
+   "fight_t": 86.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.938,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 137.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s12_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "lappland"
+   ],
+   "taken": 204.3,
+   "taken_pct": 1.492,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 13,
+   "wall": 11.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.989,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 186.0,
+   "fight_t": 4.6,
+   "fp_diff": [
+    "mods.followup_dmg: 多 [\"1|0.2|relic:80|lane:summon\"]",
+    "relics.80: 多 1.0"
+   ],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 19,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s13_slot2",
+   "squad": [
+    "skadi",
+    "siege",
+    "lappland"
+   ],
+   "taken": 179.8,
+   "taken_pct": 1.182,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 14,
+   "wall": 39.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.195,
+   "brk_time_share": 0.171,
+   "dmg": 12410.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 19,
+   "max_hp": 144.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m0_s14_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "mizuki"
+   ],
+   "taken": 476.0,
+   "taken_pct": 2.981,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 15,
+   "wall": 14.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.899,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.595,
+   "brk_time_share": 0.335,
+   "dmg": 1733.0,
+   "fight_t": 18.1,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 16,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s15_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "hoshiguma"
+   ],
+   "taken": 210.2,
+   "taken_pct": 1.382,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 16,
+   "wall": 17.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.375,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.629,
+   "brk_time_share": 0.325,
+   "dmg": 10715.0,
+   "fight_t": 39.6,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 18,
+   "max_hp": 139.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s16_slot2",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "kaltsit"
+   ],
+   "taken": 276.0,
+   "taken_pct": 1.984,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 15.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.773,
+   "brk_time_share": 0.341,
+   "dmg": 17137.0,
+   "fight_t": 25.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 178.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s1_slot2",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "logos"
+   ],
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 15.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.588,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.541,
+   "brk_time_share": 0.351,
+   "dmg": 7054.0,
+   "fight_t": 28.2,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 17,
+   "max_hp": 139.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s2_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "logos"
+   ],
+   "taken": 264.0,
+   "taken_pct": 1.735,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 20.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.642,
+   "brk_time_share": 0.323,
+   "dmg": 21659.0,
+   "fight_t": 70.6,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s3_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "angelina"
+   ],
+   "taken": 84.9,
+   "taken_pct": 0.558,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 37.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.505,
+   "brk_time_share": 0.322,
+   "dmg": 26108.0,
+   "fight_t": 180.0,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 23,
+   "max_hp": 181.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m0_s4_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "angelina"
+   ],
+   "taken": 240.2,
+   "taken_pct": 1.504,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 38.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.672,
+   "brk_time_share": 0.396,
+   "dmg": 8635.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 190.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m0_s5_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "exusiai"
+   ],
+   "taken": 729.9,
+   "taken_pct": 4.799,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 27.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.336,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.487,
+   "brk_time_share": 0.362,
+   "dmg": 11380.0,
+   "fight_t": 102.1,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 183.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s6_slot2",
+   "squad": [
+    "skadi",
+    "angelina",
+    "kaltsit"
+   ],
+   "taken": 457.9,
+   "taken_pct": 2.509,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 7,
+   "wall": 17.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.654,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.607,
+   "brk_time_share": 0.296,
+   "dmg": 5936.0,
+   "fight_t": 30.8,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 18,
+   "max_hp": 165.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s7_slot2",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "lappland"
+   ],
+   "taken": 215.9,
+   "taken_pct": 1.308,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 8,
+   "wall": 22.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.613,
+   "brk_time_share": 0.347,
+   "dmg": 17137.0,
+   "fight_t": 85.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s8_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "taken": 129.4,
+   "taken_pct": 0.851,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 9,
+   "wall": 36.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.269,
+   "brk_time_share": 0.067,
+   "dmg": 11429.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.772,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 265.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m0_s9_slot2",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "taken": 407.0,
+   "taken_pct": 2.926,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 10,
+   "wall": 31.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.276,
+   "brk_time_share": 0.166,
+   "dmg": 21421.0,
+   "fight_t": 121.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 162.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s10_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "lumen"
+   ],
+   "taken": 615.7,
+   "taken_pct": 4.126,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 11,
+   "wall": 42.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.356,
+   "brk_time_share": 0.131,
+   "dmg": 18251.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 0.998,
+   "hp_end_frac": 0.923,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 129.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m0_s11_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "kaltsit"
+   ],
+   "taken": 1203.5,
+   "taken_pct": 9.351,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 12,
+   "wall": 40.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.264,
+   "brk_time_share": 0.169,
+   "dmg": 19361.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 23,
+   "max_hp": 137.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m0_s12_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "lappland"
+   ],
+   "taken": 533.3,
+   "taken_pct": 3.896,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 13,
+   "wall": 12.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 1.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 0.0,
+   "fight_t": 4.4,
+   "fp_diff": [
+    "mods.followup_dmg: 多 [\"1|0.2|relic:80|lane:summon\"]",
+    "relics.80: 多 1.0"
+   ],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 19,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s13_slot2",
+   "squad": [
+    "skadi",
+    "siege",
+    "lappland"
+   ],
+   "taken": 170.5,
+   "taken_pct": 1.121,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 14,
+   "wall": 41.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.102,
+   "brk_time_share": 0.017,
+   "dmg": 13717.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 189.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m0_s14_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "mizuki"
+   ],
+   "taken": 534.8,
+   "taken_pct": 3.349,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 15,
+   "wall": 16.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.808,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.44,
+   "brk_time_share": 0.213,
+   "dmg": 2839.0,
+   "fight_t": 28.4,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 16,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s15_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "hoshiguma"
+   ],
+   "taken": 227.8,
+   "taken_pct": 1.498,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 16,
+   "wall": 27.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.535,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.519,
+   "brk_time_share": 0.25,
+   "dmg": 13530.0,
+   "fight_t": 91.3,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 19,
+   "max_hp": 139.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s16_slot2",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "kaltsit"
+   ],
+   "taken": 478.3,
+   "taken_pct": 3.439,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 1,
+   "wall": 16.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.313,
+   "brk_time_share": 0.214,
+   "dmg": 14757.0,
+   "fight_t": 30.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.947,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 178.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s1_slot2",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "logos"
+   ],
+   "taken": 23.9,
+   "taken_pct": 0.134,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 2,
+   "wall": 30.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.258,
+   "brk_time_share": 0.175,
+   "dmg": 21421.0,
+   "fight_t": 132.8,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.862,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 139.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s2_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "logos"
+   ],
+   "taken": 726.5,
+   "taken_pct": 4.776,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 3,
+   "wall": 22.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.43,
+   "brk_time_share": 0.179,
+   "dmg": 21421.0,
+   "fight_t": 91.7,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.935,
+   "leader": "skadi",
+   "level": 22,
+   "max_hp": 178.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s3_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "angelina"
+   ],
+   "taken": 169.0,
+   "taken_pct": 1.111,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 4,
+   "wall": 28.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.24,
+   "brk_time_share": 0.107,
+   "dmg": 21421.0,
+   "fight_t": 124.1,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 22,
+   "max_hp": 144.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s4_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "angelina"
+   ],
+   "taken": 275.6,
+   "taken_pct": 1.725,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 5,
+   "wall": 38.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.336,
+   "brk_time_share": 0.263,
+   "dmg": 16821.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m0_s5_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "exusiai"
+   ],
+   "taken": 720.4,
+   "taken_pct": 4.736,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 6,
+   "wall": 27.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.571,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.432,
+   "brk_time_share": 0.251,
+   "dmg": 12997.0,
+   "fight_t": 106.3,
+   "fp_diff": [
+    "stats.speed: 178.2 -> 165.0"
+   ],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 19,
+   "max_hp": 183.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s6_slot2",
+   "squad": [
+    "skadi",
+    "angelina",
+    "kaltsit"
+   ],
+   "taken": 555.2,
+   "taken_pct": 3.042,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 7,
+   "wall": 15.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.34,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.446,
+   "brk_time_share": 0.231,
+   "dmg": 9743.0,
+   "fight_t": 31.7,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 18,
+   "max_hp": 165.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m0_s7_slot2",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "lappland"
+   ],
+   "taken": 219.6,
+   "taken_pct": 1.33,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 8,
+   "wall": 29.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.445,
+   "brk_time_share": 0.198,
+   "dmg": 25467.0,
+   "fight_t": 133.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 175.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m0_s8_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "wisadel"
+   ],
+   "taken": 599.6,
+   "taken_pct": 3.942,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 0,
+   "seed": 9,
+   "wall": 37.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.456,
+   "brk_time_share": 0.148,
+   "dmg": 19503.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 139.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m0_s9_slot2",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "exusiai"
+   ],
+   "taken": 423.7,
+   "taken_pct": 3.046,
+   "win": false
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 10,
+   "wall": 19.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.201,
+   "brk_time_share": 0.19,
+   "dmg": 11233.0,
+   "fight_t": 55.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s10_slot1",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "ulpianus"
+   ],
+   "taken": 114.8,
+   "taken_pct": 0.755,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 11,
+   "wall": 16.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.41,
+   "brk_time_share": 0.212,
+   "dmg": 11233.0,
+   "fight_t": 21.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.984,
+   "leader": "skadi",
+   "level": 12,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s11_slot1",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "logos"
+   ],
+   "taken": 8.3,
+   "taken_pct": 0.055,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 12,
+   "wall": 26.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.609,
+   "brk_time_share": 0.346,
+   "dmg": 11233.0,
+   "fight_t": 117.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.396,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 210.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s12_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "irene"
+   ],
+   "taken": 357.7,
+   "taken_pct": 2.24,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 13,
+   "wall": 19.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.287,
+   "brk_time_share": 0.312,
+   "dmg": 11233.0,
+   "fight_t": 56.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.775,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s13_slot1",
+   "squad": [
+    "skadi",
+    "siege",
+    "texas"
+   ],
+   "taken": 186.0,
+   "taken_pct": 1.223,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 14,
+   "wall": 14.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.346,
+   "brk_time_share": 0.204,
+   "dmg": 11233.0,
+   "fight_t": 22.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s14_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "logos"
+   ],
+   "taken": 0.0,
+   "taken_pct": 0.0,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 15,
+   "wall": 14.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.504,
+   "brk_time_share": 0.304,
+   "dmg": 11233.0,
+   "fight_t": 31.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s15_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "gladiia"
+   ],
+   "taken": 30.3,
+   "taken_pct": 0.2,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 16,
+   "wall": 17.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.45,
+   "brk_time_share": 0.32,
+   "dmg": 11233.0,
+   "fight_t": 69.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.774,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s16_slot1",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "gladiia"
+   ],
+   "taken": 152.7,
+   "taken_pct": 1.004,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 17.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.552,
+   "brk_time_share": 0.364,
+   "dmg": 11233.0,
+   "fight_t": 72.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.64,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s1_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "irene"
+   ],
+   "taken": 394.2,
+   "taken_pct": 2.592,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 17.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.468,
+   "brk_time_share": 0.345,
+   "dmg": 11233.0,
+   "fight_t": 75.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s2_slot1",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "skalter"
+   ],
+   "taken": 153.1,
+   "taken_pct": 1.006,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 15.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 9211.0,
+   "brk_dmg_share": 0.371,
+   "brk_time_share": 0.318,
+   "dmg": 9211.0,
+   "fight_t": 40.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.92,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 114.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s3_slot1",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "exusiai"
+   ],
+   "taken": 37.3,
+   "taken_pct": 0.327,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 14.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.262,
+   "brk_time_share": 0.314,
+   "dmg": 11233.0,
+   "fight_t": 31.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 178.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s4_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "lumen"
+   ],
+   "taken": 4.7,
+   "taken_pct": 0.027,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 18.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.43,
+   "brk_time_share": 0.342,
+   "dmg": 11233.0,
+   "fight_t": 81.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 228.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s5_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "wisadel"
+   ],
+   "taken": 126.6,
+   "taken_pct": 0.555,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 14.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.457,
+   "brk_time_share": 0.326,
+   "dmg": 11233.0,
+   "fight_t": 32.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 12,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s6_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "eyjafjalla"
+   ],
+   "taken": 3.1,
+   "taken_pct": 0.02,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 7,
+   "wall": 18.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.315,
+   "brk_time_share": 0.345,
+   "dmg": 11233.0,
+   "fight_t": 62.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.994,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 165.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s7_slot1",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "lumen"
+   ],
+   "taken": 63.3,
+   "taken_pct": 0.384,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 8,
+   "wall": 15.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.235,
+   "brk_time_share": 0.236,
+   "dmg": 11233.0,
+   "fight_t": 26.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.98,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s8_slot1",
+   "squad": [
+    "skadi",
+    "logos",
+    "kaltsit"
+   ],
+   "taken": 14.8,
+   "taken_pct": 0.097,
+   "win": true
+  },
+  {
+   "boss": "path",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 9,
+   "wall": 21.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11233.0,
+   "brk_dmg_share": 0.406,
+   "brk_time_share": 0.349,
+   "dmg": 11570.0,
+   "fight_t": 93.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "path",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s9_slot1",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "saria"
+   ],
+   "taken": 124.2,
+   "taken_pct": 0.817,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 10,
+   "wall": 19.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.262,
+   "brk_time_share": 0.307,
+   "dmg": 11341.0,
+   "fight_t": 82.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.79,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s10_slot1",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "ulpianus"
+   ],
+   "taken": 194.0,
+   "taken_pct": 1.276,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 11,
+   "wall": 16.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.281,
+   "brk_time_share": 0.161,
+   "dmg": 11341.0,
+   "fight_t": 38.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 12,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s11_slot1",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "logos"
+   ],
+   "taken": 34.0,
+   "taken_pct": 0.223,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 12,
+   "wall": 30.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.666,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.5,
+   "brk_time_share": 0.376,
+   "dmg": 3786.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 168.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 1,
+   "snap": "skadi_m18_s12_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "irene"
+   ],
+   "taken": 448.0,
+   "taken_pct": 2.805,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 13,
+   "wall": 14.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.481,
+   "brk_time_share": 0.206,
+   "dmg": 11341.0,
+   "fight_t": 37.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.77,
+   "leader": "skadi",
+   "level": 12,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s13_slot1",
+   "squad": [
+    "skadi",
+    "siege",
+    "texas"
+   ],
+   "taken": 90.7,
+   "taken_pct": 0.596,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 14,
+   "wall": 16.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.279,
+   "brk_time_share": 0.222,
+   "dmg": 11341.0,
+   "fight_t": 44.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s14_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "logos"
+   ],
+   "taken": 113.6,
+   "taken_pct": 0.747,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 15,
+   "wall": 18.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.304,
+   "brk_time_share": 0.277,
+   "dmg": 11341.0,
+   "fight_t": 70.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.906,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s15_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "gladiia"
+   ],
+   "taken": 135.2,
+   "taken_pct": 0.889,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 16,
+   "wall": 30.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.103,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.112,
+   "brk_time_share": 0.332,
+   "dmg": 10174.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.572,
+   "leader": "skadi",
+   "level": 16,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "timeout",
+   "slot": 1,
+   "snap": "skadi_m18_s16_slot1",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "gladiia"
+   ],
+   "taken": 540.9,
+   "taken_pct": 3.556,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 22.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.271,
+   "brk_time_share": 0.332,
+   "dmg": 11341.0,
+   "fight_t": 123.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 183.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s1_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "irene"
+   ],
+   "taken": 576.6,
+   "taken_pct": 3.791,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 28.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.341,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.583,
+   "brk_time_share": 0.302,
+   "dmg": 7475.0,
+   "fight_t": 162.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m18_s2_slot1",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "skalter"
+   ],
+   "taken": 497.6,
+   "taken_pct": 3.271,
+   "win": false
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 21.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 9299.0,
+   "brk_dmg_share": 0.274,
+   "brk_time_share": 0.238,
+   "dmg": 9299.0,
+   "fight_t": 90.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.791,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 114.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s3_slot1",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "exusiai"
+   ],
+   "taken": 140.8,
+   "taken_pct": 1.234,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 14.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.068,
+   "brk_time_share": 0.099,
+   "dmg": 11341.0,
+   "fight_t": 36.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 178.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s4_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "lumen"
+   ],
+   "taken": 38.9,
+   "taken_pct": 0.219,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 21.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.434,
+   "brk_time_share": 0.266,
+   "dmg": 11341.0,
+   "fight_t": 125.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.976,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 228.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s5_slot1",
+   "squad": [
+    "skadi",
+    "lumen",
+    "wisadel"
+   ],
+   "taken": 379.1,
+   "taken_pct": 1.661,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 19.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.095,
+   "brk_time_share": 0.236,
+   "dmg": 11341.0,
+   "fight_t": 90.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.878,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s6_slot1",
+   "squad": [
+    "skadi",
+    "saria",
+    "eyjafjalla"
+   ],
+   "taken": 313.1,
+   "taken_pct": 2.058,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 7,
+   "wall": 19.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.522,
+   "brk_time_share": 0.319,
+   "dmg": 11341.0,
+   "fight_t": 81.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.896,
+   "leader": "skadi",
+   "level": 14,
+   "max_hp": 165.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s7_slot1",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "lumen"
+   ],
+   "taken": 246.1,
+   "taken_pct": 1.491,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 8,
+   "wall": 16.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.178,
+   "brk_time_share": 0.161,
+   "dmg": 11341.0,
+   "fight_t": 35.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.874,
+   "leader": "skadi",
+   "level": 13,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 1,
+   "snap": "skadi_m18_s8_slot1",
+   "squad": [
+    "skadi",
+    "logos",
+    "kaltsit"
+   ],
+   "taken": 97.5,
+   "taken_pct": 0.641,
+   "win": true
+  },
+  {
+   "boss": "carmen",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 9,
+   "wall": 20.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.689,
+   "boss_maxhp": 11341.0,
+   "brk_dmg_share": 0.237,
+   "brk_time_share": 0.349,
+   "dmg": 3529.0,
+   "fight_t": 104.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 15,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "carmen",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 1,
+   "snap": "skadi_m18_s9_slot1",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "saria"
+   ],
+   "taken": 500.8,
+   "taken_pct": 3.293,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 10,
+   "wall": 15.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.466,
+   "brk_time_share": 0.215,
+   "dmg": 18735.0,
+   "fight_t": 32.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s10_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "ulpianus"
+   ],
+   "taken": 33.8,
+   "taken_pct": 0.222,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 11,
+   "wall": 20.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.195,
+   "boss_maxhp": 21920.0,
+   "brk_dmg_share": 0.433,
+   "brk_time_share": 0.234,
+   "dmg": 17646.0,
+   "fight_t": 45.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s11_slot2",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "logos"
+   ],
+   "taken": 220.1,
+   "taken_pct": 1.447,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 12,
+   "wall": 25.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.851,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.392,
+   "brk_time_share": 0.255,
+   "dmg": 2799.0,
+   "fight_t": 96.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 18,
+   "max_hp": 171.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s12_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "irene"
+   ],
+   "taken": 498.4,
+   "taken_pct": 2.696,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 13,
+   "wall": 20.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.136,
+   "boss_maxhp": 15925.0,
+   "brk_dmg_share": 0.209,
+   "brk_time_share": 0.149,
+   "dmg": 13752.0,
+   "fight_t": 70.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 180.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s13_slot2",
+   "squad": [
+    "skadi",
+    "siege",
+    "texas"
+   ],
+   "taken": 298.6,
+   "taken_pct": 1.808,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 14,
+   "wall": 14.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 18735.0,
+   "fight_t": 18.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 164.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s14_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "logos"
+   ],
+   "taken": 35.3,
+   "taken_pct": 0.232,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 15,
+   "wall": 17.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.624,
+   "brk_time_share": 0.221,
+   "dmg": 18735.0,
+   "fight_t": 47.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 158.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s15_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "gladiia"
+   ],
+   "taken": 100.6,
+   "taken_pct": 0.636,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 16,
+   "wall": 17.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.888,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.037,
+   "brk_time_share": 0.208,
+   "dmg": 2101.0,
+   "fight_t": 43.8,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 18,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s16_slot2",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "gladiia"
+   ],
+   "taken": 279.8,
+   "taken_pct": 1.839,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 18.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.535,
+   "brk_time_share": 0.2,
+   "dmg": 18735.0,
+   "fight_t": 52.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s1_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "irene"
+   ],
+   "taken": 44.4,
+   "taken_pct": 0.292,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 19.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.307,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.726,
+   "brk_time_share": 0.316,
+   "dmg": 12987.0,
+   "fight_t": 55.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 17,
+   "max_hp": 137.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s2_slot2",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "skalter"
+   ],
+   "taken": 250.9,
+   "taken_pct": 1.833,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 19.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 15363.0,
+   "brk_dmg_share": 0.273,
+   "brk_time_share": 0.165,
+   "dmg": 15363.0,
+   "fight_t": 58.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 160.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s3_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "exusiai"
+   ],
+   "taken": 194.4,
+   "taken_pct": 1.704,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 35.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.154,
+   "brk_time_share": 0.287,
+   "dmg": 8221.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 22,
+   "max_hp": 225.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m18_s4_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "lumen"
+   ],
+   "taken": 362.6,
+   "taken_pct": 2.036,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 20.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.352,
+   "brk_time_share": 0.207,
+   "dmg": 18735.0,
+   "fight_t": 81.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.761,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 209.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s5_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "wisadel"
+   ],
+   "taken": 313.4,
+   "taken_pct": 1.374,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 16.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.407,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.526,
+   "brk_time_share": 0.186,
+   "dmg": 11106.0,
+   "fight_t": 29.4,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 18,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s6_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "eyjafjalla"
+   ],
+   "taken": 308.2,
+   "taken_pct": 2.026,
+   "win": false
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 7,
+   "wall": 19.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.396,
+   "brk_time_share": 0.195,
+   "dmg": 18735.0,
+   "fight_t": 46.3,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 19,
+   "max_hp": 165.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s7_slot2",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "lumen"
+   ],
+   "taken": 114.8,
+   "taken_pct": 0.696,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 8,
+   "wall": 13.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.085,
+   "brk_time_share": 0.052,
+   "dmg": 18735.0,
+   "fight_t": 23.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 139.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s8_slot2",
+   "squad": [
+    "skadi",
+    "logos",
+    "kaltsit"
+   ],
+   "taken": 59.6,
+   "taken_pct": 0.392,
+   "win": true
+  },
+  {
+   "boss": "iberia",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 9,
+   "wall": 15.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.856,
+   "boss_maxhp": 18735.0,
+   "brk_dmg_share": 0.164,
+   "brk_time_share": 0.106,
+   "dmg": 2689.0,
+   "fight_t": 28.7,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 17,
+   "max_hp": 190.0,
+   "phases": [
+    [
+     "iberia",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s9_slot2",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "saria"
+   ],
+   "taken": 367.2,
+   "taken_pct": 2.414,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 10,
+   "wall": 16.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.052,
+   "brk_time_share": 0.076,
+   "dmg": 19307.0,
+   "fight_t": 44.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s10_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "ulpianus"
+   ],
+   "taken": 68.8,
+   "taken_pct": 0.452,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 11,
+   "wall": 18.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.388,
+   "boss_maxhp": 20050.0,
+   "brk_dmg_share": 0.426,
+   "brk_time_share": 0.327,
+   "dmg": 12265.0,
+   "fight_t": 52.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s11_slot2",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "logos"
+   ],
+   "taken": 234.6,
+   "taken_pct": 1.542,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 12,
+   "wall": 38.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.41,
+   "brk_time_share": 0.368,
+   "dmg": 6345.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.722,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 171.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m18_s12_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "irene"
+   ],
+   "taken": 467.9,
+   "taken_pct": 2.531,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 13,
+   "wall": 35.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14566.0,
+   "brk_dmg_share": 0.173,
+   "brk_time_share": 0.017,
+   "dmg": 14965.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.967,
+   "leader": "skadi",
+   "level": 23,
+   "max_hp": 180.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m18_s13_slot2",
+   "squad": [
+    "skadi",
+    "siege",
+    "texas"
+   ],
+   "taken": 423.4,
+   "taken_pct": 2.564,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 14,
+   "wall": 14.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.518,
+   "brk_time_share": 0.307,
+   "dmg": 17137.0,
+   "fight_t": 23.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.934,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 164.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s14_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "logos"
+   ],
+   "taken": 47.9,
+   "taken_pct": 0.315,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 15,
+   "wall": 16.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.631,
+   "brk_time_share": 0.309,
+   "dmg": 21659.0,
+   "fight_t": 39.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.943,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 158.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s15_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "gladiia"
+   ],
+   "taken": 54.0,
+   "taken_pct": 0.341,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 16,
+   "wall": 19.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.756,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.531,
+   "brk_time_share": 0.265,
+   "dmg": 4181.0,
+   "fight_t": 45.9,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 18,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s16_slot2",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "gladiia"
+   ],
+   "taken": 312.9,
+   "taken_pct": 2.058,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 16.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.611,
+   "brk_time_share": 0.298,
+   "dmg": 21659.0,
+   "fight_t": 44.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s1_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "irene"
+   ],
+   "taken": 35.6,
+   "taken_pct": 0.234,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 25.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.081,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.374,
+   "brk_time_share": 0.332,
+   "dmg": 15741.0,
+   "fight_t": 89.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 18,
+   "max_hp": 157.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s2_slot2",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "skalter"
+   ],
+   "taken": 404.1,
+   "taken_pct": 2.952,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 15.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14052.0,
+   "brk_dmg_share": 0.566,
+   "brk_time_share": 0.368,
+   "dmg": 14052.0,
+   "fight_t": 17.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 137.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s3_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "exusiai"
+   ],
+   "taken": 9.3,
+   "taken_pct": 0.081,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 37.6,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.397,
+   "brk_time_share": 0.37,
+   "dmg": 9646.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.97,
+   "leader": "skadi",
+   "level": 22,
+   "max_hp": 196.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m18_s4_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "lumen"
+   ],
+   "taken": 148.8,
+   "taken_pct": 0.836,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 19.9,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.574,
+   "brk_time_share": 0.331,
+   "dmg": 17137.0,
+   "fight_t": 58.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.827,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 209.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s5_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "wisadel"
+   ],
+   "taken": 196.7,
+   "taken_pct": 0.862,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 20.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.272,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.614,
+   "brk_time_share": 0.32,
+   "dmg": 12481.0,
+   "fight_t": 51.2,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 19,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s6_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "eyjafjalla"
+   ],
+   "taken": 491.9,
+   "taken_pct": 3.234,
+   "win": false
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 7,
+   "wall": 19.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.457,
+   "brk_time_share": 0.202,
+   "dmg": 25705.0,
+   "fight_t": 65.9,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 165.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s7_slot2",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "lumen"
+   ],
+   "taken": 66.1,
+   "taken_pct": 0.4,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 8,
+   "wall": 16.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.633,
+   "brk_time_share": 0.299,
+   "dmg": 21659.0,
+   "fight_t": 31.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 139.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s8_slot2",
+   "squad": [
+    "skadi",
+    "logos",
+    "kaltsit"
+   ],
+   "taken": 46.3,
+   "taken_pct": 0.305,
+   "win": true
+  },
+  {
+   "boss": "bishop+archon",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 9,
+   "wall": 24.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.67,
+   "boss_maxhp": 17137.0,
+   "brk_dmg_share": 0.492,
+   "brk_time_share": 0.336,
+   "dmg": 5658.0,
+   "fight_t": 82.6,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 18,
+   "max_hp": 190.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "archon",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s9_slot2",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "saria"
+   ],
+   "taken": 784.0,
+   "taken_pct": 5.155,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 10,
+   "wall": 15.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.0,
+   "brk_time_share": 0.0,
+   "dmg": 16356.0,
+   "fight_t": 32.5,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s10_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "ulpianus"
+   ],
+   "taken": 40.5,
+   "taken_pct": 0.266,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 11,
+   "wall": 24.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.082,
+   "boss_maxhp": 17265.0,
+   "brk_dmg_share": 0.61,
+   "brk_time_share": 0.235,
+   "dmg": 23643.0,
+   "fight_t": 86.1,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s11_slot2",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "logos"
+   ],
+   "taken": 345.3,
+   "taken_pct": 2.27,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 12,
+   "wall": 36.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.397,
+   "brk_time_share": 0.227,
+   "dmg": 14963.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.934,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 171.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m18_s12_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "irene"
+   ],
+   "taken": 506.0,
+   "taken_pct": 2.737,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 13,
+   "wall": 27.1,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12543.0,
+   "brk_dmg_share": 0.339,
+   "brk_time_share": 0.171,
+   "dmg": 18208.0,
+   "fight_t": 115.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.312,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 208.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s13_slot2",
+   "squad": [
+    "skadi",
+    "siege",
+    "texas"
+   ],
+   "taken": 391.7,
+   "taken_pct": 2.373,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 14,
+   "wall": 16.2,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.266,
+   "brk_time_share": 0.081,
+   "dmg": 18089.0,
+   "fight_t": 37.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 164.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s14_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "logos"
+   ],
+   "taken": 42.6,
+   "taken_pct": 0.28,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 15,
+   "wall": 20.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.206,
+   "brk_time_share": 0.117,
+   "dmg": 25467.0,
+   "fight_t": 84.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.952,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 158.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s15_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "gladiia"
+   ],
+   "taken": 153.4,
+   "taken_pct": 0.97,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 16,
+   "wall": 16.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.729,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.466,
+   "brk_time_share": 0.21,
+   "dmg": 3995.0,
+   "fight_t": 28.9,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 17,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s16_slot2",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "gladiia"
+   ],
+   "taken": 237.2,
+   "taken_pct": 1.559,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 1,
+   "wall": 22.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.305,
+   "brk_time_share": 0.11,
+   "dmg": 25467.0,
+   "fight_t": 89.8,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 22,
+   "max_hp": 172.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s1_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "irene"
+   ],
+   "taken": 92.4,
+   "taken_pct": 0.608,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 2,
+   "wall": 27.8,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.233,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.4,
+   "brk_time_share": 0.256,
+   "dmg": 17975.0,
+   "fight_t": 105.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 18,
+   "max_hp": 137.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s2_slot2",
+   "squad": [
+    "skadi",
+    "hoshiguma",
+    "skalter"
+   ],
+   "taken": 390.3,
+   "taken_pct": 2.851,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 3,
+   "wall": 15.3,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 12100.0,
+   "brk_dmg_share": 0.338,
+   "brk_time_share": 0.212,
+   "dmg": 12100.0,
+   "fight_t": 21.2,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 137.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s3_slot2",
+   "squad": [
+    "skadi",
+    "kaltsit",
+    "exusiai"
+   ],
+   "taken": 12.5,
+   "taken_pct": 0.11,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 4,
+   "wall": 38.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.401,
+   "brk_time_share": 0.15,
+   "dmg": 15222.0,
+   "fight_t": 180.0,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 22,
+   "max_hp": 196.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "retreat",
+   "slot": 2,
+   "snap": "skadi_m18_s4_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "lumen"
+   ],
+   "taken": 451.7,
+   "taken_pct": 2.536,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 5,
+   "wall": 19.0,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.486,
+   "brk_time_share": 0.213,
+   "dmg": 18089.0,
+   "fight_t": 60.7,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 20,
+   "max_hp": 209.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s5_slot2",
+   "squad": [
+    "skadi",
+    "lumen",
+    "wisadel"
+   ],
+   "taken": 165.1,
+   "taken_pct": 0.724,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 6,
+   "wall": 33.5,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.22,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.367,
+   "brk_time_share": 0.093,
+   "dmg": 18172.0,
+   "fight_t": 144.0,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 152.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s6_slot2",
+   "squad": [
+    "skadi",
+    "saria",
+    "eyjafjalla"
+   ],
+   "taken": 1180.8,
+   "taken_pct": 7.764,
+   "win": false
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 7,
+   "wall": 17.7,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.411,
+   "brk_time_share": 0.227,
+   "dmg": 18089.0,
+   "fight_t": 43.6,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 0.912,
+   "leader": "skadi",
+   "level": 19,
+   "max_hp": 165.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s7_slot2",
+   "squad": [
+    "skadi",
+    "wisadel",
+    "lumen"
+   ],
+   "taken": 108.8,
+   "taken_pct": 0.659,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 8,
+   "wall": 15.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.0,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.203,
+   "brk_time_share": 0.2,
+   "dmg": 18089.0,
+   "fight_t": 32.4,
+   "fp_diff": [],
+   "hp0_frac": 1.0,
+   "hp_end_frac": 1.0,
+   "leader": "skadi",
+   "level": 21,
+   "max_hp": 139.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "win",
+   "slot": 2,
+   "snap": "skadi_m18_s8_slot2",
+   "squad": [
+    "skadi",
+    "logos",
+    "kaltsit"
+   ],
+   "taken": 61.3,
+   "taken_pct": 0.403,
+   "win": true
+  },
+  {
+   "boss": "bishop+immortal",
+   "op": "skadi",
+   "meta": 18,
+   "seed": 9,
+   "wall": 18.4,
+   "script_errors": 0,
+   "first_error": "",
+   "boss_hp_left": 0.57,
+   "boss_maxhp": 14757.0,
+   "brk_dmg_share": 0.555,
+   "brk_time_share": 0.253,
+   "dmg": 6339.0,
+   "fight_t": 49.6,
+   "fp_diff": [],
+   "hp0_frac": 0.999,
+   "hp_end_frac": 0.0,
+   "leader": "skadi",
+   "level": 18,
+   "max_hp": 190.0,
+   "phases": [
+    [
+     "bishop",
+     1,
+     0.0
+    ],
+    [
+     "immortal",
+     1,
+     0.0
+    ]
+   ],
+   "result": "dead",
+   "slot": 2,
+   "snap": "skadi_m18_s9_slot2",
+   "squad": [
+    "skadi",
+    "exusiai",
+    "saria"
+   ],
+   "taken": 511.2,
+   "taken_pct": 3.361,
+   "win": false
+  }
+ ]
+}
