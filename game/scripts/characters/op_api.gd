@@ -23,21 +23,9 @@ var cv:
 ## 离 origin（缺省为主控位置）最近的 n 个活着的敌人，max_dist 以内，按指挥优先级排序（prio_order；队长恒为 Boss 优先）。
 ## Boss 优先（缺省；2026-09-29 协调人：普通档打不动 3:30 的第一个 Boss，输出被身边小怪抢走）：balance ai/boss_focus（缺省 1 = 开）时，
 ## max_dist 内有可受击的 Boss 就排到第一个；部件（e.part）优先照旧；主控 ai/boss_focus_guard（60）内有小怪贴脸时不强制（护主）
+## 只剩无敌目标时照常返回它（普攻照打、不扣血；10-28 用户：「面对无敌的敌人可以继续普通攻击，但是可以不放技能」，
+## 技能另由 has_hittable / data_operator.skill_gate_ok 暂缓）
 func nearest_enemies(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
-	var out: Array = _nearest_pick(n, max_dist, origin)
-	if hold_fire() and not out.is_empty() and not hittable(out[-1]):
-		out = out.filter(func(e): return hittable(e))
-	return out
-
-
-## 队长自动攻击不打打不动的（10-28 用户：「队长自己的自动攻击也得收到这个影响，否则能天使这种一梭子上去不是也没用吗」）：
-## 射程里只剩无敌目标时返回空——不出手、不放技能，子代 / 杂兵一进射程就打。队友照旧（只剩无敌目标时仍打，10-28 用户定 B）；
-## 手动瞄准（aim_targets 瞄准锥）不经过这里
-func hold_fire() -> bool:
-	return bool(get("is_leader"))
-
-
-func _nearest_pick(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Array:
 	var o: Vector2 = g.ppos if origin == Vector2.INF else origin
 	var cands: Array = []
 	# 主轴目标（docs/142b §1.0，10-25）：射程内有部件（泡影茧、伊莎玛拉连线海嗣、伊祖米克子代 / 茧、塑路者截停的分形……）就先打最近的部件，
@@ -89,6 +77,8 @@ func _nearest_pick(n: int, max_dist: float, origin: Vector2 = Vector2.INF) -> Ar
 ## 囊海爬行者鼓胀、假死、潜地都算打不动。自动选敌（nearest_enemies / 突击走位 / 能天使 / 德克萨斯 / 随机目标）把它们排到最后，
 ## 范围里只有它们时照旧打；队长手动瞄准（aim_targets 的瞄准锥）不受影响
 func hittable(e: Dictionary) -> bool:
+	if e.boss and e.get("invuln", false) and not e.dead and e.get("cocoon_t", 0.0) > 0.0 and e.get("shell_hp", 0.0) > 0.0:
+		return true   # 偏执泡影结茧：本体无敌但外壳吃伤害（paranoia.absorb_damage），要打破——算打得动，技能照放
 	if e.dead or e.get("invuln", false) or e.get("coma", false) or e.get("under", false) or e.get("burst_w", 0.0) > 0.0:
 		return false
 	if e.boss:
@@ -99,6 +89,16 @@ func hittable(e: Dictionary) -> bool:
 		if bh != null and bh.block_damage(e):
 			return false
 	return true
+
+
+## max_dist 内有没有打得动的敌人（技能暂缓用，10-28）：先看 nearest_enemies 的第一个（打得动的排在前），不是再放宽到最近 24 个
+func has_hittable(max_dist: float, origin: Vector2 = Vector2.INF) -> bool:
+	var ne: Array = nearest_enemies(1, max_dist, origin)
+	if ne.is_empty():
+		return false
+	if hittable(ne[0]):
+		return true
+	return g.enemies_sys.nearest(24, max_dist, origin).any(func(e): return hittable(e))
 
 
 ## 稳定重排：能受击的在前、打不动的垫底；能受击的里「喂食」中的子代（伊祖米克学习期游向本体的水母，docs/142b 主轴目标）提到最前
@@ -212,7 +212,7 @@ func focusable_boss(e: Dictionary) -> bool:
 func random_enemy(max_dist: float, origin: Vector2 = Vector2.INF) -> Dictionary:
 	var c: Array = g.enemies_sys.in_range(max_dist, origin)
 	var ch: Array = c.filter(func(e): return hittable(e))
-	if not ch.is_empty() or hold_fire():
+	if not ch.is_empty():
 		c = ch   # 打不动的不抽（只剩它们时照旧）
 	return {} if c.is_empty() else c[g.rng.randi_range(0, c.size() - 1)]
 

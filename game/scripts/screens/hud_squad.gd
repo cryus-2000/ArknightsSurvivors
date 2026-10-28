@@ -62,10 +62,11 @@ func _frame_sig(br: Vector2) -> Array:
 			if active > 0.0:
 				frac = active / it[4]
 			var rdy: bool = o.is_manual(k) and it[2] and manual_castable(o, k)
+			var lk: bool = rdy and o.invuln_only(k)
 			anim = anim or rdy
 			var sr := Rect2(Vector2(x + k * (SQ_SK + 6.0), sk_y), Vector2(SQ_SK, SQ_SK))
 			sig.append([it[2], it[6], it[0], it.size() > 9 and it[9] != "", h.qpx(SQ_SK * frac), int(ceil(active)) if active > 0.0 else -1,
-				o.perm[k], o.rej.has(k), o.is_manual(k), rdy, sr.has_point(mp)])
+				o.perm[k], o.rej.has(k), o.is_manual(k), rdy, lk, sr.has_point(mp)])
 	sig.append(g.t if anim else 0.0)
 	return sig
 
@@ -241,6 +242,9 @@ func draw_squad_hud(br: Vector2, part := 0) -> void:
 				if rdy:
 					var pulse: float = 0.5 + 0.5 * sin(g.t * 6.0)
 					fg.frame(sr.grow(2.0 + 1.5 * pulse), Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.45 + 0.4 * pulse), 2.0)
+				if rdy and o.invuln_only(k):   # 目标无敌（10-28）：图标压暗 + 右下锁标，只提示，玩家仍可强制放
+					fg.rect(sr, Color(0.04, 0.05, 0.07, 0.55))
+					lock_glyph(fg, sr.end - Vector2(8, 8))
 				if not g.touch.active:
 					txt.append(func(): UI.ctext(g.hud, g.font, Vector2(sr.position.x - 12, sr.position.y - 4), Pad.hint("Q/E", "Ⓐ/Ⓨ"), 10, UI.TEXT if rdy else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, sr.size.x + 24))
 			# 悬停：技能名 + 解锁阶段
@@ -344,6 +348,14 @@ func draw_manual_hint() -> void:
 
 ## 手动技能此刻「能放」（技能格呼吸框、触屏技能键、首次提示共用）：带方向的技能（JSON "aim": true）只要朝某个方向能放就算，
 ## 这样附近没敌人时乌尔比安 S3 也亮——给方向就能掷向空地当位移；键鼠站着不动按 Q 仍是自动瞄准，没目标时角色自己飘字说原因
+## 小锁标（手动技能「目标无敌」提示）：c = 锁身中心
+func lock_glyph(t, c: Vector2) -> void:
+	var col := Color(0.92, 0.94, 0.96, 0.95)
+	t.frame(Rect2(c + Vector2(-3, -9), Vector2(6, 6)), col, 1.5)
+	t.rect(Rect2(c + Vector2(-5, -4), Vector2(10, 8)), col)
+	t.rect(Rect2(c + Vector2(-1, -2), Vector2(2, 3)), Color(0.04, 0.05, 0.07))
+
+
 func manual_castable(o, k: int) -> bool:
 	return o.manual_ready(k, Vector2.RIGHT if o.manual_aims(k) else Vector2.ZERO)
 

@@ -424,12 +424,13 @@ func _draw_skill_button(hud: CanvasItem, font: Font, c: Vector2, sc := 1.0) -> v
 	var need: float = ld.sp_need(i)
 	var frac: float = clampf(ld.sp[i] / need, 0.0, 1.0) if need > 0.0 else 1.0
 	var ready: bool = g.hud_view.squad.manual_castable(ld, i)
+	var lk: bool = ready and ld.invuln_only(i)   # 目标无敌（10-28）：图标压暗 + 锁标，仍可按
 	var held: bool = skill_id >= 0 or flash.get("skill", 0.0) > 0.0
 	_circ(hud, c, r, Color(0.05, 0.12, 0.16, 0.8 if ready or held else 0.5))
 	var tx: Texture2D = g.tex.get(ld.skill_def(i).get("icon", ""))
 	if tx != null:
 		var s := r * 1.2
-		_icon(hud, tx, Rect2(c - Vector2(s, s) / 2.0, Vector2(s, s)), Color.WHITE if ready else Color(0.55, 0.58, 0.62))
+		_icon(hud, tx, Rect2(c - Vector2(s, s) / 2.0, Vector2(s, s)), Color.WHITE if ready and not lk else Color(0.55, 0.58, 0.62))
 	else:
 		_tx(func(): UI.text(hud, font, c + Vector2(-40, 7), ld.skill_def(i).get("name", "技能").substr(0, 2), 16, Color(1, 1, 1, 0.9 if ready else 0.5), HORIZONTAL_ALIGNMENT_CENTER, 80))
 	_arc(hud, c, r, -PI / 2.0, -PI / 2.0 + TAU * frac, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.95 if ready else 0.5), 3.0)
@@ -437,6 +438,12 @@ func _draw_skill_button(hud: CanvasItem, font: Font, c: Vector2, sc := 1.0) -> v
 		var pulse: float = 0.5 + 0.5 * sin(g.t * 6.0)
 		_arc(hud, c, r + 4.0 + 2.0 * pulse, 0.0, TAU, 40, Color(UI.CYAN.r, UI.CYAN.g, UI.CYAN.b, 0.35 + 0.4 * pulse), 2.0)
 	_tx(func(): UI.text(hud, font, c + Vector2(-40, r + 17), ld.skill_def(i).get("name", ""), 13, UI.TEXT if ready else UI.SUB, HORIZONTAL_ALIGNMENT_CENTER, 80))
+	if lk:
+		_seal(hud)
+		var lc: Vector2 = c + Vector2(r * 0.62, r * 0.62)
+		_circ(hud, lc, 11.0, Color(0.04, 0.05, 0.07, 0.85))
+		_arc(hud, lc + Vector2(0, -3), 4.0, PI, TAU, 10, Color(0.92, 0.94, 0.96), 2.0)
+		_circ(hud, lc + Vector2(0, 2), 5.0, Color(0.92, 0.94, 0.96))
 	# 按住拖动：按钮上画小摇杆（外圈 = 拖动示意范围，内圈 = 死区，拖回内圈 = 自动瞄准）
 	if skill_id >= 0 and ld.manual_aims(i):
 		_seal(hud)   # 同上

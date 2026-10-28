@@ -283,16 +283,24 @@ func _ready() -> void:
 	g.frame_n += 1
 	check(rp._izu_intercept() == null, "intercept: stops when all offspring are cleared")
 	rp.slot = 0
-	# 队长自动攻击（10-28 用户）：只剩无敌目标时不出手，有能打的照常
+	# 队长普攻照打无敌目标、技能暂缓（10-28 用户：「面对无敌的敌人可以继续普通攻击，但是可以不放技能，等不无敌了再放」）
 	var lp := RealProbe.new(g, {"id":"lp", "class":"狙击"})
 	lp.is_leader = true
 	g.enemies = [izu]
 	g.frame_n += 1
-	check(lp.nearest_enemies(2, 400.0).is_empty(), "leader auto-attack holds fire on invulnerable-only targets")
+	ne = lp.nearest_enemies(2, 400.0)
+	check(ne.size() == 1 and is_same(ne[0], izu), "leader auto-attack keeps firing on an invulnerable-only target")
+	check(not lp.has_hittable(400.0), "skill hold: only invulnerable targets in range -> nothing hittable")
 	var lk := enemy(Vector2(200, 0))
 	lk["feed"] = true
 	g.enemies = [izu, lk]
 	ne = lp.nearest_enemies(2, 400.0)
-	check(ne.size() == 1 and is_same(ne[0], lk), "leader auto-attack hits the offspring, never the invulnerable boss")
+	check(ne.size() == 2 and is_same(ne[0], lk), "leader auto-attack: offspring first, invulnerable boss after")
+	check(lp.has_hittable(400.0), "skill hold: a hittable offspring in range releases the skill")
+	g.enemies = [izu]
+	izu["invuln"] = false
+	g.frame_n += 1
+	check(lp.has_hittable(400.0), "skill hold: boss no longer invulnerable -> hittable")
+	izu["invuln"] = true
 	print("COMMAND_AI checks=%d failures=%d" % [checks, failures])
 	get_tree().quit(1 if failures else 0)
